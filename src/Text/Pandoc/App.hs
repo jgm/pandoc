@@ -65,7 +65,7 @@ import System.Directory (Permissions (..), doesFileExist, findExecutable,
 import System.Environment (getArgs, getEnvironment, getProgName)
 import System.Exit (ExitCode (..), exitSuccess)
 import System.FilePath
-import System.IO (stdout)
+import System.IO (stdout, nativeNewline, Newline(..))
 import System.IO.Error (isDoesNotExistError)
 import Text.Pandoc
 import Text.Pandoc.Builder (setMeta)
@@ -113,8 +113,8 @@ convertWithOpts opts = do
   let verbosity = optVerbosity opts
 
   when (optDumpArgs opts) $
-    do UTF8.hPutStrLn stdout outputFile
-       mapM_ (UTF8.hPutStrLn stdout) args
+    do UTF8.hPutStrLn stdout nativeNewline outputFile
+       mapM_ (UTF8.hPutStrLn stdout nativeNewline) args
        exitSuccess
 
   epubMetadata <- case optEpubMetadata opts of
@@ -411,6 +411,8 @@ convertWithOpts opts = do
                    return $ ("csl", jatsEncoded) : optMetadata opts
                  else return $ optMetadata opts
 
+  let eol = fromMaybe nativeNewline $ optEol opts
+
   runIO' $ do
     (doc, media) <- withMediaBag $ sourceToDoc sources >>=
               (   (if isJust (optExtractMedia opts)
@@ -463,7 +465,7 @@ convertWithOpts opts = do
                                      else id
                 output <- f writerOptions doc
                 selfcontain (output ++ ['\n' | not standalone]) >>=
-                    writerFn outputFile . handleEntities
+                    writerFn eol outputFile . handleEntities
 
 type Transform = Pandoc -> Pandoc
 
@@ -567,6 +569,7 @@ data Opt = Opt
     , optIncludeBeforeBody     :: [FilePath]       -- ^ Files to include before
     , optIncludeAfterBody      :: [FilePath]       -- ^ Files to include after body
     , optIncludeInHeader       :: [FilePath]       -- ^ Files to include in header
+    , optEol                   :: Maybe Newline    -- ^ Enforce line-endings
     }
 
 -- | Defaults for command-line options.
@@ -635,6 +638,7 @@ defaultOpts = Opt
     , optIncludeBeforeBody     = []
     , optIncludeAfterBody      = []
     , optIncludeInHeader       = []
+    , optEol                   = Nothing
     }
 
 addMetadata :: (String, String) -> Pandoc -> Pandoc
@@ -783,9 +787,9 @@ writeFnBinary :: MonadIO m => FilePath -> B.ByteString -> m ()
 writeFnBinary "-" = liftIO . B.putStr
 writeFnBinary f   = liftIO . B.writeFile (UTF8.encodePath f)
 
-writerFn :: MonadIO m => FilePath -> String -> m ()
-writerFn "-" = liftIO . UTF8.putStr
-writerFn f   = liftIO . UTF8.writeFile f
+writerFn :: MonadIO m => Newline -> FilePath -> String -> m ()
+writerFn eol "-" = liftIO . UTF8.putStr eol
+writerFn eol f   = liftIO . UTF8.writeFile eol f
 
 lookupHighlightStyle :: Maybe String -> IO (Maybe Style)
 lookupHighlightStyle Nothing = return Nothing
@@ -934,7 +938,7 @@ options =
                   (\arg _ -> do
                      templ <- getDefaultTemplate Nothing arg
                      case templ of
-                          Right t -> UTF8.hPutStr stdout t
+                          Right t -> UTF8.hPutStr stdout nativeNewline t
                           Left e  -> error $ show e
                      exitSuccess)
                   "FORMAT")
@@ -957,6 +961,18 @@ options =
                                         "dpi must be a number greater than 0")
                   "NUMBER")
                  "" -- "Dpi (default 96)"
+
+    , Option "" ["eol"]
+                 (ReqArg
+                  (\arg opt ->
+                    case toLower <$> arg of
+                      "crlf" -> return opt { optEol = Just CRLF }
+                      "lf"   -> return opt { optEol = Just LF }
+                      -- mac-syntax (cr) is not supported in ghc-base.
+                      _      -> E.throwIO $ PandocOptionError
+                                "--eol must be one of crlf (Windows), lf (Unix)")
+                  "NUMBER")
+                 "" -- "EOL (default OS-dependent)"
 
     , Option "" ["wrap"]
                  (ReqArg
@@ -1377,7 +1393,7 @@ options =
                            map (\c -> ['-',c]) shorts ++
                            map ("--" ++) longs
                      let allopts = unwords (concatMap optnames options)
-                     UTF8.hPutStrLn stdout $ printf tpl allopts
+                     UTF8.hPutStrLn stdout nativeNewline $ printf tpl allopts
                          (unwords readers'names)
                          (unwords writers'names)
                          (unwords $ map fst highlightingStyles)
@@ -1388,14 +1404,14 @@ options =
     , Option "" ["list-input-formats"]
                  (NoArg
                   (\_ -> do
-                     mapM_ (UTF8.hPutStrLn stdout) readers'names
+                     mapM_ (UTF8.hPutStrLn stdout nativeNewline) readers'names
                      exitSuccess ))
                  ""
 
     , Option "" ["list-output-formats"]
                  (NoArg
                   (\_ -> do
-                     mapM_ (UTF8.hPutStrLn stdout) writers'names
+                     mapM_ (UTF8.hPutStrLn stdout nativeNewline) writers'names
                      exitSuccess ))
                  ""
 
@@ -1406,7 +1422,7 @@ options =
                                        if extensionEnabled x pandocExtensions
                                           then " +"
                                           else " -"
-                     mapM_ (UTF8.hPutStrLn stdout . showExt)
+                     mapM_ (UTF8.hPutStrLn stdout nativeNewline . showExt)
                                ([minBound..maxBound] :: [Extension])
                      exitSuccess ))
                  ""
@@ -1419,14 +1435,14 @@ options =
                                  , sShortname s `notElem`
                                     [T.pack "Alert", T.pack "Alert_indent"]
                                  ]
-                     mapM_ (UTF8.hPutStrLn stdout) langs
+                     mapM_ (UTF8.hPutStrLn stdout nativeNewline) langs
                      exitSuccess ))
                  ""
 
     , Option "" ["list-highlight-styles"]
                  (NoArg
                   (\_ -> do
-                     mapM_ (UTF8.hPutStrLn stdout . fst) highlightingStyles
+                     mapM_ (UTF8.hPutStrLn stdout nativeNewline . fst) highlightingStyles
                      exitSuccess ))
                  ""
 
@@ -1438,7 +1454,7 @@ options =
                             (getAppUserDataDirectory "pandoc")
                             (\e -> let _ = (e :: E.SomeException)
                                    in  return "")
-                     UTF8.hPutStrLn stdout (prg ++ " " ++ pandocVersion ++
+                     UTF8.hPutStrLn stdout nativeNewline (prg ++ " " ++ pandocVersion ++
                        compileInfo ++ "\nDefault user data directory: " ++
                        defaultDatadir ++ copyrightMessage)
                      exitSuccess ))
@@ -1448,7 +1464,7 @@ options =
                  (NoArg
                   (\_ -> do
                      prg <- getProgName
-                     UTF8.hPutStr stdout (usageMessage prg options)
+                     UTF8.hPutStr stdout nativeNewline (usageMessage prg options)
                      exitSuccess ))
                  "" -- "Show help"
 

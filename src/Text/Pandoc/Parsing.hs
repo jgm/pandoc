@@ -186,6 +186,7 @@ import Text.Pandoc.Builder (Blocks, Inlines, rawBlock, HasMeta(..), trimInlines)
 import qualified Text.Pandoc.Builder as B
 import Text.Pandoc.XML (fromEntities)
 import qualified Text.Pandoc.UTF8 as UTF8 (putStrLn)
+import System.IO (nativeNewline)
 import Text.Parsec hiding (token)
 import Text.Parsec.Pos (newPos)
 import Data.Char ( toLower, toUpper, ord, chr, isAscii, isAlphaNum,
@@ -964,7 +965,7 @@ testStringWith :: (Show a)
                => ParserT [Char] ParserState Identity a
                -> [Char]
                -> IO ()
-testStringWith parser str = UTF8.putStrLn $ show $
+testStringWith parser str = UTF8.putStrLn nativeNewline $ show $
                             readWith parser defaultParserState str
 
 -- | Parsing options.

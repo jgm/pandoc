@@ -61,23 +61,23 @@ readFile f = do
   h <- openFile (encodePath f) ReadMode
   hGetContents h
 
-writeFile :: FilePath -> String -> IO ()
-writeFile f s = withFile (encodePath f) WriteMode $ \h -> hPutStr h s
+writeFile :: Newline -> FilePath -> String -> IO ()
+writeFile eol f s = withFile (encodePath f) WriteMode $ \h -> hPutStr h eol s
 
 getContents :: IO String
 getContents = hGetContents stdin
 
-putStr :: String -> IO ()
-putStr s = hPutStr stdout s
+putStr :: Newline -> String -> IO ()
+putStr eol s = hPutStr stdout eol s
 
-putStrLn :: String -> IO ()
-putStrLn s = hPutStrLn stdout s
+putStrLn :: Newline -> String -> IO ()
+putStrLn eol s = hPutStrLn stdout eol s
 
-hPutStr :: Handle -> String -> IO ()
-hPutStr h s = hSetEncoding h utf8 >> IO.hPutStr h s
+hPutStr :: Handle -> Newline -> String -> IO ()
+hPutStr h eol s = hSetNewlineMode h (NewlineMode eol eol) >> hSetEncoding h utf8 >> IO.hPutStr h s
 
-hPutStrLn :: Handle -> String -> IO ()
-hPutStrLn h s = hSetEncoding h utf8 >> IO.hPutStrLn h s
+hPutStrLn :: Handle -> Newline -> String -> IO ()
+hPutStrLn h eol s = hSetNewlineMode h (NewlineMode eol eol) >> hSetEncoding h utf8 >> IO.hPutStrLn h s
 
 hGetContents :: Handle -> IO String
 hGetContents = fmap toString . B.hGetContents

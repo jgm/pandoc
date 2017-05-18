@@ -5,6 +5,7 @@ import Prelude hiding (readFile)
 import System.Exit
 import System.FilePath (joinPath, splitDirectories, (<.>), (</>))
 import System.IO.Temp (withTempFile)
+import System.IO (nativeNewline)
 import System.Process (runProcess, waitForProcess)
 import Test.Tasty (TestTree, testGroup)
 import Test.Tasty.Golden.Advanced (goldenTest)
@@ -245,7 +246,7 @@ testWithNormalize normalizer testname opts inp norm =
                            if null errcontents
                               then ""
                               else '\n':errcontents
-        updateGolden = UTF8.writeFile norm
+        updateGolden = UTF8.writeFile nativeNewline norm
         options = ["--quiet", "--data-dir", ".." </> "data"] ++ [inp] ++ opts
 
 compareValues :: FilePath -> [String] -> String -> String -> IO (Maybe String)

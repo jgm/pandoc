@@ -48,7 +48,7 @@ import System.Directory
 import System.Environment
 import System.Exit (ExitCode (..))
 import System.FilePath
-import System.IO (stdout)
+import System.IO (stdout, nativeNewline)
 import System.IO.Temp (withTempDirectory, withTempFile)
 import Text.Pandoc.Definition
 import Text.Pandoc.MediaBag
@@ -228,7 +228,7 @@ runTeXProgram :: Verbosity -> String -> [String] -> Int -> Int -> FilePath
 runTeXProgram verbosity program args runNumber numRuns tmpDir source = do
     let file = tmpDir </> "input.tex"
     exists <- doesFileExist file
-    unless exists $ UTF8.writeFile file source
+    unless exists $ UTF8.writeFile nativeNewline file source
 #ifdef _WINDOWS
     -- note:  we want / even on Windows, for TexLive
     let tmpDir' = changePathSeparators tmpDir
@@ -307,7 +307,7 @@ html2pdf  :: Verbosity    -- ^ Verbosity level
 html2pdf verbosity args source = do
   file <- withTempFile "." "html2pdf.html" $ \fp _ -> return fp
   pdfFile <- withTempFile "." "html2pdf.pdf" $ \fp _ -> return fp
-  UTF8.writeFile file source
+  UTF8.writeFile nativeNewline file source
   let programArgs = args ++ [file, pdfFile]
   env' <- getEnvironment
   when (verbosity >= INFO) $ do
@@ -346,7 +346,7 @@ context2pdf :: Verbosity    -- ^ Verbosity level
             -> IO (Either ByteString ByteString)
 context2pdf verbosity tmpDir source = inDirectory tmpDir $ do
   let file = "input.tex"
-  UTF8.writeFile file source
+  UTF8.writeFile nativeNewline file source
 #ifdef _WINDOWS
   -- note:  we want / even on Windows, for TexLive
   let tmpDir' = changePathSeparators tmpDir
