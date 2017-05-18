@@ -961,8 +961,8 @@ tests =
                   ]
 
       , "Not a Horizontal Rule" =:
-          "----- five dashes" =?>
-          (para $ spcSep [ "-----", "five", "dashes" ])
+          "----- em and en dash" =?>
+          para "\8212\8211 em and en dash"
 
       , "Comment Block" =:
           unlines [ "#+BEGIN_COMMENT"

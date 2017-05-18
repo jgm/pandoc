@@ -862,24 +862,29 @@ macro = try $ do
 
 smart :: PandocMonad m => OrgParser m (F Inlines)
 smart = do
-  guardEnabled Ext_smart
   doubleQuoted <|> singleQuoted <|>
     choice (map (return <$>) [orgApostrophe, orgDash, orgEllipses])
   where
     orgDash = do
-      guard =<< getExportSetting exportSpecialStrings
+      guardOrSmartEnabled =<< getExportSetting exportSpecialStrings
       dash <* updatePositions '-'
     orgEllipses = do
-      guard =<< getExportSetting exportSpecialStrings
+      guardOrSmartEnabled =<< getExportSetting exportSpecialStrings
       ellipses <* updatePositions '.'
-    orgApostrophe =
-          (char '\'' <|> char '\8217') <* updateLastPreCharPos
-                                       <* updateLastForbiddenCharPos
-                                       *> return (B.str "\x2019")
+    orgApostrophe = do
+      guardEnabled Ext_smart
+      (char '\'' <|> char '\8217') <* updateLastPreCharPos
+                                   <* updateLastForbiddenCharPos
+      return (B.str "\x2019")
+
+guardOrSmartEnabled :: PandocMonad m => Bool -> OrgParser m ()
+guardOrSmartEnabled b = do
+  smartExtension <- extensionEnabled Ext_smart <$> getOption readerExtensions
+  guard (b || smartExtension)
 
 singleQuoted :: PandocMonad m => OrgParser m (F Inlines)
 singleQuoted = try $ do
-  guard =<< getExportSetting exportSmartQuotes
+  guardOrSmartEnabled =<< getExportSetting exportSmartQuotes
   singleQuoteStart
   updatePositions '\''
   withQuoteContext InSingleQuote $
@@ -891,7 +896,7 @@ singleQuoted = try $ do
 -- in the same paragraph.
 doubleQuoted :: PandocMonad m => OrgParser m (F Inlines)
 doubleQuoted = try $ do
-  guard =<< getExportSetting exportSmartQuotes
+  guardOrSmartEnabled =<< getExportSetting exportSmartQuotes
   doubleQuoteStart
   updatePositions '"'
   contents <- mconcat <$> many (try $ notFollowedBy doubleQuoteEnd >> inline)
