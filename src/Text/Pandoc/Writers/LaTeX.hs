@@ -1062,6 +1062,9 @@ inlineToLaTeX (Link _ txt (src, _)) =
                 src' <- stringToLaTeX URLString (escapeURI src)
                 return $ text ("\\href{" ++ src' ++ "}{") <>
                          contents <> char '}'
+inlineToLaTeX il@(Image _ _ ('d':'a':'t':'a':':':_, _)) = do
+  report $ InlineNotRendered il
+  return empty
 inlineToLaTeX (Image attr _ (source, _)) = do
   setEmptyLine False
   modify $ \s -> s{ stGraphics = True }
