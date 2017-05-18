@@ -5,8 +5,8 @@ environment:
     STACK_YAML: "c:\\stack\\stack.pkg.yaml"
     WIXBIN: "c:\\Program Files (x86)\\WiX Toolset v3.10\\bin"
   matrix:
-    STACK_VERSION: windows-i386
-    STACK_VERSION: windows-x86_64
+  - STACK_VERSION: 'windows-i386'
+  - STACK_VERSION: 'windows-x86_64'
 
 cache:
   - "c:\\sr" # stack root, short paths == fewer problems
