@@ -1,9 +1,10 @@
 import Control.Monad.Except (throwError)
+import Data.Default -- def is there
 import Text.Pandoc.Builder (doc, Blocks, Inlines, toList)
 import Text.Pandoc.Class (PandocMonad, report)
 import Text.Pandoc.Definition (Pandoc)
 import Text.Pandoc.Logging (LogMessage(ParsingTrace))
-import Text.Pandoc.Options (ReaderOptions, def)
+import Text.Pandoc.Options (ReaderOptions)
 import Text.Pandoc.Parsing (readWithM, ParserT, stateOptions, ParserState, blanklines)
 import Text.Parsec.Char (spaces)
 import Text.Parsec.Combinator (eof, choice)
