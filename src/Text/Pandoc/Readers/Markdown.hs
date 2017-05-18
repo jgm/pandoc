@@ -392,7 +392,9 @@ referenceKey = try $ do
   src <- try betweenAngles <|> sourceURL
   tit <- option "" referenceTitle
   attr   <- option nullAttr $ try $
-              guardEnabled Ext_link_attributes >> skipSpaces >> attributes
+              do guardEnabled Ext_link_attributes
+                 skipSpaces >> optional newline >> skipSpaces
+                 attributes
   addKvs <- option [] $ guardEnabled Ext_mmd_link_attributes
                           >> many (try $ spnl >> keyValAttr)
   blanklines
