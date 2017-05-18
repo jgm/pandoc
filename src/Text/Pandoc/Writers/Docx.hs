@@ -875,7 +875,7 @@ blockToOpenXML' opts (Para [Image attr alt (src,'f':'i':'g':':':tit)]) = do
   let prop = pCustomStyle $
         if null alt
         then "Figure"
-        else "FigureWithCaption"
+        else "CaptionedFigure"
   paraProps <- local (\env -> env { envParaProperties = prop : envParaProperties env }) (getParaProps False)
   contents <- inlinesToOpenXML opts [Image attr alt (src,tit)]
   captionNode <- withParaProp (pCustomStyle "ImageCaption")
