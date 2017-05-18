@@ -864,7 +864,7 @@ Options affecting specific writers
         Heading 2, Heading 3, Heading 4, Heading 5, Heading 6,
         Heading 7, Heading 8, Heading 9, Block Text, Footnote Text,
         Definition Term, Definition, Caption, Table Caption,
-        Image Caption, Figure, Figure With Caption, TOC Heading;
+        Image Caption, Figure, Captioned Figure, TOC Heading;
         [character] Default Paragraph Font, Body Text Char,
         Verbatim Char, Footnote Reference, Hyperlink; [table]
         Normal Table.
