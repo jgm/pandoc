@@ -1,3 +1,0 @@
-### my header
-
-text with *italics*
