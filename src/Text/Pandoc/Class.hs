@@ -345,19 +345,24 @@ withPaths (p:ps) action fp =
   catchError (action (p </> fp))
              (\_ -> withPaths ps action fp)
 
--- | Traverse tree, filling media bag.
+-- | Traverse tree, filling media bag for any images that
+-- aren't already in the media bag.
 fillMediaBag :: PandocMonad m => Maybe String -> Pandoc -> m Pandoc
 fillMediaBag sourceURL d = walkM handleImage d
   where handleImage :: PandocMonad m => Inline -> m Inline
         handleImage (Image attr lab (src, tit)) = catchError
-          (do (bs, mt) <- fetchItem sourceURL src
-              let ext = fromMaybe (takeExtension src)
-                          (mt >>= extensionFromMimeType)
-              let bs' = BL.fromChunks [bs]
-              let basename = showDigest $ sha1 bs'
-              let fname = basename <.> ext
-              insertMedia fname mt bs'
-              return $ Image attr lab (fname, tit))
+          (do mediabag <- getMediaBag
+              case lookupMedia src mediabag of
+                Just (_, _) -> return $ Image attr lab (src, tit)
+                Nothing -> do
+                  (bs, mt) <- downloadOrRead sourceURL src
+                  let ext = fromMaybe (takeExtension src)
+                              (mt >>= extensionFromMimeType)
+                  let bs' = BL.fromChunks [bs]
+                  let basename = showDigest $ sha1 bs'
+                  let fname = basename <.> ext
+                  insertMedia fname mt bs'
+                  return $ Image attr lab (fname, tit))
           (\e -> do
               case e of
                 PandocResourceNotFound _ -> do
