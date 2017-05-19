@@ -49,16 +49,16 @@ after_test:
   - .\pandoc.exe -s --toc ..\MANUAL.txt -o MANUAL.html
   - .\pandoc.exe -s ..\COPYING.md -o COPYING.rtf
   - copy ..\COPYRIGHT COPYRIGHT.txt
-  - 7z a "pandoc.zip" pandoc.exe pandoc-citeproc.exe MANUAL.html COPYING.rtf
+  - 7z a "pandoc-%STACK_VERSION%.zip" pandoc.exe pandoc-citeproc.exe MANUAL.html COPYING.rtf
   - |
       set VERSION=
       for /f "tokens=1-2 delims= " %%a in ('.\pandoc.exe --version') do ( if not defined VERSION set "VERSION=%%b" )
       echo %VERSION%
       "%WIXBIN%\\candle" -dVERSION=%VERSION% -dBINPATH=. *.wxs -out wixobj\
-      "%WIXBIN%\\light" -sw1076 -ext WixUIExtension -ext WixUtilExtension -cultures:en-us -loc Pandoc-en-us.wxl -out pandoc.msi wixobj\*.wixobj
+      "%WIXBIN%\\light" -sw1076 -ext WixUIExtension -ext WixUtilExtension -cultures:en-us -loc Pandoc-en-us.wxl -out "pandoc-%STACK_VERSION%.msi" wixobj\*.wixobj
 
 artifacts:
-  - path: '%STACK_VERSION%\pandoc.zip'
+  - path: 'pandoc-%STACK_VERSION%.zip'
     name: exe
-  - path: '%STACK_VERSION%\pandoc.msi'
+  - path: 'pandoc-%STACK_VERSION%.msi'
     name: msi
