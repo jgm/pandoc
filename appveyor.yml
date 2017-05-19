@@ -12,8 +12,8 @@ environment:
     STACK: "%STACK_ROOT%\\stack.exe"
 
 cache:
-  - "%STACK_ROOT%"
-  - "%WIXBIN%"
+  - "%STACK_ROOT%" -> appveyor.yml
+  - "%WIXBIN%" -> appveyor.yml
   # This is where stack install ghc by default, but we don't
   # cache it because it's too large:
   # - "c:\\Users\\appveyor\\AppData\\Local\\Programs\\stack"
