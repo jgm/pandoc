@@ -58,7 +58,7 @@ after_test:
       "%WIXBIN%\\light" -sw1076 -ext WixUIExtension -ext WixUtilExtension -cultures:en-us -loc Pandoc-en-us.wxl -out "pandoc-%STACK_VERSION%.msi" wixobj\*.wixobj
 
 artifacts:
-  - path: 'pandoc-%STACK_VERSION%.zip'
+  - path: 'windows\pandoc-%STACK_VERSION%.zip'
     name: exe
-  - path: 'pandoc-%STACK_VERSION%.msi'
+  - path: 'windows\pandoc-%STACK_VERSION%.msi'
     name: msi
