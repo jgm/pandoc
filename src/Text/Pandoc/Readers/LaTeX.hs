@@ -1424,8 +1424,8 @@ dotextcquote :: PandocMonad m => LP m Inlines
 dotextcquote = do
   c <- citation "autocite" NormalCitation False
   skipopts
-  text <- enquote
-  return . mconcat $ [text, "\160", c]
+  t <- enquote
+  return . mconcat $ [t, "\160", c]
 
 -- tables
 
