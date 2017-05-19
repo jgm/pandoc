@@ -1,14 +1,16 @@
 import Control.Monad.Except (throwError)
+import Control.Monad (guard)
 import Data.Default -- def is there
-import Text.Pandoc.Builder (doc, Blocks, Inlines, toList)
-import Text.Pandoc.Class (PandocMonad, report)
-import Text.Pandoc.Definition (Pandoc)
+import Text.Pandoc.Builder (doc, Blocks, Inlines, toList, trimInlines, headerWith)
+import Text.Pandoc.Class (PandocMonad, report, PandocIO, runIO)
+import Text.Pandoc.Definition (Pandoc, nullAttr)
 import Text.Pandoc.Logging (LogMessage(ParsingTrace))
 import Text.Pandoc.Options (ReaderOptions)
-import Text.Pandoc.Parsing (readWithM, ParserT, stateOptions, ParserState, blanklines)
-import Text.Parsec.Char (spaces)
-import Text.Parsec.Combinator (eof, choice)
-import Text.Parsec.Prim (many, getPosition)
+import Text.Pandoc.Parsing (readWithM, ParserT, stateOptions, ParserState, blanklines, registerHeader)
+import Text.Parsec.Char (spaces, char)
+import Text.Parsec.Combinator (eof, choice, many1, manyTill, count)
+import Text.Parsec.Pos (sourceColumn)
+import Text.Parsec.Prim (many, getPosition, try)
 
 readVimwiki :: PandocMonad m => ReaderOptions -> String -> m Pandoc
 readVimwiki opts s = do
@@ -57,7 +59,18 @@ blockQuote :: PandocMonad m => VwParser m Blocks
 preformatted :: PandocMonad m => VwParser m Blocks
 blockMath :: PandocMonad m => VwParser m Blocks
 
-header = undefined
+guardColumnOne :: PandocMonad m => VwParser m ()
+guardColumnOne = getPosition >>= \pos -> guard (sourceColumn pos == 1)
+
+header = try $ do
+  guardColumnOne
+  eqs <- many1 (char '=')
+  let lev = length eqs
+  guard $ lev <= 6
+  contents <- trimInlines . mconcat <$> manyTill inline (count lev $ char '=')
+  attr <- registerHeader nullAttr contents
+  return $ headerWith attr lev contents
+
 bulletList = undefined
 orderedList = undefined
 hrule = undefined
