@@ -34,7 +34,6 @@ import Control.Monad.Reader
 import Control.Monad.State
 import Data.List (intercalate)
 import qualified Data.Set as Set
-import Network.URI (isURI)
 import Text.Pandoc.Class (PandocMonad, report)
 import Text.Pandoc.Logging
 import Text.Pandoc.Definition

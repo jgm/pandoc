@@ -36,7 +36,6 @@ module Text.Pandoc.Writers.Haddock (writeHaddock) where
 import Control.Monad.State
 import Data.Default
 import Data.List (intersperse, transpose)
-import Network.URI (isURI)
 import Text.Pandoc.Class (PandocMonad, report)
 import Text.Pandoc.Definition
 import Text.Pandoc.Logging

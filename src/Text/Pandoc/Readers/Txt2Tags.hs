@@ -42,7 +42,6 @@ import Text.Pandoc.Definition
 import Text.Pandoc.Options
 import Text.Pandoc.Parsing hiding (macro, space, spaces, uri)
 import Text.Pandoc.Shared (compactify, compactifyDL, escapeURI)
---import Network.URI (isURI) -- Not sure whether to use this function
 import Control.Monad (guard, void, when)
 import Control.Monad.Reader (Reader, asks, runReader)
 import Data.Default

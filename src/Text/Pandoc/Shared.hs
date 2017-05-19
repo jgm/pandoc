@@ -81,6 +81,9 @@ module Text.Pandoc.Shared (
                      openURL,
                      collapseFilePath,
                      filteredFilesFromArchive,
+                     -- * URI handling
+                     schemes,
+                     isURI,
                      -- * Error handling
                      mapLeft,
                      -- * for squashing blocks
@@ -104,7 +107,7 @@ import Data.List ( find, stripPrefix, intercalate )
 import Data.Maybe (mapMaybe)
 import Data.Version ( showVersion )
 import qualified Data.Map as M
-import Network.URI ( escapeURIString, unEscapeString )
+import Network.URI ( URI(uriScheme), escapeURIString, unEscapeString, parseURI )
 import qualified Data.Set as Set
 import System.Directory
 import System.FilePath (splitDirectories, isPathSeparator)
@@ -773,6 +776,45 @@ filteredFilesFromArchive zf f =
   where
     fileAndBinary :: Archive -> FilePath -> Maybe (FilePath, BL.ByteString)
     fileAndBinary a fp = findEntryByPath fp a >>= \e -> Just (fp, fromEntry e)
+
+
+--
+-- IANA URIs
+--
+
+-- | Schemes from http://www.iana.org/assignments/uri-schemes.html plus
+-- the unofficial schemes coap, doi, javascript, isbn, pmid
+schemes :: Set.Set String
+schemes = Set.fromList [
+  "aaa", "aaas", "about", "acap", "adiumxtra", "afp", "afs", "aim", "apt",
+  "attachment", "aw", "beshare", "bitcoin", "bolo", "callto", "cap", "chrome",
+  "chrome-extension", "cid", "coap", "com-eventbrite-attendee", "content",
+  "crid", "cvs", "data", "dav", "dict", "dlna-playcontainer", "dlna-playsingle",
+  "dns", "doi", "dtn", "dvb", "ed2k", "facetime", "feed", "file", "finger",
+  "fish", "ftp", "geo", "gg", "git", "gizmoproject", "go", "gopher", "gtalk",
+  "h323", "hcp", "http", "https", "iax", "icap", "icon", "im", "imap", "info",
+  "ipn", "ipp", "irc", "irc6", "ircs", "iris", "iris.beep", "iris.lwz",
+  "iris.xpc", "iris.xpcs", "isbn", "itms", "jar", "javascript", "jms", "keyparc",
+  "lastfm", "ldap", "ldaps", "magnet", "mailto", "maps", "market", "message",
+  "mid", "mms", "ms-help", "msnim", "msrp", "msrps", "mtqp", "mumble", "mupdate",
+  "mvn", "news", "nfs", "ni", "nih", "nntp", "notes", "oid", "opaquelocktoken",
+  "palm", "paparazzi", "platform", "pmid", "pop", "pres", "proxy", "psyc",
+  "query", "res", "resource", "rmi", "rsync", "rtmp", "rtsp", "secondlife",
+  "service", "session", "sftp", "sgn", "shttp", "sieve", "sip", "sips", "skype",
+  "smb", "sms", "snmp", "soap.beep", "soap.beeps", "soldat", "spotify", "ssh",
+  "steam", "svn", "tag", "teamspeak", "tel", "telnet", "tftp", "things",
+  "thismessage", "tip", "tn3270", "tv", "udp", "unreal", "urn", "ut2004",
+  "vemmi", "ventrilo", "view-source", "webcal", "ws", "wss", "wtai", "wyciwyg",
+  "xcon", "xcon-userid", "xfire", "xmlrpc.beep", "xmlrpc.beeps", "xmpp", "xri",
+  "ymsgr", "z39.50r", "z39.50s"
+  ]
+
+-- | Check if the string is a valid URL with a IANA or frequently used but
+-- unofficial scheme (see @schemes@).
+isURI :: String -> Bool
+isURI = maybe False hasKnownScheme . parseURI
+  where
+    hasKnownScheme = (`Set.member` schemes) . filter (/= ':') . uriScheme
 
 ---
 --- Squash blocks into inlines
