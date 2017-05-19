@@ -75,6 +75,8 @@ E-mail style:
 
     This is a block quote. It is pretty short.
 
+..
+
     Code in a block quote:
 
     ::
@@ -91,6 +93,8 @@ E-mail style:
     Nested block quotes:
 
         nested
+
+    ..
 
         nested
 
@@ -341,6 +345,8 @@ Multiple blocks with italics:
     ::
 
         { orange code block }
+
+    ..
 
         orange block quote
 
