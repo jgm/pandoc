@@ -1,17 +1,22 @@
 clone_folder: "c:\\pandoc"
 environment:
+  global:
+    WIXBIN: "c:\\Program Files (x86)\\WiX Toolset v3.11\\bin"
+    STACK_YAML: "c:\\pandoc\\stack.pkg.yaml"
   matrix:
   - STACK_VERSION: "windows-i386"
     STACK_ROOT: "c:\\sr32"
     STACK: "%STACK_ROOT%\\stack.exe"
-    WIXBIN: "c:\\Program Files (x86)\\WiX Toolset v3.11\\bin"
-    STACK_YAML: "c:\\pandoc\\stack.pkg.yaml"
+  - STACK_VERSION: "windows-x86_64"
+    STACK_ROOT: "c:\\sr64"
+    STACK: "%STACK_ROOT%\\stack.exe"
 
 cache:
   - "%STACK_ROOT%"
   - "%WIXBIN%"
-  # This is where stack install ghc by default:
-  - "c:\\Users\\appveyor\\AppData\\Local\\Programs\\stack"
+  # This is where stack install ghc by default, but we don't
+  # cache it because it's too large:
+  # - "c:\\Users\\appveyor\\AppData\\Local\\Programs\\stack"
 
 # We don't do a normal C build, but build in test_script via stack
 build: off
@@ -47,7 +52,7 @@ after_test:
       "%WIXBIN%\\light" -sw1076 -ext WixUIExtension -ext WixUtilExtension -cultures:en-us -loc Pandoc-en-us.wxl -out pandoc.msi wixobj\*.wixobj
 
 artifacts:
-  - path: windows\pandoc.zip
+  - path: %STACK_VERSION%\pandoc.zip
     name: exe
-  - path: windows\pandoc.msi
+  - path: %STACK_VERSION%\pandoc.msi
     name: msi
