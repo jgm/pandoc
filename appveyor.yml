@@ -1,17 +1,17 @@
-clone_folder: "c:\\stack"
+clone_folder: 'c:\pandoc'
 environment:
-  global:
-    STACK_ROOT: "c:\\sr"
-    STACK_YAML: "c:\\stack\\stack.pkg.yaml"
-    WIXBIN: "c:\\Program Files (x86)\\WiX Toolset v3.10\\bin"
   matrix:
   - STACK_VERSION: 'windows-i386'
-  - STACK_VERSION: 'windows-x86_64'
+    STACK_ROOT: 'c:\sr32'
+    STACK: '%STACK_ROOT%\stack.exe'
+    WIXBIN: 'c:\Program Files (x86)\WiX Toolset v3.10\bin'
+    STACK_YAML: 'c:\pandoc\stack.pkg.yaml'
 
 cache:
-  - "c:\\sr" # stack root, short paths == fewer problems
-  - "c:\\stack\\stack.exe"
-  - '%WIXBIN%'
+  - '"%STACK_ROOT%"'
+  - '"%WIXBIN%"'
+  # This is where stack install ghc by default:
+  - 'c:\Users\appveyor\AppData\Local\Programs\stack'
 
 # We don't do a normal C build, but build in test_script via stack
 build: off
@@ -19,19 +19,18 @@ build: off
 install:
   - '"%WIXBIN%"\candle -? || choco install wixtoolset'
   - |
-      stack --version || curl -ostack.zip -L --insecure http://www.stackage.org/stack/%STACK_VERSION% && 7z x stack.zip stack.exe
-  - stack setup > nul
+      %STACK% --version || curl -ostack.zip -L --insecure http://www.stackage.org/stack/%STACK_VERSION% && 7z x stack.zip stack.exe
 
-before_test:
-  # the stack install already fails without the templates...
-  - git submodule update --init
+# before_test:
 
 test_script:
   # The ugly echo "" hack is to avoid complaints about 0 being an invalid file
   # descriptor
-  - echo "" | stack clean
-  - echo "" | stack -j1 --no-terminal  test
-  - echo "" | stack -j1 --local-bin-path=.\windows install pandoc pandoc-citeproc
+  - |
+      %STACK% setup > nul
+      %STACK% path
+      echo "" | %STACK% clean
+      echo "" | %STACK% -j1 --no-terminal --test --local-bin-path=.\windows install pandoc pandoc-citeproc
 
 after_test:
     # .\ in the stack commandline seems to be .\windows\ (where the stack-appveyor.yaml is)
