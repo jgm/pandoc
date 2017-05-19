@@ -4,7 +4,7 @@ environment:
   - STACK_VERSION: "windows-i386"
     STACK_ROOT: "c:\\sr32"
     STACK: "%STACK_ROOT%\\stack.exe"
-    WIXBIN: "c:\\Program Files (x86)\\WiX Toolset v3.10\\bin"
+    WIXBIN: "c:\\Program Files (x86)\\WiX Toolset v3.11\\bin"
     STACK_YAML: "c:\\pandoc\\stack.pkg.yaml"
 
 cache:
