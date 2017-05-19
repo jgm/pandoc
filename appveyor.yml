@@ -1,17 +1,17 @@
-clone_folder: 'c:\pandoc'
+clone_folder: "c:\\pandoc"
 environment:
   matrix:
-  - STACK_VERSION: 'windows-i386'
-    STACK_ROOT: 'c:\sr32'
-    STACK: '%STACK_ROOT%\stack.exe'
-    WIXBIN: 'c:\Program Files (x86)\WiX Toolset v3.10\bin'
-    STACK_YAML: 'c:\pandoc\stack.pkg.yaml'
+  - STACK_VERSION: "windows-i386"
+    STACK_ROOT: "c:\\sr32"
+    STACK: "%STACK_ROOT%\\stack.exe"
+    WIXBIN: "c:\\Program Files (x86)\\WiX Toolset v3.10\\bin"
+    STACK_YAML: "c:\\pandoc\\stack.pkg.yaml"
 
 cache:
-  - '"%STACK_ROOT%"'
-  - '"%WIXBIN%"'
+  - "%STACK_ROOT%"
+  - "%WIXBIN%"
   # This is where stack install ghc by default:
-  - 'c:\Users\appveyor\AppData\Local\Programs\stack'
+  - "c:\\Users\\appveyor\\AppData\\Local\\Programs\\stack"
 
 # We don't do a normal C build, but build in test_script via stack
 build: off
