@@ -159,6 +159,7 @@ convertImage tmpdir fname =
     Just "image/png" -> doNothing
     Just "image/jpeg" -> doNothing
     Just "application/pdf" -> doNothing
+    Just "image/svg+xml" -> return $ Left "conversion from svg not supported"
     _ -> JP.readImage fname >>= \res ->
           case res of
                Left e    -> return $ Left e
