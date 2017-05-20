@@ -32,6 +32,7 @@ module Text.Pandoc.Readers.Org.Parsing
   ( OrgParser
   , anyLine
   , anyLineNewline
+  , indentWith
   , blanklines
   , newline
   , parseFromString
