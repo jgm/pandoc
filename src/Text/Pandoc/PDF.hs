@@ -72,16 +72,15 @@ changePathSeparators :: FilePath -> FilePath
 changePathSeparators = intercalate "/" . splitDirectories
 #endif
 
-makePDF :: MonadIO m
-        => String              -- ^ pdf creator (pdflatex, lualatex,
+makePDF :: String              -- ^ pdf creator (pdflatex, lualatex,
                                -- xelatex, context, wkhtmltopdf, pdfroff)
         -> (WriterOptions -> Pandoc -> PandocIO String)  -- ^ writer
         -> WriterOptions       -- ^ options
         -> Verbosity           -- ^ verbosity level
         -> MediaBag            -- ^ media
         -> Pandoc              -- ^ document
-        -> m (Either ByteString ByteString)
-makePDF "wkhtmltopdf" writer opts verbosity _ doc@(Pandoc meta _) = liftIO $ do
+        -> PandocIO (Either ByteString ByteString)
+makePDF "wkhtmltopdf" writer opts verbosity _ doc@(Pandoc meta _) = do
   let mathArgs = case writerHTMLMathMethod opts of
                  -- with MathJax, wait til all math is rendered:
                       MathJax _ -> ["--run-script", "MathJax.Hub.Register.StartupHook('End Typeset', function() { window.status = 'mathjax_loaded' });",
@@ -102,17 +101,13 @@ makePDF "wkhtmltopdf" writer opts verbosity _ doc@(Pandoc meta _) = liftIO $ do
                  ,("margin-left", fromMaybe (Just "1.25in")
                             (getField "margin-left" meta'))
                  ]
-  source <- runIOorExplode $ do
-              setVerbosity verbosity
-              writer opts doc
-  html2pdf verbosity args source
-makePDF "pdfroff" writer opts verbosity _mediabag doc = liftIO $ do
-  source <- runIOorExplode $ do
-              setVerbosity verbosity
-              writer opts doc
+  source <- writer opts doc
+  liftIO $ html2pdf verbosity args source
+makePDF "pdfroff" writer opts verbosity _mediabag doc = do
+  source <- writer opts doc
   let args   = ["-ms", "-mpdfmark", "-e", "-t", "-k", "-KUTF-8", "-i",
                 "--no-toc-relocation"]
-  ms2pdf verbosity args source
+  liftIO $ ms2pdf verbosity args source
 makePDF program writer opts verbosity mediabag doc = do
   let withTemp = if takeBaseName program == "context"
                     then withTempDirectory "."
