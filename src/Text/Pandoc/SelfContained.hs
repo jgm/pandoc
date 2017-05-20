@@ -159,9 +159,10 @@ pCSSImport :: PandocMonad m => Maybe String -> FilePath
 pCSSImport sourceURL d = P.try $ do
   P.string "@import"
   P.spaces
-  res <- pCSSUrl' sourceURL d
+  res <- (pQuoted <|> pUrl) >>= handleCSSUrl sourceURL d
   P.spaces
-  P.optional $ P.char ';' >> P.spaces
+  P.char ';'
+  P.spaces
   case res of
        Left b       -> return $ B.pack "@import " <> b
        Right (_, b) -> return b
@@ -185,31 +186,44 @@ pCSSOther = do
 pCSSUrl :: PandocMonad m
         => Maybe String -> FilePath -> ParsecT ByteString () m ByteString
 pCSSUrl sourceURL d = P.try $ do
-  res <- pCSSUrl' sourceURL d
+  res <- pUrl >>= handleCSSUrl sourceURL d
   case res of
        Left b -> return b
        Right (mt,b) -> do
          let enc = makeDataURI (mt, b)
          return (B.pack $ "url(" ++ enc ++ ")")
 
-pCSSUrl' :: PandocMonad m
-         => Maybe String -> FilePath
-         -> ParsecT ByteString () m (Either ByteString (MimeType, ByteString))
-pCSSUrl' sourceURL d = P.try $ do
+pQuoted :: PandocMonad m
+        => ParsecT ByteString () m (String, ByteString)
+pQuoted = P.try $ do
+  quote <- P.oneOf "\"'"
+  url <- P.manyTill P.anyChar (P.char quote)
+  let fallback = B.pack ([quote] ++ trim url ++ [quote])
+  return (url, fallback)
+
+pUrl :: PandocMonad m
+     => ParsecT ByteString () m (String, ByteString)
+pUrl = P.try $ do
   P.string "url("
   P.spaces
   quote <- P.option Nothing (Just <$> P.oneOf "\"'")
   url <- P.manyTill P.anyChar (maybe (P.lookAhead (P.char ')')) P.char quote)
   P.spaces
   P.char ')'
-  let fallback = Left $
-          B.pack ("url(" ++ maybe "" (:[]) quote ++ trim url ++
+  let fallback = B.pack ("url(" ++ maybe "" (:[]) quote ++ trim url ++
                             maybe "" (:[]) quote ++ ")")
+  return (url, fallback)
+
+handleCSSUrl :: PandocMonad m
+             => Maybe String -> FilePath -> (String, ByteString)
+             -> ParsecT ByteString () m
+                  (Either ByteString (MimeType, ByteString))
+handleCSSUrl sourceURL d (url, fallback) = do
   -- pipes are used in URLs provided by Google Code fonts
   -- but parseURI doesn't like them, so we escape them:
   case escapeURIString (/='|') (trim url) of
-      '#':_ -> return fallback
-      'd':'a':'t':'a':':':_ -> return fallback
+      '#':_ -> return $ Left fallback
+      'd':'a':'t':'a':':':_ -> return $ Left fallback
       u ->  do let url' = if isURI u then u else d </> u
                res <- lift $ getData sourceURL "" url'
                case res of
