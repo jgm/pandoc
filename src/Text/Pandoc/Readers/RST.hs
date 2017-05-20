@@ -559,8 +559,7 @@ listLine :: Monad m => Int -> RSTParser m [Char]
 listLine markerLength = try $ do
   notFollowedBy blankline
   indentWith markerLength
-  line <- anyLine
-  return $ line ++ "\n"
+  anyLineNewline
 
 -- indent by specified number of spaces (or equiv. tabs)
 indentWith :: Monad m => Int -> RSTParser m [Char]
