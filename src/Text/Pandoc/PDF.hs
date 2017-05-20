@@ -63,8 +63,8 @@ import Text.Pandoc.Writers.Shared (getField, metaToJSON)
 import Data.List (intercalate)
 #endif
 import Text.Pandoc.Class (PandocIO, report, runIO, runIOorExplode,
-                          setMediaBag, setVerbosity,
-                          fillMediaBag, extractMedia)
+                          setMediaBag, setVerbosity, getResourcePath,
+                          setResourcePath, fillMediaBag, extractMedia)
 import Text.Pandoc.Logging
 
 #ifdef _WINDOWS
@@ -112,8 +112,9 @@ makePDF program writer opts verbosity mediabag doc = do
   let withTemp = if takeBaseName program == "context"
                     then withTempDirectory "."
                     else withTempDir
+  resourcePath <- getResourcePath
   liftIO $ withTemp "tex2pdf." $ \tmpdir -> do
-    doc' <- handleImages verbosity opts mediabag tmpdir doc
+    doc' <- handleImages verbosity opts resourcePath mediabag tmpdir doc
     source <- runIOorExplode $ do
                 setVerbosity verbosity
                 writer opts doc'
@@ -126,13 +127,15 @@ makePDF program writer opts verbosity mediabag doc = do
 
 handleImages :: Verbosity
              -> WriterOptions
+             -> [FilePath]
              -> MediaBag
              -> FilePath      -- ^ temp dir to store images
              -> Pandoc        -- ^ document
              -> IO Pandoc
-handleImages verbosity opts mediabag tmpdir doc = do
+handleImages verbosity opts resourcePath mediabag tmpdir doc = do
   doc' <- runIOorExplode $ do
             setVerbosity verbosity
+            setResourcePath resourcePath
             setMediaBag mediabag
             fillMediaBag (writerSourceURL opts) doc >>=
               extractMedia tmpdir
