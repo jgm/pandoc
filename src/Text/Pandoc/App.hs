@@ -70,7 +70,7 @@ import System.IO.Error (isDoesNotExistError)
 import Text.Pandoc
 import Text.Pandoc.Builder (setMeta)
 import Text.Pandoc.Class (PandocIO, getLog, withMediaBag,
-                          extractMedia, fillMediaBag)
+                          extractMedia, fillMediaBag, setResourcePath)
 import Text.Pandoc.Highlighting (highlightingStyles)
 import Text.Pandoc.Lua ( runLuaFilter )
 import Text.Pandoc.PDF (makePDF)
@@ -414,6 +414,7 @@ convertWithOpts opts = do
   let eol = fromMaybe nativeNewline $ optEol opts
 
   runIO' $ do
+    setResourcePath $ "." : (optResourcePath opts)
     (doc, media) <- withMediaBag $ sourceToDoc sources >>=
               (   (if isJust (optExtractMedia opts)
                       then fillMediaBag (writerSourceURL writerOptions)
@@ -569,6 +570,7 @@ data Opt = Opt
     , optIncludeBeforeBody     :: [FilePath]       -- ^ Files to include before
     , optIncludeAfterBody      :: [FilePath]       -- ^ Files to include after body
     , optIncludeInHeader       :: [FilePath]       -- ^ Files to include in header
+    , optResourcePath          :: [FilePath] -- ^ Path to search for images etc
     , optEol                   :: Maybe Newline    -- ^ Enforce line-endings
     }
 
@@ -638,6 +640,7 @@ defaultOpts = Opt
     , optIncludeBeforeBody     = []
     , optIncludeAfterBody      = []
     , optIncludeInHeader       = []
+    , optResourcePath          = []
     , optEol                   = Nothing
     }
 
@@ -1051,6 +1054,14 @@ options =
                                            optStandalone = True })
                   "FILE")
                  "" -- "File to include after document body"
+
+    , Option "" ["resource-path"]
+                (ReqArg
+                  (\arg opt -> return opt { optResourcePath =
+                                   splitSearchPath arg })
+                   "SEARCHPATH")
+                  "" -- "Paths to search for images and other resources"
+
 
     , Option "" ["self-contained"]
                  (NoArg

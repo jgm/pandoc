@@ -690,6 +690,12 @@ General writer options
     repeatedly to include multiple files. They will be included in the
     order specified.  Implies `--standalone`.
 
+`--resource-path=`*SEARCHPATH*
+
+:   List of paths to search for images and other resources.
+    The paths should be separated by `:` on linux, unix, and
+    MacOS systems, and by `;` on Windows.
+
 Options affecting specific writers
 ----------------------------------
 
