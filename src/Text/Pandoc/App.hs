@@ -1,6 +1,7 @@
 {-# LANGUAGE CPP                 #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TupleSections       #-}
+{-# LANGUAGE DeriveGeneric       #-}
 {-
 Copyright (C) 2006-2017 John MacFarlane <jgm@berkeley.edu>
 
@@ -42,12 +43,14 @@ import qualified Control.Exception as E
 import Control.Monad.Except (throwError)
 import Control.Monad
 import Control.Monad.Trans
-import Data.Aeson (eitherDecode', encode)
+import Data.Aeson (eitherDecode', encode, ToJSON(..), FromJSON(..),
+                   genericToEncoding, defaultOptions)
 import qualified Data.ByteString as BS
 import qualified Data.ByteString.Lazy as B
 import Data.Char (toLower, toUpper)
 import qualified Data.Set as Set
 import Data.Foldable (foldrM)
+import GHC.Generics
 import Data.List (intercalate, isPrefixOf, isSuffixOf, sort)
 import qualified Data.Map as M
 import Data.Maybe (fromMaybe, isJust, isNothing)
@@ -65,7 +68,8 @@ import System.Directory (Permissions (..), doesFileExist, findExecutable,
 import System.Environment (getArgs, getEnvironment, getProgName)
 import System.Exit (ExitCode (..), exitSuccess)
 import System.FilePath
-import System.IO (stdout, nativeNewline, Newline(..))
+import System.IO (stdout, nativeNewline)
+import qualified System.IO as IO (Newline(..))
 import System.IO.Error (isDoesNotExistError)
 import Text.Pandoc
 import Text.Pandoc.Builder (setMeta)
@@ -85,6 +89,12 @@ import Text.Printf
 import System.Posix.IO (stdOutput)
 import System.Posix.Terminal (queryTerminal)
 #endif
+
+data Newline = LF | CRLF deriving (Show, Generic)
+
+instance ToJSON Newline where
+  toEncoding = genericToEncoding defaultOptions
+instance FromJSON Newline
 
 parseOptions :: [OptDescr (Opt -> IO Opt)] -> Opt -> IO Opt
 parseOptions options' defaults = do
@@ -411,7 +421,10 @@ convertWithOpts opts = do
                    return $ ("csl", jatsEncoded) : optMetadata opts
                  else return $ optMetadata opts
 
-  let eol = fromMaybe nativeNewline $ optEol opts
+  let eol = case optEol opts of
+                 Just CRLF -> IO.CRLF
+                 Just LF   -> IO.LF
+                 Nothing   -> nativeNewline
 
   runIO' $ do
     setResourcePath (optResourcePath opts)
@@ -572,7 +585,11 @@ data Opt = Opt
     , optIncludeInHeader       :: [FilePath]       -- ^ Files to include in header
     , optResourcePath          :: [FilePath] -- ^ Path to search for images etc
     , optEol                   :: Maybe Newline    -- ^ Enforce line-endings
-    }
+    } deriving (Generic, Show)
+
+instance ToJSON Opt where
+  toEncoding = genericToEncoding defaultOptions
+instance FromJSON Opt
 
 -- | Defaults for command-line options.
 defaultOpts :: Opt
@@ -790,7 +807,7 @@ writeFnBinary :: MonadIO m => FilePath -> B.ByteString -> m ()
 writeFnBinary "-" = liftIO . B.putStr
 writeFnBinary f   = liftIO . B.writeFile (UTF8.encodePath f)
 
-writerFn :: MonadIO m => Newline -> FilePath -> String -> m ()
+writerFn :: MonadIO m => IO.Newline -> FilePath -> String -> m ()
 writerFn eol "-" = liftIO . UTF8.putStrWith eol
 writerFn eol f   = liftIO . UTF8.writeFileWith eol f
 

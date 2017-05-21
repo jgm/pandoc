@@ -39,6 +39,7 @@ module Text.Pandoc.Logging (
   , messageVerbosity
   ) where
 
+import Control.Monad (mzero)
 import Data.Aeson
 import Data.Aeson.Encode.Pretty (Config (..), defConfig, encodePretty',
                                  keyOrder)
@@ -56,6 +57,15 @@ data Verbosity = ERROR | WARNING | INFO | DEBUG
 
 instance ToJSON Verbosity where
   toJSON x = toJSON (show x)
+instance FromJSON Verbosity where
+  parseJSON (String t) =
+    case t of
+         "ERROR"   -> return ERROR
+         "WARNING" -> return WARNING
+         "INFO"    -> return INFO
+         "DEBUG"   -> return DEBUG
+         _         -> mzero
+  parseJSON _      =  mzero
 
 data LogMessage =
     SkippedContent String SourcePos
