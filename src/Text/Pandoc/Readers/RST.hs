@@ -685,6 +685,7 @@ directive' = do
                           (lengthToDim . filter (not . isSpace))
   case label of
         "table" -> tableDirective top fields body'
+        "list-table" -> listTableDirective top fields body'
         "line-block" -> lineBlockDirective body'
         "raw" -> return $ B.rawBlock (trim top) (stripTrailingNewlines body)
         "role" -> addNewRole top $ map (\(k,v) -> (k, trim v)) fields
@@ -769,6 +770,26 @@ tableDirective top _fields body = do
          return $ B.singleton $ Table (B.toList title)
                                   aligns' widths' header' rows'
        _ -> return mempty
+
+listTableDirective :: PandocMonad m => String -> [(String, String)] -> String -> RSTParser m Blocks
+listTableDirective top _fields body = do
+  bs <- parseFromString parseBlocks body
+  title <- do { parseFromString (trimInlines . mconcat <$> many inline) top }
+  let rows = takeRows $ B.toList bs
+      numOfCols = length $ rows !! 0
+      headerRows = case lookup "header-rows" _fields of
+                     Just x -> read x :: Int
+                     Nothing -> 0
+  return $ B.singleton $ Table (B.toList title)
+                           (replicate numOfCols AlignDefault)
+                           (replicate numOfCols 0)
+                           (if headerRows > 0 then rows !! 0 else replicate numOfCols [])
+                           (if headerRows > 0 then drop 1 rows else rows)
+    where takeRows [BulletList rows] = map takeCell rows
+          takeRows _ = []
+          takeCell [BulletList cell] = cell
+          takeCell _ = []
+
 
 -- TODO:
 --  - Only supports :format: fields with a single format for :raw: roles,
