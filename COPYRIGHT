@@ -32,33 +32,53 @@ statements for these sources are included below.  All are GPL-compatible
 licenses.
 
 ----------------------------------------------------------------------
+src/Text/Pandoc/Writers/Muse.hs
+Copyright (C) 2017 Alexander Krotov
+
+Released under the GNU General Public License version 2 or later.
+
+----------------------------------------------------------------------
 src/Text/Pandoc/Writers/Texinfo.hs
-Copyright (C) 2008-2015 John MacFarlane and Peter Wang
+Copyright (C) 2008-2017 John MacFarlane and Peter Wang
 
 Released under the GNU General Public License version 2 or later.
 
 ----------------------------------------------------------------------
 src/Text/Pandoc/Writers/OpenDocument.hs
-Copyright (C) 2008-2015 Andrea Rossato and John MacFarlane
+Copyright (C) 2008-2017 Andrea Rossato and John MacFarlane
 
 Released under the GNU General Public License version 2 or later.
 
 ----------------------------------------------------------------------
 src/Text/Pandoc/Writers/Org.hs
-Copyright (C) 2010-2015 Puneeth Chaganti and John MacFarlane
+Copyright (C) 2010-2017 Puneeth Chaganti, John MacFarlane, and
+                        Albert Krewinkel
+
+Released under the GNU General Public License version 2 or later.
+
+----------------------------------------------------------------------
+src/Text/Pandoc/Writers/ZimWiki.hs
+Copyright (C) 2017 Alex Ivkin
+
+Released under the GNU General Public License version 2 or later.
+
+----------------------------------------------------------------------
+src/Text/Pandoc/Readers/Docx.hs
+src/Text/Pandoc/Readers/Docx/*
+Copyright (C) 2014-2017 Jesse Rosenthal
 
 Released under the GNU General Public License version 2 or later.
 
 ----------------------------------------------------------------------
 src/Text/Pandoc/Readers/Textile.hs
-Copyright (C) 2010-2015 Paul Rivier and John MacFarlane
+Copyright (C) 2010-2017 Paul Rivier and John MacFarlane
 
 Released under the GNU General Public License version 2 or later.
 
 ----------------------------------------------------------------------
 src/Text/Pandoc/Readers/Org.hs
 test/Tests/Readers/Org.hs
-Copyright (C) 2014-2015 Albert Krewinkel
+Copyright (C) 2014-2017 Albert Krewinkel
 
 Released under the GNU General Public License version 2 or later.
 
@@ -77,6 +97,12 @@ Copyright (C) 2004 Peter Jipsen http://www.chapman.edu/~jipsen
 Released under the GNU General Public License version 2 or later.
 
 ------------------------------------------------------------------------
+data/pandoc.lua
+Copyright (C) 2017 Albert Krewinkel
+
+Released under the GNU General Public License version 2 or later.
+
+----------------------------------------------------------------------
 The dzslides template contains javascript and CSS from Paul Rouget's
 dzslides template.
 http://github.com/paulrouget/dzslides
@@ -106,3 +132,12 @@ NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE
 LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION
 OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
 WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
+------------------------------------------------------------------------
+The template pandoc.jats is Copyright 2013--15 Martin Fenner,
+released under GPL version 2 or later.
+
+The file data/jats.csl is derived from a csl file by Martin Fenner,
+revised by Martin Paul Eve and then John MacFarlane.
+"This work is licensed under a Creative Commons Attribution-ShareAlike 3.0
+License. Originally by Martin Fenner."

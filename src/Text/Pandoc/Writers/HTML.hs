@@ -3,7 +3,7 @@
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE ViewPatterns        #-}
 {-
-Copyright (C) 2006-2015 John MacFarlane <jgm@berkeley.edu>
+Copyright (C) 2006-2017 John MacFarlane <jgm@berkeley.edu>
 
 This program is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -22,7 +22,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 {- |
    Module      : Text.Pandoc.Writers.HTML
-   Copyright   : Copyright (C) 2006-2015 John MacFarlane
+   Copyright   : Copyright (C) 2006-2017 John MacFarlane
    License     : GNU GPL, version 2 or above
 
    Maintainer  : John MacFarlane <jgm@berkeley.edu>
@@ -475,6 +475,8 @@ obfuscateLink opts attr (renderHtml -> txt) s =
                     then ("e", name' ++ " at " ++ domain')
                     else ("'" ++ obfuscateString txt ++ "'",
                           txt ++ " (" ++ name' ++ " at " ++ domain' ++ ")")
+              (_, classNames, _) = attr
+              classNamesStr = concatMap (' ':) classNames
           in  case meth of
                 ReferenceObfuscation ->
                      -- need to use preEscapedString or &'s are escaped to &amp; in URL
@@ -487,7 +489,8 @@ obfuscateLink opts attr (renderHtml -> txt) s =
                      preEscapedString ("\n<!--\nh='" ++
                      obfuscateString domain ++ "';a='" ++ at' ++ "';n='" ++
                      obfuscateString name' ++ "';e=n+a+h;\n" ++
-                     "document.write('<a h'+'ref'+'=\"ma'+'ilto'+':'+e+'\" clas'+'s=\"em' + 'ail\">'+" ++
+                     "document.write('<a h'+'ref'+'=\"ma'+'ilto'+':'+e+'\" clas'+'s=\"em' + 'ail" ++
+                     classNamesStr ++ "\">'+" ++
                      linkText  ++ "+'<\\/'+'a'+'>');\n// -->\n")) >>
                      H.noscript (preEscapedString $ obfuscateString altText)
                 _ -> throwError $ PandocSomeError $ "Unknown obfuscation method: " ++ show meth
@@ -597,7 +600,7 @@ blockToHtml opts (LineBlock lns) =
   else do
     let lf = preEscapedString "\n"
     htmlLines <- mconcat . intersperse lf <$> mapM (inlineListToHtml opts) lns
-    return $ H.div ! A.style "white-space: pre-line;" $ htmlLines
+    return $ H.div ! A.class_ "line-block" $ htmlLines
 blockToHtml opts (Div attr@(ident, classes, kvs) bs) = do
   html5 <- gets stHtml5
   let speakerNotes = "notes" `elem` classes
@@ -642,13 +645,16 @@ blockToHtml opts (CodeBlock (id',classes,keyvals) rawCode) = do
                     then unlines . map ("> " ++) . lines $ rawCode
                     else rawCode
       hlCode   = if isJust (writerHighlightStyle opts)
-                    then highlight formatHtmlBlock
+                    then highlight (writerSyntaxMap opts) formatHtmlBlock
                             (id',classes',keyvals) adjCode
-                    else Nothing
+                    else Left ""
   case hlCode of
-         Nothing -> return $ addAttrs opts (id',classes,keyvals)
+         Left msg -> do
+           unless (null msg) $
+             report $ CouldNotHighlight msg
+           return $ addAttrs opts (id',classes,keyvals)
                            $ H.pre $ H.code $ toHtml adjCode
-         Just  h -> modify (\st -> st{ stHighlighting = True }) >>
+         Right h -> modify (\st -> st{ stHighlighting = True }) >>
                     return (addAttrs opts (id',[],keyvals) h)
 blockToHtml opts (BlockQuote blocks) = do
   -- in S5, treat list in blockquote specially
@@ -872,17 +878,20 @@ inlineToHtml opts inline = do
     (Emph lst)       -> inlineListToHtml opts lst >>= return . H.em
     (Strong lst)     -> inlineListToHtml opts lst >>= return . H.strong
     (Code attr str)  -> case hlCode of
-                             Nothing -> return
-                                        $ addAttrs opts attr
-                                        $ H.code $ strToHtml str
-                             Just  h -> do
+                             Left msg -> do
+                               unless (null msg) $
+                                 report $ CouldNotHighlight msg
+                               return $ addAttrs opts attr
+                                      $ H.code $ strToHtml str
+                             Right h -> do
                                modify $ \st -> st{ stHighlighting = True }
                                return $ addAttrs opts (id',[],keyvals) h
                         where (id',_,keyvals) = attr
                               hlCode = if isJust (writerHighlightStyle opts)
-                                          then highlight formatHtmlInline
-                                                   attr str
-                                          else Nothing
+                                          then highlight
+                                                 (writerSyntaxMap opts)
+                                                 formatHtmlInline attr str
+                                          else Left ""
     (Strikeout lst)  -> inlineListToHtml opts lst >>=
                         return . H.del
     (SmallCaps lst)   -> inlineListToHtml opts lst >>=
@@ -1041,7 +1050,7 @@ blockListToNote :: PandocMonad m => WriterOptions -> String -> [Block] -> StateT
 blockListToNote opts ref blocks =
   -- If last block is Para or Plain, include the backlink at the end of
   -- that block. Otherwise, insert a new Plain block with the backlink.
-  let backlink = [Link nullAttr [Str "↩"] ("#" ++ writerIdentifierPrefix opts ++ "fnref" ++ ref,[])]
+  let backlink = [Link ("",["footnoteBack"],[]) [Str "↩"] ("#" ++ writerIdentifierPrefix opts ++ "fnref" ++ ref,[])]
       blocks'  = if null blocks
                     then []
                     else let lastBlock   = last blocks

@@ -3,13 +3,13 @@ module Tests.Readers.Docx (tests) where
 import Codec.Archive.Zip
 import qualified Data.ByteString.Lazy as B
 import qualified Data.Map as M
-import Test.Framework
-import Test.Framework.Providers.HUnit
-import Test.HUnit (assertBool)
+import Test.Tasty
+import Test.Tasty.HUnit
 import Tests.Helpers
 import Text.Pandoc
 import qualified Text.Pandoc.Class as P
 import Text.Pandoc.MediaBag (MediaBag, lookupMedia, mediaDirectory)
+import System.IO.Unsafe -- TODO temporary
 
 -- We define a wrapper around pandoc that doesn't normalize in the
 -- tests. Since we do our own normalization, we want to make sure
@@ -45,30 +45,30 @@ compareOutput opts docxFile nativeFile = do
   df' <- runIOorExplode $ readNative def nf
   return $ (noNorm p, noNorm df')
 
-testCompareWithOptsIO :: ReaderOptions -> String -> FilePath -> FilePath -> IO Test
+testCompareWithOptsIO :: ReaderOptions -> String -> FilePath -> FilePath -> IO TestTree
 testCompareWithOptsIO opts name docxFile nativeFile = do
   (dp, np) <- compareOutput opts docxFile nativeFile
   return $ test id name (dp, np)
 
-testCompareWithOpts :: ReaderOptions -> String -> FilePath -> FilePath -> Test
+testCompareWithOpts :: ReaderOptions -> String -> FilePath -> FilePath -> TestTree
 testCompareWithOpts opts name docxFile nativeFile =
-  buildTest $ testCompareWithOptsIO opts name docxFile nativeFile
+  unsafePerformIO $ testCompareWithOptsIO opts name docxFile nativeFile
 
-testCompare :: String -> FilePath -> FilePath -> Test
+testCompare :: String -> FilePath -> FilePath -> TestTree
 testCompare = testCompareWithOpts defopts
 
-testForWarningsWithOptsIO :: ReaderOptions -> String -> FilePath -> [String] -> IO Test
+testForWarningsWithOptsIO :: ReaderOptions -> String -> FilePath -> [String] -> IO TestTree
 testForWarningsWithOptsIO opts name docxFile expected = do
   df <- B.readFile docxFile
-  logs <-  runIOorExplode (readDocx opts df >> P.getLog)
+  logs <-  runIOorExplode $ setVerbosity ERROR >> readDocx opts df >> P.getLog
   let warns = [m | DocxParserWarning m <- logs]
   return $ test id name (unlines warns, unlines expected)
 
-testForWarningsWithOpts :: ReaderOptions -> String -> FilePath -> [String] -> Test
+testForWarningsWithOpts :: ReaderOptions -> String -> FilePath -> [String] -> TestTree
 testForWarningsWithOpts opts name docxFile expected =
-  buildTest $ testForWarningsWithOptsIO opts name docxFile expected
+  unsafePerformIO $ testForWarningsWithOptsIO opts name docxFile expected
 
--- testForWarnings :: String -> FilePath -> [String] -> Test
+-- testForWarnings :: String -> FilePath -> [String] -> TestTree
 -- testForWarnings = testForWarningsWithOpts defopts
 
 getMedia :: FilePath -> FilePath -> IO (Maybe B.ByteString)
@@ -94,23 +94,23 @@ compareMediaPathIO mediaPath mediaBag docxPath = do
 compareMediaBagIO :: FilePath -> IO Bool
 compareMediaBagIO docxFile = do
     df <- B.readFile docxFile
-    mb <- runIOorExplode (readDocx defopts df >> P.getMediaBag)
+    mb <- runIOorExplode $ readDocx defopts df >> P.getMediaBag
     bools <- mapM
              (\(fp, _, _) -> compareMediaPathIO fp mb docxFile)
              (mediaDirectory mb)
     return $ and bools
 
-testMediaBagIO :: String -> FilePath -> IO Test
+testMediaBagIO :: String -> FilePath -> IO TestTree
 testMediaBagIO name docxFile = do
   outcome <- compareMediaBagIO docxFile
   return $ testCase name (assertBool
                           ("Media didn't match media bag in file " ++ docxFile)
                           outcome)
 
-testMediaBag :: String -> FilePath -> Test
-testMediaBag name docxFile = buildTest $ testMediaBagIO name docxFile
+testMediaBag :: String -> FilePath -> TestTree
+testMediaBag name docxFile = unsafePerformIO $ testMediaBagIO name docxFile
 
-tests :: [Test]
+tests :: [TestTree]
 tests = [ testGroup "inlines"
           [ testCompare
             "font formatting"

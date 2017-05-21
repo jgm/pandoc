@@ -226,9 +226,6 @@ assume that the pandoc source directory is your working directory.
 
     - `embed_data_files`: embed all data files into the binary (default no).
       This is helpful if you want to create a relocatable binary.
-      Note:  if this option is selected, you need to install the
-      `hsb2hs` preprocessor: `cabal install hsb2hs` (version 0.3.1 or
-      higher is required).
 
     - `https`:  enable support for downloading resources over https
       (using the `http-client` and `http-client-tls` libraries).

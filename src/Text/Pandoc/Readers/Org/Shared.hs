@@ -1,6 +1,6 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-
-Copyright (C) 2014-2016 Albert Krewinkel <tarleb+pandoc@moltkeplatz.de>
+Copyright (C) 2014-2017 Albert Krewinkel <tarleb+pandoc@moltkeplatz.de>
 
 This program is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 {- |
    Module      : Text.Pandoc.Readers.Org.Options
-   Copyright   : Copyright (C) 2014-2016 Albert Krewinkel
+   Copyright   : Copyright (C) 2014-2017 Albert Krewinkel
    License     : GNU GPL, version 2 or above
 
    Maintainer  : Albert Krewinkel <tarleb+pandoc@moltkeplatz.de>
@@ -29,12 +29,10 @@ Utility functions used in other Pandoc Org modules.
 module Text.Pandoc.Readers.Org.Shared
   ( cleanLinkString
   , isImageFilename
-  , rundocBlockClass
-  , toRundocAttrib
+  , originalLang
   , translateLang
   ) where
 
-import Control.Arrow (first)
 import Data.Char (isAlphaNum)
 import Data.List (isPrefixOf, isSuffixOf)
 
@@ -68,17 +66,17 @@ cleanLinkString s =
      in all (\c -> isAlphaNum c || c `elem` (".-"::String)) scheme
           && not (null path)
 
--- | Prefix used for Rundoc classes and arguments.
-rundocPrefix :: String
-rundocPrefix = "rundoc-"
+-- | Creates an key-value pair marking the original language name specified for
+-- a piece of source code.
 
--- | The class-name used to mark rundoc blocks.
-rundocBlockClass :: String
-rundocBlockClass = rundocPrefix ++ "block"
-
--- | Prefix the name of a attribute, marking it as a code execution parameter.
-toRundocAttrib :: (String, String) -> (String, String)
-toRundocAttrib = first (rundocPrefix ++)
+-- | Creates an key-value attributes marking the original language name
+-- specified for a piece of source code.
+originalLang :: String -> [(String, String)]
+originalLang lang =
+  let transLang = translateLang lang
+  in if transLang == lang
+     then []
+     else [("data-org-language", lang)]
 
 -- | Translate from Org-mode's programming language identifiers to those used
 -- by Pandoc.  This is useful to allow for proper syntax highlighting in

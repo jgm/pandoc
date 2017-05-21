@@ -448,9 +448,9 @@ This is code: >, $, \, \$, <html>.
 
 ~~This is _strikeout_.~~
 
-Superscripts: abcd a_hello_ ahello there.
+Superscripts: a^(bc)d a^(_hello_) a^(hello there).
 
-Subscripts: H₂O, H₂₃O, Hmany of themO.
+Subscripts: H₂O, H₂₃O, H_(many of them)O.
 
 These should not be superscripts or subscripts, because of the unescaped
 spaces: a^b c^d, a~b c~d.

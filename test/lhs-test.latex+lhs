@@ -17,6 +17,12 @@
 \usepackage[]{microtype}
 \UseMicrotypeSet[protrusion]{basicmath} % disable protrusion for tt fonts
 }{}
+\IfFileExists{parskip.sty}{%
+\usepackage{parskip}
+}{% else
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{6pt plus 2pt minus 1pt}
+}
 \PassOptionsToPackage{hyphens}{url} % url is loaded by hyperref
 \usepackage[unicode=true]{hyperref}
 \hypersetup{
@@ -24,13 +30,8 @@
             breaklinks=true}
 \urlstyle{same}  % don't use monospace font for urls
 \usepackage{listings}
+\newcommand{\passthrough}[1]{#1}
 \lstnewenvironment{code}{\lstset{language=Haskell,basicstyle=\small\ttfamily}}{}
-\IfFileExists{parskip.sty}{%
-\usepackage{parskip}
-}{% else
-\setlength{\parindent}{0pt}
-\setlength{\parskip}{6pt plus 2pt minus 1pt}
-}
 \setlength{\emergencystretch}{3em}  % prevent overfull lines
 \providecommand{\tightlist}{%
   \setlength{\itemsep}{0pt}\setlength{\parskip}{0pt}}

@@ -1,7 +1,6 @@
 flags:
   pandoc:
     trypandoc: false
-    https: true
     embed_data_files: true
     old-locale: false
     network-uri: true
@@ -15,9 +14,9 @@ packages:
 - '.'
 - location:
     git: https://github.com/jgm/pandoc-citeproc.git
-    commit: 8309142e2529e7c82277b93a2c911df5a63f65ca
+    commit: 0926289c5ccc1c69c90b2e9132b0e2b57f08aa4d
   extra-dep: false
 extra-deps:
-- skylighting-0.3.1
-- texmath-0.9.3
-resolver: lts-8.4
+- hslua-0.5.0
+- skylighting-0.3.3
+resolver: lts-8.12

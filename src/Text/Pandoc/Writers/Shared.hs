@@ -1,6 +1,6 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-
-Copyright (C) 2013-2015 John MacFarlane <jgm@berkeley.edu>
+Copyright (C) 2013-2017 John MacFarlane <jgm@berkeley.edu>
 
 This program is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 {- |
    Module      : Text.Pandoc.Writers.Shared
-   Copyright   : Copyright (C) 2013-2015 John MacFarlane
+   Copyright   : Copyright (C) 2013-2017 John MacFarlane
    License     : GNU GPL, version 2 or above
 
    Maintainer  : John MacFarlane <jgm@berkeley.edu>
@@ -39,13 +39,14 @@ module Text.Pandoc.Writers.Shared (
                      , tagWithAttrs
                      , fixDisplayMath
                      , unsmartify
+                     , gridTable
                      )
 where
-import Control.Monad (liftM)
+import Control.Monad (liftM, zipWithM)
 import Data.Aeson (FromJSON (..), Result (..), ToJSON (..), Value (Object),
                    encode, fromJSON)
 import qualified Data.HashMap.Strict as H
-import Data.List (groupBy)
+import Data.List (groupBy, intersperse, transpose)
 import qualified Data.Map as M
 import Data.Maybe (isJust)
 import qualified Data.Text as T
@@ -216,3 +217,83 @@ unsmartify opts ('\8212':xs)
 unsmartify opts (x:xs) = x : unsmartify opts xs
 unsmartify _ [] = []
 
+gridTable :: Monad m
+          => WriterOptions
+          -> (WriterOptions -> [Block] -> m Doc)
+          -> Bool -- ^ headless
+          -> [Alignment]
+          -> [Double]
+          -> [[Block]]
+          -> [[[Block]]]
+          -> m Doc
+gridTable opts blocksToDoc headless aligns widths headers rows = do
+  let numcols = maximum (length aligns : length widths :
+                           map length (headers:rows))
+  let handleGivenWidths widths' = do
+        let widthsInChars' = map (
+                      (\x -> if x < 1 then 1 else x) .
+                      (\x -> x - 3) . floor .
+                      (fromIntegral (writerColumns opts) *)
+                      ) widths'
+        rawHeaders' <- zipWithM blocksToDoc
+            (map (\w -> opts{writerColumns =
+                      min (w - 2) (writerColumns opts)}) widthsInChars')
+            headers
+        rawRows' <- mapM
+             (\cs -> zipWithM blocksToDoc
+               (map (\w -> opts{writerColumns =
+                         min (w - 2) (writerColumns opts)}) widthsInChars')
+               cs)
+             rows
+        return (widthsInChars', rawHeaders', rawRows')
+  let handleZeroWidths = do
+        rawHeaders' <- mapM (blocksToDoc opts) headers
+        rawRows' <- mapM (mapM (blocksToDoc opts)) rows
+        let numChars [] = 0
+            numChars xs = maximum . map offset $ xs
+        let widthsInChars' =
+                map numChars $ transpose (rawHeaders' : rawRows')
+        if sum widthsInChars' > writerColumns opts
+           then -- use even widths
+                handleGivenWidths
+                  (replicate numcols (1.0 / fromIntegral numcols) :: [Double])
+           else return (widthsInChars', rawHeaders', rawRows')
+  (widthsInChars, rawHeaders, rawRows) <- if all (== 0) widths
+                                             then handleZeroWidths
+                                             else handleGivenWidths widths
+  let hpipeBlocks blocks = hcat [beg, middle, end]
+        where h       = maximum (1 : map height blocks)
+              sep'    = lblock 3 $ vcat (map text $ replicate h " | ")
+              beg     = lblock 2 $ vcat (map text $ replicate h "| ")
+              end     = lblock 2 $ vcat (map text $ replicate h " |")
+              middle  = chomp $ hcat $ intersperse sep' blocks
+  let makeRow = hpipeBlocks . zipWith lblock widthsInChars
+  let head' = makeRow rawHeaders
+  let rows' = map (makeRow . map chomp) rawRows
+  let borderpart ch align widthInChars =
+           (if (align == AlignLeft || align == AlignCenter)
+               then char ':'
+               else char ch) <>
+           text (replicate widthInChars ch) <>
+           (if (align == AlignRight || align == AlignCenter)
+               then char ':'
+               else char ch)
+  let border ch aligns' widthsInChars' =
+        char '+' <>
+        hcat (intersperse (char '+') (zipWith (borderpart ch)
+                aligns' widthsInChars')) <> char '+'
+  let body = vcat $ intersperse (border '-' (repeat AlignDefault) widthsInChars)
+                    rows'
+  let head'' = if headless
+                  then empty
+                  else head' $$ border '=' aligns widthsInChars
+  if headless
+     then return $
+           border '-' aligns widthsInChars $$
+           body $$
+           border '-' (repeat AlignDefault) widthsInChars
+     else return $
+           border '-' (repeat AlignDefault) widthsInChars $$
+           head'' $$
+           body $$
+           border '-' (repeat AlignDefault) widthsInChars

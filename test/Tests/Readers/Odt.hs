@@ -3,17 +3,18 @@ module Tests.Readers.Odt (tests) where
 import Control.Monad (liftM)
 import qualified Data.ByteString.Lazy as B
 import qualified Data.Map as M
-import Test.Framework
+import Test.Tasty
 import Tests.Helpers
 import Text.Pandoc
+import System.IO.Unsafe (unsafePerformIO) -- TODO  temporary
 
 defopts :: ReaderOptions
 defopts = def{ readerExtensions = getDefaultExtensions "odt" }
 
-tests :: [Test]
+tests :: [TestTree]
 tests = testsComparingToMarkdown ++ testsComparingToNative
 
-testsComparingToMarkdown :: [Test]
+testsComparingToMarkdown :: [TestTree]
 testsComparingToMarkdown    = map nameToTest namesOfTestsComparingToMarkdown
   where nameToTest     name = createTest
                                 compareOdtToMarkdown
@@ -23,7 +24,7 @@ testsComparingToMarkdown    = map nameToTest namesOfTestsComparingToMarkdown
         toOdtPath      name = "odt/odt/"      ++ name ++ ".odt"
         toMarkdownPath name = "odt/markdown/" ++ name ++ ".md"
 
-testsComparingToNative   :: [Test]
+testsComparingToNative   :: [TestTree]
 testsComparingToNative      = map nameToTest namesOfTestsComparingToNative
   where nameToTest     name = createTest
                                 compareOdtToNative
@@ -77,9 +78,9 @@ compareOdtToMarkdown opts odtPath markdownPath = do
 createTest :: TestCreator
            -> TestName
            -> FilePath -> FilePath
-           -> Test
+           -> TestTree
 createTest   creator name path1 path2 =
-  buildTest $ liftM (test id name) (creator defopts path1 path2)
+  unsafePerformIO $ liftM (test id name) (creator defopts path1 path2)
 
 {-
 --
@@ -113,14 +114,14 @@ compareMediaBagIO odtFile = do
              (mediaDirectory mb)
     return $ and bools
 
-testMediaBagIO :: String -> FilePath -> IO Test
+testMediaBagIO :: String -> FilePath -> IO TestTree
 testMediaBagIO name odtFile = do
   outcome <- compareMediaBagIO odtFile
   return $ testCase name (assertBool
                           ("Media didn't match media bag in file " ++ odtFile)
                           outcome)
 
-testMediaBag :: String -> FilePath -> Test
+testMediaBag :: String -> FilePath -> TestTree
 testMediaBag name odtFile = buildTest $ testMediaBagIO name odtFile
 -}
 --

@@ -8,7 +8,6 @@ module Tests.Helpers ( test
                      , findPandoc
                      , (=?>)
                      , purely
-                     , property
                      , ToString(..)
                      , ToPandoc(..)
                      )
@@ -20,11 +19,8 @@ import System.Directory
 import System.Environment.Executable (getExecutablePath)
 import System.Exit
 import System.FilePath
-import Test.Framework
-import Test.Framework.Providers.HUnit
-import Test.Framework.Providers.QuickCheck2
-import Test.HUnit (assertBool)
-import qualified Test.QuickCheck.Property as QP
+import Test.Tasty
+import Test.Tasty.HUnit
 import Text.Pandoc.Builder (Blocks, Inlines, doc, plain)
 import Text.Pandoc.Class
 import Text.Pandoc.Definition
@@ -37,14 +33,17 @@ test :: (ToString a, ToString b, ToString c)
      => (a -> b)  -- ^ function to test
      -> String    -- ^ name of test case
      -> (a, c)    -- ^ (input, expected value)
-     -> Test
+     -> TestTree
 test fn name (input, expected) =
-  testCase name $ assertBool msg (actual' == expected')
+  testCase name' $ assertBool msg (actual' == expected')
      where msg = nl ++ dashes "input" ++ nl ++ input' ++ nl ++
                  dashes "result" ++ nl ++
                  unlines (map vividize diff) ++
                  dashes ""
            nl = "\n"
+           name'   = if length name > 54
+                        then take 52 name ++ "..."  -- avoid wide output
+                        else name
            input'  = toString input
            actual' = lines $ toString $ fn input
            expected' = lines $ toString expected
@@ -94,9 +93,6 @@ vividize :: Diff String -> String
 vividize (Both s _) = "  " ++ s
 vividize (First s)  = "- " ++ s
 vividize (Second s) = "+ " ++ s
-
-property :: QP.Testable a => TestName -> a -> Test
-property = testProperty
 
 purely :: (b -> PandocPure a) -> b -> a
 purely f = either (error . show) id . runPure . f

@@ -3,7 +3,7 @@
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TupleSections       #-}
 {-
-Copyright (C) 2006-2015 John MacFarlane <jgm@berkeley.edu>
+Copyright (C) 2006-2017 John MacFarlane <jgm@berkeley.edu>
 
 This program is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -22,7 +22,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 {- |
    Module      : Text.Pandoc.Writers.Markdown
-   Copyright   : Copyright (C) 2006-2015 John MacFarlane
+   Copyright   : Copyright (C) 2006-2017 John MacFarlane
    License     : GNU GPL, version 2 or above
 
    Maintainer  : John MacFarlane <jgm@berkeley.edu>
@@ -66,7 +66,7 @@ import Text.Pandoc.Writers.Math (texMathToInlines)
 import Text.Pandoc.Writers.Shared
 
 type Notes = [[Block]]
-type Ref   = ([Inline], Target, Attr)
+type Ref   = (Doc, Target, Attr)
 type Refs  = [Ref]
 
 type MD m = ReaderT WriterEnv (StateT WriterState m)
@@ -91,6 +91,7 @@ instance Default WriterEnv
 
 data WriterState = WriterState { stNotes   :: Notes
                                , stRefs    :: Refs
+                               , stKeys    :: Set.Set Key
                                , stIds     :: Set.Set String
                                , stNoteNum :: Int
                                }
@@ -98,6 +99,7 @@ data WriterState = WriterState { stNotes   :: Notes
 instance Default WriterState
   where def = WriterState{ stNotes = []
                          , stRefs = []
+                         , stKeys = Set.empty
                          , stIds = Set.empty
                          , stNoteNum = 1
                          }
@@ -235,14 +237,13 @@ keyToMarkdown :: PandocMonad m
               => WriterOptions
               -> Ref
               -> MD m Doc
-keyToMarkdown opts (label, (src, tit), attr) = do
-  label' <- inlineListToMarkdown opts label
+keyToMarkdown opts (label', (src, tit), attr) = do
   let tit' = if null tit
                 then empty
                 else space <> "\"" <> text tit <> "\""
   return $ nest 2 $ hang 2
             ("[" <> label' <> "]:" <> space) (text src <> tit')
-            <> linkAttributes opts attr
+            <+> linkAttributes opts attr
 
 -- | Return markdown representation of notes.
 notesToMarkdown :: PandocMonad m => WriterOptions -> [[Block]] -> MD m Doc
@@ -555,40 +556,19 @@ blockToMarkdown' opts t@(Table caption aligns widths headers rows) =  do
      case True of
           _ | isSimple &&
               isEnabled Ext_simple_tables opts -> fmap (nest 2,) $
-                   pandocTable opts (all null headers) aligns' widths'
+                   pandocTable opts False (all null headers) aligns' widths'
                        rawHeaders rawRows
             | isSimple &&
               isEnabled Ext_pipe_tables opts -> fmap (id,) $
                    pipeTable (all null headers) aligns' rawHeaders rawRows
             | not hasBlocks &&
               isEnabled Ext_multiline_tables opts -> fmap (nest 2,) $
-                   pandocTable opts (all null headers) aligns' widths'
+                   pandocTable opts True (all null headers) aligns' widths'
                        rawHeaders rawRows
             | isEnabled Ext_grid_tables opts &&
-               writerColumns opts >= 8 * numcols -> do
-                let widths'' = if all (==0) widths'
-                                  then replicate numcols
-                                        (1.0 / fromIntegral numcols)
-                                  else widths'
-                let widthsInChars = map ((\x -> x - 3) . floor .
-                       (fromIntegral (writerColumns opts) *)) widths''
-                rawHeaders' <- zipWithM
-                    blockListToMarkdown
-                    (map (\w -> opts{writerColumns =
-                              min (w - 2) (writerColumns opts)})
-                       widthsInChars)
-                    headers
-                rawRows' <- mapM
-                     (\cs -> zipWithM
-                       blockListToMarkdown
-                       (map (\w -> opts{writerColumns =
-                                 min (w - 2) (writerColumns opts)})
-                        widthsInChars)
-                       cs)
-                     rows
-                fmap (id,) $
-                   gridTable (all null headers) aligns' widthsInChars
-                       rawHeaders' rawRows'
+               writerColumns opts >= 8 * numcols -> (id,) <$>
+                gridTable opts blockListToMarkdown
+                  (all null headers) aligns' widths' headers rows
             | isEnabled Ext_raw_html opts -> fmap (id,) $
                    text <$>
                    (writeHtml5String def $ Pandoc nullMeta [t])
@@ -654,9 +634,10 @@ pipeTable headless aligns rawHeaders rawRows = do
   let body   = vcat $ map torow rawRows
   return $ header $$ border $$ body
 
-pandocTable :: PandocMonad m => WriterOptions -> Bool -> [Alignment] -> [Double]
+pandocTable :: PandocMonad m
+            => WriterOptions -> Bool -> Bool -> [Alignment] -> [Double]
             -> [Doc] -> [[Doc]] -> MD m Doc
-pandocTable opts headless aligns widths rawHeaders rawRows = do
+pandocTable opts multiline headless aligns widths rawHeaders rawRows = do
   let isSimple = all (==0) widths
   let alignHeader alignment = case alignment of
                                 AlignLeft    -> lblock
@@ -673,23 +654,21 @@ pandocTable opts headless aligns widths rawHeaders rawRows = do
   let minNumChars = (+ 2) . maximum . map minOffset
   let columns = transpose (rawHeaders : rawRows)
   -- minimal column width without wrapping a single word
-  let noWordWrapWidth
-        | writerWrapText opts == WrapAuto
-                              = fromIntegral $ maximum (map minNumChars columns)
-        | otherwise           = fromIntegral $ maximum (map    numChars columns)
-  let relWidth w = floor $ max (fromIntegral (writerColumns opts) * w)
-                               (noWordWrapWidth * w / minimum widths)
+  let relWidth w col =
+         max (floor $ fromIntegral (writerColumns opts) * w)
+             (if writerWrapText opts == WrapAuto
+                 then minNumChars col
+                 else numChars col)
   let widthsInChars
         | isSimple  = map numChars columns
-        | otherwise = map relWidth widths
+        | otherwise = zipWith relWidth widths columns
   let makeRow = hcat . intersperse (lblock 1 (text " ")) .
                    (zipWith3 alignHeader aligns widthsInChars)
   let rows' = map makeRow rawRows
   let head' = makeRow rawHeaders
-  let maxRowHeight = maximum $ map height (head':rows')
   let underline = cat $ intersperse (text " ") $
                   map (\width -> text (replicate width '-')) widthsInChars
-  let border = if maxRowHeight > 1
+  let border = if multiline
                   then text (replicate (sum widthsInChars +
                           length widthsInChars - 1) '-')
                   else if headless
@@ -698,54 +677,13 @@ pandocTable opts headless aligns widths rawHeaders rawRows = do
   let head'' = if headless
                   then empty
                   else border <> cr <> head'
-  let body = if maxRowHeight > 1
+  let body = if multiline
                 then vsep rows'
                 else vcat rows'
   let bottom = if headless
                   then underline
                   else border
   return $ head'' $$ underline $$ body $$ bottom
-
-gridTable :: PandocMonad m => Bool -> [Alignment] -> [Int]
-          -> [Doc] -> [[Doc]] -> MD m Doc
-gridTable headless aligns widthsInChars headers' rawRows =  do
-  let hpipeBlocks blocks = hcat [beg, middle, end]
-        where h       = maximum (1 : map height blocks)
-              sep'    = lblock 3 $ vcat (map text $ replicate h " | ")
-              beg     = lblock 2 $ vcat (map text $ replicate h "| ")
-              end     = lblock 2 $ vcat (map text $ replicate h " |")
-              middle  = chomp $ hcat $ intersperse sep' blocks
-  let makeRow = hpipeBlocks . zipWith lblock widthsInChars
-  let head' = makeRow headers'
-  let rows' = map (makeRow . map chomp) rawRows
-  let borderpart ch align widthInChars =
-        let widthInChars' = if widthInChars < 1 then 1 else widthInChars
-        in (if (align == AlignLeft || align == AlignCenter)
-               then char ':'
-               else char ch) <>
-           text (replicate widthInChars' ch) <>
-           (if (align == AlignRight || align == AlignCenter)
-               then char ':'
-               else char ch)
-  let border ch aligns' widthsInChars' =
-        char '+' <>
-        hcat (intersperse (char '+') (zipWith (borderpart ch)
-                aligns' widthsInChars')) <> char '+'
-  let body = vcat $ intersperse (border '-' (repeat AlignDefault) widthsInChars)
-                    rows'
-  let head'' = if headless
-                  then empty
-                  else head' $$ border '=' aligns widthsInChars
-  if headless
-     then return $
-           border '-' aligns widthsInChars $$
-           body $$
-           border '-' (repeat AlignDefault) widthsInChars
-     else return $
-           border '-' (repeat AlignDefault) widthsInChars $$
-           head'' $$
-           body $$
-           border '-' (repeat AlignDefault) widthsInChars
 
 itemEndsWithTightList :: [Block] -> Bool
 itemEndsWithTightList bs =
@@ -852,26 +790,31 @@ blockListToMarkdown opts blocks = do
       isListBlock _                  = False
       commentSep                     = if isEnabled Ext_raw_html opts
                                           then RawBlock "html" "<!-- -->\n"
-                                          else RawBlock "markdown" "&nbsp;"
+                                          else RawBlock "markdown" "&nbsp;\n"
   mapM (blockToMarkdown opts) (fixBlocks blocks) >>= return . cat
+
+getKey :: Doc -> Key
+getKey = toKey . render Nothing
 
 -- | Get reference for target; if none exists, create unique one and return.
 --   Prefer label if possible; otherwise, generate a unique key.
-getReference :: PandocMonad m => Attr -> [Inline] -> Target -> MD m [Inline]
+getReference :: PandocMonad m => Attr -> Doc -> Target -> MD m Doc
 getReference attr label target = do
-  st <- get
-  case find (\(_,t,a) -> t == target && a == attr) (stRefs st) of
+  refs <- gets stRefs
+  case find (\(_,t,a) -> t == target && a == attr) refs of
     Just (ref, _, _) -> return ref
     Nothing       -> do
-      label' <- case find (\(l,_,_) -> l == label) (stRefs st) of
-                  Just _ -> -- label is used; generate numerical label
-                    case find (\n -> notElem [Str (show n)]
-                                     (map (\(l,_,_) -> l) (stRefs st)))
-                         [1..(10000 :: Integer)] of
-                      Just x  -> return [Str (show x)]
-                      Nothing -> throwError $ PandocSomeError "no unique label"
-                  Nothing -> return label
-      modify (\s -> s{ stRefs = (label', target, attr) : stRefs st })
+      keys <- gets stKeys
+      label' <- if isEmpty label || getKey label `Set.member` keys
+                   then case find (\n -> not (Key n `Set.member` keys)) $
+                           map show [1..(10000 :: Integer)] of
+                         Just x  -> return $ text x
+                         Nothing ->
+                           throwError $ PandocSomeError "no unique label"
+                   else return label
+      modify (\s -> s{ stRefs = (label', target, attr) : stRefs s,
+                       stKeys = Set.insert (getKey label') (stKeys s)
+                     })
       return label'
 
 -- | Convert list of Pandoc inline elements to markdown.
@@ -882,7 +825,8 @@ inlineListToMarkdown opts lst = do
   where go [] = return empty
         go (i:is) = case i of
             (Link _ _ _) -> case is of
-                -- If a link is followed by another link or '[' we don't shortcut
+                -- If a link is followed by another link, or '[', '(' or ':'
+                -- then we don't shortcut
                 (Link _ _ _):_                    -> unshortcutable
                 Space:(Link _ _ _):_              -> unshortcutable
                 Space:(Str('[':_)):_              -> unshortcutable
@@ -892,9 +836,17 @@ inlineListToMarkdown opts lst = do
                 SoftBreak:(Str('[':_)):_          -> unshortcutable
                 SoftBreak:(RawInline _ ('[':_)):_ -> unshortcutable
                 SoftBreak:(Cite _ _):_            -> unshortcutable
+                LineBreak:(Link _ _ _):_          -> unshortcutable
+                LineBreak:(Str('[':_)):_          -> unshortcutable
+                LineBreak:(RawInline _ ('[':_)):_ -> unshortcutable
+                LineBreak:(Cite _ _):_            -> unshortcutable
                 (Cite _ _):_                      -> unshortcutable
                 Str ('[':_):_                     -> unshortcutable
+                Str ('(':_):_                     -> unshortcutable
+                Str (':':_):_                     -> unshortcutable
                 (RawInline _ ('[':_)):_           -> unshortcutable
+                (RawInline _ ('(':_)):_           -> unshortcutable
+                (RawInline _ (':':_)):_           -> unshortcutable
                 (RawInline _ (' ':'[':_)):_       -> unshortcutable
                 _                                 -> shortcutable
             _ -> shortcutable
@@ -978,14 +930,11 @@ inlineToMarkdown opts (Superscript lst) =
                 then "^" <> contents <> "^"
                 else if isEnabled Ext_raw_html opts
                          then "<sup>" <> contents <> "</sup>"
-                         else case (render Nothing contents) of
-                                   ds | all (\d -> d >= '0' && d <= '9') ds
-                                     -> text (map toSuperscript ds)
-                                   _ -> contents
-                          where toSuperscript '1' = '\x00B9'
-                                toSuperscript '2' = '\x00B2'
-                                toSuperscript '3' = '\x00B3'
-                                toSuperscript c = chr (0x2070 + (ord c - 48))
+                         else
+                           let rendered = render Nothing contents
+                           in  case mapM toSuperscript rendered of
+                                    Just r -> text r
+                                    Nothing -> text $ "^(" ++ rendered ++ ")"
 inlineToMarkdown opts (Subscript lst) =
   local (\env -> env {envEscapeSpaces = True}) $ do
     contents <- inlineListToMarkdown opts lst
@@ -993,11 +942,11 @@ inlineToMarkdown opts (Subscript lst) =
                 then "~" <> contents <> "~"
                 else if isEnabled Ext_raw_html opts
                          then "<sub>" <> contents <> "</sub>"
-                         else case (render Nothing contents) of
-                                   ds | all (\d -> d >= '0' && d <= '9') ds
-                                     -> text (map toSubscript ds)
-                                   _ -> contents
-                          where toSubscript c = chr (0x2080 + (ord c - 48))
+                         else
+                           let rendered = render Nothing contents
+                           in  case mapM toSubscript rendered of
+                                    Just r -> text r
+                                    Nothing -> text $ "_(" ++ rendered ++ ")"
 inlineToMarkdown opts (SmallCaps lst) = do
   plain <- asks envPlain
   if not plain &&
@@ -1144,15 +1093,15 @@ inlineToMarkdown opts lnk@(Link attr txt (src, tit))
   shortcutable <- asks envRefShortcutable
   let useShortcutRefLinks = shortcutable &&
                             isEnabled Ext_shortcut_reference_links opts
-  ref <- if useRefLinks then getReference attr txt (src, tit) else return []
-  reftext <- inlineListToMarkdown opts ref
+  reftext <- if useRefLinks then getReference attr linktext (src, tit)
+                            else return empty
   return $ if useAuto
               then if plain
                       then text srcSuffix
                       else "<" <> text srcSuffix <> ">"
               else if useRefLinks
                       then let first  = "[" <> linktext <> "]"
-                               second = if txt == ref
+                               second = if getKey linktext == getKey reftext
                                            then if useShortcutRefLinks
                                                    then ""
                                                    else "[]"
@@ -1192,3 +1141,29 @@ makeMathPlainer = walk go
   go (Emph xs) = Span nullAttr xs
   go x         = x
 
+toSuperscript :: Char -> Maybe Char
+toSuperscript '1' = Just '\x00B9'
+toSuperscript '2' = Just '\x00B2'
+toSuperscript '3' = Just '\x00B3'
+toSuperscript '+' = Just '\x207A'
+toSuperscript '-' = Just '\x207B'
+toSuperscript '=' = Just '\x207C'
+toSuperscript '(' = Just '\x207D'
+toSuperscript ')' = Just '\x207E'
+toSuperscript c
+  | c >= '0' && c <= '9' =
+                 Just $ chr (0x2070 + (ord c - 48))
+  | isSpace c = Just c
+  | otherwise = Nothing
+
+toSubscript :: Char -> Maybe Char
+toSubscript '+' = Just '\x208A'
+toSubscript '-' = Just '\x208B'
+toSubscript '=' = Just '\x208C'
+toSubscript '(' = Just '\x208D'
+toSubscript ')' = Just '\x208E'
+toSubscript c
+  | c >= '0' && c <= '9' =
+                 Just $ chr (0x2080 + (ord c - 48))
+  | isSpace c = Just c
+  | otherwise = Nothing

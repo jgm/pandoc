@@ -1,9 +1,8 @@
 module Tests.Readers.EPUB (tests) where
 
 import qualified Data.ByteString.Lazy as BL
-import Test.Framework
-import Test.Framework.Providers.HUnit
-import Test.HUnit (assertBool)
+import Test.Tasty
+import Test.Tasty.HUnit
 import qualified Text.Pandoc.Class as P
 import Text.Pandoc.MediaBag (MediaBag, mediaDirectory)
 import Text.Pandoc.Options
@@ -30,7 +29,7 @@ featuresBag = [("img/check.gif","image/gif",1340)
               ,("img/multiscripts_and_greek_alphabet.png","image/png",10060)
               ]
 
-tests :: [Test]
+tests :: [TestTree]
 tests =
   [ testGroup "EPUB Mediabag"
     [ testCase "features bag"

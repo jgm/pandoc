@@ -2,18 +2,16 @@ module Tests.Old (tests) where
 
 import Data.Algorithm.Diff
 import Prelude hiding (readFile)
-import System.Directory
 import System.Exit
 import System.FilePath (joinPath, splitDirectories, (<.>), (</>))
-import System.IO (openTempFile, stderr)
+import System.IO.Temp (withTempFile)
 import System.Process (runProcess, waitForProcess)
-import Test.Framework (Test, testGroup)
-import Test.Framework.Providers.HUnit
-import Test.HUnit (assertBool)
+import Test.Tasty (TestTree, testGroup)
+import Test.Tasty.Golden.Advanced (goldenTest)
 import Tests.Helpers hiding (test)
 import qualified Text.Pandoc.UTF8 as UTF8
 
-tests :: [Test]
+tests :: [TestTree]
 tests = [ testGroup "markdown"
           [ testGroup "writer"
             $ writerTests "markdown" ++ lhsWriterTests "markdown"
@@ -78,6 +76,9 @@ tests = [ testGroup "markdown"
           ]
         , testGroup "docbook5"
           [ testGroup "writer" $ writerTests "docbook5"
+          ]
+        , testGroup "jats"
+          [ testGroup "writer" $ writerTests "jats"
           ]
         , testGroup "native"
           [ testGroup "writer" $ writerTests "native"
@@ -145,6 +146,9 @@ tests = [ testGroup "markdown"
         , testGroup "muse"
           [ testGroup "writer" $ writerTests "muse"
           ]
+        , testGroup "ms"
+          [ testGroup "writer" $ writerTests "ms"
+          ]
         ]
 
 -- makes sure file is fully closed after reading
@@ -152,7 +156,7 @@ readFile' :: FilePath -> IO String
 readFile' f = do s <- UTF8.readFile f
                  return $! (length s `seq` s)
 
-lhsWriterTests :: String -> [Test]
+lhsWriterTests :: String -> [TestTree]
 lhsWriterTests format
   = [ t "lhs to normal" format
     , t "lhs to lhs"    (format ++ "+lhs")
@@ -161,7 +165,7 @@ lhsWriterTests format
     t n f = test n ["--wrap=preserve", "-r", "native", "-s", "-w", f]
              "lhs-test.native" ("lhs-test" <.> f)
 
-lhsReaderTest :: String -> Test
+lhsReaderTest :: String -> TestTree
 lhsReaderTest format =
   test "lhs" ["-r", format, "-w", "native"]
     ("lhs-test" <.> format) norm
@@ -169,7 +173,7 @@ lhsReaderTest format =
                    then "lhs-test-markdown.native"
                    else "lhs-test.native"
 
-writerTests :: String -> [Test]
+writerTests :: String -> [TestTree]
 writerTests format
   = [ test "basic"  (opts ++ ["-s"]) "testsuite.native" ("writer" <.> format)
     , test "tables" opts             "tables.native"    ("tables" <.> format)
@@ -178,13 +182,13 @@ writerTests format
     opts = ["-r", "native", "-w", format, "--columns=78",
             "--variable", "pandoc-version="]
 
-s5WriterTest :: String -> [String] -> String -> Test
+s5WriterTest :: String -> [String] -> String -> TestTree
 s5WriterTest modifier opts format
   = test (format ++ " writer (" ++ modifier ++ ")")
     (["-r", "native", "-w", format] ++ opts)
     "s5.native"  ("s5-" ++ modifier <.> "html")
 
-fb2WriterTest :: String -> [String] -> String -> String -> Test
+fb2WriterTest :: String -> [String] -> String -> String -> TestTree
 fb2WriterTest title opts inputfile normfile =
   testWithNormalize (ignoreBinary . formatXML)
                     title (["-t", "fb2"]++opts) inputfile normfile
@@ -202,7 +206,7 @@ test :: String    -- ^ Title of test
      -> [String]  -- ^ Options to pass to pandoc
      -> String    -- ^ Input filepath
      -> FilePath  -- ^ Norm (for test results) filepath
-     -> Test
+     -> TestTree
 test = testWithNormalize id
 
 -- | Run a test with normalize function, return True if test passed.
@@ -211,41 +215,55 @@ testWithNormalize  :: (String -> String) -- ^ Normalize function for output
                    -> [String]  -- ^ Options to pass to pandoc
                    -> String    -- ^ Input filepath
                    -> FilePath  -- ^ Norm (for test results) filepath
-                   -> Test
-testWithNormalize normalizer testname opts inp norm = testCase testname $ do
-  -- find pandoc executable relative to test-pandoc
-  -- First, try in same directory (e.g. if both in ~/.cabal/bin)
-  -- Second, try ../pandoc (e.g. if in dist/XXX/build/test-pandoc)
+                   -> TestTree
+testWithNormalize normalizer testname opts inp norm =
+  goldenTest testname getExpected getActual
+    (compareValues norm options) updateGolden
+  where getExpected = normalizer <$> readFile' norm
+        getActual   =
+          withTempFile "." "pandoc-test" $ \outputPath hOut -> do
+            withTempFile "." "pandoc-test" $ \errorPath hErr -> do
+              pandocPath <- findPandoc
+              let mbDynlibDir = findDynlibDir (reverse $
+                                 splitDirectories pandocPath)
+              let dynlibEnv = case mbDynlibDir of
+                                   Nothing  -> []
+                                   Just d   -> [("DYLD_LIBRARY_PATH", d),
+                                                ("LD_LIBRARY_PATH", d)]
+              let env = dynlibEnv ++
+                        [("TMP","."),("LANG","en_US.UTF-8"),("HOME", "./")]
+              ph <- runProcess pandocPath options Nothing
+                    (Just env) Nothing (Just hOut) (Just hErr)
+              ec <- waitForProcess ph
+              if ec == ExitSuccess
+                 then
+                   -- filter \r so the tests will work on Windows machines
+                   (filter (/='\r') . normalizer) <$> readFile' outputPath
+                 else do
+                   errcontents <- UTF8.readFile errorPath
+                   fail $ "Pandoc failed with " ++ show ec ++
+                           if null errcontents
+                              then ""
+                              else '\n':errcontents
+        updateGolden = UTF8.writeFile norm
+        options = ["--quiet", "--data-dir", ".." </> "data"] ++ [inp] ++ opts
+
+compareValues :: FilePath -> [String] -> String -> String -> IO (Maybe String)
+compareValues norm options expected actual = do
   pandocPath <- findPandoc
-  (outputPath, hOut) <- openTempFile "" "pandoc-test"
-  let inpPath = inp
-  let normPath = norm
-  let options = ["--quiet", "--data-dir", ".." </> "data"] ++ [inpPath] ++ opts
-  let cmd = pandocPath ++ " " ++ unwords options
-  let findDynlibDir []           = Nothing
-      findDynlibDir ("build":xs) = Just $ joinPath (reverse xs) </> "build"
-      findDynlibDir (_:xs)       = findDynlibDir xs
-  let mbDynlibDir = findDynlibDir (reverse $ splitDirectories pandocPath)
-  let dynlibEnv = case mbDynlibDir of
-                       Nothing  -> []
-                       Just d   -> [("DYLD_LIBRARY_PATH", d),
-                                    ("LD_LIBRARY_PATH", d)]
-  let env = dynlibEnv ++ [("TMP","."),("LANG","en_US.UTF-8"),("HOME", "./")]
-  ph <- runProcess pandocPath options Nothing
-        (Just env) Nothing (Just hOut) (Just stderr)
-  ec <- waitForProcess ph
-  result  <- if ec == ExitSuccess
-                then do
-                  -- filter \r so the tests will work on Windows machines
-                  outputContents <- readFile' outputPath >>=
-                    return . filter (/='\r') . normalizer
-                  normContents <- readFile' normPath >>=
-                    return . filter (/='\r') . normalizer
-                  if outputContents == normContents
-                     then return TestPassed
-                     else return
-                          $ TestFailed cmd normPath
-                          $ getDiff (lines outputContents) (lines normContents)
-                else return $ TestError ec
-  removeFile outputPath
-  assertBool (show result) (result == TestPassed)
+  let cmd  = pandocPath ++ " " ++ unwords options
+  let dash = replicate 72 '-'
+  let diff = getDiff (lines actual) (lines expected)
+  if expected == actual
+     then return Nothing
+     else return $ Just $
+        '\n' : dash ++
+        "\n--- " ++ norm ++
+        "\n+++ " ++ cmd ++ "\n" ++
+        showDiff (1,1) diff ++ dash
+
+findDynlibDir :: [FilePath] -> Maybe FilePath
+findDynlibDir []           = Nothing
+findDynlibDir ("build":xs) = Just $ joinPath (reverse xs) </> "build"
+findDynlibDir (_:xs)       = findDynlibDir xs
+

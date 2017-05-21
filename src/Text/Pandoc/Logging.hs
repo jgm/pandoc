@@ -20,7 +20,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 -}
 {- |
    Module      : Text.Pandoc.Logging
-   Copyright   : Copyright (C) 2006-2016 John MacFarlane
+   Copyright   : Copyright (C) 2006-2017 John MacFarlane
    License     : GNU GPL, version 2 or above
 
    Maintainer  : John MacFarlane <jgm@berkeley.edu>
@@ -62,6 +62,7 @@ data LogMessage =
   | CouldNotParseYamlMetadata String SourcePos
   | DuplicateLinkReference String SourcePos
   | DuplicateNoteReference String SourcePos
+  | DuplicateIdentifier String SourcePos
   | ReferenceNotFound String SourcePos
   | CircularReference String SourcePos
   | ParsingUnescaped String SourcePos
@@ -79,6 +80,7 @@ data LogMessage =
   | Fetching String
   | NoTitleElement String
   | NoLangSpecified
+  | CouldNotHighlight String
   deriving (Show, Eq, Data, Ord, Typeable, Generic)
 
 instance ToJSON LogMessage where
@@ -102,6 +104,11 @@ instance ToJSON LogMessage where
             "line" .= toJSON (sourceLine pos),
             "column" .= toJSON (sourceColumn pos)]
       DuplicateNoteReference s pos ->
+           ["contents" .= Text.pack s,
+            "source" .= Text.pack (sourceName pos),
+            "line" .= toJSON (sourceLine pos),
+            "column" .= toJSON (sourceColumn pos)]
+      DuplicateIdentifier s pos ->
            ["contents" .= Text.pack s,
             "source" .= Text.pack (sourceName pos),
             "line" .= toJSON (sourceLine pos),
@@ -158,6 +165,8 @@ instance ToJSON LogMessage where
       NoTitleElement fallback ->
            ["fallback" .= Text.pack fallback]
       NoLangSpecified -> []
+      CouldNotHighlight msg ->
+           ["message" .= Text.pack msg]
 
 showPos :: SourcePos -> String
 showPos pos = sn ++ "line " ++
@@ -184,6 +193,8 @@ showLogMessage msg =
          "Duplicate link reference '" ++ s ++ "' at " ++ showPos pos
        DuplicateNoteReference s pos ->
          "Duplicate note reference '" ++ s ++ "' at " ++ showPos pos
+       DuplicateIdentifier s pos ->
+         "Duplicate identifier '" ++ s ++ "' at " ++ showPos pos
        ReferenceNotFound s pos ->
          "Reference not found for '" ++ s ++ "' at " ++ showPos pos
        CircularReference s pos ->
@@ -225,6 +236,8 @@ showLogMessage msg =
        NoLangSpecified ->
          "No value for 'lang' was specified in the metadata.\n" ++
          "It is recommended that lang be specified for this format."
+       CouldNotHighlight m ->
+         "Could not highlight code block:\n" ++ m
 
 messageVerbosity:: LogMessage -> Verbosity
 messageVerbosity msg =
@@ -233,6 +246,7 @@ messageVerbosity msg =
        CouldNotParseYamlMetadata{}  -> WARNING
        DuplicateLinkReference{}     -> WARNING
        DuplicateNoteReference{}     -> WARNING
+       DuplicateIdentifier{}        -> WARNING
        ReferenceNotFound{}          -> WARNING
        CircularReference{}          -> WARNING
        CouldNotLoadIncludeFile{}    -> WARNING
@@ -250,3 +264,4 @@ messageVerbosity msg =
        Fetching{}                   -> INFO
        NoTitleElement{}             -> WARNING
        NoLangSpecified              -> INFO
+       CouldNotHighlight{}          -> WARNING

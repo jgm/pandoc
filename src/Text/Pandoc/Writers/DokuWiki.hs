@@ -1,5 +1,5 @@
 {-
-Copyright (C) 2008-2015 John MacFarlane <jgm@berkeley.edu>
+Copyright (C) 2008-2017 John MacFarlane <jgm@berkeley.edu>
 
 This program is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -18,7 +18,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 {- |
    Module      : Text.Pandoc.Writers.DokuWiki
-   Copyright   : Copyright (C) 2008-2015 John MacFarlane
+   Copyright   : Copyright (C) 2008-2017 John MacFarlane
    License     : GNU GPL, version 2 or above
 
    Maintainer  : Clare Macrae <clare.macrae@googlemail.com>
@@ -41,11 +41,12 @@ DokuWiki:  <https://www.dokuwiki.org/dokuwiki>
 module Text.Pandoc.Writers.DokuWiki ( writeDokuWiki ) where
 import Control.Monad (zipWithM)
 import Control.Monad.Reader (ReaderT, ask, local, runReaderT)
-import Control.Monad.State (State, evalState, gets, modify)
+import Control.Monad.State (StateT, evalStateT, gets, modify)
 import Data.Default (Default (..))
 import Data.List (intercalate, intersect, isPrefixOf, transpose)
 import Network.URI (isURI)
-import Text.Pandoc.Class (PandocMonad)
+import Text.Pandoc.Class (PandocMonad, report)
+import Text.Pandoc.Logging
 import Text.Pandoc.Definition
 import Text.Pandoc.ImageSize
 import Text.Pandoc.Options (WrapOption (..), WriterOptions (writerTableOfContents, writerTemplate, writerWrapText))
@@ -72,18 +73,19 @@ instance Default WriterEnvironment where
                           , stUseTags = False
                           , stBackSlashLB = False }
 
-type DokuWiki = ReaderT WriterEnvironment (State WriterState)
+type DokuWiki m = ReaderT WriterEnvironment (StateT WriterState m)
 
 -- | Convert Pandoc to DokuWiki.
 writeDokuWiki :: PandocMonad m => WriterOptions -> Pandoc -> m String
-writeDokuWiki opts document = return $
+writeDokuWiki opts document =
   runDokuWiki (pandocToDokuWiki opts document)
 
-runDokuWiki :: DokuWiki a -> a
-runDokuWiki = flip evalState def . flip runReaderT def
+runDokuWiki :: PandocMonad m => DokuWiki m a -> m a
+runDokuWiki = flip evalStateT def . flip runReaderT def
 
 -- | Return DokuWiki representation of document.
-pandocToDokuWiki :: WriterOptions -> Pandoc -> DokuWiki String
+pandocToDokuWiki :: PandocMonad m
+                 => WriterOptions -> Pandoc -> DokuWiki m String
 pandocToDokuWiki opts (Pandoc meta blocks) = do
   metadata <- metaToJSON opts
               (fmap trimr . blockListToDokuWiki opts)
@@ -110,9 +112,10 @@ escapeString = substitute "__" "%%__%%" .
                substitute "//" "%%//%%"
 
 -- | Convert Pandoc block element to DokuWiki.
-blockToDokuWiki :: WriterOptions -- ^ Options
+blockToDokuWiki :: PandocMonad m
+                => WriterOptions -- ^ Options
                 -> Block         -- ^ Block element
-                -> DokuWiki String
+                -> DokuWiki m String
 
 blockToDokuWiki _ Null = return ""
 
@@ -147,12 +150,12 @@ blockToDokuWiki opts (Para inlines) = do
 blockToDokuWiki opts (LineBlock lns) =
   blockToDokuWiki opts $ linesToPara lns
 
-blockToDokuWiki _ (RawBlock f str)
+blockToDokuWiki _ b@(RawBlock f str)
   | f == Format "dokuwiki" = return str
   -- See https://www.dokuwiki.org/wiki:syntax
   -- use uppercase HTML tag for block-level content:
   | f == Format "html"     = return $ "<HTML>\n" ++ str ++ "\n</HTML>"
-  | otherwise              = return ""
+  | otherwise              = "" <$ (report $ BlockNotRendered b)
 
 blockToDokuWiki _ HorizontalRule = return "\n----\n"
 
@@ -276,7 +279,8 @@ listAttribsToString (startnum, numstyle, _) =
           else "")
 
 -- | Convert bullet list item (list of blocks) to DokuWiki.
-listItemToDokuWiki :: WriterOptions -> [Block] -> DokuWiki String
+listItemToDokuWiki :: PandocMonad m
+                   => WriterOptions -> [Block] -> DokuWiki m String
 listItemToDokuWiki opts items = do
   contents <- blockListToDokuWiki opts items
   useTags <- stUseTags <$> ask
@@ -290,7 +294,7 @@ listItemToDokuWiki opts items = do
 
 -- | Convert ordered list item (list of blocks) to DokuWiki.
 -- | TODO Emiminate dreadful duplication of text from listItemToDokuWiki
-orderedListItemToDokuWiki :: WriterOptions -> [Block] -> DokuWiki String
+orderedListItemToDokuWiki :: PandocMonad m => WriterOptions -> [Block] -> DokuWiki m String
 orderedListItemToDokuWiki opts items = do
   contents <- blockListToDokuWiki opts items
   useTags <- stUseTags <$> ask
@@ -303,9 +307,10 @@ orderedListItemToDokuWiki opts items = do
        return $ indent' ++ "- " ++ contents
 
 -- | Convert definition list item (label, list of blocks) to DokuWiki.
-definitionListItemToDokuWiki :: WriterOptions
+definitionListItemToDokuWiki :: PandocMonad m
+                             => WriterOptions
                              -> ([Inline],[[Block]])
-                             -> DokuWiki String
+                             -> DokuWiki m String
 definitionListItemToDokuWiki opts (label, items) = do
   labelText <- inlineListToDokuWiki opts label
   contents <- mapM (blockListToDokuWiki opts) items
@@ -370,10 +375,11 @@ backSlashLineBreaks cs = reverse $ g $ reverse $ concatMap f cs
 
 -- Auxiliary functions for tables:
 
-tableItemToDokuWiki :: WriterOptions
-                     -> Alignment
-                     -> [Block]
-                     -> DokuWiki String
+tableItemToDokuWiki :: PandocMonad m
+                    => WriterOptions
+                    -> Alignment
+                    -> [Block]
+                    -> DokuWiki m String
 tableItemToDokuWiki opts align' item = do
   let mkcell x = (if align' == AlignRight || align' == AlignCenter
                      then "  "
@@ -386,9 +392,10 @@ tableItemToDokuWiki opts align' item = do
   return $ mkcell contents
 
 -- | Convert list of Pandoc block elements to DokuWiki.
-blockListToDokuWiki :: WriterOptions -- ^ Options
+blockListToDokuWiki :: PandocMonad m
+                    => WriterOptions -- ^ Options
                     -> [Block]       -- ^ List of block elements
-                    -> DokuWiki String
+                    -> DokuWiki m String
 blockListToDokuWiki opts blocks = do
   backSlash <- stBackSlashLB <$> ask
   let blocks' = consolidateRawBlocks blocks
@@ -403,12 +410,14 @@ consolidateRawBlocks (RawBlock f1 b1 : RawBlock f2 b2 : xs)
 consolidateRawBlocks (x:xs) = x : consolidateRawBlocks xs
 
 -- | Convert list of Pandoc inline elements to DokuWiki.
-inlineListToDokuWiki :: WriterOptions -> [Inline] -> DokuWiki String
+inlineListToDokuWiki :: PandocMonad m
+                     => WriterOptions -> [Inline] -> DokuWiki m String
 inlineListToDokuWiki opts lst =
   concat <$> (mapM (inlineToDokuWiki opts) lst)
 
 -- | Convert Pandoc inline element to DokuWiki.
-inlineToDokuWiki :: WriterOptions -> Inline -> DokuWiki String
+inlineToDokuWiki :: PandocMonad m
+                 => WriterOptions -> Inline -> DokuWiki m String
 
 inlineToDokuWiki opts (Span _attrs ils) =
   inlineListToDokuWiki opts ils
@@ -465,10 +474,10 @@ inlineToDokuWiki _ (Math mathType str) = return $ delim ++ str ++ delim
                      DisplayMath -> "$$"
                      InlineMath  -> "$"
 
-inlineToDokuWiki _ (RawInline f str)
+inlineToDokuWiki _ il@(RawInline f str)
   | f == Format "dokuwiki" = return str
   | f == Format "html"     = return $ "<html>" ++ str ++ "</html>"
-  | otherwise              = return ""
+  | otherwise              = "" <$ report (InlineNotRendered il)
 
 inlineToDokuWiki _ LineBreak = return "\\\\\n"
 

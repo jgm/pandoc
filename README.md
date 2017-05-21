@@ -140,7 +140,7 @@ new issue.
 License
 -------
 
-© 2006-2016 John MacFarlane (jgm@berkeley.edu). Released under the
+© 2006-2017 John MacFarlane (jgm@berkeley.edu). Released under the
 [GPL], version 2 or greater.  This software carries no warranty of
 any kind.  (See COPYRIGHT for full copyright and warranty notices.)
 

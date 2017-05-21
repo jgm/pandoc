@@ -1,0 +1,203 @@
+<?xml version="1.0" encoding="utf-8" ?>
+$if(xml-stylesheet)$
+<?xml-stylesheet type="text/xsl" href="$xml-stylesheet$"?>
+$endif$
+<!DOCTYPE article PUBLIC "-//NLM//DTD JATS (Z39.96) Journal Publishing DTD v1.0 20120330//EN"
+                  "JATS-journalpublishing1.dtd">
+$if(article.type)$
+<article xmlns:mml="http://www.w3.org/1998/Math/MathML" xmlns:xlink="http://www.w3.org/1999/xlink" dtd-version="1.0" article-type="$article.type$">
+$else$
+<article xmlns:mml="http://www.w3.org/1998/Math/MathML" xmlns:xlink="http://www.w3.org/1999/xlink" dtd-version="1.0" article-type="other">
+$endif$
+<front>
+<journal-meta>
+$if(journal.publisher-id)$
+<journal-id journal-id-type="publisher-id">$journal.publisher-id$</journal-id>
+$endif$
+$if(journal.nlm-ta)$
+<journal-id journal-id-type="nlm-ta">$journal.nlm-ta$</journal-id>
+$endif$
+$if(journal.pmc)$
+<journal-id journal-id-type="pmc">$journal.pmc$</journal-id>
+$endif$
+<journal-title-group>
+$if(journal.title)$
+<journal-title>$journal.title$</journal-title>
+$endif$
+$if(journal.abbrev-title)$
+<abbrev-journal-title>$journal.abbrev-title$</abbrev-journal-title>
+$endif$
+</journal-title-group>
+$if(journal.pissn)$
+<issn pub-type="ppub">$journal.pissn$</issn>
+$endif$
+$if(journal.eissn)$
+<issn pub-type="epub">$journal.eissn$</issn>
+$endif$
+<publisher>
+<publisher-name>$journal.publisher-name$</publisher-name>
+$if(journal.publisher-loc)$
+<publisher-loc>$journal.publisher-loc$</publisher-loc>
+$endif$
+</publisher>
+</journal-meta>
+<article-meta>
+$if(article.publisher-id)$
+<article-id pub-id-type="publisher-id">$article.publisher-id$</article-id>
+$endif$
+$if(article.doi)$
+<article-id pub-id-type="doi">$article.doi$</article-id>
+$endif$
+$if(article.pmid)$
+<article-id pub-id-type="pmid">$article.pmid$</article-id>
+$endif$
+$if(article.pmcid)$
+<article-id pub-id-type="pmcid">$article.pmcid$</article-id>
+$endif$
+$if(article.art-access-id)$
+<article-id pub-id-type="art-access-id">$article.art-access-id$</article-id>
+$endif$
+$if(article.heading)$
+<article-categories>
+<subj-group subj-group-type="heading">
+<subject>$article.heading$</subject>
+</subj-group>
+$if(article.categories)$
+<subj-group subj-group-type="categories">
+$for(article.categories)$
+<subject>$article.categories$</subject>
+$endfor$
+</subj-group>
+$endif$
+</article-categories>
+$endif$
+$if(title)$
+<title-group>
+<article-title>$title$</article-title>
+</title-group>
+$endif$
+$if(author)$
+<contrib-group>
+$for(author)$
+<contrib contrib-type="author">
+$if(author.orcid)$
+<contrib-id contrib-id-type="orcid">$author.orcid$</contrib-id>
+$endif$
+<name>
+$if(author.surname)$
+<surname>$author.surname$</surname>
+<given-names>$author.given-names$</given-names>
+$else$
+<string-name>$author$</string-name>
+$endif$
+</name>
+$if(author.email)$
+<email>$author.email$</email>
+$endif$
+$if(author.aff-id)$
+<xref ref-type="aff" rid="aff-$contrib.aff-id$"/>
+$endif$
+$if(author.cor-id)$
+<xref ref-type="corresp" rid="cor-$author.cor-id$"><sup>*</sup></xref>
+$endif$
+</contrib>
+$endfor$
+</contrib-group>
+$endif$
+$if(article.author-notes)$
+<author-notes>
+$if(article.author-notes.corresp)$
+$for(article.author-notes.corresp)$
+<corresp id="cor-$article.author-notes.corresp.id$">* E-mail: <email>$article.author-notes.corresp.email$</email></corresp>
+$endfor$
+$endif$
+$if(article.author-notes.conflict)$
+<fn fn-type="conflict"><p>$article.author-notes.conflict$</p></fn>
+$endif$
+$if(article.author-notes.con)$
+<fn fn-type="con"><p>$article.author-notes.con$</p></fn>
+$endif$
+</author-notes>
+$endif$
+$if(date)$
+$if(date.iso-8601)$
+<pub-date pub-type="epub" iso-8601-date="$date.iso-8601$">
+$else$
+<pub-date pub-type="epub">
+$endif$
+$if(date.day)$
+<day>$pub-date.day$</day>
+$endif$
+$if(date.month)$
+<month>$pub-date.month$</month>
+$endif$
+$if(date.year)$
+<year>$pub-date.year$</year>
+$else$
+<string-date>$date$</string-date>
+$endif$
+</pub-date>
+$endif$
+$if(article.volume)$
+<volume>$article.volume$</volume>
+$endif$
+$if(article.issue)$
+<issue>$article.issue$</issue>
+$endif$
+$if(article.fpage)$
+<fpage>$article.fpage$</fpage>
+$endif$
+$if(article.lpage)$
+<lpage>$article.lpage$</lpage>
+$endif$
+$if(article.elocation-id)$
+<elocation-id>$article.elocation-id$</elocation-id>
+$endif$
+$if(history)$
+<history>
+</history>
+$endif$
+$if(copyright)$
+<permissions>
+$if(copyright.statement)$
+<copyright-statement>$copyright.statement$</copyright-statement>
+$endif$
+$if(copyright.year)$
+<copyright-year>$copyright.year$</copyright-year>
+$endif$
+$if(copyright.holder)$
+<copyright-holder>$copyright.holder$</copyright-holder>
+$endif$
+$if(copyright.text)$
+<license license-type="$copyright.type$" xlink:href="$copyright.link$">
+<license-p>$copyright.text$</license-p>
+</license>
+</permissions>
+$endif$
+$endif$
+$if(tags)$
+<kwd-group kwd-group-type="author">
+$for(tags)$
+<kwd>$tags$</kwd>
+$endfor$
+</kwd-group>
+$endif$
+$if(article.funding-statement)$
+<funding-group>
+<funding-statement>$article.funding-statement$</funding-statement>
+</funding-group>
+$endif$
+</article-meta>
+$if(notes)$
+<notes>$notes$</notes>
+$endif$
+</front>
+<body>
+$body$
+</body>
+<back>
+$if(back)$
+$back$
+$endif$
+</back>
+</article>

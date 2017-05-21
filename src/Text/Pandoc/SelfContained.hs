@@ -1,6 +1,6 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-
-Copyright (C) 2011-2016 John MacFarlane <jgm@berkeley.edu>
+Copyright (C) 2011-2017 John MacFarlane <jgm@berkeley.edu>
 
 This program is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 {- |
    Module      : Text.Pandoc.SelfContained
-   Copyright   : Copyright (C) 2011-2016 John MacFarlane
+   Copyright   : Copyright (C) 2011-2017 John MacFarlane
    License     : GNU GPL, version 2 or above
 
    Maintainer  : John MacFarlane <jgm@berkeley.edu>
@@ -30,11 +30,12 @@ Functions for converting an HTML file into one that can be viewed
 offline, by incorporating linked images, CSS, and scripts into
 the HTML using data URIs.
 -}
-module Text.Pandoc.SelfContained ( makeSelfContained ) where
+module Text.Pandoc.SelfContained ( makeDataURI, makeSelfContained ) where
 import Codec.Compression.GZip as Gzip
 import Control.Applicative ((<|>))
 import Control.Monad.Except (throwError)
 import Control.Monad.Trans (lift)
+import Data.Monoid ((<>))
 import Data.ByteString (ByteString)
 import Data.ByteString.Base64
 import qualified Data.ByteString.Char8 as B
@@ -95,9 +96,9 @@ convertTags sourceURL (t@(TagOpen "script" as):TagClose "script":ts) =
                      (("src",dataUri) : [(x,y) | (x,y) <- as, x /= "src"]) :
                      TagClose "script" : rest
                 Right (mime, bs)
-                  | (mime == "text/javascript" ||
-                     mime == "application/javascript" ||
-                     mime == "application/x-javascript") &&
+                  | ("text/javascript" `isPrefixOf` mime ||
+                     "application/javascript" `isPrefixOf` mime ||
+                     "application/x-javascript" `isPrefixOf` mime) &&
                      not ("</script" `B.isInfixOf` bs) ->
                      return $
                        TagOpen "script" [("type", typeAttr)|not (null typeAttr)]
@@ -121,11 +122,12 @@ convertTags sourceURL (t@(TagOpen "link" as):ts) =
                      (("href",dataUri) : [(x,y) | (x,y) <- as, x /= "href"]) :
                      rest
                 Right (mime, bs)
-                  | mime == "text/css" && not ("</" `B.isInfixOf` bs) -> do
+                  | "text/css" `isPrefixOf` mime
+                    && not ("</" `B.isInfixOf` bs) -> do
                       rest <- convertTags sourceURL $
                                  dropWhile (==TagClose "link") ts
                       return $
-                       TagOpen "style" [("type", "text/css")]
+                       TagOpen "style" [("type", mime)]
                        : TagText (toString bs)
                        : TagClose "style"
                        : rest
@@ -149,7 +151,21 @@ cssURLs sourceURL d orig = do
 parseCSSUrls :: PandocMonad m
              => Maybe String -> FilePath -> ParsecT ByteString () m ByteString
 parseCSSUrls sourceURL d = B.concat <$> P.many
-    (pCSSWhite <|> pCSSComment <|> pCSSUrl sourceURL d <|> pCSSOther)
+    (pCSSWhite <|> pCSSComment <|> pCSSImport sourceURL d <|>
+     pCSSUrl sourceURL d <|> pCSSOther)
+
+pCSSImport :: PandocMonad m => Maybe String -> FilePath
+           -> ParsecT ByteString () m ByteString
+pCSSImport sourceURL d = P.try $ do
+  P.string "@import"
+  P.spaces
+  res <- (pQuoted <|> pUrl) >>= handleCSSUrl sourceURL d
+  P.spaces
+  P.char ';'
+  P.spaces
+  case res of
+       Left b       -> return $ B.pack "@import " <> b
+       Right (_, b) -> return b
 
 -- Note: some whitespace in CSS is significant, so we can't collapse it!
 pCSSWhite :: PandocMonad m => ParsecT ByteString () m ByteString
@@ -170,6 +186,24 @@ pCSSOther = do
 pCSSUrl :: PandocMonad m
         => Maybe String -> FilePath -> ParsecT ByteString () m ByteString
 pCSSUrl sourceURL d = P.try $ do
+  res <- pUrl >>= handleCSSUrl sourceURL d
+  case res of
+       Left b -> return b
+       Right (mt,b) -> do
+         let enc = makeDataURI (mt, b)
+         return (B.pack $ "url(" ++ enc ++ ")")
+
+pQuoted :: PandocMonad m
+        => ParsecT ByteString () m (String, ByteString)
+pQuoted = P.try $ do
+  quote <- P.oneOf "\"'"
+  url <- P.manyTill P.anyChar (P.char quote)
+  let fallback = B.pack ([quote] ++ trim url ++ [quote])
+  return (url, fallback)
+
+pUrl :: PandocMonad m
+     => ParsecT ByteString () m (String, ByteString)
+pUrl = P.try $ do
   P.string "url("
   P.spaces
   quote <- P.option Nothing (Just <$> P.oneOf "\"'")
@@ -178,12 +212,29 @@ pCSSUrl sourceURL d = P.try $ do
   P.char ')'
   let fallback = B.pack ("url(" ++ maybe "" (:[]) quote ++ trim url ++
                             maybe "" (:[]) quote ++ ")")
-  case trim url of
-      '#':_ -> return fallback
-      'd':'a':'t':'a':':':_ -> return fallback
+  return (url, fallback)
+
+handleCSSUrl :: PandocMonad m
+             => Maybe String -> FilePath -> (String, ByteString)
+             -> ParsecT ByteString () m
+                  (Either ByteString (MimeType, ByteString))
+handleCSSUrl sourceURL d (url, fallback) = do
+  -- pipes are used in URLs provided by Google Code fonts
+  -- but parseURI doesn't like them, so we escape them:
+  case escapeURIString (/='|') (trim url) of
+      '#':_ -> return $ Left fallback
+      'd':'a':'t':'a':':':_ -> return $ Left fallback
       u ->  do let url' = if isURI u then u else d </> u
-               enc <- lift $ getDataURI sourceURL "" url'
-               return (B.pack $ "url(" ++ enc ++ ")")
+               res <- lift $ getData sourceURL "" url'
+               case res of
+                    Left uri -> return $ Left (B.pack $ "url(" ++ uri ++ ")")
+                    Right (mt, raw) -> do
+                      -- note that the downloaded CSS may
+                      -- itself contain url(...).
+                      b <- if "text/css" `isPrefixOf` mt
+                              then cssURLs sourceURL d raw
+                              else return raw
+                      return $ Right (mt, b)
 
 getDataURI :: PandocMonad m => Maybe String -> MimeType -> String -> m String
 getDataURI sourceURL mimetype src = do
@@ -215,7 +266,7 @@ getData sourceURL mimetype src = do
                                                uriQuery = "",
                                                uriFragment = "" }
                           _ -> Nothing
-  result <- if mime == "text/css"
+  result <- if "text/css" `isPrefixOf` mime
                then cssURLs cssSourceURL (takeDirectory src) raw'
                else return raw'
   return $ Right (mime, result)

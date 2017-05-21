@@ -1,5 +1,6 @@
 {-
-Copyright (C) 2008-2015 John MacFarlane <jgm@berkeley.edu>
+Copyright (C) 2008-2017 John MacFarlane <jgm@berkeley.edu>
+              2017 Alex Ivkin
 
 This program is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -18,7 +19,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 {- |
    Module      : Text.Pandoc.Writers.ZimWiki
-   Copyright   : Copyright (C) 2008-2015 John MacFarlane, 2017 Alex Ivkin
+   Copyright   : Copyright (C) 2008-2017 John MacFarlane, 2017 Alex Ivkin
    License     : GNU GPL, version 2 or above
 
    Maintainer  : Alex Ivkin <alex@ivkin.net>
@@ -32,13 +33,14 @@ http://zim-wiki.org/manual/Help/Wiki_Syntax.html
 
 module Text.Pandoc.Writers.ZimWiki ( writeZimWiki ) where
 import Control.Monad (zipWithM)
-import Control.Monad.State (State, evalState, gets, modify)
+import Control.Monad.State (StateT, evalStateT, gets, modify)
 import Data.Default (Default (..))
 import Data.List (intercalate, isInfixOf, isPrefixOf, transpose)
 import qualified Data.Map as Map
 import Data.Text (breakOnAll, pack)
 import Network.URI (isURI)
-import Text.Pandoc.Class (PandocMonad)
+import Text.Pandoc.Class (PandocMonad, report)
+import Text.Pandoc.Logging
 import Text.Pandoc.Definition
 import Text.Pandoc.ImageSize
 import Text.Pandoc.Options (WrapOption (..), WriterOptions (writerTableOfContents, writerTemplate, writerWrapText))
@@ -57,12 +59,14 @@ data WriterState = WriterState {
 instance Default WriterState where
   def = WriterState { stItemNum = 1, stIndent = "", stInTable = False, stInLink = False }
 
+type ZW = StateT WriterState
+
 -- | Convert Pandoc to ZimWiki.
 writeZimWiki :: PandocMonad m => WriterOptions -> Pandoc -> m String
-writeZimWiki opts document = return $ evalState (pandocToZimWiki opts document) def
+writeZimWiki opts document = evalStateT (pandocToZimWiki opts document) def
 
 -- | Return ZimWiki representation of document.
-pandocToZimWiki :: WriterOptions -> Pandoc -> State WriterState String
+pandocToZimWiki :: PandocMonad m => WriterOptions -> Pandoc -> ZW m String
 pandocToZimWiki opts (Pandoc meta blocks) = do
   metadata <- metaToJSON opts
               (fmap trimr . blockListToZimWiki opts)
@@ -86,7 +90,7 @@ escapeString = substitute "__" "''__''" .
                substitute "//" "''//''"
 
 -- | Convert Pandoc block element to ZimWiki.
-blockToZimWiki :: WriterOptions -> Block -> State WriterState String
+blockToZimWiki :: PandocMonad m => WriterOptions -> Block -> ZW m String
 
 blockToZimWiki _ Null = return ""
 
@@ -118,10 +122,12 @@ blockToZimWiki opts (Para inlines) = do
 blockToZimWiki opts (LineBlock lns) = do
   blockToZimWiki opts $ linesToPara lns
 
-blockToZimWiki opts (RawBlock f str)
+blockToZimWiki opts b@(RawBlock f str)
   | f == Format "zimwiki"  = return str
   | f == Format "html"     = do cont <- indentFromHTML opts str; return cont
-  | otherwise              = return ""
+  | otherwise              = do
+      report $ BlockNotRendered b
+      return ""
 
 blockToZimWiki _ HorizontalRule = return "\n----\n"
 
@@ -198,7 +204,10 @@ blockToZimWiki opts (DefinitionList items) = do
   contents <- (mapM (definitionListItemToZimWiki opts) items)
   return $ vcat contents
 
-definitionListItemToZimWiki :: WriterOptions -> ([Inline],[[Block]]) -> State WriterState String
+definitionListItemToZimWiki :: PandocMonad m
+                            => WriterOptions
+                            -> ([Inline],[[Block]])
+                            -> ZW m String
 definitionListItemToZimWiki opts (label, items) = do
   labelText <- inlineListToZimWiki opts label
   contents <- mapM (blockListToZimWiki opts) items
@@ -206,7 +215,7 @@ definitionListItemToZimWiki opts (label, items) = do
   return $ indent ++ "* **" ++ labelText ++ "** " ++ concat contents
 
 -- Auxiliary functions for lists:
-indentFromHTML :: WriterOptions -> String -> State WriterState String
+indentFromHTML :: PandocMonad m => WriterOptions -> String -> ZW m String
 indentFromHTML _ str = do
    indent <- gets stIndent
    itemnum <- gets stItemNum
@@ -239,14 +248,15 @@ vcat :: [String] -> String
 vcat = intercalate "\n"
 
 -- | Convert bullet list item (list of blocks) to ZimWiki.
-listItemToZimWiki :: WriterOptions -> [Block] -> State WriterState String
+listItemToZimWiki :: PandocMonad m => WriterOptions -> [Block] -> ZW m String
 listItemToZimWiki opts items = do
   contents <- blockListToZimWiki opts items
   indent <- gets stIndent
   return $ indent ++ "* " ++ contents
 
 -- | Convert ordered list item (list of blocks) to ZimWiki.
-orderedListItemToZimWiki :: WriterOptions -> [Block] -> State WriterState String
+orderedListItemToZimWiki :: PandocMonad m
+                         => WriterOptions -> [Block] -> ZW m String
 orderedListItemToZimWiki opts items = do
   contents <- blockListToZimWiki opts items
   indent <- gets stIndent
@@ -255,7 +265,8 @@ orderedListItemToZimWiki opts items = do
   return $ indent ++ show itemnum ++ ". " ++ contents
 
 -- Auxiliary functions for tables:
-tableItemToZimWiki :: WriterOptions -> Alignment -> [Block] -> State WriterState String
+tableItemToZimWiki :: PandocMonad m
+                   => WriterOptions -> Alignment -> [Block] -> ZW m String
 tableItemToZimWiki opts align' item = do
   let mkcell x = (if align' == AlignRight || align' == AlignCenter
                      then "  "
@@ -269,15 +280,18 @@ tableItemToZimWiki opts align' item = do
   return $ mkcell contents
 
 -- | Convert list of Pandoc block elements to ZimWiki.
-blockListToZimWiki :: WriterOptions -> [Block] -> State WriterState String
+blockListToZimWiki :: PandocMonad m
+                   => WriterOptions -> [Block] -> ZW m String
 blockListToZimWiki opts blocks = vcat <$> mapM (blockToZimWiki opts) blocks
 
 -- | Convert list of Pandoc inline elements to ZimWiki.
-inlineListToZimWiki :: WriterOptions -> [Inline] -> State WriterState String
+inlineListToZimWiki :: PandocMonad m
+                    => WriterOptions -> [Inline] -> ZW m String
 inlineListToZimWiki opts lst =  concat <$> (mapM (inlineToZimWiki opts) lst)
 
 -- | Convert Pandoc inline element to ZimWiki.
-inlineToZimWiki :: WriterOptions -> Inline -> State WriterState String
+inlineToZimWiki :: PandocMonad m
+                => WriterOptions -> Inline -> ZW m String
 
 inlineToZimWiki opts (Emph lst) = do
   contents <- inlineListToZimWiki opts lst
@@ -331,10 +345,12 @@ inlineToZimWiki _ (Math mathType str) = return $ delim ++ str ++ delim   -- note
                      InlineMath  -> "$"
 
 -- | f == Format "html"     = return $ "<html>" ++ str ++ "</html>"
-inlineToZimWiki opts (RawInline f str)
+inlineToZimWiki opts il@(RawInline f str)
   | f == Format "zimwiki" = return str
   | f == Format "html"     = do cont <- indentFromHTML opts str; return cont
-  | otherwise              = return ""
+  | otherwise              = do
+      report $ InlineNotRendered il
+      return ""
 
 inlineToZimWiki _ LineBreak = do
   inTable <- gets stInTable

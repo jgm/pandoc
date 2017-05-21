@@ -1,7 +1,7 @@
 {-# LANGUAGE FlexibleContexts, FlexibleInstances, MultiParamTypeClasses,
 ViewPatterns#-}
 {-
-Copyright (C) 2006-2015 John MacFarlane <jgm@berkeley.edu>
+Copyright (C) 2006-2017 John MacFarlane <jgm@berkeley.edu>
 
 This program is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -20,7 +20,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 {- |
    Module      : Text.Pandoc.Readers.HTML
-   Copyright   : Copyright (C) 2006-2015 John MacFarlane
+   Copyright   : Copyright (C) 2006-2017 John MacFarlane
    License     : GNU GPL, version 2 or above
 
    Maintainer  : John MacFarlane <jgm@berkeley.edu>
@@ -54,7 +54,7 @@ import Text.Pandoc.Walk
 import qualified Data.Map as M
 import Data.Maybe ( fromMaybe, isJust)
 import Data.List ( intercalate, isInfixOf, isPrefixOf )
-import Data.Char ( isDigit )
+import Data.Char ( isDigit, isLetter, isAlphaNum )
 import Control.Monad ( guard, mzero, void, unless )
 import Control.Arrow ((***))
 import Control.Applicative ( (<|>) )
@@ -83,14 +83,15 @@ readHtml opts inp = do
         blocks <- (fixPlains False) . mconcat <$> manyTill block eof
         meta <- stateMeta . parserState <$> getState
         bs' <- replaceNotes (B.toList blocks)
+        reportLogMessages
         return $ Pandoc meta bs'
       getError (errorMessages -> ms) = case ms of
                                          []    -> ""
                                          (m:_) -> messageString m
   result <- flip runReaderT def $
-         runParserT parseDoc
-         (HTMLState def{ stateOptions = opts } [] Nothing Set.empty M.empty)
-         "source" tags
+       runParserT parseDoc
+       (HTMLState def{ stateOptions = opts } [] Nothing Set.empty M.empty [])
+       "source" tags
   case result of
     Right doc -> return doc
     Left  err -> throwError $ PandocParseError $ getError err
@@ -110,7 +111,8 @@ data HTMLState =
      noteTable   :: [(String, Blocks)],
      baseHref    :: Maybe URI,
      identifiers :: Set.Set String,
-     headerMap   :: M.Map Inlines String
+     headerMap   :: M.Map Inlines String,
+     logMessages :: [LogMessage]
   }
 
 data HTMLLocal = HTMLLocal { quoteContext :: QuoteContext
@@ -258,8 +260,12 @@ pBulletList = try $ do
 pListItem :: PandocMonad m => TagParser m a -> TagParser m Blocks
 pListItem nonItem = do
   TagOpen _ attr <- lookAhead $ pSatisfy (~== TagOpen "li" [])
-  let liDiv = maybe mempty (\x -> B.divWith (x, [], []) mempty) (lookup "id" attr)
-  (liDiv <>) <$> pInTags "li" block <* skipMany nonItem
+  let addId ident bs = case B.toList bs of
+                           (Plain ils:xs) -> B.fromList (Plain
+                                [Span (ident, [], []) ils] : xs)
+                           _ -> B.divWith (ident, [], []) bs
+  (maybe id addId (lookup "id" attr)) <$>
+    pInTags "li" block <* skipMany nonItem
 
 parseListStyleType :: String -> ListNumberStyle
 parseListStyleType "lower-roman" = LowerRoman
@@ -376,7 +382,7 @@ ignore raw = do
   -- raw can be null for tags like <!DOCTYPE>; see paRawTag
   -- in this case we don't want a warning:
   unless (null raw) $
-    report $ SkippedContent raw pos
+    logMessage $ SkippedContent raw pos
   return mempty
 
 pHtmlBlock :: PandocMonad m => String -> TagParser m String
@@ -1030,13 +1036,22 @@ htmlTag f = try $ do
   let (next : _) = canonicalizeTags $ parseTagsOptions
                        parseOptions{ optTagWarning = False } inp
   guard $ f next
+
+  -- <www.boe.es/buscar/act.php?id=BOE-A-1996-8930#a66>
+  -- should NOT be parsed as an HTML tag, see #2277,
+  -- so we exclude . even though it's a valid character
+  -- in XML elemnet names
+  let isNameChar c = isAlphaNum c || c == ':' || c == '-' || c == '_'
+  let isName s = case s of
+                      [] -> False
+                      (c:cs) -> isLetter c && all isNameChar cs
+
   let handleTag tagname = do
-       -- <www.boe.es/buscar/act.php?id=BOE-A-1996-8930#a66>
-       -- should NOT be parsed as an HTML tag, see #2277
-       guard $ not ('.' `elem` tagname)
+       -- basic sanity check, since the parser is very forgiving
+       -- and finds tags in stuff like x<y)
+       guard $ isName tagname
        -- <https://example.org> should NOT be a tag either.
        -- tagsoup will parse it as TagOpen "https:" [("example.org","")]
-       guard $ not (null tagname)
        guard $ last tagname /= ':'
        rendered <- manyTill anyChar (char '>')
        return (next, rendered ++ ">")
@@ -1048,7 +1063,9 @@ htmlTag f = try $ do
           char '>'
           return (next, "<!--" ++ s ++ "-->")
          | otherwise -> fail "bogus comment mode, HTML5 parse error"
-       TagOpen tagname _attr -> handleTag tagname
+       TagOpen tagname attr -> do
+         guard $ all (isName . fst) attr
+         handleTag tagname
        TagClose tagname -> handleTag tagname
        _ -> mzero
 
@@ -1091,6 +1108,10 @@ instance HasIdentifierList HTMLState where
 instance HasHeaderMap HTMLState where
   extractHeaderMap = headerMap
   updateHeaderMap  f s = s{ headerMap = f (headerMap s) }
+
+instance HasLogMessages HTMLState where
+  addLogMessage m s = s{ logMessages = m : logMessages s }
+  getLogMessages = reverse . logMessages
 
 -- This signature should be more general
 -- MonadReader HTMLLocal m => HasQuoteContext st m

@@ -1,8 +1,8 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-
 Copyright (C) 2010-2015 Puneeth Chaganti <punchagan@gmail.com>
-                        Albert Krewinkel <tarleb+pandoc@moltkeplatz.de>,
-                        and John MacFarlane <jgm@berkeley.edu>
+              2010-2017 John MacFarlane <jgm@berkeley.edu>
+              2016-2017 Albert Krewinkel <tarleb+pandoc@moltkeplatz.de>
 
 This program is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -21,10 +21,12 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 {- |
    Module      : Text.Pandoc.Writers.Org
-   Copyright   : Copyright (C) 2010-2015 Puneeth Chaganti and John MacFarlane
+  Copyright    : © 2010-2015 Puneeth Chaganti <punchagan@gmail.com>
+                   2010-2017 John MacFarlane <jgm@berkeley.edu>
+                   2016-2017 Albert Krewinkel <tarleb+pandoc@moltkeplatz.de>
    License     : GNU GPL, version 2 or above
 
-   Maintainer  : Puneeth Chaganti <punchagan@gmail.com>
+   Maintainer  : Albert Krewinkel <tarleb+pandoc@moltkeplatz.de>
    Stability   : alpha
    Portability : portable
 
@@ -36,11 +38,12 @@ module Text.Pandoc.Writers.Org ( writeOrg) where
 import Control.Monad.State
 import Data.Char (isAlphaNum, toLower)
 import Data.List (intersect, intersperse, isPrefixOf, partition, transpose)
-import Text.Pandoc.Class (PandocMonad)
+import Text.Pandoc.Class (PandocMonad, report)
 import Text.Pandoc.Definition
 import Text.Pandoc.Options
 import Text.Pandoc.Pretty
 import Text.Pandoc.Shared
+import Text.Pandoc.Logging
 import Text.Pandoc.Templates (renderTemplate')
 import Text.Pandoc.Writers.Shared
 
@@ -50,16 +53,18 @@ data WriterState =
               , stOptions :: WriterOptions
               }
 
+type Org = StateT WriterState
+
 -- | Convert Pandoc to Org.
 writeOrg :: PandocMonad m => WriterOptions -> Pandoc -> m String
-writeOrg opts document = return $
+writeOrg opts document = do
   let st = WriterState { stNotes = [],
                          stHasMath = False,
                          stOptions = opts }
-  in evalState (pandocToOrg document) st
+  evalStateT (pandocToOrg document) st
 
 -- | Return Org representation of document.
-pandocToOrg :: Pandoc -> State WriterState String
+pandocToOrg :: PandocMonad m => Pandoc -> Org m String
 pandocToOrg (Pandoc meta blocks) = do
   opts <- gets stOptions
   let colwidth = if writerWrapText opts == WrapAuto
@@ -81,13 +86,13 @@ pandocToOrg (Pandoc meta blocks) = do
        Just tpl -> return $ renderTemplate' tpl context
 
 -- | Return Org representation of notes.
-notesToOrg :: [[Block]] -> State WriterState Doc
+notesToOrg :: PandocMonad m => [[Block]] -> Org m Doc
 notesToOrg notes =
   mapM (\(num, note) -> noteToOrg num note) (zip [1..] notes) >>=
   return . vsep
 
 -- | Return Org representation of a note.
-noteToOrg :: Int -> [Block] -> State WriterState Doc
+noteToOrg :: PandocMonad m => Int -> [Block] -> Org m Doc
 noteToOrg num note = do
   contents <- blockListToOrg note
   let marker = "[fn:" ++ show num ++ "] "
@@ -107,8 +112,9 @@ isRawFormat f =
   f == Format "latex" || f == Format "tex" || f == Format "org"
 
 -- | Convert Pandoc block element to Org.
-blockToOrg :: Block         -- ^ Block element
-           -> State WriterState Doc
+blockToOrg :: PandocMonad m
+           => Block         -- ^ Block element
+           -> Org m Doc
 blockToOrg Null = return empty
 blockToOrg (Div (_,classes@(cls:_),kvs) bs) | "drawer" `elem` classes = do
   contents <- blockListToOrg bs
@@ -176,9 +182,11 @@ blockToOrg (LineBlock lns) = do
 blockToOrg (RawBlock "html" str) =
   return $ blankline $$ "#+BEGIN_HTML" $$
            nest 2 (text str) $$ "#+END_HTML" $$ blankline
-blockToOrg (RawBlock f str) | isRawFormat f =
-  return $ text str
-blockToOrg (RawBlock _ _) = return empty
+blockToOrg b@(RawBlock f str)
+  | isRawFormat f = return $ text str
+  | otherwise     = do
+      report $ BlockNotRendered b
+      return empty
 blockToOrg HorizontalRule = return $ blankline $$ "--------------" $$ blankline
 blockToOrg (Header level attr inlines) = do
   contents <- inlineListToOrg inlines
@@ -252,21 +260,23 @@ blockToOrg (DefinitionList items) = do
   return $ vcat contents $$ blankline
 
 -- | Convert bullet list item (list of blocks) to Org.
-bulletListItemToOrg :: [Block] -> State WriterState Doc
+bulletListItemToOrg :: PandocMonad m => [Block] -> Org m Doc
 bulletListItemToOrg items = do
   contents <- blockListToOrg items
   return $ hang 2 "- " (contents <> cr)
 
 -- | Convert ordered list item (a list of blocks) to Org.
-orderedListItemToOrg :: String   -- ^ marker for list item
+orderedListItemToOrg :: PandocMonad m
+                     => String   -- ^ marker for list item
                      -> [Block]  -- ^ list item (list of blocks)
-                     -> State WriterState Doc
+                     -> Org m Doc
 orderedListItemToOrg marker items = do
   contents <- blockListToOrg items
   return $ hang (length marker + 1) (text marker <> space) (contents <> cr)
 
 -- | Convert defintion list item (label, list of blocks) to Org.
-definitionListItemToOrg :: ([Inline], [[Block]]) -> State WriterState Doc
+definitionListItemToOrg :: PandocMonad m
+                        => ([Inline], [[Block]]) -> Org m Doc
 definitionListItemToOrg (label, defs) = do
   label' <- inlineListToOrg label
   contents <- liftM vcat $ mapM blockListToOrg defs
@@ -299,16 +309,19 @@ attrHtml (ident, classes, kvs) =
   in name <> keyword <> ": " <> text (unwords kvStrings) <> cr
 
 -- | Convert list of Pandoc block elements to Org.
-blockListToOrg :: [Block]       -- ^ List of block elements
-               -> State WriterState Doc
+blockListToOrg :: PandocMonad m
+               => [Block]       -- ^ List of block elements
+               -> Org m Doc
 blockListToOrg blocks = mapM blockToOrg blocks >>= return . vcat
 
 -- | Convert list of Pandoc inline elements to Org.
-inlineListToOrg :: [Inline] -> State WriterState Doc
+inlineListToOrg :: PandocMonad m
+                => [Inline]
+                -> Org m Doc
 inlineListToOrg lst = mapM inlineToOrg lst >>= return . hcat
 
 -- | Convert Pandoc inline element to Org.
-inlineToOrg :: Inline -> State WriterState Doc
+inlineToOrg :: PandocMonad m => Inline -> Org m Doc
 inlineToOrg (Span (uid, [], []) []) =
   return $ "<<" <> text uid <> ">>"
 inlineToOrg (Span _ lst) =
@@ -343,10 +356,11 @@ inlineToOrg (Math t str) = do
   return $ if t == InlineMath
               then "$" <> text str <> "$"
               else "$$" <> text str <> "$$"
-inlineToOrg (RawInline f@(Format f') str) =
-  return $ if isRawFormat f
-           then text str
-           else "@@" <> text f' <> ":" <> text str <> "@@"
+inlineToOrg il@(RawInline f str)
+  | isRawFormat f = return $ text str
+  | otherwise     = do
+      report $ InlineNotRendered il
+      return empty
 inlineToOrg LineBreak = return (text "\\\\" <> cr)
 inlineToOrg Space = return space
 inlineToOrg SoftBreak = do

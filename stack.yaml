@@ -1,13 +1,12 @@
 flags:
   pandoc:
     trypandoc: false
-    https: true
     embed_data_files: false
     old-locale: false
     network-uri: true
 packages:
 - '.'
 extra-deps:
-- skylighting-0.3.1
-- texmath-0.9.3
-resolver: lts-8.4
+- hslua-0.5.0
+- skylighting-0.3.3
+resolver: lts-8.12

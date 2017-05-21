@@ -1,7 +1,7 @@
 {-# LANGUAGE DeriveDataTypeable #-}
 {-# LANGUAGE DeriveGeneric      #-}
 {-
-Copyright (C) 2012-2016 John MacFarlane <jgm@berkeley.edu>
+Copyright (C) 2012-2017 John MacFarlane <jgm@berkeley.edu>
 
 This program is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -20,7 +20,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 {- |
    Module      : Text.Pandoc.Options
-   Copyright   : Copyright (C) 2012-2016 John MacFarlane
+   Copyright   : Copyright (C) 2012-2017 John MacFarlane
    License     : GNU GPL, version 2 or above
 
    Maintainer  : John MacFarlane <jgm@berkeley.edu>
@@ -50,6 +50,7 @@ import Data.Default
 import qualified Data.Set as Set
 import Data.Typeable (Typeable)
 import GHC.Generics (Generic)
+import Skylighting (SyntaxMap, defaultSyntaxMap)
 import Text.Pandoc.Extensions
 import Text.Pandoc.Highlighting (Style, pygments)
 
@@ -185,6 +186,7 @@ data WriterOptions = WriterOptions
   , writerReferenceDoc      :: Maybe FilePath -- ^ Path to reference document if specified
   , writerLaTeXArgs         :: [String]       -- ^ Flags to pass to latex-engine
   , writerReferenceLocation :: ReferenceLocation    -- ^ Location of footnotes and references for writing markdown
+  , writerSyntaxMap         :: SyntaxMap
   } deriving (Show, Data, Typeable, Generic)
 
 instance Default WriterOptions where
@@ -220,6 +222,7 @@ instance Default WriterOptions where
                       , writerReferenceDoc     = Nothing
                       , writerLaTeXArgs        = []
                       , writerReferenceLocation = EndOfDocument
+                      , writerSyntaxMap        = defaultSyntaxMap
                       }
 
 -- | Returns True if the given extension is enabled.

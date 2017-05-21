@@ -1,6 +1,6 @@
 module Tests.Writers.Muse (tests) where
 
-import Test.Framework
+import Test.Tasty
 import Tests.Helpers
 import Text.Pandoc
 import Text.Pandoc.Arbitrary()
@@ -14,10 +14,10 @@ museWithOpts opts = purely (writeMuse opts) . toPandoc
 
 infix 4 =:
 (=:) :: (ToString a, ToPandoc a)
-     => String -> (a, String) -> Test
+     => String -> (a, String) -> TestTree
 (=:) = test muse
 
-tests :: [Test]
+tests :: [TestTree]
 tests = [ testGroup "block elements"
           [ "plain" =: plain (text "Foo bar.") =?> "Foo bar."
           , testGroup "paragraphs"
@@ -155,8 +155,8 @@ tests = [ testGroup "block elements"
                          ,[para $ text "Para 2.1", para $ text "Para 2.2"]]
               in simpleTable [] rows
               =?>
-              unlines [ "Para 1.1 | Para 1.2"
-                      , "Para 2.1 | Para 2.2"
+              unlines [ " Para 1.1 | Para 1.2"
+                      , " Para 2.1 | Para 2.2"
                       ]
             , "table with header" =:
               let headers = [plain $ text "header 1", plain $ text "header 2"]
@@ -164,9 +164,9 @@ tests = [ testGroup "block elements"
                          ,[para $ text "Para 2.1", para $ text "Para 2.2"]]
               in simpleTable headers rows
               =?>
-              unlines [ "header 1 || header 2"
-                      , "Para 1.1 |  Para 1.2"
-                      , "Para 2.1 |  Para 2.2"
+              unlines [ " header 1 || header 2"
+                      , " Para 1.1 |  Para 1.2"
+                      , " Para 2.1 |  Para 2.2"
                       ]
             , "table with header and caption" =:
               let caption = text "Table 1"
@@ -174,10 +174,10 @@ tests = [ testGroup "block elements"
                   rows = [[para $ text "Para 1.1", para $ text "Para 1.2"]
                          ,[para $ text "Para 2.1", para $ text "Para 2.2"]]
               in table caption mempty headers rows
-              =?> unlines [ "header 1 || header 2"
-                          , "Para 1.1 |  Para 1.2"
-                          , "Para 2.1 |  Para 2.2"
-                          , "|+ Table 1 +|"
+              =?> unlines [ " header 1 || header 2"
+                          , " Para 1.1 |  Para 1.2"
+                          , " Para 2.1 |  Para 2.2"
+                          , " |+ Table 1 +|"
                           ]
             ]
           -- Div is trivial

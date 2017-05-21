@@ -3,7 +3,6 @@
 flags:
   pandoc:
     trypandoc: false
-    https: true
     embed_data_files: false
     old-locale: false
     network-uri: true
@@ -21,5 +20,6 @@ packages:
 - '../pandoc-types'
 - '../texmath'
 extra-deps:
-- doctemplates-0.1.0.2
-resolver: lts-7.5
+- hslua-0.5.0
+- skylighting-0.3.3
+resolver: lts-8.12

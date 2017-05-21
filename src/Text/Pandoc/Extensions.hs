@@ -1,7 +1,5 @@
-{-# LANGUAGE DeriveDataTypeable #-}
-{-# LANGUAGE DeriveGeneric      #-}
 {-
-Copyright (C) 2012-2016 John MacFarlane <jgm@berkeley.edu>
+Copyright (C) 2012-2017 John MacFarlane <jgm@berkeley.edu>
 
 This program is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -17,10 +15,12 @@ You should have received a copy of the GNU General Public License
 along with this program; if not, write to the Free Software
 Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 -}
+{-# LANGUAGE DeriveDataTypeable #-}
+{-# LANGUAGE DeriveGeneric      #-}
 
 {- |
    Module      : Text.Pandoc.Extensions
-   Copyright   : Copyright (C) 2012-2016 John MacFarlane
+   Copyright   : Copyright (C) 2012-2017 John MacFarlane
    License     : GNU GPL, version 2 or above
 
    Maintainer  : John MacFarlane <jgm@berkeley.edu>
@@ -33,9 +33,11 @@ module Text.Pandoc.Extensions ( Extension(..)
                               , Extensions
                               , emptyExtensions
                               , extensionsFromList
+                              , parseFormatSpec
                               , extensionEnabled
                               , enableExtension
                               , disableExtension
+                              , getDefaultExtensions
                               , pandocExtensions
                               , plainExtensions
                               , strictExtensions
@@ -47,6 +49,8 @@ import Data.Bits (clearBit, setBit, testBit)
 import Data.Data (Data)
 import Data.Typeable (Typeable)
 import GHC.Generics (Generic)
+import Text.Pandoc.Shared (safeRead)
+import Text.Parsec
 
 newtype Extensions = Extensions Integer
   deriving (Show, Read, Eq, Ord, Data, Typeable, Generic)
@@ -112,6 +116,7 @@ data Extension =
     | Ext_intraword_underscores  -- ^ Treat underscore inside word as literal
     | Ext_blank_before_blockquote -- ^ Require blank line before a blockquote
     | Ext_blank_before_header     -- ^ Require blank line before a header
+    | Ext_space_in_atx_header -- ^ Require space between # and header text
     | Ext_strikeout           -- ^ Strikeout using ~~this~~ syntax
     | Ext_superscript         -- ^ Superscript using ^this^ syntax
     | Ext_subscript           -- ^ Subscript using ~this~ syntax
@@ -134,6 +139,7 @@ data Extension =
     | Ext_old_dashes          -- ^ -- = em, - before number = en
     deriving (Show, Read, Enum, Eq, Ord, Bounded, Data, Typeable, Generic)
 
+-- | Extensions to be used with pandoc-flavored markdown.
 pandocExtensions :: Extensions
 pandocExtensions = extensionsFromList
   [ Ext_footnotes
@@ -168,6 +174,7 @@ pandocExtensions = extensionsFromList
   , Ext_intraword_underscores
   , Ext_blank_before_blockquote
   , Ext_blank_before_header
+  , Ext_space_in_atx_header
   , Ext_strikeout
   , Ext_superscript
   , Ext_subscript
@@ -180,6 +187,7 @@ pandocExtensions = extensionsFromList
   , Ext_smart
   ]
 
+-- | Extensions to be used with github-flavored markdown.
 plainExtensions :: Extensions
 plainExtensions = extensionsFromList
   [ Ext_table_captions
@@ -198,6 +206,7 @@ plainExtensions = extensionsFromList
   , Ext_strikeout
   ]
 
+-- | Extensions to be used with github-flavored markdown.
 phpMarkdownExtraExtensions :: Extensions
 phpMarkdownExtraExtensions = extensionsFromList
   [ Ext_footnotes
@@ -213,6 +222,7 @@ phpMarkdownExtraExtensions = extensionsFromList
   , Ext_shortcut_reference_links
   ]
 
+-- | Extensions to be used with github-flavored markdown.
 githubMarkdownExtensions :: Extensions
 githubMarkdownExtensions = extensionsFromList
   [ Ext_angle_brackets_escapable
@@ -223,6 +233,7 @@ githubMarkdownExtensions = extensionsFromList
   , Ext_ascii_identifiers
   , Ext_backtick_code_blocks
   , Ext_autolink_bare_uris
+  , Ext_space_in_atx_header
   , Ext_intraword_underscores
   , Ext_strikeout
   , Ext_hard_line_breaks
@@ -231,6 +242,7 @@ githubMarkdownExtensions = extensionsFromList
   , Ext_shortcut_reference_links
   ]
 
+-- | Extensions to be used with multimarkdown.
 multimarkdownExtensions :: Extensions
 multimarkdownExtensions = extensionsFromList
   [ Ext_pipe_tables
@@ -259,11 +271,73 @@ multimarkdownExtensions = extensionsFromList
   -- not to include these:
   , Ext_superscript
   , Ext_subscript
+  , Ext_backtick_code_blocks
   ]
 
+-- | Language extensions to be used with strict markdown.
 strictExtensions :: Extensions
 strictExtensions = extensionsFromList
   [ Ext_raw_html
   , Ext_shortcut_reference_links
   ]
 
+-- | Default extensions from format-describing string.
+getDefaultExtensions :: String -> Extensions
+getDefaultExtensions "markdown_strict" = strictExtensions
+getDefaultExtensions "markdown_phpextra" = phpMarkdownExtraExtensions
+getDefaultExtensions "markdown_mmd" = multimarkdownExtensions
+getDefaultExtensions "markdown_github" = githubMarkdownExtensions
+getDefaultExtensions "markdown"        = pandocExtensions
+getDefaultExtensions "plain"           = plainExtensions
+getDefaultExtensions "org"             = extensionsFromList
+                                          [Ext_citations,
+                                           Ext_auto_identifiers]
+getDefaultExtensions "html"            = extensionsFromList
+                                          [Ext_auto_identifiers,
+                                           Ext_native_divs,
+                                           Ext_native_spans]
+getDefaultExtensions "html4"           = getDefaultExtensions "html"
+getDefaultExtensions "html5"           = getDefaultExtensions "html"
+getDefaultExtensions "epub"            = extensionsFromList
+                                          [Ext_raw_html,
+                                           Ext_native_divs,
+                                           Ext_native_spans,
+                                           Ext_epub_html_exts]
+getDefaultExtensions "epub2"           = getDefaultExtensions "epub"
+getDefaultExtensions "epub3"           = getDefaultExtensions "epub"
+getDefaultExtensions "latex"           = extensionsFromList
+                                          [Ext_smart,
+                                           Ext_auto_identifiers]
+getDefaultExtensions "context"         = extensionsFromList
+                                          [Ext_smart,
+                                           Ext_auto_identifiers]
+getDefaultExtensions "textile"         = extensionsFromList
+                                          [Ext_old_dashes,
+                                           Ext_smart,
+                                           Ext_raw_html,
+                                           Ext_auto_identifiers]
+getDefaultExtensions _                 = extensionsFromList
+                                          [Ext_auto_identifiers]
+
+-- | Parse a format-specifying string into a markup format and a function that
+-- takes Extensions and enables and disables extensions as defined in the format
+-- spec.
+parseFormatSpec :: String
+                -> Either ParseError (String, Extensions -> Extensions)
+parseFormatSpec = parse formatSpec ""
+  where formatSpec = do
+          name <- formatName
+          extMods <- many extMod
+          return (name, \x -> foldl (flip ($)) x extMods)
+        formatName = many1 $ noneOf "-+"
+        extMod = do
+          polarity <- oneOf "-+"
+          name <- many $ noneOf "-+"
+          ext <- case safeRead ("Ext_" ++ name) of
+                       Just n  -> return n
+                       Nothing
+                         | name == "lhs" -> return Ext_literate_haskell
+                         | otherwise -> fail $ "Unknown extension: " ++ name
+          return $ case polarity of
+                        '-' -> disableExtension ext
+                        _   -> enableExtension ext

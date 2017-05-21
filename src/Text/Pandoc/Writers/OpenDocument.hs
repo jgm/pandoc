@@ -2,7 +2,7 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE PatternGuards     #-}
 {-
-Copyright (C) 2008-2015 Andrea Rossato <andrea.rossato@ing.unitn.it>
+Copyright (C) 2008-2017 Andrea Rossato <andrea.rossato@ing.unitn.it>
                         and John MacFarlane.
 
 This program is free software; you can redistribute it and/or modify
@@ -22,7 +22,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 {- |
    Module      : Text.Pandoc.Writers.OpenDocument
-   Copyright   : Copyright (C) 2008-2015 Andrea Rossato and John MacFarlane
+   Copyright   : Copyright (C) 2008-2017 Andrea Rossato and John MacFarlane
    License     : GNU GPL, version 2 or above
 
    Maintainer  : Andrea Rossato <andrea.rossato@ing.unitn.it>
@@ -503,7 +503,7 @@ bulletListStyle l = do
                     , ("style:num-suffix", "."                )
                     , ("text:bullet-char", [bulletList !! i]  )
                     ] (listLevelStyle (1 + i))
-      bulletList  = map chr $ cycle [8226,8227,8259]
+      bulletList  = map chr $ cycle [8226,9702,9642]
       listElStyle = map doStyles [0..9]
   pn <- paraListStyle l
   return (pn, (l, listElStyle))
@@ -531,10 +531,10 @@ orderedListLevelStyle (s,n, d) (l,ls) =
 
 listLevelStyle :: Int -> Doc
 listLevelStyle i =
-    let indent = show (0.25 * fromIntegral i :: Double) in
+    let indent = show (0.4 * fromIntegral (i - 1) :: Double) in
     selfClosingTag "style:list-level-properties"
                        [ ("text:space-before"   , indent ++ "in")
-                       , ("text:min-label-width",       "0.25in")]
+                       , ("text:min-label-width",       "0.4in")]
 
 tableStyle :: Int -> [(Char,Double)] -> Doc
 tableStyle num wcs =

@@ -1,7 +1,8 @@
 {-# LANGUAGE OverloadedStrings #-}
 module Tests.Writers.ConTeXt (tests) where
 
-import Test.Framework
+import Test.Tasty
+import Test.Tasty.QuickCheck
 import Tests.Helpers
 import Text.Pandoc
 import Text.Pandoc.Arbitrary ()
@@ -27,14 +28,14 @@ which is in turn shorthand for
 
 infix 4 =:
 (=:) :: (ToString a, ToPandoc a)
-     => String -> (a, String) -> Test
+     => String -> (a, String) -> TestTree
 (=:) = test context
 
-tests :: [Test]
+tests :: [TestTree]
 tests = [ testGroup "inline code"
           [ "with '}'" =: code "}" =?> "\\mono{\\}}"
           , "without '}'" =: code "]" =?> "\\type{]}"
-          , property "code property" $ \s -> null s ||
+          , testProperty "code property" $ \s -> null s ||
                 if '{' `elem` s || '}' `elem` s
                    then (context' $ code s) == "\\mono{" ++
                              (context' $ str s) ++ "}"

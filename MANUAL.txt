@@ -1,6 +1,6 @@
 % Pandoc User's Guide
 % John MacFarlane
-% January 29, 2017
+% March 26, 2017
 
 Synopsis
 ========
@@ -12,28 +12,30 @@ Description
 
 Pandoc is a [Haskell] library for converting from one markup format to
 another, and a command-line tool that uses this library. It can read
-[Markdown], [CommonMark], [PHP Markdown Extra], [GitHub-Flavored Markdown],
-[MultiMarkdown], and (subsets of) [Textile], [reStructuredText], [HTML],
-[LaTeX], [MediaWiki markup], [TWiki markup], [Haddock markup], [OPML], [Emacs
-Org mode], [DocBook], [txt2tags], [EPUB], [ODT] and [Word docx]; and it can
-write plain text, [Markdown], [CommonMark], [PHP Markdown Extra],
-[GitHub-Flavored Markdown], [MultiMarkdown], [reStructuredText], [XHTML],
-[HTML5], [LaTeX] \(including [`beamer`] slide shows\), [ConTeXt], [RTF], [OPML],
+[Markdown], [CommonMark], [PHP Markdown Extra], [GitHub-Flavored
+Markdown], [MultiMarkdown], and (subsets of) [Textile],
+[reStructuredText], [HTML], [LaTeX], [MediaWiki markup], [TWiki markup],
+[Haddock markup], [OPML], [Emacs Org mode], [DocBook], [txt2tags],
+[EPUB], [ODT] and [Word docx]; and it can write plain text, [Markdown],
+[CommonMark], [PHP Markdown Extra], [GitHub-Flavored Markdown],
+[MultiMarkdown], [reStructuredText], [XHTML], [HTML5], [LaTeX]
+\(including [`beamer`] slide shows\), [ConTeXt], [RTF], [OPML],
 [DocBook], [OpenDocument], [ODT], [Word docx], [GNU Texinfo], [MediaWiki
-markup], [DokuWiki markup], [ZimWiki markup], [Haddock markup],
-[EPUB] \(v2 or v3\), [FictionBook2], [Textile], [groff man] pages,
-[Emacs Org mode], [AsciiDoc], [InDesign ICML], [TEI Simple], and [Slidy],
-[Slideous], [DZSlides], [reveal.js] or [S5] HTML slide shows. It can also
-produce [PDF] output on systems where LaTeX, ConTeXt, or `wkhtmltopdf` is
-installed.
+markup], [DokuWiki markup], [ZimWiki markup], [Haddock markup], [EPUB]
+\(v2 or v3\), [FictionBook2], [Textile], [groff man], [groff ms], [Emacs
+Org mode], [AsciiDoc], [InDesign ICML], [TEI Simple], and [Slidy],
+[Slideous], [DZSlides], [reveal.js] or [S5] HTML slide shows. It can
+also produce [PDF] output on systems where LaTeX, ConTeXt, `pdfroff`, or
+`wkhtmltopdf` is installed.
 
 Pandoc's enhanced version of Markdown includes syntax for [footnotes],
-[tables], flexible [ordered lists], [definition lists], [fenced code blocks],
-[superscripts and subscripts], [strikeout], [metadata blocks], automatic tables of
-contents, embedded LaTeX [math], [citations], and [Markdown inside HTML block
-elements][Extension: `markdown_in_html_blocks`]. (These enhancements, described
-further under [Pandoc's Markdown], can be disabled using the
-`markdown_strict` input or output format.)
+[tables], flexible [ordered lists], [definition lists], [fenced code
+blocks], [superscripts and subscripts], [strikeout], [metadata blocks],
+automatic tables of contents, embedded LaTeX [math], [citations], and
+[Markdown inside HTML block elements][Extension:
+`markdown_in_html_blocks`]. (These enhancements, described further under
+[Pandoc's Markdown], can be disabled using the `markdown_strict` input
+or output format.)
 
 In contrast to most existing tools for converting Markdown to HTML, which
 use regex substitutions, pandoc has a modular design: it consists of a
@@ -83,6 +85,7 @@ Markdown can be expected to be lossy.
 [TWiki markup]: http://twiki.org/cgi-bin/view/TWiki/TextFormattingRules
 [Haddock markup]: https://www.haskell.org/haddock/doc/html/ch03s08.html
 [groff man]: http://man7.org/linux/man-pages/man7/groff_man.7.html
+[groff ms]: http://man7.org/linux/man-pages/man7/groff_ms.7.html
 [Haskell]: https://www.haskell.org
 [GNU Texinfo]: http://www.gnu.org/software/texinfo/
 [Emacs Org mode]: http://orgmode.org
@@ -201,9 +204,10 @@ if added to the template or included in any header file. The
 optionally be used for [citation rendering]. These are included
 with all recent versions of [TeX Live].
 
-Alternatively, pandoc can use ConTeXt or `wkhtmltopdf` to create a PDF.
-To do this, specify an output file with a `.pdf` extension,
-as before, but add `-t context` or `-t html5` to the command line.
+Alternatively, pandoc can use ConTeXt, `wkhtmltopdf`, or
+`pdfroff` to create a PDF.  To do this, specify an output file
+with a `.pdf` extension, as before, but add `-t context`, `-t
+html5`, or `-t ms` to the command line.
 
 PDF output can be controlled using [variables for LaTeX] (if
 LaTeX is used) and [variables for ConTeXt] (if ConTeXt is used).
@@ -282,14 +286,14 @@ General options
     (original unextended Markdown), `markdown_phpextra` (PHP Markdown
     Extra), `markdown_github` (GitHub-Flavored Markdown), `markdown_mmd`
     (MultiMarkdown), `commonmark` (CommonMark Markdown), `rst`
-    (reStructuredText), `html4` (XHTML4), `html` or `html5`
-    (HTML5/XHTML [polyglot markup]), `latex`
+    (reStructuredText), `html4` (XHTML 1.0 Transitional), `html`
+    or `html5` (HTML5/XHTML [polyglot markup]), `latex`
     (LaTeX), `beamer` (LaTeX beamer slide show), `context` (ConTeXt),
     `man` (groff man), `mediawiki` (MediaWiki markup),
     `dokuwiki` (DokuWiki markup), `zimwiki` (ZimWiki markup),
-    `textile` (Textile), `org` (Emacs Org mode),
-    `texinfo` (GNU Texinfo), `opml` (OPML), `docbook` or `docbook4`
-    (DocBook 4), `docbook5` (DocBook 5), `opendocument` (OpenDocument),
+    `textile` (Textile), `org` (Emacs Org mode), `texinfo` (GNU Texinfo),
+    `opml` (OPML), `docbook` or `docbook4` (DocBook 4), `docbook5`
+    (DocBook 5), `jats` (JATS XML), `opendocument` (OpenDocument),
     `odt` (OpenOffice text document), `docx` (Word docx), `haddock`
     (Haddock markup), `rtf` (rich text format), `epub2` (EPUB v2 book),
     `epub` or `epub3` (EPUB v3), `fb2` (FictionBook2 e-book),
@@ -457,6 +461,31 @@ Reader options
 
      3. `$PATH` (executable only)
 
+`--lua-filter=`*SCRIPT*
+
+:   Transform the document in a similar fashion as JSON filters (see
+    `--filter`), but use pandoc's build-in lua filtering system.  The given
+    lua script is expected to return a list of lua filters which will be
+    applied in order.  Each lua filter must contain element-transforming
+    functions indexed by the name of the AST element on which the filter
+    function should be applied.
+
+    The `pandoc` lua module provides helper functions for element
+    creation.  It is always loaded into the script's lua environment.
+
+    The following is an example lua script for macro-expansion:
+
+        function expand_hello_world(inline)
+          if inline.c == '{{helloworld}}' then
+            return pandoc.Emph{ pandoc.Str "Hello, World" }
+          else
+            return inline
+          end
+        end
+
+        return {{Str = expand_hello_world}}
+
+
 `-M` *KEY*[`=`*VAL*], `--metadata=`*KEY*[`:`*VAL*]
 
 :   Set the metadata field *KEY* to the value *VAL*.  A value specified
@@ -494,10 +523,28 @@ Reader options
 
 `--extract-media=`*DIR*
 
-:   Extract images and other media contained in a docx or epub container
-    to the path *DIR*, creating it if necessary, and adjust the images
-    references in the document so they point to the extracted files.
-    This option only affects the docx and epub readers.
+:   Extract images and other media contained in or linked from
+    the source document to the path *DIR*, creating it if
+    necessary, and adjust the images references in the document
+    so they point to the extracted files.  If the source format is
+    a binary container (docx, epub, or odt), the media is
+    extracted from the container and the original
+    filenames are used. Otherwise the media is read from the
+    file system or downloaded, and new filenames are constructed
+    based on SHA1 hashes of the contents.
+
+`--abbreviations=`*FILE*
+
+:   Specifies a custom abbreviations file, with abbreviations
+    one to a line.  If this option is not specified, pandoc will
+    read the data file `abbreviations` from the user data
+    directory or fall back on a system default.  To see the
+    system default, use
+    `pandoc --print-default-data-file=abbreviations`.  The only
+    use pandoc makes of this list is in the Markdown reader.
+    Strings ending in a period that are found in this list will
+    be followed by a nonbreaking space, so that the period will
+    not produce sentence-ending space in formats like LaTeX.
 
 [`pandocfilters`]: https://github.com/jgm/pandocfilters
 [PHP]: https://github.com/vinai/pandocfilters-php
@@ -546,7 +593,14 @@ General writer options
 :   Print a system default data file.  Files in the user data directory
     are ignored.
 
+`--eol=crlf`|`lf`
+
+:   Manually specify line endings: `crlf` (Windows) or `lf`
+    (MacOS/linux/unix).  The default is to use the line endings
+    appropriate for the OS.
+
 `--dpi`=*NUMBER*
+
 :   Specify the dpi (dots per inch) value for conversion from pixels
     to inch/centimeters and vice versa. The default is 96dpi.
     Technically, the correct term would be ppi (pixels per inch).
@@ -572,9 +626,10 @@ General writer options
 `--toc`, `--table-of-contents`
 
 :   Include an automatically generated table of contents (or, in
-    the case of `latex`, `context`, `docx`, and `rst`, an instruction to create
-    one) in the output document. This option has no effect on `man`,
-    `docbook4`, `docbook5`, `slidy`, `slideous`, `s5`, or `odt` output.
+    the case of `latex`, `context`, `docx`, `rst`, or `ms`,
+    an instruction to create one) in the output document. This
+    option has no effect on `man`, `docbook4`, `docbook5`, `jats`,
+    `slidy`, `slideous`, `s5`, or `odt` output.
 
 `--toc-depth=`*NUMBER*
 
@@ -587,7 +642,7 @@ General writer options
 :   Disables syntax highlighting for code blocks and inlines, even when
     a language attribute is given.
 
-`--highlight-style=`*STYLE*
+`--highlight-style=`*STYLE*|*FILE*
 
 :   Specifies the coloring style to be used in highlighted source code.
     Options are `pygments` (the default), `kate`, `monochrome`,
@@ -595,6 +650,20 @@ General writer options
     For more information on syntax highlighting in pandoc, see
     [Syntax highlighting], below.  See also
     `--list-highlight-styles`.
+
+    Instead of a *STYLE* name, a JSON file with extension
+    `.theme` may be supplied.  This will be parsed as a KDE
+    syntax highlighting theme and (if valid) used as the
+    highlighting style.  To see a sample theme that can be
+    modified, `pandoc --print-default-data-file default.theme`.
+
+`--syntax-definition=`*FILE*
+
+:   Instructs pandoc to load a KDE XML syntax definition file,
+    which will be used for syntax highlighting of appropriately
+    marked code blocks.  This can be used to add support for
+    new languages or to use altered syntax definitions for
+    existing languages.
 
 `-H` *FILE*, `--include-in-header=`*FILE*
 
@@ -620,6 +689,12 @@ General writer options
     `\end{document}` command in LaTeX). This option can be used
     repeatedly to include multiple files. They will be included in the
     order specified.  Implies `--standalone`.
+
+`--resource-path=`*SEARCHPATH*
+
+:   List of paths to search for images and other resources.
+    The paths should be separated by `:` on linux, unix, and
+    MacOS systems, and by `;` on Windows.
 
 Options affecting specific writers
 ----------------------------------
@@ -771,46 +846,51 @@ Options affecting specific writers
 :   Use the specified file as a style reference in producing a
     docx or ODT file.
 
-    Docx: For best results, the reference docx should be a modified
-    version of a docx file produced using pandoc.  The contents
-    of the reference docx are ignored, but its stylesheets and
-    document properties (including margins, page size, header,
-    and footer) are used in the new docx. If no reference docx
-    is specified on the command line, pandoc will look for a
-    file `reference.docx` in the user data directory (see
-    `--data-dir`). If this is not found either, sensible
-    defaults will be used.
+    Docx
 
-    To produce a custom `reference.docx`, first get a copy of
-    the default `reference.docx`: `pandoc
-    --print-default-data-file reference.docx >
-    custom-reference.docx`.  Then open `custom-reference.docx`
-    in Word, modify the styles as you wish, and save the file.
-    For best results, do not make changes to this file other
-    than modifying the styles used by pandoc: [paragraph]
-    Normal, Body Text, First Paragraph, Compact, Title,
-    Subtitle, Author, Date, Abstract, Bibliography, Heading 1,
-    Heading 2, Heading 3, Heading 4, Heading 5, Heading 6, Block
-    Text, Footnote Text, Definition Term, Definition, Caption,
-    Table Caption, Image Caption, Figure, Figure With Caption,
-    TOC Heading; [character] Default Paragraph Font, Body Text
-    Char, Verbatim Char, Footnote Reference, Hyperlink; [table]
-    Normal Table.
+    :   For best results, the reference docx should be a modified
+        version of a docx file produced using pandoc.  The contents
+        of the reference docx are ignored, but its stylesheets and
+        document properties (including margins, page size, header,
+        and footer) are used in the new docx. If no reference docx
+        is specified on the command line, pandoc will look for a
+        file `reference.docx` in the user data directory (see
+        `--data-dir`). If this is not found either, sensible
+        defaults will be used.
 
-    ODT: For best results, the reference ODT should be a modified
-    version of an ODT produced using pandoc.  The contents of
-    the reference ODT are ignored, but its stylesheets are used
-    in the new ODT. If no reference ODT is specified on the
-    command line, pandoc will look for a file `reference.odt` in
-    the user data directory (see `--data-dir`). If this is not
-    found either, sensible defaults will be used.
+        To produce a custom `reference.docx`, first get a copy of
+        the default `reference.docx`: `pandoc
+        --print-default-data-file reference.docx >
+        custom-reference.docx`.  Then open `custom-reference.docx`
+        in Word, modify the styles as you wish, and save the file.
+        For best results, do not make changes to this file other
+        than modifying the styles used by pandoc: [paragraph]
+        Normal, Body Text, First Paragraph, Compact, Title,
+        Subtitle, Author, Date, Abstract, Bibliography, Heading 1,
+        Heading 2, Heading 3, Heading 4, Heading 5, Heading 6,
+        Heading 7, Heading 8, Heading 9, Block Text, Footnote Text,
+        Definition Term, Definition, Caption, Table Caption,
+        Image Caption, Figure, Captioned Figure, TOC Heading;
+        [character] Default Paragraph Font, Body Text Char,
+        Verbatim Char, Footnote Reference, Hyperlink; [table]
+        Normal Table.
 
-    To produce a custom `reference.odt`, first get a copy of
-    the default `reference.odt`: `pandoc
-    --print-default-data-file reference.odt >
-    custom-reference.odt`.  Then open `custom-reference.docx` in
-    LibreOffice, modify the styles as you wish, and save the
-    file.
+    ODT
+
+    :   For best results, the reference ODT should be a modified
+        version of an ODT produced using pandoc.  The contents of
+        the reference ODT are ignored, but its stylesheets are used
+        in the new ODT. If no reference ODT is specified on the
+        command line, pandoc will look for a file `reference.odt` in
+        the user data directory (see `--data-dir`). If this is not
+        found either, sensible defaults will be used.
+
+        To produce a custom `reference.odt`, first get a copy of
+        the default `reference.odt`: `pandoc
+        --print-default-data-file reference.odt >
+        custom-reference.odt`.  Then open `custom-reference.odt` in
+        LibreOffice, modify the styles as you wish, and save the
+        file.
 
 `--epub-cover-image=`*FILE*
 
@@ -956,7 +1036,7 @@ Math rendering in HTML
 
 `--mathml`
 
-:   Convert TeX math to [MathML] (in `docbook4`, `docbook5`,
+:   Convert TeX math to [MathML] (in `docbook4`, `docbook5`, `jats`,
     `html4` and `html5`).
 
 `--jsmath`[`=`*URL*]
@@ -1260,7 +1340,7 @@ Variables for LaTeX
 LaTeX variables are used when [creating a PDF].
 
 `papersize`
-:   paper size, e.g. `letter`, `A4`
+:   paper size, e.g. `letter`, `a4`
 
 `fontsize`
 :   font size for body text (e.g. `10pt`, `12pt`)
@@ -1450,6 +1530,21 @@ Variables for man pages
 `hyphenate`
 :   if `true` (the default), hyphenation will be used
 
+Variables for ms
+----------------
+
+`pointsize`
+:    point size (e.g. `10p`)
+
+`lineheight`
+:    line height (e.g. `12p`)
+
+`fontfamily`
+:    font family (e.g. `T` or `P`)
+
+`indent`
+:    paragraph indent (e.g. `2m`)
+
 Using variables in templates
 ----------------------------
 
@@ -1595,6 +1690,12 @@ wrapping). Consider, for example:
     I like several of their flavors of ice cream:
     #22, for example, and #5.
 
+#### Extension: `space_in_atx_header` ####
+
+Many Markdown implementations do not require a space between the
+opening `#`s of an ATX header and the header text, so that
+`#5 bolt` and `#hashtag` count as headers.  With this extension,
+pandoc does require the space.
 
 ### Header identifiers ###
 
@@ -1840,11 +1941,11 @@ this syntax:
 Here `mycode` is an identifier, `haskell` and `numberLines` are classes, and
 `startFrom` is an attribute with value `100`. Some output formats can use this
 information to do syntax highlighting. Currently, the only output formats
-that uses this information are HTML and LaTeX. If highlighting is supported
-for your output format and language, then the code block above will appear
-highlighted, with numbered lines. (To see which languages are supported, type
-`pandoc --list-highlight-languages`.) Otherwise, the code block above will
-appear as follows:
+that uses this information are HTML, LaTeX, Docx, and Ms. If highlighting
+is supported for your output format and language, then the code block above
+will appear highlighted, with numbered lines. (To see which languages are
+supported, type `pandoc --list-highlight-languages`.) Otherwise, the code
+block above will appear as follows:
 
     <pre id="mycode" class="haskell numberLines" startFrom="100">
       <code>
@@ -2551,7 +2652,7 @@ Note that YAML escaping rules must be followed. Thus, for example,
 if a title contains a colon, it must be quoted.  The pipe character
 (`|`) can be used to begin an indented block that will be interpreted
 literally, without need for escaping.  This form is necessary
-when the field contains blank lines:
+when the field contains blank lines or block-level formatting:
 
     ---
     title:  'This is the title: it contains a colon'
@@ -3980,8 +4081,8 @@ Syntax highlighting
 ===================
 
 Pandoc will automatically highlight syntax in [fenced code blocks] that
-are marked with a language name.  The Haskell library [highlighting-kate] is
-used for highlighting, which works in HTML, Docx, and LaTeX/PDF output.
+are marked with a language name.  The Haskell library [skylighting] is
+used for highlighting, which works in HTML, Docx, Ms, and LaTeX/PDF output.
 To see a list of language names that pandoc will recognize, type
 `pandoc --list-highlight-languages`.
 
@@ -3993,7 +4094,7 @@ type `pandoc --list-highlight-styles`.
 
 To disable highlighting, use the `--no-highlight` option.
 
-[highlighting-kate]: https://github.com/jgm/highlighting-kate
+[skylighting]: https://github.com/jgm/skylighting
 
 Custom Styles in Docx Output
 ============================
@@ -4060,7 +4161,7 @@ which you can modify according to your needs, do
 Authors
 =======
 
-© 2006-2016 John MacFarlane (jgm@berkeley.edu). Released under the
+© 2006-2017 John MacFarlane (jgm@berkeley.edu). Released under the
 [GPL], version 2 or greater.  This software carries no warranty of
 any kind.  (See COPYRIGHT for full copyright and warranty notices.)
 

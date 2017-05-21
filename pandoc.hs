@@ -34,7 +34,9 @@ writers.
 -}
 module Main where
 import Text.Pandoc.App (convertWithOpts, defaultOpts, options, parseOptions)
+import Text.Pandoc.Error (handleError, PandocError)
+import qualified Control.Exception as E
 
 main :: IO ()
-main = parseOptions options defaultOpts >>= convertWithOpts
-
+main = E.catch (parseOptions options defaultOpts >>= convertWithOpts)
+  (\(e :: PandocError) -> handleError (Left e))

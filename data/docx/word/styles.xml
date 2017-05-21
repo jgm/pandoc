@@ -251,6 +251,66 @@
       <w:szCs w:val="24" />
     </w:rPr>
   </w:style>
+  <w:style w:type="paragraph" w:styleId="Heading7">
+    <w:name w:val="Heading 7" />
+    <w:basedOn w:val="Normal" />
+    <w:next w:val="BodyText" />
+    <w:uiPriority w:val="9" />
+    <w:unhideWhenUsed />
+    <w:qFormat />
+    <w:pPr>
+      <w:keepNext />
+      <w:keepLines />
+      <w:spacing w:before="200" w:after="0" />
+      <w:outlineLvl w:val="6" />
+    </w:pPr>
+    <w:rPr>
+      <w:rFonts w:asciiTheme="majorHAnsi" w:eastAsiaTheme="majorEastAsia" w:hAnsiTheme="majorHAnsi" w:cstheme="majorBidi" />
+      <w:color w:val="4F81BD" w:themeColor="accent1" />
+      <w:sz w:val="24" />
+      <w:szCs w:val="24" />
+    </w:rPr>
+  </w:style>
+  <w:style w:type="paragraph" w:styleId="Heading8">
+    <w:name w:val="Heading 8" />
+    <w:basedOn w:val="Normal" />
+    <w:next w:val="BodyText" />
+    <w:uiPriority w:val="9" />
+    <w:unhideWhenUsed />
+    <w:qFormat />
+    <w:pPr>
+      <w:keepNext />
+      <w:keepLines />
+      <w:spacing w:before="200" w:after="0" />
+      <w:outlineLvl w:val="7" />
+    </w:pPr>
+    <w:rPr>
+      <w:rFonts w:asciiTheme="majorHAnsi" w:eastAsiaTheme="majorEastAsia" w:hAnsiTheme="majorHAnsi" w:cstheme="majorBidi" />
+      <w:color w:val="4F81BD" w:themeColor="accent1" />
+      <w:sz w:val="24" />
+      <w:szCs w:val="24" />
+    </w:rPr>
+  </w:style>
+  <w:style w:type="paragraph" w:styleId="Heading9">
+    <w:name w:val="Heading 9" />
+    <w:basedOn w:val="Normal" />
+    <w:next w:val="BodyText" />
+    <w:uiPriority w:val="9" />
+    <w:unhideWhenUsed />
+    <w:qFormat />
+    <w:pPr>
+      <w:keepNext />
+      <w:keepLines />
+      <w:spacing w:before="200" w:after="0" />
+      <w:outlineLvl w:val="8" />
+    </w:pPr>
+    <w:rPr>
+      <w:rFonts w:asciiTheme="majorHAnsi" w:eastAsiaTheme="majorEastAsia" w:hAnsiTheme="majorHAnsi" w:cstheme="majorBidi" />
+      <w:color w:val="4F81BD" w:themeColor="accent1" />
+      <w:sz w:val="24" />
+      <w:szCs w:val="24" />
+    </w:rPr>
+  </w:style>
   <w:style w:type="paragraph" w:styleId="BlockText">
     <w:name w:val="Block Text" />
     <w:basedOn w:val="BodyText" />
@@ -340,8 +400,8 @@
     <w:name w:val="Figure" />
     <w:basedOn w:val="Normal" />
   </w:style>
-  <w:style w:type="paragraph" w:customStyle="1" w:styleId="FigureWithCaption">
-    <w:name w:val="Figure with Caption" />
+  <w:style w:type="paragraph" w:customStyle="1" w:styleId="CaptionedFigure">
+    <w:name w:val="Captioned Figure" />
     <w:basedOn w:val="Figure" />
     <w:pPr>
       <w:keepNext />

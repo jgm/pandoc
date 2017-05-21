@@ -161,7 +161,7 @@ header = tryMsg "header" $ do
   skipSpaces
   content <- B.trimInlines . mconcat <$> manyTill inline newline
   attr <- registerHeader ("", classes, []) content
-  return $ B.headerWith attr level $ content
+  return $ B.headerWith attr level content
 
 verbatim :: PandocMonad m => TWParser m B.Blocks
 verbatim = (htmlElement "verbatim" <|> htmlElement "pre")
@@ -520,9 +520,9 @@ linkText :: PandocMonad m => TWParser m (String, String, B.Inlines)
 linkText = do
   string "[["
   url <- many1Till anyChar (char ']')
-  content <- option [B.str url] linkContent
+  content <- option (B.str url) (mconcat <$> linkContent)
   char ']'
-  return (url, "", mconcat content)
+  return (url, "", content)
   where
     linkContent      = (char '[') >> many1Till anyChar (char ']') >>= parseLinkContent
     parseLinkContent = parseFromString $ many1 inline

@@ -1,6 +1,8 @@
-{-# LANGUAGE OverloadedStrings #-}
--- to be processed using hsb2hs
+{-# LANGUAGE TemplateHaskell #-}
+
 module Text.Pandoc.Data (dataFiles) where
+
+import Data.FileEmbed
 import qualified Data.ByteString as B
 import System.FilePath (splitDirectories)
 import qualified System.FilePath.Posix as Posix
@@ -12,4 +14,8 @@ dataFiles = map (\(fp, contents) ->
   (Posix.joinPath (splitDirectories fp), contents)) dataFiles'
 
 dataFiles' :: [(FilePath, B.ByteString)]
-dataFiles' = ("MANUAL.txt", %blob "MANUAL.txt") : %blobs "data"
+dataFiles' = ("MANUAL.txt", $(embedFile "MANUAL.txt")) :
+             -- handle the hidden file separately, since embedDir doesn't
+             -- include it:
+             ("docx/_rels/.rels", $(embedFile "data/docx/_rels/.rels")) :
+             $(embedDir "data")

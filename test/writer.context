@@ -6,19 +6,28 @@
   style=,
   color=,
   contrastcolor=]
+
 % make chapter, section bookmarks visible when opening document
 \placebookmarks[chapter, section, subsection, subsubsection, subsubsubsection, subsubsubsubsection][chapter, section]
 \setupinteractionscreen[option=bookmark]
 \setuptagging[state=start]
+
 
 % use microtypography
 \definefontfeature[default][default][script=latn, protrusion=quality, expansion=quality, itlc=yes, textitalics=yes, onum=yes, pnum=yes]
 \definefontfeature[smallcaps][script=latn, protrusion=quality, expansion=quality, smcp=yes, onum=yes, pnum=yes]
 \setupalign[hz,hanging]
 \setupitaliccorrection[global, always]
+
 \setupbodyfontenvironment[default][em=italic] % use italic as em, not slanted
-\usemodule[simplefonts]
-\setmainfontfallback[DejaVu Serif][range={greekandcoptic, greekextended}, force=yes, rscale=auto]
+
+\definefallbackfamily[mainface][rm][DejaVu Serif][preset=range:greek, force=yes]
+\definefontfamily[mainface][rm][Latin Modern Roman]
+\definefontfamily[mainface][mm][Latin Modern Math]
+\definefontfamily[mainface][ss][Latin Modern Sans]
+\definefontfamily[mainface][tt][Latin Modern Typewriter][features=none]
+\setupbodyfont[mainface]
+
 \setupwhitespace[medium]
 
 \setuphead[chapter]            [style=\tfd,header=empty]

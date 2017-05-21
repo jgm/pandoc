@@ -2,7 +2,7 @@
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TupleSections       #-}
 {-
-Copyright (C) 2006-2016 John MacFarlane <jgm@berkeley.edu>
+Copyright (C) 2006-2017 John MacFarlane <jgm@berkeley.edu>
 
 This program is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -21,7 +21,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 {- |
    Module      : Text.Pandoc.App
-   Copyright   : Copyright (C) 2006-2016 John MacFarlane
+   Copyright   : Copyright (C) 2006-2017 John MacFarlane
    License     : GNU GPL, version 2 or above
 
    Maintainer  : John MacFarlane <jgm@berkeley@edu>
@@ -39,13 +39,14 @@ module Text.Pandoc.App (
           ) where
 import Control.Applicative ((<|>))
 import qualified Control.Exception as E
-import Control.Exception.Extensible (throwIO)
+import Control.Monad.Except (throwError)
 import Control.Monad
 import Control.Monad.Trans
 import Data.Aeson (eitherDecode', encode)
 import qualified Data.ByteString as BS
 import qualified Data.ByteString.Lazy as B
 import Data.Char (toLower, toUpper)
+import qualified Data.Set as Set
 import Data.Foldable (foldrM)
 import Data.List (intercalate, isPrefixOf, isSuffixOf, sort)
 import qualified Data.Map as M
@@ -55,27 +56,29 @@ import Data.Yaml (decode)
 import qualified Data.Yaml as Yaml
 import Network.URI (URI (..), isURI, parseURI)
 import Paths_pandoc (getDataDir)
-import Skylighting (Style, Syntax (..), defaultSyntaxMap)
+import Skylighting (Style, Syntax (..), defaultSyntaxMap, parseTheme)
+import Skylighting.Parser (missingIncludes, parseSyntaxDefinition,
+                           addSyntaxDefinition)
 import System.Console.GetOpt
 import System.Directory (Permissions (..), doesFileExist, findExecutable,
                          getAppUserDataDirectory, getPermissions)
 import System.Environment (getArgs, getEnvironment, getProgName)
 import System.Exit (ExitCode (..), exitSuccess)
 import System.FilePath
-import System.IO (stderr, stdout)
+import System.IO (stdout, nativeNewline, Newline(..))
 import System.IO.Error (isDoesNotExistError)
 import Text.Pandoc
 import Text.Pandoc.Builder (setMeta)
-import Text.Pandoc.Class (PandocIO, getLog, withMediaBag)
+import Text.Pandoc.Class (PandocIO, getLog, withMediaBag,
+                          extractMedia, fillMediaBag, setResourcePath)
 import Text.Pandoc.Highlighting (highlightingStyles)
-import Text.Pandoc.MediaBag (MediaBag, extractMediaBag, mediaDirectory)
+import Text.Pandoc.Lua ( runLuaFilter )
 import Text.Pandoc.PDF (makePDF)
 import Text.Pandoc.Process (pipeProcess)
-import Text.Pandoc.SelfContained (makeSelfContained)
-import Text.Pandoc.Shared (err, headerShift, openURL, readDataFile,
+import Text.Pandoc.SelfContained (makeSelfContained, makeDataURI)
+import Text.Pandoc.Shared (headerShift, openURL, readDataFile,
                            readDataFileUTF8, safeRead, tabFilter)
 import qualified Text.Pandoc.UTF8 as UTF8
-import Text.Pandoc.Walk (walk)
 import Text.Pandoc.XML (toEntities)
 import Text.Printf
 #ifndef _WINDOWS
@@ -94,7 +97,8 @@ parseOptions options' defaults = do
   let unknownOptionErrors = foldr handleUnrecognizedOption [] unrecognizedOpts
 
   unless (null errors && null unknownOptionErrors) $
-     err 2 $ concat errors ++ unlines unknownOptionErrors ++
+     E.throwIO $ PandocOptionError $
+        concat errors ++ unlines unknownOptionErrors ++
         ("Try " ++ prg ++ " --help for more information.")
 
   -- thread option data structure through all supplied option actions
@@ -162,6 +166,7 @@ convertWithOpts opts = do
   let laTeXOutput = format `elem` ["latex", "beamer"]
   let conTeXtOutput = format == "context"
   let html5Output = format == "html5" || format == "html"
+  let msOutput = format == "ms"
 
   -- disabling the custom writer for now
   writer <- if ".lua" `isSuffixOf` format
@@ -170,13 +175,13 @@ convertWithOpts opts = do
                        (\o d -> liftIO $ writeCustom writerName o d)
                                :: Writer PandocIO)
                else case getWriter writerName of
-                         Left e  -> err 9 $
+                         Left e  -> E.throwIO $ PandocAppError $
                            if format == "pdf"
                               then e ++
-                               "\nTo create a pdf with pandoc, use " ++
-                               "the latex or beamer writer and specify\n" ++
-                               "an output file with .pdf extension " ++
-                               "(pandoc -t latex -o filename.pdf)."
+                               "\nTo create a pdf using pandoc, use " ++
+                               "-t latex|beamer|context|ms|html5" ++
+                               "\nand specify an output file with " ++
+                               ".pdf extension (-o filename.pdf)."
                               else e
                          Right w -> return (w :: Writer PandocIO)
 
@@ -184,7 +189,7 @@ convertWithOpts opts = do
   -- the sake of the text2tags reader.
   reader <-  case getReader readerName of
                 Right r  -> return (r :: Reader PandocIO)
-                Left e   -> err 7 e'
+                Left e   -> E.throwIO $ PandocAppError e'
                   where e' = case readerName of
                                   "pdf" -> e ++
                                      "\nPandoc can convert to PDF, but not from PDF."
@@ -199,7 +204,7 @@ convertWithOpts opts = do
                 Nothing -> do
                            deftemp <- getDefaultTemplate datadir format
                            case deftemp of
-                                 Left e  -> throwIO e
+                                 Left e  -> E.throwIO e
                                  Right t -> return (Just t)
                 Just tp -> do
                            -- strip off extensions
@@ -212,8 +217,8 @@ convertWithOpts opts = do
                                              (readDataFileUTF8 datadir
                                                 ("templates" </> tp'))
                                              (\e' -> let _ = (e' :: E.SomeException)
-                                                     in throwIO e')
-                                       else throwIO e)
+                                                     in E.throwIO e')
+                                       else E.throwIO e)
 
   let addStringAsVariable varname s vars = return $ (varname, s) : vars
 
@@ -279,6 +284,11 @@ convertWithOpts opts = do
                                                      uriFragment = "" }
                                 _ -> Nothing
 
+  abbrevs <- (Set.fromList . filter (not . null) . lines) <$>
+             case optAbbreviations opts of
+                  Nothing -> readDataFileUTF8 datadir "abbreviations"
+                  Just f  -> UTF8.readFile f
+
   let readerOpts = def{ readerStandalone = standalone
                       , readerColumns = optColumns opts
                       , readerTabStop = optTabStop opts
@@ -287,9 +297,26 @@ convertWithOpts opts = do
                       , readerDefaultImageExtension =
                          optDefaultImageExtension opts
                       , readerTrackChanges = optTrackChanges opts
+                      , readerAbbreviations = abbrevs
                       }
 
   highlightStyle <- lookupHighlightStyle $ optHighlightStyle opts
+  let addSyntaxMap existingmap f = do
+        res <- parseSyntaxDefinition f
+        case res of
+              Left errstr -> E.throwIO $ PandocSyntaxMapError errstr
+              Right syn   -> return $ addSyntaxDefinition syn existingmap
+
+  syntaxMap <- foldM addSyntaxMap defaultSyntaxMap
+                     (optSyntaxDefinitions opts)
+
+  case missingIncludes (M.elems syntaxMap) of
+       [] -> return ()
+       xs -> E.throwIO $ PandocSyntaxMapError $
+                "Missing syntax definitions:\n" ++
+                unlines (map
+                  (\(syn,dep) -> (T.unpack syn ++ " requires " ++
+                    T.unpack dep ++ " through IncludeRules.")) xs)
 
   let writerOptions = def { writerTemplate         = templ,
                             writerVariables        = variables,
@@ -321,7 +348,8 @@ convertWithOpts opts = do
                             writerEpubChapterLevel = optEpubChapterLevel opts,
                             writerTOCDepth         = optTOCDepth opts,
                             writerReferenceDoc     = optReferenceDoc opts,
-                            writerLaTeXArgs        = optLaTeXEngineArgs opts
+                            writerLaTeXArgs        = optLaTeXEngineArgs opts,
+                            writerSyntaxMap        = syntaxMap
                           }
 
 
@@ -331,7 +359,8 @@ convertWithOpts opts = do
   istty <- queryTerminal stdOutput
 #endif
   when (istty && not (isTextFormat format) && outputFile == "-") $
-    err 5 $ "Cannot write " ++ format ++ " output to stdout.\n" ++
+    E.throwIO $ PandocAppError $
+            "Cannot write " ++ format ++ " output to stdout.\n" ++
             "Specify an output file using the -o option."
 
 
@@ -343,7 +372,7 @@ convertWithOpts opts = do
                                  then 0
                                  else optTabStop opts)
 
-      readSources :: (Functor m, MonadIO m) => [FilePath] -> m String
+      readSources :: [FilePath] -> PandocIO String
       readSources srcs = convertTabs . intercalate "\n" <$>
                             mapM readSource srcs
 
@@ -359,58 +388,70 @@ convertWithOpts opts = do
              Just logfile -> B.writeFile logfile (encodeLogMessages reports)
         let isWarning msg = messageVerbosity msg == WARNING
         when (optFailIfWarnings opts && any isWarning reports) $
-            err 3 "Failing because there were warnings."
+            E.throwIO PandocFailOnWarningError
         return res
 
-  let sourceToDoc :: [FilePath] -> PandocIO (Pandoc, MediaBag)
+  let sourceToDoc :: [FilePath] -> PandocIO Pandoc
       sourceToDoc sources' =
          case reader of
               StringReader r
-                | optFileScope opts || readerName == "json" -> do
-                    pairs <- mapM
-                      (readSource >=> withMediaBag . r readerOpts) sources
-                    return (mconcat (map fst pairs), mconcat (map snd pairs))
+                | optFileScope opts || readerName == "json" ->
+                    mconcat <$> mapM (readSource >=> r readerOpts) sources
                 | otherwise ->
-                     readSources sources' >>= withMediaBag . r readerOpts
-              ByteStringReader r -> do
-                pairs <- mapM (readFile' >=>
-                                 withMediaBag . r readerOpts) sources
-                return (mconcat (map fst pairs), mconcat (map snd pairs))
+                    readSources sources' >>= r readerOpts
+              ByteStringReader r ->
+                mconcat <$> mapM (readFile' >=> r readerOpts) sources
+
+  metadata <- if format == "jats" &&
+                 lookup "csl" (optMetadata opts) == Nothing &&
+                 lookup "citation-style" (optMetadata opts) == Nothing
+                 then do
+                   jatsCSL <- readDataFile datadir "jats.csl"
+                   let jatsEncoded = makeDataURI ("application/xml", jatsCSL)
+                   return $ ("csl", jatsEncoded) : optMetadata opts
+                 else return $ optMetadata opts
+
+  let eol = fromMaybe nativeNewline $ optEol opts
 
   runIO' $ do
-    (doc, media) <- sourceToDoc sources
-    doc' <- (maybe return (extractMedia media) (optExtractMedia opts) >=>
-              return . flip (foldr addMetadata) (optMetadata opts) >=>
-              applyTransforms transforms >=>
-              applyFilters datadir filters' [format]) doc
+    setResourcePath $ "." : (optResourcePath opts)
+    (doc, media) <- withMediaBag $ sourceToDoc sources >>=
+              (   (if isJust (optExtractMedia opts)
+                      then fillMediaBag (writerSourceURL writerOptions)
+                      else return)
+              >=> maybe return extractMedia (optExtractMedia opts)
+              >=> return . flip (foldr addMetadata) metadata
+              >=> applyTransforms transforms
+              >=> applyLuaFilters datadir (optLuaFilters opts) [format]
+              >=> applyFilters datadir filters' [format]
+              )
 
     case writer of
-      -- StringWriter f -> f writerOptions doc' >>= writerFn outputFile
-      ByteStringWriter f -> f writerOptions doc' >>= writeFnBinary outputFile
+      ByteStringWriter f -> f writerOptions doc >>= writeFnBinary outputFile
       StringWriter f
         | pdfOutput -> do
-                -- make sure writer is latex or beamer or context or html5
-                unless (laTeXOutput || conTeXtOutput || html5Output) $
-                  err 47 $ "cannot produce pdf output with " ++ format ++
-                           " writer"
+                -- make sure writer is latex, beamer, context, html5 or ms
+                unless (laTeXOutput || conTeXtOutput || html5Output ||
+                        msOutput) $
+                  liftIO $ E.throwIO $ PandocAppError $
+                     "cannot produce pdf output with " ++ format ++ " writer"
 
                 let pdfprog = case () of
                                 _ | conTeXtOutput -> "context"
-                                _ | html5Output   -> "wkhtmltopdf"
-                                _ -> optLaTeXEngine opts
+                                  | html5Output   -> "wkhtmltopdf"
+                                  | html5Output   -> "wkhtmltopdf"
+                                  | msOutput      -> "pdfroff"
+                                  | otherwise     -> optLaTeXEngine opts
                 -- check for pdf creating program
                 mbPdfProg <- liftIO $ findExecutable pdfprog
-                when (isNothing mbPdfProg) $
-                     err 41 $ pdfprog ++ " not found. " ++
-                       pdfprog ++ " is needed for pdf output."
+                when (isNothing mbPdfProg) $ liftIO $ E.throwIO $
+                       PandocPDFProgramNotFoundError pdfprog
 
-                res <- makePDF pdfprog f writerOptions verbosity media doc'
+                res <- makePDF pdfprog f writerOptions verbosity media doc
                 case res of
                      Right pdf -> writeFnBinary outputFile pdf
-                     Left err' -> liftIO $ do
-                       B.hPutStr stderr err'
-                       B.hPut stderr $ B.pack [10]
-                       err 43 "Error producing PDF"
+                     Left err' -> liftIO $
+                       E.throwIO $ PandocPDFError (UTF8.toStringLazy err')
         | otherwise -> do
                 let htmlFormat = format `elem`
                       ["html","html4","html5","s5","slidy","slideous","dzslides","revealjs"]
@@ -423,9 +464,9 @@ convertWithOpts opts = do
                                          format == "docbook") && optAscii opts
                                      then toEntities
                                      else id
-                output <- f writerOptions doc'
+                output <- f writerOptions doc
                 selfcontain (output ++ ['\n' | not standalone]) >>=
-                    writerFn outputFile . handleEntities
+                    writerFn eol outputFile . handleEntities
 
 type Transform = Pandoc -> Pandoc
 
@@ -452,19 +493,17 @@ externalFilter f args' d = liftIO $ do
   unless (exists && isExecutable) $ do
     mbExe <- findExecutable f'
     when (isNothing mbExe) $
-      err 83 $ "Error running filter " ++ f ++  ":\n" ++
-               "Could not find executable '" ++ f' ++ "'."
+      E.throwIO $ PandocFilterError f ("Could not find executable " ++ f')
   env <- getEnvironment
   let env' = Just $ ("PANDOC_VERSION", pandocVersion) : env
   (exitcode, outbs) <- E.handle filterException $
                               pipeProcess env' f' args'' $ encode d
   case exitcode of
        ExitSuccess    -> return $ either error id $ eitherDecode' outbs
-       ExitFailure ec -> err 83 $ "Error running filter " ++ f ++ "\n" ++
-                                  "Filter returned error status " ++ show ec
+       ExitFailure ec -> E.throwIO $ PandocFilterError f
+                           ("Filter returned error status " ++ show ec)
  where filterException :: E.SomeException -> IO a
-       filterException e = err 83 $ "Error running filter " ++ f ++ "\n" ++
-                                       show e
+       filterException e = E.throwIO $ PandocFilterError f (show e)
 
 -- | Data structure for command line options.
 data Opt = Opt
@@ -487,8 +526,10 @@ data Opt = Opt
     , optSelfContained         :: Bool    -- ^ Make HTML accessible offline
     , optHtmlQTags             :: Bool    -- ^ Use <q> tags in HTML
     , optHighlightStyle        :: Maybe String -- ^ Style to use for highlighted code
+    , optSyntaxDefinitions     :: [FilePath]  -- ^ xml syntax defs to load
     , optTopLevelDivision      :: TopLevelDivision -- ^ Type of the top-level divisions
     , optHTMLMathMethod        :: HTMLMathMethod -- ^ Method to print HTML math
+    , optAbbreviations         :: Maybe FilePath -- ^ Path to abbrevs file
     , optReferenceDoc          :: Maybe FilePath -- ^ Path of reference doc
     , optEpubMetadata          :: Maybe FilePath   -- ^ EPUB metadata
     , optEpubFonts             :: [FilePath] -- ^ EPUB fonts to embed
@@ -506,6 +547,7 @@ data Opt = Opt
     , optWrapText              :: WrapOption  -- ^ Options for wrapping text
     , optColumns               :: Int     -- ^ Line length in characters
     , optFilters               :: [FilePath] -- ^ Filters to apply
+    , optLuaFilters            :: [FilePath] -- ^ Lua filters to apply
     , optEmailObfuscation      :: ObfuscationMethod
     , optIdentifierPrefix      :: String
     , optIndentedCodeClasses   :: [String] -- ^ Default classes for indented code blocks
@@ -528,6 +570,8 @@ data Opt = Opt
     , optIncludeBeforeBody     :: [FilePath]       -- ^ Files to include before
     , optIncludeAfterBody      :: [FilePath]       -- ^ Files to include after body
     , optIncludeInHeader       :: [FilePath]       -- ^ Files to include in header
+    , optResourcePath          :: [FilePath] -- ^ Path to search for images etc
+    , optEol                   :: Maybe Newline    -- ^ Enforce line-endings
     }
 
 -- | Defaults for command-line options.
@@ -552,8 +596,10 @@ defaultOpts = Opt
     , optSelfContained         = False
     , optHtmlQTags             = False
     , optHighlightStyle        = Just "pygments"
+    , optSyntaxDefinitions     = []
     , optTopLevelDivision      = TopLevelDefault
     , optHTMLMathMethod        = PlainMath
+    , optAbbreviations         = Nothing
     , optReferenceDoc          = Nothing
     , optEpubMetadata          = Nothing
     , optEpubFonts             = []
@@ -571,6 +617,7 @@ defaultOpts = Opt
     , optWrapText              = WrapAuto
     , optColumns               = 72
     , optFilters               = []
+    , optLuaFilters            = []
     , optEmailObfuscation      = NoObfuscation
     , optIdentifierPrefix      = ""
     , optIndentedCodeClasses   = []
@@ -593,6 +640,8 @@ defaultOpts = Opt
     , optIncludeBeforeBody     = []
     , optIncludeAfterBody      = []
     , optIncludeInHeader       = []
+    , optResourcePath          = []
+    , optEol                   = Nothing
     }
 
 addMetadata :: (String, String) -> Pandoc -> Pandoc
@@ -678,23 +727,12 @@ defaultWriterName x =
     ".icml"     -> "icml"
     ".tei.xml"  -> "tei"
     ".tei"      -> "tei"
+    ".ms"       -> "ms"
+    ".roff"     -> "ms"
     ['.',y]     | y `elem` ['1'..'9'] -> "man"
     _           -> "html"
 
 -- Transformations of a Pandoc document post-parsing:
-
-extractMedia :: MonadIO m => MediaBag -> FilePath -> Pandoc -> m Pandoc
-extractMedia media dir d =
-  case [fp | (fp, _, _) <- mediaDirectory media] of
-        []  -> return d
-        fps -> do
-          extractMediaBag True dir media
-          return $ walk (adjustImagePath dir fps) d
-
-adjustImagePath :: FilePath -> [FilePath] -> Inline -> Inline
-adjustImagePath dir paths (Image attr lab (src, tit))
-   | src `elem` paths = Image attr lab (dir ++ "/" ++ src, tit)
-adjustImagePath _ _ x = x
 
 applyTransforms :: Monad m => [Transform] -> Pandoc -> m Pandoc
 applyTransforms transforms d = return $ foldr ($) d transforms
@@ -716,13 +754,19 @@ expandFilterPath mbDatadir fp = liftIO $ do
                     else return fp
                _ -> return fp
 
+applyLuaFilters :: MonadIO m
+                => Maybe FilePath -> [FilePath] -> [String] -> Pandoc -> m Pandoc
+applyLuaFilters mbDatadir filters args d = do
+  expandedFilters <- mapM (expandFilterPath mbDatadir) filters
+  foldrM ($) d $ map (flip runLuaFilter args) expandedFilters
+
 applyFilters :: MonadIO m
              => Maybe FilePath -> [FilePath] -> [String] -> Pandoc -> m Pandoc
 applyFilters mbDatadir filters args d = do
   expandedFilters <- mapM (expandFilterPath mbDatadir) filters
   foldrM ($) d $ map (flip externalFilter args) expandedFilters
 
-readSource :: MonadIO m => FilePath -> m String
+readSource :: FilePath -> PandocIO String
 readSource "-" = liftIO UTF8.getContents
 readSource src = case parseURI src of
                       Just u | uriScheme u `elem` ["http:","https:"] ->
@@ -731,8 +775,12 @@ readSource src = case parseURI src of
                                  liftIO $ UTF8.readFile (uriPath u)
                       _       -> liftIO $ UTF8.readFile src
 
-readURI :: MonadIO m => FilePath -> m String
-readURI src = liftIO $ (UTF8.toString . fst) <$> openURL src
+readURI :: FilePath -> PandocIO String
+readURI src = do
+  res <- liftIO $ openURL src
+  case res of
+       Left e -> throwError $ PandocHttpError src e
+       Right (contents, _) -> return $ UTF8.toString contents
 
 readFile' :: MonadIO m => FilePath -> m B.ByteString
 readFile' "-" = liftIO B.getContents
@@ -742,16 +790,24 @@ writeFnBinary :: MonadIO m => FilePath -> B.ByteString -> m ()
 writeFnBinary "-" = liftIO . B.putStr
 writeFnBinary f   = liftIO . B.writeFile (UTF8.encodePath f)
 
-writerFn :: MonadIO m => FilePath -> String -> m ()
-writerFn "-" = liftIO . UTF8.putStr
-writerFn f   = liftIO . UTF8.writeFile f
+writerFn :: MonadIO m => Newline -> FilePath -> String -> m ()
+writerFn eol "-" = liftIO . UTF8.putStrWith eol
+writerFn eol f   = liftIO . UTF8.writeFileWith eol f
 
 lookupHighlightStyle :: Maybe String -> IO (Maybe Style)
 lookupHighlightStyle Nothing = return Nothing
-lookupHighlightStyle (Just s) =
+lookupHighlightStyle (Just s)
+  | takeExtension s == ".theme" = -- attempt to load KDE theme
+    do contents <- B.readFile s
+       case parseTheme contents of
+            Left _    -> E.throwIO $ PandocOptionError $
+                           "Could not read highlighting theme " ++ s
+            Right sty -> return (Just sty)
+  | otherwise =
   case lookup (map toLower s) highlightingStyles of
        Just sty -> return (Just sty)
-       Nothing  -> err 68 $ "Unknown highlight-style " ++ s
+       Nothing  -> E.throwIO $ PandocOptionError $
+                      "Unknown highlight-style " ++ s
 
 -- | A list of functions, each transforming the options data structure
 --   in response to a command-line option.
@@ -772,7 +828,7 @@ options =
     , Option "o" ["output"]
                  (ReqArg
                   (\arg opt -> return opt { optOutputFile = arg })
-                  "FILENAME")
+                  "FILE")
                  "" -- "Name of output file"
 
     , Option "" ["data-dir"]
@@ -787,8 +843,8 @@ options =
                       case safeRead arg of
                            Just t | t > 0 && t < 6 ->
                                return opt{ optBaseHeaderLevel = t }
-                           _              -> err 19
-                                       "base-header-level must be 1-5")
+                           _              -> E.throwIO $ PandocOptionError
+                                               "base-header-level must be 1-5")
                   "NUMBER")
                  "" -- "Headers base level"
 
@@ -805,6 +861,12 @@ options =
                   "PROGRAM")
                  "" -- "External JSON filter"
 
+    , Option "" ["lua-filter"]
+                 (ReqArg
+                  (\arg opt -> return opt { optLuaFilters = arg : optLuaFilters opt })
+                  "SCRIPTPATH")
+                 "" -- "Lua filter"
+
     , Option "p" ["preserve-tabs"]
                  (NoArg
                   (\opt -> return opt { optPreserveTabs = True }))
@@ -815,8 +877,8 @@ options =
                   (\arg opt ->
                       case safeRead arg of
                            Just t | t > 0 -> return opt { optTabStop = t }
-                           _              -> err 31
-                                          "tab-stop must be a number greater than 0")
+                           _              -> E.throwIO $ PandocOptionError
+                                  "tab-stop must be a number greater than 0")
                   "NUMBER")
                  "" -- "Tab stop (default 4)"
 
@@ -827,7 +889,7 @@ options =
                             "accept" -> return AcceptChanges
                             "reject" -> return RejectChanges
                             "all"    -> return AllChanges
-                            _        -> err 6
+                            _        -> E.throwIO $ PandocOptionError
                                ("Unknown option for track-changes: " ++ arg)
                      return opt { optTrackChanges = action })
                   "accept|reject|all")
@@ -855,7 +917,7 @@ options =
                   (\arg opt ->
                      return opt{ optTemplate = Just arg,
                                  optStandalone = True })
-                  "FILENAME")
+                  "FILE")
                  "" -- "Use custom template"
 
     , Option "M" ["metadata"]
@@ -898,17 +960,30 @@ options =
                   (\arg opt ->
                     case safeRead arg of
                          Just t | t > 0 -> return opt { optDpi = t }
-                         _              -> err 31
+                         _              -> E.throwIO $ PandocOptionError
                                         "dpi must be a number greater than 0")
                   "NUMBER")
                  "" -- "Dpi (default 96)"
+
+    , Option "" ["eol"]
+                 (ReqArg
+                  (\arg opt ->
+                    case toLower <$> arg of
+                      "crlf" -> return opt { optEol = Just CRLF }
+                      "lf"   -> return opt { optEol = Just LF }
+                      -- mac-syntax (cr) is not supported in ghc-base.
+                      _      -> E.throwIO $ PandocOptionError
+                                "--eol must be one of crlf (Windows), lf (Unix)")
+                  "crlf|lf")
+                 "" -- "EOL (default OS-dependent)"
 
     , Option "" ["wrap"]
                  (ReqArg
                   (\arg opt ->
                     case safeRead ("Wrap" ++ uppercaseFirstLetter arg) of
                           Just o   -> return opt { optWrapText = o }
-                          Nothing  -> err 77 "--wrap must be auto, none, or preserve")
+                          Nothing  -> E.throwIO $ PandocOptionError
+                                     "--wrap must be auto, none, or preserve")
                  "auto|none|preserve")
                  "" -- "Option for wrapping text in output"
 
@@ -917,7 +992,7 @@ options =
                   (\arg opt ->
                       case safeRead arg of
                            Just t | t > 0 -> return opt { optColumns = t }
-                           _              -> err 33
+                           _              -> E.throwIO $ PandocOptionError
                                    "columns must be a number greater than 0")
                  "NUMBER")
                  "" -- "Length of line in characters"
@@ -933,7 +1008,7 @@ options =
                       case safeRead arg of
                            Just t | t >= 1 && t <= 6 ->
                                     return opt { optTOCDepth = t }
-                           _      -> err 57
+                           _      -> E.throwIO $ PandocOptionError
                                     "TOC level must be a number between 1 and 6")
                  "NUMBER")
                  "" -- "Number of levels to include in TOC"
@@ -949,12 +1024,19 @@ options =
                  "STYLE")
                  "" -- "Style for highlighted code"
 
+    , Option "" ["syntax-definition"]
+                (ReqArg
+                 (\arg opt -> return opt{ optSyntaxDefinitions = arg :
+                                             optSyntaxDefinitions opt })
+                 "FILE")
+                "" -- "Syntax definition (xml) file"
+
     , Option "H" ["include-in-header"]
                  (ReqArg
                   (\arg opt -> return opt{ optIncludeInHeader =
                                               arg : optIncludeInHeader opt,
                                             optStandalone = True })
-                  "FILENAME")
+                  "FILE")
                  "" -- "File to include at end of header (implies -s)"
 
     , Option "B" ["include-before-body"]
@@ -962,7 +1044,7 @@ options =
                   (\arg opt -> return opt{ optIncludeBeforeBody =
                                               arg : optIncludeBeforeBody opt,
                                            optStandalone = True })
-                  "FILENAME")
+                  "FILE")
                  "" -- "File to include before document body"
 
     , Option "A" ["include-after-body"]
@@ -970,8 +1052,16 @@ options =
                   (\arg opt -> return opt{ optIncludeAfterBody =
                                               arg : optIncludeAfterBody opt,
                                            optStandalone = True })
-                  "FILENAME")
+                  "FILE")
                  "" -- "File to include after document body"
+
+    , Option "" ["resource-path"]
+                (ReqArg
+                  (\arg opt -> return opt { optResourcePath =
+                                   splitSearchPath arg })
+                   "SEARCHPATH")
+                  "" -- "Paths to search for images and other resources"
+
 
     , Option "" ["self-contained"]
                  (NoArg
@@ -1002,7 +1092,7 @@ options =
                             "block"    -> return EndOfBlock
                             "section"  -> return EndOfSection
                             "document" -> return EndOfDocument
-                            _        -> err 6
+                            _        -> E.throwIO $ PandocOptionError
                                ("Unknown option for reference-location: " ++ arg)
                      return opt { optReferenceLocation = action })
                   "block|section|document")
@@ -1019,8 +1109,9 @@ options =
                       let tldName = "TopLevel" ++ uppercaseFirstLetter arg
                       case safeRead tldName of
                         Just tlDiv -> return opt { optTopLevelDivision = tlDiv }
-                        _       -> err 76 ("Top-level division must be " ++
-                                           "section,  chapter, part, or default"))
+                        _       -> E.throwIO $ PandocOptionError
+                                     ("Top-level division must be " ++
+                                      "section,  chapter, part, or default"))
                    "section|chapter|part")
                  "" -- "Use top-level division type in LaTeX, ConTeXt, DocBook"
 
@@ -1035,7 +1126,8 @@ options =
                       case safeRead ('[':arg ++ "]") of
                            Just ns -> return opt { optNumberOffset = ns,
                                                    optNumberSections = True }
-                           _      -> err 57 "could not parse number-offset")
+                           _      -> E.throwIO $ PandocOptionError
+                                       "could not parse number-offset")
                  "NUMBERS")
                  "" -- "Starting number for sections, subsections, etc."
 
@@ -1055,7 +1147,7 @@ options =
                       case safeRead arg of
                            Just t | t >= 1 && t <= 6 ->
                                     return opt { optSlideLevel = Just t }
-                           _      -> err 39
+                           _      -> E.throwIO $ PandocOptionError
                                     "slide level must be a number between 1 and 6")
                  "NUMBER")
                  "" -- "Force header level for slides"
@@ -1078,7 +1170,7 @@ options =
                             "references" -> return ReferenceObfuscation
                             "javascript" -> return JavascriptObfuscation
                             "none"       -> return NoObfuscation
-                            _            -> err 6
+                            _            -> E.throwIO $ PandocOptionError
                                ("Unknown obfuscation method: " ++ arg)
                      return opt { optEmailObfuscation = method })
                   "none|javascript|references")
@@ -1110,7 +1202,7 @@ options =
                  (ReqArg
                   (\arg opt ->
                     return opt { optReferenceDoc = Just arg })
-                  "FILENAME")
+                  "FILE")
                  "" -- "Path of custom reference doc"
 
     , Option "" ["epub-cover-image"]
@@ -1118,13 +1210,13 @@ options =
                   (\arg opt ->
                      return opt { optVariables =
                                  ("epub-cover-image", arg) : optVariables opt })
-                  "FILENAME")
+                  "FILE")
                  "" -- "Path of epub cover image"
 
     , Option "" ["epub-metadata"]
                  (ReqArg
                   (\arg opt -> return opt { optEpubMetadata = Just arg })
-                  "FILENAME")
+                  "FILE")
                  "" -- "Path of epub metadata file"
 
     , Option "" ["epub-embed-font"]
@@ -1140,7 +1232,7 @@ options =
                       case safeRead arg of
                            Just t | t >= 1 && t <= 6 ->
                                     return opt { optEpubChapterLevel = t }
-                           _      -> err 59
+                           _      -> E.throwIO $ PandocOptionError
                                     "chapter level must be a number between 1 and 6")
                  "NUMBER")
                  "" -- "Header level at which to split chapters in EPUB"
@@ -1151,7 +1243,7 @@ options =
                      let b = takeBaseName arg
                      if b `elem` ["pdflatex", "lualatex", "xelatex"]
                         then return opt { optLaTeXEngine = arg }
-                        else err 45 "latex-engine must be pdflatex, lualatex, or xelatex.")
+                        else E.throwIO $ PandocOptionError "latex-engine must be pdflatex, lualatex, or xelatex.")
                   "PROGRAM")
                  "" -- "Name of latex program to use in generating PDF"
 
@@ -1236,7 +1328,7 @@ options =
     , Option "" ["mathjax"]
                  (OptArg
                   (\arg opt -> do
-                      let url' = fromMaybe "https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS_CHTML-full" arg
+                      let url' = fromMaybe "https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.0/MathJax.js?config=TeX-AMS_CHTML-full" arg
                       return opt { optHTMLMathMethod = MathJax url'})
                   "URL")
                  "" -- "Use MathJax for HTML math"
@@ -1260,6 +1352,12 @@ options =
                  (NoArg
                   (\opt -> return opt { optHTMLMathMethod = GladTeX }))
                  "" -- "Use gladtex for HTML math"
+
+    , Option "" ["abbreviations"]
+                (ReqArg
+                 (\arg opt -> return opt { optAbbreviations = Just arg })
+                "FILE")
+                "" -- "Specify file for custom abbreviations"
 
     , Option "" ["trace"]
                  (NoArg

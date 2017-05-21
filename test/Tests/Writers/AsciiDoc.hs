@@ -1,6 +1,6 @@
 module Tests.Writers.AsciiDoc (tests) where
 
-import Test.Framework
+import Test.Tasty
 import Tests.Helpers
 import Text.Pandoc
 import Text.Pandoc.Arbitrary ()
@@ -9,7 +9,7 @@ import Text.Pandoc.Builder
 asciidoc :: (ToPandoc a) => a -> String
 asciidoc = purely (writeAsciiDoc def{ writerWrapText = WrapNone }) . toPandoc
 
-tests :: [Test]
+tests :: [TestTree]
 tests = [ testGroup "emphasis"
           [ test asciidoc "emph word before" $
                para (text "foo" <> emph (text "bar")) =?>

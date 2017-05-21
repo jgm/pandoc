@@ -1,5 +1,5 @@
 {-
-Copyright (C) 2008-2015 John MacFarlane <jgm@berkeley.edu>
+Copyright (C) 2008-2017 John MacFarlane <jgm@berkeley.edu>
 
 This program is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -18,7 +18,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 {- |
    Module      : Text.Pandoc.Writers.MediaWiki
-   Copyright   : Copyright (C) 2008-2015 John MacFarlane
+   Copyright   : Copyright (C) 2008-2017 John MacFarlane
    License     : GNU GPL, version 2 or above
 
    Maintainer  : John MacFarlane <jgm@berkeley.edu>
@@ -35,7 +35,8 @@ import Control.Monad.State
 import Data.List (intercalate)
 import qualified Data.Set as Set
 import Network.URI (isURI)
-import Text.Pandoc.Class (PandocMonad)
+import Text.Pandoc.Class (PandocMonad, report)
+import Text.Pandoc.Logging
 import Text.Pandoc.Definition
 import Text.Pandoc.ImageSize
 import Text.Pandoc.Options
@@ -56,17 +57,17 @@ data WriterReader = WriterReader {
   , useTags   :: Bool          -- True if we should use HTML tags because we're in a complex list
   }
 
-type MediaWikiWriter = ReaderT WriterReader (State WriterState)
+type MediaWikiWriter m = ReaderT WriterReader (StateT WriterState m)
 
 -- | Convert Pandoc to MediaWiki.
 writeMediaWiki :: PandocMonad m => WriterOptions -> Pandoc -> m String
-writeMediaWiki opts document = return $
+writeMediaWiki opts document =
   let initialState = WriterState { stNotes = False, stOptions = opts }
       env = WriterReader { options = opts, listLevel = [], useTags = False }
-  in  evalState (runReaderT (pandocToMediaWiki document) env) initialState
+  in  evalStateT (runReaderT (pandocToMediaWiki document) env) initialState
 
 -- | Return MediaWiki representation of document.
-pandocToMediaWiki :: Pandoc -> MediaWikiWriter String
+pandocToMediaWiki :: PandocMonad m => Pandoc -> MediaWikiWriter m String
 pandocToMediaWiki (Pandoc meta blocks) = do
   opts <- asks options
   metadata <- metaToJSON opts
@@ -90,8 +91,9 @@ escapeString :: String -> String
 escapeString =  escapeStringForXML
 
 -- | Convert Pandoc block element to MediaWiki.
-blockToMediaWiki :: Block         -- ^ Block element
-                 -> MediaWikiWriter String
+blockToMediaWiki :: PandocMonad m
+                 => Block         -- ^ Block element
+                 -> MediaWikiWriter m String
 
 blockToMediaWiki Null = return ""
 
@@ -125,10 +127,10 @@ blockToMediaWiki (Para inlines) = do
 blockToMediaWiki (LineBlock lns) =
   blockToMediaWiki $ linesToPara lns
 
-blockToMediaWiki (RawBlock f str)
+blockToMediaWiki b@(RawBlock f str)
   | f == Format "mediawiki" = return str
   | f == Format "html"      = return str
-  | otherwise               = return ""
+  | otherwise               = "" <$ report (BlockNotRendered b)
 
 blockToMediaWiki HorizontalRule = return "\n-----\n"
 
@@ -212,7 +214,7 @@ listAttribsToString (startnum, numstyle, _) =
           else "")
 
 -- | Convert bullet or ordered list item (list of blocks) to MediaWiki.
-listItemToMediaWiki :: [Block] -> MediaWikiWriter String
+listItemToMediaWiki :: PandocMonad m => [Block] -> MediaWikiWriter m String
 listItemToMediaWiki items = do
   contents <- blockListToMediaWiki items
   tags <- asks useTags
@@ -223,8 +225,9 @@ listItemToMediaWiki items = do
        return $ marker ++ " " ++ contents
 
 -- | Convert definition list item (label, list of blocks) to MediaWiki.
-definitionListItemToMediaWiki :: ([Inline],[[Block]])
-                              -> MediaWikiWriter String
+definitionListItemToMediaWiki :: PandocMonad m
+                              => ([Inline],[[Block]])
+                              -> MediaWikiWriter m String
 definitionListItemToMediaWiki (label, items) = do
   labelText <- inlineListToMediaWiki label
   contents <- mapM blockListToMediaWiki items
@@ -278,20 +281,22 @@ vcat = intercalate "\n"
 
 -- Auxiliary functions for tables:
 
-tableRowToMediaWiki :: Bool
+tableRowToMediaWiki :: PandocMonad m
+                    => Bool
                     -> [Alignment]
                     -> [Double]
                     -> (Int, [[Block]])
-                    -> MediaWikiWriter String
+                    -> MediaWikiWriter m String
 tableRowToMediaWiki headless alignments widths (rownum, cells) = do
   cells' <- mapM (tableCellToMediaWiki headless rownum)
           $ zip3 alignments widths cells
   return $ unlines cells'
 
-tableCellToMediaWiki :: Bool
+tableCellToMediaWiki :: PandocMonad m
+                     => Bool
                      -> Int
                      -> (Alignment, Double, [Block])
-                     -> MediaWikiWriter String
+                     -> MediaWikiWriter m String
 tableCellToMediaWiki headless rownum (alignment, width, bs) = do
   contents <- blockListToMediaWiki bs
   let marker = if rownum == 1 && not headless then "!" else "|"
@@ -316,7 +321,7 @@ alignmentToString alignment = case alignment of
                                  AlignCenter  -> "center"
                                  AlignDefault -> "left"
 
-imageToMediaWiki :: Attr -> MediaWikiWriter String
+imageToMediaWiki :: PandocMonad m => Attr -> MediaWikiWriter m String
 imageToMediaWiki attr = do
   opts <- gets stOptions
   let (_, cls, _) = attr
@@ -334,18 +339,19 @@ imageToMediaWiki attr = do
   return $ dims ++ classes
 
 -- | Convert list of Pandoc block elements to MediaWiki.
-blockListToMediaWiki :: [Block]       -- ^ List of block elements
-                     -> MediaWikiWriter String
+blockListToMediaWiki :: PandocMonad m
+                     => [Block]       -- ^ List of block elements
+                     -> MediaWikiWriter m String
 blockListToMediaWiki blocks =
   fmap vcat $ mapM blockToMediaWiki blocks
 
 -- | Convert list of Pandoc inline elements to MediaWiki.
-inlineListToMediaWiki :: [Inline] -> MediaWikiWriter String
+inlineListToMediaWiki :: PandocMonad m => [Inline] -> MediaWikiWriter m String
 inlineListToMediaWiki lst =
   fmap concat $ mapM inlineToMediaWiki lst
 
 -- | Convert Pandoc inline element to MediaWiki.
-inlineToMediaWiki :: Inline -> MediaWikiWriter String
+inlineToMediaWiki :: PandocMonad m => Inline -> MediaWikiWriter m String
 
 inlineToMediaWiki (Span attrs ils) = do
   contents <- inlineListToMediaWiki ils
@@ -394,19 +400,22 @@ inlineToMediaWiki (Math mt str) = return $
   "\">" ++ str ++ "</math>"
   -- note:  str should NOT be escaped
 
-inlineToMediaWiki (RawInline f str)
+inlineToMediaWiki il@(RawInline f str)
   | f == Format "mediawiki" = return str
   | f == Format "html"      = return str
-  | otherwise               = return ""
+  | otherwise               = "" <$ report (InlineNotRendered il)
 
 inlineToMediaWiki LineBreak = return "<br />\n"
 
 inlineToMediaWiki SoftBreak = do
   wrapText <- gets (writerWrapText . stOptions)
+  listlevel <- asks listLevel
   case wrapText of
        WrapAuto     -> return " "
        WrapNone     -> return " "
-       WrapPreserve -> return "\n"
+       WrapPreserve -> if null listlevel
+                          then return "\n"
+                          else return " "
 
 inlineToMediaWiki Space = return " "
 

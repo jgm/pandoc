@@ -3,7 +3,7 @@
 {-# LANGUAGE PatternGuards     #-}
 
 {-
-Copyright (C) 2014-2016 Jesse Rosenthal <jrosenthal@jhu.edu>
+Copyright (C) 2014-2017 Jesse Rosenthal <jrosenthal@jhu.edu>
 
 This program is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -22,7 +22,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 {- |
    Module      : Text.Pandoc.Readers.Docx
-   Copyright   : Copyright (C) 2014-2016 Jesse Rosenthal
+   Copyright   : Copyright (C) 2014-2017 Jesse Rosenthal
    License     : GNU GPL, version 2 or above
 
    Maintainer  : Jesse Rosenthal <jrosenthal@jhu.edu>
@@ -71,8 +71,7 @@ implemented, [-] means partially implemented):
 -}
 
 module Text.Pandoc.Readers.Docx
-       ( readDocxWithWarnings
-       , readDocx
+       ( readDocx
        ) where
 
 import Codec.Archive.Zip
@@ -116,13 +115,6 @@ readDocx opts bytes
       return $ Pandoc meta blks
 readDocx _ _ =
   throwError $ PandocSomeError "couldn't parse docx file"
-
--- TODO remove this for 2.0:
-readDocxWithWarnings :: PandocMonad m
-         => ReaderOptions
-         -> B.ByteString
-         -> m Pandoc
-readDocxWithWarnings = readDocx
 
 data DState = DState { docxAnchorMap :: M.Map String String
                      , docxMediaBag  :: MediaBag

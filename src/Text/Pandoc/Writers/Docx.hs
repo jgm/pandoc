@@ -4,7 +4,7 @@
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE ViewPatterns        #-}
 {-
-Copyright (C) 2012-2015 John MacFarlane <jgm@berkeley.edu>
+Copyright (C) 2012-2017 John MacFarlane <jgm@berkeley.edu>
 
 This program is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -23,7 +23,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 {- |
    Module      : Text.Pandoc.Writers.Docx
-   Copyright   : Copyright (C) 2012-2015 John MacFarlane
+   Copyright   : Copyright (C) 2012-2017 John MacFarlane
    License     : GNU GPL, version 2 or above
 
    Maintainer  : John MacFarlane <jgm@berkeley.edu>
@@ -55,7 +55,6 @@ import Text.Pandoc.Class (PandocMonad, report)
 import qualified Text.Pandoc.Class as P
 import Text.Pandoc.Compat.Time
 import Text.Pandoc.Definition
-import Text.Pandoc.Error
 import Text.Pandoc.Generic
 import Text.Pandoc.Highlighting (highlight)
 import Text.Pandoc.ImageSize
@@ -72,6 +71,7 @@ import Text.Pandoc.Writers.Shared (fixDisplayMath)
 import Text.Printf (printf)
 import Text.TeXMath
 import Text.XML.Light as XML
+import Text.XML.Light.Cursor as XMLC
 
 data ListMarker = NoMarker
                 | BulletMarker
@@ -230,10 +230,11 @@ writeDocx opts doc@(Pandoc meta _) = do
   username <- P.lookupEnv "USERNAME"
   utctime <- P.getCurrentTime
   distArchive <- (toArchive . BL.fromStrict) <$>
-                      P.readDataFile datadir "reference.docx"
+                      P.readDataFile Nothing "reference.docx"
   refArchive <- case writerReferenceDoc opts of
                      Just f  -> toArchive <$> P.readFileLazy f
-                     Nothing -> return distArchive
+                     Nothing -> (toArchive . BL.fromStrict) <$>
+                        P.readDataFile datadir "reference.docx"
 
   parsedDoc <- parseXml refArchive distArchive "word/document.xml"
   let wname f qn = qPrefix qn == Just "w" && f (qName qn)
@@ -256,8 +257,30 @@ writeDocx opts doc@(Pandoc meta _) = do
                        )
 
   -- styles
+  let lang = case lookupMeta "lang" meta of
+               Just (MetaInlines [Str s]) -> Just s
+               Just (MetaString s)        -> Just s
+               _                          -> Nothing
+  let addLang :: Element -> Element
+      addLang e = case lang >>= \l -> (return . XMLC.toTree . go l . XMLC.fromElement) e of
+                    Just (Elem e') -> e'
+                    _              -> e -- return original
+        where go :: String -> Cursor -> Cursor
+              go l cursor = case XMLC.findRec (isLangElt . current) cursor of
+                              Nothing -> cursor
+                              Just t  -> XMLC.modifyContent (setval l) t
+              setval :: String -> Content -> Content
+              setval l (Elem e') = Elem $ e'{ elAttribs = map (setvalattr l) $
+                                               elAttribs e' }
+              setval _ x         = x
+              setvalattr :: String -> XML.Attr -> XML.Attr
+              setvalattr l (XML.Attr qn@(QName "val" _ _) _) = XML.Attr qn l
+              setvalattr _ x = x
+              isLangElt (Elem e') = qName (elName e') == "lang"
+              isLangElt _ = False
+
   let stylepath = "word/styles.xml"
-  styledoc <- parseXml refArchive distArchive stylepath
+  styledoc <- addLang <$> parseXml refArchive distArchive stylepath
 
   -- parse styledoc for heading styles
   let styleMaps = getStyleMaps styledoc
@@ -852,7 +875,7 @@ blockToOpenXML' opts (Para [Image attr alt (src,'f':'i':'g':':':tit)]) = do
   let prop = pCustomStyle $
         if null alt
         then "Figure"
-        else "FigureWithCaption"
+        else "CaptionedFigure"
   paraProps <- local (\env -> env { envParaProperties = prop : envParaProperties env }) (getParaProps False)
   contents <- inlinesToOpenXML opts [Image attr alt (src,tit)]
   captionNode <- withParaProp (pCustomStyle "ImageCaption")
@@ -1156,9 +1179,14 @@ inlineToOpenXML' opts (Code attrs str) = do
                                  [ rCustomStyle (show toktype) ]
                                , mknode "w:t" [("xml:space","preserve")] (T.unpack tok) ]
   withTextProp (rCustomStyle "VerbatimChar")
-    $ case writerHighlightStyle opts >> highlight formatOpenXML attrs str of
-           Just h  -> return h
-           Nothing -> unhighlighted
+    $ if isNothing (writerHighlightStyle opts)
+          then unhighlighted
+          else case highlight (writerSyntaxMap opts)
+                      formatOpenXML attrs str of
+                    Right h  -> return h
+                    Left msg -> do
+                      unless (null msg) $ report $ CouldNotHighlight msg
+                      unhighlighted
 inlineToOpenXML' opts (Note bs) = do
   notes <- gets stFootnotes
   notenum <- (lift . lift) getUniqueId
@@ -1274,12 +1302,10 @@ inlineToOpenXML' opts (Image attr alt (src, title)) = do
                      M.insert src (ident, imgpath, mbMimeType, imgElt, img)
                              $ stImages st }
                  return [imgElt])
-        (\e -> do case e of
-                      PandocIOError _ e' ->
-                        report $ CouldNotFetchResource src (show e')
-                      e' -> report $ CouldNotFetchResource src (show e')
-                  -- emit alt text
-                  inlinesToOpenXML opts alt)
+        (\e -> do
+           report $ CouldNotFetchResource src (show e)
+           -- emit alt text
+           inlinesToOpenXML opts alt)
 
 br :: Element
 br = breakElement "textWrapping"

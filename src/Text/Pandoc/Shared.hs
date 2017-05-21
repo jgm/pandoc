@@ -2,7 +2,7 @@
     FlexibleContexts, ScopedTypeVariables, PatternGuards,
     ViewPatterns #-}
 {-
-Copyright (C) 2006-2016 John MacFarlane <jgm@berkeley.edu>
+Copyright (C) 2006-2017 John MacFarlane <jgm@berkeley.edu>
 
 This program is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -21,7 +21,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 {- |
    Module      : Text.Pandoc.Shared
-   Copyright   : Copyright (C) 2006-2016 John MacFarlane
+   Copyright   : Copyright (C) 2006-2017 John MacFarlane
    License     : GNU GPL, version 2 or above
 
    Maintainer  : John MacFarlane <jgm@berkeley.edu>
@@ -82,7 +82,6 @@ module Text.Pandoc.Shared (
                      collapseFilePath,
                      filteredFilesFromArchive,
                      -- * Error handling
-                     err,
                      mapLeft,
                      -- * for squashing blocks
                      blocksToInlines,
@@ -99,7 +98,6 @@ import Text.Pandoc.Walk
 import Text.Pandoc.Builder (Inlines, Blocks, ToMetaValue(..))
 import qualified Text.Pandoc.Builder as B
 import qualified Text.Pandoc.UTF8 as UTF8
-import System.Exit (exitWith, ExitCode(..))
 import Data.Char ( toLower, isLower, isUpper, isAlpha,
                    isLetter, isDigit, isSpace )
 import Data.List ( find, stripPrefix, intercalate )
@@ -112,16 +110,15 @@ import System.Directory
 import System.FilePath (splitDirectories, isPathSeparator)
 import qualified System.FilePath.Posix as Posix
 import Text.Pandoc.MIME (MimeType)
+import Text.Pandoc.Error (PandocError(..))
 import System.FilePath ( (</>) )
 import Data.Generics (Typeable, Data)
 import qualified Control.Monad.State as S
-import Control.Monad.Trans (MonadIO (..))
 import qualified Control.Exception as E
 import Control.Monad (msum, unless, MonadPlus(..))
 import Text.Pandoc.Pretty (charWidth)
 import Text.Pandoc.Compat.Time
 import Data.Time.Clock.POSIX
-import System.IO (stderr)
 import System.IO.Error
 import System.IO.Temp
 import Text.HTML.TagSoup (renderTagsOptions, RenderOptions(..), Tag(..),
@@ -143,9 +140,9 @@ import Text.Pandoc.Data (dataFiles)
 #else
 import Paths_pandoc (getDataFileName)
 #endif
-#ifdef HTTP_CLIENT
 import Network.HTTP.Client (httpLbs, responseBody, responseHeaders,
-                            Request(port,host,requestHeaders))
+                            Request(port,host,requestHeaders),
+                            HttpException)
 import Network.HTTP.Client (parseRequest)
 import Network.HTTP.Client (newManager)
 import Network.HTTP.Client.Internal (addProxy)
@@ -153,12 +150,6 @@ import Network.HTTP.Client.TLS (tlsManagerSettings)
 import System.Environment (getEnv)
 import Network.HTTP.Types.Header ( hContentType, hUserAgent)
 import Network (withSocketsDo)
-#else
-import Network.URI (parseURI)
-import Network.HTTP (findHeader, rspBody,
-                     RequestMethod(..), HeaderName(..), mkRequest)
-import Network.Browser (browse, setAllowRedirects, setOutHandler, request)
-#endif
 
 -- | Version number of pandoc library.
 pandocVersion :: String
@@ -677,7 +668,7 @@ readDefaultDataFile "reference.odt" =
 readDefaultDataFile fname =
 #ifdef EMBED_DATA_FILES
   case lookup (makeCanonical fname) dataFiles of
-    Nothing       -> err 97 $ "Could not find data file " ++ fname
+    Nothing       -> E.throwIO $ PandocCouldNotFindDataFileError fname
     Just contents -> return contents
   where makeCanonical = Posix.joinPath . transformPathParts . splitDirectories
         transformPathParts = reverse . foldl go []
@@ -693,7 +684,7 @@ checkExistence fn = do
   exists <- doesFileExist fn
   if exists
      then return fn
-     else err 97 ("Could not find data file " ++ fn)
+     else E.throwIO $ PandocCouldNotFindDataFileError fn
 #endif
 
 -- | Read file from specified user data directory or, if not found there, from
@@ -712,14 +703,13 @@ readDataFileUTF8 userDir fname =
   UTF8.toString `fmap` readDataFile userDir fname
 
 -- | Read from a URL and return raw data and maybe mime type.
-openURL :: String -> IO (BS.ByteString, Maybe MimeType)
+openURL :: String -> IO (Either HttpException (BS.ByteString, Maybe MimeType))
 openURL u
   | Just u'' <- stripPrefix "data:" u =
     let mime     = takeWhile (/=',') u''
         contents = B8.pack $ unEscapeString $ drop 1 $ dropWhile (/=',') u''
-    in  return (decodeLenient contents, Just mime)
-#ifdef HTTP_CLIENT
-  | otherwise = withSocketsDo $ do
+    in  return $ Right (decodeLenient contents, Just mime)
+  | otherwise = E.try $ withSocketsDo $ do
      let parseReq = parseRequest
      (proxy :: Either IOError String) <-
         tryIOError $ getEnv "http_proxy"
@@ -741,29 +731,10 @@ openURL u
      resp <- newManager tlsManagerSettings >>= httpLbs req''
      return (BS.concat $ toChunks $ responseBody resp,
              UTF8.toString `fmap` lookup hContentType (responseHeaders resp))
-#else
-  | otherwise = getBodyAndMimeType `fmap` browse
-              (do liftIO $ UTF8.hPutStrLn stderr $ "Fetching " ++ u ++ "..."
-                  setOutHandler $ const (return ())
-                  setAllowRedirects True
-                  request (getRequest' u'))
-  where getBodyAndMimeType (_, r) = (rspBody r, findHeader HdrContentType r)
-        getRequest' uriString = case parseURI uriString of
-                                   Nothing -> error ("Not a valid URL: " ++
-                                                        uriString)
-                                   Just v  -> mkRequest GET v
-        u' = escapeURIString (/= '|') u  -- pipes are rejected by Network.URI
-#endif
 
 --
 -- Error reporting
 --
-
-err :: MonadIO m => Int -> String -> m a
-err exitCode msg = liftIO $ do
-  UTF8.hPutStrLn stderr msg
-  exitWith $ ExitFailure exitCode
-  return undefined
 
 mapLeft :: (a -> b) -> Either a c -> Either b c
 mapLeft f (Left x) = Left (f x)

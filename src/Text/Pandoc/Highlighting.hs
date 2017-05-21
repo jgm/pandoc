@@ -1,5 +1,5 @@
 {-
-Copyright (C) 2008-2016 John MacFarlane <jgm@berkeley.edu>
+Copyright (C) 2008-2017 John MacFarlane <jgm@berkeley.edu>
 
 This program is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -18,7 +18,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 {- |
    Module      : Text.Pandoc.Highlighting
-   Copyright   : Copyright (C) 2008-2016 John MacFarlane
+   Copyright   : Copyright (C) 2008-2017 John MacFarlane
    License     : GNU GPL, version 2 or above
 
    Maintainer  : John MacFarlane <jgm@berkeley.edu>
@@ -76,34 +76,34 @@ languagesByExtension :: String -> [String]
 languagesByExtension ext =
   [T.unpack (T.toLower (sName s)) | s <- syntaxesByExtension defaultSyntaxMap ext]
 
-highlight :: (FormatOptions -> [SourceLine] -> a) -- ^ Formatter
+highlight :: SyntaxMap
+          -> (FormatOptions -> [SourceLine] -> a) -- ^ Formatter
           -> Attr   -- ^ Attributes of the CodeBlock
           -> String -- ^ Raw contents of the CodeBlock
-          -> Maybe a -- ^ Maybe the formatted result
-highlight formatter (_, classes, keyvals) rawCode =
+          -> Either String a
+highlight syntaxmap formatter (_, classes, keyvals) rawCode =
   let firstNum = fromMaybe 1 (safeRead (fromMaybe "1" $ lookup "startFrom" keyvals))
       fmtOpts = defaultFormatOpts{
                   startNumber = firstNum,
                   numberLines = any (`elem`
                         ["number","numberLines", "number-lines"]) classes }
-      tokenizeOpts = TokenizerConfig{ syntaxMap = defaultSyntaxMap
+      tokenizeOpts = TokenizerConfig{ syntaxMap = syntaxmap
                                     , traceOutput = False }
       classes' = map T.pack classes
       rawCode' = T.pack rawCode
-  in  case msum (map (\l -> lookupSyntax l defaultSyntaxMap) classes') of
+  in  case msum (map (\l -> lookupSyntax l syntaxmap) classes') of
             Nothing
-              | numberLines fmtOpts -> Just
+              | numberLines fmtOpts -> Right
                               $ formatter fmtOpts{ codeClasses = [],
                                                    containerClasses = classes' }
-                              $ map (\ln -> [(NormalTok, ln)]) $ T.lines rawCode'
-              | otherwise  -> Nothing
+                              $ map (\ln -> [(NormalTok, ln)])
+                              $ T.lines rawCode'
+              | otherwise  -> Left ""
             Just syntax  ->
-              case tokenize tokenizeOpts syntax rawCode' of
-                   Right slines -> Just $
-                         formatter fmtOpts{ codeClasses =
-                                               [T.toLower (sShortname syntax)],
-                                            containerClasses = classes' } slines
-                   Left _ -> Nothing
+              (formatter fmtOpts{ codeClasses =
+                                   [T.toLower (sShortname syntax)],
+                                  containerClasses = classes' }) <$>
+                tokenize tokenizeOpts syntax rawCode'
 
 -- Functions for correlating latex listings package's language names
 -- with skylighting language names:

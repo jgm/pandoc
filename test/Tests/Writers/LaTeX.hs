@@ -1,7 +1,7 @@
 {-# LANGUAGE OverloadedStrings #-}
 module Tests.Writers.LaTeX (tests) where
 
-import Test.Framework
+import Test.Tasty
 import Tests.Helpers
 import Text.Pandoc
 import Text.Pandoc.Arbitrary ()
@@ -33,10 +33,10 @@ which is in turn shorthand for
 
 infix 4 =:
 (=:) :: (ToString a, ToPandoc a)
-     => String -> (a, String) -> Test
+     => String -> (a, String) -> TestTree
 (=:) = test latex
 
-tests :: [Test]
+tests :: [TestTree]
 tests = [ testGroup "code blocks"
           [ "in footnotes" =: note (para "hi" <> codeBlock "hi") =?>
             "\\footnote{hi\n\n\\begin{Verbatim}\nhi\n\\end{Verbatim}\n}"

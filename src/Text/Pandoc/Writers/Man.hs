@@ -1,5 +1,5 @@
 {-
-Copyright (C) 2007-2015 John MacFarlane <jgm@berkeley.edu>
+Copyright (C) 2007-2017 John MacFarlane <jgm@berkeley.edu>
 
 This program is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -18,7 +18,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 {- |
    Module      : Text.Pandoc.Writers.Man
-   Copyright   : Copyright (C) 2007-2015 John MacFarlane
+   Copyright   : Copyright (C) 2007-2017 John MacFarlane
    License     : GNU GPL, version 2 or above
 
    Maintainer  : John MacFarlane <jgm@berkeley.edu>
@@ -31,7 +31,8 @@ Conversion of 'Pandoc' documents to groff man page format.
 module Text.Pandoc.Writers.Man ( writeMan) where
 import Control.Monad.Except (throwError)
 import Control.Monad.State
-import Data.List (intercalate, intersperse, stripPrefix)
+import Data.List (intercalate, intersperse, stripPrefix, sort)
+import qualified Data.Map as Map
 import Data.Maybe (fromMaybe)
 import Text.Pandoc.Builder (deleteMeta)
 import Text.Pandoc.Class (PandocMonad, report)
@@ -47,12 +48,23 @@ import Text.Pandoc.Writers.Shared
 import Text.Printf (printf)
 
 type Notes = [[Block]]
-data WriterState = WriterState { stNotes     :: Notes
-                               , stHasTables :: Bool }
+data WriterState = WriterState { stNotes        :: Notes
+                               , stFontFeatures :: Map.Map Char Bool
+                               , stHasTables    :: Bool }
+
+defaultWriterState :: WriterState
+defaultWriterState = WriterState { stNotes = []
+                                 , stFontFeatures  = Map.fromList [
+                                                       ('I',False)
+                                                     , ('B',False)
+                                                     , ('C',False)
+                                                     ]
+                                 , stHasTables  = False }
 
 -- | Convert Pandoc to Man.
 writeMan :: PandocMonad m => WriterOptions -> Pandoc -> m String
-writeMan opts document = evalStateT (pandocToMan opts document) (WriterState [] False)
+writeMan opts document =
+  evalStateT (pandocToMan opts document) defaultWriterState
 
 -- | Return groff man representation of document.
 pandocToMan :: PandocMonad m => WriterOptions -> Pandoc -> StateT WriterState m String
@@ -316,11 +328,9 @@ inlineListToMan opts lst = mapM (inlineToMan opts) lst >>= (return . hcat)
 inlineToMan :: PandocMonad m => WriterOptions -> Inline -> StateT WriterState m Doc
 inlineToMan opts (Span _ ils) = inlineListToMan opts ils
 inlineToMan opts (Emph lst) = do
-  contents <- inlineListToMan opts lst
-  return $ text "\\f[I]" <> contents <> text "\\f[]"
+  withFontFeature 'I' (inlineListToMan opts lst)
 inlineToMan opts (Strong lst) = do
-  contents <- inlineListToMan opts lst
-  return $ text "\\f[B]" <> contents <> text "\\f[]"
+  withFontFeature 'B' (inlineListToMan opts lst)
 inlineToMan opts (Strikeout lst) = do
   contents <- inlineListToMan opts lst
   return $ text "[STRIKEOUT:" <> contents <> char ']'
@@ -340,7 +350,7 @@ inlineToMan opts (Quoted DoubleQuote lst) = do
 inlineToMan opts (Cite _ lst) =
   inlineListToMan opts lst
 inlineToMan _ (Code _ str) =
-  return $ text $ "\\f[C]" ++ escapeCode str ++ "\\f[]"
+  withFontFeature 'C' (return (text $ escapeCode str))
 inlineToMan _ (Str str@('.':_)) =
   return $ afterBreak "\\&" <> text (escapeString str)
 inlineToMan _ (Str str) = return $ text $ escapeString str
@@ -379,3 +389,21 @@ inlineToMan _ (Note contents) = do
   notes <- gets stNotes
   let ref = show $ (length notes)
   return $ char '[' <> text ref <> char ']'
+
+fontChange :: PandocMonad m => StateT WriterState m Doc
+fontChange = do
+  features <- gets stFontFeatures
+  let filling = sort [c | (c,True) <- Map.toList features]
+  return $ text $ "\\f[" ++ filling ++ "]"
+
+withFontFeature :: PandocMonad m
+                => Char
+                -> StateT WriterState m Doc
+                -> StateT WriterState m Doc
+withFontFeature c action = do
+  modify $ \st -> st{ stFontFeatures = Map.adjust not c $ stFontFeatures st }
+  begin <- fontChange
+  d <- action
+  modify $ \st -> st{ stFontFeatures = Map.adjust not c $ stFontFeatures st }
+  end <- fontChange
+  return $ begin <> d <> end

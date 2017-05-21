@@ -6,629 +6,629 @@
   <office:automatic-styles>
     <text:list-style style:name="L1">
       <text:list-level-style-number text:level="1" text:style-name="Numbering_20_Symbols" style:num-format="1" text:start-value="1" style:num-suffix=".">
-        <style:list-level-properties text:space-before="0.25in" text:min-label-width="0.25in" />
+        <style:list-level-properties text:space-before="0.0in" text:min-label-width="0.4in" />
       </text:list-level-style-number>
     </text:list-style>
     <text:list-style style:name="L2">
       <text:list-level-style-bullet text:level="1" text:style-name="Bullet_20_Symbols" style:num-suffix="." text:bullet-char="•">
-        <style:list-level-properties text:space-before="0.25in" text:min-label-width="0.25in" />
+        <style:list-level-properties text:space-before="0.0in" text:min-label-width="0.4in" />
       </text:list-level-style-bullet>
-      <text:list-level-style-bullet text:level="2" text:style-name="Bullet_20_Symbols" style:num-suffix="." text:bullet-char="‣">
-        <style:list-level-properties text:space-before="0.5in" text:min-label-width="0.25in" />
+      <text:list-level-style-bullet text:level="2" text:style-name="Bullet_20_Symbols" style:num-suffix="." text:bullet-char="◦">
+        <style:list-level-properties text:space-before="0.4in" text:min-label-width="0.4in" />
       </text:list-level-style-bullet>
-      <text:list-level-style-bullet text:level="3" text:style-name="Bullet_20_Symbols" style:num-suffix="." text:bullet-char="⁃">
-        <style:list-level-properties text:space-before="0.75in" text:min-label-width="0.25in" />
+      <text:list-level-style-bullet text:level="3" text:style-name="Bullet_20_Symbols" style:num-suffix="." text:bullet-char="▪">
+        <style:list-level-properties text:space-before="0.8in" text:min-label-width="0.4in" />
       </text:list-level-style-bullet>
       <text:list-level-style-bullet text:level="4" text:style-name="Bullet_20_Symbols" style:num-suffix="." text:bullet-char="•">
-        <style:list-level-properties text:space-before="1.0in" text:min-label-width="0.25in" />
+        <style:list-level-properties text:space-before="1.2000000000000002in" text:min-label-width="0.4in" />
       </text:list-level-style-bullet>
-      <text:list-level-style-bullet text:level="5" text:style-name="Bullet_20_Symbols" style:num-suffix="." text:bullet-char="‣">
-        <style:list-level-properties text:space-before="1.25in" text:min-label-width="0.25in" />
+      <text:list-level-style-bullet text:level="5" text:style-name="Bullet_20_Symbols" style:num-suffix="." text:bullet-char="◦">
+        <style:list-level-properties text:space-before="1.6in" text:min-label-width="0.4in" />
       </text:list-level-style-bullet>
-      <text:list-level-style-bullet text:level="6" text:style-name="Bullet_20_Symbols" style:num-suffix="." text:bullet-char="⁃">
-        <style:list-level-properties text:space-before="1.5in" text:min-label-width="0.25in" />
+      <text:list-level-style-bullet text:level="6" text:style-name="Bullet_20_Symbols" style:num-suffix="." text:bullet-char="▪">
+        <style:list-level-properties text:space-before="2.0in" text:min-label-width="0.4in" />
       </text:list-level-style-bullet>
       <text:list-level-style-bullet text:level="7" text:style-name="Bullet_20_Symbols" style:num-suffix="." text:bullet-char="•">
-        <style:list-level-properties text:space-before="1.75in" text:min-label-width="0.25in" />
+        <style:list-level-properties text:space-before="2.4000000000000004in" text:min-label-width="0.4in" />
       </text:list-level-style-bullet>
-      <text:list-level-style-bullet text:level="8" text:style-name="Bullet_20_Symbols" style:num-suffix="." text:bullet-char="‣">
-        <style:list-level-properties text:space-before="2.0in" text:min-label-width="0.25in" />
+      <text:list-level-style-bullet text:level="8" text:style-name="Bullet_20_Symbols" style:num-suffix="." text:bullet-char="◦">
+        <style:list-level-properties text:space-before="2.8000000000000003in" text:min-label-width="0.4in" />
       </text:list-level-style-bullet>
-      <text:list-level-style-bullet text:level="9" text:style-name="Bullet_20_Symbols" style:num-suffix="." text:bullet-char="⁃">
-        <style:list-level-properties text:space-before="2.25in" text:min-label-width="0.25in" />
+      <text:list-level-style-bullet text:level="9" text:style-name="Bullet_20_Symbols" style:num-suffix="." text:bullet-char="▪">
+        <style:list-level-properties text:space-before="3.2in" text:min-label-width="0.4in" />
       </text:list-level-style-bullet>
       <text:list-level-style-bullet text:level="10" text:style-name="Bullet_20_Symbols" style:num-suffix="." text:bullet-char="•">
-        <style:list-level-properties text:space-before="2.5in" text:min-label-width="0.25in" />
+        <style:list-level-properties text:space-before="3.6in" text:min-label-width="0.4in" />
       </text:list-level-style-bullet>
     </text:list-style>
     <text:list-style style:name="L3">
       <text:list-level-style-bullet text:level="1" text:style-name="Bullet_20_Symbols" style:num-suffix="." text:bullet-char="•">
-        <style:list-level-properties text:space-before="0.25in" text:min-label-width="0.25in" />
+        <style:list-level-properties text:space-before="0.0in" text:min-label-width="0.4in" />
       </text:list-level-style-bullet>
-      <text:list-level-style-bullet text:level="2" text:style-name="Bullet_20_Symbols" style:num-suffix="." text:bullet-char="‣">
-        <style:list-level-properties text:space-before="0.5in" text:min-label-width="0.25in" />
+      <text:list-level-style-bullet text:level="2" text:style-name="Bullet_20_Symbols" style:num-suffix="." text:bullet-char="◦">
+        <style:list-level-properties text:space-before="0.4in" text:min-label-width="0.4in" />
       </text:list-level-style-bullet>
-      <text:list-level-style-bullet text:level="3" text:style-name="Bullet_20_Symbols" style:num-suffix="." text:bullet-char="⁃">
-        <style:list-level-properties text:space-before="0.75in" text:min-label-width="0.25in" />
+      <text:list-level-style-bullet text:level="3" text:style-name="Bullet_20_Symbols" style:num-suffix="." text:bullet-char="▪">
+        <style:list-level-properties text:space-before="0.8in" text:min-label-width="0.4in" />
       </text:list-level-style-bullet>
       <text:list-level-style-bullet text:level="4" text:style-name="Bullet_20_Symbols" style:num-suffix="." text:bullet-char="•">
-        <style:list-level-properties text:space-before="1.0in" text:min-label-width="0.25in" />
+        <style:list-level-properties text:space-before="1.2000000000000002in" text:min-label-width="0.4in" />
       </text:list-level-style-bullet>
-      <text:list-level-style-bullet text:level="5" text:style-name="Bullet_20_Symbols" style:num-suffix="." text:bullet-char="‣">
-        <style:list-level-properties text:space-before="1.25in" text:min-label-width="0.25in" />
+      <text:list-level-style-bullet text:level="5" text:style-name="Bullet_20_Symbols" style:num-suffix="." text:bullet-char="◦">
+        <style:list-level-properties text:space-before="1.6in" text:min-label-width="0.4in" />
       </text:list-level-style-bullet>
-      <text:list-level-style-bullet text:level="6" text:style-name="Bullet_20_Symbols" style:num-suffix="." text:bullet-char="⁃">
-        <style:list-level-properties text:space-before="1.5in" text:min-label-width="0.25in" />
+      <text:list-level-style-bullet text:level="6" text:style-name="Bullet_20_Symbols" style:num-suffix="." text:bullet-char="▪">
+        <style:list-level-properties text:space-before="2.0in" text:min-label-width="0.4in" />
       </text:list-level-style-bullet>
       <text:list-level-style-bullet text:level="7" text:style-name="Bullet_20_Symbols" style:num-suffix="." text:bullet-char="•">
-        <style:list-level-properties text:space-before="1.75in" text:min-label-width="0.25in" />
+        <style:list-level-properties text:space-before="2.4000000000000004in" text:min-label-width="0.4in" />
       </text:list-level-style-bullet>
-      <text:list-level-style-bullet text:level="8" text:style-name="Bullet_20_Symbols" style:num-suffix="." text:bullet-char="‣">
-        <style:list-level-properties text:space-before="2.0in" text:min-label-width="0.25in" />
+      <text:list-level-style-bullet text:level="8" text:style-name="Bullet_20_Symbols" style:num-suffix="." text:bullet-char="◦">
+        <style:list-level-properties text:space-before="2.8000000000000003in" text:min-label-width="0.4in" />
       </text:list-level-style-bullet>
-      <text:list-level-style-bullet text:level="9" text:style-name="Bullet_20_Symbols" style:num-suffix="." text:bullet-char="⁃">
-        <style:list-level-properties text:space-before="2.25in" text:min-label-width="0.25in" />
+      <text:list-level-style-bullet text:level="9" text:style-name="Bullet_20_Symbols" style:num-suffix="." text:bullet-char="▪">
+        <style:list-level-properties text:space-before="3.2in" text:min-label-width="0.4in" />
       </text:list-level-style-bullet>
       <text:list-level-style-bullet text:level="10" text:style-name="Bullet_20_Symbols" style:num-suffix="." text:bullet-char="•">
-        <style:list-level-properties text:space-before="2.5in" text:min-label-width="0.25in" />
+        <style:list-level-properties text:space-before="3.6in" text:min-label-width="0.4in" />
       </text:list-level-style-bullet>
     </text:list-style>
     <text:list-style style:name="L4">
       <text:list-level-style-bullet text:level="1" text:style-name="Bullet_20_Symbols" style:num-suffix="." text:bullet-char="•">
-        <style:list-level-properties text:space-before="0.25in" text:min-label-width="0.25in" />
+        <style:list-level-properties text:space-before="0.0in" text:min-label-width="0.4in" />
       </text:list-level-style-bullet>
-      <text:list-level-style-bullet text:level="2" text:style-name="Bullet_20_Symbols" style:num-suffix="." text:bullet-char="‣">
-        <style:list-level-properties text:space-before="0.5in" text:min-label-width="0.25in" />
+      <text:list-level-style-bullet text:level="2" text:style-name="Bullet_20_Symbols" style:num-suffix="." text:bullet-char="◦">
+        <style:list-level-properties text:space-before="0.4in" text:min-label-width="0.4in" />
       </text:list-level-style-bullet>
-      <text:list-level-style-bullet text:level="3" text:style-name="Bullet_20_Symbols" style:num-suffix="." text:bullet-char="⁃">
-        <style:list-level-properties text:space-before="0.75in" text:min-label-width="0.25in" />
+      <text:list-level-style-bullet text:level="3" text:style-name="Bullet_20_Symbols" style:num-suffix="." text:bullet-char="▪">
+        <style:list-level-properties text:space-before="0.8in" text:min-label-width="0.4in" />
       </text:list-level-style-bullet>
       <text:list-level-style-bullet text:level="4" text:style-name="Bullet_20_Symbols" style:num-suffix="." text:bullet-char="•">
-        <style:list-level-properties text:space-before="1.0in" text:min-label-width="0.25in" />
+        <style:list-level-properties text:space-before="1.2000000000000002in" text:min-label-width="0.4in" />
       </text:list-level-style-bullet>
-      <text:list-level-style-bullet text:level="5" text:style-name="Bullet_20_Symbols" style:num-suffix="." text:bullet-char="‣">
-        <style:list-level-properties text:space-before="1.25in" text:min-label-width="0.25in" />
+      <text:list-level-style-bullet text:level="5" text:style-name="Bullet_20_Symbols" style:num-suffix="." text:bullet-char="◦">
+        <style:list-level-properties text:space-before="1.6in" text:min-label-width="0.4in" />
       </text:list-level-style-bullet>
-      <text:list-level-style-bullet text:level="6" text:style-name="Bullet_20_Symbols" style:num-suffix="." text:bullet-char="⁃">
-        <style:list-level-properties text:space-before="1.5in" text:min-label-width="0.25in" />
+      <text:list-level-style-bullet text:level="6" text:style-name="Bullet_20_Symbols" style:num-suffix="." text:bullet-char="▪">
+        <style:list-level-properties text:space-before="2.0in" text:min-label-width="0.4in" />
       </text:list-level-style-bullet>
       <text:list-level-style-bullet text:level="7" text:style-name="Bullet_20_Symbols" style:num-suffix="." text:bullet-char="•">
-        <style:list-level-properties text:space-before="1.75in" text:min-label-width="0.25in" />
+        <style:list-level-properties text:space-before="2.4000000000000004in" text:min-label-width="0.4in" />
       </text:list-level-style-bullet>
-      <text:list-level-style-bullet text:level="8" text:style-name="Bullet_20_Symbols" style:num-suffix="." text:bullet-char="‣">
-        <style:list-level-properties text:space-before="2.0in" text:min-label-width="0.25in" />
+      <text:list-level-style-bullet text:level="8" text:style-name="Bullet_20_Symbols" style:num-suffix="." text:bullet-char="◦">
+        <style:list-level-properties text:space-before="2.8000000000000003in" text:min-label-width="0.4in" />
       </text:list-level-style-bullet>
-      <text:list-level-style-bullet text:level="9" text:style-name="Bullet_20_Symbols" style:num-suffix="." text:bullet-char="⁃">
-        <style:list-level-properties text:space-before="2.25in" text:min-label-width="0.25in" />
+      <text:list-level-style-bullet text:level="9" text:style-name="Bullet_20_Symbols" style:num-suffix="." text:bullet-char="▪">
+        <style:list-level-properties text:space-before="3.2in" text:min-label-width="0.4in" />
       </text:list-level-style-bullet>
       <text:list-level-style-bullet text:level="10" text:style-name="Bullet_20_Symbols" style:num-suffix="." text:bullet-char="•">
-        <style:list-level-properties text:space-before="2.5in" text:min-label-width="0.25in" />
+        <style:list-level-properties text:space-before="3.6in" text:min-label-width="0.4in" />
       </text:list-level-style-bullet>
     </text:list-style>
     <text:list-style style:name="L5">
       <text:list-level-style-bullet text:level="1" text:style-name="Bullet_20_Symbols" style:num-suffix="." text:bullet-char="•">
-        <style:list-level-properties text:space-before="0.25in" text:min-label-width="0.25in" />
+        <style:list-level-properties text:space-before="0.0in" text:min-label-width="0.4in" />
       </text:list-level-style-bullet>
-      <text:list-level-style-bullet text:level="2" text:style-name="Bullet_20_Symbols" style:num-suffix="." text:bullet-char="‣">
-        <style:list-level-properties text:space-before="0.5in" text:min-label-width="0.25in" />
+      <text:list-level-style-bullet text:level="2" text:style-name="Bullet_20_Symbols" style:num-suffix="." text:bullet-char="◦">
+        <style:list-level-properties text:space-before="0.4in" text:min-label-width="0.4in" />
       </text:list-level-style-bullet>
-      <text:list-level-style-bullet text:level="3" text:style-name="Bullet_20_Symbols" style:num-suffix="." text:bullet-char="⁃">
-        <style:list-level-properties text:space-before="0.75in" text:min-label-width="0.25in" />
+      <text:list-level-style-bullet text:level="3" text:style-name="Bullet_20_Symbols" style:num-suffix="." text:bullet-char="▪">
+        <style:list-level-properties text:space-before="0.8in" text:min-label-width="0.4in" />
       </text:list-level-style-bullet>
       <text:list-level-style-bullet text:level="4" text:style-name="Bullet_20_Symbols" style:num-suffix="." text:bullet-char="•">
-        <style:list-level-properties text:space-before="1.0in" text:min-label-width="0.25in" />
+        <style:list-level-properties text:space-before="1.2000000000000002in" text:min-label-width="0.4in" />
       </text:list-level-style-bullet>
-      <text:list-level-style-bullet text:level="5" text:style-name="Bullet_20_Symbols" style:num-suffix="." text:bullet-char="‣">
-        <style:list-level-properties text:space-before="1.25in" text:min-label-width="0.25in" />
+      <text:list-level-style-bullet text:level="5" text:style-name="Bullet_20_Symbols" style:num-suffix="." text:bullet-char="◦">
+        <style:list-level-properties text:space-before="1.6in" text:min-label-width="0.4in" />
       </text:list-level-style-bullet>
-      <text:list-level-style-bullet text:level="6" text:style-name="Bullet_20_Symbols" style:num-suffix="." text:bullet-char="⁃">
-        <style:list-level-properties text:space-before="1.5in" text:min-label-width="0.25in" />
+      <text:list-level-style-bullet text:level="6" text:style-name="Bullet_20_Symbols" style:num-suffix="." text:bullet-char="▪">
+        <style:list-level-properties text:space-before="2.0in" text:min-label-width="0.4in" />
       </text:list-level-style-bullet>
       <text:list-level-style-bullet text:level="7" text:style-name="Bullet_20_Symbols" style:num-suffix="." text:bullet-char="•">
-        <style:list-level-properties text:space-before="1.75in" text:min-label-width="0.25in" />
+        <style:list-level-properties text:space-before="2.4000000000000004in" text:min-label-width="0.4in" />
       </text:list-level-style-bullet>
-      <text:list-level-style-bullet text:level="8" text:style-name="Bullet_20_Symbols" style:num-suffix="." text:bullet-char="‣">
-        <style:list-level-properties text:space-before="2.0in" text:min-label-width="0.25in" />
+      <text:list-level-style-bullet text:level="8" text:style-name="Bullet_20_Symbols" style:num-suffix="." text:bullet-char="◦">
+        <style:list-level-properties text:space-before="2.8000000000000003in" text:min-label-width="0.4in" />
       </text:list-level-style-bullet>
-      <text:list-level-style-bullet text:level="9" text:style-name="Bullet_20_Symbols" style:num-suffix="." text:bullet-char="⁃">
-        <style:list-level-properties text:space-before="2.25in" text:min-label-width="0.25in" />
+      <text:list-level-style-bullet text:level="9" text:style-name="Bullet_20_Symbols" style:num-suffix="." text:bullet-char="▪">
+        <style:list-level-properties text:space-before="3.2in" text:min-label-width="0.4in" />
       </text:list-level-style-bullet>
       <text:list-level-style-bullet text:level="10" text:style-name="Bullet_20_Symbols" style:num-suffix="." text:bullet-char="•">
-        <style:list-level-properties text:space-before="2.5in" text:min-label-width="0.25in" />
+        <style:list-level-properties text:space-before="3.6in" text:min-label-width="0.4in" />
       </text:list-level-style-bullet>
     </text:list-style>
     <text:list-style style:name="L6">
       <text:list-level-style-bullet text:level="1" text:style-name="Bullet_20_Symbols" style:num-suffix="." text:bullet-char="•">
-        <style:list-level-properties text:space-before="0.25in" text:min-label-width="0.25in" />
+        <style:list-level-properties text:space-before="0.0in" text:min-label-width="0.4in" />
       </text:list-level-style-bullet>
-      <text:list-level-style-bullet text:level="2" text:style-name="Bullet_20_Symbols" style:num-suffix="." text:bullet-char="‣">
-        <style:list-level-properties text:space-before="0.5in" text:min-label-width="0.25in" />
+      <text:list-level-style-bullet text:level="2" text:style-name="Bullet_20_Symbols" style:num-suffix="." text:bullet-char="◦">
+        <style:list-level-properties text:space-before="0.4in" text:min-label-width="0.4in" />
       </text:list-level-style-bullet>
-      <text:list-level-style-bullet text:level="3" text:style-name="Bullet_20_Symbols" style:num-suffix="." text:bullet-char="⁃">
-        <style:list-level-properties text:space-before="0.75in" text:min-label-width="0.25in" />
+      <text:list-level-style-bullet text:level="3" text:style-name="Bullet_20_Symbols" style:num-suffix="." text:bullet-char="▪">
+        <style:list-level-properties text:space-before="0.8in" text:min-label-width="0.4in" />
       </text:list-level-style-bullet>
       <text:list-level-style-bullet text:level="4" text:style-name="Bullet_20_Symbols" style:num-suffix="." text:bullet-char="•">
-        <style:list-level-properties text:space-before="1.0in" text:min-label-width="0.25in" />
+        <style:list-level-properties text:space-before="1.2000000000000002in" text:min-label-width="0.4in" />
       </text:list-level-style-bullet>
-      <text:list-level-style-bullet text:level="5" text:style-name="Bullet_20_Symbols" style:num-suffix="." text:bullet-char="‣">
-        <style:list-level-properties text:space-before="1.25in" text:min-label-width="0.25in" />
+      <text:list-level-style-bullet text:level="5" text:style-name="Bullet_20_Symbols" style:num-suffix="." text:bullet-char="◦">
+        <style:list-level-properties text:space-before="1.6in" text:min-label-width="0.4in" />
       </text:list-level-style-bullet>
-      <text:list-level-style-bullet text:level="6" text:style-name="Bullet_20_Symbols" style:num-suffix="." text:bullet-char="⁃">
-        <style:list-level-properties text:space-before="1.5in" text:min-label-width="0.25in" />
+      <text:list-level-style-bullet text:level="6" text:style-name="Bullet_20_Symbols" style:num-suffix="." text:bullet-char="▪">
+        <style:list-level-properties text:space-before="2.0in" text:min-label-width="0.4in" />
       </text:list-level-style-bullet>
       <text:list-level-style-bullet text:level="7" text:style-name="Bullet_20_Symbols" style:num-suffix="." text:bullet-char="•">
-        <style:list-level-properties text:space-before="1.75in" text:min-label-width="0.25in" />
+        <style:list-level-properties text:space-before="2.4000000000000004in" text:min-label-width="0.4in" />
       </text:list-level-style-bullet>
-      <text:list-level-style-bullet text:level="8" text:style-name="Bullet_20_Symbols" style:num-suffix="." text:bullet-char="‣">
-        <style:list-level-properties text:space-before="2.0in" text:min-label-width="0.25in" />
+      <text:list-level-style-bullet text:level="8" text:style-name="Bullet_20_Symbols" style:num-suffix="." text:bullet-char="◦">
+        <style:list-level-properties text:space-before="2.8000000000000003in" text:min-label-width="0.4in" />
       </text:list-level-style-bullet>
-      <text:list-level-style-bullet text:level="9" text:style-name="Bullet_20_Symbols" style:num-suffix="." text:bullet-char="⁃">
-        <style:list-level-properties text:space-before="2.25in" text:min-label-width="0.25in" />
+      <text:list-level-style-bullet text:level="9" text:style-name="Bullet_20_Symbols" style:num-suffix="." text:bullet-char="▪">
+        <style:list-level-properties text:space-before="3.2in" text:min-label-width="0.4in" />
       </text:list-level-style-bullet>
       <text:list-level-style-bullet text:level="10" text:style-name="Bullet_20_Symbols" style:num-suffix="." text:bullet-char="•">
-        <style:list-level-properties text:space-before="2.5in" text:min-label-width="0.25in" />
+        <style:list-level-properties text:space-before="3.6in" text:min-label-width="0.4in" />
       </text:list-level-style-bullet>
     </text:list-style>
     <text:list-style style:name="L7">
       <text:list-level-style-bullet text:level="1" text:style-name="Bullet_20_Symbols" style:num-suffix="." text:bullet-char="•">
-        <style:list-level-properties text:space-before="0.25in" text:min-label-width="0.25in" />
+        <style:list-level-properties text:space-before="0.0in" text:min-label-width="0.4in" />
       </text:list-level-style-bullet>
-      <text:list-level-style-bullet text:level="2" text:style-name="Bullet_20_Symbols" style:num-suffix="." text:bullet-char="‣">
-        <style:list-level-properties text:space-before="0.5in" text:min-label-width="0.25in" />
+      <text:list-level-style-bullet text:level="2" text:style-name="Bullet_20_Symbols" style:num-suffix="." text:bullet-char="◦">
+        <style:list-level-properties text:space-before="0.4in" text:min-label-width="0.4in" />
       </text:list-level-style-bullet>
-      <text:list-level-style-bullet text:level="3" text:style-name="Bullet_20_Symbols" style:num-suffix="." text:bullet-char="⁃">
-        <style:list-level-properties text:space-before="0.75in" text:min-label-width="0.25in" />
+      <text:list-level-style-bullet text:level="3" text:style-name="Bullet_20_Symbols" style:num-suffix="." text:bullet-char="▪">
+        <style:list-level-properties text:space-before="0.8in" text:min-label-width="0.4in" />
       </text:list-level-style-bullet>
       <text:list-level-style-bullet text:level="4" text:style-name="Bullet_20_Symbols" style:num-suffix="." text:bullet-char="•">
-        <style:list-level-properties text:space-before="1.0in" text:min-label-width="0.25in" />
+        <style:list-level-properties text:space-before="1.2000000000000002in" text:min-label-width="0.4in" />
       </text:list-level-style-bullet>
-      <text:list-level-style-bullet text:level="5" text:style-name="Bullet_20_Symbols" style:num-suffix="." text:bullet-char="‣">
-        <style:list-level-properties text:space-before="1.25in" text:min-label-width="0.25in" />
+      <text:list-level-style-bullet text:level="5" text:style-name="Bullet_20_Symbols" style:num-suffix="." text:bullet-char="◦">
+        <style:list-level-properties text:space-before="1.6in" text:min-label-width="0.4in" />
       </text:list-level-style-bullet>
-      <text:list-level-style-bullet text:level="6" text:style-name="Bullet_20_Symbols" style:num-suffix="." text:bullet-char="⁃">
-        <style:list-level-properties text:space-before="1.5in" text:min-label-width="0.25in" />
+      <text:list-level-style-bullet text:level="6" text:style-name="Bullet_20_Symbols" style:num-suffix="." text:bullet-char="▪">
+        <style:list-level-properties text:space-before="2.0in" text:min-label-width="0.4in" />
       </text:list-level-style-bullet>
       <text:list-level-style-bullet text:level="7" text:style-name="Bullet_20_Symbols" style:num-suffix="." text:bullet-char="•">
-        <style:list-level-properties text:space-before="1.75in" text:min-label-width="0.25in" />
+        <style:list-level-properties text:space-before="2.4000000000000004in" text:min-label-width="0.4in" />
       </text:list-level-style-bullet>
-      <text:list-level-style-bullet text:level="8" text:style-name="Bullet_20_Symbols" style:num-suffix="." text:bullet-char="‣">
-        <style:list-level-properties text:space-before="2.0in" text:min-label-width="0.25in" />
+      <text:list-level-style-bullet text:level="8" text:style-name="Bullet_20_Symbols" style:num-suffix="." text:bullet-char="◦">
+        <style:list-level-properties text:space-before="2.8000000000000003in" text:min-label-width="0.4in" />
       </text:list-level-style-bullet>
-      <text:list-level-style-bullet text:level="9" text:style-name="Bullet_20_Symbols" style:num-suffix="." text:bullet-char="⁃">
-        <style:list-level-properties text:space-before="2.25in" text:min-label-width="0.25in" />
+      <text:list-level-style-bullet text:level="9" text:style-name="Bullet_20_Symbols" style:num-suffix="." text:bullet-char="▪">
+        <style:list-level-properties text:space-before="3.2in" text:min-label-width="0.4in" />
       </text:list-level-style-bullet>
       <text:list-level-style-bullet text:level="10" text:style-name="Bullet_20_Symbols" style:num-suffix="." text:bullet-char="•">
-        <style:list-level-properties text:space-before="2.5in" text:min-label-width="0.25in" />
+        <style:list-level-properties text:space-before="3.6in" text:min-label-width="0.4in" />
       </text:list-level-style-bullet>
     </text:list-style>
     <text:list-style style:name="L8">
       <text:list-level-style-number text:level="1" text:style-name="Numbering_20_Symbols" style:num-format="1" text:start-value="1" style:num-suffix=".">
-        <style:list-level-properties text:space-before="0.25in" text:min-label-width="0.25in" />
+        <style:list-level-properties text:space-before="0.0in" text:min-label-width="0.4in" />
       </text:list-level-style-number>
     </text:list-style>
     <text:list-style style:name="L9">
       <text:list-level-style-number text:level="1" text:style-name="Numbering_20_Symbols" style:num-format="1" text:start-value="1" style:num-suffix=".">
-        <style:list-level-properties text:space-before="0.25in" text:min-label-width="0.25in" />
+        <style:list-level-properties text:space-before="0.0in" text:min-label-width="0.4in" />
       </text:list-level-style-number>
     </text:list-style>
     <text:list-style style:name="L10">
       <text:list-level-style-number text:level="1" text:style-name="Numbering_20_Symbols" style:num-format="1" text:start-value="1" style:num-suffix=".">
-        <style:list-level-properties text:space-before="0.25in" text:min-label-width="0.25in" />
+        <style:list-level-properties text:space-before="0.0in" text:min-label-width="0.4in" />
       </text:list-level-style-number>
     </text:list-style>
     <text:list-style style:name="L11">
       <text:list-level-style-number text:level="1" text:style-name="Numbering_20_Symbols" style:num-format="1" text:start-value="1" style:num-suffix=".">
-        <style:list-level-properties text:space-before="0.25in" text:min-label-width="0.25in" />
+        <style:list-level-properties text:space-before="0.0in" text:min-label-width="0.4in" />
       </text:list-level-style-number>
     </text:list-style>
     <text:list-style style:name="L12">
       <text:list-level-style-number text:level="1" text:style-name="Numbering_20_Symbols" style:num-format="1" text:start-value="1" style:num-suffix=".">
-        <style:list-level-properties text:space-before="0.25in" text:min-label-width="0.25in" />
+        <style:list-level-properties text:space-before="0.0in" text:min-label-width="0.4in" />
       </text:list-level-style-number>
     </text:list-style>
     <text:list-style style:name="L13">
       <text:list-level-style-bullet text:level="1" text:style-name="Bullet_20_Symbols" style:num-suffix="." text:bullet-char="•">
-        <style:list-level-properties text:space-before="0.25in" text:min-label-width="0.25in" />
+        <style:list-level-properties text:space-before="0.0in" text:min-label-width="0.4in" />
       </text:list-level-style-bullet>
-      <text:list-level-style-bullet text:level="2" text:style-name="Bullet_20_Symbols" style:num-suffix="." text:bullet-char="‣">
-        <style:list-level-properties text:space-before="0.5in" text:min-label-width="0.25in" />
+      <text:list-level-style-bullet text:level="2" text:style-name="Bullet_20_Symbols" style:num-suffix="." text:bullet-char="◦">
+        <style:list-level-properties text:space-before="0.4in" text:min-label-width="0.4in" />
       </text:list-level-style-bullet>
-      <text:list-level-style-bullet text:level="3" text:style-name="Bullet_20_Symbols" style:num-suffix="." text:bullet-char="⁃">
-        <style:list-level-properties text:space-before="0.75in" text:min-label-width="0.25in" />
+      <text:list-level-style-bullet text:level="3" text:style-name="Bullet_20_Symbols" style:num-suffix="." text:bullet-char="▪">
+        <style:list-level-properties text:space-before="0.8in" text:min-label-width="0.4in" />
       </text:list-level-style-bullet>
       <text:list-level-style-bullet text:level="4" text:style-name="Bullet_20_Symbols" style:num-suffix="." text:bullet-char="•">
-        <style:list-level-properties text:space-before="1.0in" text:min-label-width="0.25in" />
+        <style:list-level-properties text:space-before="1.2000000000000002in" text:min-label-width="0.4in" />
       </text:list-level-style-bullet>
-      <text:list-level-style-bullet text:level="5" text:style-name="Bullet_20_Symbols" style:num-suffix="." text:bullet-char="‣">
-        <style:list-level-properties text:space-before="1.25in" text:min-label-width="0.25in" />
+      <text:list-level-style-bullet text:level="5" text:style-name="Bullet_20_Symbols" style:num-suffix="." text:bullet-char="◦">
+        <style:list-level-properties text:space-before="1.6in" text:min-label-width="0.4in" />
       </text:list-level-style-bullet>
-      <text:list-level-style-bullet text:level="6" text:style-name="Bullet_20_Symbols" style:num-suffix="." text:bullet-char="⁃">
-        <style:list-level-properties text:space-before="1.5in" text:min-label-width="0.25in" />
+      <text:list-level-style-bullet text:level="6" text:style-name="Bullet_20_Symbols" style:num-suffix="." text:bullet-char="▪">
+        <style:list-level-properties text:space-before="2.0in" text:min-label-width="0.4in" />
       </text:list-level-style-bullet>
       <text:list-level-style-bullet text:level="7" text:style-name="Bullet_20_Symbols" style:num-suffix="." text:bullet-char="•">
-        <style:list-level-properties text:space-before="1.75in" text:min-label-width="0.25in" />
+        <style:list-level-properties text:space-before="2.4000000000000004in" text:min-label-width="0.4in" />
       </text:list-level-style-bullet>
-      <text:list-level-style-bullet text:level="8" text:style-name="Bullet_20_Symbols" style:num-suffix="." text:bullet-char="‣">
-        <style:list-level-properties text:space-before="2.0in" text:min-label-width="0.25in" />
+      <text:list-level-style-bullet text:level="8" text:style-name="Bullet_20_Symbols" style:num-suffix="." text:bullet-char="◦">
+        <style:list-level-properties text:space-before="2.8000000000000003in" text:min-label-width="0.4in" />
       </text:list-level-style-bullet>
-      <text:list-level-style-bullet text:level="9" text:style-name="Bullet_20_Symbols" style:num-suffix="." text:bullet-char="⁃">
-        <style:list-level-properties text:space-before="2.25in" text:min-label-width="0.25in" />
+      <text:list-level-style-bullet text:level="9" text:style-name="Bullet_20_Symbols" style:num-suffix="." text:bullet-char="▪">
+        <style:list-level-properties text:space-before="3.2in" text:min-label-width="0.4in" />
       </text:list-level-style-bullet>
       <text:list-level-style-bullet text:level="10" text:style-name="Bullet_20_Symbols" style:num-suffix="." text:bullet-char="•">
-        <style:list-level-properties text:space-before="2.5in" text:min-label-width="0.25in" />
+        <style:list-level-properties text:space-before="3.6in" text:min-label-width="0.4in" />
       </text:list-level-style-bullet>
     </text:list-style>
     <text:list-style style:name="L14">
       <text:list-level-style-bullet text:level="1" text:style-name="Bullet_20_Symbols" style:num-suffix="." text:bullet-char="•">
-        <style:list-level-properties text:space-before="0.25in" text:min-label-width="0.25in" />
+        <style:list-level-properties text:space-before="0.0in" text:min-label-width="0.4in" />
       </text:list-level-style-bullet>
-      <text:list-level-style-bullet text:level="2" text:style-name="Bullet_20_Symbols" style:num-suffix="." text:bullet-char="‣">
-        <style:list-level-properties text:space-before="0.5in" text:min-label-width="0.25in" />
+      <text:list-level-style-bullet text:level="2" text:style-name="Bullet_20_Symbols" style:num-suffix="." text:bullet-char="◦">
+        <style:list-level-properties text:space-before="0.4in" text:min-label-width="0.4in" />
       </text:list-level-style-bullet>
-      <text:list-level-style-bullet text:level="3" text:style-name="Bullet_20_Symbols" style:num-suffix="." text:bullet-char="⁃">
-        <style:list-level-properties text:space-before="0.75in" text:min-label-width="0.25in" />
+      <text:list-level-style-bullet text:level="3" text:style-name="Bullet_20_Symbols" style:num-suffix="." text:bullet-char="▪">
+        <style:list-level-properties text:space-before="0.8in" text:min-label-width="0.4in" />
       </text:list-level-style-bullet>
       <text:list-level-style-bullet text:level="4" text:style-name="Bullet_20_Symbols" style:num-suffix="." text:bullet-char="•">
-        <style:list-level-properties text:space-before="1.0in" text:min-label-width="0.25in" />
+        <style:list-level-properties text:space-before="1.2000000000000002in" text:min-label-width="0.4in" />
       </text:list-level-style-bullet>
-      <text:list-level-style-bullet text:level="5" text:style-name="Bullet_20_Symbols" style:num-suffix="." text:bullet-char="‣">
-        <style:list-level-properties text:space-before="1.25in" text:min-label-width="0.25in" />
+      <text:list-level-style-bullet text:level="5" text:style-name="Bullet_20_Symbols" style:num-suffix="." text:bullet-char="◦">
+        <style:list-level-properties text:space-before="1.6in" text:min-label-width="0.4in" />
       </text:list-level-style-bullet>
-      <text:list-level-style-bullet text:level="6" text:style-name="Bullet_20_Symbols" style:num-suffix="." text:bullet-char="⁃">
-        <style:list-level-properties text:space-before="1.5in" text:min-label-width="0.25in" />
+      <text:list-level-style-bullet text:level="6" text:style-name="Bullet_20_Symbols" style:num-suffix="." text:bullet-char="▪">
+        <style:list-level-properties text:space-before="2.0in" text:min-label-width="0.4in" />
       </text:list-level-style-bullet>
       <text:list-level-style-bullet text:level="7" text:style-name="Bullet_20_Symbols" style:num-suffix="." text:bullet-char="•">
-        <style:list-level-properties text:space-before="1.75in" text:min-label-width="0.25in" />
+        <style:list-level-properties text:space-before="2.4000000000000004in" text:min-label-width="0.4in" />
       </text:list-level-style-bullet>
-      <text:list-level-style-bullet text:level="8" text:style-name="Bullet_20_Symbols" style:num-suffix="." text:bullet-char="‣">
-        <style:list-level-properties text:space-before="2.0in" text:min-label-width="0.25in" />
+      <text:list-level-style-bullet text:level="8" text:style-name="Bullet_20_Symbols" style:num-suffix="." text:bullet-char="◦">
+        <style:list-level-properties text:space-before="2.8000000000000003in" text:min-label-width="0.4in" />
       </text:list-level-style-bullet>
-      <text:list-level-style-bullet text:level="9" text:style-name="Bullet_20_Symbols" style:num-suffix="." text:bullet-char="⁃">
-        <style:list-level-properties text:space-before="2.25in" text:min-label-width="0.25in" />
+      <text:list-level-style-bullet text:level="9" text:style-name="Bullet_20_Symbols" style:num-suffix="." text:bullet-char="▪">
+        <style:list-level-properties text:space-before="3.2in" text:min-label-width="0.4in" />
       </text:list-level-style-bullet>
       <text:list-level-style-bullet text:level="10" text:style-name="Bullet_20_Symbols" style:num-suffix="." text:bullet-char="•">
-        <style:list-level-properties text:space-before="2.5in" text:min-label-width="0.25in" />
+        <style:list-level-properties text:space-before="3.6in" text:min-label-width="0.4in" />
       </text:list-level-style-bullet>
     </text:list-style>
     <text:list-style style:name="L15">
       <text:list-level-style-bullet text:level="1" text:style-name="Bullet_20_Symbols" style:num-suffix="." text:bullet-char="•">
-        <style:list-level-properties text:space-before="0.25in" text:min-label-width="0.25in" />
+        <style:list-level-properties text:space-before="0.0in" text:min-label-width="0.4in" />
       </text:list-level-style-bullet>
-      <text:list-level-style-bullet text:level="2" text:style-name="Bullet_20_Symbols" style:num-suffix="." text:bullet-char="‣">
-        <style:list-level-properties text:space-before="0.5in" text:min-label-width="0.25in" />
+      <text:list-level-style-bullet text:level="2" text:style-name="Bullet_20_Symbols" style:num-suffix="." text:bullet-char="◦">
+        <style:list-level-properties text:space-before="0.4in" text:min-label-width="0.4in" />
       </text:list-level-style-bullet>
-      <text:list-level-style-bullet text:level="3" text:style-name="Bullet_20_Symbols" style:num-suffix="." text:bullet-char="⁃">
-        <style:list-level-properties text:space-before="0.75in" text:min-label-width="0.25in" />
+      <text:list-level-style-bullet text:level="3" text:style-name="Bullet_20_Symbols" style:num-suffix="." text:bullet-char="▪">
+        <style:list-level-properties text:space-before="0.8in" text:min-label-width="0.4in" />
       </text:list-level-style-bullet>
       <text:list-level-style-bullet text:level="4" text:style-name="Bullet_20_Symbols" style:num-suffix="." text:bullet-char="•">
-        <style:list-level-properties text:space-before="1.0in" text:min-label-width="0.25in" />
+        <style:list-level-properties text:space-before="1.2000000000000002in" text:min-label-width="0.4in" />
       </text:list-level-style-bullet>
-      <text:list-level-style-bullet text:level="5" text:style-name="Bullet_20_Symbols" style:num-suffix="." text:bullet-char="‣">
-        <style:list-level-properties text:space-before="1.25in" text:min-label-width="0.25in" />
+      <text:list-level-style-bullet text:level="5" text:style-name="Bullet_20_Symbols" style:num-suffix="." text:bullet-char="◦">
+        <style:list-level-properties text:space-before="1.6in" text:min-label-width="0.4in" />
       </text:list-level-style-bullet>
-      <text:list-level-style-bullet text:level="6" text:style-name="Bullet_20_Symbols" style:num-suffix="." text:bullet-char="⁃">
-        <style:list-level-properties text:space-before="1.5in" text:min-label-width="0.25in" />
+      <text:list-level-style-bullet text:level="6" text:style-name="Bullet_20_Symbols" style:num-suffix="." text:bullet-char="▪">
+        <style:list-level-properties text:space-before="2.0in" text:min-label-width="0.4in" />
       </text:list-level-style-bullet>
       <text:list-level-style-bullet text:level="7" text:style-name="Bullet_20_Symbols" style:num-suffix="." text:bullet-char="•">
-        <style:list-level-properties text:space-before="1.75in" text:min-label-width="0.25in" />
+        <style:list-level-properties text:space-before="2.4000000000000004in" text:min-label-width="0.4in" />
       </text:list-level-style-bullet>
-      <text:list-level-style-bullet text:level="8" text:style-name="Bullet_20_Symbols" style:num-suffix="." text:bullet-char="‣">
-        <style:list-level-properties text:space-before="2.0in" text:min-label-width="0.25in" />
+      <text:list-level-style-bullet text:level="8" text:style-name="Bullet_20_Symbols" style:num-suffix="." text:bullet-char="◦">
+        <style:list-level-properties text:space-before="2.8000000000000003in" text:min-label-width="0.4in" />
       </text:list-level-style-bullet>
-      <text:list-level-style-bullet text:level="9" text:style-name="Bullet_20_Symbols" style:num-suffix="." text:bullet-char="⁃">
-        <style:list-level-properties text:space-before="2.25in" text:min-label-width="0.25in" />
+      <text:list-level-style-bullet text:level="9" text:style-name="Bullet_20_Symbols" style:num-suffix="." text:bullet-char="▪">
+        <style:list-level-properties text:space-before="3.2in" text:min-label-width="0.4in" />
       </text:list-level-style-bullet>
       <text:list-level-style-bullet text:level="10" text:style-name="Bullet_20_Symbols" style:num-suffix="." text:bullet-char="•">
-        <style:list-level-properties text:space-before="2.5in" text:min-label-width="0.25in" />
+        <style:list-level-properties text:space-before="3.6in" text:min-label-width="0.4in" />
       </text:list-level-style-bullet>
     </text:list-style>
     <text:list-style style:name="L16">
       <text:list-level-style-number text:level="1" text:style-name="Numbering_20_Symbols" style:num-format="1" text:start-value="1" style:num-suffix=".">
-        <style:list-level-properties text:space-before="0.25in" text:min-label-width="0.25in" />
+        <style:list-level-properties text:space-before="0.0in" text:min-label-width="0.4in" />
       </text:list-level-style-number>
     </text:list-style>
     <text:list-style style:name="L17">
       <text:list-level-style-bullet text:level="1" text:style-name="Bullet_20_Symbols" style:num-suffix="." text:bullet-char="•">
-        <style:list-level-properties text:space-before="0.25in" text:min-label-width="0.25in" />
+        <style:list-level-properties text:space-before="0.0in" text:min-label-width="0.4in" />
       </text:list-level-style-bullet>
-      <text:list-level-style-bullet text:level="2" text:style-name="Bullet_20_Symbols" style:num-suffix="." text:bullet-char="‣">
-        <style:list-level-properties text:space-before="0.5in" text:min-label-width="0.25in" />
+      <text:list-level-style-bullet text:level="2" text:style-name="Bullet_20_Symbols" style:num-suffix="." text:bullet-char="◦">
+        <style:list-level-properties text:space-before="0.4in" text:min-label-width="0.4in" />
       </text:list-level-style-bullet>
-      <text:list-level-style-bullet text:level="3" text:style-name="Bullet_20_Symbols" style:num-suffix="." text:bullet-char="⁃">
-        <style:list-level-properties text:space-before="0.75in" text:min-label-width="0.25in" />
+      <text:list-level-style-bullet text:level="3" text:style-name="Bullet_20_Symbols" style:num-suffix="." text:bullet-char="▪">
+        <style:list-level-properties text:space-before="0.8in" text:min-label-width="0.4in" />
       </text:list-level-style-bullet>
       <text:list-level-style-bullet text:level="4" text:style-name="Bullet_20_Symbols" style:num-suffix="." text:bullet-char="•">
-        <style:list-level-properties text:space-before="1.0in" text:min-label-width="0.25in" />
+        <style:list-level-properties text:space-before="1.2000000000000002in" text:min-label-width="0.4in" />
       </text:list-level-style-bullet>
-      <text:list-level-style-bullet text:level="5" text:style-name="Bullet_20_Symbols" style:num-suffix="." text:bullet-char="‣">
-        <style:list-level-properties text:space-before="1.25in" text:min-label-width="0.25in" />
+      <text:list-level-style-bullet text:level="5" text:style-name="Bullet_20_Symbols" style:num-suffix="." text:bullet-char="◦">
+        <style:list-level-properties text:space-before="1.6in" text:min-label-width="0.4in" />
       </text:list-level-style-bullet>
-      <text:list-level-style-bullet text:level="6" text:style-name="Bullet_20_Symbols" style:num-suffix="." text:bullet-char="⁃">
-        <style:list-level-properties text:space-before="1.5in" text:min-label-width="0.25in" />
+      <text:list-level-style-bullet text:level="6" text:style-name="Bullet_20_Symbols" style:num-suffix="." text:bullet-char="▪">
+        <style:list-level-properties text:space-before="2.0in" text:min-label-width="0.4in" />
       </text:list-level-style-bullet>
       <text:list-level-style-bullet text:level="7" text:style-name="Bullet_20_Symbols" style:num-suffix="." text:bullet-char="•">
-        <style:list-level-properties text:space-before="1.75in" text:min-label-width="0.25in" />
+        <style:list-level-properties text:space-before="2.4000000000000004in" text:min-label-width="0.4in" />
       </text:list-level-style-bullet>
-      <text:list-level-style-bullet text:level="8" text:style-name="Bullet_20_Symbols" style:num-suffix="." text:bullet-char="‣">
-        <style:list-level-properties text:space-before="2.0in" text:min-label-width="0.25in" />
+      <text:list-level-style-bullet text:level="8" text:style-name="Bullet_20_Symbols" style:num-suffix="." text:bullet-char="◦">
+        <style:list-level-properties text:space-before="2.8000000000000003in" text:min-label-width="0.4in" />
       </text:list-level-style-bullet>
-      <text:list-level-style-bullet text:level="9" text:style-name="Bullet_20_Symbols" style:num-suffix="." text:bullet-char="⁃">
-        <style:list-level-properties text:space-before="2.25in" text:min-label-width="0.25in" />
+      <text:list-level-style-bullet text:level="9" text:style-name="Bullet_20_Symbols" style:num-suffix="." text:bullet-char="▪">
+        <style:list-level-properties text:space-before="3.2in" text:min-label-width="0.4in" />
       </text:list-level-style-bullet>
       <text:list-level-style-bullet text:level="10" text:style-name="Bullet_20_Symbols" style:num-suffix="." text:bullet-char="•">
-        <style:list-level-properties text:space-before="2.5in" text:min-label-width="0.25in" />
+        <style:list-level-properties text:space-before="3.6in" text:min-label-width="0.4in" />
       </text:list-level-style-bullet>
     </text:list-style>
     <text:list-style style:name="L18">
       <text:list-level-style-number text:level="1" text:style-name="Numbering_20_Symbols" style:num-format="1" text:start-value="1" style:num-suffix=".">
-        <style:list-level-properties text:space-before="0.25in" text:min-label-width="0.25in" />
+        <style:list-level-properties text:space-before="0.0in" text:min-label-width="0.4in" />
       </text:list-level-style-number>
     </text:list-style>
     <text:list-style style:name="L19">
       <text:list-level-style-bullet text:level="1" text:style-name="Bullet_20_Symbols" style:num-suffix="." text:bullet-char="•">
-        <style:list-level-properties text:space-before="0.25in" text:min-label-width="0.25in" />
+        <style:list-level-properties text:space-before="0.0in" text:min-label-width="0.4in" />
       </text:list-level-style-bullet>
-      <text:list-level-style-bullet text:level="2" text:style-name="Bullet_20_Symbols" style:num-suffix="." text:bullet-char="‣">
-        <style:list-level-properties text:space-before="0.5in" text:min-label-width="0.25in" />
+      <text:list-level-style-bullet text:level="2" text:style-name="Bullet_20_Symbols" style:num-suffix="." text:bullet-char="◦">
+        <style:list-level-properties text:space-before="0.4in" text:min-label-width="0.4in" />
       </text:list-level-style-bullet>
-      <text:list-level-style-bullet text:level="3" text:style-name="Bullet_20_Symbols" style:num-suffix="." text:bullet-char="⁃">
-        <style:list-level-properties text:space-before="0.75in" text:min-label-width="0.25in" />
+      <text:list-level-style-bullet text:level="3" text:style-name="Bullet_20_Symbols" style:num-suffix="." text:bullet-char="▪">
+        <style:list-level-properties text:space-before="0.8in" text:min-label-width="0.4in" />
       </text:list-level-style-bullet>
       <text:list-level-style-bullet text:level="4" text:style-name="Bullet_20_Symbols" style:num-suffix="." text:bullet-char="•">
-        <style:list-level-properties text:space-before="1.0in" text:min-label-width="0.25in" />
+        <style:list-level-properties text:space-before="1.2000000000000002in" text:min-label-width="0.4in" />
       </text:list-level-style-bullet>
-      <text:list-level-style-bullet text:level="5" text:style-name="Bullet_20_Symbols" style:num-suffix="." text:bullet-char="‣">
-        <style:list-level-properties text:space-before="1.25in" text:min-label-width="0.25in" />
+      <text:list-level-style-bullet text:level="5" text:style-name="Bullet_20_Symbols" style:num-suffix="." text:bullet-char="◦">
+        <style:list-level-properties text:space-before="1.6in" text:min-label-width="0.4in" />
       </text:list-level-style-bullet>
-      <text:list-level-style-bullet text:level="6" text:style-name="Bullet_20_Symbols" style:num-suffix="." text:bullet-char="⁃">
-        <style:list-level-properties text:space-before="1.5in" text:min-label-width="0.25in" />
+      <text:list-level-style-bullet text:level="6" text:style-name="Bullet_20_Symbols" style:num-suffix="." text:bullet-char="▪">
+        <style:list-level-properties text:space-before="2.0in" text:min-label-width="0.4in" />
       </text:list-level-style-bullet>
       <text:list-level-style-bullet text:level="7" text:style-name="Bullet_20_Symbols" style:num-suffix="." text:bullet-char="•">
-        <style:list-level-properties text:space-before="1.75in" text:min-label-width="0.25in" />
+        <style:list-level-properties text:space-before="2.4000000000000004in" text:min-label-width="0.4in" />
       </text:list-level-style-bullet>
-      <text:list-level-style-bullet text:level="8" text:style-name="Bullet_20_Symbols" style:num-suffix="." text:bullet-char="‣">
-        <style:list-level-properties text:space-before="2.0in" text:min-label-width="0.25in" />
+      <text:list-level-style-bullet text:level="8" text:style-name="Bullet_20_Symbols" style:num-suffix="." text:bullet-char="◦">
+        <style:list-level-properties text:space-before="2.8000000000000003in" text:min-label-width="0.4in" />
       </text:list-level-style-bullet>
-      <text:list-level-style-bullet text:level="9" text:style-name="Bullet_20_Symbols" style:num-suffix="." text:bullet-char="⁃">
-        <style:list-level-properties text:space-before="2.25in" text:min-label-width="0.25in" />
+      <text:list-level-style-bullet text:level="9" text:style-name="Bullet_20_Symbols" style:num-suffix="." text:bullet-char="▪">
+        <style:list-level-properties text:space-before="3.2in" text:min-label-width="0.4in" />
       </text:list-level-style-bullet>
       <text:list-level-style-bullet text:level="10" text:style-name="Bullet_20_Symbols" style:num-suffix="." text:bullet-char="•">
-        <style:list-level-properties text:space-before="2.5in" text:min-label-width="0.25in" />
+        <style:list-level-properties text:space-before="3.6in" text:min-label-width="0.4in" />
       </text:list-level-style-bullet>
     </text:list-style>
     <text:list-style style:name="L20">
       <text:list-level-style-bullet text:level="1" text:style-name="Bullet_20_Symbols" style:num-suffix="." text:bullet-char="•">
-        <style:list-level-properties text:space-before="0.25in" text:min-label-width="0.25in" />
+        <style:list-level-properties text:space-before="0.0in" text:min-label-width="0.4in" />
       </text:list-level-style-bullet>
-      <text:list-level-style-bullet text:level="2" text:style-name="Bullet_20_Symbols" style:num-suffix="." text:bullet-char="‣">
-        <style:list-level-properties text:space-before="0.5in" text:min-label-width="0.25in" />
+      <text:list-level-style-bullet text:level="2" text:style-name="Bullet_20_Symbols" style:num-suffix="." text:bullet-char="◦">
+        <style:list-level-properties text:space-before="0.4in" text:min-label-width="0.4in" />
       </text:list-level-style-bullet>
-      <text:list-level-style-bullet text:level="3" text:style-name="Bullet_20_Symbols" style:num-suffix="." text:bullet-char="⁃">
-        <style:list-level-properties text:space-before="0.75in" text:min-label-width="0.25in" />
+      <text:list-level-style-bullet text:level="3" text:style-name="Bullet_20_Symbols" style:num-suffix="." text:bullet-char="▪">
+        <style:list-level-properties text:space-before="0.8in" text:min-label-width="0.4in" />
       </text:list-level-style-bullet>
       <text:list-level-style-bullet text:level="4" text:style-name="Bullet_20_Symbols" style:num-suffix="." text:bullet-char="•">
-        <style:list-level-properties text:space-before="1.0in" text:min-label-width="0.25in" />
+        <style:list-level-properties text:space-before="1.2000000000000002in" text:min-label-width="0.4in" />
       </text:list-level-style-bullet>
-      <text:list-level-style-bullet text:level="5" text:style-name="Bullet_20_Symbols" style:num-suffix="." text:bullet-char="‣">
-        <style:list-level-properties text:space-before="1.25in" text:min-label-width="0.25in" />
+      <text:list-level-style-bullet text:level="5" text:style-name="Bullet_20_Symbols" style:num-suffix="." text:bullet-char="◦">
+        <style:list-level-properties text:space-before="1.6in" text:min-label-width="0.4in" />
       </text:list-level-style-bullet>
-      <text:list-level-style-bullet text:level="6" text:style-name="Bullet_20_Symbols" style:num-suffix="." text:bullet-char="⁃">
-        <style:list-level-properties text:space-before="1.5in" text:min-label-width="0.25in" />
+      <text:list-level-style-bullet text:level="6" text:style-name="Bullet_20_Symbols" style:num-suffix="." text:bullet-char="▪">
+        <style:list-level-properties text:space-before="2.0in" text:min-label-width="0.4in" />
       </text:list-level-style-bullet>
       <text:list-level-style-bullet text:level="7" text:style-name="Bullet_20_Symbols" style:num-suffix="." text:bullet-char="•">
-        <style:list-level-properties text:space-before="1.75in" text:min-label-width="0.25in" />
+        <style:list-level-properties text:space-before="2.4000000000000004in" text:min-label-width="0.4in" />
       </text:list-level-style-bullet>
-      <text:list-level-style-bullet text:level="8" text:style-name="Bullet_20_Symbols" style:num-suffix="." text:bullet-char="‣">
-        <style:list-level-properties text:space-before="2.0in" text:min-label-width="0.25in" />
+      <text:list-level-style-bullet text:level="8" text:style-name="Bullet_20_Symbols" style:num-suffix="." text:bullet-char="◦">
+        <style:list-level-properties text:space-before="2.8000000000000003in" text:min-label-width="0.4in" />
       </text:list-level-style-bullet>
-      <text:list-level-style-bullet text:level="9" text:style-name="Bullet_20_Symbols" style:num-suffix="." text:bullet-char="⁃">
-        <style:list-level-properties text:space-before="2.25in" text:min-label-width="0.25in" />
+      <text:list-level-style-bullet text:level="9" text:style-name="Bullet_20_Symbols" style:num-suffix="." text:bullet-char="▪">
+        <style:list-level-properties text:space-before="3.2in" text:min-label-width="0.4in" />
       </text:list-level-style-bullet>
       <text:list-level-style-bullet text:level="10" text:style-name="Bullet_20_Symbols" style:num-suffix="." text:bullet-char="•">
-        <style:list-level-properties text:space-before="2.5in" text:min-label-width="0.25in" />
+        <style:list-level-properties text:space-before="3.6in" text:min-label-width="0.4in" />
       </text:list-level-style-bullet>
     </text:list-style>
     <text:list-style style:name="L21">
       <text:list-level-style-bullet text:level="1" text:style-name="Bullet_20_Symbols" style:num-suffix="." text:bullet-char="•">
-        <style:list-level-properties text:space-before="0.25in" text:min-label-width="0.25in" />
+        <style:list-level-properties text:space-before="0.0in" text:min-label-width="0.4in" />
       </text:list-level-style-bullet>
-      <text:list-level-style-bullet text:level="2" text:style-name="Bullet_20_Symbols" style:num-suffix="." text:bullet-char="‣">
-        <style:list-level-properties text:space-before="0.5in" text:min-label-width="0.25in" />
+      <text:list-level-style-bullet text:level="2" text:style-name="Bullet_20_Symbols" style:num-suffix="." text:bullet-char="◦">
+        <style:list-level-properties text:space-before="0.4in" text:min-label-width="0.4in" />
       </text:list-level-style-bullet>
-      <text:list-level-style-bullet text:level="3" text:style-name="Bullet_20_Symbols" style:num-suffix="." text:bullet-char="⁃">
-        <style:list-level-properties text:space-before="0.75in" text:min-label-width="0.25in" />
+      <text:list-level-style-bullet text:level="3" text:style-name="Bullet_20_Symbols" style:num-suffix="." text:bullet-char="▪">
+        <style:list-level-properties text:space-before="0.8in" text:min-label-width="0.4in" />
       </text:list-level-style-bullet>
       <text:list-level-style-bullet text:level="4" text:style-name="Bullet_20_Symbols" style:num-suffix="." text:bullet-char="•">
-        <style:list-level-properties text:space-before="1.0in" text:min-label-width="0.25in" />
+        <style:list-level-properties text:space-before="1.2000000000000002in" text:min-label-width="0.4in" />
       </text:list-level-style-bullet>
-      <text:list-level-style-bullet text:level="5" text:style-name="Bullet_20_Symbols" style:num-suffix="." text:bullet-char="‣">
-        <style:list-level-properties text:space-before="1.25in" text:min-label-width="0.25in" />
+      <text:list-level-style-bullet text:level="5" text:style-name="Bullet_20_Symbols" style:num-suffix="." text:bullet-char="◦">
+        <style:list-level-properties text:space-before="1.6in" text:min-label-width="0.4in" />
       </text:list-level-style-bullet>
-      <text:list-level-style-bullet text:level="6" text:style-name="Bullet_20_Symbols" style:num-suffix="." text:bullet-char="⁃">
-        <style:list-level-properties text:space-before="1.5in" text:min-label-width="0.25in" />
+      <text:list-level-style-bullet text:level="6" text:style-name="Bullet_20_Symbols" style:num-suffix="." text:bullet-char="▪">
+        <style:list-level-properties text:space-before="2.0in" text:min-label-width="0.4in" />
       </text:list-level-style-bullet>
       <text:list-level-style-bullet text:level="7" text:style-name="Bullet_20_Symbols" style:num-suffix="." text:bullet-char="•">
-        <style:list-level-properties text:space-before="1.75in" text:min-label-width="0.25in" />
+        <style:list-level-properties text:space-before="2.4000000000000004in" text:min-label-width="0.4in" />
       </text:list-level-style-bullet>
-      <text:list-level-style-bullet text:level="8" text:style-name="Bullet_20_Symbols" style:num-suffix="." text:bullet-char="‣">
-        <style:list-level-properties text:space-before="2.0in" text:min-label-width="0.25in" />
+      <text:list-level-style-bullet text:level="8" text:style-name="Bullet_20_Symbols" style:num-suffix="." text:bullet-char="◦">
+        <style:list-level-properties text:space-before="2.8000000000000003in" text:min-label-width="0.4in" />
       </text:list-level-style-bullet>
-      <text:list-level-style-bullet text:level="9" text:style-name="Bullet_20_Symbols" style:num-suffix="." text:bullet-char="⁃">
-        <style:list-level-properties text:space-before="2.25in" text:min-label-width="0.25in" />
+      <text:list-level-style-bullet text:level="9" text:style-name="Bullet_20_Symbols" style:num-suffix="." text:bullet-char="▪">
+        <style:list-level-properties text:space-before="3.2in" text:min-label-width="0.4in" />
       </text:list-level-style-bullet>
       <text:list-level-style-bullet text:level="10" text:style-name="Bullet_20_Symbols" style:num-suffix="." text:bullet-char="•">
-        <style:list-level-properties text:space-before="2.5in" text:min-label-width="0.25in" />
+        <style:list-level-properties text:space-before="3.6in" text:min-label-width="0.4in" />
       </text:list-level-style-bullet>
     </text:list-style>
     <text:list-style style:name="L22">
       <text:list-level-style-number text:level="1" text:style-name="Numbering_20_Symbols" style:num-format="1" text:start-value="2" style:num-prefix="(" style:num-suffix=")">
-        <style:list-level-properties text:space-before="0.25in" text:min-label-width="0.25in" />
+        <style:list-level-properties text:space-before="0.0in" text:min-label-width="0.4in" />
       </text:list-level-style-number>
       <text:list-level-style-number text:level="2" text:style-name="Numbering_20_Symbols" style:num-format="i" text:start-value="4" style:num-suffix=".">
-        <style:list-level-properties text:space-before="0.5in" text:min-label-width="0.25in" />
+        <style:list-level-properties text:space-before="0.4in" text:min-label-width="0.4in" />
       </text:list-level-style-number>
       <text:list-level-style-number text:level="3" text:style-name="Numbering_20_Symbols" style:num-format="A" text:start-value="1" style:num-prefix="(" style:num-suffix=")">
-        <style:list-level-properties text:space-before="0.75in" text:min-label-width="0.25in" />
+        <style:list-level-properties text:space-before="0.8in" text:min-label-width="0.4in" />
       </text:list-level-style-number>
     </text:list-style>
     <text:list-style style:name="L23">
       <text:list-level-style-number text:level="1" text:style-name="Numbering_20_Symbols" style:num-format="A" text:start-value="1" style:num-suffix=".">
-        <style:list-level-properties text:space-before="0.25in" text:min-label-width="0.25in" />
+        <style:list-level-properties text:space-before="0.0in" text:min-label-width="0.4in" />
       </text:list-level-style-number>
       <text:list-level-style-number text:level="2" text:style-name="Numbering_20_Symbols" style:num-format="I" text:start-value="1" style:num-suffix=".">
-        <style:list-level-properties text:space-before="0.5in" text:min-label-width="0.25in" />
+        <style:list-level-properties text:space-before="0.4in" text:min-label-width="0.4in" />
       </text:list-level-style-number>
       <text:list-level-style-number text:level="3" text:style-name="Numbering_20_Symbols" style:num-format="1" text:start-value="6" style:num-prefix="(" style:num-suffix=")">
-        <style:list-level-properties text:space-before="0.75in" text:min-label-width="0.25in" />
+        <style:list-level-properties text:space-before="0.8in" text:min-label-width="0.4in" />
       </text:list-level-style-number>
       <text:list-level-style-number text:level="4" text:style-name="Numbering_20_Symbols" style:num-format="a" text:start-value="3" style:num-suffix=")">
-        <style:list-level-properties text:space-before="1.0in" text:min-label-width="0.25in" />
+        <style:list-level-properties text:space-before="1.2000000000000002in" text:min-label-width="0.4in" />
       </text:list-level-style-number>
     </text:list-style>
     <text:list-style style:name="L24">
       <text:list-level-style-number text:level="1" text:style-name="Numbering_20_Symbols" style:num-format="1" text:start-value="1" style:num-suffix=".">
-        <style:list-level-properties text:space-before="0.25in" text:min-label-width="0.25in" />
+        <style:list-level-properties text:space-before="0.0in" text:min-label-width="0.4in" />
       </text:list-level-style-number>
       <text:list-level-style-number text:level="2" text:style-name="Numbering_20_Symbols" style:num-format="1" text:start-value="1" style:num-suffix=".">
-        <style:list-level-properties text:space-before="0.5in" text:min-label-width="0.25in" />
+        <style:list-level-properties text:space-before="0.4in" text:min-label-width="0.4in" />
       </text:list-level-style-number>
     </text:list-style>
     <text:list-style style:name="L25">
       <text:list-level-style-number text:level="1" text:style-name="Numbering_20_Symbols" style:num-format="1" text:start-value="1" style:num-suffix=".">
-        <style:list-level-properties text:space-before="0.25in" text:min-label-width="0.25in" />
+        <style:list-level-properties text:space-before="0.0in" text:min-label-width="0.4in" />
       </text:list-level-style-number>
     </text:list-style>
     <text:list-style style:name="L26">
       <text:list-level-style-bullet text:level="1" text:style-name="Bullet_20_Symbols" style:num-suffix="." text:bullet-char="•">
-        <style:list-level-properties text:space-before="0.25in" text:min-label-width="0.25in" />
+        <style:list-level-properties text:space-before="0.0in" text:min-label-width="0.4in" />
       </text:list-level-style-bullet>
-      <text:list-level-style-bullet text:level="2" text:style-name="Bullet_20_Symbols" style:num-suffix="." text:bullet-char="‣">
-        <style:list-level-properties text:space-before="0.5in" text:min-label-width="0.25in" />
+      <text:list-level-style-bullet text:level="2" text:style-name="Bullet_20_Symbols" style:num-suffix="." text:bullet-char="◦">
+        <style:list-level-properties text:space-before="0.4in" text:min-label-width="0.4in" />
       </text:list-level-style-bullet>
-      <text:list-level-style-bullet text:level="3" text:style-name="Bullet_20_Symbols" style:num-suffix="." text:bullet-char="⁃">
-        <style:list-level-properties text:space-before="0.75in" text:min-label-width="0.25in" />
+      <text:list-level-style-bullet text:level="3" text:style-name="Bullet_20_Symbols" style:num-suffix="." text:bullet-char="▪">
+        <style:list-level-properties text:space-before="0.8in" text:min-label-width="0.4in" />
       </text:list-level-style-bullet>
       <text:list-level-style-bullet text:level="4" text:style-name="Bullet_20_Symbols" style:num-suffix="." text:bullet-char="•">
-        <style:list-level-properties text:space-before="1.0in" text:min-label-width="0.25in" />
+        <style:list-level-properties text:space-before="1.2000000000000002in" text:min-label-width="0.4in" />
       </text:list-level-style-bullet>
-      <text:list-level-style-bullet text:level="5" text:style-name="Bullet_20_Symbols" style:num-suffix="." text:bullet-char="‣">
-        <style:list-level-properties text:space-before="1.25in" text:min-label-width="0.25in" />
+      <text:list-level-style-bullet text:level="5" text:style-name="Bullet_20_Symbols" style:num-suffix="." text:bullet-char="◦">
+        <style:list-level-properties text:space-before="1.6in" text:min-label-width="0.4in" />
       </text:list-level-style-bullet>
-      <text:list-level-style-bullet text:level="6" text:style-name="Bullet_20_Symbols" style:num-suffix="." text:bullet-char="⁃">
-        <style:list-level-properties text:space-before="1.5in" text:min-label-width="0.25in" />
+      <text:list-level-style-bullet text:level="6" text:style-name="Bullet_20_Symbols" style:num-suffix="." text:bullet-char="▪">
+        <style:list-level-properties text:space-before="2.0in" text:min-label-width="0.4in" />
       </text:list-level-style-bullet>
       <text:list-level-style-bullet text:level="7" text:style-name="Bullet_20_Symbols" style:num-suffix="." text:bullet-char="•">
-        <style:list-level-properties text:space-before="1.75in" text:min-label-width="0.25in" />
+        <style:list-level-properties text:space-before="2.4000000000000004in" text:min-label-width="0.4in" />
       </text:list-level-style-bullet>
-      <text:list-level-style-bullet text:level="8" text:style-name="Bullet_20_Symbols" style:num-suffix="." text:bullet-char="‣">
-        <style:list-level-properties text:space-before="2.0in" text:min-label-width="0.25in" />
+      <text:list-level-style-bullet text:level="8" text:style-name="Bullet_20_Symbols" style:num-suffix="." text:bullet-char="◦">
+        <style:list-level-properties text:space-before="2.8000000000000003in" text:min-label-width="0.4in" />
       </text:list-level-style-bullet>
-      <text:list-level-style-bullet text:level="9" text:style-name="Bullet_20_Symbols" style:num-suffix="." text:bullet-char="⁃">
-        <style:list-level-properties text:space-before="2.25in" text:min-label-width="0.25in" />
+      <text:list-level-style-bullet text:level="9" text:style-name="Bullet_20_Symbols" style:num-suffix="." text:bullet-char="▪">
+        <style:list-level-properties text:space-before="3.2in" text:min-label-width="0.4in" />
       </text:list-level-style-bullet>
       <text:list-level-style-bullet text:level="10" text:style-name="Bullet_20_Symbols" style:num-suffix="." text:bullet-char="•">
-        <style:list-level-properties text:space-before="2.5in" text:min-label-width="0.25in" />
+        <style:list-level-properties text:space-before="3.6in" text:min-label-width="0.4in" />
       </text:list-level-style-bullet>
     </text:list-style>
     <text:list-style style:name="L27">
       <text:list-level-style-bullet text:level="1" text:style-name="Bullet_20_Symbols" style:num-suffix="." text:bullet-char="•">
-        <style:list-level-properties text:space-before="0.25in" text:min-label-width="0.25in" />
+        <style:list-level-properties text:space-before="0.0in" text:min-label-width="0.4in" />
       </text:list-level-style-bullet>
-      <text:list-level-style-bullet text:level="2" text:style-name="Bullet_20_Symbols" style:num-suffix="." text:bullet-char="‣">
-        <style:list-level-properties text:space-before="0.5in" text:min-label-width="0.25in" />
+      <text:list-level-style-bullet text:level="2" text:style-name="Bullet_20_Symbols" style:num-suffix="." text:bullet-char="◦">
+        <style:list-level-properties text:space-before="0.4in" text:min-label-width="0.4in" />
       </text:list-level-style-bullet>
-      <text:list-level-style-bullet text:level="3" text:style-name="Bullet_20_Symbols" style:num-suffix="." text:bullet-char="⁃">
-        <style:list-level-properties text:space-before="0.75in" text:min-label-width="0.25in" />
+      <text:list-level-style-bullet text:level="3" text:style-name="Bullet_20_Symbols" style:num-suffix="." text:bullet-char="▪">
+        <style:list-level-properties text:space-before="0.8in" text:min-label-width="0.4in" />
       </text:list-level-style-bullet>
       <text:list-level-style-bullet text:level="4" text:style-name="Bullet_20_Symbols" style:num-suffix="." text:bullet-char="•">
-        <style:list-level-properties text:space-before="1.0in" text:min-label-width="0.25in" />
+        <style:list-level-properties text:space-before="1.2000000000000002in" text:min-label-width="0.4in" />
       </text:list-level-style-bullet>
-      <text:list-level-style-bullet text:level="5" text:style-name="Bullet_20_Symbols" style:num-suffix="." text:bullet-char="‣">
-        <style:list-level-properties text:space-before="1.25in" text:min-label-width="0.25in" />
+      <text:list-level-style-bullet text:level="5" text:style-name="Bullet_20_Symbols" style:num-suffix="." text:bullet-char="◦">
+        <style:list-level-properties text:space-before="1.6in" text:min-label-width="0.4in" />
       </text:list-level-style-bullet>
-      <text:list-level-style-bullet text:level="6" text:style-name="Bullet_20_Symbols" style:num-suffix="." text:bullet-char="⁃">
-        <style:list-level-properties text:space-before="1.5in" text:min-label-width="0.25in" />
+      <text:list-level-style-bullet text:level="6" text:style-name="Bullet_20_Symbols" style:num-suffix="." text:bullet-char="▪">
+        <style:list-level-properties text:space-before="2.0in" text:min-label-width="0.4in" />
       </text:list-level-style-bullet>
       <text:list-level-style-bullet text:level="7" text:style-name="Bullet_20_Symbols" style:num-suffix="." text:bullet-char="•">
-        <style:list-level-properties text:space-before="1.75in" text:min-label-width="0.25in" />
+        <style:list-level-properties text:space-before="2.4000000000000004in" text:min-label-width="0.4in" />
       </text:list-level-style-bullet>
-      <text:list-level-style-bullet text:level="8" text:style-name="Bullet_20_Symbols" style:num-suffix="." text:bullet-char="‣">
-        <style:list-level-properties text:space-before="2.0in" text:min-label-width="0.25in" />
+      <text:list-level-style-bullet text:level="8" text:style-name="Bullet_20_Symbols" style:num-suffix="." text:bullet-char="◦">
+        <style:list-level-properties text:space-before="2.8000000000000003in" text:min-label-width="0.4in" />
       </text:list-level-style-bullet>
-      <text:list-level-style-bullet text:level="9" text:style-name="Bullet_20_Symbols" style:num-suffix="." text:bullet-char="⁃">
-        <style:list-level-properties text:space-before="2.25in" text:min-label-width="0.25in" />
+      <text:list-level-style-bullet text:level="9" text:style-name="Bullet_20_Symbols" style:num-suffix="." text:bullet-char="▪">
+        <style:list-level-properties text:space-before="3.2in" text:min-label-width="0.4in" />
       </text:list-level-style-bullet>
       <text:list-level-style-bullet text:level="10" text:style-name="Bullet_20_Symbols" style:num-suffix="." text:bullet-char="•">
-        <style:list-level-properties text:space-before="2.5in" text:min-label-width="0.25in" />
+        <style:list-level-properties text:space-before="3.6in" text:min-label-width="0.4in" />
       </text:list-level-style-bullet>
     </text:list-style>
     <text:list-style style:name="L28">
       <text:list-level-style-bullet text:level="1" text:style-name="Bullet_20_Symbols" style:num-suffix="." text:bullet-char="•">
-        <style:list-level-properties text:space-before="0.25in" text:min-label-width="0.25in" />
+        <style:list-level-properties text:space-before="0.0in" text:min-label-width="0.4in" />
       </text:list-level-style-bullet>
-      <text:list-level-style-bullet text:level="2" text:style-name="Bullet_20_Symbols" style:num-suffix="." text:bullet-char="‣">
-        <style:list-level-properties text:space-before="0.5in" text:min-label-width="0.25in" />
+      <text:list-level-style-bullet text:level="2" text:style-name="Bullet_20_Symbols" style:num-suffix="." text:bullet-char="◦">
+        <style:list-level-properties text:space-before="0.4in" text:min-label-width="0.4in" />
       </text:list-level-style-bullet>
-      <text:list-level-style-bullet text:level="3" text:style-name="Bullet_20_Symbols" style:num-suffix="." text:bullet-char="⁃">
-        <style:list-level-properties text:space-before="0.75in" text:min-label-width="0.25in" />
+      <text:list-level-style-bullet text:level="3" text:style-name="Bullet_20_Symbols" style:num-suffix="." text:bullet-char="▪">
+        <style:list-level-properties text:space-before="0.8in" text:min-label-width="0.4in" />
       </text:list-level-style-bullet>
       <text:list-level-style-bullet text:level="4" text:style-name="Bullet_20_Symbols" style:num-suffix="." text:bullet-char="•">
-        <style:list-level-properties text:space-before="1.0in" text:min-label-width="0.25in" />
+        <style:list-level-properties text:space-before="1.2000000000000002in" text:min-label-width="0.4in" />
       </text:list-level-style-bullet>
-      <text:list-level-style-bullet text:level="5" text:style-name="Bullet_20_Symbols" style:num-suffix="." text:bullet-char="‣">
-        <style:list-level-properties text:space-before="1.25in" text:min-label-width="0.25in" />
+      <text:list-level-style-bullet text:level="5" text:style-name="Bullet_20_Symbols" style:num-suffix="." text:bullet-char="◦">
+        <style:list-level-properties text:space-before="1.6in" text:min-label-width="0.4in" />
       </text:list-level-style-bullet>
-      <text:list-level-style-bullet text:level="6" text:style-name="Bullet_20_Symbols" style:num-suffix="." text:bullet-char="⁃">
-        <style:list-level-properties text:space-before="1.5in" text:min-label-width="0.25in" />
+      <text:list-level-style-bullet text:level="6" text:style-name="Bullet_20_Symbols" style:num-suffix="." text:bullet-char="▪">
+        <style:list-level-properties text:space-before="2.0in" text:min-label-width="0.4in" />
       </text:list-level-style-bullet>
       <text:list-level-style-bullet text:level="7" text:style-name="Bullet_20_Symbols" style:num-suffix="." text:bullet-char="•">
-        <style:list-level-properties text:space-before="1.75in" text:min-label-width="0.25in" />
+        <style:list-level-properties text:space-before="2.4000000000000004in" text:min-label-width="0.4in" />
       </text:list-level-style-bullet>
-      <text:list-level-style-bullet text:level="8" text:style-name="Bullet_20_Symbols" style:num-suffix="." text:bullet-char="‣">
-        <style:list-level-properties text:space-before="2.0in" text:min-label-width="0.25in" />
+      <text:list-level-style-bullet text:level="8" text:style-name="Bullet_20_Symbols" style:num-suffix="." text:bullet-char="◦">
+        <style:list-level-properties text:space-before="2.8000000000000003in" text:min-label-width="0.4in" />
       </text:list-level-style-bullet>
-      <text:list-level-style-bullet text:level="9" text:style-name="Bullet_20_Symbols" style:num-suffix="." text:bullet-char="⁃">
-        <style:list-level-properties text:space-before="2.25in" text:min-label-width="0.25in" />
+      <text:list-level-style-bullet text:level="9" text:style-name="Bullet_20_Symbols" style:num-suffix="." text:bullet-char="▪">
+        <style:list-level-properties text:space-before="3.2in" text:min-label-width="0.4in" />
       </text:list-level-style-bullet>
       <text:list-level-style-bullet text:level="10" text:style-name="Bullet_20_Symbols" style:num-suffix="." text:bullet-char="•">
-        <style:list-level-properties text:space-before="2.5in" text:min-label-width="0.25in" />
+        <style:list-level-properties text:space-before="3.6in" text:min-label-width="0.4in" />
       </text:list-level-style-bullet>
     </text:list-style>
     <text:list-style style:name="L29">
       <text:list-level-style-bullet text:level="1" text:style-name="Bullet_20_Symbols" style:num-suffix="." text:bullet-char="•">
-        <style:list-level-properties text:space-before="0.25in" text:min-label-width="0.25in" />
+        <style:list-level-properties text:space-before="0.0in" text:min-label-width="0.4in" />
       </text:list-level-style-bullet>
-      <text:list-level-style-bullet text:level="2" text:style-name="Bullet_20_Symbols" style:num-suffix="." text:bullet-char="‣">
-        <style:list-level-properties text:space-before="0.5in" text:min-label-width="0.25in" />
+      <text:list-level-style-bullet text:level="2" text:style-name="Bullet_20_Symbols" style:num-suffix="." text:bullet-char="◦">
+        <style:list-level-properties text:space-before="0.4in" text:min-label-width="0.4in" />
       </text:list-level-style-bullet>
-      <text:list-level-style-bullet text:level="3" text:style-name="Bullet_20_Symbols" style:num-suffix="." text:bullet-char="⁃">
-        <style:list-level-properties text:space-before="0.75in" text:min-label-width="0.25in" />
+      <text:list-level-style-bullet text:level="3" text:style-name="Bullet_20_Symbols" style:num-suffix="." text:bullet-char="▪">
+        <style:list-level-properties text:space-before="0.8in" text:min-label-width="0.4in" />
       </text:list-level-style-bullet>
       <text:list-level-style-bullet text:level="4" text:style-name="Bullet_20_Symbols" style:num-suffix="." text:bullet-char="•">
-        <style:list-level-properties text:space-before="1.0in" text:min-label-width="0.25in" />
+        <style:list-level-properties text:space-before="1.2000000000000002in" text:min-label-width="0.4in" />
       </text:list-level-style-bullet>
-      <text:list-level-style-bullet text:level="5" text:style-name="Bullet_20_Symbols" style:num-suffix="." text:bullet-char="‣">
-        <style:list-level-properties text:space-before="1.25in" text:min-label-width="0.25in" />
+      <text:list-level-style-bullet text:level="5" text:style-name="Bullet_20_Symbols" style:num-suffix="." text:bullet-char="◦">
+        <style:list-level-properties text:space-before="1.6in" text:min-label-width="0.4in" />
       </text:list-level-style-bullet>
-      <text:list-level-style-bullet text:level="6" text:style-name="Bullet_20_Symbols" style:num-suffix="." text:bullet-char="⁃">
-        <style:list-level-properties text:space-before="1.5in" text:min-label-width="0.25in" />
+      <text:list-level-style-bullet text:level="6" text:style-name="Bullet_20_Symbols" style:num-suffix="." text:bullet-char="▪">
+        <style:list-level-properties text:space-before="2.0in" text:min-label-width="0.4in" />
       </text:list-level-style-bullet>
       <text:list-level-style-bullet text:level="7" text:style-name="Bullet_20_Symbols" style:num-suffix="." text:bullet-char="•">
-        <style:list-level-properties text:space-before="1.75in" text:min-label-width="0.25in" />
+        <style:list-level-properties text:space-before="2.4000000000000004in" text:min-label-width="0.4in" />
       </text:list-level-style-bullet>
-      <text:list-level-style-bullet text:level="8" text:style-name="Bullet_20_Symbols" style:num-suffix="." text:bullet-char="‣">
-        <style:list-level-properties text:space-before="2.0in" text:min-label-width="0.25in" />
+      <text:list-level-style-bullet text:level="8" text:style-name="Bullet_20_Symbols" style:num-suffix="." text:bullet-char="◦">
+        <style:list-level-properties text:space-before="2.8000000000000003in" text:min-label-width="0.4in" />
       </text:list-level-style-bullet>
-      <text:list-level-style-bullet text:level="9" text:style-name="Bullet_20_Symbols" style:num-suffix="." text:bullet-char="⁃">
-        <style:list-level-properties text:space-before="2.25in" text:min-label-width="0.25in" />
+      <text:list-level-style-bullet text:level="9" text:style-name="Bullet_20_Symbols" style:num-suffix="." text:bullet-char="▪">
+        <style:list-level-properties text:space-before="3.2in" text:min-label-width="0.4in" />
       </text:list-level-style-bullet>
       <text:list-level-style-bullet text:level="10" text:style-name="Bullet_20_Symbols" style:num-suffix="." text:bullet-char="•">
-        <style:list-level-properties text:space-before="2.5in" text:min-label-width="0.25in" />
+        <style:list-level-properties text:space-before="3.6in" text:min-label-width="0.4in" />
       </text:list-level-style-bullet>
     </text:list-style>
     <text:list-style style:name="L30">
       <text:list-level-style-number text:level="1" text:style-name="Numbering_20_Symbols" style:num-format="1" text:start-value="1" style:num-suffix=".">
-        <style:list-level-properties text:space-before="0.25in" text:min-label-width="0.25in" />
+        <style:list-level-properties text:space-before="0.0in" text:min-label-width="0.4in" />
       </text:list-level-style-number>
     </text:list-style>
     <style:style style:name="T1" style:family="text"><style:text-properties fo:font-style="italic" style:font-style-asian="italic" style:font-style-complex="italic" /></style:style>

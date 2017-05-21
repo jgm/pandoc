@@ -1,5 +1,5 @@
 {-
-Copyright (C) 2010-2015 John MacFarlane <jgm@berkeley.edu>
+Copyright (C) 2010-2017 John MacFarlane <jgm@berkeley.edu>
 
 This program is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -18,7 +18,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 {- |
    Module      : Text.Pandoc.Writers.Textile
-   Copyright   : Copyright (C) 2010-2015 John MacFarlane
+   Copyright   : Copyright (C) 2010-2017 John MacFarlane
    License     : GNU GPL, version 2 or above
 
    Maintainer  : John MacFarlane <jgm@berkeley.edu>
@@ -33,7 +33,8 @@ module Text.Pandoc.Writers.Textile ( writeTextile ) where
 import Control.Monad.State
 import Data.Char (isSpace)
 import Data.List (intercalate)
-import Text.Pandoc.Class (PandocMonad)
+import Text.Pandoc.Class (PandocMonad, report)
+import Text.Pandoc.Logging
 import Text.Pandoc.Definition
 import Text.Pandoc.ImageSize
 import Text.Pandoc.Options
@@ -50,15 +51,20 @@ data WriterState = WriterState {
   , stUseTags   :: Bool            -- True if we should use HTML tags because we're in a complex list
   }
 
+type TW = StateT WriterState
+
 -- | Convert Pandoc to Textile.
 writeTextile :: PandocMonad m => WriterOptions -> Pandoc -> m String
-writeTextile opts document = return $
-  evalState (pandocToTextile opts document)
-            WriterState { stNotes = [], stListLevel = [], stStartNum = Nothing,
+writeTextile opts document =
+  evalStateT (pandocToTextile opts document)
+            WriterState { stNotes = [],
+                          stListLevel = [],
+                          stStartNum = Nothing,
                           stUseTags = False }
 
 -- | Return Textile representation of document.
-pandocToTextile :: WriterOptions -> Pandoc -> State WriterState String
+pandocToTextile :: PandocMonad m
+                => WriterOptions -> Pandoc -> TW m String
 pandocToTextile opts (Pandoc meta blocks) = do
   metadata <- metaToJSON opts (blockListToTextile opts)
                  (inlineListToTextile opts) meta
@@ -70,7 +76,7 @@ pandocToTextile opts (Pandoc meta blocks) = do
        Nothing  -> return main
        Just tpl -> return $ renderTemplate' tpl context
 
-withUseTags :: State WriterState a -> State WriterState a
+withUseTags :: PandocMonad m => TW m a -> TW m a
 withUseTags action = do
   oldUseTags <- gets stUseTags
   modify $ \s -> s { stUseTags = True }
@@ -102,9 +108,10 @@ escapeStringForTextile :: String -> String
 escapeStringForTextile = concatMap escapeCharForTextile
 
 -- | Convert Pandoc block element to Textile.
-blockToTextile :: WriterOptions -- ^ Options
-                -> Block         -- ^ Block element
-                -> State WriterState String
+blockToTextile :: PandocMonad m
+               => WriterOptions -- ^ Options
+               -> Block         -- ^ Block element
+               -> TW m String
 
 blockToTextile _ Null = return ""
 
@@ -134,9 +141,11 @@ blockToTextile opts (Para inlines) = do
 blockToTextile opts (LineBlock lns) =
   blockToTextile opts $ linesToPara lns
 
-blockToTextile _ (RawBlock f str)
+blockToTextile _ b@(RawBlock f str)
   | f == Format "html" || f == Format "textile" = return str
-  | otherwise                                   = return ""
+  | otherwise                                   = do
+      report $ BlockNotRendered b
+      return ""
 
 blockToTextile _ HorizontalRule = return "<hr />\n"
 
@@ -262,7 +271,8 @@ listAttribsToString (startnum, numstyle, _) =
           else "")
 
 -- | Convert bullet or ordered list item (list of blocks) to Textile.
-listItemToTextile :: WriterOptions -> [Block] -> State WriterState String
+listItemToTextile :: PandocMonad m
+                  => WriterOptions -> [Block] -> TW m String
 listItemToTextile opts items = do
   contents <- blockListToTextile opts items
   useTags <- gets stUseTags
@@ -278,9 +288,10 @@ listItemToTextile opts items = do
             Nothing -> return $ marker ++ " " ++ contents
 
 -- | Convert definition list item (label, list of blocks) to Textile.
-definitionListItemToTextile :: WriterOptions
+definitionListItemToTextile :: PandocMonad m
+                            => WriterOptions
                              -> ([Inline],[[Block]])
-                             -> State WriterState String
+                             -> TW m String
 definitionListItemToTextile opts (label, items) = do
   labelText <- inlineListToTextile opts label
   contents <- mapM (blockListToTextile opts) items
@@ -326,11 +337,12 @@ vcat = intercalate "\n"
 -- Auxiliary functions for tables. (TODO: these are common to HTML, MediaWiki,
 -- and Textile writers, and should be abstracted out.)
 
-tableRowToTextile :: WriterOptions
-                    -> [String]
-                    -> Int
-                    -> [[Block]]
-                    -> State WriterState String
+tableRowToTextile :: PandocMonad m
+                  => WriterOptions
+                  -> [String]
+                  -> Int
+                  -> [[Block]]
+                  -> TW m String
 tableRowToTextile opts alignStrings rownum cols' = do
   let celltype = if rownum == 0 then "th" else "td"
   let rowclass = case rownum of
@@ -349,11 +361,12 @@ alignmentToString alignment = case alignment of
                                  AlignCenter  -> "center"
                                  AlignDefault -> "left"
 
-tableItemToTextile :: WriterOptions
-                     -> String
-                     -> String
-                     -> [Block]
-                     -> State WriterState String
+tableItemToTextile :: PandocMonad m
+                   => WriterOptions
+                   -> String
+                   -> String
+                   -> [Block]
+                   -> TW m String
 tableItemToTextile opts celltype align' item = do
   let mkcell x = "<" ++ celltype ++ " align=\"" ++ align' ++ "\">" ++
                     x ++ "</" ++ celltype ++ ">"
@@ -361,19 +374,21 @@ tableItemToTextile opts celltype align' item = do
   return $ mkcell contents
 
 -- | Convert list of Pandoc block elements to Textile.
-blockListToTextile :: WriterOptions -- ^ Options
-                    -> [Block]       -- ^ List of block elements
-                    -> State WriterState String
+blockListToTextile :: PandocMonad m
+                   => WriterOptions -- ^ Options
+                   -> [Block]       -- ^ List of block elements
+                   -> TW m String
 blockListToTextile opts blocks =
   mapM (blockToTextile opts) blocks >>= return . vcat
 
 -- | Convert list of Pandoc inline elements to Textile.
-inlineListToTextile :: WriterOptions -> [Inline] -> State WriterState String
+inlineListToTextile :: PandocMonad m
+                    => WriterOptions -> [Inline] -> TW m String
 inlineListToTextile opts lst =
   mapM (inlineToTextile opts) lst >>= return . concat
 
 -- | Convert Pandoc inline element to Textile.
-inlineToTextile :: WriterOptions -> Inline -> State WriterState String
+inlineToTextile :: PandocMonad m => WriterOptions -> Inline -> TW m String
 
 inlineToTextile opts (Span _ lst) =
   inlineListToTextile opts lst
@@ -430,11 +445,13 @@ inlineToTextile _ (Str str) = return $ escapeStringForTextile str
 inlineToTextile _ (Math _ str) =
   return $ "<span class=\"math\">" ++ escapeStringForXML str ++ "</math>"
 
-inlineToTextile opts (RawInline f str)
+inlineToTextile opts il@(RawInline f str)
   | f == Format "html" || f == Format "textile" = return str
   | (f == Format "latex" || f == Format "tex") &&
      isEnabled Ext_raw_tex opts                 = return str
-  | otherwise                                   = return ""
+  | otherwise                                   = do
+      report $ InlineNotRendered il
+      return ""
 
 inlineToTextile _ LineBreak = return "\n"
 

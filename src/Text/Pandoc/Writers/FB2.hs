@@ -1,8 +1,8 @@
 {-# LANGUAGE PatternGuards #-}
 
 {-
-Copyright (c) 2011-2012, Sergey Astanin
-All rights reserved.
+Copyright (c) 2011-2012 Sergey Astanin
+              2012-2017 John MacFarlane
 
 This program is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -19,7 +19,17 @@ along with this program; if not, write to the Free Software
 Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 -}
 
-{- | Conversion of 'Pandoc' documents to FB2 (FictionBook2) format.
+{- |
+Module      : Text.Pandoc.Writers.FB2
+Copyright   : Copyright (C) 2011-2012 Sergey Astanin
+                            2012-2017 John MacFarlane
+License     : GNU GPL, version 2 or above
+
+Maintainer  : John MacFarlane
+Stability   : alpha
+Portability : portable
+
+Conversion of 'Pandoc' documents to FB2 (FictionBook2) format.
 
 FictionBook is an XML-based e-book format. For more information see:
 <http://www.fictionbook.org/index.php/Eng:XML_Schema_Fictionbook_2.1>
@@ -117,8 +127,13 @@ description meta' = do
   bt <- booktitle meta'
   let as = authors meta'
   dd <- docdate meta'
-  return $ el "description"
-    [ el "title-info" (bt ++ as ++ dd)
+  let lang = case lookupMeta "lang" meta' of
+               Just (MetaInlines [Str s]) -> [el "lang" $ iso639 s]
+               Just (MetaString s)        -> [el "lang" $ iso639 s]
+               _                          -> []
+             where iso639 = takeWhile (/= '-') -- Convert BCP 47 to ISO 639
+  return $ el "description" $
+    [ el "title-info" (bt ++ as ++ dd ++ lang)
     , el "document-info" [ el "program-used" "pandoc" ] -- FIXME: +version
     ]
 

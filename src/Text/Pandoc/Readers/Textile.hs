@@ -1,6 +1,6 @@
 {-
-Copyright (C) 2010-2015 Paul Rivier <paul*rivier#demotera*com> | tr '*#' '.@'
-                        and John MacFarlane
+Copyright (C) 2010-2012 Paul Rivier <paul*rivier#demotera*com> | tr '*#' '.@'
+              2010-2017 John MacFarlane
 
 This program is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -19,7 +19,8 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 {- |
    Module      : Text.Pandoc.Readers.Textile
-   Copyright   : Copyright (C) 2010-2015 Paul Rivier and John MacFarlane
+   Copyright   : Copyright (C) 2010-2012 Paul Rivier
+                               2010-2017 John MacFarlane
    License     : GNU GPL, version 2 or above
 
    Maintainer  : Paul Rivier <paul*rivier#demotera*com>
@@ -585,8 +586,9 @@ link = try $ do
   char ':'
   let stop = if bracketed
                 then char ']'
-                else lookAhead $ space <|>
-                       try (oneOf "!.,;:" *> (space <|> newline))
+                else lookAhead $ space <|> eof' <|>
+                       try (oneOf "!.,;:" *>
+                              (space <|> newline <|> eof'))
   url <- many1Till nonspaceChar stop
   let name' = if B.toList name == [Str "$"] then B.str url else name
   return $ if attr == nullAttr
@@ -727,3 +729,5 @@ groupedInlineMarkup = try $ do
 singleton :: a -> [a]
 singleton x = [x]
 
+eof' :: Monad m => ParserT [Char] s m Char
+eof' = '\n' <$ eof

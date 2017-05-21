@@ -2,7 +2,7 @@
 {-# LANGUAGE ScopedTypeVariables #-}
 
 {-
-Copyright (C) 2006-2015 John MacFarlane <jgm@berkeley.edu>
+Copyright (C) 2006-2017 John MacFarlane <jgm@berkeley.edu>
 
 This program is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -21,7 +21,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 {- |
    Module      : Text.Pandoc.Readers.Markdown
-   Copyright   : Copyright (C) 2006-2015 John MacFarlane
+   Copyright   : Copyright (C) 2006-2017 John MacFarlane
    License     : GNU GPL, version 2 or above
 
    Maintainer  : John MacFarlane <jgm@berkeley.edu>
@@ -50,7 +50,7 @@ import Data.Yaml (ParseException (..), YamlException (..), YamlMark (..))
 import qualified Data.Yaml as Yaml
 import System.FilePath (addExtension, takeExtension)
 import Text.HTML.TagSoup
-import Text.Pandoc.Builder (Blocks, Inlines, trimInlines)
+import Text.Pandoc.Builder (Blocks, Inlines)
 import qualified Text.Pandoc.Builder as B
 import Text.Pandoc.Class (PandocMonad, report)
 import Text.Pandoc.Definition
@@ -79,9 +79,6 @@ readMarkdown opts s = do
   case parsed of
     Right result -> return result
     Left e       -> throwError e
-
-trimInlinesF :: F Inlines -> F Inlines
-trimInlinesF = liftM trimInlines
 
 --
 -- Constants and data structure definitions
@@ -133,17 +130,14 @@ indentSpaces = try $ do
 
 nonindentSpaces :: PandocMonad m => MarkdownParser m String
 nonindentSpaces = do
-  tabStop <- getOption readerTabStop
-  sps <- many (char ' ')
-  if length sps < tabStop
-     then return sps
-     else unexpected "indented line"
+  n <- skipNonindentSpaces
+  return $ replicate n ' '
 
 -- returns number of spaces parsed
 skipNonindentSpaces :: PandocMonad m => MarkdownParser m Int
 skipNonindentSpaces = do
   tabStop <- getOption readerTabStop
-  atMostSpaces (tabStop - 1) <* notFollowedBy (char ' ')
+  atMostSpaces (tabStop - 1) <* notFollowedBy spaceChar
 
 atMostSpaces :: PandocMonad m => Int -> MarkdownParser m Int
 atMostSpaces n
@@ -398,7 +392,9 @@ referenceKey = try $ do
   src <- try betweenAngles <|> sourceURL
   tit <- option "" referenceTitle
   attr   <- option nullAttr $ try $
-              guardEnabled Ext_link_attributes >> skipSpaces >> attributes
+              do guardEnabled Ext_link_attributes
+                 skipSpaces >> optional newline >> skipSpaces
+                 attributes
   addKvs <- option [] $ guardEnabled Ext_mmd_link_attributes
                           >> many (try $ spnl >> keyValAttr)
   blanklines
@@ -501,7 +497,7 @@ block = do
                , htmlBlock
                , table
                , codeBlockIndented
-               , guardEnabled Ext_latex_macros *> (macro >>= return . return)
+               , latexMacro
                , rawTeXBlock
                , lineBlock
                , blockQuote
@@ -537,6 +533,7 @@ atxHeader = try $ do
   level <- atxChar >>= many1 . char >>= return . length
   notFollowedBy $ guardEnabled Ext_fancy_lists >>
                   (char '.' <|> char ')') -- this would be a list
+  guardDisabled Ext_space_in_atx_header <|> notFollowedBy nonspaceChar
   skipSpaces
   (text, raw) <- withRaw $
           trimInlinesF . mconcat <$> many (notFollowedBy atxClosing >> inline)
@@ -619,7 +616,7 @@ hrule = try $ do
 --
 
 indentedLine :: PandocMonad m => MarkdownParser m String
-indentedLine = indentSpaces >> anyLine >>= return . (++ "\n")
+indentedLine = indentSpaces >> anyLineNewline
 
 blockDelimiter :: PandocMonad m
                => (Char -> Bool)
@@ -1073,6 +1070,13 @@ rawVerbatimBlock = htmlInBalanced isVerbTag
         isVerbTag (TagOpen "script" _) = True
         isVerbTag _                    = False
 
+latexMacro :: PandocMonad m => MarkdownParser m (F Blocks)
+latexMacro = try $ do
+  guardEnabled Ext_latex_macros
+  skipNonindentSpaces
+  res <- macro
+  return $ return res
+
 rawTeXBlock :: PandocMonad m => MarkdownParser m (F Blocks)
 rawTeXBlock = do
   guardEnabled Ext_raw_tex
@@ -1086,13 +1090,19 @@ rawTeXBlock = do
 rawHtmlBlocks :: PandocMonad m => MarkdownParser m (F Blocks)
 rawHtmlBlocks = do
   (TagOpen tagtype _, raw) <- htmlTag isBlockTag
+  -- we don't want '<td>    text' to be a code block:
+  skipMany spaceChar
+  indentlevel <- (blankline >> length <$> many (char ' ')) <|> return 0
   -- try to find closing tag
   -- we set stateInHtmlBlock so that closing tags that can be either block or
   -- inline will not be parsed as inline tags
   oldInHtmlBlock <- stateInHtmlBlock <$> getState
   updateState $ \st -> st{ stateInHtmlBlock = Just tagtype }
   let closer = htmlTag (\x -> x ~== TagClose tagtype)
-  contents <- mconcat <$> many (notFollowedBy' closer >> block)
+  let block' = do notFollowedBy' closer
+                  atMostSpaces indentlevel
+                  block
+  contents <- mconcat <$> many block'
   result <-
     (closer >>= \(_, rawcloser) -> return (
                 return (B.rawBlock "html" $ stripMarkdownAttribute raw) <>
@@ -1283,89 +1293,7 @@ multilineTableHeader headless = try $ do
 -- ending with a footer (dashed line followed by blank line).
 gridTable :: PandocMonad m => Bool -- ^ Headerless table
           -> MarkdownParser m ([Alignment], [Double], F [Blocks], F [[Blocks]])
-gridTable headless =
-  tableWith (gridTableHeader headless) gridTableRow
-            (gridTableSep '-') gridTableFooter
-
-gridTableSplitLine :: [Int] -> String -> [String]
-gridTableSplitLine indices line = map removeFinalBar $ tail $
-  splitStringByIndices (init indices) $ trimr line
-
-gridPart :: PandocMonad m => Char -> ParserT [Char] st m ((Int, Int), Alignment)
-gridPart ch = do
-  leftColon <- option False (True <$ char ':')
-  dashes <- many1 (char ch)
-  rightColon <- option False (True <$ char ':')
-  char '+'
-  let lengthDashes = length dashes + (if leftColon then 1 else 0) +
-                       (if rightColon then 1 else 0)
-  let alignment = case (leftColon, rightColon) of
-                       (True, True)   -> AlignCenter
-                       (True, False)  -> AlignLeft
-                       (False, True)  -> AlignRight
-                       (False, False) -> AlignDefault
-  return ((lengthDashes, lengthDashes + 1), alignment)
-
-gridDashedLines :: PandocMonad m => Char -> ParserT [Char] st m [((Int, Int), Alignment)]
-gridDashedLines ch = try $ char '+' >> many1 (gridPart ch) <* blankline
-
-removeFinalBar :: String -> String
-removeFinalBar =
-  reverse . dropWhile (`elem` " \t") . dropWhile (=='|') . reverse
-
--- | Separator between rows of grid table.
-gridTableSep :: PandocMonad m => Char -> MarkdownParser m Char
-gridTableSep ch = try $ gridDashedLines ch >> return '\n'
-
--- | Parse header for a grid table.
-gridTableHeader :: PandocMonad m => Bool -- ^ Headerless table
-                -> MarkdownParser m (F [Blocks], [Alignment], [Int])
-gridTableHeader headless = try $ do
-  optional blanklines
-  dashes <- gridDashedLines '-'
-  rawContent  <- if headless
-                    then return []
-                    else many1 (try (char '|' >> anyLine))
-  underDashes <- if headless
-                    then return dashes
-                    else gridDashedLines '='
-  guard $ length dashes == length underDashes
-  let lines'   = map (snd . fst) underDashes
-  let indices  = scanl (+) 0 lines'
-  let aligns   = map snd underDashes
-  let rawHeads = if headless
-                    then replicate (length underDashes) ""
-                    else map (unlines . map trim) $ transpose
-                       $ map (gridTableSplitLine indices) rawContent
-  heads <- fmap sequence $ mapM (parseFromString parseBlocks . trim) rawHeads
-  return (heads, aligns, indices)
-
-gridTableRawLine :: PandocMonad m => [Int] -> MarkdownParser m [String]
-gridTableRawLine indices = do
-  char '|'
-  line <- anyLine
-  return (gridTableSplitLine indices line)
-
--- | Parse row of grid table.
-gridTableRow :: PandocMonad m => [Int]
-             -> MarkdownParser m (F [Blocks])
-gridTableRow indices = do
-  colLines <- many1 (gridTableRawLine indices)
-  let cols = map ((++ "\n") . unlines . removeOneLeadingSpace) $
-               transpose colLines
-  fmap compactify <$> fmap sequence (mapM (parseFromString parseBlocks) cols)
-
-removeOneLeadingSpace :: [String] -> [String]
-removeOneLeadingSpace xs =
-  if all startsWithSpace xs
-     then map (drop 1) xs
-     else xs
-   where startsWithSpace ""    = True
-         startsWithSpace (y:_) = y == ' '
-
--- | Parse footer for a grid table.
-gridTableFooter :: PandocMonad m => MarkdownParser m [Char]
-gridTableFooter = blanklines
+gridTable headless = gridTableWith' parseBlocks headless
 
 pipeBreak :: PandocMonad m => MarkdownParser m ([Alignment], [Int])
 pipeBreak = try $ do
@@ -1907,7 +1835,8 @@ inlineNote = try $ do
 rawLaTeXInline' :: PandocMonad m => MarkdownParser m (F Inlines)
 rawLaTeXInline' = try $ do
   guardEnabled Ext_raw_tex
-  lookAhead $ char '\\' >> notFollowedBy' (string "start") -- context env
+  lookAhead (char '\\')
+  notFollowedBy' rawConTeXtEnvironment
   RawInline _ s <- rawLaTeXInline
   return $ return $ B.rawInline "tex" s
   -- "tex" because it might be context or latex

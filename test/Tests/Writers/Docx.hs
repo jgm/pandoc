@@ -1,7 +1,7 @@
 module Tests.Writers.Docx (tests) where
 
 import System.FilePath ((</>))
-import Test.Framework
+import Test.Tasty
 import Tests.Helpers
 import Text.Pandoc.Class (runIOorExplode)
 import Text.Pandoc.Definition
@@ -9,6 +9,7 @@ import Text.Pandoc.Options
 import Text.Pandoc.Readers.Docx
 import Text.Pandoc.Readers.Native
 import Text.Pandoc.Writers.Docx
+import System.IO.Unsafe (unsafePerformIO) -- TODO temporary
 
 type Options = (WriterOptions, ReaderOptions)
 
@@ -27,26 +28,26 @@ compareOutput opts nativeFileIn nativeFileOut = do
   p <- runIOorExplode $ readDocx (snd opts) df
   return (p, df')
 
-testCompareWithOptsIO :: Options -> String -> FilePath -> FilePath -> IO Test
+testCompareWithOptsIO :: Options -> String -> FilePath -> FilePath -> IO TestTree
 testCompareWithOptsIO opts name nativeFileIn nativeFileOut = do
   (dp, np) <- compareOutput opts nativeFileIn nativeFileOut
   return $ test id name (dp, np)
 
-testCompareWithOpts :: Options -> String -> FilePath -> FilePath -> Test
+testCompareWithOpts :: Options -> String -> FilePath -> FilePath -> TestTree
 testCompareWithOpts opts name nativeFileIn nativeFileOut =
-  buildTest $ testCompareWithOptsIO opts name nativeFileIn nativeFileOut
+  unsafePerformIO $ testCompareWithOptsIO opts name nativeFileIn nativeFileOut
 
-roundTripCompareWithOpts :: Options -> String -> FilePath -> Test
+roundTripCompareWithOpts :: Options -> String -> FilePath -> TestTree
 roundTripCompareWithOpts opts name nativeFile =
   testCompareWithOpts opts name nativeFile nativeFile
 
--- testCompare :: String -> FilePath -> FilePath -> Test
+-- testCompare :: String -> FilePath -> FilePath -> TestTree
 -- testCompare = testCompareWithOpts def
 
-roundTripCompare :: String -> FilePath -> Test
+roundTripCompare :: String -> FilePath -> TestTree
 roundTripCompare = roundTripCompareWithOpts def
 
-tests :: [Test]
+tests :: [TestTree]
 tests = [ testGroup "inlines"
           [ roundTripCompare
             "font formatting"

@@ -4,14 +4,16 @@ sourcefiles=$(shell find pandoc.hs src test -name '*.hs')
 BRANCH?=master
 
 quick:
-	stack install --flag 'pandoc:embed_data_files' --fast --test --test-arguments='-j4'
+	stack install --flag 'pandoc:embed_data_files' --fast --test --test-arguments='-j4 --hide-successes $(TESTARGS)'
 
 full:
 	stack install --flag 'pandoc:embed_data_files' --test --test-arguments='-j4' --pedantic
 	stack haddock
 
+# Note:  to accept current results of golden tests,
+# make test TESTARGS='--accept'
 test:
-	stack test --test-arguments='-j4'
+	stack test --flag 'pandoc:embed_data_files' --fast --test-arguments='-j4 --hide-successes $(TESTARGS)'
 
 bench:
 	stack bench
@@ -30,7 +32,7 @@ dist: man/pandoc.1
 	stack setup && stack test && cd .. && rm -rf "pandoc-${version}"
 
 debpkg: man/pandoc.1
-	make -C deb
+	make -C linux
 
 macospkg: man/pandoc.1
 	./macos/make_macos_package.sh

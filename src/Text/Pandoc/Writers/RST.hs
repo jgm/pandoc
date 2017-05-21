@@ -1,6 +1,6 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-
-Copyright (C) 2006-2015 John MacFarlane <jgm@berkeley.edu>
+Copyright (C) 2006-2017 John MacFarlane <jgm@berkeley.edu>
 
 This program is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 {- |
    Module      : Text.Pandoc.Writers.RST
-   Copyright   : Copyright (C) 2006-2015 John MacFarlane
+   Copyright   : Copyright (C) 2006-2017 John MacFarlane
    License     : GNU GPL, version 2 or above
 
    Maintainer  : John MacFarlane <jgm@berkeley.edu>
@@ -33,11 +33,12 @@ reStructuredText:  <http://docutils.sourceforge.net/rst.html>
 module Text.Pandoc.Writers.RST ( writeRST ) where
 import Control.Monad.State
 import Data.Char (isSpace, toLower)
-import Data.List (intersperse, isPrefixOf, stripPrefix, transpose)
+import Data.List (isPrefixOf, stripPrefix)
 import Data.Maybe (fromMaybe)
 import Network.URI (isURI)
 import qualified Text.Pandoc.Builder as B
-import Text.Pandoc.Class (PandocMonad)
+import Text.Pandoc.Class (PandocMonad, report)
+import Text.Pandoc.Logging
 import Text.Pandoc.Definition
 import Text.Pandoc.ImageSize
 import Text.Pandoc.Options
@@ -56,19 +57,22 @@ data WriterState =
               , stHasRawTeX   :: Bool
               , stOptions     :: WriterOptions
               , stTopLevel    :: Bool
+              , stLastNested  :: Bool
               }
+
+type RST = StateT WriterState
 
 -- | Convert Pandoc to RST.
 writeRST :: PandocMonad m => WriterOptions -> Pandoc -> m String
-writeRST opts document = return $
+writeRST opts document = do
   let st = WriterState { stNotes = [], stLinks = [],
                          stImages = [], stHasMath = False,
                          stHasRawTeX = False, stOptions = opts,
-                         stTopLevel = True}
-  in evalState (pandocToRST document) st
+                         stTopLevel = True, stLastNested = False}
+  evalStateT (pandocToRST document) st
 
 -- | Return RST representation of document.
-pandocToRST :: Pandoc -> State WriterState String
+pandocToRST :: PandocMonad m => Pandoc -> RST m String
 pandocToRST (Pandoc meta blocks) = do
   opts <- gets stOptions
   let colwidth = if writerWrapText opts == WrapAuto
@@ -113,12 +117,11 @@ pandocToRST (Pandoc meta blocks) = do
     normalizeHeadings _   []     = []
 
 -- | Return RST representation of reference key table.
-refsToRST :: Refs -> State WriterState Doc
+refsToRST :: PandocMonad m => Refs -> RST m Doc
 refsToRST refs = mapM keyToRST refs >>= return . vcat
 
 -- | Return RST representation of a reference key.
-keyToRST :: ([Inline], (String, String))
-         -> State WriterState Doc
+keyToRST :: PandocMonad m => ([Inline], (String, String)) -> RST m Doc
 keyToRST (label, (src, _)) = do
   label' <- inlineListToRST label
   let label'' = if ':' `elem` ((render Nothing label') :: String)
@@ -127,26 +130,28 @@ keyToRST (label, (src, _)) = do
   return $ nowrap $ ".. _" <> label'' <> ": " <> text src
 
 -- | Return RST representation of notes.
-notesToRST :: [[Block]] -> State WriterState Doc
+notesToRST :: PandocMonad m => [[Block]] -> RST m Doc
 notesToRST notes =
   mapM (\(num, note) -> noteToRST num note) (zip [1..] notes) >>=
   return . vsep
 
 -- | Return RST representation of a note.
-noteToRST :: Int -> [Block] -> State WriterState Doc
+noteToRST :: PandocMonad m => Int -> [Block] -> RST m Doc
 noteToRST num note = do
   contents <- blockListToRST note
   let marker = ".. [" <> text (show num) <> "]"
   return $ nowrap $ marker $$ nest 3 contents
 
 -- | Return RST representation of picture reference table.
-pictRefsToRST :: [([Inline], (Attr, String, String, Maybe String))]
-              -> State WriterState Doc
+pictRefsToRST :: PandocMonad m
+              => [([Inline], (Attr, String, String, Maybe String))]
+              -> RST m Doc
 pictRefsToRST refs = mapM pictToRST refs >>= return . vcat
 
 -- | Return RST representation of a picture substitution reference.
-pictToRST :: ([Inline], (Attr, String, String, Maybe String))
-          -> State WriterState Doc
+pictToRST :: PandocMonad m
+          => ([Inline], (Attr, String, String, Maybe String))
+          -> RST m Doc
 pictToRST (label, (attr, src, _, mbtarget)) = do
   label' <- inlineListToRST label
   dims   <- imageDimsToRST attr
@@ -178,7 +183,7 @@ escapeString opts (c:cs) =
                    _            -> '.':escapeString opts cs
        _ -> c : escapeString opts cs
 
-titleToRST :: [Inline] -> [Inline] -> State WriterState Doc
+titleToRST :: PandocMonad m => [Inline] -> [Inline] -> RST m Doc
 titleToRST [] _ = return empty
 titleToRST tit subtit = do
   title <- inlineListToRST tit
@@ -194,8 +199,9 @@ bordered contents c =
          border = text (replicate len c)
 
 -- | Convert Pandoc block element to RST.
-blockToRST :: Block         -- ^ Block element
-           -> State WriterState Doc
+blockToRST :: PandocMonad m
+           => Block         -- ^ Block element
+           -> RST m Doc
 blockToRST Null = return empty
 blockToRST (Div attr bs) = do
   contents <- blockListToRST bs
@@ -264,39 +270,18 @@ blockToRST (BlockQuote blocks) = do
   tabstop <- gets $ writerTabStop . stOptions
   contents <- blockListToRST blocks
   return $ (nest tabstop contents) <> blankline
-blockToRST (Table caption _ widths headers rows) =  do
+blockToRST (Table caption aligns widths headers rows) = do
   caption' <- inlineListToRST caption
-  headers' <- mapM blockListToRST headers
-  rawRows <- mapM (mapM blockListToRST) rows
-  -- let isSimpleCell [Plain _] = True
-  --     isSimpleCell [Para _]  = True
-  --     isSimpleCell []        = True
-  --     isSimpleCell _         = False
-  -- let isSimple = all (==0) widths && all (all isSimpleCell) rows
-  let numChars = maximum . map offset
+  let blocksToDoc opts bs = do
+         oldOpts <- gets stOptions
+         modify $ \st -> st{ stOptions = opts }
+         result <- blockListToRST bs
+         modify $ \st -> st{ stOptions = oldOpts }
+         return result
   opts <- gets stOptions
-  let widthsInChars =
-       if all (== 0) widths
-          then map ((+2) . numChars) $ transpose (headers' : rawRows)
-          else map (floor . (fromIntegral (writerColumns opts) *)) widths
-  let hpipeBlocks blocks = hcat [beg, middle, end]
-        where h      = height (hcat blocks)
-              sep'   = lblock 3 $ vcat (map text $ replicate h " | ")
-              beg    = lblock 2 $ vcat (map text $ replicate h "| ")
-              end    = lblock 2 $ vcat (map text $ replicate h " |")
-              middle = hcat $ intersperse sep' blocks
-  let makeRow = hpipeBlocks . zipWith lblock widthsInChars
-  let head' = makeRow headers'
-  let rows' = map makeRow rawRows
-  let border ch = char '+' <> char ch <>
-                  (hcat $ intersperse (char ch <> char '+' <> char ch) $
-                          map (\l -> text $ replicate l ch) widthsInChars) <>
-                  char ch <> char '+'
-  let body = vcat $ intersperse (border '-') rows'
-  let head'' = if all null headers
-                  then empty
-                  else head' $$ border '='
-  let tbl = border '-' $$ head'' $$ body $$ border '-'
+  tbl <- gridTable opts blocksToDoc (all null headers)
+            (map (const AlignDefault) aligns) widths
+            headers rows
   return $ if null caption
               then tbl $$ blankline
               else (".. table:: " <> caption') $$ blankline $$ nest 3 tbl $$
@@ -323,22 +308,23 @@ blockToRST (DefinitionList items) = do
   return $ blankline $$ chomp (vcat contents) $$ blankline
 
 -- | Convert bullet list item (list of blocks) to RST.
-bulletListItemToRST :: [Block] -> State WriterState Doc
+bulletListItemToRST :: PandocMonad m => [Block] -> RST m Doc
 bulletListItemToRST items = do
   contents <- blockListToRST items
   return $ hang 3 "-  " $ contents <> cr
 
 -- | Convert ordered list item (a list of blocks) to RST.
-orderedListItemToRST :: String   -- ^ marker for list item
+orderedListItemToRST :: PandocMonad m
+                     => String   -- ^ marker for list item
                      -> [Block]  -- ^ list item (list of blocks)
-                     -> State WriterState Doc
+                     -> RST m Doc
 orderedListItemToRST marker items = do
   contents <- blockListToRST items
   let marker' = marker ++ " "
   return $ hang (length marker') (text marker') $ contents <> cr
 
 -- | Convert defintion list item (label, list of blocks) to RST.
-definitionListItemToRST :: ([Inline], [[Block]]) -> State WriterState Doc
+definitionListItemToRST :: PandocMonad m => ([Inline], [[Block]]) -> RST m Doc
 definitionListItemToRST (label, defs) = do
   label' <- inlineListToRST label
   contents <- liftM vcat $ mapM blockListToRST defs
@@ -346,28 +332,51 @@ definitionListItemToRST (label, defs) = do
   return $ label' $$ nest tabstop (nestle contents <> cr)
 
 -- | Format a list of lines as line block.
-linesToLineBlock :: [[Inline]] -> State WriterState Doc
+linesToLineBlock :: PandocMonad m => [[Inline]] -> RST m Doc
 linesToLineBlock inlineLines = do
   lns <- mapM inlineListToRST inlineLines
   return $ (vcat $ map (hang 2 (text "| ")) lns) <> blankline
 
 -- | Convert list of Pandoc block elements to RST.
-blockListToRST' :: Bool
+blockListToRST' :: PandocMonad m
+                => Bool
                 -> [Block]       -- ^ List of block elements
-                -> State WriterState Doc
+                -> RST m Doc
 blockListToRST' topLevel blocks = do
   tl <- gets stTopLevel
-  modify (\s->s{stTopLevel=topLevel})
-  res <- vcat `fmap` mapM blockToRST blocks
+  modify (\s->s{stTopLevel=topLevel, stLastNested=False})
+  res <- vcat `fmap` mapM blockToRST' blocks
   modify (\s->s{stTopLevel=tl})
   return res
 
-blockListToRST :: [Block]       -- ^ List of block elements
-               -> State WriterState Doc
+blockToRST' :: PandocMonad m => Block -> RST m Doc
+blockToRST' (x@BlockQuote{}) = do
+  lastNested <- gets stLastNested
+  res <- blockToRST x
+  modify (\s -> s{stLastNested = True})
+  return $ if lastNested
+              then ".." $+$ res
+              else res
+blockToRST' x = do
+  modify (\s -> s{stLastNested =
+    case x of
+         Para [Image _ _ (_,'f':'i':'g':':':_)] -> True
+         Para{} -> False
+         Plain{} -> False
+         Header{} -> False
+         LineBlock{} -> False
+         HorizontalRule -> False
+         _ -> True
+    })
+  blockToRST x
+
+blockListToRST :: PandocMonad m
+               => [Block]       -- ^ List of block elements
+               -> RST m Doc
 blockListToRST = blockListToRST' False
 
 -- | Convert list of Pandoc inline elements to RST.
-inlineListToRST :: [Inline] -> State WriterState Doc
+inlineListToRST :: PandocMonad m => [Inline] -> RST m Doc
 inlineListToRST lst =
   mapM inlineToRST (removeSpaceAfterDisplayMath $ insertBS lst) >>=
     return . hcat
@@ -427,7 +436,7 @@ inlineListToRST lst =
         isComplex _               = False
 
 -- | Convert Pandoc inline element to RST.
-inlineToRST :: Inline -> State WriterState Doc
+inlineToRST :: PandocMonad m => Inline -> RST m Doc
 inlineToRST (Span _ ils) = inlineListToRST ils
 inlineToRST (Emph lst) = do
   contents <- inlineListToRST lst
@@ -477,12 +486,12 @@ inlineToRST (Math t str) = do
                    then blankline $$ ".. math::" $$
                         blankline $$ nest 3 (text str) $$ blankline
                    else blankline $$ (".. math:: " <> text str) $$ blankline
-inlineToRST (RawInline f x)
+inlineToRST il@(RawInline f x)
   | f == "rst" = return $ text x
   | f == "latex" || f == "tex" = do
       modify $ \st -> st{ stHasRawTeX = True }
       return $ ":raw-latex:`" <> text x <> "`"
-  | otherwise  = return empty
+  | otherwise  = empty <$ report (InlineNotRendered il)
 inlineToRST (LineBreak) = return cr -- there's no line break in RST (see Para)
 inlineToRST Space = return space
 inlineToRST SoftBreak = do
@@ -527,7 +536,7 @@ inlineToRST (Note contents) = do
   let ref = show $ (length notes) + 1
   return $ " [" <> text ref <> "]_"
 
-registerImage :: Attr -> [Inline] -> Target -> Maybe String -> State WriterState Doc
+registerImage :: PandocMonad m => Attr -> [Inline] -> Target -> Maybe String -> RST m Doc
 registerImage attr alt (src,tit) mbtarget = do
   pics <- gets stImages
   txt <- case lookup alt pics of
@@ -542,7 +551,7 @@ registerImage attr alt (src,tit) mbtarget = do
                  return alt'
   inlineListToRST txt
 
-imageDimsToRST :: Attr -> State WriterState Doc
+imageDimsToRST :: PandocMonad m => Attr -> RST m Doc
 imageDimsToRST attr = do
   let (ident, _, _) = attr
       name = if null ident

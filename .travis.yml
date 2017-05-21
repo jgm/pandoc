@@ -80,7 +80,7 @@ before_install:
 # We want to always allow newer versions of packages when building on GHC HEAD
 - CABALARGS=""
 - if [ "x$GHCVER" = "xhead" ]; then CABALARGS=--allow-newer; fi
-- export PATH=$PATH:/opt/happy/1.19.5/bin/:/opt/ghc/$GHCVER/bin:/opt/cabal/$CABALVER/bin:$HOME/.local/bin
+- export PATH=$PATH:/opt/happy/1.19.5/bin/:/opt/ghc/$GHCVER/bin:/opt/cabal/$CABALVER/bin:$HOME/.local/bin:$HOME/.cabal/bin
 # Download and unpack the stack executable
 - |
   if [[ $BUILD == "stack" ]]; then
@@ -100,12 +100,14 @@ install:
   case "$BUILD" in
     stack)
       ulimit -n 4096
-      stack --no-terminal --install-ghc $ARGS test --flag 'aeson:fast' --only-dependencies --fast
+      stack --no-terminal install hsb2hs
+      stack --no-terminal --install-ghc $ARGS test --flag 'aeson:fast' --only-dependencies --fast --flag pandoc:embed_data_files --test
       ;;
     cabal)
       cabal --version
       travis_retry cabal update
-      cabal install -j --only-dependencies -ffast --enable-tests --enable-benchmarks --force-reinstalls --ghc-options=-O0 --reorder-goals --max-backjumps=-1 $CABALARGS
+      cabal install hsb2hs
+      cabal install -j --only-dependencies -ffast --enable-tests --enable-benchmarks -fembed_data_files --force-reinstalls --ghc-options=-O0 --reorder-goals --max-backjumps=-1 $CABALARGS
       ;;
   esac
 
@@ -114,17 +116,13 @@ script:
   case "$BUILD" in
     stack)
       ulimit -n 4096
-      stack --no-terminal $ARGS test --flag 'aeson:fast' --haddock --no-haddock-deps --ghc-options="-O0 -Wall -fno-warn-unused-do-bind -Werror"
+      stack --no-terminal $ARGS test --flag 'aeson:fast' --flag pandoc:embed_data_files --haddock --no-haddock-deps --ghc-options="-O0 -Wall -fno-warn-unused-do-bind -Werror"
       ;;
     cabal)
-      cabal configure --enable-tests --enable-benchmarks -v2 -ffast --ghc-options="-O0 -Wall -fno-warn-unused-do-bind -Werror" && \
-      cabal build -j && \
-      cabal check && \
-      cabal test -j && \
-      cabal copy && \
-      cabal sdist && \
-      SRC_TGZ=$(cabal info . | awk '{print $2;exit}').tar.gz && \
-      cd dist && \
-      cabal install -j -v2 -ffast --ghc-options="-O0 -Wall -fno-warn-unused-do-bind -Werror" --force-reinstall "$SRC_TGZ"
+      cabal sdist --output-directory=sourcedist && \
+      cd sourcedist && \
+      cabal configure --enable-tests --enable-benchmarks -v2 -fembed_data_files -ffast --ghc-options="-O0 -Wall -fno-warn-unused-do-bind -Werror" && \
+      cabal build && \
+      cabal test
       ;;
   esac

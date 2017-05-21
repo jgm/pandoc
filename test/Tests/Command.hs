@@ -8,20 +8,20 @@ import System.Directory
 import System.Exit
 import System.FilePath (joinPath, splitDirectories, takeDirectory, (</>))
 import System.Process
-import Test.Framework
-import Test.Framework.Providers.HUnit
-import Test.HUnit (assertBool)
+import Test.Tasty
+import Test.Tasty.HUnit
 import Tests.Helpers
 import Text.Pandoc
 import Text.Pandoc.Shared (trimr)
 import qualified Text.Pandoc.UTF8 as UTF8
+import System.IO.Unsafe (unsafePerformIO) -- TODO temporary
 
 -- | Run a test with normalize function, return True if test passed.
 runTest :: String    -- ^ Title of test
         -> String    -- ^ Shell command
         -> String    -- ^ Input text
         -> String    -- ^ Expected output
-        -> Test
+        -> TestTree
 runTest testname cmd inp norm = testCase testname $ do
   let cmd' = cmd ++ " --quiet --data-dir ../data"
   let findDynlibDir []           = Nothing
@@ -48,11 +48,12 @@ runTest testname cmd inp norm = testCase testname $ do
                 else return $ TestError ec
   assertBool (show result) (result == TestPassed)
 
-tests :: Test
-tests = buildTest $ do
+tests :: TestTree
+tests = unsafePerformIO $ do
+  pandocpath <- findPandoc
   files <- filter (".md" `isSuffixOf`) <$>
                getDirectoryContents "command"
-  let cmds = map extractCommandTest files
+  let cmds = map (extractCommandTest pandocpath) files
   return $ testGroup "Command:" cmds
 
 isCodeBlock :: Block -> Bool
@@ -67,26 +68,25 @@ dropPercent :: String -> String
 dropPercent ('%':xs) = dropWhile (== ' ') xs
 dropPercent xs       = xs
 
-runCommandTest :: FilePath -> (Int, String) -> IO Test
-runCommandTest pandocpath (num, code) = do
+runCommandTest :: FilePath -> (Int, String) -> TestTree
+runCommandTest pandocpath (num, code) =
   let codelines = lines code
-  let (continuations, r1) = span ("\\" `isSuffixOf`) codelines
-  let (cmd, r2) = (dropPercent (unwords (map init continuations ++ take 1 r1)),
+      (continuations, r1) = span ("\\" `isSuffixOf`) codelines
+      (cmd, r2) = (dropPercent (unwords (map init continuations ++ take 1 r1)),
                    drop 1 r1)
-  let (inplines, r3) = break (=="^D") r2
-  let normlines = takeWhile (/=".") (drop 1 r3)
-  let input = unlines inplines
-  let norm = unlines normlines
-  let shcmd = trimr $ takeDirectory pandocpath </> cmd
-  return $ runTest ("#" ++ show num) shcmd input norm
+      (inplines, r3) = break (=="^D") r2
+      normlines = takeWhile (/=".") (drop 1 r3)
+      input = unlines inplines
+      norm = unlines normlines
+      shcmd = trimr $ takeDirectory pandocpath </> cmd
+  in  runTest ("#" ++ show num) shcmd input norm
 
-extractCommandTest :: FilePath -> Test
-extractCommandTest fp = buildTest $ do
-  pandocpath <- findPandoc
+extractCommandTest :: FilePath -> FilePath -> TestTree
+extractCommandTest pandocpath fp = unsafePerformIO $ do
   contents <- UTF8.readFile ("command" </> fp)
   Pandoc _ blocks <- runIOorExplode (readMarkdown
                         def{ readerExtensions = pandocExtensions } contents)
   let codeblocks = map extractCode $ filter isCodeBlock $ blocks
-  cases <- mapM (runCommandTest pandocpath) $ zip [1..] codeblocks
+  let cases = map (runCommandTest pandocpath) $ zip [1..] codeblocks
   return $ testGroup fp cases
 

@@ -2,7 +2,7 @@
 module Tests.Readers.Txt2Tags (tests) where
 
 import Data.List (intersperse)
-import Test.Framework
+import Test.Tasty
 import Tests.Helpers
 import Text.Pandoc
 import Text.Pandoc.Arbitrary ()
@@ -20,7 +20,7 @@ t2t = purely $ \s -> do
 
 infix 4 =:
 (=:) :: ToString c
-     => String -> (String, c) -> Test
+     => String -> (String, c) -> TestTree
 (=:) = test t2t
 
 spcSep :: [Inlines] -> Inlines
@@ -32,7 +32,7 @@ simpleTable' :: Int
              -> Blocks
 simpleTable' n = table "" (take n $ repeat (AlignCenter, 0.0))
 
-tests :: [Test]
+tests :: [TestTree]
 tests =
   [ testGroup "Inlines" $
       [ "Plain String" =:

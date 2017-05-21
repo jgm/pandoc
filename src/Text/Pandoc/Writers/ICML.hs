@@ -4,7 +4,7 @@
 
 {- |
    Module      : Text.Pandoc.Writers.ICML
-   Copyright   : Copyright (C) 2013-2016 github.com/mb21
+   Copyright   : Copyright (C) 2013-2017 github.com/mb21
    License     : GNU GPL, version 2 or above
 
    Stability   : alpha
@@ -25,7 +25,6 @@ import Network.URI (isURI)
 import Text.Pandoc.Class (PandocMonad, report)
 import qualified Text.Pandoc.Class as P
 import Text.Pandoc.Definition
-import Text.Pandoc.Error (PandocError (..))
 import Text.Pandoc.ImageSize
 import Text.Pandoc.Logging
 import Text.Pandoc.Options
@@ -550,10 +549,7 @@ imageICML opts style attr (src, _) = do
                   report $ CouldNotDetermineImageSize src msg
                   return def)
            (\e -> do
-               case e of
-                    PandocIOError _ e' ->
-                      report $ CouldNotFetchResource src (show e')
-                    e' -> report $ CouldNotFetchResource src (show e')
+               report $ CouldNotFetchResource src (show e)
                return def)
   let (ow, oh) = sizeInPoints imgS
       (imgWidth, imgHeight) = desiredSizeInPoints opts attr imgS

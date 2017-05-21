@@ -1,7 +1,7 @@
 {-# LANGUAGE OverloadedStrings, ScopedTypeVariables, CPP #-}
 {-# OPTIONS_GHC -fno-warn-type-defaults #-}
 {-
-  Copyright (C) 2011-2016 John MacFarlane <jgm@berkeley.edu>
+  Copyright (C) 2011-2017 John MacFarlane <jgm@berkeley.edu>
 
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -20,7 +20,7 @@
 
 {- |
 Module      : Text.Pandoc.ImageSize
-Copyright   : Copyright (C) 2011-2016 John MacFarlane
+Copyright   : Copyright (C) 2011-2017 John MacFarlane
 License     : GNU GPL, version 2 or above
 
 Maintainer  : John MacFarlane <jgm@berkeley.edu>
@@ -108,15 +108,15 @@ imageType img = case B.take 4 img of
                      "%PDF"             -> return Pdf
                      "<svg"             -> return Svg
                      "<?xm"
-                       | "<svg " == (B.take 5 $ last $ B.groupBy openingTag $ B.drop 7 img)
+                       | findSvgTag img
                                         -> return Svg
                      "%!PS"
                        | (B.take 4 $ B.drop 1 $ B.dropWhile (/=' ') img) == "EPSF"
                                         -> return Eps
                      _                  -> mzero
-  where
-    -- B.groupBy openingTag matches first "<svg" or "<html" but not "<!--"
-    openingTag x y = x == '<' && y /= '!'
+
+findSvgTag :: ByteString -> Bool
+findSvgTag img = "<svg" `B.isInfixOf` img || "<SVG" `B.isInfixOf` img
 
 imageSize :: WriterOptions -> ByteString -> Either String ImageSize
 imageSize opts img =

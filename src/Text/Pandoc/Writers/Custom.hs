@@ -2,13 +2,11 @@
 {-# LANGUAGE CPP                  #-}
 {-# LANGUAGE DeriveDataTypeable   #-}
 {-# LANGUAGE FlexibleInstances    #-}
-{-# LANGUAGE OverloadedStrings    #-}
-{-# LANGUAGE ScopedTypeVariables  #-}
 #if MIN_VERSION_base(4,8,0)
 #else
 {-# LANGUAGE OverlappingInstances #-}
 #endif
-{- Copyright (C) 2012-2015 John MacFarlane <jgm@berkeley.edu>
+{- Copyright (C) 2012-2017 John MacFarlane <jgm@berkeley.edu>
 
 This program is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -27,7 +25,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 {- |
    Module      : Text.Pandoc.Writers.Custom
-   Copyright   : Copyright (C) 2012-2015 John MacFarlane
+   Copyright   : Copyright (C) 2012-2017 John MacFarlane
    License     : GNU GPL, version 2 or above
 
    Maintainer  : John MacFarlane <jgm@berkeley.edu>
@@ -47,6 +45,9 @@ import Data.Typeable
 import GHC.IO.Encoding (getForeignEncoding, setForeignEncoding, utf8)
 import Scripting.Lua (LuaState, StackValue, callfunc)
 import qualified Scripting.Lua as Lua
+import Text.Pandoc.Lua.Compat ( loadstring )
+import Text.Pandoc.Lua.Util ( addValue )
+import Text.Pandoc.Lua.SharedInstances ()
 import Text.Pandoc.Definition
 import Text.Pandoc.Options
 import Text.Pandoc.Templates
@@ -59,72 +60,10 @@ attrToMap (id',classes,keyvals) = M.fromList
     : ("class", unwords classes)
     : keyvals
 
-#if MIN_VERSION_hslua(0,4,0)
-#if MIN_VERSION_base(4,8,0)
-instance {-# OVERLAPS #-} StackValue [Char] where
-#else
-instance StackValue [Char] where
-#endif
-  push lua cs = Lua.push lua (UTF8.fromString cs)
-  peek lua i = do
-                 res <- Lua.peek lua i
-                 return $ UTF8.toString `fmap` res
-  valuetype _ = Lua.TSTRING
-#else
-#if MIN_VERSION_base(4,8,0)
-instance {-# OVERLAPS #-} StackValue a => StackValue [a] where
-#else
-instance StackValue a => StackValue [a] where
-#endif
-  push lua xs = do
-    Lua.createtable lua (length xs + 1) 0
-    let addValue (i, x) = Lua.push lua x >> Lua.rawseti lua (-2) i
-    mapM_ addValue $ zip [1..] xs
-  peek lua i = do
-    top <- Lua.gettop lua
-    let i' = if i < 0 then top + i + 1 else i
-    Lua.pushnil lua
-    lst <- getList lua i'
-    Lua.pop lua 1
-    return (Just lst)
-  valuetype _ = Lua.TTABLE
-
-getList :: StackValue a => LuaState -> Int -> IO [a]
-getList lua i' = do
-  continue <- Lua.next lua i'
-  if continue
-     then do
-       next <- Lua.peek lua (-1)
-       Lua.pop lua 1
-       x <- maybe (fail "peek returned Nothing") return next
-       rest <- getList lua i'
-       return (x : rest)
-     else return []
-#endif
-
 instance StackValue Format where
   push lua (Format f) = Lua.push lua (map toLower f)
   peek l n = fmap Format `fmap` Lua.peek l n
   valuetype _ = Lua.TSTRING
-
-instance (StackValue a, StackValue b) => StackValue (M.Map a b) where
-  push lua m = do
-    let xs = M.toList m
-    Lua.createtable lua (length xs + 1) 0
-    let addValue (k, v) = Lua.push lua k >> Lua.push lua v >>
-                          Lua.rawset lua (-3)
-    mapM_ addValue xs
-  peek _ _ = undefined -- not needed for our purposes
-  valuetype _ = Lua.TTABLE
-
-instance (StackValue a, StackValue b) => StackValue (a,b) where
-  push lua (k,v) = do
-    Lua.createtable lua 2 0
-    Lua.push lua k
-    Lua.push lua v
-    Lua.rawset lua (-3)
-  peek _ _ = undefined -- not needed for our purposes
-  valuetype _ = Lua.TTABLE
 
 #if MIN_VERSION_base(4,8,0)
 instance {-# OVERLAPS #-} StackValue [Inline] where
@@ -162,14 +101,12 @@ instance StackValue MetaValue where
 instance StackValue Citation where
   push lua cit = do
     Lua.createtable lua 6 0
-    let addValue (k :: String, v) = Lua.push lua k >> Lua.push lua v >>
-                          Lua.rawset lua (-3)
-    addValue ("citationId", citationId cit)
-    addValue ("citationPrefix", citationPrefix cit)
-    addValue ("citationSuffix", citationSuffix cit)
-    addValue ("citationMode", show (citationMode cit))
-    addValue ("citationNoteNum", citationNoteNum cit)
-    addValue ("citationHash", citationHash cit)
+    addValue lua "citationId" $ citationId cit
+    addValue lua "citationPrefix" $ citationPrefix cit
+    addValue lua "citationSuffix" $ citationSuffix cit
+    addValue lua "citationMode" $ show (citationMode cit)
+    addValue lua "citationNoteNum" $ citationNoteNum cit
+    addValue lua "citationHash" $ citationHash cit
   peek = undefined
   valuetype _ = Lua.TTABLE
 
@@ -186,15 +123,11 @@ writeCustom luaFile opts doc@(Pandoc meta _) = do
   setForeignEncoding utf8
   lua <- Lua.newstate
   Lua.openlibs lua
-  status <- Lua.loadstring lua luaScript luaFile
+  status <- loadstring lua luaScript luaFile
   -- check for error in lua script (later we'll change the return type
   -- to handle this more gracefully):
   when (status /= 0) $
-#if MIN_VERSION_hslua(0,4,0)
     Lua.tostring lua 1 >>= throw . PandocLuaException . UTF8.toString
-#else
-    Lua.tostring lua 1 >>= throw . PandocLuaException
-#endif
   Lua.call lua 0 0
   -- TODO - call hierarchicalize, so we have that info
   rendered <- docToCustom lua opts doc

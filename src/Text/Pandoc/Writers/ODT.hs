@@ -1,6 +1,6 @@
 {-# LANGUAGE ScopedTypeVariables #-}
 {-
-Copyright (C) 2008-2015 John MacFarlane <jgm@berkeley.edu>
+Copyright (C) 2008-2017 John MacFarlane <jgm@berkeley.edu>
 
 This program is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 {- |
    Module      : Text.Pandoc.Writers.ODT
-   Copyright   : Copyright (C) 2008-2015 John MacFarlane
+   Copyright   : Copyright (C) 2008-2017 John MacFarlane
    License     : GNU GPL, version 2 or above
 
    Maintainer  : John MacFarlane <jgm@berkeley.edu>
@@ -39,7 +39,6 @@ import System.FilePath (takeDirectory, takeExtension, (<.>))
 import Text.Pandoc.Class (PandocMonad, report)
 import qualified Text.Pandoc.Class as P
 import Text.Pandoc.Definition
-import Text.Pandoc.Error (PandocError (..))
 import Text.Pandoc.ImageSize
 import Text.Pandoc.Logging
 import Text.Pandoc.MIME (extensionFromMimeType, getMimeType)
@@ -178,10 +177,7 @@ transformPicMath opts (Image attr@(id', cls, _) lab (src,t)) = catchError
        modify $ \st -> st{ stEntries = entry : entries }
        return $ Image newattr lab (newsrc, t))
    (\e -> do
-       case e of
-            PandocIOError _ e' ->
-               report $ CouldNotFetchResource src (show e')
-            e' -> report $ CouldNotFetchResource src (show e')
+       report $ CouldNotFetchResource src (show e)
        return $ Emph lab)
 
 transformPicMath _ (Math t math) = do

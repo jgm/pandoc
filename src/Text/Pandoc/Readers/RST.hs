@@ -2,7 +2,7 @@
 {-# LANGUAGE OverloadedStrings   #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-
-Copyright (C) 2006-2015 John MacFarlane <jgm@berkeley.edu>
+Copyright (C) 2006-2017 John MacFarlane <jgm@berkeley.edu>
 
 This program is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -21,7 +21,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 {- |
    Module      : Text.Pandoc.Readers.RST
-   Copyright   : Copyright (C) 2006-2015 John MacFarlane
+   Copyright   : Copyright (C) 2006-2017 John MacFarlane
    License     : GNU GPL, version 2 or above
 
    Maintainer  : John MacFarlane <jgm@berkeley.edu>
@@ -32,6 +32,7 @@ Conversion from reStructuredText to 'Pandoc' document.
 -}
 module Text.Pandoc.Readers.RST ( readRST ) where
 import Control.Monad (guard, liftM, mzero, when)
+import Control.Monad.Identity (Identity(..))
 import Control.Monad.Except (throwError)
 import Data.Char (isHexDigit, isSpace, toLower, toUpper)
 import Data.List (deleteFirstsBy, findIndex, intercalate, isInfixOf, isSuffixOf,
@@ -558,8 +559,7 @@ listLine :: Monad m => Int -> RSTParser m [Char]
 listLine markerLength = try $ do
   notFollowedBy blankline
   indentWith markerLength
-  line <- anyLine
-  return $ line ++ "\n"
+  anyLineNewline
 
 -- indent by specified number of spaces (or equiv. tabs)
 indentWith :: Monad m => Int -> RSTParser m [Char]
@@ -756,7 +756,8 @@ directive' = do
         other     -> do
             pos <- getPosition
             logMessage $ SkippedContent (".. " ++ other) pos
-            return mempty
+            bod <- parseFromString parseBlocks $ top ++ "\n\n" ++ body'
+            return $ B.divWith ("",[other],[]) bod
 
 tableDirective :: PandocMonad m
                => String -> [(String, String)] -> String -> RSTParser m Blocks
@@ -1139,8 +1140,12 @@ simpleTable :: PandocMonad m
             => Bool  -- ^ Headerless table
             -> RSTParser m Blocks
 simpleTable headless = do
-  tbl <- tableWith (simpleTableHeader headless) simpleTableRow
-              sep simpleTableFooter
+  let wrapIdFst (a, b, c) = (Identity a, b, c)
+      wrapId = fmap Identity
+  tbl <- runIdentity <$> tableWith
+           (wrapIdFst <$> simpleTableHeader headless)
+           (wrapId <$> simpleTableRow)
+           sep simpleTableFooter
   -- Simple tables get 0s for relative column widths (i.e., use default)
   case B.toList tbl of
        [Table c a _w h l]  -> return $ B.singleton $
@@ -1154,7 +1159,8 @@ simpleTable headless = do
 gridTable :: PandocMonad m
           => Bool -- ^ Headerless table
           -> RSTParser m Blocks
-gridTable headerless = gridTableWith parseBlocks headerless
+gridTable headerless = runIdentity <$>
+  gridTableWith (Identity <$> parseBlocks) headerless
 
 table :: PandocMonad m => RSTParser m Blocks
 table = gridTable False <|> simpleTable False <|>
