@@ -694,7 +694,13 @@ General writer options
 
 :   List of paths to search for images and other resources.
     The paths should be separated by `:` on linux, unix, and
-    MacOS systems, and by `;` on Windows.
+    MacOS systems, and by `;` on Windows.  If `--resource-path`
+    is not specified, the default resource path is the working
+    directory. Note that, if `--resource-path` is specified,
+    the working directory must be explicitly listed or it
+    will not be searched.  For example:
+    `--resource-path=.:test` will search the working directory
+    and the `test` subdirectory, in that order.
 
 Options affecting specific writers
 ----------------------------------

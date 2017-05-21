@@ -414,7 +414,7 @@ convertWithOpts opts = do
   let eol = fromMaybe nativeNewline $ optEol opts
 
   runIO' $ do
-    setResourcePath $ "." : (optResourcePath opts)
+    setResourcePath (optResourcePath opts)
     (doc, media) <- withMediaBag $ sourceToDoc sources >>=
               (   (if isJust (optExtractMedia opts)
                       then fillMediaBag (writerSourceURL writerOptions)
@@ -640,7 +640,7 @@ defaultOpts = Opt
     , optIncludeBeforeBody     = []
     , optIncludeAfterBody      = []
     , optIncludeInHeader       = []
-    , optResourcePath          = []
+    , optResourcePath          = ["."]
     , optEol                   = Nothing
     }
 

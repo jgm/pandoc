@@ -46,7 +46,7 @@ import Safe (minimumDef)
 import System.FilePath (addExtension, replaceExtension, takeExtension)
 import Text.Pandoc.Builder
 import Text.Pandoc.Class (PandocMonad, PandocPure, lookupEnv, readFileFromDirs,
-                          report, setResourcePath)
+                          report, setResourcePath, getResourcePath)
 import Text.Pandoc.Highlighting (fromListingsLanguage, languagesByExtension)
 import Text.Pandoc.ImageSize (numUnit, showFl)
 import Text.Pandoc.Logging
@@ -417,7 +417,7 @@ blockCommands = M.fromList $
 graphicsPath :: PandocMonad m => LP m Blocks
 graphicsPath = do
   ps <- bgroup *> (manyTill braced egroup)
-  setResourcePath (".":ps)
+  getResourcePath >>= setResourcePath . (++ ps)
   return mempty
 
 addMeta :: PandocMonad m => ToMetaValue a => String -> a -> LP m ()
