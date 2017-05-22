@@ -1,13 +1,13 @@
 import Control.Monad.Except (throwError)
 import Control.Monad (guard)
 import Data.Default -- def is there
-import Text.Pandoc.Builder (doc, Blocks, Inlines, toList, trimInlines, headerWith)
+import Text.Pandoc.Builder (doc, Blocks, Inlines, toList, trimInlines, headerWith, str)
 import Text.Pandoc.Class (PandocMonad, report, PandocIO, runIO)
 import Text.Pandoc.Definition (Pandoc, nullAttr)
 import Text.Pandoc.Logging (LogMessage(ParsingTrace))
 import Text.Pandoc.Options (ReaderOptions)
 import Text.Pandoc.Parsing (readWithM, ParserT, stateOptions, ParserState, blanklines, registerHeader)
-import Text.Parsec.Char (spaces, char)
+import Text.Parsec.Char (spaces, char, anyChar)
 import Text.Parsec.Combinator (eof, choice, many1, manyTill, count)
 import Text.Parsec.Pos (sourceColumn)
 import Text.Parsec.Prim (many, getPosition, try)
@@ -37,14 +37,14 @@ block = do
   pos <- getPosition
   res <- choice [ mempty <$ blanklines
                 , header
-                , bulletList
+{--                , bulletList
                 , orderedList
                 , hrule
                 , table
                 , blockQuote
                 , para
                 , preformatted
-                , blockMath
+                , blockMath --}
                 ]
   report $ ParsingTrace (take 60 $ show $ toList res) pos
   return res
@@ -83,7 +83,8 @@ blockMath = undefined
 -- inline parser
 
 inline :: PandocMonad m => VwParser m Inlines
-inline = choice [ whitespace
+inline = vstr
+{--inline = choice [ whitespace
                 , bareURL
                 , bold
                 , italic
@@ -95,8 +96,9 @@ inline = choice [ whitespace
                 , inlineMath
                 , comment
                 , tag
-                ]
+                ]--}
 
+vstr :: PandocMonad m => VwParser m Inlines
 whitespace :: PandocMonad m => VwParser m Inlines
 bareURL :: PandocMonad m => VwParser m Inlines
 bold :: PandocMonad m => VwParser m Inlines
@@ -110,6 +112,7 @@ inlineMath :: PandocMonad m => VwParser m Inlines
 comment :: PandocMonad m => VwParser m Inlines
 tag :: PandocMonad m => VwParser m Inlines
 
+vstr = str <$> many1 anyChar
 whitespace  = undefined
 bareURL  = undefined
 bold  = undefined
