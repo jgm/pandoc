@@ -561,15 +561,6 @@ listLine markerLength = try $ do
   indentWith markerLength
   anyLineNewline
 
--- indent by specified number of spaces (or equiv. tabs)
-indentWith :: Monad m => Int -> RSTParser m [Char]
-indentWith num = do
-  tabStop <- getOption readerTabStop
-  if (num < tabStop)
-     then count num  (char ' ')
-     else choice [ try (count num (char ' ')),
-                   (try (char '\t' >> count (num - tabStop) (char ' '))) ]
-
 -- parse raw text for one list item, excluding start marker and continuations
 rawListItem :: Monad m => RSTParser m Int
             -> RSTParser m (Int, [Char])

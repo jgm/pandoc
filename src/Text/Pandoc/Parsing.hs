@@ -37,6 +37,7 @@ A utility library with parsers used in pandoc readers.
 -}
 module Text.Pandoc.Parsing ( anyLine,
                              anyLineNewline,
+                             indentWith,
                              many1Till,
                              notFollowedBy',
                              oneOfStrings,
@@ -259,6 +260,17 @@ anyLine = do
 -- | Parse any line, include the final newline in the output
 anyLineNewline :: Stream [Char] m Char => ParserT [Char] st m [Char]
 anyLineNewline = (++ "\n") <$> anyLine
+
+-- | Parse indent by specified number of spaces (or equiv. tabs)
+indentWith :: Stream [Char] m Char
+           => HasReaderOptions st
+           => Int -> ParserT [Char] st m [Char]
+indentWith num = do
+  tabStop <- getOption readerTabStop
+  if (num < tabStop)
+     then count num (char ' ')
+     else choice [ try (count num (char ' '))
+                 , try (char '\t' >> indentWith (num - tabStop)) ]
 
 -- | Like @manyTill@, but reads at least one item.
 many1Till :: Stream s m t
