@@ -593,11 +593,12 @@ General writer options
 :   Print a system default data file.  Files in the user data directory
     are ignored.
 
-`--eol=crlf`|`lf`
+`--eol=crlf`|`lf`|`native`
 
-:   Manually specify line endings: `crlf` (Windows) or `lf`
-    (MacOS/linux/unix).  The default is to use the line endings
-    appropriate for the OS.
+:   Manually specify line endings: `crlf` (Windows), `lf`
+    (MacOS/linux/unix), or `native` (line endings appropriate
+    to the OS on which pandoc is being run).  The default is
+    `native`.
 
 `--dpi`=*NUMBER*
 

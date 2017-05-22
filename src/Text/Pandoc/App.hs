@@ -90,11 +90,11 @@ import System.Posix.IO (stdOutput)
 import System.Posix.Terminal (queryTerminal)
 #endif
 
-data Newline = LF | CRLF deriving (Show, Generic)
+data LineEnding = LF | CRLF | Native deriving (Show, Generic)
 
-instance ToJSON Newline where
+instance ToJSON LineEnding where
   toEncoding = genericToEncoding defaultOptions
-instance FromJSON Newline
+instance FromJSON LineEnding
 
 parseOptions :: [OptDescr (Opt -> IO Opt)] -> Opt -> IO Opt
 parseOptions options' defaults = do
@@ -422,9 +422,9 @@ convertWithOpts opts = do
                  else return $ optMetadata opts
 
   let eol = case optEol opts of
-                 Just CRLF -> IO.CRLF
-                 Just LF   -> IO.LF
-                 Nothing   -> nativeNewline
+                 CRLF   -> IO.CRLF
+                 LF     -> IO.LF
+                 Native -> nativeNewline
 
   runIO' $ do
     setResourcePath (optResourcePath opts)
@@ -584,7 +584,7 @@ data Opt = Opt
     , optIncludeAfterBody      :: [FilePath]       -- ^ Files to include after body
     , optIncludeInHeader       :: [FilePath]       -- ^ Files to include in header
     , optResourcePath          :: [FilePath] -- ^ Path to search for images etc
-    , optEol                   :: Maybe Newline    -- ^ Enforce line-endings
+    , optEol                   :: LineEnding -- ^ Style of line-endings to use
     } deriving (Generic, Show)
 
 instance ToJSON Opt where
@@ -658,7 +658,7 @@ defaultOpts = Opt
     , optIncludeAfterBody      = []
     , optIncludeInHeader       = []
     , optResourcePath          = ["."]
-    , optEol                   = Nothing
+    , optEol                   = Native
     }
 
 addMetadata :: (String, String) -> Pandoc -> Pandoc
@@ -986,12 +986,13 @@ options =
                  (ReqArg
                   (\arg opt ->
                     case toLower <$> arg of
-                      "crlf" -> return opt { optEol = Just CRLF }
-                      "lf"   -> return opt { optEol = Just LF }
+                      "crlf"   -> return opt { optEol = CRLF }
+                      "lf"     -> return opt { optEol = LF }
+                      "native" -> return opt { optEol = Native }
                       -- mac-syntax (cr) is not supported in ghc-base.
                       _      -> E.throwIO $ PandocOptionError
-                                "--eol must be one of crlf (Windows), lf (Unix)")
-                  "crlf|lf")
+                                "--eol must be crlf, lf, or native")
+                  "crlf|lf|native")
                  "" -- "EOL (default OS-dependent)"
 
     , Option "" ["wrap"]
