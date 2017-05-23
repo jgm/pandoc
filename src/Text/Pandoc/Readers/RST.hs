@@ -58,7 +58,6 @@ import Text.Printf (printf)
 -- [ ] .. parsed-literal
 -- [ ] :widths: attribute in .. table
 -- [ ] .. csv-table
--- [ ] .. list-table
 
 -- | Parse reStructuredText string and return Pandoc document.
 readRST :: PandocMonad m
@@ -676,6 +675,7 @@ directive' = do
                           (lengthToDim . filter (not . isSpace))
   case label of
         "table" -> tableDirective top fields body'
+        "list-table" -> listTableDirective top fields body'
         "line-block" -> lineBlockDirective body'
         "raw" -> return $ B.rawBlock (trim top) (stripTrailingNewlines body)
         "role" -> addNewRole top $ map (\(k,v) -> (k, trim v)) fields
@@ -761,6 +761,33 @@ tableDirective top _fields body = do
          return $ B.singleton $ Table (B.toList title)
                                   aligns' widths' header' rows'
        _ -> return mempty
+
+
+-- TODO: :stub-columns:.
+-- Only the first row becomes the header even if header-rows: > 1, since Pandoc doesn't support a table with multiple header rows.
+-- We don't need to parse :align: as it represents the whole table align. 
+listTableDirective :: PandocMonad m => String -> [(String, String)] -> String -> RSTParser m Blocks
+listTableDirective top fields body = do
+  bs <- parseFromString parseBlocks body
+  title <- parseFromString (trimInlines . mconcat <$> many inline) top
+  let rows = takeRows $ B.toList bs
+      headerRowsNum = fromMaybe (0 :: Int) $ lookup "header-rows" fields >>= safeRead
+      (headerRow,bodyRows,numOfCols) = case rows of
+        x:xs -> if headerRowsNum > 0 then (x, xs, length x) else ([], rows, length x)
+        _ -> ([],[],0)
+      widths = case trim <$> lookup "widths" fields of
+        Just "auto" -> replicate numOfCols 0
+        Just specs -> normWidths $ map (fromMaybe (0 :: Double) . safeRead) $ splitBy (`elem` (" ," :: String)) specs
+        _ -> replicate numOfCols 0
+  return $ B.table title
+             (zip (replicate numOfCols AlignDefault) widths)
+             headerRow
+             bodyRows
+    where takeRows [BulletList rows] = map takeCells rows
+          takeRows _ = []
+          takeCells [BulletList cells] = map B.fromList cells
+          takeCells _ = []
+          normWidths ws = map (/ max 1 (sum ws)) ws
 
 -- TODO:
 --  - Only supports :format: fields with a single format for :raw: roles,
