@@ -773,7 +773,7 @@ tableDirective top _fields body = do
 
 
 -- TODO: :stub-columns:.
--- Only the first row becomes the header if header-rows: > 1, since Pandoc doesn't support a table with multiple header rows.
+-- Only the first row becomes the header even if header-rows: > 1, since Pandoc doesn't support a table with multiple header rows.
 -- We don't need to parse :align: as it represents the whole table align. 
 listTableDirective :: PandocMonad m => String -> [(String, String)] -> String -> RSTParser m Blocks
 listTableDirective top fields body = do
@@ -781,18 +781,17 @@ listTableDirective top fields body = do
   title <- parseFromString (trimInlines . mconcat <$> many inline) top
   let rows = takeRows $ B.toList bs
       headerRowsNum = fromMaybe (0 :: Int) $ lookup "header-rows" fields >>= safeRead
-      headerRow = case rows of
-        x:_ -> x
-        _ -> []
-      numOfCols = length headerRow
+      (headerRow,bodyRows,numOfCols) = case rows of
+        x:xs -> if headerRowsNum > 0 then (x, xs, length x) else ([], rows, length x)
+        _ -> ([],[],0)
       widths = case lookup "widths" fields of
         Just "auto" -> replicate numOfCols 0
         Just specs -> normWidths $ map (fromMaybe (0 :: Double) . safeRead) $ splitBy (`elem` (" ," :: String)) specs
         _ -> replicate numOfCols 0
   return $ B.table title
              (zip (replicate numOfCols AlignDefault) widths)
-             (if headerRowsNum > 0 then headerRow else [])
-             (drop (min headerRowsNum 1) rows)
+             headerRow
+             bodyRows
     where takeRows [BulletList rows] = map takeCells rows
           takeRows _ = []
           takeCells [BulletList cells] = map B.fromList cells
