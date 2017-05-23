@@ -775,17 +775,18 @@ tableDirective top _fields body = do
 listTableDirective :: PandocMonad m => String -> [(String, String)] -> String -> RSTParser m Blocks
 listTableDirective top _fields body = do
   bs <- parseFromString parseBlocks body
-  title <- do { parseFromString (trimInlines . mconcat <$> many inline) top }
+  title <- parseFromString (trimInlines . mconcat <$> many inline) top
   let rows = takeRows $ B.toList bs
-      numOfCols = length $ rows !! 0
-      headerRows = case lookup "header-rows" _fields of
-                     Just x -> read x :: Int
-                     Nothing -> 0
+      headerRow = case rows of
+        x:_ -> x
+        _ -> []
+      numOfCols = length headerRow
+      headerRowsNum = fromMaybe 0 $ lookup "header-rows" _fields >>= safeRead
   return $ B.singleton $ Table (B.toList title)
                            (replicate numOfCols AlignDefault)
                            (replicate numOfCols 0)
-                           (if headerRows > 0 then rows !! 0 else replicate numOfCols [])
-                           (if headerRows > 0 then drop 1 rows else rows)
+                           (if headerRowsNum > 0 then headerRow else replicate numOfCols [])
+                           (if headerRowsNum > 0 then drop 1 rows else rows)
     where takeRows [BulletList rows] = map takeCell rows
           takeRows _ = []
           takeCell [BulletList cell] = cell
