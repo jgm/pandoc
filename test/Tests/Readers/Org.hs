@@ -334,6 +334,18 @@ tests =
                        }
         in (para $ cite [citation] "cite:pandoc")
 
+      , "Org-ref simple citation with underscores" =:
+        "cite:pandoc_org_ref" =?>
+        let citation = Citation
+                       { citationId = "pandoc_org_ref"
+                       , citationPrefix = mempty
+                       , citationSuffix = mempty
+                       , citationMode = AuthorInText
+                       , citationNoteNum = 0
+                       , citationHash = 0
+                       }
+        in (para $ cite [citation] "cite:pandoc_org_ref")
+
       , "Org-ref simple citation succeeded by comma" =:
         "cite:pandoc," =?>
         let citation = Citation
@@ -345,6 +357,30 @@ tests =
                        , citationHash = 0
                        }
         in (para $ cite [citation] "cite:pandoc" <> str ",")
+
+      , "Org-ref simple citation succeeded by dot" =:
+        "cite:pandoc." =?>
+        let citation = Citation
+                       { citationId = "pandoc"
+                       , citationPrefix = mempty
+                       , citationSuffix = mempty
+                       , citationMode = AuthorInText
+                       , citationNoteNum = 0
+                       , citationHash = 0
+                       }
+        in (para $ cite [citation] "cite:pandoc" <> str ".")
+
+      , "Org-ref simple citation succeeded by colon" =:
+        "cite:pandoc:" =?>
+        let citation = Citation
+                       { citationId = "pandoc"
+                       , citationPrefix = mempty
+                       , citationSuffix = mempty
+                       , citationMode = AuthorInText
+                       , citationNoteNum = 0
+                       , citationHash = 0
+                       }
+        in (para $ cite [citation] "cite:pandoc" <> str ":")
 
       , "Org-ref simple citep citation" =:
         "citep:pandoc" =?>
