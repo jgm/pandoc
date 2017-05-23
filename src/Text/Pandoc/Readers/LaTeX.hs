@@ -533,12 +533,12 @@ inlineCommands = M.fromList $
   , ("mdots", lit "…")
   , ("sim", lit "~")
   , ("label", unlessParseRaw >> (inBrackets <$> tok))
-  , ("ref", ref)
+  , ("ref", ref "ref")
   , ("textgreek", tok)
   , ("sep", lit ",")
-  , ("cref", ref)  -- from cleveref.sty
-  , ("vref", ref)  -- from varioref.sty
-  , ("eqref", ref) -- from amsmath.sty
+  , ("cref", ref "ref")       -- from cleveref.sty
+  , ("vref", ref "ref+page")  -- from varioref.sty
+  , ("eqref", ref "eqref")    -- from amsmath.sty
   , ("(", mathInline $ manyTill anyChar (try $ string "\\)"))
   , ("[", mathDisplay $ manyTill anyChar (try $ string "\\]"))
   , ("ensuremath", mathInline braced)
@@ -693,11 +693,11 @@ inlineCommands = M.fromList $
   , "pagebreak"
   ]
 
-ref :: PandocMonad m => LP m Inlines
-ref = do
-    unlessParseRaw >> do
-        label <- braced
-        return $ spanWith ("",[],[("data-reference", label)]) $ inBrackets $ str label
+ref :: PandocMonad m => String -> LP m Inlines
+ref cls = do
+  unlessParseRaw
+  label <- braced
+  return $ spanWith ("",[],[("data-reference-type", cls), ("data-reference", label)]) $ inBrackets $ str label
 
 ttfamily :: PandocMonad m => LP m Inlines
 ttfamily = (code . stringify . toList) <$> tok
