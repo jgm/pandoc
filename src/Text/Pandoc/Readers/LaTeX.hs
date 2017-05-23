@@ -418,9 +418,15 @@ blockCommands = M.fromList $
 
 blockTextcolor :: PandocMonad m => LP m Blocks
 blockTextcolor = do
-    skipopts 
-    color <- braced
-    divWith ("",[],[("style","color: " ++ color)]) <$> grouped block <* notFollowedBy inline
+  skipopts 
+  color <- braced
+  let constructor = divWith ("",[],[("style","color: " ++ color)])
+  inlineContents <|> constructor <$> blockContents
+  where inlineContents = do 
+                            ils <- grouped inline
+                            rest <- inlines
+                            return (para (ils <> rest))
+        blockContents = grouped block
 
 graphicsPath :: PandocMonad m => LP m Blocks
 graphicsPath = do

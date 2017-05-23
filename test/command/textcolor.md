@@ -33,3 +33,20 @@ Hello \textcolor{blue}{\textbf{World}}
   [[Para [Str "Item",Space,Str "1"]]
   ,[Para [Str "Item",Space,Str "2"]]]]]
 ```
+
+```
+% pandoc -f latex -t native
+\textcolor{blue}{
+\begin{itemize}
+    \item Item 1
+    \item Item 2
+\end{itemize}
+} some more text
+^D
+[Div ("",[],[("style","color: blue")])
+ [BulletList
+  [[Para [Str "Item",Space,Str "1"]]
+  ,[Para [Str "Item",Space,Str "2"]]]]
+,Para [Str "some",Space,Str "more",Space,Str "text"]]
+```
+
