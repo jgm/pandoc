@@ -7,14 +7,14 @@ import Text.Pandoc.Definition (Pandoc, nullAttr)
 import Text.Pandoc.Logging (LogMessage(ParsingTrace))
 import Text.Pandoc.Options (ReaderOptions)
 import Text.Pandoc.Parsing (readWithM, ParserT, stateOptions, ParserState, blanklines, registerHeader)
-import Text.Parsec.Char (spaces, char, anyChar)
+import Text.Parsec.Char (spaces, char, anyChar, newline, string)
 import Text.Parsec.Combinator (eof, choice, many1, manyTill, count)
 import Text.Parsec.Pos (sourceColumn)
 import Text.Parsec.Prim (many, getPosition, try)
 
 readVimwiki :: PandocMonad m => ReaderOptions -> String -> m Pandoc
 readVimwiki opts s = do
-  res <- readWithM parseVimwiki def{ stateOptions = opts } (s ++ "\n")
+  res <- readWithM parseVimwiki def{ stateOptions = opts } s
   case res of
        Left e -> throwError e
        Right result -> return result
@@ -67,7 +67,8 @@ header = try $ do
   eqs <- many1 (char '=')
   let lev = length eqs
   guard $ lev <= 6
-  contents <- trimInlines . mconcat <$> manyTill inline (count lev $ char '=')
+  contents <- trimInlines . mconcat <$> manyTill inline (try (string eqs))
+  --contents <- trimInlines . mconcat <$> manyTill inline eof
   attr <- registerHeader nullAttr contents
   return $ headerWith attr lev contents
 
@@ -80,6 +81,7 @@ para = undefined
 preformatted = undefined
 blockMath = undefined
 
+ simpleComment   = do{ string "<!--" ; manyTill anyChar (try (string "-->")) }
 -- inline parser
 
 inline :: PandocMonad m => VwParser m Inlines
