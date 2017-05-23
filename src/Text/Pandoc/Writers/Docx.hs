@@ -1059,13 +1059,24 @@ withParaPropM :: PandocMonad m => WS m Element -> WS m a -> WS m a
 withParaPropM = (. flip withParaProp) . (>>=)
 
 formattedString :: PandocMonad m => String -> WS m [Element]
-formattedString str = do
-  props <- getTextProps
+formattedString str =
+  -- properly handle soft hyphens
+  case splitBy (=='\173') str of
+      [w] -> formattedString' w
+      ws  -> do
+         sh <- formattedRun [mknode "w:softHyphen" [] ()]
+         (intercalate sh) <$> mapM formattedString' ws
+
+formattedString' :: PandocMonad m => String -> WS m [Element]
+formattedString' str = do
   inDel <- asks envInDel
-  return [ mknode "w:r" [] $
-             props ++
-             [ mknode (if inDel then "w:delText" else "w:t")
-               [("xml:space","preserve")] (stripInvalidChars str) ] ]
+  formattedRun [ mknode (if inDel then "w:delText" else "w:t")
+                 [("xml:space","preserve")] (stripInvalidChars str) ]
+
+formattedRun :: PandocMonad m => [Element] -> WS m [Element]
+formattedRun els = do
+  props <- getTextProps
+  return [ mknode "w:r" [] $ props ++ els ]
 
 setFirstPara :: PandocMonad m => WS m ()
 setFirstPara =  modify $ \s -> s { stFirstPara = True }
@@ -1075,7 +1086,8 @@ inlineToOpenXML :: PandocMonad m => WriterOptions -> Inline -> WS m [Element]
 inlineToOpenXML opts il = withDirection $ inlineToOpenXML' opts il
 
 inlineToOpenXML' :: PandocMonad m => WriterOptions -> Inline -> WS m [Element]
-inlineToOpenXML' _ (Str str) = formattedString str
+inlineToOpenXML' _ (Str str) =
+  formattedString str
 inlineToOpenXML' opts Space = inlineToOpenXML opts (Str " ")
 inlineToOpenXML' opts SoftBreak = inlineToOpenXML opts (Str " ")
 inlineToOpenXML' opts (Span (ident,classes,kvs) ils) = do
