@@ -839,7 +839,8 @@ schemes = Set.fromList
 isURI :: String -> Bool
 isURI = maybe False hasKnownScheme . parseURI
   where
-    hasKnownScheme = (`Set.member` schemes) . filter (/= ':') . uriScheme
+    hasKnownScheme = (`Set.member` schemes) . map toLower .
+                     filter (/= ':') . uriScheme
 
 ---
 --- Squash blocks into inlines
