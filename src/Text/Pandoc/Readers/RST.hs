@@ -58,7 +58,6 @@ import Text.Printf (printf)
 -- [ ] .. parsed-literal
 -- [ ] :widths: attribute in .. table
 -- [ ] .. csv-table
--- [ ] .. list-table
 
 -- | Parse reStructuredText string and return Pandoc document.
 readRST :: PandocMonad m
