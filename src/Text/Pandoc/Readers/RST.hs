@@ -772,26 +772,33 @@ tableDirective top _fields body = do
                                   aligns' widths' header' rows'
        _ -> return mempty
 
+
+-- TODO: :stub-columns:.
+-- Only the first row becomes the header if header-rows: > 1, since Pandoc doesn't support a table with multiple header rows.
+-- We don't need to parse :align: as it represents the whole table align. 
 listTableDirective :: PandocMonad m => String -> [(String, String)] -> String -> RSTParser m Blocks
-listTableDirective top _fields body = do
+listTableDirective top fields body = do
   bs <- parseFromString parseBlocks body
   title <- parseFromString (trimInlines . mconcat <$> many inline) top
   let rows = takeRows $ B.toList bs
+      headerRowsNum = fromMaybe (0 :: Int) $ lookup "header-rows" fields >>= safeRead
       headerRow = case rows of
         x:_ -> x
         _ -> []
       numOfCols = length headerRow
-      headerRowsNum = fromMaybe 0 $ lookup "header-rows" _fields >>= safeRead
-  return $ B.singleton $ Table (B.toList title)
-                           (replicate numOfCols AlignDefault)
-                           (replicate numOfCols 0)
-                           (if headerRowsNum > 0 then headerRow else replicate numOfCols [])
-                           (if headerRowsNum > 0 then drop 1 rows else rows)
-    where takeRows [BulletList rows] = map takeCell rows
+      widths = case lookup "widths" fields of
+        Just "auto" -> replicate numOfCols 0
+        Just specs -> normWidths $ map (fromMaybe (0 :: Double) . safeRead) $ splitBy (`elem` (" ," :: String)) specs
+        _ -> replicate numOfCols 0
+  return $ B.table title
+             (zip (replicate numOfCols AlignDefault) widths)
+             (if headerRowsNum > 0 then headerRow else [])
+             (drop (min headerRowsNum 1) rows)
+    where takeRows [BulletList rows] = map takeCells rows
           takeRows _ = []
-          takeCell [BulletList cell] = cell
-          takeCell _ = []
-
+          takeCells [BulletList cells] = map B.fromList cells
+          takeCells _ = []
+          normWidths ws = map (/ max 1 (sum ws)) ws
 
 -- TODO:
 --  - Only supports :format: fields with a single format for :raw: roles,
