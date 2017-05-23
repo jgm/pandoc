@@ -19,6 +19,14 @@ Hello \textcolor{blue}{\textbf{World}}
 [Para [Str "Hello",Space,Span ("",[],[("style","color: blue")]) [Strong [Str "World"]]]]
 ```
 
+
+```
+% pandoc -f latex -t native
+Hello \textcolor{blue}{\textbf{World}}.
+^D
+[Para [Str "Hello",Space,Span ("",[],[("style","color: blue")]) [Strong [Str "World"]],Str "."]]
+```
+
 ```
 % pandoc -f latex -t native
 \textcolor{orange}{
