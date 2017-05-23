@@ -128,7 +128,8 @@ inlineMath :: PandocMonad m => VwParser m Inlines
 comment :: PandocMonad m => VwParser m Inlines
 tag :: PandocMonad m => VwParser m Inlines
 
-str = B.str <$> many1 (noneOf $ specialChars ++ spaceChars)
+--str = B.str <$> many1 (noneOf $ specialChars ++ spaceChars)
+str = B.str <$> many1 anyChar
 whitespace = B.space <$ (skipMany1 spaceChar)
 bareURL  = undefined
 bold  = undefined
