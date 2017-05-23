@@ -349,13 +349,13 @@ linebreak = newline >> notFollowedBy newline >> (lastNewline <|> innerNewline)
   where lastNewline  = eof >> return mempty
         innerNewline = return B.space
 
-between :: (Monoid c, PandocMonad m)
+between :: (Monoid c, PandocMonad m, Show b)
         => TWParser m a -> TWParser m b -> (TWParser m b -> TWParser m c)
         -> TWParser m c
 between start end p =
   mconcat <$> try (start >> notFollowedBy whitespace >> many1Till (p end) end)
 
-enclosed :: (Monoid b, PandocMonad m)
+enclosed :: (Monoid b, PandocMonad m, Show a)
          => TWParser m a -> (TWParser m a -> TWParser m b) -> TWParser m b
 enclosed sep p = between sep (try $ sep <* endMarker) p
   where

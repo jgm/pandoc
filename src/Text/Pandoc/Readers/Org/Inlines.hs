@@ -687,13 +687,13 @@ mathEnd c = try $ do
   return res
 
 
-enclosedInlines :: PandocMonad m => OrgParser m a
+enclosedInlines :: (PandocMonad m, Show b) => OrgParser m a
                 -> OrgParser m b
                 -> OrgParser m (F Inlines)
 enclosedInlines start end = try $
   trimInlinesF . mconcat <$> enclosed start end inline
 
-enclosedRaw :: PandocMonad m => OrgParser m a
+enclosedRaw :: (PandocMonad m, Show b) => OrgParser m a
             -> OrgParser m b
             -> OrgParser m String
 enclosedRaw start end = try $

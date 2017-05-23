@@ -692,7 +692,7 @@ langAttr = do
   return $ \(id',classes,keyvals) -> (id',classes,("lang",lang):keyvals)
 
 -- | Parses material surrounded by a parser.
-surrounded :: PandocMonad m
+surrounded :: (PandocMonad m, Show t)
            => ParserT [Char] st m t   -- ^ surrounding parser
            -> ParserT [Char] st m a   -- ^ content parser (to be used repeatedly)
            -> ParserT [Char] st m [a]
