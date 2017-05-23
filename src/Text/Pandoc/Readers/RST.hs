@@ -784,7 +784,7 @@ listTableDirective top fields body = do
       (headerRow,bodyRows,numOfCols) = case rows of
         x:xs -> if headerRowsNum > 0 then (x, xs, length x) else ([], rows, length x)
         _ -> ([],[],0)
-      widths = case lookup "widths" fields of
+      widths = case trim <$> lookup "widths" fields of
         Just "auto" -> replicate numOfCols 0
         Just specs -> normWidths $ map (fromMaybe (0 :: Double) . safeRead) $ splitBy (`elem` (" ," :: String)) specs
         _ -> replicate numOfCols 0
