@@ -44,13 +44,12 @@ import Control.Monad.Reader (ReaderT, ask, local, runReaderT)
 import Control.Monad.State (StateT, evalStateT, gets, modify)
 import Data.Default (Default (..))
 import Data.List (intercalate, intersect, isPrefixOf, transpose)
-import Network.URI (isURI)
 import Text.Pandoc.Class (PandocMonad, report)
 import Text.Pandoc.Logging
 import Text.Pandoc.Definition
 import Text.Pandoc.ImageSize
 import Text.Pandoc.Options (WrapOption (..), WriterOptions (writerTableOfContents, writerTemplate, writerWrapText))
-import Text.Pandoc.Shared (camelCaseToHyphenated, escapeURI, linesToPara,
+import Text.Pandoc.Shared (camelCaseToHyphenated, escapeURI, isURI, linesToPara,
                            removeFormatting, substitute, trimr)
 import Text.Pandoc.Templates (renderTemplate')
 import Text.Pandoc.Writers.Shared (defField, metaToJSON)

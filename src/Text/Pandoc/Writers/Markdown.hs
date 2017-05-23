@@ -49,7 +49,6 @@ import qualified Data.Text as T
 import qualified Data.Vector as V
 import Data.Yaml (Value (Array, Bool, Number, Object, String))
 import Network.HTTP (urlEncode)
-import Network.URI (isURI)
 import Text.HTML.TagSoup (Tag (..), isTagText, parseTags)
 import Text.Pandoc.Class (PandocMonad, report)
 import Text.Pandoc.Definition

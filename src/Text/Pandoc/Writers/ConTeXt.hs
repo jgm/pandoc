@@ -33,7 +33,7 @@ import Control.Monad.State
 import Data.Char (ord)
 import Data.List (intercalate, intersperse)
 import Data.Maybe (catMaybes)
-import Network.URI (isURI, unEscapeString)
+import Network.URI (unEscapeString)
 import Text.Pandoc.Class (PandocMonad, report)
 import Text.Pandoc.Logging
 import Text.Pandoc.Definition

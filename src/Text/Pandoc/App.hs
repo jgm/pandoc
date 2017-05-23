@@ -57,7 +57,7 @@ import Data.Maybe (fromMaybe, isJust, isNothing)
 import qualified Data.Text as T
 import Data.Yaml (decode)
 import qualified Data.Yaml as Yaml
-import Network.URI (URI (..), isURI, parseURI)
+import Network.URI (URI (..), parseURI)
 import Paths_pandoc (getDataDir)
 import Skylighting (Style, Syntax (..), defaultSyntaxMap, parseTheme)
 import Skylighting.Parser (missingIncludes, parseSyntaxDefinition,
@@ -80,7 +80,7 @@ import Text.Pandoc.Lua ( runLuaFilter )
 import Text.Pandoc.PDF (makePDF)
 import Text.Pandoc.Process (pipeProcess)
 import Text.Pandoc.SelfContained (makeSelfContained, makeDataURI)
-import Text.Pandoc.Shared (headerShift, openURL, readDataFile,
+import Text.Pandoc.Shared (isURI, headerShift, openURL, readDataFile,
                            readDataFileUTF8, safeRead, tabFilter)
 import qualified Text.Pandoc.UTF8 as UTF8
 import Text.Pandoc.XML (toEntities)

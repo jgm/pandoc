@@ -46,7 +46,6 @@ import Data.Char (isAscii, isControl, isSpace, toLower)
 import Data.Either (lefts, rights)
 import Data.List (intercalate, intersperse, isPrefixOf, stripPrefix)
 import Network.HTTP (urlEncode)
-import Network.URI (isURI)
 import Text.XML.Light
 import qualified Text.XML.Light as X
 import qualified Text.XML.Light.Cursor as XC
@@ -57,7 +56,7 @@ import Text.Pandoc.Definition
 import Text.Pandoc.Error
 import Text.Pandoc.Logging
 import Text.Pandoc.Options (HTMLMathMethod (..), WriterOptions (..), def)
-import Text.Pandoc.Shared (capitalize, isHeaderBlock, linesToPara,
+import Text.Pandoc.Shared (capitalize, isHeaderBlock, isURI, linesToPara,
                            orderedListMarkers)
 
 -- | Data to be written at the end of the document:

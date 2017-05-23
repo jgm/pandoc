@@ -21,7 +21,6 @@ import Control.Monad.State
 import Data.List (intersperse, isInfixOf, isPrefixOf, stripPrefix)
 import qualified Data.Set as Set
 import Data.Text as Text (breakOnAll, pack)
-import Network.URI (isURI)
 import Text.Pandoc.Class (PandocMonad, report)
 import qualified Text.Pandoc.Class as P
 import Text.Pandoc.Definition
@@ -29,7 +28,7 @@ import Text.Pandoc.ImageSize
 import Text.Pandoc.Logging
 import Text.Pandoc.Options
 import Text.Pandoc.Pretty
-import Text.Pandoc.Shared (linesToPara, splitBy)
+import Text.Pandoc.Shared (isURI, linesToPara, splitBy)
 import Text.Pandoc.Templates (renderTemplate')
 import Text.Pandoc.Writers.Math (texMathToInlines)
 import Text.Pandoc.Writers.Shared

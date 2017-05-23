@@ -37,7 +37,7 @@ import Data.Char (chr, ord)
 import Data.List (maximumBy, transpose)
 import Data.Ord (comparing)
 import qualified Data.Set as Set
-import Network.URI (isURI, unEscapeString)
+import Network.URI (unEscapeString)
 import System.FilePath
 import Text.Pandoc.Class (PandocMonad, report)
 import Text.Pandoc.Definition

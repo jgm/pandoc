@@ -42,7 +42,7 @@ import qualified Data.ByteString.Char8 as B
 import qualified Data.ByteString.Lazy as L
 import Data.Char (isAlphaNum, isAscii, toLower)
 import Data.List (isPrefixOf)
-import Network.URI (URI (..), escapeURIString, isURI, parseURI)
+import Network.URI (URI (..), escapeURIString, parseURI)
 import System.FilePath (takeDirectory, takeExtension, (</>))
 import Text.HTML.TagSoup
 import Text.Pandoc.Class (PandocMonad (..), fetchItem, report)
@@ -50,7 +50,7 @@ import Text.Pandoc.Error
 import Text.Pandoc.Logging
 import Text.Pandoc.MIME (MimeType)
 import Text.Pandoc.Options (WriterOptions (..))
-import Text.Pandoc.Shared (renderTags', trim)
+import Text.Pandoc.Shared (isURI, renderTags', trim)
 import Text.Pandoc.UTF8 (toString)
 import Text.Parsec (ParsecT, runParserT)
 import qualified Text.Parsec as P

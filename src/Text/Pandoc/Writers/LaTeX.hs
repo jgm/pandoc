@@ -43,7 +43,7 @@ import Data.List (foldl', intercalate, intersperse, isInfixOf, nub, nubBy,
                   stripPrefix, (\\))
 import Data.Maybe (catMaybes, fromMaybe, isJust)
 import qualified Data.Text as T
-import Network.URI (isURI, unEscapeString)
+import Network.URI (unEscapeString)
 import Text.Pandoc.Class (PandocMonad, report)
 import Text.Pandoc.Definition
 import Text.Pandoc.Highlighting (formatLaTeXBlock, formatLaTeXInline, highlight,
