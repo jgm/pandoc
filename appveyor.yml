@@ -3,16 +3,20 @@ environment:
   global:
     WIXBIN: "c:\\Program Files (x86)\\WiX Toolset v3.11\\bin"
     STACK_YAML: "c:\\pandoc\\stack.pkg.yaml"
-  matrix:
-  - STACK_VERSION: "windows-i386"
+    STACK_VERSION: "windows-i386"
     STACK_ROOT: "c:\\sr32"
     STACK: "%STACK_ROOT%\\stack.exe"
+
+# matrix:
+# - STACK_VERSION: "windows-i386"
+#   STACK_ROOT: "c:\\sr32"
+#   STACK: "%STACK_ROOT%\\stack.exe"
 #  - STACK_VERSION: "windows-x86_64"
 #    STACK_ROOT: "c:\\sr64"
 #    STACK: "%STACK_ROOT%\\stack.exe"
-
-matrix:
-  fast_finish: true
+#
+# matrix:
+#  fast_finish: true
 
 cache:
   - "%STACK_ROOT%"
