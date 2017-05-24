@@ -1557,9 +1557,9 @@ ender c n = try $ do
 three :: PandocMonad m => Char -> MarkdownParser m (F Inlines)
 three c = do
   contents <- mconcat <$> many (notFollowedBy (ender c 1) >> inline)
-  (ender c 3 >> return ((B.strong . B.emph) <$> contents))
-    <|> (ender c 2 >> one c (B.strong <$> contents))
-    <|> (ender c 1 >> two c (B.emph <$> contents))
+  (ender c 3 >> updateLastStrPos >> return ((B.strong . B.emph) <$> contents))
+    <|> (ender c 2 >> updateLastStrPos >> one c (B.strong <$> contents))
+    <|> (ender c 1 >> updateLastStrPos >> two c (B.emph <$> contents))
     <|> return (return (B.str [c,c,c]) <> contents)
 
 -- Parse inlines til you hit two c's, and emit strong.
@@ -1567,7 +1567,8 @@ three c = do
 two :: PandocMonad m => Char -> F Inlines -> MarkdownParser m (F Inlines)
 two c prefix' = do
   contents <- mconcat <$> many (try $ notFollowedBy (ender c 2) >> inline)
-  (ender c 2 >> return (B.strong <$> (prefix' <> contents)))
+  (ender c 2 >> updateLastStrPos >>
+                return (B.strong <$> (prefix' <> contents)))
     <|> return (return (B.str [c,c]) <> (prefix' <> contents))
 
 -- Parse inlines til you hit a c, and emit emph.
@@ -1578,7 +1579,7 @@ one c prefix' = do
                            <|> try (string [c,c] >>
                                     notFollowedBy (ender c 1) >>
                                     two c mempty) )
-  (ender c 1 >> return (B.emph <$> (prefix' <> contents)))
+  (ender c 1 >> updateLastStrPos >> return (B.emph <$> (prefix' <> contents)))
     <|> return (return (B.str [c]) <> (prefix' <> contents))
 
 strongOrEmph :: PandocMonad m => MarkdownParser m (F Inlines)
