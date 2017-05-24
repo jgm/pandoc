@@ -20,7 +20,8 @@ import Text.Parsec.String (Parser)
 import Text.Parsec (parse)
 import Text.Parsec.Char (oneOf, space)
 import Text.Parsec.Combinator (lookAhead)
-import Text.Parsec.Prim ((<|>))
+import Text.Parsec.Prim ((<|>), (<?>), skipMany)
+import Test.HUnit
 
 readVimwiki :: PandocMonad m => ReaderOptions -> String -> m Pandoc
 readVimwiki opts s = do
@@ -206,11 +207,24 @@ header' = do
   guard $ lev <= 6
   space
   --manyTill anyChar $ try $ space >> string (eqs ++ "\n")
-  manyTill anyChar $ try $ space >> string eqs >> spaces
+  manyTill anyChar $ try $ space >> string eqs >> (skipMany spaceChar) >> char '\n'
 
 
 header'' :: Parser [Inlines]
 header'' = manyTill (B.str <$> (many1 anyChar)) (string "===")
+
+strikeout' :: Parser String
+strikeout' = do
+  string "~~"
+  manyTill anyChar $ try $ lookAhead $ (string "~~") >> (oneOf $ spaceChars ++ specialChars)
+
+italic' :: Parser String
+italic' = do
+  char '_'
+  lookAhead (noneOf " \t\n")
+  x <- manyTill anyChar $ try $ lookAhead $ (noneOf " \t\n") >> (char '_') >> (oneOf $ spaceChars ++ specialChars)
+  y <- anyChar
+  (return $ x ++ [y]) 
 
 bold' :: Parser String
 bold' = do
@@ -218,7 +232,25 @@ bold' = do
   lookAhead (noneOf " \t\n")
   x <- manyTill anyChar $ try $ lookAhead $ (noneOf " \t\n") >> (char '*') >> (oneOf $ spaceChars ++ specialChars)
   y <- anyChar
-  return $ x ++ [y]
+  (return $ x ++ [y])
+
+testBold' :: IO Counts
+testBold' = 
+  runTestTT $ TestList
+    [ TestCase (assertEqual "" (simpleParse bold' "*23*") (Right "23")),
+      TestCase (assertEqual "" (simpleParse bold' "*2 3*~   *_") (Right "2 3"))
+    ]
+-- other tests: *a*a fails; 
+
+testHeader' =
+  runTestTT $ TestList
+    [ TestCase (assertEqual "" (simpleParse header' " = a b= c =") (Right "a b= c")),
+      TestCase (assertEqual "" (simpleParse header' " == a b= c ==") (Right "a b= c")),
+      TestCase (assertEqual "" (simpleParse header' " === a b==c ===") (Right "a b==c")),
+      TestCase (assertEqual "" (simpleParse header' " = a b =c =") (Right "a b =c"))
+    ]
+-- other tests: " ======= a b= c =======   ", " === a b= c ====   " fail
+
   --manyTill (noneOf "*") (try ((noneOf " \t\n") >> (char '*')))
   --manyTill anyChar (try ((noneOf " \t\n") >> (char '*')))
   --x <- manyTill anyChar $ try $ lookAhead $ (noneOf " \t\n") >> (char '*') >> oneOf " \t\n*"
