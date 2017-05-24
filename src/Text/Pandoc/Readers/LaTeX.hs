@@ -482,9 +482,12 @@ inlineCommand = try $ do
   (lookupListDefault raw [name',name] inlineCommands <*
       optional (try (string "{}")))
 
-unlessParseRaw :: PandocMonad m => LP m ()
-unlessParseRaw = getOption readerExtensions >>=
-                 guard . not . extensionEnabled Ext_raw_tex
+rawInlineOr :: PandocMonad m => String -> LP m Inlines -> LP m Inlines
+rawInlineOr name' fallback = do
+  parseRaw <- extensionEnabled Ext_raw_tex <$> getOption readerExtensions
+  if parseRaw
+     then rawInline "latex" <$> getRawCommand name'
+     else fallback
 
 isBlockCommand :: String -> Bool
 isBlockCommand s = s `M.member` (blockCommands :: M.Map String (LP PandocPure Blocks))
@@ -532,11 +535,11 @@ inlineCommands = M.fromList $
   , ("dots", lit "…")
   , ("mdots", lit "…")
   , ("sim", lit "~")
-  , ("label", unlessParseRaw >> (inBrackets <$> tok))
-  , ("ref", unlessParseRaw >> (inBrackets <$> tok))
+  , ("label", rawInlineOr "label" (inBrackets <$> tok))
+  , ("ref", rawInlineOr "ref" (inBrackets <$> tok))
   , ("textgreek", tok)
   , ("sep", lit ",")
-  , ("cref", unlessParseRaw >> (inBrackets <$> tok))  -- from cleveref.sty
+  , ("cref", rawInlineOr "cref" (inBrackets <$> tok))  -- from cleveref.sty
   , ("(", mathInline $ manyTill anyChar (try $ string "\\)"))
   , ("[", mathDisplay $ manyTill anyChar (try $ string "\\]"))
   , ("ensuremath", mathInline braced)
