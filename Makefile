@@ -40,7 +40,7 @@ macospkg: man/pandoc.1
 winpkg: pandoc-$(version)-windows.msi
 
 pandoc-$(version)-windows.msi:
-	wget 'https://ci.appveyor.com/api/projects/jgm/pandoc/artifacts/windows/pandoc.msi?branch=$(BRANCH)' -O pandoc.msi && \
+	wget 'https://ci.appveyor.com/api/projects/jgm/pandoc/artifacts/windows/pandoc-windows-i386.msi?branch=$(BRANCH)' -O pandoc.msi && \
 	osslsigncode sign -pkcs12 ~/Private/ComodoCodeSigning.exp2017.p12 -in pandoc.msi -i http://johnmacfarlane.net/ -t http://timestamp.comodoca.com/ -out $@ -askpass
 	rm pandoc.msi
 
