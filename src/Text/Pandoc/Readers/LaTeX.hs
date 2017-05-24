@@ -304,8 +304,8 @@ blockCommand = try $ do
         rawcommand <- getRawCommand name'
         transformed <- applyMacros' rawcommand
         guard $ transformed /= rawcommand
-        notFollowedBy $ parseFromString inlines transformed
-        parseFromString blocks transformed
+        notFollowedBy $ parseFromString' inlines transformed
+        parseFromString' blocks transformed
   lookupListDefault raw [name',name] blockCommands
 
 inBrackets :: Inlines -> Inlines
@@ -475,7 +475,7 @@ inlineCommand = try $ do
         transformed <- applyMacros' rawcommand
         exts <- getOption readerExtensions
         if transformed /= rawcommand
-           then parseFromString inlines transformed
+           then parseFromString' inlines transformed
            else if extensionEnabled Ext_raw_tex exts
                    then return $ rawInline "latex" rawcommand
                    else ignore rawcommand
@@ -1021,7 +1021,7 @@ rawEnv name = do
   (bs, raw) <- withRaw $ env name blocks
   raw' <- applyMacros' $ beginCommand ++ raw
   if raw' /= beginCommand ++ raw
-     then parseFromString blocks raw'
+     then parseFromString' blocks raw'
      else if parseRaw
           then return $ rawBlock "latex" $ beginCommand ++ raw'
           else do
@@ -1119,7 +1119,7 @@ keyvals :: PandocMonad m => LP m [(String, String)]
 keyvals = try $ char '[' *> manyTill keyval (char ']')
 
 alltt :: PandocMonad m => String -> LP m Blocks
-alltt t = walk strToCode <$> parseFromString blocks
+alltt t = walk strToCode <$> parseFromString' blocks
   (substitute " " "\\ " $ substitute "%" "\\%" $
    intercalate "\\\\\n" $ lines t)
   where strToCode (Str s) = Code nullAttr s
@@ -1503,7 +1503,7 @@ parseTableRow cols prefixes suffixes = try $ do
   guard $ length rawcells == cols
   let rawcells' = zipWith3 (\c p s -> p ++ trim c ++ s)
                       rawcells prefixes suffixes
-  cells' <- mapM (parseFromString tableCell) rawcells'
+  cells' <- mapM (parseFromString' tableCell) rawcells'
   let numcells = length cells'
   guard $ numcells <= cols && numcells >= 1
   guard $ cells' /= [mempty]

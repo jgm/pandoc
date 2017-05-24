@@ -212,7 +212,7 @@ quote :: T2T Blocks
 quote = try $ do
   lookAhead tab
   rawQuote <-  many1 (tab *> optional spaces *> anyLine)
-  contents <- parseFromString parseBlocks (intercalate "\n" rawQuote ++ "\n\n")
+  contents <- parseFromString' parseBlocks (intercalate "\n" rawQuote ++ "\n\n")
   return $ B.blockQuote contents
 
 commentLine :: T2T Inlines
@@ -264,7 +264,7 @@ listItem start end = try $ do
   firstLine <- anyLineNewline
   blank <- option "" ("\n" <$ blankline)
   rest <- concat <$> many (listContinuation markerLength)
-  parseFromString end $ firstLine ++ blank ++ rest
+  parseFromString' end $ firstLine ++ blank ++ rest
 
 -- continuation of a list item - indented and separated by blankline or endline.
 -- Note: nested lists are parsed as continuations.
@@ -439,7 +439,7 @@ inlineMarkup p f c special = try $ do
     Just middle -> do
       lastChar <- anyChar
       end <- many1 (char c)
-      let parser inp = parseFromString (mconcat <$> many p) inp
+      let parser inp = parseFromString' (mconcat <$> many p) inp
       let start' = case drop 2 start of
                           "" -> mempty
                           xs -> special xs

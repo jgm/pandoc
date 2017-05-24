@@ -50,6 +50,7 @@ module Text.Pandoc.Parsing ( anyLine,
                              enclosed,
                              stringAnyCase,
                              parseFromString,
+                             parseFromString',
                              lineClump,
                              charsInBalanced,
                              romanNumeral,
@@ -358,7 +359,10 @@ stringAnyCase (x:xs) = do
   return (firstChar:rest)
 
 -- | Parse contents of 'str' using 'parser' and return result.
-parseFromString :: Monad m => ParserT String st m a -> String -> ParserT String st m a
+parseFromString :: Monad m
+                => ParserT String st m a
+                -> String
+                -> ParserT String st m a
 parseFromString parser str = do
   oldPos <- getPosition
   oldInput <- getInput
@@ -369,6 +373,18 @@ parseFromString parser str = do
   setInput oldInput
   setPosition oldPos
   return result
+
+-- | Like 'parseFromString' but specialized for 'ParserState'.
+-- This resets 'stateLastStrPos', which is almost always what we want.
+parseFromString' :: Monad m
+                 => ParserT String ParserState m a
+                 -> String
+                 -> ParserT String ParserState m a
+parseFromString' parser str = do
+  oldStrPos <- stateLastStrPos <$> getState
+  res <- parseFromString parser str
+  updateState $ \st -> st{ stateLastStrPos = oldStrPos }
+  return res
 
 -- | Parse raw line block up to and including blank lines.
 lineClump :: Stream [Char] m Char => ParserT [Char] st m String

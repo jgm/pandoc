@@ -315,7 +315,7 @@ definitionListItem = try $ do
           optional whitespace >> newline
           s <- many1Till anyChar (try (string "=:" >> newline))
           -- this ++ "\n\n" does not look very good
-          ds <- parseFromString parseBlocks (s ++ "\n\n")
+          ds <- parseFromString' parseBlocks (s ++ "\n\n")
           return [ds]
 
 -- raw content
@@ -367,7 +367,7 @@ tableCell = try $ do
   notFollowedBy blankline
   raw <- trim <$>
          many (noneOf "|\n" <|> try (char '\n' <* notFollowedBy blankline))
-  content <- mconcat <$> parseFromString (many inline) raw
+  content <- mconcat <$> parseFromString' (many inline) raw
   return ((isHeader, alignment), B.plain content)
 
 -- | A table row is made of many table cells
@@ -389,7 +389,7 @@ table = try $ do
     _ <- attributes
     char '.'
     rawcapt <- trim <$> anyLine
-    parseFromString (mconcat <$> many inline) rawcapt
+    parseFromString' (mconcat <$> many inline) rawcapt
   rawrows <- many1 $ (skipMany ignorableRow) >> tableRow
   skipMany ignorableRow
   blanklines
@@ -507,7 +507,7 @@ note = try $ do
   notes <- stateNotes <$> getState
   case lookup ref notes of
     Nothing  -> fail "note not found"
-    Just raw -> B.note <$> parseFromString parseBlocks raw
+    Just raw -> B.note <$> parseFromString' parseBlocks raw
 
 -- | Special chars
 markupChars :: [Char]

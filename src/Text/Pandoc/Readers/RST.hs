@@ -196,7 +196,7 @@ parseRST = do
 parseCitation :: PandocMonad m
               => (String, String) -> RSTParser m (Inlines, [Blocks])
 parseCitation (ref, raw) = do
-  contents <- parseFromString parseBlocks raw
+  contents <- parseFromString' parseBlocks raw
   return $ (B.spanWith (ref, ["citation-label"], []) (B.str ref),
            [contents])
 
@@ -246,7 +246,7 @@ fieldListItem :: PandocMonad m => Int -> RSTParser m (Inlines, [Blocks])
 fieldListItem minIndent = try $ do
   (name, raw) <- rawFieldListItem minIndent
   term <- parseInlineFromString name
-  contents <- parseFromString parseBlocks raw
+  contents <- parseFromString' parseBlocks raw
   optional blanklines
   return (term, [contents])
 
@@ -445,7 +445,7 @@ blockQuote :: PandocMonad m => RSTParser m Blocks
 blockQuote = do
   raw <- indentedBlock
   -- parse the extracted block, which may contain various block elements:
-  contents <- parseFromString parseBlocks $ raw ++ "\n\n"
+  contents <- parseFromString' parseBlocks $ raw ++ "\n\n"
   return $ B.blockQuote contents
 
 {-
@@ -533,7 +533,7 @@ definitionListItem = try $ do
   term <- trimInlines . mconcat <$> many1Till inline endline
   raw <- indentedBlock
   -- parse the extracted block, which may contain various block elements:
-  contents <- parseFromString parseBlocks $ raw ++ "\n"
+  contents <- parseFromString' parseBlocks $ raw ++ "\n"
   return (term, [contents])
 
 definitionList :: PandocMonad m => RSTParser m Blocks
@@ -595,7 +595,7 @@ listItem start = try $ do
   let oldContext = stateParserContext state
   setState $ state {stateParserContext = ListItemState}
   -- parse the extracted block, which may itself contain block elements
-  parsed <- parseFromString parseBlocks $ concat (first:rest) ++ "\n"
+  parsed <- parseFromString' parseBlocks $ concat (first:rest) ++ "\n"
   updateState (\st -> st {stateParserContext = oldContext})
   return $ case B.toList parsed of
                 [Para xs] ->
@@ -686,19 +686,19 @@ directive' = do
         "line-block" -> lineBlockDirective body'
         "raw" -> return $ B.rawBlock (trim top) (stripTrailingNewlines body)
         "role" -> addNewRole top $ map (\(k,v) -> (k, trim v)) fields
-        "container" -> parseFromString parseBlocks body'
+        "container" -> parseFromString' parseBlocks body'
         "replace" -> B.para <$>  -- consumed by substKey
                    parseInlineFromString (trim top)
         "unicode" -> B.para <$>  -- consumed by substKey
                    parseInlineFromString (trim $ unicodeTransform top)
-        "compound" -> parseFromString parseBlocks body'
-        "pull-quote" -> B.blockQuote <$> parseFromString parseBlocks body'
-        "epigraph" -> B.blockQuote <$> parseFromString parseBlocks body'
-        "highlights" -> B.blockQuote <$> parseFromString parseBlocks body'
+        "compound" -> parseFromString' parseBlocks body'
+        "pull-quote" -> B.blockQuote <$> parseFromString' parseBlocks body'
+        "epigraph" -> B.blockQuote <$> parseFromString' parseBlocks body'
+        "highlights" -> B.blockQuote <$> parseFromString' parseBlocks body'
         "rubric" -> B.para . B.strong <$> parseInlineFromString top
         _ | label `elem` ["attention","caution","danger","error","hint",
                           "important","note","tip","warning","admonition"] ->
-           do bod <- parseFromString parseBlocks $ top ++ "\n\n" ++ body'
+           do bod <- parseFromString' parseBlocks $ top ++ "\n\n" ++ body'
               let lab = case label of
                              "admonition" -> mempty
                              (l:ls) -> B.divWith ("",["admonition-title"],[])
@@ -711,11 +711,11 @@ directive' = do
                           (trim top ++ if null subtit
                                           then ""
                                           else (":  " ++ subtit))
-              bod <- parseFromString parseBlocks body'
+              bod <- parseFromString' parseBlocks body'
               return $ B.divWith ("",["sidebar"],[]) $ tit <> bod
         "topic" ->
            do tit <- B.para . B.strong <$> parseInlineFromString top
-              bod <- parseFromString parseBlocks body'
+              bod <- parseFromString' parseBlocks body'
               return $ B.divWith ("",["topic"],[]) $ tit <> bod
         "default-role" -> mempty <$ updateState (\s ->
                               s { stateRstDefaultRole =
@@ -731,7 +731,7 @@ directive' = do
         "math" -> return $ B.para $ mconcat $ map B.displayMath
                          $ toChunks $ top ++ "\n\n" ++ body
         "figure" -> do
-           (caption, legend) <- parseFromString extractCaption body'
+           (caption, legend) <- parseFromString' extractCaption body'
            let src = escapeURI $ trim top
            return $ B.para (B.imageWith (imgAttr "figclass") src "fig:"
                        caption) <> legend
@@ -750,21 +750,21 @@ directive' = do
             --  directive content or the first immediately following element
             children <- case body of
                 "" -> block
-                _  -> parseFromString parseBlocks  body'
+                _  -> parseFromString' parseBlocks  body'
             return $ B.divWith attrs children
         other     -> do
             pos <- getPosition
             logMessage $ SkippedContent (".. " ++ other) pos
-            bod <- parseFromString parseBlocks $ top ++ "\n\n" ++ body'
+            bod <- parseFromString' parseBlocks $ top ++ "\n\n" ++ body'
             return $ B.divWith ("",[other],[]) bod
 
 tableDirective :: PandocMonad m
                => String -> [(String, String)] -> String -> RSTParser m Blocks
 tableDirective top _fields body = do
-  bs <- parseFromString parseBlocks body
+  bs <- parseFromString' parseBlocks body
   case B.toList bs of
        [Table _ aligns' widths' header' rows'] -> do
-         title <- parseFromString (trimInlines . mconcat <$> many inline) top
+         title <- parseFromString' (trimInlines . mconcat <$> many inline) top
          -- TODO widths
          -- align is not applicable since we can't represent whole table align
          return $ B.singleton $ Table (B.toList title)
@@ -780,8 +780,8 @@ listTableDirective :: PandocMonad m
                    => String -> [(String, String)] -> String
                    -> RSTParser m Blocks
 listTableDirective top fields body = do
-  bs <- parseFromString parseBlocks body
-  title <- parseFromString (trimInlines . mconcat <$> many inline) top
+  bs <- parseFromString' parseBlocks body
+  title <- parseFromString' (trimInlines . mconcat <$> many inline) top
   let rows = takeRows $ B.toList bs
       headerRowsNum = fromMaybe (0 :: Int) $
          lookup "header-rows" fields >>= safeRead
@@ -812,7 +812,7 @@ addNewRole :: PandocMonad m
            => String -> [(String, String)] -> RSTParser m Blocks
 addNewRole roleString fields = do
     pos <- getPosition
-    (role, parentRole) <- parseFromString inheritedRole roleString
+    (role, parentRole) <- parseFromString' inheritedRole roleString
     customRoles <- stateRstCustomRoles <$> getState
     let getBaseRole (r, f, a) roles =
             case M.lookup r roles of
@@ -1127,7 +1127,7 @@ simpleTableRow indices = do
   let cols = map unlines . transpose $ firstLine : conLines ++
                                  [replicate (length indices) ""
                                    | not (null conLines)]
-  mapM (parseFromString parseBlocks) cols
+  mapM (parseFromString' parseBlocks) cols
 
 simpleTableSplitLine :: [Int] -> String -> [String]
 simpleTableSplitLine indices line =
@@ -1150,7 +1150,7 @@ simpleTableHeader headless = try $ do
   let rawHeads = if headless
                     then replicate (length dashes) ""
                     else simpleTableSplitLine indices rawContent
-  heads <- mapM (parseFromString (mconcat <$> many plain)) $
+  heads <- mapM (parseFromString' (mconcat <$> many plain)) $
              map trim rawHeads
   return (heads, aligns, indices)
 
@@ -1206,7 +1206,7 @@ inline = choice [ note          -- can start with whitespace, so try before ws
                 , symbol ] <?> "inline"
 
 parseInlineFromString :: PandocMonad m => String -> RSTParser m Inlines
-parseInlineFromString = parseFromString (trimInlines . mconcat <$> many inline)
+parseInlineFromString = parseFromString' (trimInlines . mconcat <$> many inline)
 
 hyphens :: Monad m => RSTParser m Inlines
 hyphens = do
@@ -1470,7 +1470,7 @@ note = try $ do
       -- Note references inside other notes are allowed in reST, but
       -- not yet in this implementation.
       updateState $ \st -> st{ stateNotes = [] }
-      contents <- parseFromString parseBlocks raw
+      contents <- parseFromString' parseBlocks raw
       let newnotes = if (ref == "*" || ref == "#") -- auto-numbered
                         -- delete the note so the next auto-numbered note
                         -- doesn't get the same contents:
