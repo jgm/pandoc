@@ -15,6 +15,12 @@ import Text.Parsec.Error (ParseError)
 import Text.Parsec.Combinator (eof, choice, many1, manyTill, count, skipMany1)
 import Text.Parsec.Pos (sourceColumn)
 import Text.Parsec.Prim (many, getPosition, try, runParserT)
+-- imports for tests
+import Text.Parsec.String (Parser)
+import Text.Parsec (parse)
+import Text.Parsec.Char (oneOf)
+import Text.Parsec.Combinator (lookAhead)
+import Text.Parsec.Prim ((<|>))
 
 readVimwiki :: PandocMonad m => ReaderOptions -> String -> m Pandoc
 readVimwiki opts s = do
@@ -24,14 +30,15 @@ readVimwiki opts s = do
        Right result -> return result
 
 type VwParser = ParserT [Char] ParserState
+--type VwParser = ParserT [Char] ParserState -- for test
 
 
 -- constants
 specialChars :: [Char]
-specialChars = "="
+specialChars = "=*-#[]_~"
 
 spaceChars :: [Char]
-spaceChars = " \t"
+spaceChars = " \t\n"
 
 -- main parser
 
@@ -75,15 +82,20 @@ guardColumnOne :: PandocMonad m => VwParser m ()
 guardColumnOne = getPosition >>= \pos -> guard (sourceColumn pos == 1)
 
 header = try $ do
+  {--
   many whitespace
   eqs <- many1 (char '=')
   whitespace
   let lev = length eqs
   guard $ lev <= 6
-  contents <- trimInlines . mconcat <$> manyTill inline (try (whitespace >> (string eqs)))
-  --contents <- trimInlines . mconcat <$> manyTill inline (string eqs)
+  --}
+  -- contents <- trimInlines . mconcat <$> manyTill inline (try (whitespace >> (string eqs)))
+  -- contents <- trimInlines . mconcat <$> manyTill inline (string eqs)
+  -- contents <- mconcat <$> manyTill inline (string eqs)
+  contents <- mconcat <$> manyTill str (try (string "==="))
   attr <- registerHeader nullAttr contents
-  return $ B.headerWith attr lev contents
+  --return $ B.headerWith attr lev contents
+  return $ B.headerWith attr 3 contents
 
 bulletList = undefined
 orderedList = undefined
@@ -166,3 +178,39 @@ runP p opts s = do
        Left e -> throwError e
        Right result -> return result--}
 --runP p s = runIO (mapLeft (PandocParsecError s) `liftM` runParserT p def{ stateOptions = def :: ReaderOptions } "test" s)
+--
+simpleParse :: Parser a -> String -> Either ParseError a
+simpleParse p s = parse p "" (s ++ "\n")
+
+--header' :: Parser String
+--header' = manyTill anyChar (try ((oneOf " \t") >> (string "===")))
+
+--header' :: Parser String
+--header' = manyTill anyChar (string "===")
+
+header'' :: Parser [Inlines]
+header'' = manyTill (B.str <$> (many1 anyChar)) (string "===")
+
+bold' :: Parser String
+bold' = do
+  char '*'
+  lookAhead (noneOf " \t\n")
+  x <- manyTill anyChar $ try $ lookAhead $ (noneOf " \t\n") >> (char '*') >> (oneOf $ spaceChars ++ specialChars)
+  y <- anyChar
+  return $ x ++ [y]
+  --manyTill (noneOf "*") (try ((noneOf " \t\n") >> (char '*')))
+  --manyTill anyChar (try ((noneOf " \t\n") >> (char '*')))
+  --x <- manyTill anyChar $ try $ lookAhead $ (noneOf " \t\n") >> (char '*') >> oneOf " \t\n*"
+  --y <- anyChar
+  --return $ x ++ [y]
+
+{--p :: Parser String
+p = do 
+  x <- manyTill anyChar $ try $ lookAhead $ (noneOf " \t\n") >> (char '*') >> oneOf " \t\n*"
+  y <- anyChar
+  return $ x ++ [y]--}
+p :: Parser Char
+p = do
+  x <- char 'a' 
+  char ' '
+  return x
