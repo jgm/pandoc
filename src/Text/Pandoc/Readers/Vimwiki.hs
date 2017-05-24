@@ -18,7 +18,7 @@ import Text.Parsec.Prim (many, getPosition, try, runParserT)
 -- imports for tests
 import Text.Parsec.String (Parser)
 import Text.Parsec (parse)
-import Text.Parsec.Char (oneOf)
+import Text.Parsec.Char (oneOf, space)
 import Text.Parsec.Combinator (lookAhead)
 import Text.Parsec.Prim ((<|>))
 
@@ -81,6 +81,16 @@ blockMath :: PandocMonad m => VwParser m Blocks
 guardColumnOne :: PandocMonad m => VwParser m ()
 guardColumnOne = getPosition >>= \pos -> guard (sourceColumn pos == 1)
 
+{--
+header = do
+  attr <- registerHeader nullAttr contents
+  return $ B.headerWith attr lev contents
+    where
+      contents = B.str <$> contents'
+      where 
+        contents' = do
+          many 
+          --}
 header = try $ do
   {--
   many whitespace
@@ -188,6 +198,17 @@ simpleParse p s = parse p "" (s ++ "\n")
 --header' :: Parser String
 --header' = manyTill anyChar (string "===")
 
+header' :: Parser String
+header' = do
+  spaces
+  eqs <- many1 $ char '='
+  let lev = length eqs
+  guard $ lev <= 6
+  space
+  --manyTill anyChar $ try $ space >> string (eqs ++ "\n")
+  manyTill anyChar $ try $ space >> string eqs >> spaces
+
+
 header'' :: Parser [Inlines]
 header'' = manyTill (B.str <$> (many1 anyChar)) (string "===")
 
@@ -209,8 +230,10 @@ p = do
   x <- manyTill anyChar $ try $ lookAhead $ (noneOf " \t\n") >> (char '*') >> oneOf " \t\n*"
   y <- anyChar
   return $ x ++ [y]--}
+{--
 p :: Parser Char
 p = do
   x <- char 'a' 
   char ' '
   return x
+  --}
