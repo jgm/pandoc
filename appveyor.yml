@@ -11,6 +11,9 @@ environment:
     STACK_ROOT: "c:\\sr64"
     STACK: "%STACK_ROOT%\\stack.exe"
 
+matrix:
+  fast_finish: true
+
 cache:
   - "%STACK_ROOT%"
   - "%WIXBIN%"
