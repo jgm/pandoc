@@ -1031,6 +1031,19 @@ rawEnv name = do
             report $ SkippedContent ("\\end{" ++ name ++ "}") pos2
             return bs
 
+rawVerbEnv :: PandocMonad m => String -> LP m Blocks
+rawVerbEnv name = do
+  pos <- getPosition
+  (_, raw) <- withRaw $ verbEnv name
+  let raw' = "\\begin{tikzpicture}" ++ raw
+  exts <- getOption readerExtensions
+  let parseRaw = extensionEnabled Ext_raw_tex exts
+  if parseRaw
+     then return $ rawBlock "latex" raw'
+     else do
+       report $ SkippedContent raw' pos
+       return mempty
+
 ----
 
 maybeAddExtension :: String -> FilePath -> FilePath
@@ -1200,6 +1213,7 @@ environments = M.fromList
   , ("align*", mathEnvWith para (Just "aligned") "align*")
   , ("alignat", mathEnvWith para (Just "aligned") "alignat")
   , ("alignat*", mathEnvWith para (Just "aligned") "alignat*")
+  , ("tikzpicture", rawVerbEnv "tikzpicture")
   ]
 
 figure :: PandocMonad m => LP m Blocks
