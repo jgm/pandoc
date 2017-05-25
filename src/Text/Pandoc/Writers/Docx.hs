@@ -953,7 +953,7 @@ blockToOpenXML' opts (Table caption aligns widths headers rows) = do
     caption' ++
     [mknode "w:tbl" []
       ( mknode "w:tblPr" []
-        (   mknode "w:tblStyle" [("w:val","TableNormal")] () :
+        (   mknode "w:tblStyle" [("w:val","Table")] () :
             mknode "w:tblW" [("w:type", "pct"), ("w:w", show rowwidth)] () :
             mknode "w:tblLook" [("w:firstRow","1") | hasHeader ] () :
           [ mknode "w:tblCaption" [("w:val", captionStr)] ()

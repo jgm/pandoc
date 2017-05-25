@@ -880,7 +880,7 @@ Options affecting specific writers
         Image Caption, Figure, Captioned Figure, TOC Heading;
         [character] Default Paragraph Font, Body Text Char,
         Verbatim Char, Footnote Reference, Hyperlink; [table]
-        Normal Table.
+        Table.
 
     ODT
 

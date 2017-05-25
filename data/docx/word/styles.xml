@@ -342,8 +342,9 @@
     <w:semiHidden />
     <w:unhideWhenUsed />
   </w:style>
-  <w:style w:type="table" w:default="1" w:styleId="TableNormal">
-    <w:name w:val="Normal Table" />
+  <w:style w:type="table" w:default="1" w:styleId="Table">
+    <w:name w:val="Table" />
+    <w:basedOn w:val="TableNormal" />
     <w:semiHidden />
     <w:unhideWhenUsed />
     <w:qFormat />
