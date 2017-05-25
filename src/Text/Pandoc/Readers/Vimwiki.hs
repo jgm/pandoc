@@ -92,21 +92,20 @@ header = do
         contents' = do
           many 
           --}
+--header = undefined
 header = try $ do
-  {--
   many whitespace
   eqs <- many1 (char '=')
   whitespace
   let lev = length eqs
   guard $ lev <= 6
-  --}
   -- contents <- trimInlines . mconcat <$> manyTill inline (try (whitespace >> (string eqs)))
   -- contents <- trimInlines . mconcat <$> manyTill inline (string eqs)
   -- contents <- mconcat <$> manyTill inline (string eqs)
-  contents <- mconcat <$> manyTill str (try (string "==="))
+  contents <- trimInlines . mconcat <$> manyTill inline (try $ whitespace >> (string eqs) >> many whitespace >> (char '\n'))
   attr <- registerHeader nullAttr contents
   --return $ B.headerWith attr lev contents
-  return $ B.headerWith attr 3 contents
+  return $ B.headerWith attr lev contents
 
 bulletList = undefined
 orderedList = undefined
@@ -120,13 +119,14 @@ blockMath = undefined
 -- inline parser
 
 inline :: PandocMonad m => VwParser m Inlines
-inline = choice[str
-             ,  whitespace
+inline = choice[whitespace
+             ,  str
+             ,  special
              ]
 {--inline = choice [ whitespace
                 , bareURL
-                , bold
-                , italic
+                , strong
+                , emph
                 , strikeout
                 , code
                 , intLink -- handles anchors, links with or without descriptions, loca dirs, links with thumbnails
@@ -139,9 +139,10 @@ inline = choice[str
 
 str :: PandocMonad m => VwParser m Inlines
 whitespace :: PandocMonad m => VwParser m Inlines
+special :: PandocMonad m => VwParser m Inlines
 bareURL :: PandocMonad m => VwParser m Inlines
-bold :: PandocMonad m => VwParser m Inlines
-italic :: PandocMonad m => VwParser m Inlines
+strong :: PandocMonad m => VwParser m Inlines
+emph :: PandocMonad m => VwParser m Inlines
 strikeout :: PandocMonad m => VwParser m Inlines
 code :: PandocMonad m => VwParser m Inlines
 intLink :: PandocMonad m => VwParser m Inlines
@@ -152,11 +153,19 @@ comment :: PandocMonad m => VwParser m Inlines
 tag :: PandocMonad m => VwParser m Inlines
 
 --str = B.str <$> many1 (noneOf $ specialChars ++ spaceChars)
-str = B.str <$> many1 anyChar
+str = B.str <$> (many1 $ noneOf $ spaceChars ++ specialChars)
 whitespace = B.space <$ (skipMany1 spaceChar)
+special = B.str <$> count 1 (oneOf specialChars)
 bareURL  = undefined
-bold  = undefined
-italic  = undefined
+{--strong = do
+  char '*'
+  lookAhead (noneOf spaceChars)
+  x <- manyTill inline $ try $ lookAhead $ (noneOf " \t\n") >> (char '*') >> (oneOf $ spaceChars ++ specialChars)
+  y <- anyChar
+  (return $ x ++ [y])
+  --}
+strong = undefined
+emph  = undefined
 strikeout  = undefined
 code  = undefined
 intLink  = undefined
@@ -179,7 +188,7 @@ runParser p s = do
        Right result -> return result
 
 testP :: VwParser PandocIO a -> String -> IO (Either PandocError a)
-testP p s = runIO $ runParser p s
+testP p s = runIO $ runParser p (s ++ "\n")
 
 --type Parser = Parsec String ()
 {--runP :: VwParser PandocIO a -> [Char] -> IO (Either PandocError a)
@@ -218,27 +227,27 @@ strikeout' = do
   string "~~"
   manyTill anyChar $ try $ lookAhead $ (string "~~") >> (oneOf $ spaceChars ++ specialChars)
 
-italic' :: Parser String
-italic' = do
+emph' :: Parser String
+emph' = do
   char '_'
   lookAhead (noneOf " \t\n")
   x <- manyTill anyChar $ try $ lookAhead $ (noneOf " \t\n") >> (char '_') >> (oneOf $ spaceChars ++ specialChars)
   y <- anyChar
   (return $ x ++ [y]) 
 
-bold' :: Parser String
-bold' = do
+strong' :: Parser String
+strong' = do
   char '*'
   lookAhead (noneOf " \t\n")
   x <- manyTill anyChar $ try $ lookAhead $ (noneOf " \t\n") >> (char '*') >> (oneOf $ spaceChars ++ specialChars)
   y <- anyChar
   (return $ x ++ [y])
 
-testBold' :: IO Counts
-testBold' = 
+testStrong' :: IO Counts
+testStrong' = 
   runTestTT $ TestList
-    [ TestCase (assertEqual "" (simpleParse bold' "*23*") (Right "23")),
-      TestCase (assertEqual "" (simpleParse bold' "*2 3*~   *_") (Right "2 3"))
+    [ TestCase (assertEqual "" (simpleParse strong' "*23*") (Right "23")),
+      TestCase (assertEqual "" (simpleParse strong' "*2 3*~   *_") (Right "2 3"))
     ]
 -- other tests: *a*a fails; 
 
@@ -251,6 +260,19 @@ testHeader' =
     ]
 -- other tests: " ======= a b= c =======   ", " === a b= c ====   " fail
 
+{-- ???
+testHeader =
+  runTestTT $ TestList
+    [ TestCase (assertEqual "" (testP header "     = a = b =") (Right (Many {unMany = fromList [Header 1 ("",[],[]) [Str "a",Space,Str "=",Space,Str "b"]]}))),
+      TestCase (assertEqual "" (testP header "     ====== a =** b ======") (Right (Many {unMany = fromList [Header 6 ("",[],[]) [Str "a",Space,Str "=**",Space,Str "b"]]}))),
+      TestCase (assertEqual "" (testP header "     ======= a =** b =======") (Left (PandocParsecError "     ======= a =** b =======\n" "source" (line 1, column 14):
+unexpected "a"))),
+      TestCase (assertEqual "" (testP header "     === a = b =") (Left (PandocParsecError "     === a = b =\n" "source" (line 1, column 17):
+unexpected "\n"))),
+      TestCase (assertEqual "" (testP header "= a = b =a") (Left (PandocParsecError "= a = b =a\n" "source" (line 1, column 11):
+unexpected "\n")))
+    ]
+    --}
   --manyTill (noneOf "*") (try ((noneOf " \t\n") >> (char '*')))
   --manyTill anyChar (try ((noneOf " \t\n") >> (char '*')))
   --x <- manyTill anyChar $ try $ lookAhead $ (noneOf " \t\n") >> (char '*') >> oneOf " \t\n*"
