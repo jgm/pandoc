@@ -157,7 +157,8 @@ str = B.str <$> (many1 $ noneOf $ spaceChars ++ specialChars)
 whitespace = B.space <$ (skipMany1 spaceChar)
 special = B.str <$> count 1 (oneOf specialChars)
 bareURL  = undefined
-{--strong = do
+{--
+strong = do
   char '*'
   lookAhead (noneOf spaceChars)
   x <- manyTill inline $ try $ lookAhead $ (noneOf " \t\n") >> (char '*') >> (oneOf $ spaceChars ++ specialChars)
