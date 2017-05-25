@@ -72,6 +72,7 @@ data LogMessage =
   | CouldNotParseYamlMetadata String SourcePos
   | DuplicateLinkReference String SourcePos
   | DuplicateNoteReference String SourcePos
+  | NoteDefinedButNotUsed String SourcePos
   | DuplicateIdentifier String SourcePos
   | ReferenceNotFound String SourcePos
   | CircularReference String SourcePos
@@ -110,6 +111,11 @@ instance ToJSON LogMessage where
             "column" .= toJSON (sourceColumn pos)]
       DuplicateLinkReference s pos ->
            ["contents" .= Text.pack s,
+            "source" .= Text.pack (sourceName pos),
+            "line" .= toJSON (sourceLine pos),
+            "column" .= toJSON (sourceColumn pos)]
+      NoteDefinedButNotUsed s pos ->
+           ["key" .= Text.pack s,
             "source" .= Text.pack (sourceName pos),
             "line" .= toJSON (sourceLine pos),
             "column" .= toJSON (sourceColumn pos)]
@@ -203,6 +209,9 @@ showLogMessage msg =
          "Duplicate link reference '" ++ s ++ "' at " ++ showPos pos
        DuplicateNoteReference s pos ->
          "Duplicate note reference '" ++ s ++ "' at " ++ showPos pos
+       NoteDefinedButNotUsed s pos ->
+         "Note with key '" ++ s ++ "' defined at " ++ showPos pos ++
+           " but not used."
        DuplicateIdentifier s pos ->
          "Duplicate identifier '" ++ s ++ "' at " ++ showPos pos
        ReferenceNotFound s pos ->
@@ -256,6 +265,7 @@ messageVerbosity msg =
        CouldNotParseYamlMetadata{}  -> WARNING
        DuplicateLinkReference{}     -> WARNING
        DuplicateNoteReference{}     -> WARNING
+       NoteDefinedButNotUsed{}      -> WARNING
        DuplicateIdentifier{}        -> WARNING
        ReferenceNotFound{}          -> WARNING
        CircularReference{}          -> WARNING

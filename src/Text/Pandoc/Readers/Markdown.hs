@@ -362,6 +362,14 @@ parseMarkdown = do
   optional titleBlock
   blocks <- parseBlocks
   st <- getState
+  -- check for notes with no corresponding note references
+  let notesUsed = stateNoteRefs st
+  let notesDefined = M.keys (stateNotes' st)
+  mapM_ (\n -> unless (n `Set.member` notesUsed) $ do
+                -- lookup to get sourcepos
+                case M.lookup n (stateNotes' st) of
+                   Just (pos, _) -> report (NoteDefinedButNotUsed n pos)
+                   Nothing -> error "The impossible happened.") notesDefined
   let doc = runF (do Pandoc _ bs <- B.doc <$> blocks
                      meta <- stateMeta' st
                      return $ Pandoc meta bs) st
@@ -469,12 +477,11 @@ noteBlock = try $ do
   let raw = unlines (first:rest) ++ "\n"
   optional blanklines
   parsed <- parseFromString' parseBlocks raw
-  let newnote = (ref, parsed)
   oldnotes <- stateNotes' <$> getState
-  case lookup ref oldnotes of
+  case M.lookup ref oldnotes of
     Just _  -> logMessage $ DuplicateNoteReference ref pos
     Nothing -> return ()
-  updateState $ \s -> s { stateNotes' = newnote : oldnotes }
+  updateState $ \s -> s { stateNotes' = M.insert ref (pos, parsed) oldnotes }
   return mempty
 
 --
@@ -1816,16 +1823,17 @@ note :: PandocMonad m => MarkdownParser m (F Inlines)
 note = try $ do
   guardEnabled Ext_footnotes
   ref <- noteMarker
+  updateState $ \st -> st{ stateNoteRefs = Set.insert ref (stateNoteRefs st) }
   return $ do
     notes <- asksF stateNotes'
-    case lookup ref notes of
+    case M.lookup ref notes of
         Nothing       -> return $ B.str $ "[^" ++ ref ++ "]"
-        Just contents -> do
+        Just (_pos, contents) -> do
           st <- askF
           -- process the note in a context that doesn't resolve
           -- notes, to avoid infinite looping with notes inside
           -- notes:
-          let contents' = runF contents st{ stateNotes' = [] }
+          let contents' = runF contents st{ stateNotes' = M.empty }
           return $ B.note contents'
 
 inlineNote :: PandocMonad m => MarkdownParser m (F Inlines)

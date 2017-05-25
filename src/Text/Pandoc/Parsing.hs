@@ -983,6 +983,7 @@ data ParserState = ParserState
       stateSubstitutions   :: SubstTable,    -- ^ List of substitution references
       stateNotes           :: NoteTable,     -- ^ List of notes (raw bodies)
       stateNotes'          :: NoteTable',    -- ^ List of notes (parsed bodies)
+      stateNoteRefs        :: Set.Set String, -- ^ List of note references used
       stateMeta            :: Meta,          -- ^ Document metadata
       stateMeta'           :: F Meta,        -- ^ Document metadata
       stateCitations       :: M.Map String String, -- ^ RST-style citations
@@ -1099,7 +1100,8 @@ defaultParserState =
                   stateHeaderKeys      = M.empty,
                   stateSubstitutions   = M.empty,
                   stateNotes           = [],
-                  stateNotes'          = [],
+                  stateNotes'          = M.empty,
+                  stateNoteRefs        = Set.empty,
                   stateMeta            = nullMeta,
                   stateMeta'           = return nullMeta,
                   stateCitations       = M.empty,
@@ -1166,7 +1168,8 @@ data QuoteContext
 
 type NoteTable = [(String, String)]
 
-type NoteTable' = [(String, F Blocks)]  -- used in markdown reader
+type NoteTable' = M.Map String (SourcePos, F Blocks)
+-- used in markdown reader
 
 newtype Key = Key String deriving (Show, Read, Eq, Ord)
 
