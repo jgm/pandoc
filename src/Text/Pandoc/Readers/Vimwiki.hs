@@ -3,7 +3,7 @@ import Control.Monad (guard)
 import Data.Default -- def is there
 import Data.Functor.Identity
 import Text.Pandoc.Builder (Blocks, Inlines, trimInlines)
-import qualified Text.Pandoc.Builder as B (doc, toList, headerWith, str, space)
+import qualified Text.Pandoc.Builder as B (doc, toList, headerWith, str, space, strong, emph, strikeout, code)
 import Text.Pandoc.Class (PandocMonad, report, PandocIO, runIO)
 import Text.Pandoc.Definition (Pandoc, nullAttr)
 import Text.Pandoc.Error (PandocError)
@@ -19,7 +19,7 @@ import Text.Parsec.Prim (many, getPosition, try, runParserT)
 import Text.Parsec.String (Parser)
 import Text.Parsec (parse)
 import Text.Parsec.Char (oneOf, space)
-import Text.Parsec.Combinator (lookAhead)
+import Text.Parsec.Combinator (lookAhead, between)
 import Text.Parsec.Prim ((<|>), (<?>), skipMany)
 import Test.HUnit
 
@@ -36,7 +36,7 @@ type VwParser = ParserT [Char] ParserState
 
 -- constants
 specialChars :: [Char]
-specialChars = "=*-#[]_~"
+specialChars = "=*-#[]_~{`"
 
 spaceChars :: [Char]
 spaceChars = " \t\n"
@@ -64,7 +64,7 @@ block = do
                 , blockQuote
                 , para
                 , preformatted
-                , blockMath --}
+                , displayMath --}
                 ]
   report $ ParsingTrace (take 60 $ show $ B.toList res) pos
   return res
@@ -77,7 +77,7 @@ table :: PandocMonad m => VwParser m Blocks
 para :: PandocMonad m => VwParser m Blocks
 blockQuote :: PandocMonad m => VwParser m Blocks
 preformatted :: PandocMonad m => VwParser m Blocks
-blockMath :: PandocMonad m => VwParser m Blocks
+displayMath :: PandocMonad m => VwParser m Blocks
 
 guardColumnOne :: PandocMonad m => VwParser m ()
 guardColumnOne = getPosition >>= \pos -> guard (sourceColumn pos == 1)
@@ -102,7 +102,7 @@ header = try $ do
   -- contents <- trimInlines . mconcat <$> manyTill inline (try (whitespace >> (string eqs)))
   -- contents <- trimInlines . mconcat <$> manyTill inline (string eqs)
   -- contents <- mconcat <$> manyTill inline (string eqs)
-  contents <- trimInlines . mconcat <$> manyTill inline (try $ whitespace >> (string eqs) >> many whitespace >> (char '\n'))
+  contents <- trimInlines . mconcat <$> manyTill inline (try $ whitespace >> (string eqs) >> many whitespace >> (char '\n')) -- consider blankline in Parsing to replace many whitespace >> char '\n'
   attr <- registerHeader nullAttr contents
   --return $ B.headerWith attr lev contents
   return $ B.headerWith attr lev contents
@@ -114,7 +114,7 @@ table = undefined
 blockQuote = undefined
 para = undefined
 preformatted = undefined
-blockMath = undefined
+displayMath = undefined
 
 -- inline parser
 
@@ -157,18 +157,32 @@ str = B.str <$> (many1 $ noneOf $ spaceChars ++ specialChars)
 whitespace = B.space <$ (skipMany1 spaceChar)
 special = B.str <$> count 1 (oneOf specialChars)
 bareURL  = undefined
-{--
-strong = do
+--{--
+strong = try $ do
+  s <- lookAhead $ between (char '*') (char '*') (many1 $ noneOf "*")
+  guard $ (not $ (head s) `elem` spaceChars) && (not $ (last s) `elem` spaceChars)
   char '*'
-  lookAhead (noneOf spaceChars)
-  x <- manyTill inline $ try $ lookAhead $ (noneOf " \t\n") >> (char '*') >> (oneOf $ spaceChars ++ specialChars)
-  y <- anyChar
-  (return $ x ++ [y])
+  contents <- mconcat <$> (manyTill inline $ (char '*') >> (oneOf $ spaceChars ++ specialChars))
+  return $ B.strong contents
+  {--char '*'
+  lookAhead $ (noneOf spaceChars) >> (manyTill inline $ try $ (noneOf $ spaceChars ++ "*") >> (char '*') >> (oneOf $ spaceChars ++ specialChars))
+  contents <- mconcat <$> manyTill inline (char '*')
+  return $ B.strong contents
   --}
-strong = undefined
-emph  = undefined
-strikeout  = undefined
-code  = undefined
+emph = try $ do
+  s <- lookAhead $ between (char '_') (char '_') (many1 $ noneOf "_")
+  guard $ (not $ (head s) `elem` spaceChars) && (not $ (last s) `elem` spaceChars)
+  char '_'
+  contents <- mconcat <$> (manyTill inline $ (char '_') >> (oneOf $ spaceChars ++ specialChars))
+  return $ B.emph contents
+strikeout = try $ do
+  string "~~"
+  contents <- mconcat <$> (manyTill inline $ string $ "~~")
+  return $ B.strikeout contents
+code = try $ do
+  char '`'
+  contents <- manyTill anyChar (char '`')
+  return $ B.code contents
 intLink  = undefined
 extLink  = undefined
 image  = undefined
@@ -190,6 +204,7 @@ runParser p s = do
 
 testP :: VwParser PandocIO a -> String -> IO (Either PandocError a)
 testP p s = runIO $ runParser p (s ++ "\n")
+--testP p s = runIO $ runParser p s
 
 --type Parser = Parsec String ()
 {--runP :: VwParser PandocIO a -> [Char] -> IO (Either PandocError a)
@@ -237,12 +252,22 @@ emph' = do
   (return $ x ++ [y]) 
 
 strong' :: Parser String
+{--
 strong' = do
   char '*'
   lookAhead (noneOf " \t\n")
   x <- manyTill anyChar $ try $ lookAhead $ (noneOf " \t\n") >> (char '*') >> (oneOf $ spaceChars ++ specialChars)
   y <- anyChar
   (return $ x ++ [y])
+  --}
+
+strong' = do
+  s <- between (char '*') (char '*') (many1 $ noneOf "*")
+  lookAhead (oneOf $ spaceChars ++ specialChars)
+  guard $ (not $ (head s) `elem` spaceChars) && (not $ (last s) `elem` spaceChars)
+  return s
+  --lookAhead $ (noneOf spaceChars) >> (manyTill anyChar $ try $ (noneOf $ spaceChars ++ "*") >> (char '*') >> (oneOf $ spaceChars ++ specialChars))
+  --manyTill anyChar (char '*')
 
 testStrong' :: IO Counts
 testStrong' = 
