@@ -74,6 +74,7 @@ readMediaWiki opts s = do
                                             , mwHeaderMap = M.empty
                                             , mwIdentifierList = Set.empty
                                             , mwLogMessages = []
+                                            , mwInTT = False
                                             }
             (s ++ "\n")
   case parsed of
@@ -87,6 +88,7 @@ data MWState = MWState { mwOptions         :: ReaderOptions
                        , mwHeaderMap       :: M.Map Inlines String
                        , mwIdentifierList  :: Set.Set String
                        , mwLogMessages     :: [LogMessage]
+                       , mwInTT            :: Bool
                        }
 
 type MWParser m = ParserT [Char] MWState m
@@ -569,7 +571,12 @@ inlineTag = do
        TagOpen "sub" _ -> B.subscript <$> inlinesInTags "sub"
        TagOpen "sup" _ -> B.superscript <$> inlinesInTags "sup"
        TagOpen "code" _ -> encode <$> inlinesInTags "code"
-       TagOpen "tt" _ -> encode <$> inlinesInTags "tt"
+       TagOpen "tt" _ -> do
+         inTT <- mwInTT <$> getState
+         updateState $ \st -> st{ mwInTT = True }
+         result <- encode <$> inlinesInTags "tt"
+         updateState $ \st -> st{ mwInTT = inTT }
+         return result
        TagOpen "hask" _ -> B.codeWith ("",["haskell"],[]) <$> charsInTags "hask"
        _ -> B.rawInline "html" . snd <$> htmlTag (~== tag)
 
@@ -690,6 +697,8 @@ strong = B.strong <$> nested (inlinesBetween start end)
 doubleQuotes :: PandocMonad m => MWParser m Inlines
 doubleQuotes = do
   guardEnabled Ext_smart
+  inTT <- mwInTT <$> getState
+  guard (not inTT)
   B.doubleQuoted <$> nested (inlinesBetween openDoubleQuote closeDoubleQuote)
     where openDoubleQuote = sym "\"" >> lookAhead nonspaceChar
           closeDoubleQuote = try $ sym "\""
