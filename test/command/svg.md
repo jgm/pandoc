@@ -5,20 +5,20 @@
 [warning] Could not determine image size for 'command/corrupt.svg': could not determine image type
 <ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/Paragraph">
   <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
-    <Rectangle Self="uec" StrokeWeight="0" ItemTransform="1.00000 0 0 1.00000 150.00000 -100.00000">
+    <Rectangle Self="uec" StrokeWeight="0" ItemTransform="1 0 0 1 150 -100">
       <Properties>
         <PathGeometry>
           <GeometryPathType PathOpen="false">
             <PathPointArray>
-              <PathPointType Anchor="-150.00000 -100.00000" LeftDirection="-150.00000 -100.00000" RightDirection="-150.00000 -100.00000" />
-              <PathPointType Anchor="-150.00000 100.00000" LeftDirection="-150.00000 100.00000" RightDirection="-150.00000 100.00000" />
-              <PathPointType Anchor="150.00000 100.00000" LeftDirection="150.00000 100.00000" RightDirection="150.00000 100.00000" />
-              <PathPointType Anchor="150.00000 -100.00000" LeftDirection="150.00000 -100.00000" RightDirection="150.00000 -100.00000" />
+              <PathPointType Anchor="-150 -100" LeftDirection="-150 -100" RightDirection="-150 -100" />
+              <PathPointType Anchor="-150 100" LeftDirection="-150 100" RightDirection="-150 100" />
+              <PathPointType Anchor="150 100" LeftDirection="150 100" RightDirection="150 100" />
+              <PathPointType Anchor="150 -100" LeftDirection="150 -100" RightDirection="150 -100" />
             </PathPointArray>
           </GeometryPathType>
         </PathGeometry>
       </Properties>
-      <Image Self="ue6" ItemTransform="1.00000 0 0 1.00000 -150.00000 -100.00000">
+      <Image Self="ue6" ItemTransform="1 0 0 1 -150 -100">
         <Properties>
           <Profile type="string">
             $ID/Embedded
@@ -38,20 +38,20 @@
 [warning] Could not determine image size for 'command/SVG_logo.svg': could not determine SVG size
 <ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/Paragraph">
   <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
-    <Rectangle Self="uec" StrokeWeight="0" ItemTransform="1.00000 0 0 1.00000 150.00000 -100.00000">
+    <Rectangle Self="uec" StrokeWeight="0" ItemTransform="1 0 0 1 150 -100">
       <Properties>
         <PathGeometry>
           <GeometryPathType PathOpen="false">
             <PathPointArray>
-              <PathPointType Anchor="-150.00000 -100.00000" LeftDirection="-150.00000 -100.00000" RightDirection="-150.00000 -100.00000" />
-              <PathPointType Anchor="-150.00000 100.00000" LeftDirection="-150.00000 100.00000" RightDirection="-150.00000 100.00000" />
-              <PathPointType Anchor="150.00000 100.00000" LeftDirection="150.00000 100.00000" RightDirection="150.00000 100.00000" />
-              <PathPointType Anchor="150.00000 -100.00000" LeftDirection="150.00000 -100.00000" RightDirection="150.00000 -100.00000" />
+              <PathPointType Anchor="-150 -100" LeftDirection="-150 -100" RightDirection="-150 -100" />
+              <PathPointType Anchor="-150 100" LeftDirection="-150 100" RightDirection="-150 100" />
+              <PathPointType Anchor="150 100" LeftDirection="150 100" RightDirection="150 100" />
+              <PathPointType Anchor="150 -100" LeftDirection="150 -100" RightDirection="150 -100" />
             </PathPointArray>
           </GeometryPathType>
         </PathGeometry>
       </Properties>
-      <Image Self="ue6" ItemTransform="1.00000 0 0 1.00000 -150.00000 -100.00000">
+      <Image Self="ue6" ItemTransform="1 0 0 1 -150 -100">
         <Properties>
           <Profile type="string">
             $ID/Embedded
@@ -71,20 +71,20 @@
 [warning] Could not determine image size for 'command/SVG_logo-without-xml-declaration.svg': could not determine SVG size
 <ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/Paragraph">
   <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
-    <Rectangle Self="uec" StrokeWeight="0" ItemTransform="1.00000 0 0 1.00000 150.00000 -100.00000">
+    <Rectangle Self="uec" StrokeWeight="0" ItemTransform="1 0 0 1 150 -100">
       <Properties>
         <PathGeometry>
           <GeometryPathType PathOpen="false">
             <PathPointArray>
-              <PathPointType Anchor="-150.00000 -100.00000" LeftDirection="-150.00000 -100.00000" RightDirection="-150.00000 -100.00000" />
-              <PathPointType Anchor="-150.00000 100.00000" LeftDirection="-150.00000 100.00000" RightDirection="-150.00000 100.00000" />
-              <PathPointType Anchor="150.00000 100.00000" LeftDirection="150.00000 100.00000" RightDirection="150.00000 100.00000" />
-              <PathPointType Anchor="150.00000 -100.00000" LeftDirection="150.00000 -100.00000" RightDirection="150.00000 -100.00000" />
+              <PathPointType Anchor="-150 -100" LeftDirection="-150 -100" RightDirection="-150 -100" />
+              <PathPointType Anchor="-150 100" LeftDirection="-150 100" RightDirection="-150 100" />
+              <PathPointType Anchor="150 100" LeftDirection="150 100" RightDirection="150 100" />
+              <PathPointType Anchor="150 -100" LeftDirection="150 -100" RightDirection="150 -100" />
             </PathPointArray>
           </GeometryPathType>
         </PathGeometry>
       </Properties>
-      <Image Self="ue6" ItemTransform="1.00000 0 0 1.00000 -150.00000 -100.00000">
+      <Image Self="ue6" ItemTransform="1 0 0 1 -150 -100">
         <Properties>
           <Profile type="string">
             $ID/Embedded
@@ -104,20 +104,20 @@
 ^D
 <ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/Paragraph">
   <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
-    <Rectangle Self="uec" StrokeWeight="0" ItemTransform="1.00000 0 0 1.00000 54.75000 -65.25000">
+    <Rectangle Self="uec" StrokeWeight="0" ItemTransform="1 0 0 1 54.75 -65.25">
       <Properties>
         <PathGeometry>
           <GeometryPathType PathOpen="false">
             <PathPointArray>
-              <PathPointType Anchor="-54.75000 -65.25000" LeftDirection="-54.75000 -65.25000" RightDirection="-54.75000 -65.25000" />
-              <PathPointType Anchor="-54.75000 65.25000" LeftDirection="-54.75000 65.25000" RightDirection="-54.75000 65.25000" />
-              <PathPointType Anchor="54.75000 65.25000" LeftDirection="54.75000 65.25000" RightDirection="54.75000 65.25000" />
-              <PathPointType Anchor="54.75000 -65.25000" LeftDirection="54.75000 -65.25000" RightDirection="54.75000 -65.25000" />
+              <PathPointType Anchor="-54.75 -65.25" LeftDirection="-54.75 -65.25" RightDirection="-54.75 -65.25" />
+              <PathPointType Anchor="-54.75 65.25" LeftDirection="-54.75 65.25" RightDirection="-54.75 65.25" />
+              <PathPointType Anchor="54.75 65.25" LeftDirection="54.75 65.25" RightDirection="54.75 65.25" />
+              <PathPointType Anchor="54.75 -65.25" LeftDirection="54.75 -65.25" RightDirection="54.75 -65.25" />
             </PathPointArray>
           </GeometryPathType>
         </PathGeometry>
       </Properties>
-      <Image Self="ue6" ItemTransform="1.00000 0 0 1.00000 -54.75000 -65.25000">
+      <Image Self="ue6" ItemTransform="1 0 0 1 -54.75 -65.25">
         <Properties>
           <Profile type="string">
             $ID/Embedded

@@ -533,10 +533,9 @@ dimensionsToAttrList :: WriterOptions -> Attr -> [(String, String)]
 dimensionsToAttrList opts attr = (go Width) ++ (go Height)
   where
     go dir = case (dimension dir attr) of
-               (Just (Percent a)) -> [("style", show dir ++ ":" ++ show (Percent a))]
-               (Just dim)         -> [(show dir, showInPixel opts dim)]
-               _ -> []
-
+               (Just (Pixel a))  -> [(show dir, show a)]
+               (Just x)          -> [("style", show dir ++ ":" ++ show x)]
+               Nothing           -> []
 
 imageExts :: [String]
 imageExts = [ "art", "bmp", "cdr", "cdt", "cpt", "cr2", "crw", "djvu", "erf",
