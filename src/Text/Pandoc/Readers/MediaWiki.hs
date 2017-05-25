@@ -688,6 +688,8 @@ strong = B.strong <$> nested (inlinesBetween start end)
           end   = try $ sym "'''"
 
 doubleQuotes :: PandocMonad m => MWParser m Inlines
-doubleQuotes = B.doubleQuoted <$> nested (inlinesBetween openDoubleQuote closeDoubleQuote)
+doubleQuotes = do
+  guardEnabled Ext_smart
+  B.doubleQuoted <$> nested (inlinesBetween openDoubleQuote closeDoubleQuote)
     where openDoubleQuote = sym "\"" >> lookAhead nonspaceChar
           closeDoubleQuote = try $ sym "\""
