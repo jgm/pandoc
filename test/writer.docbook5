@@ -1224,12 +1224,6 @@ These should not be escaped:  \$ \\ \&gt; \[ \{
       Foo <link xlink:href="/url/">bar</link>.
     </para>
     <para>
-      Foo <link xlink:href="/url/">bar</link>.
-    </para>
-    <para>
-      Foo <link xlink:href="/url/">bar</link>.
-    </para>
-    <para>
       With <link xlink:href="/url/">embedded [brackets]</link>.
     </para>
     <para>

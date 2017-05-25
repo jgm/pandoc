@@ -1434,10 +1434,6 @@ link</text:span></text:a></text:p>
 <text:h text:style-name="Heading_20_2" text:outline-level="2">Reference</text:h>
 <text:p text:style-name="First_20_paragraph">Foo
 <text:a xlink:type="simple" xlink:href="/url/" office:name=""><text:span text:style-name="Definition">bar</text:span></text:a>.</text:p>
-<text:p text:style-name="Text_20_body">Foo
-<text:a xlink:type="simple" xlink:href="/url/" office:name=""><text:span text:style-name="Definition">bar</text:span></text:a>.</text:p>
-<text:p text:style-name="Text_20_body">Foo
-<text:a xlink:type="simple" xlink:href="/url/" office:name=""><text:span text:style-name="Definition">bar</text:span></text:a>.</text:p>
 <text:p text:style-name="Text_20_body">With
 <text:a xlink:type="simple" xlink:href="/url/" office:name=""><text:span text:style-name="Definition">embedded
 [brackets]</text:span></text:a>.</text:p>

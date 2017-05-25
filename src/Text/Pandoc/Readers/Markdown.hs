@@ -1750,10 +1750,12 @@ referenceLink :: PandocMonad m
 referenceLink constructor (lab, raw) = do
   sp <- (True <$ lookAhead (char ' ')) <|> return False
   (_,raw') <- option (mempty, "") $
-      lookAhead (try (guardEnabled Ext_citations >>
-                      spnl >> normalCite >> return (mempty, "")))
+      lookAhead (try (do guardEnabled Ext_citations
+                         guardDisabled Ext_spaced_reference_links <|> spnl
+                         normalCite
+                         return (mempty, "")))
       <|>
-      try (spnl >> reference)
+      try ((guardDisabled Ext_spaced_reference_links <|> spnl) >> reference)
   when (raw' == "") $ guardEnabled Ext_shortcut_reference_links
   let labIsRef = raw' == "" || raw' == "[]"
   let key = toKey $ if labIsRef then raw else raw'

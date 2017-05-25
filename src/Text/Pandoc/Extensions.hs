@@ -137,6 +137,7 @@ data Extension =
     | Ext_shortcut_reference_links -- ^ Shortcut reference links
     | Ext_smart               -- ^ "Smart" quotes, apostrophes, ellipses, dashes
     | Ext_old_dashes          -- ^ -- = em, - before number = en
+    | Ext_spaced_reference_links -- ^ Allow space between two parts of ref link
     deriving (Show, Read, Enum, Eq, Ord, Bounded, Data, Typeable, Generic)
 
 -- | Extensions to be used with pandoc-flavored markdown.
@@ -187,7 +188,7 @@ pandocExtensions = extensionsFromList
   , Ext_smart
   ]
 
--- | Extensions to be used with github-flavored markdown.
+-- | Extensions to be used with plain text output.
 plainExtensions :: Extensions
 plainExtensions = extensionsFromList
   [ Ext_table_captions
@@ -220,6 +221,7 @@ phpMarkdownExtraExtensions = extensionsFromList
   , Ext_link_attributes
   , Ext_abbreviations
   , Ext_shortcut_reference_links
+  , Ext_spaced_reference_links
   ]
 
 -- | Extensions to be used with github-flavored markdown.
@@ -272,6 +274,7 @@ multimarkdownExtensions = extensionsFromList
   , Ext_superscript
   , Ext_subscript
   , Ext_backtick_code_blocks
+  , Ext_spaced_reference_links
   ]
 
 -- | Language extensions to be used with strict markdown.
@@ -279,6 +282,7 @@ strictExtensions :: Extensions
 strictExtensions = extensionsFromList
   [ Ext_raw_html
   , Ext_shortcut_reference_links
+  , Ext_spaced_reference_links
   ]
 
 -- | Default extensions from format-describing string.

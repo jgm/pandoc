@@ -877,10 +877,6 @@ Just a \href{/url/}{URL}.
 
 Foo \href{/url/}{bar}.
 
-Foo \href{/url/}{bar}.
-
-Foo \href{/url/}{bar}.
-
 With \href{/url/}{embedded {[}brackets{]}}.
 
 \href{/url/}{b} by itself should be a link.

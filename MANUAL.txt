@@ -3100,7 +3100,8 @@ definition, which may occur elsewhere in the document (either
 before or after the link).
 
 The link consists of link text in square brackets, followed by a label in
-square brackets. (There can be space between the two.) The link definition
+square brackets. (There cannot be space between the two unless the
+`spaced_reference_links` extension is enabled.) The link definition
 consists of the bracketed label, followed by a colon and a space, followed by
 the URL, and optionally (after a space) a link title either in quotes or in
 parentheses.  The label must not be parseable as a citation (assuming
@@ -3550,6 +3551,13 @@ implied by pandoc's default `all_symbols_escapable`.
 
 Allow a list to occur right after a paragraph, with no intervening
 blank space.
+
+#### Extension: `spaced_reference_links` ####
+
+Allow whitespace between the two components of a reference link,
+for example,
+
+    [foo] [bar].
 
 #### Extension: `hard_line_breaks` ####
 

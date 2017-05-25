@@ -783,10 +783,6 @@ Reference
 
 Foo `bar </url/>`__.
 
-Foo `bar </url/>`__.
-
-Foo `bar </url/>`__.
-
 With `embedded [brackets] </url/>`__.
 
 `b </url/>`__ by itself should be a link.
