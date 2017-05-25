@@ -3,13 +3,13 @@ import Control.Monad (guard)
 import Data.Default -- def is there
 import Data.Functor.Identity
 import Text.Pandoc.Builder (Blocks, Inlines, trimInlines)
-import qualified Text.Pandoc.Builder as B (doc, toList, headerWith, str, space, strong, emph, strikeout, code)
+import qualified Text.Pandoc.Builder as B (doc, toList, headerWith, str, space, strong, emph, strikeout, code, link)
 import Text.Pandoc.Class (PandocMonad, report, PandocIO, runIO)
 import Text.Pandoc.Definition (Pandoc, nullAttr)
 import Text.Pandoc.Error (PandocError)
 import Text.Pandoc.Logging (LogMessage(ParsingTrace))
 import Text.Pandoc.Options (ReaderOptions)
-import Text.Pandoc.Parsing (readWithM, ParserT, stateOptions, ParserState, blanklines, registerHeader, spaceChar)
+import Text.Pandoc.Parsing (readWithM, ParserT, stateOptions, ParserState, blanklines, registerHeader, spaceChar, stateAllowLinks, emailAddress, guardEnabled, uri)
 import Text.Parsec.Char (spaces, char, anyChar, newline, string, noneOf)
 import Text.Parsec.Error (ParseError)
 import Text.Parsec.Combinator (eof, choice, many1, manyTill, count, skipMany1)
@@ -22,6 +22,7 @@ import Text.Parsec.Char (oneOf, space)
 import Text.Parsec.Combinator (lookAhead, between)
 import Text.Parsec.Prim ((<|>), (<?>), skipMany)
 import Test.HUnit
+import Text.Pandoc.Options (Extension(Ext_autolink_bare_uris))
 
 readVimwiki :: PandocMonad m => ReaderOptions -> String -> m Pandoc
 readVimwiki opts s = do
@@ -62,6 +63,7 @@ block = do
                 , hrule
                 , table
                 , blockQuote
+                , comment
                 , para
                 , preformatted
                 , displayMath --}
@@ -78,6 +80,7 @@ para :: PandocMonad m => VwParser m Blocks
 blockQuote :: PandocMonad m => VwParser m Blocks
 preformatted :: PandocMonad m => VwParser m Blocks
 displayMath :: PandocMonad m => VwParser m Blocks
+comment :: PandocMonad m => VwParser m Inlines
 
 guardColumnOne :: PandocMonad m => VwParser m ()
 guardColumnOne = getPosition >>= \pos -> guard (sourceColumn pos == 1)
@@ -115,6 +118,7 @@ blockQuote = undefined
 para = undefined
 preformatted = undefined
 displayMath = undefined
+comment  = undefined
 
 -- inline parser
 
@@ -122,18 +126,19 @@ inline :: PandocMonad m => VwParser m Inlines
 inline = choice[whitespace
              ,  str
              ,  special
+             ,  link
+             ,  emph
+             ,  strikeout
+             ,  code
+             ,  bareURL
              ]
 {--inline = choice [ whitespace
                 , bareURL
-                , strong
-                , emph
-                , strikeout
                 , code
                 , intLink -- handles anchors, links with or without descriptions, loca dirs, links with thumbnails
                 , extLink -- handles file, local etc.
                 , image
                 , inlineMath
-                , comment
                 , tag
                 ]--}
 
@@ -145,18 +150,18 @@ strong :: PandocMonad m => VwParser m Inlines
 emph :: PandocMonad m => VwParser m Inlines
 strikeout :: PandocMonad m => VwParser m Inlines
 code :: PandocMonad m => VwParser m Inlines
-intLink :: PandocMonad m => VwParser m Inlines
-extLink :: PandocMonad m => VwParser m Inlines
+link :: PandocMonad m => VwParser m Inlines
 image :: PandocMonad m => VwParser m Inlines
 inlineMath :: PandocMonad m => VwParser m Inlines
-comment :: PandocMonad m => VwParser m Inlines
 tag :: PandocMonad m => VwParser m Inlines
 
 --str = B.str <$> many1 (noneOf $ specialChars ++ spaceChars)
 str = B.str <$> (many1 $ noneOf $ spaceChars ++ specialChars)
 whitespace = B.space <$ (skipMany1 spaceChar)
 special = B.str <$> count 1 (oneOf specialChars)
-bareURL  = undefined
+bareURL = try $ do
+  (orig, src) <- uri <|> emailAddress
+  return $ B.link src "" (B.str orig)
 --{--
 strong = try $ do
   s <- lookAhead $ between (char '*') (char '*') (many1 $ noneOf "*")
@@ -183,12 +188,26 @@ code = try $ do
   char '`'
   contents <- manyTill anyChar (char '`')
   return $ B.code contents
-intLink  = undefined
-extLink  = undefined
-image  = undefined
-inlineMath  = undefined
-comment  = undefined
-tag  = undefined
+link = try $ do -- haven't implemented link with thumbnails
+  string "[["
+  contents <- manyTill anyChar $ string $ "]]"
+  let (url, title) = case splitAtSeparater contents of 
+                                           (ys, "") -> (ys, ys)
+                                           (ys, zs) -> (ys, zs)
+  return $ B.link url title (B.str "")
+image = undefined
+inlineMath = undefined
+tag = undefined
+
+-- helper functions
+splitAtSeparater :: [Char] -> ([Char], [Char])
+splitAtSeparater xs = go "" xs
+  where 
+    go xs ys
+      | ys == "" = (xs, ys)
+      | head ys == '|' = (xs, tail ys)
+      | otherwise = go (xs ++ [head ys]) (tail ys)
+  
 
 -- tests
 
