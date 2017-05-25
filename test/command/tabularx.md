@@ -1,5 +1,5 @@
 ```
-% pandoc -f latex -t native
+% pandoc -f latex -t native --quiet
 \begin{tabularx}{\linewidth}{|c|c|c|}
 \hline
   Column Heading 1
@@ -36,7 +36,7 @@
 ```
 
 ```
-% pandoc -f latex -t native
+% pandoc -f latex -t native --quiet
 \begin{tabularx}{\linewidth}{|X|c|p{0.25\linewidth}|}
 \hline
   Column Heading 1
@@ -73,7 +73,7 @@
 ```
 
 ```
-% pandoc -f latex -t native
+% pandoc -f latex -t native --quiet
 \begin{tabularx}{\linewidth}{|b{0.25\linewidth}|c|m{0.25\linewidth}|}
 \hline
   Column Heading 1

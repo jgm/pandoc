@@ -2,6 +2,7 @@
 % pandoc -f latex -t icml
 \includegraphics{command/corrupt.svg}
 ^D
+[warning] Could not determine image size for 'command/corrupt.svg': could not determine image type
 <ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/Paragraph">
   <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
     <Rectangle Self="uec" StrokeWeight="0" ItemTransform="1.00000 0 0 1.00000 150.00000 -100.00000">
@@ -34,6 +35,7 @@
 % pandoc -f latex -t icml
 \includegraphics{command/SVG_logo.svg}
 ^D
+[warning] Could not determine image size for 'command/SVG_logo.svg': could not determine SVG size
 <ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/Paragraph">
   <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
     <Rectangle Self="uec" StrokeWeight="0" ItemTransform="1.00000 0 0 1.00000 150.00000 -100.00000">
@@ -66,6 +68,7 @@
 % pandoc -f latex -t icml
 \includegraphics{command/SVG_logo-without-xml-declaration.svg}
 ^D
+[warning] Could not determine image size for 'command/SVG_logo-without-xml-declaration.svg': could not determine SVG size
 <ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/Paragraph">
   <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
     <Rectangle Self="uec" StrokeWeight="0" ItemTransform="1.00000 0 0 1.00000 150.00000 -100.00000">
