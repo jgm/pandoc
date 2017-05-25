@@ -2,8 +2,9 @@ import Control.Monad.Except (throwError)
 import Control.Monad (guard)
 import Data.Default -- def is there
 import Data.Functor.Identity
+import Data.List (isInfixOf)
 import Text.Pandoc.Builder (Blocks, Inlines, trimInlines)
-import qualified Text.Pandoc.Builder as B (doc, toList, headerWith, str, space, strong, emph, strikeout, code, link)
+import qualified Text.Pandoc.Builder as B (doc, toList, headerWith, str, space, strong, emph, strikeout, code, link, image, spanWith, math)
 import Text.Pandoc.Class (PandocMonad, report, PandocIO, runIO)
 import Text.Pandoc.Definition (Pandoc, nullAttr)
 import Text.Pandoc.Error (PandocError)
@@ -190,14 +191,29 @@ code = try $ do
   return $ B.code contents
 link = try $ do -- haven't implemented link with thumbnails
   string "[["
-  contents <- manyTill anyChar $ string $ "]]"
-  let (url, title) = case splitAtSeparater contents of 
-                                           (ys, "") -> (ys, ys)
-                                           (ys, zs) -> (ys, zs)
-  return $ B.link url title (B.str "")
-image = undefined
-inlineMath = undefined
-tag = undefined
+  contents <- lookAhead $ manyTill anyChar (string "]]")
+  case '|' `elem` contents of 
+                  False -> return $ B.link contents "link" (B.str contents)
+                  True  -> do 
+                    url <- manyTill anyChar $ char '|'
+                    lab <- mconcat <$> (manyTill inline $ string "]]")
+                    return $ B.link url "link" lab
+  {--let (url, lab) = case '|' `elem` contents of 
+                                   False -> (contents, B.str contents)
+                                   True  -> (
+  return $ B.link url title (B.str "")--}
+image = try $ do -- yet to implement one with attributes
+  string "{{"
+  contents <- manyTill anyChar $ string $ "}}"
+  return $ B.image contents "" (B.str "")
+inlineMath = try $ do
+  char '$'
+  contents <- manyTill anyChar (char '$')
+  return $ B.math contents
+tag = try $ do
+  s <- lookAhead between (char ':') (char ':' >> space) (many1 (noneOf spaceChars))
+  guard $ not $ "::" `isInfixOf` (":" ++ s ++ ":")
+  sepBy1 (many1 anyChar) (char ':')
 
 -- helper functions
 splitAtSeparater :: [Char] -> ([Char], [Char])
