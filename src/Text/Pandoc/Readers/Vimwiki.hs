@@ -4,17 +4,18 @@ import Data.Default -- def is there
 import Data.Functor.Identity
 import Data.List (isInfixOf)
 import Data.List.Split (splitOn)
+import Data.Text (strip)
 import Text.Pandoc.Builder (Blocks, Inlines, trimInlines)
-import qualified Text.Pandoc.Builder as B (doc, toList, headerWith, str, space, strong, emph, strikeout, code, link, image, spanWith, math)
+import qualified Text.Pandoc.Builder as B (doc, toList, headerWith, str, space, strong, emph, strikeout, code, link, image, spanWith, math, para, horizontalRule, blockQuote, codeBlock, displayMath)
 import Text.Pandoc.Class (PandocMonad, report, PandocIO, runIO)
-import Text.Pandoc.Definition (Pandoc, nullAttr)
+import Text.Pandoc.Definition (Pandoc, nullAttr, Inline(Space))
 import Text.Pandoc.Error (PandocError)
 import Text.Pandoc.Logging (LogMessage(ParsingTrace))
 import Text.Pandoc.Options (ReaderOptions)
 import Text.Pandoc.Parsing (readWithM, ParserT, stateOptions, ParserState, blanklines, registerHeader, spaceChar, stateAllowLinks, emailAddress, guardEnabled, uri)
 import Text.Parsec.Char (spaces, char, anyChar, newline, string, noneOf)
 import Text.Parsec.Error (ParseError)
-import Text.Parsec.Combinator (eof, choice, many1, manyTill, count, skipMany1)
+import Text.Parsec.Combinator (eof, choice, many1, manyTill, count, skipMany1, notFollowedBy)
 import Text.Parsec.Pos (sourceColumn)
 import Text.Parsec.Prim (many, getPosition, try, runParserT)
 -- imports for tests
@@ -60,44 +61,34 @@ block = do
   pos <- getPosition
   res <- choice [ mempty <$ blanklines
                 , header
-{--                , bulletList
-                , orderedList
                 , hrule
-                , table
-                , blockQuote
                 , comment
-                , para
+                , blockQuote
                 , preformatted
+                , para
+{--              
+                , bulletList
+                , orderedList
+                , table
                 , displayMath --}
                 ]
   report $ ParsingTrace (take 60 $ show $ B.toList res) pos
   return res
 
 header :: PandocMonad m => VwParser m Blocks
+hrule :: PandocMonad m => VwParser m Blocks
+comment :: PandocMonad m => VwParser m Blocks
+para :: PandocMonad m => VwParser m Blocks
 bulletList :: PandocMonad m => VwParser m Blocks
 orderedList :: PandocMonad m => VwParser m Blocks
-hrule :: PandocMonad m => VwParser m Blocks
 table :: PandocMonad m => VwParser m Blocks
-para :: PandocMonad m => VwParser m Blocks
 blockQuote :: PandocMonad m => VwParser m Blocks
 preformatted :: PandocMonad m => VwParser m Blocks
 displayMath :: PandocMonad m => VwParser m Blocks
-comment :: PandocMonad m => VwParser m Inlines
 
-guardColumnOne :: PandocMonad m => VwParser m ()
+{--guardColumnOne :: PandocMonad m => VwParser m ()
 guardColumnOne = getPosition >>= \pos -> guard (sourceColumn pos == 1)
-
-{--
-header = do
-  attr <- registerHeader nullAttr contents
-  return $ B.headerWith attr lev contents
-    where
-      contents = B.str <$> contents'
-      where 
-        contents' = do
-          many 
-          --}
---header = undefined
+--}
 header = try $ do
   many whitespace
   eqs <- many1 (char '=')
@@ -111,38 +102,66 @@ header = try $ do
   attr <- registerHeader nullAttr contents
   --return $ B.headerWith attr lev contents
   return $ B.headerWith attr lev contents
+para = try $ do
+  contents <- trimInlines . mconcat <$> many1 inline
+  if all (==Space) contents
+     then return mempty
+     else return $ B.para contents
+hrule = try $ do
+  string "----" >> many (char '-') >> newline
+  return B.horizontalRule
+comment = try $ do
+  string "%%" >> many (noneOf "\n") >> newline
+  return mempty
+blockQuote = try $ do
+  string "    " 
+  contents <- para
+  return $ B.blockQuote contents
+preformatted = try $ do
+  many spaceChar >> string "{{{" >> many (noneOf "\n") >> lookAhead newline
+  contents <- manyTill anyChar (try (char '\n' >> many spaceChar >> string "}}}" >> many spaceChar >> newline))
+  if (not $ contents == "") && (head contents == '\n')
+     then return $ B.codeBlock (tail contents)
+     else return $ B.codeBlock contents
+{--
+displayMath = try $ do
+  many spaceChar >> string "{{$"
+  mathTag <- mathTagParser
+  contents <- manyTill anyChar (try (char '\n' >> many spaceChar >> string "}}$" >> many spaceChar >> newline))
+  {--let contentsWithTags = makeMathTag contents
+    where
+      makeMathTag :: String -> String
+      makeMathTag s =
+      --}
+  return $ B.displayMath contentsWithTags
+  --}
+displayMath = undefined
+
+{--
+mathTagParser :: PandocMonad m => VwParser m String
+  s <- try . lookAhead (char '%' >> (manyTill (noneOf spaceChars) (char '%' >> many (noneOf $ '%':spaceChars) >> 
+  --}
 
 bulletList = undefined
 orderedList = undefined
-hrule = undefined
 table = undefined
-blockQuote = undefined
-para = undefined
-preformatted = undefined
-displayMath = undefined
-comment  = undefined
 
 -- inline parser
 
 inline :: PandocMonad m => VwParser m Inlines
-inline = choice[whitespace
-             ,  str
+inline = choice[str
+             ,  whitespace
              ,  special
-             ,  link
+             ,  bareURL
+             ,  strong
              ,  emph
              ,  strikeout
              ,  code
-             ,  bareURL
-             ]
-{--inline = choice [ whitespace
-                , bareURL
-                , code
-                , intLink -- handles anchors, links with or without descriptions, loca dirs, links with thumbnails
-                , extLink -- handles file, local etc.
-                , image
-                , inlineMath
-                , tag
-                ]--}
+             ,  link
+             ,  image
+             ,  inlineMath
+             ,  tag
+             ]--}
 
 str :: PandocMonad m => VwParser m Inlines
 whitespace :: PandocMonad m => VwParser m Inlines
@@ -215,7 +234,8 @@ tag = try $ do
   char ':'
   s <- manyTill (noneOf spaceChars) (try (char ':' >> space))
   guard $ not $ "::" `isInfixOf` (":" ++ s ++ ":")
-  foldl1 (>>) (return <$> B.str <$> (splitOn ":" s)) -- returns tag1 >> tag2 >> ... >> tagn
+  --foldl1 (>>) (return <$> B.str <$> (splitOn ":" s)) -- returns tag1 >> tag2 >> ... >> tagn
+  foldl1 (>>) (return <$> (concat $ (makeTagSpan <$> (splitOn ":" s)))) -- returns tag1 >> tag2 >> ... >> tagn
   --sepBy1 (many1 anyChar) (char ':')
 
 -- helper functions
@@ -226,8 +246,12 @@ splitAtSeparater xs = go "" xs
       | ys == "" = (xs, ys)
       | head ys == '|' = (xs, tail ys)
       | otherwise = go (xs ++ [head ys]) (tail ys)
-  
 
+makeTagSpan :: String -> [Inlines]
+makeTagSpan s = 
+  [B.spanWith ('-' : s, [], []) (B.str ""), B.spanWith (s, ["tag"], []) (B.str s)]
+
+  
 -- tests
 
 -- *Main> runIO (readVimwiki (def :: ReaderOptions) "==2==" :: PandocIO Pandoc)
