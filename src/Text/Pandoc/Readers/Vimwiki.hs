@@ -123,24 +123,30 @@ preformatted = try $ do
   if (not $ contents == "") && (head contents == '\n')
      then return $ B.codeBlock (tail contents)
      else return $ B.codeBlock contents
-{--
 displayMath = try $ do
   many spaceChar >> string "{{$"
-  mathTag <- mathTagParser
+  mathTag <- choice [mathTagParser, emptyParser]
   contents <- manyTill anyChar (try (char '\n' >> many spaceChar >> string "}}$" >> many spaceChar >> newline))
+  let contentsWithTags
+    | mathTag == "" = "\\[" ++ contents ++ "\\]"
+    | otherwise     = "\\begin{" ++ mathTag ++ "}" ++ contents + "\\end{" ++ mathTag ++ "}"
   {--let contentsWithTags = makeMathTag contents
     where
       makeMathTag :: String -> String
       makeMathTag s =
       --}
-  return $ B.displayMath contentsWithTags
+  return $ B.para $ B.displayMath contentsWithTags
   --}
-displayMath = undefined
+--displayMath = undefined
 
-{--
 mathTagParser :: PandocMonad m => VwParser m String
-  s <- try . lookAhead (char '%' >> (manyTill (noneOf spaceChars) (char '%' >> many (noneOf $ '%':spaceChars) >> 
-  --}
+mathTagParser = do
+  s <- try $ lookAhead (char '%' >> (manyTill (noneOf spaceChars) (try $ char '%' >> many (noneOf $ '%':spaceChars) >> space)))
+  char '%' >> string s >> char '%'
+  return s
+
+emptyParser :: PandocMonad m => VwParser m String
+emptyParser = return ""
 
 bulletList = undefined
 orderedList = undefined
