@@ -42,7 +42,7 @@ type VwParser = ParserT [Char] ParserState
 specialChars :: [Char]
 specialChars = "=*-#[]_~{`"
 
-spaceChars :: [Char]
+spaceChars :: [Char] -- spaceChar is the parser of only " \t"
 spaceChars = " \t\n"
 
 -- main parser
@@ -65,26 +65,27 @@ block = do
                 , comment
                 , blockQuote
                 , preformatted
+                , displayMath 
                 , para
+                ]
 {--              
                 , bulletList
                 , orderedList
                 , table
-                , displayMath --}
-                ]
+                ]--}
   report $ ParsingTrace (take 60 $ show $ B.toList res) pos
   return res
 
 header :: PandocMonad m => VwParser m Blocks
 hrule :: PandocMonad m => VwParser m Blocks
 comment :: PandocMonad m => VwParser m Blocks
+displayMath :: PandocMonad m => VwParser m Blocks
 para :: PandocMonad m => VwParser m Blocks
 bulletList :: PandocMonad m => VwParser m Blocks
 orderedList :: PandocMonad m => VwParser m Blocks
 table :: PandocMonad m => VwParser m Blocks
 blockQuote :: PandocMonad m => VwParser m Blocks
 preformatted :: PandocMonad m => VwParser m Blocks
-displayMath :: PandocMonad m => VwParser m Blocks
 
 {--guardColumnOne :: PandocMonad m => VwParser m ()
 guardColumnOne = getPosition >>= \pos -> guard (sourceColumn pos == 1)
@@ -128,29 +129,27 @@ displayMath = try $ do
   mathTag <- choice [mathTagParser, emptyParser]
   contents <- manyTill anyChar (try (char '\n' >> many spaceChar >> string "}}$" >> many spaceChar >> newline))
   let contentsWithTags
-    | mathTag == "" = "\\[" ++ contents ++ "\\]"
-    | otherwise     = "\\begin{" ++ mathTag ++ "}" ++ contents + "\\end{" ++ mathTag ++ "}"
-  {--let contentsWithTags = makeMathTag contents
-    where
-      makeMathTag :: String -> String
-      makeMathTag s =
-      --}
+        | mathTag == "" = "\\[" ++ contents ++ "\\]"
+        | otherwise     = "\\begin{" ++ mathTag ++ "}" ++ contents ++ "\\end{" ++ mathTag ++ "}"
   return $ B.para $ B.displayMath contentsWithTags
-  --}
---displayMath = undefined
 
-mathTagParser :: PandocMonad m => VwParser m String
-mathTagParser = do
-  s <- try $ lookAhead (char '%' >> (manyTill (noneOf spaceChars) (try $ char '%' >> many (noneOf $ '%':spaceChars) >> space)))
-  char '%' >> string s >> char '%'
-  return s
+--bulletList = try $ do -- indentation calculation requires consideration of tabs and spaces, for now only consider sapces
+  --itemList <- listItems
 
-emptyParser :: PandocMonad m => VwParser m String
-emptyParser = return ""
-
+--bulletList' k mapsto (Inlines, k')
+  -- calcualte sps
+  -- consume the line
+  -- if sps > k: create new level
+      -- let bl, k' = bulletList' sps
+      -- if k' == k 
+      --     then let (bl', 
+      --          
+  -- if sps
+  
 bulletList = undefined
 orderedList = undefined
 table = undefined
+
 
 -- inline parser
 
@@ -244,7 +243,7 @@ tag = try $ do
   foldl1 (>>) (return <$> (concat $ (makeTagSpan <$> (splitOn ":" s)))) -- returns tag1 >> tag2 >> ... >> tagn
   --sepBy1 (many1 anyChar) (char ':')
 
--- helper functions
+-- helper functions and parsers
 splitAtSeparater :: [Char] -> ([Char], [Char])
 splitAtSeparater xs = go "" xs
   where 
@@ -256,6 +255,15 @@ splitAtSeparater xs = go "" xs
 makeTagSpan :: String -> [Inlines]
 makeTagSpan s = 
   [B.spanWith ('-' : s, [], []) (B.str ""), B.spanWith (s, ["tag"], []) (B.str s)]
+
+mathTagParser :: PandocMonad m => VwParser m String
+mathTagParser = do
+  s <- try $ lookAhead (char '%' >> (manyTill (noneOf spaceChars) (try $ char '%' >> many (noneOf $ '%':spaceChars) >> space)))
+  char '%' >> string s >> char '%'
+  return s
+
+emptyParser :: PandocMonad m => VwParser m String
+emptyParser = return ""
 
   
 -- tests
