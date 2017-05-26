@@ -135,16 +135,42 @@ displayMath = try $ do
 
 --bulletList = try $ do -- indentation calculation requires consideration of tabs and spaces, for now only consider sapces
   --itemList <- listItems
+bulletList = try $ do
+  -- validate current line is list item
+  -- yes: 
 
---bulletList' k mapsto (Inlines, k')
-  -- calcualte sps
-  -- consume the line
-  -- if sps > k: create new level
-      -- let bl, k' = bulletList' sps
-      -- if k' == k 
-      --     then let (bl', 
-      --          
-  -- if sps
+
+bulletList' :: 
+-- bulletList' k: -- k is the previous level
+  -- validate current line is list item
+  -- no: [], 0
+  -- yes: calculate sps but do not consume 
+      -- if sps < k then [], sps
+      -- else let a = B.plain (consume the line)
+          -- let bl, m = (bulletList' sps) 
+          -- if sps > k then bl' = B.bulletList a:bl
+          -- if sps == k then bl' = a:bl
+          -- if m >= sps then let bl'', m' = (bulletList' m) in (bl' ++ bl'', m')
+                      -- else bl', m
+
+bulletList' :: Integer -> ([Inlines], Integer)
+  -- let a = B.plain (consume the line)
+  -- validate next line is list item 
+  -- yes: calcualte sps in next line
+      -- if sps > k -- create new level
+          -- let bl, m = bulletList' sps
+          -- add B.bulletList bl
+          -- if m >= k 
+          --     then let bl', m' = bulletList' m in
+          --              output a:bl', m'
+          --     else output [a], m
+          --     then 
+      -- if sps == k
+      --       then let bl', m' = bulletList' k in
+      --                output a:bl', m'
+      -- if sps < k
+      --    output [a], sps
+  -- no: output [a], 0
   
 bulletList = undefined
 orderedList = undefined
