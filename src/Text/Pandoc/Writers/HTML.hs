@@ -521,7 +521,7 @@ attrsToHtml opts (id',classes',keyvals) =
 imgAttrsToHtml :: WriterOptions -> Attr -> [Attribute]
 imgAttrsToHtml opts attr =
     attrsToHtml opts (ident,cls,kvs') ++
-    toAttrs (dimensionsToAttrList opts attr)
+    toAttrs (dimensionsToAttrList attr)
   where
     (ident,cls,kvs) = attr
     kvs' = filter isNotDim kvs
@@ -529,8 +529,8 @@ imgAttrsToHtml opts attr =
     isNotDim ("height", _) = False
     isNotDim _             = True
 
-dimensionsToAttrList :: WriterOptions -> Attr -> [(String, String)]
-dimensionsToAttrList opts attr = (go Width) ++ (go Height)
+dimensionsToAttrList :: Attr -> [(String, String)]
+dimensionsToAttrList attr = (go Width) ++ (go Height)
   where
     go dir = case (dimension dir attr) of
                (Just (Pixel a))  -> [(show dir, show a)]
