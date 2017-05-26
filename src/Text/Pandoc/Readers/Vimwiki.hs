@@ -3,6 +3,7 @@ import Control.Monad (guard)
 import Data.Default -- def is there
 import Data.Functor.Identity
 import Data.List (isInfixOf)
+import Data.List.Split (splitOn)
 import Text.Pandoc.Builder (Blocks, Inlines, trimInlines)
 import qualified Text.Pandoc.Builder as B (doc, toList, headerWith, str, space, strong, emph, strikeout, code, link, image, spanWith, math)
 import Text.Pandoc.Class (PandocMonad, report, PandocIO, runIO)
@@ -211,9 +212,11 @@ inlineMath = try $ do
   contents <- manyTill anyChar (char '$')
   return $ B.math contents
 tag = try $ do
-  s <- lookAhead between (char ':') (char ':' >> space) (many1 (noneOf spaceChars))
+  char ':'
+  s <- manyTill (noneOf spaceChars) (try (char ':' >> space))
   guard $ not $ "::" `isInfixOf` (":" ++ s ++ ":")
-  sepBy1 (many1 anyChar) (char ':')
+  foldl1 (>>) (return <$> B.str <$> (splitOn ":" s)) -- returns tag1 >> tag2 >> ... >> tagn
+  --sepBy1 (many1 anyChar) (char ':')
 
 -- helper functions
 splitAtSeparater :: [Char] -> ([Char], [Char])
