@@ -6,7 +6,7 @@ import Data.List (isInfixOf)
 import Data.List.Split (splitOn)
 import Data.Text (strip)
 import Text.Pandoc.Builder (Blocks, Inlines, trimInlines)
-import qualified Text.Pandoc.Builder as B (doc, toList, headerWith, str, space, strong, emph, strikeout, code, link, image, spanWith, math, para, horizontalRule, blockQuote, codeBlock, displayMath)
+import qualified Text.Pandoc.Builder as B (doc, toList, headerWith, str, space, strong, emph, strikeout, code, link, image, spanWith, math, para, horizontalRule, blockQuote, codeBlock, displayMath, bulletList, plain)
 import Text.Pandoc.Class (PandocMonad, report, PandocIO, runIO)
 import Text.Pandoc.Definition (Pandoc, nullAttr, Inline(Space))
 import Text.Pandoc.Error (PandocError)
@@ -139,30 +139,44 @@ displayMath = try $ do
   -- validate current line is list item
   -- yes: 
 
+--bulletList = try $ do
+  --let bl = fst (bulletList' 0)
+  --return bl
 
-bulletList' :: PandocMonad m => Integer -> VwParser m ([Inlines], Integer)
+bulletList' :: PandocMonad m => Int -> VwParser m ([Blocks], Int)
 bulletList' prevLev = do
   listSpaces <- listSpacesParser <|> emptyParser
-  if listSpaces == ""
-     then return ([], 0)
-     else curLev <- length listSpaces
-          if curLev < prevLev
-             then return ([], curLev)
-             else spaces >> oneOf "*-" >> spaces
-                  curLine <- manyTill inline (char '\n')
-                  (subList, lowLev) <- (bulletList' curLev)
-                  if lowLev >= curLev
-                     then (sameLevList, endLev) <- (bulletList' lowLev)
-                          let curList = curLine:subList ++ sameLevList
-                          if curLev > prevLev
-                             then return ([B.bulletList curList], endLev)
-                             else return (curList, endLev)
-                     else let (curList, endLev) = (curLine:subList, lowLev)
-                          if curLev > prevLev
-                             then return ([B.bulletList curList], endLev)
-                             else return (curList, endLev)
+  --if listSpaces == ""
+     --then return ([], 0)
+     --else do
+  let curLev = length listSpaces
+  if curLev < prevLev
+     then return ([], curLev)
+     else do
+          spaces >> oneOf "*-" >> spaces
+          curLine <- B.plain <$> mconcat <$> (manyTill inline (char '\n'))
+          (subList, lowLev) <- (bulletList' curLev)
+          if lowLev >= curLev
+             then do
+                  (sameLevList, endLev) <- (bulletList' lowLev)
+                  let curList = curLine:subList ++ sameLevList
+                  if curLev > prevLev
+                     then return ([B.bulletList curList], endLev)
+                     else return (curList, endLev)
+             else do
+                  let (curList, endLev) = (curLine:subList, lowLev)
+                  if curLev > prevLev
+                     then return ([B.bulletList curList], endLev)
+                     else return (curList, endLev)
                              --}
-                          
+
+-- | bulletList' testing:
+--*Main> testP (bulletList' 0) "   * 1\n* 2"
+--Right ([Many {unMany = fromList [BulletList [[Plain [Str "1"]]]]}],1)
+--*Main> testP (bulletList' 0) "* hello\n* hi"
+--Right ([Many {unMany = fromList [BulletList [[Plain [Str "hello"]],[Plain [Str "hi"]]]]}],0)
+--*Main> testP (bulletList' 0) "* 1\n  * 3\n * 2"
+--Right ([Many {unMany = fromList [BulletList [[Plain [Str "1"]],[BulletList [[Plain [Str "3"]]]],[Plain [Str "2"]]]]}],0)
 
 
           
@@ -181,7 +195,9 @@ bulletList' prevLev = do
           --        else curList, endLev
 
 listSpacesParser :: PandocMonad m => VwParser m String
-listSpacesParser = manyTill spaceChar (oneOf "*-" >> spaces)
+listSpacesParser = try $ lookAhead $ do
+  s <- manyTill spaceChar (oneOf "*-" >> spaces)
+  return $ ' ':s
 
 
 --bulletList' :: Integer -> ([Inlines], Integer)
