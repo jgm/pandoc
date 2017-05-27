@@ -145,26 +145,23 @@ bulletList' prevLev = do
   listSpaces <- listSpacesParser <|> emptyParser
   if listSpaces == ""
      then return ([], 0)
-     else 
-          curLev <- length listSpaces
+     else curLev <- length listSpaces
           if curLev < prevLev
              then return ([], curLev)
-             else
-                  spaces >> oneOf "*-" >> spaces
+             else spaces >> oneOf "*-" >> spaces
                   curLine <- manyTill inline (char '\n')
                   (subList, lowLev) <- (bulletList' curLev)
                   if lowLev >= curLev
-                     then 
-                          (sameLevList, endLev) <- (bulletList' lowLev)
+                     then (sameLevList, endLev) <- (bulletList' lowLev)
                           let curList = curLine:subList ++ sameLevList
                           if curLev > prevLev
                              then return ([B.bulletList curList], endLev)
                              else return (curList, endLev)
-                     else 
-                          let (curList, endLev) = (curLine:subList, lowLev)
+                     else let (curList, endLev) = (curLine:subList, lowLev)
                           if curLev > prevLev
                              then return ([B.bulletList curList], endLev)
                              else return (curList, endLev)
+                             --}
                           
 
 
@@ -183,8 +180,8 @@ bulletList' prevLev = do
           --        then [B.bulletList curList], endLev
           --        else curList, endLev
 
-listSpaceParser :: PandocMonad m => VwParser m String
-listSpaceParser = manyTill spaceChar (oneOf "*-" >> spaces)
+listSpacesParser :: PandocMonad m => VwParser m String
+listSpacesParser = manyTill spaceChar (oneOf "*-" >> spaces)
 
 
 --bulletList' :: Integer -> ([Inlines], Integer)
