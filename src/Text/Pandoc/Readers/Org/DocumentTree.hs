@@ -28,7 +28,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 Parsers for org-mode headlines and document subtrees
 -}
 module Text.Pandoc.Readers.Org.DocumentTree
-  ( headline
+  ( documentTree
   , headlineToBlocks
   ) where
 
@@ -43,11 +43,42 @@ import Text.Pandoc.Readers.Org.BlockStarts
 import Text.Pandoc.Readers.Org.Parsing
 import Text.Pandoc.Readers.Org.ParserState
 
+import qualified Data.Map as Map
 import qualified Text.Pandoc.Builder as B
 
 --
 -- Org headers
 --
+
+-- | Parse input as org document tree.
+documentTree :: PandocMonad m
+             => OrgParser m (F Blocks)
+             -> OrgParser m (F Inlines)
+             -> OrgParser m (F Headline)
+documentTree blocks inline = do
+  initialBlocks <- blocks
+  headlines <- sequence <$> manyTill (headline blocks inline 1) eof
+  title <- fmap (getTitle . unMeta) . orgStateMeta <$> getState
+  return $ do
+    headlines' <- headlines
+    initialBlocks' <- initialBlocks
+    title' <- title
+    return Headline
+      { headlineLevel = 0
+      , headlineTodoMarker = Nothing
+      , headlineText = B.fromList title'
+      , headlineTags = mempty
+      , headlineProperties = mempty
+      , headlineContents = initialBlocks'
+      , headlineChildren = headlines'
+      }
+ where
+  getTitle :: Map.Map String MetaValue -> [Inline]
+  getTitle metamap =
+    case Map.lookup "title" metamap of
+      Just (MetaInlines inlns) -> inlns
+      _ -> []
+
 newtype Tag = Tag { fromTag :: String }
   deriving (Show, Eq)
 

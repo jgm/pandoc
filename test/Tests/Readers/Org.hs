@@ -708,14 +708,28 @@ tests =
 
           , "limit headline depth" =:
               unlines [ "#+OPTIONS: H:2"
-                      , "* section"
+                      , "* top-level section"
                       , "** subsection"
                       , "*** list item 1"
                       , "*** list item 2"
                       ] =?>
-              mconcat [ headerWith ("section", [], [])    1 "section"
+              mconcat [ headerWith ("top-level-section", [], [])    1 "top-level section"
                       , headerWith ("subsection", [], []) 2 "subsection"
                       , orderedList [ para "list item 1", para "list item 2" ]
+                      ]
+
+          , "turn all headlines into lists" =:
+              unlines [ "#+OPTIONS: H:0"
+                      , "first block"
+                      , "* top-level section 1"
+                      , "** subsection"
+                      , "* top-level section 2"
+                      ] =?>
+              mconcat [ para "first block"
+                      , orderedList
+                        [ (para "top-level section 1" <>
+                           orderedList [ para "subsection" ])
+                        , para "top-level section 2" ]
                       ]
 
           , "disable author export" =:

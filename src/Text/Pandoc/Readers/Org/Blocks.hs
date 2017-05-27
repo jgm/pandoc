@@ -33,7 +33,7 @@ module Text.Pandoc.Readers.Org.Blocks
   ) where
 
 import Text.Pandoc.Readers.Org.BlockStarts
-import Text.Pandoc.Readers.Org.DocumentTree (headline, headlineToBlocks)
+import Text.Pandoc.Readers.Org.DocumentTree (documentTree, headlineToBlocks)
 import Text.Pandoc.Readers.Org.Inlines
 import Text.Pandoc.Readers.Org.Meta (metaExport, metaKey, metaLine)
 import Text.Pandoc.Readers.Org.ParserState
@@ -62,11 +62,11 @@ import Data.Monoid ((<>))
 -- | Get a list of blocks.
 blockList :: PandocMonad m => OrgParser m [Block]
 blockList = do
-  initialBlocks  <- blocks
-  headlines      <- sequence <$> manyTill (headline blocks inline 1) eof
+  headlines      <- documentTree blocks inline
   st             <- getState
-  headlineBlocks <- fmap mconcat . mapM headlineToBlocks $ runF headlines st
-  return . B.toList $ (runF initialBlocks st) <> headlineBlocks
+  headlineBlocks <- headlineToBlocks $ runF headlines st
+  -- ignore first headline, it's the document's title
+  return . drop 1 . B.toList $ headlineBlocks
 
 -- | Get the meta information saved in the state.
 meta :: Monad m => OrgParser m Meta
