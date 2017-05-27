@@ -1,3 +1,32 @@
+{-
+  Copyright (C) 2017 Yuchen Pei <me@ypei.me>
+
+This program is free software; you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation; either version 2 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program; if not, write to the Free Software
+Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+-}
+
+{- |
+   Module      : Text.Pandoc.Readers.Vimwiki
+   Copyright   : Copyright (C) 2017 Yuchen Pei
+   License     : GNU GPL, version 2 or above
+
+   Maintainer  : Yuchen Pei <me@ypei.me>
+   Stability   : alpha
+   Portability : portable
+
+Conversion of vimwiki text to 'Pandoc' document.
+-}
 import Control.Monad.Except (throwError)
 import Control.Monad (guard)
 import Data.Default -- def is there
@@ -36,10 +65,10 @@ readVimwiki opts s = do
        Right result -> return result
 
 type VwParser = ParserT [Char] ParserState
---type VwParser = ParserT [Char] ParserState -- for test
 
 
 -- constants
+
 specialChars :: [Char]
 specialChars = "=*-#[]_~{`$|:"
 
@@ -88,21 +117,14 @@ table :: PandocMonad m => VwParser m Blocks
 blockQuote :: PandocMonad m => VwParser m Blocks
 preformatted :: PandocMonad m => VwParser m Blocks
 
-{--guardColumnOne :: PandocMonad m => VwParser m ()
-guardColumnOne = getPosition >>= \pos -> guard (sourceColumn pos == 1)
---}
 header = try $ do
   many whitespace
   eqs <- many1 (char '=')
   whitespace
   let lev = length eqs
   guard $ lev <= 6
-  -- contents <- trimInlines . mconcat <$> manyTill inline (try (whitespace >> (string eqs)))
-  -- contents <- trimInlines . mconcat <$> manyTill inline (string eqs)
-  -- contents <- mconcat <$> manyTill inline (string eqs)
   contents <- trimInlines . mconcat <$> manyTill inline (try $ whitespace >> (string eqs) >> many whitespace >> (char '\n')) -- consider blankline in Parsing to replace many whitespace >> char '\n'
   attr <- registerHeader nullAttr contents
-  --return $ B.headerWith attr lev contents
   return $ B.headerWith attr lev contents
 para = try $ do
   contents <- trimInlines . mconcat <$> many1 inline
@@ -204,7 +226,6 @@ listSpacesParser = try $ lookAhead $ do
 
 orderedList = undefined
 
---table = undefined
 --many need trimInlines
 table = try $ do
   th <- tableRow
@@ -278,11 +299,6 @@ strong = try $ do
   char '*'
   contents <- mconcat <$> (manyTill inline $ (char '*') >> (lookAhead $ oneOf $ spaceChars ++ specialChars))
   return $ B.strong contents
-  {--char '*'
-  lookAhead $ (noneOf spaceChars) >> (manyTill inline $ try $ (noneOf $ spaceChars ++ "*") >> (char '*') >> (oneOf $ spaceChars ++ specialChars))
-  contents <- mconcat <$> manyTill inline (char '*')
-  return $ B.strong contents
-  --}
 emph = try $ do
   s <- lookAhead $ between (char '_') (char '_') (many1 $ noneOf "_")
   guard $ (not $ (head s) `elem` spaceChars) && (not $ (last s) `elem` spaceChars)
@@ -306,10 +322,6 @@ link = try $ do -- haven't implemented link with thumbnails
                     url <- manyTill anyChar $ char '|'
                     lab <- mconcat <$> (manyTill inline $ string "]]")
                     return $ B.link url "link" lab
-  {--let (url, lab) = case '|' `elem` contents of 
-                                   False -> (contents, B.str contents)
-                                   True  -> (
-  return $ B.link url title (B.str "")--}
 image = try $ do -- yet to implement one with attributes
   string "{{"
   contents <- manyTill anyChar $ string $ "}}"
@@ -375,12 +387,6 @@ runP p opts s = do
 simpleParse :: Parser a -> String -> Either ParseError a
 simpleParse p s = parse p "" (s ++ "\n")
 
---header' :: Parser String
---header' = manyTill anyChar (try ((oneOf " \t") >> (string "===")))
-
---header' :: Parser String
---header' = manyTill anyChar (string "===")
-
 header' :: Parser String
 header' = do
   spaces
@@ -388,7 +394,6 @@ header' = do
   let lev = length eqs
   guard $ lev <= 6
   space
-  --manyTill anyChar $ try $ space >> string (eqs ++ "\n")
   manyTill anyChar $ try $ space >> string eqs >> (skipMany spaceChar) >> char '\n'
 
 
@@ -409,22 +414,11 @@ emph' = do
   (return $ x ++ [y]) 
 
 strong' :: Parser String
-{--
-strong' = do
-  char '*'
-  lookAhead (noneOf " \t\n")
-  x <- manyTill anyChar $ try $ lookAhead $ (noneOf " \t\n") >> (char '*') >> (oneOf $ spaceChars ++ specialChars)
-  y <- anyChar
-  (return $ x ++ [y])
-  --}
-
 strong' = do
   s <- between (char '*') (char '*') (many1 $ noneOf "*")
   lookAhead (oneOf $ spaceChars ++ specialChars)
   guard $ (not $ (head s) `elem` spaceChars) && (not $ (last s) `elem` spaceChars)
   return s
-  --lookAhead $ (noneOf spaceChars) >> (manyTill anyChar $ try $ (noneOf $ spaceChars ++ "*") >> (char '*') >> (oneOf $ spaceChars ++ specialChars))
-  --manyTill anyChar (char '*')
 
 testStrong' :: IO Counts
 testStrong' = 
@@ -432,7 +426,6 @@ testStrong' =
     [ TestCase (assertEqual "" (simpleParse strong' "*23*") (Right "23")),
       TestCase (assertEqual "" (simpleParse strong' "*2 3*~   *_") (Right "2 3"))
     ]
--- other tests: *a*a fails; 
 
 testHeader' =
   runTestTT $ TestList
@@ -456,21 +449,3 @@ unexpected "\n"))),
 unexpected "\n")))
     ]
     --}
-  --manyTill (noneOf "*") (try ((noneOf " \t\n") >> (char '*')))
-  --manyTill anyChar (try ((noneOf " \t\n") >> (char '*')))
-  --x <- manyTill anyChar $ try $ lookAhead $ (noneOf " \t\n") >> (char '*') >> oneOf " \t\n*"
-  --y <- anyChar
-  --return $ x ++ [y]
-
-{--p :: Parser String
-p = do 
-  x <- manyTill anyChar $ try $ lookAhead $ (noneOf " \t\n") >> (char '*') >> oneOf " \t\n*"
-  y <- anyChar
-  return $ x ++ [y]--}
-{--
-p :: Parser Char
-p = do
-  x <- char 'a' 
-  char ' '
-  return x
-  --}
