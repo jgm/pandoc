@@ -41,7 +41,7 @@ type VwParser = ParserT [Char] ParserState
 
 -- constants
 specialChars :: [Char]
-specialChars = "=*-#[]_~{`$"
+specialChars = "=*-#[]_~{`$|:"
 
 spaceChars :: [Char] -- spaceChar is the parser of only " \t"
 spaceChars = " \t\n"
@@ -211,6 +211,7 @@ listSpacesParser = try $ lookAhead $ do
 
 
 orderedList = undefined
+
 table = undefined
 
 
@@ -303,7 +304,8 @@ tag = try $ do
   s <- manyTill (noneOf spaceChars) (try (char ':' >> space))
   guard $ not $ "::" `isInfixOf` (":" ++ s ++ ":")
   --foldl1 (>>) (return <$> B.str <$> (splitOn ":" s)) -- returns tag1 >> tag2 >> ... >> tagn
-  foldl1 (>>) (return <$> (concat $ (makeTagSpan <$> (splitOn ":" s)))) -- returns tag1 >> tag2 >> ... >> tagn
+  --foldl1 (>>) (return <$> (concat $ (makeTagSpan <$> (splitOn ":" s)))) -- returns tag1 >> tag2 >> ... >> tagn
+  return $ mconcat $ concat $ (makeTagSpan <$> (splitOn ":" s)) -- returns tag1 >> tag2 >> ... >> tagn
   --sepBy1 (many1 anyChar) (char ':')
 
 -- helper functions and parsers
