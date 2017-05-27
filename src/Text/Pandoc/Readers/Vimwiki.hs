@@ -7,7 +7,7 @@ import Data.List (isInfixOf)
 import Data.List.Split (splitOn)
 import Data.Text (strip)
 import Text.Pandoc.Builder (Blocks, Inlines, trimInlines)
-import qualified Text.Pandoc.Builder as B (doc, toList, headerWith, str, space, strong, emph, strikeout, code, link, image, spanWith, math, para, horizontalRule, blockQuote, codeBlock, displayMath, bulletList, plain, orderedList)
+import qualified Text.Pandoc.Builder as B (doc, toList, headerWith, str, space, strong, emph, strikeout, code, link, image, spanWith, math, para, horizontalRule, blockQuote, codeBlock, displayMath, bulletList, plain, orderedList, simpleTable)
 import Text.Pandoc.Class (PandocMonad, report, PandocIO, runIO)
 import Text.Pandoc.Definition (Pandoc, nullAttr, Inline(Space))
 import Text.Pandoc.Error (PandocError)
@@ -43,7 +43,10 @@ type VwParser = ParserT [Char] ParserState
 specialChars :: [Char]
 specialChars = "=*-#[]_~{`$|:"
 
-spaceChars :: [Char] -- spaceChar is the parser of only " \t"
+-- spaceChar is the parser of only " \t"
+-- space and spaces from Parsec.Char are *any* space characters including '\n'
+-- newline is '\n'
+spaceChars :: [Char] 
 spaceChars = " \t\n"
 
 -- main parser
@@ -68,12 +71,9 @@ block = do
                 , preformatted
                 , displayMath 
                 , mixedList
+                , table
                 , para
                 ]
-{--              
-                , orderedList
-                , table
-                ]--}
   report $ ParsingTrace (take 60 $ show $ B.toList res) pos
   return res
 
@@ -134,12 +134,6 @@ displayMath = try $ do
         | otherwise     = "\\begin{" ++ mathTag ++ "}" ++ contents ++ "\\end{" ++ mathTag ++ "}"
   return $ B.para $ B.displayMath contentsWithTags
 
---mixedList = try $ do -- indentation calculation requires consideration of tabs and spaces, for now only consider sapces
-  --itemList <- listItems
---mixedList = try $ do
-  -- validate current line is list item
-  -- yes: 
-
 mixedList = try $ do
   (bl, _) <- mixedList' 0
   return $ head bl
@@ -166,12 +160,10 @@ mixedList' prevLev = do
   if curLev < prevLev
      then return ([], curLev)
      else do
-          spaces 
+          many spaceChar  -- change to spaceChar
           c <- oneOf "*-#" 
-          spaces
+          many spaceChar  -- change to spaceChar
           curLine <- B.plain <$> mconcat <$> (manyTill inline (char '\n'))
-          --return ([curLine], 0)
-          --
           let listBuilder = fromJust $ listType c
           (subList, lowLev) <- (mixedList' curLev)
           if lowLev >= curLev
@@ -206,14 +198,41 @@ listType _ = Nothing
 
 listSpacesParser :: PandocMonad m => VwParser m String
 listSpacesParser = try $ lookAhead $ do
-  s <- manyTill spaceChar (oneOf "*-#" >> spaces)
+  s <- manyTill spaceChar (oneOf "*-#" >> many spaceChar)
   return $ ' ':s
 
 
 orderedList = undefined
 
-table = undefined
+--table = undefined
+--many need trimInlines
+table = try $ do
+  th <- tableRow
+  many tableHeaderSeparator
+  trs <- many tableRow
+  return $ B.simpleTable th trs
 
+-- | table test:
+-- *Main> testP table "|a|$b$|\n|_c c_|d|\n|e|f|"
+-- Right (Many {unMany = fromList [Table [] [AlignDefault,AlignDefault] [0.0,0.0] [[Plain [Str "a"]],[Plain [Math InlineMath "b"]]] [[[Plain [Emph [Str "c",Space,Str "c"]]],[Plain [Str "d"]]],[[Plain [Str "e"]],[Plain [Str "f"]]]]]})
+
+tableHeaderSeparator :: PandocMonad m => VwParser m ()
+tableHeaderSeparator = try $ do
+  many spaceChar >> char '|' >> many1 ((many1 $ char '-') >> char '|') >> spaceChar >> char '\n'
+  return ()
+  
+tableRow :: PandocMonad m => VwParser m [Blocks]
+tableRow = try $ do
+  many spaceChar >> char '|'
+  s <- lookAhead $ manyTill anyChar (try (char '|' >> many spaceChar >> char '\n')) -- perhaps the last part can be an end of line parser
+  guard $ not $ "||" `isInfixOf` ("|" ++ s ++ "|")
+  tr <- many tableCell
+  many spaceChar >> char '\n'
+  return tr
+
+tableCell :: PandocMonad m => VwParser m Blocks
+tableCell = try $ do
+  B.plain <$> mconcat <$> (manyTill inline (char '|'))
 
 -- inline parser
 
@@ -303,10 +322,7 @@ tag = try $ do
   char ':'
   s <- manyTill (noneOf spaceChars) (try (char ':' >> space))
   guard $ not $ "::" `isInfixOf` (":" ++ s ++ ":")
-  --foldl1 (>>) (return <$> B.str <$> (splitOn ":" s)) -- returns tag1 >> tag2 >> ... >> tagn
-  --foldl1 (>>) (return <$> (concat $ (makeTagSpan <$> (splitOn ":" s)))) -- returns tag1 >> tag2 >> ... >> tagn
   return $ mconcat $ concat $ (makeTagSpan <$> (splitOn ":" s)) -- returns tag1 >> tag2 >> ... >> tagn
-  --sepBy1 (many1 anyChar) (char ':')
 
 -- helper functions and parsers
 splitAtSeparater :: [Char] -> ([Char], [Char])
