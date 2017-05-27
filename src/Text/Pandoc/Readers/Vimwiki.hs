@@ -40,7 +40,7 @@ type VwParser = ParserT [Char] ParserState
 
 -- constants
 specialChars :: [Char]
-specialChars = "=*-#[]_~{`"
+specialChars = "=*-#[]_~{`$"
 
 spaceChars :: [Char] -- spaceChar is the parser of only " \t"
 spaceChars = " \t\n"
@@ -139,9 +139,13 @@ displayMath = try $ do
   -- validate current line is list item
   -- yes: 
 
---bulletList = try $ do
-  --let bl = fst (bulletList' 0)
-  --return bl
+bulletList = try $ do
+  (bl, _) <- bulletList' 0
+  return $ head bl
+
+-- |bulletList testing:
+-- *Main> testP bulletList "* *1 2*\n  *    _4 5_ \n  * https://www.google.com  \n * $a^2$"
+-- Right (Many {unMany = fromList [BulletList [[Plain [Strong [Str "1",Space,Str "2"]]],[BulletList [[Plain [Emph [Str "4",Space,Str "5"],Space]],[Plain [Link ("",[],[]) [Str "https://www.google.com"] ("https://www.google.com",""),Space]]]],[Plain [Math InlineMath "a^2"]]]]})
 
 bulletList' :: PandocMonad m => Int -> VwParser m ([Blocks], Int)
 bulletList' prevLev = do
@@ -154,7 +158,10 @@ bulletList' prevLev = do
      then return ([], curLev)
      else do
           spaces >> oneOf "*-" >> spaces
+          --s <- spaces >> oneOf "*-" >> spaces >> inline
+          --return ([B.plain $ s], 0)
           curLine <- B.plain <$> mconcat <$> (manyTill inline (char '\n'))
+          --return ([curLine], 0)
           (subList, lowLev) <- (bulletList' curLev)
           if lowLev >= curLev
              then do
@@ -171,12 +178,12 @@ bulletList' prevLev = do
                              --}
 
 -- | bulletList' testing:
---*Main> testP (bulletList' 0) "   * 1\n* 2"
---Right ([Many {unMany = fromList [BulletList [[Plain [Str "1"]]]]}],1)
---*Main> testP (bulletList' 0) "* hello\n* hi"
---Right ([Many {unMany = fromList [BulletList [[Plain [Str "hello"]],[Plain [Str "hi"]]]]}],0)
---*Main> testP (bulletList' 0) "* 1\n  * 3\n * 2"
---Right ([Many {unMany = fromList [BulletList [[Plain [Str "1"]],[BulletList [[Plain [Str "3"]]]],[Plain [Str "2"]]]]}],0)
+-- *Main> testP (bulletList' 0) "   * 1\n* 2"
+-- Right ([Many {unMany = fromList [BulletList [[Plain [Str "1"]]]]}],1)
+-- *Main> testP (bulletList' 0) "* hello\n* hi"
+-- Right ([Many {unMany = fromList [BulletList [[Plain [Str "hello"]],[Plain [Str "hi"]]]]}],0)
+-- *Main> testP (bulletList' 0) "* 1\n  * 3\n * 2"
+-- Right ([Many {unMany = fromList [BulletList [[Plain [Str "1"]],[BulletList [[Plain [Str "3"]]]],[Plain [Str "2"]]]]}],0)
 
 
           
@@ -219,7 +226,7 @@ listSpacesParser = try $ lookAhead $ do
       --    output [a], sps
   -- no: output [a], 0
   
-bulletList = undefined
+--bulletList = undefined
 orderedList = undefined
 table = undefined
 
@@ -227,10 +234,9 @@ table = undefined
 -- inline parser
 
 inline :: PandocMonad m => VwParser m Inlines
-inline = choice[str
-             ,  whitespace
-             ,  special
+inline = choice[whitespace
              ,  bareURL
+             ,  str
              ,  strong
              ,  emph
              ,  strikeout
@@ -239,6 +245,7 @@ inline = choice[str
              ,  image
              ,  inlineMath
              ,  tag
+             ,  special
              ]--}
 
 str :: PandocMonad m => VwParser m Inlines
@@ -266,7 +273,7 @@ strong = try $ do
   s <- lookAhead $ between (char '*') (char '*') (many1 $ noneOf "*")
   guard $ (not $ (head s) `elem` spaceChars) && (not $ (last s) `elem` spaceChars)
   char '*'
-  contents <- mconcat <$> (manyTill inline $ (char '*') >> (oneOf $ spaceChars ++ specialChars))
+  contents <- mconcat <$> (manyTill inline $ (char '*') >> (lookAhead $ oneOf $ spaceChars ++ specialChars))
   return $ B.strong contents
   {--char '*'
   lookAhead $ (noneOf spaceChars) >> (manyTill inline $ try $ (noneOf $ spaceChars ++ "*") >> (char '*') >> (oneOf $ spaceChars ++ specialChars))
@@ -277,7 +284,7 @@ emph = try $ do
   s <- lookAhead $ between (char '_') (char '_') (many1 $ noneOf "_")
   guard $ (not $ (head s) `elem` spaceChars) && (not $ (last s) `elem` spaceChars)
   char '_'
-  contents <- mconcat <$> (manyTill inline $ (char '_') >> (oneOf $ spaceChars ++ specialChars))
+  contents <- mconcat <$> (manyTill inline $ (char '_') >> (lookAhead $ oneOf $ spaceChars ++ specialChars))
   return $ B.emph contents
 strikeout = try $ do
   string "~~"
