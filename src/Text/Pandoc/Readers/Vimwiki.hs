@@ -27,6 +27,47 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 Conversion of vimwiki text to 'Pandoc' document.
 -}
+{--
+ progress:
+* block parsers:
+    * [X] header
+        * [ ] centered header
+    * [X] hrule
+    * [X] comment
+    * [X] blockquote
+    * [X] preformatted
+        * [ ] with atrributes
+    * [X] displaymath
+    * [X] bulletlist / orderedlist
+        * [ ] orderedlist with 1., i., a) etc identification.
+        * [ ] multilines
+        * [ ] mixed tab / space indentation
+        * [ ] todo lists
+    * [X] table
+        * [ ] centered table
+    * [X] paragraph
+    * [ ] definition list
+* inline parsers:
+    * [X] bareURL
+    * [X] strong
+    * [X] emph
+    * [X] strikeout
+    * [X] code
+    * [X] link
+        * [ ] link with thumbnails
+    * [X] image
+        * [ ] image with attributes
+    * [X] inline math
+    * [X] tag
+* misc:
+    * [ ] `TODO:` mark
+    * [ ] placeholders
+        * [ ] %title and %date -> metadata
+        * [ ] %template
+--}
+
+module Text.Pandoc.Readers.Vimwiki ( readVimwiki
+                                 ) where
 import Control.Monad.Except (throwError)
 import Control.Monad (guard)
 import Data.Default -- def is there
@@ -337,6 +378,7 @@ tag = try $ do
   return $ mconcat $ concat $ (makeTagSpan <$> (splitOn ":" s)) -- returns tag1 >> tag2 >> ... >> tagn
 
 -- helper functions and parsers
+{--
 splitAtSeparater :: [Char] -> ([Char], [Char])
 splitAtSeparater xs = go "" xs
   where 
@@ -344,6 +386,7 @@ splitAtSeparater xs = go "" xs
       | ys == "" = (xs, ys)
       | head ys == '|' = (xs, tail ys)
       | otherwise = go (xs ++ [head ys]) (tail ys)
+      --}
 
 makeTagSpan :: String -> [Inlines]
 makeTagSpan s = 
