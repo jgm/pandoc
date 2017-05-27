@@ -402,7 +402,7 @@ emptyParser :: PandocMonad m => VwParser m String
 emptyParser = return ""
 
   
--- tests
+-- tests: to be removed
 
 -- *Main> runIO (readVimwiki (def :: ReaderOptions) "==2==" :: PandocIO Pandoc)
 -- Right (Pandoc (Meta {unMeta = fromList []}) [Header 2 ("",[],[]) [Str "2"]])
