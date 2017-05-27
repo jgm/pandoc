@@ -135,25 +135,59 @@ displayMath = try $ do
 
 --bulletList = try $ do -- indentation calculation requires consideration of tabs and spaces, for now only consider sapces
   --itemList <- listItems
-bulletList = try $ do
+--bulletList = try $ do
   -- validate current line is list item
   -- yes: 
 
 
-bulletList' :: 
--- bulletList' k: -- k is the previous level
-  -- validate current line is list item
-  -- no: [], 0
-  -- yes: calculate sps but do not consume 
-      -- if sps < k then [], sps
-      -- else let a = B.plain (consume the line)
-          -- let bl, m = (bulletList' sps) 
-          -- if sps > k then bl' = B.bulletList a:bl
-          -- if sps == k then bl' = a:bl
-          -- if m >= sps then let bl'', m' = (bulletList' m) in (bl' ++ bl'', m')
-                      -- else bl', m
+bulletList' :: PandocMonad m => Integer -> VwParser m ([Inlines], Integer)
+bulletList' prevLev = do
+  listSpaces <- listSpacesParser <|> emptyParser
+  if listSpaces == ""
+     then return ([], 0)
+     else 
+          curLev <- length listSpaces
+          if curLev < prevLev
+             then return ([], curLev)
+             else
+                  spaces >> oneOf "*-" >> spaces
+                  curLine <- manyTill inline (char '\n')
+                  (subList, lowLev) <- (bulletList' curLev)
+                  if lowLev >= curLev
+                     then 
+                          (sameLevList, endLev) <- (bulletList' lowLev)
+                          let curList = curLine:subList ++ sameLevList
+                          if curLev > prevLev
+                             then return ([B.bulletList curList], endLev)
+                             else return (curList, endLev)
+                     else 
+                          let (curList, endLev) = (curLine:subList, lowLev)
+                          if curLev > prevLev
+                             then return ([B.bulletList curList], endLev)
+                             else return (curList, endLev)
+                          
 
-bulletList' :: Integer -> ([Inlines], Integer)
+
+          
+  -- no: [], 0
+  -- yes: calculate curLev but do not consume 
+      -- if curLev < prevLev 
+      --    then [], curLev
+      --    else let curLine = B.plain (consume the line)
+          --     let subList, lowLev = (bulletList' curLev) 
+          --     if lowLev >= curLev 
+          --        then let sameLevList, endLev = (bulletList' lowLev) 
+          --             let curList = curLine:subList ++ sameLevList
+                 -- else let (curList, endLev) = (curLine:subList, lowLev)
+          --     if curLev > prevLev 
+          --        then [B.bulletList curList], endLev
+          --        else curList, endLev
+
+listSpaceParser :: PandocMonad m => VwParser m String
+listSpaceParser = manyTill spaceChar (oneOf "*-" >> spaces)
+
+
+--bulletList' :: Integer -> ([Inlines], Integer)
   -- let a = B.plain (consume the line)
   -- validate next line is list item 
   -- yes: calcualte sps in next line
