@@ -36,9 +36,9 @@ Conversion of vimwiki text to 'Pandoc' document.
     * [X] comment
     * [X] blockquote
     * [X] preformatted
-        * [ ] with atrributes
-    * [X] displaymath
-    * [X] bulletlist / orderedlist
+        * [ ] with attributes
+    * [X] displaymath - a bit buggy
+    * [X] bulletlist / orderedlist - a bit buggy with nested lists
         * [ ] orderedlist with 1., i., a) etc identification.
         * [ ] multilines
         * [ ] mixed tab / space indentation
@@ -54,9 +54,9 @@ Conversion of vimwiki text to 'Pandoc' document.
     * [X] strikeout
     * [X] code
     * [X] link
-        * [ ] link with thumbnails
+        * [ ] with thumbnails
     * [X] image
-        * [ ] image with attributes
+        * [ ] with attributes
     * [X] inline math
     * [X] tag
 * misc:
