@@ -148,6 +148,17 @@ mixedList = try $ do
 -- *Main> testP mixedList "* *1 2*\n  *    _4 5_ \n  * https://www.google.com  \n * $a^2$"
 -- Right (Many {unMany = fromList [BulletList [[Plain [Strong [Str "1",Space,Str "2"]]],[BulletList [[Plain [Emph [Str "4",Space,Str "5"],Space]],[Plain [Link ("",[],[]) [Str "https://www.google.com"] ("https://www.google.com",""),Space]]]],[Plain [Math InlineMath "a^2"]]]]})
 
+-- FIXME: there is some problem with the list levels, e.g. 
+{--
+* 1\n            * 1.1 
+yields
+[BulletList
+ [[Plain [Str "1"]
+  ,BulletList
+   [[Plain [Str "1.1"]]]]]]
+in pandoc -f markdown -t native, but here we have
+Right (Pandoc (Meta {unMeta = fromList []}) [BulletList [[Plain [Str "1"]],[BulletList [[Plain [Str "1.1"]]]]]])
+   --}
 mixedList' :: PandocMonad m => Int -> VwParser m ([Blocks], Int)
 mixedList' prevLev = do
   listSpaces <- listSpacesParser <|> emptyParser
