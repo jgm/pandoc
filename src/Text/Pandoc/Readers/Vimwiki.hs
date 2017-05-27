@@ -2,11 +2,12 @@ import Control.Monad.Except (throwError)
 import Control.Monad (guard)
 import Data.Default -- def is there
 import Data.Functor.Identity
+import Data.Maybe
 import Data.List (isInfixOf)
 import Data.List.Split (splitOn)
 import Data.Text (strip)
 import Text.Pandoc.Builder (Blocks, Inlines, trimInlines)
-import qualified Text.Pandoc.Builder as B (doc, toList, headerWith, str, space, strong, emph, strikeout, code, link, image, spanWith, math, para, horizontalRule, blockQuote, codeBlock, displayMath, bulletList, plain)
+import qualified Text.Pandoc.Builder as B (doc, toList, headerWith, str, space, strong, emph, strikeout, code, link, image, spanWith, math, para, horizontalRule, blockQuote, codeBlock, displayMath, bulletList, plain, orderedList)
 import Text.Pandoc.Class (PandocMonad, report, PandocIO, runIO)
 import Text.Pandoc.Definition (Pandoc, nullAttr, Inline(Space))
 import Text.Pandoc.Error (PandocError)
@@ -66,10 +67,10 @@ block = do
                 , blockQuote
                 , preformatted
                 , displayMath 
+                , mixedList
                 , para
                 ]
 {--              
-                , bulletList
                 , orderedList
                 , table
                 ]--}
@@ -81,7 +82,7 @@ hrule :: PandocMonad m => VwParser m Blocks
 comment :: PandocMonad m => VwParser m Blocks
 displayMath :: PandocMonad m => VwParser m Blocks
 para :: PandocMonad m => VwParser m Blocks
-bulletList :: PandocMonad m => VwParser m Blocks
+mixedList :: PandocMonad m => VwParser m Blocks
 orderedList :: PandocMonad m => VwParser m Blocks
 table :: PandocMonad m => VwParser m Blocks
 blockQuote :: PandocMonad m => VwParser m Blocks
@@ -133,100 +134,71 @@ displayMath = try $ do
         | otherwise     = "\\begin{" ++ mathTag ++ "}" ++ contents ++ "\\end{" ++ mathTag ++ "}"
   return $ B.para $ B.displayMath contentsWithTags
 
---bulletList = try $ do -- indentation calculation requires consideration of tabs and spaces, for now only consider sapces
+--mixedList = try $ do -- indentation calculation requires consideration of tabs and spaces, for now only consider sapces
   --itemList <- listItems
---bulletList = try $ do
+--mixedList = try $ do
   -- validate current line is list item
   -- yes: 
 
-bulletList = try $ do
-  (bl, _) <- bulletList' 0
+mixedList = try $ do
+  (bl, _) <- mixedList' 0
   return $ head bl
 
--- |bulletList testing:
--- *Main> testP bulletList "* *1 2*\n  *    _4 5_ \n  * https://www.google.com  \n * $a^2$"
+-- |mixedList testing:
+-- *Main> testP mixedList "* *1 2*\n  *    _4 5_ \n  * https://www.google.com  \n * $a^2$"
 -- Right (Many {unMany = fromList [BulletList [[Plain [Strong [Str "1",Space,Str "2"]]],[BulletList [[Plain [Emph [Str "4",Space,Str "5"],Space]],[Plain [Link ("",[],[]) [Str "https://www.google.com"] ("https://www.google.com",""),Space]]]],[Plain [Math InlineMath "a^2"]]]]})
 
-bulletList' :: PandocMonad m => Int -> VwParser m ([Blocks], Int)
-bulletList' prevLev = do
+mixedList' :: PandocMonad m => Int -> VwParser m ([Blocks], Int)
+mixedList' prevLev = do
   listSpaces <- listSpacesParser <|> emptyParser
-  --if listSpaces == ""
-     --then return ([], 0)
-     --else do
   let curLev = length listSpaces
   if curLev < prevLev
      then return ([], curLev)
      else do
-          spaces >> oneOf "*-" >> spaces
-          --s <- spaces >> oneOf "*-" >> spaces >> inline
-          --return ([B.plain $ s], 0)
+          spaces 
+          c <- oneOf "*-#" 
+          spaces
           curLine <- B.plain <$> mconcat <$> (manyTill inline (char '\n'))
           --return ([curLine], 0)
-          (subList, lowLev) <- (bulletList' curLev)
+          --
+          let listBuilder = fromJust $ listType c
+          (subList, lowLev) <- (mixedList' curLev)
           if lowLev >= curLev
              then do
-                  (sameLevList, endLev) <- (bulletList' lowLev)
-                  let curList = curLine:subList ++ sameLevList
+                  (sameLevList, endLev) <- (mixedList' lowLev)
+                  let curList = (curLine:subList) ++ sameLevList
                   if curLev > prevLev
-                     then return ([B.bulletList curList], endLev)
+                     then return ([listBuilder curList], endLev)
                      else return (curList, endLev)
              else do
                   let (curList, endLev) = (curLine:subList, lowLev)
                   if curLev > prevLev
-                     then return ([B.bulletList curList], endLev)
+                     then return ([listBuilder curList], endLev)
                      else return (curList, endLev)
                              --}
-
--- | bulletList' testing:
--- *Main> testP (bulletList' 0) "   * 1\n* 2"
+--OrderedList (1,DefaultStyle,DefaultDelim) [[Plain [Strong [Str "1",Space,Str "2"]]],[BulletList [[Plain [Emph [Str "4",Space,Str "5"],Space]],[Plain [Link ("",[],[]) [Str "https://www.google.com"] ("https://www.google.com",""),Space]]]],[Plain [Math InlineMath "a^2"]]]
+--OrderedList (1,DefaultStyle,DefaultDelim) [[Plain [Str "1"]],[Plain [Str "2"]]]
+-- | mixedList' testing:
+-- *Main> testP (mixedList' 0) "   * 1\n* 2"
 -- Right ([Many {unMany = fromList [BulletList [[Plain [Str "1"]]]]}],1)
--- *Main> testP (bulletList' 0) "* hello\n* hi"
+-- *Main> testP (mixedList' 0) "* hello\n* hi"
 -- Right ([Many {unMany = fromList [BulletList [[Plain [Str "hello"]],[Plain [Str "hi"]]]]}],0)
--- *Main> testP (bulletList' 0) "* 1\n  * 3\n * 2"
+-- *Main> testP (mixedList' 0) "* 1\n  * 3\n * 2"
 -- Right ([Many {unMany = fromList [BulletList [[Plain [Str "1"]],[BulletList [[Plain [Str "3"]]]],[Plain [Str "2"]]]]}],0)
 
+listType :: Char -> Maybe ([Blocks] -> Blocks)
+listType '*' = Just B.bulletList
+listType '-' = Just B.bulletList
+listType '#' = Just B.orderedList
+listType _ = Nothing
 
-          
-  -- no: [], 0
-  -- yes: calculate curLev but do not consume 
-      -- if curLev < prevLev 
-      --    then [], curLev
-      --    else let curLine = B.plain (consume the line)
-          --     let subList, lowLev = (bulletList' curLev) 
-          --     if lowLev >= curLev 
-          --        then let sameLevList, endLev = (bulletList' lowLev) 
-          --             let curList = curLine:subList ++ sameLevList
-                 -- else let (curList, endLev) = (curLine:subList, lowLev)
-          --     if curLev > prevLev 
-          --        then [B.bulletList curList], endLev
-          --        else curList, endLev
 
 listSpacesParser :: PandocMonad m => VwParser m String
 listSpacesParser = try $ lookAhead $ do
-  s <- manyTill spaceChar (oneOf "*-" >> spaces)
+  s <- manyTill spaceChar (oneOf "*-#" >> spaces)
   return $ ' ':s
 
 
---bulletList' :: Integer -> ([Inlines], Integer)
-  -- let a = B.plain (consume the line)
-  -- validate next line is list item 
-  -- yes: calcualte sps in next line
-      -- if sps > k -- create new level
-          -- let bl, m = bulletList' sps
-          -- add B.bulletList bl
-          -- if m >= k 
-          --     then let bl', m' = bulletList' m in
-          --              output a:bl', m'
-          --     else output [a], m
-          --     then 
-      -- if sps == k
-      --       then let bl', m' = bulletList' k in
-      --                output a:bl', m'
-      -- if sps < k
-      --    output [a], sps
-  -- no: output [a], 0
-  
---bulletList = undefined
 orderedList = undefined
 table = undefined
 
