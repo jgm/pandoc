@@ -414,8 +414,12 @@ referenceKey = try $ do
   let oldkeys = stateKeys st
   let key = toKey raw
   case M.lookup key oldkeys of
-    Just _  -> logMessage $ DuplicateLinkReference raw pos
-    Nothing -> return ()
+    Just (t,a) | not (t == target && a == attr') ->
+      -- We don't warn on two duplicate keys if the targets are also
+      -- the same. This can happen naturally with --reference-location=block
+      -- or section. See #3701.
+      logMessage $ DuplicateLinkReference raw pos
+    _ -> return ()
   updateState $ \s -> s { stateKeys = M.insert key (target, attr') oldkeys }
   return $ return mempty
 

@@ -34,12 +34,12 @@ Conversion of 'Pandoc' documents to markdown-formatted plain text.
 Markdown:  <http://daringfireball.net/projects/markdown/>
 -}
 module Text.Pandoc.Writers.Markdown (writeMarkdown, writePlain) where
-import Control.Monad.Except (throwError)
 import Control.Monad.Reader
 import Control.Monad.State
 import Data.Char (chr, isPunctuation, isSpace, ord)
 import Data.Default
 import qualified Data.HashMap.Strict as H
+import qualified Data.Map as M
 import Data.List (find, group, intersperse, sortBy, stripPrefix, transpose)
 import Data.Maybe (fromMaybe)
 import Data.Monoid (Any (..))
@@ -52,7 +52,6 @@ import Network.HTTP (urlEncode)
 import Text.HTML.TagSoup (Tag (..), isTagText, parseTags)
 import Text.Pandoc.Class (PandocMonad, report)
 import Text.Pandoc.Definition
-import Text.Pandoc.Error
 import Text.Pandoc.Logging
 import Text.Pandoc.Options
 import Text.Pandoc.Parsing hiding (blankline, blanklines, char, space)
@@ -90,7 +89,9 @@ instance Default WriterEnv
 
 data WriterState = WriterState { stNotes   :: Notes
                                , stRefs    :: Refs
-                               , stKeys    :: Set.Set Key
+                               , stKeys    :: M.Map Key
+                                                (M.Map (Target, Attr) Int)
+                               , stLastIdx  :: Int
                                , stIds     :: Set.Set String
                                , stNoteNum :: Int
                                }
@@ -98,7 +99,8 @@ data WriterState = WriterState { stNotes   :: Notes
 instance Default WriterState
   where def = WriterState{ stNotes = []
                          , stRefs = []
-                         , stKeys = Set.empty
+                         , stKeys = M.empty
+                         , stLastIdx = 0
                          , stIds = Set.empty
                          , stNoteNum = 1
                          }
@@ -804,17 +806,44 @@ getReference attr label target = do
     Just (ref, _, _) -> return ref
     Nothing       -> do
       keys <- gets stKeys
-      label' <- if isEmpty label || getKey label `Set.member` keys
-                   then case find (\n -> not (Key n `Set.member` keys)) $
-                           map show [1..(10000 :: Integer)] of
-                         Just x  -> return $ text x
-                         Nothing ->
-                           throwError $ PandocSomeError "no unique label"
-                   else return label
-      modify (\s -> s{ stRefs = (label', target, attr) : stRefs s,
-                       stKeys = Set.insert (getKey label') (stKeys s)
-                     })
-      return label'
+      case M.lookup (getKey label) keys of
+           Nothing -> do -- no other refs with this label
+             (lab', idx) <- if isEmpty label
+                               then do
+                                 i <- (+ 1) <$> gets stLastIdx
+                                 modify $ \s -> s{ stLastIdx = i }
+                                 return (text (show i), i)
+                               else return (label, 0)
+             modify (\s -> s{
+               stRefs = (lab', target, attr) : refs,
+               stKeys = M.insert (getKey label)
+                           (M.insert (target, attr) idx mempty)
+                                 (stKeys s) })
+             return lab'
+
+           Just km -> do -- we have refs with this label
+             case M.lookup (target, attr) km of
+                  Just i -> do
+                    let lab' = label <> if i == 0
+                                           then mempty
+                                           else text (show i)
+                    -- make sure it's in stRefs; it may be
+                    -- a duplicate that was printed in a previous
+                    -- block:
+                    when ((lab', target, attr) `notElem` refs) $
+                       modify (\s -> s{
+                         stRefs = (lab', target, attr) : refs })
+                    return lab'
+                  Nothing -> do -- but this one is to a new target
+                    i <- (+ 1) <$> gets stLastIdx
+                    modify $ \s -> s{ stLastIdx = i }
+                    let lab' = text (show i)
+                    modify (\s -> s{
+                       stRefs = (lab', target, attr) : refs,
+                       stKeys = M.insert (getKey label)
+                                   (M.insert (target, attr) i km)
+                                         (stKeys s) })
+                    return lab'
 
 -- | Convert list of Pandoc inline elements to markdown.
 inlineListToMarkdown :: PandocMonad m => WriterOptions -> [Inline] -> MD m Doc
