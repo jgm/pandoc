@@ -108,10 +108,10 @@ data D = Text Int String
        | CarriageReturn
        | NewLine
        | BlankLines Int  -- number of blank lines
-       deriving (Show)
+       deriving (Show, Eq)
 
 newtype Doc = Doc { unDoc :: Seq D }
-              deriving (Monoid, Show)
+              deriving (Monoid, Show, Eq)
 
 instance IsString Doc where
   fromString = text
