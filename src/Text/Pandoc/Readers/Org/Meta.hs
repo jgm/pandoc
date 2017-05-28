@@ -151,6 +151,7 @@ optionLine = try $ do
     "todo"     -> todoSequence >>= updateState . registerTodoSequence
     "seq_todo" -> todoSequence >>= updateState . registerTodoSequence
     "typ_todo" -> todoSequence >>= updateState . registerTodoSequence
+    "macro"    -> macroDefinition >>= updateState . registerMacro
     _          -> mzero
 
 addLinkFormat :: Monad m => String
@@ -218,3 +219,27 @@ todoSequence = try $ do
      let todoMarkers = map (TodoMarker Todo) todo
          doneMarkers = map (TodoMarker Done) done
      in todoMarkers ++ doneMarkers
+
+macroDefinition :: Monad m => OrgParser m (String, [String] -> String)
+macroDefinition = try $ do
+  macroName <- many1 nonspaceChar <* skipSpaces
+  firstPart <- expansionPart
+  (elemOrder, parts) <- unzip <$> many ((,) <$> placeholder <*> expansionPart)
+  let expander = mconcat . alternate (firstPart:parts) . reorder elemOrder
+  return (macroName, expander)
+ where
+  placeholder :: Monad m => OrgParser m Int
+  placeholder = try . fmap read $ char '$' *> many1 digit
+
+  expansionPart :: Monad m => OrgParser m String
+  expansionPart = try $ many (notFollowedBy placeholder *> noneOf "\n\r")
+
+  alternate :: [a] -> [a] -> [a]
+  alternate [] ys = ys
+  alternate xs [] = xs
+  alternate (x:xs) (y:ys) = x : y : alternate xs ys
+
+  reorder :: [Int] -> [String] -> [String]
+  reorder perm xs =
+    let element n = take 1 $ drop (n - 1) xs
+    in concatMap element perm

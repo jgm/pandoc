@@ -621,16 +621,11 @@ Just a [URL](/url/).
 
 ## Reference
 
-Foo [bar] [a].
-
 Foo [bar][a].
-
-Foo [bar]
-[a].
 
 [a]: /url/
 
-With [embedded [brackets]] [b].
+With [embedded [brackets]][b].
 
 [b] by itself should be a link.
 
@@ -659,9 +654,9 @@ Foo [biz](/url/ "Title with "quote" inside").
 
 ## With ampersands
 
-Here's a [link with an ampersand in the URL] [1].
+Here's a [link with an ampersand in the URL][1].
 
-Here's a link with an amersand in the link text: [AT&T] [2].
+Here's a link with an amersand in the link text: [AT&T][2].
 
 Here's an [inline link](/script?foo=1&bar=2).
 

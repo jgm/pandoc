@@ -1,5 +1,5 @@
 {-
-Copyright © 2012-2015 John MacFarlane <jgm@berkeley.edu>
+Copyright © 2012-2017 John MacFarlane <jgm@berkeley.edu>
             2017 Albert Krewinkel <tarleb+pandoc@moltkeplatz.de>
 
 This program is free software; you can redistribute it and/or modify
@@ -21,7 +21,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 {-# OPTIONS_GHC -fno-warn-orphans #-}
 {- |
    Module      : Text.Pandoc.Lua.StackInstances
-   Copyright   : © 2012-2016 John MacFarlane
+   Copyright   : © 2012-2017 John MacFarlane
                  © 2017 Albert Krewinkel
    License     : GNU GPL, version 2 or above
 

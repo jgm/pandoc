@@ -1,14 +1,31 @@
-clone_folder: "c:\\stack"
+clone_folder: "c:\\pandoc"
 environment:
   global:
-    STACK_ROOT: "c:\\sr"
-    STACK_YAML: "c:\\stack\\stack.pkg.yaml"
-    WIXBIN: "c:\\Program Files (x86)\\WiX Toolset v3.10\\bin"
+    WIXBIN: "c:\\Program Files (x86)\\WiX Toolset v3.11\\bin"
+    STACK_YAML: "c:\\pandoc\\stack.pkg.yaml"
+  matrix:
+  - STACK_VERSION: "windows-i386"
+    STACK_ROOT: "c:\\sr32"
+    STACK: "%STACK_ROOT%\\stack.exe"
+#  - STACK_VERSION: "windows-x86_64"
+#    STACK_ROOT: "c:\\sr64"
+#    STACK: "%STACK_ROOT%\\stack.exe"
+
+matrix:
+  fast_finish: true
 
 cache:
-  - "c:\\sr" # stack root, short paths == fewer problems
-  - "c:\\stack\\stack.exe"
-  - '%WIXBIN%'
+  - "%STACK_ROOT%"
+  - "%WIXBIN%"
+  # This is where stack install ghc by default, but we don't
+  # cache it because it's too large:
+  # - "c:\\Users\\appveyor\\AppData\\Local\\Programs\\stack"
+
+# Note: to reset build cache, do the following in JavaScript
+# console on appveyor:
+# $.ajax({
+#    url: 'https://ci.appveyor.com/api/projects/jgm/pandoc/buildcache',
+#    type: 'DELETE'})
 
 # We don't do a normal C build, but build in test_script via stack
 build: off
@@ -16,39 +33,35 @@ build: off
 install:
   - '"%WIXBIN%"\candle -? || choco install wixtoolset'
   - |
-      stack --version || curl -ostack.zip -L --insecure http://www.stackage.org/stack/windows-i386 && 7z x stack.zip stack.exe
-  - stack setup > nul
+      %STACK% --version || curl -ostack.zip -L --insecure http://www.stackage.org/stack/%STACK_VERSION% && 7z e stack.zip -o"%STACK_ROOT%" stack.exe
 
-before_test:
-  # the stack install already fails without the templates...
-  - git submodule update --init
-  # set PATH to where the hsb2hs binary is copied to
-  - cmd: set "PATH=%PATH%;%APPDATA%\\local\\bin"
-  - stack install hsb2hs
+# before_test:
 
 test_script:
   # The ugly echo "" hack is to avoid complaints about 0 being an invalid file
   # descriptor
-  - echo "" | stack clean
-  - echo "" | stack -j1 --no-terminal  test
-  - echo "" | stack -j1 --local-bin-path=.\windows install pandoc pandoc-citeproc
+  - |
+      %STACK% setup > nul
+      %STACK% path
+      echo "" | %STACK% clean
+      echo "" | %STACK% -j1 --no-terminal --test --local-bin-path=.\windows install pandoc pandoc-citeproc
 
 after_test:
     # .\ in the stack commandline seems to be .\windows\ (where the stack-appveyor.yaml is)
   - cd windows
-  - 7z a "pandoc.zip" pandoc.exe
   - .\pandoc.exe -s --toc ..\MANUAL.txt -o MANUAL.html
   - .\pandoc.exe -s ..\COPYING.md -o COPYING.rtf
   - copy ..\COPYRIGHT COPYRIGHT.txt
+  - 7z a "pandoc-%STACK_VERSION%.zip" pandoc.exe pandoc-citeproc.exe MANUAL.html COPYING.rtf
   - |
       set VERSION=
       for /f "tokens=1-2 delims= " %%a in ('.\pandoc.exe --version') do ( if not defined VERSION set "VERSION=%%b" )
       echo %VERSION%
       "%WIXBIN%\\candle" -dVERSION=%VERSION% -dBINPATH=. *.wxs -out wixobj\
-      "%WIXBIN%\\light" -sw1076 -ext WixUIExtension -ext WixUtilExtension -cultures:en-us -loc Pandoc-en-us.wxl -out pandoc.msi wixobj\*.wixobj
+      "%WIXBIN%\\light" -sw1076 -ext WixUIExtension -ext WixUtilExtension -cultures:en-us -loc Pandoc-en-us.wxl -out "pandoc-%STACK_VERSION%.msi" wixobj\*.wixobj
 
 artifacts:
-  - path: windows\pandoc.zip
+  - path: 'windows\pandoc-%STACK_VERSION%.zip'
     name: exe
-  - path: windows\pandoc.msi
+  - path: 'windows\pandoc-%STACK_VERSION%.msi'
     name: msi

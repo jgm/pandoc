@@ -106,7 +106,7 @@ parseHtmlContentWithAttrs tag parser = do
   parsedContent <- try $ parseContent content
   return (attr, parsedContent)
   where
-    parseContent = parseFromString $ nested $ manyTill parser endOfContent
+    parseContent = parseFromString' $ nested $ manyTill parser endOfContent
     endOfContent = try $ skipMany blankline >> skipSpaces >> eof
 
 parseHtmlContent :: PandocMonad m => String -> TWParser m a -> TWParser m [a]
@@ -233,7 +233,7 @@ listItemLine prefix marker = lineContent >>= parseContent >>= return . mconcat
     filterSpaces = reverse . dropWhile (== ' ') . reverse
     listContinuation = notFollowedBy (string prefix >> marker) >>
                        string "   " >> lineContent
-    parseContent = parseFromString $ many1 $ nestedList <|> parseInline
+    parseContent = parseFromString' $ many1 $ nestedList <|> parseInline
     parseInline = many1Till inline (lastNewline <|> newlineBeforeNestedList) >>=
                   return . B.plain . mconcat
     nestedList = list prefix
@@ -297,7 +297,7 @@ noautolink = do
   setState $ st{ stateAllowLinks = True }
   return $ mconcat blocks
   where
-    parseContent      = parseFromString $ many $ block
+    parseContent      = parseFromString' $ many $ block
 
 para :: PandocMonad m => TWParser m B.Blocks
 para = many1Till inline endOfParaElement >>= return . result . mconcat
@@ -525,4 +525,4 @@ linkText = do
   return (url, "", content)
   where
     linkContent      = (char '[') >> many1Till anyChar (char ']') >>= parseLinkContent
-    parseLinkContent = parseFromString $ many1 inline
+    parseLinkContent = parseFromString' $ many1 inline

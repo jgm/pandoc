@@ -2,7 +2,7 @@
 {-# LANGUAGE OverloadedStrings   #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-
-Copyright (C) 2006-2015 John MacFarlane <jgm@berkeley.edu>
+Copyright (C) 2006-2017 John MacFarlane <jgm@berkeley.edu>
 
 This program is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -21,7 +21,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 {- |
    Module      : Text.Pandoc.Readers.RST
-   Copyright   : Copyright (C) 2006-2015 John MacFarlane
+   Copyright   : Copyright (C) 2006-2017 John MacFarlane
    License     : GNU GPL, version 2 or above
 
    Maintainer  : John MacFarlane <jgm@berkeley.edu>
@@ -35,8 +35,8 @@ import Control.Monad (guard, liftM, mzero, when)
 import Control.Monad.Identity (Identity(..))
 import Control.Monad.Except (throwError)
 import Data.Char (isHexDigit, isSpace, toLower, toUpper)
-import Data.List (deleteFirstsBy, findIndex, intercalate, isInfixOf, isSuffixOf,
-                  nub, sort, transpose, union)
+import Data.List (deleteFirstsBy, findIndex, intercalate, isInfixOf,
+                  isSuffixOf, nub, sort, transpose, union)
 import qualified Data.Map as M
 import Data.Maybe (fromMaybe, isJust)
 import Data.Monoid ((<>))
@@ -58,7 +58,6 @@ import Text.Printf (printf)
 -- [ ] .. parsed-literal
 -- [ ] :widths: attribute in .. table
 -- [ ] .. csv-table
--- [ ] .. list-table
 
 -- | Parse reStructuredText string and return Pandoc document.
 readRST :: PandocMonad m
@@ -132,7 +131,10 @@ metaFromDefList ds meta = adjustAuthors $ foldr f meta ds
        adjustAuthors (Meta metamap) = Meta $ M.adjust splitAuthors "author"
                                            $ M.adjust toPlain "date"
                                            $ M.adjust toPlain "title"
-                                           $ M.mapKeys (\k -> if k == "authors" then "author" else k)
+                                           $ M.mapKeys (\k ->
+                                                 if k == "authors"
+                                                    then "author"
+                                                    else k)
                                            $ metamap
        toPlain (MetaBlocks [Para xs]) = MetaInlines xs
        toPlain x                      = x
@@ -194,7 +196,7 @@ parseRST = do
 parseCitation :: PandocMonad m
               => (String, String) -> RSTParser m (Inlines, [Blocks])
 parseCitation (ref, raw) = do
-  contents <- parseFromString parseBlocks raw
+  contents <- parseFromString' parseBlocks raw
   return $ (B.spanWith (ref, ["citation-label"], []) (B.str ref),
            [contents])
 
@@ -244,7 +246,7 @@ fieldListItem :: PandocMonad m => Int -> RSTParser m (Inlines, [Blocks])
 fieldListItem minIndent = try $ do
   (name, raw) <- rawFieldListItem minIndent
   term <- parseInlineFromString name
-  contents <- parseFromString parseBlocks raw
+  contents <- parseFromString' parseBlocks raw
   optional blanklines
   return (term, [contents])
 
@@ -443,7 +445,7 @@ blockQuote :: PandocMonad m => RSTParser m Blocks
 blockQuote = do
   raw <- indentedBlock
   -- parse the extracted block, which may contain various block elements:
-  contents <- parseFromString parseBlocks $ raw ++ "\n\n"
+  contents <- parseFromString' parseBlocks $ raw ++ "\n\n"
   return $ B.blockQuote contents
 
 {-
@@ -531,7 +533,7 @@ definitionListItem = try $ do
   term <- trimInlines . mconcat <$> many1Till inline endline
   raw <- indentedBlock
   -- parse the extracted block, which may contain various block elements:
-  contents <- parseFromString parseBlocks $ raw ++ "\n"
+  contents <- parseFromString' parseBlocks $ raw ++ "\n"
   return (term, [contents])
 
 definitionList :: PandocMonad m => RSTParser m Blocks
@@ -559,26 +561,16 @@ listLine :: Monad m => Int -> RSTParser m [Char]
 listLine markerLength = try $ do
   notFollowedBy blankline
   indentWith markerLength
-  line <- anyLine
-  return $ line ++ "\n"
-
--- indent by specified number of spaces (or equiv. tabs)
-indentWith :: Monad m => Int -> RSTParser m [Char]
-indentWith num = do
-  tabStop <- getOption readerTabStop
-  if (num < tabStop)
-     then count num  (char ' ')
-     else choice [ try (count num (char ' ')),
-                   (try (char '\t' >> count (num - tabStop) (char ' '))) ]
+  anyLineNewline
 
 -- parse raw text for one list item, excluding start marker and continuations
 rawListItem :: Monad m => RSTParser m Int
             -> RSTParser m (Int, [Char])
 rawListItem start = try $ do
   markerLength <- start
-  firstLine <- anyLine
+  firstLine <- anyLineNewline
   restLines <- many (listLine markerLength)
-  return (markerLength, (firstLine ++ "\n" ++ (concat restLines)))
+  return (markerLength, firstLine ++ concat restLines)
 
 -- continuation of a list item - indented and separated by blankline or
 -- (in compact lists) endline.
@@ -603,13 +595,17 @@ listItem start = try $ do
   let oldContext = stateParserContext state
   setState $ state {stateParserContext = ListItemState}
   -- parse the extracted block, which may itself contain block elements
-  parsed <- parseFromString parseBlocks $ concat (first:rest) ++ "\n"
+  parsed <- parseFromString' parseBlocks $ concat (first:rest) ++ "\n"
   updateState (\st -> st {stateParserContext = oldContext})
   return $ case B.toList parsed of
-                [Para xs] -> B.singleton $ Plain xs
-                [Para xs, BulletList ys] -> B.fromList [Plain xs, BulletList ys]
-                [Para xs, OrderedList s ys] -> B.fromList [Plain xs, OrderedList s ys]
-                [Para xs, DefinitionList ys] -> B.fromList [Plain xs, DefinitionList ys]
+                [Para xs] ->
+                   B.singleton $ Plain xs
+                [Para xs, BulletList ys] ->
+                   B.fromList [Plain xs, BulletList ys]
+                [Para xs, OrderedList s ys] ->
+                   B.fromList [Plain xs, OrderedList s ys]
+                [Para xs, DefinitionList ys] ->
+                   B.fromList [Plain xs, DefinitionList ys]
                 _         -> parsed
 
 orderedList :: PandocMonad m => RSTParser m Blocks
@@ -686,22 +682,23 @@ directive' = do
                           (lengthToDim . filter (not . isSpace))
   case label of
         "table" -> tableDirective top fields body'
+        "list-table" -> listTableDirective top fields body'
         "line-block" -> lineBlockDirective body'
         "raw" -> return $ B.rawBlock (trim top) (stripTrailingNewlines body)
         "role" -> addNewRole top $ map (\(k,v) -> (k, trim v)) fields
-        "container" -> parseFromString parseBlocks body'
+        "container" -> parseFromString' parseBlocks body'
         "replace" -> B.para <$>  -- consumed by substKey
                    parseInlineFromString (trim top)
         "unicode" -> B.para <$>  -- consumed by substKey
                    parseInlineFromString (trim $ unicodeTransform top)
-        "compound" -> parseFromString parseBlocks body'
-        "pull-quote" -> B.blockQuote <$> parseFromString parseBlocks body'
-        "epigraph" -> B.blockQuote <$> parseFromString parseBlocks body'
-        "highlights" -> B.blockQuote <$> parseFromString parseBlocks body'
+        "compound" -> parseFromString' parseBlocks body'
+        "pull-quote" -> B.blockQuote <$> parseFromString' parseBlocks body'
+        "epigraph" -> B.blockQuote <$> parseFromString' parseBlocks body'
+        "highlights" -> B.blockQuote <$> parseFromString' parseBlocks body'
         "rubric" -> B.para . B.strong <$> parseInlineFromString top
         _ | label `elem` ["attention","caution","danger","error","hint",
                           "important","note","tip","warning","admonition"] ->
-           do bod <- parseFromString parseBlocks $ top ++ "\n\n" ++ body'
+           do bod <- parseFromString' parseBlocks $ top ++ "\n\n" ++ body'
               let lab = case label of
                              "admonition" -> mempty
                              (l:ls) -> B.divWith ("",["admonition-title"],[])
@@ -714,11 +711,11 @@ directive' = do
                           (trim top ++ if null subtit
                                           then ""
                                           else (":  " ++ subtit))
-              bod <- parseFromString parseBlocks body'
+              bod <- parseFromString' parseBlocks body'
               return $ B.divWith ("",["sidebar"],[]) $ tit <> bod
         "topic" ->
            do tit <- B.para . B.strong <$> parseInlineFromString top
-              bod <- parseFromString parseBlocks body'
+              bod <- parseFromString' parseBlocks body'
               return $ B.divWith ("",["topic"],[]) $ tit <> bod
         "default-role" -> mempty <$ updateState (\s ->
                               s { stateRstDefaultRole =
@@ -734,9 +731,10 @@ directive' = do
         "math" -> return $ B.para $ mconcat $ map B.displayMath
                          $ toChunks $ top ++ "\n\n" ++ body
         "figure" -> do
-           (caption, legend) <- parseFromString extractCaption body'
+           (caption, legend) <- parseFromString' extractCaption body'
            let src = escapeURI $ trim top
-           return $ B.para (B.imageWith (imgAttr "figclass") src "fig:" caption) <> legend
+           return $ B.para (B.imageWith (imgAttr "figclass") src "fig:"
+                       caption) <> legend
         "image" -> do
            let src = escapeURI $ trim top
            let alt = B.str $ maybe "image" trim $ lookup "alt" fields
@@ -747,38 +745,74 @@ directive' = do
                                      $ B.imageWith attr src "" alt
                           Nothing -> B.imageWith attr src "" alt
         "class" -> do
-            let attrs = ("", (splitBy isSpace $ trim top), map (\(k,v) -> (k, trimr v)) fields)
+            let attrs = ("", (splitBy isSpace $ trim top),
+                              map (\(k,v) -> (k, trimr v)) fields)
             --  directive content or the first immediately following element
             children <- case body of
                 "" -> block
-                _  -> parseFromString parseBlocks  body'
+                _  -> parseFromString' parseBlocks  body'
             return $ B.divWith attrs children
         other     -> do
             pos <- getPosition
             logMessage $ SkippedContent (".. " ++ other) pos
-            bod <- parseFromString parseBlocks $ top ++ "\n\n" ++ body'
+            bod <- parseFromString' parseBlocks $ top ++ "\n\n" ++ body'
             return $ B.divWith ("",[other],[]) bod
 
 tableDirective :: PandocMonad m
                => String -> [(String, String)] -> String -> RSTParser m Blocks
 tableDirective top _fields body = do
-  bs <- parseFromString parseBlocks body
+  bs <- parseFromString' parseBlocks body
   case B.toList bs of
        [Table _ aligns' widths' header' rows'] -> do
-         title <- parseFromString (trimInlines . mconcat <$> many inline) top
+         title <- parseFromString' (trimInlines . mconcat <$> many inline) top
          -- TODO widths
          -- align is not applicable since we can't represent whole table align
          return $ B.singleton $ Table (B.toList title)
                                   aligns' widths' header' rows'
        _ -> return mempty
 
+
+-- TODO: :stub-columns:.
+-- Only the first row becomes the header even if header-rows: > 1,
+-- since Pandoc doesn't support a table with multiple header rows.
+-- We don't need to parse :align: as it represents the whole table align.
+listTableDirective :: PandocMonad m
+                   => String -> [(String, String)] -> String
+                   -> RSTParser m Blocks
+listTableDirective top fields body = do
+  bs <- parseFromString' parseBlocks body
+  title <- parseFromString' (trimInlines . mconcat <$> many inline) top
+  let rows = takeRows $ B.toList bs
+      headerRowsNum = fromMaybe (0 :: Int) $
+         lookup "header-rows" fields >>= safeRead
+      (headerRow,bodyRows,numOfCols) = case rows of
+        x:xs -> if headerRowsNum > 0
+                   then (x, xs, length x)
+                   else ([], rows, length x)
+        _ -> ([],[],0)
+      widths = case trim <$> lookup "widths" fields of
+        Just "auto" -> replicate numOfCols 0
+        Just specs -> normWidths $ map (fromMaybe (0 :: Double) . safeRead) $
+                           splitBy (`elem` (" ," :: String)) specs
+        _ -> replicate numOfCols 0
+  return $ B.table title
+             (zip (replicate numOfCols AlignDefault) widths)
+             headerRow
+             bodyRows
+    where takeRows [BulletList rows] = map takeCells rows
+          takeRows _ = []
+          takeCells [BulletList cells] = map B.fromList cells
+          takeCells _ = []
+          normWidths ws = map (/ max 1 (sum ws)) ws
+
 -- TODO:
 --  - Only supports :format: fields with a single format for :raw: roles,
 --    change Text.Pandoc.Definition.Format to fix
-addNewRole :: PandocMonad m => String -> [(String, String)] -> RSTParser m Blocks
+addNewRole :: PandocMonad m
+           => String -> [(String, String)] -> RSTParser m Blocks
 addNewRole roleString fields = do
     pos <- getPosition
-    (role, parentRole) <- parseFromString inheritedRole roleString
+    (role, parentRole) <- parseFromString' inheritedRole roleString
     customRoles <- stateRstCustomRoles <$> getState
     let getBaseRole (r, f, a) roles =
             case M.lookup r roles of
@@ -805,7 +839,8 @@ addNewRole roleString fields = do
             SkippedContent ":format: [because parent of role is not :raw:]" pos
         _ -> logMessage $ SkippedContent (":" ++ key ++ ":") pos
     when (parentRole == "raw" && countKeys "format" > 1) $
-        logMessage $ SkippedContent ":format: [after first in definition of role]"
+        logMessage $ SkippedContent
+                  ":format: [after first in definition of role]"
                   pos
     when (parentRole == "code" && countKeys "language" > 1) $
         logMessage $ SkippedContent
@@ -820,7 +855,8 @@ addNewRole roleString fields = do
   where
     countKeys k = length . filter (== k) . map fst $ fields
     inheritedRole =
-        (,) <$> roleName <*> ((char '(' *> roleName <* char ')') <|> pure "span")
+        (,) <$> roleName <*> ((char '(' *> roleName <* char ')')
+                            <|> pure "span")
 
 
 -- Can contain character codes as decimal numbers or
@@ -997,7 +1033,8 @@ substKey = try $ do
              [Para ils] -> return $ B.fromList ils
              _          -> mzero
   let key = toKey $ stripFirstAndLast ref
-  updateState $ \s -> s{ stateSubstitutions = M.insert key il $ stateSubstitutions s }
+  updateState $ \s -> s{ stateSubstitutions =
+                          M.insert key il $ stateSubstitutions s }
 
 anonymousKey :: Monad m => RSTParser m ()
 anonymousKey = try $ do
@@ -1006,7 +1043,8 @@ anonymousKey = try $ do
   pos <- getPosition
   let key = toKey $ "_" ++ printf "%09d" (sourceLine pos)
   --TODO: parse width, height, class and name attributes
-  updateState $ \s -> s { stateKeys = M.insert key ((src,""), nullAttr) $ stateKeys s }
+  updateState $ \s -> s { stateKeys = M.insert key ((src,""), nullAttr) $
+                          stateKeys s }
 
 stripTicks :: String -> String
 stripTicks = reverse . stripTick . reverse . stripTick
@@ -1021,7 +1059,8 @@ regularKey = try $ do
   src <- targetURI
   let key = toKey $ stripTicks ref
   --TODO: parse width, height, class and name attributes
-  updateState $ \s -> s { stateKeys = M.insert key ((src,""), nullAttr) $ stateKeys s }
+  updateState $ \s -> s { stateKeys = M.insert key ((src,""), nullAttr) $
+                          stateKeys s }
 
 headerBlock :: PandocMonad m => RSTParser m [Char]
 headerBlock = do
@@ -1088,7 +1127,7 @@ simpleTableRow indices = do
   let cols = map unlines . transpose $ firstLine : conLines ++
                                  [replicate (length indices) ""
                                    | not (null conLines)]
-  mapM (parseFromString parseBlocks) cols
+  mapM (parseFromString' parseBlocks) cols
 
 simpleTableSplitLine :: [Int] -> String -> [String]
 simpleTableSplitLine indices line =
@@ -1111,7 +1150,7 @@ simpleTableHeader headless = try $ do
   let rawHeads = if headless
                     then replicate (length dashes) ""
                     else simpleTableSplitLine indices rawContent
-  heads <- mapM (parseFromString (mconcat <$> many plain)) $
+  heads <- mapM (parseFromString' (mconcat <$> many plain)) $
              map trim rawHeads
   return (heads, aligns, indices)
 
@@ -1167,7 +1206,7 @@ inline = choice [ note          -- can start with whitespace, so try before ws
                 , symbol ] <?> "inline"
 
 parseInlineFromString :: PandocMonad m => String -> RSTParser m Inlines
-parseInlineFromString = parseFromString (trimInlines . mconcat <$> many inline)
+parseInlineFromString = parseFromString' (trimInlines . mconcat <$> many inline)
 
 hyphens :: Monad m => RSTParser m Inlines
 hyphens = do
@@ -1226,7 +1265,8 @@ interpretedRole = try $ do
   (role, contents) <- roleBefore <|> roleAfter
   renderRole contents Nothing role nullAttr
 
-renderRole :: PandocMonad m => String -> Maybe String -> String -> Attr -> RSTParser m Inlines
+renderRole :: PandocMonad m
+           => String -> Maybe String -> String -> Attr -> RSTParser m Inlines
 renderRole contents fmt role attr = case role of
     "sup"  -> return $ B.superscript $ B.str contents
     "superscript" -> return $ B.superscript $ B.str contents
@@ -1359,7 +1399,8 @@ referenceLink = try $ do
                         (k:_) -> return k
   ((src,tit), attr) <- lookupKey [] key
   -- if anonymous link, remove key so it won't be used again
-  when (isAnonKey key) $ updateState $ \s -> s{ stateKeys = M.delete key keyTable }
+  when (isAnonKey key) $ updateState $ \s ->
+                          s{ stateKeys = M.delete key keyTable }
   return $ B.linkWith attr src tit label'
 
 -- We keep a list of oldkeys so we can detect lookup loops.
@@ -1429,7 +1470,7 @@ note = try $ do
       -- Note references inside other notes are allowed in reST, but
       -- not yet in this implementation.
       updateState $ \st -> st{ stateNotes = [] }
-      contents <- parseFromString parseBlocks raw
+      contents <- parseFromString' parseBlocks raw
       let newnotes = if (ref == "*" || ref == "#") -- auto-numbered
                         -- delete the note so the next auto-numbered note
                         -- doesn't get the same contents:

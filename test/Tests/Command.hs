@@ -23,7 +23,7 @@ runTest :: String    -- ^ Title of test
         -> String    -- ^ Expected output
         -> TestTree
 runTest testname cmd inp norm = testCase testname $ do
-  let cmd' = cmd ++ " --quiet --data-dir ../data"
+  let cmd' = cmd ++ " --data-dir ../data"
   let findDynlibDir []           = Nothing
       findDynlibDir ("build":xs) = Just $ joinPath (reverse xs) </> "build"
       findDynlibDir (_:xs)       = findDynlibDir xs
@@ -35,9 +35,9 @@ runTest testname cmd inp norm = testCase testname $ do
                                     ("LD_LIBRARY_PATH", d)]
   let env' = dynlibEnv ++ [("TMP","."),("LANG","en_US.UTF-8"),("HOME", "./")]
   let pr = (shell cmd'){ env = Just env' }
-  (ec, out', _err) <- readCreateProcessWithExitCode pr inp
+  (ec, out', err') <- readCreateProcessWithExitCode pr inp
   -- filter \r so the tests will work on Windows machines
-  let out = filter (/= '\r') out'
+  let out = filter (/= '\r') $ err' ++ out'
   result  <- if ec == ExitSuccess
                 then do
                   if out == norm

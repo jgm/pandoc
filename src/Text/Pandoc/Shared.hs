@@ -2,7 +2,7 @@
     FlexibleContexts, ScopedTypeVariables, PatternGuards,
     ViewPatterns #-}
 {-
-Copyright (C) 2006-2016 John MacFarlane <jgm@berkeley.edu>
+Copyright (C) 2006-2017 John MacFarlane <jgm@berkeley.edu>
 
 This program is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -21,7 +21,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 {- |
    Module      : Text.Pandoc.Shared
-   Copyright   : Copyright (C) 2006-2016 John MacFarlane
+   Copyright   : Copyright (C) 2006-2017 John MacFarlane
    License     : GNU GPL, version 2 or above
 
    Maintainer  : John MacFarlane <jgm@berkeley.edu>
@@ -81,6 +81,9 @@ module Text.Pandoc.Shared (
                      openURL,
                      collapseFilePath,
                      filteredFilesFromArchive,
+                     -- * URI handling
+                     schemes,
+                     isURI,
                      -- * Error handling
                      mapLeft,
                      -- * for squashing blocks
@@ -104,7 +107,7 @@ import Data.List ( find, stripPrefix, intercalate )
 import Data.Maybe (mapMaybe)
 import Data.Version ( showVersion )
 import qualified Data.Map as M
-import Network.URI ( escapeURIString, unEscapeString )
+import Network.URI ( URI(uriScheme), escapeURIString, unEscapeString, parseURI )
 import qualified Data.Set as Set
 import System.Directory
 import System.FilePath (splitDirectories, isPathSeparator)
@@ -140,9 +143,9 @@ import Text.Pandoc.Data (dataFiles)
 #else
 import Paths_pandoc (getDataFileName)
 #endif
-#ifdef HTTP_CLIENT
 import Network.HTTP.Client (httpLbs, responseBody, responseHeaders,
-                            Request(port,host,requestHeaders))
+                            Request(port,host,requestHeaders),
+                            HttpException)
 import Network.HTTP.Client (parseRequest)
 import Network.HTTP.Client (newManager)
 import Network.HTTP.Client.Internal (addProxy)
@@ -150,12 +153,6 @@ import Network.HTTP.Client.TLS (tlsManagerSettings)
 import System.Environment (getEnv)
 import Network.HTTP.Types.Header ( hContentType, hUserAgent)
 import Network (withSocketsDo)
-#else
-import Network.URI (parseURI)
-import Network.HTTP (findHeader, rspBody,
-                     RequestMethod(..), HeaderName(..), mkRequest)
-import Network.Browser (browse, setAllowRedirects, setOutHandler, request)
-#endif
 
 -- | Version number of pandoc library.
 pandocVersion :: String
@@ -709,14 +706,13 @@ readDataFileUTF8 userDir fname =
   UTF8.toString `fmap` readDataFile userDir fname
 
 -- | Read from a URL and return raw data and maybe mime type.
-openURL :: String -> IO (BS.ByteString, Maybe MimeType)
+openURL :: String -> IO (Either HttpException (BS.ByteString, Maybe MimeType))
 openURL u
   | Just u'' <- stripPrefix "data:" u =
     let mime     = takeWhile (/=',') u''
         contents = B8.pack $ unEscapeString $ drop 1 $ dropWhile (/=',') u''
-    in  return (decodeLenient contents, Just mime)
-#ifdef HTTP_CLIENT
-  | otherwise = withSocketsDo $ do
+    in  return $ Right (decodeLenient contents, Just mime)
+  | otherwise = E.try $ withSocketsDo $ do
      let parseReq = parseRequest
      (proxy :: Either IOError String) <-
         tryIOError $ getEnv "http_proxy"
@@ -738,19 +734,6 @@ openURL u
      resp <- newManager tlsManagerSettings >>= httpLbs req''
      return (BS.concat $ toChunks $ responseBody resp,
              UTF8.toString `fmap` lookup hContentType (responseHeaders resp))
-#else
-  | otherwise = getBodyAndMimeType `fmap` browse
-              (do liftIO $ UTF8.hPutStrLn stderr $ "Fetching " ++ u ++ "..."
-                  setOutHandler $ const (return ())
-                  setAllowRedirects True
-                  request (getRequest' u'))
-  where getBodyAndMimeType (_, r) = (rspBody r, findHeader HdrContentType r)
-        getRequest' uriString = case parseURI uriString of
-                                   Nothing -> error ("Not a valid URL: " ++
-                                                        uriString)
-                                   Just v  -> mkRequest GET v
-        u' = escapeURIString (/= '|') u  -- pipes are rejected by Network.URI
-#endif
 
 --
 -- Error reporting
@@ -793,6 +776,71 @@ filteredFilesFromArchive zf f =
   where
     fileAndBinary :: Archive -> FilePath -> Maybe (FilePath, BL.ByteString)
     fileAndBinary a fp = findEntryByPath fp a >>= \e -> Just (fp, fromEntry e)
+
+
+--
+-- IANA URIs
+--
+
+-- | Schemes from http://www.iana.org/assignments/uri-schemes.html plus
+-- the unofficial schemes doi, javascript, isbn, pmid.
+schemes :: Set.Set String
+schemes = Set.fromList
+  -- Official IANA schemes
+  [ "aaa", "aaas", "about", "acap", "acct", "acr", "adiumxtra", "afp", "afs"
+  , "aim", "appdata", "apt", "attachment", "aw", "barion", "beshare", "bitcoin"
+  , "blob", "bolo", "browserext", "callto", "cap", "chrome", "chrome-extension"
+  , "cid", "coap", "coaps", "com-eventbrite-attendee", "content", "crid", "cvs"
+  , "data", "dav", "dict", "dis", "dlna-playcontainer", "dlna-playsingle"
+  , "dns", "dntp", "dtn", "dvb", "ed2k", "example", "facetime", "fax", "feed"
+  , "feedready", "file", "filesystem", "finger", "fish", "ftp", "geo", "gg"
+  , "git", "gizmoproject", "go", "gopher", "graph", "gtalk", "h323", "ham"
+  , "hcp", "http", "https", "hxxp", "hxxps", "hydrazone", "iax", "icap", "icon"
+  , "im", "imap", "info", "iotdisco", "ipn", "ipp", "ipps", "irc", "irc6"
+  , "ircs", "iris", "iris.beep", "iris.lwz", "iris.xpc", "iris.xpcs"
+  , "isostore", "itms", "jabber", "jar", "jms", "keyparc", "lastfm", "ldap"
+  , "ldaps", "lvlt", "magnet", "mailserver", "mailto", "maps", "market"
+  , "message", "mid", "mms", "modem", "mongodb", "moz", "ms-access"
+  , "ms-browser-extension", "ms-drive-to", "ms-enrollment", "ms-excel"
+  , "ms-gamebarservices", "ms-getoffice", "ms-help", "ms-infopath"
+  , "ms-media-stream-id", "ms-officeapp", "ms-project", "ms-powerpoint"
+  , "ms-publisher", "ms-search-repair", "ms-secondary-screen-controller"
+  , "ms-secondary-screen-setup", "ms-settings", "ms-settings-airplanemode"
+  , "ms-settings-bluetooth", "ms-settings-camera", "ms-settings-cellular"
+  , "ms-settings-cloudstorage", "ms-settings-connectabledevices"
+  , "ms-settings-displays-topology", "ms-settings-emailandaccounts"
+  , "ms-settings-language", "ms-settings-location", "ms-settings-lock"
+  , "ms-settings-nfctransactions", "ms-settings-notifications"
+  , "ms-settings-power", "ms-settings-privacy", "ms-settings-proximity"
+  , "ms-settings-screenrotation", "ms-settings-wifi", "ms-settings-workplace"
+  , "ms-spd", "ms-sttoverlay", "ms-transit-to", "ms-virtualtouchpad"
+  , "ms-visio", "ms-walk-to", "ms-whiteboard", "ms-whiteboard-cmd", "ms-word"
+  , "msnim", "msrp", "msrps", "mtqp", "mumble", "mupdate", "mvn", "news", "nfs"
+  , "ni", "nih", "nntp", "notes", "ocf", "oid", "onenote", "onenote-cmd"
+  , "opaquelocktoken", "pack", "palm", "paparazzi", "pkcs11", "platform", "pop"
+  , "pres", "prospero", "proxy", "pwid", "psyc", "qb", "query", "redis"
+  , "rediss", "reload", "res", "resource", "rmi", "rsync", "rtmfp", "rtmp"
+  , "rtsp", "rtsps", "rtspu", "secondlife", "service", "session", "sftp", "sgn"
+  , "shttp", "sieve", "sip", "sips", "skype", "smb", "sms", "smtp", "snews"
+  , "snmp", "soap.beep", "soap.beeps", "soldat", "spotify", "ssh", "steam"
+  , "stun", "stuns", "submit", "svn", "tag", "teamspeak", "tel", "teliaeid"
+  , "telnet", "tftp", "things", "thismessage", "tip", "tn3270", "tool", "turn"
+  , "turns", "tv", "udp", "unreal", "urn", "ut2004", "v-event", "vemmi"
+  , "ventrilo", "videotex", "vnc", "view-source", "wais", "webcal", "wpid"
+  , "ws", "wss", "wtai", "wyciwyg", "xcon", "xcon-userid", "xfire"
+  , "xmlrpc.beep", "xmlrpc.beeps", "xmpp", "xri", "ymsgr", "z39.50", "z39.50r"
+  , "z39.50s"
+  -- Inofficial schemes
+  , "doi", "isbn", "javascript", "pmid"
+  ]
+
+-- | Check if the string is a valid URL with a IANA or frequently used but
+-- unofficial scheme (see @schemes@).
+isURI :: String -> Bool
+isURI = maybe False hasKnownScheme . parseURI
+  where
+    hasKnownScheme = (`Set.member` schemes) . map toLower .
+                     filter (/= ':') . uriScheme
 
 ---
 --- Squash blocks into inlines

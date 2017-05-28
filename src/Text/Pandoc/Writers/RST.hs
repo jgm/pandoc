@@ -1,6 +1,6 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-
-Copyright (C) 2006-2015 John MacFarlane <jgm@berkeley.edu>
+Copyright (C) 2006-2017 John MacFarlane <jgm@berkeley.edu>
 
 This program is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 {- |
    Module      : Text.Pandoc.Writers.RST
-   Copyright   : Copyright (C) 2006-2015 John MacFarlane
+   Copyright   : Copyright (C) 2006-2017 John MacFarlane
    License     : GNU GPL, version 2 or above
 
    Maintainer  : John MacFarlane <jgm@berkeley.edu>
@@ -35,7 +35,6 @@ import Control.Monad.State
 import Data.Char (isSpace, toLower)
 import Data.List (isPrefixOf, stripPrefix)
 import Data.Maybe (fromMaybe)
-import Network.URI (isURI)
 import qualified Text.Pandoc.Builder as B
 import Text.Pandoc.Class (PandocMonad, report)
 import Text.Pandoc.Logging
@@ -57,6 +56,7 @@ data WriterState =
               , stHasRawTeX   :: Bool
               , stOptions     :: WriterOptions
               , stTopLevel    :: Bool
+              , stLastNested  :: Bool
               }
 
 type RST = StateT WriterState
@@ -67,7 +67,7 @@ writeRST opts document = do
   let st = WriterState { stNotes = [], stLinks = [],
                          stImages = [], stHasMath = False,
                          stHasRawTeX = False, stOptions = opts,
-                         stTopLevel = True}
+                         stTopLevel = True, stLastNested = False}
   evalStateT (pandocToRST document) st
 
 -- | Return RST representation of document.
@@ -343,10 +343,31 @@ blockListToRST' :: PandocMonad m
                 -> RST m Doc
 blockListToRST' topLevel blocks = do
   tl <- gets stTopLevel
-  modify (\s->s{stTopLevel=topLevel})
-  res <- vcat `fmap` mapM blockToRST blocks
+  modify (\s->s{stTopLevel=topLevel, stLastNested=False})
+  res <- vcat `fmap` mapM blockToRST' blocks
   modify (\s->s{stTopLevel=tl})
   return res
+
+blockToRST' :: PandocMonad m => Block -> RST m Doc
+blockToRST' (x@BlockQuote{}) = do
+  lastNested <- gets stLastNested
+  res <- blockToRST x
+  modify (\s -> s{stLastNested = True})
+  return $ if lastNested
+              then ".." $+$ res
+              else res
+blockToRST' x = do
+  modify (\s -> s{stLastNested =
+    case x of
+         Para [Image _ _ (_,'f':'i':'g':':':_)] -> True
+         Para{} -> False
+         Plain{} -> False
+         Header{} -> False
+         LineBlock{} -> False
+         HorizontalRule -> False
+         _ -> True
+    })
+  blockToRST x
 
 blockListToRST :: PandocMonad m
                => [Block]       -- ^ List of block elements

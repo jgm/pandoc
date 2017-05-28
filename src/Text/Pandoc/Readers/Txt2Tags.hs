@@ -42,7 +42,6 @@ import Text.Pandoc.Definition
 import Text.Pandoc.Options
 import Text.Pandoc.Parsing hiding (macro, space, spaces, uri)
 import Text.Pandoc.Shared (compactify, compactifyDL, escapeURI)
---import Network.URI (isURI) -- Not sure whether to use this function
 import Control.Monad (guard, void, when)
 import Control.Monad.Reader (Reader, asks, runReader)
 import Data.Default
@@ -213,7 +212,7 @@ quote :: T2T Blocks
 quote = try $ do
   lookAhead tab
   rawQuote <-  many1 (tab *> optional spaces *> anyLine)
-  contents <- parseFromString parseBlocks (intercalate "\n" rawQuote ++ "\n\n")
+  contents <- parseFromString' parseBlocks (intercalate "\n" rawQuote ++ "\n\n")
   return $ B.blockQuote contents
 
 commentLine :: T2T Inlines
@@ -265,7 +264,7 @@ listItem start end = try $ do
   firstLine <- anyLineNewline
   blank <- option "" ("\n" <$ blankline)
   rest <- concat <$> many (listContinuation markerLength)
-  parseFromString end $ firstLine ++ blank ++ rest
+  parseFromString' end $ firstLine ++ blank ++ rest
 
 -- continuation of a list item - indented and separated by blankline or endline.
 -- Note: nested lists are parsed as continuations.
@@ -276,12 +275,6 @@ listContinuation markerLength = try $
   *> (mappend <$> (concat <$> many1 listLine)
               <*> many blankline)
  where listLine = try $ indentWith markerLength *> anyLineNewline
-
-anyLineNewline :: T2T String
-anyLineNewline = (++ "\n") <$> anyLine
-
-indentWith :: Int -> T2T String
-indentWith n = count n space
 
 -- Table
 
@@ -446,7 +439,7 @@ inlineMarkup p f c special = try $ do
     Just middle -> do
       lastChar <- anyChar
       end <- many1 (char c)
-      let parser inp = parseFromString (mconcat <$> many p) inp
+      let parser inp = parseFromString' (mconcat <$> many p) inp
       let start' = case drop 2 start of
                           "" -> mempty
                           xs -> special xs

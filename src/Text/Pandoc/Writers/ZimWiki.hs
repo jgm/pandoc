@@ -1,5 +1,6 @@
 {-
-Copyright (C) 2008-2015 John MacFarlane <jgm@berkeley.edu>
+Copyright (C) 2008-2017 John MacFarlane <jgm@berkeley.edu>
+              2017 Alex Ivkin
 
 This program is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -18,7 +19,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 {- |
    Module      : Text.Pandoc.Writers.ZimWiki
-   Copyright   : Copyright (C) 2008-2015 John MacFarlane, 2017 Alex Ivkin
+   Copyright   : Copyright (C) 2008-2017 John MacFarlane, 2017 Alex Ivkin
    License     : GNU GPL, version 2 or above
 
    Maintainer  : Alex Ivkin <alex@ivkin.net>
@@ -37,14 +38,13 @@ import Data.Default (Default (..))
 import Data.List (intercalate, isInfixOf, isPrefixOf, transpose)
 import qualified Data.Map as Map
 import Data.Text (breakOnAll, pack)
-import Network.URI (isURI)
 import Text.Pandoc.Class (PandocMonad, report)
 import Text.Pandoc.Logging
 import Text.Pandoc.Definition
 import Text.Pandoc.ImageSize
 import Text.Pandoc.Options (WrapOption (..), WriterOptions (writerTableOfContents, writerTemplate, writerWrapText))
-import Text.Pandoc.Shared (escapeURI, linesToPara, removeFormatting, substitute,
-                           trimr)
+import Text.Pandoc.Shared (isURI, escapeURI, linesToPara, removeFormatting,
+                           substitute, trimr)
 import Text.Pandoc.Templates (renderTemplate')
 import Text.Pandoc.Writers.Shared (defField, metaToJSON)
 

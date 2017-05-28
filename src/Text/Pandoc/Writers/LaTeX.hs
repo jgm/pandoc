@@ -2,7 +2,7 @@
 {-# LANGUAGE PatternGuards       #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-
-Copyright (C) 2006-2015 John MacFarlane <jgm@berkeley.edu>
+Copyright (C) 2006-2017 John MacFarlane <jgm@berkeley.edu>
 
 This program is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -21,7 +21,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 {- |
    Module      : Text.Pandoc.Writers.LaTeX
-   Copyright   : Copyright (C) 2006-2015 John MacFarlane
+   Copyright   : Copyright (C) 2006-2017 John MacFarlane
    License     : GNU GPL, version 2 or above
 
    Maintainer  : John MacFarlane <jgm@berkeley.edu>
@@ -43,7 +43,7 @@ import Data.List (foldl', intercalate, intersperse, isInfixOf, nub, nubBy,
                   stripPrefix, (\\))
 import Data.Maybe (catMaybes, fromMaybe, isJust)
 import qualified Data.Text as T
-import Network.URI (isURI, unEscapeString)
+import Network.URI (unEscapeString)
 import Text.Pandoc.Class (PandocMonad, report)
 import Text.Pandoc.Definition
 import Text.Pandoc.Highlighting (formatLaTeXBlock, formatLaTeXInline, highlight,
@@ -1062,6 +1062,9 @@ inlineToLaTeX (Link _ txt (src, _)) =
                 src' <- stringToLaTeX URLString (escapeURI src)
                 return $ text ("\\href{" ++ src' ++ "}{") <>
                          contents <> char '}'
+inlineToLaTeX il@(Image _ _ ('d':'a':'t':'a':':':_, _)) = do
+  report $ InlineNotRendered il
+  return empty
 inlineToLaTeX (Image attr _ (source, _)) = do
   setEmptyLine False
   modify $ \s -> s{ stGraphics = True }
