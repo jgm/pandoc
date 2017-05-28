@@ -33,13 +33,13 @@ Conversion of vimwiki text to 'Pandoc' document.
     * [X] header
     * [X] hrule
     * [X] comment
-    * [X] blockquote
+    * [X] blockquote -- currently only accepting four spaces rather than a mix of spaces and tabs
     * [X] preformatted
         * [ ] with attributes -- need to pass the name-value pair to be the attributes
     * [X] displaymath - a bit buggy
     * [X] bulletlist / orderedlist - a bit buggy with nested lists
         * [ ] orderedlist with 1., i., a) etc identification.
-        * [ ] multilines
+        * [ ] multilines -- softbreak with some indentations
         * [ ] mixed tab / space indentation
         * [ ] todo lists -- see https://github.com/LarsEKrueger/pandoc-vimwiki
     * [X] table
@@ -60,7 +60,7 @@ Conversion of vimwiki text to 'Pandoc' document.
     * [X] inline math - a bit buggy
     * [X] tag
 * misc:
-    * [ ] `TODO:` mark
+    * [X] `TODO:` mark
     * [ ] placeholders
         * [ ] %title and %date -> metadata
         * [ ] %template
@@ -137,10 +137,10 @@ block = do
                 , header
                 , hrule
                 , comment
+                , mixedList
                 , blockQuote
                 , preformatted
                 , displayMath 
-                , mixedList
                 , table
                 , para
                 ]
@@ -178,9 +178,13 @@ comment = try $ do
   string "%%" >> many (noneOf "\n") >> newline
   return mempty
 blockQuote = try $ do
-  string "    " 
-  contents <- para
-  return $ B.blockQuote contents
+  string "    "
+  contents <- trimInlines . mconcat <$> many1 inline'
+  if all (==Space) contents
+     then return mempty
+     else return $ B.blockQuote $ B.plain contents
+  --contents <- para
+  --return $ B.blockQuote contents
 preformatted = try $ do
   many spaceChar >> string "{{{" >> many (noneOf "\n") >> lookAhead newline
   contents <- manyTill anyChar (try (char '\n' >> many spaceChar >> string "}}}" >> many spaceChar >> newline))
@@ -298,6 +302,7 @@ tableCell = try $ do
 inline :: PandocMonad m => VwParser m Inlines
 inline = choice[whitespace
              ,  bareURL
+             ,  todoMark
              ,  str
              ,  strong
              ,  emph
@@ -308,11 +313,29 @@ inline = choice[whitespace
              ,  inlineMath
              ,  tag
              ,  special
-             ]--}
+             ]
+-- inline parser for blockquotes
+inline' :: PandocMonad m => VwParser m Inlines
+inline' = choice[whitespace'
+             ,  bareURL
+             ,  todoMark
+             ,  str
+             ,  strong
+             ,  emph
+             ,  strikeout
+             ,  code
+             ,  link
+             ,  image
+             ,  inlineMath
+             ,  tag
+             ,  special
+             ]
 
 str :: PandocMonad m => VwParser m Inlines
 whitespace :: PandocMonad m => VwParser m Inlines
+whitespace' :: PandocMonad m => VwParser m Inlines
 special :: PandocMonad m => VwParser m Inlines
+todoMark :: PandocMonad m => VwParser m Inlines
 bareURL :: PandocMonad m => VwParser m Inlines
 strong :: PandocMonad m => VwParser m Inlines
 emph :: PandocMonad m => VwParser m Inlines
@@ -328,6 +351,8 @@ str = B.str <$> (many1 $ noneOf $ spaceChars ++ specialChars)
 --whitespace = B.space <$ (skipMany1 spaceChar)
 whitespace = B.space <$ (skipMany1 spaceChar)
          <|> B.softbreak <$ endline
+whitespace' = B.space <$ (skipMany1 spaceChar)
+         <|> B.softbreak <$ endline'
 special = B.str <$> count 1 (oneOf specialChars)
 bareURL = try $ do
   (orig, src) <- uri <|> emailAddress
@@ -377,6 +402,9 @@ tag = try $ do
   s <- manyTill (noneOf spaceChars) (try (char ':' >> space))
   guard $ not $ "::" `isInfixOf` (":" ++ s ++ ":")
   return $ mconcat $ concat $ (makeTagSpan <$> (splitOn ":" s)) -- returns tag1 >> tag2 >> ... >> tagn
+todoMark = try $ do
+  string "TODO:"
+  return $ B.spanWith ("", ["todo"], []) (B.str "TODO:")
 
 -- helper functions and parsers
 {--
@@ -389,16 +417,19 @@ splitAtSeparater xs = go "" xs
       | otherwise = go (xs ++ [head ys]) (tail ys)
       --}
 endline :: PandocMonad m => VwParser m ()
-endline = () <$ try (newline <*
-                     notFollowedBy spaceChar <*
-                     notFollowedBy newline <*
-                     notFollowedBy hrule <*
-                     notFollowedBy tableRow <*
-                     notFollowedBy header <*
-                     notFollowedBy listSpacesParser <*
-                     notFollowedBy preformatted <*
-                     notFollowedBy displayMath
-                     )
+endline = () <$ try (newline <* notFollowedByThingsThatBreakSoftBreaks <* notFollowedBy blockQuote)
+endline' :: PandocMonad m => VwParser m ()
+endline' = () <$ try (newline <* notFollowedByThingsThatBreakSoftBreaks <* string "    ")
+
+notFollowedByThingsThatBreakSoftBreaks :: PandocMonad m => VwParser m ()
+notFollowedByThingsThatBreakSoftBreaks =
+                         notFollowedBy newline <*
+                         notFollowedBy hrule <*
+                         notFollowedBy tableRow <*
+                         notFollowedBy header <*
+                         notFollowedBy listSpacesParser <*
+                         notFollowedBy preformatted <*
+                         notFollowedBy displayMath
 
 makeTagSpan :: String -> [Inlines]
 makeTagSpan s = 
