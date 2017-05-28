@@ -952,7 +952,7 @@ readWithM :: (Monad m)
           -> String                   -- ^ input
           -> m (Either PandocError a)
 readWithM parser state input =
-    mapLeft (PandocParsecError input) `liftM` runParserT parser state "source" input -- runParserT is in Parsec, mapLeft is in Data.Either.Combinators, PandocParsecError is in Error.hs. `runParserT` runs `parser` on `input` with initial state `state`. "source" is only used in error messages.
+    mapLeft (PandocParsecError input) `liftM` runParserT parser state "source" input 
 
 
 -- | Parse a string with a given parser and state
