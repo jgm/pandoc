@@ -1,575 +1,244 @@
-<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
-<html>
-<head>
-<!--<link rel="Stylesheet" type="text/css" href="http://homepages.warwick.ac.uk/~markau/style.css">-->
-<link rel="Stylesheet" type="text/css" href="../config/style.css">
-<!--<script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML&noContrib,/home/bacon/codes/mathjax/mathjax_local.js"></script>-->
-<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML,/home/bacon/codes/mathjax/mathjax_local.js"></script>
-
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.11.0/styles/googlecode.min.css">
-<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.11.0/highlight.min.js"></script>
-<script type="text/javascript" src="../config/highlightconfig.js"></script>
-
-
-
-<!-- MathJax: Fall back to local if CDN offline -->
-<script>window.MathJax || document.write('<script type="text/javascript" src="~/codes/MathJax/MathJax.js?config=TeX-AMS_HTML-full,/home/bacon/codes/mathjax/mathjax_local.js"><\/script>')</script>
-<script>window.MathJax || document.write('<script type="text/javascript" src="/usr/share/mathjax/MathJax.js?config=TeX-AMS_HTML-full,/home/bacon/codes/mathjax/mathjax_local.js"><\/script>')</script>
-
-<title>vimwiki_pandoc_test</title>
-<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
-</head>
-<body>
-
-<div id="header"><h1 id="header">header</h1></div>
-
-<div id="header-header level two"><h2 id="header level two">header level two</h2></div>
-
-<div id="header-header level two-header level 3"><h3 id="header level 3">header level 3</h3></div>
-
-<div id="header-header level two-header level 3-header &#39;&#39;level&#39;&#39; four"><h4 id="header &#39;&#39;level&#39;&#39; four">header ''level'' four</h4></div>
-
-<div id="header-header level two-header level 3-header &#39;&#39;level&#39;&#39; four-header level 5"><h5 id="header level 5">header level 5</h5></div>
-
-<div id="header-header level two-header level 3-header &#39;&#39;level&#39;&#39; four-header level 5-header level 6"><h6 id="header level 6">header level 6</h6></div>
-
-<p>
-======= not a header ========
-</p>
-
-<div id="header-centred header"><h2 id="centred header" class="justcenter">centred header</h2></div>
-
-<div id="header-emph and strong"><h2 id="emph and strong">emph and strong</h2></div>
-
-<p>
-<em>emph</em> <span id="header-emph and strong-strong"></span><strong id="strong">strong</strong>
-</p>
-
-<p>
-<span id="header-emph and strong-<em>strong and emph<&#47;em>"></span><strong id="<em>strong and emph<&#47;em>"><em>strong and emph</em></strong>
-</p>
-
-<p>
-<em><span id="header-emph and strong-emph and strong"></span><strong id="emph and strong">emph and strong</strong></em>
-</p>
-
-<p>
-<span id="header-emph and strong-<em>emph inside<&#47;em> strong"></span><strong id="<em>emph inside<&#47;em> strong"><em>emph inside</em> strong</strong>
-</p>
-
-<p>
-<span id="header-emph and strong-strong with <em>emph<&#47;em>"></span><strong id="strong with <em>emph<&#47;em>">strong with <em>emph</em></strong>
-</p>
-
-<p>
-<em><span id="header-emph and strong-strong inside"></span><strong id="strong inside">strong inside</strong> emph</em>
-</p>
-
-<div id="header-horizontal rule"><h2 id="horizontal rule">horizontal rule</h2></div>
-
-<p>
-top
+<h1 id="implemented"><em><strong>implemented</strong></em></h1>
+<h1 id="header">header</h1>
+<h2 id="header-level-two">header level two</h2>
+<h3 id="header-level-3">header <code>level</code> 3</h3>
+<h4 id="header-level-four">header <del>level</del> four</h4>
+<h5 id="header-level-5">header <em><strong>level</strong> 5</em></h5>
+<h6 id="header-level-6">header level 6</h6>
+<p>======= not a header ========</p>
+<p>hi== not a header ==</p>
+<p>=== not a header ==</p>
+<p>=== not a header ===-</p>
+<p>not a header:</p>
+<p>=n=</p>
+<h2 id="centred-header" class="justcenter">centred header</h2>
+<h2 id="emph-and-strong">emph and strong</h2>
+<p><em>emph</em> <strong>strong</strong></p>
+<p><strong><em>strong and emph</em></strong></p>
+<p><em><strong>emph and strong</strong></em></p>
+<p><strong><em>emph inside</em> strong</strong></p>
+<p><strong>strong with <em>emph</em></strong></p>
+<p><em><strong>strong inside</strong> emph</em></p>
+<h2 id="horizontal-rule">horizontal rule</h2>
+<p>top</p>
 <hr />
-bottom
-</p>
-
+<p>middle</p>
 <hr />
-
-<div id="header-strikeout"><h2 id="strikeout">strikeout</h2></div>
-
-<p>
-<del>This is <em>struck out</em></del>
-</p>
-
-<div id="header-comments"><h2 id="comments">comments</h2></div>
-
-
-<p>
-inline %% not secret
-</p>
-
-<div id="header-linebreaks"><h2 id="linebreaks">linebreaks</h2></div>
-
-<p>
-hi<br/>there
-</p>
-
-<p>
-hi<br>
-there
-</p>
-
-<div id="header-sup, sub"><h2 id="sup, sub">sup, sub</h2></div>
-
-<p>
-super<sup><small>script</small></sup>
-</p>
-
-<p>
-sub<sub><small>script</small></sub>
-</p>
-
-<div id="header-inline code"><h2 id="inline code">inline code</h2></div>
-
-<p>
-Here is some <code>inline code</code>.
-</p>
-
-<div id="header-code blocks"><h2 id="code blocks">code blocks</h2></div>
-
-<pre python>
- for i in range(1, 5):
-     print(i)
-</pre>
-
-<div id="header-preformatted text"><h2 id="preformatted text">preformatted text</h2></div>
-
-<pre>
-  Tyger! Tyger! burning bright
+<p>bottom</p>
+<h2 id="strikeout">strikeout</h2>
+<p><del>This is <em>struck out</em></del> with emph</p>
+<h2 id="comments">comments</h2>
+<p>this is %% not secret</p>
+<h2 id="inline-code">inline code</h2>
+<p>Here is some <code>inline code</code>.</p>
+<h2 id="preformatted-text">preformatted text</h2>
+<pre><code>  Tyger! Tyger! burning bright
    In the forests of the night,
     What immortal hand or eye
      Could frame thy fearful symmetry?
   In what distant deeps or skies
    Burnt the fire of thine eyes?
     On what wings dare he aspire?
-     What the hand dare sieze the fire?
-</pre>
-
-
-<div id="header-block quotes"><h2 id="block quotes">block quotes</h2></div>
+     What the hand dare sieze the fire?</code></pre>
+<h2 id="block-quotes">block quotes</h2>
 <blockquote>
-This would be a blockquote in Vimwiki. It is not highlighted in Vim but
-could be styled by CSS in HTML. Blockquotes are usually used to quote a
-long piece of text from another source.
+This would be a blockquote in Vimwiki. It is not <strong>highlighted</strong> in Vim but could be styled by CSS in HTML. Blockquotes are usually used to quote a long piece of text from another source. <del>blah blah</del> <span id="-blockquote"></span><span id="blockquote" class="tag">blockquote</span>
 </blockquote>
-
-<div id="header-external links"><h2 id="external links">external links</h2></div>
-
-<p>
-<a href="http:&#47;&#47;google.com">_Google_ search engine</a>
-</p>
-
-<p>
-<a href="http:&#47;&#47;pandoc.org">http://pandoc.org</a>
-</p>
-
-<p>
-<a href="ftp:&#47;&#47;vim.org">ftp://vim.org</a>
-</p>
-
-<p>
-<a href="http:&#47;&#47;google.com">http://google.com</a> 
-</p>
-
-<p>
-<a href="mailto:info@example.org">email me</a>
-</p>
-
-<div id="header-internal links"><h2 id="internal links">internal links</h2></div>
-
-<p>
-<a href="This is a link.html">This is a link</a>
-</p>
-
-<p>
-<a href="This is a link source.html">Description of the link</a>
-</p>
-
-<p>
-<a href="projects&#47;Important Project 1.html">projects/Important Project 1</a>
-</p>
-   
-<p>
-<a href="..&#47;index.html">../index</a>
-</p>
-  
-<p>
-<a href="a subdirectory&#47;">Other files</a>
-</p>
-
-<p>
-<a href="..&#47;..&#47;codes&#47;pandoc&#47;test&#47;This is a link source.html">Description of the link</a>
-</p>
-  
-<p>
-<a href="vimwiki_pandoc_test.html#My anchor">#My anchor</a>
-</p>
-
-<p>
-<a href="vimwiki_pandoc_test.html#tag-one">try me to test tag anchors</a>
-</p>
-
-<p>
-<a href="vimwiki_pandoc_test.html#block quotes">try me to test header anchors</a>
-</p>
-
-<p>
-<a href="Todo List.html#Tomorrow">Tasks for tomorrow</a>
-</p>
-
-<p>
-<a href="&#47;home&#47;bacon&#47;centralwiki&#47;assets&#47;data.csv">Important Data</a>
-</p>
-
-<div id="header-images"><h2 id="images">images</h2></div>
-
-<p>
-<img src="../wiki/lalune.jpg" />
-</p>
-
-<p>
-<img src="http://vimwiki.googlecode.com/hg/images/vimwiki_logo.png" alt="Vimwiki" />
-</p>
-  
-<p>
-<img src="http://.../vimwiki_logo.png" alt="cool stuff" style="width:150px;height:120px;" />
-</p>
-  
-<p>
-<img src="http://.../vimwiki_logo.png" class="center flow blabla" />
-</p>
-
-<p>
-<a href="http:&#47;&#47;someaddr.com&#47;bigpicture.jpg"><img src="../wiki/./movie.jpg" /></a>
-</p>
-
-<div id="header-lists"><h2 id="lists">lists</h2></div>
-
+<h2 id="external-links">external links</h2>
+<p><a href="http://google.com" title="link"><em>Google</em> search engine</a></p>
+<p><a href="http://pandoc.org" class="uri">http://pandoc.org</a></p>
+<p><a href="ftp://vim.org" class="uri">ftp://vim.org</a></p>
+<p><a href="http://google.com" class="uri" title="link">http://google.com</a></p>
+<p><a href="mailto:info@example.org">email me</a></p>
+<p><a href="mailto:hello@bye.com">mailto:hello@bye.com</a></p>
+<h2 id="internal-links">internal links</h2>
+<p><a href="This is a link" class="uri" title="link">This is a link</a></p>
+<p><a href="This is a link source" title="link">Description of the link</a></p>
+<p><a href="projects/Important Project 1" class="uri" title="link">projects/Important Project 1</a> <a href="../index" class="uri" title="link">../index</a> <a href="a subdirectory/" title="link">Other files</a></p>
+<p><a href="wiki1:This is a link source" title="link">Description of the link</a> <a href="#My anchor" class="uri" title="link">#My anchor</a></p>
+<p><a href="#tag-one" title="link">try me to test tag anchors</a></p>
+<p><a href="#block quotes" title="link">try me to test header anchors</a></p>
+<p><a href="Todo List#Tomorrow" title="link">Tasks for tomorrow</a></p>
+<p><a href="file:../assets/data.csv" title="link">Important Data</a></p>
+<h2 id="images">images</h2>
+<p><img src="file:./lalune.jpg" alt="" /></p>
+<p><embed src="http://vimwiki.googlecode.com/hg/images/vimwiki_logo.png|Vimwiki" /></p>
+<p><a href="http://someaddr.com/bigpicture.jpg" title="link"><img src="./movie.jpg" alt="" /></a></p>
+<h2 id="lists">lists</h2>
 <ul>
-<li>
-Bulleted list item 1
-
-<li>
-Bulleted list item 2
-
+<li>Bulleted list item 1</li>
+<li>Bulleted list item 2</li>
 </ul>
-
-
 <ul>
-<li>
-Bulleted list item 1
-
-<li>
-Bulleted list item 2
-
+<li>Bulleted list item 1</li>
+<li>Bulleted list item 2</li>
 </ul>
-
-
 <ol>
-<li>
-Numbered list item 1
-
-<li>
-Numbered list item 2
-
-<li>
-Numbered list item 3
-
+<li>Bulleted list item 1</li>
+<li>the # become numbers when converted to HTML</li>
 </ol>
-
-<ol>
-<li>
-Numbered list item 1
-
-<li>
-Numbered list item 2
-
-<li>
-Numbered list item 3
-
-</ol>
-
-<ol>
-<li>
-Numbered list item 1
-
-<li>
-Numbered list item 2
-
-<li>
-Numbered list item 3
-
-</ol>
-
-<ol>
-<li>
-Numbered list item 1
-
-<li>
-Numbered list item 2
-
-<li>
-Numbered list item 3
-
-</ol>
-
-<ol>
-<li>
-Numbered list item 1
-
-<li>
-Numbered list item 2
-
-<li>
-Numbered list item 3
-
-</ol>
-
-<ol>
-<li>
-Numbered list item 1
-
-<li>
-Numbered list item 2
-
-<li>
-Numbered list item 3
-
-</ol>
-
-<ol>
-<li>
-Numbered list item 1
-
-<li>
-Numbered list item 2
-
-<li>
-Numbered list item 3
-
-</ol>
-
-<ol>
-<li>
-Bulleted list item 1
-
-<li>
-the # become numbers when converted to HTML
-
-</ol>
-
 <ul>
-<li>
-Bulleted list item 1
-
-<li>
-Bulleted list item 2
-
-<li>
-Numbered list sub item 1
-
-<li>
-more ...
-
-<ul>
-<li>
-and more ...
-
-<li>
-...
-
+<li>Bulleted list item 1</li>
+<li>Bulleted list item 2</li>
 </ul>
-<li>
-Numbered list sub item 3
-
+<ul>
+<li>Item 1</li>
+</ul>
+<p>Item 1 continued line. Item 1 next continued line.</p>
+<ul>
+<li>Item 2
 <ol>
-<li>
-Numbered list sub sub item 1
-
-<li>
-Numbered list sub sub item 2
-
+<li>Sub item 1 Sub item 1 continued line. Sub item 1 next continued line.</li>
+<li>Sub item 2, as an ordered list item even though the identifier is <code>*</code></li>
+<li>etc. Continuation of Item 2 Next continuation of Item 2</li>
+</ol></li>
+</ul>
+<p>But this is a new paragraph.</p>
+<ol>
+<li>1
+<ul>
+<li><code>1.1</code></li>
+</ul></li>
+<li>2
+<ul>
+<li>2.1</li>
+</ul></li>
 </ol>
-<li>
-etc.
-
-<li>
-Bulleted list item 3
-
-</ul>
-
 <ul>
-<li>
-Item 1
-
+<li>3</li>
 </ul>
-<p>
-Item 1 continued line.
-Item 1 next continued line.
-</p>
-<ul>
-<li>
-Item 2
-
-<li>
-Sub item 1
-  Sub item 1 continued line.
-  Sub item 1 next continued line.
-
-<li>
-Sub item 2
-
-<li>
-etc.
-
-</ul>
-<p>
-Continuation of Item 2
-Next continuation of Item 2
-</p>
-
-
-<dl>
-<dt>Term 1</dt>
-<dd>Definition 1</dd>
-<dt>Term 2</dt>
-<dd>Definition 2</dd>
-<dd>Definition 3</dd>
-</dl>
-
-<div id="header-math"><h2 id="math">math</h2></div>
-
-<p>
-\( \sum_i a_i^2 = 1 \)
-</p>
-
-\[
+<h2 id="math">math</h2>
+<p><span class="math inline">∑<sub><em>i</em></sub><em>a</em><sub><em>i</em></sub><sup>2</sup> = 1</span></p>
+<p><br /><span class="math display">$$\[
 \sum_i a_i^2
 =
-1
-\]
-
-\begin{align}
+1\]$$</span><br /></p>
+<p><br /><span class="math display">$$\begin{align}
 \sum_i a_i^2 &amp;= 1 + 1 \\
-&amp;= 2.
-\end{align}
-
-<div id="header-tags"><h2 id="tags">tags</h2></div>
-
-<p>
-<span id="header-tags-tag-one"></span><span class="tag" id="tag-one">tag-one</span> <span id="header-tags-tag-two"></span><span class="tag" id="tag-two">tag-two</span>
-</p>
-
-<div id="header-tables"><h2 id="tables">tables</h2></div>
- 
+&amp;= 2.\end{align}$$</span><br /></p>
+<h2 id="tags">tags</h2>
+<p><span id="-tag-one"></span><span id="tag-one" class="tag">tag-one</span><span id="-tag-two"></span><span id="tag-two" class="tag">tag-two</span></p>
+<h2 id="tables">tables</h2>
 <table>
-<tr>
-<th>
-Year
-</th>
-<th>
-Temperature (low)
-</th>
-<th>
-Temperature (high)
-</th>
+<thead>
+<tr class="header">
+<th> Year </th>
+<th> Temperature (low) </th>
+<th> Temperature (high) </th>
 </tr>
-<tr>
-<td>
-1900
-</td>
-<td>
--10
-</td>
-<td>
-25
-</td>
+</thead>
+<tbody>
+<tr class="odd">
+<td> 1900 </td>
+<td> -10 </td>
+<td> 25 </td>
 </tr>
-<tr>
-<td>
-1910
-</td>
-<td>
--15
-</td>
-<td>
-30
-</td>
+<tr class="even">
+<td> 1910 </td>
+<td> -15 </td>
+<td> 30 </td>
 </tr>
-<tr>
-<td>
-1920
-</td>
-<td>
--10
-</td>
-<td>
-32
-</td>
+<tr class="odd">
+<td> 1920 </td>
+<td> -10 </td>
+<td> 32 </td>
 </tr>
-<tr>
-<td>
-1930
-</td>
-<td>
-<em>N/A</em>
-</td>
-<td>
-<em>N/A</em>
-</td>
+<tr class="even">
+<td> 1930 </td>
+<td> <em>N/A</em> </td>
+<td> <em>N/A</em> </td>
 </tr>
-<tr>
-<td>
-1940
-</td>
-<td>
--2
-</td>
-<td>
-40
-</td>
+<tr class="odd">
+<td> 1940 </td>
+<td> -2 </td>
+<td> 40 </td>
 </tr>
+</tbody>
 </table>
-
+<h2 id="paragraphs">paragraphs</h2>
+<p>This is first paragraph with two lines.</p>
+<p>This is a second paragraph with two lines after many blank lines.</p>
+<h2 id="the-todo-mark">the todo mark</h2>
+<p><span class="todo">TODO:</span></p>
+<h1 id="not-implemented-yet"><em><strong>not implemented yet</strong></em></h1>
+<h2 id="sup-sub">sup, sub</h2>
+<p>super^script^</p>
+<p>sub,,script,,</p>
+<h2 id="preformat-with-attributes">preformat with attributes</h2>
+<pre><code> for i in range(1, 5):
+     print(i)</code></pre>
+<h2 id="image-with-attributes">image with attributes</h2>
+<p><embed src="http://.../vimwiki_logo.png|cool stuff|style=&quot;width:150px;height:120px;&quot;" /></p>
+<p><embed src="http://.../vimwiki_logo.png||class=&quot;center flow blabla&quot;" /></p>
+<h2 id="ordered-lists-with-non--identifiers">ordered lists with non-# identifiers</h2>
+<p>1. Numbered list item 1 2. Numbered list item 2 3. Numbered list item 3</p>
+<p>4. Numbered list item 1 5. Numbered list item 2 6. Numbered list item 3</p>
+<p>1) Numbered list item 1 2) Numbered list item 2 3) Numbered list item 3</p>
+<p>a) Numbered list item 1 b) Numbered list item 2 c) Numbered list item 3</p>
+<p>A) Numbered list item 1 B) Numbered list item 2 C) Numbered list item 3</p>
+<p>i) Numbered list item 1 ii) Numbered list item 2 iii) Numbered list item 3</p>
+<p>I) Numbered list item 1 II) Numbered list item 2 III) Numbered list item 3</p>
+<p>c) Numbered list sub item 3 1. Numbered list sub sub item 1 2. Numbered list sub sub item 2 d) etc.</p>
+<p>a) Numbered list sub item 1 b) more ...</p>
+<ul>
+<li>and more ...</li>
+<li>...</li>
+</ul>
+<ul>
+<li>Bulleted list item 3</li>
+</ul>
+<h2 id="definition-list">definition list</h2>
+<p>Term 1:: Definition 1 Term 2:: :: Definition 2 :: Definition 3</p>
+<h2 id="tables-with-spans">tables with spans</h2>
 <table>
-<tr>
-<td rowspan="3">
-a
-</td>
-<td>
-b
-</td>
-<td>
-c
-</td>
-<td>
-d
-</td>
+<thead>
+<tr class="header">
+<th> a </th>
+<th> b </th>
+<th> c </th>
+<th> d </th>
 </tr>
-<tr>
-<td rowspan="2" colspan="2">
-e
-</td>
-<td>
-f
-</td>
+</thead>
+<tbody>
+<tr class="odd">
+<td> \/ </td>
+<td> e </td>
+<td> &gt; </td>
+<td> f </td>
 </tr>
-<tr>
-<td>
-g
-</td>
+<tr class="even">
+<td> \/ </td>
+<td> \/ </td>
+<td> &gt; </td>
+<td> g </td>
 </tr>
-<tr>
-<td colspan="4">
-h
-</td>
+<tr class="odd">
+<td> h </td>
+<td> &gt; </td>
+<td> &gt; </td>
+<td> &gt; </td>
 </tr>
+</tbody>
 </table>
-<p>
-&gt;
-</p>
-
-<div id="header-paragraphs"><h2 id="paragraphs">paragraphs</h2></div>
-
-<p>
-This is first paragraph
-with two lines.
-</p>
-
-<p>
-This is a second paragraph with
-two lines.
-</p>
-
-</body>
-</html>
+<h2 id="centered-tables">centered tables</h2>
+<table>
+<thead>
+<tr class="header">
+<th> a </th>
+<th> b </th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td> c </td>
+<td> d </td>
+</tr>
+</tbody>
+</table>
+<h2 id="placeholders">placeholders</h2>
+<p>%title title %template template</p>
+<h2 id="todo-lists">todo lists</h2>
+<ul>
+<li>[ ] task 1</li>
+<li>[ ] task 2</li>
+</ul>

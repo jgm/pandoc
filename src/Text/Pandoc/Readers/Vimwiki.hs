@@ -40,7 +40,7 @@ Conversion of vimwiki text to 'Pandoc' document.
         * [ ] orderedlist with 1., i., a) etc identification.
         * [ ] todo lists -- see https://github.com/LarsEKrueger/pandoc-vimwiki
     * [X] table
-        * [O] centered table -- pandoc limitation, no table builder in Pandoc.Builder that accepts attributes
+        * [ ] centered table -- there does not seem to be a table builder in Pandoc.Builder that accepts attributes
         * [O] colspan and rowspan -- pandoc limitation, see issue #1024
     * [X] paragraph
     * [ ] definition list
@@ -65,7 +65,7 @@ module Text.Pandoc.Readers.Vimwiki ( readVimwiki
                                  ) where
 import Control.Monad.Except (throwError)
 import Control.Monad (guard)
-import Data.Default -- def is there
+import Data.Default 
 import Data.Functor.Identity
 import Data.Maybe
 import Data.List (isInfixOf)
@@ -84,13 +84,11 @@ import Text.Parsec.Error (ParseError)
 import Text.Parsec.Combinator (eof, choice, many1, manyTill, count, skipMany1, notFollowedBy)
 import Text.Parsec.Pos (sourceColumn)
 import Text.Parsec.Prim (many, getPosition, try, runParserT)
--- imports for tests
 import Text.Parsec.String (Parser)
 import Text.Parsec (parse)
 import Text.Parsec.Char (oneOf, space)
 import Text.Parsec.Combinator (lookAhead, between)
 import Text.Parsec.Prim ((<|>), (<?>), skipMany)
-import Test.HUnit
 import Text.Pandoc.Options (Extension(Ext_autolink_bare_uris))
 
 readVimwiki :: PandocMonad m => ReaderOptions -> String -> m Pandoc
@@ -108,9 +106,6 @@ type VwParser = ParserT [Char] ParserState
 specialChars :: [Char]
 specialChars = "=*-#[]_~{`$|:%"
 
--- spaceChar is the parser of only " \t"
--- space and spaces from Parsec.Char are *any* space characters including '\n'
--- newline is '\n'
 spaceChars :: [Char] 
 spaceChars = " \t\n"
 
@@ -152,12 +147,12 @@ blockQuote :: PandocMonad m => VwParser m Blocks
 preformatted :: PandocMonad m => VwParser m Blocks
 
 header = try $ do
-  sp <- many spaceChar --change to spaceChar
+  sp <- many spaceChar 
   eqs <- many1 (char '=')
   spaceChar
   let lev = length eqs
   guard $ lev <= 6
-  contents <- trimInlines . mconcat <$> manyTill inline (try $ spaceChar >> (string eqs) >> many spaceChar >> (char '\n')) -- consider blankline in Parsing to replace many whitespace >> char '\n'
+  contents <- trimInlines . mconcat <$> manyTill inline (try $ spaceChar >> (string eqs) >> many spaceChar >> (char '\n')) 
   attr <- registerHeader ("", (if sp == "" then [] else ["justcenter"]), []) contents
   return $ B.headerWith attr lev contents
 para = try $ do
@@ -179,8 +174,6 @@ blockQuote = try $ do
   if all (==Space) contents
      then return mempty
      else return $ B.blockQuote $ B.plain contents
-  --contents <- para
-  --return $ B.blockQuote contents
 preformatted = try $ do
   many spaceChar >> string "{{{" >> many (noneOf "\n") >> lookAhead newline
   contents <- manyTill anyChar (try (char '\n' >> many spaceChar >> string "}}}" >> many spaceChar >> newline))
@@ -200,33 +193,6 @@ mixedList = try $ do
   (bl, _) <- mixedList' 0
   return $ head bl
 
--- |mixedList testing:
--- *Main> testP mixedList "* *1 2*\n  *    _4 5_ \n  * https://www.google.com  \n * $a^2$"
--- Right (Many {unMany = fromList [BulletList [[Plain [Strong [Str "1",Space,Str "2"]]],[BulletList [[Plain [Emph [Str "4",Space,Str "5"],Space]],[Plain [Link ("",[],[]) [Str "https://www.google.com"] ("https://www.google.com",""),Space]]]],[Plain [Math InlineMath "a^2"]]]]})
-{--
-*Text.Pandoc.Readers.Vimwiki> testP parseVimwiki "* 1\n # 1.1"
-Right (Pandoc (Meta {unMeta = fromList []}) [BulletList [[Plain [Str "1"],OrderedList (1,DefaultStyle,DefaultDelim) [[Plain [Str "1.1"]]]]]])
-*Text.Pandoc.Readers.Vimwiki> testP parseVimwiki "* 1\n * 1.1 \n* 2"
-Right (Pandoc (Meta {unMeta = fromList []}) [BulletList [[Plain [Str "1"],BulletList [[Plain [Str "1.1"]]]],[Plain [Str "2"]]]])
-*Text.Pandoc.Readers.Vimwiki> testP parseVimwiki "* 1\n * 1.1 \n# 2"
-Right (Pandoc (Meta {unMeta = fromList []}) [BulletList [[Plain [Str "1"],BulletList [[Plain [Str "1.1"]]]],[Plain [Str "2"]]]])
-*Text.Pandoc.Readers.Vimwiki> testP parseVimwiki "# 1\n * 1.1 \n# 2"
-Right (Pandoc (Meta {unMeta = fromList []}) [OrderedList (1,DefaultStyle,DefaultDelim) [[Plain [Str "1"],BulletList [[Plain [Str "1.1"]]]],[Plain [Str "2"]]]])
-*Text.Pandoc.Readers.Vimwiki> testP parseVimwiki "# 1\n * 1.1 \n* 2"
-Right (Pandoc (Meta {unMeta = fromList []}) [OrderedList (1,DefaultStyle,DefaultDelim) [[Plain [Str "1"],BulletList [[Plain [Str "1.1"]]]],[Plain [Str "2"]]]])
---} 
-
--- FIXME: there is some problem with the list levels, e.g. 
-{--
-* 1\n            * 1.1 
-yields
-[BulletList
- [[Plain [Str "1"]
-  ,BulletList
-   [[Plain [Str "1.1"]]]]]]
-in pandoc -f markdown -t native, but here we have
-Right (Pandoc (Meta {unMeta = fromList []}) [BulletList [[Plain [Str "1"]],[BulletList [[Plain [Str "1.1"]]]]]])
-   --}
 mixedList' :: PandocMonad m => Int -> VwParser m ([Blocks], Int)
 mixedList' prevLev = do
   listSpaces <- listSpacesParser <|> emptyParser
@@ -262,15 +228,6 @@ combineList x [y] = case toList y of
                             otherwise -> x:[y]
 combineList x xs = x:xs
 
---OrderedList (1,DefaultStyle,DefaultDelim) [[Plain [Strong [Str "1",Space,Str "2"]]],[BulletList [[Plain [Emph [Str "4",Space,Str "5"],Space]],[Plain [Link ("",[],[]) [Str "https://www.google.com"] ("https://www.google.com",""),Space]]]],[Plain [Math InlineMath "a^2"]]]
---OrderedList (1,DefaultStyle,DefaultDelim) [[Plain [Str "1"]],[Plain [Str "2"]]]
--- | mixedList' testing:
--- *Main> testP (mixedList' 0) "   * 1\n* 2"
--- Right ([Many {unMany = fromList [BulletList [[Plain [Str "1"]]]]}],1)
--- *Main> testP (mixedList' 0) "* hello\n* hi"
--- Right ([Many {unMany = fromList [BulletList [[Plain [Str "hello"]],[Plain [Str "hi"]]]]}],0)
--- *Main> testP (mixedList' 0) "* 1\n  * 3\n * 2"
--- Right ([Many {unMany = fromList [BulletList [[Plain [Str "1"]],[BulletList [[Plain [Str "3"]]]],[Plain [Str "2"]]]]}],0)
 
 listType :: Char -> Maybe ([Blocks] -> Blocks)
 listType '*' = Just B.bulletList
@@ -293,10 +250,6 @@ table = try $ do
   many tableHeaderSeparator 
   trs <- many tableRow
   return $ B.simpleTable th trs
-
--- | table test:
--- *Main> testP table "|a|$b$|\n|_c c_|d|\n|e|f|"
--- Right (Many {unMany = fromList [Table [] [AlignDefault,AlignDefault] [0.0,0.0] [[Plain [Str "a"]],[Plain [Math InlineMath "b"]]] [[[Plain [Emph [Str "c",Space,Str "c"]]],[Plain [Str "d"]]],[[Plain [Str "e"]],[Plain [Str "f"]]]]]})
 
 tableHeaderSeparator :: PandocMonad m => VwParser m ()
 tableHeaderSeparator = try $ do
@@ -443,95 +396,3 @@ mathTagParser = do
 
 emptyParser :: PandocMonad m => VwParser m String
 emptyParser = return ""
-
-  
--- tests: to be removed
-
--- *Main> runIO (readVimwiki (def :: ReaderOptions) "==2==" :: PandocIO Pandoc)
--- Right (Pandoc (Meta {unMeta = fromList []}) [Header 2 ("",[],[]) [Str "2"]])
-
-runParser :: VwParser PandocIO a -> String -> PandocIO a
-runParser p s = do
-  res <- readWithM p def{ stateOptions = def :: ReaderOptions } s
-  case res of
-       Left e -> throwError e
-       Right result -> return result
-
-testP :: VwParser PandocIO a -> String -> IO (Either PandocError a)
-testP p s = runIO $ runParser p (s ++ "\n")
---testP p s = runIO $ runParser p s
-
---type Parser = Parsec String ()
-{--runP :: VwParser PandocIO a -> [Char] -> IO (Either PandocError a)
-runP p opts s = do
-  res <- readWithM p def{ stateOptions = opts } s
-  case res of
-       Left e -> throwError e
-       Right result -> return result--}
---runP p s = runIO (mapLeft (PandocParsecError s) `liftM` runParserT p def{ stateOptions = def :: ReaderOptions } "test" s)
---
-simpleParse :: Parser a -> String -> Either ParseError a
-simpleParse p s = parse p "" (s ++ "\n")
-
-header' :: Parser String
-header' = do
-  spaces
-  eqs <- many1 $ char '='
-  let lev = length eqs
-  guard $ lev <= 6
-  space
-  manyTill anyChar $ try $ space >> string eqs >> (skipMany spaceChar) >> char '\n'
-
-
-header'' :: Parser [Inlines]
-header'' = manyTill (B.str <$> (many1 anyChar)) (string "===")
-
-strikeout' :: Parser String
-strikeout' = do
-  string "~~"
-  manyTill anyChar $ try $ lookAhead $ (string "~~") >> (oneOf $ spaceChars ++ specialChars)
-
-emph' :: Parser String
-emph' = do
-  char '_'
-  lookAhead (noneOf " \t\n")
-  x <- manyTill anyChar $ try $ lookAhead $ (noneOf " \t\n") >> (char '_') >> (oneOf $ spaceChars ++ specialChars)
-  y <- anyChar
-  (return $ x ++ [y]) 
-
-strong' :: Parser String
-strong' = do
-  s <- between (char '*') (char '*') (many1 $ noneOf "*")
-  lookAhead (oneOf $ spaceChars ++ specialChars)
-  guard $ (not $ (head s) `elem` spaceChars) && (not $ (last s) `elem` spaceChars)
-  return s
-
-testStrong' :: IO Counts
-testStrong' = 
-  runTestTT $ TestList
-    [ TestCase (assertEqual "" (simpleParse strong' "*23*") (Right "23")),
-      TestCase (assertEqual "" (simpleParse strong' "*2 3*~   *_") (Right "2 3"))
-    ]
-
-testHeader' =
-  runTestTT $ TestList
-    [ TestCase (assertEqual "" (simpleParse header' " = a b= c =") (Right "a b= c")),
-      TestCase (assertEqual "" (simpleParse header' " == a b= c ==") (Right "a b= c")),
-      TestCase (assertEqual "" (simpleParse header' " === a b==c ===") (Right "a b==c")),
-      TestCase (assertEqual "" (simpleParse header' " = a b =c =") (Right "a b =c"))
-    ]
--- other tests: " ======= a b= c =======   ", " === a b= c ====   " fail
-
-{-- ???
-testHeader =
-  runTestTT $ TestList
-    [ TestCase (assertEqual "" (testP header "     = a = b =") (Right (Many {unMany = fromList [Header 1 ("",[],[]) [Str "a",Space,Str "=",Space,Str "b"]]}))),
-      TestCase (assertEqual "" (testP header "     ====== a =** b ======") (Right (Many {unMany = fromList [Header 6 ("",[],[]) [Str "a",Space,Str "=**",Space,Str "b"]]}))),
-      TestCase (assertEqual "" (testP header "     ======= a =** b =======") (Left (PandocParsecError "     ======= a =** b =======\n" "source" (line 1, column 14):
-unexpected "a"))),
-      TestCase (assertEqual "" (testP header "     === a = b =") (Left (PandocParsecError "     === a = b =\n" "source" (line 1, column 17):
-unexpected "\n"))),
-      TestCase (assertEqual "" (testP header "= a = b =a") (Left (PandocParsecError "= a = b =a\n" "source" (line 1, column 11):
-unexpected "\n")))
-    ]
-    --}
