@@ -179,7 +179,7 @@ comment = try $ do
   return mempty
 blockQuote = try $ do
   string "    "
-  contents <- trimInlines . mconcat <$> many1 inline'
+  contents <- trimInlines . mconcat <$> many1 inlineBQ
   if all (==Space) contents
      then return mempty
      else return $ B.blockQuote $ B.plain contents
@@ -229,7 +229,7 @@ mixedList' prevLev = do
           many spaceChar  -- change to spaceChar
           c <- oneOf "*-#" 
           many1 spaceChar  -- change to spaceChar
-          curLine <- B.plain <$> trimInlines . mconcat <$> many1 inline''
+          curLine <- B.plain <$> trimInlines . mconcat <$> many1 inlineML
           --curLine <- B.plain <$> mconcat <$> (manyTill inline (char '\n'))
           let listBuilder = fromJust $ listType c
           (subList, lowLev) <- (mixedList' curLev)
@@ -303,7 +303,7 @@ tableCell = try $ do
 -- inline parser
 
 inline :: PandocMonad m => VwParser m Inlines
-inline = choice $ whitespace:inlineList
+inline = choice $ (whitespace endlineP):inlineList
 
 inlineList :: PandocMonad m => [VwParser m Inlines]
 inlineList = [  bareURL
@@ -320,17 +320,16 @@ inlineList = [  bareURL
              ,  special
              ]
 -- inline parser for blockquotes
-inline' :: PandocMonad m => VwParser m Inlines
-inline' = choice $ whitespace':inlineList
+inlineBQ :: PandocMonad m => VwParser m Inlines
+inlineBQ = choice $ (whitespace endlineBQ):inlineList
 
 -- inline parser for mixedlists
-inline'' :: PandocMonad m => VwParser m Inlines
-inline'' = choice $ whitespace'':inlineList
+inlineML :: PandocMonad m => VwParser m Inlines
+inlineML = choice $ (whitespace endlineML):inlineList
 
 str :: PandocMonad m => VwParser m Inlines
-whitespace :: PandocMonad m => VwParser m Inlines
-whitespace' :: PandocMonad m => VwParser m Inlines
-whitespace'' :: PandocMonad m => VwParser m Inlines
+--whitespace' :: PandocMonad m => VwParser m Inlines
+--whitespace'' :: PandocMonad m => VwParser m Inlines
 special :: PandocMonad m => VwParser m Inlines
 todoMark :: PandocMonad m => VwParser m Inlines
 bareURL :: PandocMonad m => VwParser m Inlines
@@ -346,12 +345,13 @@ tag :: PandocMonad m => VwParser m Inlines
 --str = B.str <$> many1 (noneOf $ specialChars ++ spaceChars)
 str = B.str <$> (many1 $ noneOf $ spaceChars ++ specialChars)
 --whitespace = B.space <$ (skipMany1 spaceChar)
-whitespace = B.space <$ (skipMany1 spaceChar)
+whitespace :: PandocMonad m => VwParser m () -> VwParser m Inlines
+whitespace endline = B.space <$ (skipMany1 spaceChar)
          <|> B.softbreak <$ endline
-whitespace' = B.space <$ (skipMany1 spaceChar)
+{--whitespace' = B.space <$ (skipMany1 spaceChar)
          <|> B.softbreak <$ endline'
 whitespace'' = B.space <$ (skipMany1 spaceChar)
-         <|> B.softbreak <$ endline''
+         <|> B.softbreak <$ endline''--}
 special = B.str <$> count 1 (oneOf specialChars)
 bareURL = try $ do
   (orig, src) <- uri <|> emailAddress
@@ -415,12 +415,12 @@ splitAtSeparater xs = go "" xs
       | head ys == '|' = (xs, tail ys)
       | otherwise = go (xs ++ [head ys]) (tail ys)
       --}
-endline :: PandocMonad m => VwParser m ()
-endline = () <$ try (newline <* notFollowedByThingsThatBreakSoftBreaks <* notFollowedBy blockQuote)
-endline' :: PandocMonad m => VwParser m ()
-endline' = () <$ try (newline <* notFollowedByThingsThatBreakSoftBreaks <* string "    ")
-endline'' :: PandocMonad m => VwParser m ()
-endline'' = () <$ try (newline <* notFollowedByThingsThatBreakSoftBreaks <* many1 spaceChar)
+endlineP :: PandocMonad m => VwParser m ()
+endlineP = () <$ try (newline <* notFollowedByThingsThatBreakSoftBreaks <* notFollowedBy blockQuote)
+endlineBQ :: PandocMonad m => VwParser m ()
+endlineBQ = () <$ try (newline <* notFollowedByThingsThatBreakSoftBreaks <* string "    ")
+endlineML :: PandocMonad m => VwParser m ()
+endlineML = () <$ try (newline <* notFollowedByThingsThatBreakSoftBreaks <* many1 spaceChar)
 
 notFollowedByThingsThatBreakSoftBreaks :: PandocMonad m => VwParser m ()
 notFollowedByThingsThatBreakSoftBreaks =
