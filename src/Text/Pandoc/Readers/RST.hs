@@ -568,9 +568,9 @@ rawListItem :: Monad m => RSTParser m Int
             -> RSTParser m (Int, [Char])
 rawListItem start = try $ do
   markerLength <- start
-  firstLine <- anyLine
+  firstLine <- anyLineNewline
   restLines <- many (listLine markerLength)
-  return (markerLength, (firstLine ++ "\n" ++ (concat restLines)))
+  return (markerLength, firstLine ++ concat restLines)
 
 -- continuation of a list item - indented and separated by blankline or
 -- (in compact lists) endline.
