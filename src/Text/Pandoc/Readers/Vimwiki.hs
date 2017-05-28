@@ -36,7 +36,7 @@ Conversion of vimwiki text to 'Pandoc' document.
     * [X] blockquote -- currently only accepting four spaces rather than a mix of spaces and tabs
     * [X] preformatted -- need to implement preformatted with attributes
     * [X] displaymath - a bit buggy
-    * [X] bulletlist / orderedlist - a bit buggy with nested lists -- currently not calculating mixed tabs and spaces indentations.
+    * [X] bulletlist / orderedlist -- currently not calculating mixed tabs and spaces indentations.
         * [ ] orderedlist with 1., i., a) etc identification.
         * [ ] todo lists -- see https://github.com/LarsEKrueger/pandoc-vimwiki
     * [X] table
