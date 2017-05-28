@@ -5,11 +5,12 @@
 
 <!-- MathJax: Fall back to local if CDN offline -->
 
-<title>vimwiki-reader</title>
+<title>title</title>
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
 </head>
 <body>
 
+<div id="_*implemented*_"><h1 id="_*implemented*_"><em><span id="_*implemented*_-implemented"></span><strong id="implemented">implemented</strong></em></h1></div>
 <div id="header"><h1 id="header">header</h1></div>
 
 <div id="header-header level two"><h2 id="header level two">header level two</h2></div>
@@ -27,9 +28,23 @@
 </p>
 
 <p>
+hi== not a header ==
+</p>
+
+<p>
+=== not a header ==
+</p>
+
+<p>
+=== not a header ===-
+</p>
+
+<p>
+not a header:
+</p>
+
+<p>
 =n=
-==f==
-===f===
 </p>
 
 <div id="header-centred header"><h2 id="centred header" class="justcenter">centred header</h2></div>
@@ -65,43 +80,26 @@
 <p>
 top
 <hr />
-bottom
+middle
 </p>
 
 <hr />
 
+<p>
+bottom
+</p>
 <div id="header-strikeout"><h2 id="strikeout">strikeout</h2></div>
 
 <p>
-<del>This is <em>struck out</em></del>
+<del>This is <em>struck out</em></del> with emph
 </p>
 
 <div id="header-comments"><h2 id="comments">comments</h2></div>
 
 
 <p>
-inline %% not secret
-</p>
-
-<div id="header-linebreaks"><h2 id="linebreaks">linebreaks</h2></div>
-
-<p>
-hi<br/>there
-</p>
-
-<p>
-hi<br>
-there
-</p>
-
-<div id="header-sup, sub"><h2 id="sup, sub">sup, sub</h2></div>
-
-<p>
-super<sup><small>script</small></sup>
-</p>
-
-<p>
-sub<sub><small>script</small></sub>
+this 
+is %% not secret
 </p>
 
 <div id="header-inline code"><h2 id="inline code">inline code</h2></div>
@@ -110,12 +108,6 @@ sub<sub><small>script</small></sub>
 Here is some <code>inline code</code>.
 </p>
 
-<div id="header-code blocks"><h2 id="code blocks">code blocks</h2></div>
-
-<pre python>
- for i in range(1, 5):
-     print(i)
-</pre>
 
 <div id="header-preformatted text"><h2 id="preformatted text">preformatted text</h2></div>
 
@@ -133,9 +125,9 @@ Here is some <code>inline code</code>.
 
 <div id="header-block quotes"><h2 id="block quotes">block quotes</h2></div>
 <blockquote>
-This would be a blockquote in Vimwiki. It is not highlighted in Vim but
+This would be a blockquote in Vimwiki. It is not <span id="header-block quotes-highlighted"></span><strong id="highlighted">highlighted</strong> in Vim but
 could be styled by CSS in HTML. Blockquotes are usually used to quote a
-long piece of text from another source.
+long piece of text from another source. <del>blah blah</del> <span id="header-block quotes-blockquote"></span><span class="tag" id="blockquote">blockquote</span>
 </blockquote>
 
 <div id="header-external links"><h2 id="external links">external links</h2></div>
@@ -158,6 +150,10 @@ long piece of text from another source.
 
 <p>
 <a href="mailto:info@example.org">email me</a>
+</p>
+
+<p>
+<a href="mailto:hello@bye.com">mailto:hello@bye.com</a>
 </p>
 
 <div id="header-internal links"><h2 id="internal links">internal links</h2></div>
@@ -216,13 +212,7 @@ long piece of text from another source.
 <img src="http://vimwiki.googlecode.com/hg/images/vimwiki_logo.png" alt="Vimwiki" />
 </p>
   
-<p>
-<img src="http://.../vimwiki_logo.png" alt="cool stuff" style="width:150px;height:120px;" />
-</p>
   
-<p>
-<img src="http://.../vimwiki_logo.png" class="center flow blabla" />
-</p>
 
 <p>
 <a href="http:&#47;&#47;someaddr.com&#47;bigpicture.jpg"><img src="../test/./movie.jpg" /></a>
@@ -230,14 +220,6 @@ long piece of text from another source.
 
 <div id="header-lists"><h2 id="lists">lists</h2></div>
 
-<ul>
-<li>
-Bulleted list item 1
-
-<li>
-Bulleted list item 2
-
-</ul>
 
 
 <ul>
@@ -250,89 +232,15 @@ Bulleted list item 2
 </ul>
 
 
-<ol>
+<ul>
 <li>
-Numbered list item 1
-
-<li>
-Numbered list item 2
+Bulleted list item 1
 
 <li>
-Numbered list item 3
+Bulleted list item 2
 
-</ol>
+</ul>
 
-<ol>
-<li>
-Numbered list item 1
-
-<li>
-Numbered list item 2
-
-<li>
-Numbered list item 3
-
-</ol>
-
-<ol>
-<li>
-Numbered list item 1
-
-<li>
-Numbered list item 2
-
-<li>
-Numbered list item 3
-
-</ol>
-
-<ol>
-<li>
-Numbered list item 1
-
-<li>
-Numbered list item 2
-
-<li>
-Numbered list item 3
-
-</ol>
-
-<ol>
-<li>
-Numbered list item 1
-
-<li>
-Numbered list item 2
-
-<li>
-Numbered list item 3
-
-</ol>
-
-<ol>
-<li>
-Numbered list item 1
-
-<li>
-Numbered list item 2
-
-<li>
-Numbered list item 3
-
-</ol>
-
-<ol>
-<li>
-Numbered list item 1
-
-<li>
-Numbered list item 2
-
-<li>
-Numbered list item 3
-
-</ol>
 
 <ol>
 <li>
@@ -350,37 +258,6 @@ Bulleted list item 1
 <li>
 Bulleted list item 2
 
-<li>
-Numbered list sub item 1
-
-<li>
-more ...
-
-<ul>
-<li>
-and more ...
-
-<li>
-...
-
-</ul>
-<li>
-Numbered list sub item 3
-
-<ol>
-<li>
-Numbered list sub sub item 1
-
-<li>
-Numbered list sub sub item 2
-
-</ol>
-<li>
-etc.
-
-<li>
-Bulleted list item 3
-
 </ul>
 
 <ul>
@@ -396,31 +273,47 @@ Item 1 next continued line.
 <li>
 Item 2
 
+<ol>
 <li>
 Sub item 1
   Sub item 1 continued line.
-  Sub item 1 next continued line.
+    Sub item 1 next continued line.
 
 <li>
-Sub item 2
+Sub item 2, as an ordered list item even though the identifier is <code>*</code>
 
 <li>
 etc.
+ Continuation of Item 2
+ Next continuation of Item 2
 
+</ol>
 </ul>
 <p>
-Continuation of Item 2
-Next continuation of Item 2
+But this is a new paragraph.
 </p>
 
+<ol>
+<li>
+1
 
-<dl>
-<dt>Term 1</dt>
-<dd>Definition 1</dd>
-<dt>Term 2</dt>
-<dd>Definition 2</dd>
-<dd>Definition 3</dd>
-</dl>
+<ul>
+<li>
+<code>1.1</code>
+
+</ul>
+<li>
+2
+
+<ul>
+<li>
+2.1
+
+</ul>
+<li>
+3
+
+</ol>
 
 <div id="header-math"><h2 id="math">math</h2></div>
 
@@ -516,6 +409,192 @@ Temperature (high)
 </tr>
 </table>
 
+
+<div id="header-paragraphs"><h2 id="paragraphs">paragraphs</h2></div>
+
+<p>
+This is first paragraph
+with two lines.
+</p>
+
+
+
+
+
+
+
+
+<p>
+This is a second paragraph with
+two lines after many blank lines.
+</p>
+
+<div id="header-the todo mark"><h2 id="the todo mark">the todo mark</h2></div>
+<p>
+<span class="todo">TODO:</span>
+</p>
+
+<div id="_*not implemented yet*_"><h1 id="_*not implemented yet*_"><em><span id="_*not implemented yet*_-not implemented yet"></span><strong id="not implemented yet">not implemented yet</strong></em></h1></div>
+
+<div id="_*not implemented yet*_-sup, sub"><h2 id="sup, sub">sup, sub</h2></div>
+
+<p>
+super<sup><small>script</small></sup>
+</p>
+
+<p>
+sub<sub><small>script</small></sub>
+</p>
+
+<div id="_*not implemented yet*_-preformat with attributes"><h2 id="preformat with attributes">preformat with attributes</h2></div>
+
+<pre class="python">
+ for i in range(1, 5):
+     print(i)
+</pre>
+ 
+<div id="_*not implemented yet*_-image with attributes"><h2 id="image with attributes">image with attributes</h2></div>
+<p>
+<img src="http://.../vimwiki_logo.png" alt="cool stuff" style="width:150px;height:120px;" />
+</p>
+
+<p>
+<img src="http://.../vimwiki_logo.png" class="center flow blabla" />
+</p>
+
+<div id="_*not implemented yet*_-ordered lists with non-# identifiers"><h2 id="ordered lists with non-# identifiers">ordered lists with non-# identifiers</h2></div>
+<ol>
+<li>
+Numbered list item 1
+
+<li>
+Numbered list item 2
+
+<li>
+Numbered list item 3
+
+</ol>
+
+<ol>
+<li>
+Numbered list item 1
+
+<li>
+Numbered list item 2
+
+<li>
+Numbered list item 3
+
+</ol>
+
+<ol>
+<li>
+Numbered list item 1
+
+<li>
+Numbered list item 2
+
+<li>
+Numbered list item 3
+
+</ol>
+
+<ol>
+<li>
+Numbered list item 1
+
+<li>
+Numbered list item 2
+
+<li>
+Numbered list item 3
+
+</ol>
+
+<ol>
+<li>
+Numbered list item 1
+
+<li>
+Numbered list item 2
+
+<li>
+Numbered list item 3
+
+</ol>
+
+<ol>
+<li>
+Numbered list item 1
+
+<li>
+Numbered list item 2
+
+<li>
+Numbered list item 3
+
+</ol>
+
+<ol>
+<li>
+Numbered list item 1
+
+<li>
+Numbered list item 2
+
+<li>
+Numbered list item 3
+
+</ol>
+
+<ol>
+<li>
+Numbered list sub item 3
+
+<ol>
+<li>
+Numbered list sub sub item 1
+
+<li>
+Numbered list sub sub item 2
+
+</ol>
+<li>
+etc.
+
+</ol>
+
+<ol>
+<li>
+Numbered list sub item 1
+
+<li>
+more ...
+
+<ul>
+<li>
+and more ...
+
+<li>
+...
+
+</ul>
+<li>
+Bulleted list item 3
+
+</ol>
+
+<div id="_*not implemented yet*_-definition list"><h2 id="definition list">definition list</h2></div>
+
+<dl>
+<dt>Term 1</dt>
+<dd>Definition 1</dd>
+<dt>Term 2</dt>
+<dd>Definition 2</dd>
+<dd>Definition 3</dd>
+</dl>
+
+<div id="_*not implemented yet*_-tables with spans"><h2 id="tables with spans">tables with spans</h2></div>
 <table>
 <tr>
 <td rowspan="3">
@@ -550,21 +629,38 @@ h
 </td>
 </tr>
 </table>
-<p>
-&gt;
-</p>
 
-<div id="header-paragraphs"><h2 id="paragraphs">paragraphs</h2></div>
+<div id="_*not implemented yet*_-centered tables"><h2 id="centered tables">centered tables</h2></div>
+<table class='center'>
+<tr>
+<td>
+a
+</td>
+<td>
+b
+</td>
+</tr>
+<tr>
+<td>
+c
+</td>
+<td>
+d
+</td>
+</tr>
+</table>
+ 
+<div id="_*not implemented yet*_-placeholders"><h2 id="placeholders">placeholders</h2></div>
 
-<p>
-This is first paragraph
-with two lines.
-</p>
+<div id="_*not implemented yet*_-todo lists"><h2 id="todo lists">todo lists</h2></div>
+<ul>
+<li class="done0">
+task 1
 
-<p>
-This is a second paragraph with
-two lines.
-</p>
+<li class="done0">
+task 2
+
+</ul>
 
 </body>
 </html>

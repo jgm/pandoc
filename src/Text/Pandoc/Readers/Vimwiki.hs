@@ -34,8 +34,7 @@ Conversion of vimwiki text to 'Pandoc' document.
     * [X] hrule
     * [X] comment
     * [X] blockquote -- currently only accepting four spaces rather than a mix of spaces and tabs
-    * [X] preformatted
-        * [ ] with attributes -- need to pass the name-value pair to be the attributes
+    * [X] preformatted -- need to implement preformatted with attributes
     * [X] displaymath - a bit buggy
     * [X] bulletlist / orderedlist - a bit buggy with nested lists -- currently not calculating mixed tabs and spaces indentations.
         * [ ] orderedlist with 1., i., a) etc identification.
@@ -53,16 +52,13 @@ Conversion of vimwiki text to 'Pandoc' document.
     * [X] code
     * [X] link
         * [ ] with thumbnails -- pandoc limitation? can't find builder of link with thumbnails
-    * [X] image
-        * [ ] with attributes - same as in preformatted
+    * [X] image -- to implement images with attributes - same as in preformatted
     * [X] inline math - a bit buggy
     * [X] tag
     * [ ] sub- and super-scripts
 * misc:
     * [X] `TODO:` mark
-    * [ ] placeholders
-        * [ ] %title and %date -> metadata
-        * [ ] %template
+    * [ ] placeholders: %title and %date -> metadata, %template -> template
 --}
 
 module Text.Pandoc.Readers.Vimwiki ( readVimwiki
