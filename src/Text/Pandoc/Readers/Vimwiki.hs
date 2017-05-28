@@ -57,6 +57,7 @@ Conversion of vimwiki text to 'Pandoc' document.
         * [ ] with attributes - same as in preformatted
     * [X] inline math - a bit buggy
     * [X] tag
+    * [ ] sub- and super-scripts
 * misc:
     * [X] `TODO:` mark
     * [ ] placeholders
@@ -109,7 +110,7 @@ type VwParser = ParserT [Char] ParserState
 -- constants
 
 specialChars :: [Char]
-specialChars = "=*-#[]_~{`$|:"
+specialChars = "=*-#[]_~{`$|:%"
 
 -- spaceChar is the parser of only " \t"
 -- space and spaces from Parsec.Char are *any* space characters including '\n'
@@ -134,7 +135,7 @@ block = do
   res <- choice [ mempty <$ blanklines
                 , header
                 , hrule
-                , comment
+                , mempty <$ comment
                 , mixedList
                 , blockQuote
                 , preformatted
@@ -147,7 +148,6 @@ block = do
 
 header :: PandocMonad m => VwParser m Blocks
 hrule :: PandocMonad m => VwParser m Blocks
-comment :: PandocMonad m => VwParser m Blocks
 displayMath :: PandocMonad m => VwParser m Blocks
 para :: PandocMonad m => VwParser m Blocks
 mixedList :: PandocMonad m => VwParser m Blocks
@@ -172,9 +172,11 @@ para = try $ do
 hrule = try $ do
   string "----" >> many (char '-') >> newline
   return B.horizontalRule
+
+comment :: PandocMonad m => VwParser m ()
 comment = try $ do
-  string "%%" >> many (noneOf "\n") >> newline
-  return mempty
+  many spaceChar >> string "%%" >> many (noneOf "\n") >> (lookAhead newline)
+  return ()
 blockQuote = try $ do
   string "    "
   contents <- trimInlines . mconcat <$> many1 inlineBQ
@@ -205,6 +207,18 @@ mixedList = try $ do
 -- |mixedList testing:
 -- *Main> testP mixedList "* *1 2*\n  *    _4 5_ \n  * https://www.google.com  \n * $a^2$"
 -- Right (Many {unMany = fromList [BulletList [[Plain [Strong [Str "1",Space,Str "2"]]],[BulletList [[Plain [Emph [Str "4",Space,Str "5"],Space]],[Plain [Link ("",[],[]) [Str "https://www.google.com"] ("https://www.google.com",""),Space]]]],[Plain [Math InlineMath "a^2"]]]]})
+{--
+*Text.Pandoc.Readers.Vimwiki> testP parseVimwiki "* 1\n # 1.1"
+Right (Pandoc (Meta {unMeta = fromList []}) [BulletList [[Plain [Str "1"],OrderedList (1,DefaultStyle,DefaultDelim) [[Plain [Str "1.1"]]]]]])
+*Text.Pandoc.Readers.Vimwiki> testP parseVimwiki "* 1\n * 1.1 \n* 2"
+Right (Pandoc (Meta {unMeta = fromList []}) [BulletList [[Plain [Str "1"],BulletList [[Plain [Str "1.1"]]]],[Plain [Str "2"]]]])
+*Text.Pandoc.Readers.Vimwiki> testP parseVimwiki "* 1\n * 1.1 \n# 2"
+Right (Pandoc (Meta {unMeta = fromList []}) [BulletList [[Plain [Str "1"],BulletList [[Plain [Str "1.1"]]]],[Plain [Str "2"]]]])
+*Text.Pandoc.Readers.Vimwiki> testP parseVimwiki "# 1\n * 1.1 \n# 2"
+Right (Pandoc (Meta {unMeta = fromList []}) [OrderedList (1,DefaultStyle,DefaultDelim) [[Plain [Str "1"],BulletList [[Plain [Str "1.1"]]]],[Plain [Str "2"]]]])
+*Text.Pandoc.Readers.Vimwiki> testP parseVimwiki "# 1\n * 1.1 \n* 2"
+Right (Pandoc (Meta {unMeta = fromList []}) [OrderedList (1,DefaultStyle,DefaultDelim) [[Plain [Str "1"],BulletList [[Plain [Str "1.1"]]]],[Plain [Str "2"]]]])
+--} 
 
 -- FIXME: there is some problem with the list levels, e.g. 
 {--
@@ -348,7 +362,7 @@ tag :: PandocMonad m => VwParser m Inlines
 
 str = B.str <$> (many1 $ noneOf $ spaceChars ++ specialChars)
 whitespace :: PandocMonad m => VwParser m () -> VwParser m Inlines
-whitespace endline = B.space <$ (skipMany1 spaceChar)
+whitespace endline = B.space <$ (skipMany1 spaceChar <|> (try (newline >> comment)))
          <|> B.softbreak <$ endline
 special = B.str <$> count 1 (oneOf specialChars)
 bareURL = try $ do
