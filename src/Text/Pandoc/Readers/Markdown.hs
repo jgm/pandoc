@@ -883,8 +883,7 @@ listContinuationLine = try $ do
   notFollowedBy' listStart
   notFollowedByHtmlCloser
   optional indentSpaces
-  result <- anyLine
-  return $ result ++ "\n"
+  anyLineNewline
 
 listItem :: PandocMonad m
          => MarkdownParser m a
@@ -956,7 +955,7 @@ defRawBlock :: PandocMonad m => Bool -> MarkdownParser m String
 defRawBlock compact = try $ do
   hasBlank <- option False $ blankline >> return True
   defListMarker
-  firstline <- anyLine
+  firstline <- anyLineNewline
   let dline = try
                ( do notFollowedBy blankline
                     notFollowedByHtmlCloser
@@ -971,7 +970,7 @@ defRawBlock compact = try $ do
             ln <- indentSpaces >> notFollowedBy blankline >> anyLine
             lns <- many dline
             return $ trailing ++ unlines (ln:lns)
-  return $ trimr (firstline ++ "\n" ++ unlines rawlines ++ cont) ++
+  return $ trimr (firstline ++ unlines rawlines ++ cont) ++
             if hasBlank || not (null cont) then "\n\n" else ""
 
 definitionList :: PandocMonad m => MarkdownParser m (F Blocks)
