@@ -225,7 +225,7 @@ mixedList' prevLev = do
      else do
           many spaceChar  -- change to spaceChar
           c <- oneOf "*-#" 
-          many spaceChar  -- change to spaceChar
+          many1 spaceChar  -- change to spaceChar
           curLine <- B.plain <$> mconcat <$> (manyTill inline (char '\n'))
           let listBuilder = fromJust $ listType c
           (subList, lowLev) <- (mixedList' curLev)
@@ -358,7 +358,9 @@ link = try $ do -- haven't implemented link with thumbnails
   string "[["
   contents <- lookAhead $ manyTill anyChar (string "]]")
   case '|' `elem` contents of 
-                  False -> return $ B.link contents "link" (B.str contents)
+                  False -> do
+                    manyTill anyChar (string "]]")
+                    return $ B.link contents "link" (B.str contents)
                   True  -> do 
                     url <- manyTill anyChar $ char '|'
                     lab <- mconcat <$> (manyTill inline $ string "]]")
