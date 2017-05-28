@@ -37,14 +37,12 @@ Conversion of vimwiki text to 'Pandoc' document.
     * [X] preformatted
         * [ ] with attributes -- need to pass the name-value pair to be the attributes
     * [X] displaymath - a bit buggy
-    * [X] bulletlist / orderedlist - a bit buggy with nested lists
+    * [X] bulletlist / orderedlist - a bit buggy with nested lists -- currently not calculating mixed tabs and spaces indentations.
         * [ ] orderedlist with 1., i., a) etc identification.
-        * [ ] multilines -- softbreak with some indentations
-        * [ ] mixed tab / space indentation
         * [ ] todo lists -- see https://github.com/LarsEKrueger/pandoc-vimwiki
     * [X] table
         * [O] centered table -- pandoc limitation, no table builder in Pandoc.Builder that accepts attributes
-        * [O] colspan and rowspan -- pandoc limitation
+        * [O] colspan and rowspan -- pandoc limitation, see issue #1024
     * [X] paragraph
     * [ ] definition list
 * inline parsers:
@@ -54,7 +52,7 @@ Conversion of vimwiki text to 'Pandoc' document.
     * [X] strikeout
     * [X] code
     * [X] link
-        * [ ] with thumbnails
+        * [ ] with thumbnails -- pandoc limitation? can't find builder of link with thumbnails
     * [X] image
         * [ ] with attributes - same as in preformatted
     * [X] inline math - a bit buggy
@@ -76,10 +74,10 @@ import Data.Maybe
 import Data.List (isInfixOf)
 import Data.List.Split (splitOn)
 import Data.Text (strip)
-import Text.Pandoc.Builder (Blocks, Inlines, trimInlines)
+import Text.Pandoc.Builder (Blocks, Inlines, trimInlines, fromList, toList)
 import qualified Text.Pandoc.Builder as B (doc, toList, headerWith, str, space, strong, emph, strikeout, code, link, image, spanWith, math, para, horizontalRule, blockQuote, codeBlock, displayMath, bulletList, plain, orderedList, simpleTable, softbreak)
 import Text.Pandoc.Class (PandocMonad, report, PandocIO, runIO)
-import Text.Pandoc.Definition (Pandoc, nullAttr, Inline(Space))
+import Text.Pandoc.Definition (Pandoc, nullAttr, Inline(Space), Block(BulletList, OrderedList))
 import Text.Pandoc.Error (PandocError)
 import Text.Pandoc.Logging (LogMessage(ParsingTrace))
 import Text.Pandoc.Options (ReaderOptions)
@@ -230,22 +228,30 @@ mixedList' prevLev = do
           c <- oneOf "*-#" 
           many1 spaceChar  -- change to spaceChar
           curLine <- B.plain <$> trimInlines . mconcat <$> many1 inlineML
-          --curLine <- B.plain <$> mconcat <$> (manyTill inline (char '\n'))
+          newline
           let listBuilder = fromJust $ listType c
           (subList, lowLev) <- (mixedList' curLev)
           if lowLev >= curLev
              then do
                   (sameLevList, endLev) <- (mixedList' lowLev)
-                  let curList = (curLine:subList) ++ sameLevList
+                  let curList = (combineList curLine subList) ++ sameLevList
                   if curLev > prevLev
                      then return ([listBuilder curList], endLev)
                      else return (curList, endLev)
              else do
-                  let (curList, endLev) = (curLine:subList, lowLev)
+                  let (curList, endLev) = ((combineList curLine subList), lowLev)
                   if curLev > prevLev
                      then return ([listBuilder curList], endLev)
                      else return (curList, endLev)
                              --}
+
+combineList :: Blocks -> [Blocks] -> [Blocks]
+combineList x [y] = case toList y of
+                            [BulletList z] -> [fromList $ (toList x) ++ [BulletList z]]
+                            [OrderedList attr z] -> [fromList $ (toList x) ++ [OrderedList attr z]]
+                            otherwise -> x:[y]
+combineList x xs = x:xs
+
 --OrderedList (1,DefaultStyle,DefaultDelim) [[Plain [Strong [Str "1",Space,Str "2"]]],[BulletList [[Plain [Emph [Str "4",Space,Str "5"],Space]],[Plain [Link ("",[],[]) [Str "https://www.google.com"] ("https://www.google.com",""),Space]]]],[Plain [Math InlineMath "a^2"]]]
 --OrderedList (1,DefaultStyle,DefaultDelim) [[Plain [Str "1"]],[Plain [Str "2"]]]
 -- | mixedList' testing:
@@ -328,8 +334,6 @@ inlineML :: PandocMonad m => VwParser m Inlines
 inlineML = choice $ (whitespace endlineML):inlineList
 
 str :: PandocMonad m => VwParser m Inlines
---whitespace' :: PandocMonad m => VwParser m Inlines
---whitespace'' :: PandocMonad m => VwParser m Inlines
 special :: PandocMonad m => VwParser m Inlines
 todoMark :: PandocMonad m => VwParser m Inlines
 bareURL :: PandocMonad m => VwParser m Inlines
@@ -342,16 +346,10 @@ image :: PandocMonad m => VwParser m Inlines
 inlineMath :: PandocMonad m => VwParser m Inlines
 tag :: PandocMonad m => VwParser m Inlines
 
---str = B.str <$> many1 (noneOf $ specialChars ++ spaceChars)
 str = B.str <$> (many1 $ noneOf $ spaceChars ++ specialChars)
---whitespace = B.space <$ (skipMany1 spaceChar)
 whitespace :: PandocMonad m => VwParser m () -> VwParser m Inlines
 whitespace endline = B.space <$ (skipMany1 spaceChar)
          <|> B.softbreak <$ endline
-{--whitespace' = B.space <$ (skipMany1 spaceChar)
-         <|> B.softbreak <$ endline'
-whitespace'' = B.space <$ (skipMany1 spaceChar)
-         <|> B.softbreak <$ endline''--}
 special = B.str <$> count 1 (oneOf specialChars)
 bareURL = try $ do
   (orig, src) <- uri <|> emailAddress
@@ -400,21 +398,12 @@ tag = try $ do
   char ':'
   s <- manyTill (noneOf spaceChars) (try (char ':' >> space))
   guard $ not $ "::" `isInfixOf` (":" ++ s ++ ":")
-  return $ mconcat $ concat $ (makeTagSpan <$> (splitOn ":" s)) -- returns tag1 >> tag2 >> ... >> tagn
+  return $ mconcat $ concat $ (makeTagSpan <$> (splitOn ":" s)) 
 todoMark = try $ do
   string "TODO:"
   return $ B.spanWith ("", ["todo"], []) (B.str "TODO:")
 
 -- helper functions and parsers
-{--
-splitAtSeparater :: [Char] -> ([Char], [Char])
-splitAtSeparater xs = go "" xs
-  where 
-    go xs ys
-      | ys == "" = (xs, ys)
-      | head ys == '|' = (xs, tail ys)
-      | otherwise = go (xs ++ [head ys]) (tail ys)
-      --}
 endlineP :: PandocMonad m => VwParser m ()
 endlineP = () <$ try (newline <* notFollowedByThingsThatBreakSoftBreaks <* notFollowedBy blockQuote)
 endlineBQ :: PandocMonad m => VwParser m ()
