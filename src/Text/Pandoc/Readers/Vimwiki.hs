@@ -31,20 +31,20 @@ Conversion of vimwiki text to 'Pandoc' document.
  progress:
 * block parsers:
     * [X] header
-        * [ ] centered header
     * [X] hrule
     * [X] comment
     * [X] blockquote
     * [X] preformatted
-        * [ ] with attributes
+        * [ ] with attributes -- need to pass the name-value pair to be the attributes
     * [X] displaymath - a bit buggy
     * [X] bulletlist / orderedlist - a bit buggy with nested lists
         * [ ] orderedlist with 1., i., a) etc identification.
         * [ ] multilines
         * [ ] mixed tab / space indentation
-        * [ ] todo lists
+        * [ ] todo lists -- see https://github.com/LarsEKrueger/pandoc-vimwiki
     * [X] table
-        * [ ] centered table
+        * [O] centered table -- pandoc limitation, no table builder in Pandoc.Builder that accepts attributes
+        * [O] colspan and rowspan -- pandoc limitation
     * [X] paragraph
     * [ ] definition list
 * inline parsers:
@@ -56,8 +56,8 @@ Conversion of vimwiki text to 'Pandoc' document.
     * [X] link
         * [ ] with thumbnails
     * [X] image
-        * [ ] with attributes
-    * [X] inline math
+        * [ ] with attributes - same as in preformatted
+    * [X] inline math - a bit buggy
     * [X] tag
 * misc:
     * [ ] `TODO:` mark
@@ -77,7 +77,7 @@ import Data.List (isInfixOf)
 import Data.List.Split (splitOn)
 import Data.Text (strip)
 import Text.Pandoc.Builder (Blocks, Inlines, trimInlines)
-import qualified Text.Pandoc.Builder as B (doc, toList, headerWith, str, space, strong, emph, strikeout, code, link, image, spanWith, math, para, horizontalRule, blockQuote, codeBlock, displayMath, bulletList, plain, orderedList, simpleTable)
+import qualified Text.Pandoc.Builder as B (doc, toList, headerWith, str, space, strong, emph, strikeout, code, link, image, spanWith, math, para, horizontalRule, blockQuote, codeBlock, displayMath, bulletList, plain, orderedList, simpleTable, softbreak)
 import Text.Pandoc.Class (PandocMonad, report, PandocIO, runIO)
 import Text.Pandoc.Definition (Pandoc, nullAttr, Inline(Space))
 import Text.Pandoc.Error (PandocError)
@@ -153,19 +153,18 @@ comment :: PandocMonad m => VwParser m Blocks
 displayMath :: PandocMonad m => VwParser m Blocks
 para :: PandocMonad m => VwParser m Blocks
 mixedList :: PandocMonad m => VwParser m Blocks
-orderedList :: PandocMonad m => VwParser m Blocks
 table :: PandocMonad m => VwParser m Blocks
 blockQuote :: PandocMonad m => VwParser m Blocks
 preformatted :: PandocMonad m => VwParser m Blocks
 
 header = try $ do
-  many whitespace
+  sp <- many spaceChar --change to spaceChar
   eqs <- many1 (char '=')
-  whitespace
+  spaceChar
   let lev = length eqs
   guard $ lev <= 6
-  contents <- trimInlines . mconcat <$> manyTill inline (try $ whitespace >> (string eqs) >> many whitespace >> (char '\n')) -- consider blankline in Parsing to replace many whitespace >> char '\n'
-  attr <- registerHeader nullAttr contents
+  contents <- trimInlines . mconcat <$> manyTill inline (try $ spaceChar >> (string eqs) >> many spaceChar >> (char '\n')) -- consider blankline in Parsing to replace many whitespace >> char '\n'
+  attr <- registerHeader ("", (if sp == "" then [] else ["justcenter"]), []) contents
   return $ B.headerWith attr lev contents
 para = try $ do
   contents <- trimInlines . mconcat <$> many1 inline
@@ -265,12 +264,10 @@ listSpacesParser = try $ lookAhead $ do
   return $ ' ':s
 
 
-orderedList = undefined
-
 --many need trimInlines
 table = try $ do
   th <- tableRow
-  many tableHeaderSeparator
+  many tableHeaderSeparator 
   trs <- many tableRow
   return $ B.simpleTable th trs
 
@@ -280,7 +277,7 @@ table = try $ do
 
 tableHeaderSeparator :: PandocMonad m => VwParser m ()
 tableHeaderSeparator = try $ do
-  many spaceChar >> char '|' >> many1 ((many1 $ char '-') >> char '|') >> spaceChar >> char '\n'
+  many spaceChar >> char '|' >> many1 ((many1 $ char '-') >> char '|') >> many spaceChar >> char '\n'
   return ()
   
 tableRow :: PandocMonad m => VwParser m [Blocks]
@@ -328,7 +325,9 @@ tag :: PandocMonad m => VwParser m Inlines
 
 --str = B.str <$> many1 (noneOf $ specialChars ++ spaceChars)
 str = B.str <$> (many1 $ noneOf $ spaceChars ++ specialChars)
+--whitespace = B.space <$ (skipMany1 spaceChar)
 whitespace = B.space <$ (skipMany1 spaceChar)
+         <|> B.softbreak <$ endline
 special = B.str <$> count 1 (oneOf specialChars)
 bareURL = try $ do
   (orig, src) <- uri <|> emailAddress
@@ -389,6 +388,17 @@ splitAtSeparater xs = go "" xs
       | head ys == '|' = (xs, tail ys)
       | otherwise = go (xs ++ [head ys]) (tail ys)
       --}
+endline :: PandocMonad m => VwParser m ()
+endline = () <$ try (newline <*
+                     notFollowedBy spaceChar <*
+                     notFollowedBy newline <*
+                     notFollowedBy hrule <*
+                     notFollowedBy tableRow <*
+                     notFollowedBy header <*
+                     notFollowedBy listSpacesParser <*
+                     notFollowedBy preformatted <*
+                     notFollowedBy displayMath
+                     )
 
 makeTagSpan :: String -> [Inlines]
 makeTagSpan s = 
