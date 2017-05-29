@@ -1494,9 +1494,11 @@ parseTableRow :: PandocMonad m
               -> [String] -- ^ suffixes
               -> LP m [Blocks]
 parseTableRow cols prefixes suffixes = try $ do
-  let tableCellRaw = many (notFollowedBy
-                       (amp <|> lbreak <|>
-                         (() <$ try (string "\\end"))) >> anyChar)
+  let tableCellRaw = concat <$> many
+         (do notFollowedBy (amp <|> lbreak <|> (() <$ try (string "\\end")))
+             many1 (noneOf "&%\n\r\\")
+                  <|> try (string "\\&")
+                  <|> count 1 anyChar)
   let minipage = try $ controlSeq "begin" *> string "{minipage}" *>
           env "minipage"
           (skipopts *> spaces' *> optional braced *> spaces' *> blocks)
