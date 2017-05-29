@@ -106,7 +106,7 @@ parseHtmlContentWithAttrs tag parser = do
   parsedContent <- try $ parseContent content
   return (attr, parsedContent)
   where
-    parseContent = parseFromString $ nested $ manyTill parser endOfContent
+    parseContent = parseFromString' $ nested $ manyTill parser endOfContent
     endOfContent = try $ skipMany blankline >> skipSpaces >> eof
 
 parseHtmlContent :: PandocMonad m => String -> TWParser m a -> TWParser m [a]
@@ -233,7 +233,7 @@ listItemLine prefix marker = lineContent >>= parseContent >>= return . mconcat
     filterSpaces = reverse . dropWhile (== ' ') . reverse
     listContinuation = notFollowedBy (string prefix >> marker) >>
                        string "   " >> lineContent
-    parseContent = parseFromString $ many1 $ nestedList <|> parseInline
+    parseContent = parseFromString' $ many1 $ nestedList <|> parseInline
     parseInline = many1Till inline (lastNewline <|> newlineBeforeNestedList) >>=
                   return . B.plain . mconcat
     nestedList = list prefix
@@ -297,7 +297,7 @@ noautolink = do
   setState $ st{ stateAllowLinks = True }
   return $ mconcat blocks
   where
-    parseContent      = parseFromString $ many $ block
+    parseContent      = parseFromString' $ many $ block
 
 para :: PandocMonad m => TWParser m B.Blocks
 para = many1Till inline endOfParaElement >>= return . result . mconcat
@@ -349,13 +349,13 @@ linebreak = newline >> notFollowedBy newline >> (lastNewline <|> innerNewline)
   where lastNewline  = eof >> return mempty
         innerNewline = return B.space
 
-between :: (Monoid c, PandocMonad m)
+between :: (Monoid c, PandocMonad m, Show b)
         => TWParser m a -> TWParser m b -> (TWParser m b -> TWParser m c)
         -> TWParser m c
 between start end p =
   mconcat <$> try (start >> notFollowedBy whitespace >> many1Till (p end) end)
 
-enclosed :: (Monoid b, PandocMonad m)
+enclosed :: (Monoid b, PandocMonad m, Show a)
          => TWParser m a -> (TWParser m a -> TWParser m b) -> TWParser m b
 enclosed sep p = between sep (try $ sep <* endMarker) p
   where
@@ -525,4 +525,4 @@ linkText = do
   return (url, "", content)
   where
     linkContent      = (char '[') >> many1Till anyChar (char ']') >>= parseLinkContent
-    parseLinkContent = parseFromString $ many1 inline
+    parseLinkContent = parseFromString' $ many1 inline

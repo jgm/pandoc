@@ -754,8 +754,6 @@ These should not be escaped:  \$ \\ \&gt; \[ \{
   <div type="level2" id="reference">
     <head>Reference</head>
     <p>Foo <ref target="/url/">bar</ref>.</p>
-    <p>Foo <ref target="/url/">bar</ref>.</p>
-    <p>Foo <ref target="/url/">bar</ref>.</p>
     <p>With <ref target="/url/">embedded [brackets]</ref>.</p>
     <p><ref target="/url/">b</ref> by itself should be a link.</p>
     <p>Indented <ref target="/url">once</ref>.</p>

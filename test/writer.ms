@@ -835,16 +835,6 @@ Foo \c
  -- "bar"
 \&.
 .PP
-Foo \c
-.pdfhref W -D "/url/" -A "\c" \
- -- "bar"
-\&.
-.PP
-Foo \c
-.pdfhref W -D "/url/" -A "\c" \
- -- "bar"
-\&.
-.PP
 With \c
 .pdfhref W -D "/url/" -A "\c" \
  -- "embedded [brackets]"

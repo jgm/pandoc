@@ -369,8 +369,6 @@ Pandoc (Meta {unMeta = fromList [("author",MetaList [MetaInlines [Str "John",Spa
 ,Para [Link ("",[],[]) [Str "Empty"] ("",""),Str "."]
 ,Header 2 ("reference",[],[]) [Str "Reference"]
 ,Para [Str "Foo",Space,Link ("",[],[]) [Str "bar"] ("/url/",""),Str "."]
-,Para [Str "Foo",Space,Link ("",[],[]) [Str "bar"] ("/url/",""),Str "."]
-,Para [Str "Foo",Space,Link ("",[],[]) [Str "bar"] ("/url/",""),Str "."]
 ,Para [Str "With",Space,Link ("",[],[]) [Str "embedded",Space,Str "[brackets]"] ("/url/",""),Str "."]
 ,Para [Link ("",[],[]) [Str "b"] ("/url/",""),Space,Str "by",Space,Str "itself",Space,Str "should",Space,Str "be",Space,Str "a",Space,Str "link."]
 ,Para [Str "Indented",Space,Link ("",[],[]) [Str "once"] ("/url",""),Str "."]

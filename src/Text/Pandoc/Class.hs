@@ -61,6 +61,8 @@ module Text.Pandoc.Class ( PandocMonad(..)
                          , runIOorExplode
                          , runPure
                          , withMediaBag
+                         , fillMediaBag
+                         , extractMedia
                          ) where
 
 import Prelude hiding (readFile)
@@ -76,8 +78,11 @@ import Text.Pandoc.Compat.Time (UTCTime)
 import Text.Pandoc.Logging
 import Text.Parsec (ParsecT)
 import qualified Text.Pandoc.Compat.Time as IO (getCurrentTime)
-import Text.Pandoc.MIME (MimeType, getMimeType)
+import Text.Pandoc.MIME (MimeType, getMimeType, extensionFromMimeType)
+import Text.Pandoc.Definition
 import Data.Char (toLower)
+import Data.Digest.Pure.SHA (sha1, showDigest)
+import Data.Maybe (fromMaybe)
 import Data.Time.Clock.POSIX ( utcTimeToPOSIXSeconds
                              , posixSecondsToUTCTime
                              , POSIXTime )
@@ -86,13 +91,15 @@ import Network.URI ( escapeURIString, nonStrictRelativeTo,
                      unEscapeString, parseURIReference, isAllowedInURI,
                      parseURI, URI(..) )
 import qualified Data.Time.LocalTime as IO (getCurrentTimeZone)
-import Text.Pandoc.MediaBag (MediaBag, lookupMedia)
+import Text.Pandoc.MediaBag (MediaBag, lookupMedia, extractMediaBag,
+                             mediaDirectory)
+import Text.Pandoc.Walk (walkM, walk)
 import qualified Text.Pandoc.MediaBag as MB
 import qualified Data.ByteString as B
 import qualified Data.ByteString.Lazy as BL
 import qualified System.Environment as IO (lookupEnv)
 import System.FilePath.Glob (match, compile)
-import System.FilePath ((</>), takeExtension, dropExtension, isRelative)
+import System.FilePath ((</>), (<.>), takeExtension, dropExtension, isRelative)
 import qualified System.FilePath.Glob as IO (glob)
 import qualified System.Directory as IO (getModificationTime)
 import Control.Monad as M (fail)
@@ -242,7 +249,10 @@ instance PandocMonad PandocIO where
   newUniqueHash = hashUnique <$> (liftIO IO.newUnique)
   openURL u = do
     report $ Fetching u
-    liftIOError IO.openURL u
+    res <- liftIO (IO.openURL u)
+    case res of
+         Right r -> return r
+         Left e  -> throwError $ PandocHttpError u e
   readFileLazy s = liftIOError BL.readFile s
   readFileStrict s = liftIOError B.readFile s
   readDataFile mfp fname = liftIOError (IO.readDataFile mfp) fname
@@ -334,6 +344,54 @@ withPaths [] _ fp = throwError $ PandocResourceNotFound fp
 withPaths (p:ps) action fp =
   catchError (action (p </> fp))
              (\_ -> withPaths ps action fp)
+
+-- | Traverse tree, filling media bag for any images that
+-- aren't already in the media bag.
+fillMediaBag :: PandocMonad m => Maybe String -> Pandoc -> m Pandoc
+fillMediaBag sourceURL d = walkM handleImage d
+  where handleImage :: PandocMonad m => Inline -> m Inline
+        handleImage (Image attr lab (src, tit)) = catchError
+          (do mediabag <- getMediaBag
+              case lookupMedia src mediabag of
+                Just (_, _) -> return $ Image attr lab (src, tit)
+                Nothing -> do
+                  (bs, mt) <- downloadOrRead sourceURL src
+                  let ext = fromMaybe (takeExtension src)
+                              (mt >>= extensionFromMimeType)
+                  let bs' = BL.fromChunks [bs]
+                  let basename = showDigest $ sha1 bs'
+                  let fname = basename <.> ext
+                  insertMedia fname mt bs'
+                  return $ Image attr lab (fname, tit))
+          (\e -> do
+              case e of
+                PandocResourceNotFound _ -> do
+                  report $ CouldNotFetchResource src
+                            "replacing image with description"
+                  -- emit alt text
+                  return $ Span ("",["image"],[]) lab
+                PandocHttpError u er -> do
+                  report $ CouldNotFetchResource u
+                            (show er ++ "\rReplacing image with description.")
+                  -- emit alt text
+                  return $ Span ("",["image"],[]) lab
+                _ -> throwError e)
+        handleImage x = return x
+
+-- | Extract media from the mediabag into a directory.
+extractMedia :: FilePath -> Pandoc -> PandocIO Pandoc
+extractMedia dir d = do
+  media <- getMediaBag
+  case [fp | (fp, _, _) <- mediaDirectory media] of
+        []  -> return d
+        fps -> do
+          liftIO $ extractMediaBag True dir media
+          return $ walk (adjustImagePath dir fps) d
+
+adjustImagePath :: FilePath -> [FilePath] -> Inline -> Inline
+adjustImagePath dir paths (Image attr lab (src, tit))
+   | src `elem` paths = Image attr lab (dir ++ "/" ++ src, tit)
+adjustImagePath _ _ x = x
 
 data PureState = PureState { stStdGen     :: StdGen
                            , stWord8Store :: [Word8] -- should be

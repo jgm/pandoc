@@ -1,8 +1,9 @@
 {-# LANGUAGE CPP                 #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TupleSections       #-}
+{-# LANGUAGE DeriveGeneric       #-}
 {-
-Copyright (C) 2006-2016 John MacFarlane <jgm@berkeley.edu>
+Copyright (C) 2006-2017 John MacFarlane <jgm@berkeley.edu>
 
 This program is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -21,7 +22,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 {- |
    Module      : Text.Pandoc.App
-   Copyright   : Copyright (C) 2006-2016 John MacFarlane
+   Copyright   : Copyright (C) 2006-2017 John MacFarlane
    License     : GNU GPL, version 2 or above
 
    Maintainer  : John MacFarlane <jgm@berkeley@edu>
@@ -39,21 +40,24 @@ module Text.Pandoc.App (
           ) where
 import Control.Applicative ((<|>))
 import qualified Control.Exception as E
+import Control.Monad.Except (throwError)
 import Control.Monad
 import Control.Monad.Trans
-import Data.Aeson (eitherDecode', encode)
+import Data.Aeson (eitherDecode', encode, ToJSON(..), FromJSON(..),
+                   genericToEncoding, defaultOptions)
 import qualified Data.ByteString as BS
 import qualified Data.ByteString.Lazy as B
 import Data.Char (toLower, toUpper)
 import qualified Data.Set as Set
 import Data.Foldable (foldrM)
+import GHC.Generics
 import Data.List (intercalate, isPrefixOf, isSuffixOf, sort)
 import qualified Data.Map as M
 import Data.Maybe (fromMaybe, isJust, isNothing)
 import qualified Data.Text as T
 import Data.Yaml (decode)
 import qualified Data.Yaml as Yaml
-import Network.URI (URI (..), isURI, parseURI)
+import Network.URI (URI (..), parseURI)
 import Paths_pandoc (getDataDir)
 import Skylighting (Style, Syntax (..), defaultSyntaxMap, parseTheme)
 import Skylighting.Parser (missingIncludes, parseSyntaxDefinition,
@@ -64,27 +68,33 @@ import System.Directory (Permissions (..), doesFileExist, findExecutable,
 import System.Environment (getArgs, getEnvironment, getProgName)
 import System.Exit (ExitCode (..), exitSuccess)
 import System.FilePath
-import System.IO (stdout)
+import System.IO (stdout, nativeNewline)
+import qualified System.IO as IO (Newline(..))
 import System.IO.Error (isDoesNotExistError)
 import Text.Pandoc
 import Text.Pandoc.Builder (setMeta)
-import Text.Pandoc.Class (PandocIO, getLog, withMediaBag)
+import Text.Pandoc.Class (PandocIO, getLog, withMediaBag,
+                          extractMedia, fillMediaBag, setResourcePath)
 import Text.Pandoc.Highlighting (highlightingStyles)
 import Text.Pandoc.Lua ( runLuaFilter )
-import Text.Pandoc.MediaBag (MediaBag, extractMediaBag, mediaDirectory)
 import Text.Pandoc.PDF (makePDF)
 import Text.Pandoc.Process (pipeProcess)
 import Text.Pandoc.SelfContained (makeSelfContained, makeDataURI)
-import Text.Pandoc.Shared (headerShift, openURL, readDataFile,
+import Text.Pandoc.Shared (isURI, headerShift, openURL, readDataFile,
                            readDataFileUTF8, safeRead, tabFilter)
 import qualified Text.Pandoc.UTF8 as UTF8
-import Text.Pandoc.Walk (walk)
 import Text.Pandoc.XML (toEntities)
 import Text.Printf
 #ifndef _WINDOWS
 import System.Posix.IO (stdOutput)
 import System.Posix.Terminal (queryTerminal)
 #endif
+
+data LineEnding = LF | CRLF | Native deriving (Show, Generic)
+
+instance ToJSON LineEnding where
+  toEncoding = genericToEncoding defaultOptions
+instance FromJSON LineEnding
 
 parseOptions :: [OptDescr (Opt -> IO Opt)] -> Opt -> IO Opt
 parseOptions options' defaults = do
@@ -372,7 +382,7 @@ convertWithOpts opts = do
                                  then 0
                                  else optTabStop opts)
 
-      readSources :: (Functor m, MonadIO m) => [FilePath] -> m String
+      readSources :: [FilePath] -> PandocIO String
       readSources srcs = convertTabs . intercalate "\n" <$>
                             mapM readSource srcs
 
@@ -391,20 +401,16 @@ convertWithOpts opts = do
             E.throwIO PandocFailOnWarningError
         return res
 
-  let sourceToDoc :: [FilePath] -> PandocIO (Pandoc, MediaBag)
+  let sourceToDoc :: [FilePath] -> PandocIO Pandoc
       sourceToDoc sources' =
          case reader of
               StringReader r
-                | optFileScope opts || readerName == "json" -> do
-                    pairs <- mapM
-                      (readSource >=> withMediaBag . r readerOpts) sources
-                    return (mconcat (map fst pairs), mconcat (map snd pairs))
+                | optFileScope opts || readerName == "json" ->
+                    mconcat <$> mapM (readSource >=> r readerOpts) sources
                 | otherwise ->
-                     readSources sources' >>= withMediaBag . r readerOpts
-              ByteStringReader r -> do
-                pairs <- mapM (readFile' >=>
-                                 withMediaBag . r readerOpts) sources
-                return (mconcat (map fst pairs), mconcat (map snd pairs))
+                    readSources sources' >>= r readerOpts
+              ByteStringReader r ->
+                mconcat <$> mapM (readFile' >=> r readerOpts) sources
 
   metadata <- if format == "jats" &&
                  lookup "csl" (optMetadata opts) == Nothing &&
@@ -415,17 +421,26 @@ convertWithOpts opts = do
                    return $ ("csl", jatsEncoded) : optMetadata opts
                  else return $ optMetadata opts
 
+  let eol = case optEol opts of
+                 CRLF   -> IO.CRLF
+                 LF     -> IO.LF
+                 Native -> nativeNewline
+
   runIO' $ do
-    (doc, media) <- sourceToDoc sources
-    doc' <- (maybe return (extractMedia media) (optExtractMedia opts) >=>
-              return . flip (foldr addMetadata) metadata >=>
-              applyTransforms transforms >=>
-              applyLuaFilters datadir (optLuaFilters opts) [format] >=>
-              applyFilters datadir filters' [format]) doc
+    setResourcePath (optResourcePath opts)
+    (doc, media) <- withMediaBag $ sourceToDoc sources >>=
+              (   (if isJust (optExtractMedia opts)
+                      then fillMediaBag (writerSourceURL writerOptions)
+                      else return)
+              >=> maybe return extractMedia (optExtractMedia opts)
+              >=> return . flip (foldr addMetadata) metadata
+              >=> applyTransforms transforms
+              >=> applyLuaFilters datadir (optLuaFilters opts) [format]
+              >=> applyFilters datadir filters' [format]
+              )
 
     case writer of
-      -- StringWriter f -> f writerOptions doc' >>= writerFn outputFile
-      ByteStringWriter f -> f writerOptions doc' >>= writeFnBinary outputFile
+      ByteStringWriter f -> f writerOptions doc >>= writeFnBinary outputFile
       StringWriter f
         | pdfOutput -> do
                 -- make sure writer is latex, beamer, context, html5 or ms
@@ -445,7 +460,7 @@ convertWithOpts opts = do
                 when (isNothing mbPdfProg) $ liftIO $ E.throwIO $
                        PandocPDFProgramNotFoundError pdfprog
 
-                res <- makePDF pdfprog f writerOptions verbosity media doc'
+                res <- makePDF pdfprog f writerOptions verbosity media doc
                 case res of
                      Right pdf -> writeFnBinary outputFile pdf
                      Left err' -> liftIO $
@@ -462,9 +477,9 @@ convertWithOpts opts = do
                                          format == "docbook") && optAscii opts
                                      then toEntities
                                      else id
-                output <- f writerOptions doc'
+                output <- f writerOptions doc
                 selfcontain (output ++ ['\n' | not standalone]) >>=
-                    writerFn outputFile . handleEntities
+                    writerFn eol outputFile . handleEntities
 
 type Transform = Pandoc -> Pandoc
 
@@ -568,7 +583,13 @@ data Opt = Opt
     , optIncludeBeforeBody     :: [FilePath]       -- ^ Files to include before
     , optIncludeAfterBody      :: [FilePath]       -- ^ Files to include after body
     , optIncludeInHeader       :: [FilePath]       -- ^ Files to include in header
-    }
+    , optResourcePath          :: [FilePath] -- ^ Path to search for images etc
+    , optEol                   :: LineEnding -- ^ Style of line-endings to use
+    } deriving (Generic, Show)
+
+instance ToJSON Opt where
+  toEncoding = genericToEncoding defaultOptions
+instance FromJSON Opt
 
 -- | Defaults for command-line options.
 defaultOpts :: Opt
@@ -636,6 +657,8 @@ defaultOpts = Opt
     , optIncludeBeforeBody     = []
     , optIncludeAfterBody      = []
     , optIncludeInHeader       = []
+    , optResourcePath          = ["."]
+    , optEol                   = Native
     }
 
 addMetadata :: (String, String) -> Pandoc -> Pandoc
@@ -728,19 +751,6 @@ defaultWriterName x =
 
 -- Transformations of a Pandoc document post-parsing:
 
-extractMedia :: MonadIO m => MediaBag -> FilePath -> Pandoc -> m Pandoc
-extractMedia media dir d =
-  case [fp | (fp, _, _) <- mediaDirectory media] of
-        []  -> return d
-        fps -> do
-          extractMediaBag True dir media
-          return $ walk (adjustImagePath dir fps) d
-
-adjustImagePath :: FilePath -> [FilePath] -> Inline -> Inline
-adjustImagePath dir paths (Image attr lab (src, tit))
-   | src `elem` paths = Image attr lab (dir ++ "/" ++ src, tit)
-adjustImagePath _ _ x = x
-
 applyTransforms :: Monad m => [Transform] -> Pandoc -> m Pandoc
 applyTransforms transforms d = return $ foldr ($) d transforms
 
@@ -773,7 +783,7 @@ applyFilters mbDatadir filters args d = do
   expandedFilters <- mapM (expandFilterPath mbDatadir) filters
   foldrM ($) d $ map (flip externalFilter args) expandedFilters
 
-readSource :: MonadIO m => FilePath -> m String
+readSource :: FilePath -> PandocIO String
 readSource "-" = liftIO UTF8.getContents
 readSource src = case parseURI src of
                       Just u | uriScheme u `elem` ["http:","https:"] ->
@@ -782,8 +792,12 @@ readSource src = case parseURI src of
                                  liftIO $ UTF8.readFile (uriPath u)
                       _       -> liftIO $ UTF8.readFile src
 
-readURI :: MonadIO m => FilePath -> m String
-readURI src = liftIO $ (UTF8.toString . fst) <$> openURL src
+readURI :: FilePath -> PandocIO String
+readURI src = do
+  res <- liftIO $ openURL src
+  case res of
+       Left e -> throwError $ PandocHttpError src e
+       Right (contents, _) -> return $ UTF8.toString contents
 
 readFile' :: MonadIO m => FilePath -> m B.ByteString
 readFile' "-" = liftIO B.getContents
@@ -793,9 +807,9 @@ writeFnBinary :: MonadIO m => FilePath -> B.ByteString -> m ()
 writeFnBinary "-" = liftIO . B.putStr
 writeFnBinary f   = liftIO . B.writeFile (UTF8.encodePath f)
 
-writerFn :: MonadIO m => FilePath -> String -> m ()
-writerFn "-" = liftIO . UTF8.putStr
-writerFn f   = liftIO . UTF8.writeFile f
+writerFn :: MonadIO m => IO.Newline -> FilePath -> String -> m ()
+writerFn eol "-" = liftIO . UTF8.putStrWith eol
+writerFn eol f   = liftIO . UTF8.writeFileWith eol f
 
 lookupHighlightStyle :: Maybe String -> IO (Maybe Style)
 lookupHighlightStyle Nothing = return Nothing
@@ -968,6 +982,19 @@ options =
                   "NUMBER")
                  "" -- "Dpi (default 96)"
 
+    , Option "" ["eol"]
+                 (ReqArg
+                  (\arg opt ->
+                    case toLower <$> arg of
+                      "crlf"   -> return opt { optEol = CRLF }
+                      "lf"     -> return opt { optEol = LF }
+                      "native" -> return opt { optEol = Native }
+                      -- mac-syntax (cr) is not supported in ghc-base.
+                      _      -> E.throwIO $ PandocOptionError
+                                "--eol must be crlf, lf, or native")
+                  "crlf|lf|native")
+                 "" -- "EOL (default OS-dependent)"
+
     , Option "" ["wrap"]
                  (ReqArg
                   (\arg opt ->
@@ -1045,6 +1072,14 @@ options =
                                            optStandalone = True })
                   "FILE")
                  "" -- "File to include after document body"
+
+    , Option "" ["resource-path"]
+                (ReqArg
+                  (\arg opt -> return opt { optResourcePath =
+                                   splitSearchPath arg })
+                   "SEARCHPATH")
+                  "" -- "Paths to search for images and other resources"
+
 
     , Option "" ["self-contained"]
                  (NoArg

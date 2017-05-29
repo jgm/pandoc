@@ -26,7 +26,7 @@ simpleTable' :: Int
              -> [Blocks]
              -> [[Blocks]]
              -> Blocks
-simpleTable' n = table "" (take n $ repeat (AlignDefault, 0.0))
+simpleTable' n = table "" (replicate n (AlignDefault, 0.0))
 
 tests :: [TestTree]
 tests =
@@ -334,6 +334,18 @@ tests =
                        }
         in (para $ cite [citation] "cite:pandoc")
 
+      , "Org-ref simple citation with underscores" =:
+        "cite:pandoc_org_ref" =?>
+        let citation = Citation
+                       { citationId = "pandoc_org_ref"
+                       , citationPrefix = mempty
+                       , citationSuffix = mempty
+                       , citationMode = AuthorInText
+                       , citationNoteNum = 0
+                       , citationHash = 0
+                       }
+        in (para $ cite [citation] "cite:pandoc_org_ref")
+
       , "Org-ref simple citation succeeded by comma" =:
         "cite:pandoc," =?>
         let citation = Citation
@@ -345,6 +357,30 @@ tests =
                        , citationHash = 0
                        }
         in (para $ cite [citation] "cite:pandoc" <> str ",")
+
+      , "Org-ref simple citation succeeded by dot" =:
+        "cite:pandoc." =?>
+        let citation = Citation
+                       { citationId = "pandoc"
+                       , citationPrefix = mempty
+                       , citationSuffix = mempty
+                       , citationMode = AuthorInText
+                       , citationNoteNum = 0
+                       , citationHash = 0
+                       }
+        in (para $ cite [citation] "cite:pandoc" <> str ".")
+
+      , "Org-ref simple citation succeeded by colon" =:
+        "cite:pandoc:" =?>
+        let citation = Citation
+                       { citationId = "pandoc"
+                       , citationPrefix = mempty
+                       , citationSuffix = mempty
+                       , citationMode = AuthorInText
+                       , citationNoteNum = 0
+                       , citationHash = 0
+                       }
+        in (para $ cite [citation] "cite:pandoc" <> str ":")
 
       , "Org-ref simple citep citation" =:
         "citep:pandoc" =?>
@@ -469,6 +505,24 @@ tests =
                          , citationNoteNum = 0
                          , citationHash = 0}
           in (para . cite [citation] $ rawInline "latex" "\\cite{Coffee}")
+
+      , "Macro" =:
+          unlines [ "#+MACRO: HELLO /Hello, $1/"
+                  , "{{{HELLO(World)}}}"
+                  ] =?>
+          para (emph "Hello, World")
+
+      , "Macro repeting its argument" =:
+          unlines [ "#+MACRO: HELLO $1$1"
+                  , "{{{HELLO(moin)}}}"
+                  ] =?>
+          para "moinmoin"
+
+      , "Macro called with too few arguments" =:
+          unlines [ "#+MACRO: HELLO Foo $1 $2 Bar"
+                  , "{{{HELLO()}}}"
+                  ] =?>
+          para "Foo Bar"
       ]
 
   , testGroup "Meta Information" $
@@ -690,14 +744,28 @@ tests =
 
           , "limit headline depth" =:
               unlines [ "#+OPTIONS: H:2"
-                      , "* section"
+                      , "* top-level section"
                       , "** subsection"
                       , "*** list item 1"
                       , "*** list item 2"
                       ] =?>
-              mconcat [ headerWith ("section", [], [])    1 "section"
+              mconcat [ headerWith ("top-level-section", [], [])    1 "top-level section"
                       , headerWith ("subsection", [], []) 2 "subsection"
                       , orderedList [ para "list item 1", para "list item 2" ]
+                      ]
+
+          , "turn all headlines into lists" =:
+              unlines [ "#+OPTIONS: H:0"
+                      , "first block"
+                      , "* top-level section 1"
+                      , "** subsection"
+                      , "* top-level section 2"
+                      ] =?>
+              mconcat [ para "first block"
+                      , orderedList
+                        [ (para "top-level section 1" <>
+                           orderedList [ para "subsection" ])
+                        , para "top-level section 2" ]
                       ]
 
           , "disable author export" =:
@@ -943,8 +1011,8 @@ tests =
                   ]
 
       , "Not a Horizontal Rule" =:
-          "----- five dashes" =?>
-          (para $ spcSep [ "-----", "five", "dashes" ])
+          "----- em and en dash" =?>
+          para "\8212\8211 em and en dash"
 
       , "Comment Block" =:
           unlines [ "#+BEGIN_COMMENT"

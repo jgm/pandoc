@@ -677,10 +677,6 @@ Empty ().
 .PP
 Foo bar (/url/).
 .PP
-Foo bar (/url/).
-.PP
-Foo bar (/url/).
-.PP
 With embedded [brackets] (/url/).
 .PP
 b (/url/) by itself should be a link.

@@ -233,11 +233,11 @@ M.BulletList = M.Block:create_constructor(
 --- Creates a code block element
 -- @function CodeBlock
 -- @tparam      string      text        code string
--- @tparam[opt] Attr        attributes  element attributes
+-- @tparam[opt] Attr        attr element attributes
 -- @treturn     Block                   code block element
 M.CodeBlock = M.Block:create_constructor(
   "CodeBlock",
-  function(text, attributes) return {c = {attributes, text}} end,
+  function(text, attr) return {c = {attr or M.Attr(), text}} end,
   {{"identifier", "classes", "attributes"}, "text"}
 )
 
@@ -254,11 +254,13 @@ M.DefinitionList = M.Block:create_constructor(
 --- Creates a div element
 -- @function Div
 -- @tparam      {Block,...} content     block content
--- @tparam[opt] Attr        attributes  element attributes
+-- @tparam[opt] Attr        attr  element attributes
 -- @treturn     Block                   code block element
 M.Div = M.Block:create_constructor(
   "Div",
-  function(content, attributes) return {c = {attributes, content}} end,
+  function(content, attr)
+    return {c = {attr or M.Attr(), content}}
+  end,
   {{"identifier", "classes", "attributes"}, "content"}
 )
 
@@ -266,12 +268,12 @@ M.Div = M.Block:create_constructor(
 -- @function Header
 -- @tparam      int          level       header level
 -- @tparam      {Inline,...} content     inline content
--- @tparam      Attr         attributes  element attributes
+-- @tparam[opt] Attr         attr element attributes
 -- @treturn     Block                    header element
 M.Header = M.Block:create_constructor(
   "Header",
-  function(level, content, attributes)
-    return {c = {level, attributes, content}}
+  function(level, content, attr)
+    return {c = {level, attr or M.Attr(), content}}
   end,
   {"level", {"identifier", "classes", "attributes"}, "content"}
 )
@@ -386,11 +388,11 @@ M.Cite = M.Inline:create_constructor(
 --- Creates a Code inline element
 -- @function Code
 -- @tparam      string      text        brief image description
--- @tparam[opt] Attr        attributes  additional attributes
+-- @tparam[opt] Attr        attr  additional attributes
 -- @treturn Inline code element
 M.Code = M.Inline:create_constructor(
   "Code",
-  function(text, attributes) return {c = {attributes, text}} end,
+  function(text, attr) return {c = {attr or M.Attr(), text}} end,
   {{"identifier", "classes", "attributes"}, "text"}
 )
 
@@ -409,14 +411,14 @@ M.Emph = M.Inline:create_constructor(
 -- @tparam      {Inline,..} caption     text used to describe the image
 -- @tparam      string      src         path to the image file
 -- @tparam[opt] string      title       brief image description
--- @tparam[opt] Attr        attributes  additional attributes
+-- @tparam[opt] Attr        attr additional attributes
 -- @treturn Inline image element
 M.Image = M.Inline:create_constructor(
   "Image",
-  function(caption, src, title, attributes)
+  function(caption, src, title, attr)
     title = title or ""
-    attributes = attributes or Attribute.empty
-    return {c = {attributes, caption, {src, title}}}
+    attr = attr or M.Attr()
+    return {c = {attr, caption, {src, title}}}
   end,
   {"attributes", "caption", {"src", "title"}}
 )
@@ -434,14 +436,14 @@ M.LineBreak = M.Inline:create_constructor(
 -- @tparam      {Inline,..} content     text for this link
 -- @tparam      string      target      the link target
 -- @tparam[opt] string      title       brief link description
--- @tparam[opt] Attr        attributes  additional attributes
+-- @tparam[opt] Attr        attr additional attributes
 -- @treturn Inline image element
 M.Link = M.Inline:create_constructor(
   "Link",
-  function(content, target, title, attributes)
+  function(content, target, title, attr)
     title = title or ""
-    attributes = attributes or Attribute.empty
-    return {c = {attributes, content, {target, title}}}
+    attr = attr or M.Attr()
+    return {c = {attr, content, {target, title}}}
   end,
   {"attributes", "content", {"target", "title"}}
 )
@@ -560,11 +562,11 @@ M.Space = M.Inline:create_constructor(
 --- Creates a Span inline element
 -- @function Span
 -- @tparam      {Inline,..} content     inline content
--- @tparam[opt] Attr        attributes  additional attributes
+-- @tparam[opt] Attr        attr  additional attributes
 -- @treturn Inline span element
 M.Span = M.Inline:create_constructor(
   "Span",
-  function(content, attributes) return {c = {attributes, content}} end,
+  function(content, attr) return {c = {attr or M.Attr(), content}} end,
   {{"identifier", "classes", "attributes"}, "content"}
 )
 

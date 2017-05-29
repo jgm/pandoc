@@ -4,7 +4,7 @@
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE ViewPatterns        #-}
 {-
-Copyright (C) 2012-2015 John MacFarlane <jgm@berkeley.edu>
+Copyright (C) 2012-2017 John MacFarlane <jgm@berkeley.edu>
 
 This program is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -23,7 +23,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 {- |
    Module      : Text.Pandoc.Writers.Docx
-   Copyright   : Copyright (C) 2012-2015 John MacFarlane
+   Copyright   : Copyright (C) 2012-2017 John MacFarlane
    License     : GNU GPL, version 2 or above
 
    Maintainer  : John MacFarlane <jgm@berkeley.edu>
@@ -875,7 +875,7 @@ blockToOpenXML' opts (Para [Image attr alt (src,'f':'i':'g':':':tit)]) = do
   let prop = pCustomStyle $
         if null alt
         then "Figure"
-        else "FigureWithCaption"
+        else "CaptionedFigure"
   paraProps <- local (\env -> env { envParaProperties = prop : envParaProperties env }) (getParaProps False)
   contents <- inlinesToOpenXML opts [Image attr alt (src,tit)]
   captionNode <- withParaProp (pCustomStyle "ImageCaption")
@@ -953,7 +953,7 @@ blockToOpenXML' opts (Table caption aligns widths headers rows) = do
     caption' ++
     [mknode "w:tbl" []
       ( mknode "w:tblPr" []
-        (   mknode "w:tblStyle" [("w:val","TableNormal")] () :
+        (   mknode "w:tblStyle" [("w:val","Table")] () :
             mknode "w:tblW" [("w:type", "pct"), ("w:w", show rowwidth)] () :
             mknode "w:tblLook" [("w:firstRow","1") | hasHeader ] () :
           [ mknode "w:tblCaption" [("w:val", captionStr)] ()
@@ -1059,13 +1059,24 @@ withParaPropM :: PandocMonad m => WS m Element -> WS m a -> WS m a
 withParaPropM = (. flip withParaProp) . (>>=)
 
 formattedString :: PandocMonad m => String -> WS m [Element]
-formattedString str = do
-  props <- getTextProps
+formattedString str =
+  -- properly handle soft hyphens
+  case splitBy (=='\173') str of
+      [w] -> formattedString' w
+      ws  -> do
+         sh <- formattedRun [mknode "w:softHyphen" [] ()]
+         (intercalate sh) <$> mapM formattedString' ws
+
+formattedString' :: PandocMonad m => String -> WS m [Element]
+formattedString' str = do
   inDel <- asks envInDel
-  return [ mknode "w:r" [] $
-             props ++
-             [ mknode (if inDel then "w:delText" else "w:t")
-               [("xml:space","preserve")] (stripInvalidChars str) ] ]
+  formattedRun [ mknode (if inDel then "w:delText" else "w:t")
+                 [("xml:space","preserve")] (stripInvalidChars str) ]
+
+formattedRun :: PandocMonad m => [Element] -> WS m [Element]
+formattedRun els = do
+  props <- getTextProps
+  return [ mknode "w:r" [] $ props ++ els ]
 
 setFirstPara :: PandocMonad m => WS m ()
 setFirstPara =  modify $ \s -> s { stFirstPara = True }
@@ -1075,7 +1086,8 @@ inlineToOpenXML :: PandocMonad m => WriterOptions -> Inline -> WS m [Element]
 inlineToOpenXML opts il = withDirection $ inlineToOpenXML' opts il
 
 inlineToOpenXML' :: PandocMonad m => WriterOptions -> Inline -> WS m [Element]
-inlineToOpenXML' _ (Str str) = formattedString str
+inlineToOpenXML' _ (Str str) =
+  formattedString str
 inlineToOpenXML' opts Space = inlineToOpenXML opts (Str " ")
 inlineToOpenXML' opts SoftBreak = inlineToOpenXML opts (Str " ")
 inlineToOpenXML' opts (Span (ident,classes,kvs) ils) = do

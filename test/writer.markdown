@@ -647,10 +647,6 @@ Reference
 
 Foo [bar](/url/).
 
-Foo [bar](/url/).
-
-Foo [bar](/url/).
-
 With [embedded \[brackets\]](/url/).
 
 [b](/url/) by itself should be a link.

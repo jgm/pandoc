@@ -1,8 +1,8 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-
 Copyright (C) 2010-2015 Puneeth Chaganti <punchagan@gmail.com>
-                        Albert Krewinkel <tarleb+pandoc@moltkeplatz.de>,
-                        and John MacFarlane <jgm@berkeley.edu>
+              2010-2017 John MacFarlane <jgm@berkeley.edu>
+              2016-2017 Albert Krewinkel <tarleb+pandoc@moltkeplatz.de>
 
 This program is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -21,10 +21,12 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 {- |
    Module      : Text.Pandoc.Writers.Org
-   Copyright   : Copyright (C) 2010-2015 Puneeth Chaganti and John MacFarlane
+  Copyright    : © 2010-2015 Puneeth Chaganti <punchagan@gmail.com>
+                   2010-2017 John MacFarlane <jgm@berkeley.edu>
+                   2016-2017 Albert Krewinkel <tarleb+pandoc@moltkeplatz.de>
    License     : GNU GPL, version 2 or above
 
-   Maintainer  : Puneeth Chaganti <punchagan@gmail.com>
+   Maintainer  : Albert Krewinkel <tarleb+pandoc@moltkeplatz.de>
    Stability   : alpha
    Portability : portable
 

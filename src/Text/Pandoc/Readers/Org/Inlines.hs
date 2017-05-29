@@ -1,6 +1,6 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-
-Copyright (C) 2014-2016 Albert Krewinkel <tarleb+pandoc@moltkeplatz.de>
+Copyright (C) 2014-2017 Albert Krewinkel <tarleb+pandoc@moltkeplatz.de>
 
 This program is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 {- |
    Module      : Text.Pandoc.Readers.Org.Options
-   Copyright   : Copyright (C) 2014-2016 Albert Krewinkel
+   Copyright   : Copyright (C) 2014-2017 Albert Krewinkel
    License     : GNU GPL, version 2 or above
 
    Maintainer  : Albert Krewinkel <tarleb+pandoc@moltkeplatz.de>
@@ -120,6 +120,7 @@ inline =
          , superscript
          , inlineLaTeX
          , exportSnippet
+         , macro
          , smart
          , symbol
          ] <* (guard =<< newlinesCountWithinLimits)
@@ -338,8 +339,16 @@ linkLikeOrgRefCite = try $ do
 -- | Read a citation key.  The characters allowed in citation keys are taken
 -- from the `org-ref-cite-re` variable in `org-ref.el`.
 orgRefCiteKey :: PandocMonad m => OrgParser m String
-orgRefCiteKey = try . many1 . satisfy $ \c ->
-                  isAlphaNum c || c `elem` ("-_:\\./"::String)
+orgRefCiteKey =
+  let citeKeySpecialChars = "-_:\\./," :: String
+      isCiteKeySpecialChar c = c `elem` citeKeySpecialChars
+      isCiteKeyChar c = isAlphaNum c || isCiteKeySpecialChar c
+
+  in try $ many1Till (satisfy $ isCiteKeyChar)
+           $ try . lookAhead $ do
+               many . satisfy $ isCiteKeySpecialChar
+               satisfy $ not . isCiteKeyChar
+
 
 -- | Supported citation types.  Only a small subset of org-ref types is
 -- supported for now.  TODO: rewrite this, use LaTeX reader as template.
@@ -686,13 +695,13 @@ mathEnd c = try $ do
   return res
 
 
-enclosedInlines :: PandocMonad m => OrgParser m a
+enclosedInlines :: (PandocMonad m, Show b) => OrgParser m a
                 -> OrgParser m b
                 -> OrgParser m (F Inlines)
 enclosedInlines start end = try $
   trimInlinesF . mconcat <$> enclosed start end inline
 
-enclosedRaw :: PandocMonad m => OrgParser m a
+enclosedRaw :: (PandocMonad m, Show b) => OrgParser m a
             -> OrgParser m b
             -> OrgParser m String
 enclosedRaw start end = try $
@@ -839,26 +848,51 @@ exportSnippet = try $ do
   snippet <- manyTill anyChar (try $ string "@@")
   returnF $ B.rawInline format snippet
 
+macro :: PandocMonad m => OrgParser m (F Inlines)
+macro = try $ do
+  recursionDepth <- orgStateMacroDepth <$> getState
+  guard $ recursionDepth < 15
+  string "{{{"
+  name <- many alphaNum
+  args <- ([] <$ string "}}}")
+          <|> char '(' *> argument `sepBy` char ',' <* eoa
+  expander <- lookupMacro name <$> getState
+  case expander of
+    Nothing -> mzero
+    Just fn -> do
+      updateState $ \s -> s { orgStateMacroDepth = recursionDepth + 1 }
+      res <- parseFromString (mconcat <$> many inline) $ fn args
+      updateState $ \s -> s { orgStateMacroDepth = recursionDepth }
+      return res
+ where
+  argument = many $ notFollowedBy eoa *> noneOf ","
+  eoa = string ")}}}"
+
 smart :: PandocMonad m => OrgParser m (F Inlines)
 smart = do
-  guardEnabled Ext_smart
   doubleQuoted <|> singleQuoted <|>
     choice (map (return <$>) [orgApostrophe, orgDash, orgEllipses])
   where
     orgDash = do
-      guard =<< getExportSetting exportSpecialStrings
+      guardOrSmartEnabled =<< getExportSetting exportSpecialStrings
       dash <* updatePositions '-'
     orgEllipses = do
-      guard =<< getExportSetting exportSpecialStrings
+      guardOrSmartEnabled =<< getExportSetting exportSpecialStrings
       ellipses <* updatePositions '.'
-    orgApostrophe =
-          (char '\'' <|> char '\8217') <* updateLastPreCharPos
-                                       <* updateLastForbiddenCharPos
-                                       *> return (B.str "\x2019")
+    orgApostrophe = do
+      guardEnabled Ext_smart
+      (char '\'' <|> char '\8217') <* updateLastPreCharPos
+                                   <* updateLastForbiddenCharPos
+      return (B.str "\x2019")
+
+guardOrSmartEnabled :: PandocMonad m => Bool -> OrgParser m ()
+guardOrSmartEnabled b = do
+  smartExtension <- extensionEnabled Ext_smart <$> getOption readerExtensions
+  guard (b || smartExtension)
 
 singleQuoted :: PandocMonad m => OrgParser m (F Inlines)
 singleQuoted = try $ do
-  guard =<< getExportSetting exportSmartQuotes
+  guardOrSmartEnabled =<< getExportSetting exportSmartQuotes
   singleQuoteStart
   updatePositions '\''
   withQuoteContext InSingleQuote $
@@ -870,7 +904,7 @@ singleQuoted = try $ do
 -- in the same paragraph.
 doubleQuoted :: PandocMonad m => OrgParser m (F Inlines)
 doubleQuoted = try $ do
-  guard =<< getExportSetting exportSmartQuotes
+  guardOrSmartEnabled =<< getExportSetting exportSmartQuotes
   doubleQuoteStart
   updatePositions '"'
   contents <- mconcat <$> many (try $ notFollowedBy doubleQuoteEnd >> inline)

@@ -1,7 +1,7 @@
 {-# LANGUAGE FlexibleContexts, FlexibleInstances, MultiParamTypeClasses,
 ViewPatterns#-}
 {-
-Copyright (C) 2006-2015 John MacFarlane <jgm@berkeley.edu>
+Copyright (C) 2006-2017 John MacFarlane <jgm@berkeley.edu>
 
 This program is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -20,7 +20,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 {- |
    Module      : Text.Pandoc.Readers.HTML
-   Copyright   : Copyright (C) 2006-2015 John MacFarlane
+   Copyright   : Copyright (C) 2006-2017 John MacFarlane
    License     : GNU GPL, version 2 or above
 
    Maintainer  : John MacFarlane <jgm@berkeley.edu>
@@ -887,7 +887,8 @@ inlineHtmlTags = ["a", "abbr", "acronym", "b", "basefont", "bdo", "big",
 blockHtmlTags :: [String]
 blockHtmlTags = ["?xml", "!DOCTYPE", "address", "article", "aside",
                  "blockquote", "body", "button", "canvas",
-                 "caption", "center", "col", "colgroup", "dd", "dir", "div",
+                 "caption", "center", "col", "colgroup", "dd", "details",
+                 "dir", "div",
                  "dl", "dt", "fieldset", "figcaption", "figure",
                  "footer", "form", "h1", "h2", "h3", "h4",
                  "h5", "h6", "head", "header", "hgroup", "hr", "html",

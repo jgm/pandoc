@@ -600,10 +600,6 @@ Reference
 
 Foo link:/url/[bar].
 
-Foo link:/url/[bar].
-
-Foo link:/url/[bar].
-
 With link:/url/[embedded [brackets]].
 
 link:/url/[b] by itself should be a link.

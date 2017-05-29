@@ -3,7 +3,7 @@
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TupleSections       #-}
 {-
-Copyright (C) 2006-2015 John MacFarlane <jgm@berkeley.edu>
+Copyright (C) 2006-2017 John MacFarlane <jgm@berkeley.edu>
 
 This program is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -22,7 +22,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 {- |
    Module      : Text.Pandoc.Writers.Markdown
-   Copyright   : Copyright (C) 2006-2015 John MacFarlane
+   Copyright   : Copyright (C) 2006-2017 John MacFarlane
    License     : GNU GPL, version 2 or above
 
    Maintainer  : John MacFarlane <jgm@berkeley.edu>
@@ -34,12 +34,12 @@ Conversion of 'Pandoc' documents to markdown-formatted plain text.
 Markdown:  <http://daringfireball.net/projects/markdown/>
 -}
 module Text.Pandoc.Writers.Markdown (writeMarkdown, writePlain) where
-import Control.Monad.Except (throwError)
 import Control.Monad.Reader
 import Control.Monad.State
 import Data.Char (chr, isPunctuation, isSpace, ord)
 import Data.Default
 import qualified Data.HashMap.Strict as H
+import qualified Data.Map as M
 import Data.List (find, group, intersperse, sortBy, stripPrefix, transpose)
 import Data.Maybe (fromMaybe)
 import Data.Monoid (Any (..))
@@ -49,11 +49,9 @@ import qualified Data.Text as T
 import qualified Data.Vector as V
 import Data.Yaml (Value (Array, Bool, Number, Object, String))
 import Network.HTTP (urlEncode)
-import Network.URI (isURI)
 import Text.HTML.TagSoup (Tag (..), isTagText, parseTags)
 import Text.Pandoc.Class (PandocMonad, report)
 import Text.Pandoc.Definition
-import Text.Pandoc.Error
 import Text.Pandoc.Logging
 import Text.Pandoc.Options
 import Text.Pandoc.Parsing hiding (blankline, blanklines, char, space)
@@ -91,6 +89,9 @@ instance Default WriterEnv
 
 data WriterState = WriterState { stNotes   :: Notes
                                , stRefs    :: Refs
+                               , stKeys    :: M.Map Key
+                                                (M.Map (Target, Attr) Int)
+                               , stLastIdx  :: Int
                                , stIds     :: Set.Set String
                                , stNoteNum :: Int
                                }
@@ -98,6 +99,8 @@ data WriterState = WriterState { stNotes   :: Notes
 instance Default WriterState
   where def = WriterState{ stNotes = []
                          , stRefs = []
+                         , stKeys = M.empty
+                         , stLastIdx = 0
                          , stIds = Set.empty
                          , stNoteNum = 1
                          }
@@ -788,7 +791,7 @@ blockListToMarkdown opts blocks = do
       isListBlock _                  = False
       commentSep                     = if isEnabled Ext_raw_html opts
                                           then RawBlock "html" "<!-- -->\n"
-                                          else RawBlock "markdown" "&nbsp;"
+                                          else RawBlock "markdown" "&nbsp;\n"
   mapM (blockToMarkdown opts) (fixBlocks blocks) >>= return . cat
 
 getKey :: Doc -> Key
@@ -798,20 +801,49 @@ getKey = toKey . render Nothing
 --   Prefer label if possible; otherwise, generate a unique key.
 getReference :: PandocMonad m => Attr -> Doc -> Target -> MD m Doc
 getReference attr label target = do
-  st <- get
-  let keys = map (\(l,_,_) -> getKey l) (stRefs st)
-  case find (\(_,t,a) -> t == target && a == attr) (stRefs st) of
+  refs <- gets stRefs
+  case find (\(_,t,a) -> t == target && a == attr) refs of
     Just (ref, _, _) -> return ref
     Nothing       -> do
-      label' <- case getKey label `elem` keys of
-                  True -> -- label is used; generate numerical label
-                    case find (\n -> Key n `notElem` keys) $
-                         map show [1..(10000 :: Integer)] of
-                      Just x  -> return $ text x
-                      Nothing -> throwError $ PandocSomeError "no unique label"
-                  False -> return label
-      modify (\s -> s{ stRefs = (label', target, attr) : stRefs st })
-      return label'
+      keys <- gets stKeys
+      case M.lookup (getKey label) keys of
+           Nothing -> do -- no other refs with this label
+             (lab', idx) <- if isEmpty label
+                               then do
+                                 i <- (+ 1) <$> gets stLastIdx
+                                 modify $ \s -> s{ stLastIdx = i }
+                                 return (text (show i), i)
+                               else return (label, 0)
+             modify (\s -> s{
+               stRefs = (lab', target, attr) : refs,
+               stKeys = M.insert (getKey label)
+                           (M.insert (target, attr) idx mempty)
+                                 (stKeys s) })
+             return lab'
+
+           Just km -> do -- we have refs with this label
+             case M.lookup (target, attr) km of
+                  Just i -> do
+                    let lab' = label <> if i == 0
+                                           then mempty
+                                           else text (show i)
+                    -- make sure it's in stRefs; it may be
+                    -- a duplicate that was printed in a previous
+                    -- block:
+                    when ((lab', target, attr) `notElem` refs) $
+                       modify (\s -> s{
+                         stRefs = (lab', target, attr) : refs })
+                    return lab'
+                  Nothing -> do -- but this one is to a new target
+                    i <- (+ 1) <$> gets stLastIdx
+                    modify $ \s -> s{ stLastIdx = i }
+                    let lab' = text (show i)
+                    modify (\s -> s{
+                       stRefs = (lab', target, attr) : refs,
+                       stKeys = M.insert (getKey label)
+                                   (M.insert (target, attr) i km)
+                                         (stKeys s) })
+                    return lab'
 
 -- | Convert list of Pandoc inline elements to markdown.
 inlineListToMarkdown :: PandocMonad m => WriterOptions -> [Inline] -> MD m Doc

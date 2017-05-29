@@ -3,7 +3,7 @@
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE ViewPatterns        #-}
 {-
-Copyright (C) 2006-2015 John MacFarlane <jgm@berkeley.edu>
+Copyright (C) 2006-2017 John MacFarlane <jgm@berkeley.edu>
 
 This program is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -22,7 +22,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 {- |
    Module      : Text.Pandoc.Writers.HTML
-   Copyright   : Copyright (C) 2006-2015 John MacFarlane
+   Copyright   : Copyright (C) 2006-2017 John MacFarlane
    License     : GNU GPL, version 2 or above
 
    Maintainer  : John MacFarlane <jgm@berkeley.edu>
@@ -521,7 +521,7 @@ attrsToHtml opts (id',classes',keyvals) =
 imgAttrsToHtml :: WriterOptions -> Attr -> [Attribute]
 imgAttrsToHtml opts attr =
     attrsToHtml opts (ident,cls,kvs') ++
-    toAttrs (dimensionsToAttrList opts attr)
+    toAttrs (dimensionsToAttrList attr)
   where
     (ident,cls,kvs) = attr
     kvs' = filter isNotDim kvs
@@ -529,14 +529,13 @@ imgAttrsToHtml opts attr =
     isNotDim ("height", _) = False
     isNotDim _             = True
 
-dimensionsToAttrList :: WriterOptions -> Attr -> [(String, String)]
-dimensionsToAttrList opts attr = (go Width) ++ (go Height)
+dimensionsToAttrList :: Attr -> [(String, String)]
+dimensionsToAttrList attr = (go Width) ++ (go Height)
   where
     go dir = case (dimension dir attr) of
-               (Just (Percent a)) -> [("style", show dir ++ ":" ++ show (Percent a))]
-               (Just dim)         -> [(show dir, showInPixel opts dim)]
-               _ -> []
-
+               (Just (Pixel a))  -> [(show dir, show a)]
+               (Just x)          -> [("style", show dir ++ ":" ++ show x)]
+               Nothing           -> []
 
 imageExts :: [String]
 imageExts = [ "art", "bmp", "cdr", "cdt", "cpt", "cr2", "crw", "djvu", "erf",

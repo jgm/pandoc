@@ -939,10 +939,6 @@ Just a @uref{/url/,URL}.
 @anchor{#reference}
 Foo @uref{/url/,bar}.
 
-Foo @uref{/url/,bar}.
-
-Foo @uref{/url/,bar}.
-
 With @uref{/url/,embedded [brackets]}.
 
 @uref{/url/,b} by itself should be a link.

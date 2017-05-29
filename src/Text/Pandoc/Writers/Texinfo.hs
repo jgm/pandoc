@@ -1,6 +1,7 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-
-Copyright (C) 2008-2015 John MacFarlane and Peter Wang
+Copyright (C) 2008-2017 John MacFarlane
+              2012 Peter Wang
 
 This program is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -19,7 +20,8 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 {- |
    Module      : Text.Pandoc.Writers.Texinfo
-   Copyright   : Copyright (C) 2008-2015 John MacFarlane and Peter Wang
+   Copyright   : Copyright (C) 2008-2017 John MacFarlane
+                               2012 Peter Wang
    License     : GNU GPL, version 2 or above
 
    Maintainer  : John MacFarlane <jgm@berkeley.edu>
@@ -35,7 +37,7 @@ import Data.Char (chr, ord)
 import Data.List (maximumBy, transpose)
 import Data.Ord (comparing)
 import qualified Data.Set as Set
-import Network.URI (isURI, unEscapeString)
+import Network.URI (unEscapeString)
 import System.FilePath
 import Text.Pandoc.Class (PandocMonad, report)
 import Text.Pandoc.Definition

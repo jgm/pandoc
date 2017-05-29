@@ -489,8 +489,6 @@ Blah
 <p><a href="">Empty</a>.</p>
 <h2 id="reference">Reference</h2>
 <p>Foo <a href="/url/">bar</a>.</p>
-<p>Foo <a href="/url/">bar</a>.</p>
-<p>Foo <a href="/url/">bar</a>.</p>
 <p>With <a href="/url/">embedded [brackets]</a>.</p>
 <p><a href="/url/">b</a> by itself should be a link.</p>
 <p>Indented <a href="/url">once</a>.</p>

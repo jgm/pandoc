@@ -571,10 +571,6 @@ Just a [[url/|URL]].
 
 Foo [[url/|bar]].
 
-Foo [[url/|bar]].
-
-Foo [[url/|bar]].
-
 With [[url/|embedded [brackets]]].
 
 [[url/|b]] by itself should be a link.

@@ -1267,12 +1267,6 @@ These should not be escaped:  \$ \\ \&gt; \[ \{</preformat>
       Foo <ext-link ext-link-type="uri" xlink:href="/url/">bar</ext-link>.
     </p>
     <p>
-      Foo <ext-link ext-link-type="uri" xlink:href="/url/">bar</ext-link>.
-    </p>
-    <p>
-      Foo <ext-link ext-link-type="uri" xlink:href="/url/">bar</ext-link>.
-    </p>
-    <p>
       With <ext-link ext-link-type="uri" xlink:href="/url/">embedded
       [brackets]</ext-link>.
     </p>
