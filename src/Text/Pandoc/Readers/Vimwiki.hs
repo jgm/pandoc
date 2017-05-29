@@ -66,7 +66,6 @@ module Text.Pandoc.Readers.Vimwiki ( readVimwiki
 import Control.Monad.Except (throwError)
 import Control.Monad (guard)
 import Data.Default 
-import Data.Functor.Identity
 import Data.Maybe
 import Data.List (isInfixOf)
 import Data.List.Split (splitOn)
