@@ -1321,7 +1321,7 @@ fancyverbEnv name = do
   codeBlockWith attr <$> verbEnv name
 
 orderedList' :: PandocMonad m => LP m Blocks
-orderedList' = do
+orderedList' = try $ do
   optional sp
   (_, style, delim) <- option (1, DefaultStyle, DefaultDelim) $
                               try $ char '[' *> anyOrderedListMarker <* char ']'
