@@ -339,8 +339,16 @@ linkLikeOrgRefCite = try $ do
 -- | Read a citation key.  The characters allowed in citation keys are taken
 -- from the `org-ref-cite-re` variable in `org-ref.el`.
 orgRefCiteKey :: PandocMonad m => OrgParser m String
-orgRefCiteKey = try . many1 . satisfy $ \c ->
-                  isAlphaNum c || c `elem` ("-_:\\./"::String)
+orgRefCiteKey =
+  let citeKeySpecialChars = "-_:\\./," :: String
+      isCiteKeySpecialChar c = c `elem` citeKeySpecialChars
+      isCiteKeyChar c = isAlphaNum c || isCiteKeySpecialChar c
+
+  in try $ many1Till (satisfy $ isCiteKeyChar)
+           $ try . lookAhead $ do
+               many . satisfy $ isCiteKeySpecialChar
+               satisfy $ not . isCiteKeyChar
+
 
 -- | Supported citation types.  Only a small subset of org-ref types is
 -- supported for now.  TODO: rewrite this, use LaTeX reader as template.
@@ -687,13 +695,13 @@ mathEnd c = try $ do
   return res
 
 
-enclosedInlines :: PandocMonad m => OrgParser m a
+enclosedInlines :: (PandocMonad m, Show b) => OrgParser m a
                 -> OrgParser m b
                 -> OrgParser m (F Inlines)
 enclosedInlines start end = try $
   trimInlinesF . mconcat <$> enclosed start end inline
 
-enclosedRaw :: PandocMonad m => OrgParser m a
+enclosedRaw :: (PandocMonad m, Show b) => OrgParser m a
             -> OrgParser m b
             -> OrgParser m String
 enclosedRaw start end = try $
