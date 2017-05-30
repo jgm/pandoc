@@ -151,7 +151,7 @@ header = try $ do
 para :: PandocMonad m => VwParser m Blocks
 para = try $ do
   contents <- trimInlines . mconcat <$> many1 inline
-  if all (==Space) contents
+  if all (==Space) (toList contents)
      then return mempty
      else return $ B.para contents
 
@@ -169,7 +169,7 @@ blockQuote :: PandocMonad m => VwParser m Blocks
 blockQuote = try $ do
   string "    "
   contents <- trimInlines . mconcat <$> many1 inlineBQ
-  if all (==Space) contents
+  if all (==Space) (toList contents)
      then return mempty
      else return $ B.blockQuote $ B.plain contents
 
