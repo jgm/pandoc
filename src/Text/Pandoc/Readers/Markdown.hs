@@ -55,11 +55,9 @@ import qualified Text.Pandoc.Builder as B
 import Text.Pandoc.Class (PandocMonad, report)
 import Text.Pandoc.Definition
 import Text.Pandoc.Emoji (emojis)
-import Text.Pandoc.Generic (bottomUp)
 import Text.Pandoc.Logging
 import Text.Pandoc.Options
 import Text.Pandoc.Parsing hiding (tableWith)
-import Text.Pandoc.Pretty (charWidth)
 import Text.Pandoc.Readers.HTML (htmlInBalanced, htmlTag, isBlockTag,
                                  isCommentTag, isInlineTag, isTextTag)
 import Text.Pandoc.Readers.LaTeX (rawLaTeXBlock, rawLaTeXInline)
@@ -375,15 +373,7 @@ parseMarkdown = do
                      return $ Pandoc meta bs) st
   reportLogMessages
   (do guardEnabled Ext_east_asian_line_breaks
-      return $ bottomUp softBreakFilter doc) <|> return doc
-
-softBreakFilter :: [Inline] -> [Inline]
-softBreakFilter (x:SoftBreak:y:zs) =
-  case (stringify x, stringify y) of
-        (xs@(_:_), (c:_))
-          | charWidth (last xs) == 2 && charWidth c == 2 -> x:y:zs
-        _ -> x:SoftBreak:y:zs
-softBreakFilter xs = xs
+      return $ eastAsianLineBreakFilter doc) <|> return doc
 
 referenceKey :: PandocMonad m => MarkdownParser m (F Blocks)
 referenceKey = try $ do

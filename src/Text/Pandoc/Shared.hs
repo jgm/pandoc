@@ -70,6 +70,7 @@ module Text.Pandoc.Shared (
                      isTightList,
                      addMetaField,
                      makeMeta,
+                     eastAsianLineBreakFilter,
                      -- * TagSoup HTML handling
                      renderTags',
                      -- * File handling
@@ -120,6 +121,7 @@ import qualified Control.Monad.State as S
 import qualified Control.Exception as E
 import Control.Monad (msum, unless, MonadPlus(..))
 import Text.Pandoc.Pretty (charWidth)
+import Text.Pandoc.Generic (bottomUp)
 import Text.Pandoc.Compat.Time
 import Data.Time.Clock.POSIX
 import System.IO.Error
@@ -577,6 +579,16 @@ makeMeta title authors date =
     $ addMetaField "author" (map B.fromList authors)
     $ addMetaField "date" (B.fromList date)
     $ nullMeta
+
+-- | Remove soft breaks between East Asian characters.
+eastAsianLineBreakFilter :: Pandoc -> Pandoc
+eastAsianLineBreakFilter = bottomUp go
+  where go (x:SoftBreak:y:zs) =
+         case (stringify x, stringify y) of
+               (xs@(_:_), (c:_))
+                 | charWidth (last xs) == 2 && charWidth c == 2 -> x:y:zs
+               _ -> x:SoftBreak:y:zs
+        go xs = xs
 
 --
 -- TagSoup HTML handling
