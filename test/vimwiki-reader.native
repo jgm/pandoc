@@ -70,10 +70,8 @@
  [[Plain [Str "Bulleted",Space,Str "list",Space,Str "item",Space,Str "1"]]
  ,[Plain [Str "Bulleted",Space,Str "list",Space,Str "item",Space,Str "2"]]]
 ,BulletList
- [[Plain [Str "Item",Space,Str "1"]]]
-,Para [Str "Item",Space,Str "1",Space,Str "continued",Space,Str "line.",SoftBreak,Str "Item",Space,Str "1",Space,Str "next",Space,Str "continued",Space,Str "line."]
-,BulletList
- [[Plain [Str "Item",Space,Str "2"]
+ [[Plain [Str "Item",Space,Str "1"]]
+ ,[Plain [Str "Item",Space,Str "2"]
   ,OrderedList (1,DefaultStyle,DefaultDelim)
    [[Plain [Str "Sub",Space,Str "item",Space,Str "1",SoftBreak,Str "Sub",Space,Str "item",Space,Str "1",Space,Str "continued",Space,Str "line.",SoftBreak,Str "Sub",Space,Str "item",Space,Str "1",Space,Str "next",Space,Str "continued",Space,Str "line."]]
    ,[Plain [Str "Sub",Space,Str "item",Space,Str "2,",Space,Str "as",Space,Str "an",Space,Str "ordered",Space,Str "list",Space,Str "item",Space,Str "even",Space,Str "though",Space,Str "the",Space,Str "identifier",Space,Str "is",Space,Code ("",[],[]) "*"]]

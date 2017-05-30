@@ -152,8 +152,6 @@ mailto:hello@bye.com
 - Bulleted list item 2
 
 * Item 1
-Item 1 continued line.
-Item 1 next continued line.
 * Item 2
     # Sub item 1
   Sub item 1 continued line.
