@@ -100,8 +100,8 @@ tests = [ testGroup "markdown"
             "mediawiki-reader.wiki" "mediawiki-reader.native"
           ]
         , testGroup "vimwiki"
-          [ test "reader" ["-r", "vimwiki", "-w", "html5", "-s"]
-            "vimwiki-reader.wiki" "vimwiki-reader.html"
+          [ test "reader" ["-r", "vimwiki", "-w", "native", "-s"]
+            "vimwiki-reader.wiki" "vimwiki-reader.native"
           ]
         , testGroup "dokuwiki"
           [ testGroup "writer" $ writerTests "dokuwiki"

@@ -68,7 +68,6 @@ import Control.Monad (guard)
 import Data.Default 
 import Data.Maybe
 import Data.List (isInfixOf)
-import Data.List.Split (splitOn)
 import Data.Text (strip)
 import Text.Pandoc.Builder (Blocks, Inlines, trimInlines, fromList, toList)
 import qualified Text.Pandoc.Builder as B (doc, toList, headerWith, str, space, strong, emph, strikeout, code, link, image, spanWith, math, para, horizontalRule, blockQuote, codeBlock, displayMath, bulletList, plain, orderedList, simpleTable, softbreak)
@@ -78,6 +77,7 @@ import Text.Pandoc.Error (PandocError)
 import Text.Pandoc.Logging (LogMessage(ParsingTrace))
 import Text.Pandoc.Options (ReaderOptions)
 import Text.Pandoc.Parsing (readWithM, ParserT, stateOptions, ParserState, blanklines, registerHeader, spaceChar, stateAllowLinks, emailAddress, guardEnabled, uri)
+import Text.Pandoc.Shared (splitBy)
 import Text.Parsec.Char (spaces, char, anyChar, newline, string, noneOf)
 import Text.Parsec.Error (ParseError)
 import Text.Parsec.Combinator (eof, choice, many1, manyTill, count, skipMany1, notFollowedBy)
@@ -199,9 +199,9 @@ mixedList' prevLev = do
   if curLev < prevLev
      then return ([], curLev)
      else do
-          many spaceChar  -- change to spaceChar
+          many spaceChar  
           c <- oneOf "*-#" 
-          many1 spaceChar  -- change to spaceChar
+          many1 spaceChar  
           curLine <- B.plain <$> trimInlines . mconcat <$> many1 inlineML
           newline
           let listBuilder = fromJust $ listType c
@@ -218,7 +218,6 @@ mixedList' prevLev = do
                   if curLev > prevLev
                      then return ([listBuilder curList], endLev)
                      else return (curList, endLev)
-                             --}
 
 combineList :: Blocks -> [Blocks] -> [Blocks]
 combineList x [y] = case toList y of
@@ -316,7 +315,7 @@ special = B.str <$> count 1 (oneOf specialChars)
 bareURL = try $ do
   (orig, src) <- uri <|> emailAddress
   return $ B.link src "" (B.str orig)
---{--
+
 strong = try $ do
   s <- lookAhead $ between (char '*') (char '*') (many1 $ noneOf "*")
   guard $ (not $ (head s) `elem` spaceChars) && (not $ (last s) `elem` spaceChars)
@@ -360,7 +359,7 @@ tag = try $ do
   char ':'
   s <- manyTill (noneOf spaceChars) (try (char ':' >> space))
   guard $ not $ "::" `isInfixOf` (":" ++ s ++ ":")
-  return $ mconcat $ concat $ (makeTagSpan <$> (splitOn ":" s)) 
+  return $ mconcat $ concat $ (makeTagSpan <$> (splitBy (==':') s)) 
 todoMark = try $ do
   string "TODO:"
   return $ B.spanWith ("", ["todo"], []) (B.str "TODO:")
