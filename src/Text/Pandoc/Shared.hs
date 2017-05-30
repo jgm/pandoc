@@ -575,6 +575,9 @@ rebuildTree _ _ = undefined -- These cases should not happen.
 -- The div will be a child of the previous header/section and the header
 -- inside the div will become a child of the previous section, regardless its
 -- depth. The two other functions correct this.
+-- If a header is placed in a div without an identifier, it will keep its own
+-- identifier. If it is placed in a div with an identifier, the header takes
+-- the identifier of the div.
 hierarchicalize :: [Block] -> [Element]
 hierarchicalize blocks = rebuildTree [] $ flatten $ S.evalState (hierarchicalizeWithIds blocks) []
 
@@ -596,6 +599,10 @@ hierarchicalizeWithIds ((Header level attr@(_,classes,_) title'):xs) = do
 hierarchicalizeWithIds ((Div ("",["references"],[])
                          (Header level (ident,classes,kvs) title' : xs)):ys) =
   hierarchicalizeWithIds ((Header level (ident,("references":classes),kvs)
+                           title') : (xs ++ ys))
+hierarchicalizeWithIds ((Div ("",_,[])
+                         (Header level (ident,classes,kvs) title' : xs)):ys) =
+  hierarchicalizeWithIds ((Header level (ident,classes,kvs)
                            title') : (xs ++ ys))
 hierarchicalizeWithIds ((Div (ident,_,[])
                          (Header level (_,classes,kvs) title' : xs)):ys) =
