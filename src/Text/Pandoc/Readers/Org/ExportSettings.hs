@@ -17,8 +17,8 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 -}
 
 {- |
-   Module      : Text.Pandoc.Readers.Org.Options
-   Copyright   : Copyright (C) 2016 Albert Krewinkel
+   Module      : Text.Pandoc.Readers.Org.ExportSettings
+   Copyright   : © 2016–2017 Albert Krewinkel
    License     : GNU GPL, version 2 or above
 
    Maintainer  : Albert Krewinkel <tarleb+pandoc@moltkeplatz.de>

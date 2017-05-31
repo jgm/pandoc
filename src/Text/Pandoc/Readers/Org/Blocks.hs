@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 {-# LANGUAGE RecordWildCards  #-}
 {-# LANGUAGE ViewPatterns     #-}
 {- |
-   Module      : Text.Pandoc.Readers.Org.Options
+   Module      : Text.Pandoc.Readers.Org.Blocks
    Copyright   : Copyright (C) 2014-2017 Albert Krewinkel
    License     : GNU GPL, version 2 or above
 
