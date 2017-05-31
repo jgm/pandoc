@@ -34,6 +34,7 @@ module Text.Pandoc.Readers.Org.DocumentTree
 
 import Control.Monad (guard, void)
 import Data.Char (toLower, toUpper)
+import Data.List ( intersperse )
 import Data.Maybe (fromMaybe)
 import Data.Monoid ((<>))
 import Text.Pandoc.Builder (Blocks, Inlines)
@@ -224,7 +225,7 @@ headlineToHeader (Headline {..}) = do
                       Just kw -> todoKeywordToInlines kw <> B.space
                       Nothing -> mempty
                     else mempty
-  let text        = tagTitle (todoText <> headlineText) headlineTags
+  let text        = todoText <> headlineText <> tagsToInlines headlineTags
   let propAttr    = propertiesToAttr headlineProperties
   attr           <- registerHeader propAttr headlineText
   return $ B.headerWith attr headlineLevel text
@@ -259,12 +260,21 @@ propertiesToAttr properties =
   in
     (id', words cls ++ (if isUnnumbered then ["unnumbered"] else []), kvs')
 
-tagTitle :: Inlines -> [Tag] -> Inlines
-tagTitle title tags = title <> (mconcat $ map tagToInline tags)
+tagsToInlines :: [Tag] -> Inlines
+tagsToInlines [] = mempty
+tagsToInlines tags =
+  (B.space <>) . mconcat . intersperse (B.str "\160") . map tagToInline $ tags
+ where
+  tagToInline :: Tag -> Inlines
+  tagToInline t = tagSpan t . B.smallcaps . B.str $ fromTag t
 
--- | Convert 
-tagToInline :: Tag -> Inlines
-tagToInline t = B.spanWith ("", ["tag"], [("data-tag-name", fromTag t)]) mempty
+-- | Wrap the given inline in a span, marking it as a tag.
+tagSpan :: Tag -> Inlines -> Inlines
+tagSpan t = B.spanWith ("", ["tag"], [("data-tag-name", fromTag t)])
+
+
+
+
 
 -- | Read a :PROPERTIES: drawer and return the key/value pairs contained
 -- within.

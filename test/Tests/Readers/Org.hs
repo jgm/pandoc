@@ -28,6 +28,10 @@ simpleTable' :: Int
              -> Blocks
 simpleTable' n = table "" (replicate n (AlignDefault, 0.0))
 
+-- | Create a span for the given tag.
+tagSpan :: String -> Inlines
+tagSpan t = spanWith ("", ["tag"], [("data-tag-name", t)]) . smallcaps $ str t
+
 tests :: [TestTree]
 tests =
   [ testGroup "Inlines" $
@@ -729,18 +733,17 @@ tests =
                       , "* old  :ARCHIVE:"
                       , "  boring"
                       ] =?>
-              let tagSpan t = spanWith ("", ["tag"], [("data-tag-name", t)]) mempty
-              in mconcat [ headerWith ("old", [], mempty) 1 ("old" <> tagSpan "ARCHIVE")
-                         , para "boring"
-                         ]
+              mconcat [ headerWith ("old", [], mempty) 1
+                                   ("old" <> space <> tagSpan "ARCHIVE")
+                      , para "boring"
+                      ]
 
           , "include archive tree header only" =:
               unlines [ "#+OPTIONS: arch:headline"
                       , "* old  :ARCHIVE:"
                       , "  boring"
                       ] =?>
-              let tagSpan t = spanWith ("", ["tag"], [("data-tag-name", t)]) mempty
-              in headerWith ("old", [], mempty) 1 ("old" <> tagSpan "ARCHIVE")
+              headerWith ("old", [], mempty) 1 ("old" <> space <> tagSpan "ARCHIVE")
 
           , "limit headline depth" =:
               unlines [ "#+OPTIONS: H:2"
@@ -898,17 +901,16 @@ tests =
                     , "** Call Mom      :@PHONE:"
                     , "** Call John     :@PHONE:JOHN: "
                     ] =?>
-            let tagSpan t = spanWith ("", ["tag"], [("data-tag-name", t)]) mempty
-            in mconcat [ headerWith ("personal", [], [])
-                                    1
-                                    ("Personal" <> tagSpan "PERSONAL")
-                       , headerWith ("call-mom", [], [])
-                                    2
-                                    ("Call Mom" <> tagSpan "@PHONE")
-                       , headerWith ("call-john", [], [])
-                                    2
-                                    ("Call John" <> tagSpan "@PHONE" <> tagSpan "JOHN")
-                       ]
+            mconcat [ headerWith ("personal", [], [])
+                                 1
+                                 ("Personal " <> tagSpan "PERSONAL")
+                    , headerWith ("call-mom", [], [])
+                                 2
+                                 ("Call Mom " <> tagSpan "@PHONE")
+                    , headerWith ("call-john", [], [])
+                                 2
+                                 ("Call John " <> tagSpan "@PHONE" <> "\160" <> tagSpan "JOHN")
+                    ]
 
         , "Untagged header containing colons" =:
             "* This: is not: tagged" =?>
