@@ -122,18 +122,18 @@ attrFromBlockAttributes (BlockAttributes{..}) =
     kv      = filter ((`notElem` ["id", "class"]) . fst) blockAttrKeyValues
   in (ident, classes, kv)
 
-stringyMetaAttribute :: Monad m => (String -> Bool) -> OrgParser m (String, String)
-stringyMetaAttribute attrCheck = try $ do
+stringyMetaAttribute :: Monad m => OrgParser m (String, String)
+stringyMetaAttribute = try $ do
   metaLineStart
   attrName <- map toUpper <$> many1Till nonspaceChar (char ':')
-  guard $ attrCheck attrName
   skipSpaces
-  attrValue <- anyLine
+  attrValue <- anyLine <|> ("" <$ newline)
   return (attrName, attrValue)
 
 blockAttributes :: PandocMonad m => OrgParser m BlockAttributes
 blockAttributes = try $ do
-  kv <- many (stringyMetaAttribute attrCheck)
+  kv <- many stringyMetaAttribute
+  guard $ all (attrCheck . fst) kv
   let caption = foldl' (appendValues "CAPTION") Nothing kv
   let kvAttrs = foldl' (appendValues "ATTR_HTML") Nothing kv
   let name    = lookup "NAME" kv
@@ -150,13 +150,7 @@ blockAttributes = try $ do
            }
  where
    attrCheck :: String -> Bool
-   attrCheck attr =
-     case attr of
-       "NAME"      -> True
-       "LABEL"     -> True
-       "CAPTION"   -> True
-       "ATTR_HTML" -> True
-       _           -> False
+   attrCheck x = x `elem` ["NAME", "LABEL", "CAPTION", "ATTR_HTML", "RESULTS"]
 
    appendValues :: String -> Maybe String -> (String, String) -> Maybe String
    appendValues attrName accValue (key, value) =
@@ -166,6 +160,7 @@ blockAttributes = try $ do
             Just acc -> Just $ acc ++ ' ':value
             Nothing  -> Just value
 
+-- | Parse key-value pairs for HTML attributes
 keyValues :: Monad m => OrgParser m [(String, String)]
 keyValues = try $
   manyTill ((,) <$> key <*> value) newline
@@ -301,16 +296,15 @@ codeBlock blockAttrs blockType = do
   skipSpaces
   (classes, kv)     <- codeHeaderArgs <|> (mempty <$ ignHeaders)
   content           <- rawBlockContent blockType
-  resultsContent    <- trailingResultsBlock
+  resultsContent    <- option mempty babelResultsBlock
   let id'            = fromMaybe mempty $ blockAttrName blockAttrs
   let codeBlck       = B.codeBlockWith ( id', classes, kv ) content
   let labelledBlck   = maybe (pure codeBlck)
                              (labelDiv codeBlck)
                              (blockAttrCaption blockAttrs)
-  let resultBlck     = fromMaybe mempty resultsContent
   return $
-    (if exportsCode kv    then labelledBlck else mempty) <>
-    (if exportsResults kv then resultBlck   else mempty)
+    (if exportsCode kv    then labelledBlck   else mempty) <>
+    (if exportsResults kv then resultsContent else mempty)
  where
    labelDiv :: Blocks -> F Inlines -> F Blocks
    labelDiv blk value =
@@ -325,12 +319,16 @@ codeBlock blockAttrs blockType = do
    exportsResults :: [(String, String)] -> Bool
    exportsResults = maybe False (`elem` ["results", "both"]) . lookup "exports"
 
-trailingResultsBlock :: PandocMonad m => OrgParser m (Maybe (F Blocks))
-trailingResultsBlock = optionMaybe . try $ do
+-- | Parse the result of an evaluated babel code block.
+babelResultsBlock :: PandocMonad m => OrgParser m (F Blocks)
+babelResultsBlock = try $ do
   blanklines
-  stringAnyCase "#+RESULTS:"
-  blankline
+  resultsMarker <|>
+    (lookAhead . void . try $
+      manyTill (metaLineStart *> anyLineNewline) resultsMarker)
   block
+ where
+  resultsMarker = try . void $ stringAnyCase "#+RESULTS:" *> blankline
 
 -- | Parse code block arguments
 codeHeaderArgs :: Monad m => OrgParser m ([String], [(String, String)])

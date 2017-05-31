@@ -44,7 +44,7 @@ import qualified Text.Pandoc.Builder as B
 import Text.Pandoc.Class (PandocMonad)
 import Text.Pandoc.Definition
 
-import Control.Monad (mzero, void)
+import Control.Monad (mzero, void, when)
 import Data.Char (toLower)
 import Data.List (intersperse)
 import qualified Data.Map as M
@@ -75,7 +75,9 @@ declarationLine :: PandocMonad m => OrgParser m ()
 declarationLine = try $ do
   key   <- map toLower <$> metaKey
   (key', value) <- metaValue key
-  updateState $ \st -> st { orgStateMeta = B.setMeta key' <$> value <*> orgStateMeta st }
+  when (key' /= "results") $
+    updateState $ \st ->
+      st { orgStateMeta = B.setMeta key' <$> value <*> orgStateMeta st }
 
 metaKey :: Monad m => OrgParser m String
 metaKey = map toLower <$> many1 (noneOf ": \n\r")
