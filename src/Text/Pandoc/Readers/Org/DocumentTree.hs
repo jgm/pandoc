@@ -220,12 +220,16 @@ headlineToHeaderWithContents hdln@(Headline {..}) = do
 headlineToHeader :: Monad m => Headline -> OrgParser m Blocks
 headlineToHeader (Headline {..}) = do
   exportTodoKeyword <- getExportSetting exportWithTodoKeywords
+  exportTags        <- getExportSetting exportWithTags
   let todoText    = if exportTodoKeyword
                     then case headlineTodoMarker of
                       Just kw -> todoKeywordToInlines kw <> B.space
                       Nothing -> mempty
                     else mempty
-  let text        = todoText <> headlineText <> tagsToInlines headlineTags
+  let text        = todoText <> headlineText <>
+                    if exportTags
+                    then tagsToInlines headlineTags
+                    else mempty
   let propAttr    = propertiesToAttr headlineProperties
   attr           <- registerHeader propAttr headlineText
   return $ B.headerWith attr headlineLevel text

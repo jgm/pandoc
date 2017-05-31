@@ -240,6 +240,7 @@ data ExportSettings = ExportSettings
   , exportWithAuthor       :: Bool -- ^ Include author in final meta-data
   , exportWithCreator      :: Bool -- ^ Include creator in final meta-data
   , exportWithEmail        :: Bool -- ^ Include email in final meta-data
+  , exportWithTags         :: Bool -- ^ Keep tags as part of headlines
   , exportWithTodoKeywords :: Bool -- ^ Keep TODO keywords in headers
   }
 
@@ -258,5 +259,6 @@ defaultExportSettings = ExportSettings
   , exportWithAuthor = True
   , exportWithCreator = True
   , exportWithEmail = True
+  , exportWithTags = True
   , exportWithTodoKeywords = True
   }

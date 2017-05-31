@@ -794,6 +794,12 @@ tests =
                       , "** DONE todo export"
                       ] =?>
               headerWith ("todo-export", [], []) 2 "todo export"
+
+          , "remove tags from headlines" =:
+              unlines [ "#+OPTIONS: tags:nil"
+                      , "* Headline :hello:world:"
+                      ] =?>
+              headerWith ("headline", [], mempty) 1 "Headline"
           ]
       ]
 

@@ -71,7 +71,7 @@ exportSetting = choice
   , ignoredSetting "pri"
   , ignoredSetting "prop"
   , ignoredSetting "stat"
-  , ignoredSetting "tags"
+  , booleanSetting "tags" (\val es -> es { exportWithTags = val })
   , ignoredSetting "tasks"
   , ignoredSetting "tex"
   , ignoredSetting "timestamp"
