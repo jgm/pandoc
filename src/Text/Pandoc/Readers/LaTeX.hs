@@ -1434,7 +1434,7 @@ complexNatbibCitation mode = try $ do
 
 -- tables
 
-parseAligns :: PandocMonad m => LP m [(String, Alignment, String)]
+parseAligns :: PandocMonad m => LP m [(Alignment, (String, String))]
 parseAligns = try $ do
   bgroup
   let maybeBar = skipMany $ sp <|> () <$ char '|' <|> () <$ (char '@' >> braced)
@@ -1442,12 +1442,13 @@ parseAligns = try $ do
   let cAlign = AlignCenter <$ char 'c'
   let lAlign = AlignLeft <$ char 'l'
   let rAlign = AlignRight <$ char 'r'
-  let parAlign = AlignLeft <$ (char 'p' >> braced)
+  let parAlign = AlignLeft <$ char 'p'
   -- algins from tabularx
   let xAlign = AlignLeft <$ char 'X'
-  let mAlign = AlignLeft <$ (char 'm' >> braced)
-  let bAlign = AlignLeft <$ (char 'b' >> braced)
-  let alignChar = cAlign <|> lAlign <|> rAlign <|> parAlign <|> xAlign <|> mAlign <|> bAlign
+  let mAlign = AlignLeft <$ char 'm'
+  let bAlign = AlignLeft <$ char 'b'
+  let alignChar = cAlign <|> lAlign <|> rAlign <|> parAlign
+               <|> xAlign <|> mAlign <|> bAlign
   let alignPrefix = char '>' >> braced
   let alignSuffix = char '<' >> braced
   let alignSpec = do
@@ -1455,9 +1456,10 @@ parseAligns = try $ do
         pref <- option "" alignPrefix
         spaces
         ch <- alignChar
+        _width <- option "" braced -- TODO parse this
         spaces
         suff <- option "" alignSuffix
-        return (pref, ch, suff)
+        return (ch, (pref, suff))
   aligns' <- sepEndBy alignSpec maybeBar
   spaces
   egroup
@@ -1488,11 +1490,11 @@ amp = () <$ try (spaces' *> char '&' <* spaces')
 
 parseTableRow :: PandocMonad m
               => String   -- ^ table environment name
-              -> Int  -- ^ number of columns
-              -> [String] -- ^ prefixes
-              -> [String] -- ^ suffixes
+              -> [(Alignment, (String, String))] -- ^ colspecs
               -> LP m [Blocks]
-parseTableRow envname cols prefixes suffixes = try $ do
+parseTableRow envname colspecs = try $ do
+  let prefsufs = map snd colspecs
+  let cols = length colspecs
   let tableCellRaw = concat <$> many
          (do notFollowedBy amp
              notFollowedBy lbreak
@@ -1505,8 +1507,7 @@ parseTableRow envname cols prefixes suffixes = try $ do
                          _          -> bs
   rawcells <- sepBy1 tableCellRaw amp
   guard $ length rawcells == cols
-  let rawcells' = zipWith3 (\c p s -> p ++ trim c ++ s)
-                      rawcells prefixes suffixes
+  let rawcells' = zipWith (\c (p, s) -> p ++ trim c ++ s) rawcells prefsufs
   let tableCell = plainify <$> blocks
   cells' <- mapM (parseFromString' tableCell) rawcells'
   let numcells = length cells'
@@ -1524,17 +1525,17 @@ simpTable :: PandocMonad m => String -> Bool -> LP m Blocks
 simpTable envname hasWidthParameter = try $ do
   when hasWidthParameter $ () <$ (spaces' >> tok)
   skipopts
-  (prefixes, aligns, suffixes) <- unzip3 <$> parseAligns
-  let cols = length aligns
+  colspecs <- parseAligns
+  let cols = length colspecs
   optional $ controlSeq "caption" *> skipopts *> setCaption
   optional lbreak
   spaces'
   skipMany hline
   spaces'
-  header' <- option [] $ try (parseTableRow envname cols prefixes suffixes <*
+  header' <- option [] $ try (parseTableRow envname colspecs <*
                                    lbreak <* many1 hline)
   spaces'
-  rows <- sepEndBy (parseTableRow envname cols prefixes suffixes)
+  rows <- sepEndBy (parseTableRow envname colspecs)
                     (lbreak <* optional (skipMany hline))
   spaces'
   optional $ controlSeq "caption" *> skipopts *> setCaption
@@ -1544,6 +1545,7 @@ simpTable envname hasWidthParameter = try $ do
                     then replicate cols mempty
                     else header'
   lookAhead $ controlSeq "end" -- make sure we're at end
+  let (aligns, _) = unzip colspecs
   return $ table mempty (zip aligns (repeat 0)) header'' rows
 
 removeDoubleQuotes :: String -> String
