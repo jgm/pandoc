@@ -1423,8 +1423,8 @@ options =
                            map ("--" ++) longs
                      let allopts = unwords (concatMap optnames options)
                      UTF8.hPutStrLn stdout $ printf tpl allopts
-                         (unwords readers'names)
-                         (unwords writers'names)
+                         (unwords readersNames)
+                         (unwords writersNames)
                          (unwords $ map fst highlightingStyles)
                          ddir
                      exitSuccess ))
@@ -1433,14 +1433,14 @@ options =
     , Option "" ["list-input-formats"]
                  (NoArg
                   (\_ -> do
-                     mapM_ (UTF8.hPutStrLn stdout) readers'names
+                     mapM_ (UTF8.hPutStrLn stdout) readersNames
                      exitSuccess ))
                  ""
 
     , Option "" ["list-output-formats"]
                  (NoArg
                   (\_ -> do
-                     mapM_ (UTF8.hPutStrLn stdout) writers'names
+                     mapM_ (UTF8.hPutStrLn stdout) writersNames
                      exitSuccess ))
                  ""
 
@@ -1544,11 +1544,11 @@ uppercaseFirstLetter :: String -> String
 uppercaseFirstLetter (c:cs) = toUpper c : cs
 uppercaseFirstLetter []     = []
 
-readers'names :: [String]
-readers'names = sort (map fst (readers :: [(String, Reader PandocIO)]))
+readersNames :: [String]
+readersNames = sort (map fst (readers :: [(String, Reader PandocIO)]))
 
-writers'names :: [String]
-writers'names = sort (map fst (writers :: [(String, Writer PandocIO)]))
+writersNames :: [String]
+writersNames = sort (map fst (writers :: [(String, Writer PandocIO)]))
 
 splitField :: String -> (String, String)
 splitField s =
