@@ -869,62 +869,54 @@ pSpace = many1 (satisfy isSpace) >>= \xs ->
 -- Constants
 --
 
-eitherBlockOrInline :: [String]
-eitherBlockOrInline = ["audio", "applet", "button", "iframe", "embed",
-                       "del", "ins",
-                       "progress", "map", "area", "noscript", "script",
-                       "object", "svg", "video", "source"]
+eitherBlockOrInline :: Set.Set String
+eitherBlockOrInline = Set.fromList
+  ["audio", "applet", "button", "iframe", "embed",
+   "del", "ins", "progress", "map", "area", "noscript", "script",
+   "object", "svg", "video", "source"]
 
-{-
-inlineHtmlTags :: [[Char]]
-inlineHtmlTags = ["a", "abbr", "acronym", "b", "basefont", "bdo", "big",
-                  "br", "cite", "code", "dfn", "em", "font", "i", "img",
-                  "input", "kbd", "label", "q", "s", "samp", "select",
-                  "small", "span", "strike", "strong", "sub", "sup",
-                  "textarea", "tt", "u", "var"]
--}
-
-blockHtmlTags :: [String]
-blockHtmlTags = ["?xml", "!DOCTYPE", "address", "article", "aside",
-                 "blockquote", "body", "canvas",
-                 "caption", "center", "col", "colgroup", "dd", "details",
-                 "dir", "div",
-                 "dl", "dt", "fieldset", "figcaption", "figure",
-                 "footer", "form", "h1", "h2", "h3", "h4",
-                 "h5", "h6", "head", "header", "hgroup", "hr", "html",
-                 "isindex", "menu", "noframes", "ol", "output", "p", "pre",
-                 "section", "table", "tbody", "textarea",
-                 "thead", "tfoot", "ul", "dd",
-                 "dt", "frameset", "li", "tbody", "td", "tfoot",
-                 "th", "thead", "tr", "script", "style"]
+blockHtmlTags :: Set.Set String
+blockHtmlTags = Set.fromList
+   ["?xml", "!DOCTYPE", "address", "article", "aside",
+    "blockquote", "body", "canvas",
+    "caption", "center", "col", "colgroup", "dd", "details",
+    "dir", "div", "dl", "dt", "fieldset", "figcaption", "figure",
+    "footer", "form", "h1", "h2", "h3", "h4",
+    "h5", "h6", "head", "header", "hgroup", "hr", "html",
+    "isindex", "menu", "noframes", "ol", "output", "p", "pre",
+    "section", "table", "tbody", "textarea",
+    "thead", "tfoot", "ul", "dd",
+    "dt", "frameset", "li", "tbody", "td", "tfoot",
+    "th", "thead", "tr", "script", "style"]
 
 -- We want to allow raw docbook in markdown documents, so we
 -- include docbook block tags here too.
-blockDocBookTags :: [String]
-blockDocBookTags = ["calloutlist", "bibliolist", "glosslist", "itemizedlist",
-                    "orderedlist", "segmentedlist", "simplelist",
-                    "variablelist", "caution", "important", "note", "tip",
-                    "warning", "address", "literallayout", "programlisting",
-                    "programlistingco", "screen", "screenco", "screenshot",
-                    "synopsis", "example", "informalexample", "figure",
-                    "informalfigure", "table", "informaltable", "para",
-                    "simpara", "formalpara", "equation", "informalequation",
-                    "figure", "screenshot", "mediaobject", "qandaset",
-                    "procedure", "task", "cmdsynopsis", "funcsynopsis",
-                    "classsynopsis", "blockquote", "epigraph", "msgset",
-                    "sidebar", "title"]
+blockDocBookTags :: Set.Set String
+blockDocBookTags = Set.fromList
+   ["calloutlist", "bibliolist", "glosslist", "itemizedlist",
+    "orderedlist", "segmentedlist", "simplelist",
+    "variablelist", "caution", "important", "note", "tip",
+    "warning", "address", "literallayout", "programlisting",
+    "programlistingco", "screen", "screenco", "screenshot",
+    "synopsis", "example", "informalexample", "figure",
+    "informalfigure", "table", "informaltable", "para",
+    "simpara", "formalpara", "equation", "informalequation",
+    "figure", "screenshot", "mediaobject", "qandaset",
+    "procedure", "task", "cmdsynopsis", "funcsynopsis",
+    "classsynopsis", "blockquote", "epigraph", "msgset",
+    "sidebar", "title"]
 
-epubTags :: [String]
-epubTags = ["case", "switch", "default"]
+epubTags :: Set.Set String
+epubTags = Set.fromList ["case", "switch", "default"]
 
-blockTags :: [String]
-blockTags = blockHtmlTags ++ blockDocBookTags ++ epubTags
+blockTags :: Set.Set String
+blockTags = Set.unions [blockHtmlTags, blockDocBookTags, epubTags]
 
 isInlineTag :: Tag String -> Bool
 isInlineTag t = tagOpen isInlineTagName (const True) t ||
                 tagClose isInlineTagName t ||
                 tagComment (const True) t
-                 where isInlineTagName x = x `notElem` blockTags
+                 where isInlineTagName x = x `Set.notMember` blockTags
 
 isBlockTag :: Tag String -> Bool
 isBlockTag t = tagOpen isBlockTagName (const True) t ||
@@ -976,8 +968,9 @@ t `closes` t2 |
    t `elem` ["h1","h2","h3","h4","h5","h6","dl","ol","ul","table","div","p"] &&
    t2 `elem` ["h1","h2","h3","h4","h5","h6","p" ] = True -- not "div"
 t1 `closes` t2 |
-   t1 `elem` blockTags &&
-   t2 `notElem` (blockTags ++ eitherBlockOrInline) = True
+   t1 `Set.member` blockTags &&
+   t2 `Set.notMember` blockTags &&
+   t2 `Set.notMember` eitherBlockOrInline = True
 _ `closes` _ = False
 
 --- parsers for use in markdown, textile readers
