@@ -39,10 +39,6 @@ compatible instances of "ArrowChoice".
 -- We export everything
 module Text.Pandoc.Readers.Odt.Generic.Fallible where
 
-import           Control.Applicative
-import           Control.Monad
-
-import qualified Data.Foldable       as F
 import           Data.Monoid ((<>))
 
 -- | Default for now. Will probably become a class at some point.
@@ -50,16 +46,6 @@ type Failure = ()
 
 type Fallible a = Either Failure a
 
-
--- | False -> Left (), True -> Right ()
-boolToEither :: Bool -> Fallible ()
-boolToEither False = Left  ()
-boolToEither True  = Right ()
-
--- | False -> Left (), True -> Right ()
-boolToChoice :: Bool -> Fallible ()
-boolToChoice False = Left  ()
-boolToChoice True  = Right ()
 
 --
 maybeToEither :: Maybe a -> Fallible a
@@ -71,20 +57,10 @@ eitherToMaybe :: Either _l a -> Maybe a
 eitherToMaybe (Left  _) = Nothing
 eitherToMaybe (Right a) = Just a
 
--- | > untagEither === either id id
-untagEither :: Either a a -> a
-untagEither (Left  a) = a
-untagEither (Right a) = a
-
 -- | > fromLeft f === either f id
 fromLeft :: (a -> b) -> Either a b -> b
 fromLeft f (Left  a) = f a
 fromLeft _ (Right b) = b
-
--- | > fromRight f === either id f
-fromRight :: (a -> b) -> Either b a -> b
-fromRight _ (Left  b) = b
-fromRight f (Right a) = f a
 
 -- | > recover a === fromLeft (const a) === either (const a) id
 recover :: a -> Either _f a -> a
@@ -110,24 +86,6 @@ collapseEither (Left f         ) = Left f
 collapseEither (Right (Left  f)) = Left f
 collapseEither (Right (Right x)) = Right x
 
--- | If either of the values represents an error, the result is a
--- (possibly combined) error. If both values represent a success,
--- both are returned.
-chooseMin :: (Monoid a) => Either a b -> Either a b' -> Either a (b,b')
-chooseMin = chooseMinWith (,)
-
--- | If either of the values represents an error, the result is a
--- (possibly combined) error. If both values represent a success,
--- a combination is returned.
-chooseMinWith :: (Monoid a) => (b -> b' -> c)
-                            -> Either a b
-                            -> Either a b'
-                            -> Either a c
-chooseMinWith (><) (Right a) (Right b) = Right $ a >< b
-chooseMinWith  _   (Left  a) (Left  b) = Left  $ a <> b
-chooseMinWith  _   (Left  a)     _     = Left  a
-chooseMinWith  _       _     (Left  b) = Left  b
-
 -- | If either of the values represents a  non-error, the result is a
 -- (possibly combined) non-error. If both values represent an error, an error
 -- is returned.
@@ -152,86 +110,10 @@ chooseMaxWith  _       _     (Right b) = Right b
 class ChoiceVector v where
   spreadChoice :: v (Either f a) -> Either f (v a)
 
--- Let's do a few examples first
-
-instance ChoiceVector Maybe where
-  spreadChoice (Just (Left  f))  = Left  f
-  spreadChoice (Just (Right x))  = Right (Just x)
-  spreadChoice Nothing           = Right Nothing
-
-instance ChoiceVector (Either l) where
-  spreadChoice (Right (Left  f)) = Left  f
-  spreadChoice (Right (Right x)) = Right (Right x)
-  spreadChoice (Left   x       ) = Right (Left x)
-
 instance ChoiceVector ((,) a) where
   spreadChoice (_, Left  f) = Left  f
   spreadChoice (x, Right y) = Right (x,y)
   -- Wasn't there a newtype somewhere with the elements flipped?
-
---
--- More instances later, first some discussion.
---
--- I'll have to freshen up on type system details to see how (or if) to do
--- something like
---
--- > instance (ChoiceVector a, ChoiceVector b) => ChoiceVector (a b) where
--- >   :
---
--- But maybe it would be even better to use something like
---
--- > class ChoiceVector v v' f | v -> v' f where
--- >   spreadChoice :: v -> Either f v'
---
--- That way, more places in @v@ could spread the cheer, e.g.:
---
--- As before:
--- --                       ( a , Either f b)    (a , b)  f
--- > instance ChoiceVector ((,) a (Either f b)) ((,) a b) f where
--- >   spreadChoice (_, Left  f) = Left f
--- >   spreadChoice (a, Right b) = Right (a,b)
---
--- But also:
--- --                       ( Either f a , b)    (a , b)  f
--- > instance ChoiceVector ((,) (Either f a) b) ((,) a b) f where
--- >   spreadChoice (Right a,b) = Right (a,b)
--- >   spreadChoice (Left  f,_) = Left f
---
--- And maybe even:
--- --                        ( Either f a , Either f b)     (a , b)  f
--- > instance ChoiceVector ((,) (Either f a) (Either f b)) ((,) a b) f where
--- >   spreadChoice (Right a , Right b) = Right (a,b)
--- >   spreadChoice (Left  f , _      ) = Left f
--- >   spreadChoice ( _      , Left  f) = Left f
---
--- Of course that would lead to a lot of overlapping instances...
--- But I can't think of a different way. A selector function might help,
--- but not even a "Data.Traversable" is powerful enough for that.
--- But maybe someone has already solved all this with a lens library.
---
--- Well, it's an interesting academic question. But for practical purposes,
--- I have more than enough right now.
-
-instance ChoiceVector ((,,) a b) where
-  spreadChoice (_,_, Left  f) = Left  f
-  spreadChoice (a,b, Right x) = Right (a,b,x)
-
-instance ChoiceVector ((,,,) a b c) where
-  spreadChoice (_,_,_, Left  f) = Left  f
-  spreadChoice (a,b,c, Right x) = Right (a,b,c,x)
-
-instance ChoiceVector ((,,,,) a b c d) where
-  spreadChoice (_,_,_,_, Left  f) = Left  f
-  spreadChoice (a,b,c,d, Right x) = Right (a,b,c,d,x)
-
-instance ChoiceVector (Const a) where
-  spreadChoice (Const c) = Right (Const c) -- need to repackage because of implicit types
-
--- | Fails on the first error
-instance ChoiceVector [] where
-  spreadChoice = sequence -- using the monad instance of Either.
-  -- Could be generalized to "Data.Traversable" - but why play
-  -- with UndecidableInstances unless this is really needed.
 
 -- | Wrapper for a list. While the normal list instance of 'ChoiceVector'
 -- fails whenever it can, this type will never fail.
@@ -247,14 +129,3 @@ instance ChoiceVector SuccessList  where
 collectRights :: [Either _l r] -> [r]
 collectRights = collectNonFailing . untag . spreadChoice . SuccessList
   where untag = fromLeft (error "Unexpected Left")
-
--- | A version of 'collectRights' generalized to other containers. The
--- container must be both "reducible" and "buildable". Most general containers
--- should fullfill these requirements, but there is no single typeclass
--- (that I know of) for that.
--- Therefore, they are split between 'Foldable' and 'MonadPlus'.
--- (Note that 'Data.Traversable.Traversable' alone would not be enough, either.)
-collectRightsF :: (F.Foldable c, MonadPlus c) => c (Either _l r) ->  c r
-collectRightsF = F.foldr unTagRight mzero
-  where unTagRight (Right x) = mplus $ return x
-        unTagRight _         = id
