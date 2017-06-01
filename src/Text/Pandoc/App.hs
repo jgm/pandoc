@@ -413,8 +413,8 @@ convertWithOpts opts = do
                 mconcat <$> mapM (readFile' >=> r readerOpts) sources
 
   metadata <- if format == "jats" &&
-                 lookup "csl" (optMetadata opts) == Nothing &&
-                 lookup "citation-style" (optMetadata opts) == Nothing
+                 isNothing (lookup "csl" (optMetadata opts)) &&
+                 isNothing (lookup "citation-style" (optMetadata opts))
                  then do
                    jatsCSL <- readDataFile datadir "jats.csl"
                    let jatsEncoded = makeDataURI ("application/xml", jatsCSL)
