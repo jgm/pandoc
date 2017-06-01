@@ -24,7 +24,7 @@
 ,HorizontalRule
 ,Para [Str "middle"]
 ,HorizontalRule
-,Para [Str "bottom"]
+,Para [Str "not",Space,Str "a",Space,Str "rule-----",SoftBreak,Str "bottom"]
 ,Header 2 ("strikeout",[],[]) [Str "strikeout"]
 ,Para [Strikeout [Str "This",Space,Str "is",Space,Emph [Str "struck",Space,Str "out"]],Space,Str "with",Space,Str "emph"]
 ,Header 2 ("comments",[],[]) [Str "comments"]

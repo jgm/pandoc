@@ -68,27 +68,20 @@ import Control.Monad (guard)
 import Data.Default 
 import Data.Maybe
 import Data.List (isInfixOf)
-import Data.Text (strip)
 import Text.Pandoc.Builder (Blocks, Inlines, trimInlines, fromList, toList)
 import qualified Text.Pandoc.Builder as B (doc, toList, headerWith, str, space, strong, emph, strikeout, code, link, image, spanWith, math, para, horizontalRule, blockQuote, codeBlock, displayMath, bulletList, plain, orderedList, simpleTable, softbreak)
-import Text.Pandoc.Class (PandocMonad, report, PandocIO, runIO)
-import Text.Pandoc.Definition (Pandoc, nullAttr, Inline(Space), Block(BulletList, OrderedList))
-import Text.Pandoc.Error (PandocError)
+import Text.Pandoc.Class (PandocMonad, report)
+import Text.Pandoc.Definition (Pandoc, Inline(Space), Block(BulletList, OrderedList))
 import Text.Pandoc.Logging (LogMessage(ParsingTrace))
 import Text.Pandoc.Options (ReaderOptions)
-import Text.Pandoc.Parsing (readWithM, ParserT, stateOptions, ParserState, blanklines, registerHeader, spaceChar, stateAllowLinks, emailAddress, guardEnabled, uri)
+import Text.Pandoc.Parsing (readWithM, ParserT, stateOptions, ParserState, blanklines, registerHeader, spaceChar, emailAddress, uri)
 import Text.Pandoc.Shared (splitBy)
 import Text.Parsec.Char (spaces, char, anyChar, newline, string, noneOf)
-import Text.Parsec.Error (ParseError)
 import Text.Parsec.Combinator (eof, choice, many1, manyTill, count, skipMany1, notFollowedBy)
-import Text.Parsec.Pos (sourceColumn)
-import Text.Parsec.Prim (many, getPosition, try, runParserT)
-import Text.Parsec.String (Parser)
-import Text.Parsec (parse)
+import Text.Parsec.Prim (many, getPosition, try)
 import Text.Parsec.Char (oneOf, space)
 import Text.Parsec.Combinator (lookAhead, between)
-import Text.Parsec.Prim ((<|>), (<?>), skipMany)
-import Text.Pandoc.Options (Extension(Ext_autolink_bare_uris))
+import Text.Parsec.Prim ((<|>))
 
 readVimwiki :: PandocMonad m => ReaderOptions -> String -> m Pandoc
 readVimwiki opts s = do
@@ -227,7 +220,7 @@ combineList :: Blocks -> [Blocks] -> [Blocks]
 combineList x [y] = case toList y of
                             [BulletList z] -> [fromList $ (toList x) ++ [BulletList z]]
                             [OrderedList attr z] -> [fromList $ (toList x) ++ [OrderedList attr z]]
-                            otherwise -> x:[y]
+                            _ -> x:[y]
 combineList x xs = x:xs
 
 
