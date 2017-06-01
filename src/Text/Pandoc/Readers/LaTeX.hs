@@ -1451,14 +1451,24 @@ parseAligns = try $ do
                <|> xAlign <|> mAlign <|> bAlign
   let alignPrefix = char '>' >> braced
   let alignSuffix = char '<' >> braced
+  let colWidth = try $ do
+        char '{'
+        ds <- many1 (oneOf "0123456789.")
+        spaces
+        string "\\linewidth"
+        char '}'
+        case safeRead ds of
+              Just w  -> return w
+              Nothing -> return 0.0
   let alignSpec = do
         spaces
         pref <- option "" alignPrefix
         spaces
         al <- alignChar
-        let parseWidth :: String -> Double
-            parseWidth _ = 0.00 -- TODO actually parse the width
-        width <- parseWidth <$> option "" braced
+        width <- colWidth <|> option 0.0 (do s <- braced
+                                             pos <- getPosition
+                                             report $ SkippedContent s pos
+                                             return 0.0)
         spaces
         suff <- option "" alignSuffix
         return (al, width, (pref, suff))
