@@ -973,7 +973,7 @@ inlineToHtml opts inline = do
     (Link attr txt (s,_)) | "mailto:" `isPrefixOf` s -> do
                         linkText <- inlineListToHtml opts txt
                         lift $ obfuscateLink opts attr linkText s
-    (Link attr txt (s,tit)) -> do
+    (Link (ident,classes,kvs) txt (s,tit)) -> do
                         linkText <- inlineListToHtml opts txt
                         slideVariant <- gets stSlideVariant
                         let s' = case s of
@@ -983,13 +983,13 @@ inlineToHtml opts inline = do
                                              in  '#' : prefix ++ xs
                                    _ -> s
                         let link = H.a ! A.href (toValue s') $ linkText
-                        let link' = if txt == [Str (unEscapeString s)]
-                                       then link ! A.class_ "uri"
-                                       else link
-                        let link'' = addAttrs opts attr link'
+                        let attr = if txt == [Str (unEscapeString s)]
+                                      then (ident, "uri" : classes, kvs)
+                                      else (ident, classes, kvs)
+                        let link' = addAttrs opts attr link
                         return $ if null tit
-                                    then link''
-                                    else link'' ! A.title (toValue tit)
+                                    then link'
+                                    else link' ! A.title (toValue tit)
     (Image attr txt (s,tit)) | treatAsImage s -> do
                         let alternate' = stringify txt
                         slideVariant <- gets stSlideVariant
