@@ -1434,7 +1434,7 @@ complexNatbibCitation mode = try $ do
 
 -- tables
 
-parseAligns :: PandocMonad m => LP m [(Alignment, (String, String))]
+parseAligns :: PandocMonad m => LP m [(Alignment, Double, (String, String))]
 parseAligns = try $ do
   bgroup
   let maybeBar = skipMany $ sp <|> () <$ char '|' <|> () <$ (char '@' >> braced)
@@ -1455,11 +1455,13 @@ parseAligns = try $ do
         spaces
         pref <- option "" alignPrefix
         spaces
-        ch <- alignChar
-        _width <- option "" braced -- TODO parse this
+        al <- alignChar
+        let parseWidth :: String -> Double
+            parseWidth _ = 0.00 -- TODO actually parse the width
+        width <- parseWidth <$> option "" braced
         spaces
         suff <- option "" alignSuffix
-        return (ch, (pref, suff))
+        return (al, width, (pref, suff))
   aligns' <- sepEndBy alignSpec maybeBar
   spaces
   egroup
@@ -1490,11 +1492,10 @@ amp = () <$ try (spaces' *> char '&' <* spaces')
 
 parseTableRow :: PandocMonad m
               => String   -- ^ table environment name
-              -> [(Alignment, (String, String))] -- ^ colspecs
+              -> [(String, String)] -- ^ pref/suffixes
               -> LP m [Blocks]
-parseTableRow envname colspecs = try $ do
-  let prefsufs = map snd colspecs
-  let cols = length colspecs
+parseTableRow envname prefsufs = try $ do
+  let cols = length prefsufs
   let tableCellRaw = concat <$> many
          (do notFollowedBy amp
              notFollowedBy lbreak
@@ -1526,16 +1527,17 @@ simpTable envname hasWidthParameter = try $ do
   when hasWidthParameter $ () <$ (spaces' >> tok)
   skipopts
   colspecs <- parseAligns
+  let (aligns, widths, prefsufs) = unzip3 colspecs
   let cols = length colspecs
   optional $ controlSeq "caption" *> skipopts *> setCaption
   optional lbreak
   spaces'
   skipMany hline
   spaces'
-  header' <- option [] $ try (parseTableRow envname colspecs <*
+  header' <- option [] $ try (parseTableRow envname prefsufs <*
                                    lbreak <* many1 hline)
   spaces'
-  rows <- sepEndBy (parseTableRow envname colspecs)
+  rows <- sepEndBy (parseTableRow envname prefsufs)
                     (lbreak <* optional (skipMany hline))
   spaces'
   optional $ controlSeq "caption" *> skipopts *> setCaption
@@ -1545,8 +1547,7 @@ simpTable envname hasWidthParameter = try $ do
                     then replicate cols mempty
                     else header'
   lookAhead $ controlSeq "end" -- make sure we're at end
-  let (aligns, _) = unzip colspecs
-  return $ table mempty (zip aligns (repeat 0)) header'' rows
+  return $ table mempty (zip aligns widths) header'' rows
 
 removeDoubleQuotes :: String -> String
 removeDoubleQuotes ('"':xs) =
