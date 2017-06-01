@@ -931,12 +931,14 @@ inlineToMarkdown opts (Span attrs ils) = do
                         isEnabled Ext_native_spans opts ->
                         tagWithAttrs "span" attrs <> contents <> text "</span>"
                       | otherwise -> contents
+inlineToMarkdown _ (Emph []) = return empty
 inlineToMarkdown opts (Emph lst) = do
   plain <- asks envPlain
   contents <- inlineListToMarkdown opts lst
   return $ if plain
               then "_" <> contents <> "_"
               else "*" <> contents <> "*"
+inlineToMarkdown _ (Strong []) = return empty
 inlineToMarkdown opts (Strong lst) = do
   plain <- asks envPlain
   if plain
@@ -944,6 +946,7 @@ inlineToMarkdown opts (Strong lst) = do
      else do
        contents <- inlineListToMarkdown opts lst
        return $ "**" <> contents <> "**"
+inlineToMarkdown _ (Strikeout []) = return empty
 inlineToMarkdown opts (Strikeout lst) = do
   contents <- inlineListToMarkdown opts lst
   return $ if isEnabled Ext_strikeout opts
@@ -951,6 +954,7 @@ inlineToMarkdown opts (Strikeout lst) = do
               else if isEnabled Ext_raw_html opts
                        then "<s>" <> contents <> "</s>"
                        else contents
+inlineToMarkdown _ (Superscript []) = return empty
 inlineToMarkdown opts (Superscript lst) =
   local (\env -> env {envEscapeSpaces = True}) $ do
     contents <- inlineListToMarkdown opts lst
@@ -963,6 +967,7 @@ inlineToMarkdown opts (Superscript lst) =
                            in  case mapM toSuperscript rendered of
                                     Just r -> text r
                                     Nothing -> text $ "^(" ++ rendered ++ ")"
+inlineToMarkdown _ (Subscript []) = return empty
 inlineToMarkdown opts (Subscript lst) =
   local (\env -> env {envEscapeSpaces = True}) $ do
     contents <- inlineListToMarkdown opts lst
