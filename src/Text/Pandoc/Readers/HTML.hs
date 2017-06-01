@@ -886,7 +886,7 @@ inlineHtmlTags = ["a", "abbr", "acronym", "b", "basefont", "bdo", "big",
 
 blockHtmlTags :: [String]
 blockHtmlTags = ["?xml", "!DOCTYPE", "address", "article", "aside",
-                 "blockquote", "body", "button", "canvas",
+                 "blockquote", "body", "canvas",
                  "caption", "center", "col", "colgroup", "dd", "details",
                  "dir", "div",
                  "dl", "dt", "fieldset", "figcaption", "figure",
