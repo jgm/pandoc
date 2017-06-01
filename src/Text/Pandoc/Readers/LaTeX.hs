@@ -276,8 +276,6 @@ block = (mempty <$ comment)
     <|> blockCommand
     <|> paragraph
     <|> grouped block
-    <|> (mempty <$ char '&')  -- loose & in table environment
-
 
 blocks :: PandocMonad m => LP m Blocks
 blocks = mconcat <$> many block
@@ -1168,12 +1166,12 @@ environments = M.fromList
   , ("subfigure", env "subfigure" $ skipopts *> tok *> figure)
   , ("center", env "center" blocks)
   , ("longtable",  env "longtable" $
-         resetCaption *> simpTable False >>= addTableCaption)
+         resetCaption *> simpTable "longtable" False >>= addTableCaption)
   , ("table",  env "table" $
          resetCaption *> skipopts *> blocks >>= addTableCaption)
-  , ("tabular*", env "tabular" $ simpTable True)
-  , ("tabularx", env "tabularx" $ simpTable True)
-  , ("tabular", env "tabular"  $ simpTable False)
+  , ("tabular*", env "tabular" $ simpTable "tabular*" True)
+  , ("tabularx", env "tabularx" $ simpTable "tabularx" True)
+  , ("tabular", env "tabular"  $ simpTable "tabular" False)
   , ("quote", blockQuote <$> env "quote" blocks)
   , ("quotation", blockQuote <$> env "quotation" blocks)
   , ("verse", blockQuote <$> env "verse" blocks)
@@ -1489,25 +1487,27 @@ amp :: PandocMonad m => LP m ()
 amp = () <$ try (spaces' *> char '&' <* spaces')
 
 parseTableRow :: PandocMonad m
-              => Int  -- ^ number of columns
+              => String   -- ^ table environment name
+              -> Int  -- ^ number of columns
               -> [String] -- ^ prefixes
               -> [String] -- ^ suffixes
               -> LP m [Blocks]
-parseTableRow cols prefixes suffixes = try $ do
+parseTableRow envname cols prefixes suffixes = try $ do
   let tableCellRaw = concat <$> many
-         (do notFollowedBy (amp <|> lbreak <|> (() <$ try (string "\\end")))
+         (do notFollowedBy amp
+             notFollowedBy lbreak
+             notFollowedBy $ () <$ try (string ("\\end{" ++ envname ++ "}"))
              many1 (noneOf "&%\n\r\\")
                   <|> try (string "\\&")
                   <|> count 1 anyChar)
-  let minipage = try $ controlSeq "begin" *> string "{minipage}" *>
-          env "minipage"
-          (skipopts *> spaces' *> optional braced *> spaces' *> blocks)
-  let tableCell = minipage <|>
-            ((plain . trimInlines . mconcat) <$> many inline)
+  let plainify bs = case toList bs of
+                         [Para ils] -> plain (fromList ils)
+                         _          -> bs
   rawcells <- sepBy1 tableCellRaw amp
   guard $ length rawcells == cols
   let rawcells' = zipWith3 (\c p s -> p ++ trim c ++ s)
                       rawcells prefixes suffixes
+  let tableCell = plainify <$> blocks
   cells' <- mapM (parseFromString' tableCell) rawcells'
   let numcells = length cells'
   guard $ numcells <= cols && numcells >= 1
@@ -1520,8 +1520,8 @@ parseTableRow cols prefixes suffixes = try $ do
 spaces' :: PandocMonad m => LP m ()
 spaces' = spaces *> skipMany (comment *> spaces)
 
-simpTable :: PandocMonad m => Bool -> LP m Blocks
-simpTable hasWidthParameter = try $ do
+simpTable :: PandocMonad m => String -> Bool -> LP m Blocks
+simpTable envname hasWidthParameter = try $ do
   when hasWidthParameter $ () <$ (spaces' >> tok)
   skipopts
   (prefixes, aligns, suffixes) <- unzip3 <$> parseAligns
@@ -1531,10 +1531,10 @@ simpTable hasWidthParameter = try $ do
   spaces'
   skipMany hline
   spaces'
-  header' <- option [] $ try (parseTableRow cols prefixes suffixes <*
+  header' <- option [] $ try (parseTableRow envname cols prefixes suffixes <*
                                    lbreak <* many1 hline)
   spaces'
-  rows <- sepEndBy (parseTableRow cols prefixes suffixes)
+  rows <- sepEndBy (parseTableRow envname cols prefixes suffixes)
                     (lbreak <* optional (skipMany hline))
   spaces'
   optional $ controlSeq "caption" *> skipopts *> setCaption
