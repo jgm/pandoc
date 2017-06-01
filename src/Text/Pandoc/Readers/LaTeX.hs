@@ -393,8 +393,9 @@ blockCommands = M.fromList $
   , ("graphicspath", graphicsPath)
   -- hyperlink
   , ("hypertarget", braced >> grouped block)
-  -- textcolor
-  , ("textcolor", blockTextcolor)
+  -- LaTeX colors
+  , ("textcolor", coloredBlock "color")
+  , ("colorbox", coloredBlock "background-color")
   ] ++ map ignoreBlocks
   -- these commands will be ignored unless --parse-raw is specified,
   -- in which case they will appear as raw latex blocks
@@ -416,11 +417,11 @@ blockCommands = M.fromList $
   , "pagebreak"
   ]
 
-blockTextcolor :: PandocMonad m => LP m Blocks
-blockTextcolor = do
+coloredBlock :: PandocMonad m => String -> LP m Blocks
+coloredBlock stylename = do
   skipopts 
   color <- braced
-  let constructor = divWith ("",[],[("style","color: " ++ color)])
+  let constructor = divWith ("",[],[("style",stylename ++ ": " ++ color)])
   inlineContents <|> constructor <$> blockContents
   where inlineContents = do 
                             ils <- grouped inline
@@ -694,8 +695,9 @@ inlineCommands = M.fromList $
   , ("nohyphens", tok)
   , ("textnhtt", ttfamily)
   , ("nhttfamily", ttfamily)
-  -- textcolor
-  , ("textcolor", inlineTextcolor)
+  -- LaTeX colors
+  , ("textcolor", coloredInline "color")
+  , ("colorbox", coloredInline "background-color")
   ] ++ map ignoreInlines
   -- these commands will be ignored unless --parse-raw is specified,
   -- in which case they will appear as raw latex blocks:
@@ -707,11 +709,11 @@ inlineCommands = M.fromList $
   , "pagebreak"
   ]
 
-inlineTextcolor :: PandocMonad m => LP m Inlines
-inlineTextcolor = do
+coloredInline :: PandocMonad m => String -> LP m Inlines
+coloredInline stylename = do
     skipopts 
     color <- braced
-    spanWith ("",[],[("style","color: " ++ color)]) <$> tok
+    spanWith ("",[],[("style",stylename ++ ": " ++ color)]) <$> tok
 
 ttfamily :: PandocMonad m => LP m Inlines
 ttfamily = (code . stringify . toList) <$> tok
