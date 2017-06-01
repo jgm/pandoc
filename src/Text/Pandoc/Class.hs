@@ -1,6 +1,10 @@
-{-# LANGUAGE DeriveFunctor, DeriveDataTypeable, TypeSynonymInstances,
-FlexibleInstances, GeneralizedNewtypeDeriving, FlexibleContexts,
-StandaloneDeriving #-}
+{-# LANGUAGE DeriveFunctor #-}
+{-# LANGUAGE DeriveDataTypeable #-}
+{-# LANGUAGE TypeSynonymInstances #-}
+{-# LANGUAGE FlexibleInstances #-}
+{-# LANGUAGE GeneralizedNewtypeDeriving #-}
+{-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE StandaloneDeriving #-}
 
 {-
 Copyright (C) 2016 Jesse Rosenthal <jrosenthal@jhu.edu>
