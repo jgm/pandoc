@@ -21,6 +21,9 @@ bench:
 reformat:
 	for f in $(sourcefiles); do echo $$f; stylish-haskell -i $$f ; done
 
+lint:
+	for f in $(sourcefiles); do echo $$f; hlint --verbose --refactor --refactor-options='-i -s' $$f; done
+
 changes_github:
 	pandoc --filter extract-changes.hs changelog -t markdown_github | sed -e 's/\\#/#/g' | pbcopy
 
@@ -59,4 +62,4 @@ download_stats:
 clean:
 	stack clean
 
-.PHONY: deps quick full install clean test bench changes_github macospkg dist prof download_stats reformat
+.PHONY: deps quick full install clean test bench changes_github macospkg dist prof download_stats reformat lint
