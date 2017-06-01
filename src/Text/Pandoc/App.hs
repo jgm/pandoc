@@ -1,7 +1,7 @@
 {-# LANGUAGE CPP                 #-}
+{-# LANGUAGE DeriveGeneric       #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TupleSections       #-}
-{-# LANGUAGE DeriveGeneric       #-}
 {-
 Copyright (C) 2006-2017 John MacFarlane <jgm@berkeley.edu>
 
@@ -40,47 +40,47 @@ module Text.Pandoc.App (
           ) where
 import Control.Applicative ((<|>))
 import qualified Control.Exception as E
-import Control.Monad.Except (throwError)
 import Control.Monad
+import Control.Monad.Except (throwError)
 import Control.Monad.Trans
-import Data.Aeson (eitherDecode', encode, ToJSON(..), FromJSON(..),
-                   genericToEncoding, defaultOptions)
+import Data.Aeson (FromJSON (..), ToJSON (..), defaultOptions, eitherDecode',
+                   encode, genericToEncoding)
 import qualified Data.ByteString as BS
 import qualified Data.ByteString.Lazy as B
 import Data.Char (toLower, toUpper)
-import qualified Data.Set as Set
 import Data.Foldable (foldrM)
-import GHC.Generics
 import Data.List (intercalate, isPrefixOf, isSuffixOf, sort)
 import qualified Data.Map as M
 import Data.Maybe (fromMaybe, isJust, isNothing)
+import qualified Data.Set as Set
 import qualified Data.Text as T
 import Data.Yaml (decode)
 import qualified Data.Yaml as Yaml
+import GHC.Generics
 import Network.URI (URI (..), parseURI)
 import Paths_pandoc (getDataDir)
 import Skylighting (Style, Syntax (..), defaultSyntaxMap, parseTheme)
-import Skylighting.Parser (missingIncludes, parseSyntaxDefinition,
-                           addSyntaxDefinition)
+import Skylighting.Parser (addSyntaxDefinition, missingIncludes,
+                           parseSyntaxDefinition)
 import System.Console.GetOpt
 import System.Directory (Permissions (..), doesFileExist, findExecutable,
                          getAppUserDataDirectory, getPermissions)
 import System.Environment (getArgs, getEnvironment, getProgName)
 import System.Exit (ExitCode (..), exitSuccess)
 import System.FilePath
-import System.IO (stdout, nativeNewline)
-import qualified System.IO as IO (Newline(..))
+import System.IO (nativeNewline, stdout)
+import qualified System.IO as IO (Newline (..))
 import System.IO.Error (isDoesNotExistError)
 import Text.Pandoc
 import Text.Pandoc.Builder (setMeta)
-import Text.Pandoc.Class (PandocIO, getLog, withMediaBag,
-                          extractMedia, fillMediaBag, setResourcePath)
+import Text.Pandoc.Class (PandocIO, extractMedia, fillMediaBag, getLog,
+                          setResourcePath, withMediaBag)
 import Text.Pandoc.Highlighting (highlightingStyles)
-import Text.Pandoc.Lua ( runLuaFilter )
+import Text.Pandoc.Lua (runLuaFilter)
 import Text.Pandoc.PDF (makePDF)
 import Text.Pandoc.Process (pipeProcess)
-import Text.Pandoc.SelfContained (makeSelfContained, makeDataURI)
-import Text.Pandoc.Shared (isURI, headerShift, openURL, readDataFile,
+import Text.Pandoc.SelfContained (makeDataURI, makeSelfContained)
+import Text.Pandoc.Shared (headerShift, isURI, openURL, readDataFile,
                            readDataFileUTF8, safeRead, tabFilter)
 import qualified Text.Pandoc.UTF8 as UTF8
 import Text.Pandoc.XML (toEntities)
@@ -243,10 +243,9 @@ convertWithOpts opts = do
       withList f (x:xs) vars = f x vars >>= withList f xs
 
   variables <-
-      return (("outputfile", optOutputFile opts) : optVariables opts)
-      >>=
+
       withList (addStringAsVariable "sourcefile")
-               (reverse $ optInputFiles opts)
+               (reverse $ optInputFiles opts) (("outputfile", optOutputFile opts) : optVariables opts)
                -- we reverse this list because, unlike
                -- the other option lists here, it is
                -- not reversed when parsed from CLI arguments.
@@ -796,7 +795,7 @@ readURI :: FilePath -> PandocIO String
 readURI src = do
   res <- liftIO $ openURL src
   case res of
-       Left e -> throwError $ PandocHttpError src e
+       Left e              -> throwError $ PandocHttpError src e
        Right (contents, _) -> return $ UTF8.toString contents
 
 readFile' :: MonadIO m => FilePath -> m B.ByteString
