@@ -496,6 +496,11 @@ writeDocx opts doc@(Pandoc meta _) = do
                                , qName (elName e) == "abstractNum" ] ++
                        [Elem e | e <- allElts
                                , qName (elName e) == "num" ] }
+
+  let keywords = case lookupMeta "keywords" meta of
+                       Just (MetaList xs)           -> map stringify xs
+                       _                            -> []
+
   let docPropsPath = "docProps/core.xml"
   let docProps = mknode "cp:coreProperties"
           [("xmlns:cp","http://schemas.openxmlformats.org/package/2006/metadata/core-properties")
@@ -505,7 +510,7 @@ writeDocx opts doc@(Pandoc meta _) = do
           ,("xmlns:xsi","http://www.w3.org/2001/XMLSchema-instance")]
           $ mknode "dc:title" [] (stringify $ docTitle meta)
           : mknode "dc:creator" [] (intercalate "; " (map stringify $ docAuthors meta))
-          : mknode "cp:keywords" [] (intercalate ", " (map stringify $ docKeywords meta))
+          : mknode "cp:keywords" [] (intercalate ", " keywords)
           : (\x -> [ mknode "dcterms:created" [("xsi:type","dcterms:W3CDTF")] x
                    , mknode "dcterms:modified" [("xsi:type","dcterms:W3CDTF")] x
                    ]) (formatTime defaultTimeLocale "%FT%XZ" utctime)
