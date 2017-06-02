@@ -924,8 +924,9 @@ isBlockTag t = tagOpen isBlockTagName (const True) t ||
                tagComment (const True) t
                  where isBlockTagName ('?':_) = True
                        isBlockTagName ('!':_) = True
-                       isBlockTagName x       = x `elem` blockTags
-                                             || x `elem` eitherBlockOrInline
+                       isBlockTagName x       = x `Set.member` blockTags
+                                             || x `Set.member`
+                                                       eitherBlockOrInline
 
 isTextTag :: Tag String -> Bool
 isTextTag = tagText (const True)
