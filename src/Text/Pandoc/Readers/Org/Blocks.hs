@@ -17,7 +17,6 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 -}
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE RecordWildCards  #-}
-{-# LANGUAGE ViewPatterns     #-}
 {- |
    Module      : Text.Pandoc.Readers.Org.Blocks
    Copyright   : Copyright (C) 2014-2017 Albert Krewinkel
@@ -52,7 +51,7 @@ import Control.Monad (foldM, guard, mzero, void)
 import Data.Char (isSpace, toLower, toUpper)
 import Data.Default (Default)
 import Data.List (foldl', isPrefixOf)
-import Data.Maybe (fromMaybe, isNothing)
+import Data.Maybe (fromMaybe, isJust, isNothing)
 import Data.Monoid ((<>))
 
 --
@@ -113,7 +112,7 @@ data BlockAttributes = BlockAttributes
 
 -- | Convert BlockAttributes into pandoc Attr
 attrFromBlockAttributes :: BlockAttributes -> Attr
-attrFromBlockAttributes (BlockAttributes{..}) =
+attrFromBlockAttributes BlockAttributes{..} =
   let
     ident   = fromMaybe mempty $ lookup "id" blockAttrKeyValues
     classes = case lookup "class" blockAttrKeyValues of
@@ -142,7 +141,7 @@ blockAttributes = try $ do
                    Nothing -> return Nothing
                    Just s  -> Just <$> parseFromString inlines (s ++ "\n")
   kvAttrs' <- parseFromString keyValues . (++ "\n") $ fromMaybe mempty kvAttrs
-  return $ BlockAttributes
+  return BlockAttributes
            { blockAttrName = name
            , blockAttrLabel = label
            , blockAttrCaption = caption'
@@ -187,7 +186,7 @@ orgBlock = try $ do
   blockAttrs <- blockAttributes
   blkType <- blockHeaderStart
   ($ blkType) $
-    case (map toLower blkType) of
+    case map toLower blkType of
       "export"  -> exportBlock
       "comment" -> rawBlockLines (const mempty)
       "html"    -> rawBlockLines (return . B.rawBlock (lowercase blkType))
@@ -208,10 +207,10 @@ orgBlock = try $ do
    lowercase = map toLower
 
 rawBlockLines :: Monad m => (String   -> F Blocks) -> String -> OrgParser m (F Blocks)
-rawBlockLines f blockType = (ignHeaders *> (f <$> rawBlockContent blockType))
+rawBlockLines f blockType = ignHeaders *> (f <$> rawBlockContent blockType)
 
 parseBlockLines :: PandocMonad m => (F Blocks -> F Blocks) -> String -> OrgParser m (F Blocks)
-parseBlockLines f blockType = (ignHeaders *> (f <$> parsedBlockContent))
+parseBlockLines f blockType = ignHeaders *> (f <$> parsedBlockContent)
  where
    parsedBlockContent :: PandocMonad m => OrgParser m (F Blocks)
    parsedBlockContent = try $ do
@@ -239,8 +238,7 @@ rawBlockContent blockType = try $ do
    stripIndent strs = map (drop (shortestIndent strs)) strs
 
    shortestIndent :: [String] -> Int
-   shortestIndent = foldr min maxBound
-                    . map (length . takeWhile isSpace)
+   shortestIndent = foldr (min . length . takeWhile isSpace) maxBound
                     . filter (not . null)
 
    tabsToSpaces :: Int -> String -> String
@@ -336,13 +334,13 @@ codeHeaderArgs = try $ do
   language   <- skipSpaces *> orgArgWord
   (switchClasses, switchKv) <- switchesAsAttributes
   parameters <- manyTill blockOption newline
-  return $ ( translateLang language : switchClasses
-           , originalLang language <> switchKv <> parameters
-           )
+  return ( translateLang language : switchClasses
+         , originalLang language <> switchKv <> parameters
+         )
 
 switchesAsAttributes :: Monad m => OrgParser m ([String], [(String, String)])
 switchesAsAttributes = try $ do
-  switches <- skipSpaces *> (try $ switch `sepBy` (many1 spaceChar))
+  switches <- skipSpaces *> try (switch `sepBy` many1 spaceChar)
   return $ foldr addToAttr ([], []) switches
  where
   addToAttr :: (Char, Maybe String, SwitchPolarity)
@@ -350,7 +348,7 @@ switchesAsAttributes = try $ do
             -> ([String], [(String, String)])
   addToAttr ('n', lineNum, pol) (cls, kv) =
     let kv' = case lineNum of
-                Just num -> (("startFrom", num):kv)
+                Just num -> ("startFrom", num):kv
                 Nothing  -> kv
         cls' = case pol of
                  SwitchPlus -> "continuedSourceBlock":cls
@@ -382,7 +380,7 @@ genericSwitch :: Monad m
 genericSwitch c p = try $ do
   polarity <- switchPolarity <* char c <* skipSpaces
   arg <- optionMaybe p
-  return $ (c, arg, polarity)
+  return (c, arg, polarity)
 
 -- | Reads a line number switch option. The line number switch can be used with
 -- example and source blocks.
@@ -402,8 +400,8 @@ orgParamValue = try $
     *> noneOf "\n\r" `many1Till` endOfValue
     <* skipSpaces
  where
-  endOfValue = lookAhead $  (try $ skipSpaces <* oneOf "\n\r")
-                        <|> (try $ skipSpaces1 <* orgArgKey)
+  endOfValue = lookAhead $  try (skipSpaces <* oneOf "\n\r")
+                        <|> try (skipSpaces1 <* orgArgKey)
 
 
 --
@@ -421,7 +419,7 @@ genericDrawer = try $ do
   -- Include drawer if it is explicitly included in or not explicitly excluded
   -- from the list of drawers that should be exported.  PROPERTIES drawers are
   -- never exported.
-  case (exportDrawers . orgStateExportSettings $ state) of
+  case exportDrawers . orgStateExportSettings $ state of
     _           | name == "PROPERTIES" -> return mempty
     Left  names | name `elem`    names -> return mempty
     Right names | name `notElem` names -> return mempty
@@ -455,7 +453,7 @@ figure = try $ do
     Nothing     -> mzero
     Just imgSrc -> do
       guard (isImageFilename imgSrc)
-      let isFigure = not . isNothing $ blockAttrCaption figAttrs
+      let isFigure = isJust $ blockAttrCaption figAttrs
       return $ imageBlock isFigure figAttrs imgSrc
  where
    selfTarget :: PandocMonad m => OrgParser m String
@@ -490,8 +488,7 @@ endOfParagraph = try $ skipSpaces *> newline *> endOfBlock
 
 -- | Example code marked up by a leading colon.
 example :: Monad m => OrgParser m (F Blocks)
-example = try $ do
-  returnF . exampleCode =<< unlines <$> many1 exampleLine
+example = try $ returnF . exampleCode =<< unlines <$> many1 exampleLine
  where
    exampleLine :: Monad m => OrgParser m String
    exampleLine = try $ exampleLineStart *> anyLine
@@ -514,7 +511,7 @@ include = try $ do
   filename <- includeTarget
   blockType <- optionMaybe $ skipSpaces *> many1 alphaNum
   blocksParser <- case blockType of
-                    Just "example" -> do
+                    Just "example" ->
                       return $ pure . B.codeBlock <$> parseRaw
                     Just "export" -> do
                       format <- skipSpaces *> many (noneOf "\n\r\t ")
@@ -580,8 +577,8 @@ orgTable :: PandocMonad m => OrgParser m (F Blocks)
 orgTable = try $ do
   -- don't allow a table on the first line of a list item; org requires that
   -- tables start at first non-space character on the line
-  let isFirstInListItem st = (orgStateParserContext st == ListItemState) &&
-                             (orgStateLastPreCharPos st == Nothing)
+  let isFirstInListItem st = orgStateParserContext st == ListItemState &&
+                             isNothing (orgStateLastPreCharPos st)
   guard =<< not . isFirstInListItem <$> getState
   blockAttrs <- blockAttributes
   lookAhead tableStart
@@ -594,7 +591,7 @@ orgToPandocTable :: OrgTable
                  -> Inlines
                  -> Blocks
 orgToPandocTable (OrgTable colProps heads lns) caption =
-  let totalWidth = if any (not . isNothing) (map columnRelWidth colProps)
+  let totalWidth = if any isJust (map columnRelWidth colProps)
                    then Just . sum $ map (fromMaybe 1 . columnRelWidth) colProps
                    else Nothing
   in B.table caption (map (convertColProp totalWidth) colProps) heads lns
@@ -604,7 +601,7 @@ orgToPandocTable (OrgTable colProps heads lns) caption =
      let
        align' = fromMaybe AlignDefault $ columnAlignment colProp
        width' = fromMaybe 0 $ (\w t -> (fromIntegral w / fromIntegral t))
-                              <$> (columnRelWidth colProp)
+                              <$> columnRelWidth colProp
                               <*> totalWidth
      in (align', width')
 
@@ -630,7 +627,7 @@ tableAlignRow = try $ do
 columnPropertyCell :: Monad m => OrgParser m ColumnProperty
 columnPropertyCell = emptyCell <|> propCell <?> "alignment info"
  where
-   emptyCell = ColumnProperty Nothing Nothing <$ (try $ skipSpaces *> endOfCell)
+   emptyCell = ColumnProperty Nothing Nothing <$ try (skipSpaces *> endOfCell)
    propCell = try $ ColumnProperty
                  <$> (skipSpaces
                       *> char '<'
@@ -684,7 +681,7 @@ rowToContent tbl row =
  where
    singleRowPromotedToHeader :: OrgTable
    singleRowPromotedToHeader = case tbl of
-     OrgTable{ orgTableHeader = [], orgTableRows = b:[] } ->
+     OrgTable{ orgTableHeader = [], orgTableRows = [b] } ->
             tbl{ orgTableHeader = b , orgTableRows = [] }
      _   -> tbl
 
@@ -739,7 +736,7 @@ noteBlock = try $ do
 paraOrPlain :: PandocMonad m => OrgParser m (F Blocks)
 paraOrPlain = try $ do
   -- Make sure we are not looking at a headline
-  notFollowedBy' (char '*' *> (oneOf " *"))
+  notFollowedBy' (char '*' *> oneOf " *")
   ils <- inlines
   nl <- option False (newline *> return True)
   -- Read block as paragraph, except if we are in a list context and the block
@@ -748,7 +745,7 @@ paraOrPlain = try $ do
   try (guard nl
        *> notFollowedBy (inList *> (() <$ orderedListStart <|> bulletListStart))
        *> return (B.para <$> ils))
-    <|>  (return (B.plain <$> ils))
+    <|>  return (B.plain <$> ils)
 
 
 --
@@ -760,16 +757,16 @@ list = choice [ definitionList, bulletList, orderedList ] <?> "list"
 
 definitionList :: PandocMonad m => OrgParser m (F Blocks)
 definitionList = try $ do n <- lookAhead (bulletListStart' Nothing)
-                          fmap B.definitionList . fmap compactifyDL . sequence
+                          fmap (B.definitionList . compactifyDL) . sequence
                             <$> many1 (definitionListItem $ bulletListStart' (Just n))
 
 bulletList :: PandocMonad m => OrgParser m (F Blocks)
 bulletList = try $ do n <- lookAhead (bulletListStart' Nothing)
-                      fmap B.bulletList . fmap compactify . sequence
+                      fmap (B.bulletList . compactify) . sequence
                         <$> many1 (listItem (bulletListStart' $ Just n))
 
 orderedList :: PandocMonad m => OrgParser m (F Blocks)
-orderedList = fmap B.orderedList . fmap compactify . sequence
+orderedList = fmap (B.orderedList . compactify) . sequence
               <$> many1 (listItem orderedListStart)
 
 bulletListStart' :: Monad m => Maybe Int -> OrgParser m Int

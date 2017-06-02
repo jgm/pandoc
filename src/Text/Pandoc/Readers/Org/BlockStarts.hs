@@ -66,7 +66,7 @@ gridTableStart = try $ skipSpaces <* char '+' <* char '-'
 
 
 latexEnvStart :: Monad m => OrgParser m String
-latexEnvStart = try $ do
+latexEnvStart = try $
   skipSpaces *> string "\\begin{"
              *> latexEnvName
              <* string "}"
@@ -97,8 +97,7 @@ orderedListStart = genericListStart orderedListMarker
   where orderedListMarker = mappend <$> many1 digit <*> (pure <$> oneOf ".)")
 
 drawerStart :: Monad m => OrgParser m String
-drawerStart = try $
-  skipSpaces *> drawerName <* skipSpaces <* newline
+drawerStart = try $ skipSpaces *> drawerName <* skipSpaces <* newline
  where drawerName = char ':' *> manyTill nonspaceChar (char ':')
 
 metaLineStart :: Monad m => OrgParser m ()
@@ -120,8 +119,8 @@ noteMarker = try $ do
 
 -- | Succeeds if the parser is at the end of a block.
 endOfBlock :: Monad m => OrgParser m ()
-endOfBlock = lookAhead . try $ do
-    void blankline <|> anyBlockStart
+endOfBlock = lookAhead . try $
+  void blankline <|> anyBlockStart
  where
    -- Succeeds if there is a new block starting at this position.
    anyBlockStart :: Monad m => OrgParser m ()

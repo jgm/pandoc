@@ -84,7 +84,7 @@ metaKey = map toLower <$> many1 (noneOf ": \n\r")
                       <*  char ':'
                       <*  skipSpaces
 
-metaValue :: PandocMonad m => String -> OrgParser m (String, (F MetaValue))
+metaValue :: PandocMonad m => String -> OrgParser m (String, F MetaValue)
 metaValue key =
   let inclKey = "header-includes"
   in case key of
@@ -111,7 +111,7 @@ metaInlines = fmap (MetaInlines . B.toList) <$> inlinesTillNewline
 
 metaInlinesCommaSeparated :: PandocMonad m => OrgParser m (F MetaValue)
 metaInlinesCommaSeparated = do
-  itemStrs <- (many1 (noneOf ",\n")) `sepBy1` (char ',')
+  itemStrs <- many1 (noneOf ",\n") `sepBy1` char ','
   newline
   items <- mapM (parseFromString inlinesTillNewline . (++ "\n")) itemStrs
   let toMetaInlines = MetaInlines . B.toList
@@ -163,7 +163,7 @@ addLinkFormat key formatter = updateState $ \s ->
   let fs = orgStateLinkFormatters s
   in s{ orgStateLinkFormatters = M.insert key formatter fs }
 
-parseLinkFormat :: Monad m => OrgParser m ((String, String -> String))
+parseLinkFormat :: Monad m => OrgParser m (String, String -> String)
 parseLinkFormat = try $ do
   linkType <- (:) <$> letter <*> many (alphaNum <|> oneOf "-_") <* skipSpaces
   linkSubst <- parseFormat
@@ -172,8 +172,7 @@ parseLinkFormat = try $ do
 -- | An ad-hoc, single-argument-only implementation of a printf-style format
 -- parser.
 parseFormat :: Monad m => OrgParser m (String -> String)
-parseFormat = try $ do
-  replacePlain <|> replaceUrl <|> justAppend
+parseFormat = try $ replacePlain <|> replaceUrl <|> justAppend
  where
    -- inefficient, but who cares
    replacePlain = try $ (\x -> concat . flip intersperse x)
