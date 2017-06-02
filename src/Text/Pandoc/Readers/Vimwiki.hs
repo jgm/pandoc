@@ -83,6 +83,29 @@ import Text.Parsec.Char (oneOf, space)
 import Text.Parsec.Combinator (lookAhead, between)
 import Text.Parsec.Prim ((<|>))
 
+-- for testing: to REMOVE
+import Text.Pandoc.Class (PandocIO, runIO)
+import Text.Pandoc.Parsing (ParserT)
+import Data.Default
+import Text.Parsec.String (Parser)
+import Text.Pandoc.Error (PandocError)
+import Text.Parsec.Error (ParseError)
+import Text.Parsec (parse)
+
+runParser :: VwParser PandocIO a -> String -> PandocIO a
+runParser p s = do
+  res <- readWithM p def{ stateOptions = def :: ReaderOptions } s
+  case res of
+       Left e -> throwError e
+       Right result -> return result
+
+testP :: VwParser PandocIO a -> String -> IO (Either PandocError a)
+testP p s = runIO $ runParser p (s ++ "\n")
+
+simpleParse :: Parser a -> String -> Either ParseError a
+simpleParse p s = parse p "" (s ++ "\n")
+--end of to REMOVE
+
 readVimwiki :: PandocMonad m => ReaderOptions -> String -> m Pandoc
 readVimwiki opts s = do
   res <- readWithM parseVimwiki def{ stateOptions = opts } s
@@ -180,9 +203,9 @@ displayMath = try $ do
   mathTag <- choice [mathTagParser, emptyParser]
   contents <- manyTill anyChar (try (char '\n' >> many spaceChar >> string "}}$" >> many spaceChar >> newline))
   let contentsWithTags
-        | mathTag == "" = "\\[" ++ contents ++ "\\]"
-        | otherwise     = "\\begin{" ++ mathTag ++ "}" ++ contents ++ "\\end{" ++ mathTag ++ "}"
-  return $ B.para $ B.displayMath contentsWithTags
+        | mathTag == "" = "\\[" ++ contents ++ "\n\\]"
+        | otherwise     = "\\begin{" ++ mathTag ++ "}" ++ contents ++ "\n\\end{" ++ mathTag ++ "}"
+  return $ B.plain $ B.str contentsWithTags
 
 mixedList :: PandocMonad m => VwParser m Blocks
 mixedList = try $ do
@@ -238,6 +261,9 @@ listSpacesParser = try $ lookAhead $ do
 
 listStart :: PandocMonad m => VwParser m String
 listStart = manyTill spaceChar (oneOf "*-#" >> many1 spaceChar)
+
+--listIdentifier :: [VwParser m String]
+--listIdentifier = [string "*", string "-", string "#", string "1." 
 
 --many need trimInlines
 table :: PandocMonad m => VwParser m Blocks
@@ -358,7 +384,7 @@ inlineMath :: PandocMonad m => VwParser m Inlines
 inlineMath = try $ do
   char '$'
   contents <- manyTill anyChar (char '$')
-  return $ B.math contents
+  return $ B.str contents
 
 tag :: PandocMonad m => VwParser m Inlines
 tag = try $ do

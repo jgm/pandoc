@@ -138,7 +138,10 @@ mailto:hello@bye.com
 
 
 
-- Bulleted list item 1
+- Bulleted list item 1, and here is some math belonging to list item 1
+ {{$
+ a^2 + b^2 = c^2
+ }}$
 - Bulleted list item 2
 
 
