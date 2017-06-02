@@ -1331,7 +1331,7 @@ options =
     , Option "" ["webtex"]
                  (OptArg
                   (\arg opt -> do
-                      let url' = fromMaybe "https://latex.codecogs.com/png.latex?" arg
+                      let url' = fromMaybe "https://latex.codecogs.com/svg.latex?" arg
                       return opt { optHTMLMathMethod = WebTeX url' })
                   "URL")
                  "" -- "Use web service for HTML math"
