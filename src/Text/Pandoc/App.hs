@@ -1554,3 +1554,4 @@ splitField s =
   case break (`elem` ":=") s of
        (k,_:v) -> (k,v)
        (k,[])  -> (k,"true")
+

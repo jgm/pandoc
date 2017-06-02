@@ -365,7 +365,7 @@ fillMediaBag sourceURL d = walkM handleImage d
                   let fname = basename <.> ext
                   insertMedia fname mt bs'
                   return $ Image attr lab (fname, tit))
-          (\e -> 
+          (\e ->
               case e of
                 PandocResourceNotFound _ -> do
                   report $ CouldNotFetchResource src

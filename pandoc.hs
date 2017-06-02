@@ -40,3 +40,4 @@ import Text.Pandoc.Error (PandocError, handleError)
 main :: IO ()
 main = E.catch (parseOptions options defaultOpts >>= convertWithOpts)
   (\(e :: PandocError) -> handleError (Left e))
+

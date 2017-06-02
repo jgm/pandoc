@@ -83,7 +83,7 @@ handleError (Left e) =
             errColumn = sourceColumn errPos
             ls = lines input ++ [""]
             errorInFile = if length ls > errLine - 1
-                            then concat ["\n", (ls !! (errLine - 1))
+                            then concat ["\n", ls !! (errLine - 1)
                                         ,"\n", replicate (errColumn - 1) ' '
                                         ,"^"]
                         else ""
