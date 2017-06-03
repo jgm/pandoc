@@ -35,14 +35,14 @@ module Text.Pandoc.Readers.Org.DocumentTree
 import Control.Arrow ((***))
 import Control.Monad (guard, void)
 import Data.Char (toLower, toUpper)
-import Data.List ( intersperse )
+import Data.List (intersperse)
 import Data.Monoid ((<>))
 import Text.Pandoc.Builder (Blocks, Inlines)
 import Text.Pandoc.Class (PandocMonad)
 import Text.Pandoc.Definition
 import Text.Pandoc.Readers.Org.BlockStarts
-import Text.Pandoc.Readers.Org.Parsing
 import Text.Pandoc.Readers.Org.ParserState
+import Text.Pandoc.Readers.Org.Parsing
 
 import qualified Data.Map as Map
 import qualified Text.Pandoc.Builder as B
@@ -78,7 +78,7 @@ documentTree blocks inline = do
   getTitle metamap =
     case Map.lookup "title" metamap of
       Just (MetaInlines inlns) -> inlns
-      _ -> []
+      _                        -> []
 
 newtype Tag = Tag { fromTag :: String }
   deriving (Show, Eq)

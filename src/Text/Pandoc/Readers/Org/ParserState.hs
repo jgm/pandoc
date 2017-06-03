@@ -1,5 +1,5 @@
-{-# LANGUAGE FlexibleInstances          #-}
-{-# LANGUAGE MultiParamTypeClasses      #-}
+{-# LANGUAGE FlexibleInstances     #-}
+{-# LANGUAGE MultiParamTypeClasses #-}
 {-
 Copyright (C) 2014-2017 Albert Krewinkel <tarleb+pandoc@moltkeplatz.de>
 
@@ -60,15 +60,14 @@ import qualified Data.Set as Set
 
 import Text.Pandoc.Builder (Blocks, Inlines)
 import Text.Pandoc.Definition (Meta (..), nullMeta)
-import Text.Pandoc.Options (ReaderOptions (..))
 import Text.Pandoc.Logging
-import Text.Pandoc.Parsing (HasHeaderMap (..), HasIdentifierList (..),
-                            HasLogMessages (..),
-                            HasLastStrPosition (..), HasQuoteContext (..),
-                            HasReaderOptions (..), HasIncludeFiles (..),
-                            ParserContext (..),
-                            QuoteContext (..), SourcePos, Future,
-                            askF, asksF, returnF, runF, trimInlinesF)
+import Text.Pandoc.Options (ReaderOptions (..))
+import Text.Pandoc.Parsing (Future, HasHeaderMap (..), HasIdentifierList (..),
+                            HasIncludeFiles (..), HasLastStrPosition (..),
+                            HasLogMessages (..), HasQuoteContext (..),
+                            HasReaderOptions (..), ParserContext (..),
+                            QuoteContext (..), SourcePos, askF, asksF, returnF,
+                            runF, trimInlinesF)
 
 -- | This is used to delay evaluation until all relevant information has been
 -- parsed and made available in the parser state.

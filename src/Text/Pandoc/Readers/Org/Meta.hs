@@ -75,9 +75,9 @@ declarationLine :: PandocMonad m => OrgParser m ()
 declarationLine = try $ do
   key   <- map toLower <$> metaKey
   (key', value) <- metaValue key
-  when (key' /= "results") $
-    updateState $ \st ->
-      st { orgStateMeta = B.setMeta key' <$> value <*> orgStateMeta st }
+  let addMetaValue st =
+        st { orgStateMeta = B.setMeta key' <$> value <*> orgStateMeta st }
+  when (key' /= "results") $ updateState addMetaValue
 
 metaKey :: Monad m => OrgParser m String
 metaKey = map toLower <$> many1 (noneOf ": \n\r")
@@ -236,8 +236,8 @@ macroDefinition = try $ do
   expansionPart = try $ many (notFollowedBy placeholder *> noneOf "\n\r")
 
   alternate :: [a] -> [a] -> [a]
-  alternate [] ys = ys
-  alternate xs [] = xs
+  alternate []     ys     = ys
+  alternate xs     []     = xs
   alternate (x:xs) (y:ys) = x : y : alternate xs ys
 
   reorder :: [Int] -> [String] -> [String]

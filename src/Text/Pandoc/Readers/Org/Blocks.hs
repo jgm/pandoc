@@ -351,7 +351,7 @@ switchesAsAttributes = try $ do
                 Just num -> ("startFrom", num):kv
                 Nothing  -> kv
         cls' = case pol of
-                 SwitchPlus -> "continuedSourceBlock":cls
+                 SwitchPlus  -> "continuedSourceBlock":cls
                  SwitchMinus -> cls
     in ("numberLines":cls', kv')
   addToAttr _ x = x

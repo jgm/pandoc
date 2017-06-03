@@ -28,13 +28,13 @@ Compatibility helpers for hslua
 -}
 module Text.Pandoc.Lua.Compat ( loadstring ) where
 
-import Scripting.Lua ( LuaState )
+import Scripting.Lua (LuaState)
 import qualified Scripting.Lua as Lua
 
 -- | Interpret string as lua code and load into the lua environment.
 loadstring :: LuaState -> String -> String -> IO Int
 #if MIN_VERSION_hslua(0,5,0)
-loadstring lua script _ = Lua.loadstring lua script
+loadstring lua script _  = Lua.loadstring lua script
 #else
 loadstring lua script cn = Lua.loadstring lua script cn
 #endif

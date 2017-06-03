@@ -42,10 +42,8 @@ module Text.Pandoc.Lua.Util
   , pushViaConstructor
   ) where
 
-import Scripting.Lua
-  ( LuaState, StackValue(..)
-  , call, getglobal2, gettable, next, pop, pushnil, rawgeti, rawseti, settable
-  )
+import Scripting.Lua (LuaState, StackValue (..), call, getglobal2, gettable,
+                      next, pop, pushnil, rawgeti, rawseti, settable)
 
 -- | Adjust the stack index, assuming that @n@ new elements have been pushed on
 -- the stack.

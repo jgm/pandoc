@@ -343,11 +343,10 @@ orgRefCiteKey =
   let citeKeySpecialChars = "-_:\\./," :: String
       isCiteKeySpecialChar c = c `elem` citeKeySpecialChars
       isCiteKeyChar c = isAlphaNum c || isCiteKeySpecialChar c
-
-  in try $ many1Till (satisfy isCiteKeyChar)
-           $ try . lookAhead $ do
-               many . satisfy $ isCiteKeySpecialChar
-               satisfy $ not . isCiteKeyChar
+      endOfCitation = try $ do
+        many $ satisfy isCiteKeySpecialChar
+        satisfy $ not . isCiteKeyChar
+  in try $ satisfy isCiteKeyChar `many1Till` lookAhead endOfCitation
 
 
 -- | Supported citation types.  Only a small subset of org-ref types is
@@ -415,7 +414,7 @@ referencedNote = try $ do
   return $ do
     notes <- asksF orgStateNotes'
     case lookup ref notes of
-      Nothing   -> return $ B.str $ "[" ++ ref ++ "]"
+      Nothing   -> return . B.str $ "[" ++ ref ++ "]"
       Just contents  -> do
         st <- askF
         let contents' = runF contents st{ orgStateNotes' = [] }
@@ -439,7 +438,7 @@ explicitOrImageLink = try $ do
     src <- srcF
     case cleanLinkString title of
       Just imgSrc | isImageFilename imgSrc ->
-        pure $ B.link src "" $ B.image imgSrc mempty mempty
+        pure . B.link src "" $ B.image imgSrc mempty mempty
       _ ->
         linkToInlinesF src =<< title'
 

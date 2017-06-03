@@ -34,7 +34,7 @@ Conversion of 'Pandoc' documents to Emacs Org-Mode.
 
 Org-Mode:  <http://orgmode.org>
 -}
-module Text.Pandoc.Writers.Org ( writeOrg) where
+module Text.Pandoc.Writers.Org (writeOrg) where
 import Control.Monad.State
 import Data.Char (isAlphaNum, toLower)
 import Data.List (intersect, intersperse, isPrefixOf, partition, transpose)
@@ -77,9 +77,9 @@ pandocToOrg (Pandoc meta blocks) = do
   body <- blockListToOrg blocks
   notes <- gets (reverse . stNotes) >>= notesToOrg
   hasMath <- gets stHasMath
-  let main = render colwidth $ foldl ($+$) empty $ [body, notes]
+  let main = render colwidth . foldl ($+$) empty $ [body, notes]
   let context = defField "body" main
-              $ defField "math" hasMath
+              . defField "math" hasMath
               $ metadata
   case writerTemplate opts of
        Nothing  -> return main
@@ -88,8 +88,7 @@ pandocToOrg (Pandoc meta blocks) = do
 -- | Return Org representation of notes.
 notesToOrg :: PandocMonad m => [[Block]] -> Org m Doc
 notesToOrg notes =
-  mapM (\(num, note) -> noteToOrg num note) (zip [1..] notes) >>=
-  return . vsep
+  vsep <$> zipWithM noteToOrg [1..] notes
 
 -- | Return Org representation of a note.
 noteToOrg :: PandocMonad m => Int -> [Block] -> Org m Doc
@@ -221,16 +220,16 @@ blockToOrg (Table caption' _ _ headers rows) =  do
   -- FIXME: Org doesn't allow blocks with height more than 1.
   let hpipeBlocks blocks = hcat [beg, middle, end]
         where h      = maximum (1 : map height blocks)
-              sep'   = lblock 3 $ vcat (map text $ replicate h " | ")
-              beg    = lblock 2 $ vcat (map text $ replicate h "| ")
-              end    = lblock 2 $ vcat (map text $ replicate h " |")
+              sep'   = lblock 3 $ vcat (replicate h (text " | "))
+              beg    = lblock 2 $ vcat (replicate h (text "| "))
+              end    = lblock 2 $ vcat (replicate h (text " |"))
               middle = hcat $ intersperse sep' blocks
   let makeRow = hpipeBlocks . zipWith lblock widthsInChars
   let head' = makeRow headers'
   rows' <- mapM (\row -> do cols <- mapM blockListToOrg row
                             return $ makeRow cols) rows
   let border ch = char '|' <> char ch <>
-                  (hcat $ intersperse (char ch <> char '+' <> char ch) $
+                  (hcat . intersperse (char ch <> char '+' <> char ch) $
                           map (\l -> text $ replicate l ch) widthsInChars) <>
                   char ch <> char '|'
   let body = vcat rows'
@@ -251,8 +250,7 @@ blockToOrg (OrderedList (start, _, delim) items) = do
   let maxMarkerLength = maximum $ map length markers
   let markers' = map (\m -> let s = maxMarkerLength - length m
                             in  m ++ replicate s ' ') markers
-  contents <- mapM (\(item, num) -> orderedListItemToOrg item num) $
-              zip markers' items
+  contents <- zipWithM orderedListItemToOrg markers' items
   -- ensure that sublists have preceding blank line
   return $ blankline $$ vcat contents $$ blankline
 blockToOrg (DefinitionList items) = do
@@ -279,8 +277,8 @@ definitionListItemToOrg :: PandocMonad m
                         => ([Inline], [[Block]]) -> Org m Doc
 definitionListItemToOrg (label, defs) = do
   label' <- inlineListToOrg label
-  contents <- liftM vcat $ mapM blockListToOrg defs
-  return $ hang 2 "- " $ label' <> " :: " <> (contents <> cr)
+  contents <- vcat <$> mapM blockListToOrg defs
+  return . hang 2 "- " $ label' <> " :: " <> (contents <> cr)
 
 -- | Convert list of key/value pairs to Org :PROPERTIES: drawer.
 propertiesDrawer :: Attr -> Doc
@@ -312,13 +310,13 @@ attrHtml (ident, classes, kvs) =
 blockListToOrg :: PandocMonad m
                => [Block]       -- ^ List of block elements
                -> Org m Doc
-blockListToOrg blocks = mapM blockToOrg blocks >>= return . vcat
+blockListToOrg blocks = vcat <$> mapM blockToOrg blocks
 
 -- | Convert list of Pandoc inline elements to Org.
 inlineListToOrg :: PandocMonad m
                 => [Inline]
                 -> Org m Doc
-inlineListToOrg lst = mapM inlineToOrg lst >>= return . hcat
+inlineListToOrg lst = hcat <$> mapM inlineToOrg lst
 
 -- | Convert Pandoc inline element to Org.
 inlineToOrg :: PandocMonad m => Inline -> Org m Doc
@@ -350,7 +348,7 @@ inlineToOrg (Quoted DoubleQuote lst) = do
   return $ "\"" <> contents <> "\""
 inlineToOrg (Cite _  lst) = inlineListToOrg lst
 inlineToOrg (Code _ str) = return $ "=" <> text str <> "="
-inlineToOrg (Str str) = return $ text $ escapeString str
+inlineToOrg (Str str) = return . text $ escapeString str
 inlineToOrg (Math t str) = do
   modify $ \st -> st{ stHasMath = True }
   return $ if t == InlineMath
