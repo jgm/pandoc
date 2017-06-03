@@ -35,7 +35,7 @@ Conversion of vimwiki text to 'Pandoc' document.
     * [X] comment
     * [X] blockquote -- currently only accepting four spaces rather than a mix of spaces and tabs
     * [X] preformatted -- need to implement preformatted with attributes
-    * [X] displaymath - a bit buggy
+    * [X] displaymath 
     * [X] bulletlist / orderedlist -- currently not calculating mixed tabs and spaces indentations.
         * [ ] orderedlist with 1., i., a) etc identification.
         * [ ] todo lists -- see https://github.com/LarsEKrueger/pandoc-vimwiki
@@ -152,6 +152,8 @@ block = do
   report $ ParsingTrace (take 60 $ show $ B.toList res) pos
   return res
 
+blockML :: PandocMonad m => VwParser m Blocks
+blockML = choice [preformatted, displayMath, table]
 
 header :: PandocMonad m => VwParser m Blocks
 header = try $ do
@@ -222,8 +224,10 @@ mixedList' prevLev = do
           many spaceChar  
           c <- oneOf "*-#" 
           many1 spaceChar  
-          curLine <- B.plain <$> trimInlines . mconcat <$> many1 inlineML
+          curLine <- B.plain <$> trimInlines . mconcat <$> (many inlineML)
           newline
+          --curLine <- mconcat <$> many ((B.plain <$> trimInlines . mconcat <$> (inlineFollowedByNewline $ many inlineML)) <|> blockML)
+          --curLine <- mconcat <$> many (B.plain <$> trimInlines . mconcat <$> (followedByNewline $ many inlineML))
           let listBuilder = fromJust $ listType c
           (subList, lowLev) <- (mixedList' curLev)
           if lowLev >= curLev
@@ -238,6 +242,12 @@ mixedList' prevLev = do
                   if curLev > prevLev
                      then return ([listBuilder curList], endLev)
                      else return (curList, endLev)
+
+followedByNewline :: PandocMonad m => VwParser m a -> VwParser m a
+followedByNewline ip = do
+  t <- ip
+  newline
+  return t
 
 combineList :: Blocks -> [Blocks] -> [Blocks]
 combineList x [y] = case toList y of
