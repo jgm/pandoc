@@ -1339,6 +1339,9 @@ including all [reveal.js configuration options].
 :   color for internal links, citation links, external links, and links in table
     of contents: uses any of the [predefined LaTeX colors] (for beamer only).
 
+`aspectratio`
+:   aspect ratio of slides (for beamer only).
+
 [reveal.js configuration options]: https://github.com/hakimel/reveal.js#configuration
 
 Variables for LaTeX
