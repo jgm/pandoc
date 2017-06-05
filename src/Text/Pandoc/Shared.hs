@@ -491,21 +491,10 @@ inlineListToIdentifier =
  where nbspToSp '\160'     =  ' '
        nbspToSp x          =  x
 
-
--- | Convert a hierarchical list of Elements into a list of sections. All
--- blocks remain with their parent sections. If the list starts with blocks,
--- they will be kept at the start.
-flatten :: [Element] -> [Element]
-flatten [] = []
-flatten (b@(Blk _) : es) = b : flatten es
-flatten (Sec d ident attr cont children : es) =
-  Sec d ident attr cont blkChildren : flatten secChildren ++ flatten es
-  where
-  (blkChildren,secChildren) = partition isBlk children
-
-  isBlk :: Element -> Bool
-  isBlk (Blk _) = True
-  isBlk _ = False
+-- | Check if an Element is a Blk. Required for filtering blocks and sections.
+isBlk :: Element -> Bool
+isBlk (Blk _) = True
+isBlk _ = False
 
 -- | Stack of lists of Elements. Each item on the stack is a list of
 -- semi-processed sections.
@@ -561,7 +550,7 @@ rebuildTree [] (sec@Sec{} : es) = rebuildTree [[sec]] es
 
 rebuildTree stack@[tpb@(tos@(Sec pd _ _ _ _):brothers)] (sec@(Sec d _ _ _ _) : es)
   | d > pd = rebuildTree ([sec]:stack) es
-  | d == pd = rebuildTree [(sec:tos:brothers)] es
+  | d == pd = rebuildTree [sec:tos:brothers] es
   | otherwise = reverse tpb ++ rebuildTree [[sec]] es
 rebuildTree stack@((tos@(Sec pd _ _ _ _):brothers):bos) (sec@(Sec d _ _ _ _) : es)
   | d > pd = rebuildTree ([sec]:stack) es
@@ -579,7 +568,7 @@ rebuildTree _ _ = undefined -- These cases should not happen.
 -- identifier. If it is placed in a div with an identifier, the header takes
 -- the identifier of the div.
 hierarchicalize :: [Block] -> [Element]
-hierarchicalize blocks = rebuildTree [] $ flatten $ S.evalState (hierarchicalizeWithIds blocks) []
+hierarchicalize blocks = rebuildTree [] $ S.evalState (hierarchicalizeWithIds blocks) []
 
 hierarchicalizeWithIds :: [Block] -> S.State [Int] [Element]
 hierarchicalizeWithIds [] = return []
@@ -594,8 +583,10 @@ hierarchicalizeWithIds ((Header level attr@(_,classes,_) title'):xs) = do
   unless (null newnum) $ S.put newnum
   let (sectionContents, rest) = break (headerLtEq level) xs
   sectionContents' <- hierarchicalizeWithIds sectionContents
+  let (blkChildren,secChildren) = partition isBlk sectionContents'
   rest' <- hierarchicalizeWithIds rest
-  return $ Sec level newnum attr title' sectionContents' : rest'
+  return $ Sec level newnum attr title' blkChildren : (secChildren ++ rest')
+
 hierarchicalizeWithIds ((Div ("",["references"],[])
                          (Header level (ident,classes,kvs) title' : xs)):ys) =
   hierarchicalizeWithIds ((Header level (ident,("references":classes),kvs)
