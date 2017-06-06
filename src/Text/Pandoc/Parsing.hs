@@ -1203,10 +1203,14 @@ registerHeader (ident,classes,kvs) header' = do
        let id'' = if Ext_ascii_identifiers `extensionEnabled` exts
                      then catMaybes $ map toAsciiChar id'
                      else id'
+       let id''' = if Ext_no_dots_in_identifiers `extensionEnabled` exts
+                     then filter (/= '.') id''
+                     else id''
        updateState $ updateIdentifierList $ Set.insert id'
        updateState $ updateIdentifierList $ Set.insert id''
+       updateState $ updateIdentifierList $ Set.insert id'''
        updateState $ updateHeaderMap $ insert' header' id'
-       return (id'',classes,kvs)
+       return (id''',classes,kvs)
      else do
         unless (null ident) $ do
           when (ident `Set.member` ids) $ do

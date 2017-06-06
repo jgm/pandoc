@@ -129,6 +129,7 @@ data Extension =
     | Ext_emoji               -- ^ Support emoji like :smile:
     | Ext_auto_identifiers    -- ^ Automatic identifiers for headers
     | Ext_ascii_identifiers   -- ^ ascii-only identifiers for headers
+    | Ext_no_dots_in_identifiers -- ^ Don't use dots in header identifiers
     | Ext_header_attributes   -- ^ Explicit header attributes {#id .class k=v}
     | Ext_mmd_header_identifiers -- ^ Multimarkdown style header identifiers [myid]
     | Ext_implicit_header_references -- ^ Implicit reference links for headers
@@ -233,6 +234,7 @@ githubMarkdownExtensions = extensionsFromList
   , Ext_fenced_code_blocks
   , Ext_auto_identifiers
   , Ext_ascii_identifiers
+  , Ext_no_dots_in_identifiers
   , Ext_backtick_code_blocks
   , Ext_autolink_bare_uris
   , Ext_space_in_atx_header
