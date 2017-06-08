@@ -216,18 +216,17 @@ mixedList = try $ do
 
 mixedList' :: PandocMonad m => Int -> VwParser m ([Blocks], Int)
 mixedList' prevLev = do
-  listSpaces <- listSpacesParser <|> emptyParser
+  listSpaces <- listSpacesParser <|> emptyParser -- use option instead
   let curLev = length listSpaces
   if curLev < prevLev
      then return ([], curLev)
      else do
           many spaceChar  
           c <- oneOf "*-#" 
-          many1 spaceChar  
-          curLine <- B.plain <$> trimInlines . mconcat <$> (many inlineML)
-          newline
-          --curLine <- mconcat <$> many ((B.plain <$> trimInlines . mconcat <$> (inlineFollowedByNewline $ many inlineML)) <|> blockML)
-          --curLine <- mconcat <$> many (B.plain <$> trimInlines . mconcat <$> (followedByNewline $ many inlineML))
+          --many1 spaceChar  
+          --curLine <- B.plain <$> trimInlines . mconcat <$> (many inlineML)
+          curLine <- listItemContent
+          --return ([curLine], 0)
           let listBuilder = fromJust $ listType c
           (subList, lowLev) <- (mixedList' curLev)
           if lowLev >= curLev
@@ -242,6 +241,60 @@ mixedList' prevLev = do
                   if curLev > prevLev
                      then return ([listBuilder curList], endLev)
                      else return (curList, endLev)
+                     --}
+
+plainInlineML' :: PandocMonad m => VwParser m Blocks
+plainInlineML' = do
+  x <- spaceChar >> (B.plain <$> trimInlines . mconcat <$> (many inlineML))
+  newline
+  return x
+
+plainInlineML :: PandocMonad m => VwParser m Blocks
+plainInlineML = (notFollowedBy listStart) >> plainInlineML'
+
+{--
+listItemContent :: PandocMonad m => VwParser m Blocks
+listItemContent = choice [p3, p4, p5, p6]
+p1 :: PandocMonad m => VwParser m Blocks
+p1 = try $ do -- ibbbbb
+  x <- plainInlineML
+  newline
+  y <- many1 blockML
+  return $ mconcat $ x:y
+p2 :: PandocMonad m => VwParser m Blocks
+p2 = try $ do -- bbbbbi
+  newline
+  y <- many1 blockML
+  x <- plainInlineML
+  return $ mconcat $ y ++ [x]
+p3 :: PandocMonad m => VwParser m Blocks
+p3 = try $ do -- ibbbbibbbibbbbbbi or just i
+  y <- many p1
+  x <- plainInlineML
+  return $ mconcat $ y ++ [x]
+p4 :: PandocMonad m => VwParser m Blocks
+p4 = try $ mconcat <$> many1 p1 -- ibbbibbbbb
+p5 :: PandocMonad m => VwParser m Blocks
+p5 = try $ mconcat <$> many1 p2 -- bbbibbbbi
+p6 :: PandocMonad m => VwParser m Blocks -- bbbbbbbbb
+p6 = try $ newline >> (mconcat <$> many1 blockML)
+--}
+
+listItemContent :: PandocMonad m => VwParser m Blocks
+listItemContent = try $ do
+  x <- plainInlineML'
+  y <- many p2
+  z <- p6
+  return $ mconcat $ x:y++[z]
+p2 :: PandocMonad m => VwParser m Blocks
+p2 = try $ do -- bbbbbi
+  --newline
+  y <- many1 blockML
+  x <- plainInlineML
+  return $ mconcat $ y ++ [x]
+p6 :: PandocMonad m => VwParser m Blocks -- bbbbbbbbb
+p6 = try $ (mconcat <$> many blockML)
+
 
 followedByNewline :: PandocMonad m => VwParser m a -> VwParser m a
 followedByNewline ip = do
@@ -410,23 +463,24 @@ todoMark = try $ do
 
 -- helper functions and parsers
 endlineP :: PandocMonad m => VwParser m ()
-endlineP = () <$ try (newline <* notFollowedByThingsThatBreakSoftBreaks <* notFollowedBy blockQuote)
+endlineP = () <$ try (newline <* nFBTTBSB <* notFollowedBy blockQuote)
 
 endlineBQ :: PandocMonad m => VwParser m ()
-endlineBQ = () <$ try (newline <* notFollowedByThingsThatBreakSoftBreaks <* string "    ")
+endlineBQ = () <$ try (newline <* nFBTTBSB <* string "    ")
 
 endlineML :: PandocMonad m => VwParser m ()
-endlineML = () <$ try (newline <* notFollowedByThingsThatBreakSoftBreaks <* many1 spaceChar)
+endlineML = () <$ try (newline <* nFBTTBSB <* many1 spaceChar)
 
-notFollowedByThingsThatBreakSoftBreaks :: PandocMonad m => VwParser m ()
-notFollowedByThingsThatBreakSoftBreaks =
-                         notFollowedBy newline <*
-                         notFollowedBy hrule <*
-                         notFollowedBy tableRow <*
-                         notFollowedBy header <*
-                         notFollowedBy listStart <*
-                         notFollowedBy preformatted <*
-                         notFollowedBy displayMath
+--- nFBTTBSB is short for notFollowedByThingsThatBreakSoftBreaks 
+nFBTTBSB :: PandocMonad m => VwParser m ()
+nFBTTBSB =
+    notFollowedBy newline <*
+    notFollowedBy hrule <*
+    notFollowedBy tableRow <*
+    notFollowedBy header <*
+    notFollowedBy listStart <*
+    notFollowedBy preformatted <*
+    notFollowedBy displayMath
 
 makeTagSpan :: String -> [Inlines]
 makeTagSpan s = 
