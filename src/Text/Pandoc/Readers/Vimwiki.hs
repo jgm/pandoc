@@ -33,8 +33,8 @@ Conversion of vimwiki text to 'Pandoc' document.
     * [X] header
     * [X] hrule
     * [X] comment
-    * [X] blockquote -- currently only accepting four spaces rather than a mix of spaces and tabs
-    * [X] preformatted -- need to implement preformatted with attributes
+    * [X] blockquote 
+    * [X] preformatted 
     * [X] displaymath 
     * [X] bulletlist / orderedlist 
         * [ ] orderedlist with 1., i., a) etc identification.
@@ -51,9 +51,8 @@ Conversion of vimwiki text to 'Pandoc' document.
     * [X] strikeout
     * [X] code
     * [X] link
-        * [ ] with thumbnails -- pandoc limitation? can't find builder of link with thumbnails
-    * [X] image -- to implement images with attributes - same as in preformatted
-    * [X] inline math - a bit buggy
+    * [X] image
+    * [X] inline math
     * [X] tag
     * [ ] sub- and super-scripts
 * misc:
@@ -67,6 +66,7 @@ import Control.Monad.Except (throwError)
 import Control.Monad (guard)
 import Data.Default 
 import Data.Maybe
+import Data.Monoid ((<>))
 import Data.List (isInfixOf)
 import Text.Pandoc.Builder (Blocks, Inlines, trimInlines, fromList, toList)
 import qualified Text.Pandoc.Builder as B (doc, toList, headerWith, str, space, strong, emph, strikeout, code, link, image, spanWith, math, para, horizontalRule, blockQuote, displayMath, bulletList, plain, orderedList, simpleTable, softbreak, codeBlockWith, imageWith)
@@ -75,7 +75,7 @@ import Text.Pandoc.Definition (Pandoc, Inline(Space), Block(BulletList, OrderedL
 import Text.Pandoc.Logging (LogMessage(ParsingTrace))
 import Text.Pandoc.Options (ReaderOptions)
 import Text.Pandoc.Parsing (readWithM, ParserT, stateOptions, ParserState, blanklines, registerHeader, spaceChar, emailAddress, uri)
-import Text.Pandoc.Shared (splitBy, stripFirstAndLast)
+import Text.Pandoc.Shared (splitBy, stripFirstAndLast, stringify)
 import Text.Parsec.Char (spaces, char, anyChar, newline, string, noneOf)
 import Text.Parsec.Combinator (eof, choice, many1, manyTill, count, skipMany1, notFollowedBy)
 import Text.Parsec.Prim (many, getPosition, try)
@@ -149,7 +149,7 @@ block = do
                 , table
                 , para
                 ]
-  report $ ParsingTrace (take 60 $ show $ B.toList res) pos
+  report $ ParsingTrace (take 60 $ show $ B.toList res) pos -- remove B.
   return res
 
 blockML :: PandocMonad m => VwParser m Blocks
@@ -163,7 +163,7 @@ header = try $ do
   let lev = length eqs
   guard $ lev <= 6
   contents <- trimInlines . mconcat <$> manyTill inline (try $ spaceChar >> (string eqs) >> many spaceChar >> (char '\n')) 
-  attr <- registerHeader ("", (if sp == "" then [] else ["justcenter"]), []) contents
+  attr <- registerHeader (makeId contents, (if sp == "" then [] else ["justcenter"]), []) contents
   return $ B.headerWith attr lev contents
 
 para :: PandocMonad m => VwParser m Blocks
@@ -392,7 +392,10 @@ strong = try $ do
   guard $ (not $ (head s) `elem` spaceChars) && (not $ (last s) `elem` spaceChars)
   char '*'
   contents <- mconcat <$> (manyTill inline $ (char '*') >> (lookAhead $ oneOf $ spaceChars ++ specialChars))
-  return $ B.strong contents
+  return $ (B.spanWith ((makeId contents), [], []) mempty) <> (B.strong contents)
+
+makeId :: Inlines -> String -- move this function
+makeId i = concat (stringify <$> (toList i))
 
 emph :: PandocMonad m => VwParser m Inlines
 emph = try $ do
@@ -432,10 +435,6 @@ image = try $ do -- yet to implement one with attributes
   string "{{"
   contentText <- lookAhead $ manyTill (noneOf "\n") (try $ string "}}")
   images $ length $ filter (== '|') contentText
-  --if bars == 0
-    --then imgurl <- manyTill (noneOf "\n") (try $ (string "}}" <|> string "|"))
-  --let (imgurl, alt, attr) = procImgTxt contentText
-  --return $ B.imageWith attr imgurl "" alt
 
 images :: PandocMonad m => Int -> VwParser m Inlines
 images k
@@ -457,39 +456,6 @@ images k
            attrText <- manyTill anyChar (char '|')
            manyTill anyChar (try $ string "}}")
            return $ B.imageWith (makeAttr attrText) imgurl "" alt
-
-{--
-image1 :: PandocMonad m => VwParser m Inlines
-image1 = try $ do
-  string "{{"
-  imgurl <- manyTill (noneOf "\n") (char '|')
-  guard $ not $ "}}" `isInfixOf` imgurl
-  alt <- manyTill inline $ char '|'
-  guard $ not $ "}}" `isInfixOf` alt
-
-image2 :: PandocMonad m => VwParser m Inlines
-image2 = try $ do
-  string "{{"
-  imgurl <- manyTill (noneOf "\n") (char '|')
-  guard $ not $ "}}" `isInfixOf` imgurl
-  alt <- manyTill inline $ string "}}"
-  guard $ not $ "}}" `isInfixOf` alt
-  return $ B.image imgurl "" alt
-
-image3 :: PandocMonad m => VwParser m Inlines
-image3 = try $ do
-  string "{{"
-  contentText <- manyTill (noneOf "\n") (string "}}")
-  imgurl = head $ splitBy (== '|') contentText
-  return $ B.image imgurl "" (B.str "")
-  --}
-
-
-procImgTxt :: String -> (String, Inlines, Attr)
-procImgTxt s = 
-  let [a, b, c] = take 3 $ splitBy (== '|') $ s ++ "| | " in
-    (a, trimInlines $ B.str b, makeAttr c)
-
 
 inlineMath :: PandocMonad m => VwParser m Inlines
 inlineMath = try $ do

@@ -23,6 +23,8 @@ not a header:
 
 =n=
 
+=== not a header ====
+
  == centred header ==
 
 == emph and strong ==
@@ -119,17 +121,18 @@ mailto:hello@bye.com
   
 [[a subdirectory/|Other files]]
 
-[[wiki1:This is a link source|Description of the link]]
-  
-[[#My anchor]]
-
 [[#tag-one|try me to test tag anchors]]
 
 [[#block quotes|try me to test header anchors]]
 
+[[#strong|try me to test strong anchors]]
+
 [[Todo List#Tomorrow|Tasks for tomorrow]]
 
 [[file:../assets/data.csv|Important Data]]
+
+=== links with thumbnails ===
+[[http://www.google.com|{{./movie.jpg}}]]
 
 == images ==
 
@@ -139,13 +142,12 @@ mailto:hello@bye.com
   
   
 
-[[http://someaddr.com/bigpicture.jpg|{{./movie.jpg}}]]
 
 === image with attributes ===
 {{lalune.jpg|_cool stuff_|style="width:150px;height:120px;"}}
 
 {{nonexist.jpg|*Non-existing* image|class="center flow blabla" style="font-color:red"}}
-
+{{lalune.jpg|_cool stuff_|style="width:150px;height:120px;"|anything in this segment is ignored}}
 
 
 == lists ==
