@@ -40,7 +40,7 @@ Conversion of vimwiki text to 'Pandoc' document.
         * [ ] orderedlist with 1., i., a) etc identification.
         * [ ] todo lists -- see https://github.com/LarsEKrueger/pandoc-vimwiki
     * [X] table
-        * [ ] centered table -- there does not seem to be a table builder in Pandoc.Builder that accepts attributes
+        * [X] centered table -- used div
         * [O] colspan and rowspan -- pandoc limitation, see issue #1024
     * [X] paragraph
     * [ ] definition list
@@ -69,7 +69,7 @@ import Data.Maybe
 import Data.Monoid ((<>))
 import Data.List (isInfixOf)
 import Text.Pandoc.Builder (Blocks, Inlines, trimInlines, fromList, toList)
-import qualified Text.Pandoc.Builder as B (doc, toList, headerWith, str, space, strong, emph, strikeout, code, link, image, spanWith, math, para, horizontalRule, blockQuote, displayMath, bulletList, plain, orderedList, simpleTable, softbreak, codeBlockWith, imageWith)
+import qualified Text.Pandoc.Builder as B (doc, toList, headerWith, str, space, strong, emph, strikeout, code, link, image, spanWith, math, para, horizontalRule, blockQuote, displayMath, bulletList, plain, orderedList, simpleTable, softbreak, codeBlockWith, imageWith, divWith)
 import Text.Pandoc.Class (PandocMonad, report)
 import Text.Pandoc.Definition (Pandoc, Inline(Space), Block(BulletList, OrderedList), Attr)
 import Text.Pandoc.Logging (LogMessage(ParsingTrace))
@@ -321,10 +321,14 @@ listStart = manyTill spaceChar (oneOf "*-#" >> many1 spaceChar)
 --many need trimInlines
 table :: PandocMonad m => VwParser m Blocks
 table = try $ do
+  indent <- lookAhead (many spaceChar)
   th <- tableRow
   many tableHeaderSeparator 
   trs <- many tableRow
-  return $ B.simpleTable th trs
+  let tab = B.simpleTable th trs
+  if indent == ""
+    then return tab
+    else return $ B.divWith ("", ["center"], []) tab
 
 tableHeaderSeparator :: PandocMonad m => VwParser m ()
 tableHeaderSeparator = try $ do

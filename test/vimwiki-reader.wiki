@@ -225,6 +225,10 @@ $ \sum_i a_i^2 = 1 $
 | 1940 | -2                | 40                 |
 
 
+=== centered tables ===
+ | a | b |
+ | c | d |
+ 
 == paragraphs ==
 
 This is first paragraph
@@ -304,13 +308,11 @@ Term 2::
 | \/ | \/ | > | g |
 | h  | >  | > | > |
 
-== centered tables ==
- | a | b |
- | c | d |
- 
 == placeholders ==
 %title title
 %template template
+%date 2017-5-1
+%author G. H. Hardy and Littlewood, J. E.
 
 == todo lists ==
 * [ ] task 1
