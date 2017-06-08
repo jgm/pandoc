@@ -142,10 +142,9 @@ mailto:hello@bye.com
 [[http://someaddr.com/bigpicture.jpg|{{./movie.jpg}}]]
 
 === image with attributes ===
-{{lalune.jpg|cool stuff|style="width:150px;height:120px;"}}
+{{lalune.jpg|_cool stuff_|style="width:150px;height:120px;"}}
 
-{{http://.../lalune.jpg||class="center flow blabla"}}
-
+{{nonexist.jpg|*Non-existing* image|class="center flow blabla" style="font-color:red"}}
 
 
 

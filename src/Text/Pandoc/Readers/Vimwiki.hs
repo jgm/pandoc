@@ -119,7 +119,7 @@ type VwParser = ParserT [Char] ParserState
 -- constants
 
 specialChars :: [Char]
-specialChars = "=*-#[]_~{`$|:%"
+specialChars = "=*-#[]_~{}`$|:%"
 
 spaceChars :: [Char] 
 spaceChars = " \t\n"
@@ -420,7 +420,7 @@ link = try $ do -- haven't implemented link with thumbnails
   contents <- lookAhead $ manyTill anyChar (string "]]")
   case '|' `elem` contents of 
                   False -> do
-                    manyTill anyChar (string "]]")
+                    manyTill anyChar (string "]]") -- try
                     return $ B.link contents "link" (B.str contents)
                   True  -> do 
                     url <- manyTill anyChar $ char '|'
@@ -430,14 +430,59 @@ link = try $ do -- haven't implemented link with thumbnails
 image :: PandocMonad m => VwParser m Inlines
 image = try $ do -- yet to implement one with attributes
   string "{{"
-  contentText <- manyTill anyChar (string "}}")
-  let (imgurl, alt, attr) = procImgTxt contentText
-  return $ B.imageWith attr imgurl "" alt
+  contentText <- lookAhead $ manyTill (noneOf "\n") (try $ string "}}")
+  images $ length $ filter (== '|') contentText
+  --if bars == 0
+    --then imgurl <- manyTill (noneOf "\n") (try $ (string "}}" <|> string "|"))
+  --let (imgurl, alt, attr) = procImgTxt contentText
+  --return $ B.imageWith attr imgurl "" alt
 
+images :: PandocMonad m => Int -> VwParser m Inlines
+images k
+  | k == 0 = do 
+           imgurl <- manyTill anyChar (try $ string "}}")
+           return $ B.image imgurl "" (B.str "")
+  | k == 1 = do
+           imgurl <- manyTill anyChar (char '|')
+           alt <- mconcat <$> (manyTill inline $ (try $ string "}}"))
+           return $ B.image imgurl "" alt
+  | k == 2 = do
+           imgurl <- manyTill anyChar (char '|')
+           alt <- mconcat <$> (manyTill inline $ char '|')
+           attrText <- manyTill anyChar (try $ string "}}")
+           return $ B.imageWith (makeAttr attrText) imgurl "" alt
+  | otherwise = do
+           imgurl <- manyTill anyChar (char '|')
+           alt <- mconcat <$> (manyTill inline $ char '|')
+           attrText <- manyTill anyChar (char '|')
+           manyTill anyChar (try $ string "}}")
+           return $ B.imageWith (makeAttr attrText) imgurl "" alt
+
+{--
 image1 :: PandocMonad m => VwParser m Inlines
 image1 = try $ do
   string "{{"
-  manyTill anyChar (char '|')
+  imgurl <- manyTill (noneOf "\n") (char '|')
+  guard $ not $ "}}" `isInfixOf` imgurl
+  alt <- manyTill inline $ char '|'
+  guard $ not $ "}}" `isInfixOf` alt
+
+image2 :: PandocMonad m => VwParser m Inlines
+image2 = try $ do
+  string "{{"
+  imgurl <- manyTill (noneOf "\n") (char '|')
+  guard $ not $ "}}" `isInfixOf` imgurl
+  alt <- manyTill inline $ string "}}"
+  guard $ not $ "}}" `isInfixOf` alt
+  return $ B.image imgurl "" alt
+
+image3 :: PandocMonad m => VwParser m Inlines
+image3 = try $ do
+  string "{{"
+  contentText <- manyTill (noneOf "\n") (string "}}")
+  imgurl = head $ splitBy (== '|') contentText
+  return $ B.image imgurl "" (B.str "")
+  --}
 
 
 procImgTxt :: String -> (String, Inlines, Attr)
