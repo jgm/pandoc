@@ -48,6 +48,7 @@ middle
 -------
 
 not a rule-----
+
 bottom
 == strikeout ==
 
@@ -79,12 +80,18 @@ Here is some `inline code`.
      What the hand dare sieze the fire?
 }}}
 
+=== preformatted text with attributes ===
 
+ {{{class="python" style="color:blue"
+ for i in range(1, 5):
+     print(i)
+ }}}
+ 
 == block quotes ==
 
-    This would be a blockquote in Vimwiki. It is not *highlighted* in Vim but
-    could be styled by CSS in HTML. Blockquotes are usually used to quote a
-    long piece of text from another source. ~~blah blah~~ :blockquote:
+    (indentation 4 spaces) This would be a blockquote in Vimwiki. It is not *highlighted* in Vim but
+    (indentation 1 space followed by 1 tab of width 4) could be styled by CSS in HTML. Blockquotes are usually used to quote a
+    (indentation 1 tab of width 4) long piece of text from another source. ~~blah blah~~ :blockquote:
 
 == external links ==
 
@@ -134,15 +141,29 @@ mailto:hello@bye.com
 
 [[http://someaddr.com/bigpicture.jpg|{{./movie.jpg}}]]
 
+=== image with attributes ===
+{{lalune.jpg|cool stuff|style="width:150px;height:120px;"}}
+
+{{http://.../lalune.jpg||class="center flow blabla"}}
+
+
+
+
 == lists ==
 
 
-
-- Bulleted list item 1, and here is some math belonging to list item 1
+# ordered list item 1, and here is some math belonging to list item 1
  {{$
  a^2 + b^2 = c^2
  }}$
-- Bulleted list item 2
+  and some preformatted and tables belonging to item 1 as well
+{{{
+I'm part of item 1.
+}}}
+| a | b |
+| c | d |
+ and some more text belonging to item 1.
+# ordered list item 2
 
 
 * Bulleted list item 1
@@ -157,11 +178,11 @@ mailto:hello@bye.com
 
 * Item 1
 * Item 2
-    # Sub item 1
+    # Sub item 1 (indentation 4 spaces)
   Sub item 1 continued line.
 %%comments
     Sub item 1 next continued line.
-    * Sub item 2, as an ordered list item even though the identifier is `*`
+    * Sub item 2, as an ordered list item even though the identifier is `*` (indentation 2 spaces followed by one tab of width 4)
     * etc.
  Continuation of Item 2
  Next continuation of Item 2
@@ -228,18 +249,6 @@ TODO:
 super^script^
 
 sub,,script,,
-
-== preformat with attributes ==
-
- {{{class="python"
- for i in range(1, 5):
-     print(i)
- }}}
- 
-== image with attributes ==
-{{http://.../vimwiki_logo.png|cool stuff|style="width:150px;height:120px;"}}
-
-{{http://.../vimwiki_logo.png||class="center flow blabla"}}
 
 == ordered lists with non-# identifiers ==
 1. Numbered list item 1

@@ -36,7 +36,7 @@ Conversion of vimwiki text to 'Pandoc' document.
     * [X] blockquote -- currently only accepting four spaces rather than a mix of spaces and tabs
     * [X] preformatted -- need to implement preformatted with attributes
     * [X] displaymath 
-    * [X] bulletlist / orderedlist -- currently not calculating mixed tabs and spaces indentations.
+    * [X] bulletlist / orderedlist 
         * [ ] orderedlist with 1., i., a) etc identification.
         * [ ] todo lists -- see https://github.com/LarsEKrueger/pandoc-vimwiki
     * [X] table
@@ -69,13 +69,13 @@ import Data.Default
 import Data.Maybe
 import Data.List (isInfixOf)
 import Text.Pandoc.Builder (Blocks, Inlines, trimInlines, fromList, toList)
-import qualified Text.Pandoc.Builder as B (doc, toList, headerWith, str, space, strong, emph, strikeout, code, link, image, spanWith, math, para, horizontalRule, blockQuote, codeBlock, displayMath, bulletList, plain, orderedList, simpleTable, softbreak)
+import qualified Text.Pandoc.Builder as B (doc, toList, headerWith, str, space, strong, emph, strikeout, code, link, image, spanWith, math, para, horizontalRule, blockQuote, displayMath, bulletList, plain, orderedList, simpleTable, softbreak, codeBlockWith, imageWith)
 import Text.Pandoc.Class (PandocMonad, report)
-import Text.Pandoc.Definition (Pandoc, Inline(Space), Block(BulletList, OrderedList))
+import Text.Pandoc.Definition (Pandoc, Inline(Space), Block(BulletList, OrderedList), Attr)
 import Text.Pandoc.Logging (LogMessage(ParsingTrace))
 import Text.Pandoc.Options (ReaderOptions)
 import Text.Pandoc.Parsing (readWithM, ParserT, stateOptions, ParserState, blanklines, registerHeader, spaceChar, emailAddress, uri)
-import Text.Pandoc.Shared (splitBy)
+import Text.Pandoc.Shared (splitBy, stripFirstAndLast)
 import Text.Parsec.Char (spaces, char, anyChar, newline, string, noneOf)
 import Text.Parsec.Combinator (eof, choice, many1, manyTill, count, skipMany1, notFollowedBy)
 import Text.Parsec.Prim (many, getPosition, try)
@@ -193,11 +193,29 @@ blockQuote = try $ do
 
 preformatted :: PandocMonad m => VwParser m Blocks
 preformatted = try $ do
-  many spaceChar >> string "{{{" >> many (noneOf "\n") >> lookAhead newline
+  many spaceChar >> string "{{{" 
+  attrText <- many (noneOf "\n") 
+  lookAhead newline
   contents <- manyTill anyChar (try (char '\n' >> many spaceChar >> string "}}}" >> many spaceChar >> newline))
   if (not $ contents == "") && (head contents == '\n')
-     then return $ B.codeBlock (tail contents)
-     else return $ B.codeBlock contents
+     then return $ B.codeBlockWith (makeAttr attrText) (tail contents)
+     else return $ B.codeBlockWith (makeAttr attrText) contents
+
+makeAttr :: String -> Attr
+makeAttr s = 
+  let xs = splitBy (`elem` " \t") s in
+    ("", [], catMaybes $ map nameValue xs)
+
+nameValue :: String -> Maybe (String, String)
+nameValue s = 
+  let t = splitBy (== '=') s in
+    if length t /= 2 
+      then Nothing
+      else let (a, b) = (head t, last t) in
+             if ((length b) < 2) || ((head b, last b) /= ('"', '"'))
+               then Nothing
+               else Just (a, stripFirstAndLast b)
+
 
 displayMath :: PandocMonad m => VwParser m Blocks
 displayMath = try $ do
@@ -252,33 +270,6 @@ plainInlineML' = do
 plainInlineML :: PandocMonad m => VwParser m Blocks
 plainInlineML = (notFollowedBy listStart) >> plainInlineML'
 
-{--
-listItemContent :: PandocMonad m => VwParser m Blocks
-listItemContent = choice [p3, p4, p5, p6]
-p1 :: PandocMonad m => VwParser m Blocks
-p1 = try $ do -- ibbbbb
-  x <- plainInlineML
-  newline
-  y <- many1 blockML
-  return $ mconcat $ x:y
-p2 :: PandocMonad m => VwParser m Blocks
-p2 = try $ do -- bbbbbi
-  newline
-  y <- many1 blockML
-  x <- plainInlineML
-  return $ mconcat $ y ++ [x]
-p3 :: PandocMonad m => VwParser m Blocks
-p3 = try $ do -- ibbbbibbbibbbbbbi or just i
-  y <- many p1
-  x <- plainInlineML
-  return $ mconcat $ y ++ [x]
-p4 :: PandocMonad m => VwParser m Blocks
-p4 = try $ mconcat <$> many1 p1 -- ibbbibbbbb
-p5 :: PandocMonad m => VwParser m Blocks
-p5 = try $ mconcat <$> many1 p2 -- bbbibbbbi
-p6 :: PandocMonad m => VwParser m Blocks -- bbbbbbbbb
-p6 = try $ newline >> (mconcat <$> many1 blockML)
---}
 
 listItemContent :: PandocMonad m => VwParser m Blocks
 listItemContent = try $ do
@@ -288,7 +279,6 @@ listItemContent = try $ do
   return $ mconcat $ x:y++[z]
 p2 :: PandocMonad m => VwParser m Blocks
 p2 = try $ do -- bbbbbi
-  --newline
   y <- many1 blockML
   x <- plainInlineML
   return $ mconcat $ y ++ [x]
@@ -440,8 +430,21 @@ link = try $ do -- haven't implemented link with thumbnails
 image :: PandocMonad m => VwParser m Inlines
 image = try $ do -- yet to implement one with attributes
   string "{{"
-  contents <- manyTill anyChar $ string $ "}}"
-  return $ B.image contents "" (B.str "")
+  contentText <- manyTill anyChar (string "}}")
+  let (imgurl, alt, attr) = procImgTxt contentText
+  return $ B.imageWith attr imgurl "" alt
+
+image1 :: PandocMonad m => VwParser m Inlines
+image1 = try $ do
+  string "{{"
+  manyTill anyChar (char '|')
+
+
+procImgTxt :: String -> (String, Inlines, Attr)
+procImgTxt s = 
+  let [a, b, c] = take 3 $ splitBy (== '|') $ s ++ "| | " in
+    (a, trimInlines $ B.str b, makeAttr c)
+
 
 inlineMath :: PandocMonad m => VwParser m Inlines
 inlineMath = try $ do

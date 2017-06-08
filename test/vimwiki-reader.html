@@ -24,7 +24,8 @@
 <hr />
 <p>middle</p>
 <hr />
-<p>not a rule----- bottom</p>
+<p>not a rule-----</p>
+<p>bottom</p>
 <h2 id="strikeout">strikeout</h2>
 <p><del>This is <em>struck out</em></del> with emph</p>
 <h2 id="comments">comments</h2>
@@ -40,9 +41,12 @@
    Burnt the fire of thine eyes?
     On what wings dare he aspire?
      What the hand dare sieze the fire?</code></pre>
+<h3 id="preformatted-text-with-attributes">preformatted text with attributes</h3>
+<pre class="python" style="color:blue"><code> for i in range(1, 5):
+     print(i)</code></pre>
 <h2 id="block-quotes">block quotes</h2>
 <blockquote>
-This would be a blockquote in Vimwiki. It is not <strong>highlighted</strong> in Vim but could be styled by CSS in HTML. Blockquotes are usually used to quote a long piece of text from another source. <del>blah blah</del> <span id="-blockquote"></span><span id="blockquote" class="tag">blockquote</span>
+(indentation 4 spaces) This would be a blockquote in Vimwiki. It is not <strong>highlighted</strong> in Vim but (indentation 1 space followed by 1 tab of width 4) could be styled by CSS in HTML. Blockquotes are usually used to quote a (indentation 1 tab of width 4) long piece of text from another source. <del>blah blah</del> <span id="-blockquote"></span><span id="blockquote" class="tag">blockquote</span>
 </blockquote>
 <h2 id="external-links">external links</h2>
 <p><a href="http://google.com" title="link"><em>Google</em> search engine</a></p>
@@ -61,14 +65,37 @@ This would be a blockquote in Vimwiki. It is not <strong>highlighted</strong> in
 <p><a href="Todo List#Tomorrow" title="link">Tasks for tomorrow</a></p>
 <p><a href="file:../assets/data.csv" title="link">Important Data</a></p>
 <h2 id="images">images</h2>
-<p><img src="file:./lalune.jpg" alt="" /></p>
-<p><embed src="http://vimwiki.googlecode.com/hg/images/vimwiki_logo.png|Vimwiki" /></p>
-<p><a href="http://someaddr.com/bigpicture.jpg" title="link"><img src="./movie.jpg" alt="" /></a></p>
+<p><img src="file:./lalune.jpg" alt=" " /></p>
+<p><img src="http://vimwiki.googlecode.com/hg/images/vimwiki_logo.png" alt="Vimwiki" /></p>
+<p><a href="http://someaddr.com/bigpicture.jpg" title="link"><img src="./movie.jpg" alt=" " /></a></p>
+<h3 id="image-with-attributes">image with attributes</h3>
+<p><img src="lalune.jpg" alt="cool stuff" style="width:150px;height:120px;" /></p>
+<p><img src="http://.../lalune.jpg" alt="class=&quot;center flow blabla&quot;" /></p>
 <h2 id="lists">lists</h2>
-<ul>
-<li>Bulleted list item 1</li>
-<li>Bulleted list item 2</li>
-</ul>
+<ol>
+<li>ordered list item 1, and here is some math belonging to list item 1
+\[
+ a^2 + b^2 = c^2
+\]
+and some preformatted and tables belonging to item 1 as well
+<pre><code>I&#39;m part of item 1.</code></pre>
+<table>
+<thead>
+<tr class="header">
+<th> a </th>
+<th> b </th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td> c </td>
+<td> d </td>
+</tr>
+</tbody>
+</table>
+and some more text belonging to item 1.</li>
+<li>ordered list item 2</li>
+</ol>
 <ul>
 <li>Bulleted list item 1</li>
 <li>Bulleted list item 2</li>
@@ -85,8 +112,8 @@ This would be a blockquote in Vimwiki. It is not <strong>highlighted</strong> in
 <li>Item 1</li>
 <li>Item 2
 <ol>
-<li>Sub item 1 Sub item 1 continued line. Sub item 1 next continued line.</li>
-<li>Sub item 2, as an ordered list item even though the identifier is <code>*</code></li>
+<li>Sub item 1 (indentation 4 spaces) Sub item 1 continued line. Sub item 1 next continued line.</li>
+<li>Sub item 2, as an ordered list item even though the identifier is <code>*</code> (indentation 2 spaces followed by one tab of width 4)</li>
 <li>etc. Continuation of Item 2 Next continuation of Item 2</li>
 </ol></li>
 </ul>
@@ -105,14 +132,16 @@ This would be a blockquote in Vimwiki. It is not <strong>highlighted</strong> in
 <li>3</li>
 </ul>
 <h2 id="math">math</h2>
-<p><span class="math inline">∑<sub><em>i</em></sub><em>a</em><sub><em>i</em></sub><sup>2</sup> = 1</span></p>
-<p><br /><span class="math display">$$\[
+<p> \sum_i a_i^2 = 1 </p>
+\[
 \sum_i a_i^2
 =
-1\]$$</span><br /></p>
-<p><br /><span class="math display">$$\begin{align}
+1
+\]
+\begin{align}
 \sum_i a_i^2 &amp;= 1 + 1 \\
-&amp;= 2.\end{align}$$</span><br /></p>
+&amp;= 2.
+\end{align}
 <h2 id="tags">tags</h2>
 <p><span id="-tag-one"></span><span id="tag-one" class="tag">tag-one</span><span id="-tag-two"></span><span id="tag-two" class="tag">tag-two</span></p>
 <h2 id="tables">tables</h2>
@@ -161,12 +190,6 @@ This would be a blockquote in Vimwiki. It is not <strong>highlighted</strong> in
 <h2 id="sup-sub">sup, sub</h2>
 <p>super^script^</p>
 <p>sub,,script,,</p>
-<h2 id="preformat-with-attributes">preformat with attributes</h2>
-<pre><code> for i in range(1, 5):
-     print(i)</code></pre>
-<h2 id="image-with-attributes">image with attributes</h2>
-<p><embed src="http://.../vimwiki_logo.png|cool stuff|style=&quot;width:150px;height:120px;&quot;" /></p>
-<p><embed src="http://.../vimwiki_logo.png||class=&quot;center flow blabla&quot;" /></p>
 <h2 id="ordered-lists-with-non--identifiers">ordered lists with non-# identifiers</h2>
 <p>1. Numbered list item 1 2. Numbered list item 2 3. Numbered list item 3</p>
 <p>4. Numbered list item 1 5. Numbered list item 2 6. Numbered list item 3</p>
