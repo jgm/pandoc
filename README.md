@@ -16,28 +16,85 @@ The universal markup converter
 
 Pandoc is a [Haskell] library for converting from one markup format to
 another, and a command-line tool that uses this library. It can read
-[Markdown], [CommonMark], [PHP Markdown Extra], [GitHub-Flavored Markdown],
-[MultiMarkdown], and (subsets of) [Textile], [reStructuredText], [HTML],
-[LaTeX], [MediaWiki markup], [TWiki markup], [Haddock markup], [OPML], [Emacs
-Org mode], [DocBook], [txt2tags], [EPUB], [ODT] and [Word docx]; and it can
-write plain text, [Markdown], [CommonMark], [PHP Markdown Extra],
-[GitHub-Flavored Markdown], [MultiMarkdown], [reStructuredText], [XHTML],
-[HTML5], [LaTeX] \(including [`beamer`] slide shows\), [ConTeXt], [RTF], [OPML],
-[DocBook], [OpenDocument], [ODT], [Word docx], [GNU Texinfo], [MediaWiki
-markup], [DokuWiki markup], [ZimWiki markup], [Haddock markup],
-[EPUB] \(v2 or v3\), [FictionBook2], [Textile], [groff man] pages,
-[Emacs Org mode], [AsciiDoc], [InDesign ICML], [TEI Simple], [Muse], and [Slidy],
-[Slideous], [DZSlides], [reveal.js] or [S5] HTML slide shows. It can also
-produce [PDF] output on systems where LaTeX, ConTeXt, or `wkhtmltopdf` is
-installed.
 
-Pandoc's enhanced version of Markdown includes syntax for [footnotes],
-[tables], flexible [ordered lists], [definition lists], [fenced code blocks],
-[superscripts and subscripts], [strikeout], [metadata blocks], automatic tables of
-contents, embedded LaTeX [math], [citations], and [Markdown inside HTML block
-elements]. (These enhancements, described
-further under [Pandoc's Markdown], can be disabled using the
-`markdown_strict` input or output format.)
+-   [Markdown]
+-   [CommonMark]
+-   [PHP Markdown Extra]
+-   [GitHub-Flavored Markdown]
+-   [MultiMarkdown]
+-   (subsets of) [Textile]
+-   [reStructuredText]
+-   [HTML]
+-   [LaTeX]
+-   [MediaWiki markup]
+-   [TWiki markup]
+-   [Haddock markup]
+-   [OPML]
+-   [Emacs Org mode]
+-   [DocBook]
+-   [txt2tags]
+-   [EPUB]
+-   [ODT]
+-   [Word docx]
+
+It can write
+
+-   plain text
+-   [Markdown]
+-   [CommonMark]
+-   [PHP Markdown Extra]
+-   [GitHub-Flavored Markdown]
+-   [MultiMarkdown]
+-   [reStructuredText]
+-   [XHTML]
+-   [HTML5]
+-   [LaTeX] \(including [`beamer`] slide shows\)
+-   [ConTeXt]
+-   [RTF]
+-   [OPML]
+-   [DocBook]
+-   [OpenDocument]
+-   [ODT]
+-   [Word docx]
+-   [GNU Texinfo]
+-   [MediaWiki markup]
+-   [DokuWiki markup]
+-   [ZimWiki markup]
+-   [Haddock markup]
+-   [EPUB] \(v2 or v3\)
+-   [FictionBook2]
+-   [Textile]
+-   [groff man] pages
+-   [Emacs Org mode]
+-   [AsciiDoc]
+-   [InDesign ICML]
+-   [TEI Simple]
+-   [Muse]
+-   [Slidy]
+-   [Slideous]
+-   [DZSlides]
+-   [reveal.js]
+-   [S5] HTML slide shows.
+
+It can also produce \[PDF\] output on systems where LaTeX, ConTeXt, or
+`wkhtmltopdf` is installed.
+
+Pandoc's enhanced version of Markdown includes syntax for
+
+-   [footnotes]
+-   [tables]
+-   flexible [ordered lists]
+-   [definition lists]
+-   [superscripts and subscripts]
+-   [strikeout]
+-   [metadata blocks]
+-   automatic tables of contents
+-   embedded LaTeX [math]
+-   [citations]
+-   [Markdown inside HTML block elements].
+
+(These enhancements described further under \[Pandoc's Markdown\] can be
+disabled using the `markdown_strict` input or output format.)
 
 In contrast to most existing tools for converting Markdown to HTML, which
 use regex substitutions, pandoc has a modular design: it consists of a
