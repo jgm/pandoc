@@ -69,16 +69,16 @@ import Data.Maybe
 import Data.Monoid ((<>))
 import Data.List (isInfixOf)
 import Text.Pandoc.Builder (Blocks, Inlines, trimInlines, fromList, toList)
-import qualified Text.Pandoc.Builder as B (doc, toList, headerWith, str, space, strong, emph, strikeout, code, link, image, spanWith, math, para, horizontalRule, blockQuote, displayMath, bulletList, plain, orderedList, simpleTable, softbreak, codeBlockWith, imageWith, divWith)
+import qualified Text.Pandoc.Builder as B (doc, toList, headerWith, str, space, strong, emph, strikeout, code, link, image, spanWith, math, para, horizontalRule, blockQuote, displayMath, bulletList, plain, orderedList, simpleTable, softbreak, codeBlockWith, imageWith, divWith, setMeta)
 import Text.Pandoc.Class (PandocMonad, report)
-import Text.Pandoc.Definition (Pandoc, Inline(Space), Block(BulletList, OrderedList), Attr)
+import Text.Pandoc.Definition (Pandoc, Inline(Space), Block(BulletList, OrderedList), Attr, nullMeta, Meta)
 import Text.Pandoc.Logging (LogMessage(ParsingTrace))
 import Text.Pandoc.Options (ReaderOptions)
-import Text.Pandoc.Parsing (readWithM, ParserT, stateOptions, ParserState, blanklines, registerHeader, spaceChar, emailAddress, uri)
+import Text.Pandoc.Parsing (readWithM, ParserT, stateOptions, ParserState, stateMeta', blanklines, registerHeader, spaceChar, emailAddress, uri, F)
 import Text.Pandoc.Shared (splitBy, stripFirstAndLast, stringify)
 import Text.Parsec.Char (spaces, char, anyChar, newline, string, noneOf)
 import Text.Parsec.Combinator (eof, choice, many1, manyTill, count, skipMany1, notFollowedBy)
-import Text.Parsec.Prim (many, getPosition, try)
+import Text.Parsec.Prim (many, getPosition, try, updateState)
 import Text.Parsec.Char (oneOf, space)
 import Text.Parsec.Combinator (lookAhead, between)
 import Text.Parsec.Prim ((<|>))
@@ -147,6 +147,7 @@ block = do
                 , preformatted
                 , displayMath 
                 , table
+                , mempty <$ titlePH
                 , para
                 ]
   report $ ParsingTrace (take 60 $ show $ B.toList res) pos -- remove B.
@@ -348,6 +349,13 @@ tableCell :: PandocMonad m => VwParser m Blocks
 tableCell = try $ do
   B.plain <$> mconcat <$> (manyTill inline (char '|'))
 
+titlePH :: PandocMonad m => VwParser m ()
+titlePH = try $ do
+  string "%title" >> spaceChar
+  title <- (trimInlines . mconcat <$> (manyTill inline newline))
+  let meta' = return $ B.setMeta "title" title nullMeta :: F Meta
+  updateState $ \st -> st { stateMeta' = stateMeta' st <> meta' }
+
 -- inline parser
 
 inline :: PandocMonad m => VwParser m Inlines
@@ -422,7 +430,7 @@ code = try $ do
   return $ B.code contents
 
 link :: PandocMonad m => VwParser m Inlines
-link = try $ do -- haven't implemented link with thumbnails
+link = try $ do 
   string "[["
   contents <- lookAhead $ manyTill anyChar (string "]]")
   case '|' `elem` contents of 
@@ -435,7 +443,7 @@ link = try $ do -- haven't implemented link with thumbnails
                     return $ B.link url "link" lab
 
 image :: PandocMonad m => VwParser m Inlines
-image = try $ do -- yet to implement one with attributes
+image = try $ do 
   string "{{"
   contentText <- lookAhead $ manyTill (noneOf "\n") (try $ string "}}")
   images $ length $ filter (== '|') contentText
