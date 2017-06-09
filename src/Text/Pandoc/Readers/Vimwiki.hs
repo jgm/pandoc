@@ -131,6 +131,9 @@ parseVimwiki = do
   bs <- mconcat <$> many block
   spaces
   eof
+  --st <- getState
+  --meta <- stateMeta' st
+  --return $ Pandoc meta bs
   return $ B.doc bs
 
 -- block parser
