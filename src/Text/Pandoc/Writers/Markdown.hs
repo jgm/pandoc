@@ -45,6 +45,7 @@ import Data.Maybe (fromMaybe)
 import Data.Monoid (Any (..))
 import Data.Ord (comparing)
 import qualified Data.Set as Set
+import Data.Text (Text)
 import qualified Data.Text as T
 import qualified Data.Vector as V
 import Data.Yaml (Value (Array, Bool, Number, Object, String))
@@ -106,7 +107,7 @@ instance Default WriterState
                          }
 
 -- | Convert Pandoc to Markdown.
-writeMarkdown :: PandocMonad m => WriterOptions -> Pandoc -> m String
+writeMarkdown :: PandocMonad m => WriterOptions -> Pandoc -> m Text
 writeMarkdown opts document =
   evalMD (pandocToMarkdown opts{
              writerWrapText = if isEnabled Ext_hard_line_breaks opts
@@ -116,7 +117,7 @@ writeMarkdown opts document =
 
 -- | Convert Pandoc to plain text (like markdown, but without links,
 -- pictures, or inline formatting).
-writePlain :: PandocMonad m => WriterOptions -> Pandoc -> m String
+writePlain :: PandocMonad m => WriterOptions -> Pandoc -> m Text
 writePlain opts document =
   evalMD (pandocToMarkdown opts document) def{ envPlain = True } def
 
@@ -180,15 +181,17 @@ jsonToYaml (Number n) = text $ show n
 jsonToYaml _ = empty
 
 -- | Return markdown representation of document.
-pandocToMarkdown :: PandocMonad m => WriterOptions -> Pandoc -> MD m String
+pandocToMarkdown :: PandocMonad m => WriterOptions -> Pandoc -> MD m Text
 pandocToMarkdown opts (Pandoc meta blocks) = do
   let colwidth = if writerWrapText opts == WrapAuto
                     then Just $ writerColumns opts
                     else Nothing
   isPlain <- asks envPlain
+  let render' :: Doc -> Text
+      render' = render colwidth . chomp
   metadata <- metaToJSON'
-               (fmap (render colwidth) . blockListToMarkdown opts)
-               (fmap (render colwidth) . blockToMarkdown opts . Plain)
+               (fmap render' . blockListToMarkdown opts)
+               (fmap render' . blockToMarkdown opts . Plain)
                meta
   let title' = maybe empty text $ getField "title" metadata
   let authors' = maybe [] (map text) $ getField "author" metadata
@@ -216,8 +219,6 @@ pandocToMarkdown opts (Pandoc meta blocks) = do
                    else blocks
   body <- blockListToMarkdown opts blocks'
   notesAndRefs' <- notesAndRefs opts
-  let render' :: Doc -> String
-      render' = render colwidth . chomp
   let main = render' $ body <> notesAndRefs'
   let context  = defField "toc" (render' toc)
                $ defField "body" main
@@ -571,7 +572,7 @@ blockToMarkdown' opts t@(Table caption aligns widths headers rows) =  do
                 gridTable opts blockListToMarkdown
                   (all null headers) aligns' widths' headers rows
             | isEnabled Ext_raw_html opts -> fmap (id,) $
-                   text <$>
+                   (text . T.unpack) <$>
                    (writeHtml5String def $ Pandoc nullMeta [t])
             | otherwise -> return $ (id, text "[TABLE]")
   return $ nst $ tbl $$ caption'' $$ blankline
@@ -1110,7 +1111,8 @@ inlineToMarkdown opts lnk@(Link attr txt (src, tit))
   | isEnabled Ext_raw_html opts &&
     not (isEnabled Ext_link_attributes opts) &&
     attr /= nullAttr = -- use raw HTML
-    (text . trim) <$> writeHtml5String def (Pandoc nullMeta [Plain [lnk]])
+    (text . T.unpack . T.strip) <$>
+      writeHtml5String def (Pandoc nullMeta [Plain [lnk]])
   | otherwise = do
   plain <- asks envPlain
   linktext <- inlineListToMarkdown opts txt
@@ -1149,7 +1151,8 @@ inlineToMarkdown opts img@(Image attr alternate (source, tit))
   | isEnabled Ext_raw_html opts &&
     not (isEnabled Ext_link_attributes opts) &&
     attr /= nullAttr = -- use raw HTML
-    (text . trim) <$> writeHtml5String def (Pandoc nullMeta [Plain [img]])
+    (text . T.unpack . T.strip) <$>
+      writeHtml5String def (Pandoc nullMeta [Plain [img]])
   | otherwise = do
   plain <- asks envPlain
   let txt = if null alternate || alternate == [Str source]

@@ -33,11 +33,11 @@ app req respond = do
                     _ -> error $ "could not find reader for "
                                   ++ T.unpack fromFormat
   let writer = case getWriter (T.unpack toFormat) of
-                    Right (StringWriter w) -> w writerOpts
+                    Right (TextWriter w) -> w writerOpts
                     _ -> error $ "could not find writer for " ++
                            T.unpack toFormat
   let result = case runPure $ reader (tabFilter 4 text) >>= writer of
-                    Right s   -> T.pack s
+                    Right s   -> s
                     Left  err -> error (show err)
   let output = encode $ object [ T.pack "html" .= result
                                , T.pack "name" .=

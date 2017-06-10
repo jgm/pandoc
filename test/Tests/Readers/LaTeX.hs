@@ -6,7 +6,7 @@ import Tests.Helpers
 import Text.Pandoc
 import Text.Pandoc.Arbitrary ()
 import Text.Pandoc.Builder
-import Data.Text (Text, pack)
+import Data.Text (Text)
 import qualified Data.Text as T
 
 latex :: Text -> Pandoc

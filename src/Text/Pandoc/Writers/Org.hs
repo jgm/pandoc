@@ -37,6 +37,7 @@ Org-Mode:  <http://orgmode.org>
 module Text.Pandoc.Writers.Org (writeOrg) where
 import Control.Monad.State
 import Data.Char (isAlphaNum, toLower)
+import Data.Text (Text)
 import Data.List (intersect, intersperse, isPrefixOf, partition, transpose)
 import Text.Pandoc.Class (PandocMonad, report)
 import Text.Pandoc.Definition
@@ -56,7 +57,7 @@ data WriterState =
 type Org = StateT WriterState
 
 -- | Convert Pandoc to Org.
-writeOrg :: PandocMonad m => WriterOptions -> Pandoc -> m String
+writeOrg :: PandocMonad m => WriterOptions -> Pandoc -> m Text
 writeOrg opts document = do
   let st = WriterState { stNotes = [],
                          stHasMath = False,
@@ -64,15 +65,17 @@ writeOrg opts document = do
   evalStateT (pandocToOrg document) st
 
 -- | Return Org representation of document.
-pandocToOrg :: PandocMonad m => Pandoc -> Org m String
+pandocToOrg :: PandocMonad m => Pandoc -> Org m Text
 pandocToOrg (Pandoc meta blocks) = do
   opts <- gets stOptions
   let colwidth = if writerWrapText opts == WrapAuto
                     then Just $ writerColumns opts
                     else Nothing
+  let render' :: Doc -> Text
+      render' = render colwidth
   metadata <- metaToJSON opts
-               (fmap (render colwidth) . blockListToOrg)
-               (fmap (render colwidth) . inlineListToOrg)
+               (fmap render' . blockListToOrg)
+               (fmap render' . inlineListToOrg)
                meta
   body <- blockListToOrg blocks
   notes <- gets (reverse . stNotes) >>= notesToOrg

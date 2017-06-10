@@ -284,8 +284,8 @@ escapeURI = escapeURIString (not . needsEscaping)
 tabFilter :: Int       -- ^ Tab stop
           -> T.Text    -- ^ Input
           -> T.Text
-tabFilter tabStop =
-  T.unlines . (if tabStop == 0 then id else map go) . T.lines
+tabFilter tabStop = T.filter (/= '\r') . T.unlines .
+    (if tabStop == 0 then id else map go) . T.lines
   where go s =
          let (s1, s2) = T.break (== '\t') s
          in  if T.null s2

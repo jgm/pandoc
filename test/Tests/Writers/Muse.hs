@@ -1,5 +1,6 @@
 module Tests.Writers.Muse (tests) where
 
+import Data.Text (unpack)
 import Test.Tasty
 import Tests.Helpers
 import Text.Pandoc
@@ -10,7 +11,7 @@ muse :: (ToPandoc a) => a -> String
 muse = museWithOpts def{ writerWrapText = WrapNone }
 
 museWithOpts :: (ToPandoc a) => WriterOptions -> a -> String
-museWithOpts opts = purely (writeMuse opts) . toPandoc
+museWithOpts opts = unpack . purely (writeMuse opts) . toPandoc
 
 infix 4 =:
 (=:) :: (ToString a, ToPandoc a)

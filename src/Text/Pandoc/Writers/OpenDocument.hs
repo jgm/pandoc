@@ -36,6 +36,7 @@ import Control.Arrow ((***), (>>>))
 import Control.Monad.State hiding (when)
 import Data.Char (chr)
 import Data.List (sortBy)
+import Data.Text (Text)
 import qualified Data.Map as Map
 import Data.Ord (comparing)
 import qualified Data.Set as Set
@@ -195,17 +196,18 @@ handleSpaces s
         rm        [] = empty
 
 -- | Convert Pandoc document to string in OpenDocument format.
-writeOpenDocument :: PandocMonad m => WriterOptions -> Pandoc -> m String
+writeOpenDocument :: PandocMonad m => WriterOptions -> Pandoc -> m Text
 writeOpenDocument opts (Pandoc meta blocks) = do
   let colwidth = if writerWrapText opts == WrapAuto
                     then Just $ writerColumns opts
                     else Nothing
-  let render' = render colwidth
+  let render' :: Doc -> Text
+      render' = render colwidth
   ((body, metadata),s) <- flip runStateT
         defaultWriterState $ do
            m <- metaToJSON opts
-                  (fmap (render colwidth) . blocksToOpenDocument opts)
-                  (fmap (render colwidth) . inlinesToOpenDocument opts)
+                  (fmap render' . blocksToOpenDocument opts)
+                  (fmap render' . inlinesToOpenDocument opts)
                   meta
            b <- render' `fmap` blocksToOpenDocument opts blocks
            return (b, m)

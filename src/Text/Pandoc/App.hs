@@ -43,6 +43,7 @@ import qualified Control.Exception as E
 import Control.Monad
 import Control.Monad.Except (throwError)
 import Control.Monad.Trans
+import Data.Monoid
 import Data.Aeson (FromJSON (..), ToJSON (..), defaultOptions, eitherDecode',
                    encode, genericToEncoding)
 import qualified Data.ByteString as BS
@@ -183,7 +184,7 @@ convertWithOpts opts = do
   -- disabling the custom writer for now
   writer <- if ".lua" `isSuffixOf` format
                -- note:  use non-lowercased version writerName
-               then return (StringWriter
+               then return (TextWriter
                        (\o d -> liftIO $ writeCustom writerName o d)
                                :: Writer PandocIO)
                else case getWriter writerName of
@@ -442,7 +443,7 @@ convertWithOpts opts = do
 
     case writer of
       ByteStringWriter f -> f writerOptions doc >>= writeFnBinary outputFile
-      StringWriter f
+      TextWriter f
         | pdfOutput -> do
                 -- make sure writer is latex, beamer, context, html5 or ms
                 unless (laTeXOutput || conTeXtOutput || html5Output ||
@@ -469,18 +470,23 @@ convertWithOpts opts = do
         | otherwise -> do
                 let htmlFormat = format `elem`
                       ["html","html4","html5","s5","slidy","slideous","dzslides","revealjs"]
-                    selfcontain = if optSelfContained opts && htmlFormat
-                                  then makeSelfContained writerOptions
-                                  else return
                     handleEntities = if (htmlFormat ||
                                          format == "docbook4" ||
                                          format == "docbook5" ||
                                          format == "docbook") && optAscii opts
                                      then toEntities
                                      else id
-                output <- f writerOptions doc
-                selfcontain (output ++ ['\n' | not standalone]) >>=
-                    writerFn eol outputFile . handleEntities
+                    addNl = if standalone
+                               then id
+                               else (<> T.singleton '\n')
+                output <- (addNl . handleEntities) <$> f writerOptions doc
+                writerFn eol outputFile =<<
+                  if optSelfContained opts && htmlFormat
+                     -- TODO not maximally efficient; change type
+                     -- of makeSelfContained so it works w/ Text
+                     then T.pack <$> makeSelfContained writerOptions
+                          (T.unpack output)
+                     else return output
 
 type Transform = Pandoc -> Pandoc
 
@@ -810,9 +816,10 @@ writeFnBinary :: MonadIO m => FilePath -> B.ByteString -> m ()
 writeFnBinary "-" = liftIO . B.putStr
 writeFnBinary f   = liftIO . B.writeFile (UTF8.encodePath f)
 
-writerFn :: MonadIO m => IO.Newline -> FilePath -> String -> m ()
-writerFn eol "-" = liftIO . UTF8.putStrWith eol
-writerFn eol f   = liftIO . UTF8.writeFileWith eol f
+writerFn :: MonadIO m => IO.Newline -> FilePath -> Text -> m ()
+-- TODO this implementation isn't maximally efficient:
+writerFn eol "-" = liftIO . UTF8.putStrWith eol . T.unpack
+writerFn eol f   = liftIO . UTF8.writeFileWith eol f . T.unpack
 
 lookupHighlightStyle :: Maybe String -> IO (Maybe Style)
 lookupHighlightStyle Nothing = return Nothing

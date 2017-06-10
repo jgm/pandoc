@@ -45,6 +45,8 @@ module Text.Pandoc.Writers.HTML (
   ) where
 import Control.Monad.State
 import Data.Char (ord, toLower)
+import Data.Text (Text)
+import qualified Data.Text.Lazy as TL
 import Data.List (intersperse, isPrefixOf)
 import Data.Maybe (catMaybes, fromMaybe, isJust, isNothing)
 import Data.Monoid ((<>))
@@ -67,7 +69,7 @@ import Text.Pandoc.Writers.Shared
 import Text.Pandoc.XML (escapeStringForXML, fromEntities)
 #if MIN_VERSION_blaze_markup(0,6,3)
 #else
-import Text.Blaze.Internal (preEscapedString)
+import Text.Blaze.Internal (preEscapedString, preEscapedText)
 #endif
 #if MIN_VERSION_blaze_html(0,5,1)
 import qualified Text.Blaze.XHtml5 as H5
@@ -77,7 +79,7 @@ import qualified Text.Blaze.Html5 as H5
 import Control.Monad.Except (throwError)
 import Data.Aeson (Value)
 import System.FilePath (takeExtension, takeBaseName)
-import Text.Blaze.Html.Renderer.String (renderHtml)
+import Text.Blaze.Html.Renderer.Text (renderHtml)
 import qualified Text.Blaze.XHtml1.Transitional as H
 import qualified Text.Blaze.XHtml1.Transitional.Attributes as A
 import Text.Pandoc.Class (PandocMonad, report)
@@ -123,7 +125,7 @@ nl opts = if writerWrapText opts == WrapNone
              else preEscapedString "\n"
 
 -- | Convert Pandoc document to Html 5 string.
-writeHtml5String :: PandocMonad m => WriterOptions -> Pandoc -> m String
+writeHtml5String :: PandocMonad m => WriterOptions -> Pandoc -> m Text
 writeHtml5String = writeHtmlString'
                       defaultWriterState{ stHtml5 = True }
 
@@ -132,7 +134,7 @@ writeHtml5 :: PandocMonad m => WriterOptions -> Pandoc -> m Html
 writeHtml5 = writeHtml' defaultWriterState{ stHtml5 = True }
 
 -- | Convert Pandoc document to Html 4 string.
-writeHtml4String :: PandocMonad m => WriterOptions -> Pandoc -> m String
+writeHtml4String :: PandocMonad m => WriterOptions -> Pandoc -> m Text
 writeHtml4String = writeHtmlString'
                       defaultWriterState{ stHtml5 = False }
 
@@ -142,38 +144,39 @@ writeHtml4 = writeHtml' defaultWriterState{ stHtml5 = False }
 
 -- | Convert Pandoc document to Html appropriate for an epub version.
 writeHtmlStringForEPUB :: PandocMonad m
-                       => EPUBVersion -> WriterOptions -> Pandoc -> m String
-writeHtmlStringForEPUB version = writeHtmlString'
+                       => EPUBVersion -> WriterOptions -> Pandoc
+                       -> m Text
+writeHtmlStringForEPUB version o = writeHtmlString'
                       defaultWriterState{ stHtml5 = version == EPUB3,
-                                          stEPUBVersion = Just version }
+                                          stEPUBVersion = Just version } o
 
 -- | Convert Pandoc document to Reveal JS HTML slide show.
 writeRevealJs :: PandocMonad m
-              => WriterOptions -> Pandoc -> m String
+              => WriterOptions -> Pandoc -> m Text
 writeRevealJs = writeHtmlSlideShow' RevealJsSlides
 
 -- | Convert Pandoc document to S5 HTML slide show.
 writeS5 :: PandocMonad m
-        => WriterOptions -> Pandoc -> m String
+        => WriterOptions -> Pandoc -> m Text
 writeS5 = writeHtmlSlideShow' S5Slides
 
 -- | Convert Pandoc document to Slidy HTML slide show.
 writeSlidy :: PandocMonad m
-           => WriterOptions -> Pandoc -> m String
+           => WriterOptions -> Pandoc -> m Text
 writeSlidy = writeHtmlSlideShow' SlidySlides
 
 -- | Convert Pandoc document to Slideous HTML slide show.
 writeSlideous :: PandocMonad m
-              => WriterOptions -> Pandoc -> m String
+              => WriterOptions -> Pandoc -> m Text
 writeSlideous = writeHtmlSlideShow' SlideousSlides
 
 -- | Convert Pandoc document to DZSlides HTML slide show.
 writeDZSlides :: PandocMonad m
-              => WriterOptions -> Pandoc -> m String
+              => WriterOptions -> Pandoc -> m Text
 writeDZSlides = writeHtmlSlideShow' DZSlides
 
 writeHtmlSlideShow' :: PandocMonad m
-                    => HTMLSlideVariant -> WriterOptions -> Pandoc -> m String
+                    => HTMLSlideVariant -> WriterOptions -> Pandoc -> m Text
 writeHtmlSlideShow' variant = writeHtmlString'
     defaultWriterState{ stSlideVariant = variant
                       , stHtml5 = case variant of
@@ -185,12 +188,15 @@ writeHtmlSlideShow' variant = writeHtmlString'
                                        NoSlides       -> False
                       }
 
+renderHtml' :: Html -> Text
+renderHtml' = TL.toStrict . renderHtml
+
 writeHtmlString' :: PandocMonad m
-                 => WriterState -> WriterOptions -> Pandoc -> m String
+                 => WriterState -> WriterOptions -> Pandoc -> m Text
 writeHtmlString' st opts d = do
   (body, context) <- evalStateT (pandocToHtml opts d) st
   case writerTemplate opts of
-       Nothing -> return $ renderHtml body
+       Nothing -> return $ renderHtml' body
        Just tpl -> do
          -- warn if empty lang
          when (isNothing (getField "lang" context :: Maybe String)) $
@@ -205,12 +211,12 @@ writeHtmlString' st opts d = do
                    report $ NoTitleElement fallback
                    return $ resetField "pagetitle" fallback context
          return $ renderTemplate' tpl $
-                    defField "body" (renderHtml body) context'
+                    defField "body" (renderHtml' body) context'
 
 writeHtml' :: PandocMonad m => WriterState -> WriterOptions -> Pandoc -> m Html
 writeHtml' st opts d = do
   case writerTemplate opts of
-       Just _ -> preEscapedString <$> writeHtmlString' st opts d
+       Just _ -> preEscapedText <$> writeHtmlString' st opts d
        Nothing  -> do
         (body, _) <- evalStateT (pandocToHtml opts d) st
         return body
@@ -222,8 +228,8 @@ pandocToHtml :: PandocMonad m
              -> StateT WriterState m (Html, Value)
 pandocToHtml opts (Pandoc meta blocks) = do
   metadata <- metaToJSON opts
-              (fmap renderHtml . blockListToHtml opts)
-              (fmap renderHtml . inlineListToHtml opts)
+              (fmap renderHtml' . blockListToHtml opts)
+              (fmap renderHtml' . inlineListToHtml opts)
               meta
   let stringifyHTML = escapeStringForXML . stringify
   let authsMeta = map stringifyHTML $ docAuthors meta
@@ -277,10 +283,10 @@ pandocToHtml opts (Pandoc meta blocks) = do
                                 Nothing  -> id
                       else id) $
                   (if stMath st
-                      then defField "math" (renderHtml math)
+                      then defField "math" (renderHtml' math)
                       else id) $
                   defField "quotes" (stQuotes st) $
-                  maybe id (defField "toc" . renderHtml) toc $
+                  maybe id (defField "toc" . renderHtml') toc $
                   defField "author-meta" authsMeta $
                   maybe id (defField "date-meta") (normalizeDate dateMeta) $
                   defField "pagetitle" (stringifyHTML (docTitle meta)) $
@@ -463,7 +469,7 @@ parseMailto s = do
 obfuscateLink :: PandocMonad m => WriterOptions -> Attr -> Html -> String -> m Html
 obfuscateLink opts attr txt s | writerEmailObfuscation opts == NoObfuscation =
   return $ addAttrs opts attr $ H.a ! A.href (toValue s) $ txt
-obfuscateLink opts attr (renderHtml -> txt) s =
+obfuscateLink opts attr (TL.unpack . renderHtml -> txt) s =
   let meth = writerEmailObfuscation opts
       s' = map toLower (take 7 s) ++ drop 7 s
   in  case parseMailto s' of

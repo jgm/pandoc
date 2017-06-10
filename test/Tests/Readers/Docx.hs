@@ -3,6 +3,7 @@ module Tests.Readers.Docx (tests) where
 import Codec.Archive.Zip
 import qualified Data.ByteString.Lazy as B
 import qualified Data.ByteString as BS
+import qualified Data.Text as T
 import qualified Data.Map as M
 import Test.Tasty
 import Test.Tasty.HUnit
@@ -27,7 +28,7 @@ defopts :: ReaderOptions
 defopts = def{ readerExtensions = getDefaultExtensions "docx" }
 
 instance ToString NoNormPandoc where
-  toString d = purely (writeNative def{ writerTemplate = s }) $ toPandoc d
+  toString d = T.unpack $ purely (writeNative def{ writerTemplate = s }) $ toPandoc d
    where s = case d of
                   NoNormPandoc (Pandoc (Meta m) _)
                     | M.null m  -> Nothing

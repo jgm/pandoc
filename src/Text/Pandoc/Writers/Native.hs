@@ -30,6 +30,7 @@ Conversion of a 'Pandoc' document to a string representation.
 -}
 module Text.Pandoc.Writers.Native ( writeNative )
 where
+import Data.Text (Text)
 import Data.List (intersperse)
 import Text.Pandoc.Class (PandocMonad)
 import Text.Pandoc.Definition
@@ -67,7 +68,7 @@ prettyBlock (Div attr blocks) =
 prettyBlock block = text $ show block
 
 -- | Prettyprint Pandoc document.
-writeNative :: PandocMonad m => WriterOptions -> Pandoc -> m String
+writeNative :: PandocMonad m => WriterOptions -> Pandoc -> m Text
 writeNative opts (Pandoc meta blocks) = return $
   let colwidth = if writerWrapText opts == WrapAuto
                     then Just $ writerColumns opts

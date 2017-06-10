@@ -33,6 +33,7 @@ https://jats.nlm.nih.gov/publishing/tag-library/1.1d3/element/mml-math.html
 module Text.Pandoc.Writers.JATS ( writeJATS ) where
 import Control.Monad.Reader
 import Data.Char (toLower)
+import Data.Text (Text)
 import Data.Generics (everywhere, mkT)
 import Data.List (intercalate, isSuffixOf, partition)
 import Data.Maybe (fromMaybe)
@@ -81,12 +82,12 @@ authorToJATS opts name' = do
                in inTagsSimple "firstname" (text $ escapeStringForXML firstname) $$
                   inTagsSimple "surname" (text $ escapeStringForXML lastname)
 
-writeJATS :: PandocMonad m => WriterOptions -> Pandoc -> m String
+writeJATS :: PandocMonad m => WriterOptions -> Pandoc -> m Text
 writeJATS opts d =
   runReaderT (docToJATS opts d) JATS1_1
 
 -- | Convert Pandoc document to string in JATS format.
-docToJATS :: PandocMonad m => WriterOptions -> Pandoc -> DB m String
+docToJATS :: PandocMonad m => WriterOptions -> Pandoc -> DB m Text
 docToJATS opts (Pandoc meta blocks) = do
   let isBackBlock (Div ("refs",_,_) _) = True
       isBackBlock _ = False
@@ -96,7 +97,8 @@ docToJATS opts (Pandoc meta blocks) = do
   let colwidth = if writerWrapText opts == WrapAuto
                     then Just $ writerColumns opts
                     else Nothing
-  let render'  = render colwidth
+  let render'  :: Doc -> Text
+      render'  = render colwidth
   let opts'    = if (maybe False (("/book>" `isSuffixOf`) . trimr)
                             (writerTemplate opts) &&
                      TopLevelDefault == writerTopLevelDivision opts)
@@ -111,10 +113,10 @@ docToJATS opts (Pandoc meta blocks) = do
   auths' <- mapM (authorToJATS opts) $ docAuthors meta
   let meta' = B.setMeta "author" auths' meta
   metadata <- metaToJSON opts
-                 (fmap (render colwidth . vcat) .
+                 (fmap (render' . vcat) .
                           (mapM (elementToJATS opts' startLvl) .
                             hierarchicalize))
-                 (fmap (render colwidth) . inlinesToJATS opts')
+                 (fmap render' . inlinesToJATS opts')
                  meta'
   main <- (render' . vcat) <$>
             (mapM (elementToJATS opts' startLvl) elements)

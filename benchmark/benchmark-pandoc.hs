@@ -33,15 +33,15 @@ readerBench :: Pandoc
             -> Maybe Benchmark
 readerBench doc (name, reader) =
   case lookup name writers of
-       Just (StringWriter writer) ->
-         let inp = either (error . show) pack $ runPure
+       Just (TextWriter writer) ->
+         let inp = either (error . show) id $ runPure
                        $ writer def{ writerWrapText = WrapAuto} doc
          in return $ bench (name ++ " reader") $ nf
                  (reader def) inp
        _ -> trace ("\nCould not find writer for " ++ name ++ "\n") Nothing
 
 writerBench :: Pandoc
-            -> (String, WriterOptions -> Pandoc -> String)
+            -> (String, WriterOptions -> Pandoc -> Text)
             -> Benchmark
 writerBench doc (name, writer) = bench (name ++ " writer") $ nf
     (writer def{ writerWrapText = WrapAuto }) doc
@@ -55,7 +55,7 @@ main = do
              [x] -> x == n
              (x:y:_) -> x == n && y == "reader"
       matchReader (_, _) = False
-  let matchWriter (n, StringWriter _) =
+  let matchWriter (n, TextWriter _) =
         case args of
              [] -> True
              [x] -> x == n
@@ -81,7 +81,7 @@ main = do
                  $ filter (\(n,_) -> n /="haddock") readers'
   let writers' = [(n, \o d ->
                    either (error . show) id $ runPure $ setupFakeFiles >> w o d)
-                        | (n, StringWriter w) <- matchedWriters]
+                        | (n, TextWriter w) <- matchedWriters]
   let writerBs = map (writerBench doc)
                  $ writers'
   defaultMainWith defaultConfig{ timeLimit = 6.0 }

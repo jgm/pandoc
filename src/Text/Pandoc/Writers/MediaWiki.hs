@@ -34,6 +34,7 @@ import Control.Monad.Reader
 import Control.Monad.State
 import Data.List (intercalate)
 import qualified Data.Set as Set
+import Data.Text (Text, pack)
 import Text.Pandoc.Class (PandocMonad, report)
 import Text.Pandoc.Logging
 import Text.Pandoc.Definition
@@ -59,14 +60,14 @@ data WriterReader = WriterReader {
 type MediaWikiWriter m = ReaderT WriterReader (StateT WriterState m)
 
 -- | Convert Pandoc to MediaWiki.
-writeMediaWiki :: PandocMonad m => WriterOptions -> Pandoc -> m String
+writeMediaWiki :: PandocMonad m => WriterOptions -> Pandoc -> m Text
 writeMediaWiki opts document =
   let initialState = WriterState { stNotes = False, stOptions = opts }
       env = WriterReader { options = opts, listLevel = [], useTags = False }
   in  evalStateT (runReaderT (pandocToMediaWiki document) env) initialState
 
 -- | Return MediaWiki representation of document.
-pandocToMediaWiki :: PandocMonad m => Pandoc -> MediaWikiWriter m String
+pandocToMediaWiki :: PandocMonad m => Pandoc -> MediaWikiWriter m Text
 pandocToMediaWiki (Pandoc meta blocks) = do
   opts <- asks options
   metadata <- metaToJSON opts
@@ -81,7 +82,8 @@ pandocToMediaWiki (Pandoc meta blocks) = do
   let main = body ++ notes
   let context = defField "body" main
                 $ defField "toc" (writerTableOfContents opts) metadata
-  return $ case writerTemplate opts of
+  return $ pack
+         $ case writerTemplate opts of
                 Nothing  -> main
                 Just tpl -> renderTemplate' tpl context
 

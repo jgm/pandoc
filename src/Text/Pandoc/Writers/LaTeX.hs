@@ -42,6 +42,7 @@ import Data.Char (isAlphaNum, isAscii, isDigit, isLetter, isPunctuation, ord,
 import Data.List (foldl', intercalate, intersperse, isInfixOf, nub, nubBy,
                   stripPrefix, (\\))
 import Data.Maybe (catMaybes, fromMaybe, isJust)
+import Data.Text (Text)
 import qualified Data.Text as T
 import Network.URI (unEscapeString)
 import Text.Pandoc.Class (PandocMonad, report)
@@ -114,13 +115,13 @@ startingState options = WriterState {
                 , stEmptyLine = True }
 
 -- | Convert Pandoc to LaTeX.
-writeLaTeX :: PandocMonad m => WriterOptions -> Pandoc -> m String
+writeLaTeX :: PandocMonad m => WriterOptions -> Pandoc -> m Text
 writeLaTeX options document =
   evalStateT (pandocToLaTeX options document) $
     startingState options
 
 -- | Convert Pandoc to LaTeX Beamer.
-writeBeamer :: PandocMonad m => WriterOptions -> Pandoc -> m String
+writeBeamer :: PandocMonad m => WriterOptions -> Pandoc -> m Text
 writeBeamer options document =
   evalStateT (pandocToLaTeX options document) $
     (startingState options){ stBeamer = True }
@@ -128,7 +129,7 @@ writeBeamer options document =
 type LW m = StateT WriterState m
 
 pandocToLaTeX :: PandocMonad m
-              => WriterOptions -> Pandoc -> LW m String
+              => WriterOptions -> Pandoc -> LW m Text
 pandocToLaTeX options (Pandoc meta blocks) = do
   -- Strip off final 'references' header if --natbib or --biblatex
   let method = writerCiteMethod options
@@ -146,9 +147,11 @@ pandocToLaTeX options (Pandoc meta blocks) = do
   let colwidth = if writerWrapText options == WrapAuto
                     then Just $ writerColumns options
                     else Nothing
+  let render' :: Doc -> Text
+      render' = render colwidth
   metadata <- metaToJSON options
-              (fmap (render colwidth) . blockListToLaTeX)
-              (fmap (render colwidth) . inlineListToLaTeX)
+              (fmap render' . blockListToLaTeX)
+              (fmap render' . inlineListToLaTeX)
               meta
   let bookClasses = ["memoir","book","report","scrreprt","scrbook"]
   let documentClass = case P.parse pDocumentClass "template" template of
@@ -180,8 +183,8 @@ pandocToLaTeX options (Pandoc meta blocks) = do
                   then toSlides blocks''
                   else return blocks''
   body <- mapM (elementToLaTeX options) $ hierarchicalize blocks'''
-  (biblioTitle :: String) <- liftM (render colwidth) $ inlineListToLaTeX lastHeader
-  let main = render colwidth $ vsep body
+  (biblioTitle :: Text) <- render' <$> inlineListToLaTeX lastHeader
+  let main = render' $ vsep body
   st <- get
   titleMeta <- stringToLaTeX TextString $ stringify $ docTitle meta
   authorsMeta <- mapM (stringToLaTeX TextString . stringify) $ docAuthors meta

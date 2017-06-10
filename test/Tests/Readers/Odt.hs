@@ -5,6 +5,7 @@ import qualified Data.ByteString.Lazy as B
 import qualified Data.ByteString as BS
 import qualified Text.Pandoc.UTF8 as UTF8
 import qualified Data.Map as M
+import Data.Text (unpack)
 import Test.Tasty
 import Tests.Helpers
 import Text.Pandoc
@@ -41,7 +42,8 @@ newtype NoNormPandoc = NoNormPandoc {unNoNorm :: Pandoc}
   deriving ( Show )
 
 instance ToString NoNormPandoc where
-  toString d = purely (writeNative def{ writerTemplate = s }) $ toPandoc d
+  toString d = unpack $
+               purely (writeNative def{ writerTemplate = s }) $ toPandoc d
    where s = case d of
                   NoNormPandoc (Pandoc (Meta m) _)
                     | M.null m  -> Nothing

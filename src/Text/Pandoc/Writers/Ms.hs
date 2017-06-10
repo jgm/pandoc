@@ -44,6 +44,7 @@ import Text.Pandoc.Options
 import Text.Pandoc.Writers.Math
 import Text.Printf ( printf )
 import qualified Data.Text as T
+import Data.Text (Text)
 import qualified Data.Map as Map
 import Data.Maybe ( catMaybes, fromMaybe )
 import Data.List ( intersperse, intercalate, sort )
@@ -85,17 +86,18 @@ type Note = [Block]
 type MS = StateT WriterState
 
 -- | Convert Pandoc to Ms.
-writeMs :: PandocMonad m => WriterOptions -> Pandoc -> m String
+writeMs :: PandocMonad m => WriterOptions -> Pandoc -> m Text
 writeMs opts document =
   evalStateT (pandocToMs opts document) defaultWriterState
 
 -- | Return groff ms representation of document.
-pandocToMs :: PandocMonad m => WriterOptions -> Pandoc -> MS m String
+pandocToMs :: PandocMonad m => WriterOptions -> Pandoc -> MS m Text
 pandocToMs opts (Pandoc meta blocks) = do
   let colwidth = if writerWrapText opts == WrapAuto
                     then Just $ writerColumns opts
                     else Nothing
-  let render' = render colwidth
+  let render' :: Doc -> Text
+      render' = render colwidth
   metadata <- metaToJSON opts
               (fmap render' . blockListToMs opts)
               (fmap render' . inlineListToMs' opts)
@@ -108,9 +110,9 @@ pandocToMs opts (Pandoc meta blocks) = do
   hasHighlighting <- gets stHighlighting
   let highlightingMacros = if hasHighlighting
                               then case writerHighlightStyle opts of
-                                        Nothing  -> ""
+                                        Nothing  -> mempty
                                         Just sty -> render' $ styleToMs sty
-                              else ""
+                              else mempty
 
   let context = defField "body" main
               $ defField "has-inline-math" hasInlineMath
