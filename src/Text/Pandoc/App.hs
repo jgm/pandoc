@@ -53,7 +53,9 @@ import Data.List (intercalate, isPrefixOf, isSuffixOf, sort)
 import qualified Data.Map as M
 import Data.Maybe (fromMaybe, isJust, isNothing)
 import qualified Data.Set as Set
+import Data.Text (Text)
 import qualified Data.Text as T
+import qualified Data.Text.IO as T
 import Data.Yaml (decode)
 import qualified Data.Yaml as Yaml
 import GHC.Generics
@@ -381,8 +383,8 @@ convertWithOpts opts = do
                                  then 0
                                  else optTabStop opts)
 
-      readSources :: [FilePath] -> PandocIO String
-      readSources srcs = convertTabs . intercalate "\n" <$>
+      readSources :: [FilePath] -> PandocIO Text
+      readSources srcs = convertTabs . T.intercalate (T.pack "\n") <$>
                             mapM readSource srcs
 
   let runIO' :: PandocIO a -> IO a
@@ -405,9 +407,9 @@ convertWithOpts opts = do
          case reader of
               StringReader r
                 | optFileScope opts || readerName == "json" ->
-                    mconcat <$> mapM (readSource >=> r readerOpts) sources
+                    mconcat <$> mapM (readSource >=> r readerOpts . T.unpack) sources
                 | otherwise ->
-                    readSources sources' >>= r readerOpts
+                    readSources sources' >>= r readerOpts . T.unpack
               ByteStringReader r ->
                 mconcat <$> mapM (readFile' >=> r readerOpts) sources
 
@@ -782,21 +784,23 @@ applyFilters mbDatadir filters args d = do
   expandedFilters <- mapM (expandFilterPath mbDatadir) filters
   foldrM ($) d $ map (flip externalFilter args) expandedFilters
 
-readSource :: FilePath -> PandocIO String
-readSource "-" = liftIO UTF8.getContents
+readSource :: FilePath -> PandocIO Text
+readSource "-" = liftIO T.getContents
 readSource src = case parseURI src of
                       Just u | uriScheme u `elem` ["http:","https:"] ->
                                  readURI src
                              | uriScheme u == "file:" ->
-                                 liftIO $ UTF8.readFile (uriPath u)
-                      _       -> liftIO $ UTF8.readFile src
+                                 liftIO $ UTF8.toText <$>
+                                    BS.readFile (uriPath u)
+                      _       -> liftIO $ UTF8.toText <$>
+                                    BS.readFile src
 
-readURI :: FilePath -> PandocIO String
+readURI :: FilePath -> PandocIO Text
 readURI src = do
   res <- liftIO $ openURL src
   case res of
        Left e              -> throwError $ PandocHttpError src e
-       Right (contents, _) -> return $ UTF8.toString contents
+       Right (contents, _) -> return $ UTF8.toText contents
 
 readFile' :: MonadIO m => FilePath -> m B.ByteString
 readFile' "-" = liftIO B.getContents
