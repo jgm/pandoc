@@ -93,36 +93,38 @@ import Text.Pandoc.Shared (mapLeft)
 import Text.Parsec.Error
 import qualified Text.Pandoc.UTF8 as UTF8
 import qualified Data.ByteString.Lazy as BL
+import Data.Text (Text)
+import qualified Data.Text.Lazy as TL
 
-data Reader m = StringReader (ReaderOptions -> String -> m Pandoc)
+data Reader m = TextReader (ReaderOptions -> Text -> m Pandoc)
               | ByteStringReader (ReaderOptions -> BL.ByteString -> m Pandoc)
 
 -- | Association list of formats and readers.
 readers :: PandocMonad m => [(String, Reader m)]
-readers = [ ("native"       , StringReader readNative)
-           ,("json"         , StringReader $ \o s ->
+readers = [ ("native"       , TextReader readNative)
+           ,("json"         , TextReader $ \o s ->
                                                case readJSON o s of
                                                  Right doc -> return doc
                                                  Left _ -> throwError $ PandocParseError "JSON parse error")
-           ,("markdown"     , StringReader readMarkdown)
-           ,("markdown_strict" , StringReader readMarkdown)
-           ,("markdown_phpextra" , StringReader readMarkdown)
-           ,("markdown_github" , StringReader readMarkdown)
-           ,("markdown_mmd",  StringReader readMarkdown)
-           ,("commonmark"   , StringReader readCommonMark)
-           ,("rst"          , StringReader readRST)
-           ,("mediawiki"    , StringReader readMediaWiki)
-           ,("docbook"      , StringReader readDocBook)
-           ,("opml"         , StringReader readOPML)
-           ,("org"          , StringReader readOrg)
-           ,("textile"      , StringReader readTextile) -- TODO : textile+lhs
-           ,("html"         , StringReader readHtml)
-           ,("latex"        , StringReader readLaTeX)
-           ,("haddock"      , StringReader readHaddock)
-           ,("twiki"        , StringReader readTWiki)
+           ,("markdown"     , TextReader readMarkdown)
+           ,("markdown_strict" , TextReader readMarkdown)
+           ,("markdown_phpextra" , TextReader readMarkdown)
+           ,("markdown_github" , TextReader readMarkdown)
+           ,("markdown_mmd",  TextReader readMarkdown)
+           ,("commonmark"   , TextReader readCommonMark)
+           ,("rst"          , TextReader readRST)
+           ,("mediawiki"    , TextReader readMediaWiki)
+           ,("docbook"      , TextReader readDocBook)
+           ,("opml"         , TextReader readOPML)
+           ,("org"          , TextReader readOrg)
+           ,("textile"      , TextReader readTextile) -- TODO : textile+lhs
+           ,("html"         , TextReader readHtml)
+           ,("latex"        , TextReader readLaTeX)
+           ,("haddock"      , TextReader readHaddock)
+           ,("twiki"        , TextReader readTWiki)
            ,("docx"         , ByteStringReader readDocx)
            ,("odt"          , ByteStringReader readOdt)
-           ,("t2t"          , StringReader readTxt2Tags)
+           ,("t2t"          , TextReader readTxt2Tags)
            ,("epub"         , ByteStringReader readEPUB)
            ]
 
@@ -134,7 +136,7 @@ getReader s =
        Right (readerName, setExts) ->
            case lookup readerName readers of
                    Nothing  -> Left $ "Unknown reader: " ++ readerName
-                   Just  (StringReader r)  -> Right $ StringReader $ \o ->
+                   Just  (TextReader r)  -> Right $ TextReader $ \o ->
                                   r o{ readerExtensions = setExts $
                                             getDefaultExtensions readerName }
                    Just (ByteStringReader r) -> Right $ ByteStringReader $ \o ->
@@ -142,5 +144,6 @@ getReader s =
                                             getDefaultExtensions readerName }
 
 -- | Read pandoc document from JSON format.
-readJSON :: ReaderOptions -> String -> Either PandocError Pandoc
-readJSON _ = mapLeft PandocParseError . eitherDecode' . UTF8.fromStringLazy
+readJSON :: ReaderOptions -> Text -> Either PandocError Pandoc
+readJSON _ =
+  mapLeft PandocParseError . eitherDecode' . BL.fromStrict . UTF8.fromText
