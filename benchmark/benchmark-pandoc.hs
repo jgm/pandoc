@@ -17,6 +17,8 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 -}
 import Text.Pandoc
 import Text.Pandoc.Class hiding (getCurrentTime)
+import qualified Text.Pandoc.UTF8 as UTF8
+import Data.Text (Text, pack)
 import Data.Time (getCurrentTime)
 import qualified Data.ByteString as B
 import qualified Data.Map as Map
@@ -27,12 +29,12 @@ import Debug.Trace (trace)
 import System.Environment (getArgs)
 
 readerBench :: Pandoc
-            -> (String, ReaderOptions -> String -> Pandoc)
+            -> (String, ReaderOptions -> Text -> Pandoc)
             -> Maybe Benchmark
 readerBench doc (name, reader) =
   case lookup name writers of
        Just (StringWriter writer) ->
-         let inp = either (error . show) id $ runPure
+         let inp = either (error . show) pack $ runPure
                        $ writer def{ writerWrapText = WrapAuto} doc
          in return $ bench (name ++ " reader") $ nf
                  (reader def) inp
@@ -47,7 +49,7 @@ writerBench doc (name, writer) = bench (name ++ " writer") $ nf
 main :: IO ()
 main = do
   args <- getArgs
-  let matchReader (n, StringReader _) =
+  let matchReader (n, TextReader _) =
         case args of
              [] -> True
              [x] -> x == n
@@ -61,7 +63,7 @@ main = do
       matchWriter (_, _) = False
   let matchedReaders = filter matchReader readers
   let matchedWriters = filter matchWriter writers
-  inp <- readFile "test/testsuite.txt"
+  inp <- UTF8.toText <$> B.readFile "test/testsuite.txt"
   lalune <- B.readFile "test/lalune.jpg"
   movie <- B.readFile "test/movie.jpg"
   time <- getCurrentTime
@@ -74,7 +76,7 @@ main = do
   let doc = either (error . show) id $ runPure $ readMarkdown opts inp
   let readers' = [(n, \o d ->
              either (error . show) id $ runPure $ r o d)
-                        | (n, StringReader r) <- matchedReaders]
+                        | (n, TextReader r) <- matchedReaders]
   let readerBs = mapMaybe (readerBench doc)
                  $ filter (\(n,_) -> n /="haddock") readers'
   let writers' = [(n, \o d ->
