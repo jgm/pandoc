@@ -1,5 +1,6 @@
 import Weigh
 import Text.Pandoc
+import Data.Text (Text, pack)
 
 main :: IO ()
 main = do
@@ -26,11 +27,11 @@ main = do
 weighWriter :: Pandoc -> String -> (Pandoc -> String) -> Weigh ()
 weighWriter doc name writer = func (name ++ " writer") writer doc
 
-weighReader :: Pandoc -> String -> (String -> Pandoc) -> Weigh ()
+weighReader :: Pandoc -> String -> (Text -> Pandoc) -> Weigh ()
 weighReader doc name reader = do
   case lookup name writers of
        Just (StringWriter writer) ->
-         let inp = either (error . show) id $ runPure $ writer def{ writerWrapText = WrapAuto} doc
+         let inp = either (error . show) pack $ runPure $ writer def{ writerWrapText = WrapAuto} doc
          in func (name ++ " reader") reader inp
        _ -> return () -- no writer for reader
 

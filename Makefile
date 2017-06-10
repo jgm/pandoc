@@ -18,6 +18,9 @@ test:
 bench:
 	stack bench
 
+weigh:
+	stack build --flag 'pandoc:weigh-pandoc' && stack exec weigh-pandoc
+
 reformat:
 	for f in $(sourcefiles); do echo $$f; stylish-haskell -i $$f ; done
 
@@ -62,4 +65,4 @@ download_stats:
 clean:
 	stack clean
 
-.PHONY: deps quick full install clean test bench changes_github macospkg dist prof download_stats reformat lint
+.PHONY: deps quick full install clean test bench changes_github macospkg dist prof download_stats reformat lint weigh

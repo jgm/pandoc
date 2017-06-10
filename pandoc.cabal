@@ -507,6 +507,7 @@ Executable weigh-pandoc
   if flag(weigh-pandoc)
      Build-Depends:   pandoc,
                       base >= 4.2 && < 5,
+                      text,
                       weigh >= 0.0 && < 0.1,
                       mtl >= 2.2 && < 2.3
      Buildable:       True
