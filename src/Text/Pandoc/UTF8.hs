@@ -44,7 +44,9 @@ module Text.Pandoc.UTF8 ( readFile
                         , toString
                         , toText
                         , fromString
+                        , fromText
                         , toStringLazy
+                        , fromTextLazy
                         , toTextLazy
                         , fromStringLazy
                         , encodePath
@@ -143,11 +145,17 @@ toTextLazy = TL.decodeUtf8 . filterCRs . dropBOM
 toStringLazy :: BL.ByteString -> String
 toStringLazy = TL.unpack . toTextLazy
 
+fromText :: T.Text -> B.ByteString
+fromText = T.encodeUtf8
+
+fromTextLazy :: TL.Text -> BL.ByteString
+fromTextLazy = TL.encodeUtf8
+
 fromString :: String -> B.ByteString
-fromString = T.encodeUtf8 . T.pack
+fromString = fromText . T.pack
 
 fromStringLazy :: String -> BL.ByteString
-fromStringLazy = TL.encodeUtf8 . TL.pack
+fromStringLazy = fromTextLazy . TL.pack
 
 encodePath :: FilePath -> FilePath
 encodePath = id
