@@ -133,7 +133,7 @@ import qualified Data.ByteString as BS
 import qualified Data.ByteString.Char8 as B8
 import Data.ByteString.Base64 (decodeLenient)
 import Data.Sequence (ViewR(..), ViewL(..), viewl, viewr)
-import qualified Data.Text as T (toUpper, pack, unpack)
+import qualified Data.Text as T
 import Data.ByteString.Lazy (toChunks, fromChunks)
 import qualified Data.ByteString.Lazy as BL
 import Paths_pandoc (version)
@@ -279,26 +279,20 @@ escapeURI = escapeURIString (not . needsEscaping)
   where needsEscaping c = isSpace c || c `elem`
                            ['<','>','|','"','{','}','[',']','^', '`']
 
-
 -- | Convert tabs to spaces and filter out DOS line endings.
 -- Tabs will be preserved if tab stop is set to 0.
 tabFilter :: Int       -- ^ Tab stop
-          -> String    -- ^ Input
-          -> String
+          -> T.Text    -- ^ Input
+          -> T.Text
 tabFilter tabStop =
-  let go _ [] = ""
-      go _ ('\n':xs) = '\n' : go tabStop xs
-      go _ ('\r':'\n':xs) = '\n' : go tabStop xs
-      go _ ('\r':xs) = '\n' : go tabStop xs
-      go spsToNextStop ('\t':xs) =
-        if tabStop == 0
-           then '\t' : go tabStop xs
-           else replicate spsToNextStop ' ' ++ go tabStop xs
-      go 1 (x:xs) =
-        x : go tabStop xs
-      go spsToNextStop (x:xs) =
-        x : go (spsToNextStop - 1) xs
-  in  go tabStop
+  T.unlines . (if tabStop == 0 then id else map go) . T.lines
+  where go s =
+         let (s1, s2) = T.break (== '\t') s
+         in  if T.null s2
+                then s1
+                else s1 <> T.replicate
+                       (tabStop - (T.length s1 `mod` tabStop)) (T.pack " ")
+                       <> go (T.drop 1 s2)
 
 --
 -- Date/time
