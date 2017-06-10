@@ -39,6 +39,7 @@ import Control.Applicative (many, optional, (<|>))
 import Control.Monad
 import Control.Monad.Except (throwError)
 import Data.Char (chr, isAlphaNum, isLetter, ord)
+import Data.Text (Text, unpack)
 import Data.List (intercalate, isPrefixOf)
 import qualified Data.Map as M
 import Data.Maybe (fromMaybe, maybeToList)
@@ -59,10 +60,10 @@ import Text.Pandoc.Walk
 -- | Parse LaTeX from string and return 'Pandoc' document.
 readLaTeX :: PandocMonad m
           => ReaderOptions -- ^ Reader options
-          -> String        -- ^ String to parse (assumes @'\n'@ line endings)
+          -> Text        -- ^ String to parse (assumes @'\n'@ line endings)
           -> m Pandoc
 readLaTeX opts ltx = do
-  parsed <- readWithM parseLaTeX def{ stateOptions = opts } ltx
+  parsed <- readWithM parseLaTeX def{ stateOptions = opts } (unpack ltx)
   case parsed of
     Right result -> return result
     Left e       -> throwError e

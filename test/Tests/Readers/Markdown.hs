@@ -1,38 +1,40 @@
 {-# LANGUAGE OverloadedStrings #-}
 module Tests.Readers.Markdown (tests) where
 
+import Data.Text (Text, unpack)
+import qualified Data.Text as T
 import Test.Tasty
 import Tests.Helpers
 import Text.Pandoc
 import Text.Pandoc.Arbitrary ()
 import Text.Pandoc.Builder
 
-markdown :: String -> Pandoc
+markdown :: Text -> Pandoc
 markdown = purely $ readMarkdown def { readerExtensions =
                             disableExtension Ext_smart pandocExtensions }
 
-markdownSmart :: String -> Pandoc
+markdownSmart :: Text -> Pandoc
 markdownSmart = purely $  readMarkdown def { readerExtensions =
                              enableExtension Ext_smart pandocExtensions }
 
-markdownCDL :: String -> Pandoc
+markdownCDL :: Text -> Pandoc
 markdownCDL = purely $ readMarkdown def { readerExtensions = enableExtension
                  Ext_compact_definition_lists pandocExtensions }
 
-markdownGH :: String -> Pandoc
+markdownGH :: Text -> Pandoc
 markdownGH = purely $ readMarkdown def {
                 readerExtensions = githubMarkdownExtensions }
 
 infix 4 =:
 (=:) :: ToString c
-     => String -> (String, c) -> TestTree
+     => String -> (Text, c) -> TestTree
 (=:) = test markdown
 
-testBareLink :: (String, Inlines) -> TestTree
+testBareLink :: (Text, Inlines) -> TestTree
 testBareLink (inp, ils) =
   test (purely $ readMarkdown def{ readerExtensions =
              extensionsFromList [Ext_autolink_bare_uris, Ext_raw_html] })
-       inp (inp, doc $ para ils)
+       (unpack inp) (inp, doc $ para ils)
 
 autolink :: String -> Inlines
 autolink = autolinkWith nullAttr
@@ -40,7 +42,7 @@ autolink = autolinkWith nullAttr
 autolinkWith :: Attr -> String -> Inlines
 autolinkWith attr s = linkWith attr s "" (str s)
 
-bareLinkTests :: [(String, Inlines)]
+bareLinkTests :: [(Text, Inlines)]
 bareLinkTests =
   [ ("http://google.com is a search engine.",
      autolink "http://google.com" <> " is a search engine.")
@@ -376,10 +378,10 @@ tests = [ testGroup "inline code"
                               rawBlock "html" "</button>" <>
                               divWith nullAttr (para $ text "with this div too.")]
           , test markdownGH "issue #1636" $
-              unlines [ "* a"
-                      , "* b"
-                      , "* c"
-                      , "    * d" ]
+              T.unlines [ "* a"
+                        , "* b"
+                        , "* c"
+                        , "    * d" ]
               =?>
               bulletList [ plain "a"
                          , plain "b"
@@ -419,9 +421,9 @@ tests = [ testGroup "inline code"
         , let citation = cite [Citation "cita" [] [] AuthorInText 0 0] (str "@cita")
           in testGroup "footnote/link following citation" -- issue #2083
           [ "footnote" =:
-              unlines [ "@cita[^note]"
-                      , ""
-                      , "[^note]: note" ] =?>
+              T.unlines [ "@cita[^note]"
+                        , ""
+                        , "[^note]: note" ] =?>
               para (
                 citation <> note (para $ str "note")
               )
@@ -431,22 +433,22 @@ tests = [ testGroup "inline code"
                 citation <> space <> link "http://www.com" "" (str "link")
               )
           , "reference link" =:
-              unlines [ "@cita [link][link]"
-                      , ""
-                      , "[link]: http://www.com" ] =?>
+              T.unlines [ "@cita [link][link]"
+                        , ""
+                        , "[link]: http://www.com" ] =?>
               para (
                 citation <> space <> link "http://www.com" "" (str "link")
               )
           , "short reference link" =:
-              unlines [ "@cita [link]"
-                      , ""
-                      , "[link]: http://www.com" ] =?>
+              T.unlines [ "@cita [link]"
+                        , ""
+                        , "[link]: http://www.com" ] =?>
               para (
                 citation <> space <> link "http://www.com" "" (str "link")
               )
           , "implicit header link" =:
-              unlines [ "# Header"
-                      , "@cita [Header]" ] =?>
+              T.unlines [ "# Header"
+                        , "@cita [Header]" ] =?>
               headerWith ("header",[],[]) 1 (str "Header") <> para (
                 citation <> space <> link "#header" "" (str "Header")
               )

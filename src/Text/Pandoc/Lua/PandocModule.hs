@@ -30,6 +30,7 @@ module Text.Pandoc.Lua.PandocModule ( pushPandocModule ) where
 import Control.Monad (unless)
 import Data.ByteString.Char8 (unpack)
 import Data.Default (Default (..))
+import Data.Text (pack)
 import Scripting.Lua (LuaState, call, push, pushhsfunction, rawset)
 import Text.Pandoc.Class hiding (readDataFile)
 import Text.Pandoc.Definition (Pandoc)
@@ -58,8 +59,8 @@ read_doc formatSpec content = do
     Left  s      -> return $ Left s
     Right reader ->
       case reader of
-        StringReader r -> do
-          res <- runIO $ r def content
+        TextReader r -> do
+          res <- runIO $ r def (pack content)
           case res of
             Left s   -> return . Left $ show s
             Right pd -> return $ Right pd

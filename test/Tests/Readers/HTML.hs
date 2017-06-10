@@ -6,8 +6,9 @@ import Tests.Helpers
 import Text.Pandoc
 import Text.Pandoc.Arbitrary ()
 import Text.Pandoc.Builder
+import Data.Text (Text)
 
-html :: String -> Pandoc
+html :: Text -> Pandoc
 html = purely $ readHtml def
 
 tests :: [TestTree]

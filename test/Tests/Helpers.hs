@@ -15,6 +15,7 @@ module Tests.Helpers ( test
 
 import Data.Algorithm.Diff
 import qualified Data.Map as M
+import Data.Text (Text, unpack)
 import System.Directory
 import System.Environment.Executable (getExecutablePath)
 import System.Exit
@@ -119,6 +120,9 @@ instance ToString Inlines where
 
 instance ToString String where
   toString = id
+
+instance ToString Text where
+  toString = unpack
 
 class ToPandoc a where
   toPandoc :: a -> Pandoc

@@ -94,7 +94,6 @@ import Text.Parsec.Error
 import qualified Text.Pandoc.UTF8 as UTF8
 import qualified Data.ByteString.Lazy as BL
 import Data.Text (Text)
-import qualified Data.Text.Lazy as TL
 
 data Reader m = TextReader (ReaderOptions -> Text -> m Pandoc)
               | ByteStringReader (ReaderOptions -> BL.ByteString -> m Pandoc)

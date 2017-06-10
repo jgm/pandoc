@@ -2,11 +2,13 @@ module Tests.Readers.Docx (tests) where
 
 import Codec.Archive.Zip
 import qualified Data.ByteString.Lazy as B
+import qualified Data.ByteString as BS
 import qualified Data.Map as M
 import Test.Tasty
 import Test.Tasty.HUnit
 import Tests.Helpers
 import Text.Pandoc
+import Text.Pandoc.UTF8 as UTF8
 import qualified Text.Pandoc.Class as P
 import Text.Pandoc.MediaBag (MediaBag, lookupMedia, mediaDirectory)
 import System.IO.Unsafe -- TODO temporary
@@ -40,7 +42,7 @@ compareOutput :: ReaderOptions
                  -> IO (NoNormPandoc, NoNormPandoc)
 compareOutput opts docxFile nativeFile = do
   df <- B.readFile docxFile
-  nf <- Prelude.readFile nativeFile
+  nf <- UTF8.toText <$> BS.readFile nativeFile
   p <- runIOorExplode $ readDocx opts df
   df' <- runIOorExplode $ readNative def nf
   return $ (noNorm p, noNorm df')

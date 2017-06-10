@@ -49,14 +49,17 @@ import Text.Pandoc.Options
 import Text.Pandoc.Parsing hiding (enclosed, macro, nested)
 import Text.Pandoc.Readers.HTML (htmlTag, isCommentTag)
 import Text.Pandoc.XML (fromEntities)
+import Data.Text (Text)
+import qualified Data.Text as T
 
 -- | Read twiki from an input string and return a Pandoc document.
 readTWiki :: PandocMonad m
           => ReaderOptions
-          -> String
+          -> Text
           -> m Pandoc
 readTWiki opts s = do
-  res <- readWithM parseTWiki def{ stateOptions = opts } (s ++ "\n\n")
+  res <- readWithM parseTWiki def{ stateOptions = opts }
+             (T.unpack s ++ "\n\n")
   case res of
        Left e  -> throwError e
        Right d -> return d

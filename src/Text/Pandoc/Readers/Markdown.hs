@@ -70,10 +70,11 @@ type MarkdownParser m = ParserT [Char] ParserState m
 -- | Read markdown from an input string and return a Pandoc document.
 readMarkdown :: PandocMonad m
              => ReaderOptions -- ^ Reader options
-             -> String        -- ^ String to parse (assuming @'\n'@ line endings)
+             -> Text      -- ^ String to parse (assuming @'\n'@ line endings)
              -> m Pandoc
 readMarkdown opts s = do
-  parsed <- (readWithM parseMarkdown) def{ stateOptions = opts } (s ++ "\n\n")
+  parsed <- (readWithM parseMarkdown) def{ stateOptions = opts }
+               (T.unpack s ++ "\n\n")
   case parsed of
     Right result -> return result
     Left e       -> throwError e

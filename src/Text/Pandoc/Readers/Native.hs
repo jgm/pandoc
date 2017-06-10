@@ -37,6 +37,7 @@ import Text.Pandoc.Shared (safeRead)
 import Control.Monad.Except (throwError)
 import Text.Pandoc.Class
 import Text.Pandoc.Error
+import Data.Text (Text, unpack)
 
 -- | Read native formatted text and return a Pandoc document.
 -- The input may be a full pandoc document, a block list, a block,
@@ -50,22 +51,22 @@ import Text.Pandoc.Error
 --
 readNative :: PandocMonad m
            => ReaderOptions
-           -> String      -- ^ String to parse (assuming @'\n'@ line endings)
+           -> Text       -- ^ String to parse (assuming @'\n'@ line endings)
            -> m Pandoc
 readNative _ s =
-  case maybe (Pandoc nullMeta <$> readBlocks s) Right (safeRead s) of
+  case maybe (Pandoc nullMeta <$> readBlocks s) Right (safeRead (unpack s)) of
     Right doc -> return doc
     Left _    -> throwError $ PandocParseError "couldn't read native"
 
-readBlocks :: String -> Either PandocError [Block]
-readBlocks s = maybe ((:[]) <$> readBlock s) Right (safeRead s)
+readBlocks :: Text -> Either PandocError [Block]
+readBlocks s = maybe ((:[]) <$> readBlock s) Right (safeRead (unpack s))
 
-readBlock :: String -> Either PandocError Block
-readBlock s = maybe (Plain <$> readInlines s) Right (safeRead s)
+readBlock :: Text -> Either PandocError Block
+readBlock s = maybe (Plain <$> readInlines s) Right (safeRead (unpack s))
 
-readInlines :: String -> Either PandocError [Inline]
-readInlines s = maybe ((:[]) <$> readInline s) Right (safeRead s)
+readInlines :: Text -> Either PandocError [Inline]
+readInlines s = maybe ((:[]) <$> readInline s) Right (safeRead (unpack s))
 
-readInline :: String -> Either PandocError Inline
-readInline s = maybe (Left . PandocParseError $ "Could not read: " ++ s) Right (safeRead s)
+readInline :: Text -> Either PandocError Inline
+readInline s = maybe (Left . PandocParseError $ "Could not read: " ++ unpack s) Right (safeRead (unpack s))
 

@@ -41,6 +41,7 @@ module Text.Pandoc.Readers.MediaWiki ( readMediaWiki ) where
 import Control.Monad
 import Control.Monad.Except (throwError)
 import Data.Char (isDigit, isSpace)
+import Data.Text (Text, unpack)
 import qualified Data.Foldable as F
 import Data.List (intercalate, intersperse, isPrefixOf)
 import qualified Data.Map as M
@@ -64,7 +65,7 @@ import Text.Pandoc.XML (fromEntities)
 -- | Read mediawiki from an input string and return a Pandoc document.
 readMediaWiki :: PandocMonad m
               => ReaderOptions -- ^ Reader options
-              -> String        -- ^ String to parse (assuming @'\n'@ line endings)
+              -> Text          -- ^ String to parse (assuming @'\n'@ line endings)
               -> m Pandoc
 readMediaWiki opts s = do
   parsed <- readWithM parseMediaWiki MWState{ mwOptions = opts
@@ -76,7 +77,7 @@ readMediaWiki opts s = do
                                             , mwLogMessages = []
                                             , mwInTT = False
                                             }
-            (s ++ "\n")
+            (unpack s ++ "\n")
   case parsed of
     Right result -> return result
     Left e       -> throwError e

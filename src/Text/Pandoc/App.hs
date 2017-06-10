@@ -405,11 +405,11 @@ convertWithOpts opts = do
   let sourceToDoc :: [FilePath] -> PandocIO Pandoc
       sourceToDoc sources' =
          case reader of
-              StringReader r
+              TextReader r
                 | optFileScope opts || readerName == "json" ->
-                    mconcat <$> mapM (readSource >=> r readerOpts . T.unpack) sources
+                    mconcat <$> mapM (readSource >=> r readerOpts) sources
                 | otherwise ->
-                    readSources sources' >>= r readerOpts . T.unpack
+                    readSources sources' >>= r readerOpts
               ByteStringReader r ->
                 mconcat <$> mapM (readFile' >=> r readerOpts) sources
 

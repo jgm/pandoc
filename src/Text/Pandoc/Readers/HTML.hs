@@ -59,6 +59,7 @@ import Control.Monad ( guard, mzero, void, unless )
 import Control.Arrow ((***))
 import Control.Applicative ( (<|>) )
 import Data.Monoid (First (..))
+import Data.Text (Text, unpack)
 import Text.TeXMath (readMathML, writeTeX)
 import Data.Default (Default (..), def)
 import Control.Monad.Reader (ask, asks, local, ReaderT, runReaderT, lift)
@@ -74,11 +75,12 @@ import Control.Monad.Except (throwError)
 -- | Convert HTML-formatted string to 'Pandoc' document.
 readHtml :: PandocMonad m
          => ReaderOptions -- ^ Reader options
-         -> String        -- ^ String to parse (assumes @'\n'@ line endings)
+         -> Text        -- ^ String to parse (assumes @'\n'@ line endings)
          -> m Pandoc
 readHtml opts inp = do
   let tags = stripPrefixes . canonicalizeTags $
-             parseTagsOptions parseOptions{ optTagPosition = True } inp
+             parseTagsOptions parseOptions{ optTagPosition = True }
+             (unpack inp)
       parseDoc = do
         blocks <- (fixPlains False) . mconcat <$> manyTill block eof
         meta <- stateMeta . parserState <$> getState

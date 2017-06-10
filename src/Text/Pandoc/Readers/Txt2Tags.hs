@@ -45,7 +45,8 @@ import Text.Pandoc.Shared (compactify, compactifyDL, escapeURI)
 import Control.Monad (guard, void, when)
 import Control.Monad.Reader (Reader, asks, runReader)
 import Data.Default
-
+import Data.Text (Text)
+import qualified Data.Text as T
 import Control.Monad.Except (catchError, throwError)
 import Data.Time.Format (formatTime)
 import Text.Pandoc.Class (PandocMonad)
@@ -90,11 +91,11 @@ getT2TMeta = do
 -- | Read Txt2Tags from an input string returning a Pandoc document
 readTxt2Tags :: PandocMonad m
              => ReaderOptions
-             -> String
+             -> Text
              -> m Pandoc
 readTxt2Tags opts s = do
   meta <- getT2TMeta
-  let parsed = flip runReader meta $ readWithM parseT2T (def {stateOptions = opts}) (s ++ "\n\n")
+  let parsed = flip runReader meta $ readWithM parseT2T (def {stateOptions = opts}) (T.unpack s ++ "\n\n")
   case parsed of
     Right result -> return $ result
     Left e       -> throwError e
