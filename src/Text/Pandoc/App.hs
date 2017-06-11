@@ -56,7 +56,6 @@ import Data.Maybe (fromMaybe, isJust, isNothing)
 import qualified Data.Set as Set
 import Data.Text (Text)
 import qualified Data.Text as T
-import qualified Data.Text.IO as T
 import Data.Yaml (decode)
 import qualified Data.Yaml as Yaml
 import GHC.Generics
@@ -791,7 +790,7 @@ applyFilters mbDatadir filters args d = do
   foldrM ($) d $ map (flip externalFilter args) expandedFilters
 
 readSource :: FilePath -> PandocIO Text
-readSource "-" = liftIO T.getContents
+readSource "-" = liftIO (UTF8.toText <$> BS.getContents)
 readSource src = case parseURI src of
                       Just u | uriScheme u `elem` ["http:","https:"] ->
                                  readURI src
