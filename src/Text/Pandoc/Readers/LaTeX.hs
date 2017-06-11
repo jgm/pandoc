@@ -682,6 +682,9 @@ inlineCommands = M.fromList $
   , ("nohyphens", tok)
   , ("textnhtt", ttfamily)
   , ("nhttfamily", ttfamily)
+  -- fontawesome
+  , ("faCheck", lit "\10003")
+  , ("faClose", lit "\10007")
   ] ++ map ignoreInlines
   -- these commands will be ignored unless --parse-raw is specified,
   -- in which case they will appear as raw latex blocks:
