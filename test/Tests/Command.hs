@@ -2,6 +2,7 @@ module Tests.Command (findPandoc, runTest, tests)
 where
 
 import Data.Algorithm.Diff
+import qualified Data.Text as T
 import Data.List (isSuffixOf)
 import Prelude hiding (readFile)
 import System.Directory
@@ -13,7 +14,6 @@ import Test.Tasty.HUnit
 import Tests.Helpers
 import Text.Pandoc
 import Text.Pandoc.Shared (trimr)
-import qualified Data.ByteString as BS
 import qualified Text.Pandoc.UTF8 as UTF8
 import System.IO.Unsafe (unsafePerformIO) -- TODO temporary
 
@@ -84,9 +84,10 @@ runCommandTest pandocpath (num, code) =
 
 extractCommandTest :: FilePath -> FilePath -> TestTree
 extractCommandTest pandocpath fp = unsafePerformIO $ do
-  contents <- UTF8.toText <$> BS.readFile ("command" </> fp)
+  contents <- UTF8.readFile ("command" </> fp)
   Pandoc _ blocks <- runIOorExplode (readMarkdown
-                        def{ readerExtensions = pandocExtensions } contents)
+                        def{ readerExtensions = pandocExtensions }
+                        (T.pack contents))
   let codeblocks = map extractCode $ filter isCodeBlock $ blocks
   let cases = map (runCommandTest pandocpath) $ zip [1..] codeblocks
   return $ testGroup fp cases
