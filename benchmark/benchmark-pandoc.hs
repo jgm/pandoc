@@ -18,7 +18,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 import Text.Pandoc
 import Text.Pandoc.Class hiding (getCurrentTime)
 import qualified Text.Pandoc.UTF8 as UTF8
-import Data.Text (Text, pack)
+import Data.Text (Text)
 import Data.Time (getCurrentTime)
 import qualified Data.ByteString as B
 import qualified Data.Map as Map
