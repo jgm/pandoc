@@ -1451,6 +1451,7 @@ inline = choice [ whitespace
                 , autoLink
                 , spanHtml
                 , rawHtmlInline
+                , escapedNewline
                 , escapedChar
                 , rawLaTeXInline'
                 , exampleRef
@@ -1467,16 +1468,20 @@ escapedChar' = try $ do
   (guardEnabled Ext_all_symbols_escapable >> satisfy (not . isAlphaNum))
      <|> (guardEnabled Ext_angle_brackets_escapable >>
             oneOf "\\`*_{}[]()>#+-.!~\"<>")
-     <|> (guardEnabled Ext_escaped_line_breaks >> char '\n')
      <|> oneOf "\\`*_{}[]()>#+-.!~\""
+
+escapedNewline :: PandocMonad m => MarkdownParser m (F Inlines)
+escapedNewline = try $ do
+  guardEnabled Ext_escaped_line_breaks
+  char '\\'
+  lookAhead (char '\n') -- don't consume the newline (see #3730)
+  return $ return B.linebreak
 
 escapedChar :: PandocMonad m => MarkdownParser m (F Inlines)
 escapedChar = do
   result <- escapedChar'
   case result of
        ' '   -> return $ return $ B.str "\160" -- "\ " is a nonbreaking space
-       '\n'  -> guardEnabled Ext_escaped_line_breaks >>
-                return (return B.linebreak)  -- "\[newline]" is a linebreak
        _     -> return $ return $ B.str [result]
 
 ltSign :: PandocMonad m => MarkdownParser m (F Inlines)
