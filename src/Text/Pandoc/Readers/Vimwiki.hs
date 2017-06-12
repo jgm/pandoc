@@ -37,7 +37,7 @@ Conversion of vimwiki text to 'Pandoc' document.
     * [X] preformatted 
     * [X] displaymath 
     * [X] bulletlist / orderedlist 
-        * [ ] orderedlist with 1., i., a) etc identification.
+        * [X] orderedlist with 1., i., a) etc identification.
         * [ ] todo lists -- see https://github.com/LarsEKrueger/pandoc-vimwiki
     * [X] table
         * [X] centered table -- used div
@@ -71,10 +71,10 @@ import Data.List (isInfixOf)
 import Text.Pandoc.Builder (Blocks, Inlines, trimInlines, fromList, toList)
 import qualified Text.Pandoc.Builder as B (doc, toList, headerWith, str, space, strong, emph, strikeout, code, link, image, spanWith, math, para, horizontalRule, blockQuote, displayMath, bulletList, plain, orderedList, simpleTable, softbreak, codeBlockWith, imageWith, divWith, setMeta)
 import Text.Pandoc.Class (PandocMonad, report)
-import Text.Pandoc.Definition (Pandoc(..), Inline(Space), Block(BulletList, OrderedList), Attr, nullMeta, Meta)
+import Text.Pandoc.Definition (Pandoc(..), Inline(Space), Block(BulletList, OrderedList), Attr, nullMeta, Meta, ListNumberStyle(..), ListNumberDelim(..))
 import Text.Pandoc.Logging (LogMessage(ParsingTrace))
 import Text.Pandoc.Options (ReaderOptions)
-import Text.Pandoc.Parsing (readWithM, ParserT, stateOptions, ParserState, stateMeta', blanklines, registerHeader, spaceChar, emailAddress, uri, F, runF)
+import Text.Pandoc.Parsing (readWithM, ParserT, stateOptions, ParserState, stateMeta', blanklines, registerHeader, spaceChar, emailAddress, uri, F, runF, romanNumeral, orderedListMarker)
 import Text.Pandoc.Shared (splitBy, stripFirstAndLast, stringify)
 import Text.Parsec.Char (spaces, char, anyChar, newline, string, noneOf)
 import Text.Parsec.Combinator (eof, choice, many1, manyTill, count, skipMany1, notFollowedBy)
@@ -236,46 +236,49 @@ displayMath = try $ do
 
 mixedList :: PandocMonad m => VwParser m Blocks
 mixedList = try $ do
-  (bl, _) <- mixedList' 0
+  --(bl, _) <- mixedList' 0
+  (bl, _) <- mixedList' (-1)
   return $ head bl
 
 mixedList' :: PandocMonad m => Int -> VwParser m ([Blocks], Int)
-mixedList' prevLev = do
-  listSpaces <- listSpacesParser <|> emptyParser -- use option instead
-  let curLev = length listSpaces
-  if curLev < prevLev
-     then return ([], curLev)
+mixedList' prevInd = do
+  (curInd, builder) <- (lookAhead listStart) <|> (return (-1, "ol")) -- use option instead
+  --listSpaces <- listSpacesParser <|> emptyParser -- use option instead
+  --let curInd = length listSpaces
+  if curInd < prevInd
+     then return ([], curInd)
      else do
-          many spaceChar  
-          c <- oneOf "*-#" 
-          --many1 spaceChar  
-          --curLine <- B.plain <$> trimInlines . mconcat <$> (many inlineML)
+          --many spaceChar  
+          --c <- oneOf "*-#" 
+          listStart
           curLine <- listItemContent
           --return ([curLine], 0)
-          let listBuilder = fromJust $ listType c
-          (subList, lowLev) <- (mixedList' curLev)
-          if lowLev >= curLev
+          --let listBuilder = fromJust $ listType c
+          let listBuilder = if builder == "ul" then B.bulletList else B.orderedList
+          (subList, lowInd) <- (mixedList' curInd)
+          if lowInd >= curInd
              then do
-                  (sameLevList, endLev) <- (mixedList' lowLev)
-                  let curList = (combineList curLine subList) ++ sameLevList
-                  if curLev > prevLev
-                     then return ([listBuilder curList], endLev)
-                     else return (curList, endLev)
+                  (sameIndList, endInd) <- (mixedList' lowInd)
+                  let curList = (combineList curLine subList) ++ sameIndList
+                  if curInd > prevInd
+                     then return ([listBuilder curList], endInd)
+                     else return (curList, endInd)
              else do
-                  let (curList, endLev) = ((combineList curLine subList), lowLev)
-                  if curLev > prevLev
-                     then return ([listBuilder curList], endLev)
-                     else return (curList, endLev)
+                  let (curList, endInd) = ((combineList curLine subList), lowInd)
+                  if curInd > prevInd
+                     then return ([listBuilder curList], endInd)
+                     else return (curList, endInd)
                      --}
 
 plainInlineML' :: PandocMonad m => VwParser m Blocks
 plainInlineML' = do
-  x <- spaceChar >> (B.plain <$> trimInlines . mconcat <$> (many inlineML))
+  --x <- spaceChar >> (B.plain <$> trimInlines . mconcat <$> (many inlineML))
+  x <- B.plain <$> trimInlines . mconcat <$> (many inlineML)
   newline
   return x
 
 plainInlineML :: PandocMonad m => VwParser m Blocks
-plainInlineML = (notFollowedBy listStart) >> plainInlineML'
+plainInlineML = (notFollowedBy listStart) >> spaceChar >> plainInlineML'
 
 
 listItemContent :: PandocMonad m => VwParser m Blocks
@@ -314,13 +317,34 @@ listType '#' = Just B.orderedList
 listType _ = Nothing
 
 
-listSpacesParser :: PandocMonad m => VwParser m String
-listSpacesParser = try $ lookAhead $ do
-  s <- listStart
-  return $ ' ':s
+--listSpacesParser :: PandocMonad m => VwParser m String
+--listSpacesParser = try $ lookAhead $ do
+  --s <- listStart
+  --return $ ' ':s
 
-listStart :: PandocMonad m => VwParser m String
-listStart = manyTill spaceChar (oneOf "*-#" >> many1 spaceChar)
+--listStart :: PandocMonad m => VwParser m String
+--listStart = manyTill spaceChar (oneOf "*-#" >> many1 spaceChar)
+
+listStart :: PandocMonad m => VwParser m (Int, String)
+listStart = do
+  s <- many spaceChar
+  listType <- bulletListMarkers <|> orderedListMarkers
+  spaceChar
+  return (length s, listType)
+
+--lm :: PandocMonad m => VwParser m ()
+--lm = (() <$ choice orderedlistMarkers) <|> (() <$ choice (char <$> ['*', '-', '#']))
+
+bulletListMarkers :: PandocMonad m => VwParser m String
+bulletListMarkers = "ul" <$ (char '*' <|> char '-')
+
+--orderedListMarkers :: PandocMonad m => VwParser m ([Blocks] -> Blocks)
+orderedListMarkers :: PandocMonad m => VwParser m String
+orderedListMarkers = 
+  --B.orderedList <$ (choice $ (orderedListMarker Decimal Period):(($OneParen) <$> orderedListMarker <$> [Decimal, LowerRoman, UpperRoman, LowerAlpha, UpperAlpha]))
+    -- <|> (B.orderedList <$ char '#')
+  ("ol" <$ (choice $ (orderedListMarker Decimal Period):(($OneParen) <$> orderedListMarker <$> [Decimal, LowerRoman, UpperRoman, LowerAlpha, UpperAlpha])))
+    <|> ("ol" <$ char '#')
 
 --listIdentifier :: [VwParser m String]
 --listIdentifier = [string "*", string "-", string "#", string "1." 
