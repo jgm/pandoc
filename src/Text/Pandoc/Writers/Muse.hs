@@ -43,6 +43,7 @@ even though it is supported only in Emacs Muse.
 -}
 module Text.Pandoc.Writers.Muse (writeMuse) where
 import Control.Monad.State
+import Data.Text (Text)
 import Data.List (intersperse, transpose, isInfixOf)
 import System.FilePath (takeExtension)
 import Text.Pandoc.Class (PandocMonad)
@@ -53,6 +54,7 @@ import Text.Pandoc.Shared
 import Text.Pandoc.Templates (renderTemplate')
 import Text.Pandoc.Writers.Math
 import Text.Pandoc.Writers.Shared
+import qualified Data.Set as Set
 
 type Notes = [[Block]]
 data WriterState =
@@ -60,33 +62,37 @@ data WriterState =
               , stOptions     :: WriterOptions
               , stTopLevel    :: Bool
               , stInsideBlock :: Bool
+              , stIds         :: Set.Set String
               }
 
 -- | Convert Pandoc to Muse.
 writeMuse :: PandocMonad m
           => WriterOptions
           -> Pandoc
-          -> m String
+          -> m Text
 writeMuse opts document =
   let st = WriterState { stNotes = []
                        , stOptions = opts
                        , stTopLevel = True
                        , stInsideBlock = False
+                       , stIds = Set.empty
                        }
   in evalStateT (pandocToMuse document) st
 
 -- | Return Muse representation of document.
 pandocToMuse :: PandocMonad m
              => Pandoc
-             -> StateT WriterState m String
+             -> StateT WriterState m Text
 pandocToMuse (Pandoc meta blocks) = do
   opts <- gets stOptions
   let colwidth = if writerWrapText opts == WrapAuto
                     then Just $ writerColumns opts
                     else Nothing
+  let render' :: Doc -> Text
+      render' = render Nothing
   metadata <- metaToJSON opts
-               (fmap (render Nothing) . blockListToMuse)
-               (fmap (render Nothing) . inlineListToMuse)
+               (fmap render' . blockListToMuse)
+               (fmap render' . inlineListToMuse)
                meta
   body <- blockListToMuse blocks
   notes <- liftM (reverse . stNotes) get >>= notesToMuse
@@ -184,8 +190,14 @@ blockToMuse (DefinitionList items) = do
           let ind = offset label''
           return $ hang ind label'' contents
 blockToMuse (Header level (ident,_,_) inlines) = do
+  opts <- gets stOptions
   contents <- inlineListToMuse inlines
-  let attr' = if null ident
+
+  ids <- gets stIds
+  let autoId = uniqueIdent inlines ids
+  modify $ \st -> st{ stIds = Set.insert autoId ids }
+
+  let attr' = if null ident || (isEnabled Ext_auto_identifiers opts && ident == autoId)
                  then empty
                  else "#" <> text ident <> cr
   let header' = text $ replicate level '*'
@@ -207,7 +219,7 @@ blockToMuse (Table caption _ _ headers rows) =  do
   let hpipeBlocks sep blocks = hcat $ intersperse sep' blocks
         where h      = maximum (1 : map height blocks)
               sep'   = lblock (length sep) $ vcat (map text $ replicate h sep)
-  let makeRow sep = hpipeBlocks sep . zipWith lblock widthsInChars
+  let makeRow sep = (" " <>) . (hpipeBlocks sep . zipWith lblock widthsInChars)
   let head' = makeRow " || " headers'
   let rowSeparator = if noHeaders then " | " else " |  "
   rows'' <- mapM (\row -> do cols <- mapM blockListToMuse row
@@ -215,7 +227,7 @@ blockToMuse (Table caption _ _ headers rows) =  do
   let body = vcat rows''
   return $  (if noHeaders then empty else head')
          $$ body
-         $$ (if null caption then empty else "|+ " <> caption' <> " +|")
+         $$ (if null caption then empty else " |+ " <> caption' <> " +|")
          $$ blankline
 blockToMuse (Div _ bs) = blockListToMuse bs
 blockToMuse Null = return empty

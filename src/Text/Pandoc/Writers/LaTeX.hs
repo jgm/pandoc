@@ -2,7 +2,7 @@
 {-# LANGUAGE PatternGuards       #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-
-Copyright (C) 2006-2015 John MacFarlane <jgm@berkeley.edu>
+Copyright (C) 2006-2017 John MacFarlane <jgm@berkeley.edu>
 
 This program is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -21,7 +21,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 {- |
    Module      : Text.Pandoc.Writers.LaTeX
-   Copyright   : Copyright (C) 2006-2015 John MacFarlane
+   Copyright   : Copyright (C) 2006-2017 John MacFarlane
    License     : GNU GPL, version 2 or above
 
    Maintainer  : John MacFarlane <jgm@berkeley.edu>
@@ -42,8 +42,9 @@ import Data.Char (isAlphaNum, isAscii, isDigit, isLetter, isPunctuation, ord,
 import Data.List (foldl', intercalate, intersperse, isInfixOf, nub, nubBy,
                   stripPrefix, (\\))
 import Data.Maybe (catMaybes, fromMaybe, isJust)
+import Data.Text (Text)
 import qualified Data.Text as T
-import Network.URI (isURI, unEscapeString)
+import Network.URI (unEscapeString)
 import Text.Pandoc.Class (PandocMonad, report)
 import Text.Pandoc.Definition
 import Text.Pandoc.Highlighting (formatLaTeXBlock, formatLaTeXInline, highlight,
@@ -114,13 +115,13 @@ startingState options = WriterState {
                 , stEmptyLine = True }
 
 -- | Convert Pandoc to LaTeX.
-writeLaTeX :: PandocMonad m => WriterOptions -> Pandoc -> m String
+writeLaTeX :: PandocMonad m => WriterOptions -> Pandoc -> m Text
 writeLaTeX options document =
   evalStateT (pandocToLaTeX options document) $
     startingState options
 
 -- | Convert Pandoc to LaTeX Beamer.
-writeBeamer :: PandocMonad m => WriterOptions -> Pandoc -> m String
+writeBeamer :: PandocMonad m => WriterOptions -> Pandoc -> m Text
 writeBeamer options document =
   evalStateT (pandocToLaTeX options document) $
     (startingState options){ stBeamer = True }
@@ -128,7 +129,7 @@ writeBeamer options document =
 type LW m = StateT WriterState m
 
 pandocToLaTeX :: PandocMonad m
-              => WriterOptions -> Pandoc -> LW m String
+              => WriterOptions -> Pandoc -> LW m Text
 pandocToLaTeX options (Pandoc meta blocks) = do
   -- Strip off final 'references' header if --natbib or --biblatex
   let method = writerCiteMethod options
@@ -146,9 +147,11 @@ pandocToLaTeX options (Pandoc meta blocks) = do
   let colwidth = if writerWrapText options == WrapAuto
                     then Just $ writerColumns options
                     else Nothing
+  let render' :: Doc -> Text
+      render' = render colwidth
   metadata <- metaToJSON options
-              (fmap (render colwidth) . blockListToLaTeX)
-              (fmap (render colwidth) . inlineListToLaTeX)
+              (fmap render' . blockListToLaTeX)
+              (fmap render' . inlineListToLaTeX)
               meta
   let bookClasses = ["memoir","book","report","scrreprt","scrbook"]
   let documentClass = case P.parse pDocumentClass "template" template of
@@ -180,8 +183,8 @@ pandocToLaTeX options (Pandoc meta blocks) = do
                   then toSlides blocks''
                   else return blocks''
   body <- mapM (elementToLaTeX options) $ hierarchicalize blocks'''
-  (biblioTitle :: String) <- liftM (render colwidth) $ inlineListToLaTeX lastHeader
-  let main = render colwidth $ vsep body
+  (biblioTitle :: Text) <- render' <$> inlineListToLaTeX lastHeader
+  let main = render' $ vsep body
   st <- get
   titleMeta <- stringToLaTeX TextString $ stringify $ docTitle meta
   authorsMeta <- mapM (stringToLaTeX TextString . stringify) $ docAuthors meta
@@ -1062,6 +1065,9 @@ inlineToLaTeX (Link _ txt (src, _)) =
                 src' <- stringToLaTeX URLString (escapeURI src)
                 return $ text ("\\href{" ++ src' ++ "}{") <>
                          contents <> char '}'
+inlineToLaTeX il@(Image _ _ ('d':'a':'t':'a':':':_, _)) = do
+  report $ InlineNotRendered il
+  return empty
 inlineToLaTeX (Image attr _ (source, _)) = do
   setEmptyLine False
   modify $ \s -> s{ stGraphics = True }

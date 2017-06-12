@@ -3,7 +3,7 @@
 {-# LANGUAGE TypeSynonymInstances #-}
 -- RelaxedPolyRec needed for inlinesBetween on GHC < 7
 {-
-  Copyright (C) 2012-2015 John MacFarlane <jgm@berkeley.edu>
+  Copyright (C) 2012-2017 John MacFarlane <jgm@berkeley.edu>
 
 This program is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -22,7 +22,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 {- |
    Module      : Text.Pandoc.Readers.MediaWiki
-   Copyright   : Copyright (C) 2012-2015 John MacFarlane
+   Copyright   : Copyright (C) 2012-2017 John MacFarlane
    License     : GNU GPL, version 2 or above
 
    Maintainer  : John MacFarlane <jgm@berkeley.edu>
@@ -41,6 +41,7 @@ module Text.Pandoc.Readers.MediaWiki ( readMediaWiki ) where
 import Control.Monad
 import Control.Monad.Except (throwError)
 import Data.Char (isDigit, isSpace)
+import Data.Text (Text, unpack)
 import qualified Data.Foldable as F
 import Data.List (intercalate, intersperse, isPrefixOf)
 import qualified Data.Map as M
@@ -64,7 +65,7 @@ import Text.Pandoc.XML (fromEntities)
 -- | Read mediawiki from an input string and return a Pandoc document.
 readMediaWiki :: PandocMonad m
               => ReaderOptions -- ^ Reader options
-              -> String        -- ^ String to parse (assuming @'\n'@ line endings)
+              -> Text          -- ^ String to parse (assuming @'\n'@ line endings)
               -> m Pandoc
 readMediaWiki opts s = do
   parsed <- readWithM parseMediaWiki MWState{ mwOptions = opts
@@ -74,8 +75,9 @@ readMediaWiki opts s = do
                                             , mwHeaderMap = M.empty
                                             , mwIdentifierList = Set.empty
                                             , mwLogMessages = []
+                                            , mwInTT = False
                                             }
-            (s ++ "\n")
+            (unpack s ++ "\n")
   case parsed of
     Right result -> return result
     Left e       -> throwError e
@@ -87,6 +89,7 @@ data MWState = MWState { mwOptions         :: ReaderOptions
                        , mwHeaderMap       :: M.Map Inlines String
                        , mwIdentifierList  :: Set.Set String
                        , mwLogMessages     :: [LogMessage]
+                       , mwInTT            :: Bool
                        }
 
 type MWParser m = ParserT [Char] MWState m
@@ -569,7 +572,12 @@ inlineTag = do
        TagOpen "sub" _ -> B.subscript <$> inlinesInTags "sub"
        TagOpen "sup" _ -> B.superscript <$> inlinesInTags "sup"
        TagOpen "code" _ -> encode <$> inlinesInTags "code"
-       TagOpen "tt" _ -> encode <$> inlinesInTags "tt"
+       TagOpen "tt" _ -> do
+         inTT <- mwInTT <$> getState
+         updateState $ \st -> st{ mwInTT = True }
+         result <- encode <$> inlinesInTags "tt"
+         updateState $ \st -> st{ mwInTT = inTT }
+         return result
        TagOpen "hask" _ -> B.codeWith ("",["haskell"],[]) <$> charsInTags "hask"
        _ -> B.rawInline "html" . snd <$> htmlTag (~== tag)
 
@@ -688,6 +696,10 @@ strong = B.strong <$> nested (inlinesBetween start end)
           end   = try $ sym "'''"
 
 doubleQuotes :: PandocMonad m => MWParser m Inlines
-doubleQuotes = B.doubleQuoted <$> nested (inlinesBetween openDoubleQuote closeDoubleQuote)
+doubleQuotes = do
+  guardEnabled Ext_smart
+  inTT <- mwInTT <$> getState
+  guard (not inTT)
+  B.doubleQuoted <$> nested (inlinesBetween openDoubleQuote closeDoubleQuote)
     where openDoubleQuote = sym "\"" >> lookAhead nonspaceChar
           closeDoubleQuote = try $ sym "\""

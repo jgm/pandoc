@@ -1,5 +1,5 @@
 {-
-Copyright © 2012-2015 John MacFarlane <jgm@berkeley.edu>
+Copyright © 2012-2017 John MacFarlane <jgm@berkeley.edu>
             2017 Albert Krewinkel <tarleb+pandoc@moltkeplatz.de>
 
 This program is free software; you can redistribute it and/or modify
@@ -17,11 +17,11 @@ along with this program; if not, write to the Free Software
 Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 -}
 {-# LANGUAGE FlexibleInstances #-}
-{-# LANGUAGE LambdaCase #-}
+{-# LANGUAGE LambdaCase        #-}
 {-# OPTIONS_GHC -fno-warn-orphans #-}
 {- |
    Module      : Text.Pandoc.Lua.StackInstances
-   Copyright   : © 2012-2016 John MacFarlane
+   Copyright   : © 2012-2017 John MacFarlane
                  © 2017 Albert Krewinkel
    License     : GNU GPL, version 2 or above
 
@@ -32,13 +32,13 @@ StackValue instances for pandoc types.
 -}
 module Text.Pandoc.Lua.StackInstances () where
 
-import Control.Applicative ( (<|>) )
-import Scripting.Lua
-  ( LTYPE(..), LuaState, StackValue(..), ltype, newtable, objlen )
+import Control.Applicative ((<|>))
+import Scripting.Lua (LTYPE (..), LuaState, StackValue (..), ltype, newtable,
+                      objlen)
 import Text.Pandoc.Definition
 import Text.Pandoc.Lua.SharedInstances ()
-import Text.Pandoc.Lua.Util ( addValue, getTable, pushViaConstructor )
-import Text.Pandoc.Shared ( safeRead )
+import Text.Pandoc.Lua.Util (addValue, getTable, pushViaConstructor)
+import Text.Pandoc.Shared (safeRead)
 
 instance StackValue Pandoc where
   push lua (Pandoc meta blocks) = do

@@ -3,7 +3,6 @@
 flags:
   pandoc:
     trypandoc: false
-    https: true
     embed_data_files: false
     old-locale: false
     network-uri: true

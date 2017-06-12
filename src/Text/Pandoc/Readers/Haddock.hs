@@ -16,6 +16,7 @@ module Text.Pandoc.Readers.Haddock
 
 import Control.Monad.Except (throwError)
 import Data.List (intersperse, stripPrefix)
+import Data.Text (Text, unpack)
 import Data.Maybe (fromMaybe)
 import Data.Monoid ((<>))
 import Documentation.Haddock.Parser
@@ -32,9 +33,9 @@ import Text.Pandoc.Shared (splitBy, trim)
 -- | Parse Haddock markup and return a 'Pandoc' document.
 readHaddock :: PandocMonad m
             => ReaderOptions
-            -> String
+            -> Text
             -> m Pandoc
-readHaddock opts s = case readHaddockEither opts s of
+readHaddock opts s = case readHaddockEither opts (unpack s) of
   Right result -> return result
   Left e       -> throwError e
 

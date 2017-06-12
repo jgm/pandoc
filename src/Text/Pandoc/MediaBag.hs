@@ -1,7 +1,7 @@
 {-# LANGUAGE DeriveDataTypeable         #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
 {-
-Copyright (C) 2014 John MacFarlane <jgm@berkeley.edu>
+Copyright (C) 2014-2015, 2017 John MacFarlane <jgm@berkeley.edu>
 
 This program is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -20,7 +20,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 {- |
    Module      : Text.Pandoc.MediaBag
-   Copyright   : Copyright (C) 2014 John MacFarlane
+   Copyright   : Copyright (C) 2014-2015, 2017 John MacFarlane
    License     : GNU GPL, version 2 or above
 
    Maintainer  : John MacFarlane <jgm@berkeley.edu>
@@ -35,21 +35,15 @@ module Text.Pandoc.MediaBag (
                      lookupMedia,
                      insertMedia,
                      mediaDirectory,
-                     extractMediaBag
                      ) where
-import Control.Monad (when)
-import Control.Monad.Trans (MonadIO (..))
 import qualified Data.ByteString.Lazy as BL
 import Data.Data (Data)
 import qualified Data.Map as M
 import Data.Maybe (fromMaybe)
 import Data.Typeable (Typeable)
-import System.Directory (createDirectoryIfMissing)
 import System.FilePath
 import qualified System.FilePath.Posix as Posix
-import System.IO (stderr)
 import Text.Pandoc.MIME (MimeType, getMimeTypeDef)
-import qualified Text.Pandoc.UTF8 as UTF8
 
 -- | A container for a collection of binary resources, with names and
 -- mime types.  Note that a 'MediaBag' is a Monoid, so 'mempty'
@@ -87,28 +81,3 @@ mediaDirectory :: MediaBag -> [(String, MimeType, Int)]
 mediaDirectory (MediaBag mediamap) =
   M.foldWithKey (\fp (mime,contents) ->
       (((Posix.joinPath fp), mime, fromIntegral $ BL.length contents):)) [] mediamap
-
--- | Extract contents of MediaBag to a given directory.  Print informational
--- messages if 'verbose' is true.
--- TODO: eventually we may want to put this into PandocMonad
--- In PandocPure, it could write to the fake file system...
-extractMediaBag :: MonadIO m
-                => Bool
-                -> FilePath
-                -> MediaBag
-                -> m ()
-extractMediaBag verbose dir (MediaBag mediamap) = liftIO $ do
-  sequence_ $ M.foldWithKey
-     (\fp (_ ,contents) ->
-        ((writeMedia verbose dir (Posix.joinPath fp, contents)):)) [] mediamap
-
-writeMedia :: Bool -> FilePath -> (FilePath, BL.ByteString) -> IO ()
-writeMedia verbose dir (subpath, bs) = do
-  -- we join and split to convert a/b/c to a\b\c on Windows;
-  -- in zip containers all paths use /
-  let fullpath = dir </> normalise subpath
-  createDirectoryIfMissing True $ takeDirectory fullpath
-  when verbose $ UTF8.hPutStrLn stderr $ "pandoc: extracting " ++ fullpath
-  BL.writeFile fullpath bs
-
-

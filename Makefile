@@ -18,8 +18,14 @@ test:
 bench:
 	stack bench
 
+weigh:
+	stack build --flag 'pandoc:weigh-pandoc' && stack exec weigh-pandoc
+
 reformat:
 	for f in $(sourcefiles); do echo $$f; stylish-haskell -i $$f ; done
+
+lint:
+	for f in $(sourcefiles); do echo $$f; hlint --verbose --refactor --refactor-options='-i -s' $$f; done
 
 changes_github:
 	pandoc --filter extract-changes.hs changelog -t markdown_github | sed -e 's/\\#/#/g' | pbcopy
@@ -40,8 +46,8 @@ macospkg: man/pandoc.1
 winpkg: pandoc-$(version)-windows.msi
 
 pandoc-$(version)-windows.msi:
-	wget 'https://ci.appveyor.com/api/projects/jgm/pandoc/artifacts/windows/pandoc.msi?branch=$(BRANCH)' -O pandoc.msi && \
-	osslsigncode sign -pkcs12 ~/Private/ComodoCodeSigning.exp2017.p12 -in pandoc.msi -i http://johnmacfarlane.net/ -t http://timestamp.comodoca.com/ -out $@ -askpass
+	wget 'https://ci.appveyor.com/api/projects/jgm/pandoc/artifacts/windows/pandoc-windows-i386.msi?branch=$(BRANCH)' -O pandoc.msi && \
+	osslsigncode sign -pkcs12 ~/Private/ComodoCodeSigning.exp2019.p12 -in pandoc.msi -i http://johnmacfarlane.net/ -t http://timestamp.comodoca.com/ -out $@ -askpass
 	rm pandoc.msi
 
 man/pandoc.1: MANUAL.txt man/pandoc.1.template
@@ -59,4 +65,4 @@ download_stats:
 clean:
 	stack clean
 
-.PHONY: deps quick full install clean test bench changes_github macospkg dist prof download_stats reformat
+.PHONY: deps quick full install clean test bench changes_github macospkg dist prof download_stats reformat lint weigh

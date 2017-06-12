@@ -1,6 +1,6 @@
 {-# LANGUAGE ScopedTypeVariables #-}
 {-
-Copyright (C) 2006-2015 John MacFarlane <jgm@berkeley.edu>
+Copyright (C) 2006-2017 John MacFarlane <jgm@berkeley.edu>
 
 This program is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 {- |
    Module      : Text.Pandoc.Writers.RTF
-   Copyright   : Copyright (C) 2006-2015 John MacFarlane
+   Copyright   : Copyright (C) 2006-2017 John MacFarlane
    License     : GNU GPL, version 2 or above
 
    Maintainer  : John MacFarlane <jgm@berkeley.edu>
@@ -34,6 +34,8 @@ import Control.Monad.Except (catchError, throwError)
 import qualified Data.ByteString as B
 import Data.Char (chr, isDigit, ord)
 import Data.List (intercalate, isSuffixOf)
+import Data.Text (Text)
+import qualified Data.Text as T
 import qualified Data.Map as M
 import Text.Pandoc.Class (PandocMonad, report)
 import qualified Text.Pandoc.Class as P
@@ -92,15 +94,12 @@ rtfEmbedImage opts x@(Image attr _ (src,_)) = catchError
              report $ CouldNotDetermineMimeType src
              return x)
   (\e -> do
-     case e of
-          PandocIOError _ e' ->
-           report $ CouldNotFetchResource src (show e')
-          e' -> report $ CouldNotFetchResource src (show e')
+     report $ CouldNotFetchResource src (show e)
      return x)
 rtfEmbedImage _ x = return x
 
 -- | Convert Pandoc to a string in rich text format.
-writeRTF :: PandocMonad m => WriterOptions -> Pandoc -> m String
+writeRTF :: PandocMonad m => WriterOptions -> Pandoc -> m Text
 writeRTF options doc = do
   -- handle images
   Pandoc meta@(Meta metamap) blocks <- walkM (rtfEmbedImage options) doc
@@ -126,7 +125,8 @@ writeRTF options doc = do
                     then defField "toc" toc
                     else id)
               $ metadata
-  return $ case writerTemplate options of
+  return $ T.pack
+         $ case writerTemplate options of
            Just tpl -> renderTemplate' tpl context
            Nothing  -> case reverse body of
                             ('\n':_) -> body

@@ -2,7 +2,7 @@
 {-# LANGUAGE OverloadedStrings   #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-
-Copyright (C) 2012-2016 John MacFarlane <jgm@berkeley.edu>
+Copyright (C) 2012-2017 John MacFarlane <jgm@berkeley.edu>
 
 This program is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -21,7 +21,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 {- |
    Module      : Text.Pandoc.PDF
-   Copyright   : Copyright (C) 2012-2016 John MacFarlane
+   Copyright   : Copyright (C) 2012-2017 John MacFarlane
    License     : GNU GPL, version 2 or above
 
    Maintainer  : John MacFarlane <jgm@berkeley.edu>
@@ -34,15 +34,15 @@ module Text.Pandoc.PDF ( makePDF ) where
 
 import qualified Codec.Picture as JP
 import qualified Control.Exception as E
-import Control.Monad (unless, when, (<=<))
+import Control.Monad (unless, when)
 import Control.Monad.Trans (MonadIO (..))
+import qualified Data.Text as T
+import Data.Text (Text)
 import qualified Data.ByteString as BS
 import Data.ByteString.Lazy (ByteString)
 import qualified Data.ByteString.Lazy as B
 import qualified Data.ByteString.Lazy as BL
 import qualified Data.ByteString.Lazy.Char8 as BC
-import Data.Digest.Pure.SHA (sha1, showDigest)
-import Data.List (isInfixOf)
 import Data.Maybe (fromMaybe)
 import Data.Monoid ((<>))
 import System.Directory
@@ -53,7 +53,7 @@ import System.IO (stdout)
 import System.IO.Temp (withTempDirectory, withTempFile)
 import Text.Pandoc.Definition
 import Text.Pandoc.MediaBag
-import Text.Pandoc.MIME (extensionFromMimeType, getMimeType)
+import Text.Pandoc.MIME (getMimeType)
 import Text.Pandoc.Options (HTMLMathMethod (..), WriterOptions (..))
 import Text.Pandoc.Process (pipeProcess)
 import Text.Pandoc.Shared (inDirectory, stringify, withTempDir)
@@ -63,8 +63,9 @@ import Text.Pandoc.Writers.Shared (getField, metaToJSON)
 #ifdef _WINDOWS
 import Data.List (intercalate)
 #endif
-import Text.Pandoc.Class (PandocIO, fetchItem, report, runIO, runIOorExplode,
-                          setMediaBag, setVerbosity)
+import Text.Pandoc.Class (PandocIO, report, runIO, runIOorExplode,
+                          setMediaBag, setVerbosity, getResourcePath,
+                          setResourcePath, fillMediaBag, extractMedia)
 import Text.Pandoc.Logging
 
 #ifdef _WINDOWS
@@ -72,16 +73,15 @@ changePathSeparators :: FilePath -> FilePath
 changePathSeparators = intercalate "/" . splitDirectories
 #endif
 
-makePDF :: MonadIO m
-        => String              -- ^ pdf creator (pdflatex, lualatex,
+makePDF :: String              -- ^ pdf creator (pdflatex, lualatex,
                                -- xelatex, context, wkhtmltopdf, pdfroff)
-        -> (WriterOptions -> Pandoc -> PandocIO String)  -- ^ writer
+        -> (WriterOptions -> Pandoc -> PandocIO Text)  -- ^ writer
         -> WriterOptions       -- ^ options
         -> Verbosity           -- ^ verbosity level
         -> MediaBag            -- ^ media
         -> Pandoc              -- ^ document
-        -> m (Either ByteString ByteString)
-makePDF "wkhtmltopdf" writer opts verbosity _ doc@(Pandoc meta _) = liftIO $ do
+        -> PandocIO (Either ByteString ByteString)
+makePDF "wkhtmltopdf" writer opts verbosity _ doc@(Pandoc meta _) = do
   let mathArgs = case writerHTMLMathMethod opts of
                  -- with MathJax, wait til all math is rendered:
                       MathJax _ -> ["--run-script", "MathJax.Hub.Register.StartupHook('End Typeset', function() { window.status = 'mathjax_loaded' });",
@@ -102,23 +102,20 @@ makePDF "wkhtmltopdf" writer opts verbosity _ doc@(Pandoc meta _) = liftIO $ do
                  ,("margin-left", fromMaybe (Just "1.25in")
                             (getField "margin-left" meta'))
                  ]
-  source <- runIOorExplode $ do
-              setVerbosity verbosity
-              writer opts doc
-  html2pdf verbosity args source
-makePDF "pdfroff" writer opts verbosity _mediabag doc = liftIO $ do
-  source <- runIOorExplode $ do
-              setVerbosity verbosity
-              writer opts doc
+  source <- writer opts doc
+  liftIO $ html2pdf verbosity args source
+makePDF "pdfroff" writer opts verbosity _mediabag doc = do
+  source <- writer opts doc
   let args   = ["-ms", "-mpdfmark", "-e", "-t", "-k", "-KUTF-8", "-i",
                 "--no-toc-relocation"]
-  ms2pdf verbosity args source
+  liftIO $ ms2pdf verbosity args source
 makePDF program writer opts verbosity mediabag doc = do
   let withTemp = if takeBaseName program == "context"
                     then withTempDirectory "."
                     else withTempDir
+  resourcePath <- getResourcePath
   liftIO $ withTemp "tex2pdf." $ \tmpdir -> do
-    doc' <- handleImages verbosity opts mediabag tmpdir doc
+    doc' <- handleImages verbosity opts resourcePath mediabag tmpdir doc
     source <- runIOorExplode $ do
                 setVerbosity verbosity
                 writer opts doc'
@@ -131,44 +128,19 @@ makePDF program writer opts verbosity mediabag doc = do
 
 handleImages :: Verbosity
              -> WriterOptions
+             -> [FilePath]
              -> MediaBag
              -> FilePath      -- ^ temp dir to store images
              -> Pandoc        -- ^ document
              -> IO Pandoc
-handleImages verbosity opts mediabag tmpdir =
-  walkM (convertImages verbosity tmpdir) <=<
-          walkM (handleImage' verbosity opts mediabag tmpdir)
-
-handleImage' :: Verbosity
-             -> WriterOptions
-             -> MediaBag
-             -> FilePath
-             -> Inline
-             -> IO Inline
-handleImage' verbosity opts mediabag tmpdir (Image attr ils (src,tit)) = do
-    exists <- doesFileExist src
-    if exists
-       then return $ Image attr ils (src,tit)
-       else do
-         res <- runIO $ do
-                  setVerbosity verbosity
-                  setMediaBag mediabag
-                  fetchItem (writerSourceURL opts) src
-         case res of
-              Right (contents, Just mime) -> do
-                let ext = fromMaybe (takeExtension src) $
-                          extensionFromMimeType mime
-                let basename = showDigest $ sha1 $ BL.fromChunks [contents]
-                let fname = tmpdir </> basename <.> ext
-                BS.writeFile fname contents
-                return $ Image attr ils (fname,tit)
-              _ -> do
-                runIO $ do
-                  setVerbosity verbosity
-                  report $ CouldNotFetchResource src "skipping..."
-                -- return alt text
-                return $ Emph ils
-handleImage' _ _ _ _ x = return x
+handleImages verbosity opts resourcePath mediabag tmpdir doc = do
+  doc' <- runIOorExplode $ do
+            setVerbosity verbosity
+            setResourcePath resourcePath
+            setMediaBag mediabag
+            fillMediaBag (writerSourceURL opts) doc >>=
+              extractMedia tmpdir
+  walkM (convertImages verbosity tmpdir) doc'
 
 convertImages :: Verbosity -> FilePath -> Inline -> IO Inline
 convertImages verbosity tmpdir (Image attr ils (src, tit)) = do
@@ -191,6 +163,7 @@ convertImage tmpdir fname =
     Just "image/png" -> doNothing
     Just "image/jpeg" -> doNothing
     Just "application/pdf" -> doNothing
+    Just "image/svg+xml" -> return $ Left "conversion from svg not supported"
     _ -> JP.readImage fname >>= \res ->
           case res of
                Left e    -> return $ Left e
@@ -206,10 +179,10 @@ tex2pdf' :: Verbosity                       -- ^ Verbosity level
          -> [String]                        -- ^ Arguments to the latex-engine
          -> FilePath                        -- ^ temp directory for output
          -> String                          -- ^ tex program
-         -> String                          -- ^ tex source
+         -> Text                            -- ^ tex source
          -> IO (Either ByteString ByteString)
 tex2pdf' verbosity args tmpDir program source = do
-  let numruns = if "\\tableofcontents" `isInfixOf` source
+  let numruns = if "\\tableofcontents" `T.isInfixOf` source
                    then 3  -- to get page numbers
                    else 2  -- 1 run won't give you PDF bookmarks
   (exit, log', mbPdf) <- runTeXProgram verbosity program args 1 numruns tmpDir source
@@ -251,11 +224,11 @@ extractConTeXtMsg log' = do
 -- contents of stdout, contents of produced PDF if any).  Rerun
 -- a fixed number of times to resolve references.
 runTeXProgram :: Verbosity -> String -> [String] -> Int -> Int -> FilePath
-              -> String -> IO (ExitCode, ByteString, Maybe ByteString)
+              -> Text -> IO (ExitCode, ByteString, Maybe ByteString)
 runTeXProgram verbosity program args runNumber numRuns tmpDir source = do
     let file = tmpDir </> "input.tex"
     exists <- doesFileExist file
-    unless exists $ UTF8.writeFile file source
+    unless exists $ BS.writeFile file $ UTF8.fromText source
 #ifdef _WINDOWS
     -- note:  we want / even on Windows, for TexLive
     let tmpDir' = changePathSeparators tmpDir
@@ -304,7 +277,7 @@ runTeXProgram verbosity program args runNumber numRuns tmpDir source = do
 
 ms2pdf :: Verbosity
        -> [String]
-       -> String
+       -> Text
        -> IO (Either ByteString ByteString)
 ms2pdf verbosity args source = do
   env' <- getEnvironment
@@ -316,10 +289,10 @@ ms2pdf verbosity args source = do
     mapM_ print env'
     putStr "\n"
     putStrLn $ "[makePDF] Contents:\n"
-    putStr source
+    putStr $ T.unpack source
     putStr "\n"
   (exit, out) <- pipeProcess (Just env') "pdfroff" args
-                     (UTF8.fromStringLazy source)
+                     (BL.fromStrict $ UTF8.fromText source)
   when (verbosity >= INFO) $ do
     B.hPutStr stdout out
     putStr "\n"
@@ -329,12 +302,12 @@ ms2pdf verbosity args source = do
 
 html2pdf  :: Verbosity    -- ^ Verbosity level
           -> [String]     -- ^ Args to wkhtmltopdf
-          -> String       -- ^ HTML5 source
+          -> Text         -- ^ HTML5 source
           -> IO (Either ByteString ByteString)
 html2pdf verbosity args source = do
   file <- withTempFile "." "html2pdf.html" $ \fp _ -> return fp
   pdfFile <- withTempFile "." "html2pdf.pdf" $ \fp _ -> return fp
-  UTF8.writeFile file source
+  BS.writeFile file $ UTF8.fromText source
   let programArgs = args ++ [file, pdfFile]
   env' <- getEnvironment
   when (verbosity >= INFO) $ do
@@ -369,11 +342,11 @@ html2pdf verbosity args source = do
 
 context2pdf :: Verbosity    -- ^ Verbosity level
             -> FilePath     -- ^ temp directory for output
-            -> String       -- ^ ConTeXt source
+            -> Text         -- ^ ConTeXt source
             -> IO (Either ByteString ByteString)
 context2pdf verbosity tmpDir source = inDirectory tmpDir $ do
   let file = "input.tex"
-  UTF8.writeFile file source
+  BS.writeFile file $ UTF8.fromText source
 #ifdef _WINDOWS
   -- note:  we want / even on Windows, for TexLive
   let tmpDir' = changePathSeparators tmpDir

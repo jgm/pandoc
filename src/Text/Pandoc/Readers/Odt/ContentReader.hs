@@ -94,8 +94,6 @@ data ReaderState
                  , envMedia         :: Media
                    -- | Hold binary resources used in the document
                  , odtMediaBag      :: MediaBag
---               , sequences
---               , trackedChangeIDs
                  }
   deriving ( Show )
 
@@ -898,9 +896,6 @@ read_reference_ref = matchingElement NsText "reference-ref"
 ----------------------
 -- Entry point
 ----------------------
-
---read_plain_content :: OdtReaderSafe _x Inlines
---read_plain_content = strContent >>^ text
 
 read_text :: OdtReaderSafe _x Pandoc
 read_text = matchChildContent' [ read_header

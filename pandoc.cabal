@@ -136,8 +136,15 @@ Extra-Source-Files:
                  test/*.native
                  test/command/*.md
                  test/command/abbrevs
+                 test/command/SVG_logo-without-xml-declaration.svg
+                 test/command/SVG_logo.svg
+                 test/command/corrupt.svg
+                 test/command/inkscape-cube.svg
                  test/command/sub-file-chapter-1.tex
                  test/command/sub-file-chapter-2.tex
+                 test/command/3510-subdoc.org
+                 test/command/3510-export.latex
+                 test/command/3510-src.hs
                  test/docbook-reader.docbook
                  test/docbook-xref.docbook
                  test/html-reader.html
@@ -264,10 +271,6 @@ Flag weigh-pandoc
   Description:   Build weigh-pandoc to measure memory usage.
   Default:       False
 
-Flag https
-  Description:   Enable support for downloading of resources over https.
-  Default:       True
-
 Flag network-uri
   Description:   Get Network.URI from the network-uri package
   Default:       True
@@ -316,7 +319,10 @@ Library
                  JuicyPixels >= 3.1.6.1 && < 3.3,
                  Glob >= 0.7 && < 0.8,
                  cmark >= 0.5 && < 0.6,
-                 doctemplates >= 0.1 && < 0.2
+                 doctemplates >= 0.1 && < 0.2,
+                 http-client >= 0.4.30 && < 0.6,
+                 http-client-tls >= 0.2.4 && < 0.4,
+                 http-types >= 0.8 && < 0.10
   if os(windows)
     Cpp-options:      -D_WINDOWS
   else
@@ -330,18 +336,10 @@ Library
      Build-Depends: network-uri >= 2.6 && < 2.7, network >= 2.6
   else
      Build-Depends: network >= 2 && < 2.6
-  if flag(https)
-     Build-Depends: http-client >= 0.4.30 && < 0.6,
-                    http-client-tls >= 0.2.4 && < 0.4,
-                    http-types >= 0.8 && < 0.10
-     cpp-options:   -DHTTP_CLIENT
   if flag(embed_data_files)
      cpp-options:   -DEMBED_DATA_FILES
      build-depends: file-embed >= 0.0 && < 0.1
      other-modules: Text.Pandoc.Data
-     if os(darwin)
-        Build-Tools:   cpphs >= 1.19
-        ghc-options:   -pgmP cpphs -optP --cpp
   if os(windows)
     Cpp-options:      -D_WINDOWS
   Ghc-Options:   -Wall -fno-warn-unused-do-bind
@@ -448,6 +446,7 @@ Library
                    Text.Pandoc.Readers.Odt.Arrows.Utils,
                    Text.Pandoc.Readers.Org.BlockStarts,
                    Text.Pandoc.Readers.Org.Blocks,
+                   Text.Pandoc.Readers.Org.DocumentTree,
                    Text.Pandoc.Readers.Org.ExportSettings,
                    Text.Pandoc.Readers.Org.Inlines,
                    Text.Pandoc.Readers.Org.Meta,
@@ -508,6 +507,7 @@ Executable weigh-pandoc
   if flag(weigh-pandoc)
      Build-Depends:   pandoc,
                       base >= 4.2 && < 5,
+                      text,
                       weigh >= 0.0 && < 0.1,
                       mtl >= 2.2 && < 2.3
      Buildable:       True
@@ -585,7 +585,8 @@ benchmark benchmark-pandoc
   Build-Depends:   pandoc,
                    time, bytestring, containers,
                    base >= 4.2 && < 5,
+                   text >= 0.11 && < 1.3,
                    syb >= 0.1 && < 0.8,
-                   criterion >= 1.0 && < 1.2
+                   criterion >= 1.0 && < 1.3
   Ghc-Options:   -rtsopts -Wall -fno-warn-unused-do-bind
   Default-Language: Haskell98

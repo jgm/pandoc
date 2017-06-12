@@ -1,5 +1,5 @@
 {-
-Copyright (C) 2014-2016 Albert Krewinkel <tarleb+pandoc@moltkeplatz.de>
+Copyright (C) 2014-2017 Albert Krewinkel <tarleb+pandoc@moltkeplatz.de>
 
 This program is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -17,8 +17,8 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 -}
 
 {- |
-   Module      : Text.Pandoc.Readers.Org.Options
-   Copyright   : Copyright (C) 2016 Albert Krewinkel
+   Module      : Text.Pandoc.Readers.Org.ExportSettings
+   Copyright   : © 2016–2017 Albert Krewinkel
    License     : GNU GPL, version 2 or above
 
    Maintainer  : Albert Krewinkel <tarleb+pandoc@moltkeplatz.de>
@@ -71,7 +71,7 @@ exportSetting = choice
   , ignoredSetting "pri"
   , ignoredSetting "prop"
   , ignoredSetting "stat"
-  , ignoredSetting "tags"
+  , booleanSetting "tags" (\val es -> es { exportWithTags = val })
   , ignoredSetting "tasks"
   , ignoredSetting "tex"
   , ignoredSetting "timestamp"

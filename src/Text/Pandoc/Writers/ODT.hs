@@ -1,6 +1,6 @@
 {-# LANGUAGE ScopedTypeVariables #-}
 {-
-Copyright (C) 2008-2015 John MacFarlane <jgm@berkeley.edu>
+Copyright (C) 2008-2017 John MacFarlane <jgm@berkeley.edu>
 
 This program is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 {- |
    Module      : Text.Pandoc.Writers.ODT
-   Copyright   : Copyright (C) 2008-2015 John MacFarlane
+   Copyright   : Copyright (C) 2008-2017 John MacFarlane
    License     : GNU GPL, version 2 or above
 
    Maintainer  : John MacFarlane <jgm@berkeley.edu>
@@ -35,18 +35,18 @@ import Control.Monad.State
 import qualified Data.ByteString.Lazy as B
 import Data.List (isPrefixOf)
 import Data.Maybe (fromMaybe)
+import qualified Data.Text.Lazy as TL
 import System.FilePath (takeDirectory, takeExtension, (<.>))
 import Text.Pandoc.Class (PandocMonad, report)
 import qualified Text.Pandoc.Class as P
 import Text.Pandoc.Definition
-import Text.Pandoc.Error (PandocError (..))
 import Text.Pandoc.ImageSize
 import Text.Pandoc.Logging
 import Text.Pandoc.MIME (extensionFromMimeType, getMimeType)
 import Text.Pandoc.Options (WrapOption (..), WriterOptions (..))
 import Text.Pandoc.Pretty
 import Text.Pandoc.Shared (stringify)
-import Text.Pandoc.UTF8 (fromStringLazy)
+import Text.Pandoc.UTF8 (fromStringLazy, fromTextLazy)
 import Text.Pandoc.Walk
 import Text.Pandoc.Writers.OpenDocument (writeOpenDocument)
 import Text.Pandoc.Writers.Shared (fixDisplayMath)
@@ -89,7 +89,7 @@ pandocToODT opts doc@(Pandoc meta _) = do
   newContents <- lift $ writeOpenDocument opts{writerWrapText = WrapNone} doc'
   epochtime <- floor `fmap` (lift P.getPOSIXTime)
   let contentEntry = toEntry "content.xml" epochtime
-                     $ fromStringLazy newContents
+                     $ fromTextLazy $ TL.fromStrict newContents
   picEntries <- gets stEntries
   let archive = foldr addEntryToArchive refArchive
                 $ contentEntry : picEntries
@@ -178,10 +178,7 @@ transformPicMath opts (Image attr@(id', cls, _) lab (src,t)) = catchError
        modify $ \st -> st{ stEntries = entry : entries }
        return $ Image newattr lab (newsrc, t))
    (\e -> do
-       case e of
-            PandocIOError _ e' ->
-               report $ CouldNotFetchResource src (show e')
-            e' -> report $ CouldNotFetchResource src (show e')
+       report $ CouldNotFetchResource src (show e)
        return $ Emph lab)
 
 transformPicMath _ (Math t math) = do

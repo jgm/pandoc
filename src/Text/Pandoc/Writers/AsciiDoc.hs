@@ -1,6 +1,6 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-
-Copyright (C) 2006-2015 John MacFarlane <jgm@berkeley.edu>
+Copyright (C) 2006-2017 John MacFarlane <jgm@berkeley.edu>
 
 This program is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 {- |
    Module      : Text.Pandoc.Writers.AsciiDoc
-   Copyright   : Copyright (C) 2006-2015 John MacFarlane
+   Copyright   : Copyright (C) 2006-2017 John MacFarlane
    License     : GNU GPL, version 2 or above
 
    Maintainer  : John MacFarlane <jgm@berkeley.edu>
@@ -43,6 +43,7 @@ import Data.Char (isPunctuation, isSpace)
 import Data.List (intercalate, intersperse, stripPrefix)
 import qualified Data.Map as M
 import Data.Maybe (fromMaybe)
+import Data.Text (Text)
 import qualified Data.Text as T
 import Text.Pandoc.Class (PandocMonad, report)
 import Text.Pandoc.Definition
@@ -62,7 +63,7 @@ data WriterState = WriterState { defListMarker    :: String
                                }
 
 -- | Convert Pandoc to AsciiDoc.
-writeAsciiDoc :: PandocMonad m => WriterOptions -> Pandoc -> m String
+writeAsciiDoc :: PandocMonad m => WriterOptions -> Pandoc -> m Text
 writeAsciiDoc opts document =
   evalStateT (pandocToAsciiDoc opts document) WriterState{
       defListMarker = "::"
@@ -74,16 +75,18 @@ writeAsciiDoc opts document =
 type ADW = StateT WriterState
 
 -- | Return asciidoc representation of document.
-pandocToAsciiDoc :: PandocMonad m => WriterOptions -> Pandoc -> ADW m String
+pandocToAsciiDoc :: PandocMonad m => WriterOptions -> Pandoc -> ADW m Text
 pandocToAsciiDoc opts (Pandoc meta blocks) = do
   let titleblock = not $ null (docTitle meta) && null (docAuthors meta) &&
                          null (docDate meta)
   let colwidth = if writerWrapText opts == WrapAuto
                     then Just $ writerColumns opts
                     else Nothing
+  let render' :: Doc -> Text
+      render' = render colwidth
   metadata <- metaToJSON opts
-              (fmap (render colwidth) . blockListToAsciiDoc opts)
-              (fmap (render colwidth) . inlineListToAsciiDoc opts)
+              (fmap render' . blockListToAsciiDoc opts)
+              (fmap render' . inlineListToAsciiDoc opts)
               meta
   let addTitleLine (String t) = String $
          t <> "\n" <> T.replicate (T.length t) "="

@@ -1,5 +1,5 @@
 {-
-Copyright (C) 2010-2015 John MacFarlane <jgm@berkeley.edu>
+Copyright (C) 2010-2017 John MacFarlane <jgm@berkeley.edu>
 
 This program is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -18,7 +18,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 {- |
    Module      : Text.Pandoc.Writers.Textile
-   Copyright   : Copyright (C) 2010-2015 John MacFarlane
+   Copyright   : Copyright (C) 2010-2017 John MacFarlane
    License     : GNU GPL, version 2 or above
 
    Maintainer  : John MacFarlane <jgm@berkeley.edu>
@@ -33,6 +33,7 @@ module Text.Pandoc.Writers.Textile ( writeTextile ) where
 import Control.Monad.State
 import Data.Char (isSpace)
 import Data.List (intercalate)
+import Data.Text (Text, pack)
 import Text.Pandoc.Class (PandocMonad, report)
 import Text.Pandoc.Logging
 import Text.Pandoc.Definition
@@ -54,7 +55,7 @@ data WriterState = WriterState {
 type TW = StateT WriterState
 
 -- | Convert Pandoc to Textile.
-writeTextile :: PandocMonad m => WriterOptions -> Pandoc -> m String
+writeTextile :: PandocMonad m => WriterOptions -> Pandoc -> m Text
 writeTextile opts document =
   evalStateT (pandocToTextile opts document)
             WriterState { stNotes = [],
@@ -64,17 +65,17 @@ writeTextile opts document =
 
 -- | Return Textile representation of document.
 pandocToTextile :: PandocMonad m
-                => WriterOptions -> Pandoc -> TW m String
+                => WriterOptions -> Pandoc -> TW m Text
 pandocToTextile opts (Pandoc meta blocks) = do
   metadata <- metaToJSON opts (blockListToTextile opts)
                  (inlineListToTextile opts) meta
   body <- blockListToTextile opts blocks
   notes <- gets $ unlines . reverse . stNotes
-  let main = body ++ if null notes then "" else ("\n\n" ++ notes)
+  let main = pack $ body ++ if null notes then "" else ("\n\n" ++ notes)
   let context = defField "body" main metadata
   case writerTemplate opts of
-       Nothing  -> return main
-       Just tpl -> return $ renderTemplate' tpl context
+         Nothing  -> return main
+         Just tpl -> return $ renderTemplate' tpl context
 
 withUseTags :: PandocMonad m => TW m a -> TW m a
 withUseTags action = do

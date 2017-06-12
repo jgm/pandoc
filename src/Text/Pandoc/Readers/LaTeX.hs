@@ -1,7 +1,7 @@
 {-# LANGUAGE OverloadedStrings   #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-
-Copyright (C) 2006-2015 John MacFarlane <jgm@berkeley.edu>
+Copyright (C) 2006-2017 John MacFarlane <jgm@berkeley.edu>
 
 This program is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -20,7 +20,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 {- |
    Module      : Text.Pandoc.Readers.LaTeX
-   Copyright   : Copyright (C) 2006-2015 John MacFarlane
+   Copyright   : Copyright (C) 2006-2017 John MacFarlane
    License     : GNU GPL, version 2 or above
 
    Maintainer  : John MacFarlane <jgm@berkeley.edu>
@@ -39,6 +39,7 @@ import Control.Applicative (many, optional, (<|>))
 import Control.Monad
 import Control.Monad.Except (throwError)
 import Data.Char (chr, isAlphaNum, isLetter, ord)
+import Data.Text (Text, unpack)
 import Data.List (intercalate, isPrefixOf)
 import qualified Data.Map as M
 import Data.Maybe (fromMaybe, maybeToList)
@@ -46,7 +47,7 @@ import Safe (minimumDef)
 import System.FilePath (addExtension, replaceExtension, takeExtension)
 import Text.Pandoc.Builder
 import Text.Pandoc.Class (PandocMonad, PandocPure, lookupEnv, readFileFromDirs,
-                          report, setResourcePath)
+                          report, setResourcePath, getResourcePath)
 import Text.Pandoc.Highlighting (fromListingsLanguage, languagesByExtension)
 import Text.Pandoc.ImageSize (numUnit, showFl)
 import Text.Pandoc.Logging
@@ -59,10 +60,10 @@ import Text.Pandoc.Walk
 -- | Parse LaTeX from string and return 'Pandoc' document.
 readLaTeX :: PandocMonad m
           => ReaderOptions -- ^ Reader options
-          -> String        -- ^ String to parse (assumes @'\n'@ line endings)
+          -> Text        -- ^ String to parse (assumes @'\n'@ line endings)
           -> m Pandoc
 readLaTeX opts ltx = do
-  parsed <- readWithM parseLaTeX def{ stateOptions = opts } ltx
+  parsed <- readWithM parseLaTeX def{ stateOptions = opts } (unpack ltx)
   case parsed of
     Right result -> return result
     Left e       -> throwError e
@@ -276,8 +277,6 @@ block = (mempty <$ comment)
     <|> blockCommand
     <|> paragraph
     <|> grouped block
-    <|> (mempty <$ char '&')  -- loose & in table environment
-
 
 blocks :: PandocMonad m => LP m Blocks
 blocks = mconcat <$> many block
@@ -304,8 +303,8 @@ blockCommand = try $ do
         rawcommand <- getRawCommand name'
         transformed <- applyMacros' rawcommand
         guard $ transformed /= rawcommand
-        notFollowedBy $ parseFromString inlines transformed
-        parseFromString blocks transformed
+        notFollowedBy $ parseFromString' inlines transformed
+        parseFromString' blocks transformed
   lookupListDefault raw [name',name] blockCommands
 
 inBrackets :: Inlines -> Inlines
@@ -432,7 +431,7 @@ coloredBlock stylename = do
 graphicsPath :: PandocMonad m => LP m Blocks
 graphicsPath = do
   ps <- bgroup *> (manyTill braced egroup)
-  setResourcePath (".":ps)
+  getResourcePath >>= setResourcePath . (++ ps)
   return mempty
 
 addMeta :: PandocMonad m => ToMetaValue a => String -> a -> LP m ()
@@ -490,16 +489,19 @@ inlineCommand = try $ do
         transformed <- applyMacros' rawcommand
         exts <- getOption readerExtensions
         if transformed /= rawcommand
-           then parseFromString inlines transformed
+           then parseFromString' inlines transformed
            else if extensionEnabled Ext_raw_tex exts
                    then return $ rawInline "latex" rawcommand
                    else ignore rawcommand
   (lookupListDefault raw [name',name] inlineCommands <*
       optional (try (string "{}")))
 
-unlessParseRaw :: PandocMonad m => LP m ()
-unlessParseRaw = getOption readerExtensions >>=
-                 guard . not . extensionEnabled Ext_raw_tex
+rawInlineOr :: PandocMonad m => String -> LP m Inlines -> LP m Inlines
+rawInlineOr name' fallback = do
+  parseRaw <- extensionEnabled Ext_raw_tex <$> getOption readerExtensions
+  if parseRaw
+     then rawInline "latex" <$> getRawCommand name'
+     else fallback
 
 isBlockCommand :: String -> Bool
 isBlockCommand s = s `M.member` (blockCommands :: M.Map String (LP PandocPure Blocks))
@@ -507,20 +509,20 @@ isBlockCommand s = s `M.member` (blockCommands :: M.Map String (LP PandocPure Bl
 
 inlineEnvironments :: PandocMonad m => M.Map String (LP m Inlines)
 inlineEnvironments = M.fromList
-  [ ("displaymath", mathEnv id Nothing "displaymath")
-  , ("math", math <$> verbEnv "math")
-  , ("equation", mathEnv id Nothing "equation")
-  , ("equation*", mathEnv id Nothing "equation*")
-  , ("gather", mathEnv id (Just "gathered") "gather")
-  , ("gather*", mathEnv id (Just "gathered") "gather*")
-  , ("multline", mathEnv id (Just "gathered") "multline")
-  , ("multline*", mathEnv id (Just "gathered") "multline*")
-  , ("eqnarray", mathEnv id (Just "aligned") "eqnarray")
-  , ("eqnarray*", mathEnv id (Just "aligned") "eqnarray*")
-  , ("align", mathEnv id (Just "aligned") "align")
-  , ("align*", mathEnv id (Just "aligned") "align*")
-  , ("alignat", mathEnv id (Just "aligned") "alignat")
-  , ("alignat*", mathEnv id (Just "aligned") "alignat*")
+  [ ("displaymath", mathEnvWith id Nothing "displaymath")
+  , ("math", math <$> mathEnv "math")
+  , ("equation", mathEnvWith id Nothing "equation")
+  , ("equation*", mathEnvWith id Nothing "equation*")
+  , ("gather", mathEnvWith id (Just "gathered") "gather")
+  , ("gather*", mathEnvWith id (Just "gathered") "gather*")
+  , ("multline", mathEnvWith id (Just "gathered") "multline")
+  , ("multline*", mathEnvWith id (Just "gathered") "multline*")
+  , ("eqnarray", mathEnvWith id (Just "aligned") "eqnarray")
+  , ("eqnarray*", mathEnvWith id (Just "aligned") "eqnarray*")
+  , ("align", mathEnvWith id (Just "aligned") "align")
+  , ("align*", mathEnvWith id (Just "aligned") "align*")
+  , ("alignat", mathEnvWith id (Just "aligned") "alignat")
+  , ("alignat*", mathEnvWith id (Just "aligned") "alignat*")
   ]
 
 inlineCommands :: PandocMonad m => M.Map String (LP m Inlines)
@@ -547,11 +549,11 @@ inlineCommands = M.fromList $
   , ("dots", lit "…")
   , ("mdots", lit "…")
   , ("sim", lit "~")
-  , ("label", unlessParseRaw >> (inBrackets <$> tok))
-  , ("ref", unlessParseRaw >> (inBrackets <$> tok))
+  , ("label", rawInlineOr "label" (inBrackets <$> tok))
+  , ("ref", rawInlineOr "ref" (inBrackets <$> tok))
   , ("textgreek", tok)
   , ("sep", lit ",")
-  , ("cref", unlessParseRaw >> (inBrackets <$> tok))  -- from cleveref.sty
+  , ("cref", rawInlineOr "cref" (inBrackets <$> tok))  -- from cleveref.sty
   , ("(", mathInline $ manyTill anyChar (try $ string "\\)"))
   , ("[", mathDisplay $ manyTill anyChar (try $ string "\\]"))
   , ("ensuremath", mathInline braced)
@@ -605,7 +607,7 @@ inlineCommands = M.fromList $
   , ("u", option (str "u") $ try $ tok >>= accent breve)
   , ("i", lit "i")
   , ("\\", linebreak <$ (optional (bracketed inline) *> spaces'))
-  , (",", pure mempty)
+  , (",", lit "\8198")
   , ("@", pure mempty)
   , (" ", lit "\160")
   , ("ps", pure $ str "PS." <> space)
@@ -698,6 +700,9 @@ inlineCommands = M.fromList $
   -- LaTeX colors
   , ("textcolor", coloredInline "color")
   , ("colorbox", coloredInline "background-color")
+  -- fontawesome
+  , ("faCheck", lit "\10003")
+  , ("faClose", lit "\10007")
   ] ++ map ignoreInlines
   -- these commands will be ignored unless --parse-raw is specified,
   -- in which case they will appear as raw latex blocks:
@@ -1045,7 +1050,7 @@ rawEnv name = do
   (bs, raw) <- withRaw $ env name blocks
   raw' <- applyMacros' $ beginCommand ++ raw
   if raw' /= beginCommand ++ raw
-     then parseFromString blocks raw'
+     then parseFromString' blocks raw'
      else if parseRaw
           then return $ rawBlock "latex" $ beginCommand ++ raw'
           else do
@@ -1054,6 +1059,19 @@ rawEnv name = do
             pos2 <- getPosition
             report $ SkippedContent ("\\end{" ++ name ++ "}") pos2
             return bs
+
+rawVerbEnv :: PandocMonad m => String -> LP m Blocks
+rawVerbEnv name = do
+  pos <- getPosition
+  (_, raw) <- withRaw $ verbEnv name
+  let raw' = "\\begin{tikzpicture}" ++ raw
+  exts <- getOption readerExtensions
+  let parseRaw = extensionEnabled Ext_raw_tex exts
+  if parseRaw
+     then return $ rawBlock "latex" raw'
+     else do
+       report $ SkippedContent raw' pos
+       return mempty
 
 ----
 
@@ -1119,7 +1137,7 @@ parseListingsOptions options =
 keyval :: PandocMonad m => LP m (String, String)
 keyval = try $ do
   key <- many1 alphaNum
-  val <- option "" $ char '=' >> many1 (alphaNum <|> char '.' <|> char '\\')
+  val <- option "" $ char '=' >> braced <|> (many1 (alphaNum <|> oneOf ".:-|\\"))
   skipMany spaceChar
   optional (char ',')
   skipMany spaceChar
@@ -1130,7 +1148,7 @@ keyvals :: PandocMonad m => LP m [(String, String)]
 keyvals = try $ char '[' *> manyTill keyval (char ']')
 
 alltt :: PandocMonad m => String -> LP m Blocks
-alltt t = walk strToCode <$> parseFromString blocks
+alltt t = walk strToCode <$> parseFromString' blocks
   (substitute " " "\\ " $ substitute "%" "\\%" $
    intercalate "\\\\\n" $ lines t)
   where strToCode (Str s) = Code nullAttr s
@@ -1176,11 +1194,12 @@ environments = M.fromList
   , ("subfigure", env "subfigure" $ skipopts *> tok *> figure)
   , ("center", env "center" blocks)
   , ("longtable",  env "longtable" $
-         resetCaption *> simpTable False >>= addTableCaption)
+         resetCaption *> simpTable "longtable" False >>= addTableCaption)
   , ("table",  env "table" $
          resetCaption *> skipopts *> blocks >>= addTableCaption)
-  , ("tabular*", env "tabular" $ simpTable True)
-  , ("tabular", env "tabular"  $ simpTable False)
+  , ("tabular*", env "tabular" $ simpTable "tabular*" True)
+  , ("tabularx", env "tabularx" $ simpTable "tabularx" True)
+  , ("tabular", env "tabular"  $ simpTable "tabular" False)
   , ("quote", blockQuote <$> env "quote" blocks)
   , ("quotation", blockQuote <$> env "quotation" blocks)
   , ("verse", blockQuote <$> env "verse" blocks)
@@ -1210,19 +1229,20 @@ environments = M.fromList
   , ("obeylines", parseFromString
                   (para . trimInlines . mconcat <$> many inline) =<<
                   intercalate "\\\\\n" . lines <$> verbEnv "obeylines")
-  , ("displaymath", mathEnv para Nothing "displaymath")
-  , ("equation", mathEnv para Nothing "equation")
-  , ("equation*", mathEnv para Nothing "equation*")
-  , ("gather", mathEnv para (Just "gathered") "gather")
-  , ("gather*", mathEnv para (Just "gathered") "gather*")
-  , ("multline", mathEnv para (Just "gathered") "multline")
-  , ("multline*", mathEnv para (Just "gathered") "multline*")
-  , ("eqnarray", mathEnv para (Just "aligned") "eqnarray")
-  , ("eqnarray*", mathEnv para (Just "aligned") "eqnarray*")
-  , ("align", mathEnv para (Just "aligned") "align")
-  , ("align*", mathEnv para (Just "aligned") "align*")
-  , ("alignat", mathEnv para (Just "aligned") "alignat")
-  , ("alignat*", mathEnv para (Just "aligned") "alignat*")
+  , ("displaymath", mathEnvWith para Nothing "displaymath")
+  , ("equation", mathEnvWith para Nothing "equation")
+  , ("equation*", mathEnvWith para Nothing "equation*")
+  , ("gather", mathEnvWith para (Just "gathered") "gather")
+  , ("gather*", mathEnvWith para (Just "gathered") "gather*")
+  , ("multline", mathEnvWith para (Just "gathered") "multline")
+  , ("multline*", mathEnvWith para (Just "gathered") "multline*")
+  , ("eqnarray", mathEnvWith para (Just "aligned") "eqnarray")
+  , ("eqnarray*", mathEnvWith para (Just "aligned") "eqnarray*")
+  , ("align", mathEnvWith para (Just "aligned") "align")
+  , ("align*", mathEnvWith para (Just "aligned") "align*")
+  , ("alignat", mathEnvWith para (Just "aligned") "alignat")
+  , ("alignat*", mathEnvWith para (Just "aligned") "alignat*")
+  , ("tikzpicture", rawVerbEnv "tikzpicture")
   ]
 
 figure :: PandocMonad m => LP m Blocks
@@ -1287,19 +1307,32 @@ listenv name p = try $ do
   updateState $ \st -> st{ stateParserContext = oldCtx }
   return res
 
-mathEnv :: PandocMonad m => (Inlines -> a) -> Maybe String -> String -> LP m a
-mathEnv f innerEnv name = f <$> mathDisplay (inner <$> verbEnv name)
+mathEnvWith :: PandocMonad m
+            => (Inlines -> a) -> Maybe String -> String -> LP m a
+mathEnvWith f innerEnv name = f <$> mathDisplay (inner <$> mathEnv name)
    where inner x = case innerEnv of
                       Nothing -> x
                       Just y  -> "\\begin{" ++ y ++ "}\n" ++ x ++
                                     "\\end{" ++ y ++ "}"
+
+mathEnv :: PandocMonad m => String -> LP m String
+mathEnv name = do
+  skipopts
+  optional blankline
+  let endEnv = try $ controlSeq "end" *> braced >>= guard . (== name)
+      charMuncher = skipMany comment *>
+                       (many1 (noneOf "\\%") <|> try (string "\\%")
+                           <|> try (string "\\\\") <|> count 1 anyChar)
+  res <- concat <$> manyTill charMuncher endEnv
+  return $ stripTrailingNewlines res
 
 verbEnv :: PandocMonad m => String -> LP m String
 verbEnv name = do
   skipopts
   optional blankline
   let endEnv = try $ controlSeq "end" *> braced >>= guard . (== name)
-  res <- manyTill anyChar endEnv
+      charMuncher = anyChar
+  res <- manyTill charMuncher endEnv
   return $ stripTrailingNewlines res
 
 fancyverbEnv :: PandocMonad m => String -> LP m Blocks
@@ -1314,7 +1347,7 @@ fancyverbEnv name = do
   codeBlockWith attr <$> verbEnv name
 
 orderedList' :: PandocMonad m => LP m Blocks
-orderedList' = do
+orderedList' = try $ do
   optional sp
   (_, style, delim) <- option (1, DefaultStyle, DefaultDelim) $
                               try $ char '[' *> anyOrderedListMarker <* char ']'
@@ -1429,7 +1462,7 @@ complexNatbibCitation mode = try $ do
 
 -- tables
 
-parseAligns :: PandocMonad m => LP m [(String, Alignment, String)]
+parseAligns :: PandocMonad m => LP m [(Alignment, Double, (String, String))]
 parseAligns = try $ do
   bgroup
   let maybeBar = skipMany $ sp <|> () <$ char '|' <|> () <$ (char '@' >> braced)
@@ -1437,18 +1470,36 @@ parseAligns = try $ do
   let cAlign = AlignCenter <$ char 'c'
   let lAlign = AlignLeft <$ char 'l'
   let rAlign = AlignRight <$ char 'r'
-  let parAlign = AlignLeft <$ (char 'p' >> braced)
+  let parAlign = AlignLeft <$ char 'p'
+  -- algins from tabularx
+  let xAlign = AlignLeft <$ char 'X'
+  let mAlign = AlignLeft <$ char 'm'
+  let bAlign = AlignLeft <$ char 'b'
   let alignChar = cAlign <|> lAlign <|> rAlign <|> parAlign
+               <|> xAlign <|> mAlign <|> bAlign
   let alignPrefix = char '>' >> braced
   let alignSuffix = char '<' >> braced
+  let colWidth = try $ do
+        char '{'
+        ds <- many1 (oneOf "0123456789.")
+        spaces
+        string "\\linewidth"
+        char '}'
+        case safeRead ds of
+              Just w  -> return w
+              Nothing -> return 0.0
   let alignSpec = do
         spaces
         pref <- option "" alignPrefix
         spaces
-        ch <- alignChar
+        al <- alignChar
+        width <- colWidth <|> option 0.0 (do s <- braced
+                                             pos <- getPosition
+                                             report $ SkippedContent s pos
+                                             return 0.0)
         spaces
         suff <- option "" alignSuffix
-        return (pref, ch, suff)
+        return (al, width, (pref, suff))
   aligns' <- sepEndBy alignSpec maybeBar
   spaces
   egroup
@@ -1478,24 +1529,26 @@ amp :: PandocMonad m => LP m ()
 amp = () <$ try (spaces' *> char '&' <* spaces')
 
 parseTableRow :: PandocMonad m
-              => Int  -- ^ number of columns
-              -> [String] -- ^ prefixes
-              -> [String] -- ^ suffixes
+              => String   -- ^ table environment name
+              -> [(String, String)] -- ^ pref/suffixes
               -> LP m [Blocks]
-parseTableRow cols prefixes suffixes = try $ do
-  let tableCellRaw = many (notFollowedBy
-                       (amp <|> lbreak <|>
-                         (() <$ try (string "\\end"))) >> anyChar)
-  let minipage = try $ controlSeq "begin" *> string "{minipage}" *>
-          env "minipage"
-          (skipopts *> spaces' *> optional braced *> spaces' *> blocks)
-  let tableCell = minipage <|>
-            ((plain . trimInlines . mconcat) <$> many inline)
+parseTableRow envname prefsufs = try $ do
+  let cols = length prefsufs
+  let tableCellRaw = concat <$> many
+         (do notFollowedBy amp
+             notFollowedBy lbreak
+             notFollowedBy $ () <$ try (string ("\\end{" ++ envname ++ "}"))
+             many1 (noneOf "&%\n\r\\")
+                  <|> try (string "\\&")
+                  <|> count 1 anyChar)
+  let plainify bs = case toList bs of
+                         [Para ils] -> plain (fromList ils)
+                         _          -> bs
   rawcells <- sepBy1 tableCellRaw amp
   guard $ length rawcells == cols
-  let rawcells' = zipWith3 (\c p s -> p ++ trim c ++ s)
-                      rawcells prefixes suffixes
-  cells' <- mapM (parseFromString tableCell) rawcells'
+  let rawcells' = zipWith (\c (p, s) -> p ++ trim c ++ s) rawcells prefsufs
+  let tableCell = plainify <$> blocks
+  cells' <- mapM (parseFromString' tableCell) rawcells'
   let numcells = length cells'
   guard $ numcells <= cols && numcells >= 1
   guard $ cells' /= [mempty]
@@ -1507,21 +1560,22 @@ parseTableRow cols prefixes suffixes = try $ do
 spaces' :: PandocMonad m => LP m ()
 spaces' = spaces *> skipMany (comment *> spaces)
 
-simpTable :: PandocMonad m => Bool -> LP m Blocks
-simpTable hasWidthParameter = try $ do
+simpTable :: PandocMonad m => String -> Bool -> LP m Blocks
+simpTable envname hasWidthParameter = try $ do
   when hasWidthParameter $ () <$ (spaces' >> tok)
   skipopts
-  (prefixes, aligns, suffixes) <- unzip3 <$> parseAligns
-  let cols = length aligns
+  colspecs <- parseAligns
+  let (aligns, widths, prefsufs) = unzip3 colspecs
+  let cols = length colspecs
   optional $ controlSeq "caption" *> skipopts *> setCaption
   optional lbreak
   spaces'
   skipMany hline
   spaces'
-  header' <- option [] $ try (parseTableRow cols prefixes suffixes <*
+  header' <- option [] $ try (parseTableRow envname prefsufs <*
                                    lbreak <* many1 hline)
   spaces'
-  rows <- sepEndBy (parseTableRow cols prefixes suffixes)
+  rows <- sepEndBy (parseTableRow envname prefsufs)
                     (lbreak <* optional (skipMany hline))
   spaces'
   optional $ controlSeq "caption" *> skipopts *> setCaption
@@ -1531,7 +1585,7 @@ simpTable hasWidthParameter = try $ do
                     then replicate cols mempty
                     else header'
   lookAhead $ controlSeq "end" -- make sure we're at end
-  return $ table mempty (zip aligns (repeat 0)) header'' rows
+  return $ table mempty (zip aligns widths) header'' rows
 
 removeDoubleQuotes :: String -> String
 removeDoubleQuotes ('"':xs) =

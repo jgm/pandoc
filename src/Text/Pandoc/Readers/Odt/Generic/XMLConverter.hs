@@ -41,50 +41,17 @@ module Text.Pandoc.Readers.Odt.Generic.XMLConverter
 , XMLConverterState
 , XMLConverter
 , FallibleXMLConverter
-, swapPosition
-, runConverter
-, runConverter''
 , runConverter'
-, runConverterF'
-, runConverterF
-, getCurrentElement
 , getExtraState
 , setExtraState
 , modifyExtraState
-, convertingExtraState
 , producingExtraState
-, lookupNSiri
-, lookupNSprefix
-, readNSattributes
-, elemName
-, elemNameIs
-, strContent
-, elContent
-, currentElem
-, currentElemIs
-, expectElement
-, elChildren
-, findChildren
-, filterChildren
-, filterChildrenName
 , findChild'
-, findChild
-, filterChild'
-, filterChild
-, filterChildName'
-, filterChildName
-, isSet
 , isSet'
 , isSetWithDefault
-, hasAttrValueOf'
-, failIfNotAttrValueOf
-, isThatTheAttrValue
-, searchAttrIn
-, searchAttrWith
 , searchAttr
 , lookupAttr
 , lookupAttr'
-, lookupAttrWithDefault
 , lookupDefaultingAttr
 , findAttr'
 , findAttr
@@ -93,25 +60,9 @@ module Text.Pandoc.Readers.Odt.Generic.XMLConverter
 , readAttr'
 , readAttrWithDefault
 , getAttr
--- , (>/<)
--- , (?>/<)
 , executeIn
-, collectEvery
 , withEveryL
-, withEvery
 , tryAll
-, tryAll'
-, IdXMLConverter
-, MaybeEConverter
-, ElementMatchConverter
-, MaybeCConverter
-, ContentMatchConverter
-, makeMatcherE
-, makeMatcherC
-, prepareMatchersE
-, prepareMatchersC
-, matchChildren
-, matchContent''
 , matchContent'
 , matchContent
 ) where
@@ -121,7 +72,6 @@ import           Control.Monad               ( MonadPlus )
 import           Control.Arrow
 
 import qualified Data.Map             as M
-import qualified Data.Foldable        as F
 import           Data.Default
 import           Data.Maybe
 
@@ -210,17 +160,6 @@ currentElement state = head (parentElements state)
 
 -- | Replace the current position by another, modifying the extra state
 -- in the process
-swapPosition        :: (extraState -> extraState')
-                    -> [XML.Element]
-                    -> XMLConverterState nsID extraState
-                    -> XMLConverterState nsID extraState'
-swapPosition f stack state
-                     = state { parentElements = stack
-                             , moreState      = f (moreState state)
-                             }
-
--- | Replace the current position by another, modifying the extra state
--- in the process
 swapStack'          :: XMLConverterState nsID extraState
                     -> [XML.Element]
                     -> ( XMLConverterState nsID extraState , [XML.Element] )
@@ -264,34 +203,12 @@ runConverter     :: XMLConverter nsID extraState input output
                  -> output
 runConverter converter state input = snd $ runArrowState converter (state,input)
 
---
-runConverter''    :: (NameSpaceID nsID)
-                 => XMLConverter nsID extraState (Fallible ()) output
-                 -> extraState
-                 -> XML.Element
-                 -> output
-runConverter'' converter extraState element = runConverter (readNSattributes >>> converter) (createStartState element extraState) ()
-
 runConverter' :: (NameSpaceID nsID)
               => FallibleXMLConverter nsID extraState () success
               -> extraState
               -> XML.Element
               -> Fallible success
 runConverter' converter extraState element = runConverter (readNSattributes >>? converter) (createStartState element extraState) ()
-
---
-runConverterF' :: FallibleXMLConverter nsID extraState x y
-              -> XMLConverterState nsID extraState
-              -> Fallible x -> Fallible y
-runConverterF' a s e = runConverter (returnV e >>? a) s e
-
---
-runConverterF :: (NameSpaceID nsID)
-              => FallibleXMLConverter nsID extraState XML.Element x
-              -> extraState
-              -> Fallible XML.Element -> Fallible x
-runConverterF a s = either failWith
-                           (\e -> runConverter a (createStartState e s) e)
 
 --
 getCurrentElement :: XMLConverter nsID extraState x XML.Element
@@ -430,57 +347,15 @@ elemNameIs nsID name     = keepingTheValue (lookupNSiri nsID) >>% hasThatName
 --------------------------------------------------------------------------------
 
 --
-strContent               :: XMLConverter nsID extraState x String
-strContent               =     getCurrentElement
-                           >>^ XML.strContent
-
---
 elContent               :: XMLConverter nsID extraState x [XML.Content]
 elContent               =     getCurrentElement
                            >>^ XML.elContent
-
---------------------------------------------------------------------------------
--- Current element
---------------------------------------------------------------------------------
-
---
-currentElem              :: XMLConverter nsID extraState x (XML.QName)
-currentElem              =     getCurrentElement
-                           >>^ XML.elName
-
-currentElemIs            :: (NameSpaceID nsID)
-                         => nsID -> ElementName
-                         -> XMLConverter nsID extraState x Bool
-currentElemIs nsID name  =     getCurrentElement
-                           >>> elemNameIs nsID name
-
-
-
-{-
-currentElemIs'' nsID name = ( (getCurrentElement >>^ XML.elName >>>
-                                (XML.qName >>^ (&&).(== name) )
-                                  ^&&&^
-                                (XML.qIRI  >>^ (==) )
-                              ) >>% (.)
-                            ) &&& lookupNSiri nsID >>% ($)
--}
-
---
-expectElement            :: (NameSpaceID nsID)
-                         => nsID -> ElementName
-                         -> FallibleXMLConverter nsID extraState x ()
-expectElement nsID name  =     currentElemIs nsID name
-                           >>^ boolToChoice
 
 --------------------------------------------------------------------------------
 -- Chilren
 --------------------------------------------------------------------------------
 
 --
-elChildren               :: XMLConverter nsID extraState x [XML.Element]
-elChildren               =     getCurrentElement
-                           >>^ XML.elChildren
-
 --
 findChildren             :: (NameSpaceID nsID)
                          => nsID -> ElementName
@@ -488,18 +363,6 @@ findChildren             :: (NameSpaceID nsID)
 findChildren nsID name   =         elemName nsID name
                                &&& getCurrentElement
                            >>% XML.findChildren
-
---
-filterChildren           :: (XML.Element -> Bool)
-                         -> XMLConverter nsID extraState x [XML.Element]
-filterChildren p         =     getCurrentElement
-                           >>^ XML.filterChildren p
-
---
-filterChildrenName       :: (XML.QName   -> Bool)
-                         -> XMLConverter nsID extraState x [XML.Element]
-filterChildrenName p     =     getCurrentElement
-                           >>^ XML.filterChildrenName p
 
 --
 findChild'              :: (NameSpaceID nsID)
@@ -517,43 +380,10 @@ findChild              :: (NameSpaceID nsID)
 findChild nsID name    =     findChild' nsID name
                          >>> maybeToChoice
 
---
-filterChild'            :: (XML.Element -> Bool)
-                        -> XMLConverter nsID extraState x (Maybe XML.Element)
-filterChild' p          =     getCurrentElement
-                          >>^ XML.filterChild p
-
---
-filterChild            :: (XML.Element -> Bool)
-                       -> FallibleXMLConverter nsID extraState x XML.Element
-filterChild p          =     filterChild' p
-                         >>> maybeToChoice
-
---
-filterChildName'        :: (XML.QName   -> Bool)
-                        -> XMLConverter nsID extraState x (Maybe XML.Element)
-filterChildName' p      =     getCurrentElement
-                          >>^ XML.filterChildName p
-
---
-filterChildName        :: (XML.QName   -> Bool)
-                       -> FallibleXMLConverter nsID extraState x XML.Element
-filterChildName p      =     filterChildName' p
-                         >>> maybeToChoice
-
 
 --------------------------------------------------------------------------------
 -- Attributes
 --------------------------------------------------------------------------------
-
---
-isSet                    :: (NameSpaceID nsID)
-                         => nsID -> AttributeName
-                         -> (Either Failure Bool)
-                         -> FallibleXMLConverter nsID extraState x Bool
-isSet nsID attrName deflt
-                         =      findAttr' nsID attrName
-                            >>^ maybe deflt stringToBool
 
 --
 isSet'                   :: (NameSpaceID nsID)
@@ -570,34 +400,6 @@ isSetWithDefault nsID attrName def'
                          =     isSet' nsID attrName
                            >>^ fromMaybe def'
 
---
-hasAttrValueOf'          :: (NameSpaceID nsID)
-                         => nsID -> AttributeName
-                         -> AttributeValue
-                         -> XMLConverter nsID extraState x Bool
-hasAttrValueOf' nsID attrName attrValue
-                         =     findAttr nsID attrName
-                           >>> ( const False ^|||^ (==attrValue))
-
---
-failIfNotAttrValueOf     :: (NameSpaceID nsID)
-                         => nsID -> AttributeName
-                         -> AttributeValue
-                         -> FallibleXMLConverter nsID extraState x ()
-failIfNotAttrValueOf nsID attrName attrValue
-                         =     hasAttrValueOf' nsID attrName attrValue
-                           >>^ boolToChoice
-
--- | Is the value that is currently transported in the arrow the value of
--- the specified attribute?
-isThatTheAttrValue       :: (NameSpaceID nsID)
-                         => nsID -> AttributeName
-                         -> FallibleXMLConverter nsID extraState AttributeValue Bool
-isThatTheAttrValue nsID attrName
-                         =     keepingTheValue
-                                 (findAttr nsID attrName)
-                           >>% right.(==)
-
 -- | Lookup value in a dictionary, fail if no attribute found or value
 -- not in dictionary
 searchAttrIn             :: (NameSpaceID nsID)
@@ -607,18 +409,6 @@ searchAttrIn             :: (NameSpaceID nsID)
 searchAttrIn nsID attrName dict
                          =       findAttr nsID attrName
                            >>?^? maybeToChoice.(`lookup` dict )
-
-
--- | Lookup value in a dictionary. Fail if no attribute found. If value not in
--- dictionary, return default value
-searchAttrWith           :: (NameSpaceID nsID)
-                         => nsID -> AttributeName
-                         -> a
-                         -> [(AttributeValue,a)]
-                         -> FallibleXMLConverter nsID extraState x a
-searchAttrWith nsID attrName defV dict
-                         =      findAttr nsID attrName
-                           >>?^ (fromMaybe defV).(`lookup` dict )
 
 -- | Lookup value in a dictionary. If attribute or value not found,
 -- return default value
@@ -789,16 +579,6 @@ prepareIteration nsID name =     keepingTheValue
                                    (findChildren nsID name)
                              >>% distributeValue
 
--- | Applies a converter to every child element of a specific type.
--- Collects results in a 'Monoid'.
--- Fails completely if any conversion fails.
-collectEvery           :: (NameSpaceID nsID, Monoid m)
-                       => nsID -> ElementName
-                       -> FallibleXMLConverter nsID extraState a m
-                       -> FallibleXMLConverter nsID extraState a m
-collectEvery nsID name a   =     prepareIteration nsID name
-                             >>> foldS' (switchingTheStack a)
-
 --
 withEveryL             :: (NameSpaceID nsID)
                        => nsID -> ElementName
@@ -826,31 +606,12 @@ tryAll nsID name a         =     prepareIteration nsID name
                              >>> iterateS (switchingTheStack a)
                              >>^ collectRights
 
--- | Applies a converter to every child element of a specific type.
--- Collects all successful results.
-tryAll'                 :: (NameSpaceID nsID, F.Foldable c, MonadPlus c)
-                        => nsID -> ElementName
-                        -> FallibleXMLConverter nsID extraState b   a
-                        ->         XMLConverter nsID extraState b (c a)
-tryAll' nsID name a         =     prepareIteration nsID name
-                              >>> iterateS (switchingTheStack a)
-                              >>^ collectRightsF
-
 --------------------------------------------------------------------------------
 -- Matching children
 --------------------------------------------------------------------------------
 
 type IdXMLConverter nsID moreState x
    = XMLConverter   nsID moreState x x
-
-type MaybeEConverter nsID moreState x
-   = Maybe (IdXMLConverter nsID moreState (x, XML.Element))
-
--- Chainable converter that helps deciding which converter to actually use.
-type ElementMatchConverter nsID extraState x
-   = IdXMLConverter  nsID
-                     extraState
-                     (MaybeEConverter nsID extraState x, XML.Element)
 
 type MaybeCConverter nsID moreState x
    = Maybe (IdXMLConverter nsID moreState (x, XML.Content))
@@ -860,26 +621,6 @@ type ContentMatchConverter nsID extraState x
    = IdXMLConverter  nsID
                      extraState
                      (MaybeCConverter nsID extraState x, XML.Content)
-
--- Helper function: The @c@ is actually a converter that is to be selected by
--- matching XML elements to the first two parameters.
--- The fold used to match elements however is very simple, so to use it,
--- this function wraps the converter in another converter that unifies
--- the accumulator. Think of a lot of converters with the resulting type
--- chained together. The accumulator not only transports the element
--- unchanged to the next matcher, it also does the actual selecting by
--- combining the intermediate results with '(<|>)'.
-makeMatcherE           :: (NameSpaceID nsID)
-                       => nsID -> ElementName
-                       -> FallibleXMLConverter  nsID extraState a a
-                       -> ElementMatchConverter nsID extraState a
-makeMatcherE nsID name c = (     second (
-                                              elemNameIs nsID name
-                                          >>^ bool Nothing (Just tryC)
-                                        )
-                             >>% (<|>)
-                           ) &&&^ snd
-  where tryC = (fst ^&&& executeThere c >>% recover) &&&^ snd
 
 -- Helper function: The @c@ is actually a converter that is to be selected by
 -- matching XML content to the first two parameters.
@@ -914,64 +655,11 @@ makeMatcherC nsID name c = (    second (    contentToElem
                                      _           -> failEmpty
 
 -- Creates and chains a bunch of matchers
-prepareMatchersE       :: (NameSpaceID nsID)
-                       => [(nsID, ElementName, FallibleXMLConverter nsID extraState x x)]
-                       -> ElementMatchConverter nsID extraState x
---prepareMatchersE       = foldSs . (map $ uncurry3  makeMatcherE)
-prepareMatchersE       = reverseComposition . (map $ uncurry3  makeMatcherE)
-
--- Creates and chains a bunch of matchers
 prepareMatchersC      :: (NameSpaceID nsID)
                        => [(nsID, ElementName, FallibleXMLConverter nsID extraState x x)]
                        -> ContentMatchConverter nsID extraState x
 --prepareMatchersC      = foldSs . (map $ uncurry3  makeMatcherC)
 prepareMatchersC      = reverseComposition . (map $ uncurry3  makeMatcherC)
-
--- | Takes a list of element-data - converter groups and
--- * Finds all children of the current element
--- * Matches each group to each child in order (at most one group per child)
--- * Filters non-matched children
--- * Chains all found converters in child-order
--- * Applies the chain to the input element
-matchChildren          :: (NameSpaceID nsID)
-                       => [(nsID, ElementName, FallibleXMLConverter nsID extraState a a)]
-                       -> XMLConverter nsID extraState a a
-matchChildren lookups  = let matcher = prepareMatchersE lookups
-                         in  keepingTheValue (
-                                   elChildren
-                               >>> map (Nothing,)
-                               ^>> iterateSL matcher
-                               >>^ catMaybes.map (\(m,e) -> fmap (swallowElem e) m)
-                              -- >>> foldSs
-                               >>> reverseComposition
-                             )
-                         >>> swap
-                         ^>> app
-  where
-        -- let the converter swallow the element and drop the element
-        -- in the return value
-        swallowElem element converter = (,element) ^>> converter >>^ fst
-
---
-matchContent''         :: (NameSpaceID nsID)
-                       => [(nsID, ElementName, FallibleXMLConverter nsID extraState a a)]
-                       -> XMLConverter nsID extraState a a
-matchContent'' lookups  = let matcher = prepareMatchersC lookups
-                          in  keepingTheValue (
-                                   elContent
-                               >>> map (Nothing,)
-                               ^>> iterateSL matcher
-                               >>^ catMaybes.map (\(m,c) -> fmap (swallowContent c) m)
-                              -- >>> foldSs
-                               >>> reverseComposition
-                             )
-                         >>> swap
-                         ^>> app
-  where
-        -- let the converter swallow the content and drop the content
-        -- in the return value
-        swallowContent content converter = (,content) ^>> converter >>^ fst
-
 
 -- | Takes a list of element-data - converter groups and
 -- * Finds all content of the current element
@@ -1017,14 +705,6 @@ matchContent lookups fallback
 --------------------------------------------------------------------------------
 -- Internals
 --------------------------------------------------------------------------------
-
-stringToBool :: (Monoid failure) => String -> Either failure Bool
-stringToBool val  -- stringToBool' val >>> maybeToChoice
-                 | val `elem` trueValues  = succeedWith True
-                 | val `elem` falseValues = succeedWith False
-                 | otherwise              = failEmpty
-  where trueValues  = ["true" ,"on" ,"1"]
-        falseValues = ["false","off","0"]
 
 stringToBool' :: String -> Maybe Bool
 stringToBool' val | val `elem` trueValues  = Just True

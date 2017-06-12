@@ -6,19 +6,28 @@
   style=,
   color=,
   contrastcolor=]
+
 % make chapter, section bookmarks visible when opening document
 \placebookmarks[chapter, section, subsection, subsubsection, subsubsubsection, subsubsubsubsection][chapter, section]
 \setupinteractionscreen[option=bookmark]
 \setuptagging[state=start]
+
 
 % use microtypography
 \definefontfeature[default][default][script=latn, protrusion=quality, expansion=quality, itlc=yes, textitalics=yes, onum=yes, pnum=yes]
 \definefontfeature[smallcaps][script=latn, protrusion=quality, expansion=quality, smcp=yes, onum=yes, pnum=yes]
 \setupalign[hz,hanging]
 \setupitaliccorrection[global, always]
+
 \setupbodyfontenvironment[default][em=italic] % use italic as em, not slanted
-\usemodule[simplefonts]
-\setmainfontfallback[DejaVu Serif][range={greekandcoptic, greekextended}, force=yes, rscale=auto]
+
+\definefallbackfamily[mainface][rm][DejaVu Serif][preset=range:greek, force=yes]
+\definefontfamily[mainface][rm][Latin Modern Roman]
+\definefontfamily[mainface][mm][Latin Modern Math]
+\definefontfamily[mainface][ss][Latin Modern Sans]
+\definefontfamily[mainface][tt][Latin Modern Typewriter][features=none]
+\setupbodyfont[mainface]
+
 \setupwhitespace[medium]
 
 \setuphead[chapter]            [style=\tfd,header=empty]
@@ -778,19 +787,15 @@ Just a \useURL[url4][/url/][][URL]\from[url4].
 
 Foo \useURL[url13][/url/][][bar]\from[url13].
 
-Foo \useURL[url14][/url/][][bar]\from[url14].
+With \useURL[url14][/url/][][embedded {[}brackets{]}]\from[url14].
 
-Foo \useURL[url15][/url/][][bar]\from[url15].
+\useURL[url15][/url/][][b]\from[url15] by itself should be a link.
 
-With \useURL[url16][/url/][][embedded {[}brackets{]}]\from[url16].
+Indented \useURL[url16][/url][][once]\from[url16].
 
-\useURL[url17][/url/][][b]\from[url17] by itself should be a link.
+Indented \useURL[url17][/url][][twice]\from[url17].
 
-Indented \useURL[url18][/url][][once]\from[url18].
-
-Indented \useURL[url19][/url][][twice]\from[url19].
-
-Indented \useURL[url20][/url][][thrice]\from[url20].
+Indented \useURL[url18][/url][][thrice]\from[url18].
 
 This should {[}not{]}{[}{]} be a link.
 
@@ -798,41 +803,41 @@ This should {[}not{]}{[}{]} be a link.
 [not]: /url
 \stoptyping
 
-Foo \useURL[url21][/url/][][bar]\from[url21].
+Foo \useURL[url19][/url/][][bar]\from[url19].
 
-Foo \useURL[url22][/url/][][biz]\from[url22].
+Foo \useURL[url20][/url/][][biz]\from[url20].
 
 \subsection[with-ampersands]{With ampersands}
 
-Here's a \useURL[url23][http://example.com/?foo=1&bar=2][][link with an
-ampersand in the URL]\from[url23].
+Here's a \useURL[url21][http://example.com/?foo=1&bar=2][][link with an
+ampersand in the URL]\from[url21].
 
 Here's a link with an amersand in the link text:
-\useURL[url24][http://att.com/][][AT&T]\from[url24].
+\useURL[url22][http://att.com/][][AT&T]\from[url22].
 
-Here's an \useURL[url25][/script?foo=1&bar=2][][inline link]\from[url25].
+Here's an \useURL[url23][/script?foo=1&bar=2][][inline link]\from[url23].
 
-Here's an \useURL[url26][/script?foo=1&bar=2][][inline link in pointy
-braces]\from[url26].
+Here's an \useURL[url24][/script?foo=1&bar=2][][inline link in pointy
+braces]\from[url24].
 
 \subsection[autolinks]{Autolinks}
 
-With an ampersand: \useURL[url27][http://example.com/?foo=1&bar=2]\from[url27]
+With an ampersand: \useURL[url25][http://example.com/?foo=1&bar=2]\from[url25]
 
 \startitemize[packed]
 \item
   In a list?
 \item
-  \useURL[url28][http://example.com/]\from[url28]
+  \useURL[url26][http://example.com/]\from[url26]
 \item
   It should.
 \stopitemize
 
 An e-mail address:
-\useURL[url29][mailto:nobody@nowhere.net][][nobody@nowhere.net]\from[url29]
+\useURL[url27][mailto:nobody@nowhere.net][][nobody@nowhere.net]\from[url27]
 
 \startblockquote
-Blockquoted: \useURL[url30][http://example.com/]\from[url30]
+Blockquoted: \useURL[url28][http://example.com/]\from[url28]
 \stopblockquote
 
 Auto-links should not occur here: \type{<http://example.com/>}
@@ -871,7 +876,7 @@ Here is a footnote reference,\footnote{Here is the footnote. It can go
   indent the first line of each block.\stopbuffer\footnote{\getbuffer} This
 should {\em not} be a footnote reference, because it contains a space.{[}^my
 note{]} Here is an inline note.\footnote{This is {\em easier} to type. Inline
-  notes may contain \useURL[url31][http://google.com][][links]\from[url31] and
+  notes may contain \useURL[url29][http://google.com][][links]\from[url29] and
   \type{]} verbatim characters, as well as {[}bracketed text{]}.}
 
 \startblockquote

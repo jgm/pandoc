@@ -34,15 +34,15 @@ where
 
 import CMark
 import Data.List (groupBy)
-import Data.Text (pack, unpack)
+import Data.Text (Text, unpack)
 import Text.Pandoc.Class (PandocMonad)
 import Text.Pandoc.Definition
 import Text.Pandoc.Options
 
 -- | Parse a CommonMark formatted string into a 'Pandoc' structure.
-readCommonMark :: PandocMonad m => ReaderOptions -> String -> m Pandoc
+readCommonMark :: PandocMonad m => ReaderOptions -> Text -> m Pandoc
 readCommonMark opts s = return $
-  nodeToPandoc $ commonmarkToNode opts' $ pack s
+  nodeToPandoc $ commonmarkToNode opts' s
   where opts' = if extensionEnabled Ext_smart (readerExtensions opts)
                    then [optNormalize, optSmart]
                    else [optNormalize]

@@ -20,7 +20,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 -}
 {- |
    Module      : Text.Pandoc.Logging
-   Copyright   : Copyright (C) 2006-2016 John MacFarlane
+   Copyright   : Copyright (C) 2006-2017 John MacFarlane
    License     : GNU GPL, version 2 or above
 
    Maintainer  : John MacFarlane <jgm@berkeley.edu>
@@ -39,6 +39,7 @@ module Text.Pandoc.Logging (
   , messageVerbosity
   ) where
 
+import Control.Monad (mzero)
 import Data.Aeson
 import Data.Aeson.Encode.Pretty (Config (..), defConfig, encodePretty',
                                  keyOrder)
@@ -56,12 +57,22 @@ data Verbosity = ERROR | WARNING | INFO | DEBUG
 
 instance ToJSON Verbosity where
   toJSON x = toJSON (show x)
+instance FromJSON Verbosity where
+  parseJSON (String t) =
+    case t of
+         "ERROR"   -> return ERROR
+         "WARNING" -> return WARNING
+         "INFO"    -> return INFO
+         "DEBUG"   -> return DEBUG
+         _         -> mzero
+  parseJSON _      =  mzero
 
 data LogMessage =
     SkippedContent String SourcePos
   | CouldNotParseYamlMetadata String SourcePos
   | DuplicateLinkReference String SourcePos
   | DuplicateNoteReference String SourcePos
+  | NoteDefinedButNotUsed String SourcePos
   | DuplicateIdentifier String SourcePos
   | ReferenceNotFound String SourcePos
   | CircularReference String SourcePos
@@ -78,6 +89,7 @@ data LogMessage =
   | CouldNotConvertTeXMath String String
   | CouldNotParseCSS String
   | Fetching String
+  | Extracting String
   | NoTitleElement String
   | NoLangSpecified
   | CouldNotHighlight String
@@ -100,6 +112,11 @@ instance ToJSON LogMessage where
             "column" .= toJSON (sourceColumn pos)]
       DuplicateLinkReference s pos ->
            ["contents" .= Text.pack s,
+            "source" .= Text.pack (sourceName pos),
+            "line" .= toJSON (sourceLine pos),
+            "column" .= toJSON (sourceColumn pos)]
+      NoteDefinedButNotUsed s pos ->
+           ["key" .= Text.pack s,
             "source" .= Text.pack (sourceName pos),
             "line" .= toJSON (sourceLine pos),
             "column" .= toJSON (sourceColumn pos)]
@@ -162,6 +179,8 @@ instance ToJSON LogMessage where
            ["message" .= Text.pack msg]
       Fetching fp ->
            ["path" .= Text.pack fp]
+      Extracting fp ->
+           ["path" .= Text.pack fp]
       NoTitleElement fallback ->
            ["fallback" .= Text.pack fallback]
       NoLangSpecified -> []
@@ -193,6 +212,9 @@ showLogMessage msg =
          "Duplicate link reference '" ++ s ++ "' at " ++ showPos pos
        DuplicateNoteReference s pos ->
          "Duplicate note reference '" ++ s ++ "' at " ++ showPos pos
+       NoteDefinedButNotUsed s pos ->
+         "Note with key '" ++ s ++ "' defined at " ++ showPos pos ++
+           " but not used."
        DuplicateIdentifier s pos ->
          "Duplicate identifier '" ++ s ++ "' at " ++ showPos pos
        ReferenceNotFound s pos ->
@@ -229,6 +251,8 @@ showLogMessage msg =
          "Could not parse CSS" ++ if null m then "" else (':':'\n':m)
        Fetching fp ->
          "Fetching " ++ fp ++ "..."
+       Extracting fp ->
+         "Extracting " ++ fp ++ "..."
        NoTitleElement fallback ->
          "This document format requires a nonempty <title> element.\n" ++
          "Please specify either 'title' or 'pagetitle' in the metadata.\n" ++
@@ -242,10 +266,11 @@ showLogMessage msg =
 messageVerbosity:: LogMessage -> Verbosity
 messageVerbosity msg =
   case msg of
-       SkippedContent{}             -> INFO
+       SkippedContent{}             -> WARNING
        CouldNotParseYamlMetadata{}  -> WARNING
        DuplicateLinkReference{}     -> WARNING
        DuplicateNoteReference{}     -> WARNING
+       NoteDefinedButNotUsed{}      -> WARNING
        DuplicateIdentifier{}        -> WARNING
        ReferenceNotFound{}          -> WARNING
        CircularReference{}          -> WARNING
@@ -262,6 +287,7 @@ messageVerbosity msg =
        CouldNotConvertTeXMath{}     -> WARNING
        CouldNotParseCSS{}           -> WARNING
        Fetching{}                   -> INFO
+       Extracting{}                 -> INFO
        NoTitleElement{}             -> WARNING
        NoLangSpecified              -> INFO
        CouldNotHighlight{}          -> WARNING

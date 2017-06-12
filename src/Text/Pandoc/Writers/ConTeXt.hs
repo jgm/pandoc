@@ -1,6 +1,6 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-
-Copyright (C) 2007-2015 John MacFarlane <jgm@berkeley.edu>
+Copyright (C) 2007-2017 John MacFarlane <jgm@berkeley.edu>
 
 This program is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 {- |
    Module      : Text.Pandoc.Writers.ConTeXt
-   Copyright   : Copyright (C) 2007-2015 John MacFarlane
+   Copyright   : Copyright (C) 2007-2017 John MacFarlane
    License     : GNU GPL, version 2 or above
 
    Maintainer  : John MacFarlane <jgm@berkeley.edu>
@@ -33,7 +33,8 @@ import Control.Monad.State
 import Data.Char (ord)
 import Data.List (intercalate, intersperse)
 import Data.Maybe (catMaybes)
-import Network.URI (isURI, unEscapeString)
+import Data.Text (Text)
+import Network.URI (unEscapeString)
 import Text.Pandoc.Class (PandocMonad, report)
 import Text.Pandoc.Logging
 import Text.Pandoc.Definition
@@ -56,7 +57,7 @@ orderedListStyles :: [Char]
 orderedListStyles = cycle "narg"
 
 -- | Convert Pandoc to ConTeXt.
-writeConTeXt :: PandocMonad m => WriterOptions -> Pandoc -> m String
+writeConTeXt :: PandocMonad m => WriterOptions -> Pandoc -> m Text
 writeConTeXt options document =
   let defaultWriterState = WriterState { stNextRef = 1
                                        , stOrderedListLevel = 0
@@ -66,17 +67,19 @@ writeConTeXt options document =
 
 type WM = StateT WriterState
 
-pandocToConTeXt :: PandocMonad m => WriterOptions -> Pandoc -> WM m String
+pandocToConTeXt :: PandocMonad m => WriterOptions -> Pandoc -> WM m Text
 pandocToConTeXt options (Pandoc meta blocks) = do
   let colwidth = if writerWrapText options == WrapAuto
                     then Just $ writerColumns options
                     else Nothing
+  let render' :: Doc -> Text
+      render' = render colwidth
   metadata <- metaToJSON options
-              (fmap (render colwidth) . blockListToConTeXt)
-              (fmap (render colwidth) . inlineListToConTeXt)
+              (fmap render' . blockListToConTeXt)
+              (fmap render' . inlineListToConTeXt)
               meta
   body <- mapM (elementToConTeXt options) $ hierarchicalize blocks
-  let main = (render colwidth . vcat) body
+  let main = (render' . vcat) body
   let layoutFromMargins = intercalate [','] $ catMaybes $
                               map (\(x,y) ->
                                 ((x ++ "=") ++) <$> getField y metadata)

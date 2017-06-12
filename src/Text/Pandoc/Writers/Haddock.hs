@@ -2,7 +2,7 @@
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TupleSections       #-}
 {-
-Copyright (C) 2014 John MacFarlane <jgm@berkeley.edu>
+Copyright (C) 2014-2015, 2017 John MacFarlane <jgm@berkeley.edu>
 
 This program is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -21,7 +21,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 {- |
    Module      : Text.Pandoc.Writers.Haddock
-   Copyright   : Copyright (C) 2014 John MacFarlane
+   Copyright   : Copyright (C) 2014-2015,2017 John MacFarlane
    License     : GNU GPL, version 2 or above
 
    Maintainer  : John MacFarlane <jgm@berkeley.edu>
@@ -35,8 +35,8 @@ Haddock:  <http://www.haskell.org/haddock/doc/html/>
 module Text.Pandoc.Writers.Haddock (writeHaddock) where
 import Control.Monad.State
 import Data.Default
+import Data.Text (Text)
 import Data.List (intersperse, transpose)
-import Network.URI (isURI)
 import Text.Pandoc.Class (PandocMonad, report)
 import Text.Pandoc.Definition
 import Text.Pandoc.Logging
@@ -53,14 +53,14 @@ instance Default WriterState
   where def = WriterState{ stNotes = [] }
 
 -- | Convert Pandoc to Haddock.
-writeHaddock :: PandocMonad m => WriterOptions -> Pandoc -> m String
+writeHaddock :: PandocMonad m => WriterOptions -> Pandoc -> m Text
 writeHaddock opts document =
   evalStateT (pandocToHaddock opts{
                   writerWrapText = writerWrapText opts } document) def
 
 -- | Return haddock representation of document.
 pandocToHaddock :: PandocMonad m
-                => WriterOptions -> Pandoc -> StateT WriterState m String
+                => WriterOptions -> Pandoc -> StateT WriterState m Text
 pandocToHaddock opts (Pandoc meta blocks) = do
   let colwidth = if writerWrapText opts == WrapAuto
                     then Just $ writerColumns opts
@@ -68,13 +68,13 @@ pandocToHaddock opts (Pandoc meta blocks) = do
   body <- blockListToHaddock opts blocks
   st <- get
   notes' <- notesToHaddock opts (reverse $ stNotes st)
-  let render' :: Doc -> String
+  let render' :: Doc -> Text
       render' = render colwidth
   let main = render' $ body <>
                (if isEmpty notes' then empty else blankline <> notes')
   metadata <- metaToJSON opts
-               (fmap (render colwidth) . blockListToHaddock opts)
-               (fmap (render colwidth) . inlineListToHaddock opts)
+               (fmap render' . blockListToHaddock opts)
+               (fmap render' . inlineListToHaddock opts)
                meta
   let context  = defField "body" main
                $ metadata

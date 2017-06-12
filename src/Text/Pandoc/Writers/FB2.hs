@@ -1,8 +1,8 @@
 {-# LANGUAGE PatternGuards #-}
 
 {-
-Copyright (c) 2011-2012, Sergey Astanin
-All rights reserved.
+Copyright (c) 2011-2012 Sergey Astanin
+              2012-2017 John MacFarlane
 
 This program is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -19,7 +19,17 @@ along with this program; if not, write to the Free Software
 Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 -}
 
-{- | Conversion of 'Pandoc' documents to FB2 (FictionBook2) format.
+{- |
+Module      : Text.Pandoc.Writers.FB2
+Copyright   : Copyright (C) 2011-2012 Sergey Astanin
+                            2012-2017 John MacFarlane
+License     : GNU GPL, version 2 or above
+
+Maintainer  : John MacFarlane
+Stability   : alpha
+Portability : portable
+
+Conversion of 'Pandoc' documents to FB2 (FictionBook2) format.
 
 FictionBook is an XML-based e-book format. For more information see:
 <http://www.fictionbook.org/index.php/Eng:XML_Schema_Fictionbook_2.1>
@@ -34,9 +44,9 @@ import Data.ByteString.Base64 (encode)
 import qualified Data.ByteString.Char8 as B8
 import Data.Char (isAscii, isControl, isSpace, toLower)
 import Data.Either (lefts, rights)
+import Data.Text (Text, pack)
 import Data.List (intercalate, intersperse, isPrefixOf, stripPrefix)
 import Network.HTTP (urlEncode)
-import Network.URI (isURI)
 import Text.XML.Light
 import qualified Text.XML.Light as X
 import qualified Text.XML.Light.Cursor as XC
@@ -47,7 +57,7 @@ import Text.Pandoc.Definition
 import Text.Pandoc.Error
 import Text.Pandoc.Logging
 import Text.Pandoc.Options (HTMLMathMethod (..), WriterOptions (..), def)
-import Text.Pandoc.Shared (capitalize, isHeaderBlock, linesToPara,
+import Text.Pandoc.Shared (capitalize, isHeaderBlock, isURI, linesToPara,
                            orderedListMarkers)
 
 -- | Data to be written at the end of the document:
@@ -77,13 +87,13 @@ instance Show ImageMode where
 writeFB2 :: PandocMonad m
          => WriterOptions    -- ^ conversion options
          -> Pandoc           -- ^ document to convert
-         -> m String        -- ^ FictionBook2 document (not encoded yet)
+         -> m Text           -- ^ FictionBook2 document (not encoded yet)
 writeFB2 opts doc = flip evalStateT newFB $ pandocToFB2 opts doc
 
 pandocToFB2 :: PandocMonad m
             => WriterOptions
             -> Pandoc
-            -> FBM m String
+            -> FBM m Text
 pandocToFB2 opts (Pandoc meta blocks) = do
      modify (\s -> s { writerOptions = opts })
      desc <- description meta
@@ -94,7 +104,7 @@ pandocToFB2 opts (Pandoc meta blocks) = do
      (imgs,missing) <- liftM imagesToFetch get >>= \s -> lift (fetchImages s)
      let body' = replaceImagesWithAlt missing body
      let fb2_xml = el "FictionBook" (fb2_attrs, [desc, body'] ++ notes ++ imgs)
-     return $ xml_head ++ (showContent fb2_xml) ++ "\n"
+     return $ pack $ xml_head ++ (showContent fb2_xml) ++ "\n"
   where
   xml_head = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
   fb2_attrs =

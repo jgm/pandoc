@@ -2,21 +2,23 @@
 module Tests.Readers.Org (tests) where
 
 import Data.List (intersperse)
+import Data.Text (Text)
+import qualified Data.Text as T
 import Test.Tasty
 import Tests.Helpers
 import Text.Pandoc
 import Text.Pandoc.Builder
 
-org :: String -> Pandoc
+org :: Text -> Pandoc
 org = purely $ readOrg def{ readerExtensions = getDefaultExtensions "org" }
 
-orgSmart :: String -> Pandoc
+orgSmart :: Text -> Pandoc
 orgSmart = purely $ readOrg def { readerExtensions =
                      enableExtension Ext_smart $ getDefaultExtensions "org" }
 
 infix 4 =:
 (=:) :: ToString c
-     => String -> (String, c) -> TestTree
+     => String -> (Text, c) -> TestTree
 (=:) = test org
 
 spcSep :: [Inlines] -> Inlines
@@ -26,7 +28,11 @@ simpleTable' :: Int
              -> [Blocks]
              -> [[Blocks]]
              -> Blocks
-simpleTable' n = table "" (take n $ repeat (AlignDefault, 0.0))
+simpleTable' n = table "" (replicate n (AlignDefault, 0.0))
+
+-- | Create a span for the given tag.
+tagSpan :: String -> Inlines
+tagSpan t = spanWith ("", ["tag"], [("data-tag-name", t)]) . smallcaps $ str t
 
 tests :: [TestTree]
 tests =
@@ -108,17 +114,17 @@ tests =
           para (note $ para "Schreib mir eine E-Mail")
 
       , "Markup-chars not occuring on word break are symbols" =:
-          unlines [ "this+that+ +so+on"
-                  , "seven*eight* nine*"
-                  , "+not+funny+"
-                  ] =?>
+          T.unlines [ "this+that+ +so+on"
+                    , "seven*eight* nine*"
+                    , "+not+funny+"
+                    ] =?>
           para ("this+that+ +so+on" <> softbreak <>
                 "seven*eight* nine*" <> softbreak <>
                 strikeout "not+funny")
 
       , "No empty markup" =:
-          "// ** __ ++ == ~~ $$" =?>
-          para (spcSep [ "//", "**", "__", "++", "==", "~~", "$$" ])
+          "// ** __ <> == ~~ $$" =?>
+          para (spcSep [ "//", "**", "__", "<>", "==", "~~", "$$" ])
 
       , "Adherence to Org's rules for markup borders" =:
           "/t/& a/ / ./r/ (*l*) /e/! /b/." =?>
@@ -139,11 +145,11 @@ tests =
           para "/nada,/"
 
       , "Markup should work properly after a blank line" =:
-        unlines ["foo", "", "/bar/"] =?>
+        T.unlines ["foo", "", "/bar/"] =?>
         (para $ text "foo") <> (para $ emph $ text "bar")
 
       , "Inline math must stay within three lines" =:
-          unlines [ "$a", "b", "c$", "$d", "e", "f", "g$" ] =?>
+          T.unlines [ "$a", "b", "c$", "$d", "e", "f", "g$" ] =?>
           para ((math "a\nb\nc") <> softbreak <>
                 "$d" <> softbreak <> "e" <> softbreak <>
                 "f" <> softbreak <> "g$")
@@ -165,17 +171,17 @@ tests =
                   softbreak <> "emph/")
 
       , "Sub- and superscript expressions" =:
-         unlines [ "a_(a(b)(c)d)"
-                 , "e^(f(g)h)"
-                 , "i_(jk)l)"
-                 , "m^()n"
-                 , "o_{p{q{}r}}"
-                 , "s^{t{u}v}"
-                 , "w_{xy}z}"
-                 , "1^{}2"
-                 , "3_{{}}"
-                 , "4^(a(*b(c*)d))"
-                 ] =?>
+         T.unlines [ "a_(a(b)(c)d)"
+                   , "e^(f(g)h)"
+                   , "i_(jk)l)"
+                   , "m^()n"
+                   , "o_{p{q{}r}}"
+                   , "s^{t{u}v}"
+                   , "w_{xy}z}"
+                   , "1^{}2"
+                   , "3_{{}}"
+                   , "4^(a(*b(c*)d))"
+                   ] =?>
          para (mconcat $ intersperse softbreak
                       [ "a" <> subscript "(a(b)(c)d)"
                       , "e" <> superscript "(f(g)h)"
@@ -202,17 +208,17 @@ tests =
             (para $ image "sunrise.jpg" "" "")
 
         , "Multiple images within a paragraph" =:
-            unlines [ "[[file:sunrise.jpg]]"
-                    , "[[file:sunset.jpg]]"
-                    ] =?>
+            T.unlines [ "[[file:sunrise.jpg]]"
+                      , "[[file:sunset.jpg]]"
+                      ] =?>
             (para $ (image "sunrise.jpg" "" "")
                  <> softbreak
                  <> (image "sunset.jpg" "" ""))
 
         , "Image with html attributes" =:
-            unlines [ "#+ATTR_HTML: :width 50%"
-                    , "[[file:guinea-pig.gif]]"
-                    ] =?>
+            T.unlines [ "#+ATTR_HTML: :width 50%"
+                      , "[[file:guinea-pig.gif]]"
+                      ] =?>
             (para $ imageWith ("", [], [("width", "50%")]) "guinea-pig.gif" "" "")
         ]
 
@@ -334,6 +340,18 @@ tests =
                        }
         in (para $ cite [citation] "cite:pandoc")
 
+      , "Org-ref simple citation with underscores" =:
+        "cite:pandoc_org_ref" =?>
+        let citation = Citation
+                       { citationId = "pandoc_org_ref"
+                       , citationPrefix = mempty
+                       , citationSuffix = mempty
+                       , citationMode = AuthorInText
+                       , citationNoteNum = 0
+                       , citationHash = 0
+                       }
+        in (para $ cite [citation] "cite:pandoc_org_ref")
+
       , "Org-ref simple citation succeeded by comma" =:
         "cite:pandoc," =?>
         let citation = Citation
@@ -345,6 +363,30 @@ tests =
                        , citationHash = 0
                        }
         in (para $ cite [citation] "cite:pandoc" <> str ",")
+
+      , "Org-ref simple citation succeeded by dot" =:
+        "cite:pandoc." =?>
+        let citation = Citation
+                       { citationId = "pandoc"
+                       , citationPrefix = mempty
+                       , citationSuffix = mempty
+                       , citationMode = AuthorInText
+                       , citationNoteNum = 0
+                       , citationHash = 0
+                       }
+        in (para $ cite [citation] "cite:pandoc" <> str ".")
+
+      , "Org-ref simple citation succeeded by colon" =:
+        "cite:pandoc:" =?>
+        let citation = Citation
+                       { citationId = "pandoc"
+                       , citationPrefix = mempty
+                       , citationSuffix = mempty
+                       , citationMode = AuthorInText
+                       , citationNoteNum = 0
+                       , citationHash = 0
+                       }
+        in (para $ cite [citation] "cite:pandoc" <> str ":")
 
       , "Org-ref simple citep citation" =:
         "citep:pandoc" =?>
@@ -469,6 +511,24 @@ tests =
                          , citationNoteNum = 0
                          , citationHash = 0}
           in (para . cite [citation] $ rawInline "latex" "\\cite{Coffee}")
+
+      , "Macro" =:
+          T.unlines [ "#+MACRO: HELLO /Hello, $1/"
+                    , "{{{HELLO(World)}}}"
+                    ] =?>
+          para (emph "Hello, World")
+
+      , "Macro repeting its argument" =:
+          T.unlines [ "#+MACRO: HELLO $1$1"
+                    , "{{{HELLO(moin)}}}"
+                    ] =?>
+          para "moinmoin"
+
+      , "Macro called with too few arguments" =:
+          T.unlines [ "#+MACRO: HELLO Foo $1 $2 Bar"
+                    , "{{{HELLO()}}}"
+                    ] =?>
+          para "Foo Bar"
       ]
 
   , testGroup "Meta Information" $
@@ -481,10 +541,10 @@ tests =
           para "#-tag"
 
       , "Comment surrounded by Text" =:
-          unlines [ "Before"
-                  , "# Comment"
-                  , "After"
-                  ] =?>
+          T.unlines [ "Before"
+                    , "# Comment"
+                    , "After"
+                    ] =?>
           mconcat [ para "Before"
                   , para "After"
                   ]
@@ -521,10 +581,10 @@ tests =
         in Pandoc meta mempty
 
       , "Properties drawer" =:
-          unlines [ "  :PROPERTIES:"
-                  , "  :setting: foo"
-                  , "  :END:"
-                  ] =?>
+          T.unlines [ "  :PROPERTIES:"
+                    , "  :setting: foo"
+                    , "  :END:"
+                    ] =?>
           (mempty::Blocks)
 
       , "LaTeX_headers options are translated to header-includes" =:
@@ -552,46 +612,46 @@ tests =
           in Pandoc meta mempty
 
       , "later meta definitions take precedence" =:
-          unlines [ "#+AUTHOR: this will not be used"
-                  , "#+author: Max"
-                  ] =?>
+          T.unlines [ "#+AUTHOR: this will not be used"
+                    , "#+author: Max"
+                    ] =?>
           let author = MetaInlines [Str "Max"]
               meta = setMeta "author" (MetaList [author]) $ nullMeta
           in Pandoc meta mempty
 
       , "Logbook drawer" =:
-          unlines [ "  :LogBook:"
-                  , "  - State \"DONE\"       from \"TODO\"       [2014-03-03 Mon 11:00]"
-                  , "  :END:"
-                  ] =?>
+          T.unlines [ "  :LogBook:"
+                    , "  - State \"DONE\"       from \"TODO\"       [2014-03-03 Mon 11:00]"
+                    , "  :END:"
+                    ] =?>
           (mempty::Blocks)
 
       , "Drawer surrounded by text" =:
-          unlines [ "Before"
-                  , ":PROPERTIES:"
-                  , ":END:"
-                  , "After"
-                  ] =?>
+          T.unlines [ "Before"
+                    , ":PROPERTIES:"
+                    , ":END:"
+                    , "After"
+                    ] =?>
           para "Before" <> para "After"
 
       , "Drawer markers must be the only text in the line" =:
-          unlines [ "  :LOGBOOK: foo"
-                  , "  :END: bar"
-                  ] =?>
+          T.unlines [ "  :LOGBOOK: foo"
+                    , "  :END: bar"
+                    ] =?>
           para (":LOGBOOK: foo" <> softbreak <> ":END: bar")
 
       , "Drawers can be arbitrary" =:
-          unlines [ ":FOO:"
-                  , "/bar/"
-                  , ":END:"
-                  ] =?>
+          T.unlines [ ":FOO:"
+                    , "/bar/"
+                    , ":END:"
+                    ] =?>
           divWith (mempty, ["FOO", "drawer"], mempty) (para $ emph "bar")
 
       , "Anchor reference" =:
-          unlines [ "<<link-here>> Target."
-                  , ""
-                  , "[[link-here][See here!]]"
-                  ] =?>
+          T.unlines [ "<<link-here>> Target."
+                    , ""
+                    , "[[link-here][See here!]]"
+                    ] =?>
           (para (spanWith ("link-here", [], []) mempty <> "Target.") <>
            para (link "#link-here" "" ("See" <> space <> "here!")))
 
@@ -600,129 +660,148 @@ tests =
           (para (emph $ "Where's" <> space <> "Wally?"))
 
       , "Link to nonexistent anchor" =:
-          unlines [ "<<link-here>> Target."
-                  , ""
-                  , "[[link$here][See here!]]"
-                  ] =?>
+          T.unlines [ "<<link-here>> Target."
+                    , ""
+                    , "[[link$here][See here!]]"
+                    ] =?>
           (para (spanWith ("link-here", [], []) mempty <> "Target.") <>
            para (emph ("See" <> space <> "here!")))
 
       , "Link abbreviation" =:
-          unlines [ "#+LINK: wp https://en.wikipedia.org/wiki/%s"
-                  , "[[wp:Org_mode][Wikipedia on Org-mode]]"
-                  ] =?>
+          T.unlines [ "#+LINK: wp https://en.wikipedia.org/wiki/%s"
+                    , "[[wp:Org_mode][Wikipedia on Org-mode]]"
+                    ] =?>
           (para (link "https://en.wikipedia.org/wiki/Org_mode" ""
                       ("Wikipedia" <> space <> "on" <> space <> "Org-mode")))
 
       , "Link abbreviation, defined after first use" =:
-          unlines [ "[[zl:non-sense][Non-sense articles]]"
-                  , "#+LINK: zl http://zeitlens.com/tags/%s.html"
-                  ] =?>
+          T.unlines [ "[[zl:non-sense][Non-sense articles]]"
+                    , "#+LINK: zl http://zeitlens.com/tags/%s.html"
+                    ] =?>
           (para (link "http://zeitlens.com/tags/non-sense.html" ""
                       ("Non-sense" <> space <> "articles")))
 
       , "Link abbreviation, URL encoded arguments" =:
-          unlines [ "#+link: expl http://example.com/%h/foo"
-                  , "[[expl:Hello, World!][Moin!]]"
-                  ] =?>
+          T.unlines [ "#+link: expl http://example.com/%h/foo"
+                    , "[[expl:Hello, World!][Moin!]]"
+                    ] =?>
           (para (link "http://example.com/Hello%2C%20World%21/foo" "" "Moin!"))
 
       , "Link abbreviation, append arguments" =:
-          unlines [ "#+link: expl http://example.com/"
-                  , "[[expl:foo][bar]]"
-                  ] =?>
+          T.unlines [ "#+link: expl http://example.com/"
+                    , "[[expl:foo][bar]]"
+                    ] =?>
           (para (link "http://example.com/foo" "" "bar"))
 
 
       , testGroup "export options"
 
           [ "disable simple sub/superscript syntax" =:
-              unlines [ "#+OPTIONS: ^:nil"
-                      , "a^b"
-                      ] =?>
+              T.unlines [ "#+OPTIONS: ^:nil"
+                        , "a^b"
+                        ] =?>
               para "a^b"
 
           , "directly select drawers to be exported" =:
-              unlines [ "#+OPTIONS: d:(\"IMPORTANT\")"
-                      , ":IMPORTANT:"
-                      , "23"
-                      , ":END:"
-                      , ":BORING:"
-                      , "very boring"
-                      , ":END:"
-                      ] =?>
+              T.unlines [ "#+OPTIONS: d:(\"IMPORTANT\")"
+                        , ":IMPORTANT:"
+                        , "23"
+                        , ":END:"
+                        , ":BORING:"
+                        , "very boring"
+                        , ":END:"
+                        ] =?>
               divWith (mempty, ["IMPORTANT", "drawer"], mempty) (para "23")
 
           , "exclude drawers from being exported" =:
-              unlines [ "#+OPTIONS: d:(not \"BORING\")"
-                      , ":IMPORTANT:"
-                      , "5"
-                      , ":END:"
-                      , ":BORING:"
-                      , "very boring"
-                      , ":END:"
-                      ] =?>
+              T.unlines [ "#+OPTIONS: d:(not \"BORING\")"
+                        , ":IMPORTANT:"
+                        , "5"
+                        , ":END:"
+                        , ":BORING:"
+                        , "very boring"
+                        , ":END:"
+                        ] =?>
               divWith (mempty, ["IMPORTANT", "drawer"], mempty) (para "5")
 
           , "don't include archive trees" =:
-              unlines [ "#+OPTIONS: arch:nil"
-                      , "* old  :ARCHIVE:"
-                      ] =?>
+              T.unlines [ "#+OPTIONS: arch:nil"
+                        , "* old  :ARCHIVE:"
+                        ] =?>
               (mempty ::Blocks)
 
           , "include complete archive trees" =:
-              unlines [ "#+OPTIONS: arch:t"
-                      , "* old  :ARCHIVE:"
-                      , "  boring"
-                      ] =?>
-              let tagSpan t = spanWith ("", ["tag"], [("data-tag-name", t)]) mempty
-              in mconcat [ headerWith ("old", [], mempty) 1 ("old" <> tagSpan "ARCHIVE")
-                         , para "boring"
-                         ]
+              T.unlines [ "#+OPTIONS: arch:t"
+                        , "* old  :ARCHIVE:"
+                        , "  boring"
+                        ] =?>
+              mconcat [ headerWith ("old", [], mempty) 1
+                                   ("old" <> space <> tagSpan "ARCHIVE")
+                      , para "boring"
+                      ]
 
           , "include archive tree header only" =:
-              unlines [ "#+OPTIONS: arch:headline"
-                      , "* old  :ARCHIVE:"
-                      , "  boring"
-                      ] =?>
-              let tagSpan t = spanWith ("", ["tag"], [("data-tag-name", t)]) mempty
-              in headerWith ("old", [], mempty) 1 ("old" <> tagSpan "ARCHIVE")
+              T.unlines [ "#+OPTIONS: arch:headline"
+                        , "* old  :ARCHIVE:"
+                        , "  boring"
+                        ] =?>
+              headerWith ("old", [], mempty) 1 ("old" <> space <> tagSpan "ARCHIVE")
 
           , "limit headline depth" =:
-              unlines [ "#+OPTIONS: H:2"
-                      , "* section"
-                      , "** subsection"
-                      , "*** list item 1"
-                      , "*** list item 2"
-                      ] =?>
-              mconcat [ headerWith ("section", [], [])    1 "section"
+              T.unlines [ "#+OPTIONS: H:2"
+                        , "* top-level section"
+                        , "** subsection"
+                        , "*** list item 1"
+                        , "*** list item 2"
+                        ] =?>
+              mconcat [ headerWith ("top-level-section", [], [])    1 "top-level section"
                       , headerWith ("subsection", [], []) 2 "subsection"
                       , orderedList [ para "list item 1", para "list item 2" ]
                       ]
 
+          , "turn all headlines into lists" =:
+              T.unlines [ "#+OPTIONS: H:0"
+                        , "first block"
+                        , "* top-level section 1"
+                        , "** subsection"
+                        , "* top-level section 2"
+                        ] =?>
+              mconcat [ para "first block"
+                      , orderedList
+                        [ (para "top-level section 1" <>
+                           orderedList [ para "subsection" ])
+                        , para "top-level section 2" ]
+                      ]
+
           , "disable author export" =:
-              unlines [ "#+OPTIONS: author:nil"
-                      , "#+AUTHOR: ShyGuy"
-                      ] =?>
+              T.unlines [ "#+OPTIONS: author:nil"
+                        , "#+AUTHOR: ShyGuy"
+                        ] =?>
               Pandoc nullMeta mempty
 
           , "disable creator export" =:
-              unlines [ "#+OPTIONS: creator:nil"
-                      , "#+creator: The Architect"
-                      ] =?>
+              T.unlines [ "#+OPTIONS: creator:nil"
+                        , "#+creator: The Architect"
+                        ] =?>
               Pandoc nullMeta mempty
 
           , "disable email export" =:
-              unlines [ "#+OPTIONS: email:nil"
-                      , "#+email: no-mail-please@example.com"
-                      ] =?>
+              T.unlines [ "#+OPTIONS: email:nil"
+                        , "#+email: no-mail-please@example.com"
+                        ] =?>
               Pandoc nullMeta mempty
 
           , "disable inclusion of todo keywords" =:
-              unlines [ "#+OPTIONS: todo:nil"
-                      , "** DONE todo export"
-                      ] =?>
+              T.unlines [ "#+OPTIONS: todo:nil"
+                        , "** DONE todo export"
+                        ] =?>
               headerWith ("todo-export", [], []) 2 "todo export"
+
+          , "remove tags from headlines" =:
+              T.unlines [ "#+OPTIONS: tags:nil"
+                        , "* Headline :hello:world:"
+                        ] =?>
+              headerWith ("headline", [], mempty) 1 "Headline"
           ]
       ]
 
@@ -743,10 +822,10 @@ tests =
                        ("Third" <> space <> "Level" <> space <> "Headline")
 
         , "Compact Headers with Paragraph" =:
-            unlines [ "* First Level"
-                    , "** Second Level"
-                    , "   Text"
-                    ] =?>
+            T.unlines [ "* First Level"
+                      , "** Second Level"
+                      , "   Text"
+                      ] =?>
             mconcat [ headerWith ("first-level", [], [])
                                  1
                                  ("First" <> space <> "Level")
@@ -757,12 +836,12 @@ tests =
                     ]
 
         , "Separated Headers with Paragraph" =:
-            unlines [ "* First Level"
-                    , ""
-                    , "** Second Level"
-                    , ""
-                    , "   Text"
-                    ] =?>
+            T.unlines [ "* First Level"
+                      , ""
+                      , "** Second Level"
+                      , ""
+                      , "   Text"
+                      ] =?>
             mconcat [ headerWith ("first-level", [], [])
                                  1
                                  ("First" <> space <> "Level")
@@ -773,10 +852,10 @@ tests =
                     ]
 
         , "Headers not preceded by a blank line" =:
-            unlines [ "** eat dinner"
-                    , "Spaghetti and meatballs tonight."
-                    , "** walk dog"
-                    ] =?>
+            T.unlines [ "** eat dinner"
+                      , "Spaghetti and meatballs tonight."
+                      , "** walk dog"
+                      ] =?>
             mconcat [ headerWith ("eat-dinner", [], [])
                                  2
                                  ("eat" <> space <> "dinner")
@@ -802,21 +881,21 @@ tests =
               headerWith ("waiting-header", [], []) 1 "WAITING header"
 
           , "Custom todo keywords" =:
-              unlines [ "#+TODO: WAITING CANCELLED"
-                      , "* WAITING compile"
-                      , "* CANCELLED lunch"
-                      ] =?>
+              T.unlines [ "#+TODO: WAITING CANCELLED"
+                        , "* WAITING compile"
+                        , "* CANCELLED lunch"
+                        ] =?>
               let todoSpan = spanWith ("", ["todo", "WAITING"], []) "WAITING"
                   doneSpan = spanWith ("", ["done", "CANCELLED"], []) "CANCELLED"
               in headerWith ("compile", [], []) 1 (todoSpan <> space <> "compile")
               <> headerWith ("lunch", [], []) 1 (doneSpan <> space <> "lunch")
 
           , "Custom todo keywords with multiple done-states" =:
-              unlines [ "#+TODO: WAITING | DONE CANCELLED "
-                      , "* WAITING compile"
-                      , "* CANCELLED lunch"
-                      , "* DONE todo-feature"
-                      ] =?>
+              T.unlines [ "#+TODO: WAITING | DONE CANCELLED "
+                        , "* WAITING compile"
+                        , "* CANCELLED lunch"
+                        , "* DONE todo-feature"
+                        ] =?>
               let waiting = spanWith ("", ["todo", "WAITING"], []) "WAITING"
                   cancelled = spanWith ("", ["done", "CANCELLED"], []) "CANCELLED"
                   done = spanWith ("", ["done", "DONE"], []) "DONE"
@@ -826,31 +905,30 @@ tests =
           ]
 
         , "Tagged headers" =:
-            unlines [ "* Personal       :PERSONAL:"
-                    , "** Call Mom      :@PHONE:"
-                    , "** Call John     :@PHONE:JOHN: "
-                    ] =?>
-            let tagSpan t = spanWith ("", ["tag"], [("data-tag-name", t)]) mempty
-            in mconcat [ headerWith ("personal", [], [])
-                                    1
-                                    ("Personal" <> tagSpan "PERSONAL")
-                       , headerWith ("call-mom", [], [])
-                                    2
-                                    ("Call Mom" <> tagSpan "@PHONE")
-                       , headerWith ("call-john", [], [])
-                                    2
-                                    ("Call John" <> tagSpan "@PHONE" <> tagSpan "JOHN")
-                       ]
+            T.unlines [ "* Personal       :PERSONAL:"
+                      , "** Call Mom      :@PHONE:"
+                      , "** Call John     :@PHONE:JOHN: "
+                      ] =?>
+            mconcat [ headerWith ("personal", [], [])
+                                 1
+                                 ("Personal " <> tagSpan "PERSONAL")
+                    , headerWith ("call-mom", [], [])
+                                 2
+                                 ("Call Mom " <> tagSpan "@PHONE")
+                    , headerWith ("call-john", [], [])
+                                 2
+                                 ("Call John " <> tagSpan "@PHONE" <> "\160" <> tagSpan "JOHN")
+                    ]
 
         , "Untagged header containing colons" =:
             "* This: is not: tagged" =?>
             headerWith ("this-is-not-tagged", [], []) 1 "This: is not: tagged"
 
         , "Header starting with strokeout text" =:
-            unlines [ "foo"
-                    , ""
-                    , "* +thing+ other thing"
-                    ] =?>
+            T.unlines [ "foo"
+                      , ""
+                      , "* +thing+ other thing"
+                      ] =?>
             mconcat [ para "foo"
                     , headerWith ("thing-other-thing", [], [])
                                  1
@@ -858,11 +936,11 @@ tests =
                     ]
 
         , "Comment Trees" =:
-            unlines [ "* COMMENT A comment tree"
-                    , "  Not much going on here"
-                    , "** This will be dropped"
-                    , "* Comment tree above"
-                    ] =?>
+            T.unlines [ "* COMMENT A comment tree"
+                      , "  Not much going on here"
+                      , "** This will be dropped"
+                      , "* Comment tree above"
+                      ] =?>
             headerWith ("comment-tree-above", [], []) 1 "Comment tree above"
 
         , "Nothing but a COMMENT header" =:
@@ -870,38 +948,38 @@ tests =
             (mempty::Blocks)
 
         , "Tree with :noexport:" =:
-            unlines [ "* Should be ignored :archive:noexport:old:"
-                    , "** Old stuff"
-                    , "   This is not going to be exported"
-                    ] =?>
+            T.unlines [ "* Should be ignored :archive:noexport:old:"
+                      , "** Old stuff"
+                      , "   This is not going to be exported"
+                      ] =?>
             (mempty::Blocks)
 
         , "Subtree with :noexport:" =:
-            unlines [ "* Exported"
-                    , "** This isn't exported :noexport:"
-                    , "*** This neither"
-                    , "** But this is"
-                    ] =?>
+            T.unlines [ "* Exported"
+                      , "** This isn't exported :noexport:"
+                      , "*** This neither"
+                      , "** But this is"
+                      ] =?>
             mconcat [ headerWith ("exported", [], []) 1 "Exported"
                     , headerWith ("but-this-is", [], []) 2 "But this is"
                     ]
 
         , "Preferences are treated as header attributes" =:
-            unlines [ "* foo"
-                    , "  :PROPERTIES:"
-                    , "  :custom_id: fubar"
-                    , "  :bar: baz"
-                    , "  :END:"
-                    ] =?>
+            T.unlines [ "* foo"
+                      , "  :PROPERTIES:"
+                      , "  :custom_id: fubar"
+                      , "  :bar: baz"
+                      , "  :END:"
+                      ] =?>
             headerWith ("fubar", [], [("bar", "baz")]) 1 "foo"
 
 
         , "Headers marked with a unnumbered property get a class of the same name" =:
-            unlines [ "* Not numbered"
-                    , "  :PROPERTIES:"
-                    , "  :UNNUMBERED: t"
-                    , "  :END:"
-                    ] =?>
+            T.unlines [ "* Not numbered"
+                      , "  :PROPERTIES:"
+                      , "  :UNNUMBERED: t"
+                      , "  :END:"
+                      ] =?>
             headerWith ("not-numbered", ["unnumbered"], []) 1 "Not numbered"
       ]
       , "Paragraph starting with an asterisk" =:
@@ -909,23 +987,23 @@ tests =
           para "*five"
 
       , "Paragraph containing asterisk at beginning of line" =:
-          unlines [ "lucky"
-                  , "*star"
-                  ] =?>
+          T.unlines [ "lucky"
+                    , "*star"
+                    ] =?>
           para ("lucky" <> softbreak <> "*star")
 
       , "Example block" =:
-          unlines [ ": echo hello"
-                  , ": echo dear tester"
-                  ] =?>
+          T.unlines [ ": echo hello"
+                    , ": echo dear tester"
+                    ] =?>
           codeBlockWith ("", ["example"], []) "echo hello\necho dear tester\n"
 
       , "Example block surrounded by text" =:
-          unlines [ "Greetings"
-                  , ": echo hello"
-                  , ": echo dear tester"
-                  , "Bye"
-                  ] =?>
+          T.unlines [ "Greetings"
+                    , ": echo hello"
+                    , ": echo dear tester"
+                    , "Bye"
+                    ] =?>
           mconcat [ para "Greetings"
                   , codeBlockWith ("", ["example"], [])
                                   "echo hello\necho dear tester\n"
@@ -933,81 +1011,81 @@ tests =
                   ]
 
       , "Horizontal Rule" =:
-          unlines [ "before"
-                  , "-----"
-                  , "after"
-                  ] =?>
+          T.unlines [ "before"
+                    , "-----"
+                    , "after"
+                    ] =?>
           mconcat [ para "before"
                   , horizontalRule
                   , para "after"
                   ]
 
       , "Not a Horizontal Rule" =:
-          "----- five dashes" =?>
-          (para $ spcSep [ "-----", "five", "dashes" ])
+          "----- em and en dash" =?>
+          para "\8212\8211 em and en dash"
 
       , "Comment Block" =:
-          unlines [ "#+BEGIN_COMMENT"
-                  , "stuff"
-                  , "bla"
-                  , "#+END_COMMENT"] =?>
+          T.unlines [ "#+BEGIN_COMMENT"
+                    , "stuff"
+                    , "bla"
+                    , "#+END_COMMENT"] =?>
           (mempty::Blocks)
 
       , testGroup "Figures" $
         [ "Figure" =:
-            unlines [ "#+caption: A very courageous man."
-                    , "#+name: goodguy"
-                    , "[[file:edward.jpg]]"
-                    ] =?>
+            T.unlines [ "#+caption: A very courageous man."
+                      , "#+name: goodguy"
+                      , "[[file:edward.jpg]]"
+                      ] =?>
             para (image "edward.jpg" "fig:goodguy" "A very courageous man.")
 
         , "Figure with no name" =:
-            unlines [ "#+caption: I've been through the desert on this"
-                    , "[[file:horse.png]]"
-                    ] =?>
+            T.unlines [ "#+caption: I've been through the desert on this"
+                      , "[[file:horse.png]]"
+                      ] =?>
             para (image "horse.png" "fig:" "I've been through the desert on this")
 
         , "Figure with `fig:` prefix in name" =:
-            unlines [ "#+caption: Used as a metapher in evolutionary biology."
-                    , "#+name: fig:redqueen"
-                    , "[[./the-red-queen.jpg]]"
-                    ] =?>
+            T.unlines [ "#+caption: Used as a metapher in evolutionary biology."
+                      , "#+name: fig:redqueen"
+                      , "[[./the-red-queen.jpg]]"
+                      ] =?>
             para (image "./the-red-queen.jpg" "fig:redqueen"
                         "Used as a metapher in evolutionary biology.")
 
         , "Figure with HTML attributes" =:
-            unlines [ "#+CAPTION: mah brain just explodid"
-                    , "#+NAME: lambdacat"
-                    , "#+ATTR_HTML: :style color: blue :role button"
-                    , "[[file:lambdacat.jpg]]"
-                    ] =?>
+            T.unlines [ "#+CAPTION: mah brain just explodid"
+                      , "#+NAME: lambdacat"
+                      , "#+ATTR_HTML: :style color: blue :role button"
+                      , "[[file:lambdacat.jpg]]"
+                      ] =?>
             let kv = [("style", "color: blue"), ("role", "button")]
                 name = "fig:lambdacat"
                 caption = "mah brain just explodid"
             in para (imageWith (mempty, mempty, kv) "lambdacat.jpg" name caption)
 
         , "Labelled figure" =:
-            unlines [ "#+CAPTION: My figure"
-                    , "#+LABEL: fig:myfig"
-                    , "[[file:blub.png]]"
-                    ] =?>
+            T.unlines [ "#+CAPTION: My figure"
+                      , "#+LABEL: fig:myfig"
+                      , "[[file:blub.png]]"
+                      ] =?>
             let attr = ("fig:myfig", mempty, mempty)
             in para (imageWith attr "blub.png" "fig:" "My figure")
 
         , "Figure with empty caption" =:
-            unlines [ "#+CAPTION:"
-                    , "[[file:guess.jpg]]"
-                    ] =?>
+            T.unlines [ "#+CAPTION:"
+                      , "[[file:guess.jpg]]"
+                      ] =?>
             para (image "guess.jpg" "fig:" "")
         ]
 
       , "Footnote" =:
-          unlines [ "A footnote[1]"
-                  , ""
-                  , "[1] First paragraph"
-                  , ""
-                  , "second paragraph"
-                  ] =?>
+          T.unlines [ "A footnote[1]"
+                    , ""
+                    , "[1] First paragraph"
+                    , ""
+                    , "second paragraph"
+                    ] =?>
           para (mconcat
                 [ "A", space, "footnote"
                 , note $ mconcat [ para ("First" <> space <> "paragraph")
@@ -1016,12 +1094,12 @@ tests =
                 ])
 
       , "Two footnotes" =:
-          unlines [ "Footnotes[fn:1][fn:2]"
-                  , ""
-                  , "[fn:1] First note."
-                  , ""
-                  , "[fn:2] Second note."
-                  ] =?>
+          T.unlines [ "Footnotes[fn:1][fn:2]"
+                    , ""
+                    , "[fn:1] First note."
+                    , ""
+                    , "[fn:2] Second note."
+                    ] =?>
           para (mconcat
                 [ "Footnotes"
                 , note $ para ("First" <> space <> "note.")
@@ -1029,32 +1107,32 @@ tests =
                 ])
 
       , "Emphasized text before footnote" =:
-          unlines [ "/text/[fn:1]"
-                  , ""
-                  , "[fn:1] unicorn"
-                  ] =?>
+          T.unlines [ "/text/[fn:1]"
+                    , ""
+                    , "[fn:1] unicorn"
+                    ] =?>
           para (mconcat
                [ emph "text"
                , note . para $ "unicorn"
                ])
 
       , "Footnote that starts with emphasized text" =:
-          unlines [ "text[fn:1]"
-                  , ""
-                  , "[fn:1] /emphasized/"
-                  ] =?>
+          T.unlines [ "text[fn:1]"
+                    , ""
+                    , "[fn:1] /emphasized/"
+                    ] =?>
           para (mconcat
                [ "text"
                , note . para $ emph "emphasized"
                ])
 
       , "Footnote followed by header" =:
-          unlines [ "Another note[fn:yay]"
-                  , ""
-                  , "[fn:yay] This is great!"
-                  , ""
-                  , "** Headline"
-                  ] =?>
+          T.unlines [ "Another note[fn:yay]"
+                    , ""
+                    , "[fn:yay] This is great!"
+                    , ""
+                    , "** Headline"
+                    ] =?>
           mconcat
           [ para (mconcat
                   [ "Another", space, "note"
@@ -1066,43 +1144,43 @@ tests =
 
   , testGroup "Lists" $
       [ "Simple Bullet Lists" =:
-          ("- Item1\n" ++
+          ("- Item1\n" <>
            "- Item2\n") =?>
           bulletList [ plain "Item1"
                      , plain "Item2"
                      ]
 
       , "Indented Bullet Lists" =:
-          ("   - Item1\n" ++
+          ("   - Item1\n" <>
            "   - Item2\n") =?>
           bulletList [ plain "Item1"
                      , plain "Item2"
                      ]
 
       , "Unindented *" =:
-          ("- Item1\n" ++
+          ("- Item1\n" <>
            "* Item2\n") =?>
           bulletList [ plain "Item1"
                      ] <>
           headerWith ("item2", [], []) 1 "Item2"
 
       , "Multi-line Bullet Lists" =:
-          ("- *Fat\n" ++
-           "  Tony*\n" ++
-           "- /Sideshow\n" ++
+          ("- *Fat\n" <>
+           "  Tony*\n" <>
+           "- /Sideshow\n" <>
            " Bob/") =?>
           bulletList [ plain $ strong ("Fat" <> softbreak <> "Tony")
                      , plain $ emph ("Sideshow" <> softbreak <> "Bob")
                      ]
 
       , "Nested Bullet Lists" =:
-          ("- Discovery\n" ++
-           "  + One More Time\n" ++
-           "  + Harder, Better, Faster, Stronger\n" ++
-           "- Homework\n" ++
-           "  + Around the World\n"++
-           "- Human After All\n" ++
-           "  + Technologic\n" ++
+          ("- Discovery\n" <>
+           "  + One More Time\n" <>
+           "  + Harder, Better, Faster, Stronger\n" <>
+           "- Homework\n" <>
+           "  + Around the World\n"<>
+           "- Human After All\n" <>
+           "  + Technologic\n" <>
            "  + Robot Rock\n") =?>
           bulletList [ mconcat
                        [ plain "Discovery"
@@ -1158,7 +1236,7 @@ tests =
                   ]
 
       , "Simple Ordered List" =:
-          ("1. Item1\n" ++
+          ("1. Item1\n" <>
            "2. Item2\n") =?>
           let listStyle = (1, DefaultStyle, DefaultDelim)
               listStructure = [ plain "Item1"
@@ -1167,7 +1245,7 @@ tests =
           in orderedListWith listStyle listStructure
 
       , "Simple Ordered List with Parens" =:
-          ("1) Item1\n" ++
+          ("1) Item1\n" <>
            "2) Item2\n") =?>
           let listStyle = (1, DefaultStyle, DefaultDelim)
               listStructure = [ plain "Item1"
@@ -1176,7 +1254,7 @@ tests =
           in orderedListWith listStyle listStructure
 
       , "Indented Ordered List" =:
-          (" 1. Item1\n" ++
+          (" 1. Item1\n" <>
            " 2. Item2\n") =?>
           let listStyle = (1, DefaultStyle, DefaultDelim)
               listStructure = [ plain "Item1"
@@ -1185,11 +1263,11 @@ tests =
           in orderedListWith listStyle listStructure
 
       , "Nested Ordered Lists" =:
-          ("1. One\n" ++
-           "   1. One-One\n" ++
-           "   2. One-Two\n" ++
-           "2. Two\n" ++
-           "   1. Two-One\n"++
+          ("1. One\n" <>
+           "   1. One-One\n" <>
+           "   2. One-Two\n" <>
+           "2. Two\n" <>
+           "   1. Two-One\n"<>
            "   2. Two-Two\n") =?>
           let listStyle = (1, DefaultStyle, DefaultDelim)
               listStructure = [ mconcat
@@ -1208,25 +1286,25 @@ tests =
           in orderedListWith listStyle listStructure
 
       , "Ordered List in Bullet List" =:
-          ("- Emacs\n" ++
+          ("- Emacs\n" <>
            "  1. Org\n") =?>
           bulletList [ (plain "Emacs") <>
                        (orderedList [ plain "Org"])
                      ]
 
       , "Bullet List in Ordered List" =:
-          ("1. GNU\n" ++
+          ("1. GNU\n" <>
            "   - Freedom\n") =?>
           orderedList [ (plain "GNU") <> bulletList [ (plain "Freedom") ] ]
 
       , "Definition List" =:
-          unlines [ "- PLL :: phase-locked loop"
-                  , "- TTL ::"
-                  , "  transistor-transistor logic"
-                  , "- PSK :: phase-shift keying"
-                  , ""
-                  , "  a digital modulation scheme"
-                  ] =?>
+          T.unlines [ "- PLL :: phase-locked loop"
+                    , "- TTL ::"
+                    , "  transistor-transistor logic"
+                    , "- PSK :: phase-shift keying"
+                    , ""
+                    , "  a digital modulation scheme"
+                    ] =?>
           definitionList [ ("PLL", [ plain $ "phase-locked" <> space <> "loop" ])
                          , ("TTL", [ plain $ "transistor-transistor" <> space <>
                                                "logic" ])
@@ -1241,11 +1319,11 @@ tests =
         " - Elijah Wood :: He plays Frodo" =?>
          definitionList [ ("Elijah" <> space <> "Wood", [plain $ "He" <> space <> "plays" <> space <> "Frodo"])]
       , "Compact definition list" =:
-          unlines [ "- ATP :: adenosine 5' triphosphate"
-                  , "- DNA :: deoxyribonucleic acid"
-                  , "- PCR :: polymerase chain reaction"
-                  , ""
-                  ] =?>
+           T.unlines [ "- ATP :: adenosine 5' triphosphate"
+                     , "- DNA :: deoxyribonucleic acid"
+                     , "- PCR :: polymerase chain reaction"
+                     , ""
+                     ] =?>
           definitionList
           [ ("ATP", [ plain $ spcSep [ "adenosine", "5'", "triphosphate" ] ])
           , ("DNA", [ plain $ spcSep [ "deoxyribonucleic", "acid" ] ])
@@ -1267,21 +1345,21 @@ tests =
           bulletList [ plain "std::cout" ]
 
       , "Loose bullet list" =:
-          unlines [ "- apple"
-                  , ""
-                  , "- orange"
-                  , ""
-                  , "- peach"
-                  ] =?>
+         T.unlines [ "- apple"
+                   , ""
+                   , "- orange"
+                   , ""
+                   , "- peach"
+                   ] =?>
           bulletList [ para "apple"
                      , para "orange"
                      , para "peach"
                      ]
 
       , "Recognize preceding paragraphs in non-list contexts" =:
-          unlines [ "CLOSED: [2015-10-19 Mon 15:03]"
-                  , "- Note taken on [2015-10-19 Mon 13:24]"
-                  ] =?>
+          T.unlines [ "CLOSED: [2015-10-19 Mon 15:03]"
+                    , "- Note taken on [2015-10-19 Mon 13:24]"
+                    ] =?>
           mconcat [ para "CLOSED: [2015-10-19 Mon 15:03]"
                   , bulletList [ plain "Note taken on [2015-10-19 Mon 13:24]" ]
                   ]
@@ -1297,10 +1375,10 @@ tests =
            simpleTable' 2 mempty [ [ plain "One", plain "Two" ] ]
 
       , "Multi line table" =:
-          unlines [ "| One   |"
-                  , "| Two   |"
-                  , "| Three |"
-                  ] =?>
+          T.unlines [ "| One   |"
+                    , "| Two   |"
+                    , "| Three |"
+                    ] =?>
            simpleTable' 1 mempty
                         [ [ plain "One" ]
                         , [ plain "Two" ]
@@ -1312,10 +1390,10 @@ tests =
           simpleTable' 1 mempty [[mempty]]
 
       , "Glider Table" =:
-          unlines [ "| 1 | 0 | 0 |"
-                  , "| 0 | 1 | 1 |"
-                  , "| 1 | 1 | 0 |"
-                  ] =?>
+          T.unlines [ "| 1 | 0 | 0 |"
+                    , "| 0 | 1 | 1 |"
+                    , "| 1 | 1 | 0 |"
+                    ] =?>
           simpleTable' 3 mempty
                        [ [ plain "1", plain "0", plain "0" ]
                        , [ plain "0", plain "1", plain "1" ]
@@ -1323,42 +1401,42 @@ tests =
                        ]
 
       , "Table between Paragraphs" =:
-          unlines [ "Before"
-                  , "| One | Two |"
-                  , "After"
-                  ] =?>
+          T.unlines [ "Before"
+                    , "| One | Two |"
+                    , "After"
+                    ] =?>
           mconcat [ para "Before"
                   , simpleTable' 2 mempty [ [ plain "One", plain "Two" ] ]
                   , para "After"
                   ]
 
       , "Table with Header" =:
-          unlines [ "| Species      | Status       |"
-                  , "|--------------+--------------|"
-                  , "| cervisiae    | domesticated |"
-                  , "| paradoxus    | wild         |"
-                  ] =?>
+          T.unlines [ "| Species      | Status       |"
+                    , "|--------------+--------------|"
+                    , "| cervisiae    | domesticated |"
+                    , "| paradoxus    | wild         |"
+                    ] =?>
           simpleTable [ plain "Species", plain "Status" ]
                       [ [ plain "cervisiae", plain "domesticated" ]
                       , [ plain "paradoxus", plain "wild" ]
                       ]
 
       , "Table with final hline" =:
-          unlines [ "| cervisiae    | domesticated |"
-                  , "| paradoxus    | wild         |"
-                  , "|--------------+--------------|"
-                  ] =?>
+          T.unlines [ "| cervisiae    | domesticated |"
+                    , "| paradoxus    | wild         |"
+                    , "|--------------+--------------|"
+                    ] =?>
           simpleTable' 2 mempty
                 [ [ plain "cervisiae", plain "domesticated" ]
                  , [ plain "paradoxus", plain "wild" ]
                 ]
 
       , "Table in a box" =:
-          unlines [ "|---------|---------|"
-                  , "| static  | Haskell |"
-                  , "| dynamic | Lisp    |"
-                  , "|---------+---------|"
-                  ] =?>
+          T.unlines [ "|---------|---------|"
+                    , "| static  | Haskell |"
+                    , "| dynamic | Lisp    |"
+                    , "|---------+---------|"
+                    ] =?>
           simpleTable' 2 mempty
                 [ [ plain "static", plain "Haskell" ]
                 , [ plain "dynamic", plain "Lisp" ]
@@ -1369,18 +1447,18 @@ tests =
           simpleTable' 3 mempty [[mempty, mempty, plain "c"]]
 
       , "Table with empty rows" =:
-          unlines [ "| first  |"
-                  , "|        |"
-                  , "| third  |"
-                  ] =?>
+          T.unlines [ "| first  |"
+                    , "|        |"
+                    , "| third  |"
+                    ] =?>
           simpleTable' 1 mempty [[plain "first"], [mempty], [plain "third"]]
 
       , "Table with alignment row" =:
-          unlines [ "| Numbers | Text | More |"
-                  , "| <c>     | <r>  |      |"
-                  , "| 1       | One  | foo  |"
-                  , "| 2       | Two  | bar  |"
-                  ] =?>
+          T.unlines [ "| Numbers | Text | More |"
+                    , "| <c>     | <r>  |      |"
+                    , "| 1       | One  | foo  |"
+                    , "| 2       | Two  | bar  |"
+                    ] =?>
           table "" (zip [AlignCenter, AlignRight, AlignDefault] [0, 0, 0])
                 []
                 [ [ plain "Numbers", plain "Text", plain "More" ]
@@ -1397,12 +1475,12 @@ tests =
           simpleTable' 1 mempty [ [ plain "incomplete-but-valid" ] ]
 
       , "Table with differing row lengths" =:
-          unlines [ "| Numbers | Text "
-                  , "|-"
-                  , "| <c>     | <r>  |"
-                  , "| 1       | One  | foo  |"
-                  , "| 2"
-                  ] =?>
+          T.unlines [ "| Numbers | Text "
+                    , "|-"
+                    , "| <c>     | <r>  |"
+                    , "| 1       | One  | foo  |"
+                    , "| 2"
+                    ] =?>
           table "" (zip [AlignCenter, AlignRight] [0, 0])
                 [ plain "Numbers", plain "Text" ]
                 [ [ plain "1" , plain "One" , plain "foo" ]
@@ -1410,10 +1488,10 @@ tests =
                 ]
 
       , "Table with caption" =:
-          unlines [ "#+CAPTION: Hitchhiker's Multiplication Table"
-                  , "| x |  6 |"
-                  , "| 9 | 42 |"
-                  ] =?>
+          T.unlines [ "#+CAPTION: Hitchhiker's Multiplication Table"
+                    , "| x |  6 |"
+                    , "| 9 | 42 |"
+                    ] =?>
           table "Hitchhiker's Multiplication Table"
                 [(AlignDefault, 0), (AlignDefault, 0)]
                 []
@@ -1424,59 +1502,59 @@ tests =
 
     , testGroup "Blocks and fragments"
       [ "Source block" =:
-           unlines [ "  #+BEGIN_SRC haskell"
-                   , "  main = putStrLn greeting"
-                   , "    where greeting = \"moin\""
-                   , "  #+END_SRC" ] =?>
+           T.unlines [ "  #+BEGIN_SRC haskell"
+                     , "  main = putStrLn greeting"
+                     , "    where greeting = \"moin\""
+                     , "  #+END_SRC" ] =?>
            let attr' = ("", ["haskell"], [])
-               code' = "main = putStrLn greeting\n" ++
+               code' = "main = putStrLn greeting\n" <>
                        "  where greeting = \"moin\"\n"
            in codeBlockWith attr' code'
 
       , "Source block with indented code" =:
-           unlines [ "  #+BEGIN_SRC haskell"
-                   , "    main = putStrLn greeting"
-                   , "      where greeting = \"moin\""
-                   , "  #+END_SRC" ] =?>
+           T.unlines [ "  #+BEGIN_SRC haskell"
+                     , "    main = putStrLn greeting"
+                     , "      where greeting = \"moin\""
+                     , "  #+END_SRC" ] =?>
            let attr' = ("", ["haskell"], [])
-               code' = "main = putStrLn greeting\n" ++
+               code' = "main = putStrLn greeting\n" <>
                        "  where greeting = \"moin\"\n"
            in codeBlockWith attr' code'
 
       , "Source block with tab-indented code" =:
-           unlines [ "\t#+BEGIN_SRC haskell"
-                   , "\tmain = putStrLn greeting"
-                   , "\t  where greeting = \"moin\""
-                   , "\t#+END_SRC" ] =?>
+           T.unlines [ "\t#+BEGIN_SRC haskell"
+                     , "\tmain = putStrLn greeting"
+                     , "\t  where greeting = \"moin\""
+                     , "\t#+END_SRC" ] =?>
            let attr' = ("", ["haskell"], [])
-               code' = "main = putStrLn greeting\n" ++
+               code' = "main = putStrLn greeting\n" <>
                        "  where greeting = \"moin\"\n"
            in codeBlockWith attr' code'
 
       , "Empty source block" =:
-           unlines [ "  #+BEGIN_SRC haskell"
-                   , "  #+END_SRC" ] =?>
+           T.unlines [ "  #+BEGIN_SRC haskell"
+                     , "  #+END_SRC" ] =?>
            let attr' = ("", ["haskell"], [])
                code' = ""
            in codeBlockWith attr' code'
 
       , "Source block between paragraphs" =:
-           unlines [ "Low German greeting"
-                   , "  #+BEGIN_SRC haskell"
-                   , "  main = putStrLn greeting"
-                   , "    where greeting = \"Moin!\""
-                   , "  #+END_SRC" ] =?>
+           T.unlines [ "Low German greeting"
+                     , "  #+BEGIN_SRC haskell"
+                     , "  main = putStrLn greeting"
+                     , "    where greeting = \"Moin!\""
+                     , "  #+END_SRC" ] =?>
            let attr' = ("", ["haskell"], [])
-               code' = "main = putStrLn greeting\n" ++
+               code' = "main = putStrLn greeting\n" <>
                         "  where greeting = \"Moin!\"\n"
            in mconcat [ para $ spcSep [ "Low", "German", "greeting"  ]
                       , codeBlockWith attr' code'
                       ]
       , "Source block with babel arguments" =:
-           unlines [ "#+BEGIN_SRC emacs-lisp :exports both"
-                   , "(progn (message \"Hello, World!\")"
-                   , "       (+ 23 42))"
-                   , "#+END_SRC" ] =?>
+           T.unlines [ "#+BEGIN_SRC emacs-lisp :exports both"
+                     , "(progn (message \"Hello, World!\")"
+                     , "       (+ 23 42))"
+                     , "#+END_SRC" ] =?>
            let classes = [ "commonlisp" ] -- as kate doesn't know emacs-lisp syntax
                params = [ ("data-org-language", "emacs-lisp")
                         , ("exports", "both")
@@ -1486,13 +1564,13 @@ tests =
            in codeBlockWith ("", classes, params) code'
 
       , "Source block with results and :exports both" =:
-           unlines [ "#+BEGIN_SRC emacs-lisp :exports both"
-                   , "(progn (message \"Hello, World!\")"
-                   , "       (+ 23 42))"
-                   , "#+END_SRC"
-                   , ""
-                   , "#+RESULTS:"
-                   , ": 65"] =?>
+           T.unlines [ "#+BEGIN_SRC emacs-lisp :exports both"
+                     , "(progn (message \"Hello, World!\")"
+                     , "       (+ 23 42))"
+                     , "#+END_SRC"
+                     , ""
+                     , "#+RESULTS:"
+                     , ": 65"] =?>
            let classes = [ "commonlisp" ]
                params = [ ("data-org-language", "emacs-lisp")
                         , ("exports", "both")
@@ -1505,13 +1583,13 @@ tests =
               codeBlockWith ("", ["example"], []) results'
 
       , "Source block with results and :exports code" =:
-           unlines [ "#+BEGIN_SRC emacs-lisp :exports code"
-                   , "(progn (message \"Hello, World!\")"
-                   , "       (+ 23 42))"
-                   , "#+END_SRC"
-                   , ""
-                   , "#+RESULTS:"
-                   , ": 65" ] =?>
+           T.unlines [ "#+BEGIN_SRC emacs-lisp :exports code"
+                     , "(progn (message \"Hello, World!\")"
+                     , "       (+ 23 42))"
+                     , "#+END_SRC"
+                     , ""
+                     , "#+RESULTS:"
+                     , ": 65" ] =?>
            let classes = [ "commonlisp" ]
                params = [ ("data-org-language", "emacs-lisp")
                         , ("exports", "code")
@@ -1521,87 +1599,87 @@ tests =
            in codeBlockWith ("", classes, params) code'
 
       , "Source block with results and :exports results" =:
-           unlines [ "#+BEGIN_SRC emacs-lisp :exports results"
-                   , "(progn (message \"Hello, World!\")"
-                   , "       (+ 23 42))"
-                   , "#+END_SRC"
-                   , ""
-                   , "#+RESULTS:"
-                   , ": 65" ] =?>
+           T.unlines [ "#+BEGIN_SRC emacs-lisp :exports results"
+                     , "(progn (message \"Hello, World!\")"
+                     , "       (+ 23 42))"
+                     , "#+END_SRC"
+                     , ""
+                     , "#+RESULTS:"
+                     , ": 65" ] =?>
            let results' = "65\n"
            in codeBlockWith ("", ["example"], []) results'
 
       , "Source block with results and :exports none" =:
-           unlines [ "#+BEGIN_SRC emacs-lisp :exports none"
-                   , "(progn (message \"Hello, World!\")"
-                   , "       (+ 23 42))"
-                   , "#+END_SRC"
-                   , ""
-                   , "#+RESULTS:"
-                   , ": 65" ] =?>
+           T.unlines [ "#+BEGIN_SRC emacs-lisp :exports none"
+                     , "(progn (message \"Hello, World!\")"
+                     , "       (+ 23 42))"
+                     , "#+END_SRC"
+                     , ""
+                     , "#+RESULTS:"
+                     , ": 65" ] =?>
            (mempty :: Blocks)
 
       , "Source block with toggling header arguments" =:
-        unlines [ "#+BEGIN_SRC sh :noeval"
-                , "echo $HOME"
-                , "#+END_SRC"
-                ] =?>
+        T.unlines [ "#+BEGIN_SRC sh :noeval"
+                  , "echo $HOME"
+                  , "#+END_SRC"
+                  ] =?>
         let classes = [ "bash" ]
             params = [ ("data-org-language", "sh"), ("noeval", "yes") ]
         in codeBlockWith ("", classes, params) "echo $HOME\n"
 
       , "Source block with line number switch" =:
-        unlines [ "#+BEGIN_SRC sh -n 10"
-                , ":() { :|:& };:"
-                , "#+END_SRC"
-                ] =?>
+        T.unlines [ "#+BEGIN_SRC sh -n 10"
+                  , ":() { :|:& };:"
+                  , "#+END_SRC"
+                  ] =?>
         let classes = [ "bash", "numberLines" ]
             params = [ ("data-org-language", "sh"), ("startFrom", "10") ]
         in codeBlockWith ("", classes, params) ":() { :|:& };:\n"
 
       , "Source block with multi-word parameter values" =:
-        unlines [ "#+BEGIN_SRC dot :cmdline -Kdot -Tpng "
-                , "digraph { id [label=\"ID\"] }"
-                , "#+END_SRC"
-                ] =?>
+        T.unlines [ "#+BEGIN_SRC dot :cmdline -Kdot -Tpng "
+                  , "digraph { id [label=\"ID\"] }"
+                  , "#+END_SRC"
+                  ] =?>
         let classes = [ "dot" ]
             params = [ ("cmdline", "-Kdot -Tpng") ]
         in codeBlockWith ("", classes, params) "digraph { id [label=\"ID\"] }\n"
 
       , "Example block" =:
-           unlines [ "#+begin_example"
-                   , "A chosen representation of"
-                   , "a rule."
-                   , "#+eND_exAMPle"
-                   ] =?>
+           T.unlines [ "#+begin_example"
+                     , "A chosen representation of"
+                     , "a rule."
+                     , "#+eND_exAMPle"
+                     ] =?>
            codeBlockWith ("", ["example"], [])
                          "A chosen representation of\na rule.\n"
 
       , "HTML block" =:
-           unlines [ "#+BEGIN_HTML"
-                   , "<aside>HTML5 is pretty nice.</aside>"
-                   , "#+END_HTML"
-                   ] =?>
+           T.unlines [ "#+BEGIN_HTML"
+                     , "<aside>HTML5 is pretty nice.</aside>"
+                     , "#+END_HTML"
+                     ] =?>
            rawBlock "html" "<aside>HTML5 is pretty nice.</aside>\n"
 
       , "Quote block" =:
-           unlines [ "#+BEGIN_QUOTE"
-                   , "/Niemand/ hat die Absicht, eine Mauer zu errichten!"
-                   , "#+END_QUOTE"
-                   ] =?>
+           T.unlines [ "#+BEGIN_QUOTE"
+                     , "/Niemand/ hat die Absicht, eine Mauer zu errichten!"
+                     , "#+END_QUOTE"
+                     ] =?>
            blockQuote (para (spcSep [ emph "Niemand", "hat", "die", "Absicht,"
                                     , "eine", "Mauer", "zu", "errichten!"
                                     ]))
 
       , "Verse block" =:
-          unlines [ "The first lines of Goethe's /Faust/:"
-                  , "#+begin_verse"
-                  , "Habe nun, ach! Philosophie,"
-                  , "Juristerei und Medizin,"
-                  , "Und leider auch Theologie!"
-                  , "Durchaus studiert, mit heißem Bemühn."
-                  , "#+end_verse"
-                  ] =?>
+          T.unlines [ "The first lines of Goethe's /Faust/:"
+                    , "#+begin_verse"
+                    , "Habe nun, ach! Philosophie,"
+                    , "Juristerei und Medizin,"
+                    , "Und leider auch Theologie!"
+                    , "Durchaus studiert, mit heißem Bemühn."
+                    , "#+end_verse"
+                    ] =?>
           mconcat
           [ para $ spcSep [ "The", "first", "lines", "of"
                           , "Goethe's", emph "Faust" <> ":"]
@@ -1614,27 +1692,27 @@ tests =
           ]
 
       , "Verse block with blank lines" =:
-          unlines [ "#+BEGIN_VERSE"
-                  , "foo"
-                  , ""
-                  , "bar"
-                  , "#+END_VERSE"
-                  ] =?>
+          T.unlines [ "#+BEGIN_VERSE"
+                    , "foo"
+                    , ""
+                    , "bar"
+                    , "#+END_VERSE"
+                    ] =?>
           lineBlock [ "foo", mempty, "bar" ]
 
       , "Verse block with varying indentation" =:
-          unlines [ "#+BEGIN_VERSE"
-                  , "  hello darkness"
-                  , "my old friend"
-                  , "#+END_VERSE"
-                  ] =?>
+          T.unlines [ "#+BEGIN_VERSE"
+                    , "  hello darkness"
+                    , "my old friend"
+                    , "#+END_VERSE"
+                    ] =?>
           lineBlock [ "\160\160hello darkness", "my old friend" ]
 
       , "Raw block LaTeX" =:
-          unlines [ "#+BEGIN_LaTeX"
-                  , "The category $\\cat{Set}$ is adhesive."
-                  , "#+END_LaTeX"
-                  ] =?>
+          T.unlines [ "#+BEGIN_LaTeX"
+                    , "The category $\\cat{Set}$ is adhesive."
+                    , "#+END_LaTeX"
+                    ] =?>
           rawBlock "latex" "The category $\\cat{Set}$ is adhesive.\n"
 
       , "Raw LaTeX line" =:
@@ -1650,24 +1728,24 @@ tests =
           rawBlock "html" "<aside>not important</aside>"
 
       , "Export block HTML" =:
-          unlines [ "#+BEGIN_export html"
-                  , "<samp>Hello, World!</samp>"
-                  , "#+END_export"
-                  ] =?>
+          T.unlines [ "#+BEGIN_export html"
+                    , "<samp>Hello, World!</samp>"
+                    , "#+END_export"
+                    ] =?>
           rawBlock "html" "<samp>Hello, World!</samp>\n"
 
       , "LaTeX fragment" =:
-          unlines [ "\\begin{equation}"
-                  , "X_i = \\begin{cases}"
-                  , "      G_{\\alpha(i)} & \\text{if }\\alpha(i-1) = \\alpha(i)\\\\"
-                  , "      C_{\\alpha(i)} & \\text{otherwise}"
-                  , "      \\end{cases}"
-                  , "\\end{equation}"
-                  ] =?>
+          T.unlines [ "\\begin{equation}"
+                    , "X_i = \\begin{cases}"
+                    , "      G_{\\alpha(i)} & \\text{if }\\alpha(i-1) = \\alpha(i)\\\\"
+                    , "      C_{\\alpha(i)} & \\text{otherwise}"
+                    , "      \\end{cases}"
+                    , "\\end{equation}"
+                    ] =?>
           rawBlock "latex"
                    (unlines [ "\\begin{equation}"
                             , "X_i = \\begin{cases}"
-                            , "      G_{\\alpha(i)} & \\text{if }\\alpha(i-1) =" ++
+                            , "      G_{\\alpha(i)} & \\text{if }\\alpha(i-1) =" <>
                               " \\alpha(i)\\\\"
                             , "      C_{\\alpha(i)} & \\text{otherwise}"
                             , "      \\end{cases}"
@@ -1675,13 +1753,13 @@ tests =
                             ])
 
       , "Code block with caption" =:
-          unlines [ "#+CAPTION: Functor laws in Haskell"
-                  , "#+NAME: functor-laws"
-                  , "#+BEGIN_SRC haskell"
-                  , "fmap id = id"
-                  , "fmap (p . q) = (fmap p) . (fmap q)"
-                  , "#+END_SRC"
-                  ] =?>
+          T.unlines [ "#+CAPTION: Functor laws in Haskell"
+                    , "#+NAME: functor-laws"
+                    , "#+BEGIN_SRC haskell"
+                    , "fmap id = id"
+                    , "fmap (p . q) = (fmap p) . (fmap q)"
+                    , "#+END_SRC"
+                    ] =?>
           divWith
              nullAttr
              (mappend
@@ -1693,28 +1771,28 @@ tests =
                                       ])))
 
       , "Convert blank lines in blocks to single newlines" =:
-          unlines [ "#+begin_html"
-                  , ""
-                  , "<span>boring</span>"
-                  , ""
-                  , "#+end_html"
-                  ] =?>
+          T.unlines [ "#+begin_html"
+                    , ""
+                    , "<span>boring</span>"
+                    , ""
+                    , "#+end_html"
+                    ] =?>
           rawBlock "html" "\n<span>boring</span>\n\n"
 
       , "Accept `ATTR_HTML` attributes for generic block" =:
-          unlines [ "#+ATTR_HTML: :title hello, world :id test :class fun code"
-                  , "#+BEGIN_TEST"
-                  , "nonsense"
-                  , "#+END_TEST"
-                  ] =?>
+          T.unlines [ "#+ATTR_HTML: :title hello, world :id test :class fun code"
+                    , "#+BEGIN_TEST"
+                    , "nonsense"
+                    , "#+END_TEST"
+                    ] =?>
           let attr = ("test", ["fun", "code", "TEST"], [("title", "hello, world")])
           in divWith attr (para "nonsense")
 
       , "Non-letter chars in source block parameters" =:
-          unlines [ "#+BEGIN_SRC C :tangle xxxx.c :city Zürich"
-                  , "code body"
-                  , "#+END_SRC"
-                  ] =?>
+          T.unlines [ "#+BEGIN_SRC C :tangle xxxx.c :city Zürich"
+                    , "code body"
+                    , "#+END_SRC"
+                    ] =?>
           let params  = [ ("data-org-language", "C")
                         , ("tangle", "xxxx.c")
                         , ("city", "Zürich")

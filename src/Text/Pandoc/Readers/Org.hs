@@ -1,5 +1,5 @@
 {-
-Copyright (C) 2014-2016 Albert Krewinkel <tarleb+pandoc@moltkeplatz.de>
+Copyright (C) 2014-2017 Albert Krewinkel <tarleb+pandoc@moltkeplatz.de>
 
 This program is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -18,7 +18,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 {- |
    Module      : Text.Pandoc.Readers.Org
-   Copyright   : Copyright (C) 2014-2016 Albert Krewinkel
+   Copyright   : Copyright (C) 2014-2017 Albert Krewinkel
    License     : GNU GPL, version 2 or above
 
    Maintainer  : Albert Krewinkel <tarleb+pandoc@moltkeplatz.de>
@@ -40,15 +40,18 @@ import Text.Pandoc.Parsing (reportLogMessages)
 import Control.Monad.Except (throwError)
 import Control.Monad.Reader (runReaderT)
 
+import Data.Text (Text)
+import qualified Data.Text as T
 
 -- | Parse org-mode string and return a Pandoc document.
 readOrg :: PandocMonad m
         => ReaderOptions -- ^ Reader options
-        -> String        -- ^ String to parse (assuming @'\n'@ line endings)
+        -> Text          -- ^ String to parse (assuming @'\n'@ line endings)
         -> m Pandoc
 readOrg opts s = do
   parsed <- flip runReaderT def $
-            readWithM parseOrg (optionsToParserState opts) (s ++ "\n\n")
+            readWithM parseOrg (optionsToParserState opts)
+            (T.unpack s ++ "\n\n")
   case parsed of
     Right result -> return result
     Left  _      -> throwError $ PandocParseError "problem parsing org"

@@ -1,5 +1,5 @@
 {-
-Copyright (C) 2008-2015 John MacFarlane <jgm@berkeley.edu>
+Copyright (C) 2008-2017 John MacFarlane <jgm@berkeley.edu>
 
 This program is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -18,7 +18,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 {- |
    Module      : Text.Pandoc.Writers.MediaWiki
-   Copyright   : Copyright (C) 2008-2015 John MacFarlane
+   Copyright   : Copyright (C) 2008-2017 John MacFarlane
    License     : GNU GPL, version 2 or above
 
    Maintainer  : John MacFarlane <jgm@berkeley.edu>
@@ -34,7 +34,7 @@ import Control.Monad.Reader
 import Control.Monad.State
 import Data.List (intercalate)
 import qualified Data.Set as Set
-import Network.URI (isURI)
+import Data.Text (Text, pack)
 import Text.Pandoc.Class (PandocMonad, report)
 import Text.Pandoc.Logging
 import Text.Pandoc.Definition
@@ -60,14 +60,14 @@ data WriterReader = WriterReader {
 type MediaWikiWriter m = ReaderT WriterReader (StateT WriterState m)
 
 -- | Convert Pandoc to MediaWiki.
-writeMediaWiki :: PandocMonad m => WriterOptions -> Pandoc -> m String
+writeMediaWiki :: PandocMonad m => WriterOptions -> Pandoc -> m Text
 writeMediaWiki opts document =
   let initialState = WriterState { stNotes = False, stOptions = opts }
       env = WriterReader { options = opts, listLevel = [], useTags = False }
   in  evalStateT (runReaderT (pandocToMediaWiki document) env) initialState
 
 -- | Return MediaWiki representation of document.
-pandocToMediaWiki :: PandocMonad m => Pandoc -> MediaWikiWriter m String
+pandocToMediaWiki :: PandocMonad m => Pandoc -> MediaWikiWriter m Text
 pandocToMediaWiki (Pandoc meta blocks) = do
   opts <- asks options
   metadata <- metaToJSON opts
@@ -82,7 +82,8 @@ pandocToMediaWiki (Pandoc meta blocks) = do
   let main = body ++ notes
   let context = defField "body" main
                 $ defField "toc" (writerTableOfContents opts) metadata
-  return $ case writerTemplate opts of
+  return $ pack
+         $ case writerTemplate opts of
                 Nothing  -> main
                 Just tpl -> renderTemplate' tpl context
 

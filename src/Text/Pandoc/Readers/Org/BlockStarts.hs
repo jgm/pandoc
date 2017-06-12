@@ -1,5 +1,5 @@
 {-
-Copyright (C) 2014-2016 Albert Krewinkel <tarleb+pandoc@moltkeplatz.de>
+Copyright (C) 2014-2017 Albert Krewinkel <tarleb+pandoc@moltkeplatz.de>
 
 This program is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -17,8 +17,8 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 -}
 
 {- |
-   Module      : Text.Pandoc.Readers.Org.Options
-   Copyright   : Copyright (C) 2014-2016 Albert Krewinkel
+   Module      : Text.Pandoc.Readers.Org.BlockStarts
+   Copyright   : Copyright (C) 2014-2017 Albert Krewinkel
    License     : GNU GPL, version 2 or above
 
    Maintainer  : Albert Krewinkel <tarleb+pandoc@moltkeplatz.de>
@@ -61,8 +61,12 @@ headerStart = try $
 tableStart :: Monad m => OrgParser m Char
 tableStart = try $ skipSpaces *> char '|'
 
+gridTableStart :: Monad m => OrgParser m ()
+gridTableStart = try $ skipSpaces <* char '+' <* char '-'
+
+
 latexEnvStart :: Monad m => OrgParser m String
-latexEnvStart = try $ do
+latexEnvStart = try $
   skipSpaces *> string "\\begin{"
              *> latexEnvName
              <* string "}"
@@ -93,8 +97,7 @@ orderedListStart = genericListStart orderedListMarker
   where orderedListMarker = mappend <$> many1 digit <*> (pure <$> oneOf ".)")
 
 drawerStart :: Monad m => OrgParser m String
-drawerStart = try $
-  skipSpaces *> drawerName <* skipSpaces <* newline
+drawerStart = try $ skipSpaces *> drawerName <* skipSpaces <* newline
  where drawerName = char ':' *> manyTill nonspaceChar (char ':')
 
 metaLineStart :: Monad m => OrgParser m ()
@@ -116,8 +119,8 @@ noteMarker = try $ do
 
 -- | Succeeds if the parser is at the end of a block.
 endOfBlock :: Monad m => OrgParser m ()
-endOfBlock = lookAhead . try $ do
-    void blankline <|> anyBlockStart
+endOfBlock = lookAhead . try $
+  void blankline <|> anyBlockStart
  where
    -- Succeeds if there is a new block starting at this position.
    anyBlockStart :: Monad m => OrgParser m ()
@@ -126,6 +129,7 @@ endOfBlock = lookAhead . try $ do
      , hline
      , metaLineStart
      , commentLineStart
+     , gridTableStart
      , void noteMarker
      , void tableStart
      , void drawerStart
@@ -134,4 +138,3 @@ endOfBlock = lookAhead . try $ do
      , void bulletListStart
      , void orderedListStart
      ]
-

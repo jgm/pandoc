@@ -1,5 +1,5 @@
 {-
-Copyright (C) 2006-2016 John MacFarlane <jgm@berkeley.edu>
+Copyright (C) 2006-2017 John MacFarlane <jgm@berkeley.edu>
 
 This program is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -21,7 +21,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 {- |
    Module      : Text.Pandoc
-   Copyright   : Copyright (C) 2006-2016 John MacFarlane
+   Copyright   : Copyright (C) 2006-2017 John MacFarlane
    License     : GNU GPL, version 2 or above
 
    Maintainer  : John MacFarlane <jgm@berkeley.edu>
@@ -83,6 +83,7 @@ module Text.Pandoc.Writers
 
 import Data.Aeson
 import Data.List (intercalate)
+import Data.Text (Text)
 import Text.Pandoc.Class
 import Text.Pandoc.Definition
 import Text.Pandoc.Options
@@ -120,59 +121,59 @@ import Text.Parsec.Error
 import qualified Text.Pandoc.UTF8 as UTF8
 import qualified Data.ByteString.Lazy as BL
 
-data Writer m = StringWriter (WriterOptions -> Pandoc -> m String)
+data Writer m = TextWriter (WriterOptions -> Pandoc -> m Text)
               | ByteStringWriter (WriterOptions -> Pandoc -> m BL.ByteString)
 
 -- | Association list of formats and writers.
 writers :: PandocMonad m => [ ( String, Writer m) ]
 writers = [
-   ("native"       , StringWriter writeNative)
-  ,("json"         , StringWriter $ \o d -> return $ writeJSON o d)
+   ("native"       , TextWriter writeNative)
+  ,("json"         , TextWriter $ \o d -> return $ writeJSON o d)
   ,("docx"         , ByteStringWriter writeDocx)
   ,("odt"          , ByteStringWriter writeODT)
   ,("epub"         , ByteStringWriter writeEPUB3)
   ,("epub2"        , ByteStringWriter writeEPUB2)
   ,("epub3"        , ByteStringWriter writeEPUB3)
-  ,("fb2"          , StringWriter writeFB2)
-  ,("html"         , StringWriter writeHtml5String)
-  ,("html4"        , StringWriter writeHtml4String)
-  ,("html5"        , StringWriter writeHtml5String)
-  ,("icml"         , StringWriter writeICML)
-  ,("s5"           , StringWriter writeS5)
-  ,("slidy"        , StringWriter writeSlidy)
-  ,("slideous"     , StringWriter writeSlideous)
-  ,("dzslides"     , StringWriter writeDZSlides)
-  ,("revealjs"     , StringWriter writeRevealJs)
-  ,("docbook"      , StringWriter writeDocbook5)
-  ,("docbook4"     , StringWriter writeDocbook4)
-  ,("docbook5"     , StringWriter writeDocbook5)
-  ,("jats"         , StringWriter writeJATS)
-  ,("opml"         , StringWriter writeOPML)
-  ,("opendocument" , StringWriter writeOpenDocument)
-  ,("latex"        , StringWriter writeLaTeX)
-  ,("beamer"       , StringWriter writeBeamer)
-  ,("context"      , StringWriter writeConTeXt)
-  ,("texinfo"      , StringWriter writeTexinfo)
-  ,("man"          , StringWriter writeMan)
-  ,("ms"           , StringWriter writeMs)
-  ,("markdown"     , StringWriter writeMarkdown)
-  ,("markdown_strict" , StringWriter writeMarkdown)
-  ,("markdown_phpextra" , StringWriter writeMarkdown)
-  ,("markdown_github" , StringWriter writeMarkdown)
-  ,("markdown_mmd" , StringWriter writeMarkdown)
-  ,("plain"        , StringWriter writePlain)
-  ,("rst"          , StringWriter writeRST)
-  ,("mediawiki"    , StringWriter writeMediaWiki)
-  ,("dokuwiki"     , StringWriter writeDokuWiki)
-  ,("zimwiki"      , StringWriter writeZimWiki)
-  ,("textile"      , StringWriter writeTextile)
-  ,("rtf"          , StringWriter writeRTF)
-  ,("org"          , StringWriter writeOrg)
-  ,("asciidoc"     , StringWriter writeAsciiDoc)
-  ,("haddock"      , StringWriter writeHaddock)
-  ,("commonmark"   , StringWriter writeCommonMark)
-  ,("tei"          , StringWriter writeTEI)
-  ,("muse"         , StringWriter writeMuse)
+  ,("fb2"          , TextWriter writeFB2)
+  ,("html"         , TextWriter writeHtml5String)
+  ,("html4"        , TextWriter writeHtml4String)
+  ,("html5"        , TextWriter writeHtml5String)
+  ,("icml"         , TextWriter writeICML)
+  ,("s5"           , TextWriter writeS5)
+  ,("slidy"        , TextWriter writeSlidy)
+  ,("slideous"     , TextWriter writeSlideous)
+  ,("dzslides"     , TextWriter writeDZSlides)
+  ,("revealjs"     , TextWriter writeRevealJs)
+  ,("docbook"      , TextWriter writeDocbook5)
+  ,("docbook4"     , TextWriter writeDocbook4)
+  ,("docbook5"     , TextWriter writeDocbook5)
+  ,("jats"         , TextWriter writeJATS)
+  ,("opml"         , TextWriter writeOPML)
+  ,("opendocument" , TextWriter writeOpenDocument)
+  ,("latex"        , TextWriter writeLaTeX)
+  ,("beamer"       , TextWriter writeBeamer)
+  ,("context"      , TextWriter writeConTeXt)
+  ,("texinfo"      , TextWriter writeTexinfo)
+  ,("man"          , TextWriter writeMan)
+  ,("ms"           , TextWriter writeMs)
+  ,("markdown"     , TextWriter writeMarkdown)
+  ,("markdown_strict" , TextWriter writeMarkdown)
+  ,("markdown_phpextra" , TextWriter writeMarkdown)
+  ,("markdown_github" , TextWriter writeMarkdown)
+  ,("markdown_mmd" , TextWriter writeMarkdown)
+  ,("plain"        , TextWriter writePlain)
+  ,("rst"          , TextWriter writeRST)
+  ,("mediawiki"    , TextWriter writeMediaWiki)
+  ,("dokuwiki"     , TextWriter writeDokuWiki)
+  ,("zimwiki"      , TextWriter writeZimWiki)
+  ,("textile"      , TextWriter writeTextile)
+  ,("rtf"          , TextWriter writeRTF)
+  ,("org"          , TextWriter writeOrg)
+  ,("asciidoc"     , TextWriter writeAsciiDoc)
+  ,("haddock"      , TextWriter writeHaddock)
+  ,("commonmark"   , TextWriter writeCommonMark)
+  ,("tei"          , TextWriter writeTEI)
+  ,("muse"         , TextWriter writeMuse)
   ]
 
 getWriter :: PandocMonad m => String -> Either String (Writer m)
@@ -182,12 +183,12 @@ getWriter s
          Right (writerName, setExts) ->
              case lookup writerName writers of
                      Nothing -> Left $ "Unknown writer: " ++ writerName
-                     Just (StringWriter r) -> Right $ StringWriter $
+                     Just (TextWriter r) -> Right $ TextWriter $
                              \o -> r o{ writerExtensions = setExts $
                                               getDefaultExtensions writerName }
                      Just (ByteStringWriter r) -> Right $ ByteStringWriter $
                              \o -> r o{ writerExtensions = setExts $
                                               getDefaultExtensions writerName }
 
-writeJSON :: WriterOptions -> Pandoc -> String
-writeJSON _ = UTF8.toStringLazy . encode
+writeJSON :: WriterOptions -> Pandoc -> Text
+writeJSON _ = UTF8.toText . BL.toStrict . encode

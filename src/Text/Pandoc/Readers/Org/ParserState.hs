@@ -1,8 +1,7 @@
-{-# LANGUAGE FlexibleInstances          #-}
-{-# LANGUAGE GeneralizedNewtypeDeriving #-}
-{-# LANGUAGE MultiParamTypeClasses      #-}
+{-# LANGUAGE FlexibleInstances     #-}
+{-# LANGUAGE MultiParamTypeClasses #-}
 {-
-Copyright (C) 2014-2016 Albert Krewinkel <tarleb+pandoc@moltkeplatz.de>
+Copyright (C) 2014-2017 Albert Krewinkel <tarleb+pandoc@moltkeplatz.de>
 
 This program is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -20,8 +19,8 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 -}
 
 {- |
-   Module      : Text.Pandoc.Readers.Org.Options
-   Copyright   : Copyright (C) 2014-2016 Albert Krewinkel
+   Module      : Text.Pandoc.Readers.Org.ParserState
+   Copyright   : Copyright (C) 2014-2017 Albert Krewinkel
    License     : GNU GPL, version 2 or above
 
    Maintainer  : Albert Krewinkel <tarleb+pandoc@moltkeplatz.de>
@@ -39,6 +38,9 @@ module Text.Pandoc.Readers.Org.ParserState
   , TodoState (..)
   , activeTodoMarkers
   , registerTodoSequence
+  , MacroExpander
+  , lookupMacro
+  , registerMacro
   , F
   , askF
   , asksF
@@ -58,14 +60,14 @@ import qualified Data.Set as Set
 
 import Text.Pandoc.Builder (Blocks, Inlines)
 import Text.Pandoc.Definition (Meta (..), nullMeta)
-import Text.Pandoc.Options (ReaderOptions (..))
 import Text.Pandoc.Logging
-import Text.Pandoc.Parsing (HasHeaderMap (..), HasIdentifierList (..),
-                            HasLogMessages (..),
-                            HasLastStrPosition (..), HasQuoteContext (..),
+import Text.Pandoc.Options (ReaderOptions (..))
+import Text.Pandoc.Parsing (Future, HasHeaderMap (..), HasIdentifierList (..),
+                            HasIncludeFiles (..), HasLastStrPosition (..),
+                            HasLogMessages (..), HasQuoteContext (..),
                             HasReaderOptions (..), ParserContext (..),
-                            QuoteContext (..), SourcePos, Future,
-                            askF, asksF, returnF, runF, trimInlinesF)
+                            QuoteContext (..), SourcePos, askF, asksF, returnF,
+                            runF, trimInlinesF)
 
 -- | This is used to delay evaluation until all relevant information has been
 -- parsed and made available in the parser state.
@@ -78,6 +80,8 @@ type OrgNoteTable = [OrgNoteRecord]
 -- | Map of functions for link transformations.  The map key is refers to the
 -- link-type, the corresponding function transforms the given link string.
 type OrgLinkFormatters = M.Map String (String -> String)
+-- | Macro expander function
+type MacroExpander = [String] -> String
 
 -- | The states in which a todo item can be
 data TodoState = Todo | Done
@@ -101,10 +105,13 @@ data OrgParserState = OrgParserState
   , orgStateExportSettings       :: ExportSettings
   , orgStateHeaderMap            :: M.Map Inlines String
   , orgStateIdentifiers          :: Set.Set String
+  , orgStateIncludeFiles         :: [String]
   , orgStateLastForbiddenCharPos :: Maybe SourcePos
   , orgStateLastPreCharPos       :: Maybe SourcePos
   , orgStateLastStrPos           :: Maybe SourcePos
   , orgStateLinkFormatters       :: OrgLinkFormatters
+  , orgStateMacros               :: M.Map String MacroExpander
+  , orgStateMacroDepth           :: Int
   , orgStateMeta                 :: F Meta
   , orgStateNotes'               :: OrgNoteTable
   , orgStateOptions              :: ReaderOptions
@@ -141,6 +148,12 @@ instance HasLogMessages OrgParserState where
   addLogMessage msg st = st{ orgLogMessages = msg : orgLogMessages st }
   getLogMessages st = reverse $ orgLogMessages st
 
+instance HasIncludeFiles OrgParserState where
+  getIncludeFiles = orgStateIncludeFiles
+  addIncludeFile f st = st { orgStateIncludeFiles = f : orgStateIncludeFiles st }
+  dropLatestIncludeFile st =
+    st { orgStateIncludeFiles = drop 1 $ orgStateIncludeFiles st }
+
 instance Default OrgParserState where
   def = defaultOrgParserState
 
@@ -152,10 +165,13 @@ defaultOrgParserState = OrgParserState
   , orgStateExportSettings = def
   , orgStateHeaderMap = M.empty
   , orgStateIdentifiers = Set.empty
+  , orgStateIncludeFiles = []
   , orgStateLastForbiddenCharPos = Nothing
   , orgStateLastPreCharPos = Nothing
   , orgStateLastStrPos = Nothing
   , orgStateLinkFormatters = M.empty
+  , orgStateMacros = M.empty
+  , orgStateMacroDepth = 0
   , orgStateMeta = return nullMeta
   , orgStateNotes' = []
   , orgStateOptions = def
@@ -185,6 +201,15 @@ activeTodoSequences st =
 activeTodoMarkers :: OrgParserState -> TodoSequence
 activeTodoMarkers = concat . activeTodoSequences
 
+lookupMacro :: String -> OrgParserState -> Maybe MacroExpander
+lookupMacro macroName = M.lookup macroName . orgStateMacros
+
+registerMacro :: (String, MacroExpander) -> OrgParserState -> OrgParserState
+registerMacro (name, expander) st =
+  let curMacros = orgStateMacros st
+  in st{ orgStateMacros = M.insert name expander curMacros }
+
+
 
 --
 -- Export Settings
@@ -213,6 +238,7 @@ data ExportSettings = ExportSettings
   , exportWithAuthor       :: Bool -- ^ Include author in final meta-data
   , exportWithCreator      :: Bool -- ^ Include creator in final meta-data
   , exportWithEmail        :: Bool -- ^ Include email in final meta-data
+  , exportWithTags         :: Bool -- ^ Keep tags as part of headlines
   , exportWithTodoKeywords :: Bool -- ^ Keep TODO keywords in headers
   }
 
@@ -225,11 +251,12 @@ defaultExportSettings = ExportSettings
   , exportDrawers = Left ["LOGBOOK"]
   , exportEmphasizedText = True
   , exportHeadlineLevels = 3
-  , exportSmartQuotes = True
+  , exportSmartQuotes = False
   , exportSpecialStrings = True
   , exportSubSuperscripts = True
   , exportWithAuthor = True
   , exportWithCreator = True
   , exportWithEmail = True
+  , exportWithTags = True
   , exportWithTodoKeywords = True
   }

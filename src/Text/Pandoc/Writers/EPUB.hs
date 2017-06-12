@@ -3,7 +3,7 @@
 {-# LANGUAGE PatternGuards       #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-
-Copyright (C) 2010-2015 John MacFarlane <jgm@berkeley.edu>
+Copyright (C) 2010-2017 John MacFarlane <jgm@berkeley.edu>
 
 This program is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -22,7 +22,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 {- |
    Module      : Text.Pandoc.Writers.EPUB
-   Copyright   : Copyright (C) 2010-2015 John MacFarlane
+   Copyright   : Copyright (C) 2010-2017 John MacFarlane
    License     : GNU GPL, version 2 or above
 
    Maintainer  : John MacFarlane <jgm@berkeley.edu>
@@ -40,6 +40,7 @@ import Control.Monad.State (State, StateT, evalState, evalStateT, get, gets,
                             lift, modify, put)
 import qualified Data.ByteString.Lazy as B
 import qualified Data.ByteString.Lazy.Char8 as B8
+import qualified Data.Text.Lazy as TL
 import Data.Char (isAlphaNum, isDigit, toLower)
 import Data.List (intercalate, isInfixOf, isPrefixOf)
 import qualified Data.Map as M
@@ -373,8 +374,8 @@ pandocToEPUB :: PandocMonad m
              -> E m B.ByteString
 pandocToEPUB version opts doc@(Pandoc meta _) = do
   let epub3 = version == EPUB3
-  let writeHtml o = fmap UTF8.fromStringLazy .
-                         writeHtmlStringForEPUB version o
+  let writeHtml o = fmap (UTF8.fromTextLazy . TL.fromStrict) .
+                      writeHtmlStringForEPUB version o
   epochtime <- floor <$> lift P.getPOSIXTime
   metadata <- getEPUBMetadata opts meta
   let mkEntry path content = toEntry path epochtime content

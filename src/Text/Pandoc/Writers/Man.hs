@@ -1,5 +1,6 @@
+{-# LANGUAGE OverloadedStrings #-}
 {-
-Copyright (C) 2007-2015 John MacFarlane <jgm@berkeley.edu>
+Copyright (C) 2007-2017 John MacFarlane <jgm@berkeley.edu>
 
 This program is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -18,7 +19,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 {- |
    Module      : Text.Pandoc.Writers.Man
-   Copyright   : Copyright (C) 2007-2015 John MacFarlane
+   Copyright   : Copyright (C) 2007-2017 John MacFarlane
    License     : GNU GPL, version 2 or above
 
    Maintainer  : John MacFarlane <jgm@berkeley.edu>
@@ -34,6 +35,8 @@ import Control.Monad.State
 import Data.List (intercalate, intersperse, stripPrefix, sort)
 import qualified Data.Map as Map
 import Data.Maybe (fromMaybe)
+import Data.Text (Text)
+import qualified Data.Text as T
 import Text.Pandoc.Builder (deleteMeta)
 import Text.Pandoc.Class (PandocMonad, report)
 import Text.Pandoc.Definition
@@ -62,36 +65,37 @@ defaultWriterState = WriterState { stNotes = []
                                  , stHasTables  = False }
 
 -- | Convert Pandoc to Man.
-writeMan :: PandocMonad m => WriterOptions -> Pandoc -> m String
+writeMan :: PandocMonad m => WriterOptions -> Pandoc -> m Text
 writeMan opts document =
   evalStateT (pandocToMan opts document) defaultWriterState
 
 -- | Return groff man representation of document.
-pandocToMan :: PandocMonad m => WriterOptions -> Pandoc -> StateT WriterState m String
+pandocToMan :: PandocMonad m => WriterOptions -> Pandoc -> StateT WriterState m Text
 pandocToMan opts (Pandoc meta blocks) = do
   let colwidth = if writerWrapText opts == WrapAuto
                     then Just $ writerColumns opts
                     else Nothing
-  let render' = render colwidth
+  let render' :: Doc -> Text
+      render' = render colwidth
   titleText <- inlineListToMan opts $ docTitle meta
   let title' = render' titleText
   let setFieldsFromTitle =
-       case break (== ' ') title' of
-           (cmdName, rest) -> case break (=='(') cmdName of
-                                   (xs, '(':ys) | not (null ys) &&
-                                                  last ys == ')' ->
+       case T.break (== ' ') title' of
+           (cmdName, rest) -> case T.break (=='(') cmdName of
+                                   (xs, ys) | "(" `T.isPrefixOf` ys
+                                                && ")" `T.isSuffixOf` ys ->
                                      defField "title" xs .
-                                     defField "section" (init ys) .
-                                     case splitBy (=='|') rest of
+                                     defField "section" (T.init $ T.drop 1 ys) .
+                                     case T.splitOn "|" rest of
                                           (ft:hds) ->
-                                            defField "footer" (trim ft) .
+                                            defField "footer" (T.strip ft) .
                                             defField "header"
-                                               (trim $ concat hds)
+                                               (T.strip $ mconcat hds)
                                           [] -> id
                                    _  -> defField "title" title'
   metadata <- metaToJSON opts
-              (fmap (render colwidth) . blockListToMan opts)
-              (fmap (render colwidth) . inlineListToMan opts)
+              (fmap render' . blockListToMan opts)
+              (fmap render' . inlineListToMan opts)
               $ deleteMeta "title" meta
   body <- blockListToMan opts blocks
   notes <- gets stNotes
