@@ -475,6 +475,8 @@ blockToMarkdown' opts (Header level attr inlines) = do
                                     space <> attrsToMarkdown attr
                      | otherwise -> empty
   contents <- inlineListToMarkdown opts $
+                 -- ensure no newlines; see #3736
+                 walk lineBreakToSpace $
                  if level == 1 && plain
                     then capitalize inlines
                     else inlines
@@ -1203,3 +1205,8 @@ toSubscript c
                  Just $ chr (0x2080 + (ord c - 48))
   | isSpace c = Just c
   | otherwise = Nothing
+
+lineBreakToSpace :: Inline -> Inline
+lineBreakToSpace LineBreak = Space
+lineBreakToSpace SoftBreak = Space
+lineBreakToSpace x         = x
