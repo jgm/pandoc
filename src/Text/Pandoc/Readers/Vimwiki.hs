@@ -71,14 +71,14 @@ import Data.List (isInfixOf)
 import Text.Pandoc.Builder (Blocks, Inlines, trimInlines, fromList, toList)
 import qualified Text.Pandoc.Builder as B (doc, toList, headerWith, str, space, strong, emph, strikeout, code, link, image, spanWith, math, para, horizontalRule, blockQuote, displayMath, bulletList, plain, orderedList, simpleTable, softbreak, codeBlockWith, imageWith, divWith, setMeta)
 import Text.Pandoc.Class (PandocMonad, report)
-import Text.Pandoc.Definition (Pandoc, Inline(Space), Block(BulletList, OrderedList), Attr, nullMeta, Meta)
+import Text.Pandoc.Definition (Pandoc(..), Inline(Space), Block(BulletList, OrderedList), Attr, nullMeta, Meta)
 import Text.Pandoc.Logging (LogMessage(ParsingTrace))
 import Text.Pandoc.Options (ReaderOptions)
-import Text.Pandoc.Parsing (readWithM, ParserT, stateOptions, ParserState, stateMeta', blanklines, registerHeader, spaceChar, emailAddress, uri, F)
+import Text.Pandoc.Parsing (readWithM, ParserT, stateOptions, ParserState, stateMeta', blanklines, registerHeader, spaceChar, emailAddress, uri, F, runF)
 import Text.Pandoc.Shared (splitBy, stripFirstAndLast, stringify)
 import Text.Parsec.Char (spaces, char, anyChar, newline, string, noneOf)
 import Text.Parsec.Combinator (eof, choice, many1, manyTill, count, skipMany1, notFollowedBy)
-import Text.Parsec.Prim (many, getPosition, try, updateState)
+import Text.Parsec.Prim (many, getPosition, try, updateState, getState)
 import Text.Parsec.Char (oneOf, space)
 import Text.Parsec.Combinator (lookAhead, between)
 import Text.Parsec.Prim ((<|>))
@@ -131,10 +131,12 @@ parseVimwiki = do
   bs <- mconcat <$> many block
   spaces
   eof
-  --st <- getState
-  --meta <- stateMeta' st
-  --return $ Pandoc meta bs
-  return $ B.doc bs
+  st <- getState
+  --let meta <- stateMeta' st
+  let meta = runF (stateMeta' st) st
+  return $ Pandoc meta (B.toList bs)
+  --return $ B.doc bs
+  --return doc
 
 -- block parser
 
@@ -146,11 +148,12 @@ block = do
                 , hrule
                 , mempty <$ comment
                 , mixedList
-                , blockQuote
                 , preformatted
                 , displayMath 
                 , table
                 , mempty <$ titlePH
+                , mempty <$ datePH
+                , blockQuote
                 , para
                 ]
   report $ ParsingTrace (take 60 $ show $ B.toList res) pos -- remove B.
@@ -354,9 +357,16 @@ tableCell = try $ do
 
 titlePH :: PandocMonad m => VwParser m ()
 titlePH = try $ do
-  string "%title" >> spaceChar
+  many spaceChar >> string "%title" >> spaceChar
   title <- (trimInlines . mconcat <$> (manyTill inline newline))
   let meta' = return $ B.setMeta "title" title nullMeta :: F Meta
+  updateState $ \st -> st { stateMeta' = stateMeta' st <> meta' }
+
+datePH :: PandocMonad m => VwParser m ()
+datePH = try $ do
+  many spaceChar >> string "%date" >> spaceChar
+  date <- (trimInlines . mconcat <$> (manyTill inline newline))
+  let meta' = return $ B.setMeta "date" date nullMeta :: F Meta
   updateState $ \st -> st { stateMeta' = stateMeta' st <> meta' }
 
 -- inline parser
