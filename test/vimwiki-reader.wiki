@@ -304,7 +304,6 @@ two lines after many blank lines.
 == metadata placeholders ==
 %title title
 %date 2017-5-1
-%author G. H. Hardy and Littlewood, J. E.
 
 == the todo mark ==
 TODO:
@@ -330,6 +329,6 @@ Term 2::
 | \/ | \/ | > | g |
 | h  | >  | > | > |
 
-== control placeholders ==
+== some other placeholders ==
 %template template
-
+%author G. H. Hardy and Littlewood, J. E.

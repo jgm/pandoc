@@ -153,6 +153,7 @@ block = do
                 , table
                 , mempty <$ titlePH
                 , mempty <$ datePH
+                --, definitionList
                 , blockQuote
                 , para
                 ]
@@ -197,6 +198,10 @@ blockQuote = try $ do
   if all (==Space) (toList contents)
      then return mempty
      else return $ B.blockQuote $ B.plain contents
+
+--definitionList :: PandocMonad m => VwParser m Blocks
+--definitionList = try $ do
+  --dt <- manyTill inline (string "::" >> spaceChar >> notFollowedBy  )
 
 preformatted :: PandocMonad m => VwParser m Blocks
 preformatted = try $ do
