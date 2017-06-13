@@ -77,7 +77,7 @@ import Text.Pandoc.Options (ReaderOptions)
 import Text.Pandoc.Parsing (readWithM, ParserT, stateOptions, ParserState, stateMeta', blanklines, registerHeader, spaceChar, emailAddress, uri, F, runF, romanNumeral, orderedListMarker)
 import Text.Pandoc.Shared (splitBy, stripFirstAndLast, stringify)
 import Text.Parsec.Char (spaces, char, anyChar, newline, string, noneOf)
-import Text.Parsec.Combinator (eof, choice, many1, manyTill, count, skipMany1, notFollowedBy)
+import Text.Parsec.Combinator (eof, choice, many1, manyTill, count, skipMany1, notFollowedBy, option)
 import Text.Parsec.Prim (many, getPosition, try, updateState, getState)
 import Text.Parsec.Char (oneOf, space)
 import Text.Parsec.Combinator (lookAhead, between)
@@ -270,23 +270,28 @@ mixedList' prevInd = do
                      else return (curList, endInd)
                      --}
 
-plainInlineML' :: PandocMonad m => VwParser m Blocks
-plainInlineML' = do
+--plainInlineML' :: PandocMonad m => VwParser m Blocks
+plainInlineML' :: PandocMonad m => Inlines -> VwParser m Blocks
+plainInlineML' w = do
   --x <- spaceChar >> (B.plain <$> trimInlines . mconcat <$> (many inlineML))
-  x <- B.plain <$> trimInlines . mconcat <$> (many inlineML)
+  xs <- many inlineML
+  --x <- B.plain <$> trimInlines . mconcat <$> (many inlineML)
   newline
-  return x
+  return $ B.plain $ trimInlines $ mconcat $ w:xs
 
 plainInlineML :: PandocMonad m => VwParser m Blocks
-plainInlineML = (notFollowedBy listStart) >> spaceChar >> plainInlineML'
+plainInlineML = (notFollowedBy listStart) >> spaceChar >> plainInlineML' mempty
 
 
 listItemContent :: PandocMonad m => VwParser m Blocks
 listItemContent = try $ do
-  x <- plainInlineML'
+  w <- option mempty listTodoMarker
+  x <- plainInlineML' w
+  --x <- plainInlineML'
   y <- many p2
   z <- p6
   return $ mconcat $ x:y++[z]
+  --return $ mconcat $ x:y++[z]
 p2 :: PandocMonad m => VwParser m Blocks
 p2 = try $ do -- bbbbbi
   y <- many1 blockML
@@ -294,6 +299,23 @@ p2 = try $ do -- bbbbbi
   return $ mconcat $ y ++ [x]
 p6 :: PandocMonad m => VwParser m Blocks -- bbbbbbbbb
 p6 = try $ (mconcat <$> many blockML)
+
+listTodoMarker :: PandocMonad m => VwParser m Inlines
+listTodoMarker = do 
+  x <- between (many spaceChar >> char '[') (char ']' >> spaceChar) (oneOf " .oOX")
+  return $ makeListMarkerSpan x
+
+makeListMarkerSpan :: Char -> Inlines
+makeListMarkerSpan x = 
+  let cl = case x of
+            ' ' -> "done0"
+            '.' -> "done1"
+            'o' -> "done2"
+            'O' -> "done3"
+            'X' -> "done4"
+            _   -> ""
+    in
+      B.spanWith ("", [cl], []) mempty
 
 
 followedByNewline :: PandocMonad m => VwParser m a -> VwParser m a
