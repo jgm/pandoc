@@ -38,12 +38,12 @@ Conversion of vimwiki text to 'Pandoc' document.
     * [X] displaymath 
     * [X] bulletlist / orderedlist 
         * [X] orderedlist with 1., i., a) etc identification.
-        * [ ] todo lists -- see https://github.com/LarsEKrueger/pandoc-vimwiki
+        * [X] todo lists -- not list builder with attributes? using span.
     * [X] table
         * [X] centered table -- used div
         * [O] colspan and rowspan -- pandoc limitation, see issue #1024
     * [X] paragraph
-    * [ ] definition list
+    * [X] definition list
 * inline parsers:
     * [X] bareURL
     * [X] strong
@@ -57,7 +57,8 @@ Conversion of vimwiki text to 'Pandoc' document.
     * [ ] sub- and super-scripts
 * misc:
     * [X] `TODO:` mark
-    * [ ] placeholders: %title and %date -> metadata, %template -> template
+    * [X] metadata placeholders: %title and %date  
+    * [ ] control placeholders: %template and %nohtml
 --}
 
 module Text.Pandoc.Readers.Vimwiki ( readVimwiki
@@ -69,7 +70,7 @@ import Data.Maybe
 import Data.Monoid ((<>))
 import Data.List (isInfixOf)
 import Text.Pandoc.Builder (Blocks, Inlines, trimInlines, fromList, toList)
-import qualified Text.Pandoc.Builder as B (doc, toList, headerWith, str, space, strong, emph, strikeout, code, link, image, spanWith, math, para, horizontalRule, blockQuote, displayMath, bulletList, plain, orderedList, simpleTable, softbreak, codeBlockWith, imageWith, divWith, setMeta)
+import qualified Text.Pandoc.Builder as B (doc, toList, headerWith, str, space, strong, emph, strikeout, code, link, image, spanWith, math, para, horizontalRule, blockQuote, displayMath, bulletList, plain, orderedList, simpleTable, softbreak, codeBlockWith, imageWith, divWith, setMeta, definitionList)
 import Text.Pandoc.Class (PandocMonad, report)
 import Text.Pandoc.Definition (Pandoc(..), Inline(Space), Block(BulletList, OrderedList), Attr, nullMeta, Meta, ListNumberStyle(..), ListNumberDelim(..))
 import Text.Pandoc.Logging (LogMessage(ParsingTrace))
@@ -153,8 +154,8 @@ block = do
                 , table
                 , mempty <$ titlePH
                 , mempty <$ datePH
-                --, definitionList
                 , blockQuote
+                , definitionList
                 , para
                 ]
   report $ ParsingTrace (take 60 $ show $ B.toList res) pos -- remove B.
@@ -199,9 +200,60 @@ blockQuote = try $ do
      then return mempty
      else return $ B.blockQuote $ B.plain contents
 
---definitionList :: PandocMonad m => VwParser m Blocks
---definitionList = try $ do
-  --dt <- manyTill inline (string "::" >> spaceChar >> notFollowedBy  )
+definitionList :: PandocMonad m => VwParser m Blocks
+definitionList = try $ B.definitionList <$> (many1 (dlItemWithDT <|> dlItemWithoutDT))
+
+dlItemWithDT :: PandocMonad m => VwParser m (Inlines, [Blocks])
+dlItemWithDT = do
+  dt <- definitionTerm
+  dds <- many definitionDef
+  return $ (dt, dds)
+
+dlItemWithoutDT :: PandocMonad m => VwParser m (Inlines, [Blocks])
+dlItemWithoutDT = do
+  dds <- many1 definitionDef
+  return $ (mempty, dds)
+
+definitionDef :: PandocMonad m => VwParser m Blocks
+definitionDef = try $ 
+  (notFollowedBy definitionTerm) >> many spaceChar >> (definitionDef1 <|> definitionDef2)
+  --x <- (defMarkerM >> (trimInlines . mconcat <$> many inline')) <|> (mempty <$ (lookAhead newline))
+  --newline
+  --if (stringify x == "") then return mempty else return $ B.plain x
+  --return $ B.plain x
+
+definitionDef1 :: PandocMonad m => VwParser m Blocks
+definitionDef1 = try $ mempty <$ defMarkerE
+
+definitionDef2 :: PandocMonad m => VwParser m Blocks
+definitionDef2 = try $ B.plain <$> (defMarkerM >> (trimInlines . mconcat <$> many inline') <* newline)
+
+
+definitionTerm :: PandocMonad m => VwParser m Inlines
+definitionTerm = try $ do
+  x <- definitionTerm1 <|> definitionTerm2
+  guard $ (stringify x /= "")
+  return x
+
+definitionTerm1 :: PandocMonad m => VwParser m Inlines
+definitionTerm1 = try $ trimInlines . mconcat <$> manyTill inline' (try $ defMarkerE)
+
+definitionTerm2 :: PandocMonad m => VwParser m Inlines
+definitionTerm2 = try $ trimInlines . mconcat <$> manyTill inline' (try $ lookAhead $ (defMarkerM >> notFollowedBy hasDefMarkerM))
+
+defMarkerM :: PandocMonad m => VwParser m Char
+defMarkerM = string "::" >> spaceChar
+
+defMarkerE :: PandocMonad m => VwParser m Char
+defMarkerE = string "::" >> newline
+
+--defMarker :: PandocMonad m => VwParser m Char
+--defMarker = string "::"-- >> spaceChar
+--defMarker = string "::" >> (oneOf spaceChars)
+
+hasDefMarkerM :: PandocMonad m => VwParser m String
+hasDefMarkerM = manyTill (noneOf "\n") (try defMarkerM)
+--hasDefMarkerM = manyTill (noneOf "\n") (try ((string "::") >> (oneOf spaceChars)))
 
 preformatted :: PandocMonad m => VwParser m Blocks
 preformatted = try $ do
@@ -404,7 +456,7 @@ tableRow = try $ do
 
 tableCell :: PandocMonad m => VwParser m Blocks
 tableCell = try $ do
-  B.plain <$> mconcat <$> (manyTill inline (char '|'))
+  B.plain <$> mconcat <$> (manyTill inline' (char '|'))
 
 titlePH :: PandocMonad m => VwParser m ()
 titlePH = try $ do
@@ -439,6 +491,11 @@ inlineList = [  bareURL
              ,  tag
              ,  special
              ]
+
+-- inline parser without softbreaks or comment breaks
+inline' :: PandocMonad m => VwParser m Inlines
+inline' = choice $ whitespace':inlineList
+
 -- inline parser for blockquotes
 inlineBQ :: PandocMonad m => VwParser m Inlines
 inlineBQ = choice $ (whitespace endlineBQ):inlineList
@@ -454,6 +511,9 @@ whitespace :: PandocMonad m => VwParser m () -> VwParser m Inlines
 whitespace endline = B.space <$ (skipMany1 spaceChar <|> (try (newline >> comment)))
          <|> B.softbreak <$ endline
 
+whitespace' :: PandocMonad m => VwParser m Inlines
+whitespace' = B.space <$ skipMany1 spaceChar
+
 special :: PandocMonad m => VwParser m Inlines
 special = B.str <$> count 1 (oneOf specialChars)
 
@@ -467,7 +527,7 @@ strong = try $ do
   s <- lookAhead $ between (char '*') (char '*') (many1 $ noneOf "*")
   guard $ (not $ (head s) `elem` spaceChars) && (not $ (last s) `elem` spaceChars)
   char '*'
-  contents <- mconcat <$> (manyTill inline $ (char '*') >> (lookAhead $ oneOf $ spaceChars ++ specialChars))
+  contents <- mconcat <$> (manyTill inline' $ (char '*') >> (lookAhead $ oneOf $ spaceChars ++ specialChars))
   return $ (B.spanWith ((makeId contents), [], []) mempty) <> (B.strong contents)
 
 makeId :: Inlines -> String -- move this function
@@ -478,13 +538,13 @@ emph = try $ do
   s <- lookAhead $ between (char '_') (char '_') (many1 $ noneOf "_")
   guard $ (not $ (head s) `elem` spaceChars) && (not $ (last s) `elem` spaceChars)
   char '_'
-  contents <- mconcat <$> (manyTill inline $ (char '_') >> (lookAhead $ oneOf $ spaceChars ++ specialChars))
+  contents <- mconcat <$> (manyTill inline' $ (char '_') >> (lookAhead $ oneOf $ spaceChars ++ specialChars))
   return $ B.emph contents
 
 strikeout :: PandocMonad m => VwParser m Inlines
 strikeout = try $ do
   string "~~"
-  contents <- mconcat <$> (manyTill inline $ string $ "~~")
+  contents <- mconcat <$> (manyTill inline' $ string $ "~~")
   return $ B.strikeout contents
 
 code :: PandocMonad m => VwParser m Inlines
@@ -570,7 +630,9 @@ nFBTTBSB =
     notFollowedBy header <*
     notFollowedBy listStart <*
     notFollowedBy preformatted <*
-    notFollowedBy displayMath
+    notFollowedBy displayMath <*
+    notFollowedBy definitionTerm <*
+    notFollowedBy definitionDef
 
 makeTagSpan :: String -> [Inlines]
 makeTagSpan s = 

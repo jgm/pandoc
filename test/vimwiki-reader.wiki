@@ -31,7 +31,7 @@ not a header:
 == header with some == in between ==
 == header with some ==in between ==
 
-== emph and strong ==
+== emph strong and strikeout ==
 
 _emph_ *strong*
 
@@ -45,6 +45,28 @@ _*emph and strong*_
 
 _*strong inside* emph_
 
+_~~strikeout~~ inside emph_
+
+~~This is _struck out_ with emph~~ 
+
+*not
+strong*
+
+just two stars: **
+
+just two underscores: __
+
+just four ~s: ~~~~
+
+_not
+%%comment
+emph_
+
+~~not
+    %%comment
+  %%comment
+strikeout~~
+
 == horizontal rule ==
 
 top
@@ -56,9 +78,7 @@ middle
 not a rule-----
 
 bottom
-== strikeout ==
 
-~~This is _struck out_~~ with emph
 
 == comments ==
 
@@ -267,6 +287,9 @@ $ \sum_i a_i^2 = 1 $
 &= 2.
 }}$
 
+[not math] You have $1
+and I have $1.
+
 == tags ==
 
 :tag-one:tag-two:
@@ -301,6 +324,37 @@ with two lines.
 This is a second paragraph with
 two lines after many blank lines.
 
+== definition list ==
+
+Term 1:: Definition 1
+Term 2::
+:: Definition 2
+  :: Definition 3
+Term :: *separated* by :: _double colons_ :: Def1
+:: Def2
+Term with lots of trailing colons::::::::: Definition
+:: This is :: A term (rather than a definition) :: and this is a definition
+Term Without definitions ::
+::
+Part :: of :: dt :: part of ::dd
+
+:: Definition 1 without a term
+:: Definition 2 without a term
+
+T1 :: D1
+new paragraph
+T1 :: D1
+
+Not::Definition
+
+Not ::Definition
+
+::Not definition
+
+    :: blockquote
+    
+    block :: quote
+
 == metadata placeholders ==
 %title title
 %date 2017-5-1
@@ -315,13 +369,6 @@ TODO:
 super^script^
 
 sub,,script,,
-
-== definition list ==
-
-Term 1:: Definition 1
-Term 2::
-:: Definition 2
-:: Definition 3
 
 == tables with spans ==
 | a  | b  | c | d |
