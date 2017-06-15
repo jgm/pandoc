@@ -274,11 +274,12 @@ indentWith num = do
                  , try (char '\t' >> indentWith (num - tabStop)) ]
 
 -- | Like @manyTill@, but reads at least one item.
-many1Till :: Stream s m t
+many1Till :: (Show end, Stream s m t)
           => ParserT s st m a
           -> ParserT s st m end
           -> ParserT s st m [a]
 many1Till p end = do
+         notFollowedBy' end
          first <- p
          rest <- manyTill p end
          return (first:rest)
@@ -343,7 +344,7 @@ blanklines :: Stream s m Char => ParserT s st m [Char]
 blanklines = many1 blankline
 
 -- | Parses material enclosed between start and end parsers.
-enclosed :: Stream s  m Char => ParserT s st m t   -- ^ start parser
+enclosed :: (Show end, Stream s  m Char) => ParserT s st m t   -- ^ start parser
          -> ParserT s st m end  -- ^ end parser
          -> ParserT s st m a    -- ^ content parser (to be used repeatedly)
          -> ParserT s st m [a]

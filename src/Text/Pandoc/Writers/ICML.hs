@@ -21,6 +21,7 @@ import Control.Monad.State
 import Data.List (intersperse, isInfixOf, isPrefixOf, stripPrefix)
 import qualified Data.Set as Set
 import Data.Text as Text (breakOnAll, pack)
+import Data.Text (Text)
 import Text.Pandoc.Class (PandocMonad, report)
 import qualified Text.Pandoc.Class as P
 import Text.Pandoc.Definition
@@ -127,11 +128,12 @@ footnoteName      = "Footnote"
 citeName          = "Cite"
 
 -- | Convert Pandoc document to string in ICML format.
-writeICML :: PandocMonad m => WriterOptions -> Pandoc -> m String
+writeICML :: PandocMonad m => WriterOptions -> Pandoc -> m Text
 writeICML opts (Pandoc meta blocks) = do
   let colwidth = if writerWrapText opts == WrapAuto
                     then Just $ writerColumns opts
                     else Nothing
+      render' :: Doc -> Text
       render' = render colwidth
       renderMeta f s = liftM (render' . fst) $ runStateT (f opts [] s) defaultWriterState
   metadata <- metaToJSON opts

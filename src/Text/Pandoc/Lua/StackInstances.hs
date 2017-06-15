@@ -17,7 +17,7 @@ along with this program; if not, write to the Free Software
 Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 -}
 {-# LANGUAGE FlexibleInstances #-}
-{-# LANGUAGE LambdaCase #-}
+{-# LANGUAGE LambdaCase        #-}
 {-# OPTIONS_GHC -fno-warn-orphans #-}
 {- |
    Module      : Text.Pandoc.Lua.StackInstances
@@ -32,13 +32,13 @@ StackValue instances for pandoc types.
 -}
 module Text.Pandoc.Lua.StackInstances () where
 
-import Control.Applicative ( (<|>) )
-import Scripting.Lua
-  ( LTYPE(..), LuaState, StackValue(..), ltype, newtable, objlen )
+import Control.Applicative ((<|>))
+import Scripting.Lua (LTYPE (..), LuaState, StackValue (..), ltype, newtable,
+                      objlen)
 import Text.Pandoc.Definition
 import Text.Pandoc.Lua.SharedInstances ()
-import Text.Pandoc.Lua.Util ( addValue, getTable, pushViaConstructor )
-import Text.Pandoc.Shared ( safeRead )
+import Text.Pandoc.Lua.Util (addValue, getTable, pushViaConstructor)
+import Text.Pandoc.Shared (safeRead)
 
 instance StackValue Pandoc where
   push lua (Pandoc meta blocks) = do

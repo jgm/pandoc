@@ -31,6 +31,7 @@ Conversion of 'Pandoc' documents to Docbook XML.
 -}
 module Text.Pandoc.Writers.TEI (writeTEI) where
 import Data.Char (toLower)
+import Data.Text (Text)
 import Data.List (isPrefixOf, stripPrefix)
 import qualified Text.Pandoc.Builder as B
 import Text.Pandoc.Class (PandocMonad, report)
@@ -56,12 +57,13 @@ authorToTEI opts name' = do
       inTagsSimple "author" (text $ escapeStringForXML name)
 
 -- | Convert Pandoc document to string in Docbook format.
-writeTEI :: PandocMonad m => WriterOptions -> Pandoc -> m String
+writeTEI :: PandocMonad m => WriterOptions -> Pandoc -> m Text
 writeTEI opts (Pandoc meta blocks) = do
   let elements = hierarchicalize blocks
       colwidth = if writerWrapText opts == WrapAuto
                     then Just $ writerColumns opts
                     else Nothing
+      render' :: Doc -> Text
       render' = render colwidth
       startLvl = case writerTopLevelDivision opts of
                    TopLevelPart    -> -1
@@ -71,9 +73,9 @@ writeTEI opts (Pandoc meta blocks) = do
   auths'      <- mapM (authorToTEI opts) $ docAuthors meta
   let meta'    = B.setMeta "author" auths' meta
   metadata <- metaToJSON opts
-                 (fmap (render colwidth . vcat) .
-                   (mapM (elementToTEI opts startLvl)) . hierarchicalize)
-                 (fmap (render colwidth) . inlinesToTEI opts)
+                 (fmap (render' . vcat) .
+                   mapM (elementToTEI opts startLvl) . hierarchicalize)
+                 (fmap render' . inlinesToTEI opts)
                  meta'
   main    <- (render' . vcat) <$> mapM (elementToTEI opts startLvl) elements
   let context = defField "body" main

@@ -43,6 +43,7 @@ even though it is supported only in Emacs Muse.
 -}
 module Text.Pandoc.Writers.Muse (writeMuse) where
 import Control.Monad.State
+import Data.Text (Text)
 import Data.List (intersperse, transpose, isInfixOf)
 import System.FilePath (takeExtension)
 import Text.Pandoc.Class (PandocMonad)
@@ -68,7 +69,7 @@ data WriterState =
 writeMuse :: PandocMonad m
           => WriterOptions
           -> Pandoc
-          -> m String
+          -> m Text
 writeMuse opts document =
   let st = WriterState { stNotes = []
                        , stOptions = opts
@@ -81,15 +82,17 @@ writeMuse opts document =
 -- | Return Muse representation of document.
 pandocToMuse :: PandocMonad m
              => Pandoc
-             -> StateT WriterState m String
+             -> StateT WriterState m Text
 pandocToMuse (Pandoc meta blocks) = do
   opts <- gets stOptions
   let colwidth = if writerWrapText opts == WrapAuto
                     then Just $ writerColumns opts
                     else Nothing
+  let render' :: Doc -> Text
+      render' = render Nothing
   metadata <- metaToJSON opts
-               (fmap (render Nothing) . blockListToMuse)
-               (fmap (render Nothing) . inlineListToMuse)
+               (fmap render' . blockListToMuse)
+               (fmap render' . inlineListToMuse)
                meta
   body <- blockListToMuse blocks
   notes <- liftM (reverse . stNotes) get >>= notesToMuse

@@ -35,6 +35,7 @@ import Control.Monad.State
 import qualified Data.ByteString.Lazy as B
 import Data.List (isPrefixOf)
 import Data.Maybe (fromMaybe)
+import qualified Data.Text.Lazy as TL
 import System.FilePath (takeDirectory, takeExtension, (<.>))
 import Text.Pandoc.Class (PandocMonad, report)
 import qualified Text.Pandoc.Class as P
@@ -45,7 +46,7 @@ import Text.Pandoc.MIME (extensionFromMimeType, getMimeType)
 import Text.Pandoc.Options (WrapOption (..), WriterOptions (..))
 import Text.Pandoc.Pretty
 import Text.Pandoc.Shared (stringify)
-import Text.Pandoc.UTF8 (fromStringLazy)
+import Text.Pandoc.UTF8 (fromStringLazy, fromTextLazy)
 import Text.Pandoc.Walk
 import Text.Pandoc.Writers.OpenDocument (writeOpenDocument)
 import Text.Pandoc.Writers.Shared (fixDisplayMath)
@@ -88,7 +89,7 @@ pandocToODT opts doc@(Pandoc meta _) = do
   newContents <- lift $ writeOpenDocument opts{writerWrapText = WrapNone} doc'
   epochtime <- floor `fmap` (lift P.getPOSIXTime)
   let contentEntry = toEntry "content.xml" epochtime
-                     $ fromStringLazy newContents
+                     $ fromTextLazy $ TL.fromStrict newContents
   picEntries <- gets stEntries
   let archive = foldr addEntryToArchive refArchive
                 $ contentEntry : picEntries

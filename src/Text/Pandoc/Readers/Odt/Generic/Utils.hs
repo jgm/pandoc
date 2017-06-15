@@ -38,8 +38,6 @@ module Text.Pandoc.Readers.Odt.Generic.Utils
 , uncurry4
 , uncurry5
 , uncurry6
-, uncurry7
-, uncurry8
 , swap
 , reverseComposition
 , bool
@@ -148,15 +146,11 @@ uncurry3 :: (a->b->c                -> z) -> (a,b,c          ) -> z
 uncurry4 :: (a->b->c->d             -> z) -> (a,b,c,d        ) -> z
 uncurry5 :: (a->b->c->d->e          -> z) -> (a,b,c,d,e      ) -> z
 uncurry6 :: (a->b->c->d->e->f       -> z) -> (a,b,c,d,e,f    ) -> z
-uncurry7 :: (a->b->c->d->e->f->g    -> z) -> (a,b,c,d,e,f,g  ) -> z
-uncurry8 :: (a->b->c->d->e->f->g->h -> z) -> (a,b,c,d,e,f,g,h) -> z
 
 uncurry3 fun (a,b,c          ) = fun a b c
 uncurry4 fun (a,b,c,d        ) = fun a b c d
 uncurry5 fun (a,b,c,d,e      ) = fun a b c d e
 uncurry6 fun (a,b,c,d,e,f    ) = fun a b c d e f
-uncurry7 fun (a,b,c,d,e,f,g  ) = fun a b c d e f g
-uncurry8 fun (a,b,c,d,e,f,g,h) = fun a b c d e f g h
 
 swap :: (a,b) -> (b,a)
 swap (a,b) = (b,a)
@@ -168,4 +162,3 @@ findBy :: (a -> Maybe b) -> [a] -> Maybe b
 findBy _               []   = Nothing
 findBy f ((f -> Just x):_ ) = Just x
 findBy f (            _:xs) = findBy f xs
-

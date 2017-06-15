@@ -18,7 +18,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 -}
 
 {- |
-   Module      : Text.Pandoc.Readers.Org.Options
+   Module      : Text.Pandoc.Readers.Org.Shared
    Copyright   : Copyright (C) 2014-2017 Albert Krewinkel
    License     : GNU GPL, version 2 or above
 
@@ -56,7 +56,7 @@ cleanLinkString s =
     '.':'/':_              -> Just s                 -- relative path
     '.':'.':'/':_          -> Just s                 -- relative path
     -- Relative path or URL (file schema)
-    'f':'i':'l':'e':':':s' -> Just $ if ("//" `isPrefixOf` s') then s else s'
+    'f':'i':'l':'e':':':s' -> Just $ if "//" `isPrefixOf` s' then s else s'
     _                      | isUrl s            -> Just s                 -- URL
     _                      -> Nothing
  where

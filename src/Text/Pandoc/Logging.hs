@@ -89,6 +89,7 @@ data LogMessage =
   | CouldNotConvertTeXMath String String
   | CouldNotParseCSS String
   | Fetching String
+  | Extracting String
   | NoTitleElement String
   | NoLangSpecified
   | CouldNotHighlight String
@@ -178,6 +179,8 @@ instance ToJSON LogMessage where
            ["message" .= Text.pack msg]
       Fetching fp ->
            ["path" .= Text.pack fp]
+      Extracting fp ->
+           ["path" .= Text.pack fp]
       NoTitleElement fallback ->
            ["fallback" .= Text.pack fallback]
       NoLangSpecified -> []
@@ -248,6 +251,8 @@ showLogMessage msg =
          "Could not parse CSS" ++ if null m then "" else (':':'\n':m)
        Fetching fp ->
          "Fetching " ++ fp ++ "..."
+       Extracting fp ->
+         "Extracting " ++ fp ++ "..."
        NoTitleElement fallback ->
          "This document format requires a nonempty <title> element.\n" ++
          "Please specify either 'title' or 'pagetitle' in the metadata.\n" ++
@@ -282,6 +287,7 @@ messageVerbosity msg =
        CouldNotConvertTeXMath{}     -> WARNING
        CouldNotParseCSS{}           -> WARNING
        Fetching{}                   -> INFO
+       Extracting{}                 -> INFO
        NoTitleElement{}             -> WARNING
        NoLangSpecified              -> INFO
        CouldNotHighlight{}          -> WARNING

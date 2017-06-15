@@ -10,6 +10,8 @@ import Text.Pandoc.Readers.Docx
 import Text.Pandoc.Readers.Native
 import Text.Pandoc.Writers.Docx
 import System.IO.Unsafe (unsafePerformIO) -- TODO temporary
+import qualified Data.ByteString as BS
+import qualified Text.Pandoc.UTF8 as UTF8
 
 type Options = (WriterOptions, ReaderOptions)
 
@@ -18,8 +20,8 @@ compareOutput :: Options
               -> FilePath
               -> IO (Pandoc, Pandoc)
 compareOutput opts nativeFileIn nativeFileOut = do
-  nf <- Prelude.readFile nativeFileIn
-  nf' <- Prelude.readFile nativeFileOut
+  nf <- UTF8.toText <$> BS.readFile nativeFileIn
+  nf' <- UTF8.toText <$> BS.readFile nativeFileOut
   let wopts = fst opts
   df <- runIOorExplode $ do
             d <- readNative def nf

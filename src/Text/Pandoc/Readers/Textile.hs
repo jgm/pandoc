@@ -70,14 +70,17 @@ import Text.Pandoc.Parsing
 import Text.Pandoc.Readers.HTML (htmlTag, isBlockTag, isInlineTag)
 import Text.Pandoc.Readers.LaTeX (rawLaTeXBlock, rawLaTeXInline)
 import Text.Pandoc.Shared (trim)
+import Data.Text (Text)
+import qualified Data.Text as T
 
 -- | Parse a Textile text and return a Pandoc document.
 readTextile :: PandocMonad m
             => ReaderOptions -- ^ Reader options
-            -> String       -- ^ String to parse (assuming @'\n'@ line endings)
+            -> Text          -- ^ String to parse (assuming @'\n'@ line endings)
             -> m Pandoc
 readTextile opts s = do
-  parsed <- readWithM parseTextile def{ stateOptions = opts } (s ++ "\n\n")
+  parsed <- readWithM parseTextile def{ stateOptions = opts }
+                (T.unpack s ++ "\n\n")
   case parsed of
      Right result -> return result
      Left e       -> throwError e
@@ -692,7 +695,7 @@ langAttr = do
   return $ \(id',classes,keyvals) -> (id',classes,("lang",lang):keyvals)
 
 -- | Parses material surrounded by a parser.
-surrounded :: PandocMonad m
+surrounded :: (PandocMonad m, Show t)
            => ParserT [Char] st m t   -- ^ surrounding parser
            -> ParserT [Char] st m a   -- ^ content parser (to be used repeatedly)
            -> ParserT [Char] st m [a]

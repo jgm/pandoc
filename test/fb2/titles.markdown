@@ -4,7 +4,3 @@ This example tests if Pandoc doesn't insert forbidden elements in FictionBook ti
 
 # *Emphasized* **Strong** Title
 
-# Title with\
-line break
-
-

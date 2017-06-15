@@ -53,6 +53,8 @@ import Text.Pandoc.Options
 import Text.Pandoc.Parsing
 import Text.Pandoc.Shared
 import Text.Printf (printf)
+import Data.Text (Text)
+import qualified Data.Text as T
 
 -- TODO:
 -- [ ] .. parsed-literal
@@ -62,10 +64,11 @@ import Text.Printf (printf)
 -- | Parse reStructuredText string and return Pandoc document.
 readRST :: PandocMonad m
         => ReaderOptions -- ^ Reader options
-        -> String        -- ^ String to parse (assuming @'\n'@ line endings)
+        -> Text          -- ^ String to parse (assuming @'\n'@ line endings)
         -> m Pandoc
 readRST opts s = do
-  parsed <- (readWithM parseRST) def{ stateOptions = opts } (s ++ "\n\n")
+  parsed <- (readWithM parseRST) def{ stateOptions = opts }
+               (T.unpack s ++ "\n\n")
   case parsed of
     Right result -> return result
     Left e       -> throwError e

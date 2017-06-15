@@ -69,13 +69,14 @@ import Data.Default
 import Data.Maybe
 import Data.Monoid ((<>))
 import Data.List (isInfixOf)
+import Data.Text (Text, unpack)
 import Text.Pandoc.Builder (Blocks, Inlines, trimInlines, fromList, toList)
-import qualified Text.Pandoc.Builder as B (doc, toList, headerWith, str, space, strong, emph, strikeout, code, link, image, spanWith, math, para, horizontalRule, blockQuote, displayMath, bulletList, plain, orderedList, simpleTable, softbreak, codeBlockWith, imageWith, divWith, setMeta, definitionList, superscript, subscript)
+import qualified Text.Pandoc.Builder as B (toList, headerWith, str, space, strong, emph, strikeout, code, link, image, spanWith, para, horizontalRule, blockQuote, bulletList, plain, orderedList, simpleTable, softbreak, codeBlockWith, imageWith, divWith, setMeta, definitionList, superscript, subscript)
 import Text.Pandoc.Class (PandocMonad, report)
 import Text.Pandoc.Definition (Pandoc(..), Inline(Space), Block(BulletList, OrderedList), Attr, nullMeta, Meta, ListNumberStyle(..), ListNumberDelim(..))
 import Text.Pandoc.Logging (LogMessage(ParsingTrace))
 import Text.Pandoc.Options (ReaderOptions)
-import Text.Pandoc.Parsing (readWithM, ParserT, stateOptions, ParserState, stateMeta', blanklines, registerHeader, spaceChar, emailAddress, uri, F, runF, romanNumeral, orderedListMarker, many1Till)
+import Text.Pandoc.Parsing (readWithM, ParserT, stateOptions, ParserState, stateMeta', blanklines, registerHeader, spaceChar, emailAddress, uri, F, runF, orderedListMarker, many1Till)
 import Text.Pandoc.Shared (splitBy, stripFirstAndLast, stringify)
 import Text.Parsec.Char (spaces, char, anyChar, newline, string, noneOf)
 import Text.Parsec.Combinator (eof, choice, many1, manyTill, count, skipMany1, notFollowedBy, option)
@@ -84,32 +85,9 @@ import Text.Parsec.Char (oneOf, space)
 import Text.Parsec.Combinator (lookAhead, between)
 import Text.Parsec.Prim ((<|>))
 
--- for testing: to REMOVE
-import Text.Pandoc.Class (PandocIO, runIO)
-import Text.Pandoc.Parsing (ParserT)
-import Data.Default
-import Text.Parsec.String (Parser)
-import Text.Pandoc.Error (PandocError)
-import Text.Parsec.Error (ParseError)
-import Text.Parsec (parse)
-
-runParser :: VwParser PandocIO a -> String -> PandocIO a
-runParser p s = do
-  res <- readWithM p def{ stateOptions = def :: ReaderOptions } s
-  case res of
-       Left e -> throwError e
-       Right result -> return result
-
-testP :: VwParser PandocIO a -> String -> IO (Either PandocError a)
-testP p s = runIO $ runParser p (s ++ "\n")
-
-simpleParse :: Parser a -> String -> Either ParseError a
-simpleParse p s = parse p "" (s ++ "\n")
---end of to REMOVE
-
-readVimwiki :: PandocMonad m => ReaderOptions -> String -> m Pandoc
+readVimwiki :: PandocMonad m => ReaderOptions -> Text -> m Pandoc
 readVimwiki opts s = do
-  res <- readWithM parseVimwiki def{ stateOptions = opts } s
+  res <- readWithM parseVimwiki def{ stateOptions = opts } (unpack s)
   case res of
        Left e -> throwError e
        Right result -> return result
@@ -354,14 +332,6 @@ combineList x [y] = case toList y of
                             _ -> x:[y]
 combineList x xs = x:xs
 
-
-listType :: Char -> Maybe ([Blocks] -> Blocks)
-listType '*' = Just B.bulletList
-listType '-' = Just B.bulletList
-listType '#' = Just B.orderedList
-listType _ = Nothing
-
-
 listStart :: PandocMonad m => VwParser m (Int, String)
 listStart = try $ do
   s <- many spaceChar
@@ -408,7 +378,7 @@ tableCell = try $
   B.plain <$> trimInlines . mconcat <$> (manyTill inline' (char '|'))
 
 placeholder :: PandocMonad m => VwParser m ()
-placeholder = try $ (choice (ph <$> ["title", "date", "template"])) <|> noHtmlPh
+placeholder = try $ (choice (ph <$> ["title", "date"])) <|> noHtmlPh <|> templatePh
 
 ph :: PandocMonad m => String -> VwParser m ()
 ph s = try $ do
@@ -420,6 +390,10 @@ ph s = try $ do
 noHtmlPh :: PandocMonad m => VwParser m ()
 noHtmlPh = try $
   () <$ (many spaceChar >> string "%nohtml" >> many spaceChar >> (lookAhead newline))
+
+templatePh :: PandocMonad m => VwParser m ()
+templatePh = try $
+  () <$ (many spaceChar >> string "%template" >> many spaceChar >> (lookAhead newline))
 
 -- inline parser
 

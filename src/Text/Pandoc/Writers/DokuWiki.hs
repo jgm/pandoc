@@ -44,6 +44,7 @@ import Control.Monad.Reader (ReaderT, ask, local, runReaderT)
 import Control.Monad.State (StateT, evalStateT, gets, modify)
 import Data.Default (Default (..))
 import Data.List (intercalate, intersect, isPrefixOf, transpose)
+import Data.Text (Text, pack)
 import Text.Pandoc.Class (PandocMonad, report)
 import Text.Pandoc.Logging
 import Text.Pandoc.Definition
@@ -75,7 +76,7 @@ instance Default WriterEnvironment where
 type DokuWiki m = ReaderT WriterEnvironment (StateT WriterState m)
 
 -- | Convert Pandoc to DokuWiki.
-writeDokuWiki :: PandocMonad m => WriterOptions -> Pandoc -> m String
+writeDokuWiki :: PandocMonad m => WriterOptions -> Pandoc -> m Text
 writeDokuWiki opts document =
   runDokuWiki (pandocToDokuWiki opts document)
 
@@ -84,7 +85,7 @@ runDokuWiki = flip evalStateT def . flip runReaderT def
 
 -- | Return DokuWiki representation of document.
 pandocToDokuWiki :: PandocMonad m
-                 => WriterOptions -> Pandoc -> DokuWiki m String
+                 => WriterOptions -> Pandoc -> DokuWiki m Text
 pandocToDokuWiki opts (Pandoc meta blocks) = do
   metadata <- metaToJSON opts
               (fmap trimr . blockListToDokuWiki opts)
@@ -96,7 +97,7 @@ pandocToDokuWiki opts (Pandoc meta blocks) = do
                  then "" -- TODO Was "\n<references />" Check whether I can really remove this:
                          -- if it is definitely to do with footnotes, can remove this whole bit
                  else ""
-  let main = body ++ notes
+  let main = pack $ body ++ notes
   let context = defField "body" main
                 $ defField "toc" (writerTableOfContents opts)
                 $ metadata

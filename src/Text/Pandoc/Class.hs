@@ -1,6 +1,8 @@
-{-# LANGUAGE DeriveFunctor, DeriveDataTypeable, TypeSynonymInstances,
-FlexibleInstances, GeneralizedNewtypeDeriving, FlexibleContexts,
-StandaloneDeriving #-}
+{-# LANGUAGE DeriveFunctor #-}
+{-# LANGUAGE TypeSynonymInstances #-}
+{-# LANGUAGE FlexibleInstances #-}
+{-# LANGUAGE GeneralizedNewtypeDeriving #-}
+{-# LANGUAGE FlexibleContexts #-}
 
 {-
 Copyright (C) 2016 Jesse Rosenthal <jrosenthal@jhu.edu>
@@ -91,15 +93,16 @@ import Network.URI ( escapeURIString, nonStrictRelativeTo,
                      unEscapeString, parseURIReference, isAllowedInURI,
                      parseURI, URI(..) )
 import qualified Data.Time.LocalTime as IO (getCurrentTimeZone)
-import Text.Pandoc.MediaBag (MediaBag, lookupMedia, extractMediaBag,
-                             mediaDirectory)
+import Text.Pandoc.MediaBag (MediaBag, lookupMedia, mediaDirectory)
 import Text.Pandoc.Walk (walkM, walk)
 import qualified Text.Pandoc.MediaBag as MB
 import qualified Data.ByteString as B
 import qualified Data.ByteString.Lazy as BL
 import qualified System.Environment as IO (lookupEnv)
 import System.FilePath.Glob (match, compile)
-import System.FilePath ((</>), (<.>), takeExtension, dropExtension, isRelative)
+import System.Directory (createDirectoryIfMissing)
+import System.FilePath ((</>), (<.>), takeDirectory,
+         takeExtension, dropExtension, isRelative, normalise)
 import qualified System.FilePath.Glob as IO (glob)
 import qualified System.Directory as IO (getModificationTime)
 import Control.Monad as M (fail)
@@ -152,7 +155,7 @@ report :: PandocMonad m => LogMessage -> m ()
 report msg = do
   verbosity <- getsCommonState stVerbosity
   let level = messageVerbosity msg
-  when (level <= verbosity) $ do
+  when (level <= verbosity) $
     logOutput msg
   unless (level == DEBUG) $
     modifyCommonState $ \st -> st{ stLog = msg : stLog st }
@@ -220,7 +223,7 @@ runIO :: PandocIO a -> IO (Either PandocError a)
 runIO ma = flip evalStateT def $ runExceptT $ unPandocIO ma
 
 withMediaBag :: PandocMonad m => m a ->  m (a, MediaBag)
-withMediaBag ma = ((,)) <$> ma <*> getMediaBag
+withMediaBag ma = (,) <$> ma <*> getMediaBag
 
 runIOorExplode :: PandocIO a -> IO a
 runIOorExplode ma = runIO ma >>= handleError
@@ -246,7 +249,7 @@ instance PandocMonad PandocIO where
   getCurrentTime = liftIO IO.getCurrentTime
   getCurrentTimeZone = liftIO IO.getCurrentTimeZone
   newStdGen = liftIO IO.newStdGen
-  newUniqueHash = hashUnique <$> (liftIO IO.newUnique)
+  newUniqueHash = hashUnique <$> liftIO IO.newUnique
   openURL u = do
     report $ Fetching u
     res <- liftIO (IO.openURL u)
@@ -262,7 +265,7 @@ instance PandocMonad PandocIO where
   putCommonState x = PandocIO $ lift $ put x
   logOutput msg = liftIO $ do
     UTF8.hPutStr stderr $ "[" ++
-       (map toLower $ show (messageVerbosity msg)) ++ "] "
+       map toLower (show (messageVerbosity msg)) ++ "] "
     alertIndent $ lines $ showLogMessage msg
 
 alertIndent :: [String] -> IO ()
@@ -293,14 +296,14 @@ fetchItem :: PandocMonad m
 fetchItem sourceURL s = do
   mediabag <- getMediaBag
   case lookupMedia s mediabag of
-    Just (mime, bs) -> return $ (BL.toStrict bs, Just mime)
+    Just (mime, bs) -> return (BL.toStrict bs, Just mime)
     Nothing -> downloadOrRead sourceURL s
 
 downloadOrRead :: PandocMonad m
                => Maybe String
                -> String
                -> m (B.ByteString, Maybe MimeType)
-downloadOrRead sourceURL s = do
+downloadOrRead sourceURL s =
   case (sourceURL >>= parseURIReference' .
                        ensureEscaped, ensureEscaped s) of
     (Just u, s') -> -- try fetching from relative path at source
@@ -363,7 +366,7 @@ fillMediaBag sourceURL d = walkM handleImage d
                   let fname = basename <.> ext
                   insertMedia fname mt bs'
                   return $ Image attr lab (fname, tit))
-          (\e -> do
+          (\e ->
               case e of
                 PandocResourceNotFound _ -> do
                   report $ CouldNotFetchResource src
@@ -385,8 +388,22 @@ extractMedia dir d = do
   case [fp | (fp, _, _) <- mediaDirectory media] of
         []  -> return d
         fps -> do
-          liftIO $ extractMediaBag True dir media
+          mapM_ (writeMedia dir media) fps
           return $ walk (adjustImagePath dir fps) d
+
+writeMedia :: FilePath -> MediaBag -> FilePath -> PandocIO ()
+writeMedia dir mediabag subpath = do
+  -- we join and split to convert a/b/c to a\b\c on Windows;
+  -- in zip containers all paths use /
+  let fullpath = dir </> normalise subpath
+  let mbcontents = lookupMedia subpath mediabag
+  case mbcontents of
+       Nothing -> throwError $ PandocResourceNotFound subpath
+       Just (_, bs) -> do
+         report $ Extracting fullpath
+         liftIO $ do
+           createDirectoryIfMissing True $ takeDirectory fullpath
+           BL.writeFile fullpath bs
 
 adjustImagePath :: FilePath -> [FilePath] -> Inline -> Inline
 adjustImagePath dir paths (Image attr lab (src, tit))
@@ -430,7 +447,7 @@ instance Default PureState where
 
 
 getPureState :: PandocPure PureState
-getPureState = PandocPure $ lift $ lift $ get
+getPureState = PandocPure $ lift $ lift get
 
 getsPureState :: (PureState -> a) -> PandocPure a
 getsPureState f = f <$> getPureState
@@ -501,16 +518,16 @@ instance PandocMonad PandocPure where
     case infoFileContents <$> getFileInfo fp fps of
       Just bs -> return bs
       Nothing -> throwError $ PandocResourceNotFound fp
-  readDataFile Nothing "reference.docx" = do
+  readDataFile Nothing "reference.docx" =
     (B.concat . BL.toChunks . fromArchive) <$> getsPureState stReferenceDocx
-  readDataFile Nothing "reference.odt" = do
+  readDataFile Nothing "reference.odt" =
     (B.concat . BL.toChunks . fromArchive) <$> getsPureState stReferenceODT
   readDataFile Nothing fname = do
     let fname' = if fname == "MANUAL.txt" then fname else "data" </> fname
     readFileStrict fname'
   readDataFile (Just userDir) fname = do
     userDirFiles <- getsPureState stUserDataDir
-    case infoFileContents <$> (getFileInfo (userDir </> fname) userDirFiles) of
+    case infoFileContents <$> getFileInfo (userDir </> fname) userDirFiles of
       Just bs -> return bs
       Nothing -> readDataFile Nothing fname
 
@@ -520,12 +537,12 @@ instance PandocMonad PandocPure where
 
   getModificationTime fp = do
     fps <- getsPureState stFiles
-    case infoFileMTime <$> (getFileInfo fp fps) of
+    case infoFileMTime <$> getFileInfo fp fps of
       Just tm -> return tm
       Nothing -> throwError $ PandocIOError fp
                     (userError "Can't get modification time")
 
-  getCommonState = PandocPure $ lift $ get
+  getCommonState = PandocPure $ lift get
   putCommonState x = PandocPure $ lift $ put x
 
   logOutput _msg = return ()
@@ -609,4 +626,3 @@ instance PandocMonad m => PandocMonad (StateT st m) where
   getCommonState = lift getCommonState
   putCommonState = lift . putCommonState
   logOutput = lift . logOutput
-

@@ -1,5 +1,6 @@
 module Tests.Writers.Native (tests) where
 
+import Data.Text (unpack)
 import Test.Tasty
 import Test.Tasty.QuickCheck
 import Tests.Helpers
@@ -8,12 +9,11 @@ import Text.Pandoc.Arbitrary ()
 
 p_write_rt :: Pandoc -> Bool
 p_write_rt d =
-  read (purely (writeNative def{ writerTemplate = Just "" }) d) == d
+  read (unpack $ purely (writeNative def{ writerTemplate = Just "" }) d) == d
 
 p_write_blocks_rt :: [Block] -> Bool
 p_write_blocks_rt bs =
-  read (purely (writeNative def) (Pandoc nullMeta bs)) ==
-  bs
+  read (unpack $ purely (writeNative def) (Pandoc nullMeta bs)) == bs
 
 tests :: [TestTree]
 tests = [ testProperty "p_write_rt" p_write_rt

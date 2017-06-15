@@ -39,6 +39,7 @@ import Control.Applicative (many, optional, (<|>))
 import Control.Monad
 import Control.Monad.Except (throwError)
 import Data.Char (chr, isAlphaNum, isLetter, ord)
+import Data.Text (Text, unpack)
 import Data.List (intercalate, isPrefixOf)
 import qualified Data.Map as M
 import Data.Maybe (fromMaybe, maybeToList)
@@ -59,10 +60,10 @@ import Text.Pandoc.Walk
 -- | Parse LaTeX from string and return 'Pandoc' document.
 readLaTeX :: PandocMonad m
           => ReaderOptions -- ^ Reader options
-          -> String        -- ^ String to parse (assumes @'\n'@ line endings)
+          -> Text        -- ^ String to parse (assumes @'\n'@ line endings)
           -> m Pandoc
 readLaTeX opts ltx = do
-  parsed <- readWithM parseLaTeX def{ stateOptions = opts } ltx
+  parsed <- readWithM parseLaTeX def{ stateOptions = opts } (unpack ltx)
   case parsed of
     Right result -> return result
     Left e       -> throwError e
@@ -276,8 +277,6 @@ block = (mempty <$ comment)
     <|> blockCommand
     <|> paragraph
     <|> grouped block
-    <|> (mempty <$ char '&')  -- loose & in table environment
-
 
 blocks :: PandocMonad m => LP m Blocks
 blocks = mconcat <$> many block
@@ -683,6 +682,9 @@ inlineCommands = M.fromList $
   , ("nohyphens", tok)
   , ("textnhtt", ttfamily)
   , ("nhttfamily", ttfamily)
+  -- fontawesome
+  , ("faCheck", lit "\10003")
+  , ("faClose", lit "\10007")
   ] ++ map ignoreInlines
   -- these commands will be ignored unless --parse-raw is specified,
   -- in which case they will appear as raw latex blocks:
@@ -1168,12 +1170,12 @@ environments = M.fromList
   , ("subfigure", env "subfigure" $ skipopts *> tok *> figure)
   , ("center", env "center" blocks)
   , ("longtable",  env "longtable" $
-         resetCaption *> simpTable False >>= addTableCaption)
+         resetCaption *> simpTable "longtable" False >>= addTableCaption)
   , ("table",  env "table" $
          resetCaption *> skipopts *> blocks >>= addTableCaption)
-  , ("tabular*", env "tabular" $ simpTable True)
-  , ("tabularx", env "tabularx" $ simpTable True)
-  , ("tabular", env "tabular"  $ simpTable False)
+  , ("tabular*", env "tabular" $ simpTable "tabular*" True)
+  , ("tabularx", env "tabularx" $ simpTable "tabularx" True)
+  , ("tabular", env "tabular"  $ simpTable "tabular" False)
   , ("quote", blockQuote <$> env "quote" blocks)
   , ("quotation", blockQuote <$> env "quotation" blocks)
   , ("verse", blockQuote <$> env "verse" blocks)
@@ -1321,7 +1323,7 @@ fancyverbEnv name = do
   codeBlockWith attr <$> verbEnv name
 
 orderedList' :: PandocMonad m => LP m Blocks
-orderedList' = do
+orderedList' = try $ do
   optional sp
   (_, style, delim) <- option (1, DefaultStyle, DefaultDelim) $
                               try $ char '[' *> anyOrderedListMarker <* char ']'
@@ -1436,7 +1438,7 @@ complexNatbibCitation mode = try $ do
 
 -- tables
 
-parseAligns :: PandocMonad m => LP m [(String, Alignment, String)]
+parseAligns :: PandocMonad m => LP m [(Alignment, Double, (String, String))]
 parseAligns = try $ do
   bgroup
   let maybeBar = skipMany $ sp <|> () <$ char '|' <|> () <$ (char '@' >> braced)
@@ -1444,22 +1446,36 @@ parseAligns = try $ do
   let cAlign = AlignCenter <$ char 'c'
   let lAlign = AlignLeft <$ char 'l'
   let rAlign = AlignRight <$ char 'r'
-  let parAlign = AlignLeft <$ (char 'p' >> braced)
+  let parAlign = AlignLeft <$ char 'p'
   -- algins from tabularx
   let xAlign = AlignLeft <$ char 'X'
-  let mAlign = AlignLeft <$ (char 'm' >> braced)
-  let bAlign = AlignLeft <$ (char 'b' >> braced)
-  let alignChar = cAlign <|> lAlign <|> rAlign <|> parAlign <|> xAlign <|> mAlign <|> bAlign
+  let mAlign = AlignLeft <$ char 'm'
+  let bAlign = AlignLeft <$ char 'b'
+  let alignChar = cAlign <|> lAlign <|> rAlign <|> parAlign
+               <|> xAlign <|> mAlign <|> bAlign
   let alignPrefix = char '>' >> braced
   let alignSuffix = char '<' >> braced
+  let colWidth = try $ do
+        char '{'
+        ds <- many1 (oneOf "0123456789.")
+        spaces
+        string "\\linewidth"
+        char '}'
+        case safeRead ds of
+              Just w  -> return w
+              Nothing -> return 0.0
   let alignSpec = do
         spaces
         pref <- option "" alignPrefix
         spaces
-        ch <- alignChar
+        al <- alignChar
+        width <- colWidth <|> option 0.0 (do s <- braced
+                                             pos <- getPosition
+                                             report $ SkippedContent s pos
+                                             return 0.0)
         spaces
         suff <- option "" alignSuffix
-        return (pref, ch, suff)
+        return (al, width, (pref, suff))
   aligns' <- sepEndBy alignSpec maybeBar
   spaces
   egroup
@@ -1489,23 +1505,25 @@ amp :: PandocMonad m => LP m ()
 amp = () <$ try (spaces' *> char '&' <* spaces')
 
 parseTableRow :: PandocMonad m
-              => Int  -- ^ number of columns
-              -> [String] -- ^ prefixes
-              -> [String] -- ^ suffixes
+              => String   -- ^ table environment name
+              -> [(String, String)] -- ^ pref/suffixes
               -> LP m [Blocks]
-parseTableRow cols prefixes suffixes = try $ do
-  let tableCellRaw = many (notFollowedBy
-                       (amp <|> lbreak <|>
-                         (() <$ try (string "\\end"))) >> anyChar)
-  let minipage = try $ controlSeq "begin" *> string "{minipage}" *>
-          env "minipage"
-          (skipopts *> spaces' *> optional braced *> spaces' *> blocks)
-  let tableCell = minipage <|>
-            ((plain . trimInlines . mconcat) <$> many inline)
+parseTableRow envname prefsufs = try $ do
+  let cols = length prefsufs
+  let tableCellRaw = concat <$> many
+         (do notFollowedBy amp
+             notFollowedBy lbreak
+             notFollowedBy $ () <$ try (string ("\\end{" ++ envname ++ "}"))
+             many1 (noneOf "&%\n\r\\")
+                  <|> try (string "\\&")
+                  <|> count 1 anyChar)
+  let plainify bs = case toList bs of
+                         [Para ils] -> plain (fromList ils)
+                         _          -> bs
   rawcells <- sepBy1 tableCellRaw amp
   guard $ length rawcells == cols
-  let rawcells' = zipWith3 (\c p s -> p ++ trim c ++ s)
-                      rawcells prefixes suffixes
+  let rawcells' = zipWith (\c (p, s) -> p ++ trim c ++ s) rawcells prefsufs
+  let tableCell = plainify <$> blocks
   cells' <- mapM (parseFromString' tableCell) rawcells'
   let numcells = length cells'
   guard $ numcells <= cols && numcells >= 1
@@ -1518,21 +1536,22 @@ parseTableRow cols prefixes suffixes = try $ do
 spaces' :: PandocMonad m => LP m ()
 spaces' = spaces *> skipMany (comment *> spaces)
 
-simpTable :: PandocMonad m => Bool -> LP m Blocks
-simpTable hasWidthParameter = try $ do
+simpTable :: PandocMonad m => String -> Bool -> LP m Blocks
+simpTable envname hasWidthParameter = try $ do
   when hasWidthParameter $ () <$ (spaces' >> tok)
   skipopts
-  (prefixes, aligns, suffixes) <- unzip3 <$> parseAligns
-  let cols = length aligns
+  colspecs <- parseAligns
+  let (aligns, widths, prefsufs) = unzip3 colspecs
+  let cols = length colspecs
   optional $ controlSeq "caption" *> skipopts *> setCaption
   optional lbreak
   spaces'
   skipMany hline
   spaces'
-  header' <- option [] $ try (parseTableRow cols prefixes suffixes <*
+  header' <- option [] $ try (parseTableRow envname prefsufs <*
                                    lbreak <* many1 hline)
   spaces'
-  rows <- sepEndBy (parseTableRow cols prefixes suffixes)
+  rows <- sepEndBy (parseTableRow envname prefsufs)
                     (lbreak <* optional (skipMany hline))
   spaces'
   optional $ controlSeq "caption" *> skipopts *> setCaption
@@ -1542,7 +1561,7 @@ simpTable hasWidthParameter = try $ do
                     then replicate cols mempty
                     else header'
   lookAhead $ controlSeq "end" -- make sure we're at end
-  return $ table mempty (zip aligns (repeat 0)) header'' rows
+  return $ table mempty (zip aligns widths) header'' rows
 
 removeDoubleQuotes :: String -> String
 removeDoubleQuotes ('"':xs) =

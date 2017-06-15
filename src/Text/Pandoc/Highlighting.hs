@@ -91,7 +91,7 @@ highlight syntaxmap formatter (_, classes, keyvals) rawCode =
                                     , traceOutput = False }
       classes' = map T.pack classes
       rawCode' = T.pack rawCode
-  in  case msum (map (\l -> lookupSyntax l syntaxmap) classes') of
+  in  case msum (map ((`lookupSyntax` syntaxmap)) classes') of
             Nothing
               | numberLines fmtOpts -> Right
                               $ formatter fmtOpts{ codeClasses = [],
@@ -100,9 +100,9 @@ highlight syntaxmap formatter (_, classes, keyvals) rawCode =
                               $ T.lines rawCode'
               | otherwise  -> Left ""
             Just syntax  ->
-              (formatter fmtOpts{ codeClasses =
+              formatter fmtOpts{ codeClasses =
                                    [T.toLower (sShortname syntax)],
-                                  containerClasses = classes' }) <$>
+                                  containerClasses = classes' } <$>
                 tokenize tokenizeOpts syntax rawCode'
 
 -- Functions for correlating latex listings package's language names

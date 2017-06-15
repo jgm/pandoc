@@ -57,7 +57,7 @@
 \hline
 \end{tabularx}
 ^D
-[Table [] [AlignLeft,AlignCenter,AlignLeft] [0.0,0.0,0.0]
+[Table [] [AlignLeft,AlignCenter,AlignLeft] [0.0,0.0,0.25]
  [[Plain [Str "Column",Space,Str "Heading",Space,Str "1"]]
  ,[Plain [Str "Column",Space,Str "Heading",Space,Str "2"]]
  ,[Plain [Str "Column",Space,Str "Heading",Space,Str "3"]]]
@@ -94,7 +94,7 @@
 \hline
 \end{tabularx}
 ^D
-[Table [] [AlignLeft,AlignCenter,AlignLeft] [0.0,0.0,0.0]
+[Table [] [AlignLeft,AlignCenter,AlignLeft] [0.25,0.0,0.25]
  [[Plain [Str "Column",Space,Str "Heading",Space,Str "1"]]
  ,[Plain [Str "Column",Space,Str "Heading",Space,Str "2"]]
  ,[Plain [Str "Column",Space,Str "Heading",Space,Str "3"]]]
