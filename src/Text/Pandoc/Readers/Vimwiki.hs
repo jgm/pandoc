@@ -54,11 +54,11 @@ Conversion of vimwiki text to 'Pandoc' document.
     * [X] image
     * [X] inline math
     * [X] tag
-    * [ ] sub- and super-scripts
+    * [X] sub- and super-scripts
 * misc:
     * [X] `TODO:` mark
     * [X] metadata placeholders: %title and %date  
-    * [ ] control placeholders: %template and %nohtml
+    * [O] control placeholders: %template and %nohtml -- %template added to meta, %nohtml ignored
 --}
 
 module Text.Pandoc.Readers.Vimwiki ( readVimwiki
@@ -70,12 +70,12 @@ import Data.Maybe
 import Data.Monoid ((<>))
 import Data.List (isInfixOf)
 import Text.Pandoc.Builder (Blocks, Inlines, trimInlines, fromList, toList)
-import qualified Text.Pandoc.Builder as B (doc, toList, headerWith, str, space, strong, emph, strikeout, code, link, image, spanWith, math, para, horizontalRule, blockQuote, displayMath, bulletList, plain, orderedList, simpleTable, softbreak, codeBlockWith, imageWith, divWith, setMeta, definitionList)
+import qualified Text.Pandoc.Builder as B (doc, toList, headerWith, str, space, strong, emph, strikeout, code, link, image, spanWith, math, para, horizontalRule, blockQuote, displayMath, bulletList, plain, orderedList, simpleTable, softbreak, codeBlockWith, imageWith, divWith, setMeta, definitionList, superscript, subscript)
 import Text.Pandoc.Class (PandocMonad, report)
 import Text.Pandoc.Definition (Pandoc(..), Inline(Space), Block(BulletList, OrderedList), Attr, nullMeta, Meta, ListNumberStyle(..), ListNumberDelim(..))
 import Text.Pandoc.Logging (LogMessage(ParsingTrace))
 import Text.Pandoc.Options (ReaderOptions)
-import Text.Pandoc.Parsing (readWithM, ParserT, stateOptions, ParserState, stateMeta', blanklines, registerHeader, spaceChar, emailAddress, uri, F, runF, romanNumeral, orderedListMarker)
+import Text.Pandoc.Parsing (readWithM, ParserT, stateOptions, ParserState, stateMeta', blanklines, registerHeader, spaceChar, emailAddress, uri, F, runF, romanNumeral, orderedListMarker, many1Till)
 import Text.Pandoc.Shared (splitBy, stripFirstAndLast, stringify)
 import Text.Parsec.Char (spaces, char, anyChar, newline, string, noneOf)
 import Text.Parsec.Combinator (eof, choice, many1, manyTill, count, skipMany1, notFollowedBy, option)
@@ -120,7 +120,7 @@ type VwParser = ParserT [Char] ParserState
 -- constants
 
 specialChars :: [Char]
-specialChars = "=*-#[]_~{}`$|:%"
+specialChars = "=*-#[]_~{}`$|:%^,"
 
 spaceChars :: [Char] 
 spaceChars = " \t\n"
@@ -152,8 +152,7 @@ block = do
                 , preformatted
                 , displayMath 
                 , table
-                , mempty <$ titlePH
-                , mempty <$ datePH
+                , mempty <$ placeHolder
                 , blockQuote
                 , definitionList
                 , para
@@ -458,6 +457,16 @@ tableCell :: PandocMonad m => VwParser m Blocks
 tableCell = try $ do
   B.plain <$> mconcat <$> (manyTill inline' (char '|'))
 
+placeHolder :: PandocMonad m => VwParser m ()
+placeHolder = try $ (choice (pH <$> ["title", "date", "template"])) <|> noHtmlPH
+
+pH :: PandocMonad m => String -> VwParser m ()
+pH s = try $ do
+  many spaceChar >> (string $ '%':s) >> spaceChar
+  contents <- (trimInlines . mconcat <$> (manyTill inline newline))
+  let meta' = return $ B.setMeta s contents nullMeta :: F Meta
+  updateState $ \st -> st { stateMeta' = stateMeta' st <> meta' }
+{--
 titlePH :: PandocMonad m => VwParser m ()
 titlePH = try $ do
   many spaceChar >> string "%title" >> spaceChar
@@ -471,6 +480,17 @@ datePH = try $ do
   date <- (trimInlines . mconcat <$> (manyTill inline newline))
   let meta' = return $ B.setMeta "date" date nullMeta :: F Meta
   updateState $ \st -> st { stateMeta' = stateMeta' st <> meta' }
+
+templatePH :: PandocMonad m => VwParser m ()
+templatePH = try $ do
+  many spaceChar >> string "%template" >> spaceChar
+  template <- (trimInlines . mconcat <$> (manyTill inline newline))
+  let meta' = return $ B.setMeta "template" template nullMeta :: F Meta
+  updateState $ \st -> st { stateMeta' = stateMeta' st <> meta' }
+--}
+noHtmlPH :: PandocMonad m => VwParser m ()
+noHtmlPH = try $
+  () <$ (many spaceChar >> string "%nohtml" >> many spaceChar >> newline)
 
 -- inline parser
 
@@ -489,6 +509,8 @@ inlineList = [  bareURL
              ,  image
              ,  inlineMath
              ,  tag
+             ,  superscript
+             ,  subscript
              ,  special
              ]
 
@@ -552,6 +574,14 @@ code = try $ do
   char '`'
   contents <- manyTill anyChar (char '`')
   return $ B.code contents
+
+superscript :: PandocMonad m => VwParser m Inlines
+superscript = try $
+  B.superscript <$> mconcat <$> (char '^' >> many1Till inline' (char '^'))
+
+subscript :: PandocMonad m => VwParser m Inlines
+subscript = try $
+  B.subscript <$> mconcat <$> (string ",," >> many1Till inline' (try $ string ",,"))
 
 link :: PandocMonad m => VwParser m Inlines
 link = try $ do 
