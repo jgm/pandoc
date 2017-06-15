@@ -39,6 +39,7 @@ module Text.Pandoc.Readers
   , readMarkdown
   , readCommonMark
   , readMediaWiki
+  , readVimwiki
   , readRST
   , readOrg
   , readLaTeX
@@ -82,6 +83,7 @@ import Text.Pandoc.Readers.RST
 import Text.Pandoc.Readers.Textile
 import Text.Pandoc.Readers.TWiki
 import Text.Pandoc.Readers.Txt2Tags
+import Text.Pandoc.Readers.Vimwiki
 import Text.Pandoc.Shared (mapLeft)
 import Text.Parsec.Error
 import qualified Text.Pandoc.UTF8 as UTF8
@@ -106,6 +108,7 @@ readers = [ ("native"       , TextReader readNative)
            ,("commonmark"   , TextReader readCommonMark)
            ,("rst"          , TextReader readRST)
            ,("mediawiki"    , TextReader readMediaWiki)
+           ,("vimwiki"      , TextReader readVimwiki)
            ,("docbook"      , TextReader readDocBook)
            ,("opml"         , TextReader readOPML)
            ,("org"          , TextReader readOrg)
