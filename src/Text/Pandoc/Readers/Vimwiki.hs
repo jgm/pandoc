@@ -71,12 +71,12 @@ import Data.Monoid ((<>))
 import Data.List (isInfixOf)
 import Data.Text (Text, unpack)
 import Text.Pandoc.Builder (Blocks, Inlines, trimInlines, fromList, toList)
-import qualified Text.Pandoc.Builder as B (doc, toList, headerWith, str, space, strong, emph, strikeout, code, link, image, spanWith, math, para, horizontalRule, blockQuote, displayMath, bulletList, plain, orderedList, simpleTable, softbreak, codeBlockWith, imageWith, divWith, setMeta, definitionList, superscript, subscript)
+import qualified Text.Pandoc.Builder as B (toList, headerWith, str, space, strong, emph, strikeout, code, link, image, spanWith, para, horizontalRule, blockQuote, bulletList, plain, orderedList, simpleTable, softbreak, codeBlockWith, imageWith, divWith, setMeta, definitionList, superscript, subscript)
 import Text.Pandoc.Class (PandocMonad, report)
 import Text.Pandoc.Definition (Pandoc(..), Inline(Space), Block(BulletList, OrderedList), Attr, nullMeta, Meta, ListNumberStyle(..), ListNumberDelim(..))
 import Text.Pandoc.Logging (LogMessage(ParsingTrace))
 import Text.Pandoc.Options (ReaderOptions)
-import Text.Pandoc.Parsing (readWithM, ParserT, stateOptions, ParserState, stateMeta', blanklines, registerHeader, spaceChar, emailAddress, uri, F, runF, romanNumeral, orderedListMarker, many1Till)
+import Text.Pandoc.Parsing (readWithM, ParserT, stateOptions, ParserState, stateMeta', blanklines, registerHeader, spaceChar, emailAddress, uri, F, runF, orderedListMarker, many1Till)
 import Text.Pandoc.Shared (splitBy, stripFirstAndLast, stringify)
 import Text.Parsec.Char (spaces, char, anyChar, newline, string, noneOf)
 import Text.Parsec.Combinator (eof, choice, many1, manyTill, count, skipMany1, notFollowedBy, option)
@@ -331,14 +331,6 @@ combineList x [y] = case toList y of
                             [OrderedList attr z] -> [fromList $ (toList x) ++ [OrderedList attr z]]
                             _ -> x:[y]
 combineList x xs = x:xs
-
-
-listType :: Char -> Maybe ([Blocks] -> Blocks)
-listType '*' = Just B.bulletList
-listType '-' = Just B.bulletList
-listType '#' = Just B.orderedList
-listType _ = Nothing
-
 
 listStart :: PandocMonad m => VwParser m (Int, String)
 listStart = try $ do
