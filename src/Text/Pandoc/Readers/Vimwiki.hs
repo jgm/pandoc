@@ -84,6 +84,29 @@ import Text.Parsec.Char (oneOf, space)
 import Text.Parsec.Combinator (lookAhead, between)
 import Text.Parsec.Prim ((<|>))
 
+-- for testing: to REMOVE
+import Text.Pandoc.Class (PandocIO, runIO)
+import Text.Pandoc.Parsing (ParserT)
+import Data.Default
+import Text.Parsec.String (Parser)
+import Text.Pandoc.Error (PandocError)
+import Text.Parsec.Error (ParseError)
+import Text.Parsec (parse)
+
+runParser :: VwParser PandocIO a -> String -> PandocIO a
+runParser p s = do
+  res <- readWithM p def{ stateOptions = def :: ReaderOptions } s
+  case res of
+       Left e -> throwError e
+       Right result -> return result
+
+testP :: VwParser PandocIO a -> String -> IO (Either PandocError a)
+testP p s = runIO $ runParser p (s ++ "\n")
+
+simpleParse :: Parser a -> String -> Either ParseError a
+simpleParse p s = parse p "" (s ++ "\n")
+--end of to REMOVE
+
 readVimwiki :: PandocMonad m => ReaderOptions -> String -> m Pandoc
 readVimwiki opts s = do
   res <- readWithM parseVimwiki def{ stateOptions = opts } s
