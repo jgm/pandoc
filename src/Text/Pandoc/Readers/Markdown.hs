@@ -55,11 +55,9 @@ import qualified Text.Pandoc.Builder as B
 import Text.Pandoc.Class (PandocMonad, report)
 import Text.Pandoc.Definition
 import Text.Pandoc.Emoji (emojis)
-import Text.Pandoc.Generic (bottomUp)
 import Text.Pandoc.Logging
 import Text.Pandoc.Options
 import Text.Pandoc.Parsing hiding (tableWith)
-import Text.Pandoc.Pretty (charWidth)
 import Text.Pandoc.Readers.HTML (htmlInBalanced, htmlTag, isBlockTag,
                                  isCommentTag, isInlineTag, isTextTag)
 import Text.Pandoc.Readers.LaTeX (rawLaTeXBlock, rawLaTeXInline)
@@ -72,10 +70,11 @@ type MarkdownParser m = ParserT [Char] ParserState m
 -- | Read markdown from an input string and return a Pandoc document.
 readMarkdown :: PandocMonad m
              => ReaderOptions -- ^ Reader options
-             -> String        -- ^ String to parse (assuming @'\n'@ line endings)
+             -> Text      -- ^ String to parse (assuming @'\n'@ line endings)
              -> m Pandoc
 readMarkdown opts s = do
-  parsed <- (readWithM parseMarkdown) def{ stateOptions = opts } (s ++ "\n\n")
+  parsed <- (readWithM parseMarkdown) def{ stateOptions = opts }
+               (T.unpack s ++ "\n\n")
   case parsed of
     Right result -> return result
     Left e       -> throwError e
@@ -375,15 +374,7 @@ parseMarkdown = do
                      return $ Pandoc meta bs) st
   reportLogMessages
   (do guardEnabled Ext_east_asian_line_breaks
-      return $ bottomUp softBreakFilter doc) <|> return doc
-
-softBreakFilter :: [Inline] -> [Inline]
-softBreakFilter (x:SoftBreak:y:zs) =
-  case (stringify x, stringify y) of
-        (xs@(_:_), (c:_))
-          | charWidth (last xs) == 2 && charWidth c == 2 -> x:y:zs
-        _ -> x:SoftBreak:y:zs
-softBreakFilter xs = xs
+      return $ eastAsianLineBreakFilter doc) <|> return doc
 
 referenceKey :: PandocMonad m => MarkdownParser m (F Blocks)
 referenceKey = try $ do
@@ -883,8 +874,7 @@ listContinuationLine = try $ do
   notFollowedBy' listStart
   notFollowedByHtmlCloser
   optional indentSpaces
-  result <- anyLine
-  return $ result ++ "\n"
+  anyLineNewline
 
 listItem :: PandocMonad m
          => MarkdownParser m a
@@ -956,7 +946,7 @@ defRawBlock :: PandocMonad m => Bool -> MarkdownParser m String
 defRawBlock compact = try $ do
   hasBlank <- option False $ blankline >> return True
   defListMarker
-  firstline <- anyLine
+  firstline <- anyLineNewline
   let dline = try
                ( do notFollowedBy blankline
                     notFollowedByHtmlCloser
@@ -971,7 +961,7 @@ defRawBlock compact = try $ do
             ln <- indentSpaces >> notFollowedBy blankline >> anyLine
             lns <- many dline
             return $ trailing ++ unlines (ln:lns)
-  return $ trimr (firstline ++ "\n" ++ unlines rawlines ++ cont) ++
+  return $ trimr (firstline ++ unlines rawlines ++ cont) ++
             if hasBlank || not (null cont) then "\n\n" else ""
 
 definitionList :: PandocMonad m => MarkdownParser m (F Blocks)
@@ -1461,6 +1451,7 @@ inline = choice [ whitespace
                 , autoLink
                 , spanHtml
                 , rawHtmlInline
+                , escapedNewline
                 , escapedChar
                 , rawLaTeXInline'
                 , exampleRef
@@ -1477,16 +1468,20 @@ escapedChar' = try $ do
   (guardEnabled Ext_all_symbols_escapable >> satisfy (not . isAlphaNum))
      <|> (guardEnabled Ext_angle_brackets_escapable >>
             oneOf "\\`*_{}[]()>#+-.!~\"<>")
-     <|> (guardEnabled Ext_escaped_line_breaks >> char '\n')
      <|> oneOf "\\`*_{}[]()>#+-.!~\""
+
+escapedNewline :: PandocMonad m => MarkdownParser m (F Inlines)
+escapedNewline = try $ do
+  guardEnabled Ext_escaped_line_breaks
+  char '\\'
+  lookAhead (char '\n') -- don't consume the newline (see #3730)
+  return $ return B.linebreak
 
 escapedChar :: PandocMonad m => MarkdownParser m (F Inlines)
 escapedChar = do
   result <- escapedChar'
   case result of
        ' '   -> return $ return $ B.str "\160" -- "\ " is a nonbreaking space
-       '\n'  -> guardEnabled Ext_escaped_line_breaks >>
-                return (return B.linebreak)  -- "\[newline]" is a linebreak
        _     -> return $ return $ B.str [result]
 
 ltSign :: PandocMonad m => MarkdownParser m (F Inlines)

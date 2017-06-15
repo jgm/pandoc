@@ -50,23 +50,11 @@ module Text.Pandoc.Readers.Odt.StyleReader
 , ListLevelType        (..)
 , LengthOrPercent      (..)
 , lookupStyle
-, getTextProperty
-, getTextProperty'
-, getParaProperty
-, getListStyle
 , getListLevelStyle
 , getStyleFamily
-, lookupDefaultStyle
 , lookupDefaultStyle'
 , lookupListStyleByName
-, getPropertyChain
-, textPropertyChain
-, stylePropertyChain
-, stylePropertyChain'
-, getStylePropertyChain
 , extendedStylePropertyChain
-, extendedStylePropertyChain'
-, liftStyles
 , readStylesAt
 ) where
 
@@ -83,7 +71,6 @@ import           Data.Maybe
 
 import qualified Text.XML.Light                               as XML
 
-import           Text.Pandoc.Readers.Odt.Arrows.State
 import           Text.Pandoc.Readers.Odt.Arrows.Utils
 
 import           Text.Pandoc.Readers.Odt.Generic.Utils
@@ -624,18 +611,9 @@ lookupStyle           :: StyleName   -> Styles -> Maybe Style
 lookupStyle name Styles{..} = M.lookup name stylesByName
 
 --
-lookupDefaultStyle    :: StyleFamily -> Styles -> StyleProperties
-lookupDefaultStyle family Styles{..} = fromMaybe def
-                                       (M.lookup family defaultStyleMap)
-
---
 lookupDefaultStyle'   :: Styles -> StyleFamily -> StyleProperties
 lookupDefaultStyle' Styles{..} family = fromMaybe def
                                         (M.lookup family defaultStyleMap)
-
---
-getListStyle          :: Style       -> Styles -> Maybe ListStyle
-getListStyle Style{..} styles = listStyle >>= (`lookupListStyleByName` styles)
 
 --
 lookupListStyleByName :: StyleName   -> Styles -> Maybe ListStyle
@@ -681,64 +659,3 @@ extendedStylePropertyChain [style]       styles =    (stylePropertyChain style s
                                                   ++ (maybeToList (fmap (lookupDefaultStyle' styles) (getStyleFamily style styles)))
 extendedStylePropertyChain (style:trace) styles =    (stylePropertyChain style styles)
                                                   ++ (extendedStylePropertyChain trace styles)
--- Optimizable with Data.Sequence
-
---
-extendedStylePropertyChain' :: [Style] -> Styles -> Maybe [StyleProperties]
-extendedStylePropertyChain' [] _ = Nothing
-extendedStylePropertyChain' [style]       styles = Just (
-                                                             (stylePropertyChain style styles)
-                                                          ++ (maybeToList (fmap (lookupDefaultStyle' styles) (getStyleFamily style styles)))
-                                                        )
-extendedStylePropertyChain' (style:trace) styles = fmap ((stylePropertyChain style styles) ++)
-                                                        (extendedStylePropertyChain' trace styles)
-
---
-stylePropertyChain'   :: Styles      -> Style  -> [StyleProperties]
-stylePropertyChain' = flip stylePropertyChain
-
---
-getStylePropertyChain :: StyleName   -> Styles -> [StyleProperties]
-getStylePropertyChain name styles = maybe []
-                                          (`stylePropertyChain` styles)
-                                          (lookupStyle name styles)
-
---
-getPropertyChain :: (StyleProperties -> Maybe a) -> Style -> Styles ->     [a]
-getPropertyChain extract style styles = catMaybes
-                                      $ map extract
-                                      $ stylePropertyChain style styles
-
---
-textPropertyChain     :: Style       -> Styles -> [TextProperties]
-textPropertyChain = getPropertyChain textProperties
-
---
-paraPropertyChain     :: Style       -> Styles -> [ParaProperties]
-paraPropertyChain = getPropertyChain paraProperties
-
---
-getTextProperty   :: (TextProperties ->       a) -> Style -> Styles -> Maybe a
-getTextProperty extract style styles  = fmap extract
-                                      $ listToMaybe
-                                      $ textPropertyChain style styles
-
---
-getTextProperty'  :: (TextProperties -> Maybe a) -> Style -> Styles -> Maybe a
-getTextProperty' extract style styles = F.asum
-                                      $ map extract
-                                      $ textPropertyChain style styles
-
---
-getParaProperty   :: (ParaProperties ->       a) -> Style -> Styles -> Maybe a
-getParaProperty extract style styles  = fmap extract
-                                      $ listToMaybe
-                                      $ paraPropertyChain style styles
-
--- | Lifts the reader into another readers' state.
-liftStyles :: (OdtConverterState s      -> OdtConverterState Styles)
-           -> (OdtConverterState Styles -> OdtConverterState s     )
-           -> XMLReader s x x
-liftStyles extract inject = switchState extract inject
-                          $ convertingExtraState M.empty readAllStyles
-

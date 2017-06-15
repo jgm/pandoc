@@ -32,16 +32,17 @@ module Text.Pandoc.Readers.Org.DocumentTree
   , headlineToBlocks
   ) where
 
+import Control.Arrow ((***))
 import Control.Monad (guard, void)
 import Data.Char (toLower, toUpper)
-import Data.Maybe (fromMaybe)
+import Data.List (intersperse)
 import Data.Monoid ((<>))
 import Text.Pandoc.Builder (Blocks, Inlines)
 import Text.Pandoc.Class (PandocMonad)
 import Text.Pandoc.Definition
 import Text.Pandoc.Readers.Org.BlockStarts
-import Text.Pandoc.Readers.Org.Parsing
 import Text.Pandoc.Readers.Org.ParserState
+import Text.Pandoc.Readers.Org.Parsing
 
 import qualified Data.Map as Map
 import qualified Text.Pandoc.Builder as B
@@ -77,7 +78,7 @@ documentTree blocks inline = do
   getTitle metamap =
     case Map.lookup "title" metamap of
       Just (MetaInlines inlns) -> inlns
-      _ -> []
+      _                        -> []
 
 newtype Tag = Tag { fromTag :: String }
   deriving (Show, Eq)
@@ -141,7 +142,7 @@ headline blocks inline lvl = try $ do
     title'    <- title
     contents' <- contents
     children' <- sequence children
-    return $ Headline
+    return Headline
       { headlineLevel = level
       , headlineTodoMarker = todoKw
       , headlineText = title'
@@ -161,7 +162,7 @@ headline blocks inline lvl = try $ do
 
 -- | Convert an Org mode headline (i.e. a document tree) into pandoc's Blocks
 headlineToBlocks :: Monad m => Headline -> OrgParser m Blocks
-headlineToBlocks hdln@(Headline {..}) = do
+headlineToBlocks hdln@Headline {..} = do
   maxHeadlineLevels <- getExportSetting exportHeadlineLevels
   case () of
     _ | any isNoExportTag headlineTags     -> return mempty
@@ -192,7 +193,7 @@ archivedHeadlineToBlocks hdln = do
     ArchivedTreesHeadlineOnly -> headlineToHeader hdln
 
 headlineToHeaderWithList :: Monad m => Headline -> OrgParser m Blocks
-headlineToHeaderWithList hdln@(Headline {..}) = do
+headlineToHeaderWithList hdln@Headline {..} = do
   maxHeadlineLevels <- getExportSetting exportHeadlineLevels
   header        <- headlineToHeader hdln
   listElements  <- mapM headlineToBlocks headlineChildren
@@ -211,20 +212,24 @@ headlineToHeaderWithList hdln@(Headline {..}) = do
        _                    -> mempty
 
 headlineToHeaderWithContents :: Monad m => Headline -> OrgParser m Blocks
-headlineToHeaderWithContents hdln@(Headline {..}) = do
+headlineToHeaderWithContents hdln@Headline {..} = do
   header         <- headlineToHeader hdln
   childrenBlocks <- mconcat <$> mapM headlineToBlocks headlineChildren
   return $ header <> headlineContents <> childrenBlocks
 
 headlineToHeader :: Monad m => Headline -> OrgParser m Blocks
-headlineToHeader (Headline {..}) = do
+headlineToHeader Headline {..} = do
   exportTodoKeyword <- getExportSetting exportWithTodoKeywords
+  exportTags        <- getExportSetting exportWithTags
   let todoText    = if exportTodoKeyword
                     then case headlineTodoMarker of
                       Just kw -> todoKeywordToInlines kw <> B.space
                       Nothing -> mempty
                     else mempty
-  let text        = tagTitle (todoText <> headlineText) headlineTags
+  let text        = todoText <> headlineText <>
+                    if exportTags
+                    then tagsToInlines headlineTags
+                    else mempty
   let propAttr    = propertiesToAttr headlineProperties
   attr           <- registerHeader propAttr headlineText
   return $ B.headerWith attr headlineLevel text
@@ -232,7 +237,7 @@ headlineToHeader (Headline {..}) = do
 todoKeyword :: Monad m => OrgParser m TodoMarker
 todoKeyword = try $ do
   taskStates <- activeTodoMarkers <$> getState
-  let kwParser tdm = try $ (tdm <$ string (todoMarkerName tdm) <* spaceChar)
+  let kwParser tdm = try (tdm <$ string (todoMarkerName tdm) <* spaceChar)
   choice (map kwParser taskStates)
 
 todoKeywordToInlines :: TodoMarker -> Inlines
@@ -245,26 +250,35 @@ todoKeywordToInlines tdm =
 propertiesToAttr :: Properties -> Attr
 propertiesToAttr properties =
   let
-    toStringPair prop = (fromKey (fst prop), fromValue (snd prop))
+    toStringPair = fromKey *** fromValue
     customIdKey = toPropertyKey "custom_id"
     classKey    = toPropertyKey "class"
     unnumberedKey = toPropertyKey "unnumbered"
     specialProperties = [customIdKey, classKey, unnumberedKey]
-    id'  = fromMaybe mempty . fmap fromValue . lookup customIdKey $ properties
-    cls  = fromMaybe mempty . fmap fromValue . lookup classKey    $ properties
+    id'  = maybe mempty fromValue . lookup customIdKey $ properties
+    cls  = maybe mempty fromValue . lookup classKey    $ properties
     kvs' = map toStringPair . filter ((`notElem` specialProperties) . fst)
            $ properties
     isUnnumbered =
-      fromMaybe False . fmap isNonNil . lookup unnumberedKey $ properties
+      maybe False isNonNil . lookup unnumberedKey $ properties
   in
-    (id', words cls ++ (if isUnnumbered then ["unnumbered"] else []), kvs')
+    (id', words cls ++ ["unnumbered" | isUnnumbered], kvs')
 
-tagTitle :: Inlines -> [Tag] -> Inlines
-tagTitle title tags = title <> (mconcat $ map tagToInline tags)
+tagsToInlines :: [Tag] -> Inlines
+tagsToInlines [] = mempty
+tagsToInlines tags =
+  (B.space <>) . mconcat . intersperse (B.str "\160") . map tagToInline $ tags
+ where
+  tagToInline :: Tag -> Inlines
+  tagToInline t = tagSpan t . B.smallcaps . B.str $ fromTag t
 
--- | Convert 
-tagToInline :: Tag -> Inlines
-tagToInline t = B.spanWith ("", ["tag"], [("data-tag-name", fromTag t)]) mempty
+-- | Wrap the given inline in a span, marking it as a tag.
+tagSpan :: Tag -> Inlines -> Inlines
+tagSpan t = B.spanWith ("", ["tag"], [("data-tag-name", fromTag t)])
+
+
+
+
 
 -- | Read a :PROPERTIES: drawer and return the key/value pairs contained
 -- within.
@@ -288,4 +302,3 @@ propertiesDrawer = try $ do
    endOfDrawer :: Monad m => OrgParser m String
    endOfDrawer = try $
      skipSpaces *> stringAnyCase ":END:" <* skipSpaces <* newline
-

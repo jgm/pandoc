@@ -36,12 +36,13 @@ import qualified Codec.Picture as JP
 import qualified Control.Exception as E
 import Control.Monad (unless, when)
 import Control.Monad.Trans (MonadIO (..))
+import qualified Data.Text as T
+import Data.Text (Text)
 import qualified Data.ByteString as BS
 import Data.ByteString.Lazy (ByteString)
 import qualified Data.ByteString.Lazy as B
 import qualified Data.ByteString.Lazy as BL
 import qualified Data.ByteString.Lazy.Char8 as BC
-import Data.List (isInfixOf)
 import Data.Maybe (fromMaybe)
 import Data.Monoid ((<>))
 import System.Directory
@@ -74,7 +75,7 @@ changePathSeparators = intercalate "/" . splitDirectories
 
 makePDF :: String              -- ^ pdf creator (pdflatex, lualatex,
                                -- xelatex, context, wkhtmltopdf, pdfroff)
-        -> (WriterOptions -> Pandoc -> PandocIO String)  -- ^ writer
+        -> (WriterOptions -> Pandoc -> PandocIO Text)  -- ^ writer
         -> WriterOptions       -- ^ options
         -> Verbosity           -- ^ verbosity level
         -> MediaBag            -- ^ media
@@ -178,10 +179,10 @@ tex2pdf' :: Verbosity                       -- ^ Verbosity level
          -> [String]                        -- ^ Arguments to the latex-engine
          -> FilePath                        -- ^ temp directory for output
          -> String                          -- ^ tex program
-         -> String                          -- ^ tex source
+         -> Text                            -- ^ tex source
          -> IO (Either ByteString ByteString)
 tex2pdf' verbosity args tmpDir program source = do
-  let numruns = if "\\tableofcontents" `isInfixOf` source
+  let numruns = if "\\tableofcontents" `T.isInfixOf` source
                    then 3  -- to get page numbers
                    else 2  -- 1 run won't give you PDF bookmarks
   (exit, log', mbPdf) <- runTeXProgram verbosity program args 1 numruns tmpDir source
@@ -223,11 +224,11 @@ extractConTeXtMsg log' = do
 -- contents of stdout, contents of produced PDF if any).  Rerun
 -- a fixed number of times to resolve references.
 runTeXProgram :: Verbosity -> String -> [String] -> Int -> Int -> FilePath
-              -> String -> IO (ExitCode, ByteString, Maybe ByteString)
+              -> Text -> IO (ExitCode, ByteString, Maybe ByteString)
 runTeXProgram verbosity program args runNumber numRuns tmpDir source = do
     let file = tmpDir </> "input.tex"
     exists <- doesFileExist file
-    unless exists $ UTF8.writeFile file source
+    unless exists $ BS.writeFile file $ UTF8.fromText source
 #ifdef _WINDOWS
     -- note:  we want / even on Windows, for TexLive
     let tmpDir' = changePathSeparators tmpDir
@@ -276,7 +277,7 @@ runTeXProgram verbosity program args runNumber numRuns tmpDir source = do
 
 ms2pdf :: Verbosity
        -> [String]
-       -> String
+       -> Text
        -> IO (Either ByteString ByteString)
 ms2pdf verbosity args source = do
   env' <- getEnvironment
@@ -288,10 +289,10 @@ ms2pdf verbosity args source = do
     mapM_ print env'
     putStr "\n"
     putStrLn $ "[makePDF] Contents:\n"
-    putStr source
+    putStr $ T.unpack source
     putStr "\n"
   (exit, out) <- pipeProcess (Just env') "pdfroff" args
-                     (UTF8.fromStringLazy source)
+                     (BL.fromStrict $ UTF8.fromText source)
   when (verbosity >= INFO) $ do
     B.hPutStr stdout out
     putStr "\n"
@@ -301,12 +302,12 @@ ms2pdf verbosity args source = do
 
 html2pdf  :: Verbosity    -- ^ Verbosity level
           -> [String]     -- ^ Args to wkhtmltopdf
-          -> String       -- ^ HTML5 source
+          -> Text         -- ^ HTML5 source
           -> IO (Either ByteString ByteString)
 html2pdf verbosity args source = do
   file <- withTempFile "." "html2pdf.html" $ \fp _ -> return fp
   pdfFile <- withTempFile "." "html2pdf.pdf" $ \fp _ -> return fp
-  UTF8.writeFile file source
+  BS.writeFile file $ UTF8.fromText source
   let programArgs = args ++ [file, pdfFile]
   env' <- getEnvironment
   when (verbosity >= INFO) $ do
@@ -341,11 +342,11 @@ html2pdf verbosity args source = do
 
 context2pdf :: Verbosity    -- ^ Verbosity level
             -> FilePath     -- ^ temp directory for output
-            -> String       -- ^ ConTeXt source
+            -> Text         -- ^ ConTeXt source
             -> IO (Either ByteString ByteString)
 context2pdf verbosity tmpDir source = inDirectory tmpDir $ do
   let file = "input.tex"
-  UTF8.writeFile file source
+  BS.writeFile file $ UTF8.fromText source
 #ifdef _WINDOWS
   -- note:  we want / even on Windows, for TexLive
   let tmpDir' = changePathSeparators tmpDir

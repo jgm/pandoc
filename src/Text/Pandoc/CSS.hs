@@ -11,7 +11,7 @@ import Text.Parsec.String
 ruleParser :: Parser (String, String)
 ruleParser = do
     p <- many1 (noneOf ":")  <* char ':'
-    v <- many1 (noneOf ":;") <* (optional $ char ';') <* spaces
+    v <- many1 (noneOf ":;") <* optional (char ';') <* spaces
     return (trim p, trim v)
 
 styleAttrParser :: Parser [(String, String)]

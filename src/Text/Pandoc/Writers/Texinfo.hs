@@ -37,6 +37,7 @@ import Data.Char (chr, ord)
 import Data.List (maximumBy, transpose)
 import Data.Ord (comparing)
 import qualified Data.Set as Set
+import Data.Text (Text)
 import Network.URI (unEscapeString)
 import System.FilePath
 import Text.Pandoc.Class (PandocMonad, report)
@@ -68,7 +69,7 @@ data WriterState =
 type TI m = StateT WriterState m
 
 -- | Convert Pandoc to Texinfo.
-writeTexinfo :: PandocMonad m => WriterOptions -> Pandoc -> m String
+writeTexinfo :: PandocMonad m => WriterOptions -> Pandoc -> m Text
 writeTexinfo options document =
   evalStateT (pandocToTexinfo options $ wrapTop document) $
   WriterState { stStrikeout = False, stSuperscript = False,
@@ -80,16 +81,18 @@ wrapTop :: Pandoc -> Pandoc
 wrapTop (Pandoc meta blocks) =
   Pandoc meta (Header 0 nullAttr (docTitle meta) : blocks)
 
-pandocToTexinfo :: PandocMonad m => WriterOptions -> Pandoc -> TI m String
+pandocToTexinfo :: PandocMonad m => WriterOptions -> Pandoc -> TI m Text
 pandocToTexinfo options (Pandoc meta blocks) = do
   let titlePage = not $ all null
                       $ docTitle meta : docDate meta : docAuthors meta
   let colwidth = if writerWrapText options == WrapAuto
                     then Just $ writerColumns options
                     else Nothing
+  let render' :: Doc -> Text
+      render' = render colwidth
   metadata <- metaToJSON options
-              (fmap (render colwidth) . blockListToTexinfo)
-              (fmap (render colwidth) . inlineListToTexinfo)
+              (fmap render' . blockListToTexinfo)
+              (fmap render' . inlineListToTexinfo)
               meta
   main <- blockListToTexinfo blocks
   st <- get

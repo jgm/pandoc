@@ -14,9 +14,9 @@ packages:
 - '.'
 - location:
     git: https://github.com/jgm/pandoc-citeproc.git
-    commit: 0926289c5ccc1c69c90b2e9132b0e2b57f08aa4d
+    commit: 2e27f5cb40577c9b3ffe0fc112687084f3d9d877
   extra-dep: false
 extra-deps:
 - hslua-0.5.0
 - skylighting-0.3.3
-resolver: lts-8.12
+resolver: lts-8.16

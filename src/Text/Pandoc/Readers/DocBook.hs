@@ -16,6 +16,8 @@ import Text.TeXMath (readMathML, writeTeX)
 import Data.Default
 import Data.Foldable (asum)
 import Text.Pandoc.Class (PandocMonad)
+import Data.Text (Text)
+import qualified Data.Text as T
 
 {-
 
@@ -522,11 +524,11 @@ instance Default DBState where
                , dbContent = [] }
 
 
-readDocBook :: PandocMonad m => ReaderOptions -> String -> m Pandoc
+readDocBook :: PandocMonad m => ReaderOptions -> Text -> m Pandoc
 readDocBook _ inp = do
-  let tree = normalizeTree . parseXML . handleInstructions $ inp
+  let tree = normalizeTree . parseXML . handleInstructions $ T.unpack inp
   (bs, st') <- flip runStateT (def{ dbContent = tree }) $ mapM parseBlock $ tree
-  return $ Pandoc (dbMeta st') (toList . mconcat $ bs)        
+  return $ Pandoc (dbMeta st') (toList . mconcat $ bs)
 
 -- We treat <?asciidoc-br?> specially (issue #1236), converting it
 -- to <br/>, since xml-light doesn't parse the instruction correctly.

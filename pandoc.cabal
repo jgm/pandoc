@@ -341,9 +341,6 @@ Library
      cpp-options:   -DEMBED_DATA_FILES
      build-depends: file-embed >= 0.0 && < 0.1
      other-modules: Text.Pandoc.Data
-     if os(darwin)
-        Build-Tools:   cpphs >= 1.19
-        ghc-options:   -pgmP cpphs -optP --cpp
   if os(windows)
     Cpp-options:      -D_WINDOWS
   Ghc-Options:   -Wall -fno-warn-unused-do-bind
@@ -512,6 +509,7 @@ Executable weigh-pandoc
   if flag(weigh-pandoc)
      Build-Depends:   pandoc,
                       base >= 4.2 && < 5,
+                      text,
                       weigh >= 0.0 && < 0.1,
                       mtl >= 2.2 && < 2.3
      Buildable:       True
@@ -589,6 +587,7 @@ benchmark benchmark-pandoc
   Build-Depends:   pandoc,
                    time, bytestring, containers,
                    base >= 4.2 && < 5,
+                   text >= 0.11 && < 1.3,
                    syb >= 0.1 && < 0.8,
                    criterion >= 1.0 && < 1.3
   Ghc-Options:   -rtsopts -Wall -fno-warn-unused-do-bind

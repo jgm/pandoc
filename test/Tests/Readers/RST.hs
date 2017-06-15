@@ -2,25 +2,27 @@
 {-# LANGUAGE ScopedTypeVariables #-}
 module Tests.Readers.RST (tests) where
 
+import Data.Text (Text)
+import qualified Data.Text as T
 import Test.Tasty
 import Tests.Helpers
 import Text.Pandoc
 import Text.Pandoc.Arbitrary ()
 import Text.Pandoc.Builder
 
-rst :: String -> Pandoc
+rst :: Text -> Pandoc
 rst = purely $ readRST def{ readerStandalone = True }
 
 infix 4 =:
 (=:) :: ToString c
-     => String -> (String, c) -> TestTree
+     => String -> (Text, c) -> TestTree
 (=:) = test rst
 
 tests :: [TestTree]
 tests = [ "line block with blank line" =:
           "| a\n|\n|  b" =?> lineBlock [ "a", mempty, "\160b" ]
         , testGroup "field list"
-          [ "general" =: unlines
+          [ "general" =: T.unlines
              [ "para"
              , ""
              , ":Hostname: media08"
@@ -44,7 +46,7 @@ tests = [ "line block with blank line" =:
                                   , (text "Parameter i", [para "integer"])
                                   , (str "Final", [para "item\non two lines"])
                                   ])
-          , "metadata" =: unlines
+          , "metadata" =: T.unlines
              [ "====="
              , "Title"
              , "====="
@@ -58,7 +60,7 @@ tests = [ "line block with blank line" =:
                  $ setMeta "title" ("Title" :: Inlines)
                  $ setMeta "subtitle" ("Subtitle" :: Inlines)
                  $ doc mempty )
-          , "with inline markup" =: unlines
+          , "with inline markup" =: T.unlines
              [ ":*Date*: today"
              , ""
              , ".."
@@ -80,7 +82,7 @@ tests = [ "line block with blank line" =:
                                   ])
           ]
         , "URLs with following punctuation" =:
-          ("http://google.com, http://yahoo.com; http://foo.bar.baz.\n" ++
+          ("http://google.com, http://yahoo.com; http://foo.bar.baz.\n" <>
            "http://foo.bar/baz_(bam) (http://foo.bar)") =?>
           para (link "http://google.com" "" "http://google.com" <> ", " <>
                 link "http://yahoo.com" "" "http://yahoo.com" <> "; " <>
@@ -89,10 +91,10 @@ tests = [ "line block with blank line" =:
                 link "http://foo.bar/baz_(bam)" "" "http://foo.bar/baz_(bam)"
                 <> " (" <> link "http://foo.bar" "" "http://foo.bar" <> ")")
         , "Reference names with special characters" =:
-                   ("A-1-B_2_C:3:D+4+E.5.F_\n\n" ++
+                   ("A-1-B_2_C:3:D+4+E.5.F_\n\n" <>
                    ".. _A-1-B_2_C:3:D+4+E.5.F: https://example.com\n") =?>
                    para (link "https://example.com" "" "A-1-B_2_C:3:D+4+E.5.F")
-        , "Code directive with class and number-lines" =: unlines
+        , "Code directive with class and number-lines" =: T.unlines
             [ ".. code::python"
             , "   :number-lines: 34"
             , "   :class: class1 class2 class3"
@@ -107,7 +109,7 @@ tests = [ "line block with blank line" =:
                   )
                   "def func(x):\n  return y"
               )
-        , "Code directive with number-lines, no line specified" =: unlines
+        , "Code directive with number-lines, no line specified" =: T.unlines
             [ ".. code::python"
             , "   :number-lines: "
             , ""
@@ -122,7 +124,7 @@ tests = [ "line block with blank line" =:
                   "def func(x):\n  return y"
               )
         , testGroup "literal / line / code blocks"
-          [ "indented literal block" =: unlines
+          [ "indented literal block" =: T.unlines
             [ "::"
             , ""
             , "  block quotes"
@@ -163,7 +165,7 @@ tests = [ "line block with blank line" =:
           , "unknown role" =: ":unknown:`text`" =?> para (str "text")
           ]
         , testGroup "footnotes"
-          [ "remove space before note" =: unlines
+          [ "remove space before note" =: T.unlines
             [ "foo [1]_"
             , ""
             , ".. [1]"

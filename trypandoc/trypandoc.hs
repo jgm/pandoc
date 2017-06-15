@@ -8,6 +8,9 @@ import Network.HTTP.Types.Status (status200)
 import Network.HTTP.Types.Header (hContentType)
 import Network.HTTP.Types.URI (queryToQueryText)
 import Text.Pandoc
+import Text.Pandoc.Highlighting (pygments)
+import Text.Pandoc.Readers (getReader, Reader(..))
+import Text.Pandoc.Writers (getWriter, Writer(..))
 import Text.Pandoc.Error (PandocError)
 import Text.Pandoc.Shared (tabFilter)
 import Data.Aeson
@@ -25,12 +28,16 @@ app req respond = do
   text <- getParam "text" >>= checkLength . fromMaybe T.empty
   fromFormat <- fromMaybe "" <$> getParam "from"
   toFormat <- fromMaybe "" <$> getParam "to"
-  reader <- maybe (error $ "could not find reader for " ++ T.unpack fromFormat)              return
-             $ lookup fromFormat fromFormats
-  let writer = maybe (error $ "could not find writer for " ++ T.unpack toFormat) id
-             $ lookup toFormat toFormats
-  let result = case reader $ tabFilter 4 $ T.unpack text of
-                    Right doc -> T.pack $ writer doc
+  let reader = case getReader (T.unpack fromFormat) of
+                    Right (TextReader r) -> r readerOpts
+                    _ -> error $ "could not find reader for "
+                                  ++ T.unpack fromFormat
+  let writer = case getWriter (T.unpack toFormat) of
+                    Right (TextWriter w) -> w writerOpts
+                    _ -> error $ "could not find writer for " ++
+                           T.unpack toFormat
+  let result = case runPure $ reader (tabFilter 4 text) >>= writer of
+                    Right s   -> s
                     Left  err -> error (show err)
   let output = encode $ object [ T.pack "html" .= result
                                , T.pack "name" .=
@@ -50,52 +57,7 @@ writerOpts :: WriterOptions
 writerOpts = def { writerReferenceLinks = True,
                    writerEmailObfuscation = NoObfuscation,
                    writerHTMLMathMethod = MathJax "http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML",
-                   writerHighlight = True }
+                   writerHighlightStyle = Just pygments }
 
 readerOpts :: ReaderOptions
-readerOpts = def { readerParseRaw = True,
-                   readerSmart = True }
-
-fromFormats :: [(Text, String -> Either PandocError Pandoc)]
-fromFormats = [
-            ("native"       , readNative)
-           ,("json"         , Text.Pandoc.readJSON readerOpts)
-           ,("markdown"     , readMarkdown readerOpts)
-           ,("markdown_strict" , readMarkdown readerOpts{
-                    readerExtensions = strictExtensions,
-                    readerSmart = False })
-           ,("markdown_phpextra" , readMarkdown readerOpts{
-                    readerExtensions = phpMarkdownExtraExtensions })
-           ,("markdown_github" , readMarkdown readerOpts{
-                    readerExtensions = githubMarkdownExtensions })
-           ,("markdown_mmd",  readMarkdown readerOpts{
-                    readerExtensions = multimarkdownExtensions })
-           ,("rst"          , readRST readerOpts)
-           ,("mediawiki"    , readMediaWiki readerOpts)
-           ,("docbook"      , readDocBook readerOpts)
-           ,("opml"         , readOPML readerOpts)
-           ,("t2t"          , readTxt2TagsNoMacros readerOpts)
-           ,("org"          , readOrg readerOpts)
-           ,("textile"      , readTextile readerOpts) -- TODO : textile+lhs
-           ,("html"         , readHtml readerOpts)
-           ,("latex"        , readLaTeX readerOpts)
-           ,("haddock"      , readHaddock readerOpts)
-           ]
-
-toFormats :: [(Text, Pandoc -> String)]
-toFormats = mapMaybe (\(x,y) ->
-                       case y of
-                         PureStringWriter w -> Just (T.pack x, w writerOpts{
-                             writerExtensions =
-                               case x of
-                                  "markdown_strict" -> strictExtensions
-                                  "markdown_phpextra" -> phpMarkdownExtraExtensions
-                                  "markdown_mmd" -> multimarkdownExtensions
-                                  "markdown_github" -> githubMarkdownExtensions
-                                  _ -> pandocExtensions
-                                 })
-                         _                  ->
-                            case x of
-                                 "rtf"     -> Just (T.pack x, writeRTF writerOpts)
-                                 _         -> Nothing) writers
-
+readerOpts = def

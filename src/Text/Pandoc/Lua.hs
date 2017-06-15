@@ -15,8 +15,8 @@ You should have received a copy of the GNU General Public License
 along with this program; if not, write to the Free Software
 Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 -}
-{-# LANGUAGE FlexibleContexts #-}
-{-# LANGUAGE FlexibleInstances #-}
+{-# LANGUAGE FlexibleContexts      #-}
+{-# LANGUAGE FlexibleInstances     #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {- |
    Module      : Text.Pandoc.Lua
@@ -30,12 +30,12 @@ Pandoc lua utils.
 -}
 module Text.Pandoc.Lua ( runLuaFilter, pushPandocModule ) where
 
-import Control.Monad ( (>=>), when )
-import Control.Monad.Trans ( MonadIO(..) )
-import Data.Map ( Map )
-import Scripting.Lua ( LuaState, StackValue(..) )
+import Control.Monad (unless, when, (>=>))
+import Control.Monad.Trans (MonadIO (..))
+import Data.Map (Map)
+import Scripting.Lua (LuaState, StackValue (..))
 import Text.Pandoc.Definition
-import Text.Pandoc.Lua.PandocModule ( pushPandocModule )
+import Text.Pandoc.Lua.PandocModule (pushPandocModule)
 import Text.Pandoc.Lua.StackInstances ()
 import Text.Pandoc.Walk
 
@@ -80,7 +80,7 @@ pushGlobalFilter lua =
   *> Lua.rawseti lua (-2) 1
 
 runAll :: [LuaFilter] -> Pandoc -> IO Pandoc
-runAll [] = return
+runAll []     = return
 runAll (x:xs) = walkMWithLuaFilter x >=> runAll xs
 
 walkMWithLuaFilter :: LuaFilter -> Pandoc -> IO Pandoc
@@ -225,7 +225,7 @@ instance StackValue LuaFilterFunction where
   push lua v = pushFilterFunction lua v
   peek lua i = do
     isFn <- Lua.isfunction lua i
-    when (not isFn) (error $ "Not a function at index " ++ (show i))
+    unless isFn (error $ "Not a function at index " ++ (show i))
     Lua.pushvalue lua i
     push lua ("PANDOC_FILTER_FUNCTIONS"::String)
     Lua.rawget lua Lua.registryindex

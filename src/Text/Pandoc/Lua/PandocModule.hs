@@ -27,25 +27,24 @@ Pandoc module for lua.
 -}
 module Text.Pandoc.Lua.PandocModule ( pushPandocModule ) where
 
-import Data.ByteString.Char8 ( unpack )
-import Data.Default ( Default(..) )
-import Scripting.Lua ( LuaState, call, push, pushhsfunction, rawset)
-import Text.Pandoc.Class hiding ( readDataFile )
-import Text.Pandoc.Definition ( Pandoc )
-import Text.Pandoc.Lua.Compat ( loadstring )
+import Control.Monad (unless)
+import Data.ByteString.Char8 (unpack)
+import Data.Default (Default (..))
+import Data.Text (pack)
+import Scripting.Lua (LuaState, call, push, pushhsfunction, rawset)
+import Text.Pandoc.Class hiding (readDataFile)
+import Text.Pandoc.Definition (Pandoc)
+import Text.Pandoc.Lua.Compat (loadstring)
 import Text.Pandoc.Lua.StackInstances ()
-import Text.Pandoc.Readers ( Reader(..), getReader )
-import Text.Pandoc.Shared ( readDataFile )
+import Text.Pandoc.Readers (Reader (..), getReader)
+import Text.Pandoc.Shared (readDataFile)
 
 -- | Push the "pandoc" on the lua stack.
 pushPandocModule :: LuaState -> IO ()
 pushPandocModule lua = do
   script <- pandocModuleScript
   status <- loadstring lua script "pandoc.lua"
-  if (status /= 0)
-    then return ()
-    else do
-      call lua 0 1
+  unless (status /= 0) $ call lua 0 1
   push lua "__read"
   pushhsfunction lua read_doc
   rawset lua (-3)
@@ -57,13 +56,13 @@ pandocModuleScript = unpack <$> readDataFile Nothing "pandoc.lua"
 read_doc :: String -> String -> IO (Either String Pandoc)
 read_doc formatSpec content = do
   case getReader formatSpec of
-    Left s -> return $ Left s
+    Left  s      -> return $ Left s
     Right reader ->
       case reader of
-        StringReader r -> do
-          res <- runIO $ r def content
+        TextReader r -> do
+          res <- runIO $ r def (pack content)
           case res of
-            Left s -> return . Left $ show s
+            Left s   -> return . Left $ show s
             Right pd -> return $ Right pd
         _  -> return $ Left "Only string formats are supported at the moment."
 

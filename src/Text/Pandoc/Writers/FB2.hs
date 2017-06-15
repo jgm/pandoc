@@ -44,6 +44,7 @@ import Data.ByteString.Base64 (encode)
 import qualified Data.ByteString.Char8 as B8
 import Data.Char (isAscii, isControl, isSpace, toLower)
 import Data.Either (lefts, rights)
+import Data.Text (Text, pack)
 import Data.List (intercalate, intersperse, isPrefixOf, stripPrefix)
 import Network.HTTP (urlEncode)
 import Text.XML.Light
@@ -86,13 +87,13 @@ instance Show ImageMode where
 writeFB2 :: PandocMonad m
          => WriterOptions    -- ^ conversion options
          -> Pandoc           -- ^ document to convert
-         -> m String        -- ^ FictionBook2 document (not encoded yet)
+         -> m Text           -- ^ FictionBook2 document (not encoded yet)
 writeFB2 opts doc = flip evalStateT newFB $ pandocToFB2 opts doc
 
 pandocToFB2 :: PandocMonad m
             => WriterOptions
             -> Pandoc
-            -> FBM m String
+            -> FBM m Text
 pandocToFB2 opts (Pandoc meta blocks) = do
      modify (\s -> s { writerOptions = opts })
      desc <- description meta
@@ -103,7 +104,7 @@ pandocToFB2 opts (Pandoc meta blocks) = do
      (imgs,missing) <- liftM imagesToFetch get >>= \s -> lift (fetchImages s)
      let body' = replaceImagesWithAlt missing body
      let fb2_xml = el "FictionBook" (fb2_attrs, [desc, body'] ++ notes ++ imgs)
-     return $ xml_head ++ (showContent fb2_xml) ++ "\n"
+     return $ pack $ xml_head ++ (showContent fb2_xml) ++ "\n"
   where
   xml_head = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
   fb2_attrs =

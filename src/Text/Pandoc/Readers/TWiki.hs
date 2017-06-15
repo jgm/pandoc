@@ -49,14 +49,17 @@ import Text.Pandoc.Options
 import Text.Pandoc.Parsing hiding (enclosed, macro, nested)
 import Text.Pandoc.Readers.HTML (htmlTag, isCommentTag)
 import Text.Pandoc.XML (fromEntities)
+import Data.Text (Text)
+import qualified Data.Text as T
 
 -- | Read twiki from an input string and return a Pandoc document.
 readTWiki :: PandocMonad m
           => ReaderOptions
-          -> String
+          -> Text
           -> m Pandoc
 readTWiki opts s = do
-  res <- readWithM parseTWiki def{ stateOptions = opts } (s ++ "\n\n")
+  res <- readWithM parseTWiki def{ stateOptions = opts }
+             (T.unpack s ++ "\n\n")
   case res of
        Left e  -> throwError e
        Right d -> return d
@@ -349,13 +352,13 @@ linebreak = newline >> notFollowedBy newline >> (lastNewline <|> innerNewline)
   where lastNewline  = eof >> return mempty
         innerNewline = return B.space
 
-between :: (Monoid c, PandocMonad m)
+between :: (Monoid c, PandocMonad m, Show b)
         => TWParser m a -> TWParser m b -> (TWParser m b -> TWParser m c)
         -> TWParser m c
 between start end p =
   mconcat <$> try (start >> notFollowedBy whitespace >> many1Till (p end) end)
 
-enclosed :: (Monoid b, PandocMonad m)
+enclosed :: (Monoid b, PandocMonad m, Show a)
          => TWParser m a -> (TWParser m a -> TWParser m b) -> TWParser m b
 enclosed sep p = between sep (try $ sep <* endMarker) p
   where

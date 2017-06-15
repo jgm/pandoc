@@ -34,6 +34,8 @@ import Control.Monad.Except (catchError, throwError)
 import qualified Data.ByteString as B
 import Data.Char (chr, isDigit, ord)
 import Data.List (intercalate, isSuffixOf)
+import Data.Text (Text)
+import qualified Data.Text as T
 import qualified Data.Map as M
 import Text.Pandoc.Class (PandocMonad, report)
 import qualified Text.Pandoc.Class as P
@@ -97,7 +99,7 @@ rtfEmbedImage opts x@(Image attr _ (src,_)) = catchError
 rtfEmbedImage _ x = return x
 
 -- | Convert Pandoc to a string in rich text format.
-writeRTF :: PandocMonad m => WriterOptions -> Pandoc -> m String
+writeRTF :: PandocMonad m => WriterOptions -> Pandoc -> m Text
 writeRTF options doc = do
   -- handle images
   Pandoc meta@(Meta metamap) blocks <- walkM (rtfEmbedImage options) doc
@@ -123,7 +125,8 @@ writeRTF options doc = do
                     then defField "toc" toc
                     else id)
               $ metadata
-  return $ case writerTemplate options of
+  return $ T.pack
+         $ case writerTemplate options of
            Just tpl -> renderTemplate' tpl context
            Nothing  -> case reverse body of
                             ('\n':_) -> body

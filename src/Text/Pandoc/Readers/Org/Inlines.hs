@@ -18,7 +18,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 -}
 
 {- |
-   Module      : Text.Pandoc.Readers.Org.Options
+   Module      : Text.Pandoc.Readers.Org.Inlines
    Copyright   : Copyright (C) 2014-2017 Albert Krewinkel
    License     : GNU GPL, version 2 or above
 
@@ -48,7 +48,7 @@ import Text.Pandoc.Readers.LaTeX (inlineCommand, rawLaTeXInline)
 import Text.TeXMath (DisplayType (..), readTeX, writePandoc)
 import qualified Text.TeXMath.Readers.MathML.EntityMap as MathMLEntityMap
 
-import Control.Monad (guard, mplus, mzero, void, when)
+import Control.Monad (guard, mplus, mzero, unless, void, when)
 import Control.Monad.Trans (lift)
 import Data.Char (isAlphaNum, isSpace)
 import Data.List (intersperse)
@@ -63,7 +63,7 @@ import Prelude hiding (sequence)
 --
 recordAnchorId :: PandocMonad m => String -> OrgParser m ()
 recordAnchorId i = updateState $ \s ->
-  s{ orgStateAnchorIds = i : (orgStateAnchorIds s) }
+  s{ orgStateAnchorIds = i : orgStateAnchorIds s }
 
 pushToInlineCharStack :: PandocMonad m => Char -> OrgParser m ()
 pushToInlineCharStack c = updateState $ \s ->
@@ -184,7 +184,7 @@ cite = try $ berkeleyCite <|> do
                , orgRefCite
                , berkeleyTextualCite
                ]
-  return $ (flip B.cite (B.text raw)) <$> cs
+  return $ flip B.cite (B.text raw) <$> cs
 
 -- | A citation in Pandoc Org-mode style (@[prefix \@citekey suffix]@).
 pandocOrgCite :: PandocMonad m => OrgParser m (F [Citation])
@@ -209,7 +209,7 @@ normalOrgRefCite = try $ do
   orgRefCiteList :: PandocMonad m => CitationMode -> OrgParser m (F Citation)
   orgRefCiteList citeMode = try $ do
     key <- orgRefCiteKey
-    returnF $ Citation
+    returnF Citation
      { citationId      = key
      , citationPrefix  = mempty
      , citationSuffix  = mempty
@@ -232,11 +232,11 @@ berkeleyCite = try $ do
     return $
       if parens
       then toCite
-           . maybe id (\p -> alterFirst (prependPrefix p)) prefix
-           . maybe id (\s -> alterLast  (appendSuffix  s)) suffix
+           . maybe id (alterFirst . prependPrefix) prefix
+           . maybe id (alterLast . appendSuffix) suffix
            $ citationList
       else maybe mempty (<> " ") prefix
-             <> (toListOfCites $ map toInTextMode citationList)
+             <> toListOfCites (map toInTextMode citationList)
              <> maybe mempty (", " <>) suffix
  where
    toCite :: [Citation] -> Inlines
@@ -250,7 +250,7 @@ berkeleyCite = try $ do
 
    alterFirst, alterLast :: (a -> a) -> [a] -> [a]
    alterFirst _ []     = []
-   alterFirst f (c:cs) = (f c):cs
+   alterFirst f (c:cs) = f c : cs
    alterLast  f = reverse . alterFirst f . reverse
 
    prependPrefix, appendSuffix :: Inlines -> Citation -> Citation
@@ -271,7 +271,7 @@ berkeleyCitationList = try $ do
   skipSpaces
   commonPrefix <- optionMaybe (try $ citationListPart <* char ';')
   citations    <- citeList
-  commonSuffix <- optionMaybe (try $ citationListPart)
+  commonSuffix <- optionMaybe (try citationListPart)
   char ']'
   return (BerkeleyCitationList parens
     <$> sequence commonPrefix
@@ -339,8 +339,15 @@ linkLikeOrgRefCite = try $ do
 -- | Read a citation key.  The characters allowed in citation keys are taken
 -- from the `org-ref-cite-re` variable in `org-ref.el`.
 orgRefCiteKey :: PandocMonad m => OrgParser m String
-orgRefCiteKey = try . many1 . satisfy $ \c ->
-                  isAlphaNum c || c `elem` ("-_:\\./"::String)
+orgRefCiteKey =
+  let citeKeySpecialChars = "-_:\\./," :: String
+      isCiteKeySpecialChar c = c `elem` citeKeySpecialChars
+      isCiteKeyChar c = isAlphaNum c || isCiteKeySpecialChar c
+      endOfCitation = try $ do
+        many $ satisfy isCiteKeySpecialChar
+        satisfy $ not . isCiteKeyChar
+  in try $ satisfy isCiteKeyChar `many1Till` lookAhead endOfCitation
+
 
 -- | Supported citation types.  Only a small subset of org-ref types is
 -- supported for now.  TODO: rewrite this, use LaTeX reader as template.
@@ -366,15 +373,16 @@ citation = try $ do
   return $ do
     x <- pref
     y <- suff
-    return $ Citation{ citationId      = key
-                     , citationPrefix  = B.toList x
-                     , citationSuffix  = B.toList y
-                     , citationMode    = if suppress_author
-                                            then SuppressAuthor
-                                            else NormalCitation
-                     , citationNoteNum = 0
-                     , citationHash    = 0
-                     }
+    return Citation
+      { citationId      = key
+      , citationPrefix  = B.toList x
+      , citationSuffix  = B.toList y
+      , citationMode    = if suppress_author
+                          then SuppressAuthor
+                          else NormalCitation
+      , citationNoteNum = 0
+      , citationHash    = 0
+      }
  where
    prefix = trimInlinesF . mconcat <$>
             manyTill inline (char ']' <|> (']' <$ lookAhead citeKey))
@@ -396,7 +404,7 @@ inlineNote = try $ do
   ref <- many alphaNum
   char ':'
   note <- fmap B.para . trimInlinesF . mconcat <$> many1Till inline (char ']')
-  when (not $ null ref) $
+  unless (null ref) $
        addToNotesTable ("fn:" ++ ref, note)
   return $ B.note <$> note
 
@@ -406,7 +414,7 @@ referencedNote = try $ do
   return $ do
     notes <- asksF orgStateNotes'
     case lookup ref notes of
-      Nothing   -> return $ B.str $ "[" ++ ref ++ "]"
+      Nothing   -> return . B.str $ "[" ++ ref ++ "]"
       Just contents  -> do
         st <- askF
         let contents' = runF contents st{ orgStateNotes' = [] }
@@ -430,7 +438,7 @@ explicitOrImageLink = try $ do
     src <- srcF
     case cleanLinkString title of
       Just imgSrc | isImageFilename imgSrc ->
-        pure $ B.link src "" $ B.image imgSrc mempty mempty
+        pure . B.link src "" $ B.image imgSrc mempty mempty
       _ ->
         linkToInlinesF src =<< title'
 
@@ -687,13 +695,13 @@ mathEnd c = try $ do
   return res
 
 
-enclosedInlines :: PandocMonad m => OrgParser m a
+enclosedInlines :: (PandocMonad m, Show b) => OrgParser m a
                 -> OrgParser m b
                 -> OrgParser m (F Inlines)
 enclosedInlines start end = try $
   trimInlinesF . mconcat <$> enclosed start end inline
 
-enclosedRaw :: PandocMonad m => OrgParser m a
+enclosedRaw :: (PandocMonad m, Show b) => OrgParser m a
             -> OrgParser m b
             -> OrgParser m String
 enclosedRaw start end = try $
@@ -772,7 +780,7 @@ notAfterForbiddenBorderChar = do
 -- | Read a sub- or superscript expression
 subOrSuperExpr :: PandocMonad m => OrgParser m (F Inlines)
 subOrSuperExpr = try $
-  choice [ id                   <$> charsInBalanced '{' '}' (noneOf "\n\r")
+  choice [ charsInBalanced '{' '}' (noneOf "\n\r")
          , enclosing ('(', ')') <$> charsInBalanced '(' ')' (noneOf "\n\r")
          , simpleSubOrSuperString
          ] >>= parseFromString (mconcat <$> many inline)
@@ -810,7 +818,7 @@ inlineLaTeX = try $ do
                     enableExtension Ext_raw_tex (readerExtensions def) } }
 
    texMathToPandoc :: String -> Maybe [Inline]
-   texMathToPandoc cs = (maybeRight $ readTeX cs) >>= writePandoc DisplayInline
+   texMathToPandoc cs = maybeRight (readTeX cs) >>= writePandoc DisplayInline
 
 maybeRight :: Either a b -> Maybe b
 maybeRight = either (const Nothing) Just
@@ -861,21 +869,19 @@ macro = try $ do
   eoa = string ")}}}"
 
 smart :: PandocMonad m => OrgParser m (F Inlines)
-smart = do
-  doubleQuoted <|> singleQuoted <|>
-    choice (map (return <$>) [orgApostrophe, orgDash, orgEllipses])
+smart = choice [doubleQuoted, singleQuoted, orgApostrophe, orgDash, orgEllipses]
   where
     orgDash = do
       guardOrSmartEnabled =<< getExportSetting exportSpecialStrings
-      dash <* updatePositions '-'
+      pure <$> dash <* updatePositions '-'
     orgEllipses = do
       guardOrSmartEnabled =<< getExportSetting exportSpecialStrings
-      ellipses <* updatePositions '.'
+      pure <$> ellipses <* updatePositions '.'
     orgApostrophe = do
       guardEnabled Ext_smart
       (char '\'' <|> char '\8217') <* updateLastPreCharPos
                                    <* updateLastForbiddenCharPos
-      return (B.str "\x2019")
+      returnF (B.str "\x2019")
 
 guardOrSmartEnabled :: PandocMonad m => Bool -> OrgParser m ()
 guardOrSmartEnabled b = do
@@ -900,6 +906,9 @@ doubleQuoted = try $ do
   doubleQuoteStart
   updatePositions '"'
   contents <- mconcat <$> many (try $ notFollowedBy doubleQuoteEnd >> inline)
-  (withQuoteContext InDoubleQuote $ (doubleQuoteEnd <* updateLastForbiddenCharPos) >> return
-       (fmap B.doubleQuoted . trimInlinesF $ contents))
-   <|> (return $ return (B.str "\8220") <> contents)
+  let doubleQuotedContent = withQuoteContext InDoubleQuote $ do
+        doubleQuoteEnd
+        updateLastForbiddenCharPos
+        return . fmap B.doubleQuoted . trimInlinesF $ contents
+  let leftQuoteAndContent = return $ pure (B.str "\8220") <> contents
+  doubleQuotedContent <|> leftQuoteAndContent

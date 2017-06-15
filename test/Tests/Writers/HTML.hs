@@ -1,6 +1,7 @@
 {-# LANGUAGE OverloadedStrings #-}
 module Tests.Writers.HTML (tests) where
 
+import Data.Text (unpack)
 import Test.Tasty
 import Tests.Helpers
 import Text.Pandoc
@@ -8,7 +9,7 @@ import Text.Pandoc.Arbitrary ()
 import Text.Pandoc.Builder
 
 html :: (ToPandoc a) => a -> String
-html = purely (writeHtml4String def{ writerWrapText = WrapNone }) . toPandoc
+html = unpack . purely (writeHtml4String def{ writerWrapText = WrapNone }) . toPandoc
 
 {-
   "my test" =: X =?> Y

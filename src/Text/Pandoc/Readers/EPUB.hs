@@ -13,6 +13,8 @@ import Control.DeepSeq (NFData, deepseq)
 import Control.Monad (guard, liftM)
 import Control.Monad.Except (throwError)
 import qualified Data.ByteString.Lazy as BL (ByteString)
+import qualified Data.Text.Lazy.Encoding as TL
+import qualified Data.Text.Lazy as TL
 import Data.List (isInfixOf, isPrefixOf)
 import qualified Data.Map as M (Map, elems, fromList, lookup)
 import Data.Maybe (fromMaybe, mapMaybe)
@@ -73,7 +75,7 @@ archiveToEPUB os archive = do
     mimeToReader "application/xhtml+xml" (unEscapeString -> root)
                                          (unEscapeString -> path) = do
       fname <- findEntryByPathE (root </> path) archive
-      html <- readHtml os' . UTF8.toStringLazy $ fromEntry fname
+      html <- readHtml os' . TL.toStrict . TL.decodeUtf8 $ fromEntry fname
       return $ fixInternalReferences path html
     mimeToReader s _ (unEscapeString -> path)
       | s `elem` imageMimes = return $ imageToPandoc path
