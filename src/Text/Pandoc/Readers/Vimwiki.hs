@@ -378,7 +378,7 @@ tableCell = try $
   B.plain <$> trimInlines . mconcat <$> (manyTill inline' (char '|'))
 
 placeholder :: PandocMonad m => VwParser m ()
-placeholder = try $ (choice (ph <$> ["title", "date", "template"])) <|> noHtmlPh
+placeholder = try $ (choice (ph <$> ["title", "date"])) <|> noHtmlPh <|> templatePh
 
 ph :: PandocMonad m => String -> VwParser m ()
 ph s = try $ do
@@ -390,6 +390,10 @@ ph s = try $ do
 noHtmlPh :: PandocMonad m => VwParser m ()
 noHtmlPh = try $
   () <$ (many spaceChar >> string "%nohtml" >> many spaceChar >> (lookAhead newline))
+
+templatePh :: PandocMonad m => VwParser m ()
+templatePh = try $
+  () <$ (many spaceChar >> string "%template" >> many spaceChar >> (lookAhead newline))
 
 -- inline parser
 
