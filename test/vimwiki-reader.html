@@ -13,26 +13,37 @@
 <p>=n=</p>
 <p>=== not a header ====</p>
 <h2 id="centred header" class="justcenter">centred header</h2>
-<h2 id="emph and strong">emph and strong</h2>
+<h2 id="header with some == in between">header with some <code>==</code> in between</h2>
+<h2 id="header with some == in between">header with some == in between</h2>
+<h2 id="header with some ==in between">header with some ==in between</h2>
+<h2 id="emph strong and strikeout">emph strong and strikeout</h2>
 <p><em>emph</em> <span id="strong"></span><strong>strong</strong></p>
 <p><span id="strong and emph"></span><strong><em>strong and emph</em></strong></p>
 <p><em><span id="emph and strong"></span><strong>emph and strong</strong></em></p>
 <p><span id="emph inside strong"></span><strong><em>emph inside</em> strong</strong></p>
 <p><span id="strong with emph"></span><strong>strong with <em>emph</em></strong></p>
 <p><em><span id="strong inside"></span><strong>strong inside</strong> emph</em></p>
+<p><em><del>strikeout</del> inside emph</em></p>
+<p><del>This is <em>struck out</em> with emph</del></p>
+<p>*not strong*</p>
+<p>just two stars: **</p>
+<p>just two underscores: __</p>
+<p>just four ~s: ~~~~</p>
+<p>_not emph_</p>
+<p>~~not strikeout~~</p>
 <h2 id="horizontal rule">horizontal rule</h2>
 <p>top</p>
 <hr />
 <p>middle</p>
 <hr />
 <p>not a rule-----</p>
-<p>bottom</p>
-<h2 id="strikeout">strikeout</h2>
-<p><del>This is <em>struck out</em></del> with emph</p>
+<p>not a rule (trailing spaces): -----</p>
+<p>not a rule (leading spaces): ----</p>
 <h2 id="comments">comments</h2>
 <p>this is %% not secret</p>
 <h2 id="inline code">inline code</h2>
 <p>Here is some <code>inline code</code>.</p>
+<p>Just two backticks: ``</p>
 <h2 id="preformatted text">preformatted text</h2>
 <pre><code>  Tyger! Tyger! burning bright
    In the forests of the night,
@@ -50,23 +61,23 @@
 (indentation 4 spaces) This would be a blockquote in Vimwiki. It is not <span id="highlighted"></span><strong>highlighted</strong> in Vim but (indentation 1 space followed by 1 tab of width 4) could be styled by CSS in HTML. Blockquotes are usually used to quote a (indentation 1 tab of width 4) long piece of text from another source. <del>blah blah</del> <span id="-blockquote"></span><span id="blockquote" class="tag">blockquote</span>
 </blockquote>
 <h2 id="external links">external links</h2>
-<p><a href="http://google.com" title="link"><em>Google</em> search engine</a></p>
+<p><a href="http://google.com"><em>Google</em> search engine</a></p>
 <p><a href="http://pandoc.org" class="uri">http://pandoc.org</a></p>
 <p><a href="ftp://vim.org" class="uri">ftp://vim.org</a></p>
-<p><a href="http://google.com" class="uri" title="link">http://google.com</a></p>
+<p><a href="http://google.com" class="uri">http://google.com</a></p>
 <p><a href="mailto:info@example.org">email me</a></p>
 <p><a href="mailto:hello@bye.com">mailto:hello@bye.com</a></p>
 <h2 id="internal links">internal links</h2>
-<p><a href="This is a link" class="uri" title="link">This is a link</a></p>
-<p><a href="This is a link source" title="link">Description of the link</a></p>
-<p><a href="projects/Important Project 1" class="uri" title="link">projects/Important Project 1</a> <a href="../index" class="uri" title="link">../index</a> <a href="a subdirectory/" title="link">Other files</a></p>
-<p><a href="#tag-one" title="link">try me to test tag anchors</a></p>
-<p><a href="#block quotes" title="link">try me to test header anchors</a></p>
-<p><a href="#strong" title="link">try me to test strong anchors</a></p>
-<p><a href="Todo List#Tomorrow" title="link">Tasks for tomorrow</a></p>
-<p><a href="file:../assets/data.csv" title="link">Important Data</a></p>
+<p><a href="This is a link" class="uri">This is a link</a></p>
+<p><a href="This is a link source">Description of the link</a></p>
+<p><a href="projects/Important Project 1" class="uri">projects/Important Project 1</a> <a href="../index" class="uri">../index</a> <a href="a subdirectory/">Other files</a></p>
+<p><a href="#tag-one">try me to test tag anchors</a></p>
+<p><a href="#block quotes">try me to test header anchors</a></p>
+<p><a href="#strong">try me to test strong anchors</a></p>
+<p><a href="Todo List#Tomorrow">Tasks for tomorrow</a></p>
+<p><a href="file:../assets/data.csv">Important Data</a></p>
 <h3 id="links with thumbnails">links with thumbnails</h3>
-<p><a href="http://www.google.com" title="link"><img src="./movie.jpg" alt="" /></a></p>
+<p><a href="http://www.google.com"><img src="./movie.jpg" alt="" /></a></p>
 <h2 id="images">images</h2>
 <p><img src="file:./lalune.jpg" alt="" /></p>
 <p><img src="http://vimwiki.googlecode.com/hg/images/vimwiki_logo.png" alt="Vimwiki" /></p>
@@ -84,14 +95,14 @@ and some preformatted and tables belonging to item 1 as well
 <table>
 <thead>
 <tr class="header">
-<th> a </th>
-<th> b </th>
+<th>this table</th>
+<th>is</th>
 </tr>
 </thead>
 <tbody>
 <tr class="odd">
-<td> c </td>
-<td> d </td>
+<td>also a part</td>
+<td>of item 1</td>
 </tr>
 </tbody>
 </table>
@@ -133,8 +144,81 @@ and some more text belonging to item 1.</li>
 <ul>
 <li>3</li>
 </ul>
+<h3 id="ordered lists with non-# identifiers">ordered lists with non-# identifiers</h3>
+<ol>
+<li>Numbered list item 1</li>
+<li>Numbered list item 2</li>
+<li>Numbered list item 3</li>
+</ol>
+<ol>
+<li>Numbered list item 1</li>
+<li>Numbered list item 2</li>
+<li>Numbered list item 3</li>
+</ol>
+<ol>
+<li>Numbered list item 1</li>
+<li>Numbered list item 2</li>
+<li>Numbered list item 3</li>
+</ol>
+<ol>
+<li>Numbered list item 1</li>
+<li>Numbered list item 2</li>
+<li>Numbered list item 3</li>
+</ol>
+<ol>
+<li>Numbered list item 1</li>
+<li>Numbered list item 2</li>
+<li>Numbered list item 3</li>
+</ol>
+<ol>
+<li>Numbered list item 1</li>
+<li>Numbered list item 2</li>
+<li>Numbered list item 3</li>
+</ol>
+<ol>
+<li>Numbered list item 1</li>
+<li>Numbered list item 2</li>
+<li>Numbered list item 3</li>
+</ol>
+<ul>
+<li>Bulleted list item 1</li>
+<li>Bulleted list item 2
+<ol>
+<li>Numbered list sub item 1</li>
+<li>more ...
+<ul>
+<li>and more ...</li>
+<li>...</li>
+</ul></li>
+<li>Numbered list sub item 3
+<ol>
+<li>Numbered list sub sub item 1</li>
+<li>Numbered list sub sub item 2</li>
+</ol></li>
+<li>etc.</li>
+</ol></li>
+<li>Bulleted list item 3</li>
+</ul>
+<h2 id="todo lists">todo lists</h2>
+<ul>
+<li><span class="done0"></span>task 1
+<ol>
+<li><span class="done1"></span>5</li>
+</ol></li>
+<li><span class="done2"></span>3</li>
+<li>[] not a todo item</li>
+<li>[ ]not a todo item</li>
+<li>[r] not a todo item</li>
+<li>[ ] not a todo item</li>
+<li><span class="done0"></span>a tab in the todo list marker <code>[ ]</code>
+<ol>
+<li><span class="done3"></span>4</li>
+<li><span class="done4"></span>6</li>
+</ol></li>
+<li><span class="done4"></span>task 2</li>
+</ul>
 <h2 id="math">math</h2>
-<p> \sum_i a_i^2 = 1 </p>
+<p>\( \sum_i a_i^2 = 1 \)</p>
 \[
 \sum_i a_i^2
 =
@@ -144,123 +228,162 @@ and some more text belonging to item 1.</li>
 \sum_i a_i^2 &amp;= 1 + 1 \\
 &amp;= 2.
 \end{align}
+<p>Just two dollar signs: $$</p>
+<p>[not math] You have $1 and I have $1.</p>
 <h2 id="tags">tags</h2>
 <p><span id="-tag-one"></span><span id="tag-one" class="tag">tag-one</span><span id="-tag-two"></span><span id="tag-two" class="tag">tag-two</span></p>
 <h2 id="tables">tables</h2>
 <table>
 <thead>
 <tr class="header">
-<th> Year </th>
-<th> Temperature (low) </th>
-<th> Temperature (high) </th>
+<th>Year</th>
+<th>Temperature (low)</th>
+<th>Temperature (high)</th>
 </tr>
 </thead>
 <tbody>
 <tr class="odd">
-<td> 1900 </td>
-<td> -10 </td>
-<td> 25 </td>
+<td>1900</td>
+<td>-10</td>
+<td>25</td>
 </tr>
 <tr class="even">
-<td> 1910 </td>
-<td> -15 </td>
-<td> 30 </td>
+<td>1910</td>
+<td>-15</td>
+<td>30</td>
 </tr>
 <tr class="odd">
-<td> 1920 </td>
-<td> -10 </td>
-<td> 32 </td>
+<td>1920</td>
+<td>-10</td>
+<td>32</td>
 </tr>
 <tr class="even">
-<td> 1930 </td>
-<td> <em>N/A</em> </td>
-<td> <em>N/A</em> </td>
+<td>1930</td>
+<td><em>N/A</em></td>
+<td><em>N/A</em></td>
 </tr>
 <tr class="odd">
-<td> 1940 </td>
-<td> -2 </td>
-<td> 40 </td>
+<td>1940</td>
+<td>-2</td>
+<td>40</td>
 </tr>
 </tbody>
 </table>
+<h3 id="centered tables">centered tables</h3>
+<div class="center">
+<table>
+<thead>
+<tr class="header">
+<th>a</th>
+<th>b</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>c</td>
+<td>d</td>
+</tr>
+</tbody>
+</table>
+</div>
 <h2 id="paragraphs">paragraphs</h2>
 <p>This is first paragraph with two lines.</p>
 <p>This is a second paragraph with two lines after many blank lines.</p>
+<h2 id="definition list">definition list</h2>
+<dl>
+<dt>Term 1</dt>
+<dd>Definition 1
+</dd>
+<dt>Term 2</dt>
+<dd>Definition 2
+</dd>
+<dd>Definition 3
+</dd>
+<dt>Term :: <span id="separated"></span><strong>separated</strong> by :: <em>double colons</em></dt>
+<dd>Def1
+</dd>
+<dd>Def2
+</dd>
+<dt>Term with lots of trailing colons:::::::</dt>
+<dd>Definition
+</dd>
+<dt>:: This is :: A term (rather than a definition)</dt>
+<dd>and this is a definition
+</dd>
+<dt>Term Without definitions</dt>
+<dd>
+</dd>
+<dt>Part :: of :: dt</dt>
+<dd>part of ::dd
+</dd>
+</dl>
+<dl>
+
+<dd>Definition 1 without a term
+</dd>
+<dd>Definition 2 without a term
+</dd>
+</dl>
+<dl>
+<dt>T1</dt>
+<dd>D1
+</dd>
+</dl>
+<p>new paragraph</p>
+<dl>
+<dt>T1</dt>
+<dd>D1
+</dd>
+</dl>
+<p>Not::Definition</p>
+<p>Not ::Definition</p>
+<p>::Not definition</p>
+<blockquote>
+:: blockquote
+</blockquote>
+<blockquote>
+block :: quote
+</blockquote>
+<h2 id="metadata placeholders">metadata placeholders</h2>
+<p>%this is not a placeholder</p>
+<p>placeholders serves as space / softbreak in paragraphs</p>
+<h2 id="sup, sub">sup, sub</h2>
+<p>super<sup>script</sup></p>
+<p>sub<sub>script</sub></p>
 <h2 id="the todo mark">the todo mark</h2>
 <p><span class="todo">TODO:</span></p>
 <h1 id="not implemented yet"><em><span id="not implemented yet"></span><strong>not implemented yet</strong></em></h1>
-<h2 id="sup, sub">sup, sub</h2>
-<p>super^script^</p>
-<p>sub,,script,,</p>
-<h2 id="ordered lists with non-# identifiers">ordered lists with non-# identifiers</h2>
-<p>1. Numbered list item 1 2. Numbered list item 2 3. Numbered list item 3</p>
-<p>4. Numbered list item 1 5. Numbered list item 2 6. Numbered list item 3</p>
-<p>1) Numbered list item 1 2) Numbered list item 2 3) Numbered list item 3</p>
-<p>a) Numbered list item 1 b) Numbered list item 2 c) Numbered list item 3</p>
-<p>A) Numbered list item 1 B) Numbered list item 2 C) Numbered list item 3</p>
-<p>i) Numbered list item 1 ii) Numbered list item 2 iii) Numbered list item 3</p>
-<p>I) Numbered list item 1 II) Numbered list item 2 III) Numbered list item 3</p>
-<p>c) Numbered list sub item 3 1. Numbered list sub sub item 1 2. Numbered list sub sub item 2 d) etc.</p>
-<p>a) Numbered list sub item 1 b) more ...</p>
-<ul>
-<li>and more ...</li>
-<li>...</li>
-</ul>
-<ul>
-<li>Bulleted list item 3</li>
-</ul>
-<h2 id="definition list">definition list</h2>
-<p>Term 1:: Definition 1 Term 2:: :: Definition 2 :: Definition 3</p>
 <h2 id="tables with spans">tables with spans</h2>
 <table>
 <thead>
 <tr class="header">
-<th> a </th>
-<th> b </th>
-<th> c </th>
-<th> d </th>
+<th>a</th>
+<th>b</th>
+<th>c</th>
+<th>d</th>
 </tr>
 </thead>
 <tbody>
 <tr class="odd">
-<td> \/ </td>
-<td> e </td>
-<td> &gt; </td>
-<td> f </td>
+<td>\/</td>
+<td>e</td>
+<td>&gt;</td>
+<td>f</td>
 </tr>
 <tr class="even">
-<td> \/ </td>
-<td> \/ </td>
-<td> &gt; </td>
-<td> g </td>
+<td>\/</td>
+<td>\/</td>
+<td>&gt;</td>
+<td>g</td>
 </tr>
 <tr class="odd">
-<td> h </td>
-<td> &gt; </td>
-<td> &gt; </td>
-<td> &gt; </td>
+<td>h</td>
+<td>&gt;</td>
+<td>&gt;</td>
+<td>&gt;</td>
 </tr>
 </tbody>
 </table>
-<h2 id="centered tables">centered tables</h2>
-<table>
-<thead>
-<tr class="header">
-<th> a </th>
-<th> b </th>
-</tr>
-</thead>
-<tbody>
-<tr class="odd">
-<td> c </td>
-<td> d </td>
-</tr>
-</tbody>
-</table>
-<h2 id="placeholders">placeholders</h2>
-<p>%title title %template template</p>
-<h2 id="todo lists">todo lists</h2>
-<ul>
-<li>[ ] task 1</li>
-<li>[ ] task 2</li>
-</ul>
+<h2 id="some other placeholders">some other placeholders</h2>
+<p><code>template</code> placeholder is added to the metadata, but not in use</p>
+<p><code>nohtml</code> placeholder is ignored.</p>

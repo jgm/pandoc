@@ -77,8 +77,11 @@ middle
 
 not a rule-----
 
-bottom
+not a rule (trailing spaces):
+----- 
 
+not a rule (leading spaces):
+  ----
 
 == comments ==
 
@@ -92,6 +95,7 @@ is %% not secret
 
 Here is some `inline code`.
 
+Just two backticks: ``
 
 == preformatted text ==
 
@@ -185,8 +189,8 @@ mailto:hello@bye.com
 {{{
 I'm part of item 1.
 }}}
-| a | b |
-| c | d |
+| this table  | is        |
+| also a part | of item 1 |
  and some more text belonging to item 1.
 # ordered list item 2
 
@@ -248,15 +252,16 @@ I) Numbered list item 1
 II) Numbered list item 2
 III) Numbered list item 3
 
-c) Numbered list sub item 3
-  1. Numbered list sub sub item 1
-  2. Numbered list sub sub item 2
-d) etc.
-
-a) Numbered list sub item 1
-b) more ...
-  * and more ...
-  * ...
+- Bulleted list item 1
+- Bulleted list item 2
+  a) Numbered list sub item 1
+  b) more ...
+    * and more ...
+    * ...
+  c) Numbered list sub item 3
+    1. Numbered list sub sub item 1
+    2. Numbered list sub sub item 2
+  d) etc.
 - Bulleted list item 3
 
 == todo lists ==
@@ -286,6 +291,8 @@ $ \sum_i a_i^2 = 1 $
 \sum_i a_i^2 &= 1 + 1 \\
 &= 2.
 }}$
+
+Just two dollar signs: $$
 
 [not math] You have $1
 and I have $1.
@@ -357,12 +364,18 @@ Not ::Definition
 
 == metadata placeholders ==
 %title title
-%date 2017-5-1
+%date 2017-05-01
 
-== the todo mark ==
-TODO:
+%title second title is ignored
+%date second date is ignored
 
-= _*not implemented yet*_ =
+%this is not a placeholder
+
+placeholders
+%title another title
+%date 2017-04-23
+serves as space / softbreak in paragraphs
+
 
 == sup, sub ==
 
@@ -370,6 +383,10 @@ super^script^
 
 sub,,script,,
 
+== the todo mark ==
+TODO:
+
+= _*not implemented yet*_ =
 == tables with spans ==
 | a  | b  | c | d |
 | \/ | e  | > | f |
@@ -377,5 +394,8 @@ sub,,script,,
 | h  | >  | > | > |
 
 == some other placeholders ==
+`template` placeholder is added to the metadata, but not in use
 %template template
-%author G. H. Hardy and Littlewood, J. E.
+
+`nohtml` placeholder is ignored.
+%nohtml
