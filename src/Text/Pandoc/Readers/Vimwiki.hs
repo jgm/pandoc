@@ -69,6 +69,7 @@ import Data.Default
 import Data.Maybe
 import Data.Monoid ((<>))
 import Data.List (isInfixOf)
+import Data.Text (Text, unpack)
 import Text.Pandoc.Builder (Blocks, Inlines, trimInlines, fromList, toList)
 import qualified Text.Pandoc.Builder as B (doc, toList, headerWith, str, space, strong, emph, strikeout, code, link, image, spanWith, math, para, horizontalRule, blockQuote, displayMath, bulletList, plain, orderedList, simpleTable, softbreak, codeBlockWith, imageWith, divWith, setMeta, definitionList, superscript, subscript)
 import Text.Pandoc.Class (PandocMonad, report)
@@ -84,9 +85,9 @@ import Text.Parsec.Char (oneOf, space)
 import Text.Parsec.Combinator (lookAhead, between)
 import Text.Parsec.Prim ((<|>))
 
-readVimwiki :: PandocMonad m => ReaderOptions -> String -> m Pandoc
+readVimwiki :: PandocMonad m => ReaderOptions -> Text -> m Pandoc
 readVimwiki opts s = do
-  res <- readWithM parseVimwiki def{ stateOptions = opts } s
+  res <- readWithM parseVimwiki def{ stateOptions = opts } (unpack s)
   case res of
        Left e -> throwError e
        Right result -> return result
