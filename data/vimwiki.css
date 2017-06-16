@@ -30,6 +30,7 @@ del {text-decoration: line-through; color: #777777;}
 .justright {text-align: right;}
 .justcenter {text-align: center;}
 .center {margin-left: auto; margin-right: auto;}
+div.center > table {margin-left: auto; margin-right: auto;}
 .tag {background-color: #eeeeee; font-family: monospace; padding: 2px;}
 
 /* classes for items of todo lists */
@@ -65,7 +66,7 @@ del {text-decoration: line-through; color: #777777;}
     padding-left: 1.5em;
 }
 
-code {
+*:not(pre) > code {
     font-family: Monaco,"Courier New","DejaVu Sans Mono","Bitstream Vera Sans Mono",monospace;
     -webkit-border-radius: 1px;
     -moz-border-radius: 1px;

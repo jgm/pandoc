@@ -168,13 +168,14 @@ mailto:hello@bye.com
 
 {{http://vimwiki.googlecode.com/hg/images/vimwiki_logo.png|Vimwiki}}
   
-  
+{{local:./movie.jpg}}  
 
 
 === image with attributes ===
 {{lalune.jpg|_cool stuff_|style="width:150px;height:120px;"}}
 
 {{nonexist.jpg|*Non-existing* image|class="center flow blabla" style="font-color:red"}}
+
 {{lalune.jpg|_cool stuff_|style="width:150px;height:120px;"|anything in this segment is ignored}}
 
 
@@ -272,9 +273,11 @@ III) Numbered list item 3
 * [ ]not a todo item
 * [r] not a todo item
 * [     ] not a todo item
-* [ ] a tab in the todo list marker `[ ]`
+* [o] a tab in the todo list marker `[ ]`
     III) [O] 4
-    i) [X] 6
+      5
+    i) [X] 
+| a | b |
 * [X] task 2
 
 == math ==
@@ -312,9 +315,10 @@ and I have $1.
 | 1940 | -2                | 40                 |
 
 
-=== centered tables ===
+=== centered headerless tables ===
  | a | b |
  | c | d |
+ 
  
 == paragraphs ==
 
@@ -393,9 +397,16 @@ TODO:
 | \/ | \/ | > | g |
 | h  | >  | > | > |
 
+== tables with multiple lines of headers ==
+| a | b |
+| c | d |
+|---|---|
+
 == some other placeholders ==
-`template` placeholder is added to the metadata, but not in use
+`template` placeholder is ignored.
 %template template
 
 `nohtml` placeholder is ignored.
 %nohtml
+
+

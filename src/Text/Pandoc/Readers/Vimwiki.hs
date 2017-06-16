@@ -40,7 +40,7 @@ Conversion of vimwiki text to 'Pandoc' document.
         * [X] orderedlist with 1., i., a) etc identification.
         * [X] todo lists -- not list builder with attributes? using span.
     * [X] table
-        * [X] centered table -- used div
+        * [X] centered table -- using div
         * [O] colspan and rowspan -- pandoc limitation, see issue #1024
     * [X] paragraph
     * [X] definition list
@@ -71,14 +71,14 @@ import Data.Monoid ((<>))
 import Data.List (isInfixOf)
 import Data.Text (Text, unpack)
 import Text.Pandoc.Builder (Blocks, Inlines, trimInlines, fromList, toList)
-import qualified Text.Pandoc.Builder as B (toList, headerWith, str, space, strong, emph, strikeout, code, link, image, spanWith, para, horizontalRule, blockQuote, bulletList, plain, orderedList, simpleTable, softbreak, codeBlockWith, imageWith, divWith, setMeta, definitionList, superscript, subscript)
+import qualified Text.Pandoc.Builder as B (headerWith, str, space, strong, emph, strikeout, code, link, image, spanWith, para, horizontalRule, blockQuote, bulletList, plain, orderedList, simpleTable, softbreak, codeBlockWith, imageWith, divWith, setMeta, definitionList, superscript, subscript)
 import Text.Pandoc.Class (PandocMonad, report)
 import Text.Pandoc.Definition (Pandoc(..), Inline(Space), Block(BulletList, OrderedList), Attr, nullMeta, Meta, ListNumberStyle(..), ListNumberDelim(..))
 import Text.Pandoc.Logging (LogMessage(ParsingTrace))
 import Text.Pandoc.Options (ReaderOptions)
 import Text.Pandoc.Parsing (readWithM, ParserT, stateOptions, ParserState, stateMeta', blanklines, registerHeader, spaceChar, emailAddress, uri, F, runF, orderedListMarker, many1Till)
 import Text.Pandoc.Shared (splitBy, stripFirstAndLast, stringify)
-import Text.Parsec.Char (spaces, char, anyChar, newline, string, noneOf)
+import Text.Parsec.Char (spaces, char, anyChar, newline, string, noneOf, alphaNum)
 import Text.Parsec.Combinator (eof, choice, many1, manyTill, count, skipMany1, notFollowedBy, option)
 import Text.Parsec.Prim (many, getPosition, try, updateState, getState)
 import Text.Parsec.Char (oneOf, space)
@@ -112,7 +112,7 @@ parseVimwiki = do
   eof
   st <- getState
   let meta = runF (stateMeta' st) st
-  return $ Pandoc meta (B.toList bs)
+  return $ Pandoc meta (toList bs)
 
 -- block parser
 
@@ -132,7 +132,7 @@ block = do
                 , definitionList
                 , para
                 ]
-  report $ ParsingTrace (take 60 $ show $ B.toList res) pos -- remove B.
+  report $ ParsingTrace (take 60 $ show $ toList res) pos 
   return res
 
 blockML :: PandocMonad m => VwParser m Blocks
@@ -351,13 +351,25 @@ orderedListMarkers =
 table :: PandocMonad m => VwParser m Blocks
 table = try $ do
   indent <- lookAhead (many spaceChar)
-  th <- tableRow
-  many tableHeaderSeparator 
-  trs <- many tableRow
+  (th, trs) <- table1 <|> table2
   let tab = B.simpleTable th trs
   if indent == ""
     then return tab
     else return $ B.divWith ("", ["center"], []) tab
+
+-- table with header
+table1 :: PandocMonad m => VwParser m ([Blocks], [[Blocks]])
+table1 = try $ do
+  th <- tableRow
+  many1 tableHeaderSeparator
+  trs <- many tableRow
+  return (th, trs)
+
+-- headerless table
+table2 :: PandocMonad m => VwParser m ([Blocks], [[Blocks]])
+table2 = try $ do
+  trs <- many1 tableRow
+  return (take (length $ head trs) $ repeat mempty, trs)
 
 tableHeaderSeparator :: PandocMonad m => VwParser m ()
 tableHeaderSeparator = try $ do
@@ -393,7 +405,7 @@ noHtmlPh = try $
 
 templatePh :: PandocMonad m => VwParser m ()
 templatePh = try $
-  () <$ (many spaceChar >> string "%template" >> many spaceChar >> (lookAhead newline))
+  () <$ (many spaceChar >> string "%template" >> (many $ noneOf "\n") >> (lookAhead newline))
 
 -- inline parser
 
@@ -452,7 +464,7 @@ strong = try $ do
   s <- lookAhead $ between (char '*') (char '*') (many1 $ noneOf "*")
   guard $ (not $ (head s) `elem` spaceChars) && (not $ (last s) `elem` spaceChars)
   char '*'
-  contents <- mconcat <$> (manyTill inline' $ (char '*') >> (lookAhead $ oneOf $ spaceChars ++ specialChars))
+  contents <- mconcat <$> (manyTill inline' $ char '*' >> notFollowedBy alphaNum)
   return $ (B.spanWith ((makeId contents), [], []) mempty) <> (B.strong contents)
 
 makeId :: Inlines -> String 
@@ -463,7 +475,7 @@ emph = try $ do
   s <- lookAhead $ between (char '_') (char '_') (many1 $ noneOf "_")
   guard $ (not $ (head s) `elem` spaceChars) && (not $ (last s) `elem` spaceChars)
   char '_'
-  contents <- mconcat <$> (manyTill inline' $ (char '_') >> (lookAhead $ oneOf $ spaceChars ++ specialChars))
+  contents <- mconcat <$> (manyTill inline' $ char '_' >> notFollowedBy alphaNum)
   return $ B.emph contents
 
 strikeout :: PandocMonad m => VwParser m Inlines
@@ -493,11 +505,11 @@ link = try $ do
   case '|' `elem` contents of 
                   False -> do
                     manyTill anyChar (string "]]") -- not using try here because [[hell]o]] is not rendered as a link in vimwiki
-                    return $ B.link contents "" (B.str contents)
+                    return $ B.link (procLink contents) "" (B.str contents)
                   True  -> do 
                     url <- manyTill anyChar $ char '|'
                     lab <- mconcat <$> (manyTill inline $ string "]]")
-                    return $ B.link url "" lab
+                    return $ B.link (procLink url) "" lab
 
 image :: PandocMonad m => VwParser m Inlines
 image = try $ do 
@@ -509,22 +521,25 @@ images :: PandocMonad m => Int -> VwParser m Inlines
 images k
   | k == 0 = do 
            imgurl <- manyTill anyChar (try $ string "}}")
-           return $ B.image imgurl "" (B.str "")
+           return $ B.image (procLink imgurl) "" (B.str "")
   | k == 1 = do
            imgurl <- manyTill anyChar (char '|')
            alt <- mconcat <$> (manyTill inline $ (try $ string "}}"))
-           return $ B.image imgurl "" alt
+           return $ B.image (procLink imgurl) "" alt
   | k == 2 = do
            imgurl <- manyTill anyChar (char '|')
            alt <- mconcat <$> (manyTill inline $ char '|')
            attrText <- manyTill anyChar (try $ string "}}")
-           return $ B.imageWith (makeAttr attrText) imgurl "" alt
+           return $ B.imageWith (makeAttr attrText) (procLink imgurl) "" alt
   | otherwise = do
            imgurl <- manyTill anyChar (char '|')
            alt <- mconcat <$> (manyTill inline $ char '|')
            attrText <- manyTill anyChar (char '|')
            manyTill anyChar (try $ string "}}")
-           return $ B.imageWith (makeAttr attrText) imgurl "" alt
+           return $ B.imageWith (makeAttr attrText) (procLink imgurl) "" alt
+
+procLink :: String -> String
+procLink s = if ((take 6 s) == "local:") then "file" ++ (drop 5 s) else s
 
 inlineMath :: PandocMonad m => VwParser m Inlines
 inlineMath = try $ do
@@ -535,9 +550,10 @@ inlineMath = try $ do
 tag :: PandocMonad m => VwParser m Inlines
 tag = try $ do
   char ':'
-  s <- manyTill (noneOf spaceChars) (try (char ':' >> space))
+  s <- manyTill (noneOf spaceChars) (try (char ':' >> (lookAhead space)))
   guard $ not $ "::" `isInfixOf` (":" ++ s ++ ":")
-  return $ mconcat $ concat $ (makeTagSpan <$> (splitBy (==':') s)) 
+  let ss = splitBy (==':') s
+  return $ mconcat $ (makeTagSpan' $ head ss):(makeTagSpan <$> (tail ss)) 
 
 todoMark :: PandocMonad m => VwParser m Inlines
 todoMark = try $ do
@@ -569,9 +585,12 @@ nFBTTBSB =
 hasDefMarker :: PandocMonad m => VwParser m ()
 hasDefMarker = () <$ (manyTill (noneOf "\n") (string "::" >> oneOf spaceChars))
 
-makeTagSpan :: String -> [Inlines]
-makeTagSpan s = 
-  [B.spanWith ('-' : s, [], []) (B.str ""), B.spanWith (s, ["tag"], []) (B.str s)]
+makeTagSpan' :: String -> Inlines
+makeTagSpan' s = B.spanWith ('-' : s, [], []) (B.str "") <> 
+                  B.spanWith (s, ["tag"], []) (B.str s)
+
+makeTagSpan :: String -> Inlines
+makeTagSpan s = (B.space) <> (makeTagSpan' s)
 
 mathTagParser :: PandocMonad m => VwParser m String
 mathTagParser = do

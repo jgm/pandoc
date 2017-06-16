@@ -103,10 +103,11 @@
 <p><a href="http://www.google.com"><img src="./movie.jpg" alt="" /></a></p>
 <h2 id="images">images</h2>
 <p><img src="file:./lalune.jpg" alt="" /></p>
-<p><img src="http://vimwiki.googlecode.com/hg/images/vimwiki_logo.png" alt="Vimwiki" /></p>
+<p><img src="http://vimwiki.googlecode.com/hg/images/vimwiki_logo.png" alt="Vimwiki" /> <img src="file:./movie.jpg" alt="" /></p>
 <h3 id="image with attributes">image with attributes</h3>
 <p><img src="lalune.jpg" alt="cool stuff" style="width:150px;height:120px;" /></p>
-<p><img src="nonexist.jpg" alt="Non-existing image" style="font-color:red" /> <img src="lalune.jpg" alt="cool stuff" style="width:150px;height:120px;" /></p>
+<p><img src="nonexist.jpg" alt="Non-existing image" style="font-color:red" /></p>
+<p><img src="lalune.jpg" alt="cool stuff" style="width:150px;height:120px;" /></p>
 <h2 id="lists">lists</h2>
 <ol>
 <li>ordered list item 1, and here is some math belonging to list item 1
@@ -116,14 +117,12 @@
 and some preformatted and tables belonging to item 1 as well
 <pre><code>I&#39;m part of item 1.</code></pre>
 <table>
-<thead>
-<tr class="header">
-<th>this table</th>
-<th>is</th>
-</tr>
-</thead>
 <tbody>
 <tr class="odd">
+<td>this table</td>
+<td>is</td>
+</tr>
+<tr class="even">
 <td>also a part</td>
 <td>of item 1</td>
 </tr>
@@ -233,10 +232,18 @@ and some more text belonging to item 1.</li>
 <li>[ ]not a todo item</li>
 <li>[r] not a todo item</li>
 <li>[ ] not a todo item</li>
-<li><span class="done0"></span>a tab in the todo list marker <code>[ ]</code>
+<li><span class="done2"></span>a tab in the todo list marker <code>[ ]</code>
 <ol>
-<li><span class="done3"></span>4</li>
-<li><span class="done4"></span>6</li>
+<li><span class="done3"></span>4 5</li>
+<li><span class="done4"></span>
+<table>
+<tbody>
+<tr class="odd">
+<td>a</td>
+<td>b</td>
+</tr>
+</tbody>
+</table></li>
 </ol></li>
 <li><span class="done4"></span>task 2</li>
 </ul>
@@ -254,7 +261,7 @@ and some more text belonging to item 1.</li>
 <p>Just two dollar signs: $$</p>
 <p>[not math] You have $1 and I have $1.</p>
 <h2 id="tags">tags</h2>
-<p><span id="-tag-one"></span><span id="tag-one" class="tag">tag-one</span><span id="-tag-two"></span><span id="tag-two" class="tag">tag-two</span></p>
+<p><span id="-tag-one"></span><span id="tag-one" class="tag">tag-one</span> <span id="-tag-two"></span><span id="tag-two" class="tag">tag-two</span></p>
 <h2 id="tables">tables</h2>
 <table>
 <thead>
@@ -292,17 +299,15 @@ and some more text belonging to item 1.</li>
 </tr>
 </tbody>
 </table>
-<h3 id="centered tables">centered tables</h3>
+<h3 id="centered headerless tables">centered headerless tables</h3>
 <div class="center">
 <table>
-<thead>
-<tr class="header">
-<th>a</th>
-<th>b</th>
-</tr>
-</thead>
 <tbody>
 <tr class="odd">
+<td>a</td>
+<td>b</td>
+</tr>
+<tr class="even">
 <td>c</td>
 <td>d</td>
 </tr>
@@ -378,28 +383,26 @@ block :: quote
 <h1 id="not implemented yet"><em><span id="not implemented yet"></span><strong>not implemented yet</strong></em></h1>
 <h2 id="tables with spans">tables with spans</h2>
 <table>
-<thead>
-<tr class="header">
-<th>a</th>
-<th>b</th>
-<th>c</th>
-<th>d</th>
-</tr>
-</thead>
 <tbody>
 <tr class="odd">
+<td>a</td>
+<td>b</td>
+<td>c</td>
+<td>d</td>
+</tr>
+<tr class="even">
 <td>\/</td>
 <td>e</td>
 <td>&gt;</td>
 <td>f</td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td>\/</td>
 <td>\/</td>
 <td>&gt;</td>
 <td>g</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td>h</td>
 <td>&gt;</td>
 <td>&gt;</td>
@@ -407,8 +410,25 @@ block :: quote
 </tr>
 </tbody>
 </table>
+<h2 id="tables with multiple lines of headers">tables with multiple lines of headers</h2>
+<table>
+<tbody>
+<tr class="odd">
+<td>a</td>
+<td>b</td>
+</tr>
+<tr class="even">
+<td>c</td>
+<td>d</td>
+</tr>
+<tr class="odd">
+<td>---</td>
+<td>---</td>
+</tr>
+</tbody>
+</table>
 <h2 id="some other placeholders">some other placeholders</h2>
-<p><code>template</code> placeholder is added to the metadata, but not in use</p>
+<p><code>template</code> placeholder is ignored.</p>
 <p><code>nohtml</code> placeholder is ignored.</p>
 </body>
 </html>
