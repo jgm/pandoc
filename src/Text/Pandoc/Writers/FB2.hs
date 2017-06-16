@@ -38,8 +38,8 @@ FictionBook is an XML-based e-book format. For more information see:
 module Text.Pandoc.Writers.FB2 (writeFB2)  where
 
 import Control.Monad.Except (catchError, throwError)
-import Control.Monad.State (StateT, evalStateT, get, lift, modify)
-import Control.Monad.State (liftM)
+import Control.Monad.State.Strict (StateT, evalStateT, get, lift, modify)
+import Control.Monad.State.Strict (liftM)
 import Data.ByteString.Base64 (encode)
 import qualified Data.ByteString.Char8 as B8
 import Data.Char (isAscii, isControl, isSpace, toLower)

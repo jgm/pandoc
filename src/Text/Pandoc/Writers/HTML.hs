@@ -43,7 +43,7 @@ module Text.Pandoc.Writers.HTML (
   writeDZSlides,
   writeRevealJs
   ) where
-import Control.Monad.State
+import Control.Monad.State.Strict
 import Data.Char (ord, toLower)
 import Data.Text (Text)
 import qualified Data.Text.Lazy as TL

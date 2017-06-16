@@ -33,7 +33,7 @@ http://zim-wiki.org/manual/Help/Wiki_Syntax.html
 
 module Text.Pandoc.Writers.ZimWiki ( writeZimWiki ) where
 import Control.Monad (zipWithM)
-import Control.Monad.State (StateT, evalStateT, gets, modify)
+import Control.Monad.State.Strict (StateT, evalStateT, gets, modify)
 import Data.Default (Default (..))
 import Data.List (intercalate, isInfixOf, isPrefixOf, transpose)
 import qualified Data.Map as Map

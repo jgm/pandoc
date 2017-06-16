@@ -36,7 +36,7 @@ import Codec.Archive.Zip (Entry, addEntryToArchive, eRelativePath, emptyArchive,
                           fromArchive, fromEntry, toEntry)
 import Control.Monad (mplus, when, zipWithM)
 import Control.Monad.Except (catchError, throwError)
-import Control.Monad.State (State, StateT, evalState, evalStateT, get, gets,
+import Control.Monad.State.Strict (State, StateT, evalState, evalStateT, get, gets,
                             lift, modify, put)
 import qualified Data.ByteString.Lazy as B
 import qualified Data.ByteString.Lazy.Char8 as B8

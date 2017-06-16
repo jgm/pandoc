@@ -31,7 +31,7 @@ Conversion of 'Pandoc' documents to reStructuredText.
 reStructuredText:  <http://docutils.sourceforge.net/rst.html>
 -}
 module Text.Pandoc.Writers.RST ( writeRST ) where
-import Control.Monad.State
+import Control.Monad.State.Strict
 import Data.Char (isSpace, toLower)
 import Data.List (isPrefixOf, stripPrefix)
 import Data.Maybe (fromMaybe)

@@ -107,7 +107,7 @@ import qualified System.FilePath.Glob as IO (glob)
 import qualified System.Directory as IO (getModificationTime)
 import Control.Monad as M (fail)
 import Control.Monad.Reader (ReaderT)
-import Control.Monad.State
+import Control.Monad.State.Strict
 import Control.Monad.Except
 import Control.Monad.Writer (WriterT)
 import Control.Monad.RWS (RWST)

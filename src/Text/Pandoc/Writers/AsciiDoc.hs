@@ -37,7 +37,7 @@ that it has omitted the construct.
 AsciiDoc:  <http://www.methods.co.nz/asciidoc/>
 -}
 module Text.Pandoc.Writers.AsciiDoc (writeAsciiDoc) where
-import Control.Monad.State
+import Control.Monad.State.Strict
 import Data.Aeson (Result (..), Value (String), fromJSON, toJSON)
 import Data.Char (isPunctuation, isSpace)
 import Data.List (intercalate, intersperse, stripPrefix)

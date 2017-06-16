@@ -35,7 +35,7 @@ module Text.Pandoc.Writers.LaTeX (
   , writeBeamer
   ) where
 import Control.Applicative ((<|>))
-import Control.Monad.State
+import Control.Monad.State.Strict
 import Data.Aeson (FromJSON, object, (.=))
 import Data.Char (isAlphaNum, isAscii, isDigit, isLetter, isPunctuation, ord,
                   toLower)
