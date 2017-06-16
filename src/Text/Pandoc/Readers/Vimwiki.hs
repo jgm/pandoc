@@ -68,7 +68,7 @@ import Control.Monad (guard)
 import Data.Default 
 import Data.Maybe
 import Data.Monoid ((<>))
-import Data.List (isInfixOf)
+import Data.List (isInfixOf, isPrefixOf)
 import Data.Text (Text, unpack)
 import Text.Pandoc.Builder (Blocks, Inlines, trimInlines, fromList, toList)
 import qualified Text.Pandoc.Builder as B (headerWith, str, space, strong, emph, strikeout, code, link, image, spanWith, para, horizontalRule, blockQuote, bulletList, plain, orderedList, simpleTable, softbreak, codeBlockWith, imageWith, divWith, setMeta, definitionList, superscript, subscript)
@@ -521,25 +521,42 @@ images :: PandocMonad m => Int -> VwParser m Inlines
 images k
   | k == 0 = do 
            imgurl <- manyTill anyChar (try $ string "}}")
-           return $ B.image (procLink imgurl) "" (B.str "")
+           return $ B.image (procImgurl imgurl) "" (B.str "")
   | k == 1 = do
            imgurl <- manyTill anyChar (char '|')
            alt <- mconcat <$> (manyTill inline $ (try $ string "}}"))
-           return $ B.image (procLink imgurl) "" alt
+           return $ B.image (procImgurl imgurl) "" alt
   | k == 2 = do
            imgurl <- manyTill anyChar (char '|')
            alt <- mconcat <$> (manyTill inline $ char '|')
            attrText <- manyTill anyChar (try $ string "}}")
-           return $ B.imageWith (makeAttr attrText) (procLink imgurl) "" alt
+           return $ B.imageWith (makeAttr attrText) (procImgurl imgurl) "" alt
   | otherwise = do
            imgurl <- manyTill anyChar (char '|')
            alt <- mconcat <$> (manyTill inline $ char '|')
            attrText <- manyTill anyChar (char '|')
            manyTill anyChar (try $ string "}}")
-           return $ B.imageWith (makeAttr attrText) (procLink imgurl) "" alt
+           return $ B.imageWith (makeAttr attrText) (procImgurl imgurl) "" alt
 
+procLink' :: String -> String
+procLink' s
+  | ((take 6 s) == "local:") = "file" ++ (drop 5 s) 
+  | or ((`isPrefixOf` s) <$> [ "http:", "https:", "ftp:", "file:", "mailto:", "news:", "telnet:" ])            = s
+  | s == ""                  = ""
+  | (last s) == '/'          = s
+  | otherwise                = s ++ ".html"
+  
 procLink :: String -> String
-procLink s = if ((take 6 s) == "local:") then "file" ++ (drop 5 s) else s
+procLink s = let (x, y) = divByHash "" s in (procLink' x) ++ y
+
+divByHash :: String -> String -> (String, String)
+divByHash s1 s2
+  | s2 == ""        = (s1, s2)
+  | head s2 == '#'  = (s1, s2) 
+  | otherwise       = divByHash (s1 ++ [head s2]) (tail s2)
+
+procImgurl :: String -> String
+procImgurl s = if ((take 6 s) == "local:") then "file" ++ (drop 5 s) else s
 
 inlineMath :: PandocMonad m => VwParser m Inlines
 inlineMath = try $ do
