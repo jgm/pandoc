@@ -229,19 +229,36 @@ tests =
          bulletList [ para "Item1"
                     , para "Item2"
                     ]
+      , "Ordered list" =:
+         T.unlines
+           [ " 1. Item1"
+           , ""
+           , " 2. Item2"
+           ] =?>
+         orderedListWith (1, Decimal, Period) [ para "Item1"
+                                              , para "Item2"
+                                              ]
       , "Nested list" =:
          T.unlines
            [ " - Item1"
            , "   - Item2"
            , "   - Item3"
            , " - Item4"
+           , "   1. Nested"
+           , "   2. Ordered"
+           , "   3. List"
            ] =?>
          bulletList [ mconcat [ para "Item1"
                               , bulletList [ para "Item2"
                                            , para "Item3"
                                            ]
                               ]
-                    , para "Item4"
+                    , mconcat [ para "Item4"
+                              , orderedListWith (1, Decimal, Period) [ para "Nested"
+                                                                     , para "Ordered"
+                                                                     , para "List"
+                                                                     ]
+                              ]
                     ]
       ]
   ]

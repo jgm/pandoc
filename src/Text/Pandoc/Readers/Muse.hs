@@ -33,7 +33,6 @@ TODO:
 - Page breaks (five "*")
 - Headings with anchors (make it round trip with Muse writer)
 - <verse> and ">"
-- Ordered lists
 - Definition lists
 - Org tables
 - table.el tables
@@ -185,6 +184,7 @@ blockElements = choice [ comment
                        , rightTag
                        , quoteTag
                        , bulletList
+                       , orderedList
                        , table
                        , commentTag
                        , noteBlock
@@ -299,32 +299,49 @@ listContinuation markerLength = try $ do
   blanks <- many1 blankline
   return $ concat result ++ blanks
 
-bulletListItems :: PandocMonad m => MuseParser m (F [Blocks])
-bulletListItems = sequence <$> many1 bulletListItem
-
-bulletList :: PandocMonad m => MuseParser m (F Blocks)
-bulletList = do
-  listItems <- bulletListItems
-  return $ B.bulletList <$> listItems
-
-bulletListStart :: PandocMonad m => MuseParser m Int
-bulletListStart = try $ do
+listStart :: PandocMonad m => MuseParser m Int -> MuseParser m Int
+listStart marker = try $ do
   preWhitespace <- length <$> many spaceChar
   st <- stateParserContext <$> getState
   getPosition >>= \pos -> guard (st == ListItemState || sourceColumn pos /= 1)
-  char '-'
+  markerLength <- marker
   postWhitespace <- length <$> many1 spaceChar
-  return $ preWhitespace + 1 + postWhitespace
+  return $ preWhitespace + markerLength + postWhitespace
 
-bulletListItem :: PandocMonad m => MuseParser m (F Blocks)
-bulletListItem = try $ do
-  markerLength <- bulletListStart
+listItem :: PandocMonad m => MuseParser m Int -> MuseParser m (F Blocks)
+listItem start = try $ do
+  markerLength <- start
   firstLine <- anyLineNewline
   blank <- option "" ("\n" <$ blankline)
   restLines <- many $ listLine markerLength
   let first = firstLine ++ blank ++ concat restLines
   rest <- many $ listContinuation markerLength
   parseFromString (withListContext parseBlocks) $ concat (first:rest) ++ "\n"
+
+bulletListItems :: PandocMonad m => MuseParser m (F [Blocks])
+bulletListItems = sequence <$> many1 (listItem bulletListStart)
+
+bulletListStart :: PandocMonad m => MuseParser m Int
+bulletListStart = listStart (char '-' >> return 1)
+
+bulletList :: PandocMonad m => MuseParser m (F Blocks)
+bulletList = do
+  listItems <- bulletListItems
+  return $ B.bulletList <$> listItems
+
+orderedListStart :: PandocMonad m
+                 => ListNumberStyle
+                 -> ListNumberDelim
+                 -> MuseParser m Int
+orderedListStart style delim = listStart (snd <$> withHorizDisplacement (orderedListMarker style delim))
+
+orderedList :: PandocMonad m => MuseParser m (F Blocks)
+orderedList = try $ do
+  p@(_, style, delim) <- lookAhead (many spaceChar *> anyOrderedListMarker <* spaceChar)
+  guard $ style `elem` [Decimal, LowerAlpha, UpperAlpha, LowerRoman, UpperRoman]
+  guard $ delim == Period
+  items <- sequence <$> many1 (listItem $ orderedListStart style delim)
+  return $ B.orderedListWith p <$> items
 
 --
 -- tables
