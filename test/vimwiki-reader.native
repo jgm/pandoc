@@ -67,6 +67,7 @@ Pandoc (Meta {unMeta = fromList [("date",MetaInlines [Str "2017-05-01"]),("title
 ,Para [Link ("",[],[]) [Str "try",Space,Str "me",Space,Str "to",Space,Str "test",Space,Str "header",Space,Str "anchors"] ("#block quotes","")]
 ,Para [Link ("",[],[]) [Str "try",Space,Str "me",Space,Str "to",Space,Str "test",Space,Str "strong",Space,Str "anchors"] ("#strong","")]
 ,Para [Link ("",[],[]) [Str "Tasks",Space,Str "for",Space,Str "tomorrow"] ("Todo List.html#Tomorrow","")]
+,Para [Link ("",[],[]) [Str "diary:2017-05-01"] ("diary/2017-05-01.html","")]
 ,Para [Link ("",[],[]) [Str "Important",Space,Str "Data"] ("file:../assets/data.csv","")]
 ,Header 3 ("links with thumbnails",[],[]) [Str "links",Space,Str "with",Space,Str "thumbnails"]
 ,Para [Link ("",[],[]) [Image ("",[],[]) [Str ""] ("./movie.jpg","")] ("http://www.google.com","")]

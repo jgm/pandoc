@@ -582,6 +582,7 @@ images k
 procLink' :: String -> String
 procLink' s
   | ((take 6 s) == "local:") = "file" ++ (drop 5 s) 
+  | ((take 6 s) == "diary:") = "diary/" ++ (drop 6 s) ++ ".html"
   | or ((`isPrefixOf` s) <$> [ "http:", "https:", "ftp:", "file:", "mailto:", 
                               "news:", "telnet:" ]) 
                              = s

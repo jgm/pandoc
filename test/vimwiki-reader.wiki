@@ -157,6 +157,8 @@ mailto:hello@bye.com
 
 [[Todo List#Tomorrow|Tasks for tomorrow]]
 
+[[diary:2017-05-01]]
+
 [[file:../assets/data.csv|Important Data]]
 
 === links with thumbnails ===
