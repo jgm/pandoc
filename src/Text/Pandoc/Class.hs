@@ -79,7 +79,7 @@ import qualified Text.Pandoc.Shared as IO ( readDataFile
 import qualified Text.Pandoc.UTF8 as UTF8
 import Text.Pandoc.Compat.Time (UTCTime)
 import Text.Pandoc.Logging
-import Text.Parsec (ParsecT, getPosition)
+import Text.Parsec (ParsecT, getPosition, sourceLine, sourceName)
 import qualified Text.Pandoc.Compat.Time as IO (getCurrentTime)
 import Text.Pandoc.MIME (MimeType, getMimeType, extensionFromMimeType)
 import Text.Pandoc.Definition
@@ -576,7 +576,12 @@ instance PandocMonad m => PandocMonad (ParsecT s st m) where
     when tracing $ do
       pos <- getPosition
       Debug.Trace.trace
-        ("[trace] Parsed " ++ msg ++ " at " ++ show pos) (return ())
+        ("[trace] Parsed " ++ msg ++ " at line " ++
+            show (sourceLine pos) ++
+            if sourceName pos == "chunk"
+               then " of chunk"
+               else "")
+        (return ())
   logOutput = lift . logOutput
 
 

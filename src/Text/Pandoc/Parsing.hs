@@ -189,7 +189,7 @@ import qualified Text.Pandoc.Builder as B
 import Text.Pandoc.XML (fromEntities)
 import qualified Text.Pandoc.UTF8 as UTF8 (putStrLn)
 import Text.Parsec hiding (token)
-import Text.Parsec.Pos (newPos)
+import Text.Parsec.Pos (newPos, initialPos)
 import Data.Char ( toLower, toUpper, ord, chr, isAscii, isAlphaNum,
                    isHexDigit, isSpace, isPunctuation )
 import Data.List ( intercalate, transpose, isSuffixOf )
@@ -366,6 +366,7 @@ parseFromString :: Monad m
                 -> ParserT String st m a
 parseFromString parser str = do
   oldPos <- getPosition
+  setPosition $ initialPos "chunk"
   oldInput <- getInput
   setInput str
   result <- parser
