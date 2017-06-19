@@ -42,9 +42,8 @@ import qualified Data.Foldable as F
 import Data.Maybe (fromMaybe)
 import Text.HTML.TagSoup
 import qualified Text.Pandoc.Builder as B
-import Text.Pandoc.Class (PandocMonad, report)
+import Text.Pandoc.Class (PandocMonad(..))
 import Text.Pandoc.Definition
-import Text.Pandoc.Logging
 import Text.Pandoc.Options
 import Text.Pandoc.Parsing hiding (enclosed, macro, nested)
 import Text.Pandoc.Readers.HTML (htmlTag, isCommentTag)
@@ -133,12 +132,11 @@ parseTWiki = do
 
 block :: PandocMonad m => TWParser m B.Blocks
 block = do
-  pos <- getPosition
   res <- mempty <$ skipMany1 blankline
          <|> blockElements
          <|> para
   skipMany blankline
-  report $ ParsingTrace (take 60 $ show $ B.toList res) pos
+  trace (take 60 $ show $ B.toList res)
   return res
 
 blockElements :: PandocMonad m => TWParser m B.Blocks

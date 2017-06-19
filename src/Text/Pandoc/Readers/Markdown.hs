@@ -52,7 +52,7 @@ import System.FilePath (addExtension, takeExtension)
 import Text.HTML.TagSoup
 import Text.Pandoc.Builder (Blocks, Inlines)
 import qualified Text.Pandoc.Builder as B
-import Text.Pandoc.Class (PandocMonad, report)
+import Text.Pandoc.Class (PandocMonad(..), report)
 import Text.Pandoc.Definition
 import Text.Pandoc.Emoji (emojis)
 import Text.Pandoc.Logging
@@ -488,7 +488,6 @@ parseBlocks = mconcat <$> manyTill block eof
 
 block :: PandocMonad m => MarkdownParser m (F Blocks)
 block = do
-  pos <- getPosition
   res <- choice [ mempty <$ blanklines
                , codeBlockFenced
                , yamlMetaBlock
@@ -514,8 +513,7 @@ block = do
                , para
                , plain
                ] <?> "block"
-  report $ ParsingTrace
-    (take 60 $ show $ B.toList $ runF res defaultParserState) pos
+  trace (take 60 $ show $ B.toList $ runF res defaultParserState)
   return res
 
 --

@@ -52,7 +52,7 @@ import qualified Data.Set as Set
 import Text.HTML.TagSoup
 import Text.Pandoc.Builder (Blocks, Inlines, trimInlines)
 import qualified Text.Pandoc.Builder as B
-import Text.Pandoc.Class (PandocMonad, report)
+import Text.Pandoc.Class (PandocMonad(..))
 import Text.Pandoc.Definition
 import Text.Pandoc.Logging
 import Text.Pandoc.Options
@@ -205,7 +205,6 @@ parseMediaWiki = do
 
 block :: PandocMonad m => MWParser m Blocks
 block = do
-  pos <- getPosition
   res <- mempty <$ skipMany1 blankline
      <|> table
      <|> header
@@ -218,7 +217,7 @@ block = do
      <|> blockTag
      <|> (B.rawBlock "mediawiki" <$> template)
      <|> para
-  report $ ParsingTrace (take 60 $ show $ B.toList res) pos
+  trace (take 60 $ show $ B.toList res)
   return res
 
 para :: PandocMonad m => MWParser m Blocks

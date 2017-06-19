@@ -76,7 +76,7 @@ import System.IO.Error (isDoesNotExistError)
 import Text.Pandoc
 import Text.Pandoc.Builder (setMeta)
 import Text.Pandoc.Class (PandocIO, extractMedia, fillMediaBag, getLog,
-                          setResourcePath, withMediaBag)
+                          setResourcePath, withMediaBag, setTrace)
 import Text.Pandoc.Highlighting (highlightingStyles)
 import Text.Pandoc.Lua (runLuaFilter)
 import Text.Pandoc.Writers.Math (defaultMathJaxURL, defaultKaTeXURL)
@@ -391,6 +391,7 @@ convertWithOpts opts = do
   let runIO' :: PandocIO a -> IO a
       runIO' f = do
         (res, reports) <- runIOorExplode $ do
+                             setTrace (optTrace opts)
                              setVerbosity verbosity
                              x <- f
                              rs <- getLog
@@ -559,6 +560,7 @@ data Opt = Opt
     , optDumpArgs              :: Bool    -- ^ Output command-line arguments
     , optIgnoreArgs            :: Bool    -- ^ Ignore command-line arguments
     , optVerbosity             :: Verbosity  -- ^ Verbosity of diagnostic output
+    , optTrace                 :: Bool  -- ^ Enable tracing
     , optLogFile               :: Maybe FilePath -- ^ File to write JSON log output
     , optFailIfWarnings        :: Bool    -- ^ Fail on warnings
     , optReferenceLinks        :: Bool    -- ^ Use reference links in writing markdown, rst
@@ -633,6 +635,7 @@ defaultOpts = Opt
     , optDumpArgs              = False
     , optIgnoreArgs            = False
     , optVerbosity             = WARNING
+    , optTrace                 = False
     , optLogFile               = Nothing
     , optFailIfWarnings        = False
     , optReferenceLinks        = False
@@ -1390,7 +1393,7 @@ options =
 
     , Option "" ["trace"]
                  (NoArg
-                  (\opt -> return opt { optVerbosity = DEBUG }))
+                  (\opt -> return opt { optTrace = True }))
                  "" -- "Turn on diagnostic tracing in readers."
 
     , Option "" ["dump-args"]

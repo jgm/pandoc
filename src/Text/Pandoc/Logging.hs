@@ -52,7 +52,7 @@ import Text.Pandoc.Definition
 import Text.Parsec.Pos
 
 -- | Verbosity level.
-data Verbosity = ERROR | WARNING | INFO | DEBUG
+data Verbosity = ERROR | WARNING | INFO
      deriving (Show, Read, Eq, Data, Enum, Ord, Bounded, Typeable, Generic)
 
 instance ToJSON Verbosity where
@@ -63,7 +63,6 @@ instance FromJSON Verbosity where
          "ERROR"   -> return ERROR
          "WARNING" -> return WARNING
          "INFO"    -> return INFO
-         "DEBUG"   -> return DEBUG
          _         -> mzero
   parseJSON _      =  mzero
 
@@ -78,7 +77,6 @@ data LogMessage =
   | CircularReference String SourcePos
   | ParsingUnescaped String SourcePos
   | CouldNotLoadIncludeFile String SourcePos
-  | ParsingTrace String SourcePos
   | InlineNotRendered Inline
   | BlockNotRendered Block
   | DocxParserWarning String
@@ -151,11 +149,6 @@ instance ToJSON LogMessage where
             "source" .= Text.pack (sourceName pos),
             "line" .= toJSON (sourceLine pos),
             "column" .= toJSON (sourceColumn pos)]
-      ParsingTrace s pos ->
-           ["contents" .= Text.pack s,
-            "source" .= Text.pack (sourceName pos),
-            "line" .= sourceLine pos,
-            "column" .= sourceColumn pos]
       InlineNotRendered il ->
            ["contents" .= toJSON il]
       BlockNotRendered bl ->
@@ -228,8 +221,6 @@ showLogMessage msg =
          "Parsing unescaped '" ++ s ++ "' at " ++ showPos pos
        CouldNotLoadIncludeFile fp pos ->
          "Could not load include file '" ++ fp ++ "' at " ++ showPos pos
-       ParsingTrace s pos ->
-         "Parsing trace at " ++ showPos pos ++ ": " ++ s
        InlineNotRendered il ->
          "Not rendering " ++ show il
        BlockNotRendered bl ->
@@ -281,7 +272,6 @@ messageVerbosity msg =
        CircularReference{}          -> WARNING
        CouldNotLoadIncludeFile{}    -> WARNING
        ParsingUnescaped{}           -> INFO
-       ParsingTrace{}               -> DEBUG
        InlineNotRendered{}          -> INFO
        BlockNotRendered{}           -> INFO
        DocxParserWarning{}          -> WARNING

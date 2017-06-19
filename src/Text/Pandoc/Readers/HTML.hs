@@ -71,7 +71,7 @@ import Data.Monoid ((<>))
 import Text.Parsec.Error
 import qualified Data.Set as Set
 import Text.Pandoc.Error
-import Text.Pandoc.Class (PandocMonad, report)
+import Text.Pandoc.Class (PandocMonad(..))
 import Control.Monad.Except (throwError)
 
 -- | Convert HTML-formatted string to 'Pandoc' document.
@@ -162,7 +162,6 @@ pHead = pInTags "head" $ pTitle <|> pMetaTag <|> pBaseTag <|> (mempty <$ pAnyTag
 
 block :: PandocMonad m => TagParser m Blocks
 block = do
-  pos <- getPosition
   res <- choice
             [ eSection
             , eSwitch B.para block
@@ -182,7 +181,7 @@ block = do
             , pPlain
             , pRawHtmlBlock
             ]
-  report $ ParsingTrace (take 60 $ show $ B.toList res) pos
+  trace (take 60 $ show $ B.toList res)
   return res
 
 namespaces :: PandocMonad m => [(String, TagParser m Inlines)]
