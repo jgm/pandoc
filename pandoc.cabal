@@ -162,6 +162,7 @@ Extra-Source-Files:
                  test/markdown-citations.txt
                  test/textile-reader.textile
                  test/mediawiki-reader.wiki
+                 test/vimwiki-reader.wiki
                  test/rst-reader.rst
                  test/s5-basic.html
                  test/s5-fancy.html
@@ -368,6 +369,7 @@ Library
                    Text.Pandoc.Readers.Markdown,
                    Text.Pandoc.Readers.CommonMark,
                    Text.Pandoc.Readers.MediaWiki,
+                   Text.Pandoc.Readers.Vimwiki,
                    Text.Pandoc.Readers.RST,
                    Text.Pandoc.Readers.Org,
                    Text.Pandoc.Readers.DocBook,
