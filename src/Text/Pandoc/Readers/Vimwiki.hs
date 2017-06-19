@@ -319,16 +319,15 @@ listItemContent :: PandocMonad m => VwParser m Blocks
 listItemContent = try $ do
   w <- option mempty listTodoMarker
   x <- plainInlineML' w
-  y <- many p2
-  z <- p6
-  return $ mconcat $ x:y++[z]
-p2 :: PandocMonad m => VwParser m Blocks
-p2 = try $ do -- bbbbbi
+  y <- many blocksThenInline
+  z <- many blockML
+  return $ mconcat $ x:y ++ z
+
+blocksThenInline :: PandocMonad m => VwParser m Blocks
+blocksThenInline = try $ do
   y <- many1 blockML
   x <- plainInlineML
   return $ mconcat $ y ++ [x]
-p6 :: PandocMonad m => VwParser m Blocks -- bbbbbbbbb
-p6 = try $ (mconcat <$> many blockML)
 
 listTodoMarker :: PandocMonad m => VwParser m Inlines
 listTodoMarker = try $ do 
@@ -591,13 +590,8 @@ procLink' s
   | otherwise                = s ++ ".html"
   
 procLink :: String -> String
-procLink s = let (x, y) = divByHash "" s in (procLink' x) ++ y
-
-divByHash :: String -> String -> (String, String)
-divByHash s1 s2
-  | s2 == ""        = (s1, s2)
-  | head s2 == '#'  = (s1, s2) 
-  | otherwise       = divByHash (s1 ++ [head s2]) (tail s2)
+procLink s = procLink' x ++ y
+  where (x, y) = break (=='#') s
 
 procImgurl :: String -> String
 procImgurl s = if ((take 6 s) == "local:") then "file" ++ (drop 5 s) else s
