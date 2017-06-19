@@ -77,11 +77,10 @@ import qualified Text.Pandoc.Builder
         spanWith, para, horizontalRule, blockQuote, bulletList, plain, 
         orderedList, simpleTable, softbreak, codeBlockWith, imageWith, divWith, 
         setMeta, definitionList, superscript, subscript)
-import Text.Pandoc.Class (PandocMonad, report)
+import Text.Pandoc.Class (PandocMonad(..))
 import Text.Pandoc.Definition (Pandoc(..), Inline(Space), 
   Block(BulletList, OrderedList), Attr, nullMeta, Meta, ListNumberStyle(..), 
   ListNumberDelim(..))
-import Text.Pandoc.Logging (LogMessage(ParsingTrace))
 import Text.Pandoc.Options (ReaderOptions)
 import Text.Pandoc.Parsing (readWithM, ParserT, stateOptions, ParserState, 
   stateMeta', blanklines, registerHeader, spaceChar, emailAddress, uri, F, runF,
@@ -91,7 +90,7 @@ import Text.Parsec.Char (spaces, char, anyChar, newline, string, noneOf,
   alphaNum)
 import Text.Parsec.Combinator (eof, choice, many1, manyTill, count, skipMany1, 
   notFollowedBy, option)
-import Text.Parsec.Prim (many, getPosition, try, updateState, getState)
+import Text.Parsec.Prim (many, try, updateState, getState)
 import Text.Parsec.Char (oneOf, space)
 import Text.Parsec.Combinator (lookAhead, between)
 import Text.Parsec.Prim ((<|>))
@@ -129,7 +128,6 @@ parseVimwiki = do
 
 block :: PandocMonad m => VwParser m Blocks
 block = do
-  pos <- getPosition
   res <- choice [ mempty <$ blanklines
                 , header
                 , hrule
@@ -143,7 +141,7 @@ block = do
                 , definitionList
                 , para
                 ]
-  report $ ParsingTrace (take 60 $ show $ toList res) pos 
+  trace (take 60 $ show $ toList res)
   return res
 
 blockML :: PandocMonad m => VwParser m Blocks
