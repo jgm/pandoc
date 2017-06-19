@@ -117,7 +117,7 @@ import Text.Pandoc.MIME (MimeType)
 import Text.Pandoc.Error (PandocError(..))
 import System.FilePath ( (</>) )
 import Data.Generics (Typeable, Data)
-import qualified Control.Monad.State as S
+import qualified Control.Monad.State.Strict as S
 import qualified Control.Exception as E
 import Control.Monad (msum, unless, MonadPlus(..))
 import Text.Pandoc.Pretty (charWidth)

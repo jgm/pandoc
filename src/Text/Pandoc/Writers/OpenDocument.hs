@@ -33,7 +33,7 @@ Conversion of 'Pandoc' documents to OpenDocument XML.
 -}
 module Text.Pandoc.Writers.OpenDocument ( writeOpenDocument ) where
 import Control.Arrow ((***), (>>>))
-import Control.Monad.State hiding (when)
+import Control.Monad.State.Strict hiding (when)
 import Data.Char (chr)
 import Data.List (sortBy)
 import Data.Text (Text)

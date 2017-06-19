@@ -93,6 +93,7 @@ data LogMessage =
   | NoTitleElement String
   | NoLangSpecified
   | CouldNotHighlight String
+  | MissingCharacter String
   deriving (Show, Eq, Data, Ord, Typeable, Generic)
 
 instance ToJSON LogMessage where
@@ -186,6 +187,8 @@ instance ToJSON LogMessage where
       NoLangSpecified -> []
       CouldNotHighlight msg ->
            ["message" .= Text.pack msg]
+      MissingCharacter msg ->
+           ["message" .= Text.pack msg]
 
 showPos :: SourcePos -> String
 showPos pos = sn ++ "line " ++
@@ -262,6 +265,8 @@ showLogMessage msg =
          "It is recommended that lang be specified for this format."
        CouldNotHighlight m ->
          "Could not highlight code block:\n" ++ m
+       MissingCharacter m ->
+         "Missing character: " ++ m
 
 messageVerbosity:: LogMessage -> Verbosity
 messageVerbosity msg =
@@ -291,3 +296,4 @@ messageVerbosity msg =
        NoTitleElement{}             -> WARNING
        NoLangSpecified              -> INFO
        CouldNotHighlight{}          -> WARNING
+       MissingCharacter{}           -> WARNING

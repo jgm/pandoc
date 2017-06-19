@@ -16,7 +16,7 @@ test:
 	stack test --flag 'pandoc:embed_data_files' --fast --test-arguments='-j4 --hide-successes $(TESTARGS)'
 
 bench:
-	stack bench
+	stack bench --benchmark-arguments='$(BENCHARGS)'
 
 weigh:
 	stack build --flag 'pandoc:weigh-pandoc' && stack exec weigh-pandoc

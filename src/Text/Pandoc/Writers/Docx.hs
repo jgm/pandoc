@@ -37,7 +37,7 @@ import Codec.Archive.Zip
 import Control.Applicative ((<|>))
 import Control.Monad.Except (catchError)
 import Control.Monad.Reader
-import Control.Monad.State
+import Control.Monad.State.Strict
 import qualified Data.ByteString as B
 import qualified Data.ByteString.Lazy as BL
 import qualified Data.ByteString.Lazy.Char8 as BL8

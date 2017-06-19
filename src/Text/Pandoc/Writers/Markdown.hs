@@ -35,7 +35,7 @@ Markdown:  <http://daringfireball.net/projects/markdown/>
 -}
 module Text.Pandoc.Writers.Markdown (writeMarkdown, writePlain) where
 import Control.Monad.Reader
-import Control.Monad.State
+import Control.Monad.State.Strict
 import Data.Char (chr, isPunctuation, isSpace, ord)
 import Data.Default
 import qualified Data.HashMap.Strict as H

@@ -31,7 +31,7 @@ MediaWiki:  <http://www.mediawiki.org/wiki/MediaWiki>
 -}
 module Text.Pandoc.Writers.MediaWiki ( writeMediaWiki ) where
 import Control.Monad.Reader
-import Control.Monad.State
+import Control.Monad.State.Strict
 import Data.List (intercalate)
 import qualified Data.Set as Set
 import Data.Text (Text, pack)

@@ -43,7 +43,7 @@ module Text.Pandoc.Writers.HTML (
   writeDZSlides,
   writeRevealJs
   ) where
-import Control.Monad.State
+import Control.Monad.State.Strict
 import Data.Char (ord, toLower)
 import Data.Text (Text)
 import qualified Data.Text.Lazy as TL
@@ -253,7 +253,9 @@ pandocToHtml opts (Pandoc meta blocks) = do
                          H.script ! A.src (toValue url)
                                   ! A.type_ "text/javascript"
                                   $ mempty
-                      MathJax url ->
+                      MathJax url
+                        | slideVariant /= RevealJsSlides ->
+                        -- mathjax is handled via a special plugin in revealjs
                          H.script ! A.src (toValue url)
                                   ! A.type_ "text/javascript"
                                   $ case slideVariant of
@@ -285,6 +287,10 @@ pandocToHtml opts (Pandoc meta blocks) = do
                   (if stMath st
                       then defField "math" (renderHtml' math)
                       else id) $
+                  defField "mathjax"
+                      (case writerHTMLMathMethod opts of
+                            MathJax _ -> True
+                            _         -> False) $
                   defField "quotes" (stQuotes st) $
                   maybe id (defField "toc" . renderHtml') toc $
                   defField "author-meta" authsMeta $

@@ -9,7 +9,7 @@ import Text.HTML.TagSoup.Entity (lookupEntity)
 import Data.Either (rights)
 import Data.Generics
 import Data.Char (isSpace)
-import Control.Monad.State
+import Control.Monad.State.Strict
 import Data.List (intersperse)
 import Data.Maybe (fromMaybe)
 import Text.TeXMath (readMathML, writeTeX)

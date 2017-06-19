@@ -1,6 +1,6 @@
 {-# LANGUAGE FlexibleContexts #-}
 module Text.Pandoc.Readers.OPML ( readOPML ) where
-import Control.Monad.State
+import Control.Monad.State.Strict
 import Data.Char (toUpper)
 import Data.Text (Text, unpack, pack)
 import Data.Default

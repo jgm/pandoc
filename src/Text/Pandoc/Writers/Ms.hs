@@ -52,7 +52,7 @@ import Text.Pandoc.Pretty
 import Text.Pandoc.Class (PandocMonad, report)
 import Text.Pandoc.ImageSize
 import Text.Pandoc.Logging
-import Control.Monad.State
+import Control.Monad.State.Strict
 import Data.Char ( isLower, isUpper, toUpper )
 import Text.TeXMath (writeEqn)
 import System.FilePath (takeExtension)

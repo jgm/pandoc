@@ -32,7 +32,7 @@ CommonMark:  <http://commonmark.org>
 module Text.Pandoc.Writers.CommonMark (writeCommonMark) where
 
 import CMark
-import Control.Monad.State (State, get, modify, runState)
+import Control.Monad.State.Strict (State, get, modify, runState)
 import Data.Foldable (foldrM)
 import Data.Text (Text)
 import qualified Data.Text as T

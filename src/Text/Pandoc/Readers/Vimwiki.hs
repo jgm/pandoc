@@ -58,7 +58,8 @@ Conversion of vimwiki text to 'Pandoc' document.
 * misc:
     * [X] `TODO:` mark
     * [X] metadata placeholders: %title and %date  
-    * [O] control placeholders: %template and %nohtml -- %template added to meta, %nohtml ignored
+    * [O] control placeholders: %template and %nohtml -- %template added to 
+          meta, %nohtml ignored
 --}
 
 module Text.Pandoc.Readers.Vimwiki ( readVimwiki
@@ -71,15 +72,25 @@ import Data.Monoid ((<>))
 import Data.List (isInfixOf, isPrefixOf)
 import Data.Text (Text, unpack)
 import Text.Pandoc.Builder (Blocks, Inlines, trimInlines, fromList, toList)
-import qualified Text.Pandoc.Builder as B (headerWith, str, space, strong, emph, strikeout, code, link, image, spanWith, para, horizontalRule, blockQuote, bulletList, plain, orderedList, simpleTable, softbreak, codeBlockWith, imageWith, divWith, setMeta, definitionList, superscript, subscript)
+import qualified Text.Pandoc.Builder 
+  as B (headerWith, str, space, strong, emph, strikeout, code, link, image, 
+        spanWith, para, horizontalRule, blockQuote, bulletList, plain, 
+        orderedList, simpleTable, softbreak, codeBlockWith, imageWith, divWith, 
+        setMeta, definitionList, superscript, subscript)
 import Text.Pandoc.Class (PandocMonad, report)
-import Text.Pandoc.Definition (Pandoc(..), Inline(Space), Block(BulletList, OrderedList), Attr, nullMeta, Meta, ListNumberStyle(..), ListNumberDelim(..))
+import Text.Pandoc.Definition (Pandoc(..), Inline(Space), 
+  Block(BulletList, OrderedList), Attr, nullMeta, Meta, ListNumberStyle(..), 
+  ListNumberDelim(..))
 import Text.Pandoc.Logging (LogMessage(ParsingTrace))
 import Text.Pandoc.Options (ReaderOptions)
-import Text.Pandoc.Parsing (readWithM, ParserT, stateOptions, ParserState, stateMeta', blanklines, registerHeader, spaceChar, emailAddress, uri, F, runF, orderedListMarker, many1Till)
+import Text.Pandoc.Parsing (readWithM, ParserT, stateOptions, ParserState, 
+  stateMeta', blanklines, registerHeader, spaceChar, emailAddress, uri, F, runF,
+  orderedListMarker, many1Till)
 import Text.Pandoc.Shared (splitBy, stripFirstAndLast, stringify)
-import Text.Parsec.Char (spaces, char, anyChar, newline, string, noneOf, alphaNum)
-import Text.Parsec.Combinator (eof, choice, many1, manyTill, count, skipMany1, notFollowedBy, option)
+import Text.Parsec.Char (spaces, char, anyChar, newline, string, noneOf, 
+  alphaNum)
+import Text.Parsec.Combinator (eof, choice, many1, manyTill, count, skipMany1, 
+  notFollowedBy, option)
 import Text.Parsec.Prim (many, getPosition, try, updateState, getState)
 import Text.Parsec.Char (oneOf, space)
 import Text.Parsec.Combinator (lookAhead, between)
@@ -145,8 +156,10 @@ header = try $ do
   spaceChar
   let lev = length eqs
   guard $ lev <= 6
-  contents <- trimInlines . mconcat <$> manyTill inline (try $ spaceChar >> (string eqs) >> many spaceChar >> newline) 
-  attr <- registerHeader (makeId contents, (if sp == "" then [] else ["justcenter"]), []) contents
+  contents <- trimInlines . mconcat <$> manyTill inline (try $ spaceChar 
+    >> (string eqs) >> many spaceChar >> newline) 
+  attr <- registerHeader (makeId contents, 
+    (if sp == "" then [] else ["justcenter"]), []) contents
   return $ B.headerWith attr lev contents
 
 para :: PandocMonad m => VwParser m Blocks
@@ -173,7 +186,8 @@ blockQuote = try $ do
      else return $ B.blockQuote $ B.plain contents
 
 definitionList :: PandocMonad m => VwParser m Blocks
-definitionList = try $ B.definitionList <$> (many1 (dlItemWithDT <|> dlItemWithoutDT))
+definitionList = try $ 
+  B.definitionList <$> (many1 (dlItemWithDT <|> dlItemWithoutDT))
 
 dlItemWithDT :: PandocMonad m => VwParser m (Inlines, [Blocks])
 dlItemWithDT = do
@@ -188,13 +202,15 @@ dlItemWithoutDT = do
 
 definitionDef :: PandocMonad m => VwParser m Blocks
 definitionDef = try $ 
-  (notFollowedBy definitionTerm) >> many spaceChar >> (definitionDef1 <|> definitionDef2)
+  (notFollowedBy definitionTerm) >> many spaceChar 
+    >> (definitionDef1 <|> definitionDef2)
 
 definitionDef1 :: PandocMonad m => VwParser m Blocks
 definitionDef1 = try $ mempty <$ defMarkerE
 
 definitionDef2 :: PandocMonad m => VwParser m Blocks
-definitionDef2 = try $ B.plain <$> (defMarkerM >> (trimInlines . mconcat <$> many inline') <* newline)
+definitionDef2 = try $ B.plain <$> 
+  (defMarkerM >> (trimInlines . mconcat <$> many inline') <* newline)
 
 
 definitionTerm :: PandocMonad m => VwParser m Inlines
@@ -204,10 +220,12 @@ definitionTerm = try $ do
   return x
 
 definitionTerm1 :: PandocMonad m => VwParser m Inlines
-definitionTerm1 = try $ trimInlines . mconcat <$> manyTill inline' (try $ defMarkerE)
+definitionTerm1 = try $ 
+  trimInlines . mconcat <$> manyTill inline' (try $ defMarkerE)
 
 definitionTerm2 :: PandocMonad m => VwParser m Inlines
-definitionTerm2 = try $ trimInlines . mconcat <$> manyTill inline' (try $ lookAhead $ (defMarkerM >> notFollowedBy hasDefMarkerM))
+definitionTerm2 = try $ trimInlines . mconcat <$> manyTill inline' 
+  (try $ lookAhead $ (defMarkerM >> notFollowedBy hasDefMarkerM))
 
 defMarkerM :: PandocMonad m => VwParser m Char
 defMarkerM = string "::" >> spaceChar
@@ -223,7 +241,8 @@ preformatted = try $ do
   many spaceChar >> string "{{{" 
   attrText <- many (noneOf "\n") 
   lookAhead newline
-  contents <- manyTill anyChar (try (char '\n' >> many spaceChar >> string "}}}" >> many spaceChar >> newline))
+  contents <- manyTill anyChar (try (char '\n' >> many spaceChar >> string "}}}"
+    >> many spaceChar >> newline))
   if (not $ contents == "") && (head contents == '\n')
      then return $ B.codeBlockWith (makeAttr attrText) (tail contents)
      else return $ B.codeBlockWith (makeAttr attrText) contents
@@ -248,10 +267,12 @@ displayMath :: PandocMonad m => VwParser m Blocks
 displayMath = try $ do
   many spaceChar >> string "{{$"
   mathTag <- option "" mathTagParser
-  contents <- manyTill anyChar (try (char '\n' >> many spaceChar >> string "}}$" >> many spaceChar >> newline))
+  contents <- manyTill anyChar (try (char '\n' >> many spaceChar >> string "}}$"
+    >> many spaceChar >> newline))
   let contentsWithTags
         | mathTag == "" = "\\[" ++ contents ++ "\n\\]"
-        | otherwise     = "\\begin{" ++ mathTag ++ "}" ++ contents ++ "\n\\end{" ++ mathTag ++ "}"
+        | otherwise     = "\\begin{" ++ mathTag ++ "}" ++ contents 
+                          ++ "\n\\end{" ++ mathTag ++ "}"
   return $ B.plain $ B.str contentsWithTags
 
 mixedList :: PandocMonad m => VwParser m Blocks
@@ -267,7 +288,8 @@ mixedList' prevInd = do
      else do
           listStart
           curLine <- listItemContent
-          let listBuilder = if builder == "ul" then B.bulletList else B.orderedList
+          let listBuilder = 
+                if builder == "ul" then B.bulletList else B.orderedList
           (subList, lowInd) <- (mixedList' curInd)
           if lowInd >= curInd
              then do
@@ -277,11 +299,11 @@ mixedList' prevInd = do
                      then return ([listBuilder curList], endInd)
                      else return (curList, endInd)
              else do
-                  let (curList, endInd) = ((combineList curLine subList), lowInd)
+                  let (curList, endInd) = ((combineList curLine subList), 
+                                           lowInd)
                   if curInd > prevInd
                      then return ([listBuilder curList], endInd)
                      else return (curList, endInd)
-                     --}
 
 plainInlineML' :: PandocMonad m => Inlines -> VwParser m Blocks
 plainInlineML' w = do
@@ -310,7 +332,8 @@ p6 = try $ (mconcat <$> many blockML)
 
 listTodoMarker :: PandocMonad m => VwParser m Inlines
 listTodoMarker = try $ do 
-  x <- between (many spaceChar >> char '[') (char ']' >> spaceChar) (oneOf " .oOX")
+  x <- between (many spaceChar >> char '[') (char ']' >> spaceChar) 
+    (oneOf " .oOX")
   return $ makeListMarkerSpan x
 
 makeListMarkerSpan :: Char -> Inlines
@@ -327,8 +350,10 @@ makeListMarkerSpan x =
 
 combineList :: Blocks -> [Blocks] -> [Blocks]
 combineList x [y] = case toList y of
-                            [BulletList z] -> [fromList $ (toList x) ++ [BulletList z]]
-                            [OrderedList attr z] -> [fromList $ (toList x) ++ [OrderedList attr z]]
+                            [BulletList z] -> [fromList $ (toList x) 
+                                              ++ [BulletList z]]
+                            [OrderedList attr z] -> [fromList $ (toList x) 
+                                                    ++ [OrderedList attr z]]
                             _ -> x:[y]
 combineList x xs = x:xs
 
@@ -344,7 +369,9 @@ bulletListMarkers = "ul" <$ (char '*' <|> char '-')
 
 orderedListMarkers :: PandocMonad m => VwParser m String
 orderedListMarkers = 
-  ("ol" <$ (choice $ (orderedListMarker Decimal Period):(($OneParen) <$> orderedListMarker <$> [Decimal, LowerRoman, UpperRoman, LowerAlpha, UpperAlpha])))
+  ("ol" <$ (choice $ (orderedListMarker Decimal Period):(($OneParen) 
+    <$> orderedListMarker 
+    <$> [Decimal, LowerRoman, UpperRoman, LowerAlpha, UpperAlpha])))
     <|> ("ol" <$ char '#')
 
 --many need trimInlines
@@ -373,13 +400,15 @@ table2 = try $ do
 
 tableHeaderSeparator :: PandocMonad m => VwParser m ()
 tableHeaderSeparator = try $ do
-  many spaceChar >> char '|' >> many1 ((many1 $ char '-') >> char '|') >> many spaceChar >> newline
+  many spaceChar >> char '|' >> many1 ((many1 $ char '-') >> char '|') 
+    >> many spaceChar >> newline
   return ()
   
 tableRow :: PandocMonad m => VwParser m [Blocks]
 tableRow = try $ do
   many spaceChar >> char '|'
-  s <- lookAhead $ manyTill anyChar (try (char '|' >> many spaceChar >> newline)) -- perhaps the last part can be an end of line parser
+  s <- lookAhead $ manyTill anyChar (try (char '|' >> many spaceChar 
+    >> newline))
   guard $ not $ "||" `isInfixOf` ("|" ++ s ++ "|")
   tr <- many tableCell
   many spaceChar >> char '\n'
@@ -390,22 +419,26 @@ tableCell = try $
   B.plain <$> trimInlines . mconcat <$> (manyTill inline' (char '|'))
 
 placeholder :: PandocMonad m => VwParser m ()
-placeholder = try $ (choice (ph <$> ["title", "date"])) <|> noHtmlPh <|> templatePh
+placeholder = try $ 
+  (choice (ph <$> ["title", "date"])) <|> noHtmlPh <|> templatePh
 
 ph :: PandocMonad m => String -> VwParser m ()
 ph s = try $ do
   many spaceChar >> (string $ '%':s) >> spaceChar
-  contents <- (trimInlines . mconcat <$> (manyTill inline (lookAhead newline))) --use lookAhead because of placeholder in the whitespace parser
+  contents <- (trimInlines . mconcat <$> (manyTill inline (lookAhead newline))) 
+    --use lookAhead because of placeholder in the whitespace parser
   let meta' = return $ B.setMeta s contents nullMeta :: F Meta
   updateState $ \st -> st { stateMeta' = stateMeta' st <> meta' }
 
 noHtmlPh :: PandocMonad m => VwParser m ()
 noHtmlPh = try $
-  () <$ (many spaceChar >> string "%nohtml" >> many spaceChar >> (lookAhead newline))
+  () <$ (many spaceChar >> string "%nohtml" >> many spaceChar 
+    >> (lookAhead newline))
 
 templatePh :: PandocMonad m => VwParser m ()
 templatePh = try $
-  () <$ (many spaceChar >> string "%template" >> (many $ noneOf "\n") >> (lookAhead newline))
+  () <$ (many spaceChar >> string "%template" >> (many $ noneOf "\n") 
+    >> (lookAhead newline))
 
 -- inline parser
 
@@ -445,7 +478,8 @@ str :: PandocMonad m => VwParser m Inlines
 str = B.str <$> (many1 $ noneOf $ spaceChars ++ specialChars)
 
 whitespace :: PandocMonad m => VwParser m () -> VwParser m Inlines
-whitespace endline = B.space <$ (skipMany1 spaceChar <|> (try (newline >> (comment <|> placeholder))))
+whitespace endline = B.space <$ (skipMany1 spaceChar <|> 
+                                 (try (newline >> (comment <|> placeholder))))
          <|> B.softbreak <$ endline
 
 whitespace' :: PandocMonad m => VwParser m Inlines
@@ -462,10 +496,13 @@ bareURL = try $ do
 strong :: PandocMonad m => VwParser m Inlines
 strong = try $ do
   s <- lookAhead $ between (char '*') (char '*') (many1 $ noneOf "*")
-  guard $ (not $ (head s) `elem` spaceChars) && (not $ (last s) `elem` spaceChars)
+  guard $ (not $ (head s) `elem` spaceChars) 
+             && (not $ (last s) `elem` spaceChars)
   char '*'
-  contents <- mconcat <$> (manyTill inline' $ char '*' >> notFollowedBy alphaNum)
-  return $ (B.spanWith ((makeId contents), [], []) mempty) <> (B.strong contents)
+  contents <- mconcat <$> (manyTill inline' $ char '*' 
+    >> notFollowedBy alphaNum)
+  return $ (B.spanWith ((makeId contents), [], []) mempty) 
+    <> (B.strong contents)
 
 makeId :: Inlines -> String 
 makeId i = concat (stringify <$> (toList i))
@@ -473,9 +510,11 @@ makeId i = concat (stringify <$> (toList i))
 emph :: PandocMonad m => VwParser m Inlines
 emph = try $ do
   s <- lookAhead $ between (char '_') (char '_') (many1 $ noneOf "_")
-  guard $ (not $ (head s) `elem` spaceChars) && (not $ (last s) `elem` spaceChars)
+  guard $ (not $ (head s) `elem` spaceChars) 
+          && (not $ (last s) `elem` spaceChars)
   char '_'
-  contents <- mconcat <$> (manyTill inline' $ char '_' >> notFollowedBy alphaNum)
+  contents <- mconcat <$> (manyTill inline' $ char '_' 
+    >> notFollowedBy alphaNum)
   return $ B.emph contents
 
 strikeout :: PandocMonad m => VwParser m Inlines
@@ -496,7 +535,8 @@ superscript = try $
 
 subscript :: PandocMonad m => VwParser m Inlines
 subscript = try $
-  B.subscript <$> mconcat <$> (string ",," >> many1Till inline' (try $ string ",,"))
+  B.subscript <$> mconcat <$> (string ",," 
+    >> many1Till inline' (try $ string ",,"))
 
 link :: PandocMonad m => VwParser m Inlines
 link = try $ do 
@@ -504,7 +544,8 @@ link = try $ do
   contents <- lookAhead $ manyTill anyChar (string "]]")
   case '|' `elem` contents of 
                   False -> do
-                    manyTill anyChar (string "]]") -- not using try here because [[hell]o]] is not rendered as a link in vimwiki
+                    manyTill anyChar (string "]]") 
+-- not using try here because [[hell]o]] is not rendered as a link in vimwiki
                     return $ B.link (procLink contents) "" (B.str contents)
                   True  -> do 
                     url <- manyTill anyChar $ char '|'
@@ -541,7 +582,9 @@ images k
 procLink' :: String -> String
 procLink' s
   | ((take 6 s) == "local:") = "file" ++ (drop 5 s) 
-  | or ((`isPrefixOf` s) <$> [ "http:", "https:", "ftp:", "file:", "mailto:", "news:", "telnet:" ])            = s
+  | or ((`isPrefixOf` s) <$> [ "http:", "https:", "ftp:", "file:", "mailto:", 
+                              "news:", "telnet:" ]) 
+                             = s
   | s == ""                  = ""
   | (last s) == '/'          = s
   | otherwise                = s ++ ".html"
@@ -611,6 +654,7 @@ makeTagSpan s = (B.space) <> (makeTagSpan' s)
 
 mathTagParser :: PandocMonad m => VwParser m String
 mathTagParser = do
-  s <- try $ lookAhead (char '%' >> (manyTill (noneOf spaceChars) (try $ char '%' >> many (noneOf $ '%':spaceChars) >> space)))
+  s <- try $ lookAhead (char '%' >> (manyTill (noneOf spaceChars) 
+    (try $ char '%' >> many (noneOf $ '%':spaceChars) >> space)))
   char '%' >> string s >> char '%'
   return s
