@@ -79,6 +79,7 @@ import Text.Pandoc.Class (PandocIO, extractMedia, fillMediaBag, getLog,
                           setResourcePath, withMediaBag)
 import Text.Pandoc.Highlighting (highlightingStyles)
 import Text.Pandoc.Lua (runLuaFilter)
+import Text.Pandoc.Writers.Math (defaultMathJaxURL, defaultKaTeXURL)
 import Text.Pandoc.PDF (makePDF)
 import Text.Pandoc.Process (pipeProcess)
 import Text.Pandoc.SelfContained (makeDataURI, makeSelfContained)
@@ -133,11 +134,11 @@ convertWithOpts opts = do
                          Nothing -> return Nothing
                          Just fp -> Just <$> UTF8.readFile fp
 
-  let csscdn = "https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.6.0/katex.min.css"
   let mathMethod =
         case (optKaTeXJS opts, optKaTeXStylesheet opts) of
             (Nothing, _)  -> optHTMLMathMethod opts
-            (Just js, ss) -> KaTeX js (fromMaybe csscdn ss)
+            (Just js, ss) -> KaTeX js (fromMaybe
+                               (defaultKaTeXURL ++ "katex.min.css") ss)
 
 
   -- --bibliography implies -F pandoc-citeproc for backwards compatibility:
@@ -1355,7 +1356,8 @@ options =
     , Option "" ["mathjax"]
                  (OptArg
                   (\arg opt -> do
-                      let url' = fromMaybe "https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.0/MathJax.js?config=TeX-AMS_CHTML-full" arg
+                      let url' = fromMaybe (defaultMathJaxURL ++
+                                  "MathJax.js?config=TeX-AMS_CHTML-full") arg
                       return opt { optHTMLMathMethod = MathJax url'})
                   "URL")
                  "" -- "Use MathJax for HTML math"
@@ -1364,7 +1366,7 @@ options =
                   (\arg opt ->
                       return opt
                         { optKaTeXJS =
-                           arg <|> Just "https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.6.0/katex.min.js"})
+                           arg <|> Just (defaultKaTeXURL ++ "katex.min.js")})
                   "URL")
                   "" -- Use KaTeX for HTML Math
 
