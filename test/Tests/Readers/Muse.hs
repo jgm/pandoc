@@ -260,5 +260,18 @@ tests =
                                                                      ]
                               ]
                     ]
+      , "List continuation" =:
+         T.unlines
+           [ " - a"
+           , ""
+           , "   b"
+           , ""
+           , "   c"
+           ] =?>
+         bulletList [ mconcat [ para "a"
+                              , para "b"
+                              , para "c"
+                              ]
+                    ]
       ]
   ]

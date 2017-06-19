@@ -295,9 +295,9 @@ withListContext p = do
 
 listContinuation :: PandocMonad m => Int -> MuseParser m String
 listContinuation markerLength = try $ do
-  result <- many1 $ listLine markerLength
   blanks <- many1 blankline
-  return $ concat result ++ blanks
+  result <- many1 $ listLine markerLength
+  return $ blanks ++ concat result
 
 listStart :: PandocMonad m => MuseParser m Int -> MuseParser m Int
 listStart marker = try $ do
