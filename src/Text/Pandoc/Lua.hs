@@ -1,3 +1,7 @@
+{-# LANGUAGE FlexibleContexts      #-}
+{-# LANGUAGE FlexibleInstances     #-}
+{-# LANGUAGE MultiParamTypeClasses #-}
+{-# LANGUAGE DeriveDataTypeable    #-}
 {-
 Copyright © 2017 Albert Krewinkel <tarleb+pandoc@moltkeplatz.de>
 
@@ -15,9 +19,6 @@ You should have received a copy of the GNU General Public License
 along with this program; if not, write to the Free Software
 Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 -}
-{-# LANGUAGE FlexibleContexts      #-}
-{-# LANGUAGE FlexibleInstances     #-}
-{-# LANGUAGE MultiParamTypeClasses #-}
 {- |
    Module      : Text.Pandoc.Lua
    Copyright   : Copyright © 2017 Albert Krewinkel
