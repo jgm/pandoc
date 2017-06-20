@@ -108,6 +108,12 @@ tests =
         , "Subsubsection" =:
           "***** Fifth level\n" =?>
           header 5 "Fifth level"
+        , "No headers below top level" =:
+          T.unlines [ "Foo[1]"
+                    , "[1] * Bar"
+                    ] =?>
+          para (text "Foo" <>
+                note (para "* Bar"))
         ]
       , testGroup "Footnotes"
         [ "Simple footnote" =:
@@ -273,5 +279,16 @@ tests =
                               , para "c"
                               ]
                     ]
+      -- Headers in first column of list continuation are not allowed
+      , "No headers in list continuation" =:
+        T.unlines
+          [ " - Foo"
+          , ""
+          , "   * Bar"
+          ] =?>
+        bulletList [ mconcat [ para "Foo"
+                             , para "* Bar"
+                             ]
+                   ]
       ]
   ]

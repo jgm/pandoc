@@ -205,6 +205,8 @@ separator = try $ do
 
 header :: PandocMonad m => MuseParser m (F Blocks)
 header = try $ do
+  st <- stateParserContext <$> getState
+  getPosition >>= \pos -> guard (st == NullState && sourceColumn pos == 1)
   level <- liftM length $ many1 $ char '*'
   guard $ level <= 5
   skipSpaces
