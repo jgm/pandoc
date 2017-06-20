@@ -647,23 +647,25 @@ blockToLaTeX (Header level (id',classes,_) lst) = do
   modify $ \s -> s{stInHeading = False}
   return hdr
 blockToLaTeX (Table caption aligns widths heads rows) = do
-  headers <- if all null heads
-                then return empty
-                else do
-                    contents <- (tableRowToLaTeX True aligns widths) heads
-                    return ("\\toprule" $$ contents $$ "\\midrule")
-  let endhead = if all null heads
-                   then empty
-                   else text "\\endhead"
-  let endfirsthead = if all null heads
-                       then empty
-                       else text "\\endfirsthead"
+  let toHeaders hs = do contents <- (tableRowToLaTeX True aligns widths) hs
+                        return ("\\toprule" $$ contents $$ "\\midrule")
+  let removeNote (Note _) = Span ("", [], []) []
+      removeNote x        = x
   captionText <- inlineListToLaTeX caption
+  firsthead <- if isEmpty captionText || all null heads
+                  then return empty
+                  else ($$ text "\\endfirsthead") <$> toHeaders heads
+  head' <- if all null heads
+              then return empty
+              -- avoid duplicate notes in head and firsthead:
+              else ($$ text "\\endhead") <$>
+                   toHeaders (if isEmpty firsthead
+                                 then heads
+                                 else walk removeNote heads)
   let capt = if isEmpty captionText
                 then empty
-                else text "\\caption" <> braces captionText <> "\\tabularnewline"
-                         $$ headers
-                         $$ endfirsthead
+                else text "\\caption" <>
+                      braces captionText <> "\\tabularnewline"
   rows' <- mapM (tableRowToLaTeX False aligns widths) rows
   let colDescriptors = text $ concat $ map toColDescriptor aligns
   modify $ \s -> s{ stTable = True }
@@ -671,9 +673,9 @@ blockToLaTeX (Table caption aligns widths heads rows) = do
               braces ("@{}" <> colDescriptors <> "@{}")
               -- the @{} removes extra space at beginning and end
          $$ capt
+         $$ firsthead
          $$ (if all null heads then "\\toprule" else empty)
-         $$ headers
-         $$ endhead
+         $$ head'
          $$ vcat rows'
          $$ "\\bottomrule"
          $$ "\\end{longtable}"
