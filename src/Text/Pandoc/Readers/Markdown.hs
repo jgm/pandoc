@@ -55,6 +55,7 @@ import qualified Text.Pandoc.Builder as B
 import Text.Pandoc.Class (PandocMonad(..), report)
 import Text.Pandoc.Definition
 import Text.Pandoc.Emoji (emojis)
+import Text.Pandoc.Error
 import Text.Pandoc.Logging
 import Text.Pandoc.Options
 import Text.Pandoc.Parsing hiding (tableWith)
@@ -368,7 +369,9 @@ parseMarkdown = do
                 -- lookup to get sourcepos
                 case M.lookup n (stateNotes' st) of
                    Just (pos, _) -> report (NoteDefinedButNotUsed n pos)
-                   Nothing -> error "The impossible happened.") notesDefined
+                   Nothing -> throwError $
+                     PandocShouldNeverHappenError "note not found")
+         notesDefined
   let doc = runF (do Pandoc _ bs <- B.doc <$> blocks
                      meta <- stateMeta' st
                      return $ Pandoc meta bs) st
