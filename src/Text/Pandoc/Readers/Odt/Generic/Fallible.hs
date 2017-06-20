@@ -124,8 +124,3 @@ instance ChoiceVector SuccessList  where
   spreadChoice = Right . SuccessList . (foldr unTagRight []) . collectNonFailing
     where unTagRight (Right x) = (x:)
           unTagRight _         = id
-
--- | Like 'catMaybes', but for 'Either'.
-collectRights :: [Either _l r] -> [r]
-collectRights = collectNonFailing . untag . spreadChoice . SuccessList
-  where untag = fromLeft (error "Unexpected Left")
