@@ -37,7 +37,7 @@ FictionBook is an XML-based e-book format. For more information see:
 -}
 module Text.Pandoc.Writers.FB2 (writeFB2)  where
 
-import Control.Monad.Except (catchError, throwError)
+import Control.Monad.Except (catchError)
 import Control.Monad.State.Strict (StateT, evalStateT, get, lift, modify)
 import Control.Monad.State.Strict (liftM)
 import Data.ByteString.Base64 (encode)
@@ -371,8 +371,10 @@ blockToXml (DefinitionList defs) =
       needsBreak (Para _)    = False
       needsBreak (Plain ins) = LineBreak `notElem` ins
       needsBreak _           = True
-blockToXml (Header _ _ _) = -- should never happen, see renderSections
-                          throwError $ PandocShouldNeverHappenError "unexpected header in section text"
+blockToXml h@(Header _ _ _) = do
+  -- should not occur after hierarchicalize, except inside lists/blockquotes
+  report $ BlockNotRendered h
+  return []
 blockToXml HorizontalRule = return
                             [ el "empty-line" ()
                             , el "p" (txt (replicate 10 '—'))
