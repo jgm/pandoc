@@ -48,6 +48,7 @@ import Text.Pandoc.Options
 import Text.Pandoc.Parsing hiding (enclosed, macro, nested)
 import Text.Pandoc.Readers.HTML (htmlTag, isCommentTag)
 import Text.Pandoc.XML (fromEntities)
+import Text.Pandoc.Shared (crFilter)
 import Data.Text (Text)
 import qualified Data.Text as T
 
@@ -58,7 +59,7 @@ readTWiki :: PandocMonad m
           -> m Pandoc
 readTWiki opts s = do
   res <- readWithM parseTWiki def{ stateOptions = opts }
-             (T.unpack s ++ "\n\n")
+             (T.unpack (crFilter s) ++ "\n\n")
   case res of
        Left e  -> throwError e
        Right d -> return d

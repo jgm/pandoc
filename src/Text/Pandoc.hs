@@ -52,10 +52,6 @@ inline links:
 > main = do
 >   T.getContents >>= mdToRST >>= T.putStrLn
 
-Note:  all of the readers assume that the input text has @'\n'@
-line endings.  So if you get your input text from a web form,
-you should remove @'\r'@ characters using @filter (/='\r')@.
-
 -}
 
 module Text.Pandoc

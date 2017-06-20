@@ -381,8 +381,8 @@ convertWithOpts opts = do
                           | otherwise -> []
 
   let convertTabs = tabFilter (if optPreserveTabs opts || readerName == "t2t"
-                                 then 0
-                                 else optTabStop opts)
+                                  then 0
+                                  else optTabStop opts)
 
       readSources :: [FilePath] -> PandocIO Text
       readSources srcs = convertTabs . T.intercalate (T.pack "\n") <$>

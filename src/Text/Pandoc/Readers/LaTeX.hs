@@ -63,7 +63,8 @@ readLaTeX :: PandocMonad m
           -> Text        -- ^ String to parse (assumes @'\n'@ line endings)
           -> m Pandoc
 readLaTeX opts ltx = do
-  parsed <- readWithM parseLaTeX def{ stateOptions = opts } (unpack ltx)
+  parsed <- readWithM parseLaTeX def{ stateOptions = opts }
+               (unpack (crFilter ltx))
   case parsed of
     Right result -> return result
     Left e       -> throwError e

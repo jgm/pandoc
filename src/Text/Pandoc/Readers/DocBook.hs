@@ -1,6 +1,6 @@
 module Text.Pandoc.Readers.DocBook ( readDocBook ) where
 import Data.Char (toUpper)
-import Text.Pandoc.Shared (safeRead)
+import Text.Pandoc.Shared (safeRead, crFilter)
 import Text.Pandoc.Options
 import Text.Pandoc.Definition
 import Text.Pandoc.Builder
@@ -526,7 +526,8 @@ instance Default DBState where
 
 readDocBook :: PandocMonad m => ReaderOptions -> Text -> m Pandoc
 readDocBook _ inp = do
-  let tree = normalizeTree . parseXML . handleInstructions $ T.unpack inp
+  let tree = normalizeTree . parseXML . handleInstructions
+               $ T.unpack $ crFilter inp
   (bs, st') <- flip runStateT (def{ dbContent = tree }) $ mapM parseBlock $ tree
   return $ Pandoc (dbMeta st') (toList . mconcat $ bs)
 

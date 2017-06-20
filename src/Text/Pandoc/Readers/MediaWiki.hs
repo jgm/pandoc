@@ -58,7 +58,8 @@ import Text.Pandoc.Logging
 import Text.Pandoc.Options
 import Text.Pandoc.Parsing hiding (nested)
 import Text.Pandoc.Readers.HTML (htmlTag, isBlockTag, isCommentTag)
-import Text.Pandoc.Shared (safeRead, stringify, stripTrailingNewlines, trim)
+import Text.Pandoc.Shared (safeRead, stringify, stripTrailingNewlines, trim,
+         crFilter)
 import Text.Pandoc.Walk (walk)
 import Text.Pandoc.XML (fromEntities)
 
@@ -77,7 +78,7 @@ readMediaWiki opts s = do
                                             , mwLogMessages = []
                                             , mwInTT = False
                                             }
-            (unpack s ++ "\n")
+            (unpack (crFilter s) ++ "\n")
   case parsed of
     Right result -> return result
     Left e       -> throwError e

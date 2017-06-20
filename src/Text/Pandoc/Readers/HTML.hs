@@ -45,7 +45,7 @@ import Text.Pandoc.Definition
 import qualified Text.Pandoc.Builder as B
 import Text.Pandoc.Builder (Blocks, Inlines, trimInlines, HasMeta(..))
 import Text.Pandoc.Shared ( extractSpaces, addMetaField
-                          , escapeURI, safeRead )
+                          , escapeURI, safeRead, crFilter )
 import Text.Pandoc.Options (ReaderOptions(readerExtensions), extensionEnabled,
                                Extension (Ext_epub_html_exts,
                                Ext_raw_html, Ext_native_divs, Ext_native_spans))
@@ -82,7 +82,7 @@ readHtml :: PandocMonad m
 readHtml opts inp = do
   let tags = stripPrefixes . canonicalizeTags $
              parseTagsOptions parseOptions{ optTagPosition = True }
-             inp
+             (crFilter inp)
       parseDoc = do
         blocks <- (fixPlains False) . mconcat <$> manyTill block eof
         meta <- stateMeta . parserState <$> getState

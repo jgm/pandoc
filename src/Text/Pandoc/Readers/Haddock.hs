@@ -27,7 +27,7 @@ import Text.Pandoc.Class (PandocMonad)
 import Text.Pandoc.Definition
 import Text.Pandoc.Error
 import Text.Pandoc.Options
-import Text.Pandoc.Shared (splitBy, trim)
+import Text.Pandoc.Shared (splitBy, trim, crFilter)
 
 
 -- | Parse Haddock markup and return a 'Pandoc' document.
@@ -35,7 +35,7 @@ readHaddock :: PandocMonad m
             => ReaderOptions
             -> Text
             -> m Pandoc
-readHaddock opts s = case readHaddockEither opts (unpack s) of
+readHaddock opts s = case readHaddockEither opts (unpack (crFilter s)) of
   Right result -> return result
   Left e       -> throwError e
 

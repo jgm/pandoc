@@ -68,7 +68,7 @@ readRST :: PandocMonad m
         -> m Pandoc
 readRST opts s = do
   parsed <- (readWithM parseRST) def{ stateOptions = opts }
-               (T.unpack s ++ "\n\n")
+               (T.unpack (crFilter s) ++ "\n\n")
   case parsed of
     Right result -> return result
     Left e       -> throwError e

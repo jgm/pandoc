@@ -68,7 +68,7 @@ import Text.Pandoc.Options
 import Text.Pandoc.Parsing
 import Text.Pandoc.Readers.HTML (htmlTag, isBlockTag, isInlineTag)
 import Text.Pandoc.Readers.LaTeX (rawLaTeXBlock, rawLaTeXInline)
-import Text.Pandoc.Shared (trim)
+import Text.Pandoc.Shared (trim, crFilter)
 import Data.Text (Text)
 import qualified Data.Text as T
 
@@ -79,7 +79,7 @@ readTextile :: PandocMonad m
             -> m Pandoc
 readTextile opts s = do
   parsed <- readWithM parseTextile def{ stateOptions = opts }
-                (T.unpack s ++ "\n\n")
+                (T.unpack (crFilter s) ++ "\n\n")
   case parsed of
      Right result -> return result
      Left e       -> throwError e

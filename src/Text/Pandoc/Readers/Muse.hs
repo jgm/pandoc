@@ -57,6 +57,7 @@ import Text.Pandoc.Class (PandocMonad(..))
 import Text.Pandoc.Definition
 import Text.Pandoc.Logging
 import Text.Pandoc.Options
+import Text.Pandoc.Shared (crFilter)
 import Text.Pandoc.Parsing hiding (macro, nested)
 import Text.Pandoc.Readers.HTML (htmlTag)
 import Text.Pandoc.XML (fromEntities)
@@ -68,7 +69,7 @@ readMuse :: PandocMonad m
          -> Text
          -> m Pandoc
 readMuse opts s = do
-  res <- readWithM parseMuse def{ stateOptions = opts } (unpack s)
+  res <- readWithM parseMuse def{ stateOptions = opts } (unpack (crFilter s))
   case res of
        Left e  -> throwError e
        Right d -> return d
