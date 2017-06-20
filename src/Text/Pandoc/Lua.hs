@@ -28,11 +28,15 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 Pandoc lua utils.
 -}
-module Text.Pandoc.Lua ( runLuaFilter, pushPandocModule ) where
+module Text.Pandoc.Lua ( LuaException(..),
+                         runLuaFilter,
+                         pushPandocModule ) where
 
+import Control.Exception
 import Control.Monad (unless, when, (>=>))
 import Control.Monad.Trans (MonadIO (..))
 import Data.Map (Map)
+import Data.Typeable (Typeable)
 import Scripting.Lua (LuaState, StackValue (..))
 import Text.Pandoc.Definition
 import Text.Pandoc.Lua.PandocModule (pushPandocModule)
@@ -41,6 +45,11 @@ import Text.Pandoc.Walk
 
 import qualified Data.Map as Map
 import qualified Scripting.Lua as Lua
+
+data LuaException = LuaException String
+  deriving (Show, Typeable)
+
+instance Exception LuaException
 
 runLuaFilter :: (MonadIO m)
              => FilePath -> [String] -> Pandoc -> m Pandoc
@@ -59,7 +68,7 @@ runLuaFilter filterPath args pd = liftIO $ do
   if (status /= 0)
     then do
       Just luaErrMsg <- Lua.peek lua 1
-      error luaErrMsg
+      throwIO (LuaException luaErrMsg)
     else do
       Lua.call lua 0 Lua.multret
       newtop <- Lua.gettop lua
@@ -195,8 +204,9 @@ instance StackValue a => PushViaFilterFunction (IO a) where
     Lua.call lua num 1
     mbres <- Lua.peek lua (-1)
     case mbres of
-      Nothing -> error $ "Error while trying to get a filter's return "
-                 ++ "value from lua stack."
+      Nothing -> throwIO $ LuaException
+                  ("Error while trying to get a filter's return "
+                   ++ "value from lua stack.")
       Just res -> res <$ Lua.pop lua 1
 
 instance (StackValue a, PushViaFilterFunction b) =>
@@ -225,7 +235,8 @@ instance StackValue LuaFilterFunction where
   push lua v = pushFilterFunction lua v
   peek lua i = do
     isFn <- Lua.isfunction lua i
-    unless isFn (error $ "Not a function at index " ++ (show i))
+    unless isFn (throwIO $ LuaException $
+        "Not a function at index " ++ (show i))
     Lua.pushvalue lua i
     push lua ("PANDOC_FILTER_FUNCTIONS"::String)
     Lua.rawget lua Lua.registryindex
