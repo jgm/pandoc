@@ -56,10 +56,6 @@ runLuaFilter :: (MonadIO m)
 runLuaFilter filterPath args pd = liftIO $ do
   lua <- Lua.newstate
   Lua.openlibs lua
-  -- create table in registry to store filter functions
-  Lua.push lua "PANDOC_FILTER_FUNCTIONS"
-  Lua.newtable lua
-  Lua.rawset lua Lua.registryindex
   -- store module in global "pandoc"
   pushPandocModule lua
   Lua.setglobal lua "pandoc"
@@ -110,7 +106,7 @@ execDocLuaFilter lua fnMap x = do
   let docFnName = "Doc"
   case Map.lookup docFnName fnMap of
     Nothing -> return x
-    Just fn -> runLuaFilterFunction lua fn x
+    Just fn -> runFilterFunction lua fn x
 
 execMetaLuaFilter :: LuaState
                   -> FunctionMap
@@ -120,7 +116,7 @@ execMetaLuaFilter lua fnMap pd@(Pandoc meta blks) = do
   case Map.lookup metaFnName fnMap of
     Nothing -> return pd
     Just fn -> do
-      meta' <- runLuaFilterFunction lua fn meta
+      meta' <- runFilterFunction lua fn meta
       return $ Pandoc meta' blks
 
 execBlockLuaFilter :: LuaState
@@ -131,7 +127,7 @@ execBlockLuaFilter lua fnMap x = do
       tryFilter filterFnName =
         case Map.lookup filterFnName fnMap of
           Nothing -> return x
-          Just fn -> runLuaFilterFunction lua fn x
+          Just fn -> runFilterFunction lua fn x
   case x of
     BlockQuote{}     -> tryFilter "BlockQuote"
     BulletList{}     -> tryFilter "BulletList"
@@ -156,13 +152,13 @@ execInlineLuaFilter lua fnMap x = do
       tryFilter filterFnName =
         case Map.lookup filterFnName fnMap of
           Nothing -> return x
-          Just fn -> runLuaFilterFunction lua fn x
+          Just fn -> runFilterFunction lua fn x
   let tryFilterAlternatives :: [String] -> IO Inline
       tryFilterAlternatives [] = return x
       tryFilterAlternatives (fnName : alternatives) =
         case Map.lookup fnName fnMap of
           Nothing -> tryFilterAlternatives alternatives
-          Just fn -> runLuaFilterFunction lua fn x
+          Just fn -> runFilterFunction lua fn x
   case x of
     Cite{}               -> tryFilter "Cite"
     Code{}               -> tryFilter "Code"
@@ -213,34 +209,28 @@ instance (StackValue a, PushViaFilterFunction b) =>
   pushViaFilterFunction' lua lf pushArgs num x =
     pushViaFilterFunction' lua lf (pushArgs *> push lua x) (num + 1)
 
--- | Push an value to the stack via a lua filter function. The function is
+-- | Push a value to the stack via a lua filter function. The filter function is
 -- called with all arguments that are passed to this function and is expected to
 -- return a single value.
-runLuaFilterFunction :: PushViaFilterFunction a
+runFilterFunction :: PushViaFilterFunction a
                      => LuaState -> LuaFilterFunction -> a
-runLuaFilterFunction lua lf = pushViaFilterFunction' lua lf (return ()) 0
+runFilterFunction lua lf = pushViaFilterFunction' lua lf (return ()) 0
 
 -- | Push the filter function to the top of the stack.
 pushFilterFunction :: Lua.LuaState -> LuaFilterFunction -> IO ()
-pushFilterFunction lua lf = do
+pushFilterFunction lua lf =
   -- The function is stored in a lua registry table, retrieve it from there.
-  push lua ("PANDOC_FILTER_FUNCTIONS"::String)
-  Lua.rawget lua Lua.registryindex
-  Lua.rawgeti lua (-1) (functionIndex lf)
-  Lua.remove lua (-2) -- remove registry table from stack
+  Lua.rawgeti lua Lua.registryindex (functionIndex lf)
+
+registerFilterFunction :: LuaState -> Int -> IO LuaFilterFunction
+registerFilterFunction lua idx = do
+  isFn <- Lua.isfunction lua idx
+  unless isFn . throwIO . LuaException $ "Not a function at index " ++ show idx
+  Lua.pushvalue lua idx
+  refIdx <- Lua.ref lua Lua.registryindex
+  return $ LuaFilterFunction refIdx
 
 instance StackValue LuaFilterFunction where
   valuetype _ = Lua.TFUNCTION
   push = pushFilterFunction
-  peek lua i = do
-    isFn <- Lua.isfunction lua i
-    unless isFn .
-      throwIO . LuaException $ "Not a function at index " ++ show i
-    Lua.pushvalue lua i
-    push lua ("PANDOC_FILTER_FUNCTIONS"::String)
-    Lua.rawget lua Lua.registryindex
-    len <- Lua.objlen lua (-1)
-    Lua.insert lua (-2)
-    Lua.rawseti lua (-2) (len + 1)
-    Lua.pop lua 1
-    return . Just $ LuaFilterFunction (len + 1)
+  peek = fmap (fmap Just) . registerFilterFunction
