@@ -46,7 +46,7 @@ import Text.Pandoc.Walk
 import qualified Data.Map as Map
 import qualified Scripting.Lua as Lua
 
-data LuaException = LuaException String
+newtype LuaException = LuaException String
   deriving (Show, Typeable)
 
 instance Exception LuaException
@@ -65,7 +65,7 @@ runLuaFilter filterPath args pd = liftIO $ do
   Lua.setglobal lua "pandoc"
   top <- Lua.gettop lua
   status <- Lua.loadfile lua filterPath
-  if (status /= 0)
+  if status /= 0
     then do
       Just luaErrMsg <- Lua.peek lua 1
       throwIO (LuaException luaErrMsg)
@@ -89,8 +89,7 @@ pushGlobalFilter lua =
   *> Lua.rawseti lua (-2) 1
 
 runAll :: [LuaFilter] -> Pandoc -> IO Pandoc
-runAll []     = return
-runAll (x:xs) = walkMWithLuaFilter x >=> runAll xs
+runAll = foldr ((>=>) . walkMWithLuaFilter) return
 
 walkMWithLuaFilter :: LuaFilter -> Pandoc -> IO Pandoc
 walkMWithLuaFilter (LuaFilter lua fnMap) =
@@ -134,20 +133,20 @@ execBlockLuaFilter lua fnMap x = do
           Nothing -> return x
           Just fn -> runLuaFilterFunction lua fn x
   case x of
-    BlockQuote _     -> tryFilter "BlockQuote"
-    BulletList _     -> tryFilter "BulletList"
-    CodeBlock _ _    -> tryFilter "CodeBlock"
-    DefinitionList _ -> tryFilter "DefinitionList"
-    Div _ _          -> tryFilter "Div"
-    Header _ _ _     -> tryFilter "Header"
+    BlockQuote{}     -> tryFilter "BlockQuote"
+    BulletList{}     -> tryFilter "BulletList"
+    CodeBlock{}      -> tryFilter "CodeBlock"
+    DefinitionList{} -> tryFilter "DefinitionList"
+    Div{}            -> tryFilter "Div"
+    Header{}         -> tryFilter "Header"
     HorizontalRule   -> tryFilter "HorizontalRule"
-    LineBlock _      -> tryFilter "LineBlock"
+    LineBlock{}      -> tryFilter "LineBlock"
     Null             -> tryFilter "Null"
-    Para _           -> tryFilter "Para"
-    Plain _          -> tryFilter "Plain"
-    RawBlock _ _     -> tryFilter "RawBlock"
-    OrderedList _ _  -> tryFilter "OrderedList"
-    Table _ _ _ _ _  -> tryFilter "Table"
+    Para{}           -> tryFilter "Para"
+    Plain{}          -> tryFilter "Plain"
+    RawBlock{}       -> tryFilter "RawBlock"
+    OrderedList{}    -> tryFilter "OrderedList"
+    Table{}          -> tryFilter "Table"
 
 execInlineLuaFilter :: LuaState
                     -> FunctionMap
@@ -165,27 +164,27 @@ execInlineLuaFilter lua fnMap x = do
           Nothing -> tryFilterAlternatives alternatives
           Just fn -> runLuaFilterFunction lua fn x
   case x of
-    Cite _ _             -> tryFilter "Cite"
-    Code _ _             -> tryFilter "Code"
-    Emph _               -> tryFilter "Emph"
-    Image _ _ _          -> tryFilter "Image"
+    Cite{}               -> tryFilter "Cite"
+    Code{}               -> tryFilter "Code"
+    Emph{}               -> tryFilter "Emph"
+    Image{}              -> tryFilter "Image"
     LineBreak            -> tryFilter "LineBreak"
-    Link _ _ _           -> tryFilter "Link"
+    Link{}               -> tryFilter "Link"
     Math DisplayMath _   -> tryFilterAlternatives ["DisplayMath", "Math"]
     Math InlineMath _    -> tryFilterAlternatives ["InlineMath", "Math"]
-    Note _               -> tryFilter "Note"
+    Note{}               -> tryFilter "Note"
     Quoted DoubleQuote _ -> tryFilterAlternatives ["DoubleQuoted", "Quoted"]
     Quoted SingleQuote _ -> tryFilterAlternatives ["SingleQuoted", "Quoted"]
-    RawInline _ _        -> tryFilter "RawInline"
-    SmallCaps _          -> tryFilter "SmallCaps"
+    RawInline{}          -> tryFilter "RawInline"
+    SmallCaps{}          -> tryFilter "SmallCaps"
     SoftBreak            -> tryFilter "SoftBreak"
     Space                -> tryFilter "Space"
-    Span _ _             -> tryFilter "Span"
-    Str _                -> tryFilter "Str"
-    Strikeout _          -> tryFilter "Strikeout"
-    Strong _             -> tryFilter "Strong"
-    Subscript _          -> tryFilter "Subscript"
-    Superscript _        -> tryFilter "Superscript"
+    Span{}               -> tryFilter "Span"
+    Str{}                -> tryFilter "Str"
+    Strikeout{}          -> tryFilter "Strikeout"
+    Strong{}             -> tryFilter "Strong"
+    Subscript{}          -> tryFilter "Subscript"
+    Superscript{}        -> tryFilter "Superscript"
 
 instance StackValue LuaFilter where
   valuetype _ = Lua.TTABLE
@@ -232,11 +231,11 @@ pushFilterFunction lua lf = do
 
 instance StackValue LuaFilterFunction where
   valuetype _ = Lua.TFUNCTION
-  push lua v = pushFilterFunction lua v
+  push = pushFilterFunction
   peek lua i = do
     isFn <- Lua.isfunction lua i
-    unless isFn (throwIO $ LuaException $
-        "Not a function at index " ++ (show i))
+    unless isFn .
+      throwIO . LuaException $ "Not a function at index " ++ show i
     Lua.pushvalue lua i
     push lua ("PANDOC_FILTER_FUNCTIONS"::String)
     Lua.rawget lua Lua.registryindex
