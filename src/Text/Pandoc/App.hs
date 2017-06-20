@@ -520,7 +520,8 @@ externalFilter f args' d = liftIO $ do
   (exitcode, outbs) <- E.handle filterException $
                               pipeProcess env' f' args'' $ encode d
   case exitcode of
-       ExitSuccess    -> return $ either error id $ eitherDecode' outbs
+       ExitSuccess    -> either (E.throwIO . PandocFilterError f)
+                                   return $ eitherDecode' outbs
        ExitFailure ec -> E.throwIO $ PandocFilterError f
                            ("Filter returned error status " ++ show ec)
  where filterException :: E.SomeException -> IO a
@@ -978,7 +979,7 @@ options =
                      templ <- getDefaultTemplate Nothing arg
                      case templ of
                           Right t -> UTF8.hPutStr stdout t
-                          Left e  -> error $ show e
+                          Left e  -> E.throwIO $ PandocAppError (show e)
                      exitSuccess)
                   "FORMAT")
                  "" -- "Print default template for FORMAT"
