@@ -203,8 +203,10 @@ blockToJATS opts (Div (ident,_,kvs) bs) = do
              [(k,v) | (k,v) <- kvs, k `elem` ["specific-use",
                  "content-type", "orientation", "position"]]
   return $ inTags True "boxed-text" attr contents
-blockToJATS _ (Header _ _ _) =
-  return empty -- should not occur after hierarchicalize
+blockToJATS _ h@(Header _ _ _) = do
+  -- should not occur after hierarchicalize, except inside lists/blockquotes
+  report $ BlockNotRendered h
+  return empty
 -- No Plain, everything needs to be in a block-level tag
 blockToJATS opts (Plain lst) = blockToJATS opts (Para lst)
 -- title beginning with fig: indicates that the image is a figure

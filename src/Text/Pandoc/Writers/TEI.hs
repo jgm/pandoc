@@ -159,11 +159,13 @@ blockToTEI opts (Div (ident,_,_) [Para lst]) = do
   let attribs = [("id", ident) | not (null ident)]
   inTags False "p" attribs <$> inlinesToTEI opts lst
 blockToTEI opts (Div _ bs) = blocksToTEI opts $ map plainToPara bs
-blockToTEI _ (Header _ _ _) = return empty
--- should not occur after hierarchicalize
+blockToTEI _ h@(Header _ _ _) = do
+  -- should not occur after hierarchicalize, except inside lists/blockquotes
+  report $ BlockNotRendered h
+  return empty
 -- For TEI simple, text must be within containing block element, so
--- we use plainToPara to ensure that Plain text ends up contained by
--- something.
+-- we use treat as Para to ensure that Plain text ends up contained by
+-- something:
 blockToTEI opts (Plain lst) = blockToTEI opts $ Para lst
 -- title beginning with fig: indicates that the image is a figure
 --blockToTEI opts (Para [Image attr txt (src,'f':'i':'g':':':_)]) =
