@@ -33,20 +33,20 @@ A simple templating system with variable substitution and conditionals.
 
 -}
 
-module Text.Pandoc.Templates ( renderTemplate
+module Text.Pandoc.Templates ( module Text.DocTemplates
                              , renderTemplate'
-                             , TemplateTarget
-                             , varListToJSON
-                             , compileTemplate
-                             , Template
-                             , getDefaultTemplate ) where
+                             , getDefaultTemplate
+                             ) where
 
 import qualified Control.Exception as E (IOException, try)
+import Control.Monad.Except (throwError)
 import Data.Aeson (ToJSON (..))
 import qualified Data.Text as T
 import System.FilePath ((<.>), (</>))
 import Text.DocTemplates (Template, TemplateTarget, applyTemplate,
                           compileTemplate, renderTemplate, varListToJSON)
+import Text.Pandoc.Class (PandocMonad)
+import Text.Pandoc.Error
 import Text.Pandoc.Shared (readDataFileUTF8)
 
 -- | Get default template for the specified writer.
@@ -72,7 +72,11 @@ getDefaultTemplate user writer = do
        _        -> let fname = "templates" </> "default" <.> format
                    in  E.try $ readDataFileUTF8 user fname
 
--- | Like 'applyTemplate', but raising an error if compilation fails.
-renderTemplate' :: (ToJSON a, TemplateTarget b) => String -> a -> b
-renderTemplate' template = either error id . applyTemplate (T.pack template)
-
+-- | Like 'applyTemplate', but runs in PandocMonad and
+-- raises an error if compilation fails.
+renderTemplate' :: (PandocMonad m, ToJSON a, TemplateTarget b)
+                => String -> a -> m b
+renderTemplate' template context = do
+  case applyTemplate (T.pack template) context of
+       Left e  -> throwError (PandocTemplateError e)
+       Right r -> return r
