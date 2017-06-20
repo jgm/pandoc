@@ -54,7 +54,6 @@ import qualified Text.XML.Light.Cursor as XC
 import Text.Pandoc.Class (PandocMonad, report)
 import qualified Text.Pandoc.Class as P
 import Text.Pandoc.Definition
-import Text.Pandoc.Error
 import Text.Pandoc.Logging
 import Text.Pandoc.Options (HTMLMathMethod (..), WriterOptions (..), def)
 import Text.Pandoc.Shared (capitalize, isHeaderBlock, isURI, linesToPara,
