@@ -46,6 +46,7 @@ import Data.Typeable
 import GHC.IO.Encoding (getForeignEncoding, setForeignEncoding, utf8)
 import Scripting.Lua (LuaState, StackValue, callfunc)
 import qualified Scripting.Lua as Lua
+import Text.Pandoc.Error
 import Text.Pandoc.Lua.Compat ( loadstring )
 import Text.Pandoc.Lua.Util ( addValue )
 import Text.Pandoc.Lua.SharedInstances ()
@@ -141,8 +142,10 @@ writeCustom luaFile opts doc@(Pandoc meta _) = do
   let body = rendered
   case writerTemplate opts of
        Nothing  -> return $ pack body
-       Just tpl -> return $ pack $
-                     renderTemplate' tpl $ setField "body" body context
+       Just tpl ->
+         case applyTemplate (pack tpl) $ setField "body" body context of
+              Left e  -> throw (PandocTemplateError e)
+              Right r -> return (pack r)
 
 docToCustom :: LuaState -> WriterOptions -> Pandoc -> IO String
 docToCustom lua opts (Pandoc (Meta metamap) blocks) = do

@@ -58,9 +58,9 @@ writeCommonMark opts (Pandoc meta blocks) = do
               (inlinesToCommonMark opts)
               meta
   let context = defField "body" main $ metadata
-  return $ case writerTemplate opts of
-             Nothing  -> main
-             Just tpl -> renderTemplate' tpl context
+  case writerTemplate opts of
+       Nothing  -> return main
+       Just tpl -> renderTemplate' tpl context
 
 processNotes :: Inline -> State [[Block]] Inline
 processNotes (Note bs) = do

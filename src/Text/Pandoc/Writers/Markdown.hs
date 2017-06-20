@@ -228,7 +228,7 @@ pandocToMarkdown opts (Pandoc meta blocks) = do
                $ addVariablesToJSON opts metadata
   case writerTemplate opts of
        Nothing  -> return main
-       Just tpl -> return $ renderTemplate' tpl context
+       Just tpl -> renderTemplate' tpl context
 
 -- | Return markdown representation of reference key table.
 refsToMarkdown :: PandocMonad m => WriterOptions -> Refs -> MD m Doc

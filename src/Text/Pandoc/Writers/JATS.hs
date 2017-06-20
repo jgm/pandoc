@@ -128,9 +128,9 @@ docToJATS opts (Pandoc meta blocks) = do
                                         MathML -> True
                                         _      -> False)
               $ metadata
-  return $ case writerTemplate opts of
-           Nothing  -> main
-           Just tpl -> renderTemplate' tpl context
+  case writerTemplate opts of
+       Nothing  -> return main
+       Just tpl -> renderTemplate' tpl context
 
 -- | Convert an Element to JATS.
 elementToJATS :: PandocMonad m => WriterOptions -> Int -> Element -> DB m Doc

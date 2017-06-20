@@ -147,9 +147,9 @@ writeICML opts (Pandoc meta blocks) = do
               $ defField "parStyles"  (render' $ parStylesToDoc st)
               $ defField "hyperlinks" (render' $ hyperlinksToDoc $ links st)
               $ metadata
-  return $ case writerTemplate opts of
-                Nothing  -> main
-                Just tpl -> renderTemplate' tpl context
+  case writerTemplate opts of
+       Nothing  -> return main
+       Just tpl -> renderTemplate' tpl context
 
 -- | Auxilary functions for parStylesToDoc and charStylesToDoc.
 contains :: String -> (String, (String, String)) -> [(String, String)]

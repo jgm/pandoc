@@ -108,7 +108,7 @@ pandocToRST (Pandoc meta blocks) = do
               $ metadata
   case writerTemplate opts of
        Nothing  -> return main
-       Just tpl -> return $ renderTemplate' tpl context
+       Just tpl -> renderTemplate' tpl context
   where
     normalizeHeadings lev (Header l a i:bs) =
       Header lev a i:normalizeHeadings (lev+1) cont ++ normalizeHeadings lev bs'

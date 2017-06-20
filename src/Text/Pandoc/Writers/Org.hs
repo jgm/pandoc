@@ -86,7 +86,7 @@ pandocToOrg (Pandoc meta blocks) = do
               $ metadata
   case writerTemplate opts of
        Nothing  -> return main
-       Just tpl -> return $ renderTemplate' tpl context
+       Just tpl -> renderTemplate' tpl context
 
 -- | Return Org representation of notes.
 notesToOrg :: PandocMonad m => [[Block]] -> Org m Doc

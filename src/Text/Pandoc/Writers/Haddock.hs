@@ -80,7 +80,7 @@ pandocToHaddock opts (Pandoc meta blocks) = do
                $ metadata
   case writerTemplate opts of
           Nothing  -> return main
-          Just tpl -> return $ renderTemplate' tpl context
+          Just tpl -> renderTemplate' tpl context
 
 -- | Return haddock representation of notes.
 notesToHaddock :: PandocMonad m

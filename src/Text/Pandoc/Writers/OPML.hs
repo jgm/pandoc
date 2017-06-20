@@ -60,9 +60,9 @@ writeOPML opts (Pandoc meta blocks) = do
               meta'
   main <- (render colwidth . vcat) <$> (mapM (elementToOPML opts) elements)
   let context = defField "body" main metadata
-  return $ case writerTemplate opts of
-             Nothing  -> main
-             Just tpl -> renderTemplate' tpl context
+  case writerTemplate opts of
+       Nothing  -> return main
+       Just tpl -> renderTemplate' tpl context
 
 
 writeHtmlInlines :: PandocMonad m => [Inline] -> m Text

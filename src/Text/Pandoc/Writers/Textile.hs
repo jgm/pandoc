@@ -75,7 +75,7 @@ pandocToTextile opts (Pandoc meta blocks) = do
   let context = defField "body" main metadata
   case writerTemplate opts of
          Nothing  -> return main
-         Just tpl -> return $ renderTemplate' tpl context
+         Just tpl -> renderTemplate' tpl context
 
 withUseTags :: PandocMonad m => TW m a -> TW m a
 withUseTags action = do

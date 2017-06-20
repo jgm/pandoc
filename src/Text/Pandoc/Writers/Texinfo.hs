@@ -106,7 +106,7 @@ pandocToTexinfo options (Pandoc meta blocks) = do
               $ metadata
   case writerTemplate options of
        Nothing  -> return body
-       Just tpl -> return $ renderTemplate' tpl context
+       Just tpl -> renderTemplate' tpl context
 
 -- | Escape things as needed for Texinfo.
 stringToTexinfo :: String -> String

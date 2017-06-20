@@ -125,10 +125,11 @@ writeRTF options doc = do
                     then defField "toc" toc
                     else id)
               $ metadata
-  return $ T.pack
-         $ case writerTemplate options of
+  T.pack <$>
+      case writerTemplate options of
            Just tpl -> renderTemplate' tpl context
-           Nothing  -> case reverse body of
+           Nothing  -> return $
+                       case reverse body of
                             ('\n':_) -> body
                             _        -> body ++ "\n"
 

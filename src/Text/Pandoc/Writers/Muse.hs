@@ -101,7 +101,7 @@ pandocToMuse (Pandoc meta blocks) = do
               $ metadata
   case writerTemplate opts of
        Nothing  -> return main
-       Just tpl -> return $ renderTemplate' tpl context
+       Just tpl -> renderTemplate' tpl context
 
 -- | Convert list of Pandoc block elements to Muse.
 blockListToMuse :: PandocMonad m

@@ -78,7 +78,7 @@ pandocToZimWiki opts (Pandoc meta blocks) = do
                 $ defField "toc" (writerTableOfContents opts)
                 $ metadata
   case writerTemplate opts of
-       Just tpl -> return $ renderTemplate' tpl context
+       Just tpl -> renderTemplate' tpl context
        Nothing  -> return main
 
 -- | Escape special characters for ZimWiki.

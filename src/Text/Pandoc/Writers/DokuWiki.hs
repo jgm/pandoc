@@ -103,7 +103,7 @@ pandocToDokuWiki opts (Pandoc meta blocks) = do
                 $ metadata
   case writerTemplate opts of
        Nothing  -> return main
-       Just tpl -> return $ renderTemplate' tpl context
+       Just tpl -> renderTemplate' tpl context
 
 -- | Escape special characters for DokuWiki.
 escapeString :: String -> String

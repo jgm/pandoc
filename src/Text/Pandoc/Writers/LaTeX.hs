@@ -285,9 +285,9 @@ pandocToLaTeX options (Pandoc meta blocks) = do
                                       Just "rtl" -> True
                                       _          -> False)
         $ context
-  return $ case writerTemplate options of
-                Nothing  -> main
-                Just tpl -> renderTemplate' tpl context'
+  case writerTemplate options of
+       Nothing  -> return main
+       Just tpl -> renderTemplate' tpl context'
 
 -- | Convert Elements to LaTeX
 elementToLaTeX :: PandocMonad m => WriterOptions -> Element -> LW m Doc

@@ -221,9 +221,9 @@ writeOpenDocument opts (Pandoc meta blocks) = do
   let context = defField "body" body
               $ defField "automatic-styles" (render' automaticStyles)
               $ metadata
-  return $ case writerTemplate opts of
-                Nothing  -> body
-                Just tpl -> renderTemplate' tpl context
+  case writerTemplate opts of
+       Nothing  -> return body
+       Just tpl -> renderTemplate' tpl context
 
 withParagraphStyle :: PandocMonad m
                    => WriterOptions -> String -> [Block] -> OD m Doc

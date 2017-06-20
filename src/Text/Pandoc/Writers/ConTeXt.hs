@@ -105,9 +105,9 @@ pandocToConTeXt options (Pandoc meta blocks) = do
                     getField "lang" context)
                 $ defField "context-dir" (toContextDir $ getField "dir" context)
                 $ context
-  return $ case writerTemplate options of
-                Nothing  -> main
-                Just tpl -> renderTemplate' tpl context'
+  case writerTemplate options of
+       Nothing  -> return main
+       Just tpl -> renderTemplate' tpl context'
 
 toContextDir :: Maybe String -> String
 toContextDir (Just "rtl") = "r2l"
