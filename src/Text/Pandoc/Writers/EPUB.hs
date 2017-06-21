@@ -80,6 +80,7 @@ data Chapter = Chapter (Maybe [Int]) [Block]
 
 data EPUBState = EPUBState {
         stMediaPaths  :: [(FilePath, (FilePath, Maybe Entry))]
+      , stEPUBSubdir  :: String
       }
 
 type E m = StateT EPUBState m
@@ -362,6 +363,7 @@ writeEPUB :: PandocMonad m
           -> m B.ByteString
 writeEPUB epubVersion opts doc =
   let initState = EPUBState { stMediaPaths = []
+                            , stEPUBSubdir = "EPUB"
                             }
   in
     evalStateT (pandocToEPUB epubVersion opts doc)
@@ -373,6 +375,7 @@ pandocToEPUB :: PandocMonad m
              -> Pandoc
              -> E m B.ByteString
 pandocToEPUB version opts doc@(Pandoc meta _) = do
+  epubSubdir <- gets stEPUBSubdir
   let epub3 = version == EPUB3
   let writeHtml o = fmap (UTF8.fromTextLazy . TL.fromStrict) .
                       writeHtmlStringForEPUB version o
@@ -383,10 +386,11 @@ pandocToEPUB version opts doc@(Pandoc meta _) = do
   -- stylesheet
   stylesheets <- case epubStylesheets metadata of
                       [] -> (\x -> [B.fromChunks [x]]) <$>
-                             P.readDataFile (writerUserDataDir opts) "epub.css"
+                             P.readDataFile (writerUserDataDir opts)
+                             "epub.css"
                       fs -> mapM P.readFileLazy fs
   let stylesheetEntries = zipWith
-        (\bs n -> mkEntry ("stylesheet" ++ show n ++ ".css") bs)
+        (\bs n -> mkEntry ("styles/stylesheet" ++ show n ++ ".css") bs)
         stylesheets [(1 :: Int)..]
 
   let vars = ("epub3", if epub3 then "true" else "false")
@@ -431,7 +435,8 @@ pandocToEPUB version opts doc@(Pandoc meta _) = do
         when (null xs) $
           report $ CouldNotFetchResource f "glob did not match any font files"
         return xs
-  let mkFontEntry f = mkEntry (takeFileName f) `fmap` (lift $ P.readFileLazy f)
+  let mkFontEntry f = mkEntry ("fonts/" ++ takeFileName f) <$>
+                        lift (P.readFileLazy f)
   fontFiles <- concat <$> mapM matchingGlob (writerEpubFonts opts')
   fontEntries <- mapM mkFontEntry fontFiles
 
@@ -728,7 +733,8 @@ pandocToEPUB version opts doc@(Pandoc meta _) = do
        unode "container" ! [("version","1.0")
               ,("xmlns","urn:oasis:names:tc:opendocument:xmlns:container")] $
          unode "rootfiles" $
-           unode "rootfile" ! [("full-path","content.opf")
+           unode "rootfile" ! [("full-path",
+               epubSubdir ++ ['/' | not (null epubSubdir)] ++ "content.opf")
                ,("media-type","application/oebps-package+xml")] $ ()
   let containerEntry = mkEntry "META-INF/container.xml" containerData
 
@@ -739,10 +745,14 @@ pandocToEPUB version opts doc@(Pandoc meta _) = do
             unode "option" ! [("name","specified-fonts")] $ "true"
   let appleEntry = mkEntry "META-INF/com.apple.ibooks.display-options.xml" apple
 
+  let addEpubSubdir :: Entry -> Entry
+      addEpubSubdir e = e{ eRelativePath =
+        epubSubdir ++ ['/' | not (null epubSubdir)] ++ eRelativePath e }
   -- construct archive
-  let archive = foldr addEntryToArchive emptyArchive
-                 (mimetypeEntry : containerEntry : appleEntry : tpEntry :
-                  contentsEntry : tocEntry : navEntry :
+  let archive = foldr addEntryToArchive emptyArchive $
+                 [mimetypeEntry, containerEntry, appleEntry] ++
+                 map addEpubSubdir
+                 (tpEntry : contentsEntry : tocEntry : navEntry :
                   (stylesheetEntries ++ picEntries ++ cpicEntry ++
                    cpgEntry ++ chapterEntries ++ fontEntries))
   return $ fromArchive archive
@@ -878,15 +888,16 @@ modifyMediaRef :: PandocMonad m
 modifyMediaRef _ "" = return ""
 modifyMediaRef opts oldsrc = do
   media <- gets stMediaPaths
+  epubSubdir <- gets stEPUBSubdir
   case lookup oldsrc media of
          Just (n,_) -> return n
          Nothing    -> catchError
            (do (img, mbMime) <- P.fetchItem (writerSourceURL opts) oldsrc
                let new = "media/file" ++ show (length media) ++
-                    fromMaybe (takeExtension (takeWhile (/='?') oldsrc))
-                      (('.':) <$> (mbMime >>= extensionFromMimeType))
+                          fromMaybe (takeExtension (takeWhile (/='?') oldsrc))
+                          (('.':) <$> (mbMime >>= extensionFromMimeType))
                epochtime <- floor `fmap` lift P.getPOSIXTime
-               let entry = toEntry new epochtime $ B.fromChunks . (:[]) $ img
+               let entry = toEntry new epochtime (B.fromChunks . (:[]) $ img)
                modify $ \st -> st{ stMediaPaths =
                             (oldsrc, (new, Just entry)):media}
                return new)
@@ -952,7 +963,7 @@ mediaTypeOf x =
 
 -- Returns filename for chapter number.
 showChapter :: Int -> String
-showChapter = printf "ch%03d.xhtml"
+showChapter = printf "text/ch%03d.xhtml"
 
 -- Add identifiers to any headers without them.
 addIdentifiers :: [Block] -> [Block]
