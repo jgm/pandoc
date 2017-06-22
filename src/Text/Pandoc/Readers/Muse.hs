@@ -442,8 +442,7 @@ tableParseCaption = try $ do
 --
 
 inline :: PandocMonad m => MuseParser m (F Inlines)
-inline = choice [ whitespace
-                , br
+inline = choice [ br
                 , footnote
                 , strong
                 , strongTag
@@ -455,6 +454,7 @@ inline = choice [ whitespace
                 , link
                 , code
                 , codeTag
+                , whitespace
                 , str
                 , symbol
                 ] <?> "inline"
@@ -535,7 +535,14 @@ strikeoutTag :: PandocMonad m => MuseParser m (F Inlines)
 strikeoutTag = inlineTag B.strikeout "del"
 
 code :: PandocMonad m => MuseParser m (F Inlines)
-code = return . B.code <$> verbatimBetween '='
+code = try $ do
+  pos <- getPosition
+  sp <- if sourceColumn pos == 1
+          then pure mempty
+          else skipMany1 spaceChar >> pure B.space
+  cd <- verbatimBetween '='
+  notFollowedBy nonspaceChar
+  return $ return (sp B.<> B.code cd)
 
 codeTag :: PandocMonad m => MuseParser m (F Inlines)
 codeTag = do
