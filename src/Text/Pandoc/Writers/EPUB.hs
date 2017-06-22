@@ -394,7 +394,7 @@ pandocToEPUB version opts doc@(Pandoc meta _) = do
         stylesheets [(1 :: Int)..]
 
   let vars = ("epub3", if epub3 then "true" else "false")
-           : map (\e -> ("css", eRelativePath e)) stylesheetEntries
+           : map (\e -> ("css", "../" ++ eRelativePath e)) stylesheetEntries
            ++ [(x,y) | (x,y) <- writerVariables opts, x /= "css"]
   let opts' = opts{ writerEmailObfuscation = NoObfuscation
                   , writerSectionDivs = True
@@ -521,7 +521,7 @@ pandocToEPUB version opts doc@(Pandoc meta _) = do
                  chapters'
 
   let chapToEntry num (Chapter mbnum bs) =
-       mkEntry (showChapter num) <$>
+       mkEntry ("text/" ++ showChapter num) <$>
         (writeHtml opts'{ writerNumberOffset = fromMaybe [] mbnum }
          $ case bs of
              (Header _ _ xs : _) ->
@@ -888,7 +888,6 @@ modifyMediaRef :: PandocMonad m
 modifyMediaRef _ "" = return ""
 modifyMediaRef opts oldsrc = do
   media <- gets stMediaPaths
-  let epubSubdir = writerEpubSubdirectory opts
   case lookup oldsrc media of
          Just (n,_) -> return n
          Nothing    -> catchError
@@ -924,12 +923,13 @@ transformInline  :: PandocMonad m
                  -> E m Inline
 transformInline opts (Image attr lab (src,tit)) = do
     newsrc <- modifyMediaRef opts src
-    return $ Image attr lab (newsrc, tit)
+    return $ Image attr lab ("../" ++ newsrc, tit)
 transformInline opts (x@(Math t m))
   | WebTeX url <- writerHTMLMathMethod opts = do
     newsrc <- modifyMediaRef opts (url ++ urlEncode m)
     let mathclass = if t == DisplayMath then "display" else "inline"
-    return $ Span ("",["math",mathclass],[]) [Image nullAttr [x] (newsrc, "")]
+    return $ Span ("",["math",mathclass],[])
+                [Image nullAttr [x] ("../" ++ newsrc, "")]
 transformInline opts (RawInline fmt raw)
   | fmt == Format "html" = do
   let tags = parseTags raw
@@ -963,7 +963,7 @@ mediaTypeOf x =
 
 -- Returns filename for chapter number.
 showChapter :: Int -> String
-showChapter = printf "text/ch%03d.xhtml"
+showChapter = printf "ch%03d.xhtml"
 
 -- Add identifiers to any headers without them.
 addIdentifiers :: [Block] -> [Block]
