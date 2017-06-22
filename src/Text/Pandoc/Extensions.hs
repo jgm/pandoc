@@ -94,6 +94,7 @@ data Extension =
     | Ext_fenced_code_attributes  -- ^ Allow attributes on fenced code blocks
     | Ext_backtick_code_blocks    -- ^ GitHub style ``` code blocks
     | Ext_inline_code_attributes  -- ^ Allow attributes on inline code
+    | Ext_raw_attribute           -- ^ Allow explicit raw blocks/inlines
     | Ext_markdown_in_html_blocks -- ^ Interpret as markdown inside HTML blocks
     | Ext_native_divs             -- ^ Use Div blocks for contents of <div> tags
     | Ext_native_spans            -- ^ Use Span inlines for contents of <span>
@@ -162,6 +163,7 @@ pandocExtensions = extensionsFromList
   , Ext_fenced_code_attributes
   , Ext_backtick_code_blocks
   , Ext_inline_code_attributes
+  , Ext_raw_attribute
   , Ext_markdown_in_html_blocks
   , Ext_native_divs
   , Ext_native_spans
@@ -275,6 +277,8 @@ multimarkdownExtensions = extensionsFromList
   , Ext_subscript
   , Ext_backtick_code_blocks
   , Ext_spaced_reference_links
+  -- So far only in dev version of mmd:
+  , Ext_raw_attribute
   ]
 
 -- | Language extensions to be used with strict markdown.

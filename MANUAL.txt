@@ -3033,9 +3033,6 @@ For the most part this should give the same output as `raw_html`,
 but it makes it easier to write pandoc filters to manipulate groups
 of inlines.
 
-Raw TeX
--------
-
 #### Extension: `raw_tex` ####
 
 In addition to raw HTML, pandoc allows raw LaTeX, TeX, and ConTeXt to be
@@ -3059,6 +3056,30 @@ LaTeX, not as Markdown.
 
 Inline LaTeX is ignored in output formats other than Markdown, LaTeX,
 Emacs Org mode, and ConTeXt.
+
+### Generic raw attribute ###
+
+#### Extension: `raw_attribute` ####
+
+Inline spans and fenced code blocks with a special
+kind of attribute will be parsed as raw content with the
+designated format.  For example, the following produces a raw
+groff `ms` block:
+
+    ```{=ms}
+    .MYMACRO
+    blah blah
+    ```
+And the following produces a raw `html` inline element:
+
+    This is `<a>html</a>`{=html}
+
+This extension presupposes that the relevant kind of
+inline code or fenced code block is enabled.  Thus, for
+example, to use a raw attribute with a backtick code block,
+`backtick_code_blocks` must be enabled.
+
+The raw attribute cannot be combined with regular attributes.
 
 LaTeX macros
 ------------

@@ -681,19 +681,36 @@ specialAttr = do
   char '-'
   return $ \(id',cs,kvs) -> (id',cs ++ ["unnumbered"],kvs)
 
+rawAttribute :: PandocMonad m => MarkdownParser m String
+rawAttribute = do
+  char '{'
+  skipMany spaceChar
+  char '='
+  format <- many1 $ satisfy (\c -> isAlphaNum c || c `elem` "-_")
+  skipMany spaceChar
+  char '}'
+  return format
+
 codeBlockFenced :: PandocMonad m => MarkdownParser m (F Blocks)
 codeBlockFenced = try $ do
   c <- try (guardEnabled Ext_fenced_code_blocks >> lookAhead (char '~'))
      <|> (guardEnabled Ext_backtick_code_blocks >> lookAhead (char '`'))
   size <- blockDelimiter (== c) Nothing
   skipMany spaceChar
-  attr <- option ([],[],[]) $
-            try (guardEnabled Ext_fenced_code_attributes >> attributes)
-           <|> ((\x -> ("",[toLanguageId x],[])) <$> many1 nonspaceChar)
+  rawattr <-
+     (Left <$> try (guardEnabled Ext_raw_attribute >> rawAttribute))
+    <|>
+     (Right <$> option ("",[],[])
+         (try (guardEnabled Ext_fenced_code_attributes >> attributes)
+          <|> ((\x -> ("",[toLanguageId x],[])) <$> many1 nonspaceChar)))
   blankline
-  contents <- manyTill anyLine (blockDelimiter (== c) (Just size))
+  contents <- intercalate "\n" <$>
+                 manyTill anyLine (blockDelimiter (== c) (Just size))
   blanklines
-  return $ return $ B.codeBlockWith attr $ intercalate "\n" contents
+  return $ return $
+    case rawattr of
+          Left syn   -> B.rawBlock syn contents
+          Right attr -> B.codeBlockWith attr contents
 
 -- correctly handle github language identifiers
 toLanguageId :: String -> String
@@ -1516,13 +1533,20 @@ code :: PandocMonad m => MarkdownParser m (F Inlines)
 code = try $ do
   starts <- many1 (char '`')
   skipSpaces
-  result <- many1Till (many1 (noneOf "`\n") <|> many1 (char '`') <|>
+  result <- (trim . concat) <$>
+            many1Till (many1 (noneOf "`\n") <|> many1 (char '`') <|>
                        (char '\n' >> notFollowedBy' blankline >> return " "))
                       (try (skipSpaces >> count (length starts) (char '`') >>
                       notFollowedBy (char '`')))
-  attr <- option ([],[],[]) (try $ guardEnabled Ext_inline_code_attributes
-                                   >> attributes)
-  return $ return $ B.codeWith attr $ trim $ concat result
+  rawattr <-
+     (Left <$> try (guardEnabled Ext_raw_attribute >> rawAttribute))
+    <|>
+     (Right <$> option ("",[],[])
+         (try (guardEnabled Ext_inline_code_attributes >> attributes)))
+  return $ return $
+    case rawattr of
+         Left syn   -> B.rawInline syn result
+         Right attr -> B.codeWith attr result
 
 math :: PandocMonad m => MarkdownParser m (F Inlines)
 math =  (return . B.displayMath <$> (mathDisplay >>= applyMacros'))
