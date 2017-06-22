@@ -977,6 +977,12 @@ Options affecting specific writers
     documents with few level 1 headers, one might want to use a chapter
     level of 2 or 3.
 
+`--epub-subdirectory=`*DIRNAME*
+
+:   Specify the subdirectory in the OCF container that is to hold
+    the EPUB-specific contents.  The default is `EPUB`.  To put
+    the EPUB contents in the top level, use an empty string.
+
 `--latex-engine=pdflatex`|`lualatex`|`xelatex`
 
 :   Use the specified LaTeX engine when producing PDF output.

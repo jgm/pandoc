@@ -355,6 +355,7 @@ convertWithOpts opts = do
                             writerSlideLevel       = optSlideLevel opts,
                             writerHighlightStyle   = highlightStyle,
                             writerSetextHeaders    = optSetextHeaders opts,
+                            writerEpubSubdirectory = optEpubSubdirectory opts,
                             writerEpubMetadata     = epubMetadata,
                             writerEpubFonts        = optEpubFonts opts,
                             writerEpubChapterLevel = optEpubChapterLevel opts,
@@ -553,6 +554,7 @@ data Opt = Opt
     , optHTMLMathMethod        :: HTMLMathMethod -- ^ Method to print HTML math
     , optAbbreviations         :: Maybe FilePath -- ^ Path to abbrevs file
     , optReferenceDoc          :: Maybe FilePath -- ^ Path of reference doc
+    , optEpubSubdirectory      :: String -- ^ EPUB subdir in OCF container
     , optEpubMetadata          :: Maybe FilePath   -- ^ EPUB metadata
     , optEpubFonts             :: [FilePath] -- ^ EPUB fonts to embed
     , optEpubChapterLevel      :: Int     -- ^ Header level at which to split chapters
@@ -628,6 +630,7 @@ defaultOpts = Opt
     , optHTMLMathMethod        = PlainMath
     , optAbbreviations         = Nothing
     , optReferenceDoc          = Nothing
+    , optEpubSubdirectory      = "EPUB"
     , optEpubMetadata          = Nothing
     , optEpubFonts             = []
     , optEpubChapterLevel      = 1
@@ -1242,6 +1245,13 @@ options =
                     return opt { optReferenceDoc = Just arg })
                   "FILE")
                  "" -- "Path of custom reference doc"
+
+    , Option "" ["epub-subdirectory"]
+             (ReqArg
+                  (\arg opt ->
+                     return opt { optEpubSubdirectory = arg })
+                  "DIRNAME")
+                 "" -- "Name of subdirectory for epub content in OCF container"
 
     , Option "" ["epub-cover-image"]
                  (ReqArg
