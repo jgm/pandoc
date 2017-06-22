@@ -422,7 +422,7 @@ pandocToEPUB version opts doc@(Pandoc meta _) = do
   tpContent <- lift $ writeHtml opts'{
                                   writerVariables = ("titlepage","true"):vars }
                                (Pandoc meta [])
-  let tpEntry = mkEntry "title_page.xhtml" tpContent
+  let tpEntry = mkEntry "text/title_page.xhtml" tpContent
 
   -- handle pictures
   -- mediaRef <- P.newIORef []
@@ -658,7 +658,7 @@ pandocToEPUB version opts doc@(Pandoc meta _) = do
 
   let tpNode = unode "navPoint" !  [("id", "navPoint-0")] $
                   [ unode "navLabel" $ unode "text" (stringify $ docTitle' meta)
-                  , unode "content" ! [("src","title_page.xhtml")] $ () ]
+                  , unode "content" ! [("src","text/title_page.xhtml")] $ () ]
 
   navMap <- lift $ evalStateT (mapM (navPointNode navMapFormatter) secs) 1
   let tocData = UTF8.fromStringLazy $ ppTopElement $
