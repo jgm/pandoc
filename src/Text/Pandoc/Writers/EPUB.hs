@@ -34,14 +34,14 @@ Conversion of 'Pandoc' documents to EPUB.
 module Text.Pandoc.Writers.EPUB ( writeEPUB2, writeEPUB3 ) where
 import Codec.Archive.Zip (Entry, addEntryToArchive, eRelativePath, emptyArchive,
                           fromArchive, fromEntry, toEntry)
-import Control.Monad (mplus, when, zipWithM)
+import Control.Monad (mplus, when, unless, zipWithM)
 import Control.Monad.Except (catchError, throwError)
 import Control.Monad.State.Strict (State, StateT, evalState, evalStateT, get, gets,
                             lift, modify, put)
 import qualified Data.ByteString.Lazy as B
 import qualified Data.ByteString.Lazy.Char8 as B8
 import qualified Data.Text.Lazy as TL
-import Data.Char (isAlphaNum, isDigit, toLower)
+import Data.Char (isAlphaNum, isDigit, toLower, isAscii)
 import Data.List (intercalate, isInfixOf, isPrefixOf)
 import qualified Data.Map as M
 import Data.Maybe (catMaybes, fromMaybe)
@@ -80,7 +80,6 @@ data Chapter = Chapter (Maybe [Int]) [Block]
 
 data EPUBState = EPUBState {
         stMediaPaths  :: [(FilePath, (FilePath, Maybe Entry))]
-      , stEPUBSubdir  :: String
       }
 
 type E m = StateT EPUBState m
@@ -362,9 +361,7 @@ writeEPUB :: PandocMonad m
           -> Pandoc         -- ^ Document to convert
           -> m B.ByteString
 writeEPUB epubVersion opts doc =
-  let initState = EPUBState { stMediaPaths = []
-                            , stEPUBSubdir = "EPUB"
-                            }
+  let initState = EPUBState { stMediaPaths = [] }
   in
     evalStateT (pandocToEPUB epubVersion opts doc)
       initState
@@ -375,7 +372,10 @@ pandocToEPUB :: PandocMonad m
              -> Pandoc
              -> E m B.ByteString
 pandocToEPUB version opts doc@(Pandoc meta _) = do
-  epubSubdir <- gets stEPUBSubdir
+  let epubSubdir = writerEpubSubdirectory opts
+  -- sanity check on epubSubdir
+  unless (all (\c -> isAscii c && isAlphaNum c) epubSubdir) $
+    throwError $ PandocEpubSubdirectoryError epubSubdir
   let epub3 = version == EPUB3
   let writeHtml o = fmap (UTF8.fromTextLazy . TL.fromStrict) .
                       writeHtmlStringForEPUB version o
@@ -888,7 +888,7 @@ modifyMediaRef :: PandocMonad m
 modifyMediaRef _ "" = return ""
 modifyMediaRef opts oldsrc = do
   media <- gets stMediaPaths
-  epubSubdir <- gets stEPUBSubdir
+  let epubSubdir = writerEpubSubdirectory opts
   case lookup oldsrc media of
          Just (n,_) -> return n
          Nothing    -> catchError

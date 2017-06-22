@@ -213,6 +213,7 @@ data WriterOptions = WriterOptions
   , writerHighlightStyle    :: Maybe Style  -- ^ Style to use for highlighting
                                            -- (Nothing = no highlighting)
   , writerSetextHeaders     :: Bool       -- ^ Use setext headers for levels 1-2 in markdown
+  , writerEpubSubdirectory  :: String       -- ^ Subdir for epub in OCF
   , writerEpubMetadata      :: Maybe String -- ^ Metadata to include in EPUB
   , writerEpubFonts         :: [FilePath] -- ^ Paths to fonts to embed
   , writerEpubChapterLevel  :: Int            -- ^ Header level for chapters (separate files)
@@ -249,6 +250,7 @@ instance Default WriterOptions where
                       , writerListings         = False
                       , writerHighlightStyle   = Just pygments
                       , writerSetextHeaders    = True
+                      , writerEpubSubdirectory = "EPUB"
                       , writerEpubMetadata     = Nothing
                       , writerEpubFonts        = []
                       , writerEpubChapterLevel = 1

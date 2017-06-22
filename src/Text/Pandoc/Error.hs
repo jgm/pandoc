@@ -63,6 +63,7 @@ data PandocError = PandocIOError String IOError
                  | PandocResourceNotFound String
                  | PandocTemplateError String
                  | PandocAppError String
+                 | PandocEpubSubdirectoryError String
                  deriving (Show, Typeable, Generic)
 
 instance Exception PandocError
@@ -104,6 +105,8 @@ handleError (Left e) =
         "File " ++ fn ++ " not found in resource path"
     PandocTemplateError s -> err 5 s
     PandocAppError s -> err 1 s
+    PandocEpubSubdirectoryError s -> err 31 $
+      "EPUB subdirectory name '" ++ s ++ "' contains illegal characters"
 
 err :: Int -> String -> IO a
 err exitCode msg = do
