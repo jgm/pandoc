@@ -1,5 +1,5 @@
 CGIBIN=/home/website/cgi-bin
-TRYPANDOC=/home/website/html/pandoc/try/
+TRYPANDOC=/home/website/pandoc.org/try/
 CGI=${CGIBIN}/trypandoc
 BIN=/home/jgm/.local/bin/trypandoc
 
