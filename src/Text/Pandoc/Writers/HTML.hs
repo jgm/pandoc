@@ -603,7 +603,8 @@ blockToHtml opts (Para lst)
       contents <- inlineListToHtml opts lst
       return $ H.p contents
   where
-    isEmptyRaw [RawInline f _] = f /= (Format "html")
+    isEmptyRaw [RawInline f _] = f `notElem` [Format "html",
+                                    Format "html4", Format "html5"]
     isEmptyRaw _               = False
 blockToHtml opts (LineBlock lns) =
   if writerWrapText opts == WrapNone
@@ -632,14 +633,17 @@ blockToHtml opts (Div attr@(ident, classes, kvs) bs) = do
                   NoSlides       -> addAttrs opts' attr $ H.div $ contents'
                   _              -> mempty
         else addAttrs opts (ident, classes', kvs) $ divtag $ contents'
-blockToHtml opts (RawBlock f str)
-  | f == Format "html" = return $ preEscapedString str
-  | (f == Format "latex" || f == Format "tex") &&
-     allowsMathEnvironments (writerHTMLMathMethod opts) &&
-     isMathEnvironment str = blockToHtml opts $ Plain [Math DisplayMath str]
-  | otherwise          = do
-      report $ BlockNotRendered (RawBlock f str)
-      return mempty
+blockToHtml opts (RawBlock f str) = do
+  ishtml <- isRawHtml f
+  if ishtml
+     then return $ preEscapedString str
+     else if (f == Format "latex" || f == Format "tex") &&
+             allowsMathEnvironments (writerHTMLMathMethod opts) &&
+             isMathEnvironment str
+             then blockToHtml opts $ Plain [Math DisplayMath str]
+             else do
+               report $ BlockNotRendered (RawBlock f str)
+               return mempty
 blockToHtml _ (HorizontalRule) = do
   html5 <- gets stHtml5
   return $ if html5 then H5.hr else H.hr
@@ -977,11 +981,13 @@ inlineToHtml opts inline = do
               return  $ case t of
                          InlineMath  -> m
                          DisplayMath -> brtag >> m >> brtag
-    (RawInline f str)
-      | f == Format "html" -> return $ preEscapedString str
-      | otherwise          -> do
-          report $ InlineNotRendered inline
-          return mempty
+    (RawInline f str) -> do
+      ishtml <- isRawHtml f
+      if ishtml
+         then return $ preEscapedString str
+         else do
+           report $ InlineNotRendered inline
+           return mempty
     (Link attr txt (s,_)) | "mailto:" `isPrefixOf` s -> do
                         linkText <- inlineListToHtml opts txt
                         lift $ obfuscateLink opts attr linkText s
@@ -1129,3 +1135,9 @@ allowsMathEnvironments (MathJax _) = True
 allowsMathEnvironments (MathML)    = True
 allowsMathEnvironments (WebTeX _)  = True
 allowsMathEnvironments _           = False
+
+isRawHtml :: PandocMonad m => Format -> StateT WriterState m Bool
+isRawHtml f = do
+  html5 <- gets stHtml5
+  return $ f == Format "html" ||
+           ((html5 && f == Format "html5") || f == Format "html4")
