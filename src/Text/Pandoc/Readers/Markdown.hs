@@ -292,18 +292,19 @@ ignorable t = (T.pack "_") `T.isSuffixOf` t
 
 toMetaValue :: PandocMonad m
             => Text -> MarkdownParser m (F MetaValue)
-toMetaValue x = toMeta <$> parseFromString' parseBlocks (T.unpack x)
-  where
-    toMeta p = do
-      p' <- p
-      return $
-        case B.toList p' of
-             [Plain xs]           -> MetaInlines xs
-             [Para xs]
-              | endsWithNewline x -> MetaBlocks [Para xs]
-              | otherwise         -> MetaInlines xs
-             bs                   -> MetaBlocks bs
-    endsWithNewline t = T.pack "\n" `T.isSuffixOf` t
+toMetaValue x =
+  parseFromString' parser' (T.unpack x)
+  where parser' = (asInlines <$> ((trimInlinesF . mconcat)
+                       <$> (guard (not endsWithNewline)
+                             *> manyTill inline eof)))
+                  <|> (asBlocks <$> parseBlocks)
+        asBlocks p = do
+          p' <- p
+          return $ MetaBlocks (B.toList p')
+        asInlines p = do
+          p' <- p
+          return $ MetaInlines (B.toList p')
+        endsWithNewline = T.pack "\n" `T.isSuffixOf` x
 
 yamlToMeta :: PandocMonad m
            => Yaml.Value -> MarkdownParser m (F MetaValue)
