@@ -3074,6 +3074,10 @@ And the following produces a raw `html` inline element:
 
     This is `<a>html</a>`{=html}
 
+The format name should match the target format name (see
+`-t/--to`, above, for a list, or use `pandoc
+--list-output-formats`).
+
 This extension presupposes that the relevant kind of
 inline code or fenced code block is enabled.  Thus, for
 example, to use a raw attribute with a backtick code block,
