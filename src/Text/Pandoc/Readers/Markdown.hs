@@ -305,6 +305,9 @@ toMetaValue x =
           p' <- p
           return $ MetaInlines (B.toList p')
         endsWithNewline = T.pack "\n" `T.isSuffixOf` x
+        -- Note: a standard quoted or unquoted YAML value will
+        -- not end in a newline, but a "block" set off with
+        -- `|` or `>` will.
 
 yamlToMeta :: PandocMonad m
            => Yaml.Value -> MarkdownParser m (F MetaValue)
