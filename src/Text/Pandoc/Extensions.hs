@@ -45,7 +45,7 @@ module Text.Pandoc.Extensions ( Extension(..)
                               , githubMarkdownExtensions
                               , multimarkdownExtensions )
 where
-import Data.Bits (clearBit, setBit, testBit)
+import Data.Bits (clearBit, setBit, testBit, (.|.))
 import Data.Data (Data)
 import Data.Typeable (Typeable)
 import GHC.Generics (Generic)
@@ -54,6 +54,10 @@ import Text.Parsec
 
 newtype Extensions = Extensions Integer
   deriving (Show, Read, Eq, Ord, Data, Typeable, Generic)
+
+instance Monoid Extensions where
+  mempty = Extensions 0
+  mappend (Extensions a) (Extensions b) = Extensions (a .|. b)
 
 extensionsFromList :: [Extension] -> Extensions
 extensionsFromList = foldr enableExtension emptyExtensions
