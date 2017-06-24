@@ -7,7 +7,7 @@ quick:
 	stack install --flag 'pandoc:embed_data_files' --fast --test --test-arguments='-j4 --hide-successes $(TESTARGS)'
 
 full:
-	stack install --flag 'pandoc:embed_data_files' --test --test-arguments='-j4' --pedantic
+	stack install --flag 'pandoc:embed_data_files' --flag 'pandoc:weigh-pandoc' --flag 'pandoc:trypandoc' --bench --no-run-benchmarks --test --test-arguments='-j4 --hide-successes' --ghc-options '-Wall -Werror -fno-warn-unused-do-bind -O0 -j4'
 	stack haddock
 
 # Note:  to accept current results of golden tests,
