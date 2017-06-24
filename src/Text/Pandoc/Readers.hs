@@ -133,20 +133,16 @@ readers = [ ("native"       , TextReader readNative)
            ,("muse"         , TextReader readMuse)
            ]
 
--- | Retrieve reader based on formatSpec (format+extensions).
-getReader :: PandocMonad m => String -> Either String (Reader m)
+-- | Retrieve reader, extensions based on formatSpec (format+extensions).
+getReader :: PandocMonad m => String -> Either String (Reader m, Extensions)
 getReader s =
   case parseFormatSpec s of
        Left e  -> Left $ intercalate "\n" [m | Message m <- errorMessages e]
        Right (readerName, setExts) ->
            case lookup readerName readers of
                    Nothing  -> Left $ "Unknown reader: " ++ readerName
-                   Just  (TextReader r)  -> Right $ TextReader $ \o ->
-                                  r o{ readerExtensions = setExts $
-                                            getDefaultExtensions readerName }
-                   Just (ByteStringReader r) -> Right $ ByteStringReader $ \o ->
-                                  r o{ readerExtensions = setExts $
-                                            getDefaultExtensions readerName }
+                   Just  r  -> Right (r, setExts $
+                                        getDefaultExtensions readerName)
 
 -- | Read pandoc document from JSON format.
 readJSON :: ReaderOptions -> Text -> Either PandocError Pandoc

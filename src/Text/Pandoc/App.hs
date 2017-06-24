@@ -182,11 +182,12 @@ convertWithOpts opts = do
   let msOutput = format == "ms"
 
   -- disabling the custom writer for now
-  writer <- if ".lua" `isSuffixOf` format
+  (writer, writerExts) <-
+            if ".lua" `isSuffixOf` format
                -- note:  use non-lowercased version writerName
                then return (TextWriter
                        (\o d -> liftIO $ writeCustom writerName o d)
-                               :: Writer PandocIO)
+                               :: Writer PandocIO, mempty)
                else case getWriter writerName of
                          Left e  -> E.throwIO $ PandocAppError $
                            if format == "pdf"
@@ -196,12 +197,13 @@ convertWithOpts opts = do
                                "\nand specify an output file with " ++
                                ".pdf extension (-o filename.pdf)."
                               else e
-                         Right w -> return (w :: Writer PandocIO)
+                         Right (w, es) -> return (w :: Writer PandocIO, es)
 
   -- TODO: we have to get the input and the output into the state for
   -- the sake of the text2tags reader.
-  reader <-  case getReader readerName of
-                Right r  -> return (r :: Reader PandocIO)
+  (reader, readerExts) <-
+           case getReader readerName of
+                Right (r, es) -> return (r :: Reader PandocIO, es)
                 Left e   -> E.throwIO $ PandocAppError e'
                   where e' = case readerName of
                                   "pdf" -> e ++
@@ -310,6 +312,7 @@ convertWithOpts opts = do
                          optDefaultImageExtension opts
                       , readerTrackChanges = optTrackChanges opts
                       , readerAbbreviations = abbrevs
+                      , readerExtensions = readerExts
                       }
 
   highlightStyle <- lookupHighlightStyle $ optHighlightStyle opts
@@ -340,6 +343,7 @@ convertWithOpts opts = do
                             writerNumberSections   = optNumberSections opts,
                             writerNumberOffset     = optNumberOffset opts,
                             writerSectionDivs      = optSectionDivs opts,
+                            writerExtensions       = writerExts,
                             writerReferenceLinks   = optReferenceLinks opts,
                             writerReferenceLocation = optReferenceLocation opts,
                             writerDpi              = optDpi opts,

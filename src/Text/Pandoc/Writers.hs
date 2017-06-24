@@ -176,19 +176,16 @@ writers = [
   ,("muse"         , TextWriter writeMuse)
   ]
 
-getWriter :: PandocMonad m => String -> Either String (Writer m)
+-- | Retrieve writer, extensions based on formatSpec (format+extensions).
+getWriter :: PandocMonad m => String -> Either String (Writer m, Extensions)
 getWriter s
   = case parseFormatSpec s of
          Left e  -> Left $ intercalate "\n" [m | Message m <- errorMessages e]
          Right (writerName, setExts) ->
              case lookup writerName writers of
                      Nothing -> Left $ "Unknown writer: " ++ writerName
-                     Just (TextWriter r) -> Right $ TextWriter $
-                             \o -> r o{ writerExtensions = setExts $
-                                              getDefaultExtensions writerName }
-                     Just (ByteStringWriter r) -> Right $ ByteStringWriter $
-                             \o -> r o{ writerExtensions = setExts $
-                                              getDefaultExtensions writerName }
+                     Just r -> Right (r, setExts $
+                                  getDefaultExtensions writerName)
 
 writeJSON :: WriterOptions -> Pandoc -> Text
 writeJSON _ = UTF8.toText . BL.toStrict . encode

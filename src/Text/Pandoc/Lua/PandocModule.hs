@@ -34,6 +34,7 @@ import Data.Text (pack)
 import Scripting.Lua (LuaState, call, push, pushhsfunction, rawset)
 import Text.Pandoc.Class hiding (readDataFile)
 import Text.Pandoc.Definition (Pandoc)
+import Text.Pandoc.Options (ReaderOptions(readerExtensions))
 import Text.Pandoc.Lua.Compat (loadstring)
 import Text.Pandoc.Lua.StackInstances ()
 import Text.Pandoc.Readers (Reader (..), getReader)
@@ -57,10 +58,10 @@ read_doc :: String -> String -> IO (Either String Pandoc)
 read_doc formatSpec content = do
   case getReader formatSpec of
     Left  s      -> return $ Left s
-    Right reader ->
+    Right (reader, es) ->
       case reader of
         TextReader r -> do
-          res <- runIO $ r def (pack content)
+          res <- runIO $ r def{ readerExtensions = es } (pack content)
           case res of
             Left s   -> return . Left $ show s
             Right pd -> return $ Right pd
