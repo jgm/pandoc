@@ -8,6 +8,8 @@ quick:
 
 full:
 	stack install --flag 'pandoc:embed_data_files' --flag 'pandoc:weigh-pandoc' --flag 'pandoc:trypandoc' --bench --no-run-benchmarks --test --test-arguments='-j4 --hide-successes' --ghc-options '-Wall -Werror -fno-warn-unused-do-bind -O0 -j4'
+
+haddock:
 	stack haddock
 
 # Note:  to accept current results of golden tests,
@@ -65,4 +67,4 @@ download_stats:
 clean:
 	stack clean
 
-.PHONY: deps quick full install clean test bench changes_github macospkg dist prof download_stats reformat lint weigh
+.PHONY: deps quick full haddock install clean test bench changes_github macospkg dist prof download_stats reformat lint weigh
