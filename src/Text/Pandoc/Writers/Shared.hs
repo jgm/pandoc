@@ -29,7 +29,8 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 Shared utility functions for pandoc writers.
 -}
 module Text.Pandoc.Writers.Shared (
-                       metaToJSON
+                       getLang
+                     , metaToJSON
                      , metaToJSON'
                      , addVariablesToJSON
                      , getField
@@ -42,7 +43,7 @@ module Text.Pandoc.Writers.Shared (
                      , gridTable
                      )
 where
-import Control.Monad (liftM, zipWithM)
+import Control.Monad (liftM, zipWithM, mplus)
 import Data.Aeson (FromJSON (..), Result (..), ToJSON (..), Value (Object),
                    encode, fromJSON)
 import qualified Data.HashMap.Strict as H
@@ -56,6 +57,16 @@ import Text.Pandoc.Options
 import Text.Pandoc.Pretty
 import Text.Pandoc.UTF8 (toStringLazy)
 import Text.Pandoc.XML (escapeStringForXML)
+
+-- | Get the contents of the `lang` metadata field or variable.
+getLang :: WriterOptions -> Meta -> Maybe String
+getLang opts meta =
+  lookup "lang" (writerVariables opts)
+  `mplus`
+  case lookupMeta "lang" meta of
+       Just (MetaInlines [Str s]) -> Just s
+       Just (MetaString s)        -> Just s
+       _                          -> Nothing
 
 -- | Create JSON value for template from a 'Meta' and an association list
 -- of variables, specified at the command line or in the writer.
