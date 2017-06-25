@@ -36,6 +36,7 @@ import Control.Arrow ((***), (>>>))
 import Control.Monad.State.Strict hiding (when)
 import Data.Char (chr)
 import Data.List (sortBy)
+import Data.Maybe (fromMaybe)
 import Data.Text (Text)
 import qualified Data.Map as Map
 import Data.Ord (comparing)
@@ -45,7 +46,7 @@ import Text.Pandoc.Definition
 import Text.Pandoc.Logging
 import Text.Pandoc.Options
 import Text.Pandoc.Pretty
-import Text.Pandoc.Shared (linesToPara, splitBy)
+import Text.Pandoc.Shared (linesToPara)
 import Text.Pandoc.Templates (renderTemplate')
 import Text.Pandoc.Writers.Math
 import Text.Pandoc.Writers.Shared
@@ -75,8 +76,6 @@ data WriterState =
                 , stTight         :: Bool
                 , stFirstPara     :: Bool
                 , stImageId       :: Int
-                , stLang          :: Maybe String
-                , stCountry       :: Maybe String
                 }
 
 defaultWriterState :: WriterState
@@ -92,8 +91,6 @@ defaultWriterState =
                 , stTight         = False
                 , stFirstPara     = False
                 , stImageId       = 1
-                , stLang          = Nothing
-                , stCountry       = Nothing
                 }
 
 when :: Bool -> Doc -> Doc
@@ -159,10 +156,6 @@ withTextStyle s f = do
 inTextStyle :: PandocMonad m => Doc -> OD m Doc
 inTextStyle d = do
   at <- gets stTextStyleAttr
-  mblang <- gets stLang
-  mbcountry <- gets stCountry
-  let langat = maybe [] (\la -> [("fo:language", la)]) mblang
-  let countryat = maybe [] (\co -> [("fo:country", co)]) mbcountry
   if Set.null at
      then return d
      else do
@@ -177,8 +170,7 @@ inTextStyle d = do
                        [("style:name", styleName)
                        ,("style:family", "text")]
                        $ selfClosingTag "style:text-properties"
-                          (langat ++ countryat ++
-                           concatMap textStyleAttr (Set.toList at)))
+                          (concatMap textStyleAttr (Set.toList at)))
               return $ inTags False
                   "text:span" [("text:style-name",styleName)] d
 
@@ -212,10 +204,8 @@ writeOpenDocument opts (Pandoc meta blocks) = do
                     else Nothing
   let render' :: Doc -> Text
       render' = render colwidth
-  let lang = getLang opts meta
-  (mblang, mbcountry) <- maybe (return (Nothing, Nothing)) splitLang lang
   ((body, metadata),s) <- flip runStateT
-        defaultWriterState{ stLang = mblang, stCountry = mbcountry } $ do
+        defaultWriterState $ do
            m <- metaToJSON opts
                   (fmap render' . blocksToOpenDocument opts)
                   (fmap render' . inlinesToOpenDocument opts)
@@ -619,6 +609,7 @@ paraTableStyles t s (a:xs)
                      , ("style:justify-single-word", "false")]
 
 data TextStyle = Italic | Bold | Strike | Sub | Sup | SmallC | Pre
+                 | Lang String String
                deriving ( Eq,Ord )
 
 textStyleAttr :: TextStyle -> [(String,String)]
@@ -636,15 +627,19 @@ textStyleAttr s
     | Pre    <- s = [("style:font-name"              ,"Courier New")
                     ,("style:font-name-asian"        ,"Courier New")
                     ,("style:font-name-complex"      ,"Courier New")]
+    | Lang lang country <- s
+                  = [("fo:language"                  ,lang)
+                    ,("fo:country"                   ,country)]
     | otherwise   = []
 
 withLangFromAttr :: PandocMonad m => Attr -> OD m a -> OD m a
-withLangFromAttr (_,_,kvs) action = do
-  oldlang <- gets stLang
+withLangFromAttr (_,_,kvs) action =
   case lookup "lang" kvs of
        Nothing -> action
        Just l  -> do
-         modify (\st -> st{ stLang = Just l})
-         result <- action
-         modify (\st -> st{ stLang = oldlang})
-         return result
+         (mblang, mbcountry) <- splitLang l
+         case (mblang, mbcountry) of
+              (Just lang, _) -> withTextStyle
+                                (Lang lang (fromMaybe "" mbcountry))
+                                action
+              _ -> action
