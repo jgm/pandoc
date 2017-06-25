@@ -46,11 +46,12 @@ module Text.Pandoc.Writers.Shared (
                      , gridTable
                      )
 where
-import Control.Monad (liftM, zipWithM, mplus)
+import Control.Monad (liftM, zipWithM, guard)
 import Data.Aeson (FromJSON (..), Result (..), ToJSON (..), Value (Object),
                    encode, fromJSON)
+import Data.Char (isAscii, isLetter, isUpper, isLower)
 import qualified Data.HashMap.Strict as H
-import Data.List (groupBy, intersperse, transpose)
+import Data.List (groupBy, intersperse, transpose, intercalate)
 import qualified Data.Map as M
 import Data.Maybe (isJust)
 import qualified Data.Text as T
@@ -60,45 +61,82 @@ import Text.Pandoc.Class (PandocMonad, report)
 import Text.Pandoc.Logging
 import Text.Pandoc.Options
 import Text.Pandoc.Pretty
-import Text.Pandoc.Shared (splitBy)
 import Text.Pandoc.UTF8 (toStringLazy)
 import Text.Pandoc.XML (escapeStringForXML)
+import qualified Text.Parsec as P
 
 -- | Represents BCP 47 language/country code.
-data Lang = Lang String String
+data Lang = Lang{ langLanguage   :: String
+                , langScript     :: String
+                , langRegion     :: String
+                , langVariants   :: [String] }
+                deriving (Eq, Ord, Show)
 
 -- | Render a Lang as BCP 47.
 renderLang :: Lang -> String
-renderLang (Lang la co) = la ++ if null co
-                                   then ""
-                                   else '-':co
+renderLang lang = intercalate "-" (langLanguage lang : filter (not . null)
+                    ([langScript lang, langRegion lang] ++ langVariants lang))
 
 -- | Get the contents of the `lang` metadata field or variable.
 getLang :: PandocMonad m => WriterOptions -> Meta -> m (Maybe Lang)
-getLang opts meta = maybe (return Nothing) parseBCP47 $
-  case lookup "lang" (writerVariables opts) of
-       Just s -> Just s
-       _      -> Nothing
-  `mplus`
-  case lookupMeta "lang" meta of
-       Just (MetaInlines [Str s]) -> Just s
-       Just (MetaString s)        -> Just s
-       _                          -> Nothing
+getLang opts meta = case
+  (case lookup "lang" (writerVariables opts) of
+        Just s -> Just s
+        _      ->
+          case lookupMeta "lang" meta of
+               Just (MetaInlines [Str s]) -> Just s
+               Just (MetaString s)        -> Just s
+               _                          -> Nothing) of
+       Nothing -> return Nothing
+       Just s  -> case parseBCP47 s of
+                       Left _ -> do
+                         report $ InvalidLang s
+                         return Nothing
+                       Right l -> return (Just l)
 
--- | Parse a BCP 47 string as a Lang, issuing a warning if there
--- are issues.
-parseBCP47 :: PandocMonad m => String -> m (Maybe Lang)
+-- | Parse a BCP 47 string as a Lang.
+parseBCP47 :: String -> Either String Lang
 parseBCP47 lang =
-  case splitBy (== '-') lang of
-        [la,co]
-          | length la == 2 && length co == 2
-                     -> return $ Just $ Lang la co
-        [la]
-          | length la == 2
-                     -> return $ Just $ Lang la ""
-        _       -> do
-          report $ InvalidLang lang
-          return Nothing
+  case P.parse bcp47 "lang" lang of
+       Right r -> Right r
+       Left e  -> Left $ show e
+  where bcp47 = do
+          language <- pLanguage
+          script <- P.option "" pScript
+          region <- P.option "" pRegion
+          variants <- P.many pVariant
+          () <$ P.char '-' P.<|> P.eof
+          return $ Lang{ langLanguage = language
+                       , langScript = script
+                       , langRegion = region
+                       , langVariants = variants }
+        asciiLetter = P.satisfy (\c -> isAscii c && isLetter c)
+        pLanguage = do
+          cs <- P.many1 asciiLetter
+          let lcs = length cs
+          guard $ lcs == 2 || lcs == 3
+          return cs
+        pScript = P.try $ do
+          P.char '-'
+          x <- P.satisfy (\c -> isAscii c && isLetter c && isUpper c)
+          xs <- P.count 3
+                 (P.satisfy (\c -> isAscii c && isLetter c && isLower c))
+          return (x:xs)
+        pRegion = P.try $ do
+          P.char '-'
+          cs <- P.many1 asciiLetter
+          let lcs = length cs
+          guard $ lcs == 2 || lcs == 3
+          return cs
+        pVariant = P.try $ do
+          P.char '-'
+          ds <- P.option "" (P.count 1 P.digit)
+          cs <- P.many1 asciiLetter
+          let var = ds ++ cs
+          guard $ if null ds
+                     then length var >= 5 && length var <= 8
+                     else length var == 4
+          return var
 
 -- | Create JSON value for template from a 'Meta' and an association list
 -- of variables, specified at the command line or in the writer.

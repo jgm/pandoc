@@ -614,7 +614,7 @@ data TextStyle = Italic
                | Sup
                | SmallC
                | Pre
-               | Language String String
+               | Language Lang
                deriving ( Eq,Ord )
 
 textStyleAttr :: TextStyle -> [(String,String)]
@@ -632,9 +632,9 @@ textStyleAttr s
     | Pre    <- s = [("style:font-name"              ,"Courier New")
                     ,("style:font-name-asian"        ,"Courier New")
                     ,("style:font-name-complex"      ,"Courier New")]
-    | Language lang country <- s
-                  = [("fo:language"                  ,lang)
-                    ,("fo:country"                   ,country)]
+    | Language lang <- s
+                  = [("fo:language"                  ,langLanguage lang)
+                    ,("fo:country"                   ,langRegion lang)]
     | otherwise   = []
 
 withLangFromAttr :: PandocMonad m => Attr -> OD m a -> OD m a
@@ -642,8 +642,8 @@ withLangFromAttr (_,_,kvs) action =
   case lookup "lang" kvs of
        Nothing -> action
        Just l  -> do
-         mblang <- parseBCP47 l
-         case mblang of
-              Just (Lang lang country) -> withTextStyle
-                                (Language lang country) action
-              _ -> action
+         case parseBCP47 l of
+              Right lang -> withTextStyle (Language lang) action
+              Left _ -> do
+                report $ InvalidLang l
+                action

@@ -171,11 +171,11 @@ updateStyleWithLang (Just lang) arch = do
                             | e <- zEntries arch] }
 
 addLang :: Lang -> Element -> Element
-addLang (Lang lang country) = everywhere' (mkT updateLangAttr)
+addLang lang = everywhere' (mkT updateLangAttr)
     where updateLangAttr (Attr n@(QName "language" _ (Just "fo")) _)
-                           = Attr n lang
+                           = Attr n (langLanguage lang)
           updateLangAttr (Attr n@(QName "country" _ (Just "fo")) _)
-                           = Attr n country
+                           = Attr n (langRegion lang)
           updateLangAttr x = x
 
 -- | transform both Image and Math elements
