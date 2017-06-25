@@ -58,6 +58,8 @@ tests =
 
       , "Code" =: "=foo(bar)=" =?> para (code "foo(bar)")
 
+      , "Not code" =: "a=b= =c=d" =?> para (text "a=b= =c=d")
+
       , "Code tag" =: "<code>foo(bar)</code>" =?> para (code "foo(bar)")
 
       , testGroup "Links"
@@ -79,6 +81,12 @@ tests =
         , "Image link with description" =:
           "[[URL:image.jpg][Image]]" =?>
           para (link "image.jpg" "" (text "Image"))
+        -- Implicit links are supported in Emacs Muse, but not in Amusewiki:
+        -- https://github.com/melmothx/text-amuse/issues/18
+        --
+        -- This test also makes sure '=' without whitespace is not treated as code markup
+        , "No implicit links" =: "http://example.org/index.php?action=view&id=1"
+               =?> para "http://example.org/index.php?action=view&id=1"
         ]
       ]
 
