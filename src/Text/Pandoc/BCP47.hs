@@ -35,7 +35,7 @@ module Text.Pandoc.BCP47 (
                      )
 where
 import Control.Monad (guard)
-import Data.Char (isAscii, isLetter, isUpper, isLower)
+import Data.Char (isAscii, isLetter, isUpper, isLower, toUpper, toLower)
 import Data.List (intercalate)
 import Text.Pandoc.Definition
 import Text.Pandoc.Class (PandocMonad, report)
@@ -93,19 +93,19 @@ parseBCP47 lang =
           cs <- P.many1 asciiLetter
           let lcs = length cs
           guard $ lcs == 2 || lcs == 3
-          return cs
+          return $ map toLower cs
         pScript = P.try $ do
           P.char '-'
           x <- P.satisfy (\c -> isAscii c && isLetter c && isUpper c)
           xs <- P.count 3
                  (P.satisfy (\c -> isAscii c && isLetter c && isLower c))
-          return (x:xs)
+          return $ map toLower (x:xs)
         pRegion = P.try $ do
           P.char '-'
           cs <- P.many1 asciiLetter
           let lcs = length cs
           guard $ lcs == 2 || lcs == 3
-          return cs
+          return $ map toUpper cs
         pVariant = P.try $ do
           P.char '-'
           ds <- P.option "" (P.count 1 P.digit)
@@ -114,4 +114,4 @@ parseBCP47 lang =
           guard $ if null ds
                      then length var >= 5 && length var <= 8
                      else length var == 4
-          return var
+          return $ map toLower var
