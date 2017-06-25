@@ -50,8 +50,8 @@ import Text.Pandoc.Shared (stringify)
 import Text.Pandoc.UTF8 (fromStringLazy, fromTextLazy, toStringLazy)
 import Text.Pandoc.Walk
 import Text.Pandoc.Writers.OpenDocument (writeOpenDocument)
-import Text.Pandoc.Writers.Shared (fixDisplayMath, getLang, Lang(..),
-           renderLang)
+import Text.Pandoc.Writers.Shared (fixDisplayMath)
+import Text.Pandoc.BCP47 (getLang, Lang(..), renderLang)
 import Text.Pandoc.XML
 import Text.TeXMath
 import Text.XML.Light

@@ -50,6 +50,7 @@ import Text.Pandoc.Templates (renderTemplate')
 import Text.Pandoc.Writers.Math
 import Text.Pandoc.Writers.Shared
 import Text.Pandoc.XML
+import Text.Pandoc.BCP47 (parseBCP47, Lang(..))
 import Text.Printf (printf)
 
 -- | Auxiliary function to convert Plain block to Para.

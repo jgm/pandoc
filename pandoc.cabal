@@ -463,6 +463,7 @@ Library
                    Text.Pandoc.Lua.Util,
                    Text.Pandoc.CSS,
                    Text.Pandoc.UUID,
+                   Text.Pandoc.BCP47
                    Text.Pandoc.Slides,
                    Text.Pandoc.Compat.Time,
                    Paths_pandoc

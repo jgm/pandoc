@@ -67,7 +67,8 @@ import Text.Pandoc.Shared hiding (Element)
 import qualified Text.Pandoc.UTF8 as UTF8
 import Text.Pandoc.Walk
 import Text.Pandoc.Writers.Math
-import Text.Pandoc.Writers.Shared (fixDisplayMath, getLang, renderLang)
+import Text.Pandoc.Writers.Shared (fixDisplayMath)
+import Text.Pandoc.BCP47 (getLang, renderLang)
 import Text.Printf (printf)
 import Text.TeXMath
 import Text.XML.Light as XML
