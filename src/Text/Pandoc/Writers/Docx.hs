@@ -68,7 +68,7 @@ import qualified Text.Pandoc.UTF8 as UTF8
 import Text.Pandoc.Walk
 import Text.Pandoc.Writers.Math
 import Text.Pandoc.Writers.Shared (fixDisplayMath)
-import Text.Pandoc.BCP47 (getLang, renderLang)
+import Text.Pandoc.BCP47 (getLang, renderLang, toLang)
 import Text.Printf (printf)
 import Text.TeXMath
 import Text.XML.Light as XML
@@ -258,9 +258,9 @@ writeDocx opts doc@(Pandoc meta _) = do
                        )
 
   -- styles
-  lang <- getLang opts meta
+  mblang <- toLang $ getLang opts meta
   let addLang :: Element -> Element
-      addLang e = case lang >>= \l ->
+      addLang e = case mblang >>= \l ->
                          (return . XMLC.toTree . go (renderLang l)
                                  . XMLC.fromElement) e of
                     Just (Elem e') -> e'

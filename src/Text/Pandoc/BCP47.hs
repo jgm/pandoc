@@ -29,6 +29,7 @@ Functions for parsing and rendering BCP47 language identifiers.
 -}
 module Text.Pandoc.BCP47 (
                        getLang
+                     , toLang
                      , parseBCP47
                      , Lang(..)
                      , renderLang
@@ -56,21 +57,26 @@ renderLang lang = intercalate "-" (langLanguage lang : filter (not . null)
                     ([langScript lang, langRegion lang] ++ langVariants lang))
 
 -- | Get the contents of the `lang` metadata field or variable.
-getLang :: PandocMonad m => WriterOptions -> Meta -> m (Maybe Lang)
-getLang opts meta = case
-  (case lookup "lang" (writerVariables opts) of
+getLang :: WriterOptions -> Meta -> Maybe String
+getLang opts meta =
+  case lookup "lang" (writerVariables opts) of
         Just s -> Just s
         _      ->
           case lookupMeta "lang" meta of
                Just (MetaInlines [Str s]) -> Just s
                Just (MetaString s)        -> Just s
-               _                          -> Nothing) of
-       Nothing -> return Nothing
-       Just s  -> case parseBCP47 s of
-                       Left _ -> do
-                         report $ InvalidLang s
-                         return Nothing
-                       Right l -> return (Just l)
+               _                          -> Nothing
+
+-- | Convert BCP47 string to a Lang, issuing warning
+-- if there are problems.
+toLang :: PandocMonad m => Maybe String -> m (Maybe Lang)
+toLang Nothing = return Nothing
+toLang (Just s) =
+  case parseBCP47 s of
+       Left _ -> do
+         report $ InvalidLang s
+         return Nothing
+       Right l -> return (Just l)
 
 -- | Parse a BCP 47 string as a Lang.
 parseBCP47 :: String -> Either String Lang
