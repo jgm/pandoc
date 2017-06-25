@@ -90,6 +90,7 @@ data LogMessage =
   | Extracting String
   | NoTitleElement String
   | NoLangSpecified
+  | InvalidLang String
   | CouldNotHighlight String
   | MissingCharacter String
   deriving (Show, Eq, Data, Ord, Typeable, Generic)
@@ -178,6 +179,8 @@ instance ToJSON LogMessage where
       NoTitleElement fallback ->
            ["fallback" .= Text.pack fallback]
       NoLangSpecified -> []
+      InvalidLang s ->
+           ["lang" .= Text.pack s]
       CouldNotHighlight msg ->
            ["message" .= Text.pack msg]
       MissingCharacter msg ->
@@ -254,6 +257,9 @@ showLogMessage msg =
        NoLangSpecified ->
          "No value for 'lang' was specified in the metadata.\n" ++
          "It is recommended that lang be specified for this format."
+       InvalidLang s ->
+         "Invalid 'lang' value '" ++ s ++ "'.\n" ++
+         "Use ISO 8601 format like 'en-US'."
        CouldNotHighlight m ->
          "Could not highlight code block:\n" ++ m
        MissingCharacter m ->
@@ -285,5 +291,6 @@ messageVerbosity msg =
        Extracting{}                 -> INFO
        NoTitleElement{}             -> WARNING
        NoLangSpecified              -> INFO
+       InvalidLang{}                -> WARNING
        CouldNotHighlight{}          -> WARNING
        MissingCharacter{}           -> WARNING
