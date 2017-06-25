@@ -30,6 +30,7 @@ Shared utility functions for pandoc writers.
 -}
 module Text.Pandoc.Writers.Shared (
                        getLang
+                     , splitLang
                      , metaToJSON
                      , metaToJSON'
                      , addVariablesToJSON
@@ -53,8 +54,11 @@ import Data.Maybe (isJust)
 import qualified Data.Text as T
 import qualified Data.Traversable as Traversable
 import Text.Pandoc.Definition
+import Text.Pandoc.Class (PandocMonad, report)
+import Text.Pandoc.Logging
 import Text.Pandoc.Options
 import Text.Pandoc.Pretty
+import Text.Pandoc.Shared (splitBy)
 import Text.Pandoc.UTF8 (toStringLazy)
 import Text.Pandoc.XML (escapeStringForXML)
 
@@ -67,6 +71,21 @@ getLang opts meta =
        Just (MetaInlines [Str s]) -> Just s
        Just (MetaString s)        -> Just s
        _                          -> Nothing
+
+-- | Split `lang` field into lang and country, issuing warning
+-- if it doesn't look valid.
+splitLang :: PandocMonad m => String -> m (Maybe String, Maybe String)
+splitLang lang =
+  case splitBy (== '-') lang of
+        [la,co]
+          | length la == 2 && length co == 2
+                     -> return (Just la, Just co)
+        [la]
+          | length la == 2
+                     -> return (Just la, Nothing)
+        _       -> do
+          report $ InvalidLang lang
+          return (Nothing, Nothing)
 
 -- | Create JSON value for template from a 'Meta' and an association list
 -- of variables, specified at the command line or in the writer.
