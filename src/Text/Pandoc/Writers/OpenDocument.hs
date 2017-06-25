@@ -45,7 +45,7 @@ import Text.Pandoc.Definition
 import Text.Pandoc.Logging
 import Text.Pandoc.Options
 import Text.Pandoc.Pretty
-import Text.Pandoc.Shared (linesToPara)
+import Text.Pandoc.Shared (linesToPara, splitBy)
 import Text.Pandoc.Templates (renderTemplate')
 import Text.Pandoc.Writers.Math
 import Text.Pandoc.Writers.Shared
@@ -75,6 +75,8 @@ data WriterState =
                 , stTight         :: Bool
                 , stFirstPara     :: Bool
                 , stImageId       :: Int
+                , stLang          :: Maybe String
+                , stCountry       :: Maybe String
                 }
 
 defaultWriterState :: WriterState
@@ -90,6 +92,8 @@ defaultWriterState =
                 , stTight         = False
                 , stFirstPara     = False
                 , stImageId       = 1
+                , stLang          = Nothing
+                , stCountry       = Nothing
                 }
 
 when :: Bool -> Doc -> Doc
@@ -155,6 +159,10 @@ withTextStyle s f = do
 inTextStyle :: PandocMonad m => Doc -> OD m Doc
 inTextStyle d = do
   at <- gets stTextStyleAttr
+  mblang <- gets stLang
+  mbcountry <- gets stCountry
+  let langat = maybe [] (\la -> [("fo:language", la)]) mblang
+  let countryat = maybe [] (\co -> [("fo:country", co)]) mbcountry
   if Set.null at
      then return d
      else do
@@ -168,8 +176,9 @@ inTextStyle d = do
                      inTags False "style:style"
                        [("style:name", styleName)
                        ,("style:family", "text")]
-                    $ selfClosingTag "style:text-properties"
-                       (concatMap textStyleAttr (Set.toList at)))
+                       $ selfClosingTag "style:text-properties"
+                          (langat ++ countryat ++
+                           concatMap textStyleAttr (Set.toList at)))
               return $ inTags False
                   "text:span" [("text:style-name",styleName)] d
 
@@ -203,8 +212,10 @@ writeOpenDocument opts (Pandoc meta blocks) = do
                     else Nothing
   let render' :: Doc -> Text
       render' = render colwidth
+  let lang = getLang opts meta
+  (mblang, mbcountry) <- maybe (return (Nothing, Nothing)) splitLang lang
   ((body, metadata),s) <- flip runStateT
-        defaultWriterState $ do
+        defaultWriterState{ stLang = mblang, stCountry = mbcountry } $ do
            m <- metaToJSON opts
                   (fmap render' . blocksToOpenDocument opts)
                   (fmap render' . inlinesToOpenDocument opts)
@@ -326,7 +337,8 @@ blockToOpenDocument o bs
                                   then return empty
                                   else inParagraphTags =<< inlinesToOpenDocument o b
     | LineBlock      b <- bs = blockToOpenDocument o $ linesToPara b
-    | Div _ xs         <- bs = blocksToOpenDocument o xs
+    | Div attr xs      <- bs = withLangFromAttr attr
+                                  (blocksToOpenDocument o xs)
     | Header     i _ b <- bs = setFirstPara >>
                                (inHeaderTags  i =<< inlinesToOpenDocument o b)
     | BlockQuote     b <- bs = setFirstPara >> mkBlockQuote b
@@ -444,7 +456,7 @@ inlineToOpenDocument o ils
      | writerWrapText o == WrapPreserve
                   -> return $ preformatted "\n"
      | otherwise  -> return $ space
-    Span _ xs     -> inlinesToOpenDocument o xs
+    Span attr xs  -> withLangFromAttr attr (inlinesToOpenDocument o xs)
     LineBreak     -> return $ selfClosingTag "text:line-break" []
     Str         s -> return $ handleSpaces $ escapeStringForXML s
     Emph        l -> withTextStyle Italic $ inlinesToOpenDocument o l
@@ -625,3 +637,14 @@ textStyleAttr s
                     ,("style:font-name-asian"        ,"Courier New")
                     ,("style:font-name-complex"      ,"Courier New")]
     | otherwise   = []
+
+withLangFromAttr :: PandocMonad m => Attr -> OD m a -> OD m a
+withLangFromAttr (_,_,kvs) action = do
+  oldlang <- gets stLang
+  case lookup "lang" kvs of
+       Nothing -> action
+       Just l  -> do
+         modify (\st -> st{ stLang = Just l})
+         result <- action
+         modify (\st -> st{ stLang = oldlang})
+         return result
