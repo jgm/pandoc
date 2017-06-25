@@ -36,7 +36,6 @@ import Control.Arrow ((***), (>>>))
 import Control.Monad.State.Strict hiding (when)
 import Data.Char (chr)
 import Data.List (sortBy)
-import Data.Maybe (fromMaybe)
 import Data.Text (Text)
 import qualified Data.Map as Map
 import Data.Ord (comparing)
@@ -608,8 +607,14 @@ paraTableStyles t s (a:xs)
                      [ ("fo:text-align", x)
                      , ("style:justify-single-word", "false")]
 
-data TextStyle = Italic | Bold | Strike | Sub | Sup | SmallC | Pre
-                 | Lang String String
+data TextStyle = Italic
+               | Bold
+               | Strike
+               | Sub
+               | Sup
+               | SmallC
+               | Pre
+               | Language String String
                deriving ( Eq,Ord )
 
 textStyleAttr :: TextStyle -> [(String,String)]
@@ -627,7 +632,7 @@ textStyleAttr s
     | Pre    <- s = [("style:font-name"              ,"Courier New")
                     ,("style:font-name-asian"        ,"Courier New")
                     ,("style:font-name-complex"      ,"Courier New")]
-    | Lang lang country <- s
+    | Language lang country <- s
                   = [("fo:language"                  ,lang)
                     ,("fo:country"                   ,country)]
     | otherwise   = []
@@ -637,9 +642,8 @@ withLangFromAttr (_,_,kvs) action =
   case lookup "lang" kvs of
        Nothing -> action
        Just l  -> do
-         (mblang, mbcountry) <- splitLang l
-         case (mblang, mbcountry) of
-              (Just lang, _) -> withTextStyle
-                                (Lang lang (fromMaybe "" mbcountry))
-                                action
+         mblang <- parseBCP47 l
+         case mblang of
+              Just (Lang lang country) -> withTextStyle
+                                (Language lang country) action
               _ -> action

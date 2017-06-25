@@ -30,7 +30,9 @@ Shared utility functions for pandoc writers.
 -}
 module Text.Pandoc.Writers.Shared (
                        getLang
-                     , splitLang
+                     , parseBCP47
+                     , Lang(..)
+                     , renderLang
                      , metaToJSON
                      , metaToJSON'
                      , addVariablesToJSON
@@ -62,30 +64,41 @@ import Text.Pandoc.Shared (splitBy)
 import Text.Pandoc.UTF8 (toStringLazy)
 import Text.Pandoc.XML (escapeStringForXML)
 
+-- | Represents BCP 47 language/country code.
+data Lang = Lang String String
+
+-- | Render a Lang as BCP 47.
+renderLang :: Lang -> String
+renderLang (Lang la co) = la ++ if null co
+                                   then ""
+                                   else '-':co
+
 -- | Get the contents of the `lang` metadata field or variable.
-getLang :: WriterOptions -> Meta -> Maybe String
-getLang opts meta =
-  lookup "lang" (writerVariables opts)
+getLang :: PandocMonad m => WriterOptions -> Meta -> m (Maybe Lang)
+getLang opts meta = maybe (return Nothing) parseBCP47 $
+  case lookup "lang" (writerVariables opts) of
+       Just s -> Just s
+       _      -> Nothing
   `mplus`
   case lookupMeta "lang" meta of
        Just (MetaInlines [Str s]) -> Just s
        Just (MetaString s)        -> Just s
        _                          -> Nothing
 
--- | Split `lang` field into lang and country, issuing warning
--- if it doesn't look valid.
-splitLang :: PandocMonad m => String -> m (Maybe String, Maybe String)
-splitLang lang =
+-- | Parse a BCP 47 string as a Lang, issuing a warning if there
+-- are issues.
+parseBCP47 :: PandocMonad m => String -> m (Maybe Lang)
+parseBCP47 lang =
   case splitBy (== '-') lang of
         [la,co]
           | length la == 2 && length co == 2
-                     -> return (Just la, Just co)
+                     -> return $ Just $ Lang la co
         [la]
           | length la == 2
-                     -> return (Just la, Nothing)
+                     -> return $ Just $ Lang la ""
         _       -> do
           report $ InvalidLang lang
-          return (Nothing, Nothing)
+          return Nothing
 
 -- | Create JSON value for template from a 'Meta' and an association list
 -- of variables, specified at the command line or in the writer.

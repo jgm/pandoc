@@ -50,7 +50,8 @@ import Text.Pandoc.Shared (stringify)
 import Text.Pandoc.UTF8 (fromStringLazy, fromTextLazy, toStringLazy)
 import Text.Pandoc.Walk
 import Text.Pandoc.Writers.OpenDocument (writeOpenDocument)
-import Text.Pandoc.Writers.Shared (fixDisplayMath, getLang, splitLang)
+import Text.Pandoc.Writers.Shared (fixDisplayMath, getLang, Lang(..),
+           renderLang)
 import Text.Pandoc.XML
 import Text.TeXMath
 import Text.XML.Light
@@ -79,7 +80,7 @@ pandocToODT :: PandocMonad m
 pandocToODT opts doc@(Pandoc meta _) = do
   let datadir = writerUserDataDir opts
   let title = docTitle meta
-  let lang = getLang opts meta
+  lang <- getLang opts meta
   refArchive <-
        case writerReferenceDoc opts of
              Just f -> liftM toArchive $ lift $ P.readFileLazy f
@@ -140,7 +141,7 @@ pandocToODT opts doc@(Pandoc meta _) = do
                    $$
                    case lang of
                         Just l -> inTagsSimple "dc:language"
-                                    (text (escapeStringForXML l))
+                                    (text (escapeStringForXML (renderLang l)))
                         Nothing -> empty
                  )
              )
@@ -153,10 +154,9 @@ pandocToODT opts doc@(Pandoc meta _) = do
                   $ addEntryToArchive metaEntry archive'
   return $ fromArchive archive''
 
-updateStyleWithLang :: PandocMonad m => Maybe String -> Archive -> O m Archive
+updateStyleWithLang :: PandocMonad m => Maybe Lang -> Archive -> O m Archive
 updateStyleWithLang Nothing arch = return arch
-updateStyleWithLang (Just l) arch = do
-  (mblang, mbcountry) <- splitLang l
+updateStyleWithLang (Just lang) arch = do
   epochtime <- floor `fmap` (lift P.getPOSIXTime)
   return arch{ zEntries = [if eRelativePath e == "styles.xml"
                               then case parseXMLDoc
@@ -166,16 +166,16 @@ updateStyleWithLang (Just l) arch = do
                                         toEntry "styles.xml" epochtime
                                         ( fromStringLazy
                                         . ppTopElement
-                                        . addLang mblang mbcountry $ d )
+                                        . addLang lang $ d )
                               else e
                             | e <- zEntries arch] }
 
-addLang :: Maybe String -> Maybe String -> Element -> Element
-addLang mblang mbcountry = everywhere' (mkT updateLangAttr)
-    where updateLangAttr (Attr n@(QName "language" _ (Just "fo")) l)
-                           = Attr n (maybe l id mblang)
-          updateLangAttr (Attr n@(QName "country" _ (Just "fo")) c)
-                           = Attr n (maybe c id mbcountry)
+addLang :: Lang -> Element -> Element
+addLang (Lang lang country) = everywhere' (mkT updateLangAttr)
+    where updateLangAttr (Attr n@(QName "language" _ (Just "fo")) _)
+                           = Attr n lang
+          updateLangAttr (Attr n@(QName "country" _ (Just "fo")) _)
+                           = Attr n country
           updateLangAttr x = x
 
 -- | transform both Image and Math elements

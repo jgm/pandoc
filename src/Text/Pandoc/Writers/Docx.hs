@@ -67,7 +67,7 @@ import Text.Pandoc.Shared hiding (Element)
 import qualified Text.Pandoc.UTF8 as UTF8
 import Text.Pandoc.Walk
 import Text.Pandoc.Writers.Math
-import Text.Pandoc.Writers.Shared (fixDisplayMath, getLang)
+import Text.Pandoc.Writers.Shared (fixDisplayMath, getLang, renderLang)
 import Text.Printf (printf)
 import Text.TeXMath
 import Text.XML.Light as XML
@@ -257,9 +257,11 @@ writeDocx opts doc@(Pandoc meta _) = do
                        )
 
   -- styles
-  let lang = getLang opts meta
+  lang <- getLang opts meta
   let addLang :: Element -> Element
-      addLang e = case lang >>= \l -> (return . XMLC.toTree . go l . XMLC.fromElement) e of
+      addLang e = case lang >>= \l ->
+                         (return . XMLC.toTree . go (renderLang l)
+                                 . XMLC.fromElement) e of
                     Just (Elem e') -> e'
                     _              -> e -- return original
         where go :: String -> Cursor -> Cursor
