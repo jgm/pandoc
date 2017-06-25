@@ -259,7 +259,7 @@ showLogMessage msg =
          "It is recommended that lang be specified for this format."
        InvalidLang s ->
          "Invalid 'lang' value '" ++ s ++ "'.\n" ++
-         "Use ISO 8601 format like 'en-US'."
+         "Use an IETF language tag like 'en-US'."
        CouldNotHighlight m ->
          "Could not highlight code block:\n" ++ m
        MissingCharacter m ->
