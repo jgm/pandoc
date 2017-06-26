@@ -28,20 +28,20 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 Conversion of vimwiki text to 'Pandoc' document.
 -}
 {--
- progress:
+[X]: implemented
+[O]: not implemented
 * block parsers:
     * [X] header
     * [X] hrule
     * [X] comment
     * [X] blockquote
-    * [X] preformatted
+    * [X] preformatted -- using codeblock
     * [X] displaymath
     * [X] bulletlist / orderedlist
-        * [X] orderedlist with 1., i., a) etc identification.
-        * [X] todo lists -- not list builder with attributes? using span.
+        * [X] todo lists -- using span.
     * [X] table
         * [X] centered table -- using div
-        * [O] colspan and rowspan -- pandoc limitation, see issue #1024
+        * [O] colspan and rowspan -- see issue #1024
     * [X] paragraph
     * [X] definition list
 * inline parsers:
@@ -58,8 +58,7 @@ Conversion of vimwiki text to 'Pandoc' document.
 * misc:
     * [X] `TODO:` mark
     * [X] metadata placeholders: %title and %date
-    * [O] control placeholders: %template and %nohtml -- %template added to
-          meta, %nohtml ignored
+    * [O] control placeholders: %template and %nohtml -- ignored
 --}
 
 module Text.Pandoc.Readers.Vimwiki ( readVimwiki
