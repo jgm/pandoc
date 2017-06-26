@@ -53,10 +53,11 @@ import Text.Pandoc.Logging
 import Text.Pandoc.Parsing hiding ((<|>))
 import Text.Pandoc.Walk
 import qualified Data.Map as M
+import Data.Foldable ( for_ )
 import Data.Maybe ( fromMaybe, isJust)
 import Data.List ( intercalate, isPrefixOf )
 import Data.Char ( isDigit, isLetter, isAlphaNum )
-import Control.Monad ( guard, mzero, void, unless, forM_ )
+import Control.Monad ( guard, mzero, void, unless )
 import Control.Arrow ((***))
 import Control.Applicative ( (<|>) )
 import Data.Monoid (First (..))
@@ -137,7 +138,7 @@ type TagParser m = HTMLParser m [Tag Text]
 pHtml :: PandocMonad m => TagParser m Blocks
 pHtml = try $ do
   (TagOpen "html" attr) <- lookAhead $ pAnyTag
-  forM_ (lookup "lang" attr) $
+  for_ (lookup "lang" attr) $
     updateState . B.setMeta "lang" . B.text . T.unpack
   pInTags "html" block
 
