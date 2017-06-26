@@ -200,8 +200,10 @@ comment = try $ do
 
 separator :: PandocMonad m => MuseParser m (F Blocks)
 separator = try $ do
-  string "---"
-  newline
+  string "----"
+  many $ char '-'
+  many spaceChar
+  void newline <|> eof
   return $ return B.horizontalRule
 
 header :: PandocMonad m => MuseParser m (F Blocks)
