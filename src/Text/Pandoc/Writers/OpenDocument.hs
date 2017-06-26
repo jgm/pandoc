@@ -220,6 +220,7 @@ writeOpenDocument opts (Pandoc meta blocks) = do
   let listStyles  = map listStyle (stListStyles s)
   let automaticStyles = vcat $ reverse $ styles ++ listStyles
   let context = defField "body" body
+              $ defField "toc" (writerTableOfContents opts)
               $ defField "automatic-styles" (render' automaticStyles)
               $ metadata
   case writerTemplate opts of

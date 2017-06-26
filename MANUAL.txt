@@ -1228,7 +1228,8 @@ as the following:
 :   non-null value if `--toc/--table-of-contents` was specified
 
 `toc-title`
-:   title of table of contents (works only with EPUB and docx)
+:   title of table of contents (works only with EPUB,
+    opendocument, odt, docx)
 
 `include-before`
 :   contents specified by `-B/--include-before-body` (may have
