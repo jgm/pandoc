@@ -247,9 +247,7 @@ commentTag :: PandocMonad m => MuseParser m (F Blocks)
 commentTag = parseHtmlContent "comment" block >> return mempty
 
 para :: PandocMonad m => MuseParser m (F Blocks)
-para = do
- res <- trimInlinesF . mconcat <$> many1Till inline endOfParaElement
- return $ B.para <$> res
+para = liftM B.para . trimInlinesF . mconcat <$> many1Till inline endOfParaElement
  where
    endOfParaElement = lookAhead $ endOfInput <|> endOfPara <|> newBlockElement
    endOfInput       = try $ skipMany blankline >> skipSpaces >> eof
