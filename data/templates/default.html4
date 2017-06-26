@@ -57,7 +57,7 @@ $endif$
 $endif$
 $if(toc)$
 <div id="$idprefix$TOC">
-$toc$
+$table-of-contents$
 </div>
 $endif$
 $body$

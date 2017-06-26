@@ -209,8 +209,8 @@ pandocToMarkdown opts (Pandoc meta blocks) = do
                         Nothing -> empty
   let headerBlocks = filter isHeaderBlock blocks
   toc <- if writerTableOfContents opts
-         then tableOfContents opts headerBlocks
-         else return empty
+         then render' <$> tableOfContents opts headerBlocks
+         else return ""
   -- Strip off final 'references' header if markdown citations enabled
   let blocks' = if isEnabled Ext_citations opts
                    then case reverse blocks of
@@ -220,7 +220,11 @@ pandocToMarkdown opts (Pandoc meta blocks) = do
   body <- blockListToMarkdown opts blocks'
   notesAndRefs' <- notesAndRefs opts
   let main = render' $ body <> notesAndRefs'
-  let context  = defField "toc" (render' toc)
+  let context  = -- for backwards compatibility we populate toc
+                 -- with the contents of the toc, rather than a
+                 -- boolean:
+                 defField "toc" toc
+               $ defField "table-of-contents" toc
                $ defField "body" main
                $ (if isNullMeta meta
                      then id

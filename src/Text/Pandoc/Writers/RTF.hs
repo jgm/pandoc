@@ -122,7 +122,11 @@ writeRTF options doc = do
   let context = defField "body" body
               $ defField "spacer" spacer
               $ (if writerTableOfContents options
-                    then defField "toc" toc
+                    then defField "table-of-contents" toc
+                         -- for backwards compatibility,
+                         -- we populate toc with the contents
+                         -- of the toc rather than a boolean:
+                         . defField "toc" toc
                     else id)
               $ metadata
   T.pack <$>

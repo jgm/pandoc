@@ -241,7 +241,7 @@ pandocToHtml opts (Pandoc meta blocks) = do
                  then blocks
                  else prepSlides slideLevel blocks
   toc <- if writerTableOfContents opts && slideVariant /= S5Slides
-            then tableOfContents opts sects
+            then fmap renderHtml' <$> tableOfContents opts sects
             else return Nothing
   blocks' <- liftM (mconcat . intersperse (nl opts)) $
                  mapM (elementToHtml slideLevel opts) sects
@@ -292,7 +292,11 @@ pandocToHtml opts (Pandoc meta blocks) = do
                             MathJax _ -> True
                             _         -> False) $
                   defField "quotes" (stQuotes st) $
-                  maybe id (defField "toc" . renderHtml') toc $
+                  -- for backwards compatibility we populate toc
+                  -- with the contents of the toc, rather than a
+                  -- boolean:
+                  maybe id (defField "toc") toc $
+                  maybe id (defField "table-of-contents") toc $
                   defField "author-meta" authsMeta $
                   maybe id (defField "date-meta") (normalizeDate dateMeta) $
                   defField "pagetitle" (stringifyHTML (docTitle meta)) $
