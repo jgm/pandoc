@@ -91,7 +91,18 @@ tests =
       ]
 
   , testGroup "Blocks"
-      [ "Quote" =: "<quote>Hello, world</quote>" =?> blockQuote (para $ text "Hello, world")
+      [ "Block elements end paragraphs" =:
+        T.unlines [ "First paragraph"
+                  , "----"
+                  , "Second paragraph"
+                  ] =?> para (text "First paragraph") <> horizontalRule <> para (text "Second paragraph")
+      , testGroup "Horizontal rule"
+        [ "Less than 4 dashes is not a horizontal rule" =: "---" =?> para (text "---")
+        , "4 dashes is a horizontal rule" =: "----" =?> horizontalRule
+        , "5 dashes is a horizontal rule" =: "-----" =?> horizontalRule
+        , "4 dashes with spaces is a horizontal rule" =: "----  " =?> horizontalRule
+        ]
+      , "Quote" =: "<quote>Hello, world</quote>" =?> blockQuote (para $ text "Hello, world")
       , "Center" =: "<center>Hello, world</center>" =?> para (text "Hello, world")
       , "Right" =: "<right>Hello, world</right>" =?> para (text "Hello, world")
       , testGroup "Comments"
