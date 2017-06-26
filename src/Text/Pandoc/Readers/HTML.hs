@@ -56,7 +56,7 @@ import qualified Data.Map as M
 import Data.Maybe ( fromMaybe, isJust)
 import Data.List ( intercalate, isPrefixOf )
 import Data.Char ( isDigit, isLetter, isAlphaNum )
-import Control.Monad ( guard, mzero, void, unless )
+import Control.Monad ( guard, mzero, void, unless, forM_ )
 import Control.Arrow ((***))
 import Control.Applicative ( (<|>) )
 import Data.Monoid (First (..))
@@ -134,6 +134,13 @@ type HTMLParser m s = ParserT s HTMLState (ReaderT HTMLLocal m)
 
 type TagParser m = HTMLParser m [Tag Text]
 
+pHtml :: PandocMonad m => TagParser m Blocks
+pHtml = try $ do
+  (TagOpen "html" attr) <- lookAhead $ pAnyTag
+  forM_ (lookup "lang" attr) $
+    updateState . B.setMeta "lang" . B.text . T.unpack
+  pInTags "html" block
+
 pBody :: PandocMonad m => TagParser m Blocks
 pBody = pInTags "body" block
 
@@ -175,6 +182,7 @@ block = do
             , pList
             , pHrule
             , pTable
+            , pHtml
             , pHead
             , pBody
             , pDiv
