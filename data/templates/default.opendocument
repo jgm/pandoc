@@ -23,6 +23,135 @@ $endif$
 $for(include-before)$
 $include-before$
 $endfor$
+$if(toc)$
+<text:table-of-content>
+  <text:table-of-content-source text:outline-level="10">
+    <text:index-title-template text:style-name="Contents_20_Heading">
+        $toc-title$
+    </text:index-title-template>
+    <text:table-of-content-entry-template text:outline-level="1"
+    text:style-name="Contents_20_1">
+      <text:index-entry-link-start text:style-name="Internet_20_link" />
+      <text:index-entry-chapter />
+      <text:index-entry-text />
+      <text:index-entry-link-end />
+      <text:index-entry-tab-stop style:type="right"
+      style:leader-char="." />
+      <text:index-entry-link-start text:style-name="Internet_20_link" />
+      <text:index-entry-page-number />
+      <text:index-entry-link-end />
+    </text:table-of-content-entry-template>
+    <text:table-of-content-entry-template text:outline-level="2"
+    text:style-name="Contents_20_2">
+      <text:index-entry-link-start text:style-name="Internet_20_link" />
+      <text:index-entry-chapter />
+      <text:index-entry-text />
+      <text:index-entry-link-end />
+      <text:index-entry-tab-stop style:type="right"
+      style:leader-char="." />
+      <text:index-entry-link-start text:style-name="Internet_20_link" />
+      <text:index-entry-page-number />
+      <text:index-entry-link-end />
+    </text:table-of-content-entry-template>
+    <text:table-of-content-entry-template text:outline-level="3"
+    text:style-name="Contents_20_3">
+      <text:index-entry-link-start text:style-name="Internet_20_link" />
+      <text:index-entry-chapter />
+      <text:index-entry-text />
+      <text:index-entry-link-end />
+      <text:index-entry-tab-stop style:type="right"
+      style:leader-char="." />
+      <text:index-entry-link-start text:style-name="Internet_20_link" />
+      <text:index-entry-page-number />
+      <text:index-entry-link-end />
+    </text:table-of-content-entry-template>
+    <text:table-of-content-entry-template text:outline-level="4"
+    text:style-name="Contents_20_4">
+      <text:index-entry-link-start text:style-name="Internet_20_link" />
+      <text:index-entry-chapter />
+      <text:index-entry-text />
+      <text:index-entry-link-end />
+      <text:index-entry-tab-stop style:type="right"
+      style:leader-char="." />
+      <text:index-entry-link-start text:style-name="Internet_20_link" />
+      <text:index-entry-page-number />
+      <text:index-entry-link-end />
+    </text:table-of-content-entry-template>
+    <text:table-of-content-entry-template text:outline-level="5"
+    text:style-name="Contents_20_5">
+      <text:index-entry-link-start text:style-name="Internet_20_link" />
+      <text:index-entry-chapter />
+      <text:index-entry-text />
+      <text:index-entry-link-end />
+      <text:index-entry-tab-stop style:type="right"
+      style:leader-char="." />
+      <text:index-entry-link-start text:style-name="Internet_20_link" />
+      <text:index-entry-page-number />
+      <text:index-entry-link-end />
+    </text:table-of-content-entry-template>
+    <text:table-of-content-entry-template text:outline-level="6"
+    text:style-name="Contents_20_6">
+      <text:index-entry-link-start text:style-name="Internet_20_link" />
+      <text:index-entry-chapter />
+      <text:index-entry-text />
+      <text:index-entry-link-end />
+      <text:index-entry-tab-stop style:type="right"
+      style:leader-char="." />
+      <text:index-entry-link-start text:style-name="Internet_20_link" />
+      <text:index-entry-page-number />
+      <text:index-entry-link-end />
+    </text:table-of-content-entry-template>
+    <text:table-of-content-entry-template text:outline-level="7"
+    text:style-name="Contents_20_7">
+      <text:index-entry-link-start text:style-name="Internet_20_link" />
+      <text:index-entry-chapter />
+      <text:index-entry-text />
+      <text:index-entry-link-end />
+      <text:index-entry-tab-stop style:type="right"
+      style:leader-char="." />
+      <text:index-entry-link-start text:style-name="Internet_20_link" />
+      <text:index-entry-page-number />
+      <text:index-entry-link-end />
+    </text:table-of-content-entry-template>
+    <text:table-of-content-entry-template text:outline-level="8"
+    text:style-name="Contents_20_8">
+      <text:index-entry-link-start text:style-name="Internet_20_link" />
+      <text:index-entry-chapter />
+      <text:index-entry-text />
+      <text:index-entry-link-end />
+      <text:index-entry-tab-stop style:type="right"
+      style:leader-char="." />
+      <text:index-entry-link-start text:style-name="Internet_20_link" />
+      <text:index-entry-page-number />
+      <text:index-entry-link-end />
+    </text:table-of-content-entry-template>
+    <text:table-of-content-entry-template text:outline-level="9"
+    text:style-name="Contents_20_9">
+      <text:index-entry-link-start text:style-name="Internet_20_link" />
+      <text:index-entry-chapter />
+      <text:index-entry-text />
+      <text:index-entry-link-end />
+      <text:index-entry-tab-stop style:type="right"
+      style:leader-char="." />
+      <text:index-entry-link-start text:style-name="Internet_20_link" />
+      <text:index-entry-page-number />
+      <text:index-entry-link-end />
+    </text:table-of-content-entry-template>
+    <text:table-of-content-entry-template text:outline-level="10"
+    text:style-name="Contents_20_10">
+      <text:index-entry-link-start text:style-name="Internet_20_link" />
+      <text:index-entry-chapter />
+      <text:index-entry-text />
+      <text:index-entry-link-end />
+      <text:index-entry-tab-stop style:type="right"
+      style:leader-char="." />
+      <text:index-entry-link-start text:style-name="Internet_20_link" />
+      <text:index-entry-page-number />
+      <text:index-entry-link-end />
+    </text:table-of-content-entry-template>
+  </text:table-of-content-source>
+</text:table-of-content>
+$endif$
 $body$
 $for(include-after)$
 $include-after$
