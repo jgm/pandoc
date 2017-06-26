@@ -36,7 +36,8 @@ module Text.Pandoc.BCP47 (
                      )
 where
 import Control.Monad (guard)
-import Data.Char (isAscii, isLetter, isUpper, isLower, toUpper, toLower)
+import Data.Char (isAscii, isLetter, isUpper, isLower, toUpper, toLower,
+                  isAlphaNum)
 import Data.List (intercalate)
 import Text.Pandoc.Definition
 import Text.Pandoc.Class (PandocMonad, report)
@@ -78,7 +79,9 @@ toLang (Just s) =
          return Nothing
        Right l -> return (Just l)
 
--- | Parse a BCP 47 string as a Lang.
+-- | Parse a BCP 47 string as a Lang.  Currently we parse
+-- extensions and private-use fields as "variants," even
+-- though officially they aren't.
 parseBCP47 :: String -> Either String Lang
 parseBCP47 lang =
   case P.parse bcp47 "lang" lang of
@@ -88,8 +91,8 @@ parseBCP47 lang =
           language <- pLanguage
           script <- P.option "" pScript
           region <- P.option "" pRegion
-          variants <- P.many pVariant
-          () <$ P.char '-' P.<|> P.eof
+          variants <- P.many (pVariant P.<|> pExtension P.<|> pPrivateUse)
+          P.eof
           return $ Lang{ langLanguage = language
                        , langScript = script
                        , langRegion = region
@@ -120,4 +123,17 @@ parseBCP47 lang =
           guard $ if null ds
                      then length var >= 5 && length var <= 8
                      else length var == 4
+          return $ map toLower var
+        pExtension = P.try $ do
+          P.char '-'
+          cs <- P.many1 $ P.satisfy (\c -> isAscii c && isAlphaNum c)
+          guard $ length cs >= 2 && length cs <= 8
+          return $ map toLower cs
+        pPrivateUse = P.try $ do
+          P.char '-'
+          P.char 'x'
+          P.char '-'
+          cs <- P.many1 $ P.satisfy (\c -> isAscii c && isAlphaNum c)
+          guard $ length cs >= 1 && length cs <= 8
+          let var = "x-" ++ cs
           return $ map toLower var
