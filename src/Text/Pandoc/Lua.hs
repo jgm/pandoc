@@ -188,34 +188,20 @@ instance StackValue LuaFilter where
   push = undefined
   peek lua idx = fmap (LuaFilter lua) <$> Lua.peek lua idx
 
--- | Helper class for pushing a single value to the stack via a lua function.
--- See @pushViaCall@.
-class PushViaFilterFunction a where
-  pushViaFilterFunction' :: LuaState -> LuaFilterFunction -> IO () -> Int -> a
-
-instance StackValue a => PushViaFilterFunction (IO a) where
-  pushViaFilterFunction' lua lf pushArgs num = do
-    pushFilterFunction lua lf
-    pushArgs
-    Lua.call lua num 1
-    mbres <- Lua.peek lua (-1)
-    case mbres of
-      Nothing -> throwIO $ LuaException
-                  ("Error while trying to get a filter's return "
-                   ++ "value from lua stack.")
-      Just res -> res <$ Lua.pop lua 1
-
-instance (StackValue a, PushViaFilterFunction b) =>
-         PushViaFilterFunction (a -> b) where
-  pushViaFilterFunction' lua lf pushArgs num x =
-    pushViaFilterFunction' lua lf (pushArgs *> push lua x) (num + 1)
-
 -- | Push a value to the stack via a lua filter function. The filter function is
 -- called with all arguments that are passed to this function and is expected to
 -- return a single value.
-runFilterFunction :: PushViaFilterFunction a
-                     => LuaState -> LuaFilterFunction -> a
-runFilterFunction lua lf = pushViaFilterFunction' lua lf (return ()) 0
+runFilterFunction :: StackValue a => LuaState -> LuaFilterFunction -> a -> IO a
+runFilterFunction lua lf x = do
+  pushFilterFunction lua lf
+  Lua.push lua x
+  Lua.call lua 1 1
+  mbres <- Lua.peek lua (-1)
+  case mbres of
+    Nothing -> throwIO $ LuaException
+               ("Error while trying to get a filter's return "
+                ++ "value from lua stack.")
+    Just res -> res <$ Lua.pop lua 1
 
 -- | Push the filter function to the top of the stack.
 pushFilterFunction :: Lua.LuaState -> LuaFilterFunction -> IO ()
