@@ -657,6 +657,9 @@ mkNumbering lists = do
   elts <- mapM mkAbstractNum (ordNub lists)
   return $ elts ++ zipWith mkNum lists [baseListId..(baseListId + length lists - 1)]
 
+maxListLevel :: Int
+maxListLevel = 8
+
 mkNum :: ListMarker -> Int -> Element
 mkNum marker numid =
   mknode "w:num" [("w:numId",show numid)]
@@ -666,7 +669,8 @@ mkNum marker numid =
        BulletMarker -> []
        NumberMarker _ _ start ->
           map (\lvl -> mknode "w:lvlOverride" [("w:ilvl",show (lvl :: Int))]
-              $ mknode "w:startOverride" [("w:val",show start)] ()) [0..6]
+              $ mknode "w:startOverride" [("w:val",show start)] ())
+                [0..maxListLevel]
 
 mkAbstractNum :: (PandocMonad m) => ListMarker -> m Element
 mkAbstractNum marker = do
@@ -675,7 +679,8 @@ mkAbstractNum marker = do
   return $ mknode "w:abstractNum" [("w:abstractNumId",listMarkerToId marker)]
     $ mknode "w:nsid" [("w:val", printf "%8x" nsid)] ()
     : mknode "w:multiLevelType" [("w:val","multilevel")] ()
-    : map (mkLvl marker) [0..6]
+    : map (mkLvl marker)
+      [0..maxListLevel]
 
 mkLvl :: ListMarker -> Int -> Element
 mkLvl marker lvl =
@@ -706,7 +711,7 @@ mkLvl marker lvl =
           bulletFor 3 = "\x2013"
           bulletFor 4 = "\x2022"
           bulletFor 5 = "\x2013"
-          bulletFor _ = "\x2022"
+          bulletFor x = bulletFor (x `mod` 6)
           styleFor UpperAlpha _   = "upperLetter"
           styleFor LowerAlpha _   = "lowerLetter"
           styleFor UpperRoman _   = "upperRoman"
@@ -718,6 +723,7 @@ mkLvl marker lvl =
           styleFor DefaultStyle 4 = "decimal"
           styleFor DefaultStyle 5 = "lowerLetter"
           styleFor DefaultStyle 6 = "lowerRoman"
+          styleFor DefaultStyle x = styleFor DefaultStyle (x `mod` 7)
           styleFor _ _            = "decimal"
           patternFor OneParen s  = s ++ ")"
           patternFor TwoParens s = "(" ++ s ++ ")"
