@@ -189,19 +189,24 @@ instance StackValue LuaFilter where
   peek lua idx = fmap (LuaFilter lua) <$> Lua.peek lua idx
 
 -- | Push a value to the stack via a lua filter function. The filter function is
--- called with all arguments that are passed to this function and is expected to
--- return a single value.
+-- called with given element as argument and is expected to return an element.
+-- Alternatively, the function can return nothing or nil, in which case the
+-- element is left unchanged.
 runFilterFunction :: StackValue a => LuaState -> LuaFilterFunction -> a -> IO a
 runFilterFunction lua lf x = do
   pushFilterFunction lua lf
   Lua.push lua x
   Lua.call lua 1 1
-  mbres <- Lua.peek lua (-1)
-  case mbres of
-    Nothing -> throwIO $ LuaException
-               ("Error while trying to get a filter's return "
-                ++ "value from lua stack.")
-    Just res -> res <$ Lua.pop lua 1
+  resType <- Lua.ltype lua (-1)
+  case resType of
+    Lua.TNIL -> Lua.pop lua 1 *> return x
+    _        -> do
+      mbres <- Lua.peek lua (-1)
+      case mbres of
+        Nothing -> throwIO $ LuaException
+                   ("Error while trying to get a filter's return "
+                    ++ "value from lua stack.")
+        Just res -> res <$ Lua.pop lua 1
 
 -- | Push the filter function to the top of the stack.
 pushFilterFunction :: Lua.LuaState -> LuaFilterFunction -> IO ()
