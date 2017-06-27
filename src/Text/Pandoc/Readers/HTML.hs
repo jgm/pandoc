@@ -53,6 +53,7 @@ import Text.Pandoc.Logging
 import Text.Pandoc.Parsing hiding ((<|>))
 import Text.Pandoc.Walk
 import qualified Data.Map as M
+import Data.Foldable ( for_ )
 import Data.Maybe ( fromMaybe, isJust)
 import Data.List ( intercalate, isPrefixOf )
 import Data.Char ( isDigit, isLetter, isAlphaNum )
@@ -134,6 +135,13 @@ type HTMLParser m s = ParserT s HTMLState (ReaderT HTMLLocal m)
 
 type TagParser m = HTMLParser m [Tag Text]
 
+pHtml :: PandocMonad m => TagParser m Blocks
+pHtml = try $ do
+  (TagOpen "html" attr) <- lookAhead $ pAnyTag
+  for_ (lookup "lang" attr) $
+    updateState . B.setMeta "lang" . B.text . T.unpack
+  pInTags "html" block
+
 pBody :: PandocMonad m => TagParser m Blocks
 pBody = pInTags "body" block
 
@@ -175,6 +183,7 @@ block = do
             , pList
             , pHrule
             , pTable
+            , pHtml
             , pHead
             , pBody
             , pDiv
