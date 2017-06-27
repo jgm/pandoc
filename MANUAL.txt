@@ -3227,17 +3227,16 @@ The link text will be used as the image's alt text:
 
 #### Extension: `implicit_figures` ####
 
-An image occurring by itself in a paragraph will be rendered as
-a figure with a caption.[^5] (In LaTeX, a figure environment will be
-used; in HTML, the image will be placed in a `div` with class
-`figure`, together with a caption in a `p` with class `caption`.)
-The image's alt text will be used as the caption.
+An image with nonempty alt text, occurring by itself in a
+paragraph, will be rendered as a figure with a caption.  The
+image's alt text will be used as the caption.
 
     ![This is the caption](/url/of/image.png)
 
-[^5]: This feature is not yet implemented for RTF, OpenDocument, or
-    ODT. In those formats, you'll just get an image in a paragraph by
-    itself, with no caption.
+How this is rendered depends on the output format. Some output
+formats (e.g. RTF) do not yet support figures.  In those
+formats, you'll just get an image in a paragraph by itself, with
+no caption.
 
 If you just want a regular inline image, just make sure it is not
 the only thing in the paragraph. One way to do this is to insert a

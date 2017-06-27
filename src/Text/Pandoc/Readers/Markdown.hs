@@ -1035,7 +1035,8 @@ para = try $ do
               result' <- result
               case B.toList result' of
                    [Image attr alt (src,tit)]
-                     | Ext_implicit_figures `extensionEnabled` exts ->
+                     | not (null alt) &&
+                       Ext_implicit_figures `extensionEnabled` exts ->
                         -- the fig: at beginning of title indicates a figure
                         return $ B.para $ B.singleton
                                $ Image attr alt (src,'f':'i':'g':':':tit)
