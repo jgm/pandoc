@@ -196,17 +196,26 @@ runFilterFunction :: StackValue a => LuaState -> LuaFilterFunction -> a -> IO a
 runFilterFunction lua lf x = do
   pushFilterFunction lua lf
   Lua.push lua x
-  Lua.call lua 1 1
-  resType <- Lua.ltype lua (-1)
-  case resType of
-    Lua.TNIL -> Lua.pop lua 1 *> return x
-    _        -> do
-      mbres <- Lua.peek lua (-1)
-      case mbres of
-        Nothing -> throwIO $ LuaException
-                   ("Error while trying to get a filter's return "
-                    ++ "value from lua stack.")
-        Just res -> res <$ Lua.pop lua 1
+  z <- Lua.pcall lua 1 1 0
+  if (z /= 0)
+    then do
+      msg <- Lua.peek lua (-1)
+      let prefix = "Error while running filter function: "
+      throwIO . LuaException $
+        case msg of
+          Nothing   -> prefix ++ "could not read error message"
+          Just msg' -> prefix ++ msg'
+    else do
+      resType <- Lua.ltype lua (-1)
+      case resType of
+        Lua.TNIL -> Lua.pop lua 1 *> return x
+        _        -> do
+          mbres <- Lua.peek lua (-1)
+          case mbres of
+            Nothing -> throwIO $ LuaException
+                       ("Error while trying to get a filter's return "
+                        ++ "value from lua stack.")
+            Just res -> res <$ Lua.pop lua 1
 
 -- | Push the filter function to the top of the stack.
 pushFilterFunction :: Lua.LuaState -> LuaFilterFunction -> IO ()
