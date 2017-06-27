@@ -360,7 +360,8 @@ M.Table = M.Block:create_constructor(
   "Table",
   function(caption, aligns, widths, headers, rows)
     return {c = {caption, aligns, widths, headers, rows}}
-  end
+  end,
+  {"caption", "aligns", "widths", "headers", "rows"}
 )
 
 
