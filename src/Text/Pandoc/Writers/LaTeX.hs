@@ -1245,9 +1245,9 @@ mbBraced x = if not (all isAlphaNum x)
 -- Extract a key from divs and spans
 extract :: String -> Block -> [String]
 extract key (Div attr _)     = lookKey key attr
-extract key (Plain ils)      = concatMap (extractInline key) ils
-extract key (Para ils)       = concatMap (extractInline key) ils
-extract key (Header _ _ ils) = concatMap (extractInline key) ils
+extract key (Plain ils)      = query (extractInline key) ils
+extract key (Para ils)       = query (extractInline key) ils
+extract key (Header _ _ ils) = query (extractInline key) ils
 extract _ _                  = []
 
 -- Extract a key from spans
