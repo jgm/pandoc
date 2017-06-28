@@ -1462,6 +1462,9 @@ LaTeX variables are used when [creating a PDF].
 `biblatexoptions`
 :   list of options for biblatex.
 
+`natbiboptions`
+:   list of options for natbib.
+
 [`article`]: https://ctan.org/pkg/article
 [`report`]: https://ctan.org/pkg/report
 [`book`]: https://ctan.org/pkg/book
