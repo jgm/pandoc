@@ -187,6 +187,7 @@ blockElements = choice [ comment
                        , orderedList
                        , table
                        , commentTag
+                       , indentedBlock
                        , noteBlock
                        ]
 
@@ -209,7 +210,8 @@ separator = try $ do
 header :: PandocMonad m => MuseParser m (F Blocks)
 header = try $ do
   st <- stateParserContext <$> getState
-  getPosition >>= \pos -> guard (st == NullState && sourceColumn pos == 1)
+  q <- stateQuoteContext <$> getState
+  getPosition >>= \pos -> guard (st == NullState && q == NoQuote && sourceColumn pos == 1)
   level <- liftM length $ many1 $ char '*'
   guard $ level <= 5
   skipSpaces
@@ -247,6 +249,25 @@ quoteTag = blockTag B.blockQuote "quote"
 
 commentTag :: PandocMonad m => MuseParser m (F Blocks)
 commentTag = parseHtmlContent "comment" block >> return mempty
+
+-- Indented block is either center, right or quote
+indentedLine :: PandocMonad m => MuseParser m (Int, String)
+indentedLine = try $ do
+  indent <- length <$> many1 spaceChar
+  line <- anyLine
+  return (indent, line)
+
+rawIndentedBlock :: PandocMonad m => MuseParser m (Int, String)
+rawIndentedBlock = try $ do
+  lns <- many1 indentedLine
+  let indent = minimum $ map fst lns
+  return (indent, unlines $ map snd lns)
+
+indentedBlock :: PandocMonad m => MuseParser m (F Blocks)
+indentedBlock = try $ do
+  (indent, raw) <- rawIndentedBlock
+  contents <- withQuoteContext InDoubleQuote $ parseFromString parseBlocks raw
+  return $ (if indent >= 2 && indent < 6 then B.blockQuote else id) <$> contents
 
 para :: PandocMonad m => MuseParser m (F Blocks)
 para = liftM B.para . trimInlinesF . mconcat <$> many1Till inline endOfParaElement

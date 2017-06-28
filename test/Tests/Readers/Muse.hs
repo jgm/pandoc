@@ -102,7 +102,12 @@ tests =
         , "5 dashes is a horizontal rule" =: "-----" =?> horizontalRule
         , "4 dashes with spaces is a horizontal rule" =: "----  " =?> horizontalRule
         ]
-      , "Quote" =: "<quote>Hello, world</quote>" =?> blockQuote (para $ text "Hello, world")
+      , "Quote tag" =: "<quote>Hello, world</quote>" =?> blockQuote (para $ text "Hello, world")
+      , "Quote" =: "  This is a quotation\n" =?> blockQuote (para $ text "This is a quotation")
+      , "Multiline quote" =: T.unlines [ "  This is a quotation"
+                                       , "  with a continuation"
+                                       ]
+        =?> blockQuote (para $ text "This is a quotation with a continuation")
       , "Center" =: "<center>Hello, world</center>" =?> para (text "Hello, world")
       , "Right" =: "<right>Hello, world</right>" =?> para (text "Hello, world")
       , testGroup "Comments"
