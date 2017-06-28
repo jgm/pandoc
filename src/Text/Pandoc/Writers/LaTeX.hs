@@ -256,6 +256,10 @@ pandocToLaTeX options (Pandoc meta blocks) = do
                      else defField "dir" ("ltr" :: String)) $
                   defField "section-titles" True $
                   defField "geometry" geometryFromMargins $
+                  (case getField "papersize" metadata of
+                        Just ("A4" :: String) -> resetField "papersize"
+                                                    ("a4" :: String)
+                        _                     -> id) $
                   metadata
   let context' =
           -- note: lang is used in some conditionals in the template,

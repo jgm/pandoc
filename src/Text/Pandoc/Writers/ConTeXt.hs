@@ -1,4 +1,5 @@
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE ScopedTypeVariables #-}
 {-
 Copyright (C) 2007-2017 John MacFarlane <jgm@berkeley.edu>
 
@@ -103,6 +104,10 @@ pandocToConTeXt options (Pandoc meta blocks) = do
                 $ defField "layout" layoutFromMargins
                 $ defField "number-sections" (writerNumberSections options)
                 $ maybe id (defField "context-lang") mblang
+                $ (case getField "papersize" metadata of
+                        Just ("a4" :: String) -> resetField "papersize"
+                                                    ("A4" :: String)
+                        _                     -> id)
                 $ metadata
   let context' = defField "context-dir" (toContextDir
                                          $ getField "dir" context) context
