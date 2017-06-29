@@ -104,55 +104,46 @@ newtype LuaFilterFunction = LuaFilterFunction { functionIndex :: Int }
 execDocLuaFilter :: LuaState
                  -> FunctionMap
                  -> Pandoc -> IO Pandoc
-execDocLuaFilter lua fnMap x = do
-  let docFnName = "Doc"
-  case Map.lookup docFnName fnMap of
-    Nothing -> return x
-    Just fn -> runFilterFunction lua fn x
+execDocLuaFilter lua fnMap = tryFilter lua fnMap "Doc"
 
 execMetaLuaFilter :: LuaState
                   -> FunctionMap
                   -> Pandoc -> IO Pandoc
-execMetaLuaFilter lua fnMap pd@(Pandoc meta blks) = do
-  let metaFnName = "Meta"
-  case Map.lookup metaFnName fnMap of
-    Nothing -> return pd
-    Just fn -> do
-      meta' <- runFilterFunction lua fn meta
-      return $ Pandoc meta' blks
+execMetaLuaFilter lua fnMap (Pandoc meta blks) = do
+  meta' <- tryFilter lua fnMap "Meta" meta
+  return $ Pandoc meta' blks
 
 execBlockLuaFilter :: LuaState
                    -> FunctionMap
                    -> Block -> IO Block
 execBlockLuaFilter lua fnMap x = do
-  let tryFilter :: String -> IO Block
-      tryFilter filterFnName =
-        case Map.lookup filterFnName fnMap of
-          Nothing -> return x
-          Just fn -> runFilterFunction lua fn x
-  tryFilter (show (toConstr x))
+  tryFilter lua fnMap (show (toConstr x)) x
+
+tryFilter :: StackValue a => LuaState -> FunctionMap -> String -> a -> IO a
+tryFilter lua fnMap filterFnName x =
+  case Map.lookup filterFnName fnMap of
+    Nothing -> return x
+    Just fn -> runFilterFunction lua fn x
+
+tryFilterAlternatives :: StackValue a
+                      => LuaState -> FunctionMap -> [String] -> a -> IO a
+tryFilterAlternatives _ _ [] x = return x
+tryFilterAlternatives lua fnMap (fnName : alternatives) x =
+  case Map.lookup fnName fnMap of
+    Nothing -> tryFilterAlternatives lua fnMap alternatives x
+    Just fn -> runFilterFunction lua fn x
 
 execInlineLuaFilter :: LuaState
                     -> FunctionMap
                     -> Inline -> IO Inline
 execInlineLuaFilter lua fnMap x = do
-  let tryFilter :: String -> IO Inline
-      tryFilter filterFnName =
-        case Map.lookup filterFnName fnMap of
-          Nothing -> return x
-          Just fn -> runFilterFunction lua fn x
-  let tryFilterAlternatives :: [String] -> IO Inline
-      tryFilterAlternatives [] = return x
-      tryFilterAlternatives (fnName : alternatives) =
-        case Map.lookup fnName fnMap of
-          Nothing -> tryFilterAlternatives alternatives
-          Just fn -> runFilterFunction lua fn x
+  let tryAlt = tryFilterAlternatives lua fnMap
   case x of
-    Math DisplayMath _   -> tryFilterAlternatives ["DisplayMath", "Math"]
-    Math InlineMath _    -> tryFilterAlternatives ["InlineMath", "Math"]
-    Quoted DoubleQuote _ -> tryFilterAlternatives ["DoubleQuoted", "Quoted"]
-    Quoted SingleQuote _ -> tryFilterAlternatives ["SingleQuoted", "Quoted"]
-    _                    -> tryFilter (show (toConstr x))
+    Math DisplayMath _   -> tryAlt ["DisplayMath", "Math"] x
+    Math InlineMath _    -> tryAlt ["InlineMath", "Math"] x
+    Quoted DoubleQuote _ -> tryAlt ["DoubleQuoted", "Quoted"] x
+    Quoted SingleQuote _ -> tryAlt ["SingleQuoted", "Quoted"] x
+    _                    -> tryFilter lua fnMap (show (toConstr x)) x
 
 instance StackValue LuaFilter where
   valuetype _ = Lua.TTABLE
