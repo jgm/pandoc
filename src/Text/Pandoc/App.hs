@@ -795,7 +795,7 @@ applyLuaFilters :: MonadIO m
 applyLuaFilters mbDatadir filters args d = do
   expandedFilters <- mapM (expandFilterPath mbDatadir) filters
   let go f d' = liftIO $ do
-        res <- E.try (runLuaFilter f args d')
+        res <- E.try (runLuaFilter mbDatadir f args d')
         case res of
              Right x -> return x
              Left (LuaException s) -> E.throw (PandocFilterError f s)

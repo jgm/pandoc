@@ -56,12 +56,12 @@ newtype LuaException = LuaException String
 instance Exception LuaException
 
 runLuaFilter :: (MonadIO m)
-             => FilePath -> [String] -> Pandoc -> m Pandoc
-runLuaFilter filterPath args pd = liftIO $ do
+             => Maybe FilePath -> FilePath -> [String] -> Pandoc -> m Pandoc
+runLuaFilter datadir filterPath args pd = liftIO $ do
   lua <- Lua.newstate
   Lua.openlibs lua
   -- store module in global "pandoc"
-  pushPandocModule lua
+  pushPandocModule datadir lua
   Lua.setglobal lua "pandoc"
   top <- Lua.gettop lua
   status <- Lua.loadfile lua filterPath

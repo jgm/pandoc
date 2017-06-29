@@ -41,9 +41,9 @@ import Text.Pandoc.Readers (Reader (..), getReader)
 import Text.Pandoc.Shared (readDataFile)
 
 -- | Push the "pandoc" on the lua stack.
-pushPandocModule :: LuaState -> IO ()
-pushPandocModule lua = do
-  script <- pandocModuleScript
+pushPandocModule :: Maybe FilePath -> LuaState -> IO ()
+pushPandocModule datadir lua = do
+  script <- pandocModuleScript datadir
   status <- loadstring lua script "pandoc.lua"
   unless (status /= 0) $ call lua 0 1
   push lua "__read"
@@ -51,8 +51,8 @@ pushPandocModule lua = do
   rawset lua (-3)
 
 -- | Get the string representation of the pandoc module
-pandocModuleScript :: IO String
-pandocModuleScript = unpack <$> readDataFile Nothing "pandoc.lua"
+pandocModuleScript :: Maybe FilePath -> IO String
+pandocModuleScript datadir = unpack <$> readDataFile datadir "pandoc.lua"
 
 read_doc :: String -> String -> IO (Either String Pandoc)
 read_doc formatSpec content = do
