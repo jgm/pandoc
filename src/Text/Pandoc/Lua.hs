@@ -36,6 +36,7 @@ module Text.Pandoc.Lua ( LuaException(..),
 import Control.Exception
 import Control.Monad (unless, when, (>=>))
 import Control.Monad.Trans (MonadIO (..))
+import Data.Data (toConstr)
 import Data.Map (Map)
 import Data.Typeable (Typeable)
 import Scripting.Lua (LuaState, StackValue (..))
@@ -129,21 +130,7 @@ execBlockLuaFilter lua fnMap x = do
         case Map.lookup filterFnName fnMap of
           Nothing -> return x
           Just fn -> runFilterFunction lua fn x
-  case x of
-    BlockQuote{}     -> tryFilter "BlockQuote"
-    BulletList{}     -> tryFilter "BulletList"
-    CodeBlock{}      -> tryFilter "CodeBlock"
-    DefinitionList{} -> tryFilter "DefinitionList"
-    Div{}            -> tryFilter "Div"
-    Header{}         -> tryFilter "Header"
-    HorizontalRule   -> tryFilter "HorizontalRule"
-    LineBlock{}      -> tryFilter "LineBlock"
-    Null             -> tryFilter "Null"
-    Para{}           -> tryFilter "Para"
-    Plain{}          -> tryFilter "Plain"
-    RawBlock{}       -> tryFilter "RawBlock"
-    OrderedList{}    -> tryFilter "OrderedList"
-    Table{}          -> tryFilter "Table"
+  tryFilter (show (toConstr x))
 
 execInlineLuaFilter :: LuaState
                     -> FunctionMap
@@ -161,27 +148,11 @@ execInlineLuaFilter lua fnMap x = do
           Nothing -> tryFilterAlternatives alternatives
           Just fn -> runFilterFunction lua fn x
   case x of
-    Cite{}               -> tryFilter "Cite"
-    Code{}               -> tryFilter "Code"
-    Emph{}               -> tryFilter "Emph"
-    Image{}              -> tryFilter "Image"
-    LineBreak            -> tryFilter "LineBreak"
-    Link{}               -> tryFilter "Link"
     Math DisplayMath _   -> tryFilterAlternatives ["DisplayMath", "Math"]
     Math InlineMath _    -> tryFilterAlternatives ["InlineMath", "Math"]
-    Note{}               -> tryFilter "Note"
     Quoted DoubleQuote _ -> tryFilterAlternatives ["DoubleQuoted", "Quoted"]
     Quoted SingleQuote _ -> tryFilterAlternatives ["SingleQuoted", "Quoted"]
-    RawInline{}          -> tryFilter "RawInline"
-    SmallCaps{}          -> tryFilter "SmallCaps"
-    SoftBreak            -> tryFilter "SoftBreak"
-    Space                -> tryFilter "Space"
-    Span{}               -> tryFilter "Span"
-    Str{}                -> tryFilter "Str"
-    Strikeout{}          -> tryFilter "Strikeout"
-    Strong{}             -> tryFilter "Strong"
-    Subscript{}          -> tryFilter "Subscript"
-    Superscript{}        -> tryFilter "Superscript"
+    _                    -> tryFilter (show (toConstr x))
 
 instance StackValue LuaFilter where
   valuetype _ = Lua.TTABLE
