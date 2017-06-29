@@ -2,6 +2,7 @@
 {-# LANGUAGE FlexibleInstances     #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE DeriveDataTypeable    #-}
+{-# LANGUAGE ScopedTypeVariables   #-}
 {-
 Copyright © 2017 Albert Krewinkel <tarleb+pandoc@moltkeplatz.de>
 
@@ -34,10 +35,11 @@ module Text.Pandoc.Lua ( LuaException(..),
                          pushPandocModule ) where
 
 import Control.Exception
-import Control.Monad (unless, when, (>=>))
+import Control.Monad (unless, when, (>=>), mplus)
 import Control.Monad.Trans (MonadIO (..))
-import Data.Data (toConstr)
+import Data.Data (toConstr, showConstr, dataTypeOf, dataTypeConstrs, Data)
 import Data.Map (Map)
+import Data.Maybe (isJust)
 import Data.Typeable (Typeable)
 import Scripting.Lua (LuaState, StackValue (..))
 import Text.Pandoc.Definition
@@ -91,43 +93,37 @@ runAll = foldr ((>=>) . walkMWithLuaFilter) return
 
 walkMWithLuaFilter :: LuaFilter -> Pandoc -> IO Pandoc
 walkMWithLuaFilter (LuaFilter lua fnMap) =
-  walkM (execInlineLuaFilter lua fnMap) >=>
-  walkM (execBlockLuaFilter  lua fnMap) >=>
-  walkM (execMetaLuaFilter   lua fnMap) >=>
-  walkM (execDocLuaFilter    lua fnMap)
+  (if hasOneOf (constructorsFor (dataTypeOf (Str [])))
+      then walkM (tryFilter lua fnMap :: Inline -> IO Inline)
+      else return)
+  >=>
+  (if hasOneOf (constructorsFor (dataTypeOf (Para [])))
+      then walkM (tryFilter lua fnMap :: Block -> IO Block)
+      else return)
+  >=>
+  (case Map.lookup "Meta" fnMap of
+        Just fn -> walkM (\(Pandoc meta blocks) -> do
+                             meta' <- runFilterFunction lua fn meta
+                             return $ Pandoc meta' blocks)
+        Nothing -> return)
+  >=>
+  (case Map.lookup "Pandoc" fnMap `mplus` Map.lookup "Doc" fnMap of
+        Just fn -> (runFilterFunction lua fn) :: Pandoc -> IO Pandoc
+        Nothing -> return)
+  where hasOneOf = any (\k -> isJust (Map.lookup k fnMap))
+        constructorsFor x = map show (dataTypeConstrs x)
 
 type FunctionMap = Map String LuaFilterFunction
 data LuaFilter = LuaFilter LuaState FunctionMap
 
 newtype LuaFilterFunction = LuaFilterFunction { functionIndex :: Int }
 
-tryFilter :: StackValue a => LuaState -> FunctionMap -> String -> a -> IO a
-tryFilter lua fnMap filterFnName x =
+tryFilter :: (Data a, StackValue a) => LuaState -> FunctionMap -> a -> IO a
+tryFilter lua fnMap x =
+  let filterFnName = showConstr (toConstr x) in
   case Map.lookup filterFnName fnMap of
     Nothing -> return x
     Just fn -> runFilterFunction lua fn x
-
-execDocLuaFilter :: LuaState
-                 -> FunctionMap
-                 -> Pandoc -> IO Pandoc
-execDocLuaFilter lua fnMap = tryFilter lua fnMap "Doc"
-
-execMetaLuaFilter :: LuaState
-                  -> FunctionMap
-                  -> Pandoc -> IO Pandoc
-execMetaLuaFilter lua fnMap (Pandoc meta blks) = do
-  meta' <- tryFilter lua fnMap "Meta" meta
-  return $ Pandoc meta' blks
-
-execBlockLuaFilter :: LuaState
-                   -> FunctionMap
-                   -> Block -> IO Block
-execBlockLuaFilter lua fnMap x = tryFilter lua fnMap (show (toConstr x)) x
-
-execInlineLuaFilter :: LuaState
-                    -> FunctionMap
-                    -> Inline -> IO Inline
-execInlineLuaFilter lua fnMap x = tryFilter lua fnMap (show (toConstr x)) x
 
 instance StackValue LuaFilter where
   valuetype _ = Lua.TTABLE
