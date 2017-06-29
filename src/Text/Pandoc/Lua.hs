@@ -101,6 +101,12 @@ data LuaFilter = LuaFilter LuaState FunctionMap
 
 newtype LuaFilterFunction = LuaFilterFunction { functionIndex :: Int }
 
+tryFilter :: StackValue a => LuaState -> FunctionMap -> String -> a -> IO a
+tryFilter lua fnMap filterFnName x =
+  case Map.lookup filterFnName fnMap of
+    Nothing -> return x
+    Just fn -> runFilterFunction lua fn x
+
 execDocLuaFilter :: LuaState
                  -> FunctionMap
                  -> Pandoc -> IO Pandoc
@@ -116,34 +122,12 @@ execMetaLuaFilter lua fnMap (Pandoc meta blks) = do
 execBlockLuaFilter :: LuaState
                    -> FunctionMap
                    -> Block -> IO Block
-execBlockLuaFilter lua fnMap x = do
-  tryFilter lua fnMap (show (toConstr x)) x
-
-tryFilter :: StackValue a => LuaState -> FunctionMap -> String -> a -> IO a
-tryFilter lua fnMap filterFnName x =
-  case Map.lookup filterFnName fnMap of
-    Nothing -> return x
-    Just fn -> runFilterFunction lua fn x
-
-tryFilterAlternatives :: StackValue a
-                      => LuaState -> FunctionMap -> [String] -> a -> IO a
-tryFilterAlternatives _ _ [] x = return x
-tryFilterAlternatives lua fnMap (fnName : alternatives) x =
-  case Map.lookup fnName fnMap of
-    Nothing -> tryFilterAlternatives lua fnMap alternatives x
-    Just fn -> runFilterFunction lua fn x
+execBlockLuaFilter lua fnMap x = tryFilter lua fnMap (show (toConstr x)) x
 
 execInlineLuaFilter :: LuaState
                     -> FunctionMap
                     -> Inline -> IO Inline
-execInlineLuaFilter lua fnMap x = do
-  let tryAlt = tryFilterAlternatives lua fnMap
-  case x of
-    Math DisplayMath _   -> tryAlt ["DisplayMath", "Math"] x
-    Math InlineMath _    -> tryAlt ["InlineMath", "Math"] x
-    Quoted DoubleQuote _ -> tryAlt ["DoubleQuoted", "Quoted"] x
-    Quoted SingleQuote _ -> tryAlt ["SingleQuoted", "Quoted"] x
-    _                    -> tryFilter lua fnMap (show (toConstr x)) x
+execInlineLuaFilter lua fnMap x = tryFilter lua fnMap (show (toConstr x)) x
 
 instance StackValue LuaFilter where
   valuetype _ = Lua.TTABLE
