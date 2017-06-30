@@ -103,6 +103,7 @@ data EPUBMetadata = EPUBMetadata{
   , epubCoverImage    :: Maybe String
   , epubStylesheets   :: [FilePath]
   , epubPageDirection :: Maybe ProgressionDirection
+  , epubIbooksFields  :: [(String, String)]
   } deriving Show
 
 data Date = Date{
@@ -312,6 +313,7 @@ metadataFromMeta opts meta = EPUBMetadata{
     , epubCoverImage         = coverImage
     , epubStylesheets        = stylesheets
     , epubPageDirection      = pageDirection
+    , epubIbooksFields       = ibooksFields
     }
   where identifiers = getIdentifier meta
         titles = getTitle meta
@@ -339,6 +341,10 @@ metadataFromMeta opts meta = EPUBMetadata{
                               Just "ltr" -> Just LTR
                               Just "rtl" -> Just RTL
                               _          -> Nothing
+        ibooksFields = case lookupMeta "ibooks" meta of
+                            Just (MetaMap mp)
+                               -> M.toList $ M.map metaValueToString mp
+                            _  -> []
 
 -- | Produce an EPUB2 file from a Pandoc document.
 writeEPUB2 :: PandocMonad m
@@ -577,7 +583,8 @@ pandocToEPUB version opts doc@(Pandoc meta _) = do
                                              EPUB2 -> "2.0"
                                              EPUB3 -> "3.0")
                           ,("xmlns","http://www.idpf.org/2007/opf")
-                          ,("unique-identifier","epub-id-1")] $
+                          ,("unique-identifier","epub-id-1")
+                          ,("prefix","ibooks: http://vocabulary.itunes.apple.com/rdf/ibooks/vocabulary-extensions-1.0/")] $
           [ metadataElement version metadata currentTime
           , unode "manifest" $
              [ unode "item" ! [("id","ncx"), ("href","toc.ncx")
@@ -653,7 +660,7 @@ pandocToEPUB version opts doc@(Pandoc meta _) = do
       navMapFormatter n tit src subs = unode "navPoint" !
                [("id", "navPoint-" ++ show n)] $
                   [ unode "navLabel" $ unode "text" tit
-                  , unode "content" ! [("src", src)] $ ()
+                  , unode "content" ! [("src", "text/" ++ src)] $ ()
                   ] ++ subs
 
   let tpNode = unode "navPoint" !  [("id", "navPoint-0")] $
@@ -686,7 +693,8 @@ pandocToEPUB version opts doc@(Pandoc meta _) = do
   let navXhtmlFormatter :: Int -> String -> String -> [Element] -> Element
       navXhtmlFormatter n tit src subs = unode "li" !
                                        [("id", "toc-li-" ++ show n)] $
-                                            (unode "a" ! [("href",src)]
+                                            (unode "a" ! [("href", "text/" ++
+                                                                   src)]
                                              $ tit)
                                             : case subs of
                                                  []    -> []
@@ -719,7 +727,11 @@ pandocToEPUB version opts doc@(Pandoc meta _) = do
                             ]
                           ]
                      else []
-  navData <- lift $ writeHtml opts'{ writerVariables = ("navpage","true"):vars }
+  navData <- lift $ writeHtml opts'{ writerVariables = ("navpage","true"):
+                     -- remove the leading ../ from stylesheet paths:
+                     map (\(k,v) -> if k == "css"
+                                       then (k, drop 3 v)
+                                       else (k, v)) vars }
             (Pandoc (setMeta "title"
                      (walk removeNote $ fromList $ docTitle' meta) nullMeta)
                (navBlocks ++ landmarks))
@@ -761,7 +773,8 @@ metadataElement :: EPUBVersion -> EPUBMetadata -> UTCTime -> Element
 metadataElement version md currentTime =
   unode "metadata" ! [("xmlns:dc","http://purl.org/dc/elements/1.1/")
                      ,("xmlns:opf","http://www.idpf.org/2007/opf")] $ mdNodes
-  where mdNodes = identifierNodes ++ titleNodes ++ dateNodes ++ languageNodes
+  where mdNodes = identifierNodes ++ titleNodes ++ dateNodes
+                  ++ languageNodes ++ ibooksNodes
                   ++ creatorNodes ++ contributorNodes ++ subjectNodes
                   ++ descriptionNodes ++ typeNodes ++ formatNodes
                   ++ publisherNodes ++ sourceNodes ++ relationNodes
@@ -780,6 +793,8 @@ metadataElement version md currentTime =
                                  [] -> []
                                  (x:_) -> [dcNode "date" ! [("id","epub-date")]
                                             $ dateText x]
+        ibooksNodes = map ibooksNode (epubIbooksFields md)
+        ibooksNode (k, v) = unode "meta" ! [("property", "ibooks:" ++ k)] $ v
         languageNodes = [dcTag "language" $ epubLanguage md]
         creatorNodes = withIds "epub-creator" (toCreatorNode "creator") $
                        epubCreator md
