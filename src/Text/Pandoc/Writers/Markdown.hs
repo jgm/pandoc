@@ -416,6 +416,9 @@ blockToMarkdown' opts (Plain inlines) = do
             '+':s:_ | not isPlain && isSpace s -> "\\" <> contents
             '*':s:_ | not isPlain && isSpace s -> "\\" <> contents
             '-':s:_ | not isPlain && isSpace s -> "\\" <> contents
+            '+':[]  | not isPlain -> "\\" <> contents
+            '*':[]  | not isPlain -> "\\" <> contents
+            '-':[]  | not isPlain -> "\\" <> contents
             '|':_ | (isEnabled Ext_line_blocks opts ||
                      isEnabled Ext_pipe_tables opts)
                     && isEnabled Ext_all_symbols_escapable opts
