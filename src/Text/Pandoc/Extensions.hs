@@ -244,7 +244,6 @@ githubMarkdownExtensions = extensionsFromList
   , Ext_space_in_atx_header
   , Ext_intraword_underscores
   , Ext_strikeout
-  , Ext_hard_line_breaks
   , Ext_emoji
   , Ext_lists_without_preceding_blankline
   , Ext_shortcut_reference_links
