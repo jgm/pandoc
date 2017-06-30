@@ -84,7 +84,8 @@ import Text.Pandoc.PDF (makePDF)
 import Text.Pandoc.Process (pipeProcess)
 import Text.Pandoc.SelfContained (makeDataURI, makeSelfContained)
 import Text.Pandoc.Shared (headerShift, isURI, openURL, readDataFile,
-                           readDataFileUTF8, safeRead, tabFilter)
+                           readDataFileUTF8, safeRead, tabFilter,
+                           eastAsianLineBreakFilter)
 import qualified Text.Pandoc.UTF8 as UTF8
 import Text.Pandoc.XML (toEntities)
 import Text.Printf
@@ -381,9 +382,17 @@ convertWithOpts opts = do
             "Specify an output file using the -o option."
 
 
-  let transforms = case optBaseHeaderLevel opts of
-                        x | x > 1 -> [headerShift (x - 1)]
-                          | otherwise -> []
+  let transforms = (case optBaseHeaderLevel opts of
+                        x | x > 1     -> (headerShift (x - 1) :)
+                          | otherwise -> id) $
+                   (if extensionEnabled Ext_east_asian_line_breaks
+                          readerExts &&
+                       not (extensionEnabled Ext_east_asian_line_breaks
+                            writerExts &&
+                            writerWrapText writerOptions == WrapPreserve)
+                       then (eastAsianLineBreakFilter :)
+                       else id)
+                   []
 
   let convertTabs = tabFilter (if optPreserveTabs opts || readerName == "t2t"
                                   then 0

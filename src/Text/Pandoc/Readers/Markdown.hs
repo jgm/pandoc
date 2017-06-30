@@ -380,8 +380,7 @@ parseMarkdown = do
                      meta <- stateMeta' st
                      return $ Pandoc meta bs) st
   reportLogMessages
-  (do guardEnabled Ext_east_asian_line_breaks
-      return $ eastAsianLineBreakFilter doc) <|> return doc
+  return doc
 
 referenceKey :: PandocMonad m => MarkdownParser m (F Blocks)
 referenceKey = try $ do
