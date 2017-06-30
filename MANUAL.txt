@@ -4001,6 +4001,8 @@ block][Extension: `yaml_metadata_block`].  Here is an example:
       text: doi:10.234234.234/33
     publisher:  My Press
     rights: © 2007 John Smith, CC BY-NC
+    ibooks:
+      version: 1.3.4
     ...
 
 The following fields are recognized:
@@ -4065,6 +4067,16 @@ The following fields are recognized:
 `page-progression-direction`
   ~ Either `ltr` or `rtl`. Specifies the `page-progression-direction`
     attribute for the [`spine` element].
+
+`ibooks`
+  ~ iBooks-specific metadata, with the following fields:
+
+    - `version`: (string)
+    - `specified-fonts`: `true`|`false` (default `false`)
+    - `ipad-orientation-lock`: `portrait-only`|`landscape-only`
+    - `iphone-orientation-lock`: `portrait-only`|`landscape-only`
+    - `binding`: `true`|`false` (default `true`)
+    - `scroll-axis`: `vertical`|`horizontal`|`default`
 
 [MARC relators]: http://loc.gov/marc/relators/relaterm.html
 [`spine` element]: http://idpf.org/epub/301/spec/epub-publications.html#sec-spine-elem
