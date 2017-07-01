@@ -553,6 +553,10 @@ inlineCommands = M.fromList $
   , ("_", lit "_")
   , ("{", lit "{")
   , ("}", lit "}")
+  -- Reference placeholders
+  , ("figurename", doReferenceCommand "Figure")
+  , ("tablename", doReferenceCommand "Table")
+  , ("lstlistingname", doReferenceCommand "Listing")
   -- old TeX commands
   , ("em", extractSpaces emph <$> inlines)
   , ("it", extractSpaces emph <$> inlines)
@@ -736,6 +740,11 @@ doverb :: PandocMonad m => LP m Inlines
 doverb = do
   marker <- anyChar
   code <$> manyTill (satisfy (/='\n')) (char marker)
+
+doReferenceCommand :: PandocMonad m => String -> LP m Inlines
+doReferenceCommand label = do
+  s <- (char '~' >> return "\160") <|> (return space)
+  pure $ str label <> s
 
 dolstinline :: PandocMonad m => LP m Inlines
 dolstinline = do
