@@ -671,6 +671,8 @@ inlineCommands = M.fromList $
                    <|> citation "citeauthor" AuthorInText False)
   , ("nocite", mempty <$ (citation "nocite" NormalCitation False >>=
                           addMeta "nocite"))
+  -- csquotes
+  , ("textcquote", dotextcquote)
   , ("hypertarget", braced >> tok)
   -- siuntix
   , ("SI", dosiunitx)
@@ -1436,6 +1438,14 @@ complexNatbibCitation mode = try $ do
   (c:cits, raw) <- withRaw $ grouped parseOne
   return $ cite (c{ citationMode = mode }:cits)
            (rawInline "latex" $ "\\citetext" ++ raw)
+
+ -- \textcquote[<prenote>][<postnote>]{<key>}[<punct>]{<text>}<tpunct>
+dotextcquote :: PandocMonad m => LP m Inlines
+dotextcquote = do
+  c <- citation "autocite" NormalCitation False
+  skipopts
+  t <- enquote
+  return . mconcat $ [t, "\160", c]
 
 -- tables
 
