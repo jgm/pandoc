@@ -38,7 +38,7 @@ module Text.Pandoc.Readers.LaTeX ( readLaTeX,
 import Control.Applicative (many, optional, (<|>))
 import Control.Monad
 import Control.Monad.Except (throwError)
-import Data.Char (chr, isAlphaNum, isLetter, ord)
+import Data.Char (chr, isAlphaNum, isLetter, ord, isDigit)
 import Data.Text (Text, unpack)
 import qualified Data.Text as T
 import Data.List (intercalate, isPrefixOf)
@@ -54,7 +54,7 @@ import Text.Pandoc.Highlighting (fromListingsLanguage, languagesByExtension)
 import Text.Pandoc.ImageSize (numUnit, showFl)
 import Text.Pandoc.Logging
 import Text.Pandoc.Options
-import Text.Pandoc.Parsing hiding (many, optional,
+import Text.Pandoc.Parsing hiding (many, optional, withRaw,
                             space, (<|>), spaces, blankline)
 import Text.Pandoc.Shared
 import Text.Pandoc.Walk
@@ -288,12 +288,25 @@ bracketed parser = try $ do
   symbol '['
   mconcat <$> manyTill parser (symbol ']')
 
+dimenarg :: PandocMonad m => LP m Text
+dimenarg = try $ do
+  ch  <- option False $ True <$ symbol '='
+  Tok _ _ s <- satisfyTok isWordTok
+  guard $ (T.take 2 (T.reverse s)) `elem`
+           ["pt","pc","in","bp","cm","mm","dd","cc","sp"]
+  let num = T.take (T.length s - 2) s
+  guard $ T.length num > 0
+  guard $ T.all isDigit num
+  return $ T.pack ['=' | ch] <> s
+
 -- inline elements:
 
 inlineText :: PandocMonad m => LP m Inlines
 inlineText = (str . T.unpack . untoken) <$> satisfyTok isWordTok
-  where isWordTok (Tok _ Word _) = True
-        isWordTok _ = False
+
+isWordTok :: Tok -> Bool
+isWordTok (Tok _ Word _) = True
+isWordTok _ = False
 
 inlineGroup :: PandocMonad m => LP m Inlines
 inlineGroup = do
@@ -365,12 +378,294 @@ dollarsMath = do
   let constructor = if display then displayMath else math
   return $ constructor $ T.unpack $ untokenize contents
 
+inlineCommand' :: PandocMonad m => LP m Inlines
+inlineCommand' = try $ do
+  cs@(Tok _ CtrlSeq t) <- anyControlSeq
+  let name = T.drop 1 t
+  guard $ name /= "begin" && name /= "end"
+  mbstar <- option Nothing (Just <$> symbol '*')
+  let names = name : maybe [] (const [name <> "*"]) mbstar
+  optional $ try $ symbol '{' >> symbol '}'
+  let raw = do
+       guard $ not (isBlockCommand name)
+       (_, rawargs) <- withRaw
+               (skipangles *> skipopts *> option "" dimenarg *> many braced)
+       let rawcommand = T.unpack $ untokenize $
+                             cs : maybe [] (:[]) mbstar ++ rawargs
+       (guardEnabled Ext_raw_tex >> return (rawInline "latex" rawcommand))
+         <|> ignore rawcommand
+       -- transformed <- applyMacros' rawcommand -- TODO or get rid of
+       -- exts <- getOption readerExtensions
+       -- if transformed /= rawcommand
+       --    then parseFromString' inlines transformed
+       --    else if extensionEnabled Ext_raw_tex exts
+       --            then return $ rawInline "latex" rawcommand
+       --            else ignore rawcommand
+  lookupListDefault raw names inlineCommands
+
+tok :: PandocMonad m => LP m Inlines
+tok = try $ grouped inline <|> inlineCommand'
+             <|> (str . T.unpack . untoken) <$> anyTok
+             -- note: this will swallow a whole word in cases
+             -- where latex would only consider one letter (TODO?)
+
+opt :: PandocMonad m => LP m Inlines
+opt = bracketed inline
+
+rawopt :: PandocMonad m => LP m Text
+rawopt = do
+  symbol '['
+  inner <- untokenize <$> manyTill anyTok (symbol ']')
+  spaces
+  return $ "[" <> inner <> "]"
+
+skipopts :: PandocMonad m => LP m ()
+skipopts = skipMany rawopt
+
+-- opts in angle brackets are used in beamer
+rawangle :: PandocMonad m => LP m ()
+rawangle = try $ do
+  symbol '<'
+  () <$ manyTill anyTok (symbol '>')
+
+skipangles :: PandocMonad m => LP m ()
+skipangles = skipMany rawangle
+
+ignore :: (Monoid a, PandocMonad m) => String -> ParserT s u m a
+ignore raw = do
+  pos <- getPosition
+  report $ SkippedContent raw pos
+  return mempty
+
+withRaw :: PandocMonad m => LP m a -> LP m (a, [Tok])
+withRaw parser = do
+  pos1 <- getPosition
+  inp <- getInput
+  result <- parser
+  nxt <- option (Tok (0,0) Word "") (lookAhead anyTok)
+  let raw = takeWhile (/= nxt) inp
+  return (result, raw)
+
+inlineCommands :: PandocMonad m => M.Map Text (LP m Inlines)
+inlineCommands = M.fromList
+  [ ("emph", extractSpaces emph <$> tok)
+  ]
+
+isBlockCommand :: Text -> Bool
+isBlockCommand s =
+  s `M.member` (blockCommands :: M.Map Text (LP PandocPure Blocks))
+
+lookupListDefault :: (Ord k) => v -> [k] -> M.Map k v -> v
+lookupListDefault d = (fromMaybe d .) . lookupList
+  where
+  lookupList l m = msum $ map (`M.lookup` m) l
+
+{-
+rawInlineOr :: PandocMonad m => String -> LP m Inlines -> LP m Inlines
+rawInlineOr name' fallback = do
+  parseRaw <- extensionEnabled Ext_raw_tex <$> getOption readerExtensions
+  if parseRaw
+     then rawInline "latex" <$> getRawCommand name'
+     else fallback
+
+isBlockCommand :: String -> Bool
+isBlockCommand s = s `M.member` (blockCommands :: M.Map String (LP PandocPure Blocks))
+
+inlineCommands :: PandocMonad m => M.Map String (LP m Inlines)
+inlineCommands = M.fromList $
+  [ ("emph", extractSpaces emph <$> tok)
+  , ("textit", extractSpaces emph <$> tok)
+  , ("textsl", extractSpaces emph <$> tok)
+  , ("textsc", extractSpaces smallcaps <$> tok)
+  , ("textsf", extractSpaces (spanWith ("",["sans-serif"],[])) <$> tok)
+  , ("textmd", extractSpaces (spanWith ("",["medium"],[])) <$> tok)
+  , ("textrm", extractSpaces (spanWith ("",["roman"],[])) <$> tok)
+  , ("textup", extractSpaces (spanWith ("",["upright"],[])) <$> tok)
+  , ("texttt", ttfamily)
+  , ("sout", extractSpaces strikeout <$> tok)
+  , ("textsuperscript", extractSpaces superscript <$> tok)
+  , ("textsubscript", extractSpaces subscript <$> tok)
+  , ("textbackslash", lit "\\")
+  , ("backslash", lit "\\")
+  , ("slash", lit "/")
+  , ("textbf", extractSpaces strong <$> tok)
+  , ("textnormal", extractSpaces (spanWith ("",["nodecor"],[])) <$> tok)
+  , ("ldots", lit "…")
+  , ("vdots", lit "\8942")
+  , ("dots", lit "…")
+  , ("mdots", lit "…")
+  , ("sim", lit "~")
+  , ("label", rawInlineOr "label" (inBrackets <$> tok))
+  , ("ref", rawInlineOr "ref" (inBrackets <$> tok))
+  , ("textgreek", tok)
+  , ("sep", lit ",")
+  , ("cref", rawInlineOr "cref" (inBrackets <$> tok))  -- from cleveref.sty
+  , ("(", mathInline $ manyTill anyChar (try $ string "\\)"))
+  , ("[", mathDisplay $ manyTill anyChar (try $ string "\\]"))
+  , ("ensuremath", mathInline braced)
+  , ("texorpdfstring", (\_ x -> x) <$> tok <*> tok)
+  , ("P", lit "¶")
+  , ("S", lit "§")
+  , ("$", lit "$")
+  , ("%", lit "%")
+  , ("&", lit "&")
+  , ("#", lit "#")
+  , ("_", lit "_")
+  , ("{", lit "{")
+  , ("}", lit "}")
+  -- old TeX commands
+  , ("em", extractSpaces emph <$> inlines)
+  , ("it", extractSpaces emph <$> inlines)
+  , ("sl", extractSpaces emph <$> inlines)
+  , ("bf", extractSpaces strong <$> inlines)
+  , ("rm", inlines)
+  , ("itshape", extractSpaces emph <$> inlines)
+  , ("slshape", extractSpaces emph <$> inlines)
+  , ("scshape", extractSpaces smallcaps <$> inlines)
+  , ("bfseries", extractSpaces strong <$> inlines)
+  , ("/", pure mempty) -- italic correction
+  , ("aa", lit "å")
+  , ("AA", lit "Å")
+  , ("ss", lit "ß")
+  , ("o", lit "ø")
+  , ("O", lit "Ø")
+  , ("L", lit "Ł")
+  , ("l", lit "ł")
+  , ("ae", lit "æ")
+  , ("AE", lit "Æ")
+  , ("oe", lit "œ")
+  , ("OE", lit "Œ")
+  , ("pounds", lit "£")
+  , ("euro", lit "€")
+  , ("copyright", lit "©")
+  , ("textasciicircum", lit "^")
+  , ("textasciitilde", lit "~")
+  , ("H", try $ tok >>= accent hungarumlaut)
+  , ("`", option (str "`") $ try $ tok >>= accent grave)
+  , ("'", option (str "'") $ try $ tok >>= accent acute)
+  , ("^", option (str "^") $ try $ tok >>= accent circ)
+  , ("~", option (str "~") $ try $ tok >>= accent tilde)
+  , ("\"", option (str "\"") $ try $ tok >>= accent umlaut)
+  , (".", option (str ".") $ try $ tok >>= accent dot)
+  , ("=", option (str "=") $ try $ tok >>= accent macron)
+  , ("c", option (str "c") $ try $ tok >>= accent cedilla)
+  , ("v", option (str "v") $ try $ tok >>= accent hacek)
+  , ("u", option (str "u") $ try $ tok >>= accent breve)
+  , ("i", lit "i")
+  , ("\\", linebreak <$ (optional (bracketed inline) *> spaces'))
+  , (",", lit "\8198")
+  , ("@", pure mempty)
+  , (" ", lit "\160")
+  , ("ps", pure $ str "PS." <> space)
+  , ("TeX", lit "TeX")
+  , ("LaTeX", lit "LaTeX")
+  , ("bar", lit "|")
+  , ("textless", lit "<")
+  , ("textgreater", lit ">")
+  , ("thanks", note <$> grouped block)
+  , ("footnote", note <$> grouped block)
+  , ("verb", doverb)
+  , ("lstinline", dolstinline)
+  , ("Verb", doverb)
+  , ("url", (unescapeURL <$> braced) >>= \url ->
+       pure (link url "" (str url)))
+  , ("href", (unescapeURL <$> braced <* optional sp) >>= \url ->
+       tok >>= \lab ->
+         pure (link url "" lab))
+  , ("includegraphics", do options <- option [] keyvals
+                           src <- unescapeURL . removeDoubleQuotes <$> braced
+                           mkImage options src)
+  , ("enquote", enquote)
+  , ("cite", citation "cite" NormalCitation False)
+  , ("Cite", citation "Cite" NormalCitation False)
+  , ("citep", citation "citep" NormalCitation False)
+  , ("citep*", citation "citep*" NormalCitation False)
+  , ("citeal", citation "citeal" NormalCitation False)
+  , ("citealp", citation "citealp" NormalCitation False)
+  , ("citealp*", citation "citealp*" NormalCitation False)
+  , ("autocite", citation "autocite" NormalCitation False)
+  , ("smartcite", citation "smartcite" NormalCitation False)
+  , ("footcite", inNote <$> citation "footcite" NormalCitation False)
+  , ("parencite", citation "parencite" NormalCitation False)
+  , ("supercite", citation "supercite" NormalCitation False)
+  , ("footcitetext", inNote <$> citation "footcitetext" NormalCitation False)
+  , ("citeyearpar", citation "citeyearpar" SuppressAuthor False)
+  , ("citeyear", citation "citeyear" SuppressAuthor False)
+  , ("autocite*", citation "autocite*" SuppressAuthor False)
+  , ("cite*", citation "cite*" SuppressAuthor False)
+  , ("parencite*", citation "parencite*" SuppressAuthor False)
+  , ("textcite", citation "textcite" AuthorInText False)
+  , ("citet", citation "citet" AuthorInText False)
+  , ("citet*", citation "citet*" AuthorInText False)
+  , ("citealt", citation "citealt" AuthorInText False)
+  , ("citealt*", citation "citealt*" AuthorInText False)
+  , ("textcites", citation "textcites" AuthorInText True)
+  , ("cites", citation "cites" NormalCitation True)
+  , ("autocites", citation "autocites" NormalCitation True)
+  , ("footcites", inNote <$> citation "footcites" NormalCitation True)
+  , ("parencites", citation "parencites" NormalCitation True)
+  , ("supercites", citation "supercites" NormalCitation True)
+  , ("footcitetexts", inNote <$> citation "footcitetexts" NormalCitation True)
+  , ("Autocite", citation "Autocite" NormalCitation False)
+  , ("Smartcite", citation "Smartcite" NormalCitation False)
+  , ("Footcite", citation "Footcite" NormalCitation False)
+  , ("Parencite", citation "Parencite" NormalCitation False)
+  , ("Supercite", citation "Supercite" NormalCitation False)
+  , ("Footcitetext", inNote <$> citation "Footcitetext" NormalCitation False)
+  , ("Citeyearpar", citation "Citeyearpar" SuppressAuthor False)
+  , ("Citeyear", citation "Citeyear" SuppressAuthor False)
+  , ("Autocite*", citation "Autocite*" SuppressAuthor False)
+  , ("Cite*", citation "Cite*" SuppressAuthor False)
+  , ("Parencite*", citation "Parencite*" SuppressAuthor False)
+  , ("Textcite", citation "Textcite" AuthorInText False)
+  , ("Textcites", citation "Textcites" AuthorInText True)
+  , ("Cites", citation "Cites" NormalCitation True)
+  , ("Autocites", citation "Autocites" NormalCitation True)
+  , ("Footcites", citation "Footcites" NormalCitation True)
+  , ("Parencites", citation "Parencites" NormalCitation True)
+  , ("Supercites", citation "Supercites" NormalCitation True)
+  , ("Footcitetexts", inNote <$> citation "Footcitetexts" NormalCitation True)
+  , ("citetext", complexNatbibCitation NormalCitation)
+  , ("citeauthor", (try (tok *> optional sp *> controlSeq "citetext") *>
+                        complexNatbibCitation AuthorInText)
+                   <|> citation "citeauthor" AuthorInText False)
+  , ("nocite", mempty <$ (citation "nocite" NormalCitation False >>=
+                          addMeta "nocite"))
+  , ("hypertarget", braced >> tok)
+  -- siuntix
+  , ("SI", dosiunitx)
+  -- hyphenat
+  , ("bshyp", lit "\\\173")
+  , ("fshyp", lit "/\173")
+  , ("dothyp", lit ".\173")
+  , ("colonhyp", lit ":\173")
+  , ("hyp", lit "-")
+  , ("nohyphens", tok)
+  , ("textnhtt", ttfamily)
+  , ("nhttfamily", ttfamily)
+  -- fontawesome
+  , ("faCheck", lit "\10003")
+  , ("faClose", lit "\10007")
+  ] ++ map ignoreInlines
+  -- these commands will be ignored unless --parse-raw is specified,
+  -- in which case they will appear as raw latex blocks:
+  [ "index"
+  , "hspace"
+  , "vspace"
+  , "newpage"
+  , "clearpage"
+  , "pagebreak"
+  ]
+
+
+-}
+
 inline :: PandocMonad m => LP m Inlines
 inline = (mempty <$ comment)
      <|> (space  <$ whitespace)
      <|> (softbreak <$ endline)
      <|> inlineText
-     -- <|> inlineCommand
+     <|> inlineCommand'
      -- <|> inlineEnvironment
      <|> inlineGroup
      <|> (symbol '-' *>
@@ -424,6 +719,8 @@ maybeAddExtension ext fp =
      then addExtension fp ext
      else fp
 
+blockCommands :: PandocMonad m => M.Map Text (LP m Blocks)
+blockCommands = M.empty
 
 block :: PandocMonad m => LP m Blocks
 block = (mempty <$ spaces1)
