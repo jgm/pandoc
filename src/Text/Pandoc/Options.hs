@@ -61,7 +61,6 @@ data ReaderOptions = ReaderOptions{
        , readerStandalone            :: Bool -- ^ Standalone document with header
        , readerColumns               :: Int  -- ^ Number of columns in terminal
        , readerTabStop               :: Int  -- ^ Tab stop
-       , readerApplyMacros           :: Bool -- ^ Apply macros to TeX math
        , readerIndentedCodeClasses   :: [String] -- ^ Default classes for
                                        -- indented code blocks
        , readerAbbreviations         :: Set.Set String -- ^ Strings to treat as abbreviations
@@ -75,7 +74,6 @@ instance Default ReaderOptions
                , readerStandalone            = False
                , readerColumns               = 80
                , readerTabStop               = 4
-               , readerApplyMacros           = True
                , readerIndentedCodeClasses   = []
                , readerAbbreviations         = defaultAbbrevs
                , readerDefaultImageExtension = ""

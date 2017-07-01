@@ -308,7 +308,6 @@ convertWithOpts opts = do
                       , readerColumns = optColumns opts
                       , readerTabStop = optTabStop opts
                       , readerIndentedCodeClasses = optIndentedCodeClasses opts
-                      , readerApplyMacros = not laTeXOutput
                       , readerDefaultImageExtension =
                          optDefaultImageExtension opts
                       , readerTrackChanges = optTrackChanges opts

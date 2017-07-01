@@ -58,7 +58,8 @@ tests = [ testGroup "basic"
           , "blank lines + space + comments" =:
             "% my comment\n\n  \n  % another\n\nhi" =?> para "hi"
           , "comment in paragraph" =:
-            "hi % this is a comment\nthere\n" =?> para "hi there"
+            "hi % this is a comment\nthere\n" =?>
+                para ("hi" <> softbreak <> "there")
           ]
 
         , testGroup "code blocks"

@@ -33,6 +33,7 @@ module Text.Pandoc.Readers.Org.ParserState
   , OrgNoteRecord
   , HasReaderOptions (..)
   , HasQuoteContext (..)
+  , HasMacros (..)
   , TodoMarker (..)
   , TodoSequence
   , TodoState (..)
@@ -57,14 +58,17 @@ import Control.Monad.Reader (ReaderT, asks, local)
 import Data.Default (Default (..))
 import qualified Data.Map as M
 import qualified Data.Set as Set
+import Data.Text (Text)
 
 import Text.Pandoc.Builder (Blocks, Inlines)
 import Text.Pandoc.Definition (Meta (..), nullMeta)
 import Text.Pandoc.Logging
 import Text.Pandoc.Options (ReaderOptions (..))
+import Text.Pandoc.Readers.LaTeX.Types (Macro)
 import Text.Pandoc.Parsing (Future, HasHeaderMap (..), HasIdentifierList (..),
                             HasIncludeFiles (..), HasLastStrPosition (..),
                             HasLogMessages (..), HasQuoteContext (..),
+                            HasMacros (..),
                             HasReaderOptions (..), ParserContext (..),
                             QuoteContext (..), SourcePos, askF, asksF, returnF,
                             runF, trimInlinesF)
@@ -118,6 +122,7 @@ data OrgParserState = OrgParserState
   , orgStateParserContext        :: ParserContext
   , orgStateTodoSequences        :: [TodoSequence]
   , orgLogMessages               :: [LogMessage]
+  , orgMacros                    :: M.Map Text Macro
   }
 
 data OrgParserLocal = OrgParserLocal { orgLocalQuoteContext :: QuoteContext }
@@ -147,6 +152,10 @@ instance HasHeaderMap OrgParserState where
 instance HasLogMessages OrgParserState where
   addLogMessage msg st = st{ orgLogMessages = msg : orgLogMessages st }
   getLogMessages st = reverse $ orgLogMessages st
+
+instance HasMacros OrgParserState where
+  extractMacros st = orgMacros st
+  updateMacros f st = st{ orgMacros = f (orgMacros st) }
 
 instance HasIncludeFiles OrgParserState where
   getIncludeFiles = orgStateIncludeFiles
@@ -178,6 +187,7 @@ defaultOrgParserState = OrgParserState
   , orgStateParserContext = NullState
   , orgStateTodoSequences = []
   , orgLogMessages = []
+  , orgMacros = M.empty
   }
 
 optionsToParserState :: ReaderOptions -> OrgParserState

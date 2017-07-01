@@ -573,7 +573,7 @@ rawHtmlInline = B.rawInline "html" . snd <$> htmlTag isInlineTag
 rawLaTeXInline' :: PandocMonad m => ParserT [Char] ParserState m Inlines
 rawLaTeXInline' = try $ do
   guardEnabled Ext_raw_tex
-  B.singleton <$> rawLaTeXInline
+  B.rawInline "latex" <$> rawLaTeXInline
 
 -- | Textile standard link syntax is "label":target. But we
 -- can also have ["label":target].
