@@ -109,8 +109,6 @@ module Text.Pandoc.Parsing ( anyLine,
                              dash,
                              nested,
                              citeKey,
-                             macro,
-                             applyMacros',
                              Parser,
                              ParserT,
                              F,
@@ -130,6 +128,7 @@ module Text.Pandoc.Parsing ( anyLine,
                              runParser,
                              runParserT,
                              parse,
+                             tokenPrim,
                              anyToken,
                              getInput,
                              setInput,
@@ -178,13 +177,16 @@ module Text.Pandoc.Parsing ( anyLine,
                              sourceLine,
                              setSourceColumn,
                              setSourceLine,
-                             newPos
+                             newPos,
+                             Line,
+                             Column
                              )
 where
 
+import Data.Text (Text)
 import Text.Pandoc.Definition
 import Text.Pandoc.Options
-import Text.Pandoc.Builder (Blocks, Inlines, rawBlock, HasMeta(..), trimInlines)
+import Text.Pandoc.Builder (Blocks, Inlines, HasMeta(..), trimInlines)
 import qualified Text.Pandoc.Builder as B
 import Text.Pandoc.XML (fromEntities)
 import qualified Text.Pandoc.UTF8 as UTF8 (putStrLn)
@@ -195,7 +197,7 @@ import Data.Char ( toLower, toUpper, ord, chr, isAscii, isAlphaNum,
 import Data.List ( intercalate, transpose, isSuffixOf )
 import Text.Pandoc.Shared
 import qualified Data.Map as M
-import Text.TeXMath.Readers.TeX.Macros (applyMacros, Macro, pMacroDefinition)
+import Text.Pandoc.Readers.LaTeX.Types (Macro)
 import Text.HTML.TagSoup.Entity ( lookupEntity )
 import Text.Pandoc.Asciify (toAsciiChar)
 import Data.Monoid ((<>))
@@ -994,7 +996,7 @@ data ParserState = ParserState
       stateIdentifiers     :: Set.Set String, -- ^ Header identifiers used
       stateNextExample     :: Int,           -- ^ Number of next example
       stateExamples        :: M.Map String Int, -- ^ Map from example labels to numbers
-      stateMacros          :: [Macro],       -- ^ List of macros defined so far
+      stateMacros          :: M.Map Text Macro, -- ^ Table of macros defined so far
       stateRstDefaultRole  :: String,        -- ^ Current rST default interpreted text role
       stateRstCustomRoles  :: M.Map String (String, Maybe String, Attr), -- ^ Current rST custom text roles
       -- Triple represents: 1) Base role, 2) Optional format (only for :raw:
@@ -1057,8 +1059,8 @@ instance HasIdentifierList ParserState where
   updateIdentifierList f st = st{ stateIdentifiers = f $ stateIdentifiers st }
 
 class HasMacros st where
-  extractMacros         :: st -> [Macro]
-  updateMacros          :: ([Macro] -> [Macro]) -> st -> st
+  extractMacros         :: st -> M.Map Text Macro
+  updateMacros          :: (M.Map Text Macro -> M.Map Text Macro) -> st -> st
 
 instance HasMacros ParserState where
   extractMacros        = stateMacros
@@ -1112,7 +1114,7 @@ defaultParserState =
                   stateIdentifiers     = Set.empty,
                   stateNextExample     = 1,
                   stateExamples        = M.empty,
-                  stateMacros          = [],
+                  stateMacros          = M.empty,
                   stateRstDefaultRole  = "title-reference",
                   stateRstCustomRoles  = M.empty,
                   stateCaption         = Nothing,
@@ -1341,33 +1343,6 @@ token :: (Stream s m t)
       -> ParsecT s st m a
 token pp pos match = tokenPrim pp (\_ t _ -> pos t) match
 
---
--- Macros
---
-
--- | Parse a \newcommand or \newenviroment macro definition.
-macro :: (Stream [Char] m Char, HasMacros st, HasReaderOptions st)
-      => ParserT [Char] st m Blocks
-macro = do
-  apply <- getOption readerApplyMacros
-  (m, def') <- withRaw pMacroDefinition
-  if apply
-     then do
-       updateState $ \st -> updateMacros (m:) st
-       return mempty
-     else return $ rawBlock "latex" def'
-
--- | Apply current macros to string.
-applyMacros' :: (HasReaderOptions st, HasMacros st, Stream [Char] m Char)
-             => String
-             -> ParserT [Char] st m String
-applyMacros' target = do
-  apply <- getOption readerApplyMacros
-  if apply
-     then do macros <- extractMacros <$> getState
-             return $ applyMacros macros target
-     else return target
-
 infixr 5 <+?>
 (<+?>) :: (Monoid a) => ParserT s st m a -> ParserT s st m a -> ParserT s st m a
 a <+?> b = a >>= flip fmap (try b <|> return mempty) . (<>)
@@ -1385,10 +1360,11 @@ extractIdClass (ident, cls, kvs) = (ident', cls', kvs')
 
 insertIncludedFile' :: (PandocMonad m, HasIncludeFiles st,
                         Functor mf, Applicative mf, Monad mf)
-                    => ParserT String st m (mf Blocks)
+                    => ParserT [a] st m (mf Blocks)
+                    -> (String -> [a])
                     -> [FilePath] -> FilePath
-                    -> ParserT String st m (mf Blocks)
-insertIncludedFile' blocks dirs f = do
+                    -> ParserT [a] st m (mf Blocks)
+insertIncludedFile' blocks totoks dirs f = do
   oldPos <- getPosition
   oldInput <- getInput
   containers <- getIncludeFiles <$> getState
@@ -1402,7 +1378,7 @@ insertIncludedFile' blocks dirs f = do
                      report $ CouldNotLoadIncludeFile f oldPos
                      return ""
   setPosition $ newPos f 1 1
-  setInput contents
+  setInput $ totoks contents
   bs <- blocks
   setInput oldInput
   setPosition oldPos
@@ -1412,11 +1388,12 @@ insertIncludedFile' blocks dirs f = do
 -- | Parse content of include file as blocks. Circular includes result in an
 -- @PandocParseError@.
 insertIncludedFile :: (PandocMonad m, HasIncludeFiles st)
-                   => ParserT String st m Blocks
+                   => ParserT [a] st m Blocks
+                   -> (String -> [a])
                    -> [FilePath] -> FilePath
-                   -> ParserT String st m Blocks
-insertIncludedFile blocks dirs f =
-  runIdentity <$> insertIncludedFile' (Identity <$> blocks) dirs f
+                   -> ParserT [a] st m Blocks
+insertIncludedFile blocks totoks dirs f =
+  runIdentity <$> insertIncludedFile' (Identity <$> blocks) totoks dirs f
 
 -- | Parse content of include file as future blocks. Circular includes result in
 -- an @PandocParseError@.
@@ -1424,4 +1401,4 @@ insertIncludedFileF :: (PandocMonad m, HasIncludeFiles st)
                     => ParserT String st m (Future st Blocks)
                     -> [FilePath] -> FilePath
                     -> ParserT String st m (Future st Blocks)
-insertIncludedFileF = insertIncludedFile'
+insertIncludedFileF p = insertIncludedFile' p id

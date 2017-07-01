@@ -318,6 +318,7 @@ getDefaultExtensions "epub2"           = getDefaultExtensions "epub"
 getDefaultExtensions "epub3"           = getDefaultExtensions "epub"
 getDefaultExtensions "latex"           = extensionsFromList
                                           [Ext_smart,
+                                           Ext_latex_macros,
                                            Ext_auto_identifiers]
 getDefaultExtensions "context"         = extensionsFromList
                                           [Ext_smart,

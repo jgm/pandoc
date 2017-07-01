@@ -58,7 +58,7 @@ import Text.Pandoc.Definition
 import Text.Pandoc.Logging
 import Text.Pandoc.Options
 import Text.Pandoc.Shared (crFilter)
-import Text.Pandoc.Parsing hiding (macro, nested)
+import Text.Pandoc.Parsing hiding (nested)
 import Text.Pandoc.Readers.HTML (htmlTag)
 import Text.Pandoc.XML (fromEntities)
 import System.FilePath (takeExtension)
