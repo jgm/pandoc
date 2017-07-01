@@ -130,6 +130,7 @@ module Text.Pandoc.Parsing ( anyLine,
                              runParser,
                              runParserT,
                              parse,
+                             tokenPrim,
                              anyToken,
                              getInput,
                              setInput,
@@ -178,7 +179,9 @@ module Text.Pandoc.Parsing ( anyLine,
                              sourceLine,
                              setSourceColumn,
                              setSourceLine,
-                             newPos
+                             newPos,
+                             Line,
+                             Column
                              )
 where
 

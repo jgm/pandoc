@@ -40,6 +40,7 @@ import Control.Monad
 import Control.Monad.Except (throwError)
 import Data.Char (chr, isAlphaNum, isLetter, ord)
 import Data.Text (Text, unpack)
+import qualified Data.Text as T
 import Data.List (intercalate, isPrefixOf)
 import qualified Data.Map as M
 import Data.Maybe (fromMaybe, maybeToList)
@@ -47,16 +48,270 @@ import Safe (minimumDef)
 import System.FilePath (addExtension, replaceExtension, takeExtension)
 import Text.Pandoc.Builder
 import Text.Pandoc.Class (PandocMonad, PandocPure, lookupEnv, readFileFromDirs,
-                          report, setResourcePath, getResourcePath)
+                          report, setResourcePath, getResourcePath,
+                          runIOorExplode, PandocIO)
 import Text.Pandoc.Highlighting (fromListingsLanguage, languagesByExtension)
 import Text.Pandoc.ImageSize (numUnit, showFl)
 import Text.Pandoc.Logging
 import Text.Pandoc.Options
 import Text.Pandoc.Parsing hiding (many, mathDisplay, mathInline, optional,
-                            space, (<|>))
+                            space, (<|>), spaces, blankline)
 import Text.Pandoc.Shared
 import Text.Pandoc.Walk
 
+-- | Parse LaTeX from string and return 'Pandoc' document.
+readLaTeX :: PandocMonad m
+          => ReaderOptions -- ^ Reader options
+          -> Text        -- ^ String to parse (assumes @'\n'@ line endings)
+          -> m Pandoc
+readLaTeX opts ltx = undefined
+
+testParser :: LP PandocIO a -> Text -> IO a
+testParser p t = do
+  res <- runIOorExplode (runParserT p defaultParserState "name" (tokenize t))
+  case res of
+       Left e  -> error (show e)
+       Right r -> return r
+
+type LP m = ParserT [Tok] ParserState m
+
+rawLaTeXBlock :: PandocMonad m => LP m String
+rawLaTeXBlock = mzero
+
+rawLaTeXInline :: PandocMonad m => LP m Inline
+rawLaTeXInline = mzero
+
+inlineCommand :: PandocMonad m => LP m Inlines
+inlineCommand = mzero
+
+data TokType = CtrlSeq | Spaces | Newline | Symbol | Word | Comment |
+               Esc1    | Esc2
+     deriving (Eq, Ord, Show)
+
+data Tok = Tok (Line, Column) TokType Text
+     deriving (Eq, Ord, Show)
+
+tokenize :: Text -> [Tok]
+tokenize = totoks (1, 1)
+
+totoks :: (Line, Column) -> Text -> [Tok]
+totoks (lin,col) t =
+  case T.uncons t of
+       Nothing        -> []
+       Just (c, rest)
+         | c == '\n' ->
+           Tok (lin, col) Newline (T.singleton '\n')
+           : totoks (lin + 1,1) rest
+         | isSpaceOrTab c ->
+           let (sps, rest') = T.span isSpaceOrTab t
+           in  Tok (lin, col) Spaces sps
+               : totoks (lin, col + T.length sps) rest'
+         | isAlphaNum c ->
+           let (ws, rest') = T.span isAlphaNum t
+           in  Tok (lin, col) Word ws
+               : totoks (lin, col + T.length ws) rest'
+         | c == '%' ->
+           let (cs, rest') = T.break (== '\n') rest
+           in  Tok (lin, col) Comment (T.singleton '%' <> cs)
+               : totoks (lin, col + 1 + T.length cs) rest'
+         | c == '\\' ->
+           case T.uncons rest of
+                Nothing -> [Tok (lin, col) Symbol (T.singleton c)]
+                Just (d, rest')
+                  | isLetter d ->
+                      let (ws, rest'') = T.span isLetter rest
+                      in  Tok (lin, col) CtrlSeq (T.singleton '\\' <> ws)
+                          : totoks (lin, col + 1 + T.length ws) rest''
+                  | d == '\t' || d == '\n' ->
+                      Tok (lin, col) Symbol (T.singleton '\\')
+                      : totoks (lin, col + 1) rest
+                  | otherwise  ->
+                      Tok (lin, col) CtrlSeq (T.pack [c,d])
+                      : totoks (lin, col + 2) rest'
+         | c == '^' ->
+           case T.uncons rest of
+                Just ('^', rest') ->
+                  case T.uncons rest' of
+                       Just (d, rest'')
+                         | isLowerHex d ->
+                           case T.uncons rest'' of
+                                Just (e, rest''') | isLowerHex e ->
+                                  Tok (lin, col) Esc2 (T.pack ['^','^',d,e])
+                                  : totoks (lin, col + 4) rest'''
+                                _ ->
+                                  Tok (lin, col) Esc1 (T.pack ['^','^',d])
+                                  : totoks (lin, col + 3) rest''
+                         | d < '\128' ->
+                                  Tok (lin, col) Esc1 (T.pack ['^','^',d])
+                                  : totoks (lin, col + 3) rest''
+                       _ -> [Tok (lin, col) Symbol (T.singleton '^'),
+                             Tok (lin, col + 1) Symbol (T.singleton '^')]
+                Nothing -> [Tok (lin, col) Symbol (T.singleton '^')]
+         | otherwise ->
+           Tok (lin, col) Symbol (T.singleton c) : totoks (lin, col + 1) rest
+
+  where isSpaceOrTab ' '  = True
+        isSpaceOrTab '\t' = True
+        isSpaceOrTab _    = False
+
+isLowerHex :: Char -> Bool
+isLowerHex x = x >= '0' && x <= '9' || x >= 'a' && x <= 'f'
+
+untokenize :: [Tok] -> Text
+untokenize = mconcat . map untoken
+
+untoken :: Tok -> Text
+untoken (Tok _ _ t) = t
+
+satisfyTok :: Monad m
+           => (Tok -> Bool)
+           -> ParserT [Tok] u m Tok
+satisfyTok f = tokenPrim (T.unpack . untoken) updatePos matcher
+  where matcher t | f t       = Just t
+                  | otherwise = Nothing
+        updatePos :: SourcePos -> Tok -> [Tok] -> SourcePos
+        updatePos spos _ (Tok (lin,col) _ _ : _) =
+          setSourceColumn (setSourceLine spos lin) col
+        updatePos spos _ [] = spos
+
+anyControlSeq :: PandocMonad m => LP m Tok
+anyControlSeq = satisfyTok isCtrlSeq <* spaces
+  where isCtrlSeq (Tok _ CtrlSeq _) = True
+        isCtrlSeq _                 = False
+
+spaces :: PandocMonad m => LP m ()
+spaces = skipMany (satisfyTok (tokTypeIn [Comment, Spaces, Newline]))
+
+tokTypeIn :: [TokType] -> Tok -> Bool
+tokTypeIn toktypes (Tok _ tt _) = tt `elem` toktypes
+tokTypeIn _ _ = False
+
+controlSeq :: PandocMonad m => Text -> LP m Tok
+controlSeq name = satisfyTok isNamed
+  where isNamed t@(Tok _ CtrlSeq n) = n == T.singleton '\\' <> name
+        isNamed _ = False
+
+symbol :: PandocMonad m => Char -> LP m Tok
+symbol c = satisfyTok isc
+  where isc (Tok _ Symbol d) = case T.uncons d of
+                                    Just (c',_) -> c == c'
+                                    _ -> False
+        isc _ = False
+
+sp :: PandocMonad m => LP m ()
+sp = whitespace <|> endline
+
+whitespace :: PandocMonad m => LP m ()
+whitespace = () <$ satisfyTok isSpaceTok
+  where isSpaceTok (Tok _ Spaces _) = True
+        isSpaceTok _ = False
+
+newlineTok :: PandocMonad m => LP m ()
+newlineTok = () <$ satisfyTok isNewlineTok
+  where isNewlineTok (Tok _ Newline _) = True
+        isNewlineTok _ = False
+
+comment :: PandocMonad m => LP m ()
+comment = () <$ satisfyTok isCommentTok
+  where isCommentTok (Tok _ Comment _) = True
+        isCommentTok _ = False
+
+anyTok :: PandocMonad m => LP m Tok
+anyTok = satisfyTok (const True)
+
+endline :: PandocMonad m => LP m ()
+endline = try $ do
+  newlineTok
+  lookAhead anyTok
+  notFollowedBy blankline
+
+blankline :: PandocMonad m => LP m ()
+blankline = try $ do
+  skipMany (satisfyTok (tokTypeIn [Spaces, Newline]))
+  newlineTok
+
+primEscape :: PandocMonad m => LP m Char
+primEscape = do
+  Tok _ toktype t <- satisfyTok (tokTypeIn [Esc1, Esc2])
+  case toktype of
+       Esc1 -> case T.uncons t of
+                    Just (c, _)
+                      | c >= '\64' && c <= '\127' -> return (chr (ord c - 64))
+                      | otherwise                 -> return (chr (ord c + 64))
+                    Nothing -> fail "Empty content of Esc1"
+       Esc2 -> case safeRead ('0':'x':T.unpack (T.drop 2 t)) of
+                    Just x -> return (chr x)
+                    Nothing -> fail $ "Could not read: " ++ T.unpack t
+       _    -> fail "Expected an Esc1 or Esc2 token" -- should not happen
+
+bgroup :: PandocMonad m => LP m ()
+bgroup = try $ do
+  skipMany sp
+  symbol '{' <|> controlSeq "bgroup" <|> controlSeq "begingroup"
+  return ()
+
+egroup :: PandocMonad m => LP m ()
+egroup = () <$ (symbol '}' <|> controlSeq "egroup" <|> controlSeq "endgroup")
+
+grouped :: (PandocMonad m,  Monoid a) => LP m a -> LP m a
+grouped parser = try $ do
+  bgroup
+  -- first we check for an inner 'grouped', because
+  -- {{a,b}} should be parsed the same as {a,b}
+  try (grouped parser <* egroup) <|> (mconcat <$> manyTill parser egroup)
+
+braced :: PandocMonad m => LP m [Tok]
+braced = try $ do
+  bgroup
+  -- {{a,b}} should be parsed the same as {a,b}
+  try (braced <* egroup) <|> manyTill anyTok egroup
+
+bracketed :: PandocMonad m => Monoid a => LP m a -> LP m a
+bracketed parser = try $ do
+  symbol '['
+  mconcat <$> manyTill parser (symbol ']')
+
+inline :: PandocMonad m => LP m Inlines
+inline = (mempty <$ comment)
+     <|> (space  <$ whitespace)
+     <|> (softbreak <$ endline)
+     -- <|> inlineText
+     -- <|> inlineCommand
+     -- <|> inlineEnvironment
+     -- <|> inlineGroup
+     -- <|> (char '-' *> option (str "-")
+     --       (char '-' *> option (str "–") (str "—" <$ char '-')))
+     -- <|> doubleQuote
+     -- <|> singleQuote
+     -- <|> (str "”" <$ try (string "''"))
+     -- <|> (str "”" <$ char '”')
+     -- <|> (str "’" <$ char '\'')
+     -- <|> (str "’" <$ char '’')
+     -- <|> (str "\160" <$ char '~')
+     -- <|> mathDisplay (string "$$" *> mathChars <* string "$$")
+     -- <|> mathInline  (char '$' *> mathChars <* char '$')
+     -- <|> (guardEnabled Ext_literate_haskell *> char '|' *> doLHSverb)
+     -- <|> (str . (:[]) <$> primEscape)
+     -- <|> (do res <- oneOf "#&~^'`\"[]"
+     --         pos <- getPosition
+     --         report $ ParsingUnescaped [res] pos
+     --         return $ str [res])
+
+{-
+inlines :: PandocMonad m => LP m Inlines
+inlines = mconcat <$> many (notFollowedBy (char '}') *> inline)
+
+inlineGroup :: PandocMonad m => LP m Inlines
+inlineGroup = do
+  ils <- grouped inline
+  if isNull ils
+     then return mempty
+     else return $ spanWith nullAttr ils
+          -- we need the span so we can detitlecase bibtex entries;
+          -- we need to know when something is {C}apitalized
+-}
+
+{-
 -- | Parse LaTeX from string and return 'Pandoc' document.
 readLaTeX :: PandocMonad m
           => ReaderOptions -- ^ Reader options
@@ -68,6 +323,7 @@ readLaTeX opts ltx = do
   case parsed of
     Right result -> return result
     Left e       -> throwError e
+
 
 parseLaTeX :: PandocMonad m => LP m Pandoc
 parseLaTeX = do
@@ -87,8 +343,6 @@ parseLaTeX = do
            then walk (adjustHeaders (1 - bottomLevel))
            else id) doc'
   return $ Pandoc meta bs'
-
-type LP m = ParserT String ParserState m
 
 anyControlSeq :: PandocMonad m => LP m String
 anyControlSeq = do
@@ -127,8 +381,8 @@ endline = try (newline >> lookAhead anyChar >> notFollowedBy blankline)
 isLowerHex :: Char -> Bool
 isLowerHex x = x >= '0' && x <= '9' || x >= 'a' && x <= 'f'
 
-tildeEscape :: PandocMonad m => LP m Char
-tildeEscape = try $ do
+primEscape :: PandocMonad m => LP m Char
+primEscape = try $ do
   string "^^"
   c <- satisfy (\x -> x >= '\0' && x <= '\128')
   d <- if isLowerHex c
@@ -251,7 +505,7 @@ inline = (mempty <$ comment)
      <|> mathDisplay (string "$$" *> mathChars <* string "$$")
      <|> mathInline  (char '$' *> mathChars <* char '$')
      <|> (guardEnabled Ext_literate_haskell *> char '|' *> doLHSverb)
-     <|> (str . (:[]) <$> tildeEscape)
+     <|> (str . (:[]) <$> primEscape)
      <|> (do res <- oneOf "#&~^'`\"[]"
              pos <- getPosition
              report $ ParsingUnescaped [res] pos
@@ -1570,3 +1824,4 @@ removeDoubleQuotes ('"':xs) =
        '"':ys -> reverse ys
        _      -> '"':xs
 removeDoubleQuotes xs = xs
+-}
