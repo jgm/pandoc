@@ -1388,10 +1388,11 @@ extractIdClass (ident, cls, kvs) = (ident', cls', kvs')
 
 insertIncludedFile' :: (PandocMonad m, HasIncludeFiles st,
                         Functor mf, Applicative mf, Monad mf)
-                    => ParserT String st m (mf Blocks)
+                    => ParserT [a] st m (mf Blocks)
+                    -> (String -> [a])
                     -> [FilePath] -> FilePath
-                    -> ParserT String st m (mf Blocks)
-insertIncludedFile' blocks dirs f = do
+                    -> ParserT [a] st m (mf Blocks)
+insertIncludedFile' blocks totoks dirs f = do
   oldPos <- getPosition
   oldInput <- getInput
   containers <- getIncludeFiles <$> getState
@@ -1405,7 +1406,7 @@ insertIncludedFile' blocks dirs f = do
                      report $ CouldNotLoadIncludeFile f oldPos
                      return ""
   setPosition $ newPos f 1 1
-  setInput contents
+  setInput $ totoks contents
   bs <- blocks
   setInput oldInput
   setPosition oldPos
@@ -1415,11 +1416,12 @@ insertIncludedFile' blocks dirs f = do
 -- | Parse content of include file as blocks. Circular includes result in an
 -- @PandocParseError@.
 insertIncludedFile :: (PandocMonad m, HasIncludeFiles st)
-                   => ParserT String st m Blocks
+                   => ParserT [a] st m Blocks
+                   -> (String -> [a])
                    -> [FilePath] -> FilePath
-                   -> ParserT String st m Blocks
-insertIncludedFile blocks dirs f =
-  runIdentity <$> insertIncludedFile' (Identity <$> blocks) dirs f
+                   -> ParserT [a] st m Blocks
+insertIncludedFile blocks totoks dirs f =
+  runIdentity <$> insertIncludedFile' (Identity <$> blocks) totoks dirs f
 
 -- | Parse content of include file as future blocks. Circular includes result in
 -- an @PandocParseError@.
@@ -1427,4 +1429,4 @@ insertIncludedFileF :: (PandocMonad m, HasIncludeFiles st)
                     => ParserT String st m (Future st Blocks)
                     -> [FilePath] -> FilePath
                     -> ParserT String st m (Future st Blocks)
-insertIncludedFileF = insertIncludedFile'
+insertIncludedFileF p = insertIncludedFile' p id

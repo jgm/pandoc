@@ -54,7 +54,7 @@ import Text.Pandoc.Highlighting (fromListingsLanguage, languagesByExtension)
 import Text.Pandoc.ImageSize (numUnit, showFl)
 import Text.Pandoc.Logging
 import Text.Pandoc.Options
-import Text.Pandoc.Parsing hiding (many, mathDisplay, mathInline, optional,
+import Text.Pandoc.Parsing hiding (many, optional,
                             space, (<|>), spaces, blankline)
 import Text.Pandoc.Shared
 import Text.Pandoc.Walk
@@ -79,13 +79,13 @@ testParser p t = do
 
 type LP m = ParserT [Tok] ParserState m
 
-rawLaTeXBlock :: PandocMonad m => LP m String
+rawLaTeXBlock :: PandocMonad m => ParserT String ParserState m String
 rawLaTeXBlock = mzero
 
-rawLaTeXInline :: PandocMonad m => LP m Inline
+rawLaTeXInline :: PandocMonad m => ParserT String ParserState m Inline
 rawLaTeXInline = mzero
 
-inlineCommand :: PandocMonad m => LP m Inlines
+inlineCommand :: PandocMonad m => ParserT String ParserState m Inlines
 inlineCommand = mzero
 
 data TokType = CtrlSeq | Spaces | Newline | Symbol | Word | Comment |
@@ -150,7 +150,8 @@ totoks (lin,col) t =
                                   : totoks (lin, col + 3) rest''
                        _ -> [Tok (lin, col) Symbol (T.singleton '^'),
                              Tok (lin, col + 1) Symbol (T.singleton '^')]
-                Nothing -> [Tok (lin, col) Symbol (T.singleton '^')]
+                _ -> Tok (lin, col) Symbol (T.singleton '^')
+                     : totoks (lin, col + 1) rest
          | otherwise ->
            Tok (lin, col) Symbol (T.singleton c) : totoks (lin, col + 1) rest
 
@@ -355,6 +356,15 @@ quoted' f starter ender = do
                               cs   -> cs)
      else lit startchs
 
+dollarsMath :: PandocMonad m => LP m Inlines
+dollarsMath = do
+  symbol '$'
+  display <- option False (True <$ symbol '$')
+  contents <- many1Till anyTok (symbol '$')
+  when display (() <$ symbol '$')
+  let constructor = if display then displayMath else math
+  return $ constructor $ T.unpack $ untokenize contents
+
 inline :: PandocMonad m => LP m Inlines
 inline = (mempty <$ comment)
      <|> (space  <$ whitespace)
@@ -373,8 +383,7 @@ inline = (mempty <$ comment)
      <|> (str "’" <$ symbol '\'')
      <|> (str "’" <$ symbol '’')
      <|> (str "\160" <$ symbol '~')
-     -- <|> mathDisplay (string "$$" *> mathChars <* string "$$")
-     -- <|> mathInline  (char '$' *> mathChars <* char '$')
+     <|> dollarsMath
      <|> (guardEnabled Ext_literate_haskell *> symbol '|' *> doLHSverb)
      <|> (str . (:[]) <$> primEscape)
      <|> (do res <- symbolIn "#&~^'`\"[]"
@@ -397,10 +406,29 @@ paragraph = do
      then return mempty
      else return $ para x
 
+include :: PandocMonad m => LP m Blocks
+include = do
+  (Tok _ _ name) <- controlSeq "include" <|> controlSeq "input" <|>
+                    controlSeq "subfile" <|> controlSeq "usepackage"
+  skipMany $ bracketed inline -- skip options
+  fs <- (map trim . splitBy (==',') . T.unpack . untokenize) <$> braced
+  let fs' = if name == "\\usepackage"
+               then map (maybeAddExtension ".sty") fs
+               else map (maybeAddExtension ".tex") fs
+  dirs <- (splitBy (==':') . fromMaybe ".") <$> lookupEnv "TEXINPUTS"
+  mconcat <$> mapM (insertIncludedFile blocks (tokenize . T.pack) dirs) fs'
+
+maybeAddExtension :: String -> FilePath -> FilePath
+maybeAddExtension ext fp =
+  if null (takeExtension fp)
+     then addExtension fp ext
+     else fp
+
+
 block :: PandocMonad m => LP m Blocks
 block = (mempty <$ spaces1)
     -- <|> environment
-    -- <|> include
+    <|> include
     -- <|> macro
     -- <|> blockCommand
     <|> paragraph
@@ -1372,63 +1400,6 @@ rawVerbEnv name = do
 
 ----
 
-maybeAddExtension :: String -> FilePath -> FilePath
-maybeAddExtension ext fp =
-  if null (takeExtension fp)
-     then addExtension fp ext
-     else fp
-
-include :: PandocMonad m => LP m Blocks
-include = do
-  fs' <- try $ do
-              char '\\'
-              name <- try (string "include")
-                  <|> try (string "input")
-                  <|> try (string "subfile")
-                  <|> string "usepackage"
-              -- skip options
-              skipMany $ try $ char '[' *> manyTill anyChar (char ']')
-              fs <- (map trim . splitBy (==',')) <$> braced
-              return $ if name == "usepackage"
-                          then map (maybeAddExtension ".sty") fs
-                          else map (maybeAddExtension ".tex") fs
-  dirs <- (splitBy (==':') . fromMaybe ".") <$> lookupEnv "TEXINPUTS"
-  mconcat <$> mapM (insertIncludedFile blocks dirs) fs'
-
-inputListing :: PandocMonad m => LP m Blocks
-inputListing = do
-  pos <- getPosition
-  options <- option [] keyvals
-  f <- filter (/='"') <$> braced
-  dirs <- (splitBy (==':') . fromMaybe ".") <$> lookupEnv "TEXINPUTS"
-  mbCode <- readFileFromDirs dirs f
-  codeLines <- case mbCode of
-                      Just s -> return $ lines s
-                      Nothing -> do
-                        report $ CouldNotLoadIncludeFile f pos
-                        return []
-  let (ident,classes,kvs) = parseListingsOptions options
-  let language = case lookup "language" options >>= fromListingsLanguage of
-                      Just l -> [l]
-                      Nothing -> take 1 $ languagesByExtension (takeExtension f)
-  let firstline = fromMaybe 1 $ lookup "firstline" options >>= safeRead
-  let lastline = fromMaybe (length codeLines) $
-                       lookup "lastline" options >>= safeRead
-  let codeContents = intercalate "\n" $ take (1 + lastline - firstline) $
-                       drop (firstline - 1) codeLines
-  return $ codeBlockWith (ident,ordNub (classes ++ language),kvs) codeContents
-
-parseListingsOptions :: [(String, String)] -> Attr
-parseListingsOptions options =
-  let kvs = [ (if k == "firstnumber"
-                  then "startFrom"
-                  else k, v) | (k,v) <- options ]
-      classes = [ "numberLines" |
-                  lookup "numbers" options == Just "left" ]
-             ++ maybeToList (lookup "language" options
-                     >>= fromListingsLanguage)
-  in  (fromMaybe "" (lookup "label" options), classes, kvs)
-
 ----
 
 keyval :: PandocMonad m => LP m (String, String)
@@ -1451,10 +1422,10 @@ alltt t = walk strToCode <$> parseFromString' blocks
   where strToCode (Str s) = Code nullAttr s
         strToCode x       = x
 
-rawLaTeXBlock :: PandocMonad m => LP m String
+rawLaTeXBlock :: PandocMonad m => ParserT String ParserState String
 rawLaTeXBlock = snd <$> try (withRaw (environment <|> blockCommand))
 
-rawLaTeXInline :: PandocMonad m => LP m Inline
+rawLaTeXInline :: PandocMonad m => ParserT String ParserState Inline
 rawLaTeXInline = do
   raw <- (snd <$> withRaw inlineCommand)
      <|> (snd <$> withRaw inlineEnvironment)
@@ -1890,4 +1861,40 @@ removeDoubleQuotes ('"':xs) =
        '"':ys -> reverse ys
        _      -> '"':xs
 removeDoubleQuotes xs = xs
+
+inputListing :: PandocMonad m => LP m Blocks
+inputListing = do
+  pos <- getPosition
+  options <- option [] keyvals
+  f <- filter (/='"') <$> braced
+  dirs <- (splitBy (==':') . fromMaybe ".") <$> lookupEnv "TEXINPUTS"
+  mbCode <- readFileFromDirs dirs f
+  codeLines <- case mbCode of
+                      Just s -> return $ lines s
+                      Nothing -> do
+                        report $ CouldNotLoadIncludeFile f pos
+                        return []
+  let (ident,classes,kvs) = parseListingsOptions options
+  let language = case lookup "language" options >>= fromListingsLanguage of
+                      Just l -> [l]
+                      Nothing -> take 1 $ languagesByExtension (takeExtension f)
+  let firstline = fromMaybe 1 $ lookup "firstline" options >>= safeRead
+  let lastline = fromMaybe (length codeLines) $
+                       lookup "lastline" options >>= safeRead
+  let codeContents = intercalate "\n" $ take (1 + lastline - firstline) $
+                       drop (firstline - 1) codeLines
+  return $ codeBlockWith (ident,ordNub (classes ++ language),kvs) codeContents
+
+parseListingsOptions :: [(String, String)] -> Attr
+parseListingsOptions options =
+  let kvs = [ (if k == "firstnumber"
+                  then "startFrom"
+                  else k, v) | (k,v) <- options ]
+      classes = [ "numberLines" |
+                  lookup "numbers" options == Just "left" ]
+             ++ maybeToList (lookup "language" options
+                     >>= fromListingsLanguage)
+  in  (fromMaybe "" (lookup "label" options), classes, kvs)
+
+
 -}
