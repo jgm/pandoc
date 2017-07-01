@@ -59,6 +59,8 @@ import Text.Pandoc.Parsing hiding (many, mathDisplay, mathInline, optional,
 import Text.Pandoc.Shared
 import Text.Pandoc.Walk
 
+import Text.Pandoc.Extensions (getDefaultExtensions)
+
 -- | Parse LaTeX from string and return 'Pandoc' document.
 readLaTeX :: PandocMonad m
           => ReaderOptions -- ^ Reader options
@@ -68,7 +70,9 @@ readLaTeX opts ltx = undefined
 
 testParser :: LP PandocIO a -> Text -> IO a
 testParser p t = do
-  res <- runIOorExplode (runParserT p defaultParserState "name" (tokenize t))
+  res <- runIOorExplode (runParserT p defaultParserState{
+            stateOptions = def{ readerExtensions =
+              getDefaultExtensions "latex" }} "name" (tokenize t))
   case res of
        Left e  -> error (show e)
        Right r -> return r
@@ -182,6 +186,9 @@ anyControlSeq = satisfyTok isCtrlSeq <* spaces
 spaces :: PandocMonad m => LP m ()
 spaces = skipMany (satisfyTok (tokTypeIn [Comment, Spaces, Newline]))
 
+spaces1 :: PandocMonad m => LP m ()
+spaces1 = skipMany1 (satisfyTok (tokTypeIn [Comment, Spaces, Newline]))
+
 tokTypeIn :: [TokType] -> Tok -> Bool
 tokTypeIn toktypes (Tok _ tt _) = tt `elem` toktypes
 tokTypeIn _ _ = False
@@ -198,6 +205,13 @@ symbol c = satisfyTok isc
                                     _ -> False
         isc _ = False
 
+symbolIn :: PandocMonad m => [Char] -> LP m Tok
+symbolIn cs = satisfyTok isInCs
+  where isInCs (Tok _ Symbol d) = case T.uncons d of
+                                       Just (c,_) -> c `elem` cs
+                                       _ -> False
+        isInCs _ = False
+
 sp :: PandocMonad m => LP m ()
 sp = whitespace <|> endline
 
@@ -208,8 +222,10 @@ whitespace = () <$ satisfyTok isSpaceTok
 
 newlineTok :: PandocMonad m => LP m ()
 newlineTok = () <$ satisfyTok isNewlineTok
-  where isNewlineTok (Tok _ Newline _) = True
-        isNewlineTok _ = False
+
+isNewlineTok :: Tok -> Bool
+isNewlineTok (Tok _ Newline _) = True
+isNewlineTok _ = False
 
 comment :: PandocMonad m => LP m ()
 comment = () <$ satisfyTok isCommentTok
@@ -271,35 +287,12 @@ bracketed parser = try $ do
   symbol '['
   mconcat <$> manyTill parser (symbol ']')
 
-inline :: PandocMonad m => LP m Inlines
-inline = (mempty <$ comment)
-     <|> (space  <$ whitespace)
-     <|> (softbreak <$ endline)
-     -- <|> inlineText
-     -- <|> inlineCommand
-     -- <|> inlineEnvironment
-     -- <|> inlineGroup
-     -- <|> (char '-' *> option (str "-")
-     --       (char '-' *> option (str "–") (str "—" <$ char '-')))
-     -- <|> doubleQuote
-     -- <|> singleQuote
-     -- <|> (str "”" <$ try (string "''"))
-     -- <|> (str "”" <$ char '”')
-     -- <|> (str "’" <$ char '\'')
-     -- <|> (str "’" <$ char '’')
-     -- <|> (str "\160" <$ char '~')
-     -- <|> mathDisplay (string "$$" *> mathChars <* string "$$")
-     -- <|> mathInline  (char '$' *> mathChars <* char '$')
-     -- <|> (guardEnabled Ext_literate_haskell *> char '|' *> doLHSverb)
-     -- <|> (str . (:[]) <$> primEscape)
-     -- <|> (do res <- oneOf "#&~^'`\"[]"
-     --         pos <- getPosition
-     --         report $ ParsingUnescaped [res] pos
-     --         return $ str [res])
+-- inline elements:
 
-{-
-inlines :: PandocMonad m => LP m Inlines
-inlines = mconcat <$> many (notFollowedBy (char '}') *> inline)
+inlineText :: PandocMonad m => LP m Inlines
+inlineText = (str . T.unpack . untoken) <$> satisfyTok isWordTok
+  where isWordTok (Tok _ Word _) = True
+        isWordTok _ = False
 
 inlineGroup :: PandocMonad m => LP m Inlines
 inlineGroup = do
@@ -309,6 +302,116 @@ inlineGroup = do
      else return $ spanWith nullAttr ils
           -- we need the span so we can detitlecase bibtex entries;
           -- we need to know when something is {C}apitalized
+
+doLHSverb :: PandocMonad m => LP m Inlines
+doLHSverb =
+  (codeWith ("",["haskell"],[]) . T.unpack . untokenize)
+    <$> manyTill (satisfyTok (not . isNewlineTok)) (symbol '|')
+
+lit :: String -> LP m Inlines
+lit = pure . str
+
+doubleQuote :: PandocMonad m => LP m Inlines
+doubleQuote = do
+       quoted' doubleQuoted (try $ count 2 $ symbol '`')
+                            (void $ try $ count 2 $ symbol '\'')
+   <|> quoted' doubleQuoted ((:[]) <$> symbol '“') (void $ symbol '”')
+   -- the following is used by babel for localized quotes:
+   <|> quoted' doubleQuoted (try $ sequence [symbol '"', symbol '`'])
+                            (void $ try $ sequence [symbol '"', symbol '\''])
+   <|> quoted' doubleQuoted ((:[]) <$> symbol '"')
+                            (void $ symbol '"')
+
+singleQuote :: PandocMonad m => LP m Inlines
+singleQuote = do
+       quoted' singleQuoted ((:[]) <$> symbol '`')
+                            (try $ symbol '\'' >>
+                                  notFollowedBy (satisfyTok startsWithLetter))
+   <|> quoted' singleQuoted ((:[]) <$> symbol '‘')
+                            (try $ symbol '’' >>
+                                  notFollowedBy (satisfyTok startsWithLetter))
+  where startsWithLetter (Tok _ Word t) =
+          case T.uncons t of
+               Just (c, _) | isLetter c -> True
+               _ -> False
+        startsWithLetter _ = False
+
+quoted' :: PandocMonad m
+        => (Inlines -> Inlines)
+        -> LP m [Tok]
+        -> LP m ()
+        -> LP m Inlines
+quoted' f starter ender = do
+  startchs <- (T.unpack . untokenize) <$> starter
+  smart <- extensionEnabled Ext_smart <$> getOption readerExtensions
+  if smart
+     then do
+       ils <- many (notFollowedBy ender >> inline)
+       (ender >> return (f (mconcat ils))) <|>
+            (<> mconcat ils) <$>
+                    lit (case startchs of
+                              "``" -> "“"
+                              "`"  -> "‘"
+                              cs   -> cs)
+     else lit startchs
+
+inline :: PandocMonad m => LP m Inlines
+inline = (mempty <$ comment)
+     <|> (space  <$ whitespace)
+     <|> (softbreak <$ endline)
+     <|> inlineText
+     -- <|> inlineCommand
+     -- <|> inlineEnvironment
+     <|> inlineGroup
+     <|> (symbol '-' *>
+           option (str "-") (symbol '-' *>
+             option (str "–") (str "—" <$ symbol '-')))
+     <|> doubleQuote
+     <|> singleQuote
+     <|> (str "”" <$ try (symbol '\'' >> symbol '\''))
+     <|> (str "”" <$ symbol '”')
+     <|> (str "’" <$ symbol '\'')
+     <|> (str "’" <$ symbol '’')
+     <|> (str "\160" <$ symbol '~')
+     -- <|> mathDisplay (string "$$" *> mathChars <* string "$$")
+     -- <|> mathInline  (char '$' *> mathChars <* char '$')
+     <|> (guardEnabled Ext_literate_haskell *> symbol '|' *> doLHSverb)
+     <|> (str . (:[]) <$> primEscape)
+     <|> (do res <- symbolIn "#&~^'`\"[]"
+             pos <- getPosition
+             let s = T.unpack (untoken res)
+             report $ ParsingUnescaped s pos
+             return $ str s)
+
+inlines :: PandocMonad m => LP m Inlines
+inlines = mconcat <$> many inline
+
+-- PREVIOUSLY HAD (notFollowedBy (char '}') *> inline)
+
+-- block elements:
+
+paragraph :: PandocMonad m => LP m Blocks
+paragraph = do
+  x <- trimInlines . mconcat <$> many1 inline
+  if x == mempty
+     then return mempty
+     else return $ para x
+
+block :: PandocMonad m => LP m Blocks
+block = (mempty <$ spaces1)
+    -- <|> environment
+    -- <|> include
+    -- <|> macro
+    -- <|> blockCommand
+    <|> paragraph
+    <|> grouped block
+
+blocks :: PandocMonad m => LP m Blocks
+blocks = mconcat <$> many block
+
+
+{-
+
 -}
 
 {-
@@ -453,37 +556,6 @@ mathChars =
          isOrdChar '}'  = False
          isOrdChar '\\' = False
          isOrdChar _    = True
-
-quoted' :: PandocMonad m => (Inlines -> Inlines) -> LP m String -> LP m () -> LP m Inlines
-quoted' f starter ender = do
-  startchs <- starter
-  smart <- extensionEnabled Ext_smart <$> getOption readerExtensions
-  if smart
-     then do
-       ils <- many (notFollowedBy ender >> inline)
-       (ender >> return (f (mconcat ils))) <|>
-            (<> mconcat ils) <$>
-                    lit (case startchs of
-                              "``" -> "“"
-                              "`"  -> "‘"
-                              _    -> startchs)
-     else lit startchs
-
-doubleQuote :: PandocMonad m => LP m Inlines
-doubleQuote = do
-  quoted' doubleQuoted (try $ string "``") (void $ try $ string "''")
-   <|> quoted' doubleQuoted (string "“")        (void $ char '”')
-   -- the following is used by babel for localized quotes:
-   <|> quoted' doubleQuoted (try $ string "\"`") (void $ try $ string "\"'")
-   <|> quoted' doubleQuoted (string "\"")       (void $ char '"')
-
-singleQuote :: PandocMonad m => LP m Inlines
-singleQuote = do
-  smart <- extensionEnabled Ext_smart <$> getOption readerExtensions
-  if smart
-     then quoted' singleQuoted (string "`") (try $ char '\'' >> notFollowedBy letter)
-      <|> quoted' singleQuoted (string "‘") (try $ char '’' >> notFollowedBy letter)
-     else str <$> many1 (oneOf "`\'‘’")
 
 inline :: PandocMonad m => LP m Inlines
 inline = (mempty <$ comment)
@@ -998,9 +1070,6 @@ dolstinline = do
   marker <- char '{' <|> anyChar 
   codeWith ("",classes,[]) <$> manyTill (satisfy (/='\n')) (char '}' <|> char marker)
 
-doLHSverb :: PandocMonad m => LP m Inlines
-doLHSverb = codeWith ("",["haskell"],[]) <$> manyTill (satisfy (/='\n')) (char '|')
-
 -- converts e.g. \SI{1}[\$]{} to "$ 1" or \SI{1}{\euro} to "1 €"
 dosiunitx :: PandocMonad m => LP m Inlines
 dosiunitx = do
@@ -1015,9 +1084,6 @@ dosiunitx = do
                       value, 
                       emptyOr160 unit,
                       unit]
-
-lit :: String -> LP m Inlines
-lit = pure . str
 
 accent :: (Char -> String) -> Inlines -> LP m Inlines
 accent f ils =
