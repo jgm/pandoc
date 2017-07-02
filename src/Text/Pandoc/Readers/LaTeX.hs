@@ -1230,9 +1230,113 @@ blockCommands = M.fromList $
    , "pagebreak"
    ]
 
+environments :: PandocMonad m => M.Map Text (LP m Blocks)
+environments = M.fromList
+   [ ("document", env "document" blocks)
+--   , ("abstract", mempty <$ (env "abstract" blocks >>= addMeta "abstract"))
+--   , ("letter", env "letter" letterContents)
+--   , ("minipage", env "minipage" $
+--          skipopts *> spaces' *> optional braced *> spaces' *> blocks)
+--   , ("figure", env "figure" $ skipopts *> figure)
+--   , ("subfigure", env "subfigure" $ skipopts *> tok *> figure)
+--   , ("center", env "center" blocks)
+--   , ("longtable",  env "longtable" $
+--          resetCaption *> simpTable "longtable" False >>= addTableCaption)
+--   , ("table",  env "table" $
+--          resetCaption *> skipopts *> blocks >>= addTableCaption)
+--   , ("tabular*", env "tabular" $ simpTable "tabular*" True)
+--   , ("tabularx", env "tabularx" $ simpTable "tabularx" True)
+--   , ("tabular", env "tabular"  $ simpTable "tabular" False)
+--   , ("quote", blockQuote <$> env "quote" blocks)
+--   , ("quotation", blockQuote <$> env "quotation" blocks)
+--   , ("verse", blockQuote <$> env "verse" blocks)
+--   , ("itemize", bulletList <$> listenv "itemize" (many item))
+--   , ("description", definitionList <$> listenv "description" (many descItem))
+--   , ("enumerate", orderedList')
+--   , ("alltt", alltt =<< verbEnv "alltt")
+--   , ("code", guardEnabled Ext_literate_haskell *>
+--       (codeBlockWith ("",["sourceCode","literate","haskell"],[]) <$>
+--         verbEnv "code"))
+--   , ("comment", mempty <$ verbEnv "comment")
+--   , ("verbatim", codeBlock <$> verbEnv "verbatim")
+--   , ("Verbatim", fancyverbEnv "Verbatim")
+--   , ("BVerbatim", fancyverbEnv "BVerbatim")
+--   , ("lstlisting", do attr <- parseListingsOptions <$> option [] keyvals
+--                       codeBlockWith attr <$> verbEnv "lstlisting")
+--   , ("minted",     do options <- option [] keyvals
+--                       lang <- grouped (many1 $ satisfy (/='}'))
+--                       let kvs = [ (if k == "firstnumber"
+--                                       then "startFrom"
+--                                       else k, v) | (k,v) <- options ]
+--                       let classes = [ lang | not (null lang) ] ++
+--                                     [ "numberLines" |
+--                                       lookup "linenos" options == Just "true" ]
+--                       let attr = ("",classes,kvs)
+--                       codeBlockWith attr <$> verbEnv "minted")
+--   , ("obeylines", parseFromString
+--                   (para . trimInlines . mconcat <$> many inline) =<<
+--                   intercalate "\\\\\n" . lines <$> verbEnv "obeylines")
+--   , ("displaymath", mathEnvWith para Nothing "displaymath")
+--   , ("equation", mathEnvWith para Nothing "equation")
+--   , ("equation*", mathEnvWith para Nothing "equation*")
+--   , ("gather", mathEnvWith para (Just "gathered") "gather")
+--   , ("gather*", mathEnvWith para (Just "gathered") "gather*")
+--   , ("multline", mathEnvWith para (Just "gathered") "multline")
+--   , ("multline*", mathEnvWith para (Just "gathered") "multline*")
+--   , ("eqnarray", mathEnvWith para (Just "aligned") "eqnarray")
+--   , ("eqnarray*", mathEnvWith para (Just "aligned") "eqnarray*")
+--   , ("align", mathEnvWith para (Just "aligned") "align")
+--   , ("align*", mathEnvWith para (Just "aligned") "align*")
+--   , ("alignat", mathEnvWith para (Just "aligned") "alignat")
+--   , ("alignat*", mathEnvWith para (Just "aligned") "alignat*")
+--   , ("tikzpicture", rawVerbEnv "tikzpicture")
+   ]
+
+environment :: PandocMonad m => LP m Blocks
+environment = do
+  controlSeq "begin"
+  name <- untokenize <$> braced
+  M.findWithDefault mzero name environments
+    <|> rawEnv name
+
+env :: PandocMonad m => Text -> LP m a -> LP m a
+env name p = p <*
+  (try (controlSeq "end" *> braced >>= guard . (== name) . untokenize)
+    <?> ("\\end{" ++ T.unpack name ++ "}"))
+
+rawEnv :: PandocMonad m => Text -> LP m Blocks
+rawEnv name = do
+  exts <- getOption readerExtensions
+  let parseRaw = extensionEnabled Ext_raw_tex exts
+  rawOptions <- mconcat <$> many rawopt
+  let beginCommand = "\\begin{" <> name <> "}" <> rawOptions
+  pos1 <- getPosition
+  (bs, raw) <- withRaw $ env name blocks
+  if parseRaw
+     then return $ rawBlock "latex"
+                 $ T.unpack $ beginCommand <> untokenize raw
+     else do
+       unless parseRaw $ do
+         report $ SkippedContent (T.unpack beginCommand) pos1
+       pos2 <- getPosition
+       report $ SkippedContent ("\\end{" ++ T.unpack name ++ "}") pos2
+       return bs
+
+  -- raw' <- applyMacros' $ beginCommand <> untokenize raw
+  -- if raw' /= beginCommand ++ raw
+  --    then parseFromString' blocks raw'
+  --    else if parseRaw
+  --         then return $ rawBlock "latex" $ beginCommand ++ raw'
+  --         else do
+  --           unless parseRaw $ do
+  --             report $ SkippedContent beginCommand pos1
+  --           pos2 <- getPosition
+  --           report $ SkippedContent ("\\end{" ++ name ++ "}") pos2
+  --           return bs
+
 block :: PandocMonad m => LP m Blocks
 block = (mempty <$ spaces1)
-    -- <|> environment
+    <|> environment
     <|> include
     -- <|> macro
     <|> blockCommand
@@ -1314,12 +1418,6 @@ blocks = mconcat <$> many block
 -- inlineChar :: PandocMonad m => LP m Char
 -- inlineChar = noneOf "\\$%&~#{}^'`\"‘’“”-[] \t\n"
 -- 
--- environment :: PandocMonad m => LP m Blocks
--- environment = do
---   controlSeq "begin"
---   name <- braced
---   M.findWithDefault mzero name environments
---     <|> rawEnv name
 -- 
 -- inlineEnvironment :: PandocMonad m => LP m Inlines
 -- inlineEnvironment = try $ do
@@ -1327,25 +1425,6 @@ blocks = mconcat <$> many block
 --   name <- braced
 --   M.findWithDefault mzero name inlineEnvironments
 -- 
--- rawEnv :: PandocMonad m => String -> LP m Blocks
--- rawEnv name = do
---   exts <- getOption readerExtensions
---   let parseRaw = extensionEnabled Ext_raw_tex exts
---   rawOptions <- mconcat <$> many rawopt
---   let beginCommand = "\\begin{" ++ name ++ "}" ++ rawOptions
---   pos1 <- getPosition
---   (bs, raw) <- withRaw $ env name blocks
---   raw' <- applyMacros' $ beginCommand ++ raw
---   if raw' /= beginCommand ++ raw
---      then parseFromString' blocks raw'
---      else if parseRaw
---           then return $ rawBlock "latex" $ beginCommand ++ raw'
---           else do
---             unless parseRaw $ do
---               report $ SkippedContent beginCommand pos1
---             pos2 <- getPosition
---             report $ SkippedContent ("\\end{" ++ name ++ "}") pos2
---             return bs
 -- 
 -- rawVerbEnv :: PandocMonad m => String -> LP m Blocks
 -- rawVerbEnv name = do
@@ -1398,67 +1477,6 @@ blocks = mconcat <$> many block
 --                Nothing  -> Table c als ws hs rs
 --         go x = return x
 -- 
--- environments :: PandocMonad m => M.Map String (LP m Blocks)
--- environments = M.fromList
---   [ ("document", env "document" blocks <* skipMany anyChar)
---   , ("abstract", mempty <$ (env "abstract" blocks >>= addMeta "abstract"))
---   , ("letter", env "letter" letterContents)
---   , ("minipage", env "minipage" $
---          skipopts *> spaces' *> optional braced *> spaces' *> blocks)
---   , ("figure", env "figure" $ skipopts *> figure)
---   , ("subfigure", env "subfigure" $ skipopts *> tok *> figure)
---   , ("center", env "center" blocks)
---   , ("longtable",  env "longtable" $
---          resetCaption *> simpTable "longtable" False >>= addTableCaption)
---   , ("table",  env "table" $
---          resetCaption *> skipopts *> blocks >>= addTableCaption)
---   , ("tabular*", env "tabular" $ simpTable "tabular*" True)
---   , ("tabularx", env "tabularx" $ simpTable "tabularx" True)
---   , ("tabular", env "tabular"  $ simpTable "tabular" False)
---   , ("quote", blockQuote <$> env "quote" blocks)
---   , ("quotation", blockQuote <$> env "quotation" blocks)
---   , ("verse", blockQuote <$> env "verse" blocks)
---   , ("itemize", bulletList <$> listenv "itemize" (many item))
---   , ("description", definitionList <$> listenv "description" (many descItem))
---   , ("enumerate", orderedList')
---   , ("alltt", alltt =<< verbEnv "alltt")
---   , ("code", guardEnabled Ext_literate_haskell *>
---       (codeBlockWith ("",["sourceCode","literate","haskell"],[]) <$>
---         verbEnv "code"))
---   , ("comment", mempty <$ verbEnv "comment")
---   , ("verbatim", codeBlock <$> verbEnv "verbatim")
---   , ("Verbatim", fancyverbEnv "Verbatim")
---   , ("BVerbatim", fancyverbEnv "BVerbatim")
---   , ("lstlisting", do attr <- parseListingsOptions <$> option [] keyvals
---                       codeBlockWith attr <$> verbEnv "lstlisting")
---   , ("minted",     do options <- option [] keyvals
---                       lang <- grouped (many1 $ satisfy (/='}'))
---                       let kvs = [ (if k == "firstnumber"
---                                       then "startFrom"
---                                       else k, v) | (k,v) <- options ]
---                       let classes = [ lang | not (null lang) ] ++
---                                     [ "numberLines" |
---                                       lookup "linenos" options == Just "true" ]
---                       let attr = ("",classes,kvs)
---                       codeBlockWith attr <$> verbEnv "minted")
---   , ("obeylines", parseFromString
---                   (para . trimInlines . mconcat <$> many inline) =<<
---                   intercalate "\\\\\n" . lines <$> verbEnv "obeylines")
---   , ("displaymath", mathEnvWith para Nothing "displaymath")
---   , ("equation", mathEnvWith para Nothing "equation")
---   , ("equation*", mathEnvWith para Nothing "equation*")
---   , ("gather", mathEnvWith para (Just "gathered") "gather")
---   , ("gather*", mathEnvWith para (Just "gathered") "gather*")
---   , ("multline", mathEnvWith para (Just "gathered") "multline")
---   , ("multline*", mathEnvWith para (Just "gathered") "multline*")
---   , ("eqnarray", mathEnvWith para (Just "aligned") "eqnarray")
---   , ("eqnarray*", mathEnvWith para (Just "aligned") "eqnarray*")
---   , ("align", mathEnvWith para (Just "aligned") "align")
---   , ("align*", mathEnvWith para (Just "aligned") "align*")
---   , ("alignat", mathEnvWith para (Just "aligned") "alignat")
---   , ("alignat*", mathEnvWith para (Just "aligned") "alignat*")
---   , ("tikzpicture", rawVerbEnv "tikzpicture")
---   ]
 -- 
 -- figure :: PandocMonad m => LP m Blocks
 -- figure = try $ do
@@ -1496,10 +1514,6 @@ blocks = mconcat <$> many block
 --   bs <- blocks
 --   return (ils, [bs])
 -- 
--- env :: PandocMonad m => String -> LP m a -> LP m a
--- env name p = p <*
---   (try (controlSeq "end" *> braced >>= guard . (== name))
---     <?> ("\\end{" ++ name ++ "}"))
 -- 
 -- listenv :: PandocMonad m => String -> LP m a -> LP m a
 -- listenv name p = try $ do
