@@ -662,13 +662,16 @@ breve 'U' = "Ŭ"
 breve 'u' = "ŭ"
 breve c   = [c]
 
-mathDisplay :: [Tok] -> Inlines
-mathDisplay = displayMath . trim . T.unpack . untokenize
+toksToString :: [Tok] -> String
+toksToString = T.unpack . untokenize
+
+mathDisplay :: String -> Inlines
+mathDisplay = displayMath . trim
 -- TODO we shouldn't need applyMacros
 -- mathDisplay p = displayMath <$> (try p >>= applyMacros' . trim)
 
-mathInline :: [Tok] -> Inlines
-mathInline = math . trim . T.unpack . untokenize
+mathInline :: String -> Inlines
+mathInline = math . trim
 -- TODO we shouldn't need applyMacros
 -- mathInline p = math <$> (try p >>= applyMacros')
 
@@ -679,7 +682,7 @@ dollarsMath = do
   contents <- many1Till anyTok (symbol '$')
   when display (() <$ symbol '$')
   let constructor = if display then mathDisplay else mathInline
-  return $ constructor contents
+  return $ constructor $ toksToString contents
 
 inlineCommand' :: PandocMonad m => LP m Inlines
 inlineCommand' = try $ do
@@ -779,6 +782,23 @@ unescapeURL ('\\':x:xs) | isEscapable x = x:unescapeURL xs
 unescapeURL (x:xs) = x:unescapeURL xs
 unescapeURL [] = ""
 
+mathEnvWith :: PandocMonad m
+            => (Inlines -> a) -> Maybe String -> String -> LP m a
+mathEnvWith f innerEnv name = f . mathDisplay . inner <$> mathEnv name
+   where inner x = case innerEnv of
+                      Nothing -> x
+                      Just y  -> "\\begin{" ++ y ++ "}\n" ++ x ++
+                                    "\\end{" ++ y ++ "}"
+
+mathEnv :: PandocMonad m => String -> LP m String
+mathEnv name = do
+  skipopts
+  optional blankline
+  let endEnv = try $ controlSeq "end" *>
+                     (T.unpack . untokenize <$> braced) >>= guard . (== name)
+  res <- manyTill anyTok endEnv
+  return $ stripTrailingNewlines $ T.unpack $ untokenize res
+
 inlineEnvironment :: PandocMonad m => LP m Inlines
 inlineEnvironment = try $ do
   controlSeq "begin"
@@ -787,20 +807,20 @@ inlineEnvironment = try $ do
 
 inlineEnvironments :: PandocMonad m => M.Map Text (LP m Inlines)
 inlineEnvironments = M.fromList [
---    ("displaymath", mathEnvWith id Nothing "displaymath")
---  , ("math", math <$> mathEnv "math")
---  , ("equation", mathEnvWith id Nothing "equation")
---  , ("equation*", mathEnvWith id Nothing "equation*")
---  , ("gather", mathEnvWith id (Just "gathered") "gather")
---  , ("gather*", mathEnvWith id (Just "gathered") "gather*")
---  , ("multline", mathEnvWith id (Just "gathered") "multline")
---  , ("multline*", mathEnvWith id (Just "gathered") "multline*")
---  , ("eqnarray", mathEnvWith id (Just "aligned") "eqnarray")
---  , ("eqnarray*", mathEnvWith id (Just "aligned") "eqnarray*")
---  , ("align", mathEnvWith id (Just "aligned") "align")
---  , ("align*", mathEnvWith id (Just "aligned") "align*")
---  , ("alignat", mathEnvWith id (Just "aligned") "alignat")
---  , ("alignat*", mathEnvWith id (Just "aligned") "alignat*")
+    ("displaymath", mathEnvWith id Nothing "displaymath")
+  , ("math", math <$> mathEnv "math")
+  , ("equation", mathEnvWith id Nothing "equation")
+  , ("equation*", mathEnvWith id Nothing "equation*")
+  , ("gather", mathEnvWith id (Just "gathered") "gather")
+  , ("gather*", mathEnvWith id (Just "gathered") "gather*")
+  , ("multline", mathEnvWith id (Just "gathered") "multline")
+  , ("multline*", mathEnvWith id (Just "gathered") "multline*")
+  , ("eqnarray", mathEnvWith id (Just "aligned") "eqnarray")
+  , ("eqnarray*", mathEnvWith id (Just "aligned") "eqnarray*")
+  , ("align", mathEnvWith id (Just "aligned") "align")
+  , ("align*", mathEnvWith id (Just "aligned") "align*")
+  , ("alignat", mathEnvWith id (Just "aligned") "alignat")
+  , ("alignat*", mathEnvWith id (Just "aligned") "alignat*")
   ]
 
 inlineCommands :: PandocMonad m => M.Map Text (LP m Inlines)
@@ -832,9 +852,9 @@ inlineCommands = M.fromList $
   , ("textgreek", tok)
   , ("sep", lit ",")
   , ("cref", rawInlineOr "cref" (inBrackets <$> tok))  -- from cleveref.sty
-  , ("(", mathInline <$> manyTill anyTok (controlSeq ")"))
-  , ("[", mathDisplay <$> manyTill anyTok (controlSeq "]"))
-  , ("ensuremath", mathInline <$> braced)
+  , ("(", mathInline . toksToString <$> manyTill anyTok (controlSeq ")"))
+  , ("[", mathDisplay . toksToString <$> manyTill anyTok (controlSeq "]"))
+  , ("ensuremath", mathInline . toksToString <$> braced)
   , ("texorpdfstring", (\_ x -> x) <$> tok <*> tok)
   , ("P", lit "¶")
   , ("S", lit "§")
@@ -992,20 +1012,20 @@ inlineCommands = M.fromList $
 ttfamily :: PandocMonad m => LP m Inlines
 ttfamily = (code . stringify . toList) <$> tok
 
-rawInlineOr :: PandocMonad m => String -> LP m Inlines -> LP m Inlines
+rawInlineOr :: PandocMonad m => Text -> LP m Inlines -> LP m Inlines
 rawInlineOr name' fallback = do
   parseRaw <- extensionEnabled Ext_raw_tex <$> getOption readerExtensions
   if parseRaw
      then rawInline "latex" <$> getRawCommand name'
      else fallback
 
-getRawCommand :: PandocMonad m => String -> LP m String
+getRawCommand :: PandocMonad m => Text -> LP m String
 getRawCommand name' = do
   (_, rawargs) <- withRaw
      (many (try (optional sp *> opt)) *>
       option "" (try (optional sp *> dimenarg)) *>
       many braced)
-  return $ '\\' : name' ++ T.unpack (untokenize rawargs)
+  return $ '\\' : T.unpack (name' <> untokenize rawargs)
 
 isBlockCommand :: Text -> Bool
 isBlockCommand s =
@@ -1075,15 +1095,149 @@ maybeAddExtension ext fp =
      then addExtension fp ext
      else fp
 
+ignoreBlocks :: PandocMonad m => Text -> (Text, LP m Blocks)
+ignoreBlocks name = (name, p)
+  where
+    p = do oa <- optargs
+           let rawCommand = '\\' : T.unpack (name <> oa)
+           let doraw = guardRaw >> return (rawBlock "latex" rawCommand)
+           doraw <|> ignore rawCommand
+
+addMeta :: PandocMonad m => ToMetaValue a => String -> a -> LP m ()
+addMeta field val = updateState $ \st ->
+   st{ stateMeta = addMetaField field val $ stateMeta st }
+
+authors :: PandocMonad m => LP m ()
+authors = try $ do
+  bgroup
+  let oneAuthor = mconcat <$>
+       many1 (notFollowedBy' (controlSeq "and") >>
+               (inline <|> mempty <$ blockCommand))
+               -- skip e.g. \vspace{10pt}
+  auths <- sepBy oneAuthor (controlSeq "and")
+  egroup
+  addMeta "author" (map trimInlines auths)
+
+section :: PandocMonad m => Attr -> Int -> LP m Blocks
+section (ident, classes, kvs) lvl = do
+  skipopts
+  contents <- grouped inline
+  lab <- option ident $
+          try (spaces >> controlSeq "label"
+               >> spaces >> toksToString <$> braced)
+  attr' <- registerHeader (lab, classes, kvs) contents
+  return $ headerWith attr' lvl contents
+
+blockCommand :: PandocMonad m => LP m Blocks
+blockCommand = try $ do
+  Tok _ CtrlSeq name <- anyControlSeq
+  guard $ name /= "\\begin" && name /= "\\end"
+  star <- option "" ("*" <$ symbol '*' <* optional sp)
+  let name' = name <> star
+  let names = name : [name' | name' /= name]
+  let raw = rawBlock "latex" <$> getRawCommand name'
+        -- TODO do we still need this?
+        -- rawcommand <- getRawCommand name'
+        -- transformed <- applyMacros' rawcommand
+        -- guard $ transformed /= rawcommand
+        -- notFollowedBy $ parseFromString' inlines transformed
+        -- parseFromString' blocks transformed
+  lookupListDefault raw names blockCommands
+
+closing :: PandocMonad m => LP m Blocks
+closing = do
+  contents <- tok
+  st <- getState
+  let extractInlines (MetaBlocks [Plain ys]) = ys
+      extractInlines (MetaBlocks [Para ys ]) = ys
+      extractInlines _                       = []
+  let sigs = case lookupMeta "author" (stateMeta st) of
+                  Just (MetaList xs) ->
+                    para $ trimInlines $ fromList $
+                      intercalate [LineBreak] $ map extractInlines xs
+                  _ -> mempty
+  return $ para (trimInlines contents) <> sigs
+
 blockCommands :: PandocMonad m => M.Map Text (LP m Blocks)
-blockCommands = M.empty
+blockCommands = M.fromList $
+   [ ("par", mempty <$ skipopts)
+   , ("parbox",  braced >> grouped blocks)
+   , ("title", mempty <$ (skipopts *>
+                           (grouped inline >>= addMeta "title")
+                       <|> (grouped block >>= addMeta "title")))
+   , ("subtitle", mempty <$ (skipopts *> tok >>= addMeta "subtitle"))
+   , ("author", mempty <$ (skipopts *> authors))
+   -- -- in letter class, temp. store address & sig as title, author
+   , ("address", mempty <$ (skipopts *> tok >>= addMeta "address"))
+   , ("signature", mempty <$ (skipopts *> authors))
+   , ("date", mempty <$ (skipopts *> tok >>= addMeta "date"))
+   -- Koma-script metadata commands
+   , ("dedication", mempty <$ (skipopts *> tok >>= addMeta "dedication"))
+   -- sectioning
+   , ("part", section nullAttr (-1))
+   , ("part*", section nullAttr (-1))
+   , ("chapter", section nullAttr 0)
+   , ("chapter*", section ("",["unnumbered"],[]) 0)
+   , ("section", section nullAttr 1)
+   , ("section*", section ("",["unnumbered"],[]) 1)
+   , ("subsection", section nullAttr 2)
+   , ("subsection*", section ("",["unnumbered"],[]) 2)
+   , ("subsubsection", section nullAttr 3)
+   , ("subsubsection*", section ("",["unnumbered"],[]) 3)
+   , ("paragraph", section nullAttr 4)
+   , ("paragraph*", section ("",["unnumbered"],[]) 4)
+   , ("subparagraph", section nullAttr 5)
+   , ("subparagraph*", section ("",["unnumbered"],[]) 5)
+   -- beamer slides
+   , ("frametitle", section nullAttr 3)
+   , ("framesubtitle", section nullAttr 4)
+   -- letters
+   , ("opening", (para . trimInlines) <$> (skipopts *> tok))
+   , ("closing", skipopts *> closing)
+   --
+   , ("hrule", pure horizontalRule)
+   , ("strut", pure mempty)
+   , ("rule", skipopts *> tok *> tok *> pure horizontalRule)
+--   , ("item", skipopts *> looseItem)
+--   , ("documentclass", skipopts *> braced *> preamble)
+--   , ("centerline", (para . trimInlines) <$> (skipopts *> tok))
+--   , ("caption", skipopts *> setCaption)
+--   , ("bibliography", mempty <$ (skipopts *> braced >>=
+--                                 addMeta "bibliography" . splitBibs))
+--   , ("addbibresource", mempty <$ (skipopts *> braced >>=
+--                                 addMeta "bibliography" . splitBibs))
+--   -- includes
+--   , ("lstinputlisting", inputListing)
+--   , ("graphicspath", graphicsPath)
+--   -- hyperlink
+   , ("hypertarget", braced >> grouped block)
+   ] ++ map ignoreBlocks
+   -- these commands will be ignored unless --parse-raw is specified,
+   -- in which case they will appear as raw latex blocks
+   [ "newcommand", "renewcommand", "newenvironment", "renewenvironment"
+     -- newcommand, etc. should be parsed by macro, but we need this
+     -- here so these aren't parsed as inline commands to ignore
+   , "special", "pdfannot", "pdfstringdef"
+   , "bibliographystyle"
+   , "maketitle", "makeindex", "makeglossary"
+   , "addcontentsline", "addtocontents", "addtocounter"
+      -- \ignore{} is used conventionally in literate haskell for definitions
+      -- that are to be processed by the compiler but not printed.
+   , "ignore"
+   , "hyperdef"
+   , "markboth", "markright", "markleft"
+   , "hspace", "vspace"
+   , "newpage"
+   , "clearpage"
+   , "pagebreak"
+   ]
 
 block :: PandocMonad m => LP m Blocks
 block = (mempty <$ spaces1)
     -- <|> environment
     <|> include
     -- <|> macro
-    -- <|> blockCommand
+    <|> blockCommand
     <|> paragraph
     <|> grouped block
 
@@ -1963,19 +2117,6 @@ blocks = mconcat <$> many block
 --                   _ -> mempty
 --   return $ addr <> bs -- sig added by \closing
 -- 
--- closing :: PandocMonad m => LP m Blocks
--- closing = do
---   contents <- tok
---   st <- getState
---   let extractInlines (MetaBlocks [Plain ys]) = ys
---       extractInlines (MetaBlocks [Para ys ]) = ys
---       extractInlines _                       = []
---   let sigs = case lookupMeta "author" (stateMeta st) of
---                   Just (MetaList xs) ->
---                     para $ trimInlines $ fromList $
---                       intercalate [LineBreak] $ map extractInlines xs
---                   _ -> mempty
---   return $ para (trimInlines contents) <> sigs
 -- 
 -- item :: PandocMonad m => LP m Blocks
 -- item = blocks *> controlSeq "item" *> skipopts *> blocks
