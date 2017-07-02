@@ -678,6 +678,30 @@ withRaw parser = do
 inBrackets :: Inlines -> Inlines
 inBrackets x = str "[" <> x <> str "]"
 
+inlineEnvironment :: PandocMonad m => LP m Inlines
+inlineEnvironment = try $ do
+  controlSeq "begin"
+  name <- untokenize <$> braced
+  M.findWithDefault mzero name inlineEnvironments
+
+inlineEnvironments :: PandocMonad m => M.Map Text (LP m Inlines)
+inlineEnvironments = M.fromList [
+--    ("displaymath", mathEnvWith id Nothing "displaymath")
+--  , ("math", math <$> mathEnv "math")
+--  , ("equation", mathEnvWith id Nothing "equation")
+--  , ("equation*", mathEnvWith id Nothing "equation*")
+--  , ("gather", mathEnvWith id (Just "gathered") "gather")
+--  , ("gather*", mathEnvWith id (Just "gathered") "gather*")
+--  , ("multline", mathEnvWith id (Just "gathered") "multline")
+--  , ("multline*", mathEnvWith id (Just "gathered") "multline*")
+--  , ("eqnarray", mathEnvWith id (Just "aligned") "eqnarray")
+--  , ("eqnarray*", mathEnvWith id (Just "aligned") "eqnarray*")
+--  , ("align", mathEnvWith id (Just "aligned") "align")
+--  , ("align*", mathEnvWith id (Just "aligned") "align*")
+--  , ("alignat", mathEnvWith id (Just "aligned") "alignat")
+--  , ("alignat*", mathEnvWith id (Just "aligned") "alignat*")
+  ]
+
 inlineCommands :: PandocMonad m => M.Map Text (LP m Inlines)
 inlineCommands = M.fromList $
   [ ("emph", extractSpaces emph <$> tok)
@@ -838,7 +862,7 @@ inlineCommands = M.fromList $
 --                   <|> citation "citeauthor" AuthorInText False)
 --  , ("nocite", mempty <$ (citation "nocite" NormalCitation False >>=
 --                          addMeta "nocite"))
---  , ("hypertarget", braced >> tok)
+  , ("hypertarget", braced >> tok)
 --  -- siuntix
 --  , ("SI", dosiunitx)
   -- hyphenat
@@ -897,7 +921,7 @@ inline = (mempty <$ comment)
      <|> (softbreak <$ endline)
      <|> inlineText
      <|> inlineCommand'
-     -- <|> inlineEnvironment
+     <|> inlineEnvironment
      <|> inlineGroup
      <|> (symbol '-' *>
            option (str "-") (symbol '-' *>
