@@ -424,7 +424,7 @@ verbTok stopchar = do
        Just i  -> do
          let (t1, t2) = T.splitAt i txt
          inp <- getInput
-         setInput $ traceShowId $ Tok (lin, col + i) Symbol (T.singleton stopchar)
+         setInput $ Tok (lin, col + i) Symbol (T.singleton stopchar)
                   : (totoks (lin, col + i + 1) (T.drop 1 t2)) ++ inp
          return $ Tok (lin, col) toktype t1
 
