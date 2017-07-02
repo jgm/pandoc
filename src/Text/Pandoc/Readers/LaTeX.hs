@@ -773,6 +773,12 @@ withRaw parser = do
 inBrackets :: Inlines -> Inlines
 inBrackets x = str "[" <> x <> str "]"
 
+unescapeURL :: String -> String
+unescapeURL ('\\':x:xs) | isEscapable x = x:unescapeURL xs
+  where isEscapable c = c `elem` ("#$%&~_^\\{}" :: String)
+unescapeURL (x:xs) = x:unescapeURL xs
+unescapeURL [] = ""
+
 inlineEnvironment :: PandocMonad m => LP m Inlines
 inlineEnvironment = try $ do
   controlSeq "begin"
@@ -825,7 +831,7 @@ inlineCommands = M.fromList $
   , ("ref", rawInlineOr "ref" (inBrackets <$> tok))
   , ("textgreek", tok)
   , ("sep", lit ",")
---  , ("cref", rawInlineOr "cref" (inBrackets <$> tok))  -- from cleveref.sty
+  , ("cref", rawInlineOr "cref" (inBrackets <$> tok))  -- from cleveref.sty
   , ("(", mathInline <$> manyTill anyTok (controlSeq ")"))
   , ("[", mathDisplay <$> manyTill anyTok (controlSeq "]"))
   , ("ensuremath", mathInline <$> braced)
@@ -878,7 +884,7 @@ inlineCommands = M.fromList $
   , ("v", option (str "v") $ try $ tok >>= accent hacek)
   , ("u", option (str "u") $ try $ tok >>= accent breve)
   , ("i", lit "i")
---  , ("\\", linebreak <$ (optional (bracketed inline) *> spaces'))
+  , ("\\", linebreak <$ (optional (bracketed inline) *> spaces))
   , (",", lit "\8198")
   , ("@", pure mempty)
   , (" ", lit "\160")
@@ -893,8 +899,8 @@ inlineCommands = M.fromList $
   , ("verb", doverb)
   , ("lstinline", dolstinline)
   , ("Verb", doverb)
---  , ("url", (unescapeURL <$> braced) >>= \url ->
---       pure (link url "" (str url)))
+  , ("url", ((unescapeURL . T.unpack . untokenize) <$> braced) >>= \url ->
+                  pure (link url "" (str url)))
 --  , ("href", (unescapeURL <$> braced <* optional sp) >>= \url ->
 --       tok >>= \lab ->
 --         pure (link url "" lab))
@@ -1084,7 +1090,7 @@ block = (mempty <$ spaces1)
 blocks :: PandocMonad m => LP m Blocks
 blocks = mconcat <$> many block
 
-
+{-
 -- -- | Parse LaTeX from string and return 'Pandoc' document.
 -- readLaTeX :: PandocMonad m
 --           => ReaderOptions -- ^ Reader options
@@ -1525,12 +1531,7 @@ blocks = mconcat <$> many block
 -- inNote ils =
 --   note $ para $ ils <> str "."
 -- 
--- unescapeURL :: String -> String
--- unescapeURL ('\\':x:xs) | isEscapable x = x:unescapeURL xs
---   where isEscapable c = c `elem` ("#$%&~_^\\{}" :: String)
--- unescapeURL (x:xs) = x:unescapeURL xs
--- unescapeURL [] = ""
--- 
+- 
 -- -- converts e.g. \SI{1}[\$]{} to "$ 1" or \SI{1}{\euro} to "1 €"
 -- dosiunitx :: PandocMonad m => LP m Inlines
 -- dosiunitx = do
@@ -2328,5 +2329,4 @@ blocks = mconcat <$> many block
 --              ++ maybeToList (lookup "language" options
 --                      >>= fromListingsLanguage)
 --   in  (fromMaybe "" (lookup "label" options), classes, kvs)
--- 
--- 
+-}
