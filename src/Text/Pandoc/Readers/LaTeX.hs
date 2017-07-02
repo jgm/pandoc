@@ -369,6 +369,213 @@ quoted' f starter ender = do
                               cs   -> cs)
      else lit startchs
 
+accent :: (Char -> String) -> Inlines -> LP m Inlines
+accent f ils =
+  case toList ils of
+       (Str (x:xs) : ys) -> return $ fromList (Str (f x ++ xs) : ys)
+       []                -> mzero
+       _                 -> return ils
+
+grave :: Char -> String
+grave 'A' = "À"
+grave 'E' = "È"
+grave 'I' = "Ì"
+grave 'O' = "Ò"
+grave 'U' = "Ù"
+grave 'a' = "à"
+grave 'e' = "è"
+grave 'i' = "ì"
+grave 'o' = "ò"
+grave 'u' = "ù"
+grave c   = [c]
+
+acute :: Char -> String
+acute 'A' = "Á"
+acute 'E' = "É"
+acute 'I' = "Í"
+acute 'O' = "Ó"
+acute 'U' = "Ú"
+acute 'Y' = "Ý"
+acute 'a' = "á"
+acute 'e' = "é"
+acute 'i' = "í"
+acute 'o' = "ó"
+acute 'u' = "ú"
+acute 'y' = "ý"
+acute 'C' = "Ć"
+acute 'c' = "ć"
+acute 'L' = "Ĺ"
+acute 'l' = "ĺ"
+acute 'N' = "Ń"
+acute 'n' = "ń"
+acute 'R' = "Ŕ"
+acute 'r' = "ŕ"
+acute 'S' = "Ś"
+acute 's' = "ś"
+acute 'Z' = "Ź"
+acute 'z' = "ź"
+acute c   = [c]
+
+circ :: Char -> String
+circ 'A' = "Â"
+circ 'E' = "Ê"
+circ 'I' = "Î"
+circ 'O' = "Ô"
+circ 'U' = "Û"
+circ 'a' = "â"
+circ 'e' = "ê"
+circ 'i' = "î"
+circ 'o' = "ô"
+circ 'u' = "û"
+circ 'C' = "Ĉ"
+circ 'c' = "ĉ"
+circ 'G' = "Ĝ"
+circ 'g' = "ĝ"
+circ 'H' = "Ĥ"
+circ 'h' = "ĥ"
+circ 'J' = "Ĵ"
+circ 'j' = "ĵ"
+circ 'S' = "Ŝ"
+circ 's' = "ŝ"
+circ 'W' = "Ŵ"
+circ 'w' = "ŵ"
+circ 'Y' = "Ŷ"
+circ 'y' = "ŷ"
+circ c   = [c]
+
+tilde :: Char -> String
+tilde 'A' = "Ã"
+tilde 'a' = "ã"
+tilde 'O' = "Õ"
+tilde 'o' = "õ"
+tilde 'I' = "Ĩ"
+tilde 'i' = "ĩ"
+tilde 'U' = "Ũ"
+tilde 'u' = "ũ"
+tilde 'N' = "Ñ"
+tilde 'n' = "ñ"
+tilde c   = [c]
+
+umlaut :: Char -> String
+umlaut 'A' = "Ä"
+umlaut 'E' = "Ë"
+umlaut 'I' = "Ï"
+umlaut 'O' = "Ö"
+umlaut 'U' = "Ü"
+umlaut 'a' = "ä"
+umlaut 'e' = "ë"
+umlaut 'i' = "ï"
+umlaut 'o' = "ö"
+umlaut 'u' = "ü"
+umlaut c   = [c]
+
+hungarumlaut :: Char -> String
+hungarumlaut 'A' = "A̋"
+hungarumlaut 'E' = "E̋"
+hungarumlaut 'I' = "I̋"
+hungarumlaut 'O' = "Ő"
+hungarumlaut 'U' = "Ű"
+hungarumlaut 'Y' = "ӳ"
+hungarumlaut 'a' = "a̋"
+hungarumlaut 'e' = "e̋"
+hungarumlaut 'i' = "i̋"
+hungarumlaut 'o' = "ő"
+hungarumlaut 'u' = "ű"
+hungarumlaut 'y' = "ӳ"
+hungarumlaut c   = [c]
+
+dot :: Char -> String
+dot 'C' = "Ċ"
+dot 'c' = "ċ"
+dot 'E' = "Ė"
+dot 'e' = "ė"
+dot 'G' = "Ġ"
+dot 'g' = "ġ"
+dot 'I' = "İ"
+dot 'Z' = "Ż"
+dot 'z' = "ż"
+dot c   = [c]
+
+macron :: Char -> String
+macron 'A' = "Ā"
+macron 'E' = "Ē"
+macron 'I' = "Ī"
+macron 'O' = "Ō"
+macron 'U' = "Ū"
+macron 'a' = "ā"
+macron 'e' = "ē"
+macron 'i' = "ī"
+macron 'o' = "ō"
+macron 'u' = "ū"
+macron c   = [c]
+
+cedilla :: Char -> String
+cedilla 'c' = "ç"
+cedilla 'C' = "Ç"
+cedilla 's' = "ş"
+cedilla 'S' = "Ş"
+cedilla 't' = "ţ"
+cedilla 'T' = "Ţ"
+cedilla 'e' = "ȩ"
+cedilla 'E' = "Ȩ"
+cedilla 'h' = "ḩ"
+cedilla 'H' = "Ḩ"
+cedilla 'o' = "o̧"
+cedilla 'O' = "O̧"
+cedilla c   = [c]
+
+hacek :: Char -> String
+hacek 'A' = "Ǎ"
+hacek 'a' = "ǎ"
+hacek 'C' = "Č"
+hacek 'c' = "č"
+hacek 'D' = "Ď"
+hacek 'd' = "ď"
+hacek 'E' = "Ě"
+hacek 'e' = "ě"
+hacek 'G' = "Ǧ"
+hacek 'g' = "ǧ"
+hacek 'H' = "Ȟ"
+hacek 'h' = "ȟ"
+hacek 'I' = "Ǐ"
+hacek 'i' = "ǐ"
+hacek 'j' = "ǰ"
+hacek 'K' = "Ǩ"
+hacek 'k' = "ǩ"
+hacek 'L' = "Ľ"
+hacek 'l' = "ľ"
+hacek 'N' = "Ň"
+hacek 'n' = "ň"
+hacek 'O' = "Ǒ"
+hacek 'o' = "ǒ"
+hacek 'R' = "Ř"
+hacek 'r' = "ř"
+hacek 'S' = "Š"
+hacek 's' = "š"
+hacek 'T' = "Ť"
+hacek 't' = "ť"
+hacek 'U' = "Ǔ"
+hacek 'u' = "ǔ"
+hacek 'Z' = "Ž"
+hacek 'z' = "ž"
+hacek c   = [c]
+
+breve :: Char -> String
+breve 'A' = "Ă"
+breve 'a' = "ă"
+breve 'E' = "Ĕ"
+breve 'e' = "ĕ"
+breve 'G' = "Ğ"
+breve 'g' = "ğ"
+breve 'I' = "Ĭ"
+breve 'i' = "ĭ"
+breve 'O' = "Ŏ"
+breve 'o' = "ŏ"
+breve 'U' = "Ŭ"
+breve 'u' = "ŭ"
+breve c   = [c]
+
+
 dollarsMath :: PandocMonad m => LP m Inlines
 dollarsMath = do
   symbol '$'
@@ -428,6 +635,22 @@ rawopt = do
 skipopts :: PandocMonad m => LP m ()
 skipopts = skipMany rawopt
 
+-- eat an optional argument and one or more arguments in braces
+ignoreInlines :: PandocMonad m => Text -> (Text, LP m Inlines)
+ignoreInlines name = (name, p)
+  where p = do oa <- optargs
+               let rawCommand = '\\' : T.unpack (name <> oa)
+               let doraw = guardRaw >> return (rawInline "latex" rawCommand)
+               doraw <|> ignore rawCommand
+
+guardRaw :: PandocMonad m => LP m ()
+guardRaw = getOption readerExtensions >>= guard . extensionEnabled Ext_raw_tex
+
+optargs :: PandocMonad m => LP m Text
+optargs = do
+  (_, raw) <- withRaw (skipopts *> skipMany (try $ optional sp *> braced))
+  return $ untokenize raw
+
 -- opts in angle brackets are used in beamer
 rawangle :: PandocMonad m => LP m ()
 rawangle = try $ do
@@ -452,8 +675,11 @@ withRaw parser = do
   let raw = takeWhile (/= nxt) inp
   return (result, raw)
 
+inBrackets :: Inlines -> Inlines
+inBrackets x = str "[" <> x <> str "]"
+
 inlineCommands :: PandocMonad m => M.Map Text (LP m Inlines)
-inlineCommands = M.fromList
+inlineCommands = M.fromList $
   [ ("emph", extractSpaces emph <$> tok)
   , ("textit", extractSpaces emph <$> tok)
   , ("textsl", extractSpaces emph <$> tok)
@@ -476,15 +702,15 @@ inlineCommands = M.fromList
   , ("dots", lit "…")
   , ("mdots", lit "…")
   , ("sim", lit "~")
---  , ("label", rawInlineOr "label" (inBrackets <$> tok))
---  , ("ref", rawInlineOr "ref" (inBrackets <$> tok))
---  , ("textgreek", tok)
---  , ("sep", lit ",")
+  , ("label", rawInlineOr "label" (inBrackets <$> tok))
+  , ("ref", rawInlineOr "ref" (inBrackets <$> tok))
+  , ("textgreek", tok)
+  , ("sep", lit ",")
 --  , ("cref", rawInlineOr "cref" (inBrackets <$> tok))  -- from cleveref.sty
 --  , ("(", mathInline $ manyTill anyChar (try $ string "\\)"))
 --  , ("[", mathDisplay $ manyTill anyChar (try $ string "\\]"))
 --  , ("ensuremath", mathInline braced)
---  , ("texorpdfstring", (\_ x -> x) <$> tok <*> tok)
+  , ("texorpdfstring", (\_ x -> x) <$> tok <*> tok)
   , ("P", lit "¶")
   , ("S", lit "§")
   , ("$", lit "$")
@@ -521,30 +747,30 @@ inlineCommands = M.fromList
   , ("copyright", lit "©")
   , ("textasciicircum", lit "^")
   , ("textasciitilde", lit "~")
---  , ("H", try $ tok >>= accent hungarumlaut)
---  , ("`", option (str "`") $ try $ tok >>= accent grave)
---  , ("'", option (str "'") $ try $ tok >>= accent acute)
---  , ("^", option (str "^") $ try $ tok >>= accent circ)
---  , ("~", option (str "~") $ try $ tok >>= accent tilde)
---  , ("\"", option (str "\"") $ try $ tok >>= accent umlaut)
---  , (".", option (str ".") $ try $ tok >>= accent dot)
---  , ("=", option (str "=") $ try $ tok >>= accent macron)
---  , ("c", option (str "c") $ try $ tok >>= accent cedilla)
---  , ("v", option (str "v") $ try $ tok >>= accent hacek)
---  , ("u", option (str "u") $ try $ tok >>= accent breve)
---  , ("i", lit "i")
+  , ("H", try $ tok >>= accent hungarumlaut)
+  , ("`", option (str "`") $ try $ tok >>= accent grave)
+  , ("'", option (str "'") $ try $ tok >>= accent acute)
+  , ("^", option (str "^") $ try $ tok >>= accent circ)
+  , ("~", option (str "~") $ try $ tok >>= accent tilde)
+  , ("\"", option (str "\"") $ try $ tok >>= accent umlaut)
+  , (".", option (str ".") $ try $ tok >>= accent dot)
+  , ("=", option (str "=") $ try $ tok >>= accent macron)
+  , ("c", option (str "c") $ try $ tok >>= accent cedilla)
+  , ("v", option (str "v") $ try $ tok >>= accent hacek)
+  , ("u", option (str "u") $ try $ tok >>= accent breve)
+  , ("i", lit "i")
 --  , ("\\", linebreak <$ (optional (bracketed inline) *> spaces'))
---  , (",", lit "\8198")
---  , ("@", pure mempty)
---  , (" ", lit "\160")
---  , ("ps", pure $ str "PS." <> space)
---  , ("TeX", lit "TeX")
---  , ("LaTeX", lit "LaTeX")
---  , ("bar", lit "|")
---  , ("textless", lit "<")
---  , ("textgreater", lit ">")
---  , ("thanks", note <$> grouped block)
---  , ("footnote", note <$> grouped block)
+  , (",", lit "\8198")
+  , ("@", pure mempty)
+  , (" ", lit "\160")
+  , ("ps", pure $ str "PS." <> space)
+  , ("TeX", lit "TeX")
+  , ("LaTeX", lit "LaTeX")
+  , ("bar", lit "|")
+  , ("textless", lit "<")
+  , ("textgreater", lit ">")
+  , ("thanks", note <$> grouped block)
+  , ("footnote", note <$> grouped block)
 --  , ("verb", doverb)
 --  , ("lstinline", dolstinline)
 --  , ("Verb", doverb)
@@ -615,27 +841,27 @@ inlineCommands = M.fromList
 --  , ("hypertarget", braced >> tok)
 --  -- siuntix
 --  , ("SI", dosiunitx)
---  -- hyphenat
---  , ("bshyp", lit "\\\173")
---  , ("fshyp", lit "/\173")
---  , ("dothyp", lit ".\173")
---  , ("colonhyp", lit ":\173")
---  , ("hyp", lit "-")
---  , ("nohyphens", tok)
---  , ("textnhtt", ttfamily)
---  , ("nhttfamily", ttfamily)
---  -- fontawesome
---  , ("faCheck", lit "\10003")
---  , ("faClose", lit "\10007")
---  ] ++ map ignoreInlines
---  -- these commands will be ignored unless --parse-raw is specified,
---  -- in which case they will appear as raw latex blocks:
---  [ "index"
---  , "hspace"
---  , "vspace"
---  , "newpage"
---  , "clearpage"
---  , "pagebreak"
+  -- hyphenat
+  , ("bshyp", lit "\\\173")
+  , ("fshyp", lit "/\173")
+  , ("dothyp", lit ".\173")
+  , ("colonhyp", lit ":\173")
+  , ("hyp", lit "-")
+  , ("nohyphens", tok)
+  , ("textnhtt", ttfamily)
+  , ("nhttfamily", ttfamily)
+  -- fontawesome
+  , ("faCheck", lit "\10003")
+  , ("faClose", lit "\10007")
+  ] ++ map ignoreInlines
+  -- these commands will be ignored unless --parse-raw is specified,
+  -- in which case they will appear as raw latex blocks:
+  [ "index"
+  , "hspace"
+  , "vspace"
+  , "newpage"
+  , "clearpage"
+  , "pagebreak"
   ]
 
 ttfamily :: PandocMonad m => LP m Inlines
@@ -968,7 +1194,7 @@ inBrackets :: Inlines -> Inlines
 inBrackets x = str "[" <> x <> str "]"
 
 -- eat an optional argument and one or more arguments in braces
-ignoreInlines :: PandocMonad m => String -> (String, LP m Inlines)
+ignoreInlines :: PandocMonad m => Text -> (Text, LP m Inlines)
 ignoreInlines name = (name, p)
   where
     p = do oa <- optargs
