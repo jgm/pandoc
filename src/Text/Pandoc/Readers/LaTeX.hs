@@ -195,16 +195,32 @@ untokenize = mconcat . map untoken
 untoken :: Tok -> Text
 untoken (Tok _ _ t) = t
 
-satisfyTok :: Monad m
-           => (Tok -> Bool)
-           -> ParserT [Tok] u m Tok
-satisfyTok f = tokenPrim (T.unpack . untoken) updatePos matcher
+-- we put withMacros in front of satisfyTok, so it works on everything
+satisfyTok :: PandocMonad m => (Tok -> Bool) -> LP m Tok
+satisfyTok f =
+  doMacros *> tokenPrim (T.unpack . untoken) updatePos matcher
   where matcher t | f t       = Just t
                   | otherwise = Nothing
         updatePos :: SourcePos -> Tok -> [Tok] -> SourcePos
         updatePos spos _ (Tok (lin,col) _ _ : _) =
           setSourceColumn (setSourceLine spos lin) col
         updatePos spos _ [] = spos
+
+-- TODO use something other than ParserState
+doMacros :: PandocMonad m => LP m ()
+doMacros = do
+  inp <- getInput
+  macros <- stateMacros <$> getState
+  case inp of
+       t@(Tok spos CtrlSeq txt) : ts
+         | txt == "\\macro" -> do  -- TODO actually check macros
+              setInput $ map (setpos spos) (tokenize "Hi there") ++ ts
+              -- TODO loop detection
+              doMacros
+       _ -> return ()
+
+setpos :: (Line, Column) -> Tok -> Tok
+setpos spos (Tok _ tt txt) = Tok spos tt txt
 
 anyControlSeq :: PandocMonad m => LP m Tok
 anyControlSeq = satisfyTok isCtrlSeq <* optional sp
