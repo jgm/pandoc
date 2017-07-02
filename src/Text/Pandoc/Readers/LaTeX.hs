@@ -180,7 +180,7 @@ satisfyTok f = tokenPrim (T.unpack . untoken) updatePos matcher
         updatePos spos _ [] = spos
 
 anyControlSeq :: PandocMonad m => LP m Tok
-anyControlSeq = satisfyTok isCtrlSeq <* spaces
+anyControlSeq = satisfyTok isCtrlSeq <* optional sp
   where isCtrlSeq (Tok _ CtrlSeq _) = True
         isCtrlSeq _                 = False
 
@@ -404,10 +404,16 @@ inlineCommand' = try $ do
   lookupListDefault raw names inlineCommands
 
 tok :: PandocMonad m => LP m Inlines
-tok = try $ grouped inline <|> inlineCommand'
-             <|> (str . T.unpack . untoken) <$> anyTok
-             -- note: this will swallow a whole word in cases
-             -- where latex would only consider one letter (TODO?)
+tok = try $ grouped inline <|> inlineCommand' <|> singleChar
+  where singleChar = do
+          Tok (lin,col) toktype t <- satisfyTok (tokTypeIn [Word, Symbol])
+          if T.length t > 1
+             then do
+               let (t1, t2) = (T.take 1 t, T.drop 1 t)
+               inp <- getInput
+               setInput $ (Tok (lin, col + 1) toktype t2) : inp
+               return $ str (T.unpack t1)
+             else return $ str (T.unpack t)
 
 opt :: PandocMonad m => LP m Inlines
 opt = bracketed inline
@@ -416,7 +422,7 @@ rawopt :: PandocMonad m => LP m Text
 rawopt = do
   symbol '['
   inner <- untokenize <$> manyTill anyTok (symbol ']')
-  spaces
+  optional sp
   return $ "[" <> inner <> "]"
 
 skipopts :: PandocMonad m => LP m ()
@@ -449,31 +455,6 @@ withRaw parser = do
 inlineCommands :: PandocMonad m => M.Map Text (LP m Inlines)
 inlineCommands = M.fromList
   [ ("emph", extractSpaces emph <$> tok)
-  ]
-
-isBlockCommand :: Text -> Bool
-isBlockCommand s =
-  s `M.member` (blockCommands :: M.Map Text (LP PandocPure Blocks))
-
-lookupListDefault :: (Ord k) => v -> [k] -> M.Map k v -> v
-lookupListDefault d = (fromMaybe d .) . lookupList
-  where
-  lookupList l m = msum $ map (`M.lookup` m) l
-
-{-
-rawInlineOr :: PandocMonad m => String -> LP m Inlines -> LP m Inlines
-rawInlineOr name' fallback = do
-  parseRaw <- extensionEnabled Ext_raw_tex <$> getOption readerExtensions
-  if parseRaw
-     then rawInline "latex" <$> getRawCommand name'
-     else fallback
-
-isBlockCommand :: String -> Bool
-isBlockCommand s = s `M.member` (blockCommands :: M.Map String (LP PandocPure Blocks))
-
-inlineCommands :: PandocMonad m => M.Map String (LP m Inlines)
-inlineCommands = M.fromList $
-  [ ("emph", extractSpaces emph <$> tok)
   , ("textit", extractSpaces emph <$> tok)
   , ("textsl", extractSpaces emph <$> tok)
   , ("textsc", extractSpaces smallcaps <$> tok)
@@ -495,15 +476,15 @@ inlineCommands = M.fromList $
   , ("dots", lit "…")
   , ("mdots", lit "…")
   , ("sim", lit "~")
-  , ("label", rawInlineOr "label" (inBrackets <$> tok))
-  , ("ref", rawInlineOr "ref" (inBrackets <$> tok))
-  , ("textgreek", tok)
-  , ("sep", lit ",")
-  , ("cref", rawInlineOr "cref" (inBrackets <$> tok))  -- from cleveref.sty
-  , ("(", mathInline $ manyTill anyChar (try $ string "\\)"))
-  , ("[", mathDisplay $ manyTill anyChar (try $ string "\\]"))
-  , ("ensuremath", mathInline braced)
-  , ("texorpdfstring", (\_ x -> x) <$> tok <*> tok)
+--  , ("label", rawInlineOr "label" (inBrackets <$> tok))
+--  , ("ref", rawInlineOr "ref" (inBrackets <$> tok))
+--  , ("textgreek", tok)
+--  , ("sep", lit ",")
+--  , ("cref", rawInlineOr "cref" (inBrackets <$> tok))  -- from cleveref.sty
+--  , ("(", mathInline $ manyTill anyChar (try $ string "\\)"))
+--  , ("[", mathDisplay $ manyTill anyChar (try $ string "\\]"))
+--  , ("ensuremath", mathInline braced)
+--  , ("texorpdfstring", (\_ x -> x) <$> tok <*> tok)
   , ("P", lit "¶")
   , ("S", lit "§")
   , ("$", lit "$")
@@ -540,125 +521,149 @@ inlineCommands = M.fromList $
   , ("copyright", lit "©")
   , ("textasciicircum", lit "^")
   , ("textasciitilde", lit "~")
-  , ("H", try $ tok >>= accent hungarumlaut)
-  , ("`", option (str "`") $ try $ tok >>= accent grave)
-  , ("'", option (str "'") $ try $ tok >>= accent acute)
-  , ("^", option (str "^") $ try $ tok >>= accent circ)
-  , ("~", option (str "~") $ try $ tok >>= accent tilde)
-  , ("\"", option (str "\"") $ try $ tok >>= accent umlaut)
-  , (".", option (str ".") $ try $ tok >>= accent dot)
-  , ("=", option (str "=") $ try $ tok >>= accent macron)
-  , ("c", option (str "c") $ try $ tok >>= accent cedilla)
-  , ("v", option (str "v") $ try $ tok >>= accent hacek)
-  , ("u", option (str "u") $ try $ tok >>= accent breve)
-  , ("i", lit "i")
-  , ("\\", linebreak <$ (optional (bracketed inline) *> spaces'))
-  , (",", lit "\8198")
-  , ("@", pure mempty)
-  , (" ", lit "\160")
-  , ("ps", pure $ str "PS." <> space)
-  , ("TeX", lit "TeX")
-  , ("LaTeX", lit "LaTeX")
-  , ("bar", lit "|")
-  , ("textless", lit "<")
-  , ("textgreater", lit ">")
-  , ("thanks", note <$> grouped block)
-  , ("footnote", note <$> grouped block)
-  , ("verb", doverb)
-  , ("lstinline", dolstinline)
-  , ("Verb", doverb)
-  , ("url", (unescapeURL <$> braced) >>= \url ->
-       pure (link url "" (str url)))
-  , ("href", (unescapeURL <$> braced <* optional sp) >>= \url ->
-       tok >>= \lab ->
-         pure (link url "" lab))
-  , ("includegraphics", do options <- option [] keyvals
-                           src <- unescapeURL . removeDoubleQuotes <$> braced
-                           mkImage options src)
-  , ("enquote", enquote)
-  , ("cite", citation "cite" NormalCitation False)
-  , ("Cite", citation "Cite" NormalCitation False)
-  , ("citep", citation "citep" NormalCitation False)
-  , ("citep*", citation "citep*" NormalCitation False)
-  , ("citeal", citation "citeal" NormalCitation False)
-  , ("citealp", citation "citealp" NormalCitation False)
-  , ("citealp*", citation "citealp*" NormalCitation False)
-  , ("autocite", citation "autocite" NormalCitation False)
-  , ("smartcite", citation "smartcite" NormalCitation False)
-  , ("footcite", inNote <$> citation "footcite" NormalCitation False)
-  , ("parencite", citation "parencite" NormalCitation False)
-  , ("supercite", citation "supercite" NormalCitation False)
-  , ("footcitetext", inNote <$> citation "footcitetext" NormalCitation False)
-  , ("citeyearpar", citation "citeyearpar" SuppressAuthor False)
-  , ("citeyear", citation "citeyear" SuppressAuthor False)
-  , ("autocite*", citation "autocite*" SuppressAuthor False)
-  , ("cite*", citation "cite*" SuppressAuthor False)
-  , ("parencite*", citation "parencite*" SuppressAuthor False)
-  , ("textcite", citation "textcite" AuthorInText False)
-  , ("citet", citation "citet" AuthorInText False)
-  , ("citet*", citation "citet*" AuthorInText False)
-  , ("citealt", citation "citealt" AuthorInText False)
-  , ("citealt*", citation "citealt*" AuthorInText False)
-  , ("textcites", citation "textcites" AuthorInText True)
-  , ("cites", citation "cites" NormalCitation True)
-  , ("autocites", citation "autocites" NormalCitation True)
-  , ("footcites", inNote <$> citation "footcites" NormalCitation True)
-  , ("parencites", citation "parencites" NormalCitation True)
-  , ("supercites", citation "supercites" NormalCitation True)
-  , ("footcitetexts", inNote <$> citation "footcitetexts" NormalCitation True)
-  , ("Autocite", citation "Autocite" NormalCitation False)
-  , ("Smartcite", citation "Smartcite" NormalCitation False)
-  , ("Footcite", citation "Footcite" NormalCitation False)
-  , ("Parencite", citation "Parencite" NormalCitation False)
-  , ("Supercite", citation "Supercite" NormalCitation False)
-  , ("Footcitetext", inNote <$> citation "Footcitetext" NormalCitation False)
-  , ("Citeyearpar", citation "Citeyearpar" SuppressAuthor False)
-  , ("Citeyear", citation "Citeyear" SuppressAuthor False)
-  , ("Autocite*", citation "Autocite*" SuppressAuthor False)
-  , ("Cite*", citation "Cite*" SuppressAuthor False)
-  , ("Parencite*", citation "Parencite*" SuppressAuthor False)
-  , ("Textcite", citation "Textcite" AuthorInText False)
-  , ("Textcites", citation "Textcites" AuthorInText True)
-  , ("Cites", citation "Cites" NormalCitation True)
-  , ("Autocites", citation "Autocites" NormalCitation True)
-  , ("Footcites", citation "Footcites" NormalCitation True)
-  , ("Parencites", citation "Parencites" NormalCitation True)
-  , ("Supercites", citation "Supercites" NormalCitation True)
-  , ("Footcitetexts", inNote <$> citation "Footcitetexts" NormalCitation True)
-  , ("citetext", complexNatbibCitation NormalCitation)
-  , ("citeauthor", (try (tok *> optional sp *> controlSeq "citetext") *>
-                        complexNatbibCitation AuthorInText)
-                   <|> citation "citeauthor" AuthorInText False)
-  , ("nocite", mempty <$ (citation "nocite" NormalCitation False >>=
-                          addMeta "nocite"))
-  , ("hypertarget", braced >> tok)
-  -- siuntix
-  , ("SI", dosiunitx)
-  -- hyphenat
-  , ("bshyp", lit "\\\173")
-  , ("fshyp", lit "/\173")
-  , ("dothyp", lit ".\173")
-  , ("colonhyp", lit ":\173")
-  , ("hyp", lit "-")
-  , ("nohyphens", tok)
-  , ("textnhtt", ttfamily)
-  , ("nhttfamily", ttfamily)
-  -- fontawesome
-  , ("faCheck", lit "\10003")
-  , ("faClose", lit "\10007")
-  ] ++ map ignoreInlines
-  -- these commands will be ignored unless --parse-raw is specified,
-  -- in which case they will appear as raw latex blocks:
-  [ "index"
-  , "hspace"
-  , "vspace"
-  , "newpage"
-  , "clearpage"
-  , "pagebreak"
+--  , ("H", try $ tok >>= accent hungarumlaut)
+--  , ("`", option (str "`") $ try $ tok >>= accent grave)
+--  , ("'", option (str "'") $ try $ tok >>= accent acute)
+--  , ("^", option (str "^") $ try $ tok >>= accent circ)
+--  , ("~", option (str "~") $ try $ tok >>= accent tilde)
+--  , ("\"", option (str "\"") $ try $ tok >>= accent umlaut)
+--  , (".", option (str ".") $ try $ tok >>= accent dot)
+--  , ("=", option (str "=") $ try $ tok >>= accent macron)
+--  , ("c", option (str "c") $ try $ tok >>= accent cedilla)
+--  , ("v", option (str "v") $ try $ tok >>= accent hacek)
+--  , ("u", option (str "u") $ try $ tok >>= accent breve)
+--  , ("i", lit "i")
+--  , ("\\", linebreak <$ (optional (bracketed inline) *> spaces'))
+--  , (",", lit "\8198")
+--  , ("@", pure mempty)
+--  , (" ", lit "\160")
+--  , ("ps", pure $ str "PS." <> space)
+--  , ("TeX", lit "TeX")
+--  , ("LaTeX", lit "LaTeX")
+--  , ("bar", lit "|")
+--  , ("textless", lit "<")
+--  , ("textgreater", lit ">")
+--  , ("thanks", note <$> grouped block)
+--  , ("footnote", note <$> grouped block)
+--  , ("verb", doverb)
+--  , ("lstinline", dolstinline)
+--  , ("Verb", doverb)
+--  , ("url", (unescapeURL <$> braced) >>= \url ->
+--       pure (link url "" (str url)))
+--  , ("href", (unescapeURL <$> braced <* optional sp) >>= \url ->
+--       tok >>= \lab ->
+--         pure (link url "" lab))
+--  , ("includegraphics", do options <- option [] keyvals
+--                           src <- unescapeURL . removeDoubleQuotes <$> braced
+--                           mkImage options src)
+--  , ("enquote", enquote)
+--  , ("cite", citation "cite" NormalCitation False)
+--  , ("Cite", citation "Cite" NormalCitation False)
+--  , ("citep", citation "citep" NormalCitation False)
+--  , ("citep*", citation "citep*" NormalCitation False)
+--  , ("citeal", citation "citeal" NormalCitation False)
+--  , ("citealp", citation "citealp" NormalCitation False)
+--  , ("citealp*", citation "citealp*" NormalCitation False)
+--  , ("autocite", citation "autocite" NormalCitation False)
+--  , ("smartcite", citation "smartcite" NormalCitation False)
+--  , ("footcite", inNote <$> citation "footcite" NormalCitation False)
+--  , ("parencite", citation "parencite" NormalCitation False)
+--  , ("supercite", citation "supercite" NormalCitation False)
+--  , ("footcitetext", inNote <$> citation "footcitetext" NormalCitation False)
+--  , ("citeyearpar", citation "citeyearpar" SuppressAuthor False)
+--  , ("citeyear", citation "citeyear" SuppressAuthor False)
+--  , ("autocite*", citation "autocite*" SuppressAuthor False)
+--  , ("cite*", citation "cite*" SuppressAuthor False)
+--  , ("parencite*", citation "parencite*" SuppressAuthor False)
+--  , ("textcite", citation "textcite" AuthorInText False)
+--  , ("citet", citation "citet" AuthorInText False)
+--  , ("citet*", citation "citet*" AuthorInText False)
+--  , ("citealt", citation "citealt" AuthorInText False)
+--  , ("citealt*", citation "citealt*" AuthorInText False)
+--  , ("textcites", citation "textcites" AuthorInText True)
+--  , ("cites", citation "cites" NormalCitation True)
+--  , ("autocites", citation "autocites" NormalCitation True)
+--  , ("footcites", inNote <$> citation "footcites" NormalCitation True)
+--  , ("parencites", citation "parencites" NormalCitation True)
+--  , ("supercites", citation "supercites" NormalCitation True)
+--  , ("footcitetexts", inNote <$> citation "footcitetexts" NormalCitation True)
+--  , ("Autocite", citation "Autocite" NormalCitation False)
+--  , ("Smartcite", citation "Smartcite" NormalCitation False)
+--  , ("Footcite", citation "Footcite" NormalCitation False)
+--  , ("Parencite", citation "Parencite" NormalCitation False)
+--  , ("Supercite", citation "Supercite" NormalCitation False)
+--  , ("Footcitetext", inNote <$> citation "Footcitetext" NormalCitation False)
+--  , ("Citeyearpar", citation "Citeyearpar" SuppressAuthor False)
+--  , ("Citeyear", citation "Citeyear" SuppressAuthor False)
+--  , ("Autocite*", citation "Autocite*" SuppressAuthor False)
+--  , ("Cite*", citation "Cite*" SuppressAuthor False)
+--  , ("Parencite*", citation "Parencite*" SuppressAuthor False)
+--  , ("Textcite", citation "Textcite" AuthorInText False)
+--  , ("Textcites", citation "Textcites" AuthorInText True)
+--  , ("Cites", citation "Cites" NormalCitation True)
+--  , ("Autocites", citation "Autocites" NormalCitation True)
+--  , ("Footcites", citation "Footcites" NormalCitation True)
+--  , ("Parencites", citation "Parencites" NormalCitation True)
+--  , ("Supercites", citation "Supercites" NormalCitation True)
+--  , ("Footcitetexts", inNote <$> citation "Footcitetexts" NormalCitation True)
+--  , ("citetext", complexNatbibCitation NormalCitation)
+--  , ("citeauthor", (try (tok *> optional sp *> controlSeq "citetext") *>
+--                        complexNatbibCitation AuthorInText)
+--                   <|> citation "citeauthor" AuthorInText False)
+--  , ("nocite", mempty <$ (citation "nocite" NormalCitation False >>=
+--                          addMeta "nocite"))
+--  , ("hypertarget", braced >> tok)
+--  -- siuntix
+--  , ("SI", dosiunitx)
+--  -- hyphenat
+--  , ("bshyp", lit "\\\173")
+--  , ("fshyp", lit "/\173")
+--  , ("dothyp", lit ".\173")
+--  , ("colonhyp", lit ":\173")
+--  , ("hyp", lit "-")
+--  , ("nohyphens", tok)
+--  , ("textnhtt", ttfamily)
+--  , ("nhttfamily", ttfamily)
+--  -- fontawesome
+--  , ("faCheck", lit "\10003")
+--  , ("faClose", lit "\10007")
+--  ] ++ map ignoreInlines
+--  -- these commands will be ignored unless --parse-raw is specified,
+--  -- in which case they will appear as raw latex blocks:
+--  [ "index"
+--  , "hspace"
+--  , "vspace"
+--  , "newpage"
+--  , "clearpage"
+--  , "pagebreak"
   ]
 
+ttfamily :: PandocMonad m => LP m Inlines
+ttfamily = (code . stringify . toList) <$> tok
 
--}
+rawInlineOr :: PandocMonad m => String -> LP m Inlines -> LP m Inlines
+rawInlineOr name' fallback = do
+  parseRaw <- extensionEnabled Ext_raw_tex <$> getOption readerExtensions
+  if parseRaw
+     then rawInline "latex" <$> getRawCommand name'
+     else fallback
+
+getRawCommand :: PandocMonad m => String -> LP m String
+getRawCommand name' = do
+  (_, rawargs) <- withRaw
+     (many (try (optional sp *> opt)) *>
+      option "" (try (optional sp *> dimenarg)) *>
+      many braced)
+  return $ '\\' : name' ++ T.unpack (untokenize rawargs)
+
+isBlockCommand :: Text -> Bool
+isBlockCommand s =
+  s `M.member` (blockCommands :: M.Map Text (LP PandocPure Blocks))
+
+lookupListDefault :: (Ord k) => v -> [k] -> M.Map k v -> v
+lookupListDefault d = (fromMaybe d .) . lookupList
+  where
+  lookupList l m = msum $ map (`M.lookup` m) l
 
 inline :: PandocMonad m => LP m Inlines
 inline = (mempty <$ comment)
