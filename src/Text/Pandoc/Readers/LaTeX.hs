@@ -1,6 +1,4 @@
 {-# LANGUAGE OverloadedStrings   #-}
-{-# LANGUAGE FlexibleInstances   #-}
-{-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-
 Copyright (C) 2006-2017 John MacFarlane <jgm@berkeley.edu>
@@ -41,12 +39,10 @@ import Control.Applicative (many, optional, (<|>))
 import Control.Monad
 import Control.Monad.Except (throwError)
 import Data.Char (chr, isAlphaNum, isLetter, ord, isDigit)
-import Data.Default
 import Data.Text (Text, unpack)
 import qualified Data.Text as T
 import Data.List (intercalate, isPrefixOf)
 import qualified Data.Map as M
-import qualified Data.Set as Set
 import Data.Maybe (fromMaybe, maybeToList)
 import Safe (minimumDef)
 import System.FilePath (addExtension, replaceExtension, takeExtension)
@@ -74,7 +70,7 @@ readLaTeX :: PandocMonad m
           -> Text        -- ^ String to parse (assumes @'\n'@ line endings)
           -> m Pandoc
 readLaTeX opts ltx = do
-  parsed <- runParserT parseLaTeX def{ sOptions = opts } "source"
+  parsed <- runParserT parseLaTeX def{ stateOptions = opts } "source"
                (tokenize (crFilter ltx))
   case parsed of
     Right result -> return result
@@ -85,7 +81,7 @@ parseLaTeX = do
   bs <- blocks
   eof
   st <- getState
-  let meta = sMeta st
+  let meta = stateMeta st
   let doc' = doc bs
   let headerLevel (Header n _ _) = [n]
       headerLevel _ = []
@@ -101,85 +97,22 @@ parseLaTeX = do
 
 testParser :: LP PandocIO a -> Text -> IO a
 testParser p t = do
-  res <- runIOorExplode (runParserT p defaultLaTeXState{
-            sOptions = def{ readerExtensions =
+  res <- runIOorExplode (runParserT p defaultParserState{
+            stateOptions = def{ readerExtensions =
               getDefaultExtensions "latex" }} "name" (tokenize t))
   case res of
        Left e  -> error (show e)
        Right r -> return r
 
-data Macro = Macro -- TODO
-     deriving Show
+type LP m = ParserT [Tok] ParserState m
 
-data LaTeXState = LaTeXState{ sOptions       :: ReaderOptions
-                            , sMeta          :: Meta
-                            , sQuoteContext  :: QuoteContext
-                            , sMacros        :: [Macro]
-                            , sContainers    :: [String]
-                            , sHeaders       :: M.Map Inlines String
-                            , sLogMessages   :: [LogMessage]
-                            , sIdentifiers   :: Set.Set String }
-     deriving Show
-
-defaultLaTeXState :: LaTeXState
-defaultLaTeXState = LaTeXState{ sOptions       = def
-                              , sMeta          = nullMeta
-                              , sQuoteContext  = NoQuote
-                              , sMacros        = []
-                              , sContainers    = []
-                              , sHeaders       = M.empty
-                              , sLogMessages   = []
-                              , sIdentifiers   = Set.empty }
-
-instance PandocMonad m => HasQuoteContext LaTeXState m where
-  getQuoteContext = sQuoteContext <$> getState
-  withQuoteContext context parser = do
-    oldState <- getState
-    let oldQuoteContext = sQuoteContext oldState
-    setState oldState { sQuoteContext = context }
-    result <- parser
-    newState <- getState
-    setState newState { sQuoteContext = oldQuoteContext }
-    return result
-
-instance HasLogMessages LaTeXState where
-  addLogMessage msg st = st{ sLogMessages = msg : sLogMessages st }
-  getLogMessages st = reverse $ sLogMessages st
-
-instance HasIdentifierList LaTeXState where
-  extractIdentifierList     = sIdentifiers
-  updateIdentifierList f st = st{ sIdentifiers = f $ sIdentifiers st }
-
-instance HasIncludeFiles LaTeXState where
-  getIncludeFiles = sContainers
-  addIncludeFile f s = s{ sContainers = f : sContainers s }
-  dropLatestIncludeFile s = s { sContainers = drop 1 $ sContainers s }
-
-instance HasHeaderMap LaTeXState where
-  extractHeaderMap     = sHeaders
-  updateHeaderMap f st = st{ sHeaders = f $ sHeaders st }
-
-instance HasReaderOptions LaTeXState where
-  extractReaderOptions = sOptions
-
-instance HasMeta LaTeXState where
-  setMeta field val st =
-    st{ sMeta = setMeta field val $ sMeta st }
-  deleteMeta field st =
-    st{ sMeta = deleteMeta field $ sMeta st }
-
-instance Default LaTeXState where
-  def = defaultLaTeXState
-
-type LP m = ParserT [Tok] LaTeXState m
-
-rawLaTeXBlock :: PandocMonad m => ParserT String LaTeXState m String
+rawLaTeXBlock :: PandocMonad m => ParserT String ParserState m String
 rawLaTeXBlock = mzero
 
-rawLaTeXInline :: PandocMonad m => ParserT String LaTeXState m Inline
+rawLaTeXInline :: PandocMonad m => ParserT String ParserState m Inline
 rawLaTeXInline = mzero
 
-inlineCommand :: PandocMonad m => ParserT String LaTeXState m Inlines
+inlineCommand :: PandocMonad m => ParserT String ParserState m Inlines
 inlineCommand = mzero
 
 data TokType = CtrlSeq | Spaces | Newline | Symbol | Word | Comment |
@@ -273,11 +206,11 @@ satisfyTok f =
           setSourceColumn (setSourceLine spos lin) col
         updatePos spos _ [] = spos
 
--- TODO use something other than LaTeXState
+-- TODO use something other than ParserState
 doMacros :: PandocMonad m => LP m ()
 doMacros = do
   inp <- getInput
-  macros <- sMacros <$> getState
+  macros <- stateMacros <$> getState
   case inp of
        t@(Tok spos CtrlSeq txt) : ts
          | txt == "\\macro" -> do  -- TODO actually check macros
@@ -486,8 +419,8 @@ quoted' f starter ender = do
 enquote :: PandocMonad m => LP m Inlines
 enquote = do
   skipopts
-  quoteContext <- sQuoteContext <$> getState
-  if quoteContext == InDoubleQuote
+  context <- stateQuoteContext <$> getState
+  if context == InDoubleQuote
      then singleQuoted <$> withQuoteContext InSingleQuote tok
      else doubleQuoted <$> withQuoteContext InDoubleQuote tok
 
@@ -1186,7 +1119,7 @@ ignoreBlocks name = (name, p)
 
 addMeta :: PandocMonad m => ToMetaValue a => String -> a -> LP m ()
 addMeta field val = updateState $ \st ->
-   st{ sMeta = addMetaField field val $ sMeta st }
+   st{ stateMeta = addMetaField field val $ stateMeta st }
 
 authors :: PandocMonad m => LP m ()
 authors = try $ do
@@ -1232,7 +1165,7 @@ closing = do
   let extractInlines (MetaBlocks [Plain ys]) = ys
       extractInlines (MetaBlocks [Para ys ]) = ys
       extractInlines _                       = []
-  let sigs = case lookupMeta "author" (sMeta st) of
+  let sigs = case lookupMeta "author" (stateMeta st) of
                   Just (MetaList xs) ->
                     para $ trimInlines $ fromList $
                       intercalate [LineBreak] $ map extractInlines xs
@@ -1438,7 +1371,7 @@ blocks = mconcat <$> many block
 -- 
 -- addMeta :: PandocMonad m => ToMetaValue a => String -> a -> LP m ()
 -- addMeta field val = updateState $ \st ->
---   st{ sMeta = addMetaField field val $ sMeta st }
+--   st{ stateMeta = addMetaField field val $ stateMeta st }
 -- 
 -- splitBibs :: String -> [Inlines]
 -- splitBibs = map (str . flip replaceExtension "bib" . trim) . splitBy (==',')
@@ -1531,10 +1464,10 @@ blocks = mconcat <$> many block
 --   where strToCode (Str s) = Code nullAttr s
 --         strToCode x       = x
 -- 
--- rawLaTeXBlock :: PandocMonad m => ParserT String LaTeXState String
+-- rawLaTeXBlock :: PandocMonad m => ParserT String ParserState String
 -- rawLaTeXBlock = snd <$> try (withRaw (environment <|> blockCommand))
 -- 
--- rawLaTeXInline :: PandocMonad m => ParserT String LaTeXState Inline
+-- rawLaTeXInline :: PandocMonad m => ParserT String ParserState Inline
 -- rawLaTeXInline = do
 --   raw <- (snd <$> withRaw inlineCommand)
 --      <|> (snd <$> withRaw inlineEnvironment)
@@ -1571,7 +1504,7 @@ blocks = mconcat <$> many block
 --   bs <- blocks
 --   st <- getState
 --   -- add signature (author) and address (title)
---   let addr = case lookupMeta "address" (sMeta st) of
+--   let addr = case lookupMeta "address" (stateMeta st) of
 --                   Just (MetaBlocks [Plain xs]) ->
 --                      para $ trimInlines $ fromList xs
 --                   _ -> mempty
