@@ -108,8 +108,8 @@ testParser p t = do
        Left e  -> error (show e)
        Right r -> return r
 
-data Macro = Macro -- TODO
-     deriving Show
+data Macro = CommandMacro Text ([Tok] -> [Tok])
+           | EnvironmentMacro Text ([Tok] -> [Tok])
 
 data LaTeXState = LaTeXState{ sOptions       :: ReaderOptions
                             , sMeta          :: Meta
@@ -119,7 +119,6 @@ data LaTeXState = LaTeXState{ sOptions       :: ReaderOptions
                             , sHeaders       :: M.Map Inlines String
                             , sLogMessages   :: [LogMessage]
                             , sIdentifiers   :: Set.Set String }
-     deriving Show
 
 defaultLaTeXState :: LaTeXState
 defaultLaTeXState = LaTeXState{ sOptions       = def
