@@ -77,6 +77,7 @@ data LogMessage =
   | CircularReference String SourcePos
   | ParsingUnescaped String SourcePos
   | CouldNotLoadIncludeFile String SourcePos
+  | MacroAlreadyDefined String SourcePos
   | InlineNotRendered Inline
   | BlockNotRendered Block
   | DocxParserWarning String
@@ -147,6 +148,11 @@ instance ToJSON LogMessage where
             "column" .= toJSON (sourceColumn pos)]
       CouldNotLoadIncludeFile fp pos ->
            ["path" .= Text.pack fp,
+            "source" .= Text.pack (sourceName pos),
+            "line" .= toJSON (sourceLine pos),
+            "column" .= toJSON (sourceColumn pos)]
+      MacroAlreadyDefined name pos ->
+           ["name" .= Text.pack name,
             "source" .= Text.pack (sourceName pos),
             "line" .= toJSON (sourceLine pos),
             "column" .= toJSON (sourceColumn pos)]
@@ -224,6 +230,8 @@ showLogMessage msg =
          "Parsing unescaped '" ++ s ++ "' at " ++ showPos pos
        CouldNotLoadIncludeFile fp pos ->
          "Could not load include file '" ++ fp ++ "' at " ++ showPos pos
+       MacroAlreadyDefined name pos ->
+         "Macro '" ++ name ++ "' already defined, ignoring at " ++ showPos pos
        InlineNotRendered il ->
          "Not rendering " ++ show il
        BlockNotRendered bl ->
@@ -277,6 +285,7 @@ messageVerbosity msg =
        ReferenceNotFound{}          -> WARNING
        CircularReference{}          -> WARNING
        CouldNotLoadIncludeFile{}    -> WARNING
+       MacroAlreadyDefined{}        -> WARNING
        ParsingUnescaped{}           -> INFO
        InlineNotRendered{}          -> INFO
        BlockNotRendered{}           -> INFO
