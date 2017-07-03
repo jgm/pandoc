@@ -64,6 +64,7 @@ data PandocError = PandocIOError String IOError
                  | PandocTemplateError String
                  | PandocAppError String
                  | PandocEpubSubdirectoryError String
+                 | PandocMacroLoop String
                  deriving (Show, Typeable, Generic)
 
 instance Exception PandocError
@@ -107,6 +108,8 @@ handleError (Left e) =
     PandocAppError s -> err 1 s
     PandocEpubSubdirectoryError s -> err 31 $
       "EPUB subdirectory name '" ++ s ++ "' contains illegal characters"
+    PandocMacroLoop s -> err 91 $
+      "Loop encountered in expanding macro " ++ s
 
 err :: Int -> String -> IO a
 err exitCode msg = do
