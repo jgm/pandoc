@@ -1095,6 +1095,10 @@ rawVerbatimBlock = htmlInBalanced isVerbTag
         isVerbTag (TagOpen "script" _) = True
         isVerbTag _                    = False
 
+-- TODO a dummy function to get it to compile:
+macro :: PandocMonad m => MarkdownParser m Blocks
+macro = mzero
+
 latexMacro :: PandocMonad m => MarkdownParser m (F Blocks)
 latexMacro = try $ do
   guardEnabled Ext_latex_macros
@@ -1551,6 +1555,10 @@ code = try $ do
     case rawattr of
          Left syn   -> B.rawInline syn result
          Right attr -> B.codeWith attr result
+
+-- TODO this is a dummy just to get it to compile:
+applyMacros' :: Monad m => String -> m String
+applyMacros'  = return
 
 math :: PandocMonad m => MarkdownParser m (F Inlines)
 math =  (return . B.displayMath <$> (mathDisplay >>= applyMacros'))
