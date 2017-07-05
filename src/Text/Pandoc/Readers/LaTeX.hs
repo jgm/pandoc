@@ -38,7 +38,7 @@ TODO:
 module Text.Pandoc.Readers.LaTeX ( readLaTeX,
                                    rawLaTeXInline,
                                    rawLaTeXBlock,
-                                   inlineCommand,
+                                   inlineCommand
                                  ) where
 
 import Control.Applicative (many, optional, (<|>))
@@ -66,6 +66,8 @@ import Text.Pandoc.Parsing hiding (many, optional, withRaw,
                             mathInline, mathDisplay, macro,
                             space, (<|>), spaces, blankline)
 import Text.Pandoc.Shared
+import Text.Pandoc.Readers.LaTeX.Types (Macro(..), Tok(..),
+                            TokType(..), Line, Column)
 import Text.Pandoc.Walk
 import Text.Pandoc.Error (PandocError(PandocParsecError, PandocMacroLoop))
 
@@ -112,9 +114,6 @@ testParser p t = do
   case res of
        Left e  -> error (show e)
        Right r -> return r
-
-data Macro = Macro Int (Maybe [Tok]) [Tok]
-     deriving Show
 
 data LaTeXState = LaTeXState{ sOptions       :: ReaderOptions
                             , sMeta          :: Meta
@@ -227,13 +226,6 @@ rawLaTeXInline = mzero
 -- removed.
 inlineCommand :: PandocMonad m => ParserT String ParserState m Inlines
 inlineCommand = mzero
-
-data TokType = CtrlSeq Text | Spaces | Newline | Symbol | Word | Comment |
-               Esc1    | Esc2   | Arg Int
-     deriving (Eq, Ord, Show)
-
-data Tok = Tok (Line, Column) TokType Text
-     deriving (Eq, Ord, Show)
 
 tokenize :: Text -> [Tok]
 tokenize = totoks (1, 1)
