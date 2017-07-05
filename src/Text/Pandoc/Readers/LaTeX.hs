@@ -282,13 +282,25 @@ rawLaTeXInline = do
          updateState $ updateMacros (const $ sMacros s)
          count (T.length (untokenize raw)) anyChar
 
--- TODO this is only used in org reader.
--- I think the reason is that tarleb wanted to avoid
--- the blockCommand alternative in rawLaTeXInline.
--- I don't know whyt that's there and I think it should be
--- removed.
 inlineCommand :: PandocMonad m => ParserT String ParserState m Inlines
-inlineCommand = mzero
+inlineCommand = do
+  lookAhead (try (char '\\' >> letter) <|> char '$')
+  inp <- getInput
+  let toks = tokenize $ T.pack inp
+  let rawinline = do
+         (il, raw) <- try $ withRaw (inlineEnvironment <|> inlineCommand')
+         st <- getState
+         return (il, raw, st)
+  pstate <- getState
+  let lstate = def{ sOptions = extractReaderOptions pstate
+                  , sMacros  = extractMacros pstate }
+  res <- runParserT rawinline lstate "source" toks
+  case res of
+       Left _ -> mzero
+       Right (il, raw, s) -> do
+         updateState $ updateMacros (const $ sMacros s)
+         count (T.length (untokenize raw)) anyChar
+         return il
 
 tokenize :: Text -> [Tok]
 tokenize = totoks (1, 1)
