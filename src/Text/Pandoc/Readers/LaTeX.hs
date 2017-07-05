@@ -63,7 +63,7 @@ import Text.Pandoc.ImageSize (numUnit, showFl)
 import Text.Pandoc.Logging
 import Text.Pandoc.Options
 import Text.Pandoc.Parsing hiding (many, optional, withRaw,
-                            mathInline, mathDisplay, macro,
+                            mathInline, mathDisplay,
                             space, (<|>), spaces, blankline)
 import Text.Pandoc.Shared
 import Text.Pandoc.Readers.LaTeX.Types (Macro(..), Tok(..),
@@ -205,19 +205,46 @@ withVerbatimMode parser = do
 -- TODO: replace ParserState with variable and constraints.
 -- can we use 'tokens' from Parsec?
 -- feed ParserState -> LaTeXState and then back again
-rawLaTeXBlock :: PandocMonad m => ParserT String ParserState m String
-rawLaTeXBlock = mzero
--- rawLaTeXBlock :: PandocMonad m => ParserT String LaTeXState String
--- rawLaTeXBlock = snd <$> try (withRaw (environment <|> blockCommand))
+rawLaTeXBlock :: (PandocMonad m, HasMacros s, HasReaderOptions s)
+              => ParserT String s m String
+rawLaTeXBlock = do
+  lookAhead (char '\\')
+  inp <- getInput
+  let toks = tokenize $ T.pack inp
+  let rawblock = do
+         (_, raw) <- try $
+                      withRaw (environment <|> macroDef <|> blockCommand)
+         st <- getState
+         return (raw, st)
+  pstate <- getState
+  let lstate = def{ sOptions = extractReaderOptions pstate
+                  , sMacros  = extractMacros pstate }
+  res <- runParserT rawblock lstate "source" toks
+  case res of
+       Left _ -> mzero
+       Right (raw, s) -> do
+         updateState $ updateMacros (const $ sMacros s)
+         count (T.length (untokenize raw)) anyChar
 
-rawLaTeXInline :: PandocMonad m => ParserT String ParserState m Inline
-rawLaTeXInline = mzero
--- rawLaTeXInline :: PandocMonad m => ParserT String LaTeXState Inline
--- rawLaTeXInline = do
---   raw <- (snd <$> withRaw inlineCommand)
---      <|> (snd <$> withRaw inlineEnvironment)
---      <|> (snd <$> withRaw blockCommand)
---   RawInline "latex" <$> applyMacros' raw
+rawLaTeXInline :: (PandocMonad m, HasMacros s, HasReaderOptions s)
+              => ParserT String s m String
+rawLaTeXInline = do
+  lookAhead (oneOf "\\$")
+  inp <- getInput
+  let toks = tokenize $ T.pack inp
+  let rawinline = do
+         (_, raw) <- try $ withRaw (inlineEnvironment <|> inlineCommand')
+         st <- getState
+         return (raw, st)
+  pstate <- getState
+  let lstate = def{ sOptions = extractReaderOptions pstate
+                  , sMacros  = extractMacros pstate }
+  res <- runParserT rawinline lstate "source" toks
+  case res of
+       Left _ -> mzero
+       Right (raw, s) -> do
+         updateState $ updateMacros (const $ sMacros s)
+         count (T.length (untokenize raw)) anyChar
 
 -- TODO this is only used in org reader.
 -- I think the reason is that tarleb wanted to avoid
