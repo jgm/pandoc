@@ -36,8 +36,10 @@ TODO:
 [ ] exported rawLaTeXInline, rawLaTeXBlock, inlineCommand
 -}
 module Text.Pandoc.Readers.LaTeX ( readLaTeX,
+                                   applyMacros,
                                    rawLaTeXInline,
                                    rawLaTeXBlock,
+                                   macro,
                                    inlineCommand
                                  ) where
 
@@ -226,6 +228,40 @@ rawLaTeXBlock = do
          updateState $ updateMacros (const $ sMacros s)
          count (T.length (untokenize raw)) anyChar
 
+macro :: (PandocMonad m, HasMacros s, HasReaderOptions s)
+      => ParserT String s m Blocks
+macro = do
+  lookAhead (char '\\')
+  inp <- getInput
+  let toks = tokenize $ T.pack inp
+  let rawblock = do
+         (_, raw) <- withRaw $ try macroDef
+         st <- getState
+         return (raw, st)
+  pstate <- getState
+  let lstate = def{ sOptions = extractReaderOptions pstate
+                  , sMacros  = extractMacros pstate }
+  res <- runParserT rawblock lstate "source" toks
+  case res of
+       Left _ -> mzero
+       Right (raw, st) -> do
+         apply <- getOption readerApplyMacros
+         if apply
+            then mempty <$ updateState (updateMacros (const $ sMacros st))
+            else return $ rawBlock "latex" (toksToString raw)
+
+applyMacros :: (PandocMonad m, HasMacros s, HasReaderOptions s)
+            => String -> ParserT String s m String
+applyMacros s = do
+  let retokenize = doMacros 0 *> (toksToString <$> getInput)
+  pstate <- getState
+  let lstate = def{ sOptions = extractReaderOptions pstate
+                  , sMacros  = extractMacros pstate }
+  res <- runParserT retokenize lstate "math" (tokenize (T.pack s))
+  case res of
+       Left e -> fail (show e)
+       Right s' -> return s'
+
 rawLaTeXInline :: (PandocMonad m, HasMacros s, HasReaderOptions s)
               => ParserT String s m String
 rawLaTeXInline = do
@@ -353,9 +389,9 @@ satisfyTok f =
 
 doMacros :: PandocMonad m => Int -> LP m ()
 doMacros n = do
-  applyMacros <- readerApplyMacros . sOptions <$> getState
+  apply <- readerApplyMacros . sOptions <$> getState
   verbatimMode <- sVerbatimMode <$> getState
-  when (applyMacros && not verbatimMode) $ do
+  when (apply && not verbatimMode) $ do
     inp <- getInput
     case inp of
          Tok spos (CtrlSeq "begin") _ : Tok _ Symbol "{" :
@@ -1478,10 +1514,11 @@ authors = try $ do
   addMeta "author" (map trimInlines auths)
 
 macroDef :: PandocMonad m => LP m Blocks
-macroDef = mempty <$ ((commandDef <|> environmentDef) <* doMacros 0)
+macroDef = do
+  mempty <$ ((commandDef <|> environmentDef) <* doMacros 0)
   where commandDef = do
-          (name, macro) <- newcommand
-          updateState $ \s -> s{ sMacros = M.insert name macro (sMacros s) }
+          (name, macro') <- newcommand
+          updateState $ \s -> s{ sMacros = M.insert name macro' (sMacros s) }
         environmentDef = do
           (name, macro1, macro2) <- newenvironment
           updateState $ \s -> s{ sMacros =

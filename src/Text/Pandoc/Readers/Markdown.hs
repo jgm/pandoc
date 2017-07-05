@@ -61,7 +61,8 @@ import Text.Pandoc.Options
 import Text.Pandoc.Parsing hiding (tableWith)
 import Text.Pandoc.Readers.HTML (htmlInBalanced, htmlTag, isBlockTag,
                                  isCommentTag, isInlineTag, isTextTag)
-import Text.Pandoc.Readers.LaTeX (rawLaTeXBlock, rawLaTeXInline)
+import Text.Pandoc.Readers.LaTeX (rawLaTeXBlock, rawLaTeXInline, applyMacros,
+                                  macro)
 import Text.Pandoc.Shared
 import qualified Text.Pandoc.UTF8 as UTF8
 import Text.Pandoc.XML (fromEntities)
@@ -1095,10 +1096,6 @@ rawVerbatimBlock = htmlInBalanced isVerbTag
         isVerbTag (TagOpen "script" _) = True
         isVerbTag _                    = False
 
--- TODO a dummy function to get it to compile:
-macro :: PandocMonad m => MarkdownParser m Blocks
-macro = mzero
-
 latexMacro :: PandocMonad m => MarkdownParser m (F Blocks)
 latexMacro = try $ do
   guardEnabled Ext_latex_macros
@@ -1109,10 +1106,11 @@ latexMacro = try $ do
 rawTeXBlock :: PandocMonad m => MarkdownParser m (F Blocks)
 rawTeXBlock = do
   guardEnabled Ext_raw_tex
-  result <- (B.rawBlock "latex" . concat <$>
-                  rawLaTeXBlock `sepEndBy1` blankline)
-        <|> (B.rawBlock "context" . concat <$>
+  result <- (B.rawBlock "context" . concat <$>
                   rawConTeXtEnvironment `sepEndBy1` blankline)
+        <|> (B.rawBlock "latex" . concat <$>
+                  rawLaTeXBlock `sepEndBy1` blankline)
+
   spaces
   return $ return result
 
@@ -1556,13 +1554,9 @@ code = try $ do
          Left syn   -> B.rawInline syn result
          Right attr -> B.codeWith attr result
 
--- TODO this is a dummy just to get it to compile:
-applyMacros' :: Monad m => String -> m String
-applyMacros'  = return
-
 math :: PandocMonad m => MarkdownParser m (F Inlines)
-math =  (return . B.displayMath <$> (mathDisplay >>= applyMacros'))
-     <|> (return . B.math <$> (mathInline >>= applyMacros')) <+?>
+math =  (return . B.displayMath <$> (mathDisplay >>= applyMacros))
+     <|> (return . B.math <$> (mathInline >>= applyMacros)) <+?>
                (guardEnabled Ext_smart *> (return <$> apostrophe)
                 <* notFollowedBy (space <|> satisfy isPunctuation))
 
