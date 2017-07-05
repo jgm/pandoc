@@ -210,7 +210,7 @@ withVerbatimMode parser = do
 rawLaTeXBlock :: (PandocMonad m, HasMacros s, HasReaderOptions s)
               => ParserT String s m String
 rawLaTeXBlock = do
-  lookAhead (char '\\')
+  lookAhead (try (char '\\' >> letter))
   inp <- getInput
   let toks = tokenize $ T.pack inp
   let rawblock = do
@@ -265,7 +265,7 @@ applyMacros s = do
 rawLaTeXInline :: (PandocMonad m, HasMacros s, HasReaderOptions s)
               => ParserT String s m String
 rawLaTeXInline = do
-  lookAhead (oneOf "\\$")
+  lookAhead (try (char '\\' >> letter) <|> char '$')
   inp <- getInput
   let toks = tokenize $ T.pack inp
   let rawinline = do
