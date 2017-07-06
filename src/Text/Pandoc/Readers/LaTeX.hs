@@ -196,17 +196,6 @@ withVerbatimMode parser = do
   updateState $ \st -> st{ sVerbatimMode = False }
   return result
 
--- TODO: export our local macro parsing code
--- use that in markdown reader and change ParserState
--- TODO: remove use of texmath's applyMacros in Markdown reader
--- (and elsewhere?).  Instead, use an exported
--- applyMacros that uses our Macro type.  or perhaps
--- just run the latex reader on the math (adding delims
--- $$).
-
--- TODO: replace ParserState with variable and constraints.
--- can we use 'tokens' from Parsec?
--- feed ParserState -> LaTeXState and then back again
 rawLaTeXBlock :: (PandocMonad m, HasMacros s, HasReaderOptions s)
               => ParserT String s m String
 rawLaTeXBlock = do
@@ -245,22 +234,22 @@ macro = do
   case res of
        Left _ -> mzero
        Right (raw, st) -> do
-         apply <- getOption readerApplyMacros
-         if apply
-            then mempty <$ updateState (updateMacros (const $ sMacros st))
-            else return $ rawBlock "latex" (toksToString raw)
+         (guardEnabled Ext_latex_macros >>
+           (mempty <$ updateState (updateMacros (const $ sMacros st))))
+         <|> return (rawBlock "latex" (toksToString raw))
 
 applyMacros :: (PandocMonad m, HasMacros s, HasReaderOptions s)
             => String -> ParserT String s m String
 applyMacros s = do
-  let retokenize = doMacros 0 *> (toksToString <$> getInput)
-  pstate <- getState
-  let lstate = def{ sOptions = extractReaderOptions pstate
-                  , sMacros  = extractMacros pstate }
-  res <- runParserT retokenize lstate "math" (tokenize (T.pack s))
-  case res of
-       Left e -> fail (show e)
-       Right s' -> return s'
+  (guardEnabled Ext_latex_macros >>
+   do let retokenize = doMacros 0 *> (toksToString <$> getInput)
+      pstate <- getState
+      let lstate = def{ sOptions = extractReaderOptions pstate
+                      , sMacros  = extractMacros pstate }
+      res <- runParserT retokenize lstate "math" (tokenize (T.pack s))
+      case res of
+           Left e -> fail (show e)
+           Right s' -> return s') <|> return s
 
 rawLaTeXInline :: (PandocMonad m, HasMacros s, HasReaderOptions s)
               => ParserT String s m String
@@ -401,9 +390,8 @@ satisfyTok f =
 
 doMacros :: PandocMonad m => Int -> LP m ()
 doMacros n = do
-  apply <- readerApplyMacros . sOptions <$> getState
   verbatimMode <- sVerbatimMode <$> getState
-  when (apply && not verbatimMode) $ do
+  when (not verbatimMode) $ do
     inp <- getInput
     case inp of
          Tok spos (CtrlSeq "begin") _ : Tok _ Symbol "{" :

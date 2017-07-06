@@ -1108,7 +1108,7 @@ rawTeXBlock = do
   guardEnabled Ext_raw_tex
   result <- (B.rawBlock "context" . concat <$>
                   rawConTeXtEnvironment `sepEndBy1` blankline)
-        <|> (B.rawBlock "latex" . concat <$>
+        <|> (B.rawBlock "tex" . concat <$>
                   rawLaTeXBlock `sepEndBy1` blankline)
 
   spaces
