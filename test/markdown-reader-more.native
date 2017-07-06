@@ -183,7 +183,7 @@ Pandoc (Meta {unMeta = fromList [("author",MetaList [MetaInlines [Str "Author",S
 ,Para [Link ("",[],[]) [Str "link"] ("/hithere)","")]
 ,Para [Link ("",[],[]) [Str "linky"] ("hi_(there_(nested))","")]
 ,Header 2 ("backslashes-in-link-references",[],[]) [Str "Backslashes",Space,Str "in",Space,Str "link",Space,Str "references"]
-,Para [Link ("",[],[]) [Str "*",RawInline (Format "latex") "\\a"] ("b","")]
+,Para [Link ("",[],[]) [Str "*",RawInline (Format "tex") "\\a"] ("b","")]
 ,Header 2 ("reference-link-fallbacks",[],[]) [Str "Reference",Space,Str "link",Space,Str "fallbacks"]
 ,Para [Str "[",Emph [Str "not",Space,Str "a",Space,Str "link"],Str "]",Space,Str "[",Emph [Str "nope"],Str "]\8230"]
 ,Header 2 ("reference-link-followed-by-a-citation",[],[]) [Str "Reference",Space,Str "link",Space,Str "followed",Space,Str "by",Space,Str "a",Space,Str "citation"]

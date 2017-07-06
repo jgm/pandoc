@@ -1400,7 +1400,11 @@ treatAsInline :: Set.Set Text
 treatAsInline = Set.fromList
   [ "index"
   , "hspace"
+  , "vspace"
   , "noindent"
+  , "newpage"
+  , "clearpage"
+  , "pagebreak"
   ]
 
 lookupListDefault :: (Show k, Ord k) => v -> [k] -> M.Map k v -> v
