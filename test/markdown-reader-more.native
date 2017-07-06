@@ -3,7 +3,7 @@ Pandoc (Meta {unMeta = fromList [("author",MetaList [MetaInlines [Str "Author",S
 ,Header 2 ("blank-line-before-url-in-link-reference",[],[]) [Str "Blank",Space,Str "line",Space,Str "before",Space,Str "URL",Space,Str "in",Space,Str "link",Space,Str "reference"]
 ,Para [Link ("",[],[]) [Str "foo"] ("/url",""),Space,Str "and",Space,Link ("",[],[]) [Str "bar"] ("/url","title")]
 ,Header 2 ("raw-context-environments",[],[]) [Str "Raw",Space,Str "ConTeXt",Space,Str "environments"]
-,RawBlock (Format "tex") "\\placeformula "
+,RawBlock (Format "latex") "\\placeformula "
 ,RawBlock (Format "context") "\\startformula\n   L_{1} = L_{2}\n   \\stopformula"
 ,RawBlock (Format "context") "\\start[a2]\n\\start[a2]\n\\stop[a2]\n\\stop[a2]"
 ,Header 2 ("raw-latex-environments",[],[]) [Str "Raw",Space,Str "LaTeX",Space,Str "environments"]
@@ -183,7 +183,7 @@ Pandoc (Meta {unMeta = fromList [("author",MetaList [MetaInlines [Str "Author",S
 ,Para [Link ("",[],[]) [Str "link"] ("/hithere)","")]
 ,Para [Link ("",[],[]) [Str "linky"] ("hi_(there_(nested))","")]
 ,Header 2 ("backslashes-in-link-references",[],[]) [Str "Backslashes",Space,Str "in",Space,Str "link",Space,Str "references"]
-,Para [Link ("",[],[]) [Str "*",RawInline (Format "tex") "\\a"] ("b","")]
+,Para [Link ("",[],[]) [Str "*",RawInline (Format "latex") "\\a"] ("b","")]
 ,Header 2 ("reference-link-fallbacks",[],[]) [Str "Reference",Space,Str "link",Space,Str "fallbacks"]
 ,Para [Str "[",Emph [Str "not",Space,Str "a",Space,Str "link"],Str "]",Space,Str "[",Emph [Str "nope"],Str "]\8230"]
 ,Header 2 ("reference-link-followed-by-a-citation",[],[]) [Str "Reference",Space,Str "link",Space,Str "followed",Space,Str "by",Space,Str "a",Space,Str "citation"]

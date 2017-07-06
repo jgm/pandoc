@@ -32,8 +32,6 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 Conversion of LaTeX to 'Pandoc' document.
 
-TODO:
-[ ] exported rawLaTeXInline, rawLaTeXBlock, inlineCommand
 -}
 module Text.Pandoc.Readers.LaTeX ( readLaTeX,
                                    applyMacros,
@@ -175,6 +173,10 @@ instance HasHeaderMap LaTeXState where
   extractHeaderMap     = sHeaders
   updateHeaderMap f st = st{ sHeaders = f $ sHeaders st }
 
+instance HasMacros LaTeXState where
+  extractMacros  st  = sMacros st
+  updateMacros f st  = st{ sMacros = f (sMacros st) }
+
 instance HasReaderOptions LaTeXState where
   extractReaderOptions = sOptions
 
@@ -205,22 +207,20 @@ rawLaTeXBlock = do
   let rawblock = do
          (_, raw) <- try $
                       withRaw (environment <|> macroDef <|> blockCommand)
-         st <- getState
-         return (raw, st)
+         return raw
   pstate <- getState
-  let lstate = def{ sOptions = extractReaderOptions pstate
-                  , sMacros  = extractMacros pstate }
+  let lstate = def{ sOptions = extractReaderOptions pstate }
   res <- runParserT rawblock lstate "source" toks
   case res of
-       Left _ -> mzero
-       Right (raw, s) -> do
-         updateState $ updateMacros (const $ sMacros s)
-         count (T.length (untokenize raw)) anyChar
+       Left _    -> mzero
+       Right raw -> count (T.length (untokenize raw)) anyChar
 
 macro :: (PandocMonad m, HasMacros s, HasReaderOptions s)
       => ParserT String s m Blocks
 macro = do
-  lookAhead (char '\\')
+  guardEnabled Ext_latex_macros
+  lookAhead (char '\\' *> oneOfStrings ["new", "renew", "provide"] *>
+              oneOfStrings ["command", "environment"])
   inp <- getInput
   let toks = tokenize $ T.pack inp
   let rawblock = do
@@ -234,9 +234,8 @@ macro = do
   case res of
        Left _ -> mzero
        Right (raw, st) -> do
-         (guardEnabled Ext_latex_macros >>
-           (mempty <$ updateState (updateMacros (const $ sMacros st))))
-         <|> return (rawBlock "latex" (toksToString raw))
+         updateState (updateMacros (const $ sMacros st))
+         mempty <$ count (T.length (untokenize raw)) anyChar
 
 applyMacros :: (PandocMonad m, HasMacros s, HasReaderOptions s)
             => String -> ParserT String s m String
@@ -1052,7 +1051,7 @@ inlineCommand' = try $ do
   let name' = name <> star
   let names = ordNub [name', name] -- check non-starred as fallback
   let raw = do
-       guard $ not (isBlockCommand name)
+       guard $ isInlineCommand name || not (isBlockCommand name)
        (_, rawargs) <- withRaw
                (skipangles *> skipopts *> option "" dimenarg *> many braced)
        let rawcommand = T.unpack $ cmd <> untokenize (rawstar ++ rawargs)
@@ -1347,17 +1346,6 @@ inlineCommands = M.fromList $
   , ("faClose", lit "\10007")
   ]
 
-  -- these commands will be ignored unless --parse-raw is specified,
-  -- in which case they will appear as raw latex blocks:
-  -- [ "index"
-  -- , "hspace"
-  -- , "vspace"
-  -- , "newpage"
-  -- , "clearpage"
-  -- , "pagebreak"
-  -- , "noindent"
-  -- ]
-
 ttfamily :: PandocMonad m => LP m Inlines
 ttfamily = (code . stringify . toList) <$> tok
 
@@ -1379,20 +1367,39 @@ getRawCommand txt = do
 isBlockCommand :: Text -> Bool
 isBlockCommand s =
   s `M.member` (blockCommands :: M.Map Text (LP PandocPure Blocks))
+  || s `Set.member` treatAsBlock
+
+treatAsBlock :: Set.Set Text
+treatAsBlock = Set.fromList
+   [ "newcommand", "renewcommand"
+   , "newenvironment", "renewenvironment"
+   , "providecommand", "provideenvironment"
+     -- newcommand, etc. should be parsed by macroDef, but we need this
+     -- here so these aren't parsed as inline commands to ignore
+   , "special", "pdfannot", "pdfstringdef"
+   , "bibliographystyle"
+   , "maketitle", "makeindex", "makeglossary"
+   , "addcontentsline", "addtocontents", "addtocounter"
+      -- \ignore{} is used conventionally in literate haskell for definitions
+      -- that are to be processed by the compiler but not printed.
+   , "ignore"
+   , "hyperdef"
+   , "markboth", "markright", "markleft"
+   , "hspace", "vspace"
+   , "newpage"
+   , "clearpage"
+   , "pagebreak"
+   ]
 
 isInlineCommand :: Text -> Bool
 isInlineCommand s =
   s `M.member` (inlineCommands :: M.Map Text (LP PandocPure Inlines))
-    || s `Set.member` treatAsRawInline
+  || s `Set.member` treatAsInline
 
-treatAsRawInline :: Set.Set Text
-treatAsRawInline = Set.fromList
+treatAsInline :: Set.Set Text
+treatAsInline = Set.fromList
   [ "index"
   , "hspace"
-  , "vspace"
-  , "newpage"
-  , "clearpage"
-  , "pagebreak"
   , "noindent"
   ]
 
@@ -1490,6 +1497,7 @@ maybeAddExtension ext fp =
      then addExtension fp ext
      else fp
 
+{-
 ignoreBlocks :: PandocMonad m => Text -> (Text, LP m Blocks)
 ignoreBlocks name = (name, p)
   where
@@ -1497,6 +1505,17 @@ ignoreBlocks name = (name, p)
            let rawCommand = T.unpack ("\\" <> name <> oa)
            let doraw = guardRaw >> return (rawBlock "latex" rawCommand)
            doraw <|> ignore rawCommand
+-}
+
+{-
+ignoreInlines :: PandocMonad m => Text -> (Text, LP m Inlines)
+ignoreInlines name = (name, p)
+  where
+    p = do oa <- optargs
+           let rawCommand = T.unpack ("\\" <> name <> oa)
+           let doraw = guardRaw >> return (rawInline "latex" rawCommand)
+           doraw <|> ignore rawCommand
+-}
 
 addMeta :: PandocMonad m => ToMetaValue a => String -> a -> LP m ()
 addMeta field val = updateState $ \st ->
@@ -1515,6 +1534,7 @@ authors = try $ do
 
 macroDef :: PandocMonad m => LP m Blocks
 macroDef = do
+  guardEnabled Ext_latex_macros
   mempty <$ ((commandDef <|> environmentDef) <* doMacros 0)
   where commandDef = do
           (name, macro') <- newcommand
@@ -1635,7 +1655,7 @@ blockCommand = try $ do
   let name' = name <> star
   let names = ordNub [name', name]
   let raw = do
-        guard $ not (isInlineCommand name)
+        guard $ isBlockCommand name || not (isInlineCommand name)
         rawBlock "latex" <$> getRawCommand txt
   lookupListDefault raw names blockCommands
 
@@ -1706,28 +1726,8 @@ blockCommands = M.fromList $
    , ("graphicspath", graphicsPath)
    -- hyperlink
    , ("hypertarget", try $ braced >> grouped block)
-   ] ++ map ignoreBlocks
-   -- these commands will be ignored unless --parse-raw is specified,
-   -- in which case they will appear as raw latex blocks
-   [ "newcommand", "renewcommand"
-   , "newenvironment", "renewenvironment"
-   , "providecommand", "provideenvironment"
-     -- newcommand, etc. should be parsed by macroDef, but we need this
-     -- here so these aren't parsed as inline commands to ignore
-   , "special", "pdfannot", "pdfstringdef"
-   , "bibliographystyle"
-   , "maketitle", "makeindex", "makeglossary"
-   , "addcontentsline", "addtocontents", "addtocounter"
-      -- \ignore{} is used conventionally in literate haskell for definitions
-      -- that are to be processed by the compiler but not printed.
-   , "ignore"
-   , "hyperdef"
-   , "markboth", "markright", "markleft"
-   , "hspace", "vspace"
-   , "newpage"
-   , "clearpage"
-   , "pagebreak"
    ]
+
 
 environments :: PandocMonad m => M.Map Text (LP m Blocks)
 environments = M.fromList

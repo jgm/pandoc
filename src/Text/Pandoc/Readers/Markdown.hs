@@ -1108,7 +1108,7 @@ rawTeXBlock = do
   guardEnabled Ext_raw_tex
   result <- (B.rawBlock "context" . concat <$>
                   rawConTeXtEnvironment `sepEndBy1` blankline)
-        <|> (B.rawBlock "tex" . concat <$>
+        <|> (B.rawBlock "latex" . concat <$>
                   rawLaTeXBlock `sepEndBy1` blankline)
 
   spaces
@@ -1881,8 +1881,7 @@ rawLaTeXInline' = try $ do
   lookAhead (char '\\')
   notFollowedBy' rawConTeXtEnvironment
   s <- rawLaTeXInline
-  return $ return $ B.rawInline "tex" s
-  -- "tex" because it might be context or latex
+  return $ return $ B.rawInline "tex" s -- "tex" because it might be context
 
 rawConTeXtEnvironment :: PandocMonad m => ParserT [Char] st m String
 rawConTeXtEnvironment = try $ do
