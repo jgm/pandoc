@@ -35,7 +35,9 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 A utility library with parsers used in pandoc readers.
 -}
-module Text.Pandoc.Parsing ( anyLine,
+module Text.Pandoc.Parsing ( takeWhileP,
+                             takeP,
+                             anyLine,
                              anyLineNewline,
                              indentWith,
                              many1Till,
@@ -191,7 +193,7 @@ import qualified Text.Pandoc.Builder as B
 import Text.Pandoc.XML (fromEntities)
 import qualified Text.Pandoc.UTF8 as UTF8 (putStrLn)
 import Text.Parsec hiding (token)
-import Text.Parsec.Pos (newPos, initialPos)
+import Text.Parsec.Pos (newPos, initialPos, updatePosString)
 import Data.Char ( toLower, toUpper, ord, chr, isAscii, isAlphaNum,
                    isHexDigit, isSpace, isPunctuation )
 import Data.List ( intercalate, transpose, isSuffixOf )
@@ -243,6 +245,35 @@ instance Monoid a => Monoid (Future s a) where
   mempty = return mempty
   mappend = liftM2 mappend
   mconcat = liftM mconcat . sequence
+
+-- | Parse characters while a predicate is true.
+takeWhileP :: Stream [Char] m Char
+           => (Char -> Bool) -> ParserT [Char] st m [Char]
+takeWhileP f = do
+  -- faster than 'many (satisfy f)'
+  inp <- getInput
+  pos <- getPosition
+  let (xs, rest) = span f inp
+  -- needed to persuade parsec that this won't match an empty string:
+  anyChar
+  setInput rest
+  setPosition $ updatePosString pos xs
+  return xs
+
+-- Parse n characters of input (or the rest of the input if
+-- there aren't n characters).
+takeP :: Stream [Char] m Char => Int -> ParserT [Char] st m [Char]
+takeP n = do
+  guard (n > 0)
+  -- faster than 'count n anyChar'
+  inp <- getInput
+  pos <- getPosition
+  let (xs, rest) = splitAt n inp
+  -- needed to persuade parsec that this won't match an empty string:
+  anyChar
+  setInput rest
+  setPosition $ updatePosString pos xs
+  return xs
 
 -- | Parse any line of text
 anyLine :: Stream [Char] m Char => ParserT [Char] st m [Char]
