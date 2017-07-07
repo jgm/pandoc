@@ -72,7 +72,7 @@ import Text.Pandoc.Walk
 import Text.Pandoc.Error (PandocError(PandocParsecError, PandocMacroLoop))
 
 import Text.Pandoc.Extensions (getDefaultExtensions)
-import Debug.Trace (traceShowId)
+-- import Debug.Trace (traceShowId)
 
 -- | Parse LaTeX from string and return 'Pandoc' document.
 readLaTeX :: PandocMonad m
@@ -105,15 +105,15 @@ parseLaTeX = do
            else id) doc'
   return $ Pandoc meta bs'
 
-testParser :: LP PandocIO a -> Text -> IO a
-testParser p t = do
-  res <- runIOorExplode (runParserT p defaultLaTeXState{
-            sOptions = def{ readerExtensions =
-              enableExtension Ext_raw_tex $
-                getDefaultExtensions "latex" }} "source" (tokenize t))
-  case res of
-       Left e  -> error (show e)
-       Right r -> return r
+-- testParser :: LP PandocIO a -> Text -> IO a
+-- testParser p t = do
+--   res <- runIOorExplode (runParserT p defaultLaTeXState{
+--             sOptions = def{ readerExtensions =
+--               enableExtension Ext_raw_tex $
+--                 getDefaultExtensions "latex" }} "source" (tokenize t))
+--   case res of
+--        Left e  -> error (show e)
+--        Right r -> return r
 
 data LaTeXState = LaTeXState{ sOptions       :: ReaderOptions
                             , sMeta          :: Meta
@@ -1089,11 +1089,6 @@ skipopts = skipMany rawopt
 guardRaw :: PandocMonad m => LP m ()
 guardRaw = getOption readerExtensions >>= guard . extensionEnabled Ext_raw_tex
 
-optargs :: PandocMonad m => LP m Text
-optargs = do
-  (_, raw) <- withRaw (skipopts *> skipMany (try $ optional sp *> braced))
-  return $ untokenize raw
-
 -- opts in angle brackets are used in beamer
 rawangle :: PandocMonad m => LP m ()
 rawangle = try $ do
@@ -1330,7 +1325,7 @@ inlineCommands = M.fromList $
   , ("nocite", mempty <$ (citation "nocite" NormalCitation False >>=
                           addMeta "nocite"))
   , ("hypertarget", braced >> tok)
---  -- siuntix
+  -- siuntix
   , ("SI", dosiunitx)
   -- hyphenat
   , ("bshyp", lit "\\\173")
@@ -1500,26 +1495,6 @@ maybeAddExtension ext fp =
   if null (takeExtension fp)
      then addExtension fp ext
      else fp
-
-{-
-ignoreBlocks :: PandocMonad m => Text -> (Text, LP m Blocks)
-ignoreBlocks name = (name, p)
-  where
-    p = do oa <- optargs
-           let rawCommand = T.unpack ("\\" <> name <> oa)
-           let doraw = guardRaw >> return (rawBlock "latex" rawCommand)
-           doraw <|> ignore rawCommand
--}
-
-{-
-ignoreInlines :: PandocMonad m => Text -> (Text, LP m Inlines)
-ignoreInlines name = (name, p)
-  where
-    p = do oa <- optargs
-           let rawCommand = T.unpack ("\\" <> name <> oa)
-           let doraw = guardRaw >> return (rawInline "latex" rawCommand)
-           doraw <|> ignore rawCommand
--}
 
 addMeta :: PandocMonad m => ToMetaValue a => String -> a -> LP m ()
 addMeta field val = updateState $ \st ->
