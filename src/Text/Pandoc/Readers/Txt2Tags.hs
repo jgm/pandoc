@@ -40,7 +40,7 @@ import Text.Pandoc.Builder (Blocks, Inlines, trimInlines)
 import qualified Text.Pandoc.Builder as B
 import Text.Pandoc.Definition
 import Text.Pandoc.Options
-import Text.Pandoc.Parsing hiding (macro, space, spaces, uri)
+import Text.Pandoc.Parsing hiding (space, spaces, uri)
 import Text.Pandoc.Shared (compactify, compactifyDL, escapeURI, crFilter)
 import Control.Monad (guard, void, when)
 import Control.Monad.Reader (Reader, asks, runReader)
