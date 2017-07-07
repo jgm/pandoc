@@ -214,7 +214,7 @@ rawLaTeXBlock = do
   res <- runParserT rawblock lstate "source" toks
   case res of
        Left _    -> mzero
-       Right raw -> count (T.length (untokenize raw)) anyChar
+       Right raw -> takeP (T.length (untokenize raw))
 
 macro :: (PandocMonad m, HasMacros s, HasReaderOptions s)
       => ParserT String s m Blocks
@@ -236,7 +236,7 @@ macro = do
        Left _ -> mzero
        Right (raw, st) -> do
          updateState (updateMacros (const $ sMacros st))
-         mempty <$ count (T.length (untokenize raw)) anyChar
+         mempty <$ takeP (T.length (untokenize raw))
 
 applyMacros :: (PandocMonad m, HasMacros s, HasReaderOptions s)
             => String -> ParserT String s m String
@@ -269,7 +269,7 @@ rawLaTeXInline = do
        Left _ -> mzero
        Right (raw, s) -> do
          updateState $ updateMacros (const $ sMacros s)
-         count (T.length (untokenize raw)) anyChar
+         takeP (T.length (untokenize raw))
 
 inlineCommand :: PandocMonad m => ParserT String ParserState m Inlines
 inlineCommand = do
@@ -288,7 +288,7 @@ inlineCommand = do
        Left _ -> mzero
        Right (il, raw, s) -> do
          updateState $ updateMacros (const $ sMacros s)
-         count (T.length (untokenize raw)) anyChar
+         takeP (T.length (untokenize raw))
          return il
 
 tokenize :: Text -> [Tok]
