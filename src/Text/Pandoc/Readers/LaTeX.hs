@@ -56,8 +56,7 @@ import Safe (minimumDef)
 import System.FilePath (addExtension, replaceExtension, takeExtension)
 import Text.Pandoc.Builder
 import Text.Pandoc.Class (PandocMonad, PandocPure, lookupEnv, readFileFromDirs,
-                          report, setResourcePath, getResourcePath,
-                          runIOorExplode, PandocIO)
+                          report, setResourcePath, getResourcePath)
 import Text.Pandoc.Highlighting (fromListingsLanguage, languagesByExtension)
 import Text.Pandoc.ImageSize (numUnit, showFl)
 import Text.Pandoc.Logging
@@ -71,7 +70,9 @@ import Text.Pandoc.Readers.LaTeX.Types (Macro(..), Tok(..),
 import Text.Pandoc.Walk
 import Text.Pandoc.Error (PandocError(PandocParsecError, PandocMacroLoop))
 
-import Text.Pandoc.Extensions (getDefaultExtensions)
+-- for debugging:
+-- import Text.Pandoc.Extensions (getDefaultExtensions)
+-- import Text.Pandoc.Class (runIOorExplode, PandocIO)
 -- import Debug.Trace (traceShowId)
 
 -- | Parse LaTeX from string and return 'Pandoc' document.
@@ -722,7 +723,8 @@ keyval = try $ do
       isSpecSym _ = False
   val <- option [] $ do
            symbol '='
-           braced <|> (many1 (satisfyTok isWordTok <|> satisfyTok isSpecSym))
+           braced <|> (many1 (satisfyTok isWordTok <|> satisfyTok isSpecSym
+                               <|> anyControlSeq))
   optional sp
   optional (symbol ',')
   optional sp
@@ -1085,9 +1087,6 @@ rawopt = do
 
 skipopts :: PandocMonad m => LP m ()
 skipopts = skipMany rawopt
-
-guardRaw :: PandocMonad m => LP m ()
-guardRaw = getOption readerExtensions >>= guard . extensionEnabled Ext_raw_tex
 
 -- opts in angle brackets are used in beamer
 rawangle :: PandocMonad m => LP m ()
