@@ -1536,11 +1536,8 @@ newcommand = do
                              controlSeq "renewcommand" <|>
                              controlSeq "providecommand"
   optional $ symbol '*'
-  symbol '{'
-  spaces
-  Tok _ (CtrlSeq name) txt <- withVerbatimMode anyControlSeq
-  spaces
-  symbol '}'
+  Tok _ (CtrlSeq name) txt <- withVerbatimMode $ anyControlSeq <|>
+    (symbol '{' *> spaces *> anyControlSeq <* spaces <* symbol '}')
   spaces
   numargs <- option 0 $ try bracketedNum
   spaces
