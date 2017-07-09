@@ -54,7 +54,7 @@ import Text.Pandoc.Parsing hiding ((<|>))
 import Text.Pandoc.Walk
 import qualified Data.Map as M
 import Data.Foldable ( for_ )
-import Data.Maybe ( fromMaybe, isJust)
+import Data.Maybe ( fromMaybe, isJust, isNothing )
 import Data.List ( intercalate, isPrefixOf )
 import Data.Char ( isDigit, isLetter, isAlphaNum )
 import Control.Monad ( guard, mzero, void, unless )
@@ -376,6 +376,7 @@ pDiv = try $ do
   guardEnabled Ext_native_divs
   let isDivLike "div" = True
       isDivLike "section" = True
+      isDivLike "main" = True
       isDivLike _ = False
   TagOpen tag attr' <- lookAhead $ pSatisfy $ tagOpen isDivLike (const True)
   let attr = toStringAttr attr'
@@ -384,7 +385,10 @@ pDiv = try $ do
   let classes' = if tag == "section"
                     then "section":classes
                     else classes
-  return $ B.divWith (ident, classes', kvs) contents
+      kvs' = if tag == "main" && isNothing (lookup "role" kvs)
+               then ("role", "main"):kvs
+               else kvs
+  return $ B.divWith (ident, classes', kvs') contents
 
 pRawHtmlBlock :: PandocMonad m => TagParser m Blocks
 pRawHtmlBlock = do

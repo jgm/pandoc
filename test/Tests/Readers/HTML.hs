@@ -11,6 +11,9 @@ import Data.Text (Text)
 html :: Text -> Pandoc
 html = purely $ readHtml def
 
+htmlNativeDivs :: Text -> Pandoc
+htmlNativeDivs = purely $ readHtml def { readerExtensions = enableExtension Ext_native_divs $ readerExtensions def }
+
 tests :: [TestTree]
 tests = [ testGroup "base tag"
           [ test html "simple" $
@@ -35,5 +38,13 @@ tests = [ testGroup "base tag"
             setMeta "lang" (text "es") (doc (plain (text "hola")))
           , test html "xml:lang on <html>" $ "<html xmlns=\"http://www.w3.org/1999/xhtml\" xml:lang=\"es\"><head></head><body>hola</body></html>" =?>
             setMeta "lang" (text "es") (doc (plain (text "hola")))
+          ]
+        , testGroup "main"
+          [ test htmlNativeDivs "<main> becomes <div role=main>" $ "<main>hello</main>" =?>
+            doc (divWith ("", [], [("role", "main")]) (plain (text "hello")))
+          , test htmlNativeDivs "<main role=X> becomes <div role=X>" $ "<main role=foobar>hello</main>" =?>
+            doc (divWith ("", [], [("role", "foobar")]) (plain (text "hello")))
+          , test htmlNativeDivs "<main> has attributes preserved" $ "<main id=foo class=bar data-baz=qux>hello</main>" =?>
+            doc (divWith ("foo", ["bar"], [("role", "main"), ("data-baz", "qux")]) (plain (text "hello")))
           ]
         ]
