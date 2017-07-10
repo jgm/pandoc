@@ -922,7 +922,7 @@ blockHtmlTags = Set.fromList
     "dir", "div", "dl", "dt", "fieldset", "figcaption", "figure",
     "footer", "form", "h1", "h2", "h3", "h4",
     "h5", "h6", "head", "header", "hgroup", "hr", "html",
-    "isindex", "menu", "noframes", "ol", "output", "p", "pre",
+    "isindex", "main", "menu", "noframes", "ol", "output", "p", "pre",
     "section", "table", "tbody", "textarea",
     "thead", "tfoot", "ul", "dd",
     "dt", "frameset", "li", "tbody", "td", "tfoot",
@@ -1004,10 +1004,10 @@ _ `closes` "html" = False
 "optgroup" `closes` "optgroup" = True
 "optgroup" `closes` "option" = True
 "option" `closes` "option" = True
--- http://www.w3.org/TR/html-markup/p.html
+-- https://html.spec.whatwg.org/multipage/syntax.html#optional-tags
 x `closes` "p" | x `elem` ["address", "article", "aside", "blockquote",
    "dir", "div", "dl", "fieldset", "footer", "form", "h1", "h2", "h3", "h4",
-   "h5", "h6", "header", "hr", "menu", "nav", "ol", "p", "pre", "section",
+   "h5", "h6", "header", "hr", "main", "menu", "nav", "ol", "p", "pre", "section",
    "table", "ul"] = True
 "meta" `closes` "meta" = True
 "form" `closes` "form" = True
@@ -1020,8 +1020,8 @@ t `closes` "select" | t /= "option" = True
 "tfoot" `closes` t | t `elem` ["thead","colgroup"] = True
 "tbody" `closes` t | t `elem` ["tbody","tfoot","thead","colgroup"] = True
 t `closes` t2 |
-   t `elem` ["h1","h2","h3","h4","h5","h6","dl","ol","ul","table","div","p"] &&
-   t2 `elem` ["h1","h2","h3","h4","h5","h6","p" ] = True -- not "div"
+   t `elem` ["h1","h2","h3","h4","h5","h6","dl","ol","ul","table","div","main","p"] &&
+   t2 `elem` ["h1","h2","h3","h4","h5","h6","p" ] = True -- not "div" or "main"
 t1 `closes` t2 |
    t1 `Set.member` blockTags &&
    t2 `Set.notMember` blockTags &&

@@ -46,5 +46,9 @@ tests = [ testGroup "base tag"
             doc (divWith ("", [], [("role", "foobar")]) (plain (text "hello")))
           , test htmlNativeDivs "<main> has attributes preserved" $ "<main id=foo class=bar data-baz=qux>hello</main>" =?>
             doc (divWith ("foo", ["bar"], [("role", "main"), ("data-baz", "qux")]) (plain (text "hello")))
+          , test htmlNativeDivs "<main> closes <p>" $ "<p>hello<main>main content</main>" =?>
+            doc (para (text "hello") <> divWith ("", [], [("role", "main")]) (plain (text "main content")))
+          , test htmlNativeDivs "<main> followed by text" $ "<main>main content</main>non-main content" =?>
+            doc (divWith ("", [], [("role", "main")]) (plain (text "main content")) <> plain (text "non-main content"))
           ]
         ]
