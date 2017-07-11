@@ -137,6 +137,17 @@ tests = [ testGroup "block elements"
                                                       , "                       second inner definition :: second inner description"
                                                       ]
               ]
+            -- Check that list is intended with one space even inside a quote
+            , "List inside block quote" =: blockQuote (orderedList [ plain $ text "first"
+                                                                   , plain $ text "second"
+                                                                   , plain $ text "third"
+                                                                   ])
+                                        =?> unlines [ "<quote>"
+                                                    , " 1. first"
+                                                    , " 2. second"
+                                                    , " 3. third"
+                                                    , "</quote>"
+                                                    ]
             ]
           , testGroup "headings"
             [ "normal heading" =:
