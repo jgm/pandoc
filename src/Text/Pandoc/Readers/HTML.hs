@@ -805,6 +805,8 @@ pCloses tagtype = try $ do
        (TagClose "dl") | tagtype == "dd" -> return ()
        (TagClose "table") | tagtype == "td" -> return ()
        (TagClose "table") | tagtype == "tr" -> return ()
+       (TagClose t') | tagtype == "p" && t' `Set.member` blockHtmlTags
+                                            -> return () -- see #3794
        _ -> mzero
 
 pTagText :: PandocMonad m => TagParser m Inlines
