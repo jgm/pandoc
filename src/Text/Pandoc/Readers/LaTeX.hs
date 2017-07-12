@@ -1049,14 +1049,12 @@ inlineCommand' :: PandocMonad m => LP m Inlines
 inlineCommand' = try $ do
   Tok _ (CtrlSeq name) cmd <- anyControlSeq
   guard $ name /= "begin" && name /= "end"
-  (star, rawstar) <- withRaw $ option "" ("*" <$ symbol '*' <* optional sp)
+  star <- option "" ("*" <$ symbol '*' <* optional sp)
   let name' = name <> star
   let names = ordNub [name', name] -- check non-starred as fallback
   let raw = do
        guard $ isInlineCommand name || not (isBlockCommand name)
-       (_, rawargs) <- withRaw
-               (skipangles *> skipopts *> option "" dimenarg *> many braced)
-       let rawcommand = T.unpack $ cmd <> untokenize (rawstar ++ rawargs)
+       rawcommand <- getRawCommand (cmd <> star)
        (guardEnabled Ext_raw_tex >> return (rawInline "latex" rawcommand))
          <|> ignore rawcommand
   lookupListDefault raw names inlineCommands
@@ -1353,7 +1351,11 @@ rawInlineOr name' fallback = do
 getRawCommand :: PandocMonad m => Text -> LP m String
 getRawCommand txt = do
   (_, rawargs) <- withRaw
-     (many (try (optional sp *> opt)) *>
+     ((if txt == "\\write"
+          then () <$ satisfyTok isWordTok -- digits
+          else return ()) *>
+      skipangles *>
+      skipopts *>
       option "" (try (optional sp *> dimenarg)) *>
       many braced)
   return $ T.unpack (txt <> untokenize rawargs)
@@ -1631,7 +1633,7 @@ blockCommand = try $ do
   let names = ordNub [name', name]
   let raw = do
         guard $ isBlockCommand name || not (isInlineCommand name)
-        rawBlock "latex" <$> getRawCommand txt
+        rawBlock "latex" <$> getRawCommand (txt <> star)
   lookupListDefault raw names blockCommands
 
 closing :: PandocMonad m => LP m Blocks
@@ -2128,8 +2130,8 @@ block = (mempty <$ spaces1)
     <|> environment
     <|> include
     <|> macroDef
-    <|> paragraph
     <|> blockCommand
+    <|> paragraph
     <|> grouped block
 
 blocks :: PandocMonad m => LP m Blocks
