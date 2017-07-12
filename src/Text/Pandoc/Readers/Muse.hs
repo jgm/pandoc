@@ -115,11 +115,10 @@ htmlElement :: PandocMonad m => String -> MuseParser m (Attr, String)
 htmlElement tag = try $ do
   (TagOpen _ attr, _) <- htmlTag (~== TagOpen tag [])
   content <- manyTill anyChar (endtag <|> endofinput)
-  return (htmlAttrToPandoc attr, trim content)
+  return (htmlAttrToPandoc attr, content)
   where
     endtag     = void $ htmlTag (~== TagClose tag)
     endofinput = lookAhead $ try $ skipMany blankline >> skipSpaces >> eof
-    trim       = dropWhile (=='\n') . reverse . dropWhile (=='\n') . reverse
 
 htmlAttrToPandoc :: [Attribute String] -> Attr
 htmlAttrToPandoc attrs = (ident, classes, keyvals)
@@ -132,7 +131,7 @@ parseHtmlContentWithAttrs :: PandocMonad m
                           => String -> MuseParser m a -> MuseParser m (Attr, [a])
 parseHtmlContentWithAttrs tag parser = do
   (attr, content) <- htmlElement tag
-  parsedContent <- try $ parseContent content
+  parsedContent <- try $ parseContent (content ++ "\n")
   return (attr, parsedContent)
   where
     parseContent = parseFromString $ nested $ manyTill parser endOfContent
