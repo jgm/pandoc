@@ -1564,6 +1564,8 @@ handleUnrecognizedOption :: String -> [String] -> [String]
 handleUnrecognizedOption "--smart" =
   (("--smart/-S has been removed.  Use +smart or -smart extension instead.\n" ++
     "For example: pandoc -f markdown+smart -t markdown-smart.") :)
+handleUnrecognizedOption "--normalize" =
+  ("--normalize has been removed.  Normalization is now automatic." :)
 handleUnrecognizedOption "-S" = handleUnrecognizedOption "--smart"
 handleUnrecognizedOption "--old-dashes" =
   ("--old-dashes has been removed.  Use +old_dashes extension instead." :)
