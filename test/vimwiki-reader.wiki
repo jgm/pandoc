@@ -297,6 +297,16 @@ $ \sum_i a_i^2 = 1 $
 &= 2.
 }}$
 
+edge case (the `c^2 + ` after the multline tag is in the equation):
+{{$%multline%c^2 + 
+a^2 + b^2
+}}$
+
+edge case (the tag is `hello%bye`)
+{{$%hello%bye%
+\int_a^b f(x) dx
+}}$
+
 Just two dollar signs: $$
 
 [not math] You have $1

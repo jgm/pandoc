@@ -75,7 +75,8 @@ import qualified Text.Pandoc.Builder
   as B (headerWith, str, space, strong, emph, strikeout, code, link, image,
         spanWith, para, horizontalRule, blockQuote, bulletList, plain,
         orderedList, simpleTable, softbreak, codeBlockWith, imageWith, divWith,
-        setMeta, definitionList, superscript, subscript)
+        setMeta, definitionList, superscript, subscript, displayMath, 
+        math)
 import Text.Pandoc.Class (PandocMonad(..))
 import Text.Pandoc.Definition (Pandoc(..), Inline(Space),
   Block(BulletList, OrderedList), Attr, nullMeta, Meta, ListNumberStyle(..),
@@ -265,13 +266,32 @@ displayMath :: PandocMonad m => VwParser m Blocks
 displayMath = try $ do
   many spaceChar >> string "{{$"
   mathTag <- option "" mathTagParser
+  many space
   contents <- manyTill anyChar (try (char '\n' >> many spaceChar >> string "}}$"
     >> many spaceChar >> newline))
   let contentsWithTags
-        | mathTag == "" = "\\[" ++ contents ++ "\n\\]"
-        | otherwise     = "\\begin{" ++ mathTag ++ "}" ++ contents
+        | mathTag == "" = contents
+        | otherwise     = "\\begin{" ++ mathTag ++ "}\n" ++ contents
                           ++ "\n\\end{" ++ mathTag ++ "}"
-  return $ B.plain $ B.str contentsWithTags
+  return $ B.para $ B.displayMath contentsWithTags
+
+
+mathTagLaTeX :: String -> String
+mathTagLaTeX s = case s of
+   "equation" -> ""
+   "equation*" -> ""
+   "gather" -> "gathered"
+   "gather*" -> "gathered"
+   "multline" -> "gathered"
+   "multline*" -> "gathered"
+   "eqnarray" -> "aligned"
+   "eqnarray*" -> "aligned"
+   "align" -> "aligned"
+   "align*" -> "aligned"
+   "alignat" -> "aligned"
+   "alignat*" -> "aligned"
+   _ -> s
+
 
 mixedList :: PandocMonad m => VwParser m Blocks
 mixedList = try $ do
@@ -598,7 +618,7 @@ inlineMath :: PandocMonad m => VwParser m Inlines
 inlineMath = try $ do
   char '$'
   contents <- many1Till (noneOf "\n") (char '$')
-  return $ B.str $ "\\(" ++ contents ++ "\\)"
+  return $ B.math contents
 
 tag :: PandocMonad m => VwParser m Inlines
 tag = try $ do
@@ -650,4 +670,4 @@ mathTagParser = do
   s <- try $ lookAhead (char '%' >> (manyTill (noneOf spaceChars)
     (try $ char '%' >> many (noneOf $ '%':spaceChars) >> space)))
   char '%' >> string s >> char '%'
-  return s
+  return $ mathTagLaTeX s
