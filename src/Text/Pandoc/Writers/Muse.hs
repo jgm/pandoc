@@ -102,6 +102,13 @@ pandocToMuse (Pandoc meta blocks) = do
        Nothing  -> return main
        Just tpl -> renderTemplate' tpl context
 
+-- | Convert list of Pandoc block elements to Muse
+-- | without setting stTopLevel.
+flatBlockListToMuse :: PandocMonad m
+                => [Block]       -- ^ List of block elements
+                -> StateT WriterState m Doc
+flatBlockListToMuse blocks = cat <$> mapM blockToMuse blocks
+
 -- | Convert list of Pandoc block elements to Muse.
 blockListToMuse :: PandocMonad m
                 => [Block]       -- ^ List of block elements
@@ -111,11 +118,11 @@ blockListToMuse blocks = do
   modify $ \s -> s { stTopLevel = not $ stInsideBlock s
                    , stInsideBlock = True
                    }
-  contents <- mapM blockToMuse blocks
+  result <- flatBlockListToMuse blocks
   modify $ \s -> s { stTopLevel = stTopLevel oldState
                    , stInsideBlock = stInsideBlock oldState
                    }
-  return $ cat contents
+  return result
 
 -- | Convert Pandoc block element to Muse.
 blockToMuse :: PandocMonad m
@@ -141,10 +148,10 @@ blockToMuse (RawBlock (Format format) str) =
   return $ blankline $$ "<literal style=\"" <> text format <> "\">" $$
            text str $$ "</literal>" $$ blankline
 blockToMuse (BlockQuote blocks) = do
-  contents <- blockListToMuse blocks
+  contents <- flatBlockListToMuse blocks
   return $ blankline
         <> "<quote>"
-        $$ flush contents -- flush to drop blanklines
+        $$ nest 0 contents -- nest 0 to remove trailing blank lines
         $$ "</quote>"
         <> blankline
 blockToMuse (OrderedList (start, style, _) items) = do
