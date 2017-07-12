@@ -66,7 +66,7 @@ import Text.Pandoc.Parsing hiding (many, optional, withRaw,
                             space, (<|>), spaces, blankline)
 import Text.Pandoc.Shared
 import Text.Pandoc.Readers.LaTeX.Types (Macro(..), Tok(..),
-                            TokType(..), Line, Column)
+                            TokType(..))
 import Text.Pandoc.Walk
 import Text.Pandoc.Error (PandocError(PandocParsecError, PandocMacroLoop))
 
