@@ -607,6 +607,16 @@ mkImage options src = do
               return $ imageWith attr (addExtension src defaultExt) "" alt
         _  -> return $ imageWith attr src "" alt
 
+doxspace :: PandocMonad m => LP m Inlines
+doxspace = do
+  (space <$ lookAhead (satisfyTok startsWithLetter)) <|> return mempty
+  where startsWithLetter (Tok _ Word t) =
+          case T.uncons t of
+               Just (c, _) | isLetter c -> True
+               _ -> False
+        startsWithLetter _ = False
+
+
 -- converts e.g. \SI{1}[\$]{} to "$ 1" or \SI{1}{\euro} to "1 €"
 dosiunitx :: PandocMonad m => LP m Inlines
 dosiunitx = do
@@ -1336,6 +1346,8 @@ inlineCommands = M.fromList $
   -- fontawesome
   , ("faCheck", lit "\10003")
   , ("faClose", lit "\10007")
+  -- xspace
+  , ("xspace", doxspace)
   ]
 
 ttfamily :: PandocMonad m => LP m Inlines
