@@ -79,5 +79,5 @@ lookupMedia fp (MediaBag mediamap) = M.lookup (splitDirectories fp) mediamap
 -- their corresponding mime types and the lengths in bytes of the contents.
 mediaDirectory :: MediaBag -> [(String, MimeType, Int)]
 mediaDirectory (MediaBag mediamap) =
-  M.foldWithKey (\fp (mime,contents) ->
+  M.foldrWithKey (\fp (mime,contents) ->
       (((Posix.joinPath fp), mime, fromIntegral $ BL.length contents):)) [] mediamap

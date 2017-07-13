@@ -84,7 +84,7 @@ metaToJSON' blockWriter inlineWriter (Meta metamap) = do
   renderedMap <- Traversable.mapM
                  (metaValueToJSON blockWriter inlineWriter)
                  metamap
-  return $ M.foldWithKey defField (Object H.empty) renderedMap
+  return $ M.foldrWithKey defField (Object H.empty) renderedMap
 
 -- | Add variables to JSON object, replacing any existing values.
 -- Also include @meta-json@, a field containing a string representation
