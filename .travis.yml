@@ -60,6 +60,10 @@ matrix:
     compiler: ": #stack nightly"
     addons: {apt: {packages: [libgmp-dev]}}
 
+  - env: BUILD=stack ARGS="--stack-yaml stack.yaml.ghc82"
+    compiler: ": #stack 8.2.x"
+    addons: {apt: {packages: [libgmp-dev]}}
+
   # - env: BUILD=stack ARGS="--resolver lts-8"
   #   compiler: ": #stack 8.0.2 osx"
   #   os: osx

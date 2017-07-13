@@ -1,0 +1,43 @@
+# https://mail.haskell.org/pipermail/ghc-devs/2017-July/014364.html
+# https://downloads.haskell.org/~ghc/8.2.1-rc3/
+# http://taylor.fausak.me/2017/05/17/testing-ghc-release-candidates-with-stack/
+compiler: ghc-8.2.0.20170704
+compiler-check: match-exact
+
+resolver: ghc-8.2.0.20170704
+
+setup-info:
+  ghc:
+
+    linux64:
+      8.2.0.20170704:
+        url: https://downloads.haskell.org/~ghc/8.2.1-rc3/ghc-8.2.0.20170704-x86_64-deb8-linux.tar.xz
+        content-length: 138482820
+        sha1: ac1598c21ea2936b091885a29a0f5725668aaed5
+
+    macosx:
+      8.2.0.20170704:
+        url: https://downloads.haskell.org/~ghc/8.2.1-rc3/ghc-8.2.0.20170704-x86_64-apple-darwin.tar.xz
+        content-length: 125197252
+        sha1: 81e3093b559b9aaf8af2a89f182539849539cbe1
+
+    windows64:
+      8.2.0.20170704:
+        url: https://downloads.haskell.org/~ghc/8.2.1-rc3/ghc-8.2.0.20170704-x86_64-unknown-mingw32.tar.xz
+        content-length: 175463160
+        sha1: 3648302c66769d4aa0c3a9f82be4538f402f234f
+
+flags:
+  pandoc:
+    trypandoc: false
+    embed_data_files: false
+    old-locale: false
+    network-uri: true
+
+packages:
+- '.'
+
+extra-deps:
+- hslua-0.5.0
+- skylighting-0.3.3
+- texmath-0.9.4.1
