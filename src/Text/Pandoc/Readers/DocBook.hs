@@ -1,6 +1,6 @@
 module Text.Pandoc.Readers.DocBook ( readDocBook ) where
 import Data.Char (toUpper)
-import Text.Pandoc.Shared (safeRead)
+import Text.Pandoc.Shared (safeRead, crFilter)
 import Text.Pandoc.Options
 import Text.Pandoc.Definition
 import Text.Pandoc.Builder
@@ -9,7 +9,7 @@ import Text.HTML.TagSoup.Entity (lookupEntity)
 import Data.Either (rights)
 import Data.Generics
 import Data.Char (isSpace)
-import Control.Monad.State
+import Control.Monad.State.Strict
 import Data.List (intersperse)
 import Data.Maybe (fromMaybe)
 import Text.TeXMath (readMathML, writeTeX)
@@ -526,7 +526,8 @@ instance Default DBState where
 
 readDocBook :: PandocMonad m => ReaderOptions -> Text -> m Pandoc
 readDocBook _ inp = do
-  let tree = normalizeTree . parseXML . handleInstructions $ T.unpack inp
+  let tree = normalizeTree . parseXML . handleInstructions
+               $ T.unpack $ crFilter inp
   (bs, st') <- flip runStateT (def{ dbContent = tree }) $ mapM parseBlock $ tree
   return $ Pandoc (dbMeta st') (toList . mconcat $ bs)
 

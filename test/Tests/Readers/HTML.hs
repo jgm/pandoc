@@ -30,4 +30,10 @@ tests = [ testGroup "base tag"
           [ test html "anchor without href" $ "<a name=\"anchor\"/>" =?>
             plain (spanWith ("anchor",[],[]) mempty)
           ]
+        , testGroup "lang"
+          [ test html "lang on <html>" $ "<html lang=\"es\">hola" =?>
+            setMeta "lang" (text "es") (doc (plain (text "hola")))
+          , test html "xml:lang on <html>" $ "<html xmlns=\"http://www.w3.org/1999/xhtml\" xml:lang=\"es\"><head></head><body>hola</body></html>" =?>
+            setMeta "lang" (text "es") (doc (plain (text "hola")))
+          ]
         ]

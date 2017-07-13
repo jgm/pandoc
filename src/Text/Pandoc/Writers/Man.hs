@@ -31,7 +31,7 @@ Conversion of 'Pandoc' documents to groff man page format.
 -}
 module Text.Pandoc.Writers.Man ( writeMan) where
 import Control.Monad.Except (throwError)
-import Control.Monad.State
+import Control.Monad.State.Strict
 import Data.List (intercalate, intersperse, stripPrefix, sort)
 import qualified Data.Map as Map
 import Data.Maybe (fromMaybe)
@@ -110,7 +110,7 @@ pandocToMan opts (Pandoc meta blocks) = do
               $ metadata
   case writerTemplate opts of
        Nothing  -> return main
-       Just tpl -> return $ renderTemplate' tpl context
+       Just tpl -> renderTemplate' tpl context
 
 -- | Return man representation of notes.
 notesToMan :: PandocMonad m => WriterOptions -> [[Block]] -> StateT WriterState m Doc

@@ -122,13 +122,18 @@ writeRTF options doc = do
   let context = defField "body" body
               $ defField "spacer" spacer
               $ (if writerTableOfContents options
-                    then defField "toc" toc
+                    then defField "table-of-contents" toc
+                         -- for backwards compatibility,
+                         -- we populate toc with the contents
+                         -- of the toc rather than a boolean:
+                         . defField "toc" toc
                     else id)
               $ metadata
-  return $ T.pack
-         $ case writerTemplate options of
+  T.pack <$>
+      case writerTemplate options of
            Just tpl -> renderTemplate' tpl context
-           Nothing  -> case reverse body of
+           Nothing  -> return $
+                       case reverse body of
                             ('\n':_) -> body
                             _        -> body ++ "\n"
 

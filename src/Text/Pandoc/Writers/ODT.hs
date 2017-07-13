@@ -31,8 +31,9 @@ Conversion of 'Pandoc' documents to ODT.
 module Text.Pandoc.Writers.ODT ( writeODT ) where
 import Codec.Archive.Zip
 import Control.Monad.Except (catchError)
-import Control.Monad.State
+import Control.Monad.State.Strict
 import qualified Data.ByteString.Lazy as B
+import Data.Generics (everywhere', mkT)
 import Data.List (isPrefixOf)
 import Data.Maybe (fromMaybe)
 import qualified Data.Text.Lazy as TL
@@ -46,13 +47,14 @@ import Text.Pandoc.MIME (extensionFromMimeType, getMimeType)
 import Text.Pandoc.Options (WrapOption (..), WriterOptions (..))
 import Text.Pandoc.Pretty
 import Text.Pandoc.Shared (stringify)
-import Text.Pandoc.UTF8 (fromStringLazy, fromTextLazy)
+import Text.Pandoc.UTF8 (fromStringLazy, fromTextLazy, toStringLazy)
 import Text.Pandoc.Walk
 import Text.Pandoc.Writers.OpenDocument (writeOpenDocument)
 import Text.Pandoc.Writers.Shared (fixDisplayMath)
+import Text.Pandoc.BCP47 (getLang, toLang, Lang(..), renderLang)
 import Text.Pandoc.XML
 import Text.TeXMath
-import Text.XML.Light.Output
+import Text.XML.Light
 
 data ODTState = ODTState { stEntries :: [Entry]
                          }
@@ -78,6 +80,7 @@ pandocToODT :: PandocMonad m
 pandocToODT opts doc@(Pandoc meta _) = do
   let datadir = writerUserDataDir opts
   let title = docTitle meta
+  lang <- toLang (getLang opts meta)
   refArchive <-
        case writerReferenceDoc opts of
              Just f -> liftM toArchive $ lift $ P.readFileLazy f
@@ -132,17 +135,48 @@ pandocToODT opts doc@(Pandoc meta _) = do
            ,("xmlns:ooo","http://openoffice.org/2004/office")
            ,("xmlns:grddl","http://www.w3.org/2003/g/data-view#")
            ,("office:version","1.2")]
-           $ ( inTagsSimple "office:meta"
-                $ ( inTagsSimple "dc:title" (text $ escapeStringForXML (stringify title))
-                  )
+           $ ( inTagsSimple "office:meta" $
+                 ( inTagsSimple "dc:title"
+                      (text $ escapeStringForXML (stringify title))
+                   $$
+                   case lang of
+                        Just l -> inTagsSimple "dc:language"
+                                    (text (escapeStringForXML (renderLang l)))
+                        Nothing -> empty
+                 )
              )
         )
   -- make sure mimetype is first
   let mimetypeEntry = toEntry "mimetype" epochtime
                       $ fromStringLazy "application/vnd.oasis.opendocument.text"
-  let archive'' = addEntryToArchive mimetypeEntry
+  archive'' <- updateStyleWithLang lang
+                  $ addEntryToArchive mimetypeEntry
                   $ addEntryToArchive metaEntry archive'
   return $ fromArchive archive''
+
+updateStyleWithLang :: PandocMonad m => Maybe Lang -> Archive -> O m Archive
+updateStyleWithLang Nothing arch = return arch
+updateStyleWithLang (Just lang) arch = do
+  epochtime <- floor `fmap` (lift P.getPOSIXTime)
+  return arch{ zEntries = [if eRelativePath e == "styles.xml"
+                              then case parseXMLDoc
+                                      (toStringLazy (fromEntry e)) of
+                                      Nothing -> e
+                                      Just d ->
+                                        toEntry "styles.xml" epochtime
+                                        ( fromStringLazy
+                                        . ppTopElement
+                                        . addLang lang $ d )
+                              else e
+                            | e <- zEntries arch] }
+
+addLang :: Lang -> Element -> Element
+addLang lang = everywhere' (mkT updateLangAttr)
+    where updateLangAttr (Attr n@(QName "language" _ (Just "fo")) _)
+                           = Attr n (langLanguage lang)
+          updateLangAttr (Attr n@(QName "country" _ (Just "fo")) _)
+                           = Attr n (langRegion lang)
+          updateLangAttr x = x
 
 -- | transform both Image and Math elements
 transformPicMath :: PandocMonad m => WriterOptions ->Inline -> O m Inline

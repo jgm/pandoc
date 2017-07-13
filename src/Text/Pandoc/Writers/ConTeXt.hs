@@ -1,4 +1,5 @@
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE ScopedTypeVariables #-}
 {-
 Copyright (C) 2007-2017 John MacFarlane <jgm@berkeley.edu>
 
@@ -29,12 +30,13 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 Conversion of 'Pandoc' format into ConTeXt.
 -}
 module Text.Pandoc.Writers.ConTeXt ( writeConTeXt ) where
-import Control.Monad.State
+import Control.Monad.State.Strict
 import Data.Char (ord)
 import Data.List (intercalate, intersperse)
 import Data.Maybe (catMaybes)
 import Data.Text (Text)
 import Network.URI (unEscapeString)
+import Text.Pandoc.BCP47
 import Text.Pandoc.Class (PandocMonad, report)
 import Text.Pandoc.Logging
 import Text.Pandoc.Definition
@@ -88,6 +90,7 @@ pandocToConTeXt options (Pandoc meta blocks) = do
                               ,("top","margin-top")
                               ,("bottom","margin-bottom")
                               ]
+  mblang <- fromBCP47 (getLang options meta)
   let context =   defField "toc" (writerTableOfContents options)
                 $ defField "placelist" (intercalate ("," :: String) $
                      take (writerTOCDepth options +
@@ -100,14 +103,17 @@ pandocToConTeXt options (Pandoc meta blocks) = do
                 $ defField "body" main
                 $ defField "layout" layoutFromMargins
                 $ defField "number-sections" (writerNumberSections options)
+                $ maybe id (defField "context-lang") mblang
+                $ (case getField "papersize" metadata of
+                        Just ("a4" :: String) -> resetField "papersize"
+                                                    ("A4" :: String)
+                        _                     -> id)
                 $ metadata
-  let context' =  defField "context-lang" (maybe "" (fromBcp47 . splitBy (=='-')) $
-                    getField "lang" context)
-                $ defField "context-dir" (toContextDir $ getField "dir" context)
-                $ context
-  return $ case writerTemplate options of
-                Nothing  -> main
-                Just tpl -> renderTemplate' tpl context'
+  let context' = defField "context-dir" (toContextDir
+                                         $ getField "dir" context) context
+  case writerTemplate options of
+       Nothing  -> return main
+       Just tpl -> renderTemplate' tpl context'
 
 toContextDir :: Maybe String -> String
 toContextDir (Just "rtl") = "r2l"
@@ -186,6 +192,7 @@ blockToConTeXt b@(RawBlock _ _ ) = do
   return empty
 blockToConTeXt (Div (ident,_,kvs) bs) = do
   let align dir txt = "\\startalignment[" <> dir <> "]" $$ txt $$ "\\stopalignment"
+  mblang <- fromBCP47 (lookup "lang" kvs)
   let wrapRef txt = if null ident
                        then txt
                        else ("\\reference" <> brackets (text $ toLabel ident) <>
@@ -194,9 +201,9 @@ blockToConTeXt (Div (ident,_,kvs) bs) = do
                   Just "rtl" -> align "righttoleft"
                   Just "ltr" -> align "lefttoright"
                   _          -> id
-      wrapLang txt = case lookup "lang" kvs of
+      wrapLang txt = case mblang of
                        Just lng -> "\\start\\language["
-                                     <> text (fromBcp47' lng) <> "]" $$ txt $$ "\\stop"
+                                     <> text lng <> "]" $$ txt $$ "\\stop"
                        Nothing  -> txt
       wrapBlank txt = blankline <> txt <> blankline
   fmap (wrapBlank . wrapLang . wrapDir . wrapRef) $ blockListToConTeXt bs
@@ -416,12 +423,13 @@ inlineToConTeXt (Note contents) = do
               else text "\\startbuffer " <> nest 2 contents' <>
                    text "\\stopbuffer\\footnote{\\getbuffer}"
 inlineToConTeXt (Span (_,_,kvs) ils) = do
+  mblang <- fromBCP47 (lookup "lang" kvs)
   let wrapDir txt = case lookup "dir" kvs of
                       Just "rtl" -> braces $ "\\righttoleft " <> txt
                       Just "ltr" -> braces $ "\\lefttoright " <> txt
                       _          -> txt
-      wrapLang txt = case lookup "lang" kvs of
-                       Just lng -> "\\start\\language[" <> text (fromBcp47' lng)
+      wrapLang txt = case mblang of
+                       Just lng -> "\\start\\language[" <> text lng
                                       <> "]" <> txt <> "\\stop "
                        Nothing -> txt
   fmap (wrapLang . wrapDir) $ inlineListToConTeXt ils
@@ -458,36 +466,34 @@ sectionHeader (ident,classes,_) hdrLevel lst = do
                                      <> blankline
              _                    -> contents <> blankline
 
-fromBcp47' :: String -> String
-fromBcp47' = fromBcp47 . splitBy (=='-')
+fromBCP47 :: PandocMonad m => Maybe String -> WM m (Maybe String)
+fromBCP47 mbs = fromBCP47' <$> toLang mbs
 
 -- Takes a list of the constituents of a BCP 47 language code
 -- and irons out ConTeXt's exceptions
 -- https://tools.ietf.org/html/bcp47#section-2.1
 -- http://wiki.contextgarden.net/Language_Codes
-fromBcp47 :: [String] -> String
-fromBcp47 []              = ""
-fromBcp47 ("ar":"SY":_)   = "ar-sy"
-fromBcp47 ("ar":"IQ":_)   = "ar-iq"
-fromBcp47 ("ar":"JO":_)   = "ar-jo"
-fromBcp47 ("ar":"LB":_)   = "ar-lb"
-fromBcp47 ("ar":"DZ":_)   = "ar-dz"
-fromBcp47 ("ar":"MA":_)   = "ar-ma"
-fromBcp47 ("de":"1901":_) = "deo"
-fromBcp47 ("de":"DE":_)   = "de-de"
-fromBcp47 ("de":"AT":_)   = "de-at"
-fromBcp47 ("de":"CH":_)   = "de-ch"
-fromBcp47 ("el":"poly":_) = "agr"
-fromBcp47 ("en":"US":_)   = "en-us"
-fromBcp47 ("en":"GB":_)   = "en-gb"
-fromBcp47 ("grc":_)       = "agr"
-fromBcp47 x               = fromIso $ head x
-  where
-    fromIso "el" = "gr"
-    fromIso "eu" = "ba"
-    fromIso "he" = "il"
-    fromIso "jp" = "ja"
-    fromIso "uk" = "ua"
-    fromIso "vi" = "vn"
-    fromIso "zh" = "cn"
-    fromIso l    = l
+fromBCP47' :: Maybe Lang -> Maybe String
+fromBCP47' (Just (Lang "ar" _ "SY" _)     )  = Just "ar-sy"
+fromBCP47' (Just (Lang "ar" _ "IQ" _)     )  = Just "ar-iq"
+fromBCP47' (Just (Lang "ar" _ "JO" _)     )  = Just "ar-jo"
+fromBCP47' (Just (Lang "ar" _ "LB" _)     )  = Just "ar-lb"
+fromBCP47' (Just (Lang "ar" _ "DZ" _)     )  = Just "ar-dz"
+fromBCP47' (Just (Lang "ar" _ "MA" _)     )  = Just "ar-ma"
+fromBCP47' (Just (Lang "de" _ _ ["1901"]) )  = Just "deo"
+fromBCP47' (Just (Lang "de" _ "DE" _)     )  = Just "de-de"
+fromBCP47' (Just (Lang "de" _ "AT" _)     )  = Just "de-at"
+fromBCP47' (Just (Lang "de" _ "CH" _)     )  = Just "de-ch"
+fromBCP47' (Just (Lang "el" _ _ ["poly"]) )  = Just "agr"
+fromBCP47' (Just (Lang "en" _ "US" _)     )  = Just "en-us"
+fromBCP47' (Just (Lang "en" _ "GB" _)     )  = Just "en-gb"
+fromBCP47' (Just (Lang "grc"_  _ _)       )  = Just "agr"
+fromBCP47' (Just (Lang "el" _ _ _)        )  = Just "gr"
+fromBCP47' (Just (Lang "eu" _ _ _)        )  = Just "ba"
+fromBCP47' (Just (Lang "he" _ _ _)        )  = Just "il"
+fromBCP47' (Just (Lang "jp" _ _ _)        )  = Just "ja"
+fromBCP47' (Just (Lang "uk" _ _ _)        )  = Just "ua"
+fromBCP47' (Just (Lang "vi" _ _ _)        )  = Just "vn"
+fromBCP47' (Just (Lang "zh" _ _ _)        )  = Just "cn"
+fromBCP47' (Just (Lang l _ _ _)           )  = Just l
+fromBCP47' Nothing                           = Nothing

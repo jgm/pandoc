@@ -31,14 +31,14 @@ tests = [ testGroup "block elements"
                                            , "Second paragraph."
                                            ]
             ]
-          , "line block" =: lineBlock ([text "Foo", text "bar", text "baz"])
+          , "line block" =: lineBlock [text "Foo", text "bar", text "baz"]
                          =?> unlines [ "<verse>"
                                      , "Foo"
                                      , "bar"
                                      , "baz"
                                      , "</verse>"
                                      ]
-          , "code block" =: codeBlock ("int main(void) {\n\treturn 0;\n}")
+          , "code block" =: codeBlock "int main(void) {\n\treturn 0;\n}"
                          =?> unlines [ "<example>"
                                      , "int main(void) {"
                                      , "\treturn 0;"
@@ -137,6 +137,17 @@ tests = [ testGroup "block elements"
                                                       , "                       second inner definition :: second inner description"
                                                       ]
               ]
+            -- Check that list is intended with one space even inside a quote
+            , "List inside block quote" =: blockQuote (orderedList [ plain $ text "first"
+                                                                   , plain $ text "second"
+                                                                   , plain $ text "third"
+                                                                   ])
+                                        =?> unlines [ "<quote>"
+                                                    , " 1. first"
+                                                    , " 2. second"
+                                                    , " 3. third"
+                                                    , "</quote>"
+                                                    ]
             ]
           , testGroup "headings"
             [ "normal heading" =:

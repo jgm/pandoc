@@ -35,7 +35,7 @@ Conversion of 'Pandoc' documents to Emacs Org-Mode.
 Org-Mode:  <http://orgmode.org>
 -}
 module Text.Pandoc.Writers.Org (writeOrg) where
-import Control.Monad.State
+import Control.Monad.State.Strict
 import Data.Char (isAlphaNum, toLower)
 import Data.Text (Text)
 import Data.List (intersect, intersperse, isPrefixOf, partition, transpose)
@@ -86,7 +86,7 @@ pandocToOrg (Pandoc meta blocks) = do
               $ metadata
   case writerTemplate opts of
        Nothing  -> return main
-       Just tpl -> return $ renderTemplate' tpl context
+       Just tpl -> renderTemplate' tpl context
 
 -- | Return Org representation of notes.
 notesToOrg :: PandocMonad m => [[Block]] -> Org m Doc

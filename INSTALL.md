@@ -272,9 +272,17 @@ To run with cabal, `cabal test`; to run with stack, `stack
 test`.
 
 To run particular tests (pattern-matching on their names), use
-the `-t` option:
+the `-p` option:
 
-    cabal test --test-options='-t markdown'
+    cabal test --test-options='-p markdown'
+
+Or with stack:
+
+    stack test --test-arguments='-p markdown'
+
+It is often helpful to add `-j4` (run tests in parallel)
+and `--hide-successes` (don't clutter output with successes)
+to the test arguments as well.
 
 If you add a new feature to pandoc, please add tests as well, following
 the pattern of the existing tests. The test suite code is in

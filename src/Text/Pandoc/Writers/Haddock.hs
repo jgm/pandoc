@@ -33,7 +33,7 @@ Conversion of 'Pandoc' documents to haddock markup.
 Haddock:  <http://www.haskell.org/haddock/doc/html/>
 -}
 module Text.Pandoc.Writers.Haddock (writeHaddock) where
-import Control.Monad.State
+import Control.Monad.State.Strict
 import Data.Default
 import Data.Text (Text)
 import Data.List (intersperse, transpose)
@@ -80,7 +80,7 @@ pandocToHaddock opts (Pandoc meta blocks) = do
                $ metadata
   case writerTemplate opts of
           Nothing  -> return main
-          Just tpl -> return $ renderTemplate' tpl context
+          Just tpl -> renderTemplate' tpl context
 
 -- | Return haddock representation of notes.
 notesToHaddock :: PandocMonad m

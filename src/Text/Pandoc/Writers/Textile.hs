@@ -30,7 +30,7 @@ Conversion of 'Pandoc' documents to Textile markup.
 Textile:  <http://thresholdstate.com/articles/4312/the-textile-reference-manual>
 -}
 module Text.Pandoc.Writers.Textile ( writeTextile ) where
-import Control.Monad.State
+import Control.Monad.State.Strict
 import Data.Char (isSpace)
 import Data.List (intercalate)
 import Data.Text (Text, pack)
@@ -75,7 +75,7 @@ pandocToTextile opts (Pandoc meta blocks) = do
   let context = defField "body" main metadata
   case writerTemplate opts of
          Nothing  -> return main
-         Just tpl -> return $ renderTemplate' tpl context
+         Just tpl -> renderTemplate' tpl context
 
 withUseTags :: PandocMonad m => TW m a -> TW m a
 withUseTags action = do

@@ -34,15 +34,16 @@ import Data.Text (pack)
 import Scripting.Lua (LuaState, call, push, pushhsfunction, rawset)
 import Text.Pandoc.Class hiding (readDataFile)
 import Text.Pandoc.Definition (Pandoc)
+import Text.Pandoc.Options (ReaderOptions(readerExtensions))
 import Text.Pandoc.Lua.Compat (loadstring)
 import Text.Pandoc.Lua.StackInstances ()
 import Text.Pandoc.Readers (Reader (..), getReader)
 import Text.Pandoc.Shared (readDataFile)
 
 -- | Push the "pandoc" on the lua stack.
-pushPandocModule :: LuaState -> IO ()
-pushPandocModule lua = do
-  script <- pandocModuleScript
+pushPandocModule :: Maybe FilePath -> LuaState -> IO ()
+pushPandocModule datadir lua = do
+  script <- pandocModuleScript datadir
   status <- loadstring lua script "pandoc.lua"
   unless (status /= 0) $ call lua 0 1
   push lua "__read"
@@ -50,17 +51,17 @@ pushPandocModule lua = do
   rawset lua (-3)
 
 -- | Get the string representation of the pandoc module
-pandocModuleScript :: IO String
-pandocModuleScript = unpack <$> readDataFile Nothing "pandoc.lua"
+pandocModuleScript :: Maybe FilePath -> IO String
+pandocModuleScript datadir = unpack <$> readDataFile datadir "pandoc.lua"
 
 read_doc :: String -> String -> IO (Either String Pandoc)
 read_doc formatSpec content = do
   case getReader formatSpec of
     Left  s      -> return $ Left s
-    Right reader ->
+    Right (reader, es) ->
       case reader of
         TextReader r -> do
-          res <- runIO $ r def (pack content)
+          res <- runIO $ r def{ readerExtensions = es } (pack content)
           case res of
             Left s   -> return . Left $ show s
             Right pd -> return $ Right pd

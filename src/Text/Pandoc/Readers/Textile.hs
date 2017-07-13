@@ -61,15 +61,14 @@ import Text.HTML.TagSoup (Tag (..), fromAttrib)
 import Text.HTML.TagSoup.Match
 import Text.Pandoc.Builder (Blocks, Inlines, trimInlines)
 import qualified Text.Pandoc.Builder as B
-import Text.Pandoc.Class (PandocMonad, report)
+import Text.Pandoc.Class (PandocMonad(..))
 import Text.Pandoc.CSS
 import Text.Pandoc.Definition
-import Text.Pandoc.Logging
 import Text.Pandoc.Options
 import Text.Pandoc.Parsing
 import Text.Pandoc.Readers.HTML (htmlTag, isBlockTag, isInlineTag)
 import Text.Pandoc.Readers.LaTeX (rawLaTeXBlock, rawLaTeXInline)
-import Text.Pandoc.Shared (trim)
+import Text.Pandoc.Shared (trim, crFilter)
 import Data.Text (Text)
 import qualified Data.Text as T
 
@@ -80,7 +79,7 @@ readTextile :: PandocMonad m
             -> m Pandoc
 readTextile opts s = do
   parsed <- readWithM parseTextile def{ stateOptions = opts }
-                (T.unpack s ++ "\n\n")
+                (T.unpack (crFilter s) ++ "\n\n")
   case parsed of
      Right result -> return result
      Left e       -> throwError e
@@ -143,8 +142,7 @@ blockParsers = [ codeBlock
 block :: PandocMonad m => ParserT [Char] ParserState m Blocks
 block = do
   res <- choice blockParsers <?> "block"
-  pos <- getPosition
-  report $ ParsingTrace (take 60 $ show $ B.toList res) pos
+  trace (take 60 $ show $ B.toList res)
   return res
 
 commentBlock :: PandocMonad m => ParserT [Char] ParserState m Blocks
@@ -575,7 +573,7 @@ rawHtmlInline = B.rawInline "html" . snd <$> htmlTag isInlineTag
 rawLaTeXInline' :: PandocMonad m => ParserT [Char] ParserState m Inlines
 rawLaTeXInline' = try $ do
   guardEnabled Ext_raw_tex
-  B.singleton <$> rawLaTeXInline
+  B.rawInline "latex" <$> rawLaTeXInline
 
 -- | Textile standard link syntax is "label":target. But we
 -- can also have ["label":target].

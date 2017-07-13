@@ -23,7 +23,7 @@ THIS SOFTWARE.
 -- @copyright © 2017 Albert Krewinkel
 -- @license MIT
 local M = {
-  _VERSION = "0.2.0"
+  _VERSION = "0.3.0"
 }
 
 ------------------------------------------------------------------------
@@ -137,7 +137,7 @@ end
 -- @function Doc
 -- @tparam      {Block,...} blocks      document content
 -- @tparam[opt] Meta        meta        document meta data
-function M.Doc(blocks, meta)
+function M.Pandoc(blocks, meta)
   meta = meta or {}
   return {
     ["blocks"] = blocks,
@@ -146,6 +146,8 @@ function M.Doc(blocks, meta)
   }
 end
 
+-- DEPRECATED synonym:
+M.Doc = M.Pandoc
 
 ------------------------------------------------------------------------
 -- MetaValue
@@ -360,7 +362,8 @@ M.Table = M.Block:create_constructor(
   "Table",
   function(caption, aligns, widths, headers, rows)
     return {c = {caption, aligns, widths, headers, rows}}
-  end
+  end,
+  {"caption", "aligns", "widths", "headers", "rows"}
 )
 
 
@@ -448,8 +451,7 @@ M.Link = M.Inline:create_constructor(
   {"attributes", "content", {"target", "title"}}
 )
 
---- Creates a Math element, either inline or displayed. It is usually simpler to
--- use one of the specialized functions @{InlineMath} or @{DisplayMath} instead.
+--- Creates a Math element, either inline or displayed.
 -- @function Math
 -- @tparam      "InlineMath"|"DisplayMath" mathtype rendering specifier
 -- @tparam      string      text        Math content
@@ -461,7 +463,7 @@ M.Math = M.Inline:create_constructor(
   end,
   {"mathtype", "text"}
 )
---- Creates a DisplayMath element.
+--- Creates a DisplayMath element (DEPRECATED).
 -- @function DisplayMath
 -- @tparam      string      text        Math content
 -- @treturn     Inline                  Math element
@@ -470,7 +472,7 @@ M.DisplayMath = M.Inline:create_constructor(
   function(text) return M.Math("DisplayMath", text) end,
   {"mathtype", "text"}
 )
---- Creates an InlineMath inline element.
+--- Creates an InlineMath inline element (DEPRECATED).
 -- @function InlineMath
 -- @tparam      string      text        Math content
 -- @treturn     Inline                  Math element
@@ -489,9 +491,7 @@ M.Note = M.Inline:create_constructor(
   "content"
 )
 
---- Creates a Quoted inline element given the quote type and quoted content. It
--- is usually simpler to use one of the specialized functions @{SingleQuoted} or
--- @{DoubleQuoted} instead.
+--- Creates a Quoted inline element given the quote type and quoted content.
 -- @function Quoted
 -- @tparam      "DoubleQuote"|"SingleQuote" quotetype type of quotes to be used
 -- @tparam      {Inline,..} content     inline content
@@ -501,7 +501,7 @@ M.Quoted = M.Inline:create_constructor(
   function(quotetype, content) return {c = {quotetype, content}} end,
   {"quotetype", "content"}
 )
---- Creates a single-quoted inline element.
+--- Creates a single-quoted inline element (DEPRECATED).
 -- @function SingleQuoted
 -- @tparam      {Inline,..} content     inline content
 -- @treturn     Inline                  quoted element
@@ -511,7 +511,7 @@ M.SingleQuoted = M.Inline:create_constructor(
   function(content) return M.Quoted(M.SingleQuote, content) end,
   {"quotetype", "content"}
 )
---- Creates a single-quoted inline element.
+--- Creates a single-quoted inline element (DEPRECATED).
 -- @function DoubleQuoted
 -- @tparam      {Inline,..} content     inline content
 -- @treturn     Inline                  quoted element

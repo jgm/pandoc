@@ -1,6 +1,6 @@
 {-# LANGUAGE FlexibleContexts #-}
 module Text.Pandoc.Readers.OPML ( readOPML ) where
-import Control.Monad.State
+import Control.Monad.State.Strict
 import Data.Char (toUpper)
 import Data.Text (Text, unpack, pack)
 import Data.Default
@@ -9,6 +9,7 @@ import Text.HTML.TagSoup.Entity (lookupEntity)
 import Text.Pandoc.Builder
 import Text.Pandoc.Class (PandocMonad)
 import Text.Pandoc.Options
+import Text.Pandoc.Shared (crFilter)
 import Text.Pandoc.Readers.HTML (readHtml)
 import Text.Pandoc.Readers.Markdown (readMarkdown)
 import Text.XML.Light
@@ -32,7 +33,8 @@ instance Default OPMLState where
 readOPML :: PandocMonad m => ReaderOptions -> Text -> m Pandoc
 readOPML _ inp  = do
   (bs, st') <- flip runStateT def
-                 (mapM parseBlock $ normalizeTree $ parseXML (unpack inp))
+                 (mapM parseBlock $ normalizeTree $
+                    parseXML (unpack (crFilter inp)))
   return $
     setTitle (opmlDocTitle st') $
     setAuthors (opmlDocAuthors st') $

@@ -32,7 +32,7 @@ CommonMark:  <http://commonmark.org>
 module Text.Pandoc.Writers.CommonMark (writeCommonMark) where
 
 import CMark
-import Control.Monad.State (State, get, modify, runState)
+import Control.Monad.State.Strict (State, get, modify, runState)
 import Data.Foldable (foldrM)
 import Data.Text (Text)
 import qualified Data.Text as T
@@ -58,9 +58,9 @@ writeCommonMark opts (Pandoc meta blocks) = do
               (inlinesToCommonMark opts)
               meta
   let context = defField "body" main $ metadata
-  return $ case writerTemplate opts of
-             Nothing  -> main
-             Just tpl -> renderTemplate' tpl context
+  case writerTemplate opts of
+       Nothing  -> return main
+       Just tpl -> renderTemplate' tpl context
 
 processNotes :: Inline -> State [[Block]] Inline
 processNotes (Note bs) = do

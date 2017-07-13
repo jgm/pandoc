@@ -42,7 +42,7 @@ However, @\<literal style="html">@ tag is used for HTML raw blocks
 even though it is supported only in Emacs Muse.
 -}
 module Text.Pandoc.Writers.Muse (writeMuse) where
-import Control.Monad.State
+import Control.Monad.State.Strict
 import Data.Text (Text)
 import Data.List (intersperse, transpose, isInfixOf)
 import System.FilePath (takeExtension)
@@ -97,11 +97,17 @@ pandocToMuse (Pandoc meta blocks) = do
   body <- blockListToMuse blocks
   notes <- liftM (reverse . stNotes) get >>= notesToMuse
   let main = render colwidth $ body $+$ notes
-  let context = defField "body" main
-              $ metadata
+  let context = defField "body" main metadata
   case writerTemplate opts of
        Nothing  -> return main
-       Just tpl -> return $ renderTemplate' tpl context
+       Just tpl -> renderTemplate' tpl context
+
+-- | Convert list of Pandoc block elements to Muse
+-- | without setting stTopLevel.
+flatBlockListToMuse :: PandocMonad m
+                => [Block]       -- ^ List of block elements
+                -> StateT WriterState m Doc
+flatBlockListToMuse blocks = cat <$> mapM blockToMuse blocks
 
 -- | Convert list of Pandoc block elements to Muse.
 blockListToMuse :: PandocMonad m
@@ -112,11 +118,11 @@ blockListToMuse blocks = do
   modify $ \s -> s { stTopLevel = not $ stInsideBlock s
                    , stInsideBlock = True
                    }
-  contents <- mapM blockToMuse blocks
+  result <- flatBlockListToMuse blocks
   modify $ \s -> s { stTopLevel = stTopLevel oldState
                    , stInsideBlock = stInsideBlock oldState
                    }
-  return $ cat contents
+  return result
 
 -- | Convert Pandoc block element to Muse.
 blockToMuse :: PandocMonad m
@@ -129,23 +135,23 @@ blockToMuse (Para inlines) = do
 blockToMuse (LineBlock lns) = do
   let splitStanza [] = []
       splitStanza xs = case break (== mempty) xs of
-        (l, [])  -> l : []
+        (l, [])  -> [l]
         (l, _:r) -> l : splitStanza r
   let joinWithLinefeeds  = nowrap . mconcat . intersperse cr
   let joinWithBlankLines = mconcat . intersperse blankline
   let prettyfyStanza ls  = joinWithLinefeeds <$> mapM inlineListToMuse ls
   contents <- joinWithBlankLines <$> mapM prettyfyStanza (splitStanza lns)
   return $ blankline $$ "<verse>" $$ contents $$ "</verse>" <> blankline
-blockToMuse (CodeBlock (_,_,_) str) = do
+blockToMuse (CodeBlock (_,_,_) str) =
   return $ "<example>" $$ text str $$ "</example>" $$ blankline
 blockToMuse (RawBlock (Format format) str) =
   return $ blankline $$ "<literal style=\"" <> text format <> "\">" $$
            text str $$ "</literal>" $$ blankline
 blockToMuse (BlockQuote blocks) = do
-  contents <- blockListToMuse blocks
+  contents <- flatBlockListToMuse blocks
   return $ blankline
         <> "<quote>"
-        $$ flush contents -- flush to drop blanklines
+        $$ nest 0 contents -- nest 0 to remove trailing blank lines
         $$ "</quote>"
         <> blankline
 blockToMuse (OrderedList (start, style, _) items) = do
@@ -154,11 +160,10 @@ blockToMuse (OrderedList (start, style, _) items) = do
   let maxMarkerLength = maximum $ map length markers
   let markers' = map (\m -> let s = maxMarkerLength - length m
                             in  m ++ replicate s ' ') markers
-  contents <- mapM (\(item, num) -> orderedListItemToMuse item num) $
-              zip markers' items
+  contents <- zipWithM orderedListItemToMuse markers' items
   -- ensure that sublists have preceding blank line
   topLevel <- gets stTopLevel
-  return $ cr $$ ((if topLevel then nest 1 else id) $ vcat contents) $$ blankline
+  return $ cr $$ (if topLevel then nest 1 else id) (vcat contents) $$ blankline
   where orderedListItemToMuse :: PandocMonad m
                               => String   -- ^ marker for list item
                               -> [Block]  -- ^ list item (list of blocks)
@@ -170,7 +175,7 @@ blockToMuse (BulletList items) = do
   contents <- mapM bulletListItemToMuse items
   -- ensure that sublists have preceding blank line
   topLevel <- gets stTopLevel
-  return $ cr $$ ((if topLevel then nest 1 else id) $ vcat contents) $$ blankline
+  return $ cr $$ (if topLevel then nest 1 else id) (vcat contents) $$ blankline
   where bulletListItemToMuse :: PandocMonad m
                              => [Block]
                              -> StateT WriterState m Doc
@@ -179,7 +184,7 @@ blockToMuse (BulletList items) = do
           return $ hang 2 "- " contents
 blockToMuse (DefinitionList items) = do
   contents <- mapM definitionListItemToMuse items
-  return $ cr $$ (nest 1 $ vcat $ contents) $$ blankline
+  return $ cr $$ nest 1 (vcat contents) $$ blankline
   where definitionListItemToMuse :: PandocMonad m
                                  => ([Inline], [[Block]])
                                  -> StateT WriterState m Doc
@@ -218,8 +223,8 @@ blockToMuse (Table caption _ _ headers rows) =  do
   -- FIXME: Muse doesn't allow blocks with height more than 1.
   let hpipeBlocks sep blocks = hcat $ intersperse sep' blocks
         where h      = maximum (1 : map height blocks)
-              sep'   = lblock (length sep) $ vcat (map text $ replicate h sep)
-  let makeRow sep = (" " <>) . (hpipeBlocks sep . zipWith lblock widthsInChars)
+              sep'   = lblock (length sep) $ vcat (replicate h (text sep))
+  let makeRow sep = (" " <>) . hpipeBlocks sep . zipWith lblock widthsInChars
   let head' = makeRow " || " headers'
   let rowSeparator = if noHeaders then " | " else " |  "
   rows'' <- mapM (\row -> do cols <- mapM blockListToMuse row
@@ -236,9 +241,7 @@ blockToMuse Null = return empty
 notesToMuse :: PandocMonad m
             => Notes
             -> StateT WriterState m Doc
-notesToMuse notes =
-  mapM (\(num, note) -> noteToMuse num note) (zip [1..] notes) >>=
-  return . vsep
+notesToMuse notes = liftM vsep (zipWithM noteToMuse [1 ..] notes)
 
 -- | Return Muse representation of a note.
 noteToMuse :: PandocMonad m
@@ -268,7 +271,7 @@ conditionalEscapeString s
 inlineListToMuse :: PandocMonad m
                  => [Inline]
                  -> StateT WriterState m Doc
-inlineListToMuse lst = mapM inlineToMuse lst >>= return . hcat
+inlineListToMuse lst = liftM hcat (mapM inlineToMuse lst)
 
 -- | Convert Pandoc inline element to Muse.
 inlineToMuse :: PandocMonad m
@@ -316,7 +319,7 @@ inlineToMuse Space = return space
 inlineToMuse SoftBreak = do
   wrapText <- gets $ writerWrapText . stOptions
   return $ if wrapText == WrapPreserve then cr else space
-inlineToMuse (Link _ txt (src, _)) = do
+inlineToMuse (Link _ txt (src, _)) =
   case txt of
         [Str x] | escapeURI x == src ->
              return $ "[[" <> text (escapeLink x) <> "]]"
@@ -340,7 +343,7 @@ inlineToMuse (Note contents) = do
   -- add to notes in state
   notes <- gets stNotes
   modify $ \st -> st { stNotes = contents:notes }
-  let ref = show $ (length notes) + 1
+  let ref = show $ length notes + 1
   return $ "[" <> text ref <> "]"
 inlineToMuse (Span (_,name:_,_) inlines) = do
   contents <- inlineListToMuse inlines

@@ -69,7 +69,7 @@ $endif$
 $endif$
 $if(toc)$
 <div class="slide" id="$idprefix$TOC">
-$toc$
+$table-of-contents$
 </div>
 $endif$
 $body$

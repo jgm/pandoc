@@ -76,14 +76,16 @@ import System.IO.Error (isDoesNotExistError)
 import Text.Pandoc
 import Text.Pandoc.Builder (setMeta)
 import Text.Pandoc.Class (PandocIO, extractMedia, fillMediaBag, getLog,
-                          setResourcePath, withMediaBag)
+                          setResourcePath, withMediaBag, setTrace)
 import Text.Pandoc.Highlighting (highlightingStyles)
-import Text.Pandoc.Lua (runLuaFilter)
+import Text.Pandoc.Lua (runLuaFilter, LuaException(..))
+import Text.Pandoc.Writers.Math (defaultMathJaxURL, defaultKaTeXURL)
 import Text.Pandoc.PDF (makePDF)
 import Text.Pandoc.Process (pipeProcess)
 import Text.Pandoc.SelfContained (makeDataURI, makeSelfContained)
 import Text.Pandoc.Shared (headerShift, isURI, openURL, readDataFile,
-                           readDataFileUTF8, safeRead, tabFilter)
+                           readDataFileUTF8, safeRead, tabFilter,
+                           eastAsianLineBreakFilter)
 import qualified Text.Pandoc.UTF8 as UTF8
 import Text.Pandoc.XML (toEntities)
 import Text.Printf
@@ -133,11 +135,11 @@ convertWithOpts opts = do
                          Nothing -> return Nothing
                          Just fp -> Just <$> UTF8.readFile fp
 
-  let csscdn = "https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.6.0/katex.min.css"
   let mathMethod =
         case (optKaTeXJS opts, optKaTeXStylesheet opts) of
             (Nothing, _)  -> optHTMLMathMethod opts
-            (Just js, ss) -> KaTeX js (fromMaybe csscdn ss)
+            (Just js, ss) -> KaTeX js (fromMaybe
+                               (defaultKaTeXURL ++ "katex.min.css") ss)
 
 
   -- --bibliography implies -F pandoc-citeproc for backwards compatibility:
@@ -181,11 +183,12 @@ convertWithOpts opts = do
   let msOutput = format == "ms"
 
   -- disabling the custom writer for now
-  writer <- if ".lua" `isSuffixOf` format
+  (writer, writerExts) <-
+            if ".lua" `isSuffixOf` format
                -- note:  use non-lowercased version writerName
                then return (TextWriter
                        (\o d -> liftIO $ writeCustom writerName o d)
-                               :: Writer PandocIO)
+                               :: Writer PandocIO, mempty)
                else case getWriter writerName of
                          Left e  -> E.throwIO $ PandocAppError $
                            if format == "pdf"
@@ -195,12 +198,13 @@ convertWithOpts opts = do
                                "\nand specify an output file with " ++
                                ".pdf extension (-o filename.pdf)."
                               else e
-                         Right w -> return (w :: Writer PandocIO)
+                         Right (w, es) -> return (w :: Writer PandocIO, es)
 
   -- TODO: we have to get the input and the output into the state for
   -- the sake of the text2tags reader.
-  reader <-  case getReader readerName of
-                Right r  -> return (r :: Reader PandocIO)
+  (reader, readerExts) <-
+           case getReader readerName of
+                Right (r, es) -> return (r :: Reader PandocIO, es)
                 Left e   -> E.throwIO $ PandocAppError e'
                   where e' = case readerName of
                                   "pdf" -> e ++
@@ -304,11 +308,11 @@ convertWithOpts opts = do
                       , readerColumns = optColumns opts
                       , readerTabStop = optTabStop opts
                       , readerIndentedCodeClasses = optIndentedCodeClasses opts
-                      , readerApplyMacros = not laTeXOutput
                       , readerDefaultImageExtension =
                          optDefaultImageExtension opts
                       , readerTrackChanges = optTrackChanges opts
                       , readerAbbreviations = abbrevs
+                      , readerExtensions = readerExts
                       }
 
   highlightStyle <- lookupHighlightStyle $ optHighlightStyle opts
@@ -339,6 +343,7 @@ convertWithOpts opts = do
                             writerNumberSections   = optNumberSections opts,
                             writerNumberOffset     = optNumberOffset opts,
                             writerSectionDivs      = optSectionDivs opts,
+                            writerExtensions       = writerExts,
                             writerReferenceLinks   = optReferenceLinks opts,
                             writerReferenceLocation = optReferenceLocation opts,
                             writerDpi              = optDpi opts,
@@ -354,6 +359,7 @@ convertWithOpts opts = do
                             writerSlideLevel       = optSlideLevel opts,
                             writerHighlightStyle   = highlightStyle,
                             writerSetextHeaders    = optSetextHeaders opts,
+                            writerEpubSubdirectory = optEpubSubdirectory opts,
                             writerEpubMetadata     = epubMetadata,
                             writerEpubFonts        = optEpubFonts opts,
                             writerEpubChapterLevel = optEpubChapterLevel opts,
@@ -375,13 +381,21 @@ convertWithOpts opts = do
             "Specify an output file using the -o option."
 
 
-  let transforms = case optBaseHeaderLevel opts of
-                        x | x > 1 -> [headerShift (x - 1)]
-                          | otherwise -> []
+  let transforms = (case optBaseHeaderLevel opts of
+                        x | x > 1     -> (headerShift (x - 1) :)
+                          | otherwise -> id) $
+                   (if extensionEnabled Ext_east_asian_line_breaks
+                          readerExts &&
+                       not (extensionEnabled Ext_east_asian_line_breaks
+                            writerExts &&
+                            writerWrapText writerOptions == WrapPreserve)
+                       then (eastAsianLineBreakFilter :)
+                       else id)
+                   []
 
   let convertTabs = tabFilter (if optPreserveTabs opts || readerName == "t2t"
-                                 then 0
-                                 else optTabStop opts)
+                                  then 0
+                                  else optTabStop opts)
 
       readSources :: [FilePath] -> PandocIO Text
       readSources srcs = convertTabs . T.intercalate (T.pack "\n") <$>
@@ -390,6 +404,7 @@ convertWithOpts opts = do
   let runIO' :: PandocIO a -> IO a
       runIO' f = do
         (res, reports) <- runIOorExplode $ do
+                             setTrace (optTrace opts)
                              setVerbosity verbosity
                              x <- f
                              rs <- getLog
@@ -518,7 +533,8 @@ externalFilter f args' d = liftIO $ do
   (exitcode, outbs) <- E.handle filterException $
                               pipeProcess env' f' args'' $ encode d
   case exitcode of
-       ExitSuccess    -> return $ either error id $ eitherDecode' outbs
+       ExitSuccess    -> either (E.throwIO . PandocFilterError f)
+                                   return $ eitherDecode' outbs
        ExitFailure ec -> E.throwIO $ PandocFilterError f
                            ("Filter returned error status " ++ show ec)
  where filterException :: E.SomeException -> IO a
@@ -550,6 +566,7 @@ data Opt = Opt
     , optHTMLMathMethod        :: HTMLMathMethod -- ^ Method to print HTML math
     , optAbbreviations         :: Maybe FilePath -- ^ Path to abbrevs file
     , optReferenceDoc          :: Maybe FilePath -- ^ Path of reference doc
+    , optEpubSubdirectory      :: String -- ^ EPUB subdir in OCF container
     , optEpubMetadata          :: Maybe FilePath   -- ^ EPUB metadata
     , optEpubFonts             :: [FilePath] -- ^ EPUB fonts to embed
     , optEpubChapterLevel      :: Int     -- ^ Header level at which to split chapters
@@ -558,6 +575,7 @@ data Opt = Opt
     , optDumpArgs              :: Bool    -- ^ Output command-line arguments
     , optIgnoreArgs            :: Bool    -- ^ Ignore command-line arguments
     , optVerbosity             :: Verbosity  -- ^ Verbosity of diagnostic output
+    , optTrace                 :: Bool  -- ^ Enable tracing
     , optLogFile               :: Maybe FilePath -- ^ File to write JSON log output
     , optFailIfWarnings        :: Bool    -- ^ Fail on warnings
     , optReferenceLinks        :: Bool    -- ^ Use reference links in writing markdown, rst
@@ -624,6 +642,7 @@ defaultOpts = Opt
     , optHTMLMathMethod        = PlainMath
     , optAbbreviations         = Nothing
     , optReferenceDoc          = Nothing
+    , optEpubSubdirectory      = "EPUB"
     , optEpubMetadata          = Nothing
     , optEpubFonts             = []
     , optEpubChapterLevel      = 1
@@ -632,6 +651,7 @@ defaultOpts = Opt
     , optDumpArgs              = False
     , optIgnoreArgs            = False
     , optVerbosity             = WARNING
+    , optTrace                 = False
     , optLogFile               = Nothing
     , optFailIfWarnings        = False
     , optReferenceLinks        = False
@@ -778,10 +798,16 @@ expandFilterPath mbDatadir fp = liftIO $ do
                _ -> return fp
 
 applyLuaFilters :: MonadIO m
-                => Maybe FilePath -> [FilePath] -> [String] -> Pandoc -> m Pandoc
+                => Maybe FilePath -> [FilePath] -> [String] -> Pandoc
+                -> m Pandoc
 applyLuaFilters mbDatadir filters args d = do
   expandedFilters <- mapM (expandFilterPath mbDatadir) filters
-  foldrM ($) d $ map (flip runLuaFilter args) expandedFilters
+  let go f d' = liftIO $ do
+        res <- E.try (runLuaFilter mbDatadir f args d')
+        case res of
+             Right x -> return x
+             Left (LuaException s) -> E.throw (PandocFilterError f s)
+  foldrM ($) d $ map go expandedFilters
 
 applyFilters :: MonadIO m
              => Maybe FilePath -> [FilePath] -> [String] -> Pandoc -> m Pandoc
@@ -968,7 +994,7 @@ options =
                      templ <- getDefaultTemplate Nothing arg
                      case templ of
                           Right t -> UTF8.hPutStr stdout t
-                          Left e  -> error $ show e
+                          Left e  -> E.throwIO $ PandocAppError (show e)
                      exitSuccess)
                   "FORMAT")
                  "" -- "Print default template for FORMAT"
@@ -1232,6 +1258,13 @@ options =
                   "FILE")
                  "" -- "Path of custom reference doc"
 
+    , Option "" ["epub-subdirectory"]
+             (ReqArg
+                  (\arg opt ->
+                     return opt { optEpubSubdirectory = arg })
+                  "DIRNAME")
+                 "" -- "Name of subdirectory for epub content in OCF container"
+
     , Option "" ["epub-cover-image"]
                  (ReqArg
                   (\arg opt ->
@@ -1355,7 +1388,8 @@ options =
     , Option "" ["mathjax"]
                  (OptArg
                   (\arg opt -> do
-                      let url' = fromMaybe "https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.0/MathJax.js?config=TeX-AMS_CHTML-full" arg
+                      let url' = fromMaybe (defaultMathJaxURL ++
+                                  "MathJax.js?config=TeX-AMS_CHTML-full") arg
                       return opt { optHTMLMathMethod = MathJax url'})
                   "URL")
                  "" -- "Use MathJax for HTML math"
@@ -1364,7 +1398,7 @@ options =
                   (\arg opt ->
                       return opt
                         { optKaTeXJS =
-                           arg <|> Just "https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.6.0/katex.min.js"})
+                           arg <|> Just (defaultKaTeXURL ++ "katex.min.js")})
                   "URL")
                   "" -- Use KaTeX for HTML Math
 
@@ -1388,7 +1422,7 @@ options =
 
     , Option "" ["trace"]
                  (NoArg
-                  (\opt -> return opt { optVerbosity = DEBUG }))
+                  (\opt -> return opt { optTrace = True }))
                  "" -- "Turn on diagnostic tracing in readers."
 
     , Option "" ["dump-args"]
@@ -1530,6 +1564,8 @@ handleUnrecognizedOption :: String -> [String] -> [String]
 handleUnrecognizedOption "--smart" =
   (("--smart/-S has been removed.  Use +smart or -smart extension instead.\n" ++
     "For example: pandoc -f markdown+smart -t markdown-smart.") :)
+handleUnrecognizedOption "--normalize" =
+  ("--normalize has been removed.  Normalization is now automatic." :)
 handleUnrecognizedOption "-S" = handleUnrecognizedOption "--smart"
 handleUnrecognizedOption "--old-dashes" =
   ("--old-dashes has been removed.  Use +old_dashes extension instead." :)

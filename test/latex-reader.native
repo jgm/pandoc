@@ -261,7 +261,7 @@ Pandoc (Meta {unMeta = fromList [("author",MetaList [MetaInlines [Str "John",Spa
 ,Header 1 ("latex",[],[]) [Str "LaTeX"]
 ,BulletList
  [[Para [Cite [Citation {citationId = "smith.1899", citationPrefix = [], citationSuffix = [Str "22-23"], citationMode = NormalCitation, citationNoteNum = 0, citationHash = 0}] [RawInline (Format "latex") "\\cite[22-23]{smith.1899}"]]]
- ,[Para [RawInline (Format "latex") "\\doublespacing\n"]]
+ ,[RawBlock (Format "latex") "\\doublespacing"]
  ,[Para [Math InlineMath "2+2=4"]]
  ,[Para [Math InlineMath "x \\in y"]]
  ,[Para [Math InlineMath "\\alpha \\wedge \\omega"]]

@@ -52,13 +52,14 @@ import qualified Data.Set as Set
 import Text.HTML.TagSoup
 import Text.Pandoc.Builder (Blocks, Inlines, trimInlines)
 import qualified Text.Pandoc.Builder as B
-import Text.Pandoc.Class (PandocMonad, report)
+import Text.Pandoc.Class (PandocMonad(..))
 import Text.Pandoc.Definition
 import Text.Pandoc.Logging
 import Text.Pandoc.Options
 import Text.Pandoc.Parsing hiding (nested)
 import Text.Pandoc.Readers.HTML (htmlTag, isBlockTag, isCommentTag)
-import Text.Pandoc.Shared (safeRead, stringify, stripTrailingNewlines, trim)
+import Text.Pandoc.Shared (safeRead, stringify, stripTrailingNewlines, trim,
+         crFilter)
 import Text.Pandoc.Walk (walk)
 import Text.Pandoc.XML (fromEntities)
 
@@ -77,7 +78,7 @@ readMediaWiki opts s = do
                                             , mwLogMessages = []
                                             , mwInTT = False
                                             }
-            (unpack s ++ "\n")
+            (unpack (crFilter s) ++ "\n")
   case parsed of
     Right result -> return result
     Left e       -> throwError e
@@ -205,7 +206,6 @@ parseMediaWiki = do
 
 block :: PandocMonad m => MWParser m Blocks
 block = do
-  pos <- getPosition
   res <- mempty <$ skipMany1 blankline
      <|> table
      <|> header
@@ -218,7 +218,7 @@ block = do
      <|> blockTag
      <|> (B.rawBlock "mediawiki" <$> template)
      <|> para
-  report $ ParsingTrace (take 60 $ show $ B.toList res) pos
+  trace (take 60 $ show $ B.toList res)
   return res
 
 para :: PandocMonad m => MWParser m Blocks

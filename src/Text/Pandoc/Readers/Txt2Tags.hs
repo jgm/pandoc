@@ -40,8 +40,8 @@ import Text.Pandoc.Builder (Blocks, Inlines, trimInlines)
 import qualified Text.Pandoc.Builder as B
 import Text.Pandoc.Definition
 import Text.Pandoc.Options
-import Text.Pandoc.Parsing hiding (macro, space, spaces, uri)
-import Text.Pandoc.Shared (compactify, compactifyDL, escapeURI)
+import Text.Pandoc.Parsing hiding (space, spaces, uri)
+import Text.Pandoc.Shared (compactify, compactifyDL, escapeURI, crFilter)
 import Control.Monad (guard, void, when)
 import Control.Monad.Reader (Reader, asks, runReader)
 import Data.Default
@@ -95,7 +95,9 @@ readTxt2Tags :: PandocMonad m
              -> m Pandoc
 readTxt2Tags opts s = do
   meta <- getT2TMeta
-  let parsed = flip runReader meta $ readWithM parseT2T (def {stateOptions = opts}) (T.unpack s ++ "\n\n")
+  let parsed = flip runReader meta $
+        readWithM parseT2T (def {stateOptions = opts}) $
+        T.unpack (crFilter s) ++ "\n\n"
   case parsed of
     Right result -> return $ result
     Left e       -> throwError e

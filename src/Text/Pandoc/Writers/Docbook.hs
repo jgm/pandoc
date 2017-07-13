@@ -124,9 +124,9 @@ writeDocbook opts (Pandoc meta blocks) = do
                                         MathML -> True
                                         _      -> False)
               $ metadata
-  return $ case writerTemplate opts of
-           Nothing  -> main
-           Just tpl -> renderTemplate' tpl context
+  case writerTemplate opts of
+       Nothing  -> return main
+       Just tpl -> renderTemplate' tpl context
 
 -- | Convert an Element to Docbook.
 elementToDocbook :: PandocMonad m => WriterOptions -> Int -> Element -> DB m Doc
@@ -217,8 +217,10 @@ blockToDocbook opts (Div (ident,_,_) bs) = do
     (if null ident
         then mempty
         else selfClosingTag "anchor" [("id", ident)]) $$ contents
-blockToDocbook _ (Header _ _ _) =
-  return empty -- should not occur after hierarchicalize
+blockToDocbook _ h@(Header _ _ _) = do
+  -- should not occur after hierarchicalize, except inside lists/blockquotes
+  report $ BlockNotRendered h
+  return empty
 blockToDocbook opts (Plain lst) = inlinesToDocbook opts lst
 -- title beginning with fig: indicates that the image is a figure
 blockToDocbook opts (Para [Image attr txt (src,'f':'i':'g':':':_)]) = do

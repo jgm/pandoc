@@ -65,8 +65,8 @@ sub status {
 
 A list:
 
-1. item one
-2. item two
+ 1. item one
+ 2. item two
 
 Nested block quotes:
 
@@ -281,7 +281,7 @@ Multiple blocks with italics:
                     </example>
 
                     <quote>
-orange block quote
+                    orange block quote
                     </quote>
 
 Multiple definitions, tight:

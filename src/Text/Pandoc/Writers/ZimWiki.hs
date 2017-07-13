@@ -33,7 +33,7 @@ http://zim-wiki.org/manual/Help/Wiki_Syntax.html
 
 module Text.Pandoc.Writers.ZimWiki ( writeZimWiki ) where
 import Control.Monad (zipWithM)
-import Control.Monad.State (StateT, evalStateT, gets, modify)
+import Control.Monad.State.Strict (StateT, evalStateT, gets, modify)
 import Data.Default (Default (..))
 import Data.List (intercalate, isInfixOf, isPrefixOf, transpose)
 import qualified Data.Map as Map
@@ -78,7 +78,7 @@ pandocToZimWiki opts (Pandoc meta blocks) = do
                 $ defField "toc" (writerTableOfContents opts)
                 $ metadata
   case writerTemplate opts of
-       Just tpl -> return $ renderTemplate' tpl context
+       Just tpl -> renderTemplate' tpl context
        Nothing  -> return main
 
 -- | Escape special characters for ZimWiki.

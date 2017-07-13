@@ -49,6 +49,7 @@ module Text.Pandoc.Shared (
                      toRomanNumeral,
                      escapeURI,
                      tabFilter,
+                     crFilter,
                      -- * Date/time
                      normalizeDate,
                      -- * Pandoc block and inline list processing
@@ -117,7 +118,7 @@ import Text.Pandoc.MIME (MimeType)
 import Text.Pandoc.Error (PandocError(..))
 import System.FilePath ( (</>) )
 import Data.Generics (Typeable, Data)
-import qualified Control.Monad.State as S
+import qualified Control.Monad.State.Strict as S
 import qualified Control.Exception as E
 import Control.Monad (msum, unless, MonadPlus(..))
 import Text.Pandoc.Pretty (charWidth)
@@ -279,13 +280,12 @@ escapeURI = escapeURIString (not . needsEscaping)
   where needsEscaping c = isSpace c || c `elem`
                            ['<','>','|','"','{','}','[',']','^', '`']
 
--- | Convert tabs to spaces and filter out DOS line endings.
--- Tabs will be preserved if tab stop is set to 0.
+-- | Convert tabs to spaces. Tabs will be preserved if tab stop is set to 0.
 tabFilter :: Int       -- ^ Tab stop
           -> T.Text    -- ^ Input
           -> T.Text
-tabFilter tabStop = T.filter (/= '\r') . T.unlines .
-    (if tabStop == 0 then id else map go) . T.lines
+tabFilter 0 = id
+tabFilter tabStop = T.unlines . map go . T.lines
   where go s =
          let (s1, s2) = T.break (== '\t') s
          in  if T.null s2
@@ -293,6 +293,10 @@ tabFilter tabStop = T.filter (/= '\r') . T.unlines .
                 else s1 <> T.replicate
                        (tabStop - (T.length s1 `mod` tabStop)) (T.pack " ")
                        <> go (T.drop 1 s2)
+
+-- | Strip out DOS line endings.
+crFilter :: T.Text -> T.Text
+crFilter = T.filter (/= '\r')
 
 --
 -- Date/time

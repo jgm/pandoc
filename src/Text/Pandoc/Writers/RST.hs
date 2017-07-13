@@ -31,7 +31,7 @@ Conversion of 'Pandoc' documents to reStructuredText.
 reStructuredText:  <http://docutils.sourceforge.net/rst.html>
 -}
 module Text.Pandoc.Writers.RST ( writeRST ) where
-import Control.Monad.State
+import Control.Monad.State.Strict
 import Data.Char (isSpace, toLower)
 import Data.List (isPrefixOf, stripPrefix)
 import Data.Maybe (fromMaybe)
@@ -108,7 +108,7 @@ pandocToRST (Pandoc meta blocks) = do
               $ metadata
   case writerTemplate opts of
        Nothing  -> return main
-       Just tpl -> return $ renderTemplate' tpl context
+       Just tpl -> renderTemplate' tpl context
   where
     normalizeHeadings lev (Header l a i:bs) =
       Header lev a i:normalizeHeadings (lev+1) cont ++ normalizeHeadings lev bs'

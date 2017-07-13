@@ -61,7 +61,10 @@ data PandocError = PandocIOError String IOError
                  | PandocFilterError String String
                  | PandocCouldNotFindDataFileError String
                  | PandocResourceNotFound String
+                 | PandocTemplateError String
                  | PandocAppError String
+                 | PandocEpubSubdirectoryError String
+                 | PandocMacroLoop String
                  deriving (Show, Typeable, Generic)
 
 instance Exception PandocError
@@ -101,7 +104,12 @@ handleError (Left e) =
         "Could not find data file " ++ fn
     PandocResourceNotFound fn -> err 99 $
         "File " ++ fn ++ " not found in resource path"
+    PandocTemplateError s -> err 5 s
     PandocAppError s -> err 1 s
+    PandocEpubSubdirectoryError s -> err 31 $
+      "EPUB subdirectory name '" ++ s ++ "' contains illegal characters"
+    PandocMacroLoop s -> err 91 $
+      "Loop encountered in expanding macro " ++ s
 
 err :: Int -> String -> IO a
 err exitCode msg = do

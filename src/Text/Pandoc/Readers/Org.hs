@@ -36,6 +36,7 @@ import Text.Pandoc.Definition
 import Text.Pandoc.Error
 import Text.Pandoc.Options
 import Text.Pandoc.Parsing (reportLogMessages)
+import Text.Pandoc.Shared (crFilter)
 
 import Control.Monad.Except (throwError)
 import Control.Monad.Reader (runReaderT)
@@ -51,7 +52,7 @@ readOrg :: PandocMonad m
 readOrg opts s = do
   parsed <- flip runReaderT def $
             readWithM parseOrg (optionsToParserState opts)
-            (T.unpack s ++ "\n\n")
+            (T.unpack (crFilter s) ++ "\n\n")
   case parsed of
     Right result -> return result
     Left  _      -> throwError $ PandocParseError "problem parsing org"

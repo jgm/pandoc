@@ -31,7 +31,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 Conversion from reStructuredText to 'Pandoc' document.
 -}
 module Text.Pandoc.Readers.RST ( readRST ) where
-import Control.Monad (guard, liftM, mzero, when)
+import Control.Monad (guard, liftM, mzero, when, forM_)
 import Control.Monad.Identity (Identity(..))
 import Control.Monad.Except (throwError)
 import Data.Char (isHexDigit, isSpace, toLower, toUpper)
@@ -68,7 +68,7 @@ readRST :: PandocMonad m
         -> m Pandoc
 readRST opts s = do
   parsed <- (readWithM parseRST) def{ stateOptions = opts }
-               (T.unpack s ++ "\n\n")
+               (T.unpack (crFilter s) ++ "\n\n")
   case parsed of
     Right result -> return result
     Left e       -> throwError e
@@ -170,7 +170,8 @@ parseRST = do
   -- go through once just to get list of reference keys and notes
   -- docMinusKeys is the raw document with blanks where the keys were...
   docMinusKeys <- concat <$>
-                  manyTill (referenceKey <|> noteBlock <|> citationBlock <|>
+                  manyTill (referenceKey <|> anchorDef <|>
+                            noteBlock <|> citationBlock <|>
                             headerBlock <|> lineClump) eof
   setInput docMinusKeys
   setPosition startPos
@@ -217,6 +218,7 @@ block = choice [ codeBlock
                , fieldList
                , include
                , directive
+               , anchor
                , comment
                , header
                , hrule
@@ -1054,16 +1056,49 @@ stripTicks = reverse . stripTick . reverse . stripTick
   where stripTick ('`':xs) = xs
         stripTick xs       = xs
 
+referenceNames :: PandocMonad m => RSTParser m [String]
+referenceNames = do
+  let rn = try $ do
+             string ".. _"
+             (_, ref) <- withRaw referenceName
+             char ':'
+             return ref
+  first <- rn
+  rest  <- many (try (blanklines *> rn))
+  return (first:rest)
+
 regularKey :: PandocMonad m => RSTParser m ()
 regularKey = try $ do
-  string ".. _"
-  (_,ref) <- withRaw referenceName
-  char ':'
+  -- we allow several references to the same URL, e.g.
+  -- .. _hello:
+  -- .. _goodbye: url.com
+  refs <- referenceNames
   src <- targetURI
-  let key = toKey $ stripTicks ref
+  guard $ not (null src)
   --TODO: parse width, height, class and name attributes
-  updateState $ \s -> s { stateKeys = M.insert key ((src,""), nullAttr) $
-                          stateKeys s }
+  let keys = map (toKey . stripTicks) refs
+  forM_ keys $ \key ->
+    updateState $ \s -> s { stateKeys = M.insert key ((src,""), nullAttr) $
+                            stateKeys s }
+
+anchorDef :: PandocMonad m => RSTParser m [Char]
+anchorDef = try $ do
+  (refs, raw) <- withRaw (try (referenceNames <* blanklines))
+  let keys = map stripTicks refs
+  forM_ keys $ \rawkey ->
+    updateState $ \s -> s { stateKeys =
+       M.insert (toKey rawkey) (('#':rawkey,""), nullAttr) $ stateKeys s }
+  -- keep this for 2nd round of parsing, where we'll add the divs (anchor)
+  return raw
+
+anchor :: PandocMonad m => RSTParser m Blocks
+anchor = try $ do
+  refs <- referenceNames
+  blanklines
+  b <- block
+  -- put identifier on next block:
+  let addDiv ref = B.divWith (ref, [], [])
+  return $ foldr addDiv b refs
 
 headerBlock :: PandocMonad m => RSTParser m [Char]
 headerBlock = do

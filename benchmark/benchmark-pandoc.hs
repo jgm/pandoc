@@ -16,7 +16,7 @@ along with this program; if not, write to the Free Software
 Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 -}
 import Text.Pandoc
-import Text.Pandoc.Class hiding (getCurrentTime)
+import Text.Pandoc.Class hiding (getCurrentTime, trace)
 import qualified Text.Pandoc.UTF8 as UTF8
 import Data.Text (Text)
 import Data.Time (getCurrentTime)

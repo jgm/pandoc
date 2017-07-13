@@ -43,7 +43,7 @@ module Text.Pandoc.Writers.HTML (
   writeDZSlides,
   writeRevealJs
   ) where
-import Control.Monad.State
+import Control.Monad.State.Strict
 import Data.Char (ord, toLower)
 import Data.Text (Text)
 import qualified Data.Text.Lazy as TL
@@ -210,7 +210,7 @@ writeHtmlString' st opts d = do
                            lookup "sourcefile" (writerVariables opts)
                    report $ NoTitleElement fallback
                    return $ resetField "pagetitle" fallback context
-         return $ renderTemplate' tpl $
+         renderTemplate' tpl $
                     defField "body" (renderHtml' body) context'
 
 writeHtml' :: PandocMonad m => WriterState -> WriterOptions -> Pandoc -> m Html
@@ -241,7 +241,7 @@ pandocToHtml opts (Pandoc meta blocks) = do
                  then blocks
                  else prepSlides slideLevel blocks
   toc <- if writerTableOfContents opts && slideVariant /= S5Slides
-            then tableOfContents opts sects
+            then fmap renderHtml' <$> tableOfContents opts sects
             else return Nothing
   blocks' <- liftM (mconcat . intersperse (nl opts)) $
                  mapM (elementToHtml slideLevel opts) sects
@@ -253,7 +253,9 @@ pandocToHtml opts (Pandoc meta blocks) = do
                          H.script ! A.src (toValue url)
                                   ! A.type_ "text/javascript"
                                   $ mempty
-                      MathJax url ->
+                      MathJax url
+                        | slideVariant /= RevealJsSlides ->
+                        -- mathjax is handled via a special plugin in revealjs
                          H.script ! A.src (toValue url)
                                   ! A.type_ "text/javascript"
                                   $ case slideVariant of
@@ -285,8 +287,16 @@ pandocToHtml opts (Pandoc meta blocks) = do
                   (if stMath st
                       then defField "math" (renderHtml' math)
                       else id) $
+                  defField "mathjax"
+                      (case writerHTMLMathMethod opts of
+                            MathJax _ -> True
+                            _         -> False) $
                   defField "quotes" (stQuotes st) $
-                  maybe id (defField "toc" . renderHtml') toc $
+                  -- for backwards compatibility we populate toc
+                  -- with the contents of the toc, rather than a
+                  -- boolean:
+                  maybe id (defField "toc") toc $
+                  maybe id (defField "table-of-contents") toc $
                   defField "author-meta" authsMeta $
                   maybe id (defField "date-meta") (normalizeDate dateMeta) $
                   defField "pagetitle" (stringifyHTML (docTitle meta)) $
@@ -597,7 +607,8 @@ blockToHtml opts (Para lst)
       contents <- inlineListToHtml opts lst
       return $ H.p contents
   where
-    isEmptyRaw [RawInline f _] = f /= (Format "html")
+    isEmptyRaw [RawInline f _] = f `notElem` [Format "html",
+                                    Format "html4", Format "html5"]
     isEmptyRaw _               = False
 blockToHtml opts (LineBlock lns) =
   if writerWrapText opts == WrapNone
@@ -626,14 +637,17 @@ blockToHtml opts (Div attr@(ident, classes, kvs) bs) = do
                   NoSlides       -> addAttrs opts' attr $ H.div $ contents'
                   _              -> mempty
         else addAttrs opts (ident, classes', kvs) $ divtag $ contents'
-blockToHtml opts (RawBlock f str)
-  | f == Format "html" = return $ preEscapedString str
-  | (f == Format "latex" || f == Format "tex") &&
-     allowsMathEnvironments (writerHTMLMathMethod opts) &&
-     isMathEnvironment str = blockToHtml opts $ Plain [Math DisplayMath str]
-  | otherwise          = do
-      report $ BlockNotRendered (RawBlock f str)
-      return mempty
+blockToHtml opts (RawBlock f str) = do
+  ishtml <- isRawHtml f
+  if ishtml
+     then return $ preEscapedString str
+     else if (f == Format "latex" || f == Format "tex") &&
+             allowsMathEnvironments (writerHTMLMathMethod opts) &&
+             isMathEnvironment str
+             then blockToHtml opts $ Plain [Math DisplayMath str]
+             else do
+               report $ BlockNotRendered (RawBlock f str)
+               return mempty
 blockToHtml _ (HorizontalRule) = do
   html5 <- gets stHtml5
   return $ if html5 then H5.hr else H.hr
@@ -971,11 +985,13 @@ inlineToHtml opts inline = do
               return  $ case t of
                          InlineMath  -> m
                          DisplayMath -> brtag >> m >> brtag
-    (RawInline f str)
-      | f == Format "html" -> return $ preEscapedString str
-      | otherwise          -> do
-          report $ InlineNotRendered inline
-          return mempty
+    (RawInline f str) -> do
+      ishtml <- isRawHtml f
+      if ishtml
+         then return $ preEscapedString str
+         else do
+           report $ InlineNotRendered inline
+           return mempty
     (Link attr txt (s,_)) | "mailto:" `isPrefixOf` s -> do
                         linkText <- inlineListToHtml opts txt
                         lift $ obfuscateLink opts attr linkText s
@@ -1123,3 +1139,9 @@ allowsMathEnvironments (MathJax _) = True
 allowsMathEnvironments (MathML)    = True
 allowsMathEnvironments (WebTeX _)  = True
 allowsMathEnvironments _           = False
+
+isRawHtml :: PandocMonad m => Format -> StateT WriterState m Bool
+isRawHtml f = do
+  html5 <- gets stHtml5
+  return $ f == Format "html" ||
+           ((html5 && f == Format "html5") || f == Format "html4")

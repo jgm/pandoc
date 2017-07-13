@@ -35,16 +35,17 @@ module Text.Pandoc.Writers.LaTeX (
   , writeBeamer
   ) where
 import Control.Applicative ((<|>))
-import Control.Monad.State
+import Control.Monad.State.Strict
 import Data.Aeson (FromJSON, object, (.=))
 import Data.Char (isAlphaNum, isAscii, isDigit, isLetter, isPunctuation, ord,
                   toLower)
-import Data.List (foldl', intercalate, intersperse, isInfixOf, nub, nubBy,
+import Data.List (foldl', intercalate, intersperse, isInfixOf, nubBy,
                   stripPrefix, (\\))
 import Data.Maybe (catMaybes, fromMaybe, isJust)
 import Data.Text (Text)
 import qualified Data.Text as T
 import Network.URI (unEscapeString)
+import Text.Pandoc.BCP47 (Lang(..), toLang, getLang, renderLang)
 import Text.Pandoc.Class (PandocMonad, report)
 import Text.Pandoc.Definition
 import Text.Pandoc.Highlighting (formatLaTeXBlock, formatLaTeXInline, highlight,
@@ -188,7 +189,8 @@ pandocToLaTeX options (Pandoc meta blocks) = do
   st <- get
   titleMeta <- stringToLaTeX TextString $ stringify $ docTitle meta
   authorsMeta <- mapM (stringToLaTeX TextString . stringify) $ docAuthors meta
-  let docLangs = nub $ query (extract "lang") blocks
+  docLangs <- catMaybes <$>
+      mapM (toLang . Just) (ordNub (query (extract "lang") blocks))
   let hasStringValue x = isJust (getField x metadata :: Maybe String)
   let geometryFromMargins = intercalate [','] $ catMaybes $
                               map (\(x,y) ->
@@ -198,6 +200,18 @@ pandocToLaTeX options (Pandoc meta blocks) = do
                               ,("tmargin","margin-top")
                               ,("bmargin","margin-bottom")
                               ]
+  let toPolyObj lang = object [ "name"    .= T.pack name
+                              , "options" .= T.pack opts ]
+        where
+          (name, opts) = toPolyglossia lang
+  mblang <- toLang $ case getLang options meta of
+                          Just l -> Just l
+                          Nothing | null docLangs -> Nothing
+                                  | otherwise     -> Just "en"
+  -- we need a default here since lang is used in template conditionals
+
+  let dirs = query (extract "dir") blocks
+
   let context  =  defField "toc" (writerTableOfContents options) $
                   defField "toc-depth" (show (writerTOCDepth options -
                                               if stBook st
@@ -235,26 +249,24 @@ pandocToLaTeX options (Pandoc meta blocks) = do
                          Biblatex -> defField "biblio-title" biblioTitle .
                                      defField "biblatex" True
                          _        -> id) $
-                  -- set lang to something so polyglossia/babel is included
-                  defField "lang" (if null docLangs then ""::String else "en") $
-                  defField "otherlangs" docLangs $
                   defField "colorlinks" (any hasStringValue
                            ["citecolor", "urlcolor", "linkcolor", "toccolor"]) $
-                  defField "dir" (if (null $ query (extract "dir") blocks)
-                                     then ""::String
-                                     else "ltr") $
+                  (if null dirs
+                     then id
+                     else defField "dir" ("ltr" :: String)) $
                   defField "section-titles" True $
                   defField "geometry" geometryFromMargins $
+                  (case getField "papersize" metadata of
+                        Just ("A4" :: String) -> resetField "papersize"
+                                                    ("a4" :: String)
+                        _                     -> id) $
                   metadata
-  let toPolyObj lang = object [ "name"    .= T.pack name
-                              , "options" .= T.pack opts ]
-        where
-          (name, opts) = toPolyglossia lang
-  let lang = maybe [] (splitBy (=='-')) $ getField "lang" context
-      otherlangs = maybe [] (map $ splitBy (=='-')) $ getField "otherlangs" context
   let context' =
-          defField "babel-lang" (toBabel lang)
-        $ defField "babel-otherlangs" (map toBabel otherlangs)
+          -- note: lang is used in some conditionals in the template,
+          -- so we need to set it if we have any babel/polyglossia:
+          maybe id (defField "lang" . renderLang) mblang
+        $ maybe id (defField "babel-lang" . toBabel) mblang
+        $ defField "babel-otherlangs" (map toBabel docLangs)
         $ defField "babel-newcommands" (concatMap (\(poly, babel) ->
             -- \textspanish and \textgalician are already used by babel
             -- save them as \oritext... and let babel use that
@@ -274,20 +286,16 @@ pandocToLaTeX options (Pandoc meta blocks) = do
             -- eliminate duplicates that have same polyglossia name
             $ nubBy (\a b -> fst a == fst b)
             -- find polyglossia and babel names of languages used in the document
-            $ map (\l ->
-              let lng = splitBy (=='-') l
-              in  (fst $ toPolyglossia lng, toBabel lng)
-              )
-            docLangs )
-        $ defField "polyglossia-lang" (toPolyObj lang)
-        $ defField "polyglossia-otherlangs" (map toPolyObj otherlangs)
-        $ defField "latex-dir-rtl" (case (getField "dir" context)::Maybe String of
-                                      Just "rtl" -> True
-                                      _          -> False)
+            $ map (\l -> (fst $ toPolyglossia l, toBabel l)) docLangs
+          )
+        $ maybe id (defField "polyglossia-lang" . toPolyObj) mblang
+        $ defField "polyglossia-otherlangs" (map toPolyObj docLangs)
+        $ defField "latex-dir-rtl"
+           (getField "dir" context == Just ("rtl" :: String))
         $ context
-  return $ case writerTemplate options of
-                Nothing  -> main
-                Just tpl -> renderTemplate' tpl context'
+  case writerTemplate options of
+       Nothing  -> return main
+       Just tpl -> renderTemplate' tpl context'
 
 -- | Convert Elements to LaTeX
 elementToLaTeX :: PandocMonad m => WriterOptions -> Element -> LW m Doc
@@ -443,11 +451,12 @@ blockToLaTeX (Div (identifier,classes,kvs) bs) = do
               -> "\\leavevmode" <> linkAnchor' <> "%"
             _ -> linkAnchor'
   let align dir txt = inCmd "begin" dir $$ txt $$ inCmd "end" dir
+  lang <- toLang $ lookup "lang" kvs
   let wrapDir = case lookup "dir" kvs of
                   Just "rtl" -> align "RTL"
                   Just "ltr" -> align "LTR"
                   _          -> id
-      wrapLang txt = case lookup "lang" kvs of
+      wrapLang txt = case lang of
                        Just lng -> let (l, o) = toPolyglossiaEnv lng
                                        ops = if null o
                                                 then ""
@@ -647,23 +656,25 @@ blockToLaTeX (Header level (id',classes,_) lst) = do
   modify $ \s -> s{stInHeading = False}
   return hdr
 blockToLaTeX (Table caption aligns widths heads rows) = do
-  headers <- if all null heads
-                then return empty
-                else do
-                    contents <- (tableRowToLaTeX True aligns widths) heads
-                    return ("\\toprule" $$ contents $$ "\\midrule")
-  let endhead = if all null heads
-                   then empty
-                   else text "\\endhead"
-  let endfirsthead = if all null heads
-                       then empty
-                       else text "\\endfirsthead"
+  let toHeaders hs = do contents <- (tableRowToLaTeX True aligns widths) hs
+                        return ("\\toprule" $$ contents $$ "\\midrule")
+  let removeNote (Note _) = Span ("", [], []) []
+      removeNote x        = x
   captionText <- inlineListToLaTeX caption
+  firsthead <- if isEmpty captionText || all null heads
+                  then return empty
+                  else ($$ text "\\endfirsthead") <$> toHeaders heads
+  head' <- if all null heads
+              then return empty
+              -- avoid duplicate notes in head and firsthead:
+              else ($$ text "\\endhead") <$>
+                   toHeaders (if isEmpty firsthead
+                                 then heads
+                                 else walk removeNote heads)
   let capt = if isEmpty captionText
                 then empty
-                else text "\\caption" <> braces captionText <> "\\tabularnewline"
-                         $$ headers
-                         $$ endfirsthead
+                else text "\\caption" <>
+                      braces captionText <> "\\tabularnewline"
   rows' <- mapM (tableRowToLaTeX False aligns widths) rows
   let colDescriptors = text $ concat $ map toColDescriptor aligns
   modify $ \s -> s{ stTable = True }
@@ -671,9 +682,9 @@ blockToLaTeX (Table caption aligns widths heads rows) = do
               braces ("@{}" <> colDescriptors <> "@{}")
               -- the @{} removes extra space at beginning and end
          $$ capt
+         $$ firsthead
          $$ (if all null heads then "\\toprule" else empty)
-         $$ headers
-         $$ endhead
+         $$ head'
          $$ vcat rows'
          $$ "\\bottomrule"
          $$ "\\end{longtable}"
@@ -916,13 +927,14 @@ inlineToLaTeX :: PandocMonad m
               -> LW m Doc
 inlineToLaTeX (Span (id',classes,kvs) ils) = do
   linkAnchor <- hypertarget False id' empty
+  lang <- toLang $ lookup "lang" kvs
   let cmds = ["textup" | "csl-no-emph" `elem` classes] ++
              ["textnormal" | "csl-no-strong" `elem` classes ||
                              "csl-no-smallcaps" `elem` classes] ++
              ["RL" | ("dir", "rtl") `elem` kvs] ++
              ["LR" | ("dir", "ltr") `elem` kvs] ++
-             (case lookup "lang" kvs of
-                Just lng -> let (l, o) = toPolyglossia $ splitBy (=='-') lng
+             (case lang of
+                Just lng -> let (l, o) = toPolyglossia lng
                                 ops = if null o then "" else ("[" ++ o ++ "]")
                             in  ["text" ++ l ++ ops]
                 Nothing  -> [])
@@ -1237,9 +1249,9 @@ mbBraced x = if not (all isAlphaNum x)
 -- Extract a key from divs and spans
 extract :: String -> Block -> [String]
 extract key (Div attr _)     = lookKey key attr
-extract key (Plain ils)      = concatMap (extractInline key) ils
-extract key (Para ils)       = concatMap (extractInline key) ils
-extract key (Header _ _ ils) = concatMap (extractInline key) ils
+extract key (Plain ils)      = query (extractInline key) ils
+extract key (Para ils)       = query (extractInline key) ils
+extract key (Header _ _ ils) = query (extractInline key) ils
 extract _ _                  = []
 
 -- Extract a key from spans
@@ -1252,85 +1264,95 @@ lookKey :: String -> Attr -> [String]
 lookKey key (_,_,kvs) =  maybe [] words $ lookup key kvs
 
 -- In environments \Arabic instead of \arabic is used
-toPolyglossiaEnv :: String -> (String, String)
+toPolyglossiaEnv :: Lang -> (String, String)
 toPolyglossiaEnv l =
-  case toPolyglossia $ (splitBy (=='-')) l of
+  case toPolyglossia l of
     ("arabic", o) -> ("Arabic", o)
     x             -> x
 
 -- Takes a list of the constituents of a BCP 47 language code and
 -- converts it to a Polyglossia (language, options) tuple
 -- http://mirrors.ctan.org/macros/latex/contrib/polyglossia/polyglossia.pdf
-toPolyglossia :: [String] -> (String, String)
-toPolyglossia ("ar":"DZ":_)        = ("arabic", "locale=algeria")
-toPolyglossia ("ar":"IQ":_)        = ("arabic", "locale=mashriq")
-toPolyglossia ("ar":"JO":_)        = ("arabic", "locale=mashriq")
-toPolyglossia ("ar":"LB":_)        = ("arabic", "locale=mashriq")
-toPolyglossia ("ar":"LY":_)        = ("arabic", "locale=libya")
-toPolyglossia ("ar":"MA":_)        = ("arabic", "locale=morocco")
-toPolyglossia ("ar":"MR":_)        = ("arabic", "locale=mauritania")
-toPolyglossia ("ar":"PS":_)        = ("arabic", "locale=mashriq")
-toPolyglossia ("ar":"SY":_)        = ("arabic", "locale=mashriq")
-toPolyglossia ("ar":"TN":_)        = ("arabic", "locale=tunisia")
-toPolyglossia ("de":"1901":_)      = ("german", "spelling=old")
-toPolyglossia ("de":"AT":"1901":_) = ("german", "variant=austrian, spelling=old")
-toPolyglossia ("de":"AT":_)        = ("german", "variant=austrian")
-toPolyglossia ("de":"CH":"1901":_) = ("german", "variant=swiss, spelling=old")
-toPolyglossia ("de":"CH":_)        = ("german", "variant=swiss")
-toPolyglossia ("de":_)             = ("german", "")
-toPolyglossia ("dsb":_)            = ("lsorbian", "")
-toPolyglossia ("el":"polyton":_)   = ("greek",   "variant=poly")
-toPolyglossia ("en":"AU":_)        = ("english", "variant=australian")
-toPolyglossia ("en":"CA":_)        = ("english", "variant=canadian")
-toPolyglossia ("en":"GB":_)        = ("english", "variant=british")
-toPolyglossia ("en":"NZ":_)        = ("english", "variant=newzealand")
-toPolyglossia ("en":"UK":_)        = ("english", "variant=british")
-toPolyglossia ("en":"US":_)        = ("english", "variant=american")
-toPolyglossia ("grc":_)            = ("greek",   "variant=ancient")
-toPolyglossia ("hsb":_)            = ("usorbian", "")
-toPolyglossia ("la":"x":"classic":_) = ("latin", "variant=classic")
-toPolyglossia ("sl":_)             = ("slovenian", "")
-toPolyglossia x                    = (commonFromBcp47 x, "")
+toPolyglossia :: Lang -> (String, String)
+toPolyglossia (Lang "ar" _ "DZ" _)        = ("arabic", "locale=algeria")
+toPolyglossia (Lang "ar" _ "IQ" _)        = ("arabic", "locale=mashriq")
+toPolyglossia (Lang "ar" _ "JO" _)        = ("arabic", "locale=mashriq")
+toPolyglossia (Lang "ar" _ "LB" _)        = ("arabic", "locale=mashriq")
+toPolyglossia (Lang "ar" _ "LY" _)        = ("arabic", "locale=libya")
+toPolyglossia (Lang "ar" _ "MA" _)        = ("arabic", "locale=morocco")
+toPolyglossia (Lang "ar" _ "MR" _)        = ("arabic", "locale=mauritania")
+toPolyglossia (Lang "ar" _ "PS" _)        = ("arabic", "locale=mashriq")
+toPolyglossia (Lang "ar" _ "SY" _)        = ("arabic", "locale=mashriq")
+toPolyglossia (Lang "ar" _ "TN" _)        = ("arabic", "locale=tunisia")
+toPolyglossia (Lang "de" _ _ vars)
+  | "1901" `elem` vars                    = ("german", "spelling=old")
+toPolyglossia (Lang "de" _ "AT" vars)
+  | "1901" `elem` vars                    = ("german", "variant=austrian, spelling=old")
+toPolyglossia (Lang "de" _ "AT" _)        = ("german", "variant=austrian")
+toPolyglossia (Lang "de" _ "CH" vars)
+  | "1901" `elem` vars                    = ("german", "variant=swiss, spelling=old")
+toPolyglossia (Lang "de" _ "CH" _)        = ("german", "variant=swiss")
+toPolyglossia (Lang "de" _ _ _)           = ("german", "")
+toPolyglossia (Lang "dsb" _ _ _)          = ("lsorbian", "")
+toPolyglossia (Lang "el" _ "polyton" _)   = ("greek",   "variant=poly")
+toPolyglossia (Lang "en" _ "AU" _)        = ("english", "variant=australian")
+toPolyglossia (Lang "en" _ "CA" _)        = ("english", "variant=canadian")
+toPolyglossia (Lang "en" _ "GB" _)        = ("english", "variant=british")
+toPolyglossia (Lang "en" _ "NZ" _)        = ("english", "variant=newzealand")
+toPolyglossia (Lang "en" _ "UK" _)        = ("english", "variant=british")
+toPolyglossia (Lang "en" _ "US" _)        = ("english", "variant=american")
+toPolyglossia (Lang "grc" _ _ _)          = ("greek",   "variant=ancient")
+toPolyglossia (Lang "hsb" _ _  _)         = ("usorbian", "")
+toPolyglossia (Lang "la" _ _ vars)
+  | "x-classic" `elem` vars               = ("latin", "variant=classic")
+toPolyglossia (Lang "sl" _ _ _)           = ("slovenian", "")
+toPolyglossia x                           = (commonFromBcp47 x, "")
 
 -- Takes a list of the constituents of a BCP 47 language code and
 -- converts it to a Babel language string.
 -- http://mirrors.ctan.org/macros/latex/required/babel/base/babel.pdf
 -- List of supported languages (slightly outdated):
 -- http://tug.ctan.org/language/hyph-utf8/doc/generic/hyph-utf8/hyphenation.pdf
-toBabel :: [String] -> String
-toBabel ("de":"1901":_)        = "german"
-toBabel ("de":"AT":"1901":_)   = "austrian"
-toBabel ("de":"AT":_)          = "naustrian"
-toBabel ("de":"CH":"1901":_)   = "swissgerman"
-toBabel ("de":"CH":_)          = "nswissgerman"
-toBabel ("de":_)               = "ngerman"
-toBabel ("dsb":_)              = "lowersorbian"
-toBabel ("el":"polyton":_)     = "polutonikogreek"
-toBabel ("en":"AU":_)          = "australian"
-toBabel ("en":"CA":_)          = "canadian"
-toBabel ("en":"GB":_)          = "british"
-toBabel ("en":"NZ":_)          = "newzealand"
-toBabel ("en":"UK":_)          = "british"
-toBabel ("en":"US":_)          = "american"
-toBabel ("fr":"CA":_)          = "canadien"
-toBabel ("fra":"aca":_)        = "acadian"
-toBabel ("grc":_)              = "polutonikogreek"
-toBabel ("hsb":_)              = "uppersorbian"
-toBabel ("la":"x":"classic":_) = "classiclatin"
-toBabel ("sl":_)               = "slovene"
-toBabel x                      = commonFromBcp47 x
+toBabel :: Lang -> String
+toBabel (Lang "de" _ "AT" vars)
+  | "1901" `elem` vars                  = "austrian"
+  | otherwise                           = "naustrian"
+toBabel (Lang "de" _ "CH" vars)
+  | "1901" `elem` vars                  = "swissgerman"
+  | otherwise                           = "nswissgerman"
+toBabel (Lang "de" _ _ vars)
+  | "1901" `elem` vars                  = "german"
+  | otherwise                           = "ngerman"
+toBabel (Lang "dsb" _ _ _)              = "lowersorbian"
+toBabel (Lang "el" _ _ vars)
+  | "polyton" `elem` vars               = "polutonikogreek"
+toBabel (Lang "en" _ "AU" _)            = "australian"
+toBabel (Lang "en" _ "CA" _)            = "canadian"
+toBabel (Lang "en" _ "GB" _)            = "british"
+toBabel (Lang "en" _ "NZ" _)            = "newzealand"
+toBabel (Lang "en" _ "UK" _)            = "british"
+toBabel (Lang "en" _ "US" _)            = "american"
+toBabel (Lang "fr" _ "CA" _)            = "canadien"
+toBabel (Lang "fra" _ _ vars)
+  | "aca" `elem` vars                   = "acadian"
+toBabel (Lang "grc" _ _ _)              = "polutonikogreek"
+toBabel (Lang "hsb" _ _ _)              = "uppersorbian"
+toBabel (Lang "la" _ _ vars)
+  | "x-classic" `elem` vars             = "classiclatin"
+toBabel (Lang "sl" _ _ _)               = "slovene"
+toBabel x                               = commonFromBcp47 x
 
 -- Takes a list of the constituents of a BCP 47 language code
 -- and converts it to a string shared by Babel and Polyglossia.
 -- https://tools.ietf.org/html/bcp47#section-2.1
-commonFromBcp47 :: [String] -> String
-commonFromBcp47 [] = ""
-commonFromBcp47 ("pt":"BR":_)            = "brazil"
+commonFromBcp47 :: Lang -> String
+commonFromBcp47 (Lang "pt" _ "BR" _)            = "brazil"
 -- Note: documentation says "brazilian" works too, but it doesn't seem to work
 -- on some systems.  See #2953.
-commonFromBcp47 ("sr":"Cyrl":_)          = "serbianc"
-commonFromBcp47 ("zh":"Latn":"pinyin":_) = "pinyin"
-commonFromBcp47 x = fromIso $ head x
+commonFromBcp47 (Lang "sr" "Cyrl" _ _)          = "serbianc"
+commonFromBcp47 (Lang "zh" "Latn" _ vars)
+  | "pinyin" `elem` vars                        = "pinyin"
+commonFromBcp47 (Lang l _ _ _) = fromIso l
   where
     fromIso "af"  = "afrikaans"
     fromIso "am"  = "amharic"

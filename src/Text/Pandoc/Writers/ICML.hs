@@ -17,7 +17,7 @@ into InDesign with File -> Place.
 -}
 module Text.Pandoc.Writers.ICML (writeICML) where
 import Control.Monad.Except (catchError)
-import Control.Monad.State
+import Control.Monad.State.Strict
 import Data.List (intersperse, isInfixOf, isPrefixOf, stripPrefix)
 import qualified Data.Set as Set
 import Data.Text as Text (breakOnAll, pack)
@@ -147,9 +147,9 @@ writeICML opts (Pandoc meta blocks) = do
               $ defField "parStyles"  (render' $ parStylesToDoc st)
               $ defField "hyperlinks" (render' $ hyperlinksToDoc $ links st)
               $ metadata
-  return $ case writerTemplate opts of
-                Nothing  -> main
-                Just tpl -> renderTemplate' tpl context
+  case writerTemplate opts of
+       Nothing  -> return main
+       Just tpl -> renderTemplate' tpl context
 
 -- | Auxilary functions for parStylesToDoc and charStylesToDoc.
 contains :: String -> (String, (String, String)) -> [(String, String)]

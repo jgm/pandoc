@@ -1,0 +1,424 @@
+= _*implemented*_ =
+= header =
+
+== header level two ==
+
+=== header `level` 3 ===
+
+==== header ~~level~~ four ====
+
+===== header _*level* 5_ =====
+
+====== header level 6 ======
+
+======= not a header ========
+
+hi== not a header ==
+
+=== not a header ==
+
+=== not a header ===-
+
+not a header:
+
+=n=
+
+=== not a header ====
+
+ == centred header ==
+ 
+== header with some `==` in between ==
+== header with some == in between ==
+== header with some ==in between ==
+
+== emph strong and strikeout ==
+
+_emph_ *strong*
+
+*_strong and emph_*
+
+_*emph and strong*_
+
+*_emph inside_ strong*
+
+*strong with _emph_*
+
+_*strong inside* emph_
+
+_~~strikeout~~ inside emph_
+
+~~This is _struck out_ with emph~~ 
+
+*not
+strong*
+
+just two stars: **
+
+just two underscores: __
+
+just four ~s: ~~~~
+
+_not
+%%comment
+emph_
+
+~~not
+    %%comment
+  %%comment
+strikeout~~
+
+== horizontal rule ==
+
+top
+----
+middle
+
+-------
+
+not a rule-----
+
+not a rule (trailing spaces):
+----- 
+
+not a rule (leading spaces):
+  ----
+
+== comments ==
+
+%% you can't see me.
+
+this 
+%% secret
+is %% not secret
+
+== inline code ==
+
+Here is some `inline code`.
+
+Just two backticks: ``
+
+== preformatted text ==
+
+{{{
+  Tyger! Tyger! burning bright
+   In the forests of the night,
+    What immortal hand or eye
+     Could frame thy fearful symmetry?
+  In what distant deeps or skies
+   Burnt the fire of thine eyes?
+    On what wings dare he aspire?
+     What the hand dare sieze the fire?
+}}}
+
+=== preformatted text with attributes ===
+
+ {{{class="python" style="color:blue"
+ for i in range(1, 5):
+     print(i)
+ }}}
+ 
+== block quotes ==
+
+    (indentation 4 spaces) This would be a blockquote in Vimwiki. It is not *highlighted* in Vim but
+    (indentation 1 space followed by 1 tab of width 4) could be styled by CSS in HTML. Blockquotes are usually used to quote a
+    (indentation 1 tab of width 4) long piece of text from another source. ~~blah blah~~ :blockquote:
+
+== external links ==
+
+[[http://google.com|_Google_ search engine]]
+
+http://pandoc.org
+
+ftp://vim.org
+
+[[http://google.com]] 
+
+[[mailto:info@example.org|email me]]
+
+mailto:hello@bye.com
+
+== internal links ==
+
+[[This is a link]]
+
+[[This is a link source|Description of the link]]
+
+[[projects/Important Project 1]]
+   
+[[../index]]
+  
+[[a subdirectory/|Other files]]
+
+[[#tag-one|try me to test tag anchors]]
+
+[[#block quotes|try me to test header anchors]]
+
+[[#strong|try me to test strong anchors]]
+
+[[Todo List#Tomorrow|Tasks for tomorrow]]
+
+[[diary:2017-05-01]]
+
+[[file:../assets/data.csv|Important Data]]
+
+=== links with thumbnails ===
+[[http://www.google.com|{{./movie.jpg}}]]
+
+== images ==
+
+{{file:./lalune.jpg}}
+
+{{http://vimwiki.googlecode.com/hg/images/vimwiki_logo.png|Vimwiki}}
+  
+{{local:./movie.jpg}}  
+
+
+=== image with attributes ===
+{{lalune.jpg|_cool stuff_|style="width:150px;height:120px;"}}
+
+{{nonexist.jpg|*Non-existing* image|class="center flow blabla" style="font-color:red"}}
+
+{{lalune.jpg|_cool stuff_|style="width:150px;height:120px;"|anything in this segment is ignored}}
+
+
+== lists ==
+
+
+# ordered list item 1, and here is some math belonging to list item 1
+ {{$
+ a^2 + b^2 = c^2
+ }}$
+  and some preformatted and tables belonging to item 1 as well
+{{{
+I'm part of item 1.
+}}}
+| this table  | is        |
+| also a part | of item 1 |
+ and some more text belonging to item 1.
+# ordered list item 2
+
+
+* Bulleted list item 1
+* Bulleted list item 2
+
+
+# Bulleted list item 1
+# the # become numbers when converted to HTML
+
+- Bulleted list item 1
+- Bulleted list item 2
+
+* Item 1
+* Item 2
+    # Sub item 1 (indentation 4 spaces)
+  Sub item 1 continued line.
+%%comments
+    Sub item 1 next continued line.
+    * Sub item 2, as an ordered list item even though the identifier is `*` (indentation 2 spaces followed by one tab of width 4)
+    * etc.
+ Continuation of Item 2
+ Next continuation of Item 2
+But this is a new paragraph.
+
+# 1
+    * `1.1`
+  * 2
+      * 2.1
+ * 3
+
+=== ordered lists with non-# identifiers ===
+1. Numbered list item 1
+2. Numbered list item 2
+3. Numbered list item 3
+
+4. Numbered list item 1
+5. Numbered list item 2
+6. Numbered list item 3
+
+1) Numbered list item 1
+2) Numbered list item 2
+3) Numbered list item 3
+
+a) Numbered list item 1
+b) Numbered list item 2
+c) Numbered list item 3
+
+A) Numbered list item 1
+B) Numbered list item 2
+C) Numbered list item 3
+
+i) Numbered list item 1
+ii) Numbered list item 2
+iii) Numbered list item 3
+
+I) Numbered list item 1
+II) Numbered list item 2
+III) Numbered list item 3
+
+- Bulleted list item 1
+- Bulleted list item 2
+  a) Numbered list sub item 1
+  b) more ...
+    * and more ...
+    * ...
+  c) Numbered list sub item 3
+    1. Numbered list sub sub item 1
+    2. Numbered list sub sub item 2
+  d) etc.
+- Bulleted list item 3
+
+== todo lists ==
+* [ ] task 1
+    1. [.] 5
+* [o] 3
+* [] not a todo item
+* [ ]not a todo item
+* [r] not a todo item
+* [     ] not a todo item
+* [o] a tab in the todo list marker `[ ]`
+    III) [O] 4
+      5
+    i) [X] 
+| a | b |
+* [X] task 2
+
+== math ==
+
+$ \sum_i a_i^2 = 1 $
+
+{{$
+\sum_i a_i^2
+=
+1
+}}$
+
+{{$%align%
+\sum_i a_i^2 &= 1 + 1 \\
+&= 2.
+}}$
+
+edge case (the `c^2 + ` after the multline tag is in the equation):
+{{$%multline%c^2 + 
+a^2 + b^2
+}}$
+
+edge case (the tag is `hello%bye`)
+{{$%hello%bye%
+\int_a^b f(x) dx
+}}$
+
+Just two dollar signs: $$
+
+[not math] You have $1
+and I have $1.
+
+== tags ==
+
+:tag-one:tag-two:
+
+== tables ==
+ 
+| Year | Temperature (low) | Temperature (high) |
+|------|-------------------|--------------------|
+| 1900 | -10               | 25                 |
+| 1910 | -15               | 30                 |
+| 1920 | -10               | 32                 |
+| 1930 | _N/A_             | _N/A_              |
+| 1940 | -2                | 40                 |
+
+
+=== centered headerless tables ===
+ | a | b |
+ | c | d |
+ 
+ 
+== paragraphs ==
+
+This is first paragraph
+with two lines.
+
+
+
+
+
+
+
+
+This is a second paragraph with
+two lines after many blank lines.
+
+== definition list ==
+
+Term 1:: Definition 1
+Term 2::
+:: Definition 2
+  :: Definition 3
+Term :: *separated* by :: _double colons_ :: Def1
+:: Def2
+Term with lots of trailing colons::::::::: Definition
+:: This is :: A term (rather than a definition) :: and this is a definition
+Term Without definitions ::
+::
+Part :: of :: dt :: part of ::dd
+
+:: Definition 1 without a term
+:: Definition 2 without a term
+
+T1 :: D1
+new paragraph
+T1 :: D1
+
+Not::Definition
+
+Not ::Definition
+
+::Not definition
+
+    :: blockquote
+    
+    block :: quote
+
+== metadata placeholders ==
+%title title
+%date 2017-05-01
+
+%title second title is ignored
+%date second date is ignored
+
+%this is not a placeholder
+
+placeholders
+%title another title
+%date 2017-04-23
+serves as space / softbreak in paragraphs
+
+
+== sup, sub ==
+
+super^script^
+
+sub,,script,,
+
+== the todo mark ==
+TODO:
+
+= _*not implemented yet*_ =
+== tables with spans ==
+| a  | b  | c | d |
+| \/ | e  | > | f |
+| \/ | \/ | > | g |
+| h  | >  | > | > |
+
+== tables with multiple lines of headers ==
+| a | b |
+| c | d |
+|---|---|
+
+== some other placeholders ==
+`template` placeholder is ignored.
+%template template
+
+`nohtml` placeholder is ignored.
+%nohtml
+
+

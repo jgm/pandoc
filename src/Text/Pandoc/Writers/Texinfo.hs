@@ -32,7 +32,7 @@ Conversion of 'Pandoc' format into Texinfo.
 -}
 module Text.Pandoc.Writers.Texinfo ( writeTexinfo ) where
 import Control.Monad.Except (throwError)
-import Control.Monad.State
+import Control.Monad.State.Strict
 import Data.Char (chr, ord)
 import Data.List (maximumBy, transpose)
 import Data.Ord (comparing)
@@ -106,7 +106,7 @@ pandocToTexinfo options (Pandoc meta blocks) = do
               $ metadata
   case writerTemplate options of
        Nothing  -> return body
-       Just tpl -> return $ renderTemplate' tpl context
+       Just tpl -> renderTemplate' tpl context
 
 -- | Escape things as needed for Texinfo.
 stringToTexinfo :: String -> String

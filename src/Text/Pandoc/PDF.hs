@@ -40,7 +40,6 @@ import qualified Data.Text as T
 import Data.Text (Text)
 import qualified Data.ByteString as BS
 import Data.ByteString.Lazy (ByteString)
-import qualified Data.ByteString.Lazy as B
 import qualified Data.ByteString.Lazy as BL
 import qualified Data.ByteString.Lazy.Char8 as BC
 import Data.Maybe (fromMaybe)
@@ -197,7 +196,22 @@ tex2pdf' verbosity args tmpDir program source = do
                      _ -> ""
           return $ Left $ logmsg <> extramsg
        (ExitSuccess, Nothing)  -> return $ Left ""
-       (ExitSuccess, Just pdf) -> return $ Right pdf
+       (ExitSuccess, Just pdf) -> do
+          missingCharacterWarnings verbosity log'
+          return $ Right pdf
+
+missingCharacterWarnings :: Verbosity -> ByteString -> IO ()
+missingCharacterWarnings verbosity log' = do
+  let ls = BC.lines log'
+  let isMissingCharacterWarning = BC.isPrefixOf "Missing character: "
+  let warnings = [ UTF8.toStringLazy (BC.drop 19 l)
+                 | l <- ls
+                 , isMissingCharacterWarning l
+                 ]
+  runIO $ do
+    setVerbosity verbosity
+    mapM_ (report . MissingCharacter) warnings
+  return ()
 
 -- parsing output
 
@@ -255,12 +269,12 @@ runTeXProgram verbosity program args runNumber numRuns tmpDir source = do
       mapM_ print env''
       putStr "\n"
       putStrLn $ "[makePDF] Contents of " ++ file' ++ ":"
-      B.readFile file' >>= B.putStr
+      BL.readFile file' >>= BL.putStr
       putStr "\n"
     (exit, out) <- pipeProcess (Just env'') program programArgs BL.empty
     when (verbosity >= INFO) $ do
       putStrLn $ "[makePDF] Run #" ++ show runNumber
-      B.hPutStr stdout out
+      BL.hPutStr stdout out
       putStr "\n"
     if runNumber <= numRuns
        then runTeXProgram verbosity program args (runNumber + 1) numRuns tmpDir source
@@ -271,9 +285,16 @@ runTeXProgram verbosity program args runNumber numRuns tmpDir source = do
                    -- We read PDF as a strict bytestring to make sure that the
                    -- temp directory is removed on Windows.
                    -- See https://github.com/jgm/pandoc/issues/1192.
-                   then (Just . B.fromChunks . (:[])) `fmap` BS.readFile pdfFile
+                   then (Just . BL.fromChunks . (:[])) `fmap` BS.readFile pdfFile
                    else return Nothing
-         return (exit, out, pdf)
+         -- Note that some things like Missing character warnings
+         -- appear in the log but not on stderr, so we prefer the log:
+         let logFile = replaceExtension file ".log"
+         logExists <- doesFileExist logFile
+         log' <- if logExists
+                    then BL.readFile logFile
+                    else return out
+         return (exit, log', pdf)
 
 ms2pdf :: Verbosity
        -> [String]
@@ -294,7 +315,7 @@ ms2pdf verbosity args source = do
   (exit, out) <- pipeProcess (Just env') "pdfroff" args
                      (BL.fromStrict $ UTF8.fromText source)
   when (verbosity >= INFO) $ do
-    B.hPutStr stdout out
+    BL.hPutStr stdout out
     putStr "\n"
   return $ case exit of
              ExitFailure _ -> Left out
@@ -318,12 +339,12 @@ html2pdf verbosity args source = do
     mapM_ print env'
     putStr "\n"
     putStrLn $ "[makePDF] Contents of " ++ file ++ ":"
-    B.readFile file >>= B.putStr
+    BL.readFile file >>= BL.putStr
     putStr "\n"
   (exit, out) <- pipeProcess (Just env') "wkhtmltopdf" programArgs BL.empty
   removeFile file
   when (verbosity >= INFO) $ do
-    B.hPutStr stdout out
+    BL.hPutStr stdout out
     putStr "\n"
   pdfExists <- doesFileExist pdfFile
   mbPdf <- if pdfExists
@@ -331,7 +352,7 @@ html2pdf verbosity args source = do
             -- temp directory is removed on Windows.
             -- See https://github.com/jgm/pandoc/issues/1192.
             then do
-              res <- (Just . B.fromChunks . (:[])) `fmap` BS.readFile pdfFile
+              res <- (Just . BL.fromChunks . (:[])) `fmap` BS.readFile pdfFile
               removeFile pdfFile
               return res
             else return Nothing
@@ -365,11 +386,11 @@ context2pdf verbosity tmpDir source = inDirectory tmpDir $ do
     mapM_ print env'
     putStr "\n"
     putStrLn $ "[makePDF] Contents of " ++ file ++ ":"
-    B.readFile file >>= B.putStr
+    BL.readFile file >>= BL.putStr
     putStr "\n"
   (exit, out) <- pipeProcess (Just env') "context" programArgs BL.empty
   when (verbosity >= INFO) $ do
-    B.hPutStr stdout out
+    BL.hPutStr stdout out
     putStr "\n"
   let pdfFile = replaceExtension file ".pdf"
   pdfExists <- doesFileExist pdfFile
@@ -377,7 +398,7 @@ context2pdf verbosity tmpDir source = inDirectory tmpDir $ do
             -- We read PDF as a strict bytestring to make sure that the
             -- temp directory is removed on Windows.
             -- See https://github.com/jgm/pandoc/issues/1192.
-            then (Just . B.fromChunks . (:[])) `fmap` BS.readFile pdfFile
+            then (Just . BL.fromChunks . (:[])) `fmap` BS.readFile pdfFile
             else return Nothing
   case (exit, mbPdf) of
        (ExitFailure _, _)      -> do

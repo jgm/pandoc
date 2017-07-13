@@ -33,7 +33,7 @@ Conversion of 'Pandoc' documents to OpenDocument XML.
 -}
 module Text.Pandoc.Writers.OpenDocument ( writeOpenDocument ) where
 import Control.Arrow ((***), (>>>))
-import Control.Monad.State hiding (when)
+import Control.Monad.State.Strict hiding (when)
 import Data.Char (chr)
 import Data.List (sortBy)
 import Data.Text (Text)
@@ -50,6 +50,7 @@ import Text.Pandoc.Templates (renderTemplate')
 import Text.Pandoc.Writers.Math
 import Text.Pandoc.Writers.Shared
 import Text.Pandoc.XML
+import Text.Pandoc.BCP47 (parseBCP47, Lang(..))
 import Text.Printf (printf)
 
 -- | Auxiliary function to convert Plain block to Para.
@@ -168,8 +169,8 @@ inTextStyle d = do
                      inTags False "style:style"
                        [("style:name", styleName)
                        ,("style:family", "text")]
-                    $ selfClosingTag "style:text-properties"
-                       (concatMap textStyleAttr (Set.toList at)))
+                       $ selfClosingTag "style:text-properties"
+                          (concatMap textStyleAttr (Set.toList at)))
               return $ inTags False
                   "text:span" [("text:style-name",styleName)] d
 
@@ -219,11 +220,12 @@ writeOpenDocument opts (Pandoc meta blocks) = do
   let listStyles  = map listStyle (stListStyles s)
   let automaticStyles = vcat $ reverse $ styles ++ listStyles
   let context = defField "body" body
+              $ defField "toc" (writerTableOfContents opts)
               $ defField "automatic-styles" (render' automaticStyles)
               $ metadata
-  return $ case writerTemplate opts of
-                Nothing  -> body
-                Just tpl -> renderTemplate' tpl context
+  case writerTemplate opts of
+       Nothing  -> return body
+       Just tpl -> renderTemplate' tpl context
 
 withParagraphStyle :: PandocMonad m
                    => WriterOptions -> String -> [Block] -> OD m Doc
@@ -326,7 +328,8 @@ blockToOpenDocument o bs
                                   then return empty
                                   else inParagraphTags =<< inlinesToOpenDocument o b
     | LineBlock      b <- bs = blockToOpenDocument o $ linesToPara b
-    | Div _ xs         <- bs = blocksToOpenDocument o xs
+    | Div attr xs      <- bs = withLangFromAttr attr
+                                  (blocksToOpenDocument o xs)
     | Header     i _ b <- bs = setFirstPara >>
                                (inHeaderTags  i =<< inlinesToOpenDocument o b)
     | BlockQuote     b <- bs = setFirstPara >> mkBlockQuote b
@@ -444,7 +447,7 @@ inlineToOpenDocument o ils
      | writerWrapText o == WrapPreserve
                   -> return $ preformatted "\n"
      | otherwise  -> return $ space
-    Span _ xs     -> inlinesToOpenDocument o xs
+    Span attr xs  -> withLangFromAttr attr (inlinesToOpenDocument o xs)
     LineBreak     -> return $ selfClosingTag "text:line-break" []
     Str         s -> return $ handleSpaces $ escapeStringForXML s
     Emph        l -> withTextStyle Italic $ inlinesToOpenDocument o l
@@ -606,7 +609,14 @@ paraTableStyles t s (a:xs)
                      [ ("fo:text-align", x)
                      , ("style:justify-single-word", "false")]
 
-data TextStyle = Italic | Bold | Strike | Sub | Sup | SmallC | Pre
+data TextStyle = Italic
+               | Bold
+               | Strike
+               | Sub
+               | Sup
+               | SmallC
+               | Pre
+               | Language Lang
                deriving ( Eq,Ord )
 
 textStyleAttr :: TextStyle -> [(String,String)]
@@ -624,4 +634,18 @@ textStyleAttr s
     | Pre    <- s = [("style:font-name"              ,"Courier New")
                     ,("style:font-name-asian"        ,"Courier New")
                     ,("style:font-name-complex"      ,"Courier New")]
+    | Language lang <- s
+                  = [("fo:language"                  ,langLanguage lang)
+                    ,("fo:country"                   ,langRegion lang)]
     | otherwise   = []
+
+withLangFromAttr :: PandocMonad m => Attr -> OD m a -> OD m a
+withLangFromAttr (_,_,kvs) action =
+  case lookup "lang" kvs of
+       Nothing -> action
+       Just l  -> do
+         case parseBCP47 l of
+              Right lang -> withTextStyle (Language lang) action
+              Left _ -> do
+                report $ InvalidLang l
+                action

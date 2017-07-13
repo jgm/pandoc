@@ -45,6 +45,7 @@ module Text.Pandoc.Class ( PandocMonad(..)
                          , getZonedTime
                          , readFileFromDirs
                          , report
+                         , setTrace
                          , getLog
                          , setVerbosity
                          , getMediaBag
@@ -78,7 +79,7 @@ import qualified Text.Pandoc.Shared as IO ( readDataFile
 import qualified Text.Pandoc.UTF8 as UTF8
 import Text.Pandoc.Compat.Time (UTCTime)
 import Text.Pandoc.Logging
-import Text.Parsec (ParsecT)
+import Text.Parsec (ParsecT, getPosition, sourceLine, sourceName)
 import qualified Text.Pandoc.Compat.Time as IO (getCurrentTime)
 import Text.Pandoc.MIME (MimeType, getMimeType, extensionFromMimeType)
 import Text.Pandoc.Definition
@@ -107,7 +108,7 @@ import qualified System.FilePath.Glob as IO (glob)
 import qualified System.Directory as IO (getModificationTime)
 import Control.Monad as M (fail)
 import Control.Monad.Reader (ReaderT)
-import Control.Monad.State
+import Control.Monad.State.Strict
 import Control.Monad.Except
 import Control.Monad.Writer (WriterT)
 import Control.Monad.RWS (RWST)
@@ -117,6 +118,7 @@ import System.IO.Error
 import System.IO (stderr)
 import qualified Data.Map as M
 import Text.Pandoc.Error
+import qualified Debug.Trace
 
 class (Functor m, Applicative m, Monad m, MonadError PandocError m)
       => PandocMonad m where
@@ -140,6 +142,11 @@ class (Functor m, Applicative m, Monad m, MonadError PandocError m)
   modifyCommonState :: (CommonState -> CommonState) -> m ()
   modifyCommonState f = getCommonState >>= putCommonState . f
 
+  trace :: String -> m ()
+  trace msg = do
+    tracing <- getsCommonState stTrace
+    when tracing $ Debug.Trace.trace ("[trace] " ++ msg) (return ())
+
   logOutput :: LogMessage -> m ()
 
 -- Functions defined for all PandocMonad instances
@@ -155,10 +162,11 @@ report :: PandocMonad m => LogMessage -> m ()
 report msg = do
   verbosity <- getsCommonState stVerbosity
   let level = messageVerbosity msg
-  when (level <= verbosity) $
-    logOutput msg
-  unless (level == DEBUG) $
-    modifyCommonState $ \st -> st{ stLog = msg : stLog st }
+  when (level <= verbosity) $ logOutput msg
+  modifyCommonState $ \st -> st{ stLog = msg : stLog st }
+
+setTrace :: PandocMonad m => Bool -> m ()
+setTrace useTracing = modifyCommonState $ \st -> st{stTrace = useTracing}
 
 setMediaBag :: PandocMonad m => MediaBag -> m ()
 setMediaBag mb = modifyCommonState $ \st -> st{stMediaBag = mb}
@@ -208,6 +216,7 @@ data CommonState = CommonState { stLog          :: [LogMessage]
                                , stOutputFile   :: Maybe FilePath
                                , stResourcePath :: [FilePath]
                                , stVerbosity    :: Verbosity
+                               , stTrace        :: Bool
                                }
 
 instance Default CommonState where
@@ -217,6 +226,7 @@ instance Default CommonState where
                     , stOutputFile = Nothing
                     , stResourcePath = ["."]
                     , stVerbosity = WARNING
+                    , stTrace = False
                     }
 
 runIO :: PandocIO a -> IO (Either PandocError a)
@@ -561,7 +571,19 @@ instance PandocMonad m => PandocMonad (ParsecT s st m) where
   getModificationTime = lift . getModificationTime
   getCommonState = lift getCommonState
   putCommonState = lift . putCommonState
+  trace msg = do
+    tracing <- getsCommonState stTrace
+    when tracing $ do
+      pos <- getPosition
+      Debug.Trace.trace
+        ("[trace] Parsed " ++ msg ++ " at line " ++
+            show (sourceLine pos) ++
+            if sourceName pos == "chunk"
+               then " of chunk"
+               else "")
+        (return ())
   logOutput = lift . logOutput
+
 
 instance PandocMonad m => PandocMonad (ReaderT r m) where
   lookupEnv = lift . lookupEnv

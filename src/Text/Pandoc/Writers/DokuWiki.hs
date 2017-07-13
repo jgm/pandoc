@@ -41,7 +41,7 @@ DokuWiki:  <https://www.dokuwiki.org/dokuwiki>
 module Text.Pandoc.Writers.DokuWiki ( writeDokuWiki ) where
 import Control.Monad (zipWithM)
 import Control.Monad.Reader (ReaderT, ask, local, runReaderT)
-import Control.Monad.State (StateT, evalStateT, gets, modify)
+import Control.Monad.State.Strict (StateT, evalStateT, gets, modify)
 import Data.Default (Default (..))
 import Data.List (intercalate, intersect, isPrefixOf, transpose)
 import Data.Text (Text, pack)
@@ -103,7 +103,7 @@ pandocToDokuWiki opts (Pandoc meta blocks) = do
                 $ metadata
   case writerTemplate opts of
        Nothing  -> return main
-       Just tpl -> return $ renderTemplate' tpl context
+       Just tpl -> renderTemplate' tpl context
 
 -- | Escape special characters for DokuWiki.
 escapeString :: String -> String

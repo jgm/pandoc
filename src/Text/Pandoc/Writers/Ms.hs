@@ -52,7 +52,7 @@ import Text.Pandoc.Pretty
 import Text.Pandoc.Class (PandocMonad, report)
 import Text.Pandoc.ImageSize
 import Text.Pandoc.Logging
-import Control.Monad.State
+import Control.Monad.State.Strict
 import Data.Char ( isLower, isUpper, toUpper )
 import Text.TeXMath (writeEqn)
 import System.FilePath (takeExtension)
@@ -125,7 +125,7 @@ pandocToMs opts (Pandoc meta blocks) = do
               $ metadata
   case writerTemplate opts of
        Nothing  -> return main
-       Just tpl -> return $ renderTemplate' tpl context
+       Just tpl -> renderTemplate' tpl context
 
 -- | Association list of characters to escape.
 msEscapes :: Map.Map Char String
@@ -411,7 +411,8 @@ definitionListItemToMs opts (label, defs) = do
                         let (first, rest) = case blocks of
                               ((Para x):y) -> (Plain x,y)
                               (x:y)        -> (x,y)
-                              []           -> error "blocks is null"
+                              []           -> (Plain [], [])
+                                               -- should not happen
                         rest' <- liftM vcat $
                                   mapM (\item -> blockToMs opts item) rest
                         first' <- blockToMs opts first

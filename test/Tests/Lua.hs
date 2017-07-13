@@ -68,7 +68,7 @@ tests = map (localOption (QuickCheckTests 20))
 
 assertFilterConversion :: String -> FilePath -> Pandoc -> Pandoc -> Assertion
 assertFilterConversion msg filterPath docIn docExpected = do
-  docRes <- runLuaFilter ("lua" </> filterPath) [] docIn
+  docRes <- runLuaFilter Nothing ("lua" </> filterPath) [] docIn
   assertEqual msg docExpected docRes
 
 roundtripEqual :: (Eq a, Lua.StackValue a) => a -> IO Bool
@@ -78,7 +78,7 @@ roundtripEqual x = (x ==) <$> roundtripped
   roundtripped = do
     lua <- Lua.newstate
     Lua.openlibs lua
-    pushPandocModule lua
+    pushPandocModule Nothing lua
     Lua.setglobal lua "pandoc"
     oldSize <- Lua.gettop lua
     Lua.push lua x

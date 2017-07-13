@@ -3,15 +3,15 @@ module Main where
 import Network.Wai.Handler.CGI
 import Network.Wai
 import Control.Applicative ((<$>))
-import Data.Maybe (mapMaybe, fromMaybe)
+import Data.Maybe (fromMaybe)
 import Network.HTTP.Types.Status (status200)
 import Network.HTTP.Types.Header (hContentType)
 import Network.HTTP.Types.URI (queryToQueryText)
 import Text.Pandoc
+import Text.Pandoc.Writers.Math (defaultMathJaxURL)
 import Text.Pandoc.Highlighting (pygments)
 import Text.Pandoc.Readers (getReader, Reader(..))
 import Text.Pandoc.Writers (getWriter, Writer(..))
-import Text.Pandoc.Error (PandocError)
 import Text.Pandoc.Shared (tabFilter)
 import Data.Aeson
 import qualified Data.Text as T
@@ -29,11 +29,13 @@ app req respond = do
   fromFormat <- fromMaybe "" <$> getParam "from"
   toFormat <- fromMaybe "" <$> getParam "to"
   let reader = case getReader (T.unpack fromFormat) of
-                    Right (TextReader r) -> r readerOpts
+                    Right (TextReader r, es) -> r readerOpts{
+                       readerExtensions = es }
                     _ -> error $ "could not find reader for "
                                   ++ T.unpack fromFormat
   let writer = case getWriter (T.unpack toFormat) of
-                    Right (TextWriter w) -> w writerOpts
+                    Right (TextWriter w, es) -> w writerOpts{
+                       writerExtensions = es }
                     _ -> error $ "could not find writer for " ++
                            T.unpack toFormat
   let result = case runPure $ reader (tabFilter 4 text) >>= writer of
@@ -56,7 +58,8 @@ checkLength t =
 writerOpts :: WriterOptions
 writerOpts = def { writerReferenceLinks = True,
                    writerEmailObfuscation = NoObfuscation,
-                   writerHTMLMathMethod = MathJax "http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML",
+                   writerHTMLMathMethod = MathJax (defaultMathJaxURL ++
+                       "MathJax.js?config=TeX-AMS_CHTML-full"),
                    writerHighlightStyle = Just pygments }
 
 readerOpts :: ReaderOptions

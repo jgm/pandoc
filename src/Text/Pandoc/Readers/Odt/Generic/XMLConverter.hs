@@ -71,6 +71,7 @@ import           Control.Applicative  hiding ( liftA, liftA2 )
 import           Control.Monad               ( MonadPlus )
 import           Control.Arrow
 
+import           Data.Either ( rights )
 import qualified Data.Map             as M
 import           Data.Default
 import           Data.Maybe
@@ -604,7 +605,7 @@ tryAll                 :: (NameSpaceID nsID)
                        ->         XMLConverter nsID extraState b [a]
 tryAll nsID name a         =     prepareIteration nsID name
                              >>> iterateS (switchingTheStack a)
-                             >>^ collectRights
+                             >>^ rights
 
 --------------------------------------------------------------------------------
 -- Matching children

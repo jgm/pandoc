@@ -7,7 +7,9 @@ quick:
 	stack install --flag 'pandoc:embed_data_files' --fast --test --test-arguments='-j4 --hide-successes $(TESTARGS)'
 
 full:
-	stack install --flag 'pandoc:embed_data_files' --test --test-arguments='-j4' --pedantic
+	stack install --flag 'pandoc:embed_data_files' --flag 'pandoc:weigh-pandoc' --flag 'pandoc:trypandoc' --bench --no-run-benchmarks --test --test-arguments='-j4 --hide-successes' --ghc-options '-Wall -Werror -fno-warn-unused-do-bind -O0 -j4'
+
+haddock:
 	stack haddock
 
 # Note:  to accept current results of golden tests,
@@ -16,7 +18,7 @@ test:
 	stack test --flag 'pandoc:embed_data_files' --fast --test-arguments='-j4 --hide-successes $(TESTARGS)'
 
 bench:
-	stack bench
+	stack bench --benchmark-arguments='$(BENCHARGS)'
 
 weigh:
 	stack build --flag 'pandoc:weigh-pandoc' && stack exec weigh-pandoc
@@ -65,4 +67,4 @@ download_stats:
 clean:
 	stack clean
 
-.PHONY: deps quick full install clean test bench changes_github macospkg dist prof download_stats reformat lint weigh
+.PHONY: deps quick full haddock install clean test bench changes_github macospkg dist prof download_stats reformat lint weigh

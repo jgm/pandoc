@@ -35,7 +35,7 @@ Markdown:  <http://daringfireball.net/projects/markdown/>
 -}
 module Text.Pandoc.Writers.Markdown (writeMarkdown, writePlain) where
 import Control.Monad.Reader
-import Control.Monad.State
+import Control.Monad.State.Strict
 import Data.Char (chr, isPunctuation, isSpace, ord)
 import Data.Default
 import qualified Data.HashMap.Strict as H
@@ -209,8 +209,8 @@ pandocToMarkdown opts (Pandoc meta blocks) = do
                         Nothing -> empty
   let headerBlocks = filter isHeaderBlock blocks
   toc <- if writerTableOfContents opts
-         then tableOfContents opts headerBlocks
-         else return empty
+         then render' <$> tableOfContents opts headerBlocks
+         else return ""
   -- Strip off final 'references' header if markdown citations enabled
   let blocks' = if isEnabled Ext_citations opts
                    then case reverse blocks of
@@ -220,7 +220,11 @@ pandocToMarkdown opts (Pandoc meta blocks) = do
   body <- blockListToMarkdown opts blocks'
   notesAndRefs' <- notesAndRefs opts
   let main = render' $ body <> notesAndRefs'
-  let context  = defField "toc" (render' toc)
+  let context  = -- for backwards compatibility we populate toc
+                 -- with the contents of the toc, rather than a
+                 -- boolean:
+                 defField "toc" toc
+               $ defField "table-of-contents" toc
                $ defField "body" main
                $ (if isNullMeta meta
                      then id
@@ -228,7 +232,7 @@ pandocToMarkdown opts (Pandoc meta blocks) = do
                $ addVariablesToJSON opts metadata
   case writerTemplate opts of
        Nothing  -> return main
-       Just tpl -> return $ renderTemplate' tpl context
+       Just tpl -> renderTemplate' tpl context
 
 -- | Return markdown representation of reference key table.
 refsToMarkdown :: PandocMonad m => WriterOptions -> Refs -> MD m Doc
@@ -412,6 +416,9 @@ blockToMarkdown' opts (Plain inlines) = do
             '+':s:_ | not isPlain && isSpace s -> "\\" <> contents
             '*':s:_ | not isPlain && isSpace s -> "\\" <> contents
             '-':s:_ | not isPlain && isSpace s -> "\\" <> contents
+            '+':[]  | not isPlain -> "\\" <> contents
+            '*':[]  | not isPlain -> "\\" <> contents
+            '-':[]  | not isPlain -> "\\" <> contents
             '|':_ | (isEnabled Ext_line_blocks opts ||
                      isEnabled Ext_pipe_tables opts)
                     && isEnabled Ext_all_symbols_escapable opts
@@ -433,8 +440,10 @@ blockToMarkdown' opts (LineBlock lns) =
     return $ (vcat $ map (hang 2 (text "| ")) mdLines) <> blankline
   else blockToMarkdown opts $ linesToPara lns
 blockToMarkdown' opts b@(RawBlock f str)
-  | f == "markdown" = return $ text str <> text "\n"
-  | f == "html" && isEnabled Ext_raw_html opts = do
+  | f `elem` ["markdown", "markdown_github", "markdown_phpextra",
+              "markdown_mmd", "markdown_strict"]
+              = return $ text str <> text "\n"
+  | f `elem` ["html", "html5", "html4"] && isEnabled Ext_raw_html opts = do
     plain <- asks envPlain
     return $ if plain
                 then empty
@@ -1053,10 +1062,12 @@ inlineToMarkdown opts (Math DisplayMath str) =
             (texMathToInlines DisplayMath str >>= inlineListToMarkdown opts)
 inlineToMarkdown opts il@(RawInline f str) = do
   plain <- asks envPlain
-  if not plain &&
-     ( f == "markdown" ||
+  if (plain && f == "plain") || (not plain &&
+     ( f `elem` ["markdown", "markdown_github", "markdown_phpextra",
+                 "markdown_mmd", "markdown_strict"] ||
        (isEnabled Ext_raw_tex opts && (f == "latex" || f == "tex")) ||
-       (isEnabled Ext_raw_html opts && f == "html") )
+       (isEnabled Ext_raw_html opts && f `elem` ["html", "html4", "html5"])
+     ))
     then return $ text str
     else do
       report $ InlineNotRendered il

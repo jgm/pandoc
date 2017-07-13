@@ -826,9 +826,10 @@ maybeRight = either (const Nothing) Just
 inlineLaTeXCommand :: PandocMonad m => OrgParser m String
 inlineLaTeXCommand = try $ do
   rest <- getInput
-  parsed <- (lift . lift) $ runParserT rawLaTeXInline def "source" rest
+  st <- getState
+  parsed <- (lift . lift) $ runParserT rawLaTeXInline st "source" rest
   case parsed of
-    Right (RawInline _ cs) -> do
+    Right cs -> do
       -- drop any trailing whitespace, those are not be part of the command as
       -- far as org mode is concerned.
       let cmdNoSpc = dropWhileEnd isSpace cs
