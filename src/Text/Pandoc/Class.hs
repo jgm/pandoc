@@ -438,7 +438,6 @@ data PureState = PureState { stStdGen     :: StdGen
                            , stFiles :: FileTree
                            , stUserDataDir :: FileTree
                            , stCabalDataDir :: FileTree
-                           , stFontFiles :: [FilePath]
                            }
 
 instance Default PureState where
@@ -453,7 +452,6 @@ instance Default PureState where
                   , stFiles = mempty
                   , stUserDataDir = mempty
                   , stCabalDataDir = mempty
-                  , stFontFiles = []
                   }
 
 
@@ -550,8 +548,8 @@ instance PandocMonad PandocPure where
       Nothing -> readDataFile Nothing fname
 
   glob s = do
-    fontFiles <- getsPureState stFontFiles
-    return (filter (match (compile s)) fontFiles)
+    FileTree ftmap <- getsPureState stFiles
+    return $ filter (match (compile s)) $ M.keys ftmap
 
   getModificationTime fp = do
     fps <- getsPureState stFiles
