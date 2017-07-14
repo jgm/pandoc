@@ -102,7 +102,8 @@ import qualified Data.ByteString as B
 import qualified Data.ByteString.Lazy as BL
 import qualified System.Environment as IO (lookupEnv)
 import System.FilePath.Glob (match, compile)
-import System.Directory (createDirectoryIfMissing)
+import System.Directory (createDirectoryIfMissing, listDirectory,
+                          doesDirectoryExist)
 import System.FilePath ((</>), (<.>), takeDirectory,
          takeExtension, dropExtension, isRelative, normalise)
 import qualified System.FilePath.Glob as IO (glob)
@@ -478,13 +479,21 @@ newtype FileTree = FileTree {unFileTree :: M.Map FilePath FileInfo}
 getFileInfo :: FilePath -> FileTree -> Maybe FileInfo
 getFileInfo fp tree = M.lookup fp $ unFileTree tree
 
+-- | Add the specified file to the FileTree. If file
+-- is a directory, add its contents recursively.
 addToFileTree :: FileTree -> FilePath -> IO FileTree
 addToFileTree (FileTree treemap) fp = do
-  contents <- B.readFile fp
-  mtime <- IO.getModificationTime fp
-  return $ FileTree $
-           M.insert fp FileInfo{ infoFileMTime = mtime
-                               , infoFileContents = contents } treemap
+  isdir <- doesDirectoryExist fp
+  if isdir
+     then do -- recursively add contents of directories
+       fs <- map (fp </>) <$> listDirectory fp
+       foldM addToFileTree (FileTree treemap) fs
+     else do
+       contents <- B.readFile fp
+       mtime <- IO.getModificationTime fp
+       return $ FileTree $
+                M.insert fp FileInfo{ infoFileMTime = mtime
+                                    , infoFileContents = contents } treemap
 
 newtype PandocPure a = PandocPure {
   unPandocPure :: ExceptT PandocError
