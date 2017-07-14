@@ -11,15 +11,16 @@ Pandoc is a Haskell library for converting from one markup format to
 another, and a command\-line tool that uses this library.
 It can read Markdown, CommonMark, PHP Markdown Extra, GitHub\-Flavored
 Markdown, MultiMarkdown, and (subsets of) Textile, reStructuredText,
-HTML, LaTeX, MediaWiki markup, TWiki markup, Haddock markup, OPML, Emacs
-Org mode, DocBook, txt2tags, EPUB, ODT and Word docx; and it can write
-plain text, Markdown, CommonMark, PHP Markdown Extra, GitHub\-Flavored
-Markdown, MultiMarkdown, reStructuredText, XHTML, HTML5, LaTeX
-(including \f[C]beamer\f[] slide shows), ConTeXt, RTF, OPML, DocBook,
-OpenDocument, ODT, Word docx, GNU Texinfo, MediaWiki markup, DokuWiki
-markup, ZimWiki markup, Haddock markup, EPUB (v2 or v3), FictionBook2,
-Textile, groff man, groff ms, Emacs Org mode, AsciiDoc, InDesign ICML,
-TEI Simple, and Slidy, Slideous, DZSlides, reveal.js or S5 HTML slide
+HTML, LaTeX, MediaWiki markup, TWiki markup, TikiWiki markup,
+Haddock markup, OPML, Emacs Org mode, DocBook, txt2tags, EPUB, ODT
+and Word docx; and it can write plain text, Markdown, CommonMark,
+PHP Markdown Extra, GitHub\-Flavored Markdown, MultiMarkdown,
+reStructuredText, XHTML, HTML5, LaTeX (including \f[C]beamer\f[]
+slide shows), ConTeXt, RTF, OPML, DocBook, OpenDocument, ODT, Word
+docx, GNU Texinfo, MediaWiki markup, DokuWiki markup, ZimWiki
+markup, Haddock markup, EPUB (v2 or v3), FictionBook2, Textile,
+groff man, groff ms, Emacs Org mode, AsciiDoc, InDesign ICML, TEI
+Simple, and Slidy, Slideous, DZSlides, reveal.js or S5 HTML slide
 shows.
 It can also produce PDF output on systems where LaTeX, ConTeXt,
 \f[C]pdfroff\f[], or \f[C]wkhtmltopdf\f[] is installed.
@@ -231,13 +232,13 @@ Markdown), \f[C]textile\f[] (Textile), \f[C]rst\f[] (reStructuredText),
 (txt2tags), \f[C]docx\f[] (docx), \f[C]odt\f[] (ODT), \f[C]epub\f[]
 (EPUB), \f[C]opml\f[] (OPML), \f[C]org\f[] (Emacs Org mode),
 \f[C]mediawiki\f[] (MediaWiki markup), \f[C]twiki\f[] (TWiki markup),
-\f[C]haddock\f[] (Haddock markup), or \f[C]latex\f[] (LaTeX).
-If \f[C]+lhs\f[] is appended to \f[C]markdown\f[], \f[C]rst\f[],
-\f[C]latex\f[], or \f[C]html\f[], the input will be treated as literate
-Haskell source: see Literate Haskell support, below.
-Markdown syntax extensions can be individually enabled or disabled by
-appending \f[C]+EXTENSION\f[] or \f[C]\-EXTENSION\f[] to the format
-name.
+\f[C]tikiwiki\f[] (TikiWiki markup), \f[C]haddock\f[] (Haddock markup),
+or \f[C]latex\f[] (LaTeX). If \f[C]+lhs\f[] is appended to
+\f[C]markdown\f[], \f[C]rst\f[], \f[C]latex\f[], or \f[C]html\f[],
+the input will be treated as literate Haskell source: see Literate
+Haskell support, below. Markdown syntax extensions can be
+individually enabled or disabled by appending \f[C]+EXTENSION\f[] or
+\f[C]\-EXTENSION\f[] to the format name.
 So, for example, \f[C]markdown_strict+footnotes+definition_lists\f[] is
 strict Markdown with footnotes and definition lists enabled, and
 \f[C]markdown\-pipe_tables+hard_line_breaks\f[] is pandoc's Markdown

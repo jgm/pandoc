@@ -17,16 +17,16 @@ Description:     Pandoc is a Haskell library for converting from one markup
                  format to another, and a command-line tool that uses
                  this library. It can read several dialects of Markdown and
                  (subsets of) HTML, reStructuredText, LaTeX, DocBook,
-                 MediaWiki markup, TWiki markup, Haddock markup, OPML,
-                 Emacs Org-Mode, txt2tags, Muse, Vimwiki, Word Docx, ODT,
-                 and Textile, and it can write Markdown, reStructuredText,
-                 XHTML, HTML 5, LaTeX, ConTeXt, DocBook, JATS, OPML, TEI,
-                 OpenDocument, ODT, Word docx, RTF, MediaWiki, DokuWiki,
-                 ZimWiki, Textile, groff man, groff ms, plain text,
+                 MediaWiki markup, TWiki markup, TikiWiki markup, Haddock
+                 markup, OPML, Emacs Org-Mode, txt2tags, Muse, Vimwiki, Word
+                 Docx, ODT, and Textile, and it can write Markdown,
+                 reStructuredText, XHTML, HTML 5, LaTeX, ConTeXt, DocBook,
+                 JATS, OPML, TEI, OpenDocument, ODT, Word docx, RTF, MediaWiki,
+                 DokuWiki, ZimWiki, Textile, groff man, groff ms, plain text,
                  Emacs Org-Mode, AsciiDoc, Haddock markup, EPUB (v2 and v3),
                  FictionBook2, InDesign ICML, Muse, and several kinds of
-                 HTML/javascript slide shows (S5, Slidy, Slideous,
-                 DZSlides, reveal.js).
+                 HTML/javascript slide shows (S5, Slidy, Slideous, DZSlides,
+                 reveal.js).
                  .
                  In contrast to most existing tools for converting Markdown
                  to HTML, pandoc has a modular design: it consists of a set of
@@ -252,6 +252,7 @@ Extra-Source-Files:
                  test/epub/*.native
                  test/txt2tags.t2t
                  test/twiki-reader.twiki
+                 test/tikiwiki-reader.tikiwiki
                  test/odt/odt/*.odt
                  test/odt/markdown/*.md
                  test/odt/native/*.native
@@ -379,6 +380,7 @@ Library
                    Text.Pandoc.Readers.Native,
                    Text.Pandoc.Readers.Haddock,
                    Text.Pandoc.Readers.TWiki,
+                   Text.Pandoc.Readers.TikiWiki,
                    Text.Pandoc.Readers.Txt2Tags,
                    Text.Pandoc.Readers.Docx,
                    Text.Pandoc.Readers.Odt,

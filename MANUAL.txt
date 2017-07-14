@@ -15,8 +15,8 @@ another, and a command-line tool that uses this library. It can read
 [Markdown], [CommonMark], [PHP Markdown Extra], [GitHub-Flavored
 Markdown], [MultiMarkdown], and (subsets of) [Textile],
 [reStructuredText], [HTML], [LaTeX], [MediaWiki markup], [TWiki markup],
-[Haddock markup], [OPML], [Emacs Org mode], [DocBook], [Muse], [txt2tags],
-[Vimwiki], [EPUB], [ODT], and [Word docx]; and it can
+[TikiWiki markup], [Haddock markup], [OPML], [Emacs Org mode], [DocBook],
+[Muse], [txt2tags], [Vimwiki], [EPUB], [ODT], and [Word docx]; and it can
 write plain text, [Markdown], [CommonMark], [PHP Markdown
 Extra], [GitHub-Flavored Markdown], [MultiMarkdown],
 [reStructuredText], [XHTML], [HTML5], [LaTeX] \(including
@@ -85,6 +85,7 @@ Markdown can be expected to be lossy.
 [DokuWiki markup]: https://www.dokuwiki.org/dokuwiki
 [ZimWiki markup]: http://zim-wiki.org/manual/Help/Wiki_Syntax.html
 [TWiki markup]: http://twiki.org/cgi-bin/view/TWiki/TextFormattingRules
+[TikiWiki markup]: https://doc.tiki.org/Wiki-Syntax-Text#The_Markup_Language_Wiki-Syntax
 [Haddock markup]: https://www.haskell.org/haddock/doc/html/ch03s08.html
 [groff man]: http://man7.org/linux/man-pages/man7/groff_man.7.html
 [groff ms]: http://man7.org/linux/man-pages/man7/groff_ms.7.html
@@ -268,10 +269,10 @@ General options
     (reStructuredText), `html` (HTML), `docbook` (DocBook), `t2t`
     (txt2tags), `docx` (docx), `odt` (ODT), `epub` (EPUB), `opml` (OPML),
     `org` (Emacs Org mode), `mediawiki` (MediaWiki markup), `twiki` (TWiki
-    markup), `haddock` (Haddock markup), or `latex` (LaTeX).  If
-    `+lhs` is appended to `markdown`, `rst`, `latex`, or `html`, the
-    input will be treated as literate Haskell source: see [Literate
-    Haskell support], below. Markdown
+    markup), `tikiwiki` (TikiWiki markup), `haddock` (Haddock markup), or
+    `latex` (LaTeX).  If `+lhs` is appended to `markdown`, `rst`, `latex`, or
+    `html`, the input will be treated as literate Haskell source: see
+    [Literate Haskell support], below. Markdown
     syntax extensions can be individually enabled or disabled by
     appending `+EXTENSION` or `-EXTENSION` to the format name. So, for
     example, `markdown_strict+footnotes+definition_lists` is strict
