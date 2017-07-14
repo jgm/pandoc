@@ -60,6 +60,7 @@ module Text.Pandoc.Class ( PandocMonad(..)
                          , PandocPure(..)
                          , FileTree(..)
                          , FileInfo(..)
+                         , addToFileTree
                          , runIO
                          , runIOorExplode
                          , runPure
@@ -479,6 +480,13 @@ newtype FileTree = FileTree {unFileTree :: M.Map FilePath FileInfo}
 getFileInfo :: FilePath -> FileTree -> Maybe FileInfo
 getFileInfo fp tree = M.lookup fp $ unFileTree tree
 
+addToFileTree :: FileTree -> FilePath -> IO FileTree
+addToFileTree (FileTree treemap) fp = do
+  contents <- B.readFile fp
+  mtime <- IO.getModificationTime fp
+  return $ FileTree $
+           M.insert fp FileInfo{ infoFileMTime = mtime
+                               , infoFileContents = contents } treemap
 
 newtype PandocPure a = PandocPure {
   unPandocPure :: ExceptT PandocError
