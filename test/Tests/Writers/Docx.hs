@@ -19,16 +19,15 @@ compareOutput :: Options
               -> FilePath
               -> FilePath
               -> IO (Pandoc, Pandoc)
-compareOutput opts nativeFileIn nativeFileOut = do
+compareOutput (wopts, ropts) nativeFileIn nativeFileOut = do
   nf <- UTF8.toText <$> BS.readFile nativeFileIn
   nf' <- UTF8.toText <$> BS.readFile nativeFileOut
-  let wopts = fst opts
-  df <- runIOorExplode $ do
-            d <- readNative def nf
-            writeDocx wopts{writerUserDataDir = Just (".." </> "data")} d
+  df <- runIOorExplode $
+            readNative def nf >>=
+            writeDocx wopts{writerUserDataDir = Just (".." </> "data")} >>=
+            readDocx ropts
   df' <- runIOorExplode (readNative def nf')
-  p <- runIOorExplode $ readDocx (snd opts) df
-  return (p, df')
+  return (df, df')
 
 testCompareWithOptsIO :: Options -> String -> FilePath -> FilePath -> IO TestTree
 testCompareWithOptsIO opts name nativeFileIn nativeFileOut = do
