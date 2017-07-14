@@ -15,6 +15,7 @@ module Tests.Helpers ( test
 
 import Data.Algorithm.Diff
 import qualified Data.Map as M
+import Data.Text (Text, unpack)
 import System.Directory
 import System.Environment.Executable (getExecutablePath)
 import System.Exit
@@ -105,20 +106,24 @@ class ToString a where
   toString :: a -> String
 
 instance ToString Pandoc where
-  toString d = purely (writeNative def{ writerTemplate = s }) $ toPandoc d
+  toString d = unpack $
+     purely (writeNative def{ writerTemplate = s }) $ toPandoc d
    where s = case d of
                   (Pandoc (Meta m) _)
                     | M.null m  -> Nothing
                     | otherwise -> Just "" -- need this to get meta output
 
 instance ToString Blocks where
-  toString = purely (writeNative def) . toPandoc
+  toString = unpack . purely (writeNative def) . toPandoc
 
 instance ToString Inlines where
-  toString = trimr . purely (writeNative def) . toPandoc
+  toString = trimr . unpack . purely (writeNative def) . toPandoc
 
 instance ToString String where
   toString = id
+
+instance ToString Text where
+  toString = unpack
 
 class ToPandoc a where
   toPandoc :: a -> Pandoc

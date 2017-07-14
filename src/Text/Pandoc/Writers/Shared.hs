@@ -1,6 +1,6 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-
-Copyright (C) 2013-2015 John MacFarlane <jgm@berkeley.edu>
+Copyright (C) 2013-2017 John MacFarlane <jgm@berkeley.edu>
 
 This program is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 {- |
    Module      : Text.Pandoc.Writers.Shared
-   Copyright   : Copyright (C) 2013-2015 John MacFarlane
+   Copyright   : Copyright (C) 2013-2017 John MacFarlane
    License     : GNU GPL, version 2 or above
 
    Maintainer  : John MacFarlane <jgm@berkeley.edu>
@@ -62,10 +62,10 @@ import Text.Pandoc.XML (escapeStringForXML)
 -- Variables overwrite metadata fields with the same names.
 -- If multiple variables are set with the same name, a list is
 -- assigned.  Does nothing if 'writerTemplate' is Nothing.
-metaToJSON :: (Functor m, Monad m)
+metaToJSON :: (Functor m, Monad m, ToJSON a)
            => WriterOptions
-           -> ([Block] -> m String)
-           -> ([Inline] -> m String)
+           -> ([Block] -> m a)
+           -> ([Inline] -> m a)
            -> Meta
            -> m Value
 metaToJSON opts blockWriter inlineWriter meta
@@ -75,16 +75,16 @@ metaToJSON opts blockWriter inlineWriter meta
 
 -- | Like 'metaToJSON', but does not include variables and is
 -- not sensitive to 'writerTemplate'.
-metaToJSON' :: Monad m
-           => ([Block] -> m String)
-           -> ([Inline] -> m String)
+metaToJSON' :: (Monad m, ToJSON a)
+           => ([Block] -> m a)
+           -> ([Inline] -> m a)
            -> Meta
            -> m Value
 metaToJSON' blockWriter inlineWriter (Meta metamap) = do
   renderedMap <- Traversable.mapM
                  (metaValueToJSON blockWriter inlineWriter)
                  metamap
-  return $ M.foldWithKey defField (Object H.empty) renderedMap
+  return $ M.foldrWithKey defField (Object H.empty) renderedMap
 
 -- | Add variables to JSON object, replacing any existing values.
 -- Also include @meta-json@, a field containing a string representation
@@ -98,9 +98,9 @@ addVariablesToJSON opts metadata =
   where combineMetadata (Object o1) (Object o2) = Object $ H.union o1 o2
         combineMetadata x _                     = x
 
-metaValueToJSON :: Monad m
-                => ([Block] -> m String)
-                -> ([Inline] -> m String)
+metaValueToJSON :: (Monad m, ToJSON a)
+                => ([Block] -> m a)
+                -> ([Inline] -> m a)
                 -> MetaValue
                 -> m Value
 metaValueToJSON blockWriter inlineWriter (MetaMap metamap) = liftM toJSON $

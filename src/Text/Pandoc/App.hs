@@ -1,8 +1,9 @@
 {-# LANGUAGE CPP                 #-}
+{-# LANGUAGE DeriveGeneric       #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TupleSections       #-}
 {-
-Copyright (C) 2006-2016 John MacFarlane <jgm@berkeley.edu>
+Copyright (C) 2006-2017 John MacFarlane <jgm@berkeley.edu>
 
 This program is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -21,7 +22,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 {- |
    Module      : Text.Pandoc.App
-   Copyright   : Copyright (C) 2006-2016 John MacFarlane
+   Copyright   : Copyright (C) 2006-2017 John MacFarlane
    License     : GNU GPL, version 2 or above
 
    Maintainer  : John MacFarlane <jgm@berkeley@edu>
@@ -40,51 +41,64 @@ module Text.Pandoc.App (
 import Control.Applicative ((<|>))
 import qualified Control.Exception as E
 import Control.Monad
+import Control.Monad.Except (throwError)
 import Control.Monad.Trans
-import Data.Aeson (eitherDecode', encode)
+import Data.Monoid
+import Data.Aeson (FromJSON (..), ToJSON (..), defaultOptions, eitherDecode',
+                   encode, genericToEncoding)
 import qualified Data.ByteString as BS
 import qualified Data.ByteString.Lazy as B
 import Data.Char (toLower, toUpper)
-import qualified Data.Set as Set
 import Data.Foldable (foldrM)
 import Data.List (intercalate, isPrefixOf, isSuffixOf, sort)
 import qualified Data.Map as M
 import Data.Maybe (fromMaybe, isJust, isNothing)
+import qualified Data.Set as Set
+import Data.Text (Text)
 import qualified Data.Text as T
 import Data.Yaml (decode)
 import qualified Data.Yaml as Yaml
-import Network.URI (URI (..), isURI, parseURI)
+import GHC.Generics
+import Network.URI (URI (..), parseURI)
 import Paths_pandoc (getDataDir)
 import Skylighting (Style, Syntax (..), defaultSyntaxMap, parseTheme)
-import Skylighting.Parser (missingIncludes, parseSyntaxDefinition,
-                           addSyntaxDefinition)
+import Skylighting.Parser (addSyntaxDefinition, missingIncludes,
+                           parseSyntaxDefinition)
 import System.Console.GetOpt
 import System.Directory (Permissions (..), doesFileExist, findExecutable,
                          getAppUserDataDirectory, getPermissions)
 import System.Environment (getArgs, getEnvironment, getProgName)
 import System.Exit (ExitCode (..), exitSuccess)
 import System.FilePath
-import System.IO (stdout)
+import System.IO (nativeNewline, stdout)
+import qualified System.IO as IO (Newline (..))
 import System.IO.Error (isDoesNotExistError)
 import Text.Pandoc
 import Text.Pandoc.Builder (setMeta)
-import Text.Pandoc.Class (PandocIO, getLog, withMediaBag)
+import Text.Pandoc.Class (PandocIO, extractMedia, fillMediaBag, getLog,
+                          setResourcePath, withMediaBag, setTrace)
 import Text.Pandoc.Highlighting (highlightingStyles)
-import Text.Pandoc.Lua ( runLuaFilter )
-import Text.Pandoc.MediaBag (MediaBag, extractMediaBag, mediaDirectory)
+import Text.Pandoc.Lua (runLuaFilter, LuaException(..))
+import Text.Pandoc.Writers.Math (defaultMathJaxURL, defaultKaTeXURL)
 import Text.Pandoc.PDF (makePDF)
 import Text.Pandoc.Process (pipeProcess)
-import Text.Pandoc.SelfContained (makeSelfContained, makeDataURI)
-import Text.Pandoc.Shared (headerShift, openURL, readDataFile,
-                           readDataFileUTF8, safeRead, tabFilter)
+import Text.Pandoc.SelfContained (makeDataURI, makeSelfContained)
+import Text.Pandoc.Shared (headerShift, isURI, openURL, readDataFile,
+                           readDataFileUTF8, safeRead, tabFilter,
+                           eastAsianLineBreakFilter)
 import qualified Text.Pandoc.UTF8 as UTF8
-import Text.Pandoc.Walk (walk)
 import Text.Pandoc.XML (toEntities)
 import Text.Printf
 #ifndef _WINDOWS
 import System.Posix.IO (stdOutput)
 import System.Posix.Terminal (queryTerminal)
 #endif
+
+data LineEnding = LF | CRLF | Native deriving (Show, Generic)
+
+instance ToJSON LineEnding where
+  toEncoding = genericToEncoding defaultOptions
+instance FromJSON LineEnding
 
 parseOptions :: [OptDescr (Opt -> IO Opt)] -> Opt -> IO Opt
 parseOptions options' defaults = do
@@ -121,11 +135,11 @@ convertWithOpts opts = do
                          Nothing -> return Nothing
                          Just fp -> Just <$> UTF8.readFile fp
 
-  let csscdn = "https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.6.0/katex.min.css"
   let mathMethod =
         case (optKaTeXJS opts, optKaTeXStylesheet opts) of
             (Nothing, _)  -> optHTMLMathMethod opts
-            (Just js, ss) -> KaTeX js (fromMaybe csscdn ss)
+            (Just js, ss) -> KaTeX js (fromMaybe
+                               (defaultKaTeXURL ++ "katex.min.css") ss)
 
 
   -- --bibliography implies -F pandoc-citeproc for backwards compatibility:
@@ -169,11 +183,12 @@ convertWithOpts opts = do
   let msOutput = format == "ms"
 
   -- disabling the custom writer for now
-  writer <- if ".lua" `isSuffixOf` format
+  (writer, writerExts) <-
+            if ".lua" `isSuffixOf` format
                -- note:  use non-lowercased version writerName
-               then return (StringWriter
+               then return (TextWriter
                        (\o d -> liftIO $ writeCustom writerName o d)
-                               :: Writer PandocIO)
+                               :: Writer PandocIO, mempty)
                else case getWriter writerName of
                          Left e  -> E.throwIO $ PandocAppError $
                            if format == "pdf"
@@ -183,12 +198,13 @@ convertWithOpts opts = do
                                "\nand specify an output file with " ++
                                ".pdf extension (-o filename.pdf)."
                               else e
-                         Right w -> return (w :: Writer PandocIO)
+                         Right (w, es) -> return (w :: Writer PandocIO, es)
 
   -- TODO: we have to get the input and the output into the state for
   -- the sake of the text2tags reader.
-  reader <-  case getReader readerName of
-                Right r  -> return (r :: Reader PandocIO)
+  (reader, readerExts) <-
+           case getReader readerName of
+                Right (r, es) -> return (r :: Reader PandocIO, es)
                 Left e   -> E.throwIO $ PandocAppError e'
                   where e' = case readerName of
                                   "pdf" -> e ++
@@ -233,10 +249,9 @@ convertWithOpts opts = do
       withList f (x:xs) vars = f x vars >>= withList f xs
 
   variables <-
-      return (("outputfile", optOutputFile opts) : optVariables opts)
-      >>=
+
       withList (addStringAsVariable "sourcefile")
-               (reverse $ optInputFiles opts)
+               (reverse $ optInputFiles opts) (("outputfile", optOutputFile opts) : optVariables opts)
                -- we reverse this list because, unlike
                -- the other option lists here, it is
                -- not reversed when parsed from CLI arguments.
@@ -293,11 +308,11 @@ convertWithOpts opts = do
                       , readerColumns = optColumns opts
                       , readerTabStop = optTabStop opts
                       , readerIndentedCodeClasses = optIndentedCodeClasses opts
-                      , readerApplyMacros = not laTeXOutput
                       , readerDefaultImageExtension =
                          optDefaultImageExtension opts
                       , readerTrackChanges = optTrackChanges opts
                       , readerAbbreviations = abbrevs
+                      , readerExtensions = readerExts
                       }
 
   highlightStyle <- lookupHighlightStyle $ optHighlightStyle opts
@@ -328,6 +343,7 @@ convertWithOpts opts = do
                             writerNumberSections   = optNumberSections opts,
                             writerNumberOffset     = optNumberOffset opts,
                             writerSectionDivs      = optSectionDivs opts,
+                            writerExtensions       = writerExts,
                             writerReferenceLinks   = optReferenceLinks opts,
                             writerReferenceLocation = optReferenceLocation opts,
                             writerDpi              = optDpi opts,
@@ -343,6 +359,7 @@ convertWithOpts opts = do
                             writerSlideLevel       = optSlideLevel opts,
                             writerHighlightStyle   = highlightStyle,
                             writerSetextHeaders    = optSetextHeaders opts,
+                            writerEpubSubdirectory = optEpubSubdirectory opts,
                             writerEpubMetadata     = epubMetadata,
                             writerEpubFonts        = optEpubFonts opts,
                             writerEpubChapterLevel = optEpubChapterLevel opts,
@@ -364,21 +381,30 @@ convertWithOpts opts = do
             "Specify an output file using the -o option."
 
 
-  let transforms = case optBaseHeaderLevel opts of
-                        x | x > 1 -> [headerShift (x - 1)]
-                          | otherwise -> []
+  let transforms = (case optBaseHeaderLevel opts of
+                        x | x > 1     -> (headerShift (x - 1) :)
+                          | otherwise -> id) $
+                   (if extensionEnabled Ext_east_asian_line_breaks
+                          readerExts &&
+                       not (extensionEnabled Ext_east_asian_line_breaks
+                            writerExts &&
+                            writerWrapText writerOptions == WrapPreserve)
+                       then (eastAsianLineBreakFilter :)
+                       else id)
+                   []
 
   let convertTabs = tabFilter (if optPreserveTabs opts || readerName == "t2t"
-                                 then 0
-                                 else optTabStop opts)
+                                  then 0
+                                  else optTabStop opts)
 
-      readSources :: (Functor m, MonadIO m) => [FilePath] -> m String
-      readSources srcs = convertTabs . intercalate "\n" <$>
+      readSources :: [FilePath] -> PandocIO Text
+      readSources srcs = convertTabs . T.intercalate (T.pack "\n") <$>
                             mapM readSource srcs
 
   let runIO' :: PandocIO a -> IO a
       runIO' f = do
         (res, reports) <- runIOorExplode $ do
+                             setTrace (optTrace opts)
                              setVerbosity verbosity
                              x <- f
                              rs <- getLog
@@ -391,42 +417,47 @@ convertWithOpts opts = do
             E.throwIO PandocFailOnWarningError
         return res
 
-  let sourceToDoc :: [FilePath] -> PandocIO (Pandoc, MediaBag)
+  let sourceToDoc :: [FilePath] -> PandocIO Pandoc
       sourceToDoc sources' =
          case reader of
-              StringReader r
-                | optFileScope opts || readerName == "json" -> do
-                    pairs <- mapM
-                      (readSource >=> withMediaBag . r readerOpts) sources
-                    return (mconcat (map fst pairs), mconcat (map snd pairs))
+              TextReader r
+                | optFileScope opts || readerName == "json" ->
+                    mconcat <$> mapM (readSource >=> r readerOpts) sources
                 | otherwise ->
-                     readSources sources' >>= withMediaBag . r readerOpts
-              ByteStringReader r -> do
-                pairs <- mapM (readFile' >=>
-                                 withMediaBag . r readerOpts) sources
-                return (mconcat (map fst pairs), mconcat (map snd pairs))
+                    readSources sources' >>= r readerOpts
+              ByteStringReader r ->
+                mconcat <$> mapM (readFile' >=> r readerOpts) sources
 
   metadata <- if format == "jats" &&
-                 lookup "csl" (optMetadata opts) == Nothing &&
-                 lookup "citation-style" (optMetadata opts) == Nothing
+                 isNothing (lookup "csl" (optMetadata opts)) &&
+                 isNothing (lookup "citation-style" (optMetadata opts))
                  then do
                    jatsCSL <- readDataFile datadir "jats.csl"
                    let jatsEncoded = makeDataURI ("application/xml", jatsCSL)
                    return $ ("csl", jatsEncoded) : optMetadata opts
                  else return $ optMetadata opts
 
+  let eol = case optEol opts of
+                 CRLF   -> IO.CRLF
+                 LF     -> IO.LF
+                 Native -> nativeNewline
+
   runIO' $ do
-    (doc, media) <- sourceToDoc sources
-    doc' <- (maybe return (extractMedia media) (optExtractMedia opts) >=>
-              return . flip (foldr addMetadata) metadata >=>
-              applyTransforms transforms >=>
-              applyLuaFilters datadir (optLuaFilters opts) [format] >=>
-              applyFilters datadir filters' [format]) doc
+    setResourcePath (optResourcePath opts)
+    (doc, media) <- withMediaBag $ sourceToDoc sources >>=
+              (   (if isJust (optExtractMedia opts)
+                      then fillMediaBag (writerSourceURL writerOptions)
+                      else return)
+              >=> maybe return extractMedia (optExtractMedia opts)
+              >=> return . flip (foldr addMetadata) metadata
+              >=> applyTransforms transforms
+              >=> applyLuaFilters datadir (optLuaFilters opts) [format]
+              >=> applyFilters datadir filters' [format]
+              )
 
     case writer of
-      -- StringWriter f -> f writerOptions doc' >>= writerFn outputFile
-      ByteStringWriter f -> f writerOptions doc' >>= writeFnBinary outputFile
-      StringWriter f
+      ByteStringWriter f -> f writerOptions doc >>= writeFnBinary outputFile
+      TextWriter f
         | pdfOutput -> do
                 -- make sure writer is latex, beamer, context, html5 or ms
                 unless (laTeXOutput || conTeXtOutput || html5Output ||
@@ -445,7 +476,7 @@ convertWithOpts opts = do
                 when (isNothing mbPdfProg) $ liftIO $ E.throwIO $
                        PandocPDFProgramNotFoundError pdfprog
 
-                res <- makePDF pdfprog f writerOptions verbosity media doc'
+                res <- makePDF pdfprog f writerOptions verbosity media doc
                 case res of
                      Right pdf -> writeFnBinary outputFile pdf
                      Left err' -> liftIO $
@@ -453,18 +484,23 @@ convertWithOpts opts = do
         | otherwise -> do
                 let htmlFormat = format `elem`
                       ["html","html4","html5","s5","slidy","slideous","dzslides","revealjs"]
-                    selfcontain = if optSelfContained opts && htmlFormat
-                                  then makeSelfContained writerOptions
-                                  else return
                     handleEntities = if (htmlFormat ||
                                          format == "docbook4" ||
                                          format == "docbook5" ||
                                          format == "docbook") && optAscii opts
                                      then toEntities
                                      else id
-                output <- f writerOptions doc'
-                selfcontain (output ++ ['\n' | not standalone]) >>=
-                    writerFn outputFile . handleEntities
+                    addNl = if standalone
+                               then id
+                               else (<> T.singleton '\n')
+                output <- (addNl . handleEntities) <$> f writerOptions doc
+                writerFn eol outputFile =<<
+                  if optSelfContained opts && htmlFormat
+                     -- TODO not maximally efficient; change type
+                     -- of makeSelfContained so it works w/ Text
+                     then T.pack <$> makeSelfContained writerOptions
+                          (T.unpack output)
+                     else return output
 
 type Transform = Pandoc -> Pandoc
 
@@ -497,7 +533,8 @@ externalFilter f args' d = liftIO $ do
   (exitcode, outbs) <- E.handle filterException $
                               pipeProcess env' f' args'' $ encode d
   case exitcode of
-       ExitSuccess    -> return $ either error id $ eitherDecode' outbs
+       ExitSuccess    -> either (E.throwIO . PandocFilterError f)
+                                   return $ eitherDecode' outbs
        ExitFailure ec -> E.throwIO $ PandocFilterError f
                            ("Filter returned error status " ++ show ec)
  where filterException :: E.SomeException -> IO a
@@ -529,6 +566,7 @@ data Opt = Opt
     , optHTMLMathMethod        :: HTMLMathMethod -- ^ Method to print HTML math
     , optAbbreviations         :: Maybe FilePath -- ^ Path to abbrevs file
     , optReferenceDoc          :: Maybe FilePath -- ^ Path of reference doc
+    , optEpubSubdirectory      :: String -- ^ EPUB subdir in OCF container
     , optEpubMetadata          :: Maybe FilePath   -- ^ EPUB metadata
     , optEpubFonts             :: [FilePath] -- ^ EPUB fonts to embed
     , optEpubChapterLevel      :: Int     -- ^ Header level at which to split chapters
@@ -537,6 +575,7 @@ data Opt = Opt
     , optDumpArgs              :: Bool    -- ^ Output command-line arguments
     , optIgnoreArgs            :: Bool    -- ^ Ignore command-line arguments
     , optVerbosity             :: Verbosity  -- ^ Verbosity of diagnostic output
+    , optTrace                 :: Bool  -- ^ Enable tracing
     , optLogFile               :: Maybe FilePath -- ^ File to write JSON log output
     , optFailIfWarnings        :: Bool    -- ^ Fail on warnings
     , optReferenceLinks        :: Bool    -- ^ Use reference links in writing markdown, rst
@@ -568,7 +607,13 @@ data Opt = Opt
     , optIncludeBeforeBody     :: [FilePath]       -- ^ Files to include before
     , optIncludeAfterBody      :: [FilePath]       -- ^ Files to include after body
     , optIncludeInHeader       :: [FilePath]       -- ^ Files to include in header
-    }
+    , optResourcePath          :: [FilePath] -- ^ Path to search for images etc
+    , optEol                   :: LineEnding -- ^ Style of line-endings to use
+    } deriving (Generic, Show)
+
+instance ToJSON Opt where
+  toEncoding = genericToEncoding defaultOptions
+instance FromJSON Opt
 
 -- | Defaults for command-line options.
 defaultOpts :: Opt
@@ -597,6 +642,7 @@ defaultOpts = Opt
     , optHTMLMathMethod        = PlainMath
     , optAbbreviations         = Nothing
     , optReferenceDoc          = Nothing
+    , optEpubSubdirectory      = "EPUB"
     , optEpubMetadata          = Nothing
     , optEpubFonts             = []
     , optEpubChapterLevel      = 1
@@ -605,6 +651,7 @@ defaultOpts = Opt
     , optDumpArgs              = False
     , optIgnoreArgs            = False
     , optVerbosity             = WARNING
+    , optTrace                 = False
     , optLogFile               = Nothing
     , optFailIfWarnings        = False
     , optReferenceLinks        = False
@@ -636,6 +683,8 @@ defaultOpts = Opt
     , optIncludeBeforeBody     = []
     , optIncludeAfterBody      = []
     , optIncludeInHeader       = []
+    , optResourcePath          = ["."]
+    , optEol                   = Native
     }
 
 addMetadata :: (String, String) -> Pandoc -> Pandoc
@@ -728,19 +777,6 @@ defaultWriterName x =
 
 -- Transformations of a Pandoc document post-parsing:
 
-extractMedia :: MonadIO m => MediaBag -> FilePath -> Pandoc -> m Pandoc
-extractMedia media dir d =
-  case [fp | (fp, _, _) <- mediaDirectory media] of
-        []  -> return d
-        fps -> do
-          extractMediaBag True dir media
-          return $ walk (adjustImagePath dir fps) d
-
-adjustImagePath :: FilePath -> [FilePath] -> Inline -> Inline
-adjustImagePath dir paths (Image attr lab (src, tit))
-   | src `elem` paths = Image attr lab (dir ++ "/" ++ src, tit)
-adjustImagePath _ _ x = x
-
 applyTransforms :: Monad m => [Transform] -> Pandoc -> m Pandoc
 applyTransforms transforms d = return $ foldr ($) d transforms
 
@@ -762,10 +798,16 @@ expandFilterPath mbDatadir fp = liftIO $ do
                _ -> return fp
 
 applyLuaFilters :: MonadIO m
-                => Maybe FilePath -> [FilePath] -> [String] -> Pandoc -> m Pandoc
+                => Maybe FilePath -> [FilePath] -> [String] -> Pandoc
+                -> m Pandoc
 applyLuaFilters mbDatadir filters args d = do
   expandedFilters <- mapM (expandFilterPath mbDatadir) filters
-  foldrM ($) d $ map (flip runLuaFilter args) expandedFilters
+  let go f d' = liftIO $ do
+        res <- E.try (runLuaFilter mbDatadir f args d')
+        case res of
+             Right x -> return x
+             Left (LuaException s) -> E.throw (PandocFilterError f s)
+  foldrM ($) d $ map go expandedFilters
 
 applyFilters :: MonadIO m
              => Maybe FilePath -> [FilePath] -> [String] -> Pandoc -> m Pandoc
@@ -773,17 +815,23 @@ applyFilters mbDatadir filters args d = do
   expandedFilters <- mapM (expandFilterPath mbDatadir) filters
   foldrM ($) d $ map (flip externalFilter args) expandedFilters
 
-readSource :: MonadIO m => FilePath -> m String
-readSource "-" = liftIO UTF8.getContents
+readSource :: FilePath -> PandocIO Text
+readSource "-" = liftIO (UTF8.toText <$> BS.getContents)
 readSource src = case parseURI src of
                       Just u | uriScheme u `elem` ["http:","https:"] ->
                                  readURI src
                              | uriScheme u == "file:" ->
-                                 liftIO $ UTF8.readFile (uriPath u)
-                      _       -> liftIO $ UTF8.readFile src
+                                 liftIO $ UTF8.toText <$>
+                                    BS.readFile (uriPath u)
+                      _       -> liftIO $ UTF8.toText <$>
+                                    BS.readFile src
 
-readURI :: MonadIO m => FilePath -> m String
-readURI src = liftIO $ (UTF8.toString . fst) <$> openURL src
+readURI :: FilePath -> PandocIO Text
+readURI src = do
+  res <- liftIO $ openURL src
+  case res of
+       Left e              -> throwError $ PandocHttpError src e
+       Right (contents, _) -> return $ UTF8.toText contents
 
 readFile' :: MonadIO m => FilePath -> m B.ByteString
 readFile' "-" = liftIO B.getContents
@@ -793,9 +841,10 @@ writeFnBinary :: MonadIO m => FilePath -> B.ByteString -> m ()
 writeFnBinary "-" = liftIO . B.putStr
 writeFnBinary f   = liftIO . B.writeFile (UTF8.encodePath f)
 
-writerFn :: MonadIO m => FilePath -> String -> m ()
-writerFn "-" = liftIO . UTF8.putStr
-writerFn f   = liftIO . UTF8.writeFile f
+writerFn :: MonadIO m => IO.Newline -> FilePath -> Text -> m ()
+-- TODO this implementation isn't maximally efficient:
+writerFn eol "-" = liftIO . UTF8.putStrWith eol . T.unpack
+writerFn eol f   = liftIO . UTF8.writeFileWith eol f . T.unpack
 
 lookupHighlightStyle :: Maybe String -> IO (Maybe Style)
 lookupHighlightStyle Nothing = return Nothing
@@ -945,7 +994,7 @@ options =
                      templ <- getDefaultTemplate Nothing arg
                      case templ of
                           Right t -> UTF8.hPutStr stdout t
-                          Left e  -> error $ show e
+                          Left e  -> E.throwIO $ PandocAppError (show e)
                      exitSuccess)
                   "FORMAT")
                  "" -- "Print default template for FORMAT"
@@ -967,6 +1016,19 @@ options =
                                         "dpi must be a number greater than 0")
                   "NUMBER")
                  "" -- "Dpi (default 96)"
+
+    , Option "" ["eol"]
+                 (ReqArg
+                  (\arg opt ->
+                    case toLower <$> arg of
+                      "crlf"   -> return opt { optEol = CRLF }
+                      "lf"     -> return opt { optEol = LF }
+                      "native" -> return opt { optEol = Native }
+                      -- mac-syntax (cr) is not supported in ghc-base.
+                      _      -> E.throwIO $ PandocOptionError
+                                "--eol must be crlf, lf, or native")
+                  "crlf|lf|native")
+                 "" -- "EOL (default OS-dependent)"
 
     , Option "" ["wrap"]
                  (ReqArg
@@ -1045,6 +1107,14 @@ options =
                                            optStandalone = True })
                   "FILE")
                  "" -- "File to include after document body"
+
+    , Option "" ["resource-path"]
+                (ReqArg
+                  (\arg opt -> return opt { optResourcePath =
+                                   splitSearchPath arg })
+                   "SEARCHPATH")
+                  "" -- "Paths to search for images and other resources"
+
 
     , Option "" ["self-contained"]
                  (NoArg
@@ -1188,6 +1258,13 @@ options =
                   "FILE")
                  "" -- "Path of custom reference doc"
 
+    , Option "" ["epub-subdirectory"]
+             (ReqArg
+                  (\arg opt ->
+                     return opt { optEpubSubdirectory = arg })
+                  "DIRNAME")
+                 "" -- "Name of subdirectory for epub content in OCF container"
+
     , Option "" ["epub-cover-image"]
                  (ReqArg
                   (\arg opt ->
@@ -1311,7 +1388,8 @@ options =
     , Option "" ["mathjax"]
                  (OptArg
                   (\arg opt -> do
-                      let url' = fromMaybe "https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.0/MathJax.js?config=TeX-AMS_CHTML-full" arg
+                      let url' = fromMaybe (defaultMathJaxURL ++
+                                  "MathJax.js?config=TeX-AMS_CHTML-full") arg
                       return opt { optHTMLMathMethod = MathJax url'})
                   "URL")
                  "" -- "Use MathJax for HTML math"
@@ -1320,7 +1398,7 @@ options =
                   (\arg opt ->
                       return opt
                         { optKaTeXJS =
-                           arg <|> Just "https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.6.0/katex.min.js"})
+                           arg <|> Just (defaultKaTeXURL ++ "katex.min.js")})
                   "URL")
                   "" -- Use KaTeX for HTML Math
 
@@ -1344,7 +1422,7 @@ options =
 
     , Option "" ["trace"]
                  (NoArg
-                  (\opt -> return opt { optVerbosity = DEBUG }))
+                  (\opt -> return opt { optTrace = True }))
                  "" -- "Turn on diagnostic tracing in readers."
 
     , Option "" ["dump-args"]
@@ -1388,8 +1466,8 @@ options =
                            map ("--" ++) longs
                      let allopts = unwords (concatMap optnames options)
                      UTF8.hPutStrLn stdout $ printf tpl allopts
-                         (unwords readers'names)
-                         (unwords writers'names)
+                         (unwords readersNames)
+                         (unwords writersNames)
                          (unwords $ map fst highlightingStyles)
                          ddir
                      exitSuccess ))
@@ -1398,14 +1476,14 @@ options =
     , Option "" ["list-input-formats"]
                  (NoArg
                   (\_ -> do
-                     mapM_ (UTF8.hPutStrLn stdout) readers'names
+                     mapM_ (UTF8.hPutStrLn stdout) readersNames
                      exitSuccess ))
                  ""
 
     , Option "" ["list-output-formats"]
                  (NoArg
                   (\_ -> do
-                     mapM_ (UTF8.hPutStrLn stdout) writers'names
+                     mapM_ (UTF8.hPutStrLn stdout) writersNames
                      exitSuccess ))
                  ""
 
@@ -1486,6 +1564,8 @@ handleUnrecognizedOption :: String -> [String] -> [String]
 handleUnrecognizedOption "--smart" =
   (("--smart/-S has been removed.  Use +smart or -smart extension instead.\n" ++
     "For example: pandoc -f markdown+smart -t markdown-smart.") :)
+handleUnrecognizedOption "--normalize" =
+  ("--normalize has been removed.  Normalization is now automatic." :)
 handleUnrecognizedOption "-S" = handleUnrecognizedOption "--smart"
 handleUnrecognizedOption "--old-dashes" =
   ("--old-dashes has been removed.  Use +old_dashes extension instead." :)
@@ -1509,14 +1589,15 @@ uppercaseFirstLetter :: String -> String
 uppercaseFirstLetter (c:cs) = toUpper c : cs
 uppercaseFirstLetter []     = []
 
-readers'names :: [String]
-readers'names = sort (map fst (readers :: [(String, Reader PandocIO)]))
+readersNames :: [String]
+readersNames = sort (map fst (readers :: [(String, Reader PandocIO)]))
 
-writers'names :: [String]
-writers'names = sort (map fst (writers :: [(String, Writer PandocIO)]))
+writersNames :: [String]
+writersNames = sort (map fst (writers :: [(String, Writer PandocIO)]))
 
 splitField :: String -> (String, String)
 splitField s =
   case break (`elem` ":=") s of
        (k,_:v) -> (k,v)
        (k,[])  -> (k,"true")
+

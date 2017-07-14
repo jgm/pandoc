@@ -34,6 +34,7 @@ matrix:
   - env: BUILD=cabal GHCVER=7.8.4 CABALVER=1.18
     compiler: ": #GHC 7.8.4"
     addons: {apt: {packages: [cabal-install-1.18,ghc-7.8.4,happy-1.19.5], sources: [hvr-ghc]}}
+
   - env: BUILD=cabal GHCVER=7.10.3 CABALVER=1.22
     compiler: ": #GHC 7.10.3"
     addons: {apt: {packages: [cabal-install-1.22,ghc-7.10.3,happy-1.19.5], sources: [hvr-ghc]}}
@@ -41,6 +42,10 @@ matrix:
   - env: BUILD=cabal GHCVER=8.0.2 CABALVER=1.24
     compiler: ": #GHC 8.0.2"
     addons: {apt: {packages: [cabal-install-1.24,ghc-8.0.2,happy-1.19.5], sources: [hvr-ghc]}}
+
+  - env: BUILD=cabal GHCVER=8.2.1 CABALVER=1.24
+    compiler: ": #GHC 8.2.1"
+    addons: {apt: {packages: [cabal-install-1.24,ghc-8.2.1,happy-1.19.5], sources: [hvr-ghc]}}
 
   # Build with the newest GHC and cabal-install. This is an accepted failure,
   # see below.
@@ -69,6 +74,7 @@ matrix:
 
   allow_failures:
   - env: BUILD=cabal GHCVER=head  CABALVER=head
+  - env: BUILD=cabal GHCVER=8.2.1 CABALVER=1.24
   - env: BUILD=stack ARGS="--resolver nightly"
 
   fast_finish: true
@@ -100,13 +106,11 @@ install:
   case "$BUILD" in
     stack)
       ulimit -n 4096
-      stack --no-terminal install hsb2hs
       stack --no-terminal --install-ghc $ARGS test --flag 'aeson:fast' --only-dependencies --fast --flag pandoc:embed_data_files --test
       ;;
     cabal)
       cabal --version
       travis_retry cabal update
-      cabal install hsb2hs
       cabal install -j --only-dependencies -ffast --enable-tests --enable-benchmarks -fembed_data_files --force-reinstalls --ghc-options=-O0 --reorder-goals --max-backjumps=-1 $CABALARGS
       ;;
   esac

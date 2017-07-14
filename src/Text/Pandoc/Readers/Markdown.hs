@@ -2,7 +2,7 @@
 {-# LANGUAGE ScopedTypeVariables #-}
 
 {-
-Copyright (C) 2006-2015 John MacFarlane <jgm@berkeley.edu>
+Copyright (C) 2006-2017 John MacFarlane <jgm@berkeley.edu>
 
 This program is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -21,7 +21,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 {- |
    Module      : Text.Pandoc.Readers.Markdown
-   Copyright   : Copyright (C) 2006-2015 John MacFarlane
+   Copyright   : Copyright (C) 2006-2017 John MacFarlane
    License     : GNU GPL, version 2 or above
 
    Maintainer  : John MacFarlane <jgm@berkeley.edu>
@@ -52,17 +52,17 @@ import System.FilePath (addExtension, takeExtension)
 import Text.HTML.TagSoup
 import Text.Pandoc.Builder (Blocks, Inlines)
 import qualified Text.Pandoc.Builder as B
-import Text.Pandoc.Class (PandocMonad, report)
+import Text.Pandoc.Class (PandocMonad(..), report)
 import Text.Pandoc.Definition
 import Text.Pandoc.Emoji (emojis)
-import Text.Pandoc.Generic (bottomUp)
+import Text.Pandoc.Error
 import Text.Pandoc.Logging
 import Text.Pandoc.Options
 import Text.Pandoc.Parsing hiding (tableWith)
-import Text.Pandoc.Pretty (charWidth)
 import Text.Pandoc.Readers.HTML (htmlInBalanced, htmlTag, isBlockTag,
                                  isCommentTag, isInlineTag, isTextTag)
-import Text.Pandoc.Readers.LaTeX (rawLaTeXBlock, rawLaTeXInline)
+import Text.Pandoc.Readers.LaTeX (rawLaTeXBlock, rawLaTeXInline, applyMacros,
+                                  macro)
 import Text.Pandoc.Shared
 import qualified Text.Pandoc.UTF8 as UTF8
 import Text.Pandoc.XML (fromEntities)
@@ -72,10 +72,11 @@ type MarkdownParser m = ParserT [Char] ParserState m
 -- | Read markdown from an input string and return a Pandoc document.
 readMarkdown :: PandocMonad m
              => ReaderOptions -- ^ Reader options
-             -> String        -- ^ String to parse (assuming @'\n'@ line endings)
+             -> Text      -- ^ String to parse (assuming @'\n'@ line endings)
              -> m Pandoc
 readMarkdown opts s = do
-  parsed <- (readWithM parseMarkdown) def{ stateOptions = opts } (s ++ "\n\n")
+  parsed <- (readWithM parseMarkdown) def{ stateOptions = opts }
+               (T.unpack (crFilter s) ++ "\n\n")
   case parsed of
     Right result -> return result
     Left e       -> throwError e
@@ -155,9 +156,11 @@ litChar = escapedChar'
 inlinesInBalancedBrackets :: PandocMonad m => MarkdownParser m (F Inlines)
 inlinesInBalancedBrackets = do
   char '['
+  pos <- getPosition
   (_, raw) <- withRaw $ charsInBalancedBrackets 1
   guard $ not $ null raw
-  parseFromString (trimInlinesF . mconcat <$> many inline) (init raw)
+  parseFromString' (setPosition pos >>
+                   trimInlinesF . mconcat <$> many inline) (init raw)
 
 charsInBalancedBrackets :: PandocMonad m => Int -> MarkdownParser m ()
 charsInBalancedBrackets 0 = return ()
@@ -189,7 +192,7 @@ rawTitleBlockLine = do
 titleLine :: PandocMonad m => MarkdownParser m (F Inlines)
 titleLine = try $ do
   raw <- rawTitleBlockLine
-  res <- parseFromString (many inline) raw
+  res <- parseFromString' (many inline) raw
   return $ trimInlinesF $ mconcat res
 
 authorsLine :: PandocMonad m => MarkdownParser m (F [Inlines])
@@ -200,12 +203,12 @@ authorsLine = try $ do
             (trimInlinesF . mconcat <$> many
                  (try $ notFollowedBy sep >> inline))
             sep
-  sequence <$> parseFromString pAuthors raw
+  sequence <$> parseFromString' pAuthors raw
 
 dateLine :: PandocMonad m => MarkdownParser m (F Inlines)
 dateLine = try $ do
   raw <- rawTitleBlockLine
-  res <- parseFromString (many inline) raw
+  res <- parseFromString' (many inline) raw
   return $ trimInlinesF $ mconcat res
 
 titleBlock :: PandocMonad m => MarkdownParser m ()
@@ -290,18 +293,22 @@ ignorable t = (T.pack "_") `T.isSuffixOf` t
 
 toMetaValue :: PandocMonad m
             => Text -> MarkdownParser m (F MetaValue)
-toMetaValue x = toMeta <$> parseFromString parseBlocks (T.unpack x)
-  where
-    toMeta p = do
-      p' <- p
-      return $
-        case B.toList p' of
-             [Plain xs]           -> MetaInlines xs
-             [Para xs]
-              | endsWithNewline x -> MetaBlocks [Para xs]
-              | otherwise         -> MetaInlines xs
-             bs                   -> MetaBlocks bs
-    endsWithNewline t = T.pack "\n" `T.isSuffixOf` t
+toMetaValue x =
+  parseFromString' parser' (T.unpack x)
+  where parser' = (asInlines <$> ((trimInlinesF . mconcat)
+                       <$> (guard (not endsWithNewline)
+                             *> manyTill inline eof)))
+                  <|> (asBlocks <$> parseBlocks)
+        asBlocks p = do
+          p' <- p
+          return $ MetaBlocks (B.toList p')
+        asInlines p = do
+          p' <- p
+          return $ MetaInlines (B.toList p')
+        endsWithNewline = T.pack "\n" `T.isSuffixOf` x
+        -- Note: a standard quoted or unquoted YAML value will
+        -- not end in a newline, but a "block" set off with
+        -- `|` or `>` will.
 
 yamlToMeta :: PandocMonad m
            => Yaml.Value -> MarkdownParser m (F MetaValue)
@@ -360,20 +367,21 @@ parseMarkdown = do
   optional titleBlock
   blocks <- parseBlocks
   st <- getState
+  -- check for notes with no corresponding note references
+  let notesUsed = stateNoteRefs st
+  let notesDefined = M.keys (stateNotes' st)
+  mapM_ (\n -> unless (n `Set.member` notesUsed) $ do
+                -- lookup to get sourcepos
+                case M.lookup n (stateNotes' st) of
+                   Just (pos, _) -> report (NoteDefinedButNotUsed n pos)
+                   Nothing -> throwError $
+                     PandocShouldNeverHappenError "note not found")
+         notesDefined
   let doc = runF (do Pandoc _ bs <- B.doc <$> blocks
                      meta <- stateMeta' st
                      return $ Pandoc meta bs) st
   reportLogMessages
-  (do guardEnabled Ext_east_asian_line_breaks
-      return $ bottomUp softBreakFilter doc) <|> return doc
-
-softBreakFilter :: [Inline] -> [Inline]
-softBreakFilter (x:SoftBreak:y:zs) =
-  case (stringify x, stringify y) of
-        (xs@(_:_), (c:_))
-          | charWidth (last xs) == 2 && charWidth c == 2 -> x:y:zs
-        _ -> x:SoftBreak:y:zs
-softBreakFilter xs = xs
+  return doc
 
 referenceKey :: PandocMonad m => MarkdownParser m (F Blocks)
 referenceKey = try $ do
@@ -392,7 +400,9 @@ referenceKey = try $ do
   src <- try betweenAngles <|> sourceURL
   tit <- option "" referenceTitle
   attr   <- option nullAttr $ try $
-              guardEnabled Ext_link_attributes >> skipSpaces >> attributes
+              do guardEnabled Ext_link_attributes
+                 skipSpaces >> optional newline >> skipSpaces
+                 attributes
   addKvs <- option [] $ guardEnabled Ext_mmd_link_attributes
                           >> many (try $ spnl >> keyValAttr)
   blanklines
@@ -402,8 +412,12 @@ referenceKey = try $ do
   let oldkeys = stateKeys st
   let key = toKey raw
   case M.lookup key oldkeys of
-    Just _  -> logMessage $ DuplicateLinkReference raw pos
-    Nothing -> return ()
+    Just (t,a) | not (t == target && a == attr') ->
+      -- We don't warn on two duplicate keys if the targets are also
+      -- the same. This can happen naturally with --reference-location=block
+      -- or section. See #3701.
+      logMessage $ DuplicateLinkReference raw pos
+    _ -> return ()
   updateState $ \s -> s { stateKeys = M.insert key (target, attr') oldkeys }
   return $ return mempty
 
@@ -464,13 +478,12 @@ noteBlock = try $ do
   rest <- many $ try $ blanklines >> indentSpaces >> rawLines
   let raw = unlines (first:rest) ++ "\n"
   optional blanklines
-  parsed <- parseFromString parseBlocks raw
-  let newnote = (ref, parsed)
+  parsed <- parseFromString' parseBlocks raw
   oldnotes <- stateNotes' <$> getState
-  case lookup ref oldnotes of
+  case M.lookup ref oldnotes of
     Just _  -> logMessage $ DuplicateNoteReference ref pos
     Nothing -> return ()
-  updateState $ \s -> s { stateNotes' = newnote : oldnotes }
+  updateState $ \s -> s { stateNotes' = M.insert ref (pos, parsed) oldnotes }
   return mempty
 
 --
@@ -482,7 +495,6 @@ parseBlocks = mconcat <$> manyTill block eof
 
 block :: PandocMonad m => MarkdownParser m (F Blocks)
 block = do
-  pos <- getPosition
   res <- choice [ mempty <$ blanklines
                , codeBlockFenced
                , yamlMetaBlock
@@ -508,8 +520,7 @@ block = do
                , para
                , plain
                ] <?> "block"
-  report $ ParsingTrace
-    (take 60 $ show $ B.toList $ runF res defaultParserState) pos
+  trace (take 60 $ show $ B.toList $ runF res defaultParserState)
   return res
 
 --
@@ -614,7 +625,7 @@ hrule = try $ do
 --
 
 indentedLine :: PandocMonad m => MarkdownParser m String
-indentedLine = indentSpaces >> anyLine >>= return . (++ "\n")
+indentedLine = indentSpaces >> anyLineNewline
 
 blockDelimiter :: PandocMonad m
                => (Char -> Bool)
@@ -674,19 +685,36 @@ specialAttr = do
   char '-'
   return $ \(id',cs,kvs) -> (id',cs ++ ["unnumbered"],kvs)
 
+rawAttribute :: PandocMonad m => MarkdownParser m String
+rawAttribute = do
+  char '{'
+  skipMany spaceChar
+  char '='
+  format <- many1 $ satisfy (\c -> isAlphaNum c || c `elem` "-_")
+  skipMany spaceChar
+  char '}'
+  return format
+
 codeBlockFenced :: PandocMonad m => MarkdownParser m (F Blocks)
 codeBlockFenced = try $ do
   c <- try (guardEnabled Ext_fenced_code_blocks >> lookAhead (char '~'))
      <|> (guardEnabled Ext_backtick_code_blocks >> lookAhead (char '`'))
   size <- blockDelimiter (== c) Nothing
   skipMany spaceChar
-  attr <- option ([],[],[]) $
-            try (guardEnabled Ext_fenced_code_attributes >> attributes)
-           <|> ((\x -> ("",[toLanguageId x],[])) <$> many1 nonspaceChar)
+  rawattr <-
+     (Left <$> try (guardEnabled Ext_raw_attribute >> rawAttribute))
+    <|>
+     (Right <$> option ("",[],[])
+         (try (guardEnabled Ext_fenced_code_attributes >> attributes)
+          <|> ((\x -> ("",[toLanguageId x],[])) <$> many1 nonspaceChar)))
   blankline
-  contents <- manyTill anyLine (blockDelimiter (== c) (Just size))
+  contents <- intercalate "\n" <$>
+                 manyTill anyLine (blockDelimiter (== c) (Just size))
   blanklines
-  return $ return $ B.codeBlockWith attr $ intercalate "\n" contents
+  return $ return $
+    case rawattr of
+          Left syn   -> B.rawBlock syn contents
+          Right attr -> B.codeBlockWith attr contents
 
 -- correctly handle github language identifiers
 toLanguageId :: String -> String
@@ -772,7 +800,7 @@ blockQuote :: PandocMonad m => MarkdownParser m (F Blocks)
 blockQuote = do
   raw <- emailBlockQuote
   -- parse the extracted block, which may contain various block elements:
-  contents <- parseFromString parseBlocks $ (intercalate "\n" raw) ++ "\n\n"
+  contents <- parseFromString' parseBlocks $ (intercalate "\n" raw) ++ "\n\n"
   return $ B.blockQuote <$> contents
 
 --
@@ -868,8 +896,7 @@ listContinuationLine = try $ do
   notFollowedBy' listStart
   notFollowedByHtmlCloser
   optional indentSpaces
-  result <- anyLine
-  return $ result ++ "\n"
+  anyLineNewline
 
 listItem :: PandocMonad m
          => MarkdownParser m a
@@ -885,7 +912,7 @@ listItem start = try $ do
   setState $ state {stateParserContext = ListItemState}
   -- parse the extracted block, which may contain various block elements:
   let raw = concat (first:continuations)
-  contents <- parseFromString parseBlocks raw
+  contents <- parseFromString' parseBlocks raw
   updateState (\st -> st {stateParserContext = oldContext})
   return contents
 
@@ -932,8 +959,8 @@ definitionListItem :: PandocMonad m => Bool -> MarkdownParser m (F (Inlines, [Bl
 definitionListItem compact = try $ do
   rawLine' <- anyLine
   raw <- many1 $ defRawBlock compact
-  term <- parseFromString (trimInlinesF . mconcat <$> many inline) rawLine'
-  contents <- mapM (parseFromString parseBlocks . (++"\n")) raw
+  term <- parseFromString' (trimInlinesF . mconcat <$> many inline) rawLine'
+  contents <- mapM (parseFromString' parseBlocks . (++"\n")) raw
   optional blanklines
   return $ liftM2 (,) term (sequence contents)
 
@@ -941,7 +968,7 @@ defRawBlock :: PandocMonad m => Bool -> MarkdownParser m String
 defRawBlock compact = try $ do
   hasBlank <- option False $ blankline >> return True
   defListMarker
-  firstline <- anyLine
+  firstline <- anyLineNewline
   let dline = try
                ( do notFollowedBy blankline
                     notFollowedByHtmlCloser
@@ -956,7 +983,7 @@ defRawBlock compact = try $ do
             ln <- indentSpaces >> notFollowedBy blankline >> anyLine
             lns <- many dline
             return $ trailing ++ unlines (ln:lns)
-  return $ trimr (firstline ++ "\n" ++ unlines rawlines ++ cont) ++
+  return $ trimr (firstline ++ unlines rawlines ++ cont) ++
             if hasBlank || not (null cont) then "\n\n" else ""
 
 definitionList :: PandocMonad m => MarkdownParser m (F Blocks)
@@ -1008,7 +1035,8 @@ para = try $ do
               result' <- result
               case B.toList result' of
                    [Image attr alt (src,tit)]
-                     | Ext_implicit_figures `extensionEnabled` exts ->
+                     | not (null alt) &&
+                       Ext_implicit_figures `extensionEnabled` exts ->
                         -- the fig: at beginning of title indicates a figure
                         return $ B.para $ B.singleton
                                $ Image attr alt (src,'f':'i':'g':':':tit)
@@ -1078,10 +1106,11 @@ latexMacro = try $ do
 rawTeXBlock :: PandocMonad m => MarkdownParser m (F Blocks)
 rawTeXBlock = do
   guardEnabled Ext_raw_tex
-  result <- (B.rawBlock "latex" . concat <$>
-                  rawLaTeXBlock `sepEndBy1` blankline)
-        <|> (B.rawBlock "context" . concat <$>
+  result <- (B.rawBlock "context" . concat <$>
                   rawConTeXtEnvironment `sepEndBy1` blankline)
+        <|> (B.rawBlock "latex" . concat <$>
+                  rawLaTeXBlock `sepEndBy1` blankline)
+
   spaces
   return $ return result
 
@@ -1125,7 +1154,7 @@ lineBlock :: PandocMonad m => MarkdownParser m (F Blocks)
 lineBlock = try $ do
   guardEnabled Ext_line_blocks
   lines' <- lineBlockLines >>=
-            mapM (parseFromString (trimInlinesF . mconcat <$> many inline))
+            mapM (parseFromString' (trimInlinesF . mconcat <$> many inline))
   return $ B.lineBlock <$> sequence lines'
 
 --
@@ -1168,7 +1197,7 @@ simpleTableHeader headless = try $ do
                      then replicate (length dashes) ""
                      else rawHeads
   heads <- fmap sequence
-           $ mapM (parseFromString (mconcat <$> many plain))
+           $ mapM (parseFromString' (mconcat <$> many plain))
            $ map trim rawHeads'
   return (heads, aligns, indices)
 
@@ -1214,7 +1243,7 @@ tableLine :: PandocMonad m
           => [Int]
           -> MarkdownParser m (F [Blocks])
 tableLine indices = rawTableLine indices >>=
-  fmap sequence . mapM (parseFromString (mconcat <$> many plain))
+  fmap sequence . mapM (parseFromString' (mconcat <$> many plain))
 
 -- Parse a multiline table row and return a list of blocks (columns).
 multilineRow :: PandocMonad m
@@ -1223,7 +1252,7 @@ multilineRow :: PandocMonad m
 multilineRow indices = do
   colLines <- many1 (rawTableLine indices)
   let cols = map unlines $ transpose colLines
-  fmap sequence $ mapM (parseFromString (mconcat <$> many plain)) cols
+  fmap sequence $ mapM (parseFromString' (mconcat <$> many plain)) cols
 
 -- Parses a table caption:  inlines beginning with 'Table:'
 -- and followed by blank lines.
@@ -1281,7 +1310,7 @@ multilineTableHeader headless = try $ do
                     then replicate (length dashes) ""
                     else map (unlines . map trim) rawHeadsList
   heads <- fmap sequence $
-           mapM (parseFromString (mconcat <$> many plain)) $
+           mapM (parseFromString' (mconcat <$> many plain)) $
              map trim rawHeads
   return (heads, aligns, indices)
 
@@ -1291,89 +1320,7 @@ multilineTableHeader headless = try $ do
 -- ending with a footer (dashed line followed by blank line).
 gridTable :: PandocMonad m => Bool -- ^ Headerless table
           -> MarkdownParser m ([Alignment], [Double], F [Blocks], F [[Blocks]])
-gridTable headless =
-  tableWith (gridTableHeader headless) gridTableRow
-            (gridTableSep '-') gridTableFooter
-
-gridTableSplitLine :: [Int] -> String -> [String]
-gridTableSplitLine indices line = map removeFinalBar $ tail $
-  splitStringByIndices (init indices) $ trimr line
-
-gridPart :: PandocMonad m => Char -> ParserT [Char] st m ((Int, Int), Alignment)
-gridPart ch = do
-  leftColon <- option False (True <$ char ':')
-  dashes <- many1 (char ch)
-  rightColon <- option False (True <$ char ':')
-  char '+'
-  let lengthDashes = length dashes + (if leftColon then 1 else 0) +
-                       (if rightColon then 1 else 0)
-  let alignment = case (leftColon, rightColon) of
-                       (True, True)   -> AlignCenter
-                       (True, False)  -> AlignLeft
-                       (False, True)  -> AlignRight
-                       (False, False) -> AlignDefault
-  return ((lengthDashes, lengthDashes + 1), alignment)
-
-gridDashedLines :: PandocMonad m => Char -> ParserT [Char] st m [((Int, Int), Alignment)]
-gridDashedLines ch = try $ char '+' >> many1 (gridPart ch) <* blankline
-
-removeFinalBar :: String -> String
-removeFinalBar =
-  reverse . dropWhile (`elem` " \t") . dropWhile (=='|') . reverse
-
--- | Separator between rows of grid table.
-gridTableSep :: PandocMonad m => Char -> MarkdownParser m Char
-gridTableSep ch = try $ gridDashedLines ch >> return '\n'
-
--- | Parse header for a grid table.
-gridTableHeader :: PandocMonad m => Bool -- ^ Headerless table
-                -> MarkdownParser m (F [Blocks], [Alignment], [Int])
-gridTableHeader headless = try $ do
-  optional blanklines
-  dashes <- gridDashedLines '-'
-  rawContent  <- if headless
-                    then return []
-                    else many1 (try (char '|' >> anyLine))
-  underDashes <- if headless
-                    then return dashes
-                    else gridDashedLines '='
-  guard $ length dashes == length underDashes
-  let lines'   = map (snd . fst) underDashes
-  let indices  = scanl (+) 0 lines'
-  let aligns   = map snd underDashes
-  let rawHeads = if headless
-                    then replicate (length underDashes) ""
-                    else map (unlines . map trim) $ transpose
-                       $ map (gridTableSplitLine indices) rawContent
-  heads <- fmap sequence $ mapM (parseFromString parseBlocks . trim) rawHeads
-  return (heads, aligns, indices)
-
-gridTableRawLine :: PandocMonad m => [Int] -> MarkdownParser m [String]
-gridTableRawLine indices = do
-  char '|'
-  line <- anyLine
-  return (gridTableSplitLine indices line)
-
--- | Parse row of grid table.
-gridTableRow :: PandocMonad m => [Int]
-             -> MarkdownParser m (F [Blocks])
-gridTableRow indices = do
-  colLines <- many1 (gridTableRawLine indices)
-  let cols = map ((++ "\n") . unlines . removeOneLeadingSpace) $
-               transpose colLines
-  fmap compactify <$> fmap sequence (mapM (parseFromString parseBlocks) cols)
-
-removeOneLeadingSpace :: [String] -> [String]
-removeOneLeadingSpace xs =
-  if all startsWithSpace xs
-     then map (drop 1) xs
-     else xs
-   where startsWithSpace ""    = True
-         startsWithSpace (y:_) = y == ' '
-
--- | Parse footer for a grid table.
-gridTableFooter :: PandocMonad m => MarkdownParser m [Char]
-gridTableFooter = blanklines
+gridTable headless = gridTableWith' parseBlocks headless
 
 pipeBreak :: PandocMonad m => MarkdownParser m ([Alignment], [Int])
 pipeBreak = try $ do
@@ -1420,7 +1367,7 @@ pipeTableRow = try $ do
   let chunk = void (code <|> math <|> rawHtmlInline <|> escapedChar <|> rawLaTeXInline')
        <|> void (noneOf "|\n\r")
   let cellContents = ((trim . snd) <$> withRaw (many chunk)) >>=
-        parseFromString pipeTableCell
+        parseFromString' pipeTableCell
   cells <- cellContents `sepEndBy1` (char '|')
   -- surrounding pipes needed for a one-column table:
   guard $ not (length cells == 1 && not openPipe)
@@ -1528,6 +1475,7 @@ inline = choice [ whitespace
                 , autoLink
                 , spanHtml
                 , rawHtmlInline
+                , escapedNewline
                 , escapedChar
                 , rawLaTeXInline'
                 , exampleRef
@@ -1544,16 +1492,20 @@ escapedChar' = try $ do
   (guardEnabled Ext_all_symbols_escapable >> satisfy (not . isAlphaNum))
      <|> (guardEnabled Ext_angle_brackets_escapable >>
             oneOf "\\`*_{}[]()>#+-.!~\"<>")
-     <|> (guardEnabled Ext_escaped_line_breaks >> char '\n')
      <|> oneOf "\\`*_{}[]()>#+-.!~\""
+
+escapedNewline :: PandocMonad m => MarkdownParser m (F Inlines)
+escapedNewline = try $ do
+  guardEnabled Ext_escaped_line_breaks
+  char '\\'
+  lookAhead (char '\n') -- don't consume the newline (see #3730)
+  return $ return B.linebreak
 
 escapedChar :: PandocMonad m => MarkdownParser m (F Inlines)
 escapedChar = do
   result <- escapedChar'
   case result of
        ' '   -> return $ return $ B.str "\160" -- "\ " is a nonbreaking space
-       '\n'  -> guardEnabled Ext_escaped_line_breaks >>
-                return (return B.linebreak)  -- "\[newline]" is a linebreak
        _     -> return $ return $ B.str [result]
 
 ltSign :: PandocMonad m => MarkdownParser m (F Inlines)
@@ -1587,17 +1539,24 @@ code :: PandocMonad m => MarkdownParser m (F Inlines)
 code = try $ do
   starts <- many1 (char '`')
   skipSpaces
-  result <- many1Till (many1 (noneOf "`\n") <|> many1 (char '`') <|>
+  result <- (trim . concat) <$>
+            many1Till (many1 (noneOf "`\n") <|> many1 (char '`') <|>
                        (char '\n' >> notFollowedBy' blankline >> return " "))
                       (try (skipSpaces >> count (length starts) (char '`') >>
                       notFollowedBy (char '`')))
-  attr <- option ([],[],[]) (try $ guardEnabled Ext_inline_code_attributes
-                                   >> attributes)
-  return $ return $ B.codeWith attr $ trim $ concat result
+  rawattr <-
+     (Left <$> try (guardEnabled Ext_raw_attribute >> rawAttribute))
+    <|>
+     (Right <$> option ("",[],[])
+         (try (guardEnabled Ext_inline_code_attributes >> attributes)))
+  return $ return $
+    case rawattr of
+         Left syn   -> B.rawInline syn result
+         Right attr -> B.codeWith attr result
 
 math :: PandocMonad m => MarkdownParser m (F Inlines)
-math =  (return . B.displayMath <$> (mathDisplay >>= applyMacros'))
-     <|> (return . B.math <$> (mathInline >>= applyMacros')) <+?>
+math =  (return . B.displayMath <$> (mathDisplay >>= applyMacros))
+     <|> (return . B.math <$> (mathInline >>= applyMacros)) <+?>
                (guardEnabled Ext_smart *> (return <$> apostrophe)
                 <* notFollowedBy (space <|> satisfy isPunctuation))
 
@@ -1635,9 +1594,9 @@ ender c n = try $ do
 three :: PandocMonad m => Char -> MarkdownParser m (F Inlines)
 three c = do
   contents <- mconcat <$> many (notFollowedBy (ender c 1) >> inline)
-  (ender c 3 >> return ((B.strong . B.emph) <$> contents))
-    <|> (ender c 2 >> one c (B.strong <$> contents))
-    <|> (ender c 1 >> two c (B.emph <$> contents))
+  (ender c 3 >> updateLastStrPos >> return ((B.strong . B.emph) <$> contents))
+    <|> (ender c 2 >> updateLastStrPos >> one c (B.strong <$> contents))
+    <|> (ender c 1 >> updateLastStrPos >> two c (B.emph <$> contents))
     <|> return (return (B.str [c,c,c]) <> contents)
 
 -- Parse inlines til you hit two c's, and emit strong.
@@ -1645,7 +1604,8 @@ three c = do
 two :: PandocMonad m => Char -> F Inlines -> MarkdownParser m (F Inlines)
 two c prefix' = do
   contents <- mconcat <$> many (try $ notFollowedBy (ender c 2) >> inline)
-  (ender c 2 >> return (B.strong <$> (prefix' <> contents)))
+  (ender c 2 >> updateLastStrPos >>
+                return (B.strong <$> (prefix' <> contents)))
     <|> return (return (B.str [c,c]) <> (prefix' <> contents))
 
 -- Parse inlines til you hit a c, and emit emph.
@@ -1656,7 +1616,7 @@ one c prefix' = do
                            <|> try (string [c,c] >>
                                     notFollowedBy (ender c 1) >>
                                     two c mempty) )
-  (ender c 1 >> return (B.emph <$> (prefix' <> contents)))
+  (ender c 1 >> updateLastStrPos >> return (B.emph <$> (prefix' <> contents)))
     <|> return (return (B.str [c]) <> (prefix' <> contents))
 
 strongOrEmph :: PandocMonad m => MarkdownParser m (F Inlines)
@@ -1820,15 +1780,17 @@ referenceLink :: PandocMonad m
 referenceLink constructor (lab, raw) = do
   sp <- (True <$ lookAhead (char ' ')) <|> return False
   (_,raw') <- option (mempty, "") $
-      lookAhead (try (guardEnabled Ext_citations >>
-                      spnl >> normalCite >> return (mempty, "")))
+      lookAhead (try (do guardEnabled Ext_citations
+                         guardDisabled Ext_spaced_reference_links <|> spnl
+                         normalCite
+                         return (mempty, "")))
       <|>
-      try (spnl >> reference)
+      try ((guardDisabled Ext_spaced_reference_links <|> spnl) >> reference)
   when (raw' == "") $ guardEnabled Ext_shortcut_reference_links
   let labIsRef = raw' == "" || raw' == "[]"
   let key = toKey $ if labIsRef then raw else raw'
-  parsedRaw <- parseFromString (mconcat <$> many inline) raw'
-  fallback  <- parseFromString (mconcat <$> many inline) $ dropBrackets raw
+  parsedRaw <- parseFromString' (mconcat <$> many inline) raw'
+  fallback  <- parseFromString' (mconcat <$> many inline) $ dropBrackets raw
   implicitHeaderRefs <- option False $
                          True <$ guardEnabled Ext_implicit_header_references
   let makeFallback = do
@@ -1893,16 +1855,17 @@ note :: PandocMonad m => MarkdownParser m (F Inlines)
 note = try $ do
   guardEnabled Ext_footnotes
   ref <- noteMarker
+  updateState $ \st -> st{ stateNoteRefs = Set.insert ref (stateNoteRefs st) }
   return $ do
     notes <- asksF stateNotes'
-    case lookup ref notes of
+    case M.lookup ref notes of
         Nothing       -> return $ B.str $ "[^" ++ ref ++ "]"
-        Just contents -> do
+        Just (_pos, contents) -> do
           st <- askF
           -- process the note in a context that doesn't resolve
           -- notes, to avoid infinite looping with notes inside
           -- notes:
-          let contents' = runF contents st{ stateNotes' = [] }
+          let contents' = runF contents st{ stateNotes' = M.empty }
           return $ B.note contents'
 
 inlineNote :: PandocMonad m => MarkdownParser m (F Inlines)
@@ -1917,9 +1880,8 @@ rawLaTeXInline' = try $ do
   guardEnabled Ext_raw_tex
   lookAhead (char '\\')
   notFollowedBy' rawConTeXtEnvironment
-  RawInline _ s <- rawLaTeXInline
-  return $ return $ B.rawInline "tex" s
-  -- "tex" because it might be context or latex
+  s <- rawLaTeXInline
+  return $ return $ B.rawInline "tex" s -- "tex" because it might be context
 
 rawConTeXtEnvironment :: PandocMonad m => ParserT [Char] st m String
 rawConTeXtEnvironment = try $ do
@@ -2034,7 +1996,7 @@ textualCite = try $ do
           let (spaces',raw') = span isSpace raw
               spc | null spaces' = mempty
                   | otherwise    = B.space
-          lab <- parseFromString (mconcat <$> many inline) $ dropBrackets raw'
+          lab <- parseFromString' (mconcat <$> many inline) $ dropBrackets raw'
           fallback <- referenceLink B.linkWith (lab,raw')
           return $ do
             fallback' <- fallback

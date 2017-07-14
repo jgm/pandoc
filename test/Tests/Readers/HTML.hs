@@ -6,8 +6,9 @@ import Tests.Helpers
 import Text.Pandoc
 import Text.Pandoc.Arbitrary ()
 import Text.Pandoc.Builder
+import Data.Text (Text)
 
-html :: String -> Pandoc
+html :: Text -> Pandoc
 html = purely $ readHtml def
 
 tests :: [TestTree]
@@ -28,5 +29,11 @@ tests = [ testGroup "base tag"
         , testGroup "anchors"
           [ test html "anchor without href" $ "<a name=\"anchor\"/>" =?>
             plain (spanWith ("anchor",[],[]) mempty)
+          ]
+        , testGroup "lang"
+          [ test html "lang on <html>" $ "<html lang=\"es\">hola" =?>
+            setMeta "lang" (text "es") (doc (plain (text "hola")))
+          , test html "xml:lang on <html>" $ "<html xmlns=\"http://www.w3.org/1999/xhtml\" xml:lang=\"es\"><head></head><body>hola</body></html>" =?>
+            setMeta "lang" (text "es") (doc (plain (text "hola")))
           ]
         ]

@@ -1,7 +1,7 @@
 {-# LANGUAGE OverloadedStrings, ScopedTypeVariables, CPP #-}
 {-# OPTIONS_GHC -fno-warn-type-defaults #-}
 {-
-  Copyright (C) 2011-2016 John MacFarlane <jgm@berkeley.edu>
+  Copyright (C) 2011-2017 John MacFarlane <jgm@berkeley.edu>
 
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -20,7 +20,7 @@
 
 {- |
 Module      : Text.Pandoc.ImageSize
-Copyright   : Copyright (C) 2011-2016 John MacFarlane
+Copyright   : Copyright (C) 2011-2017 John MacFarlane
 License     : GNU GPL, version 2 or above
 
 Maintainer  : John MacFarlane <jgm@berkeley.edu>
@@ -43,6 +43,7 @@ module Text.Pandoc.ImageSize ( ImageType(..)
                              , inInch
                              , inPixel
                              , inPoints
+                             , inEm
                              , numUnit
                              , showInInch
                              , showInPixel
@@ -80,12 +81,14 @@ data Dimension = Pixel Integer
                | Centimeter Double
                | Inch Double
                | Percent Double
+               | Em Double
 
 instance Show Dimension where
   show (Pixel a)      = show   a ++ "px"
   show (Centimeter a) = showFl a ++ "cm"
   show (Inch a)       = showFl a ++ "in"
   show (Percent a)    = show   a ++ "%"
+  show (Em a)         = showFl a ++ "em"
 
 data ImageSize = ImageSize{
                      pxX   :: Integer
@@ -97,7 +100,13 @@ instance Default ImageSize where
   def = ImageSize 300 200 72 72
 
 showFl :: (RealFloat a) => a -> String
-showFl a = showFFloat (Just 5) a ""
+showFl a = removeExtra0s $ showFFloat (Just 5) a ""
+
+removeExtra0s :: String -> String
+removeExtra0s s =
+  case dropWhile (=='0') $ reverse s of
+       '.':xs -> reverse xs
+       xs     -> reverse xs
 
 imageType :: ByteString -> Maybe ImageType
 imageType img = case B.take 4 img of
@@ -111,12 +120,12 @@ imageType img = case B.take 4 img of
                        | findSvgTag img
                                         -> return Svg
                      "%!PS"
-                       | (B.take 4 $ B.drop 1 $ B.dropWhile (/=' ') img) == "EPSF"
+                       |  B.take 4 (B.drop 1 $ B.dropWhile (/=' ') img) == "EPSF"
                                         -> return Eps
                      _                  -> mzero
 
 findSvgTag :: ByteString -> Bool
-findSvgTag img = B.null $ snd (B.breakSubstring img "<svg")
+findSvgTag img = "<svg" `B.isInfixOf` img || "<SVG" `B.isInfixOf` img
 
 imageSize :: WriterOptions -> ByteString -> Either String ImageSize
 imageSize opts img =
@@ -159,7 +168,7 @@ desiredSizeInPoints opts attr s =
     (Nothing, Nothing) -> sizeInPoints s
   where
     ratio = fromIntegral (pxX s) / fromIntegral (pxY s)
-    getDim dir = case (dimension dir attr) of
+    getDim dir = case dimension dir attr of
                    Just (Percent _) -> Nothing
                    Just dim         -> Just $ inPoints opts dim
                    Nothing          -> Nothing
@@ -167,13 +176,17 @@ desiredSizeInPoints opts attr s =
 inPoints :: WriterOptions -> Dimension -> Double
 inPoints opts dim = 72 * inInch opts dim
 
+inEm :: WriterOptions -> Dimension -> Double
+inEm opts dim = (64/11) * inInch opts dim
+
 inInch :: WriterOptions -> Dimension -> Double
 inInch opts dim =
   case dim of
-    (Pixel a)      -> fromIntegral a / (fromIntegral $ writerDpi opts)
+    (Pixel a)      -> fromIntegral a / fromIntegral (writerDpi opts)
     (Centimeter a) -> a * 0.3937007874
     (Inch a)       -> a
     (Percent _)    -> 0
+    (Em a)         -> a * (11/64)
 
 inPixel :: WriterOptions -> Dimension -> Integer
 inPixel opts dim =
@@ -181,7 +194,8 @@ inPixel opts dim =
     (Pixel a)      -> a
     (Centimeter a) -> floor $ dpi * a * 0.3937007874 :: Integer
     (Inch a)       -> floor $ dpi * a :: Integer
-    _              -> 0
+    (Percent _)    -> 0
+    (Em a)         -> floor $ dpi * a * (11/64) :: Integer
   where
     dpi = fromIntegral $ writerDpi opts
 
@@ -213,6 +227,7 @@ scaleDimension factor dim =
         Centimeter x -> Centimeter (factor * x)
         Inch x       -> Inch (factor * x)
         Percent x    -> Percent (factor * x)
+        Em x         -> Em (factor * x)
 
 -- | Read a Dimension from an Attr attribute.
 -- `dimension Width attr` might return `Just (Pixel 3)` or for example `Just (Centimeter 2.0)`, etc.
@@ -236,6 +251,7 @@ lengthToDim s = numUnit s >>= uncurry toDim
     toDim a ""     = Just $ Pixel (floor a::Integer)
     toDim a "pt"   = Just $ Inch (a / 72)
     toDim a "pc"   = Just $ Inch (a / 6)
+    toDim a "em"   = Just $ Em a
     toDim _ _      = Nothing
 
 epsSize :: ByteString -> Maybe ImageSize
@@ -245,7 +261,7 @@ epsSize img = do
   case ls' of
        []    -> mzero
        (x:_) -> case B.words x of
-                     (_:_:_:ux:uy:[]) -> do
+                     [_, _, _, ux, uy] -> do
                         ux' <- safeRead $ B.unpack ux
                         uy' <- safeRead $ B.unpack uy
                         return ImageSize{
@@ -263,27 +279,26 @@ pngSize img = do
   let (i, rest') = B.splitAt 4 $ B.drop 4 rest
   guard $ i == "MHDR" || i == "IHDR"
   let (sizes, rest'') = B.splitAt 8 rest'
-  (x,y) <- case map fromIntegral $ unpack $ sizes of
+  (x,y) <- case map fromIntegral $unpack sizes of
                 ([w1,w2,w3,w4,h1,h2,h3,h4] :: [Integer]) -> return
-                    ((shift w1 24) + (shift w2 16) + (shift w3 8) + w4,
-                     (shift h1 24) + (shift h2 16) + (shift h3 8) + h4)
+                    (shift w1 24 + shift w2 16 + shift w3 8 + w4,
+                     shift h1 24 + shift h2 16 + shift h3 8 + h4)
                 _ -> Nothing -- "PNG parse error"
   let (dpix, dpiy) = findpHYs rest''
-  return $ ImageSize { pxX  = x, pxY = y, dpiX = dpix, dpiY = dpiy }
+  return ImageSize { pxX  = x, pxY = y, dpiX = dpix, dpiY = dpiy }
 
 findpHYs :: ByteString -> (Integer, Integer)
-findpHYs x =
-  if B.null x || "IDAT" `B.isPrefixOf` x
-     then (72,72) -- default, no pHYs
-     else if "pHYs" `B.isPrefixOf` x
-          then let [x1,x2,x3,x4,y1,y2,y3,y4,u] = map fromIntegral
-                                               $ unpack $ B.take 9 $ B.drop 4 x
-                   factor = if u == 1 -- dots per meter
-                               then \z -> z * 254 `div` 10000
-                               else const 72
-               in  ( factor $ (shift x1 24) + (shift x2 16) + (shift x3 8) + x4,
-                     factor $ (shift y1 24) + (shift y2 16) + (shift y3 8) + y4 )
-          else findpHYs $ B.drop 1 x  -- read another byte
+findpHYs x
+  | B.null x || "IDAT" `B.isPrefixOf` x = (72,72)
+  | "pHYs" `B.isPrefixOf` x =
+    let [x1,x2,x3,x4,y1,y2,y3,y4,u] =
+          map fromIntegral $ unpack $ B.take 9 $ B.drop 4 x
+        factor = if u == 1 -- dots per meter
+                    then \z -> z * 254 `div` 10000
+                    else const 72
+    in  ( factor $ (shift x1 24) + (shift x2 16) + (shift x3 8) + x4,
+          factor $ (shift y1 24) + (shift y2 16) + (shift y3 8) + y4 )
+  | otherwise = findpHYs $ B.drop 1 x  -- read another byte
 
 gifSize :: ByteString -> Maybe ImageSize
 gifSize img = do
@@ -327,16 +342,16 @@ jpegSize img =
 jfifSize :: ByteString -> Either String ImageSize
 jfifSize rest =
   let [dpiDensity,dpix1,dpix2,dpiy1,dpiy2] = map fromIntegral
-                                           $ unpack $ B.take 5 $ B.drop 9 $ rest
+                                           $ unpack $ B.take 5 $B.drop 9 rest
       factor = case dpiDensity of
                     1 -> id
-                    2 -> \x -> (x * 254 `div` 10)
+                    2 -> \x -> x * 254 `div` 10
                     _ -> const 72
       dpix = factor (shift dpix1 8 + dpix2)
       dpiy = factor (shift dpiy1 8 + dpiy2)
   in case findJfifSize rest of
        Left msg    -> Left msg
-       Right (w,h) -> Right $ ImageSize { pxX = w
+       Right (w,h) ->Right ImageSize { pxX = w
                                         , pxY = h
                                         , dpiX = dpix
                                         , dpiY = dpiy }
@@ -370,7 +385,7 @@ runGet' p bl =
 
 
 exifSize :: ByteString -> Either String ImageSize
-exifSize bs = runGet' header $ bl
+exifSize bs =runGet' header bl
   where bl = BL.fromChunks [bs]
         header = runExceptT $ exifHeader bl
 -- NOTE:  It would be nicer to do
@@ -440,14 +455,13 @@ exifHeader hdr = do
                                Left msg -> throwError msg
                                Right x  -> return x
        return (tag, payload)
-  entries <- sequence $ replicate (fromIntegral numentries) ifdEntry
+  entries <- replicateM (fromIntegral numentries) ifdEntry
   subentries <- case lookup ExifOffset entries of
                       Just (UnsignedLong offset') -> do
                         pos <- lift bytesRead
                         lift $ skip (fromIntegral offset' - (fromIntegral pos - 8))
                         numsubentries <- lift getWord16
-                        sequence $
-                           replicate (fromIntegral numsubentries) ifdEntry
+                        replicateM (fromIntegral numsubentries) ifdEntry
                       _ -> return []
   let allentries = entries ++ subentries
   (wdth, hght) <- case (lookup ExifImageWidth allentries,
@@ -458,13 +472,13 @@ exifHeader hdr = do
                             -- we return a default width and height when
                             -- the exif header doesn't contain these
   let resfactor = case lookup ResolutionUnit allentries of
-                        Just (UnsignedShort 1) -> (100 / 254)
+                        Just (UnsignedShort 1) -> 100 / 254
                         _ -> 1
   let xres = maybe 72 (\(UnsignedRational x) -> floor $ x * resfactor)
              $ lookup XResolution allentries
   let yres = maybe 72 (\(UnsignedRational x) -> floor $ x * resfactor)
              $ lookup YResolution allentries
-  return $ ImageSize{
+  return ImageSize{
                     pxX  = wdth
                   , pxY  = hght
                   , dpiX = xres
@@ -588,3 +602,4 @@ tagTypeTable = M.fromList
   , (0xa300, FileSource)
   , (0xa301, SceneType)
   ]
+

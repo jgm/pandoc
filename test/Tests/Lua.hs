@@ -3,9 +3,9 @@ module Tests.Lua ( tests ) where
 
 import Control.Monad (when)
 import System.FilePath ((</>))
-import Test.Tasty (TestTree)
+import Test.Tasty (TestTree, localOption)
 import Test.Tasty.HUnit (Assertion, assertEqual, testCase)
-import Test.Tasty.QuickCheck (ioProperty, testProperty)
+import Test.Tasty.QuickCheck (ioProperty, testProperty, QuickCheckTests(..))
 import Text.Pandoc.Arbitrary ()
 import Text.Pandoc.Definition (Block, Inline, Meta, Pandoc)
 import Text.Pandoc.Builder ( (<>), bulletList, doc, doubleQuoted, emph
@@ -16,7 +16,7 @@ import Text.Pandoc.Lua
 import qualified Scripting.Lua as Lua
 
 tests :: [TestTree]
-tests =
+tests = map (localOption (QuickCheckTests 20))
   [ testProperty "inline elements can be round-tripped through the lua stack" $
     \x -> ioProperty (roundtripEqual (x::Inline))
 
@@ -68,7 +68,7 @@ tests =
 
 assertFilterConversion :: String -> FilePath -> Pandoc -> Pandoc -> Assertion
 assertFilterConversion msg filterPath docIn docExpected = do
-  docRes <- runLuaFilter ("lua" </> filterPath) [] docIn
+  docRes <- runLuaFilter Nothing ("lua" </> filterPath) [] docIn
   assertEqual msg docExpected docRes
 
 roundtripEqual :: (Eq a, Lua.StackValue a) => a -> IO Bool
@@ -78,7 +78,7 @@ roundtripEqual x = (x ==) <$> roundtripped
   roundtripped = do
     lua <- Lua.newstate
     Lua.openlibs lua
-    pushPandocModule lua
+    pushPandocModule Nothing lua
     Lua.setglobal lua "pandoc"
     oldSize <- Lua.gettop lua
     Lua.push lua x

@@ -1,7 +1,7 @@
 {-# LANGUAGE CPP                        #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
 {-
-Copyright (C) 2010-2016 John MacFarlane <jgm@berkeley.edu>
+Copyright (C) 2010-2017 John MacFarlane <jgm@berkeley.edu>
 
 This program is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -20,7 +20,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111(-1)307  USA
 
 {- |
    Module      : Text.Pandoc.Pretty
-   Copyright   : Copyright (C) 2010-2016 John MacFarlane
+   Copyright   : Copyright (C) 2010-2017 John MacFarlane
    License     : GNU GPL, version 2 or above
 
    Maintainer  : John MacFarlane <jgm@berkeley.edu>
@@ -77,7 +77,7 @@ module Text.Pandoc.Pretty (
      )
 
 where
-import Control.Monad.State
+import Control.Monad.State.Strict
 import Data.Char (isSpace)
 import Data.Foldable (toList)
 import Data.List (intersperse)
@@ -108,10 +108,10 @@ data D = Text Int String
        | CarriageReturn
        | NewLine
        | BlankLines Int  -- number of blank lines
-       deriving (Show)
+       deriving (Show, Eq)
 
 newtype Doc = Doc { unDoc :: Seq D }
-              deriving (Monoid, Show)
+              deriving (Monoid, Show, Eq)
 
 instance IsString Doc where
   fromString = text

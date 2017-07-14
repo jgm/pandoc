@@ -13,6 +13,7 @@ import Test.Tasty.HUnit
 import Tests.Helpers
 import Text.Pandoc
 import Text.Pandoc.Shared (trimr)
+import qualified Data.ByteString as BS
 import qualified Text.Pandoc.UTF8 as UTF8
 import System.IO.Unsafe (unsafePerformIO) -- TODO temporary
 
@@ -23,7 +24,7 @@ runTest :: String    -- ^ Title of test
         -> String    -- ^ Expected output
         -> TestTree
 runTest testname cmd inp norm = testCase testname $ do
-  let cmd' = cmd ++ " --quiet --data-dir ../data"
+  let cmd' = cmd ++ " --data-dir ../data"
   let findDynlibDir []           = Nothing
       findDynlibDir ("build":xs) = Just $ joinPath (reverse xs) </> "build"
       findDynlibDir (_:xs)       = findDynlibDir xs
@@ -35,9 +36,9 @@ runTest testname cmd inp norm = testCase testname $ do
                                     ("LD_LIBRARY_PATH", d)]
   let env' = dynlibEnv ++ [("TMP","."),("LANG","en_US.UTF-8"),("HOME", "./")]
   let pr = (shell cmd'){ env = Just env' }
-  (ec, out', _err) <- readCreateProcessWithExitCode pr inp
+  (ec, out', err') <- readCreateProcessWithExitCode pr inp
   -- filter \r so the tests will work on Windows machines
-  let out = filter (/= '\r') out'
+  let out = filter (/= '\r') $ err' ++ out'
   result  <- if ec == ExitSuccess
                 then do
                   if out == norm
@@ -83,7 +84,7 @@ runCommandTest pandocpath (num, code) =
 
 extractCommandTest :: FilePath -> FilePath -> TestTree
 extractCommandTest pandocpath fp = unsafePerformIO $ do
-  contents <- UTF8.readFile ("command" </> fp)
+  contents <- UTF8.toText <$> BS.readFile ("command" </> fp)
   Pandoc _ blocks <- runIOorExplode (readMarkdown
                         def{ readerExtensions = pandocExtensions } contents)
   let codeblocks = map extractCode $ filter isCodeBlock $ blocks

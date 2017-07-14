@@ -1249,12 +1249,6 @@ These should not be escaped:  \$ \\ \&gt; \[ \{
       Foo <ulink url="/url/">bar</ulink>.
     </para>
     <para>
-      Foo <ulink url="/url/">bar</ulink>.
-    </para>
-    <para>
-      Foo <ulink url="/url/">bar</ulink>.
-    </para>
-    <para>
       With <ulink url="/url/">embedded [brackets]</ulink>.
     </para>
     <para>

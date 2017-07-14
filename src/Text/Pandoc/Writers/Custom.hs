@@ -6,7 +6,7 @@
 #else
 {-# LANGUAGE OverlappingInstances #-}
 #endif
-{- Copyright (C) 2012-2015 John MacFarlane <jgm@berkeley.edu>
+{- Copyright (C) 2012-2017 John MacFarlane <jgm@berkeley.edu>
 
 This program is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -25,7 +25,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 {- |
    Module      : Text.Pandoc.Writers.Custom
-   Copyright   : Copyright (C) 2012-2015 John MacFarlane
+   Copyright   : Copyright (C) 2012-2017 John MacFarlane
    License     : GNU GPL, version 2 or above
 
    Maintainer  : John MacFarlane <jgm@berkeley.edu>
@@ -41,10 +41,12 @@ import Control.Monad (when)
 import Data.Char (toLower)
 import Data.List (intersperse)
 import qualified Data.Map as M
+import Data.Text (Text, pack)
 import Data.Typeable
 import GHC.IO.Encoding (getForeignEncoding, setForeignEncoding, utf8)
 import Scripting.Lua (LuaState, StackValue, callfunc)
 import qualified Scripting.Lua as Lua
+import Text.Pandoc.Error
 import Text.Pandoc.Lua.Compat ( loadstring )
 import Text.Pandoc.Lua.Util ( addValue )
 import Text.Pandoc.Lua.SharedInstances ()
@@ -116,7 +118,7 @@ data PandocLuaException = PandocLuaException String
 instance Exception PandocLuaException
 
 -- | Convert Pandoc to custom markup.
-writeCustom :: FilePath -> WriterOptions -> Pandoc -> IO String
+writeCustom :: FilePath -> WriterOptions -> Pandoc -> IO Text
 writeCustom luaFile opts doc@(Pandoc meta _) = do
   luaScript <- UTF8.readFile luaFile
   enc <- getForeignEncoding
@@ -139,8 +141,11 @@ writeCustom luaFile opts doc@(Pandoc meta _) = do
   setForeignEncoding enc
   let body = rendered
   case writerTemplate opts of
-       Nothing  -> return body
-       Just tpl -> return $ renderTemplate' tpl $ setField "body" body context
+       Nothing  -> return $ pack body
+       Just tpl ->
+         case applyTemplate (pack tpl) $ setField "body" body context of
+              Left e  -> throw (PandocTemplateError e)
+              Right r -> return (pack r)
 
 docToCustom :: LuaState -> WriterOptions -> Pandoc -> IO String
 docToCustom lua opts (Pandoc (Meta metamap) blocks) = do

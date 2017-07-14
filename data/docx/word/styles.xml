@@ -342,8 +342,9 @@
     <w:semiHidden />
     <w:unhideWhenUsed />
   </w:style>
-  <w:style w:type="table" w:default="1" w:styleId="TableNormal">
-    <w:name w:val="Normal Table" />
+  <w:style w:type="table" w:default="1" w:styleId="Table">
+    <w:name w:val="Table" />
+    <w:basedOn w:val="TableNormal" />
     <w:semiHidden />
     <w:unhideWhenUsed />
     <w:qFormat />
@@ -400,8 +401,8 @@
     <w:name w:val="Figure" />
     <w:basedOn w:val="Normal" />
   </w:style>
-  <w:style w:type="paragraph" w:customStyle="1" w:styleId="FigureWithCaption">
-    <w:name w:val="Figure with Caption" />
+  <w:style w:type="paragraph" w:customStyle="1" w:styleId="CaptionedFigure">
+    <w:name w:val="Captioned Figure" />
     <w:basedOn w:val="Figure" />
     <w:pPr>
       <w:keepNext />

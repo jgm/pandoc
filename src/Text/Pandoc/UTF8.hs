@@ -1,5 +1,6 @@
+{-# LANGUAGE OverloadedStrings #-}
 {-
-Copyright (C) 2010-2016 John MacFarlane <jgm@berkeley.edu>
+Copyright (C) 2010-2017 John MacFarlane <jgm@berkeley.edu>
 
 This program is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -18,7 +19,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 {- |
    Module      : Text.Pandoc.UTF8
-   Copyright   : Copyright (C) 2010-2016 John MacFarlane
+   Copyright   : Copyright (C) 2010-2017 John MacFarlane
    License     : GNU GPL, version 2 or above
 
    Maintainer  : John MacFarlane <jgm@berkeley.edu>
@@ -28,16 +29,25 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 UTF-8 aware string IO functions that will work with GHC 6.10, 6.12, or 7.
 -}
 module Text.Pandoc.UTF8 ( readFile
-                        , writeFile
                         , getContents
+                        , writeFileWith
+                        , writeFile
+                        , putStrWith
                         , putStr
+                        , putStrLnWith
                         , putStrLn
+                        , hPutStrWith
                         , hPutStr
+                        , hPutStrLnWith
                         , hPutStrLn
                         , hGetContents
                         , toString
+                        , toText
                         , fromString
+                        , fromText
                         , toStringLazy
+                        , fromTextLazy
+                        , toTextLazy
                         , fromStringLazy
                         , encodePath
                         , decodeArg
@@ -46,7 +56,7 @@ module Text.Pandoc.UTF8 ( readFile
 where
 
 import qualified Data.ByteString.Char8 as B
-import qualified Data.ByteString.Lazy as BL
+import qualified Data.ByteString.Lazy.Char8 as BL
 import qualified Data.Text as T
 import qualified Data.Text.Encoding as T
 import qualified Data.Text.Lazy as TL
@@ -61,23 +71,43 @@ readFile f = do
   h <- openFile (encodePath f) ReadMode
   hGetContents h
 
-writeFile :: FilePath -> String -> IO ()
-writeFile f s = withFile (encodePath f) WriteMode $ \h -> hPutStr h s
-
 getContents :: IO String
 getContents = hGetContents stdin
 
+writeFileWith :: Newline -> FilePath -> String -> IO ()
+writeFileWith eol f s =
+  withFile (encodePath f) WriteMode $ \h -> hPutStrWith eol h s
+
+writeFile :: FilePath -> String -> IO ()
+writeFile = writeFileWith nativeNewline
+
+putStrWith :: Newline -> String -> IO ()
+putStrWith eol s = hPutStrWith eol stdout s
+
 putStr :: String -> IO ()
-putStr s = hPutStr stdout s
+putStr = putStrWith nativeNewline
+
+putStrLnWith :: Newline -> String -> IO ()
+putStrLnWith eol s = hPutStrLnWith eol stdout s
 
 putStrLn :: String -> IO ()
-putStrLn s = hPutStrLn stdout s
+putStrLn = putStrLnWith nativeNewline
+
+hPutStrWith :: Newline -> Handle -> String -> IO ()
+hPutStrWith eol h s =
+  hSetNewlineMode h (NewlineMode eol eol) >>
+  hSetEncoding h utf8 >> IO.hPutStr h s
 
 hPutStr :: Handle -> String -> IO ()
-hPutStr h s = hSetEncoding h utf8 >> IO.hPutStr h s
+hPutStr = hPutStrWith nativeNewline
+
+hPutStrLnWith :: Newline -> Handle -> String -> IO ()
+hPutStrLnWith eol h s =
+  hSetNewlineMode h (NewlineMode eol eol) >>
+  hSetEncoding h utf8 >> IO.hPutStrLn h s
 
 hPutStrLn :: Handle -> String -> IO ()
-hPutStrLn h s = hSetEncoding h utf8 >> IO.hPutStrLn h s
+hPutStrLn = hPutStrLnWith nativeNewline
 
 hGetContents :: Handle -> IO String
 hGetContents = fmap toString . B.hGetContents
@@ -85,34 +115,47 @@ hGetContents = fmap toString . B.hGetContents
 --                   >> hSetNewlineMode h universalNewlineMode
 --                   >> IO.hGetContents h
 
--- | Drop BOM (byte order marker) if present at beginning of string.
--- Note that Data.Text converts the BOM to code point FEFF, zero-width
--- no-break space, so if the string begins with this  we strip it off.
-dropBOM :: String -> String
-dropBOM ('\xFEFF':xs) = xs
-dropBOM xs            = xs
-
-filterCRs :: String -> String
-filterCRs ('\r':'\n':xs) = '\n': filterCRs xs
-filterCRs ('\r':xs)      = '\n' : filterCRs xs
-filterCRs (x:xs)         = x : filterCRs xs
-filterCRs []             = []
+-- | Convert UTF8-encoded ByteString to Text, also
+-- removing '\r' characters.
+toText :: B.ByteString -> T.Text
+toText = T.decodeUtf8 . filterCRs . dropBOM
+  where dropBOM bs =
+         if "\xEF\xBB\xBF" `B.isPrefixOf` bs
+            then B.drop 3 bs
+            else bs
+        filterCRs = B.filter (/='\r')
 
 -- | Convert UTF8-encoded ByteString to String, also
 -- removing '\r' characters.
 toString :: B.ByteString -> String
-toString = filterCRs . dropBOM . T.unpack . T.decodeUtf8
+toString = T.unpack . toText
 
-fromString :: String -> B.ByteString
-fromString = T.encodeUtf8 . T.pack
+-- | Convert UTF8-encoded ByteString to Text, also
+-- removing '\r' characters.
+toTextLazy :: BL.ByteString -> TL.Text
+toTextLazy = TL.decodeUtf8 . filterCRs . dropBOM
+  where dropBOM bs =
+         if "\xEF\xBB\xBF" `BL.isPrefixOf` bs
+            then BL.drop 3 bs
+            else bs
+        filterCRs = BL.filter (/='\r')
 
 -- | Convert UTF8-encoded ByteString to String, also
 -- removing '\r' characters.
 toStringLazy :: BL.ByteString -> String
-toStringLazy = filterCRs . dropBOM . TL.unpack . TL.decodeUtf8
+toStringLazy = TL.unpack . toTextLazy
+
+fromText :: T.Text -> B.ByteString
+fromText = T.encodeUtf8
+
+fromTextLazy :: TL.Text -> BL.ByteString
+fromTextLazy = TL.encodeUtf8
+
+fromString :: String -> B.ByteString
+fromString = fromText . T.pack
 
 fromStringLazy :: String -> BL.ByteString
-fromStringLazy = TL.encodeUtf8 . TL.pack
+fromStringLazy = fromTextLazy . TL.pack
 
 encodePath :: FilePath -> FilePath
 encodePath = id

@@ -1,7 +1,7 @@
 {-# LANGUAGE DeriveDataTypeable #-}
 {-# LANGUAGE DeriveGeneric      #-}
 {-
-Copyright (C) 2006-2016 John MacFarlane <jgm@berkeley.edu>
+Copyright (C) 2006-2017 John MacFarlane <jgm@berkeley.edu>
 
 This program is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 -}
 {- |
    Module      : Text.Pandoc.Error
-   Copyright   : Copyright (C) 2006-2016 John MacFarlane
+   Copyright   : Copyright (C) 2006-2017 John MacFarlane
    License     : GNU GPL, version 2 or above
 
    Maintainer  : John MacFarlane <jgm@berkeley.edu>
@@ -42,10 +42,12 @@ import Text.Parsec.Pos hiding (Line)
 import qualified Text.Pandoc.UTF8 as UTF8
 import System.Exit (exitWith, ExitCode(..))
 import System.IO (stderr)
+import Network.HTTP.Client (HttpException)
 
 type Input = String
 
 data PandocError = PandocIOError String IOError
+                 | PandocHttpError String HttpException
                  | PandocShouldNeverHappenError String
                  | PandocSomeError String
                  | PandocParseError String
@@ -59,7 +61,10 @@ data PandocError = PandocIOError String IOError
                  | PandocFilterError String String
                  | PandocCouldNotFindDataFileError String
                  | PandocResourceNotFound String
+                 | PandocTemplateError String
                  | PandocAppError String
+                 | PandocEpubSubdirectoryError String
+                 | PandocMacroLoop String
                  deriving (Show, Typeable, Generic)
 
 instance Exception PandocError
@@ -70,6 +75,8 @@ handleError (Right r) = return r
 handleError (Left e) =
   case e of
     PandocIOError _ err' -> ioError err'
+    PandocHttpError u err' -> err 61 $
+      "Could not fetch " ++ u ++ "\n" ++ show err'
     PandocShouldNeverHappenError s -> err 62 s
     PandocSomeError s -> err 63 s
     PandocParseError s -> err 64 s
@@ -79,7 +86,7 @@ handleError (Left e) =
             errColumn = sourceColumn errPos
             ls = lines input ++ [""]
             errorInFile = if length ls > errLine - 1
-                            then concat ["\n", (ls !! (errLine - 1))
+                            then concat ["\n", ls !! (errLine - 1)
                                         ,"\n", replicate (errColumn - 1) ' '
                                         ,"^"]
                         else ""
@@ -97,7 +104,12 @@ handleError (Left e) =
         "Could not find data file " ++ fn
     PandocResourceNotFound fn -> err 99 $
         "File " ++ fn ++ " not found in resource path"
+    PandocTemplateError s -> err 5 s
     PandocAppError s -> err 1 s
+    PandocEpubSubdirectoryError s -> err 31 $
+      "EPUB subdirectory name '" ++ s ++ "' contains illegal characters"
+    PandocMacroLoop s -> err 91 $
+      "Loop encountered in expanding macro " ++ s
 
 err :: Int -> String -> IO a
 err exitCode msg = do

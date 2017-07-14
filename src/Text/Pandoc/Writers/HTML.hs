@@ -3,7 +3,7 @@
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE ViewPatterns        #-}
 {-
-Copyright (C) 2006-2015 John MacFarlane <jgm@berkeley.edu>
+Copyright (C) 2006-2017 John MacFarlane <jgm@berkeley.edu>
 
 This program is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -22,7 +22,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 {- |
    Module      : Text.Pandoc.Writers.HTML
-   Copyright   : Copyright (C) 2006-2015 John MacFarlane
+   Copyright   : Copyright (C) 2006-2017 John MacFarlane
    License     : GNU GPL, version 2 or above
 
    Maintainer  : John MacFarlane <jgm@berkeley.edu>
@@ -43,8 +43,10 @@ module Text.Pandoc.Writers.HTML (
   writeDZSlides,
   writeRevealJs
   ) where
-import Control.Monad.State
+import Control.Monad.State.Strict
 import Data.Char (ord, toLower)
+import Data.Text (Text)
+import qualified Data.Text.Lazy as TL
 import Data.List (intersperse, isPrefixOf)
 import Data.Maybe (catMaybes, fromMaybe, isJust, isNothing)
 import Data.Monoid ((<>))
@@ -67,7 +69,7 @@ import Text.Pandoc.Writers.Shared
 import Text.Pandoc.XML (escapeStringForXML, fromEntities)
 #if MIN_VERSION_blaze_markup(0,6,3)
 #else
-import Text.Blaze.Internal (preEscapedString)
+import Text.Blaze.Internal (preEscapedString, preEscapedText)
 #endif
 #if MIN_VERSION_blaze_html(0,5,1)
 import qualified Text.Blaze.XHtml5 as H5
@@ -77,7 +79,7 @@ import qualified Text.Blaze.Html5 as H5
 import Control.Monad.Except (throwError)
 import Data.Aeson (Value)
 import System.FilePath (takeExtension, takeBaseName)
-import Text.Blaze.Html.Renderer.String (renderHtml)
+import Text.Blaze.Html.Renderer.Text (renderHtml)
 import qualified Text.Blaze.XHtml1.Transitional as H
 import qualified Text.Blaze.XHtml1.Transitional.Attributes as A
 import Text.Pandoc.Class (PandocMonad, report)
@@ -123,7 +125,7 @@ nl opts = if writerWrapText opts == WrapNone
              else preEscapedString "\n"
 
 -- | Convert Pandoc document to Html 5 string.
-writeHtml5String :: PandocMonad m => WriterOptions -> Pandoc -> m String
+writeHtml5String :: PandocMonad m => WriterOptions -> Pandoc -> m Text
 writeHtml5String = writeHtmlString'
                       defaultWriterState{ stHtml5 = True }
 
@@ -132,7 +134,7 @@ writeHtml5 :: PandocMonad m => WriterOptions -> Pandoc -> m Html
 writeHtml5 = writeHtml' defaultWriterState{ stHtml5 = True }
 
 -- | Convert Pandoc document to Html 4 string.
-writeHtml4String :: PandocMonad m => WriterOptions -> Pandoc -> m String
+writeHtml4String :: PandocMonad m => WriterOptions -> Pandoc -> m Text
 writeHtml4String = writeHtmlString'
                       defaultWriterState{ stHtml5 = False }
 
@@ -142,38 +144,39 @@ writeHtml4 = writeHtml' defaultWriterState{ stHtml5 = False }
 
 -- | Convert Pandoc document to Html appropriate for an epub version.
 writeHtmlStringForEPUB :: PandocMonad m
-                       => EPUBVersion -> WriterOptions -> Pandoc -> m String
-writeHtmlStringForEPUB version = writeHtmlString'
+                       => EPUBVersion -> WriterOptions -> Pandoc
+                       -> m Text
+writeHtmlStringForEPUB version o = writeHtmlString'
                       defaultWriterState{ stHtml5 = version == EPUB3,
-                                          stEPUBVersion = Just version }
+                                          stEPUBVersion = Just version } o
 
 -- | Convert Pandoc document to Reveal JS HTML slide show.
 writeRevealJs :: PandocMonad m
-              => WriterOptions -> Pandoc -> m String
+              => WriterOptions -> Pandoc -> m Text
 writeRevealJs = writeHtmlSlideShow' RevealJsSlides
 
 -- | Convert Pandoc document to S5 HTML slide show.
 writeS5 :: PandocMonad m
-        => WriterOptions -> Pandoc -> m String
+        => WriterOptions -> Pandoc -> m Text
 writeS5 = writeHtmlSlideShow' S5Slides
 
 -- | Convert Pandoc document to Slidy HTML slide show.
 writeSlidy :: PandocMonad m
-           => WriterOptions -> Pandoc -> m String
+           => WriterOptions -> Pandoc -> m Text
 writeSlidy = writeHtmlSlideShow' SlidySlides
 
 -- | Convert Pandoc document to Slideous HTML slide show.
 writeSlideous :: PandocMonad m
-              => WriterOptions -> Pandoc -> m String
+              => WriterOptions -> Pandoc -> m Text
 writeSlideous = writeHtmlSlideShow' SlideousSlides
 
 -- | Convert Pandoc document to DZSlides HTML slide show.
 writeDZSlides :: PandocMonad m
-              => WriterOptions -> Pandoc -> m String
+              => WriterOptions -> Pandoc -> m Text
 writeDZSlides = writeHtmlSlideShow' DZSlides
 
 writeHtmlSlideShow' :: PandocMonad m
-                    => HTMLSlideVariant -> WriterOptions -> Pandoc -> m String
+                    => HTMLSlideVariant -> WriterOptions -> Pandoc -> m Text
 writeHtmlSlideShow' variant = writeHtmlString'
     defaultWriterState{ stSlideVariant = variant
                       , stHtml5 = case variant of
@@ -185,12 +188,15 @@ writeHtmlSlideShow' variant = writeHtmlString'
                                        NoSlides       -> False
                       }
 
+renderHtml' :: Html -> Text
+renderHtml' = TL.toStrict . renderHtml
+
 writeHtmlString' :: PandocMonad m
-                 => WriterState -> WriterOptions -> Pandoc -> m String
+                 => WriterState -> WriterOptions -> Pandoc -> m Text
 writeHtmlString' st opts d = do
   (body, context) <- evalStateT (pandocToHtml opts d) st
   case writerTemplate opts of
-       Nothing -> return $ renderHtml body
+       Nothing -> return $ renderHtml' body
        Just tpl -> do
          -- warn if empty lang
          when (isNothing (getField "lang" context :: Maybe String)) $
@@ -204,13 +210,13 @@ writeHtmlString' st opts d = do
                            lookup "sourcefile" (writerVariables opts)
                    report $ NoTitleElement fallback
                    return $ resetField "pagetitle" fallback context
-         return $ renderTemplate' tpl $
-                    defField "body" (renderHtml body) context'
+         renderTemplate' tpl $
+                    defField "body" (renderHtml' body) context'
 
 writeHtml' :: PandocMonad m => WriterState -> WriterOptions -> Pandoc -> m Html
 writeHtml' st opts d = do
   case writerTemplate opts of
-       Just _ -> preEscapedString <$> writeHtmlString' st opts d
+       Just _ -> preEscapedText <$> writeHtmlString' st opts d
        Nothing  -> do
         (body, _) <- evalStateT (pandocToHtml opts d) st
         return body
@@ -222,8 +228,8 @@ pandocToHtml :: PandocMonad m
              -> StateT WriterState m (Html, Value)
 pandocToHtml opts (Pandoc meta blocks) = do
   metadata <- metaToJSON opts
-              (fmap renderHtml . blockListToHtml opts)
-              (fmap renderHtml . inlineListToHtml opts)
+              (fmap renderHtml' . blockListToHtml opts)
+              (fmap renderHtml' . inlineListToHtml opts)
               meta
   let stringifyHTML = escapeStringForXML . stringify
   let authsMeta = map stringifyHTML $ docAuthors meta
@@ -235,7 +241,7 @@ pandocToHtml opts (Pandoc meta blocks) = do
                  then blocks
                  else prepSlides slideLevel blocks
   toc <- if writerTableOfContents opts && slideVariant /= S5Slides
-            then tableOfContents opts sects
+            then fmap renderHtml' <$> tableOfContents opts sects
             else return Nothing
   blocks' <- liftM (mconcat . intersperse (nl opts)) $
                  mapM (elementToHtml slideLevel opts) sects
@@ -247,7 +253,9 @@ pandocToHtml opts (Pandoc meta blocks) = do
                          H.script ! A.src (toValue url)
                                   ! A.type_ "text/javascript"
                                   $ mempty
-                      MathJax url ->
+                      MathJax url
+                        | slideVariant /= RevealJsSlides ->
+                        -- mathjax is handled via a special plugin in revealjs
                          H.script ! A.src (toValue url)
                                   ! A.type_ "text/javascript"
                                   $ case slideVariant of
@@ -277,10 +285,18 @@ pandocToHtml opts (Pandoc meta blocks) = do
                                 Nothing  -> id
                       else id) $
                   (if stMath st
-                      then defField "math" (renderHtml math)
+                      then defField "math" (renderHtml' math)
                       else id) $
+                  defField "mathjax"
+                      (case writerHTMLMathMethod opts of
+                            MathJax _ -> True
+                            _         -> False) $
                   defField "quotes" (stQuotes st) $
-                  maybe id (defField "toc" . renderHtml) toc $
+                  -- for backwards compatibility we populate toc
+                  -- with the contents of the toc, rather than a
+                  -- boolean:
+                  maybe id (defField "toc") toc $
+                  maybe id (defField "table-of-contents") toc $
                   defField "author-meta" authsMeta $
                   maybe id (defField "date-meta") (normalizeDate dateMeta) $
                   defField "pagetitle" (stringifyHTML (docTitle meta)) $
@@ -463,7 +479,7 @@ parseMailto s = do
 obfuscateLink :: PandocMonad m => WriterOptions -> Attr -> Html -> String -> m Html
 obfuscateLink opts attr txt s | writerEmailObfuscation opts == NoObfuscation =
   return $ addAttrs opts attr $ H.a ! A.href (toValue s) $ txt
-obfuscateLink opts attr (renderHtml -> txt) s =
+obfuscateLink opts attr (TL.unpack . renderHtml -> txt) s =
   let meth = writerEmailObfuscation opts
       s' = map toLower (take 7 s) ++ drop 7 s
   in  case parseMailto s' of
@@ -521,7 +537,7 @@ attrsToHtml opts (id',classes',keyvals) =
 imgAttrsToHtml :: WriterOptions -> Attr -> [Attribute]
 imgAttrsToHtml opts attr =
     attrsToHtml opts (ident,cls,kvs') ++
-    toAttrs (dimensionsToAttrList opts attr)
+    toAttrs (dimensionsToAttrList attr)
   where
     (ident,cls,kvs) = attr
     kvs' = filter isNotDim kvs
@@ -529,14 +545,13 @@ imgAttrsToHtml opts attr =
     isNotDim ("height", _) = False
     isNotDim _             = True
 
-dimensionsToAttrList :: WriterOptions -> Attr -> [(String, String)]
-dimensionsToAttrList opts attr = (go Width) ++ (go Height)
+dimensionsToAttrList :: Attr -> [(String, String)]
+dimensionsToAttrList attr = (go Width) ++ (go Height)
   where
     go dir = case (dimension dir attr) of
-               (Just (Percent a)) -> [("style", show dir ++ ":" ++ show (Percent a))]
-               (Just dim)         -> [(show dir, showInPixel opts dim)]
-               _ -> []
-
+               (Just (Pixel a))  -> [(show dir, show a)]
+               (Just x)          -> [("style", show dir ++ ":" ++ show x)]
+               Nothing           -> []
 
 imageExts :: [String]
 imageExts = [ "art", "bmp", "cdr", "cdt", "cpt", "cr2", "crw", "djvu", "erf",
@@ -592,7 +607,8 @@ blockToHtml opts (Para lst)
       contents <- inlineListToHtml opts lst
       return $ H.p contents
   where
-    isEmptyRaw [RawInline f _] = f /= (Format "html")
+    isEmptyRaw [RawInline f _] = f `notElem` [Format "html",
+                                    Format "html4", Format "html5"]
     isEmptyRaw _               = False
 blockToHtml opts (LineBlock lns) =
   if writerWrapText opts == WrapNone
@@ -621,14 +637,17 @@ blockToHtml opts (Div attr@(ident, classes, kvs) bs) = do
                   NoSlides       -> addAttrs opts' attr $ H.div $ contents'
                   _              -> mempty
         else addAttrs opts (ident, classes', kvs) $ divtag $ contents'
-blockToHtml opts (RawBlock f str)
-  | f == Format "html" = return $ preEscapedString str
-  | (f == Format "latex" || f == Format "tex") &&
-     allowsMathEnvironments (writerHTMLMathMethod opts) &&
-     isMathEnvironment str = blockToHtml opts $ Plain [Math DisplayMath str]
-  | otherwise          = do
-      report $ BlockNotRendered (RawBlock f str)
-      return mempty
+blockToHtml opts (RawBlock f str) = do
+  ishtml <- isRawHtml f
+  if ishtml
+     then return $ preEscapedString str
+     else if (f == Format "latex" || f == Format "tex") &&
+             allowsMathEnvironments (writerHTMLMathMethod opts) &&
+             isMathEnvironment str
+             then blockToHtml opts $ Plain [Math DisplayMath str]
+             else do
+               report $ BlockNotRendered (RawBlock f str)
+               return mempty
 blockToHtml _ (HorizontalRule) = do
   html5 <- gets stHtml5
   return $ if html5 then H5.hr else H.hr
@@ -966,15 +985,17 @@ inlineToHtml opts inline = do
               return  $ case t of
                          InlineMath  -> m
                          DisplayMath -> brtag >> m >> brtag
-    (RawInline f str)
-      | f == Format "html" -> return $ preEscapedString str
-      | otherwise          -> do
-          report $ InlineNotRendered inline
-          return mempty
+    (RawInline f str) -> do
+      ishtml <- isRawHtml f
+      if ishtml
+         then return $ preEscapedString str
+         else do
+           report $ InlineNotRendered inline
+           return mempty
     (Link attr txt (s,_)) | "mailto:" `isPrefixOf` s -> do
                         linkText <- inlineListToHtml opts txt
                         lift $ obfuscateLink opts attr linkText s
-    (Link attr txt (s,tit)) -> do
+    (Link (ident,classes,kvs) txt (s,tit)) -> do
                         linkText <- inlineListToHtml opts txt
                         slideVariant <- gets stSlideVariant
                         let s' = case s of
@@ -984,13 +1005,13 @@ inlineToHtml opts inline = do
                                              in  '#' : prefix ++ xs
                                    _ -> s
                         let link = H.a ! A.href (toValue s') $ linkText
-                        let link' = if txt == [Str (unEscapeString s)]
-                                       then link ! A.class_ "uri"
-                                       else link
-                        let link'' = addAttrs opts attr link'
+                        let attr = if txt == [Str (unEscapeString s)]
+                                      then (ident, "uri" : classes, kvs)
+                                      else (ident, classes, kvs)
+                        let link' = addAttrs opts attr link
                         return $ if null tit
-                                    then link''
-                                    else link'' ! A.title (toValue tit)
+                                    then link'
+                                    else link' ! A.title (toValue tit)
     (Image attr txt (s,tit)) | treatAsImage s -> do
                         let alternate' = stringify txt
                         slideVariant <- gets stSlideVariant
@@ -1118,3 +1139,9 @@ allowsMathEnvironments (MathJax _) = True
 allowsMathEnvironments (MathML)    = True
 allowsMathEnvironments (WebTeX _)  = True
 allowsMathEnvironments _           = False
+
+isRawHtml :: PandocMonad m => Format -> StateT WriterState m Bool
+isRawHtml f = do
+  html5 <- gets stHtml5
+  return $ f == Format "html" ||
+           ((html5 && f == Format "html5") || f == Format "html4")

@@ -1,7 +1,7 @@
 {-# LANGUAGE DeriveDataTypeable #-}
 {-# LANGUAGE DeriveGeneric      #-}
 {-
-Copyright (C) 2012-2016 John MacFarlane <jgm@berkeley.edu>
+Copyright (C) 2012-2017 John MacFarlane <jgm@berkeley.edu>
 
 This program is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -20,7 +20,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 {- |
    Module      : Text.Pandoc.Options
-   Copyright   : Copyright (C) 2012-2016 John MacFarlane
+   Copyright   : Copyright (C) 2012-2017 John MacFarlane
    License     : GNU GPL, version 2 or above
 
    Maintainer  : John MacFarlane <jgm@berkeley.edu>
@@ -45,6 +45,8 @@ module Text.Pandoc.Options ( module Text.Pandoc.Extensions
                            , def
                            , isEnabled
                            ) where
+import Data.Aeson (ToJSON(..), FromJSON(..),
+                   genericToEncoding, defaultOptions)
 import Data.Data (Data)
 import Data.Default
 import qualified Data.Set as Set
@@ -59,7 +61,6 @@ data ReaderOptions = ReaderOptions{
        , readerStandalone            :: Bool -- ^ Standalone document with header
        , readerColumns               :: Int  -- ^ Number of columns in terminal
        , readerTabStop               :: Int  -- ^ Tab stop
-       , readerApplyMacros           :: Bool -- ^ Apply macros to TeX math
        , readerIndentedCodeClasses   :: [String] -- ^ Default classes for
                                        -- indented code blocks
        , readerAbbreviations         :: Set.Set String -- ^ Strings to treat as abbreviations
@@ -73,7 +74,6 @@ instance Default ReaderOptions
                , readerStandalone            = False
                , readerColumns               = 80
                , readerTabStop               = 4
-               , readerApplyMacros           = True
                , readerIndentedCodeClasses   = []
                , readerAbbreviations         = defaultAbbrevs
                , readerDefaultImageExtension = ""
@@ -104,16 +104,28 @@ data HTMLMathMethod = PlainMath
                     | KaTeX String String -- url of stylesheet and katex.js
                     deriving (Show, Read, Eq, Data, Typeable, Generic)
 
+instance ToJSON HTMLMathMethod where
+  toEncoding = genericToEncoding defaultOptions
+instance FromJSON HTMLMathMethod
+
 data CiteMethod = Citeproc                        -- use citeproc to render them
                   | Natbib                        -- output natbib cite commands
                   | Biblatex                      -- output biblatex cite commands
                 deriving (Show, Read, Eq, Data, Typeable, Generic)
+
+instance ToJSON CiteMethod where
+  toEncoding = genericToEncoding defaultOptions
+instance FromJSON CiteMethod
 
 -- | Methods for obfuscating email addresses in HTML.
 data ObfuscationMethod = NoObfuscation
                        | ReferenceObfuscation
                        | JavascriptObfuscation
                        deriving (Show, Read, Eq, Data, Typeable, Generic)
+
+instance ToJSON ObfuscationMethod where
+  toEncoding = genericToEncoding defaultOptions
+instance FromJSON ObfuscationMethod
 
 -- | Varieties of HTML slide shows.
 data HTMLSlideVariant = S5Slides
@@ -124,17 +136,29 @@ data HTMLSlideVariant = S5Slides
                       | NoSlides
                       deriving (Show, Read, Eq, Data, Typeable, Generic)
 
+instance ToJSON HTMLSlideVariant where
+  toEncoding = genericToEncoding defaultOptions
+instance FromJSON HTMLSlideVariant
+
 -- | Options for accepting or rejecting MS Word track-changes.
 data TrackChanges = AcceptChanges
                   | RejectChanges
                   | AllChanges
                   deriving (Show, Read, Eq, Data, Typeable, Generic)
 
+instance ToJSON TrackChanges where
+  toEncoding = genericToEncoding defaultOptions
+instance FromJSON TrackChanges
+
 -- | Options for wrapping text in the output.
 data WrapOption = WrapAuto        -- ^ Automatically wrap to width
                 | WrapNone        -- ^ No non-semantic newlines
                 | WrapPreserve    -- ^ Preserve wrapping of input source
                 deriving (Show, Read, Eq, Data, Typeable, Generic)
+
+instance ToJSON WrapOption where
+  toEncoding = genericToEncoding defaultOptions
+instance FromJSON WrapOption
 
 -- | Options defining the type of top-level headers.
 data TopLevelDivision = TopLevelPart      -- ^ Top-level headers become parts
@@ -144,11 +168,19 @@ data TopLevelDivision = TopLevelPart      -- ^ Top-level headers become parts
                                           --   heuristics
                       deriving (Show, Read, Eq, Data, Typeable, Generic)
 
+instance ToJSON TopLevelDivision where
+  toEncoding = genericToEncoding defaultOptions
+instance FromJSON TopLevelDivision
+
 -- | Locations for footnotes and references in markdown output
 data ReferenceLocation = EndOfBlock    -- ^ End of block
                        | EndOfSection  -- ^ prior to next section header (or end of document)
                        | EndOfDocument -- ^ at end of document
                        deriving (Show, Read, Eq, Data, Typeable, Generic)
+
+instance ToJSON ReferenceLocation where
+  toEncoding = genericToEncoding defaultOptions
+instance FromJSON ReferenceLocation
 
 -- | Options for writers
 data WriterOptions = WriterOptions
@@ -179,6 +211,7 @@ data WriterOptions = WriterOptions
   , writerHighlightStyle    :: Maybe Style  -- ^ Style to use for highlighting
                                            -- (Nothing = no highlighting)
   , writerSetextHeaders     :: Bool       -- ^ Use setext headers for levels 1-2 in markdown
+  , writerEpubSubdirectory  :: String       -- ^ Subdir for epub in OCF
   , writerEpubMetadata      :: Maybe String -- ^ Metadata to include in EPUB
   , writerEpubFonts         :: [FilePath] -- ^ Paths to fonts to embed
   , writerEpubChapterLevel  :: Int            -- ^ Header level for chapters (separate files)
@@ -215,6 +248,7 @@ instance Default WriterOptions where
                       , writerListings         = False
                       , writerHighlightStyle   = Just pygments
                       , writerSetextHeaders    = True
+                      , writerEpubSubdirectory = "EPUB"
                       , writerEpubMetadata     = Nothing
                       , writerEpubFonts        = []
                       , writerEpubChapterLevel = 1

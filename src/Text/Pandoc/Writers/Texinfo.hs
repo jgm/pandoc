@@ -1,6 +1,7 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-
-Copyright (C) 2008-2015 John MacFarlane and Peter Wang
+Copyright (C) 2008-2017 John MacFarlane
+              2012 Peter Wang
 
 This program is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -19,7 +20,8 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 {- |
    Module      : Text.Pandoc.Writers.Texinfo
-   Copyright   : Copyright (C) 2008-2015 John MacFarlane and Peter Wang
+   Copyright   : Copyright (C) 2008-2017 John MacFarlane
+                               2012 Peter Wang
    License     : GNU GPL, version 2 or above
 
    Maintainer  : John MacFarlane <jgm@berkeley.edu>
@@ -30,12 +32,13 @@ Conversion of 'Pandoc' format into Texinfo.
 -}
 module Text.Pandoc.Writers.Texinfo ( writeTexinfo ) where
 import Control.Monad.Except (throwError)
-import Control.Monad.State
+import Control.Monad.State.Strict
 import Data.Char (chr, ord)
 import Data.List (maximumBy, transpose)
 import Data.Ord (comparing)
 import qualified Data.Set as Set
-import Network.URI (isURI, unEscapeString)
+import Data.Text (Text)
+import Network.URI (unEscapeString)
 import System.FilePath
 import Text.Pandoc.Class (PandocMonad, report)
 import Text.Pandoc.Definition
@@ -66,7 +69,7 @@ data WriterState =
 type TI m = StateT WriterState m
 
 -- | Convert Pandoc to Texinfo.
-writeTexinfo :: PandocMonad m => WriterOptions -> Pandoc -> m String
+writeTexinfo :: PandocMonad m => WriterOptions -> Pandoc -> m Text
 writeTexinfo options document =
   evalStateT (pandocToTexinfo options $ wrapTop document) $
   WriterState { stStrikeout = False, stSuperscript = False,
@@ -78,16 +81,18 @@ wrapTop :: Pandoc -> Pandoc
 wrapTop (Pandoc meta blocks) =
   Pandoc meta (Header 0 nullAttr (docTitle meta) : blocks)
 
-pandocToTexinfo :: PandocMonad m => WriterOptions -> Pandoc -> TI m String
+pandocToTexinfo :: PandocMonad m => WriterOptions -> Pandoc -> TI m Text
 pandocToTexinfo options (Pandoc meta blocks) = do
   let titlePage = not $ all null
                       $ docTitle meta : docDate meta : docAuthors meta
   let colwidth = if writerWrapText options == WrapAuto
                     then Just $ writerColumns options
                     else Nothing
+  let render' :: Doc -> Text
+      render' = render colwidth
   metadata <- metaToJSON options
-              (fmap (render colwidth) . blockListToTexinfo)
-              (fmap (render colwidth) . inlineListToTexinfo)
+              (fmap render' . blockListToTexinfo)
+              (fmap render' . inlineListToTexinfo)
               meta
   main <- blockListToTexinfo blocks
   st <- get
@@ -101,7 +106,7 @@ pandocToTexinfo options (Pandoc meta blocks) = do
               $ metadata
   case writerTemplate options of
        Nothing  -> return body
-       Just tpl -> return $ renderTemplate' tpl context
+       Just tpl -> renderTemplate' tpl context
 
 -- | Escape things as needed for Texinfo.
 stringToTexinfo :: String -> String

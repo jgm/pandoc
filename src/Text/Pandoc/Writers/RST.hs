@@ -1,6 +1,6 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-
-Copyright (C) 2006-2015 John MacFarlane <jgm@berkeley.edu>
+Copyright (C) 2006-2017 John MacFarlane <jgm@berkeley.edu>
 
 This program is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 {- |
    Module      : Text.Pandoc.Writers.RST
-   Copyright   : Copyright (C) 2006-2015 John MacFarlane
+   Copyright   : Copyright (C) 2006-2017 John MacFarlane
    License     : GNU GPL, version 2 or above
 
    Maintainer  : John MacFarlane <jgm@berkeley.edu>
@@ -31,11 +31,11 @@ Conversion of 'Pandoc' documents to reStructuredText.
 reStructuredText:  <http://docutils.sourceforge.net/rst.html>
 -}
 module Text.Pandoc.Writers.RST ( writeRST ) where
-import Control.Monad.State
+import Control.Monad.State.Strict
 import Data.Char (isSpace, toLower)
 import Data.List (isPrefixOf, stripPrefix)
 import Data.Maybe (fromMaybe)
-import Network.URI (isURI)
+import Data.Text (Text, stripEnd)
 import qualified Text.Pandoc.Builder as B
 import Text.Pandoc.Class (PandocMonad, report)
 import Text.Pandoc.Logging
@@ -57,33 +57,36 @@ data WriterState =
               , stHasRawTeX   :: Bool
               , stOptions     :: WriterOptions
               , stTopLevel    :: Bool
+              , stLastNested  :: Bool
               }
 
 type RST = StateT WriterState
 
 -- | Convert Pandoc to RST.
-writeRST :: PandocMonad m => WriterOptions -> Pandoc -> m String
+writeRST :: PandocMonad m => WriterOptions -> Pandoc -> m Text
 writeRST opts document = do
   let st = WriterState { stNotes = [], stLinks = [],
                          stImages = [], stHasMath = False,
                          stHasRawTeX = False, stOptions = opts,
-                         stTopLevel = True}
+                         stTopLevel = True, stLastNested = False}
   evalStateT (pandocToRST document) st
 
 -- | Return RST representation of document.
-pandocToRST :: PandocMonad m => Pandoc -> RST m String
+pandocToRST :: PandocMonad m => Pandoc -> RST m Text
 pandocToRST (Pandoc meta blocks) = do
   opts <- gets stOptions
   let colwidth = if writerWrapText opts == WrapAuto
                     then Just $ writerColumns opts
                     else Nothing
+  let render' :: Doc -> Text
+      render' = render colwidth
   let subtit = case lookupMeta "subtitle" meta of
                     Just (MetaBlocks [Plain xs]) -> xs
                     _                            -> []
   title <- titleToRST (docTitle meta) subtit
   metadata <- metaToJSON opts
-                (fmap (render colwidth) . blockListToRST)
-                (fmap (trimr . render colwidth) . inlineListToRST)
+                (fmap render' . blockListToRST)
+                (fmap (stripEnd . render') . inlineListToRST)
                 $ B.deleteMeta "title" $ B.deleteMeta "subtitle" meta
   body <- blockListToRST' True $ case writerTemplate opts of
                                       Just _  -> normalizeHeadings 1 blocks
@@ -94,7 +97,7 @@ pandocToRST (Pandoc meta blocks) = do
   pics <- gets (reverse . stImages) >>= pictRefsToRST
   hasMath <- gets stHasMath
   rawTeX <- gets stHasRawTeX
-  let main = render colwidth $ foldl ($+$) empty $ [body, notes, refs, pics]
+  let main = render' $ foldl ($+$) empty $ [body, notes, refs, pics]
   let context = defField "body" main
               $ defField "toc" (writerTableOfContents opts)
               $ defField "toc-depth" (show $ writerTOCDepth opts)
@@ -105,7 +108,7 @@ pandocToRST (Pandoc meta blocks) = do
               $ metadata
   case writerTemplate opts of
        Nothing  -> return main
-       Just tpl -> return $ renderTemplate' tpl context
+       Just tpl -> renderTemplate' tpl context
   where
     normalizeHeadings lev (Header l a i:bs) =
       Header lev a i:normalizeHeadings (lev+1) cont ++ normalizeHeadings lev bs'
@@ -343,10 +346,31 @@ blockListToRST' :: PandocMonad m
                 -> RST m Doc
 blockListToRST' topLevel blocks = do
   tl <- gets stTopLevel
-  modify (\s->s{stTopLevel=topLevel})
-  res <- vcat `fmap` mapM blockToRST blocks
+  modify (\s->s{stTopLevel=topLevel, stLastNested=False})
+  res <- vcat `fmap` mapM blockToRST' blocks
   modify (\s->s{stTopLevel=tl})
   return res
+
+blockToRST' :: PandocMonad m => Block -> RST m Doc
+blockToRST' (x@BlockQuote{}) = do
+  lastNested <- gets stLastNested
+  res <- blockToRST x
+  modify (\s -> s{stLastNested = True})
+  return $ if lastNested
+              then ".." $+$ res
+              else res
+blockToRST' x = do
+  modify (\s -> s{stLastNested =
+    case x of
+         Para [Image _ _ (_,'f':'i':'g':':':_)] -> True
+         Para{} -> False
+         Plain{} -> False
+         Header{} -> False
+         LineBlock{} -> False
+         HorizontalRule -> False
+         _ -> True
+    })
+  blockToRST x
 
 blockListToRST :: PandocMonad m
                => [Block]       -- ^ List of block elements

@@ -2,7 +2,10 @@ module Tests.Readers.Odt (tests) where
 
 import Control.Monad (liftM)
 import qualified Data.ByteString.Lazy as B
+import qualified Data.ByteString as BS
+import qualified Text.Pandoc.UTF8 as UTF8
 import qualified Data.Map as M
+import Data.Text (unpack)
 import Test.Tasty
 import Tests.Helpers
 import Text.Pandoc
@@ -39,7 +42,8 @@ newtype NoNormPandoc = NoNormPandoc {unNoNorm :: Pandoc}
   deriving ( Show )
 
 instance ToString NoNormPandoc where
-  toString d = purely (writeNative def{ writerTemplate = s }) $ toPandoc d
+  toString d = unpack $
+               purely (writeNative def{ writerTemplate = s }) $ toPandoc d
    where s = case d of
                   NoNormPandoc (Pandoc (Meta m) _)
                     | M.null m  -> Nothing
@@ -58,7 +62,7 @@ type TestCreator =  ReaderOptions
 
 compareOdtToNative   :: TestCreator
 compareOdtToNative opts odtPath nativePath = do
-   nativeFile   <- Prelude.readFile nativePath
+   nativeFile   <- UTF8.toText <$> BS.readFile nativePath
    odtFile      <- B.readFile       odtPath
    native       <- getNoNormVia id  "native" <$> runIO (readNative def nativeFile)
    odt          <- getNoNormVia id  "odt"    <$> runIO (readOdt  opts odtFile)
@@ -66,7 +70,7 @@ compareOdtToNative opts odtPath nativePath = do
 
 compareOdtToMarkdown :: TestCreator
 compareOdtToMarkdown opts odtPath markdownPath = do
-   markdownFile <- Prelude.readFile markdownPath
+   markdownFile <- UTF8.toText <$> BS.readFile markdownPath
    odtFile      <- B.readFile       odtPath
    markdown     <- getNoNormVia id "markdown" <$>
                       runIO (readMarkdown def{ readerExtensions = pandocExtensions }

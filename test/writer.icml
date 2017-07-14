@@ -2566,37 +2566,9 @@ These should not be escaped:  \$ \\ \&gt; \[ \{</Content>
 <Br />
 <ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/Paragraph">
   <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
-    <Content>Foo </Content>
-  </CharacterStyleRange>
-  <HyperlinkTextSource Self="htss-14" Name="" Hidden="false">
-    <CharacterStyleRange AppliedCharacterStyle="CharacterStyle/Link">
-      <Content>bar</Content>
-    </CharacterStyleRange>
-  </HyperlinkTextSource>
-  <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
-    <Content>.</Content>
-  </CharacterStyleRange>
-</ParagraphStyleRange>
-<Br />
-<ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/Paragraph">
-  <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
-    <Content>Foo </Content>
-  </CharacterStyleRange>
-  <HyperlinkTextSource Self="htss-15" Name="" Hidden="false">
-    <CharacterStyleRange AppliedCharacterStyle="CharacterStyle/Link">
-      <Content>bar</Content>
-    </CharacterStyleRange>
-  </HyperlinkTextSource>
-  <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
-    <Content>.</Content>
-  </CharacterStyleRange>
-</ParagraphStyleRange>
-<Br />
-<ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/Paragraph">
-  <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
     <Content>With </Content>
   </CharacterStyleRange>
-  <HyperlinkTextSource Self="htss-16" Name="" Hidden="false">
+  <HyperlinkTextSource Self="htss-14" Name="" Hidden="false">
     <CharacterStyleRange AppliedCharacterStyle="CharacterStyle/Link">
       <Content>embedded [brackets]</Content>
     </CharacterStyleRange>
@@ -2607,7 +2579,7 @@ These should not be escaped:  \$ \\ \&gt; \[ \{</Content>
 </ParagraphStyleRange>
 <Br />
 <ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/Paragraph">
-  <HyperlinkTextSource Self="htss-17" Name="" Hidden="false">
+  <HyperlinkTextSource Self="htss-15" Name="" Hidden="false">
     <CharacterStyleRange AppliedCharacterStyle="CharacterStyle/Link">
       <Content>b</Content>
     </CharacterStyleRange>
@@ -2621,7 +2593,7 @@ These should not be escaped:  \$ \\ \&gt; \[ \{</Content>
   <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
     <Content>Indented </Content>
   </CharacterStyleRange>
-  <HyperlinkTextSource Self="htss-18" Name="" Hidden="false">
+  <HyperlinkTextSource Self="htss-16" Name="" Hidden="false">
     <CharacterStyleRange AppliedCharacterStyle="CharacterStyle/Link">
       <Content>once</Content>
     </CharacterStyleRange>
@@ -2635,7 +2607,7 @@ These should not be escaped:  \$ \\ \&gt; \[ \{</Content>
   <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
     <Content>Indented </Content>
   </CharacterStyleRange>
-  <HyperlinkTextSource Self="htss-19" Name="" Hidden="false">
+  <HyperlinkTextSource Self="htss-17" Name="" Hidden="false">
     <CharacterStyleRange AppliedCharacterStyle="CharacterStyle/Link">
       <Content>twice</Content>
     </CharacterStyleRange>
@@ -2649,7 +2621,7 @@ These should not be escaped:  \$ \\ \&gt; \[ \{</Content>
   <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
     <Content>Indented </Content>
   </CharacterStyleRange>
-  <HyperlinkTextSource Self="htss-20" Name="" Hidden="false">
+  <HyperlinkTextSource Self="htss-18" Name="" Hidden="false">
     <CharacterStyleRange AppliedCharacterStyle="CharacterStyle/Link">
       <Content>thrice</Content>
     </CharacterStyleRange>
@@ -2675,7 +2647,7 @@ These should not be escaped:  \$ \\ \&gt; \[ \{</Content>
   <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
     <Content>Foo </Content>
   </CharacterStyleRange>
-  <HyperlinkTextSource Self="htss-21" Name="Title with &quot;quotes&quot; inside" Hidden="false">
+  <HyperlinkTextSource Self="htss-19" Name="Title with &quot;quotes&quot; inside" Hidden="false">
     <CharacterStyleRange AppliedCharacterStyle="CharacterStyle/Link">
       <Content>bar</Content>
     </CharacterStyleRange>
@@ -2689,7 +2661,7 @@ These should not be escaped:  \$ \\ \&gt; \[ \{</Content>
   <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
     <Content>Foo </Content>
   </CharacterStyleRange>
-  <HyperlinkTextSource Self="htss-22" Name="Title with &quot;quote&quot; inside" Hidden="false">
+  <HyperlinkTextSource Self="htss-20" Name="Title with &quot;quote&quot; inside" Hidden="false">
     <CharacterStyleRange AppliedCharacterStyle="CharacterStyle/Link">
       <Content>biz</Content>
     </CharacterStyleRange>
@@ -2709,7 +2681,7 @@ These should not be escaped:  \$ \\ \&gt; \[ \{</Content>
   <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
     <Content>Here’s a </Content>
   </CharacterStyleRange>
-  <HyperlinkTextSource Self="htss-23" Name="" Hidden="false">
+  <HyperlinkTextSource Self="htss-21" Name="" Hidden="false">
     <CharacterStyleRange AppliedCharacterStyle="CharacterStyle/Link">
       <Content>link with an ampersand in the URL</Content>
     </CharacterStyleRange>
@@ -2723,7 +2695,7 @@ These should not be escaped:  \$ \\ \&gt; \[ \{</Content>
   <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
     <Content>Here’s a link with an amersand in the link text: </Content>
   </CharacterStyleRange>
-  <HyperlinkTextSource Self="htss-24" Name="AT&amp;T" Hidden="false">
+  <HyperlinkTextSource Self="htss-22" Name="AT&amp;T" Hidden="false">
     <CharacterStyleRange AppliedCharacterStyle="CharacterStyle/Link">
       <Content>AT&amp;T</Content>
     </CharacterStyleRange>
@@ -2737,7 +2709,7 @@ These should not be escaped:  \$ \\ \&gt; \[ \{</Content>
   <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
     <Content>Here’s an </Content>
   </CharacterStyleRange>
-  <HyperlinkTextSource Self="htss-25" Name="" Hidden="false">
+  <HyperlinkTextSource Self="htss-23" Name="" Hidden="false">
     <CharacterStyleRange AppliedCharacterStyle="CharacterStyle/Link">
       <Content>inline link</Content>
     </CharacterStyleRange>
@@ -2751,7 +2723,7 @@ These should not be escaped:  \$ \\ \&gt; \[ \{</Content>
   <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
     <Content>Here’s an </Content>
   </CharacterStyleRange>
-  <HyperlinkTextSource Self="htss-26" Name="" Hidden="false">
+  <HyperlinkTextSource Self="htss-24" Name="" Hidden="false">
     <CharacterStyleRange AppliedCharacterStyle="CharacterStyle/Link">
       <Content>inline link in pointy braces</Content>
     </CharacterStyleRange>
@@ -2771,7 +2743,7 @@ These should not be escaped:  \$ \\ \&gt; \[ \{</Content>
   <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
     <Content>With an ampersand: </Content>
   </CharacterStyleRange>
-  <HyperlinkTextSource Self="htss-27" Name="" Hidden="false">
+  <HyperlinkTextSource Self="htss-25" Name="" Hidden="false">
     <CharacterStyleRange AppliedCharacterStyle="CharacterStyle/Link">
       <Content>http://example.com/?foo=1&amp;bar=2</Content>
     </CharacterStyleRange>
@@ -2785,7 +2757,7 @@ These should not be escaped:  \$ \\ \&gt; \[ \{</Content>
 </ParagraphStyleRange>
 <Br />
 <ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/BulList">
-  <HyperlinkTextSource Self="htss-28" Name="" Hidden="false">
+  <HyperlinkTextSource Self="htss-26" Name="" Hidden="false">
     <CharacterStyleRange AppliedCharacterStyle="CharacterStyle/Link">
       <Content>http://example.com/</Content>
     </CharacterStyleRange>
@@ -2802,7 +2774,7 @@ These should not be escaped:  \$ \\ \&gt; \[ \{</Content>
   <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
     <Content>An e-mail address: </Content>
   </CharacterStyleRange>
-  <HyperlinkTextSource Self="htss-29" Name="" Hidden="false">
+  <HyperlinkTextSource Self="htss-27" Name="" Hidden="false">
     <CharacterStyleRange AppliedCharacterStyle="CharacterStyle/Link">
       <Content>nobody@nowhere.net</Content>
     </CharacterStyleRange>
@@ -2813,7 +2785,7 @@ These should not be escaped:  \$ \\ \&gt; \[ \{</Content>
   <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
     <Content>Blockquoted: </Content>
   </CharacterStyleRange>
-  <HyperlinkTextSource Self="htss-30" Name="" Hidden="false">
+  <HyperlinkTextSource Self="htss-28" Name="" Hidden="false">
     <CharacterStyleRange AppliedCharacterStyle="CharacterStyle/Link">
       <Content>http://example.com/</Content>
     </CharacterStyleRange>
@@ -2861,20 +2833,20 @@ These should not be escaped:  \$ \\ \&gt; \[ \{</Content>
 <Br />
 <ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/Figure">
   <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
-    <Rectangle Self="uec" StrokeWeight="0" ItemTransform="1.00000 0 0 1.00000 75.00000 -75.00000">
+    <Rectangle Self="uec" StrokeWeight="0" ItemTransform="1 0 0 1 75 -75">
       <Properties>
         <PathGeometry>
           <GeometryPathType PathOpen="false">
             <PathPointArray>
-              <PathPointType Anchor="-75.00000 -75.00000" LeftDirection="-75.00000 -75.00000" RightDirection="-75.00000 -75.00000" />
-              <PathPointType Anchor="-75.00000 75.00000" LeftDirection="-75.00000 75.00000" RightDirection="-75.00000 75.00000" />
-              <PathPointType Anchor="75.00000 75.00000" LeftDirection="75.00000 75.00000" RightDirection="75.00000 75.00000" />
-              <PathPointType Anchor="75.00000 -75.00000" LeftDirection="75.00000 -75.00000" RightDirection="75.00000 -75.00000" />
+              <PathPointType Anchor="-75 -75" LeftDirection="-75 -75" RightDirection="-75 -75" />
+              <PathPointType Anchor="-75 75" LeftDirection="-75 75" RightDirection="-75 75" />
+              <PathPointType Anchor="75 75" LeftDirection="75 75" RightDirection="75 75" />
+              <PathPointType Anchor="75 -75" LeftDirection="75 -75" RightDirection="75 -75" />
             </PathPointArray>
           </GeometryPathType>
         </PathGeometry>
       </Properties>
-      <Image Self="ue6" ItemTransform="1.00000 0 0 1.00000 -75.00000 -75.00000">
+      <Image Self="ue6" ItemTransform="1 0 0 1 -75 -75">
         <Properties>
           <Profile type="string">
             $ID/Embedded
@@ -2897,20 +2869,20 @@ These should not be escaped:  \$ \\ \&gt; \[ \{</Content>
     <Content>Here is a movie </Content>
   </CharacterStyleRange>
   <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
-    <Rectangle Self="uec" StrokeWeight="0" ItemTransform="1.00000 0 0 1.00000 10.00000 -11.00000">
+    <Rectangle Self="uec" StrokeWeight="0" ItemTransform="1 0 0 1 10 -11">
       <Properties>
         <PathGeometry>
           <GeometryPathType PathOpen="false">
             <PathPointArray>
-              <PathPointType Anchor="-10.00000 -11.00000" LeftDirection="-10.00000 -11.00000" RightDirection="-10.00000 -11.00000" />
-              <PathPointType Anchor="-10.00000 11.00000" LeftDirection="-10.00000 11.00000" RightDirection="-10.00000 11.00000" />
-              <PathPointType Anchor="10.00000 11.00000" LeftDirection="10.00000 11.00000" RightDirection="10.00000 11.00000" />
-              <PathPointType Anchor="10.00000 -11.00000" LeftDirection="10.00000 -11.00000" RightDirection="10.00000 -11.00000" />
+              <PathPointType Anchor="-10 -11" LeftDirection="-10 -11" RightDirection="-10 -11" />
+              <PathPointType Anchor="-10 11" LeftDirection="-10 11" RightDirection="-10 11" />
+              <PathPointType Anchor="10 11" LeftDirection="10 11" RightDirection="10 11" />
+              <PathPointType Anchor="10 -11" LeftDirection="10 -11" RightDirection="10 -11" />
             </PathPointArray>
           </GeometryPathType>
         </PathGeometry>
       </Properties>
-      <Image Self="ue6" ItemTransform="1.00000 0 0 1.00000 -10.00000 -11.00000">
+      <Image Self="ue6" ItemTransform="1 0 0 1 -10 -11">
         <Properties>
           <Profile type="string">
             $ID/Embedded
@@ -3025,7 +2997,7 @@ These should not be escaped:  \$ \\ \&gt; \[ \{</Content>
         <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
           <Content> to type. Inline notes may contain </Content>
         </CharacterStyleRange>
-        <HyperlinkTextSource Self="htss-31" Name="" Hidden="false">
+        <HyperlinkTextSource Self="htss-29" Name="" Hidden="false">
           <CharacterStyleRange AppliedCharacterStyle="CharacterStyle/Link">
             <Content>links</Content>
           </CharacterStyleRange>
@@ -3098,24 +3070,10 @@ These should not be escaped:  \$ \\ \&gt; \[ \{</Content>
 
   </Story>
   <HyperlinkURLDestination Self="HyperlinkURLDestination/http%3a//google.com" Name="link" DestinationURL="http://google.com" DestinationUniqueKey="1" />
-  <Hyperlink Self="uf-31" Name="http://google.com" Source="htss-31" Visible="true" DestinationUniqueKey="1">
+  <Hyperlink Self="uf-29" Name="http://google.com" Source="htss-29" Visible="true" DestinationUniqueKey="1">
     <Properties>
       <BorderColor type="enumeration">Black</BorderColor>
       <Destination type="object">HyperlinkURLDestination/http%3a//google.com</Destination>
-    </Properties>
-  </Hyperlink>
-  <HyperlinkURLDestination Self="HyperlinkURLDestination/http%3a//example.com/" Name="link" DestinationURL="http://example.com/" DestinationUniqueKey="1" />
-  <Hyperlink Self="uf-30" Name="http://example.com/" Source="htss-30" Visible="true" DestinationUniqueKey="1">
-    <Properties>
-      <BorderColor type="enumeration">Black</BorderColor>
-      <Destination type="object">HyperlinkURLDestination/http%3a//example.com/</Destination>
-    </Properties>
-  </Hyperlink>
-  <HyperlinkURLDestination Self="HyperlinkURLDestination/mailto%3anobody@nowhere.net" Name="link" DestinationURL="mailto:nobody@nowhere.net" DestinationUniqueKey="1" />
-  <Hyperlink Self="uf-29" Name="mailto:nobody@nowhere.net" Source="htss-29" Visible="true" DestinationUniqueKey="1">
-    <Properties>
-      <BorderColor type="enumeration">Black</BorderColor>
-      <Destination type="object">HyperlinkURLDestination/mailto%3anobody@nowhere.net</Destination>
     </Properties>
   </Hyperlink>
   <HyperlinkURLDestination Self="HyperlinkURLDestination/http%3a//example.com/" Name="link" DestinationURL="http://example.com/" DestinationUniqueKey="1" />
@@ -3125,67 +3083,67 @@ These should not be escaped:  \$ \\ \&gt; \[ \{</Content>
       <Destination type="object">HyperlinkURLDestination/http%3a//example.com/</Destination>
     </Properties>
   </Hyperlink>
+  <HyperlinkURLDestination Self="HyperlinkURLDestination/mailto%3anobody@nowhere.net" Name="link" DestinationURL="mailto:nobody@nowhere.net" DestinationUniqueKey="1" />
+  <Hyperlink Self="uf-27" Name="mailto:nobody@nowhere.net" Source="htss-27" Visible="true" DestinationUniqueKey="1">
+    <Properties>
+      <BorderColor type="enumeration">Black</BorderColor>
+      <Destination type="object">HyperlinkURLDestination/mailto%3anobody@nowhere.net</Destination>
+    </Properties>
+  </Hyperlink>
+  <HyperlinkURLDestination Self="HyperlinkURLDestination/http%3a//example.com/" Name="link" DestinationURL="http://example.com/" DestinationUniqueKey="1" />
+  <Hyperlink Self="uf-26" Name="http://example.com/" Source="htss-26" Visible="true" DestinationUniqueKey="1">
+    <Properties>
+      <BorderColor type="enumeration">Black</BorderColor>
+      <Destination type="object">HyperlinkURLDestination/http%3a//example.com/</Destination>
+    </Properties>
+  </Hyperlink>
   <HyperlinkURLDestination Self="HyperlinkURLDestination/http%3a//example.com/?foo=1&amp;bar=2" Name="link" DestinationURL="http://example.com/?foo=1&amp;bar=2" DestinationUniqueKey="1" />
-  <Hyperlink Self="uf-27" Name="http://example.com/?foo=1&amp;bar=2" Source="htss-27" Visible="true" DestinationUniqueKey="1">
+  <Hyperlink Self="uf-25" Name="http://example.com/?foo=1&amp;bar=2" Source="htss-25" Visible="true" DestinationUniqueKey="1">
     <Properties>
       <BorderColor type="enumeration">Black</BorderColor>
       <Destination type="object">HyperlinkURLDestination/http%3a//example.com/?foo=1&amp;bar=2</Destination>
     </Properties>
   </Hyperlink>
   <HyperlinkURLDestination Self="HyperlinkURLDestination//script?foo=1&amp;bar=2" Name="link" DestinationURL="/script?foo=1&amp;bar=2" DestinationUniqueKey="1" />
-  <Hyperlink Self="uf-26" Name="/script?foo=1&amp;bar=2" Source="htss-26" Visible="true" DestinationUniqueKey="1">
+  <Hyperlink Self="uf-24" Name="/script?foo=1&amp;bar=2" Source="htss-24" Visible="true" DestinationUniqueKey="1">
     <Properties>
       <BorderColor type="enumeration">Black</BorderColor>
       <Destination type="object">HyperlinkURLDestination//script?foo=1&amp;bar=2</Destination>
     </Properties>
   </Hyperlink>
   <HyperlinkURLDestination Self="HyperlinkURLDestination//script?foo=1&amp;bar=2" Name="link" DestinationURL="/script?foo=1&amp;bar=2" DestinationUniqueKey="1" />
-  <Hyperlink Self="uf-25" Name="/script?foo=1&amp;bar=2" Source="htss-25" Visible="true" DestinationUniqueKey="1">
+  <Hyperlink Self="uf-23" Name="/script?foo=1&amp;bar=2" Source="htss-23" Visible="true" DestinationUniqueKey="1">
     <Properties>
       <BorderColor type="enumeration">Black</BorderColor>
       <Destination type="object">HyperlinkURLDestination//script?foo=1&amp;bar=2</Destination>
     </Properties>
   </Hyperlink>
   <HyperlinkURLDestination Self="HyperlinkURLDestination/http%3a//att.com/" Name="link" DestinationURL="http://att.com/" DestinationUniqueKey="1" />
-  <Hyperlink Self="uf-24" Name="http://att.com/" Source="htss-24" Visible="true" DestinationUniqueKey="1">
+  <Hyperlink Self="uf-22" Name="http://att.com/" Source="htss-22" Visible="true" DestinationUniqueKey="1">
     <Properties>
       <BorderColor type="enumeration">Black</BorderColor>
       <Destination type="object">HyperlinkURLDestination/http%3a//att.com/</Destination>
     </Properties>
   </Hyperlink>
   <HyperlinkURLDestination Self="HyperlinkURLDestination/http%3a//example.com/?foo=1&amp;bar=2" Name="link" DestinationURL="http://example.com/?foo=1&amp;bar=2" DestinationUniqueKey="1" />
-  <Hyperlink Self="uf-23" Name="http://example.com/?foo=1&amp;bar=2" Source="htss-23" Visible="true" DestinationUniqueKey="1">
+  <Hyperlink Self="uf-21" Name="http://example.com/?foo=1&amp;bar=2" Source="htss-21" Visible="true" DestinationUniqueKey="1">
     <Properties>
       <BorderColor type="enumeration">Black</BorderColor>
       <Destination type="object">HyperlinkURLDestination/http%3a//example.com/?foo=1&amp;bar=2</Destination>
     </Properties>
   </Hyperlink>
   <HyperlinkURLDestination Self="HyperlinkURLDestination//url/" Name="link" DestinationURL="/url/" DestinationUniqueKey="1" />
-  <Hyperlink Self="uf-22" Name="/url/" Source="htss-22" Visible="true" DestinationUniqueKey="1">
+  <Hyperlink Self="uf-20" Name="/url/" Source="htss-20" Visible="true" DestinationUniqueKey="1">
     <Properties>
       <BorderColor type="enumeration">Black</BorderColor>
       <Destination type="object">HyperlinkURLDestination//url/</Destination>
     </Properties>
   </Hyperlink>
   <HyperlinkURLDestination Self="HyperlinkURLDestination//url/" Name="link" DestinationURL="/url/" DestinationUniqueKey="1" />
-  <Hyperlink Self="uf-21" Name="/url/" Source="htss-21" Visible="true" DestinationUniqueKey="1">
+  <Hyperlink Self="uf-19" Name="/url/" Source="htss-19" Visible="true" DestinationUniqueKey="1">
     <Properties>
       <BorderColor type="enumeration">Black</BorderColor>
       <Destination type="object">HyperlinkURLDestination//url/</Destination>
-    </Properties>
-  </Hyperlink>
-  <HyperlinkURLDestination Self="HyperlinkURLDestination//url" Name="link" DestinationURL="/url" DestinationUniqueKey="1" />
-  <Hyperlink Self="uf-20" Name="/url" Source="htss-20" Visible="true" DestinationUniqueKey="1">
-    <Properties>
-      <BorderColor type="enumeration">Black</BorderColor>
-      <Destination type="object">HyperlinkURLDestination//url</Destination>
-    </Properties>
-  </Hyperlink>
-  <HyperlinkURLDestination Self="HyperlinkURLDestination//url" Name="link" DestinationURL="/url" DestinationUniqueKey="1" />
-  <Hyperlink Self="uf-19" Name="/url" Source="htss-19" Visible="true" DestinationUniqueKey="1">
-    <Properties>
-      <BorderColor type="enumeration">Black</BorderColor>
-      <Destination type="object">HyperlinkURLDestination//url</Destination>
     </Properties>
   </Hyperlink>
   <HyperlinkURLDestination Self="HyperlinkURLDestination//url" Name="link" DestinationURL="/url" DestinationUniqueKey="1" />
@@ -3195,18 +3153,18 @@ These should not be escaped:  \$ \\ \&gt; \[ \{</Content>
       <Destination type="object">HyperlinkURLDestination//url</Destination>
     </Properties>
   </Hyperlink>
-  <HyperlinkURLDestination Self="HyperlinkURLDestination//url/" Name="link" DestinationURL="/url/" DestinationUniqueKey="1" />
-  <Hyperlink Self="uf-17" Name="/url/" Source="htss-17" Visible="true" DestinationUniqueKey="1">
+  <HyperlinkURLDestination Self="HyperlinkURLDestination//url" Name="link" DestinationURL="/url" DestinationUniqueKey="1" />
+  <Hyperlink Self="uf-17" Name="/url" Source="htss-17" Visible="true" DestinationUniqueKey="1">
     <Properties>
       <BorderColor type="enumeration">Black</BorderColor>
-      <Destination type="object">HyperlinkURLDestination//url/</Destination>
+      <Destination type="object">HyperlinkURLDestination//url</Destination>
     </Properties>
   </Hyperlink>
-  <HyperlinkURLDestination Self="HyperlinkURLDestination//url/" Name="link" DestinationURL="/url/" DestinationUniqueKey="1" />
-  <Hyperlink Self="uf-16" Name="/url/" Source="htss-16" Visible="true" DestinationUniqueKey="1">
+  <HyperlinkURLDestination Self="HyperlinkURLDestination//url" Name="link" DestinationURL="/url" DestinationUniqueKey="1" />
+  <Hyperlink Self="uf-16" Name="/url" Source="htss-16" Visible="true" DestinationUniqueKey="1">
     <Properties>
       <BorderColor type="enumeration">Black</BorderColor>
-      <Destination type="object">HyperlinkURLDestination//url/</Destination>
+      <Destination type="object">HyperlinkURLDestination//url</Destination>
     </Properties>
   </Hyperlink>
   <HyperlinkURLDestination Self="HyperlinkURLDestination//url/" Name="link" DestinationURL="/url/" DestinationUniqueKey="1" />

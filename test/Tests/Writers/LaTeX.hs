@@ -1,6 +1,7 @@
 {-# LANGUAGE OverloadedStrings #-}
 module Tests.Writers.LaTeX (tests) where
 
+import Data.Text (unpack)
 import Test.Tasty
 import Tests.Helpers
 import Text.Pandoc
@@ -14,10 +15,10 @@ latexListing :: (ToPandoc a) => a -> String
 latexListing = latexWithOpts def{ writerListings = True }
 
 latexWithOpts :: (ToPandoc a) => WriterOptions -> a -> String
-latexWithOpts opts = purely (writeLaTeX opts) . toPandoc
+latexWithOpts opts = unpack . purely (writeLaTeX opts) . toPandoc
 
 beamerWithOpts :: (ToPandoc a) => WriterOptions -> a -> String
-beamerWithOpts opts = purely (writeBeamer opts) . toPandoc
+beamerWithOpts opts = unpack . purely (writeBeamer opts) . toPandoc
 
 {-
   "my test" =: X =?> Y

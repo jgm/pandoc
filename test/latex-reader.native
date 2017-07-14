@@ -249,10 +249,10 @@ Pandoc (Meta {unMeta = fromList [("author",MetaList [MetaInlines [Str "John",Spa
 ,Para [Str "These",Space,Str "should",Space,Str "not",Space,Str "be",Space,Str "superscripts",Space,Str "or",Space,Str "subscripts,",Space,Str "because",Space,Str "of",Space,Str "the",SoftBreak,Str "unescaped",Space,Str "spaces:",Space,Str "a^b",Space,Str "c^d,",Space,Str "a",Math InlineMath "\\sim",Str "b",SoftBreak,Str "c",Math InlineMath "\\sim",Str "d."]
 ,HorizontalRule
 ,Header 1 ("smart-quotes-ellipses-dashes",[],[]) [Str "Smart",Space,Str "quotes,",Space,Str "ellipses,",Space,Str "dashes"]
-,Para [Quoted DoubleQuote [Str "Hello,"],Space,Str "said",Space,Str "the",Space,Str "spider.",Space,Quoted DoubleQuote [Quoted SingleQuote [Str "Shelob"],Space,Str "is",Space,Str "my",Space,Str "name."]]
+,Para [Quoted DoubleQuote [Str "Hello,"],Space,Str "said",Space,Str "the",Space,Str "spider.",Space,Quoted DoubleQuote [Str "\8198",Quoted SingleQuote [Str "Shelob"],Space,Str "is",Space,Str "my",Space,Str "name."]]
 ,Para [Quoted SingleQuote [Str "A"],Str ",",Space,Quoted SingleQuote [Str "B"],Str ",",Space,Str "and",Space,Quoted SingleQuote [Str "C"],Space,Str "are",Space,Str "letters."]
 ,Para [Quoted SingleQuote [Str "Oak,"],Space,Quoted SingleQuote [Str "elm,"],Space,Str "and",Space,Quoted SingleQuote [Str "beech"],Space,Str "are",Space,Str "names",Space,Str "of",Space,Str "trees.",Space,Str "So",Space,Str "is",Space,Quoted SingleQuote [Str "pine."]]
-,Para [Quoted SingleQuote [Str "He",Space,Str "said,",Space,Quoted DoubleQuote [Str "I",Space,Str "want",Space,Str "to",Space,Str "go."]],Space,Str "Were",Space,Str "you",Space,Str "alive",Space,Str "in",Space,Str "the",Space,Str "70\8217s?"]
+,Para [Quoted SingleQuote [Str "He",Space,Str "said,",Space,Quoted DoubleQuote [Str "I",Space,Str "want",Space,Str "to",Space,Str "go."],Str "\8198"],Space,Str "Were",Space,Str "you",Space,Str "alive",Space,Str "in",Space,Str "the",Space,Str "70\8217s?"]
 ,Para [Str "Here",Space,Str "is",Space,Str "some",Space,Str "quoted",Space,Quoted SingleQuote [Code ("",[],[]) "code"],Space,Str "and",Space,Str "a",SoftBreak,Quoted DoubleQuote [Link ("",[],[]) [Str "quoted",Space,Str "link"] ("http://example.com/?foo=1&bar=2","")],Str "."]
 ,Para [Str "Some",Space,Str "dashes:",Space,Str "one\8212two\8212three\8212four\8212five."]
 ,Para [Str "Dashes",Space,Str "between",Space,Str "numbers:",Space,Str "5\8211\&7,",Space,Str "255\8211\&66,",Space,Str "1987\8211\&1999."]
@@ -261,7 +261,7 @@ Pandoc (Meta {unMeta = fromList [("author",MetaList [MetaInlines [Str "John",Spa
 ,Header 1 ("latex",[],[]) [Str "LaTeX"]
 ,BulletList
  [[Para [Cite [Citation {citationId = "smith.1899", citationPrefix = [], citationSuffix = [Str "22-23"], citationMode = NormalCitation, citationNoteNum = 0, citationHash = 0}] [RawInline (Format "latex") "\\cite[22-23]{smith.1899}"]]]
- ,[Para [RawInline (Format "latex") "\\doublespacing\n"]]
+ ,[RawBlock (Format "latex") "\\doublespacing"]
  ,[Para [Math InlineMath "2+2=4"]]
  ,[Para [Math InlineMath "x \\in y"]]
  ,[Para [Math InlineMath "\\alpha \\wedge \\omega"]]

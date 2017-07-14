@@ -45,7 +45,7 @@ module Text.Pandoc.Extensions ( Extension(..)
                               , githubMarkdownExtensions
                               , multimarkdownExtensions )
 where
-import Data.Bits (clearBit, setBit, testBit)
+import Data.Bits (clearBit, setBit, testBit, (.|.))
 import Data.Data (Data)
 import Data.Typeable (Typeable)
 import GHC.Generics (Generic)
@@ -54,6 +54,10 @@ import Text.Parsec
 
 newtype Extensions = Extensions Integer
   deriving (Show, Read, Eq, Ord, Data, Typeable, Generic)
+
+instance Monoid Extensions where
+  mempty = Extensions 0
+  mappend (Extensions a) (Extensions b) = Extensions (a .|. b)
 
 extensionsFromList :: [Extension] -> Extensions
 extensionsFromList = foldr enableExtension emptyExtensions
@@ -94,6 +98,7 @@ data Extension =
     | Ext_fenced_code_attributes  -- ^ Allow attributes on fenced code blocks
     | Ext_backtick_code_blocks    -- ^ GitHub style ``` code blocks
     | Ext_inline_code_attributes  -- ^ Allow attributes on inline code
+    | Ext_raw_attribute           -- ^ Allow explicit raw blocks/inlines
     | Ext_markdown_in_html_blocks -- ^ Interpret as markdown inside HTML blocks
     | Ext_native_divs             -- ^ Use Div blocks for contents of <div> tags
     | Ext_native_spans            -- ^ Use Span inlines for contents of <span>
@@ -137,6 +142,7 @@ data Extension =
     | Ext_shortcut_reference_links -- ^ Shortcut reference links
     | Ext_smart               -- ^ "Smart" quotes, apostrophes, ellipses, dashes
     | Ext_old_dashes          -- ^ -- = em, - before number = en
+    | Ext_spaced_reference_links -- ^ Allow space between two parts of ref link
     deriving (Show, Read, Enum, Eq, Ord, Bounded, Data, Typeable, Generic)
 
 -- | Extensions to be used with pandoc-flavored markdown.
@@ -161,6 +167,7 @@ pandocExtensions = extensionsFromList
   , Ext_fenced_code_attributes
   , Ext_backtick_code_blocks
   , Ext_inline_code_attributes
+  , Ext_raw_attribute
   , Ext_markdown_in_html_blocks
   , Ext_native_divs
   , Ext_native_spans
@@ -187,7 +194,7 @@ pandocExtensions = extensionsFromList
   , Ext_smart
   ]
 
--- | Extensions to be used with github-flavored markdown.
+-- | Extensions to be used with plain text output.
 plainExtensions :: Extensions
 plainExtensions = extensionsFromList
   [ Ext_table_captions
@@ -220,6 +227,7 @@ phpMarkdownExtraExtensions = extensionsFromList
   , Ext_link_attributes
   , Ext_abbreviations
   , Ext_shortcut_reference_links
+  , Ext_spaced_reference_links
   ]
 
 -- | Extensions to be used with github-flavored markdown.
@@ -236,7 +244,6 @@ githubMarkdownExtensions = extensionsFromList
   , Ext_space_in_atx_header
   , Ext_intraword_underscores
   , Ext_strikeout
-  , Ext_hard_line_breaks
   , Ext_emoji
   , Ext_lists_without_preceding_blankline
   , Ext_shortcut_reference_links
@@ -272,6 +279,9 @@ multimarkdownExtensions = extensionsFromList
   , Ext_superscript
   , Ext_subscript
   , Ext_backtick_code_blocks
+  , Ext_spaced_reference_links
+  -- So far only in dev version of mmd:
+  , Ext_raw_attribute
   ]
 
 -- | Language extensions to be used with strict markdown.
@@ -279,6 +289,7 @@ strictExtensions :: Extensions
 strictExtensions = extensionsFromList
   [ Ext_raw_html
   , Ext_shortcut_reference_links
+  , Ext_spaced_reference_links
   ]
 
 -- | Default extensions from format-describing string.
@@ -307,6 +318,7 @@ getDefaultExtensions "epub2"           = getDefaultExtensions "epub"
 getDefaultExtensions "epub3"           = getDefaultExtensions "epub"
 getDefaultExtensions "latex"           = extensionsFromList
                                           [Ext_smart,
+                                           Ext_latex_macros,
                                            Ext_auto_identifiers]
 getDefaultExtensions "context"         = extensionsFromList
                                           [Ext_smart,

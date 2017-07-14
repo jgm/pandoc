@@ -32,8 +32,9 @@ CommonMark:  <http://commonmark.org>
 module Text.Pandoc.Writers.CommonMark (writeCommonMark) where
 
 import CMark
-import Control.Monad.State (State, get, modify, runState)
+import Control.Monad.State.Strict (State, get, modify, runState)
 import Data.Foldable (foldrM)
+import Data.Text (Text)
 import qualified Data.Text as T
 import Text.Pandoc.Class (PandocMonad)
 import Text.Pandoc.Definition
@@ -45,7 +46,7 @@ import Text.Pandoc.Writers.HTML (writeHtml5String)
 import Text.Pandoc.Writers.Shared
 
 -- | Convert Pandoc to CommonMark.
-writeCommonMark :: PandocMonad m => WriterOptions -> Pandoc -> m String
+writeCommonMark :: PandocMonad m => WriterOptions -> Pandoc -> m Text
 writeCommonMark opts (Pandoc meta blocks) = do
   let (blocks', notes) = runState (walkM processNotes blocks) []
       notes' = if null notes
@@ -57,9 +58,9 @@ writeCommonMark opts (Pandoc meta blocks) = do
               (inlinesToCommonMark opts)
               meta
   let context = defField "body" main $ metadata
-  return $ case writerTemplate opts of
-             Nothing  -> main
-             Just tpl -> renderTemplate' tpl context
+  case writerTemplate opts of
+       Nothing  -> return main
+       Just tpl -> renderTemplate' tpl context
 
 processNotes :: Inline -> State [[Block]] Inline
 processNotes (Note bs) = do
@@ -71,7 +72,7 @@ processNotes x = return x
 node :: NodeType -> [Node] -> Node
 node = Node Nothing
 
-blocksToCommonMark :: PandocMonad m => WriterOptions -> [Block] -> m String
+blocksToCommonMark :: PandocMonad m => WriterOptions -> [Block] -> m Text
 blocksToCommonMark opts bs = do
   let cmarkOpts = [optHardBreaks | isEnabled Ext_hard_line_breaks opts]
       colwidth = if writerWrapText opts == WrapAuto
@@ -79,14 +80,12 @@ blocksToCommonMark opts bs = do
                  else Nothing
   nodes <- blocksToNodes bs
   return $
-    T.unpack $
     nodeToCommonmark cmarkOpts colwidth $
     node DOCUMENT nodes
 
-inlinesToCommonMark :: PandocMonad m => WriterOptions -> [Inline] -> m String
+inlinesToCommonMark :: PandocMonad m => WriterOptions -> [Inline] -> m Text
 inlinesToCommonMark opts ils = return $
-  T.unpack $ nodeToCommonmark cmarkOpts colwidth
-           $ node PARAGRAPH (inlinesToNodes ils)
+  nodeToCommonmark cmarkOpts colwidth $ node PARAGRAPH (inlinesToNodes ils)
    where cmarkOpts = [optHardBreaks | isEnabled Ext_hard_line_breaks opts]
          colwidth = if writerWrapText opts == WrapAuto
                        then Just $ writerColumns opts
@@ -139,7 +138,7 @@ blockToNodes (DefinitionList items) ns = blockToNodes (BulletList items') ns
           Para term : concat xs
 blockToNodes t@(Table _ _ _ _ _) ns = do
   s <- writeHtml5String def $! Pandoc nullMeta [t]
-  return (node (HTML_BLOCK (T.pack $! s)) [] : ns)
+  return (node (HTML_BLOCK s) [] : ns)
 blockToNodes Null ns = return ns
 
 inlinesToNodes :: [Inline] -> [Node]

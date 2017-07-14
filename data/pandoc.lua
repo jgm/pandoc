@@ -23,7 +23,7 @@ THIS SOFTWARE.
 -- @copyright © 2017 Albert Krewinkel
 -- @license MIT
 local M = {
-  _VERSION = "0.2.0"
+  _VERSION = "0.3.0"
 }
 
 ------------------------------------------------------------------------
@@ -137,7 +137,7 @@ end
 -- @function Doc
 -- @tparam      {Block,...} blocks      document content
 -- @tparam[opt] Meta        meta        document meta data
-function M.Doc(blocks, meta)
+function M.Pandoc(blocks, meta)
   meta = meta or {}
   return {
     ["blocks"] = blocks,
@@ -146,6 +146,8 @@ function M.Doc(blocks, meta)
   }
 end
 
+-- DEPRECATED synonym:
+M.Doc = M.Pandoc
 
 ------------------------------------------------------------------------
 -- MetaValue
@@ -233,11 +235,11 @@ M.BulletList = M.Block:create_constructor(
 --- Creates a code block element
 -- @function CodeBlock
 -- @tparam      string      text        code string
--- @tparam[opt] Attr        attributes  element attributes
+-- @tparam[opt] Attr        attr element attributes
 -- @treturn     Block                   code block element
 M.CodeBlock = M.Block:create_constructor(
   "CodeBlock",
-  function(text, attributes) return {c = {attributes, text}} end,
+  function(text, attr) return {c = {attr or M.Attr(), text}} end,
   {{"identifier", "classes", "attributes"}, "text"}
 )
 
@@ -254,11 +256,13 @@ M.DefinitionList = M.Block:create_constructor(
 --- Creates a div element
 -- @function Div
 -- @tparam      {Block,...} content     block content
--- @tparam[opt] Attr        attributes  element attributes
+-- @tparam[opt] Attr        attr  element attributes
 -- @treturn     Block                   code block element
 M.Div = M.Block:create_constructor(
   "Div",
-  function(content, attributes) return {c = {attributes, content}} end,
+  function(content, attr)
+    return {c = {attr or M.Attr(), content}}
+  end,
   {{"identifier", "classes", "attributes"}, "content"}
 )
 
@@ -266,12 +270,12 @@ M.Div = M.Block:create_constructor(
 -- @function Header
 -- @tparam      int          level       header level
 -- @tparam      {Inline,...} content     inline content
--- @tparam      Attr         attributes  element attributes
+-- @tparam[opt] Attr         attr element attributes
 -- @treturn     Block                    header element
 M.Header = M.Block:create_constructor(
   "Header",
-  function(level, content, attributes)
-    return {c = {level, attributes, content}}
+  function(level, content, attr)
+    return {c = {level, attr or M.Attr(), content}}
   end,
   {"level", {"identifier", "classes", "attributes"}, "content"}
 )
@@ -358,7 +362,8 @@ M.Table = M.Block:create_constructor(
   "Table",
   function(caption, aligns, widths, headers, rows)
     return {c = {caption, aligns, widths, headers, rows}}
-  end
+  end,
+  {"caption", "aligns", "widths", "headers", "rows"}
 )
 
 
@@ -386,11 +391,11 @@ M.Cite = M.Inline:create_constructor(
 --- Creates a Code inline element
 -- @function Code
 -- @tparam      string      text        brief image description
--- @tparam[opt] Attr        attributes  additional attributes
+-- @tparam[opt] Attr        attr  additional attributes
 -- @treturn Inline code element
 M.Code = M.Inline:create_constructor(
   "Code",
-  function(text, attributes) return {c = {attributes, text}} end,
+  function(text, attr) return {c = {attr or M.Attr(), text}} end,
   {{"identifier", "classes", "attributes"}, "text"}
 )
 
@@ -409,14 +414,14 @@ M.Emph = M.Inline:create_constructor(
 -- @tparam      {Inline,..} caption     text used to describe the image
 -- @tparam      string      src         path to the image file
 -- @tparam[opt] string      title       brief image description
--- @tparam[opt] Attr        attributes  additional attributes
+-- @tparam[opt] Attr        attr additional attributes
 -- @treturn Inline image element
 M.Image = M.Inline:create_constructor(
   "Image",
-  function(caption, src, title, attributes)
+  function(caption, src, title, attr)
     title = title or ""
-    attributes = attributes or Attribute.empty
-    return {c = {attributes, caption, {src, title}}}
+    attr = attr or M.Attr()
+    return {c = {attr, caption, {src, title}}}
   end,
   {"attributes", "caption", {"src", "title"}}
 )
@@ -434,20 +439,19 @@ M.LineBreak = M.Inline:create_constructor(
 -- @tparam      {Inline,..} content     text for this link
 -- @tparam      string      target      the link target
 -- @tparam[opt] string      title       brief link description
--- @tparam[opt] Attr        attributes  additional attributes
+-- @tparam[opt] Attr        attr additional attributes
 -- @treturn Inline image element
 M.Link = M.Inline:create_constructor(
   "Link",
-  function(content, target, title, attributes)
+  function(content, target, title, attr)
     title = title or ""
-    attributes = attributes or Attribute.empty
-    return {c = {attributes, content, {target, title}}}
+    attr = attr or M.Attr()
+    return {c = {attr, content, {target, title}}}
   end,
   {"attributes", "content", {"target", "title"}}
 )
 
---- Creates a Math element, either inline or displayed. It is usually simpler to
--- use one of the specialized functions @{InlineMath} or @{DisplayMath} instead.
+--- Creates a Math element, either inline or displayed.
 -- @function Math
 -- @tparam      "InlineMath"|"DisplayMath" mathtype rendering specifier
 -- @tparam      string      text        Math content
@@ -459,7 +463,7 @@ M.Math = M.Inline:create_constructor(
   end,
   {"mathtype", "text"}
 )
---- Creates a DisplayMath element.
+--- Creates a DisplayMath element (DEPRECATED).
 -- @function DisplayMath
 -- @tparam      string      text        Math content
 -- @treturn     Inline                  Math element
@@ -468,7 +472,7 @@ M.DisplayMath = M.Inline:create_constructor(
   function(text) return M.Math("DisplayMath", text) end,
   {"mathtype", "text"}
 )
---- Creates an InlineMath inline element.
+--- Creates an InlineMath inline element (DEPRECATED).
 -- @function InlineMath
 -- @tparam      string      text        Math content
 -- @treturn     Inline                  Math element
@@ -487,9 +491,7 @@ M.Note = M.Inline:create_constructor(
   "content"
 )
 
---- Creates a Quoted inline element given the quote type and quoted content. It
--- is usually simpler to use one of the specialized functions @{SingleQuoted} or
--- @{DoubleQuoted} instead.
+--- Creates a Quoted inline element given the quote type and quoted content.
 -- @function Quoted
 -- @tparam      "DoubleQuote"|"SingleQuote" quotetype type of quotes to be used
 -- @tparam      {Inline,..} content     inline content
@@ -499,7 +501,7 @@ M.Quoted = M.Inline:create_constructor(
   function(quotetype, content) return {c = {quotetype, content}} end,
   {"quotetype", "content"}
 )
---- Creates a single-quoted inline element.
+--- Creates a single-quoted inline element (DEPRECATED).
 -- @function SingleQuoted
 -- @tparam      {Inline,..} content     inline content
 -- @treturn     Inline                  quoted element
@@ -509,7 +511,7 @@ M.SingleQuoted = M.Inline:create_constructor(
   function(content) return M.Quoted(M.SingleQuote, content) end,
   {"quotetype", "content"}
 )
---- Creates a single-quoted inline element.
+--- Creates a single-quoted inline element (DEPRECATED).
 -- @function DoubleQuoted
 -- @tparam      {Inline,..} content     inline content
 -- @treturn     Inline                  quoted element
@@ -560,11 +562,11 @@ M.Space = M.Inline:create_constructor(
 --- Creates a Span inline element
 -- @function Span
 -- @tparam      {Inline,..} content     inline content
--- @tparam[opt] Attr        attributes  additional attributes
+-- @tparam[opt] Attr        attr  additional attributes
 -- @treturn Inline span element
 M.Span = M.Inline:create_constructor(
   "Span",
-  function(content, attributes) return {c = {attributes, content}} end,
+  function(content, attr) return {c = {attr or M.Attr(), content}} end,
   {{"identifier", "classes", "attributes"}, "content"}
 )
 

@@ -15,18 +15,20 @@ another, and a command-line tool that uses this library. It can read
 [Markdown], [CommonMark], [PHP Markdown Extra], [GitHub-Flavored
 Markdown], [MultiMarkdown], and (subsets of) [Textile],
 [reStructuredText], [HTML], [LaTeX], [MediaWiki markup], [TWiki markup],
-[Haddock markup], [OPML], [Emacs Org mode], [DocBook], [txt2tags],
-[EPUB], [ODT] and [Word docx]; and it can write plain text, [Markdown],
-[CommonMark], [PHP Markdown Extra], [GitHub-Flavored Markdown],
-[MultiMarkdown], [reStructuredText], [XHTML], [HTML5], [LaTeX]
-\(including [`beamer`] slide shows\), [ConTeXt], [RTF], [OPML],
-[DocBook], [OpenDocument], [ODT], [Word docx], [GNU Texinfo], [MediaWiki
-markup], [DokuWiki markup], [ZimWiki markup], [Haddock markup], [EPUB]
-\(v2 or v3\), [FictionBook2], [Textile], [groff man], [groff ms], [Emacs
-Org mode], [AsciiDoc], [InDesign ICML], [TEI Simple], and [Slidy],
-[Slideous], [DZSlides], [reveal.js] or [S5] HTML slide shows. It can
-also produce [PDF] output on systems where LaTeX, ConTeXt, `pdfroff`, or
-`wkhtmltopdf` is installed.
+[Haddock markup], [OPML], [Emacs Org mode], [DocBook], [Muse], [txt2tags],
+[Vimwiki], [EPUB], [ODT], and [Word docx]; and it can
+write plain text, [Markdown], [CommonMark], [PHP Markdown
+Extra], [GitHub-Flavored Markdown], [MultiMarkdown],
+[reStructuredText], [XHTML], [HTML5], [LaTeX] \(including
+[`beamer`] slide shows\), [ConTeXt], [RTF], [OPML], [DocBook],
+[OpenDocument], [ODT], [Word docx], [GNU Texinfo], [MediaWiki
+markup], [DokuWiki markup], [ZimWiki markup], [Haddock markup],
+[EPUB] \(v2 or v3\), [FictionBook2], [Textile], [groff man],
+[groff ms], [Emacs Org mode], [AsciiDoc], [InDesign ICML], [TEI
+Simple], [Muse] and [Slidy], [Slideous], [DZSlides], [reveal.js]
+or [S5] HTML slide shows. It can also produce [PDF] output on
+systems where LaTeX, ConTeXt, `pdfroff`, or `wkhtmltopdf` is
+installed.
 
 Pandoc's enhanced version of Markdown includes syntax for [footnotes],
 [tables], flexible [ordered lists], [definition lists], [fenced code
@@ -97,6 +99,8 @@ Markdown can be expected to be lossy.
 [FictionBook2]: http://www.fictionbook.org/index.php/Eng:XML_Schema_Fictionbook_2.1
 [InDesign ICML]: https://www.adobe.com/content/dam/Adobe/en/devnet/indesign/cs55-docs/IDML/idml-specification.pdf
 [TEI Simple]: https://github.com/TEIC/TEI-Simple
+[Muse]: https://amusewiki.org/library/manual
+[Vimwiki]: https://vimwiki.github.io
 
 Using `pandoc`
 --------------
@@ -523,10 +527,15 @@ Reader options
 
 `--extract-media=`*DIR*
 
-:   Extract images and other media contained in a docx or epub container
-    to the path *DIR*, creating it if necessary, and adjust the images
-    references in the document so they point to the extracted files.
-    This option only affects the docx and epub readers.
+:   Extract images and other media contained in or linked from
+    the source document to the path *DIR*, creating it if
+    necessary, and adjust the images references in the document
+    so they point to the extracted files.  If the source format is
+    a binary container (docx, epub, or odt), the media is
+    extracted from the container and the original
+    filenames are used. Otherwise the media is read from the
+    file system or downloaded, and new filenames are constructed
+    based on SHA1 hashes of the contents.
 
 `--abbreviations=`*FILE*
 
@@ -588,7 +597,15 @@ General writer options
 :   Print a system default data file.  Files in the user data directory
     are ignored.
 
+`--eol=crlf`|`lf`|`native`
+
+:   Manually specify line endings: `crlf` (Windows), `lf`
+    (MacOS/linux/unix), or `native` (line endings appropriate
+    to the OS on which pandoc is being run).  The default is
+    `native`.
+
 `--dpi`=*NUMBER*
+
 :   Specify the dpi (dots per inch) value for conversion from pixels
     to inch/centimeters and vice versa. The default is 96dpi.
     Technically, the correct term would be ppi (pixels per inch).
@@ -614,10 +631,10 @@ General writer options
 `--toc`, `--table-of-contents`
 
 :   Include an automatically generated table of contents (or, in
-    the case of `latex`, `context`, `docx`, `rst`, or `ms`,
-    an instruction to create one) in the output document. This
-    option has no effect on `man`, `docbook4`, `docbook5`, `jats`,
-    `slidy`, `slideous`, `s5`, or `odt` output.
+    the case of `latex`, `context`, `docx`, `odt`,
+    `opendocument`, `rst`, or `ms`, an instruction to create
+    one) in the output document. This option has no effect on
+    `man`, `docbook4`, `docbook5`, or `jats` output.
 
 `--toc-depth=`*NUMBER*
 
@@ -677,6 +694,18 @@ General writer options
     `\end{document}` command in LaTeX). This option can be used
     repeatedly to include multiple files. They will be included in the
     order specified.  Implies `--standalone`.
+
+`--resource-path=`*SEARCHPATH*
+
+:   List of paths to search for images and other resources.
+    The paths should be separated by `:` on linux, unix, and
+    MacOS systems, and by `;` on Windows.  If `--resource-path`
+    is not specified, the default resource path is the working
+    directory. Note that, if `--resource-path` is specified,
+    the working directory must be explicitly listed or it
+    will not be searched.  For example:
+    `--resource-path=.:test` will search the working directory
+    and the `test` subdirectory, in that order.
 
 Options affecting specific writers
 ----------------------------------
@@ -852,10 +881,10 @@ Options affecting specific writers
         Heading 2, Heading 3, Heading 4, Heading 5, Heading 6,
         Heading 7, Heading 8, Heading 9, Block Text, Footnote Text,
         Definition Term, Definition, Caption, Table Caption,
-        Image Caption, Figure, Figure With Caption, TOC Heading;
+        Image Caption, Figure, Captioned Figure, TOC Heading;
         [character] Default Paragraph Font, Body Text Char,
         Verbatim Char, Footnote Reference, Hyperlink; [table]
-        Normal Table.
+        Table.
 
     ODT
 
@@ -947,6 +976,12 @@ Options affecting specific writers
     readers may be slow if the chapter files are too large, so for large
     documents with few level 1 headers, one might want to use a chapter
     level of 2 or 3.
+
+`--epub-subdirectory=`*DIRNAME*
+
+:   Specify the subdirectory in the OCF container that is to hold
+    the EPUB-specific contents.  The default is `EPUB`.  To put
+    the EPUB contents in the top level, use an empty string.
 
 `--latex-engine=pdflatex`|`lualatex`|`xelatex`
 
@@ -1193,7 +1228,8 @@ as the following:
 :   non-null value if `--toc/--table-of-contents` was specified
 
 `toc-title`
-:   title of table of contents (works only with EPUB and docx)
+:   title of table of contents (works only with EPUB,
+    opendocument, odt, docx)
 
 `include-before`
 :   contents specified by `-B/--include-before-body` (may have
@@ -1314,6 +1350,11 @@ including all [reveal.js configuration options].
 :   color for internal links, citation links, external links, and links in table
     of contents: uses any of the [predefined LaTeX colors] (for beamer only).
 
+`aspectratio`
+:   aspect ratio of slides (for beamer only, `1610` for 16:10, `169` for 16:9,
+    `149` for 14:9, `141` for 1.41:1, `54` for 5:4, `43` for 4:3 which is the
+    default, and `32` for 3:2).
+
 [reveal.js configuration options]: https://github.com/hakimel/reveal.js#configuration
 
 Variables for LaTeX
@@ -1420,6 +1461,9 @@ LaTeX variables are used when [creating a PDF].
 
 `biblatexoptions`
 :   list of options for biblatex.
+
+`natbiboptions`
+:   list of options for natbib.
 
 [`article`]: https://ctan.org/pkg/article
 [`report`]: https://ctan.org/pkg/report
@@ -2993,9 +3037,6 @@ For the most part this should give the same output as `raw_html`,
 but it makes it easier to write pandoc filters to manipulate groups
 of inlines.
 
-Raw TeX
--------
-
 #### Extension: `raw_tex` ####
 
 In addition to raw HTML, pandoc allows raw LaTeX, TeX, and ConTeXt to be
@@ -3019,6 +3060,34 @@ LaTeX, not as Markdown.
 
 Inline LaTeX is ignored in output formats other than Markdown, LaTeX,
 Emacs Org mode, and ConTeXt.
+
+### Generic raw attribute ###
+
+#### Extension: `raw_attribute` ####
+
+Inline spans and fenced code blocks with a special
+kind of attribute will be parsed as raw content with the
+designated format.  For example, the following produces a raw
+groff `ms` block:
+
+    ```{=ms}
+    .MYMACRO
+    blah blah
+    ```
+And the following produces a raw `html` inline element:
+
+    This is `<a>html</a>`{=html}
+
+The format name should match the target format name (see
+`-t/--to`, above, for a list, or use `pandoc
+--list-output-formats`).
+
+This extension presupposes that the relevant kind of
+inline code or fenced code block is enabled.  Thus, for
+example, to use a raw attribute with a backtick code block,
+`backtick_code_blocks` must be enabled.
+
+The raw attribute cannot be combined with regular attributes.
 
 LaTeX macros
 ------------
@@ -3075,7 +3144,8 @@ definition, which may occur elsewhere in the document (either
 before or after the link).
 
 The link consists of link text in square brackets, followed by a label in
-square brackets. (There can be space between the two.) The link definition
+square brackets. (There cannot be space between the two unless the
+`spaced_reference_links` extension is enabled.) The link definition
 consists of the bracketed label, followed by a colon and a space, followed by
 the URL, and optionally (after a space) a link title either in quotes or in
 parentheses.  The label must not be parseable as a citation (assuming
@@ -3160,17 +3230,16 @@ The link text will be used as the image's alt text:
 
 #### Extension: `implicit_figures` ####
 
-An image occurring by itself in a paragraph will be rendered as
-a figure with a caption.[^5] (In LaTeX, a figure environment will be
-used; in HTML, the image will be placed in a `div` with class
-`figure`, together with a caption in a `p` with class `caption`.)
-The image's alt text will be used as the caption.
+An image with nonempty alt text, occurring by itself in a
+paragraph, will be rendered as a figure with a caption.  The
+image's alt text will be used as the caption.
 
     ![This is the caption](/url/of/image.png)
 
-[^5]: This feature is not yet implemented for RTF, OpenDocument, or
-    ODT. In those formats, you'll just get an image in a paragraph by
-    itself, with no caption.
+How this is rendered depends on the output format. Some output
+formats (e.g. RTF) do not yet support figures.  In those
+formats, you'll just get an image in a paragraph by itself, with
+no caption.
 
 If you just want a regular inline image, just make sure it is not
 the only thing in the paragraph. One way to do this is to insert a
@@ -3525,6 +3594,13 @@ implied by pandoc's default `all_symbols_escapable`.
 
 Allow a list to occur right after a paragraph, with no intervening
 blank space.
+
+#### Extension: `spaced_reference_links` ####
+
+Allow whitespace between the two components of a reference link,
+for example,
+
+    [foo] [bar].
 
 #### Extension: `hard_line_breaks` ####
 
@@ -3925,6 +4001,8 @@ block][Extension: `yaml_metadata_block`].  Here is an example:
       text: doi:10.234234.234/33
     publisher:  My Press
     rights: © 2007 John Smith, CC BY-NC
+    ibooks:
+      version: 1.3.4
     ...
 
 The following fields are recognized:
@@ -3989,6 +4067,16 @@ The following fields are recognized:
 `page-progression-direction`
   ~ Either `ltr` or `rtl`. Specifies the `page-progression-direction`
     attribute for the [`spine` element].
+
+`ibooks`
+  ~ iBooks-specific metadata, with the following fields:
+
+    - `version`: (string)
+    - `specified-fonts`: `true`|`false` (default `false`)
+    - `ipad-orientation-lock`: `portrait-only`|`landscape-only`
+    - `iphone-orientation-lock`: `portrait-only`|`landscape-only`
+    - `binding`: `true`|`false` (default `true`)
+    - `scroll-axis`: `vertical`|`horizontal`|`default`
 
 [MARC relators]: http://loc.gov/marc/relators/relaterm.html
 [`spine` element]: http://idpf.org/epub/301/spec/epub-publications.html#sec-spine-elem
@@ -4063,7 +4151,7 @@ Syntax highlighting
 ===================
 
 Pandoc will automatically highlight syntax in [fenced code blocks] that
-are marked with a language name.  The Haskell library [highlighting-kate] is
+are marked with a language name.  The Haskell library [skylighting] is
 used for highlighting, which works in HTML, Docx, Ms, and LaTeX/PDF output.
 To see a list of language names that pandoc will recognize, type
 `pandoc --list-highlight-languages`.
@@ -4076,7 +4164,7 @@ type `pandoc --list-highlight-styles`.
 
 To disable highlighting, use the `--no-highlight` option.
 
-[highlighting-kate]: https://github.com/jgm/highlighting-kate
+[skylighting]: https://github.com/jgm/skylighting
 
 Custom Styles in Docx Output
 ============================
@@ -4143,7 +4231,7 @@ which you can modify according to your needs, do
 Authors
 =======
 
-© 2006-2016 John MacFarlane (jgm@berkeley.edu). Released under the
+© 2006-2017 John MacFarlane (jgm@berkeley.edu). Released under the
 [GPL], version 2 or greater.  This software carries no warranty of
 any kind.  (See COPYRIGHT for full copyright and warranty notices.)
 

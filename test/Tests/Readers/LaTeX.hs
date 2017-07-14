@@ -6,14 +6,16 @@ import Tests.Helpers
 import Text.Pandoc
 import Text.Pandoc.Arbitrary ()
 import Text.Pandoc.Builder
+import Data.Text (Text)
+import qualified Data.Text as T
 
-latex :: String -> Pandoc
+latex :: Text -> Pandoc
 latex = purely $ readLaTeX def{
                    readerExtensions = getDefaultExtensions "latex" }
 
 infix 4 =:
 (=:) :: ToString c
-     => String -> (String, c) -> TestTree
+     => String -> (Text, c) -> TestTree
 (=:) = test latex
 
 simpleTable' :: [Alignment] -> [[Blocks]] -> Blocks
@@ -56,7 +58,8 @@ tests = [ testGroup "basic"
           , "blank lines + space + comments" =:
             "% my comment\n\n  \n  % another\n\nhi" =?> para "hi"
           , "comment in paragraph" =:
-            "hi % this is a comment\nthere\n" =?> para "hi there"
+            "hi % this is a comment\nthere\n" =?>
+                para ("hi" <> softbreak <> "there")
           ]
 
         , testGroup "code blocks"
@@ -74,7 +77,7 @@ tests = [ testGroup "basic"
             "\\begin{tabular}{|rl|}One & Two\\\\ \\end{tabular}" =?>
             simpleTable' [AlignRight,AlignLeft] [[plain "One", plain "Two"]]
           , "Multi line table" =:
-            unlines [ "\\begin{tabular}{|c|}"
+            T.unlines [ "\\begin{tabular}{|c|}"
                     , "One\\\\"
                     , "Two\\\\"
                     , "Three\\\\"
@@ -91,7 +94,7 @@ tests = [ testGroup "basic"
             "\\begin{tabular}{@{}r@{}l}One & Two\\\\ \\end{tabular}" =?>
             simpleTable' [AlignRight,AlignLeft] [[plain "One", plain "Two"]]
           , "Table with custom column separators" =:
-            unlines [ "\\begin{tabular}{@{($\\to$)}r@{\\hspace{2cm}}l}"
+            T.unlines [ "\\begin{tabular}{@{($\\to$)}r@{\\hspace{2cm}}l}"
                     , "One&Two\\\\"
                     , "\\end{tabular}" ] =?>
             simpleTable' [AlignRight,AlignLeft] [[plain "One", plain "Two"]]
@@ -108,10 +111,10 @@ tests = [ testGroup "basic"
         , let hex = ['0'..'9']++['a'..'f'] in
           testGroup "Character Escapes"
           [ "Two-character escapes" =:
-            concat ["^^"++[i,j] | i <- hex, j <- hex] =?>
+            mconcat ["^^" <> T.pack [i,j] | i <- hex, j <- hex] =?>
             para (str ['\0'..'\255'])
           , "One-character escapes" =:
-            concat ["^^"++[i] | i <- hex] =?>
+            mconcat ["^^" <> T.pack [i] | i <- hex] =?>
             para (str $ ['p'..'y']++['!'..'&'])
           ]
         ]

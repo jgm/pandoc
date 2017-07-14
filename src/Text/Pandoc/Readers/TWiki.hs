@@ -42,21 +42,24 @@ import qualified Data.Foldable as F
 import Data.Maybe (fromMaybe)
 import Text.HTML.TagSoup
 import qualified Text.Pandoc.Builder as B
-import Text.Pandoc.Class (PandocMonad, report)
+import Text.Pandoc.Class (PandocMonad(..))
 import Text.Pandoc.Definition
-import Text.Pandoc.Logging
 import Text.Pandoc.Options
-import Text.Pandoc.Parsing hiding (enclosed, macro, nested)
+import Text.Pandoc.Parsing hiding (enclosed, nested)
 import Text.Pandoc.Readers.HTML (htmlTag, isCommentTag)
 import Text.Pandoc.XML (fromEntities)
+import Text.Pandoc.Shared (crFilter)
+import Data.Text (Text)
+import qualified Data.Text as T
 
 -- | Read twiki from an input string and return a Pandoc document.
 readTWiki :: PandocMonad m
           => ReaderOptions
-          -> String
+          -> Text
           -> m Pandoc
 readTWiki opts s = do
-  res <- readWithM parseTWiki def{ stateOptions = opts } (s ++ "\n\n")
+  res <- readWithM parseTWiki def{ stateOptions = opts }
+             (T.unpack (crFilter s) ++ "\n\n")
   case res of
        Left e  -> throwError e
        Right d -> return d
@@ -106,7 +109,7 @@ parseHtmlContentWithAttrs tag parser = do
   parsedContent <- try $ parseContent content
   return (attr, parsedContent)
   where
-    parseContent = parseFromString $ nested $ manyTill parser endOfContent
+    parseContent = parseFromString' $ nested $ manyTill parser endOfContent
     endOfContent = try $ skipMany blankline >> skipSpaces >> eof
 
 parseHtmlContent :: PandocMonad m => String -> TWParser m a -> TWParser m [a]
@@ -130,12 +133,11 @@ parseTWiki = do
 
 block :: PandocMonad m => TWParser m B.Blocks
 block = do
-  pos <- getPosition
   res <- mempty <$ skipMany1 blankline
          <|> blockElements
          <|> para
   skipMany blankline
-  report $ ParsingTrace (take 60 $ show $ B.toList res) pos
+  trace (take 60 $ show $ B.toList res)
   return res
 
 blockElements :: PandocMonad m => TWParser m B.Blocks
@@ -233,7 +235,7 @@ listItemLine prefix marker = lineContent >>= parseContent >>= return . mconcat
     filterSpaces = reverse . dropWhile (== ' ') . reverse
     listContinuation = notFollowedBy (string prefix >> marker) >>
                        string "   " >> lineContent
-    parseContent = parseFromString $ many1 $ nestedList <|> parseInline
+    parseContent = parseFromString' $ many1 $ nestedList <|> parseInline
     parseInline = many1Till inline (lastNewline <|> newlineBeforeNestedList) >>=
                   return . B.plain . mconcat
     nestedList = list prefix
@@ -297,7 +299,7 @@ noautolink = do
   setState $ st{ stateAllowLinks = True }
   return $ mconcat blocks
   where
-    parseContent      = parseFromString $ many $ block
+    parseContent      = parseFromString' $ many $ block
 
 para :: PandocMonad m => TWParser m B.Blocks
 para = many1Till inline endOfParaElement >>= return . result . mconcat
@@ -349,13 +351,13 @@ linebreak = newline >> notFollowedBy newline >> (lastNewline <|> innerNewline)
   where lastNewline  = eof >> return mempty
         innerNewline = return B.space
 
-between :: (Monoid c, PandocMonad m)
+between :: (Monoid c, PandocMonad m, Show b)
         => TWParser m a -> TWParser m b -> (TWParser m b -> TWParser m c)
         -> TWParser m c
 between start end p =
   mconcat <$> try (start >> notFollowedBy whitespace >> many1Till (p end) end)
 
-enclosed :: (Monoid b, PandocMonad m)
+enclosed :: (Monoid b, PandocMonad m, Show a)
          => TWParser m a -> (TWParser m a -> TWParser m b) -> TWParser m b
 enclosed sep p = between sep (try $ sep <* endMarker) p
   where
@@ -525,4 +527,4 @@ linkText = do
   return (url, "", content)
   where
     linkContent      = (char '[') >> many1Till anyChar (char ']') >>= parseLinkContent
-    parseLinkContent = parseFromString $ many1 inline
+    parseLinkContent = parseFromString' $ many1 inline

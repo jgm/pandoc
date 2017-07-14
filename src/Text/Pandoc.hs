@@ -2,7 +2,7 @@
 {-# LANGUAGE GADTs               #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-
-Copyright (C) 2006-2016 John MacFarlane <jgm@berkeley.edu>
+Copyright (C) 2006-2017 John MacFarlane <jgm@berkeley.edu>
 
 This program is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -21,7 +21,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 {- |
    Module      : Text.Pandoc
-   Copyright   : Copyright (C) 2006-2016 John MacFarlane
+   Copyright   : Copyright (C) 2006-2017 John MacFarlane
    License     : GNU GPL, version 2 or above
 
    Maintainer  : John MacFarlane <jgm@berkeley.edu>
@@ -39,16 +39,18 @@ inline links:
 
 > module Main where
 > import Text.Pandoc
+> import Data.Text (Text)
+> import qualified Data.Text.IO as T
 >
-> markdownToRST :: String -> Either PandocError String
-> markdownToRST =
->   writeRST def {writerReferenceLinks = True} . readMarkdown def
->
-> main = getContents >>= either error return markdownToRST >>= putStrLn
+> mdToRST :: Text -> IO Text
+> mdToRST txt = runIOorExplode $
+>   readMarkdown def txt
+>   >>= writeRST def{ writerReferenceLinks = True }
 
-Note:  all of the readers assume that the input text has @'\n'@
-line endings.  So if you get your input text from a web form,
-you should remove @'\r'@ characters using @filter (/='\r')@.
+>
+> main :: IO ()
+> main = do
+>   T.getContents >>= mdToRST >>= T.putStrLn
 
 -}
 

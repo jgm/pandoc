@@ -79,7 +79,7 @@ $endif$
 $endif$
 $if(toc)$
 <section id="$idprefix$TOC">
-$toc$
+$table-of-contents$
 </section>
 $endif$
 
@@ -229,15 +229,24 @@ $endif$
 $if(maxScale)$
         maxScale: $maxScale$,
 $endif$
+$if(mathjax)$
+        math: {
+          mathjax: 'https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.0/MathJax.js',
+          config: 'TeX-AMS_HTML-full',
+        },
+$endif$
 
         // Optional reveal.js plugins
         dependencies: [
           { src: '$revealjs-url$/lib/js/classList.js', condition: function() { return !document.body.classList; } },
           { src: '$revealjs-url$/plugin/zoom-js/zoom.js', async: true },
-    $if(notes-server)$
+$if(notes-server)$
           { src: '$revealjs-url$/socket.io/socker.io.js', async: true },
           { src: '$revealjs-url$/plugin/notes-server/client.js', async: true },
-    $endif$
+$endif$
+$if(mathjax)$
+          { src: '$revealjs-url$/plugin/math/math.js', async: true },
+$endif$
           { src: '$revealjs-url$/plugin/notes/notes.js', async: true }
         ]
       });

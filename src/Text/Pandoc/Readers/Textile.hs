@@ -1,6 +1,6 @@
 {-
-Copyright (C) 2010-2015 Paul Rivier <paul*rivier#demotera*com> | tr '*#' '.@'
-                        and John MacFarlane
+Copyright (C) 2010-2012 Paul Rivier <paul*rivier#demotera*com> | tr '*#' '.@'
+              2010-2017 John MacFarlane
 
 This program is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -19,7 +19,8 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 {- |
    Module      : Text.Pandoc.Readers.Textile
-   Copyright   : Copyright (C) 2010-2015 Paul Rivier and John MacFarlane
+   Copyright   : Copyright (C) 2010-2012 Paul Rivier
+                               2010-2017 John MacFarlane
    License     : GNU GPL, version 2 or above
 
    Maintainer  : Paul Rivier <paul*rivier#demotera*com>
@@ -60,23 +61,25 @@ import Text.HTML.TagSoup (Tag (..), fromAttrib)
 import Text.HTML.TagSoup.Match
 import Text.Pandoc.Builder (Blocks, Inlines, trimInlines)
 import qualified Text.Pandoc.Builder as B
-import Text.Pandoc.Class (PandocMonad, report)
+import Text.Pandoc.Class (PandocMonad(..))
 import Text.Pandoc.CSS
 import Text.Pandoc.Definition
-import Text.Pandoc.Logging
 import Text.Pandoc.Options
 import Text.Pandoc.Parsing
 import Text.Pandoc.Readers.HTML (htmlTag, isBlockTag, isInlineTag)
 import Text.Pandoc.Readers.LaTeX (rawLaTeXBlock, rawLaTeXInline)
-import Text.Pandoc.Shared (trim)
+import Text.Pandoc.Shared (trim, crFilter)
+import Data.Text (Text)
+import qualified Data.Text as T
 
 -- | Parse a Textile text and return a Pandoc document.
 readTextile :: PandocMonad m
             => ReaderOptions -- ^ Reader options
-            -> String       -- ^ String to parse (assuming @'\n'@ line endings)
+            -> Text          -- ^ String to parse (assuming @'\n'@ line endings)
             -> m Pandoc
 readTextile opts s = do
-  parsed <- readWithM parseTextile def{ stateOptions = opts } (s ++ "\n\n")
+  parsed <- readWithM parseTextile def{ stateOptions = opts }
+                (T.unpack (crFilter s) ++ "\n\n")
   case parsed of
      Right result -> return result
      Left e       -> throwError e
@@ -139,8 +142,7 @@ blockParsers = [ codeBlock
 block :: PandocMonad m => ParserT [Char] ParserState m Blocks
 block = do
   res <- choice blockParsers <?> "block"
-  pos <- getPosition
-  report $ ParsingTrace (take 60 $ show $ B.toList res) pos
+  trace (take 60 $ show $ B.toList res)
   return res
 
 commentBlock :: PandocMonad m => ParserT [Char] ParserState m Blocks
@@ -314,7 +316,7 @@ definitionListItem = try $ do
           optional whitespace >> newline
           s <- many1Till anyChar (try (string "=:" >> newline))
           -- this ++ "\n\n" does not look very good
-          ds <- parseFromString parseBlocks (s ++ "\n\n")
+          ds <- parseFromString' parseBlocks (s ++ "\n\n")
           return [ds]
 
 -- raw content
@@ -366,7 +368,7 @@ tableCell = try $ do
   notFollowedBy blankline
   raw <- trim <$>
          many (noneOf "|\n" <|> try (char '\n' <* notFollowedBy blankline))
-  content <- mconcat <$> parseFromString (many inline) raw
+  content <- mconcat <$> parseFromString' (many inline) raw
   return ((isHeader, alignment), B.plain content)
 
 -- | A table row is made of many table cells
@@ -388,7 +390,7 @@ table = try $ do
     _ <- attributes
     char '.'
     rawcapt <- trim <$> anyLine
-    parseFromString (mconcat <$> many inline) rawcapt
+    parseFromString' (mconcat <$> many inline) rawcapt
   rawrows <- many1 $ (skipMany ignorableRow) >> tableRow
   skipMany ignorableRow
   blanklines
@@ -506,7 +508,7 @@ note = try $ do
   notes <- stateNotes <$> getState
   case lookup ref notes of
     Nothing  -> fail "note not found"
-    Just raw -> B.note <$> parseFromString parseBlocks raw
+    Just raw -> B.note <$> parseFromString' parseBlocks raw
 
 -- | Special chars
 markupChars :: [Char]
@@ -571,7 +573,7 @@ rawHtmlInline = B.rawInline "html" . snd <$> htmlTag isInlineTag
 rawLaTeXInline' :: PandocMonad m => ParserT [Char] ParserState m Inlines
 rawLaTeXInline' = try $ do
   guardEnabled Ext_raw_tex
-  B.singleton <$> rawLaTeXInline
+  B.rawInline "latex" <$> rawLaTeXInline
 
 -- | Textile standard link syntax is "label":target. But we
 -- can also have ["label":target].
@@ -585,8 +587,9 @@ link = try $ do
   char ':'
   let stop = if bracketed
                 then char ']'
-                else lookAhead $ space <|>
-                       try (oneOf "!.,;:" *> (space <|> newline))
+                else lookAhead $ space <|> eof' <|>
+                       try (oneOf "!.,;:" *>
+                              (space <|> newline <|> eof'))
   url <- many1Till nonspaceChar stop
   let name' = if B.toList name == [Str "$"] then B.str url else name
   return $ if attr == nullAttr
@@ -690,7 +693,7 @@ langAttr = do
   return $ \(id',classes,keyvals) -> (id',classes,("lang",lang):keyvals)
 
 -- | Parses material surrounded by a parser.
-surrounded :: PandocMonad m
+surrounded :: (PandocMonad m, Show t)
            => ParserT [Char] st m t   -- ^ surrounding parser
            -> ParserT [Char] st m a   -- ^ content parser (to be used repeatedly)
            -> ParserT [Char] st m [a]
@@ -727,3 +730,5 @@ groupedInlineMarkup = try $ do
 singleton :: a -> [a]
 singleton x = [x]
 
+eof' :: Monad m => ParserT [Char] s m Char
+eof' = '\n' <$ eof

@@ -4,7 +4,7 @@
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE ViewPatterns        #-}
 {-
-Copyright (C) 2012-2015 John MacFarlane <jgm@berkeley.edu>
+Copyright (C) 2012-2017 John MacFarlane <jgm@berkeley.edu>
 
 This program is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -23,7 +23,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 {- |
    Module      : Text.Pandoc.Writers.Docx
-   Copyright   : Copyright (C) 2012-2015 John MacFarlane
+   Copyright   : Copyright (C) 2012-2017 John MacFarlane
    License     : GNU GPL, version 2 or above
 
    Maintainer  : John MacFarlane <jgm@berkeley.edu>
@@ -37,7 +37,7 @@ import Codec.Archive.Zip
 import Control.Applicative ((<|>))
 import Control.Monad.Except (catchError)
 import Control.Monad.Reader
-import Control.Monad.State
+import Control.Monad.State.Strict
 import qualified Data.ByteString as B
 import qualified Data.ByteString.Lazy as BL
 import qualified Data.ByteString.Lazy.Char8 as BL8
@@ -68,6 +68,7 @@ import qualified Text.Pandoc.UTF8 as UTF8
 import Text.Pandoc.Walk
 import Text.Pandoc.Writers.Math
 import Text.Pandoc.Writers.Shared (fixDisplayMath)
+import Text.Pandoc.BCP47 (getLang, renderLang, toLang)
 import Text.Printf (printf)
 import Text.TeXMath
 import Text.XML.Light as XML
@@ -257,12 +258,11 @@ writeDocx opts doc@(Pandoc meta _) = do
                        )
 
   -- styles
-  let lang = case lookupMeta "lang" meta of
-               Just (MetaInlines [Str s]) -> Just s
-               Just (MetaString s)        -> Just s
-               _                          -> Nothing
+  mblang <- toLang $ getLang opts meta
   let addLang :: Element -> Element
-      addLang e = case lang >>= \l -> (return . XMLC.toTree . go l . XMLC.fromElement) e of
+      addLang e = case mblang >>= \l ->
+                         (return . XMLC.toTree . go (renderLang l)
+                                 . XMLC.fromElement) e of
                     Just (Elem e') -> e'
                     _              -> e -- return original
         where go :: String -> Cursor -> Cursor
@@ -496,6 +496,11 @@ writeDocx opts doc@(Pandoc meta _) = do
                                , qName (elName e) == "abstractNum" ] ++
                        [Elem e | e <- allElts
                                , qName (elName e) == "num" ] }
+
+  let keywords = case lookupMeta "keywords" meta of
+                       Just (MetaList xs)           -> map stringify xs
+                       _                            -> []
+
   let docPropsPath = "docProps/core.xml"
   let docProps = mknode "cp:coreProperties"
           [("xmlns:cp","http://schemas.openxmlformats.org/package/2006/metadata/core-properties")
@@ -505,6 +510,7 @@ writeDocx opts doc@(Pandoc meta _) = do
           ,("xmlns:xsi","http://www.w3.org/2001/XMLSchema-instance")]
           $ mknode "dc:title" [] (stringify $ docTitle meta)
           : mknode "dc:creator" [] (intercalate "; " (map stringify $ docAuthors meta))
+          : mknode "cp:keywords" [] (intercalate ", " keywords)
           : (\x -> [ mknode "dcterms:created" [("xsi:type","dcterms:W3CDTF")] x
                    , mknode "dcterms:modified" [("xsi:type","dcterms:W3CDTF")] x
                    ]) (formatTime defaultTimeLocale "%FT%XZ" utctime)
@@ -651,6 +657,9 @@ mkNumbering lists = do
   elts <- mapM mkAbstractNum (ordNub lists)
   return $ elts ++ zipWith mkNum lists [baseListId..(baseListId + length lists - 1)]
 
+maxListLevel :: Int
+maxListLevel = 8
+
 mkNum :: ListMarker -> Int -> Element
 mkNum marker numid =
   mknode "w:num" [("w:numId",show numid)]
@@ -660,7 +669,8 @@ mkNum marker numid =
        BulletMarker -> []
        NumberMarker _ _ start ->
           map (\lvl -> mknode "w:lvlOverride" [("w:ilvl",show (lvl :: Int))]
-              $ mknode "w:startOverride" [("w:val",show start)] ()) [0..6]
+              $ mknode "w:startOverride" [("w:val",show start)] ())
+                [0..maxListLevel]
 
 mkAbstractNum :: (PandocMonad m) => ListMarker -> m Element
 mkAbstractNum marker = do
@@ -669,7 +679,8 @@ mkAbstractNum marker = do
   return $ mknode "w:abstractNum" [("w:abstractNumId",listMarkerToId marker)]
     $ mknode "w:nsid" [("w:val", printf "%8x" nsid)] ()
     : mknode "w:multiLevelType" [("w:val","multilevel")] ()
-    : map (mkLvl marker) [0..6]
+    : map (mkLvl marker)
+      [0..maxListLevel]
 
 mkLvl :: ListMarker -> Int -> Element
 mkLvl marker lvl =
@@ -700,7 +711,7 @@ mkLvl marker lvl =
           bulletFor 3 = "\x2013"
           bulletFor 4 = "\x2022"
           bulletFor 5 = "\x2013"
-          bulletFor _ = "\x2022"
+          bulletFor x = bulletFor (x `mod` 6)
           styleFor UpperAlpha _   = "upperLetter"
           styleFor LowerAlpha _   = "lowerLetter"
           styleFor UpperRoman _   = "upperRoman"
@@ -712,6 +723,7 @@ mkLvl marker lvl =
           styleFor DefaultStyle 4 = "decimal"
           styleFor DefaultStyle 5 = "lowerLetter"
           styleFor DefaultStyle 6 = "lowerRoman"
+          styleFor DefaultStyle x = styleFor DefaultStyle (x `mod` 7)
           styleFor _ _            = "decimal"
           patternFor OneParen s  = s ++ ")"
           patternFor TwoParens s = "(" ++ s ++ ")"
@@ -875,7 +887,7 @@ blockToOpenXML' opts (Para [Image attr alt (src,'f':'i':'g':':':tit)]) = do
   let prop = pCustomStyle $
         if null alt
         then "Figure"
-        else "FigureWithCaption"
+        else "CaptionedFigure"
   paraProps <- local (\env -> env { envParaProperties = prop : envParaProperties env }) (getParaProps False)
   contents <- inlinesToOpenXML opts [Image attr alt (src,tit)]
   captionNode <- withParaProp (pCustomStyle "ImageCaption")
@@ -953,7 +965,7 @@ blockToOpenXML' opts (Table caption aligns widths headers rows) = do
     caption' ++
     [mknode "w:tbl" []
       ( mknode "w:tblPr" []
-        (   mknode "w:tblStyle" [("w:val","TableNormal")] () :
+        (   mknode "w:tblStyle" [("w:val","Table")] () :
             mknode "w:tblW" [("w:type", "pct"), ("w:w", show rowwidth)] () :
             mknode "w:tblLook" [("w:firstRow","1") | hasHeader ] () :
           [ mknode "w:tblCaption" [("w:val", captionStr)] ()
@@ -1059,13 +1071,24 @@ withParaPropM :: PandocMonad m => WS m Element -> WS m a -> WS m a
 withParaPropM = (. flip withParaProp) . (>>=)
 
 formattedString :: PandocMonad m => String -> WS m [Element]
-formattedString str = do
-  props <- getTextProps
+formattedString str =
+  -- properly handle soft hyphens
+  case splitBy (=='\173') str of
+      [w] -> formattedString' w
+      ws  -> do
+         sh <- formattedRun [mknode "w:softHyphen" [] ()]
+         (intercalate sh) <$> mapM formattedString' ws
+
+formattedString' :: PandocMonad m => String -> WS m [Element]
+formattedString' str = do
   inDel <- asks envInDel
-  return [ mknode "w:r" [] $
-             props ++
-             [ mknode (if inDel then "w:delText" else "w:t")
-               [("xml:space","preserve")] (stripInvalidChars str) ] ]
+  formattedRun [ mknode (if inDel then "w:delText" else "w:t")
+                 [("xml:space","preserve")] (stripInvalidChars str) ]
+
+formattedRun :: PandocMonad m => [Element] -> WS m [Element]
+formattedRun els = do
+  props <- getTextProps
+  return [ mknode "w:r" [] $ props ++ els ]
 
 setFirstPara :: PandocMonad m => WS m ()
 setFirstPara =  modify $ \s -> s { stFirstPara = True }
@@ -1075,7 +1098,8 @@ inlineToOpenXML :: PandocMonad m => WriterOptions -> Inline -> WS m [Element]
 inlineToOpenXML opts il = withDirection $ inlineToOpenXML' opts il
 
 inlineToOpenXML' :: PandocMonad m => WriterOptions -> Inline -> WS m [Element]
-inlineToOpenXML' _ (Str str) = formattedString str
+inlineToOpenXML' _ (Str str) =
+  formattedString str
 inlineToOpenXML' opts Space = inlineToOpenXML opts (Str " ")
 inlineToOpenXML' opts SoftBreak = inlineToOpenXML opts (Str " ")
 inlineToOpenXML' opts (Span (ident,classes,kvs) ils) = do

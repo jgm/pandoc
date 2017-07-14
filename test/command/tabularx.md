@@ -1,5 +1,5 @@
 ```
-% pandoc -f latex -t native
+% pandoc -f latex -t native --quiet
 \begin{tabularx}{\linewidth}{|c|c|c|}
 \hline
   Column Heading 1
@@ -36,7 +36,7 @@
 ```
 
 ```
-% pandoc -f latex -t native
+% pandoc -f latex -t native --quiet
 \begin{tabularx}{\linewidth}{|X|c|p{0.25\linewidth}|}
 \hline
   Column Heading 1
@@ -57,7 +57,7 @@
 \hline
 \end{tabularx}
 ^D
-[Table [] [AlignLeft,AlignCenter,AlignLeft] [0.0,0.0,0.0]
+[Table [] [AlignLeft,AlignCenter,AlignLeft] [0.0,0.0,0.25]
  [[Plain [Str "Column",Space,Str "Heading",Space,Str "1"]]
  ,[Plain [Str "Column",Space,Str "Heading",Space,Str "2"]]
  ,[Plain [Str "Column",Space,Str "Heading",Space,Str "3"]]]
@@ -73,7 +73,7 @@
 ```
 
 ```
-% pandoc -f latex -t native
+% pandoc -f latex -t native --quiet
 \begin{tabularx}{\linewidth}{|b{0.25\linewidth}|c|m{0.25\linewidth}|}
 \hline
   Column Heading 1
@@ -94,7 +94,7 @@
 \hline
 \end{tabularx}
 ^D
-[Table [] [AlignLeft,AlignCenter,AlignLeft] [0.0,0.0,0.0]
+[Table [] [AlignLeft,AlignCenter,AlignLeft] [0.25,0.0,0.25]
  [[Plain [Str "Column",Space,Str "Heading",Space,Str "1"]]
  ,[Plain [Str "Column",Space,Str "Heading",Space,Str "2"]]
  ,[Plain [Str "Column",Space,Str "Heading",Space,Str "3"]]]

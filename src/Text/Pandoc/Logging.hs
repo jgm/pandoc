@@ -20,7 +20,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 -}
 {- |
    Module      : Text.Pandoc.Logging
-   Copyright   : Copyright (C) 2006-2016 John MacFarlane
+   Copyright   : Copyright (C) 2006-2017 John MacFarlane
    License     : GNU GPL, version 2 or above
 
    Maintainer  : John MacFarlane <jgm@berkeley.edu>
@@ -39,6 +39,7 @@ module Text.Pandoc.Logging (
   , messageVerbosity
   ) where
 
+import Control.Monad (mzero)
 import Data.Aeson
 import Data.Aeson.Encode.Pretty (Config (..), defConfig, encodePretty',
                                  keyOrder)
@@ -51,23 +52,32 @@ import Text.Pandoc.Definition
 import Text.Parsec.Pos
 
 -- | Verbosity level.
-data Verbosity = ERROR | WARNING | INFO | DEBUG
+data Verbosity = ERROR | WARNING | INFO
      deriving (Show, Read, Eq, Data, Enum, Ord, Bounded, Typeable, Generic)
 
 instance ToJSON Verbosity where
   toJSON x = toJSON (show x)
+instance FromJSON Verbosity where
+  parseJSON (String t) =
+    case t of
+         "ERROR"   -> return ERROR
+         "WARNING" -> return WARNING
+         "INFO"    -> return INFO
+         _         -> mzero
+  parseJSON _      =  mzero
 
 data LogMessage =
     SkippedContent String SourcePos
   | CouldNotParseYamlMetadata String SourcePos
   | DuplicateLinkReference String SourcePos
   | DuplicateNoteReference String SourcePos
+  | NoteDefinedButNotUsed String SourcePos
   | DuplicateIdentifier String SourcePos
   | ReferenceNotFound String SourcePos
   | CircularReference String SourcePos
   | ParsingUnescaped String SourcePos
   | CouldNotLoadIncludeFile String SourcePos
-  | ParsingTrace String SourcePos
+  | MacroAlreadyDefined String SourcePos
   | InlineNotRendered Inline
   | BlockNotRendered Block
   | DocxParserWarning String
@@ -78,9 +88,12 @@ data LogMessage =
   | CouldNotConvertTeXMath String String
   | CouldNotParseCSS String
   | Fetching String
+  | Extracting String
   | NoTitleElement String
   | NoLangSpecified
+  | InvalidLang String
   | CouldNotHighlight String
+  | MissingCharacter String
   deriving (Show, Eq, Data, Ord, Typeable, Generic)
 
 instance ToJSON LogMessage where
@@ -100,6 +113,11 @@ instance ToJSON LogMessage where
             "column" .= toJSON (sourceColumn pos)]
       DuplicateLinkReference s pos ->
            ["contents" .= Text.pack s,
+            "source" .= Text.pack (sourceName pos),
+            "line" .= toJSON (sourceLine pos),
+            "column" .= toJSON (sourceColumn pos)]
+      NoteDefinedButNotUsed s pos ->
+           ["key" .= Text.pack s,
             "source" .= Text.pack (sourceName pos),
             "line" .= toJSON (sourceLine pos),
             "column" .= toJSON (sourceColumn pos)]
@@ -133,11 +151,11 @@ instance ToJSON LogMessage where
             "source" .= Text.pack (sourceName pos),
             "line" .= toJSON (sourceLine pos),
             "column" .= toJSON (sourceColumn pos)]
-      ParsingTrace s pos ->
-           ["contents" .= Text.pack s,
+      MacroAlreadyDefined name pos ->
+           ["name" .= Text.pack name,
             "source" .= Text.pack (sourceName pos),
-            "line" .= sourceLine pos,
-            "column" .= sourceColumn pos]
+            "line" .= toJSON (sourceLine pos),
+            "column" .= toJSON (sourceColumn pos)]
       InlineNotRendered il ->
            ["contents" .= toJSON il]
       BlockNotRendered bl ->
@@ -162,10 +180,16 @@ instance ToJSON LogMessage where
            ["message" .= Text.pack msg]
       Fetching fp ->
            ["path" .= Text.pack fp]
+      Extracting fp ->
+           ["path" .= Text.pack fp]
       NoTitleElement fallback ->
            ["fallback" .= Text.pack fallback]
       NoLangSpecified -> []
+      InvalidLang s ->
+           ["lang" .= Text.pack s]
       CouldNotHighlight msg ->
+           ["message" .= Text.pack msg]
+      MissingCharacter msg ->
            ["message" .= Text.pack msg]
 
 showPos :: SourcePos -> String
@@ -193,6 +217,9 @@ showLogMessage msg =
          "Duplicate link reference '" ++ s ++ "' at " ++ showPos pos
        DuplicateNoteReference s pos ->
          "Duplicate note reference '" ++ s ++ "' at " ++ showPos pos
+       NoteDefinedButNotUsed s pos ->
+         "Note with key '" ++ s ++ "' defined at " ++ showPos pos ++
+           " but not used."
        DuplicateIdentifier s pos ->
          "Duplicate identifier '" ++ s ++ "' at " ++ showPos pos
        ReferenceNotFound s pos ->
@@ -203,8 +230,8 @@ showLogMessage msg =
          "Parsing unescaped '" ++ s ++ "' at " ++ showPos pos
        CouldNotLoadIncludeFile fp pos ->
          "Could not load include file '" ++ fp ++ "' at " ++ showPos pos
-       ParsingTrace s pos ->
-         "Parsing trace at " ++ showPos pos ++ ": " ++ s
+       MacroAlreadyDefined name pos ->
+         "Macro '" ++ name ++ "' already defined, ignoring at " ++ showPos pos
        InlineNotRendered il ->
          "Not rendering " ++ show il
        BlockNotRendered bl ->
@@ -229,6 +256,8 @@ showLogMessage msg =
          "Could not parse CSS" ++ if null m then "" else (':':'\n':m)
        Fetching fp ->
          "Fetching " ++ fp ++ "..."
+       Extracting fp ->
+         "Extracting " ++ fp ++ "..."
        NoTitleElement fallback ->
          "This document format requires a nonempty <title> element.\n" ++
          "Please specify either 'title' or 'pagetitle' in the metadata.\n" ++
@@ -236,22 +265,28 @@ showLogMessage msg =
        NoLangSpecified ->
          "No value for 'lang' was specified in the metadata.\n" ++
          "It is recommended that lang be specified for this format."
+       InvalidLang s ->
+         "Invalid 'lang' value '" ++ s ++ "'.\n" ++
+         "Use an IETF language tag like 'en-US'."
        CouldNotHighlight m ->
          "Could not highlight code block:\n" ++ m
+       MissingCharacter m ->
+         "Missing character: " ++ m
 
 messageVerbosity:: LogMessage -> Verbosity
 messageVerbosity msg =
   case msg of
-       SkippedContent{}             -> INFO
+       SkippedContent{}             -> WARNING
        CouldNotParseYamlMetadata{}  -> WARNING
        DuplicateLinkReference{}     -> WARNING
        DuplicateNoteReference{}     -> WARNING
+       NoteDefinedButNotUsed{}      -> WARNING
        DuplicateIdentifier{}        -> WARNING
        ReferenceNotFound{}          -> WARNING
        CircularReference{}          -> WARNING
        CouldNotLoadIncludeFile{}    -> WARNING
+       MacroAlreadyDefined{}        -> WARNING
        ParsingUnescaped{}           -> INFO
-       ParsingTrace{}               -> DEBUG
        InlineNotRendered{}          -> INFO
        BlockNotRendered{}           -> INFO
        DocxParserWarning{}          -> WARNING
@@ -262,6 +297,9 @@ messageVerbosity msg =
        CouldNotConvertTeXMath{}     -> WARNING
        CouldNotParseCSS{}           -> WARNING
        Fetching{}                   -> INFO
+       Extracting{}                 -> INFO
        NoTitleElement{}             -> WARNING
        NoLangSpecified              -> INFO
+       InvalidLang{}                -> WARNING
        CouldNotHighlight{}          -> WARNING
+       MissingCharacter{}           -> WARNING

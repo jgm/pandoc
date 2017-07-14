@@ -11,7 +11,7 @@ $include-before$
 
 $endfor$
 $if(toc)$
-$toc$
+$table-of-contents$
 
 $endif$
 $body$
