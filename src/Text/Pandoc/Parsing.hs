@@ -247,7 +247,7 @@ instance Monoid a => Monoid (Future s a) where
   mconcat = liftM mconcat . sequence
 
 -- | Parse characters while a predicate is true.
-takeWhileP :: Monad m
+takeWhileP :: Stream [Char] m Char
            => (Char -> Bool) -> ParserT [Char] st m [Char]
 takeWhileP f = do
   -- faster than 'many (satisfy f)'
@@ -262,7 +262,7 @@ takeWhileP f = do
 
 -- Parse n characters of input (or the rest of the input if
 -- there aren't n characters).
-takeP :: Monad m => Int -> ParserT [Char] st m [Char]
+takeP :: Stream [Char] m Char => Int -> ParserT [Char] st m [Char]
 takeP n = do
   guard (n > 0)
   -- faster than 'count n anyChar'
@@ -276,7 +276,7 @@ takeP n = do
   return xs
 
 -- | Parse any line of text
-anyLine :: Monad m => ParserT [Char] st m [Char]
+anyLine :: Stream [Char] m Char => ParserT [Char] st m [Char]
 anyLine = do
   -- This is much faster than:
   -- manyTill anyChar newline
@@ -292,11 +292,11 @@ anyLine = do
        _ -> mzero
 
 -- | Parse any line, include the final newline in the output
-anyLineNewline :: Monad m => ParserT [Char] st m [Char]
+anyLineNewline :: Stream [Char] m Char => ParserT [Char] st m [Char]
 anyLineNewline = (++ "\n") <$> anyLine
 
 -- | Parse indent by specified number of spaces (or equiv. tabs)
-indentWith :: Monad m
+indentWith :: Stream [Char] m Char
            => HasReaderOptions st
            => Int -> ParserT [Char] st m [Char]
 indentWith num = do
@@ -422,7 +422,7 @@ parseFromString' parser str = do
   return res
 
 -- | Parse raw line block up to and including blank lines.
-lineClump :: Monad m => ParserT [Char] st m String
+lineClump :: Stream [Char] m Char => ParserT [Char] st m String
 lineClump = blanklines
           <|> (many1 (notFollowedBy blankline >> anyLine) >>= return . unlines)
 
@@ -520,7 +520,7 @@ uriScheme :: Stream s m Char => ParserT s st m String
 uriScheme = oneOfStringsCI (Set.toList schemes)
 
 -- | Parses a URI. Returns pair of original and URI-escaped version.
-uri :: Monad m => ParserT [Char] st m (String, String)
+uri :: Stream [Char] m Char => ParserT [Char] st m (String, String)
 uri = try $ do
   scheme <- uriScheme
   char ':'
@@ -625,7 +625,7 @@ withHorizDisplacement parser = do
 
 -- | Applies a parser and returns the raw string that was parsed,
 -- along with the value produced by the parser.
-withRaw :: Monad m => ParsecT [Char] st m a -> ParsecT [Char] st m (a, [Char])
+withRaw :: Stream [Char] m Char => ParsecT [Char] st m a -> ParsecT [Char] st m (a, [Char])
 withRaw parser = do
   pos1 <- getPosition
   inp <- getInput
@@ -786,7 +786,7 @@ charRef = do
   c <- characterReference
   return $ Str [c]
 
-lineBlockLine :: Monad m => ParserT [Char] st m String
+lineBlockLine :: Stream [Char] m Char => ParserT [Char] st m String
 lineBlockLine = try $ do
   char '|'
   char ' '
@@ -796,11 +796,11 @@ lineBlockLine = try $ do
   continuations <- many (try $ char ' ' >> anyLine)
   return $ white ++ unwords (line : continuations)
 
-blankLineBlockLine :: Monad m => ParserT [Char] st m Char
+blankLineBlockLine :: Stream [Char] m Char => ParserT [Char] st m Char
 blankLineBlockLine = try (char '|' >> blankline)
 
 -- | Parses an RST-style line block and returns a list of strings.
-lineBlockLines :: Monad m => ParserT [Char] st m [String]
+lineBlockLines :: Stream [Char] m Char => ParserT [Char] st m [String]
 lineBlockLines = try $ do
   lines' <- many1 (lineBlockLine <|> ((:[]) <$> blankLineBlockLine))
   skipMany1 $ blankline <|> blankLineBlockLine
@@ -870,7 +870,7 @@ widthsFromIndices numColumns' indices =
 -- (which may be grid), then the rows,
 -- which may be grid, separated by blank lines, and
 -- ending with a footer (dashed line followed by blank line).
-gridTableWith :: (Monad m, HasReaderOptions st,
+gridTableWith :: (Stream [Char] m Char, HasReaderOptions st,
                   Functor mf, Applicative mf, Monad mf)
               => ParserT [Char] st m (mf Blocks)  -- ^ Block list parser
               -> Bool                             -- ^ Headerless table
@@ -879,7 +879,7 @@ gridTableWith blocks headless =
   tableWith (gridTableHeader headless blocks) (gridTableRow blocks)
             (gridTableSep '-') gridTableFooter
 
-gridTableWith' :: (Monad m, HasReaderOptions st,
+gridTableWith' :: (Stream [Char] m Char, HasReaderOptions st,
                    Functor mf, Applicative mf, Monad mf)
                => ParserT [Char] st m (mf Blocks)  -- ^ Block list parser
                -> Bool                             -- ^ Headerless table
@@ -919,7 +919,7 @@ gridTableSep :: Stream s m Char => Char -> ParserT s st m Char
 gridTableSep ch = try $ gridDashedLines ch >> return '\n'
 
 -- | Parse header for a grid table.
-gridTableHeader :: (Monad m, Functor mf, Applicative mf, Monad mf)
+gridTableHeader :: (Stream [Char] m Char, Functor mf, Applicative mf, Monad mf)
                 => Bool -- ^ Headerless table
                 -> ParserT [Char] st m (mf Blocks)
                 -> ParserT [Char] st m (mf [Blocks], [Alignment], [Int])
