@@ -6,6 +6,7 @@ import Tests.Helpers
 import Text.Pandoc.Class (runIOorExplode)
 import Text.Pandoc.Definition
 import Text.Pandoc.Options
+import Text.Pandoc.Walk
 import Text.Pandoc.Readers.Docx
 import Text.Pandoc.Readers.Native
 import Text.Pandoc.Writers.Docx
@@ -27,7 +28,14 @@ compareOutput (wopts, ropts) nativeFileIn nativeFileOut = do
             writeDocx wopts{writerUserDataDir = Just (".." </> "data")} >>=
             readDocx ropts
     orig <- readNative def nf'
-    return (roundtripped, orig)
+    return (walk fixImages roundtripped, walk fixImages orig)
+
+-- make all image filenames "image", since otherwise round-trip
+-- tests fail because of different behavior of Data.Unique in
+-- different ghc versions...
+fixImages :: Inline -> Inline
+fixImages (Image attr alt (_,tit)) = Image attr alt ("image",tit)
+fixImages x = x
 
 testCompareWithOptsIO :: Options -> String -> FilePath -> FilePath -> IO TestTree
 testCompareWithOptsIO opts name nativeFileIn nativeFileOut = do
