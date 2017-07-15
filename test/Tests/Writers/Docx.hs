@@ -22,12 +22,12 @@ compareOutput :: Options
 compareOutput (wopts, ropts) nativeFileIn nativeFileOut = do
   nf <- UTF8.toText <$> BS.readFile nativeFileIn
   nf' <- UTF8.toText <$> BS.readFile nativeFileOut
-  df <- runIOorExplode $
-            readNative def nf >>=
+  runIOorExplode $ do
+    roundtripped <- readNative def nf >>=
             writeDocx wopts{writerUserDataDir = Just (".." </> "data")} >>=
             readDocx ropts
-  df' <- runIOorExplode (readNative def nf')
-  return (df, df')
+    orig <- readNative def nf'
+    return (roundtripped, orig)
 
 testCompareWithOptsIO :: Options -> String -> FilePath -> FilePath -> IO TestTree
 testCompareWithOptsIO opts name nativeFileIn nativeFileOut = do
