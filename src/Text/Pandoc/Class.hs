@@ -102,7 +102,7 @@ import qualified Data.ByteString as B
 import qualified Data.ByteString.Lazy as BL
 import qualified System.Environment as IO (lookupEnv)
 import System.FilePath.Glob (match, compile)
-import System.Directory (createDirectoryIfMissing, listDirectory,
+import System.Directory (createDirectoryIfMissing, getDirectoryContents,
                           doesDirectoryExist)
 import System.FilePath ((</>), (<.>), takeDirectory,
          takeExtension, dropExtension, isRelative, normalise)
@@ -486,7 +486,10 @@ addToFileTree (FileTree treemap) fp = do
   isdir <- doesDirectoryExist fp
   if isdir
      then do -- recursively add contents of directories
-       fs <- map (fp </>) <$> listDirectory fp
+       let isSpecial ".." = True
+           isSpecial "."  = True
+           isSpecial _    = False
+       fs <- (map (fp </>) . filter (not . isSpecial)) <$> getDirectoryContents fp
        foldM addToFileTree (FileTree treemap) fs
      else do
        contents <- B.readFile fp
