@@ -5,7 +5,8 @@
 {-# LANGUAGE FlexibleContexts #-}
 
 {-
-Copyright (C) 2016 Jesse Rosenthal <jrosenthal@jhu.edu>
+Copyright (C) 2016-17 Jesse Rosenthal <jrosenthal@jhu.edu>
+and John MacFarlane.
 
 This program is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -24,7 +25,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 {- |
    Module      : Text.Pandoc.Class
-   Copyright   : Copyright (C) 2016 Jesse Rosenthal
+   Copyright   : Copyright (C) 2016-17 Jesse Rosenthal, John MacFarlane
    License     : GNU GPL, version 2 or above
 
    Maintainer  : Jesse Rosenthal <jrosenthal@jhu.edu>
@@ -122,36 +123,64 @@ import qualified Data.Map as M
 import Text.Pandoc.Error
 import qualified Debug.Trace
 
+-- | The PandocMonad typeclass contains all the potentially
+-- IO-related functions used in pandoc's readers and writers.
+-- Instances of this typeclass may implement these functions
+-- in IO (as in 'PandocIO') or using an internal state that
+-- represents a file system, time, and so on (as in 'PandocPure').
 class (Functor m, Applicative m, Monad m, MonadError PandocError m)
       => PandocMonad m where
+  -- | Lookup an environment variable.
   lookupEnv :: String -> m (Maybe String)
+  -- | Get the current (UTC) time.
   getCurrentTime :: m UTCTime
+  -- | Get the locale's time zone.
   getCurrentTimeZone :: m TimeZone
+  -- | Return a new generator for random numbers.
   newStdGen :: m StdGen
+  -- | Return a new unique integer.
   newUniqueHash :: m Int
+  -- | Retrieve contents and mime type from a URL, raising
+  -- an error on failure.
   openURL :: String -> m (B.ByteString, Maybe MimeType)
+  -- | Read the lazy ByteString contents from a file path,
+  -- raising an error on failure.
   readFileLazy :: FilePath -> m BL.ByteString
+  -- | Read the strict ByteString contents from a file path,
+  -- raising an error on failure.
   readFileStrict :: FilePath -> m B.ByteString
+  -- | Read file from specified user data directory or,
+  -- if not found there, from Cabal data directory.
   readDataFile :: Maybe FilePath -> FilePath -> m B.ByteString
+  -- | Return a list of paths that match a glob, relative to
+  -- the working directory.  See 'System.FilePath.Glob' for
+  -- the glob syntax.
   glob :: String -> m [FilePath]
+  -- | Return the modification time of a file.
   getModificationTime :: FilePath -> m UTCTime
+  -- | Get the value of the 'CommonState' used by all instances
+  -- of 'PandocMonad'.
   getCommonState :: m CommonState
+  -- | Set the value of the 'CommonState' used by all instances
+  -- of 'PandocMonad'.
+  -- | Get the value of a specific field of 'CommonState'.
   putCommonState :: CommonState -> m ()
-
+  -- | Get the value of a specific field of 'CommonState'.
   getsCommonState :: (CommonState -> a) -> m a
   getsCommonState f = f <$> getCommonState
-
+  -- | Modify the 'CommonState'.
   modifyCommonState :: (CommonState -> CommonState) -> m ()
   modifyCommonState f = getCommonState >>= putCommonState . f
-
+  -- Output a log message.
+  logOutput :: LogMessage -> m ()
+  -- Output a debug message to sterr, using 'Debug.Trace.trace'.
+  -- Note: this writes to stderr even in pure instances.
   trace :: String -> m ()
   trace msg = do
     tracing <- getsCommonState stTrace
     when tracing $ Debug.Trace.trace ("[trace] " ++ msg) (return ())
 
-  logOutput :: LogMessage -> m ()
-
--- Functions defined for all PandocMonad instances
+-- * Functions defined for all PandocMonad instances
 
 setVerbosity :: PandocMonad m => Verbosity -> m ()
 setVerbosity verbosity =
@@ -194,10 +223,10 @@ setResourcePath ps = modifyCommonState $ \st -> st{stResourcePath = ps}
 getResourcePath :: PandocMonad m => m [FilePath]
 getResourcePath = getsCommonState stResourcePath
 
-getPOSIXTime :: (PandocMonad m) => m POSIXTime
+getPOSIXTime :: PandocMonad m => m POSIXTime
 getPOSIXTime = utcTimeToPOSIXSeconds <$> getCurrentTime
 
-getZonedTime :: (PandocMonad m) => m ZonedTime
+getZonedTime :: PandocMonad m => m ZonedTime
 getZonedTime = do
   t <- getCurrentTime
   tz <- getCurrentTimeZone
