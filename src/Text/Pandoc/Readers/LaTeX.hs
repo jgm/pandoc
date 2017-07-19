@@ -1456,22 +1456,14 @@ begin_ :: PandocMonad m => Text -> LP m ()
 begin_ t = (try $ do
   controlSeq "begin"
   spaces
-  symbol '{'
-  spaces
-  Tok _ Word txt <- satisfyTok isWordTok
-  spaces
-  symbol '}'
+  txt <- untokenize <$> braced
   guard (t == txt)) <?> ("\\begin{" ++ T.unpack t ++ "}")
 
 end_ :: PandocMonad m => Text -> LP m ()
 end_ t = (try $ do
   controlSeq "end"
   spaces
-  symbol '{'
-  spaces
-  Tok _ Word txt <- satisfyTok isWordTok
-  spaces
-  symbol '}'
+  txt <- untokenize <$> braced
   guard $ t == txt) <?> ("\\end{" ++ T.unpack t ++ "}")
 
 preamble :: PandocMonad m => LP m Blocks
@@ -1571,11 +1563,8 @@ newenvironment = do
                              controlSeq "renewenvironment" <|>
                              controlSeq "provideenvironment"
   optional $ symbol '*'
-  symbol '{'
   spaces
-  Tok _ Word name <- satisfyTok isWordTok
-  spaces
-  symbol '}'
+  name <- untokenize <$> braced
   spaces
   numargs <- option 0 $ try bracketedNum
   spaces
