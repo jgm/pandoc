@@ -218,7 +218,8 @@ convertWithOpts opts = do
   templ <- case optTemplate opts of
                 _ | not standalone -> return Nothing
                 Nothing -> do
-                           deftemp <- getDefaultTemplate datadir format
+                           deftemp <- runIO $
+                                        getDefaultTemplate datadir format
                            case deftemp of
                                  Left e  -> E.throwIO e
                                  Right t -> return (Just t)
@@ -991,10 +992,10 @@ options =
     , Option "D" ["print-default-template"]
                  (ReqArg
                   (\arg _ -> do
-                     templ <- getDefaultTemplate Nothing arg
+                     templ <- runIO $ getDefaultTemplate Nothing arg
                      case templ of
                           Right t -> UTF8.hPutStr stdout t
-                          Left e  -> E.throwIO $ PandocAppError (show e)
+                          Left e  -> E.throwIO e
                      exitSuccess)
                   "FORMAT")
                  "" -- "Print default template for FORMAT"
