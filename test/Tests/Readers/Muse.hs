@@ -314,5 +314,33 @@ tests =
                              , para "* Bar"
                              ]
                    ]
+      , "List inside a tag" =:
+        T.unlines
+          [ "<quote>"
+          , " 1. First"
+          , ""
+          , " 2. Second"
+          , ""
+          , " 3. Third"
+          , "</quote>"
+          ] =?>
+        blockQuote (orderedListWith (1, Decimal, Period) [ para "First"
+                                                         , para "Second"
+                                                         , para "Third"
+                                                         ])
+      -- Amusewiki requires block tags to be on separate lines,
+      -- but Emacs Muse allows them to be on the same line as contents.
+      , "List inside an inline tag" =:
+        T.unlines
+          [ "<quote> 1. First"
+          , ""
+          , " 2. Second"
+          , ""
+          , " 3. Third</quote>"
+          ] =?>
+        blockQuote (orderedListWith (1, Decimal, Period) [ para "First"
+                                                         , para "Second"
+                                                         , para "Third"
+                                                         ])
       ]
   ]
