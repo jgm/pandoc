@@ -1639,9 +1639,25 @@ blockCommand = try $ do
   star <- option "" ("*" <$ symbol '*' <* optional sp)
   let name' = name <> star
   let names = ordNub [name', name]
-  let raw = do
-        guard $ isBlockCommand name || not (isInlineCommand name)
+  let rawDefiniteBlock = do
+        guard $ isBlockCommand name
         rawBlock "latex" <$> getRawCommand (txt <> star)
+  -- heuristic:  if it could be either block or inline, we
+  -- treat it if block if we have a sequence of block
+  -- commands followed by a newline.  But we stop if we
+  -- hit a \startXXX, since this might start a raw ConTeXt
+  -- environment (this is important because this parser is
+  -- used by the Markdown reader).
+  let startCommand = try $ do
+        Tok _ (CtrlSeq n) _ <- anyControlSeq
+        guard $ "start" `T.isPrefixOf` n
+  let rawMaybeBlock = try $ do
+        guard $ not $ isInlineCommand name
+        curr <- rawBlock "latex" <$> getRawCommand (txt <> star)
+        rest <- many $ notFollowedBy startCommand *> blockCommand
+        lookAhead $ blankline <|> startCommand
+        return $ curr <> mconcat rest
+  let raw = rawDefiniteBlock <|> rawMaybeBlock
   lookupListDefault raw names blockCommands
 
 closing :: PandocMonad m => LP m Blocks
