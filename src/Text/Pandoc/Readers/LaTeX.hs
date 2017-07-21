@@ -1362,14 +1362,20 @@ rawInlineOr name' fallback = do
 
 getRawCommand :: PandocMonad m => Text -> LP m String
 getRawCommand txt = do
-  (_, rawargs) <- withRaw
-     ((if txt == "\\write"
-          then () <$ satisfyTok isWordTok -- digits
-          else return ()) *>
-      skipangles *>
-      skipopts *>
-      option "" (try (optional sp *> dimenarg)) *>
-      many braced)
+  (_, rawargs) <- withRaw $
+      case txt of
+           "\\write" -> do
+             void $ satisfyTok isWordTok -- digits
+             void braced
+           "\\titleformat" -> do
+             void braced
+             skipopts
+             void $ count 4 braced
+           _ -> do
+             skipangles
+             skipopts
+             option "" (try (optional sp *> dimenarg))
+             void $ many braced
   return $ T.unpack (txt <> untokenize rawargs)
 
 isBlockCommand :: Text -> Bool
@@ -1397,6 +1403,7 @@ treatAsBlock = Set.fromList
    , "newpage"
    , "clearpage"
    , "pagebreak"
+   , "titleformat"
    ]
 
 isInlineCommand :: Text -> Bool
