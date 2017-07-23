@@ -61,8 +61,8 @@ import Text.Pandoc.Options
 import Text.Pandoc.Parsing hiding (tableWith)
 import Text.Pandoc.Readers.HTML (htmlInBalanced, htmlTag, isBlockTag,
                                  isCommentTag, isInlineTag, isTextTag)
-import Text.Pandoc.Readers.LaTeX (rawLaTeXBlock, rawLaTeXInline, applyMacros,
-                                  macro)
+import Text.Pandoc.Readers.LaTeX (rawLaTeXBlock,
+                                  rawLaTeXInline, applyMacros)
 import Text.Pandoc.Shared
 import qualified Text.Pandoc.UTF8 as UTF8
 import Text.Pandoc.XML (fromEntities)
@@ -507,7 +507,6 @@ block = do
                , htmlBlock
                , table
                , codeBlockIndented
-               , latexMacro
                , rawTeXBlock
                , lineBlock
                , blockQuote
@@ -1095,13 +1094,6 @@ rawVerbatimBlock = htmlInBalanced isVerbTag
         isVerbTag (TagOpen "style" _)  = True
         isVerbTag (TagOpen "script" _) = True
         isVerbTag _                    = False
-
-latexMacro :: PandocMonad m => MarkdownParser m (F Blocks)
-latexMacro = try $ do
-  guardEnabled Ext_latex_macros
-  skipNonindentSpaces
-  res <- macro
-  return $ return res
 
 rawTeXBlock :: PandocMonad m => MarkdownParser m (F Blocks)
 rawTeXBlock = do

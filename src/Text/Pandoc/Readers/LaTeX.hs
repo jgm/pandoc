@@ -37,7 +37,6 @@ module Text.Pandoc.Readers.LaTeX ( readLaTeX,
                                    applyMacros,
                                    rawLaTeXInline,
                                    rawLaTeXBlock,
-                                   macro,
                                    inlineCommand
                                  ) where
 
