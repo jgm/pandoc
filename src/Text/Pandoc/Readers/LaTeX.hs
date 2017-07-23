@@ -214,14 +214,6 @@ rawLaTeXParser parser = do
          updateState (updateMacros ((sMacros st) <>))
          takeP (T.length (untokenize raw))
 
-macro :: (PandocMonad m, HasMacros s, HasReaderOptions s)
-      => ParserT String s m Blocks
-macro = do
-  guardEnabled Ext_latex_macros
-  lookAhead (char '\\' *> oneOfStrings ["new", "renew", "provide"] *>
-              oneOfStrings ["command", "environment"])
-  rawBlock "latex" <$> rawLaTeXParser macroDef
-
 applyMacros :: (PandocMonad m, HasMacros s, HasReaderOptions s)
             => String -> ParserT String s m String
 applyMacros s = (guardDisabled Ext_latex_macros >> return s) <|>
