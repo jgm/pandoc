@@ -44,6 +44,7 @@ module Text.Pandoc.Readers.LaTeX ( readLaTeX,
 import Control.Applicative (many, optional, (<|>))
 import Control.Monad
 import Control.Monad.Except (throwError)
+import Control.Monad.Trans (lift)
 import Data.Char (chr, isAlphaNum, isLetter, ord, isDigit)
 import Data.Default
 import Data.Text (Text)
@@ -203,18 +204,22 @@ rawLaTeXBlock :: (PandocMonad m, HasMacros s, HasReaderOptions s)
               => ParserT String s m String
 rawLaTeXBlock = do
   lookAhead (try (char '\\' >> letter))
+  rawLaTeXParser (environment <|> macroDef <|> blockCommand)
+
+rawLaTeXParser :: (PandocMonad m, HasMacros s, HasReaderOptions s)
+               => LP m a -> ParserT String s m String
+rawLaTeXParser parser = do
   inp <- getInput
   let toks = tokenize $ T.pack inp
-  let rawblock = do
-         (_, raw) <- try $
-                      withRaw (environment <|> macroDef <|> blockCommand)
-         return raw
   pstate <- getState
   let lstate = def{ sOptions = extractReaderOptions pstate }
-  res <- runParserT rawblock lstate "source" toks
+  res <- lift $ runParserT ((,) <$> try (snd <$> withRaw parser) <*> getState)
+            lstate "source" toks
   case res of
        Left _    -> mzero
-       Right raw -> takeP (T.length (untokenize raw))
+       Right (raw, st) -> do
+         updateState (updateMacros (const $ sMacros st))
+         takeP (T.length (untokenize raw))
 
 macro :: (PandocMonad m, HasMacros s, HasReaderOptions s)
       => ParserT String s m Blocks
@@ -222,21 +227,8 @@ macro = do
   guardEnabled Ext_latex_macros
   lookAhead (char '\\' *> oneOfStrings ["new", "renew", "provide"] *>
               oneOfStrings ["command", "environment"])
-  inp <- getInput
-  let toks = tokenize $ T.pack inp
-  let rawblock = do
-         (_, raw) <- withRaw $ try macroDef
-         st <- getState
-         return (raw, st)
-  pstate <- getState
-  let lstate = def{ sOptions = extractReaderOptions pstate
-                  , sMacros  = extractMacros pstate }
-  res <- runParserT rawblock lstate "source" toks
-  case res of
-       Left _ -> mzero
-       Right (raw, st) -> do
-         updateState (updateMacros (const $ sMacros st))
-         mempty <$ takeP (T.length (untokenize raw))
+  mempty <$ rawLaTeXParser macroDef
+  -- since we're applying macros, we remove the defns
 
 applyMacros :: (PandocMonad m, HasMacros s, HasReaderOptions s)
             => String -> ParserT String s m String
@@ -252,24 +244,10 @@ applyMacros s = do
            Right s' -> return s') <|> return s
 
 rawLaTeXInline :: (PandocMonad m, HasMacros s, HasReaderOptions s)
-              => ParserT String s m String
+               => ParserT String s m String
 rawLaTeXInline = do
   lookAhead (try (char '\\' >> letter) <|> char '$')
-  inp <- getInput
-  let toks = tokenize $ T.pack inp
-  let rawinline = do
-         (_, raw) <- try $ withRaw (inlineEnvironment <|> inlineCommand')
-         st <- getState
-         return (raw, st)
-  pstate <- getState
-  let lstate = def{ sOptions = extractReaderOptions pstate
-                  , sMacros  = extractMacros pstate }
-  res <- runParserT rawinline lstate "source" toks
-  case res of
-       Left _ -> mzero
-       Right (raw, s) -> do
-         updateState $ updateMacros (const $ sMacros s)
-         takeP (T.length (untokenize raw))
+  rawLaTeXParser (inlineEnvironment <|> inlineCommand')
 
 inlineCommand :: PandocMonad m => ParserT String ParserState m Inlines
 inlineCommand = do
