@@ -200,12 +200,6 @@ withVerbatimMode parser = do
   updateState $ \st -> st{ sVerbatimMode = False }
   return result
 
-rawLaTeXBlock :: (PandocMonad m, HasMacros s, HasReaderOptions s)
-              => ParserT String s m String
-rawLaTeXBlock = do
-  lookAhead (try (char '\\' >> letter))
-  rawLaTeXParser (environment <|> macroDef <|> blockCommand)
-
 rawLaTeXParser :: (PandocMonad m, HasMacros s, HasReaderOptions s)
                => LP m a -> ParserT String s m String
 rawLaTeXParser parser = do
@@ -218,7 +212,7 @@ rawLaTeXParser parser = do
   case res of
        Left _    -> mzero
        Right (raw, st) -> do
-         updateState (updateMacros (const $ sMacros st))
+         updateState (updateMacros ((sMacros st) <>))
          takeP (T.length (untokenize raw))
 
 macro :: (PandocMonad m, HasMacros s, HasReaderOptions s)
@@ -227,21 +221,26 @@ macro = do
   guardEnabled Ext_latex_macros
   lookAhead (char '\\' *> oneOfStrings ["new", "renew", "provide"] *>
               oneOfStrings ["command", "environment"])
-  mempty <$ rawLaTeXParser macroDef
-  -- since we're applying macros, we remove the defns
+  rawBlock "latex" <$> rawLaTeXParser macroDef
 
 applyMacros :: (PandocMonad m, HasMacros s, HasReaderOptions s)
             => String -> ParserT String s m String
-applyMacros s = do
-  (guardEnabled Ext_latex_macros >>
-   do let retokenize = doMacros 0 *> (toksToString <$> getInput)
+applyMacros s = (guardDisabled Ext_latex_macros >> return s) <|>
+   do let retokenize = doMacros 0 *>
+             (toksToString <$> many (satisfyTok (const True)))
       pstate <- getState
       let lstate = def{ sOptions = extractReaderOptions pstate
                       , sMacros  = extractMacros pstate }
       res <- runParserT retokenize lstate "math" (tokenize (T.pack s))
       case res of
            Left e -> fail (show e)
-           Right s' -> return s') <|> return s
+           Right s' -> return s'
+
+rawLaTeXBlock :: (PandocMonad m, HasMacros s, HasReaderOptions s)
+              => ParserT String s m String
+rawLaTeXBlock = do
+  lookAhead (try (char '\\' >> letter))
+  rawLaTeXParser (environment <|> macroDef <|> blockCommand)
 
 rawLaTeXInline :: (PandocMonad m, HasMacros s, HasReaderOptions s)
                => ParserT String s m String
@@ -1503,17 +1502,18 @@ authors = try $ do
 
 macroDef :: PandocMonad m => LP m Blocks
 macroDef = do
-  guardEnabled Ext_latex_macros
   mempty <$ ((commandDef <|> environmentDef) <* doMacros 0)
   where commandDef = do
           (name, macro') <- newcommand
-          updateState $ \s -> s{ sMacros = M.insert name macro' (sMacros s) }
+          guardDisabled Ext_latex_macros <|>
+           updateState (\s -> s{ sMacros = M.insert name macro' (sMacros s) })
         environmentDef = do
           (name, macro1, macro2) <- newenvironment
-          updateState $ \s -> s{ sMacros =
-            M.insert name macro1 (sMacros s) }
-          updateState $ \s -> s{ sMacros =
-            M.insert ("end" <> name) macro2 (sMacros s) }
+          guardDisabled Ext_latex_macros <|>
+            do updateState $ \s -> s{ sMacros =
+                M.insert name macro1 (sMacros s) }
+               updateState $ \s -> s{ sMacros =
+                M.insert ("end" <> name) macro2 (sMacros s) }
         -- @\newenvironment{envname}[n-args][default]{begin}{end}@
         -- is equivalent to
         -- @\newcommand{\envname}[n-args][default]{begin}@
