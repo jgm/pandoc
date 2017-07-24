@@ -1316,7 +1316,20 @@ inlineCommands = M.fromList $
   , ("faClose", lit "\10007")
   -- xspace
   , ("xspace", doxspace)
+  -- etoolbox
+  , ("ifstrequal", ifstrequal)
   ]
+
+ifstrequal :: PandocMonad m => LP m Inlines
+ifstrequal = do
+  str1 <- tok
+  str2 <- tok
+  ifequal <- braced
+  ifnotequal <- braced
+  if str1 == str2
+     then getInput >>= setInput . (ifequal ++)
+     else getInput >>= setInput . (ifnotequal ++)
+  return mempty
 
 ttfamily :: PandocMonad m => LP m Inlines
 ttfamily = (code . stringify . toList) <$> tok
