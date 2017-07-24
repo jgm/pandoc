@@ -11,8 +11,8 @@ language: generic
 cache:
   directories:
   - $HOME/.ghc
+  - $HOME/.cabal
   - $HOME/.stack
-# - $HOME/.cabal
 
 # The different configurations we want to test. We have BUILD=cabal which uses
 # cabal-install, and BUILD=stack which uses Stack. More documentation on each
