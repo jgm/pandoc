@@ -43,9 +43,9 @@ matrix:
     compiler: ": #GHC 8.0.2"
     addons: {apt: {packages: [cabal-install-1.24,ghc-8.0.2,happy-1.19.5], sources: [hvr-ghc]}}
 
-  - env: BUILD=cabal GHCVER=8.2.1 CABALVER=2.0
+  - env: BUILD=cabal GHCVER=8.2.1 CABALVER=1.24
     compiler: ": #GHC 8.2.1"
-    addons: {apt: {packages: [cabal-install-2.0,ghc-8.2.1,happy-1.19.5], sources: [hvr-ghc]}}
+    addons: {apt: {packages: [cabal-install-1.24,ghc-8.2.1,happy-1.19.5], sources: [hvr-ghc]}}
 
   # Build with the newest GHC and cabal-install. This is an accepted failure,
   # see below.
