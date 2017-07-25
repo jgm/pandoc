@@ -1055,7 +1055,7 @@ Math rendering in HTML
 `--mathml`
 
 :   Convert TeX math to [MathML] (in `docbook4`, `docbook5`, `jats`,
-    `html4` and `html5`).
+    `html4` and `html5`).  This is the default in `odt` output.
 
 `--jsmath`[`=`*URL*]
 
@@ -2902,9 +2902,12 @@ MediaWiki, DokuWiki
 Textile
   ~ It will be rendered inside `<span class="math">` tags.
 
-RTF, OpenDocument, ODT
+RTF, OpenDocument
   ~ It will be rendered, if possible, using Unicode characters,
     and will otherwise appear verbatim.
+
+ODT
+  ~ It will be rendered, if possible, using MathML.
 
 DocBook
   ~ If the `--mathml` flag is used, it will be rendered using MathML
