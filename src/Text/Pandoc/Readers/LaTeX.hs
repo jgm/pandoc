@@ -1311,6 +1311,9 @@ inlineCommands = M.fromList $
   , ("nohyphens", tok)
   , ("textnhtt", ttfamily)
   , ("nhttfamily", ttfamily)
+  -- LaTeX colors
+  , ("textcolor", coloredInline "color")
+  , ("colorbox", coloredInline "background-color")
   -- fontawesome
   , ("faCheck", lit "\10003")
   , ("faClose", lit "\10007")
@@ -1330,6 +1333,12 @@ ifstrequal = do
      then getInput >>= setInput . (ifequal ++)
      else getInput >>= setInput . (ifnotequal ++)
   return mempty
+
+coloredInline :: PandocMonad m => String -> LP m Inlines
+coloredInline stylename = do
+  skipopts
+  color <- braced
+  spanWith ("",[],[("style",stylename ++ ": " ++ toksToString color)]) <$> tok
 
 ttfamily :: PandocMonad m => LP m Inlines
 ttfamily = (code . stringify . toList) <$> tok
@@ -1709,6 +1718,9 @@ blockCommands = M.fromList $
    , ("graphicspath", graphicsPath)
    -- hyperlink
    , ("hypertarget", try $ braced >> grouped block)
+   -- LaTeX colors
+   , ("textcolor", coloredBlock "color")
+   , ("colorbox", coloredBlock "background-color")
    ]
 
 
@@ -1871,6 +1883,14 @@ addImageCaption = walkM go
                Just ils -> Image attr (toList ils) (src, "fig:" ++ tit)
                Nothing  -> Image attr alt (src,tit)
         go x = return x
+
+coloredBlock :: PandocMonad m => String -> LP m Blocks
+coloredBlock stylename = try $ do
+  skipopts
+  color <- braced
+  notFollowedBy (grouped inline)
+  let constructor = divWith ("",[],[("style",stylename ++ ": " ++ toksToString color)])
+  constructor <$> grouped block
 
 graphicsPath :: PandocMonad m => LP m Blocks
 graphicsPath = do
