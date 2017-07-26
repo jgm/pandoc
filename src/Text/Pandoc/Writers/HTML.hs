@@ -1007,9 +1007,14 @@ inlineToHtml opts inline = do
       ishtml <- isRawHtml f
       if ishtml
          then return $ preEscapedString str
-         else do
-           report $ InlineNotRendered inline
-           return mempty
+         else if (f == Format "latex" || f == Format "tex") &&
+                "\\begin" `isPrefixOf` str &&
+                allowsMathEnvironments (writerHTMLMathMethod opts) &&
+                isMathEnvironment str
+                then inlineToHtml opts $ Math DisplayMath str
+                else do
+                  report $ InlineNotRendered inline
+                  return mempty
     (Link attr txt (s,_)) | "mailto:" `isPrefixOf` s -> do
                         linkText <- inlineListToHtml opts txt
                         obfuscateLink opts attr linkText s
