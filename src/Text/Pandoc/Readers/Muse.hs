@@ -33,7 +33,6 @@ TODO:
 - Page breaks (five "*")
 - Headings with anchors (make it round trip with Muse writer)
 - <verse> and ">"
-- Definition lists
 - Org tables
 - table.el tables
 - Images with attributes (floating and width)
@@ -184,6 +183,7 @@ blockElements = choice [ comment
                        , quoteTag
                        , bulletList
                        , orderedList
+                       , definitionList
                        , table
                        , commentTag
                        , noteBlock
@@ -347,6 +347,33 @@ orderedList = try $ do
   guard $ delim == Period
   items <- sequence <$> many1 (listItem $ orderedListStart style delim)
   return $ B.orderedListWith p <$> items
+
+definitionListItem :: PandocMonad m => MuseParser m (F (Inlines, [Blocks]))
+definitionListItem = try $ do
+  term <- termParser
+  many1 spaceChar
+  string "::"
+  firstLine <- anyLineNewline
+  restLines <- manyTill anyLineNewline endOfListItemElement
+  let lns = firstLine : restLines
+  lineContent <- parseFromString (withListContext parseBlocks) $ concat lns ++ "\n"
+  pure $ do lineContent' <- lineContent
+            pure (B.text term, [lineContent'])
+  where
+    termParser = (many1 spaceChar) >> -- Initial space as required by Amusewiki, but not Emacs Muse
+                 (many1Till anyChar $ lookAhead (void (try (spaceChar >> string "::")) <|> void newline))
+    endOfInput = try $ skipMany blankline >> skipSpaces >> eof
+    twoBlankLines = try $ blankline >> skipMany1 blankline
+    newDefinitionListItem = try $ void termParser
+    endOfListItemElement = lookAhead $ endOfInput <|> newDefinitionListItem <|> twoBlankLines
+
+definitionListItems :: PandocMonad m => MuseParser m (F [(Inlines, [Blocks])])
+definitionListItems = sequence <$> many1 definitionListItem
+
+definitionList :: PandocMonad m => MuseParser m (F Blocks)
+definitionList = do
+  listItems <- definitionListItems
+  return $ B.definitionList <$> listItems
 
 --
 -- tables
