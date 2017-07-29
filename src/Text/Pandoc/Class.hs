@@ -186,13 +186,21 @@ class (Functor m, Applicative m, Monad m, MonadError PandocError m)
 
 -- * Functions defined for all PandocMonad instances
 
+-- | Set the verbosity level.
 setVerbosity :: PandocMonad m => Verbosity -> m ()
 setVerbosity verbosity =
   modifyCommonState $ \st -> st{ stVerbosity = verbosity }
 
+-- Get the accomulated log messages (in temporal order).
 getLog :: PandocMonad m => m [LogMessage]
 getLog = reverse <$> getsCommonState stLog
 
+-- | Log a message using 'logOutput'.  Note that
+-- 'logOutput' is called only if the verbosity
+-- level exceeds the level of the message, but
+-- the message is added to the list of log messages
+-- that will be retrieved by 'getLog' regardless
+-- of its verbosity level.
 report :: PandocMonad m => LogMessage -> m ()
 report msg = do
   verbosity <- getsCommonState stVerbosity
@@ -200,9 +208,13 @@ report msg = do
   when (level <= verbosity) $ logOutput msg
   modifyCommonState $ \st -> st{ stLog = msg : stLog st }
 
+-- | Determine whether tracing is enabled.  This affects
+-- the behavior of 'trace'.  If tracing is not enabled,
+-- 'trace' does nothing.
 setTrace :: PandocMonad m => Bool -> m ()
 setTrace useTracing = modifyCommonState $ \st -> st{stTrace = useTracing}
 
+-- | Initialize the media bag.
 setMediaBag :: PandocMonad m => MediaBag -> m ()
 setMediaBag mb = modifyCommonState $ \st -> st{stMediaBag = mb}
 
