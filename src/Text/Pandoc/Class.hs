@@ -32,7 +32,11 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
    Stability   : alpha
    Portability : portable
 
-Typeclass for pandoc readers and writers, allowing both IO and pure instances.
+This module defines a type class, 'PandocMonad', for pandoc readers
+and writers. A pure instance 'PandocPure' and an impure instance
+'PandocIO' are provided.  This allows users of the library to choose
+whether they want conversions to perform IO operations (such as
+reading include files or images).
 -}
 
 module Text.Pandoc.Class ( PandocMonad(..)
@@ -65,7 +69,6 @@ module Text.Pandoc.Class ( PandocMonad(..)
                          , runIO
                          , runIOorExplode
                          , runPure
-                         , withMediaBag
                          , fillMediaBag
                          , extractMedia
                          ) where
@@ -173,8 +176,9 @@ class (Functor m, Applicative m, Monad m, MonadError PandocError m)
   modifyCommonState f = getCommonState >>= putCommonState . f
   -- Output a log message.
   logOutput :: LogMessage -> m ()
-  -- Output a debug message to sterr, using 'Debug.Trace.trace'.
-  -- Note: this writes to stderr even in pure instances.
+  -- Output a debug message to sterr, using 'Debug.Trace.trace',
+  -- if tracing is enabled.  Note: this writes to stderr even in
+  -- pure instances.
   trace :: String -> m ()
   trace msg = do
     tracing <- getsCommonState stTrace
@@ -241,13 +245,26 @@ readFileFromDirs (d:ds) f = catchError
 
 --
 
+-- | 'CommonState' represents state that is used by all
+-- instances of 'PandocMonad'.  Normally users should not
+-- need to interact with it directly; instead, auxiliary
+-- functions like 'setVerbosity' and 'withMediaBag' should be used.
 data CommonState = CommonState { stLog          :: [LogMessage]
+                                 -- ^ A list of log messages in reverse order
                                , stMediaBag     :: MediaBag
+                                 -- ^ Media parsed from binary containers
                                , stInputFiles   :: Maybe [FilePath]
+                                 -- ^ List of input files from command line
                                , stOutputFile   :: Maybe FilePath
+                                 -- ^ Output file from command line
                                , stResourcePath :: [FilePath]
+                                 -- ^ Path to search for resources like
+                                 -- included images
                                , stVerbosity    :: Verbosity
+                                 -- ^ Verbosity level
                                , stTrace        :: Bool
+                                 -- ^ Controls whether tracing messages are
+                                 -- issued.
                                }
 
 instance Default CommonState where
@@ -260,11 +277,9 @@ instance Default CommonState where
                     , stTrace = False
                     }
 
+-- | Evaluate a 'PandocIO' operation.
 runIO :: PandocIO a -> IO (Either PandocError a)
 runIO ma = flip evalStateT def $ runExceptT $ unPandocIO ma
-
-withMediaBag :: PandocMonad m => m a ->  m (a, MediaBag)
-withMediaBag ma = (,) <$> ma <*> getMediaBag
 
 runIOorExplode :: PandocIO a -> IO a
 runIOorExplode ma = runIO ma >>= handleError

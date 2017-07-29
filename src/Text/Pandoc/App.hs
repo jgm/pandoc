@@ -76,7 +76,7 @@ import System.IO.Error (isDoesNotExistError)
 import Text.Pandoc
 import Text.Pandoc.Builder (setMeta)
 import Text.Pandoc.Class (PandocIO, extractMedia, fillMediaBag, getLog,
-                          setResourcePath, withMediaBag, setTrace)
+                          setResourcePath, getMediaBag, setTrace)
 import Text.Pandoc.Highlighting (highlightingStyles)
 import Text.Pandoc.Lua (runLuaFilter, LuaException(..))
 import Text.Pandoc.Writers.Math (defaultMathJaxURL, defaultKaTeXURL)
@@ -445,7 +445,7 @@ convertWithOpts opts = do
 
   runIO' $ do
     setResourcePath (optResourcePath opts)
-    (doc, media) <- withMediaBag $ sourceToDoc sources >>=
+    doc <- sourceToDoc sources >>=
               (   (if isJust (optExtractMedia opts)
                       then fillMediaBag (writerSourceURL writerOptions)
                       else return)
@@ -455,6 +455,7 @@ convertWithOpts opts = do
               >=> applyLuaFilters datadir (optLuaFilters opts) [format]
               >=> applyFilters datadir filters' [format]
               )
+    media <- getMediaBag
 
     case writer of
       ByteStringWriter f -> f writerOptions doc >>= writeFnBinary outputFile
