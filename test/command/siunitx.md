@@ -19,3 +19,17 @@
 ^D
 [Para [Str "{}\160{}\160{}"]]
 ```
+
+```
+% pandoc -f latex -t native
+\num{123}     \\
+\num{1234}    \\
+\num{12345}   \\
+\num{0.123}   \\
+\num{0,1234}  \\
+\num{.12345}  \\
+\num{3.45d-4} \\
+\num{-e10}
+^D
+[Para [Str "123",LineBreak,Str "1234",LineBreak,Str "12345",LineBreak,Str "0.123",LineBreak,Str "0.1234",LineBreak,Str "0.12345",LineBreak,Str "3.45 × 10⁻⁴",LineBreak,Str "−10¹⁰"]]
+```
