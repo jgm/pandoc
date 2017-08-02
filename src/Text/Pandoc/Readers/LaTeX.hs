@@ -536,9 +536,9 @@ inlineCommands = M.fromList $
   , ("mdots", lit "…")
   , ("sim", lit "~")
   , ("label", rawInlineOr "label" (inBrackets <$> tok))
-  , ("ref", ref "ref")
   , ("textgreek", tok)
   , ("sep", lit ",")
+  , ("ref", rawInlineOr "ref" $ ref "ref")
   , ("cref", rawInlineOr "cref" $ ref "ref")       -- from cleveref.sty
   , ("vref", rawInlineOr "vref" $ ref "ref+page")  -- from varioref.sty
   , ("eqref", rawInlineOr "eqref" $ ref "eqref")   -- from amsmath.sty
