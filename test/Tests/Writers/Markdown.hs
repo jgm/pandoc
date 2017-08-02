@@ -2,6 +2,7 @@
 {-# OPTIONS_GHC -fno-warn-name-shadowing #-}
 module Tests.Writers.Markdown (tests) where
 
+import Data.Text (unpack)
 import Test.Tasty
 import Tests.Helpers
 import Text.Pandoc
@@ -12,10 +13,10 @@ defopts :: WriterOptions
 defopts = def{ writerExtensions = pandocExtensions }
 
 markdown :: (ToPandoc a) => a -> String
-markdown = purely (writeMarkdown defopts) . toPandoc
+markdown = unpack . purely (writeMarkdown defopts) . toPandoc
 
 markdownWithOpts :: (ToPandoc a) => WriterOptions -> a -> String
-markdownWithOpts opts x = purely (writeMarkdown opts) $ toPandoc x
+markdownWithOpts opts x = unpack . purely (writeMarkdown opts) $ toPandoc x
 
 {-
   "my test" =: X =?> Y

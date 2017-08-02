@@ -2,6 +2,8 @@
 module Tests.Readers.Txt2Tags (tests) where
 
 import Data.List (intersperse)
+import Data.Text (Text)
+import qualified Data.Text as T
 import Test.Tasty
 import Tests.Helpers
 import Text.Pandoc
@@ -9,7 +11,7 @@ import Text.Pandoc.Arbitrary ()
 import Text.Pandoc.Builder
 import Text.Pandoc.Class
 
-t2t :: String -> Pandoc
+t2t :: Text -> Pandoc
 -- t2t = handleError . readTxt2Tags (T2TMeta "date" "mtime" "in" "out") def
 t2t = purely $ \s -> do
   putCommonState
@@ -20,7 +22,7 @@ t2t = purely $ \s -> do
 
 infix 4 =:
 (=:) :: ToString c
-     => String -> (String, c) -> TestTree
+     => String -> (Text, c) -> TestTree
 (=:) = test t2t
 
 spcSep :: [Inlines] -> Inlines
@@ -154,7 +156,7 @@ tests =
           "== header ==[lab/el]" =?>
             para (text "== header ==[lab/el]")
       , "Headers not preceded by a blank line" =:
-          unlines [ "++ eat dinner ++"
+          T.unlines [ "++ eat dinner ++"
                   , "Spaghetti and meatballs tonight."
                   , "== walk dog =="
                   ] =?>
@@ -168,16 +170,16 @@ tests =
           para "=five"
 
       , "Paragraph containing asterisk at beginning of line" =:
-          unlines [ "lucky"
+          T.unlines [ "lucky"
                   , "*star"
                   ] =?>
           para ("lucky" <> softbreak <> "*star")
 
       , "Horizontal Rule" =:
-          unlines [ "before"
-                  , replicate 20 '-'
-                  , replicate 20 '='
-                  , replicate 20 '_'
+          T.unlines [ "before"
+                  , T.replicate 20 "-"
+                  , T.replicate 20 "="
+                  , T.replicate 20 "_"
                   , "after"
                   ] =?>
           mconcat [ para "before"
@@ -188,7 +190,7 @@ tests =
                   ]
 
       , "Comment Block" =:
-          unlines [ "%%%"
+          T.unlines [ "%%%"
                   , "stuff"
                   , "bla"
                   , "%%%"] =?>
@@ -199,14 +201,14 @@ tests =
 
   , testGroup "Lists" $
       [ "Simple Bullet Lists" =:
-          ("- Item1\n" ++
+          ("- Item1\n" <>
            "- Item2\n") =?>
           bulletList [ plain "Item1"
                      , plain "Item2"
                      ]
 
       , "Indented Bullet Lists" =:
-          ("   - Item1\n" ++
+          ("   - Item1\n" <>
            "   - Item2\n") =?>
           bulletList [ plain "Item1"
                      , plain "Item2"
@@ -215,13 +217,13 @@ tests =
 
 
       , "Nested Bullet Lists" =:
-          ("- Discovery\n" ++
-           "  + One More Time\n" ++
-           "  + Harder, Better, Faster, Stronger\n" ++
-           "- Homework\n" ++
-           "  + Around the World\n"++
-           "- Human After All\n" ++
-           "  + Technologic\n" ++
+          ("- Discovery\n" <>
+           "  + One More Time\n" <>
+           "  + Harder, Better, Faster, Stronger\n" <>
+           "- Homework\n" <>
+           "  + Around the World\n"<>
+           "- Human After All\n" <>
+           "  + Technologic\n" <>
            "  + Robot Rock\n") =?>
           bulletList [ mconcat
                        [ plain "Discovery"
@@ -250,7 +252,7 @@ tests =
                      ]
 
       , "Simple Ordered List" =:
-          ("+ Item1\n" ++
+          ("+ Item1\n" <>
            "+ Item2\n") =?>
           let listStyle = (1, DefaultStyle, DefaultDelim)
               listStructure = [ plain "Item1"
@@ -260,7 +262,7 @@ tests =
 
 
       , "Indented Ordered List" =:
-          (" + Item1\n" ++
+          (" + Item1\n" <>
            " + Item2\n") =?>
           let listStyle = (1, DefaultStyle, DefaultDelim)
               listStructure = [ plain "Item1"
@@ -269,11 +271,11 @@ tests =
           in orderedListWith listStyle listStructure
 
       , "Nested Ordered Lists" =:
-          ("+ One\n" ++
-           "   + One-One\n" ++
-           "   + One-Two\n" ++
-           "+ Two\n" ++
-           "   + Two-One\n"++
+          ("+ One\n" <>
+           "   + One-One\n" <>
+           "   + One-Two\n" <>
+           "+ Two\n" <>
+           "   + Two-One\n"<>
            "   + Two-Two\n") =?>
           let listStyle = (1, DefaultStyle, DefaultDelim)
               listStructure = [ mconcat
@@ -292,19 +294,19 @@ tests =
           in orderedListWith listStyle listStructure
 
       , "Ordered List in Bullet List" =:
-          ("- Emacs\n" ++
+          ("- Emacs\n" <>
            "  + Org\n") =?>
           bulletList [ (plain "Emacs") <>
                        (orderedList [ plain "Org"])
                      ]
 
       , "Bullet List in Ordered List" =:
-          ("+ GNU\n" ++
+          ("+ GNU\n" <>
            "   - Freedom\n") =?>
           orderedList [ (plain "GNU") <> bulletList [ (plain "Freedom") ] ]
 
       , "Definition List" =:
-          unlines [ ": PLL"
+          T.unlines [ ": PLL"
                   , "  phase-locked loop"
                   , ": TTL"
                   , "  transistor-transistor logic"
@@ -318,7 +320,7 @@ tests =
 
 
       , "Loose bullet list" =:
-          unlines [ "- apple"
+          T.unlines [ "- apple"
                   , ""
                   , "- orange"
                   , ""
@@ -340,7 +342,7 @@ tests =
            simpleTable' 2 mempty [ [ plain "One", plain "Two" ] ]
 
       , "Multi line table" =:
-          unlines [ "| One |"
+          T.unlines [ "| One |"
                   , "| Two |"
                   , "| Three |"
                   ] =?>
@@ -355,7 +357,7 @@ tests =
           simpleTable' 1 mempty [[mempty]]
 
       , "Glider Table" =:
-          unlines [ "| 1 | 0 | 0 |"
+          T.unlines [ "| 1 | 0 | 0 |"
                   , "| 0 | 1 | 1 |"
                   , "| 1 | 1 | 0 |"
                   ] =?>
@@ -367,7 +369,7 @@ tests =
 
 
       , "Table with Header" =:
-          unlines [ "|| Species     | Status       |"
+          T.unlines [ "|| Species     | Status       |"
                   , "| cervisiae    | domesticated |"
                   , "| paradoxus | wild         |"
                   ] =?>
@@ -377,7 +379,7 @@ tests =
                       ]
 
       , "Table alignment determined by spacing" =:
-          unlines [ "| Numbers |     Text | More    |"
+          T.unlines [ "| Numbers |     Text | More    |"
                   , "| 1 |    One  |    foo  |"
                   , "| 2 |    Two  | bar  |"
                   ] =?>
@@ -394,7 +396,7 @@ tests =
 
 
       , "Table with differing row lengths" =:
-          unlines [ "|| Numbers | Text "
+          T.unlines [ "|| Numbers | Text "
                   , "| 1 | One  | foo  |"
                   , "| 2 "
                   ] =?>
@@ -408,23 +410,23 @@ tests =
 
     , testGroup "Blocks and fragments"
       [ "Source block" =:
-           unlines [ "```"
+           T.unlines [ "```"
                    , "main = putStrLn greeting"
                    , "  where greeting = \"moin\""
                    , "```" ] =?>
-           let code' = "main = putStrLn greeting\n" ++
+           let code' = "main = putStrLn greeting\n" <>
                        "  where greeting = \"moin\"\n"
            in codeBlock code'
 
       , "tagged block" =:
-           unlines [ "'''"
+           T.unlines [ "'''"
                    , "<aside>HTML5 is pretty nice.</aside>"
                    , "'''"
                    ] =?>
            rawBlock "html" "<aside>HTML5 is pretty nice.</aside>\n"
 
       , "Quote block" =:
-           unlines ["\t//Niemand// hat die Absicht, eine Mauer zu errichten!"
+           T.unlines ["\t//Niemand// hat die Absicht, eine Mauer zu errichten!"
                    ] =?>
            blockQuote (para (spcSep [ emph "Niemand", "hat", "die", "Absicht,"
                                     , "eine", "Mauer", "zu", "errichten!"

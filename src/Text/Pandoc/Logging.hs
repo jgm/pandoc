@@ -52,7 +52,7 @@ import Text.Pandoc.Definition
 import Text.Parsec.Pos
 
 -- | Verbosity level.
-data Verbosity = ERROR | WARNING | INFO | DEBUG
+data Verbosity = ERROR | WARNING | INFO
      deriving (Show, Read, Eq, Data, Enum, Ord, Bounded, Typeable, Generic)
 
 instance ToJSON Verbosity where
@@ -63,7 +63,6 @@ instance FromJSON Verbosity where
          "ERROR"   -> return ERROR
          "WARNING" -> return WARNING
          "INFO"    -> return INFO
-         "DEBUG"   -> return DEBUG
          _         -> mzero
   parseJSON _      =  mzero
 
@@ -78,7 +77,7 @@ data LogMessage =
   | CircularReference String SourcePos
   | ParsingUnescaped String SourcePos
   | CouldNotLoadIncludeFile String SourcePos
-  | ParsingTrace String SourcePos
+  | MacroAlreadyDefined String SourcePos
   | InlineNotRendered Inline
   | BlockNotRendered Block
   | DocxParserWarning String
@@ -89,9 +88,12 @@ data LogMessage =
   | CouldNotConvertTeXMath String String
   | CouldNotParseCSS String
   | Fetching String
+  | Extracting String
   | NoTitleElement String
   | NoLangSpecified
+  | InvalidLang String
   | CouldNotHighlight String
+  | MissingCharacter String
   deriving (Show, Eq, Data, Ord, Typeable, Generic)
 
 instance ToJSON LogMessage where
@@ -149,11 +151,11 @@ instance ToJSON LogMessage where
             "source" .= Text.pack (sourceName pos),
             "line" .= toJSON (sourceLine pos),
             "column" .= toJSON (sourceColumn pos)]
-      ParsingTrace s pos ->
-           ["contents" .= Text.pack s,
+      MacroAlreadyDefined name pos ->
+           ["name" .= Text.pack name,
             "source" .= Text.pack (sourceName pos),
-            "line" .= sourceLine pos,
-            "column" .= sourceColumn pos]
+            "line" .= toJSON (sourceLine pos),
+            "column" .= toJSON (sourceColumn pos)]
       InlineNotRendered il ->
            ["contents" .= toJSON il]
       BlockNotRendered bl ->
@@ -178,10 +180,16 @@ instance ToJSON LogMessage where
            ["message" .= Text.pack msg]
       Fetching fp ->
            ["path" .= Text.pack fp]
+      Extracting fp ->
+           ["path" .= Text.pack fp]
       NoTitleElement fallback ->
            ["fallback" .= Text.pack fallback]
       NoLangSpecified -> []
+      InvalidLang s ->
+           ["lang" .= Text.pack s]
       CouldNotHighlight msg ->
+           ["message" .= Text.pack msg]
+      MissingCharacter msg ->
            ["message" .= Text.pack msg]
 
 showPos :: SourcePos -> String
@@ -222,8 +230,8 @@ showLogMessage msg =
          "Parsing unescaped '" ++ s ++ "' at " ++ showPos pos
        CouldNotLoadIncludeFile fp pos ->
          "Could not load include file '" ++ fp ++ "' at " ++ showPos pos
-       ParsingTrace s pos ->
-         "Parsing trace at " ++ showPos pos ++ ": " ++ s
+       MacroAlreadyDefined name pos ->
+         "Macro '" ++ name ++ "' already defined, ignoring at " ++ showPos pos
        InlineNotRendered il ->
          "Not rendering " ++ show il
        BlockNotRendered bl ->
@@ -248,6 +256,8 @@ showLogMessage msg =
          "Could not parse CSS" ++ if null m then "" else (':':'\n':m)
        Fetching fp ->
          "Fetching " ++ fp ++ "..."
+       Extracting fp ->
+         "Extracting " ++ fp ++ "..."
        NoTitleElement fallback ->
          "This document format requires a nonempty <title> element.\n" ++
          "Please specify either 'title' or 'pagetitle' in the metadata.\n" ++
@@ -255,8 +265,13 @@ showLogMessage msg =
        NoLangSpecified ->
          "No value for 'lang' was specified in the metadata.\n" ++
          "It is recommended that lang be specified for this format."
+       InvalidLang s ->
+         "Invalid 'lang' value '" ++ s ++ "'.\n" ++
+         "Use an IETF language tag like 'en-US'."
        CouldNotHighlight m ->
          "Could not highlight code block:\n" ++ m
+       MissingCharacter m ->
+         "Missing character: " ++ m
 
 messageVerbosity:: LogMessage -> Verbosity
 messageVerbosity msg =
@@ -270,8 +285,8 @@ messageVerbosity msg =
        ReferenceNotFound{}          -> WARNING
        CircularReference{}          -> WARNING
        CouldNotLoadIncludeFile{}    -> WARNING
+       MacroAlreadyDefined{}        -> WARNING
        ParsingUnescaped{}           -> INFO
-       ParsingTrace{}               -> DEBUG
        InlineNotRendered{}          -> INFO
        BlockNotRendered{}           -> INFO
        DocxParserWarning{}          -> WARNING
@@ -282,6 +297,9 @@ messageVerbosity msg =
        CouldNotConvertTeXMath{}     -> WARNING
        CouldNotParseCSS{}           -> WARNING
        Fetching{}                   -> INFO
+       Extracting{}                 -> INFO
        NoTitleElement{}             -> WARNING
        NoLangSpecified              -> INFO
+       InvalidLang{}                -> WARNING
        CouldNotHighlight{}          -> WARNING
+       MissingCharacter{}           -> WARNING

@@ -39,16 +39,18 @@ inline links:
 
 > module Main where
 > import Text.Pandoc
+> import Data.Text (Text)
+> import qualified Data.Text.IO as T
 >
-> markdownToRST :: String -> Either PandocError String
-> markdownToRST =
->   writeRST def {writerReferenceLinks = True} . readMarkdown def
->
-> main = getContents >>= either error return markdownToRST >>= putStrLn
+> mdToRST :: Text -> IO Text
+> mdToRST txt = runIOorExplode $
+>   readMarkdown def txt
+>   >>= writeRST def{ writerReferenceLinks = True }
 
-Note:  all of the readers assume that the input text has @'\n'@
-line endings.  So if you get your input text from a web form,
-you should remove @'\r'@ characters using @filter (/='\r')@.
+>
+> main :: IO ()
+> main = do
+>   T.getContents >>= mdToRST >>= T.putStrLn
 
 -}
 

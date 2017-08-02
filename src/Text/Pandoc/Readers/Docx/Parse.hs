@@ -58,7 +58,7 @@ import Codec.Archive.Zip
 import Control.Applicative ((<|>))
 import Control.Monad.Except
 import Control.Monad.Reader
-import Control.Monad.State
+import Control.Monad.State.Strict
 import Data.Bits ((.|.))
 import qualified Data.ByteString.Lazy as B
 import Data.Char (chr, isDigit, ord, readLitChar)

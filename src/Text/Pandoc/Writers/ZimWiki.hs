@@ -33,11 +33,11 @@ http://zim-wiki.org/manual/Help/Wiki_Syntax.html
 
 module Text.Pandoc.Writers.ZimWiki ( writeZimWiki ) where
 import Control.Monad (zipWithM)
-import Control.Monad.State (StateT, evalStateT, gets, modify)
+import Control.Monad.State.Strict (StateT, evalStateT, gets, modify)
 import Data.Default (Default (..))
 import Data.List (intercalate, isInfixOf, isPrefixOf, transpose)
 import qualified Data.Map as Map
-import Data.Text (breakOnAll, pack)
+import Data.Text (breakOnAll, pack, Text)
 import Text.Pandoc.Class (PandocMonad, report)
 import Text.Pandoc.Logging
 import Text.Pandoc.Definition
@@ -61,24 +61,24 @@ instance Default WriterState where
 type ZW = StateT WriterState
 
 -- | Convert Pandoc to ZimWiki.
-writeZimWiki :: PandocMonad m => WriterOptions -> Pandoc -> m String
+writeZimWiki :: PandocMonad m => WriterOptions -> Pandoc -> m Text
 writeZimWiki opts document = evalStateT (pandocToZimWiki opts document) def
 
 -- | Return ZimWiki representation of document.
-pandocToZimWiki :: PandocMonad m => WriterOptions -> Pandoc -> ZW m String
+pandocToZimWiki :: PandocMonad m => WriterOptions -> Pandoc -> ZW m Text
 pandocToZimWiki opts (Pandoc meta blocks) = do
   metadata <- metaToJSON opts
               (fmap trimr . blockListToZimWiki opts)
               (inlineListToZimWiki opts)
               meta
-  body <- blockListToZimWiki opts blocks
+  body <- pack <$> blockListToZimWiki opts blocks
   --let header = "Content-Type: text/x-zim-wiki\nWiki-Format: zim 0.4\n"
   let main = body
   let context = defField "body" main
                 $ defField "toc" (writerTableOfContents opts)
                 $ metadata
   case writerTemplate opts of
-       Just tpl -> return $ renderTemplate' tpl context
+       Just tpl -> renderTemplate' tpl context
        Nothing  -> return main
 
 -- | Escape special characters for ZimWiki.

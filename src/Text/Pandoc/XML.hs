@@ -37,6 +37,8 @@ module Text.Pandoc.XML ( escapeCharForXML,
                          fromEntities ) where
 
 import Data.Char (isAscii, isSpace, ord)
+import Data.Text (Text)
+import qualified Data.Text as T
 import Text.HTML.TagSoup.Entity (lookupEntity)
 import Text.Pandoc.Pretty
 
@@ -91,11 +93,10 @@ inTagsIndented :: String -> Doc -> Doc
 inTagsIndented tagType = inTags True tagType []
 
 -- | Escape all non-ascii characters using numerical entities.
-toEntities :: String -> String
-toEntities [] = ""
-toEntities (c:cs)
-  | isAscii c = c : toEntities cs
-  | otherwise = "&#" ++ show (ord c) ++ ";" ++ toEntities cs
+toEntities :: Text -> Text
+toEntities = T.concatMap go
+  where go c | isAscii c = T.singleton c
+             | otherwise = T.pack ("&#" ++ show (ord c) ++ ";")
 
 -- Unescapes XML entities
 fromEntities :: String -> String

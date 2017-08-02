@@ -107,3 +107,40 @@ return {
     end,
   }
 ```
+
+### Extracting information about links
+
+This filter prints a table of all the URLs linked to
+in the document, together with the number of links to
+that URL.
+
+```lua
+links = {}
+
+function Link (el)
+  if links[el.target] then
+    links[el.target] = links[el.target] + 1
+  else
+    links[el.target] = 1
+  end
+  return el
+end
+
+function Doc (blocks, meta)
+  function strCell(str)
+    return {pandoc.Plain{pandoc.Str(str)}}
+  end
+  local caption = {pandoc.Str "Link", pandoc.Space(), pandoc.Str "count"}
+  local aligns = {pandoc.AlignDefault, pandoc.AlignLeft}
+  local widths = {0.8, 0.2}
+  local headers = {strCell "Target", strCell "Count"}
+  local rows = {}
+  for link, count in pairs(links) do
+    rows[#rows + 1] = {strCell(link), strCell(count)}
+  end
+  return pandoc.Doc(
+    {pandoc.Table(caption, aligns, widths, headers, rows)},
+    meta
+  )
+end
+```

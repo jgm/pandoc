@@ -33,8 +33,9 @@ Conversion of 'Pandoc' documents to haddock markup.
 Haddock:  <http://www.haskell.org/haddock/doc/html/>
 -}
 module Text.Pandoc.Writers.Haddock (writeHaddock) where
-import Control.Monad.State
+import Control.Monad.State.Strict
 import Data.Default
+import Data.Text (Text)
 import Data.List (intersperse, transpose)
 import Text.Pandoc.Class (PandocMonad, report)
 import Text.Pandoc.Definition
@@ -52,14 +53,14 @@ instance Default WriterState
   where def = WriterState{ stNotes = [] }
 
 -- | Convert Pandoc to Haddock.
-writeHaddock :: PandocMonad m => WriterOptions -> Pandoc -> m String
+writeHaddock :: PandocMonad m => WriterOptions -> Pandoc -> m Text
 writeHaddock opts document =
   evalStateT (pandocToHaddock opts{
                   writerWrapText = writerWrapText opts } document) def
 
 -- | Return haddock representation of document.
 pandocToHaddock :: PandocMonad m
-                => WriterOptions -> Pandoc -> StateT WriterState m String
+                => WriterOptions -> Pandoc -> StateT WriterState m Text
 pandocToHaddock opts (Pandoc meta blocks) = do
   let colwidth = if writerWrapText opts == WrapAuto
                     then Just $ writerColumns opts
@@ -67,19 +68,19 @@ pandocToHaddock opts (Pandoc meta blocks) = do
   body <- blockListToHaddock opts blocks
   st <- get
   notes' <- notesToHaddock opts (reverse $ stNotes st)
-  let render' :: Doc -> String
+  let render' :: Doc -> Text
       render' = render colwidth
   let main = render' $ body <>
                (if isEmpty notes' then empty else blankline <> notes')
   metadata <- metaToJSON opts
-               (fmap (render colwidth) . blockListToHaddock opts)
-               (fmap (render colwidth) . inlineListToHaddock opts)
+               (fmap render' . blockListToHaddock opts)
+               (fmap render' . inlineListToHaddock opts)
                meta
   let context  = defField "body" main
                $ metadata
   case writerTemplate opts of
           Nothing  -> return main
-          Just tpl -> return $ renderTemplate' tpl context
+          Just tpl -> renderTemplate' tpl context
 
 -- | Return haddock representation of notes.
 notesToHaddock :: PandocMonad m

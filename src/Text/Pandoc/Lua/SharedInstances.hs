@@ -16,9 +16,9 @@ You should have received a copy of the GNU General Public License
 along with this program; if not, write to the Free Software
 Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 -}
-{-# LANGUAGE CPP #-}
-{-# LANGUAGE FlexibleInstances #-}
-{-# LANGUAGE LambdaCase #-}
+{-# LANGUAGE CPP                  #-}
+{-# LANGUAGE FlexibleInstances    #-}
+{-# LANGUAGE LambdaCase           #-}
 #if !MIN_VERSION_base(4,8,0)
 {-# LANGUAGE OverlappingInstances #-}
 #endif
@@ -36,8 +36,8 @@ Shared StackValue instances for pandoc and generic types.
 -}
 module Text.Pandoc.Lua.SharedInstances () where
 
-import Scripting.Lua ( LTYPE(..), StackValue(..), newtable )
-import Text.Pandoc.Lua.Util ( addRawInt, addValue, getRawInt, keyValuePairs )
+import Scripting.Lua (LTYPE (..), StackValue (..), newtable)
+import Text.Pandoc.Lua.Util (addRawInt, addValue, getRawInt, keyValuePairs)
 
 import qualified Data.Map as M
 import qualified Text.Pandoc.UTF8 as UTF8
@@ -112,5 +112,5 @@ instance (StackValue a, StackValue b) => StackValue (Either a b) where
   peek lua idx = peek lua idx >>= \case
       Just left -> return . Just $ Left left
       Nothing   -> fmap Right <$> peek lua idx
-  valuetype (Left x) = valuetype x
+  valuetype (Left x)  = valuetype x
   valuetype (Right x) = valuetype x

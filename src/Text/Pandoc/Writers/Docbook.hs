@@ -32,6 +32,7 @@ Conversion of 'Pandoc' documents to Docbook XML.
 module Text.Pandoc.Writers.Docbook ( writeDocbook4, writeDocbook5 ) where
 import Control.Monad.Reader
 import Data.Char (toLower)
+import Data.Text (Text)
 import Data.Generics (everywhere, mkT)
 import Data.List (intercalate, isPrefixOf, isSuffixOf, stripPrefix)
 import Data.Monoid (Any (..))
@@ -81,22 +82,23 @@ authorToDocbook opts name' = do
                in inTagsSimple "firstname" (text $ escapeStringForXML firstname) $$
                   inTagsSimple "surname" (text $ escapeStringForXML lastname)
 
-writeDocbook4 :: PandocMonad m => WriterOptions -> Pandoc -> m String
+writeDocbook4 :: PandocMonad m => WriterOptions -> Pandoc -> m Text
 writeDocbook4 opts d =
   runReaderT (writeDocbook opts d) DocBook4
 
-writeDocbook5 :: PandocMonad m => WriterOptions -> Pandoc -> m String
+writeDocbook5 :: PandocMonad m => WriterOptions -> Pandoc -> m Text
 writeDocbook5 opts d =
   runReaderT (writeDocbook opts d) DocBook5
 
 -- | Convert Pandoc document to string in Docbook format.
-writeDocbook :: PandocMonad m => WriterOptions -> Pandoc -> DB m String
+writeDocbook :: PandocMonad m => WriterOptions -> Pandoc -> DB m Text
 writeDocbook opts (Pandoc meta blocks) = do
   let elements = hierarchicalize blocks
   let colwidth = if writerWrapText opts == WrapAuto
                     then Just $ writerColumns opts
                     else Nothing
-  let render'  = render colwidth
+  let render' :: Doc -> Text
+      render' = render colwidth
   let opts'    = if (maybe False (("/book>" `isSuffixOf`) . trimr)
                             (writerTemplate opts) &&
                      TopLevelDefault == writerTopLevelDivision opts)
@@ -111,10 +113,10 @@ writeDocbook opts (Pandoc meta blocks) = do
   auths' <- mapM (authorToDocbook opts) $ docAuthors meta
   let meta' = B.setMeta "author" auths' meta
   metadata <- metaToJSON opts
-                 (fmap (render colwidth . vcat) .
+                 (fmap (render' . vcat) .
                           (mapM (elementToDocbook opts' startLvl) .
                             hierarchicalize))
-                 (fmap (render colwidth) . inlinesToDocbook opts')
+                 (fmap render' . inlinesToDocbook opts')
                  meta'
   main <- (render' . vcat) <$> (mapM (elementToDocbook opts' startLvl) elements)
   let context = defField "body" main
@@ -122,9 +124,9 @@ writeDocbook opts (Pandoc meta blocks) = do
                                         MathML -> True
                                         _      -> False)
               $ metadata
-  return $ case writerTemplate opts of
-           Nothing  -> main
-           Just tpl -> renderTemplate' tpl context
+  case writerTemplate opts of
+       Nothing  -> return main
+       Just tpl -> renderTemplate' tpl context
 
 -- | Convert an Element to Docbook.
 elementToDocbook :: PandocMonad m => WriterOptions -> Int -> Element -> DB m Doc
@@ -215,8 +217,10 @@ blockToDocbook opts (Div (ident,_,_) bs) = do
     (if null ident
         then mempty
         else selfClosingTag "anchor" [("id", ident)]) $$ contents
-blockToDocbook _ (Header _ _ _) =
-  return empty -- should not occur after hierarchicalize
+blockToDocbook _ h@(Header _ _ _) = do
+  -- should not occur after hierarchicalize, except inside lists/blockquotes
+  report $ BlockNotRendered h
+  return empty
 blockToDocbook opts (Plain lst) = inlinesToDocbook opts lst
 -- title beginning with fig: indicates that the image is a figure
 blockToDocbook opts (Para [Image attr txt (src,'f':'i':'g':':':_)]) = do

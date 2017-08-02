@@ -7,6 +7,7 @@ VERSION=$(grep -e '^Version' pandoc.cabal | awk '{print $2}')
 RESOURCES=$DIST/Resources
 ROOT=$DIST/pandoc
 DEST=$ROOT/usr/local
+PANDOC=$DEST/bin/pandoc
 SCRIPTS=$MACOS/macos-resources
 BASE=pandoc-$VERSION
 ME=$(whoami)
@@ -20,12 +21,14 @@ export MACMACOS_DEPLOYMENT_TARGET=10.7
 rm -rf $DIST
 mkdir -p $DIST
 mkdir -p $RESOURCES
+mkdir -p $DEST/bin
+mkdir -p $DEST/share/man/man1
+
 stack setup
-which cpphs  || stack install cpphs
 
 echo Building pandoc...
 stack clean
-stack install --stack-yaml=stack.pkg.yaml --local-bin-path . pandoc pandoc-citeproc
+stack install --stack-yaml=stack.pkg.yaml --local-bin-path $DEST/bin/ pandoc pandoc-citeproc
 
 echo Getting man pages...
 make man/pandoc.1
@@ -36,18 +39,13 @@ PANDOC_CITEPROC_TARBALL=https://hackage.haskell.org/package/pandoc-citeproc-${PA
 curl ${PANDOC_CITEPROC_TARBALL} | tar xzC $DIST
 PANDOC_CITEPROC_PATH=$DIST/pandoc-citeproc-${PANDOC_CITEPROC_VERSION}
 
-mkdir -p $DEST/bin
-mkdir -p $DEST/share/man/man1
-for f in pandoc pandoc-citeproc; do
-  cp $MACOS/$f $DEST/bin/;
-done
 cp $PANDOC_CITEPROC_PATH/man/man1/pandoc-citeproc.1 $DEST/share/man/man1/
 cp man/pandoc.1 $DEST/share/man/man1/
 
 chown -R $ME:staff $DIST
 
 echo Copying license...
-$MACOS/pandoc --data data -t html5 -s COPYING.md -o $RESOURCES/license.html
+$PANDOC --data data -t html5 -s COPYING.md -Vpagetitle="License" -o $RESOURCES/license.html
 
 # Removing executable signing because of a problem that arose in El Capitan
 # "source=obsolete resource envelope"
@@ -62,11 +60,11 @@ echo Creating MacOS package...
 
 sed -e "s/PANDOCVERSION/$VERSION/" $MACOS/distribution.xml.in > $MACOS/distribution.xml
 
-pkgbuild --root $DIST/pandoc --identifier net.johnmacfarlane.pandoc --version 1.13 --ownership recommended $DIST/pandoc.pkg
+pkgbuild --root $ROOT --identifier net.johnmacfarlane.pandoc --version $VERSION --ownership recommended $DIST/pandoc.pkg
 productbuild --distribution $MACOS/distribution.xml --resources $DIST/Resources --package-path $DIST --version $VERSION --sign "${DEVELOPER_ID_INSTALLER}" $BASE-MacOS.pkg
 
 # verify signature
 spctl --assess --type install $BASE-MacOS.pkg
 
 # cleanup
-rm -r $DIST $MACOS/pandoc $MACOS/pandoc-citeproc
+rm -r $DIST

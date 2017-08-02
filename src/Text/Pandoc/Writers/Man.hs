@@ -1,3 +1,4 @@
+{-# LANGUAGE OverloadedStrings #-}
 {-
 Copyright (C) 2007-2017 John MacFarlane <jgm@berkeley.edu>
 
@@ -30,10 +31,12 @@ Conversion of 'Pandoc' documents to groff man page format.
 -}
 module Text.Pandoc.Writers.Man ( writeMan) where
 import Control.Monad.Except (throwError)
-import Control.Monad.State
+import Control.Monad.State.Strict
 import Data.List (intercalate, intersperse, stripPrefix, sort)
 import qualified Data.Map as Map
 import Data.Maybe (fromMaybe)
+import Data.Text (Text)
+import qualified Data.Text as T
 import Text.Pandoc.Builder (deleteMeta)
 import Text.Pandoc.Class (PandocMonad, report)
 import Text.Pandoc.Definition
@@ -62,36 +65,37 @@ defaultWriterState = WriterState { stNotes = []
                                  , stHasTables  = False }
 
 -- | Convert Pandoc to Man.
-writeMan :: PandocMonad m => WriterOptions -> Pandoc -> m String
+writeMan :: PandocMonad m => WriterOptions -> Pandoc -> m Text
 writeMan opts document =
   evalStateT (pandocToMan opts document) defaultWriterState
 
 -- | Return groff man representation of document.
-pandocToMan :: PandocMonad m => WriterOptions -> Pandoc -> StateT WriterState m String
+pandocToMan :: PandocMonad m => WriterOptions -> Pandoc -> StateT WriterState m Text
 pandocToMan opts (Pandoc meta blocks) = do
   let colwidth = if writerWrapText opts == WrapAuto
                     then Just $ writerColumns opts
                     else Nothing
-  let render' = render colwidth
+  let render' :: Doc -> Text
+      render' = render colwidth
   titleText <- inlineListToMan opts $ docTitle meta
   let title' = render' titleText
   let setFieldsFromTitle =
-       case break (== ' ') title' of
-           (cmdName, rest) -> case break (=='(') cmdName of
-                                   (xs, '(':ys) | not (null ys) &&
-                                                  last ys == ')' ->
+       case T.break (== ' ') title' of
+           (cmdName, rest) -> case T.break (=='(') cmdName of
+                                   (xs, ys) | "(" `T.isPrefixOf` ys
+                                                && ")" `T.isSuffixOf` ys ->
                                      defField "title" xs .
-                                     defField "section" (init ys) .
-                                     case splitBy (=='|') rest of
+                                     defField "section" (T.init $ T.drop 1 ys) .
+                                     case T.splitOn "|" rest of
                                           (ft:hds) ->
-                                            defField "footer" (trim ft) .
+                                            defField "footer" (T.strip ft) .
                                             defField "header"
-                                               (trim $ concat hds)
+                                               (T.strip $ mconcat hds)
                                           [] -> id
                                    _  -> defField "title" title'
   metadata <- metaToJSON opts
-              (fmap (render colwidth) . blockListToMan opts)
-              (fmap (render colwidth) . inlineListToMan opts)
+              (fmap render' . blockListToMan opts)
+              (fmap render' . inlineListToMan opts)
               $ deleteMeta "title" meta
   body <- blockListToMan opts blocks
   notes <- gets stNotes
@@ -106,7 +110,7 @@ pandocToMan opts (Pandoc meta blocks) = do
               $ metadata
   case writerTemplate opts of
        Nothing  -> return main
-       Just tpl -> return $ renderTemplate' tpl context
+       Just tpl -> renderTemplate' tpl context
 
 -- | Return man representation of notes.
 notesToMan :: PandocMonad m => WriterOptions -> [[Block]] -> StateT WriterState m Doc

@@ -31,6 +31,7 @@ Conversion of 'Pandoc' documents to Docbook XML.
 -}
 module Text.Pandoc.Writers.TEI (writeTEI) where
 import Data.Char (toLower)
+import Data.Text (Text)
 import Data.List (isPrefixOf, stripPrefix)
 import qualified Text.Pandoc.Builder as B
 import Text.Pandoc.Class (PandocMonad, report)
@@ -56,12 +57,13 @@ authorToTEI opts name' = do
       inTagsSimple "author" (text $ escapeStringForXML name)
 
 -- | Convert Pandoc document to string in Docbook format.
-writeTEI :: PandocMonad m => WriterOptions -> Pandoc -> m String
+writeTEI :: PandocMonad m => WriterOptions -> Pandoc -> m Text
 writeTEI opts (Pandoc meta blocks) = do
   let elements = hierarchicalize blocks
       colwidth = if writerWrapText opts == WrapAuto
                     then Just $ writerColumns opts
                     else Nothing
+      render' :: Doc -> Text
       render' = render colwidth
       startLvl = case writerTopLevelDivision opts of
                    TopLevelPart    -> -1
@@ -71,9 +73,9 @@ writeTEI opts (Pandoc meta blocks) = do
   auths'      <- mapM (authorToTEI opts) $ docAuthors meta
   let meta'    = B.setMeta "author" auths' meta
   metadata <- metaToJSON opts
-                 (fmap (render colwidth . vcat) .
-                   (mapM (elementToTEI opts startLvl)) . hierarchicalize)
-                 (fmap (render colwidth) . inlinesToTEI opts)
+                 (fmap (render' . vcat) .
+                   mapM (elementToTEI opts startLvl) . hierarchicalize)
+                 (fmap render' . inlinesToTEI opts)
                  meta'
   main    <- (render' . vcat) <$> mapM (elementToTEI opts startLvl) elements
   let context = defField "body" main
@@ -83,7 +85,7 @@ writeTEI opts (Pandoc meta blocks) = do
               $ metadata
   case writerTemplate opts of
        Nothing  -> return main
-       Just tpl -> return $ renderTemplate' tpl context
+       Just tpl -> renderTemplate' tpl context
 
 -- | Convert an Element to TEI.
 elementToTEI :: PandocMonad m => WriterOptions -> Int -> Element -> m Doc
@@ -157,11 +159,13 @@ blockToTEI opts (Div (ident,_,_) [Para lst]) = do
   let attribs = [("id", ident) | not (null ident)]
   inTags False "p" attribs <$> inlinesToTEI opts lst
 blockToTEI opts (Div _ bs) = blocksToTEI opts $ map plainToPara bs
-blockToTEI _ (Header _ _ _) = return empty
--- should not occur after hierarchicalize
+blockToTEI _ h@(Header _ _ _) = do
+  -- should not occur after hierarchicalize, except inside lists/blockquotes
+  report $ BlockNotRendered h
+  return empty
 -- For TEI simple, text must be within containing block element, so
--- we use plainToPara to ensure that Plain text ends up contained by
--- something.
+-- we use treat as Para to ensure that Plain text ends up contained by
+-- something:
 blockToTEI opts (Plain lst) = blockToTEI opts $ Para lst
 -- title beginning with fig: indicates that the image is a figure
 --blockToTEI opts (Para [Image attr txt (src,'f':'i':'g':':':_)]) =

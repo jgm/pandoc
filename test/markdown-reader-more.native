@@ -3,7 +3,7 @@ Pandoc (Meta {unMeta = fromList [("author",MetaList [MetaInlines [Str "Author",S
 ,Header 2 ("blank-line-before-url-in-link-reference",[],[]) [Str "Blank",Space,Str "line",Space,Str "before",Space,Str "URL",Space,Str "in",Space,Str "link",Space,Str "reference"]
 ,Para [Link ("",[],[]) [Str "foo"] ("/url",""),Space,Str "and",Space,Link ("",[],[]) [Str "bar"] ("/url","title")]
 ,Header 2 ("raw-context-environments",[],[]) [Str "Raw",Space,Str "ConTeXt",Space,Str "environments"]
-,Plain [RawInline (Format "tex") "\\placeformula "]
+,RawBlock (Format "latex") "\\placeformula "
 ,RawBlock (Format "context") "\\startformula\n   L_{1} = L_{2}\n   \\stopformula"
 ,RawBlock (Format "context") "\\start[a2]\n\\start[a2]\n\\stop[a2]\n\\stop[a2]"
 ,Header 2 ("raw-latex-environments",[],[]) [Str "Raw",Space,Str "LaTeX",Space,Str "environments"]
@@ -56,7 +56,8 @@ Pandoc (Meta {unMeta = fromList [("author",MetaList [MetaInlines [Str "Author",S
 ,OrderedList (3,Example,TwoParens)
  [[Plain [Str "Third",Space,Str "example."]]]
 ,Header 2 ("macros",[],[]) [Str "Macros"]
-,Para [Math InlineMath "{\\langle x,y \\rangle}"]
+,RawBlock (Format "latex") "\\newcommand{\\tuple}[1]{\\langle #1 \\rangle}"
+,Para [Math InlineMath "\\langle x,y \\rangle"]
 ,Header 2 ("case-insensitive-references",[],[]) [Str "Case-insensitive",Space,Str "references"]
 ,Para [Link ("",[],[]) [Str "Fum"] ("/fum","")]
 ,Para [Link ("",[],[]) [Str "FUM"] ("/fum","")]

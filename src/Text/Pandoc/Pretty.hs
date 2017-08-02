@@ -77,7 +77,7 @@ module Text.Pandoc.Pretty (
      )
 
 where
-import Control.Monad.State
+import Control.Monad.State.Strict
 import Data.Char (isSpace)
 import Data.Foldable (toList)
 import Data.List (intersperse)

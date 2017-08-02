@@ -1,5 +1,6 @@
 module Tests.Writers.Muse (tests) where
 
+import Data.Text (unpack)
 import Test.Tasty
 import Tests.Helpers
 import Text.Pandoc
@@ -10,7 +11,7 @@ muse :: (ToPandoc a) => a -> String
 muse = museWithOpts def{ writerWrapText = WrapNone }
 
 museWithOpts :: (ToPandoc a) => WriterOptions -> a -> String
-museWithOpts opts = purely (writeMuse opts) . toPandoc
+museWithOpts opts = unpack . purely (writeMuse opts) . toPandoc
 
 infix 4 =:
 (=:) :: (ToString a, ToPandoc a)
@@ -30,14 +31,14 @@ tests = [ testGroup "block elements"
                                            , "Second paragraph."
                                            ]
             ]
-          , "line block" =: lineBlock ([text "Foo", text "bar", text "baz"])
+          , "line block" =: lineBlock [text "Foo", text "bar", text "baz"]
                          =?> unlines [ "<verse>"
                                      , "Foo"
                                      , "bar"
                                      , "baz"
                                      , "</verse>"
                                      ]
-          , "code block" =: codeBlock ("int main(void) {\n\treturn 0;\n}")
+          , "code block" =: codeBlock "int main(void) {\n\treturn 0;\n}"
                          =?> unlines [ "<example>"
                                      , "int main(void) {"
                                      , "\treturn 0;"
@@ -136,6 +137,17 @@ tests = [ testGroup "block elements"
                                                       , "                       second inner definition :: second inner description"
                                                       ]
               ]
+            -- Check that list is intended with one space even inside a quote
+            , "List inside block quote" =: blockQuote (orderedList [ plain $ text "first"
+                                                                   , plain $ text "second"
+                                                                   , plain $ text "third"
+                                                                   ])
+                                        =?> unlines [ "<quote>"
+                                                    , " 1. first"
+                                                    , " 2. second"
+                                                    , " 3. third"
+                                                    , "</quote>"
+                                                    ]
             ]
           , testGroup "headings"
             [ "normal heading" =:

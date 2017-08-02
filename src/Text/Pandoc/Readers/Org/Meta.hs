@@ -44,7 +44,7 @@ import qualified Text.Pandoc.Builder as B
 import Text.Pandoc.Class (PandocMonad)
 import Text.Pandoc.Definition
 
-import Control.Monad (mzero, void)
+import Control.Monad (mzero, void, when)
 import Data.Char (toLower)
 import Data.List (intersperse)
 import qualified Data.Map as M
@@ -75,14 +75,16 @@ declarationLine :: PandocMonad m => OrgParser m ()
 declarationLine = try $ do
   key   <- map toLower <$> metaKey
   (key', value) <- metaValue key
-  updateState $ \st -> st { orgStateMeta = B.setMeta key' <$> value <*> orgStateMeta st }
+  let addMetaValue st =
+        st { orgStateMeta = B.setMeta key' <$> value <*> orgStateMeta st }
+  when (key' /= "results") $ updateState addMetaValue
 
 metaKey :: Monad m => OrgParser m String
 metaKey = map toLower <$> many1 (noneOf ": \n\r")
                       <*  char ':'
                       <*  skipSpaces
 
-metaValue :: PandocMonad m => String -> OrgParser m (String, (F MetaValue))
+metaValue :: PandocMonad m => String -> OrgParser m (String, F MetaValue)
 metaValue key =
   let inclKey = "header-includes"
   in case key of
@@ -109,7 +111,7 @@ metaInlines = fmap (MetaInlines . B.toList) <$> inlinesTillNewline
 
 metaInlinesCommaSeparated :: PandocMonad m => OrgParser m (F MetaValue)
 metaInlinesCommaSeparated = do
-  itemStrs <- (many1 (noneOf ",\n")) `sepBy1` (char ',')
+  itemStrs <- many1 (noneOf ",\n") `sepBy1` char ','
   newline
   items <- mapM (parseFromString inlinesTillNewline . (++ "\n")) itemStrs
   let toMetaInlines = MetaInlines . B.toList
@@ -161,7 +163,7 @@ addLinkFormat key formatter = updateState $ \s ->
   let fs = orgStateLinkFormatters s
   in s{ orgStateLinkFormatters = M.insert key formatter fs }
 
-parseLinkFormat :: Monad m => OrgParser m ((String, String -> String))
+parseLinkFormat :: Monad m => OrgParser m (String, String -> String)
 parseLinkFormat = try $ do
   linkType <- (:) <$> letter <*> many (alphaNum <|> oneOf "-_") <* skipSpaces
   linkSubst <- parseFormat
@@ -170,8 +172,7 @@ parseLinkFormat = try $ do
 -- | An ad-hoc, single-argument-only implementation of a printf-style format
 -- parser.
 parseFormat :: Monad m => OrgParser m (String -> String)
-parseFormat = try $ do
-  replacePlain <|> replaceUrl <|> justAppend
+parseFormat = try $ replacePlain <|> replaceUrl <|> justAppend
  where
    -- inefficient, but who cares
    replacePlain = try $ (\x -> concat . flip intersperse x)
@@ -235,8 +236,8 @@ macroDefinition = try $ do
   expansionPart = try $ many (notFollowedBy placeholder *> noneOf "\n\r")
 
   alternate :: [a] -> [a] -> [a]
-  alternate [] ys = ys
-  alternate xs [] = xs
+  alternate []     ys     = ys
+  alternate xs     []     = xs
   alternate (x:xs) (y:ys) = x : y : alternate xs ys
 
   reorder :: [Int] -> [String] -> [String]

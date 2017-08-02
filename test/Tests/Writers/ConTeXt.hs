@@ -1,6 +1,7 @@
 {-# LANGUAGE OverloadedStrings #-}
 module Tests.Writers.ConTeXt (tests) where
 
+import Data.Text (unpack)
 import Test.Tasty
 import Test.Tasty.QuickCheck
 import Tests.Helpers
@@ -9,10 +10,10 @@ import Text.Pandoc.Arbitrary ()
 import Text.Pandoc.Builder
 
 context :: (ToPandoc a) => a -> String
-context = purely (writeConTeXt def) . toPandoc
+context = unpack . purely (writeConTeXt def) . toPandoc
 
 context' :: (ToPandoc a) => a -> String
-context' = purely (writeConTeXt def{ writerWrapText = WrapNone }) . toPandoc
+context' = unpack . purely (writeConTeXt def{ writerWrapText = WrapNone }) . toPandoc
 
 {-
   "my test" =: X =?> Y

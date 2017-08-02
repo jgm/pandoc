@@ -37,12 +37,13 @@ that it has omitted the construct.
 AsciiDoc:  <http://www.methods.co.nz/asciidoc/>
 -}
 module Text.Pandoc.Writers.AsciiDoc (writeAsciiDoc) where
-import Control.Monad.State
+import Control.Monad.State.Strict
 import Data.Aeson (Result (..), Value (String), fromJSON, toJSON)
 import Data.Char (isPunctuation, isSpace)
 import Data.List (intercalate, intersperse, stripPrefix)
 import qualified Data.Map as M
 import Data.Maybe (fromMaybe)
+import Data.Text (Text)
 import qualified Data.Text as T
 import Text.Pandoc.Class (PandocMonad, report)
 import Text.Pandoc.Definition
@@ -62,7 +63,7 @@ data WriterState = WriterState { defListMarker    :: String
                                }
 
 -- | Convert Pandoc to AsciiDoc.
-writeAsciiDoc :: PandocMonad m => WriterOptions -> Pandoc -> m String
+writeAsciiDoc :: PandocMonad m => WriterOptions -> Pandoc -> m Text
 writeAsciiDoc opts document =
   evalStateT (pandocToAsciiDoc opts document) WriterState{
       defListMarker = "::"
@@ -74,16 +75,18 @@ writeAsciiDoc opts document =
 type ADW = StateT WriterState
 
 -- | Return asciidoc representation of document.
-pandocToAsciiDoc :: PandocMonad m => WriterOptions -> Pandoc -> ADW m String
+pandocToAsciiDoc :: PandocMonad m => WriterOptions -> Pandoc -> ADW m Text
 pandocToAsciiDoc opts (Pandoc meta blocks) = do
   let titleblock = not $ null (docTitle meta) && null (docAuthors meta) &&
                          null (docDate meta)
   let colwidth = if writerWrapText opts == WrapAuto
                     then Just $ writerColumns opts
                     else Nothing
+  let render' :: Doc -> Text
+      render' = render colwidth
   metadata <- metaToJSON opts
-              (fmap (render colwidth) . blockListToAsciiDoc opts)
-              (fmap (render colwidth) . inlineListToAsciiDoc opts)
+              (fmap render' . blockListToAsciiDoc opts)
+              (fmap render' . inlineListToAsciiDoc opts)
               meta
   let addTitleLine (String t) = String $
          t <> "\n" <> T.replicate (T.length t) "="
@@ -102,7 +105,7 @@ pandocToAsciiDoc opts (Pandoc meta blocks) = do
                $ metadata'
   case writerTemplate opts of
        Nothing  -> return main
-       Just tpl -> return $ renderTemplate' tpl context
+       Just tpl -> renderTemplate' tpl context
 
 -- | Escape special characters for AsciiDoc.
 escapeString :: String -> String

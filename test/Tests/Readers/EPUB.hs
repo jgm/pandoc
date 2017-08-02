@@ -11,7 +11,9 @@ import Text.Pandoc.Readers.EPUB
 getMediaBag :: FilePath -> IO MediaBag
 getMediaBag fp = do
   bs <- BL.readFile fp
-  snd <$> (P.runIOorExplode $ P.withMediaBag $ readEPUB def bs)
+  P.runIOorExplode $ do
+    readEPUB def bs
+    P.getMediaBag
 
 testMediaBag :: FilePath -> [(String, String, Int)] -> IO ()
 testMediaBag fp bag = do

@@ -76,7 +76,7 @@ module Text.Pandoc.Readers.Docx
 
 import Codec.Archive.Zip
 import Control.Monad.Reader
-import Control.Monad.State
+import Control.Monad.State.Strict
 import qualified Data.ByteString.Lazy as B
 import Data.Default (Default)
 import Data.List (delete, intersect)

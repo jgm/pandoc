@@ -1,5 +1,5 @@
 {-# LANGUAGE CPP                 #-}
-{-# LANGUAGE PatternGuards       #-}
+
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TupleSections       #-}
 {-
@@ -33,10 +33,11 @@ Parses command-line options and calls the appropriate readers and
 writers.
 -}
 module Main where
-import Text.Pandoc.App (convertWithOpts, defaultOpts, options, parseOptions)
-import Text.Pandoc.Error (handleError, PandocError)
 import qualified Control.Exception as E
+import Text.Pandoc.App (convertWithOpts, defaultOpts, options, parseOptions)
+import Text.Pandoc.Error (PandocError, handleError)
 
 main :: IO ()
 main = E.catch (parseOptions options defaultOpts >>= convertWithOpts)
   (\(e :: PandocError) -> handleError (Left e))
+

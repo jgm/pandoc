@@ -4,7 +4,6 @@
 \setlength{\parindent}{0pt}
 \setlength{\parskip}{6pt plus 2pt minus 1pt}
 
-\newcommand{\textsubscript}[1]{\ensuremath{_{\scriptsize\textrm{#1}}}}
 \usepackage[breaklinks=true,unicode=true]{hyperref}
 \usepackage[normalem]{ulem}
 % avoid problems with \sout in headers with hyperref:

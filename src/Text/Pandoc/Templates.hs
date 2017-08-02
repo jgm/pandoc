@@ -33,33 +33,33 @@ A simple templating system with variable substitution and conditionals.
 
 -}
 
-module Text.Pandoc.Templates ( renderTemplate
+module Text.Pandoc.Templates ( module Text.DocTemplates
                              , renderTemplate'
-                             , TemplateTarget
-                             , varListToJSON
-                             , compileTemplate
-                             , Template
-                             , getDefaultTemplate ) where
+                             , getDefaultTemplate
+                             ) where
 
-import qualified Control.Exception as E (IOException, try)
+import Control.Monad.Except (throwError)
 import Data.Aeson (ToJSON (..))
 import qualified Data.Text as T
 import System.FilePath ((<.>), (</>))
 import Text.DocTemplates (Template, TemplateTarget, applyTemplate,
                           compileTemplate, renderTemplate, varListToJSON)
-import Text.Pandoc.Shared (readDataFileUTF8)
+import Text.Pandoc.Class (PandocMonad(readDataFile))
+import Text.Pandoc.Error
+import qualified Text.Pandoc.UTF8 as UTF8
 
 -- | Get default template for the specified writer.
-getDefaultTemplate :: (Maybe FilePath) -- ^ User data directory to search first
+getDefaultTemplate :: PandocMonad m
+                   => (Maybe FilePath) -- ^ User data directory to search 1st
                    -> String           -- ^ Name of writer
-                   -> IO (Either E.IOException String)
+                   -> m String
 getDefaultTemplate user writer = do
   let format = takeWhile (`notElem` ("+-" :: String)) writer  -- strip off extensions
   case format of
-       "native"  -> return $ Right ""
-       "json"    -> return $ Right ""
-       "docx"    -> return $ Right ""
-       "fb2"     -> return $ Right ""
+       "native"  -> return ""
+       "json"    -> return ""
+       "docx"    -> return ""
+       "fb2"     -> return ""
        "odt"     -> getDefaultTemplate user "opendocument"
        "html"    -> getDefaultTemplate user "html5"
        "docbook" -> getDefaultTemplate user "docbook5"
@@ -70,9 +70,13 @@ getDefaultTemplate user writer = do
        "markdown_mmd"      -> getDefaultTemplate user "markdown"
        "markdown_phpextra" -> getDefaultTemplate user "markdown"
        _        -> let fname = "templates" </> "default" <.> format
-                   in  E.try $ readDataFileUTF8 user fname
+                   in  UTF8.toString <$> readDataFile user fname
 
--- | Like 'applyTemplate', but raising an error if compilation fails.
-renderTemplate' :: (ToJSON a, TemplateTarget b) => String -> a -> b
-renderTemplate' template = either error id . applyTemplate (T.pack template)
-
+-- | Like 'applyTemplate', but runs in PandocMonad and
+-- raises an error if compilation fails.
+renderTemplate' :: (PandocMonad m, ToJSON a, TemplateTarget b)
+                => String -> a -> m b
+renderTemplate' template context = do
+  case applyTemplate (T.pack template) context of
+       Left e  -> throwError (PandocTemplateError e)
+       Right r -> return r

@@ -35,7 +35,9 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 A utility library with parsers used in pandoc readers.
 -}
-module Text.Pandoc.Parsing ( anyLine,
+module Text.Pandoc.Parsing ( takeWhileP,
+                             takeP,
+                             anyLine,
                              anyLineNewline,
                              indentWith,
                              many1Till,
@@ -109,8 +111,6 @@ module Text.Pandoc.Parsing ( anyLine,
                              dash,
                              nested,
                              citeKey,
-                             macro,
-                             applyMacros',
                              Parser,
                              ParserT,
                              F,
@@ -130,6 +130,7 @@ module Text.Pandoc.Parsing ( anyLine,
                              runParser,
                              runParserT,
                              parse,
+                             tokenPrim,
                              anyToken,
                              getInput,
                              setInput,
@@ -178,24 +179,27 @@ module Text.Pandoc.Parsing ( anyLine,
                              sourceLine,
                              setSourceColumn,
                              setSourceLine,
-                             newPos
+                             newPos,
+                             Line,
+                             Column
                              )
 where
 
+import Data.Text (Text)
 import Text.Pandoc.Definition
 import Text.Pandoc.Options
-import Text.Pandoc.Builder (Blocks, Inlines, rawBlock, HasMeta(..), trimInlines)
+import Text.Pandoc.Builder (Blocks, Inlines, HasMeta(..), trimInlines)
 import qualified Text.Pandoc.Builder as B
 import Text.Pandoc.XML (fromEntities)
 import qualified Text.Pandoc.UTF8 as UTF8 (putStrLn)
 import Text.Parsec hiding (token)
-import Text.Parsec.Pos (newPos)
+import Text.Parsec.Pos (newPos, initialPos, updatePosString)
 import Data.Char ( toLower, toUpper, ord, chr, isAscii, isAlphaNum,
                    isHexDigit, isSpace, isPunctuation )
 import Data.List ( intercalate, transpose, isSuffixOf )
 import Text.Pandoc.Shared
 import qualified Data.Map as M
-import Text.TeXMath.Readers.TeX.Macros (applyMacros, Macro, pMacroDefinition)
+import Text.Pandoc.Readers.LaTeX.Types (Macro)
 import Text.HTML.TagSoup.Entity ( lookupEntity )
 import Text.Pandoc.Asciify (toAsciiChar)
 import Data.Monoid ((<>))
@@ -242,8 +246,38 @@ instance Monoid a => Monoid (Future s a) where
   mappend = liftM2 mappend
   mconcat = liftM mconcat . sequence
 
+-- | Parse characters while a predicate is true.
+takeWhileP :: Monad m
+           => (Char -> Bool)
+           -> ParserT [Char] st m [Char]
+takeWhileP f = do
+  -- faster than 'many (satisfy f)'
+  inp <- getInput
+  pos <- getPosition
+  let (xs, rest) = span f inp
+  -- needed to persuade parsec that this won't match an empty string:
+  anyChar
+  setInput rest
+  setPosition $ updatePosString pos xs
+  return xs
+
+-- Parse n characters of input (or the rest of the input if
+-- there aren't n characters).
+takeP :: Monad m => Int -> ParserT [Char] st m [Char]
+takeP n = do
+  guard (n > 0)
+  -- faster than 'count n anyChar'
+  inp <- getInput
+  pos <- getPosition
+  let (xs, rest) = splitAt n inp
+  -- needed to persuade parsec that this won't match an empty string:
+  anyChar
+  setInput rest
+  setPosition $ updatePosString pos xs
+  return xs
+
 -- | Parse any line of text
-anyLine :: Stream [Char] m Char => ParserT [Char] st m [Char]
+anyLine :: Monad m => ParserT [Char] st m [Char]
 anyLine = do
   -- This is much faster than:
   -- manyTill anyChar newline
@@ -259,13 +293,13 @@ anyLine = do
        _ -> mzero
 
 -- | Parse any line, include the final newline in the output
-anyLineNewline :: Stream [Char] m Char => ParserT [Char] st m [Char]
+anyLineNewline :: Monad m => ParserT [Char] st m [Char]
 anyLineNewline = (++ "\n") <$> anyLine
 
 -- | Parse indent by specified number of spaces (or equiv. tabs)
-indentWith :: Stream [Char] m Char
+indentWith :: Stream s m Char
            => HasReaderOptions st
-           => Int -> ParserT [Char] st m [Char]
+           => Int -> ParserT s st m [Char]
 indentWith num = do
   tabStop <- getOption readerTabStop
   if (num < tabStop)
@@ -361,11 +395,12 @@ stringAnyCase (x:xs) = do
 
 -- | Parse contents of 'str' using 'parser' and return result.
 parseFromString :: Monad m
-                => ParserT String st m a
+                => ParserT [Char] st m a
                 -> String
-                -> ParserT String st m a
+                -> ParserT [Char] st m a
 parseFromString parser str = do
   oldPos <- getPosition
+  setPosition $ initialPos "chunk"
   oldInput <- getInput
   setInput str
   result <- parser
@@ -388,9 +423,9 @@ parseFromString' parser str = do
   return res
 
 -- | Parse raw line block up to and including blank lines.
-lineClump :: Stream [Char] m Char => ParserT [Char] st m String
+lineClump :: Monad m => ParserT [Char] st m String
 lineClump = blanklines
-          <|> (many1 (notFollowedBy blankline >> anyLine) >>= return . unlines)
+          <|> (unlines <$> many1 (notFollowedBy blankline >> anyLine))
 
 -- | Parse a string of characters between an open character
 -- and a close character, including text between balanced
@@ -486,7 +521,7 @@ uriScheme :: Stream s m Char => ParserT s st m String
 uriScheme = oneOfStringsCI (Set.toList schemes)
 
 -- | Parses a URI. Returns pair of original and URI-escaped version.
-uri :: Stream [Char] m Char => ParserT [Char] st m (String, String)
+uri :: Monad m => ParserT [Char] st m (String, String)
 uri = try $ do
   scheme <- uriScheme
   char ':'
@@ -591,7 +626,9 @@ withHorizDisplacement parser = do
 
 -- | Applies a parser and returns the raw string that was parsed,
 -- along with the value produced by the parser.
-withRaw :: Stream [Char] m Char => ParsecT [Char] st m a -> ParsecT [Char] st m (a, [Char])
+withRaw :: Monad m
+        => ParsecT [Char] st m a
+        -> ParsecT [Char] st m (a, [Char])
 withRaw parser = do
   pos1 <- getPosition
   inp <- getInput
@@ -752,7 +789,7 @@ charRef = do
   c <- characterReference
   return $ Str [c]
 
-lineBlockLine :: Stream [Char] m Char => ParserT [Char] st m String
+lineBlockLine :: Monad m => ParserT [Char] st m String
 lineBlockLine = try $ do
   char '|'
   char ' '
@@ -762,11 +799,11 @@ lineBlockLine = try $ do
   continuations <- many (try $ char ' ' >> anyLine)
   return $ white ++ unwords (line : continuations)
 
-blankLineBlockLine :: Stream [Char] m Char => ParserT [Char] st m Char
+blankLineBlockLine :: Stream s m Char => ParserT s st m Char
 blankLineBlockLine = try (char '|' >> blankline)
 
 -- | Parses an RST-style line block and returns a list of strings.
-lineBlockLines :: Stream [Char] m Char => ParserT [Char] st m [String]
+lineBlockLines :: Monad m => ParserT [Char] st m [String]
 lineBlockLines = try $ do
   lines' <- many1 (lineBlockLine <|> ((:[]) <$> blankLineBlockLine))
   skipMany1 $ blankline <|> blankLineBlockLine
@@ -836,7 +873,7 @@ widthsFromIndices numColumns' indices =
 -- (which may be grid), then the rows,
 -- which may be grid, separated by blank lines, and
 -- ending with a footer (dashed line followed by blank line).
-gridTableWith :: (Stream [Char] m Char, HasReaderOptions st,
+gridTableWith :: (Monad m, HasReaderOptions st,
                   Functor mf, Applicative mf, Monad mf)
               => ParserT [Char] st m (mf Blocks)  -- ^ Block list parser
               -> Bool                             -- ^ Headerless table
@@ -845,7 +882,7 @@ gridTableWith blocks headless =
   tableWith (gridTableHeader headless blocks) (gridTableRow blocks)
             (gridTableSep '-') gridTableFooter
 
-gridTableWith' :: (Stream [Char] m Char, HasReaderOptions st,
+gridTableWith' :: (Monad m, HasReaderOptions st,
                    Functor mf, Applicative mf, Monad mf)
                => ParserT [Char] st m (mf Blocks)  -- ^ Block list parser
                -> Bool                             -- ^ Headerless table
@@ -885,7 +922,7 @@ gridTableSep :: Stream s m Char => Char -> ParserT s st m Char
 gridTableSep ch = try $ gridDashedLines ch >> return '\n'
 
 -- | Parse header for a grid table.
-gridTableHeader :: (Stream [Char] m Char, Functor mf, Applicative mf, Monad mf)
+gridTableHeader :: (Monad m, Functor mf, Applicative mf, Monad mf)
                 => Bool -- ^ Headerless table
                 -> ParserT [Char] st m (mf Blocks)
                 -> ParserT [Char] st m (mf [Blocks], [Alignment], [Int])
@@ -918,7 +955,7 @@ gridTableRawLine indices = do
   return (gridTableSplitLine indices line)
 
 -- | Parse row of grid table.
-gridTableRow :: (Stream [Char]  m Char, Functor mf, Applicative mf, Monad mf)
+gridTableRow :: (Monad m, Functor mf, Applicative mf, Monad mf)
              => ParserT [Char] st m (mf Blocks)
              -> [Int]
              -> ParserT [Char] st m (mf [Blocks])
@@ -947,8 +984,8 @@ gridTableFooter = blanklines
 ---
 
 -- | Removes the ParsecT layer from the monad transformer stack
-readWithM :: (Monad m)
-          => ParserT [Char] st m a       -- ^ parser
+readWithM :: Monad m
+          => ParserT [Char] st m a    -- ^ parser
           -> st                       -- ^ initial state
           -> String                   -- ^ input
           -> m (Either PandocError a)
@@ -964,7 +1001,7 @@ readWith :: Parser [Char] st a
 readWith p t inp = runIdentity $ readWithM p t inp
 
 -- | Parse a string with @parser@ (for testing).
-testStringWith :: (Show a)
+testStringWith :: Show a
                => ParserT [Char] ParserState Identity a
                -> [Char]
                -> IO ()
@@ -993,7 +1030,7 @@ data ParserState = ParserState
       stateIdentifiers     :: Set.Set String, -- ^ Header identifiers used
       stateNextExample     :: Int,           -- ^ Number of next example
       stateExamples        :: M.Map String Int, -- ^ Map from example labels to numbers
-      stateMacros          :: [Macro],       -- ^ List of macros defined so far
+      stateMacros          :: M.Map Text Macro, -- ^ Table of macros defined so far
       stateRstDefaultRole  :: String,        -- ^ Current rST default interpreted text role
       stateRstCustomRoles  :: M.Map String (String, Maybe String, Attr), -- ^ Current rST custom text roles
       -- Triple represents: 1) Base role, 2) Optional format (only for :raw:
@@ -1056,8 +1093,8 @@ instance HasIdentifierList ParserState where
   updateIdentifierList f st = st{ stateIdentifiers = f $ stateIdentifiers st }
 
 class HasMacros st where
-  extractMacros         :: st -> [Macro]
-  updateMacros          :: ([Macro] -> [Macro]) -> st -> st
+  extractMacros         :: st -> M.Map Text Macro
+  updateMacros          :: (M.Map Text Macro -> M.Map Text Macro) -> st -> st
 
 instance HasMacros ParserState where
   extractMacros        = stateMacros
@@ -1111,7 +1148,7 @@ defaultParserState =
                   stateIdentifiers     = Set.empty,
                   stateNextExample     = 1,
                   stateExamples        = M.empty,
-                  stateMacros          = [],
+                  stateMacros          = M.empty,
                   stateRstDefaultRole  = "title-reference",
                   stateRstCustomRoles  = M.empty,
                   stateCaption         = Nothing,
@@ -1340,33 +1377,6 @@ token :: (Stream s m t)
       -> ParsecT s st m a
 token pp pos match = tokenPrim pp (\_ t _ -> pos t) match
 
---
--- Macros
---
-
--- | Parse a \newcommand or \newenviroment macro definition.
-macro :: (Stream [Char] m Char, HasMacros st, HasReaderOptions st)
-      => ParserT [Char] st m Blocks
-macro = do
-  apply <- getOption readerApplyMacros
-  (m, def') <- withRaw pMacroDefinition
-  if apply
-     then do
-       updateState $ \st -> updateMacros (m:) st
-       return mempty
-     else return $ rawBlock "latex" def'
-
--- | Apply current macros to string.
-applyMacros' :: (HasReaderOptions st, HasMacros st, Stream [Char] m Char)
-             => String
-             -> ParserT [Char] st m String
-applyMacros' target = do
-  apply <- getOption readerApplyMacros
-  if apply
-     then do macros <- extractMacros <$> getState
-             return $ applyMacros macros target
-     else return target
-
 infixr 5 <+?>
 (<+?>) :: (Monoid a) => ParserT s st m a -> ParserT s st m a -> ParserT s st m a
 a <+?> b = a >>= flip fmap (try b <|> return mempty) . (<>)
@@ -1384,10 +1394,11 @@ extractIdClass (ident, cls, kvs) = (ident', cls', kvs')
 
 insertIncludedFile' :: (PandocMonad m, HasIncludeFiles st,
                         Functor mf, Applicative mf, Monad mf)
-                    => ParserT String st m (mf Blocks)
+                    => ParserT [a] st m (mf Blocks)
+                    -> (String -> [a])
                     -> [FilePath] -> FilePath
-                    -> ParserT String st m (mf Blocks)
-insertIncludedFile' blocks dirs f = do
+                    -> ParserT [a] st m (mf Blocks)
+insertIncludedFile' blocks totoks dirs f = do
   oldPos <- getPosition
   oldInput <- getInput
   containers <- getIncludeFiles <$> getState
@@ -1401,7 +1412,7 @@ insertIncludedFile' blocks dirs f = do
                      report $ CouldNotLoadIncludeFile f oldPos
                      return ""
   setPosition $ newPos f 1 1
-  setInput contents
+  setInput $ totoks contents
   bs <- blocks
   setInput oldInput
   setPosition oldPos
@@ -1411,11 +1422,12 @@ insertIncludedFile' blocks dirs f = do
 -- | Parse content of include file as blocks. Circular includes result in an
 -- @PandocParseError@.
 insertIncludedFile :: (PandocMonad m, HasIncludeFiles st)
-                   => ParserT String st m Blocks
+                   => ParserT [a] st m Blocks
+                   -> (String -> [a])
                    -> [FilePath] -> FilePath
-                   -> ParserT String st m Blocks
-insertIncludedFile blocks dirs f =
-  runIdentity <$> insertIncludedFile' (Identity <$> blocks) dirs f
+                   -> ParserT [a] st m Blocks
+insertIncludedFile blocks totoks dirs f =
+  runIdentity <$> insertIncludedFile' (Identity <$> blocks) totoks dirs f
 
 -- | Parse content of include file as future blocks. Circular includes result in
 -- an @PandocParseError@.
@@ -1423,4 +1435,4 @@ insertIncludedFileF :: (PandocMonad m, HasIncludeFiles st)
                     => ParserT String st m (Future st Blocks)
                     -> [FilePath] -> FilePath
                     -> ParserT String st m (Future st Blocks)
-insertIncludedFileF = insertIncludedFile'
+insertIncludedFileF p = insertIncludedFile' p id

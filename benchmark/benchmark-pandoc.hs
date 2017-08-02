@@ -16,7 +16,9 @@ along with this program; if not, write to the Free Software
 Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 -}
 import Text.Pandoc
-import Text.Pandoc.Class hiding (getCurrentTime)
+import Text.Pandoc.Class hiding (getCurrentTime, trace)
+import qualified Text.Pandoc.UTF8 as UTF8
+import Data.Text (Text)
 import Data.Time (getCurrentTime)
 import qualified Data.ByteString as B
 import qualified Data.Map as Map
@@ -27,11 +29,11 @@ import Debug.Trace (trace)
 import System.Environment (getArgs)
 
 readerBench :: Pandoc
-            -> (String, ReaderOptions -> String -> Pandoc)
+            -> (String, ReaderOptions -> Text -> Pandoc)
             -> Maybe Benchmark
 readerBench doc (name, reader) =
   case lookup name writers of
-       Just (StringWriter writer) ->
+       Just (TextWriter writer) ->
          let inp = either (error . show) id $ runPure
                        $ writer def{ writerWrapText = WrapAuto} doc
          in return $ bench (name ++ " reader") $ nf
@@ -39,7 +41,7 @@ readerBench doc (name, reader) =
        _ -> trace ("\nCould not find writer for " ++ name ++ "\n") Nothing
 
 writerBench :: Pandoc
-            -> (String, WriterOptions -> Pandoc -> String)
+            -> (String, WriterOptions -> Pandoc -> Text)
             -> Benchmark
 writerBench doc (name, writer) = bench (name ++ " writer") $ nf
     (writer def{ writerWrapText = WrapAuto }) doc
@@ -47,13 +49,13 @@ writerBench doc (name, writer) = bench (name ++ " writer") $ nf
 main :: IO ()
 main = do
   args <- getArgs
-  let matchReader (n, StringReader _) =
+  let matchReader (n, TextReader _) =
         case args of
              [] -> True
              [x] -> x == n
              (x:y:_) -> x == n && y == "reader"
       matchReader (_, _) = False
-  let matchWriter (n, StringWriter _) =
+  let matchWriter (n, TextWriter _) =
         case args of
              [] -> True
              [x] -> x == n
@@ -61,7 +63,7 @@ main = do
       matchWriter (_, _) = False
   let matchedReaders = filter matchReader readers
   let matchedWriters = filter matchWriter writers
-  inp <- readFile "test/testsuite.txt"
+  inp <- UTF8.toText <$> B.readFile "test/testsuite.txt"
   lalune <- B.readFile "test/lalune.jpg"
   movie <- B.readFile "test/movie.jpg"
   time <- getCurrentTime
@@ -74,12 +76,12 @@ main = do
   let doc = either (error . show) id $ runPure $ readMarkdown opts inp
   let readers' = [(n, \o d ->
              either (error . show) id $ runPure $ r o d)
-                        | (n, StringReader r) <- matchedReaders]
+                        | (n, TextReader r) <- matchedReaders]
   let readerBs = mapMaybe (readerBench doc)
                  $ filter (\(n,_) -> n /="haddock") readers'
   let writers' = [(n, \o d ->
                    either (error . show) id $ runPure $ setupFakeFiles >> w o d)
-                        | (n, StringWriter w) <- matchedWriters]
+                        | (n, TextWriter w) <- matchedWriters]
   let writerBs = map (writerBench doc)
                  $ writers'
   defaultMainWith defaultConfig{ timeLimit = 6.0 }

@@ -1,6 +1,7 @@
 {-# LANGUAGE OverloadedStrings #-}
 module Tests.Writers.Docbook (tests) where
 
+import Data.Text (unpack)
 import Test.Tasty
 import Tests.Helpers
 import Text.Pandoc
@@ -11,7 +12,7 @@ docbook :: (ToPandoc a) => a -> String
 docbook = docbookWithOpts def{ writerWrapText = WrapNone }
 
 docbookWithOpts :: ToPandoc a => WriterOptions -> a -> String
-docbookWithOpts opts = purely (writeDocbook4 opts) . toPandoc
+docbookWithOpts opts = unpack . purely (writeDocbook4 opts) . toPandoc
 
 {-
   "my test" =: X =?> Y

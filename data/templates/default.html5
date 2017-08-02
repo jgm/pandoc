@@ -60,7 +60,7 @@ $endif$
 $endif$
 $if(toc)$
 <nav id="$idprefix$TOC">
-$toc$
+$table-of-contents$
 </nav>
 $endif$
 $body$

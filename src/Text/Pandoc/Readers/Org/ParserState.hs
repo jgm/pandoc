@@ -1,6 +1,5 @@
-{-# LANGUAGE FlexibleInstances          #-}
-{-# LANGUAGE GeneralizedNewtypeDeriving #-}
-{-# LANGUAGE MultiParamTypeClasses      #-}
+{-# LANGUAGE FlexibleInstances     #-}
+{-# LANGUAGE MultiParamTypeClasses #-}
 {-
 Copyright (C) 2014-2017 Albert Krewinkel <tarleb+pandoc@moltkeplatz.de>
 
@@ -20,7 +19,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 -}
 
 {- |
-   Module      : Text.Pandoc.Readers.Org.Options
+   Module      : Text.Pandoc.Readers.Org.ParserState
    Copyright   : Copyright (C) 2014-2017 Albert Krewinkel
    License     : GNU GPL, version 2 or above
 
@@ -34,6 +33,7 @@ module Text.Pandoc.Readers.Org.ParserState
   , OrgNoteRecord
   , HasReaderOptions (..)
   , HasQuoteContext (..)
+  , HasMacros (..)
   , TodoMarker (..)
   , TodoSequence
   , TodoState (..)
@@ -58,18 +58,20 @@ import Control.Monad.Reader (ReaderT, asks, local)
 import Data.Default (Default (..))
 import qualified Data.Map as M
 import qualified Data.Set as Set
+import Data.Text (Text)
 
 import Text.Pandoc.Builder (Blocks, Inlines)
 import Text.Pandoc.Definition (Meta (..), nullMeta)
-import Text.Pandoc.Options (ReaderOptions (..))
 import Text.Pandoc.Logging
-import Text.Pandoc.Parsing (HasHeaderMap (..), HasIdentifierList (..),
-                            HasLogMessages (..),
-                            HasLastStrPosition (..), HasQuoteContext (..),
-                            HasReaderOptions (..), HasIncludeFiles (..),
-                            ParserContext (..),
-                            QuoteContext (..), SourcePos, Future,
-                            askF, asksF, returnF, runF, trimInlinesF)
+import Text.Pandoc.Options (ReaderOptions (..))
+import Text.Pandoc.Readers.LaTeX.Types (Macro)
+import Text.Pandoc.Parsing (Future, HasHeaderMap (..), HasIdentifierList (..),
+                            HasIncludeFiles (..), HasLastStrPosition (..),
+                            HasLogMessages (..), HasQuoteContext (..),
+                            HasMacros (..),
+                            HasReaderOptions (..), ParserContext (..),
+                            QuoteContext (..), SourcePos, askF, asksF, returnF,
+                            runF, trimInlinesF)
 
 -- | This is used to delay evaluation until all relevant information has been
 -- parsed and made available in the parser state.
@@ -120,6 +122,7 @@ data OrgParserState = OrgParserState
   , orgStateParserContext        :: ParserContext
   , orgStateTodoSequences        :: [TodoSequence]
   , orgLogMessages               :: [LogMessage]
+  , orgMacros                    :: M.Map Text Macro
   }
 
 data OrgParserLocal = OrgParserLocal { orgLocalQuoteContext :: QuoteContext }
@@ -149,6 +152,10 @@ instance HasHeaderMap OrgParserState where
 instance HasLogMessages OrgParserState where
   addLogMessage msg st = st{ orgLogMessages = msg : orgLogMessages st }
   getLogMessages st = reverse $ orgLogMessages st
+
+instance HasMacros OrgParserState where
+  extractMacros st = orgMacros st
+  updateMacros f st = st{ orgMacros = f (orgMacros st) }
 
 instance HasIncludeFiles OrgParserState where
   getIncludeFiles = orgStateIncludeFiles
@@ -180,6 +187,7 @@ defaultOrgParserState = OrgParserState
   , orgStateParserContext = NullState
   , orgStateTodoSequences = []
   , orgLogMessages = []
+  , orgMacros = M.empty
   }
 
 optionsToParserState :: ReaderOptions -> OrgParserState
@@ -240,6 +248,7 @@ data ExportSettings = ExportSettings
   , exportWithAuthor       :: Bool -- ^ Include author in final meta-data
   , exportWithCreator      :: Bool -- ^ Include creator in final meta-data
   , exportWithEmail        :: Bool -- ^ Include email in final meta-data
+  , exportWithTags         :: Bool -- ^ Keep tags as part of headlines
   , exportWithTodoKeywords :: Bool -- ^ Keep TODO keywords in headers
   }
 
@@ -258,5 +267,6 @@ defaultExportSettings = ExportSettings
   , exportWithAuthor = True
   , exportWithCreator = True
   , exportWithEmail = True
+  , exportWithTags = True
   , exportWithTodoKeywords = True
   }

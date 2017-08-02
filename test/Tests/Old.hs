@@ -99,6 +99,10 @@ tests = [ testGroup "markdown"
           , test "reader" ["-r", "mediawiki", "-w", "native", "-s"]
             "mediawiki-reader.wiki" "mediawiki-reader.native"
           ]
+        , testGroup "vimwiki"
+          [ test "reader" ["-r", "vimwiki", "-w", "native", "-s"]
+            "vimwiki-reader.wiki" "vimwiki-reader.native"
+          ]
         , testGroup "dokuwiki"
           [ testGroup "writer" $ writerTests "dokuwiki"
           , test "inline_formatting" ["-r", "native", "-w", "dokuwiki", "-s"]
@@ -133,6 +137,9 @@ tests = [ testGroup "markdown"
         , testGroup "twiki"
           [ test "reader" ["-r", "twiki", "-w", "native", "-s"]
               "twiki-reader.twiki" "twiki-reader.native" ]
+        , testGroup "tikiwiki"
+          [ test "reader" ["-r", "tikiwiki", "-w", "native", "-s"]
+              "tikiwiki-reader.tikiwiki" "tikiwiki-reader.native" ]
         , testGroup "other writers" $ map (\f -> testGroup f $ writerTests f)
           [ "opendocument" , "context" , "texinfo", "icml", "tei"
           , "man" , "plain" , "rtf", "org", "asciidoc", "zimwiki"

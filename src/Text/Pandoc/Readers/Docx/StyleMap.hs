@@ -7,7 +7,7 @@ module Text.Pandoc.Readers.Docx.StyleMap (  StyleMaps(..)
                                           , hasStyleName
                                           ) where
 
-import Control.Monad.State
+import Control.Monad.State.Strict
 import Data.Char (toLower)
 import qualified Data.Map as M
 import Text.Pandoc.Readers.Docx.Util

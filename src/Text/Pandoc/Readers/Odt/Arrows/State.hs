@@ -59,10 +59,6 @@ withState           :: (state -> a -> (state, b)) -> ArrowState state a b
 withState            = ArrowState . uncurry
 
 -- | Constructor
-withState'          :: ((state, a) -> (state, b)) -> ArrowState state a b
-withState'           = ArrowState
-
--- | Constructor
 modifyState         :: (state      ->  state    ) -> ArrowState state a a
 modifyState          = ArrowState . first
 
@@ -77,10 +73,6 @@ fromState            = ArrowState . (.fst)
 -- | Constructor
 extractFromState    :: (state      ->         b ) -> ArrowState state x b
 extractFromState   f = ArrowState $ \(state,_) -> (state, f state)
-
--- | Constructor
-withUnchangedState  :: (state -> a ->         b ) -> ArrowState state a b
-withUnchangedState f = ArrowState $ \(state,a) -> (state, f state a)
 
 -- | Constructor
 tryModifyState      :: (state ->  Either f state)
@@ -107,42 +99,8 @@ instance ArrowChoice (ArrowState state) where
                                  Left  l -> (s, Left l)
                                  Right r -> second Right $ runArrowState a (s,r)
 
-instance ArrowLoop (ArrowState state) where
-  loop   a          = ArrowState $ \(s, x)
-                            -> let (s', (x', _d)) = runArrowState a (s, (x, _d))
-                               in  (s', x')
-
 instance ArrowApply (ArrowState state) where
    app             = ArrowState $ \(s, (f,b)) -> runArrowState f (s,b)
-
-
--- | Embedding of a state arrow in a state arrow with a different state type.
-switchState :: (s -> s') -> (s' -> s) -> ArrowState s' x y -> ArrowState s x y
-switchState there back a = ArrowState $     first there
-                                        >>> runArrowState a
-                                        >>> first back
-
--- | Lift a state arrow to modify the state of an arrow
--- with a different state type.
-liftToState :: (s -> s') -> ArrowState s' s s -> ArrowState s x x
-liftToState unlift a = modifyState $     unlift &&& id
-                                     >>> runArrowState a
-                                     >>> snd
-
--- | Switches the type of the state temporarily.
--- Drops the intermediate result state, behaving like the identity arrow,
--- save for side effects in the state.
-withSubState :: ArrowState s x s2 -> ArrowState s2 s s -> ArrowState s x x
-withSubState unlift a = keepingTheValue (withSubState unlift a) >>^ fst
-
--- | Switches the type of the state temporarily.
--- Returns the resulting sub-state.
-withSubState' :: ArrowState s x s' -> ArrowState s' s s -> ArrowState s x s'
-withSubState' unlift a = ArrowState $     runArrowState unlift
-                                      >>> switch
-                                      >>> runArrowState a
-                                      >>> switch
-  where switch (x,y) = (y,x)
 
 -- | Switches the type of the state temporarily.
 -- Drops the intermediate result state, behaving like a fallible
@@ -175,42 +133,6 @@ foldS :: (Foldable f, Monoid m) => ArrowState s x m -> ArrowState s (f x) m
 foldS a = ArrowState $ \(s,f) -> foldr a' (s,mempty) f
   where a' x (s',m) = second (m <>)  $ runArrowState a (s',x)
 
--- | Fold a state arrow through something 'Foldable'. Collect the results
--- in a 'Monoid'.
--- Intermediate form of a fold between one with "only" a 'Monoid'
--- and one with any function.
-foldSL :: (Foldable f, Monoid m) => ArrowState s x m -> ArrowState s (f x) m
-foldSL a = ArrowState $ \(s,f) -> foldl a' (s,mempty) f
-  where a' (s',m) x = second (m <>)  $ runArrowState a (s',x)
-
--- | Fold a fallible state arrow through something 'Foldable'. Collect the
--- results in a 'Monoid'.
--- Intermediate form of a fold between one with "only" a 'Monoid'
--- and one with any function.
--- If the iteration fails, the state will be reset to the initial one.
-foldS' :: (Foldable f, Monoid m)
-       => ArrowState s    x  (Either e m)
-       -> ArrowState s (f x) (Either e m)
-foldS' a = ArrowState $ \(s,f) -> foldr (a' s) (s,Right mempty) f
-  where a' s x (s',Right m) = case runArrowState a (s',x) of
-                                (s'',Right m') -> (s'', Right (m <> m'))
-                                (_  ,Left  e ) -> (s  , Left  e)
-        a' _ _   e          = e
-
--- | Fold a fallible state arrow through something 'Foldable'. Collect the
--- results in a 'Monoid'.
--- Intermediate form of a fold between one with "only" a 'Monoid'
--- and one with any function.
--- If the iteration fails, the state will be reset to the initial one.
-foldSL' :: (Foldable f, Monoid m)
-        => ArrowState s    x  (Either e m)
-        -> ArrowState s (f x) (Either e m)
-foldSL' a = ArrowState $ \(s,f) -> foldl (a' s) (s,Right mempty) f
-  where a' s (s',Right m) x = case runArrowState a (s',x) of
-                                (s'',Right m') -> (s'', Right (m <> m'))
-                                (_  ,Left  e ) -> (s  , Left  e)
-        a' _    e         _ = e
-
 -- | Fold a state arrow through something 'Foldable'. Collect the results in a
 -- 'MonadPlus'.
 iterateS :: (Foldable f, MonadPlus m)
@@ -239,15 +161,3 @@ iterateS' a = ArrowState $ \(s,f) -> foldr (a' s) (s,Right mzero) f
                                 (s'',Right m') -> (s'',Right $ mplus m $ return m')
                                 (_  ,Left  e ) -> (s  ,Left  e )
         a' _ _   e          = e
-
--- | Fold a fallible state arrow through something 'Foldable'.
--- Collect the results in a 'MonadPlus'.
--- If the iteration fails, the state will be reset to the initial one.
-iterateSL' :: (Foldable f, MonadPlus m)
-           => ArrowState s    x  (Either e    y )
-           -> ArrowState s (f x) (Either e (m y))
-iterateSL' a = ArrowState $ \(s,f) -> foldl (a' s) (s,Right mzero) f
-  where a' s (s',Right m) x = case runArrowState a (s',x) of
-                                (s'',Right m') -> (s'',Right $ mplus m $ return m')
-                                (_  ,Left  e ) -> (s  ,Left  e )
-        a' _     e        _ = e
