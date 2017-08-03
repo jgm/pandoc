@@ -38,16 +38,13 @@ import Data.Text (Text, unpack)
 import Text.Pandoc.Class (PandocMonad)
 import Text.Pandoc.Definition
 import Text.Pandoc.Options
-
+import Debug.Trace
 -- | Parse a CommonMark formatted string into a 'Pandoc' structure.
 readGFM :: PandocMonad m => ReaderOptions -> Text -> m Pandoc
 readGFM opts s = return $
-  nodeToPandoc $ commonmarkToNode opts' exts s
+  nodeToPandoc $ traceShowId $ commonmarkToNode opts' exts s
   where opts' = [optSmart | enabled Ext_smart]
-        exts = [extStrikethrough | enabled Ext_strikeout] ++
-               [extTable | enabled Ext_pipe_tables] ++
-               [extAutolink | enabled Ext_autolink_bare_uris]
-               -- extTagfilter: no pandoc extension for this
+        exts = [extStrikethrough, extTable, extAutolink]
         enabled x = extensionEnabled x (readerExtensions opts)
 
 nodeToPandoc :: Node -> Pandoc
@@ -91,7 +88,31 @@ addBlock (Node _ (LIST listAttrs) nodes) =
         delim = case listDelim listAttrs of
                      PERIOD_DELIM -> Period
                      PAREN_DELIM  -> OneParen
-addBlock (Node _ ITEM _) = id -- handled in LIST
+addBlock (Node _ (TABLE alignments) nodes) = do
+  (Table [] aligns widths headers rows :)
+  where aligns = map fromTableCellAlignment alignments
+        fromTableCellAlignment None   = AlignDefault
+        fromTableCellAlignment CMarkGFM.Left   = AlignLeft
+        fromTableCellAlignment CMarkGFM.Right  = AlignRight
+        fromTableCellAlignment Center = AlignCenter
+        widths = replicate numcols 0.0
+        numcols = if null rows'
+                     then 0
+                     else maximum $ map length rows'
+        rows' = map toRow $ filter isRow nodes
+        (headers, rows) = case rows' of
+                               (h:rs) -> (h, rs)
+                               []     -> ([], [])
+        isRow (Node _ TABLE_ROW _) = True
+        isRow _ = False
+        isCell (Node _ TABLE_CELL _) = True
+        isCell _ = False
+        toRow (Node _ TABLE_ROW ns) = map toCell $ filter isCell ns
+        toRow (Node _ t _) = error $ "toRow encountered non-row " ++ show t
+        toCell (Node _ TABLE_CELL ns) = addBlocks ns
+        toCell (Node _ t _) = error $ "toCell encountered non-cell " ++ show t
+addBlock (Node _ TABLE_ROW _) = id -- handled in TABLE
+addBlock (Node _ TABLE_CELL _) = id -- handled in TABLE
 addBlock _ = id
 
 children :: Node -> [Node]
@@ -124,6 +145,8 @@ addInline (Node _ EMPH nodes) =
   (Emph (addInlines nodes) :)
 addInline (Node _ STRONG nodes) =
   (Strong (addInlines nodes) :)
+addInline (Node _ STRIKETHROUGH nodes) =
+  (Strikeout (addInlines nodes) :)
 addInline (Node _ (LINK url title) nodes) =
   (Link nullAttr (addInlines nodes) (unpack url, unpack title) :)
 addInline (Node _ (IMAGE url title) nodes) =
