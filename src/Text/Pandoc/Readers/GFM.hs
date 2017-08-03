@@ -1,5 +1,5 @@
 {-
-Copyright (C) 2015 John MacFarlane <jgm@berkeley.edu>
+Copyright (C) 2017 John MacFarlane <jgm@berkeley.edu>
 
 This program is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -17,22 +17,22 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 -}
 
 {- |
-   Module      : Text.Pandoc.Readers.CommonMark
-   Copyright   : Copyright (C) 2015 John MacFarlane
+   Module      : Text.Pandoc.Readers.GFM
+   Copyright   : Copyright (C) 2017 John MacFarlane
    License     : GNU GPL, version 2 or above
 
    Maintainer  : John MacFarlane <jgm@berkeley.edu>
    Stability   : alpha
    Portability : portable
 
-Conversion of CommonMark-formatted plain text to 'Pandoc' document.
+Conversion of GitHub flavored CommonMark text to 'Pandoc' document.
 
 CommonMark is a strongly specified variant of Markdown: http://commonmark.org.
 -}
-module Text.Pandoc.Readers.CommonMark (readCommonMark)
+module Text.Pandoc.Readers.GFM (readGFM)
 where
 
-import CMark
+import CMarkGFM
 import Data.List (groupBy)
 import Data.Text (Text, unpack)
 import Text.Pandoc.Class (PandocMonad)
@@ -40,12 +40,15 @@ import Text.Pandoc.Definition
 import Text.Pandoc.Options
 
 -- | Parse a CommonMark formatted string into a 'Pandoc' structure.
-readCommonMark :: PandocMonad m => ReaderOptions -> Text -> m Pandoc
-readCommonMark opts s = return $
-  nodeToPandoc $ commonmarkToNode opts' s
-  where opts' = if extensionEnabled Ext_smart (readerExtensions opts)
-                   then [optSmart]
-                   else []
+readGFM :: PandocMonad m => ReaderOptions -> Text -> m Pandoc
+readGFM opts s = return $
+  nodeToPandoc $ commonmarkToNode opts' exts s
+  where opts' = [optSmart | enabled Ext_smart]
+        exts = [extStrikethrough | enabled Ext_strikeout] ++
+               [extTable | enabled Ext_pipe_tables] ++
+               [extAutolink | enabled Ext_autolink_bare_uris]
+               -- extTagfilter: no pandoc extension for this
+        enabled x = extensionEnabled x (readerExtensions opts)
 
 nodeToPandoc :: Node -> Pandoc
 nodeToPandoc (Node _ DOCUMENT nodes) =
