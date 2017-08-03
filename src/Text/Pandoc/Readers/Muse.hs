@@ -247,7 +247,7 @@ quoteTag :: PandocMonad m => MuseParser m (F Blocks)
 quoteTag = blockTag B.blockQuote "quote"
 
 commentTag :: PandocMonad m => MuseParser m (F Blocks)
-commentTag = parseHtmlContent "comment" block >> return mempty
+commentTag = parseHtmlContent "comment" anyChar >> return mempty
 
 -- Indented block is either center, right or quote
 indentedLine :: PandocMonad m => MuseParser m (Int, String)
