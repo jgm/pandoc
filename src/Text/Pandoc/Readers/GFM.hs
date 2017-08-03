@@ -1,5 +1,5 @@
 {-
-Copyright (C) 2015 John MacFarlane <jgm@berkeley.edu>
+Copyright (C) 2017 John MacFarlane <jgm@berkeley.edu>
 
 This program is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -17,22 +17,22 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 -}
 
 {- |
-   Module      : Text.Pandoc.Readers.CommonMark
-   Copyright   : Copyright (C) 2015 John MacFarlane
+   Module      : Text.Pandoc.Readers.GFM
+   Copyright   : Copyright (C) 2017 John MacFarlane
    License     : GNU GPL, version 2 or above
 
    Maintainer  : John MacFarlane <jgm@berkeley.edu>
    Stability   : alpha
    Portability : portable
 
-Conversion of CommonMark-formatted plain text to 'Pandoc' document.
+Conversion of GitHub flavored CommonMark text to 'Pandoc' document.
 
 CommonMark is a strongly specified variant of Markdown: http://commonmark.org.
 -}
-module Text.Pandoc.Readers.CommonMark (readCommonMark)
+module Text.Pandoc.Readers.GFM (readGFM)
 where
 
-import CMark
+import CMarkGFM
 import Data.List (groupBy)
 import Data.Text (Text, unpack)
 import Text.Pandoc.Class (PandocMonad)
@@ -40,12 +40,12 @@ import Text.Pandoc.Definition
 import Text.Pandoc.Options
 
 -- | Parse a CommonMark formatted string into a 'Pandoc' structure.
-readCommonMark :: PandocMonad m => ReaderOptions -> Text -> m Pandoc
-readCommonMark opts s = return $
-  nodeToPandoc $ commonmarkToNode opts' s
-  where opts' = if extensionEnabled Ext_smart (readerExtensions opts)
-                   then [optSmart]
-                   else []
+readGFM :: PandocMonad m => ReaderOptions -> Text -> m Pandoc
+readGFM opts s = return $
+  nodeToPandoc $ commonmarkToNode opts' exts s
+  where opts' = [optSmart | enabled Ext_smart]
+        exts = [extStrikethrough, extTable, extAutolink]
+        enabled x = extensionEnabled x (readerExtensions opts)
 
 nodeToPandoc :: Node -> Pandoc
 nodeToPandoc (Node _ DOCUMENT nodes) =
@@ -88,8 +88,63 @@ addBlock (Node _ (LIST listAttrs) nodes) =
         delim = case listDelim listAttrs of
                      PERIOD_DELIM -> Period
                      PAREN_DELIM  -> OneParen
-addBlock (Node _ ITEM _) = id -- handled in LIST
+addBlock (Node _ (TABLE alignments) nodes) = do
+  (Table [] aligns widths headers rows :)
+  where aligns = map fromTableCellAlignment alignments
+        fromTableCellAlignment NoAlignment   = AlignDefault
+        fromTableCellAlignment LeftAligned   = AlignLeft
+        fromTableCellAlignment RightAligned  = AlignRight
+        fromTableCellAlignment CenterAligned = AlignCenter
+        widths = replicate numcols 0.0
+        numcols = if null rows'
+                     then 0
+                     else maximum $ map length rows'
+        rows' = map toRow $ filter isRow nodes
+        (headers, rows) = case rows' of
+                               (h:rs) -> (h, rs)
+                               []     -> ([], [])
+        isRow (Node _ TABLE_ROW _) = True
+        isRow _ = False
+        isCell (Node _ TABLE_CELL _) = True
+        isCell _ = False
+        toRow (Node _ TABLE_ROW ns) = map toCell $ filter isCell ns
+        toRow (Node _ t _) = error $ "toRow encountered non-row " ++ show t
+        toCell (Node _ TABLE_CELL []) = []
+        toCell (Node _ TABLE_CELL (n:ns))
+          | isBlockNode n = addBlocks (n:ns)
+          | otherwise     = [Plain (addInlines (n:ns))]
+        toCell (Node _ t _) = error $ "toCell encountered non-cell " ++ show t
+addBlock (Node _ TABLE_ROW _) = id -- handled in TABLE
+addBlock (Node _ TABLE_CELL _) = id -- handled in TABLE
 addBlock _ = id
+
+isBlockNode :: Node -> Bool
+isBlockNode (Node _ nodetype _) =
+  case nodetype of
+       DOCUMENT -> True
+       THEMATIC_BREAK -> True
+       PARAGRAPH -> True
+       BLOCK_QUOTE -> True
+       HTML_BLOCK _ -> True
+       CUSTOM_BLOCK _ _ -> True
+       CODE_BLOCK _ _ -> True
+       HEADING _ -> True
+       LIST _ -> True
+       ITEM -> True
+       TEXT _ -> False
+       SOFTBREAK -> False
+       LINEBREAK -> False
+       HTML_INLINE _ -> False
+       CUSTOM_INLINE _ _ -> False
+       CODE _ -> False
+       EMPH -> False
+       STRONG -> False
+       LINK _ _ -> False
+       IMAGE _ _ -> False
+       STRIKETHROUGH -> False
+       TABLE _ -> False
+       TABLE_ROW -> False
+       TABLE_CELL -> False
 
 children :: Node -> [Node]
 children (Node _ _ ns) = ns
@@ -121,6 +176,8 @@ addInline (Node _ EMPH nodes) =
   (Emph (addInlines nodes) :)
 addInline (Node _ STRONG nodes) =
   (Strong (addInlines nodes) :)
+addInline (Node _ STRIKETHROUGH nodes) =
+  (Strikeout (addInlines nodes) :)
 addInline (Node _ (LINK url title) nodes) =
   (Link nullAttr (addInlines nodes) (unpack url, unpack title) :)
 addInline (Node _ (IMAGE url title) nodes) =
