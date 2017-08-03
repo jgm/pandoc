@@ -132,12 +132,18 @@ tests =
         , "Subsubsection" =:
           "***** Fifth level\n" =?>
           header 5 "Fifth level"
-        , "No headers below top level" =:
+        , "No headers in footnotes" =:
           T.unlines [ "Foo[1]"
                     , "[1] * Bar"
                     ] =?>
           para (text "Foo" <>
                 note (para "* Bar"))
+        , "No headers in quotes" =:
+          T.unlines [ "<quote>"
+                    , "* Hi"
+                    , "</quote>"
+                    ] =?>
+          blockQuote (para "* Hi")
         ]
       , testGroup "Footnotes"
         [ "Simple footnote" =:
