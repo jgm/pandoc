@@ -244,7 +244,7 @@ rightTag :: PandocMonad m => MuseParser m (F Blocks)
 rightTag = blockTag id "right"
 
 quoteTag :: PandocMonad m => MuseParser m (F Blocks)
-quoteTag = blockTag B.blockQuote "quote"
+quoteTag = withQuoteContext InDoubleQuote $ blockTag B.blockQuote "quote"
 
 commentTag :: PandocMonad m => MuseParser m (F Blocks)
 commentTag = parseHtmlContent "comment" anyChar >> return mempty
