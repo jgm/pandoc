@@ -2,21 +2,21 @@
 % pandoc -f latex -t native
 Figure \ref{fig:1}
 ^D
-[Para [Str "Figure",Space,Span ("",[],[("data-reference-type","ref"),("data-reference","fig:1")]) [Str "[fig:1]"]]]
+[Para [Str "Figure",Space,Span ("",[],[("reference-type","ref"),("reference","fig:1")]) [Str "[fig:1]"]]]
 ```
 
 ```
 % pandoc -f latex -t native
 Figure \cref{fig:1}
 ^D
-[Para [Str "Figure",Space,Span ("",[],[("data-reference-type","ref"),("data-reference","fig:1")]) [Str "[fig:1]"]]]
+[Para [Str "Figure",Space,Span ("",[],[("reference-type","ref"),("reference","fig:1")]) [Str "[fig:1]"]]]
 ```
 
 ```
 % pandoc -f latex -t native
 Figure \vref{fig:1}
 ^D
-[Para [Str "Figure",Space,Span ("",[],[("data-reference-type","ref+page"),("data-reference","fig:1")]) [Str "[fig:1]"]]]
+[Para [Str "Figure",Space,Span ("",[],[("reference-type","ref+page"),("reference","fig:1")]) [Str "[fig:1]"]]]
 ```
 
 ```
@@ -28,6 +28,27 @@ Accuracy~\eqref{eq:Accuracy} is the proportion, measuring true results among all
   Accuracy = \frac{t_p + t_n}{t_p + f_p + f_n + t_n}
 \end{equation}
 ^D
-[Para [Str "Accuracy\160",Span ("",[],[("data-reference-type","eqref"),("data-reference","eq:Accuracy")]) [Str "[eq:Accuracy]"],Space,Str "is",Space,Str "the",Space,Str "proportion,",Space,Str "measuring",Space,Str "true",Space,Str "results",Space,Str "among",Space,Str "all",Space,Str "results."]
+[Para [Str "Accuracy\160",Span ("",[],[("reference-type","eqref"),("reference","eq:Accuracy")]) [Str "[eq:Accuracy]"],Space,Str "is",Space,Str "the",Space,Str "proportion,",Space,Str "measuring",Space,Str "true",Space,Str "results",Space,Str "among",Space,Str "all",Space,Str "results."]
 ,Para [Math DisplayMath "\\label{eq:Accuracy}\n  Accuracy = \\frac{t_p + t_n}{t_p + f_p + f_n + t_n}"]]
+```
+
+```
+% pandoc -f latex -t native
+\begin{figure}
+  \includegraphics{command/SVG_logo.svg}
+  \caption{Logo}
+  \label{fig:Logo}
+\end{figure}
+
+Figure \ref{fig:Logo} illustrated the SVG logo
+^D
+[Para [Image ("",[],[]) [Str "Logo",Span ("",[],[("data-label","fig:Logo")]) []] ("command/SVG_logo.svg","fig:")]
+,Para [Str "Figure",Space,Span ("",[],[("reference-type","ref"),("reference","fig:Logo")]) [Str "[fig:Logo]"],Space,Str "illustrated",Space,Str "the",Space,Str "SVG",Space,Str "logo"]]
+```
+
+```
+% pandoc -f latex -t native
+\label{section} Section \ref{section}
+^D
+[Para [Span ("",[],[("data-label","section")]) [Str "[section]"],Space,Str "Section",Space,Span ("",[],[("reference-type","ref"),("reference","section")]) [Str "[section]"]]]
 ```
