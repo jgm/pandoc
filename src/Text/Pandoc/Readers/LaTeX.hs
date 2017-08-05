@@ -1701,6 +1701,15 @@ blockCommands = M.fromList $
    -- letters
    , ("opening", (para . trimInlines) <$> (skipopts *> tok))
    , ("closing", skipopts *> closing)
+   -- memoir
+   , ("plainbreak", braced >> pure horizontalRule)
+   , ("plainbreak*", braced >> pure horizontalRule)
+   , ("fancybreak", braced >> pure horizontalRule)
+   , ("fancybreak*", braced >> pure horizontalRule)
+   , ("plainfancybreak", braced >> braced >> braced >> pure horizontalRule)
+   , ("plainfancybreak*", braced >> braced >> braced >> pure horizontalRule)
+   , ("pfbreak", pure horizontalRule)
+   , ("pfbreak*", pure horizontalRule)
    --
    , ("hrule", pure horizontalRule)
    , ("strut", pure mempty)
