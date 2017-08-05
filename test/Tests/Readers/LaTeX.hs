@@ -117,6 +117,32 @@ tests = [ testGroup "basic"
             mconcat ["^^" <> T.pack [i] | i <- hex] =?>
             para (str $ ['p'..'y']++['!'..'&'])
           ]
+        , testGroup "memoir scene breaks"
+          [ "plainbreak" =:
+            "hello\\plainbreak{2}goodbye" =?>
+            para (str "hello") <> horizontalRule <> para (str "goodbye")
+          , "plainbreak*" =:
+            "hello\\plainbreak*{2}goodbye" =?>
+            para (str "hello") <> horizontalRule <> para (str "goodbye")
+          , "fancybreak" =:
+            "hello\\fancybreak{b r e a k}goodbye" =?>
+            para (str "hello") <> horizontalRule <> para (str "goodbye")
+          , "fancybreak*" =:
+            "hello\\fancybreak*{b r e a k}goodbye" =?>
+            para (str "hello") <> horizontalRule <> para (str "goodbye")
+          , "plainfancybreak" =:
+            "hello\\plainfancybreak{4}{2}{b r e a k}goodbye" =?>
+            para (str "hello") <> horizontalRule <> para (str "goodbye")
+          , "plainfancybreak*" =:
+            "hello\\plainfancybreak*{4}{2}{b r e a k}goodbye" =?>
+            para (str "hello") <> horizontalRule <> para (str "goodbye")
+          , "pfbreak" =:
+            "hello\\pfbreak{}goodbye" =?>
+            para (str "hello") <> horizontalRule <> para (str "goodbye")
+          , "pfbreak*" =:
+            "hello\\pfbreak*{}goodbye" =?>
+            para (str "hello") <> horizontalRule <> para (str "goodbye")
+          ]
         ]
 
 baseCitation :: Citation
