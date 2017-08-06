@@ -302,7 +302,6 @@ noteBlock = try $ do
 
 listLine :: PandocMonad m => Int -> MuseParser m String
 listLine markerLength = try $ do
-  notFollowedBy blankline
   indentWith markerLength
   anyLineNewline
 
@@ -317,9 +316,9 @@ withListContext p = do
 
 listContinuation :: PandocMonad m => Int -> MuseParser m String
 listContinuation markerLength = try $ do
-  blanks <- many1 blankline
   result <- many1 $ listLine markerLength
-  return $ blanks ++ concat result
+  blank <- option "" ("\n" <$ blankline)
+  return $ concat result ++ blank
 
 listStart :: PandocMonad m => MuseParser m Int -> MuseParser m Int
 listStart marker = try $ do
@@ -334,9 +333,9 @@ listItem :: PandocMonad m => MuseParser m Int -> MuseParser m (F Blocks)
 listItem start = try $ do
   markerLength <- start
   firstLine <- anyLineNewline
-  blank <- option "" ("\n" <$ blankline)
   restLines <- many $ listLine markerLength
-  let first = firstLine ++ blank ++ concat restLines
+  blank <- option "" ("\n" <$ blankline)
+  let first = firstLine ++ concat restLines ++ blank
   rest <- many $ listContinuation markerLength
   parseFromString (withListContext parseBlocks) $ concat (first:rest) ++ "\n"
 
