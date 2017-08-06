@@ -309,6 +309,95 @@ tests =
                               , para "c"
                               ]
                     ]
+      -- Emacs Muse allows to separate lists with two or more blank lines.
+      -- Text::Amuse (Amusewiki engine) always creates a single list as of version 0.82.
+      -- pandoc follows Emacs Muse behavior
+      , testGroup "Blank lines"
+        [ "Blank lines between list items are not required" =:
+          T.unlines
+            [ " - Foo"
+            , " - Bar"
+            ] =?>
+          bulletList [ para "Foo"
+                     , para "Bar"
+                     ]
+        , "One blank line between list items is allowed" =:
+          T.unlines
+            [ " - Foo"
+            , ""
+            , " - Bar"
+            ] =?>
+          bulletList [ para "Foo"
+                     , para "Bar"
+                     ]
+        , "Two blank lines separate lists" =:
+          T.unlines
+            [ " - Foo"
+            , ""
+            , ""
+            , " - Bar"
+            ] =?>
+          bulletList [ para "Foo" ] <> bulletList [ para "Bar" ]
+        , "No blank line after multiline first item" =:
+          T.unlines
+            [ " - Foo"
+            , "   bar"
+            , " - Baz"
+            ] =?>
+          bulletList [ para "Foo bar"
+                     , para "Baz"
+                     ]
+        , "One blank line after multiline first item" =:
+          T.unlines
+            [ " - Foo"
+            , "   bar"
+            , ""
+            , " - Baz"
+            ] =?>
+          bulletList [ para "Foo bar"
+                     , para "Baz"
+                     ]
+        , "Two blank lines after multiline first item" =:
+          T.unlines
+            [ " - Foo"
+            , "   bar"
+            , ""
+            , ""
+            , " - Baz"
+            ] =?>
+          bulletList [ para "Foo bar" ] <> bulletList [ para "Baz" ]
+        , "No blank line after list continuation" =:
+          T.unlines
+            [ " - Foo"
+            , ""
+            , "   bar"
+            , " - Baz"
+            ] =?>
+          bulletList [ para "Foo" <> para "bar"
+                     , para "Baz"
+                     ]
+        , "One blank line after list continuation" =:
+          T.unlines
+            [ " - Foo"
+            , ""
+            , "   bar"
+            , ""
+            , " - Baz"
+            ] =?>
+          bulletList [ para "Foo" <> para "bar"
+                     , para "Baz"
+                     ]
+        , "Two blank lines after list continuation" =:
+          T.unlines
+            [ " - Foo"
+            , ""
+            , "   bar"
+            , ""
+            , ""
+            , " - Baz"
+            ] =?>
+          bulletList [ para "Foo" <> para "bar" ] <> bulletList [ para "Baz" ]
+        ]
       -- Headers in first column of list continuation are not allowed
       , "No headers in list continuation" =:
         T.unlines
