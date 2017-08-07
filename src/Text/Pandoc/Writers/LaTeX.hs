@@ -474,6 +474,7 @@ blockToLaTeX (Plain lst) =
 -- title beginning with fig: indicates that the image is a figure
 blockToLaTeX (Para [Image attr@(ident, _, _) txt (src,'f':'i':'g':':':tit)]) = do
   inNote <- gets stInNote
+  inMinipage <- gets stInMinipage
   modify $ \st -> st{ stInMinipage = True, stNotes = [] }
   capt <- inlineListToLaTeX txt
   notes <- gets stNotes
@@ -490,8 +491,9 @@ blockToLaTeX (Para [Image attr@(ident, _, _) txt (src,'f':'i':'g':':':tit)]) = d
   let figure = cr <> "\\begin{figure}" $$ "\\centering" $$ img $$
               caption $$ "\\end{figure}" <> cr
   figure' <- hypertarget True ident figure
-  return $ if inNote
-              -- can't have figures in notes
+  return $ if inNote || inMinipage
+              -- can't have figures in notes or minipage (here, table cell)
+              -- http://www.tex.ac.uk/FAQ-ouparmd.html
               then "\\begin{center}" $$ img $+$ capt $$ "\\end{center}"
               else figure' $$ footnotes
 -- . . . indicates pause in beamer slides
