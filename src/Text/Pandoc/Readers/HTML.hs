@@ -188,6 +188,7 @@ block = do
             , pBody
             , pDiv
             , pPlain
+            , pFigure
             , pRawHtmlBlock
             ]
   trace (take 60 $ show $ B.toList res)
@@ -552,6 +553,25 @@ pPara :: PandocMonad m => TagParser m Blocks
 pPara = do
   contents <- trimInlines <$> pInTags "p" inline
   return $ B.para contents
+
+pFigure :: PandocMonad m => TagParser m Blocks
+pFigure = do
+  TagOpen _ _ <- pSatisfy (matchTagOpen "figure" [])
+  skipMany pBlank
+  let pImg  = pOptInTag "p" pImage <* skipMany pBlank
+      pCapt = option mempty $ pInTags "figcaption" inline <* skipMany pBlank
+      pImgCapt = do
+        img <- pImg
+        cap <- pCapt
+        return (img, cap)
+      pCaptImg = do
+        cap <- pCapt
+        img <- pImg
+        return (img, cap)
+  (imgMany, caption) <- pImgCapt <|> pCaptImg
+  TagClose _ <- pSatisfy (matchTagClose "figure")
+  let (Image attr _ (url, tit)):_ = B.toList imgMany
+  return $ B.para $ B.imageWith attr url ("fig:" ++ tit) caption
 
 pCodeBlock :: PandocMonad m => TagParser m Blocks
 pCodeBlock = try $ do

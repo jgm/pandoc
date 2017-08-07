@@ -20,4 +20,5 @@ extra-deps:
 - hslua-0.5.0
 - skylighting-0.3.3
 - texmath-0.9.4.1
+- cmark-0.5.6
 resolver: lts-8.16

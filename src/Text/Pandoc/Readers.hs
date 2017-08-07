@@ -58,6 +58,7 @@ module Text.Pandoc.Readers
   , readNative
   , readJSON
   , readTWiki
+  , readTikiWiki
   , readTxt2Tags
   , readEPUB
   , readMuse
@@ -92,6 +93,7 @@ import Text.Pandoc.Readers.Org
 import Text.Pandoc.Readers.RST
 import Text.Pandoc.Readers.Textile
 import Text.Pandoc.Readers.TWiki
+import Text.Pandoc.Readers.TikiWiki
 import Text.Pandoc.Readers.Txt2Tags
 import Text.Pandoc.Shared (mapLeft)
 import Text.Parsec.Error
@@ -126,6 +128,7 @@ readers = [ ("native"       , TextReader readNative)
            ,("latex"        , TextReader readLaTeX)
            ,("haddock"      , TextReader readHaddock)
            ,("twiki"        , TextReader readTWiki)
+           ,("tikiwiki"     , TextReader readTikiWiki)
            ,("docx"         , ByteStringReader readDocx)
            ,("odt"          , ByteStringReader readOdt)
            ,("t2t"          , TextReader readTxt2Tags)

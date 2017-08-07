@@ -248,7 +248,8 @@ instance Monoid a => Monoid (Future s a) where
 
 -- | Parse characters while a predicate is true.
 takeWhileP :: Monad m
-           => (Char -> Bool) -> ParserT [Char] st m [Char]
+           => (Char -> Bool)
+           -> ParserT [Char] st m [Char]
 takeWhileP f = do
   -- faster than 'many (satisfy f)'
   inp <- getInput
@@ -296,9 +297,9 @@ anyLineNewline :: Monad m => ParserT [Char] st m [Char]
 anyLineNewline = (++ "\n") <$> anyLine
 
 -- | Parse indent by specified number of spaces (or equiv. tabs)
-indentWith :: Monad m
+indentWith :: Stream s m Char
            => HasReaderOptions st
-           => Int -> ParserT [Char] st m [Char]
+           => Int -> ParserT s st m [Char]
 indentWith num = do
   tabStop <- getOption readerTabStop
   if (num < tabStop)
@@ -394,9 +395,9 @@ stringAnyCase (x:xs) = do
 
 -- | Parse contents of 'str' using 'parser' and return result.
 parseFromString :: Monad m
-                => ParserT String st m a
+                => ParserT [Char] st m a
                 -> String
-                -> ParserT String st m a
+                -> ParserT [Char] st m a
 parseFromString parser str = do
   oldPos <- getPosition
   setPosition $ initialPos "chunk"
@@ -424,7 +425,7 @@ parseFromString' parser str = do
 -- | Parse raw line block up to and including blank lines.
 lineClump :: Monad m => ParserT [Char] st m String
 lineClump = blanklines
-          <|> (many1 (notFollowedBy blankline >> anyLine) >>= return . unlines)
+          <|> (unlines <$> many1 (notFollowedBy blankline >> anyLine))
 
 -- | Parse a string of characters between an open character
 -- and a close character, including text between balanced
@@ -625,7 +626,9 @@ withHorizDisplacement parser = do
 
 -- | Applies a parser and returns the raw string that was parsed,
 -- along with the value produced by the parser.
-withRaw :: Monad m => ParsecT [Char] st m a -> ParsecT [Char] st m (a, [Char])
+withRaw :: Monad m
+        => ParsecT [Char] st m a
+        -> ParsecT [Char] st m (a, [Char])
 withRaw parser = do
   pos1 <- getPosition
   inp <- getInput
@@ -796,7 +799,7 @@ lineBlockLine = try $ do
   continuations <- many (try $ char ' ' >> anyLine)
   return $ white ++ unwords (line : continuations)
 
-blankLineBlockLine :: Monad m => ParserT [Char] st m Char
+blankLineBlockLine :: Stream s m Char => ParserT s st m Char
 blankLineBlockLine = try (char '|' >> blankline)
 
 -- | Parses an RST-style line block and returns a list of strings.
@@ -952,7 +955,7 @@ gridTableRawLine indices = do
   return (gridTableSplitLine indices line)
 
 -- | Parse row of grid table.
-gridTableRow :: (Stream [Char]  m Char, Functor mf, Applicative mf, Monad mf)
+gridTableRow :: (Monad m, Functor mf, Applicative mf, Monad mf)
              => ParserT [Char] st m (mf Blocks)
              -> [Int]
              -> ParserT [Char] st m (mf [Blocks])
@@ -981,8 +984,8 @@ gridTableFooter = blanklines
 ---
 
 -- | Removes the ParsecT layer from the monad transformer stack
-readWithM :: (Monad m)
-          => ParserT [Char] st m a       -- ^ parser
+readWithM :: Monad m
+          => ParserT [Char] st m a    -- ^ parser
           -> st                       -- ^ initial state
           -> String                   -- ^ input
           -> m (Either PandocError a)
@@ -998,7 +1001,7 @@ readWith :: Parser [Char] st a
 readWith p t inp = runIdentity $ readWithM p t inp
 
 -- | Parse a string with @parser@ (for testing).
-testStringWith :: (Show a)
+testStringWith :: Show a
                => ParserT [Char] ParserState Identity a
                -> [Char]
                -> IO ()

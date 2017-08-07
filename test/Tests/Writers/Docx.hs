@@ -6,6 +6,7 @@ import Tests.Helpers
 import Text.Pandoc.Class (runIOorExplode)
 import Text.Pandoc.Definition
 import Text.Pandoc.Options
+import Text.Pandoc.Walk
 import Text.Pandoc.Readers.Docx
 import Text.Pandoc.Readers.Native
 import Text.Pandoc.Writers.Docx
@@ -19,16 +20,22 @@ compareOutput :: Options
               -> FilePath
               -> FilePath
               -> IO (Pandoc, Pandoc)
-compareOutput opts nativeFileIn nativeFileOut = do
+compareOutput (wopts, ropts) nativeFileIn nativeFileOut = do
   nf <- UTF8.toText <$> BS.readFile nativeFileIn
   nf' <- UTF8.toText <$> BS.readFile nativeFileOut
-  let wopts = fst opts
-  df <- runIOorExplode $ do
-            d <- readNative def nf
-            writeDocx wopts{writerUserDataDir = Just (".." </> "data")} d
-  df' <- runIOorExplode (readNative def nf')
-  p <- runIOorExplode $ readDocx (snd opts) df
-  return (p, df')
+  runIOorExplode $ do
+    roundtripped <- readNative def nf >>=
+            writeDocx wopts{writerUserDataDir = Just (".." </> "data")} >>=
+            readDocx ropts
+    orig <- readNative def nf'
+    return (walk fixImages roundtripped, walk fixImages orig)
+
+-- make all image filenames "image", since otherwise round-trip
+-- tests fail because of different behavior of Data.Unique in
+-- different ghc versions...
+fixImages :: Inline -> Inline
+fixImages (Image attr alt (_,tit)) = Image attr alt ("image",tit)
+fixImages x = x
 
 testCompareWithOptsIO :: Options -> String -> FilePath -> FilePath -> IO TestTree
 testCompareWithOptsIO opts name nativeFileIn nativeFileOut = do

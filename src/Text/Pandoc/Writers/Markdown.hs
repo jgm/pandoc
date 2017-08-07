@@ -280,8 +280,12 @@ escapeString :: WriterOptions -> String -> String
 escapeString _  [] = []
 escapeString opts (c:cs) =
   case c of
-       '<'   -> "&lt;" ++ escapeString opts cs
-       '>'   -> "&gt;" ++ escapeString opts cs
+       '<' | isEnabled Ext_all_symbols_escapable opts ->
+              '\\' : '<' : escapeString opts cs
+           | otherwise -> "&lt;" ++ escapeString opts cs
+       '>' | isEnabled Ext_all_symbols_escapable opts ->
+              '\\' : '>' : escapeString opts cs
+           | otherwise -> "&gt;" ++ escapeString opts cs
        _ | c `elem` ['\\','`','*','_','[',']','#'] ->
               '\\':c:escapeString opts cs
        '^' | isEnabled Ext_superscript opts -> '\\':'^':escapeString opts cs

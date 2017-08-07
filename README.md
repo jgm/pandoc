@@ -19,8 +19,8 @@ another, and a command-line tool that uses this library. It can read
 [Markdown], [CommonMark], [PHP Markdown Extra], [GitHub-Flavored
 Markdown], [MultiMarkdown], and (subsets of) [Textile],
 [reStructuredText], [HTML], [LaTeX], [MediaWiki markup], [TWiki markup],
-[Haddock markup], [OPML], [Emacs Org mode], [DocBook], [Muse], [txt2tags],
-[Vimwiki], [EPUB], [ODT], and [Word docx]; and it can
+[TikiWiki markup], [Haddock markup], [OPML], [Emacs Org mode], [DocBook],
+[Muse], [txt2tags], [Vimwiki], [EPUB], [ODT], and [Word docx]; and it can
 write plain text, [Markdown], [CommonMark], [PHP Markdown
 Extra], [GitHub-Flavored Markdown], [MultiMarkdown],
 [reStructuredText], [XHTML], [HTML5], [LaTeX] \(including

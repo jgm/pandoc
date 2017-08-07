@@ -5,7 +5,8 @@
 {-# LANGUAGE FlexibleContexts #-}
 
 {-
-Copyright (C) 2016 Jesse Rosenthal <jrosenthal@jhu.edu>
+Copyright (C) 2016-17 Jesse Rosenthal <jrosenthal@jhu.edu>
+and John MacFarlane.
 
 This program is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -24,14 +25,18 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 {- |
    Module      : Text.Pandoc.Class
-   Copyright   : Copyright (C) 2016 Jesse Rosenthal
+   Copyright   : Copyright (C) 2016-17 Jesse Rosenthal, John MacFarlane
    License     : GNU GPL, version 2 or above
 
    Maintainer  : Jesse Rosenthal <jrosenthal@jhu.edu>
    Stability   : alpha
    Portability : portable
 
-Typeclass for pandoc readers and writers, allowing both IO and pure instances.
+This module defines a type class, 'PandocMonad', for pandoc readers
+and writers. A pure instance 'PandocPure' and an impure instance
+'PandocIO' are provided.  This allows users of the library to choose
+whether they want conversions to perform IO operations (such as
+reading include files or images).
 -}
 
 module Text.Pandoc.Class ( PandocMonad(..)
@@ -60,10 +65,10 @@ module Text.Pandoc.Class ( PandocMonad(..)
                          , PandocPure(..)
                          , FileTree(..)
                          , FileInfo(..)
+                         , addToFileTree
                          , runIO
                          , runIOorExplode
                          , runPure
-                         , withMediaBag
                          , fillMediaBag
                          , extractMedia
                          ) where
@@ -101,7 +106,8 @@ import qualified Data.ByteString as B
 import qualified Data.ByteString.Lazy as BL
 import qualified System.Environment as IO (lookupEnv)
 import System.FilePath.Glob (match, compile)
-import System.Directory (createDirectoryIfMissing)
+import System.Directory (createDirectoryIfMissing, getDirectoryContents,
+                          doesDirectoryExist)
 import System.FilePath ((</>), (<.>), takeDirectory,
          takeExtension, dropExtension, isRelative, normalise)
 import qualified System.FilePath.Glob as IO (glob)
@@ -120,44 +126,81 @@ import qualified Data.Map as M
 import Text.Pandoc.Error
 import qualified Debug.Trace
 
+-- | The PandocMonad typeclass contains all the potentially
+-- IO-related functions used in pandoc's readers and writers.
+-- Instances of this typeclass may implement these functions
+-- in IO (as in 'PandocIO') or using an internal state that
+-- represents a file system, time, and so on (as in 'PandocPure').
 class (Functor m, Applicative m, Monad m, MonadError PandocError m)
       => PandocMonad m where
+  -- | Lookup an environment variable.
   lookupEnv :: String -> m (Maybe String)
+  -- | Get the current (UTC) time.
   getCurrentTime :: m UTCTime
+  -- | Get the locale's time zone.
   getCurrentTimeZone :: m TimeZone
+  -- | Return a new generator for random numbers.
   newStdGen :: m StdGen
+  -- | Return a new unique integer.
   newUniqueHash :: m Int
+  -- | Retrieve contents and mime type from a URL, raising
+  -- an error on failure.
   openURL :: String -> m (B.ByteString, Maybe MimeType)
+  -- | Read the lazy ByteString contents from a file path,
+  -- raising an error on failure.
   readFileLazy :: FilePath -> m BL.ByteString
+  -- | Read the strict ByteString contents from a file path,
+  -- raising an error on failure.
   readFileStrict :: FilePath -> m B.ByteString
+  -- | Read file from specified user data directory or,
+  -- if not found there, from Cabal data directory.
   readDataFile :: Maybe FilePath -> FilePath -> m B.ByteString
+  -- | Return a list of paths that match a glob, relative to
+  -- the working directory.  See 'System.FilePath.Glob' for
+  -- the glob syntax.
   glob :: String -> m [FilePath]
+  -- | Return the modification time of a file.
   getModificationTime :: FilePath -> m UTCTime
+  -- | Get the value of the 'CommonState' used by all instances
+  -- of 'PandocMonad'.
   getCommonState :: m CommonState
+  -- | Set the value of the 'CommonState' used by all instances
+  -- of 'PandocMonad'.
+  -- | Get the value of a specific field of 'CommonState'.
   putCommonState :: CommonState -> m ()
-
+  -- | Get the value of a specific field of 'CommonState'.
   getsCommonState :: (CommonState -> a) -> m a
   getsCommonState f = f <$> getCommonState
-
+  -- | Modify the 'CommonState'.
   modifyCommonState :: (CommonState -> CommonState) -> m ()
   modifyCommonState f = getCommonState >>= putCommonState . f
-
+  -- Output a log message.
+  logOutput :: LogMessage -> m ()
+  -- Output a debug message to sterr, using 'Debug.Trace.trace',
+  -- if tracing is enabled.  Note: this writes to stderr even in
+  -- pure instances.
   trace :: String -> m ()
   trace msg = do
     tracing <- getsCommonState stTrace
     when tracing $ Debug.Trace.trace ("[trace] " ++ msg) (return ())
 
-  logOutput :: LogMessage -> m ()
+-- * Functions defined for all PandocMonad instances
 
--- Functions defined for all PandocMonad instances
-
+-- | Set the verbosity level.
 setVerbosity :: PandocMonad m => Verbosity -> m ()
 setVerbosity verbosity =
   modifyCommonState $ \st -> st{ stVerbosity = verbosity }
 
+-- Get the accomulated log messages (in temporal order).
 getLog :: PandocMonad m => m [LogMessage]
 getLog = reverse <$> getsCommonState stLog
 
+-- | Log a message using 'logOutput'.  Note that
+-- 'logOutput' is called only if the verbosity
+-- level exceeds the level of the message, but
+-- the message is added to the list of log messages
+-- that will be retrieved by 'getLog' regardless
+-- of its verbosity level.
 report :: PandocMonad m => LogMessage -> m ()
 report msg = do
   verbosity <- getsCommonState stVerbosity
@@ -165,9 +208,13 @@ report msg = do
   when (level <= verbosity) $ logOutput msg
   modifyCommonState $ \st -> st{ stLog = msg : stLog st }
 
+-- | Determine whether tracing is enabled.  This affects
+-- the behavior of 'trace'.  If tracing is not enabled,
+-- 'trace' does nothing.
 setTrace :: PandocMonad m => Bool -> m ()
 setTrace useTracing = modifyCommonState $ \st -> st{stTrace = useTracing}
 
+-- | Initialize the media bag.
 setMediaBag :: PandocMonad m => MediaBag -> m ()
 setMediaBag mb = modifyCommonState $ \st -> st{stMediaBag = mb}
 
@@ -192,10 +239,10 @@ setResourcePath ps = modifyCommonState $ \st -> st{stResourcePath = ps}
 getResourcePath :: PandocMonad m => m [FilePath]
 getResourcePath = getsCommonState stResourcePath
 
-getPOSIXTime :: (PandocMonad m) => m POSIXTime
+getPOSIXTime :: PandocMonad m => m POSIXTime
 getPOSIXTime = utcTimeToPOSIXSeconds <$> getCurrentTime
 
-getZonedTime :: (PandocMonad m) => m ZonedTime
+getZonedTime :: PandocMonad m => m ZonedTime
 getZonedTime = do
   t <- getCurrentTime
   tz <- getCurrentTimeZone
@@ -210,13 +257,26 @@ readFileFromDirs (d:ds) f = catchError
 
 --
 
+-- | 'CommonState' represents state that is used by all
+-- instances of 'PandocMonad'.  Normally users should not
+-- need to interact with it directly; instead, auxiliary
+-- functions like 'setVerbosity' and 'withMediaBag' should be used.
 data CommonState = CommonState { stLog          :: [LogMessage]
+                                 -- ^ A list of log messages in reverse order
                                , stMediaBag     :: MediaBag
+                                 -- ^ Media parsed from binary containers
                                , stInputFiles   :: Maybe [FilePath]
+                                 -- ^ List of input files from command line
                                , stOutputFile   :: Maybe FilePath
+                                 -- ^ Output file from command line
                                , stResourcePath :: [FilePath]
+                                 -- ^ Path to search for resources like
+                                 -- included images
                                , stVerbosity    :: Verbosity
+                                 -- ^ Verbosity level
                                , stTrace        :: Bool
+                                 -- ^ Controls whether tracing messages are
+                                 -- issued.
                                }
 
 instance Default CommonState where
@@ -229,11 +289,9 @@ instance Default CommonState where
                     , stTrace = False
                     }
 
+-- | Evaluate a 'PandocIO' operation.
 runIO :: PandocIO a -> IO (Either PandocError a)
 runIO ma = flip evalStateT def $ runExceptT $ unPandocIO ma
-
-withMediaBag :: PandocMonad m => m a ->  m (a, MediaBag)
-withMediaBag ma = (,) <$> ma <*> getMediaBag
 
 runIOorExplode :: PandocIO a -> IO a
 runIOorExplode ma = runIO ma >>= handleError
@@ -437,7 +495,6 @@ data PureState = PureState { stStdGen     :: StdGen
                            , stFiles :: FileTree
                            , stUserDataDir :: FileTree
                            , stCabalDataDir :: FileTree
-                           , stFontFiles :: [FilePath]
                            }
 
 instance Default PureState where
@@ -452,7 +509,6 @@ instance Default PureState where
                   , stFiles = mempty
                   , stUserDataDir = mempty
                   , stCabalDataDir = mempty
-                  , stFontFiles = []
                   }
 
 
@@ -479,6 +535,24 @@ newtype FileTree = FileTree {unFileTree :: M.Map FilePath FileInfo}
 getFileInfo :: FilePath -> FileTree -> Maybe FileInfo
 getFileInfo fp tree = M.lookup fp $ unFileTree tree
 
+-- | Add the specified file to the FileTree. If file
+-- is a directory, add its contents recursively.
+addToFileTree :: FileTree -> FilePath -> IO FileTree
+addToFileTree (FileTree treemap) fp = do
+  isdir <- doesDirectoryExist fp
+  if isdir
+     then do -- recursively add contents of directories
+       let isSpecial ".." = True
+           isSpecial "."  = True
+           isSpecial _    = False
+       fs <- (map (fp </>) . filter (not . isSpecial)) <$> getDirectoryContents fp
+       foldM addToFileTree (FileTree treemap) fs
+     else do
+       contents <- B.readFile fp
+       mtime <- IO.getModificationTime fp
+       return $ FileTree $
+                M.insert fp FileInfo{ infoFileMTime = mtime
+                                    , infoFileContents = contents } treemap
 
 newtype PandocPure a = PandocPure {
   unPandocPure :: ExceptT PandocError
@@ -542,8 +616,8 @@ instance PandocMonad PandocPure where
       Nothing -> readDataFile Nothing fname
 
   glob s = do
-    fontFiles <- getsPureState stFontFiles
-    return (filter (match (compile s)) fontFiles)
+    FileTree ftmap <- getsPureState stFiles
+    return $ filter (match (compile s)) $ M.keys ftmap
 
   getModificationTime fp = do
     fps <- getsPureState stFiles

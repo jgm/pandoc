@@ -32,7 +32,7 @@ tests =
   [ testGroup "Inlines"
       [ "Plain String" =:
           "Hello, World" =?>
-          para (spcSep [ "Hello,", "World" ])
+          para "Hello, World"
 
       , "Emphasis" =: "*Foo bar*" =?> para (emph . spcSep $ ["Foo", "bar"])
 
@@ -102,12 +102,35 @@ tests =
         , "5 dashes is a horizontal rule" =: "-----" =?> horizontalRule
         , "4 dashes with spaces is a horizontal rule" =: "----  " =?> horizontalRule
         ]
+      , testGroup "Paragraphs"
+        [ "Simple paragraph" =:
+          T.unlines [ "First line"
+                    , "second line."
+                    ] =?>
+          para "First line second line."
+        , "Indented paragraph" =:
+          T.unlines [ " First line"
+                    , "second line."
+                    ] =?>
+          para "First line second line."
+        -- Emacs Muse starts a blockquote on the second line.
+        -- We copy Amusewiki behavior and require a blank line to start a blockquote.
+        , "Indentation in the middle of paragraph" =:
+           T.unlines [ "First line"
+                     , "  second line"
+                     , "third line"
+                     ] =?>
+           para "First line second line third line"
+        , "Quote" =:
+          "  This is a quotation\n" =?>
+          blockQuote (para "This is a quotation")
+        , "Multiline quote" =:
+          T.unlines [ "  This is a quotation"
+                    , "  with a continuation"
+                    ] =?>
+          blockQuote (para "This is a quotation with a continuation")
+        ]
       , "Quote tag" =: "<quote>Hello, world</quote>" =?> blockQuote (para $ text "Hello, world")
-      , "Quote" =: "  This is a quotation\n" =?> blockQuote (para $ text "This is a quotation")
-      , "Multiline quote" =: T.unlines [ "  This is a quotation"
-                                       , "  with a continuation"
-                                       ]
-        =?> blockQuote (para $ text "This is a quotation with a continuation")
       , "Center" =: "<center>Hello, world</center>" =?> para (text "Hello, world")
       , "Right" =: "<right>Hello, world</right>" =?> para (text "Hello, world")
       , testGroup "Comments"
@@ -132,12 +155,18 @@ tests =
         , "Subsubsection" =:
           "***** Fifth level\n" =?>
           header 5 "Fifth level"
-        , "No headers below top level" =:
+        , "No headers in footnotes" =:
           T.unlines [ "Foo[1]"
                     , "[1] * Bar"
                     ] =?>
           para (text "Foo" <>
                 note (para "* Bar"))
+        , "No headers in quotes" =:
+          T.unlines [ "<quote>"
+                    , "* Hi"
+                    , "</quote>"
+                    ] =?>
+          blockQuote (para "* Hi")
         ]
       , testGroup "Footnotes"
         [ "Simple footnote" =:
@@ -303,6 +332,95 @@ tests =
                               , para "c"
                               ]
                     ]
+      -- Emacs Muse allows to separate lists with two or more blank lines.
+      -- Text::Amuse (Amusewiki engine) always creates a single list as of version 0.82.
+      -- pandoc follows Emacs Muse behavior
+      , testGroup "Blank lines"
+        [ "Blank lines between list items are not required" =:
+          T.unlines
+            [ " - Foo"
+            , " - Bar"
+            ] =?>
+          bulletList [ para "Foo"
+                     , para "Bar"
+                     ]
+        , "One blank line between list items is allowed" =:
+          T.unlines
+            [ " - Foo"
+            , ""
+            , " - Bar"
+            ] =?>
+          bulletList [ para "Foo"
+                     , para "Bar"
+                     ]
+        , "Two blank lines separate lists" =:
+          T.unlines
+            [ " - Foo"
+            , ""
+            , ""
+            , " - Bar"
+            ] =?>
+          bulletList [ para "Foo" ] <> bulletList [ para "Bar" ]
+        , "No blank line after multiline first item" =:
+          T.unlines
+            [ " - Foo"
+            , "   bar"
+            , " - Baz"
+            ] =?>
+          bulletList [ para "Foo bar"
+                     , para "Baz"
+                     ]
+        , "One blank line after multiline first item" =:
+          T.unlines
+            [ " - Foo"
+            , "   bar"
+            , ""
+            , " - Baz"
+            ] =?>
+          bulletList [ para "Foo bar"
+                     , para "Baz"
+                     ]
+        , "Two blank lines after multiline first item" =:
+          T.unlines
+            [ " - Foo"
+            , "   bar"
+            , ""
+            , ""
+            , " - Baz"
+            ] =?>
+          bulletList [ para "Foo bar" ] <> bulletList [ para "Baz" ]
+        , "No blank line after list continuation" =:
+          T.unlines
+            [ " - Foo"
+            , ""
+            , "   bar"
+            , " - Baz"
+            ] =?>
+          bulletList [ para "Foo" <> para "bar"
+                     , para "Baz"
+                     ]
+        , "One blank line after list continuation" =:
+          T.unlines
+            [ " - Foo"
+            , ""
+            , "   bar"
+            , ""
+            , " - Baz"
+            ] =?>
+          bulletList [ para "Foo" <> para "bar"
+                     , para "Baz"
+                     ]
+        , "Two blank lines after list continuation" =:
+          T.unlines
+            [ " - Foo"
+            , ""
+            , "   bar"
+            , ""
+            , ""
+            , " - Baz"
+            ] =?>
+          bulletList [ para "Foo" <> para "bar" ] <> bulletList [ para "Baz" ]
+        ]
       -- Headers in first column of list continuation are not allowed
       , "No headers in list continuation" =:
         T.unlines
@@ -314,5 +432,33 @@ tests =
                              , para "* Bar"
                              ]
                    ]
+      , "List inside a tag" =:
+        T.unlines
+          [ "<quote>"
+          , " 1. First"
+          , ""
+          , " 2. Second"
+          , ""
+          , " 3. Third"
+          , "</quote>"
+          ] =?>
+        blockQuote (orderedListWith (1, Decimal, Period) [ para "First"
+                                                         , para "Second"
+                                                         , para "Third"
+                                                         ])
+      -- Amusewiki requires block tags to be on separate lines,
+      -- but Emacs Muse allows them to be on the same line as contents.
+      , "List inside an inline tag" =:
+        T.unlines
+          [ "<quote> 1. First"
+          , ""
+          , " 2. Second"
+          , ""
+          , " 3. Third</quote>"
+          ] =?>
+        blockQuote (orderedListWith (1, Decimal, Period) [ para "First"
+                                                         , para "Second"
+                                                         , para "Third"
+                                                         ])
       ]
   ]

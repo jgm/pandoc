@@ -76,7 +76,7 @@ import System.IO.Error (isDoesNotExistError)
 import Text.Pandoc
 import Text.Pandoc.Builder (setMeta)
 import Text.Pandoc.Class (PandocIO, extractMedia, fillMediaBag, getLog,
-                          setResourcePath, withMediaBag, setTrace)
+                          setResourcePath, getMediaBag, setTrace)
 import Text.Pandoc.Highlighting (highlightingStyles)
 import Text.Pandoc.Lua (runLuaFilter, LuaException(..))
 import Text.Pandoc.Writers.Math (defaultMathJaxURL, defaultKaTeXURL)
@@ -218,7 +218,8 @@ convertWithOpts opts = do
   templ <- case optTemplate opts of
                 _ | not standalone -> return Nothing
                 Nothing -> do
-                           deftemp <- getDefaultTemplate datadir format
+                           deftemp <- runIO $
+                                        getDefaultTemplate datadir format
                            case deftemp of
                                  Left e  -> E.throwIO e
                                  Right t -> return (Just t)
@@ -444,7 +445,7 @@ convertWithOpts opts = do
 
   runIO' $ do
     setResourcePath (optResourcePath opts)
-    (doc, media) <- withMediaBag $ sourceToDoc sources >>=
+    doc <- sourceToDoc sources >>=
               (   (if isJust (optExtractMedia opts)
                       then fillMediaBag (writerSourceURL writerOptions)
                       else return)
@@ -454,6 +455,7 @@ convertWithOpts opts = do
               >=> applyLuaFilters datadir (optLuaFilters opts) [format]
               >=> applyFilters datadir filters' [format]
               )
+    media <- getMediaBag
 
     case writer of
       ByteStringWriter f -> f writerOptions doc >>= writeFnBinary outputFile
@@ -991,10 +993,10 @@ options =
     , Option "D" ["print-default-template"]
                  (ReqArg
                   (\arg _ -> do
-                     templ <- getDefaultTemplate Nothing arg
+                     templ <- runIO $ getDefaultTemplate Nothing arg
                      case templ of
                           Right t -> UTF8.hPutStr stdout t
-                          Left e  -> E.throwIO $ PandocAppError (show e)
+                          Left e  -> E.throwIO e
                      exitSuccess)
                   "FORMAT")
                  "" -- "Print default template for FORMAT"

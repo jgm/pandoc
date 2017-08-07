@@ -61,7 +61,7 @@ import Control.Monad.Reader
 import Control.Monad.State.Strict
 import Data.Bits ((.|.))
 import qualified Data.ByteString.Lazy as B
-import Data.Char (chr, isDigit, ord, readLitChar)
+import Data.Char (chr, ord, readLitChar)
 import Data.List
 import qualified Data.Map as M
 import Data.Maybe
@@ -939,19 +939,18 @@ elemToRunStyle ns element parentStyle
         }
 elemToRunStyle _ _ _ = defaultRunStyle
 
-isNumericNotNull :: String -> Bool
-isNumericNotNull str = (str /= []) && (all isDigit str)
-
 getHeaderLevel :: NameSpaces -> Element -> Maybe (String,Int)
 getHeaderLevel ns element
   | Just styleId <- findAttrByName ns "w" "styleId" element
   , Just index   <- stripPrefix "Heading" styleId
-  , isNumericNotNull index = Just (styleId, read index)
+  , Just n       <- stringToInteger index
+  , n > 0 = Just (styleId, fromInteger n)
   | Just styleId <- findAttrByName ns "w" "styleId" element
   , Just index   <- findChildByName ns "w" "name" element >>=
                     findAttrByName ns "w" "val" >>=
                     stripPrefix "heading "
-  , isNumericNotNull index = Just (styleId, read index)
+  , Just n <- stringToInteger index
+  , n > 0 = Just (styleId, fromInteger n)
 getHeaderLevel _ _ = Nothing
 
 blockQuoteStyleIds :: [String]

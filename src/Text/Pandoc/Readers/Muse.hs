@@ -115,11 +115,10 @@ htmlElement :: PandocMonad m => String -> MuseParser m (Attr, String)
 htmlElement tag = try $ do
   (TagOpen _ attr, _) <- htmlTag (~== TagOpen tag [])
   content <- manyTill anyChar (endtag <|> endofinput)
-  return (htmlAttrToPandoc attr, trim content)
+  return (htmlAttrToPandoc attr, content)
   where
     endtag     = void $ htmlTag (~== TagClose tag)
     endofinput = lookAhead $ try $ skipMany blankline >> skipSpaces >> eof
-    trim       = dropWhile (=='\n') . reverse . dropWhile (=='\n') . reverse
 
 htmlAttrToPandoc :: [Attribute String] -> Attr
 htmlAttrToPandoc attrs = (ident, classes, keyvals)
@@ -132,7 +131,7 @@ parseHtmlContentWithAttrs :: PandocMonad m
                           => String -> MuseParser m a -> MuseParser m (Attr, [a])
 parseHtmlContentWithAttrs tag parser = do
   (attr, content) <- htmlElement tag
-  parsedContent <- try $ parseContent content
+  parsedContent <- try $ parseContent (content ++ "\n")
   return (attr, parsedContent)
   where
     parseContent = parseFromString $ nested $ manyTill parser endOfContent
@@ -187,7 +186,6 @@ blockElements = choice [ comment
                        , orderedList
                        , table
                        , commentTag
-                       , indentedBlock
                        , noteBlock
                        ]
 
@@ -245,32 +243,17 @@ rightTag :: PandocMonad m => MuseParser m (F Blocks)
 rightTag = blockTag id "right"
 
 quoteTag :: PandocMonad m => MuseParser m (F Blocks)
-quoteTag = blockTag B.blockQuote "quote"
+quoteTag = withQuoteContext InDoubleQuote $ blockTag B.blockQuote "quote"
 
 commentTag :: PandocMonad m => MuseParser m (F Blocks)
-commentTag = parseHtmlContent "comment" block >> return mempty
+commentTag = parseHtmlContent "comment" anyChar >> return mempty
 
--- Indented block is either center, right or quote
-indentedLine :: PandocMonad m => MuseParser m (Int, String)
-indentedLine = try $ do
-  indent <- length <$> many1 spaceChar
-  line <- anyLine
-  return (indent, line)
-
-rawIndentedBlock :: PandocMonad m => MuseParser m (Int, String)
-rawIndentedBlock = try $ do
-  lns <- many1 indentedLine
-  let indent = minimum $ map fst lns
-  return (indent, unlines $ map snd lns)
-
-indentedBlock :: PandocMonad m => MuseParser m (F Blocks)
-indentedBlock = try $ do
-  (indent, raw) <- rawIndentedBlock
-  contents <- withQuoteContext InDoubleQuote $ parseFromString parseBlocks raw
-  return $ (if indent >= 2 && indent < 6 then B.blockQuote else id) <$> contents
-
+-- Indented paragraph is either center, right or quote
 para :: PandocMonad m => MuseParser m (F Blocks)
-para = liftM B.para . trimInlinesF . mconcat <$> many1Till inline endOfParaElement
+para = do
+ indent <- length <$> many spaceChar
+ let f = if indent >= 2 && indent < 6 then B.blockQuote else id
+ liftM (f . B.para) . trimInlinesF . mconcat <$> many1Till inline endOfParaElement
  where
    endOfParaElement = lookAhead $ endOfInput <|> endOfPara <|> newBlockElement
    endOfInput       = try $ skipMany blankline >> skipSpaces >> eof
@@ -303,7 +286,6 @@ noteBlock = try $ do
 
 listLine :: PandocMonad m => Int -> MuseParser m String
 listLine markerLength = try $ do
-  notFollowedBy blankline
   indentWith markerLength
   anyLineNewline
 
@@ -318,9 +300,9 @@ withListContext p = do
 
 listContinuation :: PandocMonad m => Int -> MuseParser m String
 listContinuation markerLength = try $ do
-  blanks <- many1 blankline
   result <- many1 $ listLine markerLength
-  return $ blanks ++ concat result
+  blank <- option "" ("\n" <$ blankline)
+  return $ concat result ++ blank
 
 listStart :: PandocMonad m => MuseParser m Int -> MuseParser m Int
 listStart marker = try $ do
@@ -335,9 +317,9 @@ listItem :: PandocMonad m => MuseParser m Int -> MuseParser m (F Blocks)
 listItem start = try $ do
   markerLength <- start
   firstLine <- anyLineNewline
-  blank <- option "" ("\n" <$ blankline)
   restLines <- many $ listLine markerLength
-  let first = firstLine ++ blank ++ concat restLines
+  blank <- option "" ("\n" <$ blankline)
+  let first = firstLine ++ concat restLines ++ blank
   rest <- many $ listContinuation markerLength
   parseFromString (withListContext parseBlocks) $ concat (first:rest) ++ "\n"
 

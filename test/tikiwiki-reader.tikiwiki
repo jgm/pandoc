@@ -1,0 +1,148 @@
+! header
+
+!! header level two
+
+!!! header level 3
+
+!!!! header _level_ four
+
+!!!!! header level 5
+
+!!!!!! header level 6
+
+!!!!!!! not a header
+
+ --++ not a header
+
+! emph and strong
+
+''emph'' __strong__
+
+''__strong and emph 1__''
+
+__''strong and emph 2''__
+
+__''emph inside'' strong__
+
+__strong with ''emph''__
+
+''__strong inside__ emph''
+
+! horizontal rule
+
+top
+----
+bottom
+
+----
+
+! nop
+
+~np~__not emph__~/np~
+
+! entities
+
+hi & low
+
+hi &amp; low
+
+G&ouml;del
+
+&#777;&#xAAA;
+
+! linebreaks
+
+hi%%%there
+
+hi%%%
+there
+
+! inline code
+
+-+*→*+- -+typed+- -+>>=+-
+
+! code blocks
+
+{CODE()}
+case xs of
+     (_:_) -> reverse xs
+     []    -> ['*']
+{CODE}
+
+{CODE(colors="haskell" ln=0)}
+case xs of
+     (_:_) -> reverse xs
+     []    -> ['*']
+{CODE}
+
+! external links
+
+[http://google.com|''Google'' search engine]
+
+[http://pandoc.org]
+
+[http://google.com] [http://yahoo.com]
+
+[mailto:info@example.org|email me]
+
+http://google.com
+
+info@example.org
+
+! lists
+
+* Start each line
+* with an asterisk (*).
+** More asterisks gives deeper
+*** and deeper levels.
+* Line breaks%%%don't break levels.
+* Continuations
++ are also possible
+** and do not break the list flow
+* Level one
+Any other start ends the list.
+
+# Start each line
+# with a number (1.).
+## More number signs gives deeper
+### and deeper
+### levels.
+# Line breaks%%%don't break levels.
+# Blank lines
+
+# end the list and start another.
+Any other start also
+ends the list.
+
+;item 1: definition 1
+;item 2: definition 2-1
++ definition 2-2
+;item ''3'': definition ''3''
+
+# one
+# two
+** two point one
+** two point two
+# three
+# four
+# five
+## five sub 1
+### five sub 1 sub 1
+## five sub 2
+
+! tables
+
+||Orange|Apple
+Bread|Pie
+Butter|Ice cream||
+
+||Orange|Apple
+Bread|Pie
+__Butter__|Ice cream||
+
+||Orange|Apple
+Bread%%%%%%and cheese|Pie%%%%%%__apple__ and ''carrot'' ||
+
+|| Orange | Apple     | more
+ Bread  | Pie       | more
+ Butter | Ice cream | and more ||

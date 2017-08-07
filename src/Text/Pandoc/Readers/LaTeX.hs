@@ -37,13 +37,13 @@ module Text.Pandoc.Readers.LaTeX ( readLaTeX,
                                    applyMacros,
                                    rawLaTeXInline,
                                    rawLaTeXBlock,
-                                   macro,
                                    inlineCommand
                                  ) where
 
 import Control.Applicative (many, optional, (<|>))
 import Control.Monad
 import Control.Monad.Except (throwError)
+import Control.Monad.Trans (lift)
 import Data.Char (chr, isAlphaNum, isLetter, ord, isDigit)
 import Data.Default
 import Data.Text (Text)
@@ -199,77 +199,45 @@ withVerbatimMode parser = do
   updateState $ \st -> st{ sVerbatimMode = False }
   return result
 
-rawLaTeXBlock :: (PandocMonad m, HasMacros s, HasReaderOptions s)
-              => ParserT String s m String
-rawLaTeXBlock = do
-  lookAhead (try (char '\\' >> letter))
+rawLaTeXParser :: (PandocMonad m, HasMacros s, HasReaderOptions s)
+               => LP m a -> ParserT String s m String
+rawLaTeXParser parser = do
   inp <- getInput
   let toks = tokenize $ T.pack inp
-  let rawblock = do
-         (_, raw) <- try $
-                      withRaw (environment <|> macroDef <|> blockCommand)
-         return raw
   pstate <- getState
   let lstate = def{ sOptions = extractReaderOptions pstate }
-  res <- runParserT rawblock lstate "source" toks
+  res <- lift $ runParserT ((,) <$> try (snd <$> withRaw parser) <*> getState)
+            lstate "source" toks
   case res of
        Left _    -> mzero
-       Right raw -> takeP (T.length (untokenize raw))
-
-macro :: (PandocMonad m, HasMacros s, HasReaderOptions s)
-      => ParserT String s m Blocks
-macro = do
-  guardEnabled Ext_latex_macros
-  lookAhead (char '\\' *> oneOfStrings ["new", "renew", "provide"] *>
-              oneOfStrings ["command", "environment"])
-  inp <- getInput
-  let toks = tokenize $ T.pack inp
-  let rawblock = do
-         (_, raw) <- withRaw $ try macroDef
-         st <- getState
-         return (raw, st)
-  pstate <- getState
-  let lstate = def{ sOptions = extractReaderOptions pstate
-                  , sMacros  = extractMacros pstate }
-  res <- runParserT rawblock lstate "source" toks
-  case res of
-       Left _ -> mzero
        Right (raw, st) -> do
-         updateState (updateMacros (const $ sMacros st))
-         mempty <$ takeP (T.length (untokenize raw))
+         updateState (updateMacros ((sMacros st) <>))
+         takeP (T.length (untokenize raw))
 
 applyMacros :: (PandocMonad m, HasMacros s, HasReaderOptions s)
             => String -> ParserT String s m String
-applyMacros s = do
-  (guardEnabled Ext_latex_macros >>
-   do let retokenize = doMacros 0 *> (toksToString <$> getInput)
+applyMacros s = (guardDisabled Ext_latex_macros >> return s) <|>
+   do let retokenize = doMacros 0 *>
+             (toksToString <$> many (satisfyTok (const True)))
       pstate <- getState
       let lstate = def{ sOptions = extractReaderOptions pstate
                       , sMacros  = extractMacros pstate }
       res <- runParserT retokenize lstate "math" (tokenize (T.pack s))
       case res of
            Left e -> fail (show e)
-           Right s' -> return s') <|> return s
+           Right s' -> return s'
+
+rawLaTeXBlock :: (PandocMonad m, HasMacros s, HasReaderOptions s)
+              => ParserT String s m String
+rawLaTeXBlock = do
+  lookAhead (try (char '\\' >> letter))
+  rawLaTeXParser (environment <|> macroDef <|> blockCommand)
 
 rawLaTeXInline :: (PandocMonad m, HasMacros s, HasReaderOptions s)
-              => ParserT String s m String
+               => ParserT String s m String
 rawLaTeXInline = do
   lookAhead (try (char '\\' >> letter) <|> char '$')
-  inp <- getInput
-  let toks = tokenize $ T.pack inp
-  let rawinline = do
-         (_, raw) <- try $ withRaw (inlineEnvironment <|> inlineCommand')
-         st <- getState
-         return (raw, st)
-  pstate <- getState
-  let lstate = def{ sOptions = extractReaderOptions pstate
-                  , sMacros  = extractMacros pstate }
-  res <- runParserT rawinline lstate "source" toks
-  case res of
-       Left _ -> mzero
-       Right (raw, s) -> do
-         updateState $ updateMacros (const $ sMacros s)
-         takeP (T.length (untokenize raw))
+  rawLaTeXParser (inlineEnvironment <|> inlineCommand')
 
 inlineCommand :: PandocMonad m => ParserT String ParserState m Inlines
 inlineCommand = do
@@ -1378,12 +1346,34 @@ inlineCommands = M.fromList $
   , ("nohyphens", tok)
   , ("textnhtt", ttfamily)
   , ("nhttfamily", ttfamily)
+  -- LaTeX colors
+  , ("textcolor", coloredInline "color")
+  , ("colorbox", coloredInline "background-color")
   -- fontawesome
   , ("faCheck", lit "\10003")
   , ("faClose", lit "\10007")
   -- xspace
   , ("xspace", doxspace)
+  -- etoolbox
+  , ("ifstrequal", ifstrequal)
   ]
+
+ifstrequal :: PandocMonad m => LP m Inlines
+ifstrequal = do
+  str1 <- tok
+  str2 <- tok
+  ifequal <- braced
+  ifnotequal <- braced
+  if str1 == str2
+     then getInput >>= setInput . (ifequal ++)
+     else getInput >>= setInput . (ifnotequal ++)
+  return mempty
+
+coloredInline :: PandocMonad m => String -> LP m Inlines
+coloredInline stylename = do
+  skipopts
+  color <- braced
+  spanWith ("",[],[("style",stylename ++ ": " ++ toksToString color)]) <$> tok
 
 ttfamily :: PandocMonad m => LP m Inlines
 ttfamily = (code . stringify . toList) <$> tok
@@ -1397,14 +1387,20 @@ rawInlineOr name' fallback = do
 
 getRawCommand :: PandocMonad m => Text -> LP m String
 getRawCommand txt = do
-  (_, rawargs) <- withRaw
-     ((if txt == "\\write"
-          then () <$ satisfyTok isWordTok -- digits
-          else return ()) *>
-      skipangles *>
-      skipopts *>
-      option "" (try (optional sp *> dimenarg)) *>
-      many braced)
+  (_, rawargs) <- withRaw $
+      case txt of
+           "\\write" -> do
+             void $ satisfyTok isWordTok -- digits
+             void braced
+           "\\titleformat" -> do
+             void braced
+             skipopts
+             void $ count 4 braced
+           _ -> do
+             skipangles
+             skipopts
+             option "" (try (optional sp *> dimenarg))
+             void $ many braced
   return $ T.unpack (txt <> untokenize rawargs)
 
 isBlockCommand :: Text -> Bool
@@ -1432,6 +1428,7 @@ treatAsBlock = Set.fromList
    , "newpage"
    , "clearpage"
    , "pagebreak"
+   , "titleformat"
    ]
 
 isInlineCommand :: Text -> Bool
@@ -1491,22 +1488,14 @@ begin_ :: PandocMonad m => Text -> LP m ()
 begin_ t = (try $ do
   controlSeq "begin"
   spaces
-  symbol '{'
-  spaces
-  Tok _ Word txt <- satisfyTok isWordTok
-  spaces
-  symbol '}'
+  txt <- untokenize <$> braced
   guard (t == txt)) <?> ("\\begin{" ++ T.unpack t ++ "}")
 
 end_ :: PandocMonad m => Text -> LP m ()
 end_ t = (try $ do
   controlSeq "end"
   spaces
-  symbol '{'
-  spaces
-  Tok _ Word txt <- satisfyTok isWordTok
-  spaces
-  symbol '}'
+  txt <- untokenize <$> braced
   guard $ t == txt) <?> ("\\end{" ++ T.unpack t ++ "}")
 
 preamble :: PandocMonad m => LP m Blocks
@@ -1561,17 +1550,18 @@ authors = try $ do
 
 macroDef :: PandocMonad m => LP m Blocks
 macroDef = do
-  guardEnabled Ext_latex_macros
   mempty <$ ((commandDef <|> environmentDef) <* doMacros 0)
   where commandDef = do
           (name, macro') <- newcommand
-          updateState $ \s -> s{ sMacros = M.insert name macro' (sMacros s) }
+          guardDisabled Ext_latex_macros <|>
+           updateState (\s -> s{ sMacros = M.insert name macro' (sMacros s) })
         environmentDef = do
           (name, macro1, macro2) <- newenvironment
-          updateState $ \s -> s{ sMacros =
-            M.insert name macro1 (sMacros s) }
-          updateState $ \s -> s{ sMacros =
-            M.insert ("end" <> name) macro2 (sMacros s) }
+          guardDisabled Ext_latex_macros <|>
+            do updateState $ \s -> s{ sMacros =
+                M.insert name macro1 (sMacros s) }
+               updateState $ \s -> s{ sMacros =
+                M.insert ("end" <> name) macro2 (sMacros s) }
         -- @\newenvironment{envname}[n-args][default]{begin}{end}@
         -- is equivalent to
         -- @\newcommand{\envname}[n-args][default]{begin}@
@@ -1606,11 +1596,8 @@ newenvironment = do
                              controlSeq "renewenvironment" <|>
                              controlSeq "provideenvironment"
   optional $ symbol '*'
-  symbol '{'
   spaces
-  Tok _ Word name <- satisfyTok isWordTok
-  spaces
-  symbol '}'
+  name <- untokenize <$> braced
   spaces
   numargs <- option 0 $ try bracketedNum
   spaces
@@ -1678,9 +1665,25 @@ blockCommand = try $ do
   star <- option "" ("*" <$ symbol '*' <* optional sp)
   let name' = name <> star
   let names = ordNub [name', name]
-  let raw = do
-        guard $ isBlockCommand name || not (isInlineCommand name)
+  let rawDefiniteBlock = do
+        guard $ isBlockCommand name
         rawBlock "latex" <$> getRawCommand (txt <> star)
+  -- heuristic:  if it could be either block or inline, we
+  -- treat it if block if we have a sequence of block
+  -- commands followed by a newline.  But we stop if we
+  -- hit a \startXXX, since this might start a raw ConTeXt
+  -- environment (this is important because this parser is
+  -- used by the Markdown reader).
+  let startCommand = try $ do
+        Tok _ (CtrlSeq n) _ <- anyControlSeq
+        guard $ "start" `T.isPrefixOf` n
+  let rawMaybeBlock = try $ do
+        guard $ not $ isInlineCommand name
+        curr <- rawBlock "latex" <$> getRawCommand (txt <> star)
+        rest <- many $ notFollowedBy startCommand *> blockCommand
+        lookAhead $ blankline <|> startCommand
+        return $ curr <> mconcat rest
+  let raw = rawDefiniteBlock <|> rawMaybeBlock
   lookupListDefault raw names blockCommands
 
 closing :: PandocMonad m => LP m Blocks
@@ -1733,6 +1736,15 @@ blockCommands = M.fromList $
    -- letters
    , ("opening", (para . trimInlines) <$> (skipopts *> tok))
    , ("closing", skipopts *> closing)
+   -- memoir
+   , ("plainbreak", braced >> pure horizontalRule)
+   , ("plainbreak*", braced >> pure horizontalRule)
+   , ("fancybreak", braced >> pure horizontalRule)
+   , ("fancybreak*", braced >> pure horizontalRule)
+   , ("plainfancybreak", braced >> braced >> braced >> pure horizontalRule)
+   , ("plainfancybreak*", braced >> braced >> braced >> pure horizontalRule)
+   , ("pfbreak", pure horizontalRule)
+   , ("pfbreak*", pure horizontalRule)
    --
    , ("hrule", pure horizontalRule)
    , ("strut", pure mempty)
@@ -1750,6 +1762,9 @@ blockCommands = M.fromList $
    , ("graphicspath", graphicsPath)
    -- hyperlink
    , ("hypertarget", try $ braced >> grouped block)
+   -- LaTeX colors
+   , ("textcolor", coloredBlock "color")
+   , ("colorbox", coloredBlock "background-color")
    ]
 
 
@@ -1912,6 +1927,14 @@ addImageCaption = walkM go
                Just ils -> Image attr (toList ils) (src, "fig:" ++ tit)
                Nothing  -> Image attr alt (src,tit)
         go x = return x
+
+coloredBlock :: PandocMonad m => String -> LP m Blocks
+coloredBlock stylename = try $ do
+  skipopts
+  color <- braced
+  notFollowedBy (grouped inline)
+  let constructor = divWith ("",[],[("style",stylename ++ ": " ++ toksToString color)])
+  constructor <$> grouped block
 
 graphicsPath :: PandocMonad m => LP m Blocks
 graphicsPath = do
