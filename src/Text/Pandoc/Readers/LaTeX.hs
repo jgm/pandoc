@@ -1521,7 +1521,7 @@ macroDef :: PandocMonad m => LP m Blocks
 macroDef = do
   mempty <$ ((commandDef <|> environmentDef) <* doMacros 0)
   where commandDef = do
-          (name, macro') <- newcommand <|> letmacro
+          (name, macro') <- newcommand <|> letmacro <|> defmacro
           guardDisabled Ext_latex_macros <|>
            updateState (\s -> s{ sMacros = M.insert name macro' (sMacros s) })
         environmentDef = do
@@ -1538,12 +1538,31 @@ macroDef = do
 
 letmacro :: PandocMonad m => LP m (Text, Macro)
 letmacro = do
-  pos <- getPosition
   controlSeq "let"
   Tok _ (CtrlSeq name) _ <- anyControlSeq
   optional $ symbol '='
+  spaces
   contents <- braced <|> ((:[]) <$> anyControlSeq)
   return (name, Macro ExpandWhenDefined 0 Nothing contents)
+
+defmacro :: PandocMonad m => LP m (Text, Macro)
+defmacro = try $ do
+  controlSeq "def"
+  Tok _ (CtrlSeq name) _ <- anyControlSeq
+  numargs <- option 0 $ argSeq 1
+  contents <- withVerbatimMode braced
+  return (name, Macro ExpandWhenUsed numargs Nothing contents)
+
+-- Note: we don't yet support fancy things like #1.#2
+argSeq :: PandocMonad m => Int -> LP m Int
+argSeq n = do
+  Tok _ (Arg i) _ <- satisfyTok isArgTok
+  guard $ i == n
+  argSeq (n+1) <|> return n
+
+isArgTok :: Tok -> Bool
+isArgTok (Tok _ (Arg _) _) = True
+isArgTok _ = False
 
 newcommand :: PandocMonad m => LP m (Text, Macro)
 newcommand = do
