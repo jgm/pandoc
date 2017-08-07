@@ -32,7 +32,7 @@ tests =
   [ testGroup "Inlines"
       [ "Plain String" =:
           "Hello, World" =?>
-          para (spcSep [ "Hello,", "World" ])
+          para "Hello, World"
 
       , "Emphasis" =: "*Foo bar*" =?> para (emph . spcSep $ ["Foo", "bar"])
 
@@ -102,12 +102,35 @@ tests =
         , "5 dashes is a horizontal rule" =: "-----" =?> horizontalRule
         , "4 dashes with spaces is a horizontal rule" =: "----  " =?> horizontalRule
         ]
+      , testGroup "Paragraphs"
+        [ "Simple paragraph" =:
+          T.unlines [ "First line"
+                    , "second line."
+                    ] =?>
+          para "First line second line."
+        , "Indented paragraph" =:
+          T.unlines [ " First line"
+                    , "second line."
+                    ] =?>
+          para "First line second line."
+        -- Emacs Muse starts a blockquote on the second line.
+        -- We copy Amusewiki behavior and require a blank line to start a blockquote.
+        , "Indentation in the middle of paragraph" =:
+           T.unlines [ "First line"
+                     , "  second line"
+                     , "third line"
+                     ] =?>
+           para "First line second line third line"
+        , "Quote" =:
+          "  This is a quotation\n" =?>
+          blockQuote (para "This is a quotation")
+        , "Multiline quote" =:
+          T.unlines [ "  This is a quotation"
+                    , "  with a continuation"
+                    ] =?>
+          blockQuote (para "This is a quotation with a continuation")
+        ]
       , "Quote tag" =: "<quote>Hello, world</quote>" =?> blockQuote (para $ text "Hello, world")
-      , "Quote" =: "  This is a quotation\n" =?> blockQuote (para $ text "This is a quotation")
-      , "Multiline quote" =: T.unlines [ "  This is a quotation"
-                                       , "  with a continuation"
-                                       ]
-        =?> blockQuote (para $ text "This is a quotation with a continuation")
       , "Center" =: "<center>Hello, world</center>" =?> para (text "Hello, world")
       , "Right" =: "<right>Hello, world</right>" =?> para (text "Hello, world")
       , testGroup "Comments"
