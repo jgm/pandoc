@@ -1161,7 +1161,7 @@ inlineCommands = M.fromList $
   , ("sim", lit "~")
   , ("textgreek", tok)
   , ("sep", lit ",")
-  , ("label", rawInlineOr "label" $ dolabel)
+  , ("label", rawInlineOr "label" dolabel)
   , ("ref", rawInlineOr "ref" $ doref "ref")
   , ("cref", rawInlineOr "cref" $ doref "ref")       -- from cleveref.sty
   , ("vref", rawInlineOr "vref" $ doref "ref+page")  -- from varioref.sty
@@ -1417,17 +1417,18 @@ treatAsInline = Set.fromList
 dolabel :: PandocMonad m => LP m Inlines
 dolabel = do
   v <- braced
-  return $ spanWith ("",[],[("data-label", toksToString v)]) $ inBrackets $ str $ toksToString v
+  return $ spanWith ("",[],[("data-label", toksToString v)]) 
+    $ inBrackets $ str $ toksToString v
 
 doref :: PandocMonad m => String -> LP m Inlines
 doref cls = do
   v <- braced
-  return $ spanWith ("",[],[("reference-type", cls), ("reference", toksToString v)]) $ inBrackets $ str $ toksToString v
+  return $ spanWith ("",[],[("reference-type", cls), ("reference", toksToString v)]) 
+    $ inBrackets $ str $ toksToString v
 
 lookupListDefault :: (Show k, Ord k) => v -> [k] -> M.Map k v -> v
 lookupListDefault d = (fromMaybe d .) . lookupList
   where lookupList l m = msum $ map (`M.lookup` m) l
-
 
 inline :: PandocMonad m => LP m Inlines
 inline = (mempty <$ comment)
