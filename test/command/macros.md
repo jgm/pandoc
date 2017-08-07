@@ -15,3 +15,26 @@ $\my+\my$
 \newcommand{\my}{\phi}
 $\my+\my$
 ```
+
+`\let` macros should be expanded at point of
+definition, while `\newcommand` macros should be
+expanded at point of use:
+
+```
+% pandoc -f latex -t latex
+\let\a\b
+\newcommand{\b}{\emph{ouk}}
+\a
+^D
+\b
+```
+
+```
+% pandoc -f latex -t latex
+\newcommand{\a}{\b}
+\newcommand{\b}{\emph{ouk}}
+\a
+^D
+\emph{ouk}
+```
+

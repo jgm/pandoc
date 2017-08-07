@@ -65,7 +65,7 @@ import Text.Pandoc.Parsing hiding (many, optional, withRaw,
                             mathInline, mathDisplay,
                             space, (<|>), spaces, blankline)
 import Text.Pandoc.Shared
-import Text.Pandoc.Readers.LaTeX.Types (Macro(..), Tok(..),
+import Text.Pandoc.Readers.LaTeX.Types (Macro(..), ExpansionPoint(..), Tok(..),
                             TokType(..))
 import Text.Pandoc.Walk
 import Text.Pandoc.Error (PandocError(PandocParsecError, PandocMacroLoop))
@@ -375,7 +375,7 @@ doMacros n = do
                 macros <- sMacros <$> getState
                 case M.lookup name macros of
                      Nothing -> return ()
-                     Just (Macro numargs optarg newtoks) -> do
+                     Just (Macro expansionPoint numargs optarg newtoks) -> do
                        setInput ts
                        let getarg = spaces >> braced
                        args <- case optarg of
@@ -389,9 +389,12 @@ doMacros n = do
                            addTok t acc = setpos spos t : acc
                        ts' <- getInput
                        setInput $ foldr addTok ts' newtoks
-                       if n > 20  -- detect macro expansion loops
-                          then throwError $ PandocMacroLoop (T.unpack name)
-                          else doMacros (n + 1)
+                       case expansionPoint of
+                            ExpandWhenUsed ->
+                              if n > 20  -- detect macro expansion loops
+                                 then throwError $ PandocMacroLoop (T.unpack name)
+                                 else doMacros (n + 1)
+                            ExpandWhenDefined -> return ()
 
 setpos :: (Line, Column) -> Tok -> Tok
 setpos spos (Tok _ tt txt) = Tok spos tt txt
@@ -1375,7 +1378,8 @@ isBlockCommand s =
 
 treatAsBlock :: Set.Set Text
 treatAsBlock = Set.fromList
-   [ "newcommand", "renewcommand"
+   [ "let"
+   , "newcommand", "renewcommand"
    , "newenvironment", "renewenvironment"
    , "providecommand", "provideenvironment"
      -- newcommand, etc. should be parsed by macroDef, but we need this
@@ -1517,7 +1521,7 @@ macroDef :: PandocMonad m => LP m Blocks
 macroDef = do
   mempty <$ ((commandDef <|> environmentDef) <* doMacros 0)
   where commandDef = do
-          (name, macro') <- newcommand
+          (name, macro') <- newcommand <|> letmacro
           guardDisabled Ext_latex_macros <|>
            updateState (\s -> s{ sMacros = M.insert name macro' (sMacros s) })
         environmentDef = do
@@ -1531,6 +1535,15 @@ macroDef = do
         -- is equivalent to
         -- @\newcommand{\envname}[n-args][default]{begin}@
         -- @\newcommand{\endenvname}@
+
+letmacro :: PandocMonad m => LP m (Text, Macro)
+letmacro = do
+  pos <- getPosition
+  controlSeq "let"
+  Tok _ (CtrlSeq name) _ <- anyControlSeq
+  optional $ symbol '='
+  contents <- braced <|> ((:[]) <$> anyControlSeq)
+  return (name, Macro ExpandWhenDefined 0 Nothing contents)
 
 newcommand :: PandocMonad m => LP m (Text, Macro)
 newcommand = do
@@ -1546,13 +1559,15 @@ newcommand = do
   spaces
   optarg <- option Nothing $ Just <$> try bracketedToks
   spaces
-  contents <- braced
+  contents <- withVerbatimMode braced
+  -- we use withVerbatimMode, because macros are to be expanded
+  -- at point of use, not point of definition
   when (mtype == "newcommand") $ do
     macros <- sMacros <$> getState
     case M.lookup name macros of
          Just _ -> report $ MacroAlreadyDefined (T.unpack txt) pos
          Nothing -> return ()
-  return (name, Macro numargs optarg contents)
+  return (name, Macro ExpandWhenUsed numargs optarg contents)
 
 newenvironment :: PandocMonad m => LP m (Text, Macro, Macro)
 newenvironment = do
@@ -1568,16 +1583,16 @@ newenvironment = do
   spaces
   optarg <- option Nothing $ Just <$> try bracketedToks
   spaces
-  startcontents <- braced
+  startcontents <- withVerbatimMode braced
   spaces
-  endcontents <- braced
+  endcontents <- withVerbatimMode braced
   when (mtype == "newenvironment") $ do
     macros <- sMacros <$> getState
     case M.lookup name macros of
          Just _ -> report $ MacroAlreadyDefined (T.unpack name) pos
          Nothing -> return ()
-  return (name, Macro numargs optarg startcontents,
-             Macro 0 Nothing endcontents)
+  return (name, Macro ExpandWhenUsed numargs optarg startcontents,
+             Macro ExpandWhenUsed 0 Nothing endcontents)
 
 bracketedToks :: PandocMonad m => LP m [Tok]
 bracketedToks = do

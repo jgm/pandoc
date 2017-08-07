@@ -30,6 +30,7 @@ Types for LaTeX tokens and macros.
 module Text.Pandoc.Readers.LaTeX.Types ( Tok(..)
                                        , TokType(..)
                                        , Macro(..)
+                                       , ExpansionPoint(..)
                                        , Line
                                        , Column )
 where
@@ -43,6 +44,9 @@ data TokType = CtrlSeq Text | Spaces | Newline | Symbol | Word | Comment |
 data Tok = Tok (Line, Column) TokType Text
      deriving (Eq, Ord, Show)
 
-data Macro = Macro Int (Maybe [Tok]) [Tok]
+data ExpansionPoint = ExpandWhenDefined | ExpandWhenUsed
+     deriving (Eq, Ord, Show)
+
+data Macro = Macro ExpansionPoint Int (Maybe [Tok]) [Tok]
      deriving Show
 
