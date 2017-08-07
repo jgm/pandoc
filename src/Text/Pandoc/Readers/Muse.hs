@@ -186,7 +186,6 @@ blockElements = choice [ comment
                        , orderedList
                        , table
                        , commentTag
-                       , indentedBlock
                        , noteBlock
                        ]
 
@@ -249,27 +248,12 @@ quoteTag = withQuoteContext InDoubleQuote $ blockTag B.blockQuote "quote"
 commentTag :: PandocMonad m => MuseParser m (F Blocks)
 commentTag = parseHtmlContent "comment" anyChar >> return mempty
 
--- Indented block is either center, right or quote
-indentedLine :: PandocMonad m => MuseParser m (Int, String)
-indentedLine = try $ do
-  indent <- length <$> many1 spaceChar
-  line <- anyLine
-  return (indent, line)
-
-rawIndentedBlock :: PandocMonad m => MuseParser m (Int, String)
-rawIndentedBlock = try $ do
-  lns <- many1 indentedLine
-  let indent = minimum $ map fst lns
-  return (indent, unlines $ map snd lns)
-
-indentedBlock :: PandocMonad m => MuseParser m (F Blocks)
-indentedBlock = try $ do
-  (indent, raw) <- rawIndentedBlock
-  contents <- withQuoteContext InDoubleQuote $ parseFromString parseBlocks raw
-  return $ (if indent >= 2 && indent < 6 then B.blockQuote else id) <$> contents
-
+-- Indented paragraph is either center, right or quote
 para :: PandocMonad m => MuseParser m (F Blocks)
-para = liftM B.para . trimInlinesF . mconcat <$> many1Till inline endOfParaElement
+para = do
+ indent <- length <$> many spaceChar
+ let f = if indent >= 2 && indent < 6 then B.blockQuote else id
+ liftM (f . B.para) . trimInlinesF . mconcat <$> many1Till inline endOfParaElement
  where
    endOfParaElement = lookAhead $ endOfInput <|> endOfPara <|> newBlockElement
    endOfInput       = try $ skipMany blankline >> skipSpaces >> eof
