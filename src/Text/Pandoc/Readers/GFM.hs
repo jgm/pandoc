@@ -109,11 +109,42 @@ addBlock (Node _ (TABLE alignments) nodes) = do
         isCell _ = False
         toRow (Node _ TABLE_ROW ns) = map toCell $ filter isCell ns
         toRow (Node _ t _) = error $ "toRow encountered non-row " ++ show t
-        toCell (Node _ TABLE_CELL ns) = addBlocks ns
+        toCell (Node _ TABLE_CELL []) = []
+        toCell (Node _ TABLE_CELL (n:ns))
+          | isBlockNode n = addBlocks (n:ns)
+          | otherwise     = [Plain (addInlines (n:ns))]
         toCell (Node _ t _) = error $ "toCell encountered non-cell " ++ show t
 addBlock (Node _ TABLE_ROW _) = id -- handled in TABLE
 addBlock (Node _ TABLE_CELL _) = id -- handled in TABLE
 addBlock _ = id
+
+isBlockNode :: Node -> Bool
+isBlockNode (Node _ nodetype _) =
+  case nodetype of
+       DOCUMENT -> True
+       THEMATIC_BREAK -> True
+       PARAGRAPH -> True
+       BLOCK_QUOTE -> True
+       HTML_BLOCK _ -> True
+       CUSTOM_BLOCK _ _ -> True
+       CODE_BLOCK _ _ -> True
+       HEADING _ -> True
+       LIST _ -> True
+       ITEM -> True
+       TEXT _ -> False
+       SOFTBREAK -> False
+       LINEBREAK -> False
+       HTML_INLINE _ -> False
+       CUSTOM_INLINE _ _ -> False
+       CODE _ -> False
+       EMPH -> False
+       STRONG -> False
+       LINK _ _ -> False
+       IMAGE _ _ -> False
+       STRIKETHROUGH -> False
+       TABLE _ -> False
+       TABLE_ROW -> False
+       TABLE_CELL -> False
 
 children :: Node -> [Node]
 children (Node _ _ ns) = ns
