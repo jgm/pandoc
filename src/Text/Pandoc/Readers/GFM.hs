@@ -38,11 +38,11 @@ import Data.Text (Text, unpack)
 import Text.Pandoc.Class (PandocMonad)
 import Text.Pandoc.Definition
 import Text.Pandoc.Options
-import Debug.Trace
+
 -- | Parse a CommonMark formatted string into a 'Pandoc' structure.
 readGFM :: PandocMonad m => ReaderOptions -> Text -> m Pandoc
 readGFM opts s = return $
-  nodeToPandoc $ traceShowId $ commonmarkToNode opts' exts s
+  nodeToPandoc $ commonmarkToNode opts' exts s
   where opts' = [optSmart | enabled Ext_smart]
         exts = [extStrikethrough, extTable, extAutolink]
         enabled x = extensionEnabled x (readerExtensions opts)
@@ -91,10 +91,10 @@ addBlock (Node _ (LIST listAttrs) nodes) =
 addBlock (Node _ (TABLE alignments) nodes) = do
   (Table [] aligns widths headers rows :)
   where aligns = map fromTableCellAlignment alignments
-        fromTableCellAlignment None   = AlignDefault
-        fromTableCellAlignment CMarkGFM.Left   = AlignLeft
-        fromTableCellAlignment CMarkGFM.Right  = AlignRight
-        fromTableCellAlignment Center = AlignCenter
+        fromTableCellAlignment NoAlignment   = AlignDefault
+        fromTableCellAlignment LeftAligned   = AlignLeft
+        fromTableCellAlignment RightAligned  = AlignRight
+        fromTableCellAlignment CenterAligned = AlignCenter
         widths = replicate numcols 0.0
         numcols = if null rows'
                      then 0
