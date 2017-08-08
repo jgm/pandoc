@@ -43,8 +43,10 @@ import Text.Pandoc.Options
 readCommonMark :: PandocMonad m => ReaderOptions -> Text -> m Pandoc
 readCommonMark opts s = return $
   nodeToPandoc $ commonmarkToNode opts' exts s
-  where opts' = [optSmart | enabled Ext_smart]
-        exts = [extStrikethrough, extTable, extAutolink]
+  where opts' = [ optSmart | enabled Ext_smart ]
+        exts = [ extStrikethrough | enabled Ext_strikeout ] ++
+               [ extTable | enabled Ext_pipe_tables ] ++
+               [ extAutolink | enabled Ext_autolink_bare_uris ]
         enabled x = extensionEnabled x (readerExtensions opts)
 
 nodeToPandoc :: Node -> Pandoc
