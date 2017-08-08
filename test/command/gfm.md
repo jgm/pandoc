@@ -71,8 +71,6 @@ My:thumbsup:emoji:heart:
 | orange |  1.12 |
 
 The caption.
-
-
 ```
 
 ```
@@ -80,8 +78,6 @@ The caption.
 “hi”
 ^D
 "hi"
-
-
 ```
 
 ```
@@ -89,8 +85,6 @@ The caption.
 "hi"
 ^D
 “hi”
-
-
 ```
 
 ```
@@ -98,8 +92,6 @@ The caption.
 "hi"
 ^D
 "hi"
-
-
 ```
 
 ```

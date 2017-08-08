@@ -86,7 +86,7 @@ blocksToCommonMark opts bs = do
                  then Just $ writerColumns opts
                  else Nothing
   nodes <- blocksToNodes opts bs
-  return $
+  return $ T.stripEnd $
     nodeToCommonmark cmarkOpts colwidth $
     node DOCUMENT nodes
 
