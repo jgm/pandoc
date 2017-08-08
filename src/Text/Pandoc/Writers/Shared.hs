@@ -214,6 +214,9 @@ unsmartify opts ('\8211':xs)
 unsmartify opts ('\8212':xs)
   | isEnabled Ext_old_dashes opts = "--" ++ unsmartify opts xs
   | otherwise                     = "---" ++ unsmartify opts xs
+unsmartify opts ('\8220':xs) = '"' : unsmartify opts xs
+unsmartify opts ('\8221':xs) = '"' : unsmartify opts xs
+unsmartify opts ('\8216':xs) = '\'' : unsmartify opts xs
 unsmartify opts (x:xs) = x : unsmartify opts xs
 unsmartify _ [] = []
 
