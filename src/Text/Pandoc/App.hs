@@ -76,8 +76,9 @@ import System.IO.Error (isDoesNotExistError)
 import Text.Pandoc
 import Text.Pandoc.Builder (setMeta)
 import Text.Pandoc.Class (PandocIO, extractMedia, fillMediaBag, getLog,
-                          setResourcePath, getMediaBag, setTrace)
+                          setResourcePath, getMediaBag, setTrace, report)
 import Text.Pandoc.Highlighting (highlightingStyles)
+import Text.Pandoc.Logging (LogMessage(..))
 import Text.Pandoc.Lua (runLuaFilter, LuaException(..))
 import Text.Pandoc.Writers.Math (defaultMathJaxURL, defaultKaTeXURL)
 import Text.Pandoc.PDF (makePDF)
@@ -444,6 +445,9 @@ convertWithOpts opts = do
                  Native -> nativeNewline
 
   runIO' $ do
+    when (readerName == "markdown_github" ||
+          writerName == "markdown_github") $
+      report $ Deprecated "markdown_github" "Use gfm instead."
     setResourcePath (optResourcePath opts)
     doc <- sourceToDoc sources >>=
               (   (if isJust (optExtractMedia opts)
