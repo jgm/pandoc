@@ -55,10 +55,7 @@ writeCommonMark opts (Pandoc meta blocks) = do
       notes' = if null notes
                then []
                else [OrderedList (1, Decimal, Period) $ reverse notes]
-  let blocks'' = if writerWrapText opts == WrapNone
-                    then walk softBreakToSpace blocks'
-                    else blocks'
-  main <-  blocksToCommonMark opts (blocks'' ++ notes')
+  main <-  blocksToCommonMark opts (blocks' ++ notes')
   metadata <- metaToJSON opts
               (blocksToCommonMark opts)
               (inlinesToCommonMark opts)
@@ -232,10 +229,16 @@ inlinesToNodes :: WriterOptions -> [Inline] -> [Node]
 inlinesToNodes opts  = foldr (inlineToNodes opts) []
 
 inlineToNodes :: WriterOptions -> Inline -> [Node] -> [Node]
-inlineToNodes _ (Str s) = (node (TEXT (T.pack s)) [] :)
+inlineToNodes opts (Str s) = (node (TEXT (T.pack s')) [] :)
+  where s' = if isEnabled Ext_smart opts
+                then unsmartify opts s
+                else s
 inlineToNodes _ Space   = (node (TEXT (T.pack " ")) [] :)
 inlineToNodes _ LineBreak = (node LINEBREAK [] :)
-inlineToNodes _ SoftBreak = (node SOFTBREAK [] :)
+inlineToNodes opts SoftBreak
+  | isEnabled Ext_hard_line_breaks opts = (node LINEBREAK [] :)
+  | writerWrapText opts == WrapNone     = (node (TEXT " ") [] :)
+  | otherwise                           = (node SOFTBREAK [] :)
 inlineToNodes opts (Emph xs) = (node EMPH (inlinesToNodes opts xs) :)
 inlineToNodes opts (Strong xs) = (node STRONG (inlinesToNodes opts xs) :)
 inlineToNodes opts (Strikeout xs) =
@@ -264,8 +267,12 @@ inlineToNodes opts (Quoted qt ils) =
   ((node (TEXT start) [] :
    inlinesToNodes opts ils ++ [node (TEXT end) []]) ++)
   where (start, end) = case qt of
-                          SingleQuote -> (T.pack "‘", T.pack "’")
-                          DoubleQuote -> (T.pack "“", T.pack "”")
+                          SingleQuote
+                            | isEnabled Ext_smart opts -> ("'","'")
+                            | otherwise -> ("‘", "’")
+                          DoubleQuote
+                            | isEnabled Ext_smart opts -> ("\"", "\"")
+                            | otherwise -> ("“", "”")
 inlineToNodes _ (Code _ str) = (node (CODE (T.pack str)) [] :)
 inlineToNodes _ (Math mt str) =
   case mt of
