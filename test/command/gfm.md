@@ -101,3 +101,11 @@ The caption.
 
 
 ```
+
+```
+% pandoc -f gfm+hard_line_breaks -t native
+hi
+hi
+^D
+[Para [Str "hi",LineBreak,Str "hi"]]
+```
