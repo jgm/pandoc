@@ -102,12 +102,34 @@ pandocToMuse (Pandoc meta blocks) = do
        Nothing  -> return main
        Just tpl -> renderTemplate' tpl context
 
+-- | Helper function for flatBlockListToMuse
+-- | Render all blocks and insert blank lines between the first two
+catWithBlankLines :: PandocMonad m
+                  => [Block]       -- ^ List of block elements
+                  -> Int           -- ^ Number of blank lines
+                  -> StateT WriterState m Doc
+catWithBlankLines (b : bs) n = do
+  b' <- blockToMuse b
+  bs' <- flatBlockListToMuse bs
+  return $ b' <> blanklines n <> bs'
+catWithBlankLines _ _ = error "Expected at least one block"
+
 -- | Convert list of Pandoc block elements to Muse
 -- | without setting stTopLevel.
 flatBlockListToMuse :: PandocMonad m
                 => [Block]       -- ^ List of block elements
                 -> StateT WriterState m Doc
-flatBlockListToMuse blocks = cat <$> mapM blockToMuse blocks
+flatBlockListToMuse bs@(BulletList _ : BulletList _ : _) = catWithBlankLines bs 2
+flatBlockListToMuse bs@(OrderedList (_, style1, _) _ : OrderedList (_, style2, _) _ : _) =
+  catWithBlankLines bs (if style1' == style2' then 2 else 0)
+    where
+      style1' = normalizeStyle style1
+      style2' = normalizeStyle style2
+      normalizeStyle DefaultStyle = Decimal
+      normalizeStyle s = s
+flatBlockListToMuse bs@(DefinitionList _ : DefinitionList _ : _) = catWithBlankLines bs 2
+flatBlockListToMuse bs@(_ : _) = catWithBlankLines bs 0
+flatBlockListToMuse [] = return mempty
 
 -- | Convert list of Pandoc block elements to Muse.
 blockListToMuse :: PandocMonad m

@@ -93,6 +93,79 @@ tests = [ testGroup "block elements"
                                               , " third definition :: third description"
                                               ]
               ]
+            -- Test that lists of the same type and style are separated with two blanklines
+            , testGroup "sequential lists"
+              [ "bullet lists" =:
+                bulletList [ para $ text "First"
+                           , para $ text "Second"
+                           , para $ text "Third"
+                           ] <>
+                bulletList [ para $ text "Fourth"
+                           , para $ text "Fifth"
+                           ] =?>
+                unlines [ " - First"
+                        , " - Second"
+                        , " - Third"
+                        , ""
+                        , ""
+                        , " - Fourth"
+                        , " - Fifth"
+                        ]
+              , "ordered lists of the same style" =:
+                orderedListWith (1, UpperRoman, DefaultDelim) [ para $ text "First"
+                                                              , para $ text "Second"
+                                                              ] <>
+                orderedListWith (1, UpperRoman, DefaultDelim) [ para $ text "Third"
+                                                              , para $ text "Fourth"
+                                                              ] =?>
+                unlines [ " I.  First"
+                        , " II. Second"
+                        , ""
+                        , ""
+                        , " I.  Third"
+                        , " II. Fourth"
+                        ]
+              , "ordered lists with equal styles" =:
+                orderedList [ para $ text "First"
+                            , para $ text "Second"
+                            ] <>
+                orderedListWith (1, Decimal, DefaultDelim) [ para $ text "Third"
+                                                           , para $ text "Fourth"
+                                                           ] =?>
+                unlines [ " 1. First"
+                        , " 2. Second"
+                        , ""
+                        , ""
+                        , " 1. Third"
+                        , " 2. Fourth"
+                        ]
+              , "bullet and ordered lists" =:
+                bulletList [ para $ text "First"
+                           , para $ text "Second"
+                           ] <>
+                orderedListWith (1, UpperRoman, DefaultDelim) [ para $ text "Third"
+                                                              , para $ text "Fourth"
+                                                              ] =?>
+                unlines [ " - First"
+                        , " - Second"
+                        , ""
+                        , " I.  Third"
+                        , " II. Fourth"
+                        ]
+              , "different style ordered lists" =:
+                orderedListWith (1, UpperRoman, DefaultDelim) [ para $ text "First"
+                                                              , para $ text "Second"
+                                                              ] <>
+                orderedListWith (1, Decimal, DefaultDelim) [ para $ text "Third"
+                                                           , para $ text "Fourth"
+                                                           ] =?>
+                unlines [ " I.  First"
+                        , " II. Second"
+                        , ""
+                        , " 1. Third"
+                        , " 2. Fourth"
+                        ]
+              ]
             , testGroup "nested lists"
               [ "nested ordered list" =: orderedList [ plain $ text "First outer"
                                                      , plain (text "Second outer:") <>
