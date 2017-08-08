@@ -40,9 +40,10 @@ import Data.Text (Text, unpack)
 import qualified Data.Map as Map
 import Text.Pandoc.Class (PandocMonad)
 import Text.Pandoc.Definition
+import Text.Pandoc.Emoji (emojis)
 import Text.Pandoc.Options
 import Text.Pandoc.Shared (stringify)
-import Text.Pandoc.Walk (walkM)
+import Text.Pandoc.Walk (walkM, walk)
 
 -- | Parse a CommonMark formatted string into a 'Pandoc' structure.
 readCommonMark :: PandocMonad m => ReaderOptions -> Text -> m Pandoc
@@ -50,12 +51,29 @@ readCommonMark opts s = return $
   (if enabled Ext_gfm_auto_identifiers
       then addHeaderIdentifiers
       else id) $
+  (if enabled Ext_emoji
+      then addEmojis
+      else id) $
   nodeToPandoc $ commonmarkToNode opts' exts s
   where opts' = [ optSmart | enabled Ext_smart ]
         exts = [ extStrikethrough | enabled Ext_strikeout ] ++
                [ extTable | enabled Ext_pipe_tables ] ++
                [ extAutolink | enabled Ext_autolink_bare_uris ]
         enabled x = extensionEnabled x (readerExtensions opts)
+
+addEmojis :: Pandoc -> Pandoc
+addEmojis = walk go
+  where go (Str xs) = Str (convertEmojis xs)
+        go x = x
+        convertEmojis (':':xs) =
+           case break (==':') xs of
+                (ys,':':zs) ->
+                   case Map.lookup ys emojis of
+                        Just s  -> s ++ convertEmojis zs
+                        Nothing -> ':' : ys ++ convertEmojis (':':zs)
+                _ -> ':':xs
+        convertEmojis (x:xs) = x : convertEmojis xs
+        convertEmojis [] = []
 
 addHeaderIdentifiers :: Pandoc -> Pandoc
 addHeaderIdentifiers doc = evalState (walkM addHeaderId doc) mempty
