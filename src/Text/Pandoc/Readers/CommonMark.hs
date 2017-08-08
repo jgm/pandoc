@@ -33,21 +33,52 @@ module Text.Pandoc.Readers.CommonMark (readCommonMark)
 where
 
 import CMarkGFM
+import Control.Monad.State
+import Data.Char (isLetter, isAlphaNum, isSpace, toLower)
 import Data.List (groupBy)
 import Data.Text (Text, unpack)
+import qualified Data.Map as Map
 import Text.Pandoc.Class (PandocMonad)
 import Text.Pandoc.Definition
 import Text.Pandoc.Options
+import Text.Pandoc.Shared (stringify)
+import Text.Pandoc.Walk (walkM)
 
 -- | Parse a CommonMark formatted string into a 'Pandoc' structure.
 readCommonMark :: PandocMonad m => ReaderOptions -> Text -> m Pandoc
 readCommonMark opts s = return $
+  (if enabled Ext_gfm_auto_identifiers
+      then addHeaderIdentifiers
+      else id) $
   nodeToPandoc $ commonmarkToNode opts' exts s
   where opts' = [ optSmart | enabled Ext_smart ]
         exts = [ extStrikethrough | enabled Ext_strikeout ] ++
                [ extTable | enabled Ext_pipe_tables ] ++
                [ extAutolink | enabled Ext_autolink_bare_uris ]
         enabled x = extensionEnabled x (readerExtensions opts)
+
+addHeaderIdentifiers :: Pandoc -> Pandoc
+addHeaderIdentifiers doc = evalState (walkM addHeaderId doc) mempty
+
+addHeaderId :: Block -> State (Map.Map String Int) Block
+addHeaderId (Header lev (_,classes,kvs) ils) = do
+  idmap <- get
+  let ident = toIdent ils
+  ident' <- case Map.lookup ident idmap of
+                 Nothing -> do
+                   put (Map.insert ident 1 idmap)
+                   return ident
+                 Just i -> do
+                   put (Map.adjust (+ 1) ident idmap)
+                   return (ident ++ "-" ++ show i)
+  return $ Header lev (ident',classes,kvs) ils
+addHeaderId x = return x
+
+toIdent :: [Inline] -> String
+toIdent =   map (\c -> if isSpace c then '-' else c)
+          . filter (\c -> isLetter c || isAlphaNum c || isSpace c ||
+                           c == '_' || c == '-')
+          . map toLower . stringify
 
 nodeToPandoc :: Node -> Pandoc
 nodeToPandoc (Node _ DOCUMENT nodes) =
