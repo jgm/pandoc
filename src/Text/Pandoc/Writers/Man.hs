@@ -30,7 +30,6 @@ Conversion of 'Pandoc' documents to groff man page format.
 
 -}
 module Text.Pandoc.Writers.Man ( writeMan) where
-import Control.Monad.Except (throwError)
 import Control.Monad.State.Strict
 import Data.List (intercalate, intersperse, stripPrefix, sort)
 import qualified Data.Map as Map
@@ -40,7 +39,6 @@ import qualified Data.Text as T
 import Text.Pandoc.Builder (deleteMeta)
 import Text.Pandoc.Class (PandocMonad, report)
 import Text.Pandoc.Definition
-import Text.Pandoc.Error
 import Text.Pandoc.Logging
 import Text.Pandoc.Options
 import Text.Pandoc.Pretty
