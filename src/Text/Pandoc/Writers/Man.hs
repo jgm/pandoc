@@ -305,15 +305,18 @@ definitionListItemToMan opts (label, defs) = do
   labelText <- inlineListToMan opts label
   contents <- if null defs
                  then return empty
-                 else liftM vcat $ forM defs $ \blocks -> do
-                        (first, rest) <- case blocks of
-                          ((Para x):y) -> return (Plain x,y)
-                          (x:y)        -> return (x,y)
-                          []           -> throwError $ PandocSomeError "blocks is null"
-                        rest' <- liftM vcat $
-                                  mapM (\item -> blockToMan opts item) rest
-                        first' <- blockToMan opts first
-                        return $ first' $$ text ".RS" $$ rest' $$ text ".RE"
+                 else liftM vcat $ forM defs $ \blocks ->
+                        case blocks of
+                          (x:xs) -> do
+                            first' <- blockToMan opts $
+                                      case x of
+                                           Para y -> Plain y
+                                           _      -> x
+                            rest' <- liftM vcat $ mapM
+                                        (\item -> blockToMan opts item) xs
+                            return $ first' $$
+                                     text ".RS" $$ rest' $$ text ".RE"
+                          [] -> return empty
   return $ text ".TP" $$ nowrap (text ".B " <> labelText) $$ contents
 
 -- | Convert list of Pandoc block elements to man.
