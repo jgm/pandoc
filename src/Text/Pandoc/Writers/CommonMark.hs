@@ -1,3 +1,4 @@
+{-# LANGUAGE OverloadedStrings #-}
 {-
 Copyright (C) 2015 John MacFarlane <jgm@berkeley.edu>
 
@@ -34,13 +35,14 @@ module Text.Pandoc.Writers.CommonMark (writeCommonMark) where
 import CMarkGFM
 import Control.Monad.State.Strict (State, get, modify, runState)
 import Data.Foldable (foldrM)
-import Data.Monoid (Any (..))
+import Data.Monoid (Any (..), (<>))
+import Data.List (transpose)
 import Data.Text (Text)
 import qualified Data.Text as T
 import Text.Pandoc.Class (PandocMonad)
 import Text.Pandoc.Definition
 import Text.Pandoc.Options
-import Text.Pandoc.Shared (isTightList, linesToPara)
+import Text.Pandoc.Shared (isTightList, linesToPara, substitute)
 import Text.Pandoc.Templates (renderTemplate')
 import Text.Pandoc.Walk (walkM, walk, query)
 import Text.Pandoc.Writers.HTML (writeHtml5String)
@@ -53,8 +55,6 @@ writeCommonMark opts (Pandoc meta blocks) = do
       notes' = if null notes
                then []
                else [OrderedList (1, Decimal, Period) $ reverse notes]
-  let softBreakToSpace SoftBreak = Space
-      softBreakToSpace x = x
   let blocks'' = if writerWrapText opts == WrapNone
                     then walk softBreakToSpace blocks'
                     else blocks'
@@ -67,6 +67,10 @@ writeCommonMark opts (Pandoc meta blocks) = do
   case writerTemplate opts of
        Nothing  -> return main
        Just tpl -> renderTemplate' tpl context
+
+softBreakToSpace :: Inline -> Inline
+softBreakToSpace SoftBreak = Space
+softBreakToSpace x = x
 
 processNotes :: Inline -> State [[Block]] Inline
 processNotes (Note bs) = do
@@ -147,23 +151,78 @@ blockToNodes opts (DefinitionList items) ns =
           Plain (term ++ [LineBreak] ++ xs) : ys ++ concat zs
         dlToBullet (term, xs) =
           Para term : concat xs
-blockToNodes opts t@(Table _capt aligns widths headers rows) ns = do
-  let allrows = headers:rows
+blockToNodes opts t@(Table capt aligns widths headers rows) ns = do
+  let allcells = concat (headers:rows)
   let isLineBreak LineBreak = Any True
       isLineBreak _         = Any False
+  let isPlainOrPara [Para _]  = True
+      isPlainOrPara [Plain _] = True
+      isPlainOrPara []        = True
+      isPlainOrPara _         = False
   let isSimple = all (==0) widths &&
-                 not ( getAny (query isLineBreak allrows) )
+                 all isPlainOrPara allcells &&
+                 not ( getAny (query isLineBreak allcells) )
   if isEnabled Ext_pipe_tables opts && isSimple
      then do
-       let toAlign AlignDefault = NoAlignment
-           toAlign AlignLeft    = LeftAligned
-           toAlign AlignCenter  = CenterAligned
-           toAlign AlignRight   = RightAligned
-       let aligns' = map toAlign aligns
-       let toCell bs   = node TABLE_CELL <$> blocksToNodes opts bs
-       let toRow cells = node TABLE_ROW <$> mapM toCell cells
-       cmrows <- mapM toRow allrows
-       return (node (TABLE aligns') cmrows : ns)
+       -- We construct a table manually as a CUSTOM_BLOCK, for
+       -- two reasons:  (1) cmark-gfm currently doesn't support
+       -- rendering TABLE nodes; (2) we can align the column sides;
+       -- (3) we can render the caption as a regular paragraph.
+       let capt' = node PARAGRAPH (inlinesToNodes opts capt)
+       -- backslash | in code and raw:
+       let fixPipe (Code attr xs) =
+             Code attr (substitute "|" "\\|" xs)
+           fixPipe (RawInline format xs) =
+             RawInline format (substitute "|" "\\|" xs)
+           fixPipe x = x
+       let toCell [Plain ils] = T.strip
+                                $ nodeToCommonmark [] Nothing
+                                $ node (CUSTOM_INLINE mempty mempty)
+                                $ inlinesToNodes opts
+                                $ walk (fixPipe . softBreakToSpace) ils
+           toCell [Para  ils] = T.strip
+                                $ nodeToCommonmark [] Nothing
+                                $ node (CUSTOM_INLINE mempty mempty)
+                                $ inlinesToNodes opts
+                                $ walk (fixPipe . softBreakToSpace) ils
+           toCell []          = ""
+           toCell xs          = error $ "toCell encountered " ++ show xs
+       let separator = " | "
+       let starter = "| "
+       let ender   = " |"
+       let rawheaders = map toCell headers
+       let rawrows = map (map toCell) rows
+       let maximum' [] = 0
+           maximum' xs = maximum xs
+       let colwidths = map (maximum' . map T.length) $
+                        transpose (rawheaders:rawrows)
+       let toHeaderLine len AlignDefault = T.replicate len "-"
+           toHeaderLine len AlignLeft    = ":" <>
+                  T.replicate (max (len - 1) 1) "-"
+           toHeaderLine len AlignRight   =
+                  T.replicate (max (len - 1) 1) "-" <> ":"
+           toHeaderLine len AlignCenter  = ":" <>
+                  T.replicate (max (len - 2) 1) (T.pack "-") <> ":"
+       let rawheaderlines = zipWith toHeaderLine colwidths aligns
+       let headerlines = starter <> T.intercalate separator rawheaderlines <>
+                          ender
+       let padContent (align, w) t' =
+             let padding = w - T.length t'
+                 halfpadding = padding `div` 2
+             in  case align of
+                      AlignRight -> T.replicate padding " " <> t'
+                      AlignCenter -> T.replicate halfpadding " " <> t' <>
+                                     T.replicate (padding - halfpadding) " "
+                      _ -> t' <> T.replicate padding " "
+       let toRow xs = starter <> T.intercalate separator
+                      (zipWith padContent (zip aligns colwidths) xs) <>
+                      ender
+       let table' = toRow rawheaders <> "\n" <> headerlines <> "\n" <>
+                     T.intercalate "\n" (map toRow rawrows)
+       return (node (CUSTOM_BLOCK table' mempty) [] :
+               if null capt
+                  then ns
+                  else capt' : ns)
      else do -- fall back to raw HTML
        s <- writeHtml5String def $! Pandoc nullMeta [t]
        return (node (HTML_BLOCK s) [] : ns)
