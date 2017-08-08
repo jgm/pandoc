@@ -94,7 +94,7 @@ data LogMessage =
   | InvalidLang String
   | CouldNotHighlight String
   | MissingCharacter String
-  | Deprecated String
+  | Deprecated String String
   deriving (Show, Eq, Data, Ord, Typeable, Generic)
 
 instance ToJSON LogMessage where
@@ -192,8 +192,9 @@ instance ToJSON LogMessage where
            ["message" .= Text.pack msg]
       MissingCharacter msg ->
            ["message" .= Text.pack msg]
-      Deprecated msg ->
-           ["message" .= Text.pack msg]
+      Deprecated thing msg ->
+           ["thing" .= Text.pack thing,
+            "message" .= Text.pack msg]
 
 
 showPos :: SourcePos -> String
@@ -276,8 +277,11 @@ showLogMessage msg =
          "Could not highlight code block:\n" ++ m
        MissingCharacter m ->
          "Missing character: " ++ m
-       Deprecated m ->
-         "Deprecated: " ++ m
+       Deprecated t m ->
+         "Deprecated: " ++ t ++
+         if null m
+            then ""
+            else ". " ++ m
 
 messageVerbosity:: LogMessage -> Verbosity
 messageVerbosity msg =
