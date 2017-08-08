@@ -54,12 +54,19 @@ readCommonMark opts s = return $
   (if enabled Ext_emoji
       then addEmojis
       else id) $
+  (if enabled Ext_hard_line_breaks
+      then walk softToHardBreaks
+      else id) $
   nodeToPandoc $ commonmarkToNode opts' exts s
   where opts' = [ optSmart | enabled Ext_smart ]
         exts = [ extStrikethrough | enabled Ext_strikeout ] ++
                [ extTable | enabled Ext_pipe_tables ] ++
                [ extAutolink | enabled Ext_autolink_bare_uris ]
         enabled x = extensionEnabled x (readerExtensions opts)
+
+softToHardBreaks :: Inline -> Inline
+softToHardBreaks SoftBreak = LineBreak
+softToHardBreaks x = x
 
 addEmojis :: Pandoc -> Pandoc
 addEmojis = walk go
