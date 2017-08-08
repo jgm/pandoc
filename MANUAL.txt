@@ -263,14 +263,17 @@ General options
 :   Specify input format.  *FORMAT* can be `native` (native Haskell),
     `json` (JSON version of native AST), `markdown` (pandoc's
     extended Markdown), `markdown_strict` (original unextended
-    Markdown), `markdown_phpextra` (PHP Markdown Extra), `markdown_github`
-    (GitHub-Flavored Markdown), `markdown_mmd` (MultiMarkdown),
+    Markdown), `markdown_phpextra` (PHP Markdown Extra),
+    `markdown_mmd` (MultiMarkdown), `gfm` (GitHub-Flavored Markdown),
     `commonmark` (CommonMark Markdown), `textile` (Textile), `rst`
     (reStructuredText), `html` (HTML), `docbook` (DocBook), `t2t`
     (txt2tags), `docx` (docx), `odt` (ODT), `epub` (EPUB), `opml` (OPML),
     `org` (Emacs Org mode), `mediawiki` (MediaWiki markup), `twiki` (TWiki
     markup), `tikiwiki` (TikiWiki markup), `haddock` (Haddock markup), or
-    `latex` (LaTeX).  If `+lhs` is appended to `markdown`, `rst`, `latex`, or
+    `latex` (LaTeX).  (`markdown_github` provides deprecated and
+    less accurate suppport for Github-Flavored Markdown; please
+    use `gfm` instead, unless you use extensions that do not work
+    with `gfm`.) If `+lhs` is appended to `markdown`, `rst`, `latex`, or
     `html`, the input will be treated as literate Haskell source: see
     [Literate Haskell support], below. Markdown
     syntax extensions can be individually enabled or disabled by
@@ -289,8 +292,8 @@ General options
     `json` (JSON version of native AST), `plain` (plain text),
     `markdown` (pandoc's extended Markdown), `markdown_strict`
     (original unextended Markdown), `markdown_phpextra` (PHP Markdown
-    Extra), `markdown_github` (GitHub-Flavored Markdown), `markdown_mmd`
-    (MultiMarkdown), `commonmark` (CommonMark Markdown), `rst`
+    Extra), `markdown_mmd` (MultiMarkdown), `gfm` (GitHub-Flavored
+    Markdown), `commonmark` (CommonMark Markdown), `rst`
     (reStructuredText), `html4` (XHTML 1.0 Transitional), `html`
     or `html5` (HTML5/XHTML [polyglot markup]), `latex`
     (LaTeX), `beamer` (LaTeX beamer slide show), `context` (ConTeXt),
@@ -308,7 +311,10 @@ General options
     `dzslides` (DZSlides HTML5 + JavaScript slide show),
     `revealjs` (reveal.js HTML5 + JavaScript slide show), `s5`
     (S5 HTML and JavaScript slide show), or the path of a custom
-    lua writer (see [Custom writers], below). Note that `odt`,
+    lua writer (see [Custom writers], below). (`markdown_github`
+    provides deprecated and less accurate suppport for
+    Github-Flavored Markdown; please use `gfm` instead, unless
+    you use extensions that do not work with `gfm`.) Note that `odt`,
     `epub`, and `epub3` output will not be directed to *stdout*;
     an output filename must be specified using the `-o/--output`
     option. If `+lhs` is appended to `markdown`, `rst`, `latex`,
@@ -3740,7 +3746,7 @@ variants are supported:
     `header_attributes`, `link_attributes`, `abbreviations`,
     `shortcut_reference_links`.
 
-`markdown_github` (GitHub-Flavored Markdown)
+`gfm` and `markdown_github` (GitHub-Flavored Markdown)
 :   `pipe_tables`, `raw_html`, `fenced_code_blocks`, `auto_identifiers`,
     `ascii_identifiers`, `backtick_code_blocks`, `autolink_bare_uris`,
     `intraword_underscores`, `strikeout`, `hard_line_breaks`, `emoji`,
