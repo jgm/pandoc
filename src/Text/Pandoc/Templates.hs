@@ -69,6 +69,7 @@ getDefaultTemplate user writer = do
        "markdown_github"   -> getDefaultTemplate user "markdown"
        "markdown_mmd"      -> getDefaultTemplate user "markdown"
        "markdown_phpextra" -> getDefaultTemplate user "markdown"
+       "gfm"               -> getDefaultTemplate user "commonmark"
        _        -> let fname = "templates" </> "default" <.> format
                    in  UTF8.toString <$> readDataFile user fname
 
