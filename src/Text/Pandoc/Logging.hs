@@ -276,7 +276,7 @@ showLogMessage msg =
 messageVerbosity:: LogMessage -> Verbosity
 messageVerbosity msg =
   case msg of
-       SkippedContent{}             -> INFO
+       SkippedContent{}             -> WARNING
        CouldNotParseYamlMetadata{}  -> WARNING
        DuplicateLinkReference{}     -> WARNING
        DuplicateNoteReference{}     -> WARNING
