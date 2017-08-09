@@ -1632,7 +1632,7 @@ setCaption = do
                try $ spaces >> controlSeq "label" >> (Just <$> tok)
   let ils' = case mblabel of
                   Just lab -> ils <> spanWith
-                                ("",[],[("data-label", stringify lab)]) mempty
+                                ("",[],[("label", stringify lab)]) mempty
                   Nothing  -> ils
   updateState $ \st -> st{ sCaption = Just ils' }
   return mempty
