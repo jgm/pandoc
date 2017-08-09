@@ -162,15 +162,24 @@ convertImage tmpdir fname =
     Just "image/png" -> doNothing
     Just "image/jpeg" -> doNothing
     Just "application/pdf" -> doNothing
-    Just "image/svg+xml" -> return $ Left "conversion from svg not supported"
+    Just "image/svg+xml" -> E.catch (do
+      (exit, _) <- pipeProcess Nothing "rsvg-convert"
+                     ["-f","pdf","-a","-o",pdfOut,fname] BL.empty
+      if exit == ExitSuccess
+         then return $ Right pdfOut
+         else return $ Left "conversion from SVG failed")
+      (\(e :: E.SomeException) -> return $ Left $
+          "check that rsvg2pdf is in path.\n" ++
+          show e)
     _ -> JP.readImage fname >>= \res ->
           case res of
                Left e    -> return $ Left e
                Right img ->
-                 E.catch (Right fileOut <$ JP.savePngImage fileOut img) $
+                 E.catch (Right pngOut <$ JP.savePngImage pngOut img) $
                      \(e :: E.SomeException) -> return (Left (show e))
   where
-    fileOut = replaceDirectory (replaceExtension fname ".png") tmpdir
+    pngOut = replaceDirectory (replaceExtension fname ".png") tmpdir
+    pdfOut = replaceDirectory (replaceExtension fname ".pdf") tmpdir
     mime = getMimeType fname
     doNothing = return (Right fname)
 
