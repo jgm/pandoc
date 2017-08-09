@@ -4,7 +4,7 @@ sourcefiles=$(shell find pandoc.hs src test -name '*.hs')
 BRANCH?=master
 
 quick:
-	stack install --resolver=nightly-2017-08-09 --install-ghc --flag 'pandoc:embed_data_files' --fast --test --test-arguments='-j4 --hide-successes $(TESTARGS)'
+	stack install --resolver=nightly-2017-08-09 --ghc-options='-fdiagnostics-color=always' --install-ghc --flag 'pandoc:embed_data_files' --fast --test --test-arguments='-j4 --hide-successes $(TESTARGS)'
 
 full:
 	stack install --flag 'pandoc:embed_data_files' --flag 'pandoc:weigh-pandoc' --flag 'pandoc:trypandoc' --bench --no-run-benchmarks --test --test-arguments='-j4 --hide-successes' --ghc-options '-Wall -Werror -fno-warn-unused-do-bind -O0 -j4'
