@@ -12,4 +12,5 @@ extra-deps:
 - cmark-gfm-0.1.1
 - QuickCheck-2.10.0.1
 - tasty-quickcheck-0.9.1
+- haddock-library-1.4.5
 resolver: lts-9.0
