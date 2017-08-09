@@ -119,12 +119,12 @@ script:
   case "$BUILD" in
     stack)
       ulimit -n 4096
-      stack --no-terminal $ARGS test --flag 'aeson:fast' --flag pandoc:embed_data_files --haddock --no-haddock-deps --ghc-options="-O0 -Wall -fno-warn-unused-do-bind -Werror"
+      stack --no-terminal $ARGS test --flag 'aeson:fast' --flag pandoc:embed_data_files --haddock --no-haddock-deps --ghc-options="-O0 -Wall -Wincomplete-uni-patterns -Wincomplete-record-updates -Wredundant-constraints -Wcompat -Wnoncanonical-monad-instances -Wnoncanonical-monadfail-instances -fno-warn-unused-do-bind -Werror"
       ;;
     cabal)
       cabal sdist --output-directory=sourcedist && \
       cd sourcedist && \
-      cabal configure --enable-tests --enable-benchmarks -v2 -fembed_data_files -ffast --ghc-options="-O0 -Wall -fno-warn-unused-do-bind -Werror" && \
+      cabal configure --enable-tests --enable-benchmarks -v2 -fembed_data_files -ffast --ghc-options="-O0 -Wall -Wincomplete-uni-patterns -Wincomplete-record-updates -fno-warn-unused-do-bind -Werror" && \
       cabal build && \
       cabal test
       ;;
