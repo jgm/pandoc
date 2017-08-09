@@ -274,7 +274,7 @@ tagsToInlines tags =
 
 -- | Wrap the given inline in a span, marking it as a tag.
 tagSpan :: Tag -> Inlines -> Inlines
-tagSpan t = B.spanWith ("", ["tag"], [("data-tag-name", fromTag t)])
+tagSpan t = B.spanWith ("", ["tag"], [("tag-name", fromTag t)])
 
 
 

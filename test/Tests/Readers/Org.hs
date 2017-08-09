@@ -32,7 +32,7 @@ simpleTable' n = table "" (replicate n (AlignDefault, 0.0))
 
 -- | Create a span for the given tag.
 tagSpan :: String -> Inlines
-tagSpan t = spanWith ("", ["tag"], [("data-tag-name", t)]) . smallcaps $ str t
+tagSpan t = spanWith ("", ["tag"], [("tag-name", t)]) . smallcaps $ str t
 
 tests :: [TestTree]
 tests =
