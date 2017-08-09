@@ -765,15 +765,25 @@ directive' = do
 
 tableDirective :: PandocMonad m
                => String -> [(String, String)] -> String -> RSTParser m Blocks
-tableDirective top _fields body = do
+tableDirective top fields body = do
   bs <- parseFromString' parseBlocks body
   case B.toList bs of
        [Table _ aligns' widths' header' rows'] -> do
          title <- parseFromString' (trimInlines . mconcat <$> many inline) top
-         -- TODO widths
+         columns <- getOption readerColumns
+         let numOfCols = length header'
+         let normWidths ws =
+                map (/ max 1.0 (fromIntegral (columns - numOfCols))) ws
+         let widths = case trim <$> lookup "widths" fields of
+                           Just "auto" -> replicate numOfCols 0.0
+                           Just "grid" -> widths'
+                           Just specs -> normWidths
+                               $ map (fromMaybe (0 :: Double) . safeRead)
+                               $ splitBy (`elem` (" ," :: String)) specs
+                           Nothing -> widths'
          -- align is not applicable since we can't represent whole table align
          return $ B.singleton $ Table (B.toList title)
-                                  aligns' widths' header' rows'
+                                  aligns' widths header' rows'
        _ -> return mempty
 
 
