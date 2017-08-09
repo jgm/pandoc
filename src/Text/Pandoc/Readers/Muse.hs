@@ -391,9 +391,7 @@ museAppendElement tbl element =
       return tbl{ museTableCaption = inlines' }
 
 tableCell :: PandocMonad m => MuseParser m (F Blocks)
-tableCell = try $ do
-  content <- trimInlinesF . mconcat <$> manyTill inline (lookAhead cellEnd)
-  return $ B.plain <$> content
+tableCell = try $ liftM B.plain . trimInlinesF . mconcat <$> manyTill inline (lookAhead cellEnd)
   where cellEnd = try $ void (many1 spaceChar >> char '|') <|> void newline <|> eof
 
 tableElements :: PandocMonad m => MuseParser m [MuseTableElement]
