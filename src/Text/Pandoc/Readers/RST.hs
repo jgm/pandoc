@@ -31,7 +31,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 Conversion from reStructuredText to 'Pandoc' document.
 -}
 module Text.Pandoc.Readers.RST ( readRST ) where
-import Control.Monad (guard, liftM, mzero, when, forM_)
+import Control.Monad (guard, liftM, mzero, when, forM_, mplus)
 import Control.Monad.Identity (Identity(..))
 import Control.Monad.Except (throwError)
 import Data.Char (isHexDigit, isSpace, toLower, toUpper)
@@ -44,7 +44,7 @@ import Data.Sequence (ViewR (..), viewr)
 import Text.Pandoc.Builder (fromList, setMeta)
 import Text.Pandoc.Builder (Blocks, Inlines, trimInlines)
 import qualified Text.Pandoc.Builder as B
-import Text.Pandoc.Class (PandocMonad, readFileFromDirs)
+import Text.Pandoc.Class (PandocMonad, readFileFromDirs, fetchItem)
 import Text.Pandoc.CSV (CSVOptions(..), defaultCSVOptions, parseCSV)
 import Text.Pandoc.Definition
 import Text.Pandoc.Error
@@ -53,15 +53,13 @@ import Text.Pandoc.Logging
 import Text.Pandoc.Options
 import Text.Pandoc.Parsing
 import Text.Pandoc.Shared
+import qualified Text.Pandoc.UTF8 as UTF8
 import Text.Printf (printf)
 import Data.Text (Text)
 import qualified Data.Text as T
 
-import Debug.Trace
-
 -- TODO:
 -- [ ] .. parsed-literal
--- [ ] .. csv-table
 
 -- | Parse reStructuredText string and return Pandoc document.
 readRST :: PandocMonad m
@@ -824,53 +822,66 @@ listTableDirective top fields body = do
           takeCells _ = []
           normWidths ws = map (/ max 1 (sum ws)) ws
 
-  -- TODO
-  -- [ ] delim:
-  -- [ ] quote:
-  -- [ ] keepspace:
-  -- [ ] escape:
-  -- [ ] widths:
-  -- [ ] header-rows:
-  -- [ ] header:
-  -- [ ] url:
-  -- [ ] file:
-  -- [ ] encoding:
 csvTableDirective :: PandocMonad m
                    => String -> [(String, String)] -> String
                    -> RSTParser m Blocks
 csvTableDirective top fields rawcsv = do
-  let res = parseCSV defaultCSVOptions (T.pack rawcsv)
+  let explicitHeader = trim <$> lookup "header" fields
+  let opts = defaultCSVOptions{
+                csvDelim = case trim <$> lookup "delim" fields of
+                                Just "tab" -> '\t'
+                                Just "space" -> ' '
+                                Just [c] -> c
+                                _ -> ','
+              , csvQuote = case trim <$> lookup "quote" fields of
+                                Just [c] -> c
+                                _ -> '"'
+              , csvEscape = case trim <$> lookup "escape" fields of
+                                Just [c] -> Just c
+                                _ -> Nothing
+              , csvKeepSpace = case trim <$> lookup "keepspace" fields of
+                                       Just "true" -> True
+                                       _ -> False
+              }
+  let headerRowsNum = fromMaybe (case explicitHeader of
+                                       Just _  -> 1 :: Int
+                                       Nothing -> 0 :: Int) $
+           lookup "header-rows" fields >>= safeRead
+  rawcsv' <- case trim <$>
+                    lookup "file" fields `mplus` lookup "url" fields of
+                  Just u  -> do
+                    (bs, _) <- fetchItem Nothing u
+                    return $ UTF8.toString bs
+                  Nothing -> return rawcsv
+  let res = parseCSV opts (T.pack $ case explicitHeader of
+                                         Just h -> h ++ "\n" ++ rawcsv'
+                                         Nothing -> rawcsv')
   case res of
        Left e  -> do
          throwError $ PandocParsecError "csv table" e
-       Right rows -> do
-         return $ B.rawBlock "rst" $ show rows
-{-
-  bs <- parseFromString' parseBlocks body
-  title <- parseFromString' (trimInlines . mconcat <$> many inline) top
-  let rows = takeRows $ B.toList bs
-      headerRowsNum = fromMaybe (0 :: Int) $
-         lookup "header-rows" fields >>= safeRead
-      (headerRow,bodyRows,numOfCols) = case rows of
-        x:xs -> if headerRowsNum > 0
-                   then (x, xs, length x)
-                   else ([], rows, length x)
-        _ -> ([],[],0)
-      widths = case trim <$> lookup "widths" fields of
-        Just "auto" -> replicate numOfCols 0
-        Just specs -> normWidths $ map (fromMaybe (0 :: Double) . safeRead) $
-                           splitBy (`elem` (" ," :: String)) specs
-        _ -> replicate numOfCols 0
-  return $ B.table title
-             (zip (replicate numOfCols AlignDefault) widths)
-             headerRow
-             bodyRows
-    where takeRows [BulletList rows] = map takeCells rows
-          takeRows _ = []
-          takeCells [BulletList cells] = map B.fromList cells
-          takeCells _ = []
-          normWidths ws = map (/ max 1 (sum ws)) ws
--}
+       Right rawrows -> do
+         let parseCell = parseFromString' (plain <|> return mempty) . T.unpack
+         let parseRow = mapM parseCell
+         rows <- mapM parseRow rawrows
+         let (headerRow,bodyRows,numOfCols) =
+              case rows of
+                   x:xs -> if headerRowsNum > 0
+                          then (x, xs, length x)
+                          else ([], rows, length x)
+                   _ -> ([],[],0)
+         title <- parseFromString' (trimInlines . mconcat <$> many inline) top
+         let normWidths ws = map (/ max 1 (sum ws)) ws
+         let widths =
+               case trim <$> lookup "widths" fields of
+                 Just "auto" -> replicate numOfCols 0
+                 Just specs -> normWidths
+                               $ map (fromMaybe (0 :: Double) . safeRead)
+                               $ splitBy (`elem` (" ," :: String)) specs
+                 _ -> replicate numOfCols 0
+         return $ B.table title
+                  (zip (replicate numOfCols AlignDefault) widths)
+                  headerRow
+                  bodyRows
 
 -- TODO:
 --  - Only supports :format: fields with a single format for :raw: roles,

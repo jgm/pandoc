@@ -28,7 +28,7 @@ Simple CSV parser.
 -}
 
 module Text.Pandoc.CSV (
-  CSVOptions,
+  CSVOptions(..),
   defaultCSVOptions,
   parseCSV,
   ParseError
@@ -74,7 +74,8 @@ pCSVCell opts = pCSVQuotedCell opts <|> pCSVUnquotedCell opts
 pCSVQuotedCell :: CSVOptions -> Parser Text
 pCSVQuotedCell opts = do
   char (csvQuote opts)
-  res <- many (satisfy (\c -> c /= csvQuote opts) <|> escaped opts)
+  res <- many (satisfy (\c -> c /= csvQuote opts &&
+                              Just c /= csvEscape opts) <|> escaped opts)
   char (csvQuote opts)
   return $ T.pack res
 
@@ -86,7 +87,8 @@ escaped opts = do
 
 pCSVUnquotedCell :: CSVOptions -> Parser Text
 pCSVUnquotedCell opts = T.pack <$>
-  many (satisfy $ \c -> c /= csvDelim opts && c /= '\r' && c /= '\n')
+  many (satisfy (\c -> c /= csvDelim opts && c /= '\r' && c /= '\n'
+                  && c /= csvQuote opts))
 
 pCSVDelim :: CSVOptions -> Parser ()
 pCSVDelim opts = do
