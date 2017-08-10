@@ -215,10 +215,10 @@ block :: PandocMonad m => RSTParser m Blocks
 block = choice [ codeBlock
                , blockQuote
                , fieldList
-               , include
                , directive
                , anchor
                , comment
+               , include
                , header
                , hrule
                , lineBlock     -- must go before definitionList
@@ -352,7 +352,8 @@ singleHeader = do
 singleHeader' :: PandocMonad m => RSTParser m (Inlines, Char)
 singleHeader' = try $ do
   notFollowedBy' whitespace
-  txt <- trimInlines . mconcat <$> many1 (do {notFollowedBy blankline; inline})
+  lookAhead $ anyLine >> oneOf underlineChars
+  txt <- trimInlines . mconcat <$> many1 (do {notFollowedBy newline; inline})
   pos <- getPosition
   let len = (sourceColumn pos) - 1
   blankline
@@ -630,7 +631,7 @@ comment :: Monad m => RSTParser m Blocks
 comment = try $ do
   string ".."
   skipMany1 spaceChar <|> (() <$ lookAhead newline)
-  notFollowedBy' directiveLabel
+  -- notFollowedBy' directiveLabel -- comment comes after directive so unnec.
   manyTill anyChar blanklines
   optional indentedBlock
   return mempty
