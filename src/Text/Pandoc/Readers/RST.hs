@@ -58,7 +58,6 @@ import qualified Data.Text as T
 
 -- TODO:
 -- [ ] .. parsed-literal
--- [ ] :widths: attribute in .. table
 -- [ ] .. csv-table
 
 -- | Parse reStructuredText string and return Pandoc document.
@@ -1057,7 +1056,6 @@ anonymousKey = try $ do
   src <- targetURI
   pos <- getPosition
   let key = toKey $ "_" ++ printf "%09d" (sourceLine pos)
-  --TODO: parse width, height, class and name attributes
   updateState $ \s -> s { stateKeys = M.insert key ((src,""), nullAttr) $
                           stateKeys s }
 
@@ -1085,7 +1083,6 @@ regularKey = try $ do
   refs <- referenceNames
   src <- targetURI
   guard $ not (null src)
-  --TODO: parse width, height, class and name attributes
   let keys = map (toKey . stripTicks) refs
   forM_ keys $ \key ->
     updateState $ \s -> s { stateKeys = M.insert key ((src,""), nullAttr) $
@@ -1115,7 +1112,6 @@ headerBlock = do
   ((txt, _), raw) <- withRaw (doubleHeader' <|> singleHeader')
   (ident,_,_) <- registerHeader nullAttr txt
   let key = toKey (stringify txt)
-  --TODO: parse width, height, class and name attributes
   updateState $ \s -> s { stateKeys = M.insert key (('#':ident,""), nullAttr)
                           $ stateKeys s }
   return raw
