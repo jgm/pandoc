@@ -41,6 +41,7 @@ import Control.Monad.State.Strict (State, StateT, evalState, evalStateT, get, ge
 import qualified Data.ByteString.Lazy as B
 import qualified Data.ByteString.Lazy.Char8 as B8
 import qualified Data.Text.Lazy as TL
+import qualified Data.Text as TS
 import Data.Char (isAlphaNum, isDigit, toLower, isAscii)
 import Data.List (intercalate, isInfixOf, isPrefixOf)
 import qualified Data.Map as M
@@ -70,7 +71,7 @@ import Text.Pandoc.Writers.HTML (writeHtmlStringForEPUB)
 import Text.Printf (printf)
 import Text.XML.Light (Attr (..), Element (..), Node (..), QName (..),
                        add_attrs, lookupAttr, node, onlyElems, parseXML,
-                       ppElement, strContent, unode, unqual)
+                       ppElement, strContent, unode, unqual, showElement)
 
 -- A Chapter includes a list of blocks and maybe a section
 -- number offset.  Note, some chapters are unnumbered. The section
@@ -635,17 +636,17 @@ pandocToEPUB version opts doc@(Pandoc meta _) = do
   let tocLevel = writerTOCDepth opts
 
   let navPointNode :: PandocMonad m
-                   => (Int -> String -> String -> [Element] -> Element)
+                   => (Int -> [Inline] -> String -> [Element] -> Element)
                    -> S.Element -> StateT Int m Element
       navPointNode formatter (S.Sec _ nums (ident,_,_) ils children) = do
         n <- get
         modify (+1)
         let showNums :: [Int] -> String
             showNums = intercalate "." . map show
-        let tit' = stringify ils
         let tit = if writerNumberSections opts && not (null nums)
-                     then showNums nums ++ " " ++ tit'
-                     else tit'
+                     then Span ("", ["section-header-number"], [])
+                           [Str (showNums nums)] : Space : ils
+                     else ils
         src <- case lookup ident reftable of
                  Just x  -> return x
                  Nothing -> throwError $ PandocSomeError $ ident ++ " not found in reftable"
@@ -656,10 +657,10 @@ pandocToEPUB version opts doc@(Pandoc meta _) = do
         return $ formatter n tit src subs
       navPointNode _ (S.Blk _) = throwError $ PandocSomeError "navPointNode encountered Blk"
 
-  let navMapFormatter :: Int -> String -> String -> [Element] -> Element
+  let navMapFormatter :: Int -> [Inline] -> String -> [Element] -> Element
       navMapFormatter n tit src subs = unode "navPoint" !
                [("id", "navPoint-" ++ show n)] $
-                  [ unode "navLabel" $ unode "text" tit
+                  [ unode "navLabel" $ unode "text" $ stringify tit
                   , unode "content" ! [("src", "text/" ++ src)] $ ()
                   ] ++ subs
 
@@ -690,19 +691,31 @@ pandocToEPUB version opts doc@(Pandoc meta _) = do
           ]
   let tocEntry = mkEntry "toc.ncx" tocData
 
-  let navXhtmlFormatter :: Int -> String -> String -> [Element] -> Element
+  let navXhtmlFormatter :: Int -> [Inline] -> String -> [Element] -> Element
       navXhtmlFormatter n tit src subs = unode "li" !
                                        [("id", "toc-li-" ++ show n)] $
                                             (unode "a" ! [("href", "text/" ++
                                                                    src)]
-                                             $ tit)
+                                             $ titElements)
                                             : case subs of
                                                  []    -> []
                                                  (_:_) -> [unode "ol" ! [("class","toc")] $ subs]
+          where titElements = parseXML titRendered
+                titRendered = case P.runPure
+                               (writeHtmlStringForEPUB version
+                                 opts{ writerTemplate = Nothing }
+                                 (Pandoc nullMeta
+                                   [Plain $ walk delink tit])) of
+                                Left _  -> TS.pack $ stringify tit
+                                Right x -> x
+                -- can't have a element inside a...
+                delink (Link _ ils _) = Span ("", [], []) ils
+                delink x = x
 
   let navtag = if epub3 then "nav" else "div"
   tocBlocks <- lift $ evalStateT (mapM (navPointNode navXhtmlFormatter) secs) 1
-  let navBlocks = [RawBlock (Format "html") $ ppElement $
+  let navBlocks = [RawBlock (Format "html")
+                  $ showElement $ -- prettyprinting introduces bad spaces
                    unode navtag ! ([("epub:type","toc") | epub3] ++
                                    [("id","toc")]) $
                     [ unode "h1" ! [("id","toc-title")] $ tocTitle
