@@ -45,6 +45,7 @@ import Text.Pandoc.Builder (fromList, setMeta)
 import Text.Pandoc.Builder (Blocks, Inlines, trimInlines)
 import qualified Text.Pandoc.Builder as B
 import Text.Pandoc.Class (PandocMonad, readFileFromDirs)
+import Text.Pandoc.CSV (CSVOptions(..), defaultCSVOptions, parseCSV)
 import Text.Pandoc.Definition
 import Text.Pandoc.Error
 import Text.Pandoc.ImageSize (lengthToDim, scaleDimension)
@@ -55,6 +56,8 @@ import Text.Pandoc.Shared
 import Text.Printf (printf)
 import Data.Text (Text)
 import qualified Data.Text as T
+
+import Debug.Trace
 
 -- TODO:
 -- [ ] .. parsed-literal
@@ -688,6 +691,7 @@ directive' = do
   case label of
         "table" -> tableDirective top fields body'
         "list-table" -> listTableDirective top fields body'
+        "csv-table" -> csvTableDirective top fields body'
         "line-block" -> lineBlockDirective body'
         "raw" -> return $ B.rawBlock (trim top) (stripTrailingNewlines body)
         "role" -> addNewRole top $ map (\(k,v) -> (k, trim v)) fields
@@ -819,6 +823,54 @@ listTableDirective top fields body = do
           takeCells [BulletList cells] = map B.fromList cells
           takeCells _ = []
           normWidths ws = map (/ max 1 (sum ws)) ws
+
+  -- TODO
+  -- [ ] delim:
+  -- [ ] quote:
+  -- [ ] keepspace:
+  -- [ ] escape:
+  -- [ ] widths:
+  -- [ ] header-rows:
+  -- [ ] header:
+  -- [ ] url:
+  -- [ ] file:
+  -- [ ] encoding:
+csvTableDirective :: PandocMonad m
+                   => String -> [(String, String)] -> String
+                   -> RSTParser m Blocks
+csvTableDirective top fields rawcsv = do
+  let res = parseCSV defaultCSVOptions (T.pack rawcsv)
+  case res of
+       Left e  -> do
+         throwError $ PandocParsecError "csv table" e
+       Right rows -> do
+         return $ B.rawBlock "rst" $ show rows
+{-
+  bs <- parseFromString' parseBlocks body
+  title <- parseFromString' (trimInlines . mconcat <$> many inline) top
+  let rows = takeRows $ B.toList bs
+      headerRowsNum = fromMaybe (0 :: Int) $
+         lookup "header-rows" fields >>= safeRead
+      (headerRow,bodyRows,numOfCols) = case rows of
+        x:xs -> if headerRowsNum > 0
+                   then (x, xs, length x)
+                   else ([], rows, length x)
+        _ -> ([],[],0)
+      widths = case trim <$> lookup "widths" fields of
+        Just "auto" -> replicate numOfCols 0
+        Just specs -> normWidths $ map (fromMaybe (0 :: Double) . safeRead) $
+                           splitBy (`elem` (" ," :: String)) specs
+        _ -> replicate numOfCols 0
+  return $ B.table title
+             (zip (replicate numOfCols AlignDefault) widths)
+             headerRow
+             bodyRows
+    where takeRows [BulletList rows] = map takeCells rows
+          takeRows _ = []
+          takeCells [BulletList cells] = map B.fromList cells
+          takeCells _ = []
+          normWidths ws = map (/ max 1 (sum ws)) ws
+-}
 
 -- TODO:
 --  - Only supports :format: fields with a single format for :raw: roles,
