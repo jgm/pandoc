@@ -403,8 +403,12 @@ elementToHtml slideLevel opts (Sec level num (id',classes,keyvals) title' elemen
                 then return mempty
                 else do
                   modify (\st -> st{ stElement = True})
+                  let level' = if level <= slideLevel &&
+                                  slideVariant == SlidySlides
+                                  then 1 -- see #3566
+                                  else level
                   res <- blockToHtml opts
-                           (Header level (id',classes,keyvals) title')
+                           (Header level' (id',classes,keyvals) title')
                   modify (\st -> st{ stElement = False})
                   return res
 
