@@ -3,7 +3,7 @@ module Tests.Writers.Docx (tests) where
 import System.FilePath ((</>))
 import Test.Tasty
 import Tests.Helpers
-import Text.Pandoc.Class (runIOorExplode)
+import Text.Pandoc.Class (runIOorExplode, setUserDataDir)
 import Text.Pandoc.Definition
 import Text.Pandoc.Options
 import Text.Pandoc.Walk
@@ -24,9 +24,9 @@ compareOutput (wopts, ropts) nativeFileIn nativeFileOut = do
   nf <- UTF8.toText <$> BS.readFile nativeFileIn
   nf' <- UTF8.toText <$> BS.readFile nativeFileOut
   runIOorExplode $ do
+    setUserDataDir $ Just (".." </> "data")
     roundtripped <- readNative def nf >>=
-            writeDocx wopts{writerUserDataDir = Just (".." </> "data")} >>=
-            readDocx ropts
+            writeDocx wopts >>= readDocx ropts
     orig <- readNative def nf'
     return (walk fixImages roundtripped, walk fixImages orig)
 
