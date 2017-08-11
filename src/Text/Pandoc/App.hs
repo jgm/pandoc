@@ -355,7 +355,6 @@ convertWithOpts opts = do
                             writerEmailObfuscation = optEmailObfuscation opts,
                             writerIdentifierPrefix = optIdentifierPrefix opts,
                             writerSourceURL        = sourceURL,
-                            writerUserDataDir      = datadir,
                             writerHtmlQTags        = optHtmlQTags opts,
                             writerTopLevelDivision = optTopLevelDivision opts,
                             writerListings         = optListings opts,

@@ -226,7 +226,6 @@ writeDocx :: (PandocMonad m)
           -> Pandoc         -- ^ Document to convert
           -> m BL.ByteString
 writeDocx opts doc@(Pandoc meta _) = do
-  let datadir = writerUserDataDir opts
   let doc' = walk fixDisplayMath $ doc
   username <- P.lookupEnv "USERNAME"
   utctime <- P.getCurrentTime
