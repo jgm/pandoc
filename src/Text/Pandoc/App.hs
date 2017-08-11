@@ -84,8 +84,8 @@ import Text.Pandoc.PDF (makePDF)
 import Text.Pandoc.Process (pipeProcess)
 import Text.Pandoc.SelfContained (makeDataURI, makeSelfContained)
 import Text.Pandoc.Shared (headerShift, isURI, openURL, readDataFile,
-                           readDataFileUTF8, safeRead, tabFilter,
-                           eastAsianLineBreakFilter)
+                           readDataFileUTF8, readDefaultDataFile,
+                           safeRead, tabFilter, eastAsianLineBreakFilter)
 import qualified Text.Pandoc.UTF8 as UTF8
 import Text.Pandoc.XML (toEntities)
 import Text.Printf
@@ -1007,7 +1007,7 @@ options =
     , Option "" ["print-default-data-file"]
                  (ReqArg
                   (\arg _ -> do
-                     readDataFile Nothing arg >>= BS.hPutStr stdout
+                     readDefaultDataFile arg >>= BS.hPutStr stdout
                      exitSuccess)
                   "FILE")
                   "" -- "Print default data file"

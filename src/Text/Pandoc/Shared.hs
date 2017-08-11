@@ -78,6 +78,7 @@ module Text.Pandoc.Shared (
                      inDirectory,
                      getDefaultReferenceDocx,
                      getDefaultReferenceODT,
+                     readDefaultDataFile,
                      readDataFile,
                      readDataFileUTF8,
                      openURL,

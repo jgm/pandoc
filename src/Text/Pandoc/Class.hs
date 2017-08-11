@@ -80,6 +80,7 @@ import Codec.Archive.Zip (Archive, fromArchive, emptyArchive)
 import Data.Unique (hashUnique)
 import qualified Data.Unique as IO (newUnique)
 import qualified Text.Pandoc.Shared as IO ( readDataFile
+                                          , readDefaultDataFile
                                           , openURL )
 import qualified Text.Pandoc.UTF8 as UTF8
 import Text.Pandoc.Compat.Time (UTCTime)
@@ -152,6 +153,8 @@ class (Functor m, Applicative m, Monad m, MonadError PandocError m)
   -- | Read the strict ByteString contents from a file path,
   -- raising an error on failure.
   readFileStrict :: FilePath -> m B.ByteString
+  -- | Read file from from Cabal data directory.
+  readDefaultDataFile :: FilePath -> m B.ByteString
   -- | Read file from specified user data directory or,
   -- if not found there, from Cabal data directory.
   readDataFile :: Maybe FilePath -> FilePath -> m B.ByteString
@@ -326,6 +329,7 @@ instance PandocMonad PandocIO where
          Left e  -> throwError $ PandocHttpError u e
   readFileLazy s = liftIOError BL.readFile s
   readFileStrict s = liftIOError B.readFile s
+  readDefaultDataFile fname = liftIOError IO.readDefaultDataFile fname
   readDataFile mfp fname = liftIOError (IO.readDataFile mfp) fname
   glob = liftIO . IO.glob
   getModificationTime fp = liftIOError IO.getModificationTime fp
@@ -602,11 +606,11 @@ instance PandocMonad PandocPure where
     case infoFileContents <$> getFileInfo fp fps of
       Just bs -> return bs
       Nothing -> throwError $ PandocResourceNotFound fp
-  readDataFile Nothing "reference.docx" =
+  readDefaultDataFile "reference.docx" =
     (B.concat . BL.toChunks . fromArchive) <$> getsPureState stReferenceDocx
-  readDataFile Nothing "reference.odt" =
+  readDefaultDataFile "reference.odt" =
     (B.concat . BL.toChunks . fromArchive) <$> getsPureState stReferenceODT
-  readDataFile Nothing fname = do
+  readDefaultDataFile fname = do
     let fname' = if fname == "MANUAL.txt" then fname else "data" </> fname
     readFileStrict fname'
   readDataFile (Just userDir) fname = do
@@ -614,6 +618,7 @@ instance PandocMonad PandocPure where
     case infoFileContents <$> getFileInfo (userDir </> fname) userDirFiles of
       Just bs -> return bs
       Nothing -> readDataFile Nothing fname
+  readDataFile Nothing fname = readDefaultDataFile fname
 
   glob s = do
     FileTree ftmap <- getsPureState stFiles
@@ -640,6 +645,7 @@ instance PandocMonad m => PandocMonad (ParsecT s st m) where
   openURL = lift . openURL
   readFileLazy = lift . readFileLazy
   readFileStrict = lift . readFileStrict
+  readDefaultDataFile = lift . readDefaultDataFile
   readDataFile mbuserdir = lift . readDataFile mbuserdir
   glob = lift . glob
   getModificationTime = lift . getModificationTime
@@ -668,6 +674,7 @@ instance PandocMonad m => PandocMonad (ReaderT r m) where
   openURL = lift . openURL
   readFileLazy = lift . readFileLazy
   readFileStrict = lift . readFileStrict
+  readDefaultDataFile = lift . readDefaultDataFile
   readDataFile mbuserdir = lift . readDataFile mbuserdir
   glob = lift . glob
   getModificationTime = lift . getModificationTime
@@ -684,6 +691,7 @@ instance (PandocMonad m, Monoid w) => PandocMonad (WriterT w m) where
   openURL = lift . openURL
   readFileLazy = lift . readFileLazy
   readFileStrict = lift . readFileStrict
+  readDefaultDataFile = lift . readDefaultDataFile
   readDataFile mbuserdir = lift . readDataFile mbuserdir
   glob = lift . glob
   getModificationTime = lift . getModificationTime
@@ -700,6 +708,7 @@ instance (PandocMonad m, Monoid w) => PandocMonad (RWST r w st m) where
   openURL = lift . openURL
   readFileLazy = lift . readFileLazy
   readFileStrict = lift . readFileStrict
+  readDefaultDataFile = lift . readDefaultDataFile
   readDataFile mbuserdir = lift . readDataFile mbuserdir
   glob = lift . glob
   getModificationTime = lift . getModificationTime
@@ -716,6 +725,7 @@ instance PandocMonad m => PandocMonad (StateT st m) where
   openURL = lift . openURL
   readFileLazy = lift . readFileLazy
   readFileStrict = lift . readFileStrict
+  readDefaultDataFile = lift . readDefaultDataFile
   readDataFile mbuserdir = lift . readDataFile mbuserdir
   glob = lift . glob
   getModificationTime = lift . getModificationTime

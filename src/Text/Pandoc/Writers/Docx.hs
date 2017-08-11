@@ -231,7 +231,7 @@ writeDocx opts doc@(Pandoc meta _) = do
   username <- P.lookupEnv "USERNAME"
   utctime <- P.getCurrentTime
   distArchive <- (toArchive . BL.fromStrict) <$>
-                      P.readDataFile Nothing "reference.docx"
+                      P.readDefaultDataFile "reference.docx"
   refArchive <- case writerReferenceDoc opts of
                      Just f  -> toArchive <$> P.readFileLazy f
                      Nothing -> (toArchive . BL.fromStrict) <$>
