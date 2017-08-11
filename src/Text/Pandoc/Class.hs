@@ -157,9 +157,9 @@ class (Functor m, Applicative m, Monad m, MonadError PandocError m)
   readFileStrict :: FilePath -> m B.ByteString
   -- | Read file from from Cabal data directory.
   readDefaultDataFile :: FilePath -> m B.ByteString
-  -- | Read file from specified user data directory or,
+  -- | Read file from user data directory or,
   -- if not found there, from Cabal data directory.
-  readDataFile :: Maybe FilePath -> FilePath -> m B.ByteString
+  readDataFile :: FilePath -> m B.ByteString
   -- | Return a list of paths that match a glob, relative to
   -- the working directory.  See 'System.FilePath.Glob' for
   -- the glob syntax.
@@ -335,7 +335,9 @@ instance PandocMonad PandocIO where
   readFileLazy s = liftIOError BL.readFile s
   readFileStrict s = liftIOError B.readFile s
   readDefaultDataFile fname = liftIOError IO.readDefaultDataFile fname
-  readDataFile mfp fname = liftIOError (IO.readDataFile mfp) fname
+  readDataFile fname = do
+    datadir <- getUserDataDir
+    liftIOError (IO.readDataFile datadir) fname
   glob = liftIO . IO.glob
   getModificationTime fp = liftIOError IO.getModificationTime fp
   getCommonState = PandocIO $ lift get
@@ -629,12 +631,16 @@ instance PandocMonad PandocPure where
   readDefaultDataFile fname = do
     let fname' = if fname == "MANUAL.txt" then fname else "data" </> fname
     readFileStrict fname'
-  readDataFile (Just userDir) fname = do
-    userDirFiles <- getsPureState stUserDataFiles
-    case infoFileContents <$> getFileInfo (userDir </> fname) userDirFiles of
-      Just bs -> return bs
-      Nothing -> readDataFile Nothing fname
-  readDataFile Nothing fname = readDefaultDataFile fname
+  readDataFile fname = do
+    datadir <- getUserDataDir
+    case datadir of
+         Just userDir -> do
+           userDirFiles <- getsPureState stUserDataFiles
+           case infoFileContents <$> getFileInfo (userDir </> fname)
+                userDirFiles of
+             Just bs -> return bs
+             Nothing -> readDefaultDataFile fname
+         Nothing -> readDefaultDataFile fname
 
   glob s = do
     FileTree ftmap <- getsPureState stFiles
@@ -662,7 +668,7 @@ instance PandocMonad m => PandocMonad (ParsecT s st m) where
   readFileLazy = lift . readFileLazy
   readFileStrict = lift . readFileStrict
   readDefaultDataFile = lift . readDefaultDataFile
-  readDataFile mbuserdir = lift . readDataFile mbuserdir
+  readDataFile = lift . readDataFile
   glob = lift . glob
   getModificationTime = lift . getModificationTime
   getCommonState = lift getCommonState
@@ -691,7 +697,7 @@ instance PandocMonad m => PandocMonad (ReaderT r m) where
   readFileLazy = lift . readFileLazy
   readFileStrict = lift . readFileStrict
   readDefaultDataFile = lift . readDefaultDataFile
-  readDataFile mbuserdir = lift . readDataFile mbuserdir
+  readDataFile = lift . readDataFile
   glob = lift . glob
   getModificationTime = lift . getModificationTime
   getCommonState = lift getCommonState
@@ -708,7 +714,7 @@ instance (PandocMonad m, Monoid w) => PandocMonad (WriterT w m) where
   readFileLazy = lift . readFileLazy
   readFileStrict = lift . readFileStrict
   readDefaultDataFile = lift . readDefaultDataFile
-  readDataFile mbuserdir = lift . readDataFile mbuserdir
+  readDataFile = lift . readDataFile
   glob = lift . glob
   getModificationTime = lift . getModificationTime
   getCommonState = lift getCommonState
@@ -725,7 +731,7 @@ instance (PandocMonad m, Monoid w) => PandocMonad (RWST r w st m) where
   readFileLazy = lift . readFileLazy
   readFileStrict = lift . readFileStrict
   readDefaultDataFile = lift . readDefaultDataFile
-  readDataFile mbuserdir = lift . readDataFile mbuserdir
+  readDataFile = lift . readDataFile
   glob = lift . glob
   getModificationTime = lift . getModificationTime
   getCommonState = lift getCommonState
@@ -742,7 +748,7 @@ instance PandocMonad m => PandocMonad (StateT st m) where
   readFileLazy = lift . readFileLazy
   readFileStrict = lift . readFileStrict
   readDefaultDataFile = lift . readDefaultDataFile
-  readDataFile mbuserdir = lift . readDataFile mbuserdir
+  readDataFile = lift . readDataFile
   glob = lift . glob
   getModificationTime = lift . getModificationTime
   getCommonState = lift getCommonState

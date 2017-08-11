@@ -76,7 +76,8 @@ import System.IO.Error (isDoesNotExistError)
 import Text.Pandoc
 import Text.Pandoc.Builder (setMeta)
 import Text.Pandoc.Class (PandocIO, extractMedia, fillMediaBag, getLog,
-                          setResourcePath, getMediaBag, setTrace, report)
+                          setResourcePath, getMediaBag, setTrace, report,
+                          setUserDataDir)
 import Text.Pandoc.Highlighting (highlightingStyles)
 import Text.Pandoc.Lua (runLuaFilter, LuaException(..))
 import Text.Pandoc.Writers.Math (defaultMathJaxURL, defaultKaTeXURL)
@@ -218,8 +219,9 @@ convertWithOpts opts = do
   templ <- case optTemplate opts of
                 _ | not standalone -> return Nothing
                 Nothing -> do
-                           deftemp <- runIO $
-                                        getDefaultTemplate datadir format
+                           deftemp <- runIO $ do
+                                        setUserDataDir datadir
+                                        getDefaultTemplate format
                            case deftemp of
                                  Left e  -> E.throwIO e
                                  Right t -> return (Just t)
@@ -444,6 +446,7 @@ convertWithOpts opts = do
                  Native -> nativeNewline
 
   runIO' $ do
+    setUserDataDir datadir
     when (readerName == "markdown_github" ||
           writerName == "markdown_github") $
       report $ Deprecated "markdown_github" "Use gfm instead."
@@ -996,7 +999,9 @@ options =
     , Option "D" ["print-default-template"]
                  (ReqArg
                   (\arg _ -> do
-                     templ <- runIO $ getDefaultTemplate Nothing arg
+                     templ <- runIO $ do
+                                setUserDataDir Nothing
+                                getDefaultTemplate arg
                      case templ of
                           Right t -> UTF8.hPutStr stdout t
                           Left e  -> E.throwIO e

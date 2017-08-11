@@ -393,8 +393,7 @@ pandocToEPUB version opts doc@(Pandoc meta _) = do
   -- stylesheet
   stylesheets <- case epubStylesheets metadata of
                       [] -> (\x -> [B.fromChunks [x]]) <$>
-                             P.readDataFile (writerUserDataDir opts)
-                             "epub.css"
+                             P.readDataFile "epub.css"
                       fs -> mapM P.readFileLazy fs
   let stylesheetEntries = zipWith
         (\bs n -> mkEntry ("styles/stylesheet" ++ show n ++ ".css") bs)
