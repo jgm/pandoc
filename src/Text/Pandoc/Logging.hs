@@ -95,6 +95,8 @@ data LogMessage =
   | CouldNotHighlight String
   | MissingCharacter String
   | Deprecated String String
+  | NoTranslation String
+  | CouldNotLoadTranslations String String
   deriving (Show, Eq, Data, Ord, Typeable, Generic)
 
 instance ToJSON LogMessage where
@@ -195,6 +197,11 @@ instance ToJSON LogMessage where
       Deprecated thing msg ->
            ["thing" .= Text.pack thing,
             "message" .= Text.pack msg]
+      NoTranslation term ->
+           ["term" .= Text.pack term]
+      CouldNotLoadTranslations lang msg ->
+           ["lang" .= Text.pack lang,
+            "message" .= Text.pack msg]
 
 
 showPos :: SourcePos -> String
@@ -282,6 +289,11 @@ showLogMessage msg =
          if null m
             then ""
             else ". " ++ m
+       NoTranslation t ->
+         "The term " ++ t ++ " has no translation defined."
+       CouldNotLoadTranslations lang m ->
+         "Could not load translations for " ++ lang ++
+           if null m then "" else ('\n':m)
 
 messageVerbosity:: LogMessage -> Verbosity
 messageVerbosity msg =
@@ -314,3 +326,5 @@ messageVerbosity msg =
        CouldNotHighlight{}          -> WARNING
        MissingCharacter{}           -> WARNING
        Deprecated{}                 -> WARNING
+       NoTranslation{}              -> WARNING
+       CouldNotLoadTranslations{}   -> WARNING

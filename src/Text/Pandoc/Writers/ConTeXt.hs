@@ -37,7 +37,7 @@ import Data.Maybe (catMaybes)
 import Data.Text (Text)
 import Network.URI (unEscapeString)
 import Text.Pandoc.BCP47
-import Text.Pandoc.Class (PandocMonad, report)
+import Text.Pandoc.Class (PandocMonad, report, toLang)
 import Text.Pandoc.Logging
 import Text.Pandoc.Definition
 import Text.Pandoc.ImageSize

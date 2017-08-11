@@ -45,8 +45,8 @@ import Data.Maybe (catMaybes, fromMaybe, isJust)
 import Data.Text (Text)
 import qualified Data.Text as T
 import Network.URI (unEscapeString)
-import Text.Pandoc.BCP47 (Lang(..), toLang, getLang, renderLang)
-import Text.Pandoc.Class (PandocMonad, report)
+import Text.Pandoc.BCP47 (Lang(..), getLang, renderLang)
+import Text.Pandoc.Class (PandocMonad, report, toLang)
 import Text.Pandoc.Definition
 import Text.Pandoc.Highlighting (formatLaTeXBlock, formatLaTeXInline, highlight,
                                  styleToLaTeX, toListingsLanguage)

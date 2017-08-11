@@ -55,8 +55,11 @@ import Data.Maybe (fromMaybe, maybeToList)
 import Safe (minimumDef)
 import System.FilePath (addExtension, replaceExtension, takeExtension)
 import Text.Pandoc.Builder
-import Text.Pandoc.Class (PandocMonad, PandocPure, lookupEnv, readFileFromDirs,
-                          report, setResourcePath, getResourcePath)
+import Text.Pandoc.Class (PandocMonad, PandocPure, lookupEnv,
+                          readFileFromDirs, report, setResourcePath,
+                          getResourcePath, setTranslations, translateTerm)
+import qualified Text.Pandoc.Translations as Translations
+import Text.Pandoc.BCP47 (Lang(..))
 import Text.Pandoc.Highlighting (fromListingsLanguage, languagesByExtension)
 import Text.Pandoc.ImageSize (numUnit, showFl)
 import Text.Pandoc.Logging
@@ -1247,6 +1250,7 @@ inlineCommands = M.fromList $
                                     removeDoubleQuotes . untokenize <$> braced
                            mkImage options src)
   , ("enquote", enquote)
+  , ("figurename", doTerm Translations.Figure)
   , ("cite", citation "cite" NormalCitation False)
   , ("Cite", citation "Cite" NormalCitation False)
   , ("citep", citation "citep" NormalCitation False)
@@ -1325,6 +1329,12 @@ inlineCommands = M.fromList $
   -- etoolbox
   , ("ifstrequal", ifstrequal)
   ]
+
+doTerm :: PandocMonad m => Translations.Term -> LP m Inlines
+doTerm term = do
+  s <- (symbol '~' >> return (str "\160")) <|> return space
+  t <- translateTerm term
+  return (str t <> s)
 
 ifstrequal :: PandocMonad m => LP m Inlines
 ifstrequal = do
@@ -1759,6 +1769,9 @@ blockCommands = M.fromList $
    -- includes
    , ("lstinputlisting", inputListing)
    , ("graphicspath", graphicsPath)
+   -- polyglossia
+   , ("setdefaultlanguage", setDefaultLanguage)
+   , ("setmainlanguage", setDefaultLanguage)
    -- hyperlink
    , ("hypertarget", try $ braced >> grouped block)
    -- LaTeX colors
@@ -2206,3 +2219,121 @@ block = (mempty <$ spaces1)
 blocks :: PandocMonad m => LP m Blocks
 blocks = mconcat <$> many block
 
+setDefaultLanguage :: PandocMonad m => LP m Blocks
+setDefaultLanguage = do
+  o <- option "" $ (T.unpack . T.filter (\c -> c /= '[' && c /= ']'))
+                <$> rawopt
+  polylang <- toksToString <$> braced
+  case polyglossiaLangToBCP47 polylang o of
+       Nothing -> return () -- TODO mzero? warning?
+       Just l -> setTranslations l
+  return mempty
+
+polyglossiaLangToBCP47 :: String -> String -> Maybe Lang
+polyglossiaLangToBCP47 s o =
+  case (s, filter (/=' ') o) of
+       ("arabic", "locale=algeria") -> Just $ Lang "ar" "" "DZ" []
+       ("arabic", "locale=mashriq") -> Just $ Lang "ar" "" "SY" []
+       ("arabic", "locale=libya") -> Just $ Lang "ar" "" "LY" []
+       ("arabic", "locale=morocco") -> Just $ Lang "ar" "" "MA" []
+       ("arabic", "locale=mauritania") -> Just $ Lang "ar" "" "MR" []
+       ("arabic", "locale=tunisia") -> Just $ Lang "ar" "" "TN" []
+       ("german", "spelling=old") -> Just $ Lang "de" "" "DE" ["1901"]
+       ("german", "variant=austrian,spelling=old")
+                                  -> Just $ Lang "de" "" "AT" ["1901"]
+       ("german", "variant=austrian") -> Just $ Lang "de" "" "AT" []
+       ("german", "variant=swiss,spelling=old")
+                                  -> Just $ Lang "de" "" "CH" ["1901"]
+       ("german", "variant=swiss") -> Just $ Lang "de" "" "CH" []
+       ("german", _) -> Just $ Lang "de" "" "" []
+       ("lsorbian", _) -> Just $ Lang "dsb" "" "" []
+       ("greek", "variant=poly") -> Just $ Lang "el" "" "polyton" []
+       ("english", "variant=australian") -> Just $ Lang "en" "" "AU" []
+       ("english", "variant=canadian") -> Just $ Lang "en" "" "CA" []
+       ("english", "variant=british") -> Just $ Lang "en" "" "GB" []
+       ("english", "variant=newzealand") -> Just $ Lang "en" "" "NZ" []
+       ("english", "variant=american") -> Just $ Lang "en" "" "US" []
+       ("greek", "variant=ancient") -> Just $ Lang "grc" "" "" []
+       ("usorbian", _) -> Just $ Lang "hsb" "" "" []
+       ("latin", "variant=classic") -> Just $ Lang "la" "" "" ["x-classic"]
+       ("slovenian", _) -> Just $ Lang "sl" "" "" []
+       ("serbianc", _) -> Just $ Lang "sr" "cyrl" "" []
+       ("pinyin", _) -> Just $ Lang "zh" "Latn" "" ["pinyin"]
+       ("afrikaans", _) -> Just $ Lang "af" "" "" []
+       ("amharic", _) -> Just $ Lang "am" "" "" []
+       ("arabic", _) -> Just $ Lang "ar" "" "" []
+       ("assamese", _) -> Just $ Lang "as" "" "" []
+       ("asturian", _) -> Just $ Lang "ast" "" "" []
+       ("bulgarian", _) -> Just $ Lang "bg" "" "" []
+       ("bengali", _) -> Just $ Lang "bn" "" "" []
+       ("tibetan", _) -> Just $ Lang "bo" "" "" []
+       ("breton", _) -> Just $ Lang "br" "" "" []
+       ("catalan", _) -> Just $ Lang "ca" "" "" []
+       ("welsh", _) -> Just $ Lang "cy" "" "" []
+       ("czech", _) -> Just $ Lang "cs" "" "" []
+       ("coptic", _) -> Just $ Lang "cop" "" "" []
+       ("danish", _) -> Just $ Lang "da" "" "" []
+       ("divehi", _) -> Just $ Lang "dv" "" "" []
+       ("greek", _) -> Just $ Lang "el" "" "" []
+       ("english", _) -> Just $ Lang "en" "" "" []
+       ("esperanto", _) -> Just $ Lang "eo" "" "" []
+       ("spanish", _) -> Just $ Lang "es" "" "" []
+       ("estonian", _) -> Just $ Lang "et" "" "" []
+       ("basque", _) -> Just $ Lang "eu" "" "" []
+       ("farsi", _) -> Just $ Lang "fa" "" "" []
+       ("finnish", _) -> Just $ Lang "fi" "" "" []
+       ("french", _) -> Just $ Lang "fr" "" "" []
+       ("friulan", _) -> Just $ Lang "fur" "" "" []
+       ("irish", _) -> Just $ Lang "ga" "" "" []
+       ("scottish", _) -> Just $ Lang "gd" "" "" []
+       ("ethiopic", _) -> Just $ Lang "gez" "" "" []
+       ("galician", _) -> Just $ Lang "gl" "" "" []
+       ("hebrew", _) -> Just $ Lang "he" "" "" []
+       ("hindi", _) -> Just $ Lang "hi" "" "" []
+       ("croatian", _) -> Just $ Lang "hr" "" "" []
+       ("magyar", _) -> Just $ Lang "hu" "" "" []
+       ("armenian", _) -> Just $ Lang "hy" "" "" []
+       ("interlingua", _) -> Just $ Lang "ia" "" "" []
+       ("indonesian", _) -> Just $ Lang "id" "" "" []
+       ("icelandic", _) -> Just $ Lang "is" "" "" []
+       ("italian", _) -> Just $ Lang "it" "" "" []
+       ("japanese", _) -> Just $ Lang "jp" "" "" []
+       ("khmer", _) -> Just $ Lang "km" "" "" []
+       ("kurmanji", _) -> Just $ Lang "kmr" "" "" []
+       ("kannada", _) -> Just $ Lang "kn" "" "" []
+       ("korean", _) -> Just $ Lang "ko" "" "" []
+       ("latin", _) -> Just $ Lang "la" "" "" []
+       ("lao", _) -> Just $ Lang "lo" "" "" []
+       ("lithuanian", _) -> Just $ Lang "lt" "" "" []
+       ("latvian", _) -> Just $ Lang "lv" "" "" []
+       ("malayalam", _) -> Just $ Lang "ml" "" "" []
+       ("mongolian", _) -> Just $ Lang "mn" "" "" []
+       ("marathi", _) -> Just $ Lang "mr" "" "" []
+       ("dutch", _) -> Just $ Lang "nl" "" "" []
+       ("nynorsk", _) -> Just $ Lang "nn" "" "" []
+       ("norsk", _) -> Just $ Lang "no" "" "" []
+       ("nko", _) -> Just $ Lang "nqo" "" "" []
+       ("occitan", _) -> Just $ Lang "oc" "" "" []
+       ("panjabi", _) -> Just $ Lang "pa" "" "" []
+       ("polish", _) -> Just $ Lang "pl" "" "" []
+       ("piedmontese", _) -> Just $ Lang "pms" "" "" []
+       ("portuguese", _) -> Just $ Lang "pt" "" "" []
+       ("romansh", _) -> Just $ Lang "rm" "" "" []
+       ("romanian", _) -> Just $ Lang "ro" "" "" []
+       ("russian", _) -> Just $ Lang "ru" "" "" []
+       ("sanskrit", _) -> Just $ Lang "sa" "" "" []
+       ("samin", _) -> Just $ Lang "se" "" "" []
+       ("slovak", _) -> Just $ Lang "sk" "" "" []
+       ("albanian", _) -> Just $ Lang "sq" "" "" []
+       ("serbian", _) -> Just $ Lang "sr" "" "" []
+       ("swedish", _) -> Just $ Lang "sv" "" "" []
+       ("syriac", _) -> Just $ Lang "syr" "" "" []
+       ("tamil", _) -> Just $ Lang "ta" "" "" []
+       ("telugu", _) -> Just $ Lang "te" "" "" []
+       ("thai", _) -> Just $ Lang "th" "" "" []
+       ("turkmen", _) -> Just $ Lang "tk" "" "" []
+       ("turkish", _) -> Just $ Lang "tr" "" "" []
+       ("ukrainian", _) -> Just $ Lang "uk" "" "" []
+       ("urdu", _) -> Just $ Lang "ur" "" "" []
+       ("vietnamese", _) -> Just $ Lang "vi" "" "" []
+       _ -> Nothing

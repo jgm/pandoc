@@ -51,7 +51,7 @@ import qualified Data.Text as T
 import Data.Time.Clock.POSIX
 import Skylighting
 import System.Random (randomR)
-import Text.Pandoc.Class (PandocMonad, report)
+import Text.Pandoc.Class (PandocMonad, report, toLang)
 import qualified Text.Pandoc.Class as P
 import Text.Pandoc.Compat.Time
 import Text.Pandoc.Definition
@@ -68,7 +68,7 @@ import qualified Text.Pandoc.UTF8 as UTF8
 import Text.Pandoc.Walk
 import Text.Pandoc.Writers.Math
 import Text.Pandoc.Writers.Shared (fixDisplayMath)
-import Text.Pandoc.BCP47 (getLang, renderLang, toLang)
+import Text.Pandoc.BCP47 (getLang, renderLang)
 import Text.Printf (printf)
 import Text.TeXMath
 import Text.XML.Light as XML

@@ -72,6 +72,8 @@ Data-Files:
                  data/templates/default.org
                  data/templates/default.epub2
                  data/templates/default.epub3
+                 -- translations
+                 data/translations/*.trans
                  -- source files for reference.docx
                  data/docx/[Content_Types].xml
                  data/docx/_rels/.rels
@@ -469,7 +471,8 @@ Library
                    Text.Pandoc.CSS,
                    Text.Pandoc.CSV,
                    Text.Pandoc.UUID,
-                   Text.Pandoc.BCP47
+                   Text.Pandoc.BCP47,
+                   Text.Pandoc.Translations,
                    Text.Pandoc.Slides,
                    Text.Pandoc.Compat.Time,
                    Paths_pandoc
