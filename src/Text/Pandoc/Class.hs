@@ -56,6 +56,8 @@ module Text.Pandoc.Class ( PandocMonad(..)
                          , getMediaBag
                          , setMediaBag
                          , insertMedia
+                         , setUserDataDir
+                         , getUserDataDir
                          , fetchItem
                          , getInputFiles
                          , getOutputFile
@@ -266,6 +268,8 @@ readFileFromDirs (d:ds) f = catchError
 -- functions like 'setVerbosity' and 'withMediaBag' should be used.
 data CommonState = CommonState { stLog          :: [LogMessage]
                                  -- ^ A list of log messages in reverse order
+                               , stUserDataDir  :: Maybe FilePath
+                                 -- ^ Directory to search for data files
                                , stMediaBag     :: MediaBag
                                  -- ^ Media parsed from binary containers
                                , stInputFiles   :: Maybe [FilePath]
@@ -284,6 +288,7 @@ data CommonState = CommonState { stLog          :: [LogMessage]
 
 instance Default CommonState where
   def = CommonState { stLog = []
+                    , stUserDataDir = Nothing
                     , stMediaBag = mempty
                     , stInputFiles = Nothing
                     , stOutputFile = Nothing
@@ -358,6 +363,17 @@ parseURIReference' s =
          | length (uriScheme u) > 2  -> Just u
          | null (uriScheme u)        -> Just u  -- protocol-relative
        _                             -> Nothing
+
+-- | Set the user data directory in common state.
+setUserDataDir :: PandocMonad m
+               => Maybe FilePath
+               -> m ()
+setUserDataDir mbfp = modifyCommonState $ \st -> st{ stUserDataDir = mbfp }
+
+-- | Get the user data directory from common state.
+getUserDataDir :: PandocMonad m
+               => m (Maybe FilePath)
+getUserDataDir = getsCommonState stUserDataDir
 
 -- | Fetch an image or other item from the local filesystem or the net.
 -- Returns raw content and maybe mime type.
@@ -497,8 +513,8 @@ data PureState = PureState { stStdGen     :: StdGen
                            , stReferenceDocx :: Archive
                            , stReferenceODT :: Archive
                            , stFiles :: FileTree
-                           , stUserDataDir :: FileTree
-                           , stCabalDataDir :: FileTree
+                           , stUserDataFiles :: FileTree
+                           , stCabalDataFiles :: FileTree
                            }
 
 instance Default PureState where
@@ -511,8 +527,8 @@ instance Default PureState where
                   , stReferenceDocx = emptyArchive
                   , stReferenceODT = emptyArchive
                   , stFiles = mempty
-                  , stUserDataDir = mempty
-                  , stCabalDataDir = mempty
+                  , stUserDataFiles = mempty
+                  , stCabalDataFiles = mempty
                   }
 
 
@@ -614,7 +630,7 @@ instance PandocMonad PandocPure where
     let fname' = if fname == "MANUAL.txt" then fname else "data" </> fname
     readFileStrict fname'
   readDataFile (Just userDir) fname = do
-    userDirFiles <- getsPureState stUserDataDir
+    userDirFiles <- getsPureState stUserDataFiles
     case infoFileContents <$> getFileInfo (userDir </> fname) userDirFiles of
       Just bs -> return bs
       Nothing -> readDataFile Nothing fname
