@@ -140,7 +140,7 @@ import qualified Debug.Trace
 #ifdef EMBED_DATA_FILES
 import Text.Pandoc.Data (dataFiles)
 import qualified System.FilePath.Posix as Posix
-import System.Directory (splitDirectories)
+import System.FilePath (splitDirectories)
 #else
 import qualified Paths_pandoc as Paths
 #endif
