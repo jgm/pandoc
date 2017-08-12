@@ -76,6 +76,7 @@ data Term =
   | To
   | Proof
   | Glossary
+  | Listing
   deriving (Show, Eq, Ord, Generic, Enum, Read)
 
 newtype Translations = Translations (M.Map Term String)
