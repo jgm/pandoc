@@ -298,6 +298,8 @@ convertWithOpts opts = do
              return $ (varname, s) : vars
 
   runIO' $ do
+    setUserDataDir datadir
+
     variables <-
         withList (addStringAsVariable "sourcefile")
                  (reverse $ optInputFiles opts)
@@ -451,7 +453,6 @@ convertWithOpts opts = do
                   mconcat <$> mapM (readFile' >=> r readerOpts) sources
 
 
-    setUserDataDir datadir
     when (readerName == "markdown_github" ||
           writerName == "markdown_github") $
       report $ Deprecated "markdown_github" "Use gfm instead."
