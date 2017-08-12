@@ -346,10 +346,12 @@ getTranslations = do
        Just (lang, Nothing) -> do  -- read from file
          let translationFile = "translations/" ++ renderLang lang ++ ".yaml"
          let fallbackFile = "translations/" ++ langLanguage lang ++ ".yaml"
-         let getTrans bs =
+         let getTrans fp = do
+               bs <- readDataFile fp
                case readTranslations (UTF8.toString bs) of
                     Left e   -> do
-                      report $ CouldNotLoadTranslations (renderLang lang) e
+                      report $ CouldNotLoadTranslations (renderLang lang)
+                        (fp ++ ": " ++ e)
                       -- make sure we don't try again...
                       modifyCommonState $ \st ->
                         st{ stTranslations = Nothing }
@@ -358,9 +360,9 @@ getTranslations = do
                       modifyCommonState $ \st ->
                                   st{ stTranslations = Just (lang, Just t) }
                       return t
-         catchError (readDataFile translationFile >>= getTrans)
+         catchError (getTrans translationFile)
            (\_ ->
-             catchError (readDataFile fallbackFile >>= getTrans)
+             catchError (getTrans fallbackFile)
                (\e -> do
                  report $ CouldNotLoadTranslations (renderLang lang)
                           $ case e of
