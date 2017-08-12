@@ -142,7 +142,7 @@ import qualified Debug.Trace
 #ifdef EMBED_DATA_FILES
 import Text.Pandoc.Data (dataFiles)
 #else
-import Paths_pandoc (getDataFileName)
+import qualified Paths_pandoc as Paths
 #endif
 
 -- | The PandocMonad typeclass contains all the potentially
@@ -177,6 +177,8 @@ class (Functor m, Applicative m, Monad m, MonadError PandocError m)
   glob :: String -> m [FilePath]
   -- | Returns True if file exists.
   fileExists :: FilePath -> m Bool
+  -- | Returns the path of data file.
+  getDataFileName :: FilePath -> m FilePath
   -- | Return the modification time of a file.
   getModificationTime :: FilePath -> m UTCTime
   -- | Get the value of the 'CommonState' used by all instances
@@ -419,7 +421,12 @@ instance PandocMonad PandocIO where
 
   glob = liftIOError IO.glob
   fileExists = liftIOError Directory.doesFileExist
-  getModificationTime fp = liftIOError IO.getModificationTime fp
+#ifdef EMBED_DATA_FILES
+  getDataFileName = return
+#else
+  getDataFileName = liftIOError Paths.getDataFileName
+#endif
+  getModificationTime = liftIOError IO.getModificationTime
   getCommonState = PandocIO $ lift get
   putCommonState x = PandocIO $ lift $ put x
   logOutput msg = liftIO $ do
@@ -817,6 +824,8 @@ instance PandocMonad PandocPure where
          Nothing -> return False
          Just _  -> return True
 
+  getDataFileName fp = return $ "data/" ++ fp
+
   getModificationTime fp = do
     fps <- getsPureState stFiles
     case infoFileMTime <$> getFileInfo fp fps of
@@ -840,6 +849,7 @@ instance PandocMonad m => PandocMonad (ParsecT s st m) where
   readFileStrict = lift . readFileStrict
   glob = lift . glob
   fileExists = lift . fileExists
+  getDataFileName = lift . getDataFileName
   getModificationTime = lift . getModificationTime
   getCommonState = lift getCommonState
   putCommonState = lift . putCommonState
@@ -868,6 +878,7 @@ instance PandocMonad m => PandocMonad (ReaderT r m) where
   readFileStrict = lift . readFileStrict
   glob = lift . glob
   fileExists = lift . fileExists
+  getDataFileName = lift . getDataFileName
   getModificationTime = lift . getModificationTime
   getCommonState = lift getCommonState
   putCommonState = lift . putCommonState
@@ -884,6 +895,7 @@ instance (PandocMonad m, Monoid w) => PandocMonad (WriterT w m) where
   readFileStrict = lift . readFileStrict
   glob = lift . glob
   fileExists = lift . fileExists
+  getDataFileName = lift . getDataFileName
   getModificationTime = lift . getModificationTime
   getCommonState = lift getCommonState
   putCommonState = lift . putCommonState
@@ -900,6 +912,7 @@ instance (PandocMonad m, Monoid w) => PandocMonad (RWST r w st m) where
   readFileStrict = lift . readFileStrict
   glob = lift . glob
   fileExists = lift . fileExists
+  getDataFileName = lift . getDataFileName
   getModificationTime = lift . getModificationTime
   getCommonState = lift getCommonState
   putCommonState = lift . putCommonState
@@ -916,6 +929,7 @@ instance PandocMonad m => PandocMonad (StateT st m) where
   readFileStrict = lift . readFileStrict
   glob = lift . glob
   fileExists = lift . fileExists
+  getDataFileName = lift . getDataFileName
   getModificationTime = lift . getModificationTime
   getCommonState = lift getCommonState
   putCommonState = lift . putCommonState
