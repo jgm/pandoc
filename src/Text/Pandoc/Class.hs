@@ -105,7 +105,6 @@ import Data.Time.Clock.POSIX ( utcTimeToPOSIXSeconds
                              , posixSecondsToUTCTime
                              , POSIXTime )
 import Data.Time.LocalTime (TimeZone, ZonedTime, utcToZonedTime, utc)
-import qualified System.FilePath.Posix as Posix
 import Network.URI ( escapeURIString, nonStrictRelativeTo,
                      unEscapeString, parseURIReference, isAllowedInURI,
                      parseURI, URI(..) )
@@ -119,7 +118,7 @@ import qualified System.Environment as IO (lookupEnv)
 import System.FilePath.Glob (match, compile)
 import System.Directory (createDirectoryIfMissing, getDirectoryContents,
                           doesDirectoryExist)
-import System.FilePath ((</>), (<.>), takeDirectory, splitDirectories,
+import System.FilePath ((</>), (<.>), takeDirectory,
          takeExtension, dropExtension, isRelative, normalise)
 import qualified System.FilePath.Glob as IO (glob)
 import qualified System.Directory as IO (getModificationTime)
@@ -141,6 +140,8 @@ import Text.Pandoc.Translations (Term(..), Translations(..), readTranslations)
 import qualified Debug.Trace
 #ifdef EMBED_DATA_FILES
 import Text.Pandoc.Data (dataFiles)
+import qualified System.FilePath.Posix as Posix
+import System.Directory (splitDirectories)
 #else
 import qualified Paths_pandoc as Paths
 #endif
