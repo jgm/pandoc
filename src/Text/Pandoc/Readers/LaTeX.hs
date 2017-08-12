@@ -59,7 +59,7 @@ import Text.Pandoc.Class (PandocMonad, PandocPure, lookupEnv,
                           readFileFromDirs, report, setResourcePath,
                           getResourcePath, setTranslations, translateTerm)
 import qualified Text.Pandoc.Translations as Translations
-import Text.Pandoc.BCP47 (Lang(..))
+import Text.Pandoc.BCP47 (Lang(..), renderLang)
 import Text.Pandoc.Highlighting (fromListingsLanguage, languagesByExtension)
 import Text.Pandoc.ImageSize (numUnit, showFl)
 import Text.Pandoc.Logging
@@ -2225,9 +2225,11 @@ setDefaultLanguage = do
                 <$> rawopt
   polylang <- toksToString <$> braced
   case polyglossiaLangToBCP47 polylang o of
-       Nothing -> return () -- TODO mzero? warning?
-       Just l -> setTranslations l
-  return mempty
+       Nothing -> return mempty -- TODO mzero? warning?
+       Just l -> do
+         setTranslations l
+         updateState $ setMeta "lang" $ str (renderLang l)
+         return mempty
 
 polyglossiaLangToBCP47 :: String -> String -> Maybe Lang
 polyglossiaLangToBCP47 s o =
