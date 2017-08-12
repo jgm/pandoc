@@ -86,7 +86,7 @@ module Text.Pandoc.Class ( PandocMonad(..)
 import Prelude hiding (readFile)
 import System.Random (StdGen, next, mkStdGen)
 import qualified System.Random as IO (newStdGen)
-import Codec.Archive.Zip (Archive, fromArchive, emptyArchive)
+import Codec.Archive.Zip
 import Data.Unique (hashUnique)
 import qualified Data.Unique as IO (newUnique)
 import qualified Text.Pandoc.Shared as Shared
@@ -128,7 +128,6 @@ import Control.Monad.State.Strict
 import Control.Monad.Except
 import Control.Monad.Writer (WriterT)
 import Control.Monad.RWS (RWST)
-import Codec.Archive.Zip
 import Data.Word (Word8)
 import Data.Default
 import System.IO.Error
