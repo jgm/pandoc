@@ -69,11 +69,13 @@ data Term =
   | Table
   | Part
   | Page
-  | Proof
   | See
   | SeeAlso
+  | Encl
   | Cc
   | To
+  | Proof
+  | Glossary
   deriving (Show, Eq, Ord, Generic, Enum, Read)
 
 newtype Translations = Translations (M.Map Term String)
