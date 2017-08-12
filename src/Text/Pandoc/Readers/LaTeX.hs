@@ -1351,10 +1351,7 @@ inlineCommands = M.fromList $
   ]
 
 doTerm :: PandocMonad m => Translations.Term -> LP m Inlines
-doTerm term = do
-  s <- (symbol '~' >> return (str "\160")) <|> return space
-  t <- translateTerm term
-  return (str t <> s)
+doTerm term = str <$> translateTerm term
 
 ifstrequal :: PandocMonad m => LP m Inlines
 ifstrequal = do
