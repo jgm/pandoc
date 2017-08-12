@@ -36,7 +36,6 @@ module Text.Pandoc.CSV (
 
 import Text.Parsec
 import Text.Parsec.Text (Parser)
-import Text.Parsec.Error (ParseError)
 import Data.Text (Text)
 import qualified Data.Text as T
 import Control.Monad (void)
