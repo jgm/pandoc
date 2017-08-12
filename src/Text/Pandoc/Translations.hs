@@ -40,13 +40,19 @@ just the language part.  File format is:
 -}
 module Text.Pandoc.Translations (
                            Term(..)
-                         , Translations(..)
+                         , Translations
+                         , lookupTerm
                          , readTranslations
                          )
 where
+import qualified Data.HashMap.Strict as HM
 import qualified Data.Map as M
 import GHC.Generics (Generic)
-import Text.Pandoc.Shared (trim, safeRead)
+import qualified Text.Pandoc.UTF8 as UTF8
+import Data.Text as T
+import Text.Pandoc.Shared (safeRead)
+import Data.Yaml as Yaml
+import Data.Aeson.Types (typeMismatch)
 
 data Term =
     Preface
@@ -68,27 +74,36 @@ data Term =
   | SeeAlso
   | Cc
   | To
-  deriving (Show, Eq, Ord, Generic, Read)
+  deriving (Show, Eq, Ord, Generic, Enum, Read)
 
 newtype Translations = Translations (M.Map Term String)
-        deriving (Show, Eq, Ord, Generic, Monoid)
+        deriving (Show, Generic, Monoid)
+
+instance FromJSON Term where
+  parseJSON (String t) = case safeRead (T.unpack t) of
+                               Just t' -> pure t'
+                               Nothing -> fail $ "Invalid Term name " ++
+                                                 show t
+  parseJSON invalid = typeMismatch "Term" invalid
+
+instance FromJSON Translations where
+  parseJSON (Object hm) = do
+    xs <- mapM addItem (HM.toList hm)
+    return $ Translations (M.fromList xs)
+    where addItem (k,v) =
+            case safeRead (T.unpack k) of
+                 Nothing -> fail $ "Invalid Term name " ++ show k
+                 Just t  ->
+                   case v of
+                        (String s) -> return (t, T.unpack $ T.strip s)
+                        inv        -> typeMismatch "String" inv
+  parseJSON invalid = typeMismatch "Translations" invalid
+
+lookupTerm :: Term -> Translations -> Maybe String
+lookupTerm t (Translations tm) = M.lookup t tm
 
 readTranslations :: String -> Either String Translations
-readTranslations = foldr parseLine (Right mempty) . lines
-
-parseLine :: String
-          -> Either String Translations
-          -> Either String Translations
-parseLine _ (Left s) = Left s
-parseLine ('#':_) x  = x
-parseLine []      x  = x
-parseLine t (Right (Translations tm)) =
-  if null rest
-     then Left $ "no colon in " ++ term
-     else
-       case safeRead term of
-            Nothing    -> Left $ term ++ " is not a recognized term name"
-            Just term' -> Right (Translations $ (M.insert term' defn) tm)
-  where (trm, rest) = break (\c -> c == ':') t
-        defn = trim $ drop 1 rest
-        term = trim trm
+readTranslations s =
+  case Yaml.decodeEither' $ UTF8.fromString s of
+       Left err' -> Left $ prettyPrintParseException err'
+       Right t   -> Right t

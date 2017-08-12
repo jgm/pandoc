@@ -79,7 +79,7 @@ module Text.Pandoc.Class ( PandocMonad(..)
                          , toLang
                          , setTranslations
                          , translateTerm
-                         , Translations(..)
+                         , Translations
                          , Term(..)
                          ) where
 
@@ -135,7 +135,8 @@ import System.IO (stderr)
 import qualified Data.Map as M
 import Text.Pandoc.Error
 import Text.Pandoc.BCP47 (Lang(..), parseBCP47, renderLang)
-import Text.Pandoc.Translations (Term(..), Translations(..), readTranslations)
+import Text.Pandoc.Translations (Term(..), Translations, lookupTerm,
+                                 readTranslations)
 import qualified Debug.Trace
 #ifdef EMBED_DATA_FILES
 import Text.Pandoc.Data (dataFiles)
@@ -343,8 +344,8 @@ getTranslations = do
        Nothing -> return mempty  -- no language defined
        Just (_, Just t) -> return t
        Just (lang, Nothing) -> do  -- read from file
-         let translationFile = "translations/" ++ renderLang lang ++ ".trans"
-         let fallbackFile = "translations/" ++ langLanguage lang ++ ".trans"
+         let translationFile = "translations/" ++ renderLang lang ++ ".yaml"
+         let fallbackFile = "translations/" ++ langLanguage lang ++ ".yaml"
          let getTrans bs =
                case readTranslations (UTF8.toString bs) of
                     Left e   -> do
@@ -374,8 +375,8 @@ getTranslations = do
 -- Issue a warning if the term is not defined.
 translateTerm :: PandocMonad m => Term -> m String
 translateTerm term = do
-  Translations termMap <- getTranslations
-  case M.lookup term termMap of
+  translations <- getTranslations
+  case lookupTerm term translations of
        Just s -> return s
        Nothing -> do
          report $ NoTranslation (show term)

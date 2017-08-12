@@ -73,7 +73,7 @@ Data-Files:
                  data/templates/default.epub2
                  data/templates/default.epub3
                  -- translations
-                 data/translations/*.trans
+                 data/translations/*.yaml
                  -- source files for reference.docx
                  data/docx/[Content_Types].xml
                  data/docx/_rels/.rels
