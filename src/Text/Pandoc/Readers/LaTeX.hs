@@ -1075,18 +1075,23 @@ inlineCommand' = try $ do
   lookupListDefault raw names inlineCommands
 
 tok :: PandocMonad m => LP m Inlines
-tok = grouped inline <|> inlineCommand' <|> singleChar
-  where singleChar = try $ do
-          Tok (lin,col) toktype t <- satisfyTok (tokTypeIn [Word, Symbol])
-          guard $ not $ toktype == Symbol &&
-                        T.any (`Set.member` specialChars) t
-          if T.length t > 1
-             then do
-               let (t1, t2) = (T.take 1 t, T.drop 1 t)
-               inp <- getInput
-               setInput $ (Tok (lin, col + 1) toktype t2) : inp
-               return $ str (T.unpack t1)
-             else return $ str (T.unpack t)
+tok = grouped inline <|> inlineCommand' <|> singleChar'
+  where singleChar' = do
+          Tok _ _ t <- singleChar
+          return (str (T.unpack t))
+
+singleChar :: PandocMonad m => LP m Tok
+singleChar = try $ do
+  Tok (lin,col) toktype t <- satisfyTok (tokTypeIn [Word, Symbol])
+  guard $ not $ toktype == Symbol &&
+                T.any (`Set.member` specialChars) t
+  if T.length t > 1
+     then do
+       let (t1, t2) = (T.take 1 t, T.drop 1 t)
+       inp <- getInput
+       setInput $ (Tok (lin, col + 1) toktype t2) : inp
+       return $ Tok (lin,col) toktype t1
+     else return $ Tok (lin,col) toktype t
 
 opt :: PandocMonad m => LP m Inlines
 opt = bracketed inline
@@ -1616,7 +1621,7 @@ letmacro = do
   Tok _ (CtrlSeq name) _ <- anyControlSeq
   optional $ symbol '='
   spaces
-  contents <- braced <|> ((:[]) <$> anyControlSeq)
+  contents <- braced <|> ((:[]) <$> (anyControlSeq <|> singleChar))
   return (name, Macro ExpandWhenDefined 0 Nothing contents)
 
 defmacro :: PandocMonad m => LP m (Text, Macro)
