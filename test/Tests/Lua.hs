@@ -13,7 +13,7 @@ import Text.Pandoc.Builder ( (<>), bulletList, doc, doubleQuoted, emph
                            , space, str, strong)
 import Text.Pandoc.Lua
 
-import qualified Scripting.Lua as Lua
+import Foreign.Lua
 
 tests :: [TestTree]
 tests = map (localOption (QuickCheckTests 20))
@@ -71,23 +71,20 @@ assertFilterConversion msg filterPath docIn docExpected = do
   docRes <- runLuaFilter Nothing ("lua" </> filterPath) [] docIn
   assertEqual msg docExpected docRes
 
-roundtripEqual :: (Eq a, Lua.StackValue a) => a -> IO Bool
+roundtripEqual :: (Eq a, FromLuaStack a, ToLuaStack a) => a -> IO Bool
 roundtripEqual x = (x ==) <$> roundtripped
  where
-  roundtripped :: (Lua.StackValue a) => IO a
-  roundtripped = do
-    lua <- Lua.newstate
-    Lua.openlibs lua
-    pushPandocModule Nothing lua
-    Lua.setglobal lua "pandoc"
-    oldSize <- Lua.gettop lua
-    Lua.push lua x
-    size <- Lua.gettop lua
+  roundtripped :: (FromLuaStack a, ToLuaStack a) => IO a
+  roundtripped = runLua $ do
+    openlibs
+    pushPandocModule Nothing
+    setglobal "pandoc"
+    oldSize <- gettop
+    push x
+    size <- gettop
     when ((size - oldSize) /= 1) $
       error ("not exactly one additional element on the stack: " ++ show size)
-    res <- Lua.peek lua (-1)
-    retval <- case res of
-                Nothing -> error "could not read from stack"
-                Just y  -> return y
-    Lua.close lua
-    return retval
+    res <- peekEither (-1)
+    case res of
+      Left _ -> error "could not read from stack"
+      Right y  -> return y

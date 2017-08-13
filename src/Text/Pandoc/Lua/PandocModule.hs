@@ -31,31 +31,31 @@ import Control.Monad (unless)
 import Data.ByteString.Char8 (unpack)
 import Data.Default (Default (..))
 import Data.Text (pack)
-import Scripting.Lua (LuaState, call, push, pushhsfunction, rawset)
+import Foreign.Lua (Lua, Status (OK), liftIO, push, pushHaskellFunction)
+import Foreign.Lua.Api (call, loadstring, rawset)
 import Text.Pandoc.Class
 import Text.Pandoc.Definition (Pandoc)
 import Text.Pandoc.Options (ReaderOptions(readerExtensions))
-import Text.Pandoc.Lua.Compat (loadstring)
 import Text.Pandoc.Lua.StackInstances ()
 import Text.Pandoc.Readers (Reader (..), getReader)
 
 -- | Push the "pandoc" on the lua stack.
-pushPandocModule :: Maybe FilePath -> LuaState -> IO ()
-pushPandocModule datadir lua = do
-  script <- pandocModuleScript datadir
-  status <- loadstring lua script "pandoc.lua"
-  unless (status /= 0) $ call lua 0 1
-  push lua "__read"
-  pushhsfunction lua read_doc
-  rawset lua (-3)
+pushPandocModule :: Maybe FilePath -> Lua ()
+pushPandocModule datadir = do
+  script <- liftIO (pandocModuleScript datadir)
+  status <- loadstring script
+  unless (status /= OK) $ call 0 1
+  push "__read"
+  pushHaskellFunction readDoc
+  rawset (-3)
 
 -- | Get the string representation of the pandoc module
 pandocModuleScript :: Maybe FilePath -> IO String
 pandocModuleScript datadir = unpack <$>
   runIOorExplode (setUserDataDir datadir >> readDataFile "pandoc.lua")
 
-read_doc :: String -> String -> IO (Either String Pandoc)
-read_doc formatSpec content = do
+readDoc :: String -> String -> Lua (Either String Pandoc)
+readDoc formatSpec content = liftIO $ do
   case getReader formatSpec of
     Left  s      -> return $ Left s
     Right (reader, es) ->
