@@ -138,6 +138,7 @@ Extra-Source-Files:
                  test/*.native
                  test/command/*.md
                  test/command/3533-rst-csv-tables.csv
+                 test/command/2994.docx
                  test/command/abbrevs
                  test/command/SVG_logo-without-xml-declaration.svg
                  test/command/SVG_logo.svg
