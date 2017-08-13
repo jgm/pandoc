@@ -44,7 +44,6 @@ import Foreign.Lua (Lua, FromLuaStack (peek), LuaException (..), StackIndex,
                     registryindex, runLua, setglobal, throwLuaError)
 import Text.Pandoc.Definition
 import Text.Pandoc.Lua.PandocModule (pushPandocModule)
-import Text.Pandoc.Lua.StackInstances ()
 import Text.Pandoc.Walk (Walkable (walkM))
 
 import qualified Data.Map as Map

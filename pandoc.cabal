@@ -465,7 +465,6 @@ Library
                    Text.Pandoc.Readers.Org.Parsing,
                    Text.Pandoc.Readers.Org.Shared,
                    Text.Pandoc.Lua.PandocModule,
-                   Text.Pandoc.Lua.SharedInstances,
                    Text.Pandoc.Lua.StackInstances,
                    Text.Pandoc.Lua.Util,
                    Text.Pandoc.CSS,

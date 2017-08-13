@@ -31,10 +31,9 @@ import Control.Monad (unless)
 import Data.ByteString.Char8 (unpack)
 import Data.Default (Default (..))
 import Data.Text (pack)
-import Foreign.Lua (Lua, Status (OK), liftIO, push, pushHaskellFunction)
-import Foreign.Lua.Api (call, loadstring, rawset)
-import Text.Pandoc.Class
-import Text.Pandoc.Definition (Pandoc)
+import Foreign.Lua (Lua, Status (OK), NumResults, call, loadstring, liftIO,
+                    push, pushHaskellFunction, rawset)
+import Text.Pandoc.Class (readDataFile, runIO, runIOorExplode, setUserDataDir)
 import Text.Pandoc.Options (ReaderOptions(readerExtensions))
 import Text.Pandoc.Lua.StackInstances ()
 import Text.Pandoc.Readers (Reader (..), getReader)
@@ -54,16 +53,17 @@ pandocModuleScript :: Maybe FilePath -> IO String
 pandocModuleScript datadir = unpack <$>
   runIOorExplode (setUserDataDir datadir >> readDataFile "pandoc.lua")
 
-readDoc :: String -> String -> Lua (Either String Pandoc)
-readDoc formatSpec content = liftIO $ do
+readDoc :: String -> String -> Lua NumResults
+readDoc formatSpec content = do
   case getReader formatSpec of
-    Left  s      -> return $ Left s
+    Left  s      -> push s -- Unknown reader
     Right (reader, es) ->
       case reader of
         TextReader r -> do
-          res <- runIO $ r def{ readerExtensions = es } (pack content)
+          res <- liftIO $ runIO $ r def{ readerExtensions = es } (pack content)
           case res of
-            Left s   -> return . Left $ show s
-            Right pd -> return $ Right pd
-        _  -> return $ Left "Only string formats are supported at the moment."
+            Left s   -> push $ show s -- error while reading
+            Right pd -> push pd       -- success, push Pandoc
+        _  -> push "Only string formats are supported at the moment."
+  return 1
 

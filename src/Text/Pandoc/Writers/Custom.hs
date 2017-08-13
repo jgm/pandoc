@@ -48,7 +48,6 @@ import Foreign.Lua (Lua, ToLuaStack (..), callFunc, runLua)
 import Foreign.Lua.Api
 import Text.Pandoc.Error
 import Text.Pandoc.Lua.Util ( addValue )
-import Text.Pandoc.Lua.SharedInstances ()
 import Text.Pandoc.Definition
 import Text.Pandoc.Options
 import Text.Pandoc.Templates

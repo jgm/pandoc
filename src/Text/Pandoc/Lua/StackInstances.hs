@@ -37,7 +37,6 @@ import Foreign.Lua (Lua, Type (..), FromLuaStack (peek), ToLuaStack (push),
                     StackIndex, throwLuaError, tryLua)
 import Foreign.Lua.Api (getmetatable, ltype, newtable, pop, rawget, rawlen)
 import Text.Pandoc.Definition
-import Text.Pandoc.Lua.SharedInstances ()
 import Text.Pandoc.Lua.Util (addValue, adjustIndexBy, getTable, pushViaConstructor)
 import Text.Pandoc.Shared (safeRead)
 
