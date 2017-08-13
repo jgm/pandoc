@@ -42,7 +42,7 @@ module Text.Pandoc.Writers.Shared (
                      , gridTable
                      )
 where
-import Control.Monad (liftM, zipWithM)
+import Control.Monad (zipWithM)
 import Data.Aeson (FromJSON (..), Result (..), ToJSON (..), Value (Object),
                    encode, fromJSON)
 import qualified Data.HashMap.Strict as H
@@ -51,6 +51,7 @@ import qualified Data.Map as M
 import Data.Maybe (isJust)
 import qualified Data.Text as T
 import qualified Data.Traversable as Traversable
+import qualified Text.Pandoc.Builder as Builder
 import Text.Pandoc.Definition
 import Text.Pandoc.Options
 import Text.Pandoc.Pretty
@@ -103,14 +104,15 @@ metaValueToJSON :: (Monad m, ToJSON a)
                 -> ([Inline] -> m a)
                 -> MetaValue
                 -> m Value
-metaValueToJSON blockWriter inlineWriter (MetaMap metamap) = liftM toJSON $
+metaValueToJSON blockWriter inlineWriter (MetaMap metamap) = toJSON <$>
   Traversable.mapM (metaValueToJSON blockWriter inlineWriter) metamap
-metaValueToJSON blockWriter inlineWriter (MetaList xs) = liftM toJSON $
+metaValueToJSON blockWriter inlineWriter (MetaList xs) = toJSON <$>
   Traversable.mapM (metaValueToJSON blockWriter inlineWriter) xs
 metaValueToJSON _ _ (MetaBool b) = return $ toJSON b
-metaValueToJSON _ _ (MetaString s) = return $ toJSON s
-metaValueToJSON blockWriter _ (MetaBlocks bs) = liftM toJSON $ blockWriter bs
-metaValueToJSON _ inlineWriter (MetaInlines bs) = liftM toJSON $ inlineWriter bs
+metaValueToJSON _ inlineWriter (MetaString s) = toJSON <$>
+  inlineWriter (Builder.toList (Builder.text s))
+metaValueToJSON blockWriter _ (MetaBlocks bs) = toJSON <$> blockWriter bs
+metaValueToJSON _ inlineWriter (MetaInlines is) = toJSON <$> inlineWriter is
 
 -- | Retrieve a field value from a JSON object.
 getField :: FromJSON a
