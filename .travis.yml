@@ -31,19 +31,19 @@ matrix:
   include:
   # We grab the appropriate GHC and cabal-install versions from hvr's PPA. See:
   # https://github.com/hvr/multi-ghc-travis
-  - env: BUILD=cabal GHCVER=7.8.4 CABALVER=1.18
+  - env: BUILD=cabal GHCVER=7.8.4 CABALVER=1.18 OPTS="-O0 -Wall -fno-warn-unused-do-bind -Werror" FLAGS="fast embed_data_files"
     compiler: ": #GHC 7.8.4"
     addons: {apt: {packages: [cabal-install-1.18,ghc-7.8.4,happy-1.19.5], sources: [hvr-ghc]}}
 
-  - env: BUILD=cabal GHCVER=7.10.3 CABALVER=1.22
+  - env: BUILD=cabal GHCVER=7.10.3 CABALVER=1.22 OPTS="-O0 -Wall -fno-warn-unused-do-bind -Werror" FLAGS="fast embed_data_files"
     compiler: ": #GHC 7.10.3"
     addons: {apt: {packages: [cabal-install-1.22,ghc-7.10.3,happy-1.19.5], sources: [hvr-ghc]}}
 
-  - env: BUILD=cabal GHCVER=8.0.2 CABALVER=1.24
+  - env: BUILD=cabal GHCVER=8.0.2 CABALVER=1.24 OPTS="-O0 -Wall -Wincomplete-record-updates -Wnoncanonical-monad-instances -Wnoncanonical-monadfail-instances -fno-warn-unused-do-bind -Werror" FLAGS="fast"
     compiler: ": #GHC 8.0.2"
     addons: {apt: {packages: [cabal-install-1.24,ghc-8.0.2,happy-1.19.5], sources: [hvr-ghc]}}
 
-  - env: BUILD=cabal GHCVER=8.2.1 CABALVER=1.24
+  - env: BUILD=cabal GHCVER=8.2.1 CABALVER=1.24 OPTS="-O0 -Wall -Wincomplete-record-updates -Wnoncanonical-monad-instances -Wnoncanonical-monadfail-instances -fno-warn-unused-do-bind -Werror" FLAGS="fast embed_data_files"
     compiler: ": #GHC 8.2.1"
     addons: {apt: {packages: [cabal-install-1.24,ghc-8.2.1,happy-1.19.5], sources: [hvr-ghc]}}
 
@@ -55,7 +55,7 @@ matrix:
 
   # The Stack builds. We can pass in arbitrary Stack arguments via the ARGS
   # variable, such as using --stack-yaml to point to a different file.
-  - env: BUILD=stack ARGS="--resolver lts-8"
+  - env: BUILD=stack ARGS="--resolver lts-8" OPTS="-O0 -Wall -Wincomplete-record-updates -Wnoncanonical-monad-instances -Wnoncanonical-monadfail-instances -fno-warn-unused-do-bind -Werror"
     compiler: ": #stack 8.0.2"
     addons: {apt: {packages: [ghc-8.0.2], sources: [hvr-ghc]}}
 
@@ -110,7 +110,7 @@ install:
     cabal)
       cabal --version
       travis_retry cabal update
-      cabal install -j --only-dependencies -ffast --enable-tests --enable-benchmarks -fembed_data_files --force-reinstalls --ghc-options=-O0 --reorder-goals --max-backjumps=-1 $CABALARGS
+      cabal install -j --only-dependencies --flags="$FLAGS" --enable-tests --enable-benchmarks --force-reinstalls --ghc-options=-O0 --reorder-goals --max-backjumps=-1 $CABALARGS
       ;;
   esac
 
@@ -119,12 +119,12 @@ script:
   case "$BUILD" in
     stack)
       ulimit -n 4096
-      stack --no-terminal $ARGS test --flag 'aeson:fast' --flag pandoc:embed_data_files --haddock --no-haddock-deps --ghc-options="-O0 -Wall -fno-warn-unused-do-bind -Werror"
+      stack --no-terminal $ARGS test --flag 'aeson:fast' --flag pandoc:embed_data_files --haddock --no-haddock-deps --ghc-options="$OPTS"
       ;;
     cabal)
       cabal sdist --output-directory=sourcedist && \
       cd sourcedist && \
-      cabal configure --enable-tests --enable-benchmarks -v2 -fembed_data_files -ffast --ghc-options="-O0 -Wall -fno-warn-unused-do-bind -Werror" && \
+      cabal configure --enable-tests --enable-benchmarks -v2 --flags="$FLAGS" --ghc-options="$OPTS" && \
       cabal build && \
       cabal test
       ;;

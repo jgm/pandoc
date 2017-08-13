@@ -172,6 +172,7 @@ writers = [
   ,("asciidoc"     , TextWriter writeAsciiDoc)
   ,("haddock"      , TextWriter writeHaddock)
   ,("commonmark"   , TextWriter writeCommonMark)
+  ,("gfm"          , TextWriter writeCommonMark)
   ,("tei"          , TextWriter writeTEI)
   ,("muse"         , TextWriter writeMuse)
   ]

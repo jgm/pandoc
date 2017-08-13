@@ -8,6 +8,7 @@ import System.Directory
 import System.Exit
 import System.FilePath (joinPath, splitDirectories, takeDirectory, (</>))
 import System.Process
+import System.IO (stderr, hPutStr)
 import Test.Tasty
 import Test.Tasty.HUnit
 import Tests.Helpers
@@ -46,7 +47,9 @@ runTest testname cmd inp norm = testCase testname $ do
                      else return
                           $ TestFailed cmd "expected"
                           $ getDiff (lines out) (lines norm)
-                else return $ TestError ec
+                else do
+                  hPutStr stderr err'
+                  return $ TestError ec
   assertBool (show result) (result == TestPassed)
 
 tests :: TestTree

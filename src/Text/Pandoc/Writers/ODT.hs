@@ -38,7 +38,7 @@ import Data.List (isPrefixOf)
 import Data.Maybe (fromMaybe)
 import qualified Data.Text.Lazy as TL
 import System.FilePath (takeDirectory, takeExtension, (<.>))
-import Text.Pandoc.Class (PandocMonad, report)
+import Text.Pandoc.Class (PandocMonad, report, toLang)
 import qualified Text.Pandoc.Class as P
 import Text.Pandoc.Definition
 import Text.Pandoc.ImageSize
@@ -51,7 +51,7 @@ import Text.Pandoc.UTF8 (fromStringLazy, fromTextLazy, toStringLazy)
 import Text.Pandoc.Walk
 import Text.Pandoc.Writers.OpenDocument (writeOpenDocument)
 import Text.Pandoc.Writers.Shared (fixDisplayMath)
-import Text.Pandoc.BCP47 (getLang, toLang, Lang(..), renderLang)
+import Text.Pandoc.BCP47 (getLang, Lang(..), renderLang)
 import Text.Pandoc.XML
 import Text.TeXMath
 import Text.XML.Light
@@ -78,14 +78,13 @@ pandocToODT :: PandocMonad m
             -> Pandoc         -- ^ Document to convert
             -> O m B.ByteString
 pandocToODT opts doc@(Pandoc meta _) = do
-  let datadir = writerUserDataDir opts
   let title = docTitle meta
   lang <- toLang (getLang opts meta)
   refArchive <-
        case writerReferenceDoc opts of
              Just f -> liftM toArchive $ lift $ P.readFileLazy f
              Nothing -> lift $ (toArchive . B.fromStrict) <$>
-                                P.readDataFile datadir "reference.odt"
+                                P.readDataFile "reference.odt"
   -- handle formulas and pictures
   -- picEntriesRef <- P.newIORef ([] :: [Entry])
   doc' <- walkM (transformPicMath opts) $ walk fixDisplayMath doc

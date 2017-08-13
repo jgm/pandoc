@@ -76,7 +76,7 @@ originalLang lang =
   let transLang = translateLang lang
   in if transLang == lang
      then []
-     else [("data-org-language", lang)]
+     else [("org-language", lang)]
 
 -- | Translate from Org-mode's programming language identifiers to those used
 -- by Pandoc.  This is useful to allow for proper syntax highlighting in

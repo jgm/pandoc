@@ -55,8 +55,11 @@ import Data.Maybe (fromMaybe, maybeToList)
 import Safe (minimumDef)
 import System.FilePath (addExtension, replaceExtension, takeExtension)
 import Text.Pandoc.Builder
-import Text.Pandoc.Class (PandocMonad, PandocPure, lookupEnv, readFileFromDirs,
-                          report, setResourcePath, getResourcePath)
+import Text.Pandoc.Class (PandocMonad, PandocPure, lookupEnv,
+                          readFileFromDirs, report, setResourcePath,
+                          getResourcePath, setTranslations, translateTerm)
+import qualified Text.Pandoc.Translations as Translations
+import Text.Pandoc.BCP47 (Lang(..), renderLang)
 import Text.Pandoc.Highlighting (fromListingsLanguage, languagesByExtension)
 import Text.Pandoc.ImageSize (numUnit, showFl)
 import Text.Pandoc.Logging
@@ -65,7 +68,7 @@ import Text.Pandoc.Parsing hiding (many, optional, withRaw,
                             mathInline, mathDisplay,
                             space, (<|>), spaces, blankline)
 import Text.Pandoc.Shared
-import Text.Pandoc.Readers.LaTeX.Types (Macro(..), Tok(..),
+import Text.Pandoc.Readers.LaTeX.Types (Macro(..), ExpansionPoint(..), Tok(..),
                             TokType(..))
 import Text.Pandoc.Walk
 import Text.Pandoc.Error (PandocError(PandocParsecError, PandocMacroLoop))
@@ -375,7 +378,7 @@ doMacros n = do
                 macros <- sMacros <$> getState
                 case M.lookup name macros of
                      Nothing -> return ()
-                     Just (Macro numargs optarg newtoks) -> do
+                     Just (Macro expansionPoint numargs optarg newtoks) -> do
                        setInput ts
                        let getarg = spaces >> braced
                        args <- case optarg of
@@ -389,9 +392,12 @@ doMacros n = do
                            addTok t acc = setpos spos t : acc
                        ts' <- getInput
                        setInput $ foldr addTok ts' newtoks
-                       if n > 20  -- detect macro expansion loops
-                          then throwError $ PandocMacroLoop (T.unpack name)
-                          else doMacros (n + 1)
+                       case expansionPoint of
+                            ExpandWhenUsed ->
+                              if n > 20  -- detect macro expansion loops
+                                 then throwError $ PandocMacroLoop (T.unpack name)
+                                 else doMacros (n + 1)
+                            ExpandWhenDefined -> return ()
 
 setpos :: (Line, Column) -> Tok -> Tok
 setpos spos (Tok _ tt txt) = Tok spos tt txt
@@ -1246,6 +1252,27 @@ inlineCommands = M.fromList $
                                     removeDoubleQuotes . untokenize <$> braced
                            mkImage options src)
   , ("enquote", enquote)
+  , ("figurename", doTerm Translations.Figure)
+  , ("prefacename", doTerm Translations.Preface)
+  , ("refname", doTerm Translations.References)
+  , ("bibname", doTerm Translations.Bibliography)
+  , ("chaptername", doTerm Translations.Chapter)
+  , ("partname", doTerm Translations.Part)
+  , ("contentsname", doTerm Translations.Contents)
+  , ("listfigurename", doTerm Translations.ListOfFigures)
+  , ("listtablename", doTerm Translations.ListOfTables)
+  , ("indexname", doTerm Translations.Index)
+  , ("abstractname", doTerm Translations.Abstract)
+  , ("tablename", doTerm Translations.Table)
+  , ("enclname", doTerm Translations.Encl)
+  , ("ccname", doTerm Translations.Cc)
+  , ("headtoname", doTerm Translations.To)
+  , ("pagename", doTerm Translations.Page)
+  , ("seename", doTerm Translations.See)
+  , ("seealsoname", doTerm Translations.SeeAlso)
+  , ("proofname", doTerm Translations.Proof)
+  , ("glossaryname", doTerm Translations.Glossary)
+  , ("lstlistingname", doTerm Translations.Listing)
   , ("cite", citation "cite" NormalCitation False)
   , ("Cite", citation "Cite" NormalCitation False)
   , ("citep", citation "citep" NormalCitation False)
@@ -1325,6 +1352,9 @@ inlineCommands = M.fromList $
   , ("ifstrequal", ifstrequal)
   ]
 
+doTerm :: PandocMonad m => Translations.Term -> LP m Inlines
+doTerm term = str <$> translateTerm term
+
 ifstrequal :: PandocMonad m => LP m Inlines
 ifstrequal = do
   str1 <- tok
@@ -1377,7 +1407,8 @@ isBlockCommand s =
 
 treatAsBlock :: Set.Set Text
 treatAsBlock = Set.fromList
-   [ "newcommand", "renewcommand"
+   [ "let", "def"
+   , "newcommand", "renewcommand"
    , "newenvironment", "renewenvironment"
    , "providecommand", "provideenvironment"
      -- newcommand, etc. should be parsed by macroDef, but we need this
@@ -1531,7 +1562,7 @@ macroDef :: PandocMonad m => LP m Blocks
 macroDef = do
   mempty <$ ((commandDef <|> environmentDef) <* doMacros 0)
   where commandDef = do
-          (name, macro') <- newcommand
+          (name, macro') <- newcommand <|> letmacro <|> defmacro
           guardDisabled Ext_latex_macros <|>
            updateState (\s -> s{ sMacros = M.insert name macro' (sMacros s) })
         environmentDef = do
@@ -1545,6 +1576,34 @@ macroDef = do
         -- is equivalent to
         -- @\newcommand{\envname}[n-args][default]{begin}@
         -- @\newcommand{\endenvname}@
+
+letmacro :: PandocMonad m => LP m (Text, Macro)
+letmacro = do
+  controlSeq "let"
+  Tok _ (CtrlSeq name) _ <- anyControlSeq
+  optional $ symbol '='
+  spaces
+  contents <- braced <|> ((:[]) <$> anyControlSeq)
+  return (name, Macro ExpandWhenDefined 0 Nothing contents)
+
+defmacro :: PandocMonad m => LP m (Text, Macro)
+defmacro = try $ do
+  controlSeq "def"
+  Tok _ (CtrlSeq name) _ <- anyControlSeq
+  numargs <- option 0 $ argSeq 1
+  contents <- withVerbatimMode braced
+  return (name, Macro ExpandWhenUsed numargs Nothing contents)
+
+-- Note: we don't yet support fancy things like #1.#2
+argSeq :: PandocMonad m => Int -> LP m Int
+argSeq n = do
+  Tok _ (Arg i) _ <- satisfyTok isArgTok
+  guard $ i == n
+  argSeq (n+1) <|> return n
+
+isArgTok :: Tok -> Bool
+isArgTok (Tok _ (Arg _) _) = True
+isArgTok _ = False
 
 newcommand :: PandocMonad m => LP m (Text, Macro)
 newcommand = do
@@ -1560,13 +1619,15 @@ newcommand = do
   spaces
   optarg <- option Nothing $ Just <$> try bracketedToks
   spaces
-  contents <- braced
+  contents <- withVerbatimMode braced
+  -- we use withVerbatimMode, because macros are to be expanded
+  -- at point of use, not point of definition
   when (mtype == "newcommand") $ do
     macros <- sMacros <$> getState
     case M.lookup name macros of
          Just _ -> report $ MacroAlreadyDefined (T.unpack txt) pos
          Nothing -> return ()
-  return (name, Macro numargs optarg contents)
+  return (name, Macro ExpandWhenUsed numargs optarg contents)
 
 newenvironment :: PandocMonad m => LP m (Text, Macro, Macro)
 newenvironment = do
@@ -1582,16 +1643,16 @@ newenvironment = do
   spaces
   optarg <- option Nothing $ Just <$> try bracketedToks
   spaces
-  startcontents <- braced
+  startcontents <- withVerbatimMode braced
   spaces
-  endcontents <- braced
+  endcontents <- withVerbatimMode braced
   when (mtype == "newenvironment") $ do
     macros <- sMacros <$> getState
     case M.lookup name macros of
          Just _ -> report $ MacroAlreadyDefined (T.unpack name) pos
          Nothing -> return ()
-  return (name, Macro numargs optarg startcontents,
-             Macro 0 Nothing endcontents)
+  return (name, Macro ExpandWhenUsed numargs optarg startcontents,
+             Macro ExpandWhenUsed 0 Nothing endcontents)
 
 bracketedToks :: PandocMonad m => LP m [Tok]
 bracketedToks = do
@@ -1612,7 +1673,7 @@ setCaption = do
                try $ spaces >> controlSeq "label" >> (Just <$> tok)
   let ils' = case mblabel of
                   Just lab -> ils <> spanWith
-                                ("",[],[("data-label", stringify lab)]) mempty
+                                ("",[],[("label", stringify lab)]) mempty
                   Nothing  -> ils
   updateState $ \st -> st{ sCaption = Just ils' }
   return mempty
@@ -1715,6 +1776,15 @@ blockCommands = M.fromList $
    -- letters
    , ("opening", (para . trimInlines) <$> (skipopts *> tok))
    , ("closing", skipopts *> closing)
+   -- memoir
+   , ("plainbreak", braced >> pure horizontalRule)
+   , ("plainbreak*", braced >> pure horizontalRule)
+   , ("fancybreak", braced >> pure horizontalRule)
+   , ("fancybreak*", braced >> pure horizontalRule)
+   , ("plainfancybreak", braced >> braced >> braced >> pure horizontalRule)
+   , ("plainfancybreak*", braced >> braced >> braced >> pure horizontalRule)
+   , ("pfbreak", pure horizontalRule)
+   , ("pfbreak*", pure horizontalRule)
    --
    , ("hrule", pure horizontalRule)
    , ("strut", pure mempty)
@@ -1730,6 +1800,9 @@ blockCommands = M.fromList $
    -- includes
    , ("lstinputlisting", inputListing)
    , ("graphicspath", graphicsPath)
+   -- polyglossia
+   , ("setdefaultlanguage", setDefaultLanguage)
+   , ("setmainlanguage", setDefaultLanguage)
    -- hyperlink
    , ("hypertarget", try $ braced >> grouped block)
    -- LaTeX colors
@@ -2177,3 +2250,123 @@ block = (mempty <$ spaces1)
 blocks :: PandocMonad m => LP m Blocks
 blocks = mconcat <$> many block
 
+setDefaultLanguage :: PandocMonad m => LP m Blocks
+setDefaultLanguage = do
+  o <- option "" $ (T.unpack . T.filter (\c -> c /= '[' && c /= ']'))
+                <$> rawopt
+  polylang <- toksToString <$> braced
+  case polyglossiaLangToBCP47 polylang o of
+       Nothing -> return mempty -- TODO mzero? warning?
+       Just l -> do
+         setTranslations l
+         updateState $ setMeta "lang" $ str (renderLang l)
+         return mempty
+
+polyglossiaLangToBCP47 :: String -> String -> Maybe Lang
+polyglossiaLangToBCP47 s o =
+  case (s, filter (/=' ') o) of
+       ("arabic", "locale=algeria") -> Just $ Lang "ar" "" "DZ" []
+       ("arabic", "locale=mashriq") -> Just $ Lang "ar" "" "SY" []
+       ("arabic", "locale=libya") -> Just $ Lang "ar" "" "LY" []
+       ("arabic", "locale=morocco") -> Just $ Lang "ar" "" "MA" []
+       ("arabic", "locale=mauritania") -> Just $ Lang "ar" "" "MR" []
+       ("arabic", "locale=tunisia") -> Just $ Lang "ar" "" "TN" []
+       ("german", "spelling=old") -> Just $ Lang "de" "" "DE" ["1901"]
+       ("german", "variant=austrian,spelling=old")
+                                  -> Just $ Lang "de" "" "AT" ["1901"]
+       ("german", "variant=austrian") -> Just $ Lang "de" "" "AT" []
+       ("german", "variant=swiss,spelling=old")
+                                  -> Just $ Lang "de" "" "CH" ["1901"]
+       ("german", "variant=swiss") -> Just $ Lang "de" "" "CH" []
+       ("german", _) -> Just $ Lang "de" "" "" []
+       ("lsorbian", _) -> Just $ Lang "dsb" "" "" []
+       ("greek", "variant=poly") -> Just $ Lang "el" "" "polyton" []
+       ("english", "variant=australian") -> Just $ Lang "en" "" "AU" []
+       ("english", "variant=canadian") -> Just $ Lang "en" "" "CA" []
+       ("english", "variant=british") -> Just $ Lang "en" "" "GB" []
+       ("english", "variant=newzealand") -> Just $ Lang "en" "" "NZ" []
+       ("english", "variant=american") -> Just $ Lang "en" "" "US" []
+       ("greek", "variant=ancient") -> Just $ Lang "grc" "" "" []
+       ("usorbian", _) -> Just $ Lang "hsb" "" "" []
+       ("latin", "variant=classic") -> Just $ Lang "la" "" "" ["x-classic"]
+       ("slovenian", _) -> Just $ Lang "sl" "" "" []
+       ("serbianc", _) -> Just $ Lang "sr" "cyrl" "" []
+       ("pinyin", _) -> Just $ Lang "zh" "Latn" "" ["pinyin"]
+       ("afrikaans", _) -> Just $ Lang "af" "" "" []
+       ("amharic", _) -> Just $ Lang "am" "" "" []
+       ("arabic", _) -> Just $ Lang "ar" "" "" []
+       ("assamese", _) -> Just $ Lang "as" "" "" []
+       ("asturian", _) -> Just $ Lang "ast" "" "" []
+       ("bulgarian", _) -> Just $ Lang "bg" "" "" []
+       ("bengali", _) -> Just $ Lang "bn" "" "" []
+       ("tibetan", _) -> Just $ Lang "bo" "" "" []
+       ("breton", _) -> Just $ Lang "br" "" "" []
+       ("catalan", _) -> Just $ Lang "ca" "" "" []
+       ("welsh", _) -> Just $ Lang "cy" "" "" []
+       ("czech", _) -> Just $ Lang "cs" "" "" []
+       ("coptic", _) -> Just $ Lang "cop" "" "" []
+       ("danish", _) -> Just $ Lang "da" "" "" []
+       ("divehi", _) -> Just $ Lang "dv" "" "" []
+       ("greek", _) -> Just $ Lang "el" "" "" []
+       ("english", _) -> Just $ Lang "en" "" "" []
+       ("esperanto", _) -> Just $ Lang "eo" "" "" []
+       ("spanish", _) -> Just $ Lang "es" "" "" []
+       ("estonian", _) -> Just $ Lang "et" "" "" []
+       ("basque", _) -> Just $ Lang "eu" "" "" []
+       ("farsi", _) -> Just $ Lang "fa" "" "" []
+       ("finnish", _) -> Just $ Lang "fi" "" "" []
+       ("french", _) -> Just $ Lang "fr" "" "" []
+       ("friulan", _) -> Just $ Lang "fur" "" "" []
+       ("irish", _) -> Just $ Lang "ga" "" "" []
+       ("scottish", _) -> Just $ Lang "gd" "" "" []
+       ("ethiopic", _) -> Just $ Lang "gez" "" "" []
+       ("galician", _) -> Just $ Lang "gl" "" "" []
+       ("hebrew", _) -> Just $ Lang "he" "" "" []
+       ("hindi", _) -> Just $ Lang "hi" "" "" []
+       ("croatian", _) -> Just $ Lang "hr" "" "" []
+       ("magyar", _) -> Just $ Lang "hu" "" "" []
+       ("armenian", _) -> Just $ Lang "hy" "" "" []
+       ("interlingua", _) -> Just $ Lang "ia" "" "" []
+       ("indonesian", _) -> Just $ Lang "id" "" "" []
+       ("icelandic", _) -> Just $ Lang "is" "" "" []
+       ("italian", _) -> Just $ Lang "it" "" "" []
+       ("japanese", _) -> Just $ Lang "jp" "" "" []
+       ("khmer", _) -> Just $ Lang "km" "" "" []
+       ("kurmanji", _) -> Just $ Lang "kmr" "" "" []
+       ("kannada", _) -> Just $ Lang "kn" "" "" []
+       ("korean", _) -> Just $ Lang "ko" "" "" []
+       ("latin", _) -> Just $ Lang "la" "" "" []
+       ("lao", _) -> Just $ Lang "lo" "" "" []
+       ("lithuanian", _) -> Just $ Lang "lt" "" "" []
+       ("latvian", _) -> Just $ Lang "lv" "" "" []
+       ("malayalam", _) -> Just $ Lang "ml" "" "" []
+       ("mongolian", _) -> Just $ Lang "mn" "" "" []
+       ("marathi", _) -> Just $ Lang "mr" "" "" []
+       ("dutch", _) -> Just $ Lang "nl" "" "" []
+       ("nynorsk", _) -> Just $ Lang "nn" "" "" []
+       ("norsk", _) -> Just $ Lang "no" "" "" []
+       ("nko", _) -> Just $ Lang "nqo" "" "" []
+       ("occitan", _) -> Just $ Lang "oc" "" "" []
+       ("panjabi", _) -> Just $ Lang "pa" "" "" []
+       ("polish", _) -> Just $ Lang "pl" "" "" []
+       ("piedmontese", _) -> Just $ Lang "pms" "" "" []
+       ("portuguese", _) -> Just $ Lang "pt" "" "" []
+       ("romansh", _) -> Just $ Lang "rm" "" "" []
+       ("romanian", _) -> Just $ Lang "ro" "" "" []
+       ("russian", _) -> Just $ Lang "ru" "" "" []
+       ("sanskrit", _) -> Just $ Lang "sa" "" "" []
+       ("samin", _) -> Just $ Lang "se" "" "" []
+       ("slovak", _) -> Just $ Lang "sk" "" "" []
+       ("albanian", _) -> Just $ Lang "sq" "" "" []
+       ("serbian", _) -> Just $ Lang "sr" "" "" []
+       ("swedish", _) -> Just $ Lang "sv" "" "" []
+       ("syriac", _) -> Just $ Lang "syr" "" "" []
+       ("tamil", _) -> Just $ Lang "ta" "" "" []
+       ("telugu", _) -> Just $ Lang "te" "" "" []
+       ("thai", _) -> Just $ Lang "th" "" "" []
+       ("turkmen", _) -> Just $ Lang "tk" "" "" []
+       ("turkish", _) -> Just $ Lang "tr" "" "" []
+       ("ukrainian", _) -> Just $ Lang "uk" "" "" []
+       ("urdu", _) -> Just $ Lang "ur" "" "" []
+       ("vietnamese", _) -> Just $ Lang "vi" "" "" []
+       _ -> Nothing

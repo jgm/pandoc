@@ -314,11 +314,13 @@ Blank line after term, indented marker, alternate markers:
 
 Simple block on one line:
 
-fooAnd nested without indentation:
+foo
+And nested without indentation:
 
 foo
 
-barInterpreted markdown in a table:
+bar
+Interpreted markdown in a table:
 
 <literal style="html">
 <table>
@@ -380,7 +382,8 @@ As should this:
 
 Now, nested:
 
-fooThis should just be an HTML comment:
+foo
+This should just be an HTML comment:
 
 <literal style="html">
 <!-- Comment -->

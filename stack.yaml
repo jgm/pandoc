@@ -9,5 +9,8 @@ packages:
 extra-deps:
 - hslua-0.5.0
 - skylighting-0.3.3
-- texmath-0.9.4.1
-resolver: lts-8.16
+- cmark-gfm-0.1.1
+- QuickCheck-2.10.0.1
+- tasty-quickcheck-0.9.1
+- haddock-library-1.4.3
+resolver: lts-9.0

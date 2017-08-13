@@ -32,13 +32,12 @@ import Data.ByteString.Char8 (unpack)
 import Data.Default (Default (..))
 import Data.Text (pack)
 import Scripting.Lua (LuaState, call, push, pushhsfunction, rawset)
-import Text.Pandoc.Class hiding (readDataFile)
+import Text.Pandoc.Class
 import Text.Pandoc.Definition (Pandoc)
 import Text.Pandoc.Options (ReaderOptions(readerExtensions))
 import Text.Pandoc.Lua.Compat (loadstring)
 import Text.Pandoc.Lua.StackInstances ()
 import Text.Pandoc.Readers (Reader (..), getReader)
-import Text.Pandoc.Shared (readDataFile)
 
 -- | Push the "pandoc" on the lua stack.
 pushPandocModule :: Maybe FilePath -> LuaState -> IO ()
@@ -52,7 +51,8 @@ pushPandocModule datadir lua = do
 
 -- | Get the string representation of the pandoc module
 pandocModuleScript :: Maybe FilePath -> IO String
-pandocModuleScript datadir = unpack <$> readDataFile datadir "pandoc.lua"
+pandocModuleScript datadir = unpack <$>
+  runIOorExplode (setUserDataDir datadir >> readDataFile "pandoc.lua")
 
 read_doc :: String -> String -> IO (Either String Pandoc)
 read_doc formatSpec content = do

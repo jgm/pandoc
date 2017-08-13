@@ -186,6 +186,10 @@ tests = [ testGroup "inlines"
             "docx/already_auto_ident.docx"
             "docx/already_auto_ident.native"
           , testCompare
+            "avoid zero-level headers"
+            "docx/0_level_headers.docx"
+            "docx/0_level_headers.native"
+          , testCompare
             "nested anchor spans in header"
             "docx/nested_anchors_in_header.docx"
             "docx/nested_anchors_in_header.native"

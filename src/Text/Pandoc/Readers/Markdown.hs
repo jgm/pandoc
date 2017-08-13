@@ -1695,8 +1695,10 @@ endline = try $ do
 
 -- a reference label for a link
 reference :: PandocMonad m => MarkdownParser m (F Inlines, String)
-reference = do notFollowedBy' (string "[^")   -- footnote reference
-               withRaw $ trimInlinesF <$> inlinesInBalancedBrackets
+reference = do
+  guardDisabled Ext_footnotes <|> notFollowedBy' (string "[^")
+  guardDisabled Ext_citations <|> notFollowedBy' (string "[@")
+  withRaw $ trimInlinesF <$> inlinesInBalancedBrackets
 
 parenthesizedChars :: PandocMonad m => MarkdownParser m [Char]
 parenthesizedChars = do

@@ -2,26 +2,28 @@ version?=$(shell grep '^Version:' pandoc.cabal | awk '{print $$2;}')
 pandoc=$(shell find dist -name pandoc -type f -exec ls -t {} \; | head -1)
 sourcefiles=$(shell find pandoc.hs src test -name '*.hs')
 BRANCH?=master
+RESOLVER=nightly-2017-08-09
+GHCOPTS=-fdiagnostics-color=always -Wall -fno-warn-unused-do-bind -Wincomplete-record-updates -Wnoncanonical-monad-instances -Wnoncanonical-monadfail-instances
 
 quick:
-	stack install --flag 'pandoc:embed_data_files' --fast --test --test-arguments='-j4 --hide-successes $(TESTARGS)'
+	stack install --resolver=$(RESOLVER) --ghc-options='$(GHCOPTS)' --install-ghc --flag 'pandoc:embed_data_files' --fast --test --test-arguments='-j4 --hide-successes $(TESTARGS)'
 
 full:
-	stack install --flag 'pandoc:embed_data_files' --flag 'pandoc:weigh-pandoc' --flag 'pandoc:trypandoc' --bench --no-run-benchmarks --test --test-arguments='-j4 --hide-successes' --ghc-options '-Wall -Werror -fno-warn-unused-do-bind -O0 -j4'
+	stack install --resolver=$(RESOLVER) --flag 'pandoc:embed_data_files' --flag 'pandoc:weigh-pandoc' --flag 'pandoc:trypandoc' --bench --no-run-benchmarks --test --test-arguments='-j4 --hide-successes' --ghc-options '-Wall -Werror -fno-warn-unused-do-bind -O0 -j4 $(GHCOPTS)'
 
 haddock:
-	stack haddock
+	stack haddock --resolver=$(RESOLVER)
 
 # Note:  to accept current results of golden tests,
 # make test TESTARGS='--accept'
 test:
-	stack test --flag 'pandoc:embed_data_files' --fast --test-arguments='-j4 --hide-successes $(TESTARGS)'
+	stack test --resolver=$(RESOLVER) --flag 'pandoc:embed_data_files' --fast --test-arguments='-j4 --hide-successes $(TESTARGS)' --ghc-options '$(GHCOPTS)'
 
 bench:
-	stack bench --benchmark-arguments='$(BENCHARGS)'
+	stack bench --benchmark-arguments='$(BENCHARGS)' --resolver=$(RESOLVER) --ghc-options '$(GHCOPTS)'
 
 weigh:
-	stack build --flag 'pandoc:weigh-pandoc' && stack exec weigh-pandoc
+	stack build --resolver=$(RESOLVER) --ghc-options '$(GHCOPTS)' --flag 'pandoc:weigh-pandoc' && stack exec weigh-pandoc
 
 reformat:
 	for f in $(sourcefiles); do echo $$f; stylish-haskell -i $$f ; done

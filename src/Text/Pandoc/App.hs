@@ -41,7 +41,7 @@ module Text.Pandoc.App (
 import Control.Applicative ((<|>))
 import qualified Control.Exception as E
 import Control.Monad
-import Control.Monad.Except (throwError)
+import Control.Monad.Except (throwError, catchError)
 import Control.Monad.Trans
 import Data.Monoid
 import Data.Aeson (FromJSON (..), ToJSON (..), defaultOptions, eitherDecode',
@@ -71,21 +71,23 @@ import System.Environment (getArgs, getEnvironment, getProgName)
 import System.Exit (ExitCode (..), exitSuccess)
 import System.FilePath
 import System.IO (nativeNewline, stdout)
-import qualified System.IO as IO (Newline (..))
 import System.IO.Error (isDoesNotExistError)
+import qualified System.IO as IO (Newline (..))
 import Text.Pandoc
 import Text.Pandoc.Builder (setMeta)
 import Text.Pandoc.Class (PandocIO, extractMedia, fillMediaBag, getLog,
-                          setResourcePath, getMediaBag, setTrace)
+                          setResourcePath, getMediaBag, setTrace, report,
+                          setUserDataDir, readFileStrict, readDataFile,
+                          readDefaultDataFile, setTranslations)
 import Text.Pandoc.Highlighting (highlightingStyles)
+import Text.Pandoc.BCP47 (parseBCP47, Lang(..))
 import Text.Pandoc.Lua (runLuaFilter, LuaException(..))
 import Text.Pandoc.Writers.Math (defaultMathJaxURL, defaultKaTeXURL)
 import Text.Pandoc.PDF (makePDF)
 import Text.Pandoc.Process (pipeProcess)
 import Text.Pandoc.SelfContained (makeDataURI, makeSelfContained)
-import Text.Pandoc.Shared (headerShift, isURI, openURL, readDataFile,
-                           readDataFileUTF8, safeRead, tabFilter,
-                           eastAsianLineBreakFilter)
+import Text.Pandoc.Shared (headerShift, isURI, openURL,
+                           safeRead, tabFilter, eastAsianLineBreakFilter)
 import qualified Text.Pandoc.UTF8 as UTF8
 import Text.Pandoc.XML (toEntities)
 import Text.Printf
@@ -214,83 +216,6 @@ convertWithOpts opts = do
                                   _ -> e
 
   let standalone = optStandalone opts || not (isTextFormat format) || pdfOutput
-
-  templ <- case optTemplate opts of
-                _ | not standalone -> return Nothing
-                Nothing -> do
-                           deftemp <- runIO $
-                                        getDefaultTemplate datadir format
-                           case deftemp of
-                                 Left e  -> E.throwIO e
-                                 Right t -> return (Just t)
-                Just tp -> do
-                           -- strip off extensions
-                           let tp' = case takeExtension tp of
-                                          "" -> tp <.> format
-                                          _  -> tp
-                           Just <$> E.catch (UTF8.readFile tp')
-                             (\e -> if isDoesNotExistError e
-                                       then E.catch
-                                             (readDataFileUTF8 datadir
-                                                ("templates" </> tp'))
-                                             (\e' -> let _ = (e' :: E.SomeException)
-                                                     in E.throwIO e')
-                                       else E.throwIO e)
-
-  let addStringAsVariable varname s vars = return $ (varname, s) : vars
-
-  let addContentsAsVariable varname fp vars = do
-             s <- UTF8.readFile fp
-             return $ (varname, s) : vars
-
-  -- note: this reverses the list constructed in option parsing,
-  -- which in turn was reversed from the command-line order,
-  -- so we end up with the correct order in the variable list:
-  let withList _ [] vars     = return vars
-      withList f (x:xs) vars = f x vars >>= withList f xs
-
-  variables <-
-
-      withList (addStringAsVariable "sourcefile")
-               (reverse $ optInputFiles opts) (("outputfile", optOutputFile opts) : optVariables opts)
-               -- we reverse this list because, unlike
-               -- the other option lists here, it is
-               -- not reversed when parsed from CLI arguments.
-               -- See withList, above.
-      >>=
-      withList (addContentsAsVariable "include-before")
-               (optIncludeBeforeBody opts)
-      >>=
-      withList (addContentsAsVariable "include-after")
-               (optIncludeAfterBody opts)
-      >>=
-      withList (addContentsAsVariable "header-includes")
-               (optIncludeInHeader opts)
-      >>=
-      withList (addStringAsVariable "css") (optCss opts)
-      >>=
-      maybe return (addStringAsVariable "title-prefix") (optTitlePrefix opts)
-      >>=
-      maybe return (addStringAsVariable "epub-cover-image")
-                   (optEpubCoverImage opts)
-      >>=
-      (\vars -> case mathMethod of
-                     LaTeXMathML Nothing -> do
-                        s <- readDataFileUTF8 datadir "LaTeXMathML.js"
-                        return $ ("mathml-script", s) : vars
-                     _ -> return vars)
-      >>=
-      (\vars ->  if format == "dzslides"
-                    then do
-                        dztempl <- readDataFileUTF8 datadir
-                                     ("dzslides" </> "template.html")
-                        let dzline = "<!-- {{{{ dzslides core"
-                        let dzcore = unlines
-                                   $ dropWhile (not . (dzline `isPrefixOf`))
-                                   $ lines dztempl
-                        return $ ("dzslides-core", dzcore) : vars
-                    else return vars)
-
   let sourceURL = case sources of
                     []    -> Nothing
                     (x:_) -> case parseURI x of
@@ -300,21 +225,7 @@ convertWithOpts opts = do
                                                      uriFragment = "" }
                                 _ -> Nothing
 
-  abbrevs <- (Set.fromList . filter (not . null) . lines) <$>
-             case optAbbreviations opts of
-                  Nothing -> readDataFileUTF8 datadir "abbreviations"
-                  Just f  -> UTF8.readFile f
-
-  let readerOpts = def{ readerStandalone = standalone
-                      , readerColumns = optColumns opts
-                      , readerTabStop = optTabStop opts
-                      , readerIndentedCodeClasses = optIndentedCodeClasses opts
-                      , readerDefaultImageExtension =
-                         optDefaultImageExtension opts
-                      , readerTrackChanges = optTrackChanges opts
-                      , readerAbbreviations = abbrevs
-                      , readerExtensions = readerExts
-                      }
+  let addStringAsVariable varname s vars = return $ (varname, s) : vars
 
   highlightStyle <- lookupHighlightStyle $ optHighlightStyle opts
   let addSyntaxMap existingmap f = do
@@ -334,41 +245,6 @@ convertWithOpts opts = do
                   (\(syn,dep) -> (T.unpack syn ++ " requires " ++
                     T.unpack dep ++ " through IncludeRules.")) xs)
 
-  let writerOptions = def { writerTemplate         = templ,
-                            writerVariables        = variables,
-                            writerTabStop          = optTabStop opts,
-                            writerTableOfContents  = optTableOfContents opts,
-                            writerHTMLMathMethod   = mathMethod,
-                            writerIncremental      = optIncremental opts,
-                            writerCiteMethod       = optCiteMethod opts,
-                            writerNumberSections   = optNumberSections opts,
-                            writerNumberOffset     = optNumberOffset opts,
-                            writerSectionDivs      = optSectionDivs opts,
-                            writerExtensions       = writerExts,
-                            writerReferenceLinks   = optReferenceLinks opts,
-                            writerReferenceLocation = optReferenceLocation opts,
-                            writerDpi              = optDpi opts,
-                            writerWrapText         = optWrapText opts,
-                            writerColumns          = optColumns opts,
-                            writerEmailObfuscation = optEmailObfuscation opts,
-                            writerIdentifierPrefix = optIdentifierPrefix opts,
-                            writerSourceURL        = sourceURL,
-                            writerUserDataDir      = datadir,
-                            writerHtmlQTags        = optHtmlQTags opts,
-                            writerTopLevelDivision = optTopLevelDivision opts,
-                            writerListings         = optListings opts,
-                            writerSlideLevel       = optSlideLevel opts,
-                            writerHighlightStyle   = highlightStyle,
-                            writerSetextHeaders    = optSetextHeaders opts,
-                            writerEpubSubdirectory = optEpubSubdirectory opts,
-                            writerEpubMetadata     = epubMetadata,
-                            writerEpubFonts        = optEpubFonts opts,
-                            writerEpubChapterLevel = optEpubChapterLevel opts,
-                            writerTOCDepth         = optTOCDepth opts,
-                            writerReferenceDoc     = optReferenceDoc opts,
-                            writerLaTeXArgs        = optLaTeXEngineArgs opts,
-                            writerSyntaxMap        = syntaxMap
-                          }
 
 
 #ifdef _WINDOWS
@@ -381,18 +257,6 @@ convertWithOpts opts = do
             "Cannot write " ++ format ++ " output to stdout.\n" ++
             "Specify an output file using the -o option."
 
-
-  let transforms = (case optBaseHeaderLevel opts of
-                        x | x > 1     -> (headerShift (x - 1) :)
-                          | otherwise -> id) $
-                   (if extensionEnabled Ext_east_asian_line_breaks
-                          readerExts &&
-                       not (extensionEnabled Ext_east_asian_line_breaks
-                            writerExts &&
-                            writerWrapText writerOptions == WrapPreserve)
-                       then (eastAsianLineBreakFilter :)
-                       else id)
-                   []
 
   let convertTabs = tabFilter (if optPreserveTabs opts || readerName == "t2t"
                                   then 0
@@ -418,32 +282,180 @@ convertWithOpts opts = do
             E.throwIO PandocFailOnWarningError
         return res
 
-  let sourceToDoc :: [FilePath] -> PandocIO Pandoc
-      sourceToDoc sources' =
-         case reader of
-              TextReader r
-                | optFileScope opts || readerName == "json" ->
-                    mconcat <$> mapM (readSource >=> r readerOpts) sources
-                | otherwise ->
-                    readSources sources' >>= r readerOpts
-              ByteStringReader r ->
-                mconcat <$> mapM (readFile' >=> r readerOpts) sources
-
-  metadata <- if format == "jats" &&
-                 isNothing (lookup "csl" (optMetadata opts)) &&
-                 isNothing (lookup "citation-style" (optMetadata opts))
-                 then do
-                   jatsCSL <- readDataFile datadir "jats.csl"
-                   let jatsEncoded = makeDataURI ("application/xml", jatsCSL)
-                   return $ ("csl", jatsEncoded) : optMetadata opts
-                 else return $ optMetadata opts
-
   let eol = case optEol opts of
                  CRLF   -> IO.CRLF
                  LF     -> IO.LF
                  Native -> nativeNewline
 
+  -- note: this reverses the list constructed in option parsing,
+  -- which in turn was reversed from the command-line order,
+  -- so we end up with the correct order in the variable list:
+  let withList _ [] vars     = return vars
+      withList f (x:xs) vars = f x vars >>= withList f xs
+
+  let addContentsAsVariable varname fp vars = do
+             s <- UTF8.toString <$> readFileStrict fp
+             return $ (varname, s) : vars
+
   runIO' $ do
+    setUserDataDir datadir
+
+    variables <-
+        withList (addStringAsVariable "sourcefile")
+                 (reverse $ optInputFiles opts)
+                 (("outputfile", optOutputFile opts) : optVariables opts)
+                 -- we reverse this list because, unlike
+                 -- the other option lists here, it is
+                 -- not reversed when parsed from CLI arguments.
+                 -- See withList, above.
+        >>=
+        withList (addContentsAsVariable "include-before")
+                 (optIncludeBeforeBody opts)
+        >>=
+        withList (addContentsAsVariable "include-after")
+                 (optIncludeAfterBody opts)
+        >>=
+        withList (addContentsAsVariable "header-includes")
+                 (optIncludeInHeader opts)
+        >>=
+        withList (addStringAsVariable "css") (optCss opts)
+        >>=
+        maybe return (addStringAsVariable "title-prefix")
+                     (optTitlePrefix opts)
+        >>=
+        maybe return (addStringAsVariable "epub-cover-image")
+                     (optEpubCoverImage opts)
+        >>=
+        (\vars -> case mathMethod of
+                       LaTeXMathML Nothing -> do
+                          s <- UTF8.toString <$> readDataFile "LaTeXMathML.js"
+                          return $ ("mathml-script", s) : vars
+                       _ -> return vars)
+        >>=
+        (\vars ->  if format == "dzslides"
+                      then do
+                          dztempl <- UTF8.toString <$> readDataFile
+                                       ("dzslides" </> "template.html")
+                          let dzline = "<!-- {{{{ dzslides core"
+                          let dzcore = unlines
+                                     $ dropWhile (not . (dzline `isPrefixOf`))
+                                     $ lines dztempl
+                          return $ ("dzslides-core", dzcore) : vars
+                      else return vars)
+
+    abbrevs <- (Set.fromList . filter (not . null) . lines) <$>
+               case optAbbreviations opts of
+                    Nothing -> UTF8.toString <$> readDataFile "abbreviations"
+                    Just f  -> UTF8.toString <$> readFileStrict f
+
+    templ <- case optTemplate opts of
+                    _ | not standalone -> return Nothing
+                    Nothing -> Just <$> getDefaultTemplate format
+                    Just tp -> do
+                      -- strip off extensions
+                      let tp' = case takeExtension tp of
+                                     "" -> tp <.> format
+                                     _  -> tp
+                      Just . UTF8.toString <$>
+                            (readFileStrict tp' `catchError`
+                             (\e ->
+                                 case e of
+                                      PandocIOError _ e' |
+                                        isDoesNotExistError e' ->
+                                         readDataFile ("templates" </> tp')
+                                      _ -> throwError e))
+
+    metadata <- if format == "jats" &&
+                   isNothing (lookup "csl" (optMetadata opts)) &&
+                   isNothing (lookup "citation-style" (optMetadata opts))
+                   then do
+                     jatsCSL <- readDataFile "jats.csl"
+                     let jatsEncoded = makeDataURI
+                                         ("application/xml", jatsCSL)
+                     return $ ("csl", jatsEncoded) : optMetadata opts
+                   else return $ optMetadata opts
+
+    case lookup "lang" (optMetadata opts) of
+           Just l  -> case parseBCP47 l of
+                           Left _ -> return ()
+                           Right l' -> setTranslations l'
+           Nothing -> setTranslations $ Lang "en" "" "US" []
+
+    let writerOptions = def {
+            writerTemplate         = templ
+          , writerVariables        = variables
+          , writerTabStop          = optTabStop opts
+          , writerTableOfContents  = optTableOfContents opts
+          , writerHTMLMathMethod   = mathMethod
+          , writerIncremental      = optIncremental opts
+          , writerCiteMethod       = optCiteMethod opts
+          , writerNumberSections   = optNumberSections opts
+          , writerNumberOffset     = optNumberOffset opts
+          , writerSectionDivs      = optSectionDivs opts
+          , writerExtensions       = writerExts
+          , writerReferenceLinks   = optReferenceLinks opts
+          , writerReferenceLocation = optReferenceLocation opts
+          , writerDpi              = optDpi opts
+          , writerWrapText         = optWrapText opts
+          , writerColumns          = optColumns opts
+          , writerEmailObfuscation = optEmailObfuscation opts
+          , writerIdentifierPrefix = optIdentifierPrefix opts
+          , writerSourceURL        = sourceURL
+          , writerHtmlQTags        = optHtmlQTags opts
+          , writerTopLevelDivision = optTopLevelDivision opts
+          , writerListings         = optListings opts
+          , writerSlideLevel       = optSlideLevel opts
+          , writerHighlightStyle   = highlightStyle
+          , writerSetextHeaders    = optSetextHeaders opts
+          , writerEpubSubdirectory = optEpubSubdirectory opts
+          , writerEpubMetadata     = epubMetadata
+          , writerEpubFonts        = optEpubFonts opts
+          , writerEpubChapterLevel = optEpubChapterLevel opts
+          , writerTOCDepth         = optTOCDepth opts
+          , writerReferenceDoc     = optReferenceDoc opts
+          , writerLaTeXArgs        = optLaTeXEngineArgs opts
+          , writerSyntaxMap        = syntaxMap
+          }
+
+    let readerOpts = def{
+            readerStandalone = standalone
+          , readerColumns = optColumns opts
+          , readerTabStop = optTabStop opts
+          , readerIndentedCodeClasses = optIndentedCodeClasses opts
+          , readerDefaultImageExtension =
+             optDefaultImageExtension opts
+          , readerTrackChanges = optTrackChanges opts
+          , readerAbbreviations = abbrevs
+          , readerExtensions = readerExts
+          }
+
+    let transforms = (case optBaseHeaderLevel opts of
+                          x | x > 1     -> (headerShift (x - 1) :)
+                            | otherwise -> id) $
+                     (if extensionEnabled Ext_east_asian_line_breaks
+                            readerExts &&
+                         not (extensionEnabled Ext_east_asian_line_breaks
+                              writerExts &&
+                              writerWrapText writerOptions == WrapPreserve)
+                         then (eastAsianLineBreakFilter :)
+                         else id)
+                     []
+
+    let sourceToDoc :: [FilePath] -> PandocIO Pandoc
+        sourceToDoc sources' =
+           case reader of
+                TextReader r
+                  | optFileScope opts || readerName == "json" ->
+                      mconcat <$> mapM (readSource >=> r readerOpts) sources
+                  | otherwise ->
+                      readSources sources' >>= r readerOpts
+                ByteStringReader r ->
+                  mconcat <$> mapM (readFile' >=> r readerOpts) sources
+
+
+    when (readerName == "markdown_github" ||
+          writerName == "markdown_github") $
+      report $ Deprecated "markdown_github" "Use gfm instead."
     setResourcePath (optResourcePath opts)
     doc <- sourceToDoc sources >>=
               (   (if isJust (optExtractMedia opts)
@@ -993,7 +1005,9 @@ options =
     , Option "D" ["print-default-template"]
                  (ReqArg
                   (\arg _ -> do
-                     templ <- runIO $ getDefaultTemplate Nothing arg
+                     templ <- runIO $ do
+                                setUserDataDir Nothing
+                                getDefaultTemplate arg
                      case templ of
                           Right t -> UTF8.hPutStr stdout t
                           Left e  -> E.throwIO e
@@ -1004,7 +1018,8 @@ options =
     , Option "" ["print-default-data-file"]
                  (ReqArg
                   (\arg _ -> do
-                     readDataFile Nothing arg >>= BS.hPutStr stdout
+                     runIOorExplode $
+                       readDefaultDataFile arg >>= liftIO . BS.hPutStr stdout
                      exitSuccess)
                   "FILE")
                   "" -- "Print default data file"
@@ -1462,7 +1477,9 @@ options =
                  (NoArg
                   (\_ -> do
                      ddir <- getDataDir
-                     tpl <- readDataFileUTF8 Nothing "bash_completion.tpl"
+                     tpl <- runIOorExplode $
+                              UTF8.toString <$>
+                                readDefaultDataFile "bash_completion.tpl"
                      let optnames (Option shorts longs _ _) =
                            map (\c -> ['-',c]) shorts ++
                            map ("--" ++) longs
