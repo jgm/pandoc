@@ -662,15 +662,17 @@ enquote = do
 doAcronym :: PandocMonad m => String -> LP m Inlines
 doAcronym form = do
   acro <- braced
-  return . mconcat $ [spanWith ("",[],[("acronym-label", toksToString acro), ("acronym-form", "singular+" ++ form)]) 
+  return . mconcat $ [spanWith ("",[],[("acronym-label", toksToString acro), 
+    ("acronym-form", "singular+" ++ form)]) 
     $ str $ toksToString acro]
 
 doAcronymPlural :: PandocMonad m => String -> LP m Inlines
 doAcronymPlural form = do
   acro <- braced
   plural <- lit "s"
-  return . mconcat $ [spanWith ("",[],[("acronym-label", toksToString acro), ("acronym-form", "plural+" ++ form)]) 
-    $ mconcat $ [str $ toksToString acro, plural]]
+  return . mconcat $ [spanWith ("",[],[("acronym-label", toksToString acro), 
+    ("acronym-form", "plural+" ++ form)]) $ mconcat 
+    $ [str $ toksToString acro, plural]]
 
 doverb :: PandocMonad m => LP m Inlines
 doverb = do
