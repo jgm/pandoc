@@ -1165,11 +1165,13 @@ inlineCommands = M.fromList $
   , ("dots", lit "…")
   , ("mdots", lit "…")
   , ("sim", lit "~")
-  , ("label", rawInlineOr "label" (inBrackets <$> tok))
-  , ("ref", rawInlineOr "ref" (inBrackets <$> tok))
   , ("textgreek", tok)
   , ("sep", lit ",")
-  , ("cref", rawInlineOr "cref" (inBrackets <$> tok))  -- from cleveref.sty
+  , ("label", rawInlineOr "label" dolabel)
+  , ("ref", rawInlineOr "ref" $ doref "ref")
+  , ("cref", rawInlineOr "cref" $ doref "ref")       -- from cleveref.sty
+  , ("vref", rawInlineOr "vref" $ doref "ref+page")  -- from varioref.sty
+  , ("eqref", rawInlineOr "eqref" $ doref "eqref")   -- from amsmath.sty
   , ("(", mathInline . toksToString <$> manyTill anyTok (controlSeq ")"))
   , ("[", mathDisplay . toksToString <$> manyTill anyTok (controlSeq "]"))
   , ("ensuremath", mathInline . toksToString <$> braced)
@@ -1442,6 +1444,18 @@ treatAsInline = Set.fromList
   , "clearpage"
   , "pagebreak"
   ]
+
+dolabel :: PandocMonad m => LP m Inlines
+dolabel = do
+  v <- braced
+  return $ spanWith ("",[],[("label", toksToString v)]) 
+    $ inBrackets $ str $ toksToString v
+
+doref :: PandocMonad m => String -> LP m Inlines
+doref cls = do
+  v <- braced
+  return $ spanWith ("",[],[("reference-type", cls), ("reference", toksToString v)]) 
+    $ inBrackets $ str $ toksToString v
 
 lookupListDefault :: (Show k, Ord k) => v -> [k] -> M.Map k v -> v
 lookupListDefault d = (fromMaybe d .) . lookupList
