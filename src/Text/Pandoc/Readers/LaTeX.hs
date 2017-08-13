@@ -320,8 +320,12 @@ totoks (lin,col) t =
            case T.uncons rest of
                 Nothing -> [Tok (lin, col) Symbol (T.singleton c)]
                 Just (d, rest')
-                  | isLetter d ->
-                      let (ws, rest'') = T.span isLetter rest
+                  | isLetterOrAt d ->
+                      -- \makeatletter is common in macro defs;
+                      -- ideally we should make tokenization sensitive
+                      -- to \makeatletter and \makeatother, but this is
+                      -- probably best for now
+                      let (ws, rest'') = T.span isLetterOrAt rest
                           (ss, rest''') = T.span isSpaceOrTab rest''
                       in  Tok (lin, col) (CtrlSeq ws) ("\\" <> ws <> ss)
                           : totoks (lin,
@@ -367,6 +371,8 @@ totoks (lin,col) t =
   where isSpaceOrTab ' '  = True
         isSpaceOrTab '\t' = True
         isSpaceOrTab _    = False
+        isLetterOrAt '@'  = True
+        isLetterOrAt c    = isLetter c
 
 isLowerHex :: Char -> Bool
 isLowerHex x = x >= '0' && x <= '9' || x >= 'a' && x <= 'f'
