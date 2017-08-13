@@ -76,7 +76,7 @@ metaToJSON opts blockWriter inlineWriter meta
 
 -- | Like 'metaToJSON', but does not include variables and is
 -- not sensitive to 'writerTemplate'.
-metaToJSON' :: (Monad m, ToJSON a)
+metaToJSON' :: (Functor m, Monad m, ToJSON a)
            => ([Block] -> m a)
            -> ([Inline] -> m a)
            -> Meta
@@ -99,7 +99,7 @@ addVariablesToJSON opts metadata =
   where combineMetadata (Object o1) (Object o2) = Object $ H.union o1 o2
         combineMetadata x _                     = x
 
-metaValueToJSON :: (Monad m, ToJSON a)
+metaValueToJSON :: (Functor m, Monad m, ToJSON a)
                 => ([Block] -> m a)
                 -> ([Inline] -> m a)
                 -> MetaValue
