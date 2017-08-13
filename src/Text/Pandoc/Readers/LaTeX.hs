@@ -1448,7 +1448,7 @@ treatAsInline = Set.fromList
 dolabel :: PandocMonad m => LP m Inlines
 dolabel = do
   v <- braced
-  return $ spanWith ("",[],[("data-label", toksToString v)]) 
+  return $ spanWith ("",[],[("label", toksToString v)]) 
     $ inBrackets $ str $ toksToString v
 
 doref :: PandocMonad m => String -> LP m Inlines

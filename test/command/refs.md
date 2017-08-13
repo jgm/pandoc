@@ -42,7 +42,7 @@ Accuracy~\eqref{eq:Accuracy} is the proportion, measuring true results among all
 
 Figure \ref{fig:Logo} illustrated the SVG logo
 ^D
-[Para [Image ("",[],[]) [Str "Logo",Span ("",[],[("data-label","fig:Logo")]) []] ("command/SVG_logo.svg","fig:")]
+[Para [Image ("",[],[]) [Str "Logo",Span ("",[],[("label","fig:Logo")]) []] ("command/SVG_logo.svg","fig:")]
 ,Para [Str "Figure",Space,Span ("",[],[("reference-type","ref"),("reference","fig:Logo")]) [Str "[fig:Logo]"],Space,Str "illustrated",Space,Str "the",Space,Str "SVG",Space,Str "logo"]]
 ```
 
@@ -50,5 +50,5 @@ Figure \ref{fig:Logo} illustrated the SVG logo
 % pandoc -f latex -t native
 \label{section} Section \ref{section}
 ^D
-[Para [Span ("",[],[("data-label","section")]) [Str "[section]"],Space,Str "Section",Space,Span ("",[],[("reference-type","ref"),("reference","section")]) [Str "[section]"]]]
+[Para [Span ("",[],[("label","section")]) [Str "[section]"],Space,Str "Section",Space,Span ("",[],[("reference-type","ref"),("reference","section")]) [Str "[section]"]]]
 ```
