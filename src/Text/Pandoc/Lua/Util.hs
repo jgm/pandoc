@@ -31,7 +31,6 @@ Lua utility functions.
 module Text.Pandoc.Lua.Util
   ( adjustIndexBy
   , getTable
-  , setTable
   , addValue
   , getRawInt
   , setRawInt
@@ -43,7 +42,7 @@ module Text.Pandoc.Lua.Util
 
 import Foreign.Lua (Lua, FromLuaStack (..), ToLuaStack (..), NumArgs,
                     StackIndex, getglobal')
-import Foreign.Lua.Api (call, gettable, pop, rawgeti, rawseti, settable)
+import Foreign.Lua.Api (call, pop, rawget, rawgeti, rawset, rawseti)
 
 -- | Adjust the stack index, assuming that @n@ new elements have been pushed on
 -- the stack.
@@ -57,19 +56,15 @@ adjustIndexBy idx n =
 getTable :: (ToLuaStack a, FromLuaStack b) => StackIndex -> a -> Lua b
 getTable idx key = do
   push key
-  gettable (idx `adjustIndexBy` 1)
+  rawget (idx `adjustIndexBy` 1)
   peek (-1) <* pop 1
-
--- | Set value for key for table at the given index
-setTable :: (ToLuaStack a, ToLuaStack b) => StackIndex -> a -> b -> Lua ()
-setTable idx key value = do
-  push key
-  push value
-  settable (idx `adjustIndexBy` 2)
 
 -- | Add a key-value pair to the table at the top of the stack
 addValue :: (ToLuaStack a, ToLuaStack b) => a -> b -> Lua ()
-addValue = setTable (-1)
+addValue key value = do
+  push key
+  push value
+  rawset (-3)
 
 -- | Get value behind key from table at given index.
 getRawInt :: FromLuaStack a => StackIndex -> Int -> Lua a

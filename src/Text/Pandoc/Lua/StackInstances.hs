@@ -34,11 +34,11 @@ module Text.Pandoc.Lua.StackInstances () where
 
 import Control.Applicative ((<|>))
 import Foreign.Lua (Lua, Type (..), FromLuaStack (peek), ToLuaStack (push),
-                    StackIndex, peekEither, throwLuaError)
-import Foreign.Lua.Api (getfield, ltype, newtable, pop, rawlen)
+                    StackIndex, throwLuaError, tryLua)
+import Foreign.Lua.Api (getmetatable, ltype, newtable, pop, rawget, rawlen)
 import Text.Pandoc.Definition
 import Text.Pandoc.Lua.SharedInstances ()
-import Text.Pandoc.Lua.Util (addValue, getTable, pushViaConstructor)
+import Text.Pandoc.Lua.Util (addValue, adjustIndexBy, getTable, pushViaConstructor)
 import Text.Pandoc.Shared (safeRead)
 
 instance ToLuaStack Pandoc where
@@ -46,6 +46,7 @@ instance ToLuaStack Pandoc where
     newtable
     addValue "blocks" blocks
     addValue "meta"   meta
+
 instance FromLuaStack Pandoc where
   peek idx = do
     blocks <- getTable idx "blocks"
@@ -151,7 +152,7 @@ peekMetaValue idx = do
     TypeBoolean -> MetaBool <$> peek idx
     TypeString  -> MetaString <$> peek idx
     TypeTable   -> do
-      tag <- getfield idx "t" *> peekEither (-1) <* pop 1
+      tag <- tryLua $ getTag idx
       case tag of
         Right "MetaBlocks"  -> MetaBlocks  <$> elementContent
         Right "MetaBool"    -> MetaBool    <$> elementContent
@@ -192,7 +193,7 @@ pushBlock = \case
 -- | Return the value at the given index as block if possible.
 peekBlock :: StackIndex -> Lua Block
 peekBlock idx = do
-  tag <- getTable idx "t"
+  tag <- getTag idx
   case tag of
       "BlockQuote"     -> BlockQuote <$> elementContent
       "BulletList"     -> BulletList <$> elementContent
@@ -243,7 +244,7 @@ pushInline = \case
 -- | Return the value at the given index as inline if possible.
 peekInline :: StackIndex -> Lua Inline
 peekInline idx = do
-  tag <- getTable idx "t"
+  tag <- getTag idx
   case tag of
     "Cite"       -> (uncurry Cite) <$> elementContent
     "Code"       -> (withAttr Code) <$> elementContent
@@ -272,6 +273,19 @@ peekInline idx = do
    elementContent :: FromLuaStack a => Lua a
    elementContent = getTable idx "c"
 
+getTag :: StackIndex -> Lua String
+getTag idx = do
+  hasMT <- getmetatable idx
+  if hasMT
+    then do
+      push "tag"
+      rawget (-2)
+      peek (-1) <* pop 2
+    else do
+      push "tag"
+      rawget (idx `adjustIndexBy` 1)
+      peek (-1) <* pop 1
+
 withAttr :: (Attr -> a -> b) -> (LuaAttr, a) -> b
 withAttr f (attributes, x) = f (fromLuaAttr attributes) x
 
@@ -281,5 +295,6 @@ newtype LuaAttr = LuaAttr { fromLuaAttr :: Attr }
 instance ToLuaStack LuaAttr where
   push (LuaAttr (id', classes, kv)) =
     pushViaConstructor "Attr" id' classes kv
+
 instance FromLuaStack LuaAttr where
   peek idx = LuaAttr <$> peek idx
