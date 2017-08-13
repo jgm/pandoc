@@ -119,6 +119,19 @@ parseLaTeX = do
 --        Left e  -> error (show e)
 --        Right r -> return r
 
+newtype HeaderNum = HeaderNum [Int]
+  deriving (Show)
+
+renderHeaderNum :: HeaderNum -> String
+renderHeaderNum (HeaderNum xs) =
+  intercalate "." (map show xs)
+
+incrementHeaderNum :: Int -> HeaderNum -> HeaderNum
+incrementHeaderNum level (HeaderNum ns) = HeaderNum $
+  case reverse (take level (ns ++ repeat 0)) of
+       (x:xs) -> reverse (x+1 : xs)
+       []     -> []  -- shouldn't happen
+
 data LaTeXState = LaTeXState{ sOptions       :: ReaderOptions
                             , sMeta          :: Meta
                             , sQuoteContext  :: QuoteContext
@@ -131,6 +144,8 @@ data LaTeXState = LaTeXState{ sOptions       :: ReaderOptions
                             , sCaption       :: Maybe Inlines
                             , sInListItem    :: Bool
                             , sInTableCell   :: Bool
+                            , sLastHeaderNum :: HeaderNum
+                            , sLabels        :: M.Map String Inlines
                             }
      deriving Show
 
@@ -147,6 +162,8 @@ defaultLaTeXState = LaTeXState{ sOptions       = def
                               , sCaption       = Nothing
                               , sInListItem    = False
                               , sInTableCell   = False
+                              , sLastHeaderNum = HeaderNum []
+                              , sLabels        = M.empty
                               }
 
 instance PandocMonad m => HasQuoteContext LaTeXState m where
@@ -1448,14 +1465,16 @@ treatAsInline = Set.fromList
 dolabel :: PandocMonad m => LP m Inlines
 dolabel = do
   v <- braced
-  return $ spanWith ("",[],[("label", toksToString v)]) 
+  return $ spanWith ("",[],[("label", toksToString v)])
     $ inBrackets $ str $ toksToString v
 
 doref :: PandocMonad m => String -> LP m Inlines
 doref cls = do
   v <- braced
-  return $ spanWith ("",[],[("reference-type", cls), ("reference", toksToString v)]) 
-    $ inBrackets $ str $ toksToString v
+  let refstr = toksToString v
+  return $ spanWith ("",[],[ ("reference-type", cls)
+                           , ("reference", refstr)])
+    $ inBrackets $ str refstr
 
 lookupListDefault :: (Show k, Ord k) => v -> [k] -> M.Map k v -> v
 lookupListDefault d = (fromMaybe d .) . lookupList
@@ -1688,14 +1707,22 @@ looseItem = do
 resetCaption :: PandocMonad m => LP m ()
 resetCaption = updateState $ \st -> st{ sCaption = Nothing }
 
-section :: PandocMonad m => Attr -> Int -> LP m Blocks
-section (ident, classes, kvs) lvl = do
+section :: PandocMonad m => Bool -> Attr -> Int -> LP m Blocks
+section starred (ident, classes, kvs) lvl = do
   skipopts
   contents <- grouped inline
   lab <- option ident $
           try (spaces >> controlSeq "label"
                >> spaces >> toksToString <$> braced)
-  attr' <- registerHeader (lab, classes, kvs) contents
+  let classes' = if starred then "unnumbered" : classes else classes
+  unless starred $ do
+    hn <- sLastHeaderNum <$> getState
+    let num = incrementHeaderNum lvl hn
+    updateState $ \st -> st{ sLastHeaderNum = num }
+    updateState $ \st -> st{ sLabels = M.insert lab
+                            (str (renderHeaderNum num))
+                            (sLabels st) }
+  attr' <- registerHeader (lab, classes', kvs) contents
   return $ headerWith attr' lvl contents
 
 blockCommand :: PandocMonad m => LP m Blocks
@@ -1756,23 +1783,23 @@ blockCommands = M.fromList $
    -- Koma-script metadata commands
    , ("dedication", mempty <$ (skipopts *> tok >>= addMeta "dedication"))
    -- sectioning
-   , ("part", section nullAttr (-1))
-   , ("part*", section nullAttr (-1))
-   , ("chapter", section nullAttr 0)
-   , ("chapter*", section ("",["unnumbered"],[]) 0)
-   , ("section", section nullAttr 1)
-   , ("section*", section ("",["unnumbered"],[]) 1)
-   , ("subsection", section nullAttr 2)
-   , ("subsection*", section ("",["unnumbered"],[]) 2)
-   , ("subsubsection", section nullAttr 3)
-   , ("subsubsection*", section ("",["unnumbered"],[]) 3)
-   , ("paragraph", section nullAttr 4)
-   , ("paragraph*", section ("",["unnumbered"],[]) 4)
-   , ("subparagraph", section nullAttr 5)
-   , ("subparagraph*", section ("",["unnumbered"],[]) 5)
+   , ("part", section False nullAttr (-1))
+   , ("part*", section True nullAttr (-1))
+   , ("chapter", section False nullAttr 0)
+   , ("chapter*", section True ("",["unnumbered"],[]) 0)
+   , ("section", section False nullAttr 1)
+   , ("section*", section True ("",["unnumbered"],[]) 1)
+   , ("subsection", section False nullAttr 2)
+   , ("subsection*", section True ("",["unnumbered"],[]) 2)
+   , ("subsubsection", section False nullAttr 3)
+   , ("subsubsection*", section True ("",["unnumbered"],[]) 3)
+   , ("paragraph", section False nullAttr 4)
+   , ("paragraph*", section True ("",["unnumbered"],[]) 4)
+   , ("subparagraph", section False nullAttr 5)
+   , ("subparagraph*", section True ("",["unnumbered"],[]) 5)
    -- beamer slides
-   , ("frametitle", section nullAttr 3)
-   , ("framesubtitle", section nullAttr 4)
+   , ("frametitle", section False nullAttr 3)
+   , ("framesubtitle", section False nullAttr 4)
    -- letters
    , ("opening", (para . trimInlines) <$> (skipopts *> tok))
    , ("closing", skipopts *> closing)
