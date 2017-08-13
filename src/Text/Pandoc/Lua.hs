@@ -30,32 +30,24 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 Pandoc lua utils.
 -}
-module Text.Pandoc.Lua ( LuaException(..),
-                         runLuaFilter,
-                         pushPandocModule ) where
+module Text.Pandoc.Lua (LuaException (..), pushPandocModule, runLuaFilter) where
 
-import Control.Exception
 import Control.Monad (unless, when, (>=>), mplus)
 import Control.Monad.Trans (MonadIO (..))
 import Data.Data (toConstr, showConstr, dataTypeOf, dataTypeConstrs, Data)
 import Data.Map (Map)
 import Data.Maybe (isJust)
-import Data.Typeable (Typeable)
-import Foreign.Lua (Lua, FromLuaStack (..), ToLuaStack (..), runLua,
-                    peekEither, getglobal', throwLuaError)
-import Foreign.Lua.Types.Lua (runLuaWith, liftLua1)
-import Foreign.Lua.Api
+import Foreign.Lua (Lua, FromLuaStack (peek), LuaException (..), StackIndex,
+                    Status(OK), ToLuaStack (push), call, isnil, dofile,
+                    getglobal', gettop, isfunction, newtable, openlibs, pcall,
+                    peekEither, pop, pushvalue, rawgeti, rawseti, ref,
+                    registryindex, runLua, setglobal, throwLuaError)
 import Text.Pandoc.Definition
 import Text.Pandoc.Lua.PandocModule (pushPandocModule)
 import Text.Pandoc.Lua.StackInstances ()
-import Text.Pandoc.Walk
+import Text.Pandoc.Walk (Walkable (walkM))
 
 import qualified Data.Map as Map
-
-newtype LuaException = LuaException String
-  deriving (Show, Typeable)
-
-instance Exception LuaException
 
 runLuaFilter :: (MonadIO m)
              => Maybe FilePath -> FilePath -> [String] -> Pandoc -> m Pandoc
@@ -90,26 +82,26 @@ runAll :: [LuaFilter] -> Pandoc -> Lua Pandoc
 runAll = foldr ((>=>) . walkMWithLuaFilter) return
 
 walkMWithLuaFilter :: LuaFilter -> Pandoc -> Lua Pandoc
-walkMWithLuaFilter (LuaFilter fnMap) = liftLua1 walkLua
+walkMWithLuaFilter (LuaFilter fnMap) = walkLua
   where
-    walkLua :: LuaState -> Pandoc -> IO Pandoc
-    walkLua l =
+    walkLua :: Pandoc -> Lua Pandoc
+    walkLua =
           (if hasOneOf (constructorsFor (dataTypeOf (Str [])))
-           then walkM (runLuaWith l . (tryFilter fnMap :: Inline -> Lua Inline))
+           then walkM (tryFilter fnMap :: Inline -> Lua Inline)
            else return)
           >=>
           (if hasOneOf (constructorsFor (dataTypeOf (Para [])))
-           then walkM ((runLuaWith l . (tryFilter fnMap :: Block -> Lua Block)))
+           then walkM (tryFilter fnMap :: Block -> Lua Block)
            else return)
           >=>
           (case Map.lookup "Meta" fnMap of
-             Just fn -> walkM ((\(Pandoc meta blocks) -> runLuaWith l $ do
-                                     meta' <- runFilterFunction fn meta
-                                     return $ Pandoc meta' blocks))
+             Just fn -> walkM (\(Pandoc meta blocks) -> do
+                                  meta' <- runFilterFunction fn meta
+                                  return $ Pandoc meta' blocks)
              Nothing -> return)
           >=>
           (case Map.lookup "Pandoc" fnMap `mplus` Map.lookup "Doc" fnMap of
-             Just fn -> runLuaWith l . (runFilterFunction fn :: Pandoc -> Lua Pandoc)
+             Just fn -> runFilterFunction fn :: Pandoc -> Lua Pandoc
              Nothing -> return)
     hasOneOf = any (\k -> isJust (Map.lookup k fnMap))
     constructorsFor x = map show (dataTypeConstrs x)
@@ -146,10 +138,10 @@ runFilterFunction lf x = do
       let prefix = "Error while running filter function: "
       throwLuaError $ prefix ++ msg
     else do
-      resType <- ltype (-1)
-      case resType of
-        TypeNil -> pop 1 *> return x
-        _       -> do
+      noExplicitFilter <- isnil (-1)
+      if noExplicitFilter
+        then  pop 1 *> return x
+        else do
           mbres <- peekEither (-1)
           case mbres of
             Left err -> throwLuaError
