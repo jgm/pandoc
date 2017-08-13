@@ -1075,7 +1075,7 @@ inlineCommand' = try $ do
   let names = ordNub [name', name] -- check non-starred as fallback
   let raw = do
        guard $ isInlineCommand name || not (isBlockCommand name)
-       rawcommand <- getRawCommand (cmd <> star)
+       rawcommand <- getRawCommand name (cmd <> star)
        (guardEnabled Ext_raw_tex >> return (rawInline "latex" rawcommand))
          <|> ignore rawcommand
   lookupListDefault raw names inlineCommands
@@ -1421,20 +1421,22 @@ rawInlineOr :: PandocMonad m => Text -> LP m Inlines -> LP m Inlines
 rawInlineOr name' fallback = do
   parseRaw <- extensionEnabled Ext_raw_tex <$> getOption readerExtensions
   if parseRaw
-     then rawInline "latex" <$> getRawCommand name'
+     then rawInline "latex" <$> getRawCommand name' ("\\" <> name')
      else fallback
 
-getRawCommand :: PandocMonad m => Text -> LP m String
-getRawCommand txt = do
+getRawCommand :: PandocMonad m => Text -> Text -> LP m String
+getRawCommand name txt = do
   (_, rawargs) <- withRaw $
-      case txt of
-           "\\write" -> do
+      case name of
+           "write" -> do
              void $ satisfyTok isWordTok -- digits
              void braced
-           "\\titleformat" -> do
+           "titleformat" -> do
              void braced
              skipopts
              void $ count 4 braced
+           "def" -> do
+             void $ manyTill anyTok braced
            _ -> do
              skipangles
              skipopts
@@ -1759,7 +1761,7 @@ blockCommand = try $ do
   let names = ordNub [name', name]
   let rawDefiniteBlock = do
         guard $ isBlockCommand name
-        rawBlock "latex" <$> getRawCommand (txt <> star)
+        rawBlock "latex" <$> getRawCommand name (txt <> star)
   -- heuristic:  if it could be either block or inline, we
   -- treat it if block if we have a sequence of block
   -- commands followed by a newline.  But we stop if we
@@ -1771,7 +1773,7 @@ blockCommand = try $ do
         guard $ "start" `T.isPrefixOf` n
   let rawMaybeBlock = try $ do
         guard $ not $ isInlineCommand name
-        curr <- rawBlock "latex" <$> getRawCommand (txt <> star)
+        curr <- rawBlock "latex" <$> getRawCommand name (txt <> star)
         rest <- many $ notFollowedBy startCommand *> blockCommand
         lookAhead $ blankline <|> startCommand
         return $ curr <> mconcat rest
