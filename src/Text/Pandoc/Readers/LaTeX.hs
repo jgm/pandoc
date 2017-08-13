@@ -106,8 +106,22 @@ parseLaTeX = do
        -- handle the case where you have \part or \chapter
        (if bottomLevel < 1
            then walk (adjustHeaders (1 - bottomLevel))
-           else id) doc'
+           else id) $
+       walk (resolveRefs (sLabels st)) $ doc'
   return $ Pandoc meta bs'
+
+resolveRefs :: M.Map String [Inline] -> Inline -> Inline
+resolveRefs labels x@(Span (ident,classes,kvs) _) =
+  case (lookup "reference-type" kvs,
+        lookup "reference" kvs) of
+        (Just "ref", Just lab) ->
+          case M.lookup lab labels of
+               Just txt -> Span (ident,classes,kvs)
+                             [Link nullAttr txt ('#':lab, "")]
+               Nothing  -> x
+        _ -> x
+resolveRefs _ x = x
+
 
 -- testParser :: LP PandocIO a -> Text -> IO a
 -- testParser p t = do
@@ -145,7 +159,7 @@ data LaTeXState = LaTeXState{ sOptions       :: ReaderOptions
                             , sInListItem    :: Bool
                             , sInTableCell   :: Bool
                             , sLastHeaderNum :: HeaderNum
-                            , sLabels        :: M.Map String Inlines
+                            , sLabels        :: M.Map String [Inline]
                             }
      deriving Show
 
@@ -1720,7 +1734,7 @@ section starred (ident, classes, kvs) lvl = do
     let num = incrementHeaderNum lvl hn
     updateState $ \st -> st{ sLastHeaderNum = num }
     updateState $ \st -> st{ sLabels = M.insert lab
-                            (str (renderHeaderNum num))
+                            [Str (renderHeaderNum num)]
                             (sLabels st) }
   attr' <- registerHeader (lab, classes', kvs) contents
   return $ headerWith attr' lvl contents
