@@ -25,7 +25,6 @@ runTest :: String    -- ^ Title of test
         -> String    -- ^ Expected output
         -> TestTree
 runTest testname pandocpath cmd inp norm = testCase testname $ do
-  let cmd' = cmd ++ " --data-dir ../data"
   let findDynlibDir []           = Nothing
       findDynlibDir ("build":xs) = Just $ joinPath (reverse xs) </> "build"
       findDynlibDir (_:xs)       = findDynlibDir xs
@@ -35,8 +34,8 @@ runTest testname pandocpath cmd inp norm = testCase testname $ do
                        Nothing  -> []
                        Just d   -> [("DYLD_LIBRARY_PATH", d),
                                     ("LD_LIBRARY_PATH", d)]
-  let env' = dynlibEnv ++ [("PATH",takeDirectory pandocpath),("TMP","."),("LANG","en_US.UTF-8"),("HOME", "./")]
-  let pr = (shell cmd'){ env = Just env' }
+  let env' = dynlibEnv ++ [("PATH",takeDirectory pandocpath),("TMP","."),("LANG","en_US.UTF-8"),("HOME", "./"),("pandoc_datadir", "..")]
+  let pr = (shell cmd){ env = Just env' }
   (ec, out', err') <- readCreateProcessWithExitCode pr inp
   -- filter \r so the tests will work on Windows machines
   let out = filter (/= '\r') $ err' ++ out'

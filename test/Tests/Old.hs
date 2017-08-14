@@ -238,7 +238,8 @@ testWithNormalize normalizer testname opts inp norm =
                                    Just d   -> [("DYLD_LIBRARY_PATH", d),
                                                 ("LD_LIBRARY_PATH", d)]
               let env = dynlibEnv ++
-                        [("TMP","."),("LANG","en_US.UTF-8"),("HOME", "./")]
+                        [("TMP","."),("LANG","en_US.UTF-8"),("HOME", "./"),
+                         ("pandoc_datadir","..")]
               ph <- runProcess pandocPath options Nothing
                     (Just env) Nothing (Just hOut) (Just hErr)
               ec <- waitForProcess ph
@@ -253,7 +254,7 @@ testWithNormalize normalizer testname opts inp norm =
                               then ""
                               else '\n':errcontents
         updateGolden = UTF8.writeFile norm
-        options = ["--quiet", "--data-dir", ".." </> "data"] ++ [inp] ++ opts
+        options = ["--quiet"] ++ [inp] ++ opts
 
 compareValues :: FilePath -> [String] -> String -> String -> IO (Maybe String)
 compareValues norm options expected actual = do
