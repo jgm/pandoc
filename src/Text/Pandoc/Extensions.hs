@@ -133,6 +133,8 @@ data Extension =
     | Ext_abbreviations       -- ^ PHP markdown extra abbreviation definitions
     | Ext_emoji               -- ^ Support emoji like :smile:
     | Ext_auto_identifiers    -- ^ Automatic identifiers for headers
+    | Ext_gfm_auto_identifiers  -- ^ Automatic identifiers for headers,
+                                -- using GitHub's method for generating identifiers
     | Ext_ascii_identifiers   -- ^ ascii-only identifiers for headers
     | Ext_header_attributes   -- ^ Explicit header attributes {#id .class k=v}
     | Ext_mmd_header_identifiers -- ^ Multimarkdown style header identifiers [myid]
@@ -237,7 +239,7 @@ githubMarkdownExtensions = extensionsFromList
   , Ext_pipe_tables
   , Ext_raw_html
   , Ext_fenced_code_blocks
-  , Ext_auto_identifiers
+  , Ext_gfm_auto_identifiers
   , Ext_ascii_identifiers
   , Ext_backtick_code_blocks
   , Ext_autolink_bare_uris
@@ -300,6 +302,7 @@ getDefaultExtensions "markdown_mmd" = multimarkdownExtensions
 getDefaultExtensions "markdown_github" = githubMarkdownExtensions
 getDefaultExtensions "markdown"        = pandocExtensions
 getDefaultExtensions "plain"           = plainExtensions
+getDefaultExtensions "gfm"             = githubMarkdownExtensions
 getDefaultExtensions "org"             = extensionsFromList
                                           [Ext_citations,
                                            Ext_auto_identifiers]

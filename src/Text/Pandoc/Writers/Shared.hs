@@ -42,7 +42,7 @@ module Text.Pandoc.Writers.Shared (
                      , gridTable
                      )
 where
-import Control.Monad (liftM, zipWithM)
+import Control.Monad (zipWithM)
 import Data.Aeson (FromJSON (..), Result (..), ToJSON (..), Value (Object),
                    encode, fromJSON)
 import qualified Data.HashMap.Strict as H
@@ -51,6 +51,7 @@ import qualified Data.Map as M
 import Data.Maybe (isJust)
 import qualified Data.Text as T
 import qualified Data.Traversable as Traversable
+import qualified Text.Pandoc.Builder as Builder
 import Text.Pandoc.Definition
 import Text.Pandoc.Options
 import Text.Pandoc.Pretty
@@ -75,7 +76,7 @@ metaToJSON opts blockWriter inlineWriter meta
 
 -- | Like 'metaToJSON', but does not include variables and is
 -- not sensitive to 'writerTemplate'.
-metaToJSON' :: (Monad m, ToJSON a)
+metaToJSON' :: (Functor m, Monad m, ToJSON a)
            => ([Block] -> m a)
            -> ([Inline] -> m a)
            -> Meta
@@ -98,19 +99,20 @@ addVariablesToJSON opts metadata =
   where combineMetadata (Object o1) (Object o2) = Object $ H.union o1 o2
         combineMetadata x _                     = x
 
-metaValueToJSON :: (Monad m, ToJSON a)
+metaValueToJSON :: (Functor m, Monad m, ToJSON a)
                 => ([Block] -> m a)
                 -> ([Inline] -> m a)
                 -> MetaValue
                 -> m Value
-metaValueToJSON blockWriter inlineWriter (MetaMap metamap) = liftM toJSON $
+metaValueToJSON blockWriter inlineWriter (MetaMap metamap) = toJSON <$>
   Traversable.mapM (metaValueToJSON blockWriter inlineWriter) metamap
-metaValueToJSON blockWriter inlineWriter (MetaList xs) = liftM toJSON $
+metaValueToJSON blockWriter inlineWriter (MetaList xs) = toJSON <$>
   Traversable.mapM (metaValueToJSON blockWriter inlineWriter) xs
 metaValueToJSON _ _ (MetaBool b) = return $ toJSON b
-metaValueToJSON _ _ (MetaString s) = return $ toJSON s
-metaValueToJSON blockWriter _ (MetaBlocks bs) = liftM toJSON $ blockWriter bs
-metaValueToJSON _ inlineWriter (MetaInlines bs) = liftM toJSON $ inlineWriter bs
+metaValueToJSON _ inlineWriter (MetaString s) = toJSON <$>
+  inlineWriter (Builder.toList (Builder.text s))
+metaValueToJSON blockWriter _ (MetaBlocks bs) = toJSON <$> blockWriter bs
+metaValueToJSON _ inlineWriter (MetaInlines is) = toJSON <$> inlineWriter is
 
 -- | Retrieve a field value from a JSON object.
 getField :: FromJSON a
@@ -214,6 +216,9 @@ unsmartify opts ('\8211':xs)
 unsmartify opts ('\8212':xs)
   | isEnabled Ext_old_dashes opts = "--" ++ unsmartify opts xs
   | otherwise                     = "---" ++ unsmartify opts xs
+unsmartify opts ('\8220':xs) = '"' : unsmartify opts xs
+unsmartify opts ('\8221':xs) = '"' : unsmartify opts xs
+unsmartify opts ('\8216':xs) = '\'' : unsmartify opts xs
 unsmartify opts (x:xs) = x : unsmartify opts xs
 unsmartify _ [] = []
 

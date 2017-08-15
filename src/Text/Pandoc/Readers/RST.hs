@@ -31,7 +31,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 Conversion from reStructuredText to 'Pandoc' document.
 -}
 module Text.Pandoc.Readers.RST ( readRST ) where
-import Control.Monad (guard, liftM, mzero, when, forM_)
+import Control.Monad (guard, liftM, mzero, when, forM_, mplus)
 import Control.Monad.Identity (Identity(..))
 import Control.Monad.Except (throwError)
 import Data.Char (isHexDigit, isSpace, toLower, toUpper)
@@ -44,7 +44,8 @@ import Data.Sequence (ViewR (..), viewr)
 import Text.Pandoc.Builder (fromList, setMeta)
 import Text.Pandoc.Builder (Blocks, Inlines, trimInlines)
 import qualified Text.Pandoc.Builder as B
-import Text.Pandoc.Class (PandocMonad, readFileFromDirs)
+import Text.Pandoc.Class (PandocMonad, readFileFromDirs, fetchItem)
+import Text.Pandoc.CSV (CSVOptions(..), defaultCSVOptions, parseCSV)
 import Text.Pandoc.Definition
 import Text.Pandoc.Error
 import Text.Pandoc.ImageSize (lengthToDim, scaleDimension)
@@ -52,14 +53,13 @@ import Text.Pandoc.Logging
 import Text.Pandoc.Options
 import Text.Pandoc.Parsing
 import Text.Pandoc.Shared
+import qualified Text.Pandoc.UTF8 as UTF8
 import Text.Printf (printf)
 import Data.Text (Text)
 import qualified Data.Text as T
 
 -- TODO:
 -- [ ] .. parsed-literal
--- [ ] :widths: attribute in .. table
--- [ ] .. csv-table
 
 -- | Parse reStructuredText string and return Pandoc document.
 readRST :: PandocMonad m
@@ -216,10 +216,10 @@ block :: PandocMonad m => RSTParser m Blocks
 block = choice [ codeBlock
                , blockQuote
                , fieldList
-               , include
                , directive
                , anchor
                , comment
+               , include
                , header
                , hrule
                , lineBlock     -- must go before definitionList
@@ -353,7 +353,8 @@ singleHeader = do
 singleHeader' :: PandocMonad m => RSTParser m (Inlines, Char)
 singleHeader' = try $ do
   notFollowedBy' whitespace
-  txt <- trimInlines . mconcat <$> many1 (do {notFollowedBy blankline; inline})
+  lookAhead $ anyLine >> oneOf underlineChars
+  txt <- trimInlines . mconcat <$> many1 (do {notFollowedBy newline; inline})
   pos <- getPosition
   let len = (sourceColumn pos) - 1
   blankline
@@ -631,7 +632,7 @@ comment :: Monad m => RSTParser m Blocks
 comment = try $ do
   string ".."
   skipMany1 spaceChar <|> (() <$ lookAhead newline)
-  notFollowedBy' directiveLabel
+  -- notFollowedBy' directiveLabel -- comment comes after directive so unnec.
   manyTill anyChar blanklines
   optional indentedBlock
   return mempty
@@ -688,6 +689,7 @@ directive' = do
   case label of
         "table" -> tableDirective top fields body'
         "list-table" -> listTableDirective top fields body'
+        "csv-table" -> csvTableDirective top fields body'
         "line-block" -> lineBlockDirective body'
         "raw" -> return $ B.rawBlock (trim top) (stripTrailingNewlines body)
         "role" -> addNewRole top $ map (\(k,v) -> (k, trim v)) fields
@@ -765,15 +767,25 @@ directive' = do
 
 tableDirective :: PandocMonad m
                => String -> [(String, String)] -> String -> RSTParser m Blocks
-tableDirective top _fields body = do
+tableDirective top fields body = do
   bs <- parseFromString' parseBlocks body
   case B.toList bs of
        [Table _ aligns' widths' header' rows'] -> do
          title <- parseFromString' (trimInlines . mconcat <$> many inline) top
-         -- TODO widths
+         columns <- getOption readerColumns
+         let numOfCols = length header'
+         let normWidths ws =
+                map (/ max 1.0 (fromIntegral (columns - numOfCols))) ws
+         let widths = case trim <$> lookup "widths" fields of
+                           Just "auto" -> replicate numOfCols 0.0
+                           Just "grid" -> widths'
+                           Just specs -> normWidths
+                               $ map (fromMaybe (0 :: Double) . safeRead)
+                               $ splitBy (`elem` (" ," :: String)) specs
+                           Nothing -> widths'
          -- align is not applicable since we can't represent whole table align
          return $ B.singleton $ Table (B.toList title)
-                                  aligns' widths' header' rows'
+                                  aligns' widths header' rows'
        _ -> return mempty
 
 
@@ -809,6 +821,67 @@ listTableDirective top fields body = do
           takeCells [BulletList cells] = map B.fromList cells
           takeCells _ = []
           normWidths ws = map (/ max 1 (sum ws)) ws
+
+csvTableDirective :: PandocMonad m
+                   => String -> [(String, String)] -> String
+                   -> RSTParser m Blocks
+csvTableDirective top fields rawcsv = do
+  let explicitHeader = trim <$> lookup "header" fields
+  let opts = defaultCSVOptions{
+                csvDelim = case trim <$> lookup "delim" fields of
+                                Just "tab" -> '\t'
+                                Just "space" -> ' '
+                                Just [c] -> c
+                                _ -> ','
+              , csvQuote = case trim <$> lookup "quote" fields of
+                                Just [c] -> c
+                                _ -> '"'
+              , csvEscape = case trim <$> lookup "escape" fields of
+                                Just [c] -> Just c
+                                _ -> Nothing
+              , csvKeepSpace = case trim <$> lookup "keepspace" fields of
+                                       Just "true" -> True
+                                       _ -> False
+              }
+  let headerRowsNum = fromMaybe (case explicitHeader of
+                                       Just _  -> 1 :: Int
+                                       Nothing -> 0 :: Int) $
+           lookup "header-rows" fields >>= safeRead
+  rawcsv' <- case trim <$>
+                    lookup "file" fields `mplus` lookup "url" fields of
+                  Just u  -> do
+                    (bs, _) <- fetchItem Nothing u
+                    return $ UTF8.toString bs
+                  Nothing -> return rawcsv
+  let res = parseCSV opts (T.pack $ case explicitHeader of
+                                         Just h -> h ++ "\n" ++ rawcsv'
+                                         Nothing -> rawcsv')
+  case res of
+       Left e  -> do
+         throwError $ PandocParsecError "csv table" e
+       Right rawrows -> do
+         let parseCell = parseFromString' (plain <|> return mempty) . T.unpack
+         let parseRow = mapM parseCell
+         rows <- mapM parseRow rawrows
+         let (headerRow,bodyRows,numOfCols) =
+              case rows of
+                   x:xs -> if headerRowsNum > 0
+                          then (x, xs, length x)
+                          else ([], rows, length x)
+                   _ -> ([],[],0)
+         title <- parseFromString' (trimInlines . mconcat <$> many inline) top
+         let normWidths ws = map (/ max 1 (sum ws)) ws
+         let widths =
+               case trim <$> lookup "widths" fields of
+                 Just "auto" -> replicate numOfCols 0
+                 Just specs -> normWidths
+                               $ map (fromMaybe (0 :: Double) . safeRead)
+                               $ splitBy (`elem` (" ," :: String)) specs
+                 _ -> replicate numOfCols 0
+         return $ B.table title
+                  (zip (replicate numOfCols AlignDefault) widths)
+                  headerRow
+                  bodyRows
 
 -- TODO:
 --  - Only supports :format: fields with a single format for :raw: roles,
@@ -1047,7 +1120,6 @@ anonymousKey = try $ do
   src <- targetURI
   pos <- getPosition
   let key = toKey $ "_" ++ printf "%09d" (sourceLine pos)
-  --TODO: parse width, height, class and name attributes
   updateState $ \s -> s { stateKeys = M.insert key ((src,""), nullAttr) $
                           stateKeys s }
 
@@ -1075,7 +1147,6 @@ regularKey = try $ do
   refs <- referenceNames
   src <- targetURI
   guard $ not (null src)
-  --TODO: parse width, height, class and name attributes
   let keys = map (toKey . stripTicks) refs
   forM_ keys $ \key ->
     updateState $ \s -> s { stateKeys = M.insert key ((src,""), nullAttr) $
@@ -1105,7 +1176,6 @@ headerBlock = do
   ((txt, _), raw) <- withRaw (doubleHeader' <|> singleHeader')
   (ident,_,_) <- registerHeader nullAttr txt
   let key = toKey (stringify txt)
-  --TODO: parse width, height, class and name attributes
   updateState $ \s -> s { stateKeys = M.insert key (('#':ident,""), nullAttr)
                           $ stateKeys s }
   return raw

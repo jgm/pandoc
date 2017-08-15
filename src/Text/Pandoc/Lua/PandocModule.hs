@@ -31,39 +31,39 @@ import Control.Monad (unless)
 import Data.ByteString.Char8 (unpack)
 import Data.Default (Default (..))
 import Data.Text (pack)
-import Scripting.Lua (LuaState, call, push, pushhsfunction, rawset)
-import Text.Pandoc.Class hiding (readDataFile)
-import Text.Pandoc.Definition (Pandoc)
+import Foreign.Lua (Lua, Status (OK), NumResults, call, loadstring, liftIO,
+                    push, pushHaskellFunction, rawset)
+import Text.Pandoc.Class (readDataFile, runIO, runIOorExplode, setUserDataDir)
 import Text.Pandoc.Options (ReaderOptions(readerExtensions))
-import Text.Pandoc.Lua.Compat (loadstring)
 import Text.Pandoc.Lua.StackInstances ()
 import Text.Pandoc.Readers (Reader (..), getReader)
-import Text.Pandoc.Shared (readDataFile)
 
 -- | Push the "pandoc" on the lua stack.
-pushPandocModule :: Maybe FilePath -> LuaState -> IO ()
-pushPandocModule datadir lua = do
-  script <- pandocModuleScript datadir
-  status <- loadstring lua script "pandoc.lua"
-  unless (status /= 0) $ call lua 0 1
-  push lua "__read"
-  pushhsfunction lua read_doc
-  rawset lua (-3)
+pushPandocModule :: Maybe FilePath -> Lua ()
+pushPandocModule datadir = do
+  script <- liftIO (pandocModuleScript datadir)
+  status <- loadstring script
+  unless (status /= OK) $ call 0 1
+  push "__read"
+  pushHaskellFunction readDoc
+  rawset (-3)
 
 -- | Get the string representation of the pandoc module
 pandocModuleScript :: Maybe FilePath -> IO String
-pandocModuleScript datadir = unpack <$> readDataFile datadir "pandoc.lua"
+pandocModuleScript datadir = unpack <$>
+  runIOorExplode (setUserDataDir datadir >> readDataFile "pandoc.lua")
 
-read_doc :: String -> String -> IO (Either String Pandoc)
-read_doc formatSpec content = do
+readDoc :: String -> String -> Lua NumResults
+readDoc formatSpec content = do
   case getReader formatSpec of
-    Left  s      -> return $ Left s
+    Left  s      -> push s -- Unknown reader
     Right (reader, es) ->
       case reader of
         TextReader r -> do
-          res <- runIO $ r def{ readerExtensions = es } (pack content)
+          res <- liftIO $ runIO $ r def{ readerExtensions = es } (pack content)
           case res of
-            Left s   -> return . Left $ show s
-            Right pd -> return $ Right pd
-        _  -> return $ Left "Only string formats are supported at the moment."
+            Left s   -> push $ show s -- error while reading
+            Right pd -> push pd       -- success, push Pandoc
+        _  -> push "Only string formats are supported at the moment."
+  return 1
 

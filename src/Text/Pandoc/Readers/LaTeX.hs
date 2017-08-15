@@ -55,8 +55,11 @@ import Data.Maybe (fromMaybe, maybeToList)
 import Safe (minimumDef)
 import System.FilePath (addExtension, replaceExtension, takeExtension)
 import Text.Pandoc.Builder
-import Text.Pandoc.Class (PandocMonad, PandocPure, lookupEnv, readFileFromDirs,
-                          report, setResourcePath, getResourcePath)
+import Text.Pandoc.Class (PandocMonad, PandocPure, lookupEnv,
+                          readFileFromDirs, report, setResourcePath,
+                          getResourcePath, setTranslations, translateTerm)
+import qualified Text.Pandoc.Translations as Translations
+import Text.Pandoc.BCP47 (Lang(..), renderLang)
 import Text.Pandoc.Highlighting (fromListingsLanguage, languagesByExtension)
 import Text.Pandoc.ImageSize (numUnit, showFl)
 import Text.Pandoc.Logging
@@ -65,7 +68,7 @@ import Text.Pandoc.Parsing hiding (many, optional, withRaw,
                             mathInline, mathDisplay,
                             space, (<|>), spaces, blankline)
 import Text.Pandoc.Shared
-import Text.Pandoc.Readers.LaTeX.Types (Macro(..), Tok(..),
+import Text.Pandoc.Readers.LaTeX.Types (Macro(..), ExpansionPoint(..), Tok(..),
                             TokType(..))
 import Text.Pandoc.Walk
 import Text.Pandoc.Error (PandocError(PandocParsecError, PandocMacroLoop))
@@ -103,8 +106,22 @@ parseLaTeX = do
        -- handle the case where you have \part or \chapter
        (if bottomLevel < 1
            then walk (adjustHeaders (1 - bottomLevel))
-           else id) doc'
+           else id) $
+       walk (resolveRefs (sLabels st)) $ doc'
   return $ Pandoc meta bs'
+
+resolveRefs :: M.Map String [Inline] -> Inline -> Inline
+resolveRefs labels x@(Span (ident,classes,kvs) _) =
+  case (lookup "reference-type" kvs,
+        lookup "reference" kvs) of
+        (Just "ref", Just lab) ->
+          case M.lookup lab labels of
+               Just txt -> Span (ident,classes,kvs)
+                             [Link nullAttr txt ('#':lab, "")]
+               Nothing  -> x
+        _ -> x
+resolveRefs _ x = x
+
 
 -- testParser :: LP PandocIO a -> Text -> IO a
 -- testParser p t = do
@@ -115,6 +132,19 @@ parseLaTeX = do
 --   case res of
 --        Left e  -> error (show e)
 --        Right r -> return r
+
+newtype HeaderNum = HeaderNum [Int]
+  deriving (Show)
+
+renderHeaderNum :: HeaderNum -> String
+renderHeaderNum (HeaderNum xs) =
+  intercalate "." (map show xs)
+
+incrementHeaderNum :: Int -> HeaderNum -> HeaderNum
+incrementHeaderNum level (HeaderNum ns) = HeaderNum $
+  case reverse (take level (ns ++ repeat 0)) of
+       (x:xs) -> reverse (x+1 : xs)
+       []     -> []  -- shouldn't happen
 
 data LaTeXState = LaTeXState{ sOptions       :: ReaderOptions
                             , sMeta          :: Meta
@@ -128,6 +158,8 @@ data LaTeXState = LaTeXState{ sOptions       :: ReaderOptions
                             , sCaption       :: Maybe Inlines
                             , sInListItem    :: Bool
                             , sInTableCell   :: Bool
+                            , sLastHeaderNum :: HeaderNum
+                            , sLabels        :: M.Map String [Inline]
                             }
      deriving Show
 
@@ -144,6 +176,8 @@ defaultLaTeXState = LaTeXState{ sOptions       = def
                               , sCaption       = Nothing
                               , sInListItem    = False
                               , sInTableCell   = False
+                              , sLastHeaderNum = HeaderNum []
+                              , sLabels        = M.empty
                               }
 
 instance PandocMonad m => HasQuoteContext LaTeXState m where
@@ -286,8 +320,12 @@ totoks (lin,col) t =
            case T.uncons rest of
                 Nothing -> [Tok (lin, col) Symbol (T.singleton c)]
                 Just (d, rest')
-                  | isLetter d ->
-                      let (ws, rest'') = T.span isLetter rest
+                  | isLetterOrAt d ->
+                      -- \makeatletter is common in macro defs;
+                      -- ideally we should make tokenization sensitive
+                      -- to \makeatletter and \makeatother, but this is
+                      -- probably best for now
+                      let (ws, rest'') = T.span isLetterOrAt rest
                           (ss, rest''') = T.span isSpaceOrTab rest''
                       in  Tok (lin, col) (CtrlSeq ws) ("\\" <> ws <> ss)
                           : totoks (lin,
@@ -333,6 +371,8 @@ totoks (lin,col) t =
   where isSpaceOrTab ' '  = True
         isSpaceOrTab '\t' = True
         isSpaceOrTab _    = False
+        isLetterOrAt '@'  = True
+        isLetterOrAt c    = isLetter c
 
 isLowerHex :: Char -> Bool
 isLowerHex x = x >= '0' && x <= '9' || x >= 'a' && x <= 'f'
@@ -375,7 +415,7 @@ doMacros n = do
                 macros <- sMacros <$> getState
                 case M.lookup name macros of
                      Nothing -> return ()
-                     Just (Macro numargs optarg newtoks) -> do
+                     Just (Macro expansionPoint numargs optarg newtoks) -> do
                        setInput ts
                        let getarg = spaces >> braced
                        args <- case optarg of
@@ -389,9 +429,12 @@ doMacros n = do
                            addTok t acc = setpos spos t : acc
                        ts' <- getInput
                        setInput $ foldr addTok ts' newtoks
-                       if n > 20  -- detect macro expansion loops
-                          then throwError $ PandocMacroLoop (T.unpack name)
-                          else doMacros (n + 1)
+                       case expansionPoint of
+                            ExpandWhenUsed ->
+                              if n > 20  -- detect macro expansion loops
+                                 then throwError $ PandocMacroLoop (T.unpack name)
+                                 else doMacros (n + 1)
+                            ExpandWhenDefined -> return ()
 
 setpos :: (Line, Column) -> Tok -> Tok
 setpos spos (Tok _ tt txt) = Tok spos tt txt
@@ -1047,24 +1090,29 @@ inlineCommand' = try $ do
   let names = ordNub [name', name] -- check non-starred as fallback
   let raw = do
        guard $ isInlineCommand name || not (isBlockCommand name)
-       rawcommand <- getRawCommand (cmd <> star)
+       rawcommand <- getRawCommand name (cmd <> star)
        (guardEnabled Ext_raw_tex >> return (rawInline "latex" rawcommand))
          <|> ignore rawcommand
   lookupListDefault raw names inlineCommands
 
 tok :: PandocMonad m => LP m Inlines
-tok = grouped inline <|> inlineCommand' <|> singleChar
-  where singleChar = try $ do
-          Tok (lin,col) toktype t <- satisfyTok (tokTypeIn [Word, Symbol])
-          guard $ not $ toktype == Symbol &&
-                        T.any (`Set.member` specialChars) t
-          if T.length t > 1
-             then do
-               let (t1, t2) = (T.take 1 t, T.drop 1 t)
-               inp <- getInput
-               setInput $ (Tok (lin, col + 1) toktype t2) : inp
-               return $ str (T.unpack t1)
-             else return $ str (T.unpack t)
+tok = grouped inline <|> inlineCommand' <|> singleChar'
+  where singleChar' = do
+          Tok _ _ t <- singleChar
+          return (str (T.unpack t))
+
+singleChar :: PandocMonad m => LP m Tok
+singleChar = try $ do
+  Tok (lin,col) toktype t <- satisfyTok (tokTypeIn [Word, Symbol])
+  guard $ not $ toktype == Symbol &&
+                T.any (`Set.member` specialChars) t
+  if T.length t > 1
+     then do
+       let (t1, t2) = (T.take 1 t, T.drop 1 t)
+       inp <- getInput
+       setInput $ (Tok (lin, col + 1) toktype t2) : inp
+       return $ Tok (lin,col) toktype t1
+     else return $ Tok (lin,col) toktype t
 
 opt :: PandocMonad m => LP m Inlines
 opt = bracketed inline
@@ -1174,11 +1222,13 @@ inlineCommands = M.fromList $
   , ("dots", lit "…")
   , ("mdots", lit "…")
   , ("sim", lit "~")
-  , ("label", rawInlineOr "label" (inBrackets <$> tok))
-  , ("ref", rawInlineOr "ref" (inBrackets <$> tok))
   , ("textgreek", tok)
   , ("sep", lit ",")
-  , ("cref", rawInlineOr "cref" (inBrackets <$> tok))  -- from cleveref.sty
+  , ("label", rawInlineOr "label" dolabel)
+  , ("ref", rawInlineOr "ref" $ doref "ref")
+  , ("cref", rawInlineOr "cref" $ doref "ref")       -- from cleveref.sty
+  , ("vref", rawInlineOr "vref" $ doref "ref+page")  -- from varioref.sty
+  , ("eqref", rawInlineOr "eqref" $ doref "eqref")   -- from amsmath.sty
   , ("(", mathInline . toksToString <$> manyTill anyTok (controlSeq ")"))
   , ("[", mathDisplay . toksToString <$> manyTill anyTok (controlSeq "]"))
   , ("ensuremath", mathInline . toksToString <$> braced)
@@ -1259,6 +1309,27 @@ inlineCommands = M.fromList $
                                     removeDoubleQuotes . untokenize <$> braced
                            mkImage options src)
   , ("enquote", enquote)
+  , ("figurename", doTerm Translations.Figure)
+  , ("prefacename", doTerm Translations.Preface)
+  , ("refname", doTerm Translations.References)
+  , ("bibname", doTerm Translations.Bibliography)
+  , ("chaptername", doTerm Translations.Chapter)
+  , ("partname", doTerm Translations.Part)
+  , ("contentsname", doTerm Translations.Contents)
+  , ("listfigurename", doTerm Translations.ListOfFigures)
+  , ("listtablename", doTerm Translations.ListOfTables)
+  , ("indexname", doTerm Translations.Index)
+  , ("abstractname", doTerm Translations.Abstract)
+  , ("tablename", doTerm Translations.Table)
+  , ("enclname", doTerm Translations.Encl)
+  , ("ccname", doTerm Translations.Cc)
+  , ("headtoname", doTerm Translations.To)
+  , ("pagename", doTerm Translations.Page)
+  , ("seename", doTerm Translations.See)
+  , ("seealsoname", doTerm Translations.SeeAlso)
+  , ("proofname", doTerm Translations.Proof)
+  , ("glossaryname", doTerm Translations.Glossary)
+  , ("lstlistingname", doTerm Translations.Listing)
   , ("cite", citation "cite" NormalCitation False)
   , ("Cite", citation "Cite" NormalCitation False)
   , ("citep", citation "citep" NormalCitation False)
@@ -1362,6 +1433,9 @@ inlineCommands = M.fromList $
   , ("ifstrequal", ifstrequal)
   ]
 
+doTerm :: PandocMonad m => Translations.Term -> LP m Inlines
+doTerm term = str <$> translateTerm term
+
 ifstrequal :: PandocMonad m => LP m Inlines
 ifstrequal = do
   str1 <- tok
@@ -1386,20 +1460,22 @@ rawInlineOr :: PandocMonad m => Text -> LP m Inlines -> LP m Inlines
 rawInlineOr name' fallback = do
   parseRaw <- extensionEnabled Ext_raw_tex <$> getOption readerExtensions
   if parseRaw
-     then rawInline "latex" <$> getRawCommand name'
+     then rawInline "latex" <$> getRawCommand name' ("\\" <> name')
      else fallback
 
-getRawCommand :: PandocMonad m => Text -> LP m String
-getRawCommand txt = do
+getRawCommand :: PandocMonad m => Text -> Text -> LP m String
+getRawCommand name txt = do
   (_, rawargs) <- withRaw $
-      case txt of
-           "\\write" -> do
+      case name of
+           "write" -> do
              void $ satisfyTok isWordTok -- digits
              void braced
-           "\\titleformat" -> do
+           "titleformat" -> do
              void braced
              skipopts
              void $ count 4 braced
+           "def" -> do
+             void $ manyTill anyTok braced
            _ -> do
              skipangles
              skipopts
@@ -1414,7 +1490,8 @@ isBlockCommand s =
 
 treatAsBlock :: Set.Set Text
 treatAsBlock = Set.fromList
-   [ "newcommand", "renewcommand"
+   [ "let", "def"
+   , "newcommand", "renewcommand"
    , "newenvironment", "renewenvironment"
    , "providecommand", "provideenvironment"
      -- newcommand, etc. should be parsed by macroDef, but we need this
@@ -1450,6 +1527,20 @@ treatAsInline = Set.fromList
   , "clearpage"
   , "pagebreak"
   ]
+
+dolabel :: PandocMonad m => LP m Inlines
+dolabel = do
+  v <- braced
+  return $ spanWith ("",[],[("label", toksToString v)])
+    $ inBrackets $ str $ toksToString v
+
+doref :: PandocMonad m => String -> LP m Inlines
+doref cls = do
+  v <- braced
+  let refstr = toksToString v
+  return $ spanWith ("",[],[ ("reference-type", cls)
+                           , ("reference", refstr)])
+    $ inBrackets $ str refstr
 
 lookupListDefault :: (Show k, Ord k) => v -> [k] -> M.Map k v -> v
 lookupListDefault d = (fromMaybe d .) . lookupList
@@ -1556,7 +1647,7 @@ macroDef :: PandocMonad m => LP m Blocks
 macroDef = do
   mempty <$ ((commandDef <|> environmentDef) <* doMacros 0)
   where commandDef = do
-          (name, macro') <- newcommand
+          (name, macro') <- newcommand <|> letmacro <|> defmacro
           guardDisabled Ext_latex_macros <|>
            updateState (\s -> s{ sMacros = M.insert name macro' (sMacros s) })
         environmentDef = do
@@ -1570,6 +1661,34 @@ macroDef = do
         -- is equivalent to
         -- @\newcommand{\envname}[n-args][default]{begin}@
         -- @\newcommand{\endenvname}@
+
+letmacro :: PandocMonad m => LP m (Text, Macro)
+letmacro = do
+  controlSeq "let"
+  Tok _ (CtrlSeq name) _ <- anyControlSeq
+  optional $ symbol '='
+  spaces
+  contents <- braced <|> ((:[]) <$> (anyControlSeq <|> singleChar))
+  return (name, Macro ExpandWhenDefined 0 Nothing contents)
+
+defmacro :: PandocMonad m => LP m (Text, Macro)
+defmacro = try $ do
+  controlSeq "def"
+  Tok _ (CtrlSeq name) _ <- anyControlSeq
+  numargs <- option 0 $ argSeq 1
+  contents <- withVerbatimMode braced
+  return (name, Macro ExpandWhenUsed numargs Nothing contents)
+
+-- Note: we don't yet support fancy things like #1.#2
+argSeq :: PandocMonad m => Int -> LP m Int
+argSeq n = do
+  Tok _ (Arg i) _ <- satisfyTok isArgTok
+  guard $ i == n
+  argSeq (n+1) <|> return n
+
+isArgTok :: Tok -> Bool
+isArgTok (Tok _ (Arg _) _) = True
+isArgTok _ = False
 
 newcommand :: PandocMonad m => LP m (Text, Macro)
 newcommand = do
@@ -1585,13 +1704,15 @@ newcommand = do
   spaces
   optarg <- option Nothing $ Just <$> try bracketedToks
   spaces
-  contents <- braced
+  contents <- withVerbatimMode braced
+  -- we use withVerbatimMode, because macros are to be expanded
+  -- at point of use, not point of definition
   when (mtype == "newcommand") $ do
     macros <- sMacros <$> getState
     case M.lookup name macros of
          Just _ -> report $ MacroAlreadyDefined (T.unpack txt) pos
          Nothing -> return ()
-  return (name, Macro numargs optarg contents)
+  return (name, Macro ExpandWhenUsed numargs optarg contents)
 
 newenvironment :: PandocMonad m => LP m (Text, Macro, Macro)
 newenvironment = do
@@ -1607,16 +1728,16 @@ newenvironment = do
   spaces
   optarg <- option Nothing $ Just <$> try bracketedToks
   spaces
-  startcontents <- braced
+  startcontents <- withVerbatimMode braced
   spaces
-  endcontents <- braced
+  endcontents <- withVerbatimMode braced
   when (mtype == "newenvironment") $ do
     macros <- sMacros <$> getState
     case M.lookup name macros of
          Just _ -> report $ MacroAlreadyDefined (T.unpack name) pos
          Nothing -> return ()
-  return (name, Macro numargs optarg startcontents,
-             Macro 0 Nothing endcontents)
+  return (name, Macro ExpandWhenUsed numargs optarg startcontents,
+             Macro ExpandWhenUsed 0 Nothing endcontents)
 
 bracketedToks :: PandocMonad m => LP m [Tok]
 bracketedToks = do
@@ -1637,7 +1758,7 @@ setCaption = do
                try $ spaces >> controlSeq "label" >> (Just <$> tok)
   let ils' = case mblabel of
                   Just lab -> ils <> spanWith
-                                ("",[],[("data-label", stringify lab)]) mempty
+                                ("",[],[("label", stringify lab)]) mempty
                   Nothing  -> ils
   updateState $ \st -> st{ sCaption = Just ils' }
   return mempty
@@ -1652,14 +1773,22 @@ looseItem = do
 resetCaption :: PandocMonad m => LP m ()
 resetCaption = updateState $ \st -> st{ sCaption = Nothing }
 
-section :: PandocMonad m => Attr -> Int -> LP m Blocks
-section (ident, classes, kvs) lvl = do
+section :: PandocMonad m => Bool -> Attr -> Int -> LP m Blocks
+section starred (ident, classes, kvs) lvl = do
   skipopts
   contents <- grouped inline
   lab <- option ident $
           try (spaces >> controlSeq "label"
                >> spaces >> toksToString <$> braced)
-  attr' <- registerHeader (lab, classes, kvs) contents
+  let classes' = if starred then "unnumbered" : classes else classes
+  unless starred $ do
+    hn <- sLastHeaderNum <$> getState
+    let num = incrementHeaderNum lvl hn
+    updateState $ \st -> st{ sLastHeaderNum = num }
+    updateState $ \st -> st{ sLabels = M.insert lab
+                            [Str (renderHeaderNum num)]
+                            (sLabels st) }
+  attr' <- registerHeader (lab, classes', kvs) contents
   return $ headerWith attr' lvl contents
 
 blockCommand :: PandocMonad m => LP m Blocks
@@ -1671,7 +1800,7 @@ blockCommand = try $ do
   let names = ordNub [name', name]
   let rawDefiniteBlock = do
         guard $ isBlockCommand name
-        rawBlock "latex" <$> getRawCommand (txt <> star)
+        rawBlock "latex" <$> getRawCommand name (txt <> star)
   -- heuristic:  if it could be either block or inline, we
   -- treat it if block if we have a sequence of block
   -- commands followed by a newline.  But we stop if we
@@ -1683,7 +1812,7 @@ blockCommand = try $ do
         guard $ "start" `T.isPrefixOf` n
   let rawMaybeBlock = try $ do
         guard $ not $ isInlineCommand name
-        curr <- rawBlock "latex" <$> getRawCommand (txt <> star)
+        curr <- rawBlock "latex" <$> getRawCommand name (txt <> star)
         rest <- many $ notFollowedBy startCommand *> blockCommand
         lookAhead $ blankline <|> startCommand
         return $ curr <> mconcat rest
@@ -1720,23 +1849,23 @@ blockCommands = M.fromList $
    -- Koma-script metadata commands
    , ("dedication", mempty <$ (skipopts *> tok >>= addMeta "dedication"))
    -- sectioning
-   , ("part", section nullAttr (-1))
-   , ("part*", section nullAttr (-1))
-   , ("chapter", section nullAttr 0)
-   , ("chapter*", section ("",["unnumbered"],[]) 0)
-   , ("section", section nullAttr 1)
-   , ("section*", section ("",["unnumbered"],[]) 1)
-   , ("subsection", section nullAttr 2)
-   , ("subsection*", section ("",["unnumbered"],[]) 2)
-   , ("subsubsection", section nullAttr 3)
-   , ("subsubsection*", section ("",["unnumbered"],[]) 3)
-   , ("paragraph", section nullAttr 4)
-   , ("paragraph*", section ("",["unnumbered"],[]) 4)
-   , ("subparagraph", section nullAttr 5)
-   , ("subparagraph*", section ("",["unnumbered"],[]) 5)
+   , ("part", section False nullAttr (-1))
+   , ("part*", section True nullAttr (-1))
+   , ("chapter", section False nullAttr 0)
+   , ("chapter*", section True ("",["unnumbered"],[]) 0)
+   , ("section", section False nullAttr 1)
+   , ("section*", section True ("",["unnumbered"],[]) 1)
+   , ("subsection", section False nullAttr 2)
+   , ("subsection*", section True ("",["unnumbered"],[]) 2)
+   , ("subsubsection", section False nullAttr 3)
+   , ("subsubsection*", section True ("",["unnumbered"],[]) 3)
+   , ("paragraph", section False nullAttr 4)
+   , ("paragraph*", section True ("",["unnumbered"],[]) 4)
+   , ("subparagraph", section False nullAttr 5)
+   , ("subparagraph*", section True ("",["unnumbered"],[]) 5)
    -- beamer slides
-   , ("frametitle", section nullAttr 3)
-   , ("framesubtitle", section nullAttr 4)
+   , ("frametitle", section False nullAttr 3)
+   , ("framesubtitle", section False nullAttr 4)
    -- letters
    , ("opening", (para . trimInlines) <$> (skipopts *> tok))
    , ("closing", skipopts *> closing)
@@ -1764,6 +1893,9 @@ blockCommands = M.fromList $
    -- includes
    , ("lstinputlisting", inputListing)
    , ("graphicspath", graphicsPath)
+   -- polyglossia
+   , ("setdefaultlanguage", setDefaultLanguage)
+   , ("setmainlanguage", setDefaultLanguage)
    -- hyperlink
    , ("hypertarget", try $ braced >> grouped block)
    -- LaTeX colors
@@ -2211,3 +2343,123 @@ block = (mempty <$ spaces1)
 blocks :: PandocMonad m => LP m Blocks
 blocks = mconcat <$> many block
 
+setDefaultLanguage :: PandocMonad m => LP m Blocks
+setDefaultLanguage = do
+  o <- option "" $ (T.unpack . T.filter (\c -> c /= '[' && c /= ']'))
+                <$> rawopt
+  polylang <- toksToString <$> braced
+  case polyglossiaLangToBCP47 polylang o of
+       Nothing -> return mempty -- TODO mzero? warning?
+       Just l -> do
+         setTranslations l
+         updateState $ setMeta "lang" $ str (renderLang l)
+         return mempty
+
+polyglossiaLangToBCP47 :: String -> String -> Maybe Lang
+polyglossiaLangToBCP47 s o =
+  case (s, filter (/=' ') o) of
+       ("arabic", "locale=algeria") -> Just $ Lang "ar" "" "DZ" []
+       ("arabic", "locale=mashriq") -> Just $ Lang "ar" "" "SY" []
+       ("arabic", "locale=libya") -> Just $ Lang "ar" "" "LY" []
+       ("arabic", "locale=morocco") -> Just $ Lang "ar" "" "MA" []
+       ("arabic", "locale=mauritania") -> Just $ Lang "ar" "" "MR" []
+       ("arabic", "locale=tunisia") -> Just $ Lang "ar" "" "TN" []
+       ("german", "spelling=old") -> Just $ Lang "de" "" "DE" ["1901"]
+       ("german", "variant=austrian,spelling=old")
+                                  -> Just $ Lang "de" "" "AT" ["1901"]
+       ("german", "variant=austrian") -> Just $ Lang "de" "" "AT" []
+       ("german", "variant=swiss,spelling=old")
+                                  -> Just $ Lang "de" "" "CH" ["1901"]
+       ("german", "variant=swiss") -> Just $ Lang "de" "" "CH" []
+       ("german", _) -> Just $ Lang "de" "" "" []
+       ("lsorbian", _) -> Just $ Lang "dsb" "" "" []
+       ("greek", "variant=poly") -> Just $ Lang "el" "" "polyton" []
+       ("english", "variant=australian") -> Just $ Lang "en" "" "AU" []
+       ("english", "variant=canadian") -> Just $ Lang "en" "" "CA" []
+       ("english", "variant=british") -> Just $ Lang "en" "" "GB" []
+       ("english", "variant=newzealand") -> Just $ Lang "en" "" "NZ" []
+       ("english", "variant=american") -> Just $ Lang "en" "" "US" []
+       ("greek", "variant=ancient") -> Just $ Lang "grc" "" "" []
+       ("usorbian", _) -> Just $ Lang "hsb" "" "" []
+       ("latin", "variant=classic") -> Just $ Lang "la" "" "" ["x-classic"]
+       ("slovenian", _) -> Just $ Lang "sl" "" "" []
+       ("serbianc", _) -> Just $ Lang "sr" "cyrl" "" []
+       ("pinyin", _) -> Just $ Lang "zh" "Latn" "" ["pinyin"]
+       ("afrikaans", _) -> Just $ Lang "af" "" "" []
+       ("amharic", _) -> Just $ Lang "am" "" "" []
+       ("arabic", _) -> Just $ Lang "ar" "" "" []
+       ("assamese", _) -> Just $ Lang "as" "" "" []
+       ("asturian", _) -> Just $ Lang "ast" "" "" []
+       ("bulgarian", _) -> Just $ Lang "bg" "" "" []
+       ("bengali", _) -> Just $ Lang "bn" "" "" []
+       ("tibetan", _) -> Just $ Lang "bo" "" "" []
+       ("breton", _) -> Just $ Lang "br" "" "" []
+       ("catalan", _) -> Just $ Lang "ca" "" "" []
+       ("welsh", _) -> Just $ Lang "cy" "" "" []
+       ("czech", _) -> Just $ Lang "cs" "" "" []
+       ("coptic", _) -> Just $ Lang "cop" "" "" []
+       ("danish", _) -> Just $ Lang "da" "" "" []
+       ("divehi", _) -> Just $ Lang "dv" "" "" []
+       ("greek", _) -> Just $ Lang "el" "" "" []
+       ("english", _) -> Just $ Lang "en" "" "" []
+       ("esperanto", _) -> Just $ Lang "eo" "" "" []
+       ("spanish", _) -> Just $ Lang "es" "" "" []
+       ("estonian", _) -> Just $ Lang "et" "" "" []
+       ("basque", _) -> Just $ Lang "eu" "" "" []
+       ("farsi", _) -> Just $ Lang "fa" "" "" []
+       ("finnish", _) -> Just $ Lang "fi" "" "" []
+       ("french", _) -> Just $ Lang "fr" "" "" []
+       ("friulan", _) -> Just $ Lang "fur" "" "" []
+       ("irish", _) -> Just $ Lang "ga" "" "" []
+       ("scottish", _) -> Just $ Lang "gd" "" "" []
+       ("ethiopic", _) -> Just $ Lang "gez" "" "" []
+       ("galician", _) -> Just $ Lang "gl" "" "" []
+       ("hebrew", _) -> Just $ Lang "he" "" "" []
+       ("hindi", _) -> Just $ Lang "hi" "" "" []
+       ("croatian", _) -> Just $ Lang "hr" "" "" []
+       ("magyar", _) -> Just $ Lang "hu" "" "" []
+       ("armenian", _) -> Just $ Lang "hy" "" "" []
+       ("interlingua", _) -> Just $ Lang "ia" "" "" []
+       ("indonesian", _) -> Just $ Lang "id" "" "" []
+       ("icelandic", _) -> Just $ Lang "is" "" "" []
+       ("italian", _) -> Just $ Lang "it" "" "" []
+       ("japanese", _) -> Just $ Lang "jp" "" "" []
+       ("khmer", _) -> Just $ Lang "km" "" "" []
+       ("kurmanji", _) -> Just $ Lang "kmr" "" "" []
+       ("kannada", _) -> Just $ Lang "kn" "" "" []
+       ("korean", _) -> Just $ Lang "ko" "" "" []
+       ("latin", _) -> Just $ Lang "la" "" "" []
+       ("lao", _) -> Just $ Lang "lo" "" "" []
+       ("lithuanian", _) -> Just $ Lang "lt" "" "" []
+       ("latvian", _) -> Just $ Lang "lv" "" "" []
+       ("malayalam", _) -> Just $ Lang "ml" "" "" []
+       ("mongolian", _) -> Just $ Lang "mn" "" "" []
+       ("marathi", _) -> Just $ Lang "mr" "" "" []
+       ("dutch", _) -> Just $ Lang "nl" "" "" []
+       ("nynorsk", _) -> Just $ Lang "nn" "" "" []
+       ("norsk", _) -> Just $ Lang "no" "" "" []
+       ("nko", _) -> Just $ Lang "nqo" "" "" []
+       ("occitan", _) -> Just $ Lang "oc" "" "" []
+       ("panjabi", _) -> Just $ Lang "pa" "" "" []
+       ("polish", _) -> Just $ Lang "pl" "" "" []
+       ("piedmontese", _) -> Just $ Lang "pms" "" "" []
+       ("portuguese", _) -> Just $ Lang "pt" "" "" []
+       ("romansh", _) -> Just $ Lang "rm" "" "" []
+       ("romanian", _) -> Just $ Lang "ro" "" "" []
+       ("russian", _) -> Just $ Lang "ru" "" "" []
+       ("sanskrit", _) -> Just $ Lang "sa" "" "" []
+       ("samin", _) -> Just $ Lang "se" "" "" []
+       ("slovak", _) -> Just $ Lang "sk" "" "" []
+       ("albanian", _) -> Just $ Lang "sq" "" "" []
+       ("serbian", _) -> Just $ Lang "sr" "" "" []
+       ("swedish", _) -> Just $ Lang "sv" "" "" []
+       ("syriac", _) -> Just $ Lang "syr" "" "" []
+       ("tamil", _) -> Just $ Lang "ta" "" "" []
+       ("telugu", _) -> Just $ Lang "te" "" "" []
+       ("thai", _) -> Just $ Lang "th" "" "" []
+       ("turkmen", _) -> Just $ Lang "tk" "" "" []
+       ("turkish", _) -> Just $ Lang "tr" "" "" []
+       ("ukrainian", _) -> Just $ Lang "uk" "" "" []
+       ("urdu", _) -> Just $ Lang "ur" "" "" []
+       ("vietnamese", _) -> Just $ Lang "vi" "" "" []
+       _ -> Nothing

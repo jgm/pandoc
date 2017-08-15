@@ -331,7 +331,7 @@ definitionListItemToRST (label, defs) = do
   label' <- inlineListToRST label
   contents <- liftM vcat $ mapM blockListToRST defs
   tabstop <- gets $ writerTabStop . stOptions
-  return $ label' $$ nest tabstop (nestle contents <> cr)
+  return $ nowrap label' $$ nest tabstop (nestle contents <> cr)
 
 -- | Format a list of lines as line block.
 linesToLineBlock :: PandocMonad m => [[Inline]] -> RST m Doc

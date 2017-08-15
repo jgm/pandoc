@@ -398,8 +398,8 @@ cr = Doc $ singleton CarriageReturn
 blankline :: Doc
 blankline = Doc $ singleton (BlankLines 1)
 
--- | Inserts a blank lines unless they exists already.
--- (@blanklines m <> blanklines n@ has the same effect as @blankline (max m n)@.
+-- | Inserts blank lines unless they exist already.
+-- (@blanklines m <> blanklines n@ has the same effect as @blanklines (max m n)@.
 blanklines :: Int -> Doc
 blanklines n = Doc $ singleton (BlankLines n)
 

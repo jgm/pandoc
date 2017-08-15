@@ -403,8 +403,12 @@ elementToHtml slideLevel opts (Sec level num (id',classes,keyvals) title' elemen
                 then return mempty
                 else do
                   modify (\st -> st{ stElement = True})
+                  let level' = if level <= slideLevel &&
+                                  slideVariant == SlidySlides
+                                  then 1 -- see #3566
+                                  else level
                   res <- blockToHtml opts
-                           (Header level (id',classes,keyvals) title')
+                           (Header level' (id',classes,keyvals) title')
                   modify (\st -> st{ stElement = False})
                   return res
 
@@ -636,8 +640,14 @@ blockToHtml opts (LineBlock lns) =
     let lf = preEscapedString "\n"
     htmlLines <- mconcat . intersperse lf <$> mapM (inlineListToHtml opts) lns
     return $ H.div ! A.class_ "line-block" $ htmlLines
-blockToHtml opts (Div attr@(ident, classes, kvs) bs) = do
+blockToHtml opts (Div attr@(ident, classes, kvs') bs) = do
   html5 <- gets stHtml5
+  let kvs = kvs' ++
+        if "column" `elem` classes
+           then let w = fromMaybe "48%" (lookup "width" kvs')
+                in  [("style", "width:" ++ w ++ ";min-width:" ++ w ++
+                      ";vertical-align:top;")]
+           else []
   let speakerNotes = "notes" `elem` classes
   -- we don't want incremental output inside speaker notes, see #1394
   let opts' = if speakerNotes then opts{ writerIncremental = False } else opts

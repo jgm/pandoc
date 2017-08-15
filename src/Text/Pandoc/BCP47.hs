@@ -29,7 +29,6 @@ Functions for parsing and rendering BCP47 language identifiers.
 -}
 module Text.Pandoc.BCP47 (
                        getLang
-                     , toLang
                      , parseBCP47
                      , Lang(..)
                      , renderLang
@@ -40,8 +39,6 @@ import Data.Char (isAscii, isLetter, isUpper, isLower, toUpper, toLower,
                   isAlphaNum)
 import Data.List (intercalate)
 import Text.Pandoc.Definition
-import Text.Pandoc.Class (PandocMonad, report)
-import Text.Pandoc.Logging
 import Text.Pandoc.Options
 import qualified Text.Parsec as P
 
@@ -67,17 +64,6 @@ getLang opts meta =
                Just (MetaInlines [Str s]) -> Just s
                Just (MetaString s)        -> Just s
                _                          -> Nothing
-
--- | Convert BCP47 string to a Lang, issuing warning
--- if there are problems.
-toLang :: PandocMonad m => Maybe String -> m (Maybe Lang)
-toLang Nothing = return Nothing
-toLang (Just s) =
-  case parseBCP47 s of
-       Left _ -> do
-         report $ InvalidLang s
-         return Nothing
-       Right l -> return (Just l)
 
 -- | Parse a BCP 47 string as a Lang.  Currently we parse
 -- extensions and private-use fields as "variants," even

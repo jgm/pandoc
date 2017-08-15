@@ -76,10 +76,6 @@ module Text.Pandoc.Shared (
                      renderTags',
                      -- * File handling
                      inDirectory,
-                     getDefaultReferenceDocx,
-                     getDefaultReferenceODT,
-                     readDataFile,
-                     readDataFileUTF8,
                      openURL,
                      collapseFilePath,
                      filteredFilesFromArchive,
@@ -115,8 +111,6 @@ import System.Directory
 import System.FilePath (splitDirectories, isPathSeparator)
 import qualified System.FilePath.Posix as Posix
 import Text.Pandoc.MIME (MimeType)
-import Text.Pandoc.Error (PandocError(..))
-import System.FilePath ( (</>) )
 import Data.Generics (Typeable, Data)
 import qualified Control.Monad.State.Strict as S
 import qualified Control.Exception as E
@@ -124,7 +118,6 @@ import Control.Monad (msum, unless, MonadPlus(..))
 import Text.Pandoc.Pretty (charWidth)
 import Text.Pandoc.Generic (bottomUp)
 import Text.Pandoc.Compat.Time
-import Data.Time.Clock.POSIX
 import System.IO.Error
 import System.IO.Temp
 import Text.HTML.TagSoup (renderTagsOptions, RenderOptions(..), Tag(..),
@@ -135,17 +128,12 @@ import qualified Data.ByteString.Char8 as B8
 import Data.ByteString.Base64 (decodeLenient)
 import Data.Sequence (ViewR(..), ViewL(..), viewl, viewr)
 import qualified Data.Text as T
-import Data.ByteString.Lazy (toChunks, fromChunks)
+import Data.ByteString.Lazy (toChunks)
 import qualified Data.ByteString.Lazy as BL
 import Paths_pandoc (version)
 
 import Codec.Archive.Zip
 
-#ifdef EMBED_DATA_FILES
-import Text.Pandoc.Data (dataFiles)
-#else
-import Paths_pandoc (getDataFileName)
-#endif
 import Network.HTTP.Client (httpLbs, responseBody, responseHeaders,
                             Request(port,host,requestHeaders),
                             HttpException)
@@ -610,110 +598,6 @@ inDirectory path action = E.bracket
                              getCurrentDirectory
                              setCurrentDirectory
                              (const $ setCurrentDirectory path >> action)
-
-getDefaultReferenceDocx :: Maybe FilePath -> IO Archive
-getDefaultReferenceDocx datadir = do
-  let paths = ["[Content_Types].xml",
-               "_rels/.rels",
-               "docProps/app.xml",
-               "docProps/core.xml",
-               "word/document.xml",
-               "word/fontTable.xml",
-               "word/footnotes.xml",
-               "word/numbering.xml",
-               "word/settings.xml",
-               "word/webSettings.xml",
-               "word/styles.xml",
-               "word/_rels/document.xml.rels",
-               "word/_rels/footnotes.xml.rels",
-               "word/theme/theme1.xml"]
-  let toLazy = fromChunks . (:[])
-  let pathToEntry path = do epochtime <- (floor . utcTimeToPOSIXSeconds) <$>
-                                          getCurrentTime
-                            contents <- toLazy <$> readDataFile datadir
-                                                       ("docx/" ++ path)
-                            return $ toEntry path epochtime contents
-  mbArchive <- case datadir of
-                    Nothing   -> return Nothing
-                    Just d    -> do
-                       exists <- doesFileExist (d </> "reference.docx")
-                       if exists
-                          then return (Just (d </> "reference.docx"))
-                          else return Nothing
-  case mbArchive of
-     Just arch -> toArchive <$> BL.readFile arch
-     Nothing   -> foldr addEntryToArchive emptyArchive <$>
-                     mapM pathToEntry paths
-
-getDefaultReferenceODT :: Maybe FilePath -> IO Archive
-getDefaultReferenceODT datadir = do
-  let paths = ["mimetype",
-               "manifest.rdf",
-               "styles.xml",
-               "content.xml",
-               "meta.xml",
-               "settings.xml",
-               "Configurations2/accelerator/current.xml",
-               "Thumbnails/thumbnail.png",
-               "META-INF/manifest.xml"]
-  let pathToEntry path = do epochtime <- floor `fmap` getPOSIXTime
-                            contents <- (fromChunks . (:[])) `fmap`
-                                          readDataFile datadir ("odt/" ++ path)
-                            return $ toEntry path epochtime contents
-  mbArchive <- case datadir of
-                    Nothing   -> return Nothing
-                    Just d    -> do
-                       exists <- doesFileExist (d </> "reference.odt")
-                       if exists
-                          then return (Just (d </> "reference.odt"))
-                          else return Nothing
-  case mbArchive of
-     Just arch -> toArchive <$> BL.readFile arch
-     Nothing   -> foldr addEntryToArchive emptyArchive <$>
-                     mapM pathToEntry paths
-
-
-readDefaultDataFile :: FilePath -> IO BS.ByteString
-readDefaultDataFile "reference.docx" =
-  (BS.concat . toChunks . fromArchive) <$> getDefaultReferenceDocx Nothing
-readDefaultDataFile "reference.odt" =
-  (BS.concat . toChunks . fromArchive) <$> getDefaultReferenceODT Nothing
-readDefaultDataFile fname =
-#ifdef EMBED_DATA_FILES
-  case lookup (makeCanonical fname) dataFiles of
-    Nothing       -> E.throwIO $ PandocCouldNotFindDataFileError fname
-    Just contents -> return contents
-  where makeCanonical = Posix.joinPath . transformPathParts . splitDirectories
-        transformPathParts = reverse . foldl go []
-        go as     "."  = as
-        go (_:as) ".." = as
-        go as     x    = x : as
-#else
-  getDataFileName fname' >>= checkExistence >>= BS.readFile
-    where fname' = if fname == "MANUAL.txt" then fname else "data" </> fname
-
-checkExistence :: FilePath -> IO FilePath
-checkExistence fn = do
-  exists <- doesFileExist fn
-  if exists
-     then return fn
-     else E.throwIO $ PandocCouldNotFindDataFileError fn
-#endif
-
--- | Read file from specified user data directory or, if not found there, from
--- Cabal data directory.
-readDataFile :: Maybe FilePath -> FilePath -> IO BS.ByteString
-readDataFile Nothing fname = readDefaultDataFile fname
-readDataFile (Just userDir) fname = do
-  exists <- doesFileExist (userDir </> fname)
-  if exists
-     then BS.readFile (userDir </> fname)
-     else readDefaultDataFile fname
-
--- | Same as 'readDataFile' but returns a String instead of a ByteString.
-readDataFileUTF8 :: Maybe FilePath -> FilePath -> IO String
-readDataFileUTF8 userDir fname =
-  UTF8.toString `fmap` readDataFile userDir fname
 
 -- | Read from a URL and return raw data and maybe mime type.
 openURL :: String -> IO (Either HttpException (BS.ByteString, Maybe MimeType))

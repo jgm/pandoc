@@ -51,7 +51,7 @@ import qualified Data.Text as T
 import Data.Time.Clock.POSIX
 import Skylighting
 import System.Random (randomR)
-import Text.Pandoc.Class (PandocMonad, report)
+import Text.Pandoc.Class (PandocMonad, report, toLang)
 import qualified Text.Pandoc.Class as P
 import Text.Pandoc.Compat.Time
 import Text.Pandoc.Definition
@@ -68,7 +68,7 @@ import qualified Text.Pandoc.UTF8 as UTF8
 import Text.Pandoc.Walk
 import Text.Pandoc.Writers.Math
 import Text.Pandoc.Writers.Shared (fixDisplayMath)
-import Text.Pandoc.BCP47 (getLang, renderLang, toLang)
+import Text.Pandoc.BCP47 (getLang, renderLang)
 import Text.Printf (printf)
 import Text.TeXMath
 import Text.XML.Light as XML
@@ -123,6 +123,7 @@ defaultWriterEnv = WriterEnv{ envTextProperties = []
 
 data WriterState = WriterState{
          stFootnotes      :: [Element]
+       , stComments       :: [([(String,String)], [Inline])]
        , stSectionIds     :: Set.Set String
        , stExternalLinks  :: M.Map String String
        , stImages         :: M.Map FilePath (String, String, Maybe MimeType, Element, B.ByteString)
@@ -139,6 +140,7 @@ data WriterState = WriterState{
 defaultWriterState :: WriterState
 defaultWriterState = WriterState{
         stFootnotes      = defaultFootnotes
+      , stComments       = []
       , stSectionIds     = Set.empty
       , stExternalLinks  = M.empty
       , stImages         = M.empty
@@ -226,16 +228,15 @@ writeDocx :: (PandocMonad m)
           -> Pandoc         -- ^ Document to convert
           -> m BL.ByteString
 writeDocx opts doc@(Pandoc meta _) = do
-  let datadir = writerUserDataDir opts
   let doc' = walk fixDisplayMath $ doc
   username <- P.lookupEnv "USERNAME"
   utctime <- P.getCurrentTime
   distArchive <- (toArchive . BL.fromStrict) <$>
-                      P.readDataFile Nothing "reference.docx"
+                      P.readDefaultDataFile "reference.docx"
   refArchive <- case writerReferenceDoc opts of
                      Just f  -> toArchive <$> P.readFileLazy f
                      Nothing -> (toArchive . BL.fromStrict) <$>
-                        P.readDataFile datadir "reference.docx"
+                        P.readDataFile "reference.docx"
 
   parsedDoc <- parseXml refArchive distArchive "word/document.xml"
   let wname f qn = qPrefix qn == Just "w" && f (qName qn)
@@ -306,11 +307,11 @@ writeDocx opts doc@(Pandoc meta _) = do
         }
 
 
-  ((contents, footnotes), st) <- runStateT
-                                 (runReaderT
-                                  (writeOpenXML opts{writerWrapText = WrapNone} doc')
-                                  env)
-                                 initialSt
+  ((contents, footnotes, comments), st) <- runStateT
+                         (runReaderT
+                          (writeOpenXML opts{writerWrapText = WrapNone} doc')
+                          env)
+                         initialSt
   let epochtime = floor $ utcTimeToPOSIXSeconds utctime
   let imgs = M.elems $ stImages st
 
@@ -371,6 +372,8 @@ writeDocx opts doc@(Pandoc meta _) = do
                     "application/vnd.openxmlformats-officedocument.wordprocessingml.styles+xml")
                   ,("/word/document.xml",
                     "application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml")
+                  ,("/word/comments.xml",
+                    "application/vnd.openxmlformats-officedocument.wordprocessingml.comments+xml")
                   ,("/word/footnotes.xml",
                     "application/vnd.openxmlformats-officedocument.wordprocessingml.footnotes+xml")
                   ] ++
@@ -417,6 +420,9 @@ writeDocx opts doc@(Pandoc meta _) = do
                     ,("http://schemas.openxmlformats.org/officeDocument/2006/relationships/footnotes",
                       "rId7",
                       "footnotes.xml")
+                    ,("http://schemas.openxmlformats.org/officeDocument/2006/relationships/comments",
+                      "rId8",
+                      "comments.xml")
                     ]
 
   let idMap = renumIdMap (length baserels' + 1) (headers ++ footers)
@@ -461,6 +467,10 @@ writeDocx opts doc@(Pandoc meta _) = do
   let footnoteRelEntry = toEntry "word/_rels/footnotes.xml.rels" epochtime
         $ renderXml $ mknode "Relationships" [("xmlns","http://schemas.openxmlformats.org/package/2006/relationships")]
         linkrels
+
+  -- comments
+  let commentsEntry = toEntry "word/comments.xml" epochtime
+        $ renderXml $ mknode "w:comments" stdAttributes comments
 
   -- styles
 
@@ -565,6 +575,7 @@ writeDocx opts doc@(Pandoc meta _) = do
   let archive = foldr addEntryToArchive emptyArchive $
                   contentTypesEntry : relsEntry : contentEntry : relEntry :
                   footnoteRelEntry : numEntry : styleEntry : footnotesEntry :
+                  commentsEntry :
                   docPropsEntry : docPropsAppEntry : themeEntry :
                   fontTableEntry : settingsEntry : webSettingsEntry :
                   imageEntries ++ headerFooterEntries ++
@@ -763,7 +774,7 @@ makeTOC _ = return []
 
 -- | Convert Pandoc document to two lists of
 -- OpenXML elements (the main document and footnotes).
-writeOpenXML :: (PandocMonad m) => WriterOptions -> Pandoc -> WS m ([Element], [Element])
+writeOpenXML :: (PandocMonad m) => WriterOptions -> Pandoc -> WS m ([Element], [Element],[Element])
 writeOpenXML opts (Pandoc meta blocks) = do
   let tit = docTitle meta ++ case lookupMeta "subtitle" meta of
                                   Just (MetaBlocks [Plain xs]) -> LineBreak : xs
@@ -792,10 +803,27 @@ writeOpenXML opts (Pandoc meta blocks) = do
       convertSpace xs                           = xs
   let blocks' = bottomUp convertSpace blocks
   doc' <- (setFirstPara >> blocksToOpenXML opts blocks')
-  notes' <- reverse `fmap` gets stFootnotes
+  notes' <- reverse <$> gets stFootnotes
+  comments <- reverse <$> gets stComments
+  let toComment (kvs, ils) = do
+        annotation <- inlinesToOpenXML opts ils
+        return $
+          mknode "w:comment" [('w':':':k,v) | (k,v) <- kvs]
+            [ mknode "w:p" [] $
+              [ mknode "w:pPr" []
+                [ mknode "w:pStyle" [("w:val", "CommentText")] () ]
+              , mknode "w:r" []
+                [ mknode "w:rPr" []
+                  [ mknode "w:rStyle" [("w:val", "CommentReference")] ()
+                  , mknode "w:annotationRef" [] ()
+                  ]
+                ]
+              ] ++ annotation
+            ]
+  comments' <- mapM toComment comments
   toc <- makeTOC opts
   let meta' = title ++ subtitle ++ authors ++ date ++ abstract ++ toc
-  return (meta' ++ doc', notes')
+  return (meta' ++ doc', notes', comments')
 
 -- | Convert a list of Pandoc blocks to OpenXML.
 blocksToOpenXML :: (PandocMonad m) => WriterOptions -> [Block] -> WS m [Element]
@@ -1102,6 +1130,16 @@ inlineToOpenXML' _ (Str str) =
   formattedString str
 inlineToOpenXML' opts Space = inlineToOpenXML opts (Str " ")
 inlineToOpenXML' opts SoftBreak = inlineToOpenXML opts (Str " ")
+inlineToOpenXML' _ (Span (ident,["comment-start"],kvs) ils) = do
+  modify $ \st -> st{ stComments = (("id",ident):kvs, ils) : stComments st }
+  return [ mknode "w:commentRangeStart" [("w:id", ident)] () ]
+inlineToOpenXML' _ (Span (ident,["comment-end"],_) _) = do
+  return [ mknode "w:commentRangeEnd" [("w:id", ident)] ()
+         , mknode "w:r" []
+           [ mknode "w:rPr" []
+             [ mknode "w:rStyle" [("w:val", "CommentReference")] () ]
+           , mknode "w:commentReference" [("w:id", ident)] () ]
+         ]
 inlineToOpenXML' opts (Span (ident,classes,kvs) ils) = do
   stylemod <- case lookup dynamicStyleKey kvs of
                    Just sty -> do

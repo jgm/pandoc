@@ -553,8 +553,13 @@ blockToMarkdown' opts t@(Table caption aligns widths headers rows) =  do
                      else blankline $$ (": " <> caption') $$ blankline
   let isLineBreak LineBreak = Any True
       isLineBreak _         = Any False
-  let isSimple = all (==0) widths &&
-                 not ( getAny (query isLineBreak (headers:rows)) )
+  let hasLineBreak = getAny . query isLineBreak
+  let isSimpleCell [Plain ils] = not (hasLineBreak ils)
+      isSimpleCell [Para ils ] = not (hasLineBreak ils)
+      isSimpleCell []          = True
+      isSimpleCell _           = False
+  let hasSimpleCells = all isSimpleCell (concat (headers:rows))
+  let isSimple = hasSimpleCells && all (==0) widths
   let isPlainBlock (Plain _) = True
       isPlainBlock _         = False
   let hasBlocks = not (all isPlainBlock $ concat . concat $ headers:rows)
@@ -589,6 +594,9 @@ blockToMarkdown' opts t@(Table caption aligns widths headers rows) =  do
             | isEnabled Ext_raw_html opts -> fmap (id,) $
                    (text . T.unpack) <$>
                    (writeHtml5String def $ Pandoc nullMeta [t])
+            | hasSimpleCells &&
+              isEnabled Ext_pipe_tables opts -> fmap (id,) $
+                   pipeTable (all null headers) aligns' rawHeaders rawRows
             | otherwise -> return $ (id, text "[TABLE]")
   return $ nst $ tbl $$ caption'' $$ blankline
 blockToMarkdown' opts (BulletList items) = do

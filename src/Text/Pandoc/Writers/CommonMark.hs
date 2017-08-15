@@ -1,3 +1,4 @@
+{-# LANGUAGE OverloadedStrings #-}
 {-
 Copyright (C) 2015 John MacFarlane <jgm@berkeley.edu>
 
@@ -31,17 +32,19 @@ CommonMark:  <http://commonmark.org>
 -}
 module Text.Pandoc.Writers.CommonMark (writeCommonMark) where
 
-import CMark
+import CMarkGFM
 import Control.Monad.State.Strict (State, get, modify, runState)
 import Data.Foldable (foldrM)
+import Data.Monoid (Any (..), (<>))
+import Data.List (transpose)
 import Data.Text (Text)
 import qualified Data.Text as T
 import Text.Pandoc.Class (PandocMonad)
 import Text.Pandoc.Definition
 import Text.Pandoc.Options
-import Text.Pandoc.Shared (isTightList, linesToPara)
+import Text.Pandoc.Shared (isTightList, linesToPara, substitute)
 import Text.Pandoc.Templates (renderTemplate')
-import Text.Pandoc.Walk (walkM)
+import Text.Pandoc.Walk (walkM, walk, query)
 import Text.Pandoc.Writers.HTML (writeHtml5String)
 import Text.Pandoc.Writers.Shared
 
@@ -62,6 +65,10 @@ writeCommonMark opts (Pandoc meta blocks) = do
        Nothing  -> return main
        Just tpl -> renderTemplate' tpl context
 
+softBreakToSpace :: Inline -> Inline
+softBreakToSpace SoftBreak = Space
+softBreakToSpace x = x
+
 processNotes :: Inline -> State [[Block]] Inline
 processNotes (Note bs) = do
   modify (bs :)
@@ -78,43 +85,46 @@ blocksToCommonMark opts bs = do
       colwidth = if writerWrapText opts == WrapAuto
                  then Just $ writerColumns opts
                  else Nothing
-  nodes <- blocksToNodes bs
-  return $
+  nodes <- blocksToNodes opts bs
+  return $ T.stripEnd $
     nodeToCommonmark cmarkOpts colwidth $
     node DOCUMENT nodes
 
 inlinesToCommonMark :: PandocMonad m => WriterOptions -> [Inline] -> m Text
 inlinesToCommonMark opts ils = return $
-  nodeToCommonmark cmarkOpts colwidth $ node PARAGRAPH (inlinesToNodes ils)
+  nodeToCommonmark cmarkOpts colwidth $
+    node PARAGRAPH (inlinesToNodes opts ils)
    where cmarkOpts = [optHardBreaks | isEnabled Ext_hard_line_breaks opts]
          colwidth = if writerWrapText opts == WrapAuto
                        then Just $ writerColumns opts
                        else Nothing
 
-blocksToNodes :: PandocMonad m => [Block] -> m [Node]
-blocksToNodes = foldrM blockToNodes []
+blocksToNodes :: PandocMonad m => WriterOptions -> [Block] -> m [Node]
+blocksToNodes opts = foldrM (blockToNodes opts) []
 
-blockToNodes :: PandocMonad m => Block -> [Node] -> m [Node]
-blockToNodes (Plain xs) ns = return (node PARAGRAPH (inlinesToNodes xs) : ns)
-blockToNodes (Para xs) ns = return (node PARAGRAPH (inlinesToNodes xs) : ns)
-blockToNodes (LineBlock lns) ns = blockToNodes (linesToPara lns) ns
-blockToNodes (CodeBlock (_,classes,_) xs) ns = return $
+blockToNodes :: PandocMonad m => WriterOptions -> Block -> [Node] -> m [Node]
+blockToNodes opts (Plain xs) ns =
+  return (node PARAGRAPH (inlinesToNodes opts xs) : ns)
+blockToNodes opts (Para xs) ns =
+  return (node PARAGRAPH (inlinesToNodes opts xs) : ns)
+blockToNodes opts (LineBlock lns) ns = blockToNodes opts (linesToPara lns) ns
+blockToNodes _ (CodeBlock (_,classes,_) xs) ns = return $
   (node (CODE_BLOCK (T.pack (unwords classes)) (T.pack xs)) [] : ns)
-blockToNodes (RawBlock fmt xs) ns
+blockToNodes _ (RawBlock fmt xs) ns
   | fmt == Format "html" = return (node (HTML_BLOCK (T.pack xs)) [] : ns)
   | otherwise = return (node (CUSTOM_BLOCK (T.pack xs) (T.empty)) [] : ns)
-blockToNodes (BlockQuote bs) ns = do
-  nodes <- blocksToNodes bs
+blockToNodes opts (BlockQuote bs) ns = do
+  nodes <- blocksToNodes opts bs
   return (node BLOCK_QUOTE nodes : ns)
-blockToNodes (BulletList items) ns = do
-  nodes <- mapM blocksToNodes items
+blockToNodes opts (BulletList items) ns = do
+  nodes <- mapM (blocksToNodes opts) items
   return (node (LIST ListAttributes{
                    listType = BULLET_LIST,
                    listDelim = PERIOD_DELIM,
                    listTight = isTightList items,
                    listStart = 1 }) (map (node ITEM) nodes) : ns)
-blockToNodes (OrderedList (start, _sty, delim) items) ns = do
-  nodes <- mapM blocksToNodes items
+blockToNodes opts (OrderedList (start, _sty, delim) items) ns = do
+  nodes <- mapM (blocksToNodes opts) items
   return (node (LIST ListAttributes{
                    listType = ORDERED_LIST,
                    listDelim = case delim of
@@ -123,12 +133,14 @@ blockToNodes (OrderedList (start, _sty, delim) items) ns = do
                                  _         -> PERIOD_DELIM,
                    listTight = isTightList items,
                    listStart = start }) (map (node ITEM) nodes) : ns)
-blockToNodes HorizontalRule ns = return (node THEMATIC_BREAK [] : ns)
-blockToNodes (Header lev _ ils) ns = return (node (HEADING lev) (inlinesToNodes ils) : ns)
-blockToNodes (Div _ bs) ns = do
-  nodes <- blocksToNodes bs
+blockToNodes _ HorizontalRule ns = return (node THEMATIC_BREAK [] : ns)
+blockToNodes opts (Header lev _ ils) ns =
+  return (node (HEADING lev) (inlinesToNodes opts ils) : ns)
+blockToNodes opts (Div _ bs) ns = do
+  nodes <- blocksToNodes opts bs
   return (nodes ++ ns)
-blockToNodes (DefinitionList items) ns = blockToNodes (BulletList items') ns
+blockToNodes opts (DefinitionList items) ns =
+  blockToNodes opts (BulletList items') ns
   where items' = map dlToBullet items
         dlToBullet (term, ((Para xs : ys) : zs))  =
           Para (term ++ [LineBreak] ++ xs) : ys ++ concat zs
@@ -136,54 +148,138 @@ blockToNodes (DefinitionList items) ns = blockToNodes (BulletList items') ns
           Plain (term ++ [LineBreak] ++ xs) : ys ++ concat zs
         dlToBullet (term, xs) =
           Para term : concat xs
-blockToNodes t@(Table _ _ _ _ _) ns = do
-  s <- writeHtml5String def $! Pandoc nullMeta [t]
-  return (node (HTML_BLOCK s) [] : ns)
-blockToNodes Null ns = return ns
+blockToNodes opts t@(Table capt aligns _widths headers rows) ns = do
+  let allcells = concat (headers:rows)
+  let isLineBreak LineBreak = Any True
+      isLineBreak _         = Any False
+  let isPlainOrPara [Para _]  = True
+      isPlainOrPara [Plain _] = True
+      isPlainOrPara []        = True
+      isPlainOrPara _         = False
+  let isSimple = all isPlainOrPara allcells &&
+                 not ( getAny (query isLineBreak allcells) )
+  if isEnabled Ext_pipe_tables opts && isSimple
+     then do
+       -- We construct a table manually as a CUSTOM_BLOCK, for
+       -- two reasons:  (1) cmark-gfm currently doesn't support
+       -- rendering TABLE nodes; (2) we can align the column sides;
+       -- (3) we can render the caption as a regular paragraph.
+       let capt' = node PARAGRAPH (inlinesToNodes opts capt)
+       -- backslash | in code and raw:
+       let fixPipe (Code attr xs) =
+             Code attr (substitute "|" "\\|" xs)
+           fixPipe (RawInline format xs) =
+             RawInline format (substitute "|" "\\|" xs)
+           fixPipe x = x
+       let toCell [Plain ils] = T.strip
+                                $ nodeToCommonmark [] Nothing
+                                $ node (CUSTOM_INLINE mempty mempty)
+                                $ inlinesToNodes opts
+                                $ walk (fixPipe . softBreakToSpace) ils
+           toCell [Para  ils] = T.strip
+                                $ nodeToCommonmark [] Nothing
+                                $ node (CUSTOM_INLINE mempty mempty)
+                                $ inlinesToNodes opts
+                                $ walk (fixPipe . softBreakToSpace) ils
+           toCell []          = ""
+           toCell xs          = error $ "toCell encountered " ++ show xs
+       let separator = " | "
+       let starter = "| "
+       let ender   = " |"
+       let rawheaders = map toCell headers
+       let rawrows = map (map toCell) rows
+       let maximum' [] = 0
+           maximum' xs = maximum xs
+       let colwidths = map (maximum' . map T.length) $
+                        transpose (rawheaders:rawrows)
+       let toHeaderLine len AlignDefault = T.replicate len "-"
+           toHeaderLine len AlignLeft    = ":" <>
+                  T.replicate (max (len - 1) 1) "-"
+           toHeaderLine len AlignRight   =
+                  T.replicate (max (len - 1) 1) "-" <> ":"
+           toHeaderLine len AlignCenter  = ":" <>
+                  T.replicate (max (len - 2) 1) (T.pack "-") <> ":"
+       let rawheaderlines = zipWith toHeaderLine colwidths aligns
+       let headerlines = starter <> T.intercalate separator rawheaderlines <>
+                          ender
+       let padContent (align, w) t' =
+             let padding = w - T.length t'
+                 halfpadding = padding `div` 2
+             in  case align of
+                      AlignRight -> T.replicate padding " " <> t'
+                      AlignCenter -> T.replicate halfpadding " " <> t' <>
+                                     T.replicate (padding - halfpadding) " "
+                      _ -> t' <> T.replicate padding " "
+       let toRow xs = starter <> T.intercalate separator
+                      (zipWith padContent (zip aligns colwidths) xs) <>
+                      ender
+       let table' = toRow rawheaders <> "\n" <> headerlines <> "\n" <>
+                     T.intercalate "\n" (map toRow rawrows)
+       return (node (CUSTOM_BLOCK table' mempty) [] :
+               if null capt
+                  then ns
+                  else capt' : ns)
+     else do -- fall back to raw HTML
+       s <- writeHtml5String def $! Pandoc nullMeta [t]
+       return (node (HTML_BLOCK s) [] : ns)
+blockToNodes _ Null ns = return ns
 
-inlinesToNodes :: [Inline] -> [Node]
-inlinesToNodes  = foldr inlineToNodes []
+inlinesToNodes :: WriterOptions -> [Inline] -> [Node]
+inlinesToNodes opts  = foldr (inlineToNodes opts) []
 
-inlineToNodes :: Inline -> [Node] -> [Node]
-inlineToNodes (Str s) = (node (TEXT (T.pack s)) [] :)
-inlineToNodes Space   = (node (TEXT (T.pack " ")) [] :)
-inlineToNodes LineBreak = (node LINEBREAK [] :)
-inlineToNodes SoftBreak = (node SOFTBREAK [] :)
-inlineToNodes (Emph xs) = (node EMPH (inlinesToNodes xs) :)
-inlineToNodes (Strong xs) = (node STRONG (inlinesToNodes xs) :)
-inlineToNodes (Strikeout xs) =
-  ((node (HTML_INLINE (T.pack "<s>")) [] : inlinesToNodes xs ++
-   [node (HTML_INLINE (T.pack "</s>")) []]) ++ )
-inlineToNodes (Superscript xs) =
-  ((node (HTML_INLINE (T.pack "<sup>")) [] : inlinesToNodes xs ++
+inlineToNodes :: WriterOptions -> Inline -> [Node] -> [Node]
+inlineToNodes opts (Str s) = (node (TEXT (T.pack s')) [] :)
+  where s' = if isEnabled Ext_smart opts
+                then unsmartify opts s
+                else s
+inlineToNodes _ Space   = (node (TEXT (T.pack " ")) [] :)
+inlineToNodes _ LineBreak = (node LINEBREAK [] :)
+inlineToNodes opts SoftBreak
+  | isEnabled Ext_hard_line_breaks opts = (node LINEBREAK [] :)
+  | writerWrapText opts == WrapNone     = (node (TEXT " ") [] :)
+  | otherwise                           = (node SOFTBREAK [] :)
+inlineToNodes opts (Emph xs) = (node EMPH (inlinesToNodes opts xs) :)
+inlineToNodes opts (Strong xs) = (node STRONG (inlinesToNodes opts xs) :)
+inlineToNodes opts (Strikeout xs) =
+  if isEnabled Ext_strikeout opts
+     then (node STRIKETHROUGH (inlinesToNodes opts xs) :)
+     else ((node (HTML_INLINE (T.pack "<s>")) [] : inlinesToNodes opts xs ++
+           [node (HTML_INLINE (T.pack "</s>")) []]) ++ )
+inlineToNodes opts (Superscript xs) =
+  ((node (HTML_INLINE (T.pack "<sup>")) [] : inlinesToNodes opts xs ++
    [node (HTML_INLINE (T.pack "</sup>")) []]) ++ )
-inlineToNodes (Subscript xs) =
-  ((node (HTML_INLINE (T.pack "<sub>")) [] : inlinesToNodes xs ++
+inlineToNodes opts (Subscript xs) =
+  ((node (HTML_INLINE (T.pack "<sub>")) [] : inlinesToNodes opts xs ++
    [node (HTML_INLINE (T.pack "</sub>")) []]) ++ )
-inlineToNodes (SmallCaps xs) =
+inlineToNodes opts (SmallCaps xs) =
   ((node (HTML_INLINE (T.pack "<span class=\"smallcaps\">")) []
-    : inlinesToNodes xs ++
+    : inlinesToNodes opts xs ++
     [node (HTML_INLINE (T.pack "</span>")) []]) ++ )
-inlineToNodes (Link _ ils (url,tit)) =
-  (node (LINK (T.pack url) (T.pack tit)) (inlinesToNodes ils) :)
-inlineToNodes (Image _ ils (url,tit)) =
-  (node (IMAGE (T.pack url) (T.pack tit)) (inlinesToNodes ils) :)
-inlineToNodes (RawInline fmt xs)
+inlineToNodes opts (Link _ ils (url,tit)) =
+  (node (LINK (T.pack url) (T.pack tit)) (inlinesToNodes opts ils) :)
+inlineToNodes opts (Image _ ils (url,tit)) =
+  (node (IMAGE (T.pack url) (T.pack tit)) (inlinesToNodes opts ils) :)
+inlineToNodes _ (RawInline fmt xs)
   | fmt == Format "html" = (node (HTML_INLINE (T.pack xs)) [] :)
   | otherwise = (node (CUSTOM_INLINE (T.pack xs) (T.empty)) [] :)
-inlineToNodes (Quoted qt ils) =
-  ((node (TEXT start) [] : inlinesToNodes ils ++ [node (TEXT end) []]) ++)
+inlineToNodes opts (Quoted qt ils) =
+  ((node (TEXT start) [] :
+   inlinesToNodes opts ils ++ [node (TEXT end) []]) ++)
   where (start, end) = case qt of
-                          SingleQuote -> (T.pack "‘", T.pack "’")
-                          DoubleQuote -> (T.pack "“", T.pack "”")
-inlineToNodes (Code _ str) = (node (CODE (T.pack str)) [] :)
-inlineToNodes (Math mt str) =
+                          SingleQuote
+                            | isEnabled Ext_smart opts -> ("'","'")
+                            | otherwise -> ("‘", "’")
+                          DoubleQuote
+                            | isEnabled Ext_smart opts -> ("\"", "\"")
+                            | otherwise -> ("“", "”")
+inlineToNodes _ (Code _ str) = (node (CODE (T.pack str)) [] :)
+inlineToNodes _ (Math mt str) =
   case mt of
     InlineMath  ->
       (node (HTML_INLINE (T.pack ("\\(" ++ str ++ "\\)"))) [] :)
     DisplayMath ->
       (node (HTML_INLINE (T.pack ("\\[" ++ str ++ "\\]"))) [] :)
-inlineToNodes (Span _ ils) = (inlinesToNodes ils ++)
-inlineToNodes (Cite _ ils) = (inlinesToNodes ils ++)
-inlineToNodes (Note _) = id -- should not occur
+inlineToNodes opts (Span _ ils) = (inlinesToNodes opts ils ++)
+inlineToNodes opts (Cite _ ils) = (inlinesToNodes opts ils ++)
+inlineToNodes _ (Note _) = id -- should not occur
 -- we remove Note elements in preprocessing

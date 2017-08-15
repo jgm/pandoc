@@ -32,7 +32,7 @@ simpleTable' n = table "" (replicate n (AlignDefault, 0.0))
 
 -- | Create a span for the given tag.
 tagSpan :: String -> Inlines
-tagSpan t = spanWith ("", ["tag"], [("data-tag-name", t)]) . smallcaps $ str t
+tagSpan t = spanWith ("", ["tag"], [("tag-name", t)]) . smallcaps $ str t
 
 tests :: [TestTree]
 tests =
@@ -282,14 +282,14 @@ tests =
           "src_emacs-lisp{(message \"Hello\")}" =?>
           (para $ codeWith ( ""
                            , [ "commonlisp" ]
-                           , [ ("data-org-language", "emacs-lisp") ])
+                           , [ ("org-language", "emacs-lisp") ])
                            "(message \"Hello\")")
 
       , "Inline code block with arguments" =:
           "src_sh[:export both :results output]{echo 'Hello, World'}" =?>
           (para $ codeWith ( ""
                            , [ "bash" ]
-                           , [ ("data-org-language", "sh")
+                           , [ ("org-language", "sh")
                              , ("export", "both")
                              , ("results", "output")
                              ]
@@ -300,7 +300,7 @@ tests =
           "src_sh[:toggle]{echo $HOME}" =?>
           (para $ codeWith ( ""
                            , [ "bash" ]
-                           , [ ("data-org-language", "sh")
+                           , [ ("org-language", "sh")
                              , ("toggle", "yes")
                              ]
                            )
@@ -1556,7 +1556,7 @@ tests =
                      , "       (+ 23 42))"
                      , "#+END_SRC" ] =?>
            let classes = [ "commonlisp" ] -- as kate doesn't know emacs-lisp syntax
-               params = [ ("data-org-language", "emacs-lisp")
+               params = [ ("org-language", "emacs-lisp")
                         , ("exports", "both")
                         ]
                code' = unlines [ "(progn (message \"Hello, World!\")"
@@ -1572,7 +1572,7 @@ tests =
                      , "#+RESULTS:"
                      , ": 65"] =?>
            let classes = [ "commonlisp" ]
-               params = [ ("data-org-language", "emacs-lisp")
+               params = [ ("org-language", "emacs-lisp")
                         , ("exports", "both")
                         ]
                code' = unlines [ "(progn (message \"Hello, World!\")"
@@ -1591,7 +1591,7 @@ tests =
                      , "#+RESULTS:"
                      , ": 65" ] =?>
            let classes = [ "commonlisp" ]
-               params = [ ("data-org-language", "emacs-lisp")
+               params = [ ("org-language", "emacs-lisp")
                         , ("exports", "code")
                         ]
                code' = unlines [ "(progn (message \"Hello, World!\")"
@@ -1625,7 +1625,7 @@ tests =
                   , "#+END_SRC"
                   ] =?>
         let classes = [ "bash" ]
-            params = [ ("data-org-language", "sh"), ("noeval", "yes") ]
+            params = [ ("org-language", "sh"), ("noeval", "yes") ]
         in codeBlockWith ("", classes, params) "echo $HOME\n"
 
       , "Source block with line number switch" =:
@@ -1634,7 +1634,7 @@ tests =
                   , "#+END_SRC"
                   ] =?>
         let classes = [ "bash", "numberLines" ]
-            params = [ ("data-org-language", "sh"), ("startFrom", "10") ]
+            params = [ ("org-language", "sh"), ("startFrom", "10") ]
         in codeBlockWith ("", classes, params) ":() { :|:& };:\n"
 
       , "Source block with multi-word parameter values" =:
@@ -1793,7 +1793,7 @@ tests =
                     , "code body"
                     , "#+END_SRC"
                     ] =?>
-          let params  = [ ("data-org-language", "C")
+          let params  = [ ("org-language", "C")
                         , ("tangle", "xxxx.c")
                         , ("city", "Zürich")
                         ]

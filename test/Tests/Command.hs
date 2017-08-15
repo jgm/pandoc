@@ -8,23 +8,23 @@ import System.Directory
 import System.Exit
 import System.FilePath (joinPath, splitDirectories, takeDirectory, (</>))
 import System.Process
+import System.IO (stderr, hPutStr)
 import Test.Tasty
 import Test.Tasty.HUnit
 import Tests.Helpers
 import Text.Pandoc
-import Text.Pandoc.Shared (trimr)
 import qualified Data.ByteString as BS
 import qualified Text.Pandoc.UTF8 as UTF8
 import System.IO.Unsafe (unsafePerformIO) -- TODO temporary
 
 -- | Run a test with normalize function, return True if test passed.
 runTest :: String    -- ^ Title of test
+        -> FilePath  -- ^ Path to pandoc
         -> String    -- ^ Shell command
         -> String    -- ^ Input text
         -> String    -- ^ Expected output
         -> TestTree
-runTest testname cmd inp norm = testCase testname $ do
-  let cmd' = cmd ++ " --data-dir ../data"
+runTest testname pandocpath cmd inp norm = testCase testname $ do
   let findDynlibDir []           = Nothing
       findDynlibDir ("build":xs) = Just $ joinPath (reverse xs) </> "build"
       findDynlibDir (_:xs)       = findDynlibDir xs
@@ -34,8 +34,8 @@ runTest testname cmd inp norm = testCase testname $ do
                        Nothing  -> []
                        Just d   -> [("DYLD_LIBRARY_PATH", d),
                                     ("LD_LIBRARY_PATH", d)]
-  let env' = dynlibEnv ++ [("TMP","."),("LANG","en_US.UTF-8"),("HOME", "./")]
-  let pr = (shell cmd'){ env = Just env' }
+  let env' = dynlibEnv ++ [("PATH",takeDirectory pandocpath),("TMP","."),("LANG","en_US.UTF-8"),("HOME", "./"),("pandoc_datadir", "..")]
+  let pr = (shell cmd){ env = Just env' }
   (ec, out', err') <- readCreateProcessWithExitCode pr inp
   -- filter \r so the tests will work on Windows machines
   let out = filter (/= '\r') $ err' ++ out'
@@ -46,7 +46,9 @@ runTest testname cmd inp norm = testCase testname $ do
                      else return
                           $ TestFailed cmd "expected"
                           $ getDiff (lines out) (lines norm)
-                else return $ TestError ec
+                else do
+                  hPutStr stderr err'
+                  return $ TestError ec
   assertBool (show result) (result == TestPassed)
 
 tests :: TestTree
@@ -79,8 +81,8 @@ runCommandTest pandocpath (num, code) =
       normlines = takeWhile (/=".") (drop 1 r3)
       input = unlines inplines
       norm = unlines normlines
-      shcmd = trimr $ takeDirectory pandocpath </> cmd
-  in  runTest ("#" ++ show num) shcmd input norm
+      shcmd = cmd -- trimr $ takeDirectory pandocpath </> cmd
+  in  runTest ("#" ++ show num) pandocpath shcmd input norm
 
 extractCommandTest :: FilePath -> FilePath -> TestTree
 extractCommandTest pandocpath fp = unsafePerformIO $ do

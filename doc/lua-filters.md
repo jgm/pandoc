@@ -108,6 +108,15 @@ return {
   }
 ```
 
+### Setting the date in the metadata
+
+```lua
+function Meta(m)
+  m.date = os.date("%B %e, %Y")
+  return m
+end
+```
+
 ### Extracting information about links
 
 This filter prints a table of all the URLs linked to

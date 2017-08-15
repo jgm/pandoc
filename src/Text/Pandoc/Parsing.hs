@@ -49,6 +49,7 @@ module Text.Pandoc.Parsing ( takeWhileP,
                              skipSpaces,
                              blankline,
                              blanklines,
+                             gobbleSpaces,
                              enclosed,
                              stringAnyCase,
                              parseFromString,
@@ -376,6 +377,17 @@ blankline = try $ skipSpaces >> newline
 -- | Parses one or more blank lines and returns a string of newlines.
 blanklines :: Stream s m Char => ParserT s st m [Char]
 blanklines = many1 blankline
+
+-- | Gobble n spaces; if tabs are encountered, expand them
+-- and gobble some or all of their spaces, leaving the rest.
+gobbleSpaces :: Monad m => ReaderOptions -> Int -> ParserT [Char] st m ()
+gobbleSpaces _    0 = return ()
+gobbleSpaces opts n = try $ do
+  char ' ' <|> do char '\t'
+                  inp <- getInput
+                  setInput $ replicate (readerTabStop opts - 1) ' ' ++ inp
+                  return ' '
+  gobbleSpaces opts (n - 1)
 
 -- | Parses material enclosed between start and end parsers.
 enclosed :: (Show end, Stream s  m Char) => ParserT s st m t   -- ^ start parser

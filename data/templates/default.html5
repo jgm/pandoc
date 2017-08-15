@@ -18,6 +18,7 @@ $endif$
       code{white-space: pre-wrap;}
       .smallcaps{font-variant: small-caps;}
       .line-block{white-space: pre-line;}
+      .column{display: inline-block;}
 $if(quotes)$
       q { quotes: "“" "”" "‘" "’"; }
 $endif$
