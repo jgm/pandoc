@@ -452,7 +452,25 @@ blockToLaTeX (Div (identifier,classes,kvs) bs) = do
             _ -> linkAnchor'
   let align dir txt = inCmd "begin" dir $$ txt $$ inCmd "end" dir
   lang <- toLang $ lookup "lang" kvs
-  let wrapDir = case lookup "dir" kvs of
+  let wrapColumns = if "columns" `elem` classes
+                       then \contents ->
+                          inCmd "begin" "columns" <> brackets "T"
+                              $$ contents
+                              $$ inCmd "end" "columns"
+                       else id
+      wrapColumn  = if "column" `elem` classes
+                       then \contents ->
+                          let fromPct xs =
+                                case reverse xs of
+                                     '%':ds -> '0':'.': reverse ds
+                                     _      -> xs
+                              w = maybe "0.48" fromPct (lookup "width" kvs)
+                          in  inCmd "begin" "column" <>
+                              braces (text w <> "\\textwidth")
+                              $$ contents
+                              $$ inCmd "end" "column"
+                       else id
+      wrapDir = case lookup "dir" kvs of
                   Just "rtl" -> align "RTL"
                   Just "ltr" -> align "LTR"
                   _          -> id
@@ -468,7 +486,8 @@ blockToLaTeX (Div (identifier,classes,kvs) bs) = do
       wrapNotes txt = if beamer && "notes" `elem` classes
                           then "\\note" <> braces txt -- speaker notes
                           else linkAnchor $$ txt
-  fmap (wrapDir . wrapLang . wrapNotes) $ blockListToLaTeX bs
+  fmap (wrapColumns . wrapColumn . wrapDir . wrapLang . wrapNotes)
+    $ blockListToLaTeX bs
 blockToLaTeX (Plain lst) =
   inlineListToLaTeX $ dropWhile isLineBreakOrSpace lst
 -- title beginning with fig: indicates that the image is a figure

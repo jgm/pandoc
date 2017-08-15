@@ -12,6 +12,7 @@
       code{white-space: pre-wrap;}
       .smallcaps{font-variant: small-caps;}
       .line-block{white-space: pre-line;}
+      .column{display: inline-block;}
   </style>
   <!--[if lt IE 9]>
     <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
