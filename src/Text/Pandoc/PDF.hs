@@ -50,7 +50,11 @@ import System.Exit (ExitCode (..))
 import System.FilePath
 import System.IO (stdout)
 import System.IO.Temp (withTempDirectory, withTempFile)
+#if MIN_VERSION_base(4,8,3)
 import System.IO.Error (IOError, isDoesNotExistError)
+#else
+import System.IO.Error (isDoesNotExistError)
+#endif
 import Text.Pandoc.Definition
 import Text.Pandoc.Error (PandocError(PandocPDFProgramNotFoundError))
 import Text.Pandoc.MediaBag
