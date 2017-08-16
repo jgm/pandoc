@@ -109,9 +109,10 @@ Using `pandoc`
 If no *input-file* is specified, input is read from *stdin*.
 Otherwise, the *input-files* are concatenated (with a blank
 line between each) and used as input.  Output goes to *stdout* by
-default (though output to *stdout* is disabled for the `odt`, `docx`,
-`epub2`, and `epub3` output formats, unless it is forced using
-`-o -`).  For output to a file, use the `-o` option:
+default (though output to the terminal is disabled for the
+`odt`, `docx`, `epub2`, and `epub3` output formats, unless it is
+forced using `-o -`).  For output to a file, use the `-o`
+option:
 
     pandoc -o output.html input.txt
 

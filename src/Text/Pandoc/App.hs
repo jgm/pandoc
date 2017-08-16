@@ -91,6 +91,10 @@ import Text.Pandoc.Shared (headerShift, isURI, openURL,
 import qualified Text.Pandoc.UTF8 as UTF8
 import Text.Pandoc.XML (toEntities)
 import Text.Printf
+#ifndef _WINDOWS
+import System.Posix.IO (stdOutput)
+import System.Posix.Terminal (queryTerminal)
+#endif
 
 data LineEnding = LF | CRLF | Native deriving (Show, Generic)
 
@@ -243,10 +247,17 @@ convertWithOpts opts = do
 
   -- We don't want to send output to the terminal if the user
   -- does 'pandoc -t docx input.txt'; though we allow them to
-  -- force this with '-o -'.
-  when (not (isTextFormat format) && optOutputFile opts == Nothing) $
+  -- force this with '-o -'.  On posix systems, we detect
+  -- when stdout is being piped and allow output to stdout
+  -- in that case, but on Windows we can't.
+#ifdef _WINDOWS
+  let istty = True
+#else
+  istty <- queryTerminal stdOutput
+#endif
+  when (not (isTextFormat format) && istty && optOutputFile opts == Nothing) $
     E.throwIO $ PandocAppError $
-            "Cannot write " ++ format ++ " output to stdout.\n" ++
+            "Cannot write " ++ format ++ " output to terminal.\n" ++
             "Specify an output file using the -o option, or " ++
             "use '-o -' to force output to stdout."
 
