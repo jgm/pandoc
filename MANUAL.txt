@@ -110,8 +110,8 @@ If no *input-file* is specified, input is read from *stdin*.
 Otherwise, the *input-files* are concatenated (with a blank
 line between each) and used as input.  Output goes to *stdout* by
 default (though output to *stdout* is disabled for the `odt`, `docx`,
-`epub2`, and `epub3` output formats).  For output to a file, use the
-`-o` option:
+`epub2`, and `epub3` output formats, unless it is forced using
+`-o -`).  For output to a file, use the `-o` option:
 
     pandoc -o output.html input.txt
 
@@ -328,8 +328,8 @@ General options
 `-o` *FILE*, `--output=`*FILE*
 
 :   Write output to *FILE* instead of *stdout*.  If *FILE* is
-    `-`, output will go to *stdout*.  (Exception: if the output
-    format is `odt`, `docx`, `epub`, or `epub3`, output to stdout is disabled.)
+    `-`, output will go to *stdout*, even if a non-textual format
+    (`docx`, `odt`, `epub2`, `epub3`) is specified.
 
 `--data-dir=`*DIRECTORY*
 

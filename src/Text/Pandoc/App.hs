@@ -91,10 +91,6 @@ import Text.Pandoc.Shared (headerShift, isURI, openURL,
 import qualified Text.Pandoc.UTF8 as UTF8
 import Text.Pandoc.XML (toEntities)
 import Text.Printf
-#ifndef _WINDOWS
-import System.Posix.IO (stdOutput)
-import System.Posix.Terminal (queryTerminal)
-#endif
 
 data LineEnding = LF | CRLF | Native deriving (Show, Generic)
 
@@ -124,7 +120,7 @@ parseOptions options' defaults = do
 convertWithOpts :: Opt -> IO ()
 convertWithOpts opts = do
   let args = optInputFiles opts
-  let outputFile = optOutputFile opts
+  let outputFile = fromMaybe "-" (optOutputFile opts)
   let filters = optFilters opts
   let verbosity = optVerbosity opts
 
@@ -245,18 +241,14 @@ convertWithOpts opts = do
                   (\(syn,dep) -> (T.unpack syn ++ " requires " ++
                     T.unpack dep ++ " through IncludeRules.")) xs)
 
-
-
-#ifdef _WINDOWS
-  let istty = True
-#else
-  istty <- queryTerminal stdOutput
-#endif
-  when (istty && not (isTextFormat format) && outputFile == "-") $
+  -- We don't want to send output to the terminal if the user
+  -- does 'pandoc -t docx input.txt'; though we allow them to
+  -- force this with '-o -'.
+  when (not (isTextFormat format) && optOutputFile opts == Nothing) $
     E.throwIO $ PandocAppError $
             "Cannot write " ++ format ++ " output to stdout.\n" ++
-            "Specify an output file using the -o option."
-
+            "Specify an output file using the -o option, or " ++
+            "use '-o -' to force output to stdout."
 
   let convertTabs = tabFilter (if optPreserveTabs opts || readerName == "t2t"
                                   then 0
@@ -303,7 +295,8 @@ convertWithOpts opts = do
     variables <-
         withList (addStringAsVariable "sourcefile")
                  (reverse $ optInputFiles opts)
-                 (("outputfile", optOutputFile opts) : optVariables opts)
+                 (("outputfile", fromMaybe "-" (optOutputFile opts))
+                  : optVariables opts)
                  -- we reverse this list because, unlike
                  -- the other option lists here, it is
                  -- not reversed when parsed from CLI arguments.
@@ -562,7 +555,7 @@ data Opt = Opt
     , optTemplate              :: Maybe FilePath  -- ^ Custom template
     , optVariables             :: [(String,String)] -- ^ Template variables to set
     , optMetadata              :: [(String, String)] -- ^ Metadata fields to set
-    , optOutputFile            :: FilePath  -- ^ Name of output file
+    , optOutputFile            :: Maybe FilePath  -- ^ Name of output file
     , optInputFiles            :: [FilePath] -- ^ Names of input files
     , optNumberSections        :: Bool    -- ^ Number sections in LaTeX
     , optNumberOffset          :: [Int]   -- ^ Starting number for sections
@@ -638,7 +631,7 @@ defaultOpts = Opt
     , optTemplate              = Nothing
     , optVariables             = []
     , optMetadata              = []
-    , optOutputFile            = "-"    -- "-" means stdout
+    , optOutputFile            = Nothing
     , optInputFiles            = []
     , optNumberSections        = False
     , optNumberOffset          = [0,0,0,0,0,0]
@@ -889,7 +882,7 @@ options =
 
     , Option "o" ["output"]
                  (ReqArg
-                  (\arg opt -> return opt { optOutputFile = arg })
+                  (\arg opt -> return opt { optOutputFile = Just arg })
                   "FILE")
                  "" -- "Name of output file"
 
