@@ -60,6 +60,12 @@ attrToMap (id',classes,keyvals) = M.fromList
     : ("class", unwords classes)
     : keyvals
 
+instance ToLuaStack Double where
+  push = push . (realToFrac :: Double -> LuaNumber)
+
+instance ToLuaStack Int where
+  push = push . (fromIntegral :: Int -> LuaInteger)
+
 instance ToLuaStack Format where
   push (Format f) = push (map toLower f)
 

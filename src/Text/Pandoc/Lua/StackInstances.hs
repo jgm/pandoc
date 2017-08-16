@@ -33,8 +33,8 @@ StackValue instances for pandoc types.
 module Text.Pandoc.Lua.StackInstances () where
 
 import Control.Applicative ((<|>))
-import Foreign.Lua (Lua, Type (..), FromLuaStack (peek), ToLuaStack (push),
-                    StackIndex, throwLuaError, tryLua)
+import Foreign.Lua (Lua, LuaInteger, LuaNumber, Type (..), FromLuaStack (peek),
+                    ToLuaStack (push), StackIndex, throwLuaError, tryLua)
 import Foreign.Lua.Api (getmetatable, ltype, newtable, pop, rawget, rawlen)
 import Text.Pandoc.Definition
 import Text.Pandoc.Lua.Util (addValue, adjustIndexBy, getTable, pushViaConstructor)
@@ -124,6 +124,16 @@ instance ToLuaStack QuoteType where
   push = push . show
 instance FromLuaStack QuoteType where
   peek idx = safeRead' =<< peek idx
+
+instance ToLuaStack Double where
+  push = push . (realToFrac :: Double -> LuaNumber)
+instance FromLuaStack Double where
+  peek = fmap (realToFrac :: LuaNumber -> Double) . peek
+
+instance ToLuaStack Int where
+  push = push . (fromIntegral :: Int -> LuaInteger)
+instance FromLuaStack Int where
+  peek = fmap (fromIntegral :: LuaInteger-> Int) . peek
 
 safeRead' :: Read a => String -> Lua a
 safeRead' s = case safeRead s of
