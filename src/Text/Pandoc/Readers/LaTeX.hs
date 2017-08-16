@@ -111,13 +111,12 @@ parseLaTeX = do
   return $ Pandoc meta bs'
 
 resolveRefs :: M.Map String [Inline] -> Inline -> Inline
-resolveRefs labels x@(Span (ident,classes,kvs) _) =
+resolveRefs labels x@(Link (ident,classes,kvs) _ _) =
   case (lookup "reference-type" kvs,
         lookup "reference" kvs) of
         (Just "ref", Just lab) ->
           case M.lookup lab labels of
-               Just txt -> Span (ident,classes,kvs)
-                             [Link nullAttr txt ('#':lab, "")]
+               Just txt -> Link (ident,classes,kvs) txt ('#':lab, "")
                Nothing  -> x
         _ -> x
 resolveRefs _ x = x
@@ -1538,9 +1537,11 @@ doref :: PandocMonad m => String -> LP m Inlines
 doref cls = do
   v <- braced
   let refstr = toksToString v
-  return $ spanWith ("",[],[ ("reference-type", cls)
+  return $ linkWith ("",[],[ ("reference-type", cls)
                            , ("reference", refstr)])
-    $ inBrackets $ str refstr
+                    ('#':refstr)
+                    ""
+                    (inBrackets $ str refstr)
 
 lookupListDefault :: (Show k, Ord k) => v -> [k] -> M.Map k v -> v
 lookupListDefault d = (fromMaybe d .) . lookupList
