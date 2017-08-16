@@ -1384,7 +1384,11 @@ inlineCommands = M.fromList $
                    <|> citation "citeauthor" AuthorInText False)
   , ("nocite", mempty <$ (citation "nocite" NormalCitation False >>=
                           addMeta "nocite"))
+  -- hyperlink: for now, we just preserve contents.
+  -- we might add the actual links, but we need to avoid clashes
+  -- with ids produced by label.
   , ("hypertarget", braced >> tok)
+  , ("hyperlink", braced >> tok)
   -- glossaries package
   , ("gls", doAcronym "short")
   , ("Gls", doAcronym "short")
