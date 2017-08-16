@@ -50,7 +50,9 @@ import System.Exit (ExitCode (..))
 import System.FilePath
 import System.IO (stdout)
 import System.IO.Temp (withTempDirectory, withTempFile)
+import System.IO.Error (IOError, isDoesNotExistError)
 import Text.Pandoc.Definition
+import Text.Pandoc.Error (PandocError(PandocPDFProgramNotFoundError))
 import Text.Pandoc.MediaBag
 import Text.Pandoc.MIME (getMimeType)
 import Text.Pandoc.Options (HTMLMathMethod (..), WriterOptions (..))
@@ -193,7 +195,12 @@ tex2pdf' verbosity args tmpDir program source = do
   let numruns = if "\\tableofcontents" `T.isInfixOf` source
                    then 3  -- to get page numbers
                    else 2  -- 1 run won't give you PDF bookmarks
-  (exit, log', mbPdf) <- runTeXProgram verbosity program args 1 numruns tmpDir source
+  (exit, log', mbPdf) <- E.catch
+    (runTeXProgram verbosity program args 1 numruns tmpDir source)
+    (\(e :: IOError) -> if isDoesNotExistError e
+                           then E.throwIO $
+                                 PandocPDFProgramNotFoundError program
+                           else E.throwIO e)
   case (exit, mbPdf) of
        (ExitFailure _, _)      -> do
           let logmsg = extractMsg log'
@@ -321,8 +328,13 @@ ms2pdf verbosity args source = do
     putStrLn $ "[makePDF] Contents:\n"
     putStr $ T.unpack source
     putStr "\n"
-  (exit, out) <- pipeProcess (Just env') "pdfroff" args
-                     (BL.fromStrict $ UTF8.fromText source)
+  (exit, out) <- E.catch
+    (pipeProcess (Just env') "pdfroff" args
+                     (BL.fromStrict $ UTF8.fromText source))
+    (\(e :: IOError) -> if isDoesNotExistError e
+                           then E.throwIO $
+                                  PandocPDFProgramNotFoundError "pdfroff"
+                           else E.throwIO e)
   when (verbosity >= INFO) $ do
     BL.hPutStr stdout out
     putStr "\n"
@@ -350,7 +362,12 @@ html2pdf verbosity args source = do
     putStrLn $ "[makePDF] Contents of " ++ file ++ ":"
     BL.readFile file >>= BL.putStr
     putStr "\n"
-  (exit, out) <- pipeProcess (Just env') "wkhtmltopdf" programArgs BL.empty
+  (exit, out) <- E.catch
+    (pipeProcess (Just env') "wkhtmltopdf" programArgs BL.empty)
+    (\(e :: IOError) -> if isDoesNotExistError e
+                           then E.throwIO $
+                                  PandocPDFProgramNotFoundError "wkhtml2pdf"
+                           else E.throwIO e)
   removeFile file
   when (verbosity >= INFO) $ do
     BL.hPutStr stdout out
@@ -397,7 +414,12 @@ context2pdf verbosity tmpDir source = inDirectory tmpDir $ do
     putStrLn $ "[makePDF] Contents of " ++ file ++ ":"
     BL.readFile file >>= BL.putStr
     putStr "\n"
-  (exit, out) <- pipeProcess (Just env') "context" programArgs BL.empty
+  (exit, out) <- E.catch
+    (pipeProcess (Just env') "context" programArgs BL.empty)
+    (\(e :: IOError) -> if isDoesNotExistError e
+                           then E.throwIO $
+                                  PandocPDFProgramNotFoundError "context"
+                           else E.throwIO e)
   when (verbosity >= INFO) $ do
     BL.hPutStr stdout out
     putStr "\n"

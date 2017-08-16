@@ -485,10 +485,6 @@ convertWithOpts opts = do
                                   | html5Output   -> "wkhtmltopdf"
                                   | msOutput      -> "pdfroff"
                                   | otherwise     -> optLaTeXEngine opts
-                -- check for pdf creating program
-                mbPdfProg <- liftIO $ findExecutable pdfprog
-                when (isNothing mbPdfProg) $ liftIO $ E.throwIO $
-                       PandocPDFProgramNotFoundError pdfprog
 
                 res <- makePDF pdfprog f writerOptions verbosity media doc
                 case res of
