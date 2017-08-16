@@ -702,6 +702,21 @@ enquote = do
      then singleQuoted <$> withQuoteContext InSingleQuote tok
      else doubleQuoted <$> withQuoteContext InDoubleQuote tok
 
+doAcronym :: PandocMonad m => String -> LP m Inlines
+doAcronym form = do
+  acro <- braced
+  return . mconcat $ [spanWith ("",[],[("acronym-label", toksToString acro), 
+    ("acronym-form", "singular+" ++ form)]) 
+    $ str $ toksToString acro]
+
+doAcronymPlural :: PandocMonad m => String -> LP m Inlines
+doAcronymPlural form = do
+  acro <- braced
+  plural <- lit "s"
+  return . mconcat $ [spanWith ("",[],[("acronym-label", toksToString acro), 
+    ("acronym-form", "plural+" ++ form)]) $ mconcat 
+    $ [str $ toksToString acro, plural]]
+
 doverb :: PandocMonad m => LP m Inlines
 doverb = do
   Tok _ Symbol t <- anySymbol
@@ -1371,6 +1386,30 @@ inlineCommands = M.fromList $
   , ("nocite", mempty <$ (citation "nocite" NormalCitation False >>=
                           addMeta "nocite"))
   , ("hypertarget", braced >> tok)
+  -- glossaries package
+  , ("gls", doAcronym "short")
+  , ("Gls", doAcronym "short")
+  , ("glsdesc", doAcronym "long")
+  , ("Glsdesc", doAcronym "long")
+  , ("GLSdesc", doAcronym "long")
+  , ("acrlong", doAcronym "long")
+  , ("Acrlong", doAcronym "long")
+  , ("acrfull", doAcronym "full")
+  , ("Acrfull", doAcronym "full")
+  , ("acrshort", doAcronym "abbrv")
+  , ("Acrshort", doAcronym "abbrv")
+  , ("glspl", doAcronymPlural "short")
+  , ("Glspl", doAcronymPlural "short")
+  , ("glsdescplural", doAcronymPlural "long")
+  , ("Glsdescplural", doAcronymPlural "long")
+  , ("GLSdescplural", doAcronymPlural "long")
+  -- acronyms package
+  , ("ac", doAcronym "short")
+  , ("acf", doAcronym "full")
+  , ("acs", doAcronym "abbrv")
+  , ("acp", doAcronymPlural "short")
+  , ("acfp", doAcronymPlural "full")
+  , ("acsp", doAcronymPlural "abbrv")
   -- siuntix
   , ("SI", dosiunitx)
   -- hyphenat
