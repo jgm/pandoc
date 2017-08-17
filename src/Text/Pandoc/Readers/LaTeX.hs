@@ -1209,6 +1209,8 @@ inlineCommands = M.fromList $
   , ("textup", extractSpaces (spanWith ("",["upright"],[])) <$> tok)
   , ("texttt", ttfamily)
   , ("sout", extractSpaces strikeout <$> tok)
+  , ("lq", return (str "‘"))
+  , ("rq", return (str "’"))
   , ("textquoteleft", return (str "‘"))
   , ("textquoteright", return (str "’"))
   , ("textquotedblleft", return (str "“"))
