@@ -439,7 +439,12 @@ inlineListToRST lst =
 
 -- | Convert Pandoc inline element to RST.
 inlineToRST :: PandocMonad m => Inline -> RST m Doc
-inlineToRST (Span _ ils) = inlineListToRST ils
+inlineToRST (Span (_,_,kvs) ils) = do
+  contents <- inlineListToRST ils
+  return $
+    case lookup "role" kvs of
+          Just role -> ":" <> text role <> ":`" <> contents <> "`"
+          Nothing   -> contents
 inlineToRST (Emph lst) = do
   contents <- inlineListToRST lst
   return $ "*" <> contents <> "*"

@@ -1399,10 +1399,8 @@ renderRole contents fmt role attr = case role of
         case M.lookup custom customRoles of
             Just (newRole, newFmt, newAttr) ->
                 renderRole contents newFmt newRole newAttr
-            Nothing -> do
-                pos <- getPosition
-                logMessage $ SkippedContent (":" ++ custom ++ ":") pos
-                return $ B.str contents -- Undefined role
+            Nothing -> -- undefined role
+                return $ B.spanWith ("",[],[("role",role)]) (B.str contents)
  where
    titleRef ref = return $ B.str ref -- FIXME: Not a sensible behaviour
    rfcLink rfcNo = B.link rfcUrl ("RFC " ++ rfcNo) $ B.str ("RFC " ++ rfcNo)

@@ -162,7 +162,8 @@ tests = [ "line block with blank line" =:
           , "role with recursive inheritance"
             =: ".. role:: haskell(code)\n.. role:: lhs(haskell)\n\n:lhs:`text`"
             =?> para (codeWith ("", ["lhs", "haskell", "sourceCode"], []) "text")
-          , "unknown role" =: ":unknown:`text`" =?> para (str "text")
+          , "unknown role" =: ":unknown:`text`" =?>
+              para (spanWith ("",[],[("role","unknown")]) (str "text"))
           ]
         , testGroup "footnotes"
           [ "remove space before note" =: T.unlines
