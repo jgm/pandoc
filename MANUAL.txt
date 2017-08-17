@@ -1320,7 +1320,7 @@ including all [reveal.js configuration options].
 
 `slidy-url`
 :   base URL for Slidy documents (defaults to
-    `http://www.w3.org/Talks/Tools/Slidy2`)
+    `https://www.w3.org/Talks/Tools/Slidy2`)
 
 `slideous-url`
 :   base URL for Slideous documents (defaults to `slideous`)
