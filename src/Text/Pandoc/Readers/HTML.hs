@@ -55,9 +55,10 @@ import Text.Pandoc.Walk
 import qualified Data.Map as M
 import Data.Foldable ( for_ )
 import Data.Maybe ( fromMaybe, isJust, isNothing )
+import Data.List.Split ( wordsBy )
 import Data.List ( intercalate, isPrefixOf )
 import Data.Char ( isDigit, isLetter, isAlphaNum )
-import Control.Monad ( guard, mzero, void, unless )
+import Control.Monad ( guard, mzero, void, unless, mplus )
 import Control.Arrow ((***))
 import Control.Applicative ( (<|>) )
 import Data.Monoid (First (..))
@@ -472,31 +473,35 @@ pTable = try $ do
   caption <- option mempty $ pInTags "caption" inline <* skipMany pBlank
   widths' <- (mconcat <$> many1 pColgroup) <|> many pCol
   let pTh = option [] $ pInTags "tr" (pCell "th")
-      pTr = try $ skipMany pBlank >> pInTags "tr" (pCell "td" <|> pCell "th")
+      pTr = try $ skipMany pBlank >>
+                  pInTags "tr" (pCell "td" <|> pCell "th")
       pTBody = do pOptInTag "tbody" $ many1 pTr
   head'' <- pOptInTag "thead" pTh
-  head'  <- pOptInTag "tbody" $ do
-              if null head''
-                 then pTh
-                 else return head''
+  head'  <- map snd <$>
+             (pOptInTag "tbody" $
+               if null head'' then pTh else return head'')
   rowsLs <- many pTBody
   rows'  <- pOptInTag "tfoot" $ many pTr
   TagClose _ <- pSatisfy (matchTagClose "table")
   let rows'' = (concat rowsLs) <> rows'
+  let rows''' = map (map snd) rows''
+  -- let rows''' = map (map snd) rows''
   -- fail on empty table
-  guard $ not $ null head' && null rows''
+  guard $ not $ null head' && null rows'''
   let isSinglePlain x = case B.toList x of
                              []        -> True
                              [Plain _] -> True
                              _         -> False
-  let isSimple = all isSinglePlain $ concat (head':rows'')
-  let cols = length $ if null head' then head rows'' else head'
+  let isSimple = all isSinglePlain $ concat (head':rows''')
+  let cols = length $ if null head' then head rows''' else head'
   -- add empty cells to short rows
   let addEmpties r = case cols - length r of
                            n | n > 0 -> r <> replicate n mempty
                              | otherwise -> r
-  let rows = map addEmpties rows''
-  let aligns = replicate cols AlignDefault
+  let rows = map addEmpties rows'''
+  let aligns = case rows'' of
+                    (cs:_) -> map fst cs
+                    _      -> replicate cols AlignDefault
   let widths = if null widths'
                   then if isSimple
                        then replicate cols 0
@@ -534,12 +539,24 @@ noColOrRowSpans t = isNullOrOne "colspan" && isNullOrOne "rowspan"
                               "1" -> True
                               _   -> False
 
-pCell :: PandocMonad m => Text -> TagParser m [Blocks]
+pCell :: PandocMonad m => Text -> TagParser m [(Alignment, Blocks)]
 pCell celltype = try $ do
   skipMany pBlank
+  tag <- lookAhead $
+           pSatisfy (\t -> t ~== TagOpen celltype [] && noColOrRowSpans t)
+  let extractAlign' [] = ""
+      extractAlign' ("text-align":x:_) = x
+      extractAlign' (_:xs) = extractAlign' xs
+  let extractAlign = extractAlign' . wordsBy (`elem` [' ','\t',';',':'])
+  let align = case maybeFromAttrib "align" tag `mplus`
+                   (extractAlign <$> maybeFromAttrib "style" tag) of
+                   Just "left"   -> AlignLeft
+                   Just "right"  -> AlignRight
+                   Just "center" -> AlignCenter
+                   _             -> AlignDefault
   res <- pInTags' celltype noColOrRowSpans block
   skipMany pBlank
-  return [res]
+  return [(align, res)]
 
 pBlockQuote :: PandocMonad m => TagParser m Blocks
 pBlockQuote = do
