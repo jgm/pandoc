@@ -304,7 +304,7 @@ pandocToHtml opts (Pandoc meta blocks) = do
                   defField "idprefix" (writerIdentifierPrefix opts) $
                   -- these should maybe be set in pandoc.hs
                   defField "slidy-url"
-                    ("http://www.w3.org/Talks/Tools/Slidy2" :: String) $
+                    ("https://www.w3.org/Talks/Tools/Slidy2" :: String) $
                   defField "slideous-url" ("slideous" :: String) $
                   defField "revealjs-url" ("reveal.js" :: String) $
                   defField "s5-url" ("s5/default" :: String) $
