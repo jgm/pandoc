@@ -1971,11 +1971,13 @@ cite = do
 
 textualCite :: PandocMonad m => MarkdownParser m (F Inlines)
 textualCite = try $ do
-  (_, key) <- citeKey
+  (suppressAuthor, key) <- citeKey
   let first = Citation{ citationId      = key
                       , citationPrefix  = []
                       , citationSuffix  = []
-                      , citationMode    = AuthorInText
+                      , citationMode    = if suppressAuthor
+                                             then SuppressAuthor
+                                             else AuthorInText
                       , citationNoteNum = 0
                       , citationHash    = 0
                       }
