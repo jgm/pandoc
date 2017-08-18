@@ -29,6 +29,8 @@ mkdir -p $DEST/share/doc/pandoc-citeproc
 find $DIST -type d | xargs chmod 755
 cp $ARTIFACTS/pandoc $DEST/bin/
 cp $ARTIFACTS/pandoc-citeproc $DEST/bin/
+strip $DEST/bin/pandoc
+strip $DEST/bin/pandoc-citeproc
 cp man/pandoc.1 $DEST/share/man/man1/pandoc.1
 /artifacts/pandoc-citeproc --man > $DEST/share/man/man1/pandoc-citeproc.1
 gzip -9 $DEST/share/man/man1/pandoc.1
