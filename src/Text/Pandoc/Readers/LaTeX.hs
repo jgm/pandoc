@@ -159,6 +159,7 @@ data LaTeXState = LaTeXState{ sOptions       :: ReaderOptions
                             , sInTableCell   :: Bool
                             , sLastHeaderNum :: HeaderNum
                             , sLabels        :: M.Map String [Inline]
+                            , sToggles       :: M.Map String Bool
                             }
      deriving Show
 
@@ -177,6 +178,7 @@ defaultLaTeXState = LaTeXState{ sOptions       = def
                               , sInTableCell   = False
                               , sLastHeaderNum = HeaderNum []
                               , sLabels        = M.empty
+                              , sToggles       = M.empty
                               }
 
 instance PandocMonad m => HasQuoteContext LaTeXState m where
@@ -704,16 +706,16 @@ enquote = do
 doAcronym :: PandocMonad m => String -> LP m Inlines
 doAcronym form = do
   acro <- braced
-  return . mconcat $ [spanWith ("",[],[("acronym-label", toksToString acro), 
-    ("acronym-form", "singular+" ++ form)]) 
+  return . mconcat $ [spanWith ("",[],[("acronym-label", toksToString acro),
+    ("acronym-form", "singular+" ++ form)])
     $ str $ toksToString acro]
 
 doAcronymPlural :: PandocMonad m => String -> LP m Inlines
 doAcronymPlural form = do
   acro <- braced
   plural <- lit "s"
-  return . mconcat $ [spanWith ("",[],[("acronym-label", toksToString acro), 
-    ("acronym-form", "plural+" ++ form)]) $ mconcat 
+  return . mconcat $ [spanWith ("",[],[("acronym-label", toksToString acro),
+    ("acronym-form", "plural+" ++ form)]) $ mconcat
     $ [str $ toksToString acro, plural]]
 
 doverb :: PandocMonad m => LP m Inlines
@@ -1440,12 +1442,46 @@ inlineCommands = M.fromList $
   , ("xspace", doxspace)
   -- etoolbox
   , ("ifstrequal", ifstrequal)
+  , ("newtoggle", braced >>= newToggle)
+  , ("toggletrue", braced >>= setToggle True)
+  , ("togglefalse", braced >>= setToggle False)
+  , ("iftoggle", try $ ifToggle >> inline)
   ]
+
+newToggle :: (Monoid a, PandocMonad m) => [Tok] -> LP m a
+newToggle name = do
+  updateState $ \st ->
+    st{ sToggles = M.insert (toksToString name) False (sToggles st) }
+  return mempty
+
+setToggle :: (Monoid a, PandocMonad m) => Bool -> [Tok] -> LP m a
+setToggle on name = do
+  updateState $ \st ->
+    st{ sToggles = M.adjust (const on) (toksToString name) (sToggles st) }
+  return mempty
+
+ifToggle :: PandocMonad m => LP m ()
+ifToggle = do
+  name <- braced
+  spaces
+  yes <- braced
+  spaces
+  no <- braced
+  toggles <- sToggles <$> getState
+  inp <- getInput
+  let name' = toksToString name
+  case M.lookup name' toggles of
+                Just True  -> setInput (yes ++ inp)
+                Just False -> setInput (no  ++ inp)
+                Nothing    -> do
+                  pos <- getPosition
+                  report $ UndefinedToggle name' pos
+  return ()
 
 doTerm :: PandocMonad m => Translations.Term -> LP m Inlines
 doTerm term = str <$> translateTerm term
 
-ifstrequal :: PandocMonad m => LP m Inlines
+ifstrequal :: (PandocMonad m, Monoid a) => LP m a
 ifstrequal = do
   str1 <- tok
   str2 <- tok
@@ -1964,6 +2000,12 @@ environments = M.fromList
    , ("alignat", mathEnvWith para (Just "aligned") "alignat")
    , ("alignat*", mathEnvWith para (Just "aligned") "alignat*")
    , ("tikzpicture", rawVerbEnv "tikzpicture")
+   -- etoolbox
+   , ("ifstrequal", ifstrequal)
+   , ("newtoggle", braced >>= newToggle)
+   , ("toggletrue", braced >>= setToggle True)
+   , ("togglefalse", braced >>= setToggle False)
+   , ("iftoggle", try $ ifToggle >> block)
    ]
 
 environment :: PandocMonad m => LP m Blocks

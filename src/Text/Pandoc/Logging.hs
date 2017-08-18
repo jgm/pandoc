@@ -75,6 +75,7 @@ data LogMessage =
   | DuplicateIdentifier String SourcePos
   | ReferenceNotFound String SourcePos
   | CircularReference String SourcePos
+  | UndefinedToggle String SourcePos
   | ParsingUnescaped String SourcePos
   | CouldNotLoadIncludeFile String SourcePos
   | MacroAlreadyDefined String SourcePos
@@ -140,6 +141,11 @@ instance ToJSON LogMessage where
             "line" .= toJSON (sourceLine pos),
             "column" .= toJSON (sourceColumn pos)]
       CircularReference s pos ->
+           ["contents" .= Text.pack s,
+            "source" .= Text.pack (sourceName pos),
+            "line" .= toJSON (sourceLine pos),
+            "column" .= toJSON (sourceColumn pos)]
+      UndefinedToggle s pos ->
            ["contents" .= Text.pack s,
             "source" .= Text.pack (sourceName pos),
             "line" .= toJSON (sourceLine pos),
@@ -238,6 +244,8 @@ showLogMessage msg =
          "Reference not found for '" ++ s ++ "' at " ++ showPos pos
        CircularReference s pos ->
          "Circular reference '" ++ s ++ "' at " ++ showPos pos
+       UndefinedToggle s pos ->
+         "Undefined toggle '" ++ s ++ "' at " ++ showPos pos
        ParsingUnescaped s pos ->
          "Parsing unescaped '" ++ s ++ "' at " ++ showPos pos
        CouldNotLoadIncludeFile fp pos ->
@@ -306,6 +314,7 @@ messageVerbosity msg =
        DuplicateIdentifier{}        -> WARNING
        ReferenceNotFound{}          -> WARNING
        CircularReference{}          -> WARNING
+       UndefinedToggle{}            -> WARNING
        CouldNotLoadIncludeFile{}    -> WARNING
        MacroAlreadyDefined{}        -> WARNING
        ParsingUnescaped{}           -> INFO
