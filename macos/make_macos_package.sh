@@ -30,6 +30,9 @@ echo Building pandoc...
 stack clean
 stack install --stack-yaml=stack.pkg.yaml --local-bin-path $DEST/bin/ pandoc pandoc-citeproc
 
+strip $DEST/bin/pandoc
+strip $DEST/bin/pandoc-citeproc
+
 echo Getting man pages...
 make man/pandoc.1
 
