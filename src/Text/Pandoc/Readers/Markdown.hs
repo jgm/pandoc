@@ -868,7 +868,10 @@ rawListItem :: PandocMonad m
 rawListItem start = try $ do
   start
   first <- listLineCommon
-  rest <- many (notFollowedBy listStart >> notFollowedBy blankline >> listLine)
+  rest <- many (do notFollowedBy listStart
+                   notFollowedBy (() <$ codeBlockFenced)
+                   notFollowedBy blankline
+                   listLine)
   blanks <- many blankline
   return $ unlines (first:rest) ++ blanks
 
