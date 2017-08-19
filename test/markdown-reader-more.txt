@@ -84,14 +84,14 @@ $PATH 90 $PATH
 
 ## Indented code at beginning of list
 
--       code
-        code
+-     code
+      code
 
-  1.    code
-        code
+  1.     code
+         code
 
-  12345678.    code
-        code
+  12345678.     code
+                code
 
   -     code
         code

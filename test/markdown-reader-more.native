@@ -29,13 +29,13 @@ Pandoc (Meta {unMeta = fromList [("author",MetaList [MetaInlines [Str "Author",S
  ,[Plain [Str "three"]]]
 ,Header 2 ("indented-code-at-beginning-of-list",[],[]) [Str "Indented",Space,Str "code",Space,Str "at",Space,Str "beginning",Space,Str "of",Space,Str "list"]
 ,BulletList
- [[CodeBlock ("",[],[]) "code\ncode"]]
-,OrderedList (1,Decimal,Period)
- [[CodeBlock ("",[],[]) "code\ncode"]
- ,[CodeBlock ("",[],[]) "code\ncode"]]
-,BulletList
- [[CodeBlock ("",[],[]) "code\ncode"]
- ,[Plain [Str "no",Space,Str "code"]]]
+ [[CodeBlock ("",[],[]) "code\ncode"
+  ,OrderedList (1,Decimal,Period)
+   [[CodeBlock ("",[],[]) "code\ncode"]
+   ,[CodeBlock ("",[],[]) "code\ncode"]]
+  ,BulletList
+   [[CodeBlock ("",[],[]) "code\ncode"]
+   ,[Plain [Str "no",Space,Str "code"]]]]]
 ,Header 2 ("backslash-newline",[],[]) [Str "Backslash",Space,Str "newline"]
 ,Para [Str "hi",LineBreak,Str "there"]
 ,Header 2 ("code-spans",[],[]) [Str "Code",Space,Str "spans"]

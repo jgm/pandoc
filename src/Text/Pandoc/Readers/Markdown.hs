@@ -138,12 +138,7 @@ nonindentSpaces = do
 skipNonindentSpaces :: PandocMonad m => MarkdownParser m Int
 skipNonindentSpaces = do
   tabStop <- getOption readerTabStop
-  atMostSpaces (tabStop - 1) <* notFollowedBy spaceChar
-
-atMostSpaces :: PandocMonad m => Int -> MarkdownParser m Int
-atMostSpaces n
-  | n > 0     = (char ' ' >> (+1) <$> atMostSpaces (n-1)) <|> return 0
-  | otherwise = return 0
+  gobbleAtMostSpaces (tabStop - 1) <* notFollowedBy spaceChar
 
 litChar :: PandocMonad m => MarkdownParser m Char
 litChar = escapedChar'
@@ -809,49 +804,51 @@ blockQuote = do
 bulletListStart :: PandocMonad m => MarkdownParser m ()
 bulletListStart = try $ do
   optional newline -- if preceded by a Plain block in a list context
-  startpos <- sourceColumn <$> getPosition
   skipNonindentSpaces
   notFollowedBy' (() <$ hrule)     -- because hrules start out just like lists
   satisfy isBulletListMarker
-  endpos <- sourceColumn <$> getPosition
-  tabStop <- getOption readerTabStop
-  lookAhead (newline <|> spaceChar)
-  () <$ atMostSpaces (tabStop - (endpos - startpos))
+  gobbleSpaces 1 <|> () <$ lookAhead newline
+  try (gobbleAtMostSpaces 3 >> notFollowedBy spaceChar) <|> return ()
 
-anyOrderedListStart :: PandocMonad m => MarkdownParser m (Int, ListNumberStyle, ListNumberDelim)
-anyOrderedListStart = try $ do
+orderedListStart :: PandocMonad m
+                 => Maybe (ListNumberStyle, ListNumberDelim)
+                 -> MarkdownParser m (Int, ListNumberStyle, ListNumberDelim)
+orderedListStart mbstydelim = try $ do
   optional newline -- if preceded by a Plain block in a list context
-  startpos <- sourceColumn <$> getPosition
   skipNonindentSpaces
   notFollowedBy $ string "p." >> spaceChar >> digit  -- page number
-  res <- do guardDisabled Ext_fancy_lists
-            start <- many1 digit >>= safeRead
-            char '.'
-            return (start, DefaultStyle, DefaultDelim)
-     <|> do (num, style, delim) <- anyOrderedListMarker
-            -- if it could be an abbreviated first name,
-            -- insist on more than one space
-            when (delim == Period && (style == UpperAlpha ||
-                 (style == UpperRoman &&
-                  num `elem` [1, 5, 10, 50, 100, 500, 1000]))) $
-               () <$ spaceChar
-            return (num, style, delim)
-  endpos <- sourceColumn <$> getPosition
-  tabStop <- getOption readerTabStop
-  lookAhead (newline <|> spaceChar)
-  atMostSpaces (tabStop - (endpos - startpos))
-  return res
+  (do guardDisabled Ext_fancy_lists
+      start <- many1 digit >>= safeRead
+      char '.'
+      gobbleSpaces 1 <|> () <$ lookAhead newline
+      optional $ try (gobbleAtMostSpaces 3 >> notFollowedBy spaceChar)
+      return (start, DefaultStyle, DefaultDelim))
+   <|>
+   (do (num, style, delim) <- maybe
+          anyOrderedListMarker
+          (\(sty,delim) -> (\start -> (start,sty,delim)) <$>
+               orderedListMarker sty delim)
+          mbstydelim
+       gobbleSpaces 1 <|> () <$ lookAhead newline
+       -- if it could be an abbreviated first name,
+       -- insist on more than one space
+       when (delim == Period && (style == UpperAlpha ||
+            (style == UpperRoman &&
+             num `elem` [1, 5, 10, 50, 100, 500, 1000]))) $
+              () <$ lookAhead (newline <|> spaceChar)
+       optional $ try (gobbleAtMostSpaces 3 >> notFollowedBy spaceChar)
+       return (num, style, delim))
 
 listStart :: PandocMonad m => MarkdownParser m ()
-listStart = bulletListStart <|> (anyOrderedListStart >> return ())
+listStart = bulletListStart <|> (orderedListStart Nothing >> return ())
 
-listLine :: PandocMonad m => MarkdownParser m String
-listLine = try $ do
-  notFollowedBy' (do indentSpaces
-                     many spaceChar
+listLine :: PandocMonad m => Int -> MarkdownParser m String
+listLine continuationIndent = try $ do
+  notFollowedBy' (do gobbleSpaces continuationIndent
+                     skipMany spaceChar
                      listStart)
   notFollowedByHtmlCloser
-  optional (() <$ indentSpaces)
+  optional (() <$ gobbleSpaces continuationIndent)
   listLineCommon
 
 listLineCommon :: PandocMonad m => MarkdownParser m String
@@ -864,26 +861,39 @@ listLineCommon = concat <$> manyTill
 -- parse raw text for one list item, excluding start marker and continuations
 rawListItem :: PandocMonad m
             => MarkdownParser m a
-            -> MarkdownParser m String
+            -> MarkdownParser m (String, Int)
 rawListItem start = try $ do
+  pos1 <- getPosition
   start
+  pos2 <- getPosition
+  continuationIndent <- (4 <$ guardEnabled Ext_four_space_rule)
+                    <|> return (sourceColumn pos2 - sourceColumn pos1)
   first <- listLineCommon
   rest <- many (do notFollowedBy listStart
                    notFollowedBy (() <$ codeBlockFenced)
                    notFollowedBy blankline
-                   listLine)
+                   listLine continuationIndent)
   blanks <- many blankline
-  return $ unlines (first:rest) ++ blanks
+  let result = unlines (first:rest) ++ blanks
+  return (result, continuationIndent)
 
 -- continuation of a list item - indented and separated by blankline
 -- or (in compact lists) endline.
 -- note: nested lists are parsed as continuations
-listContinuation :: PandocMonad m => MarkdownParser m String
-listContinuation = try $ do
-  lookAhead indentSpaces
-  result <- many1 listContinuationLine
+listContinuation :: PandocMonad m => Int -> MarkdownParser m String
+listContinuation continuationIndent = try $ do
+  x <- try $ do
+         notFollowedBy blankline
+         notFollowedByHtmlCloser
+         gobbleSpaces continuationIndent
+         anyLineNewline
+  xs <- many $ try $ do
+         notFollowedBy blankline
+         notFollowedByHtmlCloser
+         gobbleSpaces continuationIndent <|> notFollowedBy' listStart
+         anyLineNewline
   blanks <- many blankline
-  return $ concat result ++ blanks
+  return $ concat (x:xs) ++ blanks
 
 notFollowedByHtmlCloser :: PandocMonad m => MarkdownParser m ()
 notFollowedByHtmlCloser = do
@@ -892,20 +902,12 @@ notFollowedByHtmlCloser = do
         Just t  -> notFollowedBy' $ htmlTag (~== TagClose t)
         Nothing -> return ()
 
-listContinuationLine :: PandocMonad m => MarkdownParser m String
-listContinuationLine = try $ do
-  notFollowedBy blankline
-  notFollowedBy' listStart
-  notFollowedByHtmlCloser
-  optional indentSpaces
-  anyLineNewline
-
 listItem :: PandocMonad m
          => MarkdownParser m a
          -> MarkdownParser m (F Blocks)
 listItem start = try $ do
-  first <- rawListItem start
-  continuations <- many listContinuation
+  (first, continuationIndent) <- rawListItem start
+  continuations <- many (listContinuation continuationIndent)
   -- parsing with ListItemState forces markers at beginning of lines to
   -- count as list item markers, even if not separated by blank space.
   -- see definition of "endline"
@@ -920,23 +922,14 @@ listItem start = try $ do
 
 orderedList :: PandocMonad m => MarkdownParser m (F Blocks)
 orderedList = try $ do
-  (start, style, delim) <- lookAhead anyOrderedListStart
+  (start, style, delim) <- lookAhead (orderedListStart Nothing)
   unless (style `elem` [DefaultStyle, Decimal, Example] &&
           delim `elem` [DefaultDelim, Period]) $
     guardEnabled Ext_fancy_lists
   when (style == Example) $ guardEnabled Ext_example_lists
   items <- fmap sequence $ many1 $ listItem
-                 ( try $ do
-                     optional newline -- if preceded by Plain block in a list
-                     startpos <- sourceColumn <$> getPosition
-                     skipNonindentSpaces
-                     res <- orderedListMarker style delim
-                     endpos <- sourceColumn <$> getPosition
-                     tabStop <- getOption readerTabStop
-                     lookAhead (newline <|> spaceChar)
-                     atMostSpaces (tabStop - (endpos - startpos))
-                     return res )
-  start' <- option 1 $ guardEnabled Ext_startnum >> return start
+                 (orderedListStart (Just (style, delim)))
+  start' <- (start <$ guardEnabled Ext_startnum) <|> return 1
   return $ B.orderedListWith (start', style, delim) <$> fmap compactify items
 
 bulletList :: PandocMonad m => MarkdownParser m (F Blocks)
@@ -1122,7 +1115,7 @@ rawHtmlBlocks = do
   updateState $ \st -> st{ stateInHtmlBlock = Just tagtype }
   let closer = htmlTag (\x -> x ~== TagClose tagtype)
   let block' = do notFollowedBy' closer
-                  atMostSpaces indentlevel
+                  gobbleAtMostSpaces indentlevel
                   block
   contents <- mconcat <$> many block'
   result <-

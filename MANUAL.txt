@@ -2078,12 +2078,12 @@ But Markdown also allows a "lazy" format:
     list item.
     * and my second.
 
-### The four-space rule ###
+### Block content in list items ###
 
 A list item may contain multiple paragraphs and other block-level
 content. However, subsequent paragraphs must be preceded by a blank line
-and indented four spaces or a tab. The list will look better if the first
-paragraph is aligned with the rest:
+and indented to line up with the first non-space content after
+the list marker.
 
       * First paragraph.
 
@@ -2094,19 +2094,29 @@ paragraph is aligned with the rest:
 
             { code }
 
+Exception: if the list marker is followed by an indented code
+block, which must begin 5 spaces after the list marker, then
+subsequent paragraphs must begin two columns after the last
+character of the list marker:
+
+    *     code
+
+      continuation paragraph
+
 List items may include other lists.  In this case the preceding blank
-line is optional.  The nested list must be indented four spaces or
-one tab:
+line is optional.  The nested list must be indented to line up with
+the first non-space character after the list marker of the
+containing list item.
 
     * fruits
-        + apples
-            - macintosh
-            - red delicious
-        + pears
-        + peaches
+      + apples
+        - macintosh
+        - red delicious
+      + pears
+      + peaches
     * vegetables
-        + broccoli
-        + chard
+      + broccoli
+      + chard
 
 As noted above, Markdown allows you to write list items "lazily," instead of
 indenting continuation lines. However, if there are multiple paragraphs or
@@ -2120,21 +2130,6 @@ other blocks in a list item, the first line of each must be indented.
 
         Second paragraph of second
     list item.
-
-**Note:**  Although the four-space rule for continuation paragraphs
-comes from the official [Markdown syntax guide], the reference implementation,
-`Markdown.pl`, does not follow it. So pandoc will give different results than
-`Markdown.pl` when authors have indented continuation paragraphs fewer than
-four spaces.
-
-The [Markdown syntax guide] is not explicit whether the four-space
-rule applies to *all* block-level content in a list item; it only
-mentions paragraphs and code blocks.  But it implies that the rule
-applies to all block-level content (including nested lists), and
-pandoc interprets it that way.
-
-  [Markdown syntax guide]:
-    http://daringfireball.net/projects/markdown/syntax#list
 
 ### Ordered lists ###
 
@@ -3605,6 +3600,12 @@ implied by pandoc's default `all_symbols_escapable`.
 
 Allow a list to occur right after a paragraph, with no intervening
 blank space.
+
+#### Extension: `four_space_rule` ####
+
+Selects the pandoc <= 2.0 behavior for parsing lists, so that
+four spaces indent are needed for list item continuation
+paragraphs.
 
 #### Extension: `spaced_reference_links` ####
 

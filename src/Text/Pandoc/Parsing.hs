@@ -50,6 +50,7 @@ module Text.Pandoc.Parsing ( takeWhileP,
                              blankline,
                              blanklines,
                              gobbleSpaces,
+                             gobbleAtMostSpaces,
                              enclosed,
                              stringAnyCase,
                              parseFromString,
@@ -380,14 +381,33 @@ blanklines = many1 blankline
 
 -- | Gobble n spaces; if tabs are encountered, expand them
 -- and gobble some or all of their spaces, leaving the rest.
-gobbleSpaces :: Monad m => ReaderOptions -> Int -> ParserT [Char] st m ()
-gobbleSpaces _    0 = return ()
-gobbleSpaces opts n = try $ do
-  char ' ' <|> do char '\t'
-                  inp <- getInput
-                  setInput $ replicate (readerTabStop opts - 1) ' ' ++ inp
-                  return ' '
-  gobbleSpaces opts (n - 1)
+gobbleSpaces :: (HasReaderOptions st, Monad m)
+             => Int -> ParserT [Char] st m ()
+gobbleSpaces 0 = return ()
+gobbleSpaces n
+  | n < 0     = error "gobbleSpaces called with negative number"
+  | otherwise = try $ do
+      char ' ' <|> eatOneSpaceOfTab
+      gobbleSpaces (n - 1)
+
+eatOneSpaceOfTab :: (HasReaderOptions st, Monad m) => ParserT [Char] st m Char
+eatOneSpaceOfTab = do
+  char '\t'
+  tabstop <- getOption readerTabStop
+  inp <- getInput
+  setInput $ replicate (tabstop - 1) ' ' ++ inp
+  return ' '
+
+-- | Gobble up to n spaces; if tabs are encountered, expand them
+-- and gobble some or all of their spaces, leaving the rest.
+gobbleAtMostSpaces :: (HasReaderOptions st, Monad m)
+                   => Int -> ParserT [Char] st m Int
+gobbleAtMostSpaces 0 = return 0
+gobbleAtMostSpaces n
+  | n < 0     = error "gobbleAtMostSpaces called with negative number"
+  | otherwise = option 0 $ do
+      char ' ' <|> eatOneSpaceOfTab
+      (+ 1) <$> gobbleAtMostSpaces (n - 1)
 
 -- | Parses material enclosed between start and end parsers.
 enclosed :: (Show end, Stream s  m Char) => ParserT s st m t   -- ^ start parser
