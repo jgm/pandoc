@@ -4,6 +4,7 @@
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
 {-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE UndecidableInstances #-}
 
 {-
 Copyright (C) 2016-17 Jesse Rosenthal <jrosenthal@jhu.edu>
@@ -123,11 +124,9 @@ import System.FilePath ((</>), (<.>), takeDirectory,
 import qualified System.FilePath.Glob as IO (glob)
 import qualified System.Directory as IO (getModificationTime)
 import Control.Monad as M (fail)
-import Control.Monad.Reader (ReaderT)
 import Control.Monad.State.Strict
 import Control.Monad.Except
-import Control.Monad.Writer (WriterT)
-import Control.Monad.RWS (RWST)
+import Control.Monad.Trans (MonadTrans)
 import Data.Word (Word8)
 import Data.Default
 import System.IO.Error
@@ -841,7 +840,30 @@ instance PandocMonad PandocPure where
 
   logOutput _msg = return ()
 
-instance PandocMonad m => PandocMonad (ParsecT s st m) where
+-- This requires UndecidableInstances.  We could avoid that
+-- by repeating the definitions below for every monad transformer
+-- we use: ReaderT, WriterT, StateT, RWST.  But this seems to
+-- be harmless.
+instance (MonadTrans t, PandocMonad m, Functor (t m),
+          MonadError PandocError (t m), Monad (t m),
+          Applicative (t m)) => PandocMonad (t m) where
+  lookupEnv = lift . lookupEnv
+  getCurrentTime = lift getCurrentTime
+  getCurrentTimeZone = lift getCurrentTimeZone
+  newStdGen = lift newStdGen
+  newUniqueHash = lift newUniqueHash
+  openURL = lift . openURL
+  readFileLazy = lift . readFileLazy
+  readFileStrict = lift . readFileStrict
+  glob = lift . glob
+  fileExists = lift . fileExists
+  getDataFileName = lift . getDataFileName
+  getModificationTime = lift . getModificationTime
+  getCommonState = lift getCommonState
+  putCommonState = lift . putCommonState
+  logOutput = lift . logOutput
+
+instance {-# OVERLAPS #-} PandocMonad m => PandocMonad (ParsecT s st m) where
   lookupEnv = lift . lookupEnv
   getCurrentTime = lift getCurrentTime
   getCurrentTimeZone = lift getCurrentTimeZone
@@ -869,71 +891,3 @@ instance PandocMonad m => PandocMonad (ParsecT s st m) where
         (return ())
   logOutput = lift . logOutput
 
-
-instance PandocMonad m => PandocMonad (ReaderT r m) where
-  lookupEnv = lift . lookupEnv
-  getCurrentTime = lift getCurrentTime
-  getCurrentTimeZone = lift getCurrentTimeZone
-  newStdGen = lift newStdGen
-  newUniqueHash = lift newUniqueHash
-  openURL = lift . openURL
-  readFileLazy = lift . readFileLazy
-  readFileStrict = lift . readFileStrict
-  glob = lift . glob
-  fileExists = lift . fileExists
-  getDataFileName = lift . getDataFileName
-  getModificationTime = lift . getModificationTime
-  getCommonState = lift getCommonState
-  putCommonState = lift . putCommonState
-  logOutput = lift . logOutput
-
-instance (PandocMonad m, Monoid w) => PandocMonad (WriterT w m) where
-  lookupEnv = lift . lookupEnv
-  getCurrentTime = lift getCurrentTime
-  getCurrentTimeZone = lift getCurrentTimeZone
-  newStdGen = lift newStdGen
-  newUniqueHash = lift newUniqueHash
-  openURL = lift . openURL
-  readFileLazy = lift . readFileLazy
-  readFileStrict = lift . readFileStrict
-  glob = lift . glob
-  fileExists = lift . fileExists
-  getDataFileName = lift . getDataFileName
-  getModificationTime = lift . getModificationTime
-  getCommonState = lift getCommonState
-  putCommonState = lift . putCommonState
-  logOutput = lift . logOutput
-
-instance (PandocMonad m, Monoid w) => PandocMonad (RWST r w st m) where
-  lookupEnv = lift . lookupEnv
-  getCurrentTime = lift getCurrentTime
-  getCurrentTimeZone = lift getCurrentTimeZone
-  newStdGen = lift newStdGen
-  newUniqueHash = lift newUniqueHash
-  openURL = lift . openURL
-  readFileLazy = lift . readFileLazy
-  readFileStrict = lift . readFileStrict
-  glob = lift . glob
-  fileExists = lift . fileExists
-  getDataFileName = lift . getDataFileName
-  getModificationTime = lift . getModificationTime
-  getCommonState = lift getCommonState
-  putCommonState = lift . putCommonState
-  logOutput = lift . logOutput
-
-instance PandocMonad m => PandocMonad (StateT st m) where
-  lookupEnv = lift . lookupEnv
-  getCurrentTime = lift getCurrentTime
-  getCurrentTimeZone = lift getCurrentTimeZone
-  newStdGen = lift newStdGen
-  newUniqueHash = lift newUniqueHash
-  openURL = lift . openURL
-  readFileLazy = lift . readFileLazy
-  readFileStrict = lift . readFileStrict
-  glob = lift . glob
-  fileExists = lift . fileExists
-  getDataFileName = lift . getDataFileName
-  getModificationTime = lift . getModificationTime
-  getCommonState = lift getCommonState
-  putCommonState = lift . putCommonState
-  logOutput = lift . logOutput
