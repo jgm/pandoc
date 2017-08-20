@@ -432,11 +432,18 @@ blockToMarkdown' opts (Plain inlines) = do
                   -> text $ escapeMarker rendered
               | otherwise -> contents
   return $ contents' <> cr
--- title beginning with fig: indicates figure
-blockToMarkdown' opts (Para [Image attr alt (src,'f':'i':'g':':':tit)]) =
-  blockToMarkdown opts (Para [Image attr alt (src,tit)])
 blockToMarkdown' opts (Para inlines) =
   (<> blankline) `fmap` blockToMarkdown opts (Plain inlines)
+blockToMarkdown' opts (Figure (ident,classes,kvs)
+      (Caption short long) bs) =
+  case bs of
+       [Image (_,classes',kvs') alt (src,tit)]
+         | isEnabled Ext_implicit_figures opts ->
+             blockToMarkdown opts (Para [Image (ident,classes',kvs')
+                short (src,tit)])
+       _ -> blockToMarkdown opts $
+              Div (ident,"figure":classes,kvs)
+                (bs ++ [Div ("",["caption"],[]) long])
 blockToMarkdown' opts (LineBlock lns) =
   if isEnabled Ext_line_blocks opts
   then do

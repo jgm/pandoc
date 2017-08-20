@@ -125,12 +125,6 @@ blockToTextile opts (Div attr bs) = do
 blockToTextile opts (Plain inlines) =
   inlineListToTextile opts inlines
 
--- title beginning with fig: indicates that the image is a figure
-blockToTextile opts (Para [Image attr txt (src,'f':'i':'g':':':tit)]) = do
-  capt <- blockToTextile opts (Para txt)
-  im <- inlineToTextile opts (Image attr txt (src,tit))
-  return $ im ++ "\n" ++ capt
-
 blockToTextile opts (Para inlines) = do
   useTags <- gets stUseTags
   listLevel <- gets stListLevel
@@ -138,6 +132,11 @@ blockToTextile opts (Para inlines) = do
   return $ if useTags
               then "<p>" ++ contents ++ "</p>"
               else contents ++ if null listLevel then "\n" else ""
+
+blockToTextile opts (Figure _attr (Caption _short long) bs) = do
+  contents <- blockListToTextile opts bs
+  capt <- blockListToTextile opts bs
+  return $ im ++ "\n" ++ capt
 
 blockToTextile opts (LineBlock lns) =
   blockToTextile opts $ linesToPara lns

@@ -488,33 +488,6 @@ blockToLaTeX (Div (identifier,classes,kvs) bs) = do
                           else linkAnchor $$ txt
   fmap (wrapColumns . wrapColumn . wrapDir . wrapLang . wrapNotes)
     $ blockListToLaTeX bs
-blockToLaTeX (Plain lst) =
-  inlineListToLaTeX $ dropWhile isLineBreakOrSpace lst
--- title beginning with fig: indicates that the image is a figure
-blockToLaTeX (Para [Image attr@(ident, _, _) txt (src,'f':'i':'g':':':tit)]) = do
-  inNote <- gets stInNote
-  inMinipage <- gets stInMinipage
-  modify $ \st -> st{ stInMinipage = True, stNotes = [] }
-  capt <- inlineListToLaTeX txt
-  notes <- gets stNotes
-  modify $ \st -> st{ stInMinipage = False, stNotes = [] }
-
-  -- We can't have footnotes in the list of figures, so remove them:
-  captForLof <- if null notes
-                   then return empty
-                   else brackets <$> inlineListToLaTeX (walk deNote txt)
-  img <- inlineToLaTeX (Image attr txt (src,tit))
-  let footnotes = notesToLaTeX notes
-  lab <- labelFor ident
-  let caption = "\\caption" <> captForLof <> braces capt <> lab
-  let figure = cr <> "\\begin{figure}" $$ "\\centering" $$ img $$
-              caption $$ "\\end{figure}" <> cr
-  figure' <- hypertarget True ident figure
-  return $ if inNote || inMinipage
-              -- can't have figures in notes or minipage (here, table cell)
-              -- http://www.tex.ac.uk/FAQ-ouparmd.html
-              then "\\begin{center}" $$ img $+$ capt $$ "\\end{center}"
-              else figure' $$ footnotes
 -- . . . indicates pause in beamer slides
 blockToLaTeX (Para [Str ".",Space,Str ".",Space,Str "."]) = do
   beamer <- gets stBeamer
@@ -523,6 +496,32 @@ blockToLaTeX (Para [Str ".",Space,Str ".",Space,Str "."]) = do
      else inlineListToLaTeX [Str ".",Space,Str ".",Space,Str "."]
 blockToLaTeX (Para lst) =
   inlineListToLaTeX $ dropWhile isLineBreakOrSpace lst
+blockToLaTeX (Plain lst) =
+  inlineListToLaTeX $ dropWhile isLineBreakOrSpace lst
+blockToLaTeX (Figure (ident,clasess,kvs) (Caption short long) bs) = do
+  inNote <- gets stInNote
+  inMinipage <- gets stInMinipage
+  modify $ \st -> st{ stInMinipage = True, stNotes = [] }
+  contents <- blockListToLaTeX bs
+  capt <- blockListToLaTeX long
+  notes <- gets stNotes
+  modify $ \st -> st{ stInMinipage = False, stNotes = [] }
+
+  -- We can't have footnotes in the list of figures, so remove them:
+  captForLof <- if null notes
+                   then return empty
+                   else brackets <$> inlineListToLaTeX (walk deNote short)
+  let footnotes = notesToLaTeX notes
+  lab <- labelFor ident
+  let caption = "\\caption" <> captForLof <> braces capt <> lab
+  let figure = cr <> "\\begin{figure}" $$ "\\centering" $$ contents $$
+              caption $$ "\\end{figure}" <> cr
+  figure' <- hypertarget True ident figure
+  return $ if inNote || inMinipage
+              -- can't have figures in notes or minipage (here, table cell)
+              -- http://www.tex.ac.uk/FAQ-ouparmd.html
+              then "\\begin{center}" $$ contents $+$ capt $$ "\\end{center}"
+              else figure' $$ footnotes
 blockToLaTeX (LineBlock lns) = do
   blockToLaTeX $ linesToPara lns
 blockToLaTeX (BlockQuote lst) = do

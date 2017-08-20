@@ -256,6 +256,8 @@ blockToMuse (Table caption _ _ headers rows) =  do
          $$ body
          $$ (if null caption then empty else " |+ " <> caption' <> " +|")
          $$ blankline
+blockToMuse (Figure _attr (Caption _short long) bs) =
+  blockListToMuse (bs ++ long)
 blockToMuse (Div _ bs) = blockListToMuse bs
 blockToMuse Null = return empty
 

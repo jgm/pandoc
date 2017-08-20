@@ -209,31 +209,16 @@ blockToJATS _ h@(Header _ _ _) = do
   return empty
 -- No Plain, everything needs to be in a block-level tag
 blockToJATS opts (Plain lst) = blockToJATS opts (Para lst)
--- title beginning with fig: indicates that the image is a figure
-blockToJATS opts (Para [Image (ident,_,kvs) txt
-  (src,'f':'i':'g':':':tit)]) = do
-  alt <- inlinesToJATS opts txt
-  let capt = if null txt
-                then empty
-                else inTagsSimple "caption" alt
-  let attr = [("id", ident) | not (null ident)] ++
-             [(k,v) | (k,v) <- kvs, k `elem` ["fig-type", "orientation",
-                                              "position", "specific-use"]]
-  let mbMT = getMimeType src
-  let maintype = fromMaybe "image" $
-                  lookup "mimetype" kvs `mplus`
-                  (takeWhile (/='/') <$> mbMT)
-  let subtype = fromMaybe "" $
-                  lookup "mime-subtype" kvs `mplus`
-                  ((drop 1 . dropWhile (/='/')) <$> mbMT)
-  let graphicattr = [("mimetype",maintype),
-                     ("mime-subtype",drop 1 subtype),
-                     ("xlink:href",src),  -- do we need to URL escape this?
-                     ("xlink:title",tit)]
-  return $ inTags True "fig" attr $
-              capt $$ selfClosingTag "graphic" graphicattr
+inlineToJATS _ (Para [Image (ident,_,kvs) _ (src, tit)]) = do
+  let attr = getImageAttr ident kvs src tit
+  return $ selfClosingTag "graphic" attr
 blockToJATS opts (Para lst) =
   inTagsIndented "p" <$> inlinesToJATS opts lst
+blockToJATS opts (Figure attr (Caption _short long) bs) =
+  contents <- blocksToJATS opts bs
+  capt <- blocksToJATS opts long
+  return $ inTags True "fig" attr $
+           capt $$ contents
 blockToJATS opts (LineBlock lns) =
   blockToJATS opts $ linesToPara lns
 blockToJATS opts (BlockQuote blocks) =
@@ -424,6 +409,12 @@ inlineToJATS opts (Link (ident,_,kvs) txt (src, tit)) = do
   contents <- inlinesToJATS opts txt
   return $ inTags False "ext-link" attr contents
 inlineToJATS _ (Image (ident,_,kvs) _ (src, tit)) = do
+  let attr = getImageAttr ident kvs src tit
+  return $ selfClosingTag "inline-graphic" attr
+
+getImageAttr :: String -> [(String, String)] -> String -> String
+             -> [(String, String)]
+getImageAttr ident kvs src tit =
   let mbMT = getMimeType src
   let maintype = fromMaybe "image" $
                   lookup "mimetype" kvs `mplus`
@@ -431,13 +422,12 @@ inlineToJATS _ (Image (ident,_,kvs) _ (src, tit)) = do
   let subtype = fromMaybe "" $
                   lookup "mime-subtype" kvs `mplus`
                   ((drop 1 . dropWhile (/='/')) <$> mbMT)
-  let attr = [("id", ident) | not (null ident)] ++
-             [("mimetype", maintype),
-              ("mime-subtype", subtype),
-              ("xlink:href", src)] ++
-             [("xlink:title", tit) | not (null tit)] ++
-             [(k,v) | (k,v) <- kvs, k `elem` ["baseline-shift",
-                        "content-type", "specific-use", "xlink:actuate",
-                        "xlink:href", "xlink:role", "xlink:show",
-                        "xlink:type"]]
-  return $ selfClosingTag "inline-graphic" attr
+  in  [("id", ident) | not (null ident)] ++
+      [("mimetype", maintype),
+       ("mime-subtype", subtype),
+       ("xlink:href", src)] ++
+      [("xlink:title", tit) | not (null tit)] ++
+      [(k,v) | (k,v) <- kvs, k `elem` ["baseline-shift",
+                 "content-type", "specific-use", "xlink:actuate",
+                 "xlink:href", "xlink:role", "xlink:show",
+                 "xlink:type"]]

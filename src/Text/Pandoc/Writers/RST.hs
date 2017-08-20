@@ -211,23 +211,28 @@ blockToRST (Div attr bs) = do
   let endTag = ".. raw:: html" $+$ nest 3 "</div>"
   return $ blankline <> startTag $+$ contents $+$ endTag $$ blankline
 blockToRST (Plain inlines) = inlineListToRST inlines
--- title beginning with fig: indicates that the image is a figure
-blockToRST (Para [Image attr txt (src,'f':'i':'g':':':tit)]) = do
-  capt <- inlineListToRST txt
-  dims <- imageDimsToRST attr
-  let fig = "figure:: " <> text src
-      alt = ":alt: " <> if null tit then capt else text tit
-      (_,cls,_) = attr
-      classes = if null cls
-                   then empty
-                   else ":figclass: " <> text (unwords cls)
-  return $ hang 3 ".. " (fig $$ alt $$ classes $$ dims $+$ capt) $$ blankline
 blockToRST (Para inlines)
   | LineBreak `elem` inlines = do -- use line block if LineBreaks
       linesToLineBlock $ splitBy (==LineBreak) inlines
   | otherwise = do
       contents <- inlineListToRST inlines
       return $ contents <> blankline
+blockToRST (Figure attr (Caption _short long)
+    [Para [Image _ alt (src,_)]]) = do
+  capt <- inlineListToRST long
+  dims <- imageDimsToRST attr
+  alt' <- inlineListToRST alt
+  let fig = "figure:: " <> text src
+      alt = ":alt: " <> text alt'
+      (_,cls,_) = attr
+      classes = if null cls
+                   then empty
+                   else ":figclass: " <> text (unwords cls)
+  return $ hang 3 ".. " (fig $$ alt $$ classes $$ dims $+$ capt) $$ blankline
+blockToRST (Figure attr (Caption _short long) bs = do
+  bs <- blockListToRST bs
+  capt <- inlineListToRST long
+  return $ bs $+$ capt
 blockToRST (LineBlock lns) =
   linesToLineBlock lns
 blockToRST (RawBlock f@(Format f') str)

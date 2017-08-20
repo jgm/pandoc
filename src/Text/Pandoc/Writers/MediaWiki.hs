@@ -105,17 +105,6 @@ blockToMediaWiki (Div attrs bs) = do
 blockToMediaWiki (Plain inlines) =
   inlineListToMediaWiki inlines
 
--- title beginning with fig: indicates that the image is a figure
-blockToMediaWiki (Para [Image attr txt (src,'f':'i':'g':':':tit)]) = do
-  capt <- if null txt
-             then return ""
-             else ("|caption " ++) `fmap` inlineListToMediaWiki txt
-  img  <- imageToMediaWiki attr
-  let opt = if null txt
-               then ""
-               else "|alt=" ++ if null tit then capt else tit ++ capt
-  return $ "[[File:" ++ src ++ "|frame|none" ++ img ++ opt ++ "]]\n"
-
 blockToMediaWiki (Para inlines) = do
   tags <- asks useTags
   lev <- asks listLevel
@@ -123,6 +112,20 @@ blockToMediaWiki (Para inlines) = do
   return $ if tags
               then  "<p>" ++ contents ++ "</p>"
               else contents ++ if null lev then "\n" else ""
+
+blockToMediaWiki (Figure _attr (Caption _short long)
+     [Para [Image _imgattr alt (src,tit)]) = do
+  capt <- if null long
+             then return ""
+             else ("|caption " ++) `fmap` blockListToMediaWiki txt
+  img  <- imageToMediaWiki attr
+  let opt = if null txt
+               then ""
+               else "|alt=" ++ tit
+  return $ "[[File:" ++ src ++ "|frame|none" ++ img ++ opt ++ capt ++ "]]\n"
+
+blockToMediaWiki (Figure _attr (Caption _short long) bs =
+  blockListToMediaWiki (bs ++ long)
 
 blockToMediaWiki (LineBlock lns) =
   blockToMediaWiki $ linesToPara lns

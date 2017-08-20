@@ -226,31 +226,19 @@ blockToMs opts (Div _ bs) = do
   return res
 blockToMs opts (Plain inlines) =
   liftM vcat $ mapM (inlineListToMs' opts) $ splitSentences inlines
-blockToMs opts (Para [Image attr alt (src,_tit)]) -- figure
-  | let ext = takeExtension src in (ext == ".ps" || ext == ".eps") = do
-  let (mbW,mbH) = (inPoints opts <$> dimension Width attr,
-                   inPoints opts <$> dimension Height attr)
-  let sizeAttrs = case (mbW, mbH) of
-                       (Just wp, Nothing) -> space <> doubleQuotes
-                              (text (show (floor wp :: Int) ++ "p"))
-                       (Just wp, Just hp) -> space <> doubleQuotes
-                              (text (show (floor wp :: Int) ++ "p")) <>
-                              space <>
-                              doubleQuotes (text (show (floor hp :: Int)))
-                       _ -> empty
-  capt <- inlineListToMs' opts alt
-  return $ nowrap (text ".PSPIC -C " <>
-             doubleQuotes (text (escapeString src)) <>
-             sizeAttrs) $$
-           text ".ce 1000" $$
-           capt $$
-           text ".ce 0"
 blockToMs opts (Para inlines) = do
   firstPara <- gets stFirstPara
   resetFirstPara
   contents <- liftM vcat $ mapM (inlineListToMs' opts) $
     splitSentences inlines
   return $ text (if firstPara then ".LP" else ".PP") $$ contents
+blockToMs opts (Figure attr (Caption _short long) bs) = do
+  contents <- blockListToMs opts bs
+  capt <- blockListToMs opts long
+  return $ contents $$
+           text ".ce 1000" $$
+           capt $$
+           text ".ce 0"
 blockToMs _ b@(RawBlock f str)
   | f == Format "ms" = return $ text str
   | otherwise        = do
@@ -525,8 +513,25 @@ inlineToMs opts (Link _ txt (src, _)) = do
        doubleQuotes (text (escapeUri src)) <> text " -A " <>
        doubleQuotes (text "\\c") <> space <> text "\\") <> cr <>
        text " -- " <> doubleQuotes (nowrap contents) <> cr <> text "\\&"
-inlineToMs _ (Image _ alternate (_, _)) =
-  return $ char '[' <> text "IMAGE: " <>
+inlineToMs opts (Image attr alternate (src, tit)) =
+  | takeExtension src `elem` [".ps", ".eps"] = do
+    let (mbW,mbH) = (inPoints opts <$> dimension Width attr,
+                     inPoints opts <$> dimension Height attr)
+    let sizeAttrs = case (mbW, mbH) of
+                         (Just wp, Nothing) -> space <> doubleQuotes
+                                (text (show (floor wp :: Int) ++ "p"))
+                         (Just wp, Just hp) -> space <> doubleQuotes
+                                (text (show (floor wp :: Int) ++ "p")) <>
+                                space <>
+                                doubleQuotes (text (show (floor hp :: Int)))
+                         _ -> empty
+    capt <- inlineListToMs' opts alt
+    return $ cr <> nowrap (text ".PSPIC -C " <>
+               doubleQuotes (text (escapeString src)) <>
+               sizeAttrs) <> cr
+  | otherwise = do
+    report $ CouldNotConvertImage src "only .ps and .eps are supported in ms"
+    return $ char '[' <> text "IMAGE: " <>
            text (escapeString (stringify alternate)) <> char ']'
 inlineToMs _ (Note contents) = do
   modify $ \st -> st{ stNotes = contents : stNotes st }

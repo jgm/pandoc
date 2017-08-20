@@ -322,11 +322,11 @@ blockToOpenDocument o bs
     | Plain          b <- bs = if null b
                                   then return empty
                                   else inParagraphTags =<< inlinesToOpenDocument o b
-    | Para [Image attr c (s,'f':'i':'g':':':t)] <- bs
-                             = figure attr c s t
     | Para           b <- bs = if null b
                                   then return empty
                                   else inParagraphTags =<< inlinesToOpenDocument o b
+    | Figure attr (Caption _short long) bs <- bs
+                             = figure attr long bs
     | LineBlock      b <- bs = blockToOpenDocument o $ linesToPara b
     | Div attr xs      <- bs = withLangFromAttr attr
                                   (blocksToOpenDocument o xs)
@@ -384,11 +384,11 @@ blockToOpenDocument o bs
                                            , ("table:style-name", name)
                                            ] (vcat columns $$ th $$ vcat tr) $$ captionDoc
       figure attr caption source title | null caption =
-        withParagraphStyle o "Figure" [Para [Image attr caption (source,title)]]
-                                  | otherwise    = do
-        imageDoc <- withParagraphStyle o "FigureWithCaption" [Para [Image attr caption (source,title)]]
-        captionDoc <- withParagraphStyle o "FigureCaption" [Para caption]
-        return $ imageDoc $$ captionDoc
+        withParagraphStyle o "Figure" bs
+                                       | otherwise    = do
+        figDoc <- withParagraphStyle o "FigureWithCaption" bs
+        captionDoc <- withParagraphStyle o "FigureCaption" caption
+        return $ figDoc $$ captionDoc
 
 colHeadsToOpenDocument :: PandocMonad m
                        => WriterOptions -> String -> [String] -> [[Block]]

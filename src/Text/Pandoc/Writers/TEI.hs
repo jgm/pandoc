@@ -167,20 +167,10 @@ blockToTEI _ h@(Header _ _ _) = do
 -- we use treat as Para to ensure that Plain text ends up contained by
 -- something:
 blockToTEI opts (Plain lst) = blockToTEI opts $ Para lst
--- title beginning with fig: indicates that the image is a figure
---blockToTEI opts (Para [Image attr txt (src,'f':'i':'g':':':_)]) =
---  let alt  = inlinesToTEI opts txt
---      capt = if null txt
---                then empty
---                else inTagsSimple "title" alt
---  in  inTagsIndented "figure" $
---        capt $$
---        (inTagsIndented "mediaobject" $
---           (inTagsIndented "imageobject"
---             (imageToTEI opts attr src)) $$
---           inTagsSimple "textobject" (inTagsSimple "phrase" alt))
 blockToTEI opts (Para lst) =
   inTags False "p" [] <$> inlinesToTEI opts lst
+blockToTEI opts (Figure _attr (Caption _short long) bs) = do
+  blocksToTEI opts (bs ++ long)
 blockToTEI opts (LineBlock lns) =
   blockToTEI opts $ linesToPara lns
 blockToTEI opts (BlockQuote blocks) =

@@ -260,6 +260,8 @@ blockToRTF :: PandocMonad m
 blockToRTF _ _ Null = return ""
 blockToRTF indent alignment (Div _ bs) =
   blocksToRTF indent alignment bs
+blockToRTF indent alignment (Figure _attr (Caption _short long) bs) =
+  blocksToRTF indent alignment (bs ++ long)
 blockToRTF indent alignment (Plain lst) =
   rtfCompact indent 0 alignment <$> inlinesToRTF lst
 blockToRTF indent alignment (Para lst) =
