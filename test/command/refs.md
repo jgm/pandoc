@@ -50,5 +50,5 @@ Figure \ref{fig:Logo} illustrated the SVG logo
 % pandoc -f latex -t native
 \label{section} Section \ref{section}
 ^D
-[Para [Span ("",[],[("label","section")]) [Str "[section]"],Space,Str "Section",Space,Link ("",[],[("reference-type","ref"),("reference","section")]) [Str "[section]"] ("#section","")]]
+[Para [Span ("section",[],[("label","section")]) [Str "[section]"],Space,Str "Section",Space,Link ("",[],[("reference-type","ref"),("reference","section")]) [Str "[section]"] ("#section","")]]
 ```

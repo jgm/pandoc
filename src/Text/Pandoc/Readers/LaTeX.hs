@@ -1575,7 +1575,8 @@ treatAsInline = Set.fromList
 dolabel :: PandocMonad m => LP m Inlines
 dolabel = do
   v <- braced
-  return $ spanWith ("",[],[("label", toksToString v)])
+  let refstr = toksToString v
+  return $ spanWith (refstr,[],[("label", refstr)])
     $ inBrackets $ str $ toksToString v
 
 doref :: PandocMonad m => String -> LP m Inlines
