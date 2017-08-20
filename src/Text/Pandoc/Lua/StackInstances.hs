@@ -185,10 +185,15 @@ pushBlock :: Block -> Lua ()
 pushBlock = \case
   BlockQuote blcks         -> pushViaConstructor "BlockQuote" blcks
   BulletList items         -> pushViaConstructor "BulletList" items
-  CodeBlock attr code      -> pushViaConstructor "CodeBlock" code (LuaAttr attr)
+  CodeBlock attr code      -> pushViaConstructor "CodeBlock" code
+                                (LuaAttr attr)
   DefinitionList items     -> pushViaConstructor "DefinitionList" items
   Div attr blcks           -> pushViaConstructor "Div" blcks (LuaAttr attr)
-  Header lvl attr inlns    -> pushViaConstructor "Header" lvl inlns (LuaAttr attr)
+  Figure attr (Caption short long) blcks
+                           -> pushViaConstructor "Figure" short long blcks
+                                (LuaAttr attr)
+  Header lvl attr inlns    -> pushViaConstructor "Header" lvl inlns
+                                (LuaAttr attr)
   HorizontalRule           -> pushViaConstructor "HorizontalRule"
   LineBlock blcks          -> pushViaConstructor "LineBlock" blcks
   OrderedList lstAttr list -> pushViaConstructor "OrderedList" list lstAttr
@@ -209,6 +214,9 @@ peekBlock idx = do
       "CodeBlock"      -> (withAttr CodeBlock) <$> elementContent
       "DefinitionList" -> DefinitionList <$> elementContent
       "Div"            -> (withAttr Div) <$> elementContent
+      "Figure"         -> (\(LuaAttr attr, short, long, blks) ->
+                              Figure attr (Caption short long) blks)
+                                <$> elementContent
       "Header"         -> (\(lvl, LuaAttr attr, lst) -> Header lvl attr lst)
                           <$> elementContent
       "HorizontalRule" -> return HorizontalRule

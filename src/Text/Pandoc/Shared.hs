@@ -764,6 +764,8 @@ blockToInlines (Table _ _ _ headers rows) =
   where
     tbl = headers : rows
 blockToInlines (Div _ blks) = blocksToInlines blks
+blockToInlines (Figure _ (Caption _ bs) blks) =
+  blocksToInlines blks ++ blocksToInlines bs
 blockToInlines Null = []
 
 blocksToInlinesWithSep :: [Inline] -> [Block] -> [Inline]
