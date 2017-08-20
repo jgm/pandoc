@@ -1120,8 +1120,7 @@ opt = bracketed inline
 
 rawopt :: PandocMonad m => LP m Text
 rawopt = do
-  symbol '['
-  inner <- untokenize <$> manyTill anyTok (symbol ']')
+  inner <- untokenize <$> bracketedToks
   optional sp
   return $ "[" <> inner <> "]"
 
@@ -1789,7 +1788,7 @@ newenvironment = do
 bracketedToks :: PandocMonad m => LP m [Tok]
 bracketedToks = do
   symbol '['
-  manyTill anyTok (symbol ']')
+  mconcat <$> manyTill (braced <|> (:[]) <$> anyTok) (symbol ']')
 
 bracketedNum :: PandocMonad m => LP m Int
 bracketedNum = do
