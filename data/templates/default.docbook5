@@ -11,7 +11,9 @@ $if(lang)$
 $endif$ >
   <info>
     <title>$title$</title>
+$if(subtitle)$
     <subtitle>$subtitle$</subtitle>
+$endif$
 $if(author)$
     <authorgroup>
 $for(author)$
