@@ -226,7 +226,7 @@ blockToMs opts (Div _ bs) = do
   return res
 blockToMs opts (Plain inlines) =
   liftM vcat $ mapM (inlineListToMs' opts) $ splitSentences inlines
-blockToMs opts (Para [Image attr alt (src,_tit)])
+blockToMs opts (Para [Image attr alt (src,_tit)]) -- figure
   | let ext = takeExtension src in (ext == ".ps" || ext == ".eps") = do
   let (mbW,mbH) = (inPoints opts <$> dimension Width attr,
                    inPoints opts <$> dimension Height attr)

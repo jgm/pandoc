@@ -126,19 +126,6 @@ blockToDokuWiki opts (Div _attrs bs) = do
 blockToDokuWiki opts (Plain inlines) =
   inlineListToDokuWiki opts inlines
 
--- title beginning with fig: indicates that the image is a figure
--- dokuwiki doesn't support captions - so combine together alt and caption into alt
-blockToDokuWiki opts (Para [Image attr txt (src,'f':'i':'g':':':tit)]) = do
-  capt <- if null txt
-             then return ""
-             else (" " ++) `fmap` inlineListToDokuWiki opts txt
-  let opt = if null txt
-               then ""
-               else "|" ++ if null tit then capt else tit ++ capt
-      -- Relative links fail isURI and receive a colon
-      prefix = if isURI src then "" else ":"
-  return $ "{{" ++ prefix ++ src ++ imageDims opts attr ++ opt ++ "}}\n"
-
 blockToDokuWiki opts (Para inlines) = do
   indent <- stIndent <$> ask
   useTags <- stUseTags <$> ask
@@ -146,6 +133,9 @@ blockToDokuWiki opts (Para inlines) = do
   return $ if useTags
               then "<HTML><p></HTML>" ++ contents ++ "<HTML></p></HTML>"
               else contents ++ if null indent then "\n" else ""
+
+blockToDokuWiki opts (Figure _attr _capt bs) = do
+  blockListToDokuWiki opts bs
 
 blockToDokuWiki opts (LineBlock lns) =
   blockToDokuWiki opts $ linesToPara lns

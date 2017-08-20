@@ -109,12 +109,11 @@ blockToHaddock opts (Div _ ils) = do
 blockToHaddock opts (Plain inlines) = do
   contents <- inlineListToHaddock opts inlines
   return $ contents <> cr
--- title beginning with fig: indicates figure
-blockToHaddock opts (Para [Image attr alt (src,'f':'i':'g':':':tit)]) =
-  blockToHaddock opts (Para [Image attr alt (src,tit)])
 blockToHaddock opts (Para inlines) =
   -- TODO:  if it contains linebreaks, we need to use a @...@ block
   (<> blankline) `fmap` blockToHaddock opts (Plain inlines)
+blockToHaddock opts (Figure _attr _capt bs) =
+  blockListToHaddock opts bs
 blockToHaddock opts (LineBlock lns) =
   blockToHaddock opts $ linesToPara lns
 blockToHaddock _ b@(RawBlock f str)

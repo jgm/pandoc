@@ -165,18 +165,18 @@ elementToConTeXt opts (Sec level _ attr title' elements) = do
 blockToConTeXt :: PandocMonad m => Block -> WM m Doc
 blockToConTeXt Null = return empty
 blockToConTeXt (Plain lst) = inlineListToConTeXt lst
--- title beginning with fig: indicates that the image is a figure
-blockToConTeXt (Para [Image attr txt (src,'f':'i':'g':':':_)]) = do
-  capt <- inlineListToConTeXt txt
-  img  <- inlineToConTeXt (Image attr txt (src, ""))
+blockToConTeXt (Para lst) = do
+  contents <- inlineListToConTeXt lst
+  return $ contents <> blankline
+blockToConTeXt (Figure attr (Caption _short capt') bs) = do
+  capt <- inlineListToConTeXt capt'
+  contents  <- blockListToConTeXt bs
   let (ident, _, _) = attr
       label = if null ident
                  then empty
                  else "[]" <> brackets (text $ toLabel ident)
-  return $ blankline $$ "\\placefigure" <> label <> braces capt <> img <> blankline
-blockToConTeXt (Para lst) = do
-  contents <- inlineListToConTeXt lst
-  return $ contents <> blankline
+  return $ blankline $$ "\\placefigure" <> label <> braces capt <>
+           contents <> blankline
 blockToConTeXt (LineBlock lns) = do
   doclines <- nowrap . vcat <$> mapM inlineListToConTeXt lns
   return $ "\\startlines" $$ doclines $$ "\\stoplines" <> blankline

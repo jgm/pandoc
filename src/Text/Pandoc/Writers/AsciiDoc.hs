@@ -137,8 +137,6 @@ blockToAsciiDoc _ Null = return empty
 blockToAsciiDoc opts (Plain inlines) = do
   contents <- inlineListToAsciiDoc opts inlines
   return $ contents <> blankline
-blockToAsciiDoc opts (Para [Image attr alt (src,'f':'i':'g':':':tit)]) = do
-  blockToAsciiDoc opts (Para [Image attr alt (src,tit)])
 blockToAsciiDoc opts (Para inlines) = do
   contents <- inlineListToAsciiDoc opts inlines
   -- escape if para starts with ordered list marker
@@ -146,6 +144,8 @@ blockToAsciiDoc opts (Para inlines) = do
                then text "\\"
                else empty
   return $ esc <> contents <> blankline
+blockToAsciiDoc opts (Figure attr _capt bs) =
+  blockListToAsciiDoc opts bs -- TODO use asciidoc syntax for caption etc.
 blockToAsciiDoc opts (LineBlock lns) = do
   let docify line = if null line
                     then return blankline

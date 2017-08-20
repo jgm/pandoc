@@ -160,16 +160,15 @@ blockToOrg (Div attrs bs) = do
              contents $$ blankline $$ "#+BEGIN_HTML" $$
              nest 2 endTag $$ "#+END_HTML" $$ blankline
 blockToOrg (Plain inlines) = inlineListToOrg inlines
--- title beginning with fig: indicates that the image is a figure
-blockToOrg (Para [Image attr txt (src,'f':'i':'g':':':tit)]) = do
-  capt <- if null txt
-             then return empty
-             else ("#+CAPTION: " <>) `fmap` inlineListToOrg txt
-  img <- inlineToOrg (Image attr txt (src,tit))
-  return $ capt $$ img $$ blankline
 blockToOrg (Para inlines) = do
   contents <- inlineListToOrg inlines
   return $ contents <> blankline
+blockToOrg (Figure attr (Caption _short long) bs) = do
+  capt <- if null long
+             then return empty
+             else ("#+CAPTION: " <>) `fmap` blockListToOrg long
+  contents <- blockListToOrg bs
+  return $ bs $$ capt $$ blankline
 blockToOrg (LineBlock lns) = do
   let splitStanza [] = []
       splitStanza xs = case break (== mempty) xs of

@@ -297,12 +297,11 @@ blocksToICML opts style lst = do
 -- | Convert a Pandoc block element to ICML.
 blockToICML :: PandocMonad m => WriterOptions -> Style -> Block -> WS m Doc
 blockToICML opts style (Plain lst) = parStyle opts style lst
--- title beginning with fig: indicates that the image is a figure
-blockToICML opts style (Para img@[Image _ txt (_,'f':'i':'g':':':_)]) = do
-  figure  <- parStyle opts (figureName:style) img
-  caption <- parStyle opts (imgCaptionName:style) txt
-  return $ intersperseBrs [figure, caption]
 blockToICML opts style (Para lst) = parStyle opts (paragraphName:style) lst
+blockToICML opts style (Figure attr (Caption _short capt) bs) = do
+  contents <- blocksToICML opts (figureName:style) bs
+  caption <- blocksToICML opts (imgCaptionName:style) capt
+  return $ intersperseBrs [figure, caption]
 blockToICML opts style (LineBlock lns) =
   blockToICML opts style $ linesToPara lns
 blockToICML opts style (CodeBlock _ str) = parStyle opts (codeBlockName:style) $ [Str str]

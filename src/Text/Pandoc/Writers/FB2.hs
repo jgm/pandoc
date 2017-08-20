@@ -320,10 +320,8 @@ linkID i = "l" ++ (show i)
 blockToXml :: PandocMonad m => Block -> FBM m [Content]
 blockToXml (Plain ss) = cMapM toXml ss  -- FIXME: can lead to malformed FB2
 blockToXml (Para [Math DisplayMath formula]) = insertMath NormalImage formula
--- title beginning with fig: indicates that the image is a figure
-blockToXml (Para [Image atr alt (src,'f':'i':'g':':':tit)]) =
-  insertImage NormalImage (Image atr alt (src,tit))
 blockToXml (Para ss) = liftM (list . el "p") $ cMapM toXml ss
+blockToXml (Figure _attr _capt xs) = cMapM blockToXml bs
 blockToXml (CodeBlock _ s) = return . spaceBeforeAfter .
                              map (el "p" . el "code") . lines $ s
 blockToXml b@(RawBlock _ _) = do

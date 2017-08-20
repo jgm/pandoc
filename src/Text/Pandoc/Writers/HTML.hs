@@ -591,17 +591,17 @@ treatAsImage fp =
   in  null ext || ext `elem` imageExts
 
 figure :: PandocMonad m
-       => WriterOptions -> Attr -> [Inline] -> (String, String)
+       => WriterOptions -> Attr -> [Block] -> [Block] ->
        -> StateT WriterState m Html
-figure opts attr txt (s,tit) = do
-  img <- inlineToHtml opts (Image attr txt (s,tit))
+figure opts attr caption bs = do
+  bs <- blockListToHtml opts bs
   html5 <- gets stHtml5
   let tocapt = if html5
                   then H5.figcaption
                   else H.p ! A.class_ "caption"
-  capt <- if null txt
-             then return mempty
-             else tocapt `fmap` inlineListToHtml opts txt
+  cs <- if null caption
+           then return mempty
+           else tocapt <$> blockListToHtml opts caption
   return $ if html5
               then H5.figure $ mconcat
                     [nl opts, img, capt, nl opts]
@@ -620,10 +620,8 @@ blockToHtml opts (Para [Image attr@(_,classes,_) txt (src,tit)])
          -- a "stretched" image in reveal.js must be a direct child
          -- of the slide container
          inlineToHtml opts (Image attr txt (src, tit))
-       _ -> figure opts attr txt (src, tit)
--- title beginning with fig: indicates that the image is a figure
-blockToHtml opts (Para [Image attr txt (s,'f':'i':'g':':':tit)]) =
-  figure opts attr txt (s,tit)
+       _ -> figure opts attr (Caption txt [Plain txt])
+                [Plain [Image attr txt (src, tit)]]
 blockToHtml opts (Para lst)
   | isEmptyRaw lst = return mempty
   | otherwise = do
@@ -633,6 +631,8 @@ blockToHtml opts (Para lst)
     isEmptyRaw [RawInline f _] = f `notElem` [Format "html",
                                     Format "html4", Format "html5"]
     isEmptyRaw _               = False
+blockToHtml opts (Figure attr (Caption _short long) bs) =
+  figure opts attr long bs
 blockToHtml opts (LineBlock lns) =
   if writerWrapText opts == WrapNone
   then blockToHtml opts $ linesToPara lns

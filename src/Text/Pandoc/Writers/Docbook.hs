@@ -222,22 +222,16 @@ blockToDocbook _ h@(Header _ _ _) = do
   report $ BlockNotRendered h
   return empty
 blockToDocbook opts (Plain lst) = inlinesToDocbook opts lst
--- title beginning with fig: indicates that the image is a figure
-blockToDocbook opts (Para [Image attr txt (src,'f':'i':'g':':':_)]) = do
-  alt <- inlinesToDocbook opts txt
-  let capt = if null txt
-                then empty
-                else inTagsSimple "title" alt
-  return $ inTagsIndented "figure" $
-        capt $$
-        (inTagsIndented "mediaobject" $
-           (inTagsIndented "imageobject"
-             (imageToDocbook opts attr src)) $$
-           inTagsSimple "textobject" (inTagsSimple "phrase" alt))
 blockToDocbook opts (Para lst)
   | hasLineBreaks lst = (flush . nowrap . inTagsSimple "literallayout")
                         <$> inlinesToDocbook opts lst
   | otherwise         = inTagsIndented "para" <$> inlinesToDocbook opts lst
+blockToDocbook opts (Figure attr (Caption _short long) bs) = do
+  alt <- inlinesToDocbook opts txt
+  let capt = if null long
+                then empty
+                else inTagsSimple "title" alt
+  return $ inTagsIndented "figure" $ capt $$ bs
 blockToDocbook opts (LineBlock lns) =
   blockToDocbook opts $ linesToPara lns
 blockToDocbook opts (BlockQuote blocks) =

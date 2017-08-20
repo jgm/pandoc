@@ -99,18 +99,8 @@ blockToZimWiki opts (Div _attrs bs) = do
 
 blockToZimWiki opts (Plain inlines) = inlineListToZimWiki opts inlines
 
--- title beginning with fig: indicates that the image is a figure
--- ZimWiki doesn't support captions - so combine together alt and caption into alt
-blockToZimWiki opts (Para [Image attr txt (src,'f':'i':'g':':':tit)]) = do
-  capt <- if null txt
-             then return ""
-             else (" " ++) `fmap` inlineListToZimWiki opts txt
-  let opt = if null txt
-               then ""
-               else "|" ++ if null tit then capt else tit ++ capt
-      -- Relative links fail isURI and receive a colon
-      prefix = if isURI src then "" else ":"
-  return $ "{{" ++ prefix ++ src ++ imageDims opts attr ++ opt ++ "}}\n"
+blockToZimWiki opts (Figure _attr _capt bs) =
+  blockListToZimWiki opts bs
 
 blockToZimWiki opts (Para inlines) = do
   indent <- gets stIndent

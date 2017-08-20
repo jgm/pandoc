@@ -184,6 +184,8 @@ blockToMan :: PandocMonad m
            -> StateT WriterState m Doc
 blockToMan _ Null = return empty
 blockToMan opts (Div _ bs) = blockListToMan opts bs
+blockToMan opts (Figure _attr (Caption _short long) bs) =
+  blockListToMan opts (bs ++ long)
 blockToMan opts (Plain inlines) =
   liftM vcat $ mapM (inlineListToMan opts) $ splitSentences inlines
 blockToMan opts (Para inlines) = do

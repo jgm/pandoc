@@ -909,18 +909,6 @@ blockToOpenXML' opts (Header lev (ident,_,_) lst) = do
                [bookmarkStart] ++ contents ++ [bookmarkEnd])]
 blockToOpenXML' opts (Plain lst) = withParaProp (pCustomStyle "Compact")
   $ blockToOpenXML opts (Para lst)
--- title beginning with fig: indicates that the image is a figure
-blockToOpenXML' opts (Para [Image attr alt (src,'f':'i':'g':':':tit)]) = do
-  setFirstPara
-  let prop = pCustomStyle $
-        if null alt
-        then "Figure"
-        else "CaptionedFigure"
-  paraProps <- local (\env -> env { envParaProperties = prop : envParaProperties env }) (getParaProps False)
-  contents <- inlinesToOpenXML opts [Image attr alt (src,tit)]
-  captionNode <- withParaProp (pCustomStyle "ImageCaption")
-                 $ blockToOpenXML opts (Para alt)
-  return $ mknode "w:p" [] (paraProps ++ contents) : captionNode
 -- fixDisplayMath sometimes produces a Para [] as artifact
 blockToOpenXML' _ (Para []) = return []
 blockToOpenXML' opts (Para lst) = do
@@ -936,6 +924,17 @@ blockToOpenXML' opts (Para lst) = do
   modify $ \s -> s { stFirstPara = False }
   contents <- inlinesToOpenXML opts lst
   return [mknode "w:p" [] (paraProps' ++ contents)]
+blockToOpenXML' opts (Figure attr (Caption _short long) bs) = do
+  setFirstPara
+  let prop = pCustomStyle $
+        if null alt
+        then "Figure"
+        else "CaptionedFigure"
+  paraProps <- local (\env -> env { envParaProperties = prop : envParaProperties env }) (getParaProps False)
+  contents <- blocksToOpenXML opts bs
+  captionNode <- withParaProp (pCustomStyle "ImageCaption")
+                 $ blocksToOpenXML opts long
+  return $ mknode "w:p" [] (paraProps ++ contents) : captionNode
 blockToOpenXML' opts (LineBlock lns) = blockToOpenXML opts $ linesToPara lns
 blockToOpenXML' _ b@(RawBlock format str)
   | format == Format "openxml" = return [ x | Elem x <- parseXML str ]

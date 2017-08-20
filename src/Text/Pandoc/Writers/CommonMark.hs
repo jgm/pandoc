@@ -139,6 +139,10 @@ blockToNodes opts (Header lev _ ils) ns =
 blockToNodes opts (Div _ bs) ns = do
   nodes <- blocksToNodes opts bs
   return (nodes ++ ns)
+blockToNodes opts (Figure _ (Caption _ cs) bs) ns = do
+  nodes <- blocksToNodes opts bs
+  captNodes <- blocksToNodes opts cs
+  return (nodes ++ captNodes)
 blockToNodes opts (DefinitionList items) ns =
   blockToNodes opts (BulletList items') ns
   where items' = map dlToBullet items

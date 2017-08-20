@@ -182,6 +182,9 @@ blockToCustom (DefinitionList items) =
 blockToCustom (Div attr items) =
   callFunc "Div" items (attrToMap attr)
 
+blockToCustom (Figure attr (Caption short long) items) =
+  callFunc "Figure" short long items (attrToMap attr)
+
 -- | Convert list of Pandoc block elements to Custom.
 blockListToCustom :: [Block]       -- ^ List of block elements
                   -> Lua String

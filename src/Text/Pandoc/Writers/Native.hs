@@ -57,6 +57,11 @@ prettyBlock (DefinitionList items) = "DefinitionList" $$
   (prettyList $ map deflistitem items)
     where deflistitem (term, defs) = "(" <> text (show term) <> "," <> cr <>
            nest 1 (prettyList $ map (prettyList . map prettyBlock) defs) <> ")"
+prettyBlock (Figure attr (Caption short long) bs) =
+  "Figure" <> space <> text (show attr) $$
+    nest 1 ("Caption" <> space <> show short $$
+               nest 1 (prettyList (map prettyBlock long) $$
+                      (prettyList (map prettyBlock bs)))
 prettyBlock (Table caption aligns widths header rows) =
   "Table " <> text (show caption) <> " " <> text (show aligns) <> " " <>
   text (show widths) $$
