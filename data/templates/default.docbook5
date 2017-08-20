@@ -7,7 +7,7 @@ $if(mathml)$
 $endif$
   xmlns:xlink="http://www.w3.org/1999/xlink"
 $if(lang)$ 
-      xml:lang="$lang$"
+  xml:lang="$lang$"
 $endif$ >
   <info>
     <title>$title$</title>
