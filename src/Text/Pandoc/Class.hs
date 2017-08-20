@@ -5,6 +5,10 @@
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE UndecidableInstances #-}
+#if MIN_VERSION_base(4,8,0)
+#else
+{-# LANGUAGE OverlappingInstances #-}
+#endif
 
 {-
 Copyright (C) 2016-17 Jesse Rosenthal <jrosenthal@jhu.edu>
