@@ -126,7 +126,6 @@ import qualified System.Directory as IO (getModificationTime)
 import Control.Monad as M (fail)
 import Control.Monad.State.Strict
 import Control.Monad.Except
-import Control.Monad.Trans (MonadTrans)
 import Data.Word (Word8)
 import Data.Default
 import System.IO.Error
