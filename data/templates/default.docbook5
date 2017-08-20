@@ -6,8 +6,12 @@ $if(mathml)$
   xmlns:mml="http://www.w3.org/1998/Math/MathML"
 $endif$
   xmlns:xlink="http://www.w3.org/1999/xlink" >
+$if(lang)$ 
+      xml:lang="$lang$"
+$endif$ >
   <info>
     <title>$title$</title>
+    <subtitle>$subtitle$</subtitle>
 $if(author)$
     <authorgroup>
 $for(author)$
