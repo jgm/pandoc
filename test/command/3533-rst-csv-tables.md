@@ -48,7 +48,8 @@
    "1","\""
 ^D
 [Table [Str "Test"] [AlignDefault,AlignDefault] [0.0,0.0]
- []
+ [[]
+ ,[]]
  [[[Plain [Str "1"]]
   ,[Plain [Str "\""]]]]]
 ```

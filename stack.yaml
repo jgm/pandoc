@@ -6,6 +6,14 @@ flags:
     network-uri: true
 packages:
 - '.'
+- location:
+    git: https://github.com/jgm/pandoc-types.git
+    commit: 8c0915f1acb8e70057387550c7553fe9548dce95
+  extra-dep: false
+- location:
+    git: https://github.com/jgm/texmath.git
+    commit: b3070151a0f69b041121a37b3d724ab09e268ed2
+  extra-dep: false
 extra-deps:
 - hslua-0.8.0
 - skylighting-0.3.3
