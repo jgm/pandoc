@@ -159,6 +159,12 @@ tests = [ testGroup "basic"
           , "zero" =:
             "\\RN{0}" =?>
             para (str "")
+          , "space then unbraced argument" =:
+            "\\RN 7 ok" =?>
+            para (str "VII" <> space <> str "ok")
+          , "space before braced argument" =:
+            "\\Rn {13}ok" =?>
+            para (str "xiiiok")
           ]
         ]
 

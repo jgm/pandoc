@@ -1447,33 +1447,34 @@ inlineCommands = M.fromList $
   , ("togglefalse", braced >>= setToggle False)
   , ("iftoggle", try $ ifToggle >> inline)
   -- biblatex misc
-  , ("RN", braced >>= romanNumeralUpper)
-  , ("Rn", braced >>= romanNumeralLower)
+  , ("RN", romanNumeralUpper)
+  , ("Rn", romanNumeralLower)
   ]
 
-romanNumeralUpper :: (PandocMonad m) => [Tok] -> LP m Inlines
-romanNumeralUpper toks = do
-  st <- getState
-  either (fail . show) (return . str) =<<
-    runParserT romanNumeralUpper' st "source" toks
+romanNumeralUpper :: (PandocMonad m) => LP m Inlines
+romanNumeralUpper =
+  str . toRomanNumeral <$> romanNumeralArg
 
-romanNumeralLower :: (PandocMonad m) => [Tok] -> LP m Inlines
-romanNumeralLower toks = do
-  st <- getState
-  either (fail . show) (return . str . map toLower) =<<
-    runParserT romanNumeralUpper' st "source" toks
+romanNumeralLower :: (PandocMonad m) => LP m Inlines
+romanNumeralLower =
+  str . map toLower . toRomanNumeral <$> romanNumeralArg
 
-romanNumeralUpper' :: (PandocMonad m) => LP m String
-romanNumeralUpper' = do
-  skipMany sp
-  Tok _ Word s <- satisfyTok isWordTok
-  let (digits, rest) = T.span isDigit s
-  unless (T.null rest) $
-    fail "Non-digits in argument to \\Rn or \\RN"
-  skipMany sp
-  eof
-  n <- safeRead $ T.unpack digits
-  return $ toRomanNumeral n
+romanNumeralArg :: (PandocMonad m) => LP m Int
+romanNumeralArg = spaces *> (parser <|> inBraces)
+  where
+    inBraces = do
+      symbol '{'
+      spaces
+      res <- parser
+      spaces
+      symbol '}'
+      return res
+    parser = do
+      Tok _ Word s <- satisfyTok isWordTok
+      let (digits, rest) = T.span isDigit s
+      unless (T.null rest) $
+        fail "Non-digits in argument to \\Rn or \\RN"
+      safeRead $ T.unpack digits
 
 newToggle :: (Monoid a, PandocMonad m) => [Tok] -> LP m a
 newToggle name = do
