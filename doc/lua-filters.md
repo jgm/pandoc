@@ -167,3 +167,61 @@ function Doc (blocks, meta)
   )
 end
 ```
+
+### Replacing placeholders with their metadata value
+
+Lua filter functions are run in the order *Inlines → Blocks → Meta → Pandoc*.
+Passing information from a higher level (e.g., metadata) to a lower level (e.g.,
+inlines) is still possible by using two filters living in the same file:
+
+``` lua
+local vars = {}
+
+function get_vars (meta)
+  for k, v in pairs(meta) do
+    if v.t == 'MetaInlines' then
+      vars["$" .. k .. "$"] = v
+    end
+  end
+end
+
+function replace (el)
+  if vars[el.text] then
+    return pandoc.Span(vars[el.text])
+  else
+    return el
+  end
+end
+
+return {{Meta = get_vars}, {Str = replace}}
+```
+
+If the contents of file `occupations.md` is
+
+``` markdown
+---
+name: John MacFarlane
+occupation: Professor of Philosophy
+---
+
+Name
+
+: \$name\$
+
+Occupation
+
+: \$occupation\$
+```
+
+then running `pandoc --lua-filter=meta-vars.lua occupations.md` will output:
+
+``` html
+<dl>
+<dt>Name</dt>
+<dd><p><span>John MacFarlane</span></p>
+</dd>
+<dt>Occupation</dt>
+<dd><p><span>Professor of Philosophy</span></p>
+</dd>
+</dl>
+```
