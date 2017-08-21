@@ -63,6 +63,7 @@ end
 -- @local
 -- @param tag Tag used to identify the constructor
 -- @param fn Function to be called when constructing a new element
+-- @param accessors names to use as accessors for numerical fields
 -- @return function that constructs a new element
 function Element:create_constructor(tag, fn, accessors)
   local constr = self:make_subtype({tag = tag, getters = {}, setters = {}})
@@ -134,7 +135,7 @@ end
 -- @section document
 
 --- A complete pandoc document
--- @function Doc
+-- @function Panoc
 -- @tparam      {Block,...} blocks      document content
 -- @tparam[opt] Meta        meta        document meta data
 function M.Pandoc(blocks, meta)
@@ -170,7 +171,7 @@ end
 
 --- Meta map
 -- @function MetaMap
--- @tparam table a string-index map of meta values
+-- @tparam table key_value_map a string-indexed map of meta values
 M.meta_value_types = {
   "MetaBlocks",
   "MetaInlines",
@@ -664,7 +665,7 @@ setmetatable(M.Attr, M.Attr)
 -- @tparam[opt] {Inline,...} prefix   citation prefix
 -- @tparam[opt] {Inline,...} suffix   citation suffix
 -- @tparam[opt] int          note_num note number
--- @tparam[opt] int          note_num hash number
+-- @tparam[opt] int          hash  hash number
 M.Citation = function(id, mode, prefix, suffix, note_num, hash)
   prefix = prefix or {}
   suffix = suffix or {}
