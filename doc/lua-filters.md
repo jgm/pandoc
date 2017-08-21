@@ -2,7 +2,21 @@ Lua Filters
 ===========
 
 Pandoc expects lua files to return a list of filters. The filters in that list
-are called sequentially, each on the result of the previous filter.
+are called sequentially, each on the result of the previous filter. If there is
+no value returned by the filter script, then pandoc will try to generate a
+filter by collecting all top-level functions whose names correspond to those of
+pandoc elements (e.g., `Str`, `Para`, `Meta`, or `Pandoc`).
+
+Filters are expected to be put into separate files and are passed via the
+`--lua-filter` command-line argument. E.g., if a filter is defined in a file
+`current-date.lua`, then it would be applied like this:
+
+    pandoc --lua-filter=current-date.lua -f markdown MANUAL.txt
+
+The `--lua-filter` can be supplied multiple times, causing the filters to be
+applied sequentially in the order they were given. If other, non-Lua filters are
+given as well (via `--filter`), then those are executed *after* all Lua filters
+have been applied.
 
 Lua Filter Structure
 --------------------
@@ -45,7 +59,7 @@ functions and access to some of pandoc's main functionalities.
 Element creation
 ----------------
 
-Element creator functions like `Str`, `Para`, and `Doc` are designed to
+Element creator functions like `Str`, `Para`, and `Pandoc` are designed to
 allow easy creation of new elements that are simple to use and can be
 read back from the lua environment. Internally, pandoc uses these
 functions to create the lua objects which are passed to element filter
