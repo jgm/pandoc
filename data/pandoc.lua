@@ -804,8 +804,13 @@ end
 -- -- return {{Str = Str}}
 function M.global_filter()
   local res = {}
+  function is_filter_function(k)
+    return M.Inline.constructor[k] or
+      M.Block.constructor[k] or
+      k == "Meta" or k == "Doc" or k == "Pandoc"
+  end
   for k, v in pairs(_G) do
-    if M.Inline.constructor[k] or M.Block.constructor[k] or k == "Doc" then
+    if is_filter_function(k) then
       res[k] = v
     end
   end
