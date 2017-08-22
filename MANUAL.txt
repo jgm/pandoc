@@ -3260,7 +3260,7 @@ If you just want a regular inline image, just make sure it is not
 the only thing in the paragraph. One way to do this is to insert a
 nonbreaking space after the image:
 
-    ![This image won't be a figure](/url/of/image.png)\
+    ![This image won't be a figure](/url/of/image.png)\ 
 
 Note that in reveal.js slide shows, an image in a paragraph
 by itself that has the `stretch` class will fill the screen,
