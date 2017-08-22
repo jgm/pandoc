@@ -14,7 +14,7 @@ packages:
 - '.'
 - location:
     git: https://github.com/jgm/pandoc-citeproc.git
-    commit: 6930cd18087190133e600533a8d335a718cddf76
+    commit: 71ca48b6e0044ea959d8e7882b03cceba9c7960c
   extra-dep: false
 extra-deps:
 - hslua-0.8.0
@@ -23,4 +23,5 @@ extra-deps:
 - QuickCheck-2.10.0.1
 - tasty-quickcheck-0.9.1
 - haddock-library-1.4.3
+- pandoc-types-1.17.1
 resolver: lts-9.0
