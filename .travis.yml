@@ -105,6 +105,11 @@ install:
   case "$BUILD" in
     stack)
       ulimit -n 4096
+      # create some swap because regex-tdfa needs lots of memory
+      # to compile; see https://github.com/snoyberg/keter/issues/76
+      dd if=/dev/zero of=/tmp/swap bs=1M count=1024
+      mkswap /tmp/swap
+      swapon /tmp/swap
       stack --no-terminal --install-ghc $ARGS test --flag 'aeson:fast' --only-dependencies --fast --flag pandoc:embed_data_files --test
       ;;
     cabal)
