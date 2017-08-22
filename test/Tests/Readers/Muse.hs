@@ -421,6 +421,58 @@ tests =
             ] =?>
           bulletList [ para "Foo" <> para "bar" ] <> bulletList [ para "Baz" ]
         ]
+      -- Test that definition list requires a leading space.
+      -- Emacs Muse does not require a space, we follow Amusewiki here.
+      , "Not a definition list" =:
+        T.unlines
+          [ "First :: second"
+          , "Foo :: bar"
+          ] =?>
+        para "First :: second Foo :: bar"
+      , "Definition list" =:
+        T.unlines
+          [ " First :: second"
+          , " Foo :: bar"
+          ] =?>
+        definitionList [ ("First", [ para "second" ])
+                       , ("Foo", [ para "bar" ])
+                       ]
+      , "Definition list term cannot include newline" =:
+        T.unlines
+          [ " Foo" -- "Foo" is not a part of the definition list term
+          , " Bar :: baz"
+          ] =?>
+        para "Foo" <>
+        definitionList [ ("Bar", [ para "baz" ]) ]
+      , "Multi-line definition lists" =:
+        T.unlines
+          [ " First term :: Definition of first term"
+          , "and its continuation."
+          , " Second term :: Definition of second term."
+          ] =?>
+        definitionList [ ("First term", [ para "Definition of first term and its continuation." ])
+                       , ("Second term", [ para "Definition of second term." ])
+                       ]
+      -- Emacs Muse creates two separate lists when indentation of items is different.
+      -- We follow Amusewiki and allow different indentation within one list.
+      , "Changing indentation" =:
+        T.unlines
+          [ " First term :: Definition of first term"
+          , "and its continuation."
+          , "   Second term :: Definition of second term."
+          ] =?>
+        definitionList [ ("First term", [ para "Definition of first term and its continuation." ])
+                       , ("Second term", [ para "Definition of second term." ])
+                       ]
+      , "Two blank lines separate definition lists" =:
+        T.unlines
+          [ " First :: list"
+          , ""
+          , ""
+          , " Second :: list"
+          ] =?>
+        definitionList [ ("First", [ para "list" ]) ] <>
+        definitionList [ ("Second", [ para "list" ]) ]
       -- Headers in first column of list continuation are not allowed
       , "No headers in list continuation" =:
         T.unlines
