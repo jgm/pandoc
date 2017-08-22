@@ -83,19 +83,19 @@ before_install:
 - unset CC
 # shutdown servies on Travis, which may have a memory impact
 # show memory usage before and after shutdown of services
-- sudo service --status-all
-- sudo free -m -t
-- sudo /etc/init.d/mysql stop
-- sudo /etc/init.d/postgresql stop
-- sudo /etc/init.d/couchdb stop
-- sudo /etc/init.d/redis-server stop
-- sudo free -m -t
+- service --status-all
+- free -m -t
+- /etc/init.d/mysql stop
+- /etc/init.d/postgresql stop
+- /etc/init.d/couchdb stop
+- /etc/init.d/redis-server stop
+- free -m -t
 
 after_failure:
 # show memory usage again
-- sudo free -m -t
+- free -m -t
 # show actions of the OOM killer
-- sudo dmesg
+- dmesg
 
 # We want to always allow newer versions of packages when building on GHC HEAD
 - CABALARGS=""
