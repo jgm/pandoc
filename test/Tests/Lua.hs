@@ -64,6 +64,12 @@ tests = map (localOption (QuickCheckTests 20))
       "single-to-double-quoted.lua"
       (doc . para . singleQuoted $ str "simple")
       (doc . para . doubleQuoted $ str "simple")
+
+  , testCase "Count inlines via metatable catch-all" $
+    assertFilterConversion "filtering with metatable catch-all failed"
+      "metatable-catch-all.lua"
+      (doc . para $ "four words, three spaces")
+      (doc . para $ str "7")
   ]
 
 assertFilterConversion :: String -> FilePath -> Pandoc -> Pandoc -> Assertion

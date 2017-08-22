@@ -32,50 +32,50 @@ Pandoc lua utils.
 -}
 module Text.Pandoc.Lua (LuaException (..), pushPandocModule, runLuaFilter) where
 
-import Control.Monad (unless, when, (>=>), mplus)
+import Control.Monad (mplus, unless, when, (>=>))
 import Control.Monad.Trans (MonadIO (..))
-import Data.Data (toConstr, showConstr, dataTypeOf, dataTypeConstrs, Data)
+import Data.Data (DataType, Data, toConstr, showConstr, dataTypeOf,
+                  dataTypeConstrs)
+import Data.Foldable (foldrM)
 import Data.Map (Map)
 import Data.Maybe (isJust)
 import Foreign.Lua (Lua, FromLuaStack (peek), LuaException (..), StackIndex,
-                    Status(OK), ToLuaStack (push), call, isnil, dofile,
-                    getglobal', gettop, isfunction, newtable, openlibs, pcall,
-                    peekEither, pop, pushvalue, rawgeti, rawseti, ref,
-                    registryindex, runLua, setglobal, throwLuaError)
+                    Status(OK), ToLuaStack (push))
 import Text.Pandoc.Definition
 import Text.Pandoc.Lua.PandocModule (pushPandocModule)
 import Text.Pandoc.Walk (Walkable (walkM))
 
 import qualified Data.Map as Map
+import qualified Foreign.Lua as Lua
 
 runLuaFilter :: (MonadIO m)
              => Maybe FilePath -> FilePath -> [String] -> Pandoc -> m Pandoc
-runLuaFilter datadir filterPath args pd = liftIO . runLua $ do
-  openlibs
+runLuaFilter datadir filterPath args pd = liftIO . Lua.runLua $ do
+  Lua.openlibs
   -- store module in global "pandoc"
   pushPandocModule datadir
-  setglobal "pandoc"
-  top <- gettop
-  stat<- dofile filterPath
+  Lua.setglobal "pandoc"
+  top <- Lua.gettop
+  stat<- Lua.dofile filterPath
   if stat /= OK
     then do
-      luaErrMsg <- peek (-1) <* pop 1
-      throwLuaError luaErrMsg
+      luaErrMsg <- peek (-1) <* Lua.pop 1
+      Lua.throwLuaError luaErrMsg
     else do
-      newtop <- gettop
+      newtop <- Lua.gettop
       -- Use the implicitly defined global filter if nothing was returned
       when (newtop - top < 1) $ pushGlobalFilter
       luaFilters <- peek (-1)
       push args
-      setglobal "PandocParameters"
+      Lua.setglobal "PandocParameters"
       runAll luaFilters pd
 
 pushGlobalFilter :: Lua ()
 pushGlobalFilter = do
-  newtable
-  getglobal' "pandoc.global_filter"
-  call 0 1
-  rawseti (-2) 1
+  Lua.newtable
+  Lua.getglobal' "pandoc.global_filter"
+  Lua.call 0 1
+  Lua.rawseti (-2) 1
 
 runAll :: [LuaFilter] -> Pandoc -> Lua Pandoc
 runAll = foldr ((>=>) . walkMWithLuaFilter) return
@@ -85,29 +85,42 @@ walkMWithLuaFilter (LuaFilter fnMap) = walkLua
   where
     walkLua :: Pandoc -> Lua Pandoc
     walkLua =
-          (if hasOneOf (constructorsFor (dataTypeOf (Str [])))
-           then walkM (tryFilter fnMap :: Inline -> Lua Inline)
-           else return)
-          >=>
-          (if hasOneOf (constructorsFor (dataTypeOf (Para [])))
-           then walkM (tryFilter fnMap :: Block -> Lua Block)
-           else return)
-          >=>
-          (case Map.lookup "Meta" fnMap of
-             Just fn -> walkM (\(Pandoc meta blocks) -> do
-                                  meta' <- runFilterFunction fn meta
-                                  return $ Pandoc meta' blocks)
-             Nothing -> return)
-          >=>
-          (case Map.lookup "Pandoc" fnMap `mplus` Map.lookup "Doc" fnMap of
-             Just fn -> runFilterFunction fn :: Pandoc -> Lua Pandoc
-             Nothing -> return)
+      (if hasOneOf inlineFilterNames
+        then walkM (tryFilter fnMap :: Inline -> Lua Inline)
+        else return)
+      >=>
+      (if hasOneOf blockFilterNames
+        then walkM (tryFilter fnMap :: Block -> Lua Block)
+        else return)
+      >=>
+      (case Map.lookup "Meta" fnMap of
+          Just fn -> walkM (\(Pandoc meta blocks) -> do
+                               meta' <- runFilterFunction fn meta
+                               return $ Pandoc meta' blocks)
+          Nothing -> return)
+      >=>
+      (case foldl mplus Nothing (map (`Map.lookup` fnMap) pandocFilterNames) of
+          Just fn -> runFilterFunction fn :: Pandoc -> Lua Pandoc
+          Nothing -> return)
     hasOneOf = any (\k -> isJust (Map.lookup k fnMap))
-    constructorsFor x = map show (dataTypeConstrs x)
+
+constructorsFor :: DataType -> [String]
+constructorsFor x = map show (dataTypeConstrs x)
+
+inlineFilterNames :: [String]
+inlineFilterNames = constructorsFor (dataTypeOf (Str []))
+
+blockFilterNames :: [String]
+blockFilterNames = constructorsFor (dataTypeOf (Para []))
+
+metaFilterName :: String
+metaFilterName = "Meta"
+
+pandocFilterNames :: [String]
+pandocFilterNames = ["Pandoc", "Doc"]
 
 type FunctionMap = Map String LuaFilterFunction
-data LuaFilter = LuaFilter FunctionMap
-
+newtype LuaFilter = LuaFilter FunctionMap
 newtype LuaFilterFunction = LuaFilterFunction { functionIndex :: Int }
 
 -- | Try running a filter for the given element
@@ -119,7 +132,18 @@ tryFilter fnMap x =
     Just fn -> runFilterFunction fn x
 
 instance FromLuaStack LuaFilter where
-  peek idx = LuaFilter <$> peek idx
+  peek idx =
+    let constrs = metaFilterName : pandocFilterNames
+                  ++ blockFilterNames
+                  ++ inlineFilterNames
+        fn c acc = do
+          Lua.getfield idx c
+          filterFn <- Lua.tryLua (peek (-1))
+          Lua.pop 1
+          return $ case filterFn of
+            Left _ -> acc
+            Right f -> (c, f) : acc
+    in LuaFilter . Map.fromList <$> foldrM fn [] constrs
 
 -- | Push a value to the stack via a lua filter function. The filter function is
 -- called with given element as argument and is expected to return an element.
@@ -130,36 +154,36 @@ runFilterFunction :: (FromLuaStack a, ToLuaStack a)
 runFilterFunction lf x = do
   pushFilterFunction lf
   push x
-  z <- pcall 1 1 Nothing
+  z <- Lua.pcall 1 1 Nothing
   if z /= OK
     then do
       msg <- peek (-1)
       let prefix = "Error while running filter function: "
-      throwLuaError $ prefix ++ msg
+      Lua.throwLuaError $ prefix ++ msg
     else do
-      noExplicitFilter <- isnil (-1)
+      noExplicitFilter <- Lua.isnil (-1)
       if noExplicitFilter
-        then  pop 1 *> return x
+        then  Lua.pop 1 *> return x
         else do
-          mbres <- peekEither (-1)
+          mbres <- Lua.peekEither (-1)
           case mbres of
-            Left err -> throwLuaError
+            Left err -> Lua.throwLuaError
                         ("Error while trying to get a filter's return "
                          ++ "value from lua stack.\n" ++ err)
-            Right res -> res <$ pop 1
+            Right res -> res <$ Lua.pop 1
 
 -- | Push the filter function to the top of the stack.
 pushFilterFunction :: LuaFilterFunction -> Lua ()
 pushFilterFunction lf =
   -- The function is stored in a lua registry table, retrieve it from there.
-  rawgeti registryindex (functionIndex lf)
+  Lua.rawgeti Lua.registryindex (functionIndex lf)
 
 registerFilterFunction :: StackIndex -> Lua LuaFilterFunction
 registerFilterFunction idx = do
-  isFn <- isfunction idx
-  unless isFn . throwLuaError $ "Not a function at index " ++ show idx
-  pushvalue idx
-  refIdx <- ref registryindex
+  isFn <- Lua.isfunction idx
+  unless isFn . Lua.throwLuaError $ "Not a function at index " ++ show idx
+  Lua.pushvalue idx
+  refIdx <- Lua.ref Lua.registryindex
   return $ LuaFilterFunction refIdx
 
 instance ToLuaStack LuaFilterFunction where
