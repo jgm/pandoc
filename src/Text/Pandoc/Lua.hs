@@ -35,7 +35,7 @@ module Text.Pandoc.Lua (LuaException (..), pushPandocModule, runLuaFilter) where
 import Control.Monad (mplus, unless, when, (>=>))
 import Control.Monad.Trans (MonadIO (..))
 import Data.Data (DataType, Data, toConstr, showConstr, dataTypeOf,
-                  dataTypeConstrs)
+                  dataTypeConstrs, dataTypeName)
 import Data.Foldable (foldrM)
 import Data.Map (Map)
 import Data.Maybe (isJust)
@@ -108,10 +108,10 @@ constructorsFor :: DataType -> [String]
 constructorsFor x = map show (dataTypeConstrs x)
 
 inlineFilterNames :: [String]
-inlineFilterNames = constructorsFor (dataTypeOf (Str []))
+inlineFilterNames = "Inline" : constructorsFor (dataTypeOf (Str []))
 
 blockFilterNames :: [String]
-blockFilterNames = constructorsFor (dataTypeOf (Para []))
+blockFilterNames = "Block" : constructorsFor (dataTypeOf (Para []))
 
 metaFilterName :: String
 metaFilterName = "Meta"
@@ -126,10 +126,12 @@ newtype LuaFilterFunction = LuaFilterFunction { functionIndex :: Int }
 -- | Try running a filter for the given element
 tryFilter :: (Data a, FromLuaStack a, ToLuaStack a) => FunctionMap -> a -> Lua a
 tryFilter fnMap x =
-  let filterFnName = showConstr (toConstr x) in
-  case Map.lookup filterFnName fnMap of
-    Nothing -> return x
+  let filterFnName = showConstr (toConstr x)
+      catchAllName = dataTypeName (dataTypeOf x)
+  in
+  case Map.lookup filterFnName fnMap `mplus` Map.lookup catchAllName fnMap of
     Just fn -> runFilterFunction fn x
+    Nothing -> return x
 
 instance FromLuaStack LuaFilter where
   peek idx =

@@ -70,6 +70,12 @@ tests = map (localOption (QuickCheckTests 20))
       "metatable-catch-all.lua"
       (doc . para $ "four words, three spaces")
       (doc . para $ str "7")
+
+  , testCase "Count blocks via Block-specific catch-all" $
+    assertFilterConversion "filtering with Block catch-all failed"
+      "block-count.lua"
+      (doc $ para "one" <> para "two")
+      (doc $ para "2")
   ]
 
 assertFilterConversion :: String -> FilePath -> Pandoc -> Pandoc -> Assertion

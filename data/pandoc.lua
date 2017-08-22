@@ -808,7 +808,8 @@ function M.global_filter()
   function is_filter_function(k)
     return M.Inline.constructor[k] or
       M.Block.constructor[k] or
-      k == "Meta" or k == "Doc" or k == "Pandoc"
+      k == "Meta" or k == "Doc" or k == "Pandoc" or
+      k == "Block" or k == "Inline"
   end
   for k, v in pairs(_G) do
     if is_filter_function(k) then
