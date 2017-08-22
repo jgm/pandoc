@@ -1,14 +1,14 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <!DOCTYPE article>
 <article
+$if(lang)$
+  xml:lang="$lang$"
+$endif$
   xmlns="http://docbook.org/ns/docbook" version="5.0"
 $if(mathml)$
   xmlns:mml="http://www.w3.org/1998/Math/MathML"
 $endif$
-  xmlns:xlink="http://www.w3.org/1999/xlink"
-$if(lang)$ 
-  xml:lang="$lang$"
-$endif$ >
+  xmlns:xlink="http://www.w3.org/1999/xlink" >
   <info>
     <title>$title$</title>
 $if(subtitle)$

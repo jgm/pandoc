@@ -2,8 +2,7 @@
 <!DOCTYPE article>
 <article
   xmlns="http://docbook.org/ns/docbook" version="5.0"
-  xmlns:xlink="http://www.w3.org/1999/xlink"
- >
+  xmlns:xlink="http://www.w3.org/1999/xlink" >
   <info>
     <title>Pandoc Test Suite</title>
     <authorgroup>
