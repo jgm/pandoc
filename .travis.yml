@@ -55,7 +55,7 @@ matrix:
 
   # The Stack builds. We can pass in arbitrary Stack arguments via the ARGS
   # variable, such as using --stack-yaml to point to a different file.
-  - env: BUILD=stack ARGS="--resolver lts-8" OPTS="-O0 -Wall -Wincomplete-record-updates -Wnoncanonical-monad-instances -Wnoncanonical-monadfail-instances -fno-warn-unused-do-bind -Werror"
+  - env: BUILD=stack ARGS="--resolver lts-9" OPTS="-O0 -Wall -Wincomplete-record-updates -Wnoncanonical-monad-instances -Wnoncanonical-monadfail-instances -fno-warn-unused-do-bind -Werror"
     compiler: ": #stack 8.0.2"
     addons: {apt: {packages: [ghc-8.0.2], sources: [hvr-ghc]}}
 
@@ -105,11 +105,6 @@ install:
   case "$BUILD" in
     stack)
       ulimit -n 4096
-      # create some swap because regex-tdfa needs lots of memory
-      # to compile; see https://github.com/snoyberg/keter/issues/76
-      dd if=/dev/zero of=/tmp/swap bs=1M count=1024
-      mkswap /tmp/swap
-      swapon /tmp/swap
       stack --no-terminal --install-ghc $ARGS test --flag 'aeson:fast' --only-dependencies --fast --flag pandoc:embed_data_files --test
       ;;
     cabal)
