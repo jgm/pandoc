@@ -2518,6 +2518,15 @@ For headerless tables, the colons go on the top line instead:
     | Right         | Left          | Centered           |
     +---------------+---------------+--------------------+
 
+##### Grid Table Limitations #####
+
+Pandoc does not support grid tables with row spans (variable number
+of columns in a given row). All grid tables must have the same
+number of columns in each row.  For example, the Docutils
+[sample grid tables] will not render as expected with Pandoc.
+
+[sample grid tables]: http://docutils.sourceforge.net/docs/ref/rst/restructuredtext.html#grid-tables
+
 
 #### Extension: `pipe_tables` ####
 
@@ -3251,7 +3260,7 @@ If you just want a regular inline image, just make sure it is not
 the only thing in the paragraph. One way to do this is to insert a
 nonbreaking space after the image:
 
-    ![This image won't be a figure](/url/of/image.png)\ 
+    ![This image won't be a figure](/url/of/image.png)\
 
 Note that in reveal.js slide shows, an image in a paragraph
 by itself that has the `stretch` class will fill the screen,
