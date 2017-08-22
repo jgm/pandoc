@@ -114,11 +114,10 @@ nested p = do
 htmlElement :: PandocMonad m => String -> MuseParser m (Attr, String)
 htmlElement tag = try $ do
   (TagOpen _ attr, _) <- htmlTag (~== TagOpen tag [])
-  content <- manyTill anyChar (endtag <|> endofinput)
+  content <- manyTill anyChar endtag
   return (htmlAttrToPandoc attr, content)
   where
-    endtag     = void $ htmlTag (~== TagClose tag)
-    endofinput = lookAhead $ try $ skipMany blankline >> skipSpaces >> eof
+    endtag = void $ htmlTag (~== TagClose tag)
 
 htmlAttrToPandoc :: [Attribute String] -> Attr
 htmlAttrToPandoc attrs = (ident, classes, keyvals)

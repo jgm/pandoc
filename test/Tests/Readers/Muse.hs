@@ -54,6 +54,12 @@ tests =
 
       , "Strikeout tag" =: "<del>Strikeout</del>" =?> para (strikeout "Strikeout")
 
+      , "Opening inline tags" =: "foo <em> bar <strong>baz" =?> para "foo <em> bar <strong>baz"
+
+      , "Closing inline tags" =: "foo </em> bar </strong>baz" =?> para "foo </em> bar </strong>baz"
+
+      , "Tag soup" =: "foo <em> bar </strong>baz" =?> para "foo <em> bar </strong>baz"
+
       , "Linebreak" =: "Line <br>  break" =?> para ("Line" <> linebreak <> "break")
 
       , "Code" =: "=foo(bar)=" =?> para (code "foo(bar)")
