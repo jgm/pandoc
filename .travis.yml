@@ -81,21 +81,6 @@ matrix:
 before_install:
 # Using compiler above sets CC to an invalid value, so unset it
 - unset CC
-# shutdown servies on Travis, which may have a memory impact
-# show memory usage before and after shutdown of services
-- service --status-all
-- free -m -t
-- /etc/init.d/mysql stop
-- /etc/init.d/postgresql stop
-- /etc/init.d/couchdb stop
-- /etc/init.d/redis-server stop
-- free -m -t
-
-after_failure:
-# show memory usage again
-- free -m -t
-# show actions of the OOM killer
-- dmesg
 
 # We want to always allow newer versions of packages when building on GHC HEAD
 - CABALARGS=""
