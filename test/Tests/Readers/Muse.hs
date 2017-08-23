@@ -60,6 +60,16 @@ tests =
 
       , "Tag soup" =: "foo <em> bar </strong>baz" =?> para "foo <em> bar </strong>baz"
 
+      -- Both inline tags must be within the same paragraph
+      , "No multiparagraph inline tags" =:
+        T.unlines [ "First line"
+                  , "<em>Second line"
+                  , ""
+                  , "Fourth line</em>"
+                  ] =?>
+        para "First line <em>Second line" <>
+        para "Fourth line</em>"
+
       , "Linebreak" =: "Line <br>  break" =?> para ("Line" <> linebreak <> "break")
 
       , "Code" =: "=foo(bar)=" =?> para (code "foo(bar)")
