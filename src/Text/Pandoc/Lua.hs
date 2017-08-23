@@ -35,7 +35,7 @@ module Text.Pandoc.Lua (LuaException (..), pushPandocModule, runLuaFilter) where
 import Control.Monad (mplus, unless, when, (>=>))
 import Control.Monad.Trans (MonadIO (..))
 import Data.Data (DataType, Data, toConstr, showConstr, dataTypeOf,
-                  dataTypeConstrs, dataTypeName)
+                  dataTypeConstrs, dataTypeName, tyconUQname)
 import Data.Foldable (foldrM)
 import Data.Map (Map)
 import Data.Maybe (isJust)
@@ -127,7 +127,7 @@ newtype LuaFilterFunction = LuaFilterFunction { functionIndex :: Int }
 tryFilter :: (Data a, FromLuaStack a, ToLuaStack a) => FunctionMap -> a -> Lua a
 tryFilter fnMap x =
   let filterFnName = showConstr (toConstr x)
-      catchAllName = dataTypeName (dataTypeOf x)
+      catchAllName = tyconUQname $ dataTypeName (dataTypeOf x)
   in
   case Map.lookup filterFnName fnMap `mplus` Map.lookup catchAllName fnMap of
     Just fn -> runFilterFunction fn x
