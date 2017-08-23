@@ -105,7 +105,7 @@ install:
   case "$BUILD" in
     stack)
       ulimit -n 4096
-      stack --no-terminal --install-ghc $ARGS test --flag 'aeson:fast' --only-dependencies --fast --flag pandoc:embed_data_files --test
+      stack --no-terminal --install-ghc $ARGS build --only-dependencies --fast --flag 'pandoc:embed_data_files' --flag 'aeson:fast'
       ;;
     cabal)
       cabal --version
