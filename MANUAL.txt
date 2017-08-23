@@ -608,7 +608,7 @@ General writer options
 `--eol=crlf`|`lf`|`native`
 
 :   Manually specify line endings: `crlf` (Windows), `lf`
-    (MacOS/linux/unix), or `native` (line endings appropriate
+    (macOS/linux/unix), or `native` (line endings appropriate
     to the OS on which pandoc is being run).  The default is
     `native`.
 
@@ -707,7 +707,7 @@ General writer options
 
 :   List of paths to search for images and other resources.
     The paths should be separated by `:` on linux, unix, and
-    MacOS systems, and by `;` on Windows.  If `--resource-path`
+    macOS systems, and by `;` on Windows.  If `--resource-path`
     is not specified, the default resource path is the working
     directory. Note that, if `--resource-path` is specified,
     the working directory must be explicitly listed or it

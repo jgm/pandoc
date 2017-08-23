@@ -59,15 +59,15 @@ $PANDOC --data data -t html5 -s COPYING.md -Vpagetitle="License" -o $RESOURCES/l
 # make sure it's valid... returns nonzero exit code if it isn't:
 #spctl --assess --type execute $DEST/bin/pandoc
 
-echo Creating MacOS package...
+echo Creating macOS package...
 
 sed -e "s/PANDOCVERSION/$VERSION/" $MACOS/distribution.xml.in > $MACOS/distribution.xml
 
 pkgbuild --root $ROOT --identifier net.johnmacfarlane.pandoc --version $VERSION --ownership recommended $DIST/pandoc.pkg
-productbuild --distribution $MACOS/distribution.xml --resources $DIST/Resources --package-path $DIST --version $VERSION --sign "${DEVELOPER_ID_INSTALLER}" $BASE-MacOS.pkg
+productbuild --distribution $MACOS/distribution.xml --resources $DIST/Resources --package-path $DIST --version $VERSION --sign "${DEVELOPER_ID_INSTALLER}" $BASE-macOS.pkg
 
 # verify signature
-spctl --assess --type install $BASE-MacOS.pkg
+spctl --assess --type install $BASE-macOS.pkg
 
 # cleanup
 rm -r $DIST

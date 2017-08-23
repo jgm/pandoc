@@ -12,7 +12,7 @@ _ Push templates:
 
 _ Generate Windows package (make winpkg)
 
-_ Generate MacOS package (make macospkg)
+_ Generate macOS package (make macospkg)
 
 _ Generate Ubuntu/Debian deb package (make debpkg)
 

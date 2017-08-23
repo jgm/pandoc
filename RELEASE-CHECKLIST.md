@@ -11,7 +11,7 @@
 
 - [ ] Generate Windows package (`make winpkg`)
 
-- [ ] Generate Mac OSX package (`make osxpkg`)
+- [ ] Generate macOS package (`make macospkg`)
 
 - [ ] Generate Ubuntu/Debian deb package (`make debpkg`)
 
