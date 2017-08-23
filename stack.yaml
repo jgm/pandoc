@@ -14,4 +14,4 @@ extra-deps:
 - tasty-quickcheck-0.9.1
 - haddock-library-1.4.3
 - pandoc-types-1.17.1
-resolver: lts-9.0
+resolver: lts-9.1
