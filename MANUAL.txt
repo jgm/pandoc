@@ -336,7 +336,7 @@ General options
 
 :   Specify the user data directory to search for pandoc data files.
     If this option is not specified, the default user data directory
-    will be used.  This is, in Unix:
+    will be used.  This is, in UNIX:
 
         $HOME/.pandoc
 
@@ -608,7 +608,7 @@ General writer options
 `--eol=crlf`|`lf`|`native`
 
 :   Manually specify line endings: `crlf` (Windows), `lf`
-    (macOS/linux/unix), or `native` (line endings appropriate
+    (macOS/Linux/UNIX), or `native` (line endings appropriate
     to the OS on which pandoc is being run).  The default is
     `native`.
 
@@ -706,7 +706,7 @@ General writer options
 `--resource-path=`*SEARCHPATH*
 
 :   List of paths to search for images and other resources.
-    The paths should be separated by `:` on linux, unix, and
+    The paths should be separated by `:` on Linux, UNIX, and
     macOS systems, and by `;` on Windows.  If `--resource-path`
     is not specified, the default resource path is the working
     directory. Note that, if `--resource-path` is specified,

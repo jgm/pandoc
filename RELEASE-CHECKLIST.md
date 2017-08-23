@@ -1,4 +1,4 @@
-- [ ] Test, on linux, windows, mac (inc. website demos)
+- [ ] Test, on Linux, Windows, macOS (inc. website demos)
 
 - [ ] Finalize changelog:
    `git log --pretty='format:%n%n* %s (%an)%n%b%n%h%n' --reverse --name-only 1.17.0.3..HEAD > LOG`
