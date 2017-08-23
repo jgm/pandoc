@@ -129,7 +129,7 @@ parseHtmlContentWithAttrs :: PandocMonad m
                           => String -> MuseParser m a -> MuseParser m (Attr, [a])
 parseHtmlContentWithAttrs tag parser = do
   (attr, content) <- htmlElement tag
-  parsedContent <- try $ parseContent (content ++ "\n")
+  parsedContent <- parseContent (content ++ "\n")
   return (attr, parsedContent)
   where
     parseContent = parseFromString $ nested $ manyTill parser endOfContent
@@ -536,7 +536,7 @@ inlineTag :: PandocMonad m
           => (Inlines -> Inlines)
           -> String
           -> MuseParser m (F Inlines)
-inlineTag f s = do
+inlineTag f s = try $ do
   res <- parseHtmlContent s inline
   return $ f <$> mconcat res
 
