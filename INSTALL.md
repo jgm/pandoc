@@ -19,7 +19,7 @@
         copy /y "%TEMP%\pandoc\pandoc-citeproc.exe" C:\Utils\Console\
         rmdir /s /q "%TEMP%\pandoc\"
 
-## MacOS
+## macOS
 
   - There is a package installer at pandoc's [download page].
     If you later want to uninstall the package, you can do so
@@ -27,12 +27,12 @@
     and running it with `perl uninstall-pandoc.pl`.
 
   - It is possible to extract the pandoc and pandoc-citeproc
-    executables from the MacOS pkg file, if you'd rather not run
+    executables from the macOS pkg file, if you'd rather not run
     the installer.  To do this (for the version 1.19.1 package):
 
         mkdir pandoc-extract
         cd pandoc-extract
-        xar -x ../pandoc-1.19.1-osx.pkg
+        xar -x ../pandoc-2.0-macOS.pkg
         cat pandoc.pkg/Payload | gunzip -dc | cpio -i
         # executables are now in ./usr/bin/, man pages in ./usr/share/man
 
@@ -180,7 +180,7 @@ The easiest way to build pandoc from source is to use [stack]:
 
     Note that this requires the `text-icu` library, which in turn
     depends on the C library `icu4c`.  Installation directions
-    vary by platform.  Here is how it might work on MacOS with homebrew:
+    vary by platform.  Here is how it might work on macOS with homebrew:
 
         brew install icu4c
         cabal install --extra-lib-dirs=/usr/local/Cellar/icu4c/51.1/lib \

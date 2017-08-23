@@ -9,7 +9,7 @@ flags:
   pandoc-citeproc:
     bibutils: true
     embed_data_files: true
-# if you are on OSX, stack install cpphs and
+# if you are on macOS, stack install cpphs and
 # uncomment the following three lines:
 ghc-options:
   pandoc-citeproc:  '-pgmP cpphs -optP--cpp'
