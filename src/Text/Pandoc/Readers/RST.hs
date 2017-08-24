@@ -269,7 +269,7 @@ fieldList = try $ do
 
 lineBlock :: PandocMonad m => RSTParser m Blocks
 lineBlock = try $ do
-  lines' <- lineBlockLines
+  lines' <- lineBlockLines '|'
   lines'' <- mapM parseInlineFromString lines'
   return $ B.lineBlock lines''
 

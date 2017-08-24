@@ -1141,7 +1141,7 @@ stripMarkdownAttribute s = renderTags' $ map filterAttrib $ parseTags s
 lineBlock :: PandocMonad m => MarkdownParser m (F Blocks)
 lineBlock = try $ do
   guardEnabled Ext_line_blocks
-  lines' <- lineBlockLines >>=
+  lines' <- lineBlockLines '|' >>=
             mapM (parseFromString' (trimInlinesF . mconcat <$> many inline))
   return $ B.lineBlock <$> sequence lines'
 
