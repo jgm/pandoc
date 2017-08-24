@@ -821,9 +821,9 @@ charRef = do
   c <- characterReference
   return $ Str [c]
 
-lineBlockLine :: Monad m => ParserT [Char] st m String
-lineBlockLine = try $ do
-  char '|'
+lineBlockLine :: Monad m => Char -> ParserT [Char] st m String
+lineBlockLine c = try $ do
+  char c
   char ' '
   white <- many (spaceChar >> return '\160')
   notFollowedBy newline
@@ -831,14 +831,14 @@ lineBlockLine = try $ do
   continuations <- many (try $ char ' ' >> anyLine)
   return $ white ++ unwords (line : continuations)
 
-blankLineBlockLine :: Stream s m Char => ParserT s st m Char
-blankLineBlockLine = try (char '|' >> blankline)
+blankLineBlockLine :: Stream s m Char => Char -> ParserT s st m Char
+blankLineBlockLine c = try (char c >> blankline)
 
 -- | Parses an RST-style line block and returns a list of strings.
-lineBlockLines :: Monad m => ParserT [Char] st m [String]
-lineBlockLines = try $ do
-  lines' <- many1 (lineBlockLine <|> ((:[]) <$> blankLineBlockLine))
-  skipMany1 $ blankline <|> blankLineBlockLine
+lineBlockLines :: Monad m => Char -> ParserT [Char] st m [String]
+lineBlockLines c = try $ do
+  lines' <- many1 (lineBlockLine c <|> ((:[]) <$> blankLineBlockLine c))
+  skipMany1 $ blankline <|> blankLineBlockLine c
   return lines'
 
 -- | Parse a table using 'headerParser', 'rowParser',
