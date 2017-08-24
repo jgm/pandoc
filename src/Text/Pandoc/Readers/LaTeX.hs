@@ -44,7 +44,7 @@ import Control.Applicative (many, optional, (<|>))
 import Control.Monad
 import Control.Monad.Except (throwError)
 import Control.Monad.Trans (lift)
-import Data.Char (chr, isAlphaNum, isLetter, ord, isDigit)
+import Data.Char (chr, isAlphaNum, isLetter, ord, isDigit, toLower)
 import Data.Default
 import Data.Text (Text)
 import qualified Data.Text as T
@@ -1445,7 +1445,35 @@ inlineCommands = M.fromList $
   , ("toggletrue", braced >>= setToggle True)
   , ("togglefalse", braced >>= setToggle False)
   , ("iftoggle", try $ ifToggle >> inline)
+  -- biblatex misc
+  , ("RN", romanNumeralUpper)
+  , ("Rn", romanNumeralLower)
   ]
+
+romanNumeralUpper :: (PandocMonad m) => LP m Inlines
+romanNumeralUpper =
+  str . toRomanNumeral <$> romanNumeralArg
+
+romanNumeralLower :: (PandocMonad m) => LP m Inlines
+romanNumeralLower =
+  str . map toLower . toRomanNumeral <$> romanNumeralArg
+
+romanNumeralArg :: (PandocMonad m) => LP m Int
+romanNumeralArg = spaces *> (parser <|> inBraces)
+  where
+    inBraces = do
+      symbol '{'
+      spaces
+      res <- parser
+      spaces
+      symbol '}'
+      return res
+    parser = do
+      Tok _ Word s <- satisfyTok isWordTok
+      let (digits, rest) = T.span isDigit s
+      unless (T.null rest) $
+        fail "Non-digits in argument to \\Rn or \\RN"
+      safeRead $ T.unpack digits
 
 newToggle :: (Monoid a, PandocMonad m) => [Tok] -> LP m a
 newToggle name = do

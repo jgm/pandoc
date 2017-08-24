@@ -143,6 +143,29 @@ tests = [ testGroup "basic"
             "hello\\pfbreak*{}goodbye" =?>
             para (str "hello") <> horizontalRule <> para (str "goodbye")
           ]
+        , testGroup "biblatex roman numerals"
+          [ "upper" =:
+            "number \\RN{12}" =?>
+            para (str "number" <> space <> str "XII")
+          , "lower" =:
+            "number \\Rn{29}" =?>
+            para (str "number" <> space <> str "xxix")
+          , "leading zero" =:
+            "\\Rn{014}" =?>
+            para (str "xiv")
+          , "surrounding spaces" =:
+            "number \\Rn{ 41 }" =?>
+            para (str "number" <> space <> str "xli")
+          , "zero" =:
+            "\\RN{0}" =?>
+            para (str "")
+          , "space then unbraced argument" =:
+            "\\RN 7 ok" =?>
+            para (str "VII" <> space <> str "ok")
+          , "space before braced argument" =:
+            "\\Rn {13}ok" =?>
+            para (str "xiiiok")
+          ]
         ]
 
 baseCitation :: Citation
