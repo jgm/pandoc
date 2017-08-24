@@ -147,6 +147,27 @@ tests =
           blockQuote (para "This is a quotation with a continuation")
         ]
       , "Quote tag" =: "<quote>Hello, world</quote>" =?> blockQuote (para $ text "Hello, world")
+      , "Verse tag" =:
+        T.unlines [ "<verse>"
+                  , ""
+                  , "Foo bar baz"
+                  , "  One two three"
+                  , ""
+                  , "</verse>"
+                  , "<verse>Foo bar</verse>"
+                  , "<verse>"
+                  , "Foo bar</verse>"
+                  , "<verse>"
+                  , "   Foo</verse>"
+                  ] =?>
+        lineBlock [ ""
+                  , text "Foo bar baz"
+                  , text "\160\160One two three"
+                  , ""
+                  ] <>
+        lineBlock [ "Foo bar" ] <>
+        lineBlock [ "Foo bar" ] <>
+        lineBlock [ "\160\160\160Foo" ]
       , "Center" =: "<center>Hello, world</center>" =?> para (text "Hello, world")
       , "Right" =: "<right>Hello, world</right>" =?> para (text "Hello, world")
       , testGroup "Comments"
