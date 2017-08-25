@@ -32,7 +32,7 @@ TODO:
 - {{{ }}} syntax for <example>
 - Page breaks (five "*")
 - Headings with anchors (make it round trip with Muse writer)
-- <verse> and ">"
+- Verse markup (">")
 - Org tables
 - table.el tables
 - Images with attributes (floating and width)
@@ -180,6 +180,7 @@ blockElements = choice [ comment
                        , centerTag
                        , rightTag
                        , quoteTag
+                       , verseTag
                        , bulletList
                        , orderedList
                        , definitionList
@@ -243,6 +244,25 @@ rightTag = blockTag id "right"
 
 quoteTag :: PandocMonad m => MuseParser m (F Blocks)
 quoteTag = withQuoteContext InDoubleQuote $ blockTag B.blockQuote "quote"
+
+verseLine :: PandocMonad m => MuseParser m String
+verseLine = do
+  line <- anyLine <|> many1Till anyChar eof
+  let (white, rest) = span (== ' ') line
+  return $ replicate (length white) '\160' ++ rest
+
+verseLines :: PandocMonad m => MuseParser m (F Blocks)
+verseLines = do
+  optionMaybe blankline -- Skip blankline after opening tag on separate line
+  lns <- many verseLine
+  lns' <- mapM (parseFromString' (trimInlinesF . mconcat <$> many inline)) lns
+  return $ B.lineBlock <$> sequence lns'
+
+verseTag :: PandocMonad m => MuseParser m (F Blocks)
+verseTag = do
+  (_, content) <- htmlElement "verse"
+  parsedContent <- parseFromString verseLines content
+  return parsedContent
 
 commentTag :: PandocMonad m => MuseParser m (F Blocks)
 commentTag = parseHtmlContent "comment" anyChar >> return mempty
