@@ -1391,11 +1391,8 @@ inlineCommands = M.fromList $
                    <|> citation "citeauthor" AuthorInText False)
   , ("nocite", mempty <$ (citation "nocite" NormalCitation False >>=
                           addMeta "nocite"))
-  -- hyperlink: for now, we just preserve contents.
-  -- we might add the actual links, but we need to avoid clashes
-  -- with ids produced by label.
-  , ("hypertarget", braced >> tok)
-  , ("hyperlink", braced >> tok)
+  , ("hyperlink", hyperlink)
+  , ("hypertarget", hypertargetInline)
   -- glossaries package
   , ("gls", doAcronym "short")
   , ("Gls", doAcronym "short")
@@ -1449,6 +1446,26 @@ inlineCommands = M.fromList $
   , ("RN", romanNumeralUpper)
   , ("Rn", romanNumeralLower)
   ]
+
+hyperlink :: PandocMonad m => LP m Inlines
+hyperlink = try $ do
+  src <- toksToString <$> braced
+  lab <- tok
+  return $ link ('#':src) "" lab
+
+hypertargetBlock :: PandocMonad m => LP m Blocks
+hypertargetBlock = try $ do
+  ref <- toksToString <$> braced
+  bs <- grouped block
+  case toList bs of
+       [Header 1 (ident,_,_) _] | ident == ref -> return bs
+       _ -> return $ divWith (ref, [], []) bs
+
+hypertargetInline :: PandocMonad m => LP m Inlines
+hypertargetInline = try $ do
+  ref <- toksToString <$> braced
+  ils <- grouped inline
+  return $ spanWith (ref, [], []) ils
 
 romanNumeralUpper :: (PandocMonad m) => LP m Inlines
 romanNumeralUpper =
@@ -1972,7 +1989,7 @@ blockCommands = M.fromList $
    , ("setdefaultlanguage", setDefaultLanguage)
    , ("setmainlanguage", setDefaultLanguage)
    -- hyperlink
-   , ("hypertarget", try $ braced >> grouped block)
+   , ("hypertarget", hypertargetBlock)
    -- LaTeX colors
    , ("textcolor", coloredBlock "color")
    , ("colorbox", coloredBlock "background-color")
