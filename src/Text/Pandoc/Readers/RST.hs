@@ -219,7 +219,6 @@ block = choice [ codeBlock
                , directive
                , anchor
                , comment
-               , include
                , header
                , hrule
                , lineBlock     -- must go before definitionList
@@ -460,16 +459,16 @@ tab-width
 encoding
 -}
 
-include :: PandocMonad m => RSTParser m Blocks
-include = try $ do
-  string ".. include::"
-  skipMany spaceChar
-  f <- trim <$> anyLine
-  fields <- many $ rawFieldListItem 3
+includeDirective :: PandocMonad m
+                 => String -> [(String, String)] -> String
+                 -> RSTParser m Blocks
+includeDirective top fields body = do
+  let f = trim top
+  guard $ not (null f)
+  guard $ null (trim body)
   -- options
   let (startLine :: Maybe Int) = lookup "start-line" fields >>= safeRead
   let (endLine :: Maybe Int) = lookup "end-line" fields >>= safeRead
-  guard $ not (null f)
   oldPos <- getPosition
   oldInput <- getInput
   containers <- stateContainers <$> getState
@@ -501,7 +500,7 @@ include = try $ do
                              Just patt -> drop 1 .
                                             dropWhile (not . (patt `isInfixOf`))
                              Nothing   -> id) $ contentLines'
-  let contents' = unlines contentLines''
+  let contents' = unlines contentLines'' ++ "\n"
   case lookup "code" fields of
        Just lang -> do
          let numberLines = lookup "number-lines" fields
@@ -687,6 +686,7 @@ directive' = do
                         $ lookup "height" fields >>=
                           (lengthToDim . filter (not . isSpace))
   case label of
+        "include" -> includeDirective top fields body'
         "table" -> tableDirective top fields body'
         "list-table" -> listTableDirective top fields body'
         "csv-table" -> csvTableDirective top fields body'
