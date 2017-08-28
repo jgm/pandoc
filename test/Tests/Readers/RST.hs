@@ -136,6 +136,19 @@ tests = [ "line block with blank line" =:
                  para "but must stop here")
           , "line block with 3 lines" =: "| a\n| b\n| c"
             =?> lineBlock ["a", "b", "c"]
+          , "line blocks with blank lines" =: T.unlines
+            [ "|"
+            , ""
+            , "|"
+            , "| a"
+            , "| b"
+            , "|"
+            , ""
+            , "|"
+            ] =?>
+            lineBlock [""] <>
+            lineBlock ["", "a", "b", ""] <>
+            lineBlock [""]
           , "quoted literal block using >" =: "::\n\n> quoted\n> block\n\nOrdinary paragraph"
             =?> codeBlock "> quoted\n> block" <> para "Ordinary paragraph"
           , "quoted literal block using | (not  a line block)" =: "::\n\n| quoted\n| block\n\nOrdinary paragraph"

@@ -838,7 +838,7 @@ blankLineBlockLine = try (char '|' >> blankline)
 lineBlockLines :: Monad m => ParserT [Char] st m [String]
 lineBlockLines = try $ do
   lines' <- many1 (lineBlockLine <|> ((:[]) <$> blankLineBlockLine))
-  skipMany1 $ blankline <|> blankLineBlockLine
+  skipMany $ blankline
   return lines'
 
 -- | Parse a table using 'headerParser', 'rowParser',
