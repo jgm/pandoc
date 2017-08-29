@@ -32,7 +32,6 @@ TODO:
 - {{{ }}} syntax for <example>
 - Page breaks (five "*")
 - Headings with anchors (make it round trip with Muse writer)
-- Verse markup (">")
 - Org tables
 - table.el tables
 - Images with attributes (floating and width)
@@ -181,6 +180,7 @@ blockElements = choice [ comment
                        , rightTag
                        , quoteTag
                        , verseTag
+                       , lineBlock
                        , bulletList
                        , orderedList
                        , definitionList
@@ -297,6 +297,26 @@ noteBlock = try $ do
   where
     blocksTillNote =
       many1Till block (eof <|> () <$ lookAhead noteMarker)
+
+--
+-- Verse markup
+--
+
+lineVerseLine :: PandocMonad m => MuseParser m String
+lineVerseLine = try $ do
+  char '>'
+  white <- many1 (char ' ' >> pure '\160')
+  rest <- anyLine
+  return $ tail white ++ rest
+
+blanklineVerseLine :: PandocMonad m => MuseParser m Char
+blanklineVerseLine = try $ char '>' >> blankline
+
+lineBlock :: PandocMonad m => MuseParser m (F Blocks)
+lineBlock = try $ do
+  lns <- many1 (pure <$> blanklineVerseLine <|> lineVerseLine)
+  lns' <- mapM (parseFromString' (trimInlinesF . mconcat <$> many inline)) lns
+  return $ B.lineBlock <$> sequence lns'
 
 --
 -- lists

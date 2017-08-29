@@ -145,6 +145,30 @@ tests =
                     , "  with a continuation"
                     ] =?>
           blockQuote (para "This is a quotation with a continuation")
+        , "Verse" =:
+          T.unlines [ "> This is"
+                    , "> First stanza"
+                    , ">" -- Emacs produces verbatim ">" here, we follow Amusewiki
+                    , "> And this is"
+                    , ">   Second stanza"
+                    , ">"
+                    , ""
+                    , ">"
+                    , ""
+                    , "> Another verse"
+                    , ">    is here"
+                    ] =?>
+          lineBlock [ "This is"
+                    , "First stanza"
+                    , ""
+                    , "And this is"
+                    , "\160\160Second stanza"
+                    , ""
+                    ] <>
+          lineBlock [ "" ] <>
+          lineBlock [ "Another verse"
+                    , "\160\160\160is here"
+                    ]
         ]
       , "Quote tag" =: "<quote>Hello, world</quote>" =?> blockQuote (para $ text "Hello, world")
       , "Verse tag" =:
