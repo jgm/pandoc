@@ -571,6 +571,7 @@ imgAttrsToHtml opts attr = do
 dimensionsToAttrList :: Attr -> [(String, String)]
 dimensionsToAttrList attr = consolidateStyles $ go Width ++ go Height
   where
+    consolidateStyles :: [(String, String)] -> [(String, String)]
     consolidateStyles xs =
       case partition isStyle xs of
            ([], _) -> xs
