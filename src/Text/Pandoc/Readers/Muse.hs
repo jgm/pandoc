@@ -261,8 +261,7 @@ verseLines = do
 verseTag :: PandocMonad m => MuseParser m (F Blocks)
 verseTag = do
   (_, content) <- htmlElement "verse"
-  parsedContent <- parseFromString verseLines content
-  return parsedContent
+  parseFromString verseLines content
 
 commentTag :: PandocMonad m => MuseParser m (F Blocks)
 commentTag = parseHtmlContent "comment" anyChar >> return mempty
@@ -379,8 +378,8 @@ definitionListItem = try $ do
   pure $ do lineContent' <- lineContent
             pure (B.text term, [lineContent'])
   where
-    termParser = (many1 spaceChar) >> -- Initial space as required by Amusewiki, but not Emacs Muse
-                 (many1Till anyChar $ lookAhead (void (try (spaceChar >> string "::")) <|> void newline))
+    termParser = many1 spaceChar >> -- Initial space as required by Amusewiki, but not Emacs Muse
+                 many1Till anyChar (lookAhead (void (try (spaceChar >> string "::")) <|> void newline))
     endOfInput = try $ skipMany blankline >> skipSpaces >> eof
     twoBlankLines = try $ blankline >> skipMany1 blankline
     newDefinitionListItem = try $ void termParser
