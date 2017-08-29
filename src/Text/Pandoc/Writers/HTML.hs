@@ -47,7 +47,7 @@ import Control.Monad.State.Strict
 import Data.Char (ord, toLower)
 import Data.Text (Text)
 import qualified Data.Text.Lazy as TL
-import Data.List (intersperse, isPrefixOf)
+import Data.List (intersperse, isPrefixOf, partition, intercalate)
 import Data.Maybe (catMaybes, fromMaybe, isJust, isNothing)
 import Data.Monoid ((<>))
 import qualified Data.Set as Set
@@ -569,8 +569,14 @@ imgAttrsToHtml opts attr = do
     isNotDim _             = True
 
 dimensionsToAttrList :: Attr -> [(String, String)]
-dimensionsToAttrList attr = (go Width) ++ (go Height)
+dimensionsToAttrList attr = consolidateStyles $ go Width ++ go Height
   where
+    consolidateStyles xs =
+      case partition isStyle xs of
+           ([], _) -> xs
+           (ss, rest) -> ("style", intercalate ";" $ map snd ss) : rest
+    isStyle ("style", _) = True
+    isStyle _            = False
     go dir = case (dimension dir attr) of
                (Just (Pixel a))  -> [(show dir, show a)]
                (Just x)          -> [("style", show dir ++ ":" ++ show x)]
