@@ -111,6 +111,11 @@ inline element must return an inline, and a block element must
 remain a block element after filter application. Pandoc will
 throw an error if this condition is violated.
 
+If there is no function matching the element's node type, then
+the filtering system will look for a more general fallback
+function. Two fallback functions are supported, `Inline` and
+`Block`. Each matches elements of the respective type.
+
 Elements without matching functions are left untouched.
 
 See [module documentation](pandoc-module.html) for a list of pandoc
