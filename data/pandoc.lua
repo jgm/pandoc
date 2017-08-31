@@ -135,7 +135,7 @@ end
 -- @section document
 
 --- A complete pandoc document
--- @function Panoc
+-- @function Pandoc
 -- @tparam      {Block,...} blocks      document content
 -- @tparam[opt] Meta        meta        document meta data
 function M.Pandoc(blocks, meta)
@@ -772,7 +772,7 @@ M.UpperAlpha = "UpperAlpha"
 -- `--from` command line option.
 -- @tparam      string markup the markup to be parsed
 -- @tparam[opt] string format format specification, defaults to "markdown".
--- @return Doc pandoc document
+-- @treturn Pandoc pandoc document
 -- @usage
 -- local org_markup = "/emphasis/"  -- Input to be read
 -- local document = pandoc.read(org_markup, "org")
