@@ -129,36 +129,25 @@ blockToOrg (Div (_,classes@(cls:_),kvs) bs) | "drawer" `elem` classes = do
            blankline $$ contents $$
            blankline $$ drawerEndTag $$
            blankline
-blockToOrg (Div attrs bs) = do
+blockToOrg (Div (ident, classes, kv) bs) = do
   contents <- blockListToOrg bs
+  -- if one class looks like the name of a greater block then output as such:
+  -- The ID, if present, is added via the #+NAME keyword; other classes and
+  -- key-value pairs are kept as #+ATTR_HTML attributes.
   let isGreaterBlockClass = (`elem` ["center", "quote"]) . map toLower
-  return $ case attrs of
-    ("", [], []) ->
-      -- nullAttr, treat contents as if it wasn't wrapped
-      blankline $$ contents $$ blankline
-    (ident, [], []) ->
-      -- only an id: add id as an anchor, unwrap the rest
-      blankline $$ "<<" <> text ident <> ">>" $$ contents $$ blankline
-    (ident, classes, kv) ->
-      -- if one class looks like the name of a greater block then output as
-      -- such: The ID, if present, is added via the #+NAME keyword; other
-      -- classes and key-value pairs are kept as #+ATTR_HTML attributes.
-      let
-        (blockTypeCand, classes') = partition isGreaterBlockClass classes
-      in case blockTypeCand of
-        (blockType:classes'') ->
-          blankline $$ attrHtml (ident, classes'' <> classes', kv) $$
-          "#+BEGIN_" <> text blockType $$ contents $$
-          "#+END_" <> text blockType $$ blankline
-        _                     ->
-          -- fallback: wrap in div tags
-          let
-            startTag = tagWithAttrs "div" attrs
-            endTag = text "</div>"
-          in blankline $$ "#+BEGIN_HTML" $$
-             nest 2 startTag $$ "#+END_HTML" $$ blankline $$
-             contents $$ blankline $$ "#+BEGIN_HTML" $$
-             nest 2 endTag $$ "#+END_HTML" $$ blankline
+      (blockTypeCand, classes') = partition isGreaterBlockClass classes
+  return $ case blockTypeCand of
+    (blockType:classes'') ->
+      blankline $$ attrHtml (ident, classes'' <> classes', kv) $$
+      "#+BEGIN_" <> text blockType $$ contents $$
+      "#+END_" <> text blockType $$ blankline
+    _                     ->
+      -- fallback with id: add id as an anchor if present, discard classes and
+      -- key-value pairs, unwrap the content.
+      let contents' = if not (null ident)
+                      then "<<" <> text ident <> ">>" $$ contents
+                      else contents
+      in blankline $$ contents' $$ blankline
 blockToOrg (Plain inlines) = inlineListToOrg inlines
 -- title beginning with fig: indicates that the image is a figure
 blockToOrg (Para [Image attr txt (src,'f':'i':'g':':':tit)]) = do
@@ -173,7 +162,7 @@ blockToOrg (Para inlines) = do
 blockToOrg (LineBlock lns) = do
   let splitStanza [] = []
       splitStanza xs = case break (== mempty) xs of
-        (l, [])  -> l : []
+        (l, [])  -> [l]
         (l, _:r) -> l : splitStanza r
   let joinWithLinefeeds  = nowrap . mconcat . intersperse cr
   let joinWithBlankLines = mconcat . intersperse blankline
@@ -213,7 +202,7 @@ blockToOrg (Table caption' _ _ headers rows) =  do
   caption'' <- inlineListToOrg caption'
   let caption = if null caption'
                    then empty
-                   else ("#+CAPTION: " <> caption'')
+                   else "#+CAPTION: " <> caption''
   headers' <- mapM blockListToOrg headers
   rawRows <- mapM (mapM blockListToOrg) rows
   let numChars = maximum . map offset
@@ -289,8 +278,8 @@ propertiesDrawer (ident, classes, kv) =
   let
     drawerStart = text ":PROPERTIES:"
     drawerEnd   = text ":END:"
-    kv'  = if (classes == mempty) then kv  else ("CLASS", unwords classes):kv
-    kv'' = if (ident == mempty)   then kv' else ("CUSTOM_ID", ident):kv'
+    kv'  = if classes == mempty then kv  else ("CLASS", unwords classes):kv
+    kv'' = if ident == mempty   then kv' else ("CUSTOM_ID", ident):kv'
     properties = vcat $ map kvToOrgProperty kv''
   in
     drawerStart <> cr <> properties <> cr <> drawerEnd
@@ -303,7 +292,7 @@ attrHtml :: Attr -> Doc
 attrHtml (""   , []     , []) = mempty
 attrHtml (ident, classes, kvs) =
   let
-    name = if (null ident) then mempty else "#+NAME: " <> text ident <> cr
+    name = if null ident then mempty else "#+NAME: " <> text ident <> cr
     keyword = "#+ATTR_HTML"
     classKv = ("class", unwords classes)
     kvStrings = map (\(k,v) -> ":" <> k <> " " <> v) (classKv:kvs)
@@ -370,19 +359,19 @@ inlineToOrg SoftBreak = do
        WrapPreserve -> return cr
        WrapAuto     -> return space
        WrapNone     -> return space
-inlineToOrg (Link _ txt (src, _)) = do
+inlineToOrg (Link _ txt (src, _)) =
   case txt of
         [Str x] | escapeURI x == src ->  -- autolink
-             do return $ "[[" <> text (orgPath x) <> "]]"
+             return $ "[[" <> text (orgPath x) <> "]]"
         _ -> do contents <- inlineListToOrg txt
                 return $ "[[" <> text (orgPath src) <> "][" <> contents <> "]]"
-inlineToOrg (Image _ _ (source, _)) = do
+inlineToOrg (Image _ _ (source, _)) =
   return $ "[[" <> text (orgPath source) <> "]]"
 inlineToOrg (Note contents) = do
   -- add to notes in state
   notes <- gets stNotes
   modify $ \st -> st { stNotes = contents:notes }
-  let ref = show $ (length notes) + 1
+  let ref = show $ length notes + 1
   return $ "[fn:" <> text ref <> "]"
 
 orgPath :: String -> String
