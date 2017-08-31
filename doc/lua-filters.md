@@ -1,6 +1,6 @@
 % Pandoc Lua Filters
 % Albert Krewinkel, John MacFarlane
-% August 21, 2017
+% August 31, 2017
 
 # Introduction
 
@@ -309,3 +309,738 @@ then running `pandoc --lua-filter=meta-vars.lua occupations.md` will output:
 </dd>
 </dl>
 ```
+
+# Module pandoc
+
+Lua functions for pandoc scripts.
+
+## Pandoc Document
+
+[`Pandoc (blocks[, meta])`]{#Pandoc}
+
+:   A complete pandoc document
+
+    Parameters:
+
+    `blocks`:
+    :   document content
+
+    `meta`:
+    :   document meta data
+
+## MetaValue
+
+[`MetaBlocks (blocks)`]{#MetaBlocks}
+
+:   Meta blocks
+
+    Parameters:
+
+    `blocks`:
+    :   blocks
+
+[`MetaInlines (inlines)`]{#MetaInlines}
+
+:   Meta inlines
+
+    Parameters:
+
+    `inlines`:
+    :   inlines
+
+[`MetaList (meta_values)`]{#MetaList}
+
+:   Meta list
+
+    Parameters:
+
+    `meta_values`:
+    :   list of meta values
+
+[`MetaMap (key_value_map)`]{#MetaMap}
+
+:   Meta map
+
+    Parameters:
+
+    `key_value_map`:
+    :   a string-indexed map of meta values
+
+[`MetaString (str)`]{#MetaString}
+
+:   Creates string to be used in meta data.
+
+    Parameters:
+
+    `str`:
+    :   string value
+
+[`MetaBool (bool)`]{#MetaBool}
+
+:   Creates boolean to be used in meta data.
+
+    Parameters:
+
+    `bool`:
+    :   boolean value
+
+## Blocks
+
+[`Block`]{#Block}
+
+:   Block elements
+
+[`BlockQuote (content)`]{#BlockQuote}
+
+:   Creates a block quote element
+
+    Parameters:
+
+    `content`:
+    :   block content
+
+    Returns: block quote element
+
+[`BulletList (content)`]{#BulletList}
+
+:   Creates a bullet (i.e.
+
+    Parameters:
+
+    `content`:
+    :   list of items
+
+    Returns: block quote element
+
+[`CodeBlock (text[, attr])`]{#CodeBlock}
+
+:   Creates a code block element
+
+    Parameters:
+
+    `text`:
+    :   code string
+
+    `attr`:
+    :   element attributes
+
+    Returns: code block element
+
+[`DefinitionList (content)`]{#DefinitionList}
+
+:   Creates a definition list, containing terms and their
+    explanation.
+
+    Parameters:
+
+    `content`:
+    :   list of items
+
+    Returns: block quote element
+
+[`Div (content[, attr])`]{#Div}
+
+:   Creates a div element
+
+    Parameters:
+
+    `content`:
+    :   block content
+
+    `attr`:
+    :   element attributes
+
+    Returns: code block element
+
+[`Header (level, content[, attr])`]{#Header}
+
+:   Creates a block quote element.
+
+    Parameters:
+
+    `level`:
+    :   header level
+
+    `content`:
+    :   inline content
+
+    `attr`:
+    :   element attributes
+
+    Returns: header element
+
+[`HorizontalRule ()`]{#HorizontalRule}
+
+:   Creates a horizontal rule.
+
+    Returns: horizontal rule
+
+[`LineBlock (content)`]{#LineBlock}
+
+:   Creates a line block element.
+
+    Parameters:
+
+    `content`:
+    :   inline content
+
+    Returns: block quote element
+
+[`Null ()`]{#Null}
+
+:   Creates a null element.
+
+    Returns: null element
+
+[`OrderedList (items[, listAttributes])`]{#OrderedList}
+
+:   Creates an ordered list.
+
+    Parameters:
+
+    `items`:
+    :   list items
+
+    `listAttributes`:
+    :   list parameters
+
+    Returns:
+
+[`Para (content)`]{#Para}
+
+:   Creates a para element.
+
+    Parameters:
+
+    `content`:
+    :   inline content
+
+    Returns: block quote element
+
+[`Plain (content)`]{#Plain}
+
+:   Creates a plain element.
+
+    Parameters:
+
+    `content`:
+    :   inline content
+
+    Returns: block quote element
+
+[`RawBlock (format, text)`]{#RawBlock}
+
+:   Creates a raw content block of the specified format.
+
+    Parameters:
+
+    `format`:
+    :   format of content
+
+    `text`:
+    :   string content
+
+    Returns: block quote element
+
+[`Table (caption, aligns, widths, headers, rows)`]{#Table}
+
+:   Creates a table element.
+
+    Parameters:
+
+    `caption`:
+    :   table caption
+
+    `aligns`:
+    :   alignments
+
+    `widths`:
+    :   column widths
+
+    `headers`:
+    :   header row
+
+    `rows`:
+    :   table rows
+
+    Returns: block quote element
+
+## Inline
+
+[`Inline`]{#Inline}
+
+:   Inline element class
+
+[`Cite (content, citations)`]{#Cite}
+
+:   Creates a Cite inline element
+
+    Parameters:
+
+    `content`:
+    :   List of inlines
+
+    `citations`:
+    :   List of citations
+
+    Returns: citations element
+
+[`Code (text[, attr])`]{#Code}
+
+:   Creates a Code inline element
+
+    Parameters:
+
+    `text`:
+    :   brief image description
+
+    `attr`:
+    :   additional attributes
+
+    Returns: code element
+
+[`Emph (content)`]{#Emph}
+
+:   Creates an inline element representing emphasised text.
+
+    Parameters:
+
+    `content`:
+    :   inline content
+
+    Returns: emphasis element
+
+[`Image (caption, src[, title[, attr]])`]{#Image}
+
+:   Creates a Image inline element
+
+    Parameters:
+
+    `caption`:
+    :   text used to describe the image
+
+    `src`:
+    :   path to the image file
+
+    `title`:
+    :   brief image description
+
+    `attr`:
+    :   additional attributes
+
+    Returns: image element
+
+[`LineBreak ()`]{#LineBreak}
+
+:   Create a LineBreak inline element
+
+    Returns: linebreak element
+
+[`Link (content, target[, title[, attr]])`]{#Link}
+
+:   Creates a link inline element, usually a hyperlink.
+
+    Parameters:
+
+    `content`:
+    :   text for this link
+
+    `target`:
+    :   the link target
+
+    `title`:
+    :   brief link description
+
+    `attr`:
+    :   additional attributes
+
+    Returns: image element
+
+[`Math (mathtype, text)`]{#Math}
+
+:   Creates a Math element, either inline or displayed.
+
+    Parameters:
+
+    `mathtype`:
+    :   rendering specifier
+
+    `text`:
+    :   Math content
+
+    Returns: Math element
+
+[`DisplayMath (text)`]{#DisplayMath}
+
+:   Creates a DisplayMath element (DEPRECATED).
+
+    Parameters:
+
+    `text`:
+    :   Math content
+
+    Returns: Math element
+
+[`InlineMath (text)`]{#InlineMath}
+
+:   Creates an InlineMath inline element (DEPRECATED).
+
+    Parameters:
+
+    `text`:
+    :   Math content
+
+    Returns: Math element
+
+[`Note (content)`]{#Note}
+
+:   Creates a Note inline element
+
+    Parameters:
+
+    `content`:
+    :   footnote block content
+
+[`Quoted (quotetype, content)`]{#Quoted}
+
+:   Creates a Quoted inline element given the quote type and
+    quoted content.
+
+    Parameters:
+
+    `quotetype`:
+    :   type of quotes to be used
+
+    `content`:
+    :   inline content
+
+    Returns: quoted element
+
+[`SingleQuoted (content)`]{#SingleQuoted}
+
+:   Creates a single-quoted inline element (DEPRECATED).
+
+    Parameters:
+
+    `content`:
+    :   inline content
+
+    Returns: quoted element
+
+    See also: [Quoted](#Quoted)
+
+[`DoubleQuoted (content)`]{#DoubleQuoted}
+
+:   Creates a single-quoted inline element (DEPRECATED).
+
+    Parameters:
+
+    `content`:
+    :   inline content
+
+    Returns: quoted element
+
+    See also: [Quoted](#Quoted)
+
+[`RawInline (format, text)`]{#RawInline}
+
+:   Creates a RawInline inline element
+
+    Parameters:
+
+    `format`:
+    :   format of the contents
+
+    `text`:
+    :   string content
+
+    Returns: raw inline element
+
+[`SmallCaps (content)`]{#SmallCaps}
+
+:   Creates text rendered in small caps
+
+    Parameters:
+
+    `content`:
+    :   inline content
+
+    Returns: smallcaps element
+
+[`SoftBreak ()`]{#SoftBreak}
+
+:   Creates a SoftBreak inline element.
+
+    Returns: softbreak element
+
+[`Space ()`]{#Space}
+
+:   Create a Space inline element
+
+    Returns: space element
+
+[`Span (content[, attr])`]{#Span}
+
+:   Creates a Span inline element
+
+    Parameters:
+
+    `content`:
+    :   inline content
+
+    `attr`:
+    :   additional attributes
+
+    Returns: span element
+
+[`Str (text)`]{#Str}
+
+:   Creates a Str inline element
+
+    Parameters:
+
+    `text`:
+    :   content
+
+    Returns: string element
+
+[`Strikeout (content)`]{#Strikeout}
+
+:   Creates text which is striked out.
+
+    Parameters:
+
+    `content`:
+    :   inline content
+
+    Returns: strikeout element
+
+[`Strong (content)`]{#Strong}
+
+:   Creates a Strong element, whose text is usually displayed in
+    a bold font.
+
+    Parameters:
+
+    `content`:
+    :   inline content
+
+    Returns: strong element
+
+[`Subscript (content)`]{#Subscript}
+
+:   Creates a Subscript inline element
+
+    Parameters:
+
+    `content`:
+    :   inline content
+
+    Returns: subscript element
+
+[`Superscript (content)`]{#Superscript}
+
+:   Creates a Superscript inline element
+
+    Parameters:
+
+    `content`:
+    :   inline content
+
+    Returns: strong element
+
+## Helpers
+
+[`Attr ([identifier[, classes[, attributes]]])`]{#Attr}
+
+:   Create a new set of attributes (Attr).
+
+    Parameters:
+
+    `identifier`:
+    :   element identifier
+
+    `classes`:
+    :   element classes
+
+    `attributes`:
+    :   table containing string keys and values
+
+    Returns: element attributes
+
+[`Citation (id, mode[, prefix[, suffix[, note_num[, hash]]]])`]{#Citation}
+
+:   Creates a single citation.
+
+    Parameters:
+
+    `id`:
+    :   citation identifier (like a bibtex key)
+
+    `mode`:
+    :   citation mode
+
+    `prefix`:
+    :   citation prefix
+
+    `suffix`:
+    :   citation suffix
+
+    `note_num`:
+    :   note number
+
+    `hash`:
+    :   hash number
+
+## Constants
+
+[`AuthorInText`]{#AuthorInText}
+
+:   Author name is mentioned in the text.
+
+    See also: [Citation](#Citation)
+
+[`SuppressAuthor`]{#SuppressAuthor}
+
+:   Author name is suppressed.
+
+    See also: [Citation](#Citation)
+
+[`NormalCitation`]{#NormalCitation}
+
+:   Default citation style is used.
+
+    See also: [Citation](#Citation)
+
+[`AlignLeft`]{#AlignLeft}
+
+:   Table cells aligned left.
+
+    See also: [Table](#Table)
+
+[`AlignRight`]{#AlignRight}
+
+:   Table cells right-aligned.
+
+    See also: [Table](#Table)
+
+[`AlignCenter`]{#AlignCenter}
+
+:   Table cell content is centered.
+
+    See also: [Table](#Table)
+
+[`AlignDefault`]{#AlignDefault}
+
+:   Table cells are alignment is unaltered.
+
+    See also: [Table](#Table)
+
+[`DefaultDelim`]{#DefaultDelim}
+
+:   Default list number delimiters are used.
+
+    See also: [OrderedList](#OrderedList)
+
+[`Period`]{#Period}
+
+:   List numbers are delimited by a period.
+
+    See also: [OrderedList](#OrderedList)
+
+[`OneParen`]{#OneParen}
+
+:   List numbers are delimited by a single parenthesis.
+
+    See also: [OrderedList](#OrderedList)
+
+[`TwoParens`]{#TwoParens}
+
+:   List numbers are delimited by a double parentheses.
+
+    See also: [OrderedList](#OrderedList)
+
+[`DefaultStyle`]{#DefaultStyle}
+
+:   List are numbered in the default style
+
+    See also: [OrderedList](#OrderedList)
+
+[`Example`]{#Example}
+
+:   List items are numbered as examples.
+
+    See also: [OrderedList](#OrderedList)
+
+[`Decimal`]{#Decimal}
+
+:   List are numbered using decimal integers.
+
+    See also: [OrderedList](#OrderedList)
+
+[`LowerRoman`]{#LowerRoman}
+
+:   List are numbered using lower-case roman numerals.
+
+    See also: [OrderedList](#OrderedList)
+
+[`UpperRoman`]{#UpperRoman}
+
+:   List are numbered using upper-case roman numerals
+
+    See also: [OrderedList](#OrderedList)
+
+[`LowerAlpha`]{#LowerAlpha}
+
+:   List are numbered using lower-case alphabetic characters.
+
+    See also: [OrderedList](#OrderedList)
+
+[`UpperAlpha`]{#UpperAlpha}
+
+:   List are numbered using upper-case alphabetic characters.
+
+    See also: [OrderedList](#OrderedList)
+
+## Helper Functions
+
+[`read (markup[, format])`]{#read}
+
+:   Parse the given string into a Pandoc document.
+
+    Parameters:
+
+    `markup`:
+    :   the markup to be parsed
+
+    `format`:
+    :   format specification, defaults to \"markdown\".
+
+    Returns: pandoc document
+
+    Usage:
+
+        local org_markup = "/emphasis/"  -- Input to be read
+        local document = pandoc.read(org_markup, "org")
+        -- Get the first block of the document
+        local block = document.blocks[1]
+        -- The inline element in that block is an `Emph`
+        assert(block.content[1].t == "Emph")
+
+[`global_filter ()`]{#global_filter}
+
+:   Use functions defined in the global namespace to create a
+    pandoc filter.
+
+    Returns: A list of filter functions
+
+    Usage:
+
+        -- within a file defining a pandoc filter:
+        function Str(text)
+          return pandoc.Str(utf8.upper(text))
+        end
+
+        return {pandoc.global_filter()}
+        -- the above is equivallent to
+        -- return {{Str = Str}}
