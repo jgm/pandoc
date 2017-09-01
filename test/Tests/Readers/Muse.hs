@@ -145,6 +145,14 @@ tests =
                     , "  with a continuation"
                     ] =?>
           blockQuote (para "This is a quotation with a continuation")
+        , testGroup "Div"
+          [ "Div without id" =:
+            "<div>Foo bar</div>" =?>
+            divWith nullAttr (para "Foo bar")
+          , "Div with id" =:
+            "<div id=\"foo\">Foo bar</div>" =?>
+            divWith ("foo", [], []) (para "Foo bar")
+          ]
         , "Verse" =:
           T.unlines [ "> This is"
                     , "> First stanza"
