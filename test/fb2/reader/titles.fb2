@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<FictionBook xmlns="http://www.gribuser.ru/xml/fictionbook/2.0" xmlns:l="http://www.w3.org/1999/xlink">
+	<body>
+		<title><p>Body title</p></title>
+		<section>
+			<title><p>Section title</p></title>
+			<section>
+				<title>
+					<p>Subsection title</p>
+					<p>with multiple paragraphs</p>
+				</title>
+			</section>
+			<section>
+				<title><p>Another subsection title</p></title>
+			</section>
+		</section>
+	</body>
+</FictionBook>

@@ -65,6 +65,7 @@ module Text.Pandoc.Readers
   , readTxt2Tags
   , readEPUB
   , readMuse
+  , readFB2
   -- * Miscellaneous
   , getReader
   , getDefaultExtensions
@@ -86,6 +87,7 @@ import Text.Pandoc.Readers.Creole
 import Text.Pandoc.Readers.DocBook
 import Text.Pandoc.Readers.Docx
 import Text.Pandoc.Readers.EPUB
+import Text.Pandoc.Readers.FB2
 import Text.Pandoc.Readers.Haddock
 import Text.Pandoc.Readers.HTML (readHtml)
 import Text.Pandoc.Readers.JATS (readJATS)
@@ -143,6 +145,7 @@ readers = [ ("native"       , TextReader readNative)
            ,("t2t"          , TextReader readTxt2Tags)
            ,("epub"         , ByteStringReader readEPUB)
            ,("muse"         , TextReader readMuse)
+           ,("fb2"          , TextReader readFB2)
            ]
 
 -- | Retrieve reader, extensions based on formatSpec (format+extensions).

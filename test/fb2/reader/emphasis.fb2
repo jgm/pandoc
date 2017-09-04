@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<FictionBook xmlns="http://www.gribuser.ru/xml/fictionbook/2.0" xmlns:l="http://www.w3.org/1999/xlink">
+	<body>
+		<section>
+			<p>Plain, <strong>strong</strong>, <emphasis>emphasis</emphasis>, <strong><emphasis>strong emphasis</emphasis></strong>, <emphasis><strong>emphasized strong</strong></emphasis>.</p>
+			<p>Strikethrough: <strikethrough>deleted</strikethrough></p>
+			<p><sub>Subscript</sub> and <sup>superscript</sup></p>
+			<p>Some <code>code</code></p>
+		</section>
+	</body>
+</FictionBook>

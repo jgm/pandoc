@@ -1,0 +1,14 @@
+Pandoc (Meta {unMeta = fromList []})
+[Div ("",["section"],[])
+ [Header 2 ("",[],[]) [Str "Poem",Space,Str "title"]
+ ,Div ("",["epigraph"],[])
+  [Para [Str "Poem",Space,Str "epigraph"]]
+ ,Header 2 ("",["unnumbered"],[]) [Str "Subtitle"]
+ ,Header 2 ("",[],[]) [Str "First",Space,Str "stanza",Space,Str "title"]
+ ,LineBlock
+  [[Str "Verse"]
+  ,[Emph [Str "More"],Space,Str "verse"]]
+ ,LineBlock
+  [[Str "One",Space,Str "more",Space,Str "stanza"]]
+ ,Para [Str "Author"]
+ ,Para [Str "April",Space,Str "2018"]]]
