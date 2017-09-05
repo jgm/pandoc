@@ -965,6 +965,15 @@ hacek c   = [c]
 
 ogonek :: Char -> String
 ogonek 'a' = "ą"
+ogonek 'e' = "ę"
+ogonek 'o' = "ǫ"
+ogonek 'i' = "į"
+ogonek 'u' = "ų"
+ogonek 'A' = "Ą"
+ogonek 'E' = "Ę"
+ogonek 'I' = "Į"
+ogonek 'O' = "Ǫ"
+ogonek 'U' = "Ų"
 ogonek c   = [c]
 
 breve :: Char -> String
@@ -1293,6 +1302,7 @@ inlineCommands = M.fromList $
   , ("v", accent 'ˇ' hacek)
   , ("u", accent '\774' breve)
   , ("k", accent '\808' ogonek)
+  , ("textogonekcentered", accent '\808' ogonek)
   , ("i", lit "i")
   , ("\\", linebreak <$ (do inTableCell <- sInTableCell <$> getState
                             guard $ not inTableCell
