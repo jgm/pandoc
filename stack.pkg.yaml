@@ -14,7 +14,7 @@ packages:
 - '.'
 - location:
     git: https://github.com/jgm/pandoc-citeproc.git
-    commit: 71ca48b6e0044ea959d8e7882b03cceba9c7960c
+    commit: 5a7f26b61c8577916093851cdeb31fa9a198edcb
   extra-dep: false
 extra-deps:
 - hslua-0.8.0
