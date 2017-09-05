@@ -592,7 +592,7 @@ pFigure = try $ do
   case B.toList <$> mbimg of
        Just [Image attr _ (url, tit)] ->
          return $ B.para $ B.imageWith attr url ("fig:" ++ tit) caption
-       Nothing -> mzero
+       _ -> mzero
 
 pCodeBlock :: PandocMonad m => TagParser m Blocks
 pCodeBlock = try $ do
