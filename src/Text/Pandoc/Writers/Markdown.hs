@@ -949,11 +949,10 @@ inlineToMarkdown opts (Span attrs ils) = do
   contents <- inlineListToMarkdown opts ils
   return $ case plain of
                 True -> contents
-                False | isEnabled Ext_bracketed_spans opts ->
+                False | attrs == nullAttr -> contents
+                      | isEnabled Ext_bracketed_spans opts ->
                         "[" <> contents <> "]" <>
-                          if attrs == nullAttr
-                             then "{}"
-                             else linkAttributes opts attrs
+                             linkAttributes opts attrs
                       | isEnabled Ext_raw_html opts ||
                         isEnabled Ext_native_spans opts ->
                         tagWithAttrs "span" attrs <> contents <> text "</span>"
