@@ -224,6 +224,7 @@ tests =
         , "Subsubsection" =:
           "***** Fifth level\n" =?>
           header 5 "Fifth level"
+        , "Whitespace is required after *" =: "**Not a header\n" =?> para "**Not a header"
         , "No headers in footnotes" =:
           T.unlines [ "Foo[1]"
                     , "[1] * Bar"

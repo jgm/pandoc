@@ -213,7 +213,7 @@ header = try $ do
   getPosition >>= \pos -> guard (st == NullState && q == NoQuote && sourceColumn pos == 1)
   level <- liftM length $ many1 $ char '*'
   guard $ level <= 5
-  skipSpaces
+  spaceChar
   content <- trimInlinesF . mconcat <$> manyTill inline newline
   attr <- registerHeader ("", [], []) (runF content defaultParserState)
   return $ B.headerWith attr level <$> content
