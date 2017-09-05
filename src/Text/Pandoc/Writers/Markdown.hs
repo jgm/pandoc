@@ -787,6 +787,7 @@ blockListToMarkdown :: PandocMonad m
                     -> MD m Doc
 blockListToMarkdown opts blocks = do
   inlist <- asks envInList
+  isPlain <- asks envPlain
   -- a) insert comment between list and indented code block, or the
   -- code block will be treated as a list continuation paragraph
   -- b) change Plain to Para unless it's followed by a RawBlock
@@ -813,9 +814,11 @@ blockListToMarkdown opts blocks = do
       isListBlock (OrderedList _ _)  = True
       isListBlock (DefinitionList _) = True
       isListBlock _                  = False
-      commentSep                     = if isEnabled Ext_raw_html opts
-                                          then RawBlock "html" "<!-- -->\n"
-                                          else RawBlock "markdown" "&nbsp;\n"
+      commentSep  = if isPlain
+                       then Null
+                       else if isEnabled Ext_raw_html opts
+                            then RawBlock "html" "<!-- -->\n"
+                            else RawBlock "markdown" "&nbsp;\n"
   mapM (blockToMarkdown opts) (fixBlocks blocks) >>= return . cat
 
 getKey :: Doc -> Key
