@@ -16,14 +16,14 @@ RUN git clone https://github.com/jgm/pandoc
 WORKDIR /usr/src/pandoc
 RUN stack install --stack-yaml stack.pkg.yaml --only-dependencies \
     --flag 'pandoc:embed_data_files' \
-    --ghc-options '-fPIC -fllvm' \
+    --ghc-options '-O2 -optc-Os -optl=-pthread -optl=-static -fPIC' \
     pandoc pandoc-citeproc
 CMD git pull && \
     git checkout -b work $TREE && \
     stack install --stack-yaml stack.pkg.yaml \
       --flag 'pandoc:static' \
       --flag 'pandoc:embed_data_files' \
-      --ghc-options '-O2 -optc-Os -fPIC' \
+      --ghc-options '-O2 -optc-Os -optl=-pthread -optl=-static -fPIC' \
       --local-bin-path /artifacts \
       pandoc pandoc-citeproc && \
     bash linux/make_deb.sh && \
