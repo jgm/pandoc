@@ -265,6 +265,10 @@ Source-repository head
   type:          git
   location:      git://github.com/jgm/pandoc.git
 
+Flag static
+  Description:   Use static linking for pandoc executable.
+  Default:       False
+
 Flag embed_data_files
   Description:   Embed data files in binary for relocatable executable.
   Default:       False
@@ -483,7 +487,8 @@ Executable pandoc
   Build-Depends: pandoc, base >= 4.7 && < 5
   Ghc-Options:   -rtsopts -with-rtsopts=-K16m -Wall -fno-warn-unused-do-bind
   Ghc-Prof-Options: -fprof-auto-exported -rtsopts -with-rtsopts=-K16m
-
+  if flag(static)
+    Ld-options:     -static
   Default-Language: Haskell98
   Other-Extensions: PatternGuards, OverloadedStrings,
                     ScopedTypeVariables, GeneralizedNewtypeDeriving,

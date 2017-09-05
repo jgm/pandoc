@@ -5,7 +5,7 @@ ADD https://raw.githubusercontent.com/mitchty/alpine-ghc/master/mitch.tishmack%4
     /etc/apk/keys/mitch.tishmack@gmail.com-55881c97.rsa.pub
 RUN apk update
 RUN apk add alpine-sdk git ca-certificates ghc cabal stack zlib-dev \
-    dpkg fakeroot sed gawk grep
+    dpkg fakeroot sed gawk grep llvm linux-headers
 RUN stack update
 RUN stack config set system-ghc --global true
 RUN mkdir -p /etc/stack
@@ -16,13 +16,15 @@ RUN git clone https://github.com/jgm/pandoc
 WORKDIR /usr/src/pandoc
 RUN stack install --stack-yaml stack.pkg.yaml --only-dependencies \
     --flag 'pandoc:embed_data_files' \
-    --test --ghc-options '-O2 -optc-Os -optl-static -fPIC' \
+    --ghc-options '-fPIC -fllvm' \
     pandoc pandoc-citeproc
 CMD git pull && \
     git checkout -b work $TREE && \
     stack install --stack-yaml stack.pkg.yaml \
-      --local-bin-path /artifacts --flag 'pandoc:embed_data_files' \
-      --test --ghc-options '-O2 -optc-Os -optl-static -fPIC' \
+      --flag 'pandoc:static' \
+      --flag 'pandoc:embed_data_files' \
+      --ghc-options '-fPIC -fllvm' \
+      --local-bin-path /artifacts \
       pandoc pandoc-citeproc && \
     bash linux/make_deb.sh && \
     bash linux/make_tarball.sh
