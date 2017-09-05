@@ -179,6 +179,7 @@ blockElements = choice [ comment
                        , centerTag
                        , rightTag
                        , quoteTag
+                       , divTag
                        , verseTag
                        , lineBlock
                        , bulletList
@@ -244,6 +245,12 @@ rightTag = blockTag id "right"
 
 quoteTag :: PandocMonad m => MuseParser m (F Blocks)
 quoteTag = withQuoteContext InDoubleQuote $ blockTag B.blockQuote "quote"
+
+-- <div> tag is supported by Emacs Muse, but not Amusewiki 2.025
+divTag :: PandocMonad m => MuseParser m (F Blocks)
+divTag = do
+  (attrs, content) <- parseHtmlContentWithAttrs "div" block
+  return $ (B.divWith attrs) <$> mconcat content
 
 verseLine :: PandocMonad m => MuseParser m String
 verseLine = do
