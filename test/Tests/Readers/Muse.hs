@@ -210,21 +210,21 @@ tests =
         ]
       , testGroup "Headers"
         [ "Part" =:
-          "* First level\n" =?>
+          "* First level" =?>
           header 1 "First level"
         , "Chapter" =:
-          "** Second level\n" =?>
+          "** Second level" =?>
           header 2 "Second level"
         , "Section" =:
-          "*** Third level\n" =?>
+          "*** Third level" =?>
           header 3 "Third level"
         , "Subsection" =:
-          "**** Fourth level\n" =?>
+          "**** Fourth level" =?>
           header 4 "Fourth level"
         , "Subsubsection" =:
-          "***** Fifth level\n" =?>
+          "***** Fifth level" =?>
           header 5 "Fifth level"
-        , "Whitespace is required after *" =: "**Not a header\n" =?> para "**Not a header"
+        , "Whitespace is required after *" =: "**Not a header" =?> para "**Not a header"
         , "No headers in footnotes" =:
           T.unlines [ "Foo[1]"
                     , "[1] * Bar"
