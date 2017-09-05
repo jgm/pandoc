@@ -961,6 +961,10 @@ hacek 'Z' = "Ž"
 hacek 'z' = "ž"
 hacek c   = [c]
 
+ogonek :: Char -> String
+ogonek 'a' = "ą"
+ogonek c   = [c]
+
 breve :: Char -> String
 breve 'A' = "Ă"
 breve 'a' = "ă"
@@ -1286,6 +1290,7 @@ inlineCommands = M.fromList $
   , ("c", option (str "c") $ try $ tok >>= accent cedilla)
   , ("v", option (str "v") $ try $ tok >>= accent hacek)
   , ("u", option (str "u") $ try $ tok >>= accent breve)
+  , ("k", option (str "k") $ try $ tok >>= accent ogonek)
   , ("i", lit "i")
   , ("\\", linebreak <$ (do inTableCell <- sInTableCell <$> getState
                             guard $ not inTableCell
