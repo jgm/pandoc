@@ -28,7 +28,6 @@
 
 (defvar pandoc-template-font-lock-keywords
    '(("\\(\\$\\)\\(if\\|for\\)(\\([^)]+\\))\\(\\$\\)"
-      ;. font-lock-preprocessor-face)
       (1 font-lock-preprocessor-face)
       (2 font-lock-keyword-face)
       (3 font-lock-variable-name-face)
