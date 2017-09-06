@@ -1,3 +1,4 @@
+{-# LANGUAGE FlexibleContexts #-}
 {-
   Copyright (C) 2017 Alexander Krotov <ilabdsf@gmail.com>
 
@@ -100,6 +101,9 @@ parseBlocks = do
 -- utility functions
 --
 
+eol :: Stream s m Char => ParserT s st m ()
+eol = void newline <|> eof
+
 nested :: PandocMonad m => MuseParser m a -> MuseParser m a
 nested p = do
   nestlevel <- stateMaxNestingLevel <$>  getState
@@ -195,7 +199,7 @@ comment = try $ do
   char ';'
   space
   many $ noneOf "\n"
-  void newline <|> eof
+  eol
   return mempty
 
 separator :: PandocMonad m => MuseParser m (F Blocks)
@@ -203,7 +207,7 @@ separator = try $ do
   string "----"
   many $ char '-'
   many spaceChar
-  void newline <|> eof
+  eol
   return $ return B.horizontalRule
 
 header :: PandocMonad m => MuseParser m (F Blocks)
@@ -214,7 +218,7 @@ header = try $ do
   level <- liftM length $ many1 $ char '*'
   guard $ level <= 5
   spaceChar
-  content <- trimInlinesF . mconcat <$> manyTill inline newline
+  content <- trimInlinesF . mconcat <$> manyTill inline eol
   attr <- registerHeader ("", [], []) (runF content defaultParserState)
   return $ B.headerWith attr level <$> content
 
@@ -464,10 +468,10 @@ museAppendElement tbl element =
 
 tableCell :: PandocMonad m => MuseParser m (F Blocks)
 tableCell = try $ liftM B.plain . trimInlinesF . mconcat <$> manyTill inline (lookAhead cellEnd)
-  where cellEnd = try $ void (many1 spaceChar >> char '|') <|> void newline <|> eof
+  where cellEnd = try $ void (many1 spaceChar >> char '|') <|> eol
 
 tableElements :: PandocMonad m => MuseParser m [MuseTableElement]
-tableElements = tableParseElement `sepEndBy1` (void newline <|> eof)
+tableElements = tableParseElement `sepEndBy1` eol
 
 elementsToTable :: [MuseTableElement] -> F MuseTable
 elementsToTable = foldM museAppendElement emptyTable
