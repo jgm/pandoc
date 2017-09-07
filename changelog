@@ -1,3 +1,11 @@
+pandoc (1.19.2.2)
+
+  * Fix build with GHC 8.2.1 (#3876, Peter Simons).  Setup.hs does not
+    compile with Cabal 2.x, so we require an earlier version via
+    setup-depends.  The following packages need newer versions with
+    GHC 8.2.1 and had their constraints relaxed accordingly:
+    executable-path, process, syb, and time.
+
 pandoc (1.19.2.1)
 
   * Require skylighting >= 0.1.1.4.
