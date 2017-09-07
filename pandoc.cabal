@@ -1,5 +1,5 @@
 Name:            pandoc
-Version:         1.19.2.1
+Version:         1.19.2.2
 Cabal-Version:   >= 1.10
 Build-Type:      Custom
 License:         GPL
@@ -274,7 +274,7 @@ Library
                  xml >= 1.3.12 && < 1.4,
                  random >= 1 && < 1.2,
                  extensible-exceptions >= 0.1 && < 0.2,
-                 pandoc-types >= 1.17 && < 1.18,
+                 pandoc-types >= 1.17 && < 1.17.1,
                  aeson >= 0.7 && < 1.2,
                  tagsoup >= 0.13.7 && < 0.15,
                  base64-bytestring >= 0.1 && < 1.1,
