@@ -9,4 +9,6 @@ packages:
 - '.'
 extra-deps:
 - pandoc-types-1.17.0.5
+- skylighting-0.1.1.4
+- texmath-0.9
 resolver: lts-9.2
