@@ -1,7 +1,7 @@
 \PassOptionsToPackage{unicode=true}{hyperref} % options for packages loaded elsewhere
 \PassOptionsToPackage{hyphens}{url}
 $if(colorlinks)$
-\PassOptionsToPackage{usenames,dvipsnames}{color}
+\PassOptionsToPackage{dvipsnames,svgnames}{xcolor}
 $endif$
 %
 \documentclass[$if(fontsize)$$fontsize$,$endif$$if(lang)$$babel-lang$,$endif$$if(papersize)$$papersize$paper,$endif$$if(beamer)$ignorenonframetext,$if(handout)$handout,$endif$$if(aspectratio)$aspectratio=$aspectratio$,$endif$$endif$$for(classoption)$$classoption$$sep$,$endfor$]{$documentclass$}
@@ -125,6 +125,9 @@ $else$
 $endif$
 $if(verbatim-in-note)$
 \usepackage{fancyvrb}
+$endif$
+$if(colorlinks)$
+\usepackage{xcolor}
 $endif$
 \usepackage{hyperref}
 \hypersetup{
@@ -348,7 +351,7 @@ $if(beamer)$
 $else$
 {
 $if(colorlinks)$
-\hypersetup{linkcolor=$if(toccolor)$$toccolor$$else$black$endif$}
+\hypersetup{linkcolor=$if(toccolor)$$toccolor$$else$$endif$}
 $endif$
 \setcounter{tocdepth}{$toc-depth$}
 \tableofcontents
