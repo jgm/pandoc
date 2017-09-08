@@ -145,6 +145,38 @@ tests =
                     , "  with a continuation"
                     ] =?>
           blockQuote (para "This is a quotation with a continuation")
+        , testGroup "Div"
+          [ "Div without id" =:
+            "<div>Foo bar</div>" =?>
+            divWith nullAttr (para "Foo bar")
+          , "Div with id" =:
+            "<div id=\"foo\">Foo bar</div>" =?>
+            divWith ("foo", [], []) (para "Foo bar")
+          ]
+        , "Verse" =:
+          T.unlines [ "> This is"
+                    , "> First stanza"
+                    , ">" -- Emacs produces verbatim ">" here, we follow Amusewiki
+                    , "> And this is"
+                    , ">   Second stanza"
+                    , ">"
+                    , ""
+                    , ">"
+                    , ""
+                    , "> Another verse"
+                    , ">    is here"
+                    ] =?>
+          lineBlock [ "This is"
+                    , "First stanza"
+                    , ""
+                    , "And this is"
+                    , "\160\160Second stanza"
+                    , ""
+                    ] <>
+          lineBlock [ "" ] <>
+          lineBlock [ "Another verse"
+                    , "\160\160\160is here"
+                    ]
         ]
       , "Quote tag" =: "<quote>Hello, world</quote>" =?> blockQuote (para $ text "Hello, world")
       , "Verse tag" =:
@@ -178,20 +210,21 @@ tests =
         ]
       , testGroup "Headers"
         [ "Part" =:
-          "* First level\n" =?>
+          "* First level" =?>
           header 1 "First level"
         , "Chapter" =:
-          "** Second level\n" =?>
+          "** Second level" =?>
           header 2 "Second level"
         , "Section" =:
-          "*** Third level\n" =?>
+          "*** Third level" =?>
           header 3 "Third level"
         , "Subsection" =:
-          "**** Fourth level\n" =?>
+          "**** Fourth level" =?>
           header 4 "Fourth level"
         , "Subsubsection" =:
-          "***** Fifth level\n" =?>
+          "***** Fifth level" =?>
           header 5 "Fifth level"
+        , "Whitespace is required after *" =: "**Not a header" =?> para "**Not a header"
         , "No headers in footnotes" =:
           T.unlines [ "Foo[1]"
                     , "[1] * Bar"

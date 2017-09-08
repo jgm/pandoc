@@ -1,3 +1,4 @@
+{-# LANGUAGE FlexibleContexts #-}
 {-
   Copyright (C) 2017 Alexander Krotov <ilabdsf@gmail.com>
 
@@ -32,7 +33,6 @@ TODO:
 - {{{ }}} syntax for <example>
 - Page breaks (five "*")
 - Headings with anchors (make it round trip with Muse writer)
-- Verse markup (">")
 - Org tables
 - table.el tables
 - Images with attributes (floating and width)
@@ -100,6 +100,9 @@ parseBlocks = do
 --
 -- utility functions
 --
+
+eol :: Stream s m Char => ParserT s st m ()
+eol = void newline <|> eof
 
 nested :: PandocMonad m => MuseParser m a -> MuseParser m a
 nested p = do
@@ -180,7 +183,9 @@ blockElements = choice [ comment
                        , centerTag
                        , rightTag
                        , quoteTag
+                       , divTag
                        , verseTag
+                       , lineBlock
                        , bulletList
                        , orderedList
                        , definitionList
@@ -194,7 +199,7 @@ comment = try $ do
   char ';'
   space
   many $ noneOf "\n"
-  void newline <|> eof
+  eol
   return mempty
 
 separator :: PandocMonad m => MuseParser m (F Blocks)
@@ -202,7 +207,7 @@ separator = try $ do
   string "----"
   many $ char '-'
   many spaceChar
-  void newline <|> eof
+  eol
   return $ return B.horizontalRule
 
 header :: PandocMonad m => MuseParser m (F Blocks)
@@ -212,8 +217,8 @@ header = try $ do
   getPosition >>= \pos -> guard (st == NullState && q == NoQuote && sourceColumn pos == 1)
   level <- liftM length $ many1 $ char '*'
   guard $ level <= 5
-  skipSpaces
-  content <- trimInlinesF . mconcat <$> manyTill inline newline
+  spaceChar
+  content <- trimInlinesF . mconcat <$> manyTill inline eol
   attr <- registerHeader ("", [], []) (runF content defaultParserState)
   return $ B.headerWith attr level <$> content
 
@@ -245,6 +250,12 @@ rightTag = blockTag id "right"
 quoteTag :: PandocMonad m => MuseParser m (F Blocks)
 quoteTag = withQuoteContext InDoubleQuote $ blockTag B.blockQuote "quote"
 
+-- <div> tag is supported by Emacs Muse, but not Amusewiki 2.025
+divTag :: PandocMonad m => MuseParser m (F Blocks)
+divTag = do
+  (attrs, content) <- parseHtmlContentWithAttrs "div" block
+  return $ (B.divWith attrs) <$> mconcat content
+
 verseLine :: PandocMonad m => MuseParser m String
 verseLine = do
   line <- anyLine <|> many1Till anyChar eof
@@ -261,8 +272,7 @@ verseLines = do
 verseTag :: PandocMonad m => MuseParser m (F Blocks)
 verseTag = do
   (_, content) <- htmlElement "verse"
-  parsedContent <- parseFromString verseLines content
-  return parsedContent
+  parseFromString verseLines content
 
 commentTag :: PandocMonad m => MuseParser m (F Blocks)
 commentTag = parseHtmlContent "comment" anyChar >> return mempty
@@ -298,6 +308,26 @@ noteBlock = try $ do
   where
     blocksTillNote =
       many1Till block (eof <|> () <$ lookAhead noteMarker)
+
+--
+-- Verse markup
+--
+
+lineVerseLine :: PandocMonad m => MuseParser m String
+lineVerseLine = try $ do
+  char '>'
+  white <- many1 (char ' ' >> pure '\160')
+  rest <- anyLine
+  return $ tail white ++ rest
+
+blanklineVerseLine :: PandocMonad m => MuseParser m Char
+blanklineVerseLine = try $ char '>' >> blankline
+
+lineBlock :: PandocMonad m => MuseParser m (F Blocks)
+lineBlock = try $ do
+  lns <- many1 (pure <$> blanklineVerseLine <|> lineVerseLine)
+  lns' <- mapM (parseFromString' (trimInlinesF . mconcat <$> many inline)) lns
+  return $ B.lineBlock <$> sequence lns'
 
 --
 -- lists
@@ -379,8 +409,8 @@ definitionListItem = try $ do
   pure $ do lineContent' <- lineContent
             pure (B.text term, [lineContent'])
   where
-    termParser = (many1 spaceChar) >> -- Initial space as required by Amusewiki, but not Emacs Muse
-                 (many1Till anyChar $ lookAhead (void (try (spaceChar >> string "::")) <|> void newline))
+    termParser = many1 spaceChar >> -- Initial space as required by Amusewiki, but not Emacs Muse
+                 many1Till anyChar (lookAhead (void (try (spaceChar >> string "::")) <|> void newline))
     endOfInput = try $ skipMany blankline >> skipSpaces >> eof
     twoBlankLines = try $ blankline >> skipMany1 blankline
     newDefinitionListItem = try $ void termParser
@@ -438,10 +468,10 @@ museAppendElement tbl element =
 
 tableCell :: PandocMonad m => MuseParser m (F Blocks)
 tableCell = try $ liftM B.plain . trimInlinesF . mconcat <$> manyTill inline (lookAhead cellEnd)
-  where cellEnd = try $ void (many1 spaceChar >> char '|') <|> void newline <|> eof
+  where cellEnd = try $ void (many1 spaceChar >> char '|') <|> eol
 
 tableElements :: PandocMonad m => MuseParser m [MuseTableElement]
-tableElements = tableParseElement `sepEndBy1` (void newline <|> eof)
+tableElements = tableParseElement `sepEndBy1` eol
 
 elementsToTable :: [MuseTableElement] -> F MuseTable
 elementsToTable = foldM museAppendElement emptyTable

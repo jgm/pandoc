@@ -58,7 +58,7 @@ import Data.Maybe ( fromMaybe, isJust, isNothing )
 import Data.List.Split ( wordsBy )
 import Data.List ( intercalate, isPrefixOf )
 import Data.Char ( isDigit, isLetter, isAlphaNum )
-import Control.Monad ( guard, mzero, void, unless, mplus )
+import Control.Monad ( guard, mzero, void, unless, mplus, msum )
 import Control.Arrow ((***))
 import Control.Applicative ( (<|>) )
 import Data.Monoid (First (..))
@@ -576,23 +576,23 @@ pPara = do
   return $ B.para contents
 
 pFigure :: PandocMonad m => TagParser m Blocks
-pFigure = do
+pFigure = try $ do
   TagOpen _ _ <- pSatisfy (matchTagOpen "figure" [])
   skipMany pBlank
-  let pImg  = pOptInTag "p" pImage <* skipMany pBlank
-      pCapt = option mempty $ pInTags "figcaption" inline <* skipMany pBlank
-      pImgCapt = do
-        img <- pImg
-        cap <- pCapt
-        return (img, cap)
-      pCaptImg = do
-        cap <- pCapt
-        img <- pImg
-        return (img, cap)
-  (imgMany, caption) <- pImgCapt <|> pCaptImg
+  let pImg  = (\x -> (Just x, Nothing)) <$>
+               (pOptInTag "p" pImage <* skipMany pBlank)
+      pCapt = (\x -> (Nothing, Just x)) <$>
+               (pInTags "figcaption" inline <* skipMany pBlank)
+      pSkip = (Nothing, Nothing) <$ pSatisfy (not . matchTagClose "figure")
+  res <- many (pImg <|> pCapt <|> pSkip)
+  let mbimg = msum $ map fst res
+  let mbcap = msum $ map snd res
   TagClose _ <- pSatisfy (matchTagClose "figure")
-  let (Image attr _ (url, tit)):_ = B.toList imgMany
-  return $ B.para $ B.imageWith attr url ("fig:" ++ tit) caption
+  let caption = fromMaybe mempty mbcap
+  case B.toList <$> mbimg of
+       Just [Image attr _ (url, tit)] ->
+         return $ B.para $ B.imageWith attr url ("fig:" ++ tit) caption
+       _ -> mzero
 
 pCodeBlock :: PandocMonad m => TagParser m Blocks
 pCodeBlock = try $ do
@@ -961,7 +961,7 @@ blockHtmlTags = Set.fromList
     "dir", "div", "dl", "dt", "fieldset", "figcaption", "figure",
     "footer", "form", "h1", "h2", "h3", "h4",
     "h5", "h6", "head", "header", "hgroup", "hr", "html",
-    "isindex", "main", "menu", "noframes", "ol", "output", "p", "pre",
+    "isindex", "main", "menu", "meta", "noframes", "ol", "output", "p", "pre",
     "section", "table", "tbody", "textarea",
     "thead", "tfoot", "ul", "dd",
     "dt", "frameset", "li", "tbody", "td", "tfoot",
@@ -1048,7 +1048,7 @@ x `closes` "p" | x `elem` ["address", "article", "aside", "blockquote",
    "dir", "div", "dl", "fieldset", "footer", "form", "h1", "h2", "h3", "h4",
    "h5", "h6", "header", "hr", "main", "menu", "nav", "ol", "p", "pre", "section",
    "table", "ul"] = True
-"meta" `closes` "meta" = True
+_ `closes` "meta" = True
 "form" `closes` "form" = True
 "label" `closes` "label" = True
 "map" `closes` "map" = True

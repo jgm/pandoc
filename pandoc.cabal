@@ -1,19 +1,19 @@
-Name:            pandoc
-Version:         2.0
-Cabal-Version:   >= 1.10
-Build-Type:      Custom
-License:         GPL
-License-File:    COPYING.md
-Copyright:       (c) 2006-2017 John MacFarlane
-Author:          John MacFarlane <jgm@berkeley.edu>
-Maintainer:      John MacFarlane <jgm@berkeley.edu>
-Bug-Reports:     https://github.com/jgm/pandoc/issues
-Stability:       alpha
-Homepage:        http://pandoc.org
-Category:        Text
-Tested-With:     GHC == 7.8.4, GHC == 7.10.3, GHC == 8.0.2
-Synopsis:        Conversion between markup formats
-Description:     Pandoc is a Haskell library for converting from one markup
+name:            pandoc
+version:         2.0
+cabal-version:   >= 1.10
+build-type:      Custom
+license:         GPL
+license-file:    COPYING.md
+copyright:       (c) 2006-2017 John MacFarlane
+author:          John MacFarlane <jgm@berkeley.edu>
+maintainer:      John MacFarlane <jgm@berkeley.edu>
+bug-reports:     https://github.com/jgm/pandoc/issues
+stability:       alpha
+homepage:        http://pandoc.org
+category:        Text
+tested-with:     GHC == 7.8.4, GHC == 7.10.3, GHC == 8.0.2
+synopsis:        Conversion between markup formats
+description:     Pandoc is a Haskell library for converting from one markup
                  format to another, and a command-line tool that uses
                  this library. It can read several dialects of Markdown and
                  (subsets of) HTML, reStructuredText, LaTeX, DocBook,
@@ -35,7 +35,7 @@ Description:     Pandoc is a Haskell library for converting from one markup
                  which convert this native representation into a target
                  format. Thus, adding an input or output format requires
                  only adding a reader or writer.
-Data-Files:
+data-files:
                  -- templates
                  data/templates/default.html4
                  data/templates/default.html5
@@ -119,7 +119,7 @@ Data-Files:
                  data/jats.csl
                  -- documentation
                  MANUAL.txt, COPYRIGHT
-Extra-Source-Files:
+extra-source-files:
                  -- documentation
                  INSTALL.md, BUGS, README.md, CONTRIBUTING.md, changelog
                  man/pandoc.1
@@ -138,6 +138,7 @@ Extra-Source-Files:
                  test/*.native
                  test/command/*.md
                  test/command/3533-rst-csv-tables.csv
+                 test/command/3880.txt
                  test/command/abbrevs
                  test/command/SVG_logo-without-xml-declaration.svg
                  test/command/SVG_logo.svg
@@ -260,32 +261,39 @@ Extra-Source-Files:
                  test/odt/markdown/*.md
                  test/odt/native/*.native
                  test/lua/*.lua
-Source-repository head
+source-repository head
   type:          git
   location:      git://github.com/jgm/pandoc.git
 
-Flag embed_data_files
+flag static
+  Description:   Use static linking for pandoc executable.
+  Default:       False
+
+flag embed_data_files
   Description:   Embed data files in binary for relocatable executable.
   Default:       False
 
-Flag trypandoc
+flag trypandoc
   Description:   Build trypandoc cgi executable.
   Default:       False
 
-Flag weigh-pandoc
+flag weigh-pandoc
   Description:   Build weigh-pandoc to measure memory usage.
   Default:       False
 
-Flag network-uri
+flag network-uri
   Description:   Get Network.URI from the network-uri package
   Default:       True
 
-Flag old-locale
+flag old-locale
   Description:   Use old-locale and time < 1.5
   Default:       False
 
-Library
-  Build-Depends: base >= 4.7 && < 5,
+custom-setup
+  setup-depends: base, Cabal
+
+library
+  build-depends: base >= 4.7 && < 5,
                  syb >= 0.1 && < 0.8,
                  containers >= 0.4.2.1 && < 0.6,
                  unordered-containers >= 0.2 && < 0.3,
@@ -331,37 +339,37 @@ Library
                  http-types >= 0.8 && < 0.10,
                  csv-conduit >= 0.6 && < 0.7
   if os(windows)
-    Cpp-options:      -D_WINDOWS
+    cpp-options:      -D_WINDOWS
   else
-    Build-Depends:  unix >= 2.4 && < 2.8
+    build-depends:  unix >= 2.4 && < 2.8
   if flag(old-locale)
-     Build-Depends: old-locale >= 1 && < 1.1,
+     build-depends: old-locale >= 1 && < 1.1,
                     time >= 1.2 && < 1.5
   else
-     Build-Depends: time >= 1.5 && < 1.9
+     build-depends: time >= 1.5 && < 1.9
   if flag(network-uri)
-     Build-Depends: network-uri >= 2.6 && < 2.7, network >= 2.6
+     build-depends: network-uri >= 2.6 && < 2.7, network >= 2.6
   else
-     Build-Depends: network >= 2 && < 2.6
+     build-depends: network >= 2 && < 2.6
   if flag(embed_data_files)
      cpp-options:   -DEMBED_DATA_FILES
      build-depends: file-embed >= 0.0 && < 0.1
      other-modules: Text.Pandoc.Data
   if os(windows)
-    Cpp-options:      -D_WINDOWS
-  Ghc-Options:   -Wall -fno-warn-unused-do-bind
-  Ghc-Prof-Options: -fprof-auto-exported
-  Default-Language: Haskell98
-  Other-Extensions:   PatternGuards, OverloadedStrings,
+    cpp-options:      -D_WINDOWS
+  ghc-options:   -Wall -fno-warn-unused-do-bind
+  ghc-prof-options: -fprof-auto-exported
+  default-language: Haskell98
+  other-extensions:   PatternGuards, OverloadedStrings,
                       ScopedTypeVariables, GeneralizedNewtypeDeriving,
                       RelaxedPolyRec, DeriveDataTypeable, TypeSynonymInstances,
                       FlexibleInstances
-  Hs-Source-Dirs:  src
+  hs-source-dirs:  src
   if impl(ghc < 7.10)
-     Hs-Source-Dirs: prelude
-     Other-Modules:  Prelude
+     hs-source-dirs: prelude
+     other-modules:  Prelude
 
-  Exposed-Modules: Text.Pandoc,
+  exposed-modules: Text.Pandoc,
                    Text.Pandoc.App,
                    Text.Pandoc.Options,
                    Text.Pandoc.Extensions,
@@ -439,7 +447,7 @@ Library
                    Text.Pandoc.Emoji,
                    Text.Pandoc.ImageSize,
                    Text.Pandoc.Class
-  Other-Modules:   Text.Pandoc.Readers.Docx.Lists,
+  other-modules:   Text.Pandoc.Readers.Docx.Lists,
                    Text.Pandoc.Readers.Docx.Combine,
                    Text.Pandoc.Readers.Docx.Parse,
                    Text.Pandoc.Readers.Docx.Util,
@@ -476,66 +484,67 @@ Library
                    Text.Pandoc.Compat.Time,
                    Paths_pandoc
 
-  Buildable:       True
+  buildable:       True
 
-Executable pandoc
-  Build-Depends: pandoc, base >= 4.7 && < 5
-  Ghc-Options:   -rtsopts -with-rtsopts=-K16m -Wall -fno-warn-unused-do-bind
-  Ghc-Prof-Options: -fprof-auto-exported -rtsopts -with-rtsopts=-K16m
-
-  Default-Language: Haskell98
-  Other-Extensions: PatternGuards, OverloadedStrings,
+executable pandoc
+  build-depends: pandoc, base >= 4.7 && < 5
+  ghc-options:   -rtsopts -with-rtsopts=-K16m -Wall -fno-warn-unused-do-bind
+  ghc-prof-options: -fprof-auto-exported -rtsopts -with-rtsopts=-K16m
+  if flag(static)
+    ld-options:     -static
+  default-language: Haskell98
+  other-extensions: PatternGuards, OverloadedStrings,
                     ScopedTypeVariables, GeneralizedNewtypeDeriving,
                     RelaxedPolyRec, DeriveDataTypeable, TypeSynonymInstances,
                     FlexibleInstances
-  Hs-Source-Dirs:  .
+  hs-source-dirs:  .
   if impl(ghc < 7.10)
-     Hs-Source-Dirs: prelude
-     Other-Modules:  Prelude
-  Main-Is:         pandoc.hs
-  Buildable:       True
-  Other-Modules:   Paths_pandoc
+     hs-source-dirs: prelude
+     other-modules:  Prelude
+  main-is:         pandoc.hs
+  buildable:       True
+  other-modules:   Paths_pandoc
 
-Executable trypandoc
-  Main-Is:         trypandoc.hs
-  Hs-Source-Dirs:  trypandoc
+executable trypandoc
+  main-is:         trypandoc.hs
+  hs-source-dirs:  trypandoc
   if impl(ghc < 7.10)
-     Hs-Source-Dirs: prelude
-     Other-Modules:  Prelude
+     hs-source-dirs: prelude
+     other-modules:  Prelude
   default-language: Haskell2010
   if flag(trypandoc)
-    Build-Depends: base, aeson, pandoc,
+    build-depends: base, aeson, pandoc,
                    text, wai-extra, wai >= 0.3, http-types
-    Buildable:     True
+    buildable:     True
   else
-    Buildable:     False
+    buildable:     False
 
-Executable weigh-pandoc
-  Main-Is:         weigh-pandoc.hs
-  Hs-Source-Dirs:  benchmark
+executable weigh-pandoc
+  main-is:         weigh-pandoc.hs
+  hs-source-dirs:  benchmark
   if impl(ghc < 7.10)
-     Hs-Source-Dirs: prelude
-     Other-Modules:  Prelude
+     hs-source-dirs: prelude
+     other-modules:  Prelude
   if flag(weigh-pandoc)
-     Build-Depends:   pandoc,
+     build-depends:   pandoc,
                       base >= 4.2 && < 5,
                       text,
                       weigh >= 0.0 && < 0.1,
                       mtl >= 2.2 && < 2.3
-     Buildable:       True
+     buildable:       True
   else
-    Buildable:     False
-  Ghc-Options:   -rtsopts -Wall -fno-warn-unused-do-bind
-  Default-Language: Haskell98
+    buildable:     False
+  ghc-options:   -rtsopts -Wall -fno-warn-unused-do-bind
+  default-language: Haskell98
 
-Test-Suite test-pandoc
-  Type:           exitcode-stdio-1.0
-  Main-Is:        test-pandoc.hs
-  Hs-Source-Dirs: test
+test-suite test-pandoc
+  type:           exitcode-stdio-1.0
+  main-is:        test-pandoc.hs
+  hs-source-dirs: test
   if impl(ghc < 7.10)
-     Hs-Source-Dirs: prelude
-     Other-Modules:  Prelude
-  Build-Depends:  base >= 4.2 && < 5,
+     hs-source-dirs: prelude
+     other-modules:  Prelude
+  build-depends:  base >= 4.2 && < 5,
                   syb >= 0.1 && < 0.8,
                   pandoc,
                   pandoc-types >= 1.17.1 && < 1.18,
@@ -557,7 +566,7 @@ Test-Suite test-pandoc
                   executable-path >= 0.0 && < 0.1,
                   zip-archive >= 0.2.3.4 && < 0.4,
                   mtl >= 2.2 && < 2.3
-  Other-Modules:  Tests.Old
+  other-modules:  Tests.Old
                   Tests.Command
                   Tests.Helpers
                   Tests.Lua
@@ -585,21 +594,21 @@ Test-Suite test-pandoc
                   Tests.Writers.RST
                   Tests.Writers.TEI
                   Tests.Writers.Muse
-  Ghc-Options:  -rtsopts -Wall -fno-warn-unused-do-bind -threaded
-  Default-Language: Haskell98
+  ghc-options:  -rtsopts -Wall -fno-warn-unused-do-bind -threaded
+  default-language: Haskell98
 
 benchmark benchmark-pandoc
-  Type:            exitcode-stdio-1.0
-  Main-Is:         benchmark-pandoc.hs
-  Hs-Source-Dirs:  benchmark
+  type:            exitcode-stdio-1.0
+  main-is:         benchmark-pandoc.hs
+  hs-source-dirs:  benchmark
   if impl(ghc < 7.10)
-     Hs-Source-Dirs: prelude
-     Other-Modules:  Prelude
-  Build-Depends:   pandoc,
+     hs-source-dirs: prelude
+     other-modules:  Prelude
+  build-depends:   pandoc,
                    time, bytestring, containers,
                    base >= 4.2 && < 5,
                    text >= 0.11 && < 1.3,
                    syb >= 0.1 && < 0.8,
                    criterion >= 1.0 && < 1.3
-  Ghc-Options:   -rtsopts -Wall -fno-warn-unused-do-bind
-  Default-Language: Haskell98
+  ghc-options:   -rtsopts -Wall -fno-warn-unused-do-bind
+  default-language: Haskell98

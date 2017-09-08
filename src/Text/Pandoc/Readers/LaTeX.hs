@@ -770,11 +770,13 @@ keyval = try $ do
 keyvals :: PandocMonad m => LP m [(String, String)]
 keyvals = try $ symbol '[' >> manyTill keyval (symbol ']')
 
-accent :: (Char -> String) -> Inlines -> LP m Inlines
-accent f ils =
+accent :: PandocMonad m => Char -> (Char -> String) -> LP m Inlines
+accent c f = try $ do
+  ils <- tok
   case toList ils of
        (Str (x:xs) : ys) -> return $ fromList (Str (f x ++ xs) : ys)
-       []                -> mzero
+       [Space]           -> return $ str [c]
+       []                -> return $ str [c]
        _                 -> return ils
 
 grave :: Char -> String
@@ -960,6 +962,19 @@ hacek 'u' = "ǔ"
 hacek 'Z' = "Ž"
 hacek 'z' = "ž"
 hacek c   = [c]
+
+ogonek :: Char -> String
+ogonek 'a' = "ą"
+ogonek 'e' = "ę"
+ogonek 'o' = "ǫ"
+ogonek 'i' = "į"
+ogonek 'u' = "ų"
+ogonek 'A' = "Ą"
+ogonek 'E' = "Ę"
+ogonek 'I' = "Į"
+ogonek 'O' = "Ǫ"
+ogonek 'U' = "Ų"
+ogonek c   = [c]
 
 breve :: Char -> String
 breve 'A' = "Ă"
@@ -1275,17 +1290,19 @@ inlineCommands = M.fromList $
   , ("copyright", lit "©")
   , ("textasciicircum", lit "^")
   , ("textasciitilde", lit "~")
-  , ("H", try $ tok >>= accent hungarumlaut)
-  , ("`", option (str "`") $ try $ tok >>= accent grave)
-  , ("'", option (str "'") $ try $ tok >>= accent acute)
-  , ("^", option (str "^") $ try $ tok >>= accent circ)
-  , ("~", option (str "~") $ try $ tok >>= accent tilde)
-  , ("\"", option (str "\"") $ try $ tok >>= accent umlaut)
-  , (".", option (str ".") $ try $ tok >>= accent dot)
-  , ("=", option (str "=") $ try $ tok >>= accent macron)
-  , ("c", option (str "c") $ try $ tok >>= accent cedilla)
-  , ("v", option (str "v") $ try $ tok >>= accent hacek)
-  , ("u", option (str "u") $ try $ tok >>= accent breve)
+  , ("H", accent '\779' hungarumlaut)
+  , ("`", accent '`' grave)
+  , ("'", accent '\'' acute)
+  , ("^", accent '^' circ)
+  , ("~", accent '~' tilde)
+  , ("\"", accent '\776' umlaut)
+  , (".", accent '\775' dot)
+  , ("=", accent '\772' macron)
+  , ("c", accent '\807' cedilla)
+  , ("v", accent 'ˇ' hacek)
+  , ("u", accent '\774' breve)
+  , ("k", accent '\808' ogonek)
+  , ("textogonekcentered", accent '\808' ogonek)
   , ("i", lit "i")
   , ("\\", linebreak <$ (do inTableCell <- sInTableCell <$> getState
                             guard $ not inTableCell

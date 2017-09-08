@@ -628,6 +628,7 @@ blockToLaTeX (OrderedList (start, numstyle, numdelim) lst) = do
   put $ st {stOLLevel = oldlevel + 1}
   items <- mapM listItemToLaTeX lst
   modify (\s -> s {stOLLevel = oldlevel})
+  let beamer = stBeamer st
   let tostyle x = case numstyle of
                        Decimal      -> "\\arabic" <> braces x
                        UpperRoman   -> "\\Roman" <> braces x
@@ -641,11 +642,21 @@ blockToLaTeX (OrderedList (start, numstyle, numdelim) lst) = do
                        TwoParens -> parens x
                        Period    -> x <> "."
                        _         -> x <> "."
+  let exemplar = case numstyle of
+                       Decimal      -> "1"
+                       UpperRoman   -> "I"
+                       LowerRoman   -> "i"
+                       UpperAlpha   -> "A"
+                       LowerAlpha   -> "a"
+                       Example      -> "1"
+                       DefaultStyle -> "1"
   let enum = text $ "enum" ++ map toLower (toRomanNumeral oldlevel)
   let stylecommand = if numstyle == DefaultStyle && numdelim == DefaultDelim
                         then empty
-                        else "\\def" <> "\\label" <> enum <>
-                              braces (todelim $ tostyle enum)
+                        else if beamer
+                          then brackets (todelim exemplar)
+                          else "\\def" <> "\\label" <> enum <>
+                                 braces (todelim $ tostyle enum)
   let resetcounter = if start == 1 || oldlevel > 4
                         then empty
                         else "\\setcounter" <> braces enum <>

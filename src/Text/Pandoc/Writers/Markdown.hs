@@ -288,6 +288,7 @@ escapeString opts (c:cs) =
            | otherwise -> "&gt;" ++ escapeString opts cs
        _ | c `elem` ['\\','`','*','_','[',']','#'] ->
               '\\':c:escapeString opts cs
+       '|' | isEnabled Ext_pipe_tables opts -> '\\':'|':escapeString opts cs
        '^' | isEnabled Ext_superscript opts -> '\\':'^':escapeString opts cs
        '~' | isEnabled Ext_subscript opts -> '\\':'~':escapeString opts cs
        '$' | isEnabled Ext_tex_math_dollars opts -> '\\':'$':escapeString opts cs
@@ -787,6 +788,7 @@ blockListToMarkdown :: PandocMonad m
                     -> MD m Doc
 blockListToMarkdown opts blocks = do
   inlist <- asks envInList
+  isPlain <- asks envPlain
   -- a) insert comment between list and indented code block, or the
   -- code block will be treated as a list continuation paragraph
   -- b) change Plain to Para unless it's followed by a RawBlock
@@ -813,9 +815,11 @@ blockListToMarkdown opts blocks = do
       isListBlock (OrderedList _ _)  = True
       isListBlock (DefinitionList _) = True
       isListBlock _                  = False
-      commentSep                     = if isEnabled Ext_raw_html opts
-                                          then RawBlock "html" "<!-- -->\n"
-                                          else RawBlock "markdown" "&nbsp;\n"
+      commentSep  = if isPlain
+                       then Null
+                       else if isEnabled Ext_raw_html opts
+                            then RawBlock "html" "<!-- -->\n"
+                            else RawBlock "markdown" "&nbsp;\n"
   mapM (blockToMarkdown opts) (fixBlocks blocks) >>= return . cat
 
 getKey :: Doc -> Key
@@ -931,7 +935,7 @@ avoidBadWrapsInList (s:Str cs:[])
 avoidBadWrapsInList (x:xs) = x : avoidBadWrapsInList xs
 
 isOrderedListMarker :: String -> Bool
-isOrderedListMarker xs = (last xs `elem` ['.',')']) &&
+isOrderedListMarker xs = not (null xs) && (last xs `elem` ['.',')']) &&
               isRight (runParser (anyOrderedListMarker >> eof)
                        defaultParserState "" xs)
 
@@ -946,11 +950,10 @@ inlineToMarkdown opts (Span attrs ils) = do
   contents <- inlineListToMarkdown opts ils
   return $ case plain of
                 True -> contents
-                False | isEnabled Ext_bracketed_spans opts ->
+                False | attrs == nullAttr -> contents
+                      | isEnabled Ext_bracketed_spans opts ->
                         "[" <> contents <> "]" <>
-                          if attrs == nullAttr
-                             then "{}"
-                             else linkAttributes opts attrs
+                             linkAttributes opts attrs
                       | isEnabled Ext_raw_html opts ||
                         isEnabled Ext_native_spans opts ->
                         tagWithAttrs "span" attrs <> contents <> text "</span>"
