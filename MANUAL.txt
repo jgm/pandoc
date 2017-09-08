@@ -193,7 +193,7 @@ By default, pandoc will use LaTeX to convert it to PDF:
 Production of a PDF requires that a LaTeX engine be installed (see
 `--latex-engine`, below), and assumes that the following LaTeX packages
 are available: [`amsfonts`], [`amsmath`], [`lm`], [`unicode-math`],
-[`ifxetex`], [`ifluatex`], [`eurosym`], [`listings`] (if the
+[`ifxetex`], [`ifluatex`], [`listings`] (if the
 `--listings` option is used), [`fancyvrb`], [`longtable`],
 [`booktabs`], [`graphicx`] and [`grffile`] (if the document
 contains images), [`hyperref`], [`xcolor`] (with `colorlinks`), [`ulem`], [`geometry`] (with the
@@ -226,7 +226,6 @@ will affect the output, as will `--css`.
 [`lm`]: https://ctan.org/pkg/lm
 [`ifxetex`]: https://ctan.org/pkg/ifxetex
 [`ifluatex`]: https://ctan.org/pkg/ifluatex
-[`eurosym`]: https://ctan.org/pkg/eurosym
 [`listings`]: https://ctan.org/pkg/listings
 [`fancyvrb`]: https://ctan.org/pkg/fancyvrb
 [`longtable`]: https://ctan.org/pkg/longtable

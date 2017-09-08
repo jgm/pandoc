@@ -82,7 +82,6 @@ data WriterState =
               , stHighlighting  :: Bool          -- true if document has highlighted code
               , stIncremental   :: Bool          -- true if beamer lists should be displayed bit by bit
               , stInternalLinks :: [String]      -- list of internal link targets
-              , stUsesEuro      :: Bool          -- true if euro symbol used
               , stBeamer        :: Bool          -- produce beamer
               , stEmptyLine     :: Bool          -- true if no content on line
               }
@@ -111,7 +110,6 @@ startingState options = WriterState {
                 , stHighlighting = False
                 , stIncremental = writerIncremental options
                 , stInternalLinks = []
-                , stUsesEuro = False
                 , stBeamer = False
                 , stEmptyLine = True }
 
@@ -233,7 +231,6 @@ pandocToLaTeX options (Pandoc meta blocks) = do
                   defField "lhs" (stLHS st) $
                   defField "graphics" (stGraphics st) $
                   defField "book-class" (stBook st) $
-                  defField "euro" (stUsesEuro st) $
                   defField "listings" (writerListings options || stLHS st) $
                   defField "beamer" beamer $
                   (if stHighlighting st
@@ -320,11 +317,8 @@ stringToLaTeX  ctx (x:xs) = do
   rest <- stringToLaTeX ctx xs
   let ligatures = isEnabled Ext_smart opts && ctx == TextString
   let isUrl = ctx == URLString
-  when (x == '€') $
-     modify $ \st -> st{ stUsesEuro = True }
   return $
     case x of
-       '€' -> "\\euro{}" ++ rest
        '{' -> "\\{" ++ rest
        '}' -> "\\}" ++ rest
        '`' | ctx == CodeString -> "\\textasciigrave{}" ++ rest
