@@ -9,6 +9,7 @@
 \ifnum 0\ifxetex 1\fi\ifluatex 1\fi=0 % if pdftex
   \usepackage[T1]{fontenc}
   \usepackage[utf8]{inputenc}
+  \usepackage{textcomp} % provides euro and other symbols
 \else % if luatex or xelatex
   \usepackage{unicode-math}
   \defaultfontfeatures{Ligatures=TeX,Scale=MatchLowercase}
