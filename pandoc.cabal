@@ -43,7 +43,6 @@ data-files:
                  data/templates/default.docbook5
                  data/templates/default.jats
                  data/templates/default.tei
-                 data/templates/default.beamer
                  data/templates/default.opendocument
                  data/templates/default.icml
                  data/templates/default.opml

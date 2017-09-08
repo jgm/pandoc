@@ -63,6 +63,7 @@ getDefaultTemplate writer = do
        "html"    -> getDefaultTemplate "html5"
        "docbook" -> getDefaultTemplate "docbook5"
        "epub"    -> getDefaultTemplate "epub3"
+       "beamer"  -> getDefaultTemplate "latex"
        "markdown_strict"   -> getDefaultTemplate "markdown"
        "multimarkdown"     -> getDefaultTemplate "markdown"
        "markdown_github"   -> getDefaultTemplate "markdown"
