@@ -253,7 +253,7 @@ Flag old-locale
 
 custom-setup
   setup-depends: base,
-                 Cabal < 2
+                 Cabal
 
 Library
   Build-Depends: base >= 4.7 && <5,
