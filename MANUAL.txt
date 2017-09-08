@@ -196,7 +196,7 @@ are available: [`amsfonts`], [`amsmath`], [`lm`], [`unicode-math`],
 [`ifxetex`], [`ifluatex`], [`eurosym`], [`listings`] (if the
 `--listings` option is used), [`fancyvrb`], [`longtable`],
 [`booktabs`], [`graphicx`] and [`grffile`] (if the document
-contains images), [`hyperref`], [`ulem`], [`geometry`] (with the
+contains images), [`hyperref`], [`xcolor`] (with `colorlinks`), [`ulem`], [`geometry`] (with the
 `geometry` variable set), [`setspace`] (with `linestretch`), and
 [`babel`] (with `lang`).  The use of `xelatex` or `lualatex` as
 the LaTeX engine requires [`fontspec`].  `xelatex` uses
@@ -1350,14 +1350,6 @@ including all [reveal.js configuration options].
 :   when true, the `beamerarticle` package is loaded (for
     producing an article from beamer slides).
 
-`colorlinks`
-:   add color to link text; automatically enabled if any of `linkcolor`, `citecolor`,
-    `urlcolor`, or `toccolor` are set (for beamer only).
-
-`linkcolor`, `citecolor`, `urlcolor`, `toccolor`
-:   color for internal links, citation links, external links, and links in table
-    of contents: uses any of the [predefined LaTeX colors] (for beamer only).
-
 `aspectratio`
 :   aspect ratio of slides (for beamer only, `1610` for 16:10, `169` for 16:9,
     `149` for 14:9, `141` for 1.41:1, `54` for 5:4, `43` for 4:3 which is the
@@ -1430,7 +1422,7 @@ LaTeX variables are used when [creating a PDF].
 
 `linkcolor`, `citecolor`, `urlcolor`, `toccolor`
 :   color for internal links, citation links, external links, and links in table of contents:
-    uses any of the [predefined LaTeX colors]
+    uses options allowed by [`xcolor`], including the `dvipsnames`, `svgnames`, and `x11names` lists
 
 `links-as-notes`
 :   causes links to be printed as footnotes
@@ -1478,7 +1470,7 @@ LaTeX variables are used when [creating a PDF].
 [`book`]: https://ctan.org/pkg/book
 [KOMA-Script]: https://ctan.org/pkg/koma-script
 [`memoir`]: https://ctan.org/pkg/memoir
-[predefined LaTeX colors]: https://en.wikibooks.org/wiki/LaTeX/Colors#Predefined_colors
+[`xcolor`]: https://ctan.org/pkg/xcolor
 [LaTeX Font Catalogue]: http://www.tug.dk/FontCatalogue/
 [`mathpazo`]: https://ctan.org/pkg/mathpazo
 [LaTeX font encodings]: https://ctan.org/pkg/encguide
@@ -4326,7 +4318,7 @@ Hubert Plociniczak,
 Ilya V. Portnov,
 Ivo Clarysse,
 J. Lewis Muir,
-Jaime Marquínez Ferrándiz,
+Jaime Marquínez Ferrándiz,
 Jakob Voß,
 James Aspnes,
 Jamie F. Olson,
