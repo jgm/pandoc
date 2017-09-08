@@ -1,3 +1,8 @@
+{-# LANGUAGE CPP #-}
+#if !defined(MIN_VERSION_Cabal)
+# define MIN_VERSION_Cabal(a,b,c) 0
+#endif
+
 {-
 Copyright (C) 2006-2015 John MacFarlane <jgm@berkeley.edu>
 
@@ -19,13 +24,19 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 import Distribution.Simple
 import Distribution.Simple.PreProcess
 import Distribution.Simple.Setup (ConfigFlags(..), CopyFlags(..), fromFlag)
-import Distribution.PackageDescription (PackageDescription(..), FlagName(..))
+import Distribution.PackageDescription (PackageDescription(..))
 import Distribution.Simple.Utils ( rawSystemExitCode, findProgramVersion )
 import System.Exit
 import Distribution.Simple.Utils (info, notice, installOrdinaryFiles)
 import Distribution.Simple.Program (simpleProgram, Program(..))
 import Distribution.Simple.LocalBuildInfo
 import Control.Monad (when)
+
+#if MIN_VERSION_Cabal(2,0,0)
+import Distribution.PackageDescription (mkFlagName)
+#else
+import Distribution.PackageDescription (FlagName(..))
+#endif
 
 main :: IO ()
 main = defaultMainWithHooks $ simpleUserHooks {
@@ -38,11 +49,19 @@ main = defaultMainWithHooks $ simpleUserHooks {
     }
 
 ppBlobSuffixHandler :: PPSuffixHandler
+#if MIN_VERSION_Cabal(2,0,0)
+ppBlobSuffixHandler = ("hsb", \_ lbi _ ->
+#else
 ppBlobSuffixHandler = ("hsb", \_ lbi ->
+#endif
   PreProcessor {
     platformIndependent = True,
     runPreProcessor = mkSimplePreProcessor $ \infile outfile verbosity ->
+#if MIN_VERSION_Cabal(2,0,0)
+      do let embedData = case lookup (mkFlagName "embed_data_files")
+#else
       do let embedData = case lookup (FlagName "embed_data_files")
+#endif
                               (configConfigurationsFlags (configFlags lbi)) of
                               Just True -> True
                               _         -> False
