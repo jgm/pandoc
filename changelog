@@ -1,3 +1,7 @@
+pandoc (1.19.2.3)
+
+  * Add CPP to Setup.hs so it works with Cabal >= 2 and < 2.
+
 pandoc (1.19.2.2)
 
   * Fix build with GHC 8.2.1 (#3876, Peter Simons).  Setup.hs does not
