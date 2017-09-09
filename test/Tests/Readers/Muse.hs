@@ -72,9 +72,39 @@ tests =
 
       , "Linebreak" =: "Line <br>  break" =?> para ("Line" <> linebreak <> "break")
 
-      , "Code" =: "=foo(bar)=" =?> para (code "foo(bar)")
+      , testGroup "Code markup"
+        [ "Code" =: "=foo(bar)=" =?> para (code "foo(bar)")
 
-      , "Not code" =: "a=b= =c=d" =?> para (text "a=b= =c=d")
+        , "Not code" =: "a=b= =c=d" =?> para (text "a=b= =c=d")
+
+        -- Emacs Muse 3.20 parses this as code, we follow Amusewiki
+        , "Not code if closing = is detached" =: "=this is not a code =" =?> para "=this is not a code ="
+
+        , "Not code if opening = is detached" =: "= this is not a code=" =?> para "= this is not a code="
+
+        , "One character code" =: "=c=" =?> para (code "c")
+
+        , "Three = characters is not a code" =: "===" =?> para "==="
+
+        , "Multiline code markup" =:
+          "foo =bar\nbaz= end of code" =?>
+          para (text "foo " <> code "bar\nbaz" <> text " end of code")
+
+{- Emacs Muse 3.20 has a bug: it publishes
+ - <p>foo <code>bar
+ -
+ - baz</code> foo</p>
+ - which is displayed as one paragraph by browsers.
+ - We follow Amusewiki here and avoid joining paragraphs.
+ -}
+        , "No multiparagraph code" =:
+          T.unlines [ "foo =bar"
+                    , ""
+                    , "baz= foo"
+                    ] =?>
+          para "foo =bar" <>
+          para "baz= foo"
+        ]
 
       , "Code tag" =: "<code>foo(bar)</code>" =?> para (code "foo(bar)")
 

@@ -575,13 +575,6 @@ enclosedInlines :: (PandocMonad m, Show a, Show b)
 enclosedInlines start end = try $
   trimInlinesF . mconcat <$> enclosed start end inline
 
-verbatimBetween :: PandocMonad m
-                => Char
-                -> MuseParser m String
-verbatimBetween c = try $ do
-  char c
-  many1Till anyChar $ char c
-
 inlineTag :: PandocMonad m
           => (Inlines -> Inlines)
           -> String
@@ -617,9 +610,13 @@ code = try $ do
   sp <- if sourceColumn pos == 1
           then pure mempty
           else skipMany1 spaceChar >> pure B.space
-  cd <- verbatimBetween '='
+  char '='
+  contents <- many1Till (noneOf "\n\r" <|> (newline <* notFollowedBy newline)) $ char '='
+  guard $ not $ null contents
+  guard $ head contents `notElem` " \t\n"
+  guard $ last contents `notElem` " \t\n"
   notFollowedBy nonspaceChar
-  return $ return (sp B.<> B.code cd)
+  return $ return (sp B.<> B.code contents)
 
 codeTag :: PandocMonad m => MuseParser m (F Inlines)
 codeTag = do
