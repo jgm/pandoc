@@ -1,10 +1,10 @@
 .\"t
-.TH PANDOC 1 "January 29, 2017" "pandoc 1.19.2.2"
+.TH PANDOC 1 "January 29, 2017" "pandoc 1.19.2.3"
 .SH NAME
 pandoc - general markup converter
 .SH SYNOPSIS
 .PP
-\f[C]pandoc\f[] [\f[I]options\f[]] [\f[I]input\-file\f[]]...
+\f[C]pandoc\f[] [\f[I]options\f[]] [\f[I]input\-file\f[]]\&...
 .SH DESCRIPTION
 .PP
 Pandoc is a Haskell library for converting from one markup format to
@@ -23,13 +23,13 @@ Simple, and Slidy, Slideous, DZSlides, reveal.js or S5 HTML slide shows.
 It can also produce PDF output on systems where LaTeX, ConTeXt, or
 \f[C]wkhtmltopdf\f[] is installed.
 .PP
-Pandoc\[aq]s enhanced version of Markdown includes syntax for footnotes,
+Pandoc's enhanced version of Markdown includes syntax for footnotes,
 tables, flexible ordered lists, definition lists, fenced code blocks,
 superscripts and subscripts, strikeout, metadata blocks, automatic
 tables of contents, embedded LaTeX math, citations, and Markdown inside
 HTML block elements.
-(These enhancements, described further under Pandoc\[aq]s Markdown, can
-be disabled using the \f[C]markdown_strict\f[] input or output format.)
+(These enhancements, described further under Pandoc's Markdown, can be
+disabled using the \f[C]markdown_strict\f[] input or output format.)
 .PP
 In contrast to most existing tools for converting Markdown to HTML,
 which use regex substitutions, pandoc has a modular design: it consists
@@ -39,16 +39,16 @@ convert this native representation into a target format.
 Thus, adding an input or output format requires only adding a reader or
 writer.
 .PP
-Because pandoc\[aq]s intermediate representation of a document is less
+Because pandoc's intermediate representation of a document is less
 expressive than many of the formats it converts between, one should not
 expect perfect conversions between every format and every other.
 Pandoc attempts to preserve the structural elements of a document, but
 not formatting details such as margin size.
 And some document elements, such as complex tables, may not fit into
-pandoc\[aq]s simple document model.
-While conversions from pandoc\[aq]s Markdown to all formats aspire to be
-perfect, conversions from formats more expressive than pandoc\[aq]s
-Markdown can be expected to be lossy.
+pandoc's simple document model.
+While conversions from pandoc's Markdown to all formats aspire to be
+perfect, conversions from formats more expressive than pandoc's Markdown
+can be expected to be lossy.
 .SS Using \f[C]pandoc\f[]
 .PP
 If no \f[I]input\-file\f[] is specified, input is read from
@@ -137,11 +137,11 @@ pandoc\ \-o\ hello.tex\ hello.txt
 .PP
 will convert \f[C]hello.txt\f[] from Markdown to LaTeX.
 If no output file is specified (so that output goes to \f[I]stdout\f[]),
-or if the output file\[aq]s extension is unknown, the output format will
+or if the output file's extension is unknown, the output format will
 default to HTML.
 If no input file is specified (so that input comes from \f[I]stdin\f[]),
-or if the input files\[aq] extensions are unknown, the input format will
-be assumed to be Markdown unless explicitly specified.
+or if the input files' extensions are unknown, the input format will be
+assumed to be Markdown unless explicitly specified.
 .PP
 Pandoc uses the UTF\-8 character encoding for both input and output.
 If your local character encoding is not UTF\-8, you should pipe input
@@ -208,7 +208,7 @@ as will \f[C]\-\-css\f[].
 .B \f[C]\-f\f[] \f[I]FORMAT\f[], \f[C]\-r\f[] \f[I]FORMAT\f[], \f[C]\-\-from=\f[]\f[I]FORMAT\f[], \f[C]\-\-read=\f[]\f[I]FORMAT\f[]
 Specify input format.
 \f[I]FORMAT\f[] can be \f[C]native\f[] (native Haskell), \f[C]json\f[]
-(JSON version of native AST), \f[C]markdown\f[] (pandoc\[aq]s extended
+(JSON version of native AST), \f[C]markdown\f[] (pandoc's extended
 Markdown), \f[C]markdown_strict\f[] (original unextended Markdown),
 \f[C]markdown_phpextra\f[] (PHP Markdown Extra),
 \f[C]markdown_github\f[] (GitHub\-Flavored Markdown),
@@ -227,10 +227,9 @@ appending \f[C]+EXTENSION\f[] or \f[C]\-EXTENSION\f[] to the format
 name.
 So, for example, \f[C]markdown_strict+footnotes+definition_lists\f[] is
 strict Markdown with footnotes and definition lists enabled, and
-\f[C]markdown\-pipe_tables+hard_line_breaks\f[] is pandoc\[aq]s Markdown
+\f[C]markdown\-pipe_tables+hard_line_breaks\f[] is pandoc's Markdown
 without pipe tables and with hard line breaks.
-See Pandoc\[aq]s Markdown, below, for a list of extensions and their
-names.
+See Pandoc's Markdown, below, for a list of extensions and their names.
 See \f[C]\-\-list\-input\-formats\f[] and \f[C]\-\-list\-extensions\f[],
 below.
 .RS
@@ -240,10 +239,9 @@ below.
 Specify output format.
 \f[I]FORMAT\f[] can be \f[C]native\f[] (native Haskell), \f[C]json\f[]
 (JSON version of native AST), \f[C]plain\f[] (plain text),
-\f[C]markdown\f[] (pandoc\[aq]s extended Markdown),
-\f[C]markdown_strict\f[] (original unextended Markdown),
-\f[C]markdown_phpextra\f[] (PHP Markdown Extra),
-\f[C]markdown_github\f[] (GitHub\-Flavored Markdown),
+\f[C]markdown\f[] (pandoc's extended Markdown), \f[C]markdown_strict\f[]
+(original unextended Markdown), \f[C]markdown_phpextra\f[] (PHP Markdown
+Extra), \f[C]markdown_github\f[] (GitHub\-Flavored Markdown),
 \f[C]markdown_mmd\f[] (MultiMarkdown), \f[C]commonmark\f[] (CommonMark
 Markdown), \f[C]rst\f[] (reStructuredText), \f[C]html\f[] (XHTML),
 \f[C]html5\f[] (HTML5), \f[C]latex\f[] (LaTeX), \f[C]beamer\f[] (LaTeX
@@ -319,7 +317,7 @@ You can find the default user data directory on your system by looking
 at the output of \f[C]pandoc\ \-\-version\f[].
 A \f[C]reference.odt\f[], \f[C]reference.docx\f[], \f[C]epub.css\f[],
 \f[C]templates\f[], \f[C]slidy\f[], \f[C]slideous\f[], or \f[C]s5\f[]
-directory placed in this directory will override pandoc\[aq]s normal
+directory placed in this directory will override pandoc's normal
 defaults.
 .RE
 .TP
@@ -355,7 +353,7 @@ List supported output formats, one per line.
 .B \f[C]\-\-list\-extensions\f[]
 List supported Markdown extensions, one per line, followed by a
 \f[C]+\f[] or \f[C]\-\f[] indicating whether it is enabled by default in
-pandoc\[aq]s Markdown.
+pandoc's Markdown.
 .RS
 .RE
 .TP
@@ -401,8 +399,8 @@ Produce typographically correct output, converting straight quotes to
 curly quotes, \f[C]\-\-\-\f[] to em\-dashes, \f[C]\-\-\f[] to
 en\-dashes, and \f[C]\&...\f[] to ellipses.
 Nonbreaking spaces are inserted after certain abbreviations, such as
-"Mr." (Note: This option is selected automatically when the output
-format is \f[C]latex\f[] or \f[C]context\f[], unless
+\[lq]Mr.\[rq] (Note: This option is selected automatically when the
+output format is \f[C]latex\f[] or \f[C]context\f[], unless
 \f[C]\-\-no\-tex\-ligatures\f[] is used.
 It has no effect for \f[C]latex\f[] input.)
 .RS
@@ -422,7 +420,7 @@ Specify the base level for headers (defaults to 1).
 .RE
 .TP
 .B \f[C]\-\-indented\-code\-classes=\f[]\f[I]CLASSES\f[]
-Specify classes to use for indented code blocks\-\-for example,
+Specify classes to use for indented code blocks\[en]for example,
 \f[C]perl,numberLines\f[] or \f[C]haskell\f[].
 Multiple classes may be separated by spaces or commas.
 .RS
@@ -450,7 +448,7 @@ Reading binary files (docx, odt, epub) implies \f[C]\-\-file\-scope\f[].
 Specify an executable to be used as a filter transforming the pandoc AST
 after the input is parsed and before the output is written.
 The executable should read JSON from stdin and write JSON to stdout.
-The JSON must be formatted like pandoc\[aq]s own JSON input and output.
+The JSON must be formatted like pandoc's own JSON input and output.
 The name of the output format will be passed to the filter as the first
 argument.
 Hence,
@@ -524,7 +522,7 @@ Specify the number of spaces per tab (default is 4).
 .TP
 .B \f[C]\-\-track\-changes=accept\f[]|\f[C]reject\f[]|\f[C]all\f[]
 Specifies what to do with insertions, deletions, and comments produced
-by the MS Word "Track Changes" feature.
+by the MS Word \[lq]Track Changes\[rq] feature.
 \f[C]accept\f[] (the default), inserts all insertions, and ignores all
 deletions.
 \f[C]reject\f[] inserts all deletions and ignores insertions.
@@ -550,8 +548,8 @@ This option only affects the docx and epub readers.
 .SS General writer options
 .TP
 .B \f[C]\-s\f[], \f[C]\-\-standalone\f[]
-Produce output with an appropriate header and footer (e.g.
-a standalone HTML, LaTeX, TEI, or RTF file, not a fragment).
+Produce output with an appropriate header and footer (e.g.\ a standalone
+HTML, LaTeX, TEI, or RTF file, not a fragment).
 This option is set automatically for \f[C]pdf\f[], \f[C]epub\f[],
 \f[C]epub3\f[], \f[C]fb2\f[], \f[C]docx\f[], and \f[C]odt\f[] output.
 .RS
@@ -681,9 +679,8 @@ Implies \f[C]\-\-standalone\f[].
 .TP
 .B \f[C]\-B\f[] \f[I]FILE\f[], \f[C]\-\-include\-before\-body=\f[]\f[I]FILE\f[]
 Include contents of \f[I]FILE\f[], verbatim, at the beginning of the
-document body (e.g.
-after the \f[C]<body>\f[] tag in HTML, or the \f[C]\\begin{document}\f[]
-command in LaTeX).
+document body (e.g.\ after the \f[C]<body>\f[] tag in HTML, or the
+\f[C]\\begin{document}\f[] command in LaTeX).
 This can be used to include navigation bars or banners in HTML
 documents.
 This option can be used repeatedly to include multiple files.
@@ -707,9 +704,9 @@ Implies \f[C]\-\-standalone\f[].
 Produce a standalone HTML file with no external dependencies, using
 \f[C]data:\f[] URIs to incorporate the contents of linked scripts,
 stylesheets, images, and videos.
-The resulting file should be "self\-contained," in the sense that it
-needs no external files and no net access to be displayed properly by a
-browser.
+The resulting file should be \[lq]self\-contained,\[rq] in the sense
+that it needs no external files and no net access to be displayed
+properly by a browser.
 This option works only with HTML output formats, including
 \f[C]html\f[], \f[C]html5\f[], \f[C]html+lhs\f[], \f[C]html5+lhs\f[],
 \f[C]s5\f[], \f[C]slidy\f[], \f[C]slideous\f[], \f[C]dzslides\f[], and
@@ -720,9 +717,9 @@ those at relative URLs will be sought relative to the working directory
 first source file is remote).
 Limitation: resources that are loaded dynamically through JavaScript
 cannot be incorporated; as a result, \f[C]\-\-self\-contained\f[] does
-not work with \f[C]\-\-mathjax\f[], and some advanced features (e.g.
-zoom or speaker notes) may not work in an offline "self\-contained"
-\f[C]reveal.js\f[] slide show.
+not work with \f[C]\-\-mathjax\f[], and some advanced features (
+e.g.\ zoom or speaker notes) may not work in an offline
+\[lq]self\-contained\[rq] \f[C]reveal.js\f[] slide show.
 .RS
 .RE
 .TP
@@ -793,15 +790,16 @@ Sections with class \f[C]unnumbered\f[] will never be numbered, even if
 .RS
 .RE
 .TP
-.B \f[C]\-\-number\-offset=\f[]\f[I]NUMBER\f[][\f[C],\f[]\f[I]NUMBER\f[]\f[C],\f[]\f[I]...\f[]]
+.B \f[C]\-\-number\-offset=\f[]\f[I]NUMBER\f[][\f[C],\f[]\f[I]NUMBER\f[]\f[C],\f[]\f[I]\&...\f[]]
 Offset for section headings in HTML output (ignored in other output
 formats).
 The first number is added to the section number for top\-level headers,
 the second for second\-level headers, and so on.
 So, for example, if you want the first top\-level header in your
-document to be numbered "6", specify \f[C]\-\-number\-offset=5\f[].
+document to be numbered \[lq]6\[rq], specify
+\f[C]\-\-number\-offset=5\f[].
 If your document starts with a level\-2 header which you want to be
-numbered "1.5", specify \f[C]\-\-number\-offset=1,4\f[].
+numbered \[lq]1.5\[rq], specify \f[C]\-\-number\-offset=1,4\f[].
 Offsets are 0 by default.
 Implies \f[C]\-\-number\-sections\f[].
 .RS
@@ -1027,7 +1025,7 @@ body\ {\ font\-family:\ "DejaVuSans";\ }
 .TP
 .B \f[C]\-\-epub\-chapter\-level=\f[]\f[I]NUMBER\f[]
 Specify the header level at which to split the EPUB into separate
-"chapter" files.
+\[lq]chapter\[rq] files.
 The default is to split into chapters at level 1 headers.
 This option only affects the internal composition of the EPUB, not the
 way chapters and sections are displayed to users.
@@ -1056,7 +1054,7 @@ Note that no check for duplicate options is done.
 .SS Citation rendering
 .TP
 .B \f[C]\-\-bibliography=\f[]\f[I]FILE\f[]
-Set the \f[C]bibliography\f[] field in the document\[aq]s metadata to
+Set the \f[C]bibliography\f[] field in the document's metadata to
 \f[I]FILE\f[], overriding any value set in the metadata, and process
 citations using \f[C]pandoc\-citeproc\f[].
 (This is equivalent to
@@ -1070,15 +1068,15 @@ added to bibliography.
 .RE
 .TP
 .B \f[C]\-\-csl=\f[]\f[I]FILE\f[]
-Set the \f[C]csl\f[] field in the document\[aq]s metadata to
-\f[I]FILE\f[], overriding any value set in the metadata.
+Set the \f[C]csl\f[] field in the document's metadata to \f[I]FILE\f[],
+overriding any value set in the metadata.
 (This is equivalent to \f[C]\-\-metadata\ csl=FILE\f[].) This option is
 only relevant with \f[C]pandoc\-citeproc\f[].
 .RS
 .RE
 .TP
 .B \f[C]\-\-citation\-abbreviations=\f[]\f[I]FILE\f[]
-Set the \f[C]citation\-abbreviations\f[] field in the document\[aq]s
+Set the \f[C]citation\-abbreviations\f[] field in the document's
 metadata to \f[I]FILE\f[], overriding any value set in the metadata.
 (This is equivalent to
 \f[C]\-\-metadata\ citation\-abbreviations=FILE\f[].) This option is
@@ -1165,7 +1163,7 @@ to images.
 The formula will be concatenated with the URL provided.
 If \f[I]URL\f[] is not specified, the CodeCogs will be used.
 Note: the \f[C]\-\-webtex\f[] option will affect Markdown output as well
-as HTML, which is useful if you\[aq]re targeting a version of Markdown
+as HTML, which is useful if you're targeting a version of Markdown
 without native math support.
 .RS
 .RE
@@ -1346,7 +1344,7 @@ body of document
 .RE
 .TP
 .B \f[C]meta\-json\f[]
-JSON representation of all of the document\[aq]s metadata
+JSON representation of all of the document's metadata
 .RS
 .RE
 .SS Language variables
@@ -1388,8 +1386,8 @@ For bidirectional documents, native pandoc \f[C]span\f[]s and
 \f[C]div\f[]s with the \f[C]dir\f[] attribute (value \f[C]rtl\f[] or
 \f[C]ltr\f[]) can be used to override the base direction in some output
 formats.
-This may not always be necessary if the final renderer (e.g.
-the browser, when generating HTML) supports the Unicode Bidirectional
+This may not always be necessary if the final renderer (e.g.\ the
+browser, when generating HTML) supports the Unicode Bidirectional
 Algorithm.
 .PP
 When using LaTeX for bidirectional documents, only the \f[C]xelatex\f[]
@@ -1439,8 +1437,8 @@ controls navigation symbols in \f[C]beamer\f[] documents (default is
 .RE
 .TP
 .B \f[C]section\-titles\f[]
-enables on "title pages" for new sections in \f[C]beamer\f[] documents
-(default = true).
+enables on \[lq]title pages\[rq] for new sections in \f[C]beamer\f[]
+documents (default = true).
 .RS
 .RE
 .TP
@@ -1820,10 +1818,10 @@ We recommend tracking the changes in the default templates, and
 modifying your custom templates accordingly.
 An easy way to do this is to fork the pandoc\-templates repository and
 merge in changes after each pandoc release.
-.SH PANDOC\[aq]S MARKDOWN
+.SH PANDOC'S MARKDOWN
 .PP
 Pandoc understands an extended and slightly revised version of John
-Gruber\[aq]s Markdown syntax.
+Gruber's Markdown syntax.
 This document explains the syntax, noting differences from standard
 Markdown.
 Except where noted, these differences can be suppressed by using the
@@ -1832,7 +1830,7 @@ An extensions can be enabled by adding \f[C]+EXTENSION\f[] to the format
 name and disabled by adding \f[C]\-EXTENSION\f[].
 For example, \f[C]markdown_strict+footnotes\f[] is strict Markdown with
 footnotes enabled, while \f[C]markdown\-footnotes\-pipe_tables\f[] is
-pandoc\[aq]s Markdown without footnotes or pipe tables.
+pandoc's Markdown without footnotes or pipe tables.
 .SS Philosophy
 .PP
 Markdown is designed to be easy to write, and, even more importantly,
@@ -1840,16 +1838,16 @@ easy to read:
 .RS
 .PP
 A Markdown\-formatted document should be publishable as\-is, as plain
-text, without looking like it\[aq]s been marked up with tags or
-formatting instructions.
-\-\- John Gruber
+text, without looking like it's been marked up with tags or formatting
+instructions.
+\[en] John Gruber
 .RE
 .PP
-This principle has guided pandoc\[aq]s decisions in finding syntax for
+This principle has guided pandoc's decisions in finding syntax for
 tables, footnotes, and other extensions.
 .PP
-There is, however, one respect in which pandoc\[aq]s aims are different
-from the original aims of Markdown.
+There is, however, one respect in which pandoc's aims are different from
+the original aims of Markdown.
 Whereas Markdown was originally designed with HTML generation in mind,
 pandoc is designed for multiple output formats.
 Thus, while pandoc allows the embedding of raw HTML, it discourages it,
@@ -1873,8 +1871,8 @@ a hard line break, since trailing spaces in the cells are ignored.
 There are two kinds of headers: Setext and ATX.
 .SS Setext\-style headers
 .PP
-A setext\-style header is a line of text "underlined" with a row of
-\f[C]=\f[] signs (for a level one header) or \f[C]\-\f[] signs (for a
+A setext\-style header is a line of text \[lq]underlined\[rq] with a row
+of \f[C]=\f[] signs (for a level one header) or \f[C]\-\f[] signs (for a
 level two header):
 .IP
 .nf
@@ -1956,7 +1954,7 @@ My\ other\ header\ \ \ {#foo}
 (This syntax is compatible with PHP Markdown Extra.)
 .PP
 Note that although this syntax allows assignment of classes and
-key/value attributes, writers generally don\[aq]t use all of this
+key/value attributes, writers generally don't use all of this
 information.
 Identifiers, classes, and key/value attributes are used in HTML and
 HTML\-based formats such as EPUB and slidy.
@@ -2155,8 +2153,8 @@ indented more than three spaces.)
 \f[]
 .fi
 .PP
-A "lazy" form, which requires the \f[C]>\f[] character only on the first
-line of each block, is also allowed:
+A \[lq]lazy\[rq] form, which requires the \f[C]>\f[] character only on
+the first line of each block, is also allowed:
 .IP
 .nf
 \f[C]
@@ -2384,8 +2382,8 @@ Here is a simple example:
 \f[]
 .fi
 .PP
-This will produce a "compact" list.
-If you want a "loose" list, in which each item is formatted as a
+This will produce a \[lq]compact\[rq] list.
+If you want a \[lq]loose\[rq] list, in which each item is formatted as a
 paragraph, put spaces between the items:
 .IP
 .nf
@@ -2413,7 +2411,7 @@ List items look best if subsequent lines are flush with the first line
 \f[]
 .fi
 .PP
-But Markdown also allows a "lazy" format:
+But Markdown also allows a \[lq]lazy\[rq] format:
 .IP
 .nf
 \f[C]
@@ -2462,8 +2460,8 @@ The nested list must be indented four spaces or one tab:
 \f[]
 .fi
 .PP
-As noted above, Markdown allows you to write list items "lazily,"
-instead of indenting continuation lines.
+As noted above, Markdown allows you to write list items
+\[lq]lazily,\[rq] instead of indenting continuation lines.
 However, if there are multiple paragraphs or other blocks in a list
 item, the first line of each must be indented.
 .IP
@@ -2529,8 +2527,8 @@ They must be separated from the text that follows by at least one space,
 and, if the list marker is a capital letter with a period, by at least
 two spaces.
 .PP
-The \f[C]fancy_lists\f[] extension also allows \[aq]\f[C]#\f[]\[aq] to
-be used as an ordered list marker in place of a numeral:
+The \f[C]fancy_lists\f[] extension also allows `\f[C]#\f[]' to be used
+as an ordered list marker in place of a numeral:
 .IP
 .nf
 \f[C]
@@ -2612,8 +2610,9 @@ one or more block elements (paragraph, code block, list, etc.), each
 indented four spaces or one tab stop.
 The body of the definition (including the first line, aside from the
 colon or tilde) should be indented four spaces.
-However, as with other Markdown lists, you can "lazily" omit indentation
-except at the beginning of a paragraph or other block element:
+However, as with other Markdown lists, you can \[lq]lazily\[rq] omit
+indentation except at the beginning of a paragraph or other block
+element:
 .IP
 .nf
 \f[C]
@@ -2645,16 +2644,16 @@ Term\ 2
 .fi
 .PP
 Note that space between items in a definition list is required.
-(A variant that loosens this requirement, but disallows "lazy" hard
-wrapping, can be activated with \f[C]compact_definition_lists\f[]: see
-Non\-pandoc extensions, below.)
+(A variant that loosens this requirement, but disallows \[lq]lazy\[rq]
+hard wrapping, can be activated with \f[C]compact_definition_lists\f[]:
+see Non\-pandoc extensions, below.)
 .SS Numbered example lists
 .SS Extension: \f[C]example_lists\f[]
 .PP
 The special list marker \f[C]\@\f[] can be used for sequentially
 numbered examples.
-The first list item with a \f[C]\@\f[] marker will be numbered
-\[aq]1\[aq], the next \[aq]2\[aq], and so on, throughout the document.
+The first list item with a \f[C]\@\f[] marker will be numbered `1', the
+next `2', and so on, throughout the document.
 The numbered examples need not occur in a single list; each new list
 using \f[C]\@\f[] will take up where the last stopped.
 So, for example:
@@ -2685,8 +2684,8 @@ The label can be any string of alphanumeric characters, underscores, or
 hyphens.
 .SS Compact and loose lists
 .PP
-Pandoc behaves differently from \f[C]Markdown.pl\f[] on some "edge
-cases" involving lists.
+Pandoc behaves differently from \f[C]Markdown.pl\f[] on some \[lq]edge
+cases\[rq] involving lists.
 Consider this source:
 .IP
 .nf
@@ -2701,14 +2700,15 @@ Consider this source:
 \f[]
 .fi
 .PP
-Pandoc transforms this into a "compact list" (with no \f[C]<p>\f[] tags
-around "First", "Second", or "Third"), while Markdown puts \f[C]<p>\f[]
-tags around "Second" and "Third" (but not "First"), because of the blank
-space around "Third".
+Pandoc transforms this into a \[lq]compact list\[rq] (with no
+\f[C]<p>\f[] tags around \[lq]First\[rq], \[lq]Second\[rq], or
+\[lq]Third\[rq]), while Markdown puts \f[C]<p>\f[] tags around
+\[lq]Second\[rq] and \[lq]Third\[rq] (but not \[lq]First\[rq]), because
+of the blank space around \[lq]Third\[rq].
 Pandoc follows a simple rule: if the text is followed by a blank line,
 it is treated as a paragraph.
-Since "Second" is followed by a list, and not a blank line, it isn\[aq]t
-treated as a paragraph.
+Since \[lq]Second\[rq] is followed by a list, and not a blank line, it
+isn't treated as a paragraph.
 The fact that the list is followed by a blank line is irrelevant.
 (Note: Pandoc works this way even when the \f[C]markdown_strict\f[]
 format is specified.
@@ -2732,9 +2732,9 @@ Trouble! Here pandoc (like other Markdown implementations) will treat
 \f[C]{\ my\ code\ block\ }\f[] as the second paragraph of item two, and
 not as a code block.
 .PP
-To "cut off" the list after item two, you can insert some non\-indented
-content, like an HTML comment, which won\[aq]t produce visible output in
-any format:
+To \[lq]cut off\[rq] the list after item two, you can insert some
+non\-indented content, like an HTML comment, which won't produce visible
+output in any format:
 .IP
 .nf
 \f[C]
@@ -2998,7 +2998,7 @@ wrap, with the relative cell widths determined by the widths of the
 separator lines.
 .PP
 Note: pandoc also recognizes pipe tables of the following form, as can
-be produced by Emacs\[aq] orgtbl\-mode:
+be produced by Emacs' orgtbl\-mode:
 .IP
 .nf
 \f[C]
@@ -3011,8 +3011,8 @@ be produced by Emacs\[aq] orgtbl\-mode:
 .PP
 The difference is that \f[C]+\f[] is used instead of \f[C]|\f[].
 Other orgtbl features are not supported.
-In particular, to get non\-default column alignment, you\[aq]ll need to
-add colons as above.
+In particular, to get non\-default column alignment, you'll need to add
+colons as above.
 .SS Metadata blocks
 .SS Extension: \f[C]pandoc_title_block\f[]
 .PP
@@ -3077,13 +3077,13 @@ All three metadata fields may contain standard inline formatting
 .PP
 Title blocks will always be parsed, but they will affect the output only
 when the \f[C]\-\-standalone\f[] (\f[C]\-s\f[]) option is chosen.
-In HTML output, titles will appear twice: once in the document head \-\-
-this is the title that will appear at the top of the window in a browser
-\-\- and once at the beginning of the document body.
+In HTML output, titles will appear twice: once in the document head
+\[en] this is the title that will appear at the top of the window in a
+browser \[en] and once at the beginning of the document body.
 The title in the document head can have an optional prefix attached
 (\f[C]\-\-title\-prefix\f[] or \f[C]\-T\f[] option).
-The title in the body appears as an H1 element with class "title", so it
-can be suppressed or reformatted with CSS.
+The title in the body appears as an H1 element with class
+\[lq]title\[rq], so it can be suppressed or reformatted with CSS.
 If a title prefix is specified with \f[C]\-T\f[] and no title block
 appears in the document, the title prefix will be used by itself as the
 HTML title.
@@ -3112,7 +3112,7 @@ will yield a man page with the title \f[C]PANDOC\f[] and section 1.
 \f[]
 .fi
 .PP
-will also have "Pandoc User Manuals" in the footer.
+will also have \[lq]Pandoc User Manuals\[rq] in the footer.
 .IP
 .nf
 \f[C]
@@ -3120,7 +3120,7 @@ will also have "Pandoc User Manuals" in the footer.
 \f[]
 .fi
 .PP
-will also have "Version 4.0" in the header.
+will also have \[lq]Version 4.0\[rq] in the header.
 .SS Extension: \f[C]yaml_metadata_block\f[]
 .PP
 A YAML metadata block is a valid YAML object, delimited by a line of
@@ -3259,7 +3259,7 @@ instead of
 \f[]
 .fi
 .PP
-This rule is easier to remember than standard Markdown\[aq]s rule, which
+This rule is easier to remember than standard Markdown's rule, which
 allows only the following characters to be backslash\-escaped:
 .IP
 .nf
@@ -3275,12 +3275,11 @@ A backslash\-escaped space is parsed as a nonbreaking space.
 It will appear in TeX output as \f[C]~\f[] and in HTML and XML as
 \f[C]\\&#160;\f[] or \f[C]\\&nbsp;\f[].
 .PP
-A backslash\-escaped newline (i.e.
-a backslash occurring at the end of a line) is parsed as a hard line
-break.
+A backslash\-escaped newline (i.e.\ a backslash occurring at the end of
+a line) is parsed as a hard line break.
 It will appear in TeX output as \f[C]\\\\\f[] and in HTML as
 \f[C]<br\ />\f[].
-This is a nice alternative to Markdown\[aq]s "invisible" way of
+This is a nice alternative to Markdown's \[lq]invisible\[rq] way of
 indicating hard line breaks using two trailing spaces on a line.
 .PP
 Backslash escapes do not work in verbatim contexts.
@@ -3292,7 +3291,7 @@ typographically correct output, converting straight quotes to curly
 quotes, \f[C]\-\-\-\f[] to em\-dashes, \f[C]\-\-\f[] to en\-dashes, and
 \f[C]\&...\f[] to ellipses.
 Nonbreaking spaces are inserted after certain abbreviations, such as
-"Mr."
+\[lq]Mr.\[rq]
 .PP
 Note: if your LaTeX template or any included header file call for the
 \f[C]csquotes\f[] package, pandoc will detect this automatically and use
@@ -3368,8 +3367,8 @@ If the superscripted or subscripted text contains spaces, these spaces
 must be escaped with backslashes.
 (This is to prevent accidental superscripting and subscripting through
 the ordinary use of \f[C]~\f[] and \f[C]^\f[].) Thus, if you want the
-letter P with \[aq]a cat\[aq] in subscripts, use \f[C]P~a\\\ cat~\f[],
-not \f[C]P~a\ cat~\f[].
+letter P with `a cat' in subscripts, use \f[C]P~a\\\ cat~\f[], not
+\f[C]P~a\ cat~\f[].
 .SS Verbatim
 .PP
 To make a short span of text verbatim, put it inside backticks:
@@ -3441,9 +3440,9 @@ The opening \f[C]$\f[] must have a non\-space character immediately to
 its right, while the closing \f[C]$\f[] must have a non\-space character
 immediately to its left, and must not be followed immediately by a
 digit.
-Thus, \f[C]$20,000\ and\ $30,000\f[] won\[aq]t parse as math.
+Thus, \f[C]$20,000\ and\ $30,000\f[] won't parse as math.
 If for some reason you need to enclose text in literal \f[C]$\f[]
-characters, backslash\-escape them and they won\[aq]t be treated as math
+characters, backslash\-escape them and they won't be treated as math
 delimiters.
 .PP
 TeX math will be printed in all output formats.
@@ -3470,7 +3469,7 @@ It will be rendered inside a \f[C]\@math\f[] command.
 .RE
 .TP
 .B groff man
-It will be rendered verbatim without \f[C]$\f[]\[aq]s.
+It will be rendered verbatim without \f[C]$\f[]'s.
 .RS
 .RE
 .TP
@@ -3584,9 +3583,9 @@ DZSlides, EPUB, Markdown, Emacs Org mode, and Textile output, and
 suppressed in other formats.
 .SS Extension: \f[C]markdown_in_html_blocks\f[]
 .PP
-Standard Markdown allows you to include HTML "blocks": blocks of HTML
-between balanced tags that are separated from the surrounding text with
-blank lines, and start and end at the left margin.
+Standard Markdown allows you to include HTML \[lq]blocks\[rq]: blocks of
+HTML between balanced tags that are separated from the surrounding text
+with blank lines, and start and end at the left margin.
 Within these blocks, everything is interpreted as HTML, not Markdown; so
 (for example), \f[C]*\f[] does not signify emphasis.
 .PP
@@ -3854,7 +3853,7 @@ slide shows and EPUB), LaTeX, and ConTeXt.
 .SS Images
 .PP
 A link immediately preceded by a \f[C]!\f[] will be treated as an image.
-The link text will be used as the image\[aq]s alt text:
+The link text will be used as the image's alt text:
 .IP
 .nf
 \f[C]
@@ -3871,7 +3870,7 @@ An image occurring by itself in a paragraph will be rendered as a figure
 with a caption. (In LaTeX, a figure environment will be used; in HTML,
 the image will be placed in a \f[C]div\f[] with class \f[C]figure\f[],
 together with a caption in a \f[C]p\f[] with class \f[C]caption\f[].)
-The image\[aq]s alt text will be used as the caption.
+The image's alt text will be used as the caption.
 .IP
 .nf
 \f[C]
@@ -3958,7 +3957,7 @@ attributes:
 .SS Footnotes
 .SS Extension: \f[C]footnotes\f[]
 .PP
-Pandoc\[aq]s Markdown allows footnotes, using the following syntax:
+Pandoc's Markdown allows footnotes, using the following syntax:
 .IP
 .nf
 \f[C]
@@ -4142,7 +4141,7 @@ JSON and CSL YAML formats as far as possible.
 As an alternative to specifying a bibliography file using
 \f[C]\-\-bibliography\f[] or the YAML metadata field
 \f[C]bibliography\f[], you can include the citation data directly in the
-\f[C]references\f[] field of the document\[aq]s YAML metadata.
+\f[C]references\f[] field of the document's YAML metadata.
 The field should contain an array of YAML\-encoded references, for
 example:
 .IP
@@ -4192,7 +4191,7 @@ To make your citations hyperlinks to the corresponding bibliography
 entries, add \f[C]link\-citations:\ true\f[] to your YAML metadata.
 .PP
 Citations go inside square brackets and are separated by semicolons.
-Each citation must have a key, composed of \[aq]\@\[aq] + the citation
+Each citation must have a key, composed of `\@' + the citation
 identifier from the database, and may optionally have a prefix, a
 locator, and a suffix.
 The citation key must begin with a letter, digit, or \f[C]_\f[], and may
@@ -4227,7 +4226,7 @@ singular or plural forms, as \f[C]book\f[], \f[C]bk.\f[]/\f[C]bks.\f[];
 \f[C]s.v.\f[]/\f[C]s.vv.\f[]; \f[C]verse\f[], \f[C]v.\f[]/\f[C]vv.\f[];
 \f[C]volume\f[], \f[C]vol.\f[]/\f[C]vols.\f[]; \f[C]¶\f[]/\f[C]¶¶\f[];
 \f[C]§\f[]/\f[C]§§\f[].
-If no locator term is used, "page" is assumed.
+If no locator term is used, \[lq]page\[rq] is assumed.
 .PP
 A minus sign (\f[C]\-\f[]) before the \f[C]\@\f[] will suppress mention
 of the author in the citation.
@@ -4316,7 +4315,7 @@ hard line breaks.
 .PP
 Allow \f[C]<\f[] and \f[C]>\f[] to be backslash\-escaped, as they can be
 in GitHub flavored Markdown but not original Markdown.
-This is implied by pandoc\[aq]s default \f[C]all_symbols_escapable\f[].
+This is implied by pandoc's default \f[C]all_symbols_escapable\f[].
 .SS Extension: \f[C]lists_without_preceding_blankline\f[]
 .PP
 Allow a list to occur right after a paragraph, with no intervening blank
@@ -4430,15 +4429,15 @@ in several respects:
 No blank line is required between consecutive items of the definition
 list.
 .IP \[bu] 2
-To get a "tight" or "compact" list, omit space between consecutive
-items; the space between a term and its definition does not affect
-anything.
+To get a \[lq]tight\[rq] or \[lq]compact\[rq] list, omit space between
+consecutive items; the space between a term and its definition does not
+affect anything.
 .IP \[bu] 2
 Lazy wrapping of paragraphs is not allowed: the entire definition must
 be indented four spaces.
 .SS Markdown variants
 .PP
-In addition to pandoc\[aq]s extended Markdown, the following Markdown
+In addition to pandoc's extended Markdown, the following Markdown
 variants are supported:
 .TP
 .B \f[C]markdown_phpextra\f[] (PHP Markdown Extra)
@@ -4495,8 +4494,7 @@ There are five ways to do this, using S5, DZSlides, Slidy, Slideous, or
 reveal.js.
 You can also produce a PDF slide show using LaTeX \f[C]beamer\f[].
 .PP
-Here\[aq]s the Markdown source for a simple slide show,
-\f[C]habits.txt\f[]:
+Here's the Markdown source for a simple slide show, \f[C]habits.txt\f[]:
 .IP
 .nf
 \f[C]
@@ -4591,17 +4589,17 @@ A header at the slide level always starts a new slide.
 Headers \f[I]below\f[] the slide level in the hierarchy create headers
 \f[I]within\f[] a slide.
 .IP \[bu] 2
-Headers \f[I]above\f[] the slide level in the hierarchy create "title
-slides," which just contain the section title and help to break the
-slide show into sections.
+Headers \f[I]above\f[] the slide level in the hierarchy create
+\[lq]title slides,\[rq] which just contain the section title and help to
+break the slide show into sections.
 .IP \[bu] 2
-A title page is constructed automatically from the document\[aq]s title
+A title page is constructed automatically from the document's title
 block, if present.
 (In the case of beamer, this can be disabled by commenting out some
 lines in the default template.)
 .PP
 These rules are designed to support many different styles of slide show.
-If you don\[aq]t care about structuring your slides into sections and
+If you don't care about structuring your slides into sections and
 subsections, you can just use level 1 headers for all each slide.
 (In that case, level 1 will be the slide level.) But you can also
 structure the slide show into sections, as in the example above.
@@ -4613,9 +4611,9 @@ It is not recommended that you use deeper nesting of section levels with
 reveal.js.
 .SS Incremental lists
 .PP
-By default, these writers produce lists that display "all at once." If
-you want your lists to display incrementally (one item at a time), use
-the \f[C]\-i\f[] option.
+By default, these writers produce lists that display \[lq]all at
+once.\[rq] If you want your lists to display incrementally (one item at
+a time), use the \f[C]\-i\f[] option.
 If you want a particular list to depart from the default (that is, to
 display incrementally without the \f[C]\-i\f[] option and all at once
 with the \f[C]\-i\f[] option), put it in a block quote:
@@ -4631,8 +4629,8 @@ In this way incremental and nonincremental lists can be mixed in a
 single document.
 .SS Inserting pauses
 .PP
-You can add "pauses" within a slide by including a paragraph containing
-three dots, separated by spaces:
+You can add \[lq]pauses\[rq] within a slide by including a paragraph
+containing three dots, separated by spaces:
 .IP
 .nf
 \f[C]
@@ -4652,8 +4650,8 @@ in \f[C]$DATADIR/s5/default\f[] (for S5), \f[C]$DATADIR/slidy\f[] (for
 Slidy), or \f[C]$DATADIR/slideous\f[] (for Slideous), where
 \f[C]$DATADIR\f[] is the user data directory (see
 \f[C]\-\-data\-dir\f[], above).
-The originals may be found in pandoc\[aq]s system data directory
-(generally \f[C]$CABALDIR/pandoc\-VERSION/s5/default\f[]).
+The originals may be found in pandoc's system data directory (generally
+\f[C]$CABALDIR/pandoc\-VERSION/s5/default\f[]).
 Pandoc will look there for any files it does not find in the user data
 directory.
 .PP
@@ -4732,7 +4730,7 @@ introducing the slide:
 .fi
 .PP
 All of the other frame attributes described in Section 8.1 of the Beamer
-User\[aq]s Guide may also be used: \f[C]allowdisplaybreaks\f[],
+User's Guide may also be used: \f[C]allowdisplaybreaks\f[],
 \f[C]allowframebreaks\f[], \f[C]b\f[], \f[C]c\f[], \f[C]t\f[],
 \f[C]environment\f[], \f[C]label\f[], \f[C]plain\f[], \f[C]shrink\f[].
 .SH CREATING EPUBS WITH PANDOC
@@ -4791,8 +4789,8 @@ Valid values for \f[C]type\f[] are \f[C]main\f[], \f[C]subtitle\f[],
 Either a string value, or an object with fields \f[C]role\f[],
 \f[C]file\-as\f[], and \f[C]text\f[], or a list of such objects.
 Valid values for \f[C]role\f[] are MARC relators, but pandoc will
-attempt to translate the human\-readable versions (like "author" and
-"editor") to the appropriate marc relators.
+attempt to translate the human\-readable versions (like \[lq]author\[rq]
+and \[lq]editor\[rq]) to the appropriate marc relators.
 .RS
 .RE
 .TP
@@ -4893,24 +4891,23 @@ output; \f[C]beamer\f[], \f[C]html\f[] or \f[C]html5\f[] for output
 only), pandoc will treat the document as literate Haskell source.
 This means that
 .IP \[bu] 2
-In Markdown input, "bird track" sections will be parsed as Haskell code
-rather than block quotations.
+In Markdown input, \[lq]bird track\[rq] sections will be parsed as
+Haskell code rather than block quotations.
 Text between \f[C]\\begin{code}\f[] and \f[C]\\end{code}\f[] will also
 be treated as Haskell code.
-For ATX\-style headers the character \[aq]=\[aq] will be used instead of
-\[aq]#\[aq].
+For ATX\-style headers the character `=' will be used instead of `#'.
 .IP \[bu] 2
 In Markdown output, code blocks with classes \f[C]haskell\f[] and
 \f[C]literate\f[] will be rendered using bird tracks, and block
 quotations will be indented one space, so they will not be treated as
 Haskell code.
 In addition, headers will be rendered setext\-style (with underlines)
-rather than ATX\-style (with \[aq]#\[aq] characters).
-(This is because ghc treats \[aq]#\[aq] characters in column 1 as
-introducing line numbers.)
+rather than ATX\-style (with `#' characters).
+(This is because ghc treats `#' characters in column 1 as introducing
+line numbers.)
 .IP \[bu] 2
-In restructured text input, "bird track" sections will be parsed as
-Haskell code.
+In restructured text input, \[lq]bird track\[rq] sections will be parsed
+as Haskell code.
 .IP \[bu] 2
 In restructured text output, code blocks with class \f[C]haskell\f[]
 will be rendered using bird tracks.
@@ -4963,8 +4960,8 @@ To see a list of highlight styles, type
 To disable highlighting, use the \f[C]\-\-no\-highlight\f[] option.
 .SH CUSTOM STYLES IN DOCX OUTPUT
 .PP
-By default, pandoc\[aq]s docx output applies a predefined set of styles
-for blocks such as paragraphs and block quotes, and uses largely default
+By default, pandoc's docx output applies a predefined set of styles for
+blocks such as paragraphs and block quotes, and uses largely default
 formatting (italics, bold) for inlines.
 This will work for most purposes, especially alongside a
 \f[C]reference.docx\f[] file.
@@ -4983,8 +4980,8 @@ So, for example,
 \f[]
 .fi
 .PP
-would produce a docx file with "Get out," styled with character style
-\f[C]Emphatically\f[].
+would produce a docx file with \[lq]Get out,\[rq] styled with character
+style \f[C]Emphatically\f[].
 Similarly,
 .IP
 .nf
@@ -5049,14 +5046,14 @@ This software carries no warranty of any kind.
 Contributors include Arata Mizuki, Aaron Wolen, Albert Krewinkel, Alex
 Ivkin, Alex Vong, Alexander Kondratskiy, Alexander Sulfrian, Alexander V
 Vershilov, Alfred Wechselberger, Andreas Lööw, Andrew Dunning, Antoine
-Latter, Arata Mizuki, Arlo O\[aq]Keeffe, Artyom Kazak, B.
+Latter, Arata Mizuki, Arlo O'Keeffe, Artyom Kazak, B.
 Scott Michel, Ben Gamari, Beni Cherniavsky\-Paskin, Benoit Schweblin,
-Bjorn Buckwalter, Bradley Kuhn, Brent Yorgey, Bryan O\[aq]Sullivan,
-Caleb McDaniel, Calvin Beck, Carlos Sosa, Chris Black, Christian Conkle,
+Bjorn Buckwalter, Bradley Kuhn, Brent Yorgey, Bryan O'Sullivan, Caleb
+McDaniel, Calvin Beck, Carlos Sosa, Chris Black, Christian Conkle,
 Christoffer Ackelman, Christoffer Sawicki, Clare Macrae, Clint Adams,
 Conal Elliott, Craig S.
 Bosma, Daniel Bergey, Daniel T.
-Staal, Daniele D\[aq]Orazio, David Lazar, David Röthlisberger, Denis
+Staal, Daniele D'Orazio, David Lazar, David Röthlisberger, Denis
 Laxalde, Douglas Calvert, Emanuel Evans, Emily Eisenberg, Eric Kow, Eric
 Seidel, Felix Yan, Florian Eitel, François Gannaz, Freiric Barral,
 Freirich Raabe, Frerich Raabe, Fyodor Sheremetyev, Gabor Pali, Gavin
