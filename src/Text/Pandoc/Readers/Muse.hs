@@ -223,7 +223,16 @@ header = try $ do
   return $ B.headerWith attr level <$> content
 
 exampleTag :: PandocMonad m => MuseParser m (F Blocks)
-exampleTag = liftM (return . uncurry B.codeBlockWith) $ htmlElement "example"
+exampleTag = do
+  (attr, contents) <- htmlElement "example"
+  return $ return $ B.codeBlockWith attr $ chop contents
+  where lchop s = case s of
+                    '\n':ss -> ss
+                    _ -> s
+        rchop = reverse . lchop . reverse
+        -- Trim up to one newline from the beginning and the end,
+        -- in case opening and/or closing tags are on separate lines.
+        chop = lchop . rchop
 
 literal :: PandocMonad m => MuseParser m (F Blocks)
 literal = liftM (return . rawBlock) $ htmlElement "literal"
