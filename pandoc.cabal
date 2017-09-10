@@ -432,6 +432,7 @@ Executable pandoc
                  base >= 4.2 && <5,
                  directory >= 1.2 && < 1.4,
                  filepath >= 1.1 && < 1.5,
+                 texmath >= 0.9 && < 0.10,
                  text >= 0.11 && < 1.3,
                  bytestring >= 0.9 && < 0.11,
                  extensible-exceptions >= 0.1 && < 0.2,
