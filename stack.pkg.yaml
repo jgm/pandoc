@@ -18,7 +18,7 @@ packages:
   extra-dep: false
 extra-deps:
 - hslua-0.8.0
-- skylighting-0.3.3
+- skylighting-0.3.4.1
 - cmark-gfm-0.1.1
 - QuickCheck-2.10.0.1
 - tasty-quickcheck-0.9.1
