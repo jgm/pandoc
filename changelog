@@ -1,3 +1,9 @@
+pandoc (1.19.2.4)
+
+  * Add dependencies on texmath and skylighting to the executable.
+    This is needed for dependency version numbers to be available,
+    with Cabal > 2.
+
 pandoc (1.19.2.3)
 
   * Add CPP to Setup.hs so it works with Cabal >= 2 and < 2.
