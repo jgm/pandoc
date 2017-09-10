@@ -230,6 +230,31 @@ tests =
         lineBlock [ "Foo bar" ] <>
         lineBlock [ "Foo bar" ] <>
         lineBlock [ "\160\160\160Foo" ]
+      , testGroup "Example tag"
+        [ "Tags on separate lines" =:
+          T.unlines [ "<example>"
+                    , "Example line"
+                    , "</example>"
+                    ] =?>
+          codeBlock "Example line"
+        , "One line" =:
+          "<example>Example line</example>" =?>
+          codeBlock "Example line"
+        , "One blank line in the beginning" =:
+          T.unlines [ "<example>"
+                    , ""
+                    , "Example line"
+                    , "</example>"
+                    ] =?>
+          codeBlock "\nExample line"
+        , "One blank line in the end" =:
+          T.unlines [ "<example>"
+                    , "Example line"
+                    , ""
+                    , "</example>"
+                    ] =?>
+          codeBlock "Example line\n"
+        ]
       , "Center" =: "<center>Hello, world</center>" =?> para (text "Hello, world")
       , "Right" =: "<right>Hello, world</right>" =?> para (text "Hello, world")
       , testGroup "Comments"
