@@ -35,14 +35,15 @@ module Text.Pandoc.Lua.StackInstances () where
 import Control.Applicative ((<|>))
 import Foreign.Lua (Lua, LuaInteger, LuaNumber, Type (..), FromLuaStack (peek),
                     ToLuaStack (push), StackIndex, throwLuaError, tryLua)
-import Foreign.Lua.Api (getmetatable, ltype, newtable, pop, rawget, rawlen)
 import Text.Pandoc.Definition
 import Text.Pandoc.Lua.Util (addValue, adjustIndexBy, getTable, pushViaConstructor)
 import Text.Pandoc.Shared (safeRead)
 
+import qualified Foreign.Lua as Lua
+
 instance ToLuaStack Pandoc where
   push (Pandoc meta blocks) = do
-    newtable
+    Lua.newtable
     addValue "blocks" blocks
     addValue "meta"   meta
 
@@ -156,7 +157,7 @@ peekMetaValue idx = do
   -- Get the contents of an AST element.
   let elementContent :: FromLuaStack a => Lua a
       elementContent = peek idx
-  luatype <- ltype idx
+  luatype <- Lua.ltype idx
   case luatype of
     TypeBoolean -> MetaBool <$> peek idx
     TypeString  -> MetaString <$> peek idx
@@ -172,13 +173,13 @@ peekMetaValue idx = do
         Right t             -> throwLuaError ("Unknown meta tag: " ++ t)
         Left _ -> do
           -- no meta value tag given, try to guess.
-          len <- rawlen idx
+          len <- Lua.rawlen idx
           if len <= 0
             then MetaMap <$> peek idx
             else  (MetaInlines <$> peek idx)
                   <|> (MetaBlocks <$> peek idx)
                   <|> (MetaList <$> peek idx)
-    _        -> throwLuaError ("could not get meta value")
+    _        -> throwLuaError "could not get meta value"
 
 -- | Push an block element to the top of the lua stack.
 pushBlock :: Block -> Lua ()
@@ -284,16 +285,15 @@ peekInline idx = do
 
 getTag :: StackIndex -> Lua String
 getTag idx = do
-  hasMT <- getmetatable idx
-  if hasMT
-    then do
-      push "tag"
-      rawget (-2)
-      peek (-1) <* pop 2
-    else do
-      push "tag"
-      rawget (idx `adjustIndexBy` 1)
-      peek (-1) <* pop 1
+  top <- Lua.gettop
+  hasMT <- Lua.getmetatable idx
+  push "tag"
+  if hasMT then Lua.rawget (-2) else Lua.rawget (idx `adjustIndexBy` 1)
+  r <- tryLua (peek (-1))
+  Lua.settop top
+  case r of
+    Left (Lua.LuaException err) -> throwLuaError err
+    Right res -> return res
 
 withAttr :: (Attr -> a -> b) -> (LuaAttr, a) -> b
 withAttr f (attributes, x) = f (fromLuaAttr attributes) x
