@@ -37,6 +37,7 @@ import qualified Control.Exception as E
 import Control.Monad (unless, when)
 import Control.Monad.Trans (MonadIO (..))
 import qualified Data.Text as T
+import qualified Data.Text.IO as TextIO
 import Data.Text (Text)
 import qualified Data.ByteString as BS
 import Data.ByteString.Lazy (ByteString)
@@ -360,13 +361,11 @@ html2pdf  :: Verbosity    -- ^ Verbosity level
           -> Text         -- ^ HTML5 source
           -> IO (Either ByteString ByteString)
 html2pdf verbosity program args source = do
-  file <- withTempFile "." "html2pdf.html" $ \fp _ -> return fp
   pdfFile <- withTempFile "." "html2pdf.pdf" $ \fp _ -> return fp
   let pdfFileArgName = if program == "prince"
                        then ["-o"]
                        else []
-  BS.writeFile file $ UTF8.fromText source
-  let programArgs = args ++ [file] ++ pdfFileArgName ++ [pdfFile]
+  let programArgs = args ++ ["-"] ++ pdfFileArgName ++ [pdfFile]
   env' <- getEnvironment
   when (verbosity >= INFO) $ do
     putStrLn "[makePDF] Command line:"
@@ -375,16 +374,15 @@ html2pdf verbosity program args source = do
     putStrLn "[makePDF] Environment:"
     mapM_ print env'
     putStr "\n"
-    putStrLn $ "[makePDF] Contents of " ++ file ++ ":"
-    BL.readFile file >>= BL.putStr
+    putStrLn $ "[makePDF] Contents of intermediate HTML:"
+    TextIO.putStr source
     putStr "\n"
   (exit, out) <- E.catch
-    (pipeProcess (Just env') program programArgs BL.empty)
+    (pipeProcess (Just env') program programArgs $ BL.fromStrict $ UTF8.fromText source)
     (\(e :: IOError) -> if isDoesNotExistError e
                            then E.throwIO $
                                   PandocPDFProgramNotFoundError program
                            else E.throwIO e)
-  removeFile file
   when (verbosity >= INFO) $ do
     BL.hPutStr stdout out
     putStr "\n"
