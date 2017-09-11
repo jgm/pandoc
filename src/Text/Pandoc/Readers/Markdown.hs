@@ -746,6 +746,8 @@ birdTrackLine c = try $ do
   char c
   -- allow html tags on left margin:
   when (c == '<') $ notFollowedBy letter
+  -- allow inplace-images on left margin:
+  when (c == '!') $ notFollowedBy (char '[')
   anyLine
 
 --
@@ -782,18 +784,25 @@ blockQuote = do
 
 openingDiv :: PandocMonad m => MarkdownParser m Attr
 openingDiv = do
-  string "; ---"
+  string ":::"
+  skipMany (char ':')
   skipMany spaceChar
-  string "div"
+  mclass <- optionMaybe $ do
+      c <- many1 alphaNum
+      skipMany1 spaceChar
+      skipMany1 (char ':')
+      return c
   attr' <- option nullAttr $ do
     skipMany spaceChar
     attributes
+  let addClass :: Attr -> String -> Attr
+      addClass (id',cs, kv) c = (id', (c:cs), kv)
   anyLine
-  return attr'
+  return $ maybe attr' (addClass attr') mclass -- if we have mclass, add it, otherwise leave it unchanged
 
 closingDiv :: PandocMonad m => MarkdownParser m ()
 closingDiv = do
-  string "; ---"
+  string ":::"
   skipMany spaceChar
   ((char '\n' >> return ()) <|> eof)
 
@@ -801,9 +810,9 @@ divBlockBirdTrack :: PandocMonad m => MarkdownParser m (F Blocks)
 divBlockBirdTrack = try $ do
   pos <- getPosition
   when (sourceColumn pos /= 1) $ fail "Not in first colum"
-  attr' <- openingDiv
-  lns <- many1 $ birdTrackLine ';'
-  -- if (as is normal) there is always a space after ;, drop it
+  attr' <- option nullAttr (attributes <* (skipSpaces >> newline))
+  lns <- many1 $ birdTrackLine '!'
+  -- if (as is normal) there is always a space after !, drop it
   let lns' = if all (\ln -> null ln || take 1 ln == " ") lns
                 then map (drop 1) lns
                 else lns
