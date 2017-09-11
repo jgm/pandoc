@@ -34,9 +34,21 @@ tests =
           "Hello, World" =?>
           para "Hello, World"
 
-      , "Emphasis" =: "*Foo bar*" =?> para (emph . spcSep $ ["Foo", "bar"])
+      , "Emphasis" =:
+        "*Foo bar*" =?>
+        para (emph . spcSep $ ["Foo", "bar"])
 
-      , "Emphasis tag" =: "<em>Foo bar</em>" =?> para (emph . spcSep $ ["Foo", "bar"])
+      , "Comma after closing *" =:
+        "Foo *bar*, baz" =?>
+        para ("Foo " <> emph "bar" <> ", baz")
+
+      , "Letter after closing *" =:
+        "Foo *bar*x baz" =?>
+        para "Foo *bar*x baz"
+
+      , "Emphasis tag" =:
+        "<em>Foo bar</em>" =?>
+        para (emph . spcSep $ ["Foo", "bar"])
 
       , "Strong" =:
           "**Cider**" =?>
@@ -81,6 +93,10 @@ tests =
         , "Not code if closing = is detached" =: "=this is not a code =" =?> para "=this is not a code ="
 
         , "Not code if opening = is detached" =: "= this is not a code=" =?> para "= this is not a code="
+
+        , "Code if followed by comma" =:
+          "Foo =bar=, baz" =?>
+          para (text "Foo " <> code "bar" <> text ", baz")
 
         , "One character code" =: "=c=" =?> para (code "c")
 
