@@ -30,7 +30,6 @@ Conversion of Muse text to 'Pandoc' document.
 -}
 {-
 TODO:
-- {{{ }}} syntax for <example>
 - Page breaks (five "*")
 - Headings with anchors (make it round trip with Muse writer)
 - Org tables
@@ -178,6 +177,7 @@ blockElements :: PandocMonad m => MuseParser m (F Blocks)
 blockElements = choice [ comment
                        , separator
                        , header
+                       , example
                        , exampleTag
                        , literal
                        , centerTag
@@ -221,6 +221,13 @@ header = try $ do
   content <- trimInlinesF . mconcat <$> manyTill inline eol
   attr <- registerHeader ("", [], []) (runF content defaultParserState)
   return $ B.headerWith attr level <$> content
+
+example :: PandocMonad m => MuseParser m (F Blocks)
+example = try $ do
+  string "{{{"
+  optionMaybe blankline
+  contents <- manyTill anyChar $ try (optionMaybe blankline >> string "}}}")
+  return $ return $ B.codeBlock contents
 
 exampleTag :: PandocMonad m => MuseParser m (F Blocks)
 exampleTag = do

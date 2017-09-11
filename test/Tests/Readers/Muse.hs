@@ -248,6 +248,39 @@ tests =
         lineBlock [ "Foo bar" ] <>
         lineBlock [ "Foo bar" ] <>
         lineBlock [ "\160\160\160Foo" ]
+      , testGroup "Example"
+        [ "Braces on separate lines" =:
+          T.unlines [ "{{{"
+                    , "Example line"
+                    , "}}}"
+                    ] =?>
+          codeBlock "Example line"
+        , "Spaces after opening braces" =:
+          T.unlines [ "{{{  "
+                    , "Example line"
+                    , "}}}"
+                    ] =?>
+          codeBlock "Example line"
+        , "One blank line in the beginning" =:
+          T.unlines [ "{{{"
+                    , ""
+                    , "Example line"
+                    , "}}}"
+                    ] =?>
+          codeBlock "\nExample line"
+        , "One blank line in the end" =:
+          T.unlines [ "{{{"
+                    , "Example line"
+                    , ""
+                    , "}}}"
+                    ] =?>
+          codeBlock "Example line\n"
+        -- Amusewiki requires braces to be on separate line,
+        -- this is an extension.
+        , "One line" =:
+          "{{{Example line}}}" =?>
+          codeBlock "Example line"
+        ]
       , testGroup "Example tag"
         [ "Tags on separate lines" =:
           T.unlines [ "<example>"
