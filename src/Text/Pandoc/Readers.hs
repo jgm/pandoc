@@ -45,6 +45,7 @@ module Text.Pandoc.Readers
   , readOdt
   , readMarkdown
   , readCommonMark
+  , readCreole
   , readMediaWiki
   , readVimwiki
   , readRST
@@ -76,6 +77,7 @@ import Text.Pandoc.Error
 import Text.Pandoc.Extensions
 import Text.Pandoc.Options
 import Text.Pandoc.Readers.CommonMark
+import Text.Pandoc.Readers.Creole
 import Text.Pandoc.Readers.DocBook
 import Text.Pandoc.Readers.Docx
 import Text.Pandoc.Readers.EPUB
@@ -117,6 +119,7 @@ readers = [ ("native"       , TextReader readNative)
            ,("markdown_github" , TextReader readMarkdown)
            ,("markdown_mmd",  TextReader readMarkdown)
            ,("commonmark"   , TextReader readCommonMark)
+           ,("creole"       , TextReader readCreole)
            ,("gfm"          , TextReader readCommonMark)
            ,("rst"          , TextReader readRST)
            ,("mediawiki"    , TextReader readMediaWiki)
