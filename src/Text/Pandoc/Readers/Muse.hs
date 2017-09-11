@@ -45,6 +45,7 @@ module Text.Pandoc.Readers.Muse (readMuse) where
 import Control.Monad
 import Control.Monad.Except (throwError)
 import qualified Data.Map as M
+import Data.Char (isLetter)
 import Data.Text (Text, unpack)
 import Data.List (stripPrefix)
 import Data.Maybe (fromMaybe)
@@ -582,7 +583,7 @@ enclosedInlines :: (PandocMonad m, Show a, Show b)
                 -> MuseParser m b
                 -> MuseParser m (F Inlines)
 enclosedInlines start end = try $
-  trimInlinesF . mconcat <$> enclosed start end inline
+  trimInlinesF . mconcat <$> (enclosed start end inline <* notFollowedBy (satisfy isLetter))
 
 inlineTag :: PandocMonad m
           => (Inlines -> Inlines)
@@ -629,7 +630,7 @@ code = try $ do
   guard $ not $ null contents
   guard $ head contents `notElem` " \t\n"
   guard $ last contents `notElem` " \t\n"
-  notFollowedBy nonspaceChar
+  notFollowedBy $ satisfy isLetter
   return $ return (sp B.<> B.code contents)
 
 codeTag :: PandocMonad m => MuseParser m (F Inlines)
