@@ -39,7 +39,6 @@ TODO:
 - Anchors
 - Citations and <biblio>
 - <play> environment
-- <verbatim> tag
 -}
 module Text.Pandoc.Readers.Muse (readMuse) where
 
@@ -537,6 +536,7 @@ inline = choice [ br
                 , superscriptTag
                 , subscriptTag
                 , strikeoutTag
+                , verbatimTag
                 , link
                 , code
                 , codeTag
@@ -612,6 +612,11 @@ subscriptTag = inlineTag B.subscript "sub"
 
 strikeoutTag :: PandocMonad m => MuseParser m (F Inlines)
 strikeoutTag = inlineTag B.strikeout "del"
+
+verbatimTag :: PandocMonad m => MuseParser m (F Inlines)
+verbatimTag = do
+  content <- parseHtmlContent "verbatim" anyChar
+  return $ return $ B.text $ fromEntities content
 
 code :: PandocMonad m => MuseParser m (F Inlines)
 code = try $ do

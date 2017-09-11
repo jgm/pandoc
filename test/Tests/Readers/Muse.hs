@@ -108,6 +108,8 @@ tests =
 
       , "Code tag" =: "<code>foo(bar)</code>" =?> para (code "foo(bar)")
 
+      , "Verbatim tag" =: "*<verbatim>*</verbatim>*" =?> para (emph "*")
+
       , testGroup "Links"
         [ "Link without description" =:
           "[[https://amusewiki.org/]]" =?>
