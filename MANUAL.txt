@@ -212,7 +212,7 @@ with all recent versions of [TeX Live].
 
 Alternatively, pandoc can use [ConTeXt], `pdfroff`, or any of the
 following HTML/CSS-to-PDF-engines, to create a PDF: [`wkhtmltopdf`],
-[`weasyprint`] or `prince`.
+[`weasyprint`] or [`prince`].
 To do this, specify an output file with a `.pdf` extension, as before,
 but add the `--pdf-engine` option or `-t context`, `-t html`, or `-t ms`
 to the command line (`-t html` defaults to `--pdf-engine=wkhtmltopdf`).
@@ -256,6 +256,7 @@ will affect the output.
 [TeX Live]: http://www.tug.org/texlive/
 [`wkhtmltopdf`]: https://wkhtmltopdf.org
 [`weasyprint`]: http://weasyprint.org
+[`prince`]: https://www.princexml.com/
 
 Options
 =======
