@@ -169,6 +169,7 @@ pdfWriterAndProg mWriter mEngine = do
       engineForWriter "context" = Right "context"
       engineForWriter "ms"      = Right "pdfroff"
       engineForWriter "latex"   = Right defaultLatexEngine
+      engineForWriter "beamer"  = Right defaultLatexEngine
       engineForWriter format
         | format `elem` ["html", "html5"] = Right defaultHtmlEngine
         | otherwise = Left $ "cannot produce pdf output with output format " ++ format
