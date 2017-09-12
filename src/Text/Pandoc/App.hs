@@ -124,8 +124,14 @@ parseOptions options' defaults = do
 latexEngines :: [String]
 latexEngines  = ["pdflatex", "lualatex", "xelatex"]
 
+defaultLatexEngine :: String
+defaultLatexEngine = "pdflatex"
+
 htmlEngines :: [String]
 htmlEngines  = ["wkhtmltopdf", "weasyprint", "prince"]
+
+defaultHtmlEngine :: String
+defaultHtmlEngine = "wkhtmltopdf"
 
 pdfEngines :: [String]
 pdfEngines = latexEngines ++ htmlEngines ++ ["context", "pdfroff"]
@@ -140,7 +146,7 @@ pdfWriterAndProg mWriter mEngine = do
       (Left err, _)            -> panErr err
       (_, Left err)            -> panErr err
     where
-      go Nothing Nothing       = (Right "latex", Right $ head latexEngines)
+      go Nothing Nothing       = (Right "latex", Right defaultLatexEngine)
       go (Just writer) Nothing = (Right writer, engineForWriter writer)
       go Nothing (Just engine) = (writerForEngine engine, Right engine)
       go (Just writer) (Just engine) =
@@ -162,9 +168,9 @@ pdfWriterAndProg mWriter mEngine = do
 
       engineForWriter "context" = Right "context"
       engineForWriter "ms"      = Right "pdfroff"
-      engineForWriter "latex"   = Right $ head latexEngines
+      engineForWriter "latex"   = Right defaultLatexEngine
       engineForWriter format
-        | format `elem` ["html", "html5"] = Right $ head htmlEngines
+        | format `elem` ["html", "html5"] = Right defaultHtmlEngine
         | otherwise = Left $ "cannot produce pdf output with output format " ++ format
 
 
