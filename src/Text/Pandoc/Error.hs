@@ -96,7 +96,7 @@ handleError (Left e) =
     PandocSyntaxMapError s -> err 67 s
     PandocFailOnWarningError -> err 3 "Failing because there were warnings."
     PandocPDFProgramNotFoundError pdfprog -> err 47 $
-        pdfprog ++ " not found. " ++ pdfprog ++ " is needed for pdf output."
+        pdfprog ++ " not found. Please select a different --pdf-engine or install " ++ pdfprog
     PandocPDFError logmsg -> err 43 $ "Error producing PDF.\n" ++ logmsg
     PandocFilterError filtername msg -> err 83 $ "Error running filter " ++
         filtername ++ ":\n" ++ msg

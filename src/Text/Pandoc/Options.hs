@@ -216,7 +216,7 @@ data WriterOptions = WriterOptions
   , writerEpubChapterLevel  :: Int            -- ^ Header level for chapters (separate files)
   , writerTOCDepth          :: Int            -- ^ Number of levels to include in TOC
   , writerReferenceDoc      :: Maybe FilePath -- ^ Path to reference document if specified
-  , writerLaTeXArgs         :: [String]       -- ^ Flags to pass to latex-engine
+  , writerPdfArgs           :: [String]       -- ^ Flags to pass to pdf-engine
   , writerReferenceLocation :: ReferenceLocation    -- ^ Location of footnotes and references for writing markdown
   , writerSyntaxMap         :: SyntaxMap
   } deriving (Show, Data, Typeable, Generic)
@@ -252,7 +252,7 @@ instance Default WriterOptions where
                       , writerEpubChapterLevel = 1
                       , writerTOCDepth         = 3
                       , writerReferenceDoc     = Nothing
-                      , writerLaTeXArgs        = []
+                      , writerPdfArgs          = []
                       , writerReferenceLocation = EndOfDocument
                       , writerSyntaxMap        = defaultSyntaxMap
                       }

@@ -121,6 +121,53 @@ parseOptions options' defaults = do
   opts <- foldl (>>=) (return defaults) actions
   return (opts{ optInputFiles = args })
 
+latexEngines :: [String]
+latexEngines  = ["pdflatex", "lualatex", "xelatex"]
+
+htmlEngines :: [String]
+htmlEngines  = ["wkhtmltopdf", "weasyprint", "prince"]
+
+pdfEngines :: [String]
+pdfEngines = latexEngines ++ htmlEngines ++ ["context", "pdfroff"]
+
+pdfWriterAndProg :: Maybe String              -- ^ user-specified writer name
+                 -> Maybe String              -- ^ user-specified pdf-engine
+                 -> IO (String, Maybe String) -- ^ IO (writerName, maybePdfEngineProg)
+pdfWriterAndProg mWriter mEngine = do
+  let panErr msg = liftIO $ E.throwIO $ PandocAppError msg
+  case go mWriter mEngine of
+      (Right writ, Right prog) -> return (writ, Just prog)
+      (Left err, _)            -> panErr err
+      (_, Left err)            -> panErr err
+    where
+      go Nothing Nothing       = (Right "latex", Right $ head latexEngines)
+      go (Just writer) Nothing = (Right writer, engineForWriter writer)
+      go Nothing (Just engine) = (writerForEngine engine, Right engine)
+      go (Just writer) (Just engine) =
+           let (Right shouldFormat) = writerForEngine engine
+               userFormat = case map toLower writer of
+                              "html5" -> "html"
+                              x       -> x
+           in  if userFormat == shouldFormat
+               then (Right writer, Right engine)
+               else (Left $ "pdf-engine " ++ engine ++ " is not compatible with output format "
+                      ++ writer ++ ", please use `-t " ++ shouldFormat ++ "`", Left "")
+
+      writerForEngine "context"  = Right "context"
+      writerForEngine "pdfroff"  = Right "ms"
+      writerForEngine en
+        | takeBaseName en `elem` latexEngines = Right "latex"
+        | takeBaseName en `elem` htmlEngines  = Right "html"
+      writerForEngine _          = Left "pdf-engine not known"
+
+      engineForWriter "context" = Right "context"
+      engineForWriter "ms"      = Right "pdfroff"
+      engineForWriter "latex"   = Right $ head latexEngines
+      engineForWriter format
+        | format `elem` ["html", "html5"] = Right $ head htmlEngines
+        | otherwise = Left $ "cannot produce pdf output with output format " ++ format
+
+
 convertWithOpts :: Opt -> IO ()
 convertWithOpts opts = do
   let args = optInputFiles opts
@@ -171,18 +218,16 @@ convertWithOpts opts = do
                                           else "markdown") sources
                           Just x  -> map toLower x
 
-  let writerName = case optWriter opts of
-                          Nothing -> defaultWriterName outputFile
-                          Just x  -> map toLower x
-  let format = takeWhile (`notElem` ['+','-'])
-                       $ takeFileName writerName  -- in case path to lua script
+  let nonPdfWriterName Nothing  = defaultWriterName outputFile
+      nonPdfWriterName (Just x) = map toLower x
 
   let pdfOutput = map toLower (takeExtension outputFile) == ".pdf"
+  (writerName, maybePdfProg) <- if pdfOutput
+                                then pdfWriterAndProg (optWriter opts) (optPdfEngine opts)
+                                else return (nonPdfWriterName $ optWriter opts, Nothing)
 
-  let laTeXOutput = format `elem` ["latex", "beamer"]
-  let conTeXtOutput = format == "context"
-  let html5Output = format == "html5" || format == "html"
-  let msOutput = format == "ms"
+  let format = takeWhile (`notElem` ['+','-'])
+                       $ takeFileName writerName  -- in case path to lua script
 
   -- disabling the custom writer for now
   (writer, writerExts) <-
@@ -417,7 +462,7 @@ convertWithOpts opts = do
           , writerEpubChapterLevel = optEpubChapterLevel opts
           , writerTOCDepth         = optTOCDepth opts
           , writerReferenceDoc     = optReferenceDoc opts
-          , writerLaTeXArgs        = optLaTeXEngineArgs opts
+          , writerPdfArgs          = optPdfEngineArgs opts
           , writerSyntaxMap        = syntaxMap
           }
 
@@ -475,27 +520,14 @@ convertWithOpts opts = do
 
     case writer of
       ByteStringWriter f -> f writerOptions doc >>= writeFnBinary outputFile
-      TextWriter f
-        | pdfOutput -> do
-                -- make sure writer is latex, beamer, context, html5 or ms
-                unless (laTeXOutput || conTeXtOutput || html5Output ||
-                        msOutput) $
-                  liftIO $ E.throwIO $ PandocAppError $
-                     "cannot produce pdf output with " ++ format ++ " writer"
-
-                let pdfprog = case () of
-                                _ | conTeXtOutput -> "context"
-                                  | html5Output   -> "wkhtmltopdf"
-                                  | html5Output   -> "wkhtmltopdf"
-                                  | msOutput      -> "pdfroff"
-                                  | otherwise     -> optLaTeXEngine opts
-
-                res <- makePDF pdfprog f writerOptions verbosity media doc
+      TextWriter f -> case maybePdfProg of
+        Just pdfProg -> do
+                res <- makePDF pdfProg f writerOptions verbosity media doc
                 case res of
                      Right pdf -> writeFnBinary outputFile pdf
                      Left err' -> liftIO $
                        E.throwIO $ PandocPDFError (UTF8.toStringLazy err')
-        | otherwise -> do
+        Nothing -> do
                 let htmlFormat = format `elem`
                       ["html","html4","html5","s5","slidy","slideous","dzslides","revealjs"]
                     handleEntities = if (htmlFormat ||
@@ -605,8 +637,8 @@ data Opt = Opt
     , optDataDir               :: Maybe FilePath
     , optCiteMethod            :: CiteMethod -- ^ Method to output cites
     , optListings              :: Bool       -- ^ Use listings package for code blocks
-    , optLaTeXEngine           :: String     -- ^ Program to use for latex -> pdf
-    , optLaTeXEngineArgs       :: [String]   -- ^ Flags to pass to the latex-engine
+    , optPdfEngine             :: Maybe String -- ^ Program to use for latex/html -> pdf
+    , optPdfEngineArgs         :: [String]   -- ^ Flags to pass to the engine
     , optSlideLevel            :: Maybe Int  -- ^ Header level that creates slides
     , optSetextHeaders         :: Bool       -- ^ Use atx headers for markdown level 1-2
     , optAscii                 :: Bool       -- ^ Use ascii characters only in html
@@ -681,8 +713,8 @@ defaultOpts = Opt
     , optDataDir               = Nothing
     , optCiteMethod            = Citeproc
     , optListings              = False
-    , optLaTeXEngine           = "pdflatex"
-    , optLaTeXEngineArgs       = []
+    , optPdfEngine             = Nothing
+    , optPdfEngineArgs         = []
     , optSlideLevel            = Nothing
     , optSetextHeaders         = True
     , optAscii                 = False
@@ -778,7 +810,6 @@ defaultWriterName x =
     ".org"      -> "org"
     ".asciidoc" -> "asciidoc"
     ".adoc"     -> "asciidoc"
-    ".pdf"      -> "latex"
     ".fb2"      -> "fb2"
     ".opml"     -> "opml"
     ".icml"     -> "icml"
@@ -1314,23 +1345,24 @@ options =
                  "NUMBER")
                  "" -- "Header level at which to split chapters in EPUB"
 
-    , Option "" ["latex-engine"]
+    , Option "" ["pdf-engine"]
                  (ReqArg
                   (\arg opt -> do
                      let b = takeBaseName arg
-                     if b `elem` ["pdflatex", "lualatex", "xelatex"]
-                        then return opt { optLaTeXEngine = arg }
-                        else E.throwIO $ PandocOptionError "latex-engine must be pdflatex, lualatex, or xelatex.")
+                     if b `elem` pdfEngines
+                        then return opt { optPdfEngine = Just arg }
+                        else E.throwIO $ PandocOptionError $ "pdf-engine must be one of "
+                               ++ intercalate ", " pdfEngines)
                   "PROGRAM")
-                 "" -- "Name of latex program to use in generating PDF"
+                 "" -- "Name of program to use in generating PDF"
 
-    , Option "" ["latex-engine-opt"]
+    , Option "" ["pdf-engine-opt"]
                  (ReqArg
                   (\arg opt -> do
-                      let oldArgs = optLaTeXEngineArgs opt
-                      return opt { optLaTeXEngineArgs = arg : oldArgs })
+                      let oldArgs = optPdfEngineArgs opt
+                      return opt { optPdfEngineArgs = arg : oldArgs })
                   "STRING")
-                 "" -- "Flags to pass to the LaTeX engine, all instances of this option are accumulated and used"
+                 "" -- "Flags to pass to the PDF-engine, all instances of this option are accumulated and used"
 
     , Option "" ["bibliography"]
                  (ReqArg
@@ -1590,6 +1622,10 @@ handleUnrecognizedOption "--old-dashes" =
   ("--old-dashes has been removed.  Use +old_dashes extension instead." :)
 handleUnrecognizedOption "--no-wrap" =
   ("--no-wrap has been removed.  Use --wrap=none instead." :)
+handleUnrecognizedOption "--latex-engine" =
+  ("--latex-engine has been removed.  Use --pdf-engine instead." :)
+handleUnrecognizedOption "--latex-engine-opt" =
+  ("--latex-engine-opt has been removed.  Use --pdf-engine-opt instead." :)
 handleUnrecognizedOption "--chapters" =
   ("--chapters has been removed. Use --top-level-division=chapter instead." :)
 handleUnrecognizedOption "--reference-docx" =
