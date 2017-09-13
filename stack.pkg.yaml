@@ -17,6 +17,7 @@ packages:
     commit: 5a7f26b61c8577916093851cdeb31fa9a198edcb
   extra-dep: false
 extra-deps:
+- texmath-0.9.4.2
 - hslua-0.8.0
 - skylighting-0.3.4.1
 - cmark-gfm-0.1.1
