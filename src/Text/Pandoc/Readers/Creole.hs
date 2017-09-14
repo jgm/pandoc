@@ -90,12 +90,15 @@ block = do
 para :: PandocMonad m => CRLParser m B.Blocks
 para = many1Till inline endOfParaElement >>= return . result . mconcat
  where
-   endOfParaElement = lookAhead $ endOfInput <|> endOfPara
-   endOfInput       = try $ skipMany blankline >> skipSpaces >> eof
-   endOfPara        = try $ blankline >> skipMany1 blankline
    result content   = if F.all (==Space) content
                       then mempty
                       else B.para $ B.trimInlines content
+
+endOfParaElement :: PandocMonad m => CRLParser m ()
+endOfParaElement = lookAhead $ endOfInput <|> endOfPara
+  where
+   endOfInput       = try $ skipMany blankline >> skipSpaces >> eof
+   endOfPara        = try $ blankline >> skipMany1 blankline
 
 --
 -- inline parsers
@@ -104,7 +107,9 @@ para = many1Till inline endOfParaElement >>= return . result . mconcat
 inline :: PandocMonad m => CRLParser m B.Inlines
 inline = choice [ whitespace
                 , bold
+                , finalBold
                 , italics
+                , finalItalics
                 , str
                 , symbol
                 ] <?> "inline"
@@ -133,3 +138,11 @@ bold = B.strong . B.trimInlines . mconcat <$>
 italics :: PandocMonad m => CRLParser m B.Inlines
 italics = B.emph . B.trimInlines . mconcat <$>
           enclosed (string "//") (try $ string "//") inline
+
+finalBold :: PandocMonad m => CRLParser m B.Inlines
+finalBold = B.strong . B.trimInlines . mconcat <$>
+            try (string "**" >> many1Till inline endOfParaElement)
+
+finalItalics :: PandocMonad m => CRLParser m B.Inlines
+finalItalics = B.emph . B.trimInlines . mconcat <$>
+               try (string "//" >> many1Till inline endOfParaElement)
