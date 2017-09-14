@@ -1,4 +1,3 @@
-
 {-
   Copyright (C) 2017 Sascha Wilde <wilde@sha-bang.de>
   heavily based on all the other readers, especialy the work by
@@ -35,7 +34,7 @@ Conversion of creole text to 'Pandoc' document.
 module Text.Pandoc.Readers.Creole ( readCreole
                                   ) where
 
-import Control.Monad.Except (throwError)
+import Control.Monad.Except (throwError, guard)
 import qualified Data.Foldable as F
 import qualified Text.Pandoc.Builder as B
 import Text.Pandoc.Class (PandocMonad(..))
@@ -83,9 +82,21 @@ parseCreole = do
 block :: PandocMonad m => CRLParser m B.Blocks
 block = do
   res <- mempty <$ skipMany1 blankline
+         <|> header
          <|> para
   skipMany blankline
   return res
+
+header :: PandocMonad m => CRLParser m B.Blocks
+header = try $ do
+  skipSpaces
+  level <- many1 (char '=') >>= return . length
+  guard $ level <= 6
+  skipSpaces
+  content <- B.str <$> manyTill (noneOf "\n") headerEnd
+  return $ B.header level content
+  where
+    headerEnd = try $ skipSpaces >> many (char '=') >> skipSpaces >> newline
 
 para :: PandocMonad m => CRLParser m B.Blocks
 para = many1Till inline endOfParaElement >>= return . result . mconcat
