@@ -68,6 +68,10 @@ data ReaderOptions = ReaderOptions{
        , readerTrackChanges          :: TrackChanges
 } deriving (Show, Read, Data, Typeable, Generic)
 
+instance ToJSON ReaderOptions where
+  toEncoding = genericToEncoding defaultOptions
+instance FromJSON ReaderOptions
+
 instance Default ReaderOptions
   where def = ReaderOptions{
                  readerExtensions            = emptyExtensions
@@ -220,6 +224,10 @@ data WriterOptions = WriterOptions
   , writerReferenceLocation :: ReferenceLocation    -- ^ Location of footnotes and references for writing markdown
   , writerSyntaxMap         :: SyntaxMap
   } deriving (Show, Data, Typeable, Generic)
+
+instance ToJSON WriterOptions where
+  toEncoding = genericToEncoding defaultOptions
+instance FromJSON WriterOptions
 
 instance Default WriterOptions where
   def = WriterOptions { writerTemplate         = Nothing
