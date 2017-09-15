@@ -225,10 +225,6 @@ data WriterOptions = WriterOptions
   , writerSyntaxMap         :: SyntaxMap
   } deriving (Show, Data, Typeable, Generic)
 
-instance ToJSON WriterOptions where
-  toEncoding = genericToEncoding defaultOptions
-instance FromJSON WriterOptions
-
 instance Default WriterOptions where
   def = WriterOptions { writerTemplate         = Nothing
                       , writerVariables        = []
