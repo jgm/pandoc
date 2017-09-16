@@ -155,7 +155,7 @@ inlinesInBalancedBrackets = do
   (_, raw) <- withRaw $ charsInBalancedBrackets 1
   guard $ not $ null raw
   parseFromString' (setPosition pos >>
-                   trimInlinesF . mconcat <$> many inline) (init raw)
+                   trimInlinesF <$> inlines) (init raw)
 
 charsInBalancedBrackets :: PandocMonad m => Int -> MarkdownParser m ()
 charsInBalancedBrackets 0 = return ()
@@ -187,8 +187,8 @@ rawTitleBlockLine = do
 titleLine :: PandocMonad m => MarkdownParser m (F Inlines)
 titleLine = try $ do
   raw <- rawTitleBlockLine
-  res <- parseFromString' (many inline) raw
-  return $ trimInlinesF $ mconcat res
+  res <- parseFromString' inlines raw
+  return $ trimInlinesF res
 
 authorsLine :: PandocMonad m => MarkdownParser m (F [Inlines])
 authorsLine = try $ do
@@ -203,8 +203,8 @@ authorsLine = try $ do
 dateLine :: PandocMonad m => MarkdownParser m (F Inlines)
 dateLine = try $ do
   raw <- rawTitleBlockLine
-  res <- parseFromString' (many inline) raw
-  return $ trimInlinesF $ mconcat res
+  res <- parseFromString' inlines raw
+  return $ trimInlinesF res
 
 titleBlock :: PandocMonad m => MarkdownParser m ()
 titleBlock = pandocTitleBlock <|> mmdTitleBlock
@@ -954,7 +954,7 @@ definitionListItem :: PandocMonad m => Bool -> MarkdownParser m (F (Inlines, [Bl
 definitionListItem compact = try $ do
   rawLine' <- anyLine
   raw <- many1 $ defRawBlock compact
-  term <- parseFromString' (trimInlinesF . mconcat <$> many inline) rawLine'
+  term <- parseFromString' (trimInlinesF <$> inlines) rawLine'
   contents <- mapM (parseFromString' parseBlocks . (++"\n")) raw
   optional blanklines
   return $ liftM2 (,) term (sequence contents)
@@ -1008,7 +1008,7 @@ normalDefinitionList = do
 para :: PandocMonad m => MarkdownParser m (F Blocks)
 para = try $ do
   exts <- getOption readerExtensions
-  result <- trimInlinesF . mconcat <$> many1 inline
+  result <- trimInlinesF <$> inlines1
   option (B.plain <$> result)
     $ try $ do
             newline
@@ -1038,7 +1038,7 @@ para = try $ do
                    _ -> return $ B.para result'
 
 plain :: PandocMonad m => MarkdownParser m (F Blocks)
-plain = fmap B.plain . trimInlinesF . mconcat <$> many1 inline
+plain = fmap B.plain . trimInlinesF <$> inlines1
 
 --
 -- raw html
@@ -1142,7 +1142,7 @@ lineBlock :: PandocMonad m => MarkdownParser m (F Blocks)
 lineBlock = try $ do
   guardEnabled Ext_line_blocks
   lines' <- lineBlockLines >>=
-            mapM (parseFromString' (trimInlinesF . mconcat <$> many inline))
+            mapM (parseFromString' (trimInlinesF <$> inlines))
   return $ B.lineBlock <$> sequence lines'
 
 --
@@ -1249,7 +1249,7 @@ tableCaption = try $ do
   guardEnabled Ext_table_captions
   skipNonindentSpaces
   string ":" <|> string "Table:"
-  trimInlinesF . mconcat <$> many1 inline <* blanklines
+  trimInlinesF <$> inlines1 <* blanklines
 
 -- Parse a simple table with '---' header and one line per row.
 simpleTable :: PandocMonad m
@@ -1363,11 +1363,10 @@ pipeTableRow = try $ do
   return $ sequence cells
 
 pipeTableCell :: PandocMonad m => MarkdownParser m (F Blocks)
-pipeTableCell = do
-  result <- many inline
-  if null result
-     then return mempty
-     else return $ B.plain . mconcat <$> sequence result
+pipeTableCell =
+  (do result <- inlines1
+      return $ B.plain <$> result)
+    <|> return mempty
 
 pipeTableHeaderPart :: PandocMonad m => ParserT [Char] st m (Alignment, Int)
 pipeTableHeaderPart = try $ do
@@ -1442,6 +1441,12 @@ table = try $ do
 --
 -- inline
 --
+
+inlines :: PandocMonad m => MarkdownParser m (F Inlines)
+inlines = mconcat <$> many inline
+
+inlines1 :: PandocMonad m => MarkdownParser m (F Inlines)
+inlines1 = mconcat <$> many1 inline
 
 inline :: PandocMonad m => MarkdownParser m (F Inlines)
 inline = choice [ whitespace
@@ -1779,8 +1784,8 @@ referenceLink constructor (lab, raw) = do
   when (raw' == "") $ guardEnabled Ext_shortcut_reference_links
   let labIsRef = raw' == "" || raw' == "[]"
   let key = toKey $ if labIsRef then raw else raw'
-  parsedRaw <- parseFromString' (mconcat <$> many inline) raw'
-  fallback  <- parseFromString' (mconcat <$> many inline) $ dropBrackets raw
+  parsedRaw <- parseFromString' inlines raw'
+  fallback  <- parseFromString' inlines $ dropBrackets raw
   implicitHeaderRefs <- option False $
                          True <$ guardEnabled Ext_implicit_header_references
   let makeFallback = do
@@ -1988,7 +1993,7 @@ textualCite = try $ do
           let (spaces',raw') = span isSpace raw
               spc | null spaces' = mempty
                   | otherwise    = B.space
-          lab <- parseFromString' (mconcat <$> many inline) $ dropBrackets raw'
+          lab <- parseFromString' inlines $ dropBrackets raw'
           fallback <- referenceLink B.linkWith (lab,raw')
           return $ do
             fallback' <- fallback
