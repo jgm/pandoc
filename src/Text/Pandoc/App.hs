@@ -521,7 +521,7 @@ convertWithOpts opts = do
               >=> return . flip (foldr addMetadata) metadata
               >=> applyTransforms transforms
               >=> applyLuaFilters datadir (optLuaFilters opts) [format]
-              >=> applyFilters datadir filters' [format]
+              >=> applyFilters readerOpts datadir filters' [format]
               )
     media <- getMediaBag
 
@@ -560,8 +560,9 @@ type Transform = Pandoc -> Pandoc
 isTextFormat :: String -> Bool
 isTextFormat s = s `notElem` ["odt","docx","epub","epub3"]
 
-externalFilter :: MonadIO m => FilePath -> [String] -> Pandoc -> m Pandoc
-externalFilter f args' d = liftIO $ do
+externalFilter :: MonadIO m
+               => ReaderOptions -> FilePath -> [String] -> Pandoc -> m Pandoc
+externalFilter ropts f args' d = liftIO $ do
   exists <- doesFileExist f
   isExecutable <- if exists
                      then executable <$> getPermissions f
@@ -582,7 +583,10 @@ externalFilter f args' d = liftIO $ do
     when (isNothing mbExe) $
       E.throwIO $ PandocFilterError f ("Could not find executable " ++ f')
   env <- getEnvironment
-  let env' = Just $ ("PANDOC_VERSION", pandocVersion) : env
+  let env' = Just
+           ( ("PANDOC_VERSION", pandocVersion)
+           : ("PANDOC_READER_OPTIONS", UTF8.toStringLazy (encode ropts))
+           : env )
   (exitcode, outbs) <- E.handle filterException $
                               pipeProcess env' f' args'' $ encode d
   case exitcode of
@@ -862,10 +866,15 @@ applyLuaFilters mbDatadir filters args d = do
   foldrM ($) d $ map go expandedFilters
 
 applyFilters :: MonadIO m
-             => Maybe FilePath -> [FilePath] -> [String] -> Pandoc -> m Pandoc
-applyFilters mbDatadir filters args d = do
+             => ReaderOptions
+             -> Maybe FilePath
+             -> [FilePath]
+             -> [String]
+             -> Pandoc
+             -> m Pandoc
+applyFilters ropts mbDatadir filters args d = do
   expandedFilters <- mapM (expandFilterPath mbDatadir) filters
-  foldrM ($) d $ map (flip externalFilter args) expandedFilters
+  foldrM ($) d $ map (flip (externalFilter ropts) args) expandedFilters
 
 readSource :: FilePath -> PandocIO Text
 readSource "-" = liftIO (UTF8.toText <$> BS.getContents)
