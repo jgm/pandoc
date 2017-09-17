@@ -46,9 +46,10 @@ import qualified Text.Pandoc.Builder as B
 import Text.Pandoc.Builder (Blocks, Inlines, trimInlines, HasMeta(..))
 import Text.Pandoc.Shared ( extractSpaces, addMetaField
                           , escapeURI, safeRead, crFilter )
-import Text.Pandoc.Options (ReaderOptions(readerExtensions), extensionEnabled,
-                               Extension (Ext_epub_html_exts,
-                               Ext_raw_html, Ext_native_divs, Ext_native_spans))
+import Text.Pandoc.Options (
+         ReaderOptions(readerExtensions,readerStripComments), extensionEnabled,
+         Extension (Ext_epub_html_exts,
+                    Ext_raw_html, Ext_native_divs, Ext_native_spans))
 import Text.Pandoc.Logging
 import Text.Pandoc.Parsing hiding ((<|>))
 import Text.Pandoc.Walk
@@ -1070,7 +1071,7 @@ _ `closes` _ = False
 --- parsers for use in markdown, textile readers
 
 -- | Matches a stretch of HTML in balanced tags.
-htmlInBalanced :: (Monad m)
+htmlInBalanced :: (HasReaderOptions st, Monad m)
                => (Tag String -> Bool)
                -> ParserT String st m String
 htmlInBalanced f = try $ do
@@ -1118,7 +1119,7 @@ hasTagWarning (TagWarning _:_) = True
 hasTagWarning _ = False
 
 -- | Matches a tag meeting a certain condition.
-htmlTag :: Monad m
+htmlTag :: (HasReaderOptions st, Monad m)
         => (Tag String -> Bool)
         -> ParserT [Char] st m (Tag String, String)
 htmlTag f = try $ do
@@ -1153,7 +1154,10 @@ htmlTag f = try $ do
           count (length s + 4) anyChar
           skipMany (satisfy (/='>'))
           char '>'
-          return (next, "<!--" <> s <> "-->")
+          stripComments <- getOption readerStripComments
+          if stripComments
+             then return (next, "")
+             else return (next, "<!--" <> s <> "-->")
          | otherwise -> fail "bogus comment mode, HTML5 parse error"
        TagOpen tagname attr -> do
          guard $ all (isName . fst) attr

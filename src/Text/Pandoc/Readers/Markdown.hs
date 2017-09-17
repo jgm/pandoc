@@ -1079,7 +1079,9 @@ htmlBlock' = try $ do
     first <- htmlElement
     skipMany spaceChar
     optional blanklines
-    return $ return $ B.rawBlock "html" first
+    return $ if null first
+                then mempty
+                else return $ B.rawBlock "html" first
 
 strictHtmlBlock :: PandocMonad m => MarkdownParser m String
 strictHtmlBlock = htmlInBalanced (not . isInlineTag)

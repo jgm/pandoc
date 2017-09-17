@@ -65,7 +65,8 @@ data ReaderOptions = ReaderOptions{
                                        -- indented code blocks
        , readerAbbreviations         :: Set.Set String -- ^ Strings to treat as abbreviations
        , readerDefaultImageExtension :: String -- ^ Default extension for images
-       , readerTrackChanges          :: TrackChanges
+       , readerTrackChanges          :: TrackChanges -- ^ Track changes setting for docx
+       , readerStripComments         :: Bool -- ^ Strip HTML comments instead of parsing as raw HTML
 } deriving (Show, Read, Data, Typeable, Generic)
 
 instance ToJSON ReaderOptions where
@@ -82,6 +83,7 @@ instance Default ReaderOptions
                , readerAbbreviations         = defaultAbbrevs
                , readerDefaultImageExtension = ""
                , readerTrackChanges          = AcceptChanges
+               , readerStripComments         = False
                }
 
 defaultAbbrevs :: Set.Set String

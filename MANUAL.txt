@@ -655,6 +655,14 @@ General writer options
     of contents.  The default is 3 (which means that level 1, 2, and 3
     headers will be listed in the contents).
 
+`--strip-comments`
+
+:   Strip out HTML comments in the Markdown or Textile source,
+    rather than passing them on to Markdown, Textile or HTML
+    output as raw HTML.  This does not apply to HTML comments
+    inside raw HTML blocks when the `markdown_in_html_blocks`
+    extension is not set.
+
 `--no-highlight`
 
 :   Disables syntax highlighting for code blocks and inlines, even when

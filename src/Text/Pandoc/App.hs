@@ -483,6 +483,7 @@ convertWithOpts opts = do
           , readerTrackChanges = optTrackChanges opts
           , readerAbbreviations = abbrevs
           , readerExtensions = readerExts
+          , readerStripComments = optStripComments opts
           }
 
     let transforms = (case optBaseHeaderLevel opts of
@@ -666,6 +667,7 @@ data Opt = Opt
     , optIncludeInHeader       :: [FilePath]       -- ^ Files to include in header
     , optResourcePath          :: [FilePath] -- ^ Path to search for images etc
     , optEol                   :: LineEnding -- ^ Style of line-endings to use
+    , optStripComments          :: Bool       -- ^ Skip HTML comments
     } deriving (Generic, Show)
 
 instance ToJSON Opt where
@@ -742,6 +744,7 @@ defaultOpts = Opt
     , optIncludeInHeader       = []
     , optResourcePath          = ["."]
     , optEol                   = Native
+    , optStripComments          = False
     }
 
 addMetadata :: (String, String) -> Pandoc -> Pandoc
@@ -1113,6 +1116,11 @@ options =
                                    "columns must be a number greater than 0")
                  "NUMBER")
                  "" -- "Length of line in characters"
+
+    , Option "" ["strip-comments"]
+                (NoArg
+                 (\opt -> return opt { optStripComments = True }))
+               "" -- "Strip HTML comments"
 
     , Option "" ["toc", "table-of-contents"]
                 (NoArg
