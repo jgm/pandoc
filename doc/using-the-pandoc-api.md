@@ -1,28 +1,29 @@
-# Using the pandoc API
+% Using the pandoc API
+% John MacFarlane
 
-## Concepts
+# Concepts
 
-## Basic usage
+# Basic usage
 
-## The Pandoc structure
+# The Pandoc structure
 
-## Reader options
+# Reader options
 
-## Writer options
+# Writer options
 
-## The PandocMonad class
+# The PandocMonad class
 
 custom PandocMonad instances
 
-## Builder
+# Builder
 
 example: report from CSV data
 
-## Generic transformations
+# Generic transformations
 
 Walk and syb for AST transformations
 
-## Filters
+# Filters
 
 writing filters in Haskell
 
