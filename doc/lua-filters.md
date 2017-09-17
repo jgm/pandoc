@@ -105,11 +105,22 @@ element filtering function.  In other words, filter entries will
 be called for each corresponding element in the document,
 getting the respective element as input.
 
-The element function's output must be an element of the same
-type as the input. This means a filter function acting on an
-inline element must return an inline, and a block element must
-remain a block element after filter application. Pandoc will
-throw an error if this condition is violated.
+The return of a filter function must one of the following:
+
+-   nil: this means that the object should remain unchanged.
+-   a pandoc object: this must be of the same type as the input
+    and will replace the original object.
+-   a list of pandoc objects: these will replace the original
+    object; the list is merged with the neighbors of the orignal
+    objects (spliced into the list the original object belongs
+    to); returning an empty list deletes the object.
+
+The function's output must result in an element of the same type
+as the input. This means a filter function acting on an inline
+element must return either nil, an inline, or a list of inlines,
+and a function filtering a block element must return one of nil,
+a block, or a list of block elements. Pandoc will throw an error
+if this condition is violated.
 
 If there is no function matching the element's node type, then
 the filtering system will look for a more general fallback
