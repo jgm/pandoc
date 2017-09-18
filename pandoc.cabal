@@ -581,6 +581,7 @@ test-suite test-pandoc
                   Tests.Readers.Txt2Tags
                   Tests.Readers.EPUB
                   Tests.Readers.Muse
+                  Tests.Readers.Creole
                   Tests.Writers.Native
                   Tests.Writers.ConTeXt
                   Tests.Writers.Docbook
