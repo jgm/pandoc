@@ -129,7 +129,7 @@ htmlEngines  = ["wkhtmltopdf", "weasyprint", "prince"]
 
 engines :: [(String, String)]
 engines = map ("html",) htmlEngines ++
-          map ("html5",) latexEngines ++
+          map ("html5",) htmlEngines ++
           map ("latex",) latexEngines ++
           map ("beamer",) latexEngines ++
           [ ("ms", "pdfroff")
