@@ -50,7 +50,7 @@ import qualified Data.ByteString as BS
 import qualified Data.ByteString.Lazy as B
 import Data.Char (toLower, toUpper)
 import Data.Foldable (foldrM)
-import Data.List (intercalate, isPrefixOf, isSuffixOf, sort)
+import Data.List (intercalate, isPrefixOf, isSuffixOf, sort, find)
 import qualified Data.Map as M
 import Data.Maybe (fromMaybe, isJust, isNothing)
 import qualified Data.Set as Set
@@ -86,7 +86,7 @@ import Text.Pandoc.Writers.Math (defaultMathJaxURL, defaultKaTeXURL)
 import Text.Pandoc.PDF (makePDF)
 import Text.Pandoc.Process (pipeProcess)
 import Text.Pandoc.SelfContained (makeDataURI, makeSelfContained)
-import Text.Pandoc.Shared (headerShift, isURI, openURL,
+import Text.Pandoc.Shared (headerShift, isURI, openURL, ordNub,
                            safeRead, tabFilter, eastAsianLineBreakFilter)
 import qualified Text.Pandoc.UTF8 as UTF8
 import Text.Pandoc.XML (toEntities)
@@ -124,56 +124,48 @@ parseOptions options' defaults = do
 latexEngines :: [String]
 latexEngines  = ["pdflatex", "lualatex", "xelatex"]
 
-defaultLatexEngine :: String
-defaultLatexEngine = "pdflatex"
-
 htmlEngines :: [String]
 htmlEngines  = ["wkhtmltopdf", "weasyprint", "prince"]
 
-defaultHtmlEngine :: String
-defaultHtmlEngine = "wkhtmltopdf"
+engines :: [(String, String)]
+engines = map ("html",) htmlEngines ++
+          map ("html5",) latexEngines ++
+          map ("latex",) latexEngines ++
+          map ("beamer",) latexEngines ++
+          [ ("ms", "pdfroff")
+          , ("context", "context")
+          ]
 
 pdfEngines :: [String]
-pdfEngines = latexEngines ++ htmlEngines ++ ["context", "pdfroff"]
+pdfEngines = ordNub $ map snd engines
 
 pdfWriterAndProg :: Maybe String              -- ^ user-specified writer name
                  -> Maybe String              -- ^ user-specified pdf-engine
                  -> IO (String, Maybe String) -- ^ IO (writerName, maybePdfEngineProg)
 pdfWriterAndProg mWriter mEngine = do
   let panErr msg = liftIO $ E.throwIO $ PandocAppError msg
-  case go mWriter mEngine of
-      (Right writ, Right prog) -> return (writ, Just prog)
-      (Left err, _)            -> panErr err
-      (_, Left err)            -> panErr err
+  case go (baseWriterName <$> mWriter) mEngine of
+      Right (writ, prog) -> return (writ, Just prog)
+      Left err           -> panErr err
     where
-      go Nothing Nothing       = (Right "latex", Right defaultLatexEngine)
-      go (Just writer) Nothing = (Right writer, engineForWriter writer)
-      go Nothing (Just engine) = (writerForEngine engine, Right engine)
+      go Nothing Nothing       = Right ("latex", "pdflatex")
+      go (Just writer) Nothing = (writer,) <$> engineForWriter writer
+      go Nothing (Just engine) = (,engine) <$> writerForEngine engine
       go (Just writer) (Just engine) =
-           let (Right shouldFormat) = writerForEngine engine
-               userFormat = case map toLower writer of
-                              "html5" -> "html"
-                              x       -> x
-           in  if userFormat == shouldFormat
-               then (Right writer, Right engine)
-               else (Left $ "pdf-engine " ++ engine ++ " is not compatible with output format "
-                      ++ writer ++ ", please use `-t " ++ shouldFormat ++ "`", Left "")
+           case find (== (writer, engine)) engines of
+                Just _  -> Right (writer, engine)
+                Nothing -> Left $ "pdf-engine " ++ engine ++
+                           " is not compatible with output format " ++ writer
 
-      writerForEngine "context"  = Right "context"
-      writerForEngine "pdfroff"  = Right "ms"
-      writerForEngine en
-        | takeBaseName en `elem` latexEngines = Right "latex"
-        | takeBaseName en `elem` htmlEngines  = Right "html"
-      writerForEngine _          = Left "pdf-engine not known"
+      writerForEngine eng = case [f | (f,e) <- engines, e == eng] of
+                                 fmt : _ -> Right fmt
+                                 []      -> Left $
+                                   "pdf-engine " ++ eng ++ " not known"
 
-      engineForWriter "context" = Right "context"
-      engineForWriter "ms"      = Right "pdfroff"
-      engineForWriter "latex"   = Right defaultLatexEngine
-      engineForWriter "beamer"  = Right defaultLatexEngine
-      engineForWriter format
-        | format `elem` ["html", "html5"] = Right defaultHtmlEngine
-        | otherwise = Left $ "cannot produce pdf output with output format " ++ format
-
+      engineForWriter w = case [e |  (f,e) <- engines, f == w] of
+                                eng : _ -> Right eng
+                                []      -> Left $
+                                   "cannot produce pdf output from " ++ w
 
 convertWithOpts :: Opt -> IO ()
 convertWithOpts opts = do
@@ -223,18 +215,19 @@ convertWithOpts opts = do
                                       (if any isURI sources
                                           then "html"
                                           else "markdown") sources
-                          Just x  -> map toLower x
+                          Just x  -> x
 
   let nonPdfWriterName Nothing  = defaultWriterName outputFile
-      nonPdfWriterName (Just x) = map toLower x
+      nonPdfWriterName (Just x) = x
 
   let pdfOutput = map toLower (takeExtension outputFile) == ".pdf"
-  (writerName, maybePdfProg) <- if pdfOutput
-                                then pdfWriterAndProg (optWriter opts) (optPdfEngine opts)
-                                else return (nonPdfWriterName $ optWriter opts, Nothing)
+  (writerName, maybePdfProg) <-
+    if pdfOutput
+       then pdfWriterAndProg (optWriter opts) (optPdfEngine opts)
+       else return (nonPdfWriterName $ optWriter opts, Nothing)
 
-  let format = takeWhile (`notElem` ['+','-'])
-                       $ takeFileName writerName  -- in case path to lua script
+  let format = baseWriterName
+                 $ takeFileName writerName  -- in case path to lua script
 
   -- disabling the custom writer for now
   (writer, writerExts) <-
@@ -931,13 +924,15 @@ options :: [OptDescr (Opt -> IO Opt)]
 options =
     [ Option "fr" ["from","read"]
                  (ReqArg
-                  (\arg opt -> return opt { optReader = Just arg })
+                  (\arg opt -> return opt { optReader =
+                                              Just (map toLower arg) })
                   "FORMAT")
                  ""
 
     , Option "tw" ["to","write"]
                  (ReqArg
-                  (\arg opt -> return opt { optWriter = Just arg })
+                  (\arg opt -> return opt { optWriter =
+                                              Just (map toLower arg) })
                   "FORMAT")
                  ""
 
@@ -1680,3 +1675,5 @@ splitField s =
        (k,_:v) -> (k,v)
        (k,[])  -> (k,"true")
 
+baseWriterName :: String -> String
+baseWriterName = takeWhile (\c -> c /= '+' && c /= '-')
