@@ -6,6 +6,10 @@ flags:
     network-uri: true
 packages:
 - '.'
+- location:
+    git: https://github.com/jgm/pandoc-types.git
+    commit: 10dd48e234c51433033eb1ec531fe7a5f7889cad
+  extra-dep: false
 extra-deps:
 - texmath-0.9.4.2
 - hslua-0.8.0
