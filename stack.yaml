@@ -6,11 +6,8 @@ flags:
     network-uri: true
 packages:
 - '.'
-- location:
-    git: https://github.com/jgm/pandoc-types.git
-    commit: 10dd48e234c51433033eb1ec531fe7a5f7889cad
-  extra-dep: false
 extra-deps:
+- pandoc-types-1.17.2
 - texmath-0.9.4.2
 - hslua-0.8.0
 - skylighting-0.4
@@ -18,5 +15,4 @@ extra-deps:
 - QuickCheck-2.10.0.1
 - tasty-quickcheck-0.9.1
 - haddock-library-1.4.3
-- pandoc-types-1.17.1
 resolver: lts-9.1

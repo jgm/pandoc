@@ -17,6 +17,7 @@ packages:
     commit: d13bd7ca04fc9549b64e43b3d466b70da8398ef1
   extra-dep: false
 extra-deps:
+- pandoc-types-1.17.2
 - texmath-0.9.4.2
 - hslua-0.8.0
 - skylighting-0.4
@@ -24,5 +25,4 @@ extra-deps:
 - QuickCheck-2.10.0.1
 - tasty-quickcheck-0.9.1
 - haddock-library-1.4.3
-- pandoc-types-1.17.1
 resolver: lts-9.1
