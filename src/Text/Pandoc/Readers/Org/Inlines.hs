@@ -735,15 +735,15 @@ many1TillNOrLessNewlines n p end = try $
 
 -- | Chars allowed to occur before emphasis (spaces and newlines are ok, too)
 emphasisPreChars :: [Char]
-emphasisPreChars = "\t \"'({"
+emphasisPreChars = "-\t ('\"{"
 
 -- | Chars allowed at after emphasis
 emphasisPostChars :: [Char]
-emphasisPostChars = "\t\n !\"'),-.:;?\\}["
+emphasisPostChars = "-\t\n .,:!?;'\")}["
 
 -- | Chars not allowed at the (inner) border of emphasis
 emphasisForbiddenBorderChars :: [Char]
-emphasisForbiddenBorderChars = "\t\n\r \"',"
+emphasisForbiddenBorderChars = "\t\n\r "
 
 -- | The maximum number of newlines within
 emphasisAllowedNewlines :: Int

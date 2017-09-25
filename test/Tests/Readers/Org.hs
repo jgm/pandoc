@@ -131,18 +131,18 @@ tests =
           para (spcSep [ emph $ "t/&" <> space <> "a"
                        , "/"
                        , "./r/"
-                       , "(" <> (strong "l") <> ")"
-                       , (emph "e") <> "!"
-                       , (emph "b") <> "."
+                       , "(" <> strong "l" <> ")"
+                       , emph "e" <> "!"
+                       , emph "b" <> "."
                        ])
 
-      , "Quotes are forbidden border chars" =:
-          "/'nope/ *nope\"*" =?>
-          para ("/'nope/" <> space <> "*nope\"*")
+      , "Quotes are allowed border chars" =:
+          "/'yep/ *sure\"*" =?>
+          para (emph "'yep" <> space <> strong "sure\"")
 
-      , "Commata are forbidden border chars" =:
-          "/nada,/" =?>
-          para "/nada,/"
+      , "Spaces are forbidden border chars" =:
+          "/nada /" =?>
+          para "/nada /"
 
       , "Markup should work properly after a blank line" =:
         T.unlines ["foo", "", "/bar/"] =?>
