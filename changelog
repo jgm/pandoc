@@ -3528,23 +3528,23 @@ pandoc (1.13.2)
       Now we still support those, but also support the format recommended
       for epub metadata in the pandoc README:
 
-        ---
-        title:
-        - type: main
-          text: My Book
-        - type: subtitle
-          text: An investigation of metadata
-        creator:
-        - role: author
-          text: John Smith
-        - role: editor
-          text: Sarah Jones
-        identifier:
-        - scheme: DOI
-          text: doi:10.234234.234/33
-        publisher:  My Press
-        rights:  (c) 2007 John Smith, CC BY-NC
-        ...
+            ---
+            title:
+            - type: main
+              text: My Book
+            - type: subtitle
+              text: An investigation of metadata
+            creator:
+            - role: author
+              text: John Smith
+            - role: editor
+              text: Sarah Jones
+            identifier:
+            - scheme: DOI
+              text: doi:10.234234.234/33
+            publisher:  My Press
+            rights:  (c) 2007 John Smith, CC BY-NC
+            ...
 
   * `Text.Pandoc.Templates.getDefaultTemplate`:
     don't fail when called with "fb2" (#1660).
