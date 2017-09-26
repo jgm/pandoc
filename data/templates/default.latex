@@ -176,6 +176,10 @@ $highlighting-macros$
 $endif$
 $if(tables)$
 \usepackage{longtable,booktabs}
+\newcommand{\BeforeTableStyle}{}
+\newcommand{\TableHeaderRowStyle}{}
+\newcommand{\TableHeaderItemStyle}{}
+\newcommand{\restartrowcolors}{}
 $if(beamer)$
 \usepackage{caption}
 % These lines are needed to make table captions work with longtable:
