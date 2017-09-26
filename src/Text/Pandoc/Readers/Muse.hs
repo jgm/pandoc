@@ -150,8 +150,7 @@ parseDirective = do
   key <- many letter
   space
   spaces
-  raw <- many $ noneOf "\n"
-  newline
+  raw <- manyTill anyChar eol
   value <- parseFromString (trimInlinesF . mconcat <$> many inline) raw
   return (key, value)
 

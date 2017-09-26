@@ -689,4 +689,11 @@ tests =
                                                          , para "Third"
                                                          ])
       ]
+  , testGroup "Meta"
+      [ "Title" =:
+        "#title Document title" =?>
+        let titleInline = toList $ "Document title"
+            meta = setMeta "title" (MetaInlines titleInline) $ nullMeta
+        in Pandoc meta mempty
+      ]
   ]
