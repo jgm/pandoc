@@ -51,7 +51,7 @@ List of all DocBook tags, with [x] indicating implemented,
 [x] author - The name of an individual author
 [ ] authorblurb - A short description or note about an author
 [x] authorgroup - Wrapper for author information when a document has
-    multiple authors or collabarators
+    multiple authors or collaborators
 [x] authorinitials - The initials or other short identifier for an author
 [o] beginpage - The location of a page break in a print version of the document
 [ ] bibliocoverage - The spatial or temporal coverage of a document
