@@ -3,11 +3,13 @@ Simple table with caption:
 \begin{longtable}[]{@{}rlcl@{}}
 \caption{Demonstration of simple table syntax.}\tabularnewline
 \toprule
-Right & Left & Center & Default \\
+\TableHeaderItemStyle Right & \TableHeaderItemStyle Left & \TableHeaderItemStyle
+Center & \TableHeaderItemStyle Default \\
 \midrule
 \endfirsthead
 \toprule
-Right & Left & Center & Default \\
+\TableHeaderItemStyle Right & \TableHeaderItemStyle Left & \TableHeaderItemStyle
+Center & \TableHeaderItemStyle Default \\
 \midrule
 \endhead
 12 & 12 & 12 & 12 \\
@@ -20,7 +22,8 @@ Simple table without caption:
 
 \begin{longtable}[]{@{}rlcl@{}}
 \toprule
-Right & Left & Center & Default \\
+\TableHeaderItemStyle Right & \TableHeaderItemStyle Left & \TableHeaderItemStyle
+Center & \TableHeaderItemStyle Default \\
 \midrule
 \endhead
 12 & 12 & 12 & 12 \\
@@ -34,11 +37,13 @@ Simple table indented two spaces:
 \begin{longtable}[]{@{}rlcl@{}}
 \caption{Demonstration of simple table syntax.}\tabularnewline
 \toprule
-Right & Left & Center & Default \\
+\TableHeaderItemStyle Right & \TableHeaderItemStyle Left & \TableHeaderItemStyle
+Center & \TableHeaderItemStyle Default \\
 \midrule
 \endfirsthead
 \toprule
-Right & Left & Center & Default \\
+\TableHeaderItemStyle Right & \TableHeaderItemStyle Left & \TableHeaderItemStyle
+Center & \TableHeaderItemStyle Default \\
 \midrule
 \endhead
 12 & 12 & 12 & 12 \\
@@ -56,25 +61,31 @@ Multiline table with caption:
   >{\raggedright\arraybackslash}p{(\columnwidth - 6\tabcolsep) * \real{0.3500}}@{}}
 \caption{Here's the caption. It may span multiple lines.}\tabularnewline
 \toprule
-\begin{minipage}[b]{\linewidth}\centering
+\TableHeaderItemStyle \begin{minipage}[b]{\linewidth}\centering
 Centered Header
-\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+\end{minipage} & \TableHeaderItemStyle
+\begin{minipage}[b]{\linewidth}\raggedright
 Left Aligned
-\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedleft
+\end{minipage} & \TableHeaderItemStyle
+\begin{minipage}[b]{\linewidth}\raggedleft
 Right Aligned
-\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+\end{minipage} & \TableHeaderItemStyle
+\begin{minipage}[b]{\linewidth}\raggedright
 Default aligned
 \end{minipage} \\
 \midrule
 \endfirsthead
 \toprule
-\begin{minipage}[b]{\linewidth}\centering
+\TableHeaderItemStyle \begin{minipage}[b]{\linewidth}\centering
 Centered Header
-\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+\end{minipage} & \TableHeaderItemStyle
+\begin{minipage}[b]{\linewidth}\raggedright
 Left Aligned
-\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedleft
+\end{minipage} & \TableHeaderItemStyle
+\begin{minipage}[b]{\linewidth}\raggedleft
 Right Aligned
-\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+\end{minipage} & \TableHeaderItemStyle
+\begin{minipage}[b]{\linewidth}\raggedright
 Default aligned
 \end{minipage} \\
 \midrule
@@ -92,13 +103,16 @@ Multiline table without caption:
   >{\raggedleft\arraybackslash}p{(\columnwidth - 6\tabcolsep) * \real{0.1625}}
   >{\raggedright\arraybackslash}p{(\columnwidth - 6\tabcolsep) * \real{0.3500}}@{}}
 \toprule
-\begin{minipage}[b]{\linewidth}\centering
+\TableHeaderItemStyle \begin{minipage}[b]{\linewidth}\centering
 Centered Header
-\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+\end{minipage} & \TableHeaderItemStyle
+\begin{minipage}[b]{\linewidth}\raggedright
 Left Aligned
-\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedleft
+\end{minipage} & \TableHeaderItemStyle
+\begin{minipage}[b]{\linewidth}\raggedleft
 Right Aligned
-\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+\end{minipage} & \TableHeaderItemStyle
+\begin{minipage}[b]{\linewidth}\raggedright
 Default aligned
 \end{minipage} \\
 \midrule
