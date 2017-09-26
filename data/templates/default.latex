@@ -266,6 +266,9 @@ $highlighting-macros$
 $endif$
 $if(tables)$
 \usepackage{longtable,booktabs,array}
+\newcommand{\BeforeTableStyle}{}
+\newcommand{\TableHeaderRowStyle}{}
+\newcommand{\TableHeaderItemStyle}{}
 $if(multirow)$
 \usepackage{multirow}
 $endif$

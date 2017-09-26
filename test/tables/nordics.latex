@@ -1,32 +1,33 @@
+\BeforeTableStyle
 \begin{longtable}[]{@{}
   >{\centering\arraybackslash}p{(\columnwidth - 6\tabcolsep) * \real{0.3000}}
   >{\raggedright\arraybackslash}p{(\columnwidth - 6\tabcolsep) * \real{0.3000}}
   >{\raggedright\arraybackslash}p{(\columnwidth - 6\tabcolsep) * \real{0.2000}}
   >{\raggedright\arraybackslash}p{(\columnwidth - 6\tabcolsep) * \real{0.2000}}@{}}
 \caption{States belonging to the \emph{Nordics.}}\tabularnewline
-\toprule
-\begin{minipage}[b]{\linewidth}\centering
+\toprule\TableHeaderRowStyle
+\TableHeaderItemStyle \begin{minipage}[b]{\linewidth}\centering
 Name
-\end{minipage} & \begin{minipage}[b]{\linewidth}\centering
+\end{minipage} & \TableHeaderItemStyle \begin{minipage}[b]{\linewidth}\centering
 Capital
-\end{minipage} & \begin{minipage}[b]{\linewidth}\centering
+\end{minipage} & \TableHeaderItemStyle \begin{minipage}[b]{\linewidth}\centering
 Population\\
 (in 2018)\strut
-\end{minipage} & \begin{minipage}[b]{\linewidth}\centering
+\end{minipage} & \TableHeaderItemStyle \begin{minipage}[b]{\linewidth}\centering
 Area\\
 (in km\textsuperscript{2})\strut
 \end{minipage} \\
 \midrule
 \endfirsthead
-\toprule
-\begin{minipage}[b]{\linewidth}\centering
+\toprule\TableHeaderRowStyle
+\TableHeaderItemStyle \begin{minipage}[b]{\linewidth}\centering
 Name
-\end{minipage} & \begin{minipage}[b]{\linewidth}\centering
+\end{minipage} & \TableHeaderItemStyle \begin{minipage}[b]{\linewidth}\centering
 Capital
-\end{minipage} & \begin{minipage}[b]{\linewidth}\centering
+\end{minipage} & \TableHeaderItemStyle \begin{minipage}[b]{\linewidth}\centering
 Population\\
 (in 2018)\strut
-\end{minipage} & \begin{minipage}[b]{\linewidth}\centering
+\end{minipage} & \TableHeaderItemStyle \begin{minipage}[b]{\linewidth}\centering
 Area\\
 (in km\textsuperscript{2})\strut
 \end{minipage} \\

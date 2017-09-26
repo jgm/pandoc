@@ -52,7 +52,7 @@ tableToLaTeX inlnsToLaTeX blksToLaTeX tbl = do
                else ($$ text "\\endfirsthead") <$>
                     headToLaTeX blksToLaTeX thead
   head' <- if isEmptyHead thead
-           then return "\\toprule"
+           then return "\\toprule\\TableHeaderRowStyle"
            -- avoid duplicate notes in head and firsthead:
            else headToLaTeX blksToLaTeX
                 (if isEmpty firsthead
@@ -63,7 +63,8 @@ tableToLaTeX inlnsToLaTeX blksToLaTeX tbl = do
   modify $ \s -> s{ stTable = True }
   notes <- notesToLaTeX <$> gets stNotes
   return
-    $  "\\begin{longtable}[]" <>
+    $ "\\BeforeTableStyle"
+    $$ "\\begin{longtable}[]" <>
           braces ("@{}" <> colDescriptors tbl <> "@{}")
           -- the @{} removes extra space at beginning and end
     $$ capt
@@ -159,9 +160,19 @@ headToLaTeX :: PandocMonad m
             -> Ann.TableHead
             -> LW m (Doc Text)
 headToLaTeX blocksWriter (Ann.TableHead _attr headerRows) = do
-  rowsContents <- mapM (rowToLaTeX blocksWriter HeaderCell . headerRowCells)
+  rowsContents <- mapM (headrowToLaTeX blocksWriter HeaderCell . headerRowCells)
                        headerRows
-  return ("\\toprule" $$ vcat rowsContents $$ "\\midrule")
+  return ("\\toprule\\TableHeaderRowStyle" $$ vcat rowsContents $$ "\\midrule")
+
+-- | Converts a row of table cells into a LaTeX row.
+headrowToLaTeX :: PandocMonad m
+           => BlocksWriter m
+           -> CellType
+           -> [Ann.Cell]
+           -> LW m (Doc Text)
+headrowToLaTeX blocksWriter celltype row = do
+  cellsDocs <- mapM (cellToLaTeX blocksWriter celltype) (fillRow row)
+  return $ "\\TableHeaderItemStyle " <> hsep (intersperse "& \\TableHeaderItemStyle" cellsDocs) <> " \\\\"
 
 -- | Converts a row of table cells into a LaTeX row.
 rowToLaTeX :: PandocMonad m

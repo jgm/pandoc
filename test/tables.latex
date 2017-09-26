@@ -1,13 +1,16 @@
 Simple table with caption:
 
+\BeforeTableStyle
 \begin{longtable}[]{@{}rlcl@{}}
 \caption{Demonstration of simple table syntax.}\tabularnewline
-\toprule
-Right & Left & Center & Default \\
+\toprule\TableHeaderRowStyle
+\TableHeaderItemStyle Right & \TableHeaderItemStyle Left & \TableHeaderItemStyle
+Center & \TableHeaderItemStyle Default \\
 \midrule
 \endfirsthead
-\toprule
-Right & Left & Center & Default \\
+\toprule\TableHeaderRowStyle
+\TableHeaderItemStyle Right & \TableHeaderItemStyle Left & \TableHeaderItemStyle
+Center & \TableHeaderItemStyle Default \\
 \midrule
 \endhead
 12 & 12 & 12 & 12 \\
@@ -18,9 +21,11 @@ Right & Left & Center & Default \\
 
 Simple table without caption:
 
+\BeforeTableStyle
 \begin{longtable}[]{@{}rlcl@{}}
-\toprule
-Right & Left & Center & Default \\
+\toprule\TableHeaderRowStyle
+\TableHeaderItemStyle Right & \TableHeaderItemStyle Left & \TableHeaderItemStyle
+Center & \TableHeaderItemStyle Default \\
 \midrule
 \endhead
 12 & 12 & 12 & 12 \\
@@ -31,14 +36,17 @@ Right & Left & Center & Default \\
 
 Simple table indented two spaces:
 
+\BeforeTableStyle
 \begin{longtable}[]{@{}rlcl@{}}
 \caption{Demonstration of simple table syntax.}\tabularnewline
-\toprule
-Right & Left & Center & Default \\
+\toprule\TableHeaderRowStyle
+\TableHeaderItemStyle Right & \TableHeaderItemStyle Left & \TableHeaderItemStyle
+Center & \TableHeaderItemStyle Default \\
 \midrule
 \endfirsthead
-\toprule
-Right & Left & Center & Default \\
+\toprule\TableHeaderRowStyle
+\TableHeaderItemStyle Right & \TableHeaderItemStyle Left & \TableHeaderItemStyle
+Center & \TableHeaderItemStyle Default \\
 \midrule
 \endhead
 12 & 12 & 12 & 12 \\
@@ -49,32 +57,39 @@ Right & Left & Center & Default \\
 
 Multiline table with caption:
 
+\BeforeTableStyle
 \begin{longtable}[]{@{}
   >{\centering\arraybackslash}p{(\columnwidth - 6\tabcolsep) * \real{0.1500}}
   >{\raggedright\arraybackslash}p{(\columnwidth - 6\tabcolsep) * \real{0.1375}}
   >{\raggedleft\arraybackslash}p{(\columnwidth - 6\tabcolsep) * \real{0.1625}}
   >{\raggedright\arraybackslash}p{(\columnwidth - 6\tabcolsep) * \real{0.3500}}@{}}
 \caption{Here's the caption. It may span multiple lines.}\tabularnewline
-\toprule
-\begin{minipage}[b]{\linewidth}\centering
+\toprule\TableHeaderRowStyle
+\TableHeaderItemStyle \begin{minipage}[b]{\linewidth}\centering
 Centered Header
-\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+\end{minipage} & \TableHeaderItemStyle
+\begin{minipage}[b]{\linewidth}\raggedright
 Left Aligned
-\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedleft
+\end{minipage} & \TableHeaderItemStyle
+\begin{minipage}[b]{\linewidth}\raggedleft
 Right Aligned
-\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+\end{minipage} & \TableHeaderItemStyle
+\begin{minipage}[b]{\linewidth}\raggedright
 Default aligned
 \end{minipage} \\
 \midrule
 \endfirsthead
-\toprule
-\begin{minipage}[b]{\linewidth}\centering
+\toprule\TableHeaderRowStyle
+\TableHeaderItemStyle \begin{minipage}[b]{\linewidth}\centering
 Centered Header
-\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+\end{minipage} & \TableHeaderItemStyle
+\begin{minipage}[b]{\linewidth}\raggedright
 Left Aligned
-\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedleft
+\end{minipage} & \TableHeaderItemStyle
+\begin{minipage}[b]{\linewidth}\raggedleft
 Right Aligned
-\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+\end{minipage} & \TableHeaderItemStyle
+\begin{minipage}[b]{\linewidth}\raggedright
 Default aligned
 \end{minipage} \\
 \midrule
@@ -86,19 +101,23 @@ Second & row & 5.0 & Here's another one. Note the blank line between rows. \\
 
 Multiline table without caption:
 
+\BeforeTableStyle
 \begin{longtable}[]{@{}
   >{\centering\arraybackslash}p{(\columnwidth - 6\tabcolsep) * \real{0.1500}}
   >{\raggedright\arraybackslash}p{(\columnwidth - 6\tabcolsep) * \real{0.1375}}
   >{\raggedleft\arraybackslash}p{(\columnwidth - 6\tabcolsep) * \real{0.1625}}
   >{\raggedright\arraybackslash}p{(\columnwidth - 6\tabcolsep) * \real{0.3500}}@{}}
-\toprule
-\begin{minipage}[b]{\linewidth}\centering
+\toprule\TableHeaderRowStyle
+\TableHeaderItemStyle \begin{minipage}[b]{\linewidth}\centering
 Centered Header
-\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+\end{minipage} & \TableHeaderItemStyle
+\begin{minipage}[b]{\linewidth}\raggedright
 Left Aligned
-\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedleft
+\end{minipage} & \TableHeaderItemStyle
+\begin{minipage}[b]{\linewidth}\raggedleft
 Right Aligned
-\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+\end{minipage} & \TableHeaderItemStyle
+\begin{minipage}[b]{\linewidth}\raggedright
 Default aligned
 \end{minipage} \\
 \midrule
@@ -110,8 +129,9 @@ Second & row & 5.0 & Here's another one. Note the blank line between rows. \\
 
 Table without column headers:
 
+\BeforeTableStyle
 \begin{longtable}[]{@{}rlcr@{}}
-\toprule
+\toprule\TableHeaderRowStyle
 \endhead
 12 & 12 & 12 & 12 \\
 123 & 123 & 123 & 123 \\
@@ -121,12 +141,13 @@ Table without column headers:
 
 Multiline table without column headers:
 
+\BeforeTableStyle
 \begin{longtable}[]{@{}
   >{\centering\arraybackslash}p{(\columnwidth - 6\tabcolsep) * \real{0.1500}}
   >{\raggedright\arraybackslash}p{(\columnwidth - 6\tabcolsep) * \real{0.1375}}
   >{\raggedleft\arraybackslash}p{(\columnwidth - 6\tabcolsep) * \real{0.1625}}
   >{\raggedright\arraybackslash}p{(\columnwidth - 6\tabcolsep) * \real{0.3500}}@{}}
-\toprule
+\toprule\TableHeaderRowStyle
 \endhead
 First & row & 12.0 & Example of a row that spans multiple lines. \\
 Second & row & 5.0 & Here's another one. Note the blank line between rows. \\

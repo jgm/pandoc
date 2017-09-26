@@ -1,15 +1,22 @@
+\BeforeTableStyle
 \begin{longtable}[]{@{}cclrrrrrrrrl@{}}
 \caption{Data about the planets of our solar system.}\tabularnewline
-\toprule
-\multicolumn{2}{c}{} & Name & Mass (10\^{}24kg) & Diameter (km) & Density
-(kg/m\^{}3) & Gravity (m/s\^{}2) & Length of day (hours) & Distance from Sun
-(10\^{}6km) & Mean temperature (C) & Number of moons & Notes \\
+\toprule\TableHeaderRowStyle
+\TableHeaderItemStyle \multicolumn{2}{c}{} & \TableHeaderItemStyle Name
+& \TableHeaderItemStyle Mass (10\^{}24kg) & \TableHeaderItemStyle Diameter (km)
+& \TableHeaderItemStyle Density (kg/m\^{}3) & \TableHeaderItemStyle Gravity
+(m/s\^{}2) & \TableHeaderItemStyle Length of day (hours) & \TableHeaderItemStyle
+Distance from Sun (10\^{}6km) & \TableHeaderItemStyle Mean temperature (C)
+& \TableHeaderItemStyle Number of moons & \TableHeaderItemStyle Notes \\
 \midrule
 \endfirsthead
-\toprule
-\multicolumn{2}{c}{} & Name & Mass (10\^{}24kg) & Diameter (km) & Density
-(kg/m\^{}3) & Gravity (m/s\^{}2) & Length of day (hours) & Distance from Sun
-(10\^{}6km) & Mean temperature (C) & Number of moons & Notes \\
+\toprule\TableHeaderRowStyle
+\TableHeaderItemStyle \multicolumn{2}{c}{} & \TableHeaderItemStyle Name
+& \TableHeaderItemStyle Mass (10\^{}24kg) & \TableHeaderItemStyle Diameter (km)
+& \TableHeaderItemStyle Density (kg/m\^{}3) & \TableHeaderItemStyle Gravity
+(m/s\^{}2) & \TableHeaderItemStyle Length of day (hours) & \TableHeaderItemStyle
+Distance from Sun (10\^{}6km) & \TableHeaderItemStyle Mean temperature (C)
+& \TableHeaderItemStyle Number of moons & \TableHeaderItemStyle Notes \\
 \midrule
 \endhead
 \multicolumn{2}{c}{\multirow{4}{*}{Terrestrial planets}} & Mercury & 0.330 &
