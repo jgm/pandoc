@@ -57,6 +57,8 @@ runLuaFilter datadir filterPath args pd = liftIO . Lua.runLua $ do
   -- store module in global "pandoc"
   pushPandocModule datadir
   Lua.setglobal "pandoc"
+  push args
+  Lua.setglobal "arg"
   top <- Lua.gettop
   stat <- Lua.dofile filterPath
   if stat /= OK
@@ -68,8 +70,6 @@ runLuaFilter datadir filterPath args pd = liftIO . Lua.runLua $ do
       -- Use the implicitly defined global filter if nothing was returned
       when (newtop - top < 1) pushGlobalFilter
       luaFilters <- peek (-1)
-      push args
-      Lua.setglobal "PandocParameters"
       runAll luaFilters pd
 
 pushGlobalFilter :: Lua ()
