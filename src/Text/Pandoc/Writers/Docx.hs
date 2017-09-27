@@ -744,8 +744,8 @@ getNumId :: (PandocMonad m) => WS m Int
 getNumId = (((baseListId - 1) +) . length) `fmap` gets stLists
 
 
-makeTOC :: (PandocMonad m) => WriterOptions -> WS m [Element]
-makeTOC opts | writerTableOfContents opts = do
+makeTOC :: (PandocMonad m) => WriterOptions -> Meta -> WS m [Element]
+makeTOC opts | writerTableOfContents opts || lookupMeta "toc" meta == Just (MetaBool True) = do
   let depth = "1-"++(show (writerTOCDepth opts))
   let tocCmd = "TOC \\o \""++depth++"\" \\h \\z \\u"
   tocTitle <- gets stTocTitle
@@ -769,7 +769,7 @@ makeTOC opts | writerTableOfContents opts = do
         ) -- w:p
       ])
     ])] -- w:sdt
-makeTOC _ = return []
+makeTOC _ _ = return []
 
 
 -- | Convert Pandoc document to two lists of
@@ -821,7 +821,7 @@ writeOpenXML opts (Pandoc meta blocks) = do
               ] ++ annotation
             ]
   comments' <- mapM toComment comments
-  toc <- makeTOC opts
+  toc <- makeTOC opts meta
   let meta' = title ++ subtitle ++ authors ++ date ++ abstract ++ toc
   return (meta' ++ doc', notes', comments')
 
