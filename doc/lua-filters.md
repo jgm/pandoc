@@ -132,6 +132,10 @@ Elements without matching functions are left untouched.
 See [module documentation](pandoc-module.html) for a list of pandoc
 elements.
 
+The global `FORMAT` is set to the format of the pandoc writer
+being used (`html5`, `latex`, etc.), so the behavior of a filter
+can be made conditional on the eventual output format.
+
 # Pandoc Module
 
 The `pandoc` lua module is loaded into the filter's lua

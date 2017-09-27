@@ -51,14 +51,14 @@ import qualified Data.Map as Map
 import qualified Foreign.Lua as Lua
 
 runLuaFilter :: (MonadIO m)
-             => Maybe FilePath -> FilePath -> [String] -> Pandoc -> m Pandoc
-runLuaFilter datadir filterPath args pd = liftIO . Lua.runLua $ do
+             => Maybe FilePath -> FilePath -> String -> Pandoc -> m Pandoc
+runLuaFilter datadir filterPath format pd = liftIO . Lua.runLua $ do
   Lua.openlibs
   -- store module in global "pandoc"
   pushPandocModule datadir
   Lua.setglobal "pandoc"
-  push args
-  Lua.setglobal "arg"
+  push format
+  Lua.setglobal "FORMAT"
   top <- Lua.gettop
   stat <- Lua.dofile filterPath
   if stat /= OK

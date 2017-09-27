@@ -514,7 +514,7 @@ convertWithOpts opts = do
               >=> maybe return extractMedia (optExtractMedia opts)
               >=> return . flip (foldr addMetadata) metadata
               >=> applyTransforms transforms
-              >=> applyLuaFilters datadir (optLuaFilters opts) [format]
+              >=> applyLuaFilters datadir (optLuaFilters opts) format
               >=> applyFilters readerOpts datadir filters' [format]
               )
     media <- getMediaBag
@@ -850,12 +850,12 @@ expandFilterPath mbDatadir fp = liftIO $ do
                _ -> return fp
 
 applyLuaFilters :: MonadIO m
-                => Maybe FilePath -> [FilePath] -> [String] -> Pandoc
+                => Maybe FilePath -> [FilePath] -> String -> Pandoc
                 -> m Pandoc
-applyLuaFilters mbDatadir filters args d = do
+applyLuaFilters mbDatadir filters format d = do
   expandedFilters <- mapM (expandFilterPath mbDatadir) filters
   let go f d' = liftIO $ do
-        res <- E.try (runLuaFilter mbDatadir f args d')
+        res <- E.try (runLuaFilter mbDatadir f format d')
         case res of
              Right x -> return x
              Left (LuaException s) -> E.throw (PandocFilterError f s)
