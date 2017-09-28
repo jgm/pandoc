@@ -344,6 +344,26 @@ tests =
                     ] =?>
           blockQuote (para "* Hi")
         ]
+      , testGroup "Anchors"
+        [ "Anchor" =:
+          T.unlines [ "; A comment to make sure anchor is not parsed as a directive"
+                    , "#anchor Target"
+                    ] =?>
+          para (spanWith ("anchor", [], []) mempty <> "Target")
+        , "Anchor cannot start with a number" =:
+          T.unlines [ "; A comment to make sure anchor is not parsed as a directive"
+                    , "#0notanchor Target"
+                    ] =?>
+          para "#0notanchor Target"
+        , "Not anchor if starts with a space" =:
+          " #notanchor Target" =?>
+          para "#notanchor Target"
+        , "Anchor inside a paragraph" =:
+          T.unlines [ "Paragraph starts here"
+                    , "#anchor and ends here."
+                    ] =?>
+          para ("Paragraph starts here " <> spanWith ("anchor", [], []) mempty <> "and ends here.")
+        ]
       , testGroup "Footnotes"
         [ "Simple footnote" =:
           T.unlines [ "Here is a footnote[1]."
