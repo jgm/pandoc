@@ -570,6 +570,7 @@ externalFilter ropts f args' d = liftIO $ do
                                   ".rb"  -> ("ruby", f:args')
                                   ".php" -> ("php", f:args')
                                   ".js"  -> ("node", f:args')
+                                  ".r"   -> ("Rscript", f:args')
                                   _      -> (f, args')
                         else (f, args')
   unless (exists && isExecutable) $ do
