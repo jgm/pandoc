@@ -79,6 +79,7 @@ module Text.Pandoc.Class ( PandocMonad(..)
                          , runPure
                          , readDefaultDataFile
                          , readDataFile
+                         , fetchMediaResource
                          , fillMediaBag
                          , extractMedia
                          , toLang
@@ -246,9 +247,9 @@ getMediaBag = getsCommonState stMediaBag
 
 insertMedia :: PandocMonad m => FilePath -> Maybe MimeType -> BL.ByteString -> m ()
 insertMedia fp mime bs = do
-  mb <- getsCommonState stMediaBag
+  mb <- getMediaBag
   let mb' = MB.insertMedia fp mime bs mb
-  modifyCommonState $ \st -> st{stMediaBag = mb' }
+  setMediaBag mb'
 
 getInputFiles :: PandocMonad m => m (Maybe [FilePath])
 getInputFiles = getsCommonState stInputFiles
@@ -633,6 +634,20 @@ withPaths (p:ps) action fp =
   catchError (action (p </> fp))
              (\_ -> withPaths ps action fp)
 
+-- | Fetch local or remote resource (like an image) and provide data suitable
+-- for adding it to the MediaBag.
+fetchMediaResource :: PandocMonad m
+              => Maybe String -> String
+              -> m (FilePath, Maybe MimeType, BL.ByteString)
+fetchMediaResource sourceUrl src = do
+  (bs, mt) <- downloadOrRead sourceUrl src
+  let ext = fromMaybe (takeExtension src)
+                      (mt >>= extensionFromMimeType)
+  let bs' = BL.fromChunks [bs]
+  let basename = showDigest $ sha1 bs'
+  let fname = basename <.> ext
+  return (fname, mt, bs')
+
 -- | Traverse tree, filling media bag for any images that
 -- aren't already in the media bag.
 fillMediaBag :: PandocMonad m => Maybe String -> Pandoc -> m Pandoc
@@ -643,13 +658,8 @@ fillMediaBag sourceURL d = walkM handleImage d
               case lookupMedia src mediabag of
                 Just (_, _) -> return $ Image attr lab (src, tit)
                 Nothing -> do
-                  (bs, mt) <- downloadOrRead sourceURL src
-                  let ext = fromMaybe (takeExtension src)
-                              (mt >>= extensionFromMimeType)
-                  let bs' = BL.fromChunks [bs]
-                  let basename = showDigest $ sha1 bs'
-                  let fname = basename <.> ext
-                  insertMedia fname mt bs'
+                  (fname, mt, bs) <- fetchMediaResource sourceURL src
+                  insertMedia fname mt bs
                   return $ Image attr lab (fname, tit))
           (\e ->
               case e of

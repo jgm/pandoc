@@ -39,26 +39,40 @@ import Control.Monad.Trans (MonadIO (..))
 import Data.Data (DataType, Data, toConstr, showConstr, dataTypeOf,
                   dataTypeConstrs, dataTypeName, tyconUQname)
 import Data.Foldable (foldrM)
+import Data.IORef (IORef, newIORef, readIORef)
 import Data.Map (Map)
 import Data.Maybe (isJust)
 import Foreign.Lua (Lua, FromLuaStack (peek), LuaException (..), StackIndex,
                     Status (OK), ToLuaStack (push))
+import Text.Pandoc.Class (PandocIO, getMediaBag, setMediaBag)
+import Text.Pandoc.MediaBag (MediaBag)
 import Text.Pandoc.Definition
-import Text.Pandoc.Lua.PandocModule (pushPandocModule)
+import Text.Pandoc.Lua.PandocModule (pushPandocModule, pushMediaBagModule)
 import Text.Pandoc.Walk (walkM)
 
 import qualified Data.Map as Map
 import qualified Foreign.Lua as Lua
 
-runLuaFilter :: (MonadIO m)
-             => Maybe FilePath -> FilePath -> String -> Pandoc -> m Pandoc
-runLuaFilter datadir filterPath format pd = liftIO . Lua.runLua $ do
+runLuaFilter :: Maybe FilePath -> FilePath -> String
+             -> Pandoc -> PandocIO (Either LuaException Pandoc)
+runLuaFilter datadir filterPath format pd = do
+  mediaBag <- getMediaBag
+  mediaBagRef <- liftIO (newIORef mediaBag)
+  res <- liftIO . Lua.runLuaEither $
+         runLuaFilter' datadir filterPath format mediaBagRef pd
+  newMediaBag <- liftIO (readIORef mediaBagRef)
+  setMediaBag newMediaBag
+  return res
+
+runLuaFilter' :: Maybe FilePath -> FilePath -> String -> IORef MediaBag
+              -> Pandoc -> Lua Pandoc
+runLuaFilter' datadir filterPath format mbRef pd = do
   Lua.openlibs
   -- store module in global "pandoc"
   pushPandocModule datadir
   Lua.setglobal "pandoc"
-  push format
-  Lua.setglobal "FORMAT"
+  addMediaBagModule
+  registerFormat
   top <- Lua.gettop
   stat <- Lua.dofile filterPath
   if stat /= OK
@@ -71,6 +85,16 @@ runLuaFilter datadir filterPath format pd = liftIO . Lua.runLua $ do
       when (newtop - top < 1) pushGlobalFilter
       luaFilters <- peek (-1)
       runAll luaFilters pd
+ where
+  addMediaBagModule = do
+    Lua.getglobal "pandoc"
+    push "mediabag"
+    pushMediaBagModule mbRef
+    Lua.rawset (-3)
+  registerFormat = do
+    push format
+    Lua.setglobal "FORMAT"
+
 
 pushGlobalFilter :: Lua ()
 pushGlobalFilter = do
