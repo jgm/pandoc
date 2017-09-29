@@ -511,10 +511,10 @@ convertWithOpts opts = do
               (   (if isJust (optExtractMedia opts)
                       then fillMediaBag (writerSourceURL writerOptions)
                       else return)
-              >=> maybe return extractMedia (optExtractMedia opts)
               >=> return . flip (foldr addMetadata) metadata
-              >=> applyTransforms transforms
               >=> applyLuaFilters datadir (optLuaFilters opts) format
+              >=> maybe return extractMedia (optExtractMedia opts)
+              >=> applyTransforms transforms
               >=> applyFilters readerOpts datadir filters' [format]
               )
     media <- getMediaBag
