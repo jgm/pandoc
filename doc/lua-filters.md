@@ -1,39 +1,42 @@
-% Pandoc Lua Filters
-% Albert Krewinkel, John MacFarlane
-% August 31, 2017
+---
+author:
+- 'Albert Krewinkel, John MacFarlane'
+date: 'August 31, 2017'
+title: Pandoc Lua Filters
+---
 
 # Introduction
 
 Pandoc has long supported filters, which allow the pandoc
 abstract syntax tree (AST) to be manipulated between the parsing
-and the writing phase.  Traditional pandoc filters accept a JSON
+and the writing phase. Traditional pandoc filters accept a JSON
 representation of the pandoc AST and produce an altered JSON
-representation of the AST.  They may be written in any
+representation of the AST. They may be written in any
 programming language, and invoked from pandoc using the
 `--filter` option.
 
 Although traditional filters are very flexible, they have a
-couple of disadvantages.  First, there is some overhead in
-writing JSON to stdout and reading it from stdin (twice,
-once on each side of the filter).  Second, whether a filter
-will work will depend on details of the user's environment.
-A filter may require an interpreter for a certain programming
-language to be available, as well as a library for manipulating
-the pandoc AST in JSON form.  One cannot simply provide a filter
-that can be used by anyone who has a certain version of the
-pandoc executable.
+couple of disadvantages. First, there is some overhead in
+writing JSON to stdout and reading it from stdin (twice, once on
+each side of the filter). Second, whether a filter will work
+will depend on details of the user's environment. A filter may
+require an interpreter for a certain programming language to be
+available, as well as a library for manipulating the pandoc AST
+in JSON form. One cannot simply provide a filter that can be
+used by anyone who has a certain version of the pandoc
+executable.
 
 Starting with pandoc 2.0, we have made it possible to write
-filters in lua without any external dependencies at all.
-A lua interpreter and a lua library for creating pandoc filters
-is built into the pandoc executable.  Pandoc data types
-are marshalled to lua directly, avoiding the overhead of writing
+filters in lua without any external dependencies at all. A lua
+interpreter and a lua library for creating pandoc filters is
+built into the pandoc executable. Pandoc data types are
+marshalled to lua directly, avoiding the overhead of writing
 JSON to stdout and reading it from stdin.
 
 Here is an example of a lua filter that converts strong emphasis
 to small caps:
 
-``` lua
+``` {.lua}
 return {
   {
     Strong = function (elem)
@@ -45,13 +48,13 @@ return {
 
 or equivalently,
 
-``` lua
+``` {.lua}
 function Strong(elem)
   return pandoc.SmallCaps(elem.c)
 end
 ```
 
-This says:  walk the AST, and when you find a Strong element,
+This says: walk the AST, and when you find a Strong element,
 replace it with a SmallCaps element with the same content.
 
 To run it, save it in a file, say `smallcaps.lua`, and invoke
@@ -62,12 +65,12 @@ pandoc manual, MANUAL.txt, and versions of the same filter
 written in compiled Haskell (`smallcaps`) and interpreted Python
 (`smallcaps.py`):
 
-| Command                                          | Time  |
-|--------------------------------------------------|------:|
-| `pandoc MANUAL.txt`                              | 1.01s |
-| `pandoc MANUAL.txt --filter ./smallcaps`         | 1.36s |
-| `pandoc MANUAL.txt --filter ./smallcaps.py`      | 1.40s |
-| `pandoc MANUAL.txt --lua-filter ./smallcaps.lua` | 1.03s |
+  Command                                               Time
+  -------------------------------------------------- -------
+  `pandoc MANUAL.txt`                                  1.01s
+  `pandoc MANUAL.txt --filter ./smallcaps`             1.36s
+  `pandoc MANUAL.txt --filter ./smallcaps.py`          1.40s
+  `pandoc MANUAL.txt --lua-filter ./smallcaps.lua`     1.03s
 
 As you can see, the lua filter avoids the substantial overhead
 associated with marshalling to and from JSON over a pipe.
@@ -96,12 +99,12 @@ of the previous filter. If there is no value returned by the
 filter script, then pandoc will try to generate a single filter
 by collecting all top-level functions whose names correspond to
 those of pandoc elements (e.g., `Str`, `Para`, `Meta`, or
-`Pandoc`).  (That is why the two examples above are equivalent.)
+`Pandoc`). (That is why the two examples above are equivalent.)
 
 For each filter, the document is traversed and each element
 subjected to the filter. Elements for which the filter contains
-an entry (i.e. a function of the same name) are passed to lua
-element filtering function.  In other words, filter entries will
+an entry (i.e. a function of the same name) are passed to lua
+element filtering function. In other words, filter entries will
 be called for each corresponding element in the document,
 getting the respective element as input.
 
@@ -129,8 +132,8 @@ function. Two fallback functions are supported, `Inline` and
 
 Elements without matching functions are left untouched.
 
-See [module documentation](pandoc-module.html) for a list of pandoc
-elements.
+See [module documentation](pandoc-module.html) for a list of
+pandoc elements.
 
 The global `FORMAT` is set to the format of the pandoc writer
 being used (`html5`, `latex`, etc.), so the behavior of a filter
@@ -172,7 +175,7 @@ the lua filter.
 The following filter converts the string `{{helloworld}}` into
 emphasized text "Hello, World".
 
-``` lua
+``` {.lua}
 return {
   {
     Str = function (elem)
@@ -189,10 +192,10 @@ return {
 ## Default metadata file
 
 This filter causes metadata defined in an external file
-(`metadata-file.yaml`) to be used as default values in
-a document's metadata:
+(`metadata-file.yaml`) to be used as default values in a
+document's metadata:
 
-``` lua
+``` {.lua}
 -- read metadata file into string
 local metafile = io.open('metadata-file.yaml', 'r')
 local content = metafile:read("*a")
@@ -219,7 +222,7 @@ return {
 This filter sets the date in the document's metadata to the
 current date:
 
-```lua
+``` {.lua}
 function Meta(m)
   m.date = os.date("%B %e, %Y")
   return m
@@ -228,11 +231,10 @@ end
 
 ## Extracting information about links
 
-This filter prints a table of all the URLs linked to
-in the document, together with the number of links to
-that URL.
+This filter prints a table of all the URLs linked to in the
+document, together with the number of links to that URL.
 
-```lua
+``` {.lua}
 links = {}
 
 function Link (el)
@@ -273,7 +275,7 @@ Passing information from a higher level (e.g., metadata) to a
 lower level (e.g., inlines) is still possible by using two
 filters living in the same file:
 
-``` lua
+``` {.lua}
 local vars = {}
 
 function get_vars (meta)
@@ -297,7 +299,7 @@ return {{Meta = get_vars}, {Str = replace}}
 
 If the contents of file `occupations.md` is
 
-``` markdown
+``` {.markdown}
 ---
 name: Samuel Q. Smith
 occupation: Professor of Phrenology
@@ -312,9 +314,10 @@ Occupation
 : \$occupation\$
 ```
 
-then running `pandoc --lua-filter=meta-vars.lua occupations.md` will output:
+then running `pandoc --lua-filter=meta-vars.lua occupations.md`
+will output:
 
-``` html
+``` {.html}
 <dl>
 <dt>Name</dt>
 <dd><p><span>Samuel Q. Smith</span></p>

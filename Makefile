@@ -62,6 +62,14 @@ man/pandoc.1: MANUAL.txt man/pandoc.1.template
 		--variable version="pandoc $(version)" \
 		-o $@
 
+doc/lua-filters.md: tools/ldoc.ltp data/pandoc.lua tools/update-lua-docs.lua
+	cp $@ $@.tmp
+	pandoc -t markdown --columns=64 --atx-headers  \
+	       -f markdown -t markdown --standalone\
+         --lua-filter tools/update-lua-docs.lua \
+	       -o $@ $@.tmp
+	rm $@.tmp
+
 download_stats:
 	curl https://api.github.com/repos/jgm/pandoc/releases | \
 		jq -r '.[] | .assets | .[] | "\(.download_count)\t\(.name)"'
@@ -69,4 +77,4 @@ download_stats:
 clean:
 	stack clean
 
-.PHONY: deps quick full haddock install clean test bench changes_github macospkg dist prof download_stats reformat lint weigh
+.PHONY: deps quick full haddock install clean test bench changes_github macospkg dist prof download_stats reformat lint weigh doc/lua-filters.md
