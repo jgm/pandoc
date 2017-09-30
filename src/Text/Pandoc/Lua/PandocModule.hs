@@ -41,7 +41,8 @@ import Data.IORef
 import Data.Text (pack)
 import Foreign.Lua (Lua, FromLuaStack, ToLuaStack, NumResults, liftIO)
 import Text.Pandoc.Class (fetchMediaResource, readDataFile, runIO,
-                          runIOorExplode, setUserDataDir)
+                          runIOorExplode, setUserDataDir, CommonState(..),
+                          putCommonState)
 import Text.Pandoc.Options (ReaderOptions(readerExtensions))
 import Text.Pandoc.Lua.StackInstances ()
 import Text.Pandoc.Readers (Reader (..), getReader)
@@ -83,13 +84,13 @@ readDoc formatSpec content = do
 --
 -- MediaBag submodule
 --
-pushMediaBagModule :: IORef MB.MediaBag -> Lua ()
-pushMediaBagModule mediaBagRef = do
+pushMediaBagModule :: CommonState -> IORef MB.MediaBag -> Lua ()
+pushMediaBagModule commonState mediaBagRef = do
   Lua.newtable
   addFunction "insert" (insertMediaFn mediaBagRef)
   addFunction "lookup" (lookupMediaFn mediaBagRef)
   addFunction "list" (mediaDirectoryFn mediaBagRef)
-  addFunction "fetch" (insertResource mediaBagRef)
+  addFunction "fetch" (insertResource commonState mediaBagRef)
   return ()
  where
   addFunction name fn = do
@@ -103,7 +104,8 @@ insertMediaFn :: IORef MB.MediaBag
               -> BL.ByteString
               -> Lua NumResults
 insertMediaFn mbRef fp nilOrMime contents = do
-  liftIO . modifyIORef' mbRef $ MB.insertMedia fp (toMaybe nilOrMime) contents
+  liftIO . modifyIORef' mbRef $
+    MB.insertMedia fp (toMaybe nilOrMime) contents
   return 0
 
 lookupMediaFn :: IORef MB.MediaBag
@@ -134,12 +136,15 @@ mediaDirectoryFn mbRef = do
     Lua.push "length" *> Lua.push contentLength *> Lua.rawset (-3)
     Lua.rawseti (-2) idx
 
-insertResource :: IORef MB.MediaBag
+insertResource :: CommonState
+               -> IORef MB.MediaBag
                -> String
                -> Lua NumResults
-insertResource mbRef src = do
-  (fp, mimeType, bs) <- liftIO . runIOorExplode $ fetchMediaResource src
-  liftIO $ print (fp, mimeType)
+insertResource commonState mbRef src = do
+  (fp, mimeType, bs) <- liftIO . runIOorExplode $ do
+    putCommonState commonState
+    fetchMediaResource src
+  liftIO $ print (fp, mimeType) -- TODO DEBUG
   insertMediaFn mbRef fp (OrNil mimeType) bs
 
 --
