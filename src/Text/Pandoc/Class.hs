@@ -59,6 +59,7 @@ module Text.Pandoc.Class ( PandocMonad(..)
                          , setTrace
                          , getLog
                          , setVerbosity
+                         , getVerbosity
                          , getMediaBag
                          , setMediaBag
                          , insertMedia
@@ -216,6 +217,10 @@ class (Functor m, Applicative m, Monad m, MonadError PandocError m)
 setVerbosity :: PandocMonad m => Verbosity -> m ()
 setVerbosity verbosity =
   modifyCommonState $ \st -> st{ stVerbosity = verbosity }
+
+-- | Get the verbosity level.
+getVerbosity :: PandocMonad m => m Verbosity
+getVerbosity = getsCommonState stVerbosity
 
 -- Get the accomulated log messages (in temporal order).
 getLog :: PandocMonad m => m [LogMessage]
