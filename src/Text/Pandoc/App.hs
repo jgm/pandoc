@@ -76,7 +76,7 @@ import qualified System.IO as IO (Newline (..))
 import Text.Pandoc
 import Text.Pandoc.Builder (setMeta)
 import Text.Pandoc.Class (PandocIO, extractMedia, fillMediaBag, getLog,
-                          setResourcePath, getMediaBag, setTrace, report,
+                          setResourcePath, setTrace, report,
                           setUserDataDir, readFileStrict, readDataFile,
                           readDefaultDataFile, setTranslations,
                           setInputFiles, setOutputFile)
@@ -509,13 +509,12 @@ convertWithOpts opts = do
               >=> applyTransforms transforms
               >=> applyFilters readerOpts datadir filters' [format]
               )
-    media <- getMediaBag
 
     case writer of
       ByteStringWriter f -> f writerOptions doc >>= writeFnBinary outputFile
       TextWriter f -> case maybePdfProg of
         Just pdfProg -> do
-                res <- makePDF pdfProg f writerOptions verbosity media doc
+                res <- makePDF pdfProg f writerOptions doc
                 case res of
                      Right pdf -> writeFnBinary outputFile pdf
                      Left err' -> liftIO $

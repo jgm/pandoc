@@ -58,7 +58,6 @@ import System.IO.Error (isDoesNotExistError)
 #endif
 import Text.Pandoc.Definition
 import Text.Pandoc.Error (PandocError(PandocPDFProgramNotFoundError))
-import Text.Pandoc.MediaBag
 import Text.Pandoc.MIME (getMimeType)
 import Text.Pandoc.Options (HTMLMathMethod (..), WriterOptions (..))
 import Text.Pandoc.Process (pipeProcess)
@@ -70,8 +69,9 @@ import Text.Pandoc.Writers.Shared (getField, metaToJSON)
 import Data.List (intercalate)
 #endif
 import Text.Pandoc.Class (PandocIO, report, runIO, runIOorExplode,
-                          setMediaBag, setVerbosity, getResourcePath,
-                          setResourcePath, fillMediaBag, extractMedia)
+                          setVerbosity, getVerbosity,
+                          fillMediaBag, extractMedia, putCommonState,
+                          getCommonState)
 import Text.Pandoc.Logging
 
 #ifdef _WINDOWS
@@ -83,11 +83,9 @@ makePDF :: String              -- ^ pdf creator (pdflatex, lualatex, xelatex,
                                -- wkhtmltopdf, weasyprint, prince, context, pdfroff)
         -> (WriterOptions -> Pandoc -> PandocIO Text)  -- ^ writer
         -> WriterOptions       -- ^ options
-        -> Verbosity           -- ^ verbosity level
-        -> MediaBag            -- ^ media
         -> Pandoc              -- ^ document
         -> PandocIO (Either ByteString ByteString)
-makePDF "wkhtmltopdf" writer opts verbosity _ doc@(Pandoc meta _) = do
+makePDF "wkhtmltopdf" writer opts doc@(Pandoc meta _) = do
   let mathArgs = case writerHTMLMathMethod opts of
                  -- with MathJax, wait til all math is rendered:
                       MathJax _ -> ["--run-script", "MathJax.Hub.Register.StartupHook('End Typeset', function() { window.status = 'mathjax_loaded' });",
@@ -109,29 +107,34 @@ makePDF "wkhtmltopdf" writer opts verbosity _ doc@(Pandoc meta _) = do
                             (getField "margin-left" meta'))
                  ]
   source <- writer opts doc
+  verbosity <- getVerbosity
   liftIO $ html2pdf verbosity "wkhtmltopdf" args source
-makePDF "weasyprint" writer opts verbosity _ doc = do
+makePDF "weasyprint" writer opts doc = do
   let args = writerPdfArgs opts
   source <- writer opts doc
+  verbosity <- getVerbosity
   liftIO $ html2pdf verbosity "weasyprint" args source
-makePDF "prince" writer opts verbosity _ doc = do
+makePDF "prince" writer opts doc = do
   let args = writerPdfArgs opts
   source <- writer opts doc
+  verbosity <- getVerbosity
   liftIO $ html2pdf verbosity "prince" args source
-makePDF "pdfroff" writer opts verbosity _mediabag doc = do
+makePDF "pdfroff" writer opts doc = do
   source <- writer opts doc
   let args   = ["-ms", "-mpdfmark", "-e", "-t", "-k", "-KUTF-8", "-i",
                 "--no-toc-relocation"] ++ writerPdfArgs opts
+  verbosity <- getVerbosity
   liftIO $ ms2pdf verbosity args source
-makePDF program writer opts verbosity mediabag doc = do
+makePDF program writer opts doc = do
   let withTemp = if takeBaseName program == "context"
                     then withTempDirectory "."
                     else withTempDir
-  resourcePath <- getResourcePath
+  commonState <- getCommonState
+  verbosity <- getVerbosity
   liftIO $ withTemp "tex2pdf." $ \tmpdir -> do
-    doc' <- handleImages verbosity resourcePath mediabag tmpdir doc
     source <- runIOorExplode $ do
-                setVerbosity verbosity
+                putCommonState commonState
+                doc' <- handleImages tmpdir doc
                 writer opts doc'
     let args = writerPdfArgs opts
     case takeBaseName program of
@@ -140,34 +143,25 @@ makePDF program writer opts verbosity mediabag doc = do
            -> tex2pdf' verbosity args tmpdir program source
        _ -> return $ Left $ UTF8.fromStringLazy $ "Unknown program " ++ program
 
-handleImages :: Verbosity
-             -> [FilePath]
-             -> MediaBag
-             -> FilePath      -- ^ temp dir to store images
+handleImages :: FilePath      -- ^ temp dir to store images
              -> Pandoc        -- ^ document
-             -> IO Pandoc
-handleImages verbosity resourcePath mediabag tmpdir doc = do
-  doc' <- runIOorExplode $ do
-            setVerbosity verbosity
-            setResourcePath resourcePath
-            setMediaBag mediabag
-            fillMediaBag doc >>=
-              extractMedia tmpdir
-  walkM (convertImages verbosity tmpdir) doc'
+             -> PandocIO Pandoc
+handleImages tmpdir doc =
+  fillMediaBag doc >>=
+    extractMedia tmpdir >>=
+    walkM (convertImages tmpdir)
 
-convertImages :: Verbosity -> FilePath -> Inline -> IO Inline
-convertImages verbosity tmpdir (Image attr ils (src, tit)) = do
-  img <- convertImage tmpdir src
+convertImages :: FilePath -> Inline -> PandocIO Inline
+convertImages tmpdir (Image attr ils (src, tit)) = do
+  img <- liftIO $ convertImage tmpdir src
   newPath <-
     case img of
       Left e -> do
-        runIO $ do
-          setVerbosity verbosity
-          report $ CouldNotConvertImage src e
+        report $ CouldNotConvertImage src e
         return src
       Right fp -> return fp
   return (Image attr ils (newPath, tit))
-convertImages _ _ x = return x
+convertImages _ x = return x
 
 -- Convert formats which do not work well in pdf to png
 convertImage :: FilePath -> FilePath -> IO (Either String FilePath)
