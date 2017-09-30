@@ -136,11 +136,9 @@ mediaDirectoryFn mbRef = do
 
 insertResource :: IORef MB.MediaBag
                -> String
-               -> OrNil String
                -> Lua NumResults
-insertResource mbRef src sourceUrlOrNil = do
-  (fp, mimeType, bs) <- liftIO . runIOorExplode $
-                        fetchMediaResource (toMaybe sourceUrlOrNil) src
+insertResource mbRef src = do
+  (fp, mimeType, bs) <- liftIO . runIOorExplode $ fetchMediaResource src
   liftIO $ print (fp, mimeType)
   insertMediaFn mbRef fp (OrNil mimeType) bs
 

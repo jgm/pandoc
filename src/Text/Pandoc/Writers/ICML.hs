@@ -543,7 +543,7 @@ styleToStrAttr style =
 imageICML :: PandocMonad m => WriterOptions -> Style -> Attr -> Target -> WS m Doc
 imageICML opts style attr (src, _) = do
   imgS <- catchError
-          (do (img, _) <- P.fetchItem (writerSourceURL opts) src
+          (do (img, _) <- P.fetchItem src
               case imageSize opts img of
                 Right size -> return size
                 Left msg   -> do

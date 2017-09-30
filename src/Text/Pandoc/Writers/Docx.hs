@@ -1295,7 +1295,7 @@ inlineToOpenXML' opts (Image attr alt (src, title)) = do
     Just (_,_,_,elt,_) -> return [elt]
     Nothing -> do
       catchError
-        (do (img, mt) <- P.fetchItem (writerSourceURL opts) src
+        (do (img, mt) <- P.fetchItem src
             ident <- ("rId"++) `fmap` ((lift . lift) getUniqueId)
             let (xpt,ypt) = desiredSizeInPoints opts attr
                    (either (const def) id (imageSize opts img))

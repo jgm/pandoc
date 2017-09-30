@@ -180,7 +180,7 @@ addLang lang = everywhere' (mkT updateLangAttr)
 -- | transform both Image and Math elements
 transformPicMath :: PandocMonad m => WriterOptions ->Inline -> O m Inline
 transformPicMath opts (Image attr@(id', cls, _) lab (src,t)) = catchError
-   (do (img, mbMimeType) <- P.fetchItem (writerSourceURL opts) src
+   (do (img, mbMimeType) <- P.fetchItem src
        (ptX, ptY) <- case imageSize opts img of
                        Right s  -> return $ sizeInPoints s
                        Left msg -> do

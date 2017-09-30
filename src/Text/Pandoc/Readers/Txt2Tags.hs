@@ -70,14 +70,8 @@ instance Default T2TMeta where
 -- | Get the meta information required by Txt2Tags macros
 getT2TMeta :: PandocMonad m => m T2TMeta
 getT2TMeta = do
-    mbInps <- P.getInputFiles
-    let inps = case mbInps of
-                  Just x  -> x
-                  Nothing -> []
-    mbOutp <- P.getOutputFile
-    let outp = case mbOutp of
-                 Just x  -> x
-                 Nothing -> ""
+    inps <- P.getInputFiles
+    outp <- fromMaybe "" <$> P.getOutputFile
     curDate <- formatTime defaultTimeLocale "%F" <$> P.getZonedTime
     let getModTime = fmap (formatTime defaultTimeLocale "%T") .
                        P.getModificationTime

@@ -255,7 +255,7 @@ fetchImage href link = do
               else return Nothing
        (True, Just _) -> return Nothing  -- not base64-encoded
        _               -> do
-         catchError (do (bs, mbmime) <- P.fetchItem Nothing link
+         catchError (do (bs, mbmime) <- P.fetchItem link
                         case mbmime of
                              Nothing -> do
                                report $ CouldNotDetermineMimeType link

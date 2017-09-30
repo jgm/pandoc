@@ -13,10 +13,8 @@ import Text.Pandoc.Class
 
 muse :: Text -> Pandoc
 muse = purely $ \s -> do
-  putCommonState
-      def { stInputFiles = Just ["in"]
-          , stOutputFile = Just "out"
-          }
+  setInputFiles ["in"]
+  setOutputFile (Just "out")
   readMuse def s
 
 infix 4 =:

@@ -78,7 +78,8 @@ import Text.Pandoc.Builder (setMeta)
 import Text.Pandoc.Class (PandocIO, extractMedia, fillMediaBag, getLog,
                           setResourcePath, getMediaBag, setTrace, report,
                           setUserDataDir, readFileStrict, readDataFile,
-                          readDefaultDataFile, setTranslations)
+                          readDefaultDataFile, setTranslations,
+                          setInputFiles, setOutputFile)
 import Text.Pandoc.Highlighting (highlightingStyles)
 import Text.Pandoc.BCP47 (parseBCP47, Lang(..))
 import Text.Pandoc.Lua (runLuaFilter, LuaException(..))
@@ -169,14 +170,13 @@ pdfWriterAndProg mWriter mEngine = do
 
 convertWithOpts :: Opt -> IO ()
 convertWithOpts opts = do
-  let args = optInputFiles opts
   let outputFile = fromMaybe "-" (optOutputFile opts)
   let filters = optFilters opts
   let verbosity = optVerbosity opts
 
   when (optDumpArgs opts) $
     do UTF8.hPutStrLn stdout outputFile
-       mapM_ (UTF8.hPutStrLn stdout) args
+       mapM_ (UTF8.hPutStrLn stdout) (optInputFiles opts)
        exitSuccess
 
   epubMetadata <- case optEpubMetadata opts of
@@ -197,7 +197,7 @@ convertWithOpts opts = do
   let filters' = if needsCiteproc then "pandoc-citeproc" : filters
                                   else filters
 
-  let sources = case args of
+  let sources = case optInputFiles opts of
                      []  -> ["-"]
                      xs | optIgnoreArgs opts -> ["-"]
                         | otherwise  -> xs
@@ -261,15 +261,6 @@ convertWithOpts opts = do
                                   _ -> e
 
   let standalone = optStandalone opts || not (isTextFormat format) || pdfOutput
-  let sourceURL = case sources of
-                    []    -> Nothing
-                    (x:_) -> case parseURI x of
-                                Just u
-                                  | uriScheme u `elem` ["http:","https:"] ->
-                                      Just $ show u{ uriQuery = "",
-                                                     uriFragment = "" }
-                                _ -> Nothing
-
   let addStringAsVariable varname s vars = return $ (varname, s) : vars
 
   highlightStyle <- lookupHighlightStyle $ optHighlightStyle opts
@@ -347,6 +338,8 @@ convertWithOpts opts = do
 
   runIO' $ do
     setUserDataDir datadir
+    setInputFiles (optInputFiles opts)
+    setOutputFile (optOutputFile opts)
 
     variables <-
         withList (addStringAsVariable "sourcefile")
@@ -449,7 +442,6 @@ convertWithOpts opts = do
           , writerColumns          = optColumns opts
           , writerEmailObfuscation = optEmailObfuscation opts
           , writerIdentifierPrefix = optIdentifierPrefix opts
-          , writerSourceURL        = sourceURL
           , writerHtmlQTags        = optHtmlQTags opts
           , writerTopLevelDivision = optTopLevelDivision opts
           , writerListings         = optListings opts
@@ -509,7 +501,7 @@ convertWithOpts opts = do
     setResourcePath (optResourcePath opts)
     doc <- sourceToDoc sources >>=
               (   (if isJust (optExtractMedia opts)
-                      then fillMediaBag (writerSourceURL writerOptions)
+                      then fillMediaBag
                       else return)
               >=> return . flip (foldr addMetadata) metadata
               >=> applyLuaFilters datadir (optLuaFilters opts) format
@@ -545,8 +537,7 @@ convertWithOpts opts = do
                   if optSelfContained opts && htmlFormat
                      -- TODO not maximally efficient; change type
                      -- of makeSelfContained so it works w/ Text
-                     then T.pack <$> makeSelfContained writerOptions
-                          (T.unpack output)
+                     then T.pack <$> makeSelfContained (T.unpack output)
                      else return output
 
 type Transform = Pandoc -> Pandoc

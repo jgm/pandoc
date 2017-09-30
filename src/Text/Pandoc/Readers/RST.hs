@@ -850,7 +850,7 @@ csvTableDirective top fields rawcsv = do
   rawcsv' <- case trim <$>
                     lookup "file" fields `mplus` lookup "url" fields of
                   Just u  -> do
-                    (bs, _) <- fetchItem Nothing u
+                    (bs, _) <- fetchItem u
                     return $ UTF8.toString bs
                   Nothing -> return rawcsv
   let res = parseCSV opts (T.pack $ case explicitHeader of

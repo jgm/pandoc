@@ -918,7 +918,7 @@ modifyMediaRef opts oldsrc = do
   case lookup oldsrc media of
          Just (n,_) -> return n
          Nothing    -> catchError
-           (do (img, mbMime) <- P.fetchItem (writerSourceURL opts) oldsrc
+           (do (img, mbMime) <- P.fetchItem oldsrc
                let new = "media/file" ++ show (length media) ++
                           fromMaybe (takeExtension (takeWhile (/='?') oldsrc))
                           (('.':) <$> (mbMime >>= extensionFromMimeType))
