@@ -1062,3 +1062,80 @@ Lua functions for pandoc scripts.
         return {pandoc.global_filter()}
         -- the above is equivallent to
         -- return {{Str = Str}}
+
+# Submodule mediabag
+
+The submodule `mediabag` allows accessing pandoc's media
+storage. The "media bag" is used when pandoc is called with the
+`--extract-media` or `--standalone`/`-s` option.
+
+[`insert (filepath, mime_type, contents)`]{#mediabag-insert}
+
+:   Adds a new entry to pandoc's media bag.
+
+    Parameters:
+
+    `filepath`:
+    :   filename and path relative to the output folder.
+
+    `mime_type`:
+    :   the file's MIME type
+
+    `contents`:
+    :   the binary contents of the file.
+
+    Usage:
+
+        local fp = "media/hello.txt"
+        local mt = "text/plain"
+        local contents = "Hello, World!"
+        pandoc.mediabag(fp, mt, contents)
+
+[`list ()`]{#mediabag-list}
+
+:   Get a summary of the current media bag contents.
+
+    Returns: A list of elements summarizing each entry in the
+    media bag. The summary item contains the keys `path`,
+    `type`, and `length`, giving the filepath, MIME type, and
+    length of contents in bytes, respectively.
+
+    Usage:
+
+        -- calculate the size of the media bag.
+        local mb_items = pandoc.mediabag.list()
+        local sum = 0
+        for i = 1, #mb_items:
+            sum = sum + mb_items[i].length
+        end
+        print(sum)
+
+[`lookup (filepath)`]{#mediabag-lookup}
+
+:   Lookup a media item in the media bag, returning mime type
+    and contents.
+
+    Parameters:
+
+    `filepath`:
+    :   name of the file to look up.
+
+    Returns:
+
+    -   the entries MIME type, or nil if the file was not found.
+    -   contents of the file, or nil if the file was not found.
+
+    Usage:
+
+        local filename = "media/diagram.png"
+        local mt, contents = pandoc.mediabag.lookup(filename)
+
+[`fetch (source, base_url)`]{#mediabag-fetch}
+
+:   Fetches the given source and inserts it into the media bag
+    using a SHA1 hash of the content as filename.
+
+    Usage:
+
+        local diagram_url = "https://pandoc.org/diagram.jpg"
+        pandoc.mediabag.fetch(diagram_url, ".")
