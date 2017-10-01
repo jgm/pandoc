@@ -1133,7 +1133,9 @@ storage. The "media bag" is used when pandoc is called with the
 [`fetch (source, base_url)`]{#mediabag-fetch}
 
 :   Fetches the given source and inserts it into the media bag
-    using a SHA1 hash of the content as filename.
+    using a SHA1 hash of the content as filename.  Returns two
+    values:  the filename (based on SHA1 hash) and the mime
+    type (or an empty string).
 
     Usage:
 

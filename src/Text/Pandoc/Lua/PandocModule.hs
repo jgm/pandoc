@@ -38,6 +38,7 @@ import Control.Monad (unless, zipWithM_)
 import Data.ByteString.Char8 (unpack)
 import Data.Default (Default (..))
 import Data.IORef
+import Data.Maybe (fromMaybe)
 import Data.Text (pack)
 import Foreign.Lua (Lua, FromLuaStack, ToLuaStack, NumResults, liftIO)
 import Text.Pandoc.Class (fetchMediaResource, readDataFile, runIO,
@@ -146,6 +147,9 @@ insertResource commonState mbRef src = do
     fetchMediaResource src
   liftIO $ print (fp, mimeType) -- TODO DEBUG
   insertMediaFn mbRef fp (OrNil mimeType) bs
+  Lua.push fp
+  Lua.push $ fromMaybe "" mimeType
+  return 2 -- returns 2 values: name in mediabag, mimetype
 
 --
 -- Helper types and orphan instances
