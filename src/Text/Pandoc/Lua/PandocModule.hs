@@ -47,7 +47,7 @@ import Text.Pandoc.Class (readDataFile, runIO,
 import Text.Pandoc.Options (ReaderOptions(readerExtensions))
 import Text.Pandoc.Lua.StackInstances ()
 import Text.Pandoc.Readers (Reader (..), getReader)
-import Text.Pandoc.MIME (MimeType, extensionFromMimeType)
+import Text.Pandoc.MIME (MimeType)
 import Data.Digest.Pure.SHA (sha1, showDigest)
 
 import qualified Foreign.Lua as Lua
@@ -93,7 +93,7 @@ pushMediaBagModule commonState mediaBagRef = do
   addFunction "lookup" (lookupMediaFn mediaBagRef)
   addFunction "list" (mediaDirectoryFn mediaBagRef)
   addFunction "fetch" (fetch commonState mediaBagRef)
-  addFunction "hashname" hashnameFn
+  addFunction "sha1" sha1HashFn
   return ()
  where
   addFunction name fn = do
@@ -101,19 +101,11 @@ pushMediaBagModule commonState mediaBagRef = do
     Lua.pushHaskellFunction fn
     Lua.rawset (-3)
 
-hashnameFn :: OrNil MimeType
-           -> BL.ByteString
+sha1HashFn :: BL.ByteString
            -> Lua NumResults
-hashnameFn nilOrMime contents = do
-  Lua.push (getHashname (toMaybe nilOrMime) contents)
+sha1HashFn contents = do
+  Lua.push $ showDigest (sha1 contents)
   return 1
-
-getHashname :: Maybe MimeType -> BL.ByteString -> String
-getHashname mbMime bs =
-  let ext = fromMaybe ""
-              (('.':) <$> (mbMime >>= extensionFromMimeType))
-      basename = showDigest $ sha1 bs
-  in  basename ++ ext
 
 insertMediaFn :: IORef MB.MediaBag
               -> FilePath
