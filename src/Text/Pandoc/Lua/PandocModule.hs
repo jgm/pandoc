@@ -41,13 +41,14 @@ import Data.IORef
 import Data.Maybe (fromMaybe)
 import Data.Text (pack)
 import Foreign.Lua (Lua, FromLuaStack, ToLuaStack, NumResults, liftIO)
-import Text.Pandoc.Class (fetchMediaResource, readDataFile, runIO,
+import Text.Pandoc.Class (readDataFile, runIO,
                           runIOorExplode, setUserDataDir, CommonState(..),
-                          putCommonState)
+                          putCommonState, fetchItem, setMediaBag)
 import Text.Pandoc.Options (ReaderOptions(readerExtensions))
 import Text.Pandoc.Lua.StackInstances ()
 import Text.Pandoc.Readers (Reader (..), getReader)
-import Text.Pandoc.MIME (MimeType)
+import Text.Pandoc.MIME (MimeType, extensionFromMimeType)
+import Data.Digest.Pure.SHA (sha1, showDigest)
 
 import qualified Foreign.Lua as Lua
 import qualified Data.ByteString.Lazy as BL
@@ -91,13 +92,28 @@ pushMediaBagModule commonState mediaBagRef = do
   addFunction "insert" (insertMediaFn mediaBagRef)
   addFunction "lookup" (lookupMediaFn mediaBagRef)
   addFunction "list" (mediaDirectoryFn mediaBagRef)
-  addFunction "fetch" (insertResource commonState mediaBagRef)
+  addFunction "fetch" (fetch commonState mediaBagRef)
+  addFunction "hashname" hashnameFn
   return ()
  where
   addFunction name fn = do
     Lua.push name
     Lua.pushHaskellFunction fn
     Lua.rawset (-3)
+
+hashnameFn :: OrNil MimeType
+           -> BL.ByteString
+           -> Lua NumResults
+hashnameFn nilOrMime contents = do
+  Lua.push (getHashname (toMaybe nilOrMime) contents)
+  return 1
+
+getHashname :: Maybe MimeType -> BL.ByteString -> String
+getHashname mbMime bs =
+  let ext = fromMaybe ""
+              (('.':) <$> (mbMime >>= extensionFromMimeType))
+      basename = showDigest $ sha1 bs
+  in  basename ++ ext
 
 insertMediaFn :: IORef MB.MediaBag
               -> FilePath
@@ -137,19 +153,19 @@ mediaDirectoryFn mbRef = do
     Lua.push "length" *> Lua.push contentLength *> Lua.rawset (-3)
     Lua.rawseti (-2) idx
 
-insertResource :: CommonState
-               -> IORef MB.MediaBag
-               -> String
-               -> Lua NumResults
-insertResource commonState mbRef src = do
-  (fp, mimeType, bs) <- liftIO . runIOorExplode $ do
+fetch :: CommonState
+      -> IORef MB.MediaBag
+      -> String
+      -> Lua NumResults
+fetch commonState mbRef src = do
+  mediaBag <- liftIO $ readIORef mbRef
+  (bs, mimeType) <- liftIO . runIOorExplode $ do
     putCommonState commonState
-    fetchMediaResource src
-  liftIO $ print (fp, mimeType) -- TODO DEBUG
-  insertMediaFn mbRef fp (OrNil mimeType) bs
-  Lua.push fp
+    setMediaBag mediaBag
+    fetchItem src
+  Lua.push bs
   Lua.push $ fromMaybe "" mimeType
-  return 2 -- returns 2 values: name in mediabag, mimetype
+  return 2 -- returns 2 values: contents, mimetype
 
 --
 -- Helper types and orphan instances

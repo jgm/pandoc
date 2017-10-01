@@ -1130,14 +1130,22 @@ storage. The "media bag" is used when pandoc is called with the
         local filename = "media/diagram.png"
         local mt, contents = pandoc.mediabag.lookup(filename)
 
+[`hashname (mime_type, contents)`]{#mediabag-hashname}
+
+:   Returns a filename with a basename based on the SHA1 has of the
+    contents and an extension based on the mime type.
+
+    Usage:
+
+        local fp = pandoc.mediabag.hashname("plain/text", "foobar")
+
 [`fetch (source, base_url)`]{#mediabag-fetch}
 
-:   Fetches the given source and inserts it into the media bag
-    using a SHA1 hash of the content as filename.  Returns two
-    values:  the filename (based on SHA1 hash) and the mime
+:   Fetches the given source from a URL or local file.
+    Returns two values:  the contents of the file and the mime
     type (or an empty string).
 
     Usage:
 
         local diagram_url = "https://pandoc.org/diagram.jpg"
-        pandoc.mediabag.fetch(diagram_url, ".")
+        local contents = pandoc.mediabag.fetch(diagram_url, ".")
