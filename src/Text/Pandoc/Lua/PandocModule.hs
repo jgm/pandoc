@@ -163,8 +163,8 @@ fetch commonState mbRef src = do
     putCommonState commonState
     setMediaBag mediaBag
     fetchItem src
-  Lua.push bs
   Lua.push $ fromMaybe "" mimeType
+  Lua.push bs
   return 2 -- returns 2 values: contents, mimetype
 
 --

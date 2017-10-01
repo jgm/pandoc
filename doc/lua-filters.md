@@ -1135,6 +1135,10 @@ storage. The "media bag" is used when pandoc is called with the
 :   Returns a filename with a basename based on the SHA1 has of the
     contents and an extension based on the mime type.
 
+    Returns:
+
+    -   Filename based on SHA1 hash.
+
     Usage:
 
         local fp = pandoc.mediabag.hashname("plain/text", "foobar")
@@ -1144,6 +1148,11 @@ storage. The "media bag" is used when pandoc is called with the
 :   Fetches the given source from a URL or local file.
     Returns two values:  the contents of the file and the mime
     type (or an empty string).
+
+    Returns:
+
+    -   the entries MIME type, or nil if the file was not found.
+    -   contents of the file, or nil if the file was not found.
 
     Usage:
 
