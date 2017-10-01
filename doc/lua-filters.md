@@ -1075,6 +1075,20 @@ Lua functions for pandoc scripts.
 
         local fp = pandoc.mediabag.sha1("foobar")
 
+[`pipe (command, args, input)`]{#mediabag-sha1}
+
+:   Runs command with arguments, passing it some input,
+    and returns the exit code and the output.
+
+    Returns:
+
+    -   Exit code from command.
+    -   Output of command.
+
+    Usage:
+
+        local ec, output = pandoc.pipe("sed", {"-e","s/a/b/"}, "abc")
+
 
 # Submodule mediabag
 

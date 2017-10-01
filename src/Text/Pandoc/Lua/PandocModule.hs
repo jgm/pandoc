@@ -48,6 +48,8 @@ import Text.Pandoc.Options (ReaderOptions(readerExtensions))
 import Text.Pandoc.Lua.StackInstances ()
 import Text.Pandoc.Readers (Reader (..), getReader)
 import Text.Pandoc.MIME (MimeType)
+import Text.Pandoc.Process (pipeProcess)
+import System.Exit (ExitCode(..))
 import Data.Digest.Pure.SHA (sha1, showDigest)
 
 import qualified Foreign.Lua as Lua
@@ -65,6 +67,9 @@ pushPandocModule datadir = do
   Lua.rawset (-3)
   Lua.push "sha1"
   Lua.pushHaskellFunction sha1HashFn
+  Lua.rawset (-3)
+  Lua.push "pipe"
+  Lua.pushHaskellFunction pipeFn
   Lua.rawset (-3)
 
 -- | Get the string representation of the pandoc module
@@ -108,6 +113,18 @@ sha1HashFn :: BL.ByteString
 sha1HashFn contents = do
   Lua.push $ showDigest (sha1 contents)
   return 1
+
+pipeFn :: String
+       -> [String]
+       -> BL.ByteString
+       -> Lua NumResults
+pipeFn command args input = do
+  (ec, output) <- liftIO $ pipeProcess Nothing command args input
+  Lua.push $ case ec of
+                  ExitSuccess   -> 0
+                  ExitFailure n -> n
+  Lua.push output
+  return 2
 
 insertMediaFn :: IORef MB.MediaBag
               -> FilePath
