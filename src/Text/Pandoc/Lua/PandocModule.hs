@@ -63,6 +63,9 @@ pushPandocModule datadir = do
   Lua.push "__read"
   Lua.pushHaskellFunction readDoc
   Lua.rawset (-3)
+  Lua.push "sha1"
+  Lua.pushHaskellFunction sha1HashFn
+  Lua.rawset (-3)
 
 -- | Get the string representation of the pandoc module
 pandocModuleScript :: Maybe FilePath -> IO String
@@ -93,7 +96,6 @@ pushMediaBagModule commonState mediaBagRef = do
   addFunction "lookup" (lookupMediaFn mediaBagRef)
   addFunction "list" (mediaDirectoryFn mediaBagRef)
   addFunction "fetch" (fetch commonState mediaBagRef)
-  addFunction "sha1" sha1HashFn
   return ()
  where
   addFunction name fn = do

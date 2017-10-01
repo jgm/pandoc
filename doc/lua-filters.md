@@ -1063,6 +1063,19 @@ Lua functions for pandoc scripts.
         -- the above is equivallent to
         -- return {{Str = Str}}
 
+[`sha1 (contents)`]{#mediabag-sha1}
+
+:   Returns the SHA1 has of the contents.
+
+    Returns:
+
+    -   SHA1 hash of the contents.
+
+    Usage:
+
+        local fp = pandoc.mediabag.sha1("foobar")
+
+
 # Submodule mediabag
 
 The submodule `mediabag` allows accessing pandoc's media
@@ -1129,18 +1142,6 @@ storage. The "media bag" is used when pandoc is called with the
 
         local filename = "media/diagram.png"
         local mt, contents = pandoc.mediabag.lookup(filename)
-
-[`sha1 (contents)`]{#mediabag-sha1}
-
-:   Returns the SHA1 has of the contents.
-
-    Returns:
-
-    -   SHA1 hash of the contents.
-
-    Usage:
-
-        local fp = pandoc.mediabag.sha1("foobar")
 
 [`fetch (source, base_url)`]{#mediabag-fetch}
 
