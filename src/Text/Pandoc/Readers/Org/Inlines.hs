@@ -158,7 +158,8 @@ endline = try $ do
   decEmphasisNewlinesCount
   guard =<< newlinesCountWithinLimits
   updateLastPreCharPos
-  returnF B.softbreak
+  useHardBreaks <- exportPreserveBreaks . orgStateExportSettings <$> getState
+  returnF (if useHardBreaks then B.linebreak else B.softbreak)
 
 
 --

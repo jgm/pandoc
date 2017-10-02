@@ -773,6 +773,13 @@ tests =
                         , para "top-level section 2" ]
                       ]
 
+          , "preserve linebreaks as hard breaks" =:
+              T.unlines [ "#+OPTIONS: \\n:t"
+                        , "first"
+                        , "second"
+                        ] =?>
+              para ("first" <> linebreak <> "second")
+
           , "disable author export" =:
               T.unlines [ "#+OPTIONS: author:nil"
                         , "#+AUTHOR: ShyGuy"

@@ -52,7 +52,7 @@ exportSetting = choice
   , booleanSetting "-" (\val es -> es { exportSpecialStrings = val })
   , ignoredSetting ":"
   , ignoredSetting "<"
-  , ignoredSetting "\\n"
+  , booleanSetting "\\n" (\val es -> es { exportPreserveBreaks = val })
   , archivedTreeSetting "arch" (\val es -> es { exportArchivedTrees = val })
   , booleanSetting "author" (\val es -> es { exportWithAuthor = val })
   , ignoredSetting "c"

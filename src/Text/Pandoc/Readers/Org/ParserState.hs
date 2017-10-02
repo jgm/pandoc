@@ -242,6 +242,7 @@ data ExportSettings = ExportSettings
   , exportEmphasizedText   :: Bool -- ^ Parse emphasized text
   , exportHeadlineLevels   :: Int
   -- ^ Maximum depth of headlines, deeper headlines are convert to list
+  , exportPreserveBreaks   :: Bool -- ^ Whether to preserve linebreaks
   , exportSmartQuotes      :: Bool -- ^ Parse quotes smartly
   , exportSpecialStrings   :: Bool -- ^ Parse ellipses and dashes smartly
   , exportSubSuperscripts  :: Bool -- ^ TeX-like syntax for sub- and superscripts
@@ -261,6 +262,7 @@ defaultExportSettings = ExportSettings
   , exportDrawers = Left ["LOGBOOK"]
   , exportEmphasizedText = True
   , exportHeadlineLevels = 3
+  , exportPreserveBreaks = False
   , exportSmartQuotes = False
   , exportSpecialStrings = True
   , exportSubSuperscripts = True
