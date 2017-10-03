@@ -36,7 +36,7 @@ JSON to stdout and reading it from stdin.
 Here is an example of a lua filter that converts strong emphasis
 to small caps:
 
-``` {.lua}
+``` lua
 return {
   {
     Strong = function (elem)
@@ -48,7 +48,7 @@ return {
 
 or equivalently,
 
-``` {.lua}
+``` lua
 function Strong(elem)
   return pandoc.SmallCaps(elem.c)
 end
@@ -163,10 +163,15 @@ those elements accessible through the filter function parameter.
 
 ## Exposed pandoc functionality
 
-Some filters will require access to certain functions provided
-by pandoc. This is currently limited to the `read` function
-which allows to parse strings into pandoc documents from within
-the lua filter.
+Some pandoc functions have been made available in lua:
+
+- `read` allows filters to parse strings into pandoc documents
+- `pipe` runs an external command with input from and output to
+  strings
+- `sha1` generates a SHA1 hash
+- The `mediabag` module allows access to the "mediabag,"
+  which stores binary content such as images that may be
+  included in the final document.
 
 # Examples
 
@@ -175,7 +180,7 @@ the lua filter.
 The following filter converts the string `{{helloworld}}` into
 emphasized text "Hello, World".
 
-``` {.lua}
+``` lua
 return {
   {
     Str = function (elem)
@@ -195,7 +200,7 @@ This filter causes metadata defined in an external file
 (`metadata-file.yaml`) to be used as default values in a
 document's metadata:
 
-``` {.lua}
+``` lua
 -- read metadata file into string
 local metafile = io.open('metadata-file.yaml', 'r')
 local content = metafile:read("*a")
@@ -222,7 +227,7 @@ return {
 This filter sets the date in the document's metadata to the
 current date:
 
-``` {.lua}
+``` lua
 function Meta(m)
   m.date = os.date("%B %e, %Y")
   return m
@@ -234,7 +239,7 @@ end
 This filter prints a table of all the URLs linked to in the
 document, together with the number of links to that URL.
 
-``` {.lua}
+``` lua
 links = {}
 
 function Link (el)
@@ -275,7 +280,7 @@ Passing information from a higher level (e.g., metadata) to a
 lower level (e.g., inlines) is still possible by using two
 filters living in the same file:
 
-``` {.lua}
+``` lua
 local vars = {}
 
 function get_vars (meta)
@@ -326,6 +331,49 @@ will output:
 <dd><p><span>Professor of Phrenology</span></p>
 </dd>
 </dl>
+```
+
+## Converting ABC code to music notation
+
+This filter replaces code blocks with class `abc` with
+images created by running their contents through `abcm2ps`
+and ImageMagick's `convert`.  (For more on ABC notation, see
+<http://abcnotation.com>.)
+
+Images are added to the mediabag.  For output to binary
+formats, pandoc will use images in the mediabag.  For textual
+formats, use `--extract-media` to specify a directory where
+the files in the mediabag will be written, or (for HTML only)
+use `--self-contained`.
+
+``` lua
+-- Pandoc filter to process code blocks with class "abc" containing
+-- ABC notation into images.
+--
+-- * Assumes that abcm2ps and ImageMagick's convert are in the path.
+-- * For textual output formats, use --extract-media=abc-images
+-- * For HTML formats, you may alternatively use --self-contained
+
+local filetypes = { html = {"png", "image/png"}
+                  , latex = {"pdf", "application/pdf"}
+                  }
+local filetype = filetypes[FORMAT][1] or "png"
+local mimetype = filetypes[FORMAT][2] or "image/png"
+
+local function abc2eps(abc, filetype)
+    local eps = pandoc.pipe("abcm2ps", {"-q", "-O", "-", "-"}, abc)
+    local final = pandoc.pipe("convert", {"-", filetype .. ":-"}, eps)
+    return final
+end
+
+function CodeBlock(block)
+    if block.classes[1] == "abc" then
+        local img = abc2eps(block.text, filetype)
+        local fname = pandoc.sha1(img) .. "." .. filetype
+        pandoc.mediabag.insert(fname, mimetype, img)
+        return pandoc.Para{ pandoc.Image({pandoc.Str("abc tune")}, fname) }
+    end
+end
 ```
 
 # Module pandoc
@@ -1078,16 +1126,15 @@ Lua functions for pandoc scripts.
 [`pipe (command, args, input)`]{#mediabag-sha1}
 
 :   Runs command with arguments, passing it some input,
-    and returns the exit code and the output.
+    and returns the output.
 
     Returns:
 
-    -   Exit code from command.
     -   Output of command.
 
     Usage:
 
-        local ec, output = pandoc.pipe("sed", {"-e","s/a/b/"}, "abc")
+        local output = pandoc.pipe("sed", {"-e","s/a/b/"}, "abc")
 
 
 # Submodule mediabag
