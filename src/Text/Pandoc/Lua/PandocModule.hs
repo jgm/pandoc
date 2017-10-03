@@ -41,6 +41,7 @@ import Data.IORef
 import Data.Maybe (fromMaybe)
 import Data.Text (pack)
 import Foreign.Lua (Lua, FromLuaStack, ToLuaStack, NumResults, liftIO)
+import Foreign.Lua.FunctionCalling (ToHaskellFunction)
 import Text.Pandoc.Class (readDataFile, runIO,
                           runIOorExplode, setUserDataDir, CommonState(..),
                           putCommonState, fetchItem, setMediaBag)
@@ -62,15 +63,9 @@ pushPandocModule datadir = do
   script <- liftIO (pandocModuleScript datadir)
   status <- Lua.loadstring script
   unless (status /= Lua.OK) $ Lua.call 0 1
-  Lua.push "__read"
-  Lua.pushHaskellFunction readDoc
-  Lua.rawset (-3)
-  Lua.push "sha1"
-  Lua.pushHaskellFunction sha1HashFn
-  Lua.rawset (-3)
-  Lua.push "pipe"
-  Lua.pushHaskellFunction pipeFn
-  Lua.rawset (-3)
+  addFunction "_pipe" pipeFn
+  addFunction "_read" readDoc
+  addFunction "sha1" sha1HashFn
 
 -- | Get the string representation of the pandoc module
 pandocModuleScript :: Maybe FilePath -> IO String
@@ -102,11 +97,12 @@ pushMediaBagModule commonState mediaBagRef = do
   addFunction "list" (mediaDirectoryFn mediaBagRef)
   addFunction "fetch" (fetch commonState mediaBagRef)
   return ()
- where
-  addFunction name fn = do
-    Lua.push name
-    Lua.pushHaskellFunction fn
-    Lua.rawset (-3)
+
+addFunction :: ToHaskellFunction a => String -> a -> Lua ()
+addFunction name fn = do
+  Lua.push name
+  Lua.pushHaskellFunction fn
+  Lua.rawset (-3)
 
 sha1HashFn :: BL.ByteString
            -> Lua NumResults
