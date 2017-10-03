@@ -1101,7 +1101,7 @@ rawTeXBlock = do
         <|> (B.rawBlock "latex" . concat <$>
                   rawLaTeXBlock `sepEndBy1` blankline)
 
-  spaces
+  optional blanklines
   return $ return result
 
 rawHtmlBlocks :: PandocMonad m => MarkdownParser m (F Blocks)
