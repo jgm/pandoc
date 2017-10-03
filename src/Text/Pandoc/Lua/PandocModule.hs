@@ -63,7 +63,7 @@ pushPandocModule datadir = do
   script <- liftIO (pandocModuleScript datadir)
   status <- Lua.loadstring script
   unless (status /= Lua.OK) $ Lua.call 0 1
-  addFunction "pipe" pipeFn
+  addFunction "_pipe" pipeFn
   addFunction "_read" readDoc
   addFunction "sha1" sha1HashFn
 

@@ -790,6 +790,29 @@ function M.read(markup, format)
   end
 end
 
+--- Runs command with arguments, passing it some input, and returns the output.
+-- @treturn string Output of command.
+-- @usage
+-- local ec, output = pandoc.pipe("sed", {"-e","s/a/b/"}, "abc")
+function M.pipe (command, args, input)
+  local ec, output = pandoc._pipe(command, args, input)
+  if ec ~= 0 then
+    err = setmetatable(
+      { command = command, error_code = ec, output = output},
+      { __tostring = function(e)
+          return "Error running " .. e.command
+            .. " (error code " .. e.error_code .. "): "
+            .. e.output
+        end
+      }
+    )
+    -- TODO: drop the wrapping call to `tostring` as soon as hslua supports
+    -- non-string error objects.
+    error(tostring(err))
+  end
+  return output
+end
+
 --- Use functions defined in the global namespace to create a pandoc filter.
 -- All globally defined functions which have names of pandoc elements are
 -- collected into a new table.
