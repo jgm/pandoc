@@ -30,7 +30,7 @@ $for(css)$
   <link rel="stylesheet" href="$css$">
 $endfor$
 $else$
-<link href='http://fonts.googleapis.com/css?family=Oswald' rel='stylesheet'>
+<link href='https://fonts.googleapis.com/css?family=Oswald' rel='stylesheet'>
 
 <style>
   html, .view body { background-color: black; counter-reset: slideidx; }
