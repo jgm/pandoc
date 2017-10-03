@@ -782,7 +782,7 @@ M.UpperAlpha = "UpperAlpha"
 -- assert(block.content[1].t == "Emph")
 function M.read(markup, format)
   format = format or "markdown"
-  local pd = pandoc.__read(format, markup)
+  local pd = pandoc._read(format, markup)
   if type(pd) == "string" then
     error(pd)
   else
