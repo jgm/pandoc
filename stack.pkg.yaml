@@ -18,7 +18,7 @@ packages:
   extra-dep: false
 extra-deps:
 - pandoc-types-1.17.2
-- texmath-0.9.4.3
+- texmath-0.9.4.4
 - hslua-0.8.0
 - skylighting-0.4.1
 - cmark-gfm-0.1.1
