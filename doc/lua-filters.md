@@ -132,7 +132,7 @@ function. Two fallback functions are supported, `Inline` and
 
 Elements without matching functions are left untouched.
 
-See [module documentation](pandoc-module.html) for a list of
+See [module documentation](#module-pandoc) for a list of
 pandoc elements.
 
 The global `FORMAT` is set to the format of the pandoc writer
