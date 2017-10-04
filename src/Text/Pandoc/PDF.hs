@@ -37,6 +37,7 @@ import qualified Control.Exception as E
 import Control.Monad (unless, when)
 import Control.Monad.Trans (MonadIO (..))
 import qualified Data.Text as T
+import qualified Data.Text.IO as TextIO
 import Data.Text (Text)
 import qualified Data.ByteString as BS
 import Data.ByteString.Lazy (ByteString)
@@ -78,8 +79,8 @@ changePathSeparators :: FilePath -> FilePath
 changePathSeparators = intercalate "/" . splitDirectories
 #endif
 
-makePDF :: String              -- ^ pdf creator (pdflatex, lualatex,
-                               -- xelatex, context, wkhtmltopdf, pdfroff)
+makePDF :: String              -- ^ pdf creator (pdflatex, lualatex, xelatex,
+                               -- wkhtmltopdf, weasyprint, prince, context, pdfroff)
         -> (WriterOptions -> Pandoc -> PandocIO Text)  -- ^ writer
         -> WriterOptions       -- ^ options
         -> Verbosity           -- ^ verbosity level
@@ -94,7 +95,7 @@ makePDF "wkhtmltopdf" writer opts verbosity _ doc@(Pandoc meta _) = do
                       _ -> []
   meta' <- metaToJSON opts (return . stringify) (return . stringify) meta
   let toArgs (f, mbd) = maybe [] (\d -> ['-':'-':f, d]) mbd
-  let args   = mathArgs ++
+  let args   = writerPdfArgs opts ++ mathArgs ++
                concatMap toArgs
                  [("page-size", getField "papersize" meta')
                  ,("title", getField "title" meta')
@@ -108,11 +109,19 @@ makePDF "wkhtmltopdf" writer opts verbosity _ doc@(Pandoc meta _) = do
                             (getField "margin-left" meta'))
                  ]
   source <- writer opts doc
-  liftIO $ html2pdf verbosity args source
+  liftIO $ html2pdf verbosity "wkhtmltopdf" args source
+makePDF "weasyprint" writer opts verbosity _ doc = do
+  let args = writerPdfArgs opts
+  source <- writer opts doc
+  liftIO $ html2pdf verbosity "weasyprint" args source
+makePDF "prince" writer opts verbosity _ doc = do
+  let args = writerPdfArgs opts
+  source <- writer opts doc
+  liftIO $ html2pdf verbosity "prince" args source
 makePDF "pdfroff" writer opts verbosity _mediabag doc = do
   source <- writer opts doc
   let args   = ["-ms", "-mpdfmark", "-e", "-t", "-k", "-KUTF-8", "-i",
-                "--no-toc-relocation"]
+                "--no-toc-relocation"] ++ writerPdfArgs opts
   liftIO $ ms2pdf verbosity args source
 makePDF program writer opts verbosity mediabag doc = do
   let withTemp = if takeBaseName program == "context"
@@ -124,7 +133,7 @@ makePDF program writer opts verbosity mediabag doc = do
     source <- runIOorExplode $ do
                 setVerbosity verbosity
                 writer opts doc'
-    let args   = writerLaTeXArgs opts
+    let args = writerPdfArgs opts
     case takeBaseName program of
        "context" -> context2pdf verbosity tmpdir source
        prog | prog `elem` ["pdflatex", "lualatex", "xelatex"]
@@ -212,7 +221,7 @@ tex2pdf' verbosity args tmpDir program source = do
                 case logmsg of
                      x | "! Package inputenc Error" `BC.isPrefixOf` x
                            && program /= "xelatex"
-                       -> "\nTry running pandoc with --latex-engine=xelatex."
+                       -> "\nTry running pandoc with --pdf-engine=xelatex."
                      _ -> ""
           return $ Left $ logmsg <> extramsg
        (ExitSuccess, Nothing)  -> return $ Left ""
@@ -347,32 +356,33 @@ ms2pdf verbosity args source = do
              ExitSuccess   -> Right out
 
 html2pdf  :: Verbosity    -- ^ Verbosity level
-          -> [String]     -- ^ Args to wkhtmltopdf
+          -> String       -- ^ Program (wkhtmltopdf, weasyprint or prince)
+          -> [String]     -- ^ Args to program
           -> Text         -- ^ HTML5 source
           -> IO (Either ByteString ByteString)
-html2pdf verbosity args source = do
-  file <- withTempFile "." "html2pdf.html" $ \fp _ -> return fp
+html2pdf verbosity program args source = do
   pdfFile <- withTempFile "." "html2pdf.pdf" $ \fp _ -> return fp
-  BS.writeFile file $ UTF8.fromText source
-  let programArgs = args ++ [file, pdfFile]
+  let pdfFileArgName = if program == "prince"
+                       then ["-o"]
+                       else []
+  let programArgs = args ++ ["-"] ++ pdfFileArgName ++ [pdfFile]
   env' <- getEnvironment
   when (verbosity >= INFO) $ do
     putStrLn "[makePDF] Command line:"
-    putStrLn $ "wkhtmltopdf" ++ " " ++ unwords (map show programArgs)
+    putStrLn $ program ++ " " ++ unwords (map show programArgs)
     putStr "\n"
     putStrLn "[makePDF] Environment:"
     mapM_ print env'
     putStr "\n"
-    putStrLn $ "[makePDF] Contents of " ++ file ++ ":"
-    BL.readFile file >>= BL.putStr
+    putStrLn $ "[makePDF] Contents of intermediate HTML:"
+    TextIO.putStr source
     putStr "\n"
   (exit, out) <- E.catch
-    (pipeProcess (Just env') "wkhtmltopdf" programArgs BL.empty)
+    (pipeProcess (Just env') program programArgs $ BL.fromStrict $ UTF8.fromText source)
     (\(e :: IOError) -> if isDoesNotExistError e
                            then E.throwIO $
-                                  PandocPDFProgramNotFoundError "wkhtml2pdf"
+                                  PandocPDFProgramNotFoundError program
                            else E.throwIO e)
-  removeFile file
   when (verbosity >= INFO) $ do
     BL.hPutStr stdout out
     putStr "\n"

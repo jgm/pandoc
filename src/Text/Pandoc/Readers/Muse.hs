@@ -30,7 +30,6 @@ Conversion of Muse text to 'Pandoc' document.
 -}
 {-
 TODO:
-- {{{ }}} syntax for <example>
 - Page breaks (five "*")
 - Headings with anchors (make it round trip with Muse writer)
 - Org tables
@@ -39,13 +38,13 @@ TODO:
 - Anchors
 - Citations and <biblio>
 - <play> environment
-- <verbatim> tag
 -}
 module Text.Pandoc.Readers.Muse (readMuse) where
 
 import Control.Monad
 import Control.Monad.Except (throwError)
 import qualified Data.Map as M
+import Data.Char (isLetter)
 import Data.Text (Text, unpack)
 import Data.List (stripPrefix)
 import Data.Maybe (fromMaybe)
@@ -178,6 +177,7 @@ blockElements :: PandocMonad m => MuseParser m (F Blocks)
 blockElements = choice [ comment
                        , separator
                        , header
+                       , example
                        , exampleTag
                        , literal
                        , centerTag
@@ -222,8 +222,24 @@ header = try $ do
   attr <- registerHeader ("", [], []) (runF content defaultParserState)
   return $ B.headerWith attr level <$> content
 
+example :: PandocMonad m => MuseParser m (F Blocks)
+example = try $ do
+  string "{{{"
+  optionMaybe blankline
+  contents <- manyTill anyChar $ try (optionMaybe blankline >> string "}}}")
+  return $ return $ B.codeBlock contents
+
 exampleTag :: PandocMonad m => MuseParser m (F Blocks)
-exampleTag = liftM (return . uncurry B.codeBlockWith) $ htmlElement "example"
+exampleTag = do
+  (attr, contents) <- htmlElement "example"
+  return $ return $ B.codeBlockWith attr $ chop contents
+  where lchop s = case s of
+                    '\n':ss -> ss
+                    _ -> s
+        rchop = reverse . lchop . reverse
+        -- Trim up to one newline from the beginning and the end,
+        -- in case opening and/or closing tags are on separate lines.
+        chop = lchop . rchop
 
 literal :: PandocMonad m => MuseParser m (F Blocks)
 literal = liftM (return . rawBlock) $ htmlElement "literal"
@@ -528,6 +544,7 @@ inline = choice [ br
                 , superscriptTag
                 , subscriptTag
                 , strikeoutTag
+                , verbatimTag
                 , link
                 , code
                 , codeTag
@@ -573,14 +590,7 @@ enclosedInlines :: (PandocMonad m, Show a, Show b)
                 -> MuseParser m b
                 -> MuseParser m (F Inlines)
 enclosedInlines start end = try $
-  trimInlinesF . mconcat <$> enclosed start end inline
-
-verbatimBetween :: PandocMonad m
-                => Char
-                -> MuseParser m String
-verbatimBetween c = try $ do
-  char c
-  many1Till anyChar $ char c
+  trimInlinesF . mconcat <$> (enclosed start end inline <* notFollowedBy (satisfy isLetter))
 
 inlineTag :: PandocMonad m
           => (Inlines -> Inlines)
@@ -611,15 +621,24 @@ subscriptTag = inlineTag B.subscript "sub"
 strikeoutTag :: PandocMonad m => MuseParser m (F Inlines)
 strikeoutTag = inlineTag B.strikeout "del"
 
+verbatimTag :: PandocMonad m => MuseParser m (F Inlines)
+verbatimTag = do
+  content <- parseHtmlContent "verbatim" anyChar
+  return $ return $ B.text $ fromEntities content
+
 code :: PandocMonad m => MuseParser m (F Inlines)
 code = try $ do
   pos <- getPosition
   sp <- if sourceColumn pos == 1
           then pure mempty
           else skipMany1 spaceChar >> pure B.space
-  cd <- verbatimBetween '='
-  notFollowedBy nonspaceChar
-  return $ return (sp B.<> B.code cd)
+  char '='
+  contents <- many1Till (noneOf "\n\r" <|> (newline <* notFollowedBy newline)) $ char '='
+  guard $ not $ null contents
+  guard $ head contents `notElem` " \t\n"
+  guard $ last contents `notElem` " \t\n"
+  notFollowedBy $ satisfy isLetter
+  return $ return (sp B.<> B.code contents)
 
 codeTag :: PandocMonad m => MuseParser m (F Inlines)
 codeTag = do

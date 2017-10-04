@@ -29,8 +29,8 @@ _pandoc()
              COMPREPLY=( $(compgen -W "references javascript none" -- ${cur}) )
              return 0
              ;;
-         --latex-engine)
-             COMPREPLY=( $(compgen -W "pdflatex lualatex xelatex" -- ${cur}) )
+         --pdf-engine)
+             COMPREPLY=( $(compgen -W "pdflatex lualatex xelatex wkhtmltopdf weasyprint prince context pdfroff" -- ${cur}) )
              return 0
              ;;
          --print-default-data-file)

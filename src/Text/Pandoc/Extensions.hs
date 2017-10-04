@@ -51,9 +51,15 @@ import Data.Typeable (Typeable)
 import GHC.Generics (Generic)
 import Text.Pandoc.Shared (safeRead)
 import Text.Parsec
+import Data.Aeson (ToJSON(..), FromJSON(..),
+                   genericToEncoding, defaultOptions)
 
 newtype Extensions = Extensions Integer
   deriving (Show, Read, Eq, Ord, Data, Typeable, Generic)
+
+instance ToJSON Extensions where
+  toEncoding = genericToEncoding defaultOptions
+instance FromJSON Extensions
 
 instance Monoid Extensions where
   mempty = Extensions 0
@@ -147,6 +153,10 @@ data Extension =
     | Ext_old_dashes          -- ^ -- = em, - before number = en
     | Ext_spaced_reference_links -- ^ Allow space between two parts of ref link
     deriving (Show, Read, Enum, Eq, Ord, Bounded, Data, Typeable, Generic)
+
+instance ToJSON Extension where
+  toEncoding = genericToEncoding defaultOptions
+instance FromJSON Extension
 
 -- | Extensions to be used with pandoc-flavored markdown.
 pandocExtensions :: Extensions

@@ -14,11 +14,12 @@ packages:
 - '.'
 - location:
     git: https://github.com/jgm/pandoc-citeproc.git
-    commit: 5a7f26b61c8577916093851cdeb31fa9a198edcb
+    commit: d13bd7ca04fc9549b64e43b3d466b70da8398ef1
   extra-dep: false
 extra-deps:
+- texmath-0.9.4.2
 - hslua-0.8.0
-- skylighting-0.3.3
+- skylighting-0.4
 - cmark-gfm-0.1.1
 - QuickCheck-2.10.0.1
 - tasty-quickcheck-0.9.1

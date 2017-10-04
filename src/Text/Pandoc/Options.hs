@@ -65,8 +65,13 @@ data ReaderOptions = ReaderOptions{
                                        -- indented code blocks
        , readerAbbreviations         :: Set.Set String -- ^ Strings to treat as abbreviations
        , readerDefaultImageExtension :: String -- ^ Default extension for images
-       , readerTrackChanges          :: TrackChanges
+       , readerTrackChanges          :: TrackChanges -- ^ Track changes setting for docx
+       , readerStripComments         :: Bool -- ^ Strip HTML comments instead of parsing as raw HTML
 } deriving (Show, Read, Data, Typeable, Generic)
+
+instance ToJSON ReaderOptions where
+  toEncoding = genericToEncoding defaultOptions
+instance FromJSON ReaderOptions
 
 instance Default ReaderOptions
   where def = ReaderOptions{
@@ -78,6 +83,7 @@ instance Default ReaderOptions
                , readerAbbreviations         = defaultAbbrevs
                , readerDefaultImageExtension = ""
                , readerTrackChanges          = AcceptChanges
+               , readerStripComments         = False
                }
 
 defaultAbbrevs :: Set.Set String
@@ -216,7 +222,7 @@ data WriterOptions = WriterOptions
   , writerEpubChapterLevel  :: Int            -- ^ Header level for chapters (separate files)
   , writerTOCDepth          :: Int            -- ^ Number of levels to include in TOC
   , writerReferenceDoc      :: Maybe FilePath -- ^ Path to reference document if specified
-  , writerLaTeXArgs         :: [String]       -- ^ Flags to pass to latex-engine
+  , writerPdfArgs           :: [String]       -- ^ Flags to pass to pdf-engine
   , writerReferenceLocation :: ReferenceLocation    -- ^ Location of footnotes and references for writing markdown
   , writerSyntaxMap         :: SyntaxMap
   } deriving (Show, Data, Typeable, Generic)
@@ -252,7 +258,7 @@ instance Default WriterOptions where
                       , writerEpubChapterLevel = 1
                       , writerTOCDepth         = 3
                       , writerReferenceDoc     = Nothing
-                      , writerLaTeXArgs        = []
+                      , writerPdfArgs          = []
                       , writerReferenceLocation = EndOfDocument
                       , writerSyntaxMap        = defaultSyntaxMap
                       }

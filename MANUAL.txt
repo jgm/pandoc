@@ -186,12 +186,12 @@ Creating a PDF
 --------------
 
 To produce a PDF, specify an output file with a `.pdf` extension.
-By default, pandoc will use LaTeX to convert it to PDF:
+By default, pandoc will use LaTeX to create the PDF:
 
     pandoc test.txt -o test.pdf
 
 Production of a PDF requires that a LaTeX engine be installed (see
-`--latex-engine`, below), and assumes that the following LaTeX packages
+`--pdf-engine`, below), and assumes that the following LaTeX packages
 are available: [`amsfonts`], [`amsmath`], [`lm`], [`unicode-math`],
 [`ifxetex`], [`ifluatex`], [`listings`] (if the
 `--listings` option is used), [`fancyvrb`], [`longtable`],
@@ -210,16 +210,19 @@ if added to the template or included in any header file. The
 optionally be used for [citation rendering]. These are included
 with all recent versions of [TeX Live].
 
-Alternatively, pandoc can use ConTeXt, `wkhtmltopdf`, or
-`pdfroff` to create a PDF.  To do this, specify an output file
-with a `.pdf` extension, as before, but add `-t context`, `-t
-html5`, or `-t ms` to the command line.
+Alternatively, pandoc can use [ConTeXt], `pdfroff`, or any of the
+following HTML/CSS-to-PDF-engines, to create a PDF: [`wkhtmltopdf`],
+[`weasyprint`] or [`prince`].
+To do this, specify an output file with a `.pdf` extension, as before,
+but add the `--pdf-engine` option or `-t context`, `-t html`, or `-t ms`
+to the command line (`-t html` defaults to `--pdf-engine=wkhtmltopdf`).
 
 PDF output can be controlled using [variables for LaTeX] (if
 LaTeX is used) and [variables for ConTeXt] (if ConTeXt is used).
+When using an HTML/CSS-to-PDF-engine, `--css` affects the output.
 If `wkhtmltopdf` is used, then the variables `margin-left`,
 `margin-right`, `margin-top`, `margin-bottom`, and `papersize`
-will affect the output, as will `--css`.
+will affect the output.
 
 [`amsfonts`]: https://ctan.org/pkg/amsfonts
 [`amsmath`]: https://ctan.org/pkg/amsmath
@@ -251,6 +254,9 @@ will affect the output, as will `--css`.
 [`bibtex`]: https://ctan.org/pkg/bibtex
 [`biber`]: https://ctan.org/pkg/biber
 [TeX Live]: http://www.tug.org/texlive/
+[`wkhtmltopdf`]: https://wkhtmltopdf.org
+[`weasyprint`]: http://weasyprint.org
+[`prince`]: https://www.princexml.com/
 
 Options
 =======
@@ -649,6 +655,14 @@ General writer options
     of contents.  The default is 3 (which means that level 1, 2, and 3
     headers will be listed in the contents).
 
+`--strip-comments`
+
+:   Strip out HTML comments in the Markdown or Textile source,
+    rather than passing them on to Markdown, Textile or HTML
+    output as raw HTML.  This does not apply to HTML comments
+    inside raw HTML blocks when the `markdown_in_html_blocks`
+    extension is not set.
+
 `--no-highlight`
 
 :   Disables syntax highlighting for code blocks and inlines, even when
@@ -990,15 +1004,15 @@ Options affecting specific writers
     the EPUB-specific contents.  The default is `EPUB`.  To put
     the EPUB contents in the top level, use an empty string.
 
-`--latex-engine=pdflatex`|`lualatex`|`xelatex`
+`--pdf-engine=pdflatex`|`lualatex`|`xelatex`|`wkhtmltopdf`|`weasyprint`|`prince`|`context`|`pdfroff`
 
-:   Use the specified LaTeX engine when producing PDF output.
+:   Use the specified engine when producing PDF output.
     The default is `pdflatex`.  If the engine is not in your PATH,
     the full path of the engine may be specified here.
 
-`--latex-engine-opt=`*STRING*
+`--pdf-engine-opt=`*STRING*
 
-:   Use the given string as a command-line argument to the `latex-engine`.
+:   Use the given string as a command-line argument to the `pdf-engine`.
     If used multiple times, the arguments are provided with spaces between
     them. Note that no check for duplicate options is done.
 
@@ -1300,7 +1314,7 @@ Language variables
     [Unicode Bidirectional Algorithm].
 
     When using LaTeX for bidirectional documents, only the `xelatex` engine
-    is fully supported (use `--latex-engine=xelatex`).
+    is fully supported (use `--pdf-engine=xelatex`).
 
 [BCP 47]: https://tools.ietf.org/html/bcp47
 [Unicode Bidirectional Algorithm]: http://www.w3.org/International/articles/inline-bidi-markup/uba-basics

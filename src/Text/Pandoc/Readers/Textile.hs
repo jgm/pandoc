@@ -178,7 +178,6 @@ codeBlockPre :: PandocMonad m => ParserT [Char] ParserState m Blocks
 codeBlockPre = try $ do
   (t@(TagOpen _ attrs),_) <- htmlTag (tagOpen (=="pre") (const True))
   result' <- manyTill anyChar (htmlTag (tagClose (=="pre")))
-  optional blanklines
   -- drop leading newline if any
   let result'' = case result' of
                       '\n':xs -> xs
@@ -262,10 +261,11 @@ orderedListItemAtDepth = genericListItemAtDepth '#'
 genericListItemAtDepth :: PandocMonad m => Char -> Int -> ParserT [Char] ParserState m Blocks
 genericListItemAtDepth c depth = try $ do
   count depth (char c) >> attributes >> whitespace
-  p <- mconcat <$> many listInline
+  contents <- mconcat <$> many ((B.plain . mconcat <$> many1 inline) <|>
+                                try (newline >> codeBlockPre))
   newline
   sublist <- option mempty (anyListAtDepth (depth + 1))
-  return $ (B.plain p) <> sublist
+  return $ contents <> sublist
 
 -- | A definition list is a set of consecutive definition items
 definitionList :: PandocMonad m => ParserT [Char] ParserState m Blocks
@@ -295,10 +295,6 @@ definitionListStart = try $ do
     <|> try (lookAhead (() <$ string ":="))
      )
 
-listInline :: PandocMonad m => ParserT [Char] ParserState m Inlines
-listInline = try (notFollowedBy newline >> inline)
-         <|> try (endline <* notFollowedBy listStart)
-
 -- | A definition list item in textile begins with '- ', followed by
 -- the term defined, then spaces and ":=". The definition follows, on
 -- the same single line, or spaned on multiple line, after a line
@@ -310,7 +306,7 @@ definitionListItem = try $ do
   return (term, def')
   where inlineDef :: PandocMonad m => ParserT [Char] ParserState m [Blocks]
         inlineDef = liftM (\d -> [B.plain d])
-                    $ optional whitespace >> (trimInlines . mconcat <$> many listInline) <* newline
+                    $ optional whitespace >> (trimInlines . mconcat <$> many inline) <* newline
         multilineDef :: PandocMonad m => ParserT [Char] ParserState m [Blocks]
         multilineDef = try $ do
           optional whitespace >> newline
