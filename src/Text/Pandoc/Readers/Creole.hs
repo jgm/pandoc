@@ -83,6 +83,7 @@ block :: PandocMonad m => CRLParser m B.Blocks
 block = do
   res <- mempty <$ skipMany1 blankline
          <|> header
+         <|> unorderedList 1
          <|> para
   skipMany blankline
   return res
@@ -98,6 +99,16 @@ header = try $ do
   where
     headerEnd = try $ skipSpaces >> many (char '=') >> skipSpaces >> newline
 
+unorderedList :: PandocMonad m => Int -> CRLParser m B.Blocks
+unorderedList n = many1 (unorderedListItem n) >>= return . B.bulletList
+
+unorderedListItem :: PandocMonad m => Int -> CRLParser m B.Blocks
+unorderedListItem n = listStart >> many1Till inline endOfParaElement
+                      >>= return . B.plain . B.trimInlines .mconcat
+  where
+    listStart = try $ optional newline >> skipSpaces >> count n (char '*')
+                >> (lookAhead $ noneOf "*") >> skipSpaces
+
 para :: PandocMonad m => CRLParser m B.Blocks
 para = many1Till inline endOfParaElement >>= return . result . mconcat
  where
@@ -107,9 +118,12 @@ para = many1Till inline endOfParaElement >>= return . result . mconcat
 
 endOfParaElement :: PandocMonad m => CRLParser m ()
 endOfParaElement = lookAhead $ endOfInput <|> endOfPara
+                   <|> startOfList <|> startOfHeader
   where
    endOfInput       = try $ skipMany blankline >> skipSpaces >> eof
    endOfPara        = try $ blankline >> skipMany1 blankline
+   startOfList      = try $ blankline >> unorderedListItem 1 >> return mempty
+   startOfHeader  = try $ blankline >> header >> return mempty
 
 --
 -- inline parsers
