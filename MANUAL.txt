@@ -1116,7 +1116,7 @@ Math rendering in HTML
 `--katex`[`=`*URL*]
 
 :   Use [KaTeX] to display embedded TeX math in HTML output.
-    The *URL* should point to the `katex.js` load script. If a *URL* is
+    The *URL* is the base URL for the KaTeX library. If a *URL* is
     not provided, a link to the KaTeX CDN will be inserted.
     Note: [KaTeX] seems to work best with `html5` output.
 

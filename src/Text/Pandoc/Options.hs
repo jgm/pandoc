@@ -107,7 +107,7 @@ data HTMLMathMethod = PlainMath
                     | WebTeX String               -- url of TeX->image script.
                     | MathML
                     | MathJax String              -- url of MathJax.js
-                    | KaTeX String String -- url of stylesheet and katex.js
+                    | KaTeX String                -- url of KaTeX files
                     deriving (Show, Read, Eq, Data, Typeable, Generic)
 
 instance ToJSON HTMLMathMethod where

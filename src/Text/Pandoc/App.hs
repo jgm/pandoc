@@ -183,13 +183,6 @@ convertWithOpts opts = do
                          Nothing -> return Nothing
                          Just fp -> Just <$> UTF8.readFile fp
 
-  let mathMethod =
-        case (optKaTeXJS opts, optKaTeXStylesheet opts) of
-            (Nothing, _)  -> optHTMLMathMethod opts
-            (Just js, ss) -> KaTeX js (fromMaybe
-                               (defaultKaTeXURL ++ "katex.min.css") ss)
-
-
   -- --bibliography implies -F pandoc-citeproc for backwards compatibility:
   let needsCiteproc = isJust (lookup "bibliography" (optMetadata opts)) &&
                       optCiteMethod opts `notElem` [Natbib, Biblatex] &&
@@ -368,7 +361,7 @@ convertWithOpts opts = do
         maybe return (addStringAsVariable "epub-cover-image")
                      (optEpubCoverImage opts)
         >>=
-        (\vars -> case mathMethod of
+        (\vars -> case optHTMLMathMethod opts of
                        LaTeXMathML Nothing -> do
                           s <- UTF8.toString <$> readDataFile "LaTeXMathML.js"
                           return $ ("mathml-script", s) : vars
@@ -428,7 +421,7 @@ convertWithOpts opts = do
           , writerVariables        = variables
           , writerTabStop          = optTabStop opts
           , writerTableOfContents  = optTableOfContents opts
-          , writerHTMLMathMethod   = mathMethod
+          , writerHTMLMathMethod   = optHTMLMathMethod opts
           , writerIncremental      = optIncremental opts
           , writerCiteMethod       = optCiteMethod opts
           , writerNumberSections   = optNumberSections opts
@@ -642,8 +635,6 @@ data Opt = Opt
     , optExtractMedia          :: Maybe FilePath -- ^ Path to extract embedded media
     , optTrackChanges          :: TrackChanges -- ^ Accept or reject MS Word track-changes.
     , optFileScope             :: Bool         -- ^ Parse input files before combining
-    , optKaTeXStylesheet       :: Maybe String     -- ^ Path to stylesheet for KaTeX
-    , optKaTeXJS               :: Maybe String     -- ^ Path to js file for KaTeX
     , optTitlePrefix           :: Maybe String     -- ^ Prefix for title
     , optCss                   :: [FilePath]       -- ^ CSS files to link to
     , optIncludeBeforeBody     :: [FilePath]       -- ^ Files to include before
@@ -719,8 +710,6 @@ defaultOpts = Opt
     , optExtractMedia          = Nothing
     , optTrackChanges          = AcceptChanges
     , optFileScope             = False
-    , optKaTeXStylesheet       = Nothing
-    , optKaTeXJS               = Nothing
     , optTitlePrefix           = Nothing
     , optCss                   = []
     , optIncludeBeforeBody     = []
@@ -1455,17 +1444,10 @@ options =
                  (OptArg
                   (\arg opt ->
                       return opt
-                        { optKaTeXJS =
-                           arg <|> Just (defaultKaTeXURL ++ "katex.min.js")})
+                        { optHTMLMathMethod = KaTeX $
+                           fromMaybe defaultKaTeXURL arg })
                   "URL")
                   "" -- Use KaTeX for HTML Math
-
-    , Option "" ["katex-stylesheet"]
-                 (ReqArg
-                  (\arg opt ->
-                      return opt { optKaTeXStylesheet = Just arg })
-                 "URL")
-                 "" -- Set the KaTeX Stylesheet location
 
     , Option "" ["gladtex"]
                  (NoArg
