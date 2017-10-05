@@ -196,9 +196,8 @@ runFilterFunction lf x = do
   push x
   z <- Lua.pcall 1 1 Nothing
   when (z /= OK) $ do
-    msg <- Lua.peek (-1) <* Lua.pop 1
-    let prefix = "Error while running filter function: "
-    Lua.throwLuaError $ prefix ++ msg
+    let addPrefix = ("Error while running filter function: " ++)
+    Lua.throwTopMessageAsError' addPrefix
 
 elementOrList :: FromLuaStack a => a -> Lua [a]
 elementOrList x = do

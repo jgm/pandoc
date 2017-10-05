@@ -1132,6 +1132,12 @@ Lua functions for pandoc scripts.
 
     -   Output of command.
 
+    Raises:
+
+    -   A table containing the keys `command`, `error_code`, and
+        `output` is thrown if the command exits with a non-zero
+        error code.
+
     Usage:
 
         local output = pandoc.pipe("sed", {"-e","s/a/b/"}, "abc")

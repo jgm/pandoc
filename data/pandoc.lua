@@ -792,6 +792,8 @@ end
 
 --- Runs command with arguments, passing it some input, and returns the output.
 -- @treturn string Output of command.
+-- @raise A table containing the keys `command`, `error_code`, and `output` is
+-- thrown if the command exits with a non-zero error code.
 -- @usage
 -- local ec, output = pandoc.pipe("sed", {"-e","s/a/b/"}, "abc")
 function M.pipe (command, args, input)
@@ -806,9 +808,7 @@ function M.pipe (command, args, input)
         end
       }
     )
-    -- TODO: drop the wrapping call to `tostring` as soon as hslua supports
-    -- non-string error objects.
-    error(tostring(err))
+    error(err)
   end
   return output
 end
