@@ -16,9 +16,6 @@ along with this program; if not, write to the Free Software
 Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 -}
 {-# LANGUAGE CPP #-}
-#if !MIN_VERSION_hslua(0,9,0)
-{-# OPTIONS_GHC -fno-warn-orphans #-}
-#endif
 {- |
    Module      : Text.Pandoc.Lua.PandocModule
    Copyright   : Copyright © 2017 Albert Krewinkel
@@ -40,7 +37,7 @@ import Data.Default (Default (..))
 import Data.IORef
 import Data.Maybe (fromMaybe)
 import Data.Text (pack)
-import Foreign.Lua (Lua, FromLuaStack, ToLuaStack, NumResults, liftIO)
+import Foreign.Lua (Lua, FromLuaStack, NumResults, liftIO)
 import Foreign.Lua.FunctionCalling (ToHaskellFunction)
 import Text.Pandoc.Class (readDataFile, runIO,
                           runIOorExplode, setUserDataDir, CommonState(..),
@@ -186,11 +183,3 @@ instance FromLuaStack a => FromLuaStack (OrNil a) where
     if noValue
       then return (OrNil Nothing)
       else OrNil . Just <$> Lua.peek idx
-
-#if !MIN_VERSION_hslua(0,9,0)
-instance ToLuaStack BL.ByteString where
-  push = Lua.push . BL.toStrict
-
-instance FromLuaStack BL.ByteString where
-  peek = fmap BL.fromStrict . Lua.peek
-#endif
