@@ -18,6 +18,10 @@ infix 4 =:
      => String -> (Text, c) -> TestTree
 (=:) = test latex
 
+rawLatex :: Text -> Pandoc
+rawLatex = purely $ readLaTeX def{
+                      readerExtensions = enableExtension Ext_raw_tex $ getDefaultExtensions "latex" }
+
 simpleTable' :: [Alignment] -> [[Blocks]] -> Blocks
 simpleTable' aligns = table "" (zip aligns (repeat 0.0))
                       (map (const mempty) aligns)
@@ -30,6 +34,22 @@ tests = [ testGroup "basic"
             "some text" =?> para "some text"
           , "emphasized" =:
             "\\emph{emphasized}" =?> para (emph "emphasized")
+          ]
+
+        , testGroup "raw tex passthrough"
+          [ test rawLatex "unknown command" $
+            "foo \\SomeUnknownCommand{what?} bar" =?>
+            para ("foo" <> space <> rawInline "latex" "\\SomeUnknownCommand{what?}" <> space <> "bar")
+          , test rawLatex "unknown command, no arg, then space" $
+            -- Note space in the rawInline. See #1773, as well.
+            "\\SomeUnknownCommand hello" =?>
+            para (rawInline "latex" "\\SomeUnknownCommand " <> "hello")
+          , test rawLatex "noindent is ignored" $
+            "\\noindent{}hello" =?> para "hello"
+          , test rawLatex "noindent is ignored when followed by command" $
+            "\\noindent\\emph{hello!}" =?> para (emph "hello!")
+          , test rawLatex "noindent is ignored when followed by space" $
+            "\\noindent hello" =?> para "hello"
           ]
 
         , testGroup "headers"
