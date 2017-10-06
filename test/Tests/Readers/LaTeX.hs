@@ -166,6 +166,26 @@ tests = [ testGroup "basic"
             "\\Rn {13}ok" =?>
             para (str "xiiiok")
           ]
+        , testGroup "polyglossia language spans"
+          [ "french" =:
+            "hello \\textfrench{bonjour}" =?>
+            para (str "hello" <> space <> spanWith ("", [], [("lang", "fr")]) (str "bonjour"))
+          , "nested" =:
+            "\\textfrench{quelle c'est \\textlatin{primus}?}" =?>
+            para (spanWith ("", [], [("lang", "fr")]) $
+                    str "quelle" <> space <> str "c\8217est" <> space <>
+                    spanWith ("", [], [("lang", "la")]) (str "primus") <> str "?")
+          , "with formatting" =:
+            "\\textgerman{wie \\emph{spaet} ist es?}" =?>
+            para (spanWith ("", [], [("lang", "de")]) $
+                    str "wie" <> space <> emph (str "spaet") <> space <> str "ist" <> space <> str "es?")
+          , "language options" =:
+            "\\textgerman[variant=swiss]{hoechdeutsche}" =?>
+            para (spanWith ("", [], [("lang", "de-CH")]) $ str "hoechdeutsche")
+          , "unknown option fallback" =:
+            "\\textgerman[variant=moon]{ueberhoechdeutsche}" =?>
+            para (spanWith ("", [], [("lang", "de")]) $ str "ueberhoechdeutsche")
+          ]
         ]
 
 baseCitation :: Citation
