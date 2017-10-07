@@ -38,7 +38,6 @@ module Text.Pandoc.App (
           , parseOptions
           , options
           ) where
-import Control.Applicative ((<|>))
 import qualified Control.Exception as E
 import Control.Monad
 import Control.Monad.Except (throwError, catchError)
