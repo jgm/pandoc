@@ -84,7 +84,7 @@ block :: PandocMonad m => CRLParser m B.Blocks
 block = do
   res <- mempty <$ skipMany1 blankline
          <|> header
-         <|> unorderedList 1
+         <|> anyList 1
          <|> para
   skipMany blankline
   return res
@@ -101,18 +101,30 @@ header = try $ do
     headerEnd = try $ skipSpaces >> many (char '=') >> skipSpaces >> newline
 
 unorderedList :: PandocMonad m => Int -> CRLParser m B.Blocks
-unorderedList n = many1 (itemPlusSublist <|> unorderedListItem n)
-                  >>= return . B.bulletList
-  where itemPlusSublist = try $ liftM2 (<>) (unorderedListItem n) (unorderedList (n+1))
+unorderedList = list '*' B.bulletList
 
-unorderedListItem :: PandocMonad m => Int -> CRLParser m B.Blocks
-unorderedListItem n = (listStart >> many1Till inline itemEnd)
-                      >>= return . B.plain . B.trimInlines .mconcat
+orderedList :: PandocMonad m => Int -> CRLParser m B.Blocks
+orderedList = list '#' B.orderedList
+
+anyList :: PandocMonad m => Int -> CRLParser m B.Blocks
+anyList n = unorderedList n <|> orderedList n
+
+anyListItem :: PandocMonad m => Int -> CRLParser m B.Blocks
+anyListItem n = listItem '*' n <|> listItem '#' n
+
+list :: PandocMonad m => Char -> ([B.Blocks] -> B.Blocks) -> Int -> CRLParser m B.Blocks
+list c f n = many1 (itemPlusSublist <|> listItem c n)
+             >>= return . f
+  where itemPlusSublist = try $ liftM2 (<>) (listItem c n) (anyList (n+1))
+
+listItem :: PandocMonad m => Char -> Int -> CRLParser m B.Blocks
+listItem c n = (listStart >> many1Till inline itemEnd)
+               >>= return . B.plain . B.trimInlines .mconcat
   where
-    listStart = try $ optional newline >> skipSpaces >> count n (char '*')
-                >> (lookAhead $ noneOf "*") >> skipSpaces
+    listStart = try $ optional newline >> skipSpaces >> count n (char c)
+                >> (lookAhead $ noneOf [c]) >> skipSpaces
     itemEnd = endOfParaElement <|> nextItem n <|> nextItem (n+1)
-    nextItem x = lookAhead $ try $ blankline >> unorderedListItem x >> return mempty
+    nextItem x = lookAhead $ try $ blankline >> anyListItem x >> return mempty
 
 para :: PandocMonad m => CRLParser m B.Blocks
 para = many1Till inline endOfParaElement >>= return . result . mconcat
@@ -127,7 +139,7 @@ endOfParaElement = lookAhead $ endOfInput <|> endOfPara
   where
    endOfInput       = try $ skipMany blankline >> skipSpaces >> eof
    endOfPara        = try $ blankline >> skipMany1 blankline
-   startOfList      = try $ blankline >> unorderedListItem 1 >> return mempty
+   startOfList      = try $ blankline >> anyList 1 >> return mempty
    startOfHeader    = try $ blankline >> header >> return mempty
 
 --
