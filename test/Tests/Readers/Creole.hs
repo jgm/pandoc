@@ -69,4 +69,18 @@ tests = [ "bold, single line, fully delimited" =:
         , "paragraphs: multiple, one line" =:
           "first line\n\nanother line\n"
           =?> para "first line" <> para "another line"
+        , "unordered list, two entries, one separating space" =:
+          "* foo\n* bar"
+          =?> bulletList [ plain "foo", plain "bar" ]
+        , "unordered list, three entries, one separating space" =:
+          "* foo\n* bar\n* baz"
+          =?> bulletList [ plain "foo", plain "bar", plain "baz" ]
+        , "para followed by, unordered list, two entries, one separating space" =:
+          "blubber\n* foo\n* bar"
+          =?> para "blubber" <> bulletList [ plain "foo", plain "bar" ]
+        , "nested unordered list, one separating space" =:
+          "* foo\n** bar\n** baz\n* blubb"
+          =?> bulletList [ plain "foo"
+                         <> bulletList [ plain "bar", plain "baz" ]
+                         , plain "blubb" ]
         ]
