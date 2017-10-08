@@ -34,7 +34,7 @@ Conversion of creole text to 'Pandoc' document.
 module Text.Pandoc.Readers.Creole ( readCreole
                                   ) where
 
-import Control.Monad.Except (throwError, guard)
+import Control.Monad.Except (liftM2, throwError, guard)
 import qualified Data.Foldable as F
 import qualified Text.Pandoc.Builder as B
 import Text.Pandoc.Class (PandocMonad(..))
@@ -42,6 +42,7 @@ import Text.Pandoc.Definition
 import Text.Pandoc.Options
 import Text.Pandoc.Parsing
 import Text.Pandoc.Shared (crFilter)
+import Data.Monoid
 import Data.Text (Text)
 import qualified Data.Text as T
 
@@ -100,9 +101,9 @@ header = try $ do
     headerEnd = try $ skipSpaces >> many (char '=') >> skipSpaces >> newline
 
 unorderedList :: PandocMonad m => Int -> CRLParser m B.Blocks
-unorderedList n = (:) <$> unorderedListItem n
-                  <*> (many $ unorderedListItem n <|> unorderedList (n+1))
+unorderedList n = many1 (itemPlusSublist <|> unorderedListItem n)
                   >>= return . B.bulletList
+  where itemPlusSublist = try $ liftM2 (<>) (unorderedListItem n) (unorderedList (n+1))
 
 unorderedListItem :: PandocMonad m => Int -> CRLParser m B.Blocks
 unorderedListItem n = (listStart >> many1Till inline itemEnd)
