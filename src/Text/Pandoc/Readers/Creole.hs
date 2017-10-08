@@ -100,14 +100,18 @@ header = try $ do
     headerEnd = try $ skipSpaces >> many (char '=') >> skipSpaces >> newline
 
 unorderedList :: PandocMonad m => Int -> CRLParser m B.Blocks
-unorderedList n = many1 (unorderedListItem n) >>= return . B.bulletList
+unorderedList n = (:) <$> unorderedListItem n
+                  <*> (many $ unorderedListItem n <|> unorderedList (n+1))
+                  >>= return . B.bulletList
 
 unorderedListItem :: PandocMonad m => Int -> CRLParser m B.Blocks
-unorderedListItem n = listStart >> many1Till inline endOfParaElement
+unorderedListItem n = (listStart >> many1Till inline itemEnd)
                       >>= return . B.plain . B.trimInlines .mconcat
   where
     listStart = try $ optional newline >> skipSpaces >> count n (char '*')
                 >> (lookAhead $ noneOf "*") >> skipSpaces
+    itemEnd = endOfParaElement <|> nextItem n <|> nextItem (n+1)
+    nextItem x = lookAhead $ try $ blankline >> unorderedListItem x >> return mempty
 
 para :: PandocMonad m => CRLParser m B.Blocks
 para = many1Till inline endOfParaElement >>= return . result . mconcat
@@ -123,7 +127,7 @@ endOfParaElement = lookAhead $ endOfInput <|> endOfPara
    endOfInput       = try $ skipMany blankline >> skipSpaces >> eof
    endOfPara        = try $ blankline >> skipMany1 blankline
    startOfList      = try $ blankline >> unorderedListItem 1 >> return mempty
-   startOfHeader  = try $ blankline >> header >> return mempty
+   startOfHeader    = try $ blankline >> header >> return mempty
 
 --
 -- inline parsers
