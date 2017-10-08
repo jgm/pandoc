@@ -724,13 +724,14 @@ latexEnd envName = try $
 noteBlock :: PandocMonad m => OrgParser m (F Blocks)
 noteBlock = try $ do
   ref <- noteMarker <* skipSpaces <* updateLastPreCharPos
-  content <- mconcat <$> blocksTillHeaderOrNote
+  content <- mconcat <$> many1Till block endOfFootnote
   addToNotesTable (ref, content)
   return mempty
  where
-   blocksTillHeaderOrNote =
-     many1Till block (eof <|> () <$ lookAhead noteMarker
-                          <|> () <$ lookAhead headerStart)
+   endOfFootnote =  eof
+                <|> () <$ lookAhead noteMarker
+                <|> () <$ lookAhead headerStart
+                <|> () <$ lookAhead (try $ blankline *> blankline)
 
 -- Paragraphs or Plain text
 paraOrPlain :: PandocMonad m => OrgParser m (F Blocks)
