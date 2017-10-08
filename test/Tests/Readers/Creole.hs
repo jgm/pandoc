@@ -1,6 +1,7 @@
 {-# LANGUAGE OverloadedStrings #-}
 module Tests.Readers.Creole (tests) where
 
+import Data.Monoid ((<>))
 import Data.Text (Text)
 import Test.Tasty
 import Tests.Helpers
@@ -82,5 +83,23 @@ tests = [ "bold, single line, fully delimited" =:
           "* foo\n** bar\n** baz\n* blubb"
           =?> bulletList [ plain "foo"
                          <> bulletList [ plain "bar", plain "baz" ]
+                         , plain "blubb" ]
+        , "nested many unordered lists, one separating space" =:
+          ("* foo\n** bar\n*** third\n*** third two\n** baz\n*** third again\n"
+           <> "**** fourth\n***** fith\n* blubb")
+          =?> bulletList [ plain "foo"
+                           <> bulletList [ plain "bar"
+                                           <> bulletList [ plain "third"
+                                                         , plain "third two"]
+                                         , plain "baz"
+                                           <> bulletList [ plain "third again"
+                                                         <> bulletList [
+                                                             plain "fourth"
+                                                             <> bulletList [
+                                                                 plain "fith"
+                                                                 ]
+                                                             ]
+                                                         ]
+                                         ]
                          , plain "blubb" ]
         ]

@@ -66,7 +66,7 @@ type CRLParser = ParserT [Char] ParserState
 --
 
 (<+>) :: (Monad m, Monoid a) => m a -> m a -> m a
-(<+>) = liftM2 (<>) 
+(<+>) = liftM2 (<>)
 
 --
 -- main parser
@@ -130,7 +130,9 @@ listItem c n = (listStart >> many1Till inline itemEnd)
   where
     listStart = try $ optional newline >> skipSpaces >> count n (char c)
                 >> (lookAhead $ noneOf [c]) >> skipSpaces
-    itemEnd = endOfParaElement <|> nextItem n <|> nextItem (n+1)
+    itemEnd = endOfParaElement <|> nextItem n
+              <|> if n < 3 then nextItem (n+1)
+                  else nextItem (n+1) <|> nextItem (n-1)
     nextItem x = lookAhead $ try $ blankline >> anyListItem x >> return mempty
 
 para :: PandocMonad m => CRLParser m B.Blocks
