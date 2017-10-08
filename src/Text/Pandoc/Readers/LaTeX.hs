@@ -2104,8 +2104,7 @@ rawEnv name = do
      then return $ rawBlock "latex"
                  $ T.unpack $ beginCommand <> untokenize raw
      else do
-       unless parseRaw $ do
-         report $ SkippedContent (T.unpack beginCommand) pos1
+       report $ SkippedContent (T.unpack beginCommand) pos1
        pos2 <- getPosition
        report $ SkippedContent ("\\end{" ++ T.unpack name ++ "}") pos2
        return bs
