@@ -62,6 +62,13 @@ readCreole opts s = do
 type CRLParser = ParserT [Char] ParserState
 
 --
+-- Utility funcitons
+--
+
+(<+>) :: (Monad m, Monoid a) => m a -> m a -> m a
+(<+>) = liftM2 (<>) 
+
+--
 -- main parser
 --
 
@@ -115,7 +122,7 @@ anyListItem n = listItem '*' n <|> listItem '#' n
 list :: PandocMonad m => Char -> ([B.Blocks] -> B.Blocks) -> Int -> CRLParser m B.Blocks
 list c f n = many1 (itemPlusSublist <|> listItem c n)
              >>= return . f
-  where itemPlusSublist = try $ liftM2 (<>) (listItem c n) (anyList (n+1))
+  where itemPlusSublist = try $ listItem c n <+> anyList (n+1)
 
 listItem :: PandocMonad m => Char -> Int -> CRLParser m B.Blocks
 listItem c n = (listStart >> many1Till inline itemEnd)
