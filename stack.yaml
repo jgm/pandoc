@@ -7,12 +7,12 @@ flags:
 packages:
 - '.'
 extra-deps:
-- texmath-0.9.4.2
-- hslua-0.8.0
-- skylighting-0.4
+- pandoc-types-1.17.2
+- texmath-0.9.4.4
+- hslua-0.9.0
+- skylighting-0.4.1
 - cmark-gfm-0.1.1
 - QuickCheck-2.10.0.1
 - tasty-quickcheck-0.9.1
 - haddock-library-1.4.3
-- pandoc-types-1.17.1
 resolver: lts-9.1

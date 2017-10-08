@@ -268,10 +268,17 @@ pandocToHtml opts (Pandoc meta blocks) = do
                          H.script ! A.src (toValue url)
                                   ! A.type_ "text/javascript"
                                   $ mempty
-                      KaTeX js css ->
-                         (H.script ! A.src (toValue js) $ mempty) <>
-                         (H.link ! A.rel "stylesheet" ! A.href (toValue css)) <>
-                         (H.script ! A.type_ "text/javascript" $ toHtml renderKaTeX)
+                      KaTeX url ->
+                         (H.script !
+                           A.src (toValue $ url ++ "katex.min.js") $ mempty) <>
+                         (H.script !
+                           A.src (toValue $ url ++ "contrib/auto-render.min.js")
+                             $ mempty) <>
+                         (H.script $
+                            "document.addEventListener(\"DOMContentLoaded\", function() {\n  renderMathInElement(document.body);\n});") <>
+                         (H.link ! A.rel "stylesheet" !
+                           A.href (toValue $ url ++ "katex.min.css"))
+
                       _ -> case lookup "mathml-script" (writerVariables opts) of
                                  Just s | not (stHtml5 st) ->
                                    H.script ! A.type_ "text/javascript"
@@ -1009,10 +1016,10 @@ inlineToHtml opts inline = do
               case t of
                 InlineMath  -> "\\(" ++ str ++ "\\)"
                 DisplayMath -> "\\[" ++ str ++ "\\]"
-           KaTeX _ _ -> return $ H.span ! A.class_ mathClass $
-              toHtml (case t of
-                        InlineMath  -> str
-                        DisplayMath -> "\\displaystyle " ++ str)
+           KaTeX _ -> return $ H.span ! A.class_ mathClass $ toHtml $
+              case t of
+                InlineMath  -> "\\(" ++ str ++ "\\)"
+                DisplayMath -> "\\[" ++ str ++ "\\]"
            PlainMath -> do
               x <- lift (texMathToInlines t str) >>= inlineListToHtml opts
               let m = H.span ! A.class_ mathClass $ x
@@ -1132,17 +1139,6 @@ blockListToNote opts ref blocks =
                               Just EPUB3 -> noteItem ! customAttribute "epub:type" "footnote"
                               _          -> noteItem
          return $ nl opts >> noteItem'
-
--- Javascript snippet to render all KaTeX elements
-renderKaTeX :: String
-renderKaTeX = unlines [
-    "window.onload = function(){var mathElements = document.getElementsByClassName(\"math\");"
-  , "for (var i=0; i < mathElements.length; i++)"
-  , "{"
-  , " var texText = mathElements[i].firstChild"
-  , " katex.render(texText.data, mathElements[i])"
-  , "}}"
-  ]
 
 isMathEnvironment :: String -> Bool
 isMathEnvironment s = "\\begin{" `isPrefixOf` s &&

@@ -14,10 +14,8 @@ import Text.Pandoc.Class
 t2t :: Text -> Pandoc
 -- t2t = handleError . readTxt2Tags (T2TMeta "date" "mtime" "in" "out") def
 t2t = purely $ \s -> do
-  putCommonState
-      def { stInputFiles = Just ["in"]
-          , stOutputFile = Just "out"
-          }
+  setInputFiles ["in"]
+  setOutputFile (Just "out")
   readTxt2Tags def s
 
 infix 4 =:

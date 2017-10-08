@@ -1,33 +1,36 @@
-% Pandoc Lua Filters
-% Albert Krewinkel, John MacFarlane
-% August 31, 2017
+---
+author:
+- 'Albert Krewinkel, John MacFarlane'
+date: 'August 31, 2017'
+title: Pandoc Lua Filters
+---
 
 # Introduction
 
 Pandoc has long supported filters, which allow the pandoc
 abstract syntax tree (AST) to be manipulated between the parsing
-and the writing phase.  Traditional pandoc filters accept a JSON
+and the writing phase. Traditional pandoc filters accept a JSON
 representation of the pandoc AST and produce an altered JSON
-representation of the AST.  They may be written in any
+representation of the AST. They may be written in any
 programming language, and invoked from pandoc using the
 `--filter` option.
 
 Although traditional filters are very flexible, they have a
-couple of disadvantages.  First, there is some overhead in
-writing JSON to stdout and reading it from stdin (twice,
-once on each side of the filter).  Second, whether a filter
-will work will depend on details of the user's environment.
-A filter may require an interpreter for a certain programming
-language to be available, as well as a library for manipulating
-the pandoc AST in JSON form.  One cannot simply provide a filter
-that can be used by anyone who has a certain version of the
-pandoc executable.
+couple of disadvantages. First, there is some overhead in
+writing JSON to stdout and reading it from stdin (twice, once on
+each side of the filter). Second, whether a filter will work
+will depend on details of the user's environment. A filter may
+require an interpreter for a certain programming language to be
+available, as well as a library for manipulating the pandoc AST
+in JSON form. One cannot simply provide a filter that can be
+used by anyone who has a certain version of the pandoc
+executable.
 
 Starting with pandoc 2.0, we have made it possible to write
-filters in lua without any external dependencies at all.
-A lua interpreter and a lua library for creating pandoc filters
-is built into the pandoc executable.  Pandoc data types
-are marshalled to lua directly, avoiding the overhead of writing
+filters in lua without any external dependencies at all. A lua
+interpreter and a lua library for creating pandoc filters is
+built into the pandoc executable. Pandoc data types are
+marshalled to lua directly, avoiding the overhead of writing
 JSON to stdout and reading it from stdin.
 
 Here is an example of a lua filter that converts strong emphasis
@@ -51,7 +54,7 @@ function Strong(elem)
 end
 ```
 
-This says:  walk the AST, and when you find a Strong element,
+This says: walk the AST, and when you find a Strong element,
 replace it with a SmallCaps element with the same content.
 
 To run it, save it in a file, say `smallcaps.lua`, and invoke
@@ -62,12 +65,12 @@ pandoc manual, MANUAL.txt, and versions of the same filter
 written in compiled Haskell (`smallcaps`) and interpreted Python
 (`smallcaps.py`):
 
-| Command                                          | Time  |
-|--------------------------------------------------|------:|
-| `pandoc MANUAL.txt`                              | 1.01s |
-| `pandoc MANUAL.txt --filter ./smallcaps`         | 1.36s |
-| `pandoc MANUAL.txt --filter ./smallcaps.py`      | 1.40s |
-| `pandoc MANUAL.txt --lua-filter ./smallcaps.lua` | 1.03s |
+  Command                                               Time
+  -------------------------------------------------- -------
+  `pandoc MANUAL.txt`                                  1.01s
+  `pandoc MANUAL.txt --filter ./smallcaps`             1.36s
+  `pandoc MANUAL.txt --filter ./smallcaps.py`          1.40s
+  `pandoc MANUAL.txt --lua-filter ./smallcaps.lua`     1.03s
 
 As you can see, the lua filter avoids the substantial overhead
 associated with marshalling to and from JSON over a pipe.
@@ -96,20 +99,31 @@ of the previous filter. If there is no value returned by the
 filter script, then pandoc will try to generate a single filter
 by collecting all top-level functions whose names correspond to
 those of pandoc elements (e.g., `Str`, `Para`, `Meta`, or
-`Pandoc`).  (That is why the two examples above are equivalent.)
+`Pandoc`). (That is why the two examples above are equivalent.)
 
 For each filter, the document is traversed and each element
 subjected to the filter. Elements for which the filter contains
-an entry (i.e. a function of the same name) are passed to lua
-element filtering function.  In other words, filter entries will
+an entry (i.e. a function of the same name) are passed to lua
+element filtering function. In other words, filter entries will
 be called for each corresponding element in the document,
 getting the respective element as input.
 
-The element function's output must be an element of the same
-type as the input. This means a filter function acting on an
-inline element must return an inline, and a block element must
-remain a block element after filter application. Pandoc will
-throw an error if this condition is violated.
+The return of a filter function must one of the following:
+
+-   nil: this means that the object should remain unchanged.
+-   a pandoc object: this must be of the same type as the input
+    and will replace the original object.
+-   a list of pandoc objects: these will replace the original
+    object; the list is merged with the neighbors of the orignal
+    objects (spliced into the list the original object belongs
+    to); returning an empty list deletes the object.
+
+The function's output must result in an element of the same type
+as the input. This means a filter function acting on an inline
+element must return either nil, an inline, or a list of inlines,
+and a function filtering a block element must return one of nil,
+a block, or a list of block elements. Pandoc will throw an error
+if this condition is violated.
 
 If there is no function matching the element's node type, then
 the filtering system will look for a more general fallback
@@ -118,8 +132,12 @@ function. Two fallback functions are supported, `Inline` and
 
 Elements without matching functions are left untouched.
 
-See [module documentation](pandoc-module.html) for a list of pandoc
-elements.
+See [module documentation](#module-pandoc) for a list of
+pandoc elements.
+
+The global `FORMAT` is set to the format of the pandoc writer
+being used (`html5`, `latex`, etc.), so the behavior of a filter
+can be made conditional on the eventual output format.
 
 # Pandoc Module
 
@@ -145,10 +163,15 @@ those elements accessible through the filter function parameter.
 
 ## Exposed pandoc functionality
 
-Some filters will require access to certain functions provided
-by pandoc. This is currently limited to the `read` function
-which allows to parse strings into pandoc documents from within
-the lua filter.
+Some pandoc functions have been made available in lua:
+
+- `read` allows filters to parse strings into pandoc documents
+- `pipe` runs an external command with input from and output to
+  strings
+- `sha1` generates a SHA1 hash
+- The `mediabag` module allows access to the "mediabag,"
+  which stores binary content such as images that may be
+  included in the final document.
 
 # Examples
 
@@ -174,8 +197,8 @@ return {
 ## Default metadata file
 
 This filter causes metadata defined in an external file
-(`metadata-file.yaml`) to be used as default values in
-a document's metadata:
+(`metadata-file.yaml`) to be used as default values in a
+document's metadata:
 
 ``` lua
 -- read metadata file into string
@@ -204,7 +227,7 @@ return {
 This filter sets the date in the document's metadata to the
 current date:
 
-```lua
+``` lua
 function Meta(m)
   m.date = os.date("%B %e, %Y")
   return m
@@ -213,11 +236,10 @@ end
 
 ## Extracting information about links
 
-This filter prints a table of all the URLs linked to
-in the document, together with the number of links to
-that URL.
+This filter prints a table of all the URLs linked to in the
+document, together with the number of links to that URL.
 
-```lua
+``` lua
 links = {}
 
 function Link (el)
@@ -282,7 +304,7 @@ return {{Meta = get_vars}, {Str = replace}}
 
 If the contents of file `occupations.md` is
 
-``` markdown
+``` {.markdown}
 ---
 name: Samuel Q. Smith
 occupation: Professor of Phrenology
@@ -297,9 +319,10 @@ Occupation
 : \$occupation\$
 ```
 
-then running `pandoc --lua-filter=meta-vars.lua occupations.md` will output:
+then running `pandoc --lua-filter=meta-vars.lua occupations.md`
+will output:
 
-``` html
+``` {.html}
 <dl>
 <dt>Name</dt>
 <dd><p><span>Samuel Q. Smith</span></p>
@@ -308,6 +331,49 @@ then running `pandoc --lua-filter=meta-vars.lua occupations.md` will output:
 <dd><p><span>Professor of Phrenology</span></p>
 </dd>
 </dl>
+```
+
+## Converting ABC code to music notation
+
+This filter replaces code blocks with class `abc` with
+images created by running their contents through `abcm2ps`
+and ImageMagick's `convert`.  (For more on ABC notation, see
+<http://abcnotation.com>.)
+
+Images are added to the mediabag.  For output to binary
+formats, pandoc will use images in the mediabag.  For textual
+formats, use `--extract-media` to specify a directory where
+the files in the mediabag will be written, or (for HTML only)
+use `--self-contained`.
+
+``` lua
+-- Pandoc filter to process code blocks with class "abc" containing
+-- ABC notation into images.
+--
+-- * Assumes that abcm2ps and ImageMagick's convert are in the path.
+-- * For textual output formats, use --extract-media=abc-images
+-- * For HTML formats, you may alternatively use --self-contained
+
+local filetypes = { html = {"png", "image/png"}
+                  , latex = {"pdf", "application/pdf"}
+                  }
+local filetype = filetypes[FORMAT][1] or "png"
+local mimetype = filetypes[FORMAT][2] or "image/png"
+
+local function abc2eps(abc, filetype)
+    local eps = pandoc.pipe("abcm2ps", {"-q", "-O", "-", "-"}, abc)
+    local final = pandoc.pipe("convert", {"-", filetype .. ":-"}, eps)
+    return final
+end
+
+function CodeBlock(block)
+    if block.classes[1] == "abc" then
+        local img = abc2eps(block.text, filetype)
+        local fname = pandoc.sha1(img) .. "." .. filetype
+        pandoc.mediabag.insert(fname, mimetype, img)
+        return pandoc.Para{ pandoc.Image({pandoc.Str("abc tune")}, fname) }
+    end
+end
 ```
 
 # Module pandoc
@@ -1044,3 +1110,118 @@ Lua functions for pandoc scripts.
         return {pandoc.global_filter()}
         -- the above is equivallent to
         -- return {{Str = Str}}
+
+[`sha1 (contents)`]{#mediabag-sha1}
+
+:   Returns the SHA1 has of the contents.
+
+    Returns:
+
+    -   SHA1 hash of the contents.
+
+    Usage:
+
+        local fp = pandoc.mediabag.sha1("foobar")
+
+[`pipe (command, args, input)`]{#mediabag-sha1}
+
+:   Runs command with arguments, passing it some input,
+    and returns the output.
+
+    Returns:
+
+    -   Output of command.
+
+    Raises:
+
+    -   A table containing the keys `command`, `error_code`, and
+        `output` is thrown if the command exits with a non-zero
+        error code.
+
+    Usage:
+
+        local output = pandoc.pipe("sed", {"-e","s/a/b/"}, "abc")
+
+
+# Submodule mediabag
+
+The submodule `mediabag` allows accessing pandoc's media
+storage. The "media bag" is used when pandoc is called with the
+`--extract-media` or `--standalone`/`-s` option.
+
+[`insert (filepath, mime_type, contents)`]{#mediabag-insert}
+
+:   Adds a new entry to pandoc's media bag.
+
+    Parameters:
+
+    `filepath`:
+    :   filename and path relative to the output folder.
+
+    `mime_type`:
+    :   the file's MIME type
+
+    `contents`:
+    :   the binary contents of the file.
+
+    Usage:
+
+        local fp = "media/hello.txt"
+        local mt = "text/plain"
+        local contents = "Hello, World!"
+        pandoc.mediabag(fp, mt, contents)
+
+[`list ()`]{#mediabag-list}
+
+:   Get a summary of the current media bag contents.
+
+    Returns: A list of elements summarizing each entry in the
+    media bag. The summary item contains the keys `path`,
+    `type`, and `length`, giving the filepath, MIME type, and
+    length of contents in bytes, respectively.
+
+    Usage:
+
+        -- calculate the size of the media bag.
+        local mb_items = pandoc.mediabag.list()
+        local sum = 0
+        for i = 1, #mb_items:
+            sum = sum + mb_items[i].length
+        end
+        print(sum)
+
+[`lookup (filepath)`]{#mediabag-lookup}
+
+:   Lookup a media item in the media bag, returning mime type
+    and contents.
+
+    Parameters:
+
+    `filepath`:
+    :   name of the file to look up.
+
+    Returns:
+
+    -   the entries MIME type, or nil if the file was not found.
+    -   contents of the file, or nil if the file was not found.
+
+    Usage:
+
+        local filename = "media/diagram.png"
+        local mt, contents = pandoc.mediabag.lookup(filename)
+
+[`fetch (source, base_url)`]{#mediabag-fetch}
+
+:   Fetches the given source from a URL or local file.
+    Returns two values:  the contents of the file and the mime
+    type (or an empty string).
+
+    Returns:
+
+    -   the entries MIME type, or nil if the file was not found.
+    -   contents of the file, or nil if the file was not found.
+
+    Usage:
+
+        local diagram_url = "https://pandoc.org/diagram.jpg"
+        local contents = pandoc.mediabag.fetch(diagram_url, ".")

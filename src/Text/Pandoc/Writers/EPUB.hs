@@ -433,7 +433,7 @@ pandocToEPUB version opts doc@(Pandoc meta _) = do
   -- handle pictures
   -- mediaRef <- P.newIORef []
   Pandoc _ blocks <- walkM (transformInline opts') doc >>=
-                     walkM (transformBlock opts')
+                     walkM transformBlock
   picEntries <- (catMaybes . map (snd . snd)) <$> (gets stMediaPaths)
   -- handle fonts
   let matchingGlob f = do
@@ -891,34 +891,31 @@ showDateTimeISO8601 :: UTCTime -> String
 showDateTimeISO8601 = formatTime defaultTimeLocale "%FT%TZ"
 
 transformTag :: PandocMonad m
-             => WriterOptions
-             -- -> IORef [(FilePath, (FilePath, Maybe Entry))] -- ^ (oldpath, newpath, entry) media
-             -> Tag String
+             => Tag String
              -> E m (Tag String)
-transformTag opts tag@(TagOpen name attr)
+transformTag tag@(TagOpen name attr)
   | name `elem` ["video", "source", "img", "audio"] &&
     lookup "data-external" attr == Nothing = do
   let src = fromAttrib "src" tag
   let poster = fromAttrib "poster" tag
-  newsrc <- modifyMediaRef opts src
-  newposter <- modifyMediaRef opts poster
+  newsrc <- modifyMediaRef src
+  newposter <- modifyMediaRef poster
   let attr' = filter (\(x,_) -> x /= "src" && x /= "poster") attr ++
               [("src", newsrc) | not (null newsrc)] ++
               [("poster", newposter) | not (null newposter)]
   return $ TagOpen name attr'
-transformTag _ tag = return tag
+transformTag tag = return tag
 
 modifyMediaRef :: PandocMonad m
-               => WriterOptions
-               -> FilePath
+               => FilePath
                -> E m FilePath
-modifyMediaRef _ "" = return ""
-modifyMediaRef opts oldsrc = do
+modifyMediaRef "" = return ""
+modifyMediaRef oldsrc = do
   media <- gets stMediaPaths
   case lookup oldsrc media of
          Just (n,_) -> return n
          Nothing    -> catchError
-           (do (img, mbMime) <- P.fetchItem (writerSourceURL opts) oldsrc
+           (do (img, mbMime) <- P.fetchItem oldsrc
                let new = "media/file" ++ show (length media) ++
                           fromMaybe (takeExtension (takeWhile (/='?') oldsrc))
                           (('.':) <$> (mbMime >>= extensionFromMimeType))
@@ -932,35 +929,32 @@ modifyMediaRef opts oldsrc = do
                 return oldsrc)
 
 transformBlock  :: PandocMonad m
-                => WriterOptions
-                -- -> IORef [(FilePath, (FilePath, Maybe Entry))] -- ^ (oldpath, newpath, entry) media
-                -> Block
+                => Block
                 -> E m Block
-transformBlock opts (RawBlock fmt raw)
+transformBlock (RawBlock fmt raw)
   | fmt == Format "html" = do
   let tags = parseTags raw
-  tags' <- mapM (transformTag opts)  tags
+  tags' <- mapM transformTag tags
   return $ RawBlock fmt (renderTags' tags')
-transformBlock _ b = return b
+transformBlock b = return b
 
 transformInline  :: PandocMonad m
                  => WriterOptions
-                 -- -> IORef [(FilePath, (FilePath, Maybe Entry))] -- ^ (oldpath, newpath) media
                  -> Inline
                  -> E m Inline
-transformInline opts (Image attr lab (src,tit)) = do
-    newsrc <- modifyMediaRef opts src
+transformInline _opts (Image attr lab (src,tit)) = do
+    newsrc <- modifyMediaRef src
     return $ Image attr lab ("../" ++ newsrc, tit)
 transformInline opts (x@(Math t m))
   | WebTeX url <- writerHTMLMathMethod opts = do
-    newsrc <- modifyMediaRef opts (url ++ urlEncode m)
+    newsrc <- modifyMediaRef (url ++ urlEncode m)
     let mathclass = if t == DisplayMath then "display" else "inline"
     return $ Span ("",["math",mathclass],[])
                 [Image nullAttr [x] ("../" ++ newsrc, "")]
-transformInline opts (RawInline fmt raw)
+transformInline _opts (RawInline fmt raw)
   | fmt == Format "html" = do
   let tags = parseTags raw
-  tags' <- mapM (transformTag opts) tags
+  tags' <- mapM transformTag tags
   return $ RawInline fmt (renderTags' tags')
 transformInline _ x = return x
 

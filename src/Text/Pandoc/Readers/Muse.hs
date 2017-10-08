@@ -35,7 +35,6 @@ TODO:
 - Org tables
 - table.el tables
 - Images with attributes (floating and width)
-- Anchors
 - Citations and <biblio>
 - <play> environment
 -}
@@ -150,8 +149,7 @@ parseDirective = do
   key <- many letter
   space
   spaces
-  raw <- many $ noneOf "\n"
-  newline
+  raw <- manyTill anyChar eol
   value <- parseFromString (trimInlinesF . mconcat <$> many inline) raw
   return (key, value)
 
@@ -536,6 +534,7 @@ tableParseCaption = try $ do
 
 inline :: PandocMonad m => MuseParser m (F Inlines)
 inline = choice [ br
+                , anchor
                 , footnote
                 , strong
                 , strongTag
@@ -552,6 +551,16 @@ inline = choice [ br
                 , str
                 , symbol
                 ] <?> "inline"
+
+anchor :: PandocMonad m => MuseParser m (F Inlines)
+anchor = try $ do
+  getPosition >>= \pos -> guard (sourceColumn pos == 1)
+  char '#'
+  first <- letter
+  rest <- many (letter <|> digit)
+  skipMany spaceChar <|> void newline
+  let anchorId = first:rest
+  return $ return $ B.spanWith (anchorId, [], []) mempty
 
 footnote :: PandocMonad m => MuseParser m (F Inlines)
 footnote = try $ do

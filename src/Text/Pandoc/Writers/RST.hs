@@ -239,12 +239,17 @@ blockToRST HorizontalRule =
   return $ blankline $$ "--------------" $$ blankline
 blockToRST (Header level (name,classes,_) inlines) = do
   contents <- inlineListToRST inlines
+  -- we calculate the id that would be used by auto_identifiers
+  -- so we know whether to print an explicit identifier
+  let autoId = uniqueIdent inlines mempty
   isTopLevel <- gets stTopLevel
   if isTopLevel
     then do
           let headerChar = if level > 5 then ' ' else "=-~^'" !! (level - 1)
           let border = text $ replicate (offset contents) headerChar
-          return $ nowrap $ contents $$ border $$ blankline
+          let anchor | null name || name == autoId = empty
+                     | otherwise = ".. " <> text name <> ":" $$ blankline
+          return $ nowrap $ anchor $$ contents $$ border $$ blankline
     else do
           let rub     = "rubric:: " <> contents
           let name' | null name    = empty

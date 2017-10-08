@@ -13,10 +13,8 @@ import Text.Pandoc.Class
 
 muse :: Text -> Pandoc
 muse = purely $ \s -> do
-  putCommonState
-      def { stInputFiles = Just ["in"]
-          , stOutputFile = Just "out"
-          }
+  setInputFiles ["in"]
+  setOutputFile (Just "out")
   readMuse def s
 
 infix 4 =:
@@ -343,6 +341,26 @@ tests =
                     , "</quote>"
                     ] =?>
           blockQuote (para "* Hi")
+        ]
+      , testGroup "Anchors"
+        [ "Anchor" =:
+          T.unlines [ "; A comment to make sure anchor is not parsed as a directive"
+                    , "#anchor Target"
+                    ] =?>
+          para (spanWith ("anchor", [], []) mempty <> "Target")
+        , "Anchor cannot start with a number" =:
+          T.unlines [ "; A comment to make sure anchor is not parsed as a directive"
+                    , "#0notanchor Target"
+                    ] =?>
+          para "#0notanchor Target"
+        , "Not anchor if starts with a space" =:
+          " #notanchor Target" =?>
+          para "#notanchor Target"
+        , "Anchor inside a paragraph" =:
+          T.unlines [ "Paragraph starts here"
+                    , "#anchor and ends here."
+                    ] =?>
+          para ("Paragraph starts here " <> spanWith ("anchor", [], []) mempty <> "and ends here.")
         ]
       , testGroup "Footnotes"
         [ "Simple footnote" =:
@@ -688,5 +706,12 @@ tests =
                                                          , para "Second"
                                                          , para "Third"
                                                          ])
+      ]
+  , testGroup "Meta"
+      [ "Title" =:
+        "#title Document title" =?>
+        let titleInline = toList $ "Document title"
+            meta = setMeta "title" (MetaInlines titleInline) $ nullMeta
+        in Pandoc meta mempty
       ]
   ]

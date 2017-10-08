@@ -8,7 +8,11 @@ build:
 	docker run --env TREE=$(TREE) --env REVISION=$(REVISION) \
 	    -v $(ARTIFACTS):/artifacts alpine-pandoc
 
+interact:
+	docker run --env TREE=$(TREE) --env REVISION=$(REVISION) \
+		-v $(ARTIFACTS):/artifacts -it alpine-pandoc bash
+
 setup:
 	docker pull alpine:edge
 
-.PHONY: build setup
+.PHONY: build setup interact

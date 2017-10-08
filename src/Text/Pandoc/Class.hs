@@ -59,6 +59,7 @@ module Text.Pandoc.Class ( PandocMonad(..)
                          , setTrace
                          , getLog
                          , setVerbosity
+                         , getVerbosity
                          , getMediaBag
                          , setMediaBag
                          , insertMedia
@@ -66,7 +67,9 @@ module Text.Pandoc.Class ( PandocMonad(..)
                          , getUserDataDir
                          , fetchItem
                          , getInputFiles
+                         , setInputFiles
                          , getOutputFile
+                         , setOutputFile
                          , setResourcePath
                          , getResourcePath
                          , PandocIO(..)
@@ -79,6 +82,7 @@ module Text.Pandoc.Class ( PandocMonad(..)
                          , runPure
                          , readDefaultDataFile
                          , readDataFile
+                         , fetchMediaResource
                          , fillMediaBag
                          , extractMedia
                          , toLang
@@ -214,6 +218,10 @@ setVerbosity :: PandocMonad m => Verbosity -> m ()
 setVerbosity verbosity =
   modifyCommonState $ \st -> st{ stVerbosity = verbosity }
 
+-- | Get the verbosity level.
+getVerbosity :: PandocMonad m => m Verbosity
+getVerbosity = getsCommonState stVerbosity
+
 -- Get the accomulated log messages (in temporal order).
 getLog :: PandocMonad m => m [LogMessage]
 getLog = reverse <$> getsCommonState stLog
@@ -246,15 +254,32 @@ getMediaBag = getsCommonState stMediaBag
 
 insertMedia :: PandocMonad m => FilePath -> Maybe MimeType -> BL.ByteString -> m ()
 insertMedia fp mime bs = do
-  mb <- getsCommonState stMediaBag
+  mb <- getMediaBag
   let mb' = MB.insertMedia fp mime bs mb
-  modifyCommonState $ \st -> st{stMediaBag = mb' }
+  setMediaBag mb'
 
-getInputFiles :: PandocMonad m => m (Maybe [FilePath])
+getInputFiles :: PandocMonad m => m [FilePath]
 getInputFiles = getsCommonState stInputFiles
+
+setInputFiles :: PandocMonad m => [FilePath] -> m ()
+setInputFiles fs = do
+  let sourceURL = case fs of
+                    []    -> Nothing
+                    (x:_) -> case parseURI x of
+                                Just u
+                                  | uriScheme u `elem` ["http:","https:"] ->
+                                      Just $ show u{ uriQuery = "",
+                                                     uriFragment = "" }
+                                _ -> Nothing
+
+  modifyCommonState $ \st -> st{ stInputFiles = fs
+                               , stSourceURL = sourceURL }
 
 getOutputFile :: PandocMonad m => m (Maybe FilePath)
 getOutputFile = getsCommonState stOutputFile
+
+setOutputFile :: PandocMonad m => Maybe FilePath -> m ()
+setOutputFile mbf = modifyCommonState $ \st -> st{ stOutputFile = mbf }
 
 setResourcePath :: PandocMonad m => [FilePath] -> m ()
 setResourcePath ps = modifyCommonState $ \st -> st{stResourcePath = ps}
@@ -288,12 +313,14 @@ data CommonState = CommonState { stLog          :: [LogMessage]
                                  -- ^ A list of log messages in reverse order
                                , stUserDataDir  :: Maybe FilePath
                                  -- ^ Directory to search for data files
+                               , stSourceURL    :: Maybe String
+                                 -- ^ Absolute URL + dir of 1st source file
                                , stMediaBag     :: MediaBag
                                  -- ^ Media parsed from binary containers
                                , stTranslations :: Maybe
                                                   (Lang, Maybe Translations)
                                  -- ^ Translations for localization
-                               , stInputFiles   :: Maybe [FilePath]
+                               , stInputFiles   :: [FilePath]
                                  -- ^ List of input files from command line
                                , stOutputFile   :: Maybe FilePath
                                  -- ^ Output file from command line
@@ -310,9 +337,10 @@ data CommonState = CommonState { stLog          :: [LogMessage]
 instance Default CommonState where
   def = CommonState { stLog = []
                     , stUserDataDir = Nothing
+                    , stSourceURL = Nothing
                     , stMediaBag = mempty
                     , stTranslations = Nothing
-                    , stInputFiles = Nothing
+                    , stInputFiles = []
                     , stOutputFile = Nothing
                     , stResourcePath = ["."]
                     , stVerbosity = WARNING
@@ -472,20 +500,19 @@ getUserDataDir = getsCommonState stUserDataDir
 -- | Fetch an image or other item from the local filesystem or the net.
 -- Returns raw content and maybe mime type.
 fetchItem :: PandocMonad m
-          => Maybe String
-          -> String
+          => String
           -> m (B.ByteString, Maybe MimeType)
-fetchItem sourceURL s = do
+fetchItem s = do
   mediabag <- getMediaBag
   case lookupMedia s mediabag of
     Just (mime, bs) -> return (BL.toStrict bs, Just mime)
-    Nothing -> downloadOrRead sourceURL s
+    Nothing -> downloadOrRead s
 
 downloadOrRead :: PandocMonad m
-               => Maybe String
-               -> String
+               => String
                -> m (B.ByteString, Maybe MimeType)
-downloadOrRead sourceURL s =
+downloadOrRead s = do
+  sourceURL <- getsCommonState stSourceURL
   case (sourceURL >>= parseURIReference' .
                        ensureEscaped, ensureEscaped s) of
     (Just u, s') -> -- try fetching from relative path at source
@@ -633,23 +660,31 @@ withPaths (p:ps) action fp =
   catchError (action (p </> fp))
              (\_ -> withPaths ps action fp)
 
+-- | Fetch local or remote resource (like an image) and provide data suitable
+-- for adding it to the MediaBag.
+fetchMediaResource :: PandocMonad m
+              => String -> m (FilePath, Maybe MimeType, BL.ByteString)
+fetchMediaResource src = do
+  (bs, mt) <- downloadOrRead src
+  let ext = fromMaybe (takeExtension src)
+                      (mt >>= extensionFromMimeType)
+  let bs' = BL.fromChunks [bs]
+  let basename = showDigest $ sha1 bs'
+  let fname = basename <.> ext
+  return (fname, mt, bs')
+
 -- | Traverse tree, filling media bag for any images that
 -- aren't already in the media bag.
-fillMediaBag :: PandocMonad m => Maybe String -> Pandoc -> m Pandoc
-fillMediaBag sourceURL d = walkM handleImage d
+fillMediaBag :: PandocMonad m => Pandoc -> m Pandoc
+fillMediaBag d = walkM handleImage d
   where handleImage :: PandocMonad m => Inline -> m Inline
         handleImage (Image attr lab (src, tit)) = catchError
           (do mediabag <- getMediaBag
               case lookupMedia src mediabag of
                 Just (_, _) -> return $ Image attr lab (src, tit)
                 Nothing -> do
-                  (bs, mt) <- downloadOrRead sourceURL src
-                  let ext = fromMaybe (takeExtension src)
-                              (mt >>= extensionFromMimeType)
-                  let bs' = BL.fromChunks [bs]
-                  let basename = showDigest $ sha1 bs'
-                  let fname = basename <.> ext
-                  insertMedia fname mt bs'
+                  (fname, mt, bs) <- fetchMediaResource src
+                  insertMedia fname mt bs
                   return $ Image attr lab (fname, tit))
           (\e ->
               case e of

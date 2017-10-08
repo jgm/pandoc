@@ -3528,23 +3528,23 @@ pandoc (1.13.2)
       Now we still support those, but also support the format recommended
       for epub metadata in the pandoc README:
 
-        ---
-        title:
-        - type: main
-          text: My Book
-        - type: subtitle
-          text: An investigation of metadata
-        creator:
-        - role: author
-          text: John Smith
-        - role: editor
-          text: Sarah Jones
-        identifier:
-        - scheme: DOI
-          text: doi:10.234234.234/33
-        publisher:  My Press
-        rights:  (c) 2007 John Smith, CC BY-NC
-        ...
+            ---
+            title:
+            - type: main
+              text: My Book
+            - type: subtitle
+              text: An investigation of metadata
+            creator:
+            - role: author
+              text: John Smith
+            - role: editor
+              text: Sarah Jones
+            identifier:
+            - scheme: DOI
+              text: doi:10.234234.234/33
+            publisher:  My Press
+            rights:  (c) 2007 John Smith, CC BY-NC
+            ...
 
   * `Text.Pandoc.Templates.getDefaultTemplate`:
     don't fail when called with "fb2" (#1660).
@@ -9243,7 +9243,7 @@ pandoc (1.1)
   * Text.Pandoc.Shared:  Modified wrappedTeX to eliminate the line break
     between a footnote and immediately following nonspace characters in
     LaTeX and ConTeXt output. (This gets interpreted as a space, which
-    is not desired in cases like "text^[note]---".)  Resolves Issue #93.
+    is not desired in cases like `text^[note]---`.)  Resolves Issue #93.
 
   * Windows installer: Don't require admin privileges to run
     installer.  Modified pandoc-setup.iss, and changed modpath.iss to
@@ -10749,8 +10749,8 @@ pandoc (0.3) unstable; urgency=low
 
   * Revised footnote syntax.  (See README for full details.)  The
     '[^1]' format now standard in markdown extensions is supported,
-    as are inline footnotes with this syntax: '^[My note.]'.
-    The earlier footnote syntax '^(1)' is no longer supported.
+    as are inline footnotes with this syntax: `^[My note.]`.
+    The earlier footnote syntax `^(1)` is no longer supported.
 
   * Improved HTML representation of footnotes.  All footnotes
     are now auto-numbered and appear in an ordered list at the

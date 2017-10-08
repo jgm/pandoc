@@ -7,10 +7,11 @@ import Test.Tasty (TestTree, localOption)
 import Test.Tasty.HUnit (Assertion, assertEqual, testCase)
 import Test.Tasty.QuickCheck (ioProperty, testProperty, QuickCheckTests(..))
 import Text.Pandoc.Arbitrary ()
-import Text.Pandoc.Definition (Block, Inline, Meta, Pandoc)
 import Text.Pandoc.Builder ( (<>), bulletList, doc, doubleQuoted, emph
                            , linebreak, rawBlock, singleQuoted, para, plain
                            , space, str, strong)
+import Text.Pandoc.Class (runIOorExplode)
+import Text.Pandoc.Definition (Block, Inline, Meta, Pandoc)
 import Text.Pandoc.Lua
 
 import Foreign.Lua
@@ -80,8 +81,11 @@ tests = map (localOption (QuickCheckTests 20))
 
 assertFilterConversion :: String -> FilePath -> Pandoc -> Pandoc -> Assertion
 assertFilterConversion msg filterPath docIn docExpected = do
-  docRes <- runLuaFilter (Just "../data") ("lua" </> filterPath) [] docIn
-  assertEqual msg docExpected docRes
+  docEither <- runIOorExplode $
+               runLuaFilter (Just "../data") ("lua" </> filterPath) [] docIn
+  case docEither of
+    Left _ -> fail "lua filter failed"
+    Right docRes -> assertEqual msg docExpected docRes
 
 roundtripEqual :: (Eq a, FromLuaStack a, ToLuaStack a) => a -> IO Bool
 roundtripEqual x = (x ==) <$> roundtripped

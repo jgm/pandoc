@@ -56,7 +56,7 @@ import Text.Printf (printf)
 -- If file not found or filetype not jpeg or png, leave the inline unchanged.
 rtfEmbedImage :: PandocMonad m => WriterOptions -> Inline -> m Inline
 rtfEmbedImage opts x@(Image attr _ (src,_)) = catchError
-  (do result <- P.fetchItem (writerSourceURL opts) src
+  (do result <- P.fetchItem src
       case result of
            (imgdata, Just mime)
              | mime == "image/jpeg" || mime == "image/png" -> do

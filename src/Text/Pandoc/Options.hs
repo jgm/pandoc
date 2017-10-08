@@ -107,7 +107,7 @@ data HTMLMathMethod = PlainMath
                     | WebTeX String               -- url of TeX->image script.
                     | MathML
                     | MathJax String              -- url of MathJax.js
-                    | KaTeX String String -- url of stylesheet and katex.js
+                    | KaTeX String                -- url of KaTeX files
                     deriving (Show, Read, Eq, Data, Typeable, Generic)
 
 instance ToJSON HTMLMathMethod where
@@ -207,7 +207,6 @@ data WriterOptions = WriterOptions
   , writerEmailObfuscation  :: ObfuscationMethod -- ^ How to obfuscate emails
   , writerIdentifierPrefix  :: String -- ^ Prefix for section & note ids in HTML
                                      -- and for footnote marks in markdown
-  , writerSourceURL         :: Maybe String  -- ^ Absolute URL + directory of 1st source file
   , writerCiteMethod        :: CiteMethod -- ^ How to print cites
   , writerHtmlQTags         :: Bool       -- ^ Use @<q>@ tags for quotes in HTML
   , writerSlideLevel        :: Maybe Int  -- ^ Force header level of slides
@@ -244,7 +243,6 @@ instance Default WriterOptions where
                       , writerColumns          = 72
                       , writerEmailObfuscation = NoObfuscation
                       , writerIdentifierPrefix = ""
-                      , writerSourceURL        = Nothing
                       , writerCiteMethod       = Citeproc
                       , writerHtmlQTags        = False
                       , writerSlideLevel       = Nothing

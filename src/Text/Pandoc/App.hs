@@ -38,7 +38,6 @@ module Text.Pandoc.App (
           , parseOptions
           , options
           ) where
-import Control.Applicative ((<|>))
 import qualified Control.Exception as E
 import Control.Monad
 import Control.Monad.Except (throwError, catchError)
@@ -50,7 +49,7 @@ import qualified Data.ByteString as BS
 import qualified Data.ByteString.Lazy as B
 import Data.Char (toLower, toUpper)
 import Data.Foldable (foldrM)
-import Data.List (intercalate, isPrefixOf, isSuffixOf, sort)
+import Data.List (intercalate, isPrefixOf, isSuffixOf, sort, find)
 import qualified Data.Map as M
 import Data.Maybe (fromMaybe, isJust, isNothing)
 import qualified Data.Set as Set
@@ -76,9 +75,10 @@ import qualified System.IO as IO (Newline (..))
 import Text.Pandoc
 import Text.Pandoc.Builder (setMeta)
 import Text.Pandoc.Class (PandocIO, extractMedia, fillMediaBag, getLog,
-                          setResourcePath, getMediaBag, setTrace, report,
+                          setResourcePath, setTrace, report,
                           setUserDataDir, readFileStrict, readDataFile,
-                          readDefaultDataFile, setTranslations)
+                          readDefaultDataFile, setTranslations,
+                          setInputFiles, setOutputFile)
 import Text.Pandoc.Highlighting (highlightingStyles)
 import Text.Pandoc.BCP47 (parseBCP47, Lang(..))
 import Text.Pandoc.Lua (runLuaFilter, LuaException(..))
@@ -86,7 +86,7 @@ import Text.Pandoc.Writers.Math (defaultMathJaxURL, defaultKaTeXURL)
 import Text.Pandoc.PDF (makePDF)
 import Text.Pandoc.Process (pipeProcess)
 import Text.Pandoc.SelfContained (makeDataURI, makeSelfContained)
-import Text.Pandoc.Shared (headerShift, isURI, openURL,
+import Text.Pandoc.Shared (headerShift, isURI, openURL, ordNub,
                            safeRead, tabFilter, eastAsianLineBreakFilter)
 import qualified Text.Pandoc.UTF8 as UTF8
 import Text.Pandoc.XML (toEntities)
@@ -124,79 +124,63 @@ parseOptions options' defaults = do
 latexEngines :: [String]
 latexEngines  = ["pdflatex", "lualatex", "xelatex"]
 
-defaultLatexEngine :: String
-defaultLatexEngine = "pdflatex"
-
 htmlEngines :: [String]
 htmlEngines  = ["wkhtmltopdf", "weasyprint", "prince"]
 
-defaultHtmlEngine :: String
-defaultHtmlEngine = "wkhtmltopdf"
+engines :: [(String, String)]
+engines = map ("html",) htmlEngines ++
+          map ("html5",) htmlEngines ++
+          map ("latex",) latexEngines ++
+          map ("beamer",) latexEngines ++
+          [ ("ms", "pdfroff")
+          , ("context", "context")
+          ]
 
 pdfEngines :: [String]
-pdfEngines = latexEngines ++ htmlEngines ++ ["context", "pdfroff"]
+pdfEngines = ordNub $ map snd engines
 
 pdfWriterAndProg :: Maybe String              -- ^ user-specified writer name
                  -> Maybe String              -- ^ user-specified pdf-engine
                  -> IO (String, Maybe String) -- ^ IO (writerName, maybePdfEngineProg)
 pdfWriterAndProg mWriter mEngine = do
   let panErr msg = liftIO $ E.throwIO $ PandocAppError msg
-  case go mWriter mEngine of
-      (Right writ, Right prog) -> return (writ, Just prog)
-      (Left err, _)            -> panErr err
-      (_, Left err)            -> panErr err
+  case go (baseWriterName <$> mWriter) mEngine of
+      Right (writ, prog) -> return (writ, Just prog)
+      Left err           -> panErr err
     where
-      go Nothing Nothing       = (Right "latex", Right defaultLatexEngine)
-      go (Just writer) Nothing = (Right writer, engineForWriter writer)
-      go Nothing (Just engine) = (writerForEngine engine, Right engine)
+      go Nothing Nothing       = Right ("latex", "pdflatex")
+      go (Just writer) Nothing = (writer,) <$> engineForWriter writer
+      go Nothing (Just engine) = (,engine) <$> writerForEngine engine
       go (Just writer) (Just engine) =
-           let (Right shouldFormat) = writerForEngine engine
-               userFormat = case map toLower writer of
-                              "html5" -> "html"
-                              x       -> x
-           in  if userFormat == shouldFormat
-               then (Right writer, Right engine)
-               else (Left $ "pdf-engine " ++ engine ++ " is not compatible with output format "
-                      ++ writer ++ ", please use `-t " ++ shouldFormat ++ "`", Left "")
+           case find (== (writer, engine)) engines of
+                Just _  -> Right (writer, engine)
+                Nothing -> Left $ "pdf-engine " ++ engine ++
+                           " is not compatible with output format " ++ writer
 
-      writerForEngine "context"  = Right "context"
-      writerForEngine "pdfroff"  = Right "ms"
-      writerForEngine en
-        | takeBaseName en `elem` latexEngines = Right "latex"
-        | takeBaseName en `elem` htmlEngines  = Right "html"
-      writerForEngine _          = Left "pdf-engine not known"
+      writerForEngine eng = case [f | (f,e) <- engines, e == eng] of
+                                 fmt : _ -> Right fmt
+                                 []      -> Left $
+                                   "pdf-engine " ++ eng ++ " not known"
 
-      engineForWriter "context" = Right "context"
-      engineForWriter "ms"      = Right "pdfroff"
-      engineForWriter "latex"   = Right defaultLatexEngine
-      engineForWriter "beamer"  = Right defaultLatexEngine
-      engineForWriter format
-        | format `elem` ["html", "html5"] = Right defaultHtmlEngine
-        | otherwise = Left $ "cannot produce pdf output with output format " ++ format
-
+      engineForWriter w = case [e |  (f,e) <- engines, f == w] of
+                                eng : _ -> Right eng
+                                []      -> Left $
+                                   "cannot produce pdf output from " ++ w
 
 convertWithOpts :: Opt -> IO ()
 convertWithOpts opts = do
-  let args = optInputFiles opts
   let outputFile = fromMaybe "-" (optOutputFile opts)
   let filters = optFilters opts
   let verbosity = optVerbosity opts
 
   when (optDumpArgs opts) $
     do UTF8.hPutStrLn stdout outputFile
-       mapM_ (UTF8.hPutStrLn stdout) args
+       mapM_ (UTF8.hPutStrLn stdout) (optInputFiles opts)
        exitSuccess
 
   epubMetadata <- case optEpubMetadata opts of
                          Nothing -> return Nothing
                          Just fp -> Just <$> UTF8.readFile fp
-
-  let mathMethod =
-        case (optKaTeXJS opts, optKaTeXStylesheet opts) of
-            (Nothing, _)  -> optHTMLMathMethod opts
-            (Just js, ss) -> KaTeX js (fromMaybe
-                               (defaultKaTeXURL ++ "katex.min.css") ss)
-
 
   -- --bibliography implies -F pandoc-citeproc for backwards compatibility:
   let needsCiteproc = isJust (lookup "bibliography" (optMetadata opts)) &&
@@ -205,7 +189,7 @@ convertWithOpts opts = do
   let filters' = if needsCiteproc then "pandoc-citeproc" : filters
                                   else filters
 
-  let sources = case args of
+  let sources = case optInputFiles opts of
                      []  -> ["-"]
                      xs | optIgnoreArgs opts -> ["-"]
                         | otherwise  -> xs
@@ -223,18 +207,19 @@ convertWithOpts opts = do
                                       (if any isURI sources
                                           then "html"
                                           else "markdown") sources
-                          Just x  -> map toLower x
+                          Just x  -> x
 
   let nonPdfWriterName Nothing  = defaultWriterName outputFile
-      nonPdfWriterName (Just x) = map toLower x
+      nonPdfWriterName (Just x) = x
 
   let pdfOutput = map toLower (takeExtension outputFile) == ".pdf"
-  (writerName, maybePdfProg) <- if pdfOutput
-                                then pdfWriterAndProg (optWriter opts) (optPdfEngine opts)
-                                else return (nonPdfWriterName $ optWriter opts, Nothing)
+  (writerName, maybePdfProg) <-
+    if pdfOutput
+       then pdfWriterAndProg (optWriter opts) (optPdfEngine opts)
+       else return (nonPdfWriterName $ optWriter opts, Nothing)
 
-  let format = takeWhile (`notElem` ['+','-'])
-                       $ takeFileName writerName  -- in case path to lua script
+  let format = baseWriterName
+                 $ takeFileName writerName  -- in case path to lua script
 
   -- disabling the custom writer for now
   (writer, writerExts) <-
@@ -268,15 +253,6 @@ convertWithOpts opts = do
                                   _ -> e
 
   let standalone = optStandalone opts || not (isTextFormat format) || pdfOutput
-  let sourceURL = case sources of
-                    []    -> Nothing
-                    (x:_) -> case parseURI x of
-                                Just u
-                                  | uriScheme u `elem` ["http:","https:"] ->
-                                      Just $ show u{ uriQuery = "",
-                                                     uriFragment = "" }
-                                _ -> Nothing
-
   let addStringAsVariable varname s vars = return $ (varname, s) : vars
 
   highlightStyle <- lookupHighlightStyle $ optHighlightStyle opts
@@ -354,6 +330,8 @@ convertWithOpts opts = do
 
   runIO' $ do
     setUserDataDir datadir
+    setInputFiles (optInputFiles opts)
+    setOutputFile (optOutputFile opts)
 
     variables <-
         withList (addStringAsVariable "sourcefile")
@@ -382,7 +360,7 @@ convertWithOpts opts = do
         maybe return (addStringAsVariable "epub-cover-image")
                      (optEpubCoverImage opts)
         >>=
-        (\vars -> case mathMethod of
+        (\vars -> case optHTMLMathMethod opts of
                        LaTeXMathML Nothing -> do
                           s <- UTF8.toString <$> readDataFile "LaTeXMathML.js"
                           return $ ("mathml-script", s) : vars
@@ -442,7 +420,7 @@ convertWithOpts opts = do
           , writerVariables        = variables
           , writerTabStop          = optTabStop opts
           , writerTableOfContents  = optTableOfContents opts
-          , writerHTMLMathMethod   = mathMethod
+          , writerHTMLMathMethod   = optHTMLMathMethod opts
           , writerIncremental      = optIncremental opts
           , writerCiteMethod       = optCiteMethod opts
           , writerNumberSections   = optNumberSections opts
@@ -456,7 +434,6 @@ convertWithOpts opts = do
           , writerColumns          = optColumns opts
           , writerEmailObfuscation = optEmailObfuscation opts
           , writerIdentifierPrefix = optIdentifierPrefix opts
-          , writerSourceURL        = sourceURL
           , writerHtmlQTags        = optHtmlQTags opts
           , writerTopLevelDivision = optTopLevelDivision opts
           , writerListings         = optListings opts
@@ -516,21 +493,20 @@ convertWithOpts opts = do
     setResourcePath (optResourcePath opts)
     doc <- sourceToDoc sources >>=
               (   (if isJust (optExtractMedia opts)
-                      then fillMediaBag (writerSourceURL writerOptions)
+                      then fillMediaBag
                       else return)
-              >=> maybe return extractMedia (optExtractMedia opts)
               >=> return . flip (foldr addMetadata) metadata
+              >=> applyLuaFilters datadir (optLuaFilters opts) format
+              >=> maybe return extractMedia (optExtractMedia opts)
               >=> applyTransforms transforms
-              >=> applyLuaFilters datadir (optLuaFilters opts) [format]
               >=> applyFilters readerOpts datadir filters' [format]
               )
-    media <- getMediaBag
 
     case writer of
       ByteStringWriter f -> f writerOptions doc >>= writeFnBinary outputFile
       TextWriter f -> case maybePdfProg of
         Just pdfProg -> do
-                res <- makePDF pdfProg f writerOptions verbosity media doc
+                res <- makePDF pdfProg f writerOptions doc
                 case res of
                      Right pdf -> writeFnBinary outputFile pdf
                      Left err' -> liftIO $
@@ -552,8 +528,7 @@ convertWithOpts opts = do
                   if optSelfContained opts && htmlFormat
                      -- TODO not maximally efficient; change type
                      -- of makeSelfContained so it works w/ Text
-                     then T.pack <$> makeSelfContained writerOptions
-                          (T.unpack output)
+                     then T.pack <$> makeSelfContained (T.unpack output)
                      else return output
 
 type Transform = Pandoc -> Pandoc
@@ -577,6 +552,7 @@ externalFilter ropts f args' d = liftIO $ do
                                   ".rb"  -> ("ruby", f:args')
                                   ".php" -> ("php", f:args')
                                   ".js"  -> ("node", f:args')
+                                  ".r"   -> ("Rscript", f:args')
                                   _      -> (f, args')
                         else (f, args')
   unless (exists && isExecutable) $ do
@@ -658,8 +634,6 @@ data Opt = Opt
     , optExtractMedia          :: Maybe FilePath -- ^ Path to extract embedded media
     , optTrackChanges          :: TrackChanges -- ^ Accept or reject MS Word track-changes.
     , optFileScope             :: Bool         -- ^ Parse input files before combining
-    , optKaTeXStylesheet       :: Maybe String     -- ^ Path to stylesheet for KaTeX
-    , optKaTeXJS               :: Maybe String     -- ^ Path to js file for KaTeX
     , optTitlePrefix           :: Maybe String     -- ^ Prefix for title
     , optCss                   :: [FilePath]       -- ^ CSS files to link to
     , optIncludeBeforeBody     :: [FilePath]       -- ^ Files to include before
@@ -735,8 +709,6 @@ defaultOpts = Opt
     , optExtractMedia          = Nothing
     , optTrackChanges          = AcceptChanges
     , optFileScope             = False
-    , optKaTeXStylesheet       = Nothing
-    , optKaTeXJS               = Nothing
     , optTitlePrefix           = Nothing
     , optCss                   = []
     , optIncludeBeforeBody     = []
@@ -856,16 +828,15 @@ expandFilterPath mbDatadir fp = liftIO $ do
                     else return fp
                _ -> return fp
 
-applyLuaFilters :: MonadIO m
-                => Maybe FilePath -> [FilePath] -> [String] -> Pandoc
-                -> m Pandoc
-applyLuaFilters mbDatadir filters args d = do
+applyLuaFilters :: Maybe FilePath -> [FilePath] -> String -> Pandoc
+                -> PandocIO Pandoc
+applyLuaFilters mbDatadir filters format d = do
   expandedFilters <- mapM (expandFilterPath mbDatadir) filters
-  let go f d' = liftIO $ do
-        res <- E.try (runLuaFilter mbDatadir f args d')
+  let go f d' = do
+        res <- runLuaFilter mbDatadir f format d'
         case res of
-             Right x -> return x
-             Left (LuaException s) -> E.throw (PandocFilterError f s)
+          Right x -> return x
+          Left (LuaException s) -> E.throw (PandocFilterError f s)
   foldrM ($) d $ map go expandedFilters
 
 applyFilters :: MonadIO m
@@ -931,13 +902,15 @@ options :: [OptDescr (Opt -> IO Opt)]
 options =
     [ Option "fr" ["from","read"]
                  (ReqArg
-                  (\arg opt -> return opt { optReader = Just arg })
+                  (\arg opt -> return opt { optReader =
+                                              Just (map toLower arg) })
                   "FORMAT")
                  ""
 
     , Option "tw" ["to","write"]
                  (ReqArg
-                  (\arg opt -> return opt { optWriter = Just arg })
+                  (\arg opt -> return opt { optWriter =
+                                              Just (map toLower arg) })
                   "FORMAT")
                  ""
 
@@ -1470,17 +1443,10 @@ options =
                  (OptArg
                   (\arg opt ->
                       return opt
-                        { optKaTeXJS =
-                           arg <|> Just (defaultKaTeXURL ++ "katex.min.js")})
+                        { optHTMLMathMethod = KaTeX $
+                           fromMaybe defaultKaTeXURL arg })
                   "URL")
                   "" -- Use KaTeX for HTML Math
-
-    , Option "" ["katex-stylesheet"]
-                 (ReqArg
-                  (\arg opt ->
-                      return opt { optKaTeXStylesheet = Just arg })
-                 "URL")
-                 "" -- Set the KaTeX Stylesheet location
 
     , Option "" ["gladtex"]
                  (NoArg
@@ -1680,3 +1646,5 @@ splitField s =
        (k,_:v) -> (k,v)
        (k,[])  -> (k,"true")
 
+baseWriterName :: String -> String
+baseWriterName = takeWhile (\c -> c /= '+' && c /= '-')
