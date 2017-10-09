@@ -17,15 +17,10 @@ $endif$
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, minimal-ui">
   <link rel="stylesheet" href="$revealjs-url$/css/reveal.css">
-  <style type="text/css">
-      code{white-space: pre-wrap;}
-      .smallcaps{font-variant: small-caps;}
-      .line-block{white-space: pre-line;}
-      .column{display: inline-block;}
+  <style type="text/css">code{white-space: pre;}</style>
 $if(quotes)$
-      q { quotes: "“" "”" "‘" "’"; }
+  <style type="text/css">q { quotes: "“" "”" "‘" "’"; }</style>
 $endif$
-  </style>
 $if(highlighting-css)$
   <style type="text/css">
 $highlighting-css$
@@ -50,9 +45,6 @@ $endfor$
   <!--[if lt IE 9]>
   <script src="$revealjs-url$/lib/js/html5shiv.js"></script>
   <![endif]-->
-$if(math)$
-  $math$
-$endif$
 $for(header-includes)$
   $header-includes$
 $endfor$
@@ -80,7 +72,7 @@ $endif$
 $endif$
 $if(toc)$
 <section id="$idprefix$TOC">
-$table-of-contents$
+$toc$
 </section>
 $endif$
 
@@ -230,24 +222,18 @@ $endif$
 $if(maxScale)$
         maxScale: $maxScale$,
 $endif$
-$if(mathjax)$
-        math: {
-          mathjax: 'https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.0/MathJax.js',
-          config: 'TeX-AMS_HTML-full',
-        },
-$endif$
 
         // Optional reveal.js plugins
         dependencies: [
           { src: '$revealjs-url$/lib/js/classList.js', condition: function() { return !document.body.classList; } },
           { src: '$revealjs-url$/plugin/zoom-js/zoom.js', async: true },
-$if(notes-server)$
+    $if(notes-server)$
           { src: '$revealjs-url$/socket.io/socker.io.js', async: true },
           { src: '$revealjs-url$/plugin/notes-server/client.js', async: true },
-$endif$
-$if(mathjax)$
+    $endif$
+    $if(math)$
           { src: '$revealjs-url$/plugin/math/math.js', async: true },
-$endif$
+    $endif$
           { src: '$revealjs-url$/plugin/notes/notes.js', async: true }
         ]
       });
