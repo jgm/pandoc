@@ -659,8 +659,6 @@ doubleQuote = do
    -- the following is used by babel for localized quotes:
    <|> quoted' doubleQuoted (try $ sequence [symbol '"', symbol '`'])
                             (void $ try $ sequence [symbol '"', symbol '\''])
-   <|> quoted' doubleQuoted ((:[]) <$> symbol '"')
-                            (void $ symbol '"')
 
 singleQuote :: PandocMonad m => LP m Inlines
 singleQuote = do
