@@ -353,7 +353,7 @@ extractSpaces f is =
 
 -- | Extract inlines, removing formatting.
 removeFormatting :: Walkable Inline a => a -> [Inline]
-removeFormatting = query go . walk deNote
+removeFormatting = query go . walk (deNote . deQuote)
   where go :: Inline -> [Inline]
         go (Str xs)     = [Str xs]
         go Space        = [Space]
@@ -367,11 +367,18 @@ deNote :: Inline -> Inline
 deNote (Note _) = Str ""
 deNote x        = x
 
+deQuote :: Inline -> Inline
+deQuote (Quoted SingleQuote xs) =
+  Span ("",[],[]) (Str "\8216" : xs ++ [Str "\8217"])
+deQuote (Quoted DoubleQuote xs) =
+  Span ("",[],[]) (Str "\8220" : xs ++ [Str "\8221"])
+deQuote x = x
+
 -- | Convert pandoc structure to a string with formatting removed.
 -- Footnotes are skipped (since we don't want their contents in link
 -- labels).
 stringify :: Walkable Inline a => a -> String
-stringify = query go . walk deNote
+stringify = query go . walk (deNote . deQuote)
   where go :: Inline -> [Char]
         go Space = " "
         go SoftBreak = " "
