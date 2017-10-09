@@ -38,8 +38,8 @@ FictionBook is an XML-based e-book format. For more information see:
 module Text.Pandoc.Writers.FB2 (writeFB2)  where
 
 import Control.Monad.Except (catchError)
-import Control.Monad.State.Strict (StateT, evalStateT, get, lift, modify)
-import Control.Monad.State.Strict (liftM)
+import Control.Monad.State.Strict (StateT, evalStateT, get, lift, modify, liftM)
+import Control.Monad (zipWithM)
 import Data.ByteString.Base64 (encode)
 import qualified Data.ByteString.Char8 as B8
 import Data.Char (isAscii, isControl, isSpace, toLower)
@@ -100,10 +100,10 @@ pandocToFB2 opts (Pandoc meta blocks) = do
      secs <- renderSections 1 blocks
      let body = el "body" $ fp ++ secs
      notes <- renderFootnotes
-     (imgs,missing) <- liftM imagesToFetch get >>= \s -> lift (fetchImages s)
+     (imgs,missing) <- fmap imagesToFetch get >>= \s -> lift (fetchImages s)
      let body' = replaceImagesWithAlt missing body
      let fb2_xml = el "FictionBook" (fb2_attrs, [desc, body'] ++ notes ++ imgs)
-     return $ pack $ xml_head ++ (showContent fb2_xml) ++ "\n"
+     return $ pack $ xml_head ++ showContent fb2_xml ++ "\n"
   where
   xml_head = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
   fb2_attrs =
@@ -115,7 +115,7 @@ pandocToFB2 opts (Pandoc meta blocks) = do
 frontpage :: PandocMonad m => Meta -> FBM m [Content]
 frontpage meta' = do
   t <- cMapM toXml . docTitle $ meta'
-  return $
+  return
     [ el "title" (el "p" t)
     , el "annotation" (map (el "p" . cMap plain)
                        (docAuthors meta' ++ [docDate meta']))
@@ -131,7 +131,7 @@ description meta' = do
                Just (MetaString s)        -> [el "lang" $ iso639 s]
                _                          -> []
              where iso639 = takeWhile (/= '-') -- Convert BCP 47 to ISO 639
-  return $ el "description" $
+  return $ el "description"
     [ el "title-info" (bt ++ as ++ dd ++ lang)
     , el "document-info" [ el "program-used" "pandoc" ] -- FIXME: +version
     ]
@@ -149,16 +149,16 @@ authors meta' = cMap author (docAuthors meta')
 author :: [Inline] -> [Content]
 author ss =
   let ws = words . cMap plain $ ss
-      email = (el "email") `fmap` (take 1 $ filter ('@' `elem`) ws)
+      email = el "email" <$> take 1 (filter ('@' `elem`) ws)
       ws' = filter ('@' `notElem`) ws
       names = case ws' of
-                (nickname:[]) -> [ el "nickname" nickname ]
-                (fname:lname:[]) -> [ el "first-name" fname
+                [nickname] -> [ el "nickname" nickname ]
+                [fname, lname] -> [ el "first-name" fname
                                     , el "last-name" lname ]
                 (fname:rest) -> [ el "first-name" fname
                                 , el "middle-name" (concat . init $ rest)
                                 , el "last-name" (last rest) ]
-                ([]) -> []
+                [] -> []
   in  list $ el "author" (names ++ email)
 
 docdate :: PandocMonad m => Meta -> FBM m [Content]
@@ -181,7 +181,7 @@ renderSection level (ttl, body) = do
     title <- if null ttl
             then return []
             else return . list . el "title" . formatTitle $ ttl
-    content <- if (hasSubsections body)
+    content <- if hasSubsections body
                then renderSections (level + 1) body
                else cMapM blockToXml body
     return $ el "section" (title ++ content)
@@ -213,7 +213,7 @@ splitSections level blocks = reverse $ revSplit (reverse blocks)
     let (lastsec, before) = break sameLevel rblocks
         (header, prevblocks) =
             case before of
-              ((Header n _ title):prevblocks') ->
+              (Header n _ title:prevblocks') ->
                   if n == level
                      then (title, prevblocks')
                      else ([], before)
@@ -232,7 +232,7 @@ renderFootnotes = do
          el "body" ([uattr "name" "notes"], map renderFN (reverse fns))
   where
     renderFN (n, idstr, cs) =
-        let fn_texts = (el "title" (el "p" (show n))) : cs
+        let fn_texts = el "title" (el "p" (show n)) : cs
         in  el "section" ([uattr "id" idstr], fn_texts)
 
 -- | Fetch images and encode them for the FictionBook XML.
@@ -240,7 +240,7 @@ renderFootnotes = do
 fetchImages :: PandocMonad m => [(String,String)] -> m ([Content],[String])
 fetchImages links = do
     imgs <- mapM (uncurry fetchImage) links
-    return $ (rights imgs, lefts imgs)
+    return (rights imgs, lefts imgs)
 
 -- | Fetch image data from disk or from network and make a <binary> XML section.
 -- Return either (Left hrefOfMissingImage) or (Right xmlContent).
@@ -254,7 +254,7 @@ fetchImage href link = do
               then return (Just (mime',base64))
               else return Nothing
        (True, Just _) -> return Nothing  -- not base64-encoded
-       _               -> do
+       _               ->
          catchError (do (bs, mbmime) <- P.fetchItem link
                         case mbmime of
                              Nothing -> do
@@ -266,7 +266,7 @@ fetchImage href link = do
                        do report $ CouldNotFetchResource link (show e)
                           return Nothing)
   case mbimg of
-    Just (imgtype, imgdata) -> do
+    Just (imgtype, imgdata) ->
         return . Right $ el "binary"
                    ( [uattr "id" href
                      , uattr "content-type" imgtype]
@@ -300,8 +300,8 @@ isMimeType :: String -> Bool
 isMimeType s =
     case split (=='/') s of
       [mtype,msubtype] ->
-          ((map toLower mtype) `elem` types
-           || "x-" `isPrefixOf` (map toLower mtype))
+          (map toLower mtype `elem` types
+           || "x-" `isPrefixOf` map toLower mtype)
           && all valid mtype
           && all valid msubtype
       _ -> False
@@ -311,10 +311,10 @@ isMimeType s =
              c `notElem` "()<>@,;:\\\"/[]?="
 
 footnoteID :: Int -> String
-footnoteID i = "n" ++ (show i)
+footnoteID i = "n" ++ show i
 
 linkID :: Int -> String
-linkID i = "l" ++ (show i)
+linkID i = "l" ++ show i
 
 -- | Convert a block-level Pandoc's element to FictionBook XML representation.
 blockToXml :: PandocMonad m => Block -> FBM m [Content]
@@ -323,14 +323,14 @@ blockToXml (Para [Math DisplayMath formula]) = insertMath NormalImage formula
 -- title beginning with fig: indicates that the image is a figure
 blockToXml (Para [Image atr alt (src,'f':'i':'g':':':tit)]) =
   insertImage NormalImage (Image atr alt (src,tit))
-blockToXml (Para ss) = liftM (list . el "p") $ cMapM toXml ss
+blockToXml (Para ss) = (list . el "p") <$> cMapM toXml ss
 blockToXml (CodeBlock _ s) = return . spaceBeforeAfter .
                              map (el "p" . el "code") . lines $ s
 blockToXml b@(RawBlock _ _) = do
   report $ BlockNotRendered b
   return []
 blockToXml (Div _ bs) = cMapM blockToXml bs
-blockToXml (BlockQuote bs) = liftM (list . el "cite") $ cMapM blockToXml bs
+blockToXml (BlockQuote bs) = (list . el "cite") <$> cMapM blockToXml bs
 blockToXml (LineBlock lns) = blockToXml $ linesToPara lns
 blockToXml (OrderedList a bss) = do
     state <- get
@@ -341,19 +341,19 @@ blockToXml (OrderedList a bss) = do
           itemtext <- cMapM blockToXml . paraToPlain $ bs
           modify (\s -> s { parentListMarker = pmrk }) -- old parent marker
           return . el "p" $ [ txt mrk, txt " " ] ++ itemtext
-    mapM (uncurry mkitem) (zip markers bss)
+    zipWithM mkitem markers bss
 blockToXml (BulletList bss) = do
     state <- get
     let level = parentBulletLevel state
     let pmrk = parentListMarker state
     let prefix = replicate (length pmrk) ' '
     let bullets = ["\x2022", "\x25e6", "*", "\x2043", "\x2023"]
-    let mrk = prefix ++ bullets !! (level `mod` (length bullets))
+    let mrk = prefix ++ bullets !! (level `mod` length bullets)
     let mkitem bs = do
-          modify (\s -> s { parentBulletLevel = (level+1) })
+          modify (\s -> s { parentBulletLevel = level+1 })
           itemtext <- cMapM blockToXml . paraToPlain $ bs
           modify (\s -> s { parentBulletLevel = level }) -- restore bullet level
-          return $ el "p" $ [ txt (mrk ++ " ") ] ++ itemtext
+          return $ el "p" $ txt (mrk ++ " ") : itemtext
     mapM mkitem bss
 blockToXml (DefinitionList defs) =
     cMapM mkdef defs
@@ -370,7 +370,7 @@ blockToXml (DefinitionList defs) =
       needsBreak (Para _)    = False
       needsBreak (Plain ins) = LineBreak `notElem` ins
       needsBreak _           = True
-blockToXml h@(Header _ _ _) = do
+blockToXml h@Header{} = do
   -- should not occur after hierarchicalize, except inside lists/blockquotes
   report $ BlockNotRendered h
   return []
@@ -381,12 +381,12 @@ blockToXml HorizontalRule = return
 blockToXml (Table caption aligns _ headers rows) = do
     hd <- mkrow "th" headers aligns
     bd <- mapM (\r -> mkrow "td" r aligns) rows
-    c <- return . el "emphasis" =<< cMapM toXml caption
+    c <- el "emphasis" <$> cMapM toXml caption
     return [el "table" (hd : bd), el "p" c]
     where
       mkrow :: PandocMonad m => String -> [TableCell] -> [Alignment] -> FBM m Content
       mkrow tag cells aligns' =
-        (el "tr") `liftM` (mapM (mkcell tag) (zip cells aligns'))
+        el "tr" <$> mapM (mkcell tag) (zip cells aligns')
       --
       mkcell :: PandocMonad m => String -> (TableCell, Alignment) -> FBM m Content
       mkcell tag (cell, align) = do
@@ -405,7 +405,7 @@ blockToXml Null = return []
 paraToPlain :: [Block] -> [Block]
 paraToPlain [] = []
 paraToPlain (Para inlines : rest) =
-    let p = (Plain (inlines ++ [LineBreak]))
+    let p = Plain (inlines ++ [LineBreak])
     in  p : paraToPlain rest
 paraToPlain (p:rest) = p : paraToPlain rest
 
@@ -418,8 +418,8 @@ indent = indentBlock
   spacer :: String
   spacer = replicate 4 ' '
   --
-  indentBlock (Plain ins) = Plain ((Str spacer):ins)
-  indentBlock (Para ins) = Para ((Str spacer):ins)
+  indentBlock (Plain ins) = Plain (Str spacer:ins)
+  indentBlock (Para ins) = Para (Str spacer:ins)
   indentBlock (CodeBlock a s) =
     let s' = unlines . map (spacer++) . lines $ s
     in  CodeBlock a s'
@@ -429,7 +429,7 @@ indent = indentBlock
   -- indent every (explicit) line
   indentLines :: [Inline] -> [Inline]
   indentLines ins = let lns = split isLineBreak ins :: [[Inline]]
-                    in  intercalate [LineBreak] $ map ((Str spacer):) lns
+                    in  intercalate [LineBreak] $ map (Str spacer:) lns
 
 -- | Convert a Pandoc's Inline element to FictionBook XML representation.
 toXml :: PandocMonad m => Inline -> FBM m [Content]
@@ -473,7 +473,7 @@ toXml (Link _ text (url,ttl)) = do
                   ( [ attr ("l","href") ('#':ln_id)
                     , uattr "type" "note" ]
                   , ln_ref) ]
-toXml img@(Image _ _ _) = insertImage InlineImage img
+toXml img@Image{} = insertImage InlineImage img
 toXml (Note bs) = do
   fns <- footnotes `liftM` get
   let n = 1 + length fns
@@ -487,7 +487,7 @@ toXml (Note bs) = do
 
 insertMath :: PandocMonad m => ImageMode -> String -> FBM m [Content]
 insertMath immode formula = do
-  htmlMath <- return . writerHTMLMathMethod . writerOptions =<< get
+  htmlMath <- fmap (writerHTMLMathMethod . writerOptions) get
   case htmlMath of
     WebTeX url -> do
        let alt = [Code nullAttr formula]
@@ -531,17 +531,17 @@ replaceImagesWithAlt missingHrefs body =
               Nothing      -> c'  -- end of document
   --
     isImage :: Content -> Bool
-    isImage (Elem e) = (elName e) == (uname "image")
+    isImage (Elem e) = elName e == uname "image"
     isImage _        = False
   --
-    isMissing (Elem img@(Element _ _ _ _)) =
+    isMissing (Elem img@Element{}) =
         let imgAttrs = elAttribs img
             badAttrs = map (attr ("l","href")) missingHrefs
         in  any (`elem` imgAttrs) badAttrs
     isMissing _ = False
   --
     replaceNode :: Content -> Content
-    replaceNode n@(Elem img@(Element _ _ _ _)) =
+    replaceNode n@(Elem img@Element{}) =
         let attrs = elAttribs img
             alt = getAttrVal attrs (uname "alt")
             imtype = getAttrVal attrs (qname "l" "type")
@@ -572,15 +572,15 @@ list = (:[])
 -- | Convert an 'Inline' to plaintext.
 plain :: Inline -> String
 plain (Str s)               = s
-plain (Emph ss)             = concat (map plain ss)
-plain (Span _ ss)           = concat (map plain ss)
-plain (Strong ss)           = concat (map plain ss)
-plain (Strikeout ss)        = concat (map plain ss)
-plain (Superscript ss)      = concat (map plain ss)
-plain (Subscript ss)        = concat (map plain ss)
-plain (SmallCaps ss)        = concat (map plain ss)
-plain (Quoted _ ss)         = concat (map plain ss)
-plain (Cite _ ss)           = concat (map plain ss)  -- FIXME
+plain (Emph ss)             = concatMap plain ss
+plain (Span _ ss)           = concatMap plain ss
+plain (Strong ss)           = concatMap plain ss
+plain (Strikeout ss)        = concatMap plain ss
+plain (Superscript ss)      = concatMap plain ss
+plain (Subscript ss)        = concatMap plain ss
+plain (SmallCaps ss)        = concatMap plain ss
+plain (Quoted _ ss)         = concatMap plain ss
+plain (Cite _ ss)           = concatMap plain ss  -- FIXME
 plain (Code _ s)            = s
 plain Space                 = " "
 plain SoftBreak             = " "
@@ -588,7 +588,7 @@ plain LineBreak             = "\n"
 plain (Math _ s)            = s
 plain (RawInline _ _)       = ""
 plain (Link _ text (url,_)) = concat (map plain text ++ [" <", url, ">"])
-plain (Image _ alt _)       = concat (map plain alt)
+plain (Image _ alt _)       = concatMap plain alt
 plain (Note _)              = ""  -- FIXME
 
 -- | Create an XML element.
@@ -610,11 +610,11 @@ txt s = Text $ CData CDataText s Nothing
 
 -- | Create an XML attribute with an unqualified name.
 uattr :: String -> String -> Text.XML.Light.Attr
-uattr name val = Attr (uname name) val
+uattr name = Attr (uname name)
 
 -- | Create an XML attribute with a qualified name from given namespace.
 attr :: (String, String) -> String -> Text.XML.Light.Attr
-attr (ns, name) val = Attr (qname ns name) val
+attr (ns, name) = Attr (qname ns name)
 
 -- | Unqualified name
 uname :: String -> QName
