@@ -572,15 +572,15 @@ list = (:[])
 -- | Convert an 'Inline' to plaintext.
 plain :: Inline -> String
 plain (Str s)               = s
-plain (Emph ss)             = concatMap plain ss
-plain (Span _ ss)           = concatMap plain ss
-plain (Strong ss)           = concatMap plain ss
-plain (Strikeout ss)        = concatMap plain ss
-plain (Superscript ss)      = concatMap plain ss
-plain (Subscript ss)        = concatMap plain ss
-plain (SmallCaps ss)        = concatMap plain ss
-plain (Quoted _ ss)         = concatMap plain ss
-plain (Cite _ ss)           = concatMap plain ss  -- FIXME
+plain (Emph ss)             = cMap plain ss
+plain (Span _ ss)           = cMap plain ss
+plain (Strong ss)           = cMap plain ss
+plain (Strikeout ss)        = cMap plain ss
+plain (Superscript ss)      = cMap plain ss
+plain (Subscript ss)        = cMap plain ss
+plain (SmallCaps ss)        = cMap plain ss
+plain (Quoted _ ss)         = cMap plain ss
+plain (Cite _ ss)           = cMap plain ss  -- FIXME
 plain (Code _ s)            = s
 plain Space                 = " "
 plain SoftBreak             = " "
@@ -588,7 +588,7 @@ plain LineBreak             = "\n"
 plain (Math _ s)            = s
 plain (RawInline _ _)       = ""
 plain (Link _ text (url,_)) = concat (map plain text ++ [" <", url, ">"])
-plain (Image _ alt _)       = concatMap plain alt
+plain (Image _ alt _)       = cMap plain alt
 plain (Note _)              = ""  -- FIXME
 
 -- | Create an XML element.
