@@ -111,7 +111,9 @@ install:
       ;;
     cabal)
       cabal --version
+      date
       travis_retry cabal update
+      date
       cabal install -j --only-dependencies --flags="$FLAGS" --enable-tests --force-reinstalls --ghc-options="-O0" --reorder-goals --max-backjumps=-1 $CABALARGS
       ;;
   esac
@@ -124,10 +126,12 @@ script:
       stack --no-terminal $ARGS test --flag 'aeson:fast' --flag pandoc:embed_data_files --haddock --no-haddock-deps --ghc-options="$OPTS"
       ;;
     cabal)
+      date && \
       cabal sdist --output-directory=sourcedist && \
       cd sourcedist && \
       cabal configure --enable-tests -v2 --flags="$FLAGS" --ghc-options="$OPTS" $CABALARGS && \
       cabal build && \
+      date && \
       cabal test
       ;;
   esac
