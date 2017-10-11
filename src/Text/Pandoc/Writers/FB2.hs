@@ -56,7 +56,7 @@ import qualified Text.Pandoc.Class as P
 import Text.Pandoc.Definition
 import Text.Pandoc.Logging
 import Text.Pandoc.Options (HTMLMathMethod (..), WriterOptions (..), def)
-import Text.Pandoc.Shared (capitalize, isHeaderBlock, isURI, linesToPara,
+import Text.Pandoc.Shared (capitalize, isHeaderBlock, isURI,
                            orderedListMarkers)
 
 -- | Data to be written at the end of the document:
@@ -331,7 +331,11 @@ blockToXml b@(RawBlock _ _) = do
   return []
 blockToXml (Div _ bs) = cMapM blockToXml bs
 blockToXml (BlockQuote bs) = (list . el "cite") <$> cMapM blockToXml bs
-blockToXml (LineBlock lns) = blockToXml $ linesToPara lns
+blockToXml (LineBlock lns) =
+  (list . el "poem") <$> mapM stanza (split null lns)
+  where
+    v xs = el "v" <$> cMapM toXml xs
+    stanza xs = el "stanza" <$> mapM v xs
 blockToXml (OrderedList a bss) = do
     state <- get
     let pmrk = parentListMarker state
