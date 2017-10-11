@@ -78,11 +78,12 @@ matrix:
   #   compiler: ": #stack nightly osx"
   #   os: osx
 
-  # allow 8.0.2 cabal build to fail; it times out
+  # allow ghc 7.10.3 and 8.0.2 cabal build to fail; they tend to time out
   allow_failures:
   - env: BUILD=cabal GHCVER=head  CABALVER=head
   - env: BUILD=stack ARGS="--resolver nightly"
   - env: BUILD=cabal GHCVER=8.0.2 CABALVER=1.24 OPTS="-O0 -Wall -Wincomplete-record-updates -Wnoncanonical-monad-instances -Wnoncanonical-monadfail-instances -fno-warn-unused-do-bind -Werror" FLAGS="fast" CABALARGS=""
+  - env: BUILD=cabal GHCVER=7.10.3 CABALVER=1.22 OPTS="-O0 -Wall -fno-warn-unused-do-bind -Werror" FLAGS="fast embed_data_files" CABALARGS=""
 
   fast_finish: true
 
