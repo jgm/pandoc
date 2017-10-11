@@ -25,4 +25,5 @@ extra-deps:
 - QuickCheck-2.10.0.1
 - tasty-quickcheck-0.9.1
 - haddock-library-1.4.3
+- hs-bibutils-6.2.0.1
 resolver: lts-9.1
