@@ -449,19 +449,20 @@ sectionHeader (ident,classes,_) hdrLevel lst = do
                  TopLevelChapter -> hdrLevel - 1
                  TopLevelSection -> hdrLevel
                  TopLevelDefault -> hdrLevel
-  let ident' = toLabel ident
+  let ident' = if null ident
+                  then empty
+                  else brackets (text (toLabel ident))
   let (section, chapter) = if "unnumbered" `elem` classes
                               then (text "subject", text "title")
                               else (text "section", text "chapter")
   return $ case level' of
-             -1                   -> text "\\part" <> braces contents
-             0                    -> char '\\' <> chapter <> braces contents
+             -1                   -> text "\\part" <> ident' <> braces contents
+             0                    -> char '\\' <> chapter <> ident' <>
+                                           braces contents
              n | n >= 1 && n <= 5 -> char '\\'
                                      <> text (concat (replicate (n - 1) "sub"))
                                      <> section
-                                     <> (if (not . null) ident'
-                                         then brackets (text ident')
-                                         else empty)
+                                     <> ident'
                                      <> braces contents
                                      <> blankline
              _                    -> contents <> blankline
