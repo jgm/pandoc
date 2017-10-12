@@ -113,7 +113,6 @@ install:
       stack --no-terminal --install-ghc $ARGS build --only-dependencies --fast --flag 'pandoc:embed_data_files' --flag 'aeson:fast'
       ;;
     cabal)
-      ulimit -n 4096
       cabal --version
       travis_retry cabal update
       cabal install --disable-optimization --only-dependencies --flags="$FLAGS" --enable-tests --force-reinstalls --reorder-goals --max-backjumps=-1 $CABALARGS
@@ -128,10 +127,9 @@ script:
       stack --no-terminal $ARGS test --fast --flag 'aeson:fast' --flag pandoc:embed_data_files --haddock --no-haddock-deps --ghc-options="$OPTS"
       ;;
     cabal)
-      ulimit -n 4096
       cabal sdist --output-directory=sourcedist && \
       cd sourcedist && \
-      cabal configure --disable-optimization -j1 --enable-tests -v2 --flags="$FLAGS" --ghc-options="$OPTS" $CABALARGS && \
+      cabal configure --disable-optimization -j --enable-tests -v2 --flags="$FLAGS" --ghc-options="$OPTS" $CABALARGS && \
       cabal build -v2 && \
       cabal test
       ;;
