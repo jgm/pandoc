@@ -131,7 +131,7 @@ script:
       ulimit -n 4096
       cabal sdist --output-directory=sourcedist && \
       cd sourcedist && \
-      cabal configure --disable-optimization --enable-tests -v2 --flags="$FLAGS" --ghc-options="$OPTS" $CABALARGS && \
+      cabal configure --disable-optimization -j1 --enable-tests -v2 --flags="$FLAGS" --ghc-options="$OPTS" $CABALARGS && \
       cabal build -v2 && \
       cabal test
       ;;
