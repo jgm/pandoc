@@ -952,8 +952,10 @@ inlineToMarkdown opts (Span attrs ils) = do
                 True -> contents
                 False | attrs == nullAttr -> contents
                       | isEnabled Ext_bracketed_spans opts ->
-                        "[" <> contents <> "]" <>
-                             linkAttributes opts attrs
+                        let attrs' = if attrs /= nullAttr
+                                        then attrsToMarkdown attrs
+                                        else empty
+                        in "[" <> contents <> "]" <> attrs'
                       | isEnabled Ext_raw_html opts ||
                         isEnabled Ext_native_spans opts ->
                         tagWithAttrs "span" attrs <> contents <> text "</span>"
