@@ -129,8 +129,8 @@ script:
     cabal)
       cabal sdist --output-directory=sourcedist && \
       cd sourcedist && \
-      cabal configure --disable-optimization -j --enable-tests -v2 --flags="$FLAGS" --ghc-options="$OPTS" $CABALARGS && \
-      cabal build -v2 && \
+      cabal configure --disable-optimization --enable-tests -v2 --flags="$FLAGS" --ghc-options="$OPTS" $CABALARGS && \
+      cabal build -v2 -j2 && \
       cabal test
       ;;
   esac
