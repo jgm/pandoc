@@ -31,25 +31,25 @@ matrix:
   include:
   # We grab the appropriate GHC and cabal-install versions from hvr's PPA. See:
   # https://github.com/hvr/multi-ghc-travis
-  - env: BUILD=cabal GHCVER=7.8.4 CABALVER=1.18 OPTS="-O0 -Wall -fno-warn-unused-do-bind -Werror" FLAGS="fast embed_data_files" CABALARGS="--enable-benchmarks"
+  - env: BUILD=cabal GHCVER=7.8.4 CABALVER=1.18 OPTS="-Wall -fno-warn-unused-do-bind -Werror" FLAGS="fast embed_data_files" CABALARGS="--enable-benchmarks"
     compiler: ": #GHC 7.8.4"
     addons: {apt: {packages: [cabal-install-1.18,ghc-7.8.4,happy-1.19.5], sources: [hvr-ghc]}}
 
   # don't build benchmarks for ghc 7.10.3, because build takes too long...
-  - env: BUILD=cabal GHCVER=7.10.3 CABALVER=1.22 OPTS="-O0 -Wall -fno-warn-unused-do-bind -Werror" FLAGS="fast embed_data_files" CABALARGS=""
+  - env: BUILD=cabal GHCVER=7.10.3 CABALVER=1.22 OPTS="-Wall -fno-warn-unused-do-bind -Werror" FLAGS="fast embed_data_files" CABALARGS=""
     compiler: ": #GHC 7.10.3"
     addons: {apt: {packages: [cabal-install-1.22,ghc-7.10.3,happy-1.19.5], sources: [hvr-ghc]}}
 
   # don't build benchmarks for ghc 8.0.2, because build takes too long...
-  - env: BUILD=cabal GHCVER=8.0.2 CABALVER=1.24 OPTS="-O0 -Wall -Wincomplete-record-updates -Wnoncanonical-monad-instances -Wnoncanonical-monadfail-instances -fno-warn-unused-do-bind -Werror" FLAGS="fast" CABALARGS=""
+  - env: BUILD=cabal GHCVER=8.0.2 CABALVER=1.24 OPTS="-Wall -Wincomplete-record-updates -Wnoncanonical-monad-instances -Wnoncanonical-monadfail-instances -fno-warn-unused-do-bind -Werror" FLAGS="fast" CABALARGS=""
     compiler: ": #GHC 8.0.2"
     addons: {apt: {packages: [cabal-install-1.24,ghc-8.0.2,happy-1.19.5], sources: [hvr-ghc]}}
 
-  - env: BUILD=cabal GHCVER=8.2.1 CABALVER=1.24 OPTS="-O0 -Wall -Wincomplete-record-updates -Wnoncanonical-monad-instances -Wnoncanonical-monadfail-instances -fno-warn-unused-do-bind -Werror" FLAGS="fast embed_data_files" CABALARGS="--enable-benchmarks"
+  - env: BUILD=cabal GHCVER=8.2.1 CABALVER=1.24 OPTS="-Wall -Wincomplete-record-updates -Wnoncanonical-monad-instances -Wnoncanonical-monadfail-instances -fno-warn-unused-do-bind -Werror" FLAGS="fast embed_data_files" CABALARGS="--enable-benchmarks"
     compiler: ": #GHC 8.2.1"
     addons: {apt: {packages: [cabal-install-1.24,ghc-8.2.1,happy-1.19.5], sources: [hvr-ghc]}}
 
-  - env: BUILD=cabal GHCVER=8.2.1 CABALVER=2.0 OPTS="-O0 -Wall -Wincomplete-record-updates -Wnoncanonical-monad-instances -Wnoncanonical-monadfail-instances -fno-warn-unused-do-bind -Werror" FLAGS="fast embed_data_files" CABALARGS="--enable-benchmarks"
+  - env: BUILD=cabal GHCVER=8.2.1 CABALVER=2.0 OPTS="-Wall -Wincomplete-record-updates -Wnoncanonical-monad-instances -Wnoncanonical-monadfail-instances -fno-warn-unused-do-bind -Werror" FLAGS="fast embed_data_files" CABALARGS="--enable-benchmarks"
     compiler: ": #GHC 8.2.1"
     addons: {apt: {packages: [cabal-install-2.0,ghc-8.2.1,happy-1.19.5], sources: [hvr-ghc]}}
 
@@ -61,7 +61,7 @@ matrix:
 
   # The Stack builds. We can pass in arbitrary Stack arguments via the ARGS
   # variable, such as using --stack-yaml to point to a different file.
-  - env: BUILD=stack ARGS="--resolver lts-9" OPTS="-O0 -Wall -Wincomplete-record-updates -Wnoncanonical-monad-instances -Wnoncanonical-monadfail-instances -fno-warn-unused-do-bind -Werror"
+  - env: BUILD=stack ARGS="--resolver lts-9" OPTS="-Wall -Wincomplete-record-updates -Wnoncanonical-monad-instances -Wnoncanonical-monadfail-instances -fno-warn-unused-do-bind -Werror"
     compiler: ": #stack 8.0.2"
     addons: {apt: {packages: [ghc-8.0.2], sources: [hvr-ghc]}}
 
@@ -82,8 +82,8 @@ matrix:
   allow_failures:
   - env: BUILD=cabal GHCVER=head  CABALVER=head
   - env: BUILD=stack ARGS="--resolver nightly"
-  - env: BUILD=cabal GHCVER=8.0.2 CABALVER=1.24 OPTS="-O0 -Wall -Wincomplete-record-updates -Wnoncanonical-monad-instances -Wnoncanonical-monadfail-instances -fno-warn-unused-do-bind -Werror" FLAGS="fast" CABALARGS=""
-  - env: BUILD=cabal GHCVER=7.10.3 CABALVER=1.22 OPTS="-O0 -Wall -fno-warn-unused-do-bind -Werror" FLAGS="fast embed_data_files" CABALARGS=""
+  - env: BUILD=cabal GHCVER=8.0.2 CABALVER=1.24 OPTS="-Wall -Wincomplete-record-updates -Wnoncanonical-monad-instances -Wnoncanonical-monadfail-instances -fno-warn-unused-do-bind -Werror" FLAGS="fast" CABALARGS=""
+  - env: BUILD=cabal GHCVER=7.10.3 CABALVER=1.22 OPTS="-Wall -fno-warn-unused-do-bind -Werror" FLAGS="fast embed_data_files" CABALARGS=""
 
   fast_finish: true
 
@@ -116,7 +116,7 @@ install:
       ulimit -n 4096
       cabal --version
       travis_retry cabal update
-      cabal install -j --only-dependencies --flags="$FLAGS" --enable-tests --force-reinstalls --ghc-options="-O0" --reorder-goals --max-backjumps=-1 $CABALARGS
+      cabal install --disable-optimization -j --only-dependencies --flags="$FLAGS" --enable-tests --force-reinstalls --reorder-goals --max-backjumps=-1 $CABALARGS
       ;;
   esac
 
@@ -125,14 +125,14 @@ script:
   case "$BUILD" in
     stack)
       ulimit -n 4096
-      stack --no-terminal $ARGS test --flag 'aeson:fast' --flag pandoc:embed_data_files --haddock --no-haddock-deps --ghc-options="$OPTS"
+      stack --no-terminal $ARGS test --fast --flag 'aeson:fast' --flag pandoc:embed_data_files --haddock --no-haddock-deps --ghc-options="$OPTS"
       ;;
     cabal)
       ulimit -n 4096
       cabal sdist --output-directory=sourcedist && \
       cd sourcedist && \
-      cabal configure --enable-tests -v3 --flags="$FLAGS" --ghc-options="$OPTS" $CABALARGS && \
-      cabal build -v3 && \
+      cabal configure --disable-optimization --enable-tests -v2 --flags="$FLAGS" --ghc-options="$OPTS" $CABALARGS && \
+      cabal build -v2 && \
       cabal test
       ;;
   esac
