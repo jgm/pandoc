@@ -131,8 +131,8 @@ script:
       ulimit -n 4096
       cabal sdist --output-directory=sourcedist && \
       cd sourcedist && \
-      cabal configure --enable-tests -v2 --flags="$FLAGS" --ghc-options="$OPTS" $CABALARGS && \
-      cabal build --ghc-options="$OPTS" && \
+      cabal configure --enable-tests -v3 --flags="$FLAGS" --ghc-options="$OPTS" $CABALARGS && \
+      cabal build -v3 && \
       cabal test
       ;;
   esac
