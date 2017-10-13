@@ -130,6 +130,9 @@ tests = [ testGroup "basic"
           , "Image width relative to textsize" =:
             "\\includegraphics[width=0.6\\textwidth]{foo.png}" =?>
             para (imageWith ("", [], [("width", "60%")]) "foo.png" "" "image")
+          , "Image with options with spaces" =:
+            "\\includegraphics[width=12cm, height = 5cm]{foo.png}" =?>
+            para (imageWith ("", [], [("width", "12cm"), ("height", "5cm")]) "foo.png" "" "image")
           ]
 
         , let hex = ['0'..'9']++['a'..'f'] in
