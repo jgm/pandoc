@@ -108,6 +108,30 @@ tests = [ testGroup "basic"
           , biblatexCitations
           ]
 
+        , testGroup "images"
+          [ "Basic image" =:
+            "\\includegraphics{foo.png}" =?>
+            para (image "foo.png" "" (text "image"))
+          , "Basic image with blank options" =:
+            "\\includegraphics[]{foo.png}" =?>
+            para (image "foo.png" "" (text "image"))
+          , "Image with both width and height" =:
+            "\\includegraphics[width=17cm,height=5cm]{foo.png}" =?>
+            para (imageWith ("", [], [("width", "17cm"), ("height", "5cm")]) "foo.png" "" "image")
+          , "Image with width and height and a bunch of other options" =:
+            "\\includegraphics[width=17cm,height=5cm,clip,keepaspectratio]{foo.png}" =?>
+            para (imageWith ("", [], [("width", "17cm"), ("height", "5cm")]) "foo.png" "" "image")
+          , "Image with just width" =:
+            "\\includegraphics[width=17cm]{foo.png}" =?>
+            para (imageWith ("", [], [("width", "17cm")]) "foo.png" "" "image")
+          , "Image with just height" =:
+            "\\includegraphics[height=17cm]{foo.png}" =?>
+            para (imageWith ("", [], [("height", "17cm")]) "foo.png" "" "image")
+          , "Image width relative to textsize" =:
+            "\\includegraphics[width=0.6\\textwidth]{foo.png}" =?>
+            para (imageWith ("", [], [("width", "60%")]) "foo.png" "" "image")
+          ]
+
         , let hex = ['0'..'9']++['a'..'f'] in
           testGroup "Character Escapes"
           [ "Two-character escapes" =:
