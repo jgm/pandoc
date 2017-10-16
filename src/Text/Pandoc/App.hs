@@ -110,7 +110,8 @@ parseOptions options' defaults = do
   let (actions, args, unrecognizedOpts, errors) =
            getOpt' Permute options' rawArgs
 
-  let unknownOptionErrors = foldr handleUnrecognizedOption [] unrecognizedOpts
+  let unknownOptionErrors = foldr handleUnrecognizedOption [] $
+                  map (takeWhile (/= '=')) unrecognizedOpts
 
   unless (null errors && null unknownOptionErrors) $
      E.throwIO $ PandocOptionError $
