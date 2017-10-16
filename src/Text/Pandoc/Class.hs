@@ -1,10 +1,12 @@
 {-# LANGUAGE CPP #-}
+{-# LANGUAGE PatternGuards #-}
 {-# LANGUAGE DeriveFunctor #-}
 {-# LANGUAGE TypeSynonymInstances #-}
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE UndecidableInstances #-}
+{-# LANGUAGE ScopedTypeVariables #-}
 #if MIN_VERSION_base(4,8,0)
 #else
 {-# LANGUAGE OverlappingInstances #-}
@@ -97,9 +99,10 @@ import Prelude hiding (readFile)
 import System.Random (StdGen, next, mkStdGen)
 import qualified System.Random as IO (newStdGen)
 import Codec.Archive.Zip
+import qualified Data.CaseInsensitive as CI
 import Data.Unique (hashUnique)
+import Data.List (stripPrefix)
 import qualified Data.Unique as IO (newUnique)
-import qualified Text.Pandoc.Shared as Shared
 import qualified Text.Pandoc.UTF8 as UTF8
 import qualified System.Directory as Directory
 import Text.Pandoc.Compat.Time (UTCTime)
@@ -115,9 +118,21 @@ import Data.Time.Clock.POSIX ( utcTimeToPOSIXSeconds
                              , posixSecondsToUTCTime
                              , POSIXTime )
 import Data.Time.LocalTime (TimeZone, ZonedTime, utcToZonedTime, utc)
+import Data.ByteString.Base64 (decodeLenient)
 import Network.URI ( escapeURIString, nonStrictRelativeTo,
                      unEscapeString, parseURIReference, isAllowedInURI,
                      parseURI, URI(..) )
+import Network.HTTP.Client (httpLbs, responseBody, responseHeaders,
+                            Request(port,host,requestHeaders))
+import Network.HTTP.Client (parseRequest)
+import Network.HTTP.Client (newManager)
+import Network.HTTP.Client.Internal (addProxy)
+import Network.HTTP.Client.TLS (tlsManagerSettings)
+import System.Environment (getEnv)
+import Network.HTTP.Types.Header ( hContentType )
+import Network (withSocketsDo)
+import Data.ByteString.Lazy (toChunks)
+import qualified Control.Exception as E
 import qualified Data.Time.LocalTime as IO (getCurrentTimeZone)
 import Text.Pandoc.MediaBag (MediaBag, lookupMedia, mediaDirectory)
 import Text.Pandoc.Walk (walkM, walk)
@@ -456,12 +471,34 @@ instance PandocMonad PandocIO where
   getCurrentTimeZone = liftIO IO.getCurrentTimeZone
   newStdGen = liftIO IO.newStdGen
   newUniqueHash = hashUnique <$> liftIO IO.newUnique
-  openURL u = do
-    report $ Fetching u
-    res <- liftIOError Shared.openURL u
-    case res of
-         Right r -> return r
-         Left e  -> throwError $ PandocHttpError u e
+
+  openURL u
+   | Just u'' <- stripPrefix "data:" u = do
+       let mime     = takeWhile (/=',') u''
+       let contents = UTF8.fromString $
+                       unEscapeString $ drop 1 $ dropWhile (/=',') u''
+       return (decodeLenient contents, Just mime)
+   | otherwise = do
+       let toReqHeader (n, v) = (CI.mk (UTF8.fromString n), UTF8.fromString v)
+       customHeaders <- map toReqHeader <$> getsCommonState stRequestHeaders
+       report $ Fetching u
+       res <- liftIO $ E.try $ withSocketsDo $ do
+         let parseReq = parseRequest
+         proxy <- tryIOError (getEnv "http_proxy")
+         let addProxy' x = case proxy of
+                              Left _ -> return x
+                              Right pr -> parseReq pr >>= \r ->
+                                  return (addProxy (host r) (port r) x)
+         req <- parseReq u >>= addProxy'
+         let req' = req{requestHeaders = customHeaders ++ requestHeaders req}
+         resp <- newManager tlsManagerSettings >>= httpLbs req'
+         return (B.concat $ toChunks $ responseBody resp,
+                 UTF8.toString `fmap` lookup hContentType (responseHeaders resp))
+
+       case res of
+            Right r -> return r
+            Left e  -> throwError $ PandocHttpError u e
+
   readFileLazy s = liftIOError BL.readFile s
   readFileStrict s = liftIOError B.readFile s
 
