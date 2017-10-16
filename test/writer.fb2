@@ -115,8 +115,8 @@
 </p>
 <empty-line />
 <p>A list:</p>
-<p> 1. item one</p>
-<p> 2. item two</p>
+<p>1. item one</p>
+<p>2. item two</p>
 <p>Nested block quotes:</p>
 <cite>
 <p>nested</p>
@@ -191,127 +191,131 @@
 <p>• asterisk 2</p>
 <p>• asterisk 3</p>
 <p>Asterisks loose:</p>
-<p>• asterisk 1<empty-line />
-</p>
-<p>• asterisk 2<empty-line />
-</p>
-<p>• asterisk 3<empty-line />
-</p>
+<p>• asterisk 1</p>
+<empty-line />
+<p>• asterisk 2</p>
+<empty-line />
+<p>• asterisk 3</p>
+<empty-line />
 <p>Pluses tight:</p>
 <p>• Plus 1</p>
 <p>• Plus 2</p>
 <p>• Plus 3</p>
 <p>Pluses loose:</p>
-<p>• Plus 1<empty-line />
-</p>
-<p>• Plus 2<empty-line />
-</p>
-<p>• Plus 3<empty-line />
-</p>
+<p>• Plus 1</p>
+<empty-line />
+<p>• Plus 2</p>
+<empty-line />
+<p>• Plus 3</p>
+<empty-line />
 <p>Minuses tight:</p>
 <p>• Minus 1</p>
 <p>• Minus 2</p>
 <p>• Minus 3</p>
 <p>Minuses loose:</p>
-<p>• Minus 1<empty-line />
-</p>
-<p>• Minus 2<empty-line />
-</p>
-<p>• Minus 3<empty-line />
-</p>
+<p>• Minus 1</p>
+<empty-line />
+<p>• Minus 2</p>
+<empty-line />
+<p>• Minus 3</p>
+<empty-line />
 </section>
 <section>
 <title>
 <p>Ordered</p>
 </title>
 <p>Tight:</p>
-<p> 1. First</p>
-<p> 2. Second</p>
-<p> 3. Third</p>
+<p>1. First</p>
+<p>2. Second</p>
+<p>3. Third</p>
 <p>and:</p>
-<p> 1. One</p>
-<p> 2. Two</p>
-<p> 3. Three</p>
+<p>1. One</p>
+<p>2. Two</p>
+<p>3. Three</p>
 <p>Loose using tabs:</p>
-<p> 1. First<empty-line />
-</p>
-<p> 2. Second<empty-line />
-</p>
-<p> 3. Third<empty-line />
-</p>
+<p>1. First</p>
+<empty-line />
+<p>2. Second</p>
+<empty-line />
+<p>3. Third</p>
+<empty-line />
 <p>and using spaces:</p>
-<p> 1. One<empty-line />
-</p>
-<p> 2. Two<empty-line />
-</p>
-<p> 3. Three<empty-line />
-</p>
+<p>1. One</p>
+<empty-line />
+<p>2. Two</p>
+<empty-line />
+<p>3. Three</p>
+<empty-line />
 <p>Multiple paragraphs:</p>
-<p> 1. Item 1, graf one.<empty-line />Item 1. graf two. The quick brown fox jumped over the lazy dog’s back.<empty-line />
-</p>
-<p> 2. Item 2.<empty-line />
-</p>
-<p> 3. Item 3.<empty-line />
-</p>
+<p>1. Item 1, graf one.</p>
+<empty-line />
+<p>   Item 1. graf two. The quick brown fox jumped over the lazy dog’s back.</p>
+<empty-line />
+<p>2. Item 2.</p>
+<empty-line />
+<p>3. Item 3.</p>
+<empty-line />
 </section>
 <section>
 <title>
 <p>Nested</p>
 </title>
-<p>• Tab<p>◦ Tab<p>* Tab</p>
-</p>
-</p>
+<p>• Tab</p>
+<p>◦ Tab</p>
+<p>* Tab</p>
 <p>Here’s another:</p>
-<p> 1. First</p>
-<p> 2. Second:<p>   • Fee</p>
-<p>   • Fie</p>
-<p>   • Foe</p>
-</p>
-<p> 3. Third</p>
-<p>Same thing but with paragraphs:</p>
-<p> 1. First<empty-line />
-</p>
-<p> 2. Second:<empty-line />
+<p>1. First</p>
+<p>2. Second:</p>
 <p>   • Fee</p>
 <p>   • Fie</p>
 <p>   • Foe</p>
-</p>
-<p> 3. Third<empty-line />
-</p>
+<p>3. Third</p>
+<p>Same thing but with paragraphs:</p>
+<p>1. First</p>
+<empty-line />
+<p>2. Second:</p>
+<empty-line />
+<p>   • Fee</p>
+<p>   • Fie</p>
+<p>   • Foe</p>
+<p>3. Third</p>
+<empty-line />
 </section>
 <section>
 <title>
 <p>Tabs and spaces</p>
 </title>
-<p>• this is a list item indented with tabs<empty-line />
-</p>
-<p>• this is a list item indented with spaces<empty-line />
-<p>◦ this is an example list item indented with tabs<empty-line />
-</p>
-<p>◦ this is an example list item indented with spaces<empty-line />
-</p>
-</p>
+<p>• this is a list item indented with tabs</p>
+<empty-line />
+<p>• this is a list item indented with spaces</p>
+<empty-line />
+<p>◦ this is an example list item indented with tabs</p>
+<empty-line />
+<p>◦ this is an example list item indented with spaces</p>
+<empty-line />
 </section>
 <section>
 <title>
 <p>Fancy list markers</p>
 </title>
-<p> (2) begins with 2</p>
-<p> (3) and now 3<empty-line />with a continuation<empty-line />
-<p> (3) iv. sublist with roman numerals, starting with 4</p>
-<p> (3) v. more items<p> (3) v. (A) a subsublist</p>
-<p> (3) v. (B) a subsublist</p>
-</p>
-</p>
+<p>(2) begins with 2</p>
+<p>(3) and now 3</p>
+<empty-line />
+<p>    with a continuation</p>
+<empty-line />
+<p>(3) iv. sublist with roman numerals, starting with 4</p>
+<p>(3) v. more items</p>
+<p>(3) v. (A) a subsublist</p>
+<p>(3) v. (B) a subsublist</p>
 <p>Nesting:</p>
-<p> A. Upper Alpha<p> A. I. Upper Roman.<p> A. I. (6) Decimal start with 6<p> A. I. (6) c) Lower alpha with paren</p>
-</p>
-</p>
-</p>
+<p>A. Upper Alpha</p>
+<p>A. I. Upper Roman.</p>
+<p>A. I. (6) Decimal start with 6</p>
+<p>A. I. (6) c) Lower alpha with paren</p>
 <p>Autonumbering:</p>
-<p> 1. Autonumber.</p>
-<p> 2. More.<p> 2. 1. Nested.</p>
-</p>
+<p>1. Autonumber.</p>
+<p>2. More.</p>
+<p>2. 1. Nested.</p>
 <p>Should not be a list item:</p>
 <p>M.A. 2007</p>
 <p>B. Williams</p>
@@ -427,8 +431,8 @@
 <strong>orange</strong>
 </p>
 <p>    orange fruit<empty-line />
-<p> 1. sublist</p>
-<p> 2. sublist</p>
+<p>1. sublist</p>
+<p>2. sublist</p>
 </p>
 </section>
 <section>
@@ -753,7 +757,7 @@
 </a>
 </p>
 </cite>
-<p> 1. And in list items.<a l:href="#n32" type="note">
+<p>1. And in list items.<a l:href="#n32" type="note">
 <sup>[32]</sup>
 </a>
 </p>
