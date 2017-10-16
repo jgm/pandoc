@@ -57,6 +57,7 @@ module Text.Pandoc.Class ( PandocMonad(..)
                          , readFileFromDirs
                          , report
                          , setTrace
+                         , setRequestHeader
                          , getLog
                          , setVerbosity
                          , getVerbosity
@@ -245,6 +246,15 @@ report msg = do
 setTrace :: PandocMonad m => Bool -> m ()
 setTrace useTracing = modifyCommonState $ \st -> st{stTrace = useTracing}
 
+-- | Set request header to use in HTTP requests.
+setRequestHeader :: PandocMonad m
+                 => String  -- ^ Header name
+                 -> String  -- ^ Value
+                 -> m ()
+setRequestHeader name val = modifyCommonState $ \st ->
+  st{ stRequestHeaders =
+       (name, val) : filter (\(n,_) -> n /= name) (stRequestHeaders st)  }
+
 -- | Initialize the media bag.
 setMediaBag :: PandocMonad m => MediaBag -> m ()
 setMediaBag mb = modifyCommonState $ \st -> st{stMediaBag = mb}
@@ -315,6 +325,8 @@ data CommonState = CommonState { stLog          :: [LogMessage]
                                  -- ^ Directory to search for data files
                                , stSourceURL    :: Maybe String
                                  -- ^ Absolute URL + dir of 1st source file
+                               , stRequestHeaders :: [(String, String)]
+                                 -- ^ Headers to add for HTTP requests
                                , stMediaBag     :: MediaBag
                                  -- ^ Media parsed from binary containers
                                , stTranslations :: Maybe
@@ -338,6 +350,7 @@ instance Default CommonState where
   def = CommonState { stLog = []
                     , stUserDataDir = Nothing
                     , stSourceURL = Nothing
+                    , stRequestHeaders = []
                     , stMediaBag = mempty
                     , stTranslations = Nothing
                     , stInputFiles = []
