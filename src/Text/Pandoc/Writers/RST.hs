@@ -169,21 +169,24 @@ pictToRST (label, (attr, src, _, mbtarget)) = do
 
 -- | Escape special characters for RST.
 escapeString :: WriterOptions -> String -> String
-escapeString _  [] = []
-escapeString opts (c:cs) =
-  case c of
-       _ | c `elem` ['\\','`','*','_','|'] -> '\\':c:escapeString opts cs
-       '\'' | isEnabled Ext_smart opts -> '\\':'\'':escapeString opts cs
-       '"' | isEnabled Ext_smart opts -> '\\':'"':escapeString opts cs
-       '-' | isEnabled Ext_smart opts ->
-              case cs of
-                   '-':_ -> '\\':'-':escapeString opts cs
-                   _     -> '-':escapeString opts cs
-       '.' | isEnabled Ext_smart opts ->
-              case cs of
-                   '.':'.':rest -> '\\':'.':'.':'.':escapeString opts rest
-                   _            -> '.':escapeString opts cs
-       _ -> c : escapeString opts cs
+escapeString = escapeString' True
+  where
+  escapeString' _ _  [] = []
+  escapeString' firstChar opts (c:cs) =
+    case c of
+         _ | c `elem` ['\\','`','*','_','|'] &&
+             (firstChar || null cs) -> '\\':c:escapeString' False opts cs
+         '\'' | isEnabled Ext_smart opts -> '\\':'\'':escapeString' False opts cs
+         '"' | isEnabled Ext_smart opts -> '\\':'"':escapeString' False opts cs
+         '-' | isEnabled Ext_smart opts ->
+                case cs of
+                     '-':_ -> '\\':'-':escapeString' False opts cs
+                     _     -> '-':escapeString' False opts cs
+         '.' | isEnabled Ext_smart opts ->
+                case cs of
+                     '.':'.':rest -> '\\':'.':'.':'.':escapeString' False opts rest
+                     _            -> '.':escapeString' False opts cs
+         _ -> c : escapeString' False opts cs
 
 titleToRST :: PandocMonad m => [Inline] -> [Inline] -> RST m Doc
 titleToRST [] _ = return empty
