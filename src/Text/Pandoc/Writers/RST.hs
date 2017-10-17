@@ -483,10 +483,15 @@ inlineToRST (Quoted DoubleQuote lst) = do
      else return $ "“" <> contents <> "”"
 inlineToRST (Cite _  lst) =
   inlineListToRST lst
-inlineToRST (Code _ str) =
+inlineToRST (Code _ str) = do
+  opts <- gets stOptions
   -- we trim the string because the delimiters must adjoin a
   -- non-space character; see #3496
-  return $ "``" <> text (trim str) <> "``"
+  -- we use :literal: when the code contains backticks, since
+  -- :literal: allows backslash-escapes; see #3974
+  return $ if '`' `elem` str
+              then ":literal:`" <> text (escapeString opts (trim str)) <> "`"
+              else "``" <> text (trim str) <> "``"
 inlineToRST (Str str) = do
   opts <- gets stOptions
   return $ text $
