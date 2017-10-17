@@ -31,17 +31,17 @@ module Text.Pandoc.Readers.LaTeX.Types ( Tok(..)
                                        , TokType(..)
                                        , Macro(..)
                                        , ExpansionPoint(..)
-                                       , Line
-                                       , Column )
+                                       , SourcePos
+                                       )
 where
 import Data.Text (Text)
-import Text.Parsec.Pos (Line, Column)
+import Text.Parsec.Pos (SourcePos)
 
 data TokType = CtrlSeq Text | Spaces | Newline | Symbol | Word | Comment |
                Esc1    | Esc2   | Arg Int
      deriving (Eq, Ord, Show)
 
-data Tok = Tok (Line, Column) TokType Text
+data Tok = Tok SourcePos TokType Text
      deriving (Eq, Ord, Show)
 
 data ExpansionPoint = ExpandWhenDefined | ExpandWhenUsed
