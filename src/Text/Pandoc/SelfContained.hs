@@ -74,12 +74,13 @@ convertTags (t@TagOpen{}:ts)
   | fromAttrib "data-external" t == "1" = (t:) <$> convertTags ts
 convertTags (t@(TagOpen tagname as):ts)
   | tagname `elem`
-     ["img", "embed", "video", "input", "audio", "source", "track"] = do
+     ["img", "embed", "video", "input", "audio", "source", "track",
+      "section"] = do
        as' <- mapM processAttribute as
        rest <- convertTags ts
        return $ TagOpen tagname as' : rest
   where processAttribute (x,y) =
-           if x == "src" || x == "data-src" || x == "href" || x == "poster"
+           if x `elem` ["src", "data-src", "href", "poster", "data-background"]
               then do
                 enc <- getDataURI (fromAttrib "type" t) y
                 return (x, enc)
