@@ -120,7 +120,8 @@ data-files:
                  MANUAL.txt, COPYRIGHT
 extra-source-files:
                  -- documentation
-                 INSTALL.md, BUGS, README.md, CONTRIBUTING.md, changelog
+                 INSTALL.md, AUTHORS.md, README.md,
+                 CONTRIBUTING.md, BUGS, changelog,
                  man/pandoc.1
                  -- stack build plan
                  stack.yaml
