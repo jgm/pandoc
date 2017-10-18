@@ -448,6 +448,7 @@ library
                    Text.Pandoc.Asciify,
                    Text.Pandoc.Emoji,
                    Text.Pandoc.ImageSize,
+                   Text.Pandoc.BCP47,
                    Text.Pandoc.Class
   other-modules:   Text.Pandoc.Readers.Docx.Lists,
                    Text.Pandoc.Readers.Docx.Combine,
@@ -480,7 +481,6 @@ library
                    Text.Pandoc.CSS,
                    Text.Pandoc.CSV,
                    Text.Pandoc.UUID,
-                   Text.Pandoc.BCP47,
                    Text.Pandoc.Translations,
                    Text.Pandoc.Slides,
                    Text.Pandoc.Compat.Time,
