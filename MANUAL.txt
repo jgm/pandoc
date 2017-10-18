@@ -476,6 +476,8 @@ Reader options
      non-executable)
 
      2. `$DATADIR/filters` (executable or non-executable)
+     where `$DATADIR` is the user data directory (see
+     `--data-dir`, above).
 
      3. `$PATH` (executable only)
 
