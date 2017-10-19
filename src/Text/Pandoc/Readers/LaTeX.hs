@@ -769,7 +769,7 @@ dolstinline = do
 keyval :: PandocMonad m => LP m (String, String)
 keyval = try $ do
   Tok _ Word key <- satisfyTok isWordTok
-  let isSpecSym (Tok _ Symbol t) = t `elem` [".",":","-","|","\\"]
+  let isSpecSym (Tok _ Symbol t) = t /= "]" && t /= ","
       isSpecSym _ = False
   optional sp
   val <- option [] $ do
@@ -2095,7 +2095,7 @@ environments = M.fromList
    , ("BVerbatim", fancyverbEnv "BVerbatim")
    , ("lstlisting", do attr <- parseListingsOptions <$> option [] keyvals
                        codeBlockWith attr <$> verbEnv "lstlisting")
-    , ("minted", minted)
+   , ("minted", minted)
    , ("obeylines", obeylines)
    , ("displaymath", mathEnvWith para Nothing "displaymath")
    , ("equation", mathEnvWith para Nothing "equation")
