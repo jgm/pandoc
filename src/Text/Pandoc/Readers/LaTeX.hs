@@ -1751,7 +1751,8 @@ include = do
                     controlSeq "include" <|> controlSeq "input" <|>
                     controlSeq "subfile" <|> controlSeq "usepackage"
   skipMany $ bracketed inline -- skip options
-  fs <- (map trim . splitBy (==',') . T.unpack . untokenize) <$> braced
+  fs <- (map (T.unpack . removeDoubleQuotes . T.strip) . T.splitOn "," .
+         untokenize) <$> braced
   let fs' = if name == "usepackage"
                then map (maybeAddExtension ".sty") fs
                else map (maybeAddExtension ".tex") fs
