@@ -1610,7 +1610,7 @@ isBlockCommand s =
 
 treatAsBlock :: Set.Set Text
 treatAsBlock = Set.fromList
-   [ "let", "def"
+   [ "let", "def", "DeclareRobustCommand"
    , "newcommand", "renewcommand"
    , "newenvironment", "renewenvironment"
    , "providecommand", "provideenvironment"
@@ -1838,7 +1838,8 @@ newcommand = do
   pos <- getPosition
   Tok _ (CtrlSeq mtype) _ <- controlSeq "newcommand" <|>
                              controlSeq "renewcommand" <|>
-                             controlSeq "providecommand"
+                             controlSeq "providecommand" <|>
+                             controlSeq "DeclareRobustCommand"
   optional $ symbol '*'
   Tok _ (CtrlSeq name) txt <- withVerbatimMode $ anyControlSeq <|>
     (symbol '{' *> spaces *> anyControlSeq <* spaces <* symbol '}')
