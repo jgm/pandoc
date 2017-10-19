@@ -372,11 +372,14 @@ totoks pos t =
          | otherwise ->
            Tok pos Symbol (T.singleton c) : totoks (incSourceColumn pos 1) rest
 
-  where isSpaceOrTab ' '  = True
-        isSpaceOrTab '\t' = True
-        isSpaceOrTab _    = False
-        isLetterOrAt '@'  = True
-        isLetterOrAt c    = isLetter c
+isSpaceOrTab :: Char -> Bool
+isSpaceOrTab ' '  = True
+isSpaceOrTab '\t' = True
+isSpaceOrTab _    = False
+
+isLetterOrAt :: Char -> Bool
+isLetterOrAt '@'  = True
+isLetterOrAt c    = isLetter c
 
 isLowerHex :: Char -> Bool
 isLowerHex x = x >= '0' && x <= '9' || x >= 'a' && x <= 'f'
@@ -411,10 +414,19 @@ doMacros n = do
          Tok spos (CtrlSeq "end") _ : Tok _ Symbol "{" :
           Tok _ Word name : Tok _ Symbol "}" : ts
             -> handleMacros spos ("end" <> name) ts
+         Tok _ (CtrlSeq "expandafter") _ : t : ts
+            -> do setInput ts
+                  doMacros n
+                  getInput >>= setInput . combineTok t
          Tok spos (CtrlSeq name) _ : ts
             -> handleMacros spos name ts
          _ -> return ()
-  where handleMacros spos name ts = do
+  where combineTok (Tok spos (CtrlSeq name) x) (Tok _ Word w : ts)
+          | T.all isLetterOrAt w =
+            Tok spos (CtrlSeq (name <> w)) (x1 <> w <> x2) : ts
+              where (x1, x2) = T.break isSpaceOrTab x
+        combineTok t ts = t:ts
+        handleMacros spos name ts = do
                 macros <- sMacros <$> getState
                 case M.lookup name macros of
                      Nothing -> return ()
@@ -438,6 +450,7 @@ doMacros n = do
                                  then throwError $ PandocMacroLoop (T.unpack name)
                                  else doMacros (n + 1)
                             ExpandWhenDefined -> return ()
+
 
 setpos :: SourcePos -> Tok -> Tok
 setpos spos (Tok _ tt txt) = Tok spos tt txt
