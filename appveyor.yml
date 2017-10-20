@@ -14,6 +14,16 @@ environment:
 #    STACK: "%STACK_ROOT%\\stack.exe"
 #    STACK_FLAGS: ""
 
+skip_commits:
+  files:
+    - '*.md'
+    - '*.txt'
+    - '.travis.yml'
+    - 'Makefile'
+    - 'man/pandoc.1'
+    - 'linux/*'
+    - 'macos/*'
+
 matrix:
   fast_finish: true
 

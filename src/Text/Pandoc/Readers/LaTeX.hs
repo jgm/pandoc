@@ -71,7 +71,9 @@ import Text.Pandoc.Shared
 import Text.Pandoc.Readers.LaTeX.Types (Macro(..), ExpansionPoint(..), Tok(..),
                             TokType(..))
 import Text.Pandoc.Walk
-import Text.Pandoc.Error (PandocError(PandocParsecError, PandocMacroLoop))
+import Text.Pandoc.Error
+   (PandocError(PandocParsecError, PandocParseError, PandocMacroLoop))
+import Text.Parsec.Pos
 
 -- for debugging:
 -- import Text.Pandoc.Extensions (getDefaultExtensions)
@@ -85,7 +87,7 @@ readLaTeX :: PandocMonad m
           -> m Pandoc
 readLaTeX opts ltx = do
   parsed <- runParserT parseLaTeX def{ sOptions = opts } "source"
-               (tokenize (crFilter ltx))
+               (tokenize "source" (crFilter ltx))
   case parsed of
     Right result -> return result
     Left e       -> throwError $ PandocParsecError (T.unpack ltx) e
@@ -127,7 +129,7 @@ resolveRefs _ x = x
 --   res <- runIOorExplode (runParserT p defaultLaTeXState{
 --             sOptions = def{ readerExtensions =
 --               enableExtension Ext_raw_tex $
---                 getDefaultExtensions "latex" }} "source" (tokenize t))
+--                 getDefaultExtensions "latex" }} "source" (tokenize "source" t))
 --   case res of
 --        Left e  -> error (show e)
 --        Right r -> return r
@@ -238,7 +240,7 @@ rawLaTeXParser :: (PandocMonad m, HasMacros s, HasReaderOptions s)
                => LP m a -> ParserT String s m String
 rawLaTeXParser parser = do
   inp <- getInput
-  let toks = tokenize $ T.pack inp
+  let toks = tokenize "source" $ T.pack inp
   pstate <- getState
   let lstate = def{ sOptions = extractReaderOptions pstate }
   res <- lift $ runParserT ((,) <$> try (snd <$> withRaw parser) <*> getState)
@@ -257,7 +259,7 @@ applyMacros s = (guardDisabled Ext_latex_macros >> return s) <|>
       pstate <- getState
       let lstate = def{ sOptions = extractReaderOptions pstate
                       , sMacros  = extractMacros pstate }
-      res <- runParserT retokenize lstate "math" (tokenize (T.pack s))
+      res <- runParserT retokenize lstate "math" (tokenize "math" (T.pack s))
       case res of
            Left e -> fail (show e)
            Right s' -> return s'
@@ -278,7 +280,7 @@ inlineCommand :: PandocMonad m => ParserT String ParserState m Inlines
 inlineCommand = do
   lookAhead (try (char '\\' >> letter) <|> char '$')
   inp <- getInput
-  let toks = tokenize $ T.pack inp
+  let toks = tokenize "chunk" $ T.pack inp
   let rawinline = do
          (il, raw) <- try $ withRaw (inlineEnvironment <|> inlineCommand')
          st <- getState
@@ -294,32 +296,33 @@ inlineCommand = do
          takeP (T.length (untokenize raw))
          return il
 
-tokenize :: Text -> [Tok]
-tokenize = totoks (1, 1)
+tokenize :: SourceName -> Text -> [Tok]
+tokenize sourcename = totoks (initialPos sourcename)
 
-totoks :: (Line, Column) -> Text -> [Tok]
-totoks (lin,col) t =
+totoks :: SourcePos -> Text -> [Tok]
+totoks pos t =
   case T.uncons t of
        Nothing        -> []
        Just (c, rest)
          | c == '\n' ->
-           Tok (lin, col) Newline "\n"
-           : totoks (lin + 1,1) rest
+           Tok pos Newline "\n"
+           : totoks (setSourceColumn (incSourceLine pos 1) 1) rest
          | isSpaceOrTab c ->
            let (sps, rest') = T.span isSpaceOrTab t
-           in  Tok (lin, col) Spaces sps
-               : totoks (lin, col + T.length sps) rest'
+           in  Tok pos Spaces sps
+               : totoks (incSourceColumn pos (T.length sps))
+                 rest'
          | isAlphaNum c ->
            let (ws, rest') = T.span isAlphaNum t
-           in  Tok (lin, col) Word ws
-               : totoks (lin, col + T.length ws) rest'
+           in  Tok pos Word ws
+               : totoks (incSourceColumn pos (T.length ws)) rest'
          | c == '%' ->
            let (cs, rest') = T.break (== '\n') rest
-           in  Tok (lin, col) Comment ("%" <> cs)
-               : totoks (lin, col + 1 + T.length cs) rest'
+           in  Tok pos Comment ("%" <> cs)
+               : totoks (incSourceColumn pos (1 + T.length cs)) rest'
          | c == '\\' ->
            case T.uncons rest of
-                Nothing -> [Tok (lin, col) Symbol (T.singleton c)]
+                Nothing -> [Tok pos Symbol (T.singleton c)]
                 Just (d, rest')
                   | isLetterOrAt d ->
                       -- \makeatletter is common in macro defs;
@@ -328,24 +331,24 @@ totoks (lin,col) t =
                       -- probably best for now
                       let (ws, rest'') = T.span isLetterOrAt rest
                           (ss, rest''') = T.span isSpaceOrTab rest''
-                      in  Tok (lin, col) (CtrlSeq ws) ("\\" <> ws <> ss)
-                          : totoks (lin,
-                                 col + 1 + T.length ws + T.length ss) rest'''
+                      in  Tok pos (CtrlSeq ws) ("\\" <> ws <> ss)
+                          : totoks (incSourceColumn pos
+                               (1 + T.length ws + T.length ss)) rest'''
                   | d == '\t' || d == '\n' ->
-                      Tok (lin, col) Symbol ("\\")
-                      : totoks (lin, col + 1) rest
+                      Tok pos Symbol ("\\")
+                      : totoks (incSourceColumn pos 1) rest
                   | otherwise  ->
-                      Tok (lin, col) (CtrlSeq (T.singleton d)) (T.pack [c,d])
-                      : totoks (lin, col + 2) rest'
+                      Tok pos (CtrlSeq (T.singleton d)) (T.pack [c,d])
+                      : totoks (incSourceColumn pos 2) rest'
          | c == '#' ->
            let (t1, t2) = T.span (\d -> d >= '0' && d <= '9') rest
            in  case safeRead (T.unpack t1) of
                     Just i ->
-                       Tok (lin, col) (Arg i) ("#" <> t1)
-                       : totoks (lin, col + 1 + T.length t1) t2
+                       Tok pos (Arg i) ("#" <> t1)
+                       : totoks (incSourceColumn pos (1 + T.length t1)) t2
                     Nothing ->
-                       Tok (lin, col) Symbol ("#")
-                       : totoks (lin, col + 1) t2
+                       Tok pos Symbol ("#")
+                       : totoks (incSourceColumn pos 1) t2
          | c == '^' ->
            case T.uncons rest of
                 Just ('^', rest') ->
@@ -354,26 +357,29 @@ totoks (lin,col) t =
                          | isLowerHex d ->
                            case T.uncons rest'' of
                                 Just (e, rest''') | isLowerHex e ->
-                                  Tok (lin, col) Esc2 (T.pack ['^','^',d,e])
-                                  : totoks (lin, col + 4) rest'''
+                                  Tok pos Esc2 (T.pack ['^','^',d,e])
+                                  : totoks (incSourceColumn pos 4) rest'''
                                 _ ->
-                                  Tok (lin, col) Esc1 (T.pack ['^','^',d])
-                                  : totoks (lin, col + 3) rest''
+                                  Tok pos Esc1 (T.pack ['^','^',d])
+                                  : totoks (incSourceColumn pos 3) rest''
                          | d < '\128' ->
-                                  Tok (lin, col) Esc1 (T.pack ['^','^',d])
-                                  : totoks (lin, col + 3) rest''
-                       _ -> [Tok (lin, col) Symbol ("^"),
-                             Tok (lin, col + 1) Symbol ("^")]
-                _ -> Tok (lin, col) Symbol ("^")
-                     : totoks (lin, col + 1) rest
+                                  Tok pos Esc1 (T.pack ['^','^',d])
+                                  : totoks (incSourceColumn pos 3) rest''
+                       _ -> [Tok pos Symbol ("^"),
+                             Tok (incSourceColumn pos 1) Symbol ("^")]
+                _ -> Tok pos Symbol ("^")
+                     : totoks (incSourceColumn pos 1) rest
          | otherwise ->
-           Tok (lin, col) Symbol (T.singleton c) : totoks (lin, col + 1) rest
+           Tok pos Symbol (T.singleton c) : totoks (incSourceColumn pos 1) rest
 
-  where isSpaceOrTab ' '  = True
-        isSpaceOrTab '\t' = True
-        isSpaceOrTab _    = False
-        isLetterOrAt '@'  = True
-        isLetterOrAt c    = isLetter c
+isSpaceOrTab :: Char -> Bool
+isSpaceOrTab ' '  = True
+isSpaceOrTab '\t' = True
+isSpaceOrTab _    = False
+
+isLetterOrAt :: Char -> Bool
+isLetterOrAt '@'  = True
+isLetterOrAt c    = isLetter c
 
 isLowerHex :: Char -> Bool
 isLowerHex x = x >= '0' && x <= '9' || x >= 'a' && x <= 'f'
@@ -393,8 +399,7 @@ satisfyTok f =
   where matcher t | f t       = Just t
                   | otherwise = Nothing
         updatePos :: SourcePos -> Tok -> [Tok] -> SourcePos
-        updatePos spos _ (Tok (lin,col) _ _ : _) =
-          setSourceColumn (setSourceLine spos lin) col
+        updatePos _spos _ (Tok pos _ _ : _) = pos
         updatePos spos _ [] = spos
 
 doMacros :: PandocMonad m => Int -> LP m ()
@@ -409,10 +414,19 @@ doMacros n = do
          Tok spos (CtrlSeq "end") _ : Tok _ Symbol "{" :
           Tok _ Word name : Tok _ Symbol "}" : ts
             -> handleMacros spos ("end" <> name) ts
+         Tok _ (CtrlSeq "expandafter") _ : t : ts
+            -> do setInput ts
+                  doMacros n
+                  getInput >>= setInput . combineTok t
          Tok spos (CtrlSeq name) _ : ts
             -> handleMacros spos name ts
          _ -> return ()
-  where handleMacros spos name ts = do
+  where combineTok (Tok spos (CtrlSeq name) x) (Tok _ Word w : ts)
+          | T.all isLetterOrAt w =
+            Tok spos (CtrlSeq (name <> w)) (x1 <> w <> x2) : ts
+              where (x1, x2) = T.break isSpaceOrTab x
+        combineTok t ts = t:ts
+        handleMacros spos name ts = do
                 macros <- sMacros <$> getState
                 case M.lookup name macros of
                      Nothing -> return ()
@@ -437,7 +451,8 @@ doMacros n = do
                                  else doMacros (n + 1)
                             ExpandWhenDefined -> return ()
 
-setpos :: (Line, Column) -> Tok -> Tok
+
+setpos :: SourcePos -> Tok -> Tok
 setpos spos (Tok _ tt txt) = Tok spos tt txt
 
 anyControlSeq :: PandocMonad m => LP m Tok
@@ -659,8 +674,6 @@ doubleQuote = do
    -- the following is used by babel for localized quotes:
    <|> quoted' doubleQuoted (try $ sequence [symbol '"', symbol '`'])
                             (void $ try $ sequence [symbol '"', symbol '\''])
-   <|> quoted' doubleQuoted ((:[]) <$> symbol '"')
-                            (void $ symbol '"')
 
 singleQuote :: PandocMonad m => LP m Inlines
 singleQuote = do
@@ -730,15 +743,15 @@ doverb = do
 
 verbTok :: PandocMonad m => Char -> LP m Tok
 verbTok stopchar = do
-  t@(Tok (lin, col) toktype txt) <- satisfyTok (not . isNewlineTok)
+  t@(Tok pos toktype txt) <- satisfyTok (not . isNewlineTok)
   case T.findIndex (== stopchar) txt of
        Nothing -> return t
        Just i  -> do
          let (t1, t2) = T.splitAt i txt
          inp <- getInput
-         setInput $ Tok (lin, col + i) Symbol (T.singleton stopchar)
-                  : (totoks (lin, col + i + 1) (T.drop 1 t2)) ++ inp
-         return $ Tok (lin, col) toktype t1
+         setInput $ Tok (incSourceColumn pos i) Symbol (T.singleton stopchar)
+                  : (totoks (incSourceColumn pos (i + 1)) (T.drop 1 t2)) ++ inp
+         return $ Tok pos toktype t1
 
 dolstinline :: PandocMonad m => LP m Inlines
 dolstinline = do
@@ -756,10 +769,12 @@ dolstinline = do
 keyval :: PandocMonad m => LP m (String, String)
 keyval = try $ do
   Tok _ Word key <- satisfyTok isWordTok
-  let isSpecSym (Tok _ Symbol t) = t `elem` [".",":","-","|","\\"]
+  let isSpecSym (Tok _ Symbol t) = t /= "]" && t /= ","
       isSpecSym _ = False
+  optional sp
   val <- option [] $ do
            symbol '='
+           optional sp
            braced <|> (many1 (satisfyTok isWordTok <|> satisfyTok isSpecSym
                                <|> anyControlSeq))
   optional sp
@@ -1119,16 +1134,16 @@ tok = grouped inline <|> inlineCommand' <|> singleChar'
 
 singleChar :: PandocMonad m => LP m Tok
 singleChar = try $ do
-  Tok (lin,col) toktype t <- satisfyTok (tokTypeIn [Word, Symbol])
+  Tok pos toktype t <- satisfyTok (tokTypeIn [Word, Symbol])
   guard $ not $ toktype == Symbol &&
                 T.any (`Set.member` specialChars) t
   if T.length t > 1
      then do
        let (t1, t2) = (T.take 1 t, T.drop 1 t)
        inp <- getInput
-       setInput $ (Tok (lin, col + 1) toktype t2) : inp
-       return $ Tok (lin,col) toktype t1
-     else return $ Tok (lin,col) toktype t
+       setInput $ (Tok (incSourceColumn pos 1) toktype t2) : inp
+       return $ Tok pos toktype t1
+     else return $ Tok pos toktype t
 
 opt :: PandocMonad m => LP m Inlines
 opt = bracketed inline
@@ -1161,7 +1176,7 @@ withRaw :: PandocMonad m => LP m a -> LP m (a, [Tok])
 withRaw parser = do
   inp <- getInput
   result <- parser
-  nxt <- option (Tok (0,0) Word "") (lookAhead anyTok)
+  nxt <- option (Tok (initialPos "source") Word "") (lookAhead anyTok)
   let raw = takeWhile (/= nxt) inp
   return (result, raw)
 
@@ -1608,7 +1623,7 @@ isBlockCommand s =
 
 treatAsBlock :: Set.Set Text
 treatAsBlock = Set.fromList
-   [ "let", "def"
+   [ "let", "def", "DeclareRobustCommand"
    , "newcommand", "renewcommand"
    , "newenvironment", "renewenvironment"
    , "providecommand", "provideenvironment"
@@ -1736,12 +1751,33 @@ include = do
                     controlSeq "include" <|> controlSeq "input" <|>
                     controlSeq "subfile" <|> controlSeq "usepackage"
   skipMany $ bracketed inline -- skip options
-  fs <- (map trim . splitBy (==',') . T.unpack . untokenize) <$> braced
+  fs <- (map (T.unpack . removeDoubleQuotes . T.strip) . T.splitOn "," .
+         untokenize) <$> braced
   let fs' = if name == "usepackage"
                then map (maybeAddExtension ".sty") fs
                else map (maybeAddExtension ".tex") fs
   dirs <- (splitBy (==':') . fromMaybe ".") <$> lookupEnv "TEXINPUTS"
-  mconcat <$> mapM (insertIncludedFile blocks (tokenize . T.pack) dirs) fs'
+  mapM_ (insertIncluded dirs) fs'
+  return mempty
+
+insertIncluded :: PandocMonad m
+               => [FilePath]
+               -> FilePath
+               -> LP m ()
+insertIncluded dirs f = do
+  pos <- getPosition
+  containers <- getIncludeFiles <$> getState
+  when (f `elem` containers) $ do
+    throwError $ PandocParseError $ "Include file loop at " ++ show pos
+  updateState $ addIncludeFile f
+  mbcontents <- readFileFromDirs dirs f
+  contents <- case mbcontents of
+                   Just s -> return s
+                   Nothing -> do
+                     report $ CouldNotLoadIncludeFile f pos
+                     return ""
+  getInput >>= setInput . (tokenize f (T.pack contents) ++)
+  updateState dropLatestIncludeFile
 
 maybeAddExtension :: String -> FilePath -> FilePath
 maybeAddExtension ext fp =
@@ -1816,7 +1852,8 @@ newcommand = do
   pos <- getPosition
   Tok _ (CtrlSeq mtype) _ <- controlSeq "newcommand" <|>
                              controlSeq "renewcommand" <|>
-                             controlSeq "providecommand"
+                             controlSeq "providecommand" <|>
+                             controlSeq "DeclareRobustCommand"
   optional $ symbol '*'
   Tok _ (CtrlSeq name) txt <- withVerbatimMode $ anyControlSeq <|>
     (symbol '{' *> spaces *> anyControlSeq <* spaces <* symbol '}')
@@ -2058,7 +2095,7 @@ environments = M.fromList
    , ("BVerbatim", fancyverbEnv "BVerbatim")
    , ("lstlisting", do attr <- parseListingsOptions <$> option [] keyvals
                        codeBlockWith attr <$> verbEnv "lstlisting")
-    , ("minted", minted)
+   , ("minted", minted)
    , ("obeylines", obeylines)
    , ("displaymath", mathEnvWith para Nothing "displaymath")
    , ("equation", mathEnvWith para Nothing "equation")
@@ -2396,9 +2433,7 @@ parseTableRow envname prefsufs = do
                          >> anyTok)
         suffpos <- getPosition
         option [] (count 1 amp)
-        return $ map (setpos (sourceLine prefpos, sourceColumn prefpos)) pref
-                 ++ contents ++
-                 map (setpos (sourceLine suffpos, sourceColumn suffpos)) suff
+        return $ map (setpos prefpos) pref ++ contents ++ map (setpos suffpos) suff
   rawcells <- sequence (map celltoks prefsufs)
   oldInput <- getInput
   cells <- sequence $ map (\ts -> setInput ts >> parseTableCell) rawcells

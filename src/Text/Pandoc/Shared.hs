@@ -76,7 +76,6 @@ module Text.Pandoc.Shared (
                      renderTags',
                      -- * File handling
                      inDirectory,
-                     openURL,
                      collapseFilePath,
                      filteredFilesFromArchive,
                      -- * URI handling
@@ -98,19 +97,17 @@ import Text.Pandoc.Definition
 import Text.Pandoc.Walk
 import Text.Pandoc.Builder (Inlines, Blocks, ToMetaValue(..))
 import qualified Text.Pandoc.Builder as B
-import qualified Text.Pandoc.UTF8 as UTF8
 import Data.Char ( toLower, isLower, isUpper, isAlpha,
                    isLetter, isDigit, isSpace )
 import Data.List ( find, stripPrefix, intercalate )
 import Data.Maybe (mapMaybe)
 import Data.Version ( showVersion )
 import qualified Data.Map as M
-import Network.URI ( URI(uriScheme), escapeURIString, unEscapeString, parseURI )
+import Network.URI ( URI(uriScheme), escapeURIString, parseURI )
 import qualified Data.Set as Set
 import System.Directory
 import System.FilePath (splitDirectories, isPathSeparator)
 import qualified System.FilePath.Posix as Posix
-import Text.Pandoc.MIME (MimeType)
 import Data.Generics (Typeable, Data)
 import qualified Control.Monad.State.Strict as S
 import qualified Control.Exception as E
@@ -118,32 +115,15 @@ import Control.Monad (msum, unless, MonadPlus(..))
 import Text.Pandoc.Pretty (charWidth)
 import Text.Pandoc.Generic (bottomUp)
 import Text.Pandoc.Compat.Time
-import System.IO.Error
 import System.IO.Temp
 import Text.HTML.TagSoup (renderTagsOptions, RenderOptions(..), Tag(..),
          renderOptions)
 import Data.Monoid ((<>))
-import qualified Data.ByteString as BS
-import qualified Data.ByteString.Char8 as B8
-import Data.ByteString.Base64 (decodeLenient)
 import Data.Sequence (ViewR(..), ViewL(..), viewl, viewr)
 import qualified Data.Text as T
-import Data.ByteString.Lazy (toChunks)
 import qualified Data.ByteString.Lazy as BL
 import Paths_pandoc (version)
-
 import Codec.Archive.Zip
-
-import Network.HTTP.Client (httpLbs, responseBody, responseHeaders,
-                            Request(port,host,requestHeaders),
-                            HttpException)
-import Network.HTTP.Client (parseRequest)
-import Network.HTTP.Client (newManager)
-import Network.HTTP.Client.Internal (addProxy)
-import Network.HTTP.Client.TLS (tlsManagerSettings)
-import System.Environment (getEnv)
-import Network.HTTP.Types.Header ( hContentType, hUserAgent)
-import Network (withSocketsDo)
 
 -- | Version number of pandoc library.
 pandocVersion :: String
@@ -353,7 +333,7 @@ extractSpaces f is =
 
 -- | Extract inlines, removing formatting.
 removeFormatting :: Walkable Inline a => a -> [Inline]
-removeFormatting = query go . walk deNote
+removeFormatting = query go . walk (deNote . deQuote)
   where go :: Inline -> [Inline]
         go (Str xs)     = [Str xs]
         go Space        = [Space]
@@ -367,11 +347,18 @@ deNote :: Inline -> Inline
 deNote (Note _) = Str ""
 deNote x        = x
 
+deQuote :: Inline -> Inline
+deQuote (Quoted SingleQuote xs) =
+  Span ("",[],[]) (Str "\8216" : xs ++ [Str "\8217"])
+deQuote (Quoted DoubleQuote xs) =
+  Span ("",[],[]) (Str "\8220" : xs ++ [Str "\8221"])
+deQuote x = x
+
 -- | Convert pandoc structure to a string with formatting removed.
 -- Footnotes are skipped (since we don't want their contents in link
 -- labels).
 stringify :: Walkable Inline a => a -> String
-stringify = query go . walk deNote
+stringify = query go . walk (deNote . deQuote)
   where go :: Inline -> [Char]
         go Space = " "
         go SoftBreak = " "
@@ -598,36 +585,6 @@ inDirectory path action = E.bracket
                              getCurrentDirectory
                              setCurrentDirectory
                              (const $ setCurrentDirectory path >> action)
-
--- | Read from a URL and return raw data and maybe mime type.
-openURL :: String -> IO (Either HttpException (BS.ByteString, Maybe MimeType))
-openURL u
-  | Just u'' <- stripPrefix "data:" u =
-    let mime     = takeWhile (/=',') u''
-        contents = B8.pack $ unEscapeString $ drop 1 $ dropWhile (/=',') u''
-    in  return $ Right (decodeLenient contents, Just mime)
-  | otherwise = E.try $ withSocketsDo $ do
-     let parseReq = parseRequest
-     (proxy :: Either IOError String) <-
-        tryIOError $ getEnv "http_proxy"
-     (useragent :: Either IOError String) <-
-        tryIOError $ getEnv "USER_AGENT"
-     req <- parseReq u
-     req' <- case proxy of
-                     Left _   -> return req
-                     Right pr -> (parseReq pr >>= \r ->
-                                  return $ addProxy (host r) (port r) req)
-                                  `mplus` return req
-     req'' <- case useragent of
-                     Left _ -> return req'
-                     Right ua -> do
-                                   let headers = requestHeaders req'
-                                   let useragentheader = (hUserAgent, B8.pack ua)
-                                   let headers' = useragentheader:headers
-                                   return $ req' {requestHeaders = headers'}
-     resp <- newManager tlsManagerSettings >>= httpLbs req''
-     return (BS.concat $ toChunks $ responseBody resp,
-             UTF8.toString `fmap` lookup hContentType (responseHeaders resp))
 
 --
 -- Error reporting

@@ -257,6 +257,9 @@ inlineToNodes opts (SmallCaps xs) =
     [node (HTML_INLINE (T.pack "</span>")) []]) ++ )
 inlineToNodes opts (Link _ ils (url,tit)) =
   (node (LINK (T.pack url) (T.pack tit)) (inlinesToNodes opts ils) :)
+-- title beginning with fig: indicates implicit figure
+inlineToNodes opts (Image alt ils (url,'f':'i':'g':':':tit)) =
+  inlineToNodes opts (Image alt ils (url,tit))
 inlineToNodes opts (Image _ ils (url,tit)) =
   (node (IMAGE (T.pack url) (T.pack tit)) (inlinesToNodes opts ils) :)
 inlineToNodes _ (RawInline fmt xs)

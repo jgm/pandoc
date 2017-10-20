@@ -424,7 +424,7 @@ M.Image = M.Inline:create_constructor(
     attr = attr or M.Attr()
     return {c = {attr, caption, {src, title}}}
   end,
-  {"attributes", "caption", {"src", "title"}}
+  {{"identifier", "classes", "attributes"}, "caption", {"src", "title"}}
 )
 
 --- Create a LineBreak inline element
@@ -449,7 +449,7 @@ M.Link = M.Inline:create_constructor(
     attr = attr or M.Attr()
     return {c = {attr, content, {target, title}}}
   end,
-  {"attributes", "content", {"target", "title"}}
+  {{"identifier", "classes", "attributes"}, "content", {"target", "title"}}
 )
 
 --- Creates a Math element, either inline or displayed.

@@ -169,21 +169,24 @@ pictToRST (label, (attr, src, _, mbtarget)) = do
 
 -- | Escape special characters for RST.
 escapeString :: WriterOptions -> String -> String
-escapeString _  [] = []
-escapeString opts (c:cs) =
-  case c of
-       _ | c `elem` ['\\','`','*','_','|'] -> '\\':c:escapeString opts cs
-       '\'' | isEnabled Ext_smart opts -> '\\':'\'':escapeString opts cs
-       '"' | isEnabled Ext_smart opts -> '\\':'"':escapeString opts cs
-       '-' | isEnabled Ext_smart opts ->
-              case cs of
-                   '-':_ -> '\\':'-':escapeString opts cs
-                   _     -> '-':escapeString opts cs
-       '.' | isEnabled Ext_smart opts ->
-              case cs of
-                   '.':'.':rest -> '\\':'.':'.':'.':escapeString opts rest
-                   _            -> '.':escapeString opts cs
-       _ -> c : escapeString opts cs
+escapeString = escapeString' True
+  where
+  escapeString' _ _  [] = []
+  escapeString' firstChar opts (c:cs) =
+    case c of
+         _ | c `elem` ['\\','`','*','_','|'] &&
+             (firstChar || null cs) -> '\\':c:escapeString' False opts cs
+         '\'' | isEnabled Ext_smart opts -> '\\':'\'':escapeString' False opts cs
+         '"' | isEnabled Ext_smart opts -> '\\':'"':escapeString' False opts cs
+         '-' | isEnabled Ext_smart opts ->
+                case cs of
+                     '-':_ -> '\\':'-':escapeString' False opts cs
+                     _     -> '-':escapeString' False opts cs
+         '.' | isEnabled Ext_smart opts ->
+                case cs of
+                     '.':'.':rest -> '\\':'.':'.':'.':escapeString' False opts rest
+                     _            -> '.':escapeString' False opts cs
+         _ -> c : escapeString' False opts cs
 
 titleToRST :: PandocMonad m => [Inline] -> [Inline] -> RST m Doc
 titleToRST [] _ = return empty
@@ -480,10 +483,15 @@ inlineToRST (Quoted DoubleQuote lst) = do
      else return $ "“" <> contents <> "”"
 inlineToRST (Cite _  lst) =
   inlineListToRST lst
-inlineToRST (Code _ str) =
+inlineToRST (Code _ str) = do
+  opts <- gets stOptions
   -- we trim the string because the delimiters must adjoin a
   -- non-space character; see #3496
-  return $ "``" <> text (trim str) <> "``"
+  -- we use :literal: when the code contains backticks, since
+  -- :literal: allows backslash-escapes; see #3974
+  return $ if '`' `elem` str
+              then ":literal:`" <> text (escapeString opts (trim str)) <> "`"
+              else "``" <> text (trim str) <> "``"
 inlineToRST (Str str) = do
   opts <- gets stOptions
   return $ text $

@@ -1,5 +1,5 @@
 .\"t
-.TH PANDOC 1 "March 26, 2017" "pandoc 2.0"
+.TH PANDOC 1 "March 26, 2017" "pandoc"
 .SH NAME
 pandoc - general markup converter
 .SH SYNOPSIS
@@ -11,17 +11,16 @@ Pandoc is a Haskell library for converting from one markup format to
 another, and a command\-line tool that uses this library.
 It can read Markdown, CommonMark, PHP Markdown Extra, GitHub\-Flavored
 Markdown, MultiMarkdown, and (subsets of) Textile, reStructuredText,
-HTML, LaTeX, MediaWiki markup, TWiki markup, TikiWiki markup,
-Haddock markup, OPML, Emacs Org mode, DocBook, txt2tags, EPUB, ODT
-and Word docx; and it can write plain text, Markdown, CommonMark,
+HTML, LaTeX, MediaWiki markup, TWiki markup, TikiWiki markup, Haddock
+markup, OPML, Emacs Org mode, DocBook, Muse, txt2tags, Vimwiki, EPUB,
+ODT, and Word docx; and it can write plain text, Markdown, CommonMark,
 PHP Markdown Extra, GitHub\-Flavored Markdown, MultiMarkdown,
-reStructuredText, XHTML, HTML5, LaTeX (including \f[C]beamer\f[]
-slide shows), ConTeXt, RTF, OPML, DocBook, OpenDocument, ODT, Word
-docx, GNU Texinfo, MediaWiki markup, DokuWiki markup, ZimWiki
-markup, Haddock markup, EPUB (v2 or v3), FictionBook2, Textile,
-groff man, groff ms, Emacs Org mode, AsciiDoc, InDesign ICML, TEI
-Simple, and Slidy, Slideous, DZSlides, reveal.js or S5 HTML slide
-shows.
+reStructuredText, XHTML, HTML5, LaTeX (including \f[C]beamer\f[] slide
+shows), ConTeXt, RTF, OPML, DocBook, OpenDocument, ODT, Word docx, GNU
+Texinfo, MediaWiki markup, DokuWiki markup, ZimWiki markup, Haddock
+markup, EPUB (v2 or v3), FictionBook2, Textile, groff man, groff ms,
+Emacs Org mode, AsciiDoc, InDesign ICML, TEI Simple, Muse and Slidy,
+Slideous, DZSlides, reveal.js or S5 HTML slide shows.
 It can also produce PDF output on systems where LaTeX, ConTeXt,
 \f[C]pdfroff\f[], or \f[C]wkhtmltopdf\f[] is installed.
 .PP
@@ -57,9 +56,10 @@ If no \f[I]input\-file\f[] is specified, input is read from
 \f[I]stdin\f[].
 Otherwise, the \f[I]input\-files\f[] are concatenated (with a blank line
 between each) and used as input.
-Output goes to \f[I]stdout\f[] by default (though output to
-\f[I]stdout\f[] is disabled for the \f[C]odt\f[], \f[C]docx\f[],
-\f[C]epub2\f[], and \f[C]epub3\f[] output formats).
+Output goes to \f[I]stdout\f[] by default (though output to the terminal
+is disabled for the \f[C]odt\f[], \f[C]docx\f[], \f[C]epub2\f[], and
+\f[C]epub3\f[] output formats, unless it is forced using
+\f[C]\-o\ \-\f[]).
 For output to a file, use the \f[C]\-o\f[] option:
 .IP
 .nf
@@ -91,12 +91,13 @@ pandoc\ \-f\ html\ \-t\ markdown\ http://www.fsf.org
 \f[]
 .fi
 .PP
-It is possible to supply a custom User\-Agent string when requesting a
-document from a URL, by setting an environment variable:
+It is possible to supply a custom User\-Agent string or other header
+when requesting a document from a URL:
 .IP
 .nf
 \f[C]
-USER_AGENT="Mozilla/5.0"\ pandoc\ \-f\ html\ \-t\ markdown\ http://www.fsf.org
+pandoc\ \-f\ html\ \-t\ markdown\ \-\-request\-header\ User\-Agent:"Mozilla/5.0"\ \\
+\ \ http://www.fsf.org
 \f[]
 .fi
 .PP
@@ -172,7 +173,7 @@ the \f[C]\-s/\-\-standalone\f[] option.
 .PP
 To produce a PDF, specify an output file with a \f[C]\&.pdf\f[]
 extension.
-By default, pandoc will use LaTeX to convert it to PDF:
+By default, pandoc will use LaTeX to create the PDF:
 .IP
 .nf
 \f[C]
@@ -181,16 +182,16 @@ pandoc\ test.txt\ \-o\ test.pdf
 .fi
 .PP
 Production of a PDF requires that a LaTeX engine be installed (see
-\f[C]\-\-latex\-engine\f[], below), and assumes that the following LaTeX
+\f[C]\-\-pdf\-engine\f[], below), and assumes that the following LaTeX
 packages are available: \f[C]amsfonts\f[], \f[C]amsmath\f[],
 \f[C]lm\f[], \f[C]unicode\-math\f[], \f[C]ifxetex\f[],
-\f[C]ifluatex\f[], \f[C]eurosym\f[], \f[C]listings\f[] (if the
-\f[C]\-\-listings\f[] option is used), \f[C]fancyvrb\f[],
-\f[C]longtable\f[], \f[C]booktabs\f[], \f[C]graphicx\f[] and
-\f[C]grffile\f[] (if the document contains images), \f[C]hyperref\f[],
-\f[C]ulem\f[], \f[C]geometry\f[] (with the \f[C]geometry\f[] variable
-set), \f[C]setspace\f[] (with \f[C]linestretch\f[]), and \f[C]babel\f[]
-(with \f[C]lang\f[]).
+\f[C]ifluatex\f[], \f[C]listings\f[] (if the \f[C]\-\-listings\f[]
+option is used), \f[C]fancyvrb\f[], \f[C]longtable\f[],
+\f[C]booktabs\f[], \f[C]graphicx\f[] and \f[C]grffile\f[] (if the
+document contains images), \f[C]hyperref\f[], \f[C]xcolor\f[] (with
+\f[C]colorlinks\f[]), \f[C]ulem\f[], \f[C]geometry\f[] (with the
+\f[C]geometry\f[] variable set), \f[C]setspace\f[] (with
+\f[C]linestretch\f[]), and \f[C]babel\f[] (with \f[C]lang\f[]).
 The use of \f[C]xelatex\f[] or \f[C]lualatex\f[] as the LaTeX engine
 requires \f[C]fontspec\f[].
 \f[C]xelatex\f[] uses \f[C]polyglossia\f[] (with \f[C]lang\f[]),
@@ -204,18 +205,22 @@ The \f[C]natbib\f[], \f[C]biblatex\f[], \f[C]bibtex\f[], and
 \f[C]biber\f[] packages can optionally be used for citation rendering.
 These are included with all recent versions of TeX Live.
 .PP
-Alternatively, pandoc can use ConTeXt, \f[C]wkhtmltopdf\f[], or
-\f[C]pdfroff\f[] to create a PDF.
+Alternatively, pandoc can use ConTeXt, \f[C]pdfroff\f[], or any of the
+following HTML/CSS\-to\-PDF\-engines, to create a PDF:
+\f[C]wkhtmltopdf\f[], \f[C]weasyprint\f[] or \f[C]prince\f[].
 To do this, specify an output file with a \f[C]\&.pdf\f[] extension, as
-before, but add \f[C]\-t\ context\f[], \f[C]\-t\ html5\f[], or
-\f[C]\-t\ ms\f[] to the command line.
+before, but add the \f[C]\-\-pdf\-engine\f[] option or
+\f[C]\-t\ context\f[], \f[C]\-t\ html\f[], or \f[C]\-t\ ms\f[] to the
+command line (\f[C]\-t\ html\f[] defaults to
+\f[C]\-\-pdf\-engine=wkhtmltopdf\f[]).
 .PP
 PDF output can be controlled using variables for LaTeX (if LaTeX is
 used) and variables for ConTeXt (if ConTeXt is used).
+When using an HTML/CSS\-to\-PDF\-engine, \f[C]\-\-css\f[] affects the
+output.
 If \f[C]wkhtmltopdf\f[] is used, then the variables
 \f[C]margin\-left\f[], \f[C]margin\-right\f[], \f[C]margin\-top\f[],
-\f[C]margin\-bottom\f[], and \f[C]papersize\f[] will affect the output,
-as will \f[C]\-\-css\f[].
+\f[C]margin\-bottom\f[], and \f[C]papersize\f[] will affect the output.
 .SH OPTIONS
 .SS General options
 .TP
@@ -224,21 +229,24 @@ Specify input format.
 \f[I]FORMAT\f[] can be \f[C]native\f[] (native Haskell), \f[C]json\f[]
 (JSON version of native AST), \f[C]markdown\f[] (pandoc's extended
 Markdown), \f[C]markdown_strict\f[] (original unextended Markdown),
-\f[C]markdown_phpextra\f[] (PHP Markdown Extra),
-\f[C]markdown_github\f[] (GitHub\-Flavored Markdown),
-\f[C]markdown_mmd\f[] (MultiMarkdown), \f[C]commonmark\f[] (CommonMark
-Markdown), \f[C]textile\f[] (Textile), \f[C]rst\f[] (reStructuredText),
-\f[C]html\f[] (HTML), \f[C]docbook\f[] (DocBook), \f[C]t2t\f[]
-(txt2tags), \f[C]docx\f[] (docx), \f[C]odt\f[] (ODT), \f[C]epub\f[]
-(EPUB), \f[C]opml\f[] (OPML), \f[C]org\f[] (Emacs Org mode),
-\f[C]mediawiki\f[] (MediaWiki markup), \f[C]twiki\f[] (TWiki markup),
-\f[C]tikiwiki\f[] (TikiWiki markup), \f[C]haddock\f[] (Haddock markup),
-or \f[C]latex\f[] (LaTeX). If \f[C]+lhs\f[] is appended to
-\f[C]markdown\f[], \f[C]rst\f[], \f[C]latex\f[], or \f[C]html\f[],
-the input will be treated as literate Haskell source: see Literate
-Haskell support, below. Markdown syntax extensions can be
-individually enabled or disabled by appending \f[C]+EXTENSION\f[] or
-\f[C]\-EXTENSION\f[] to the format name.
+\f[C]markdown_phpextra\f[] (PHP Markdown Extra), \f[C]markdown_mmd\f[]
+(MultiMarkdown), \f[C]gfm\f[] (GitHub\-Flavored Markdown),
+\f[C]commonmark\f[] (CommonMark Markdown), \f[C]textile\f[] (Textile),
+\f[C]rst\f[] (reStructuredText), \f[C]html\f[] (HTML), \f[C]docbook\f[]
+(DocBook), \f[C]t2t\f[] (txt2tags), \f[C]docx\f[] (docx), \f[C]odt\f[]
+(ODT), \f[C]epub\f[] (EPUB), \f[C]opml\f[] (OPML), \f[C]org\f[] (Emacs
+Org mode), \f[C]mediawiki\f[] (MediaWiki markup), \f[C]twiki\f[] (TWiki
+markup), \f[C]tikiwiki\f[] (TikiWiki markup), \f[C]haddock\f[] (Haddock
+markup), or \f[C]latex\f[] (LaTeX).
+(\f[C]markdown_github\f[] provides deprecated and less accurate suppport
+for Github\-Flavored Markdown; please use \f[C]gfm\f[] instead, unless
+you use extensions that do not work with \f[C]gfm\f[].) If \f[C]+lhs\f[]
+is appended to \f[C]markdown\f[], \f[C]rst\f[], \f[C]latex\f[], or
+\f[C]html\f[], the input will be treated as literate Haskell source: see
+Literate Haskell support, below.
+Markdown syntax extensions can be individually enabled or disabled by
+appending \f[C]+EXTENSION\f[] or \f[C]\-EXTENSION\f[] to the format
+name.
 So, for example, \f[C]markdown_strict+footnotes+definition_lists\f[] is
 strict Markdown with footnotes and definition lists enabled, and
 \f[C]markdown\-pipe_tables+hard_line_breaks\f[] is pandoc's Markdown
@@ -255,9 +263,9 @@ Specify output format.
 (JSON version of native AST), \f[C]plain\f[] (plain text),
 \f[C]markdown\f[] (pandoc's extended Markdown), \f[C]markdown_strict\f[]
 (original unextended Markdown), \f[C]markdown_phpextra\f[] (PHP Markdown
-Extra), \f[C]markdown_github\f[] (GitHub\-Flavored Markdown),
-\f[C]markdown_mmd\f[] (MultiMarkdown), \f[C]commonmark\f[] (CommonMark
-Markdown), \f[C]rst\f[] (reStructuredText), \f[C]html4\f[] (XHTML 1.0
+Extra), \f[C]markdown_mmd\f[] (MultiMarkdown), \f[C]gfm\f[]
+(GitHub\-Flavored Markdown), \f[C]commonmark\f[] (CommonMark Markdown),
+\f[C]rst\f[] (reStructuredText), \f[C]html4\f[] (XHTML 1.0
 Transitional), \f[C]html\f[] or \f[C]html5\f[] (HTML5/XHTML polyglot
 markup), \f[C]latex\f[] (LaTeX), \f[C]beamer\f[] (LaTeX beamer slide
 show), \f[C]context\f[] (ConTeXt), \f[C]man\f[] (groff man),
@@ -277,9 +285,12 @@ show), \f[C]dzslides\f[] (DZSlides HTML5 + JavaScript slide show),
 \f[C]revealjs\f[] (reveal.js HTML5 + JavaScript slide show), \f[C]s5\f[]
 (S5 HTML and JavaScript slide show), or the path of a custom lua writer
 (see Custom writers, below).
-Note that \f[C]odt\f[], \f[C]epub\f[], and \f[C]epub3\f[] output will
-not be directed to \f[I]stdout\f[]; an output filename must be specified
-using the \f[C]\-o/\-\-output\f[] option.
+(\f[C]markdown_github\f[] provides deprecated and less accurate suppport
+for Github\-Flavored Markdown; please use \f[C]gfm\f[] instead, unless
+you use extensions that do not work with \f[C]gfm\f[].) Note that
+\f[C]odt\f[], \f[C]epub\f[], and \f[C]epub3\f[] output will not be
+directed to \f[I]stdout\f[]; an output filename must be specified using
+the \f[C]\-o/\-\-output\f[] option.
 If \f[C]+lhs\f[] is appended to \f[C]markdown\f[], \f[C]rst\f[],
 \f[C]latex\f[], \f[C]beamer\f[], \f[C]html4\f[], or \f[C]html5\f[], the
 output will be rendered as literate Haskell source: see Literate Haskell
@@ -294,9 +305,9 @@ See \f[C]\-\-list\-output\-formats\f[] and
 .TP
 .B \f[C]\-o\f[] \f[I]FILE\f[], \f[C]\-\-output=\f[]\f[I]FILE\f[]
 Write output to \f[I]FILE\f[] instead of \f[I]stdout\f[].
-If \f[I]FILE\f[] is \f[C]\-\f[], output will go to \f[I]stdout\f[].
-(Exception: if the output format is \f[C]odt\f[], \f[C]docx\f[],
-\f[C]epub\f[], or \f[C]epub3\f[], output to stdout is disabled.)
+If \f[I]FILE\f[] is \f[C]\-\f[], output will go to \f[I]stdout\f[], even
+if a non\-textual format (\f[C]docx\f[], \f[C]odt\f[], \f[C]epub2\f[],
+\f[C]epub3\f[]) is specified.
 .RS
 .RE
 .TP
@@ -677,11 +688,11 @@ Tables below).
 .TP
 .B \f[C]\-\-toc\f[], \f[C]\-\-table\-of\-contents\f[]
 Include an automatically generated table of contents (or, in the case of
-\f[C]latex\f[], \f[C]context\f[], \f[C]docx\f[], \f[C]rst\f[], or
-\f[C]ms\f[], an instruction to create one) in the output document.
+\f[C]latex\f[], \f[C]context\f[], \f[C]docx\f[], \f[C]odt\f[],
+\f[C]opendocument\f[], \f[C]rst\f[], or \f[C]ms\f[], an instruction to
+create one) in the output document.
 This option has no effect on \f[C]man\f[], \f[C]docbook4\f[],
-\f[C]docbook5\f[], \f[C]jats\f[], \f[C]slidy\f[], \f[C]slideous\f[],
-\f[C]s5\f[], or \f[C]odt\f[] output.
+\f[C]docbook5\f[], or \f[C]jats\f[] output.
 .RS
 .RE
 .TP
@@ -690,6 +701,14 @@ Specify the number of section levels to include in the table of
 contents.
 The default is 3 (which means that level 1, 2, and 3 headers will be
 listed in the contents).
+.RS
+.RE
+.TP
+.B \f[C]\-\-strip\-comments\f[]
+Strip out HTML comments in the Markdown or Textile source, rather than
+passing them on to Markdown, Textile or HTML output as raw HTML.
+This does not apply to HTML comments inside raw HTML blocks when the
+\f[C]markdown_in_html_blocks\f[] extension is not set.
 .RS
 .RE
 .TP
@@ -768,6 +787,13 @@ Note that, if \f[C]\-\-resource\-path\f[] is specified, the working
 directory must be explicitly listed or it will not be searched.
 For example: \f[C]\-\-resource\-path=.:test\f[] will search the working
 directory and the \f[C]test\f[] subdirectory, in that order.
+.RS
+.RE
+.TP
+.B \f[C]\-\-request\-header=\f[]\f[I]NAME\f[]\f[C]:\f[]\f[I]VAL\f[]
+Set the request header \f[I]NAME\f[] to the value \f[I]VAL\f[] when
+making HTTP requests (for example, when a URL is given on the command
+line, or when resources used in a document must be downloaded).
 .RS
 .RE
 .SS Options affecting specific writers
@@ -1091,17 +1117,25 @@ chapter level of 2 or 3.
 .RS
 .RE
 .TP
-.B \f[C]\-\-latex\-engine=pdflatex\f[]|\f[C]lualatex\f[]|\f[C]xelatex\f[]
-Use the specified LaTeX engine when producing PDF output.
+.B \f[C]\-\-epub\-subdirectory=\f[]\f[I]DIRNAME\f[]
+Specify the subdirectory in the OCF container that is to hold the
+EPUB\-specific contents.
+The default is \f[C]EPUB\f[].
+To put the EPUB contents in the top level, use an empty string.
+.RS
+.RE
+.TP
+.B \f[C]\-\-pdf\-engine=pdflatex\f[]|\f[C]lualatex\f[]|\f[C]xelatex\f[]|\f[C]wkhtmltopdf\f[]|\f[C]weasyprint\f[]|\f[C]prince\f[]|\f[C]context\f[]|\f[C]pdfroff\f[]
+Use the specified engine when producing PDF output.
 The default is \f[C]pdflatex\f[].
 If the engine is not in your PATH, the full path of the engine may be
 specified here.
 .RS
 .RE
 .TP
-.B \f[C]\-\-latex\-engine\-opt=\f[]\f[I]STRING\f[]
+.B \f[C]\-\-pdf\-engine\-opt=\f[]\f[I]STRING\f[]
 Use the given string as a command\-line argument to the
-\f[C]latex\-engine\f[].
+\f[C]pdf\-engine\f[].
 If used multiple times, the arguments are provided with spaces between
 them.
 Note that no check for duplicate options is done.
@@ -1174,6 +1208,7 @@ copy of the script, so it can be cached.
 .B \f[C]\-\-mathml\f[]
 Convert TeX math to MathML (in \f[C]docbook4\f[], \f[C]docbook5\f[],
 \f[C]jats\f[], \f[C]html4\f[] and \f[C]html5\f[]).
+This is the default in \f[C]odt\f[] output.
 .RS
 .RE
 .TP
@@ -1223,7 +1258,7 @@ without native math support.
 .TP
 .B \f[C]\-\-katex\f[][\f[C]=\f[]\f[I]URL\f[]]
 Use KaTeX to display embedded TeX math in HTML output.
-The \f[I]URL\f[] should point to the \f[C]katex.js\f[] load script.
+The \f[I]URL\f[] is the base URL for the KaTeX library.
 If a \f[I]URL\f[] is not provided, a link to the KaTeX CDN will be
 inserted.
 Note: KaTeX seems to work best with \f[C]html5\f[] output.
@@ -1398,7 +1433,8 @@ specified
 .RE
 .TP
 .B \f[C]toc\-title\f[]
-title of table of contents (works only with EPUB and docx)
+title of table of contents (works only with EPUB, opendocument, odt,
+docx)
 .RS
 .RE
 .TP
@@ -1468,7 +1504,7 @@ browser, when generating HTML) supports the Unicode Bidirectional
 Algorithm.
 .PP
 When using LaTeX for bidirectional documents, only the \f[C]xelatex\f[]
-engine is fully supported (use \f[C]\-\-latex\-engine=xelatex\f[]).
+engine is fully supported (use \f[C]\-\-pdf\-engine=xelatex\f[]).
 .RE
 .SS Variables for slides
 .PP
@@ -1535,17 +1571,11 @@ an article from beamer slides).
 .RS
 .RE
 .TP
-.B \f[C]colorlinks\f[]
-add color to link text; automatically enabled if any of
-\f[C]linkcolor\f[], \f[C]citecolor\f[], \f[C]urlcolor\f[], or
-\f[C]toccolor\f[] are set (for beamer only).
-.RS
-.RE
-.TP
-.B \f[C]linkcolor\f[], \f[C]citecolor\f[], \f[C]urlcolor\f[], \f[C]toccolor\f[]
-color for internal links, citation links, external links, and links in
-table of contents: uses any of the predefined LaTeX colors (for beamer
-only).
+.B \f[C]aspectratio\f[]
+aspect ratio of slides (for beamer only, \f[C]1610\f[] for 16:10,
+\f[C]169\f[] for 16:9, \f[C]149\f[] for 14:9, \f[C]141\f[] for 1.41:1,
+\f[C]54\f[] for 5:4, \f[C]43\f[] for 4:3 which is the default, and
+\f[C]32\f[] for 3:2).
 .RS
 .RE
 .SS Variables for LaTeX
@@ -1648,7 +1678,8 @@ add color to link text; automatically enabled if any of
 .TP
 .B \f[C]linkcolor\f[], \f[C]citecolor\f[], \f[C]urlcolor\f[], \f[C]toccolor\f[]
 color for internal links, citation links, external links, and links in
-table of contents: uses any of the predefined LaTeX colors
+table of contents: uses options allowed by \f[C]xcolor\f[], including
+the \f[C]dvipsnames\f[], \f[C]svgnames\f[], and \f[C]x11names\f[] lists
 .RS
 .RE
 .TP
@@ -1715,6 +1746,11 @@ bibliography title, when used with \f[C]\-\-natbib\f[] and
 .TP
 .B \f[C]biblatexoptions\f[]
 list of options for biblatex.
+.RS
+.RE
+.TP
+.B \f[C]natbiboptions\f[]
+list of options for natbib.
 .RS
 .RE
 .SS Variables for ConTeXt
@@ -2538,14 +2574,13 @@ list\ item.
 *\ and\ my\ second.
 \f[]
 .fi
-.SS The four\-space rule
+.SS Block content in list items
 .PP
 A list item may contain multiple paragraphs and other block\-level
 content.
 However, subsequent paragraphs must be preceded by a blank line and
-indented four spaces or a tab.
-The list will look better if the first paragraph is aligned with the
-rest:
+indented to line up with the first non\-space content after the list
+marker.
 .IP
 .nf
 \f[C]
@@ -2560,21 +2595,35 @@ rest:
 \f[]
 .fi
 .PP
+Exception: if the list marker is followed by an indented code block,
+which must begin 5 spaces after the list marker, then subsequent
+paragraphs must begin two columns after the last character of the list
+marker:
+.IP
+.nf
+\f[C]
+*\ \ \ \ \ code
+
+\ \ continuation\ paragraph
+\f[]
+.fi
+.PP
 List items may include other lists.
 In this case the preceding blank line is optional.
-The nested list must be indented four spaces or one tab:
+The nested list must be indented to line up with the first non\-space
+character after the list marker of the containing list item.
 .IP
 .nf
 \f[C]
 *\ fruits
-\ \ \ \ +\ apples
-\ \ \ \ \ \ \ \ \-\ macintosh
-\ \ \ \ \ \ \ \ \-\ red\ delicious
-\ \ \ \ +\ pears
-\ \ \ \ +\ peaches
+\ \ +\ apples
+\ \ \ \ \-\ macintosh
+\ \ \ \ \-\ red\ delicious
+\ \ +\ pears
+\ \ +\ peaches
 *\ vegetables
-\ \ \ \ +\ broccoli
-\ \ \ \ +\ chard
+\ \ +\ broccoli
+\ \ +\ chard
 \f[]
 .fi
 .PP
@@ -2595,18 +2644,6 @@ bad\ but\ is\ legal.
 list\ item.
 \f[]
 .fi
-.PP
-\f[B]Note:\f[] Although the four\-space rule for continuation paragraphs
-comes from the official Markdown syntax guide, the reference
-implementation, \f[C]Markdown.pl\f[], does not follow it.
-So pandoc will give different results than \f[C]Markdown.pl\f[] when
-authors have indented continuation paragraphs fewer than four spaces.
-.PP
-The Markdown syntax guide is not explicit whether the four\-space rule
-applies to \f[I]all\f[] block\-level content in a list item; it only
-mentions paragraphs and code blocks.
-But it implies that the rule applies to all block\-level content
-(including nested lists), and pandoc interprets it that way.
 .SS Ordered lists
 .PP
 Ordered lists work just like bulleted lists, except that the items begin
@@ -3071,6 +3108,15 @@ For headerless tables, the colons go on the top line instead:
 +\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-+\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-+\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-+
 \f[]
 .fi
+.SS Grid Table Limitations
+.PP
+Pandoc does not support grid tables with row spans or column spans.
+This means that neither variable numbers of columns across rows nor
+variable numbers of rows across columns are supported by Pandoc.
+All grid tables must have the same number of columns in each row, and
+the same number of rows in each column.
+For example, the Docutils sample grid tables will not render as expected
+with Pandoc.
 .SS Extension: \f[C]pipe_tables\f[]
 .PP
 Pipe tables look like this:
@@ -3589,9 +3635,14 @@ It will be rendered inside \f[C]<span\ class="math">\f[] tags.
 .RS
 .RE
 .TP
-.B RTF, OpenDocument, ODT
+.B RTF, OpenDocument
 It will be rendered, if possible, using Unicode characters, and will
 otherwise appear verbatim.
+.RS
+.RE
+.TP
+.B ODT
+It will be rendered, if possible, using MathML.
 .RS
 .RE
 .TP
@@ -3750,7 +3801,6 @@ Use native pandoc \f[C]Span\f[] blocks for content inside
 For the most part this should give the same output as \f[C]raw_html\f[],
 but it makes it easier to write pandoc filters to manipulate groups of
 inlines.
-.SS Raw TeX
 .SS Extension: \f[C]raw_tex\f[]
 .PP
 In addition to raw HTML, pandoc allows raw LaTeX, TeX, and ConTeXt to be
@@ -3783,6 +3833,40 @@ LaTeX, not as Markdown.
 .PP
 Inline LaTeX is ignored in output formats other than Markdown, LaTeX,
 Emacs Org mode, and ConTeXt.
+.SS Generic raw attribute
+.SS Extension: \f[C]raw_attribute\f[]
+.PP
+Inline spans and fenced code blocks with a special kind of attribute
+will be parsed as raw content with the designated format.
+For example, the following produces a raw groff \f[C]ms\f[] block:
+.IP
+.nf
+\f[C]
+```{=ms}
+\&.MYMACRO
+blah\ blah
+```
+\f[]
+.fi
+.PP
+And the following produces a raw \f[C]html\f[] inline element:
+.IP
+.nf
+\f[C]
+This\ is\ `<a>html</a>`{=html}
+\f[]
+.fi
+.PP
+The format name should match the target format name (see
+\f[C]\-t/\-\-to\f[], above, for a list, or use
+\f[C]pandoc\ \-\-list\-output\-formats\f[]).
+.PP
+This extension presupposes that the relevant kind of inline code or
+fenced code block is enabled.
+Thus, for example, to use a raw attribute with a backtick code block,
+\f[C]backtick_code_blocks\f[] must be enabled.
+.PP
+The raw attribute cannot be combined with regular attributes.
 .SS LaTeX macros
 .SS Extension: \f[C]latex_macros\f[]
 .PP
@@ -3975,10 +4059,8 @@ The link text will be used as the image's alt text:
 .fi
 .SS Extension: \f[C]implicit_figures\f[]
 .PP
-An image occurring by itself in a paragraph will be rendered as a figure
-with a caption. (In LaTeX, a figure environment will be used; in HTML,
-the image will be placed in a \f[C]div\f[] with class \f[C]figure\f[],
-together with a caption in a \f[C]p\f[] with class \f[C]caption\f[].)
+An image with nonempty alt text, occurring by itself in a paragraph,
+will be rendered as a figure with a caption.
 The image's alt text will be used as the caption.
 .IP
 .nf
@@ -3986,6 +4068,11 @@ The image's alt text will be used as the caption.
 ![This\ is\ the\ caption](/url/of/image.png)
 \f[]
 .fi
+.PP
+How this is rendered depends on the output format.
+Some output formats (e.g.\ RTF) do not yet support figures.
+In those formats, you'll just get an image in a paragraph by itself,
+with no caption.
 .PP
 If you just want a regular inline image, just make sure it is not the
 only thing in the paragraph.
@@ -4465,6 +4552,10 @@ This is implied by pandoc's default \f[C]all_symbols_escapable\f[].
 .PP
 Allow a list to occur right after a paragraph, with no intervening blank
 space.
+.SS Extension: \f[C]four_space_rule\f[]
+.PP
+Selects the pandoc <= 2.0 behavior for parsing lists, so that four
+spaces indent are needed for list item continuation paragraphs.
 .SS Extension: \f[C]spaced_reference_links\f[]
 .PP
 Allow whitespace between the two components of a reference link, for
@@ -4604,7 +4695,7 @@ variants are supported:
 .RS
 .RE
 .TP
-.B \f[C]markdown_github\f[] (GitHub\-Flavored Markdown)
+.B \f[C]gfm\f[] and \f[C]markdown_github\f[] (GitHub\-Flavored Markdown)
 \f[C]pipe_tables\f[], \f[C]raw_html\f[], \f[C]fenced_code_blocks\f[],
 \f[C]auto_identifiers\f[], \f[C]ascii_identifiers\f[],
 \f[C]backtick_code_blocks\f[], \f[C]autolink_bare_uris\f[],
@@ -4917,6 +5008,8 @@ identifier:
 \ \ text:\ doi:10.234234.234/33
 publisher:\ \ My\ Press
 rights:\ ©\ 2007\ John\ Smith,\ CC\ BY\-NC
+ibooks:
+\ \ version:\ 1.3.4
 \&...
 \f[]
 .fi
@@ -5020,6 +5113,27 @@ Either \f[C]ltr\f[] or \f[C]rtl\f[].
 Specifies the \f[C]page\-progression\-direction\f[] attribute for the
 \f[C]spine\f[] element.
 .RS
+.RE
+.TP
+.B \f[C]ibooks\f[]
+iBooks\-specific metadata, with the following fields:
+.RS
+.IP \[bu] 2
+\f[C]version\f[]: (string)
+.IP \[bu] 2
+\f[C]specified\-fonts\f[]: \f[C]true\f[]|\f[C]false\f[] (default
+\f[C]false\f[])
+.IP \[bu] 2
+\f[C]ipad\-orientation\-lock\f[]:
+\f[C]portrait\-only\f[]|\f[C]landscape\-only\f[]
+.IP \[bu] 2
+\f[C]iphone\-orientation\-lock\f[]:
+\f[C]portrait\-only\f[]|\f[C]landscape\-only\f[]
+.IP \[bu] 2
+\f[C]binding\f[]: \f[C]true\f[]|\f[C]false\f[] (default \f[C]true\f[])
+.IP \[bu] 2
+\f[C]scroll\-axis\f[]:
+\f[C]vertical\f[]|\f[C]horizontal\f[]|\f[C]default\f[]
 .RE
 .SS Linked media
 .PP
@@ -5203,52 +5317,8 @@ pandoc\ \-\-print\-default\-data\-file\ sample.lua
 © 2006\-2017 John MacFarlane (jgm\@berkeley.edu).
 Released under the GPL, version 2 or greater.
 This software carries no warranty of any kind.
-(See COPYRIGHT for full copyright and warranty notices.)
-.PP
-Contributors include Arata Mizuki, Aaron Wolen, Albert Krewinkel, Alex
-Ivkin, Alex Vong, Alexander Kondratskiy, Alexander Sulfrian, Alexander V
-Vershilov, Alfred Wechselberger, Andreas Lööw, Andrew Dunning, Antoine
-Latter, Arata Mizuki, Arlo O'Keeffe, Artyom Kazak, B.
-Scott Michel, Ben Gamari, Beni Cherniavsky\-Paskin, Benoit Schweblin,
-Bjorn Buckwalter, Bradley Kuhn, Brent Yorgey, Bryan O'Sullivan, Caleb
-McDaniel, Calvin Beck, Carlos Sosa, Chris Black, Christian Conkle,
-Christoffer Ackelman, Christoffer Sawicki, Clare Macrae, Clint Adams,
-Conal Elliott, Craig S.
-Bosma, Daniel Bergey, Daniel T.
-Staal, Daniele D'Orazio, David Lazar, David Röthlisberger, Denis
-Laxalde, Douglas Calvert, Emanuel Evans, Emily Eisenberg, Eric Kow, Eric
-Seidel, Felix Yan, Florian Eitel, François Gannaz, Freiric Barral,
-Freirich Raabe, Frerich Raabe, Fyodor Sheremetyev, Gabor Pali, Gavin
-Beatty, Gottfried Haider, Greg Maslov, Greg Rundlett, Grégory Bataille,
-Gwern Branwen, Hans\-Peter Deifel, Henrik Tramberend, Henry de Valence,
-Hubert Plociniczak, Ilya V.
-Portnov, Ivo Clarysse, J.
-Lewis Muir, Jaime Marquínez Ferrándiz, Jakob Voß, James Aspnes, Jamie F.
-Olson, Jan Larres, Jan Schulz, Jason Ronallo, Jeff Arnold, Jeff
-Runningen, Jens Petersen, Jesse Rosenthal, Joe Hillenbrand, John
-MacFarlane, John Muccigrosso, Jonas Smedegaard, Jonathan Daugherty, Jose
-Luis Duran, Josef Svenningsson, Julien Cretel, Juliusz Gonera, Justin
-Bogner, Jérémy Bobbio, Kelsey Hightower, Kolen Cheung, Konstantin Zudov,
-Kristof Bastiaensen, Lars\-Dominik Braun, Luke Plant, Mark Szepieniec,
-Mark Wright, Martin Linn, Masayoshi Takahashi, Matej Kollar, Mathias
-Schenner, Mathieu Duponchelle, Matthew Eddey, Matthew Pickering,
-Matthias C.
-M.
-Troffaes, Mauro Bieg, Max Bolingbroke, Max Rydahl Andersen, Merijn
-Verstraaten, Michael Beaumont, Michael Chladek, Michael Snoyman, Michael
-Thompson, MinRK, Morton Fox, Nathan Gass, Neil Mayhew, Nick Bart,
-Nicolas Kaiser, Nikolay Yakimov, Oliver Matthews, Ophir Lifshitz, Pablo
-Rodríguez, Paul Rivier, Paulo Tanimoto, Peter Wang, Philippe Ombredanne,
-Phillip Alday, Prayag Verma, Puneeth Chaganti, Ralf Stephan, Raniere
-Silva, Recai Oktaş, RyanGlScott, Scott Morrison, Sergei Trofimovich,
-Sergey Astanin, Shahbaz Youssefi, Shaun Attfield, Sidarth Kapur,
-Sidharth Kapur, Simon Hengel, Sumit Sahrawat, Thomas Hodgson, Thomas
-Weißschuh, Tim Lin, Timothy Humphries, Tiziano Müller, Todd Sifleet, Tom
-Leese, Uli Köhler, Václav Zeman, Viktor Kronvall, Vincent, Václav
-Haisman, Václav Zeman, Wandmalfarbe, Waldir Pimenta, Wikiwide, Xavier
-Olive, bumper314, csforste, infinity0x, nkalvi, qerub, robabla,
-roblabla, rodja.trappe, rski, shreevatsa.public, takahashim, tgkokk,
-thsutton.
+(See COPYRIGHT for full copyright and warranty notices.) For a full list
+of contributors, see the file AUTHORS.md in the pandoc source code.
 .PP
 The Pandoc source code and all documentation may be downloaded
 from <http://pandoc.org>.

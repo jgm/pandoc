@@ -772,7 +772,7 @@ Just a `URL </url/>`__.
 
 `URL and title </url/>`__
 
-`with\_underscore </url/with_underscore>`__
+`with_underscore </url/with_underscore>`__
 
 `Email link <mailto:nobody@nowhere.net>`__
 

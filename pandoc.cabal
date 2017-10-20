@@ -120,7 +120,8 @@ data-files:
                  MANUAL.txt, COPYRIGHT
 extra-source-files:
                  -- documentation
-                 INSTALL.md, BUGS, README.md, CONTRIBUTING.md, changelog
+                 INSTALL.md, AUTHORS.md, README.md,
+                 CONTRIBUTING.md, BUGS, changelog,
                  man/pandoc.1
                  -- stack build plan
                  stack.yaml
@@ -148,6 +149,7 @@ extra-source-files:
                  test/command/3510-subdoc.org
                  test/command/3510-export.latex
                  test/command/3510-src.hs
+                 test/command/3971b.tex
                  test/docbook-reader.docbook
                  test/docbook-xref.docbook
                  test/html-reader.html
@@ -336,6 +338,7 @@ library
                  http-client >= 0.4.30 && < 0.6,
                  http-client-tls >= 0.2.4 && < 0.4,
                  http-types >= 0.8 && < 0.10,
+                 case-insensitive >= 1.2 && < 1.3,
                  csv-conduit >= 0.6 && < 0.7
   if os(windows)
     cpp-options:      -D_WINDOWS
@@ -446,6 +449,7 @@ library
                    Text.Pandoc.Asciify,
                    Text.Pandoc.Emoji,
                    Text.Pandoc.ImageSize,
+                   Text.Pandoc.BCP47,
                    Text.Pandoc.Class
   other-modules:   Text.Pandoc.Readers.Docx.Lists,
                    Text.Pandoc.Readers.Docx.Combine,
@@ -478,7 +482,6 @@ library
                    Text.Pandoc.CSS,
                    Text.Pandoc.CSV,
                    Text.Pandoc.UUID,
-                   Text.Pandoc.BCP47,
                    Text.Pandoc.Translations,
                    Text.Pandoc.Slides,
                    Text.Pandoc.Compat.Time,

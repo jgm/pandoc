@@ -75,9 +75,9 @@ import qualified System.IO as IO (Newline (..))
 import Text.Pandoc
 import Text.Pandoc.Builder (setMeta)
 import Text.Pandoc.Class (PandocIO, extractMedia, fillMediaBag, getLog,
-                          setResourcePath, setTrace, report,
+                          setResourcePath, setTrace, report, setRequestHeader,
                           setUserDataDir, readFileStrict, readDataFile,
-                          readDefaultDataFile, setTranslations,
+                          readDefaultDataFile, setTranslations, openURL,
                           setInputFiles, setOutputFile)
 import Text.Pandoc.Highlighting (highlightingStyles)
 import Text.Pandoc.BCP47 (parseBCP47, Lang(..))
@@ -86,7 +86,7 @@ import Text.Pandoc.Writers.Math (defaultMathJaxURL, defaultKaTeXURL)
 import Text.Pandoc.PDF (makePDF)
 import Text.Pandoc.Process (pipeProcess)
 import Text.Pandoc.SelfContained (makeDataURI, makeSelfContained)
-import Text.Pandoc.Shared (headerShift, isURI, openURL, ordNub,
+import Text.Pandoc.Shared (headerShift, isURI, ordNub,
                            safeRead, tabFilter, eastAsianLineBreakFilter)
 import qualified Text.Pandoc.UTF8 as UTF8
 import Text.Pandoc.XML (toEntities)
@@ -110,7 +110,8 @@ parseOptions options' defaults = do
   let (actions, args, unrecognizedOpts, errors) =
            getOpt' Permute options' rawArgs
 
-  let unknownOptionErrors = foldr handleUnrecognizedOption [] unrecognizedOpts
+  let unknownOptionErrors = foldr handleUnrecognizedOption [] $
+                  map (takeWhile (/= '=')) unrecognizedOpts
 
   unless (null errors && null unknownOptionErrors) $
      E.throwIO $ PandocOptionError $
@@ -490,7 +491,10 @@ convertWithOpts opts = do
     when (readerName == "markdown_github" ||
           writerName == "markdown_github") $
       report $ Deprecated "markdown_github" "Use gfm instead."
+
     setResourcePath (optResourcePath opts)
+    mapM_ (\(n,v) -> setRequestHeader n v) (optRequestHeaders opts)
+
     doc <- sourceToDoc sources >>=
               (   (if isJust (optExtractMedia opts)
                       then fillMediaBag
@@ -640,6 +644,7 @@ data Opt = Opt
     , optIncludeAfterBody      :: [FilePath]       -- ^ Files to include after body
     , optIncludeInHeader       :: [FilePath]       -- ^ Files to include in header
     , optResourcePath          :: [FilePath] -- ^ Path to search for images etc
+    , optRequestHeaders        :: [(String, String)] -- ^ Headers for HTTP requests
     , optEol                   :: LineEnding -- ^ Style of line-endings to use
     , optStripComments          :: Bool       -- ^ Skip HTML comments
     } deriving (Generic, Show)
@@ -715,6 +720,7 @@ defaultOpts = Opt
     , optIncludeAfterBody      = []
     , optIncludeInHeader       = []
     , optResourcePath          = ["."]
+    , optRequestHeaders        = []
     , optEol                   = Native
     , optStripComments          = False
     }
@@ -862,11 +868,7 @@ readSource src = case parseURI src of
                                     BS.readFile src
 
 readURI :: FilePath -> PandocIO Text
-readURI src = do
-  res <- liftIO $ openURL src
-  case res of
-       Left e              -> throwError $ PandocHttpError src e
-       Right (contents, _) -> return $ UTF8.toText contents
+readURI src = UTF8.toText . fst <$> openURL src
 
 readFile' :: MonadIO m => FilePath -> m B.ByteString
 readFile' "-" = liftIO B.getContents
@@ -1160,6 +1162,14 @@ options =
                    "SEARCHPATH")
                   "" -- "Paths to search for images and other resources"
 
+    , Option "" ["request-header"]
+                 (ReqArg
+                  (\arg opt -> do
+                     let (key, val) = splitField arg
+                     return opt{ optRequestHeaders =
+                       (key, val) : optRequestHeaders opt })
+                  "NAME:VALUE")
+                 ""
 
     , Option "" ["self-contained"]
                  (NoArg
