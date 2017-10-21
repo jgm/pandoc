@@ -162,4 +162,7 @@ tests = [ "bold, single line, fully delimited" =:
                                                          ]
                                          ]
                          , plain "blubb" ]
+        , "quoted block, simple" =:
+          "{{{\nfoo bar\n  //baz//\n}}}"
+          =?> codeBlock "foo bar\n  //baz//"
         ]

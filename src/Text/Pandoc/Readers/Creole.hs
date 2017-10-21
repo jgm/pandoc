@@ -90,11 +90,23 @@ parseCreole = do
 block :: PandocMonad m => CRLParser m B.Blocks
 block = do
   res <- mempty <$ skipMany1 blankline
+         <|> nowiki
          <|> header
          <|> anyList 1
          <|> para
   skipMany blankline
   return res
+
+nowiki :: PandocMonad m => CRLParser m B.Blocks
+nowiki = try $ nowikiStart >> manyTill anyChar nowikiEnd >>= return . B.codeBlock
+         -- TODO: implement the exception: "In preformatted blocks,
+         --   since markers must not be preceded by leading spaces,
+         --   lines with three closing braces which belong to the
+         --   preformatted block must follow at least one space. In
+         --   the rendered output, one leading space is removed."
+  where
+    nowikiStart = optional newline >> string "{{{" >> skipMany spaceChar >> newline
+    nowikiEnd = try $ linebreak >> string "}}}" >> skipMany spaceChar >> newline
 
 header :: PandocMonad m => CRLParser m B.Blocks
 header = try $ do
@@ -144,12 +156,13 @@ para = many1Till inline endOfParaElement >>= return . result . mconcat
 
 endOfParaElement :: PandocMonad m => CRLParser m ()
 endOfParaElement = lookAhead $ endOfInput <|> endOfPara
-                   <|> startOfList <|> startOfHeader
+                   <|> startOfList <|> startOfHeader <|>  startOfNowiki
   where
    endOfInput       = try $ skipMany blankline >> skipSpaces >> eof
    endOfPara        = try $ blankline >> skipMany1 blankline
    startOfList      = try $ blankline >> anyList 1 >> return mempty
    startOfHeader    = try $ blankline >> header >> return mempty
+   startOfNowiki    = try $ blankline >> nowiki >> return mempty
 
 --
 -- inline parsers
