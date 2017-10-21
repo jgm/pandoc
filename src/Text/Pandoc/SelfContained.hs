@@ -80,7 +80,7 @@ convertTags (t@(TagOpen tagname as):ts)
        rest <- convertTags ts
        return $ TagOpen tagname as' : rest
   where processAttribute (x,y) =
-           if x `elem` ["src", "data-src", "href", "poster", "data-background"]
+           if x `elem` ["src", "data-src", "href", "poster", "data-background-image"]
               then do
                 enc <- getDataURI (fromAttrib "type" t) y
                 return (x, enc)
