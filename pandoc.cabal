@@ -514,7 +514,8 @@ library
                    Text.Pandoc.ImageSize,
                    Text.Pandoc.BCP47,
                    Text.Pandoc.Class
-  other-modules:   Text.Pandoc.Filter.JSON,
+  other-modules:   Text.Pandoc.App.CommandLineOptions,
+                   Text.Pandoc.Filter.JSON,
                    Text.Pandoc.Filter.Lua,
                    Text.Pandoc.Filter.Path,
                    Text.Pandoc.Readers.Docx.Lists,
