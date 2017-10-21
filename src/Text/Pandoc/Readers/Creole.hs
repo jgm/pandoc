@@ -98,13 +98,13 @@ block = do
   return res
 
 nowiki :: PandocMonad m => CRLParser m B.Blocks
-nowiki = try $ nowikiStart >> manyTill anyChar nowikiEnd >>= return . B.codeBlock
-         -- TODO: implement the exception: "In preformatted blocks,
-         --   since markers must not be preceded by leading spaces,
-         --   lines with three closing braces which belong to the
-         --   preformatted block must follow at least one space. In
-         --   the rendered output, one leading space is removed."
+nowiki = try $ nowikiStart >> manyTill content nowikiEnd >>= return . B.codeBlock . mconcat
   where
+    content = brackets <|> line
+    brackets = try $ option "" ((:[]) <$> newline)
+               <+> (char ' ' >> (many (char ' ') <+> string "}}}") <* eol)
+    line = option "" ((:[]) <$> newline) <+> manyTill anyChar eol
+    eol = lookAhead $ try $ nowikiEnd <|> newline
     nowikiStart = optional newline >> string "{{{" >> skipMany spaceChar >> newline
     nowikiEnd = try $ linebreak >> string "}}}" >> skipMany spaceChar >> newline
 

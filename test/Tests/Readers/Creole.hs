@@ -165,4 +165,7 @@ tests = [ "bold, single line, fully delimited" =:
         , "quoted block, simple" =:
           "{{{\nfoo bar\n  //baz//\n}}}"
           =?> codeBlock "foo bar\n  //baz//"
+        , "quoted block, curly bracket exception" =:
+          "{{{\nfoo bar\n  }}}\nbaz\n }}}\n}}}"
+          =?> codeBlock "foo bar\n }}}\nbaz\n}}}"
         ]
