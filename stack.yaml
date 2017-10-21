@@ -8,11 +8,11 @@ packages:
 - '.'
 extra-deps:
 - pandoc-types-1.17.2
-- texmath-0.9.4.4
 - hslua-0.9.0
 - skylighting-0.4.1
 - cmark-gfm-0.1.1
 - QuickCheck-2.10.0.1
 - tasty-quickcheck-0.9.1
+- doctemplates-0.2.1
 - haddock-library-1.4.3
-resolver: lts-9.1
+resolver: lts-9.9

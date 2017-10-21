@@ -1643,6 +1643,9 @@ and modifying your custom templates accordingly. An easy way to do this
 is to fork the [pandoc-templates] repository and merge in changes after each
 pandoc release.
 
+Templates may contain comments:  anything on a line after `$--`
+will be treated as a comment and ignored.
+
 [pandoc-templates]: https://github.com/jgm/pandoc-templates
 
 Pandoc's Markdown
