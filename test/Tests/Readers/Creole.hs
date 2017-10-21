@@ -36,6 +36,13 @@ tests = [ "bold, single line, fully delimited" =:
         , "escape italics marker" =:
           "~//not in italics" =?> para "//not in italics"
 
+        , "inline nowiki, simple" =:
+          "this is {{{**not** ~interpreted}}} at all"
+          =?> para ("this is " <> code "**not** ~interpreted" <> " at all")
+        , "inline nowiki, curly braces inside" =:
+          "this is {{{{{{//including// some `}' chars}}}}}}"
+          =?> para ("this is " <> code "{{{//including// some `}' chars}}}")
+
         , "header level 1, no space, no trailing =" =:
           "= Top-Level Header"
           =?> header 1 (str "Top-Level Header")

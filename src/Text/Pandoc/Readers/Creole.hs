@@ -73,7 +73,7 @@ type CRLParser = ParserT [Char] ParserState
 --
 
 specialChars :: [Char]
-specialChars = "*/~"
+specialChars = "*/~{}"
 
 parseCreole :: PandocMonad m => CRLParser m Pandoc
 parseCreole = do
@@ -171,6 +171,7 @@ endOfParaElement = lookAhead $ endOfInput <|> endOfPara
 inline :: PandocMonad m => CRLParser m B.Inlines
 inline = choice [ whitespace
                 , escapedChar
+                , inlineNowiki
                 , bold
                 , finalBold
                 , italics
@@ -181,6 +182,12 @@ inline = choice [ whitespace
 
 escapedChar :: PandocMonad m => CRLParser m B.Inlines
 escapedChar = (try $ char '~' >> noneOf "\t\n ") >>= return . B.str . (:[])
+
+inlineNowiki :: PandocMonad m => CRLParser m B.Inlines
+inlineNowiki = B.code <$> (start >> manyTill (noneOf "\n\r") end)
+  where
+    start = try $ string "{{{"
+    end = try $ string "}}}" >> (lookAhead $ noneOf "}")
 
 whitespace :: PandocMonad m => CRLParser m B.Inlines
 whitespace = (lb <|> regsp) >>= return
