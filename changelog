@@ -1,3 +1,1769 @@
+pandoc (2.0)
+
+  [new features]
+
+  * New output format `ms` (groff ms). Complete support, including
+    tables, math, syntax highlighting, and PDF bookmarks. The writer uses
+    texmath's new eqn writer to convert math to eqn format, so a ms file
+    produced with this writer should be processed with `groff -ms -e` if
+    it contains math.
+
+  * New output format `jats` (Journal Article Tag Suite).  This is an XML
+    format used in archiving and publishing articles.  Note that a
+    URI-encoded CSL stylesheet (`data/jats.csl`) is added automatically
+    unless a stylesheet is specified using `--css`.
+
+  * New output format `gfm` (GitHub-flavored CommonMark) (#3841).
+    This uses bindings to GitHub's fork of cmark, so it should parse
+    gfm exactly as GitHub does (excepting certain postprocessing
+    steps, involving notifications, emojis, etc.).  `markdown_github`
+    has been deprecated in favor of `gfm`.
+
+  * New output format `muse` (Emacs Muse) (Alexander Krotov, #3489).
+
+  * New input format `gfm` (GitHub-flavored CommonMark) (#3841).
+    This uses bindings to GitHub's fork of cmark.  `markdown_github`
+    has been deprecated in favor of `gfm`.
+
+  * New input format `muse` (Emacs Muse) reader (Alexander Krotov, #3620).
+
+  * New input format `tikiwiki` (TikiWiki markup) (rlpowell, #3800).
+
+  * New input format `vimwiki` (Vimwiki markup) (Yuchen Pei, #3705).
+    Note that there is a new data file, `data/vimwiki.css`, which can
+    be used to display the HTML produced by this reader and
+    pandoc's HTML writer in the style of vimwiki's own HTML
+    export.
+
+  * Added new syntax for including raw content in any output format,
+    enabled by the `raw_attribute` extension (which is on by default
+    for `markdown` and `multimarkdown`).  The syntax is the same as
+    for fenced code blocks or code inlines, only with `{=FORMAT}` for
+    attributes, where `FORMAT` is the name of the output format
+    (e.g., `ms`, `html`).
+
+  * Implement multicolumn support for slide formats (#1710).
+    The structure expected is:
+
+        <div class="columns">
+          <div class="column" width="40%">
+            contents...
+          </div>
+          <div class="column" width="60%">
+            contents...
+          </div>
+        </div>
+
+    Support has been added for beamer and all HTML slide formats.
+
+  * Allows line comments in templates, beginning with `$--` (#3806).
+    (Requires doctemplates 0.2.1.)
+
+  * Add `--eol=crlf|lf|native` flag and writer option to control line endings
+    (Stefan Dresselhaus, #3663, #2097).
+
+  * Add `--log` option to save log messages in JSON format to a file (#3392).
+
+  * Add `--request-header` option, to set request headers when pandoc
+    makes HTTP requests to fetch external resources. For example:
+    `--request-header User-Agent:blah`.
+
+  * Added lua filters (Albert Krewinkel, #3514).  The new `--lua-filter`
+    option works like `--filter` but takes pathnames of special lua filters
+    and uses the lua interpreter baked into pandoc, so that no external
+    interpreter is needed.  Note that lua filters are all applied after
+    regular filters, regardless of their position on the command line.
+    For documentation of lua filters, see `doc/lua-filters.md`.
+
+  * Set `PANDOC_READER_OPTIONS` in environment where filters are run.
+    This contains a JSON representation of `ReaderOptions`, so filters
+    can access it.
+
+  * Support creation of pdf via groff `ms` and pdfroff.
+    `pandoc -t ms -o output.pdf input.txt`.
+
+  * Support for PDF generation via HTML and `weasyprint` or `prince`
+    (Mauro Bieg, #3909).  `pandoc -t html5 -o output.pdf --pdf-engine=prince`.
+
+  * Added `--epub-subdirectory` option (#3720).  This specifies the
+    subdirectory in the OCF container that holds the EPUB specific content.
+    We now put all EPUB related content in an `EPUB/` subdirectory by default
+    (later this will be configurable).
+
+    ```
+      mimetype
+      META-INF/
+        com.apple.ibooks.display-options.xml
+        container.xml
+      EPUB/ <<--configurable-->>
+        fonts/ <<--static-->>
+        font.otf
+      media/ <<--static-->>
+        cover.jpg
+        fig1.jpg
+      styles/ <<--static-->>
+        stylesheet.css
+      content.opf
+      toc.ncx
+      text/ <<--static-->>
+        ch001.xhtml
+    ```
+
+  * Added `--resource-path=SEARCHPATH` command line option (#852).
+    SEARCHPATH is separated by the usual character, depending on OS
+    (: on unix, ; on windows).  Default resource path is just working
+    directory.  However, the working directory must be explicitly
+    specified if the `--resource-path` option is used.
+
+  * Added --abbreviations=FILE option for custom abbreviations file
+    (#256).  Dfault abbreviations file (`data/abbreviations`) contains
+    a list of strings that will be recognized by pandoc's
+    Markdown parser as abbreviations.  (A nonbreaking space will
+    be inserted after the period, preventing a sentence space in
+    formats like LaTeX.) Users can override the default by putting a file
+    abbreviations in their user data directory (`~/.pandoc` on *nix).
+
+  * Allow a theme file as argument to `--highlight-style`.
+    Also include a sample, `default.theme`, in `data/`.
+
+  * Allow `--syntax-definition` option for dynamic loading of syntax
+    highlighting definitions (#3334).
+
+  * Lists in `markdown` by default now use the CommonMark variable
+    nesting rules (#3511). The indentation required for a block-level
+    item to be included in a list item is no longer fixed, but is
+    determined by the first line of the list item.  To be included in
+    the list item, a block must be indented to the level of the first
+    non-space content after the list marker. Exception: if are 5 or more
+    spaces after the list marker, then the content is interpreted as an
+    indented code block, and continuation paragraphs must be indented
+    two spaces beyond the end of the list marker.  See the CommonMark
+    spec for more details and examples.
+
+    Documents that adhere to the four-space rule should, in most cases,
+    be parsed the same way by the new rules.  Here are some examples
+    of texts that will be parsed differently:
+
+        - a
+          - b
+
+    will be parsed as a list item with a sublist; under the four-space
+    rule, it would be a list with two items.
+
+        - a
+
+              code
+
+    Here we have an indented code block under the list item, even though it
+    is only indented six spaces from the margin, because it is four spaces
+    past the point where a continuation paragraph could begin.  With the
+    four-space rule, this would be a regular paragraph rather than a code
+    block.
+
+        - a
+
+                code
+
+    Here the code block will start with two spaces, whereas under
+    the four-space rule, it would start with `code`.  With the four-space
+    rule, indented code under a list item always must be indented eight
+    spaces from the margin, while the new rules require only that it
+    be indented four spaces from the beginning of the first non-space
+    text after the list marker (here, `a`).
+
+    This change was motivated by a slew of bug reports from people
+    who expected lists to work differently (#3125, #2367, #2575, #2210,
+     #1990, #1137, #744, #172, #137, #128) and by the growing prevalance
+    of CommonMark (now used by GitHub, for example).  Those who
+    prefer the old behavior can use `-f markdown+four_space_rule`.
+
+  * Added `four_space_rule` extension.  This triggers the old pandoc
+    parsing rule for content nested under list items (the "four space
+    rule").
+
+  * Added `spaced_reference_links` extension (#2602).  It allows whitespace
+    between the two parts of a reference link:  e.g.
+
+        [a] [b]
+
+        [b]: url
+
+    This was previously enabled by default; now it is now forbidden by default.
+
+  * Add `space_in_atx_header` extension (#3512).  This is enabled by default
+    in pandoc and GitHub markdown but not the other flavors.
+    This requirse a space between the opening #'s and the header
+    text in ATX headers (as CommonMark does but many other implementations
+    do not).  This is desirable to avoid falsely capturing things ilke
+
+        #hashtag
+
+    or
+
+        #5
+
+  * Add `sourcefile` and `outputfile` template variables (Roland Hieber,
+    #3431).
+
+  * Allow ibooks-specific metadata in epubs (#2693).  You can now have
+    the following fields in your YAML metadata, and it will be treated
+    appropriately in the generated EPUB:
+
+    ```
+      ibooks:
+        version: 1.3.4
+        specified-fonts: false
+        ipad-orientation-lock: portrait-only
+        iphone-orientation-lock: landscape-only
+        binding: true
+        scroll-axis: vertical
+    ```
+
+
+  [behavior changes]
+
+  * Reader functions no longer presuppose that CRs have been
+    stripped from the input. (They strip CRs themselves, before
+    parsing, to simply the parsers.)
+
+  * Added support for translations (localization) (#3559).
+    Currently this only affects the LaTeX reader, for things
+    like `\figurename`.  Translation data files for 46 languages
+    can be found in `data/translations`.
+
+  * Make `--ascii` work with DocBook output too.
+
+  * Rename `--latex-engine` to `--pdf-engine`.
+
+  * Removed `--parse-raw` and `readerParseRaw`.  These were confusing.
+    Now we rely on the `+raw_tex` or `+raw_html` extension with latex or html
+    input.  Thus, instead of `--parse-raw -f latex` we use `-f latex+raw_tex`,
+    and instead of `--parse-raw -f html` we use `-f html+raw_html`.
+
+  * With `--filter` R filters are now recognized, even if they are
+    not executable (#3940, #3941, Andrie de Vries).
+
+  * Support SVG in PDF output, converting with `rsvg2pdf` (#1793).
+
+  * Make epub an alias for epub3, not epub2.
+
+  * Removed `--epub-stylesheet`; use `--css` instead (#3472, #847).
+    Multiple stylesheets may be used.  Stylesheets will be taken both from
+    `--css` and from the `stylesheet` metadata field (which can contain
+    either a file path or a list of them).
+
+  * `--mathml` and MathML in HTMLMathMethod longer take an argument.
+    The argument was for a bridge javascript that used to be necessary
+    in 2004.  We have removed the script already.
+
+  * `--katex` improvements.  The latest version is used, and the
+    autoload script is loaded by default.
+
+  * Change MathJax CDN default since old one is shutting down (#3544).
+    Note:  The new URL requires a version number, which we'll have
+    to update manually in subsequent pandoc releases in order to
+    take advantage of mathjax improvements.
+
+  * `--self-contained`: don't incorporate elements with `data-external="1"`
+    (#2656).  You can leave an external link as it is by adding the attribute
+    data-external="1" to the element.  Pandoc will then not try to
+    incorporate its content when `--self-contained` is used.  This is
+    similar to a feature already supported by the EPUB writer.
+
+  * Allow `--extract-media` to work with non-binary input formats
+    (#1583, #2289).  If `--extract-media` is supplied with a non-binary
+    input format, pandoc will attempt to extract the contents of all
+    linked images, whether in local files, data: uris, or external uris.
+    They will be named based on the sha1 hash of the contents.
+
+  * Make `papersize: a4` work regardless of the case of `a4`.
+    It is converted to `a4` in LaTeX and `A4` in ConTeXt.
+
+  * Make `east_asian_line_breaks` affect all readers/writers (#3703).
+
+  * Improved behavior of `auto_identifiers` when there are explicit ids
+    (#1745).  Previously only autogenerated ids were added to the list
+    of header identifiers in state, so explicit ids weren't taken
+    into account when generating unique identifiers.  Duplicated
+    identifiers could result.  This simple fix ensures that explicitly given
+    identifiers are also taken into account.
+
+  * Use `table-of-contents` for contents of toc, make `toc` a boolean
+    (#2872).  Changed markdown, rtf, and HTML-based templates accordingly.
+    This allows you to set `toc: true` in the metadata; this
+    previously produced strange results in some output formats.
+    For backwards compatibility, `toc` is still set to the
+    toc contents.  But it is recommended that you update templates
+    to use `table-of-contents` for the toc contents and `toc`
+    for a boolean flag.
+
+  * Change behavior with binary format output to stdout.
+    Previously, for binary formats, output to stdout was disabled
+    unless we could detect that the output was being piped (and not
+    sent to the terminal).  Unfortunately, such detection is not
+    possible on Windows, leaving windows users no way to pipe binary
+    output.  So we have changed the behavior in the following way:
+
+    + Output to stdout is allowed when it can be determined that
+      the output is being piped (on non-Windows platforms).
+    + If the `-o` option is not used, binary output is never sent
+      to stdout by default; instead, an error is raised.
+    + If `-o -` is used, binary output is sent to stdout, regardless
+      of whether it is being piped. This works on Windows too.
+
+  * Better error behavior:  uses of `error` have been replaced by
+    raising of `PandocError`, which can be trapped and handled by the
+    calling program.
+
+  * Removed `hard_line_breaks` extension from `markdown_github` (#3594).
+    GitHub has two Markdown modes, one for long-form documents like READMEs
+    and one for short things like issue coments. In issue comments, a line
+    break is treated as a hard line break. In README, wikis, etc., it is
+    treated as a space as in regular Markdown.  Since pandoc is more likely to
+    be used to convert long-form documents from GitHub Markdown,
+    `-hard_line_breaks` is a better default.
+
+  * Include `backtick_code_blocks` extension in `mardkown_mmd` (#3637).
+
+  * Escape `MetaString` values (as added with `-M/--metadata` flag) (#3792).
+    Previously they would be transmitted to the template without any
+    escaping.  Note that `--M title='*foo*'` yields a different result from
+
+        ---
+        title: *foo*
+        ---
+
+    In the latter case, we have emphasis; in the former case, just
+    a string with literal asterisks (which will be escaped
+    in formats, like Markdown, that require it).
+
+  * Allow `em`, `cm`, `in` for image height/width in HTML, LaTeX (#3450).
+
+  * HTML writer: Insert `data-` in front of unsupported attributes.  Thus,
+    a span with attribute `foo` gets written to HTML5 with `data-foo`, so
+    it is valid HTML5.  HTML4 is not affected.  This will allow us to use
+    custom attributes in pandoc without producing invalid HTML. (With help
+    from Wandmalfarbe, #3817.)
+
+  * Plain writer:  improved super/subscript rendering.  We now
+    handle more non-digit characters for which there are
+    sub/superscripted unicode characters.  When unicode
+    sub/superscripted characters are not available, we use
+    `_(..)` or `^(..)` (#3518).
+
+  * Docbook, JATS, TEI writers: print INFO message when omitting interior
+    header (#3750).  This only applies to section headers inside list items,
+    e.g., which were otherwise silently omitted.
+
+  * Change to `--reference-links` in Markdown writer (#3701).  With
+    `--reference-location` of `section` or `block`, pandoc will now repeat
+    references that have been used in earlier sections.  The Markdown
+    reader has also been modified, so that *exactly* repeated references
+    do not generate a warning, only references with the same label but
+    different targets.  The idea is that, with references after every block,
+    one might want to repeat references sometimes.
+
+  * ODT/OpenDocument writer:
+
+    + Support `lang` attribute (#1667).
+    + Added support for `--toc` (#2836).  Thanks to @anayrat.
+
+  * Docx writer:
+
+    + `lang` meta, see #1667 (Mauro Bieg, #3515).
+    + Change `FigureWithCaption` to `CaptionedFigure` (iandol, #3658).
+    + Use `Table` rather than `Table Normal` for table style (#3275).
+      `Table Normal` is the default table style and can't be modified.
+    + Pass through comments (#2994).  We assume that comments are defined as
+      parsed by the docx reader:
+
+        I want <span class="comment-start" id="0" author="Jesse Rosenthal"
+        date="2016-05-09T16:13:00Z">I left a comment.</span>some text to
+        have a comment <span class="comment-end" id="0"></span>on it.
+
+      We assume also that the id attributes are unique and properly
+      matched between comment-start and comment-end.
+    + Bookmark improvements.  Bookmark start/end now surrounds content rather
+      than preceding it.  Bookmarks generated for Div with id
+      (jgm/pandoc-citeproc#205).
+    + Add `keywords` metadata to docx document properties (Ian).
+
+  * RST writer: support unknown interpreted text roles by
+    parsing them as `Span` with `role` attributes (#3407).  This
+    way they can be manipulated in the AST.
+
+  * HTML writer:
+
+    + Line block: Use class instead of style attribute (#1623).  We now
+      issue `<div class="line-block">` and include a default definition
+      for `line-block` in the default templates, instead of hard-coding a
+      `style` on the div.
+    + Add class `footnoteBack` to footnote back references (Timm Albers).
+      This allows for easier CSS styling.
+    + Render SmallCaps as span with smallcaps class (#1592), rather than
+      using a style attribute directly.  This gives the user more flexibility
+      in styling small caps in CSS.
+    + With reveal.js we use `data-src` instead of `src` for images for
+      lazy loading.
+    + Special-case `.stretch` class for images in reveal.js (#1291).
+      Now in reveal.js, an image with class `stretch` in a paragraph
+      by itself will stretch to fill the whole screen, with no
+      caption or figure environment.
+
+  * Added warnings for non-rendered blocks to writers.
+
+  * Writers now raise an error on template failure.
+
+  * When creating a PDF via LaTeX, warn if the font is missing some
+    characters (#3742).
+
+  * Remove initial check for PDF-creating program (#3819).
+    Instead, just try running it and raise the exception if it
+    isn't found at that point.  This improves things for users of Cygwin
+    on Windows, where the executable won't be found by `findExecutable`
+    unless `.exe` is added.  The same exception is raised as before, but
+    at a later point.
+
+  * Readers issue warning for duplicate header identifiers (#1745).
+    Autogenerated header identifiers are given suffixes so as not to clash
+    with previously used header identifiers. But they may still coincide with
+    an explicit identifier that is given for a header later in the document,
+    or with an identifier on a div, span, link, or image. We now issue
+    a warning in this case, so users can supply an explicit identifier.
+
+  * CommonMark reader now supports `emoji`, `hard_line_breaks`, `smart`,
+    and `raw_html` extensions.
+
+  * Markdown reader:
+
+    + Don't allow backslash + newline to affect block structure (#3730).
+      Note that as a result of this change, the following, which formerly
+      produced a header with two lines separated by a line break, will
+      now produce a header followed by a paragraph:
+
+        # Hi\
+        there
+
+      This may affect some existing documents that relied on
+      this undocumented and unintended behavior.  This change makes pandoc
+      more consistent with other Markdown implementations, and with itself
+      (since the two-space version of a line break doesn't work inside ATX
+      headers, and neither version works inside Setext headers).
+
+
+  * Org reader (Albert Krewinkel, unless noted):
+
+    + Support `table.el` tables (#3314).
+    + Support macros (#3401).
+    + Support the `#+INCLUDE:` file inclusion mechanism (#3510).
+      Recognized include types are `example`, `export`, `src`, and
+      normal org file inclusion.  Advanced features like line numbers
+      and level selection are not implemented yet.
+    + Interpret more meta value as inlines.  The values of the following
+      meta variables are now interpreted using org-markup instead of
+      treating them as pure strings: `keywords` (comma-separated list of
+      inlines), `subtitle` (inline values), `nocite` (inline values, can
+      be repeated).
+    + Support `\n` export option (#3940).  This turns all newlines in the
+      text into hard linebreaks.
+
+  * RST reader:
+
+    + Improved admonition support (#223).  We no longer add an
+      `admonition` class, we just use the class for the type of admonition,
+      `note` for example.  We put the word corresponding to the label in
+      a paragraph inside a `Div` at the beginning of the admonition with
+      class `admonition-title`.  This is about as close as we can get to
+      RST's own output.
+    + Initial support of `.. table` directive.  This allows adding captions
+      to tables.
+    + Support `.. line-block` directive.  This is deprecated but may still
+      be in older documents.
+    + Support scale and align attributes of images (#2662).
+    + Implemented implicit internal header links (#3475).
+    + Support RST-style citations (#853).  The citations appear at the end
+      of the document as a definition list in a special div with id
+      `citations`. Citations link to the definitions.
+    + Recurse into bodies of unknown directives (#3432).
+      In most cases it's better to preserve the content than
+      to emit it.  This isn't guaranteed to have good results;
+      it will fail spectacularly for unknown raw or verbatim directives.
+    + Handle chained link definitions (#262).  For example,
+
+        .. _hello:
+        .. _goodbye: example.com
+
+      Here both `hello` and `goodbye` should link to `example.com`.
+    + Support anchors (#262).  E.g.
+
+        `hello`
+
+        .. _hello:
+
+        paragraph
+
+      This is supported by putting "paragraph" in a `Div` with id `hello`.
+    + Support `:widths:` attribute for table directive.
+    + Implement csv-table directive (#3533).  Most attributes are supported,
+      including `:file:` and `:url:`.
+    + Support unknown interpreted text roles by parsing them as Span
+      with "role" attributes (#3407).  This way they can be manipulated in
+      the AST.
+
+  * HTML reader: parse a span with class `smallcaps` as `SmallCaps`.
+
+  * LaTeX reader:
+ 
+    + Implemented `\graphicspath` (#736).
+    + Properly handle column prefixes/suffixes.  For example, in
+      `\begin{tabular}{>{$}l<{$}>{$}l<{$} >{$}l<{$}}`
+      each cell will be interpreted as if it has a `$`
+      before its content and a `$` after (math mode).
+    + Handle komascript `\dedication` (#1845).  It now adds a
+      `dedication` field to metadata.  It is up to the user to supply
+      a template that uses this variable.
+    + Support all `\textXX` commands, where XX = `rm`, `tt`, `up`, `md`,
+      `sf`, `bf` (#3488).  Spans with a class are used when there is
+      nothing better.
+    + Expand `\newenvironment` macros (#987).
+    + Add support for LaTeX subfiles package (Marc Schreiber, #3530).
+    + Better support for subfigure package (#3577).
+      A figure with two subfigures turns into two pandoc
+      figures; the subcaptions are used and the main caption
+      ignored, unless there are no subcaptions.
+    + Add support for \vdots (Marc Schreiber, #3607).
+    + Add basic support for hyphenat package (Marc Schreiber, #3603).
+    + Add basic `\textcolor` support (Marc Schreiber).
+    + Add support for `tabularx` environment (Marc Schreiber, #3632).
+    + Better handling of comments inside math environments (#3113).
+      This solves a problem with commented out `\end{eqnarray}` inside
+      an eqnarray (among other things).
+    + Parse tikzpicture as raw verbatim environment if `raw_tex` extension
+      is selected (#3692).  Otherwise skip with a warning.  This is better
+      than trying to parse it as text!
+    + Add `\colorbox` support (Marc Schreiber).
+    + Set identifiers on Spans used for `\label`.
+    + Have `\setmainlanguage` set `lang` in metadata.
+    + Support etoolbox's `\ifstrequal`.
+    + Support `plainbreak`, `fancybreak` et al from the memoir class
+      (bucklereed, #3833).
+    + Support `\let`.  Also, fix regular macros so they're expanded at the
+      point of use, and NOT also the point of definition.  `\let` macros,
+      by contrast, are expanded at the point of definition.  Added an
+      `ExpansionPoint` field to `Macro` to track this difference.
+    + Support simple `\def` macros.  Note that we still don't support
+      macros with fancy parameter delimiters, like `\def\foo#1..#2{...}`.
+    + Support \chaptername, \partname, \abstractname, etc.  (#3559,
+      obsoletes #3560).
+    + Put content of `\ref`, `\label`, `\eqref` commands into `Span` with
+      attributes, so they can be handled in filters (Marc Schreiber, #3639)
+    + Add Support for `glossaries` and `acronym` package (Marc Schreiber,
+      #3589). Acronyms are not resolved by the reader, but acronym and
+      glossary information is put into attributes on Spans so that they
+      can be processed in filters.
+    + Use `Link` instead of `Span` for `\ref`.  This makes more sense
+      semantically and avoids unnecessary `Span [Link]` nestings when
+      references are resolved.
+    + Rudimentary support for `\hyperlink`.
+    + Support `\textquoteleft|right`, `\textquotedblleft|right` (#3849).
+    + Support `\lq`, `\rq`.
+    + Implement `\newtoggle`, `\iftoggle`, `\toggletrue|false` from etoolbox
+      (#3853).
+    + Support `\RN` and `\Rn`, from biblatex (bucklereed, #3854).
+    + Improved support for `\hyperlink`, `\hypertarget` (#2549).
+    + Support `\k` ogonek accent.
+    + Improve handling of accents.  Handle ogonek, and fall back correctly
+      with forms like `\"{}`.
+    + Better support for ogonek accents.
+    + Support for `\faCheck` and `\faClose` (Marc Schreiber, #3727).
+    + Support for `xspace` (Marc Schreiber, #3797).
+    + Support `\setmainlanguage` or `\setdefaultlanguage` (polyglossia)
+      and `\figurename`.
+    + Better handling of `\part` in LaTeX (#1905).  Now we parse chapters as
+      level 0 headers, and parts as level -1 headers.  After parsing, we
+      check for the lowest header level, and if it's less than 1 we bump
+      everything up so that 1 is the lowest header level.  So `\part` will
+      always produce a header; no command-line options are needed.
+    + Add block version of `\textcolor` (Marc Schreiber).
+    + `\textcolor` works as inline and block command (Marc Schreiber).
+    + `\textcolor` will be parse as span at the beginning of a paragraph
+      (Marc Schreiber).
+    + Read polyglossia/babel `\text(LANG){...}` (bucklereed)
+    + Improved handling of include files in LaTeX reader (#3971).
+      Previously `\include` wouldn't work if the included file
+      contained, e.g., a begin without a matching end.
+    + Support `\expandafter` (#3983).
+    + Handle `\DeclareRobustCommand` (#3983).  Currently it's just treated
+      as a synonym for `\newcommand`.
+
+  * Math improvements due to updates in texmath:
+
+    + Improved handling of accents and upper/lower delimiters.
+    + Support for output in GNU eqn format (used with *roff).
+    + Allow `\boldsymbol` + a token without braces, and similarly
+      with other styling commands.
+    + Improve parsing of `\mathop` to allow multi-character operator names.
+    + Add thin space after math operators when "faking it with
+      unicode."
+
+  * `walk` is now used instead of `bottomUp` in the `ToJSONFilter`
+    instance for `a -> [a]` (pandoc-types).  Note that behavior
+    will be slightly different, since `bottomUp`'s treatment of
+    a function `[a] -> [a]` is to apply it to each sublist of a
+    list, while walk applies it only to maximal sublists.
+    Usually the latter behavior is what is wanted, and the
+    former can be simulated when needed.  But there may be
+    existing filters that need to be rewritten in light of the
+    new behavior.  Performance should be improved.
+
+  * There are some changes to syntax highlighting due to revisions
+    in the `skylighting` library:
+
+    + Support for `powershell` has been added, and many syntax
+      definitions have been updated.
+    + Background colors have been added to the `kate` style.
+    + The way highlighted code blocks are formatted in HTML has
+      been changed (David Baynard), in ways that may require
+      changes in hard-coded CSS affecting highlighting.
+      (If you haven't included hard-coded highlighting CSS in
+      your template, you needn't change anything.)
+
+
+  [API changes]
+
+  * New module `Text.Pandoc.Class` (Jesse Rosenthal, John MacFarlane).
+    This contains definitions of the `PandocMonad` typeclass, the
+    `PandocIO` and `PandocPure` monads, and associated functions.
+
+  * Changed types of all writers and readers.
+
+    + We now use `Text` instead of `String` in the interface (#3731).
+      (We have not yet changed the internals of most readers to work
+      with `Text`, but making this change in the API now opens up a
+      path to doing that.)
+    + The result is now of form `m a` with constraint `PandocMonad m`.
+      Readers and writers can be combined to form monadic values which
+      can be run using either `runIO` or `runPure`.  If `runIO` is used,
+      then both readers and writers will be able to do IO when needed
+      (for include files, for example); if `runPure` is used,
+      then the functions are pure and will not touch IO.
+
+  * New module `Text.Pandoc.Readers` (Albert Krewinkel).  This
+    contains reader helper functions formerly defined in the
+    top-level `Text.Pandoc` module.
+
+    + Changed `StringReader` -> `TextReader`.
+    + `getReader` now returns a pair of a reader and
+      `Extensions`, instead of building the extensions into the
+      reader (#3659).  The calling code must explicitly set
+      `readerExtensions` using the `Extensions` returned.  The
+      point of the change is to make it possible for the calling
+      code to determine what extensions are being used.
+
+  * New module `Text.Pandoc.Writers` (Albert Krewinkel).
+    This contains writer helper functions formerly defined in the
+    top-level `Text.Pandoc` module.
+
+    + Changed `StringWriter` -> `TextWriter`.
+    + `getWriter` now retuns a pair of a reader and
+      `Extensions`, instead of building the extensions into the
+      reader (#3659).  The calling code must explicitly set
+      `readerExtensions` using the `Extensions` returned.  The
+      point of the change is to make it possible for the calling
+      code to determine what extensions are being used.
+
+  * New module `Text.Pandoc.Lua`, exporting `runLuaFilter` (Albert Krewinkel,
+    #3514).
+
+  * New module `Text.Pandoc.App`.  This abstracts out the functionality
+    of the command line program (`convertWithOpts`), so it can be reproduced
+    e.g. in a desktop or web application.  Instead of exiting, we throw errors
+    (#3548), which are caught (leading to exit) in pandoc.hs, but allow other
+    users of `Text.Pandoc.App` to recover.  `pandoc.hs` is now a 2-liner.
+
+  * New module `Text.Pandoc.Logging` (exported module) (#3392).
+    This now contains the `Verbosity` definition previously in
+    `Text.Pandoc.Options`, as well as a new `LogMessage` datatype that will
+    eventually be used instead of raw strings for warnings.  This will enable
+    us, among other things, to provide machine-readable warnings if desired.
+    Include ToJSON instance and showLogMessage.  This gives us the possibility
+    of both machine-readable and human-readable output for log messages.
+
+  * New module `Text.Pandoc.BCP47`, with `getLang`, `Lang(..)`, `parseBCP47`.
+
+  * New module `Text.Pandoc.Translations`, exporting `Term`,
+    `Translations`, `readTranslations`.
+
+  * New module `Text.Pandoc.Readers.LaTeX.Types', exporting `Macro`, `Tok`,
+    `TokType`, `Line`, `Column`.
+
+  * `Text.Pandoc.Error`: added many new constructors for `PandocError`.
+
+  * Expose some previously private modules (#3260).  These are often
+    helpful to people writing their own reader or writer modules:
+
+    + `Text.Pandoc.Writers.Shared`
+    + `Text.Pandoc.Parsing`
+    + `Text.Pandoc.Asciify`
+    + `Text.Pandoc.Emoji`
+    + `Text.Pandoc.ImageSize`
+    + `Text.Pandoc.Highlighting`
+`
+  * New module `Text.Pandoc.Extensions` (Albert Krewinkel):
+    Extension parsing and processing functions were defined in the top-level
+    `Text.Pandoc` module.  These functions are moved to the Extensions
+    submodule as to enable reuse in other submodules.
+
+  * Add `Ext_raw_attribute` to `Extension`.
+
+  * Add `Monoid` instance for `Extensions`.
+
+  * Add `Ext_four_space_rule` constructor in `Extension`.
+
+  * Add `Ext_gfm_auto_identifiers`: new constructor for `Extension`.
+
+  * Add `Text.Pandoc.Writers.Ms`, exporting `writeMs`.
+
+  * Add `Text.Pandoc.Writers.JATS`, exporting `writeJATS`.
+
+  * Add `Text.Pandoc.Writers.Muse`, exporting `writeMuse`.
+
+  * Add `Text.Pandoc.Readers.Muse`, exporting `readMuse`.
+
+  * Add `Text.Pandoc.Readers.TikiWiki`, exporting `readTikiWiki`.
+
+  * Add `Text.Pandoc.Readers.Vimwiki`, exporting `readVimwiki`.
+
+  * Export `setVerbosity` from `Text.Pandoc`.
+
+  * `Text.Pandoc.Pretty`: Add `Eq` instance for `Doc`.
+
+  * `Text.Pandoc.XML`: `toEntities`: changed type to `Text -> Text`.
+
+  * `Text.Pandoc.UTF8`:
+
+    + Export `fromText`, `fromTextLazy`, `toText`, `toTextLazy`.
+      Define `toString`, `toStringLazy` in terms of them.
+    + Add new functions parameterized on `Newline`: `writeFileWith`,
+      `putStrWith`, `putStrLnWith`, `hPutStrWith`, `hPutStrLnWith`.
+
+  * `Text.Pandoc.MediaBag`: removed `extractMediaBag`.
+
+  * `Text.Pandoc.Highlighting`:
+
+    + `highlighting` now returns an Either rather than Maybe.
+      This allows us to display error information returned by the skylighting
+      library.  Display a warning if the highlighting library throws an error.
+    + Add parameter for `SyntaxMap` to `highlight`.
+
+  * `Text.Pandoc.Writers.Math`:
+
+    + Export `defaultMathJaxURL`, `defaultKaTeXURL`.  This will ensure that
+      we only need to update these in one place.
+
+  * `Text.Pandoc.SelfContained`:
+
+    + Removed `WriterOptions` parameter from `makeSelfContained`.
+    + Put `makeSelfContained` in PandocMonad instead of IO.  This removes
+      the need to pass MediaBag around and improves exceptions.  It also
+      opens up the possibility of using makeSelfContained purely.
+    + Export `makeDataURI`.
+
+  * `Text.Pandoc.ImageSize`:
+
+    + Export `lengthToDim`, new function `scaleDimension`.
+    + Export `inEm` from ImageSize (#3450).
+    + Change `showFl` and `show` instance for `Dimension` so
+      extra decimal places are omitted.
+    + Added `Em` as a constructor of `Dimension`.
+    + Add `WriterOptions` parameter to `imageSize` signature (Mauro Bieg).
+
+  * `Text.Pandoc.Templates`:
+
+    + Change type of `renderTemplate'`.  Now it runs in `PandocMonad`
+      and raises a proper `PandocTemplateError` if there are problems, rather
+      than failing with uncatchable `error`.
+    + Change signature of `getDefaultTemplate`.  Now it runs in any instance
+      of `PandocMonad`, and returns a `String` rather than an `Either` value.
+      And it no longer takes a `datadir` parameter, since this can be
+      retrieved from `CommonState`.
+
+  * `Text.Pandoc.Options`:
+
+    + Added `writerEpubSubdirectory` to `WriterOptions` (#3720).
+      The EPUB writer now takes its EPUB subdirectory from this option.
+    + In `WriterOptions`, rename `writerLaTeXEngine` to `writerPdfEngine`
+      and `writerLaTeXArgs` to `writerPdfArgs` (Mauro Bieg, #3909).
+    + Add `writerSyntaxMap` to `WriterOptions`.
+    + Removed `writerEpubStylesheet` from `WriterOptions`.
+    + Remove `writerUserDataDir` from `WriterOptions`.  It is now carried
+      in `CommonState` in `PandocMonad` instances.  (And thus it can be used
+      by readers too.)
+    + Changed `writerEpubMetadata` to a `Maybe String`.
+    + Removed `readerApplyMacros` from `ReaderOptions`.  Now we just check
+      the `latex_macros` reader extension.
+    + FromJSON/ToJSON instances for `ReaderOptions`.
+    + In `HTMLMathMethod`, the `KaTeX` contsructor now takes only
+      one string (for the KaTeX base URL), rather than two.
+    + Removed `writerSourceURL` from `WriterOptions`.  We now use
+      `stSourceURL` in `CommonState`, which is set by `setInputFiles`.
+
+  * `Text.Pandoc.Shared`:
+
+    + `tabFilter` now takes a `Text`, not `String`.
+    + `openURL`: Changed type from an Either.  Now it will just raise
+      an exception to be trapped later.
+    + Remove `normalizeSpaces` (#1530).
+    + Remove `warn`.  (Use `report` from `Text.Pandoc.Class` instead.)
+    + Export a new function `crFilter`.
+    + Added `eastAsianLineBreakFilter` (previously in Markdown reader).
+    + Provide custom `isURI` that rejects unknown schemes.
+      (Albert Krewinkel, #2713).  We also export the set of known
+      `schemes`.  The new function replaces the function of the same name
+      from `Network.URI`, as the latter did not check whether a scheme is
+      well-known.  All official IANA schemes (as of 2017-05-22) are
+      included in the set of known schemes.  The four non-official schemes
+      `doi`, `isbn`, `javascript`, and `pmid` are kept.
+    + Removed `err`.
+    + Removed `readDataFile`, `readDefaultDataFile`, `getReferenceDocx`,
+      `getReferenceODT`. These now live in `Text.Pandoc.Class`,
+      where they are defined in terms of `PandocMonad`
+      primitives and have different signatures.
+    + Remove `openURL`.  Use `openURL` from `Text.Pandoc.Class` instead.
+
+  * `Text.Pandoc.Readers.HTML`: export new `NamedTag` class.
+
+  * `Text.Pandoc.Readers.Markdown`: remove `readDocxWithWarnings`.
+     With the new API one can simply use `getLog` after running
+     the reader.
+
+  * `Text.Pandoc.Readers.LaTeX`: Changed types for `rawLaTeXInline`
+     and `rawLaTeXBlock`.  (Both now return a `String`, and they are
+     polymorphic in state.)
+
+
+  [bug fixes and under-the-hood improvements]
+
+  * TEI writer: Added identifiers on `<div>` elements.
+
+  * DokuWiki reader: Better handling for code block in list item (#3824).
+
+  * Custom writer: Remove old preprocesesor conditionals (Albert Krewinkel).
+
+  * ZimWiki writer: Removed internal formatting from note and table cells,
+    because ZimWiki does not support it (Alex Ivkin, #3446).
+
+  * MediaWiki writer:
+
+    + Updated list of syntax highlighting languages (#3461).
+      Now `r` gets you `<source>` rather than `<code>` (among others).
+    + Add display attribute on `<math>` tags (#3452).  This allows display
+      math to be rendered properly.
+    + Remove newline before `</ref>` (#2652).
+    + Don't softbreak lines inside list items (#3531).
+
+  * Org writer:
+
+    + Reduce to two spaces after bullets (#3417, Albert Krewinkel).
+    + Add unit tests (Alexander Krotov).
+    + Stop using raw HTML to wrap divs (Albert Krewinkel, #3771).
+    + Do not strip `#` from Org anchor links (Alexander Krotov).
+
+  * CommonMark writer:
+
+    + Avoid excess blank lines at end of output.
+    + Prefer pipe tables to HTML tables even if it means losing relative
+      column width information (#3734).
+    + Support table, strikethrough extensions, when enabled (as with gfm).
+      Note that we bypass the commonmark writer from cmark and construct our
+      own pipe tables, with better results.
+    + Properly support `--wrap=none`.
+    + Use smallcaps class for `SmallCaps` (#1592).
+    + Omit "fig:" prefix in image titles.  This is used internally to
+      indicate internal figures.
+
+  * RST writer:
+
+    + Properly handle table captions.
+    + Don't wrap lines in in definition list terms.  Wrapping is not allowed.
+    + Implemented `+/-smart` and improved escaping with `+smart`.
+    + Add empty comments when needed to avoid including a blockquote
+      in the indented content of a preceding block (#3675).
+    + Improve grid table output, fix bug with empty rows (#3516).
+      Uses the new `gridTable` in Writers.Shared, which is here
+      improved to better handle 0-width cells.
+    + Remove space at beginning/end of RST code span (#3496).  Otherwise
+      we get invalid RST.  There seems to be no way to escape the space.
+    + Add header anchors when header has non-standard id (#3937).
+    + Correctly handle inline code containing backticks, using a `:literal:`
+      role (#3974).
+    + Don't backslash-escape word-internal punctuation (#3978).
+
+  * Markdown writer:
+
+    + Don't include variables in metadata blocks.  Previously variables set
+      on the command line were included in e.g. YAML metadata, contrary to
+      documentation and intentions.
+    + Improved escaping with `+smart`.
+    + Fixed grid tables embedded in grid tables (#2834).
+    + Use span with class 'smallcaps' for SmallCaps, instead of a style
+      attribute as before (#1592).
+    + Escape initial `%` in a paragraph if the `pandoc_title_blocks`
+      extension is enabled (#3454).  Otherwise in a document starting with
+      a literal `%` the first line is wrongly interpreted as a title.
+    + Fixed false ordered lists in YAML metadata (#3492, #1685).  Now we
+      properly escape things that would otherwise start ordered lists,
+      such as
+
+        ---
+        title: 1. inline
+        ...
+    + Better handling of tables with empty columns (#3337).  We now
+      calculate the number of columns based on the longest row (or the
+      length of aligns or widths).
+    + Escape unordered list markers at beginning of paragraph (#3497), to
+      avoid false interpretation as a list.
+    + Escape `|` appropriately.
+    + Ensure space before list at top level (#3487).
+    + Avoid spurious blanklines at end of document after tables and list,
+      for example.
+    + Fixed bugs in simple/multiline list output (#3384).
+      Previously we got overlong lists with `--wrap=none`.  This is fixed.
+      Previously a multiline list could become a simple list (and would
+      always become one with `--wrap=none`).
+    + Don't emit a simple table if `simple_tables` disabled (#3529).
+    + Case-insensitive reference links (David A Roberts, #3616).
+      Ensure that we do not generate reference links whose labels differ only
+      by case.  Also allow implicit reference links when the link
+      text and label are identical up to case.
+    + Put space before reference link definitions (Mauro Bieg, #3630).
+    + Better escaping for links (David A. Roberts, #3619).  Previously the
+      Markdown writer would sometimes create links where there were none
+      in the source.  This is now avoided by selectively escaping bracket
+      characters when they occur in a place where a link might be created.
+    + Added missing `\n` (David A. Roberts, #3647).
+    + Fixed duplicated reference links with `--reference-links`
+      and `--reference-location=section` (#3674).  Also ensure that there
+      are no empty link references `[]`.
+    + Avoid inline surround-marking with empty content (#3715).
+      E.g. we don't want `<strong></strong>` to become `****`.
+      Similarly for emphasis, super/subscript, strikeout.
+    + Don't allow soft break in header (#3736).
+    + Make sure `plain`, `markdown_github`, etc. work for raw.
+      Previously only `markdown` worked.  Note: currently a raw block labeled
+      `markdown_github` will be printed for any `markdown` format.
+    + Ensure that `+` and `-` are escaped properly so they don't cause
+      spurious lists (#3773).  Previously they were only
+      if succeeded by a space, not if they were at end of line.
+    + Use pipe tables if `raw_html` disabled and `pipe_tables` enabled,
+      even if the table has relative width information (#3734).
+    + Markdown writer: don't crash on `Str ""`.
+    + Make `Span` with null attribute transparent.  That is, we don't use
+      brackets or `<span>` tags to mark spans when there are no attributes;
+      we simply output the contents.
+    + Escape pipe characters when `pipe_tables` enabled (#3887).
+    + Better escaping of `<` and `>`.  If `all_symbols_escapable` is set,
+      we backslash escape these.  Otherwise we use entities as before.
+    + When writing plain, don't use `&nbsp;` to separate list and indented
+      code.  There's no need for it in this context, since this isn't to be
+      interpreted using Markdown rules.
+    + Preserve classes in JS obfuscated links (Timm Albers, #2989).
+      HTML links containing classes originally now preserve them when using
+      javascript email obfuscation.
+    + Render `SmallCaps` as a native span when `native_spans` are enabled.
+    + Always write attributes with `bracketed_spans` (d-dorazio).
+
+  * Man writer:
+
+    + Fix handling of nested font commands (#3568).  Previously pandoc emitted
+      incorrect markup for bold + italic, for example, or bold + code.
+    + Avoid error for definition lists with no definitions (#3832).
+
+  * DocBook writer:
+
+    + Fix internal links with `writerIdentifierPrefix opt`
+      (#3397, Maura Bieg).
+
+  * Docx writer:
+
+    + Don't include bookmarks on headers unless non-null id (#3476).
+    + Support 9 levels of headers (#1642).
+    + Allow 9 list levels (#3519).
+    + Don't take `distArchive` from datadir (#3322).  The docx writer takes
+      components from the distribution's version of `reference.docx` when it
+      can't find them in a user's custom `reference.docx`.  Previously, we
+      allowed a `reference.docx` in the data directory (e.g. `~/.pandoc`)
+      to be used as the distribution's reference.docx.  This led to a
+      bizarre situation where pandoc would produce a good docx using
+      `--template ~/.pandoc/ref.docx`, but if `ref.docx` were moved to
+      `~/.pandoc/reference.docx`, it would then produce a corrupted docx.
+    + Fixed handling of soft hyphen (0173) (#3691).
+    + Better handling of keywords (#3719).
+    + Cleaner code for handling dir and style attributes for `Div`.
+    + Use `Set` for dynamic styles to avoid duplicates.
+    + Removed redundant element from data/docx/word/numbering.xml.
+      The elements we need are generated when the document is
+      compiled; this didn't do anything.
+    + Activate `evenAndOddHeaders` from reference docx (#3901,
+      Augustín Martín Barbero).
+
+  * ODT/OpenDocument writer:
+
+    + Calculate aspect ratio for percentage-sized images (Mauro Bieg, #3239).
+    + Use more widely available bullet characters (#1400).  The old
+      characters weren't available in some font sets.  These seem to work
+      well on Windows and Linux versions of LibreOffice.
+    + Wider labels for lists (#2421).  This avoids overly narrow labels for
+      ordered lists with `()` delimiters.  However, arguably it creates
+      overly wide labels for bullets.  Also, lists now start flush with
+      the margin, rather than indented.
+    + Fixed dropped elements in some ordered lists (#2434).
+
+  * FB2 writer:
+
+    + Don't render `RawBlock` as code.
+    + Don't fail with an error on interior headers (e.g. in list) (#3750).
+      Instead, omit them with an INFO message.
+    + Add support for "lang" metadata (Alexander Krotov, #3625).
+    + Format `LineBlock` as poem (Alexander Krotov).  Previously writer
+      produced one paragraph with `<empty-line/>` elements, which are not
+      allowed inside `<p>` according to FB2 schema.
+    + Replace `concatMap` with `cMap` (Alexander Krotov).
+
+  * HTML writer:
+
+    + Make sure `html4`, `html5` formats work for raw blocks/inlines.
+    + Render raw inline environments when `--mathjax` used (#3816).
+      We previously did this only with raw blocks, on the assumption
+      that math environments would always be raw blocks. This has changed
+      since we now parse them as inline environments.
+    + Ensure we don't get two style attributes for width and height.
+    + Report when not rendering raw inline/block.
+    + Issue warning if no title specified and template used (#3473).
+    + Info message if `lang` is unspecified (#3486).
+    + Removed unused parameter in `dimensionsToAttributeList`.
+    + Avoid two class attributes when adding `uri` class (#3716).
+    + Fix internal links with `writerIdentifierPrefix opt` (#3397, Maura
+      Bieg).
+    + Use revealjs's math plugin for mathjax (#3743).  This is a thin
+      wrapper around mathjax that makes math look better on revealjs.
+    + Slidy:  use h1 for all slides, even if they were originally
+      level 2 headers (#3566).  Otherwise the built-in table of contents
+      in Slidy breaks.
+
+  * LaTeX writer:
+
+    + Don't render LaTeX images with data: URIs (#3636).  Note that
+      `--extract-media` can be used when the input contains data: URIs.
+    + Make highlighted code blocks work in footnotes (Timm Albers).
+    + Don't use figure inside table cell (#3836).
+    + Use proper code for list enumerators (#3891).  This should fix problems
+      with lists that don't use arabic numerals.
+    + Always add hypertarget when there's a non-empty identifier (#2719).
+      Previously the hypertargets were only added when there was actually
+      a link to that identifier.
+    + Use `%` after hypertarget before code block.
+    + Add `\leavevmode` before hypertarget at start of paragraph (#2704,
+      fixes formatting problems in beamer citations).
+    + Don't use `lstinline` in \item[..] (#645).  If you do, the contents
+      of item disappear or are misplaced.  Use `\texttt` instead.
+    + Fix problem with escaping in `lstinline` (#1629).  Previously the
+      LaTeX writer created invalid LaTeX when `--listings` was specified and
+      a code span occured inside emphasis or another construction.
+    + Fix error with line breaks after empty content (#2874).  LaTeX
+      requires something before a line break, so we insert a `~` if no
+      printable content has yet been emitted.
+    + Use BCP47 parser.
+    + Fixed detection of otherlangs (#3770).  We weren't recursing into
+      inline contexts.
+    + Handle language in inline code with `--listings` (#3422).
+    + Write euro symbol directly in LaTeX (Andrew Dunning, #3801).
+      The textcomp package allows pdfLaTeX to parse `€` directly, making the
+      `\euro` command unneeded.
+    + Fixed footnotes in table captions (#2378).  Note that if the table has
+      a first page header and a continuation page header, the notes will
+      appear only on the first occurrence of the header.
+    + In `writeBeamer` output, allow hyperlinks to frames (#3220).
+      Previously you could link to a header above or below slide level but
+      not *to* slide level.  This commit changes that.  Hypertargets are
+      inserted inside frame titles; technically the reference is to just
+      after the title, but in normal use (where slides are viewed full
+      screen in a slide show), this does not matter.
+    + Remove `\strut` at beginning of table cells (#3436).  This fixes a
+      problem with alignment of lists in table cells.  The `\strut` at the
+      end seems to be enough to avoid the too-close spacing that motivated
+      addition of the strut  in #1573.
+    + Add partial siunitx Support (Marc Schreiber, #3588).
+
+  * ConTeXt writer:
+
+    + Refactored to use BCP47 module.
+    + Remove unnecessary `$` (Alexander Krotov, #3482).
+    + Use header identifiers for chapters (#3968).
+
+  * EPUB writer:
+
+    + `title_page.xhtml` is now put in `text/`.
+    + Don't strip formatting in TOC (#1611).
+
+  * Textile reader:
+
+    + Fix bug for certain links in table cells (#3667).
+    + Allow 'pre' code in list item (#3916).
+
+  * HTML reader:
+
+    + Added warnings for ignored material (#3392).
+    + Better sanity checks to avoid parsing unintended things as
+      raw HTML in the Markdown reader (#3257).
+    + Revise treatment of `li` with `id` attribute (#3596).  Previously we
+      always added an empty div before the list item, but this created
+      problems with spacing in tight lists.  Now we do this: If the list
+      item contents begin with a `Plain` block, we modify the `Plain`
+      block by adding a `Span` around its contents.  Otherwise, we add a
+      `Div` around the contents of the list item (instead of adding an
+      empty `Div` to the beginning, as before).
+    + Add `details` tag to list of block tags (#3694).
+    + Removed `button` from block tag list (#3717).  It is already in the
+      `eitherBlockOrInlineTag` list, and should be both places.
+    + Use `Set`s instead of lists for block tag lookup.
+    + Rewrote to use `Text` throughout.  Effect on memory usage is modest
+      (< 10%).
+    + Use the lang value of `<html>` to set the lang meta value (bucklereed,
+      #3765).
+    + Ensure that paragraphs are closed properly when the parent block
+      element closes, even without `</p>` (#3794).
+    + Parse `<figure>` and `<figcaption>` (Mauro Bieg, #3813).
+    + Parse `<main>` like `<div role=main>` (bucklereed, #3791).
+      `<main>` closes `<p>` and behaves like a block element generally
+    + Support column alignments (#1881).  These can be set either
+      with a `width` attribute or with `text-width` in a `style` attribute.
+    + Modified state type to be an instance of `HasLogMessages`, so
+      `registerHeader` can issue warnings.
+
+  * Txt2Tags reader:
+
+    + Newline is not indentation (Alexander Krotov).
+
+  * MediaWiki reader:
+
+    + Allow extra hyphens after `|-` in tables (#2649).
+    + Allow blank line after table start (#2649).
+    + Fixed more table issues (#2649).
+    + Ensure that list starts begin at left margin (#2606).  Including when
+      they're in tables or other list items.
+    + Make smart double quotes depend on `smart` extension (#3585).
+    + Don't do curly quotes inside `<tt>` contexts (#3585).  Even if `+smart`.
+    + Modified state type to be an instance of `HasLogMessages`, so
+      `registerHeader` can issue warnings.
+
+  * TWiki reader (Alexander Krotov):
+
+    + Remove unnecessary `$` (#3597).
+    + Simplify `linkText` (#3605).
+
+  * EPUB reader:
+
+    + Minor refactoring, avoiding explicit MediaBag handling.
+      This all works behind the scenes in CommonState plumbing.
+
+  * Docx reader:
+
+    + Don't drop smartTag contents (#2242).
+    + Handle local namespace declarations (#3365).  Previously we didn't
+      recognize math, for example, when the xmlns declaration occured on
+      the element and not the root.
+    + More efficient trimSps (#1530).  Replacing `trimLineBreaks`.  This
+      does the work of `normalizeSpaces` as well, so we avoid the need for
+      that function here.
+    + Avoid 0-level headers (Jesse Rosenthal, #3830).  We used to parse
+      paragraphs styled with "HeadingN" as "nth-level header." But if a
+      document has a custom style named "Heading0", this will produce a
+      0-level header, which shouldn't exist. We only parse this style
+      if N>0. Otherwise we treat it as a normal style name, and
+      follow its dependencies, if any.
+    + Add tests for avoiding zero-level header (Jesse Rosenthal).
+
+  * ODT reader:
+
+    + Replaced `collectRights` with Rights from `Data.Either`.
+    + Remove dead code (Albert Krewinkel).
+
+  * Org reader (Albert Krewinkel, unless noted).
+
+    + Don't allow tables inside list items (John MacFarlane, #3499).
+    + Disallow tables on list marker lines (#3499).
+    + Convert markup at beginning of footnotes (John MacFarlane, #3576).
+    + Allow emphasized text to be followed by `[` (#3577).
+    + Handle line numbering switch for src blocks.
+      The line-numbering switch that can be given to source blocks (`-n` with
+      an start number as an optional parameter) is parsed and translated to a
+      class/key-value combination used by highlighting and other readers and
+      writers.
+    + Stop adding rundoc prefix to src params.  Source block parameter names
+      are no longer prefixed with `rundoc`. This was intended to simplify
+      working with the rundoc project, a babel runner. However, the rundoc
+      project is unmaintained, and adding those markers is not the reader's
+      job anyway.  The original language that is specified for a source
+      element is now retained as the `data-org-language` attribute and only
+      added if it differs from the translated language.
+    + Allow multi-word arguments to src block params (#3477).  The reader now
+      correctly parses src block parameter list even if parameter arguments
+      contain multiple words.
+    + Avoid creating `nullMeta` by applying `setMeta` directly
+      (Alexander Krotov).
+    + Replace `sequence . map` with `mapM`.
+    + Fix smart parsing behavior.  Parsing of smart quotes and special
+      characters can either be enabled via the `smart` language extension or
+      the `'` and `-` export options. Smart parsing is active if either the
+      extension or export option is enabled.  Only smart parsing of special
+      characters (like ellipses and en and em dashes) is enabled by default,
+      while smart quotes are disabled.  Previously, all smart parsing was
+      disabled unless the language extension was enabled.
+    + Subject full doc tree to headline transformations (Albert Krewinkel,
+      #3695).  Emacs parses org documents into a tree structure, which is
+      then post-processed during exporting. The reader is changed to do the
+      same, turning the document into a single tree of headlines starting
+      at level 0.
+    + Fix cite parsing behaviour (Herwig Stuetz).  Until now, `org-ref`
+      cite keys included special characters also at the end. This caused
+      problems when citations occur right before colons or at the end of
+      a sentence.  With this change, all non alphanumeric characters at
+      the end of a cite key are ignored.  This also adds `,` to the list
+      of special characters that are legal in cite keys to better mirror
+      the behaviour of org-export.
+    + Fix module names in haddock comments.  Copy-pasting had lead to
+      haddock module descriptions containing the wrong module names.
+    + Recognize babel result blocks with attributes (#3706).  Babel
+      result blocks can have block attributes like captions and names.
+      Result blocks with attributes were not recognized and were parsed
+      as normal blocks without attributes.
+    + Include tags in headlines.  The Emacs default is to include tags in the
+      headline when exporting.  Instead of just empty spans, which contain the
+      tag name as attribute, tags are rendered as small caps and wrapped in
+      those spans.  Non-breaking spaces serve as separators for multiple tags.
+    + Respect export option for tags (#3713).  Tags are appended to
+      headlines by default, but will be omitted when the `tags` export option
+      is set to nil.
+    + Use `tag-name` attribute instead of `data-tag-name`.
+    + Use `org-language` attribute rather than `data-org-language`.
+    + Modified state type to be an instance of `HasLogMessages`, so
+      `registerHeader` can issue warnings.
+    + End footnotes after two blank lines.  Footnotes can not only be
+      terminated by the start of a new footnote or a header, but also by two
+      consecutive blank lines.
+    + Update emphasis border chars (#3933).  The org reader was updated to
+      match current org-mode behavior: the set of characters which are
+      acceptable to occur as the first or last character in an org emphasis
+      have been changed and now allows all non-whitespace chars at the
+      inner border of emphasized text (see `org-emphasis-regexp-components`).
+
+  * RST reader:
+
+    + Fixed small bug in list parsing (#3432).  Previously the parser didn't
+      handle properly this case:
+
+        * - a
+          - b
+        * - c
+          - d
+    + Handle multiline cells in simple tables (#1166).
+    + Parse list table directive (Keiichiro Shikano, #3432).
+    + Make use of `anyLineNewline` (Alexander Krotov, #3686).
+    + Use `anyLineNewline` in `rawListItem` (Alexander Krotov, #3702).
+    + Reorganize block parsers for ~20% faster parsing.
+    + Fixed `..include::` directive (#3880).
+    + Handle blank lines correctly in line blocks (Alexander Krotov, #3881).
+      Previously pandoc would sometimes combine two line blocks separated
+      by blanks, and ignore trailing blank lines within the line block.
+    + Fix indirect hyperlink targets (#512).
+
+  * Markdown reader:
+
+    + Allow attributes in reference links to start on next line (#3674).
+    + Parse YAML metadata in a context that sees footnotes defined in
+      the body of the document (#1279).
+    + When splitting pipe table cells, skip tex math (#3481).
+      You might have a `|` character inside math.  (Or for that matter
+      something that the parser might mistake for raw HTML.)
+    + Treat span with class `smallcaps` as SmallCaps.
+      This allows users to specify small caps in Markdown this way:
+      `[my text]{.smallcaps}` (#1592).
+    + Fixed internal header links (#2397).
+      This patch also adds `shortcut_reference_links` to the list
+      of mmd extensions.
+    + Treat certain environments as inline
+      when they occur without space surrounding them (#3309, #2171).
+      E.g. equation, math.  This avoids incorrect vertical space
+      around equations.
+    + Optimized `nonindentSpaces`.  Makes the benchmark go from 40 to 36 ms.
+    + Allow latex macro definitions indented 1-3 spaces.
+      Previously they only worked if nonindented.
+    + Improved parsing of indented raw HTML blocks (#1841).
+      Previously we inadvertently interpreted indented HTML as
+      code blocks.  This was a regression.  We now seek to determine the
+      indentation level of the contents of an HTML block, and (optionally)
+      skip that much indentation.  As a side effect, indentation may be
+      stripped off of raw HTML blocks, if `markdown_in_html_blocks` is
+      used. This is better than having things interpreted as indented
+      code blocks.
+    + Fixed smart quotes after emphasis (#2228).  E.g. in `*foo*'s 'foo'`.
+    + Warn for notes defined but not used (#1718).
+    + Use `anyLineNewline` (Alexander Krotov).
+    + Interpret YAML metadata as Inlines when possible (#3755).  If
+      the metadata field is all on one line, we try to interpret it as
+      Inlines, and only try parsing as Blocks if that fails.  If it
+      extends over one line (including possibly the `|` or `>` character
+      signaling an indented block), then we parse as Blocks.  This was
+      motivated by some German users finding that `date: '22. Juin 2017'`
+      got parsed as an ordered list.
+    + Fixed spurious parsing as citation as reference def (#3840).
+      We now disallow reference keys starting with `@` if the
+      `citations` extension is enabled.
+    + Parse `-@roe` as suppress-author citation (pandoc-citeproc#237).
+      Previously only `[-@roe]` (with brackets) was recognized as
+      suppress-author, and `-@roe` was treated the same as `@roe`.
+    + Fixed parsing of fenced code after list when there is no intervening
+      blank line (#3733).
+    + Allow raw latex commands starting with `\start` (#3558).  Previously
+      these weren't allowed because they were interpreted as starting
+      ConTeXt environments, even without a corresponding `\stop`...
+    + Added `inlines`, `inlines1`.
+    + Require nonempty alt text for `implicit_figures` (#2844).
+      A figure with an empty caption doesn't make sense.
+    + Removed texmath macro material; now all this is handled
+      in the LaTeX reader functions.
+    + Fixed bug with indented code following raw LaTeX (#3947).
+
+  * LaTeX reader:
+
+    + Rewrote LaTeX reader with proper tokenization (#1390,
+      #2118, #3236, #3779, #934, #982).  This rewrite is primarily
+      motivated by the need to get macros working properly.  A side benefit
+      is that the reader is significantly faster.  We now tokenize the
+      input text, then parse the token stream.  Macros modify the token
+      stream, so they should now be effective in any context, including
+      math. Thus, we no longer need the clunky macro processing
+      capacities of texmath.
+    + Parse `\,` to `\8198` (six-per-em space) (Henri Werth).
+    + Allow `\newcommand\foo{blah}` without braces.
+    + Support `\lstinputlisting` (#2116).
+    + Issue warnings when skipping unknown latex commands (#3392).
+    + Include contents of `\parbox`.
+    + Allow `\hspace` and `\vspace` to count as raw block or inline.
+      Previously we would refuse to parse anything as raw inline if
+      it was in the `blockCommands` list.  Now we allow exceptions
+      if they're listed under ignoreInlines in inlineCommands.
+      This should make it easier e.g. to include an `\hspace`
+      between two side-by-side raw LaTeX tables.
+    + Don't drop contents of `\hypertarget`.
+    + Handle spaces before `\cite` arguments.
+    + Allow newpage, clearpage, pagebreak in inline contexts as well as
+      block contexts (#3494).
+    + Treat `{{xxx}}` the same as `{xxx}` (#2115).
+    + Use `pMacroDefinition` in macro (for more direct parsing).
+      Note that this means that `macro` will now parse one
+      macro at a time, rather than parsing a whole group together.
+    + Fixed failures on \ref{}, \label{} with `+raw_tex`.  Now these
+      commands are parsed as raw if `+raw_tex`; otherwise, their argument
+      is parsed as a bracketed string.
+    + Don't crash on empty `enumerate` environment (#3707).
+    + Handle escaped `&` inside table cell (#3708).
+    + Handle block structure inside table cells (#3709).  `minipage` is no
+      longer required.
+    + Handle some width specifiers on table columns (#3709).  Currently
+      we only handle the form `0.9\linewidth`.  Anything else would have
+      to be converted to a percentage, using some kind arbitrary assumptions
+      about line widths.
+    + Make sure `\write18` is parsed as raw LaTeX.  The change is in the
+      LaTeX reader's treatment of raw commands, but it also affects the
+      Markdown reader.
+    + Fixed regression with starred environment names (#3803).
+    + Handle optional args in raw `\titleformat` (#3804).
+    + Improved heuristic for raw block/inline.  An unknown command at the
+      beginning of the line that could be either block or inline is
+      treated as block if we have a sequence of block commands followed by
+      a newline or a `\startXXX` command (which might start a raw ConTeXt
+      environment).
+    + Don't remove macro definitions from the output, even if
+      `Ext_latex_macros` is set, so that macros will be applied.
+      Since they're only applied to math in Markdown, removing the macros
+      can have bad effects.  Even for math macros, keeping them should be
+      harmless.
+    + Removed `macro`.  It is no longer necessary, since the
+      `rawLaTeXBlock` parser will parse macro definitions.  This also avoids
+      the need for a separate `latexMacro` parser in the Markdown reader.
+    + Use `label` instead of `data-label` for label in caption (#3639).
+    + Fixed space after \figurename etc.
+    + Resolve references to section numbers.
+    + Fix `\let\a=0` case, with single character token.
+    + Allow `@` as a letter in control sequences.  `@` is commonly used
+      in macros using `\makeatletter`.  Ideally we'd make the tokenizer
+      sensitive to `\makeatletter` and `\makeatother`, but until then this
+      seems a good change.
+    + Track header numbers and correlate with labels.
+    + Allow `]` inside group in option brackets (#3857).
+    + lstinline with braces can be used (verb cannot be used with braces)
+      (Marc Schreiber, #3535).
+    + Fix keyval funtion: pandoc did not parse options in braces correctly
+      (Marc Schreiber, #3642).
+    + When parsing raw LaTeX commands, include trailing space (#1773).
+      Otherwise things like `\noindent foo` break and turn into
+      `\noindentfoo`.  Affects `-f latex+raw_tex` and `-f markdown` (and other
+      formats that allow `raw_tex`).
+    + Don't treat "..." as Quoted (#3958).  This caused quotes to be omitted in
+      `\texttt` contexts.
+    + Add tests for existing `\includegraphics` behaviour (Ben Firshman).
+    + Allow space before `=` in bracketd options (Ben Firshman).
+    + Be more forgiving in parsing command options.  This was needed, for
+      example, to make some minted options work.
+    + Strip off quotes in `\include` filenames.
+
+  * Added `Text.Pandoc.CSV`, simple (unexported) CSV parser.
+
+  * `Text.Pandoc.PDF`:
+
+    + Got `--resource-path` working with PDF output (#852).
+    + Fetch images when generating PDF via context (#3380).
+      To do this, we create the temp directory as a subdirectory
+      of the working directory. Since context mk IV by default looks
+      for images in the parent directory, this works.
+    + Use `report` instead of `warn`, make it sensitive to verbosity settings.
+    + Use `fillMediaBag` and `extractMedia` to extract media to temp dir.
+      This reduces code duplication.
+    + `html2pdf`: use stdin instead of intermediate HTML file
+    + Removed useless `TEXINPUTS` stuff for `context2pdf`.  mkiv context
+      doesn't use `TEXINPUTS`.
+
+  * `Text.Pandoc.Pretty`:
+
+    + Simplified definition of `realLength`.
+    + Don't error for blocks of size < 1.  Instead, resize to 1 (see #1785).
+
+  * `Text.Pandoc.MIME`:
+
+    + Use `application/javascript` (not `application/x-javascript`).
+    + Added `emf` to mimeTypes with type `application/x-msmetafile` (#1713).
+
+  * `Text.Pandoc.ImageSize`:
+
+    + Improve SVG image size code (Marc Schreiber, #3580).
+    + Make `imageSize` recognize basic SVG dimensions (Mauro Bieg, #3462).
+
+  * Use `Control.Monad.State.Strict` throughout.  This gives 20-30% speedup
+    and reduction of memory usage in most of the writers.
+
+  * Use `foldrWithKey` instead of deprecated `foldWithKey`.
+
+  * `Text.Pandoc.SelfContained`:
+
+    + Fixed problem with embedded fonts (#3629).
+    + Refactored getData from `getDataURI` in `SelfContained`.
+    + Don't use data URIs for script or style (#3423).  Instead, just use
+      script or style tags with the content inside.  The old method with
+      data URIs prevents certain optimizations outside pandoc.  Exception:
+      data URIs are still used when a script contains `</script>` or a
+      style contains `</`.
+    + SelfContained: Handle URL inside material retrieved from a URL
+      (#3629).  This can happen e.g. with an @import of a google web font.
+      (What is imported is some CSS which contains an url reference
+      to the font itself.) Also, allow unescaped pipe (|) in URL.
+    + Load resources from `data-src` (needed for lazy loading in
+      reveal.js slide shows).
+    + Handle `data-background-image` attribute on section (#3979).
+
+  * `Text.Pandoc.Parsing`:
+
+    + Added `indentWith` (Alexander Krotov, #3687).
+    + Added `stateCitations` to `ParserState`.
+    + Removed `stateChapters` from `ParserState`.
+    + In `ParserState`, make `stateNotes'` a Map, add `stateNoteRefs`.
+    + Added `gobbleSpaces` and `gobbleAtMostSpaces`.
+    + Adjusted type of `insertIncludedFile` so it can be used with token
+      parser.
+    + Replace old texmath macro stuff from Parsing.  Use Macro from
+      Text.Pandoc.Readers.LaTeX.Types instead.
+    + Export `insertIncludedFile`.
+    + Added `HasLogMessages`, `logMessage`, `reportLogMessages` (#3447).
+    + Replace partial with total function (Albert Krewinkel).
+    + Introduce `HasIncludeFiles` type class (Albert Krewinkel).  The
+      `insertIncludeFile` function is generalized to work with all parser
+      states which are instances of that class.
+    + Add `insertIncludedFilesF` which returns F blocks (Albert Krewinkel).
+      The `insertIncludeFiles` function was generalized and renamed
+      to `insertIncludedFiles'`; the specialized versions are based on that.
+    + `many1Till`: Check for the end condition before parsing (Herwig
+      Stuetz).  By not checking for the end condition before the first
+      parse, the parser was applied too often, consuming too much of the
+      input. This only affects `many1Till p end` where `p` matches on a
+      prefix of `end`.
+    + Provide `parseFromString` (#3690).  This is a verison of
+      `parseFromString` specialied to ParserState, which resets
+      `stateLastStrPos` at the end.  This is almost always what we want.
+      This fixes a bug where `_hi_` wasn't treated as emphasis in the
+      following, because pandoc got confused about the position of the
+      last word: `- [o] _hi_`.
+    + Added `takeP`, `takeWhileP` for efficient parsing of `[Char]`.
+    + Fix `blanklines` documentation (Alexander Krotov, #3843).
+    + Give less misleading line information with `parseWithString`.
+      Previously positions would be reported past the end of the chunk.
+      We now reset the source position within the chunk and report
+      positions "in chunk."
+    + Add `anyLineNewline` (Alexander Krotov).
+    + Provide shared F monad functions for Markdown and Org readers
+      (Albert Krewinkel).  The `F` monads used for delayed evaluation
+      of certain values in the Markdown and Org readers are based on a
+      shared data type capturing the common pattern of both `F` types.
+    + Add `returnF` (Alexander Krotov).
+    + Avoid parsing `Notes:**` as a bare URI (#3570).  This avoids parsing
+      bare URIs that start with a scheme + colon + `*`, `_`, or `]`.
+    + Added `readerAbbreviations` to `ParserState`.  Markdown reader
+      now consults this to determine what is an abbreviation.
+    + Combine grid table parsers (Albert Krewinkel, #3638).  The grid table
+      parsers for markdown and rst was combined into one single
+      parser `gridTable`, slightly changing parsing behavior of both
+      parsers: (1) The markdown parser now compactifies block content
+      cell-wise: pure text blocks in cells are now treated as paragraphs
+      only if the cell contains multiple paragraphs, and as plain blocks
+      otherwise. Before, this was true only for single-column tables. (2)
+      The rst parser now accepts newlines and multiple blocks in header
+      cells.
+    + Generalize tableWith, gridTableWith (Albert Krewinkel).
+      The parsing functions `tableWith` and `gridTableWith` are generalized
+      to work with more parsers. The parser state only has to be an
+      instance of the `HasOptions` class instead of requiring a concrete
+      type. Block parsers are required to return blocks wrapped into a
+      monad, as this makes it possible to use parsers returning results
+      wrapped in `Future`s.
+
+  * `Text.Pandoc.Shared`:
+
+    + Simplify `toRomanNumeral` using guards (Alexander Krotov, #3445)
+    + `stringify`: handle Quoted better (#3958).  Previously we were losing
+      the quotation marks in Quoted elements.
+
+  * `Text.Pandoc.Writers.Shared`:
+
+    + Export `metaToJSON'`, `addVariablesToJSON` (#3439).
+      This allows us to add the variables AFTER using the metadata
+      to generate a YAML header (in the Markdown writer).
+    + Added `unsmartify` (previously in RST writer).
+      Undo literal double curly quotes.  Previously we left these.
+    + Generalize type of `metaToJSON` so it can take a Text.  Previously a
+      String was needed as argument; now any ToJSON instance will do.
+    + Added `gridTable` (previously in Markdown writer).
+    + `gridTable`: Refactored to use widths in chars.
+    + `gridTable`:  remove unnecessary extra space in cells.
+    + Fixed `addVariablesToJSON`.  It was previously not allowing multiple
+      values to become lists.
+    + Pipe tables: impose minimum cell size (see #3526).
+
+
+  [default template changes]
+
+  * HTML templates (including EPUB and HTML slide show templates):
+
+    + Make default.html5 polyglot markup conformant (John Luke Bentley,
+      #3473).  Polyglot markup is HTML5 that is also valid XHTML. See
+      <https://www.w3.org/TR/html-polyglot>.  With this change, pandoc's
+      html5 writer creates HTML that is both valid HTML5 and valid XHTML.
+    + Regularized CSS in html/epub/html slide templates (#3485).
+      All templates now include `code{white-space: pre-wrap}`
+      and CSS for `q` if `--html-q-tags` is used.  Previously some templates
+      had `pre` and others `pre-wrap`; the `q` styles were only sometimes
+      included.
+    + CSS for `.smallcaps`, (Mauro Bieg, #1592)
+    + `default.revealjs`: make `history` default to true.
+    + `default.revealjs`: use lazy loading (#2283).
+    + `default.revealjs`: add `mathjax` variable and some conditional code
+      to use the MathJaX plugin.
+    + `default.slidy` uses `https` instead of `http` (ickc, #3848).
+    + `default.dzslides`: Load Google Font using HTTPS by default
+      (Yoan Blanc).
+
+  * DocBook5 template: Use `lang` and `subtitle` variables (Jens Getreu,
+    #3855).
+
+  * LaTeX/Beamer template:
+
+    + Combine LaTeX/Beamer templates (Andrew Dunning, #3878).
+      `default.beamer` has been removed; beamer now uses the
+      `default.latex` template.  Beamer-specific parts are conditional
+      on the `beamer` variable set by the writer. Note that
+      `pandoc -D beamer` will return this (combined) template.
+    + Use `xcolor` for `colorlinks` option (Andrew Dunning, #3877).
+      Beamer loads `xcolor` rather than `color`, and thus the
+      `dvipsnames` option doesn't take effect. This also provides a wider
+      range of colour selections with the `svgnames` option.
+    + Use starred versions of `xcolor` names (Andrew Dunning).
+      Prevents changes to documents defined using the `dvipsnames` list (e.g.
+      `Blue` gives a different result with svgnames enabled).
+    + Load `polyglossia` after header-includes (#3898).  It needs to be
+      loaded as late as possible.
+    + Use `unicode-math` (Vaclav Haisman).  Use `mathspec` with only
+      XeLaTeX on request.
+    + Don't load `fontspec` before `unicode-math` (over there).
+      The `unicode-math` package loads `fontspec` so explict loading of
+      `fontspec` before `unicode-math` is not necessary.
+    + Use `unicode-math` by default in default.latex template.  mathspec will
+      be used in xelatex if the `mathspec` variable is set; otherwise
+      unicode-math will be used (Václav Haisman).
+    + Use `dvipsnames` options when `colorlinks` specified (otherwise
+      we get an error for `maroon`) (Thomas Hodgson).
+    + Added beamer `titlegraphic` and `logo` variables (Thomas Hodgson).
+    + Fix typo in fix for notes in tables (#2378, zeeMonkeez).
+    + Fix `hyperref` options clash (Andrew Dunning, #3847) Avoids an options
+      clash when loading a package (e.g. `tufte-latex`) that uses
+      `hyperref` settings different from those in the template.
+    + Add `natbiboptions` variable (#3768).
+    + Fix links inside captions in LaTeX output with links-as-notes
+      (Václav Haisman, #3651).  Declare our redefined `\href` robust.
+    + Load `parskip` before `hyperref` (Václav Haisman, #3654).
+    + Allow setting Japanese fonts when using LuaLaTeX (Václav Haisman,
+      #3873).  by using the `luatexja-fontspec` and `luatexja-preset`
+      packages. Use existing `CJKmainfont` and `CJKoptions` template
+      variables. Add `luatexjafontspecoptions` for `luatexja-fontspec`
+      and `luatexjapresetoptions` for `luatexja-preset`.
+    + Added `aspectratio` variable to beamer template (Václav Haisman,
+      #3723).
+    + Modified template.latex to fix XeLaTex being used with tables
+      (lwolfsonkin, #3661).  Reordered `lang` variable handling to
+      immediately before `bidi`.
+
+  * ConTeXt template: Improved font handling: `simplefonts` is now
+    obsolete in ConTeXt (Pablo Rodríguez).
+
+
+  [documentation improvements]
+
+  * MANUAL.txt:
+
+    + Add URL for Prince HTML > PDF engine (Ian, #3919).
+    + Document that content above slide-level will be omitted in
+      slide shows.  See #3460, #2265.
+    + Explain `--webtex` SVG url (Mauro Bieg, #3471)
+    + Small clarification in YAML metadata section.
+    + Document that html4 is technically XHTML 1.0 transitional.
+    + Remove refs to highlighting-kate (#3672).
+    + Document ibooks specific epub metadata.
+    + Clarify that mathml is used for ODT math.
+    + Mention limitations of Literate Haskell Support (#3410,
+      Joachim Breitner).
+    + Add documentation of limitations of grid tables (Stephen
+      McDowell, #3864).
+    + Clarify that meta-json contains transformed values (Jakob Voß,
+      #3491) Make clear that template variable `meta-json` does not
+      contain plain text values or JSON output format but field values
+      transformed to the selected output format.
+
+  * COPYRIGHT:
+
+    + Clarify that templates are dual-licensed.
+    + Clarify that pandoc-types is BSD3 licensed.
+    + List new files not written by jgm (Albert Krewinkel).
+    + Update dates in copyright notices (Albert Krewinkel).  This follows
+      the suggestions given by the FSF for GPL licensed software.
+      <https://www.gnu.org/prep/maintain/html_node/Copyright-Notices.html>
+
+  * INSTALL.md:
+
+    + Improved instructions for tests with patterns.
+    + Put RPM-based distros on separate point (Mauro Bieg, #3449)
+
+  * CONTRIBUTING.md:
+
+    + Fixed typos (Wandmalfarbe, #3479).
+    + Add "ask on pandoc-discuss" (Mauro Bieg).
+
+  * Add lua filter documentation in `doc/lua-filters.md`.  Note that the
+    end of this document is autogenerated from `data/pandoc.lua`
+    using `make doc/lua-filters.md`, which uses `tools/ldoc.ltp`
+    (Albert Krewinkel).
+
+  * Add `doc/filters.md`. This is the old scripting tutorial from
+    the website.
+
+
+  [build infrastructure improvements]
+
+  * Removed `data/templates` submodule.  Templates are now a subtree
+    in `data/templates`.  This removes the need to do `git submodule
+    update`.
+
+  * Renamed `tests` -> `test`.
+
+  * Remove `https` flag.  Always build with HTTPS support.
+
+  * Use `file-embed` instead of `hsb2hs` to embed data files when
+    `embed_data_files` flag is set.  `file-embed` gives us better dependency
+    tracking:  if a data file changes, ghc/stack/cabal know to recompile
+    the Data module.  This also removes `hsb2hs` as a build dependency.
+
+  * Add `custom-setup` stanza to pandoc, lowercase field names.
+
+  * Add `static` Cabal flag.
+
+  * Name change OSX -> MacOS.  Add a -MacOS suffix to mac package rather
+    than -OSX.  Changed local names from osx to macos.
+
+  * make_macos_package.sh - Use strip to reduce executable size.
+
+  * Strip executables in linux package.
+
+  * Remove cpphs build requirement -- it is no longer needed.
+
+  * Replaced `{deb,macos,windows}/stack.yaml` with `stack.pkg.yaml`.
+
+  * Added `linux` directory.  This provides a Makefile and Dockerfile
+    sufficient for producing a linux executable.  If Docker is installed,
+    this should suffice: `make setup && make build`.  The binary will be
+    placed in `artifacts/`.
+
+  * `linux/control.in`: add `Replaces:`, so existing pandoc-citeproc and
+    pandoc-data packages will be uninstalled; this package provides
+    both (#3822).  Add latex packages as 'suggested', update
+    description.
+
+  * Name change OSX -> macOS (ickc, #3869).
+
+  * Fix casing of Linux, UNIX, and Windows (ickc).
+
+  * `.travis.yml`:  create a source dist and do cabal build and test there.
+    That way we catch errors due to files missing from the data
+    section of pandoc.cabal.
+
+  * Makefile:
+
+    + Split `make haddock` from `make full`.
+    + Add BRANCH variable for winpkg.
+    + Add `lint` target.
+    + Improve `make full`. Disable optimizations.
+      Build everything, inc. trypandoc and benchmarks.  Use parallel build.
+    + Allow `make test` to take `TESTARGS`.
+
+  * Added new command tests (`Tests.Command`), using small text files
+    in `test/command/`.  Any files added in this directory will be treated
+    as shell tests (see smart.md for an example).  This makes it very easy
+    to add regression tests etc.
+
+  * Test fixes so we can find data files.  In old tests & command tests,
+    we now set the environment variable `pandoc_datadir`.  In lua tests,
+    we set the datadir explicitly.
+
+  * Refactored `compareOutput` in docx writer test.
+
+  * Consolidated some common functions in `Tests.Helper`.
+
+  * Small change to unbalanced bracket test to speed up test suite.
+
+  * Speed up Native writer quickcheck tests.
+
+  * Use tasty for tests rather than test-framework.
+
+  * Add simple Emacs mode to help with Pandoc templates editing.
+    (Václav Haisman, #3889). `tools/pandoc-template-mode.el`
+
+
 pandoc (1.19.2)
 
   * Use skylighting library instead of highlighting-kate for syntax
