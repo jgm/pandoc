@@ -16,4 +16,4 @@ RUN stack install --stack-yaml stack.pkg.yaml --only-dependencies \
     pandoc pandoc-citeproc
 CMD git pull && \
     git checkout -b work $TREE && \
-    ARTIFACTS=/artifacts sh make_linux.sh
+    ARTIFACTS=/artifacts sh linux/make_linux.sh
