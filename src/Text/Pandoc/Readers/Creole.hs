@@ -195,8 +195,17 @@ escapedChar = (try $ char '~' >> noneOf "\t\n ") >>= return . B.str . (:[])
 
 link :: PandocMonad m => CRLParser m B.Inlines
 link = try $ do
-  (orig, src) <- uri
+  (orig, src) <- uri <|> wikiLink
   return $ B.link src "" (B.str $ orig)
+  where
+    linkSrc = many $ noneOf "|]\n\r\t"
+    linkDsc = char '|' >> many (noneOf "]\n\r\t")
+    wikiLink = try $ do
+      string "[["
+      src <- linkSrc
+      dsc <- option "" linkDsc
+      string "]]"
+      return (dsc, src)
 
 inlineNowiki :: PandocMonad m => CRLParser m B.Inlines
 inlineNowiki = B.code <$> (start >> manyTill (noneOf "\n\r") end)
