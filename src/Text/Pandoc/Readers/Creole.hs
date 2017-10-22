@@ -73,7 +73,7 @@ type CRLParser = ParserT [Char] ParserState
 --
 
 specialChars :: [Char]
-specialChars = "*/~{}"
+specialChars = "*/~{}\\"
 
 parseCreole :: PandocMonad m => CRLParser m Pandoc
 parseCreole = do
@@ -181,6 +181,7 @@ inline = choice [ whitespace
                 , escapedChar
                 , link
                 , inlineNowiki
+                , forcedLinebreak
                 , bold
                 , finalBold
                 , italics
@@ -235,3 +236,6 @@ finalBold = B.strong . B.trimInlines . mconcat <$>
 finalItalics :: PandocMonad m => CRLParser m B.Inlines
 finalItalics = B.emph . B.trimInlines . mconcat <$>
                try (string "//" >> many1Till inline endOfParaElement)
+
+forcedLinebreak :: PandocMonad m => CRLParser m B.Inlines
+forcedLinebreak = try $ string "\\\\" >> return B.linebreak

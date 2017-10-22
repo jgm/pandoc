@@ -175,4 +175,8 @@ tests = [ "bold, single line, fully delimited" =:
         , "quoted block, curly bracket exception" =:
           "{{{\nfoo bar\n  }}}\nbaz\n }}}\n}}}"
           =?> codeBlock "foo bar\n }}}\nbaz\n}}}"
+        , "forced line breaks" =:
+          "{{{no break!\\\\here}}} but a break\\\\here!"
+          =?> para (code "no break!\\\\here" <> " but a break"
+                    <> linebreak <> "here!")
         ]
