@@ -157,13 +157,16 @@ para = many1Till inline endOfParaElement >>= return . result . mconcat
 
 endOfParaElement :: PandocMonad m => CRLParser m ()
 endOfParaElement = lookAhead $ endOfInput <|> endOfPara
-                   <|> startOfList <|> startOfHeader <|>  startOfNowiki
+                   <|> startOfList <|> startOfHeader <|> hr <|> startOfNowiki
   where
-   endOfInput       = try $ skipMany blankline >> skipSpaces >> eof
-   endOfPara        = try $ blankline >> skipMany1 blankline
-   startOfList      = try $ blankline >> anyList 1 >> return mempty
-   startOfHeader    = try $ blankline >> header >> return mempty
-   startOfNowiki    = try $ blankline >> nowiki >> return mempty
+   endOfInput    = try $ skipMany blankline >> skipSpaces >> eof
+   endOfPara     = try $ blankline >> skipMany1 blankline
+   startOf      :: PandocMonad m => CRLParser m a -> CRLParser m ()
+   startOf p     = try $ blankline >> p >> return mempty
+   startOfList   = startOf $ anyList 1
+   startOfHeader = startOf header
+   startOfNowiki = startOf nowiki
+   hr            = startOf horizontalRule
 
 horizontalRule :: PandocMonad m => CRLParser m B.Blocks
 horizontalRule = try $ skipSpaces >> string "----" >> skipSpaces >> newline
