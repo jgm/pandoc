@@ -1,6 +1,6 @@
 #!/bin/bash -e
 
-ARTIFACTS=`pwd`/linux/artifacts
+ARTIFACTS=?`pwd`/linux/artifacts
 
 mkdir -p $ARTIFACTS
 stack clean
