@@ -1,9 +1,10 @@
 set -e
 
-VERSION=$(grep -e '^Version' pandoc.cabal | awk '{print $2}')
 TARGET=pandoc-$VERSION
+ARTIFACTS=?/artifacts
+VERSION=`$ARTIFACTS/pandoc --version | awk '{print $2; exit;}'`
 
-cd /artifacts
+cd $ARTIFACTS
 rm -rf $TARGET
 mkdir $TARGET
 mkdir $TARGET/bin $TARGET/share $TARGET/share/man $TARGET/share/man/man1

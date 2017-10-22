@@ -1,19 +1,31 @@
-FROM debian:jessie-slim
-RUN apt-get update
-RUN apt-get -y install git ca-certificates zlib1g-dev curl \
-    dpkg fakeroot sed gawk grep bash xz-utils make build-essential clang \
-    libgmp-dev
-RUN curl -L https://www.stackage.org/stack/linux-x86_64 | tar xz --wildcards --strip-components=1 -C /usr/bin '*/stack'
-RUN mkdir -p /etc/stack
+# USE ALPINE LINUX
+FROM alpine:edge
+RUN echo "https://s3-us-west-2.amazonaws.com/alpine-ghc/8.0" >> /etc/apk/repositories
+ADD https://raw.githubusercontent.com/mitchty/alpine-ghc/master/mitch.tishmack%40gmail.com-55881c97.rsa.pub \
+    /etc/apk/keys/mitch.tishmack@gmail.com-55881c97.rsa.pub
+RUN apk update
+RUN apk add alpine-sdk git ca-certificates ghc cabal stack zlib-dev \
+    dpkg fakeroot sed gawk grep bash linux-headers
+RUN stack update
+RUN stack config set system-ghc --global true
+#RUN mkdir -p /etc/stack
 #RUN echo "build: { split-objs: true }" > /etc/stack/config.yaml
 RUN mkdir -p /usr/src/
 WORKDIR /usr/src/
 RUN git clone https://github.com/jgm/pandoc
 WORKDIR /usr/src/pandoc
-RUN stack setup
 RUN stack install --stack-yaml stack.pkg.yaml --only-dependencies \
     --flag 'pandoc:embed_data_files' \
+    --ghc-options '-O2 -optc-Os -optl=-pthread -optl=-static -fPIC' \
     pandoc pandoc-citeproc
 CMD git pull && \
     git checkout -b work $TREE && \
-    ARTIFACTS=/artifacts sh linux/make_linux.sh
+    stack install --stack-yaml stack.pkg.yaml \
+      --flag 'pandoc:static' \
+      --flag 'pandoc:embed_data_files' \
+      --flag 'hslua:-export-dynamic' \
+      --ghc-options '-O2 -optc-Os -optl=-pthread -optl=-static -fPIC' \
+      --local-bin-path /artifacts \
+      pandoc pandoc-citeproc && \
+    bash linux/make_deb.sh && \
+    bash linux/make_tarball.sh
