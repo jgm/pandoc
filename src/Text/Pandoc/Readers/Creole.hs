@@ -92,6 +92,7 @@ block = do
   res <- mempty <$ skipMany1 blankline
          <|> nowiki
          <|> header
+         <|> horizontalRule
          <|> anyList 1
          <|> para
   skipMany blankline
@@ -163,6 +164,10 @@ endOfParaElement = lookAhead $ endOfInput <|> endOfPara
    startOfList      = try $ blankline >> anyList 1 >> return mempty
    startOfHeader    = try $ blankline >> header >> return mempty
    startOfNowiki    = try $ blankline >> nowiki >> return mempty
+
+horizontalRule :: PandocMonad m => CRLParser m B.Blocks
+horizontalRule = try $ skipSpaces >> string "----" >> skipSpaces >> newline
+                 >> return B.horizontalRule
 
 --
 -- inline parsers
