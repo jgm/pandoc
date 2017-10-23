@@ -210,17 +210,21 @@ image = try $ do
 
 link :: PandocMonad m => CRLParser m B.Inlines
 link = try $ do
-  (orig, src) <- uri <|> wikiLink
-  return $ B.link src "" (B.str $ orig)
+  (orig, src) <- uriLink <|> wikiLink
+  return $ B.link src "" orig
   where
     linkSrc = many $ noneOf "|]\n\r\t"
-    linkDsc = char '|' >> many (noneOf "]\n\r\t")
+    linkDsc = B.str <$> option "" (char '|' >> many (noneOf "]\n\r\t"))
+    linkImg = char '|' >> image
     wikiLink = try $ do
       string "[["
       src <- linkSrc
-      dsc <- option "" linkDsc
+      dsc <- linkImg <|> linkDsc
       string "]]"
       return (dsc, src)
+    uriLink = try $ do
+      (orig, src) <- uri
+      return (B.str orig, src)
 
 inlineNowiki :: PandocMonad m => CRLParser m B.Inlines
 inlineNowiki = B.code <$> (start >> manyTill (noneOf "\n\r") end)
