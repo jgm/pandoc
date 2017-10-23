@@ -1,8 +1,8 @@
 set -e
 
-TARGET=pandoc-$VERSION
 ARTIFACTS="${ARTIFACTS:-/artifacts}"
 VERSION=`$ARTIFACTS/pandoc --version | awk '{print $2; exit;}'`
+TARGET=pandoc-$VERSION
 
 cd $ARTIFACTS
 rm -rf $TARGET
