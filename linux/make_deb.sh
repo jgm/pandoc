@@ -7,7 +7,7 @@ case "$MACHINE" in
   i386)   ARCHITECTURE=i386;;
 esac
 
-ARTIFACTS=?/artifacts
+ARTIFACTS="${ARTIFACTS:-/artifacts}"
 
 VERSION=`$ARTIFACTS/pandoc --version | awk '{print $2; exit;}'`
 REVISION=${REVISION:-1}
