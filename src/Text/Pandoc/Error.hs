@@ -90,7 +90,12 @@ handleError (Left e) =
                                         ,"\n", replicate (errColumn - 1) ' '
                                         ,"^"]
                         else ""
-        in  err 65 $ "\nError at " ++ show  err' ++ errorInFile
+        in  err 65 $ "\nError at " ++ show  err' ++
+                     -- if error comes from a chunk or included file,
+                     -- then we won't get the right text this way:
+                     if sourceName errPos == "source"
+                        then errorInFile
+                        else ""
     PandocMakePDFError s -> err 65 s
     PandocOptionError s -> err 2 s
     PandocSyntaxMapError s -> err 67 s

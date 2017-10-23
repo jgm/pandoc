@@ -3,13 +3,11 @@
 LOCALBIN=$HOME/.local/bin
 DIST=`pwd`/macos_package
 MACOS=`pwd`/macos
-VERSION=$(grep -e '^Version' pandoc.cabal | awk '{print $2}')
 RESOURCES=$DIST/Resources
 ROOT=$DIST/pandoc
 DEST=$ROOT/usr/local
 PANDOC=$DEST/bin/pandoc
 SCRIPTS=$MACOS/macos-resources
-BASE=pandoc-$VERSION
 ME=$(whoami)
 PACKAGEMAKER=/Applications/PackageMaker.app/Contents/MacOS/PackageMaker
 DEVELOPER_ID_APPLICATION=${DEVELOPER_ID_APPLICATION:-Developer ID Application: John Macfarlane}
@@ -37,7 +35,7 @@ echo Getting man pages...
 make man/pandoc.1
 
 # get pandoc-citeproc man page:
-PANDOC_CITEPROC_VERSION=`pandoc-citeproc --version | awk '{print $2;}'`
+PANDOC_CITEPROC_VERSION=`$DEST/bin/pandoc-citeproc --version | awk '{print $2;exit;}'`
 PANDOC_CITEPROC_TARBALL=https://hackage.haskell.org/package/pandoc-citeproc-${PANDOC_CITEPROC_VERSION}/pandoc-citeproc-${PANDOC_CITEPROC_VERSION}.tar.gz
 curl ${PANDOC_CITEPROC_TARBALL} | tar xzC $DIST
 PANDOC_CITEPROC_PATH=$DIST/pandoc-citeproc-${PANDOC_CITEPROC_VERSION}
@@ -60,6 +58,9 @@ $PANDOC --data data -t html5 -s COPYING.md -Vpagetitle="License" -o $RESOURCES/l
 #spctl --assess --type execute $DEST/bin/pandoc
 
 echo Creating macOS package...
+
+VERSION=`$DEST/bin/pandoc --version | awk '{print $2;exit;}'`
+BASE=pandoc-$VERSION
 
 sed -e "s/PANDOCVERSION/$VERSION/" $MACOS/distribution.xml.in > $MACOS/distribution.xml
 

@@ -1264,6 +1264,7 @@ inlineCommands = M.union inlineLanguageCommands $ M.fromList $
   , ("cref", rawInlineOr "cref" $ doref "ref")       -- from cleveref.sty
   , ("vref", rawInlineOr "vref" $ doref "ref+page")  -- from varioref.sty
   , ("eqref", rawInlineOr "eqref" $ doref "eqref")   -- from amsmath.sty
+  , ("lettrine", optional opt >> extractSpaces (spanWith ("",["lettrine"],[])) <$> tok)
   , ("(", mathInline . toksToString <$> manyTill anyTok (controlSeq ")"))
   , ("[", mathDisplay . toksToString <$> manyTill anyTok (controlSeq "]"))
   , ("ensuremath", mathInline . toksToString <$> braced)
@@ -1320,7 +1321,7 @@ inlineCommands = M.union inlineLanguageCommands $ M.fromList $
   , ("i", lit "i")
   , ("\\", linebreak <$ (do inTableCell <- sInTableCell <$> getState
                             guard $ not inTableCell
-                            optional (bracketed inline)
+                            optional opt
                             spaces))
   , (",", lit "\8198")
   , ("@", pure mempty)
@@ -1750,7 +1751,7 @@ include = do
   (Tok _ (CtrlSeq name) _) <-
                     controlSeq "include" <|> controlSeq "input" <|>
                     controlSeq "subfile" <|> controlSeq "usepackage"
-  skipMany $ bracketed inline -- skip options
+  skipMany opt
   fs <- (map (T.unpack . removeDoubleQuotes . T.strip) . T.splitOn "," .
          untokenize) <$> braced
   let fs' = if name == "usepackage"
@@ -2355,7 +2356,7 @@ hline = try $ do
     controlSeq "endhead" <|>
     controlSeq "endfirsthead"
   spaces
-  optional $ bracketed inline
+  optional opt
   return ()
 
 lbreak :: PandocMonad m => LP m Tok

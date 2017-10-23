@@ -306,7 +306,7 @@ showLogMessage msg =
 messageVerbosity:: LogMessage -> Verbosity
 messageVerbosity msg =
   case msg of
-       SkippedContent{}             -> WARNING
+       SkippedContent{}             -> INFO
        CouldNotParseYamlMetadata{}  -> WARNING
        DuplicateLinkReference{}     -> WARNING
        DuplicateNoteReference{}     -> WARNING
@@ -320,7 +320,7 @@ messageVerbosity msg =
        ParsingUnescaped{}           -> INFO
        InlineNotRendered{}          -> INFO
        BlockNotRendered{}           -> INFO
-       DocxParserWarning{}          -> WARNING
+       DocxParserWarning{}          -> INFO
        CouldNotFetchResource{}      -> WARNING
        CouldNotDetermineImageSize{} -> WARNING
        CouldNotConvertImage{}       -> WARNING
