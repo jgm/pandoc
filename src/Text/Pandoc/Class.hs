@@ -111,7 +111,6 @@ import Text.Parsec (ParsecT, getPosition, sourceLine, sourceName)
 import qualified Text.Pandoc.Compat.Time as IO (getCurrentTime)
 import Text.Pandoc.MIME (MimeType, getMimeType, extensionFromMimeType)
 import Text.Pandoc.Definition
-import Data.Char (toLower)
 import Data.Digest.Pure.SHA (sha1, showDigest)
 import Data.Maybe (fromMaybe)
 import Data.Time.Clock.POSIX ( utcTimeToPOSIXSeconds
@@ -513,8 +512,10 @@ instance PandocMonad PandocIO where
   getCommonState = PandocIO $ lift get
   putCommonState x = PandocIO $ lift $ put x
   logOutput msg = liftIO $ do
-    UTF8.hPutStr stderr $ "[" ++
-       map toLower (show (messageVerbosity msg)) ++ "] "
+    UTF8.hPutStr stderr $
+       case messageVerbosity msg of
+           WARNING -> "!! "
+           _       -> ".. "
     alertIndent $ lines $ showLogMessage msg
 
 alertIndent :: [String] -> IO ()
@@ -522,7 +523,7 @@ alertIndent [] = return ()
 alertIndent (l:ls) = do
   UTF8.hPutStrLn stderr l
   mapM_ go ls
-  where go l' = do UTF8.hPutStr stderr "! "
+  where go l' = do UTF8.hPutStr stderr "   "
                    UTF8.hPutStrLn stderr l'
 
 -- | Specialized version of parseURIReference that disallows
