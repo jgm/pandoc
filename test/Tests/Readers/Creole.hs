@@ -179,4 +179,11 @@ tests = [ "bold, single line, fully delimited" =:
           "{{{no break!\\\\here}}} but a break\\\\here!"
           =?> para (code "no break!\\\\here" <> " but a break"
                     <> linebreak <> "here!")
+
+        , "image simple" =:
+          "{{foo.png}}" =?> para (image "foo.png" "" (str ""))
+        , "image with alt text" =:
+          "Image of a bar: {{/path/to/bar.png|A Bar}} look at it!"
+          =?> para ("Image of a bar: "
+                    <> image "/path/to/bar.png" "" (str "A Bar") <> " look at it!")
         ]

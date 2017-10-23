@@ -181,6 +181,7 @@ inline = choice [ whitespace
                 , escapedChar
                 , link
                 , inlineNowiki
+                , image
                 , forcedLinebreak
                 , bold
                 , finalBold
@@ -192,6 +193,20 @@ inline = choice [ whitespace
 
 escapedChar :: PandocMonad m => CRLParser m B.Inlines
 escapedChar = (try $ char '~' >> noneOf "\t\n ") >>= return . B.str . (:[])
+
+image :: PandocMonad m => CRLParser m B.Inlines
+image = try $ do
+  (orig, src) <- wikiImg
+  return $ B.image src "" (B.str $ orig)
+  where
+    linkSrc = many $ noneOf "|}\n\r\t"
+    linkDsc = char '|' >> many (noneOf "}\n\r\t")
+    wikiImg = try $ do
+      string "{{"
+      src <- linkSrc
+      dsc <- option "" linkDsc
+      string "}}"
+      return (dsc, src)
 
 link :: PandocMonad m => CRLParser m B.Inlines
 link = try $ do
