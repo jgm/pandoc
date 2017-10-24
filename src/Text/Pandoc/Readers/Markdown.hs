@@ -1027,6 +1027,11 @@ para = try $ do
                           Just "div" -> () <$
                                        lookAhead (htmlTag (~== TagClose "div"))
                           _          -> mzero
+              <|> do guardEnabled Ext_fenced_divs
+                     divLevel <- stateFencedDivLevel <$> getState
+                     if divLevel > 0
+                        then lookAhead divFenceEnd
+                        else mzero
             return $ do
               result' <- result
               case B.toList result' of
@@ -1689,7 +1694,7 @@ endline = try $ do
      notFollowedBy (() <$ (lookAhead (char '`') >> codeBlockFenced))
   guardDisabled Ext_fenced_divs <|>
     do divLevel <- stateFencedDivLevel <$> getState
-       guard (divLevel < 1) <|> notFollowedBy fenceEnd
+       guard (divLevel < 1) <|> notFollowedBy divFenceEnd
   notFollowedByHtmlCloser
   (eof >> return mempty)
     <|> (guardEnabled Ext_hard_line_breaks >> return (return B.linebreak))
@@ -1946,12 +1951,12 @@ divFenced = try $ do
   skipMany (char ':')
   blankline
   updateState $ \st -> st{ stateFencedDivLevel = stateFencedDivLevel st + 1 }
-  bs <- mconcat <$> manyTill block fenceEnd
+  bs <- mconcat <$> manyTill block divFenceEnd
   updateState $ \st -> st{ stateFencedDivLevel = stateFencedDivLevel st - 1 }
   return $ B.divWith attribs <$> bs
 
-fenceEnd :: PandocMonad m => MarkdownParser m ()
-fenceEnd = try $ do
+divFenceEnd :: PandocMonad m => MarkdownParser m ()
+divFenceEnd = try $ do
   nonindentSpaces
   string ":::"
   skipMany (char ':')
