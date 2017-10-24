@@ -513,9 +513,7 @@ instance PandocMonad PandocIO where
   putCommonState x = PandocIO $ lift $ put x
   logOutput msg = liftIO $ do
     UTF8.hPutStr stderr $
-       case messageVerbosity msg of
-           WARNING -> "!! "
-           _       -> ".. "
+        "[" ++ show (messageVerbosity msg) ++ "] "
     alertIndent $ lines $ showLogMessage msg
 
 alertIndent :: [String] -> IO ()
@@ -523,7 +521,7 @@ alertIndent [] = return ()
 alertIndent (l:ls) = do
   UTF8.hPutStrLn stderr l
   mapM_ go ls
-  where go l' = do UTF8.hPutStr stderr "   "
+  where go l' = do UTF8.hPutStr stderr "  "
                    UTF8.hPutStrLn stderr l'
 
 -- | Specialized version of parseURIReference that disallows
