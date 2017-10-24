@@ -40,7 +40,7 @@ import qualified Text.Pandoc.Builder as B
 import Text.Pandoc.Class (PandocMonad(..))
 import Text.Pandoc.Definition
 import Text.Pandoc.Options
-import Text.Pandoc.Parsing
+import Text.Pandoc.Parsing hiding (enclosed)
 import Text.Pandoc.Shared (crFilter)
 import Data.Monoid
 import Data.Text (Text)
@@ -67,6 +67,15 @@ type CRLParser = ParserT [Char] ParserState
 
 (<+>) :: (Monad m, Monoid a) => m a -> m a -> m a
 (<+>) = liftM2 (<>)
+
+-- we have to redefine `enclosed' from Text.Pandoc.Parsing, because it
+-- assumes, that there can't be a space after the start parser, but
+-- with creole this is possible.
+enclosed :: (Show end, PandocMonad m) => CRLParser m start   -- ^ start parser
+         -> CRLParser m end  -- ^ end parser
+         -> CRLParser m a    -- ^ content parser (to be used repeatedly)
+         -> CRLParser m [a]
+enclosed start end parser = try $ start >> many1Till parser end
 
 --
 -- main parser
