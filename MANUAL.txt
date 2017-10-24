@@ -3073,6 +3073,39 @@ For the most part this should give the same output as `raw_html`,
 but it makes it easier to write pandoc filters to manipulate groups
 of inlines.
 
+#### Extension: `fenced_divs` ####
+
+Allow special fenced syntax for native `Div` blocks.  A Div
+starts with a fence containing at least three consecutive
+colons plus some attributes. The attributes may optionally
+be followed by another string of consecutive colons.
+The attribute syntax is exactly as in fenced code blocks (see
+[Extension-fenced_code_attributes], above).  As with fenced
+code blocks, one can use either attributes in curly braces
+or a single unbraced word, which will be treated as a class
+name.  The Div ends with another line containing a string of at
+least three consecutive colons.  The fenced Div should be
+separated by blank lines from preceding and following blocks.
+
+Example:
+
+    ::::: {#special .sidebar}
+    Here is a paragraph.
+
+    And another.
+    :::::
+
+Fenced divs can be nested.  Opening fences are distinguished
+because they *must* have attributes:
+
+    ::: Warning ::::::
+    This is a warning.
+
+    ::: Danger
+    This is a warning within a warning.
+    :::
+    ::::::::::::::::::
+
 #### Extension: `raw_tex` ####
 
 In addition to raw HTML, pandoc allows raw LaTeX, TeX, and ConTeXt to be

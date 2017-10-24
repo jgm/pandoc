@@ -107,6 +107,7 @@ data Extension =
     | Ext_raw_attribute           -- ^ Allow explicit raw blocks/inlines
     | Ext_markdown_in_html_blocks -- ^ Interpret as markdown inside HTML blocks
     | Ext_native_divs             -- ^ Use Div blocks for contents of <div> tags
+    | Ext_fenced_divs             -- ^ Allow fenced div syntax :::
     | Ext_native_spans            -- ^ Use Span inlines for contents of <span>
     | Ext_bracketed_spans         -- ^ Bracketed spans with attributes
     | Ext_markdown_attribute      -- ^ Interpret text inside HTML as markdown
@@ -183,6 +184,7 @@ pandocExtensions = extensionsFromList
   , Ext_raw_attribute
   , Ext_markdown_in_html_blocks
   , Ext_native_divs
+  , Ext_fenced_divs
   , Ext_native_spans
   , Ext_bracketed_spans
   , Ext_escaped_line_breaks

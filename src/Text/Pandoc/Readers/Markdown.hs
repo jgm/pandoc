@@ -499,6 +499,7 @@ block = do
                , header
                , lhsCodeBlock
                , divHtml
+               , divFenced
                , htmlBlock
                , table
                , codeBlockIndented
@@ -1026,6 +1027,11 @@ para = try $ do
                           Just "div" -> () <$
                                        lookAhead (htmlTag (~== TagClose "div"))
                           _          -> mzero
+              <|> do guardEnabled Ext_fenced_divs
+                     divLevel <- stateFencedDivLevel <$> getState
+                     if divLevel > 0
+                        then lookAhead divFenceEnd
+                        else mzero
             return $ do
               result' <- result
               case B.toList result' of
@@ -1686,6 +1692,9 @@ endline = try $ do
   guardEnabled Ext_blank_before_header <|> (notFollowedBy . char =<< atxChar) -- atx header
   guardDisabled Ext_backtick_code_blocks <|>
      notFollowedBy (() <$ (lookAhead (char '`') >> codeBlockFenced))
+  guardDisabled Ext_fenced_divs <|>
+    do divLevel <- stateFencedDivLevel <$> getState
+       guard (divLevel < 1) <|> notFollowedBy divFenceEnd
   notFollowedByHtmlCloser
   (eof >> return mempty)
     <|> (guardEnabled Ext_hard_line_breaks >> return (return B.linebreak))
@@ -1929,6 +1938,30 @@ divHtml = try $ do
        return $ B.divWith (ident, classes, keyvals) <$> contents
      else -- avoid backtracing
        return $ return (B.rawBlock "html" (rawtag <> bls)) <> contents
+
+divFenced :: PandocMonad m => MarkdownParser m (F Blocks)
+divFenced = try $ do
+  guardEnabled Ext_fenced_divs
+  nonindentSpaces
+  string ":::"
+  skipMany (char ':')
+  skipMany spaceChar
+  attribs <- attributes <|> ((\x -> ("",[x],[])) <$> many1 nonspaceChar)
+  skipMany spaceChar
+  skipMany (char ':')
+  blankline
+  updateState $ \st -> st{ stateFencedDivLevel = stateFencedDivLevel st + 1 }
+  bs <- mconcat <$> manyTill block divFenceEnd
+  updateState $ \st -> st{ stateFencedDivLevel = stateFencedDivLevel st - 1 }
+  return $ B.divWith attribs <$> bs
+
+divFenceEnd :: PandocMonad m => MarkdownParser m ()
+divFenceEnd = try $ do
+  nonindentSpaces
+  string ":::"
+  skipMany (char ':')
+  blanklines
+  return ()
 
 rawHtmlInline :: PandocMonad m => MarkdownParser m (F Inlines)
 rawHtmlInline = do

@@ -55,8 +55,11 @@
     Note, however, that versions in the repositories are often
     old.
 
-  - For 64-bit [Debian] and [Ubuntu], we provide a debian package
-    on the [download page].
+  - We provide a binary package for amd64 architecture on
+    the download page.  This provides both pandoc and
+    pandoc-citeproc. The executables are statically linked and
+    have no dynamic dependencies.  Both a tarball and a deb
+    installer are provided.
 
         sudo dpkg -i $DEB
 
@@ -64,14 +67,19 @@
     install the `pandoc` and `pandoc-citeproc` executables
     and man pages.
 
+    Note:  because it is statically linked, the pandoc
+    binary from this package cannot use lua filters that
+    require external lua modules written in C.
+
   - If you use an RPM-based distro, you may be
-    able to install this deb using `alien`, or try
+    able to install the deb from our download page
+    using `alien`. Or try
 
         ar p $DEB data.tar.gz | sudo tar xvz --strip-components 2 -C /usr/local
 
   - If you'd rather install pandoc in your home directory, say
-    in `$HOME/.local`, then you can extract the files manually
-    from the deb:
+    in `$HOME/.local`, then you can unzip the tarball or
+    extract the files manually from the deb:
 
         ar p $DEB data.tar.gz | tar xvz --strip-components 2 -C $HOME/.local/
 

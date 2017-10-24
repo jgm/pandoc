@@ -1125,9 +1125,15 @@ htmlTag :: (HasReaderOptions st, Monad m)
 htmlTag f = try $ do
   lookAhead (char '<')
   inp <- getInput
-  let (next : _) = canonicalizeTags $ parseTagsOptions
-                       parseOptions{ optTagWarning = False } inp
-  guard $ f next
+  let ts = canonicalizeTags $ parseTagsOptions
+                               parseOptions{ optTagWarning = False
+                                           , optTagPosition = True }
+                               (inp ++ " ") -- add space to ensure that
+                               -- we get a TagPosition after the tag
+  (next, ln, col) <- case ts of
+                      (TagPosition{} : next : TagPosition ln col : _)
+                        | f next -> return (next, ln, col)
+                      _ -> mzero
 
   -- <www.boe.es/buscar/act.php?id=BOE-A-1996-8930#a66>
   -- should NOT be parsed as an HTML tag, see #2277,
@@ -1138,6 +1144,11 @@ htmlTag f = try $ do
                       [] -> False
                       (c:cs) -> isLetter c && all isNameChar cs
 
+  let endAngle = try $ do char '>'
+                          pos <- getPosition
+                          guard $ (sourceLine pos == ln &&
+                                   sourceColumn pos >= col) ||
+                                  sourceLine pos > ln
   let handleTag tagname = do
        -- basic sanity check, since the parser is very forgiving
        -- and finds tags in stuff like x<y)
@@ -1146,14 +1157,14 @@ htmlTag f = try $ do
        -- <https://example.org> should NOT be a tag either.
        -- tagsoup will parse it as TagOpen "https:" [("example.org","")]
        guard $ last tagname /= ':'
-       rendered <- manyTill anyChar (char '>')
-       return (next, rendered <> ">")
+       char '<'
+       rendered <- manyTill anyChar endAngle
+       return (next, "<" ++ rendered ++ ">")
   case next of
        TagComment s
          | "<!--" `isPrefixOf` inp -> do
-          count (length s + 4) anyChar
-          skipMany (satisfy (/='>'))
-          char '>'
+          char '<'
+          manyTill anyChar endAngle
           stripComments <- getOption readerStripComments
           if stripComments
              then return (next, "")
