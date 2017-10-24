@@ -215,8 +215,8 @@ link = try $ do
   return $ B.link src "" orig
   where
     linkSrc = many $ noneOf "|]\n\r\t"
-    linkDsc = B.str <$> option "" (char '|' >> many (noneOf "]\n\r\t"))
-    linkImg = char '|' >> image
+    linkDsc = B.str <$> (try $ option "" (char '|' >> many (noneOf "]\n\r\t")))
+    linkImg = try $ char '|' >> image
     wikiLink = try $ do
       string "[["
       src <- linkSrc
