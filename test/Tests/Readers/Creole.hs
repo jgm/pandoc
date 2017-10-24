@@ -180,7 +180,7 @@ tests = [ "bold, single line, fully delimited" =:
           =?> para (code "no break!\\\\here" <> " but a break"
                     <> linebreak <> "here!")
 
-        
+
         , "image simple" =:
           "{{foo.png}}" =?> para (image "foo.png" "" (str ""))
         , "image with alt text" =:
@@ -191,4 +191,11 @@ tests = [ "bold, single line, fully delimited" =:
         , "image link" =:
           "[[http://foo.example.com/|{{foo.png}}]]"
           =?> para (link "http://foo.example.com/" "" (image "foo.png" "" (str "")))
+
+        , "placeholder" =:
+          "foo <<<place holder>>> bar"
+          =?> para "foo bar"
+        , "placeholder escaped" =:
+          "foo ~<<<no place holder>>> bar"
+          =?> para "foo <<<no place holder>>> bar"
         ]

@@ -181,6 +181,7 @@ inline = choice [ whitespace
                 , escapedChar
                 , link
                 , inlineNowiki
+                , placeholder
                 , image
                 , forcedLinebreak
                 , bold
@@ -231,6 +232,13 @@ inlineNowiki = B.code <$> (start >> manyTill (noneOf "\n\r") end)
   where
     start = try $ string "{{{"
     end = try $ string "}}}" >> (lookAhead $ noneOf "}")
+
+placeholder :: PandocMonad m => CRLParser m B.Inlines
+-- The semantics of the placeholder is basicallly implementation
+-- dependent, so there is no way to DTRT for all cases.
+-- So for now we just drop them.
+placeholder = B.text <$> (try $ string "<<<" >> manyTill anyChar (string ">>>")
+              >> return "")
 
 whitespace :: PandocMonad m => CRLParser m B.Inlines
 whitespace = (lb <|> regsp) >>= return
