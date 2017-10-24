@@ -188,6 +188,23 @@ tests = [ "bold, single line, fully delimited" =:
           =?> para ("Image of a bar: "
                     <> image "/path/to/bar.png" "" (str "A Bar") <> " look at it!")
 
+        , "auto link" =:
+          "foo http://foo.example.com/bar/baz.html bar"
+          =?> para ("foo "
+                    <> link "http://foo.example.com/bar/baz.html" ""
+                     (str "http://foo.example.com/bar/baz.html")
+                    <> " bar")
+        , "wiki link simple" =:
+          "foo [[http://foo.example.com/foo.png]] bar"
+          =?> para ("foo "
+                    <> link "http://foo.example.com/foo.png" "" (str "")
+                    <> " bar")
+        , "wiki link with name" =:
+          "foo [[http://foo.example.com/foo.png|my link]] bar"
+          =?> para ("foo "
+                    <> link "http://foo.example.com/foo.png" ""
+                     (str "my link")
+                    <> " bar")
         , "image link" =:
           "[[http://foo.example.com/|{{foo.png}}]]"
           =?> para (link "http://foo.example.com/" "" (image "foo.png" "" (str "")))
