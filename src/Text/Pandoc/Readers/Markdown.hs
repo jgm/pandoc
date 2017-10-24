@@ -498,6 +498,7 @@ block = do
                , bulletList
                , header
                , lhsCodeBlock
+               , divBlock
                , divHtml
                , htmlBlock
                , table
@@ -767,6 +768,8 @@ birdTrackLine c = try $ do
   char c
   -- allow html tags on left margin:
   when (c == '<') $ notFollowedBy letter
+  -- allow inplace-images on left margin:
+  when (c == '!') $ notFollowedBy (char '[')
   anyLine
 
 --
@@ -796,6 +799,82 @@ blockQuote = do
   -- parse the extracted block, which may contain various block elements:
   contents <- parseFromString' parseBlocks $ (intercalate "\n" raw) ++ "\n\n"
   return $ B.blockQuote <$> contents
+
+--
+-- div blocks
+--
+
+openingDiv :: PandocMonad m => MarkdownParser m Attr
+openingDiv = do
+  string ":::"
+  skipMany (char ':')
+  skipMany spaceChar
+  mclass <- optionMaybe $ do
+      c <- many1 alphaNum
+      skipMany1 spaceChar
+      skipMany1 (char ':')
+      return c
+  attr' <- option nullAttr $ do
+    skipMany spaceChar
+    attributes
+  let addClass :: Attr -> String -> Attr
+      addClass (id',cs, kv) c = (id', (c:cs), kv)
+  anyLine
+  return $ maybe attr' (addClass attr') mclass -- if we have mclass, add it, otherwise leave it unchanged
+
+closingDiv :: PandocMonad m => MarkdownParser m ()
+closingDiv = do
+  string ":::"
+  skipMany spaceChar
+  ((char '\n' >> return ()) <|> eof)
+
+divBlockBirdTrack :: PandocMonad m => MarkdownParser m (F Blocks)
+divBlockBirdTrack = try $ do
+  pos <- getPosition
+  when (sourceColumn pos /= 1) $ fail "Not in first colum"
+  attr' <- option nullAttr (attributes <* (skipSpaces >> newline))
+  lns <- many1 $ birdTrackLine '!'
+  -- if (as is normal) there is always a space after !, drop it
+  let lns' = if all (\ln -> null ln || take 1 ln == " ") lns
+                then map (drop 1) lns
+                else lns
+  -- recursively parse lns' we collected
+  bs <- parseFromString parseBlocks (intercalate "\n" lns' ++ "\n")
+  return $ B.divWith attr' <$> bs
+
+divBlockBeginEnd :: PandocMonad m => MarkdownParser m (F Blocks)
+divBlockBeginEnd = try $ do
+  pos <- getPosition
+  when (sourceColumn pos /= 1) $ fail "Not in first column"
+  attr' <- openingDiv
+  bs <- divCounter 1 --look for closingDiv and count nesting-depth
+  bs' <- parseFromString parseBlocks (intercalate "\n" (init bs) ++ "\n")
+           -- last entry in bs ^^ is the closingDiv, drop it for recursive parsing
+  return $ B.divWith attr' <$> bs'
+
+divCounter :: PandocMonad m => Int -> MarkdownParser m [String]
+divCounter 0 = return []
+divCounter i = do
+  closed <- option False (lookAhead (try closingDiv) >> return True)
+  case closed of
+    True -> do
+      x <- anyLine
+      xs <- divCounter (i-1)
+      return (x:xs)
+    False -> do
+      opening <- option False (lookAhead (try openingDiv) >> return True)
+      case opening of
+        True -> do
+          x <- anyLine
+          xs <- divCounter (i+1)
+          return (x:xs)
+        False -> do
+          x <- anyLine
+          xs <- divCounter i
+          return (x:xs)
+
+divBlock :: PandocMonad m => MarkdownParser m (F Blocks)
+divBlock = divBlockBirdTrack <|> divBlockBeginEnd <?> "divBlock"
 
 --
 -- list blocks
