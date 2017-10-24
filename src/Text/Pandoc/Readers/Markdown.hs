@@ -499,6 +499,7 @@ block = do
                , header
                , lhsCodeBlock
                , divHtml
+               , divFenced
                , htmlBlock
                , table
                , codeBlockIndented
@@ -1686,6 +1687,9 @@ endline = try $ do
   guardEnabled Ext_blank_before_header <|> (notFollowedBy . char =<< atxChar) -- atx header
   guardDisabled Ext_backtick_code_blocks <|>
      notFollowedBy (() <$ (lookAhead (char '`') >> codeBlockFenced))
+  guardDisabled Ext_fenced_divs <|>
+    do divLevel <- stateFencedDivLevel <$> getState
+       guard (divLevel < 1) <|> notFollowedBy fenceEnd
   notFollowedByHtmlCloser
   (eof >> return mempty)
     <|> (guardEnabled Ext_hard_line_breaks >> return (return B.linebreak))
@@ -1929,6 +1933,30 @@ divHtml = try $ do
        return $ B.divWith (ident, classes, keyvals) <$> contents
      else -- avoid backtracing
        return $ return (B.rawBlock "html" (rawtag <> bls)) <> contents
+
+divFenced :: PandocMonad m => MarkdownParser m (F Blocks)
+divFenced = try $ do
+  guardEnabled Ext_fenced_divs
+  nonindentSpaces
+  string ":::"
+  skipMany (char ':')
+  skipMany spaceChar
+  attribs <- attributes <|> ((\x -> ("",[x],[])) <$> many1 nonspaceChar)
+  skipMany spaceChar
+  skipMany (char ':')
+  blankline
+  updateState $ \st -> st{ stateFencedDivLevel = stateFencedDivLevel st + 1 }
+  bs <- mconcat <$> manyTill block fenceEnd
+  updateState $ \st -> st{ stateFencedDivLevel = stateFencedDivLevel st - 1 }
+  return $ B.divWith attribs <$> bs
+
+fenceEnd :: PandocMonad m => MarkdownParser m ()
+fenceEnd = try $ do
+  nonindentSpaces
+  string ":::"
+  skipMany (char ':')
+  blanklines
+  return ()
 
 rawHtmlInline :: PandocMonad m => MarkdownParser m (F Inlines)
 rawHtmlInline = do

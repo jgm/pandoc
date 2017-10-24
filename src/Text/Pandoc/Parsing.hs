@@ -1069,6 +1069,7 @@ data ParserState = ParserState
       -- roles), 3) Additional classes (rest of Attr is unused)).
       stateCaption         :: Maybe Inlines, -- ^ Caption in current environment
       stateInHtmlBlock     :: Maybe String,  -- ^ Tag type of HTML block being parsed
+      stateFencedDivLevel  :: Int,           -- ^ Depth of fenced div
       stateContainers      :: [String],      -- ^ parent include files
       stateLogMessages     :: [LogMessage],  -- ^ log messages
       stateMarkdownAttribute :: Bool         -- ^ True if in markdown=1 context
@@ -1185,6 +1186,7 @@ defaultParserState =
                   stateRstCustomRoles  = M.empty,
                   stateCaption         = Nothing,
                   stateInHtmlBlock     = Nothing,
+                  stateFencedDivLevel  = 0,
                   stateContainers      = [],
                   stateLogMessages     = [],
                   stateMarkdownAttribute = False
