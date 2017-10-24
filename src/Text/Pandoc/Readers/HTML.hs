@@ -1036,11 +1036,7 @@ _ `closes` "html" = False
 "body" `closes` "head" = True
 "a" `closes` "a" = True
 "li" `closes` "li" = True
-t1 `closes` t2
-  | t1 `elem` ["th","td"] &&
-    t2 `Set.member` blockTags &&
-    t2 /= "tr" &&
-    t2 /= "table" = True
+"th" `closes` t | t `elem` ["th","td"] = True
 "tr" `closes` t | t `elem` ["th","td","tr"] = True
 "dd" `closes` t | t `elem` ["dt", "dd"] = True
 "dt" `closes` t | t `elem` ["dt","dd"] = True
