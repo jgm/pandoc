@@ -273,18 +273,22 @@ setRequestHeader name val = modifyCommonState $ \st ->
 setMediaBag :: PandocMonad m => MediaBag -> m ()
 setMediaBag mb = modifyCommonState $ \st -> st{stMediaBag = mb}
 
+-- Retrieve the media bag.
 getMediaBag :: PandocMonad m => m MediaBag
 getMediaBag = getsCommonState stMediaBag
 
+-- Insert an item into the media bag.
 insertMedia :: PandocMonad m => FilePath -> Maybe MimeType -> BL.ByteString -> m ()
 insertMedia fp mime bs = do
   mb <- getMediaBag
   let mb' = MB.insertMedia fp mime bs mb
   setMediaBag mb'
 
+-- Retrieve the input filenames.
 getInputFiles :: PandocMonad m => m [FilePath]
 getInputFiles = getsCommonState stInputFiles
 
+-- Set the input filenames.
 setInputFiles :: PandocMonad m => [FilePath] -> m ()
 setInputFiles fs = do
   let sourceURL = case fs of
@@ -299,21 +303,27 @@ setInputFiles fs = do
   modifyCommonState $ \st -> st{ stInputFiles = fs
                                , stSourceURL = sourceURL }
 
+-- Retrieve the output filename.
 getOutputFile :: PandocMonad m => m (Maybe FilePath)
 getOutputFile = getsCommonState stOutputFile
 
+-- Set the output filename.
 setOutputFile :: PandocMonad m => Maybe FilePath -> m ()
 setOutputFile mbf = modifyCommonState $ \st -> st{ stOutputFile = mbf }
 
-setResourcePath :: PandocMonad m => [FilePath] -> m ()
-setResourcePath ps = modifyCommonState $ \st -> st{stResourcePath = ps}
-
+-- Retrieve the resource path searched by 'fetchItem'.
 getResourcePath :: PandocMonad m => m [FilePath]
 getResourcePath = getsCommonState stResourcePath
 
+-- Set the resource path searched by 'fetchItem'.
+setResourcePath :: PandocMonad m => [FilePath] -> m ()
+setResourcePath ps = modifyCommonState $ \st -> st{stResourcePath = ps}
+
+-- Get the POSIX time.
 getPOSIXTime :: PandocMonad m => m POSIXTime
 getPOSIXTime = utcTimeToPOSIXSeconds <$> getCurrentTime
 
+-- Get the zoned time.
 getZonedTime :: PandocMonad m => m ZonedTime
 getZonedTime = do
   t <- getCurrentTime
@@ -445,6 +455,8 @@ translateTerm term = do
 runIO :: PandocIO a -> IO (Either PandocError a)
 runIO ma = flip evalStateT def $ runExceptT $ unPandocIO ma
 
+-- | Evaluate a 'PandocIO' operation, handling any errors
+-- by exiting with an appropriate message and error status. 
 runIOorExplode :: PandocIO a -> IO a
 runIOorExplode ma = runIO ma >>= handleError
 
@@ -457,6 +469,7 @@ newtype PandocIO a = PandocIO {
              , MonadError PandocError
              )
 
+-- | Utility function to lift IO errors into 'PandocError's.
 liftIOError :: (String -> IO a) -> String -> PandocIO a
 liftIOError f u = do
   res <- liftIO $ tryIOError $ f u
@@ -600,6 +613,7 @@ downloadOrRead s = do
          convertSlash '\\' = '/'
          convertSlash x    = x
 
+-- Retrieve default reference.docx.
 getDefaultReferenceDocx :: PandocMonad m => m Archive
 getDefaultReferenceDocx = do
   let paths = ["[Content_Types].xml",
@@ -634,6 +648,7 @@ getDefaultReferenceDocx = do
      Nothing   -> foldr addEntryToArchive emptyArchive <$>
                      mapM pathToEntry paths
 
+-- Retrieve default reference.odt.
 getDefaultReferenceODT :: PandocMonad m => m Archive
 getDefaultReferenceODT = do
   let paths = ["mimetype",
@@ -760,6 +775,7 @@ extractMedia dir d = do
           mapM_ (writeMedia dir media) fps
           return $ walk (adjustImagePath dir fps) d
 
+-- Write the contents of a media bag to a path.
 writeMedia :: FilePath -> MediaBag -> FilePath -> PandocIO ()
 writeMedia dir mediabag subpath = do
   -- we join and split to convert a/b/c to a\b\c on Windows;
@@ -778,6 +794,8 @@ adjustImagePath dir paths (Image attr lab (src, tit))
    | src `elem` paths = Image attr lab (dir ++ "/" ++ src, tit)
 adjustImagePath _ _ x = x
 
+-- | The 'PureState' contains ersatz representations
+-- of things that would normally be obtained through IO.
 data PureState = PureState { stStdGen     :: StdGen
                            , stWord8Store :: [Word8] -- should be
                                                      -- inifinite,
@@ -863,6 +881,7 @@ newtype PandocPure a = PandocPure {
              , MonadError PandocError
              )
 
+-- Run a 'PandocPure' operation.
 runPure :: PandocPure a -> Either PandocError a
 runPure x = flip evalState def $
             flip evalStateT def $
