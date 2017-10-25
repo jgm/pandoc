@@ -37,6 +37,8 @@ module Text.Pandoc.App (
           , defaultOpts
           , parseOptions
           , options
+          , applyFilters
+          , applyLuaFilters
           ) where
 import qualified Control.Exception as E
 import Control.Monad

@@ -35,6 +35,10 @@ pandoc (2.0)
     pandoc's HTML writer in the style of vimwiki's own HTML
     export.
 
+  * New syntax for Divs, with `fenced_divs` extension enabled by
+    default (#168).  This gives an attractive, plain-text way to create
+    containers for block-level content.
+
   * Added new syntax for including raw content in any output format,
     enabled by the `raw_attribute` extension (which is on by default
     for `markdown` and `multimarkdown`).  The syntax is the same as
@@ -595,6 +599,7 @@ pandoc (2.0)
     + Support `\expandafter` (#3983).
     + Handle `\DeclareRobustCommand` (#3983).  Currently it's just treated
       as a synonym for `\newcommand`.
+    + Handle `\lettrine` (Mauro Bieg).
 
   * Math improvements due to updates in texmath:
 
@@ -647,6 +652,10 @@ pandoc (2.0)
       then both readers and writers will be able to do IO when needed
       (for include files, for example); if `runPure` is used,
       then the functions are pure and will not touch IO.
+    + Where previously you used
+      `writeRST def (readMarkdown def "[foo](url)")`, now you
+      would use
+      `runPure $ readMarkdown def (pack "[foo](url)") >>= writeRST def`.
 
   * New module `Text.Pandoc.Readers` (Albert Krewinkel).  This
     contains reader helper functions formerly defined in the
@@ -714,13 +723,15 @@ pandoc (2.0)
     `Text.Pandoc` module.  These functions are moved to the Extensions
     submodule as to enable reuse in other submodules.
 
-  * Add `Ext_raw_attribute` to `Extension`.
+  * Add `Ext_raw_attribute` constructor for `Extension`.
 
-  * Add `Monoid` instance for `Extensions`.
+  * Add `Ext_fenced_divs` constructor for `Extension'.
 
   * Add `Ext_four_space_rule` constructor in `Extension`.
 
-  * Add `Ext_gfm_auto_identifiers`: new constructor for `Extension`.
+  * Add `Ext_gfm_auto_identifiers` constructor for `Extension`.
+
+  * Add `Monoid` instance for `Extensions`.
 
   * Add `Text.Pandoc.Writers.Ms`, exporting `writeMs`.
 
@@ -1140,6 +1151,11 @@ pandoc (2.0)
       with a `width` attribute or with `text-width` in a `style` attribute.
     + Modified state type to be an instance of `HasLogMessages`, so
       `registerHeader` can issue warnings.
+    + `</td>` or `</th>` should close any open block tag (#3991).
+    + `<td>` should close an open `<th>` or `<td>`.
+    + `htmlTag` improvements (#3989).  We previously failed on cases
+      where an attribute contained a `>` character. This patch fixes the
+      bug, which especially affects raw HTML in Markdown.
 
   * Txt2Tags reader:
 
@@ -1708,21 +1724,20 @@ pandoc (2.0)
 
   * make_macos_package.sh - Use strip to reduce executable size.
 
-  * Strip executables in linux package.
-
-  * Remove cpphs build requirement -- it is no longer needed.
-
-  * Replaced `{deb,macos,windows}/stack.yaml` with `stack.pkg.yaml`.
-
-  * Added `linux` directory.  This provides a Makefile and Dockerfile
-    sufficient for producing a linux executable.  If Docker is installed,
-    this should suffice: `make setup && make build`.  The binary will be
-    placed in `artifacts/`.
+  * Revised binary linux package.  Now a completely static executable
+    is created, using Docker and alpine.  We create both a deb and a
+    tarball.  The old `deb` directory has been replaced with a `linux`
+    directory.  Running `make` in the `linux` directory should
+    perform the build, putting the binary packages in `artifacts/`.
 
   * `linux/control.in`: add `Replaces:`, so existing pandoc-citeproc and
     pandoc-data packages will be uninstalled; this package provides
     both (#3822).  Add latex packages as 'suggested', update
     description.
+
+  * Remove cpphs build requirement -- it is no longer needed.
+
+  * Replaced `{deb,macos,windows}/stack.yaml` with `stack.pkg.yaml`.
 
   * Name change OSX -> macOS (ickc, #3869).
 

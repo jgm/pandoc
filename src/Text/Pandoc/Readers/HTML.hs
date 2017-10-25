@@ -847,6 +847,8 @@ pCloses tagtype = try $ do
        (TagClose "dl") | tagtype == "dd" -> return ()
        (TagClose "table") | tagtype == "td" -> return ()
        (TagClose "table") | tagtype == "tr" -> return ()
+       (TagClose "td") | tagtype `Set.member` blockHtmlTags -> return ()
+       (TagClose "th") | tagtype `Set.member` blockHtmlTags -> return ()
        (TagClose t') | tagtype == "p" && t' `Set.member` blockHtmlTags
                                             -> return () -- see #3794
        _ -> mzero
@@ -1037,6 +1039,7 @@ _ `closes` "html" = False
 "a" `closes` "a" = True
 "li" `closes` "li" = True
 "th" `closes` t | t `elem` ["th","td"] = True
+"td" `closes` t | t `elem` ["th","td"] = True
 "tr" `closes` t | t `elem` ["th","td","tr"] = True
 "dd" `closes` t | t `elem` ["dt", "dd"] = True
 "dt" `closes` t | t `elem` ["dt","dd"] = True
