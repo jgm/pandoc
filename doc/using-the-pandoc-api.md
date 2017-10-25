@@ -278,11 +278,11 @@ readDataFile
 
 Walk and syb for AST transformations
 
+# Filters
+
 Filters: see filters.md
 
-but, how do you run filters from a program?
-need to export these functions from Text.Pandoc.App!
-
+applyFilters, applyLuaFilters from Text.Pandoc.App.
 
 # PDF
 
