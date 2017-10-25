@@ -3,6 +3,7 @@ module Tests.Readers.Creole (tests) where
 
 import Data.Monoid ((<>))
 import Data.Text (Text)
+import qualified Data.Text as T
 import Test.Tasty
 import Tests.Helpers
 import Text.Pandoc
@@ -224,5 +225,47 @@ tests = [
         , "image link" =:
           "[[http://foo.example.com/|{{foo.png}}]]"
           =?> para (link "http://foo.example.com/" "" (image "foo.png" "" (str "")))
+        ]
+  , testGroup "Table" [
+          "Table with Header" =:
+          T.unlines [ "|= Foo |= Bar |= Baz  |"
+                    , "| One  | Two  | Three |"
+                    , "| 1    | 2    | 3     |"
+                    , "| A    | B    | C     |"
+                    ]
+          =?> simpleTable
+            [plain "Foo", plain "Bar" , plain "Baz"]
+            [[plain "One", plain "Two" , plain "Three"]
+            ,[plain "1", plain "2" , plain "3"]
+            ,[plain "A", plain "B" , plain "C"]]
+        , "Table without Header" =:
+          T.unlines [ "| One  | Two  | Three |"
+                    , "| 1    | 2    | 3     |"
+                    , "| A    | B    | C     |"
+                    ]
+          =?> simpleTable [mempty]
+            [[plain "One", plain "Two" , plain "Three"]
+            ,[plain "1", plain "2" , plain "3"]
+            ,[plain "A", plain "B" , plain "C"]]
+        , "Table without Header, no markers at line ends" =:
+          T.unlines [ "| One  | Two  | Three"
+                    , "| 1    | 2    | 3"
+                    , "| A    | B    | C  "
+                    ]
+          =?> simpleTable [mempty]
+            [[plain "One", plain "Two" , plain "Three"]
+            ,[plain "1", plain "2" , plain "3"]
+            ,[plain "A", plain "B" , plain "C"]]
+        , "Table with Header, with formatting" =:
+          T.unlines [ "|= **Foo**        |= **Bar** |= **Baz**  |"
+                    , "|//one// element  |//second// elt|Three  |"
+                    , "| {{{1}}}    | {{{{}}}}    | [[link]]    |"
+                    ]
+          =?> simpleTable
+            [plain $ strong "Foo", plain $ strong "Bar" , plain $ strong "Baz"]
+            [[plain (emph "one" <> " element"), plain (emph "second" <> " elt")
+             ,plain "Three"]
+            ,[plain $ code "1", plain $ code "{}"
+             ,plain $ link "link" "" (str "link")]]
         ]
   ]

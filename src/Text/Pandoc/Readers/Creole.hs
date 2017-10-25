@@ -42,6 +42,7 @@ import Text.Pandoc.Definition
 import Text.Pandoc.Options
 import Text.Pandoc.Parsing hiding (enclosed)
 import Text.Pandoc.Shared (crFilter)
+import Data.Maybe (fromMaybe)
 import Data.Monoid
 import Data.Text (Text)
 import qualified Data.Text as T
@@ -82,7 +83,7 @@ enclosed start end parser = try $ start >> many1Till parser end
 --
 
 specialChars :: [Char]
-specialChars = "*/~{}\\"
+specialChars = "*/~{}\\|"
 
 parseCreole :: PandocMonad m => CRLParser m Pandoc
 parseCreole = do
@@ -103,6 +104,7 @@ block = do
          <|> header
          <|> horizontalRule
          <|> anyList 1
+         <|> table
          <|> para
   skipMany blankline
   return res
@@ -156,6 +158,21 @@ listItem c n = (listStart >> many1Till inline itemEnd)
               <|> if n < 3 then nextItem (n+1)
                   else nextItem (n+1) <|> nextItem (n-1)
     nextItem x = lookAhead $ try $ blankline >> anyListItem x >> return mempty
+
+table :: PandocMonad m => CRLParser m B.Blocks
+table = try $ do
+  headers <- optionMaybe headerRow
+  rows <- many1 row
+  return $ B.simpleTable (fromMaybe [mempty] headers) rows
+  where
+    headerRow = try $ skipSpaces >> many1Till headerCell rowEnd
+    headerCell = B.plain . B.trimInlines . mconcat
+                 <$> (string "|=" >> many1Till inline cellEnd)
+    row = try $ skipSpaces >> many1Till cell rowEnd
+    cell = B.plain . B.trimInlines . mconcat
+           <$> (char '|' >> many1Till inline cellEnd)
+    rowEnd = try $ optional (char '|') >> skipSpaces >> newline
+    cellEnd = lookAhead $ try $ char '|' <|> rowEnd
 
 para :: PandocMonad m => CRLParser m B.Blocks
 para = many1Till inline endOfParaElement >>= return . result . mconcat
