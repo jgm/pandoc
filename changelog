@@ -653,9 +653,9 @@ pandoc (2.0)
       (for include files, for example); if `runPure` is used,
       then the functions are pure and will not touch IO.
     + Where previously you used
-      `writeHtmlString def (readMarkdown def "*foo*")`, now you
+      `writeRST def (readMarkdown def "[foo](url)")`, now you
       would use
-      `runPure $ readMarkdown def "*foo*" >>= writeHtmlString def`.
+      `runPure $ readMarkdown def (pack "[foo](url)") >>= writeRST def`.
 
   * New module `Text.Pandoc.Readers` (Albert Krewinkel).  This
     contains reader helper functions formerly defined in the
