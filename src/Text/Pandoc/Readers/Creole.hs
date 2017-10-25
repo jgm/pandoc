@@ -224,12 +224,15 @@ link = try $ do
   return $ B.link src "" orig
   where
     linkSrc = many $ noneOf "|]\n\r\t"
-    linkDsc = B.str <$> (try $ option "" (char '|' >> many (noneOf "]\n\r\t")))
+    linkDsc :: PandocMonad m => String -> CRLParser m B.Inlines
+    linkDsc otxt = B.str
+                   <$> (try $ option otxt
+                         (char '|' >> many (noneOf "]\n\r\t")))
     linkImg = try $ char '|' >> image
     wikiLink = try $ do
       string "[["
       src <- linkSrc
-      dsc <- linkImg <|> linkDsc
+      dsc <- linkImg <|> linkDsc src
       string "]]"
       return (dsc, src)
     uriLink = try $ do

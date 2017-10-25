@@ -197,7 +197,8 @@ tests = [ "bold, single line, fully delimited" =:
         , "wiki link simple" =:
           "foo [[http://foo.example.com/foo.png]] bar"
           =?> para ("foo "
-                    <> link "http://foo.example.com/foo.png" "" (str "")
+                    <> link "http://foo.example.com/foo.png" ""
+                     (str "http://foo.example.com/foo.png")
                     <> " bar")
         , "wiki link with name" =:
           "foo [[http://foo.example.com/foo.png|my link]] bar"
