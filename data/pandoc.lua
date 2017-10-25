@@ -315,7 +315,8 @@ M.Null = M.Block:create_constructor(
 M.OrderedList = M.Block:create_constructor(
   "OrderedList",
   function(items, listAttributes)
-    return {c = {listAttributes,items}}
+    listAttributes = listAttributes or {1, M.DefaultStyle, M.DefaultDelim}
+    return {c = {listAttributes, items}}
   end,
   {{"start", "style", "delimiter"}, "content"}
 )
