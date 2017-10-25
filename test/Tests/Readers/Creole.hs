@@ -18,7 +18,9 @@ infix 4 =:
 (=:) = test creole
 
 tests :: [TestTree]
-tests = [ "bold, single line, fully delimited" =:
+tests = [
+  testGroup "Basic Text Formatting" [
+          "bold, single line, fully delimited" =:
           "only **bold** is bold"
           =?> para ("only " <> strong "bold" <> " is bold")
         , "italics, single line, fully delimited" =:
@@ -43,7 +45,15 @@ tests = [ "bold, single line, fully delimited" =:
           "this is {{{{{{//including// some `}' chars}}}}}}"
           =?> para ("this is " <> code "{{{//including// some `}' chars}}}")
 
-        , "header level 1, no space, no trailing =" =:
+        , "placeholder" =:
+          "foo <<<place holder>>> bar"
+          =?> para "foo bar"
+        , "placeholder escaped" =:
+          "foo ~<<<no place holder>>> bar"
+          =?> para "foo <<<no place holder>>> bar"
+        ]
+  , testGroup "Headers" [
+          "header level 1, no space, no trailing =" =:
           "= Top-Level Header"
           =?> header 1 (str "Top-Level Header")
         , "header level 1, leading space, trailing =" =:
@@ -73,11 +83,14 @@ tests = [ "bold, single line, fully delimited" =:
         , "header level 6, no space, no trailing =" =:
           "====== Sixth"
           =?> header 6 (str "Sixth")
-
-        , "paragraphs: multiple, one line" =:
+        ]
+  , testGroup "Paragraphs" [
+          "paragraphs: multiple, one line" =:
           "first line\n\nanother line\n"
           =?> para "first line" <> para "another line"
-        , "unordered list, two entries, one separating space" =:
+          ]
+  , testGroup "Lists" [
+          "unordered list, two entries, one separating space" =:
           "* foo\n* bar"
           =?> bulletList [ plain "foo", plain "bar" ]
         , "unordered list, three entries, one separating space" =:
@@ -169,7 +182,9 @@ tests = [ "bold, single line, fully delimited" =:
                                                          ]
                                          ]
                          , plain "blubb" ]
-        , "quoted block, simple" =:
+        ]
+  , testGroup "NoWiki" [
+          "quoted block, simple" =:
           "{{{\nfoo bar\n  //baz//\n}}}"
           =?> codeBlock "foo bar\n  //baz//"
         , "quoted block, curly bracket exception" =:
@@ -179,9 +194,9 @@ tests = [ "bold, single line, fully delimited" =:
           "{{{no break!\\\\here}}} but a break\\\\here!"
           =?> para (code "no break!\\\\here" <> " but a break"
                     <> linebreak <> "here!")
-
-
-        , "image simple" =:
+        ]
+  , testGroup "Images and Links" [
+          "image simple" =:
           "{{foo.png}}" =?> para (image "foo.png" "" (str ""))
         , "image with alt text" =:
           "Image of a bar: {{/path/to/bar.png|A Bar}} look at it!"
@@ -209,11 +224,5 @@ tests = [ "bold, single line, fully delimited" =:
         , "image link" =:
           "[[http://foo.example.com/|{{foo.png}}]]"
           =?> para (link "http://foo.example.com/" "" (image "foo.png" "" (str "")))
-
-        , "placeholder" =:
-          "foo <<<place holder>>> bar"
-          =?> para "foo bar"
-        , "placeholder escaped" =:
-          "foo ~<<<no place holder>>> bar"
-          =?> para "foo <<<no place holder>>> bar"
         ]
+  ]
