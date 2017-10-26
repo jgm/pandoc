@@ -83,7 +83,7 @@ enclosed start end parser = try $ start >> many1Till parser end
 --
 
 specialChars :: [Char]
-specialChars = "*/~{}\\|"
+specialChars = "*/~{}\\|[]()<>\"'"
 
 parseCreole :: PandocMonad m => CRLParser m Pandoc
 parseCreole = do
