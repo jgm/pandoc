@@ -295,19 +295,19 @@ str = let strChar = noneOf ("\t\n " ++ specialChars) in
         many1 strChar >>= return . B.str
 
 bold :: PandocMonad m => CRLParser m B.Inlines
-bold = B.strong . B.trimInlines . mconcat <$>
+bold = B.strong . mconcat <$>
        enclosed (string "**") (try $ string "**") inline
 
 italics :: PandocMonad m => CRLParser m B.Inlines
-italics = B.emph . B.trimInlines . mconcat <$>
+italics = B.emph . mconcat <$>
           enclosed (string "//") (try $ string "//") inline
 
 finalBold :: PandocMonad m => CRLParser m B.Inlines
-finalBold = B.strong . B.trimInlines . mconcat <$>
+finalBold = B.strong . mconcat <$>
             try (string "**" >> many1Till inline endOfParaElement)
 
 finalItalics :: PandocMonad m => CRLParser m B.Inlines
-finalItalics = B.emph . B.trimInlines . mconcat <$>
+finalItalics = B.emph . mconcat <$>
                try (string "//" >> many1Till inline endOfParaElement)
 
 forcedLinebreak :: PandocMonad m => CRLParser m B.Inlines
