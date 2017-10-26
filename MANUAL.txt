@@ -4284,7 +4284,7 @@ want all italics to be transformed to the `Emphasis` character style
 transform all italicized inlines to inlines within an `Emphasis`
 custom-style `span`.
 
-[pandoc filters]: http://pandoc.org/scripting.html
+[pandoc filters]: http://pandoc.org/filters.html
 
 Custom writers
 ==============
