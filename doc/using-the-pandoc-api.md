@@ -188,20 +188,40 @@ Some particularly important options to know about:
 
 # Builder
 
+Sometimes it's useful to construct a Pandoc document
+programatically.  To make this easier we provide the
+module [Text.Pandoc.Builder](https://hackage.haskell.org/package/pandoc-types/docs/Text-Pandoc-Definition.html) in `pandoc-types`.
 
-Inlines vs Inline, etc.
+Because concatenating lists is slow, we use special
+types `Inlines` and `Blocks` that wrap a `Sequence` of
+`Inline` and `Block` elements.  These are instances
+of the Monoid typeclass and can easily be concatenated:
 
-Concatenating lists is slow. So we use special types Inlines and Blocks that wrap Sequences of Inline and Block elements.
+```haskell
+import Text.Pandoc.Builder
 
-Monoid - makes it easy to build up docs programatically.
+mydoc :: Pandoc
+mydoc = doc $ header 1 (text "Hello!")
+           <> para (emph (text "hello world") <> text ".")
 
-Example.
-Here’s a JSON data source about CNG fueling stations in the
-Chicago area: cng_fuel_chicago.json. Boss says: write me a
-letter in Word listing all the stations that take the Voyager
-card.
-
+main :: IO ()
+main = print mydoc
 ```
+
+If you use the `{-# LANGUAGE OverloadedStrings #-}`, you can
+simplify this further:
+
+```haskell
+mydoc = doc $ header 1 "Hello!"
+           <> para (emph "hello world" <> ".")
+```
+
+Here's a more realistic example.  Suppose your boss says: write
+me a letter in Word listing all the filling stations in Chicago
+that take the Voyager card.  You find some JSON data in this
+format (`fuel.json`):
+
+```json
 [ {
   "state" : "IL",
   "city" : "Chicago",
@@ -213,9 +233,10 @@ card.
 }, ...
 ```
 
-No need to open Word for this job! fuel.hs
+And then use aeson and pandoc to parse the JSON and create
+the Word document:
 
-```
+```haskell
 {-# LANGUAGE OverloadedStrings #-}
 import Text.Pandoc.Builder
 import Text.Pandoc
@@ -252,31 +273,43 @@ createLetter stations = doc $
     stationToRow station =
       [ plain (text $ name station)
       , plain (text $ address station)
-      , plain (mconcat $ intersperse linebreak $ map text $ cardsAccepted station)
+      , plain (mconcat $ intersperse linebreak
+                       $ map text $ cardsAccepted station)
       ]
 
 main :: IO ()
 main = do
-  json <- BL.readFile "cng_fuel_chicago.json"
+  json <- BL.readFile "fuel.json"
   let letter = case decode json of
                     Just stations -> createLetter [s | s <- stations,
                                         "Voyager" `elem` cardsAccepted s]
                     Nothing       -> error "Could not decode JSON"
-  BL.writeFile "letter.docx" =<< writeDocx def letter
+  docx <- runIO (writeDocx def letter) >>= handleError
+  BL.writeFile "letter.docx" docx
   putStrLn "Created letter.docx"
 ```
 
-
+Voila!  You've written the letter without using Word and
+without looking at the data.
 
 # Templates and other data files
 
 readDataFile
 
+getTemplate
+
 # Handling errors and warnings
 
-# Generic transformations
+Text.Pandoc.Error
+Text.Pandoc.Logging
+getLog
+verbosity
 
-Walk and syb for AST transformations
+# Walking the AST
+
+Text.Pandoc.Walk for AST transformations
+walk and query, with examples
+(don't bother mentioning syb)
 
 # Filters
 
@@ -284,8 +317,9 @@ Filters: see filters.md
 
 applyFilters, applyLuaFilters from Text.Pandoc.App.
 
-# PDF
+# Creating a PDF
 
+Text.Pandoc.PDF
 
 # Creating a front-end
 
