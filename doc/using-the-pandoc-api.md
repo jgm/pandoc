@@ -55,9 +55,9 @@ Markdown input:
 # A simple example
 
 Here is a simple example of the use of a pandoc reader and
-writer to perform a conversion inside ghci:
+writer to perform a conversion:
 
-```
+```haskell
 import Text.Pandoc
 import qualified Data.Text as T
 import qualified Data.Text.IO as TIO
