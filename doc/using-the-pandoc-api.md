@@ -91,7 +91,6 @@ Let's look at the types of `readMarkdown` and `writeRST`:
 
 ```haskell
 readMarkdown :: PandocMonad m => ReaderOptions -> Text -> m Pandoc
-
 writeRST :: PandocMonad m => WriterOptions -> Pandoc -> m Text
 ```
 
@@ -125,12 +124,10 @@ setVerbosity :: PandocMonad m => Verbosity -> m ()
 getLog :: PandocMonad m => m [LogMessage]
 getLog = reverse <$> getsCommonState stLog
 
--- | Log a message using 'logOutput'.  Note that
--- 'logOutput' is called only if the verbosity
--- level exceeds the level of the message, but
--- the message is added to the list of log messages
--- that will be retrieved by 'getLog' regardless
--- of its verbosity level.
+-- | Log a message using 'logOutput'.  Note that 'logOutput' is
+-- called only if the verbosity level exceeds the level of the
+-- message, but the message is added to the list of log messages
+-- that will be retrieved by 'getLog' regardless of its verbosity level.
 report :: PandocMonad m => LogMessage -> m ()
 
 -- | Fetch an image or other item from the local filesystem or the net.
@@ -139,6 +136,7 @@ fetchItem :: PandocMonad m
           => String
           -> m (B.ByteString, Maybe MimeType)
 
+-- Set the resource path searched by 'fetchItem'.
 setResourcePath :: PandocMonad m => [FilePath] -> m ()
 ```
 
@@ -208,7 +206,7 @@ main :: IO ()
 main = print mydoc
 ```
 
-If you use the `{-# LANGUAGE OverloadedStrings #-}`, you can
+If you use the `OverloadedStrings` pragma, you can
 simplify this further:
 
 ```haskell
@@ -317,7 +315,12 @@ this behavior, use `setUserDataDir Nothing`.
 
 To render a template, use `renderTemplate'`, which takes two
 arguments, a template (String) and a context (any instance
-of ToJSON).
+of ToJSON).  If you want to create a context from the metadata
+part of a Pandoc document, use `metaToJSON'` from
+[Text.Pandoc.Writers.Shared].  If you also want to incorporate
+values from variables, use `metaToJSON` instead, and make sure
+`writerVariables` is set in `WriterOptions`.
+
 
 # Handling errors and warnings
 
@@ -415,22 +418,36 @@ listURLs = query urls
         urls _                   = []
 ```
 
-# Creating a PDF
-
-Text.Pandoc.PDF
-makePDF (and note relevant parts of WriterOptions,
-writerPdfArgs)
-Actually:  why not add writePdfEngine instead of having
-this as a parameter?  Or, make both parameters of makePDF.
-Present hybrid makes no sense.
-Should pdfengine be an enumerated type?
-
 # Creating a front-end
 
-to write a gui front end:
-Text.Pandoc.App
+All of the functionality of the command-line program `pandoc`
+has been abstracted out in `convertWithOpts` in
+the module [Text.Pandoc.App].  Creating a GUI front-end for
+pandoc is thus just a matter of populating the `Opts`
+structure and calling this function.
 
-TODO: pandoc-servant?
+# Notes on using pandoc in web applications
+
+1. Pandoc's parsers can exhibit pathological behavior on some
+   inputs.  So it is always a good idea to wrap uses of pandoc
+   in a timeout function (e.g. `System.Timeout.timeout` from `base`)
+   to prevent DOS attacks.
+
+2. If pandoc generates HTML from untrusted user input, it is
+   always a good idea to filter the generated HTML through
+   a sanitizer (such as `xss-sanitize`) to avoid security
+   problems.
+
+3. Using `runPure` rather than `runIO` will ensure that
+   pandoc's functions perform no IO operations (e.g. writing
+   files).  If some resources need to be made available, a
+   "fake environment" is provided inside the state available
+   to `runPure` (see `PureState` and its associated functions
+   in [Text.Pandoc.Class]).  It is also possible to write
+   a custom instance of `PandocMonad` that, for example,
+   makes wiki resources available as files in the fake environment,
+   while isolating pandoc from the rest of the system.
+
 
 [Text.Pandoc.Definition]: https://hackage.haskell.org/package/pandoc-types/docs/Text-Pandoc-Definition.html
 [Text.Pandoc.Walk]: https://hackage.haskell.org/package/pandoc-types/docs/Text-Pandoc-Walk.html
@@ -440,4 +457,6 @@ TODO: pandoc-servant?
 [Text.Pandoc.Builder]: https://hackage.haskell.org/package/pandoc-types/docs/Text-Pandoc-Definition.html
 [Text.Pandoc.Templates]: https://hackage.haskell.org/package/pandoc/docs/Text-Pandoc-Templates.html
 [Text.Pandoc.Logging]: https://hackage.haskell.org/package/pandoc/docs/Text-Pandoc-Logging.html
+[Text.Pandoc.App]: https://hackage.haskell.org/package/pandoc/docs/Text-Pandoc-App.html
 [Text.Pandoc.Error]: https://hackage.haskell.org/package/pandoc/docs/Text-Pandoc-Error.html
+[Text.Pandoc.Writers.Shared]: https://hackage.haskell.org/package/pandoc/docs/Text-Pandoc-Writers.Shared.html
