@@ -204,6 +204,7 @@ horizontalRule = try $ skipSpaces >> string "----" >> skipSpaces >> newline
 
 inline :: PandocMonad m => CRLParser m B.Inlines
 inline = choice [ whitespace
+                , escapedLink
                 , escapedChar
                 , link
                 , inlineNowiki
@@ -220,6 +221,12 @@ inline = choice [ whitespace
 
 escapedChar :: PandocMonad m => CRLParser m B.Inlines
 escapedChar = (try $ char '~' >> noneOf "\t\n ") >>= return . B.str . (:[])
+
+escapedLink :: PandocMonad m => CRLParser m B.Inlines
+escapedLink = try $ do
+  char '~'
+  (orig, _) <- uri
+  return $ B.str orig
 
 image :: PandocMonad m => CRLParser m B.Inlines
 image = try $ do
