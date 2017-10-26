@@ -27,8 +27,8 @@ markup], [DokuWiki markup], [ZimWiki markup], [Haddock markup],
 [groff ms], [Emacs Org mode], [AsciiDoc], [InDesign ICML], [TEI
 Simple], [Muse] and [Slidy], [Slideous], [DZSlides], [reveal.js]
 or [S5] HTML slide shows. It can also produce [PDF] output on
-systems where LaTeX, ConTeXt, `pdfroff`, or `wkhtmltopdf` is
-installed.
+systems where LaTeX, ConTeXt, `pdfroff`, `wkhtmltopdf`,
+`prince`, or `weasyprint` is installed.
 
 Pandoc's enhanced version of Markdown includes syntax for [footnotes],
 [tables], flexible [ordered lists], [definition lists], [fenced code
