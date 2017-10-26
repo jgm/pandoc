@@ -449,7 +449,6 @@ convertWithOpts opts = do
           , writerEpubChapterLevel = optEpubChapterLevel opts
           , writerTOCDepth         = optTOCDepth opts
           , writerReferenceDoc     = optReferenceDoc opts
-          , writerPdfArgs          = optPdfEngineArgs opts
           , writerSyntaxMap        = syntaxMap
           }
 
@@ -512,14 +511,16 @@ convertWithOpts opts = do
       ByteStringWriter f -> f writerOptions doc >>= writeFnBinary outputFile
       TextWriter f -> case maybePdfProg of
         Just pdfProg -> do
-                res <- makePDF pdfProg f writerOptions doc
+                res <- makePDF pdfProg (optPdfEngineArgs opts) f
+                        writerOptions doc
                 case res of
                      Right pdf -> writeFnBinary outputFile pdf
                      Left err' -> liftIO $
                        E.throwIO $ PandocPDFError (UTF8.toStringLazy err')
         Nothing -> do
                 let htmlFormat = format `elem`
-                      ["html","html4","html5","s5","slidy","slideous","dzslides","revealjs"]
+                      ["html","html4","html5","s5","slidy",
+                       "slideous","dzslides","revealjs"]
                     handleEntities = if (htmlFormat ||
                                          format == "docbook4" ||
                                          format == "docbook5" ||
