@@ -351,16 +351,69 @@ remove emphasis, or replace specially marked code blocks with
 images).  To make this easier and more efficient, `pandoc-types`
 includes a module [Text.Pandoc.Walk].
 
-walk and query, with examples
-including RawBlock
+Here's the essential documentation:
 
-# Filters
+```haskell
+class Walkable a b where
+  -- | @walk f x@ walks the structure @x@ (bottom up) and replaces every
+  -- occurrence of an @a@ with the result of applying @f@ to it.
+  walk  :: (a -> a) -> b -> b
+  walk f = runIdentity . walkM (return . f)
+  -- | A monadic version of 'walk'.
+  walkM :: (Monad m, Functor m) => (a -> m a) -> b -> m b
+  -- | @query f x@ walks the structure @x@ (bottom up) and applies @f@
+  -- to every @a@, appending the results.
+  query :: Monoid c => (a -> c) -> b -> c
+```
 
-These make it easy for users to add their own transformations.
-two types: json and lua.
-Filters: see filters.md, lua-filters.md
+`Walkable` instances are defined for most combinations of
+Pandoc types.  For example, the `Walkable Inline Block`
+instance allows you to take a function `Inline -> Inline`
+and apply it over every inline in a `Block`.  And
+`Walkable [Inline] Pandoc` allows you to take a function
+`[Inline] -> [Inline]` and apply it over every maximal
+list of `Inline`s in a `Pandoc`.
 
-applyFilters, applyLuaFilters from Text.Pandoc.App.
+Here's a simple example of a function that promotes
+the levels of headers:
+
+```haskell
+promoteHeaderLevels :: Pandoc -> Pandoc
+promoteHeaderLevels = walk promote
+  where promote :: Block -> Block
+        promote (Header lev attr ils) = Header (lev + 1) attr ils
+        promote x = x
+```
+
+`walkM` is a monadic version of `walk`; it can be used, for
+example, when you need your transformations to perform IO
+operations, use PandocMonad operations, or update internal
+state.  Here's an example using the State monad to add unique
+identifiers to each code block:
+
+```haskell
+addCodeIdentifiers :: Pandoc -> Pandoc
+addCodeIdentifiers doc = evalState (walkM addCodeId doc) 1
+  where addCodeId :: Block -> State Int Block
+        addCodeId (CodeBlock (_,classes,kvs) code) = do
+          curId <- get
+          put (curId + 1)
+          return $ CodeBlock (show curId,classes,kvs) code
+        addCodeId x = return x
+```
+
+`query` is used to collect information from the AST.
+Its argument is a query function that produces a result
+in some monoidal type (e.g. a list).  The results are
+concatenated together.  Here's an example that returns a
+list of the URLs linked to in a document:
+
+```haskell
+listURLs :: Pandoc -> [String]
+listURLs = query urls
+  where urls (Link _ _ (src, _)) = [src]
+        urls _                   = []
+```
 
 # Creating a PDF
 
