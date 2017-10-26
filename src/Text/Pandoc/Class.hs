@@ -241,12 +241,10 @@ getVerbosity = getsCommonState stVerbosity
 getLog :: PandocMonad m => m [LogMessage]
 getLog = reverse <$> getsCommonState stLog
 
--- | Log a message using 'logOutput'.  Note that
--- 'logOutput' is called only if the verbosity
--- level exceeds the level of the message, but
--- the message is added to the list of log messages
--- that will be retrieved by 'getLog' regardless
--- of its verbosity level.
+-- | Log a message using 'logOutput'.  Note that 'logOutput' is
+-- called only if the verbosity level exceeds the level of the
+-- message, but the message is added to the list of log messages
+-- that will be retrieved by 'getLog' regardless of its verbosity level.
 report :: PandocMonad m => LogMessage -> m ()
 report msg = do
   verbosity <- getsCommonState stVerbosity

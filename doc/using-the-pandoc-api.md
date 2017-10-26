@@ -27,21 +27,19 @@ conversions with $M$ readers and $N$ writers.
 The Pandoc AST is defined in the
 [pandoc-types](https://hackage.haskell.org/package/pandoc-types)
 package.  You should start by looking at the Haddock
-documentation for
-[Text.Pandoc.Definition](https://hackage.haskell.org/package/pandoc-types/docs/Text-Pandoc-Definition.html).  As you'll see, a `Pandoc` is
-composed of some metadata and a list of `Block`s.  There are
-various kinds of `Block`, including `Para` (paragraph),
-`Header` (section heading), and `BlockQuote`.  Some of the
-`Block`s (like `BlockQuote`) contain lists of `Block`s,
-while others (like `Para`) contain lists of `Inline`s, and
-still others (like `CodeBlock`) contain plain text or
-nothing.  `Inline`s are the basic elements of paragraphs.
-The distinction between `Block` and `Inline` in the type
-system makes it impossible to represent, for example,
-a link (`Inline`) whose link text is a block quote (`Block`).
-This expressive limitation is mostly a help rather than a
-hindrance, since many of the formats pandoc supports have
-similar limitations.
+documentation for [Text.Pandoc.Definition].  As you'll see, a
+`Pandoc` is composed of some metadata and a list of `Block`s.
+There are various kinds of `Block`, including `Para`
+(paragraph), `Header` (section heading), and `BlockQuote`.  Some
+of the `Block`s (like `BlockQuote`) contain lists of `Block`s,
+while others (like `Para`) contain lists of `Inline`s, and still
+others (like `CodeBlock`) contain plain text or nothing.
+`Inline`s are the basic elements of paragraphs.  The distinction
+between `Block` and `Inline` in the type system makes it
+impossible to represent, for example, a link (`Inline`) whose
+link text is a block quote (`Block`).  This expressive
+limitation is mostly a help rather than a hindrance, since many
+of the formats pandoc supports have similar limitations.
 
 The best way to explore the pandoc AST is to use `pandoc -t
 native`, which will display the AST correspoding to some
@@ -57,9 +55,9 @@ Markdown input:
 # A simple example
 
 Here is a simple example of the use of a pandoc reader and
-writer to perform a conversion inside ghci:
+writer to perform a conversion:
 
-```
+```haskell
 import Text.Pandoc
 import qualified Data.Text as T
 import qualified Data.Text.IO as TIO
@@ -93,7 +91,6 @@ Let's look at the types of `readMarkdown` and `writeRST`:
 
 ```haskell
 readMarkdown :: PandocMonad m => ReaderOptions -> Text -> m Pandoc
-
 writeRST :: PandocMonad m => WriterOptions -> Pandoc -> m Text
 ```
 
@@ -101,7 +98,7 @@ The `PandocMonad m =>` part is a typeclass constraint.
 It says that `readMarkdown` and `writeRST` define computations
 that can be used in any instance of the `PandocMonad`
 type class.  `PandocMonad` is defined in the module
-Text.Pandoc.Class.
+[Text.Pandoc.Class].
 
 Two instances of `PandocMonad` are provided: `PandocIO` and
 `PandocPure`. The difference is that computations run in
@@ -112,8 +109,7 @@ to prevent users from doing anything malicious.  To run the
 conversion in `PandocIO`, use `runIO` (as above).  To run it in
 `PandocPure`, use `runPure`.
 
-As you can see from the Haddocks,
-[Text.Pandoc.Class](https://hackage.haskell.org/package/pandoc/docs/Text-Pandoc-Class.html)
+As you can see from the Haddocks, [Text.Pandoc.Class]
 exports many auxiliary functions that can be used in any
 instance of `PandocMonad`.  For example:
 
@@ -128,12 +124,10 @@ setVerbosity :: PandocMonad m => Verbosity -> m ()
 getLog :: PandocMonad m => m [LogMessage]
 getLog = reverse <$> getsCommonState stLog
 
--- | Log a message using 'logOutput'.  Note that
--- 'logOutput' is called only if the verbosity
--- level exceeds the level of the message, but
--- the message is added to the list of log messages
--- that will be retrieved by 'getLog' regardless
--- of its verbosity level.
+-- | Log a message using 'logOutput'.  Note that 'logOutput' is
+-- called only if the verbosity level exceeds the level of the
+-- message, but the message is added to the list of log messages
+-- that will be retrieved by 'getLog' regardless of its verbosity level.
 report :: PandocMonad m => LogMessage -> m ()
 
 -- | Fetch an image or other item from the local filesystem or the net.
@@ -142,6 +136,7 @@ fetchItem :: PandocMonad m
           => String
           -> m (B.ByteString, Maybe MimeType)
 
+-- Set the resource path searched by 'fetchItem'.
 setResourcePath :: PandocMonad m => [FilePath] -> m ()
 ```
 
@@ -156,14 +151,17 @@ section, we could do this:
     writeRST def doc
 ```
 
+Note that `PandocIO` is an instance of `MonadIO`, so you can
+use `liftIO` to perform arbitrary IO operations inside a pandoc
+conversion chain.
+
 # Options
 
 The first argument of each reader or writer is for
 options controlling the behavior of the reader or writer:
 `ReaderOptions` for readers and `WriterOptions`
-for writers.  These are defined in
-[Text.Pandoc.Options](https://hackage.haskell.org/package/pandoc/docs/Text-Pandoc-Options.html).  It is a good idea to study these
-options to see what can be adjusted.
+for writers.  These are defined in [Text.Pandoc.Options].  It is
+a good idea to study these options to see what can be adjusted.
 
 `def` (from Data.Default) denotes a default value for
 each kind of option.  (You can also use `defaultWriterOptions`
@@ -184,24 +182,44 @@ Some particularly important options to know about:
 
 2.  `readerExtensions` and `writerExtensions`:  These specify
     the extensions to be used in parsing and rendering.
-    Extensions are defined in [Text.Pandoc.Extensions](https://hackage.haskell.org/package/pandoc/docs/Text-Pandoc-Extensions.html).
+    Extensions are defined in [Text.Pandoc.Extensions].
 
 # Builder
 
+Sometimes it's useful to construct a Pandoc document
+programatically.  To make this easier we provide the
+module [Text.Pandoc.Builder] `pandoc-types`.
 
-Inlines vs Inline, etc.
+Because concatenating lists is slow, we use special
+types `Inlines` and `Blocks` that wrap a `Sequence` of
+`Inline` and `Block` elements.  These are instances
+of the Monoid typeclass and can easily be concatenated:
 
-Concatenating lists is slow. So we use special types Inlines and Blocks that wrap Sequences of Inline and Block elements.
+```haskell
+import Text.Pandoc.Builder
 
-Monoid - makes it easy to build up docs programatically.
+mydoc :: Pandoc
+mydoc = doc $ header 1 (text "Hello!")
+           <> para (emph (text "hello world") <> text ".")
 
-Example.
-Here’s a JSON data source about CNG fueling stations in the
-Chicago area: cng_fuel_chicago.json. Boss says: write me a
-letter in Word listing all the stations that take the Voyager
-card.
-
+main :: IO ()
+main = print mydoc
 ```
+
+If you use the `OverloadedStrings` pragma, you can
+simplify this further:
+
+```haskell
+mydoc = doc $ header 1 "Hello!"
+           <> para (emph "hello world" <> ".")
+```
+
+Here's a more realistic example.  Suppose your boss says: write
+me a letter in Word listing all the filling stations in Chicago
+that take the Voyager card.  You find some JSON data in this
+format (`fuel.json`):
+
+```json
 [ {
   "state" : "IL",
   "city" : "Chicago",
@@ -213,9 +231,10 @@ card.
 }, ...
 ```
 
-No need to open Word for this job! fuel.hs
+And then use aeson and pandoc to parse the JSON and create
+the Word document:
 
-```
+```haskell
 {-# LANGUAGE OverloadedStrings #-}
 import Text.Pandoc.Builder
 import Text.Pandoc
@@ -252,42 +271,192 @@ createLetter stations = doc $
     stationToRow station =
       [ plain (text $ name station)
       , plain (text $ address station)
-      , plain (mconcat $ intersperse linebreak $ map text $ cardsAccepted station)
+      , plain (mconcat $ intersperse linebreak
+                       $ map text $ cardsAccepted station)
       ]
 
 main :: IO ()
 main = do
-  json <- BL.readFile "cng_fuel_chicago.json"
+  json <- BL.readFile "fuel.json"
   let letter = case decode json of
                     Just stations -> createLetter [s | s <- stations,
                                         "Voyager" `elem` cardsAccepted s]
                     Nothing       -> error "Could not decode JSON"
-  BL.writeFile "letter.docx" =<< writeDocx def letter
+  docx <- runIO (writeDocx def letter) >>= handleError
+  BL.writeFile "letter.docx" docx
   putStrLn "Created letter.docx"
 ```
 
+Voila!  You've written the letter without using Word and
+without looking at the data.
 
+# Data files
 
-# Templates and other data files
+Pandoc has a number of data files, which can be found in the
+`data/` subdirectory of the repository.  These are installed
+with pandoc (or, if pandoc was compiled with the
+`embed_data_files` flag, they are embedded in the binary).
+You can retrieve data files using `readDataFile` from
+Text.Pandoc.Class.  `readDataFile` will first look for the
+file in the "user data directory" (`setUserDataDir`,
+`getUserDataDir`), and if it is not found there, it will
+return the default installed with the system.
+To force the use of the default, `setUserDataDir Nothing`.
 
-readDataFile
+# Templates
+
+Pandoc has its own template system, described in the User's
+Guide.  To retrieve the default template for a system,
+use `getDefaultTemplate` from [Text.Pandoc.Templates].
+Note that this looks first in the
+`templates` subdirectory of the user data directory, allowing
+users to override the system defaults.  If you want to disable
+this behavior, use `setUserDataDir Nothing`.
+
+To render a template, use `renderTemplate'`, which takes two
+arguments, a template (String) and a context (any instance
+of ToJSON).  If you want to create a context from the metadata
+part of a Pandoc document, use `metaToJSON'` from
+[Text.Pandoc.Writers.Shared].  If you also want to incorporate
+values from variables, use `metaToJSON` instead, and make sure
+`writerVariables` is set in `WriterOptions`.
+
 
 # Handling errors and warnings
 
-# Generic transformations
+`runIO` and `runPure` return an `Either PandocError a`. All errors
+raised in running a `PandocMonad` computation will be trapped
+and returned as a `Left` value, so they can be handled by
+the calling program.  To see the constructors for `PandocError`,
+see the documentation for [Text.Pandoc.Error].
 
-Walk and syb for AST transformations
+To raise a `PandocError` from inside a `PandocMonad` computation,
+use `throwError`.
 
-# Filters
+In addition to errors, which stop execution of the conversion
+pipeline, one can generate informational messages.
+Use `report` from [Text.Pandoc.Class] to issue a `LogMessage`.
+For a list of cosntructors for `LogMessage`, see
+[Text.Pandoc.Logging].  Note that each type of log message
+is associated with a verbosity level.  The verbosity level
+(`setVerbosity`/`getVerbosity`) determines whether the report
+will be printed to stderr (when running in `PandocIO`), but
+regardless of verbosity level, all reported messages are stored
+internally and may be retrieved using `getLog`.
 
-Filters: see filters.md
+# Walking the AST
 
-applyFilters, applyLuaFilters from Text.Pandoc.App.
+It is often useful to walk the Pandoc AST either to extract
+information (e.g., what are all the URLs linked to in this
+document?, do all the code samples compile?) or to transform a
+document (e.g., increase the level of every section header,
+remove emphasis, or replace specially marked code blocks with
+images).  To make this easier and more efficient, `pandoc-types`
+includes a module [Text.Pandoc.Walk].
 
-# PDF
+Here's the essential documentation:
 
+```haskell
+class Walkable a b where
+  -- | @walk f x@ walks the structure @x@ (bottom up) and replaces every
+  -- occurrence of an @a@ with the result of applying @f@ to it.
+  walk  :: (a -> a) -> b -> b
+  walk f = runIdentity . walkM (return . f)
+  -- | A monadic version of 'walk'.
+  walkM :: (Monad m, Functor m) => (a -> m a) -> b -> m b
+  -- | @query f x@ walks the structure @x@ (bottom up) and applies @f@
+  -- to every @a@, appending the results.
+  query :: Monoid c => (a -> c) -> b -> c
+```
+
+`Walkable` instances are defined for most combinations of
+Pandoc types.  For example, the `Walkable Inline Block`
+instance allows you to take a function `Inline -> Inline`
+and apply it over every inline in a `Block`.  And
+`Walkable [Inline] Pandoc` allows you to take a function
+`[Inline] -> [Inline]` and apply it over every maximal
+list of `Inline`s in a `Pandoc`.
+
+Here's a simple example of a function that promotes
+the levels of headers:
+
+```haskell
+promoteHeaderLevels :: Pandoc -> Pandoc
+promoteHeaderLevels = walk promote
+  where promote :: Block -> Block
+        promote (Header lev attr ils) = Header (lev + 1) attr ils
+        promote x = x
+```
+
+`walkM` is a monadic version of `walk`; it can be used, for
+example, when you need your transformations to perform IO
+operations, use PandocMonad operations, or update internal
+state.  Here's an example using the State monad to add unique
+identifiers to each code block:
+
+```haskell
+addCodeIdentifiers :: Pandoc -> Pandoc
+addCodeIdentifiers doc = evalState (walkM addCodeId doc) 1
+  where addCodeId :: Block -> State Int Block
+        addCodeId (CodeBlock (_,classes,kvs) code) = do
+          curId <- get
+          put (curId + 1)
+          return $ CodeBlock (show curId,classes,kvs) code
+        addCodeId x = return x
+```
+
+`query` is used to collect information from the AST.
+Its argument is a query function that produces a result
+in some monoidal type (e.g. a list).  The results are
+concatenated together.  Here's an example that returns a
+list of the URLs linked to in a document:
+
+```haskell
+listURLs :: Pandoc -> [String]
+listURLs = query urls
+  where urls (Link _ _ (src, _)) = [src]
+        urls _                   = []
+```
 
 # Creating a front-end
 
-Text.Pandoc.App
+All of the functionality of the command-line program `pandoc`
+has been abstracted out in `convertWithOpts` in
+the module [Text.Pandoc.App].  Creating a GUI front-end for
+pandoc is thus just a matter of populating the `Opts`
+structure and calling this function.
 
+# Notes on using pandoc in web applications
+
+1. Pandoc's parsers can exhibit pathological behavior on some
+   inputs.  So it is always a good idea to wrap uses of pandoc
+   in a timeout function (e.g. `System.Timeout.timeout` from `base`)
+   to prevent DOS attacks.
+
+2. If pandoc generates HTML from untrusted user input, it is
+   always a good idea to filter the generated HTML through
+   a sanitizer (such as `xss-sanitize`) to avoid security
+   problems.
+
+3. Using `runPure` rather than `runIO` will ensure that
+   pandoc's functions perform no IO operations (e.g. writing
+   files).  If some resources need to be made available, a
+   "fake environment" is provided inside the state available
+   to `runPure` (see `PureState` and its associated functions
+   in [Text.Pandoc.Class]).  It is also possible to write
+   a custom instance of `PandocMonad` that, for example,
+   makes wiki resources available as files in the fake environment,
+   while isolating pandoc from the rest of the system.
+
+
+[Text.Pandoc.Definition]: https://hackage.haskell.org/package/pandoc-types/docs/Text-Pandoc-Definition.html
+[Text.Pandoc.Walk]: https://hackage.haskell.org/package/pandoc-types/docs/Text-Pandoc-Walk.html
+[Text.Pandoc.Class]: https://hackage.haskell.org/package/pandoc/docs/Text-Pandoc-Class.html
+[Text.Pandoc.Options]: https://hackage.haskell.org/package/pandoc/docs/Text-Pandoc-Options.html
+[Text.Pandoc.Extensions]: https://hackage.haskell.org/package/pandoc/docs/Text-Pandoc-Extensions.html
+[Text.Pandoc.Builder]: https://hackage.haskell.org/package/pandoc-types/docs/Text-Pandoc-Definition.html
+[Text.Pandoc.Templates]: https://hackage.haskell.org/package/pandoc/docs/Text-Pandoc-Templates.html
+[Text.Pandoc.Logging]: https://hackage.haskell.org/package/pandoc/docs/Text-Pandoc-Logging.html
+[Text.Pandoc.App]: https://hackage.haskell.org/package/pandoc/docs/Text-Pandoc-App.html
+[Text.Pandoc.Error]: https://hackage.haskell.org/package/pandoc/docs/Text-Pandoc-Error.html
+[Text.Pandoc.Writers.Shared]: https://hackage.haskell.org/package/pandoc/docs/Text-Pandoc-Writers.Shared.html

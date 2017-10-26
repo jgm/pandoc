@@ -81,11 +81,12 @@ changePathSeparators = intercalate "/" . splitDirectories
 
 makePDF :: String              -- ^ pdf creator (pdflatex, lualatex, xelatex,
                                -- wkhtmltopdf, weasyprint, prince, context, pdfroff)
+        -> [String]            -- ^ arguments to pass to pdf creator
         -> (WriterOptions -> Pandoc -> PandocIO Text)  -- ^ writer
         -> WriterOptions       -- ^ options
         -> Pandoc              -- ^ document
         -> PandocIO (Either ByteString ByteString)
-makePDF "wkhtmltopdf" writer opts doc@(Pandoc meta _) = do
+makePDF "wkhtmltopdf" pdfargs writer opts doc@(Pandoc meta _) = do
   let mathArgs = case writerHTMLMathMethod opts of
                  -- with MathJax, wait til all math is rendered:
                       MathJax _ -> ["--run-script", "MathJax.Hub.Register.StartupHook('End Typeset', function() { window.status = 'mathjax_loaded' });",
@@ -93,8 +94,7 @@ makePDF "wkhtmltopdf" writer opts doc@(Pandoc meta _) = do
                       _ -> []
   meta' <- metaToJSON opts (return . stringify) (return . stringify) meta
   let toArgs (f, mbd) = maybe [] (\d -> ['-':'-':f, d]) mbd
-  let args   = writerPdfArgs opts ++ mathArgs ++
-               concatMap toArgs
+  let args   = pdfargs ++ mathArgs ++ concatMap toArgs
                  [("page-size", getField "papersize" meta')
                  ,("title", getField "title" meta')
                  ,("margin-bottom", fromMaybe (Just "1.2in")
@@ -109,23 +109,21 @@ makePDF "wkhtmltopdf" writer opts doc@(Pandoc meta _) = do
   source <- writer opts doc
   verbosity <- getVerbosity
   liftIO $ html2pdf verbosity "wkhtmltopdf" args source
-makePDF "weasyprint" writer opts doc = do
-  let args = writerPdfArgs opts
+makePDF "weasyprint" pdfargs writer opts doc = do
   source <- writer opts doc
   verbosity <- getVerbosity
-  liftIO $ html2pdf verbosity "weasyprint" args source
-makePDF "prince" writer opts doc = do
-  let args = writerPdfArgs opts
+  liftIO $ html2pdf verbosity "weasyprint" pdfargs source
+makePDF "prince" pdfargs writer opts doc = do
   source <- writer opts doc
   verbosity <- getVerbosity
-  liftIO $ html2pdf verbosity "prince" args source
-makePDF "pdfroff" writer opts doc = do
+  liftIO $ html2pdf verbosity "prince" pdfargs source
+makePDF "pdfroff" pdfargs writer opts doc = do
   source <- writer opts doc
   let args   = ["-ms", "-mpdfmark", "-e", "-t", "-k", "-KUTF-8", "-i",
-                "--no-toc-relocation"] ++ writerPdfArgs opts
+                "--no-toc-relocation"] ++ pdfargs
   verbosity <- getVerbosity
   liftIO $ ms2pdf verbosity args source
-makePDF program writer opts doc = do
+makePDF program pdfargs writer opts doc = do
   let withTemp = if takeBaseName program == "context"
                     then withTempDirectory "."
                     else withTempDir
@@ -136,11 +134,10 @@ makePDF program writer opts doc = do
                 putCommonState commonState
                 doc' <- handleImages tmpdir doc
                 writer opts doc'
-    let args = writerPdfArgs opts
     case takeBaseName program of
        "context" -> context2pdf verbosity tmpdir source
        prog | prog `elem` ["pdflatex", "lualatex", "xelatex"]
-           -> tex2pdf' verbosity args tmpdir program source
+           -> tex2pdf' verbosity pdfargs tmpdir program source
        _ -> return $ Left $ UTF8.fromStringLazy $ "Unknown program " ++ program
 
 handleImages :: FilePath      -- ^ temp dir to store images
