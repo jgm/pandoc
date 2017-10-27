@@ -47,13 +47,13 @@ a bug in pandoc.  Quoting from the MANUAL:
 > to be perfect, conversions from formats more expressive than pandoc's
 > Markdown can be expected to be lossy.
 
-For example, both docx and odt can represent margin size, but because
-pandoc's internal document model does not contain a representation of
+For example, both `docx` and `odt` formats can represent margin size, but
+because pandoc's internal document model does not contain a representation of
 margin size, this information will be lost on converting from docx
-to odt.  (You can, however, customize margin size using `--reference-odt`.)
+to `odt`.  (You can, however, customize margin size using `--reference-odt`.)
 
 So before submitting a bug report, consider whether it might be
-"out of scope."  If it concerns a feature of documents that isn't
+"out of scope". If it concerns a feature of documents that isn't
 representable in pandoc's Markdown, then it very likely is.
 (If in doubt, you can always ask on [pandoc-discuss].)
 
@@ -136,7 +136,7 @@ Please follow these guidelines:
     below under [Tests](#tests).)  If you are adding a new writer or reader,
     you must include tests.
 
-7.  If you are adding a new feature, include updates to MANUAL.txt.
+7.  If you are adding a new feature, include updates to `MANUAL.txt`.
 
 8.  All code must be released under the general license governing pandoc
     (GPL v2).
@@ -197,12 +197,10 @@ a ghci REPL for working with pandoc.  With [stack], use
 We recommend using the following `.ghci` file (which can be
 placed in the source directory):
 
-```
-:set -fobject-code
-:set -XTypeSynonymInstances
-:set -XScopedTypeVariables
-:set -XOverloadedStrings
-```
+	:set -fobject-code
+	:set -XTypeSynonymInstances
+	:set -XScopedTypeVariables
+	:set -XOverloadedStrings
 
 Profiling
 ---------
@@ -252,7 +250,7 @@ the pandoc library is in `src/`, the source for the tests is in
 
 The modules `Text.Pandoc.Definition`, `Text.Pandoc.Builder`, and
 `Text.Pandoc.Generic` are in a separate library `pandoc-types`.  The code can
-be found in a <http://github.com/jgm/pandoc-types>.
+be found in <http://github.com/jgm/pandoc-types>.
 
 To build pandoc, you will need a working installation of the
 [Haskell platform].
