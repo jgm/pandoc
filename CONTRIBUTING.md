@@ -37,14 +37,14 @@ Out of scope?
 A less than perfect conversion does not necessarily mean there's
 a bug in pandoc.  Quoting from the MANUAL:
 
-> Because Pandoc's intermediate representation of a document is less
+> Because pandoc's intermediate representation of a document is less
 > expressive than many of the formats it converts between, one should
 > not expect perfect conversions between every format and every other.
 > Pandoc attempts to preserve the structural elements of a document, but
 > not formatting details such as margin size.  And some document elements,
-> such as complex tables, may not fit into Pandoc's simple document
-> model.  While conversions from Pandoc's Markdown to all formats aspire
-> to be perfect, conversions from formats more expressive than Pandoc's
+> such as complex tables, may not fit into pandoc's simple document
+> model.  While conversions from pandoc's Markdown to all formats aspire
+> to be perfect, conversions from formats more expressive than pandoc's
 > Markdown can be expected to be lossy.
 
 For example, both docx and odt can represent margin size, but because
