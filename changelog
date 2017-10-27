@@ -230,7 +230,7 @@ pandoc (2.0)
 
   * Reader functions no longer presuppose that CRs have been
     stripped from the input. (They strip CRs themselves, before
-    parsing, to simply the parsers.)
+    parsing, to simplify the parsers.)
 
   * Added support for translations (localization) (#3559).
     Currently this only affects the LaTeX reader, for things
@@ -258,8 +258,8 @@ pandoc (2.0)
     `--css` and from the `stylesheet` metadata field (which can contain
     either a file path or a list of them).
 
-  * `--mathml` and MathML in HTMLMathMethod longer take an argument.
-    The argument was for a bridge javascript that used to be necessary
+  * `--mathml` and MathML in HTMLMathMethod no longer take an argument.
+    The argument was for a bridge JavaScript that used to be necessary
     in 2004.  We have removed the script already.
 
   * `--katex` improvements.  The latest version is used, and the
