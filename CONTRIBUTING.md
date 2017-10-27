@@ -53,7 +53,7 @@ margin size, this information will be lost on converting from docx
 to `odt`.  (You can, however, customize margin size using `--reference-doc`.)
 
 So before submitting a bug report, consider whether it might be
-"out of scope". If it concerns a feature of documents that isn't
+"out of scope." If it concerns a feature of documents that isn't
 representable in pandoc's Markdown, then it very likely is.
 (If in doubt, you can always ask on [pandoc-discuss].)
 
