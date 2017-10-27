@@ -179,6 +179,7 @@
 - bumper314
 - csforste
 - d-dorazio
+- hftf
 - iandol
 - infinity0x
 - lwolfsonkin
