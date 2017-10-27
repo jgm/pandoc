@@ -50,7 +50,7 @@ a bug in pandoc.  Quoting from the MANUAL:
 For example, both `docx` and `odt` formats can represent margin size, but
 because pandoc's internal document model does not contain a representation of
 margin size, this information will be lost on converting from docx
-to `odt`.  (You can, however, customize margin size using `--reference-odt`.)
+to `odt`.  (You can, however, customize margin size using `--reference-doc`.)
 
 So before submitting a bug report, consider whether it might be
 "out of scope". If it concerns a feature of documents that isn't
