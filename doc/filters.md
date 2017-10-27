@@ -313,8 +313,10 @@ For a more Pythonic alternative to pandocfilters, see
 the [panflute](http://scorreia.com/software/panflute/) library.
 Don't like Python?   There are also ports of pandocfilters in
 [PHP](https://github.com/vinai/pandocfilters-php),
-[perl](https://metacpan.org/pod/Pandoc::Filter), and
-[javascript/node.js](https://github.com/mvhenderson/pandoc-filter-node).]
+[perl](https://metacpan.org/pod/Pandoc::Filter),
+[javascript/node.js](https://github.com/mvhenderson/pandoc-filter-node),
+[Groovy](https://github.com/dfrommi/groovy-pandoc), and
+[Ruby](https://heerdebeer.org/Software/markdown/paru/).
 
 Starting with pandoc 2.0, pandoc includes built-in support for
 writing filters in lua.  The lua interpreter is built in to

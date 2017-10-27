@@ -21,7 +21,7 @@ Pictorially:
 [input format] ==reader==> [Pandoc AST] ==writer==> [output format]
 ```
 
-This architecture allows pandoc to perform $M \times n$
+This architecture allows pandoc to perform $M \times N$
 conversions with $M$ readers and $N$ writers.
 
 The Pandoc AST is defined in the
