@@ -13,12 +13,12 @@ Found a bug?
 Bug reports are welcome!  Please report all bugs on pandoc's github
 [issue tracker].
 
-Before you submit a bug report, search the (open *and* closed) issues to make
-sure the issue hasn't come up before. Also, check the [User's Guide] and [FAQs]
-for anything relevant.
+Before you submit a bug report, search the [open issues] *and* [closed issues]
+to make sure the issue hasn't come up before. Also, check the [User's Guide] and
+[FAQs] for anything relevant.
 
-Make sure you can reproduce the bug with the latest released version of pandoc
-(or, even better, the development version).
+Make sure you can reproduce the bug with the [latest released version] of pandoc
+(or, even better, the [development version]).
 
 Your report should give detailed, *reproducible* instructions, including
 
@@ -55,7 +55,7 @@ to odt.  (You can, however, customize margin size using `--reference-odt`.)
 So before submitting a bug report, consider whether it might be
 "out of scope."  If it concerns a feature of documents that isn't
 representable in pandoc's Markdown, then it very likely is.
-(If in doubt, you can always ask on pandoc-discuss.)
+(If in doubt, you can always ask on [pandoc-discuss].)
 
 Fixing bugs from the issue tracker
 ----------------------------------
@@ -63,7 +63,7 @@ Fixing bugs from the issue tracker
 Almost all the bugs on the issue tracker have one or more associated
 tags. These are used to indicate the *complexity* and *nature* of a
 bug. There is not yet a way to indicate priority. An up to date
-summary of issues can be found [here](https://github.com/jgm/pandoc/labels).
+summary of issues can be found on [GitHub labels].
 
 * [beginner-friendly] — The perfect starting point for new contributors. The
   issue is generic and can be resolved without deep knowledge of the code
@@ -92,8 +92,8 @@ or bug reports related to Markdown are labelled with [format:markdown].
 Have an idea for a new feature?
 -------------------------------
 
-First, search [pandoc-discuss] and the issue tracker (both open and closed
-issues) to make sure that the idea has not been discussed before.
+First, search [pandoc-discuss] and the issue tracker (both [open issues] *and*
+[closed issues]) to make sure that the idea has not been discussed before.
 
 Explain the rationale for the feature you're requesting.  Why would this
 feature be useful?  Consider also any possible drawbacks, including backwards
@@ -146,7 +146,7 @@ Please follow these guidelines:
 
 10. We aim for compatibility with ghc versions from 7.8.3 to the
     latest release.  All pull requests and commits are tested
-    automatically on travis-ci.org, using GHC versions in the
+    automatically on <travis-ci.org>, using GHC versions in the
     `Tested-With` stanza of `pandoc.cabal`.  We currently relax
     the "`-Wall` clean" requirement for GHC 7.10.x, because
     there are so many warnings relating to the addition of type
@@ -304,6 +304,10 @@ The library is structured as follows:
   - `Text.Pandoc.UUID` contains functions for generating UUIDs.
   - `Text.Pandoc.XML` contains functions for formatting XML.
 
+[open issues]: https://github.com/jgm/pandoc/issues
+[closed issues]: https://github.com/jgm/pandoc/issues?q=is%3Aissue+is%3Aclosed
+[latest released version]: https://github.com/jgm/pandoc/releases/latest
+[development version]: https://github.com/pandoc-extras/pandoc-nightly/releases/latest
 [pandoc-discuss]: http://groups.google.com/group/pandoc-discuss
 [issue tracker]: https://github.com/jgm/pandoc/issues
 [User's Guide]: http://pandoc.org/MANUAL.html
@@ -311,6 +315,7 @@ The library is structured as follows:
 [EditorConfig]: http://editorconfig.org/
 [Haskell platform]: http://www.haskell.org/platform/
 [hsb2hs]: http://hackage.haskell.org/package/hsb2hs
+[GitHub labels]: https://github.com/jgm/pandoc/labels
 [beginner-friendly]: https://github.com/jgm/pandoc/labels/beginner-friendly
 [enhancement]: https://github.com/jgm/pandoc/labels/enhancement
 [bug]: https://github.com/jgm/pandoc/labels/bug
