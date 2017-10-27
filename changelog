@@ -35,6 +35,8 @@ pandoc (2.0)
     pandoc's HTML writer in the style of vimwiki's own HTML
     export.
 
+  * New input format `creole` (Creole 1.0) (#3994, Sascha Wilde).
+
   * New syntax for Divs, with `fenced_divs` extension enabled by
     default (#168).  This gives an attractive, plain-text way to create
     containers for block-level content.
@@ -689,6 +691,8 @@ pandoc (2.0)
     e.g. in a desktop or web application.  Instead of exiting, we throw errors
     (#3548), which are caught (leading to exit) in pandoc.hs, but allow other
     users of `Text.Pandoc.App` to recover.  `pandoc.hs` is now a 2-liner.
+    The module also exports some utility functions for parsing options
+    and running filters.
 
   * New module `Text.Pandoc.Logging` (exported module) (#3392).
     This now contains the `Verbosity` definition previously in
@@ -744,6 +748,8 @@ pandoc (2.0)
   * Add `Text.Pandoc.Readers.TikiWiki`, exporting `readTikiWiki`.
 
   * Add `Text.Pandoc.Readers.Vimwiki`, exporting `readVimwiki`.
+
+  * Add `Text.Pandoc.Readers.Creole`, exporting `readCreole`.
 
   * Export `setVerbosity` from `Text.Pandoc`.
 
@@ -1698,6 +1704,9 @@ pandoc (2.0)
 
   * Add `doc/filters.md`. This is the old scripting tutorial from
     the website.
+
+  * Add `doc/using-the-pandoc-api.md` (#3289).  This gives an introduction
+    to using pandoc as a Haskell library.
 
 
   [build infrastructure improvements]
@@ -7048,6 +7057,8 @@ pandoc (1.12)
     + Export `varListToJSON`.
 
   * `Text.Pandoc.PDF` exports `makePDF` instead of `tex2pdf`.
+    The signature of `makePDF` has changed and now contains
+    an additional argument for pdf engine options.
 
   * `Text.Pandoc`:
 
@@ -7070,6 +7081,8 @@ pandoc (1.12)
     + All bibliography-related fields have been removed from
       `ReaderOptions` and `WriterOptions`: `writerBiblioFiles`,
       `readerReferences`, `readerCitationStyle`.
+    + Removed `writerPdfArgs` from `WriterOptions`.  These are now
+      passed in as a parameter to `makePDF`.
 
   * The `Text.Pandoc.Biblio` module has been removed.  Users of the
     pandoc library who want citation support will need to use
