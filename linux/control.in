@@ -22,5 +22,5 @@ Description: general markup converter
   MediaWiki, DokuWiki, ZimWiki, Textile, groff man, groff
   ms, plain text, Emacs Org-Mode, AsciiDoc, Haddock markup,
   EPUB (v2 and v3), FictionBook2, InDesign ICML, Muse, and
-  several kinds of HTML/javascript slide shows (S5, Slidy,
+  several kinds of HTML/JavaScript slide shows (S5, Slidy,
   Slideous, DZSlides, reveal.js).

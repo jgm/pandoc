@@ -470,7 +470,7 @@ Reader options
     Those who would prefer to write filters in python can use the
     module [`pandocfilters`], installable from PyPI. There are also
     pandoc filter libraries in [PHP], [perl], and
-    [javascript/node.js].
+    [JavaScript/node.js].
 
     In order of preference, pandoc will look for filters in
 
@@ -571,7 +571,7 @@ Reader options
 [`pandocfilters`]: https://github.com/jgm/pandocfilters
 [PHP]: https://github.com/vinai/pandocfilters-php
 [perl]: https://metacpan.org/pod/Pandoc::Filter
-[javascript/node.js]: https://github.com/mvhenderson/pandoc-filter-node
+[JavaScript/node.js]: https://github.com/mvhenderson/pandoc-filter-node
 
 General writer options
 ----------------------
