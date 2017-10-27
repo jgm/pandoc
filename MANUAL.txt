@@ -281,7 +281,7 @@ General options
     `haddock` (Haddock markup), or `latex` (LaTeX).
     (`markdown_github` provides deprecated and less accurate suppport
     for Github-Flavored Markdown; please use `gfm` instead, unless you
-    use extensions that do not work with `gfm`.)
+    need to use extensions other than `smart`.)
     If `+lhs` is appended to `markdown`, `rst`, `latex`, or
     `html`, the input will be treated as literate Haskell source: see
     [Literate Haskell support], below. Markdown
@@ -3811,13 +3811,14 @@ variants are supported:
 :   `footnotes`, `pipe_tables`, `raw_html`, `markdown_attribute`,
     `fenced_code_blocks`, `definition_lists`, `intraword_underscores`,
     `header_attributes`, `link_attributes`, `abbreviations`,
-    `shortcut_reference_links`.
+    `shortcut_reference_links`, `spaced_reference_links`.
 
-`gfm` and `markdown_github` (GitHub-Flavored Markdown)
-:   `pipe_tables`, `raw_html`, `fenced_code_blocks`, `auto_identifiers`,
+`markdown_github` (deprecated GitHub-Flavored Markdown)
+:   `pipe_tables`, `raw_html`, `fenced_code_blocks`, `gfm_auto_identifiers`,
     `ascii_identifiers`, `backtick_code_blocks`, `autolink_bare_uris`,
-    `intraword_underscores`, `strikeout`, `hard_line_breaks`, `emoji`,
-    `shortcut_reference_links`, `angle_brackets_escapable`.
+    `space_in_atx_header`, `intraword_underscores`, `strikeout`,
+    `emoji`, `shortcut_reference_links`, `angle_brackets_escapable`,
+    `lists_without_preceding_blankline`.
 
 `markdown_mmd` (MultiMarkdown)
 :   `pipe_tables`, `raw_html`, `markdown_attribute`, `mmd_link_attributes`,
@@ -3825,10 +3826,26 @@ variants are supported:
     `mmd_title_block`, `footnotes`, `definition_lists`,
     `all_symbols_escapable`, `implicit_header_references`,
     `auto_identifiers`, `mmd_header_identifiers`,
-    `shortcut_reference_links`.
+    `shortcut_reference_links`, `implicit_figures`,
+    `superscript`, `subscript`, `backtick_code_blocks`,
+    `spaced_reference_links`, `raw_attribute`.
 
 `markdown_strict` (Markdown.pl)
-:   `raw_html`
+:   `raw_html`, `shortcut_reference_links`,
+    `spaced_reference_links`.
+
+We also support `gfm` (GitHub-Flavored Markdown) as a set of
+extensions on `commonmark`:
+
+:   `pipe_tables`, `raw_html`, `fenced_code_blocks`, `auto_identifiers`,
+    `ascii_identifiers`, `backtick_code_blocks`, `autolink_bare_uris`,
+    `intraword_underscores`, `strikeout`, `hard_line_breaks`, `emoji`,
+    `shortcut_reference_links`, `angle_brackets_escapable`.
+
+    These can all be individually disabled. Note, however, that
+    `commonmark` and `gfm` have limited support for extensions:
+    extensions other than those listed above (and `smart`) will have
+    no effect on `commonmark` or `gfm`.
 
 Extensions with formats other than Markdown
 -------------------------------------------
