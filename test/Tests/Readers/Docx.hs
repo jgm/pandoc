@@ -128,10 +128,6 @@ tests = [ testGroup "inlines"
             "docx/links.docx"
             "docx/links.native"
           , testCompare
-            "normalizing adjacent hyperlinks"
-            "docx/adjacent_links.docx"
-            "docx/adjacent_links.native"
-          , testCompare
             "inline image"
             "docx/image.docx"
             "docx/image_no_embed.native"
