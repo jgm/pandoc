@@ -21,7 +21,7 @@ Pictorially:
 [input format] ==reader==> [Pandoc AST] ==writer==> [output format]
 ```
 
-This architecture allows pandoc to perform $M \times n$
+This architecture allows pandoc to perform $M \times N$
 conversions with $M$ readers and $N$ writers.
 
 The Pandoc AST is defined in the
@@ -313,10 +313,10 @@ Note that this looks first in the
 users to override the system defaults.  If you want to disable
 this behavior, use `setUserDataDir Nothing`.
 
-To render a template, use `renderTemplate'`, which takes two
+To render a template, use `renderTemplate`, which takes two
 arguments, a template (String) and a context (any instance
 of ToJSON).  If you want to create a context from the metadata
-part of a Pandoc document, use `metaToJSON'` from
+part of a Pandoc document, use `metaToJSON` from
 [Text.Pandoc.Writers.Shared].  If you also want to incorporate
 values from variables, use `metaToJSON` instead, and make sure
 `writerVariables` is set in `WriterOptions`.
