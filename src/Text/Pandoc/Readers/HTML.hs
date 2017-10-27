@@ -45,7 +45,7 @@ import Text.Pandoc.Definition
 import qualified Text.Pandoc.Builder as B
 import Text.Pandoc.Builder (Blocks, Inlines, trimInlines, HasMeta(..))
 import Text.Pandoc.Shared ( extractSpaces, addMetaField
-                          , escapeURI, safeRead, crFilter )
+                          , escapeURI, safeRead, crFilter, underlineSpan )
 import Text.Pandoc.Options (
          ReaderOptions(readerExtensions,readerStripComments), extensionEnabled,
          Extension (Ext_epub_html_exts,
@@ -627,6 +627,7 @@ inline = choice
            , pSuperscript
            , pSubscript
            , pStrikeout
+           , pUnderline
            , pLineBreak
            , pLink
            , pImage
@@ -695,6 +696,9 @@ pStrikeout = do
     try (do pSatisfy (matchTagOpen "span" [("class","strikeout")])
             contents <- mconcat <$> manyTill inline (pCloses "span")
             return $ B.strikeout contents)
+
+pUnderline :: PandocMonad m => TagParser m Inlines
+pUnderline = pInlinesInTags "u" underlineSpan <|> pInlinesInTags "ins" underlineSpan
 
 pLineBreak :: PandocMonad m => TagParser m Inlines
 pLineBreak = do

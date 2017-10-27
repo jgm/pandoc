@@ -41,7 +41,7 @@ import qualified Text.Pandoc.Builder as B
 import Text.Pandoc.Definition
 import Text.Pandoc.Options
 import Text.Pandoc.Parsing hiding (space, spaces, uri)
-import Text.Pandoc.Shared (compactify, compactifyDL, escapeURI, crFilter)
+import Text.Pandoc.Shared (compactify, compactifyDL, escapeURI, crFilter, underlineSpan)
 import Control.Monad (guard, void, when)
 import Control.Monad.Reader (Reader, asks, runReader)
 import Data.Default
@@ -393,7 +393,7 @@ bold :: T2T Inlines
 bold = inlineMarkup inline B.strong '*' (B.str)
 
 underline :: T2T Inlines
-underline = inlineMarkup inline B.emph '_' (B.str)
+underline = inlineMarkup inline underlineSpan '_' (B.str)
 
 strike :: T2T Inlines
 strike = inlineMarkup inline B.strikeout '-' (B.str)

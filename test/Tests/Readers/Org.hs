@@ -8,6 +8,7 @@ import Test.Tasty
 import Tests.Helpers
 import Text.Pandoc
 import Text.Pandoc.Builder
+import Text.Pandoc.Shared (underlineSpan)
 
 org :: Text -> Pandoc
 org = purely $ readOrg def{ readerExtensions = getDefaultExtensions "org" }
@@ -56,6 +57,10 @@ tests =
       , "Emphasized Strong preceded by space" =:
           " */super/*" =?>
           para (strong . emph $ "super")
+
+      , "Underline" =:
+          "_underline_" =?>
+          para (underlineSpan $ "underline")
 
       , "Strikeout" =:
           "+Kill Bill+" =?>

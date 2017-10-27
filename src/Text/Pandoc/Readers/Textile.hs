@@ -68,7 +68,7 @@ import Text.Pandoc.Options
 import Text.Pandoc.Parsing
 import Text.Pandoc.Readers.HTML (htmlTag, isBlockTag, isInlineTag)
 import Text.Pandoc.Readers.LaTeX (rawLaTeXBlock, rawLaTeXInline)
-import Text.Pandoc.Shared (trim, crFilter)
+import Text.Pandoc.Shared (trim, crFilter, underlineSpan)
 import Data.Text (Text)
 import qualified Data.Text as T
 
@@ -468,7 +468,7 @@ inlineMarkup = choice [ simpleInline (string "??") (B.cite [])
                       , simpleInline (string "__") B.emph
                       , simpleInline (char '*') B.strong
                       , simpleInline (char '_') B.emph
-                      , simpleInline (char '+') B.emph  -- approximates underline
+                      , simpleInline (char '+') underlineSpan
                       , simpleInline (char '-' <* notFollowedBy (char '-')) B.strikeout
                       , simpleInline (char '^') B.superscript
                       , simpleInline (char '~') B.subscript
