@@ -120,6 +120,6 @@ parseBCP47 lang =
           P.char 'x'
           P.char '-'
           cs <- P.many1 $ P.satisfy (\c -> isAscii c && isAlphaNum c)
-          guard $ length cs >= 1 && length cs <= 8
+          guard $ not (null cs) && length cs <= 8
           let var = "x-" ++ cs
           return $ map toLower var
