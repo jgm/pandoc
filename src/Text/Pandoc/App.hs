@@ -112,8 +112,9 @@ parseOptions options' defaults = do
   let (actions, args, unrecognizedOpts, errors) =
            getOpt' Permute options' rawArgs
 
-  let unknownOptionErrors = foldr handleUnrecognizedOption [] $
-                  map (takeWhile (/= '=')) unrecognizedOpts
+  let unknownOptionErrors =
+       foldr (handleUnrecognizedOption . (takeWhile (/= '='))) []
+       unrecognizedOpts
 
   unless (null errors && null unknownOptionErrors) $
      E.throwIO $ PandocOptionError $
@@ -205,12 +206,10 @@ convertWithOpts opts = do
                   Just _    -> return $ optDataDir opts
 
   -- assign reader and writer based on options and filenames
-  let readerName = case optReader opts of
-                          Nothing -> defaultReaderName
-                                      (if any isURI sources
-                                          then "html"
-                                          else "markdown") sources
-                          Just x  -> x
+  let readerName =  fromMaybe ( defaultReaderName
+                  (if any isURI sources
+                      then "html"
+                      else "markdown") sources) (optReader opts)
 
   let nonPdfWriterName Nothing  = defaultWriterName outputFile
       nonPdfWriterName (Just x) = x
@@ -286,7 +285,7 @@ convertWithOpts opts = do
 #else
   istty <- queryTerminal stdOutput
 #endif
-  when (not (isTextFormat format) && istty && optOutputFile opts == Nothing) $
+  when (not (isTextFormat format) && istty && isNothing ( optOutputFile opts)) $
     E.throwIO $ PandocAppError $
             "Cannot write " ++ format ++ " output to terminal.\n" ++
             "Specify an output file using the -o option, or " ++
