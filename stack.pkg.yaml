@@ -12,10 +12,6 @@ flags:
     debug: false
 packages:
 - '.'
-- location:
-    git: https://github.com/jgm/pandoc-citeproc.git
-    commit: d4bb483a7c0f8e4cf7ede09408aaa77beefb4753
-  extra-dep: false
 extra-deps:
 - pandoc-types-1.17.2
 - hslua-0.9.2
@@ -26,4 +22,5 @@ extra-deps:
 - hs-bibutils-6.2.0.1
 - doctemplates-0.2.1
 - haddock-library-1.4.3
+- pandoc-citeproc-0.11.1.2
 resolver: lts-9.9
