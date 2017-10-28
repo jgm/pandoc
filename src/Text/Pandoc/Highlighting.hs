@@ -91,7 +91,7 @@ highlight syntaxmap formatter (_, classes, keyvals) rawCode =
                                     , traceOutput = False }
       classes' = map T.pack classes
       rawCode' = T.pack rawCode
-  in  case msum (map ((`lookupSyntax` syntaxmap)) classes') of
+  in  case msum (map (`lookupSyntax` syntaxmap) classes') of
             Nothing
               | numberLines fmtOpts -> Right
                               $ formatter fmtOpts{ codeClasses = [],

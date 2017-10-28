@@ -2,8 +2,8 @@
 
 module Text.Pandoc.Data (dataFiles) where
 
-import Data.FileEmbed
 import qualified Data.ByteString as B
+import Data.FileEmbed
 import System.FilePath (splitDirectories)
 import qualified System.FilePath.Posix as Posix
 

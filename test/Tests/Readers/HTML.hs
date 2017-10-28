@@ -1,12 +1,12 @@
 {-# LANGUAGE OverloadedStrings #-}
 module Tests.Readers.HTML (tests) where
 
+import Data.Text (Text)
 import Test.Tasty
 import Tests.Helpers
 import Text.Pandoc
 import Text.Pandoc.Arbitrary ()
 import Text.Pandoc.Builder
-import Data.Text (Text)
 
 html :: Text -> Pandoc
 html = purely $ readHtml def

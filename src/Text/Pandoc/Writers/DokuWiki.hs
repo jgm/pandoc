@@ -46,9 +46,9 @@ import Data.Default (Default (..))
 import Data.List (intercalate, intersect, isPrefixOf, transpose)
 import Data.Text (Text, pack)
 import Text.Pandoc.Class (PandocMonad, report)
-import Text.Pandoc.Logging
 import Text.Pandoc.Definition
 import Text.Pandoc.ImageSize
+import Text.Pandoc.Logging
 import Text.Pandoc.Options (WrapOption (..), WriterOptions (writerTableOfContents, writerTemplate, writerWrapText))
 import Text.Pandoc.Shared (camelCaseToHyphenated, escapeURI, isURI, linesToPara,
                            removeFormatting, substitute, trimr)
@@ -291,7 +291,7 @@ listItemToDokuWiki opts items = do
        bs <- mapM (blockToDokuWiki opts) items
        let contents = case items of
                            [_, CodeBlock _ _] -> concat bs
-                           _ -> vcat bs
+                           _                  -> vcat bs
        indent <- stIndent <$> ask
        backSlash <- stBackSlashLB <$> ask
        let indent' = if backSlash then (drop 2 indent) else indent

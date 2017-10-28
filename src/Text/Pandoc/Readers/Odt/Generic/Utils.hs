@@ -1,6 +1,6 @@
+
+
 {-# LANGUAGE TypeOperators #-}
-{-# LANGUAGE TupleSections #-}
-{-# LANGUAGE PatternGuards #-}
 {-# LANGUAGE ViewPatterns  #-}
 
 {-
@@ -51,12 +51,12 @@ module Text.Pandoc.Readers.Odt.Generic.Utils
 , composition
 ) where
 
-import           Control.Category        ( Category, (>>>), (<<<) )
-import qualified Control.Category as Cat ( id )
-import           Control.Monad           ( msum )
+import Control.Category (Category, (<<<), (>>>))
+import qualified Control.Category as Cat (id)
+import Control.Monad (msum)
 
-import qualified Data.Foldable    as F   ( Foldable, foldr )
-import           Data.Maybe
+import qualified Data.Foldable as F (Foldable, foldr)
+import Data.Maybe
 
 
 -- | Aequivalent to

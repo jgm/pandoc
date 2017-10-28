@@ -31,21 +31,23 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 Conversion from reStructuredText to 'Pandoc' document.
 -}
 module Text.Pandoc.Readers.RST ( readRST ) where
-import Control.Monad (guard, liftM, mzero, when, forM_, mplus)
-import Control.Monad.Identity (Identity(..))
+import Control.Monad (forM_, guard, liftM, mplus, mzero, when)
 import Control.Monad.Except (throwError)
+import Control.Monad.Identity (Identity (..))
 import Data.Char (isHexDigit, isSpace, toLower, toUpper)
-import Data.List (deleteFirstsBy, findIndex, intercalate, isInfixOf,
-                  isSuffixOf, nub, sort, transpose, union)
+import Data.List (deleteFirstsBy, findIndex, intercalate, isInfixOf, isSuffixOf,
+                  nub, sort, transpose, union)
 import qualified Data.Map as M
 import Data.Maybe (fromMaybe, isJust)
 import Data.Monoid ((<>))
 import Data.Sequence (ViewR (..), viewr)
+import Data.Text (Text)
+import qualified Data.Text as T
 import Text.Pandoc.Builder (fromList, setMeta)
 import Text.Pandoc.Builder (Blocks, Inlines, trimInlines)
 import qualified Text.Pandoc.Builder as B
-import Text.Pandoc.Class (PandocMonad, readFileFromDirs, fetchItem)
-import Text.Pandoc.CSV (CSVOptions(..), defaultCSVOptions, parseCSV)
+import Text.Pandoc.Class (PandocMonad, fetchItem, readFileFromDirs)
+import Text.Pandoc.CSV (CSVOptions (..), defaultCSVOptions, parseCSV)
 import Text.Pandoc.Definition
 import Text.Pandoc.Error
 import Text.Pandoc.ImageSize (lengthToDim, scaleDimension)
@@ -55,8 +57,6 @@ import Text.Pandoc.Parsing
 import Text.Pandoc.Shared
 import qualified Text.Pandoc.UTF8 as UTF8
 import Text.Printf (printf)
-import Data.Text (Text)
-import qualified Data.Text as T
 
 -- TODO:
 -- [ ] .. parsed-literal
@@ -149,10 +149,10 @@ metaFromDefList ds meta = adjustAuthors $ foldr f meta ds
                                          splitOnSemi . concatMap factorSemi
        normalizeSpaces                = reverse . dropWhile isSp . reverse .
                                          dropWhile isSp
-       isSp Space                     = True
-       isSp SoftBreak                 = True
-       isSp LineBreak                 = True
-       isSp _                         = False
+       isSp Space     = True
+       isSp SoftBreak = True
+       isSp LineBreak = True
+       isSp _         = False
        splitOnSemi                    = splitBy (==Str ";")
        factorSemi (Str [])            = []
        factorSemi (Str s)             = case break (==';') s of
@@ -817,9 +817,9 @@ listTableDirective top fields body = do
              headerRow
              bodyRows
     where takeRows [BulletList rows] = map takeCells rows
-          takeRows _ = []
+          takeRows _                 = []
           takeCells [BulletList cells] = map B.fromList cells
-          takeCells _ = []
+          takeCells _                  = []
           normWidths ws = map (/ max 1 (sum ws)) ws
 
 csvTableDirective :: PandocMonad m
@@ -829,19 +829,19 @@ csvTableDirective top fields rawcsv = do
   let explicitHeader = trim <$> lookup "header" fields
   let opts = defaultCSVOptions{
                 csvDelim = case trim <$> lookup "delim" fields of
-                                Just "tab" -> '\t'
+                                Just "tab"   -> '\t'
                                 Just "space" -> ' '
-                                Just [c] -> c
-                                _ -> ','
+                                Just [c]     -> c
+                                _            -> ','
               , csvQuote = case trim <$> lookup "quote" fields of
                                 Just [c] -> c
-                                _ -> '"'
+                                _        -> '"'
               , csvEscape = case trim <$> lookup "escape" fields of
                                 Just [c] -> Just c
-                                _ -> Nothing
+                                _        -> Nothing
               , csvKeepSpace = case trim <$> lookup "keepspace" fields of
                                        Just "true" -> True
-                                       _ -> False
+                                       _           -> False
               }
   let headerRowsNum = fromMaybe (case explicitHeader of
                                        Just _  -> 1 :: Int
@@ -854,7 +854,7 @@ csvTableDirective top fields rawcsv = do
                     return $ UTF8.toString bs
                   Nothing -> return rawcsv
   let res = parseCSV opts (T.pack $ case explicitHeader of
-                                         Just h -> h ++ "\n" ++ rawcsv'
+                                         Just h  -> h ++ "\n" ++ rawcsv'
                                          Nothing -> rawcsv')
   case res of
        Left e  -> do

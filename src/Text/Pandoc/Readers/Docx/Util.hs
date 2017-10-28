@@ -44,4 +44,3 @@ findAttrByName :: NameSpaces -> String -> String -> Element -> Maybe String
 findAttrByName ns pref name el =
   let ns' = ns ++ elemToNameSpaces el
   in  findAttr (elemName ns' pref name) el
-

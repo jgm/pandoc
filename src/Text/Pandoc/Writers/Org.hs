@@ -37,14 +37,14 @@ Org-Mode:  <http://orgmode.org>
 module Text.Pandoc.Writers.Org (writeOrg) where
 import Control.Monad.State.Strict
 import Data.Char (isAlphaNum, toLower)
-import Data.Text (Text)
 import Data.List (intersect, intersperse, isPrefixOf, partition, transpose)
+import Data.Text (Text)
 import Text.Pandoc.Class (PandocMonad, report)
 import Text.Pandoc.Definition
+import Text.Pandoc.Logging
 import Text.Pandoc.Options
 import Text.Pandoc.Pretty
 import Text.Pandoc.Shared
-import Text.Pandoc.Logging
 import Text.Pandoc.Templates (renderTemplate')
 import Text.Pandoc.Writers.Shared
 

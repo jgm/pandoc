@@ -121,10 +121,9 @@ import Data.ByteString.Base64 (decodeLenient)
 import Network.URI ( escapeURIString, nonStrictRelativeTo,
                      unEscapeString, parseURIReference, isAllowedInURI,
                      parseURI, URI(..) )
-import Network.HTTP.Client (httpLbs, responseBody, responseHeaders,
-                            Request(port,host,requestHeaders))
-import Network.HTTP.Client (parseRequest)
-import Network.HTTP.Client (newManager)
+import Network.HTTP.Client
+       (httpLbs, responseBody, responseHeaders,
+        Request(port, host, requestHeaders), parseRequest, newManager)
 import Network.HTTP.Client.Internal (addProxy)
 import Network.HTTP.Client.TLS (tlsManagerSettings)
 import System.Environment (getEnv)
@@ -432,7 +431,7 @@ getTranslations = do
                  report $ CouldNotLoadTranslations (renderLang lang)
                           $ case e of
                                PandocCouldNotFindDataFileError _ ->
-                                 ("data file " ++ fallbackFile ++ " not found")
+                                 "data file " ++ fallbackFile ++ " not found"
                                _ -> ""
                  -- make sure we don't try again...
                  modifyCommonState $ \st -> st{ stTranslations = Nothing }
@@ -998,4 +997,3 @@ instance PandocMonad m => PandocMonad (ParsecT s st m) where
                else "")
         (return ())
   logOutput = lift . logOutput
-

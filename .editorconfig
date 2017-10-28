@@ -11,6 +11,6 @@ trim_trailing_whitespace = true
 [*.{markdown,md}]
 trim_trailing_whitespace = false
 
-[tests/*]
+[test/*]
 insert_final_newline = false
 trim_trailing_whitespace = false

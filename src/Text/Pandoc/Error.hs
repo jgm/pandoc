@@ -35,14 +35,14 @@ module Text.Pandoc.Error (
   handleError) where
 
 import Control.Exception (Exception)
-import Data.Generics (Typeable)
+import Data.Typeable (Typeable)
 import GHC.Generics (Generic)
+import Network.HTTP.Client (HttpException)
+import System.Exit (ExitCode (..), exitWith)
+import System.IO (stderr)
+import qualified Text.Pandoc.UTF8 as UTF8
 import Text.Parsec.Error
 import Text.Parsec.Pos hiding (Line)
-import qualified Text.Pandoc.UTF8 as UTF8
-import System.Exit (exitWith, ExitCode(..))
-import System.IO (stderr)
-import Network.HTTP.Client (HttpException)
 
 type Input = String
 

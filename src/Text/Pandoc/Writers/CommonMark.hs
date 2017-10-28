@@ -1,6 +1,6 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-
-Copyright (C) 2015 John MacFarlane <jgm@berkeley.edu>
+Copyright (C) 2015-2017 John MacFarlane <jgm@berkeley.edu>
 
 This program is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 {- |
    Module      : Text.Pandoc.Writers.CommonMark
-   Copyright   : Copyright (C) 2015 John MacFarlane
+   Copyright   : Copyright (C) 2015-2017 John MacFarlane
    License     : GNU GPL, version 2 or above
 
    Maintainer  : John MacFarlane <jgm@berkeley.edu>
@@ -35,8 +35,8 @@ module Text.Pandoc.Writers.CommonMark (writeCommonMark) where
 import CMarkGFM
 import Control.Monad.State.Strict (State, get, modify, runState)
 import Data.Foldable (foldrM)
-import Data.Monoid (Any (..), (<>))
 import Data.List (transpose)
+import Data.Monoid (Any (..), (<>))
 import Data.Text (Text)
 import qualified Data.Text as T
 import Text.Pandoc.Class (PandocMonad)
@@ -44,7 +44,7 @@ import Text.Pandoc.Definition
 import Text.Pandoc.Options
 import Text.Pandoc.Shared (isTightList, linesToPara, substitute)
 import Text.Pandoc.Templates (renderTemplate')
-import Text.Pandoc.Walk (walkM, walk, query)
+import Text.Pandoc.Walk (query, walk, walkM)
 import Text.Pandoc.Writers.HTML (writeHtml5String)
 import Text.Pandoc.Writers.Shared
 
@@ -67,7 +67,7 @@ writeCommonMark opts (Pandoc meta blocks) = do
 
 softBreakToSpace :: Inline -> Inline
 softBreakToSpace SoftBreak = Space
-softBreakToSpace x = x
+softBreakToSpace x         = x
 
 processNotes :: Inline -> State [[Block]] Inline
 processNotes (Note bs) = do

@@ -35,18 +35,18 @@ module Text.Pandoc.BCP47 (
                      )
 where
 import Control.Monad (guard)
-import Data.Char (isAscii, isLetter, isUpper, isLower, toUpper, toLower,
-                  isAlphaNum)
+import Data.Char (isAlphaNum, isAscii, isLetter, isLower, isUpper, toLower,
+                  toUpper)
 import Data.List (intercalate)
 import Text.Pandoc.Definition
 import Text.Pandoc.Options
 import qualified Text.Parsec as P
 
 -- | Represents BCP 47 language/country code.
-data Lang = Lang{ langLanguage   :: String
-                , langScript     :: String
-                , langRegion     :: String
-                , langVariants   :: [String] }
+data Lang = Lang{ langLanguage :: String
+                , langScript   :: String
+                , langRegion   :: String
+                , langVariants :: [String] }
                 deriving (Eq, Ord, Show)
 
 -- | Render a Lang as BCP 47.
@@ -120,6 +120,6 @@ parseBCP47 lang =
           P.char 'x'
           P.char '-'
           cs <- P.many1 $ P.satisfy (\c -> isAscii c && isAlphaNum c)
-          guard $ length cs >= 1 && length cs <= 8
+          guard $ not (null cs) && length cs <= 8
           let var = "x-" ++ cs
           return $ map toLower var

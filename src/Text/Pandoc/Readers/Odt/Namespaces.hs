@@ -31,11 +31,11 @@ Namespaces used in odt files.
 module Text.Pandoc.Readers.Odt.Namespaces ( Namespace (..)
                                           ) where
 
-import           Data.List       ( isPrefixOf )
-import           Data.Maybe      ( fromMaybe, listToMaybe )
-import qualified Data.Map   as M ( empty, insert )
+import Data.List (isPrefixOf)
+import qualified Data.Map as M (empty, insert)
+import Data.Maybe (fromMaybe, listToMaybe)
 
-import           Text.Pandoc.Readers.Odt.Generic.Namespaces
+import Text.Pandoc.Readers.Odt.Generic.Namespaces
 
 
 instance NameSpaceID Namespace where

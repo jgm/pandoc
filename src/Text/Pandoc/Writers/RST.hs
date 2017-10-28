@@ -38,9 +38,9 @@ import Data.Maybe (fromMaybe)
 import Data.Text (Text, stripEnd)
 import qualified Text.Pandoc.Builder as B
 import Text.Pandoc.Class (PandocMonad, report)
-import Text.Pandoc.Logging
 import Text.Pandoc.Definition
 import Text.Pandoc.ImageSize
+import Text.Pandoc.Logging
 import Text.Pandoc.Options
 import Text.Pandoc.Pretty
 import Text.Pandoc.Shared
@@ -371,12 +371,12 @@ blockToRST' x = do
   modify (\s -> s{stLastNested =
     case x of
          Para [Image _ _ (_,'f':'i':'g':':':_)] -> True
-         Para{} -> False
-         Plain{} -> False
-         Header{} -> False
-         LineBlock{} -> False
-         HorizontalRule -> False
-         _ -> True
+         Para{}                                 -> False
+         Plain{}                                -> False
+         Header{}                               -> False
+         LineBlock{}                            -> False
+         HorizontalRule                         -> False
+         _                                      -> True
     })
   blockToRST x
 

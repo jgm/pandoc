@@ -4,7 +4,7 @@ import Data.Text (unpack)
 import Test.Tasty
 import Tests.Helpers
 import Text.Pandoc
-import Text.Pandoc.Arbitrary()
+import Text.Pandoc.Arbitrary ()
 import Text.Pandoc.Builder
 
 muse :: (ToPandoc a) => a -> String

@@ -35,18 +35,18 @@ Conversion of creole text to 'Pandoc' document.
 module Text.Pandoc.Readers.Creole ( readCreole
                                   ) where
 
-import Control.Monad.Except (liftM2, throwError, guard)
+import Control.Monad.Except (guard, liftM2, throwError)
 import qualified Data.Foldable as F
-import qualified Text.Pandoc.Builder as B
-import Text.Pandoc.Class (PandocMonad(..))
-import Text.Pandoc.Definition
-import Text.Pandoc.Options
-import Text.Pandoc.Parsing hiding (enclosed)
-import Text.Pandoc.Shared (crFilter)
 import Data.Maybe (fromMaybe)
 import Data.Monoid
 import Data.Text (Text)
 import qualified Data.Text as T
+import qualified Text.Pandoc.Builder as B
+import Text.Pandoc.Class (PandocMonad (..))
+import Text.Pandoc.Definition
+import Text.Pandoc.Options
+import Text.Pandoc.Parsing hiding (enclosed)
+import Text.Pandoc.Shared (crFilter)
 
 
 -- | Read creole from an input string and return a Pandoc document.
@@ -111,7 +111,7 @@ block = do
   return res
 
 nowiki :: PandocMonad m => CRLParser m B.Blocks
-nowiki = try $ nowikiStart >> manyTill content nowikiEnd >>= return . B.codeBlock . mconcat
+nowiki = try $ fmap (B.codeBlock . mconcat) (nowikiStart >> manyTill content nowikiEnd)
   where
     content = brackets <|> line
     brackets = try $ option "" ((:[]) <$> newline)
@@ -124,7 +124,8 @@ nowiki = try $ nowikiStart >> manyTill content nowikiEnd >>= return . B.codeBloc
 header :: PandocMonad m => CRLParser m B.Blocks
 header = try $ do
   skipSpaces
-  level <- many1 (char '=') >>= return . length
+  level <-
+    fmap length (many1 (char '='))
   guard $ level <= 6
   skipSpaces
   content <- B.str <$> manyTill (noneOf "\n") headerEnd
@@ -145,16 +146,16 @@ anyListItem :: PandocMonad m => Int -> CRLParser m B.Blocks
 anyListItem n = listItem '*' n <|> listItem '#' n
 
 list :: PandocMonad m => Char -> ([B.Blocks] -> B.Blocks) -> Int -> CRLParser m B.Blocks
-list c f n = many1 (itemPlusSublist <|> listItem c n)
-             >>= return . f
+list c f n =
+  fmap f (many1 (itemPlusSublist <|> listItem c n))
   where itemPlusSublist = try $ listItem c n <+> anyList (n+1)
 
 listItem :: PandocMonad m => Char -> Int -> CRLParser m B.Blocks
-listItem c n = (listStart >> many1Till inline itemEnd)
-               >>= return . B.plain . B.trimInlines .mconcat
+listItem c n =
+  fmap (B.plain . B.trimInlines .mconcat) (listStart >> many1Till inline itemEnd)
   where
     listStart = try $ optional newline >> skipSpaces >> count n (char c)
-                >> (lookAhead $ noneOf [c]) >> skipSpaces
+                >> lookAhead (noneOf [c]) >> skipSpaces
     itemEnd = endOfParaElement <|> nextItem n
               <|> if n < 3 then nextItem (n+1)
                   else nextItem (n+1) <|> nextItem (n-1)
@@ -176,7 +177,7 @@ table = try $ do
     cellEnd = lookAhead $ try $ char '|' <|> rowEnd
 
 para :: PandocMonad m => CRLParser m B.Blocks
-para = many1Till inline endOfParaElement >>= return . result . mconcat
+para = fmap (result . mconcat) (many1Till inline endOfParaElement)
  where
    result content   = if F.all (==Space) content
                       then mempty
@@ -192,7 +193,7 @@ endOfParaElement = lookAhead $ endOfInput <|> endOfPara
    startOf      :: PandocMonad m => CRLParser m a -> CRLParser m ()
    startOf p     = try $ blankline >> p >> return mempty
    startOfList   = startOf $ anyList 1
-   startOfTable  = startOf $ table
+   startOfTable  =startOf table
    startOfHeader = startOf header
    startOfNowiki = startOf nowiki
    hr            = startOf horizontalRule
@@ -223,7 +224,8 @@ inline = choice [ whitespace
                 ] <?> "inline"
 
 escapedChar :: PandocMonad m => CRLParser m B.Inlines
-escapedChar = (try $ char '~' >> noneOf "\t\n ") >>= return . B.str . (:[])
+escapedChar =
+  fmap (B.str . (:[])) (try $ char '~' >> noneOf "\t\n ")
 
 escapedLink :: PandocMonad m => CRLParser m B.Inlines
 escapedLink = try $ do
@@ -234,7 +236,7 @@ escapedLink = try $ do
 image :: PandocMonad m => CRLParser m B.Inlines
 image = try $ do
   (orig, src) <- wikiImg
-  return $ B.image src "" (B.str $ orig)
+  return $ B.image src "" (B.str orig)
   where
     linkSrc = many $ noneOf "|}\n\r\t"
     linkDsc = char '|' >> many (noneOf "}\n\r\t")
@@ -253,7 +255,7 @@ link = try $ do
     linkSrc = many $ noneOf "|]\n\r\t"
     linkDsc :: PandocMonad m => String -> CRLParser m B.Inlines
     linkDsc otxt = B.str
-                   <$> (try $ option otxt
+                   <$> try (option otxt
                          (char '|' >> many (noneOf "]\n\r\t")))
     linkImg = try $ char '|' >> image
     wikiLink = try $ do
@@ -270,17 +272,17 @@ inlineNowiki :: PandocMonad m => CRLParser m B.Inlines
 inlineNowiki = B.code <$> (start >> manyTill (noneOf "\n\r") end)
   where
     start = try $ string "{{{"
-    end = try $ string "}}}" >> (lookAhead $ noneOf "}")
+    end = try $ string "}}}" >> lookAhead (noneOf "}")
 
 placeholder :: PandocMonad m => CRLParser m B.Inlines
 -- The semantics of the placeholder is basicallly implementation
 -- dependent, so there is no way to DTRT for all cases.
 -- So for now we just drop them.
-placeholder = B.text <$> (try $ string "<<<" >> manyTill anyChar (string ">>>")
+placeholder = B.text <$> try (string "<<<" >> manyTill anyChar (string ">>>")
               >> return "")
 
 whitespace :: PandocMonad m => CRLParser m B.Inlines
-whitespace = (lb <|> regsp) >>= return
+whitespace = lb <|> regsp
   where lb = try $ skipMany spaceChar >> linebreak >> return B.space
         regsp = try $ skipMany1 spaceChar >> return B.space
 
@@ -290,11 +292,11 @@ linebreak = newline >> notFollowedBy newline >> (lastNewline <|> innerNewline)
         innerNewline = return B.space
 
 symbol :: PandocMonad m => CRLParser m B.Inlines
-symbol = oneOf specialChars >>= return . B.str . (:[])
+symbol = fmap (B.str . (:[])) (oneOf specialChars)
 
 str :: PandocMonad m => CRLParser m B.Inlines
 str = let strChar = noneOf ("\t\n " ++ specialChars) in
-        many1 strChar >>= return . B.str
+        fmap B.str (many1 strChar)
 
 bold :: PandocMonad m => CRLParser m B.Inlines
 bold = B.strong . mconcat <$>

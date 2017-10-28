@@ -45,13 +45,13 @@ module Text.Pandoc.Writers.HTML (
   ) where
 import Control.Monad.State.Strict
 import Data.Char (ord, toLower)
-import Data.Text (Text)
-import qualified Data.Text.Lazy as TL
-import Data.List (intersperse, isPrefixOf, partition, intercalate)
+import Data.List (intercalate, intersperse, isPrefixOf, partition)
 import Data.Maybe (catMaybes, fromMaybe, isJust, isNothing)
 import Data.Monoid ((<>))
 import qualified Data.Set as Set
 import Data.String (fromString)
+import Data.Text (Text)
+import qualified Data.Text.Lazy as TL
 import Network.HTTP (urlEncode)
 import Network.URI (URI (..), parseURIReference, unEscapeString)
 import Numeric (showHex)
@@ -79,7 +79,7 @@ import qualified Text.Blaze.Html5 as H5
 #endif
 import Control.Monad.Except (throwError)
 import Data.Aeson (Value)
-import System.FilePath (takeExtension, takeBaseName)
+import System.FilePath (takeBaseName, takeExtension)
 import Text.Blaze.Html.Renderer.Text (renderHtml)
 import qualified Text.Blaze.XHtml1.Transitional as H
 import qualified Text.Blaze.XHtml1.Transitional.Attributes as A
@@ -582,14 +582,14 @@ dimensionsToAttrList attr = consolidateStyles $ go Width ++ go Height
     consolidateStyles :: [(String, String)] -> [(String, String)]
     consolidateStyles xs =
       case partition isStyle xs of
-           ([], _) -> xs
+           ([], _)    -> xs
            (ss, rest) -> ("style", intercalate ";" $ map snd ss) : rest
     isStyle ("style", _) = True
     isStyle _            = False
     go dir = case (dimension dir attr) of
-               (Just (Pixel a))  -> [(show dir, show a)]
-               (Just x)          -> [("style", show dir ++ ":" ++ show x)]
-               Nothing           -> []
+               (Just (Pixel a)) -> [(show dir, show a)]
+               (Just x)         -> [("style", show dir ++ ":" ++ show x)]
+               Nothing          -> []
 
 imageExts :: [String]
 imageExts = [ "art", "bmp", "cdr", "cdt", "cpt", "cr2", "crw", "djvu", "erf",

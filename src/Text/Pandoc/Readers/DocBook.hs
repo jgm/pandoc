@@ -1,5 +1,5 @@
 module Text.Pandoc.Readers.DocBook ( readDocBook ) where
-import Data.Char (toUpper)
+import Data.Char (toUpper, isSpace)
 import Text.Pandoc.Shared (safeRead, crFilter)
 import Text.Pandoc.Options
 import Text.Pandoc.Definition
@@ -8,7 +8,6 @@ import Text.XML.Light
 import Text.HTML.TagSoup.Entity (lookupEntity)
 import Data.Either (rights)
 import Data.Generics
-import Data.Char (isSpace)
 import Control.Monad.State.Strict
 import Data.List (intersperse)
 import Data.Maybe (fromMaybe)
@@ -528,7 +527,7 @@ readDocBook :: PandocMonad m => ReaderOptions -> Text -> m Pandoc
 readDocBook _ inp = do
   let tree = normalizeTree . parseXML . handleInstructions
                $ T.unpack $ crFilter inp
-  (bs, st') <- flip runStateT (def{ dbContent = tree }) $ mapM parseBlock $ tree
+  (bs, st') <- flip runStateT (def{ dbContent = tree }) $ mapM parseBlock tree
   return $ Pandoc (dbMeta st') (toList . mconcat $ bs)
 
 -- We treat <?asciidoc-br?> specially (issue #1236), converting it
@@ -567,14 +566,12 @@ normalizeTree = everywhere (mkT go)
         go xs = xs
 
 convertEntity :: String -> String
-convertEntity e = maybe (map toUpper e) id (lookupEntity e)
+convertEntity e = Data.Maybe.fromMaybe (map toUpper e) (lookupEntity e)
 
 -- convenience function to get an attribute value, defaulting to ""
 attrValue :: String -> Element -> String
 attrValue attr elt =
-  case lookupAttrBy (\x -> qName x == attr) (elAttribs elt) of
-    Just z  -> z
-    Nothing -> ""
+  fromMaybe "" (lookupAttrBy (\x -> qName x == attr) (elAttribs elt))
 
 -- convenience function
 named :: String -> Element -> Bool
@@ -654,15 +651,17 @@ getMediaobject e = do
                                             || named "textobject" x
                                             || named "alt" x) el of
                         Nothing -> return mempty
-                        Just z  -> mconcat <$> (mapM parseInline $ elContent z)
+                        Just z  -> mconcat <$>
+                                         mapM parseInline (elContent z)
   figTitle <- gets dbFigureTitle
   let (caption, title) = if isNull figTitle
                             then (getCaption e, "")
                             else (return figTitle, "fig:")
-  liftM (imageWith attr imageUrl title) caption
+  fmap (imageWith attr imageUrl title) caption
 
 getBlocks :: PandocMonad m => Element -> DB m Blocks
-getBlocks e =  mconcat <$> (mapM parseBlock $ elContent e)
+getBlocks e =  mconcat <$>
+                 mapM parseBlock (elContent e)
 
 
 parseBlock :: PandocMonad m => Content -> DB m Blocks
@@ -806,7 +805,8 @@ parseBlock (Elem e) =
             attrib <- case filterChild (named "attribution") e of
                              Nothing  -> return mempty
                              Just z   -> (para . (str "— " <>) . mconcat)
-                                         <$> (mapM parseInline $ elContent z)
+                                         <$>
+                                              mapM parseInline (elContent z)
             contents <- getBlocks e
             return $ blockQuote (contents <> attrib)
          listitems = mapM getBlocks $ filterChildren (named "listitem") e
@@ -906,7 +906,8 @@ parseBlock (Elem e) =
          metaBlock = acceptingMetadata (getBlocks e) >> return mempty
 
 getInlines :: PandocMonad m => Element -> DB m Inlines
-getInlines e' = (trimInlines . mconcat) <$> (mapM parseInline $ elContent e')
+getInlines e' = (trimInlines . mconcat) <$>
+                 mapM parseInline (elContent e')
 
 strContentRecursive :: Element -> String
 strContentRecursive = strContent .
@@ -919,7 +920,7 @@ elementToStr x = x
 parseInline :: PandocMonad m => Content -> DB m Inlines
 parseInline (Text (CData _ s _)) = return $ text s
 parseInline (CRef ref) =
-  return $ maybe (text $ map toUpper ref) (text) $ lookupEntity ref
+  return $ maybe (text $ map toUpper ref) text $ lookupEntity ref
 parseInline (Elem e) =
   case qName (elName e) of
         "equation" -> equation displayMath
@@ -960,8 +961,10 @@ parseInline (Elem e) =
         "userinput" -> codeWithLang
         "varargs" -> return $ code "(...)"
         "keycap" -> return (str $ strContent e)
-        "keycombo" -> keycombo <$> (mapM parseInline $ elContent e)
-        "menuchoice" -> menuchoice <$> (mapM parseInline $
+        "keycombo" -> keycombo <$>
+                         mapM parseInline (elContent e)
+        "menuchoice" -> menuchoice <$>
+                         mapM parseInline (
                                         filter isGuiMenu $ elContent e)
         "xref" -> do
             content <- dbContent <$> get
@@ -980,7 +983,7 @@ parseInline (Elem e) =
              ils <- innerInlines
              let href = case findAttr (QName "href" (Just "http://www.w3.org/1999/xlink") Nothing) e of
                                Just h -> h
-                               _      -> ('#' : attrValue "linkend" e)
+                               _      -> '#' : attrValue "linkend" e
              let ils' = if ils == mempty then str href else ils
              let attr = (attrValue "id" e, words $ attrValue "role" e, [])
              return $ linkWith attr href "" ils'
@@ -990,7 +993,8 @@ parseInline (Elem e) =
                              "strong" -> strong <$> innerInlines
                              "strikethrough" -> strikeout <$> innerInlines
                              _        -> emph <$> innerInlines
-        "footnote" -> (note . mconcat) <$> (mapM parseBlock $ elContent e)
+        "footnote" -> (note . mconcat) <$>
+                         mapM parseBlock (elContent e)
         "title" -> return mempty
         "affiliation" -> return mempty
         -- Note: this isn't a real docbook tag; it's what we convert
@@ -999,7 +1003,7 @@ parseInline (Elem e) =
         "br" -> return linebreak
         _          -> innerInlines
    where innerInlines = (trimInlines . mconcat) <$>
-                          (mapM parseInline $ elContent e)
+                          mapM parseInline (elContent e)
          equation constructor = return $ mconcat $
            map (constructor . writeTeX)
            $ rights

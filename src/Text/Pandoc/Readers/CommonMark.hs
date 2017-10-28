@@ -1,5 +1,5 @@
 {-
-Copyright (C) 2015 John MacFarlane <jgm@berkeley.edu>
+Copyright (C) 2015-2017 John MacFarlane <jgm@berkeley.edu>
 
 This program is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -18,7 +18,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 {- |
    Module      : Text.Pandoc.Readers.CommonMark
-   Copyright   : Copyright (C) 2015 John MacFarlane
+   Copyright   : Copyright (C) 2015-2017 John MacFarlane
    License     : GNU GPL, version 2 or above
 
    Maintainer  : John MacFarlane <jgm@berkeley.edu>
@@ -34,10 +34,10 @@ where
 
 import CMarkGFM
 import Control.Monad.State
-import Data.Char (isLetter, isAlphaNum, isSpace, toLower)
+import Data.Char (isAlphaNum, isLetter, isSpace, toLower)
 import Data.List (groupBy)
-import Data.Text (Text, unpack)
 import qualified Data.Map as Map
+import Data.Text (Text, unpack)
 import Text.Pandoc.Class (PandocMonad)
 import Text.Pandoc.Definition
 import Text.Pandoc.Emoji (emojis)
@@ -132,12 +132,12 @@ addBlock opts (Node _ (LIST listAttrs) nodes) =
         setTightness = if listTight listAttrs
                            then map paraToPlain
                            else id
-        paraToPlain (Para xs) = Plain (xs)
+        paraToPlain (Para xs) = Plain xs
         paraToPlain x         = x
         delim = case listDelim listAttrs of
                      PERIOD_DELIM -> Period
                      PAREN_DELIM  -> OneParen
-addBlock opts (Node _ (TABLE alignments) nodes) = do
+addBlock opts (Node _ (TABLE alignments) nodes) =
   (Table [] aligns widths headers rows :)
   where aligns = map fromTableCellAlignment alignments
         fromTableCellAlignment NoAlignment   = AlignDefault
@@ -153,9 +153,9 @@ addBlock opts (Node _ (TABLE alignments) nodes) = do
                                (h:rs) -> (h, rs)
                                []     -> ([], [])
         isRow (Node _ TABLE_ROW _) = True
-        isRow _ = False
+        isRow _                    = False
         isCell (Node _ TABLE_CELL _) = True
-        isCell _ = False
+        isCell _                     = False
         toRow (Node _ TABLE_ROW ns) = map toCell $ filter isCell ns
         toRow (Node _ t _) = error $ "toRow encountered non-row " ++ show t
         toCell (Node _ TABLE_CELL []) = []
@@ -170,30 +170,30 @@ addBlock _ _ = id
 isBlockNode :: Node -> Bool
 isBlockNode (Node _ nodetype _) =
   case nodetype of
-       DOCUMENT -> True
-       THEMATIC_BREAK -> True
-       PARAGRAPH -> True
-       BLOCK_QUOTE -> True
-       HTML_BLOCK _ -> True
-       CUSTOM_BLOCK _ _ -> True
-       CODE_BLOCK _ _ -> True
-       HEADING _ -> True
-       LIST _ -> True
-       ITEM -> True
-       TEXT _ -> False
-       SOFTBREAK -> False
-       LINEBREAK -> False
-       HTML_INLINE _ -> False
+       DOCUMENT          -> True
+       THEMATIC_BREAK    -> True
+       PARAGRAPH         -> True
+       BLOCK_QUOTE       -> True
+       HTML_BLOCK _      -> True
+       CUSTOM_BLOCK _ _  -> True
+       CODE_BLOCK _ _    -> True
+       HEADING _         -> True
+       LIST _            -> True
+       ITEM              -> True
+       TEXT _            -> False
+       SOFTBREAK         -> False
+       LINEBREAK         -> False
+       HTML_INLINE _     -> False
        CUSTOM_INLINE _ _ -> False
-       CODE _ -> False
-       EMPH -> False
-       STRONG -> False
-       LINK _ _ -> False
-       IMAGE _ _ -> False
-       STRIKETHROUGH -> False
-       TABLE _ -> False
-       TABLE_ROW -> False
-       TABLE_CELL -> False
+       CODE _            -> False
+       EMPH              -> False
+       STRONG            -> False
+       LINK _ _          -> False
+       IMAGE _ _         -> False
+       STRIKETHROUGH     -> False
+       TABLE _           -> False
+       TABLE_ROW         -> False
+       TABLE_CELL        -> False
 
 children :: Node -> [Node]
 children (Node _ _ ns) = ns

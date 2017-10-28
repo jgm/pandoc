@@ -57,20 +57,20 @@ import Control.Monad.Except (throwError)
 import Data.Char (digitToInt, isUpper)
 import Data.List (intercalate, intersperse, transpose)
 import Data.Monoid ((<>))
+import Data.Text (Text)
+import qualified Data.Text as T
 import Text.HTML.TagSoup (Tag (..), fromAttrib)
 import Text.HTML.TagSoup.Match
 import Text.Pandoc.Builder (Blocks, Inlines, trimInlines)
 import qualified Text.Pandoc.Builder as B
-import Text.Pandoc.Class (PandocMonad(..))
+import Text.Pandoc.Class (PandocMonad (..))
 import Text.Pandoc.CSS
 import Text.Pandoc.Definition
 import Text.Pandoc.Options
 import Text.Pandoc.Parsing
 import Text.Pandoc.Readers.HTML (htmlTag, isBlockTag, isInlineTag)
 import Text.Pandoc.Readers.LaTeX (rawLaTeXBlock, rawLaTeXInline)
-import Text.Pandoc.Shared (trim, crFilter)
-import Data.Text (Text)
-import qualified Data.Text as T
+import Text.Pandoc.Shared (crFilter, trim, underlineSpan)
 
 -- | Parse a Textile text and return a Pandoc document.
 readTextile :: PandocMonad m
@@ -110,7 +110,7 @@ noteBlock = try $ do
   startPos <- getPosition
   ref <- noteMarker
   optional blankline
-  contents <- liftM unlines $ many1Till anyLine (blanklines <|> noteBlock)
+  contents <- fmap unlines $ many1Till anyLine (blanklines <|> noteBlock)
   endPos <- getPosition
   let newnote = (ref, contents ++ "\n")
   st <- getState
@@ -468,7 +468,7 @@ inlineMarkup = choice [ simpleInline (string "??") (B.cite [])
                       , simpleInline (string "__") B.emph
                       , simpleInline (char '*') B.strong
                       , simpleInline (char '_') B.emph
-                      , simpleInline (char '+') B.emph  -- approximates underline
+                      , simpleInline (char '+') underlineSpan
                       , simpleInline (char '-' <* notFollowedBy (char '-')) B.strikeout
                       , simpleInline (char '^') B.superscript
                       , simpleInline (char '~') B.subscript

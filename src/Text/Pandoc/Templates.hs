@@ -1,5 +1,5 @@
 {-# LANGUAGE FlexibleInstances          #-}
-{-# LANGUAGE GeneralizedNewtypeDeriving #-}
+
 {-# LANGUAGE OverloadedStrings          #-}
 {-# LANGUAGE TypeSynonymInstances       #-}
 {-
@@ -44,7 +44,7 @@ import qualified Data.Text as T
 import System.FilePath ((<.>), (</>))
 import Text.DocTemplates (Template, TemplateTarget, applyTemplate,
                           compileTemplate, renderTemplate, varListToJSON)
-import Text.Pandoc.Class (readDataFile, PandocMonad)
+import Text.Pandoc.Class (PandocMonad, readDataFile)
 import Text.Pandoc.Error
 import qualified Text.Pandoc.UTF8 as UTF8
 
@@ -77,7 +77,7 @@ getDefaultTemplate writer = do
 -- raises an error if compilation fails.
 renderTemplate' :: (PandocMonad m, ToJSON a, TemplateTarget b)
                 => String -> a -> m b
-renderTemplate' template context = do
+renderTemplate' template context =
   case applyTemplate (T.pack template) context of
        Left e  -> throwError (PandocTemplateError e)
        Right r -> return r

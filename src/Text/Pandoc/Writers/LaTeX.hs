@@ -45,7 +45,7 @@ import Data.Maybe (catMaybes, fromMaybe, isJust)
 import Data.Text (Text)
 import qualified Data.Text as T
 import Network.URI (unEscapeString)
-import Text.Pandoc.BCP47 (Lang(..), getLang, renderLang)
+import Text.Pandoc.BCP47 (Lang (..), getLang, renderLang)
 import Text.Pandoc.Class (PandocMonad, report, toLang)
 import Text.Pandoc.Definition
 import Text.Pandoc.Highlighting (formatLaTeXBlock, formatLaTeXInline, highlight,
@@ -1001,7 +1001,7 @@ inlineToLaTeX (Code (_,classes,_) str) = do
   inItem <- gets stInItem
   let listingsCode = do
         let listingsopt = case getListingsLanguage classes of
-                               Just l -> "[language=" ++ mbBraced l ++ "]"
+                               Just l  -> "[language=" ++ mbBraced l ++ "]"
                                Nothing -> ""
         inNote <- gets stInNote
         when inNote $ modify $ \s -> s{ stVerbInNote = True }

@@ -49,4 +49,3 @@ data ExpansionPoint = ExpandWhenDefined | ExpandWhenUsed
 
 data Macro = Macro ExpansionPoint Int (Maybe [Tok]) [Tok]
      deriving Show
-

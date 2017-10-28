@@ -34,11 +34,11 @@ module Text.Pandoc.CSV (
   ParseError
 ) where
 
-import Text.Parsec
-import Text.Parsec.Text (Parser)
+import Control.Monad (void)
 import Data.Text (Text)
 import qualified Data.Text as T
-import Control.Monad (void)
+import Text.Parsec
+import Text.Parsec.Text (Parser)
 
 data CSVOptions = CSVOptions{
     csvDelim     :: Char
@@ -79,7 +79,7 @@ pCSVQuotedCell opts = do
   return $ T.pack res
 
 escaped :: CSVOptions -> Parser Char
-escaped opts = do
+escaped opts =
   case csvEscape opts of
        Nothing -> try $ char (csvQuote opts) >> char (csvQuote opts)
        Just c  -> try $ char c >> noneOf "\r\n"
@@ -100,4 +100,3 @@ endline :: Parser ()
 endline = do
   optional (void $ char '\r')
   void $ char '\n'
-

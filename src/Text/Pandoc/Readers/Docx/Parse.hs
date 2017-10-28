@@ -303,8 +303,7 @@ archiveToDocument zf = do
 
 elemToBody :: NameSpaces -> Element -> D Body
 elemToBody ns element | isElem ns "w" "body" element =
-  mapD (elemToBodyPart ns) (elChildren element) >>=
-  (\bps -> return $ Body bps)
+  fmap Body (mapD (elemToBodyPart ns) (elChildren element))
 elemToBody _ _ = throwError WrongElem
 
 archiveToStyles :: Archive -> (CharStyleMap, ParStyleMap)
@@ -329,7 +328,7 @@ isBasedOnStyle ns element parentStyle
   , styleType == cStyleType parentStyle
   , Just basedOnVal <- findChildByName ns "w" "basedOn" element >>=
                        findAttrByName ns "w" "val"
-  , Just ps <- parentStyle = (basedOnVal == getStyleId ps)
+  , Just ps <- parentStyle = basedOnVal == getStyleId ps
   | isElem ns "w" "style" element
   , Just styleType <- findAttrByName ns "w" "type" element
   , styleType == cStyleType parentStyle
@@ -371,10 +370,10 @@ getStyleChildren ns element parentStyle
 
 buildBasedOnList :: (ElemToStyle a) => NameSpaces -> Element -> Maybe a -> [a]
 buildBasedOnList ns element rootStyle =
-  case (getStyleChildren ns element rootStyle) of
+  case getStyleChildren ns element rootStyle of
     [] -> []
     stys -> stys ++
-            (concatMap (\s -> buildBasedOnList ns element (Just s)) stys)
+            concatMap (buildBasedOnList ns element . Just) stys
 
 archiveToNotes :: Archive -> Notes
 archiveToNotes zf =
@@ -389,8 +388,8 @@ archiveToNotes zf =
         Just e  -> elemToNameSpaces e
         Nothing -> []
       ns = unionBy (\x y -> fst x == fst y) fn_namespaces en_namespaces
-      fn = fnElem >>= (elemToNotes ns "footnote")
-      en = enElem >>= (elemToNotes ns "endnote")
+      fn = fnElem >>= elemToNotes ns "footnote"
+      en = enElem >>= elemToNotes ns "endnote"
   in
    Notes ns fn en
 
@@ -401,7 +400,7 @@ archiveToComments zf =
       cmts_namespaces = case cmtsElem of
         Just e  -> elemToNameSpaces e
         Nothing -> []
-      cmts = (elemToComments cmts_namespaces) <$> cmtsElem
+      cmts = elemToComments cmts_namespaces <$> cmtsElem
   in
     case cmts of
       Just c  -> Comments cmts_namespaces c
@@ -442,8 +441,7 @@ lookupLevel :: String -> String -> Numbering -> Maybe Level
 lookupLevel numId ilvl (Numbering _ numbs absNumbs) = do
   absNumId <- lookup numId $ map (\(Numb nid absnumid) -> (nid, absnumid)) numbs
   lvls <- lookup absNumId $ map (\(AbstractNumb aid ls) -> (aid, ls)) absNumbs
-  lvl  <- lookup ilvl $ map (\l@(i, _, _, _) -> (i, l)) lvls
-  return lvl
+  lookup ilvl $ map (\l@(i, _, _, _) -> (i, l)) lvls
 
 
 numElemToNum :: NameSpaces -> Element -> Maybe Numb
@@ -479,7 +477,7 @@ levelElemToLevel ns element
 levelElemToLevel _ _ = Nothing
 
 archiveToNumbering' :: Archive -> Maybe Numbering
-archiveToNumbering' zf = do
+archiveToNumbering' zf =
   case findEntryByPath "word/numbering.xml" zf of
     Nothing -> Just $ Numbering [] [] []
     Just entry -> do
@@ -503,7 +501,8 @@ elemToNotes ns notetype element
                          (\a -> Just (a, e)))
                   (findChildrenByName ns "w" notetype element)
       in
-       Just $ M.fromList $ pairs
+       Just $
+       M.fromList pairs
 elemToNotes _ _ _ = Nothing
 
 elemToComments :: NameSpaces -> Element -> M.Map String Element
@@ -514,7 +513,7 @@ elemToComments ns element
                          (\a -> Just (a, e)))
                   (findChildrenByName ns "w" "comment" element)
       in
-       M.fromList $ pairs
+       M.fromList pairs
 elemToComments _ _ = M.empty
 
 
@@ -577,7 +576,7 @@ testBitMask :: String -> Int -> Bool
 testBitMask bitMaskS n =
   case (reads ("0x" ++ bitMaskS) :: [(Int, String)]) of
     []            -> False
-    ((n', _) : _) -> ((n' .|. n) /= 0)
+    ((n', _) : _) -> (n' .|. n) /= 0
 
 stringToInteger :: String -> Maybe Integer
 stringToInteger s = listToMaybe $ map fst (reads s :: [(Integer, String)])
@@ -654,12 +653,8 @@ getTitleAndAlt :: NameSpaces -> Element -> (String, String)
 getTitleAndAlt ns element =
   let mbDocPr = findChildByName ns "wp" "inline" element >>=
                 findChildByName ns "wp" "docPr"
-      title = case mbDocPr >>= findAttrByName ns "" "title" of
-                Just title' -> title'
-                Nothing     -> ""
-      alt = case mbDocPr >>= findAttrByName ns "" "descr" of
-              Just alt' -> alt'
-              Nothing   -> ""
+      title = fromMaybe "" (mbDocPr >>= findAttrByName ns "" "title")
+      alt = fromMaybe "" (mbDocPr >>= findAttrByName ns "" "descr")
   in (title, alt)
 
 elemToParPart :: NameSpaces -> Element -> D ParPart
@@ -727,7 +722,7 @@ elemToParPart ns element
     runs <- mapD (elemToRun ns) (elChildren element)
     rels <- asks envRelationships
     case lookupRelationship location relId rels of
-      Just target -> do
+      Just target ->
          case findAttrByName ns "w" "anchor" element of
              Just anchor -> return $ ExternalHyperLink (target ++ '#':anchor) runs
              Nothing -> return $ ExternalHyperLink target runs
@@ -750,7 +745,7 @@ elemToParPart ns element
     return $ CommentEnd cmtId
 elemToParPart ns element
   | isElem ns "m" "oMath" element =
-    (eitherToD $ readOMML $ showElement element) >>= (return . PlainOMath)
+    fmap PlainOMath (eitherToD $ readOMML $ showElement element)
 elemToParPart _ _ = throwError WrongElem
 
 elemToCommentStart :: NameSpaces -> Element -> D ParPart
@@ -764,10 +759,10 @@ elemToCommentStart ns element
 elemToCommentStart _ _ = throwError WrongElem
 
 lookupFootnote :: String -> Notes -> Maybe Element
-lookupFootnote s (Notes _ fns _) = fns >>= (M.lookup s)
+lookupFootnote s (Notes _ fns _) = fns >>= M.lookup s
 
 lookupEndnote :: String -> Notes -> Maybe Element
-lookupEndnote s (Notes _ _ ens) = ens >>= (M.lookup s)
+lookupEndnote s (Notes _ _ ens) = ens >>= M.lookup s
 
 elemToExtent :: Element -> Extent
 elemToExtent drawingElem =
@@ -1035,11 +1030,10 @@ elemToRunElems ns element
        let font = do
                     fontElem <- findElement (qualName "rFonts") element
                     stringToFont =<<
-                      (foldr (<|>) Nothing $
+                      foldr (<|>) Nothing (
                         map (flip findAttr fontElem . qualName) ["ascii", "hAnsi"])
        local (setFont font) (mapD (elemToRunElem ns) (elChildren element))
 elemToRunElems _ _ = throwError WrongElem
 
 setFont :: Maybe Font -> ReaderEnv -> ReaderEnv
 setFont f s = s{envFont = f}
-

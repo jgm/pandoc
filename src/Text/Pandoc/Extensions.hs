@@ -45,14 +45,14 @@ module Text.Pandoc.Extensions ( Extension(..)
                               , githubMarkdownExtensions
                               , multimarkdownExtensions )
 where
+import Data.Aeson (FromJSON (..), ToJSON (..), defaultOptions,
+                   genericToEncoding)
 import Data.Bits (clearBit, setBit, testBit, (.|.))
 import Data.Data (Data)
 import Data.Typeable (Typeable)
 import GHC.Generics (Generic)
 import Text.Pandoc.Shared (safeRead)
 import Text.Parsec
-import Data.Aeson (ToJSON(..), FromJSON(..),
-                   genericToEncoding, defaultOptions)
 
 newtype Extensions = Extensions Integer
   deriving (Show, Read, Eq, Ord, Data, Typeable, Generic)

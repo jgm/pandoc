@@ -1,6 +1,8 @@
-{-# LANGUAGE RelaxedPolyRec, FlexibleInstances, TypeSynonymInstances #-}
-{-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE FlexibleContexts     #-}
+{-# LANGUAGE FlexibleInstances    #-}
+{-# LANGUAGE OverloadedStrings    #-}
+{-# LANGUAGE RelaxedPolyRec       #-}
+{-# LANGUAGE TypeSynonymInstances #-}
 
 {- |
    Module      : Text.Pandoc.Readers.TikiWiki
@@ -19,20 +21,19 @@ module Text.Pandoc.Readers.TikiWiki ( readTikiWiki
 
 import Control.Monad
 import Control.Monad.Except (throwError)
-import Text.Pandoc.Definition
-import qualified Text.Pandoc.Builder as B
-import Text.Pandoc.Options
-import Text.Pandoc.Parsing hiding (enclosed, nested)
-import Text.Printf (printf)
-import Text.Pandoc.XML (fromEntities)
-import Text.Pandoc.Class (PandocMonad(..), CommonState(..))
-import Text.Pandoc.Shared (crFilter)
-import Text.Pandoc.Logging (Verbosity(..))
-import Data.Maybe (fromMaybe)
-import Data.List (intercalate)
 import qualified Data.Foldable as F
+import Data.Maybe (fromMaybe)
 import Data.Text (Text)
 import qualified Data.Text as T
+import qualified Text.Pandoc.Builder as B
+import Text.Pandoc.Class (CommonState (..), PandocMonad (..))
+import Text.Pandoc.Definition
+import Text.Pandoc.Logging (Verbosity (..))
+import Text.Pandoc.Options
+import Text.Pandoc.Parsing hiding (enclosed, nested)
+import Text.Pandoc.Shared (crFilter)
+import Text.Pandoc.XML (fromEntities)
+import Text.Printf (printf)
 
 -- | Read TikiWiki from an input string and return a Pandoc document.
 readTikiWiki :: PandocMonad m
@@ -56,7 +57,7 @@ tryMsg :: PandocMonad m => String -> TikiWikiParser m a -> TikiWikiParser m a
 tryMsg msg p = try p <?> msg
 
 skip :: PandocMonad m => TikiWikiParser m a -> TikiWikiParser m ()
-skip parser = parser >> return ()
+skip parser = Control.Monad.void parser
 
 nested :: PandocMonad m => TikiWikiParser m a -> TikiWikiParser m a
 nested p = do
@@ -86,7 +87,7 @@ block = do
          <|> blockElements
          <|> para
   skipMany blankline
-  when (verbosity >= INFO) $ do
+  when (verbosity >= INFO) $
     trace (printf "line %d: %s" (sourceLine pos) (take 60 $ show $ B.toList res))
   return res
 
@@ -110,7 +111,7 @@ hr = try $ do
   string "----"
   many (char '-')
   newline
-  return $ B.horizontalRule
+  return B.horizontalRule
 
 -- ! header
 --
@@ -120,18 +121,18 @@ hr = try $ do
 --
 header :: PandocMonad m => TikiWikiParser m B.Blocks
 header = tryMsg "header" $ do
-  level <- many1 (char '!') >>= return . length
+  level <- fmap length (many1 (char '!'))
   guard $ level <= 6
   skipSpaces
   content <- B.trimInlines . mconcat <$> manyTill inline newline
   attr <- registerHeader nullAttr content
-  return $ B.headerWith attr level $ content
+  return $B.headerWith attr level content
 
 tableRow :: PandocMonad m => TikiWikiParser m [B.Blocks]
 tableRow = try $ do
---  row <- sepBy1 (many1Till inline $ oneOf "\n|") (try $ string "|" <* notFollowedBy (oneOf "|\n")) 
+--  row <- sepBy1 (many1Till inline $ oneOf "\n|") (try $ string "|" <* notFollowedBy (oneOf "|\n"))
 --  return $ map (B.plain . mconcat) row
-  row <- sepBy1 ((many1 $ noneOf "\n|") >>= parseColumn) (try $ string "|" <* notFollowedBy (oneOf "|\n")) 
+  row <- sepBy1 (many1 (noneOf "\n|") >>= parseColumn) (try $ string "|" <* notFollowedBy (oneOf "|\n"))
   return $ map B.plain row
   where
     parseColumn x = do
@@ -155,7 +156,7 @@ tableRow = try $ do
 -- || Orange | Apple     | more
 --  Bread  | Pie       | more
 --  Butter | Ice cream | and more ||
--- 
+--
 table :: PandocMonad m => TikiWikiParser m B.Blocks
 table = try $ do
   string "||"
@@ -163,14 +164,14 @@ table = try $ do
   string "||"
   newline
   -- return $ B.simpleTable (headers rows) $ trace ("rows: " ++ (show rows)) rows
-  return $ B.simpleTable (headers rows) $ rows
+  return $B.simpleTable (headers rows) rows
   where
     -- The headers are as many empty srings as the number of columns
     -- in the first row
-    headers rows = map (B.plain . B.str) $ take (length $ rows !! 0) $ repeat ""
+    headers rows = map (B.plain . B.str) $replicate (length $ rows !! 0) ""
 
 para :: PandocMonad m => TikiWikiParser m B.Blocks
-para = many1Till inline endOfParaElement >>= return . result . mconcat
+para =  fmap (result . mconcat) ( many1Till inline endOfParaElement)
  where
    endOfParaElement = lookAhead $ endOfInput <|> endOfPara <|> newBlockElement
    endOfInput       = try $ skipMany blankline >> skipSpaces >> eof
@@ -187,7 +188,7 @@ para = many1Till inline endOfParaElement >>= return . result . mconcat
 --
 definitionList :: PandocMonad m => TikiWikiParser m B.Blocks
 definitionList = tryMsg "definitionList" $ do
-  elements <- many1 $ parseDefinitionListItem
+  elements <-many1 parseDefinitionListItem
   return $ B.definitionList elements
   where
     parseDefinitionListItem :: PandocMonad m => TikiWikiParser m (B.Inlines, [B.Blocks])
@@ -195,7 +196,7 @@ definitionList = tryMsg "definitionList" $ do
       skipSpaces >> char ';' <* skipSpaces
       term <- many1Till inline $ char ':' <* skipSpaces
       line <- listItemLine 1
-      return $ (mconcat term, [B.plain line])
+      return (mconcat term, [B.plain line])
 
 data ListType = None | Numbered | Bullet deriving (Ord, Eq, Show)
 
@@ -231,15 +232,15 @@ mixedList = try $ do
 -- figre out a fold or something.
 fixListNesting :: [B.Blocks] -> [B.Blocks]
 fixListNesting [] = []
-fixListNesting (first:[]) = [recurseOnList first]
+fixListNesting [first] = [recurseOnList first]
 -- fixListNesting nestall | trace ("\n\nfixListNesting: " ++ (show nestall)) False = undefined
--- fixListNesting nestall@(first:second:rest) = 
-fixListNesting (first:second:rest) = 
+-- fixListNesting nestall@(first:second:rest) =
+fixListNesting (first:second:rest) =
   let secondBlock = head $ B.toList second in
     case secondBlock of
-      BulletList _ -> fixListNesting $ [(mappend (recurseOnList first) (recurseOnList second))] ++ rest
-      OrderedList _ _ -> fixListNesting $ [(mappend (recurseOnList first) (recurseOnList second))] ++ rest
-      _ -> [recurseOnList first] ++ fixListNesting (second:rest)
+      BulletList _ -> fixListNesting $ (mappend (recurseOnList first) (recurseOnList second)) : rest
+      OrderedList _ _ -> fixListNesting $ (mappend (recurseOnList first) (recurseOnList second)) : rest
+      _ -> recurseOnList first : fixListNesting (second:rest)
 
 -- This function walks the Block structure for fixListNesting,
 -- because it's a bit complicated, what with converting to and from
@@ -247,7 +248,7 @@ fixListNesting (first:second:rest) =
 recurseOnList :: B.Blocks -> B.Blocks
 -- recurseOnList item | trace ("rOL: " ++ (show $ length $ B.toList item) ++ ", " ++ (show $ B.toList item)) False = undefined
 recurseOnList items
-  | (length $ B.toList items) == 1 =
+  | length (B.toList items) == 1 =
     let itemBlock = head $ B.toList items in
       case itemBlock of
         BulletList listItems -> B.bulletList $ fixListNesting $ map B.fromList listItems
@@ -270,11 +271,11 @@ recurseOnList items
 -- sections.
 spanFoldUpList :: ListNesting -> [(ListNesting, B.Blocks)] -> [B.Blocks]
 spanFoldUpList _ [] = []
-spanFoldUpList ln (first:[]) =
+spanFoldUpList ln [first] =
   listWrap ln (fst first) [snd first]
 spanFoldUpList ln (first:rest) =
   let (span1, span2) = span (splitListNesting (fst first)) rest
-      newTree1 = listWrap ln (fst first) $ [snd first] ++ spanFoldUpList (fst first) span1
+      newTree1 = listWrap ln (fst first) $ snd first : spanFoldUpList (fst first) span1
       newTree2 = spanFoldUpList ln span2
   in
     newTree1 ++ newTree2
@@ -283,14 +284,13 @@ spanFoldUpList ln (first:rest) =
 -- item, which is true if the second item is at a deeper nesting
 -- level and of the same type.
 splitListNesting :: ListNesting -> (ListNesting, B.Blocks) -> Bool
-splitListNesting ln1 (ln2, _) =
-  if (lnnest ln1) < (lnnest ln2) then
-    True
-  else
-    if ln1 == ln2 then
-      True
-    else
-      False
+splitListNesting ln1 (ln2, _)
+  | (lnnest ln1) < (lnnest ln2) =
+  True
+  | ln1 == ln2 =
+  True
+  | otherwise =
+  False
 
 -- If we've moved to a deeper nesting level, wrap the new level in
 -- the appropriate type of list.
@@ -300,8 +300,8 @@ listWrap upperLN curLN retTree =
     retTree
   else
     case lntype curLN of
-      None -> []
-      Bullet -> [B.bulletList retTree]
+      None     -> []
+      Bullet   -> [B.bulletList retTree]
       Numbered -> [B.orderedList retTree]
 
 listItem :: PandocMonad m => TikiWikiParser m (ListNesting, B.Blocks)
@@ -321,7 +321,7 @@ bulletItem = try $ do
   prefix <- many1 $ char '*'
   many1 $ char ' '
   content <- listItemLine (length prefix)
-  return $ (LN Bullet (length prefix), B.plain content)
+  return (LN Bullet (length prefix), B.plain content)
 
 -- # Start each line
 -- # with a number (1.).
@@ -333,17 +333,17 @@ numberedItem = try $ do
   prefix <- many1 $ char '#'
   many1 $ char ' '
   content <- listItemLine (length prefix)
-  return $ (LN Numbered (length prefix), B.plain content)
+  return (LN Numbered (length prefix), B.plain content)
 
 listItemLine :: PandocMonad m => Int -> TikiWikiParser m B.Inlines
-listItemLine nest = lineContent >>= parseContent >>= return
+listItemLine nest = lineContent >>= parseContent
   where
     lineContent = do
       content <- anyLine
       continuation <- optionMaybe listContinuation
-      return $ filterSpaces content ++ "\n" ++ (maybe "" id continuation)
+      return $ filterSpaces content ++ "\n" ++ maybe "" id continuation
     filterSpaces = reverse . dropWhile (== ' ') . reverse
-    listContinuation = string (take nest (repeat '+')) >> lineContent
+    listContinuation = string (replicate nest '+') >> lineContent
     parseContent x = do
       parsed <- parseFromString (many1 inline) x
       return $ mconcat parsed
@@ -371,7 +371,7 @@ codeMacro = try $ do
   string ")}"
   body <- manyTill anyChar (try (string "{CODE}"))
   newline
-  if length rawAttrs > 0
+  if not (null rawAttrs)
     then
       return $ B.codeBlockWith (mungeAttrs rawAttrs) body
     else
@@ -410,7 +410,7 @@ inline = choice [ whitespace
                 ] <?> "inline"
 
 whitespace :: PandocMonad m => TikiWikiParser m B.Inlines
-whitespace = (lb <|> regsp) >>= return
+whitespace = (lb <|> regsp)
   where lb = try $ skipMany spaceChar >> linebreak >> return B.space
         regsp = try $ skipMany1 spaceChar >> return B.space
 
@@ -418,7 +418,7 @@ whitespace = (lb <|> regsp) >>= return
 -- for this
 nbsp :: PandocMonad m => TikiWikiParser m B.Inlines
 nbsp = try $ do
-  string "~hs~" 
+  string "~hs~"
   return $ B.str " NOT SUPPORTED BEGIN: ~hs~ (non-breaking space) :END "
 
 -- UNSUPPORTED, as the desired behaviour (that the data be
@@ -426,7 +426,7 @@ nbsp = try $ do
 -- silently throwing data out seemed bad.
 htmlComment :: PandocMonad m => TikiWikiParser m B.Inlines
 htmlComment = try $ do
-  string "~hc~" 
+  string "~hc~"
   inner <- many1 $ noneOf "~"
   string "~/hc~"
   return $ B.str $ " NOT SUPPORTED: ~hc~ (html comment opener) BEGIN: " ++ inner ++ " ~/hc~ :END "
@@ -450,7 +450,7 @@ enclosed sep p = between sep (try $ sep <* endMarker) p
 nestedInlines :: (Show a, PandocMonad m) => TikiWikiParser m a -> TikiWikiParser m B.Inlines
 nestedInlines end = innerSpace <|> nestedInline
   where
-    innerSpace   = try $ whitespace <* (notFollowedBy end)
+    innerSpace   = try $ whitespace <* notFollowedBy end
     nestedInline = notFollowedBy whitespace >> nested inline
 
 -- {img attId="39" imalign="right" link="http://info.tikiwiki.org" alt="Panama Hat"}
@@ -468,13 +468,13 @@ image = try $ do
   let title = fromMaybe src $ lookup "desc" rawAttrs
   let alt = fromMaybe title $ lookup "alt" rawAttrs
   let classes = map fst $ filter (\(_,b) -> b == "" || b == "y") rawAttrs
-  if length src > 0
+  if not (null src)
     then
       return $ B.imageWith ("", classes, rawAttrs) src title (B.str alt)
     else
-      return $ B.str $ " NOT SUPPORTED: image without src attribute BEGIN: {img " ++ (printAttrs rawAttrs) ++ "} :END "
+      return $ B.str $ " NOT SUPPORTED: image without src attribute BEGIN: {img " ++ printAttrs rawAttrs ++ "} :END "
   where
-    printAttrs attrs = intercalate " " $ map (\(a, b) -> a ++ "=\"" ++ b ++ "\"") attrs
+    printAttrs attrs = unwords $ map (\(a, b) -> a ++ "=\"" ++ b ++ "\"") attrs
 
 imageAttr :: PandocMonad m => TikiWikiParser m (String, String)
 imageAttr = try $ do
@@ -489,11 +489,11 @@ imageAttr = try $ do
 
 -- __strong__
 strong :: PandocMonad m => TikiWikiParser m B.Inlines
-strong = try $ enclosed (string "__") nestedInlines >>= return . B.strong
+strong = try $ fmap B.strong (enclosed (string "__") nestedInlines)
 
 -- ''emph''
 emph :: PandocMonad m => TikiWikiParser m B.Inlines
-emph = try $ enclosed (string "''") nestedInlines >>= return . B.emph
+emph = try $ fmap B.emph (enclosed (string "''") nestedInlines)
 
 -- ~246~
 escapedChar :: PandocMonad m => TikiWikiParser m B.Inlines
@@ -501,7 +501,7 @@ escapedChar = try $ do
   string "~"
   inner <- many1 $ oneOf "0123456789"
   string "~"
-  return $ B.str $ [(toEnum ((read inner) :: Int)) :: Char]
+  return $B.str [(toEnum ((read inner) :: Int)) :: Char]
 
 -- UNSUPPORTED, as there doesn't seem to be any facility in calibre
 -- for this
@@ -541,10 +541,10 @@ boxed = try $ do
 
 -- --text--
 strikeout :: PandocMonad m => TikiWikiParser m B.Inlines
-strikeout = try $ enclosed (string "--") nestedInlines >>= return . B.strikeout
+strikeout = try $ fmap B.strikeout (enclosed (string "--") nestedInlines)
 
 nestedString :: (Show a, PandocMonad m) => TikiWikiParser m a -> TikiWikiParser m String
-nestedString end = innerSpace <|> (count 1 nonspaceChar)
+nestedString end = innerSpace <|> count 1 nonspaceChar
   where
     innerSpace = try $ many1 spaceChar <* notFollowedBy end
 
@@ -553,7 +553,7 @@ breakChars = try $ string "%%%" >> return B.linebreak
 
 -- superscript: foo{TAG(tag=>sup)}super{TAG}foo / bar{SUP()}super2{SUP}bar
 superTag :: PandocMonad m => TikiWikiParser m B.Inlines
-superTag = try $ between (string "{TAG(tag=>sup)}") (string "{TAG}") nestedString >>= return . B.superscript . B.text . fromEntities
+superTag = try $  fmap (B.superscript . B.text . fromEntities) ( between (string "{TAG(tag=>sup)}") (string "{TAG}") nestedString)
 
 superMacro :: PandocMonad m => TikiWikiParser m B.Inlines
 superMacro = try $ do
@@ -564,7 +564,7 @@ superMacro = try $ do
 
 -- subscript: baz{TAG(tag=>sub)}sub{TAG}qux / qux{SUB()}sub2{SUB}qux
 subTag :: PandocMonad m => TikiWikiParser m B.Inlines
-subTag = try $ between (string "{TAG(tag=>sub)}") (string "{TAG}") nestedString >>= return . B.subscript . B.text . fromEntities
+subTag = try $  fmap (B.subscript . B.text . fromEntities) ( between (string "{TAG(tag=>sub)}") (string "{TAG}") nestedString)
 
 subMacro :: PandocMonad m => TikiWikiParser m B.Inlines
 subMacro = try $ do
@@ -575,7 +575,7 @@ subMacro = try $ do
 
 -- -+text+-
 code :: PandocMonad m => TikiWikiParser m B.Inlines
-code = try $ between (string "-+") (string "+-") nestedString >>= return . B.code . fromEntities
+code = try $  fmap (B.code . fromEntities) ( between (string "-+") (string "+-") nestedString)
 
 macroAttr :: PandocMonad m => TikiWikiParser m (String, String)
 macroAttr = try $ do
@@ -588,8 +588,7 @@ macroAttr = try $ do
 
 macroAttrs :: PandocMonad m => TikiWikiParser m [(String, String)]
 macroAttrs = try $ do
-  attrs <- sepEndBy macroAttr spaces
-  return attrs
+  sepEndBy macroAttr spaces
 
 -- ~np~ __not bold__ ~/np~
 noparse :: PandocMonad m => TikiWikiParser m B.Inlines
@@ -599,10 +598,10 @@ noparse = try $ do
   return $ B.str body
 
 str :: PandocMonad m => TikiWikiParser m B.Inlines
-str = (many1 alphaNum <|> count 1 characterReference) >>= return . B.str
+str = fmap B.str (many1 alphaNum <|> count 1 characterReference)
 
 symbol :: PandocMonad m => TikiWikiParser m B.Inlines
-symbol = count 1 nonspaceChar >>= return . B.str
+symbol = fmap B.str (count 1 nonspaceChar)
 
 -- [[not a link]
 notExternalLink :: PandocMonad m => TikiWikiParser m B.Inlines
@@ -625,7 +624,7 @@ makeLink start middle end = try $ do
   (url, title, anchor) <- wikiLinkText start middle end
   parsedTitle <- parseFromString (many1 inline) title
   setState $ st{ stateAllowLinks = True }
-  return $ B.link (url++anchor) "" $ mconcat $ parsedTitle
+  return $ B.link (url++anchor) "" $mconcat parsedTitle
 
 wikiLinkText :: PandocMonad m => String -> String -> String -> TikiWikiParser m (String, String, String)
 wikiLinkText start middle end = do
@@ -641,9 +640,9 @@ wikiLinkText start middle end = do
       return (url, seg1, "")
   where
     linkContent      = do
-      (char '|')
+      char '|'
       mystr <- many (noneOf middle)
-      return $ mystr
+      return mystr
 
 externalLink :: PandocMonad m => TikiWikiParser m B.Inlines
 externalLink = makeLink "[" "]|" "]"
@@ -655,4 +654,3 @@ externalLink = makeLink "[" "]|" "]"
 -- [see also this other post](My Other Page) is perfectly valid.
 wikiLink :: PandocMonad m => TikiWikiParser m B.Inlines
 wikiLink = makeLink "((" ")|" "))"
-

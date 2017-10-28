@@ -35,9 +35,9 @@ import Text.Pandoc.Options (ReaderOptions)
 import Text.Pandoc.Shared (safeRead)
 
 import Control.Monad.Except (throwError)
+import Data.Text (Text, unpack)
 import Text.Pandoc.Class
 import Text.Pandoc.Error
-import Data.Text (Text, unpack)
 
 -- | Read native formatted text and return a Pandoc document.
 -- The input may be a full pandoc document, a block list, a block,
@@ -69,4 +69,3 @@ readInlines s = maybe ((:[]) <$> readInline s) Right (safeRead (unpack s))
 
 readInline :: Text -> Either PandocError Inline
 readInline s = maybe (Left . PandocParseError $ "Could not read: " ++ unpack s) Right (safeRead (unpack s))
-

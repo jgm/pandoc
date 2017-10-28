@@ -34,19 +34,19 @@ Conversion of 'Pandoc' documents to EPUB.
 module Text.Pandoc.Writers.EPUB ( writeEPUB2, writeEPUB3 ) where
 import Codec.Archive.Zip (Entry, addEntryToArchive, eRelativePath, emptyArchive,
                           fromArchive, fromEntry, toEntry)
-import Control.Monad (mplus, when, unless, zipWithM)
+import Control.Monad (mplus, unless, when, zipWithM)
 import Control.Monad.Except (catchError, throwError)
-import Control.Monad.State.Strict (State, StateT, evalState, evalStateT, get, gets,
-                            lift, modify, put)
+import Control.Monad.State.Strict (State, StateT, evalState, evalStateT, get,
+                                   gets, lift, modify, put)
 import qualified Data.ByteString.Lazy as B
 import qualified Data.ByteString.Lazy.Char8 as B8
-import qualified Data.Text.Lazy as TL
-import qualified Data.Text as TS
-import Data.Char (isAlphaNum, isDigit, toLower, isAscii)
+import Data.Char (isAlphaNum, isAscii, isDigit, toLower)
 import Data.List (intercalate, isInfixOf, isPrefixOf)
 import qualified Data.Map as M
 import Data.Maybe (catMaybes, fromMaybe)
 import qualified Data.Set as Set
+import qualified Data.Text as TS
+import qualified Data.Text.Lazy as TL
 import Network.HTTP (urlEncode)
 import System.FilePath (takeExtension, takeFileName)
 import Text.HTML.TagSoup (Tag (TagOpen), fromAttrib, parseTags)
@@ -71,7 +71,7 @@ import Text.Pandoc.Writers.HTML (writeHtmlStringForEPUB)
 import Text.Printf (printf)
 import Text.XML.Light (Attr (..), Element (..), Node (..), QName (..),
                        add_attrs, lookupAttr, node, onlyElems, parseXML,
-                       ppElement, strContent, unode, unqual, showElement)
+                       ppElement, showElement, strContent, unode, unqual)
 
 -- A Chapter includes a list of blocks and maybe a section
 -- number offset.  Note, some chapters are unnumbered. The section
@@ -709,7 +709,7 @@ pandocToEPUB version opts doc@(Pandoc meta _) = do
                                 Right x -> x
                 -- can't have a element inside a...
                 delink (Link _ ils _) = Span ("", [], []) ils
-                delink x = x
+                delink x              = x
 
   let navtag = if epub3 then "nav" else "div"
   tocBlocks <- lift $ evalStateT (mapM (navPointNode navXhtmlFormatter) secs) 1

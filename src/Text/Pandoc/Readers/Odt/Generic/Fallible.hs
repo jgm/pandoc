@@ -1,4 +1,4 @@
-{-# LANGUAGE GeneralizedNewtypeDeriving #-}
+
 
 {-
 Copyright (C) 2015 Martin Linnemann <theCodingMarlin@googlemail.com>
@@ -39,7 +39,7 @@ compatible instances of "ArrowChoice".
 -- We export everything
 module Text.Pandoc.Readers.Odt.Generic.Fallible where
 
-import           Data.Monoid ((<>))
+import Data.Monoid ((<>))
 
 -- | Default for now. Will probably become a class at some point.
 type Failure = ()
@@ -121,6 +121,6 @@ newtype SuccessList a = SuccessList { collectNonFailing :: [a] }
   deriving ( Eq, Ord, Show )
 
 instance ChoiceVector SuccessList  where
-  spreadChoice = Right . SuccessList . (foldr unTagRight []) . collectNonFailing
+  spreadChoice = Right . SuccessList . foldr unTagRight [] . collectNonFailing
     where unTagRight (Right x) = (x:)
           unTagRight _         = id

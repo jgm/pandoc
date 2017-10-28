@@ -16,9 +16,9 @@ module Text.Pandoc.Readers.Haddock
 
 import Control.Monad.Except (throwError)
 import Data.List (intersperse, stripPrefix)
-import Data.Text (Text, unpack)
 import Data.Maybe (fromMaybe)
 import Data.Monoid ((<>))
+import Data.Text (Text, unpack)
 import Documentation.Haddock.Parser
 import Documentation.Haddock.Types
 import Text.Pandoc.Builder (Blocks, Inlines)
@@ -27,7 +27,7 @@ import Text.Pandoc.Class (PandocMonad)
 import Text.Pandoc.Definition
 import Text.Pandoc.Error
 import Text.Pandoc.Options
-import Text.Pandoc.Shared (splitBy, trim, crFilter)
+import Text.Pandoc.Shared (crFilter, splitBy, trim)
 
 
 -- | Parse Haddock markup and return a 'Pandoc' document.
@@ -142,7 +142,7 @@ makeExample prompt expression result =
         <> B.space
         <> B.codeWith ([], ["haskell","expr"], []) (trim expression)
         <> B.linebreak
-        <> (mconcat $ intersperse B.linebreak $ map coder result')
+        <> mconcat (intersperse B.linebreak $ map coder result')
   where
     -- 1. drop trailing whitespace from the prompt, remember the prefix
     prefix = takeWhile (`elem` " \t") prompt

@@ -1,5 +1,5 @@
 .\"t
-.TH PANDOC 1 "March 26, 2017" "pandoc"
+.TH PANDOC 1 "October 27, 2017" "pandoc"
 .SH NAME
 pandoc - general markup converter
 .SH SYNOPSIS
@@ -11,18 +11,19 @@ Pandoc is a Haskell library for converting from one markup format to
 another, and a command\-line tool that uses this library.
 It can read Markdown, CommonMark, PHP Markdown Extra, GitHub\-Flavored
 Markdown, MultiMarkdown, and (subsets of) Textile, reStructuredText,
-HTML, LaTeX, MediaWiki markup, TWiki markup, TikiWiki markup, Haddock
-markup, OPML, Emacs Org mode, DocBook, Muse, txt2tags, Vimwiki, EPUB,
-ODT, and Word docx; and it can write plain text, Markdown, CommonMark,
-PHP Markdown Extra, GitHub\-Flavored Markdown, MultiMarkdown,
-reStructuredText, XHTML, HTML5, LaTeX (including \f[C]beamer\f[] slide
-shows), ConTeXt, RTF, OPML, DocBook, OpenDocument, ODT, Word docx, GNU
-Texinfo, MediaWiki markup, DokuWiki markup, ZimWiki markup, Haddock
-markup, EPUB (v2 or v3), FictionBook2, Textile, groff man, groff ms,
-Emacs Org mode, AsciiDoc, InDesign ICML, TEI Simple, Muse and Slidy,
-Slideous, DZSlides, reveal.js or S5 HTML slide shows.
+HTML, LaTeX, MediaWiki markup, TWiki markup, TikiWiki markup, Creole
+1.0, Haddock markup, OPML, Emacs Org mode, DocBook, Muse, txt2tags,
+Vimwiki, EPUB, ODT, and Word docx; and it can write plain text,
+Markdown, CommonMark, PHP Markdown Extra, GitHub\-Flavored Markdown,
+MultiMarkdown, reStructuredText, XHTML, HTML5, LaTeX (including
+\f[C]beamer\f[] slide shows), ConTeXt, RTF, OPML, DocBook, OpenDocument,
+ODT, Word docx, GNU Texinfo, MediaWiki markup, DokuWiki markup, ZimWiki
+markup, Haddock markup, EPUB (v2 or v3), FictionBook2, Textile, groff
+man, groff ms, Emacs Org mode, AsciiDoc, InDesign ICML, TEI Simple, Muse
+and Slidy, Slideous, DZSlides, reveal.js or S5 HTML slide shows.
 It can also produce PDF output on systems where LaTeX, ConTeXt,
-\f[C]pdfroff\f[], or \f[C]wkhtmltopdf\f[] is installed.
+\f[C]pdfroff\f[], \f[C]wkhtmltopdf\f[], \f[C]prince\f[], or
+\f[C]weasyprint\f[] is installed.
 .PP
 Pandoc's enhanced version of Markdown includes syntax for footnotes,
 tables, flexible ordered lists, definition lists, fenced code blocks,
@@ -236,11 +237,11 @@ Markdown), \f[C]markdown_strict\f[] (original unextended Markdown),
 (DocBook), \f[C]t2t\f[] (txt2tags), \f[C]docx\f[] (docx), \f[C]odt\f[]
 (ODT), \f[C]epub\f[] (EPUB), \f[C]opml\f[] (OPML), \f[C]org\f[] (Emacs
 Org mode), \f[C]mediawiki\f[] (MediaWiki markup), \f[C]twiki\f[] (TWiki
-markup), \f[C]tikiwiki\f[] (TikiWiki markup), \f[C]haddock\f[] (Haddock
-markup), or \f[C]latex\f[] (LaTeX).
+markup), \f[C]tikiwiki\f[] (TikiWiki markup), \f[C]creole\f[] (Creole
+1.0), \f[C]haddock\f[] (Haddock markup), or \f[C]latex\f[] (LaTeX).
 (\f[C]markdown_github\f[] provides deprecated and less accurate suppport
 for Github\-Flavored Markdown; please use \f[C]gfm\f[] instead, unless
-you use extensions that do not work with \f[C]gfm\f[].) If \f[C]+lhs\f[]
+you need to use extensions other than \f[C]smart\f[].) If \f[C]+lhs\f[]
 is appended to \f[C]markdown\f[], \f[C]rst\f[], \f[C]latex\f[], or
 \f[C]html\f[], the input will be treated as literate Haskell source: see
 Literate Haskell support, below.
@@ -485,13 +486,15 @@ writing filters in Haskell.
 Those who would prefer to write filters in python can use the module
 \f[C]pandocfilters\f[], installable from PyPI.
 There are also pandoc filter libraries in PHP, perl, and
-javascript/node.js.
+JavaScript/node.js.
 .PP
 In order of preference, pandoc will look for filters in
 .IP "1." 3
 a specified full or relative path (executable or non\-executable)
 .IP "2." 3
-\f[C]$DATADIR/filters\f[] (executable or non\-executable)
+\f[C]$DATADIR/filters\f[] (executable or non\-executable) where
+\f[C]$DATADIR\f[] is the user data directory (see
+\f[C]\-\-data\-dir\f[], above).
 .IP "3." 3
 \f[C]$PATH\f[] (executable only)
 .RE
@@ -1966,6 +1969,9 @@ We recommend tracking the changes in the default templates, and
 modifying your custom templates accordingly.
 An easy way to do this is to fork the pandoc\-templates repository and
 merge in changes after each pandoc release.
+.PP
+Templates may contain comments: anything on a line after \f[C]$\-\-\f[]
+will be treated as a comment and ignored.
 .SH PANDOC'S MARKDOWN
 .PP
 Pandoc understands an extended and slightly revised version of John
@@ -3801,6 +3807,49 @@ Use native pandoc \f[C]Span\f[] blocks for content inside
 For the most part this should give the same output as \f[C]raw_html\f[],
 but it makes it easier to write pandoc filters to manipulate groups of
 inlines.
+.SS Extension: \f[C]fenced_divs\f[]
+.PP
+Allow special fenced syntax for native \f[C]Div\f[] blocks.
+A Div starts with a fence containing at least three consecutive colons
+plus some attributes.
+The attributes may optionally be followed by another string of
+consecutive colons.
+The attribute syntax is exactly as in fenced code blocks (see
+[Extension\-fenced_code_attributes], above).
+As with fenced code blocks, one can use either attributes in curly
+braces or a single unbraced word, which will be treated as a class name.
+The Div ends with another line containing a string of at least three
+consecutive colons.
+The fenced Div should be separated by blank lines from preceding and
+following blocks.
+.PP
+Example:
+.IP
+.nf
+\f[C]
+:::::\ {#special\ .sidebar}
+Here\ is\ a\ paragraph.
+
+And\ another.
+:::::
+\f[]
+.fi
+.PP
+Fenced divs can be nested.
+Opening fences are distinguished because they \f[I]must\f[] have
+attributes:
+.IP
+.nf
+\f[C]
+:::\ Warning\ ::::::
+This\ is\ a\ warning.
+
+:::\ Danger
+This\ is\ a\ warning\ within\ a\ warning.
+:::
+::::::::::::::::::
+\f[]
+.fi
 .SS Extension: \f[C]raw_tex\f[]
 .PP
 In addition to raw HTML, pandoc allows raw LaTeX, TeX, and ConTeXt to be
@@ -4691,17 +4740,19 @@ variants are supported:
 \f[C]markdown_attribute\f[], \f[C]fenced_code_blocks\f[],
 \f[C]definition_lists\f[], \f[C]intraword_underscores\f[],
 \f[C]header_attributes\f[], \f[C]link_attributes\f[],
-\f[C]abbreviations\f[], \f[C]shortcut_reference_links\f[].
+\f[C]abbreviations\f[], \f[C]shortcut_reference_links\f[],
+\f[C]spaced_reference_links\f[].
 .RS
 .RE
 .TP
-.B \f[C]gfm\f[] and \f[C]markdown_github\f[] (GitHub\-Flavored Markdown)
+.B \f[C]markdown_github\f[] (deprecated GitHub\-Flavored Markdown)
 \f[C]pipe_tables\f[], \f[C]raw_html\f[], \f[C]fenced_code_blocks\f[],
-\f[C]auto_identifiers\f[], \f[C]ascii_identifiers\f[],
+\f[C]gfm_auto_identifiers\f[], \f[C]ascii_identifiers\f[],
 \f[C]backtick_code_blocks\f[], \f[C]autolink_bare_uris\f[],
-\f[C]intraword_underscores\f[], \f[C]strikeout\f[],
-\f[C]hard_line_breaks\f[], \f[C]emoji\f[],
-\f[C]shortcut_reference_links\f[], \f[C]angle_brackets_escapable\f[].
+\f[C]space_in_atx_header\f[], \f[C]intraword_underscores\f[],
+\f[C]strikeout\f[], \f[C]emoji\f[], \f[C]shortcut_reference_links\f[],
+\f[C]angle_brackets_escapable\f[],
+\f[C]lists_without_preceding_blankline\f[].
 .RS
 .RE
 .TP
@@ -4712,14 +4763,36 @@ variants are supported:
 \f[C]footnotes\f[], \f[C]definition_lists\f[],
 \f[C]all_symbols_escapable\f[], \f[C]implicit_header_references\f[],
 \f[C]auto_identifiers\f[], \f[C]mmd_header_identifiers\f[],
-\f[C]shortcut_reference_links\f[].
+\f[C]shortcut_reference_links\f[], \f[C]implicit_figures\f[],
+\f[C]superscript\f[], \f[C]subscript\f[], \f[C]backtick_code_blocks\f[],
+\f[C]spaced_reference_links\f[], \f[C]raw_attribute\f[].
 .RS
 .RE
 .TP
 .B \f[C]markdown_strict\f[] (Markdown.pl)
-\f[C]raw_html\f[]
+\f[C]raw_html\f[], \f[C]shortcut_reference_links\f[],
+\f[C]spaced_reference_links\f[].
 .RS
 .RE
+.PP
+We also support \f[C]gfm\f[] (GitHub\-Flavored Markdown) as a set of
+extensions on \f[C]commonmark\f[]:
+.PP
+: \f[C]pipe_tables\f[], \f[C]raw_html\f[], \f[C]fenced_code_blocks\f[],
+\f[C]auto_identifiers\f[], \f[C]ascii_identifiers\f[],
+\f[C]backtick_code_blocks\f[], \f[C]autolink_bare_uris\f[],
+\f[C]intraword_underscores\f[], \f[C]strikeout\f[],
+\f[C]hard_line_breaks\f[], \f[C]emoji\f[],
+\f[C]shortcut_reference_links\f[], \f[C]angle_brackets_escapable\f[].
+.IP
+.nf
+\f[C]
+These\ can\ all\ be\ individually\ disabled.\ Note,\ however,\ that
+`commonmark`\ and\ `gfm`\ have\ limited\ support\ for\ extensions:
+extensions\ other\ than\ those\ listed\ above\ (and\ `smart`)\ will\ have
+no\ effect\ on\ `commonmark`\ or\ `gfm`.
+\f[]
+.fi
 .SS Extensions with formats other than Markdown
 .PP
 Some of the extensions discussed above can be used with formats other
@@ -5314,7 +5387,7 @@ pandoc\ \-\-print\-default\-data\-file\ sample.lua
 .fi
 .SH AUTHORS
 .PP
-© 2006\-2017 John MacFarlane (jgm\@berkeley.edu).
+Copyright 2006\-2017 John MacFarlane (jgm\@berkeley.edu).
 Released under the GPL, version 2 or greater.
 This software carries no warranty of any kind.
 (See COPYRIGHT for full copyright and warranty notices.) For a full list

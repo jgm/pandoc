@@ -137,7 +137,7 @@ parseHtmlContentWithAttrs tag parser = do
     endOfContent = try $ skipMany blankline >> skipSpaces >> eof
 
 parseHtmlContent :: PandocMonad m => String -> MuseParser m a -> MuseParser m [a]
-parseHtmlContent tag p = liftM snd (parseHtmlContentWithAttrs tag p)
+parseHtmlContent tag p = fmap snd (parseHtmlContentWithAttrs tag p)
 
 --
 -- directive parsers
@@ -213,7 +213,7 @@ header = try $ do
   st <- stateParserContext <$> getState
   q <- stateQuoteContext <$> getState
   getPosition >>= \pos -> guard (st == NullState && q == NoQuote && sourceColumn pos == 1)
-  level <- liftM length $ many1 $ char '*'
+  level <- fmap length $ many1 $ char '*'
   guard $ level <= 5
   spaceChar
   content <- trimInlinesF . mconcat <$> manyTill inline eol
@@ -240,7 +240,7 @@ exampleTag = do
         chop = lchop . rchop
 
 literal :: PandocMonad m => MuseParser m (F Blocks)
-literal = liftM (return . rawBlock) $ htmlElement "literal"
+literal = fmap (return . rawBlock) $ htmlElement "literal"
   where
     format (_, _, kvs)        = fromMaybe "html" $ lookup "format" kvs
     rawBlock (attrs, content) = B.rawBlock (format attrs) content
@@ -268,7 +268,7 @@ quoteTag = withQuoteContext InDoubleQuote $ blockTag B.blockQuote "quote"
 divTag :: PandocMonad m => MuseParser m (F Blocks)
 divTag = do
   (attrs, content) <- parseHtmlContentWithAttrs "div" block
-  return $ (B.divWith attrs) <$> mconcat content
+  return $ B.divWith attrs <$> mconcat content
 
 verseLine :: PandocMonad m => MuseParser m String
 verseLine = do
@@ -296,7 +296,7 @@ para :: PandocMonad m => MuseParser m (F Blocks)
 para = do
  indent <- length <$> many spaceChar
  let f = if indent >= 2 && indent < 6 then B.blockQuote else id
- liftM (f . B.para) . trimInlinesF . mconcat <$> many1Till inline endOfParaElement
+ fmap (f . B.para) . trimInlinesF . mconcat <$> many1Till inline endOfParaElement
  where
    endOfParaElement = lookAhead $ endOfInput <|> endOfPara <|> newBlockElement
    endOfInput       = try $ skipMany blankline >> skipSpaces >> eof
@@ -481,7 +481,7 @@ museAppendElement tbl element =
       return tbl{ museTableCaption = inlines' }
 
 tableCell :: PandocMonad m => MuseParser m (F Blocks)
-tableCell = try $ liftM B.plain . trimInlinesF . mconcat <$> manyTill inline (lookAhead cellEnd)
+tableCell = try $ fmap B.plain . trimInlinesF . mconcat <$> manyTill inline (lookAhead cellEnd)
   where cellEnd = try $ void (many1 spaceChar >> char '|') <|> eol
 
 tableElements :: PandocMonad m => MuseParser m [MuseTableElement]
@@ -575,7 +575,7 @@ footnote = try $ do
         return $ B.note contents'
 
 whitespace :: PandocMonad m => MuseParser m (F Inlines)
-whitespace = liftM return (lb <|> regsp)
+whitespace = fmap return (lb <|> regsp)
   where lb = try $ skipMany spaceChar >> linebreak >> return B.space
         regsp = try $ skipMany1 spaceChar >> return B.space
 
@@ -655,10 +655,10 @@ codeTag = do
   return $ return $ B.codeWith attrs $ fromEntities content
 
 str :: PandocMonad m => MuseParser m (F Inlines)
-str = liftM (return . B.str) (many1 alphaNum <|> count 1 characterReference)
+str = fmap (return . B.str) (many1 alphaNum <|> count 1 characterReference)
 
 symbol :: PandocMonad m => MuseParser m (F Inlines)
-symbol = liftM (return . B.str) $ count 1 nonspaceChar
+symbol = fmap (return . B.str) $ count 1 nonspaceChar
 
 link :: PandocMonad m => MuseParser m (F Inlines)
 link = try $ do

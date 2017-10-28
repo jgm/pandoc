@@ -1,15 +1,15 @@
 module Tests.Readers.Odt (tests) where
 
 import Control.Monad (liftM)
-import qualified Data.ByteString.Lazy as B
 import qualified Data.ByteString as BS
-import qualified Text.Pandoc.UTF8 as UTF8
+import qualified Data.ByteString.Lazy as B
 import qualified Data.Map as M
 import Data.Text (unpack)
+import System.IO.Unsafe (unsafePerformIO)
 import Test.Tasty
 import Tests.Helpers
 import Text.Pandoc
-import System.IO.Unsafe (unsafePerformIO) -- TODO  temporary
+import qualified Text.Pandoc.UTF8 as UTF8
 
 defopts :: ReaderOptions
 defopts = def{ readerExtensions = getDefaultExtensions "odt" }

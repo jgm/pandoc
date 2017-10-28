@@ -64,14 +64,13 @@ import Text.Pandoc.Builder (Blocks, Inlines)
 import Text.Pandoc.Definition (Meta (..), nullMeta)
 import Text.Pandoc.Logging
 import Text.Pandoc.Options (ReaderOptions (..))
-import Text.Pandoc.Readers.LaTeX.Types (Macro)
 import Text.Pandoc.Parsing (Future, HasHeaderMap (..), HasIdentifierList (..),
                             HasIncludeFiles (..), HasLastStrPosition (..),
-                            HasLogMessages (..), HasQuoteContext (..),
-                            HasMacros (..),
-                            HasReaderOptions (..), ParserContext (..),
-                            QuoteContext (..), SourcePos, askF, asksF, returnF,
-                            runF, trimInlinesF)
+                            HasLogMessages (..), HasMacros (..),
+                            HasQuoteContext (..), HasReaderOptions (..),
+                            ParserContext (..), QuoteContext (..), SourcePos,
+                            askF, asksF, returnF, runF, trimInlinesF)
+import Text.Pandoc.Readers.LaTeX.Types (Macro)
 
 -- | This is used to delay evaluation until all relevant information has been
 -- parsed and made available in the parser state.

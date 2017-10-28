@@ -36,9 +36,9 @@ import Data.List (intercalate)
 import qualified Data.Set as Set
 import Data.Text (Text, pack)
 import Text.Pandoc.Class (PandocMonad, report)
-import Text.Pandoc.Logging
 import Text.Pandoc.Definition
 import Text.Pandoc.ImageSize
+import Text.Pandoc.Logging
 import Text.Pandoc.Options
 import Text.Pandoc.Pretty (render)
 import Text.Pandoc.Shared

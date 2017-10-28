@@ -37,15 +37,15 @@ FictionBook is an XML-based e-book format. For more information see:
 -}
 module Text.Pandoc.Writers.FB2 (writeFB2)  where
 
-import Control.Monad.Except (catchError)
-import Control.Monad.State.Strict (StateT, evalStateT, get, lift, modify, liftM)
 import Control.Monad (zipWithM)
+import Control.Monad.Except (catchError)
+import Control.Monad.State.Strict (StateT, evalStateT, get, lift, liftM, modify)
 import Data.ByteString.Base64 (encode)
 import qualified Data.ByteString.Char8 as B8
 import Data.Char (isAscii, isControl, isSpace, toLower)
 import Data.Either (lefts, rights)
-import Data.Text (Text, pack)
 import Data.List (intercalate, intersperse, isPrefixOf, stripPrefix)
+import Data.Text (Text, pack)
 import Network.HTTP (urlEncode)
 import Text.XML.Light
 import qualified Text.XML.Light as X
@@ -56,8 +56,7 @@ import qualified Text.Pandoc.Class as P
 import Text.Pandoc.Definition
 import Text.Pandoc.Logging
 import Text.Pandoc.Options (HTMLMathMethod (..), WriterOptions (..), def)
-import Text.Pandoc.Shared (capitalize, isHeaderBlock, isURI,
-                           orderedListMarkers)
+import Text.Pandoc.Shared (capitalize, isHeaderBlock, isURI, orderedListMarkers)
 
 -- | Data to be written at the end of the document:
 -- (foot)notes, URLs, references, images.

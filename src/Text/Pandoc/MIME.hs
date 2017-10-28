@@ -525,4 +525,3 @@ mimeTypesList = -- List borrowed from happstack-server.
            ,("zip","application/zip")
            ,("zmt","chemical/x-mopac-input")
            ]
-

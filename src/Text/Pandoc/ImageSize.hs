@@ -602,4 +602,3 @@ tagTypeTable = M.fromList
   , (0xa300, FileSource)
   , (0xa301, SceneType)
   ]
-

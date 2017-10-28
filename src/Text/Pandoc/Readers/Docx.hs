@@ -52,12 +52,13 @@ implemented, [-] means partially implemented):
 * Inlines
 
   - [X] Str
-  - [X] Emph (italics and underline both read as Emph)
+  - [X] Emph
   - [X] Strong
   - [X] Strikeout
   - [X] Superscript
   - [X] Subscript
   - [X] SmallCaps
+  - [-] Underline (was previously converted to Emph)
   - [ ] Quoted
   - [ ] Cite
   - [X] Code (styled with `VerbatimChar`)
@@ -138,7 +139,7 @@ instance Default DEnv where
 type DocxContext m = ReaderT DEnv (StateT DState m)
 
 evalDocxContext :: PandocMonad m => DocxContext m a -> DEnv -> DState -> m a
-evalDocxContext ctx env st = flip evalStateT st $ flip runReaderT env $ ctx
+evalDocxContext ctx env st = flip evalStateT st $flip runReaderT env ctx
 
 -- This is empty, but we put it in for future-proofing.
 spansToKeep :: [String]
@@ -155,7 +156,7 @@ metaStyles = M.fromList [ ("Title", "title")
                         , ("Abstract", "abstract")]
 
 sepBodyParts :: [BodyPart] -> ([BodyPart], [BodyPart])
-sepBodyParts = span (\bp -> (isMetaPar bp || isEmptyPar bp))
+sepBodyParts = span (\bp -> isMetaPar bp || isEmptyPar bp)
 
 isMetaPar :: BodyPart -> Bool
 isMetaPar (Paragraph pPr _) =
@@ -182,7 +183,7 @@ bodyPartsToMeta' (bp : bps)
     remaining <- bodyPartsToMeta' bps
     let
       f (MetaInlines ils) (MetaInlines ils') = MetaBlocks [Para ils, Para ils']
-      f (MetaInlines ils) (MetaBlocks blks) = MetaBlocks ((Para ils) : blks)
+      f (MetaInlines ils) (MetaBlocks blks) = MetaBlocks (Para ils : blks)
       f m (MetaList mv) = MetaList (m : mv)
       f m n             = MetaList [m, n]
     return $ M.insertWith f metaField (MetaInlines (toList inlines)) remaining
@@ -214,17 +215,17 @@ codeDivs = ["SourceCode"]
 
 runElemToInlines :: RunElem -> Inlines
 runElemToInlines (TextRun s)     = text s
-runElemToInlines (LnBrk)         = linebreak
-runElemToInlines (Tab)           = space
-runElemToInlines (SoftHyphen)    = text "\xad"
-runElemToInlines (NoBreakHyphen) = text "\x2011"
+runElemToInlines LnBrk         = linebreak
+runElemToInlines Tab           = space
+runElemToInlines SoftHyphen    = text "\xad"
+runElemToInlines NoBreakHyphen = text "\x2011"
 
 runElemToString :: RunElem -> String
 runElemToString (TextRun s)     = s
-runElemToString (LnBrk)         = ['\n']
-runElemToString (Tab)           = ['\t']
-runElemToString (SoftHyphen)    = ['\xad']
-runElemToString (NoBreakHyphen) = ['\x2011']
+runElemToString LnBrk         = ['\n']
+runElemToString Tab           = ['\t']
+runElemToString SoftHyphen    = ['\xad']
+runElemToString NoBreakHyphen = ['\x2011']
 
 runToString :: Run -> String
 runToString (Run _ runElems) = concatMap runElemToString runElems
@@ -273,21 +274,21 @@ runStyleToTransform rPr
   , s `elem` spansToKeep =
     let rPr' = rPr{rStyle = Nothing}
     in
-     (spanWith ("", [s], [])) . (runStyleToTransform rPr')
+     spanWith ("", [s], []) . runStyleToTransform rPr'
   | Just True <- isItalic rPr =
-      emph . (runStyleToTransform rPr {isItalic = Nothing})
+      emph . runStyleToTransform rPr {isItalic = Nothing}
   | Just True <- isBold rPr =
-      strong . (runStyleToTransform rPr {isBold = Nothing})
+      strong . runStyleToTransform rPr {isBold = Nothing}
   | Just True <- isSmallCaps rPr =
-      smallcaps . (runStyleToTransform rPr {isSmallCaps = Nothing})
+      smallcaps . runStyleToTransform rPr {isSmallCaps = Nothing}
   | Just True <- isStrike rPr =
-      strikeout . (runStyleToTransform rPr {isStrike = Nothing})
+      strikeout . runStyleToTransform rPr {isStrike = Nothing}
   | Just SupScrpt <- rVertAlign rPr =
-      superscript . (runStyleToTransform rPr {rVertAlign = Nothing})
+      superscript . runStyleToTransform rPr {rVertAlign = Nothing}
   | Just SubScrpt <- rVertAlign rPr =
-      subscript . (runStyleToTransform rPr {rVertAlign = Nothing})
+      subscript . runStyleToTransform rPr {rVertAlign = Nothing}
   | Just "single" <- rUnderline rPr =
-      emph . (runStyleToTransform rPr {rUnderline = Nothing})
+      underlineSpan . runStyleToTransform rPr {rUnderline = Nothing}
   | otherwise = id
 
 runToInlines :: PandocMonad m => Run -> DocxContext m Inlines
@@ -305,10 +306,10 @@ runToInlines (Run rs runElems)
     let ils = smushInlines (map runElemToInlines runElems)
     return $ (runStyleToTransform $ resolveDependentRunStyle rs) ils
 runToInlines (Footnote bps) = do
-  blksList <- smushBlocks <$> (mapM bodyPartToBlocks bps)
+  blksList <- smushBlocks <$> mapM bodyPartToBlocks bps
   return $ note blksList
 runToInlines (Endnote bps) = do
-  blksList <- smushBlocks <$> (mapM bodyPartToBlocks bps)
+  blksList <- smushBlocks <$> mapM bodyPartToBlocks bps
   return $ note blksList
 runToInlines (InlineDrawing fp title alt bs ext) = do
   (lift . lift) $ P.insertMedia fp Nothing bs
@@ -329,7 +330,7 @@ blocksToInlinesWarn cmtId blks = do
       notParaOrPlain (Para _)  = False
       notParaOrPlain (Plain _) = False
       notParaOrPlain _         = True
-  when (not $ null $ filter notParaOrPlain blkList) $
+  unless (null $ filter notParaOrPlain blkList) $
     lift $ P.report $ DocxParserWarning $
       "Docx comment " ++ cmtId ++ " will not retain formatting"
   return $ fromList $ blocksToInlines blkList
@@ -389,7 +390,7 @@ parPartToInlines (BookMark _ anchor) =
     -- are not defined in pandoc, it seems like a necessary evil to
     -- avoid an extra pass.
     let newAnchor =
-          if not inHdrBool && anchor `elem` (M.elems anchorMap)
+          if not inHdrBool && anchor `elem` M.elems anchorMap
           then uniqueIdent [Str anchor] (Set.fromList $ M.elems anchorMap)
           else anchor
     unless inHdrBool
@@ -398,7 +399,7 @@ parPartToInlines (BookMark _ anchor) =
 parPartToInlines (Drawing fp title alt bs ext) = do
   (lift . lift) $ P.insertMedia fp Nothing bs
   return $ imageWith (extentToAttr ext) fp title $ text alt
-parPartToInlines Chart = do
+parPartToInlines Chart =
   return $ spanWith ("", ["chart"], []) $ text "[CHART]"
 parPartToInlines (InternalHyperLink anchor runs) = do
   ils <- smushInlines <$> mapM runToInlines runs
@@ -406,11 +407,10 @@ parPartToInlines (InternalHyperLink anchor runs) = do
 parPartToInlines (ExternalHyperLink target runs) = do
   ils <- smushInlines <$> mapM runToInlines runs
   return $ link target "" ils
-parPartToInlines (PlainOMath exps) = do
+parPartToInlines (PlainOMath exps) =
   return $ math $ writeTeX exps
 parPartToInlines (SmartTag runs) = do
-  ils <- smushInlines <$> mapM runToInlines runs
-  return ils
+  smushInlines <$> mapM runToInlines runs
 
 isAnchorSpan :: Inline -> Bool
 isAnchorSpan (Span (_, classes, kvs) _) =
@@ -453,7 +453,7 @@ makeHeaderAnchor' blk = return blk
 -- Rewrite a standalone paragraph block as a plain
 singleParaToPlain :: Blocks -> Blocks
 singleParaToPlain blks
-  | (Para (ils) :< seeq) <- viewl $ unMany blks
+  | (Para ils :< seeq) <- viewl $ unMany blks
   , Seq.null seeq =
       singleton $ Plain ils
 singleParaToPlain blks = blks
@@ -470,11 +470,11 @@ rowToBlocksList (Row cells) = do
 
 -- like trimInlines, but also take out linebreaks
 trimSps :: Inlines -> Inlines
-trimSps (Many ils) = Many $ Seq.dropWhileL isSp $ Seq.dropWhileR isSp $ ils
-  where isSp Space = True
+trimSps (Many ils) = Many $ Seq.dropWhileL isSp $Seq.dropWhileR isSp ils
+  where isSp Space     = True
         isSp SoftBreak = True
         isSp LineBreak = True
-        isSp _ = False
+        isSp _         = False
 
 parStyleToTransform :: ParagraphStyle -> (Blocks -> Blocks)
 parStyleToTransform pPr
@@ -482,17 +482,17 @@ parStyleToTransform pPr
   , c `elem` divsToKeep =
     let pPr' = pPr { pStyle = cs }
     in
-     (divWith ("", [c], [])) . (parStyleToTransform pPr')
+     divWith ("", [c], []) . parStyleToTransform pPr'
   | (c:cs) <- pStyle pPr,
     c `elem` listParagraphDivs =
       let pPr' = pPr { pStyle = cs, indentation = Nothing}
       in
-       (divWith ("", [c], [])) . (parStyleToTransform pPr')
+       divWith ("", [c], []) . parStyleToTransform pPr'
   | (_:cs) <- pStyle pPr
   , Just True <- pBlockQuote pPr =
     let pPr' = pPr { pStyle = cs }
     in
-     blockQuote . (parStyleToTransform pPr')
+     blockQuote . parStyleToTransform pPr'
   | (_:cs) <- pStyle pPr =
       let pPr' = pPr { pStyle = cs}
       in
@@ -522,7 +522,7 @@ bodyPartToBlocks (Paragraph pPr parparts)
     $ codeBlock
     $ concatMap parPartToString parparts
   | Just (style, n) <- pHeading pPr = do
-    ils <- local (\s-> s{docxInHeaderBlock=True}) $
+    ils <-local (\s-> s{docxInHeaderBlock=True})
            (smushInlines <$> mapM parPartToInlines parparts)
     makeHeaderAnchor $
       headerWith ("", delete style (pStyle pPr), []) n ils
@@ -544,7 +544,7 @@ bodyPartToBlocks (ListItem pPr numId lvl (Just levelInfo) parparts) = do
                                    , ("num-id", numId)
                                    , ("format", fmt)
                                    , ("text", txt)
-                                   , ("start", (show start))
+                                   , ("start", show start)
                                    ]
 
       (_, fmt, txt, Nothing)    -> [ ("level", lvl)
@@ -555,7 +555,7 @@ bodyPartToBlocks (ListItem pPr numId lvl (Just levelInfo) parparts) = do
   blks <- bodyPartToBlocks (Paragraph pPr parparts)
   return $ divWith ("", ["list-item"], kvs) blks
 bodyPartToBlocks (ListItem pPr _ _ _ parparts) =
-  let pPr' = pPr {pStyle = "ListParagraph": (pStyle pPr)}
+  let pPr' = pPr {pStyle = "ListParagraph": pStyle pPr}
   in
     bodyPartToBlocks $ Paragraph pPr' parparts
 bodyPartToBlocks (Tbl _ _ _ []) =
@@ -587,7 +587,7 @@ bodyPartToBlocks (Tbl cap _ look (r:rs)) = do
       widths = replicate width 0 :: [Double]
 
   return $ table caption (zip alignments widths) hdrCells cells
-bodyPartToBlocks (OMathPara e) = do
+bodyPartToBlocks (OMathPara e) =
   return $ para $ displayMath (writeTeX e)
 
 
@@ -596,7 +596,7 @@ rewriteLink' :: PandocMonad m => Inline -> DocxContext m Inline
 rewriteLink' l@(Link attr ils ('#':target, title)) = do
   anchorMap <- gets docxAnchorMap
   return $ case M.lookup target anchorMap of
-    Just newTarget -> (Link attr ils ('#':newTarget, title))
+    Just newTarget -> Link attr ils ('#':newTarget, title)
     Nothing        -> l
 rewriteLink' il = return il
 
@@ -609,7 +609,7 @@ bodyToOutput (Body bps) = do
   meta <- bodyPartsToMeta metabps
   blks <- smushBlocks <$> mapM bodyPartToBlocks blkbps
   blks' <- rewriteLinks $ blocksToDefinitions $ blocksToBullets $ toList blks
-  return $ (meta, blks')
+  return (meta, blks')
 
 docxToOutput :: PandocMonad m
              => ReaderOptions

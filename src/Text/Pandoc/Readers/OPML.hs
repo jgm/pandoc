@@ -2,16 +2,17 @@
 module Text.Pandoc.Readers.OPML ( readOPML ) where
 import Control.Monad.State.Strict
 import Data.Char (toUpper)
-import Data.Text (Text, unpack, pack)
 import Data.Default
 import Data.Generics
+import Data.Maybe (fromMaybe)
+import Data.Text (Text, pack, unpack)
 import Text.HTML.TagSoup.Entity (lookupEntity)
 import Text.Pandoc.Builder
 import Text.Pandoc.Class (PandocMonad)
 import Text.Pandoc.Options
-import Text.Pandoc.Shared (crFilter)
 import Text.Pandoc.Readers.HTML (readHtml)
 import Text.Pandoc.Readers.Markdown (readMarkdown)
+import Text.Pandoc.Shared (crFilter)
 import Text.XML.Light
 
 type OPML m = StateT OPMLState m
@@ -32,9 +33,9 @@ instance Default OPMLState where
 
 readOPML :: PandocMonad m => ReaderOptions -> Text -> m Pandoc
 readOPML _ inp  = do
-  (bs, st') <- flip runStateT def
+  (bs, st') <- runStateT
                  (mapM parseBlock $ normalizeTree $
-                    parseXML (unpack (crFilter inp)))
+                    parseXML (unpack (crFilter inp))) def
   return $
     setTitle (opmlDocTitle st') $
     setAuthors (opmlDocAuthors st') $
@@ -62,9 +63,7 @@ convertEntity e = maybe (map toUpper e) id (lookupEntity e)
 -- convenience function to get an attribute value, defaulting to ""
 attrValue :: String -> Element -> String
 attrValue attr elt =
-  case lookupAttrBy (\x -> qName x == attr) (elAttribs elt) of
-    Just z  -> z
-    Nothing -> ""
+  fromMaybe "" (lookupAttrBy (\x -> qName x == attr) (elAttribs elt))
 
 -- exceptT :: PandocMonad m => Either PandocError a -> OPML m a
 -- exceptT = either throwError return
@@ -73,13 +72,13 @@ asHtml :: PandocMonad m => String -> OPML m Inlines
 asHtml s =
   (\(Pandoc _ bs) -> case bs of
                                 [Plain ils] -> fromList ils
-                                _           -> mempty) <$> (lift $ readHtml def (pack s))
+                                _           -> mempty) <$> lift (readHtml def (pack s))
 
 asMarkdown :: PandocMonad m => String -> OPML m Blocks
-asMarkdown s = (\(Pandoc _ bs) -> fromList bs) <$> (lift $ readMarkdown def (pack s))
+asMarkdown s = (\(Pandoc _ bs) -> fromList bs) <$> lift (readMarkdown def (pack s))
 
 getBlocks :: PandocMonad m => Element -> OPML m Blocks
-getBlocks e =  mconcat <$> (mapM parseBlock $ elContent e)
+getBlocks e =  mconcat <$> mapM parseBlock (elContent e)
 
 parseBlock :: PandocMonad m => Content -> OPML m Blocks
 parseBlock (Elem e) =

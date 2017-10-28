@@ -75,4 +75,3 @@ getUUID gen =
 
 getRandomUUID :: IO UUID
 getRandomUUID = getUUID <$> getStdGen
-

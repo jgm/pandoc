@@ -1,5 +1,5 @@
 {-# LANGUAGE FlexibleContexts   #-}
-{-# LANGUAGE StandaloneDeriving #-}
+
 {-# LANGUAGE TupleSections      #-}
 {-# LANGUAGE ViewPatterns       #-}
 
@@ -13,12 +13,12 @@ import Control.DeepSeq (NFData, deepseq)
 import Control.Monad (guard, liftM)
 import Control.Monad.Except (throwError)
 import qualified Data.ByteString.Lazy as BL (ByteString)
-import qualified Data.Text.Lazy.Encoding as TL
-import qualified Data.Text.Lazy as TL
 import Data.List (isInfixOf, isPrefixOf)
 import qualified Data.Map as M (Map, elems, fromList, lookup)
 import Data.Maybe (fromMaybe, mapMaybe)
 import Data.Monoid ((<>))
+import qualified Data.Text.Lazy as TL
+import qualified Data.Text.Lazy.Encoding as TL
 import Network.URI (unEscapeString)
 import System.FilePath (dropFileName, dropFileName, normalise, splitFileName,
                         takeFileName, (</>))
@@ -39,7 +39,7 @@ type Items = M.Map String (FilePath, MimeType)
 
 readEPUB :: PandocMonad m => ReaderOptions -> BL.ByteString -> m Pandoc
 readEPUB opts bytes = case toArchiveOrFail bytes of
-  Right archive -> archiveToEPUB opts $ archive
+  Right archive -> archiveToEPUB opts archive
   Left  _       -> throwError $ PandocParseError "Couldn't extract ePub file"
 
 -- runEPUB :: Except PandocError a -> Either PandocError a
@@ -61,7 +61,7 @@ archiveToEPUB os archive = do
   Pandoc _ bs <-
       foldM' (\a b -> ((a <>) . walk (prependHash escapedSpine))
         `liftM` parseSpineElem root b) mempty spine
-  let ast = coverDoc <> (Pandoc meta bs)
+  let ast = coverDoc <> Pandoc meta bs
   fetchImages (M.elems items) root archive ast
   return ast
   where
@@ -79,7 +79,7 @@ archiveToEPUB os archive = do
       return $ fixInternalReferences path html
     mimeToReader s _ (unEscapeString -> path)
       | s `elem` imageMimes = return $ imageToPandoc path
-      | otherwise = return $ mempty
+      | otherwise = return mempty
 
 -- paths should be absolute when this function is called
 -- renameImages should do this
@@ -122,7 +122,7 @@ parseManifest content = do
   let items = findChildren (dfName "item") manifest
   r <- mapM parseItem items
   let cover = findAttr (emptyName "href") =<< filterChild findCover manifest
-  return (cover, (M.fromList r))
+  return (cover, M.fromList r)
   where
     findCover e = maybe False (isInfixOf "cover-image")
                   (findAttr (emptyName "properties") e)
@@ -136,7 +136,7 @@ parseSpine :: PandocMonad m => Items -> Element -> m [(FilePath, MimeType)]
 parseSpine is e = do
   spine <- findElementE (dfName "spine") e
   let itemRefs = findChildren (dfName "itemref") spine
-  mapM (mkE "parseSpine" . (flip M.lookup is)) $ mapMaybe parseItemRef itemRefs
+  mapM (mkE "parseSpine" . flip M.lookup is) $ mapMaybe parseItemRef itemRefs
   where
     parseItemRef ref = do
       let linear = maybe True (== "yes") (findAttr (emptyName "linear") ref)
@@ -167,21 +167,21 @@ getManifest archive = do
   docElem <- (parseXMLDocE . UTF8.toStringLazy . fromEntry) metaEntry
   let namespaces = mapMaybe attrToNSPair (elAttribs docElem)
   ns <- mkE "xmlns not in namespaces" (lookup "xmlns" namespaces)
-  as <- liftM ((map attrToPair) . elAttribs)
+  as <- fmap (map attrToPair . elAttribs)
     (findElementE (QName "rootfile" (Just ns) Nothing) docElem)
   manifestFile <- mkE "Root not found" (lookup "full-path" as)
   let rootdir = dropFileName manifestFile
   --mime <- lookup "media-type" as
   manifest <- findEntryByPathE manifestFile archive
-  liftM ((,) rootdir) (parseXMLDocE . UTF8.toStringLazy . fromEntry $ manifest)
+  fmap ((,) rootdir) (parseXMLDocE . UTF8.toStringLazy . fromEntry $ manifest)
 
 -- Fixup
 
 fixInternalReferences :: FilePath -> Pandoc -> Pandoc
 fixInternalReferences pathToFile =
-  (walk $ renameImages root)
-  . (walk $ fixBlockIRs filename)
-  . (walk $ fixInlineIRs filename)
+   walk (renameImages root)
+  .  walk (fixBlockIRs filename)
+  . walk (fixInlineIRs filename)
   where
     (root, escapeURI -> filename) = splitFileName pathToFile
 

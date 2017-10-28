@@ -144,6 +144,7 @@
 - Recai Oktaş
 - Roland Hieber
 - RyanGlScott
+- Sascha Wilde
 - Scott Morrison
 - Sergei Trofimovich
 - Sergey Astanin
@@ -178,6 +179,7 @@
 - bumper314
 - csforste
 - d-dorazio
+- hftf
 - iandol
 - infinity0x
 - lwolfsonkin

@@ -42,18 +42,18 @@ module Text.Pandoc.App (
           ) where
 import qualified Control.Exception as E
 import Control.Monad
-import Control.Monad.Except (throwError, catchError)
+import Control.Monad.Except (catchError, throwError)
 import Control.Monad.Trans
-import Data.Monoid
 import Data.Aeson (FromJSON (..), ToJSON (..), defaultOptions, eitherDecode',
                    encode, genericToEncoding)
 import qualified Data.ByteString as BS
 import qualified Data.ByteString.Lazy as B
 import Data.Char (toLower, toUpper)
 import Data.Foldable (foldrM)
-import Data.List (intercalate, isPrefixOf, isSuffixOf, sort, find)
+import Data.List (find, intercalate, isPrefixOf, isSuffixOf, sort)
 import qualified Data.Map as M
 import Data.Maybe (fromMaybe, isJust, isNothing)
+import Data.Monoid
 import qualified Data.Set as Set
 import Data.Text (Text)
 import qualified Data.Text as T
@@ -72,25 +72,25 @@ import System.Environment (getArgs, getEnvironment, getProgName)
 import System.Exit (ExitCode (..), exitSuccess)
 import System.FilePath
 import System.IO (nativeNewline, stdout)
-import System.IO.Error (isDoesNotExistError)
 import qualified System.IO as IO (Newline (..))
+import System.IO.Error (isDoesNotExistError)
 import Text.Pandoc
+import Text.Pandoc.BCP47 (Lang (..), parseBCP47)
 import Text.Pandoc.Builder (setMeta)
-import Text.Pandoc.Class (PandocIO, extractMedia, fillMediaBag, getLog,
-                          setResourcePath, setTrace, report, setRequestHeader,
-                          setUserDataDir, readFileStrict, readDataFile,
-                          readDefaultDataFile, setTranslations, openURL,
-                          setInputFiles, setOutputFile)
+import Text.Pandoc.Class (PandocIO, extractMedia, fillMediaBag, getLog, openURL,
+                          readDataFile, readDefaultDataFile, readFileStrict,
+                          report, setInputFiles, setOutputFile,
+                          setRequestHeader, setResourcePath, setTrace,
+                          setTranslations, setUserDataDir)
 import Text.Pandoc.Highlighting (highlightingStyles)
-import Text.Pandoc.BCP47 (parseBCP47, Lang(..))
-import Text.Pandoc.Lua (runLuaFilter, LuaException(..))
-import Text.Pandoc.Writers.Math (defaultMathJaxURL, defaultKaTeXURL)
+import Text.Pandoc.Lua (LuaException (..), runLuaFilter)
 import Text.Pandoc.PDF (makePDF)
 import Text.Pandoc.Process (pipeProcess)
 import Text.Pandoc.SelfContained (makeDataURI, makeSelfContained)
-import Text.Pandoc.Shared (headerShift, isURI, ordNub,
-                           safeRead, tabFilter, eastAsianLineBreakFilter)
+import Text.Pandoc.Shared (eastAsianLineBreakFilter, headerShift, isURI, ordNub,
+                           safeRead, tabFilter)
 import qualified Text.Pandoc.UTF8 as UTF8
+import Text.Pandoc.Writers.Math (defaultKaTeXURL, defaultMathJaxURL)
 import Text.Pandoc.XML (toEntities)
 import Text.Printf
 #ifndef _WINDOWS
@@ -112,8 +112,9 @@ parseOptions options' defaults = do
   let (actions, args, unrecognizedOpts, errors) =
            getOpt' Permute options' rawArgs
 
-  let unknownOptionErrors = foldr handleUnrecognizedOption [] $
-                  map (takeWhile (/= '=')) unrecognizedOpts
+  let unknownOptionErrors =
+       foldr (handleUnrecognizedOption . takeWhile (/= '=')) []
+       unrecognizedOpts
 
   unless (null errors && null unknownOptionErrors) $
      E.throwIO $ PandocOptionError $
@@ -205,12 +206,10 @@ convertWithOpts opts = do
                   Just _    -> return $ optDataDir opts
 
   -- assign reader and writer based on options and filenames
-  let readerName = case optReader opts of
-                          Nothing -> defaultReaderName
-                                      (if any isURI sources
-                                          then "html"
-                                          else "markdown") sources
-                          Just x  -> x
+  let readerName =  fromMaybe ( defaultReaderName
+                  (if any isURI sources
+                      then "html"
+                      else "markdown") sources) (optReader opts)
 
   let nonPdfWriterName Nothing  = defaultWriterName outputFile
       nonPdfWriterName (Just x) = x
@@ -286,7 +285,7 @@ convertWithOpts opts = do
 #else
   istty <- queryTerminal stdOutput
 #endif
-  when (not (isTextFormat format) && istty && optOutputFile opts == Nothing) $
+  when (not (isTextFormat format) && istty && isNothing ( optOutputFile opts)) $
     E.throwIO $ PandocAppError $
             "Cannot write " ++ format ++ " output to terminal.\n" ++
             "Specify an output file using the -o option, or " ++
@@ -414,7 +413,7 @@ convertWithOpts opts = do
 
     case lookup "lang" (optMetadata opts) of
            Just l  -> case parseBCP47 l of
-                           Left _ -> return ()
+                           Left _   -> return ()
                            Right l' -> setTranslations l'
            Nothing -> setTranslations $ Lang "en" "" "US" []
 
@@ -649,7 +648,7 @@ data Opt = Opt
     , optResourcePath          :: [FilePath] -- ^ Path to search for images etc
     , optRequestHeaders        :: [(String, String)] -- ^ Headers for HTTP requests
     , optEol                   :: LineEnding -- ^ Style of line-endings to use
-    , optStripComments          :: Bool       -- ^ Skip HTML comments
+    , optStripComments         :: Bool       -- ^ Skip HTML comments
     } deriving (Generic, Show)
 
 instance ToJSON Opt where
@@ -844,7 +843,7 @@ applyLuaFilters mbDatadir filters format d = do
   let go f d' = do
         res <- runLuaFilter mbDatadir f format d'
         case res of
-          Right x -> return x
+          Right x               -> return x
           Left (LuaException s) -> E.throw (PandocFilterError f s)
   foldrM ($) d $ map go expandedFilters
 

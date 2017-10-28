@@ -149,6 +149,7 @@ h1. Inline Markup
 
 This is _emphasized_, and so __is this__.
 This is *strong*, and so **is this**.
+This is +inserted+, and this is -deleted-.
 Hyphenated-words-are-ok, as well as strange_underscore_notation.
 A "*strong link*":http://www.foobar.com.
 

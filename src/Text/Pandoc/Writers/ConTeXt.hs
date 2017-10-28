@@ -1,4 +1,4 @@
-{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE OverloadedStrings   #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-
 Copyright (C) 2007-2017 John MacFarlane <jgm@berkeley.edu>
@@ -38,9 +38,9 @@ import Data.Text (Text)
 import Network.URI (unEscapeString)
 import Text.Pandoc.BCP47
 import Text.Pandoc.Class (PandocMonad, report, toLang)
-import Text.Pandoc.Logging
 import Text.Pandoc.Definition
 import Text.Pandoc.ImageSize
+import Text.Pandoc.Logging
 import Text.Pandoc.Options
 import Text.Pandoc.Pretty
 import Text.Pandoc.Shared
@@ -475,26 +475,26 @@ fromBCP47 mbs = fromBCP47' <$> toLang mbs
 -- https://tools.ietf.org/html/bcp47#section-2.1
 -- http://wiki.contextgarden.net/Language_Codes
 fromBCP47' :: Maybe Lang -> Maybe String
-fromBCP47' (Just (Lang "ar" _ "SY" _)     )  = Just "ar-sy"
-fromBCP47' (Just (Lang "ar" _ "IQ" _)     )  = Just "ar-iq"
-fromBCP47' (Just (Lang "ar" _ "JO" _)     )  = Just "ar-jo"
-fromBCP47' (Just (Lang "ar" _ "LB" _)     )  = Just "ar-lb"
-fromBCP47' (Just (Lang "ar" _ "DZ" _)     )  = Just "ar-dz"
-fromBCP47' (Just (Lang "ar" _ "MA" _)     )  = Just "ar-ma"
-fromBCP47' (Just (Lang "de" _ _ ["1901"]) )  = Just "deo"
-fromBCP47' (Just (Lang "de" _ "DE" _)     )  = Just "de-de"
-fromBCP47' (Just (Lang "de" _ "AT" _)     )  = Just "de-at"
-fromBCP47' (Just (Lang "de" _ "CH" _)     )  = Just "de-ch"
-fromBCP47' (Just (Lang "el" _ _ ["poly"]) )  = Just "agr"
-fromBCP47' (Just (Lang "en" _ "US" _)     )  = Just "en-us"
-fromBCP47' (Just (Lang "en" _ "GB" _)     )  = Just "en-gb"
-fromBCP47' (Just (Lang "grc"_  _ _)       )  = Just "agr"
-fromBCP47' (Just (Lang "el" _ _ _)        )  = Just "gr"
-fromBCP47' (Just (Lang "eu" _ _ _)        )  = Just "ba"
-fromBCP47' (Just (Lang "he" _ _ _)        )  = Just "il"
-fromBCP47' (Just (Lang "jp" _ _ _)        )  = Just "ja"
-fromBCP47' (Just (Lang "uk" _ _ _)        )  = Just "ua"
-fromBCP47' (Just (Lang "vi" _ _ _)        )  = Just "vn"
-fromBCP47' (Just (Lang "zh" _ _ _)        )  = Just "cn"
-fromBCP47' (Just (Lang l _ _ _)           )  = Just l
-fromBCP47' Nothing                           = Nothing
+fromBCP47' (Just (Lang "ar" _ "SY" _)     ) = Just "ar-sy"
+fromBCP47' (Just (Lang "ar" _ "IQ" _)     ) = Just "ar-iq"
+fromBCP47' (Just (Lang "ar" _ "JO" _)     ) = Just "ar-jo"
+fromBCP47' (Just (Lang "ar" _ "LB" _)     ) = Just "ar-lb"
+fromBCP47' (Just (Lang "ar" _ "DZ" _)     ) = Just "ar-dz"
+fromBCP47' (Just (Lang "ar" _ "MA" _)     ) = Just "ar-ma"
+fromBCP47' (Just (Lang "de" _ _ ["1901"]) ) = Just "deo"
+fromBCP47' (Just (Lang "de" _ "DE" _)     ) = Just "de-de"
+fromBCP47' (Just (Lang "de" _ "AT" _)     ) = Just "de-at"
+fromBCP47' (Just (Lang "de" _ "CH" _)     ) = Just "de-ch"
+fromBCP47' (Just (Lang "el" _ _ ["poly"]) ) = Just "agr"
+fromBCP47' (Just (Lang "en" _ "US" _)     ) = Just "en-us"
+fromBCP47' (Just (Lang "en" _ "GB" _)     ) = Just "en-gb"
+fromBCP47' (Just (Lang "grc"_  _ _)       ) = Just "agr"
+fromBCP47' (Just (Lang "el" _ _ _)        ) = Just "gr"
+fromBCP47' (Just (Lang "eu" _ _ _)        ) = Just "ba"
+fromBCP47' (Just (Lang "he" _ _ _)        ) = Just "il"
+fromBCP47' (Just (Lang "jp" _ _ _)        ) = Just "ja"
+fromBCP47' (Just (Lang "uk" _ _ _)        ) = Just "ua"
+fromBCP47' (Just (Lang "vi" _ _ _)        ) = Just "vn"
+fromBCP47' (Just (Lang "zh" _ _ _)        ) = Just "cn"
+fromBCP47' (Just (Lang l _ _ _)           ) = Just l
+fromBCP47' Nothing                          = Nothing

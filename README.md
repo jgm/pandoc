@@ -19,9 +19,9 @@ another, and a command-line tool that uses this library. It can read
 [Markdown], [CommonMark], [PHP Markdown Extra], [GitHub-Flavored
 Markdown], [MultiMarkdown], and (subsets of) [Textile],
 [reStructuredText], [HTML], [LaTeX], [MediaWiki markup], [TWiki markup],
-[TikiWiki markup], [Haddock markup], [OPML], [Emacs Org mode], [DocBook],
-[Muse], [txt2tags], [Vimwiki], [EPUB], [ODT], and [Word docx]; and it can
-write plain text, [Markdown], [CommonMark], [PHP Markdown
+[TikiWiki markup], [Creole 1.0], [Haddock markup], [OPML], [Emacs Org mode],
+[DocBook], [Muse], [txt2tags], [Vimwiki], [EPUB], [ODT], and [Word docx];
+and it can write plain text, [Markdown], [CommonMark], [PHP Markdown
 Extra], [GitHub-Flavored Markdown], [MultiMarkdown],
 [reStructuredText], [XHTML], [HTML5], [LaTeX] \(including
 [`beamer`] slide shows\), [ConTeXt], [RTF], [OPML], [DocBook],
@@ -31,8 +31,8 @@ markup], [DokuWiki markup], [ZimWiki markup], [Haddock markup],
 [groff ms], [Emacs Org mode], [AsciiDoc], [InDesign ICML], [TEI
 Simple], [Muse] and [Slidy], [Slideous], [DZSlides], [reveal.js]
 or [S5] HTML slide shows. It can also produce [PDF] output on
-systems where LaTeX, ConTeXt, `pdfroff`, or `wkhtmltopdf` is
-installed.
+systems where LaTeX, ConTeXt, `pdfroff`, `wkhtmltopdf`,
+`prince`, or `weasyprint` is installed.
 
 Pandoc's enhanced version of Markdown includes syntax for [footnotes],
 [tables], flexible [ordered lists], [definition lists], [fenced code
@@ -77,6 +77,7 @@ Markdown can be expected to be lossy.
 [Beamer User's Guide]: http://ctan.math.utah.edu/ctan/tex-archive/macros/latex/contrib/beamer/doc/beameruserguide.pdf
 [ConTeXt]: http://www.contextgarden.net/
 [RTF]: http://en.wikipedia.org/wiki/Rich_Text_Format
+[Creole 1.0]: http://www.wikicreole.org/wiki/Creole1.0
 [DocBook]: http://docbook.org
 [txt2tags]: http://txt2tags.org
 [EPUB]: http://idpf.org/epub

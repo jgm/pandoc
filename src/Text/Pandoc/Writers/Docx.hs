@@ -51,6 +51,7 @@ import qualified Data.Text as T
 import Data.Time.Clock.POSIX
 import Skylighting
 import System.Random (randomR)
+import Text.Pandoc.BCP47 (getLang, renderLang)
 import Text.Pandoc.Class (PandocMonad, report, toLang)
 import qualified Text.Pandoc.Class as P
 import Text.Pandoc.Compat.Time
@@ -68,7 +69,6 @@ import qualified Text.Pandoc.UTF8 as UTF8
 import Text.Pandoc.Walk
 import Text.Pandoc.Writers.Math
 import Text.Pandoc.Writers.Shared (fixDisplayMath)
-import Text.Pandoc.BCP47 (getLang, renderLang)
 import Text.Printf (printf)
 import Text.TeXMath
 import Text.XML.Light as XML
@@ -276,9 +276,9 @@ writeDocx opts doc@(Pandoc meta _) = do
               setval _ x         = x
               setvalattr :: String -> XML.Attr -> XML.Attr
               setvalattr l (XML.Attr qn@(QName "val" _ _) _) = XML.Attr qn l
-              setvalattr _ x = x
+              setvalattr _ x                                 = x
               isLangElt (Elem e') = qName (elName e') == "lang"
-              isLangElt _ = False
+              isLangElt _         = False
 
   let stylepath = "word/styles.xml"
   styledoc <- addLang <$> parseXml refArchive distArchive stylepath
@@ -508,8 +508,8 @@ writeDocx opts doc@(Pandoc meta _) = do
                                , qName (elName e) == "num" ] }
 
   let keywords = case lookupMeta "keywords" meta of
-                       Just (MetaList xs)           -> map stringify xs
-                       _                            -> []
+                       Just (MetaList xs) -> map stringify xs
+                       _                  -> []
 
   let docPropsPath = "docProps/core.xml"
   let docProps = mknode "cp:coreProperties"

@@ -45,8 +45,8 @@ module Text.Pandoc.Options ( module Text.Pandoc.Extensions
                            , def
                            , isEnabled
                            ) where
-import Data.Aeson (ToJSON(..), FromJSON(..),
-                   genericToEncoding, defaultOptions)
+import Data.Aeson (FromJSON (..), ToJSON (..), defaultOptions,
+                   genericToEncoding)
 import Data.Data (Data)
 import Data.Default
 import qualified Data.Set as Set

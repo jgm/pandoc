@@ -33,10 +33,11 @@ StackValue instances for pandoc types.
 module Text.Pandoc.Lua.StackInstances () where
 
 import Control.Applicative ((<|>))
-import Foreign.Lua (Lua, LuaInteger, LuaNumber, Type (..), FromLuaStack (peek),
-                    ToLuaStack (push), StackIndex, throwLuaError, tryLua)
+import Foreign.Lua (FromLuaStack (peek), Lua, LuaInteger, LuaNumber, StackIndex,
+                    ToLuaStack (push), Type (..), throwLuaError, tryLua)
 import Text.Pandoc.Definition
-import Text.Pandoc.Lua.Util (addValue, adjustIndexBy, getTable, pushViaConstructor)
+import Text.Pandoc.Lua.Util (addValue, adjustIndexBy, getTable,
+                             pushViaConstructor)
 import Text.Pandoc.Shared (safeRead)
 
 import qualified Foreign.Lua as Lua
@@ -139,7 +140,7 @@ instance FromLuaStack Int where
 safeRead' :: Read a => String -> Lua a
 safeRead' s = case safeRead s of
   Nothing -> throwLuaError ("Could not read: " ++ s)
-  Just x -> return x
+  Just x  -> return x
 
 -- | Push an meta value element to the top of the lua stack.
 pushMetaValue :: MetaValue -> Lua ()
@@ -207,18 +208,18 @@ peekBlock idx = do
   case tag of
       "BlockQuote"     -> BlockQuote <$> elementContent
       "BulletList"     -> BulletList <$> elementContent
-      "CodeBlock"      -> (withAttr CodeBlock) <$> elementContent
+      "CodeBlock"      -> withAttr CodeBlock <$> elementContent
       "DefinitionList" -> DefinitionList <$> elementContent
-      "Div"            -> (withAttr Div) <$> elementContent
+      "Div"            -> withAttr Div <$> elementContent
       "Header"         -> (\(lvl, LuaAttr attr, lst) -> Header lvl attr lst)
                           <$> elementContent
       "HorizontalRule" -> return HorizontalRule
       "LineBlock"      -> LineBlock <$> elementContent
-      "OrderedList"    -> (uncurry OrderedList) <$> elementContent
+      "OrderedList"    -> uncurry OrderedList <$> elementContent
       "Null"           -> return Null
       "Para"           -> Para <$> elementContent
       "Plain"          -> Plain <$> elementContent
-      "RawBlock"       -> (uncurry RawBlock) <$> elementContent
+      "RawBlock"       -> uncurry RawBlock <$> elementContent
       "Table"          -> (\(capt, aligns, widths, headers, body) ->
                                   Table capt aligns widths headers body)
                           <$> elementContent
@@ -256,8 +257,8 @@ peekInline :: StackIndex -> Lua Inline
 peekInline idx = do
   tag <- getTag idx
   case tag of
-    "Cite"       -> (uncurry Cite) <$> elementContent
-    "Code"       -> (withAttr Code) <$> elementContent
+    "Cite"       -> uncurry Cite <$> elementContent
+    "Code"       -> withAttr Code <$> elementContent
     "Emph"       -> Emph <$> elementContent
     "Image"      -> (\(LuaAttr attr, lst, tgt) -> Image attr lst tgt)
                     <$> elementContent
@@ -265,13 +266,13 @@ peekInline idx = do
                     <$> elementContent
     "LineBreak"  -> return LineBreak
     "Note"       -> Note <$> elementContent
-    "Math"       -> (uncurry Math) <$> elementContent
-    "Quoted"     -> (uncurry Quoted) <$> elementContent
-    "RawInline"  -> (uncurry RawInline) <$> elementContent
+    "Math"       -> uncurry Math <$> elementContent
+    "Quoted"     -> uncurry Quoted <$> elementContent
+    "RawInline"  -> uncurry RawInline <$> elementContent
     "SmallCaps"  -> SmallCaps <$> elementContent
     "SoftBreak"  -> return SoftBreak
     "Space"      -> return Space
-    "Span"       -> (withAttr Span) <$> elementContent
+    "Span"       -> withAttr Span <$> elementContent
     "Str"        -> Str <$> elementContent
     "Strikeout"  -> Strikeout <$> elementContent
     "Strong"     -> Strong <$> elementContent
@@ -293,7 +294,7 @@ getTag idx = do
   Lua.settop top
   case r of
     Left (Lua.LuaException err) -> throwLuaError err
-    Right res -> return res
+    Right res                   -> return res
 
 withAttr :: (Attr -> a -> b) -> (LuaAttr, a) -> b
 withAttr f (attributes, x) = f (fromLuaAttr attributes) x

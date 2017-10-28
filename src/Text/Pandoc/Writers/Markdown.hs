@@ -39,8 +39,8 @@ import Control.Monad.State.Strict
 import Data.Char (chr, isPunctuation, isSpace, ord)
 import Data.Default
 import qualified Data.HashMap.Strict as H
-import qualified Data.Map as M
 import Data.List (find, group, intersperse, sortBy, stripPrefix, transpose)
+import qualified Data.Map as M
 import Data.Maybe (fromMaybe)
 import Data.Monoid (Any (..))
 import Data.Ord (comparing)
@@ -994,7 +994,7 @@ inlineToMarkdown opts (Superscript lst) =
                          else
                            let rendered = render Nothing contents
                            in  case mapM toSuperscript rendered of
-                                    Just r -> text r
+                                    Just r  -> text r
                                     Nothing -> text $ "^(" ++ rendered ++ ")"
 inlineToMarkdown _ (Subscript []) = return empty
 inlineToMarkdown opts (Subscript lst) =
@@ -1007,7 +1007,7 @@ inlineToMarkdown opts (Subscript lst) =
                          else
                            let rendered = render Nothing contents
                            in  case mapM toSubscript rendered of
-                                    Just r -> text r
+                                    Just r  -> text r
                                     Nothing -> text $ "_(" ++ rendered ++ ")"
 inlineToMarkdown opts (SmallCaps lst) = do
   plain <- asks envPlain

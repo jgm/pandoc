@@ -70,7 +70,9 @@ module Text.Pandoc.Readers
 
 import Control.Monad.Except (throwError)
 import Data.Aeson
+import qualified Data.ByteString.Lazy as BL
 import Data.List (intercalate)
+import Data.Text (Text)
 import Text.Pandoc.Class
 import Text.Pandoc.Definition
 import Text.Pandoc.Error
@@ -86,7 +88,6 @@ import Text.Pandoc.Readers.HTML
 import Text.Pandoc.Readers.LaTeX
 import Text.Pandoc.Readers.Markdown
 import Text.Pandoc.Readers.MediaWiki
-import Text.Pandoc.Readers.Vimwiki
 import Text.Pandoc.Readers.Muse
 import Text.Pandoc.Readers.Native
 import Text.Pandoc.Readers.Odt
@@ -94,14 +95,13 @@ import Text.Pandoc.Readers.OPML
 import Text.Pandoc.Readers.Org
 import Text.Pandoc.Readers.RST
 import Text.Pandoc.Readers.Textile
-import Text.Pandoc.Readers.TWiki
 import Text.Pandoc.Readers.TikiWiki
+import Text.Pandoc.Readers.TWiki
 import Text.Pandoc.Readers.Txt2Tags
+import Text.Pandoc.Readers.Vimwiki
 import Text.Pandoc.Shared (mapLeft)
-import Text.Parsec.Error
 import qualified Text.Pandoc.UTF8 as UTF8
-import qualified Data.ByteString.Lazy as BL
-import Data.Text (Text)
+import Text.Parsec.Error
 
 data Reader m = TextReader (ReaderOptions -> Text -> m Pandoc)
               | ByteStringReader (ReaderOptions -> BL.ByteString -> m Pandoc)
