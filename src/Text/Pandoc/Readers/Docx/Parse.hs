@@ -106,7 +106,7 @@ eitherToD (Right b) = return b
 eitherToD (Left _)  = throwError DocxError
 
 concatMapM        :: (Monad m) => (a -> m [b]) -> [a] -> m [b]
-concatMapM f xs   =  fmap concat (mapM f xs)
+concatMapM f xs   =  liftM concat (mapM f xs)
 
 
 -- This is similar to `mapMaybe`: it maps a function returning the D
