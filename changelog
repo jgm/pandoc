@@ -1007,7 +1007,7 @@ pandoc (2.0)
   * DocBook writer:
 
     + Fix internal links with `writerIdentifierPrefix opt`
-      (#3397, Maura Bieg).
+      (#3397, Mauro Bieg).
 
   * Docx writer:
 
@@ -1068,7 +1068,7 @@ pandoc (2.0)
     + Info message if `lang` is unspecified (#3486).
     + Removed unused parameter in `dimensionsToAttributeList`.
     + Avoid two class attributes when adding `uri` class (#3716).
-    + Fix internal links with `writerIdentifierPrefix opt` (#3397, Maura
+    + Fix internal links with `writerIdentifierPrefix opt` (#3397, Mauro
       Bieg).
     + Use revealjs's math plugin for mathjax (#3743).  This is a thin
       wrapper around mathjax that makes math look better on revealjs.
