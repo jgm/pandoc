@@ -239,7 +239,8 @@ pandoc (2.0)
 
   * Make `--ascii` work with DocBook output too.
 
-  * Rename `--latex-engine` to `--pdf-engine`.
+  * Rename `--latex-engine` to `--pdf-engine`,
+    and `--latex-engine-opt` to `--pdf-engine-opt`.
 
   * Removed `--parse-raw` and `readerParseRaw`.  These were confusing.
     Now we rely on the `+raw_tex` or `+raw_html` extension with latex or html
