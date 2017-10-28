@@ -35,7 +35,7 @@ module Text.Pandoc.Error (
   handleError) where
 
 import Control.Exception (Exception)
-import Data.Generics (Typeable)
+import Data.Typeable (Typeable)
 import GHC.Generics (Generic)
 import Network.HTTP.Client (HttpException)
 import System.Exit (ExitCode (..), exitWith)

@@ -105,7 +105,7 @@ import qualified Control.Monad.State.Strict as S
 import qualified Data.ByteString.Lazy as BL
 import Data.Char (isAlpha, isDigit, isLetter, isLower, isSpace, isUpper,
                   toLower)
-import Data.Generics (Data, Typeable)
+import Data.Data (Data, Typeable)
 import Data.List (find, intercalate, stripPrefix)
 import qualified Data.Map as M
 import Data.Maybe (mapMaybe)
