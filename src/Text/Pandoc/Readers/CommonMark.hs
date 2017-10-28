@@ -132,12 +132,12 @@ addBlock opts (Node _ (LIST listAttrs) nodes) =
         setTightness = if listTight listAttrs
                            then map paraToPlain
                            else id
-        paraToPlain (Para xs) = Plain (xs)
+        paraToPlain (Para xs) = Plain xs
         paraToPlain x         = x
         delim = case listDelim listAttrs of
                      PERIOD_DELIM -> Period
                      PAREN_DELIM  -> OneParen
-addBlock opts (Node _ (TABLE alignments) nodes) = do
+addBlock opts (Node _ (TABLE alignments) nodes) =
   (Table [] aligns widths headers rows :)
   where aligns = map fromTableCellAlignment alignments
         fromTableCellAlignment NoAlignment   = AlignDefault

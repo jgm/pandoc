@@ -33,7 +33,6 @@ module Text.Pandoc.Readers.Docx.Lists ( blocksToBullets
                                       , listParagraphDivs
                                       ) where
 
-import Control.Monad
 import Data.List
 import Data.Maybe
 import Text.Pandoc.Generic (bottomUp)
@@ -45,22 +44,18 @@ isListItem (Div (_, classes, _) _) | "list-item" `elem` classes = True
 isListItem _                       = False
 
 getLevel :: Block -> Maybe Integer
-getLevel (Div (_, _, kvs) _) =  liftM read $ lookup "level" kvs
+getLevel (Div (_, _, kvs) _) =  fmap read $ lookup "level" kvs
 getLevel _                   = Nothing
 
 getLevelN :: Block -> Integer
-getLevelN b = case getLevel b of
-  Just n  -> n
-  Nothing -> -1
+getLevelN b = fromMaybe (-1) (getLevel b)
 
 getNumId :: Block -> Maybe Integer
-getNumId (Div (_, _, kvs) _) =  liftM read $ lookup "num-id" kvs
+getNumId (Div (_, _, kvs) _) =  fmap read $ lookup "num-id" kvs
 getNumId _                   = Nothing
 
 getNumIdN :: Block -> Integer
-getNumIdN b = case getNumId b of
-  Just n  -> n
-  Nothing -> -1
+getNumIdN b = fromMaybe (-1) (getNumId b)
 
 getText :: Block -> Maybe String
 getText (Div (_, _, kvs) _) = lookup "text" kvs
@@ -109,27 +104,27 @@ listParagraphDivs = ["ListParagraph"]
 handleListParagraphs :: [Block] -> [Block]
 handleListParagraphs [] = []
 handleListParagraphs (
-  (Div attr1@(_, classes1, _) blks1) :
-  (Div (ident2, classes2, kvs2) blks2) :
+  Div attr1@(_, classes1, _) blks1 :
+  Div (ident2, classes2, kvs2) blks2 :
   blks
   ) | "list-item" `elem` classes1 &&
-    not ("list-item" `elem` classes2) &&
+    notElem "list-item" classes2 &&
     (not . null) (listParagraphDivs `intersect` classes2) =
       -- We don't want to keep this indent.
       let newDiv2 =
-            (Div (ident2, classes2, filter (\kv -> fst kv /= "indent") kvs2) blks2)
+            Div (ident2, classes2, filter (\kv -> fst kv /= "indent") kvs2) blks2
       in
-       handleListParagraphs ((Div attr1 (blks1 ++ [newDiv2])) : blks)
-handleListParagraphs (blk:blks) = blk : (handleListParagraphs blks)
+       handleListParagraphs (Div attr1 (blks1 ++ [newDiv2]) : blks)
+handleListParagraphs (blk:blks) = blk : handleListParagraphs blks
 
 separateBlocks' :: Block -> [[Block]] -> [[Block]]
-separateBlocks' blk ([] : []) = [[blk]]
-separateBlocks' b@(BulletList _) acc = (init acc) ++ [(last acc) ++ [b]]
-separateBlocks' b@(OrderedList _ _) acc = (init acc) ++ [(last acc) ++ [b]]
+separateBlocks' blk [[]] = [[blk]]
+separateBlocks' b@(BulletList _) acc = init acc ++ [last acc ++ [b]]
+separateBlocks' b@(OrderedList _ _) acc = init acc ++ [last acc ++ [b]]
 -- The following is for the invisible bullet lists. This is how
 -- pandoc-generated ooxml does multiparagraph item lists.
-separateBlocks' b acc | liftM trim (getText b) == Just "" =
-  (init acc) ++ [(last acc) ++ [b]]
+separateBlocks' b acc | fmap trim (getText b) == Just "" =
+  init acc ++ [last acc ++ [b]]
 separateBlocks' b acc = acc ++ [[b]]
 
 separateBlocks :: [Block] -> [[Block]]
@@ -138,38 +133,37 @@ separateBlocks blks = foldr separateBlocks' [[]] (reverse blks)
 flatToBullets' :: Integer -> [Block] -> [Block]
 flatToBullets' _ [] = []
 flatToBullets' num xs@(b : elems)
-  | getLevelN b == num = b : (flatToBullets' num elems)
+  | getLevelN b == num = b : flatToBullets' num elems
   | otherwise =
     let bNumId = getNumIdN b
         bLevel = getLevelN b
         (children, remaining) =
           span
           (\b' ->
-            ((getLevelN b') > bLevel ||
-             ((getLevelN b') == bLevel && (getNumIdN b') == bNumId)))
+            (getLevelN b') > bLevel ||
+             ((getLevelN b') == bLevel && (getNumIdN b') == bNumId))
           xs
     in
      case getListType b of
        Just (Enumerated attr) ->
-         (OrderedList attr (separateBlocks $ flatToBullets' bLevel children)) :
-         (flatToBullets' num remaining)
+         OrderedList attr (separateBlocks $ flatToBullets' bLevel children) :
+         flatToBullets' num remaining
        _ ->
-         (BulletList (separateBlocks $ flatToBullets' bLevel children)) :
-         (flatToBullets' num remaining)
+         BulletList (separateBlocks $ flatToBullets' bLevel children) :
+         flatToBullets' num remaining
 
 flatToBullets :: [Block] -> [Block]
 flatToBullets elems = flatToBullets' (-1) elems
 
 singleItemHeaderToHeader :: Block -> Block
-singleItemHeaderToHeader (OrderedList _ [[h@(Header _ _ _)]]) = h
+singleItemHeaderToHeader (OrderedList _ [[h@(Header{})]]) = h
 singleItemHeaderToHeader blk                                  = blk
 
 
 blocksToBullets :: [Block] -> [Block]
 blocksToBullets blks =
   map singleItemHeaderToHeader $
-  bottomUp removeListDivs $
-  flatToBullets $ (handleListParagraphs blks)
+  bottomUp removeListDivs $flatToBullets (handleListParagraphs blks)
 
 plainParaInlines :: Block -> [Inline]
 plainParaInlines (Plain ils) = ils
@@ -179,18 +173,16 @@ plainParaInlines _           = []
 blocksToDefinitions' :: [([Inline], [[Block]])] -> [Block] -> [Block] -> [Block]
 blocksToDefinitions' []     acc [] = reverse acc
 blocksToDefinitions' defAcc acc [] =
-  reverse $ (DefinitionList (reverse defAcc)) : acc
+  reverse $ DefinitionList (reverse defAcc) : acc
 blocksToDefinitions' defAcc acc
-  ((Div (_, classes1, _) blks1) : (Div (ident2, classes2, kvs2) blks2) : blks)
+  (Div (_, classes1, _) blks1 : Div (ident2, classes2, kvs2) blks2 : blks)
   | "DefinitionTerm" `elem` classes1 && "Definition"  `elem` classes2 =
     let remainingAttr2 = (ident2, delete "Definition" classes2, kvs2)
-        pair = case remainingAttr2 == ("", [], []) of
-          True -> (concatMap plainParaInlines blks1, [blks2])
-          False -> (concatMap plainParaInlines blks1, [[Div remainingAttr2 blks2]])
+        pair = if remainingAttr2 == ("", [], []) then (concatMap plainParaInlines blks1, [blks2]) else (concatMap plainParaInlines blks1, [[Div remainingAttr2 blks2]])
     in
      blocksToDefinitions' (pair : defAcc) acc blks
 blocksToDefinitions' defAcc acc
-  ((Div (ident2, classes2, kvs2) blks2) : blks)
+  (Div (ident2, classes2, kvs2) blks2 : blks)
   | (not . null) defAcc && "Definition"  `elem` classes2 =
     let remainingAttr2 = (ident2, delete "Definition" classes2, kvs2)
         defItems2 = case remainingAttr2 == ("", [], []) of
@@ -205,14 +197,14 @@ blocksToDefinitions' defAcc acc
 blocksToDefinitions' [] acc (b:blks) =
   blocksToDefinitions' [] (b:acc) blks
 blocksToDefinitions' defAcc acc (b:blks) =
-  blocksToDefinitions' [] (b : (DefinitionList (reverse defAcc)) : acc) blks
+  blocksToDefinitions' [] (b : DefinitionList (reverse defAcc) : acc) blks
 
 removeListDivs' :: Block -> [Block]
 removeListDivs' (Div (ident, classes, kvs) blks)
   | "list-item" `elem` classes =
     case delete "list-item" classes of
       []       -> blks
-      classes' -> [Div (ident, classes', kvs) $ blks]
+      classes' -> [Div (ident, classes', kvs) blks]
 removeListDivs' (Div (ident, classes, kvs) blks)
   | not $ null $ listParagraphDivs `intersect` classes =
     case classes \\ listParagraphDivs of

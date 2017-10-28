@@ -106,7 +106,7 @@ eitherToD (Right b) = return b
 eitherToD (Left _)  = throwError DocxError
 
 concatMapM        :: (Monad m) => (a -> m [b]) -> [a] -> m [b]
-concatMapM f xs   =  liftM concat (mapM f xs)
+concatMapM f xs   =  fmap concat (mapM f xs)
 
 
 -- This is similar to `mapMaybe`: it maps a function returning the D
@@ -304,7 +304,7 @@ archiveToDocument zf = do
 elemToBody :: NameSpaces -> Element -> D Body
 elemToBody ns element | isElem ns "w" "body" element =
   mapD (elemToBodyPart ns) (elChildren element) >>=
-  (\bps -> return $ Body bps)
+  (return . Body)
 elemToBody _ _ = throwError WrongElem
 
 archiveToStyles :: Archive -> (CharStyleMap, ParStyleMap)
@@ -329,7 +329,7 @@ isBasedOnStyle ns element parentStyle
   , styleType == cStyleType parentStyle
   , Just basedOnVal <- findChildByName ns "w" "basedOn" element >>=
                        findAttrByName ns "w" "val"
-  , Just ps <- parentStyle = (basedOnVal == getStyleId ps)
+  , Just ps <- parentStyle = basedOnVal == getStyleId ps
   | isElem ns "w" "style" element
   , Just styleType <- findAttrByName ns "w" "type" element
   , styleType == cStyleType parentStyle
@@ -371,10 +371,10 @@ getStyleChildren ns element parentStyle
 
 buildBasedOnList :: (ElemToStyle a) => NameSpaces -> Element -> Maybe a -> [a]
 buildBasedOnList ns element rootStyle =
-  case (getStyleChildren ns element rootStyle) of
+  case getStyleChildren ns element rootStyle of
     [] -> []
     stys -> stys ++
-            (concatMap (\s -> buildBasedOnList ns element (Just s)) stys)
+            concatMap (\s -> buildBasedOnList ns element (Just s)) stys
 
 archiveToNotes :: Archive -> Notes
 archiveToNotes zf =
@@ -389,8 +389,8 @@ archiveToNotes zf =
         Just e  -> elemToNameSpaces e
         Nothing -> []
       ns = unionBy (\x y -> fst x == fst y) fn_namespaces en_namespaces
-      fn = fnElem >>= (elemToNotes ns "footnote")
-      en = enElem >>= (elemToNotes ns "endnote")
+      fn = fnElem >>= elemToNotes ns "footnote"
+      en = enElem >>= elemToNotes ns "endnote"
   in
    Notes ns fn en
 
@@ -401,7 +401,7 @@ archiveToComments zf =
       cmts_namespaces = case cmtsElem of
         Just e  -> elemToNameSpaces e
         Nothing -> []
-      cmts = (elemToComments cmts_namespaces) <$> cmtsElem
+      cmts = elemToComments cmts_namespaces <$> cmtsElem
   in
     case cmts of
       Just c  -> Comments cmts_namespaces c
@@ -442,8 +442,7 @@ lookupLevel :: String -> String -> Numbering -> Maybe Level
 lookupLevel numId ilvl (Numbering _ numbs absNumbs) = do
   absNumId <- lookup numId $ map (\(Numb nid absnumid) -> (nid, absnumid)) numbs
   lvls <- lookup absNumId $ map (\(AbstractNumb aid ls) -> (aid, ls)) absNumbs
-  lvl  <- lookup ilvl $ map (\l@(i, _, _, _) -> (i, l)) lvls
-  return lvl
+  lookup ilvl $ map (\l@(i, _, _, _) -> (i, l)) lvls
 
 
 numElemToNum :: NameSpaces -> Element -> Maybe Numb
@@ -479,7 +478,7 @@ levelElemToLevel ns element
 levelElemToLevel _ _ = Nothing
 
 archiveToNumbering' :: Archive -> Maybe Numbering
-archiveToNumbering' zf = do
+archiveToNumbering' zf =
   case findEntryByPath "word/numbering.xml" zf of
     Nothing -> Just $ Numbering [] [] []
     Just entry -> do
@@ -503,7 +502,8 @@ elemToNotes ns notetype element
                          (\a -> Just (a, e)))
                   (findChildrenByName ns "w" notetype element)
       in
-       Just $ M.fromList $ pairs
+       Just $
+       M.fromList pairs
 elemToNotes _ _ _ = Nothing
 
 elemToComments :: NameSpaces -> Element -> M.Map String Element
@@ -514,7 +514,7 @@ elemToComments ns element
                          (\a -> Just (a, e)))
                   (findChildrenByName ns "w" "comment" element)
       in
-       M.fromList $ pairs
+       M.fromList pairs
 elemToComments _ _ = M.empty
 
 

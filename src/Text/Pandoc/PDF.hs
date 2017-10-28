@@ -327,7 +327,7 @@ ms2pdf verbosity args source = do
     putStrLn "[makePDF] Environment:"
     mapM_ print env'
     putStr "\n"
-    putStrLn $ "[makePDF] Contents:\n"
+    putStrLn "[makePDF] Contents:\n"
     putStr $ T.unpack source
     putStr "\n"
   (exit, out) <- E.catch
@@ -351,9 +351,7 @@ html2pdf  :: Verbosity    -- ^ Verbosity level
           -> IO (Either ByteString ByteString)
 html2pdf verbosity program args source = do
   pdfFile <- withTempFile "." "html2pdf.pdf" $ \fp _ -> return fp
-  let pdfFileArgName = if program == "prince"
-                       then ["-o"]
-                       else []
+  let pdfFileArgName = ["-o" | program == "prince"]
   let programArgs = args ++ ["-"] ++ pdfFileArgName ++ [pdfFile]
   env' <- getEnvironment
   when (verbosity >= INFO) $ do
@@ -363,7 +361,7 @@ html2pdf verbosity program args source = do
     putStrLn "[makePDF] Environment:"
     mapM_ print env'
     putStr "\n"
-    putStrLn $ "[makePDF] Contents of intermediate HTML:"
+    putStrLn "[makePDF] Contents of intermediate HTML:"
     TextIO.putStr source
     putStr "\n"
   (exit, out) <- E.catch

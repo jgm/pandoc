@@ -36,16 +36,16 @@ spaceOutInlines ils =
       right = case viewr contents of
         (_ :> Space) -> space
         _            -> mempty in
-  (left, (stackInlines fs $ trimInlines . Many $ contents), right)
+  (left, stackInlines fs $ trimInlines . Many $ contents, right)
 
 stackInlines :: [Modifier Inlines] -> Inlines -> Inlines
 stackInlines [] ms = ms
 stackInlines (NullModifier : fs) ms = stackInlines fs ms
-stackInlines ((Modifier f) : fs) ms =
+stackInlines (Modifier f : fs) ms =
   if isEmpty ms
   then stackInlines fs ms
   else f $ stackInlines fs ms
-stackInlines ((AttrModifier f attr) : fs) ms = f attr $ stackInlines fs ms
+stackInlines (AttrModifier f attr : fs) ms = f attr $ stackInlines fs ms
 
 unstackInlines :: Inlines -> ([Modifier Inlines], Inlines)
 unstackInlines ms = case ilModifier ms of
@@ -97,7 +97,7 @@ combineInlines x y =
   let (xs', x') = inlinesR x
       (y', ys') = inlinesL y
   in
-   xs' <> (combineSingletonInlines x' y') <> ys'
+   xs' <> combineSingletonInlines x' y' <> ys'
 
 combineSingletonInlines :: Inlines -> Inlines -> Inlines
 combineSingletonInlines x y =
@@ -114,10 +114,10 @@ combineSingletonInlines x y =
             stackInlines (x_rem_attr ++ y_rem_attr) mempty
           | isEmpty xs ->
             let (sp, y') = spaceOutInlinesL y in
-            (stackInlines x_rem_attr mempty) <> sp <> y'
+            stackInlines x_rem_attr mempty <> sp <> y'
           | isEmpty ys ->
             let (x', sp) = spaceOutInlinesR x in
-            x' <> sp <> (stackInlines y_rem_attr mempty)
+            x' <> sp <> stackInlines y_rem_attr mempty
           | otherwise ->
               let (x', xsp) = spaceOutInlinesR x
                   (ysp, y') = spaceOutInlinesL y
@@ -130,15 +130,15 @@ combineSingletonInlines x y =
 
 combineBlocks :: Blocks -> Blocks -> Blocks
 combineBlocks bs cs
-  | bs' :> (BlockQuote bs'') <- viewr (unMany bs)
-  , (BlockQuote cs'') :< cs' <- viewl (unMany cs) =
-      Many $ (bs' |> (BlockQuote (bs'' <> cs''))) >< cs'
+  | bs' :> BlockQuote bs'' <- viewr (unMany bs)
+  , BlockQuote cs'' :< cs' <- viewl (unMany cs) =
+      Many $ (bs' |> BlockQuote (bs'' <> cs'')) >< cs'
 combineBlocks bs cs = bs <> cs
 
 instance (Monoid a, Eq a) => Eq (Modifier a) where
-  (Modifier f) == (Modifier g) = (f mempty == g mempty)
-  (AttrModifier f attr) == (AttrModifier g attr') = (f attr mempty == g attr' mempty)
-  (NullModifier) == (NullModifier) = True
+  (Modifier f) == (Modifier g) = f mempty == g mempty
+  (AttrModifier f attr) == (AttrModifier g attr') = f attr mempty == g attr' mempty
+  NullModifier == NullModifier = True
   _ == _ = False
 
 isEmpty :: (Monoid a, Eq a) => a -> Bool

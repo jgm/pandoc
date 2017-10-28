@@ -80,4 +80,4 @@ lookupMedia fp (MediaBag mediamap) = M.lookup (splitDirectories fp) mediamap
 mediaDirectory :: MediaBag -> [(String, MimeType, Int)]
 mediaDirectory (MediaBag mediamap) =
   M.foldrWithKey (\fp (mime,contents) ->
-      (((Posix.joinPath fp), mime, fromIntegral $ BL.length contents):)) [] mediamap
+      ((Posix.joinPath fp, mime, fromIntegral $ BL.length contents):)) [] mediamap
