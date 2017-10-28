@@ -1,6 +1,6 @@
 {-# LANGUAGE Arrows            #-}
-{-# LANGUAGE TupleSections     #-}
 {-# LANGUAGE FlexibleInstances #-}
+{-# LANGUAGE TupleSections     #-}
 {-
 Copyright (C) 2015 Martin Linnemann <theCodingMarlin@googlemail.com>
 
@@ -38,17 +38,17 @@ faster and easier to implement this way.
 
 module Text.Pandoc.Readers.Odt.Arrows.State where
 
-import Prelude hiding ( foldr, foldl )
+import Prelude hiding (foldl, foldr)
 
-import qualified Control.Category                     as Cat
-import           Control.Arrow
-import           Control.Monad
+import Control.Arrow
+import qualified Control.Category as Cat
+import Control.Monad
 
-import           Data.Foldable
-import           Data.Monoid
+import Data.Foldable
+import Data.Monoid
 
-import           Text.Pandoc.Readers.Odt.Arrows.Utils
-import           Text.Pandoc.Readers.Odt.Generic.Fallible
+import Text.Pandoc.Readers.Odt.Arrows.Utils
+import Text.Pandoc.Readers.Odt.Generic.Fallible
 
 
 newtype ArrowState state a b = ArrowState

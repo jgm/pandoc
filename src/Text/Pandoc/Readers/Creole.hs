@@ -35,18 +35,18 @@ Conversion of creole text to 'Pandoc' document.
 module Text.Pandoc.Readers.Creole ( readCreole
                                   ) where
 
-import Control.Monad.Except (liftM2, throwError, guard)
+import Control.Monad.Except (guard, liftM2, throwError)
 import qualified Data.Foldable as F
-import qualified Text.Pandoc.Builder as B
-import Text.Pandoc.Class (PandocMonad(..))
-import Text.Pandoc.Definition
-import Text.Pandoc.Options
-import Text.Pandoc.Parsing hiding (enclosed)
-import Text.Pandoc.Shared (crFilter)
 import Data.Maybe (fromMaybe)
 import Data.Monoid
 import Data.Text (Text)
 import qualified Data.Text as T
+import qualified Text.Pandoc.Builder as B
+import Text.Pandoc.Class (PandocMonad (..))
+import Text.Pandoc.Definition
+import Text.Pandoc.Options
+import Text.Pandoc.Parsing hiding (enclosed)
+import Text.Pandoc.Shared (crFilter)
 
 
 -- | Read creole from an input string and return a Pandoc document.

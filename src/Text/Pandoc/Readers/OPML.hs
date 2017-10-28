@@ -2,16 +2,16 @@
 module Text.Pandoc.Readers.OPML ( readOPML ) where
 import Control.Monad.State.Strict
 import Data.Char (toUpper)
-import Data.Text (Text, unpack, pack)
 import Data.Default
 import Data.Generics
+import Data.Text (Text, pack, unpack)
 import Text.HTML.TagSoup.Entity (lookupEntity)
 import Text.Pandoc.Builder
 import Text.Pandoc.Class (PandocMonad)
 import Text.Pandoc.Options
-import Text.Pandoc.Shared (crFilter)
 import Text.Pandoc.Readers.HTML (readHtml)
 import Text.Pandoc.Readers.Markdown (readMarkdown)
+import Text.Pandoc.Shared (crFilter)
 import Text.XML.Light
 
 type OPML m = StateT OPMLState m

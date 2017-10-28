@@ -40,17 +40,17 @@ import Control.Monad.Except (throwError)
 import Data.Char (isAlphaNum)
 import qualified Data.Foldable as F
 import Data.Maybe (fromMaybe)
+import Data.Text (Text)
+import qualified Data.Text as T
 import Text.HTML.TagSoup
 import qualified Text.Pandoc.Builder as B
-import Text.Pandoc.Class (PandocMonad(..))
+import Text.Pandoc.Class (PandocMonad (..))
 import Text.Pandoc.Definition
 import Text.Pandoc.Options
 import Text.Pandoc.Parsing hiding (enclosed, nested)
 import Text.Pandoc.Readers.HTML (htmlTag, isCommentTag)
-import Text.Pandoc.XML (fromEntities)
 import Text.Pandoc.Shared (crFilter)
-import Data.Text (Text)
-import qualified Data.Text as T
+import Text.Pandoc.XML (fromEntities)
 
 -- | Read twiki from an input string and return a Pandoc document.
 readTWiki :: PandocMonad m

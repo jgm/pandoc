@@ -34,24 +34,24 @@ module Text.Pandoc.Lua.PandocModule
 import Control.Monad (unless, zipWithM_)
 import Data.ByteString.Char8 (unpack)
 import Data.Default (Default (..))
+import Data.Digest.Pure.SHA (sha1, showDigest)
 import Data.IORef
 import Data.Maybe (fromMaybe)
 import Data.Text (pack)
-import Foreign.Lua (Lua, FromLuaStack, NumResults, liftIO)
+import Foreign.Lua (FromLuaStack, Lua, NumResults, liftIO)
 import Foreign.Lua.FunctionCalling (ToHaskellFunction)
-import Text.Pandoc.Class (readDataFile, runIO,
-                          runIOorExplode, setUserDataDir, CommonState(..),
-                          putCommonState, fetchItem, setMediaBag)
-import Text.Pandoc.Options (ReaderOptions(readerExtensions))
+import System.Exit (ExitCode (..))
+import Text.Pandoc.Class (CommonState (..), fetchItem, putCommonState,
+                          readDataFile, runIO, runIOorExplode, setMediaBag,
+                          setUserDataDir)
 import Text.Pandoc.Lua.StackInstances ()
-import Text.Pandoc.Readers (Reader (..), getReader)
 import Text.Pandoc.MIME (MimeType)
+import Text.Pandoc.Options (ReaderOptions (readerExtensions))
 import Text.Pandoc.Process (pipeProcess)
-import System.Exit (ExitCode(..))
-import Data.Digest.Pure.SHA (sha1, showDigest)
+import Text.Pandoc.Readers (Reader (..), getReader)
 
-import qualified Foreign.Lua as Lua
 import qualified Data.ByteString.Lazy as BL
+import qualified Foreign.Lua as Lua
 import qualified Text.Pandoc.MediaBag as MB
 
 -- | Push the "pandoc" on the lua stack.

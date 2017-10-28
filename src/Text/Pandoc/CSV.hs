@@ -34,11 +34,11 @@ module Text.Pandoc.CSV (
   ParseError
 ) where
 
-import Text.Parsec
-import Text.Parsec.Text (Parser)
+import Control.Monad (void)
 import Data.Text (Text)
 import qualified Data.Text as T
-import Control.Monad (void)
+import Text.Parsec
+import Text.Parsec.Text (Parser)
 
 data CSVOptions = CSVOptions{
     csvDelim     :: Char

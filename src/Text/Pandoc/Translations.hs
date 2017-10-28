@@ -1,4 +1,4 @@
-{-# LANGUAGE DeriveGeneric #-}
+{-# LANGUAGE DeriveGeneric              #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
 {-
 Copyright (C) 2017 John MacFarlane <jgm@berkeley.edu>
@@ -45,14 +45,14 @@ module Text.Pandoc.Translations (
                          , readTranslations
                          )
 where
+import Data.Aeson.Types (typeMismatch)
 import qualified Data.HashMap.Strict as HM
 import qualified Data.Map as M
-import GHC.Generics (Generic)
-import qualified Text.Pandoc.UTF8 as UTF8
 import Data.Text as T
-import Text.Pandoc.Shared (safeRead)
 import Data.Yaml as Yaml
-import Data.Aeson.Types (typeMismatch)
+import GHC.Generics (Generic)
+import Text.Pandoc.Shared (safeRead)
+import qualified Text.Pandoc.UTF8 as UTF8
 
 data Term =
     Preface

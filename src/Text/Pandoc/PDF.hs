@@ -36,15 +36,15 @@ import qualified Codec.Picture as JP
 import qualified Control.Exception as E
 import Control.Monad (unless, when)
 import Control.Monad.Trans (MonadIO (..))
-import qualified Data.Text as T
-import qualified Data.Text.IO as TextIO
-import Data.Text (Text)
 import qualified Data.ByteString as BS
 import Data.ByteString.Lazy (ByteString)
 import qualified Data.ByteString.Lazy as BL
 import qualified Data.ByteString.Lazy.Char8 as BC
 import Data.Maybe (fromMaybe)
 import Data.Monoid ((<>))
+import Data.Text (Text)
+import qualified Data.Text as T
+import qualified Data.Text.IO as TextIO
 import System.Directory
 import System.Environment
 import System.Exit (ExitCode (..))
@@ -57,7 +57,7 @@ import System.IO.Error (IOError, isDoesNotExistError)
 import System.IO.Error (isDoesNotExistError)
 #endif
 import Text.Pandoc.Definition
-import Text.Pandoc.Error (PandocError(PandocPDFProgramNotFoundError))
+import Text.Pandoc.Error (PandocError (PandocPDFProgramNotFoundError))
 import Text.Pandoc.MIME (getMimeType)
 import Text.Pandoc.Options (HTMLMathMethod (..), WriterOptions (..))
 import Text.Pandoc.Process (pipeProcess)
@@ -68,10 +68,9 @@ import Text.Pandoc.Writers.Shared (getField, metaToJSON)
 #ifdef _WINDOWS
 import Data.List (intercalate)
 #endif
-import Text.Pandoc.Class (PandocIO, report, runIO, runIOorExplode,
-                          setVerbosity, getVerbosity,
-                          fillMediaBag, extractMedia, putCommonState,
-                          getCommonState)
+import Text.Pandoc.Class (PandocIO, extractMedia, fillMediaBag, getCommonState,
+                          getVerbosity, putCommonState, report, runIO,
+                          runIOorExplode, setVerbosity)
 import Text.Pandoc.Logging
 
 #ifdef _WINDOWS

@@ -36,10 +36,11 @@ import Control.Arrow ((***), (>>>))
 import Control.Monad.State.Strict hiding (when)
 import Data.Char (chr)
 import Data.List (sortBy)
-import Data.Text (Text)
 import qualified Data.Map as Map
 import Data.Ord (comparing)
 import qualified Data.Set as Set
+import Data.Text (Text)
+import Text.Pandoc.BCP47 (Lang (..), parseBCP47)
 import Text.Pandoc.Class (PandocMonad, report)
 import Text.Pandoc.Definition
 import Text.Pandoc.Logging
@@ -50,7 +51,6 @@ import Text.Pandoc.Templates (renderTemplate')
 import Text.Pandoc.Writers.Math
 import Text.Pandoc.Writers.Shared
 import Text.Pandoc.XML
-import Text.Pandoc.BCP47 (parseBCP47, Lang(..))
 import Text.Printf (printf)
 
 -- | Auxiliary function to convert Plain block to Para.

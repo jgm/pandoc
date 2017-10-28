@@ -1,18 +1,18 @@
 module Tests.Writers.Docx (tests) where
 
+import qualified Data.ByteString as BS
 import System.FilePath ((</>))
+import System.IO.Unsafe (unsafePerformIO)
 import Test.Tasty
 import Tests.Helpers
 import Text.Pandoc.Class (runIOorExplode, setUserDataDir)
 import Text.Pandoc.Definition
 import Text.Pandoc.Options
-import Text.Pandoc.Walk
 import Text.Pandoc.Readers.Docx
 import Text.Pandoc.Readers.Native
-import Text.Pandoc.Writers.Docx
-import System.IO.Unsafe (unsafePerformIO) -- TODO temporary
-import qualified Data.ByteString as BS
 import qualified Text.Pandoc.UTF8 as UTF8
+import Text.Pandoc.Walk
+import Text.Pandoc.Writers.Docx
 
 type Options = (WriterOptions, ReaderOptions)
 
@@ -35,7 +35,7 @@ compareOutput (wopts, ropts) nativeFileIn nativeFileOut = do
 -- different ghc versions...
 fixImages :: Inline -> Inline
 fixImages (Image attr alt (_,tit)) = Image attr alt ("image",tit)
-fixImages x = x
+fixImages x                        = x
 
 testCompareWithOptsIO :: Options -> String -> FilePath -> FilePath -> IO TestTree
 testCompareWithOptsIO opts name nativeFileIn nativeFileOut = do

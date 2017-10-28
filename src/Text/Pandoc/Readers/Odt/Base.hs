@@ -32,8 +32,8 @@ Core types of the odt reader.
 
 module Text.Pandoc.Readers.Odt.Base where
 
-import           Text.Pandoc.Readers.Odt.Generic.XMLConverter
-import           Text.Pandoc.Readers.Odt.Namespaces
+import Text.Pandoc.Readers.Odt.Generic.XMLConverter
+import Text.Pandoc.Readers.Odt.Namespaces
 
 type OdtConverterState s = XMLConverterState Namespace s
 

@@ -1,8 +1,7 @@
-{-# LANGUAGE TupleSections   #-}
-{-# LANGUAGE PatternGuards   #-}
-{-# LANGUAGE ViewPatterns    #-}
-{-# LANGUAGE RecordWildCards #-}
 {-# LANGUAGE Arrows          #-}
+{-# LANGUAGE PatternGuards   #-}
+{-# LANGUAGE RecordWildCards #-}
+{-# LANGUAGE TupleSections   #-}
 
 {-
 Copyright (C) 2015 Martin Linnemann <theCodingMarlin@googlemail.com>
@@ -58,28 +57,28 @@ module Text.Pandoc.Readers.Odt.StyleReader
 , readStylesAt
 ) where
 
-import           Control.Arrow
-import           Control.Applicative hiding ( liftA, liftA2, liftA3 )
+import Control.Applicative hiding (liftA, liftA2, liftA3)
+import Control.Arrow
 
-import qualified Data.Foldable                                as F
-import qualified Data.Map                                     as M
-import qualified Data.Set                                     as S
-import           Data.Char                                           ( isDigit )
-import           Data.Default
-import           Data.List                                           ( unfoldr )
-import           Data.Maybe
+import Data.Char (isDigit)
+import Data.Default
+import qualified Data.Foldable as F
+import Data.List (unfoldr)
+import qualified Data.Map as M
+import Data.Maybe
+import qualified Data.Set as S
 
-import qualified Text.XML.Light                               as XML
+import qualified Text.XML.Light as XML
 
-import           Text.Pandoc.Readers.Odt.Arrows.Utils
+import Text.Pandoc.Readers.Odt.Arrows.Utils
 
-import           Text.Pandoc.Readers.Odt.Generic.Utils
-import qualified Text.Pandoc.Readers.Odt.Generic.SetMap       as SM
-import           Text.Pandoc.Readers.Odt.Generic.Fallible
-import           Text.Pandoc.Readers.Odt.Generic.XMLConverter
+import Text.Pandoc.Readers.Odt.Generic.Fallible
+import qualified Text.Pandoc.Readers.Odt.Generic.SetMap as SM
+import Text.Pandoc.Readers.Odt.Generic.Utils
+import Text.Pandoc.Readers.Odt.Generic.XMLConverter
 
-import           Text.Pandoc.Readers.Odt.Namespaces
-import           Text.Pandoc.Readers.Odt.Base
+import Text.Pandoc.Readers.Odt.Base
+import Text.Pandoc.Readers.Odt.Namespaces
 
 
 readStylesAt :: XML.Element -> Fallible Styles
@@ -217,15 +216,15 @@ instance Lookupable StyleFamily where
                 ]
 
 -- | A named style
-data Style            = Style  { styleFamily      :: Maybe StyleFamily
-                               , styleParentName  :: Maybe StyleName
-                               , listStyle        :: Maybe StyleName
-                               , styleProperties  :: StyleProperties
+data Style            = Style  { styleFamily     :: Maybe StyleFamily
+                               , styleParentName :: Maybe StyleName
+                               , listStyle       :: Maybe StyleName
+                               , styleProperties :: StyleProperties
                                }
   deriving ( Eq, Show )
 
-data StyleProperties  = SProps { textProperties      :: Maybe TextProperties
-                               , paraProperties      :: Maybe ParaProperties
+data StyleProperties  = SProps { textProperties :: Maybe TextProperties
+                               , paraProperties :: Maybe ParaProperties
 --                             , tableColProperties  :: Maybe TColProperties
 --                             , tableRowProperties  :: Maybe TRowProperties
 --                             , tableCellProperties :: Maybe TCellProperties

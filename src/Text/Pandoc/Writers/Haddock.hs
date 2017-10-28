@@ -35,8 +35,8 @@ Haddock:  <http://www.haskell.org/haddock/doc/html/>
 module Text.Pandoc.Writers.Haddock (writeHaddock) where
 import Control.Monad.State.Strict
 import Data.Default
-import Data.Text (Text)
 import Data.List (intersperse, transpose)
+import Data.Text (Text)
 import Text.Pandoc.Class (PandocMonad, report)
 import Text.Pandoc.Definition
 import Text.Pandoc.Logging

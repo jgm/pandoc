@@ -40,8 +40,8 @@ module Text.Pandoc.Lua.Util
   , pushViaConstructor
   ) where
 
-import Foreign.Lua (Lua, FromLuaStack (..), ToLuaStack (..), NumArgs,
-                    StackIndex, getglobal')
+import Foreign.Lua (FromLuaStack (..), Lua, NumArgs, StackIndex,
+                    ToLuaStack (..), getglobal')
 import Foreign.Lua.Api (call, pop, rawget, rawgeti, rawset, rawseti)
 
 -- | Adjust the stack index, assuming that @n@ new elements have been pushed on

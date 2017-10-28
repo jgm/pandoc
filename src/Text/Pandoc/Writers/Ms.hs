@@ -36,29 +36,29 @@ TODO:
 -}
 
 module Text.Pandoc.Writers.Ms ( writeMs ) where
-import Text.Pandoc.Definition
-import Text.Pandoc.Templates
-import Text.Pandoc.Shared
-import Text.Pandoc.Writers.Shared
-import Text.Pandoc.Options
-import Text.Pandoc.Writers.Math
-import Text.Printf ( printf )
-import qualified Data.Text as T
-import Data.Text (Text)
+import Control.Monad.State.Strict
+import Data.Char (isLower, isUpper, toUpper)
+import Data.List (intercalate, intersperse, sort)
 import qualified Data.Map as Map
-import Data.Maybe ( catMaybes, fromMaybe )
-import Data.List ( intersperse, intercalate, sort )
-import Text.Pandoc.Pretty
+import Data.Maybe (catMaybes, fromMaybe)
+import Data.Text (Text)
+import qualified Data.Text as T
+import Network.URI (escapeURIString, isAllowedInURI)
+import Skylighting
+import System.FilePath (takeExtension)
 import Text.Pandoc.Class (PandocMonad, report)
+import Text.Pandoc.Definition
+import Text.Pandoc.Highlighting
 import Text.Pandoc.ImageSize
 import Text.Pandoc.Logging
-import Control.Monad.State.Strict
-import Data.Char ( isLower, isUpper, toUpper )
+import Text.Pandoc.Options
+import Text.Pandoc.Pretty
+import Text.Pandoc.Shared
+import Text.Pandoc.Templates
+import Text.Pandoc.Writers.Math
+import Text.Pandoc.Writers.Shared
+import Text.Printf (printf)
 import Text.TeXMath (writeEqn)
-import System.FilePath (takeExtension)
-import Skylighting
-import Text.Pandoc.Highlighting
-import Network.URI (escapeURIString, isAllowedInURI)
 
 data WriterState = WriterState { stHasInlineMath :: Bool
                                , stFirstPara     :: Bool
@@ -147,7 +147,7 @@ msEscapes = Map.fromList $
 
 escapeChar :: Char -> String
 escapeChar c = case Map.lookup c msEscapes of
-                    Just s -> s
+                    Just s  -> s
                     Nothing -> [c]
 
 -- | Escape | character, used to mark inline math, inside math.
@@ -176,13 +176,13 @@ toSmallCaps (c:cs)
 -- | Escape a literal (code) section for Ms.
 escapeCode :: String -> String
 escapeCode = concat . intersperse "\n" . map escapeLine . lines
-  where escapeCodeChar ' ' = "\\ "
+  where escapeCodeChar ' '  = "\\ "
         escapeCodeChar '\t' = "\\\t"
-        escapeCodeChar c = escapeChar c
+        escapeCodeChar c    = escapeChar c
         escapeLine codeline =
           case concatMap escapeCodeChar codeline of
             a@('.':_) -> "\\&" ++ a
-            b       -> b
+            b         -> b
 
 -- We split inline lists into sentences, and print one sentence per
 -- line.  groff/troff treats the line-ending period differently.
@@ -194,8 +194,8 @@ breakSentence [] = ([],[])
 breakSentence xs =
   let isSentenceEndInline (Str ys@(_:_)) | last ys == '.' = True
       isSentenceEndInline (Str ys@(_:_)) | last ys == '?' = True
-      isSentenceEndInline (LineBreak) = True
-      isSentenceEndInline _         = False
+      isSentenceEndInline (LineBreak)    = True
+      isSentenceEndInline _              = False
       (as, bs) = break isSentenceEndInline xs
   in  case bs of
            []             -> (as, [])
@@ -548,7 +548,7 @@ handleNote opts bs = do
   -- line after the note ref:
   let bs' = case bs of
                  (Para ils : rest) -> Plain ils : rest
-                 _ -> bs
+                 _                 -> bs
   contents <- blockListToMs opts bs'
   return $ cr <> text ".FS" $$ contents $$ text ".FE" <> cr
 

@@ -44,7 +44,7 @@ import qualified Data.Text as T
 import System.FilePath ((<.>), (</>))
 import Text.DocTemplates (Template, TemplateTarget, applyTemplate,
                           compileTemplate, renderTemplate, varListToJSON)
-import Text.Pandoc.Class (readDataFile, PandocMonad)
+import Text.Pandoc.Class (PandocMonad, readDataFile)
 import Text.Pandoc.Error
 import qualified Text.Pandoc.UTF8 as UTF8
 

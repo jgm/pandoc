@@ -1,18 +1,18 @@
 module Tests.Readers.Docx (tests) where
 
 import Codec.Archive.Zip
-import qualified Data.ByteString.Lazy as B
 import qualified Data.ByteString as BS
-import qualified Data.Text as T
+import qualified Data.ByteString.Lazy as B
 import qualified Data.Map as M
+import qualified Data.Text as T
+import System.IO.Unsafe
 import Test.Tasty
 import Test.Tasty.HUnit
 import Tests.Helpers
 import Text.Pandoc
-import Text.Pandoc.UTF8 as UTF8
 import qualified Text.Pandoc.Class as P
 import Text.Pandoc.MediaBag (MediaBag, lookupMedia, mediaDirectory)
-import System.IO.Unsafe -- TODO temporary
+import Text.Pandoc.UTF8 as UTF8
 
 -- We define a wrapper around pandoc that doesn't normalize in the
 -- tests. Since we do our own normalization, we want to make sure

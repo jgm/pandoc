@@ -36,19 +36,19 @@ module Text.Pandoc.Lua (LuaException (..), pushPandocModule, runLuaFilter) where
 import Control.Monad (mplus, unless, when, (>=>))
 import Control.Monad.Identity (Identity)
 import Control.Monad.Trans (MonadIO (..))
-import Data.Data (DataType, Data, toConstr, showConstr, dataTypeOf,
-                  dataTypeConstrs, dataTypeName, tyconUQname)
+import Data.Data (Data, DataType, dataTypeConstrs, dataTypeName, dataTypeOf,
+                  showConstr, toConstr, tyconUQname)
 import Data.Foldable (foldrM)
 import Data.IORef (IORef, newIORef, readIORef)
 import Data.Map (Map)
 import Data.Maybe (isJust)
-import Foreign.Lua (Lua, FromLuaStack (peek), LuaException (..), StackIndex,
+import Foreign.Lua (FromLuaStack (peek), Lua, LuaException (..), StackIndex,
                     Status (OK), ToLuaStack (push))
-import Text.Pandoc.Class (PandocIO, getMediaBag, setMediaBag,
-                          getCommonState, CommonState)
-import Text.Pandoc.MediaBag (MediaBag)
+import Text.Pandoc.Class (CommonState, PandocIO, getCommonState, getMediaBag,
+                          setMediaBag)
 import Text.Pandoc.Definition
-import Text.Pandoc.Lua.PandocModule (pushPandocModule, pushMediaBagModule)
+import Text.Pandoc.Lua.PandocModule (pushMediaBagModule, pushPandocModule)
+import Text.Pandoc.MediaBag (MediaBag)
 import Text.Pandoc.Walk (walkM)
 
 import qualified Data.Map as Map
@@ -182,7 +182,7 @@ instance FromLuaStack LuaFilter where
           filterFn <- Lua.tryLua (peek (-1))
           Lua.pop 1
           return $ case filterFn of
-            Left _ -> acc
+            Left _  -> acc
             Right f -> (c, f) : acc
     in LuaFilter . Map.fromList <$> foldrM fn [] constrs
 
@@ -209,7 +209,7 @@ elementOrList x = do
        mbres <- Lua.peekEither topOfStack
        case mbres of
          Right res -> [res] <$ Lua.pop 1
-         Left _  -> Lua.toList topOfStack <* Lua.pop 1
+         Left _    -> Lua.toList topOfStack <* Lua.pop 1
 
 singleElement :: FromLuaStack a => a -> Lua a
 singleElement x = do

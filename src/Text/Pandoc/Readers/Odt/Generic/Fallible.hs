@@ -39,7 +39,7 @@ compatible instances of "ArrowChoice".
 -- We export everything
 module Text.Pandoc.Readers.Odt.Generic.Fallible where
 
-import           Data.Monoid ((<>))
+import Data.Monoid ((<>))
 
 -- | Default for now. Will probably become a class at some point.
 type Failure = ()

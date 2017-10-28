@@ -35,18 +35,18 @@ module Text.Pandoc.BCP47 (
                      )
 where
 import Control.Monad (guard)
-import Data.Char (isAscii, isLetter, isUpper, isLower, toUpper, toLower,
-                  isAlphaNum)
+import Data.Char (isAlphaNum, isAscii, isLetter, isLower, isUpper, toLower,
+                  toUpper)
 import Data.List (intercalate)
 import Text.Pandoc.Definition
 import Text.Pandoc.Options
 import qualified Text.Parsec as P
 
 -- | Represents BCP 47 language/country code.
-data Lang = Lang{ langLanguage   :: String
-                , langScript     :: String
-                , langRegion     :: String
-                , langVariants   :: [String] }
+data Lang = Lang{ langLanguage :: String
+                , langScript   :: String
+                , langRegion   :: String
+                , langVariants :: [String] }
                 deriving (Eq, Ord, Show)
 
 -- | Render a Lang as BCP 47.

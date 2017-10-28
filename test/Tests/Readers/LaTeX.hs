@@ -1,13 +1,13 @@
 {-# LANGUAGE OverloadedStrings #-}
 module Tests.Readers.LaTeX (tests) where
 
+import Data.Text (Text)
+import qualified Data.Text as T
 import Test.Tasty
 import Tests.Helpers
 import Text.Pandoc
 import Text.Pandoc.Arbitrary ()
 import Text.Pandoc.Builder
-import Data.Text (Text)
-import qualified Data.Text as T
 
 latex :: Text -> Pandoc
 latex = purely $ readLaTeX def{

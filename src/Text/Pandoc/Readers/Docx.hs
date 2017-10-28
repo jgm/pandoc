@@ -472,10 +472,10 @@ rowToBlocksList (Row cells) = do
 -- like trimInlines, but also take out linebreaks
 trimSps :: Inlines -> Inlines
 trimSps (Many ils) = Many $ Seq.dropWhileL isSp $ Seq.dropWhileR isSp $ ils
-  where isSp Space = True
+  where isSp Space     = True
         isSp SoftBreak = True
         isSp LineBreak = True
-        isSp _ = False
+        isSp _         = False
 
 parStyleToTransform :: ParagraphStyle -> (Blocks -> Blocks)
 parStyleToTransform pPr

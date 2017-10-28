@@ -52,7 +52,7 @@ import System.FilePath (addExtension, takeExtension)
 import Text.HTML.TagSoup
 import Text.Pandoc.Builder (Blocks, Inlines)
 import qualified Text.Pandoc.Builder as B
-import Text.Pandoc.Class (PandocMonad(..), report)
+import Text.Pandoc.Class (PandocMonad (..), report)
 import Text.Pandoc.Definition
 import Text.Pandoc.Emoji (emojis)
 import Text.Pandoc.Error
@@ -61,8 +61,7 @@ import Text.Pandoc.Options
 import Text.Pandoc.Parsing hiding (tableWith)
 import Text.Pandoc.Readers.HTML (htmlInBalanced, htmlTag, isBlockTag,
                                  isCommentTag, isInlineTag, isTextTag)
-import Text.Pandoc.Readers.LaTeX (rawLaTeXBlock,
-                                  rawLaTeXInline, applyMacros)
+import Text.Pandoc.Readers.LaTeX (applyMacros, rawLaTeXBlock, rawLaTeXInline)
 import Text.Pandoc.Shared
 import qualified Text.Pandoc.UTF8 as UTF8
 import Text.Pandoc.XML (fromEntities)
@@ -1506,8 +1505,8 @@ escapedChar :: PandocMonad m => MarkdownParser m (F Inlines)
 escapedChar = do
   result <- escapedChar'
   case result of
-       ' '   -> return $ return $ B.str "\160" -- "\ " is a nonbreaking space
-       _     -> return $ return $ B.str [result]
+       ' ' -> return $ return $ B.str "\160" -- "\ " is a nonbreaking space
+       _   -> return $ return $ B.str [result]
 
 ltSign :: PandocMonad m => MarkdownParser m (F Inlines)
 ltSign = do

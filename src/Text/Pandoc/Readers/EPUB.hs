@@ -13,12 +13,12 @@ import Control.DeepSeq (NFData, deepseq)
 import Control.Monad (guard, liftM)
 import Control.Monad.Except (throwError)
 import qualified Data.ByteString.Lazy as BL (ByteString)
-import qualified Data.Text.Lazy.Encoding as TL
-import qualified Data.Text.Lazy as TL
 import Data.List (isInfixOf, isPrefixOf)
 import qualified Data.Map as M (Map, elems, fromList, lookup)
 import Data.Maybe (fromMaybe, mapMaybe)
 import Data.Monoid ((<>))
+import qualified Data.Text.Lazy as TL
+import qualified Data.Text.Lazy.Encoding as TL
 import Network.URI (unEscapeString)
 import System.FilePath (dropFileName, dropFileName, normalise, splitFileName,
                         takeFileName, (</>))

@@ -1,6 +1,8 @@
-{-# LANGUAGE RelaxedPolyRec, FlexibleInstances, TypeSynonymInstances #-}
-{-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE FlexibleContexts     #-}
+{-# LANGUAGE FlexibleInstances    #-}
+{-# LANGUAGE OverloadedStrings    #-}
+{-# LANGUAGE RelaxedPolyRec       #-}
+{-# LANGUAGE TypeSynonymInstances #-}
 
 {- |
    Module      : Text.Pandoc.Readers.TikiWiki
@@ -19,20 +21,20 @@ module Text.Pandoc.Readers.TikiWiki ( readTikiWiki
 
 import Control.Monad
 import Control.Monad.Except (throwError)
-import Text.Pandoc.Definition
-import qualified Text.Pandoc.Builder as B
-import Text.Pandoc.Options
-import Text.Pandoc.Parsing hiding (enclosed, nested)
-import Text.Printf (printf)
-import Text.Pandoc.XML (fromEntities)
-import Text.Pandoc.Class (PandocMonad(..), CommonState(..))
-import Text.Pandoc.Shared (crFilter)
-import Text.Pandoc.Logging (Verbosity(..))
-import Data.Maybe (fromMaybe)
-import Data.List (intercalate)
 import qualified Data.Foldable as F
+import Data.List (intercalate)
+import Data.Maybe (fromMaybe)
 import Data.Text (Text)
 import qualified Data.Text as T
+import qualified Text.Pandoc.Builder as B
+import Text.Pandoc.Class (CommonState (..), PandocMonad (..))
+import Text.Pandoc.Definition
+import Text.Pandoc.Logging (Verbosity (..))
+import Text.Pandoc.Options
+import Text.Pandoc.Parsing hiding (enclosed, nested)
+import Text.Pandoc.Shared (crFilter)
+import Text.Pandoc.XML (fromEntities)
+import Text.Printf (printf)
 
 -- | Read TikiWiki from an input string and return a Pandoc document.
 readTikiWiki :: PandocMonad m
@@ -129,9 +131,9 @@ header = tryMsg "header" $ do
 
 tableRow :: PandocMonad m => TikiWikiParser m [B.Blocks]
 tableRow = try $ do
---  row <- sepBy1 (many1Till inline $ oneOf "\n|") (try $ string "|" <* notFollowedBy (oneOf "|\n")) 
+--  row <- sepBy1 (many1Till inline $ oneOf "\n|") (try $ string "|" <* notFollowedBy (oneOf "|\n"))
 --  return $ map (B.plain . mconcat) row
-  row <- sepBy1 ((many1 $ noneOf "\n|") >>= parseColumn) (try $ string "|" <* notFollowedBy (oneOf "|\n")) 
+  row <- sepBy1 ((many1 $ noneOf "\n|") >>= parseColumn) (try $ string "|" <* notFollowedBy (oneOf "|\n"))
   return $ map B.plain row
   where
     parseColumn x = do
@@ -155,7 +157,7 @@ tableRow = try $ do
 -- || Orange | Apple     | more
 --  Bread  | Pie       | more
 --  Butter | Ice cream | and more ||
--- 
+--
 table :: PandocMonad m => TikiWikiParser m B.Blocks
 table = try $ do
   string "||"
@@ -233,8 +235,8 @@ fixListNesting :: [B.Blocks] -> [B.Blocks]
 fixListNesting [] = []
 fixListNesting (first:[]) = [recurseOnList first]
 -- fixListNesting nestall | trace ("\n\nfixListNesting: " ++ (show nestall)) False = undefined
--- fixListNesting nestall@(first:second:rest) = 
-fixListNesting (first:second:rest) = 
+-- fixListNesting nestall@(first:second:rest) =
+fixListNesting (first:second:rest) =
   let secondBlock = head $ B.toList second in
     case secondBlock of
       BulletList _ -> fixListNesting $ [(mappend (recurseOnList first) (recurseOnList second))] ++ rest
@@ -300,8 +302,8 @@ listWrap upperLN curLN retTree =
     retTree
   else
     case lntype curLN of
-      None -> []
-      Bullet -> [B.bulletList retTree]
+      None     -> []
+      Bullet   -> [B.bulletList retTree]
       Numbered -> [B.orderedList retTree]
 
 listItem :: PandocMonad m => TikiWikiParser m (ListNesting, B.Blocks)
@@ -418,7 +420,7 @@ whitespace = (lb <|> regsp) >>= return
 -- for this
 nbsp :: PandocMonad m => TikiWikiParser m B.Inlines
 nbsp = try $ do
-  string "~hs~" 
+  string "~hs~"
   return $ B.str " NOT SUPPORTED BEGIN: ~hs~ (non-breaking space) :END "
 
 -- UNSUPPORTED, as the desired behaviour (that the data be
@@ -426,7 +428,7 @@ nbsp = try $ do
 -- silently throwing data out seemed bad.
 htmlComment :: PandocMonad m => TikiWikiParser m B.Inlines
 htmlComment = try $ do
-  string "~hc~" 
+  string "~hc~"
   inner <- many1 $ noneOf "~"
   string "~/hc~"
   return $ B.str $ " NOT SUPPORTED: ~hc~ (html comment opener) BEGIN: " ++ inner ++ " ~/hc~ :END "

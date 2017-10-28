@@ -2,7 +2,7 @@ module Tests.Shared (tests) where
 
 import System.FilePath.Posix (joinPath)
 import Test.Tasty
-import Test.Tasty.HUnit (assertBool, (@?=), testCase)
+import Test.Tasty.HUnit (assertBool, testCase, (@?=))
 import Text.Pandoc.Arbitrary ()
 import Text.Pandoc.Builder
 import Text.Pandoc.Shared

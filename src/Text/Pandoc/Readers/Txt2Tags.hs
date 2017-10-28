@@ -32,26 +32,27 @@ module Text.Pandoc.Readers.Txt2Tags ( readTxt2Tags
                                     )
                                     where
 
+import Control.Monad (guard, void, when)
+import Control.Monad.Except (catchError, throwError)
+import Control.Monad.Reader (Reader, asks, runReader)
 import Data.Char (toLower)
+import Data.Default
 import Data.List (intercalate, intersperse, transpose)
 import Data.Maybe (fromMaybe)
 import Data.Monoid ((<>))
-import Text.Pandoc.Builder (Blocks, Inlines, trimInlines)
-import qualified Text.Pandoc.Builder as B
-import Text.Pandoc.Definition
-import Text.Pandoc.Options
-import Text.Pandoc.Parsing hiding (space, spaces, uri)
-import Text.Pandoc.Shared (compactify, compactifyDL, escapeURI, crFilter, underlineSpan)
-import Control.Monad (guard, void, when)
-import Control.Monad.Reader (Reader, asks, runReader)
-import Data.Default
 import Data.Text (Text)
 import qualified Data.Text as T
-import Control.Monad.Except (catchError, throwError)
 import Data.Time.Format (formatTime)
+import Text.Pandoc.Builder (Blocks, Inlines, trimInlines)
+import qualified Text.Pandoc.Builder as B
 import Text.Pandoc.Class (PandocMonad)
 import qualified Text.Pandoc.Class as P
 import Text.Pandoc.Compat.Time (defaultTimeLocale)
+import Text.Pandoc.Definition
+import Text.Pandoc.Options
+import Text.Pandoc.Parsing hiding (space, spaces, uri)
+import Text.Pandoc.Shared (compactify, compactifyDL, crFilter, escapeURI,
+                           underlineSpan)
 
 type T2T = ParserT String ParserState (Reader T2TMeta)
 

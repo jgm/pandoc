@@ -35,8 +35,8 @@ module Text.Pandoc.Writers.CommonMark (writeCommonMark) where
 import CMarkGFM
 import Control.Monad.State.Strict (State, get, modify, runState)
 import Data.Foldable (foldrM)
-import Data.Monoid (Any (..), (<>))
 import Data.List (transpose)
+import Data.Monoid (Any (..), (<>))
 import Data.Text (Text)
 import qualified Data.Text as T
 import Text.Pandoc.Class (PandocMonad)
@@ -44,7 +44,7 @@ import Text.Pandoc.Definition
 import Text.Pandoc.Options
 import Text.Pandoc.Shared (isTightList, linesToPara, substitute)
 import Text.Pandoc.Templates (renderTemplate')
-import Text.Pandoc.Walk (walkM, walk, query)
+import Text.Pandoc.Walk (query, walk, walkM)
 import Text.Pandoc.Writers.HTML (writeHtml5String)
 import Text.Pandoc.Writers.Shared
 
@@ -67,7 +67,7 @@ writeCommonMark opts (Pandoc meta blocks) = do
 
 softBreakToSpace :: Inline -> Inline
 softBreakToSpace SoftBreak = Space
-softBreakToSpace x = x
+softBreakToSpace x         = x
 
 processNotes :: Inline -> State [[Block]] Inline
 processNotes (Note bs) = do

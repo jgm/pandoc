@@ -2,20 +2,20 @@ module Tests.Command (findPandoc, runTest, tests)
 where
 
 import Data.Algorithm.Diff
+import qualified Data.ByteString as BS
 import Data.List (isSuffixOf)
 import Prelude hiding (readFile)
 import System.Directory
 import System.Exit
 import System.FilePath (joinPath, splitDirectories, takeDirectory, (</>))
+import System.IO (hPutStr, stderr)
+import System.IO.Unsafe (unsafePerformIO)
 import System.Process
-import System.IO (stderr, hPutStr)
 import Test.Tasty
 import Test.Tasty.HUnit
 import Tests.Helpers
 import Text.Pandoc
-import qualified Data.ByteString as BS
 import qualified Text.Pandoc.UTF8 as UTF8
-import System.IO.Unsafe (unsafePerformIO) -- TODO temporary
 
 -- | Run a test with normalize function, return True if test passed.
 runTest :: String    -- ^ Title of test

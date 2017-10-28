@@ -35,18 +35,18 @@ import Codec.Compression.GZip as Gzip
 import Control.Applicative ((<|>))
 import Control.Monad.Except (throwError)
 import Control.Monad.Trans (lift)
-import Data.Monoid ((<>))
 import Data.ByteString (ByteString)
 import Data.ByteString.Base64
 import qualified Data.ByteString.Char8 as B
 import qualified Data.ByteString.Lazy as L
 import Data.Char (isAlphaNum, isAscii, toLower)
 import Data.List (isPrefixOf)
+import Data.Monoid ((<>))
 import Network.URI (escapeURIString)
 import System.FilePath (takeDirectory, takeExtension, (</>))
 import Text.HTML.TagSoup
-import Text.Pandoc.Class (PandocMonad (..), fetchItem, report,
-         getInputFiles, setInputFiles)
+import Text.Pandoc.Class (PandocMonad (..), fetchItem, getInputFiles, report,
+                          setInputFiles)
 import Text.Pandoc.Error
 import Text.Pandoc.Logging
 import Text.Pandoc.MIME (MimeType)

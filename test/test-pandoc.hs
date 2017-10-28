@@ -7,17 +7,17 @@ import Test.Tasty
 import qualified Tests.Command
 import qualified Tests.Lua
 import qualified Tests.Old
+import qualified Tests.Readers.Creole
 import qualified Tests.Readers.Docx
 import qualified Tests.Readers.EPUB
 import qualified Tests.Readers.HTML
 import qualified Tests.Readers.LaTeX
 import qualified Tests.Readers.Markdown
+import qualified Tests.Readers.Muse
 import qualified Tests.Readers.Odt
 import qualified Tests.Readers.Org
 import qualified Tests.Readers.RST
 import qualified Tests.Readers.Txt2Tags
-import qualified Tests.Readers.Muse
-import qualified Tests.Readers.Creole
 import qualified Tests.Shared
 import qualified Tests.Writers.AsciiDoc
 import qualified Tests.Writers.ConTeXt
@@ -26,12 +26,12 @@ import qualified Tests.Writers.Docx
 import qualified Tests.Writers.HTML
 import qualified Tests.Writers.LaTeX
 import qualified Tests.Writers.Markdown
+import qualified Tests.Writers.Muse
 import qualified Tests.Writers.Native
 import qualified Tests.Writers.Org
 import qualified Tests.Writers.Plain
 import qualified Tests.Writers.RST
 import qualified Tests.Writers.TEI
-import qualified Tests.Writers.Muse
 import Text.Pandoc.Shared (inDirectory)
 
 tests :: TestTree

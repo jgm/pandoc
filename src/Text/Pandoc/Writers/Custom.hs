@@ -43,12 +43,12 @@ import Data.List (intersperse)
 import qualified Data.Map as M
 import Data.Text (Text, pack)
 import Data.Typeable
-import GHC.IO.Encoding (getForeignEncoding, setForeignEncoding, utf8)
 import Foreign.Lua (Lua, ToLuaStack (..), callFunc, runLua)
 import Foreign.Lua.Api
-import Text.Pandoc.Error
-import Text.Pandoc.Lua.Util ( addValue )
+import GHC.IO.Encoding (getForeignEncoding, setForeignEncoding, utf8)
 import Text.Pandoc.Definition
+import Text.Pandoc.Error
+import Text.Pandoc.Lua.Util (addValue)
 import Text.Pandoc.Options
 import Text.Pandoc.Templates
 import qualified Text.Pandoc.UTF8 as UTF8

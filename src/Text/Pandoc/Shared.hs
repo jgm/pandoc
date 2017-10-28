@@ -1,6 +1,10 @@
-{-# LANGUAGE DeriveDataTypeable, CPP, MultiParamTypeClasses,
-    FlexibleContexts, ScopedTypeVariables, PatternGuards,
-    ViewPatterns #-}
+{-# LANGUAGE CPP                   #-}
+{-# LANGUAGE DeriveDataTypeable    #-}
+{-# LANGUAGE FlexibleContexts      #-}
+{-# LANGUAGE MultiParamTypeClasses #-}
+{-# LANGUAGE PatternGuards         #-}
+{-# LANGUAGE ScopedTypeVariables   #-}
+{-# LANGUAGE ViewPatterns          #-}
 {-
 Copyright (C) 2006-2017 John MacFarlane <jgm@berkeley.edu>
 
@@ -94,37 +98,37 @@ module Text.Pandoc.Shared (
                      pandocVersion
                     ) where
 
-import Text.Pandoc.Definition
-import Text.Pandoc.Walk
-import Text.Pandoc.Builder (Inlines, Blocks, ToMetaValue(..))
-import qualified Text.Pandoc.Builder as B
-import Data.Char ( toLower, isLower, isUpper, isAlpha,
-                   isLetter, isDigit, isSpace )
-import Data.List ( find, stripPrefix, intercalate )
-import Data.Maybe (mapMaybe)
-import Data.Version ( showVersion )
-import qualified Data.Map as M
-import Network.URI ( URI(uriScheme), escapeURIString, parseURI )
-import qualified Data.Set as Set
-import System.Directory
-import System.FilePath (splitDirectories, isPathSeparator)
-import qualified System.FilePath.Posix as Posix
-import Data.Generics (Typeable, Data)
-import qualified Control.Monad.State.Strict as S
-import qualified Control.Exception as E
-import Control.Monad (msum, unless, MonadPlus(..))
-import Text.Pandoc.Pretty (charWidth)
-import Text.Pandoc.Generic (bottomUp)
-import Text.Pandoc.Compat.Time
-import System.IO.Temp
-import Text.HTML.TagSoup (renderTagsOptions, RenderOptions(..), Tag(..),
-         renderOptions)
-import Data.Monoid ((<>))
-import Data.Sequence (ViewR(..), ViewL(..), viewl, viewr)
-import qualified Data.Text as T
-import qualified Data.ByteString.Lazy as BL
-import Paths_pandoc (version)
 import Codec.Archive.Zip
+import qualified Control.Exception as E
+import Control.Monad (MonadPlus (..), msum, unless)
+import qualified Control.Monad.State.Strict as S
+import qualified Data.ByteString.Lazy as BL
+import Data.Char (isAlpha, isDigit, isLetter, isLower, isSpace, isUpper,
+                  toLower)
+import Data.Generics (Data, Typeable)
+import Data.List (find, intercalate, stripPrefix)
+import qualified Data.Map as M
+import Data.Maybe (mapMaybe)
+import Data.Monoid ((<>))
+import Data.Sequence (ViewL (..), ViewR (..), viewl, viewr)
+import qualified Data.Set as Set
+import qualified Data.Text as T
+import Data.Version (showVersion)
+import Network.URI (URI (uriScheme), escapeURIString, parseURI)
+import Paths_pandoc (version)
+import System.Directory
+import System.FilePath (isPathSeparator, splitDirectories)
+import qualified System.FilePath.Posix as Posix
+import System.IO.Temp
+import Text.HTML.TagSoup (RenderOptions (..), Tag (..), renderOptions,
+                          renderTagsOptions)
+import Text.Pandoc.Builder (Blocks, Inlines, ToMetaValue (..))
+import qualified Text.Pandoc.Builder as B
+import Text.Pandoc.Compat.Time
+import Text.Pandoc.Definition
+import Text.Pandoc.Generic (bottomUp)
+import Text.Pandoc.Pretty (charWidth)
+import Text.Pandoc.Walk
 
 -- | Version number of pandoc library.
 pandocVersion :: String
@@ -192,8 +196,8 @@ escapeStringUsing :: [(Char, String)] -> String -> String
 escapeStringUsing _ [] = ""
 escapeStringUsing escapeTable (x:xs) =
   case (lookup x escapeTable) of
-       Just str  -> str ++ rest
-       Nothing   -> x:rest
+       Just str -> str ++ rest
+       Nothing  -> x:rest
   where rest = escapeStringUsing escapeTable xs
 
 -- | Strip trailing newlines from string.
@@ -279,7 +283,7 @@ normalizeDate s = fmap (formatTime defaultTimeLocale "%F")
   (msum $ map (\fs -> parsetimeWith fs s >>= rejectBadYear) formats :: Maybe Day)
   where rejectBadYear day = case toGregorian day of
           (y, _, _) | y >= 1601 && y <= 9999 -> Just day
-          _ -> Nothing
+          _         -> Nothing
         parsetimeWith =
 #if MIN_VERSION_time(1,5,0)
              parseTimeM True defaultTimeLocale
@@ -336,13 +340,13 @@ extractSpaces f is =
 removeFormatting :: Walkable Inline a => a -> [Inline]
 removeFormatting = query go . walk (deNote . deQuote)
   where go :: Inline -> [Inline]
-        go (Str xs)     = [Str xs]
-        go Space        = [Space]
-        go SoftBreak    = [SoftBreak]
-        go (Code _ x)   = [Str x]
-        go (Math _ x)   = [Str x]
-        go LineBreak    = [Space]
-        go _            = []
+        go (Str xs)   = [Str xs]
+        go Space      = [Space]
+        go SoftBreak  = [SoftBreak]
+        go (Code _ x) = [Str x]
+        go (Math _ x) = [Str x]
+        go LineBreak  = [Space]
+        go _          = []
 
 deNote :: Inline -> Inline
 deNote (Note _) = Str ""
@@ -361,14 +365,14 @@ deQuote x = x
 stringify :: Walkable Inline a => a -> String
 stringify = query go . walk (deNote . deQuote)
   where go :: Inline -> [Char]
-        go Space = " "
-        go SoftBreak = " "
-        go (Str x) = x
-        go (Code _ x) = x
-        go (Math _ x) = x
+        go Space                                       = " "
+        go SoftBreak                                   = " "
+        go (Str x)                                     = x
+        go (Code _ x)                                  = x
+        go (Math _ x)                                  = x
         go (RawInline (Format "html") ('<':'b':'r':_)) = " " -- see #2105
-        go LineBreak = " "
-        go _ = ""
+        go LineBreak                                   = " "
+        go _                                           = ""
 
 -- | Bring all regular text in a pandoc structure to uppercase.
 --
@@ -440,7 +444,7 @@ instance Walkable Inline Element where
     ils' <- walkM f ils
     elts' <- walkM f elts
     return $ Sec lev nums attr ils' elts'
-  query f (Blk x) = query f x
+  query f (Blk x)              = query f x
   query f (Sec _ _ _ ils elts) = query f ils <> query f elts
 
 instance Walkable Block Element where
@@ -451,7 +455,7 @@ instance Walkable Block Element where
     ils' <- walkM f ils
     elts' <- walkM f elts
     return $ Sec lev nums attr ils' elts'
-  query f (Blk x) = query f x
+  query f (Blk x)              = query f x
   query f (Sec _ _ _ ils elts) = query f ils <> query f elts
 
 
@@ -464,8 +468,8 @@ inlineListToIdentifier =
     map (nbspToSp . toLower) .
     filter (\c -> isLetter c || isDigit c || c `elem` "_-. ") .
     stringify
- where nbspToSp '\160'     =  ' '
-       nbspToSp x          =  x
+ where nbspToSp '\160' =  ' '
+       nbspToSp x      =  x
 
 -- | Convert list of Pandoc blocks into (hierarchical) list of Elements
 hierarchicalize :: [Block] -> [Element]
@@ -495,17 +499,17 @@ hierarchicalizeWithIds (x:rest) = do
   return $ (Blk x) : rest'
 
 headerLtEq :: Int -> Block -> Bool
-headerLtEq level (Header l _ _) = l <= level
-headerLtEq level (Div ("",["references"],[]) (Header l _ _ : _))  = l <= level
-headerLtEq _ _ = False
+headerLtEq level (Header l _ _)                                  = l <= level
+headerLtEq level (Div ("",["references"],[]) (Header l _ _ : _)) = l <= level
+headerLtEq _ _                                                   = False
 
 -- | Generate a unique identifier from a list of inlines.
 -- Second argument is a list of already used identifiers.
 uniqueIdent :: [Inline] -> Set.Set String -> String
 uniqueIdent title' usedIdents
   =  let baseIdent = case inlineListToIdentifier title' of
-                        ""   -> "section"
-                        x    -> x
+                        "" -> "section"
+                        x  -> x
          numIdent n = baseIdent ++ "-" ++ show n
      in  if baseIdent `Set.member` usedIdents
            then case find (\x -> not $ numIdent x `Set.member` usedIdents) ([1..60000] :: [Int]) of
@@ -516,7 +520,7 @@ uniqueIdent title' usedIdents
 -- | True if block is a Header block.
 isHeaderBlock :: Block -> Bool
 isHeaderBlock (Header _ _ _) = True
-isHeaderBlock _ = False
+isHeaderBlock _              = False
 
 -- | Shift header levels up or down.
 headerShift :: Int -> Pandoc -> Pandoc
@@ -542,8 +546,8 @@ addMetaField key val (Meta meta) =
   Meta $ M.insertWith combine key (toMetaValue val) meta
   where combine newval (MetaList xs) = MetaList (xs ++ tolist newval)
         combine newval x             = MetaList [x, newval]
-        tolist (MetaList ys)         = ys
-        tolist y                     = [y]
+        tolist (MetaList ys) = ys
+        tolist y             = [y]
 
 -- | Create 'Meta' from old-style title, authors, date.  This is
 -- provided to ease the transition from the old API.
@@ -599,7 +603,7 @@ inDirectory path action = E.bracket
 --
 
 mapLeft :: (a -> b) -> Either a c -> Either b c
-mapLeft f (Left x) = Left (f x)
+mapLeft f (Left x)  = Left (f x)
 mapLeft _ (Right x) = Right x
 
 -- | Remove intermediate "." and ".." directories from a path.
@@ -616,14 +620,14 @@ collapseFilePath = Posix.joinPath . reverse . foldl go [] . splitDirectories
   where
     go rs "." = rs
     go r@(p:rs) ".." = case p of
-                            ".." -> ("..":r)
+                            ".."                              -> ("..":r)
                             (checkPathSeperator -> Just True) -> ("..":r)
-                            _ -> rs
+                            _                                 -> rs
     go _ (checkPathSeperator -> Just True) = [[Posix.pathSeparator]]
     go rs x = x:rs
-    isSingleton [] = Nothing
+    isSingleton []  = Nothing
     isSingleton [x] = Just x
-    isSingleton _ = Nothing
+    isSingleton _   = Nothing
     checkPathSeperator = fmap isPathSeparator . isSingleton
 
 --

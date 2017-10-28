@@ -1,15 +1,15 @@
-{-# Language OverloadedStrings #-}
+{-# LANGUAGE OverloadedStrings #-}
 module Tests.Lua ( tests ) where
 
 import Control.Monad (when)
 import System.FilePath ((</>))
 import Test.Tasty (TestTree, localOption)
 import Test.Tasty.HUnit (Assertion, assertEqual, testCase)
-import Test.Tasty.QuickCheck (ioProperty, testProperty, QuickCheckTests(..))
+import Test.Tasty.QuickCheck (QuickCheckTests (..), ioProperty, testProperty)
 import Text.Pandoc.Arbitrary ()
-import Text.Pandoc.Builder ( (<>), bulletList, doc, doubleQuoted, emph
-                           , linebreak, rawBlock, singleQuoted, para, plain
-                           , space, str, strong)
+import Text.Pandoc.Builder (bulletList, doc, doubleQuoted, emph, linebreak,
+                            para, plain, rawBlock, singleQuoted, space, str,
+                            strong, (<>))
 import Text.Pandoc.Class (runIOorExplode)
 import Text.Pandoc.Definition (Block, Inline, Meta, Pandoc)
 import Text.Pandoc.Lua
@@ -84,7 +84,7 @@ assertFilterConversion msg filterPath docIn docExpected = do
   docEither <- runIOorExplode $
                runLuaFilter (Just "../data") ("lua" </> filterPath) [] docIn
   case docEither of
-    Left _ -> fail "lua filter failed"
+    Left _       -> fail "lua filter failed"
     Right docRes -> assertEqual msg docExpected docRes
 
 roundtripEqual :: (Eq a, FromLuaStack a, ToLuaStack a) => a -> IO Bool
@@ -102,5 +102,5 @@ roundtripEqual x = (x ==) <$> roundtripped
       error ("not exactly one additional element on the stack: " ++ show size)
     res <- peekEither (-1)
     case res of
-      Left _ -> error "could not read from stack"
-      Right y  -> return y
+      Left _  -> error "could not read from stack"
+      Right y -> return y

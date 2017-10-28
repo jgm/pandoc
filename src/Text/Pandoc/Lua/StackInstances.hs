@@ -33,10 +33,11 @@ StackValue instances for pandoc types.
 module Text.Pandoc.Lua.StackInstances () where
 
 import Control.Applicative ((<|>))
-import Foreign.Lua (Lua, LuaInteger, LuaNumber, Type (..), FromLuaStack (peek),
-                    ToLuaStack (push), StackIndex, throwLuaError, tryLua)
+import Foreign.Lua (FromLuaStack (peek), Lua, LuaInteger, LuaNumber, StackIndex,
+                    ToLuaStack (push), Type (..), throwLuaError, tryLua)
 import Text.Pandoc.Definition
-import Text.Pandoc.Lua.Util (addValue, adjustIndexBy, getTable, pushViaConstructor)
+import Text.Pandoc.Lua.Util (addValue, adjustIndexBy, getTable,
+                             pushViaConstructor)
 import Text.Pandoc.Shared (safeRead)
 
 import qualified Foreign.Lua as Lua
@@ -139,7 +140,7 @@ instance FromLuaStack Int where
 safeRead' :: Read a => String -> Lua a
 safeRead' s = case safeRead s of
   Nothing -> throwLuaError ("Could not read: " ++ s)
-  Just x -> return x
+  Just x  -> return x
 
 -- | Push an meta value element to the top of the lua stack.
 pushMetaValue :: MetaValue -> Lua ()
@@ -293,7 +294,7 @@ getTag idx = do
   Lua.settop top
   case r of
     Left (Lua.LuaException err) -> throwLuaError err
-    Right res -> return res
+    Right res                   -> return res
 
 withAttr :: (Attr -> a -> b) -> (LuaAttr, a) -> b
 withAttr f (attributes, x) = f (fromLuaAttr attributes) x

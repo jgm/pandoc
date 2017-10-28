@@ -63,36 +63,41 @@ Conversion of vimwiki text to 'Pandoc' document.
 
 module Text.Pandoc.Readers.Vimwiki ( readVimwiki
                                  ) where
-import Control.Monad.Except (throwError)
 import Control.Monad (guard)
+import Control.Monad.Except (throwError)
 import Data.Default
+import Data.List (isInfixOf, isPrefixOf)
 import Data.Maybe
 import Data.Monoid ((<>))
-import Data.List (isInfixOf, isPrefixOf)
 import Data.Text (Text, unpack)
-import Text.Pandoc.Builder (Blocks, Inlines, trimInlines, fromList, toList)
-import qualified Text.Pandoc.Builder
-  as B (headerWith, str, space, strong, emph, strikeout, code, link, image,
-        spanWith, para, horizontalRule, blockQuote, bulletList, plain,
-        orderedList, simpleTable, softbreak, codeBlockWith, imageWith, divWith,
-        setMeta, definitionList, superscript, subscript, displayMath, 
-        math)
-import Text.Pandoc.Class (PandocMonad(..))
-import Text.Pandoc.Definition (Pandoc(..), Inline(Space),
-  Block(BulletList, OrderedList), Attr, nullMeta, Meta, ListNumberStyle(..),
-  ListNumberDelim(..))
+import Text.Pandoc.Builder (Blocks, Inlines, fromList, toList, trimInlines)
+import qualified Text.Pandoc.Builder as B (blockQuote, bulletList, code,
+                                           codeBlockWith, definitionList,
+                                           displayMath, divWith, emph,
+                                           headerWith, horizontalRule, image,
+                                           imageWith, link, math, orderedList,
+                                           para, plain, setMeta, simpleTable,
+                                           softbreak, space, spanWith, str,
+                                           strikeout, strong, subscript,
+                                           superscript)
+import Text.Pandoc.Class (PandocMonad (..))
+import Text.Pandoc.Definition (Attr, Block (BulletList, OrderedList),
+                               Inline (Space), ListNumberDelim (..),
+                               ListNumberStyle (..), Meta, Pandoc (..),
+                               nullMeta)
 import Text.Pandoc.Options (ReaderOptions)
-import Text.Pandoc.Parsing (readWithM, ParserT, stateOptions, ParserState,
-  stateMeta', blanklines, registerHeader, spaceChar, emailAddress, uri, F, runF,
-  orderedListMarker, many1Till)
-import Text.Pandoc.Shared (splitBy, stripFirstAndLast, stringify, crFilter)
-import Text.Parsec.Char (spaces, char, anyChar, newline, string, noneOf,
-  alphaNum)
-import Text.Parsec.Combinator (eof, choice, many1, manyTill, count, skipMany1,
-  notFollowedBy, option)
-import Text.Parsec.Prim (many, try, updateState, getState)
+import Text.Pandoc.Parsing (F, ParserState, ParserT, blanklines, emailAddress,
+                            many1Till, orderedListMarker, readWithM,
+                            registerHeader, runF, spaceChar, stateMeta',
+                            stateOptions, uri)
+import Text.Pandoc.Shared (crFilter, splitBy, stringify, stripFirstAndLast)
+import Text.Parsec.Char (alphaNum, anyChar, char, newline, noneOf, spaces,
+                         string)
 import Text.Parsec.Char (oneOf, space)
-import Text.Parsec.Combinator (lookAhead, between)
+import Text.Parsec.Combinator (choice, count, eof, many1, manyTill,
+                               notFollowedBy, option, skipMany1)
+import Text.Parsec.Combinator (between, lookAhead)
+import Text.Parsec.Prim (getState, many, try, updateState)
 import Text.Parsec.Prim ((<|>))
 
 readVimwiki :: PandocMonad m => ReaderOptions -> Text -> m Pandoc
@@ -100,7 +105,7 @@ readVimwiki opts s = do
   res <- readWithM parseVimwiki def{ stateOptions = opts }
             (unpack (crFilter s))
   case res of
-       Left e -> throwError e
+       Left e       -> throwError e
        Right result -> return result
 
 type VwParser = ParserT [Char] ParserState
@@ -278,19 +283,19 @@ displayMath = try $ do
 
 mathTagLaTeX :: String -> String
 mathTagLaTeX s = case s of
-   "equation" -> ""
+   "equation"  -> ""
    "equation*" -> ""
-   "gather" -> "gathered"
-   "gather*" -> "gathered"
-   "multline" -> "gathered"
+   "gather"    -> "gathered"
+   "gather*"   -> "gathered"
+   "multline"  -> "gathered"
    "multline*" -> "gathered"
-   "eqnarray" -> "aligned"
+   "eqnarray"  -> "aligned"
    "eqnarray*" -> "aligned"
-   "align" -> "aligned"
-   "align*" -> "aligned"
-   "alignat" -> "aligned"
-   "alignat*" -> "aligned"
-   _ -> s
+   "align"     -> "aligned"
+   "align*"    -> "aligned"
+   "alignat"   -> "aligned"
+   "alignat*"  -> "aligned"
+   _           -> s
 
 
 mixedList :: PandocMonad m => VwParser m Blocks

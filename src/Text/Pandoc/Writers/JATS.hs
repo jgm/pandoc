@@ -33,15 +33,16 @@ https://jats.nlm.nih.gov/publishing/tag-library/1.1d3/element/mml-math.html
 module Text.Pandoc.Writers.JATS ( writeJATS ) where
 import Control.Monad.Reader
 import Data.Char (toLower)
-import Data.Text (Text)
 import Data.Generics (everywhere, mkT)
 import Data.List (intercalate, isSuffixOf, partition)
 import Data.Maybe (fromMaybe)
+import Data.Text (Text)
 import qualified Text.Pandoc.Builder as B
 import Text.Pandoc.Class (PandocMonad, report)
 import Text.Pandoc.Definition
 import Text.Pandoc.Highlighting (languages, languagesByExtension)
 import Text.Pandoc.Logging
+import Text.Pandoc.MIME (getMimeType)
 import Text.Pandoc.Options
 import Text.Pandoc.Pretty
 import Text.Pandoc.Shared
@@ -49,7 +50,6 @@ import Text.Pandoc.Templates (renderTemplate')
 import Text.Pandoc.Writers.Math
 import Text.Pandoc.Writers.Shared
 import Text.Pandoc.XML
-import Text.Pandoc.MIME (getMimeType)
 import Text.TeXMath
 import qualified Text.XML.Light as Xml
 
@@ -90,7 +90,7 @@ writeJATS opts d =
 docToJATS :: PandocMonad m => WriterOptions -> Pandoc -> DB m Text
 docToJATS opts (Pandoc meta blocks) = do
   let isBackBlock (Div ("refs",_,_) _) = True
-      isBackBlock _ = False
+      isBackBlock _                    = False
   let (backblocks, bodyblocks) = partition isBackBlock blocks
   let elements = hierarchicalize bodyblocks
   let backElements = hierarchicalize backblocks

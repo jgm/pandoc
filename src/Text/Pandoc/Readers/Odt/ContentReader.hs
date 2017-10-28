@@ -1,8 +1,8 @@
 {-# LANGUAGE Arrows          #-}
-{-# LANGUAGE TupleSections   #-}
 {-# LANGUAGE PatternGuards   #-}
-{-# LANGUAGE ViewPatterns    #-}
 {-# LANGUAGE RecordWildCards #-}
+{-# LANGUAGE TupleSections   #-}
+{-# LANGUAGE ViewPatterns    #-}
 
 {-
 Copyright (C) 2015 Martin Linnemann <theCodingMarlin@googlemail.com>
@@ -39,29 +39,29 @@ module Text.Pandoc.Readers.Odt.ContentReader
 , read_body
 ) where
 
-import           Control.Arrow
-import           Control.Applicative    hiding ( liftA, liftA2, liftA3 )
+import Control.Applicative hiding (liftA, liftA2, liftA3)
+import Control.Arrow
 
-import qualified Data.ByteString.Lazy   as B
-import qualified Data.Map               as M
-import           Data.List                     ( find, intercalate )
-import           Data.Maybe
+import qualified Data.ByteString.Lazy as B
+import Data.List (find, intercalate)
+import qualified Data.Map as M
+import Data.Maybe
 
-import qualified Text.XML.Light         as XML
+import qualified Text.XML.Light as XML
 
-import           Text.Pandoc.Definition
-import           Text.Pandoc.Builder
-import           Text.Pandoc.MediaBag (insertMedia, MediaBag)
-import           Text.Pandoc.Shared
+import Text.Pandoc.Definition
+import Text.Pandoc.Builder
+import Text.Pandoc.MediaBag (MediaBag, insertMedia)
+import Text.Pandoc.Shared
 
-import           Text.Pandoc.Readers.Odt.Base
-import           Text.Pandoc.Readers.Odt.Namespaces
-import           Text.Pandoc.Readers.Odt.StyleReader
+import Text.Pandoc.Readers.Odt.Base
+import Text.Pandoc.Readers.Odt.Namespaces
+import Text.Pandoc.Readers.Odt.StyleReader
 
-import           Text.Pandoc.Readers.Odt.Arrows.Utils
-import           Text.Pandoc.Readers.Odt.Generic.XMLConverter
-import           Text.Pandoc.Readers.Odt.Generic.Fallible
-import           Text.Pandoc.Readers.Odt.Generic.Utils
+import Text.Pandoc.Readers.Odt.Arrows.Utils
+import Text.Pandoc.Readers.Odt.Generic.Fallible
+import Text.Pandoc.Readers.Odt.Generic.Utils
+import Text.Pandoc.Readers.Odt.Generic.XMLConverter
 
 import qualified Data.Set as Set
 
@@ -342,9 +342,9 @@ modifierFromStyleDiff propertyTriple  =
               Just oldVPos -> getVPosModifier' (oldVPos, verticalPosition textProps)
 
     getVPosModifier' (oldVPos , newVPos   ) | oldVPos == newVPos = ignore
-    getVPosModifier' ( _      , VPosSub   )                      = subscript
-    getVPosModifier' ( _      , VPosSuper )                      = superscript
-    getVPosModifier' ( _      ,  _        )                      = ignore
+    getVPosModifier' ( _      , VPosSub   ) = subscript
+    getVPosModifier' ( _      , VPosSuper ) = superscript
+    getVPosModifier' ( _      ,  _        ) = ignore
 
     hasEmphChanged :: PropertyTriple -> Bool
     hasEmphChanged = swing any [ hasChanged  isEmphasised

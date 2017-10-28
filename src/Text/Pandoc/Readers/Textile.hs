@@ -57,20 +57,20 @@ import Control.Monad.Except (throwError)
 import Data.Char (digitToInt, isUpper)
 import Data.List (intercalate, intersperse, transpose)
 import Data.Monoid ((<>))
+import Data.Text (Text)
+import qualified Data.Text as T
 import Text.HTML.TagSoup (Tag (..), fromAttrib)
 import Text.HTML.TagSoup.Match
 import Text.Pandoc.Builder (Blocks, Inlines, trimInlines)
 import qualified Text.Pandoc.Builder as B
-import Text.Pandoc.Class (PandocMonad(..))
+import Text.Pandoc.Class (PandocMonad (..))
 import Text.Pandoc.CSS
 import Text.Pandoc.Definition
 import Text.Pandoc.Options
 import Text.Pandoc.Parsing
 import Text.Pandoc.Readers.HTML (htmlTag, isBlockTag, isInlineTag)
 import Text.Pandoc.Readers.LaTeX (rawLaTeXBlock, rawLaTeXInline)
-import Text.Pandoc.Shared (trim, crFilter, underlineSpan)
-import Data.Text (Text)
-import qualified Data.Text as T
+import Text.Pandoc.Shared (crFilter, trim, underlineSpan)
 
 -- | Parse a Textile text and return a Pandoc document.
 readTextile :: PandocMonad m

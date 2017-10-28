@@ -37,13 +37,13 @@ import Control.Monad.State.Strict (StateT, evalStateT, gets, modify)
 import Data.Default (Default (..))
 import Data.List (intercalate, isInfixOf, isPrefixOf, transpose)
 import qualified Data.Map as Map
-import Data.Text (breakOnAll, pack, Text)
+import Data.Text (Text, breakOnAll, pack)
 import Text.Pandoc.Class (PandocMonad, report)
-import Text.Pandoc.Logging
 import Text.Pandoc.Definition
 import Text.Pandoc.ImageSize
+import Text.Pandoc.Logging
 import Text.Pandoc.Options (WrapOption (..), WriterOptions (writerTableOfContents, writerTemplate, writerWrapText))
-import Text.Pandoc.Shared (isURI, escapeURI, linesToPara, removeFormatting,
+import Text.Pandoc.Shared (escapeURI, isURI, linesToPara, removeFormatting,
                            substitute, trimr)
 import Text.Pandoc.Templates (renderTemplate')
 import Text.Pandoc.Writers.Shared (defField, metaToJSON)

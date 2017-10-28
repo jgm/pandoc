@@ -82,11 +82,13 @@ module Text.Pandoc.Writers
     ) where
 
 import Data.Aeson
+import qualified Data.ByteString.Lazy as BL
 import Data.List (intercalate)
 import Data.Text (Text)
 import Text.Pandoc.Class
 import Text.Pandoc.Definition
 import Text.Pandoc.Options
+import qualified Text.Pandoc.UTF8 as UTF8
 import Text.Pandoc.Writers.AsciiDoc
 import Text.Pandoc.Writers.CommonMark
 import Text.Pandoc.Writers.ConTeXt
@@ -96,8 +98,8 @@ import Text.Pandoc.Writers.Docx
 import Text.Pandoc.Writers.DokuWiki
 import Text.Pandoc.Writers.EPUB
 import Text.Pandoc.Writers.FB2
-import Text.Pandoc.Writers.HTML
 import Text.Pandoc.Writers.Haddock
+import Text.Pandoc.Writers.HTML
 import Text.Pandoc.Writers.ICML
 import Text.Pandoc.Writers.JATS
 import Text.Pandoc.Writers.LaTeX
@@ -108,8 +110,8 @@ import Text.Pandoc.Writers.Ms
 import Text.Pandoc.Writers.Muse
 import Text.Pandoc.Writers.Native
 import Text.Pandoc.Writers.ODT
-import Text.Pandoc.Writers.OPML
 import Text.Pandoc.Writers.OpenDocument
+import Text.Pandoc.Writers.OPML
 import Text.Pandoc.Writers.Org
 import Text.Pandoc.Writers.RST
 import Text.Pandoc.Writers.RTF
@@ -118,8 +120,6 @@ import Text.Pandoc.Writers.Texinfo
 import Text.Pandoc.Writers.Textile
 import Text.Pandoc.Writers.ZimWiki
 import Text.Parsec.Error
-import qualified Text.Pandoc.UTF8 as UTF8
-import qualified Data.ByteString.Lazy as BL
 
 data Writer m = TextWriter (WriterOptions -> Pandoc -> m Text)
               | ByteStringWriter (WriterOptions -> Pandoc -> m BL.ByteString)
