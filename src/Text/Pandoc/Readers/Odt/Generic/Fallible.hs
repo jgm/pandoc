@@ -1,4 +1,4 @@
-{-# LANGUAGE GeneralizedNewtypeDeriving #-}
+
 
 {-
 Copyright (C) 2015 Martin Linnemann <theCodingMarlin@googlemail.com>
@@ -121,6 +121,6 @@ newtype SuccessList a = SuccessList { collectNonFailing :: [a] }
   deriving ( Eq, Ord, Show )
 
 instance ChoiceVector SuccessList  where
-  spreadChoice = Right . SuccessList . (foldr unTagRight []) . collectNonFailing
+  spreadChoice = Right . SuccessList . foldr unTagRight [] . collectNonFailing
     where unTagRight (Right x) = (x:)
           unTagRight _         = id

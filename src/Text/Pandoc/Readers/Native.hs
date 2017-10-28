@@ -69,4 +69,3 @@ readInlines s = maybe ((:[]) <$> readInline s) Right (safeRead (unpack s))
 
 readInline :: Text -> Either PandocError Inline
 readInline s = maybe (Left . PandocParseError $ "Could not read: " ++ unpack s) Right (safeRead (unpack s))
-

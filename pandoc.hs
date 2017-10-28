@@ -36,4 +36,3 @@ import Text.Pandoc.Error (handleError)
 main :: IO ()
 main = E.catch (parseOptions options defaultOpts >>= convertWithOpts)
           (handleError . Left)
-

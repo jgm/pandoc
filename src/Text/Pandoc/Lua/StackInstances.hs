@@ -208,18 +208,18 @@ peekBlock idx = do
   case tag of
       "BlockQuote"     -> BlockQuote <$> elementContent
       "BulletList"     -> BulletList <$> elementContent
-      "CodeBlock"      -> (withAttr CodeBlock) <$> elementContent
+      "CodeBlock"      -> withAttr CodeBlock <$> elementContent
       "DefinitionList" -> DefinitionList <$> elementContent
-      "Div"            -> (withAttr Div) <$> elementContent
+      "Div"            -> withAttr Div <$> elementContent
       "Header"         -> (\(lvl, LuaAttr attr, lst) -> Header lvl attr lst)
                           <$> elementContent
       "HorizontalRule" -> return HorizontalRule
       "LineBlock"      -> LineBlock <$> elementContent
-      "OrderedList"    -> (uncurry OrderedList) <$> elementContent
+      "OrderedList"    -> uncurry OrderedList <$> elementContent
       "Null"           -> return Null
       "Para"           -> Para <$> elementContent
       "Plain"          -> Plain <$> elementContent
-      "RawBlock"       -> (uncurry RawBlock) <$> elementContent
+      "RawBlock"       -> uncurry RawBlock <$> elementContent
       "Table"          -> (\(capt, aligns, widths, headers, body) ->
                                   Table capt aligns widths headers body)
                           <$> elementContent
@@ -257,8 +257,8 @@ peekInline :: StackIndex -> Lua Inline
 peekInline idx = do
   tag <- getTag idx
   case tag of
-    "Cite"       -> (uncurry Cite) <$> elementContent
-    "Code"       -> (withAttr Code) <$> elementContent
+    "Cite"       -> uncurry Cite <$> elementContent
+    "Code"       -> withAttr Code <$> elementContent
     "Emph"       -> Emph <$> elementContent
     "Image"      -> (\(LuaAttr attr, lst, tgt) -> Image attr lst tgt)
                     <$> elementContent
@@ -266,13 +266,13 @@ peekInline idx = do
                     <$> elementContent
     "LineBreak"  -> return LineBreak
     "Note"       -> Note <$> elementContent
-    "Math"       -> (uncurry Math) <$> elementContent
-    "Quoted"     -> (uncurry Quoted) <$> elementContent
-    "RawInline"  -> (uncurry RawInline) <$> elementContent
+    "Math"       -> uncurry Math <$> elementContent
+    "Quoted"     -> uncurry Quoted <$> elementContent
+    "RawInline"  -> uncurry RawInline <$> elementContent
     "SmallCaps"  -> SmallCaps <$> elementContent
     "SoftBreak"  -> return SoftBreak
     "Space"      -> return Space
-    "Span"       -> (withAttr Span) <$> elementContent
+    "Span"       -> withAttr Span <$> elementContent
     "Str"        -> Str <$> elementContent
     "Strikeout"  -> Strikeout <$> elementContent
     "Strong"     -> Strong <$> elementContent

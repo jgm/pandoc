@@ -1,4 +1,4 @@
-{-# LANGUAGE PatternGuards #-}
+
 
 {-
 Copyright (C) 2015 Martin Linnemann <theCodingMarlin@googlemail.com>
@@ -40,4 +40,3 @@ type OdtConverterState s = XMLConverterState Namespace s
 type XMLReader     s a b = FallibleXMLConverter Namespace s a b
 
 type XMLReaderSafe s a b =         XMLConverter Namespace s a b
-

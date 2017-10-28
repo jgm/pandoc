@@ -2,7 +2,7 @@
 {-# LANGUAGE DeriveDataTypeable    #-}
 {-# LANGUAGE FlexibleContexts      #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
-{-# LANGUAGE PatternGuards         #-}
+
 {-# LANGUAGE ScopedTypeVariables   #-}
 {-# LANGUAGE ViewPatterns          #-}
 {-
@@ -144,11 +144,11 @@ splitBy _ [] = []
 splitBy isSep lst =
   let (first, rest) = break isSep lst
       rest'         = dropWhile isSep rest
-  in  first:(splitBy isSep rest')
+  in  first:splitBy isSep rest'
 
 splitByIndices :: [Int] -> [a] -> [[a]]
 splitByIndices [] lst = [lst]
-splitByIndices (x:xs) lst = first:(splitByIndices (map (\y -> y - x)  xs) rest)
+splitByIndices (x:xs) lst = first:splitByIndices (map (\y -> y - x)  xs) rest
   where (first, rest) = splitAt x lst
 
 -- | Split string into chunks divided at specified indices.
@@ -156,7 +156,7 @@ splitStringByIndices :: [Int] -> [Char] -> [[Char]]
 splitStringByIndices [] lst = [lst]
 splitStringByIndices (x:xs) lst =
   let (first, rest) = splitAt' x lst in
-  first : (splitStringByIndices (map (\y -> y - x) xs) rest)
+  first : splitStringByIndices (map (\y -> y - x) xs) rest
 
 splitAt' :: Int -> [Char] -> ([Char],[Char])
 splitAt' _ []          = ([],[])
@@ -195,7 +195,7 @@ backslashEscapes = map (\ch -> (ch, ['\\',ch]))
 escapeStringUsing :: [(Char, String)] -> String -> String
 escapeStringUsing _ [] = ""
 escapeStringUsing escapeTable (x:xs) =
-  case (lookup x escapeTable) of
+  case lookup x escapeTable of
        Just str -> str ++ rest
        Nothing  -> x:rest
   where rest = escapeStringUsing escapeTable xs
@@ -219,14 +219,14 @@ trimr = reverse . triml . reverse
 -- | Strip leading and trailing characters from string
 stripFirstAndLast :: String -> String
 stripFirstAndLast str =
-  drop 1 $ take ((length str) - 1) str
+  drop 1 $ take (length str - 1) str
 
 -- | Change CamelCase word to hyphenated lowercase (e.g., camel-case).
 camelCaseToHyphenated :: String -> String
 camelCaseToHyphenated [] = ""
 camelCaseToHyphenated (a:b:rest) | isLower a && isUpper b =
-  a:'-':(toLower b):(camelCaseToHyphenated rest)
-camelCaseToHyphenated (a:rest) = (toLower a):(camelCaseToHyphenated rest)
+  a:'-':toLower b:camelCaseToHyphenated rest
+camelCaseToHyphenated (a:rest) = toLower a:camelCaseToHyphenated rest
 
 -- | Convert number < 4000 to uppercase roman numeral.
 toRomanNumeral :: Int -> String
@@ -477,7 +477,7 @@ hierarchicalize blocks = S.evalState (hierarchicalizeWithIds blocks) []
 
 hierarchicalizeWithIds :: [Block] -> S.State [Int] [Element]
 hierarchicalizeWithIds [] = return []
-hierarchicalizeWithIds ((Header level attr@(_,classes,_) title'):xs) = do
+hierarchicalizeWithIds (Header level attr@(_,classes,_) title':xs) = do
   lastnum <- S.get
   let lastnum' = take level lastnum
   let newnum = case length lastnum' of
@@ -490,13 +490,13 @@ hierarchicalizeWithIds ((Header level attr@(_,classes,_) title'):xs) = do
   sectionContents' <- hierarchicalizeWithIds sectionContents
   rest' <- hierarchicalizeWithIds rest
   return $ Sec level newnum attr title' sectionContents' : rest'
-hierarchicalizeWithIds ((Div ("",["references"],[])
-                         (Header level (ident,classes,kvs) title' : xs)):ys) =
-  hierarchicalizeWithIds ((Header level (ident,("references":classes),kvs)
-                           title') : (xs ++ ys))
+hierarchicalizeWithIds (Div ("",["references"],[])
+                         (Header level (ident,classes,kvs) title' : xs):ys) =
+  hierarchicalizeWithIds (Header level (ident,("references":classes),kvs)
+                           title' : (xs ++ ys))
 hierarchicalizeWithIds (x:rest) = do
   rest' <- hierarchicalizeWithIds rest
-  return $ (Blk x) : rest'
+  return $ Blk x : rest'
 
 headerLtEq :: Int -> Block -> Bool
 headerLtEq level (Header l _ _)                                  = l <= level
@@ -519,7 +519,7 @@ uniqueIdent title' usedIdents
 
 -- | True if block is a Header block.
 isHeaderBlock :: Block -> Bool
-isHeaderBlock (Header _ _ _) = True
+isHeaderBlock (Header{}) = True
 isHeaderBlock _              = False
 
 -- | Shift header levels up or down.
@@ -555,15 +555,14 @@ makeMeta :: [Inline] -> [[Inline]] -> [Inline] -> Meta
 makeMeta title authors date =
       addMetaField "title" (B.fromList title)
     $ addMetaField "author" (map B.fromList authors)
-    $ addMetaField "date" (B.fromList date)
-    $ nullMeta
+    $ addMetaField "date" (B.fromList date) nullMeta
 
 -- | Remove soft breaks between East Asian characters.
 eastAsianLineBreakFilter :: Pandoc -> Pandoc
 eastAsianLineBreakFilter = bottomUp go
   where go (x:SoftBreak:y:zs) =
          case (stringify x, stringify y) of
-               (xs@(_:_), (c:_))
+               (xs@(_:_), c:_)
                  | charWidth (last xs) == 2 && charWidth c == 2 -> x:y:zs
                _ -> x:SoftBreak:y:zs
         go xs = xs
@@ -620,8 +619,8 @@ collapseFilePath = Posix.joinPath . reverse . foldl go [] . splitDirectories
   where
     go rs "." = rs
     go r@(p:rs) ".." = case p of
-                            ".."                              -> ("..":r)
-                            (checkPathSeperator -> Just True) -> ("..":r)
+                            ".."                              -> "..":r
+                            (checkPathSeperator -> Just True) -> "..":r
                             _                                 -> rs
     go _ (checkPathSeperator -> Just True) = [[Posix.pathSeparator]]
     go rs x = x:rs
@@ -725,9 +724,9 @@ blockToInlines (DefinitionList pairslst) =
   where
     f (ils, blkslst) = ils ++
       [Str ":", Space] ++
-      (concatMap blocksToInlines blkslst)
+      concatMap blocksToInlines blkslst
 blockToInlines (Header _ _  ils) = ils
-blockToInlines (HorizontalRule) = []
+blockToInlines HorizontalRule = []
 blockToInlines (Table _ _ _ headers rows) =
   intercalate [LineBreak] $ map (concatMap blocksToInlines) tbl
   where

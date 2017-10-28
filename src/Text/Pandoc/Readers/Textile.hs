@@ -110,7 +110,7 @@ noteBlock = try $ do
   startPos <- getPosition
   ref <- noteMarker
   optional blankline
-  contents <- liftM unlines $ many1Till anyLine (blanklines <|> noteBlock)
+  contents <- fmap unlines $ many1Till anyLine (blanklines <|> noteBlock)
   endPos <- getPosition
   let newnote = (ref, contents ++ "\n")
   st <- getState

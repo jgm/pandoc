@@ -997,4 +997,3 @@ instance PandocMonad m => PandocMonad (ParsecT s st m) where
                else "")
         (return ())
   logOutput = lift . logOutput
-

@@ -142,7 +142,7 @@ makeExample prompt expression result =
         <> B.space
         <> B.codeWith ([], ["haskell","expr"], []) (trim expression)
         <> B.linebreak
-        <> (mconcat $ intersperse B.linebreak $ map coder result')
+        <> mconcat (intersperse B.linebreak $ map coder result')
   where
     -- 1. drop trailing whitespace from the prompt, remember the prefix
     prefix = takeWhile (`elem` " \t") prompt

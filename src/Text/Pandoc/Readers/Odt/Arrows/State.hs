@@ -1,4 +1,4 @@
-{-# LANGUAGE Arrows            #-}
+
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE TupleSections     #-}
 {-
@@ -139,7 +139,7 @@ iterateS :: (Foldable f, MonadPlus m)
          => ArrowState s    x     y
          -> ArrowState s (f x) (m y)
 iterateS a = ArrowState $ \(s,f) -> foldr a' (s,mzero) f
-  where a' x (s',m) = second ((mplus m).return) $ runArrowState a (s',x)
+  where a' x (s',m) = second (mplus m.return) $ runArrowState a (s',x)
 
 -- | Fold a state arrow through something 'Foldable'. Collect the results in a
 -- 'MonadPlus'.
@@ -147,7 +147,7 @@ iterateSL :: (Foldable f, MonadPlus m)
           => ArrowState s    x     y
           -> ArrowState s (f x) (m y)
 iterateSL a = ArrowState $ \(s,f) -> foldl a' (s,mzero) f
-  where a' (s',m) x = second ((mplus m).return) $ runArrowState a (s',x)
+  where a' (s',m) x = second (mplus m.return) $ runArrowState a (s',x)
 
 
 -- | Fold a fallible state arrow through something 'Foldable'.

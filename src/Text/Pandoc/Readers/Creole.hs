@@ -282,7 +282,7 @@ placeholder = B.text <$> try (string "<<<" >> manyTill anyChar (string ">>>")
               >> return "")
 
 whitespace :: PandocMonad m => CRLParser m B.Inlines
-whitespace = (lb <|> regsp)
+whitespace = lb <|> regsp
   where lb = try $ skipMany spaceChar >> linebreak >> return B.space
         regsp = try $ skipMany1 spaceChar >> return B.space
 

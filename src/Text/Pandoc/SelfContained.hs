@@ -178,10 +178,10 @@ pCSSComment = P.try $ do
   return B.empty
 
 pCSSOther :: PandocMonad m => ParsecT ByteString () m ByteString
-pCSSOther = do
+pCSSOther =
   (B.pack <$> P.many1 (P.noneOf "u/ \n\r\t")) <|>
-    (B.singleton <$> P.char 'u') <|>
-    (B.singleton <$> P.char '/')
+  (B.singleton <$> P.char 'u') <|>
+  (B.singleton <$> P.char '/')
 
 pCSSUrl :: PandocMonad m
         => FilePath -> ParsecT ByteString () m ByteString
@@ -218,9 +218,7 @@ handleCSSUrl :: PandocMonad m
              => FilePath -> (String, ByteString)
              -> ParsecT ByteString () m
                   (Either ByteString (MimeType, ByteString))
-handleCSSUrl d (url, fallback) = do
-  -- pipes are used in URLs provided by Google Code fonts
-  -- but parseURI doesn't like them, so we escape them:
+handleCSSUrl d (url, fallback) =
   case escapeURIString (/='|') (trim url) of
       '#':_ -> return $ Left fallback
       'd':'a':'t':'a':':':_ -> return $ Left fallback
@@ -251,8 +249,7 @@ getData mimetype src = do
   let ext = map toLower $ takeExtension src
   (raw, respMime) <- fetchItem src
   let raw' = if ext == ".gz"
-                then B.concat $ L.toChunks $ Gzip.decompress $ L.fromChunks
-                      $ [raw]
+                then B.concat $ L.toChunks $ Gzip.decompress $ L.fromChunks [raw]
                 else raw
   mime <- case (mimetype, respMime) of
                   ("",Nothing) -> throwError $ PandocSomeError

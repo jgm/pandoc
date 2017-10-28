@@ -438,4 +438,3 @@ context2pdf verbosity tmpDir source = inDirectory tmpDir $ do
           return $ Left logmsg
        (ExitSuccess, Nothing)  -> return $ Left ""
        (ExitSuccess, Just pdf) -> return $ Right pdf
-

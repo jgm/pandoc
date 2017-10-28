@@ -303,8 +303,7 @@ archiveToDocument zf = do
 
 elemToBody :: NameSpaces -> Element -> D Body
 elemToBody ns element | isElem ns "w" "body" element =
-  mapD (elemToBodyPart ns) (elChildren element) >>=
-  (return . Body)
+  fmap Body (mapD (elemToBodyPart ns) (elChildren element))
 elemToBody _ _ = throwError WrongElem
 
 archiveToStyles :: Archive -> (CharStyleMap, ParStyleMap)
@@ -374,7 +373,7 @@ buildBasedOnList ns element rootStyle =
   case getStyleChildren ns element rootStyle of
     [] -> []
     stys -> stys ++
-            concatMap (\s -> buildBasedOnList ns element (Just s)) stys
+            concatMap (buildBasedOnList ns element . Just) stys
 
 archiveToNotes :: Archive -> Notes
 archiveToNotes zf =
@@ -577,7 +576,7 @@ testBitMask :: String -> Int -> Bool
 testBitMask bitMaskS n =
   case (reads ("0x" ++ bitMaskS) :: [(Int, String)]) of
     []            -> False
-    ((n', _) : _) -> ((n' .|. n) /= 0)
+    ((n', _) : _) -> (n' .|. n) /= 0
 
 stringToInteger :: String -> Maybe Integer
 stringToInteger s = listToMaybe $ map fst (reads s :: [(Integer, String)])
@@ -654,12 +653,8 @@ getTitleAndAlt :: NameSpaces -> Element -> (String, String)
 getTitleAndAlt ns element =
   let mbDocPr = findChildByName ns "wp" "inline" element >>=
                 findChildByName ns "wp" "docPr"
-      title = case mbDocPr >>= findAttrByName ns "" "title" of
-                Just title' -> title'
-                Nothing     -> ""
-      alt = case mbDocPr >>= findAttrByName ns "" "descr" of
-              Just alt' -> alt'
-              Nothing   -> ""
+      title = fromMaybe "" (mbDocPr >>= findAttrByName ns "" "title")
+      alt = fromMaybe "" (mbDocPr >>= findAttrByName ns "" "descr")
   in (title, alt)
 
 elemToParPart :: NameSpaces -> Element -> D ParPart
@@ -727,7 +722,7 @@ elemToParPart ns element
     runs <- mapD (elemToRun ns) (elChildren element)
     rels <- asks envRelationships
     case lookupRelationship location relId rels of
-      Just target -> do
+      Just target ->
          case findAttrByName ns "w" "anchor" element of
              Just anchor -> return $ ExternalHyperLink (target ++ '#':anchor) runs
              Nothing -> return $ ExternalHyperLink target runs
@@ -750,7 +745,7 @@ elemToParPart ns element
     return $ CommentEnd cmtId
 elemToParPart ns element
   | isElem ns "m" "oMath" element =
-    (eitherToD $ readOMML $ showElement element) >>= (return . PlainOMath)
+    fmap PlainOMath (eitherToD $ readOMML $ showElement element)
 elemToParPart _ _ = throwError WrongElem
 
 elemToCommentStart :: NameSpaces -> Element -> D ParPart
@@ -764,10 +759,10 @@ elemToCommentStart ns element
 elemToCommentStart _ _ = throwError WrongElem
 
 lookupFootnote :: String -> Notes -> Maybe Element
-lookupFootnote s (Notes _ fns _) = fns >>= (M.lookup s)
+lookupFootnote s (Notes _ fns _) = fns >>= M.lookup s
 
 lookupEndnote :: String -> Notes -> Maybe Element
-lookupEndnote s (Notes _ _ ens) = ens >>= (M.lookup s)
+lookupEndnote s (Notes _ _ ens) = ens >>= M.lookup s
 
 elemToExtent :: Element -> Extent
 elemToExtent drawingElem =
@@ -1035,11 +1030,10 @@ elemToRunElems ns element
        let font = do
                     fontElem <- findElement (qualName "rFonts") element
                     stringToFont =<<
-                      (foldr (<|>) Nothing $
+                      foldr (<|>) Nothing (
                         map (flip findAttr fontElem . qualName) ["ascii", "hAnsi"])
        local (setFont font) (mapD (elemToRunElem ns) (elChildren element))
 elemToRunElems _ _ = throwError WrongElem
 
 setFont :: Maybe Font -> ReaderEnv -> ReaderEnv
 setFont f s = s{envFont = f}
-

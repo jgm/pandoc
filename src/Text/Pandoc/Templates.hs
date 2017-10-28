@@ -1,5 +1,5 @@
 {-# LANGUAGE FlexibleInstances          #-}
-{-# LANGUAGE GeneralizedNewtypeDeriving #-}
+
 {-# LANGUAGE OverloadedStrings          #-}
 {-# LANGUAGE TypeSynonymInstances       #-}
 {-
@@ -77,7 +77,7 @@ getDefaultTemplate writer = do
 -- raises an error if compilation fails.
 renderTemplate' :: (PandocMonad m, ToJSON a, TemplateTarget b)
                 => String -> a -> m b
-renderTemplate' template context = do
+renderTemplate' template context =
   case applyTemplate (T.pack template) context of
        Left e  -> throwError (PandocTemplateError e)
        Right r -> return r

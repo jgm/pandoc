@@ -100,4 +100,3 @@ endline :: Parser ()
 endline = do
   optional (void $ char '\r')
   void $ char '\n'
-

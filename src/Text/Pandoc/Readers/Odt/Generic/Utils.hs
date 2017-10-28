@@ -1,5 +1,5 @@
-{-# LANGUAGE PatternGuards #-}
-{-# LANGUAGE TupleSections #-}
+
+
 {-# LANGUAGE TypeOperators #-}
 {-# LANGUAGE ViewPatterns  #-}
 
