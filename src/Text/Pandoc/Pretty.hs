@@ -77,7 +77,7 @@ module Text.Pandoc.Pretty (
      )
 
 where
-import Control.Monad (when)
+import Control.Monad
 import Control.Monad.State.Strict
 import Data.Char (isSpace)
 import Data.Foldable (toList)
