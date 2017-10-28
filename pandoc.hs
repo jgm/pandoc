@@ -1,7 +1,3 @@
-{-# LANGUAGE CPP                 #-}
-
-{-# LANGUAGE ScopedTypeVariables #-}
-{-# LANGUAGE TupleSections       #-}
 {-
 Copyright (C) 2006-2017 John MacFarlane <jgm@berkeley.edu>
 
@@ -35,9 +31,9 @@ writers.
 module Main where
 import qualified Control.Exception as E
 import Text.Pandoc.App (convertWithOpts, defaultOpts, options, parseOptions)
-import Text.Pandoc.Error (PandocError, handleError)
+import Text.Pandoc.Error (handleError)
 
 main :: IO ()
 main = E.catch (parseOptions options defaultOpts >>= convertWithOpts)
-  (\(e :: PandocError) -> handleError (Left e))
+          (\e -> handleError (Left e))
 
