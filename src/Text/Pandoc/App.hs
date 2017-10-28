@@ -113,7 +113,7 @@ parseOptions options' defaults = do
            getOpt' Permute options' rawArgs
 
   let unknownOptionErrors =
-       foldr (handleUnrecognizedOption . (takeWhile (/= '='))) []
+       foldr (handleUnrecognizedOption . takeWhile (/= '=')) []
        unrecognizedOpts
 
   unless (null errors && null unknownOptionErrors) $
