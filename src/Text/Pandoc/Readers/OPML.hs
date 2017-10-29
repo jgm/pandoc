@@ -58,7 +58,7 @@ normalizeTree = everywhere (mkT go)
         go xs = xs
 
 convertEntity :: String -> String
-convertEntity e = maybe (map toUpper e) id (lookupEntity e)
+convertEntity e = Data.Maybe.fromMaybe (map toUpper e) (lookupEntity e)
 
 -- convenience function to get an attribute value, defaulting to ""
 attrValue :: String -> Element -> String

@@ -241,7 +241,7 @@ yamlMetaBlock = try $ do
   case Yaml.decodeEither' $ UTF8.fromString rawYaml of
        Right (Yaml.Object hashmap) -> do
          let alist = H.toList hashmap
-         mapM_ (\(k, v) -> 
+         mapM_ (\(k, v) ->
              if ignorable k
                 then return ()
                 else do
@@ -320,7 +320,7 @@ yamlToMeta (Yaml.Array xs) = do
     return $ B.toMetaValue xs''
 yamlToMeta (Yaml.Object o) = do
   let alist = H.toList o
-  foldM (\m (k,v) -> 
+  foldM (\m (k,v) ->
            if ignorable k
               then return m
               else do

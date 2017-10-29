@@ -665,7 +665,7 @@ removeDoubleQuotes t =
   Data.Maybe.fromMaybe t $ T.stripPrefix "\"" t >>= T.stripSuffix "\""
 
 doubleQuote :: PandocMonad m => LP m Inlines
-doubleQuote = 
+doubleQuote =
        quoted' doubleQuoted (try $ count 2 $ symbol '`')
                      (void $ try $ count 2 $ symbol '\'')
    <|> quoted' doubleQuoted ((:[]) <$> symbol '“') (void $ symbol '”')
@@ -674,7 +674,7 @@ doubleQuote =
                             (void $ try $ sequence [symbol '"', symbol '\''])
 
 singleQuote :: PandocMonad m => LP m Inlines
-singleQuote = 
+singleQuote =
        quoted' singleQuoted ((:[]) <$> symbol '`')
                      (try $ symbol '\'' >>
                            notFollowedBy (satisfyTok startsWithLetter))

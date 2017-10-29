@@ -240,7 +240,7 @@ exampleTag = do
         chop = lchop . rchop
 
 literal :: PandocMonad m => MuseParser m (F Blocks)
-literal = fmap (return . rawBlock) $ htmlElement "literal"
+literal = (return . rawBlock) <$> htmlElement "literal"
   where
     format (_, _, kvs)        = fromMaybe "html" $ lookup "format" kvs
     rawBlock (attrs, content) = B.rawBlock (format attrs) content
@@ -658,7 +658,7 @@ str :: PandocMonad m => MuseParser m (F Inlines)
 str = fmap (return . B.str) (many1 alphaNum <|> count 1 characterReference)
 
 symbol :: PandocMonad m => MuseParser m (F Inlines)
-symbol = fmap (return . B.str) $ count 1 nonspaceChar
+symbol = (return . B.str) <$> count 1 nonspaceChar
 
 link :: PandocMonad m => MuseParser m (F Inlines)
 link = try $ do

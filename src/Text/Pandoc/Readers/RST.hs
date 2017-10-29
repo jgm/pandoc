@@ -31,20 +31,21 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 Conversion from reStructuredText to 'Pandoc' document.
 -}
 module Text.Pandoc.Readers.RST ( readRST ) where
+import Control.Arrow (second)
 import Control.Monad (forM_, guard, liftM, mplus, mzero, when)
 import Control.Monad.Except (throwError)
 import Control.Monad.Identity (Identity (..))
 import Data.Char (isHexDigit, isSpace, toLower, toUpper)
-import Data.List (deleteFirstsBy, findIndex, intercalate, isInfixOf, isSuffixOf,
-                  nub, sort, transpose, union)
+import Data.List (deleteFirstsBy, intercalate, isInfixOf,
+                  elemIndex, isSuffixOf, nub, sort, transpose, union)
 import qualified Data.Map as M
 import Data.Maybe (fromMaybe, isJust)
 import Data.Monoid ((<>))
 import Data.Sequence (ViewR (..), viewr)
 import Data.Text (Text)
 import qualified Data.Text as T
-import Text.Pandoc.Builder (fromList, setMeta)
-import Text.Pandoc.Builder (Blocks, Inlines, trimInlines)
+import Text.Pandoc.Builder
+       (fromList, setMeta, Blocks, Inlines, trimInlines)
 import qualified Text.Pandoc.Builder as B
 import Text.Pandoc.Class (PandocMonad, fetchItem, readFileFromDirs)
 import Text.Pandoc.CSV (CSVOptions (..), defaultCSVOptions, parseCSV)
@@ -67,7 +68,7 @@ readRST :: PandocMonad m
         -> Text          -- ^ String to parse (assuming @'\n'@ line endings)
         -> m Pandoc
 readRST opts s = do
-  parsed <- (readWithM parseRST) def{ stateOptions = opts }
+  parsed <- readWithM parseRST def{ stateOptions = opts }
                (T.unpack (crFilter s) ++ "\n\n")
   case parsed of
     Right result -> return result
@@ -100,9 +101,9 @@ isHeader _ _              = False
 -- | Promote all headers in a list of blocks.  (Part of
 -- title transformation for RST.)
 promoteHeaders :: Int -> [Block] -> [Block]
-promoteHeaders num ((Header level attr text):rest) =
-    (Header (level - num) attr text):(promoteHeaders num rest)
-promoteHeaders num (other:rest) = other:(promoteHeaders num rest)
+promoteHeaders num (Header level attr text:rest) =
+    Header (level - num) attr text:promoteHeaders num rest
+promoteHeaders num (other:rest) = other:promoteHeaders num rest
 promoteHeaders _   [] = []
 
 -- | If list of blocks starts with a header (or a header and subheader)
@@ -114,11 +115,11 @@ titleTransform :: ([Block], Meta)  -- ^ list of blocks, metadata
 titleTransform (bs, meta) =
   let (bs', meta') =
        case bs of
-          ((Header 1 _ head1):(Header 2 _ head2):rest)
+          (Header 1 _ head1:Header 2 _ head2:rest)
            | not (any (isHeader 1) rest || any (isHeader 2) rest) -> -- tit/sub
             (promoteHeaders 2 rest, setMeta "title" (fromList head1) $
               setMeta "subtitle" (fromList head2) meta)
-          ((Header 1 _ head1):rest)
+          (Header 1 _ head1:rest)
            | not (any (isHeader 1) rest) -> -- title only
             (promoteHeaders 1 rest,
                 setMeta "title" (fromList head1) meta)
@@ -137,8 +138,7 @@ metaFromDefList ds meta = adjustAuthors $ foldr f meta ds
                                            $ M.mapKeys (\k ->
                                                  if k == "authors"
                                                     then "author"
-                                                    else k)
-                                           $ metamap
+                                                    else k) metamap
        toPlain (MetaBlocks [Para xs]) = MetaInlines xs
        toPlain x                      = x
        splitAuthors (MetaBlocks [Para xs])
@@ -201,7 +201,7 @@ parseCitation :: PandocMonad m
               => (String, String) -> RSTParser m (Inlines, [Blocks])
 parseCitation (ref, raw) = do
   contents <- parseFromString' parseBlocks raw
-  return $ (B.spanWith (ref, ["citation-label"], []) (B.str ref),
+  return (B.spanWith (ref, ["citation-label"], []) (B.str ref),
            [contents])
 
 
@@ -289,7 +289,7 @@ para = try $ do
     newline
     blanklines
     case viewr (B.unMany result) of
-         ys :> (Str xs) | "::" `isSuffixOf` xs -> do
+         ys :> Str xs | "::" `isSuffixOf` xs -> do
               raw <- option mempty codeBlockBody
               return $ B.para (B.Many ys <> B.str (take (length xs - 1) xs))
                          <> raw
@@ -313,9 +313,9 @@ doubleHeader = do
   -- if so, get appropriate level.  if not, add to list.
   state <- getState
   let headerTable = stateHeaderTable state
-  let (headerTable',level) = case findIndex (== DoubleHeader c) headerTable of
+  let (headerTable',level) = case elemIndex (DoubleHeader c) headerTable of
         Just ind -> (headerTable, ind + 1)
-        Nothing -> (headerTable ++ [DoubleHeader c], (length headerTable) + 1)
+        Nothing -> (headerTable ++ [DoubleHeader c], length headerTable + 1)
   setState (state { stateHeaderTable = headerTable' })
   attr <- registerHeader nullAttr txt
   return $ B.headerWith attr level txt
@@ -329,8 +329,8 @@ doubleHeader' = try $ do
   newline
   txt <- trimInlines . mconcat <$> many1 (notFollowedBy blankline >> inline)
   pos <- getPosition
-  let len = (sourceColumn pos) - 1
-  if (len > lenTop) then fail "title longer than border" else return ()
+  let len = sourceColumn pos - 1
+  when (len > lenTop) $ fail "title longer than border"
   blankline              -- spaces and newline
   count lenTop (char c)  -- the bottom line
   blanklines
@@ -342,9 +342,9 @@ singleHeader = do
   (txt, c) <- singleHeader'
   state <- getState
   let headerTable = stateHeaderTable state
-  let (headerTable',level) = case findIndex (== SingleHeader c) headerTable of
+  let (headerTable',level) = case elemIndex (SingleHeader c) headerTable of
         Just ind -> (headerTable, ind + 1)
-        Nothing -> (headerTable ++ [SingleHeader c], (length headerTable) + 1)
+        Nothing -> (headerTable ++ [SingleHeader c], length headerTable + 1)
   setState (state { stateHeaderTable = headerTable' })
   attr <- registerHeader nullAttr txt
   return $ B.headerWith attr level txt
@@ -355,7 +355,7 @@ singleHeader' = try $ do
   lookAhead $ anyLine >> oneOf underlineChars
   txt <- trimInlines . mconcat <$> many1 (do {notFollowedBy newline; inline})
   pos <- getPosition
-  let len = (sourceColumn pos) - 1
+  let len = sourceColumn pos - 1
   blankline
   c <- oneOf underlineChars
   count (len - 1) (char c)
@@ -491,8 +491,7 @@ includeDirective top fields body = do
                         Just x | x >= 0    -> x
                                | otherwise -> numLines + x -- negative from end
   let contentLines' =   drop (startLine' - 1)
-                      $ take (endLine' - 1)
-                      $ contentLines
+                      $ take (endLine' - 1) contentLines
   let contentLines'' = (case trim <$> lookup "end-before" fields of
                              Just patt -> takeWhile (not . (patt `isInfixOf`))
                              Nothing   -> id) .
@@ -692,7 +691,7 @@ directive' = do
         "csv-table" -> csvTableDirective top fields body'
         "line-block" -> lineBlockDirective body'
         "raw" -> return $ B.rawBlock (trim top) (stripTrailingNewlines body)
-        "role" -> addNewRole top $ map (\(k,v) -> (k, trim v)) fields
+        "role" -> addNewRole top $ map (second trim) fields
         "container" -> parseFromString' parseBlocks body'
         "replace" -> B.para <$>  -- consumed by substKey
                    parseInlineFromString (trim top)
@@ -733,7 +732,7 @@ directive' = do
           codeblock (words $ fromMaybe [] $ lookup "class" fields)
                     (lookup "number-lines" fields) (trim top) body
         "aafig" -> do
-          let attribs = ("", ["aafig"], map (\(k,v) -> (k, trimr v)) fields)
+          let attribs = ("", ["aafig"], map (second trimr) fields)
           return $ B.codeBlockWith attribs $ stripTrailingNewlines body
         "math" -> return $ B.para $ mconcat $ map B.displayMath
                          $ toChunks $ top ++ "\n\n" ++ body
@@ -752,8 +751,8 @@ directive' = do
                                      $ B.imageWith attr src "" alt
                           Nothing -> B.imageWith attr src "" alt
         "class" -> do
-            let attrs = ("", (splitBy isSpace $ trim top),
-                              map (\(k,v) -> (k, trimr v)) fields)
+            let attrs = ("", splitBy isSpace $ trim top,
+                              map (second trimr) fields)
             --  directive content or the first immediately following element
             children <- case body of
                 "" -> block
@@ -857,7 +856,7 @@ csvTableDirective top fields rawcsv = do
                                          Just h  -> h ++ "\n" ++ rawcsv'
                                          Nothing -> rawcsv')
   case res of
-       Left e  -> do
+       Left e  ->
          throwError $ PandocParsecError "csv table" e
        Right rawrows -> do
          let parseCell = parseFromString' (plain <|> return mempty) . T.unpack
@@ -909,13 +908,13 @@ addNewRole roleString fields = do
                in (ident, nub . (role :) . annotate $ classes, keyValues)
 
     -- warn about syntax we ignore
-    flip mapM_ fields $ \(key, _) -> case key of
-        "language" -> when (baseRole /= "code") $ logMessage $
-            SkippedContent ":language: [because parent of role is not :code:]"
-               pos
-        "format" -> when (baseRole /= "raw") $ logMessage $
-            SkippedContent ":format: [because parent of role is not :raw:]" pos
-        _ -> logMessage $ SkippedContent (":" ++ key ++ ":") pos
+    forM_ fields $ \(key, _) -> case key of
+                 "language" -> when (baseRole /= "code") $ logMessage $
+                     SkippedContent ":language: [because parent of role is not :code:]"
+                        pos
+                 "format" -> when (baseRole /= "raw") $ logMessage $
+                     SkippedContent ":format: [because parent of role is not :raw:]" pos
+                 _ -> logMessage $ SkippedContent (":" ++ key ++ ":") pos
     when (parentRole == "raw" && countKeys "format" > 1) $
         logMessage $ SkippedContent
                   ":format: [after first in definition of role]"
@@ -983,7 +982,7 @@ codeblock classes numberLines lang body =
   return $ B.codeBlockWith attribs $ stripTrailingNewlines body
     where attribs = ("", classes', kvs)
           classes' = "sourceCode" : lang
-                    : maybe [] (\_ -> ["numberLines"]) numberLines
+                    : maybe [] (const ["numberLines"]) numberLines
                     ++ classes
           kvs     = case numberLines of
                           Just "" -> []
@@ -1038,7 +1037,8 @@ noteMarker :: Monad m => RSTParser m [Char]
 noteMarker = do
   char '['
   res <- many1 digit
-      <|> (try $ char '#' >> liftM ('#':) simpleReferenceName')
+      <|>
+                  try (char '#' >> liftM ('#':) simpleReferenceName')
       <|> count 1 (oneOf "#*")
   char ']'
   return res
@@ -1050,13 +1050,11 @@ noteMarker = do
 quotedReferenceName :: PandocMonad m => RSTParser m Inlines
 quotedReferenceName = try $ do
   char '`' >> notFollowedBy (char '`') -- `` means inline code!
-  label' <- trimInlines . mconcat <$> many1Till inline (char '`')
-  return label'
+  trimInlines . mconcat <$> many1Till inline (char '`')
 
 unquotedReferenceName :: PandocMonad m => RSTParser m Inlines
-unquotedReferenceName = try $ do
-  label' <- trimInlines . mconcat <$> many1Till inline (lookAhead $ char ':')
-  return label'
+unquotedReferenceName = try $ do -- `` means inline code!
+  trimInlines . mconcat <$> many1Till inline (lookAhead $ char ':')
 
 -- Simple reference names are single words consisting of alphanumerics
 -- plus isolated (no two adjacent) internal hyphens, underscores,
@@ -1066,7 +1064,8 @@ simpleReferenceName' :: Monad m => ParserT [Char] st m String
 simpleReferenceName' = do
   x <- alphaNum
   xs <- many $  alphaNum
-            <|> (try $ oneOf "-_:+." <* lookAhead alphaNum)
+            <|>
+                  try (oneOf "-_:+." <* lookAhead alphaNum)
   return (x:xs)
 
 simpleReferenceName :: Monad m => ParserT [Char] st m Inlines
@@ -1074,7 +1073,7 @@ simpleReferenceName = B.str <$> simpleReferenceName'
 
 referenceName :: PandocMonad m => RSTParser m Inlines
 referenceName = quotedReferenceName <|>
-                (try $ simpleReferenceName <* lookAhead (char ':')) <|>
+                try (simpleReferenceName <* lookAhead (char ':')) <|>
                 unquotedReferenceName
 
 referenceKey :: PandocMonad m => RSTParser m [Char]
@@ -1093,7 +1092,7 @@ targetURI = do
   contents <- many1 (try (many spaceChar >> newline >>
                           many1 spaceChar >> noneOf " \t\n") <|> noneOf "\n")
   blanklines
-  return $ escapeURI $ trim $ contents
+  return $ escapeURI $ trim contents
 
 substKey :: PandocMonad m => RSTParser m ()
 substKey = try $ do
@@ -1258,8 +1257,7 @@ simpleTableHeader headless = try $ do
   let rawHeads = if headless
                     then replicate (length dashes) ""
                     else simpleTableSplitLine indices rawContent
-  heads <- mapM (parseFromString' (mconcat <$> many plain)) $
-             map trim rawHeads
+  heads <- mapM ( (parseFromString' (mconcat <$> many plain)) . trim) rawHeads
   return (heads, aligns, indices)
 
 -- Parse a simple table.
@@ -1450,10 +1448,8 @@ endline = try $ do
   notFollowedBy blankline
   -- parse potential list-starts at beginning of line differently in a list:
   st <- getState
-  if (stateParserContext st) == ListItemState
-     then notFollowedBy (anyOrderedListMarker >> spaceChar) >>
+  when ((stateParserContext st) == ListItemState) $ notFollowedBy (anyOrderedListMarker >> spaceChar) >>
           notFollowedBy' bulletListStart
-     else return ()
   return B.softbreak
 
 --

@@ -1,5 +1,5 @@
 {-# LANGUAGE Arrows          #-}
-{-# LANGUAGE PatternGuards   #-}
+
 {-# LANGUAGE RecordWildCards #-}
 {-# LANGUAGE TupleSections   #-}
 
