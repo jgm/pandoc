@@ -1,4 +1,4 @@
-version?=$(shell grep '^Version:' pandoc.cabal | awk '{print $$2;}')
+version?=$(shell grep '^[Vv]ersion:' pandoc.cabal | awk '{print $$2;}')
 pandoc=$(shell find dist -name pandoc -type f -exec ls -t {} \; | head -1)
 SOURCEFILES?=$(shell find pandoc.hs src test -name '*.hs')
 BRANCH?=master
