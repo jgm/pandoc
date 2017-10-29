@@ -1,0 +1,72 @@
+# HLint configuration file
+# https://github.com/ndmitchell/hlint
+##########################
+
+# This file contains a template configuration file, which is typically
+# placed as .hlint.yaml in the root of your project
+
+
+# Specify additional command line arguments
+#
+- arguments: [--color, --cpp-ansi]
+
+
+# Control which extensions/flags/modules/functions can be used
+#
+# - extensions:
+#   - default: false # all extension are banned by default
+#   - name: [PatternGuards, ViewPatterns] # only these listed extensions can be used
+#   - {name: CPP, within: CrossPlatform} # CPP can only be used in a given module
+#
+# - flags:
+#   - {name: -w, within: []} # -w is allowed nowhere
+#
+# - modules:
+#   - {name: [Data.Set, Data.HashSet], as: Set} # if you import Data.Set qualified, it must be as 'Set'
+#   - {name: Control.Arrow, within: []} # Certain modules are banned entirely
+#
+# - functions:
+#   - {name: unsafePerformIO, within: []} # unsafePerformIO can only appear in no modules
+
+
+# Add custom hints for this project
+#
+# Will suggest replacing "wibbleMany [myvar]" with "wibbleOne myvar"
+# - error: {lhs: "wibbleMany [x]", rhs: wibbleOne x}
+
+
+# Turn on hints that are off by default
+#
+# Ban "module X(module X) where", to require a real export list
+# - warn: {name: Use explicit module export list}
+#
+# Replace a $ b $ c with a . b $ c
+# - group: {name: dollar, enabled: true}
+#
+# Generalise map to fmap, ++ to <>
+# - group: {name: generalise, enabled: true}
+
+
+# Ignore some builtin hints
+# - ignore: {name: Use let}
+# - ignore: {name: Use const, within: SpecialModule} # Only within certain modules
+# - ignore: {name: "Use section"}
+# - ignore: {name: "Use camelCase"}
+# - ignore: {name: "Use list comprehension"}
+# - ignore: {name: "Redundant if"}
+- ignore: {name: "Avoid lambda"}
+- ignore: {name: "Use String"}
+- ignore: {name: "Use isDigit"}
+- ignore: {name: "Eta reduce"}
+- ignore: {name: "Use fmap"}  # specific for GHC 7.8 compat
+- ignore: {name: "Parse error"}  # we trust the compiler over HLint
+- ignore: {name: "Use =="}  # Creates infinite loops in `EQ` using expressions
+- ignore: {name: "Evaluate"}
+- ignore: {name: "Use &&&"}
+# - ignore: {name: "Redundant compare"}
+
+# Define some custom infix operators
+# - fixity: infixr 3 ~^#^~
+
+
+
