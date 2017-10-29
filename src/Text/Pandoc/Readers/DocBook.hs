@@ -1,22 +1,22 @@
+{-# LANGUAGE ExplicitForAll #-}
 module Text.Pandoc.Readers.DocBook ( readDocBook ) where
-import Data.Char (toUpper, isSpace)
-import Text.Pandoc.Shared (safeRead, crFilter)
-import Text.Pandoc.Options
-import Text.Pandoc.Definition
-import Text.Pandoc.Builder
-import Text.XML.Light
-import Text.HTML.TagSoup.Entity (lookupEntity)
-import Data.Either (rights)
-import Data.Generics
 import Control.Monad.State.Strict
+import Data.Char (isSpace, toUpper)
+import Data.Default
+import Data.Either (rights)
+import Data.Foldable (asum)
+import Data.Generics
 import Data.List (intersperse)
 import Data.Maybe (fromMaybe)
-import Text.TeXMath (readMathML, writeTeX)
-import Data.Default
-import Data.Foldable (asum)
-import Text.Pandoc.Class (PandocMonad)
 import Data.Text (Text)
 import qualified Data.Text as T
+import Text.HTML.TagSoup.Entity (lookupEntity)
+import Text.Pandoc.Builder
+import Text.Pandoc.Class (PandocMonad)
+import Text.Pandoc.Options
+import Text.Pandoc.Shared (crFilter, safeRead)
+import Text.TeXMath (readMathML, writeTeX)
+import Text.XML.Light
 
 {-
 
@@ -538,12 +538,12 @@ handleInstructions ('<':'?':'a':'s':'c':'i':'i':'d':'o':'c':'-':'b':'r':'?':'>':
 handleInstructions xs = case break (=='<') xs of
                              (ys, [])     -> ys
                              ([], '<':zs) -> '<' : handleInstructions zs
-                             (ys, zs) -> ys ++ handleInstructions zs
+                             (ys, zs)     -> ys ++ handleInstructions zs
 
 getFigure :: PandocMonad m => Element -> DB m Blocks
 getFigure e = do
   tit <- case filterChild (named "title") e of
-              Just t -> getInlines t
+              Just t  -> getInlines t
               Nothing -> return mempty
   modify $ \st -> st{ dbFigureTitle = tit }
   res <- getBlocks e
@@ -797,8 +797,8 @@ parseBlock (Elem e) =
                     return $ p <> b <> x
          codeBlockWithLang = do
            let classes' = case attrValue "language" e of
-                                ""   -> []
-                                x    -> [x]
+                                "" -> []
+                                x  -> [x]
            return $ codeBlockWith (attrValue "id" e, classes', [])
                   $ trimNl $ strContentRecursive e
          parseBlockquote = do
@@ -871,11 +871,11 @@ parseBlock (Elem e) =
                                                       || x == '.') w
                                                 Nothing -> 0 :: Double
                       let numrows = case bodyrows of
-                                         []   -> 0
-                                         xs   -> maximum $ map length xs
+                                         [] -> 0
+                                         xs -> maximum $ map length xs
                       let aligns = case colspecs of
-                                     []  -> replicate numrows AlignDefault
-                                     cs  -> map toAlignment cs
+                                     [] -> replicate numrows AlignDefault
+                                     cs -> map toAlignment cs
                       let widths = case colspecs of
                                      []  -> replicate numrows 0
                                      cs  -> let ws = map toWidth cs
@@ -895,7 +895,7 @@ parseBlock (Elem e) =
                      headerText <- case filterChild (named "title") e `mplus`
                                         (filterChild (named "info") e >>=
                                             filterChild (named "title")) of
-                                      Just t -> getInlines t
+                                      Just t  -> getInlines t
                                       Nothing -> return mempty
                      modify $ \st -> st{ dbSectionLevel = n }
                      b <- getBlocks e
@@ -989,10 +989,10 @@ parseInline (Elem e) =
              return $ linkWith attr href "" ils'
         "foreignphrase" -> emph <$> innerInlines
         "emphasis" -> case attrValue "role" e of
-                             "bold"   -> strong <$> innerInlines
-                             "strong" -> strong <$> innerInlines
+                             "bold"          -> strong <$> innerInlines
+                             "strong"        -> strong <$> innerInlines
                              "strikethrough" -> strikeout <$> innerInlines
-                             _        -> emph <$> innerInlines
+                             _               -> emph <$> innerInlines
         "footnote" -> (note . mconcat) <$>
                          mapM parseBlock (elContent e)
         "title" -> return mempty

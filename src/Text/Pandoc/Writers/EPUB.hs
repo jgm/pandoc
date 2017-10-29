@@ -43,7 +43,7 @@ import qualified Data.ByteString.Lazy.Char8 as B8
 import Data.Char (isAlphaNum, isAscii, isDigit, toLower)
 import Data.List (intercalate, isInfixOf, isPrefixOf)
 import qualified Data.Map as M
-import Data.Maybe (fromMaybe, mapMaybe, isNothing)
+import Data.Maybe (fromMaybe, isNothing, mapMaybe)
 import qualified Data.Set as Set
 import qualified Data.Text as TS
 import qualified Data.Text.Lazy as TL

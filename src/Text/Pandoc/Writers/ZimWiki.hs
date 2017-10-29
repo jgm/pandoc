@@ -36,8 +36,8 @@ import Control.Monad (zipWithM)
 import Control.Monad.State.Strict (StateT, evalStateT, gets, modify)
 import Data.Default (Default (..))
 import Data.List (intercalate, isInfixOf, isPrefixOf, transpose)
-import Data.Maybe (fromMaybe)
 import qualified Data.Map as Map
+import Data.Maybe (fromMaybe)
 import Data.Text (Text, breakOnAll, pack)
 import Text.Pandoc.Class (PandocMonad, report)
 import Text.Pandoc.Definition

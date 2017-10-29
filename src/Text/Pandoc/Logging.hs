@@ -45,8 +45,8 @@ import Data.Aeson.Encode.Pretty (Config (..), defConfig, encodePretty',
                                  keyOrder)
 import qualified Data.ByteString.Lazy as BL
 import Data.Data (Data, toConstr)
-import Data.Typeable (Typeable)
 import qualified Data.Text as Text
+import Data.Typeable (Typeable)
 import GHC.Generics (Generic)
 import Text.Pandoc.Definition
 import Text.Parsec.Pos

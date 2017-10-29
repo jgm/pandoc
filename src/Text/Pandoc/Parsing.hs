@@ -1,11 +1,10 @@
-{-# LANGUAGE
-  FlexibleContexts
-, GeneralizedNewtypeDeriving
-, TypeSynonymInstances
-, MultiParamTypeClasses
-, FlexibleInstances
-, IncoherentInstances #-}
-
+{-# LANGUAGE ExplicitForAll             #-}
+{-# LANGUAGE FlexibleContexts           #-}
+{-# LANGUAGE FlexibleInstances          #-}
+{-# LANGUAGE GeneralizedNewtypeDeriving #-}
+{-# LANGUAGE IncoherentInstances        #-}
+{-# LANGUAGE MultiParamTypeClasses      #-}
+{-# LANGUAGE TypeSynonymInstances       #-}
 {-
 Copyright (C) 2006-2017 John MacFarlane <jgm@berkeley.edu>
 
@@ -187,34 +186,34 @@ module Text.Pandoc.Parsing ( takeWhileP,
                              )
 where
 
-import Data.Text (Text)
-import Text.Pandoc.Definition
-import Text.Pandoc.Options
-import Text.Pandoc.Builder (Blocks, Inlines, HasMeta(..), trimInlines)
-import qualified Text.Pandoc.Builder as B
-import Text.Pandoc.XML (fromEntities)
-import qualified Text.Pandoc.UTF8 as UTF8 (putStrLn)
-import Text.Parsec hiding (token)
-import Text.Parsec.Pos (newPos, initialPos, updatePosString)
-import Data.Char ( toLower, toUpper, ord, chr, isAscii, isAlphaNum,
-                   isHexDigit, isSpace, isPunctuation )
-import Data.List ( intercalate, transpose, isSuffixOf )
-import Text.Pandoc.Shared
-import qualified Data.Map as M
-import Text.Pandoc.Readers.LaTeX.Types (Macro)
-import Text.HTML.TagSoup.Entity ( lookupEntity )
-import Text.Pandoc.Asciify (toAsciiChar)
-import Data.Monoid ((<>))
-import Text.Pandoc.Class (PandocMonad, readFileFromDirs, report)
-import Text.Pandoc.Logging
-import Data.Default
-import qualified Data.Set as Set
-import Control.Monad.Reader
 import Control.Monad.Identity
+import Control.Monad.Reader
+import Data.Char (chr, isAlphaNum, isAscii, isHexDigit, isPunctuation, isSpace,
+                  ord, toLower, toUpper)
+import Data.Default
+import Data.List (intercalate, isSuffixOf, transpose)
+import qualified Data.Map as M
 import Data.Maybe (catMaybes)
+import Data.Monoid ((<>))
+import qualified Data.Set as Set
+import Data.Text (Text)
+import Text.HTML.TagSoup.Entity (lookupEntity)
+import Text.Pandoc.Asciify (toAsciiChar)
+import Text.Pandoc.Builder (Blocks, HasMeta (..), Inlines, trimInlines)
+import qualified Text.Pandoc.Builder as B
+import Text.Pandoc.Class (PandocMonad, readFileFromDirs, report)
+import Text.Pandoc.Definition
+import Text.Pandoc.Logging
+import Text.Pandoc.Options
+import Text.Pandoc.Readers.LaTeX.Types (Macro)
+import Text.Pandoc.Shared
+import qualified Text.Pandoc.UTF8 as UTF8 (putStrLn)
+import Text.Pandoc.XML (fromEntities)
+import Text.Parsec hiding (token)
+import Text.Parsec.Pos (initialPos, newPos, updatePosString)
 
-import Text.Pandoc.Error
 import Control.Monad.Except
+import Text.Pandoc.Error
 
 type Parser t s = Parsec t s
 
@@ -670,9 +669,9 @@ withRaw parser = do
   let (l2,c2) = (sourceLine pos2, sourceColumn pos2)
   let inplines = take ((l2 - l1) + 1) $ lines inp
   let raw = case inplines of
-                []   -> ""
-                [l]  -> take (c2 - c1) l
-                ls   -> unlines (init ls) ++ take (c2 - 1) (last ls)
+                []  -> ""
+                [l] -> take (c2 - c1) l
+                ls  -> unlines (init ls) ++ take (c2 - 1) (last ls)
   return (result, raw)
 
 -- | Parses backslash, then applies character parser.
@@ -688,11 +687,11 @@ characterReference = try $ do
   ent <- many1Till nonspaceChar (char ';')
   let ent' = case ent of
                   '#':'X':xs -> '#':'x':xs  -- workaround tagsoup bug
-                  '#':_  -> ent
-                  _      -> ent ++ ";"
+                  '#':_      -> ent
+                  _          -> ent ++ ";"
   case lookupEntity ent' of
-       Just (c : _)  -> return c
-       _             -> fail "entity not found"
+       Just (c : _) -> return c
+       _            -> fail "entity not found"
 
 -- | Parses an uppercase roman numeral and returns (UpperRoman, number).
 upperRoman :: Stream s m Char => ParserT s st m (ListNumberStyle, Int)
@@ -1006,7 +1005,7 @@ removeOneLeadingSpace xs =
   if all startsWithSpace xs
      then map (drop 1) xs
      else xs
-   where startsWithSpace ""     = True
+   where startsWithSpace ""    = True
          startsWithSpace (y:_) = y == ' '
 
 -- | Parse footer for a grid table.
@@ -1042,36 +1041,36 @@ testStringWith parser str = UTF8.putStrLn $ show $
 
 -- | Parsing options.
 data ParserState = ParserState
-    { stateOptions         :: ReaderOptions, -- ^ User options
-      stateParserContext   :: ParserContext, -- ^ Inside list?
-      stateQuoteContext    :: QuoteContext,  -- ^ Inside quoted environment?
-      stateAllowLinks      :: Bool,          -- ^ Allow parsing of links
-      stateMaxNestingLevel :: Int,           -- ^ Max # of nested Strong/Emph
-      stateLastStrPos      :: Maybe SourcePos, -- ^ Position after last str parsed
-      stateKeys            :: KeyTable,      -- ^ List of reference keys
-      stateHeaderKeys      :: KeyTable,      -- ^ List of implicit header ref keys
-      stateSubstitutions   :: SubstTable,    -- ^ List of substitution references
-      stateNotes           :: NoteTable,     -- ^ List of notes (raw bodies)
-      stateNotes'          :: NoteTable',    -- ^ List of notes (parsed bodies)
-      stateNoteRefs        :: Set.Set String, -- ^ List of note references used
-      stateMeta            :: Meta,          -- ^ Document metadata
-      stateMeta'           :: F Meta,        -- ^ Document metadata
-      stateCitations       :: M.Map String String, -- ^ RST-style citations
-      stateHeaderTable     :: [HeaderType],  -- ^ Ordered list of header types used
-      stateHeaders         :: M.Map Inlines String, -- ^ List of headers and ids (used for implicit ref links)
-      stateIdentifiers     :: Set.Set String, -- ^ Header identifiers used
-      stateNextExample     :: Int,           -- ^ Number of next example
-      stateExamples        :: M.Map String Int, -- ^ Map from example labels to numbers
-      stateMacros          :: M.Map Text Macro, -- ^ Table of macros defined so far
-      stateRstDefaultRole  :: String,        -- ^ Current rST default interpreted text role
-      stateRstCustomRoles  :: M.Map String (String, Maybe String, Attr), -- ^ Current rST custom text roles
+    { stateOptions           :: ReaderOptions, -- ^ User options
+      stateParserContext     :: ParserContext, -- ^ Inside list?
+      stateQuoteContext      :: QuoteContext,  -- ^ Inside quoted environment?
+      stateAllowLinks        :: Bool,          -- ^ Allow parsing of links
+      stateMaxNestingLevel   :: Int,           -- ^ Max # of nested Strong/Emph
+      stateLastStrPos        :: Maybe SourcePos, -- ^ Position after last str parsed
+      stateKeys              :: KeyTable,      -- ^ List of reference keys
+      stateHeaderKeys        :: KeyTable,      -- ^ List of implicit header ref keys
+      stateSubstitutions     :: SubstTable,    -- ^ List of substitution references
+      stateNotes             :: NoteTable,     -- ^ List of notes (raw bodies)
+      stateNotes'            :: NoteTable',    -- ^ List of notes (parsed bodies)
+      stateNoteRefs          :: Set.Set String, -- ^ List of note references used
+      stateMeta              :: Meta,          -- ^ Document metadata
+      stateMeta'             :: F Meta,        -- ^ Document metadata
+      stateCitations         :: M.Map String String, -- ^ RST-style citations
+      stateHeaderTable       :: [HeaderType],  -- ^ Ordered list of header types used
+      stateHeaders           :: M.Map Inlines String, -- ^ List of headers and ids (used for implicit ref links)
+      stateIdentifiers       :: Set.Set String, -- ^ Header identifiers used
+      stateNextExample       :: Int,           -- ^ Number of next example
+      stateExamples          :: M.Map String Int, -- ^ Map from example labels to numbers
+      stateMacros            :: M.Map Text Macro, -- ^ Table of macros defined so far
+      stateRstDefaultRole    :: String,        -- ^ Current rST default interpreted text role
+      stateRstCustomRoles    :: M.Map String (String, Maybe String, Attr), -- ^ Current rST custom text roles
       -- Triple represents: 1) Base role, 2) Optional format (only for :raw:
       -- roles), 3) Additional classes (rest of Attr is unused)).
-      stateCaption         :: Maybe Inlines, -- ^ Caption in current environment
-      stateInHtmlBlock     :: Maybe String,  -- ^ Tag type of HTML block being parsed
-      stateFencedDivLevel  :: Int,           -- ^ Depth of fenced div
-      stateContainers      :: [String],      -- ^ parent include files
-      stateLogMessages     :: [LogMessage],  -- ^ log messages
+      stateCaption           :: Maybe Inlines, -- ^ Caption in current environment
+      stateInHtmlBlock       :: Maybe String,  -- ^ Tag type of HTML block being parsed
+      stateFencedDivLevel    :: Int,           -- ^ Depth of fenced div
+      stateContainers        :: [String],      -- ^ parent include files
+      stateLogMessages       :: [LogMessage],  -- ^ log messages
       stateMarkdownAttribute :: Bool         -- ^ True if in markdown=1 context
     }
 

@@ -1,5 +1,8 @@
-{-# LANGUAGE FlexibleContexts, FlexibleInstances, MultiParamTypeClasses,
-ViewPatterns, OverloadedStrings #-}
+{-# LANGUAGE FlexibleContexts      #-}
+{-# LANGUAGE FlexibleInstances     #-}
+{-# LANGUAGE MultiParamTypeClasses #-}
+{-# LANGUAGE OverloadedStrings     #-}
+{-# LANGUAGE ViewPatterns          #-}
 {-
 Copyright (C) 2006-2017 John MacFarlane <jgm@berkeley.edu>
 
@@ -39,43 +42,42 @@ module Text.Pandoc.Readers.HTML ( readHtml
                                 , isCommentTag
                                 ) where
 
-import Text.HTML.TagSoup
-import Text.HTML.TagSoup.Match
-import Text.Pandoc.Definition
-import qualified Text.Pandoc.Builder as B
-import Text.Pandoc.Builder (Blocks, Inlines, trimInlines, HasMeta(..))
-import Text.Pandoc.Shared ( extractSpaces, addMetaField
-                          , escapeURI, safeRead, crFilter, underlineSpan )
-import Text.Pandoc.Options (
-         ReaderOptions(readerExtensions,readerStripComments), extensionEnabled,
-         Extension (Ext_epub_html_exts,
-                    Ext_raw_html, Ext_native_divs, Ext_native_spans))
-import Text.Pandoc.Logging
-import Text.Pandoc.Parsing hiding ((<|>))
-import Text.Pandoc.Walk
-import qualified Data.Map as M
-import Data.Foldable ( for_ )
-import Data.Maybe ( fromMaybe, isJust, isNothing )
-import Data.List.Split ( wordsBy )
-import Data.List ( intercalate, isPrefixOf )
-import Data.Char ( isDigit, isLetter, isAlphaNum )
-import Control.Monad ( guard, mzero, void, unless, mplus, msum )
+import Control.Applicative ((<|>))
 import Control.Arrow ((***))
-import Control.Applicative ( (<|>) )
+import Control.Monad (guard, mplus, msum, mzero, unless, void)
+import Control.Monad.Except (throwError)
+import Control.Monad.Reader (ReaderT, ask, asks, lift, local, runReaderT)
+import Data.Char (isAlphaNum, isDigit, isLetter)
+import Data.Default (Default (..), def)
+import Data.Foldable (for_)
+import Data.List (intercalate, isPrefixOf)
+import Data.List.Split (wordsBy)
+import qualified Data.Map as M
+import Data.Maybe (fromMaybe, isJust, isNothing)
 import Data.Monoid (First (..))
+import Data.Monoid ((<>))
+import qualified Data.Set as Set
 import Data.Text (Text)
 import qualified Data.Text as T
-import Text.TeXMath (readMathML, writeTeX)
-import Data.Default (Default (..), def)
-import Control.Monad.Reader (ask, asks, local, ReaderT, runReaderT, lift)
-import Network.URI (URI, parseURIReference, nonStrictRelativeTo)
+import Network.URI (URI, nonStrictRelativeTo, parseURIReference)
+import Text.HTML.TagSoup
+import Text.HTML.TagSoup.Match
+import Text.Pandoc.Builder (Blocks, HasMeta (..), Inlines, trimInlines)
+import qualified Text.Pandoc.Builder as B
+import Text.Pandoc.Class (PandocMonad (..))
 import Text.Pandoc.CSS (foldOrElse, pickStyleAttrProps)
-import Data.Monoid ((<>))
-import Text.Parsec.Error
-import qualified Data.Set as Set
+import Text.Pandoc.Definition
 import Text.Pandoc.Error
-import Text.Pandoc.Class (PandocMonad(..))
-import Control.Monad.Except (throwError)
+import Text.Pandoc.Logging
+import Text.Pandoc.Options (Extension (Ext_epub_html_exts, Ext_native_divs, Ext_native_spans, Ext_raw_html),
+                            ReaderOptions (readerExtensions, readerStripComments),
+                            extensionEnabled)
+import Text.Pandoc.Parsing hiding ((<|>))
+import Text.Pandoc.Shared (addMetaField, crFilter, escapeURI, extractSpaces,
+                           safeRead, underlineSpan)
+import Text.Pandoc.Walk
+import Text.Parsec.Error
+import Text.TeXMath (readMathML, writeTeX)
 
 -- | Convert HTML-formatted string to 'Pandoc' document.
 readHtml :: PandocMonad m
@@ -123,8 +125,8 @@ data HTMLState =
   }
 
 data HTMLLocal = HTMLLocal { quoteContext :: QuoteContext
-                           , inChapter :: Bool -- ^ Set if in chapter section
-                           , inPlain :: Bool -- ^ Set if in pPlain
+                           , inChapter    :: Bool -- ^ Set if in chapter section
+                           , inPlain      :: Bool -- ^ Set if in pPlain
                            }
 
 setInChapter :: PandocMonad m => HTMLParser m s a -> HTMLParser m s a
@@ -354,16 +356,16 @@ fixPlains :: Bool -> Blocks -> Blocks
 fixPlains inList bs = if any isParaish bs'
                          then B.fromList $ map plainToPara bs'
                          else bs
-  where isParaish (Para _) = True
-        isParaish (CodeBlock _ _) = True
-        isParaish (Header _ _ _) = True
-        isParaish (BlockQuote _) = True
-        isParaish (BulletList _) = not inList
-        isParaish (OrderedList _ _) = not inList
+  where isParaish (Para _)           = True
+        isParaish (CodeBlock _ _)    = True
+        isParaish (Header _ _ _)     = True
+        isParaish (BlockQuote _)     = True
+        isParaish (BulletList _)     = not inList
+        isParaish (OrderedList _ _)  = not inList
         isParaish (DefinitionList _) = not inList
-        isParaish _        = False
+        isParaish _                  = False
         plainToPara (Plain xs) = Para xs
-        plainToPara x = x
+        plainToPara x          = x
         bs' = B.toList bs
 
 pRawTag :: PandocMonad m => TagParser m Text
@@ -377,10 +379,10 @@ pRawTag = do
 pDiv :: PandocMonad m => TagParser m Blocks
 pDiv = try $ do
   guardEnabled Ext_native_divs
-  let isDivLike "div" = True
+  let isDivLike "div"     = True
       isDivLike "section" = True
-      isDivLike "main" = True
-      isDivLike _ = False
+      isDivLike "main"    = True
+      isDivLike _         = False
   TagOpen tag attr' <- lookAhead $ pSatisfy $ tagOpen isDivLike (const True)
   let attr = toStringAttr attr'
   contents <- pInTags tag block
@@ -545,9 +547,9 @@ pCell celltype = try $ do
   skipMany pBlank
   tag <- lookAhead $
            pSatisfy (\t -> t ~== TagOpen celltype [] && noColOrRowSpans t)
-  let extractAlign' [] = ""
+  let extractAlign' []                 = ""
       extractAlign' ("text-align":x:_) = x
-      extractAlign' (_:xs) = extractAlign' xs
+      extractAlign' (_:xs)             = extractAlign' xs
   let extractAlign = extractAlign' . wordsBy (`elem` [' ','\t',';',':'])
   let align = case maybeFromAttrib "align" tag `mplus`
                    (extractAlign <$> maybeFromAttrib "style" tag) of
@@ -603,18 +605,18 @@ pCodeBlock = try $ do
   let rawText = concatMap tagToString contents
   -- drop leading newline if any
   let result' = case rawText of
-                     '\n':xs  -> xs
-                     _        -> rawText
+                     '\n':xs -> xs
+                     _       -> rawText
   -- drop trailing newline if any
   let result = case reverse result' of
-                    '\n':_   -> init result'
-                    _        -> result'
+                    '\n':_ -> init result'
+                    _      -> result'
   return $ B.codeBlockWith (mkAttr attr) result
 
 tagToString :: Tag Text -> String
-tagToString (TagText s) = T.unpack s
+tagToString (TagText s)      = T.unpack s
 tagToString (TagOpen "br" _) = "\n"
-tagToString _ = ""
+tagToString _                = ""
 
 inline :: PandocMonad m => TagParser m Inlines
 inline = choice
@@ -893,16 +895,16 @@ pStr = do
   return $ B.str result
 
 isSpecial :: Char -> Bool
-isSpecial '"' = True
-isSpecial '\'' = True
-isSpecial '.' = True
-isSpecial '-' = True
-isSpecial '$' = True
+isSpecial '"'     = True
+isSpecial '\''    = True
+isSpecial '.'     = True
+isSpecial '-'     = True
+isSpecial '$'     = True
 isSpecial '\8216' = True
 isSpecial '\8217' = True
 isSpecial '\8220' = True
 isSpecial '\8221' = True
-isSpecial _ = False
+isSpecial _       = False
 
 pSymbol :: PandocMonad m => InlinesParser m Inlines
 pSymbol = satisfy isSpecial >>= return . B.str . (:[])
@@ -1123,7 +1125,7 @@ htmlInBalanced' tagname ts = fromMaybe [] $ go 0 ts
 
 hasTagWarning :: [Tag a] -> Bool
 hasTagWarning (TagWarning _:_) = True
-hasTagWarning _ = False
+hasTagWarning _                = False
 
 -- | Matches a tag meeting a certain condition.
 htmlTag :: (HasReaderOptions st, Monad m)
@@ -1148,7 +1150,7 @@ htmlTag f = try $ do
   -- in XML elemnet names
   let isNameChar c = isAlphaNum c || c == ':' || c == '-' || c == '_'
   let isName s = case s of
-                      [] -> False
+                      []     -> False
                       (c:cs) -> isLetter c && all isNameChar cs
 
   let endAngle = try $ do char '>'

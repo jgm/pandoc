@@ -156,7 +156,7 @@ breakSentence [] = ([],[])
 breakSentence xs =
   let isSentenceEndInline (Str ys@(_:_)) | last ys == '.' = True
       isSentenceEndInline (Str ys@(_:_)) | last ys == '?' = True
-      isSentenceEndInline LineBreak    = True
+      isSentenceEndInline LineBreak      = True
       isSentenceEndInline _              = False
       (as, bs) = break isSentenceEndInline xs
   in  case bs of

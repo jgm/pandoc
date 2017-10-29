@@ -49,7 +49,6 @@ import Data.Maybe
 
 import qualified Text.XML.Light as XML
 
-import Text.Pandoc.Definition
 import Text.Pandoc.Builder
 import Text.Pandoc.MediaBag (MediaBag, insertMedia)
 import Text.Pandoc.Shared

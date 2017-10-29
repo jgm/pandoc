@@ -91,12 +91,10 @@ import Text.Pandoc.Parsing (F, ParserState, ParserT, blanklines, emailAddress,
                             registerHeader, runF, spaceChar, stateMeta',
                             stateOptions, uri)
 import Text.Pandoc.Shared (crFilter, splitBy, stringify, stripFirstAndLast)
-import Text.Parsec.Char
-       (alphaNum, anyChar, char, newline, noneOf, spaces, string, oneOf,
-        space)
-import Text.Parsec.Combinator
-       (choice, count, eof, many1, manyTill, notFollowedBy, option,
-        skipMany1, between, lookAhead)
+import Text.Parsec.Char (alphaNum, anyChar, char, newline, noneOf, oneOf, space,
+                         spaces, string)
+import Text.Parsec.Combinator (between, choice, count, eof, lookAhead, many1,
+                               manyTill, notFollowedBy, option, skipMany1)
 import Text.Parsec.Prim (getState, many, try, updateState, (<|>))
 
 readVimwiki :: PandocMonad m => ReaderOptions -> Text -> m Pandoc

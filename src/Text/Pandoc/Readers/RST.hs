@@ -36,16 +36,15 @@ import Control.Monad (forM_, guard, liftM, mplus, mzero, when)
 import Control.Monad.Except (throwError)
 import Control.Monad.Identity (Identity (..))
 import Data.Char (isHexDigit, isSpace, toLower, toUpper)
-import Data.List (deleteFirstsBy, intercalate, isInfixOf,
-                  elemIndex, isSuffixOf, nub, sort, transpose, union)
+import Data.List (deleteFirstsBy, elemIndex, intercalate, isInfixOf, isSuffixOf,
+                  nub, sort, transpose, union)
 import qualified Data.Map as M
 import Data.Maybe (fromMaybe, isJust)
 import Data.Monoid ((<>))
 import Data.Sequence (ViewR (..), viewr)
 import Data.Text (Text)
 import qualified Data.Text as T
-import Text.Pandoc.Builder
-       (fromList, setMeta, Blocks, Inlines, trimInlines)
+import Text.Pandoc.Builder (Blocks, Inlines, fromList, setMeta, trimInlines)
 import qualified Text.Pandoc.Builder as B
 import Text.Pandoc.Class (PandocMonad, fetchItem, readFileFromDirs)
 import Text.Pandoc.CSV (CSVOptions (..), defaultCSVOptions, parseCSV)
@@ -315,7 +314,7 @@ doubleHeader = do
   let headerTable = stateHeaderTable state
   let (headerTable',level) = case elemIndex (DoubleHeader c) headerTable of
         Just ind -> (headerTable, ind + 1)
-        Nothing -> (headerTable ++ [DoubleHeader c], length headerTable + 1)
+        Nothing  -> (headerTable ++ [DoubleHeader c], length headerTable + 1)
   setState (state { stateHeaderTable = headerTable' })
   attr <- registerHeader nullAttr txt
   return $ B.headerWith attr level txt
@@ -344,7 +343,7 @@ singleHeader = do
   let headerTable = stateHeaderTable state
   let (headerTable',level) = case elemIndex (SingleHeader c) headerTable of
         Just ind -> (headerTable, ind + 1)
-        Nothing -> (headerTable ++ [SingleHeader c], length headerTable + 1)
+        Nothing  -> (headerTable ++ [SingleHeader c], length headerTable + 1)
   setState (state { stateHeaderTable = headerTable' })
   attr <- registerHeader nullAttr txt
   return $ B.headerWith attr level txt

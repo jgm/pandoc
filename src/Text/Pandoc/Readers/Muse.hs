@@ -1,4 +1,4 @@
-{-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE FlexibleContexts      #-}
 {-
   Copyright (C) 2017 Alexander Krotov <ilabdsf@gmail.com>
 
@@ -42,23 +42,23 @@ module Text.Pandoc.Readers.Muse (readMuse) where
 
 import Control.Monad
 import Control.Monad.Except (throwError)
-import qualified Data.Map as M
 import Data.Char (isLetter)
-import Data.Text (Text, unpack)
 import Data.List (stripPrefix)
+import qualified Data.Map as M
 import Data.Maybe (fromMaybe)
+import Data.Text (Text, unpack)
+import System.FilePath (takeExtension)
 import Text.HTML.TagSoup
 import Text.Pandoc.Builder (Blocks, Inlines)
 import qualified Text.Pandoc.Builder as B
-import Text.Pandoc.Class (PandocMonad(..))
+import Text.Pandoc.Class (PandocMonad (..))
 import Text.Pandoc.Definition
 import Text.Pandoc.Logging
 import Text.Pandoc.Options
-import Text.Pandoc.Shared (crFilter)
 import Text.Pandoc.Parsing hiding (nested)
 import Text.Pandoc.Readers.HTML (htmlTag)
+import Text.Pandoc.Shared (crFilter)
 import Text.Pandoc.XML (fromEntities)
-import System.FilePath (takeExtension)
 
 -- | Read Muse from an input string and return a Pandoc document.
 readMuse :: PandocMonad m
@@ -233,7 +233,7 @@ exampleTag = do
   return $ return $ B.codeBlockWith attr $ chop contents
   where lchop s = case s of
                     '\n':ss -> ss
-                    _ -> s
+                    _       -> s
         rchop = reverse . lchop . reverse
         -- Trim up to one newline from the beginning and the end,
         -- in case opening and/or closing tags are on separate lines.
@@ -315,7 +315,7 @@ noteBlock = try $ do
   content <- mconcat <$> blocksTillNote
   oldnotes <- stateNotes' <$> getState
   case M.lookup ref oldnotes of
-    Just _ -> logMessage $ DuplicateNoteReference ref pos
+    Just _  -> logMessage $ DuplicateNoteReference ref pos
     Nothing -> return ()
   updateState $ \s -> s{ stateNotes' = M.insert ref (pos, content) oldnotes }
   return mempty
@@ -445,7 +445,7 @@ definitionList = do
 data MuseTable = MuseTable
   { museTableCaption :: Inlines
   , museTableHeaders :: [[Blocks]]
-  , museTableRows :: [[Blocks]]
+  , museTableRows    :: [[Blocks]]
   , museTableFooters :: [[Blocks]]
   }
 

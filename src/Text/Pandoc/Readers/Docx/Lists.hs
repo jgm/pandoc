@@ -157,7 +157,7 @@ flatToBullets elems = flatToBullets' (-1) elems
 
 singleItemHeaderToHeader :: Block -> Block
 singleItemHeaderToHeader (OrderedList _ [[h@Header{}]]) = h
-singleItemHeaderToHeader blk                                  = blk
+singleItemHeaderToHeader blk                            = blk
 
 
 blocksToBullets :: [Block] -> [Block]

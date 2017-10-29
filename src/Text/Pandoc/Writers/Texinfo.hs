@@ -340,7 +340,7 @@ blockListToTexinfo (x:xs) = do
       xs' <- blockListToTexinfo xs
       case xs of
            (CodeBlock _ _:_) -> return $ x' $$ xs'
-           _                   -> return $ x' $+$ xs'
+           _                 -> return $ x' $+$ xs'
     _ -> do
       xs' <- blockListToTexinfo xs
       return $ x' $$ xs'

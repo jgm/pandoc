@@ -135,7 +135,7 @@ pandocToLaTeX options (Pandoc meta blocks) = do
   let blocks' = if method == Biblatex || method == Natbib
                    then case reverse blocks of
                              Div (_,["references"],_) _:xs -> reverse xs
-                             _                               -> blocks
+                             _                             -> blocks
                    else blocks
   -- see if there are internal links
   let isInternalLink (Link _ _ ('#':xs,_)) = [xs]
@@ -848,7 +848,7 @@ sectionHeader unnumbered ident level lst = do
   plain <- stringToLaTeX TextString $ concatMap stringify lst
   let removeInvalidInline (Note _)             = []
       removeInvalidInline (Span (id', _, _) _) | not (null id') = []
-      removeInvalidInline (Image{})        = []
+      removeInvalidInline (Image{})            = []
       removeInvalidInline x                    = [x]
   let lstNoNotes = foldr (mappend . (\x -> walkM removeInvalidInline x)) mempty lst
   txtNoNotes <- inlineListToLaTeX lstNoNotes

@@ -1,7 +1,7 @@
-{-# LANGUAGE FlexibleInstances          #-}
+{-# LANGUAGE FlexibleInstances    #-}
 
-{-# LANGUAGE OverloadedStrings          #-}
-{-# LANGUAGE TypeSynonymInstances       #-}
+{-# LANGUAGE OverloadedStrings    #-}
+{-# LANGUAGE TypeSynonymInstances #-}
 {-
 Copyright (C) 2009-2017 John MacFarlane <jgm@berkeley.edu>
 

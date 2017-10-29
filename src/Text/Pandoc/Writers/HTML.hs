@@ -421,7 +421,7 @@ elementToHtml slideLevel opts (Sec level num (id',classes,keyvals) title' elemen
                   return res
 
   let isSec (Sec{}) = True
-      isSec (Blk _)         = False
+      isSec (Blk _) = False
   let isPause (Blk x) = x == Para [Str ".",Space,Str ".",Space,Str "."]
       isPause _       = False
   let fragmentClass = case slideVariant of
@@ -1174,7 +1174,7 @@ isMathEnvironment s = "\\begin{" `isPrefixOf` s &&
 
 allowsMathEnvironments :: HTMLMathMethod -> Bool
 allowsMathEnvironments (MathJax _) = True
-allowsMathEnvironments MathML    = True
+allowsMathEnvironments MathML      = True
 allowsMathEnvironments (WebTeX _)  = True
 allowsMathEnvironments _           = False
 

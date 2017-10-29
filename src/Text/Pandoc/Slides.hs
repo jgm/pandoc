@@ -42,7 +42,7 @@ getSlideLevel = go 6
         go least [] = least
         nonHOrHR Header{}       = False
         nonHOrHR HorizontalRule = False
-        nonHOrHR _                = True
+        nonHOrHR _              = True
 
 -- | Prepare a block list to be passed to hierarchicalize.
 prepSlides :: Int -> [Block] -> [Block]

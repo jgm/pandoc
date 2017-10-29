@@ -344,7 +344,7 @@ definitionListItemToRST (label, defs) = do
 linesToLineBlock :: PandocMonad m => [[Inline]] -> RST m Doc
 linesToLineBlock inlineLines = do
   lns <- mapM inlineListToRST inlineLines
-  return $ 
+  return $
                       vcat (map (hang 2 (text "| ")) lns) <> blankline
 
 -- | Convert list of Pandoc block elements to RST.
@@ -437,8 +437,8 @@ inlineListToRST lst =
         isComplex (Strikeout _)   = True
         isComplex (Superscript _) = True
         isComplex (Subscript _)   = True
-        isComplex (Link{})    = True
-        isComplex (Image{})   = True
+        isComplex (Link{})        = True
+        isComplex (Image{})       = True
         isComplex (Code _ _)      = True
         isComplex (Math _ _)      = True
         isComplex (Cite _ (x:_))  = isComplex x

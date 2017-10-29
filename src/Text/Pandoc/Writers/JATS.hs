@@ -76,9 +76,9 @@ authorToJATS opts name' = do
               let namewords = words name
                   lengthname = length namewords
                   (firstname, lastname) = case lengthname of
-                    0  -> ("","")
-                    1  -> ("", name)
-                    n  -> (unwords (take (n-1) namewords), last namewords)
+                    0 -> ("","")
+                    1 -> ("", name)
+                    n -> (unwords (take (n-1) namewords), last namewords)
                in inTagsSimple "firstname" (text $ escapeStringForXML firstname) $$
                   inTagsSimple "surname" (text $ escapeStringForXML lastname)
 

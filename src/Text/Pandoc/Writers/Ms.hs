@@ -191,7 +191,7 @@ breakSentence [] = ([],[])
 breakSentence xs =
   let isSentenceEndInline (Str ys@(_:_)) | last ys == '.' = True
       isSentenceEndInline (Str ys@(_:_)) | last ys == '?' = True
-      isSentenceEndInline LineBreak    = True
+      isSentenceEndInline LineBreak      = True
       isSentenceEndInline _              = False
       (as, bs) = break isSentenceEndInline xs
   in  case bs of
@@ -408,8 +408,8 @@ definitionListItemToMs opts (label, defs) = do
                  else liftM vcat $ forM defs $ \blocks -> do
                         let (first, rest) = case blocks of
                               (Para x:y) -> (Plain x,y)
-                              (x:y)        -> (x,y)
-                              []           -> (Plain [], [])
+                              (x:y)      -> (x,y)
+                              []         -> (Plain [], [])
                                                -- should not happen
                         rest' <- liftM vcat $
                                   mapM (\item -> blockToMs opts item) rest

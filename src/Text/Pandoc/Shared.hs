@@ -520,7 +520,7 @@ uniqueIdent title' usedIdents
 -- | True if block is a Header block.
 isHeaderBlock :: Block -> Bool
 isHeaderBlock (Header{}) = True
-isHeaderBlock _              = False
+isHeaderBlock _          = False
 
 -- | Shift header levels up or down.
 headerShift :: Int -> Pandoc -> Pandoc
