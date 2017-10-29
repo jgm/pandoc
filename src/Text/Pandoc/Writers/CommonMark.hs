@@ -60,7 +60,7 @@ writeCommonMark opts (Pandoc meta blocks) = do
               (blocksToCommonMark opts)
               (inlinesToCommonMark opts)
               meta
-  let context = defField "body" main $ metadata
+  let context = defField "body" main metadata
   case writerTemplate opts of
        Nothing  -> return main
        Just tpl -> renderTemplate' tpl context
@@ -108,11 +108,11 @@ blockToNodes opts (Plain xs) ns =
 blockToNodes opts (Para xs) ns =
   return (node PARAGRAPH (inlinesToNodes opts xs) : ns)
 blockToNodes opts (LineBlock lns) ns = blockToNodes opts (linesToPara lns) ns
-blockToNodes _ (CodeBlock (_,classes,_) xs) ns = return $
+blockToNodes _ (CodeBlock (_,classes,_) xs) ns = return
   (node (CODE_BLOCK (T.pack (unwords classes)) (T.pack xs)) [] : ns)
 blockToNodes _ (RawBlock fmt xs) ns
   | fmt == Format "html" = return (node (HTML_BLOCK (T.pack xs)) [] : ns)
-  | otherwise = return (node (CUSTOM_BLOCK (T.pack xs) (T.empty)) [] : ns)
+  | otherwise = return (node (CUSTOM_BLOCK (T.pack xs) T.empty) [] : ns)
 blockToNodes opts (BlockQuote bs) ns = do
   nodes <- blocksToNodes opts bs
   return (node BLOCK_QUOTE nodes : ns)
@@ -142,9 +142,9 @@ blockToNodes opts (Div _ bs) ns = do
 blockToNodes opts (DefinitionList items) ns =
   blockToNodes opts (BulletList items') ns
   where items' = map dlToBullet items
-        dlToBullet (term, ((Para xs : ys) : zs))  =
+        dlToBullet (term, (Para xs : ys) : zs)  =
           Para (term ++ [LineBreak] ++ xs) : ys ++ concat zs
-        dlToBullet (term, ((Plain xs : ys) : zs)) =
+        dlToBullet (term, (Plain xs : ys) : zs) =
           Plain (term ++ [LineBreak] ++ xs) : ys ++ concat zs
         dlToBullet (term, xs) =
           Para term : concat xs
@@ -264,7 +264,7 @@ inlineToNodes opts (Image _ ils (url,tit)) =
   (node (IMAGE (T.pack url) (T.pack tit)) (inlinesToNodes opts ils) :)
 inlineToNodes _ (RawInline fmt xs)
   | fmt == Format "html" = (node (HTML_INLINE (T.pack xs)) [] :)
-  | otherwise = (node (CUSTOM_INLINE (T.pack xs) (T.empty)) [] :)
+  | otherwise = (node (CUSTOM_INLINE (T.pack xs) T.empty) [] :)
 inlineToNodes opts (Quoted qt ils) =
   ((node (TEXT start) [] :
    inlinesToNodes opts ils ++ [node (TEXT end) []]) ++)

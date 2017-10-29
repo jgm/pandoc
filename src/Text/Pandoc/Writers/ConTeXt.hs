@@ -33,7 +33,7 @@ module Text.Pandoc.Writers.ConTeXt ( writeConTeXt ) where
 import Control.Monad.State.Strict
 import Data.Char (ord)
 import Data.List (intercalate, intersperse)
-import Data.Maybe (catMaybes)
+import Data.Maybe (mapMaybe)
 import Data.Text (Text)
 import Network.URI (unEscapeString)
 import Text.Pandoc.BCP47
@@ -82,8 +82,7 @@ pandocToConTeXt options (Pandoc meta blocks) = do
               meta
   body <- mapM (elementToConTeXt options) $ hierarchicalize blocks
   let main = (render' . vcat) body
-  let layoutFromMargins = intercalate [','] $ catMaybes $
-                              map (\(x,y) ->
+  let layoutFromMargins = intercalate [','] $ mapMaybe (\(x,y) ->
                                 ((x ++ "=") ++) <$> getField y metadata)
                               [("leftmargin","margin-left")
                               ,("rightmargin","margin-right")
@@ -107,8 +106,7 @@ pandocToConTeXt options (Pandoc meta blocks) = do
                 $ (case getField "papersize" metadata of
                         Just ("a4" :: String) -> resetField "papersize"
                                                     ("A4" :: String)
-                        _                     -> id)
-                $ metadata
+                        _                     -> id) metadata
   let context' = defField "context-dir" (toContextDir
                                          $ getField "dir" context) context
   case writerTemplate options of
@@ -150,7 +148,7 @@ stringToConTeXt opts = concatMap (escapeCharForConTeXt opts)
 toLabel :: String -> String
 toLabel z = concatMap go z
  where go x
-         | elem x ("\\#[]\",{}%()|=" :: String) = "ux" ++ printf "%x" (ord x)
+         | x `elem` ("\\#[]\",{}%()|=" :: String) = "ux" ++ printf "%x" (ord x)
          | otherwise = [x]
 
 -- | Convert Elements to ConTeXt
@@ -206,7 +204,7 @@ blockToConTeXt (Div (ident,_,kvs) bs) = do
                                      <> text lng <> "]" $$ txt $$ "\\stop"
                        Nothing  -> txt
       wrapBlank txt = blankline <> txt <> blankline
-  fmap (wrapBlank . wrapLang . wrapDir . wrapRef) $ blockListToConTeXt bs
+  (wrapBlank . wrapLang . wrapDir . wrapRef) <$> blockListToConTeXt bs
 blockToConTeXt (BulletList lst) = do
   contents <- mapM listItemToConTeXt lst
   return $ ("\\startitemize" <> if isTightList lst
@@ -261,7 +259,7 @@ blockToConTeXt (Table caption aligns widths heads rows) = do
            if colWidth == 0
               then "|"
               else ("p(" ++ printf "%.2f" colWidth ++ "\\textwidth)|")
-    let colDescriptors = "|" ++ (concat $
+    let colDescriptors = "|" ++ concat (
                                  zipWith colDescriptor widths aligns)
     headers <- if all null heads
                   then return empty
@@ -279,11 +277,11 @@ blockToConTeXt (Table caption aligns widths heads rows) = do
 tableRowToConTeXt :: PandocMonad m => [[Block]] -> WM m Doc
 tableRowToConTeXt cols = do
   cols' <- mapM blockListToConTeXt cols
-  return $ (vcat (map ("\\NC " <>) cols')) $$ "\\NC\\AR"
+  return $ vcat (map ("\\NC " <>) cols') $$ "\\NC\\AR"
 
 listItemToConTeXt :: PandocMonad m => [Block] -> WM m Doc
 listItemToConTeXt list = blockListToConTeXt list >>=
-  return . ("\\item" $$) . (nest 2)
+  return . ("\\item" $$) . nest 2
 
 defListItemToConTeXt :: PandocMonad m => ([Inline], [[Block]]) -> WM m Doc
 defListItemToConTeXt (term, defs) = do
@@ -358,7 +356,7 @@ inlineToConTeXt (RawInline "tex" str) = return $ text str
 inlineToConTeXt il@(RawInline _ _) = do
   report $ InlineNotRendered il
   return empty
-inlineToConTeXt (LineBreak) = return $ text "\\crlf" <> cr
+inlineToConTeXt LineBreak = return $ text "\\crlf" <> cr
 inlineToConTeXt SoftBreak = do
   wrapText <- gets (writerWrapText . stOptions)
   return $ case wrapText of
@@ -367,7 +365,7 @@ inlineToConTeXt SoftBreak = do
                WrapPreserve -> cr
 inlineToConTeXt Space = return space
 -- Handle HTML-like internal document references to sections
-inlineToConTeXt (Link _ txt (('#' : ref), _)) = do
+inlineToConTeXt (Link _ txt ('#' : ref, _)) = do
   opts <- gets stOptions
   contents <-  inlineListToConTeXt txt
   let ref' = toLabel $ stringToConTeXt opts ref
@@ -393,7 +391,7 @@ inlineToConTeXt (Link _ txt (src, _)) = do
 inlineToConTeXt (Image attr@(_,cls,_) _ (src, _)) = do
   opts <- gets stOptions
   let showDim dir = let d = text (show dir) <> "="
-                    in case (dimension dir attr) of
+                    in case dimension dir attr of
                          Just (Pixel a)   ->
                            [d <> text (showInInch opts (Pixel a)) <> "in"]
                          Just (Percent a) ->
@@ -432,7 +430,7 @@ inlineToConTeXt (Span (_,_,kvs) ils) = do
                        Just lng -> "\\start\\language[" <> text lng
                                       <> "]" <> txt <> "\\stop "
                        Nothing -> txt
-  fmap (wrapLang . wrapDir) $ inlineListToConTeXt ils
+  (wrapLang . wrapDir) <$> inlineListToConTeXt ils
 
 -- | Craft the section header, inserting the section reference, if supplied.
 sectionHeader :: PandocMonad m
