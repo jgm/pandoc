@@ -41,7 +41,7 @@ DokuWiki:  <https://www.dokuwiki.org/dokuwiki>
 module Text.Pandoc.Writers.DokuWiki ( writeDokuWiki ) where
 import Control.Monad (zipWithM)
 import Control.Monad.Reader (ReaderT, ask, local, runReaderT)
-import Control.Monad.State.Strict (StateT, evalStateT, gets, modify)
+import Control.Monad.State.Strict (StateT, evalStateT)
 import Data.Default (Default (..))
 import Data.List (intercalate, intersect, isPrefixOf, transpose)
 import Data.Text (Text, pack)
@@ -56,7 +56,6 @@ import Text.Pandoc.Templates (renderTemplate')
 import Text.Pandoc.Writers.Shared (defField, metaToJSON)
 
 data WriterState = WriterState {
-    stNotes     :: Bool            -- True if there are notes
   }
 
 data WriterEnvironment = WriterEnvironment {
@@ -66,7 +65,7 @@ data WriterEnvironment = WriterEnvironment {
   }
 
 instance Default WriterState where
-  def = WriterState { stNotes = False }
+  def = WriterState {}
 
 instance Default WriterEnvironment where
   def = WriterEnvironment { stIndent = ""
@@ -92,7 +91,6 @@ pandocToDokuWiki opts (Pandoc meta blocks) = do
               (inlineListToDokuWiki opts)
               meta
   body <- blockListToDokuWiki opts blocks
-  notesExist <- gets stNotes
   let main = pack body
   let context = defField "body" main
                 $ defField "toc" (writerTableOfContents opts) metadata
@@ -514,7 +512,6 @@ inlineToDokuWiki opts (Image attr alt (source, tit)) = do
 
 inlineToDokuWiki opts (Note contents) = do
   contents' <- blockListToDokuWiki opts contents
-  modify (\s -> s { stNotes = True })
   return $ "((" ++ contents' ++ "))"
   -- note - may not work for notes with multiple blocks
 
