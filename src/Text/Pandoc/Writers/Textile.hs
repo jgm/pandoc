@@ -297,7 +297,7 @@ definitionListItemToTextile opts (label, items) = do
   labelText <- inlineListToTextile opts label
   contents <- mapM (blockListToTextile opts) items
   return $ "<dt>" ++ labelText ++ "</dt>\n" ++
-          (intercalate "\n" $ map (\d -> "<dd>" ++ d ++ "</dd>") contents)
+          intercalate "\n" (map (\d -> "<dd>" ++ d ++ "</dd>") contents)
 
 -- | True if the list can be handled by simple wiki markup, False if HTML tags will be needed.
 isSimpleList :: Block -> Bool
@@ -350,7 +350,7 @@ tableRowToTextile opts alignStrings rownum cols' = do
                       0 -> "header"
                       x | x `rem` 2 == 1 -> "odd"
                       _ -> "even"
-  cols'' <- sequence $ zipWith
+  cols'' <- zipWithM
             (\alignment item -> tableItemToTextile opts celltype alignment item)
             alignStrings cols'
   return $ "<tr class=\"" ++ rowclass ++ "\">\n" ++ unlines cols'' ++ "</tr>"
@@ -483,7 +483,7 @@ inlineToTextile opts (Image attr@(_, cls, _) alt (source, tit)) = do
                    then ""
                    else "(" ++ unwords cls ++ ")"
       showDim dir = let toCss str = Just $ show dir ++ ":" ++ str ++ ";"
-                    in case (dimension dir attr) of
+                    in case dimension dir attr of
                          Just (Percent a) -> toCss $ show (Percent a)
                          Just dim         -> toCss $ showInPixel opts dim ++ "px"
                          Nothing          -> Nothing

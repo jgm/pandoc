@@ -1,5 +1,5 @@
 {-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE PatternGuards     #-}
+
 {-
 Copyright (C) 2006-2017 John MacFarlane <jgm@berkeley.edu>
 
@@ -34,7 +34,7 @@ module Text.Pandoc.Writers.JATS ( writeJATS ) where
 import Control.Monad.Reader
 import Data.Char (toLower)
 import Data.Generics (everywhere, mkT)
-import Data.List (intercalate, isSuffixOf, partition)
+import Data.List (isSuffixOf, partition)
 import Data.Maybe (fromMaybe)
 import Data.Text (Text)
 import qualified Text.Pandoc.Builder as B
@@ -78,7 +78,7 @@ authorToJATS opts name' = do
                   (firstname, lastname) = case lengthname of
                     0  -> ("","")
                     1  -> ("", name)
-                    n  -> (intercalate " " (take (n-1) namewords), last namewords)
+                    n  -> (unwords (take (n-1) namewords), last namewords)
                in inTagsSimple "firstname" (text $ escapeStringForXML firstname) $$
                   inTagsSimple "surname" (text $ escapeStringForXML lastname)
 
@@ -99,9 +99,9 @@ docToJATS opts (Pandoc meta blocks) = do
                     else Nothing
   let render'  :: Doc -> Text
       render'  = render colwidth
-  let opts'    = if (maybe False (("/book>" `isSuffixOf`) . trimr)
+  let opts'    = if maybe False (("/book>" `isSuffixOf`) . trimr)
                             (writerTemplate opts) &&
-                     TopLevelDefault == writerTopLevelDivision opts)
+                     TopLevelDefault == writerTopLevelDivision opts
                     then opts{ writerTopLevelDivision = TopLevelChapter }
                     else opts
   -- The numbering here follows LaTeX's internal numbering
@@ -114,20 +114,19 @@ docToJATS opts (Pandoc meta blocks) = do
   let meta' = B.setMeta "author" auths' meta
   metadata <- metaToJSON opts
                  (fmap (render' . vcat) .
-                          (mapM (elementToJATS opts' startLvl) .
-                            hierarchicalize))
+                          mapM (elementToJATS opts' startLvl) .
+                            hierarchicalize)
                  (fmap render' . inlinesToJATS opts')
                  meta'
   main <- (render' . vcat) <$>
-            (mapM (elementToJATS opts' startLvl) elements)
+            mapM (elementToJATS opts' startLvl) elements
   back <- (render' . vcat) <$>
-            (mapM (elementToJATS opts' startLvl) backElements)
+            mapM (elementToJATS opts' startLvl) backElements
   let context = defField "body" main
               $ defField "back" back
               $ defField "mathml" (case writerHTMLMathMethod opts of
                                         MathML -> True
-                                        _      -> False)
-              $ metadata
+                                        _      -> False) metadata
   case writerTemplate opts of
        Nothing  -> return main
        Just tpl -> renderTemplate' tpl context
@@ -158,7 +157,7 @@ plainToPara x         = x
 deflistItemsToJATS :: PandocMonad m
                       => WriterOptions -> [([Inline],[[Block]])] -> DB m Doc
 deflistItemsToJATS opts items =
-  vcat <$> mapM (\(term, defs) -> deflistItemToJATS opts term defs) items
+  vcat <$> mapM (uncurry (deflistItemToJATS opts)) items
 
 -- | Convert a term and a list of blocks into a JATS varlistentry.
 deflistItemToJATS :: PandocMonad m
@@ -172,7 +171,7 @@ deflistItemToJATS opts term defs = do
 
 -- | Convert a list of lists of blocks to a list of JATS list items.
 listItemsToJATS :: PandocMonad m
-                => WriterOptions -> (Maybe [String]) -> [[Block]] -> DB m Doc
+                => WriterOptions -> Maybe [String] -> [[Block]] -> DB m Doc
 listItemsToJATS opts markers items =
   case markers of
        Nothing -> vcat <$> mapM (listItemToJATS opts Nothing) items
@@ -180,7 +179,7 @@ listItemsToJATS opts markers items =
 
 -- | Convert a list of blocks into a JATS list item.
 listItemToJATS :: PandocMonad m
-               => WriterOptions -> (Maybe String) -> [Block] -> DB m Doc
+               => WriterOptions -> Maybe String -> [Block] -> DB m Doc
 listItemToJATS opts mbmarker item = do
   contents <- blocksToJATS opts item
   return $ inTagsIndented "list-item" $
@@ -203,7 +202,7 @@ blockToJATS opts (Div (ident,_,kvs) bs) = do
              [(k,v) | (k,v) <- kvs, k `elem` ["specific-use",
                  "content-type", "orientation", "position"]]
   return $ inTags True "boxed-text" attr contents
-blockToJATS _ h@(Header _ _ _) = do
+blockToJATS _ h@(Header{}) = do
   -- should not occur after hierarchicalize, except inside lists/blockquotes
   report $ BlockNotRendered h
   return empty
@@ -256,9 +255,9 @@ blockToJATS _ (CodeBlock (ident,classes,kvs) str) = return $
                            else languagesByExtension . map toLower $ s
           langs       = concatMap langsFrom classes
 blockToJATS _ (BulletList []) = return empty
-blockToJATS opts (BulletList lst) = do
+blockToJATS opts (BulletList lst) =
   inTags True "list" [("list-type", "bullet")] <$>
-    listItemsToJATS opts Nothing lst
+  listItemsToJATS opts Nothing lst
 blockToJATS _ (OrderedList _ []) = return empty
 blockToJATS opts (OrderedList (start, numstyle, delimstyle) items) = do
   let listType = case numstyle of
@@ -277,7 +276,7 @@ blockToJATS opts (OrderedList (start, numstyle, delimstyle) items) = do
                           orderedListMarkers (start, numstyle, delimstyle)
   inTags True "list" [("list-type", listType)] <$>
     listItemsToJATS opts markers items
-blockToJATS opts (DefinitionList lst) = do
+blockToJATS opts (DefinitionList lst) =
   inTags True "def-list" [] <$> deflistItemsToJATS opts lst
 blockToJATS _ b@(RawBlock f str)
   | f == "jats"    = return $ text str -- raw XML block
@@ -400,7 +399,7 @@ inlineToJATS _ (Math t str) = do
              case res of
                    Right r  -> inTagsSimple "alternatives" $
                                   cr <> rawtex $$
-                                  (text $ Xml.ppcElement conf $ fixNS r)
+                                  text (Xml.ppcElement conf $ fixNS r)
                    Left _   -> rawtex
 inlineToJATS _ (Link _attr [Str t] ('m':'a':'i':'l':'t':'o':':':email, _))
   | escapeURI t == email =

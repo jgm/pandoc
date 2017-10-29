@@ -76,8 +76,7 @@ pandocToHaddock opts (Pandoc meta blocks) = do
                (fmap render' . blockListToHaddock opts)
                (fmap render' . inlineListToHaddock opts)
                meta
-  let context  = defField "body" main
-               $ metadata
+  let context  = defField "body" main metadata
   case writerTemplate opts of
           Nothing  -> return main
           Just tpl -> renderTemplate' tpl context
@@ -118,7 +117,7 @@ blockToHaddock opts (Para inlines) =
 blockToHaddock opts (LineBlock lns) =
   blockToHaddock opts $ linesToPara lns
 blockToHaddock _ b@(RawBlock f str)
-  | f == "haddock" = do
+  | f == "haddock" =
       return $ text str <> text "\n"
   | otherwise = do
     report $ BlockNotRendered b
@@ -150,16 +149,16 @@ blockToHaddock opts (Table caption aligns widths headers rows) = do
       isPlainBlock _         = False
   let hasBlocks = not (all isPlainBlock $ concat . concat $ headers:rows)
   (nst,tbl) <- case True of
-                _ | isSimple -> fmap (nest 2,) $
+                _ | isSimple -> (nest 2,) <$>
                          pandocTable opts (all null headers) aligns widths
                              rawHeaders rawRows
-                  | not hasBlocks -> fmap (nest 2,) $
+                  | not hasBlocks -> (nest 2,) <$>
                          pandocTable opts (all null headers) aligns widths
                              rawHeaders rawRows
-                  | otherwise -> fmap (id,) $
+                  | otherwise -> (id,) <$>
                          gridTable opts blockListToHaddock
                           (all null headers) aligns widths headers rows
-  return $ (prefixed "> " $ nst $ tbl $$ blankline $$ caption'') $$ blankline
+  return $ prefixed "> " (nst $ tbl $$ blankline $$ caption'') $$ blankline
 blockToHaddock opts (BulletList items) = do
   contents <- mapM (bulletListItemToHaddock opts) items
   return $ cat contents <> blankline
@@ -169,7 +168,7 @@ blockToHaddock opts (OrderedList (start,_,delim) items) = do
   let markers' = map (\m -> if length m < 3
                                then m ++ replicate (3 - length m) ' '
                                else m) markers
-  contents <- mapM (\(item, num) -> orderedListItemToHaddock opts item num) $
+  contents <- mapM (uncurry (orderedListItemToHaddock opts)) $
               zip markers' items
   return $ cat contents <> blankline
 blockToHaddock opts (DefinitionList items) = do
@@ -194,18 +193,17 @@ pandocTable opts headless aligns widths rawHeaders rawRows =  do
                               (floor . (fromIntegral (writerColumns opts) *))
                               widths
   let makeRow = hcat . intersperse (lblock 1 (text " ")) .
-                   (zipWith3 alignHeader aligns widthsInChars)
+                   zipWith3 alignHeader aligns widthsInChars
   let rows' = map makeRow rawRows
   let head' = makeRow rawHeaders
   let maxRowHeight = maximum $ map height (head':rows')
   let underline = cat $ intersperse (text " ") $
                   map (\width -> text (replicate width '-')) widthsInChars
-  let border = if maxRowHeight > 1
-                  then text (replicate (sum widthsInChars +
-                          length widthsInChars - 1) '-')
-                  else if headless
-                          then underline
-                          else empty
+  let border
+        | maxRowHeight > 1 = text (replicate (sum widthsInChars +
+                 length widthsInChars - 1) '-')
+        | headless = underline
+        | otherwise = empty
   let head'' = if headless
                   then empty
                   else border <> cr <> head'
@@ -304,7 +302,7 @@ inlineToHaddock opts (Quoted DoubleQuote lst) = do
   return $ "“" <> contents <> "”"
 inlineToHaddock _ (Code _ str) =
   return $ "@" <> text (escapeString str) <> "@"
-inlineToHaddock _ (Str str) = do
+inlineToHaddock _ (Str str) =
   return $ text $ escapeString str
 inlineToHaddock opts (Math mt str) = do
   let adjust x = case mt of

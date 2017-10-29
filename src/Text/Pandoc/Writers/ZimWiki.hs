@@ -36,6 +36,7 @@ import Control.Monad (zipWithM)
 import Control.Monad.State.Strict (StateT, evalStateT, gets, modify)
 import Data.Default (Default (..))
 import Data.List (intercalate, isInfixOf, isPrefixOf, transpose)
+import Data.Maybe (fromMaybe)
 import qualified Data.Map as Map
 import Data.Text (Text, breakOnAll, pack)
 import Text.Pandoc.Class (PandocMonad, report)
@@ -75,8 +76,7 @@ pandocToZimWiki opts (Pandoc meta blocks) = do
   --let header = "Content-Type: text/x-zim-wiki\nWiki-Format: zim 0.4\n"
   let main = body
   let context = defField "body" main
-                $ defField "toc" (writerTableOfContents opts)
-                $ metadata
+                $ defField "toc" (writerTableOfContents opts) metadata
   case writerTemplate opts of
        Just tpl -> renderTemplate' tpl context
        Nothing  -> return main
@@ -118,12 +118,12 @@ blockToZimWiki opts (Para inlines) = do
   contents <- inlineListToZimWiki opts inlines
   return $ contents ++ if null indent then "\n" else ""
 
-blockToZimWiki opts (LineBlock lns) = do
+blockToZimWiki opts (LineBlock lns) =
   blockToZimWiki opts $ linesToPara lns
 
 blockToZimWiki opts b@(RawBlock f str)
   | f == Format "zimwiki"  = return str
-  | f == Format "html"     = do cont <- indentFromHTML opts str; return cont
+  | f == Format "html"     = indentFromHTML opts str
   | otherwise              = do
       report $ BlockNotRendered b
       return ""
@@ -142,9 +142,7 @@ blockToZimWiki _ (CodeBlock (_,classes,_) str) = do
   return $ case classes of
                 []      -> "'''\n" ++ cleanupCode str ++ "\n'''\n"   -- turn no lang block into a quote block
                 (x:_)   -> "{{{code: lang=\"" ++
-                        (case Map.lookup x langmap of
-                                Nothing -> x
-                                Just y  -> y) ++ "\" linenumbers=\"True\"\n" ++ str ++ "\n}}}\n"  -- for zim's code plugin, go verbatim on the lang spec
+                        (fromMaybe x (Map.lookup x langmap)) ++ "\" linenumbers=\"True\"\n" ++ str ++ "\n}}}\n"  -- for zim's code plugin, go verbatim on the lang spec
 
 blockToZimWiki opts (BlockQuote blocks) = do
   contents <- blockListToZimWiki opts blocks
@@ -157,12 +155,12 @@ blockToZimWiki opts (Table capt aligns _ headers rows) = do
                       c <- inlineListToZimWiki opts capt
                       return $ "" ++ c ++ "\n"
   headers' <- if all null headers
-                 then zipWithM (tableItemToZimWiki opts) aligns (rows !! 0)
-                 else mapM (inlineListToZimWiki opts) (map removeFormatting headers)  -- emphasis, links etc. are not allowed in table headers
+                 then zipWithM (tableItemToZimWiki opts) aligns (head rows)
+                 else mapM ((inlineListToZimWiki opts) . removeFormatting)headers  -- emphasis, links etc. are not allowed in table headers
   rows' <- mapM (zipWithM (tableItemToZimWiki opts) aligns) rows
   let widths = map (maximum . map length) $ transpose (headers':rows')
   let padTo (width, al) s =
-          case (width - length s) of
+          case width - length s of
                x | x > 0 ->
                  if al == AlignLeft || al == AlignDefault
                     then s ++ replicate x ' '
@@ -171,14 +169,11 @@ blockToZimWiki opts (Table capt aligns _ headers rows) = do
                             else replicate (x `div` 2) ' ' ++
                                  s ++ replicate (x - x `div` 2) ' '
                  | otherwise -> s
-  let borderCell (width, al) _ =
-                 if al == AlignLeft
-                    then ":"++ replicate (width-1) '-'
-                        else if al == AlignDefault
-                        then replicate width '-'
-                        else if al == AlignRight
-                            then replicate (width-1) '-' ++ ":"
-                            else ":" ++ replicate (width-2) '-' ++ ":"
+  let borderCell (width, al) _
+        | al == AlignLeft = ":"++ replicate (width-1) '-'
+        | al == AlignDefault = replicate width '-'
+        | al == AlignRight = replicate (width-1) '-' ++ ":"
+        | otherwise = ":" ++ replicate (width-2) '-' ++ ":"
   let underheader  = "|" ++ intercalate "|" (zipWith borderCell (zip widths aligns) headers') ++ "|"
   let renderRow cells = "|" ++ intercalate "|" (zipWith padTo (zip widths aligns) cells) ++ "|"
   return $ captionDoc ++
@@ -188,19 +183,19 @@ blockToZimWiki opts (Table capt aligns _ headers rows) = do
 blockToZimWiki opts (BulletList items) = do
   indent <- gets stIndent
   modify $ \s -> s { stIndent = stIndent s ++ "\t" }
-  contents <- (mapM (listItemToZimWiki opts) items)
+  contents <- mapM (listItemToZimWiki opts) items
   modify $ \s -> s{ stIndent = indent } -- drop 1 (stIndent s) }
   return $ vcat contents ++ if null indent then "\n" else ""
 
 blockToZimWiki opts (OrderedList _ items) = do
   indent <- gets stIndent
   modify $ \s -> s { stIndent = stIndent s ++ "\t", stItemNum = 1 }
-  contents <- (mapM (orderedListItemToZimWiki opts) items)
+  contents <- mapM (orderedListItemToZimWiki opts) items
   modify $ \s -> s{ stIndent = indent } -- drop 1 (stIndent s) }
   return $ vcat contents ++ if null indent then "\n" else ""
 
 blockToZimWiki opts (DefinitionList items) = do
-  contents <- (mapM (definitionListItemToZimWiki opts) items)
+  contents <- mapM (definitionListItemToZimWiki opts) items
   return $ vcat contents
 
 definitionListItemToZimWiki :: PandocMonad m
@@ -218,19 +213,19 @@ indentFromHTML :: PandocMonad m => WriterOptions -> String -> ZW m String
 indentFromHTML _ str = do
    indent <- gets stIndent
    itemnum <- gets stItemNum
-   if isInfixOf "<li>" str then return $ indent ++ show itemnum ++ "."
-        else if isInfixOf "</li>" str then return "\n"
-                else if isInfixOf "<li value=" str then do
+   if "<li>" `isInfixOf` str then return $ indent ++ show itemnum ++ "."
+        else if "</li>" `isInfixOf` str then return "\n"
+                else if "<li value=" `isInfixOf` str then do
                         -- poor man's cut
                         let val = drop 10 $ reverse $ drop 1 $ reverse str
                         --let val = take ((length valls) - 2) valls
                         modify $ \s -> s { stItemNum = read val }
                         return ""
-                        else if isInfixOf "<ol>" str then do
+                        else if "<ol>" `isInfixOf` str then do
                                 let olcount=countSubStrs "<ol>" str
                                 modify $ \s -> s { stIndent = stIndent s ++ replicate olcount '\t', stItemNum = 1 }
                                 return ""
-                                else if isInfixOf "</ol>" str then do
+                                else if "</ol>" `isInfixOf` str then do
                                         let olcount=countSubStrs "/<ol>" str
                                         modify $ \s -> s{ stIndent = drop olcount (stIndent s) }
                                         return ""
@@ -286,7 +281,7 @@ blockListToZimWiki opts blocks = vcat <$> mapM (blockToZimWiki opts) blocks
 -- | Convert list of Pandoc inline elements to ZimWiki.
 inlineListToZimWiki :: PandocMonad m
                     => WriterOptions -> [Inline] -> ZW m String
-inlineListToZimWiki opts lst =  concat <$> (mapM (inlineToZimWiki opts) lst)
+inlineListToZimWiki opts lst =  concat <$> mapM (inlineToZimWiki opts) lst
 
 -- | Convert Pandoc inline element to ZimWiki.
 inlineToZimWiki :: PandocMonad m
@@ -335,7 +330,7 @@ inlineToZimWiki _ (Str str) = do
       then return $ substitute "|" "\\|" . escapeString $ str
       else
           if inLink
-          then return $ str
+          then return str
           else return $ escapeString str
 
 inlineToZimWiki _ (Math mathType str) = return $ delim ++ str ++ delim   -- note:  str should NOT be escaped
@@ -346,7 +341,7 @@ inlineToZimWiki _ (Math mathType str) = return $ delim ++ str ++ delim   -- note
 -- | f == Format "html"     = return $ "<html>" ++ str ++ "</html>"
 inlineToZimWiki opts il@(RawInline f str)
   | f == Format "zimwiki" = return str
-  | f == Format "html"     = do cont <- indentFromHTML opts str; return cont
+  | f == Format "html"     = indentFromHTML opts str
   | otherwise              = do
       report $ InlineNotRendered il
       return ""

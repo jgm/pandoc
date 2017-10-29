@@ -41,7 +41,7 @@ import Data.Char (isAlphaNum, isAscii, isDigit, isLetter, isPunctuation, ord,
                   toLower)
 import Data.List (foldl', intercalate, intersperse, isInfixOf, nubBy,
                   stripPrefix, (\\))
-import Data.Maybe (catMaybes, fromMaybe, isJust)
+import Data.Maybe (catMaybes, fromMaybe, isJust, mapMaybe)
 import Data.Text (Text)
 import qualified Data.Text as T
 import Network.URI (unEscapeString)
@@ -102,10 +102,10 @@ startingState options = WriterState {
                 , stUrl = False
                 , stGraphics = False
                 , stLHS = False
-                , stBook = (case writerTopLevelDivision options of
-                                 TopLevelPart    -> True
-                                 TopLevelChapter -> True
-                                 _               -> False)
+                , stBook = case writerTopLevelDivision options of
+                                TopLevelPart    -> True
+                                TopLevelChapter -> True
+                                _               -> False
                 , stCsquotes = False
                 , stHighlighting = False
                 , stIncremental = writerIncremental options
@@ -134,14 +134,14 @@ pandocToLaTeX options (Pandoc meta blocks) = do
   let method = writerCiteMethod options
   let blocks' = if method == Biblatex || method == Natbib
                    then case reverse blocks of
-                             (Div (_,["references"],_) _):xs -> reverse xs
+                             Div (_,["references"],_) _:xs -> reverse xs
                              _                               -> blocks
                    else blocks
   -- see if there are internal links
   let isInternalLink (Link _ _ ('#':xs,_)) = [xs]
       isInternalLink _                     = []
   modify $ \s -> s{ stInternalLinks = query isInternalLink blocks' }
-  let template = maybe "" id $ writerTemplate options
+  let template = fromMaybe "" $ writerTemplate options
   -- set stBook depending on documentclass
   let colwidth = if writerWrapText options == WrapAuto
                     then Just $ writerColumns options
@@ -190,8 +190,7 @@ pandocToLaTeX options (Pandoc meta blocks) = do
   docLangs <- catMaybes <$>
       mapM (toLang . Just) (ordNub (query (extract "lang") blocks))
   let hasStringValue x = isJust (getField x metadata :: Maybe String)
-  let geometryFromMargins = intercalate [','] $ catMaybes $
-                              map (\(x,y) ->
+  let geometryFromMargins = intercalate [','] $ mapMaybe (\(x,y) ->
                                 ((x ++ "=") ++) <$> getField y metadata)
                               [("lmargin","margin-left")
                               ,("rmargin","margin-right")
@@ -256,7 +255,7 @@ pandocToLaTeX options (Pandoc meta blocks) = do
                   (case getField "papersize" metadata of
                         Just ("A4" :: String) -> resetField "papersize"
                                                     ("a4" :: String)
-                        _                     -> id) $
+                        _                     -> id)
                   metadata
   let context' =
           -- note: lang is used in some conditionals in the template,
@@ -287,9 +286,9 @@ pandocToLaTeX options (Pandoc meta blocks) = do
           )
         $ maybe id (defField "polyglossia-lang" . toPolyObj) mblang
         $ defField "polyglossia-otherlangs" (map toPolyObj docLangs)
-        $ defField "latex-dir-rtl"
-           (getField "dir" context == Just ("rtl" :: String))
-        $ context
+        $
+                  defField "latex-dir-rtl"
+           (getField "dir" context == Just ("rtl" :: String)) context
   case writerTemplate options of
        Nothing  -> return main
        Just tpl -> renderTemplate' tpl context'
@@ -357,7 +356,7 @@ toLabel z = go `fmap` stringToLaTeX URLString z
  where go [] = ""
        go (x:xs)
          | (isLetter x || isDigit x) && isAscii x = x:go xs
-         | elem x ("_-+=:;." :: String) = x:go xs
+         | x `elem` ("_-+=:;." :: String) = x:go xs
          | otherwise = "ux" ++ printf "%x" (ord x) ++ go xs
 
 -- | Puts contents into LaTeX command.
@@ -369,7 +368,7 @@ toSlides bs = do
   opts <- gets stOptions
   let slideLevel = fromMaybe (getSlideLevel bs) $ writerSlideLevel opts
   let bs' = prepSlides slideLevel bs
-  concat `fmap` (mapM (elementToBeamer slideLevel) $ hierarchicalize bs')
+  concat `fmap` mapM (elementToBeamer slideLevel) (hierarchicalize bs')
 
 elementToBeamer :: PandocMonad m => Int -> Element -> LW m [Block]
 elementToBeamer _slideLevel (Blk b) = return [b]
@@ -381,7 +380,7 @@ elementToBeamer slideLevel  (Sec lvl _num (ident,classes,kvs) tit elts)
              : bs ++ [RawBlock "latex" "\\end{block}"]
   | lvl <  slideLevel = do
       bs <- concat `fmap` mapM (elementToBeamer slideLevel) elts
-      return $ (Header lvl (ident,classes,kvs) tit) : bs
+      return $ Header lvl (ident,classes,kvs) tit : bs
   | otherwise = do -- lvl == slideLevel
       -- note: [fragile] is required or verbatim breaks
       let hasCodeBlock (CodeBlock _ _) = [True]
@@ -480,8 +479,8 @@ blockToLaTeX (Div (identifier,classes,kvs) bs) = do
       wrapNotes txt = if beamer && "notes" `elem` classes
                           then "\\note" <> braces txt -- speaker notes
                           else linkAnchor $$ txt
-  fmap (wrapColumns . wrapColumn . wrapDir . wrapLang . wrapNotes)
-    $ blockListToLaTeX bs
+  (wrapColumns . wrapColumn . wrapDir . wrapLang . wrapNotes)
+    <$> blockListToLaTeX bs
 blockToLaTeX (Plain lst) =
   inlineListToLaTeX $ dropWhile isLineBreakOrSpace lst
 -- title beginning with fig: indicates that the image is a figure
@@ -517,7 +516,7 @@ blockToLaTeX (Para [Str ".",Space,Str ".",Space,Str "."]) = do
      else inlineListToLaTeX [Str ".",Space,Str ".",Space,Str "."]
 blockToLaTeX (Para lst) =
   inlineListToLaTeX $ dropWhile isLineBreakOrSpace lst
-blockToLaTeX (LineBlock lns) = do
+blockToLaTeX (LineBlock lns) =
   blockToLaTeX $ linesToPara lns
 blockToLaTeX (BlockQuote lst) = do
   beamer <- gets stBeamer
@@ -645,12 +644,11 @@ blockToLaTeX (OrderedList (start, numstyle, numdelim) lst) = do
                        Example      -> "1"
                        DefaultStyle -> "1"
   let enum = text $ "enum" ++ map toLower (toRomanNumeral oldlevel)
-  let stylecommand = if numstyle == DefaultStyle && numdelim == DefaultDelim
-                        then empty
-                        else if beamer
-                          then brackets (todelim exemplar)
-                          else "\\def" <> "\\label" <> enum <>
-                                 braces (todelim $ tostyle enum)
+  let stylecommand
+        | numstyle == DefaultStyle && numdelim == DefaultDelim = empty
+        | beamer = brackets (todelim exemplar)
+        | otherwise = "\\def" <> "\\label" <> enum <>
+          braces (todelim $ tostyle enum)
   let resetcounter = if start == 1 || oldlevel > 4
                         then empty
                         else "\\setcounter" <> braces enum <>
@@ -674,7 +672,8 @@ blockToLaTeX (DefinitionList lst) = do
                    else empty
   return $ text ("\\begin{description}" ++ inc) $$ spacing $$ vcat items $$
                "\\end{description}"
-blockToLaTeX HorizontalRule = return $
+blockToLaTeX HorizontalRule =
+            return
   "\\begin{center}\\rule{0.5\\linewidth}{\\linethickness}\\end{center}"
 blockToLaTeX (Header level (id',classes,_) lst) = do
   modify $ \s -> s{stInHeading = True}
@@ -682,7 +681,7 @@ blockToLaTeX (Header level (id',classes,_) lst) = do
   modify $ \s -> s{stInHeading = False}
   return hdr
 blockToLaTeX (Table caption aligns widths heads rows) = do
-  let toHeaders hs = do contents <- (tableRowToLaTeX True aligns widths) hs
+  let toHeaders hs = do contents <- tableRowToLaTeX True aligns widths hs
                         return ("\\toprule" $$ contents $$ "\\midrule")
   let removeNote (Note _) = Span ("", [], []) []
       removeNote x        = x
@@ -702,7 +701,7 @@ blockToLaTeX (Table caption aligns widths heads rows) = do
                 else text "\\caption" <>
                       braces captionText <> "\\tabularnewline"
   rows' <- mapM (tableRowToLaTeX False aligns widths) rows
-  let colDescriptors = text $ concat $ map toColDescriptor aligns
+  let colDescriptors = text $ concatMap toColDescriptor aligns
   modify $ \s -> s{ stTable = True }
   return $ "\\begin{longtable}[]" <>
               braces ("@{}" <> colDescriptors <> "@{}")
@@ -812,10 +811,10 @@ listItemToLaTeX lst
   -- we need to put some text before a header if it's the first
   -- element in an item. This will look ugly in LaTeX regardless, but
   -- this will keep the typesetter from throwing an error.
-  | ((Header _ _ _) :_) <- lst =
-    blockListToLaTeX lst >>= return . (text "\\item ~" $$) . (nest 2)
+  | (Header _ _ _ :_) <- lst =
+    blockListToLaTeX lst >>= return . (text "\\item ~" $$) . nest 2
   | otherwise = blockListToLaTeX lst >>= return .  (text "\\item" $$) .
-                      (nest 2)
+                      nest 2
 
 defListItemToLaTeX :: PandocMonad m => ([Inline], [[Block]]) -> LW m Doc
 defListItemToLaTeX (term, defs) = do
@@ -832,7 +831,7 @@ defListItemToLaTeX (term, defs) = do
                     else term'
     def'  <- liftM vsep $ mapM blockListToLaTeX defs
     return $ case defs of
-     (((Header _ _ _) : _) : _) ->
+     ((Header _ _ _ : _) : _) ->
        "\\item" <> brackets term'' <> " ~ " $$ def'
      _                          ->
        "\\item" <> brackets term'' $$ def'
@@ -849,16 +848,16 @@ sectionHeader unnumbered ident level lst = do
   plain <- stringToLaTeX TextString $ concatMap stringify lst
   let removeInvalidInline (Note _)             = []
       removeInvalidInline (Span (id', _, _) _) | not (null id') = []
-      removeInvalidInline (Image _ _ _)        = []
+      removeInvalidInline (Image{})        = []
       removeInvalidInline x                    = [x]
   let lstNoNotes = foldr (mappend . (\x -> walkM removeInvalidInline x)) mempty lst
   txtNoNotes <- inlineListToLaTeX lstNoNotes
   -- footnotes in sections don't work (except for starred variants)
   -- unless you specify an optional argument:
   -- \section[mysec]{mysec\footnote{blah}}
-  optional <- if unnumbered || lstNoNotes == lst || lstNoNotes == []
+  optional <- if unnumbered || lstNoNotes == lst || null lstNoNotes
                  then return empty
-                 else do
+                 else
                    return $ brackets txtNoNotes
   let contents = if render Nothing txt == plain
                     then braces txt
@@ -983,7 +982,7 @@ inlineToLaTeX (Strikeout lst) = do
   return $ inCmd "sout" contents
 inlineToLaTeX (Superscript lst) =
   inlineListToLaTeX lst >>= return . inCmd "textsuperscript"
-inlineToLaTeX (Subscript lst) = do
+inlineToLaTeX (Subscript lst) =
   inlineListToLaTeX lst >>= return . inCmd "textsubscript"
 inlineToLaTeX (SmallCaps lst) =
   inlineListToLaTeX lst >>= return . inCmd "textsc"
@@ -1018,7 +1017,7 @@ inlineToLaTeX (Code (_,classes,_) str) = do
                  $ stringToLaTeX CodeString str
                 where escapeSpaces =  concatMap
                          (\c -> if c == ' ' then "\\ " else [c])
-  let highlightCode = do
+  let highlightCode =
         case highlight (writerSyntaxMap opts)
                  formatLaTeXInline ("",classes,[]) str of
                Left msg -> do
@@ -1038,10 +1037,10 @@ inlineToLaTeX (Quoted qt lst) = do
   if csquotes
      then return $ "\\enquote" <> braces contents
      else do
-       let s1 = if (not (null lst)) && (isQuoted (head lst))
+       let s1 = if not (null lst) && isQuoted (head lst)
                    then "\\,"
                    else empty
-       let s2 = if (not (null lst)) && (isQuoted (last lst))
+       let s2 = if not (null lst) && isQuoted (last lst)
                    then "\\,"
                    else empty
        let inner = s1 <> contents <> s2
@@ -1071,7 +1070,7 @@ inlineToLaTeX il@(RawInline f str)
   | otherwise           = do
       report $ InlineNotRendered il
       return empty
-inlineToLaTeX (LineBreak) = do
+inlineToLaTeX LineBreak = do
   emptyLine <- gets stEmptyLine
   setEmptyLine True
   return $ (if emptyLine then "~" else "") <> "\\\\" <> cr
@@ -1111,7 +1110,7 @@ inlineToLaTeX (Image attr _ (source, _)) = do
   modify $ \s -> s{ stGraphics = True }
   opts <- gets stOptions
   let showDim dir = let d = text (show dir) <> "="
-                    in case (dimension dir attr) of
+                    in case dimension dir attr of
                          Just (Pixel a)   ->
                            [d <> text (showInInch opts (Pixel a)) <> "in"]
                          Just (Percent a) ->
@@ -1165,7 +1164,8 @@ setEmptyLine :: PandocMonad m => Bool -> LW m ()
 setEmptyLine b = modify $ \st -> st{ stEmptyLine = b }
 
 citationsToNatbib :: PandocMonad m => [Citation] -> LW m Doc
-citationsToNatbib (one:[])
+citationsToNatbib
+            [one]
   = citeCommand c p s k
   where
     Citation { citationId = k
@@ -1185,9 +1185,11 @@ citationsToNatbib cits
   where
      noPrefix  = all (null . citationPrefix)
      noSuffix  = all (null . citationSuffix)
-     ismode m  = all (((==) m)  . citationMode)
-     p         = citationPrefix  $ head $ cits
-     s         = citationSuffix  $ last $ cits
+     ismode m  = all ((==) m  . citationMode)
+     p         = citationPrefix  $
+                 head cits
+     s         = citationSuffix  $
+                 last cits
      ks        = intercalate ", " $ map citationId cits
 
 citationsToNatbib (c:cs) | citationMode c == AuthorInText = do
@@ -1221,7 +1223,8 @@ citeArguments :: PandocMonad m
               => [Inline] -> [Inline] -> String -> LW m Doc
 citeArguments p s k = do
   let s' = case s of
-        (Str (x:[]) : r) | isPunctuation x -> dropWhile (== Space) r
+        (Str
+                    [x] : r) | isPunctuation x -> dropWhile (== Space) r
         (Str (x:xs) : r) | isPunctuation x -> Str xs : r
         _                -> s
   pdoc <- inlineListToLaTeX p
@@ -1233,7 +1236,8 @@ citeArguments p s k = do
   return $ optargs <> braces (text k)
 
 citationsToBiblatex :: PandocMonad m => [Citation] -> LW m Doc
-citationsToBiblatex (one:[])
+citationsToBiblatex
+            [one]
   = citeCommand cmd p s k
     where
        Citation { citationId = k
@@ -1264,8 +1268,8 @@ citationsToBiblatex _ = return empty
 
 -- Determine listings language from list of class attributes.
 getListingsLanguage :: [String] -> Maybe String
-getListingsLanguage []     = Nothing
-getListingsLanguage (x:xs) = toListingsLanguage x <|> getListingsLanguage xs
+getListingsLanguage xs
+  = foldr ((<|>) . toListingsLanguage) Nothing xs
 
 mbBraced :: String -> String
 mbBraced x = if not (all isAlphaNum x)

@@ -33,7 +33,7 @@ module Text.Pandoc.Writers.Docbook ( writeDocbook4, writeDocbook5 ) where
 import Control.Monad.Reader
 import Data.Char (toLower)
 import Data.Generics (everywhere, mkT)
-import Data.List (intercalate, isPrefixOf, isSuffixOf, stripPrefix)
+import Data.List (isPrefixOf, isSuffixOf, stripPrefix)
 import Data.Monoid (Any (..))
 import Data.Text (Text)
 import qualified Text.Pandoc.Builder as B
@@ -78,7 +78,7 @@ authorToDocbook opts name' = do
                   (firstname, lastname) = case lengthname of
                     0  -> ("","")
                     1  -> ("", name)
-                    n  -> (intercalate " " (take (n-1) namewords), last namewords)
+                    n  -> (unwords (take (n-1) namewords), last namewords)
                in inTagsSimple "firstname" (text $ escapeStringForXML firstname) $$
                   inTagsSimple "surname" (text $ escapeStringForXML lastname)
 
@@ -99,9 +99,9 @@ writeDocbook opts (Pandoc meta blocks) = do
                     else Nothing
   let render' :: Doc -> Text
       render' = render colwidth
-  let opts'    = if (maybe False (("/book>" `isSuffixOf`) . trimr)
+  let opts'    = if maybe False (("/book>" `isSuffixOf`) . trimr)
                             (writerTemplate opts) &&
-                     TopLevelDefault == writerTopLevelDivision opts)
+                     TopLevelDefault == writerTopLevelDivision opts
                     then opts{ writerTopLevelDivision = TopLevelChapter }
                     else opts
   -- The numbering here follows LaTeX's internal numbering
@@ -114,16 +114,16 @@ writeDocbook opts (Pandoc meta blocks) = do
   let meta' = B.setMeta "author" auths' meta
   metadata <- metaToJSON opts
                  (fmap (render' . vcat) .
-                          (mapM (elementToDocbook opts' startLvl) .
-                            hierarchicalize))
+                          mapM (elementToDocbook opts' startLvl) .
+                            hierarchicalize)
                  (fmap render' . inlinesToDocbook opts')
                  meta'
-  main <- (render' . vcat) <$> (mapM (elementToDocbook opts' startLvl) elements)
+  main <- (render' . vcat) <$> mapM (elementToDocbook opts' startLvl) elements
   let context = defField "body" main
-              $ defField "mathml" (case writerHTMLMathMethod opts of
-                                        MathML -> True
-                                        _      -> False)
-              $ metadata
+              $
+                  defField "mathml" (case writerHTMLMathMethod opts of
+                                          MathML -> True
+                                          _      -> False) metadata
   case writerTemplate opts of
        Nothing  -> return main
        Just tpl -> renderTemplate' tpl context
@@ -170,7 +170,7 @@ plainToPara x         = x
 deflistItemsToDocbook :: PandocMonad m
                       => WriterOptions -> [([Inline],[[Block]])] -> DB m Doc
 deflistItemsToDocbook opts items =
-  vcat <$> mapM (\(term, defs) -> deflistItemToDocbook opts term defs) items
+  vcat <$> mapM (uncurry (deflistItemToDocbook opts)) items
 
 -- | Convert a term and a list of blocks into a Docbook varlistentry.
 deflistItemToDocbook :: PandocMonad m
@@ -196,7 +196,7 @@ imageToDocbook _ attr src = selfClosingTag "imagedata" $
   ("fileref", src) : idAndRole attr ++ dims
   where
     dims = go Width "width" ++ go Height "depth"
-    go dir dstr = case (dimension dir attr) of
+    go dir dstr = case dimension dir attr of
                     Just a  -> [(dstr, show a)]
                     Nothing -> []
 
@@ -217,7 +217,7 @@ blockToDocbook opts (Div (ident,_,_) bs) = do
     (if null ident
         then mempty
         else selfClosingTag "anchor" [("id", ident)]) $$ contents
-blockToDocbook _ h@(Header _ _ _) = do
+blockToDocbook _ h@Header{} = do
   -- should not occur after hierarchicalize, except inside lists/blockquotes
   report $ BlockNotRendered h
   return empty
@@ -230,9 +230,9 @@ blockToDocbook opts (Para [Image attr txt (src,'f':'i':'g':':':_)]) = do
                 else inTagsSimple "title" alt
   return $ inTagsIndented "figure" $
         capt $$
-        (inTagsIndented "mediaobject" $
-           (inTagsIndented "imageobject"
-             (imageToDocbook opts attr src)) $$
+        inTagsIndented "mediaobject" (
+           inTagsIndented "imageobject"
+             (imageToDocbook opts attr src) $$
            inTagsSimple "textobject" (inTagsSimple "phrase" alt))
 blockToDocbook opts (Para lst)
   | hasLineBreaks lst = (flush . nowrap . inTagsSimple "literallayout")
@@ -275,7 +275,7 @@ blockToDocbook opts (OrderedList (start, numstyle, _) (first:rest)) = do
                 first' <- blocksToDocbook opts (map plainToPara first)
                 rest' <- listItemsToDocbook opts rest
                 return $
-                  (inTags True "listitem" [("override",show start)] first') $$
+                  inTags True "listitem" [("override",show start)] first' $$
                    rest'
   return $ inTags True "orderedlist" attribs items
 blockToDocbook opts (DefinitionList lst) = do
@@ -308,7 +308,7 @@ blockToDocbook opts (Table caption aligns widths headers rows) = do
   body' <- (inTagsIndented "tbody" . vcat) <$>
               mapM (tableRowToDocbook opts) rows
   return $ inTagsIndented tableType $ captionDoc $$
-        (inTags True "tgroup" [("cols", show (length headers))] $
+        inTags True "tgroup" [("cols", show (length headers))] (
          coltags $$ head' $$ body')
 
 hasLineBreaks :: [Inline] -> Bool
@@ -406,7 +406,7 @@ inlineToDocbook _ SoftBreak = return space
 inlineToDocbook opts (Link attr txt (src, _))
   | Just email <- stripPrefix "mailto:" src =
       let emailLink = inTagsSimple "email" $ text $
-                      escapeStringForXML $ email
+                      escapeStringForXML email
       in  case txt of
            [Str s] | escapeURI s == email -> return emailLink
            _             -> do contents <- inlinesToDocbook opts txt
@@ -414,7 +414,7 @@ inlineToDocbook opts (Link attr txt (src, _))
                                           char '(' <> emailLink <> char ')'
   | otherwise = do
       version <- ask
-      (if isPrefixOf "#" src
+      (if "#" `isPrefixOf` src
             then inTags False "link" $ ("linkend", writerIdentifierPrefix opts ++ drop 1 src) : idAndRole attr
             else if version == DocBook5
                     then inTags False "link" $ ("xlink:href", src) : idAndRole attr

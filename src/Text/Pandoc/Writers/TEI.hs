@@ -79,10 +79,10 @@ writeTEI opts (Pandoc meta blocks) = do
                  meta'
   main    <- (render' . vcat) <$> mapM (elementToTEI opts startLvl) elements
   let context = defField "body" main
-              $ defField "mathml" (case writerHTMLMathMethod opts of
-                                        MathML -> True
-                                        _      -> False)
-              $ metadata
+              $
+                  defField "mathml" (case writerHTMLMathMethod opts of
+                                          MathML -> True
+                                          _      -> False) metadata
   case writerTemplate opts of
        Nothing  -> return main
        Just tpl -> renderTemplate' tpl context
@@ -121,7 +121,7 @@ plainToPara x         = x
 deflistItemsToTEI :: PandocMonad m
                   => WriterOptions -> [([Inline],[[Block]])] -> m Doc
 deflistItemsToTEI opts items =
- vcat <$> mapM (\(term, defs) -> deflistItemToTEI opts term defs) items
+ vcat <$> mapM (uncurry (deflistItemToTEI opts)) items
 
 -- | Convert a term and a list of blocks into a TEI varlistentry.
 deflistItemToTEI :: PandocMonad m
@@ -146,7 +146,7 @@ imageToTEI _ attr src = return $ selfClosingTag "graphic" $
   ("url", src) : idAndRole attr ++ dims
   where
     dims = go Width "width" ++ go Height "depth"
-    go dir dstr = case (dimension dir attr) of
+    go dir dstr = case dimension dir attr of
                     Just a  -> [(dstr, show a)]
                     Nothing -> []
 
@@ -159,7 +159,7 @@ blockToTEI opts (Div (ident,_,_) [Para lst]) = do
   let attribs = [("id", ident) | not (null ident)]
   inTags False "p" attribs <$> inlinesToTEI opts lst
 blockToTEI opts (Div _ bs) = blocksToTEI opts $ map plainToPara bs
-blockToTEI _ h@(Header _ _ _) = do
+blockToTEI _ h@(Header{}) = do
   -- should not occur after hierarchicalize, except inside lists/blockquotes
   report $ BlockNotRendered h
   return empty
@@ -214,7 +214,7 @@ blockToTEI opts (OrderedList (start, numstyle, _) (first:rest)) = do
               else do
                 fi <- blocksToTEI opts $ map plainToPara first
                 re <- listItemsToTEI opts rest
-                return $ (inTags True "item" [("n",show start)] fi) $$ re
+                return $ inTags True "item" [("n",show start)] fi $$ re
   return $ inTags True "list" attribs items
 blockToTEI opts (DefinitionList lst) = do
   let attribs = [("type", "definition")]
@@ -295,28 +295,31 @@ inlineToTEI _ (Code _ str) = return $
 inlineToTEI _ (Math t str) = return $
   case t of
     InlineMath  -> inTags False "formula" [("notation","TeX")] $
-                   text (str)
+                   text str
     DisplayMath -> inTags True "figure" [("type","math")] $
-                   inTags False "formula" [("notation","TeX")] $ text (str)
+                   inTags False "formula" [("notation","TeX")] $ text str
 
 inlineToTEI _ il@(RawInline f x) | f == "tei"     = return $ text x
                                  | otherwise      = empty <$
                                      report (InlineNotRendered il)
 inlineToTEI _ LineBreak = return $ selfClosingTag "lb" []
-inlineToTEI _ Space = return $ space
+inlineToTEI _ Space =
+            return space
 -- because we use \n for LineBreak, we can't do soft breaks:
-inlineToTEI _ SoftBreak = return $ space
+inlineToTEI _ SoftBreak =
+            return space
 inlineToTEI opts (Link attr txt (src, _))
   | Just email <- stripPrefix "mailto:" src = do
       let emailLink = text $
-                      escapeStringForXML $ email
+                      escapeStringForXML email
       case txt of
-           [Str s] | escapeURI s == email -> return $ emailLink
+           [Str s] | escapeURI s == email ->
+                       return emailLink
            _             -> do
               linktext <- inlinesToTEI opts txt
               return $ linktext <+> char '(' <> emailLink <> char ')'
   | otherwise =
-      (if isPrefixOf "#" src
+      (if "#" `isPrefixOf` src
             then inTags False "ref" $ ("target", drop 1 src) : idAndRole attr
             else inTags False "ref" $ ("target", src) : idAndRole attr ) <$>
         inlinesToTEI opts txt

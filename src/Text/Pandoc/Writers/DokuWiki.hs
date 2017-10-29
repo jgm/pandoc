@@ -93,14 +93,9 @@ pandocToDokuWiki opts (Pandoc meta blocks) = do
               meta
   body <- blockListToDokuWiki opts blocks
   notesExist <- gets stNotes
-  let notes = if notesExist
-                 then "" -- TODO Was "\n<references />" Check whether I can really remove this:
-                         -- if it is definitely to do with footnotes, can remove this whole bit
-                 else ""
-  let main = pack $ body ++ notes
+  let main = pack body
   let context = defField "body" main
-                $ defField "toc" (writerTableOfContents opts)
-                $ metadata
+                $ defField "toc" (writerTableOfContents opts) metadata
   case writerTemplate opts of
        Nothing  -> return main
        Just tpl -> renderTemplate' tpl context
@@ -155,7 +150,8 @@ blockToDokuWiki _ b@(RawBlock f str)
   -- See https://www.dokuwiki.org/wiki:syntax
   -- use uppercase HTML tag for block-level content:
   | f == Format "html"     = return $ "<HTML>\n" ++ str ++ "\n</HTML>"
-  | otherwise              = "" <$ (report $ BlockNotRendered b)
+  | otherwise              = "" <$
+         report (BlockNotRendered b)
 
 blockToDokuWiki _ HorizontalRule = return "\n----\n"
 
@@ -199,7 +195,7 @@ blockToDokuWiki opts (Table capt aligns _ headers rows) = do
   rows' <- mapM (zipWithM (tableItemToDokuWiki opts) aligns) rows
   let widths = map (maximum . map length) $ transpose (headers':rows')
   let padTo (width, al) s =
-          case (width - length s) of
+          case width - length s of
                x | x > 0 ->
                  if al == AlignLeft || al == AlignDefault
                     then s ++ replicate x ' '
@@ -294,7 +290,7 @@ listItemToDokuWiki opts items = do
                            _                  -> vcat bs
        indent <- stIndent <$> ask
        backSlash <- stBackSlashLB <$> ask
-       let indent' = if backSlash then (drop 2 indent) else indent
+       let indent' = if backSlash then drop 2 indent else indent
        return $ indent' ++ "* " ++ contents
 
 -- | Convert ordered list item (list of blocks) to DokuWiki.
@@ -308,7 +304,7 @@ orderedListItemToDokuWiki opts items = do
      else do
        indent <- stIndent <$> ask
        backSlash <- stBackSlashLB <$> ask
-       let indent' = if backSlash then (drop 2 indent) else indent
+       let indent' = if backSlash then drop 2 indent else indent
        return $ indent' ++ "- " ++ contents
 
 -- | Convert definition list item (label, list of blocks) to DokuWiki.
@@ -322,11 +318,11 @@ definitionListItemToDokuWiki opts (label, items) = do
   useTags <- stUseTags <$> ask
   if useTags
      then return $ "<HTML><dt></HTML>" ++ labelText ++ "<HTML></dt></HTML>\n" ++
-           (intercalate "\n" $ map (\d -> "<HTML><dd></HTML>" ++ d ++ "<HTML></dd></HTML>") contents)
+           intercalate "\n" (map (\d -> "<HTML><dd></HTML>" ++ d ++ "<HTML></dd></HTML>") contents)
      else do
        indent <- stIndent <$> ask
        backSlash <- stBackSlashLB <$> ask
-       let indent' = if backSlash then (drop 2 indent) else indent
+       let indent' = if backSlash then drop 2 indent else indent
        return $ indent' ++ "* **" ++ labelText ++ "** " ++ concat contents
 
 -- | True if the list can be handled by simple wiki markup, False if HTML tags will be needed.
@@ -419,7 +415,7 @@ consolidateRawBlocks (x:xs) = x : consolidateRawBlocks xs
 inlineListToDokuWiki :: PandocMonad m
                      => WriterOptions -> [Inline] -> DokuWiki m String
 inlineListToDokuWiki opts lst =
-  concat <$> (mapM (inlineToDokuWiki opts) lst)
+  concat <$> mapM (inlineToDokuWiki opts) lst
 
 -- | Convert Pandoc inline element to DokuWiki.
 inlineToDokuWiki :: PandocMonad m

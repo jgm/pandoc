@@ -97,15 +97,14 @@ pandocToRST (Pandoc meta blocks) = do
   pics <- gets (reverse . stImages) >>= pictRefsToRST
   hasMath <- gets stHasMath
   rawTeX <- gets stHasRawTeX
-  let main = render' $ foldl ($+$) empty $ [body, notes, refs, pics]
+  let main = render' $ foldl ($+$) empty [body, notes, refs, pics]
   let context = defField "body" main
               $ defField "toc" (writerTableOfContents opts)
               $ defField "toc-depth" (show $ writerTOCDepth opts)
               $ defField "math" hasMath
               $ defField "title" (render Nothing title :: String)
               $ defField "math" hasMath
-              $ defField "rawtex" rawTeX
-              $ metadata
+              $ defField "rawtex" rawTeX metadata
   case writerTemplate opts of
        Nothing  -> return main
        Just tpl -> renderTemplate' tpl context
@@ -126,7 +125,7 @@ refsToRST refs = mapM keyToRST refs >>= return . vcat
 keyToRST :: PandocMonad m => ([Inline], (String, String)) -> RST m Doc
 keyToRST (label, (src, _)) = do
   label' <- inlineListToRST label
-  let label'' = if ':' `elem` ((render Nothing label') :: String)
+  let label'' = if ':' `elem` (render Nothing label' :: String)
                    then char '`' <> label' <> char '`'
                    else label'
   return $ nowrap $ ".. _" <> label'' <> ": " <> text src
@@ -134,7 +133,7 @@ keyToRST (label, (src, _)) = do
 -- | Return RST representation of notes.
 notesToRST :: PandocMonad m => [[Block]] -> RST m Doc
 notesToRST notes =
-  mapM (\(num, note) -> noteToRST num note) (zip [1..] notes) >>=
+  mapM (uncurry noteToRST) (zip [1..] notes) >>=
   return . vsep
 
 -- | Return RST representation of a note.
@@ -226,7 +225,7 @@ blockToRST (Para [Image attr txt (src,'f':'i':'g':':':tit)]) = do
                    else ":figclass: " <> text (unwords cls)
   return $ hang 3 ".. " (fig $$ alt $$ classes $$ dims $+$ capt) $$ blankline
 blockToRST (Para inlines)
-  | LineBreak `elem` inlines = do -- use line block if LineBreaks
+  | LineBreak `elem` inlines =
       linesToLineBlock $ splitBy (==LineBreak) inlines
   | otherwise = do
       contents <- inlineListToRST inlines
@@ -237,7 +236,7 @@ blockToRST (RawBlock f@(Format f') str)
   | f == "rst" = return $ text str
   | otherwise  = return $ blankline <> ".. raw:: " <>
                     text (map toLower f') $+$
-                    (nest 3 $ text str) $$ blankline
+                    nest 3 (text str) $$ blankline
 blockToRST HorizontalRule =
   return $ blankline $$ "--------------" $$ blankline
 blockToRST (Header level (name,classes,_) inlines) = do
@@ -279,7 +278,7 @@ blockToRST (CodeBlock (_,classes,kvs) str) = do
 blockToRST (BlockQuote blocks) = do
   tabstop <- gets $ writerTabStop . stOptions
   contents <- blockListToRST blocks
-  return $ (nest tabstop contents) <> blankline
+  return $ nest tabstop contents <> blankline
 blockToRST (Table caption aligns widths headers rows) = do
   caption' <- inlineListToRST caption
   let blocksToDoc opts bs = do
@@ -302,13 +301,13 @@ blockToRST (BulletList items) = do
   return $ blankline $$ chomp (vcat contents) $$ blankline
 blockToRST (OrderedList (start, style', delim) items) = do
   let markers = if start == 1 && style' == DefaultStyle && delim == DefaultDelim
-                   then take (length items) $ repeat "#."
+                   then replicate (length items) "#."
                    else take (length items) $ orderedListMarkers
                                               (start, style', delim)
   let maxMarkerLength = maximum $ map length markers
   let markers' = map (\m -> let s = maxMarkerLength - length m
                             in  m ++ replicate s ' ') markers
-  contents <- mapM (\(item, num) -> orderedListItemToRST item num) $
+  contents <- mapM (uncurry orderedListItemToRST) $
               zip markers' items
   -- ensure that sublists have preceding blank line
   return $ blankline $$ chomp (vcat contents) $$ blankline
@@ -345,7 +344,8 @@ definitionListItemToRST (label, defs) = do
 linesToLineBlock :: PandocMonad m => [[Inline]] -> RST m Doc
 linesToLineBlock inlineLines = do
   lns <- mapM inlineListToRST inlineLines
-  return $ (vcat $ map (hang 2 (text "| ")) lns) <> blankline
+  return $ 
+                      vcat (map (hang 2 (text "| ")) lns) <> blankline
 
 -- | Convert list of Pandoc block elements to RST.
 blockListToRST' :: PandocMonad m
@@ -397,7 +397,7 @@ inlineListToRST lst =
         removeSpaceAfterDisplayMath [] = []
         insertBS :: [Inline] -> [Inline] -- insert '\ ' where needed
         insertBS (x:y:z:zs)
-          | isComplex y && (surroundComplex x z) =
+          | isComplex y && surroundComplex x z =
               x : y : insertBS (z : zs)
         insertBS (x:y:zs)
           | isComplex x && not (okAfterComplex y) =
@@ -437,8 +437,8 @@ inlineListToRST lst =
         isComplex (Strikeout _)   = True
         isComplex (Superscript _) = True
         isComplex (Subscript _)   = True
-        isComplex (Link _ _ _)    = True
-        isComplex (Image _ _ _)   = True
+        isComplex (Link{})    = True
+        isComplex (Image{})   = True
         isComplex (Code _ _)      = True
         isComplex (Math _ _)      = True
         isComplex (Cite _ (x:_))  = isComplex x
@@ -512,7 +512,7 @@ inlineToRST il@(RawInline f x)
       modify $ \st -> st{ stHasRawTeX = True }
       return $ ":raw-latex:`" <> text x <> "`"
   | otherwise  = empty <$ report (InlineNotRendered il)
-inlineToRST (LineBreak) = return cr -- there's no line break in RST (see Para)
+inlineToRST LineBreak = return cr -- there's no line break in RST (see Para)
 inlineToRST Space = return space
 inlineToRST SoftBreak = do
   wrapText <- gets $ writerWrapText . stOptions
@@ -540,7 +540,7 @@ inlineToRST (Link _ txt (src, tit)) = do
                  Just (src',tit') ->
                    if src == src' && tit == tit'
                       then return $ "`" <> linktext <> "`_"
-                      else do -- duplicate label, use non-reference link
+                      else
                         return $ "`" <> linktext <> " <" <> text src <> ">`__"
                  Nothing -> do
                    modify $ \st -> st { stLinks = (txt,(src,tit)):refs }
@@ -553,7 +553,7 @@ inlineToRST (Note contents) = do
   -- add to notes in state
   notes <- gets stNotes
   modify $ \st -> st { stNotes = contents:notes }
-  let ref = show $ (length notes) + 1
+  let ref = show $ length notes + 1
   return $ " [" <> text ref <> "]_"
 
 registerImage :: PandocMonad m => Attr -> [Inline] -> Target -> Maybe String -> RST m Doc
@@ -578,7 +578,7 @@ imageDimsToRST attr = do
                 then empty
                 else ":name: " <> text ident
       showDim dir = let cols d = ":" <> text (show dir) <> ": " <> text (show d)
-                    in  case (dimension dir attr) of
+                    in  case dimension dir attr of
                           Just (Percent a) ->
                             case dir of
                               Height -> empty

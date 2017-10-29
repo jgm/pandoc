@@ -43,7 +43,7 @@ import qualified Data.ByteString.Lazy.Char8 as B8
 import Data.Char (isAlphaNum, isAscii, isDigit, toLower)
 import Data.List (intercalate, isInfixOf, isPrefixOf)
 import qualified Data.Map as M
-import Data.Maybe (catMaybes, fromMaybe)
+import Data.Maybe (fromMaybe, mapMaybe, isNothing)
 import qualified Data.Set as Set
 import qualified Data.Text as TS
 import qualified Data.Text.Lazy as TL
@@ -280,11 +280,10 @@ getCreator s meta = getList s meta handleMetaValue
 getDate :: String -> Meta -> [Date]
 getDate s meta = getList s meta handleMetaValue
   where handleMetaValue (MetaMap m) =
-           Date{ dateText = maybe "" id $
+           Date{ dateText = fromMaybe "" $
                    M.lookup "text" m >>= normalizeDate' . metaValueToString
                , dateEvent = metaValueToString <$> M.lookup "event" m }
-        handleMetaValue mv = Date { dateText = maybe ""
-                                      id $ normalizeDate' $ metaValueToString mv
+        handleMetaValue mv = Date { dateText = fromMaybe "" $ normalizeDate' $ metaValueToString mv
                                   , dateEvent = Nothing }
 
 simpleList :: String -> Meta -> [String]
@@ -334,7 +333,7 @@ metadataFromMeta opts meta = EPUBMetadata{
         rights = metaValueToString <$> lookupMeta "rights" meta
         coverImage = lookup "epub-cover-image" (writerVariables opts) `mplus`
              (metaValueToString <$> lookupMeta "cover-image" meta)
-        stylesheets = maybe [] id
+        stylesheets = fromMaybe []
                         (metaValueToPaths <$> lookupMeta "stylesheet" meta) ++
                       [f | ("css",f) <- writerVariables opts]
         pageDirection = case map toLower . metaValueToString <$>
@@ -434,7 +433,7 @@ pandocToEPUB version opts doc@(Pandoc meta _) = do
   -- mediaRef <- P.newIORef []
   Pandoc _ blocks <- walkM (transformInline opts') doc >>=
                      walkM transformBlock
-  picEntries <- (catMaybes . map (snd . snd)) <$> (gets stMediaPaths)
+  picEntries <- (mapMaybe (snd . snd)) <$> gets stMediaPaths
   -- handle fonts
   let matchingGlob f = do
         xs <- lift $ P.glob f
@@ -479,7 +478,7 @@ pandocToEPUB version opts doc@(Pandoc meta _) = do
         mbnum <- if "unnumbered" `elem` classes
                     then return Nothing
                     else case splitAt (n - 1) nums of
-                              (ks, (m:_)) -> do
+                              (ks, m:_) -> do
                                 let nums' = ks ++ [m+1]
                                 put nums'
                                 return $ Just (ks ++ [m])
@@ -528,22 +527,23 @@ pandocToEPUB version opts doc@(Pandoc meta _) = do
 
   let chapToEntry num (Chapter mbnum bs) =
        mkEntry ("text/" ++ showChapter num) <$>
-        (writeHtml opts'{ writerNumberOffset = fromMaybe [] mbnum }
-         $ case bs of
-             (Header _ _ xs : _) ->
-               -- remove notes or we get doubled footnotes
-               Pandoc (setMeta "title" (walk removeNote $ fromList xs)
-                        nullMeta) bs
-             _                   ->
-               Pandoc nullMeta bs)
+        writeHtml opts'{ writerNumberOffset = fromMaybe [] mbnum } (case bs of
+                                                                      (Header _ _ xs : _) ->
+                                                                        -- remove notes or we get doubled footnotes
+                                                                        Pandoc (setMeta "title" (walk removeNote $ fromList xs)
+                                                                                 nullMeta) bs
+                                                                      _                   ->
+                                                                        Pandoc nullMeta bs)
 
   chapterEntries <- lift $ zipWithM chapToEntry [1..] chapters
 
   -- incredibly inefficient (TODO):
   let containsMathML ent = epub3 &&
-                           "<math" `isInfixOf` (B8.unpack $ fromEntry ent)
+                           "<math" `isInfixOf`
+        B8.unpack (fromEntry ent)
   let containsSVG ent    = epub3 &&
-                           "<svg" `isInfixOf` (B8.unpack $ fromEntry ent)
+                           "<svg" `isInfixOf`
+        B8.unpack (fromEntry ent)
   let props ent = ["mathml" | containsMathML ent] ++ ["svg" | containsSVG ent]
 
   -- contents.opf
@@ -577,7 +577,7 @@ pandocToEPUB version opts doc@(Pandoc meta _) = do
   uuid <- case epubIdentifier metadata of
             (x:_) -> return $ identifierText x  -- use first identifier as UUID
             []    -> throwError $ PandocShouldNeverHappenError "epubIdentifier is null"  -- shouldn't happen
-  currentTime <- lift $ P.getCurrentTime
+  currentTime <- lift P.getCurrentTime
   let contentsData = UTF8.fromStringLazy $ ppTopElement $
         unode "package" ! [("version", case version of
                                              EPUB2 -> "2.0"
@@ -594,8 +594,8 @@ pandocToEPUB version opts doc@(Pandoc meta _) = do
                                ,("media-type","application/xhtml+xml")] ++
                                [("properties","nav") | epub3 ]) $ ()
              ] ++
-             [ (unode "item" ! [("id","style"), ("href",fp)
-                              ,("media-type","text/css")] $ ()) |
+             [ unode "item" ! [("id","style"), ("href",fp)
+                              ,("media-type","text/css")] $ () |
                           fp <- map eRelativePath stylesheetEntries ] ++
              map chapterNode (cpgEntry ++ (tpEntry : chapterEntries)) ++
              (case cpicEntry of
@@ -605,7 +605,8 @@ pandocToEPUB version opts doc@(Pandoc meta _) = do
                               (pictureNode x)]) ++
              map pictureNode picEntries ++
              map fontNode fontEntries
-          , unode "spine" ! ([("toc","ncx")] ++ progressionDirection) $
+          , unode "spine" ! (
+             ("toc","ncx") : progressionDirection) $
               case epubCoverImage metadata of
                     Nothing -> []
                     Just _ -> [ unode "itemref" !
@@ -684,7 +685,7 @@ pandocToEPUB version opts doc@(Pandoc meta _) = do
                         Nothing  -> []
                         Just img -> [unode "meta" ! [("name","cover"),
                                             ("content", toId img)] $ ()]
-          , unode "docTitle" $ unode "text" $ plainTitle
+          , unode "docTitle" $ unode "text" plainTitle
           , unode "navMap" $
               tpNode : navMap
           ]
@@ -826,7 +827,7 @@ metadataElement version md currentTime =
                                        ("content",toId img)] $ ()])
             $ epubCoverImage md
         modifiedNodes = [ unode "meta" ! [("property", "dcterms:modified")] $
-               (showDateTimeISO8601 currentTime) | version == EPUB3 ]
+               showDateTimeISO8601 currentTime | version == EPUB3 ]
         dcTag n s = unode ("dc:" ++ n) s
         dcTag' n s = [dcTag n s]
         toIdentifierNode id' (Identifier txt scheme)
@@ -895,7 +896,7 @@ transformTag :: PandocMonad m
              -> E m (Tag String)
 transformTag tag@(TagOpen name attr)
   | name `elem` ["video", "source", "img", "audio"] &&
-    lookup "data-external" attr == Nothing = do
+    isNothing (lookup "data-external" attr) = do
   let src = fromAttrib "src" tag
   let poster = fromAttrib "poster" tag
   newsrc <- modifyMediaRef src

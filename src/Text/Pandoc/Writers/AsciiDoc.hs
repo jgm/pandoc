@@ -100,7 +100,7 @@ pandocToAsciiDoc opts (Pandoc meta blocks) = do
   let context  = defField "body" main
                $ defField "toc"
                   (writerTableOfContents opts &&
-                   Data.Maybe.isJust (writerTemplate opts))
+                   isJust (writerTemplate opts))
                $defField "titleblock" titleblock metadata'
   case writerTemplate opts of
        Nothing  -> return main

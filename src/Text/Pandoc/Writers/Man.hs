@@ -104,8 +104,7 @@ pandocToMan opts (Pandoc meta blocks) = do
               $ setFieldsFromTitle
               $ defField "has-tables" hasTables
               $ defField "hyphenate" True
-              $ defField "pandoc-version" pandocVersion
-              $ metadata
+              $ defField "pandoc-version" pandocVersion metadata
   case writerTemplate opts of
        Nothing  -> return main
        Just tpl -> renderTemplate' tpl context
@@ -115,7 +114,7 @@ notesToMan :: PandocMonad m => WriterOptions -> [[Block]] -> StateT WriterState 
 notesToMan opts notes =
   if null notes
      then return empty
-     else mapM (\(num, note) -> noteToMan opts num note) (zip [1..] notes) >>=
+     else mapM (uncurry (noteToMan opts)) (zip [1..] notes) >>=
           return . (text ".SH NOTES" $$) . vcat
 
 -- | Return man representation of a note.
@@ -141,7 +140,7 @@ escapeString = escapeStringUsing manEscapes
 
 -- | Escape a literal (code) section for Man.
 escapeCode :: String -> String
-escapeCode = concat . intersperse "\n" . map escapeLine . lines  where
+escapeCode = intercalate "\n" . map escapeLine . lines  where
   escapeLine codeline =
     case escapeStringUsing (manEscapes ++ backslashEscapes "\t ") codeline of
       a@('.':_) -> "\\&" ++ a
@@ -157,7 +156,7 @@ breakSentence [] = ([],[])
 breakSentence xs =
   let isSentenceEndInline (Str ys@(_:_)) | last ys == '.' = True
       isSentenceEndInline (Str ys@(_:_)) | last ys == '?' = True
-      isSentenceEndInline (LineBreak)    = True
+      isSentenceEndInline LineBreak    = True
       isSentenceEndInline _              = False
       (as, bs) = break isSentenceEndInline xs
   in  case bs of
@@ -226,12 +225,12 @@ blockToMan opts (Table caption alignments widths headers rows) =
                    then repeat ""
                    else map (printf "w(%0.1fn)" . (70 *)) widths
   -- 78n default width - 8n indent = 70n
-  let coldescriptions = text $ intercalate " "
+  let coldescriptions = text $ unwords
                         (zipWith (\align width -> aligncode align ++ width)
                         alignments iwidths) ++ "."
   colheadings <- mapM (blockListToMan opts) headers
   let makeRow cols = text "T{" $$
-                     (vcat $ intersperse (text "T}@T{") cols) $$
+                     vcat (intersperse (text "T}@T{") cols) $$
                      text "T}"
   let colheadings' = if all null headers
                         then empty
@@ -248,7 +247,8 @@ blockToMan opts (BulletList items) = do
   return (vcat contents)
 blockToMan opts (OrderedList attribs items) = do
   let markers = take (length items) $ orderedListMarkers attribs
-  let indent = 1 + (maximum $ map length markers)
+  let indent = 1 +
+                     maximum (map length markers)
   contents <- mapM (\(num, item) -> orderedListItemToMan opts num indent item) $
               zip markers items
   return (vcat contents)
@@ -259,9 +259,9 @@ blockToMan opts (DefinitionList items) = do
 -- | Convert bullet list item (list of blocks) to man.
 bulletListItemToMan :: PandocMonad m => WriterOptions -> [Block] -> StateT WriterState m Doc
 bulletListItemToMan _ [] = return empty
-bulletListItemToMan opts ((Para first):rest) =
-  bulletListItemToMan opts ((Plain first):rest)
-bulletListItemToMan opts ((Plain first):rest) = do
+bulletListItemToMan opts (Para first:rest) =
+  bulletListItemToMan opts (Plain first:rest)
+bulletListItemToMan opts (Plain first:rest) = do
   first' <- blockToMan opts (Plain first)
   rest' <- blockListToMan opts rest
   let first'' = text ".IP \\[bu] 2" $$ first'
@@ -282,8 +282,8 @@ orderedListItemToMan :: PandocMonad m
                      -> [Block]  -- ^ list item (list of blocks)
                      -> StateT WriterState m Doc
 orderedListItemToMan _ _ _ [] = return empty
-orderedListItemToMan opts num indent ((Para first):rest) =
-  orderedListItemToMan opts num indent ((Plain first):rest)
+orderedListItemToMan opts num indent (Para first:rest) =
+  orderedListItemToMan opts num indent (Plain first:rest)
 orderedListItemToMan opts num indent (first:rest) = do
   first' <- blockToMan opts first
   rest' <- blockListToMan opts rest
@@ -332,9 +332,9 @@ inlineListToMan opts lst = mapM (inlineToMan opts) lst >>= (return . hcat)
 -- | Convert Pandoc inline element to man.
 inlineToMan :: PandocMonad m => WriterOptions -> Inline -> StateT WriterState m Doc
 inlineToMan opts (Span _ ils) = inlineListToMan opts ils
-inlineToMan opts (Emph lst) = do
+inlineToMan opts (Emph lst) =
   withFontFeature 'I' (inlineListToMan opts lst)
-inlineToMan opts (Strong lst) = do
+inlineToMan opts (Strong lst) =
   withFontFeature 'B' (inlineListToMan opts lst)
 inlineToMan opts (Strikeout lst) = do
   contents <- inlineListToMan opts lst
@@ -382,7 +382,7 @@ inlineToMan opts (Link _ txt (src, _)) = do
                                  char '<' <> text srcSuffix <> char '>'
            _                  -> linktext <> text " (" <> text src <> char ')'
 inlineToMan opts (Image attr alternate (source, tit)) = do
-  let txt = if (null alternate) || (alternate == [Str ""]) ||
+  let txt = if null alternate || (alternate == [Str ""]) ||
                (alternate == [Str source]) -- to prevent autolinks
                then [Str "image"]
                else alternate
@@ -392,7 +392,7 @@ inlineToMan _ (Note contents) = do
   -- add to notes in state
   modify $ \st -> st{ stNotes = contents : stNotes st }
   notes <- gets stNotes
-  let ref = show $ (length notes)
+  let ref = show (length notes)
   return $ char '[' <> text ref <> char ']'
 
 fontChange :: PandocMonad m => StateT WriterState m Doc

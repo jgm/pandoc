@@ -89,7 +89,7 @@ pandocToODT opts doc@(Pandoc meta _) = do
   -- picEntriesRef <- P.newIORef ([] :: [Entry])
   doc' <- walkM (transformPicMath opts) $ walk fixDisplayMath doc
   newContents <- lift $ writeOpenDocument opts{writerWrapText = WrapNone} doc'
-  epochtime <- floor `fmap` (lift P.getPOSIXTime)
+  epochtime <- floor `fmap` lift P.getPOSIXTime
   let contentEntry = toEntry "content.xml" epochtime
                      $ fromTextLazy $ TL.fromStrict newContents
   picEntries <- gets stEntries
@@ -111,10 +111,9 @@ pandocToODT opts doc@(Pandoc meta _) = do
         $ fromStringLazy $ render Nothing
         $ text "<?xml version=\"1.0\" encoding=\"utf-8\"?>"
         $$
-         ( inTags True "manifest:manifest"
+         (inTags True "manifest:manifest"
             [("xmlns:manifest","urn:oasis:names:tc:opendocument:xmlns:manifest:1.0")
-            ,("manifest:version","1.2")]
-            $ ( selfClosingTag "manifest:file-entry"
+            ,("manifest:version","1.2")] ( selfClosingTag "manifest:file-entry"
                  [("manifest:media-type","application/vnd.oasis.opendocument.text")
                  ,("manifest:full-path","/")]
                 $$ vcat ( map toFileEntry $ files )
@@ -126,15 +125,14 @@ pandocToODT opts doc@(Pandoc meta _) = do
        $ fromStringLazy $ render Nothing
        $ text "<?xml version=\"1.0\" encoding=\"utf-8\"?>"
        $$
-        ( inTags True "office:document-meta"
+        (inTags True "office:document-meta"
            [("xmlns:office","urn:oasis:names:tc:opendocument:xmlns:office:1.0")
            ,("xmlns:xlink","http://www.w3.org/1999/xlink")
            ,("xmlns:dc","http://purl.org/dc/elements/1.1/")
            ,("xmlns:meta","urn:oasis:names:tc:opendocument:xmlns:meta:1.0")
            ,("xmlns:ooo","http://openoffice.org/2004/office")
            ,("xmlns:grddl","http://www.w3.org/2003/g/data-view#")
-           ,("office:version","1.2")]
-           $ ( inTagsSimple "office:meta" $
+           ,("office:version","1.2")] ( inTagsSimple "office:meta" $
                  ( inTagsSimple "dc:title"
                       (text $ escapeStringForXML (stringify title))
                    $$
@@ -156,7 +154,7 @@ pandocToODT opts doc@(Pandoc meta _) = do
 updateStyleWithLang :: PandocMonad m => Maybe Lang -> Archive -> O m Archive
 updateStyleWithLang Nothing arch = return arch
 updateStyleWithLang (Just lang) arch = do
-  epochtime <- floor `fmap` (lift P.getPOSIXTime)
+  epochtime <- floor `fmap` lift P.getPOSIXTime
   return arch{ zEntries = [if eRelativePath e == "styles.xml"
                               then case parseXMLDoc
                                       (toStringLazy (fromEntry e)) of
@@ -196,7 +194,7 @@ transformPicMath opts (Image attr@(id', cls, _) lab (src,t)) = catchError
                _                             -> [("width", show ptX ++ "pt"), ("height", show ptY ++ "pt")]
              where
                ratio = ptX / ptY
-               getDim dir = case (dimension dir attr) of
+               getDim dir = case dimension dir attr of
                               Just (Percent i) -> Just $ Percent i
                               Just dim         -> Just $ Inch $ inInch opts dim
                               Nothing          -> Nothing
@@ -206,7 +204,7 @@ transformPicMath opts (Image attr@(id', cls, _) lab (src,t)) = catchError
                            (mbMimeType >>= extensionFromMimeType)
        let newsrc = "Pictures/" ++ show (length entries) <.> extension
        let toLazy = B.fromChunks . (:[])
-       epochtime <- floor `fmap` (lift P.getPOSIXTime)
+       epochtime <- floor `fmap` lift P.getPOSIXTime
        let entry = toEntry newsrc epochtime $ toLazy img
        modify $ \st -> st{ stEntries = entry : entries }
        return $ Image newattr lab (newsrc, t))
@@ -222,7 +220,7 @@ transformPicMath _ (Math t math) = do
        Right r -> do
          let conf = useShortEmptyTags (const False) defaultConfigPP
          let mathml = ppcTopElement conf r
-         epochtime <- floor `fmap` (lift $ P.getPOSIXTime)
+         epochtime <- floor `fmap` (lift P.getPOSIXTime)
          let dirname = "Formula-" ++ show (length entries) ++ "/"
          let fname = dirname ++ "content.xml"
          let entry = toEntry fname epochtime (fromStringLazy mathml)

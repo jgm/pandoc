@@ -117,7 +117,7 @@ increaseIndent :: PandocMonad m => OD m ()
 increaseIndent = modify $ \s -> s { stIndentPara = 1 + stIndentPara s }
 
 resetIndent :: PandocMonad m => OD m ()
-resetIndent = modify $ \s -> s { stIndentPara = (stIndentPara s) - 1 }
+resetIndent = modify $ \s -> s { stIndentPara = stIndentPara s - 1 }
 
 inTightList :: PandocMonad m => OD m a -> OD m a
 inTightList  f = modify (\s -> s { stTight = True  }) >> f >>= \r ->
@@ -135,7 +135,7 @@ inParagraphTags d = do
   b <- gets stFirstPara
   a <- if b
        then do modify $ \st -> st { stFirstPara = False }
-               return $ [("text:style-name", "First_20_paragraph")]
+               return [("text:style-name", "First_20_paragraph")]
        else    return   [("text:style-name", "Text_20_body")]
   return $ inTags False "text:p" a d
 
@@ -213,16 +213,15 @@ writeOpenDocument opts (Pandoc meta blocks) = do
            b <- render' `fmap` blocksToOpenDocument opts blocks
            return (b, m)
   let styles   = stTableStyles s ++ stParaStyles s ++
-                     map snd (reverse $ sortBy (comparing fst) $
-                        Map.elems (stTextStyles s))
+                     map snd (sortBy (flip (comparing fst)) (
+                        Map.elems (stTextStyles s)))
       listStyle (n,l) = inTags True "text:list-style"
                           [("style:name", "L" ++ show n)] (vcat l)
   let listStyles  = map listStyle (stListStyles s)
   let automaticStyles = vcat $ reverse $ styles ++ listStyles
   let context = defField "body" body
               $ defField "toc" (writerTableOfContents opts)
-              $ defField "automatic-styles" (render' automaticStyles)
-              $ metadata
+              $defField "automatic-styles" (render' automaticStyles) metadata
   case writerTemplate opts of
        Nothing  -> return body
        Just tpl -> renderTemplate' tpl context
@@ -297,7 +296,7 @@ deflistItemToOpenDocument o (t,d) = do
       ds = if isTightList d
            then "Definition_20_Definition_20_Tight" else "Definition_20_Definition"
   t' <- withParagraphStyle o ts [Para t]
-  d' <- liftM vcat $ mapM (withParagraphStyle o ds . (map plainToPara)) d
+  d' <- liftM vcat $ mapM (withParagraphStyle o ds . map plainToPara) d
   return $ t' $$ d'
 
 inBlockQuote :: PandocMonad m
@@ -307,8 +306,8 @@ inBlockQuote  o i (b:bs)
                              ni <- paraStyle
                                    [("style:parent-style-name","Quotations")]
                              go =<< inBlockQuote o ni (map plainToPara l)
-    | Para       l <- b = do go =<< inParagraphTagsWithStyle ("P" ++ show  i) <$> inlinesToOpenDocument o l
-    | otherwise         = do go =<< blockToOpenDocument o b
+    | Para       l <- b = go =<< inParagraphTagsWithStyle ("P" ++ show  i) <$> inlinesToOpenDocument o l
+    | otherwise         = go =<< blockToOpenDocument o b
     where go  block  = ($$) block <$> inBlockQuote o i bs
 inBlockQuote     _ _ [] =  resetIndent >> return empty
 
@@ -446,7 +445,7 @@ inlineToOpenDocument o ils
     SoftBreak
      | writerWrapText o == WrapPreserve
                   -> return $ preformatted "\n"
-     | otherwise  -> return $ space
+     | otherwise  ->return space
     Span attr xs  -> withLangFromAttr attr (inlinesToOpenDocument o xs)
     LineBreak     -> return $ selfClosingTag "text:line-break" []
     Str         s -> return $ handleSpaces $ escapeStringForXML s
@@ -556,7 +555,7 @@ tableStyle num wcs =
                          [ ("style:name"  , tableId ++ "." ++ [c])
                          , ("style:family", "table-column"       )] $
                          selfClosingTag "style:table-column-properties"
-                         [("style:rel-column-width", printf "%d*" $ (floor $ w * 65535 :: Integer))]
+                         [("style:rel-column-width", printf "%d*" (floor $ w * 65535 :: Integer))]
         cellStyle      = inTags True "style:style"
                          [ ("style:name"  , tableId ++ ".A1")
                          , ("style:family", "table-cell"    )] $
@@ -584,8 +583,10 @@ paraStyle attrs = do
                            , ("style:auto-text-indent" , "false"  )]
                       else []
       attributes = indent ++ tight
-      paraProps = when (not $ null attributes) $
-                    selfClosingTag "style:paragraph-properties" attributes
+      paraProps = if null attributes
+                     then mempty
+                     else selfClosingTag
+                             "style:paragraph-properties" attributes
   addParaStyle $ inTags True "style:style" (styleAttr ++ attrs) paraProps
   return pn
 
@@ -643,7 +644,7 @@ withLangFromAttr :: PandocMonad m => Attr -> OD m a -> OD m a
 withLangFromAttr (_,_,kvs) action =
   case lookup "lang" kvs of
        Nothing -> action
-       Just l  -> do
+       Just l  ->
          case parseBCP47 l of
               Right lang -> withTextStyle (Language lang) action
               Left _ -> do

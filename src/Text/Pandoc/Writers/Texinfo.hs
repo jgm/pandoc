@@ -71,7 +71,7 @@ type TI m = StateT WriterState m
 -- | Convert Pandoc to Texinfo.
 writeTexinfo :: PandocMonad m => WriterOptions -> Pandoc -> m Text
 writeTexinfo options document =
-  evalStateT (pandocToTexinfo options $ wrapTop document) $
+  evalStateT (pandocToTexinfo options $ wrapTop document)
   WriterState { stStrikeout = False, stSuperscript = False,
                 stEscapeComma = False, stSubscript = False,
                 stIdentifiers = Set.empty, stOptions = options}
@@ -102,8 +102,8 @@ pandocToTexinfo options (Pandoc meta blocks) = do
               $ defField "titlepage" titlePage
               $ defField "subscript" (stSubscript st)
               $ defField "superscript" (stSuperscript st)
-              $ defField "strikeout" (stStrikeout st)
-              $ metadata
+              $
+        defField "strikeout" (stStrikeout st) metadata
   case writerTemplate options of
        Nothing  -> return body
        Just tpl -> renderTemplate' tpl context
@@ -166,11 +166,11 @@ blockToTexinfo (BlockQuote lst) = do
            contents $$
            text "@end quotation"
 
-blockToTexinfo (CodeBlock _ str) = do
+blockToTexinfo (CodeBlock _ str) =
   return $ blankline $$
-           text "@verbatim" $$
-           flush (text str) $$
-           text "@end verbatim" <> blankline
+         text "@verbatim" $$
+         flush (text str) $$
+         text "@end verbatim" <> blankline
 
 blockToTexinfo b@(RawBlock f str)
   | f == "texinfo" = return $ text str
@@ -218,7 +218,7 @@ blockToTexinfo HorizontalRule =
              text "@bigskip@hrule@bigskip" $$
              text "@end iftex" $$
              text "@ifnottex" $$
-             text (take 72 $ repeat '-') $$
+             text (replicate 72 '-') $$
              text "@end ifnottex"
 
 blockToTexinfo (Header 0 _ lst) = do
@@ -339,7 +339,7 @@ blockListToTexinfo (x:xs) = do
     Para _ -> do
       xs' <- blockListToTexinfo xs
       case xs of
-           ((CodeBlock _ _):_) -> return $ x' $$ xs'
+           (CodeBlock _ _:_) -> return $ x' $$ xs'
            _                   -> return $ x' $+$ xs'
     _ -> do
       xs' <- blockListToTexinfo xs
@@ -437,7 +437,7 @@ inlineToTexinfo (Subscript lst) = do
 inlineToTexinfo (SmallCaps lst) =
   inlineListToTexinfo lst >>= return . inCmd "sc"
 
-inlineToTexinfo (Code _ str) = do
+inlineToTexinfo (Code _ str) =
   return $ text $ "@code{" ++ stringToTexinfo str ++ "}"
 
 inlineToTexinfo (Quoted SingleQuote lst) = do
@@ -459,7 +459,7 @@ inlineToTexinfo il@(RawInline f str)
   | otherwise      =  do
       report $ InlineNotRendered il
       return empty
-inlineToTexinfo (LineBreak) = return $ text "@*" <> cr
+inlineToTexinfo LineBreak = return $ text "@*" <> cr
 inlineToTexinfo SoftBreak = do
   wrapText <- gets (writerWrapText . stOptions)
   case wrapText of
@@ -472,7 +472,7 @@ inlineToTexinfo (Link _ txt (src@('#':_), _)) = do
   contents <- escapeCommas $ inlineListToTexinfo txt
   return $ text "@ref" <>
            braces (text (stringToTexinfo src) <> text "," <> contents)
-inlineToTexinfo (Link _ txt (src, _)) = do
+inlineToTexinfo (Link _ txt (src, _)) =
   case txt of
         [Str x] | escapeURI x == src ->  -- autolink
              do return $ text $ "@url{" ++ x ++ "}"
@@ -484,7 +484,7 @@ inlineToTexinfo (Link _ txt (src, _)) = do
 inlineToTexinfo (Image attr alternate (source, _)) = do
   content <- escapeCommas $ inlineListToTexinfo alternate
   opts <- gets stOptions
-  let showDim dim = case (dimension dim attr) of
+  let showDim dim = case dimension dim attr of
                       (Just (Pixel a))   -> showInInch opts (Pixel a) ++ "in"
                       (Just (Percent _)) -> ""
                       (Just d)           -> show d

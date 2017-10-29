@@ -344,7 +344,7 @@ blockToXml (OrderedList a bss) = do
           item <- cMapM blockToXml $ plainToPara $ indentBlocks (mrk ++ " ") bs
           modify (\s -> s { parentListMarker = pmrk }) -- old parent marker
           return item
-    concat <$> (zipWithM mkitem markers bss)
+    concat <$> zipWithM mkitem markers bss
 blockToXml (BulletList bss) = do
     state <- get
     let level = parentBulletLevel state
@@ -408,7 +408,7 @@ blockToXml Null = return []
 paraToPlain :: [Block] -> [Block]
 paraToPlain [] = []
 paraToPlain (Para inlines : rest) =
-    Plain (inlines) : Plain ([LineBreak]) : paraToPlain rest
+    Plain inlines : Plain [LineBreak] : paraToPlain rest
 paraToPlain (p:rest) = p : paraToPlain rest
 
 -- Replace plain text with paragraphs and add line break after paragraphs.
@@ -416,9 +416,9 @@ paraToPlain (p:rest) = p : paraToPlain rest
 plainToPara :: [Block] -> [Block]
 plainToPara [] = []
 plainToPara (Plain inlines : rest) =
-    Para (inlines) : plainToPara rest
+    Para inlines : plainToPara rest
 plainToPara (Para inlines : rest) =
-    Para (inlines) : Plain [LineBreak] : plainToPara rest
+    Para inlines : Plain [LineBreak] : plainToPara rest
 plainToPara (p:rest) = p : plainToPara rest
 
 -- Simulate increased indentation level. Will not really work

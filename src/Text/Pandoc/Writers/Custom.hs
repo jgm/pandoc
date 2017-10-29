@@ -235,7 +235,7 @@ inlineToCustom (Math InlineMath str) =
 inlineToCustom (RawInline format str) =
   callFunc "RawInline" format str
 
-inlineToCustom (LineBreak) = callFunc "LineBreak"
+inlineToCustom LineBreak = callFunc "LineBreak"
 
 inlineToCustom (Link attr txt (src,tit)) =
   callFunc "Link" txt src tit (attrToMap attr)

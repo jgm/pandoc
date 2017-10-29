@@ -22,7 +22,7 @@ texMathToInlines mt inp = do
   res <- convertMath writePandoc mt inp
   case res of
        Right (Just ils)  -> return ils
-       Right (Nothing)   -> do
+       Right Nothing   -> do
          report $ CouldNotConvertTeXMath inp ""
          return [mkFallback mt inp]
        Left il           -> return [il]
@@ -39,7 +39,7 @@ mkFallback mt str = Str (delim ++ str ++ delim)
 convertMath :: PandocMonad m
             => (DisplayType -> [Exp] -> a) -> MathType -> String
             -> m (Either Inline a)
-convertMath writer mt str = do
+convertMath writer mt str =
   case writer dt <$> readTeX str of
        Right r  -> return (Right r)
        Left e   -> do

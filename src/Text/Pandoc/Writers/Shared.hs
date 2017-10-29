@@ -268,19 +268,19 @@ gridTable opts blocksToDoc headless aligns widths headers rows = do
                                              else handleGivenWidths widths
   let hpipeBlocks blocks = hcat [beg, middle, end]
         where h       = maximum (1 : map height blocks)
-              sep'    = lblock 3 $ vcat (map text $ replicate h " | ")
-              beg     = lblock 2 $ vcat (map text $ replicate h "| ")
-              end     = lblock 2 $ vcat (map text $ replicate h " |")
+              sep'    = lblock 3 $ vcat (replicate h (text " | "))
+              beg     = lblock 2 $ vcat (replicate h (text "| "))
+              end     = lblock 2 $ vcat (replicate h (text " |"))
               middle  = chomp $ hcat $ intersperse sep' blocks
   let makeRow = hpipeBlocks . zipWith lblock widthsInChars
   let head' = makeRow rawHeaders
   let rows' = map (makeRow . map chomp) rawRows
   let borderpart ch align widthInChars =
-           (if (align == AlignLeft || align == AlignCenter)
+           (if align == AlignLeft || align == AlignCenter
                then char ':'
                else char ch) <>
            text (replicate widthInChars ch) <>
-           (if (align == AlignRight || align == AlignCenter)
+           (if align == AlignRight || align == AlignCenter
                then char ':'
                else char ch)
   let border ch aligns' widthsInChars' =
