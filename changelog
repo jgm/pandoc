@@ -940,9 +940,9 @@ pandoc (2.0)
       properly escape things that would otherwise start ordered lists,
       such as
 
-        ---
-        title: 1. inline
-        ...
+          ---
+          title: 1. inline
+          ...
     + Better handling of tables with empty columns (#3337).  We now
       calculate the number of columns based on the longest row (or the
       length of aligns or widths).
