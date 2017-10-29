@@ -16,7 +16,6 @@ along with this program; if not, write to the Free Software
 Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 -}
 import Text.Pandoc
-import Text.Pandoc.Class hiding (getCurrentTime, trace)
 import qualified Text.Pandoc.UTF8 as UTF8
 import Data.Text (Text)
 import Data.Time (getCurrentTime)
@@ -38,7 +37,8 @@ readerBench doc (name, reader) =
                        $ writer def{ writerWrapText = WrapAuto} doc
          in return $ bench (name ++ " reader") $ nf
                  (reader def) inp
-       _ -> trace ("\nCould not find writer for " ++ name ++ "\n") Nothing
+       _ -> Debug.Trace.trace
+             ("\nCould not find writer for " ++ name ++ "\n") Nothing
 
 writerBench :: Pandoc
             -> (String, WriterOptions -> Pandoc -> Text)
@@ -66,7 +66,7 @@ main = do
   inp <- UTF8.toText <$> B.readFile "test/testsuite.txt"
   lalune <- B.readFile "test/lalune.jpg"
   movie <- B.readFile "test/movie.jpg"
-  time <- getCurrentTime
+  time <- Data.Time.getCurrentTime
   let setupFakeFiles = modifyPureState $ \st -> st{ stFiles =
                         FileTree $ Map.fromList [
                            ("lalune.jpg", FileInfo time lalune),

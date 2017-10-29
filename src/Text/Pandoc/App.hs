@@ -77,11 +77,6 @@ import System.IO.Error (isDoesNotExistError)
 import Text.Pandoc
 import Text.Pandoc.BCP47 (Lang (..), parseBCP47)
 import Text.Pandoc.Builder (setMeta)
-import Text.Pandoc.Class (PandocIO, extractMedia, fillMediaBag, getLog, openURL,
-                          readDataFile, readDefaultDataFile, readFileStrict,
-                          report, setInputFiles, setOutputFile,
-                          setRequestHeader, setResourcePath, setTrace,
-                          setTranslations, setUserDataDir)
 import Text.Pandoc.Highlighting (highlightingStyles)
 import Text.Pandoc.Lua (LuaException (..), runLuaFilter)
 import Text.Pandoc.PDF (makePDF)
