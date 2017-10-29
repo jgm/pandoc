@@ -1295,10 +1295,10 @@ pandoc (2.0)
     + Fixed small bug in list parsing (#3432).  Previously the parser didn't
       handle properly this case:
 
-        * - a
-          - b
-        * - c
-          - d
+          * - a
+            - b
+          * - c
+            - d
     + Handle multiline cells in simple tables (#1166).
     + Parse list table directive (Keiichiro Shikano, #3432).
     + Make use of `anyLineNewline` (Alexander Krotov, #3686).
