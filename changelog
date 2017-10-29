@@ -1054,6 +1054,8 @@ pandoc (2.0)
       produced one paragraph with `<empty-line/>` elements, which are not
       allowed inside `<p>` according to FB2 schema.
     + Replace `concatMap` with `cMap` (Alexander Krotov).
+    + Write FB2 lists without nesting blocks inside `<p>` (Alexander
+      Krotov, #4004)
 
   * HTML writer:
 
