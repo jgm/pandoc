@@ -493,7 +493,7 @@ convertWithOpts opts = do
       report $ Deprecated "markdown_github" "Use gfm instead."
 
     setResourcePath (optResourcePath opts)
-    mapM_ (\(n,v) -> setRequestHeader n v) (optRequestHeaders opts)
+    mapM_ (uncurry setRequestHeader) (optRequestHeaders opts)
 
     doc <- sourceToDoc sources >>=
               (   (if isJust (optExtractMedia opts)
