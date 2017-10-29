@@ -319,29 +319,6 @@ To run just the markdown benchmarks:
 
     cabal bench --benchmark-options='markdown'
 
-### Building the whole pandoc ecosystem
-
-Sometimes pandoc's development code depends on unreleased versions
-of dependent libraries.  You'll need to build these as well.  A
-maximal build method would be
-
-    mkdir pandoc-build
-    cd pandoc-build
-    git clone https://github.com/jgm/pandoc-types
-    git clone https://github.com/jgm/texmath
-    git clone https://github.com/jgm/pandoc-citeproc
-    git clone https://github.com/jgm/pandoc
-    git clone https://github.com/jgm/cmark-hs
-    git clone https://github.com/jgm/zip-archive
-    cd pandoc
-    stack install --test --install-ghc --stack-yaml stack.full.yaml
-
-To pull in the latest changes, after you've done this and there have been
-changes in the repositories:  Visit each repository in pandoc-build
-(pandoc-types, texmath, pandoc-citeproc, pandoc, zip-archive, cmark-hs) and do
-`git pull`.  In the pandoc repo, also do `stack install --test
---stack-yaml stack.full.yaml`.
-
 
 [Arch]: https://www.archlinux.org/packages/community/x86_64/pandoc/
 [Cabal User's Guide]: http://www.haskell.org/cabal/release/latest/doc/users-guide/builders.html#setup-configure-paths
