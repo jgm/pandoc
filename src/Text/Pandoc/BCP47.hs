@@ -79,7 +79,7 @@ parseBCP47 lang =
           region <- P.option "" pRegion
           variants <- P.many (pVariant P.<|> pExtension P.<|> pPrivateUse)
           P.eof
-          return $ Lang{ langLanguage = language
+          return Lang{   langLanguage = language
                        , langScript = script
                        , langRegion = region
                        , langVariants = variants }
