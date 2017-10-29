@@ -1,6 +1,6 @@
 version?=$(shell grep '^Version:' pandoc.cabal | awk '{print $$2;}')
 pandoc=$(shell find dist -name pandoc -type f -exec ls -t {} \; | head -1)
-sourcefiles=$(shell find pandoc.hs src test -name '*.hs')
+SOURCEFILES?=$(shell find pandoc.hs src test -name '*.hs')
 BRANCH?=master
 RESOLVER=nightly-2017-10-22
 GHCOPTS=-fdiagnostics-color=always -Wall -fno-warn-unused-do-bind -Wincomplete-record-updates -Wnoncanonical-monad-instances -Wnoncanonical-monadfail-instances
@@ -26,10 +26,10 @@ weigh:
 	stack build --resolver=$(RESOLVER) --ghc-options '$(GHCOPTS)' --flag 'pandoc:weigh-pandoc' && stack exec weigh-pandoc
 
 reformat:
-	for f in $(sourcefiles); do echo $$f; stylish-haskell -i $$f ; done
+	for f in $(SOURCEFILES); do echo $$f; stylish-haskell -i $$f ; done
 
 lint:
-	for f in $(sourcefiles); do echo $$f; hlint --verbose --refactor --refactor-options='-i -s' $$f; done
+	for f in $(SOURCEFILES); do echo $$f; hlint --verbose --refactor --refactor-options='-i -s' $$f; done
 
 changes_github:
 	pandoc --filter extract-changes.hs changelog -t markdown_github | sed -e 's/\\#/#/g' | pbcopy
