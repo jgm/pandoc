@@ -156,6 +156,10 @@ tests = [ testGroup "markdown"
         , testGroup "ms"
           [ testGroup "writer" $ writerTests "ms"
           ]
+        , testGroup "creole"
+          [ test "reader" ["-r", "creole", "-w", "native", "-s"]
+            "creole-reader.txt" "creole-reader.native"
+          ]
         ]
 
 -- makes sure file is fully closed after reading
