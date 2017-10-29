@@ -338,13 +338,13 @@ blockToXml (LineBlock lns) =
 blockToXml (OrderedList a bss) = do
     state <- get
     let pmrk = parentListMarker state
-    let markers = map ((pmrk ++ " ") ++) $ orderedListMarkers a
+    let markers = map (pmrk ++) $ orderedListMarkers a
     let mkitem mrk bs = do
-          modify (\s -> s { parentListMarker = mrk })
-          itemtext <- cMapM blockToXml . paraToPlain $ bs
+          modify (\s -> s { parentListMarker = mrk ++ " "})
+          item <- cMapM blockToXml $ plainToPara $ indentBlocks (mrk ++ " ") bs
           modify (\s -> s { parentListMarker = pmrk }) -- old parent marker
-          return . el "p" $ [ txt mrk, txt " " ] ++ itemtext
-    zipWithM mkitem markers bss
+          return item
+    concat <$> (zipWithM mkitem markers bss)
 blockToXml (BulletList bss) = do
     state <- get
     let level = parentBulletLevel state
@@ -354,10 +354,10 @@ blockToXml (BulletList bss) = do
     let mrk = prefix ++ bullets !! (level `mod` length bullets)
     let mkitem bs = do
           modify (\s -> s { parentBulletLevel = level+1 })
-          itemtext <- cMapM blockToXml . paraToPlain $ bs
+          item <- cMapM blockToXml $ plainToPara $ indentBlocks (mrk ++ " ") bs
           modify (\s -> s { parentBulletLevel = level }) -- restore bullet level
-          return $ el "p" $ txt (mrk ++ " ") : itemtext
-    mapM mkitem bss
+          return item
+    cMapM mkitem bss
 blockToXml (DefinitionList defs) =
     cMapM mkdef defs
     where
@@ -408,19 +408,24 @@ blockToXml Null = return []
 paraToPlain :: [Block] -> [Block]
 paraToPlain [] = []
 paraToPlain (Para inlines : rest) =
-    let p = Plain (inlines ++ [LineBreak])
-    in  p : paraToPlain rest
+    Plain (inlines) : Plain ([LineBreak]) : paraToPlain rest
 paraToPlain (p:rest) = p : paraToPlain rest
+
+-- Replace plain text with paragraphs and add line break after paragraphs.
+-- It is used to convert plain text from tight list items to paragraphs.
+plainToPara :: [Block] -> [Block]
+plainToPara [] = []
+plainToPara (Plain inlines : rest) =
+    Para (inlines) : plainToPara rest
+plainToPara (Para inlines : rest) =
+    Para (inlines) : Plain [LineBreak] : plainToPara rest
+plainToPara (p:rest) = p : plainToPara rest
 
 -- Simulate increased indentation level. Will not really work
 -- for multi-line paragraphs.
-indent :: Block -> Block
-indent = indentBlock
+indentPrefix :: String -> Block -> Block
+indentPrefix spacer = indentBlock
   where
-  -- indentation space
-  spacer :: String
-  spacer = replicate 4 ' '
-  --
   indentBlock (Plain ins) = Plain (Str spacer:ins)
   indentBlock (Para ins) = Para (Str spacer:ins)
   indentBlock (CodeBlock a s) =
@@ -433,6 +438,17 @@ indent = indentBlock
   indentLines :: [Inline] -> [Inline]
   indentLines ins = let lns = split isLineBreak ins :: [[Inline]]
                     in  intercalate [LineBreak] $ map (Str spacer:) lns
+
+indent :: Block -> Block
+indent = indentPrefix spacer
+  where
+  -- indentation space
+  spacer :: String
+  spacer = replicate 4 ' '
+
+indentBlocks :: String -> [Block] -> [Block]
+indentBlocks _ [] = []
+indentBlocks prefix (x:xs) = indentPrefix prefix x : map (indentPrefix $ replicate (length prefix) ' ') xs
 
 -- | Convert a Pandoc's Inline element to FictionBook XML representation.
 toXml :: PandocMonad m => Inline -> FBM m [Content]
