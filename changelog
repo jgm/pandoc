@@ -503,17 +503,17 @@ pandoc (2.0)
       it will fail spectacularly for unknown raw or verbatim directives.
     + Handle chained link definitions (#262).  For example,
 
-        .. _hello:
-        .. _goodbye: example.com
+          .. _hello:
+          .. _goodbye: example.com
 
       Here both `hello` and `goodbye` should link to `example.com`.
     + Support anchors (#262).  E.g.
 
-        `hello`
+          `hello`
 
-        .. _hello:
+          .. _hello:
 
-        paragraph
+          paragraph
 
       This is supported by putting "paragraph" in a `Div` with id `hello`.
     + Support `:widths:` attribute for table directive.
@@ -2095,11 +2095,11 @@ pandoc (1.19)
         3.  does some postprocessing of the paragraphs that combines tables
             followed immediately by captions
 
-	The ODT writer used the `TableCaption` style for the caption
-	paragraph.  This commit follows the OpenOffice approach which allows
-	for appending captions to table but uses a built-in style named
-	`Table` instead of `TableCaption`. Users of a custom `reference.odt`
-	should change the style's name from `TableCaption` to `Table`.
+      The ODT writer used the `TableCaption` style for the caption
+      paragraph.  This commit follows the OpenOffice approach which allows
+      for appending captions to table but uses a built-in style named
+      `Table` instead of `TableCaption`. Users of a custom `reference.odt`
+      should change the style's name from `TableCaption` to `Table`.
 
   * ODT reader: Infer tables' header props from rows (#3199,
     Hubert Plociniczak). ODT reader simply provided an empty header list
