@@ -65,11 +65,7 @@ module Text.Pandoc
                -- * Logging
                , module Text.Pandoc.Logging
                -- * Typeclass
-               , PandocMonad
-               , runIO
-               , runPure
-               , runIOorExplode
-               , setVerbosity
+               , module Text.Pandoc.Class
                -- * Error handling
                , module Text.Pandoc.Error
                -- * Readers: converting /to/ Pandoc format

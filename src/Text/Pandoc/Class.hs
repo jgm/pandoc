@@ -93,7 +93,6 @@ module Text.Pandoc.Class ( PandocMonad(..)
                          , setTranslations
                          , translateTerm
                          , Translations
-                         , Term(..)
                          ) where
 
 import Prelude hiding (readFile)

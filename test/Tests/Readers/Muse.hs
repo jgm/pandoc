@@ -9,7 +9,6 @@ import Tests.Helpers
 import Text.Pandoc
 import Text.Pandoc.Arbitrary ()
 import Text.Pandoc.Builder
-import Text.Pandoc.Class
 
 muse :: Text -> Pandoc
 muse = purely $ \s -> do
