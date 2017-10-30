@@ -78,22 +78,26 @@ $(document).ready(function() {
       from
       </label>
       <select id="from">
+        <option value="commonmark">CommonMark</option>
+        <option value="creole">Creole</option>
         <option value="docbook">DocBook</option>
+        <option value="gfm">GitHub-Flavored Markdown</option>
         <option value="haddock">Haddock markup</option>
         <option value="html">HTML</option>
         <option value="latex">LaTeX</option>
         <option value="markdown" selected>Markdown (pandoc)</option>
-        <option value="markdown_strict">Markdown (strict)</option>
-        <option value="markdown_phpextra">Markdown (PHP Markdown Extra)</option>
-        <option value="markdown_github">Markdown (GitHub)</option>
-        <option value="mediawiki">MediaWiki</option>
         <option value="markdown_mmd">MultiMarkdown</option>
+        <option value="markdown_phpextra">Markdown (PHP Markdown Extra)</option>
+        <option value="markdown_strict">Markdown (strict)</option>
+        <option value="mediawiki">MediaWiki</option>
         <option value="muse">Muse</option>
         <option value="opml">OPML</option>
         <option value="org">Org Mode</option>
         <option value="rst">reStructuredText</option>
-        <option value="textile">Textile</option>
         <option value="t2t">Txt2Tags</option>
+        <option value="textile">Textile</option>
+        <option value="tikiwiki">TikiWiki</option>
+        <option value="twiki">TWiki</option>
         <option value="vimwiki">Vimwiki</option>
       </select>
       <br/>
@@ -104,34 +108,42 @@ $(document).ready(function() {
       to
       </label>
       <select id="to">
+        <option value="S5">S5</option>
         <option value="asciidoc">AsciiDoc</option>
+        <option value="beamer">LaTeX Beamer</option>
+        <option value="commonmark">CommonMark</option>
         <option value="context">ConTeXt</option>
-        <option value="docbook">DocBook</option>
+        <option value="docbook4">DocBook v4</option>
+        <option value="docbook5">DocBook v5</option>
         <option value="dokuwiki">DokuWiki</option>
         <option value="dzslides">DZSlides</option>
-        <option value="man">Groff man</option>
-        <option value="html" selected>HTML</option>
+        <option value="dzslides">dzslides</option>
+        <option value="gfm">GitHub-Flavored Markdown</option>
+        <option value="haddock">Haddock markup</option>
+        <option value="html4" selected>HTML 4</option>
         <option value="html5">HTML 5</option>
         <option value="icml">ICML</option>
+        <option value="json">JSON</option>
         <option value="latex">LaTeX</option>
-        <option value="beamer">LaTeX Beamer</option>
+        <option value="man">Groff man</option>
         <option value="markdown">Markdown (pandoc)</option>
-        <option value="markdown_strict">Markdown (strict)</option>
-        <option value="markdown_phpextra">Markdown (PHP Markdown Extra)</option>
-        <option value="markdown_github">Markdown (GitHub)</option>
         <option value="markdown_mmd">MultiMarkdown</option>
-        <option value="rst">reStructuredText</option>
-        <option value="textile">Textile</option>
+        <option value="markdown_phpextra">Markdown (PHP Markdown Extra)</option>
+        <option value="markdown_strict">Markdown (strict)</option>
         <option value="mediawiki">MediaWiki</option>
-        <option value="org">Org Mode</option>
+        <option value="muse">Muse</option>
         <option value="opendocument">OpenDocument</option>
         <option value="opml">OPML</option>
+        <option value="org">Org Mode</option>
+        <option value="plain">Plain text</option>
+        <option value="revealjs">reveal.js</option>
+        <option value="rst">reStructuredText</option>
         <option value="rtf">RTF</option>
-        <option value="S5">S5</option>
         <option value="slideous">Slideous</option>
         <option value="slidy">Slidy</option>
         <option value="texinfo">Texinfo</option>
-        <option value="muse">Muse</option>
+        <option value="textile">Textile</option>
+        <option value="zimwiki">ZimWiki</option>
       </select>
       <br/>
       <pre id="results"></pre>
