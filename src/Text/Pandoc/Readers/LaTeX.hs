@@ -430,7 +430,7 @@ doMacros n = do
                      Nothing -> return ()
                      Just (Macro expansionPoint numargs optarg newtoks) -> do
                        setInput ts
-                       let getarg = spaces >> braced
+                       let getarg = try $ spaces >> bracedOrToken
                        args <- case optarg of
                                     Nothing -> count numargs getarg
                                     Just o  ->
@@ -1824,7 +1824,7 @@ letmacro = do
   Tok _ (CtrlSeq name) _ <- anyControlSeq
   optional $ symbol '='
   spaces
-  contents <- macroContents
+  contents <- bracedOrToken
   return (name, Macro ExpandWhenDefined 0 Nothing contents)
 
 defmacro :: PandocMonad m => LP m (Text, Macro)
@@ -1834,7 +1834,7 @@ defmacro = try $ do
   numargs <- option 0 $ argSeq 1
   -- we use withVerbatimMode, because macros are to be expanded
   -- at point of use, not point of definition
-  contents <- withVerbatimMode macroContents
+  contents <- withVerbatimMode bracedOrToken
   return (name, Macro ExpandWhenUsed numargs Nothing contents)
 
 -- Note: we don't yet support fancy things like #1.#2
@@ -1848,8 +1848,8 @@ isArgTok :: Tok -> Bool
 isArgTok (Tok _ (Arg _) _) = True
 isArgTok _                 = False
 
-macroContents :: PandocMonad m => LP m [Tok]
-macroContents = braced <|> ((:[]) <$> (anyControlSeq <|> singleChar))
+bracedOrToken :: PandocMonad m => LP m [Tok]
+bracedOrToken = braced <|> ((:[]) <$> (anyControlSeq <|> singleChar))
 
 newcommand :: PandocMonad m => LP m (Text, Macro)
 newcommand = do
@@ -1866,7 +1866,7 @@ newcommand = do
   spaces
   optarg <- option Nothing $ Just <$> try bracketedToks
   spaces
-  contents <- withVerbatimMode macroContents
+  contents <- withVerbatimMode bracedOrToken
   when (mtype == "newcommand") $ do
     macros <- sMacros <$> getState
     case M.lookup name macros of
@@ -1888,9 +1888,9 @@ newenvironment = do
   spaces
   optarg <- option Nothing $ Just <$> try bracketedToks
   spaces
-  startcontents <- withVerbatimMode macroContents
+  startcontents <- withVerbatimMode bracedOrToken
   spaces
-  endcontents <- withVerbatimMode macroContents
+  endcontents <- withVerbatimMode bracedOrToken
   when (mtype == "newenvironment") $ do
     macros <- sMacros <$> getState
     case M.lookup name macros of
