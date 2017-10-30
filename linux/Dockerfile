@@ -15,7 +15,11 @@ WORKDIR /usr/src/
 RUN git clone https://github.com/jgm/pandoc
 WORKDIR /usr/src/pandoc
 RUN stack install --stack-yaml stack.pkg.yaml --only-dependencies \
+    --flag 'pandoc:static' \
     --flag 'pandoc:embed_data_files' \
+    --flag 'pandoc-citeproc:static' \
+    --flag 'pandoc-citeproc:embed_data_files' \
+    --flag 'hslua:-export-dynamic' \
     --ghc-options '-O2 -optc-Os -optl=-pthread -optl=-static -fPIC' \
     pandoc pandoc-citeproc
 CMD git pull && \
@@ -23,6 +27,8 @@ CMD git pull && \
     stack install --stack-yaml stack.pkg.yaml \
       --flag 'pandoc:static' \
       --flag 'pandoc:embed_data_files' \
+      --flag 'pandoc-citeproc:static' \
+      --flag 'pandoc-citeproc:embed_data_files' \
       --flag 'hslua:-export-dynamic' \
       --ghc-options '-O2 -optc-Os -optl=-pthread -optl=-static -fPIC' \
       --local-bin-path /artifacts \
