@@ -438,7 +438,14 @@ doMacros n = do
                                            <*> count (numargs - 1) getarg
                        let addTok (Tok _ (Arg i) _) acc | i > 0
                                                         , i <= numargs =
-                                 map (setpos spos) (args !! (i - 1)) ++ acc
+                                 foldr addTok acc (args !! (i - 1))
+                           -- add space if needed after control sequence
+                           -- see #4007
+                           addTok (Tok _ (CtrlSeq x) txt)
+                                  acc@(Tok _ Word _ : _)
+                             | not (T.null txt) &&
+                               (isLetter (T.last txt)) =
+                               Tok spos (CtrlSeq x) (txt <> " ") : acc
                            addTok t acc = setpos spos t : acc
                        ts' <- getInput
                        setInput $ foldr addTok ts' newtoks
