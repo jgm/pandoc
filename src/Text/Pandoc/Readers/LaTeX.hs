@@ -1824,7 +1824,7 @@ letmacro = do
   Tok _ (CtrlSeq name) _ <- anyControlSeq
   optional $ symbol '='
   spaces
-  contents <- braced <|> ((:[]) <$> (anyControlSeq <|> singleChar))
+  contents <- macroContents
   return (name, Macro ExpandWhenDefined 0 Nothing contents)
 
 defmacro :: PandocMonad m => LP m (Text, Macro)
@@ -1832,7 +1832,9 @@ defmacro = try $ do
   controlSeq "def"
   Tok _ (CtrlSeq name) _ <- anyControlSeq
   numargs <- option 0 $ argSeq 1
-  contents <- withVerbatimMode braced
+  -- we use withVerbatimMode, because macros are to be expanded
+  -- at point of use, not point of definition
+  contents <- withVerbatimMode macroContents
   return (name, Macro ExpandWhenUsed numargs Nothing contents)
 
 -- Note: we don't yet support fancy things like #1.#2
@@ -1845,6 +1847,9 @@ argSeq n = do
 isArgTok :: Tok -> Bool
 isArgTok (Tok _ (Arg _) _) = True
 isArgTok _                 = False
+
+macroContents :: PandocMonad m => LP m [Tok]
+macroContents = braced <|> ((:[]) <$> (anyControlSeq <|> singleChar))
 
 newcommand :: PandocMonad m => LP m (Text, Macro)
 newcommand = do
@@ -1861,9 +1866,7 @@ newcommand = do
   spaces
   optarg <- option Nothing $ Just <$> try bracketedToks
   spaces
-  contents <- withVerbatimMode braced
-  -- we use withVerbatimMode, because macros are to be expanded
-  -- at point of use, not point of definition
+  contents <- withVerbatimMode macroContents
   when (mtype == "newcommand") $ do
     macros <- sMacros <$> getState
     case M.lookup name macros of
@@ -1885,9 +1888,9 @@ newenvironment = do
   spaces
   optarg <- option Nothing $ Just <$> try bracketedToks
   spaces
-  startcontents <- withVerbatimMode braced
+  startcontents <- withVerbatimMode macroContents
   spaces
-  endcontents <- withVerbatimMode braced
+  endcontents <- withVerbatimMode macroContents
   when (mtype == "newenvironment") $ do
     macros <- sMacros <$> getState
     case M.lookup name macros of
