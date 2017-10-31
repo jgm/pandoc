@@ -203,7 +203,10 @@ tests = [
         , "forced line breaks" =:
           "{{{no break!\\\\here}}} but a break\\\\here!"
           =?> para (code "no break!\\\\here" <> " but a break"
-                    <> linebreak <> "here!")
+                    <> linebreak <> "here!"),
+          "quoted block, after trailing white space" =:
+          "this is a paragraph  \n{{{\nfoo bar\n  //baz//\n}}}"
+          =?> para "this is a paragraph" <> codeBlock "foo bar\n  //baz//"
         ]
   , testGroup "Images and Links" [
           "image simple" =:
