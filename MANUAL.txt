@@ -2888,16 +2888,20 @@ Attributes can be attached to verbatim text, just as with
 
 ### Small caps ###
 
-To write small caps, you can use an HTML span tag:
+To write small caps, use the `smallcaps` class:
 
+    [Small caps]{.smallcaps}
+
+Or, without the `bracketed_spans` extension:
+
+    <span class="smallcaps">Small caps</span>
+
+For compatibility with other Markdown flavors, CSS is also supported:
+    
     <span style="font-variant:small-caps;">Small caps</span>
 
-(The semicolon is optional and there may be space after the
-colon.) This will work in all output formats that support small caps.
+This will work in all output formats that support small caps.
 
-Alternatively, you can also use the new `bracketed_spans` syntax:
-
-    [Small caps]{style="font-variant:small-caps;"}
 
 Math
 ----
