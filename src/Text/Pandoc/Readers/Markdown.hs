@@ -846,6 +846,7 @@ listLine continuationIndent = try $ do
                      skipMany spaceChar
                      listStart)
   notFollowedByHtmlCloser
+  notFollowedByDivCloser
   optional (() <$ gobbleSpaces continuationIndent)
   listLineCommon
 
@@ -883,15 +884,23 @@ listContinuation continuationIndent = try $ do
   x <- try $ do
          notFollowedBy blankline
          notFollowedByHtmlCloser
+         notFollowedByDivCloser
          gobbleSpaces continuationIndent
          anyLineNewline
   xs <- many $ try $ do
          notFollowedBy blankline
          notFollowedByHtmlCloser
+         notFollowedByDivCloser
          gobbleSpaces continuationIndent <|> notFollowedBy' listStart
          anyLineNewline
   blanks <- many blankline
   return $ concat (x:xs) ++ blanks
+
+notFollowedByDivCloser :: PandocMonad m => MarkdownParser m ()
+notFollowedByDivCloser = do
+  guardDisabled Ext_fenced_divs <|>
+    do divLevel <- stateFencedDivLevel <$> getState
+       guard (divLevel < 1) <|> notFollowedBy divFenceEnd
 
 notFollowedByHtmlCloser :: PandocMonad m => MarkdownParser m ()
 notFollowedByHtmlCloser = do
@@ -965,6 +974,7 @@ defRawBlock compact = try $ do
   let dline = try
                ( do notFollowedBy blankline
                     notFollowedByHtmlCloser
+                    notFollowedByDivCloser
                     if compact -- laziness not compatible with compact
                        then () <$ indentSpaces
                        else (() <$ indentSpaces)
@@ -1688,10 +1698,8 @@ endline = try $ do
   guardEnabled Ext_blank_before_header <|> (notFollowedBy . char =<< atxChar) -- atx header
   guardDisabled Ext_backtick_code_blocks <|>
      notFollowedBy (() <$ (lookAhead (char '`') >> codeBlockFenced))
-  guardDisabled Ext_fenced_divs <|>
-    do divLevel <- stateFencedDivLevel <$> getState
-       guard (divLevel < 1) <|> notFollowedBy divFenceEnd
   notFollowedByHtmlCloser
+  notFollowedByDivCloser
   (eof >> return mempty)
     <|> (guardEnabled Ext_hard_line_breaks >> return (return B.linebreak))
     <|> (guardEnabled Ext_ignore_line_breaks >> return mempty)

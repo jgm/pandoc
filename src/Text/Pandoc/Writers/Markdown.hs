@@ -402,7 +402,7 @@ blockToMarkdown' opts (Div attrs ils) = do
          _ | isEnabled Ext_fenced_divs opts &&
              attrs /= nullAttr ->
                 nowrap (text ":::" <+> attrsToMarkdown attrs) $$
-                contents $$
+                chomp contents $$
                 text ":::" <> blankline
            | isEnabled Ext_native_divs opts ||
              (isEnabled Ext_raw_html opts &&
