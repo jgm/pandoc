@@ -75,14 +75,14 @@ pandoc (2.0)
   * Implement multicolumn support for slide formats (#1710).
     The structure expected is:
 
-        <div class="columns">
-          <div class="column" width="40%">
-            contents...
-          </div>
-          <div class="column" width="60%">
-            contents...
-          </div>
-        </div>
+        :::::::::::::: {.columns}
+        ::: {.column width="40%"}
+        contents...
+        :::
+        ::: {.column width="60%"}
+        contents...
+        :::
+        ::::::::::::::
 
     Support has been added for beamer and all HTML slide formats.
 

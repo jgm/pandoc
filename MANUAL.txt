@@ -4042,17 +4042,34 @@ Speaker notes
 reveal.js has good support for speaker notes.  You can add notes to your
 Markdown document thus:
 
-    <div class="notes">
+    ::: notes
+
     This is my note.
 
     - It can contain Markdown
     - like this list
 
-    </div>
+    :::
 
 To show the notes window, press `s` while viewing the presentation.
 Notes are not yet supported for other slide formats, but the notes
 will not appear on the slides themselves.
+
+Columns
+-------
+
+To put material in side by side columns, you can use a native
+div container with class `columns`, containing two or more div
+containers with class `column` and a `width` attribute:
+
+    :::::::::::::: {.columns}
+    ::: {.column width="40%"}
+    contents...
+    :::
+    ::: {.column width="60%"}
+    contents...
+    :::
+    ::::::::::::::
 
 Frame attributes in beamer
 --------------------------
