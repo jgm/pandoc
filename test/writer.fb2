@@ -332,64 +332,61 @@
 <p>
 <strong>apple</strong>
 </p>
-<p>    red fruit<empty-line />
-</p>
+<p>    red fruit</p>
 <p>
 <strong>orange</strong>
 </p>
-<p>    orange fruit<empty-line />
-</p>
+<p>    orange fruit</p>
 <p>
 <strong>banana</strong>
 </p>
-<p>    yellow fruit<empty-line />
-</p>
+<p>    yellow fruit</p>
 <p>Tight using tabs:</p>
 <p>
 <strong>apple</strong>
 </p>
-<p>    red fruit<empty-line />
-</p>
+<p>    red fruit</p>
 <p>
 <strong>orange</strong>
 </p>
-<p>    orange fruit<empty-line />
-</p>
+<p>    orange fruit</p>
 <p>
 <strong>banana</strong>
 </p>
-<p>    yellow fruit<empty-line />
-</p>
+<p>    yellow fruit</p>
 <p>Loose:</p>
 <p>
 <strong>apple</strong>
 </p>
-<p>    red fruit<empty-line />
-</p>
+<p>    red fruit</p>
+<empty-line />
 <p>
 <strong>orange</strong>
 </p>
-<p>    orange fruit<empty-line />
-</p>
+<p>    orange fruit</p>
+<empty-line />
 <p>
 <strong>banana</strong>
 </p>
-<p>    yellow fruit<empty-line />
-</p>
+<p>    yellow fruit</p>
+<empty-line />
 <p>Multiple blocks with italics:</p>
 <p>
 <strong>
 <emphasis>apple</emphasis>
 </strong>
 </p>
-<p>    red fruit<empty-line />    contains seeds, crisp, pleasant to taste<empty-line />
-</p>
+<p>    red fruit</p>
+<empty-line />
+<p>    contains seeds, crisp, pleasant to taste</p>
+<empty-line />
 <p>
 <strong>
 <emphasis>orange</emphasis>
 </strong>
 </p>
-<p>    orange fruit<empty-line />
+<p>    orange fruit</p>
+<empty-line />
 <empty-line />
 <p>
 <code>    { orange code block }</code>
@@ -398,42 +395,47 @@
 <cite>
 <p>    orange block quote</p>
 </cite>
-</p>
 <p>Multiple definitions, tight:</p>
 <p>
 <strong>apple</strong>
 </p>
-<p>    red fruit<empty-line />    computer<empty-line />
-</p>
+<p>    red fruit</p>
+<p>    computer</p>
 <p>
 <strong>orange</strong>
 </p>
-<p>    orange fruit<empty-line />    bank<empty-line />
-</p>
+<p>    orange fruit</p>
+<p>    bank</p>
 <p>Multiple definitions, loose:</p>
 <p>
 <strong>apple</strong>
 </p>
-<p>    red fruit<empty-line />    computer<empty-line />
-</p>
+<p>    red fruit</p>
+<empty-line />
+<p>    computer</p>
+<empty-line />
 <p>
 <strong>orange</strong>
 </p>
-<p>    orange fruit<empty-line />    bank<empty-line />
-</p>
+<p>    orange fruit</p>
+<empty-line />
+<p>    bank</p>
+<empty-line />
 <p>Blank line after term, indented marker, alternate markers:</p>
 <p>
 <strong>apple</strong>
 </p>
-<p>    red fruit<empty-line />    computer<empty-line />
-</p>
+<p>    red fruit</p>
+<empty-line />
+<p>    computer</p>
+<empty-line />
 <p>
 <strong>orange</strong>
 </p>
-<p>    orange fruit<empty-line />
+<p>    orange fruit</p>
+<empty-line />
 <p>1. sublist</p>
 <p>2. sublist</p>
-</p>
 </section>
 <section>
 <title>

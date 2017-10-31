@@ -362,17 +362,9 @@ blockToXml (DefinitionList defs) =
     cMapM mkdef defs
     where
       mkdef (term, bss) = do
-          def' <- cMapM (cMapM blockToXml . sep . paraToPlain . map indent) bss
+          items <- cMapM (cMapM blockToXml . plainToPara . indentBlocks (replicate 4 ' ')) bss
           t <- wrap "strong" term
-          return [ el "p" t, el "p" def' ]
-      sep blocks =
-          if all needsBreak blocks then
-              blocks ++ [Plain [LineBreak]]
-          else
-              blocks
-      needsBreak (Para _)    = False
-      needsBreak (Plain ins) = LineBreak `notElem` ins
-      needsBreak _           = True
+          return (el "p" t : items)
 blockToXml h@Header{} = do
   -- should not occur after hierarchicalize, except inside lists/blockquotes
   report $ BlockNotRendered h
@@ -402,14 +394,6 @@ blockToXml (Table caption aligns _ headers rows) = do
       align_str AlignRight   = "right"
       align_str AlignDefault = "left"
 blockToXml Null = return []
-
--- Replace paragraphs with plain text and line break.
--- Necessary to simulate multi-paragraph lists in FB2.
-paraToPlain :: [Block] -> [Block]
-paraToPlain [] = []
-paraToPlain (Para inlines : rest) =
-    Plain inlines : Plain [LineBreak] : paraToPlain rest
-paraToPlain (p:rest) = p : paraToPlain rest
 
 -- Replace plain text with paragraphs and add line break after paragraphs.
 -- It is used to convert plain text from tight list items to paragraphs.
