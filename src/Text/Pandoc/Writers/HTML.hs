@@ -438,7 +438,7 @@ elementToHtml slideLevel opts (Sec level num (id',classes,keyvals) title' elemen
                                   []     -> []
                                   (x:xs) -> x ++ concatMap inDiv xs
   let inNl x = mconcat $ nl opts : intersperse (nl opts) x ++ [nl opts]
-  let classes' = ["titleslide" | titleSlide] ++ ["slide" | slide] ++
+  let classes' = ["title-slide" | titleSlide] ++ ["slide" | slide] ++
                   ["section" | (slide || writerSectionDivs opts) &&
                                not html5 ] ++
                   ["level" ++ show level | slide || writerSectionDivs opts ]
@@ -1100,7 +1100,7 @@ inlineToHtml opts inline = do
                         let link = H.a ! A.href (toValue $ "#" ++
                                          revealSlash ++
                                          writerIdentifierPrefix opts ++ "fn" ++ ref)
-                                       ! A.class_ "footnoteRef"
+                                       ! A.class_ "footnote-ref"
                                        ! prefixedId opts ("fnref" ++ ref)
                                        $ (if isJust epubVersion
                                              then id
@@ -1120,7 +1120,7 @@ blockListToNote :: PandocMonad m => WriterOptions -> String -> [Block] -> StateT
 blockListToNote opts ref blocks =
   -- If last block is Para or Plain, include the backlink at the end of
   -- that block. Otherwise, insert a new Plain block with the backlink.
-  let backlink = [Link ("",["footnoteBack"],[]) [Str "↩"] ("#" ++ writerIdentifierPrefix opts ++ "fnref" ++ ref,[])]
+  let backlink = [Link ("",["footnote-back"],[]) [Str "↩"] ("#" ++ writerIdentifierPrefix opts ++ "fnref" ++ ref,[])]
       blocks'  = if null blocks
                     then []
                     else let lastBlock   = last blocks
