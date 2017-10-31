@@ -64,7 +64,6 @@ data FbRenderState = FbRenderState
     { footnotes         :: [ (Int, String, [Content]) ]  -- ^ #, ID, text
     , imagesToFetch     :: [ (String, String) ]  -- ^ filename, URL or path
     , parentListMarker  :: String  -- ^ list marker of the parent ordered list
-    , parentBulletLevel :: Int  -- ^ nesting level of the unordered list
     , writerOptions     :: WriterOptions
     } deriving (Show)
 
@@ -73,7 +72,7 @@ type FBM m = StateT FbRenderState m
 
 newFB :: FbRenderState
 newFB = FbRenderState { footnotes = [], imagesToFetch = []
-                      , parentListMarker = "", parentBulletLevel = 0
+                      , parentListMarker = ""
                       , writerOptions = def }
 
 data ImageMode = NormalImage | InlineImage deriving (Eq)
@@ -347,15 +346,12 @@ blockToXml (OrderedList a bss) = do
     concat <$> zipWithM mkitem markers bss
 blockToXml (BulletList bss) = do
     state <- get
-    let level = parentBulletLevel state
     let pmrk = parentListMarker state
-    let prefix = replicate (length pmrk) ' '
-    let bullets = ["\x2022", "\x25e6", "*", "\x2043", "\x2023"]
-    let mrk = prefix ++ bullets !! (level `mod` length bullets)
+    let mrk = pmrk ++ "•"
     let mkitem bs = do
-          modify (\s -> s { parentBulletLevel = level+1 })
+          modify (\s -> s { parentListMarker = mrk ++ " "})
           item <- cMapM blockToXml $ plainToPara $ indentBlocks (mrk ++ " ") bs
-          modify (\s -> s { parentBulletLevel = level }) -- restore bullet level
+          modify (\s -> s { parentListMarker = pmrk }) -- old parent marker
           return item
     cMapM mkitem bss
 blockToXml (DefinitionList defs) =

@@ -261,23 +261,23 @@
 <p>Nested</p>
 </title>
 <p>• Tab</p>
-<p>◦ Tab</p>
-<p>* Tab</p>
+<p>• • Tab</p>
+<p>• • • Tab</p>
 <p>Here’s another:</p>
 <p>1. First</p>
 <p>2. Second:</p>
-<p>   • Fee</p>
-<p>   • Fie</p>
-<p>   • Foe</p>
+<p>2. • Fee</p>
+<p>2. • Fie</p>
+<p>2. • Foe</p>
 <p>3. Third</p>
 <p>Same thing but with paragraphs:</p>
 <p>1. First</p>
 <empty-line />
 <p>2. Second:</p>
 <empty-line />
-<p>   • Fee</p>
-<p>   • Fie</p>
-<p>   • Foe</p>
+<p>2. • Fee</p>
+<p>2. • Fie</p>
+<p>2. • Foe</p>
 <p>3. Third</p>
 <empty-line />
 </section>
@@ -289,9 +289,9 @@
 <empty-line />
 <p>• this is a list item indented with spaces</p>
 <empty-line />
-<p>◦ this is an example list item indented with tabs</p>
+<p>• • this is an example list item indented with tabs</p>
 <empty-line />
-<p>◦ this is an example list item indented with spaces</p>
+<p>• • this is an example list item indented with spaces</p>
 <empty-line />
 </section>
 <section>
