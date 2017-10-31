@@ -79,6 +79,7 @@ instance Show Direction where
 
 data Dimension = Pixel Integer
                | Centimeter Double
+               | Millimeter Double
                | Inch Double
                | Percent Double
                | Em Double
@@ -86,6 +87,7 @@ data Dimension = Pixel Integer
 instance Show Dimension where
   show (Pixel a)      = show   a ++ "px"
   show (Centimeter a) = showFl a ++ "cm"
+  show (Millimeter a) = showFl a ++ "mm"
   show (Inch a)       = showFl a ++ "in"
   show (Percent a)    = show   a ++ "%"
   show (Em a)         = showFl a ++ "em"
@@ -184,6 +186,7 @@ inInch opts dim =
   case dim of
     (Pixel a)      -> fromIntegral a / fromIntegral (writerDpi opts)
     (Centimeter a) -> a * 0.3937007874
+    (Millimeter a) -> a * 0.03937007874
     (Inch a)       -> a
     (Percent _)    -> 0
     (Em a)         -> a * (11/64)
@@ -193,6 +196,7 @@ inPixel opts dim =
   case dim of
     (Pixel a)      -> a
     (Centimeter a) -> floor $ dpi * a * 0.3937007874 :: Integer
+    (Millimeter a) -> floor $ dpi * a * 0.03937007874 :: Integer
     (Inch a)       -> floor $ dpi * a :: Integer
     (Percent _)    -> 0
     (Em a)         -> floor $ dpi * a * (11/64) :: Integer
@@ -225,6 +229,7 @@ scaleDimension factor dim =
   case dim of
         Pixel x      -> Pixel (round $ factor * fromIntegral x)
         Centimeter x -> Centimeter (factor * x)
+        Millimeter x -> Millimeter (factor * x)
         Inch x       -> Inch (factor * x)
         Percent x    -> Percent (factor * x)
         Em x         -> Em (factor * x)
@@ -243,7 +248,7 @@ lengthToDim :: String -> Maybe Dimension
 lengthToDim s = numUnit s >>= uncurry toDim
   where
     toDim a "cm"   = Just $ Centimeter a
-    toDim a "mm"   = Just $ Centimeter (a / 10)
+    toDim a "mm"   = Just $ Millimeter a
     toDim a "in"   = Just $ Inch a
     toDim a "inch" = Just $ Inch a
     toDim a "%"    = Just $ Percent a
