@@ -154,7 +154,8 @@ listItem :: PandocMonad m => Char -> Int -> CRLParser m B.Blocks
 listItem c n =
   fmap (B.plain . B.trimInlines .mconcat) (listStart >> many1Till inline itemEnd)
   where
-    listStart = try $ optional newline >> skipSpaces >> count n (char c)
+    listStart = try $ skipSpaces >> optional newline >> skipSpaces
+                >> count n (char c)
                 >> lookAhead (noneOf [c]) >> skipSpaces
     itemEnd = endOfParaElement <|> nextItem n
               <|> if n < 3 then nextItem (n+1)

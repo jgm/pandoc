@@ -127,6 +127,11 @@ tests = [
           =?> bulletList [ plain "foo"
                          <> bulletList [ plain "bar", plain "baz" ]
                          , plain "blubb" ]
+        , "nested unordered list, one separating space, trailing space" =:
+          "* foo \n** bar  \n** baz \n* blubb  "
+          =?> bulletList [ plain "foo"
+                         <> bulletList [ plain "bar", plain "baz" ]
+                         , plain "blubb" ]
         , "ordered list, two entries, one separating space" =:
           "# foo\n# bar"
           =?> orderedList [ plain "foo", plain "bar" ]
@@ -138,6 +143,11 @@ tests = [
           =?> para "blubber" <> orderedList [ plain "foo", plain "bar" ]
         , "nested ordered list, one separating space" =:
           "# foo\n## bar\n## baz\n# blubb"
+          =?> orderedList [ plain "foo"
+                         <> orderedList [ plain "bar", plain "baz" ]
+                         , plain "blubb" ]
+        , "nested ordered list, one separating space, trailing space" =:
+          "# foo \n## bar  \n## baz \n# blubb  "
           =?> orderedList [ plain "foo"
                          <> orderedList [ plain "bar", plain "baz" ]
                          , plain "blubb" ]
