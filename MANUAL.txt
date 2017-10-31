@@ -206,7 +206,7 @@ the LaTeX engine requires [`fontspec`].  `xelatex` uses
 `dir` variable set). If the `mathspec` variable is set,
 `xelatex` will use [`mathspec`] instead of [`unicode-math`].
 The [`upquote`] and [`microtype`] packages are used if
-available, and [`csquotes`] will be used for [smart punctuation]
+available, and [`csquotes`] will be used for [typography]
 if added to the template or included in any header file. The
 [`natbib`], [`biblatex`], [`bibtex`], and [`biber`] packages can
 optionally be used for [citation rendering]. These are included
@@ -3082,7 +3082,7 @@ starts with a fence containing at least three consecutive
 colons plus some attributes. The attributes may optionally
 be followed by another string of consecutive colons.
 The attribute syntax is exactly as in fenced code blocks (see
-[Extension-fenced_code_attributes], above).  As with fenced
+[Extension: `fenced_code_attributes`]).  As with fenced
 code blocks, one can use either attributes in curly braces
 or a single unbraced word, which will be treated as a class
 name.  The Div ends with another line containing a string of at
