@@ -382,6 +382,10 @@ pandocToEPUB version opts doc@(Pandoc meta _) = do
   -- sanity check on epubSubdir
   unless (all (\c -> isAscii c && isAlphaNum c) epubSubdir) $
     throwError $ PandocEpubSubdirectoryError epubSubdir
+  let inSubdir f = if null epubSubdir
+                      then f
+                      else epubSubdir ++ "/" ++ f
+
   let epub3 = version == EPUB3
   let writeHtml o = fmap (UTF8.fromTextLazy . TL.fromStrict) .
                       writeHtmlStringForEPUB version o
@@ -401,8 +405,12 @@ pandocToEPUB version opts doc@(Pandoc meta _) = do
   let vars = ("epub3", if epub3 then "true" else "false")
              : [(x,y) | (x,y) <- writerVariables opts, x /= "css"]
 
-  let cssvars pref = map (\e -> ("css", pref ++ eRelativePath e))
-                     stylesheetEntries
+  let cssvars useprefix = map (\e -> ("css",
+                               (if useprefix && not (null epubSubdir)
+                                   then "../"
+                                   else "")
+                               ++ eRelativePath e))
+                          stylesheetEntries
 
   let opts' = opts{ writerEmailObfuscation = NoObfuscation
                   , writerSectionDivs = True
@@ -422,7 +430,7 @@ pandocToEPUB version opts doc@(Pandoc meta _) = do
                        cpContent <- lift $ writeHtml
                             opts'{ writerVariables =
                                     ("coverpage","true"):
-                                     cssvars "" ++ vars }
+                                     cssvars False ++ vars }
                             (Pandoc meta [RawBlock (Format "html") $ "<div id=\"cover-image\">\n<img src=\"" ++ coverImage ++ "\" alt=\"cover image\" />\n</div>"])
                        imgContent <- lift $ P.readFileLazy img
                        return ( [mkEntry "cover.xhtml" cpContent]
@@ -431,9 +439,9 @@ pandocToEPUB version opts doc@(Pandoc meta _) = do
   -- title page
   tpContent <- lift $ writeHtml opts'{
                                   writerVariables = ("titlepage","true"):
-                                  cssvars "../" ++ vars }
+                                  cssvars True ++ vars }
                                (Pandoc meta [])
-  let tpEntry = mkEntry "text/title_page.xhtml" tpContent
+  let tpEntry = mkEntry (inSubdir "title_page.xhtml") tpContent
 
   -- handle pictures
   -- mediaRef <- P.newIORef []
@@ -532,9 +540,9 @@ pandocToEPUB version opts doc@(Pandoc meta _) = do
                  chapters'
 
   let chapToEntry num (Chapter mbnum bs) =
-       mkEntry ("text/" ++ showChapter num) <$>
+       mkEntry (inSubdir (showChapter num)) <$>
         writeHtml opts'{ writerNumberOffset = fromMaybe [] mbnum
-                       , writerVariables = cssvars "../" ++ vars }
+                       , writerVariables = cssvars True ++ vars }
                  (case bs of
                      (Header _ _ xs : _) ->
                        -- remove notes or we get doubled footnotes
@@ -673,12 +681,13 @@ pandocToEPUB version opts doc@(Pandoc meta _) = do
       navMapFormatter n tit src subs = unode "navPoint" !
                [("id", "navPoint-" ++ show n)] $
                   [ unode "navLabel" $ unode "text" $ stringify tit
-                  , unode "content" ! [("src", "text/" ++ src)] $ ()
+                  , unode "content" ! [("src", inSubdir src)] $ ()
                   ] ++ subs
 
   let tpNode = unode "navPoint" !  [("id", "navPoint-0")] $
                   [ unode "navLabel" $ unode "text" (stringify $ docTitle' meta)
-                  , unode "content" ! [("src","text/title_page.xhtml")] $ () ]
+                  , unode "content" ! [("src", inSubdir "title_page.xhtml")]
+                  $ () ]
 
   navMap <- lift $ evalStateT (mapM (navPointNode navMapFormatter) secs) 1
   let tocData = UTF8.fromStringLazy $ ppTopElement $
@@ -706,8 +715,8 @@ pandocToEPUB version opts doc@(Pandoc meta _) = do
   let navXhtmlFormatter :: Int -> [Inline] -> String -> [Element] -> Element
       navXhtmlFormatter n tit src subs = unode "li" !
                                        [("id", "toc-li-" ++ show n)] $
-                                            (unode "a" ! [("href", "text/" ++
-                                                                   src)]
+                                            (unode "a" !
+                                                [("href", inSubdir src)]
                                              $ titElements)
                                             : case subs of
                                                  []    -> []
@@ -753,7 +762,7 @@ pandocToEPUB version opts doc@(Pandoc meta _) = do
                           ]
                      else []
   navData <- lift $ writeHtml opts'{ writerVariables = ("navpage","true"):
-                     cssvars "" ++ vars }
+                     cssvars False ++ vars }
             (Pandoc (setMeta "title"
                      (walk removeNote $ fromList $ docTitle' meta) nullMeta)
                (navBlocks ++ landmarks))
@@ -767,8 +776,7 @@ pandocToEPUB version opts doc@(Pandoc meta _) = do
        unode "container" ! [("version","1.0")
               ,("xmlns","urn:oasis:names:tc:opendocument:xmlns:container")] $
          unode "rootfiles" $
-           unode "rootfile" ! [("full-path",
-               epubSubdir ++ ['/' | not (null epubSubdir)] ++ "content.opf")
+           unode "rootfile" ! [("full-path", inSubdir "content.opf")
                ,("media-type","application/oebps-package+xml")] $ ()
   let containerEntry = mkEntry "META-INF/container.xml" containerData
 
@@ -780,8 +788,7 @@ pandocToEPUB version opts doc@(Pandoc meta _) = do
   let appleEntry = mkEntry "META-INF/com.apple.ibooks.display-options.xml" apple
 
   let addEpubSubdir :: Entry -> Entry
-      addEpubSubdir e = e{ eRelativePath =
-        epubSubdir ++ ['/' | not (null epubSubdir)] ++ eRelativePath e }
+      addEpubSubdir e = e{ eRelativePath = inSubdir (eRelativePath e) }
   -- construct archive
   let archive = foldr addEntryToArchive emptyArchive $
                  [mimetypeEntry, containerEntry, appleEntry] ++
