@@ -1,3 +1,27 @@
+pandoc (2.0.0.1)
+
+  * EPUB writer:
+
+    + Fixed filepaths for nonstandard epub-subdirectory values.
+    + Ensure that epub2 is recognized as a non-text format,
+      so that a template is used.
+    + Don't include "prefix" attribute for ibooks for epub2.
+      It doesn't validate.
+    + Fix stylesheet paths; previously we had an incorrect
+      stylesheet path for the cover page and nav page.
+
+  * LaTeX reader:
+
+    + Insert space when needed in macro expansion (#4007).
+      Sometimes we need to insert a space after a control sequence
+      to prevent it merging with a following letter.
+    + Allow unbraced arguments for macros (#4007).
+    + Allow body of macro definition to be unbraced (#4007).
+
+  * Linux package build: ensure that pandoc-citeproc is statically linked.
+
+  * trypandoc: add native, ms.
+
 pandoc (2.0)
 
   [new features]
