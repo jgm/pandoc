@@ -43,7 +43,7 @@ import qualified Data.ByteString.Lazy.Char8 as B8
 import Data.Char (isAlphaNum, isAscii, isDigit, toLower)
 import Data.List (intercalate, isInfixOf, isPrefixOf)
 import qualified Data.Map as M
-import Data.Maybe (fromMaybe, isNothing, mapMaybe)
+import Data.Maybe (fromMaybe, isNothing, mapMaybe, isJust)
 import qualified Data.Set as Set
 import qualified Data.Text as TS
 import qualified Data.Text.Lazy as TL
@@ -399,8 +399,11 @@ pandocToEPUB version opts doc@(Pandoc meta _) = do
         stylesheets [(1 :: Int)..]
 
   let vars = ("epub3", if epub3 then "true" else "false")
-           : map (\e -> ("css", "../" ++ eRelativePath e)) stylesheetEntries
-           ++ [(x,y) | (x,y) <- writerVariables opts, x /= "css"]
+             : [(x,y) | (x,y) <- writerVariables opts, x /= "css"]
+
+  let cssvars pref = map (\e -> ("css", pref ++ eRelativePath e))
+                     stylesheetEntries
+
   let opts' = opts{ writerEmailObfuscation = NoObfuscation
                   , writerSectionDivs = True
                   , writerVariables = vars
@@ -417,7 +420,9 @@ pandocToEPUB version opts doc@(Pandoc meta _) = do
                      Just img  -> do
                        let coverImage = "media/" ++ takeFileName img
                        cpContent <- lift $ writeHtml
-                            opts'{ writerVariables = ("coverpage","true"):vars }
+                            opts'{ writerVariables =
+                                    ("coverpage","true"):
+                                     cssvars "" ++ vars }
                             (Pandoc meta [RawBlock (Format "html") $ "<div id=\"cover-image\">\n<img src=\"" ++ coverImage ++ "\" alt=\"cover image\" />\n</div>"])
                        imgContent <- lift $ P.readFileLazy img
                        return ( [mkEntry "cover.xhtml" cpContent]
@@ -425,7 +430,8 @@ pandocToEPUB version opts doc@(Pandoc meta _) = do
 
   -- title page
   tpContent <- lift $ writeHtml opts'{
-                                  writerVariables = ("titlepage","true"):vars }
+                                  writerVariables = ("titlepage","true"):
+                                  cssvars "../" ++ vars }
                                (Pandoc meta [])
   let tpEntry = mkEntry "text/title_page.xhtml" tpContent
 
@@ -527,13 +533,14 @@ pandocToEPUB version opts doc@(Pandoc meta _) = do
 
   let chapToEntry num (Chapter mbnum bs) =
        mkEntry ("text/" ++ showChapter num) <$>
-        writeHtml opts'{ writerNumberOffset = fromMaybe [] mbnum } (case bs of
-                                                                      (Header _ _ xs : _) ->
-                                                                        -- remove notes or we get doubled footnotes
-                                                                        Pandoc (setMeta "title" (walk removeNote $ fromList xs)
-                                                                                 nullMeta) bs
-                                                                      _                   ->
-                                                                        Pandoc nullMeta bs)
+        writeHtml opts'{ writerNumberOffset = fromMaybe [] mbnum
+                       , writerVariables = cssvars "../" ++ vars }
+                 (case bs of
+                     (Header _ _ xs : _) ->
+                       -- remove notes or we get doubled footnotes
+                       Pandoc (setMeta "title" (walk removeNote $ fromList xs)
+                                 nullMeta) bs
+                     _                   -> Pandoc nullMeta bs)
 
   chapterEntries <- lift $ zipWithM chapToEntry [1..] chapters
 
@@ -579,12 +586,14 @@ pandocToEPUB version opts doc@(Pandoc meta _) = do
             []    -> throwError $ PandocShouldNeverHappenError "epubIdentifier is null"  -- shouldn't happen
   currentTime <- lift P.getCurrentTime
   let contentsData = UTF8.fromStringLazy $ ppTopElement $
-        unode "package" ! [("version", case version of
-                                             EPUB2 -> "2.0"
-                                             EPUB3 -> "3.0")
-                          ,("xmlns","http://www.idpf.org/2007/opf")
-                          ,("unique-identifier","epub-id-1")
-                          ,("prefix","ibooks: http://vocabulary.itunes.apple.com/rdf/ibooks/vocabulary-extensions-1.0/")] $
+        unode "package" !
+          ([("version", case version of
+                             EPUB2 -> "2.0"
+                             EPUB3 -> "3.0")
+           ,("xmlns","http://www.idpf.org/2007/opf")
+           ,("unique-identifier","epub-id-1")
+           ] ++
+           [("prefix","ibooks: http://vocabulary.itunes.apple.com/rdf/ibooks/vocabulary-extensions-1.0/") | version == EPUB3]) $
           [ metadataElement version metadata currentTime
           , unode "manifest" $
              [ unode "item" ! [("id","ncx"), ("href","toc.ncx")
@@ -625,7 +634,10 @@ pandocToEPUB version opts doc@(Pandoc meta _) = do
                     ("href","nav.xhtml")] $ ()
              ] ++
              [ unode "reference" !
-                   [("type","cover"),("title","Cover"),("href","cover.xhtml")] $ () | epubCoverImage metadata /= Nothing
+                   [("type","cover")
+                   ,("title","Cover")
+                   ,("href","cover.xhtml")] $ ()
+               | isJust (epubCoverImage metadata)
              ]
           ]
   let contentsEntry = mkEntry "content.opf" contentsData
@@ -741,10 +753,7 @@ pandocToEPUB version opts doc@(Pandoc meta _) = do
                           ]
                      else []
   navData <- lift $ writeHtml opts'{ writerVariables = ("navpage","true"):
-                     -- remove the leading ../ from stylesheet paths:
-                     map (\(k,v) -> if k == "css"
-                                       then (k, drop 3 v)
-                                       else (k, v)) vars }
+                     cssvars "" ++ vars }
             (Pandoc (setMeta "title"
                      (walk removeNote $ fromList $ docTitle' meta) nullMeta)
                (navBlocks ++ landmarks))

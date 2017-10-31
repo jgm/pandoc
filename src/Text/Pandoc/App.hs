@@ -535,7 +535,7 @@ convertWithOpts opts = do
 type Transform = Pandoc -> Pandoc
 
 isTextFormat :: String -> Bool
-isTextFormat s = s `notElem` ["odt","docx","epub","epub3"]
+isTextFormat s = s `notElem` ["odt","docx","epub2","epub3","epub"]
 
 externalFilter :: MonadIO m
                => ReaderOptions -> FilePath -> [String] -> Pandoc -> m Pandoc
