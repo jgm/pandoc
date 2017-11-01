@@ -23,6 +23,7 @@ import qualified Tests.Writers.AsciiDoc
 import qualified Tests.Writers.ConTeXt
 import qualified Tests.Writers.Docbook
 import qualified Tests.Writers.Docx
+import qualified Tests.Writers.FB2
 import qualified Tests.Writers.HTML
 import qualified Tests.Writers.LaTeX
 import qualified Tests.Writers.Markdown
@@ -52,6 +53,7 @@ tests = testGroup "pandoc tests" [ Tests.Command.tests
           , testGroup "RST" Tests.Writers.RST.tests
           , testGroup "TEI" Tests.Writers.TEI.tests
           , testGroup "Muse" Tests.Writers.Muse.tests
+          , testGroup "FB2" Tests.Writers.FB2.tests
           ]
         , testGroup "Readers"
           [ testGroup "LaTeX" Tests.Readers.LaTeX.tests

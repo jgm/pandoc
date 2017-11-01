@@ -596,6 +596,7 @@ test-suite test-pandoc
                   Tests.Writers.RST
                   Tests.Writers.TEI
                   Tests.Writers.Muse
+                  Tests.Writers.FB2
   ghc-options:  -rtsopts -Wall -fno-warn-unused-do-bind -threaded
   default-language: Haskell98
 
