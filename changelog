@@ -30,10 +30,20 @@ pandoc (2.0.1)
   * LaTeX/Beamer writer: support "blocks" inside columns and other Divs
     (#4016).
 
+  * HTML Writer: consistently use dashed class-names (Mauro Bieg, #3556).
+    Note: this change may require some changes in CSS rules.
+    `footnoteRef` has become `footnote-ref`, `titleslide` has
+    become `title-slide`, and `footnoteBack` has become `footnote-back`.
+
   * JATS writer: Properly pass through author metadata (#4020).
 
-  * FB2 writer: write blocks outside of `<p>` in definitions
-    (Alexander Krotov).
+  * FB2 writer (Alexander Krotov):
+
+    + Write blocks outside of `<p>` in definitions.
+    + Make bullet lists consistent with ordered lists, repeating
+      the marker for the outer list rather than indenting sublists,
+      since indentation does not work in readers.
+    + Add new style FB2 tests.
 
   * `Text.Pandoc.ImageSize`: Add `Millimeter` constructor to `Dimension`
     (#4012) [API change]. Now sizes given in 'mm' are no longer converted
