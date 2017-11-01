@@ -1,3 +1,52 @@
+pandoc (2.0.1)
+
+  * Fixed regression in parsing of HTML comments in markdown and other
+    non-HTML formats (`Text.Pandoc.Readers.HTML.htmlTag`) (#4019).
+    The parser stopped at the first `>` character, even if it wasn't
+    the end of the comment.
+
+  * Creole reader (Sascha Wilde):
+
+    + Fix some minor typos and formatting.
+    + Add additional test on nowiki-block after para.
+    + Fix lists with trailing white space.
+
+  * LaTeX reader: handle `%` comment right after command.
+    For example, `\emph%`.
+
+  * Markdown reader:  make sure fenced div closers work in lists.
+    Previously the following failed:
+
+        ::: {.class}
+        1. one
+        2. two
+        :::
+
+    and you needed a blank line before the closing `:::`.
+
+  * Make `fenced_divs` affect the Markdown writer.  If `fenced_divs` is
+    enabled, Divs will be rendered as fenced divs.
+
+  * LaTeX/Beamer writer: support "blocks" inside columns and other Divs
+    (#4016).
+
+  * JATS writer: Properly pass through author metadata (#4020).
+
+  * FB2 writer: write blocks outside of `<p>` in definitions
+    (Alexander Krotov).
+
+  * `Text.Pandoc.ImageSize`: Add `Millimeter` constructor to `Dimension`
+    (#4012) [API change]. Now sizes given in 'mm' are no longer converted
+    to 'cm'.
+
+  * Revise documentation of small caps syntax (Andrew Dunning, #4013).
+
+  * Fix broken reference links in manual (Andrew Dunning, #4014)
+
+  * Fixed example of slide columns structure in changelog (#4015).
+    Also documented this feature in MANUAL.txt.
+
+
 pandoc (2.0.0.1)
 
   * EPUB writer:
