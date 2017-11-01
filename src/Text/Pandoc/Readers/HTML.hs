@@ -1172,8 +1172,9 @@ htmlTag f = try $ do
   case next of
        TagComment s
          | "<!--" `isPrefixOf` inp -> do
-          char '<'
-          manyTill anyChar endAngle
+          string "<!--"
+          count (length s) anyChar
+          string "-->"
           stripComments <- getOption readerStripComments
           if stripComments
              then return (next, "")
