@@ -59,7 +59,7 @@ readCommonMark opts s = return $
 
 -- | Returns True if the given extension is enabled.
 enabled :: Extension -> ReaderOptions -> Bool
-enabled ext opts = ext `extensionEnabled` (readerExtensions opts)
+enabled ext opts = ext `extensionEnabled` readerExtensions opts
 
 convertEmojis :: String -> String
 convertEmojis (':':xs) =

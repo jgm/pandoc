@@ -116,8 +116,8 @@ pandocToODT opts doc@(Pandoc meta _) = do
             ,("manifest:version","1.2")] ( selfClosingTag "manifest:file-entry"
                  [("manifest:media-type","application/vnd.oasis.opendocument.text")
                  ,("manifest:full-path","/")]
-                $$ vcat ( map toFileEntry $ files )
-                $$ vcat ( map toFileEntry $ formulas )
+                $$ vcat ( map toFileEntry files )
+                $$ vcat ( map toFileEntry formulas )
               )
          )
   let archive' = addEntryToArchive manifestEntry archive

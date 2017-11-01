@@ -329,7 +329,7 @@ blockToXml (LineBlock lns) =
 blockToXml (OrderedList a bss) = do
     state <- get
     let pmrk = parentListMarker state
-    let markers = map (pmrk ++) $ orderedListMarkers a
+    let markers = (pmrk ++) <$> orderedListMarkers a
     let mkitem mrk bs = do
           modify (\s -> s { parentListMarker = mrk ++ " "})
           item <- cMapM blockToXml $ plainToPara $ indentBlocks (mrk ++ " ") bs

@@ -40,4 +40,4 @@ pickStylesToKVs props styleAttr =
 pickStyleAttrProps :: [String] -> String -> Maybe String
 pickStyleAttrProps lookupProps styleAttr = do
     styles <- eitherToMaybe $ parse styleAttrParser "" styleAttr
-    foldOrElse Nothing $ map (flip lookup styles) lookupProps
+    foldOrElse Nothing $ map (`lookup` styles) lookupProps

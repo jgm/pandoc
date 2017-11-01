@@ -142,7 +142,7 @@ blockToZimWiki _ (CodeBlock (_,classes,_) str) = do
   return $ case classes of
                 []      -> "'''\n" ++ cleanupCode str ++ "\n'''\n"   -- turn no lang block into a quote block
                 (x:_)   -> "{{{code: lang=\"" ++
-                        (fromMaybe x (Map.lookup x langmap)) ++ "\" linenumbers=\"True\"\n" ++ str ++ "\n}}}\n"  -- for zim's code plugin, go verbatim on the lang spec
+                        fromMaybe x (Map.lookup x langmap) ++ "\" linenumbers=\"True\"\n" ++ str ++ "\n}}}\n"  -- for zim's code plugin, go verbatim on the lang spec
 
 blockToZimWiki opts (BlockQuote blocks) = do
   contents <- blockListToZimWiki opts blocks
@@ -156,7 +156,7 @@ blockToZimWiki opts (Table capt aligns _ headers rows) = do
                       return $ "" ++ c ++ "\n"
   headers' <- if all null headers
                  then zipWithM (tableItemToZimWiki opts) aligns (head rows)
-                 else mapM ((inlineListToZimWiki opts) . removeFormatting)headers  -- emphasis, links etc. are not allowed in table headers
+                 else mapM (inlineListToZimWiki opts . removeFormatting)headers  -- emphasis, links etc. are not allowed in table headers
   rows' <- mapM (zipWithM (tableItemToZimWiki opts) aligns) rows
   let widths = map (maximum . map length) $ transpose (headers':rows')
   let padTo (width, al) s =

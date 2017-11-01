@@ -357,7 +357,7 @@ mergeBlocks addSpace (IsBlock w1 lns1) (IsBlock w2 lns2) =
                                        | otherwise -> (lns1, lns2)
           pad n s = s ++ replicate (n - realLength s) ' '
           sp "" = ""
-          sp xs = if addSpace then (' ' : xs) else xs
+          sp xs = if addSpace then ' ' : xs else xs
 
 offsetOf :: D -> Int
 offsetOf (Text o _)    = o

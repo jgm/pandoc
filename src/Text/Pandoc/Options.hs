@@ -261,4 +261,4 @@ instance Default WriterOptions where
 
 -- | Returns True if the given extension is enabled.
 isEnabled :: Extension -> WriterOptions -> Bool
-isEnabled ext opts = ext `extensionEnabled` (writerExtensions opts)
+isEnabled ext opts = ext `extensionEnabled` writerExtensions opts

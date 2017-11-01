@@ -572,7 +572,7 @@ paraStyle attrs = do
   t  <- gets stTight
   let styleAttr = [ ("style:name"             , "P" ++ show pn)
                   , ("style:family"           , "paragraph"   )]
-      indentVal = flip (++) "in" . show $ if b then (max 0.5 i) else i
+      indentVal = flip (++) "in" . show $ if b then max 0.5 i else i
       tight     = if t then [ ("fo:margin-top"          , "0in"    )
                             , ("fo:margin-bottom"       , "0in"    )]
                        else []

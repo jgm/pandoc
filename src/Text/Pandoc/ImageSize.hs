@@ -301,8 +301,8 @@ findpHYs x
         factor = if u == 1 -- dots per meter
                     then \z -> z * 254 `div` 10000
                     else const 72
-    in  ( factor $ (shift x1 24) + (shift x2 16) + (shift x3 8) + x4,
-          factor $ (shift y1 24) + (shift y2 16) + (shift y3 8) + y4 )
+    in  ( factor $ shift x1 24 + shift x2 16 + shift x3 8 + x4,
+          factor $ shift y1 24 + shift y2 16 + shift y3 8 + y4 )
   | otherwise = findpHYs $ B.drop 1 x  -- read another byte
 
 gifSize :: ByteString -> Maybe ImageSize

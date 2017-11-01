@@ -835,7 +835,7 @@ defListItemToLaTeX (term, defs) = do
                     else term'
     def'  <- liftM vsep $ mapM blockListToLaTeX defs
     return $ case defs of
-     ((Header _ _ _ : _) : _) ->
+     ((Header{} : _) : _) ->
        "\\item" <> brackets term'' <> " ~ " $$ def'
      _                          ->
        "\\item" <> brackets term'' $$ def'
