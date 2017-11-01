@@ -1133,6 +1133,7 @@ htmlTag :: (HasReaderOptions st, Monad m)
         -> ParserT [Char] st m (Tag String, String)
 htmlTag f = try $ do
   lookAhead (char '<')
+  startpos <- getPosition
   inp <- getInput
   let ts = canonicalizeTags $ parseTagsOptions
                                parseOptions{ optTagWarning = False
@@ -1153,11 +1154,17 @@ htmlTag f = try $ do
                       []     -> False
                       (c:cs) -> isLetter c && all isNameChar cs
 
-  let endAngle = try $ do char '>'
-                          pos <- getPosition
-                          guard $ (sourceLine pos == ln &&
-                                   sourceColumn pos >= col) ||
-                                  sourceLine pos > ln
+  let endpos = if ln == 1
+                  then setSourceColumn startpos
+                         (sourceColumn startpos + (col - 1))
+                  else setSourceColumn (setSourceLine startpos
+                                        (sourceLine startpos + (ln - 1)))
+                         col
+  let endAngle = try $
+        do char '>'
+           pos <- getPosition
+           guard $ pos >= endpos
+
   let handleTag tagname = do
        -- basic sanity check, since the parser is very forgiving
        -- and finds tags in stuff like x<y)
