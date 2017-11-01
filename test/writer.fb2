@@ -20,11 +20,6 @@
 <title>
 <p>Pandoc Test Suite</p>
 </title>
-<annotation>
-<p>John MacFarlane</p>
-<p>Anonymous</p>
-<p>July 17, 2006</p>
-</annotation>
 <section>
 <p>This is a set of tests for pandoc. Most of them are adapted from John Gruber’s markdown test suite.</p>
 <empty-line />

@@ -94,9 +94,9 @@ pandocToFB2 :: PandocMonad m
 pandocToFB2 opts (Pandoc meta blocks) = do
      modify (\s -> s { writerOptions = opts })
      desc <- description meta
-     fp <- frontpage meta
+     title <- cMapM toXml . docTitle $ meta
      secs <- renderSections 1 blocks
-     let body = el "body" $ fp ++ secs
+     let body = el "body" $ el "title" (el "p" title) : secs
      notes <- renderFootnotes
      (imgs,missing) <- fmap imagesToFetch get >>= \s -> lift (fetchImages s)
      let body' = replaceImagesWithAlt missing body
@@ -109,15 +109,6 @@ pandocToFB2 opts (Pandoc meta blocks) = do
           xlink = "http://www.w3.org/1999/xlink"
       in  [ uattr "xmlns" xmlns
           , attr ("xmlns", "l") xlink ]
-
-frontpage :: PandocMonad m => Meta -> FBM m [Content]
-frontpage meta' = do
-  t <- cMapM toXml . docTitle $ meta'
-  return
-    [ el "title" (el "p" t)
-    , el "annotation" (map (el "p" . cMap plain)
-                       (docAuthors meta' ++ [docDate meta']))
-    ]
 
 description :: PandocMonad m => Meta -> FBM m Content
 description meta' = do

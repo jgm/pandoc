@@ -9,7 +9,7 @@ import Text.Pandoc.Builder
 
 fb2 :: String -> String
 fb2 x = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" ++
-        "<FictionBook xmlns=\"http://www.gribuser.ru/xml/fictionbook/2.0\" xmlns:l=\"http://www.w3.org/1999/xlink\"><description><title-info /><document-info><program-used>pandoc</program-used></document-info></description><body><title><p /></title><annotation><p></p></annotation><section>" ++ x ++ "</section></body></FictionBook>"
+        "<FictionBook xmlns=\"http://www.gribuser.ru/xml/fictionbook/2.0\" xmlns:l=\"http://www.w3.org/1999/xlink\"><description><title-info /><document-info><program-used>pandoc</program-used></document-info></description><body><title><p /></title><section>" ++ x ++ "</section></body></FictionBook>"
 
 infix 4 =:
 (=:) :: (ToString a, ToPandoc a)
