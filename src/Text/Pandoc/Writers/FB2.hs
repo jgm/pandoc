@@ -112,6 +112,7 @@ pandocToFB2 opts (Pandoc meta blocks) = do
 
 description :: PandocMonad m => Meta -> FBM m Content
 description meta' = do
+  let genre = el "genre" "unrecognised"
   bt <- booktitle meta'
   let as = authors meta'
   dd <- docdate meta'
@@ -121,7 +122,7 @@ description meta' = do
                _                          -> []
              where iso639 = takeWhile (/= '-') -- Convert BCP 47 to ISO 639
   return $ el "description"
-    [ el "title-info" (bt ++ as ++ dd ++ lang)
+    [ el "title-info" (genre : (bt ++ as ++ dd ++ lang))
     , el "document-info" [ el "program-used" "pandoc" ] -- FIXME: +version
     ]
 

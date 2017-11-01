@@ -2,6 +2,7 @@
 <FictionBook xmlns="http://www.gribuser.ru/xml/fictionbook/2.0" xmlns:l="http://www.w3.org/1999/xlink">
 <description>
 <title-info>
+<genre>unrecognised</genre>
 <book-title>Pandoc Test Suite</book-title>
 <author>
 <first-name>John</first-name>
