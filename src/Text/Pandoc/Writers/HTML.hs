@@ -101,6 +101,7 @@ data WriterState = WriterState
     , stHtml5        :: Bool    -- ^ Use HTML5
     , stEPUBVersion  :: Maybe EPUBVersion -- ^ EPUB version if for epub
     , stSlideVariant :: HTMLSlideVariant
+    , stCodeBlockNum :: Int     -- ^ Number of code block
     }
 
 defaultWriterState :: WriterState
@@ -108,7 +109,8 @@ defaultWriterState = WriterState {stNotes= [], stMath = False, stQuotes = False,
                                   stHighlighting = False, stSecNum = [],
                                   stElement = False, stHtml5 = False,
                                   stEPUBVersion = Nothing,
-                                  stSlideVariant = NoSlides}
+                                  stSlideVariant = NoSlides,
+                                  stCodeBlockNum = 0}
 
 -- Helpers to render HTML with the appropriate function.
 
@@ -703,6 +705,12 @@ blockToHtml _ HorizontalRule = do
   html5 <- gets stHtml5
   return $ if html5 then H5.hr else H.hr
 blockToHtml opts (CodeBlock (id',classes,keyvals) rawCode) = do
+  id'' <- if null id'
+             then do
+               modify $ \st -> st{ stCodeBlockNum = stCodeBlockNum st + 1 }
+               codeblocknum <- gets stCodeBlockNum
+               return ("cb" ++ show codeblocknum)
+             else return id'
   let tolhs = isEnabled Ext_literate_haskell opts &&
                 any (\c -> map toLower c == "haskell") classes &&
                 any (\c -> map toLower c == "literate") classes
@@ -716,7 +724,7 @@ blockToHtml opts (CodeBlock (id',classes,keyvals) rawCode) = do
                     else rawCode
       hlCode   = if isJust (writerHighlightStyle opts)
                     then highlight (writerSyntaxMap opts) formatHtmlBlock
-                            (id',classes',keyvals) adjCode
+                            (id'',classes',keyvals) adjCode
                     else Left ""
   case hlCode of
          Left msg -> do
@@ -725,7 +733,7 @@ blockToHtml opts (CodeBlock (id',classes,keyvals) rawCode) = do
            addAttrs opts (id',classes,keyvals)
              $ H.pre $ H.code $ toHtml adjCode
          Right h -> modify (\st -> st{ stHighlighting = True }) >>
-                    addAttrs opts (id',[],keyvals) h
+                    addAttrs opts (id'',[],keyvals) h
 blockToHtml opts (BlockQuote blocks) = do
   -- in S5, treat list in blockquote specially
   -- if default is incremental, make it nonincremental;

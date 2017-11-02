@@ -81,12 +81,15 @@ highlight :: SyntaxMap
           -> Attr   -- ^ Attributes of the CodeBlock
           -> String -- ^ Raw contents of the CodeBlock
           -> Either String a
-highlight syntaxmap formatter (_, classes, keyvals) rawCode =
+highlight syntaxmap formatter (ident, classes, keyvals) rawCode =
   let firstNum = fromMaybe 1 (safeRead (fromMaybe "1" $ lookup "startFrom" keyvals))
       fmtOpts = defaultFormatOpts{
                   startNumber = firstNum,
                   numberLines = any (`elem`
-                        ["number","numberLines", "number-lines"]) classes }
+                        ["number","numberLines", "number-lines"]) classes,
+                  lineIdPrefix = if null ident
+                                    then mempty
+                                    else T.pack (ident ++ "-") }
       tokenizeOpts = TokenizerConfig{ syntaxMap = syntaxmap
                                     , traceOutput = False }
       classes' = map T.pack classes
