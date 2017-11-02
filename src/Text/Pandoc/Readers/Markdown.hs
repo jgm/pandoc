@@ -1419,7 +1419,7 @@ tableWith headerParser rowParser lineParser footerParser = try $ do
     lines' <- fmap sequence $ rowParser indices `sepEndBy1` lineParser
     footerParser
     numColumns <- getOption readerColumns
-    let widths = if indices == []
+    let widths = if null indices
                     then replicate (length aligns) 0.0
                     else widthsFromIndices numColumns indices
     return (aligns, widths, heads, lines')
@@ -2006,7 +2006,7 @@ cite = do
   guardEnabled Ext_citations
   textualCite
             <|> do (cs, raw) <- withRaw normalCite
-                   return $ (flip B.cite (B.text raw)) <$> cs
+                   return $ flip B.cite (B.text raw) <$> cs
 
 textualCite :: PandocMonad m => MarkdownParser m (F Inlines)
 textualCite = try $ do
@@ -2093,15 +2093,15 @@ citation = try $ do
   return $ do
     x <- pref
     y <- suff
-    return $ Citation{ citationId      = key
-                     , citationPrefix  = B.toList x
-                     , citationSuffix  = B.toList y
-                     , citationMode    = if suppress_author
-                                            then SuppressAuthor
-                                            else NormalCitation
-                     , citationNoteNum = 0
-                     , citationHash    = 0
-                     }
+    return Citation{ citationId      = key
+                   , citationPrefix  = B.toList x
+                   , citationSuffix  = B.toList y
+                   , citationMode    = if suppress_author
+                                          then SuppressAuthor
+                                          else NormalCitation
+                   , citationNoteNum = 0
+                   , citationHash    = 0
+                   }
 
 smart :: PandocMonad m => MarkdownParser m (F Inlines)
 smart = do

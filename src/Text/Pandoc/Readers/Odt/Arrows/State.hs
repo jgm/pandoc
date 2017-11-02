@@ -82,7 +82,7 @@ tryModifyState     f = ArrowState $ \(state,a)
 
 instance Cat.Category (ArrowState s) where
   id                = ArrowState id
-  arrow2 . arrow1   = ArrowState $ (runArrowState arrow2).(runArrowState arrow1)
+  arrow2 . arrow1   = ArrowState $ runArrowState arrow2 . runArrowState arrow1
 
 instance Arrow (ArrowState state) where
   arr               = ignoringState
