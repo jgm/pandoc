@@ -1189,8 +1189,9 @@ directory (see `--data-dir`, above). *Exceptions:*
 - For `odt` output, customize the `default.opendocument`
   template.
 - For `pdf` output, customize the `default.latex` template
-  (or the `default.beamer` template, if you use `-t beamer`,
-  or the `default.context` template, if you use `-t context`).
+  (or the `default.context` template, if you use `-t context`,
+  or the `default.ms` template, if you use `-t ms`, or the
+  `default.html5` template, if you use `-t html5`).
 - `docx` has no template (however, you can use
   `--reference-doc` to customize the output).
 
