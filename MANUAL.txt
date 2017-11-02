@@ -2008,6 +2008,12 @@ block above will appear as follows:
       </code>
     </pre>
 
+The `numberLines` (or `number-lines`) class will cause the lines
+of the code block to be numbered, starting with `1` or the value
+of the `startFrom` attribute.  The `lineAnchors` (or
+`line-anchors`) class will cause the lines to be clickable
+anchors in HTML output.
+
 A shortcut form can also be used for specifying the language of
 the code block:
 

@@ -85,6 +85,8 @@ highlight syntaxmap formatter (ident, classes, keyvals) rawCode =
   let firstNum = fromMaybe 1 (safeRead (fromMaybe "1" $ lookup "startFrom" keyvals))
       fmtOpts = defaultFormatOpts{
                   startNumber = firstNum,
+                  lineAnchors = any (`elem`
+                        ["line-anchors", "lineAnchors"]) classes,
                   numberLines = any (`elem`
                         ["number","numberLines", "number-lines"]) classes,
                   lineIdPrefix = if null ident
