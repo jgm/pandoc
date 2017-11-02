@@ -655,7 +655,7 @@ blockToHtml opts (LineBlock lns) =
     return $ H.div ! A.class_ "line-block" $ htmlLines
 blockToHtml opts (Div attr@(ident, classes, kvs') bs) = do
   html5 <- gets stHtml5
-  let kvs = kvs' ++
+  let kvs = [(k,v) | (k,v) <- kvs', k /= "width"] ++
         if "column" `elem` classes
            then let w = fromMaybe "48%" (lookup "width" kvs')
                 in  [("style", "width:" ++ w ++ ";min-width:" ++ w ++
@@ -664,7 +664,12 @@ blockToHtml opts (Div attr@(ident, classes, kvs') bs) = do
   let speakerNotes = "notes" `elem` classes
   -- we don't want incremental output inside speaker notes, see #1394
   let opts' = if speakerNotes then opts{ writerIncremental = False } else opts
-  contents <- blockListToHtml opts' bs
+  contents <- if "columns" `elem` classes
+                 then -- we don't use blockListToHtml because it inserts
+                      -- a newline between the column divs, which throws
+                      -- off widths! see #4028
+                      mconcat <$> mapM (blockToHtml opts) bs
+                 else blockListToHtml opts' bs
   let contents' = nl opts >> contents >> nl opts
   let (divtag, classes') = if html5 && "section" `elem` classes
                               then (H5.section, filter (/= "section") classes)
