@@ -326,7 +326,7 @@ tableItemToRTF indent alignment item = do
 spaceAtEnd :: String -> String
 spaceAtEnd str =
   if "\\par}\n" `isSuffixOf` str
-     then take ((length str) - 6) str ++ "\\sa180\\par}\n"
+     then take (length str - 6) str ++ "\\sa180\\par}\n"
      else str
 
 -- | Convert list item (list of blocks) to RTF.

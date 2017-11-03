@@ -219,7 +219,7 @@ blockToAsciiDoc opts (Table caption aligns widths headers rows) =  do
                          AlignCenter  -> "^"
                          AlignRight   -> ">"
                          AlignDefault -> "") ++
-                      if wi == 0 then "" else (show wi ++ "%")
+                      if wi == 0 then "" else show wi ++ "%"
   let headerspec = if all null headers
                       then empty
                       else text "options=\"header\","

@@ -1,5 +1,5 @@
 name:            pandoc
-version:         2.0.0.1
+version:         2.0.1
 cabal-version:   >= 1.10
 build-type:      Custom
 license:         GPL
@@ -320,7 +320,7 @@ library
                  tagsoup >= 0.13.7 && < 0.15,
                  base64-bytestring >= 0.1 && < 1.1,
                  zlib >= 0.5 && < 0.7,
-                 skylighting >= 0.4.2 && <0.5,
+                 skylighting >= 0.4.3 && <0.5,
                  data-default >= 0.4 && < 0.8,
                  temporary >= 1.1 && < 1.3,
                  blaze-html >= 0.5 && < 0.10,
@@ -559,7 +559,7 @@ test-suite test-pandoc
                   process >= 1.2.3 && < 1.7,
                   temporary >= 1.1 && < 1.3,
                   Diff >= 0.2 && < 0.4,
-                  tasty >= 0.11 && < 0.12,
+                  tasty >= 0.11 && < 0.13,
                   tasty-hunit >= 0.9 && < 0.10,
                   tasty-quickcheck >= 0.8 && < 0.10,
                   tasty-golden >= 2.3 && < 2.4,
@@ -596,6 +596,7 @@ test-suite test-pandoc
                   Tests.Writers.RST
                   Tests.Writers.TEI
                   Tests.Writers.Muse
+                  Tests.Writers.FB2
   ghc-options:  -rtsopts -Wall -fno-warn-unused-do-bind -threaded
   default-language: Haskell98
 

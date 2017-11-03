@@ -560,7 +560,7 @@ endline = try $ do
   notFollowedBy quote
   notFollowedBy list
   notFollowedBy table
-  return $ B.softbreak
+  return B.softbreak
 
 str :: T2T Inlines
 str = try $ do

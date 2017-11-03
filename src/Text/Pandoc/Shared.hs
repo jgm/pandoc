@@ -519,8 +519,8 @@ uniqueIdent title' usedIdents
 
 -- | True if block is a Header block.
 isHeaderBlock :: Block -> Bool
-isHeaderBlock (Header{}) = True
-isHeaderBlock _          = False
+isHeaderBlock Header{} = True
+isHeaderBlock _        = False
 
 -- | Shift header levels up or down.
 headerShift :: Int -> Pandoc -> Pandoc
@@ -584,7 +584,7 @@ renderTags' = renderTagsOptions
                renderOptions{ optMinimize = matchTags ["hr", "br", "img",
                                                        "meta", "link"]
                             , optRawTag   = matchTags ["script", "style"] }
-              where matchTags = \tags -> flip elem tags . map toLower
+              where matchTags tags = flip elem tags . map toLower
 
 --
 -- File handling

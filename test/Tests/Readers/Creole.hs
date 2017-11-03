@@ -127,6 +127,11 @@ tests = [
           =?> bulletList [ plain "foo"
                          <> bulletList [ plain "bar", plain "baz" ]
                          , plain "blubb" ]
+        , "nested unordered list, one separating space, trailing space" =:
+          "* foo \n** bar  \n** baz \n* blubb  "
+          =?> bulletList [ plain "foo"
+                         <> bulletList [ plain "bar", plain "baz" ]
+                         , plain "blubb" ]
         , "ordered list, two entries, one separating space" =:
           "# foo\n# bar"
           =?> orderedList [ plain "foo", plain "bar" ]
@@ -138,6 +143,11 @@ tests = [
           =?> para "blubber" <> orderedList [ plain "foo", plain "bar" ]
         , "nested ordered list, one separating space" =:
           "# foo\n## bar\n## baz\n# blubb"
+          =?> orderedList [ plain "foo"
+                         <> orderedList [ plain "bar", plain "baz" ]
+                         , plain "blubb" ]
+        , "nested ordered list, one separating space, trailing space" =:
+          "# foo \n## bar  \n## baz \n# blubb  "
           =?> orderedList [ plain "foo"
                          <> orderedList [ plain "bar", plain "baz" ]
                          , plain "blubb" ]
@@ -193,7 +203,10 @@ tests = [
         , "forced line breaks" =:
           "{{{no break!\\\\here}}} but a break\\\\here!"
           =?> para (code "no break!\\\\here" <> " but a break"
-                    <> linebreak <> "here!")
+                    <> linebreak <> "here!"),
+          "quoted block, after trailing white space" =:
+          "this is a paragraph  \n{{{\nfoo bar\n  //baz//\n}}}"
+          =?> para "this is a paragraph" <> codeBlock "foo bar\n  //baz//"
         ]
   , testGroup "Images and Links" [
           "image simple" =:

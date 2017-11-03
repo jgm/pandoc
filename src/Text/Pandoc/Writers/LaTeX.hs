@@ -371,6 +371,10 @@ toSlides bs = do
   concat `fmap` mapM (elementToBeamer slideLevel) (hierarchicalize bs')
 
 elementToBeamer :: PandocMonad m => Int -> Element -> LW m [Block]
+elementToBeamer _slideLevel (Blk (Div attr bs)) = do
+  -- make sure we support "blocks" inside divs
+  bs' <- concat `fmap` mapM (elementToBeamer 0) (hierarchicalize bs)
+  return [Div attr bs']
 elementToBeamer _slideLevel (Blk b) = return [b]
 elementToBeamer slideLevel  (Sec lvl _num (ident,classes,kvs) tit elts)
   | lvl >  slideLevel = do
@@ -831,7 +835,7 @@ defListItemToLaTeX (term, defs) = do
                     else term'
     def'  <- liftM vsep $ mapM blockListToLaTeX defs
     return $ case defs of
-     ((Header _ _ _ : _) : _) ->
+     ((Header{} : _) : _) ->
        "\\item" <> brackets term'' <> " ~ " $$ def'
      _                          ->
        "\\item" <> brackets term'' $$ def'

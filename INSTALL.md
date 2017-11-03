@@ -32,7 +32,7 @@
 
         mkdir pandoc-extract
         cd pandoc-extract
-        xar -x ../pandoc-2.0-macOS.pkg
+        xar -x -f ../pandoc-2.0-macOS.pkg
         cat pandoc.pkg/Payload | gunzip -dc | cpio -i
         # executables are now in ./usr/bin/, man pages in ./usr/share/man
 

@@ -101,6 +101,7 @@ data WriterState = WriterState
     , stHtml5        :: Bool    -- ^ Use HTML5
     , stEPUBVersion  :: Maybe EPUBVersion -- ^ EPUB version if for epub
     , stSlideVariant :: HTMLSlideVariant
+    , stCodeBlockNum :: Int     -- ^ Number of code block
     }
 
 defaultWriterState :: WriterState
@@ -108,7 +109,8 @@ defaultWriterState = WriterState {stNotes= [], stMath = False, stQuotes = False,
                                   stHighlighting = False, stSecNum = [],
                                   stElement = False, stHtml5 = False,
                                   stEPUBVersion = Nothing,
-                                  stSlideVariant = NoSlides}
+                                  stSlideVariant = NoSlides,
+                                  stCodeBlockNum = 0}
 
 -- Helpers to render HTML with the appropriate function.
 
@@ -438,7 +440,7 @@ elementToHtml slideLevel opts (Sec level num (id',classes,keyvals) title' elemen
                                   []     -> []
                                   (x:xs) -> x ++ concatMap inDiv xs
   let inNl x = mconcat $ nl opts : intersperse (nl opts) x ++ [nl opts]
-  let classes' = ["titleslide" | titleSlide] ++ ["slide" | slide] ++
+  let classes' = ["title-slide" | titleSlide] ++ ["slide" | slide] ++
                   ["section" | (slide || writerSectionDivs opts) &&
                                not html5 ] ++
                   ["level" ++ show level | slide || writerSectionDivs opts ]
@@ -655,7 +657,7 @@ blockToHtml opts (LineBlock lns) =
     return $ H.div ! A.class_ "line-block" $ htmlLines
 blockToHtml opts (Div attr@(ident, classes, kvs') bs) = do
   html5 <- gets stHtml5
-  let kvs = kvs' ++
+  let kvs = [(k,v) | (k,v) <- kvs', k /= "width"] ++
         if "column" `elem` classes
            then let w = fromMaybe "48%" (lookup "width" kvs')
                 in  [("style", "width:" ++ w ++ ";min-width:" ++ w ++
@@ -664,7 +666,12 @@ blockToHtml opts (Div attr@(ident, classes, kvs') bs) = do
   let speakerNotes = "notes" `elem` classes
   -- we don't want incremental output inside speaker notes, see #1394
   let opts' = if speakerNotes then opts{ writerIncremental = False } else opts
-  contents <- blockListToHtml opts' bs
+  contents <- if "columns" `elem` classes
+                 then -- we don't use blockListToHtml because it inserts
+                      -- a newline between the column divs, which throws
+                      -- off widths! see #4028
+                      mconcat <$> mapM (blockToHtml opts) bs
+                 else blockListToHtml opts' bs
   let contents' = nl opts >> contents >> nl opts
   let (divtag, classes') = if html5 && "section" `elem` classes
                               then (H5.section, filter (/= "section") classes)
@@ -698,6 +705,12 @@ blockToHtml _ HorizontalRule = do
   html5 <- gets stHtml5
   return $ if html5 then H5.hr else H.hr
 blockToHtml opts (CodeBlock (id',classes,keyvals) rawCode) = do
+  id'' <- if null id'
+             then do
+               modify $ \st -> st{ stCodeBlockNum = stCodeBlockNum st + 1 }
+               codeblocknum <- gets stCodeBlockNum
+               return ("cb" ++ show codeblocknum)
+             else return id'
   let tolhs = isEnabled Ext_literate_haskell opts &&
                 any (\c -> map toLower c == "haskell") classes &&
                 any (\c -> map toLower c == "literate") classes
@@ -711,7 +724,7 @@ blockToHtml opts (CodeBlock (id',classes,keyvals) rawCode) = do
                     else rawCode
       hlCode   = if isJust (writerHighlightStyle opts)
                     then highlight (writerSyntaxMap opts) formatHtmlBlock
-                            (id',classes',keyvals) adjCode
+                            (id'',classes',keyvals) adjCode
                     else Left ""
   case hlCode of
          Left msg -> do
@@ -720,7 +733,7 @@ blockToHtml opts (CodeBlock (id',classes,keyvals) rawCode) = do
            addAttrs opts (id',classes,keyvals)
              $ H.pre $ H.code $ toHtml adjCode
          Right h -> modify (\st -> st{ stHighlighting = True }) >>
-                    addAttrs opts (id',[],keyvals) h
+                    addAttrs opts (id'',[],keyvals) h
 blockToHtml opts (BlockQuote blocks) = do
   -- in S5, treat list in blockquote specially
   -- if default is incremental, make it nonincremental;
@@ -1100,7 +1113,7 @@ inlineToHtml opts inline = do
                         let link = H.a ! A.href (toValue $ "#" ++
                                          revealSlash ++
                                          writerIdentifierPrefix opts ++ "fn" ++ ref)
-                                       ! A.class_ "footnoteRef"
+                                       ! A.class_ "footnote-ref"
                                        ! prefixedId opts ("fnref" ++ ref)
                                        $ (if isJust epubVersion
                                              then id
@@ -1120,7 +1133,7 @@ blockListToNote :: PandocMonad m => WriterOptions -> String -> [Block] -> StateT
 blockListToNote opts ref blocks =
   -- If last block is Para or Plain, include the backlink at the end of
   -- that block. Otherwise, insert a new Plain block with the backlink.
-  let backlink = [Link ("",["footnoteBack"],[]) [Str "↩"] ("#" ++ writerIdentifierPrefix opts ++ "fnref" ++ ref,[])]
+  let backlink = [Link ("",["footnote-back"],[]) [Str "↩"] ("#" ++ writerIdentifierPrefix opts ++ "fnref" ++ ref,[])]
       blocks'  = if null blocks
                     then []
                     else let lastBlock   = last blocks

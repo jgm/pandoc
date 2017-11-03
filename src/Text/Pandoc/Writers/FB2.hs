@@ -64,7 +64,6 @@ data FbRenderState = FbRenderState
     { footnotes         :: [ (Int, String, [Content]) ]  -- ^ #, ID, text
     , imagesToFetch     :: [ (String, String) ]  -- ^ filename, URL or path
     , parentListMarker  :: String  -- ^ list marker of the parent ordered list
-    , parentBulletLevel :: Int  -- ^ nesting level of the unordered list
     , writerOptions     :: WriterOptions
     } deriving (Show)
 
@@ -73,7 +72,7 @@ type FBM m = StateT FbRenderState m
 
 newFB :: FbRenderState
 newFB = FbRenderState { footnotes = [], imagesToFetch = []
-                      , parentListMarker = "", parentBulletLevel = 0
+                      , parentListMarker = ""
                       , writerOptions = def }
 
 data ImageMode = NormalImage | InlineImage deriving (Eq)
@@ -95,9 +94,9 @@ pandocToFB2 :: PandocMonad m
 pandocToFB2 opts (Pandoc meta blocks) = do
      modify (\s -> s { writerOptions = opts })
      desc <- description meta
-     fp <- frontpage meta
+     title <- cMapM toXml . docTitle $ meta
      secs <- renderSections 1 blocks
-     let body = el "body" $ fp ++ secs
+     let body = el "body" $ el "title" (el "p" title) : secs
      notes <- renderFootnotes
      (imgs,missing) <- fmap imagesToFetch get >>= \s -> lift (fetchImages s)
      let body' = replaceImagesWithAlt missing body
@@ -111,17 +110,9 @@ pandocToFB2 opts (Pandoc meta blocks) = do
       in  [ uattr "xmlns" xmlns
           , attr ("xmlns", "l") xlink ]
 
-frontpage :: PandocMonad m => Meta -> FBM m [Content]
-frontpage meta' = do
-  t <- cMapM toXml . docTitle $ meta'
-  return
-    [ el "title" (el "p" t)
-    , el "annotation" (map (el "p" . cMap plain)
-                       (docAuthors meta' ++ [docDate meta']))
-    ]
-
 description :: PandocMonad m => Meta -> FBM m Content
 description meta' = do
+  let genre = el "genre" "unrecognised"
   bt <- booktitle meta'
   let as = authors meta'
   dd <- docdate meta'
@@ -131,7 +122,7 @@ description meta' = do
                _                          -> []
              where iso639 = takeWhile (/= '-') -- Convert BCP 47 to ISO 639
   return $ el "description"
-    [ el "title-info" (bt ++ as ++ dd ++ lang)
+    [ el "title-info" (genre : (bt ++ as ++ dd ++ lang))
     , el "document-info" [ el "program-used" "pandoc" ] -- FIXME: +version
     ]
 
@@ -338,7 +329,7 @@ blockToXml (LineBlock lns) =
 blockToXml (OrderedList a bss) = do
     state <- get
     let pmrk = parentListMarker state
-    let markers = map (pmrk ++) $ orderedListMarkers a
+    let markers = (pmrk ++) <$> orderedListMarkers a
     let mkitem mrk bs = do
           modify (\s -> s { parentListMarker = mrk ++ " "})
           item <- cMapM blockToXml $ plainToPara $ indentBlocks (mrk ++ " ") bs
@@ -347,32 +338,21 @@ blockToXml (OrderedList a bss) = do
     concat <$> zipWithM mkitem markers bss
 blockToXml (BulletList bss) = do
     state <- get
-    let level = parentBulletLevel state
     let pmrk = parentListMarker state
-    let prefix = replicate (length pmrk) ' '
-    let bullets = ["\x2022", "\x25e6", "*", "\x2043", "\x2023"]
-    let mrk = prefix ++ bullets !! (level `mod` length bullets)
+    let mrk = pmrk ++ "•"
     let mkitem bs = do
-          modify (\s -> s { parentBulletLevel = level+1 })
+          modify (\s -> s { parentListMarker = mrk ++ " "})
           item <- cMapM blockToXml $ plainToPara $ indentBlocks (mrk ++ " ") bs
-          modify (\s -> s { parentBulletLevel = level }) -- restore bullet level
+          modify (\s -> s { parentListMarker = pmrk }) -- old parent marker
           return item
     cMapM mkitem bss
 blockToXml (DefinitionList defs) =
     cMapM mkdef defs
     where
       mkdef (term, bss) = do
-          def' <- cMapM (cMapM blockToXml . sep . paraToPlain . map indent) bss
+          items <- cMapM (cMapM blockToXml . plainToPara . indentBlocks (replicate 4 ' ')) bss
           t <- wrap "strong" term
-          return [ el "p" t, el "p" def' ]
-      sep blocks =
-          if all needsBreak blocks then
-              blocks ++ [Plain [LineBreak]]
-          else
-              blocks
-      needsBreak (Para _)    = False
-      needsBreak (Plain ins) = LineBreak `notElem` ins
-      needsBreak _           = True
+          return (el "p" t : items)
 blockToXml h@Header{} = do
   -- should not occur after hierarchicalize, except inside lists/blockquotes
   report $ BlockNotRendered h
@@ -402,14 +382,6 @@ blockToXml (Table caption aligns _ headers rows) = do
       align_str AlignRight   = "right"
       align_str AlignDefault = "left"
 blockToXml Null = return []
-
--- Replace paragraphs with plain text and line break.
--- Necessary to simulate multi-paragraph lists in FB2.
-paraToPlain :: [Block] -> [Block]
-paraToPlain [] = []
-paraToPlain (Para inlines : rest) =
-    Plain inlines : Plain [LineBreak] : paraToPlain rest
-paraToPlain (p:rest) = p : paraToPlain rest
 
 -- Replace plain text with paragraphs and add line break after paragraphs.
 -- It is used to convert plain text from tight list items to paragraphs.

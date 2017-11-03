@@ -159,7 +159,7 @@ blockToTEI opts (Div (ident,_,_) [Para lst]) = do
   let attribs = [("id", ident) | not (null ident)]
   inTags False "p" attribs <$> inlinesToTEI opts lst
 blockToTEI opts (Div _ bs) = blocksToTEI opts $ map plainToPara bs
-blockToTEI _ h@(Header{}) = do
+blockToTEI _ h@Header{} = do
   -- should not occur after hierarchicalize, except inside lists/blockquotes
   report $ BlockNotRendered h
   return empty

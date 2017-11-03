@@ -397,11 +397,19 @@ blockToMarkdown' :: PandocMonad m
 blockToMarkdown' _ Null = return empty
 blockToMarkdown' opts (Div attrs ils) = do
   contents <- blockListToMarkdown opts ils
-  return $ if isEnabled Ext_raw_html opts &&
-                isEnabled Ext_markdown_in_html_blocks opts
-              then tagWithAttrs "div" attrs <> blankline <>
-                      contents <> blankline <> "</div>" <> blankline
-              else contents <> blankline
+  return $
+    case () of
+         _ | isEnabled Ext_fenced_divs opts &&
+             attrs /= nullAttr ->
+                nowrap (text ":::" <+> attrsToMarkdown attrs) $$
+                chomp contents $$
+                text ":::" <> blankline
+           | isEnabled Ext_native_divs opts ||
+             (isEnabled Ext_raw_html opts &&
+              isEnabled Ext_markdown_in_html_blocks opts) ->
+                tagWithAttrs "div" attrs <> blankline <>
+                contents <> blankline <> "</div>" <> blankline
+           | otherwise -> contents <> blankline
 blockToMarkdown' opts (Plain inlines) = do
   contents <- inlineListToMarkdown opts inlines
   -- escape if para starts with ordered list marker

@@ -27,7 +27,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
    License     : GNU GPL, version 2 or above
 
    Maintainer  : Sascha Wilde <wilde@sha-bang.de>
-   Stability   : WIP
+   Stability   : alpha
    Portability : portable
 
 Conversion of creole text to 'Pandoc' document.
@@ -64,7 +64,7 @@ readCreole opts s = do
 type CRLParser = ParserT [Char] ParserState
 
 --
--- Utility funcitons
+-- Utility functions
 --
 
 (<+>) :: (Monad m, Monoid a) => m a -> m a -> m a
@@ -111,7 +111,8 @@ block = do
   return res
 
 nowiki :: PandocMonad m => CRLParser m B.Blocks
-nowiki = try $ fmap (B.codeBlock . mconcat) (nowikiStart >> manyTill content nowikiEnd)
+nowiki = try $ fmap (B.codeBlock . mconcat) (nowikiStart
+                                             >> manyTill content nowikiEnd)
   where
     content = brackets <|> line
     brackets = try $ option "" ((:[]) <$> newline)
@@ -154,7 +155,8 @@ listItem :: PandocMonad m => Char -> Int -> CRLParser m B.Blocks
 listItem c n =
   fmap (B.plain . B.trimInlines .mconcat) (listStart >> many1Till inline itemEnd)
   where
-    listStart = try $ optional newline >> skipSpaces >> count n (char c)
+    listStart = try $ skipSpaces >> optional newline >> skipSpaces
+                >> count n (char c)
                 >> lookAhead (noneOf [c]) >> skipSpaces
     itemEnd = endOfParaElement <|> nextItem n
               <|> if n < 3 then nextItem (n+1)
@@ -193,7 +195,7 @@ endOfParaElement = lookAhead $ endOfInput <|> endOfPara
    startOf      :: PandocMonad m => CRLParser m a -> CRLParser m ()
    startOf p     = try $ blankline >> p >> return mempty
    startOfList   = startOf $ anyList 1
-   startOfTable  =startOf table
+   startOfTable  = startOf table
    startOfHeader = startOf header
    startOfNowiki = startOf nowiki
    hr            = startOf horizontalRule

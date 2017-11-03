@@ -37,7 +37,6 @@ import Data.Generics (everywhere, mkT)
 import Data.List (isSuffixOf, partition)
 import Data.Maybe (fromMaybe)
 import Data.Text (Text)
-import qualified Text.Pandoc.Builder as B
 import Text.Pandoc.Class (PandocMonad, report)
 import Text.Pandoc.Definition
 import Text.Pandoc.Highlighting (languages, languagesByExtension)
@@ -56,38 +55,14 @@ import qualified Text.XML.Light as Xml
 data JATSVersion = JATS1_1
      deriving (Eq, Show)
 
-type DB = ReaderT JATSVersion
-
--- | Convert list of authors to a docbook <author> section
-authorToJATS :: PandocMonad m => WriterOptions -> [Inline] -> DB m B.Inlines
-authorToJATS opts name' = do
-  name <- render Nothing <$> inlinesToJATS opts name'
-  let colwidth = if writerWrapText opts == WrapAuto
-                    then Just $ writerColumns opts
-                    else Nothing
-  return $ B.rawInline "docbook" $ render colwidth $
-      if ',' `elem` name
-         then -- last name first
-              let (lastname, rest) = break (==',') name
-                  firstname = triml rest in
-              inTagsSimple "firstname" (text $ escapeStringForXML firstname) <>
-              inTagsSimple "surname" (text $ escapeStringForXML lastname)
-         else -- last name last
-              let namewords = words name
-                  lengthname = length namewords
-                  (firstname, lastname) = case lengthname of
-                    0 -> ("","")
-                    1 -> ("", name)
-                    n -> (unwords (take (n-1) namewords), last namewords)
-               in inTagsSimple "firstname" (text $ escapeStringForXML firstname) $$
-                  inTagsSimple "surname" (text $ escapeStringForXML lastname)
+type JATS = ReaderT JATSVersion
 
 writeJATS :: PandocMonad m => WriterOptions -> Pandoc -> m Text
 writeJATS opts d =
   runReaderT (docToJATS opts d) JATS1_1
 
 -- | Convert Pandoc document to string in JATS format.
-docToJATS :: PandocMonad m => WriterOptions -> Pandoc -> DB m Text
+docToJATS :: PandocMonad m => WriterOptions -> Pandoc -> JATS m Text
 docToJATS opts (Pandoc meta blocks) = do
   let isBackBlock (Div ("refs",_,_) _) = True
       isBackBlock _                    = False
@@ -110,14 +85,12 @@ docToJATS opts (Pandoc meta blocks) = do
                    TopLevelChapter -> 0
                    TopLevelSection -> 1
                    TopLevelDefault -> 1
-  auths' <- mapM (authorToJATS opts) $ docAuthors meta
-  let meta' = B.setMeta "author" auths' meta
   metadata <- metaToJSON opts
                  (fmap (render' . vcat) .
                           mapM (elementToJATS opts' startLvl) .
                             hierarchicalize)
                  (fmap render' . inlinesToJATS opts')
-                 meta'
+                 meta
   main <- (render' . vcat) <$>
             mapM (elementToJATS opts' startLvl) elements
   back <- (render' . vcat) <$>
@@ -132,7 +105,7 @@ docToJATS opts (Pandoc meta blocks) = do
        Just tpl -> renderTemplate' tpl context
 
 -- | Convert an Element to JATS.
-elementToJATS :: PandocMonad m => WriterOptions -> Int -> Element -> DB m Doc
+elementToJATS :: PandocMonad m => WriterOptions -> Int -> Element -> JATS m Doc
 elementToJATS opts _   (Blk block) = blockToJATS opts block
 elementToJATS opts lvl (Sec _ _num (id',_,kvs) title elements) = do
   let idAttr = [("id", writerIdentifierPrefix opts ++ id') | not (null id')]
@@ -144,7 +117,7 @@ elementToJATS opts lvl (Sec _ _num (id',_,kvs) title elements) = do
       inTagsSimple "title" title' $$ vcat contents
 
 -- | Convert a list of Pandoc blocks to JATS.
-blocksToJATS :: PandocMonad m => WriterOptions -> [Block] -> DB m Doc
+blocksToJATS :: PandocMonad m => WriterOptions -> [Block] -> JATS m Doc
 blocksToJATS opts = fmap vcat . mapM (blockToJATS opts)
 
 -- | Auxiliary function to convert Plain block to Para.
@@ -155,13 +128,13 @@ plainToPara x         = x
 -- | Convert a list of pairs of terms and definitions into a list of
 -- JATS varlistentrys.
 deflistItemsToJATS :: PandocMonad m
-                      => WriterOptions -> [([Inline],[[Block]])] -> DB m Doc
+                      => WriterOptions -> [([Inline],[[Block]])] -> JATS m Doc
 deflistItemsToJATS opts items =
   vcat <$> mapM (uncurry (deflistItemToJATS opts)) items
 
 -- | Convert a term and a list of blocks into a JATS varlistentry.
 deflistItemToJATS :: PandocMonad m
-                     => WriterOptions -> [Inline] -> [[Block]] -> DB m Doc
+                     => WriterOptions -> [Inline] -> [[Block]] -> JATS m Doc
 deflistItemToJATS opts term defs = do
   term' <- inlinesToJATS opts term
   def' <- blocksToJATS opts $ concatMap (map plainToPara) defs
@@ -171,7 +144,7 @@ deflistItemToJATS opts term defs = do
 
 -- | Convert a list of lists of blocks to a list of JATS list items.
 listItemsToJATS :: PandocMonad m
-                => WriterOptions -> Maybe [String] -> [[Block]] -> DB m Doc
+                => WriterOptions -> Maybe [String] -> [[Block]] -> JATS m Doc
 listItemsToJATS opts markers items =
   case markers of
        Nothing -> vcat <$> mapM (listItemToJATS opts Nothing) items
@@ -179,7 +152,7 @@ listItemsToJATS opts markers items =
 
 -- | Convert a list of blocks into a JATS list item.
 listItemToJATS :: PandocMonad m
-               => WriterOptions -> Maybe String -> [Block] -> DB m Doc
+               => WriterOptions -> Maybe String -> [Block] -> JATS m Doc
 listItemToJATS opts mbmarker item = do
   contents <- blocksToJATS opts item
   return $ inTagsIndented "list-item" $
@@ -187,7 +160,7 @@ listItemToJATS opts mbmarker item = do
            $$ contents
 
 -- | Convert a Pandoc block element to JATS.
-blockToJATS :: PandocMonad m => WriterOptions -> Block -> DB m Doc
+blockToJATS :: PandocMonad m => WriterOptions -> Block -> JATS m Doc
 blockToJATS _ Null = return empty
 -- Bibliography reference:
 blockToJATS opts (Div ('r':'e':'f':'-':_,_,_) [Para lst]) =
@@ -311,7 +284,7 @@ tableRowToJATS :: PandocMonad m
                   => WriterOptions
                   -> Bool
                   -> [[Block]]
-                  -> DB m Doc
+                  -> JATS m Doc
 tableRowToJATS opts isHeader cols =
   (inTagsIndented "tr" . vcat) <$> mapM (tableItemToJATS opts isHeader) cols
 
@@ -319,17 +292,17 @@ tableItemToJATS :: PandocMonad m
                    => WriterOptions
                    -> Bool
                    -> [Block]
-                   -> DB m Doc
+                   -> JATS m Doc
 tableItemToJATS opts isHeader item =
   (inTags True (if isHeader then "th" else "td") [] . vcat) <$>
     mapM (blockToJATS opts) item
 
 -- | Convert a list of inline elements to JATS.
-inlinesToJATS :: PandocMonad m => WriterOptions -> [Inline] -> DB m Doc
+inlinesToJATS :: PandocMonad m => WriterOptions -> [Inline] -> JATS m Doc
 inlinesToJATS opts lst = hcat <$> mapM (inlineToJATS opts) lst
 
 -- | Convert an inline element to JATS.
-inlineToJATS :: PandocMonad m => WriterOptions -> Inline -> DB m Doc
+inlineToJATS :: PandocMonad m => WriterOptions -> Inline -> JATS m Doc
 inlineToJATS _ (Str str) = return $ text $ escapeStringForXML str
 inlineToJATS opts (Emph lst) =
   inTagsSimple "italic" <$> inlinesToJATS opts lst

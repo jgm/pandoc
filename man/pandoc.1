@@ -1,5 +1,5 @@
 .\"t
-.TH PANDOC 1 "October 27, 2017" "pandoc 2.0"
+.TH PANDOC 1 "October 31, 2017" "pandoc 2.0.1"
 .SH NAME
 pandoc - general markup converter
 .SH SYNOPSIS
@@ -200,8 +200,8 @@ requires \f[C]fontspec\f[].
 If the \f[C]mathspec\f[] variable is set, \f[C]xelatex\f[] will use
 \f[C]mathspec\f[] instead of \f[C]unicode\-math\f[].
 The \f[C]upquote\f[] and \f[C]microtype\f[] packages are used if
-available, and \f[C]csquotes\f[] will be used for [smart punctuation] if
-added to the template or included in any header file.
+available, and \f[C]csquotes\f[] will be used for typography if added to
+the template or included in any header file.
 The \f[C]natbib\f[], \f[C]biblatex\f[], \f[C]bibtex\f[], and
 \f[C]biber\f[] packages can optionally be used for citation rendering.
 These are included with all recent versions of TeX Live.
@@ -3572,7 +3572,23 @@ blocks:
 .fi
 .SS Small caps
 .PP
-To write small caps, you can use an HTML span tag:
+To write small caps, use the \f[C]smallcaps\f[] class:
+.IP
+.nf
+\f[C]
+[Small\ caps]{.smallcaps}
+\f[]
+.fi
+.PP
+Or, without the \f[C]bracketed_spans\f[] extension:
+.IP
+.nf
+\f[C]
+<span\ class="smallcaps">Small\ caps</span>
+\f[]
+.fi
+.PP
+For compatibility with other Markdown flavors, CSS is also supported:
 .IP
 .nf
 \f[C]
@@ -3580,16 +3596,7 @@ To write small caps, you can use an HTML span tag:
 \f[]
 .fi
 .PP
-(The semicolon is optional and there may be space after the colon.) This
-will work in all output formats that support small caps.
-.PP
-Alternatively, you can also use the new \f[C]bracketed_spans\f[] syntax:
-.IP
-.nf
-\f[C]
-[Small\ caps]{style="font\-variant:small\-caps;"}
-\f[]
-.fi
+This will work in all output formats that support small caps.
 .SS Math
 .SS Extension: \f[C]tex_math_dollars\f[]
 .PP
@@ -3814,8 +3821,8 @@ A Div starts with a fence containing at least three consecutive colons
 plus some attributes.
 The attributes may optionally be followed by another string of
 consecutive colons.
-The attribute syntax is exactly as in fenced code blocks (see
-[Extension\-fenced_code_attributes], above).
+The attribute syntax is exactly as in fenced code blocks (see Extension:
+\f[C]fenced_code_attributes\f[]).
 As with fenced code blocks, one can use either attributes in curly
 braces or a single unbraced word, which will be treated as a class name.
 The Div ends with another line containing a string of at least three
@@ -5023,13 +5030,14 @@ You can add notes to your Markdown document thus:
 .IP
 .nf
 \f[C]
-<div\ class="notes">
+:::\ notes
+
 This\ is\ my\ note.
 
 \-\ It\ can\ contain\ Markdown
 \-\ like\ this\ list
 
-</div>
+:::
 \f[]
 .fi
 .PP
@@ -5037,6 +5045,24 @@ To show the notes window, press \f[C]s\f[] while viewing the
 presentation.
 Notes are not yet supported for other slide formats, but the notes will
 not appear on the slides themselves.
+.SS Columns
+.PP
+To put material in side by side columns, you can use a native div
+container with class \f[C]columns\f[], containing two or more div
+containers with class \f[C]column\f[] and a \f[C]width\f[] attribute:
+.IP
+.nf
+\f[C]
+::::::::::::::\ {.columns}
+:::\ {.column\ width="40%"}
+contents...
+:::
+:::\ {.column\ width="60%"}
+contents...
+:::
+::::::::::::::
+\f[]
+.fi
 .SS Frame attributes in beamer
 .PP
 Sometimes it is necessary to add the LaTeX \f[C][fragile]\f[] option to

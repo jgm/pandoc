@@ -124,6 +124,7 @@ convertTags (t@(TagOpen "link" as):ts) =
                      rest
                 Right (mime, bs)
                   | "text/css" `isPrefixOf` mime
+                    && null (fromAttrib "media" t)
                     && not ("</" `B.isInfixOf` bs) -> do
                       rest <- convertTags $
                                  dropWhile (==TagClose "link") ts

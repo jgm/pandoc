@@ -204,9 +204,9 @@ parStylesToDoc st = vcat $ map makeStyle $ Set.toAscList $ blockStyles st
             where
               numbering | isOrderedList = [("NumberingExpression", "^#.^t"), ("NumberingLevel", show nOrds)]
                         | otherwise     = []
-              listType | isOrderedList && not (isInfixOf subListParName s)
+              listType | isOrderedList && not (subListParName `isInfixOf` s)
                            = [("BulletsAndNumberingListType", "NumberedList")]
-                       | isBulletList && not (isInfixOf subListParName s)
+                       | isBulletList && not (subListParName `isInfixOf` s)
                            = [("BulletsAndNumberingListType", "BulletList")]
                        | otherwise = []
               indent = [("LeftIndent", show indt)]
@@ -350,7 +350,7 @@ blockToICML opts style (Table caption aligns widths headers rows) =
       cells <- rowsToICML tabl (0::Int)
       let colWidths w =
             [("SingleColumnWidth",show $ 500 * w) | w > 0]
-      let tupToDoc tup = selfClosingTag "Column" $ ("Name",show $ fst tup) : (colWidths $ snd tup)
+      let tupToDoc tup = selfClosingTag "Column" $ ("Name",show $ fst tup) : colWidths (snd tup)
       let colDescs = vcat $ zipWith (curry tupToDoc) [0..nrCols-1] widths
       let tableDoc = return $ inTags True "Table" [
                          ("AppliedTableStyle","TableStyle/Table")

@@ -387,7 +387,7 @@ table = try $ do
     char '.'
     rawcapt <- trim <$> anyLine
     parseFromString' (mconcat <$> many inline) rawcapt
-  rawrows <- many1 $ (skipMany ignorableRow) >> tableRow
+  rawrows <- many1 $ skipMany ignorableRow >> tableRow
   skipMany ignorableRow
   blanklines
   let (headers, rows) = case rawrows of
@@ -438,8 +438,7 @@ maybeExplicitBlock name blk = try $ do
 
 -- | Any inline element
 inline :: PandocMonad m => ParserT [Char] ParserState m Inlines
-inline = do
-    choice inlineParsers <?> "inline"
+inline = choice inlineParsers <?> "inline"
 
 -- | Inline parsers tried in order
 inlineParsers :: PandocMonad m => [ParserT [Char] ParserState m Inlines]
@@ -610,7 +609,7 @@ escapedInline = escapedEqs <|> escapedTag
 
 escapedEqs :: PandocMonad m => ParserT [Char] ParserState m Inlines
 escapedEqs = B.str <$>
-  (try $ string "==" *> manyTill anyChar' (try $ string "=="))
+  try (string "==" *> manyTill anyChar' (try $ string "=="))
 
 -- | literal text escaped btw <notextile> tags
 escapedTag :: PandocMonad m => ParserT [Char] ParserState m Inlines
@@ -643,7 +642,7 @@ code2 = do
 
 -- | Html / CSS attributes
 attributes :: PandocMonad m => ParserT [Char] ParserState m Attr
-attributes = (foldl (flip ($)) ("",[],[])) <$>
+attributes = foldl (flip ($)) ("",[],[]) <$>
   try (do special <- option id specialAttribute
           attrs <- many attribute
           return (special : attrs))

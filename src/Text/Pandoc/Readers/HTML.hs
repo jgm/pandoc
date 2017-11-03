@@ -141,7 +141,7 @@ type TagParser m = HTMLParser m [Tag Text]
 
 pHtml :: PandocMonad m => TagParser m Blocks
 pHtml = try $ do
-  (TagOpen "html" attr) <- lookAhead $ pAnyTag
+  (TagOpen "html" attr) <- lookAhead pAnyTag
   for_ (lookup "lang" attr) $
     updateState . B.setMeta "lang" . B.text . T.unpack
   pInTags "html" block
@@ -152,7 +152,7 @@ pBody = pInTags "body" block
 pHead :: PandocMonad m => TagParser m Blocks
 pHead = pInTags "head" $ pTitle <|> pMetaTag <|> pBaseTag <|> (mempty <$ pAnyTag)
   where pTitle = pInTags "title" inline >>= setTitle . trimInlines
-        setTitle t = mempty <$ (updateState $ B.setMeta "title" t)
+        setTitle t = mempty <$ updateState (B.setMeta "title" t)
         pMetaTag = do
           mt <- pSatisfy (matchTagOpen "meta" [])
           let name = T.unpack $ fromAttrib "name" mt
@@ -233,7 +233,7 @@ eFootnote :: PandocMonad m => TagParser m ()
 eFootnote = try $ do
   let notes = ["footnote", "rearnote"]
   guardEnabled Ext_epub_html_exts
-  (TagOpen tag attr') <- lookAhead $ pAnyTag
+  (TagOpen tag attr') <- lookAhead pAnyTag
   let attr = toStringAttr attr'
   guard (maybe False (flip elem notes) (lookup "type" attr))
   let ident = fromMaybe "" (lookup "id" attr)
@@ -478,7 +478,7 @@ pTable = try $ do
   let pTh = option [] $ pInTags "tr" (pCell "th")
       pTr = try $ skipMany pBlank >>
                   pInTags "tr" (pCell "td" <|> pCell "th")
-      pTBody = do pOptInTag "tbody" $ many1 pTr
+      pTBody = pOptInTag "tbody" $ many1 pTr
   head'' <- pOptInTag "thead" pTh
   head'  <- map snd <$>
              (pOptInTag "tbody" $
@@ -1133,6 +1133,7 @@ htmlTag :: (HasReaderOptions st, Monad m)
         -> ParserT [Char] st m (Tag String, String)
 htmlTag f = try $ do
   lookAhead (char '<')
+  startpos <- getPosition
   inp <- getInput
   let ts = canonicalizeTags $ parseTagsOptions
                                parseOptions{ optTagWarning = False
@@ -1153,11 +1154,17 @@ htmlTag f = try $ do
                       []     -> False
                       (c:cs) -> isLetter c && all isNameChar cs
 
-  let endAngle = try $ do char '>'
-                          pos <- getPosition
-                          guard $ (sourceLine pos == ln &&
-                                   sourceColumn pos >= col) ||
-                                  sourceLine pos > ln
+  let endpos = if ln == 1
+                  then setSourceColumn startpos
+                         (sourceColumn startpos + (col - 1))
+                  else setSourceColumn (setSourceLine startpos
+                                        (sourceLine startpos + (ln - 1)))
+                         col
+  let endAngle = try $
+        do char '>'
+           pos <- getPosition
+           guard $ pos >= endpos
+
   let handleTag tagname = do
        -- basic sanity check, since the parser is very forgiving
        -- and finds tags in stuff like x<y)
@@ -1172,8 +1179,9 @@ htmlTag f = try $ do
   case next of
        TagComment s
          | "<!--" `isPrefixOf` inp -> do
-          char '<'
-          manyTill anyChar endAngle
+          string "<!--"
+          count (length s) anyChar
+          string "-->"
           stripComments <- getOption readerStripComments
           if stripComments
              then return (next, "")
@@ -1255,7 +1263,7 @@ renderTags' = renderTagsOptions
                renderOptions{ optMinimize = matchTags ["hr", "br", "img",
                                                        "meta", "link"]
                             , optRawTag   = matchTags ["script", "style"] }
-              where matchTags = \tags -> flip elem tags . T.toLower
+              where matchTags tags = flip elem tags . T.toLower
 
 
 -- EPUB Specific

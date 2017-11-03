@@ -2,6 +2,7 @@
 <FictionBook xmlns="http://www.gribuser.ru/xml/fictionbook/2.0" xmlns:l="http://www.w3.org/1999/xlink">
 <description>
 <title-info>
+<genre>unrecognised</genre>
 <book-title>Pandoc Test Suite</book-title>
 <author>
 <first-name>John</first-name>
@@ -20,11 +21,6 @@
 <title>
 <p>Pandoc Test Suite</p>
 </title>
-<annotation>
-<p>John MacFarlane</p>
-<p>Anonymous</p>
-<p>July 17, 2006</p>
-</annotation>
 <section>
 <p>This is a set of tests for pandoc. Most of them are adapted from John Gruber’s markdown test suite.</p>
 <empty-line />
@@ -261,23 +257,23 @@
 <p>Nested</p>
 </title>
 <p>• Tab</p>
-<p>◦ Tab</p>
-<p>* Tab</p>
+<p>• • Tab</p>
+<p>• • • Tab</p>
 <p>Here’s another:</p>
 <p>1. First</p>
 <p>2. Second:</p>
-<p>   • Fee</p>
-<p>   • Fie</p>
-<p>   • Foe</p>
+<p>2. • Fee</p>
+<p>2. • Fie</p>
+<p>2. • Foe</p>
 <p>3. Third</p>
 <p>Same thing but with paragraphs:</p>
 <p>1. First</p>
 <empty-line />
 <p>2. Second:</p>
 <empty-line />
-<p>   • Fee</p>
-<p>   • Fie</p>
-<p>   • Foe</p>
+<p>2. • Fee</p>
+<p>2. • Fie</p>
+<p>2. • Foe</p>
 <p>3. Third</p>
 <empty-line />
 </section>
@@ -289,9 +285,9 @@
 <empty-line />
 <p>• this is a list item indented with spaces</p>
 <empty-line />
-<p>◦ this is an example list item indented with tabs</p>
+<p>• • this is an example list item indented with tabs</p>
 <empty-line />
-<p>◦ this is an example list item indented with spaces</p>
+<p>• • this is an example list item indented with spaces</p>
 <empty-line />
 </section>
 <section>
@@ -332,64 +328,61 @@
 <p>
 <strong>apple</strong>
 </p>
-<p>    red fruit<empty-line />
-</p>
+<p>    red fruit</p>
 <p>
 <strong>orange</strong>
 </p>
-<p>    orange fruit<empty-line />
-</p>
+<p>    orange fruit</p>
 <p>
 <strong>banana</strong>
 </p>
-<p>    yellow fruit<empty-line />
-</p>
+<p>    yellow fruit</p>
 <p>Tight using tabs:</p>
 <p>
 <strong>apple</strong>
 </p>
-<p>    red fruit<empty-line />
-</p>
+<p>    red fruit</p>
 <p>
 <strong>orange</strong>
 </p>
-<p>    orange fruit<empty-line />
-</p>
+<p>    orange fruit</p>
 <p>
 <strong>banana</strong>
 </p>
-<p>    yellow fruit<empty-line />
-</p>
+<p>    yellow fruit</p>
 <p>Loose:</p>
 <p>
 <strong>apple</strong>
 </p>
-<p>    red fruit<empty-line />
-</p>
+<p>    red fruit</p>
+<empty-line />
 <p>
 <strong>orange</strong>
 </p>
-<p>    orange fruit<empty-line />
-</p>
+<p>    orange fruit</p>
+<empty-line />
 <p>
 <strong>banana</strong>
 </p>
-<p>    yellow fruit<empty-line />
-</p>
+<p>    yellow fruit</p>
+<empty-line />
 <p>Multiple blocks with italics:</p>
 <p>
 <strong>
 <emphasis>apple</emphasis>
 </strong>
 </p>
-<p>    red fruit<empty-line />    contains seeds, crisp, pleasant to taste<empty-line />
-</p>
+<p>    red fruit</p>
+<empty-line />
+<p>    contains seeds, crisp, pleasant to taste</p>
+<empty-line />
 <p>
 <strong>
 <emphasis>orange</emphasis>
 </strong>
 </p>
-<p>    orange fruit<empty-line />
+<p>    orange fruit</p>
+<empty-line />
 <empty-line />
 <p>
 <code>    { orange code block }</code>
@@ -398,42 +391,47 @@
 <cite>
 <p>    orange block quote</p>
 </cite>
-</p>
 <p>Multiple definitions, tight:</p>
 <p>
 <strong>apple</strong>
 </p>
-<p>    red fruit<empty-line />    computer<empty-line />
-</p>
+<p>    red fruit</p>
+<p>    computer</p>
 <p>
 <strong>orange</strong>
 </p>
-<p>    orange fruit<empty-line />    bank<empty-line />
-</p>
+<p>    orange fruit</p>
+<p>    bank</p>
 <p>Multiple definitions, loose:</p>
 <p>
 <strong>apple</strong>
 </p>
-<p>    red fruit<empty-line />    computer<empty-line />
-</p>
+<p>    red fruit</p>
+<empty-line />
+<p>    computer</p>
+<empty-line />
 <p>
 <strong>orange</strong>
 </p>
-<p>    orange fruit<empty-line />    bank<empty-line />
-</p>
+<p>    orange fruit</p>
+<empty-line />
+<p>    bank</p>
+<empty-line />
 <p>Blank line after term, indented marker, alternate markers:</p>
 <p>
 <strong>apple</strong>
 </p>
-<p>    red fruit<empty-line />    computer<empty-line />
-</p>
+<p>    red fruit</p>
+<empty-line />
+<p>    computer</p>
+<empty-line />
 <p>
 <strong>orange</strong>
 </p>
-<p>    orange fruit<empty-line />
+<p>    orange fruit</p>
+<empty-line />
 <p>1. sublist</p>
 <p>2. sublist</p>
-</p>
 </section>
 <section>
 <title>

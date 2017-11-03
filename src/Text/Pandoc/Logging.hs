@@ -230,7 +230,7 @@ showLogMessage msg =
          "Skipped '" ++ s ++ "' at " ++ showPos pos
        CouldNotParseYamlMetadata s pos ->
          "Could not parse YAML metadata at " ++ showPos pos ++
-           if null s then "" else (": " ++ s)
+           if null s then "" else ": " ++ s
        DuplicateLinkReference s pos ->
          "Duplicate link reference '" ++ s ++ "' at " ++ showPos pos
        DuplicateNoteReference s pos ->
@@ -260,20 +260,20 @@ showLogMessage msg =
          "Docx parser warning: " ++ s
        CouldNotFetchResource fp s ->
          "Could not fetch resource '" ++ fp ++ "'" ++
-           if null s then "" else (": " ++ s)
+           if null s then "" else ": " ++ s
        CouldNotDetermineImageSize fp s ->
          "Could not determine image size for '" ++ fp ++ "'" ++
-           if null s then "" else (": " ++ s)
+           if null s then "" else ": " ++ s
        CouldNotConvertImage fp s ->
          "Could not convert image '" ++ fp ++ "'" ++
-           if null s then "" else (": " ++ s)
+           if null s then "" else ": " ++ s
        CouldNotDetermineMimeType fp ->
          "Could not determine mime type for '" ++ fp ++ "'"
        CouldNotConvertTeXMath s m ->
          "Could not convert TeX math '" ++ s ++ "', rendering as TeX" ++
-           if null m then "" else (':':'\n':m)
+           if null m then "" else ':' : '\n' : m
        CouldNotParseCSS m ->
-         "Could not parse CSS" ++ if null m then "" else (':':'\n':m)
+         "Could not parse CSS" ++ if null m then "" else ':' : '\n' : m
        Fetching fp ->
          "Fetching " ++ fp ++ "..."
        Extracting fp ->
@@ -301,7 +301,7 @@ showLogMessage msg =
          "The term " ++ t ++ " has no translation defined."
        CouldNotLoadTranslations lang m ->
          "Could not load translations for " ++ lang ++
-           if null m then "" else ('\n':m)
+           if null m then "" else '\n' : m
 
 messageVerbosity:: LogMessage -> Verbosity
 messageVerbosity msg =

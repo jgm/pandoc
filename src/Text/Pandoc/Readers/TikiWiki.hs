@@ -501,7 +501,7 @@ escapedChar = try $ do
   string "~"
   inner <- many1 $ oneOf "0123456789"
   string "~"
-  return $B.str [(toEnum ((read inner) :: Int)) :: Char]
+  return $B.str [(toEnum (read inner :: Int)) :: Char]
 
 -- UNSUPPORTED, as there doesn't seem to be any facility in calibre
 -- for this
@@ -587,8 +587,7 @@ macroAttr = try $ do
   return (key, value)
 
 macroAttrs :: PandocMonad m => TikiWikiParser m [(String, String)]
-macroAttrs = try $ do
-  sepEndBy macroAttr spaces
+macroAttrs = try $ sepEndBy macroAttr spaces
 
 -- ~np~ __not bold__ ~/np~
 noparse :: PandocMonad m => TikiWikiParser m B.Inlines
@@ -641,8 +640,7 @@ wikiLinkText start middle end = do
   where
     linkContent      = do
       char '|'
-      mystr <- many (noneOf middle)
-      return mystr
+      many (noneOf middle)
 
 externalLink :: PandocMonad m => TikiWikiParser m B.Inlines
 externalLink = makeLink "[" "]|" "]"

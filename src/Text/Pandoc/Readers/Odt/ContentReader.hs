@@ -293,7 +293,7 @@ withNewStyle a = proc x -> do
           modifier     <- arr modifierFromStyleDiff -< triple
           fShouldTrace <- isStyleToTrace            -< style
           case fShouldTrace of
-            Right shouldTrace -> do
+            Right shouldTrace ->
               if shouldTrace
                 then do
                   pushStyle      -< style
@@ -357,7 +357,7 @@ modifierFromStyleDiff propertyTriple  =
     hasChangedM property triple@(_, textProps,_) =
       fromMaybe False $ (/=) <$> property textProps <*> lookupPreviousValueM property triple
 
-    lookupPreviousValue f = lookupPreviousStyleValue ((fmap f).textProperties)
+    lookupPreviousValue f = lookupPreviousStyleValue (fmap f . textProperties)
 
     lookupPreviousValueM f = lookupPreviousStyleValue ((f =<<).textProperties)
 
@@ -803,9 +803,9 @@ read_frame_text_box = matchingElement NsDraw "text-box"
                          arr read_img_with_caption                             -< toList paragraphs
 
 read_img_with_caption :: [Block] -> Inlines
-read_img_with_caption ((Para ((Image attr alt (src,title)) : [])) : _) =
+read_img_with_caption ((Para [Image attr alt (src,title)]) : _) =
   singleton (Image attr alt (src, 'f':'i':'g':':':title))   -- no text, default caption
-read_img_with_caption ((Para ((Image attr _ (src,title)) : txt)) : _) =
+read_img_with_caption (Para (Image attr _ (src,title) : txt) : _) =
   singleton (Image attr txt (src, 'f':'i':'g':':':title) )  -- override caption with the text that follows
 read_img_with_caption  ( (Para (_ : xs)) : ys) =
   read_img_with_caption ((Para xs) : ys)

@@ -64,7 +64,7 @@ $endfor$
 </div>
 <div class="presentation">
 $if(title)$
-<div class="titleslide slide">
+<div class="title-slide slide">
   <h1 class="title">$title$</h1>
 $if(subtitle)$
   <h2 class="subtitle">$subtitle$</h2>

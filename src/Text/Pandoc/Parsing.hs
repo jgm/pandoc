@@ -188,12 +188,12 @@ where
 
 import Control.Monad.Identity
 import Control.Monad.Reader
-import Data.Char (chr, isAlphaNum, isAscii, isHexDigit, isPunctuation, isSpace,
+import Data.Char (chr, isAlphaNum, isAscii, isAsciiUpper, isHexDigit, isPunctuation, isSpace,
                   ord, toLower, toUpper)
 import Data.Default
 import Data.List (intercalate, isSuffixOf, transpose)
 import qualified Data.Map as M
-import Data.Maybe (catMaybes)
+import Data.Maybe (mapMaybe)
 import Data.Monoid ((<>))
 import qualified Data.Set as Set
 import Data.Text (Text)
@@ -354,7 +354,7 @@ oneOfStringsCI = oneOfStrings' ciMatch
         -- this optimizes toLower by checking common ASCII case
         -- first, before calling the expensive unicode-aware
         -- function:
-        toLower' c | c >= 'A' && c <= 'Z' = chr (ord c + 32)
+        toLower' c | isAsciiUpper c = chr (ord c + 32)
                    | isAscii c = c
                    | otherwise = toLower c
 
@@ -497,19 +497,19 @@ romanNumeral upperCase = do
     lookAhead $ oneOf romanDigits
     let [one, five, ten, fifty, hundred, fivehundred, thousand] =
           map char romanDigits
-    thousands <- many thousand >>= (return . (1000 *) . length)
+    thousands <- ((1000 *) . length) <$> many thousand
     ninehundreds <- option 0 $ try $ hundred >> thousand >> return 900
-    fivehundreds <- many fivehundred >>= (return . (500 *) . length)
+    fivehundreds <- ((500 *) . length) <$> many fivehundred
     fourhundreds <- option 0 $ try $ hundred >> fivehundred >> return 400
-    hundreds <- many hundred >>= (return . (100 *) . length)
+    hundreds <- ((100 *) . length) <$> many hundred
     nineties <- option 0 $ try $ ten >> hundred >> return 90
-    fifties <- many fifty >>= (return . (50 *) . length)
+    fifties <- ((50 *) . length) <$> many fifty
     forties <- option 0 $ try $ ten >> fifty >> return 40
-    tens <- many ten >>= (return . (10 *) . length)
+    tens <- ((10 *) . length) <$> many ten
     nines <- option 0 $ try $ one >> ten >> return 9
-    fives <- many five >>= (return . (5 *) . length)
+    fives <- ((5 *) . length) <$> many five
     fours <- option 0 $ try $ one >> five >> return 4
-    ones <- many one >>= (return . length)
+    ones <- length <$> many one
     let total = thousands + ninehundreds + fivehundreds + fourhundreds +
                 hundreds + nineties + fifties + forties + tens + nines +
                 fives + fours + ones
@@ -545,7 +545,7 @@ emailAddress = try $ toResult <$> mailbox <*> (char '@' *> domain)
        isEmailPunct c    = c `elem` "!\"#$%&'*+-/=?^_{|}~;"
        -- note: sepBy1 from parsec consumes input when sep
        -- succeeds and p fails, so we use this variant here.
-       sepby1 p sep      = (:) <$> p <*> (many (try $ sep >> p))
+       sepby1 p sep      = (:) <$> p <*> many (try $ sep >> p)
 
 
 uriScheme :: Stream s m Char => ParserT s st m String
@@ -568,7 +568,7 @@ uri = try $ do
   let percentEscaped = try $ char '%' >> skipMany1 (satisfy isHexDigit)
   let entity = () <$ characterReference
   let punct = skipMany1 (char ',')
-          <|> () <$ (satisfy (\c -> not (isSpace c) && c /= '<' && c /= '>'))
+          <|> () <$ satisfy (\c -> not (isSpace c) && c /= '<' && c /= '>')
   let uriChunk =  skipMany1 wordChar
               <|> percentEscaped
               <|> entity
@@ -837,7 +837,7 @@ blankLineBlockLine = try (char '|' >> blankline)
 lineBlockLines :: Monad m => ParserT [Char] st m [String]
 lineBlockLines = try $ do
   lines' <- many1 (lineBlockLine <|> ((:[]) <$> blankLineBlockLine))
-  skipMany $ blankline
+  skipMany blankline
   return lines'
 
 -- | Parse a table using 'headerParser', 'rowParser',
@@ -868,10 +868,10 @@ tableWith' headerParser rowParser lineParser footerParser = try $ do
     lines' <- sequence <$> rowParser indices `sepEndBy1` lineParser
     footerParser
     numColumns <- getOption readerColumns
-    let widths = if (indices == [])
+    let widths = if null indices
                     then replicate (length aligns) 0.0
                     else widthsFromIndices numColumns indices
-    return $ (aligns, widths, heads, lines')
+    return (aligns, widths, heads, lines')
 
 -- Calculate relative widths of table columns, based on indices
 widthsFromIndices :: Int      -- Number of columns on terminal
@@ -1271,7 +1271,7 @@ registerHeader (ident,classes,kvs) header' = do
      then do
        let id' = uniqueIdent (B.toList header') ids
        let id'' = if Ext_ascii_identifiers `extensionEnabled` exts
-                     then catMaybes $ map toAsciiChar id'
+                     then mapMaybe toAsciiChar id'
                      else id'
        updateState $ updateIdentifierList $ Set.insert id'
        updateState $ updateIdentifierList $ Set.insert id''
@@ -1417,10 +1417,10 @@ a <+?> b = a >>= flip fmap (try b <|> return mempty) . (<>)
 extractIdClass :: Attr -> Attr
 extractIdClass (ident, cls, kvs) = (ident', cls', kvs')
   where
-    ident' = case (lookup "id" kvs) of
+    ident' = case lookup "id" kvs of
                Just v  -> v
                Nothing -> ident
-    cls'   = case (lookup "class" kvs) of
+    cls'   = case lookup "class" kvs of
                Just cl -> words cl
                Nothing -> cls
     kvs'  = filter (\(k,_) -> k /= "id" || k /= "class") kvs
