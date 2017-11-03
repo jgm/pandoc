@@ -658,11 +658,8 @@ blockToHtml opts (LineBlock lns) =
 blockToHtml opts (Div attr@(ident, classes, kvs') bs) = do
   html5 <- gets stHtml5
   let kvs = [(k,v) | (k,v) <- kvs', k /= "width"] ++
-        if "column" `elem` classes
-           then let w = fromMaybe "48%" (lookup "width" kvs')
-                in  [("style", "width:" ++ w ++ ";min-width:" ++ w ++
-                      ";vertical-align:top;")]
-           else []
+            [("style", "width:" ++ w ++ ";")
+             | ("width",w) <- kvs', "column" `elem` classes]
   let speakerNotes = "notes" `elem` classes
   -- we don't want incremental output inside speaker notes, see #1394
   let opts' = if speakerNotes then opts{ writerIncremental = False } else opts
