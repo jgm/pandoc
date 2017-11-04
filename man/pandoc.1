@@ -1,5 +1,5 @@
 .\"t
-.TH PANDOC 1 "October 31, 2017" "pandoc 2.0.1"
+.TH PANDOC 1 "November 4, 2017" "pandoc 2.0.1.1"
 .SH NAME
 pandoc - general markup converter
 .SH SYNOPSIS
@@ -861,6 +861,7 @@ Currently only affects the markdown writer.
 Use ATX\-style headers in Markdown and AsciiDoc output.
 The default is to use setext\-style headers for levels 1\-2, and then
 ATX headers.
+(Note: for \f[C]gfm\f[] output, ATX headers are always used.)
 .RS
 .RE
 .TP
@@ -1338,9 +1339,10 @@ For \f[C]odt\f[] output, customize the \f[C]default.opendocument\f[]
 template.
 .IP \[bu] 2
 For \f[C]pdf\f[] output, customize the \f[C]default.latex\f[] template
-(or the \f[C]default.beamer\f[] template, if you use
-\f[C]\-t\ beamer\f[], or the \f[C]default.context\f[] template, if you
-use \f[C]\-t\ context\f[]).
+(or the \f[C]default.context\f[] template, if you use
+\f[C]\-t\ context\f[], or the \f[C]default.ms\f[] template, if you use
+\f[C]\-t\ ms\f[], or the \f[C]default.html5\f[] template, if you use
+\f[C]\-t\ html5\f[]).
 .IP \[bu] 2
 \f[C]docx\f[] has no template (however, you can use
 \f[C]\-\-reference\-doc\f[] to customize the output).
@@ -2462,6 +2464,12 @@ block above will appear as follows:
 </pre>
 \f[]
 .fi
+.PP
+The \f[C]numberLines\f[] (or \f[C]number\-lines\f[]) class will cause
+the lines of the code block to be numbered, starting with \f[C]1\f[] or
+the value of the \f[C]startFrom\f[] attribute.
+The \f[C]lineAnchors\f[] (or \f[C]line\-anchors\f[]) class will cause
+the lines to be clickable anchors in HTML output.
 .PP
 A shortcut form can also be used for specifying the language of the code
 block:
@@ -3857,6 +3865,12 @@ This\ is\ a\ warning\ within\ a\ warning.
 ::::::::::::::::::
 \f[]
 .fi
+.PP
+Fences without attributes are always closing fences.
+Unlike with fenced code blocks, the number of colons in the closing
+fence need not match the number in the opening fence.
+However, it can be helpful for visual clarity to use fences of different
+lengths to distinguish nested divs from their parents.
 .SS Extension: \f[C]raw_tex\f[]
 .PP
 In addition to raw HTML, pandoc allows raw LaTeX, TeX, and ConTeXt to be
