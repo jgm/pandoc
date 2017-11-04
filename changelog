@@ -1,4 +1,4 @@
-pandoc (2.0.?)
+pandoc (2.0.1.1)
 
   * Improved fix to #3989 (parsing of HTML tags containing
     `>` in an attribute or comment). The previous fix (in 2.0.1) only
