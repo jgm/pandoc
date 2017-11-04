@@ -322,7 +322,7 @@ To run just the markdown benchmarks:
 
 [Arch]: https://www.archlinux.org/packages/community/x86_64/pandoc/
 [Cabal User's Guide]: http://www.haskell.org/cabal/release/latest/doc/users-guide/builders.html#setup-configure-paths
-[Debian]: http://packages.debian.org/lenny/pandoc
+[Debian]: https://packages.debian.org/pandoc
 [Fedora]: https://apps.fedoraproject.org/packages/pandoc
 [FreeBSD ports]: http://www.freshports.org/textproc/pandoc/
 [GHC]:  http://www.haskell.org/ghc/
@@ -331,9 +331,9 @@ To run just the markdown benchmarks:
 [MacPorts]: http://trac.macports.org/browser/trunk/dports/textproc/pandoc/Portfile
 [MacTeX]: https://tug.org/mactex/
 [NetBSD]: http://pkgsrc.se/wip/pandoc
-[NixOS]: http://nixos.org/nixos/
-[Slackware]: http://www.linuxpackages.net/search_view.php?by=name&name=pandoc&ver=
-[Ubuntu]: http://www.ubuntu.com
+[NixOS]: https://nixos.org/nixos/packages.html
+[Slackware]: https://www.slackbuilds.org/result/?search=pandoc&sv=
+[Ubuntu]: https://packages.ubuntu.com/pandoc
 [download page]: https://github.com/jgm/pandoc/releases/latest
 [gentoo]: http://packages.gentoo.org/package/app-text/pandoc
 [haskell repository]: https://wiki.archlinux.org/index.php/Haskell_Package_Guidelines#.5Bhaskell.5D
