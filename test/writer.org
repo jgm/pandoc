@@ -48,103 +48,101 @@ markdown test suite.
     :CUSTOM_ID: level-3
     :END:
 
-with no blank line
+    with no blank line
 
 ** Level 2
    :PROPERTIES:
    :CUSTOM_ID: level-2
    :END:
 
-with no blank line
+   with no blank line
 
---------------
+   --------------
 
 * Paragraphs
   :PROPERTIES:
   :CUSTOM_ID: paragraphs
   :END:
 
-Here's a regular paragraph.
+  Here's a regular paragraph.
 
-In Markdown 1.0.0 and earlier. Version 8. This line turns into a list item.
-Because a hard-wrapped line in the middle of a paragraph looked like a list
-item.
+  In Markdown 1.0.0 and earlier. Version 8. This line turns into a list item.
+  Because a hard-wrapped line in the middle of a paragraph looked like a list
+  item.
 
-Here's one with a bullet. * criminey.
+  Here's one with a bullet. * criminey.
 
-There should be a hard line break\\
-here.
+  There should be a hard line break\\
+  here.
 
---------------
+  --------------
 
 * Block Quotes
   :PROPERTIES:
   :CUSTOM_ID: block-quotes
   :END:
 
-E-mail style:
-
-#+BEGIN_QUOTE
-  This is a block quote. It is pretty short.
-#+END_QUOTE
-
-#+BEGIN_QUOTE
-  Code in a block quote:
-
-  #+BEGIN_EXAMPLE
-      sub status {
-          print "working";
-      }
-  #+END_EXAMPLE
-
-  A list:
-
-  1. item one
-  2. item two
-
-  Nested block quotes:
+  E-mail style:
 
   #+BEGIN_QUOTE
-    nested
+    This is a block quote. It is pretty short.
   #+END_QUOTE
 
   #+BEGIN_QUOTE
-    nested
+    Code in a block quote:
+
+    #+BEGIN_EXAMPLE
+        sub status {
+            print "working";
+        }
+    #+END_EXAMPLE
+    A list:
+
+    1. item one
+    2. item two
+    Nested block quotes:
+
+    #+BEGIN_QUOTE
+      nested
+    #+END_QUOTE
+
+    #+BEGIN_QUOTE
+      nested
+    #+END_QUOTE
   #+END_QUOTE
-#+END_QUOTE
 
-This should not be a block quote: 2 > 1.
+  This should not be a block quote: 2 > 1.
 
-And a following paragraph.
+  And a following paragraph.
 
---------------
+  --------------
 
 * Code Blocks
   :PROPERTIES:
   :CUSTOM_ID: code-blocks
   :END:
 
-Code:
+  Code:
 
-#+BEGIN_EXAMPLE
-    ---- (should be four hyphens)
+  #+BEGIN_EXAMPLE
+      ---- (should be four hyphens)
 
-    sub status {
-        print "working";
-    }
+      sub status {
+          print "working";
+      }
 
-    this code block is indented by one tab
-#+END_EXAMPLE
+      this code block is indented by one tab
+  #+END_EXAMPLE
 
-And:
+  And:
 
-#+BEGIN_EXAMPLE
-        this code block is indented by two tabs
+  #+BEGIN_EXAMPLE
+          this code block is indented by two tabs
 
-    These should not be escaped:  \$ \\ \> \[ \{
-#+END_EXAMPLE
+      These should not be escaped:  \$ \\ \> \[ \{
+  #+END_EXAMPLE
 
---------------
+  --------------
 
 * Lists
   :PROPERTIES:
@@ -156,551 +154,549 @@ And:
    :CUSTOM_ID: unordered
    :END:
 
-Asterisks tight:
+   Asterisks tight:
 
-- asterisk 1
-- asterisk 2
-- asterisk 3
+   - asterisk 1
+   - asterisk 2
+   - asterisk 3
 
-Asterisks loose:
+   Asterisks loose:
 
-- asterisk 1
+   - asterisk 1
 
-- asterisk 2
+   - asterisk 2
 
-- asterisk 3
+   - asterisk 3
 
-Pluses tight:
+   Pluses tight:
 
-- Plus 1
-- Plus 2
-- Plus 3
+   - Plus 1
+   - Plus 2
+   - Plus 3
 
-Pluses loose:
+   Pluses loose:
 
-- Plus 1
+   - Plus 1
 
-- Plus 2
+   - Plus 2
 
-- Plus 3
+   - Plus 3
 
-Minuses tight:
+   Minuses tight:
 
-- Minus 1
-- Minus 2
-- Minus 3
+   - Minus 1
+   - Minus 2
+   - Minus 3
 
-Minuses loose:
+   Minuses loose:
 
-- Minus 1
+   - Minus 1
 
-- Minus 2
+   - Minus 2
 
-- Minus 3
+   - Minus 3
 
 ** Ordered
    :PROPERTIES:
    :CUSTOM_ID: ordered
    :END:
 
-Tight:
+   Tight:
 
-1. First
-2. Second
-3. Third
+   1. First
+   2. Second
+   3. Third
 
-and:
+   and:
 
-1. One
-2. Two
-3. Three
+   1. One
+   2. Two
+   3. Three
 
-Loose using tabs:
+   Loose using tabs:
 
-1. First
+   1. First
 
-2. Second
+   2. Second
 
-3. Third
+   3. Third
 
-and using spaces:
+   and using spaces:
 
-1. One
+   1. One
 
-2. Two
+   2. Two
 
-3. Three
+   3. Three
 
-Multiple paragraphs:
+   Multiple paragraphs:
 
-1. Item 1, graf one.
+   1. Item 1, graf one.
 
-   Item 1. graf two. The quick brown fox jumped over the lazy dog's back.
+      Item 1. graf two. The quick brown fox jumped over the lazy dog's back.
 
-2. Item 2.
+   2. Item 2.
 
-3. Item 3.
+   3. Item 3.
 
 ** Nested
    :PROPERTIES:
    :CUSTOM_ID: nested
    :END:
 
-- Tab
+   - Tab
 
-  - Tab
+     - Tab
 
-    - Tab
+       - Tab
 
-Here's another:
+   Here's another:
 
-1. First
-2. Second:
+   1. First
+   2. Second:
 
-   - Fee
-   - Fie
-   - Foe
+      - Fee
+      - Fie
+      - Foe
+   3. Third
 
-3. Third
+   Same thing but with paragraphs:
 
-Same thing but with paragraphs:
+   1. First
 
-1. First
+   2. Second:
 
-2. Second:
-
-   - Fee
-   - Fie
-   - Foe
-
-3. Third
+      - Fee
+      - Fie
+      - Foe
+   3. Third
 
 ** Tabs and spaces
    :PROPERTIES:
    :CUSTOM_ID: tabs-and-spaces
    :END:
 
-- this is a list item indented with tabs
+   - this is a list item indented with tabs
 
-- this is a list item indented with spaces
+   - this is a list item indented with spaces
 
-  - this is an example list item indented with tabs
+     - this is an example list item indented with tabs
 
-  - this is an example list item indented with spaces
+     - this is an example list item indented with spaces
 
 ** Fancy list markers
    :PROPERTIES:
    :CUSTOM_ID: fancy-list-markers
    :END:
 
-2) begins with 2
-3) and now 3
+   2) begins with 2
+   3) and now 3
 
-   with a continuation
+      with a continuation
 
-   4. sublist with roman numerals, starting with 4
-   5. more items
+      4. sublist with roman numerals, starting with 4
+      5. more items
 
-      1) a subsublist
-      2) a subsublist
+         1) a subsublist
+         2) a subsublist
 
-Nesting:
+   Nesting:
 
-1. Upper Alpha
+   1. Upper Alpha
 
-   1. Upper Roman.
+      1. Upper Roman.
 
-      6) Decimal start with 6
+         6) Decimal start with 6
 
-         3) Lower alpha with paren
+            3) Lower alpha with paren
 
-Autonumbering:
+   Autonumbering:
 
-1. Autonumber.
-2. More.
+   1. Autonumber.
+   2. More.
 
-   1. Nested.
+      1. Nested.
 
-Should not be a list item:
+   Should not be a list item:
 
-M.A. 2007
+   M.A. 2007
 
-B. Williams
+   B. Williams
 
---------------
+   --------------
 
 * Definition Lists
   :PROPERTIES:
   :CUSTOM_ID: definition-lists
   :END:
 
-Tight using spaces:
+  Tight using spaces:
 
-- apple :: red fruit
-- orange :: orange fruit
-- banana :: yellow fruit
+  - apple :: red fruit
+  - orange :: orange fruit
+  - banana :: yellow fruit
 
-Tight using tabs:
+  Tight using tabs:
 
-- apple :: red fruit
-- orange :: orange fruit
-- banana :: yellow fruit
+  - apple :: red fruit
+  - orange :: orange fruit
+  - banana :: yellow fruit
 
-Loose:
+  Loose:
 
-- apple :: red fruit
+  - apple :: red fruit
 
-- orange :: orange fruit
+  - orange :: orange fruit
 
-- banana :: yellow fruit
+  - banana :: yellow fruit
 
-Multiple blocks with italics:
+  Multiple blocks with italics:
 
-- /apple/ :: red fruit
+  - /apple/ :: red fruit
 
-  contains seeds, crisp, pleasant to taste
+    contains seeds, crisp, pleasant to taste
 
-- /orange/ :: orange fruit
+  - /orange/ :: orange fruit
 
-  #+BEGIN_EXAMPLE
-      { orange code block }
-  #+END_EXAMPLE
+    #+BEGIN_EXAMPLE
+        { orange code block }
+    #+END_EXAMPLE
 
-  #+BEGIN_QUOTE
-    orange block quote
-  #+END_QUOTE
+    #+BEGIN_QUOTE
+      orange block quote
+    #+END_QUOTE
 
-Multiple definitions, tight:
+  Multiple definitions, tight:
 
-- apple :: red fruit
-  computer
-- orange :: orange fruit
-  bank
+  - apple :: red fruit
+    computer
+  - orange :: orange fruit
+    bank
 
-Multiple definitions, loose:
+  Multiple definitions, loose:
 
-- apple :: red fruit
+  - apple :: red fruit
 
-  computer
+    computer
 
-- orange :: orange fruit
+  - orange :: orange fruit
 
-  bank
+    bank
 
-Blank line after term, indented marker, alternate markers:
+  Blank line after term, indented marker, alternate markers:
 
-- apple :: red fruit
+  - apple :: red fruit
 
-  computer
+    computer
 
-- orange :: orange fruit
+  - orange :: orange fruit
 
-  1. sublist
-  2. sublist
+    1. sublist
+    2. sublist
 
 * HTML Blocks
   :PROPERTIES:
   :CUSTOM_ID: html-blocks
   :END:
 
-Simple block on one line:
+  Simple block on one line:
 
-foo
+  foo
 
-And nested without indentation:
+  And nested without indentation:
 
-foo
+  foo
 
-bar
+  bar
 
-Interpreted markdown in a table:
+  Interpreted markdown in a table:
 
-#+BEGIN_HTML
-  <table>
-#+END_HTML
+  #+BEGIN_HTML
+    <table>
+  #+END_HTML
 
-#+BEGIN_HTML
-  <tr>
-#+END_HTML
+  #+BEGIN_HTML
+    <tr>
+  #+END_HTML
 
-#+BEGIN_HTML
-  <td>
-#+END_HTML
+  #+BEGIN_HTML
+    <td>
+  #+END_HTML
 
-This is /emphasized/
+  This is /emphasized/
 
-#+BEGIN_HTML
-  </td>
-#+END_HTML
+  #+BEGIN_HTML
+    </td>
+  #+END_HTML
 
-#+BEGIN_HTML
-  <td>
-#+END_HTML
+  #+BEGIN_HTML
+    <td>
+  #+END_HTML
 
-And this is *strong*
+  And this is *strong*
 
-#+BEGIN_HTML
-  </td>
-#+END_HTML
+  #+BEGIN_HTML
+    </td>
+  #+END_HTML
 
-#+BEGIN_HTML
-  </tr>
-#+END_HTML
+  #+BEGIN_HTML
+    </tr>
+  #+END_HTML
 
-#+BEGIN_HTML
-  </table>
-#+END_HTML
+  #+BEGIN_HTML
+    </table>
+  #+END_HTML
 
-#+BEGIN_HTML
-  <script type="text/javascript">document.write('This *should not* be interpreted as markdown');</script>
-#+END_HTML
+  #+BEGIN_HTML
+    <script type="text/javascript">document.write('This *should not* be interpreted as markdown');</script>
+  #+END_HTML
 
-Here's a simple block:
+  Here's a simple block:
 
-foo
+  foo
 
-This should be a code block, though:
+  This should be a code block, though:
 
-#+BEGIN_EXAMPLE
-    <div>
-        foo
-    </div>
-#+END_EXAMPLE
+  #+BEGIN_EXAMPLE
+      <div>
+          foo
+      </div>
+  #+END_EXAMPLE
 
-As should this:
+  As should this:
 
-#+BEGIN_EXAMPLE
-    <div>foo</div>
-#+END_EXAMPLE
+  #+BEGIN_EXAMPLE
+      <div>foo</div>
+  #+END_EXAMPLE
 
-Now, nested:
+  Now, nested:
 
-foo
+  foo
 
-This should just be an HTML comment:
+  This should just be an HTML comment:
 
-#+BEGIN_HTML
-  <!-- Comment -->
-#+END_HTML
-
-Multiline:
-
-#+BEGIN_HTML
-  <!--
-  Blah
-  Blah
-  -->
-#+END_HTML
-
-#+BEGIN_HTML
-  <!--
-      This is another comment.
-  -->
-#+END_HTML
-
-Code block:
-
-#+BEGIN_EXAMPLE
+  #+BEGIN_HTML
     <!-- Comment -->
-#+END_EXAMPLE
+  #+END_HTML
 
-Just plain comment, with trailing spaces on the line:
+  Multiline:
 
-#+BEGIN_HTML
-  <!-- foo -->
-#+END_HTML
+  #+BEGIN_HTML
+    <!--
+    Blah
+    Blah
+    -->
+  #+END_HTML
 
-Code:
+  #+BEGIN_HTML
+    <!--
+        This is another comment.
+    -->
+  #+END_HTML
 
-#+BEGIN_EXAMPLE
+  Code block:
+
+  #+BEGIN_EXAMPLE
+      <!-- Comment -->
+  #+END_EXAMPLE
+
+  Just plain comment, with trailing spaces on the line:
+
+  #+BEGIN_HTML
+    <!-- foo -->
+  #+END_HTML
+
+  Code:
+
+  #+BEGIN_EXAMPLE
+      <hr />
+  #+END_EXAMPLE
+
+  Hr's:
+
+  #+BEGIN_HTML
+    <hr>
+  #+END_HTML
+
+  #+BEGIN_HTML
     <hr />
-#+END_EXAMPLE
+  #+END_HTML
 
-Hr's:
+  #+BEGIN_HTML
+    <hr />
+  #+END_HTML
 
-#+BEGIN_HTML
-  <hr>
-#+END_HTML
+  #+BEGIN_HTML
+    <hr>
+  #+END_HTML
 
-#+BEGIN_HTML
-  <hr />
-#+END_HTML
+  #+BEGIN_HTML
+    <hr />
+  #+END_HTML
 
-#+BEGIN_HTML
-  <hr />
-#+END_HTML
+  #+BEGIN_HTML
+    <hr />
+  #+END_HTML
 
-#+BEGIN_HTML
-  <hr>
-#+END_HTML
+  #+BEGIN_HTML
+    <hr class="foo" id="bar" />
+  #+END_HTML
 
-#+BEGIN_HTML
-  <hr />
-#+END_HTML
+  #+BEGIN_HTML
+    <hr class="foo" id="bar" />
+  #+END_HTML
 
-#+BEGIN_HTML
-  <hr />
-#+END_HTML
+  #+BEGIN_HTML
+    <hr class="foo" id="bar">
+  #+END_HTML
 
-#+BEGIN_HTML
-  <hr class="foo" id="bar" />
-#+END_HTML
-
-#+BEGIN_HTML
-  <hr class="foo" id="bar" />
-#+END_HTML
-
-#+BEGIN_HTML
-  <hr class="foo" id="bar">
-#+END_HTML
-
---------------
+  --------------
 
 * Inline Markup
   :PROPERTIES:
   :CUSTOM_ID: inline-markup
   :END:
 
-This is /emphasized/, and so /is this/.
+  This is /emphasized/, and so /is this/.
 
-This is *strong*, and so *is this*.
+  This is *strong*, and so *is this*.
 
-An /[[/url][emphasized link]]/.
+  An /[[/url][emphasized link]]/.
 
-*/This is strong and em./*
+  */This is strong and em./*
 
-So is */this/* word.
+  So is */this/* word.
 
-*/This is strong and em./*
+  */This is strong and em./*
 
-So is */this/* word.
+  So is */this/* word.
 
-This is code: =>=, =$=, =\=, =\$=, =<html>=.
+  This is code: =>=, =$=, =\=, =\$=, =<html>=.
 
-+This is /strikeout/.+
+  +This is /strikeout/.+
 
-Superscripts: a^{bc}d a^{/hello/} a^{hello there}.
+  Superscripts: a^{bc}d a^{/hello/} a^{hello there}.
 
-Subscripts: H_{2}O, H_{23}O, H_{many of them}O.
+  Subscripts: H_{2}O, H_{23}O, H_{many of them}O.
 
-These should not be superscripts or subscripts, because of the unescaped
-spaces: a\^b c\^d, a~b c~d.
+  These should not be superscripts or subscripts, because of the unescaped
+  spaces: a\^b c\^d, a~b c~d.
 
---------------
+  --------------
 
 * Smart quotes, ellipses, dashes
   :PROPERTIES:
   :CUSTOM_ID: smart-quotes-ellipses-dashes
   :END:
 
-"Hello," said the spider. "'Shelob' is my name."
+  "Hello," said the spider. "'Shelob' is my name."
 
-'A', 'B', and 'C' are letters.
+  'A', 'B', and 'C' are letters.
 
-'Oak,' 'elm,' and 'beech' are names of trees. So is 'pine.'
+  'Oak,' 'elm,' and 'beech' are names of trees. So is 'pine.'
 
-'He said, "I want to go."' Were you alive in the 70's?
+  'He said, "I want to go."' Were you alive in the 70's?
 
-Here is some quoted '=code=' and a "[[http://example.com/?foo=1&bar=2][quoted
-link]]".
+  Here is some quoted '=code=' and a
+  "[[http://example.com/?foo=1&bar=2][quoted link]]".
 
-Some dashes: one---two --- three---four --- five.
+  Some dashes: one---two --- three---four --- five.
 
-Dashes between numbers: 5--7, 255--66, 1987--1999.
+  Dashes between numbers: 5--7, 255--66, 1987--1999.
 
-Ellipses...and...and....
+  Ellipses...and...and....
 
---------------
+  --------------
 
 * LaTeX
   :PROPERTIES:
   :CUSTOM_ID: latex
   :END:
 
-- \cite[22-23]{smith.1899}
-- $2+2=4$
-- $x \in y$
-- $\alpha \wedge \omega$
-- $223$
-- $p$-Tree
-- Here's some display math:
-  $$\frac{d}{dx}f(x)=\lim_{h\to 0}\frac{f(x+h)-f(x)}{h}$$
-- Here's one that has a line break in it: $\alpha + \omega \times x^2$.
+  - \cite[22-23]{smith.1899}
+  - $2+2=4$
+  - $x \in y$
+  - $\alpha \wedge \omega$
+  - $223$
+  - $p$-Tree
+  - Here's some display math:
+    $$\frac{d}{dx}f(x)=\lim_{h\to 0}\frac{f(x+h)-f(x)}{h}$$
+  - Here's one that has a line break in it: $\alpha + \omega \times x^2$.
 
-These shouldn't be math:
+  These shouldn't be math:
 
-- To get the famous equation, write =$e = mc^2$=.
-- $22,000 is a /lot/ of money. So is $34,000. (It worked if "lot" is
-  emphasized.)
-- Shoes ($20) and socks ($5).
-- Escaped =$=: $73 /this should be emphasized/ 23$.
+  - To get the famous equation, write =$e = mc^2$=.
+  - $22,000 is a /lot/ of money. So is $34,000. (It worked if "lot" is
+    emphasized.)
+  - Shoes ($20) and socks ($5).
+  - Escaped =$=: $73 /this should be emphasized/ 23$.
 
-Here's a LaTeX table:
+  Here's a LaTeX table:
 
-\begin{tabular}{|l|l|}\hline
-Animal & Number \\ \hline
-Dog    & 2      \\
-Cat    & 1      \\ \hline
-\end{tabular}
+  \begin{tabular}{|l|l|}\hline
+  Animal & Number \\ \hline
+  Dog    & 2      \\
+  Cat    & 1      \\ \hline
+  \end{tabular}
 
---------------
+  --------------
 
 * Special Characters
   :PROPERTIES:
   :CUSTOM_ID: special-characters
   :END:
 
-Here is some unicode:
+  Here is some unicode:
 
-- I hat: Î
-- o umlaut: ö
-- section: §
-- set membership: ∈
-- copyright: ©
+  - I hat: Î
+  - o umlaut: ö
+  - section: §
+  - set membership: ∈
+  - copyright: ©
 
-AT&T has an ampersand in their name.
+  AT&T has an ampersand in their name.
 
-AT&T is another way to write it.
+  AT&T is another way to write it.
 
-This & that.
+  This & that.
 
-4 < 5.
+  4 < 5.
 
-6 > 5.
+  6 > 5.
 
-Backslash: \
+  Backslash: \
 
-Backtick: `
+  Backtick: `
 
-Asterisk: *
+  Asterisk: *
 
-Underscore: \_
+  Underscore: \_
 
-Left brace: {
+  Left brace: {
 
-Right brace: }
+  Right brace: }
 
-Left bracket: [
+  Left bracket: [
 
-Right bracket: ]
+  Right bracket: ]
 
-Left paren: (
+  Left paren: (
 
-Right paren: )
+  Right paren: )
 
-Greater-than: >
+  Greater-than: >
 
-Hash: #
+  Hash: #
 
-Period: .
+  Period: .
 
-Bang: !
+  Bang: !
 
-Plus: +
+  Plus: +
 
-Minus: -
+  Minus: -
 
---------------
+  --------------
 
 * Links
   :PROPERTIES:
@@ -712,120 +708,120 @@ Minus: -
    :CUSTOM_ID: explicit
    :END:
 
-Just a [[/url/][URL]].
+   Just a [[/url/][URL]].
 
-[[/url/][URL and title]].
+   [[/url/][URL and title]].
 
-[[/url/][URL and title]].
+   [[/url/][URL and title]].
 
-[[/url/][URL and title]].
+   [[/url/][URL and title]].
 
-[[/url/][URL and title]]
+   [[/url/][URL and title]]
 
-[[/url/][URL and title]]
+   [[/url/][URL and title]]
 
-[[/url/with_underscore][with\_underscore]]
+   [[/url/with_underscore][with\_underscore]]
 
-[[mailto:nobody@nowhere.net][Email link]]
+   [[mailto:nobody@nowhere.net][Email link]]
 
-[[][Empty]].
+   [[][Empty]].
 
 ** Reference
    :PROPERTIES:
    :CUSTOM_ID: reference
    :END:
 
-Foo [[/url/][bar]].
+   Foo [[/url/][bar]].
 
-With [[/url/][embedded [brackets]]].
+   With [[/url/][embedded [brackets]]].
 
-[[/url/][b]] by itself should be a link.
+   [[/url/][b]] by itself should be a link.
 
-Indented [[/url][once]].
+   Indented [[/url][once]].
 
-Indented [[/url][twice]].
+   Indented [[/url][twice]].
 
-Indented [[/url][thrice]].
+   Indented [[/url][thrice]].
 
-This should [not][] be a link.
+   This should [not][] be a link.
 
-#+BEGIN_EXAMPLE
-    [not]: /url
-#+END_EXAMPLE
+   #+BEGIN_EXAMPLE
+       [not]: /url
+   #+END_EXAMPLE
 
-Foo [[/url/][bar]].
+   Foo [[/url/][bar]].
 
-Foo [[/url/][biz]].
+   Foo [[/url/][biz]].
 
 ** With ampersands
    :PROPERTIES:
    :CUSTOM_ID: with-ampersands
    :END:
 
-Here's a [[http://example.com/?foo=1&bar=2][link with an ampersand in the
-URL]].
+   Here's a [[http://example.com/?foo=1&bar=2][link with an ampersand in the
+   URL]].
 
-Here's a link with an amersand in the link text: [[http://att.com/][AT&T]].
+   Here's a link with an amersand in the link text: [[http://att.com/][AT&T]].
 
-Here's an [[/script?foo=1&bar=2][inline link]].
+   Here's an [[/script?foo=1&bar=2][inline link]].
 
-Here's an [[/script?foo=1&bar=2][inline link in pointy braces]].
+   Here's an [[/script?foo=1&bar=2][inline link in pointy braces]].
 
 ** Autolinks
    :PROPERTIES:
    :CUSTOM_ID: autolinks
    :END:
 
-With an ampersand: [[http://example.com/?foo=1&bar=2]]
+   With an ampersand: [[http://example.com/?foo=1&bar=2]]
 
-- In a list?
-- [[http://example.com/]]
-- It should.
+   - In a list?
+   - [[http://example.com/]]
+   - It should.
 
-An e-mail address: [[mailto:nobody@nowhere.net][nobody@nowhere.net]]
+   An e-mail address: [[mailto:nobody@nowhere.net][nobody@nowhere.net]]
 
-#+BEGIN_QUOTE
-  Blockquoted: [[http://example.com/]]
-#+END_QUOTE
+   #+BEGIN_QUOTE
+     Blockquoted: [[http://example.com/]]
+   #+END_QUOTE
 
-Auto-links should not occur here: =<http://example.com/>=
+   Auto-links should not occur here: =<http://example.com/>=
 
-#+BEGIN_EXAMPLE
-    or here: <http://example.com/>
-#+END_EXAMPLE
+   #+BEGIN_EXAMPLE
+       or here: <http://example.com/>
+   #+END_EXAMPLE
 
---------------
+   --------------
 
 * Images
   :PROPERTIES:
   :CUSTOM_ID: images
   :END:
 
-From "Voyage dans la Lune" by Georges Melies (1902):
+  From "Voyage dans la Lune" by Georges Melies (1902):
 
-#+CAPTION: lalune
-[[file:lalune.jpg]]
+  #+CAPTION: lalune
+  [[file:lalune.jpg]]
 
-Here is a movie [[file:movie.jpg]] icon.
+  Here is a movie [[file:movie.jpg]] icon.
 
---------------
+  --------------
 
 * Footnotes
   :PROPERTIES:
   :CUSTOM_ID: footnotes
   :END:
 
-Here is a footnote reference,[fn:1] and another.[fn:2] This should /not/ be a
-footnote reference, because it contains a space.[\^my note] Here is an inline
-note.[fn:3]
+  Here is a footnote reference,[fn:1] and another.[fn:2] This should /not/ be
+  a footnote reference, because it contains a space.[\^my note] Here is an
+  inline note.[fn:3]
 
-#+BEGIN_QUOTE
-  Notes can go in quotes.[fn:4]
-#+END_QUOTE
+  #+BEGIN_QUOTE
+    Notes can go in quotes.[fn:4]
+  #+END_QUOTE
 
-1. And in list items.[fn:5]
+  1. And in list items.[fn:5]
 
-This paragraph should not be part of the note, as it is not indented.
+  This paragraph should not be part of the note, as it is not indented.
 
 [fn:1] Here is the footnote. It can go anywhere after the footnote reference.
        It need not be placed at the end of the document.

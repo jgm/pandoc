@@ -77,7 +77,7 @@ pandocToOrg (Pandoc meta blocks) = do
                (fmap render' . blockListToOrg)
                (fmap render' . inlineListToOrg)
                meta
-  body <- blockListToOrg blocks
+  body <- vcat <$> mapM (elementToOrg 0) (hierarchicalize blocks)
   notes <- gets (reverse . stNotes) >>= notesToOrg
   hasMath <- gets stHasMath
   let main = render colwidth . foldl ($+$) empty $ [body, notes]
@@ -96,9 +96,9 @@ notesToOrg notes =
 -- | Return Org representation of a note.
 noteToOrg :: PandocMonad m => Int -> [Block] -> Org m Doc
 noteToOrg num note = do
-  contents <- blockListToOrg note
+  contents <- vcat <$> mapM (elementToOrg 0) (hierarchicalize note)
   let marker = "[fn:" ++ show num ++ "] "
-  return $ hang (length marker) (text marker) contents
+  return $ hang (length marker) (text marker) $ contents
 
 -- | Escape special characters for Org.
 escapeString :: String -> String
@@ -112,6 +112,18 @@ escapeString = escapeStringUsing $
 isRawFormat :: Format -> Bool
 isRawFormat f =
   f == Format "latex" || f == Format "tex" || f == Format "org"
+
+elementToOrg :: PandocMonad m
+             => Int -> Element -> Org m Doc
+elementToOrg nestlevel (Blk block) = do
+  contents <- blockToOrg block
+  if isEmpty contents
+     then return empty
+     else return $ nest nestlevel contents $$ blankline
+elementToOrg _nestlevel (Sec level _num attr title' elements) = do
+  hdr <- blockToOrg (Header level attr title')
+  body <- vcat <$> mapM (elementToOrg (level + 1)) elements
+  return $ hdr $$ body
 
 -- | Convert Pandoc block element to Org.
 blockToOrg :: PandocMonad m
@@ -140,14 +152,14 @@ blockToOrg (Div (ident, classes, kv) bs) = do
     (blockType:classes'') ->
       blankline $$ attrHtml (ident, classes'' <> classes', kv) $$
       "#+BEGIN_" <> text blockType $$ contents $$
-      "#+END_" <> text blockType $$ blankline
+      "#+END_" <> text blockType
     _                     ->
       -- fallback with id: add id as an anchor if present, discard classes and
       -- key-value pairs, unwrap the content.
       let contents' = if not (null ident)
                       then "<<" <> text ident <> ">>" $$ contents
                       else contents
-      in blankline $$ contents' $$ blankline
+      in blankline $$ contents'
 blockToOrg (Plain inlines) = inlineListToOrg inlines
 -- title beginning with fig: indicates that the image is a figure
 blockToOrg (Para [Image attr txt (src,'f':'i':'g':':':tit)]) = do
@@ -155,7 +167,7 @@ blockToOrg (Para [Image attr txt (src,'f':'i':'g':':':tit)]) = do
              then return empty
              else ("#+CAPTION: " <>) `fmap` inlineListToOrg txt
   img <- inlineToOrg (Image attr txt (src,tit))
-  return $ capt $$ img $$ blankline
+  return $ capt $$ img
 blockToOrg (Para inlines) = do
   contents <- inlineListToOrg inlines
   return $ contents <> blankline
@@ -172,13 +184,13 @@ blockToOrg (LineBlock lns) = do
            nest 2 contents $$ "#+END_VERSE" <> blankline
 blockToOrg (RawBlock "html" str) =
   return $ blankline $$ "#+BEGIN_HTML" $$
-           nest 2 (text str) $$ "#+END_HTML" $$ blankline
+           nest 2 (text str) $$ "#+END_HTML"
 blockToOrg b@(RawBlock f str)
   | isRawFormat f = return $ text str
   | otherwise     = do
       report $ BlockNotRendered b
       return empty
-blockToOrg HorizontalRule = return $ blankline $$ "--------------" $$ blankline
+blockToOrg HorizontalRule = return $ blankline $$ "--------------"
 blockToOrg (Header level attr inlines) = do
   contents <- inlineListToOrg inlines
   let headerStr = text $ if level > 999 then " " else replicate level '*'
@@ -193,11 +205,11 @@ blockToOrg (CodeBlock (_,classes,_) str) = do
   let (beg, end) = case at of
                       []    -> ("#+BEGIN_EXAMPLE", "#+END_EXAMPLE")
                       (x:_) -> ("#+BEGIN_SRC " ++ x, "#+END_SRC")
-  return $ text beg $$ nest tabstop (text str) $$ text end $$ blankline
+  return $ text beg $$ nest tabstop (text str) $$ text end
 blockToOrg (BlockQuote blocks) = do
   contents <- blockListToOrg blocks
   return $ blankline $$ "#+BEGIN_QUOTE" $$
-           nest 2 contents $$ "#+END_QUOTE" $$ blankline
+           nest 2 contents $$ "#+END_QUOTE"
 blockToOrg (Table caption' _ _ headers rows) =  do
   caption'' <- inlineListToOrg caption'
   let caption = if null caption'
@@ -228,11 +240,11 @@ blockToOrg (Table caption' _ _ headers rows) =  do
   let head'' = if all null headers
                   then empty
                   else head' $$ border '-'
-  return $ head'' $$ body $$ caption $$ blankline
+  return $ head'' $$ body $$ caption
 blockToOrg (BulletList items) = do
   contents <- mapM bulletListItemToOrg items
   -- ensure that sublists have preceding blank line
-  return $ blankline $+$ vcat contents $$ blankline
+  return $ blankline $+$ vcat contents
 blockToOrg (OrderedList (start, _, delim) items) = do
   let delim' = case delim of
                     TwoParens -> OneParen
@@ -244,10 +256,10 @@ blockToOrg (OrderedList (start, _, delim) items) = do
                             in  m ++ replicate s ' ') markers
   contents <- zipWithM orderedListItemToOrg markers' items
   -- ensure that sublists have preceding blank line
-  return $ blankline $$ vcat contents $$ blankline
+  return $ blankline $$ vcat contents
 blockToOrg (DefinitionList items) = do
   contents <- mapM definitionListItemToOrg items
-  return $ vcat contents $$ blankline
+  return $ vcat contents
 
 -- | Convert bullet list item (list of blocks) to Org.
 bulletListItemToOrg :: PandocMonad m => [Block] -> Org m Doc
