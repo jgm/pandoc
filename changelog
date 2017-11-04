@@ -1,3 +1,62 @@
+pandoc (2.0.?)
+
+  * Improved fix to #3989 (parsing of HTML tags containing
+    `>` in an attribute or comment). The previous fix (in 2.0.1) only
+    worked in certain cases.
+
+  * FB2 writer (Alexander Krotov):
+
+    + Add `unrecognised` genre to `<title-info>`
+      (Alexander Krotov).  XML schema requires at least one genre.
+    + Remove `<annotation>` from `<body>`.
+
+  * CommonMark writer: fix strikethrough for `gfm` (#4038).
+
+  * Use texmath 0.10, which adds support for a wider range of
+    symbols and fixes default column alignments in MathML
+    and OMML.
+
+  * Highlighting fixes, using skylighting 0.4.3.1:
+
+    + Fix invalid CSS.
+    + Support `lineAnchors` (or `line-anchors`) in HTML code blocks.
+    + Ensure that code lines don't get duplicate identifiers (#4031).
+      The line identifiers are built using the code block's identifier
+      as a prefix. If the code block has null identifier, we use
+      `cb1`, `cb2`, etc.
+
+  * Added a few abbreviations to `data/abbreviations`,
+    and sorted the list (#3984, Wandmalfarbe).
+
+  * Improved support for columns in HTML writer (#4028).
+
+    + Remove `width` attribute from the `div`.
+    + Remove space between `<div class="column">` elements,
+      since this prevents columns whose widths sum to 100%
+      (the space takes up space).
+    + Move as much as possible of the CSS to the template.
+    + Ensure that all the HTML-based templates (including epub)
+      contain the CSS for columns.
+    + Columns default to 50% width unless they are given a width
+      attribute.  So if you want two equal-width columns, you
+      can use a div with class `column` and no `width` attribute.
+
+  * SelfContained: use `base64` for css links with media attribute (#4026).
+    This fixes `--self-contained` with S5.
+
+  * Improve `pandoc-template-mode.el` (Vaclav Haisman).
+
+  * INSTALL.md: MacOS instructions needed xar -f (adam234).
+
+  * MANUAL.txt:
+
+    + Clarify that --setext-headers doesn't affect gfm output (#4035).
+    + Clarify what is needed to open and close a div in `fenced_divs`
+      (#4039, Tristano Ajmone).
+    + Removed reference to `default.beamer` in docs (#4024).
+      Also added mention of other templates affecting PDF output
+      with different settings.
+
 pandoc (2.0.1)
 
   * Fixed regression in parsing of HTML comments in markdown and other
