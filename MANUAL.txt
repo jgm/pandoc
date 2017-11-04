@@ -3119,14 +3119,11 @@ because they *must* have attributes:
     :::
     ::::::::::::::::::
 
-Unlike fenced code blocks, here the exact number of colons in the opening and
-closing fences is irrelevant, even when nesting divs: the telltale sign
-between opening and closing fences is the presence of attributes, or the lack
-thereof.   Hence, the number of colons in a closing fence doesn't have to
-match that of its opening counterpart, and there is no need to use different
-fences lenghts to distinguish a nested div from its parent (except for visual
-clarity). 
-
+Fences without attributes are always closing fences.  Unlike
+with fenced code blocks, the number of colons in the closing
+fence need not match the number in the opening fence.  However,
+it can be helpful for visual clarity to use fences of different
+lengths to distinguish nested divs from their parents.
 
 #### Extension: `raw_tex` ####
 
