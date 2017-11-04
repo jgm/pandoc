@@ -56,7 +56,7 @@
     old.
 
   - We provide a binary package for amd64 architecture on
-    the download page.  This provides both pandoc and
+    the [download page].  This provides both pandoc and
     pandoc-citeproc. The executables are statically linked and
     have no dynamic dependencies.  Both a tarball and a deb
     installer are provided.
