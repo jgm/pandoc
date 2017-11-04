@@ -3119,6 +3119,15 @@ because they *must* have attributes:
     :::
     ::::::::::::::::::
 
+Unlike fenced code blocks, here the exact number of colons in the opening and
+closing fences is irrelevant, even when nesting divs: the telltale sign
+between opening and closing fences is the presence of attributes, or the lack
+thereof.   Hence, the number of colons in a closing fence doesn't have to
+match that of its opening counterpart, and there is no need to use different
+fences lenghts to distinguish a nested div from its parent (except for visual
+clarity). 
+
+
 #### Extension: `raw_tex` ####
 
 In addition to raw HTML, pandoc allows raw LaTeX, TeX, and ConTeXt to be
