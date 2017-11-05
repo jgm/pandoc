@@ -32,7 +32,7 @@ lint:
 	for f in $(SOURCEFILES); do echo $$f; hlint --verbose --refactor --refactor-options='-i -s' $$f; done
 
 changes_github:
-	pandoc --filter extract-changes.hs changelog -t markdown_github | sed -e 's/\\#/#/g' | pbcopy
+	pandoc --filter tools/extract-changes.hs changelog -t gfm+hard_line_breaks | sed -e 's/\\#/#/g' | pbcopy
 
 dist: man/pandoc.1
 	cabal sdist
