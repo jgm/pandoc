@@ -74,6 +74,10 @@
   - If you use an RPM-based distro, you may be
     able to install the deb from our download page
     using `alien`. Or try
+    
+        ar p $DEB data.tar.xz | sudo tar xvJ --strip-components 2 -C /usr/local
+        
+    For Pandoc versions before 2.0 try instead
 
         ar p $DEB data.tar.gz | sudo tar xvz --strip-components 2 -C /usr/local
 
@@ -81,9 +85,13 @@
     in `$HOME/.local`, then you can unzip the tarball or
     extract the files manually from the deb:
 
-        ar p $DEB data.tar.gz | tar xvz --strip-components 2 -C $HOME/.local/
+        ar p $DEB data.tar.xz | tar xvJ --strip-components 2 -C $HOME/.local/
 
     where, again, `$DEB` is the path to the downloaded deb.
+    
+    For Pandoc versions before 2.0 try instead
+
+        ar p $DEB data.tar.gz | sudo tar xvz --strip-components 2 -C /usr/local
 
   - If the version in your repository is too old and you cannot
     use the deb we provide, you can install from source, using the
