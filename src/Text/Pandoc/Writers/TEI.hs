@@ -324,7 +324,7 @@ inlineToTEI opts (Image attr description (src, tit)) = do
                          <$> inlinesToTEI opts description
   img <- imageToTEI opts attr src
   return $ inTagsIndented "figure" $ imageDesc $$ img $$ titleDoc
-inlineToTEI opts (Note contents) =
+inlineToTEI opts (Note _ contents) =
   inTagsIndented "note" <$> blocksToTEI opts contents
 
 idFromAttr :: WriterOptions -> Attr -> [(String, String)]

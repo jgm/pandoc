@@ -73,7 +73,7 @@ softBreakToSpace SoftBreak = Space
 softBreakToSpace x         = x
 
 processNotes :: Inline -> State [[Block]] Inline
-processNotes (Note bs) = do
+processNotes (Note _ bs) = do
   modify (bs :)
   notes <- get
   return $ Str $ "[" ++ show (length notes) ++ "]"
@@ -333,7 +333,7 @@ inlineToNodes opts (Span attr ils) =
                 [node (HTML_INLINE (T.pack "</span>")) []]) ++)
          else (nodes ++)
 inlineToNodes opts (Cite _ ils) = (inlinesToNodes opts ils ++)
-inlineToNodes _ (Note _) = id -- should not occur
+inlineToNodes _ (Note{}) = id -- should not occur
 -- we remove Note elements in preprocessing
 
 toSubscriptInline :: Inline -> Maybe Inline

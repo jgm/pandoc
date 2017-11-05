@@ -318,7 +318,7 @@ hasLineBreaks :: [Inline] -> Bool
 hasLineBreaks = getAny . query isLineBreak . walk removeNote
   where
     removeNote :: Inline -> Inline
-    removeNote (Note _) = Str ""
+    removeNote (Note{}) = Str ""
     removeNote x        = x
     isLineBreak :: Inline -> Any
     isLineBreak LineBreak = Any True
@@ -430,7 +430,7 @@ inlineToDocbook opts (Image attr _ (src, tit)) = return $
                         inTagsIndented "title" (text $ escapeStringForXML tit)
   in  inTagsIndented "inlinemediaobject" $ inTagsIndented "imageobject" $
       titleDoc $$ imageToDocbook opts attr src
-inlineToDocbook opts (Note contents) =
+inlineToDocbook opts (Note _ contents) =
   inTagsIndented "footnote" <$> blocksToDocbook opts contents
 
 isMathML :: HTMLMathMethod -> Bool

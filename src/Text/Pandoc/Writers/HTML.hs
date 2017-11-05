@@ -1130,7 +1130,7 @@ inlineToHtml opts inline = do
                               attrs
                         return $ foldl (!) H5.embed attributes
                         -- note:  null title included, as in Markdown.pl
-    (Note contents) -> do
+    (Note _ contents) -> do
                         notes <- gets stNotes
                         let number = length notes + 1
                         let ref = show number

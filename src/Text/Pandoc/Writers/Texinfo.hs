@@ -490,6 +490,6 @@ inlineToTexinfo (Image attr alternate (source, _)) = do
                  then source
                  else unEscapeString source
 
-inlineToTexinfo (Note contents) = do
+inlineToTexinfo (Note _ contents) = do
   contents' <- blockListToTexinfo contents
   return $ text "@footnote" <> braces contents'

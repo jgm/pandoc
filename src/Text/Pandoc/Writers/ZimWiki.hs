@@ -391,7 +391,7 @@ inlineToZimWiki opts (Image attr alt (source, tit)) = do
       prefix = if isURI source then "" else ":"
   return $ "{{" ++ prefix ++ source ++ imageDims opts attr ++ txt ++ "}}"
 
-inlineToZimWiki opts (Note contents) = do
+inlineToZimWiki opts (Note _ contents) = do
   -- no concept of notes in zim wiki, use a text block
   contents' <- blockListToZimWiki opts contents
   return $ " **{Note:** " ++ trimr contents' ++ "**}**"

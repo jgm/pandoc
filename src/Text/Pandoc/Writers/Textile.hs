@@ -496,7 +496,7 @@ inlineToTextile opts (Image attr@(_, cls, _) alt (source, tit)) = do
                  (Nothing, Nothing) -> ""
   return $ "!" ++ classes ++ styles ++ source ++ txt ++ "!"
 
-inlineToTextile opts (Note contents) = do
+inlineToTextile opts (Note _ contents) = do
   curNotes <- gets stNotes
   let newnum = length curNotes + 1
   contents' <- blockListToTextile opts contents

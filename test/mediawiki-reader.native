@@ -258,5 +258,5 @@ Pandoc (Meta {unMeta = fromList []})
  [[[Para [Str "apple"]]
   ,[Para [Str "ice",Space,Str "cream"]]]]
 ,Header 2 ("notes",[],[]) [Str "notes"]
-,Para [Str "My",Space,Str "note!",Note [Plain [Str "This."]]]
-,Para [Str "URL",Space,Str "note.",Note [Plain [Link ("",[],[]) [Str "http://docs.python.org/library/functions.html#range"] ("http://docs.python.org/library/functions.html#range","")]]]]
+,Para [Str "My",Space,Str "note!",Note Footnote [Plain [Str "This."]]]
+,Para [Str "URL",Space,Str "note.",Note Footnote [Plain [Link ("",[],[]) [Str "http://docs.python.org/library/functions.html#range"] ("http://docs.python.org/library/functions.html#range","")]]]]

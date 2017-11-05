@@ -468,11 +468,21 @@ paraUntil end = do
   guard $ not inPara
   first (fmap B.para) <$> paraContentsUntil end
 
-noteMarker :: PandocMonad m => MuseParser m String
-noteMarker = try $ (:)
-  <$  char '['
-  <*> oneOf "123456789"
-  <*> manyTill digit (char ']')
+noteBrackets :: NoteType -> (Char, Char)
+noteBrackets nt =
+  case nt of
+    Endnote -> ('{', '}')
+    _       -> ('[', ']')
+
+noteMarker :: PandocMonad m => NoteType -> MuseParser m (NoteType, String)
+noteMarker nt = try $ do
+  char l
+  m <- (:) <$> oneOf "123456789" <*> manyTill digit (char r)
+  return (nt, [l] ++ m ++ [r])
+  where (l, r) = noteBrackets nt
+
+anyNoteMarker :: PandocMonad m => MuseParser m (NoteType, String)
+anyNoteMarker = noteMarker Footnote <|> noteMarker Endnote
 
 addNote :: PandocMonad m
         => String
@@ -492,7 +502,7 @@ amuseNoteBlockUntil :: PandocMonad m
                     -> MuseParser m (F Blocks, a)
 amuseNoteBlockUntil end = try $ do
   guardEnabled Ext_amuse
-  ref <- noteMarker
+  (_, ref) <- anyNoteMarker
   pos <- getPosition
   void spaceChar <|> lookAhead eol
   (content, e) <- allowPara $ listItemContentsUntil (sourceColumn pos) (fail "x") end
@@ -504,14 +514,14 @@ amuseNoteBlockUntil end = try $ do
 emacsNoteBlock :: PandocMonad m => MuseParser m (F Blocks)
 emacsNoteBlock = try $ do
   guardDisabled Ext_amuse
-  ref <- noteMarker
+  (_, ref) <- anyNoteMarker
   pos <- getPosition
   content <- fmap mconcat blocksTillNote
   addNote ref pos content
   return mempty
   where
     blocksTillNote =
-      many1Till parseBlock (eof <|> () <$ lookAhead noteMarker)
+      many1Till parseBlock (eof <|> () <$ lookAhead anyNoteMarker)
 
 --
 -- Verse markup
@@ -750,15 +760,15 @@ footnote :: PandocMonad m => MuseParser m (F Inlines)
 footnote = try $ do
   inLink <- asks museInLink
   guard $ not inLink
-  ref <- noteMarker
+  (notetype, ref) <- anyNoteMarker
   return $ do
     notes <- asksF museNotes
     case M.lookup ref notes of
-      Nothing -> return $ B.str $ "[" ++ ref ++ "]"
+      Nothing -> return $ B.str ref
       Just (_pos, contents) -> do
         st <- askF
         let contents' = runF contents st { museNotes = M.delete ref (museNotes st) }
-        return $ B.note contents'
+        return $ B.singleton $ Note notetype $ B.toList contents'
 
 whitespace :: PandocMonad m => MuseParser m (F Inlines)
 whitespace = try $ pure B.space <$ skipMany1 spaceChar

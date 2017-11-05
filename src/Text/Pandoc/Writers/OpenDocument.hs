@@ -531,7 +531,7 @@ inlineToOpenDocument o ils
                          return empty
     Link _ l (s,t) ->  mkLink s t <$> inlinesToOpenDocument o l
     Image attr _ (s,t) -> mkImg attr s t
-    Note        l  -> mkNote l
+    Note t l -> mkNote t l
     where
       preformatted s = handleSpaces $ escapeStringForXML s
       inlinedCode s = return $ inTags False "text:span" [("text:style-name", "Source_Text")] s
@@ -554,14 +554,14 @@ inlineToOpenDocument o ils
                                                  , ("xlink:type"   , "simple")
                                                  , ("xlink:show"   , "embed" )
                                                  , ("xlink:actuate", "onLoad")]
-      mkNote     l = do
+      mkNote nt l = do
         n <- length <$> gets stNotes
-        let footNote t = inTags False "text:note"
+        let noteTag t = inTags False "text:note"
                          [ ("text:id"        , "ftn" ++ show n)
-                         , ("text:note-class", "footnote"     )] $
+                         , ("text:note-class", if nt == Endnote then "endnote" else "footnote")] $
                          inTagsSimple "text:note-citation" (text . show $ n + 1) <>
                          inTagsSimple "text:note-body" t
-        nn <- footNote <$> withParagraphStyle o "Footnote" l
+        nn <- noteTag <$> withParagraphStyle o "Footnote" l
         addNote nn
         return nn
 

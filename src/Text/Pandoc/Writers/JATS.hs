@@ -374,7 +374,7 @@ inlineToJATS _ Space = return space
 inlineToJATS opts SoftBreak
   | writerWrapText opts == WrapPreserve = return cr
   | otherwise = return space
-inlineToJATS opts (Note contents) =
+inlineToJATS opts (Note _ contents) =
   -- TODO technically only <p> tags are allowed inside
   inTagsIndented "fn" <$> blocksToJATS opts contents
 inlineToJATS opts (Cite _ lst) =

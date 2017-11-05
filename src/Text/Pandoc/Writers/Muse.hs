@@ -79,13 +79,15 @@ data WriterEnv =
             }
 
 data WriterState =
-  WriterState { stNotes   :: Notes
-              , stIds     :: Set.Set String
-              , stUseTags :: Bool -- ^ Use tags for emphasis, for example because previous character is a letter
+  WriterState { stNotes    :: Notes
+              , stEndnotes :: Notes
+              , stIds      :: Set.Set String
+              , stUseTags  :: Bool -- ^ Use tags for emphasis, for example because previous character is a letter
               }
 
 instance Default WriterState
   where def = WriterState { stNotes = []
+                          , stEndnotes = []
                           , stIds = Set.empty
                           , stUseTags = False
                           }
@@ -127,8 +129,9 @@ pandocToMuse (Pandoc meta blocks) = do
                (fmap render' . inlineListToMuse)
                meta
   body <- blockListToMuse blocks
-  notes <- fmap (reverse . stNotes) get >>= notesToMuse
-  let main = render colwidth $ body $+$ notes
+  notes <- fmap (reverse . stNotes) get >>= notesToMuse ('[', ']')
+  endNotes <- fmap (reverse . stEndnotes) get >>= notesToMuse ('{', '}')
+  let main = render colwidth $ body $+$ notes $+$ endNotes
   let context = defField "body" main metadata
   case writerTemplate opts of
        Nothing  -> return main
@@ -280,23 +283,25 @@ blockToMuse Null = return empty
 
 -- | Return Muse representation of notes.
 notesToMuse :: PandocMonad m
-            => Notes
+            => (Char, Char)
+            -> Notes
             -> Muse m Doc
-notesToMuse notes = vsep <$> zipWithM noteToMuse [1 ..] notes
+notesToMuse lr notes = vsep <$> zipWithM (noteToMuse lr) [1 ..] notes
 
 -- | Return Muse representation of a note.
 noteToMuse :: PandocMonad m
-           => Int
+           => (Char, Char)
+           -> Int
            -> [Block]
            -> Muse m Doc
-noteToMuse num note =
+noteToMuse (l, r) num note =
   hang (length marker) (text marker) <$>
     local (\env -> env { envInsideBlock = True
                        , envInlineStart = True
                        , envAfterSpace = True
                        }) (blockListToMuse note)
   where
-    marker = "[" ++ show num ++ "] "
+    marker = l : (show num ++ (r : " "))
 
 -- | Escape special characters for Muse.
 escapeString :: String -> String
@@ -641,14 +646,20 @@ inlineToMuse (Image attr@(_, classes, _) inlines (source, title)) = do
                    else ""
   modify $ \st -> st { stUseTags = False }
   return $ "[[" <> text (urlEscapeBrackets source ++ width ++ leftalign ++ rightalign) <> "]" <> title' <> "]"
-inlineToMuse (Note contents) = do
+inlineToMuse (Note notetype contents) = do
   -- add to notes in state
   notes <- gets stNotes
-  modify $ \st -> st { stNotes = contents:notes
-                     , stUseTags = False
-                     }
-  let ref = show $ length notes + 1
-  return $ "[" <> text ref <> "]"
+  endNotes <- gets stEndnotes
+  modify $ case notetype of
+             Endnote -> \st -> st { stEndnotes = contents:endNotes }
+             _       -> \st -> st { stNotes = contents:notes }
+  modify $ \st -> st { stUseTags = False }
+  let ref = show $ 1 + length (case notetype of
+                                 Endnote -> endNotes
+                                 _       -> notes)
+  return $ case notetype of
+             Endnote -> "{" <> text ref <> "}"
+             _       -> "[" <> text ref <> "]"
 inlineToMuse (Span (anchor,names,_) inlines) = do
   contents <- inlineListToMuse inlines
   let anchorDoc = if null anchor

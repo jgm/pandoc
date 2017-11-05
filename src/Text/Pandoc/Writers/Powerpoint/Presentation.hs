@@ -132,7 +132,7 @@ tocSlideId :: SlideId
 tocSlideId = SlideId "TOC"
 
 endNotesSlideId :: SlideId
-endNotesSlideId = SlideId "EndNotes"
+endNotesSlideId = SlideId "Endnotes"
 
 reservedSlideIds :: S.Set SlideId
 reservedSlideIds = S.fromList [ metadataSlideId
@@ -365,7 +365,7 @@ inlineToParElems (Math mathtype str) =
 -- notes in the public presentation. In the future, we can entertain a
 -- way of adding a speakernotes-specific note that would just add
 -- paragraphs to the bottom of the notes page.
-inlineToParElems (Note blks) = do
+inlineToParElems (Note _ blks) = do
   inSpNotes <- asks envInSpeakerNotes
   if inSpNotes
     then return []
@@ -731,8 +731,8 @@ forceFontSize px x = do
 
 -- We leave these as blocks because we will want to include them in
 -- the TOC.
-makeEndNotesSlideBlocks :: Pres [Block]
-makeEndNotesSlideBlocks = do
+makeEndnotesSlideBlocks :: Pres [Block]
+makeEndnotesSlideBlocks = do
   noteIds <- gets stNoteIds
   slideLevel <- asks envSlideLevel
   meta <- asks envMetadata
@@ -913,7 +913,7 @@ blocksToPresentationSlides blks = do
                 (\(bs, ident) ->
                     local (\st -> st{envCurSlideId = ident}) (blocksToSlide bs))
                 (zip blksLst bodySlideIds)
-  endNotesSlideBlocks <- makeEndNotesSlideBlocks
+  endNotesSlideBlocks <- makeEndnotesSlideBlocks
   -- now we come back and make the real toc...
   tocSlides <- if writerTableOfContents opts
                then do toc <- makeTOCSlide $ blks ++ endNotesSlideBlocks

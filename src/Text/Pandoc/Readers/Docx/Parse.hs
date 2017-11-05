@@ -285,8 +285,8 @@ data ParPart = PlainRun Run
              deriving Show
 
 data Run = Run RunStyle [RunElem]
-         | Footnote [BodyPart]
-         | Endnote [BodyPart]
+         | RunFootnote [BodyPart]
+         | RunEndnote [BodyPart]
          | InlineDrawing FilePath String String B.ByteString Extent -- title, alt
          | InlineChart          -- placeholder
            deriving Show
@@ -918,16 +918,16 @@ childElemToRun ns element
     notes <- asks envNotes
     case lookupFootnote fnId notes of
       Just e -> do bps <- local (\r -> r {envLocation=InFootnote}) $ mapD (elemToBodyPart ns) (elChildren e)
-                   return $ Footnote bps
-      Nothing  -> return $ Footnote []
+                   return $ RunFootnote bps
+      Nothing  -> return $ RunFootnote []
 childElemToRun ns element
   | isElem ns "w" "endnoteReference" element
   , Just enId <- findAttrByName ns "w" "id" element = do
     notes <- asks envNotes
     case lookupEndnote enId notes of
       Just e -> do bps <- local (\r -> r {envLocation=InEndnote}) $ mapD (elemToBodyPart ns) (elChildren e)
-                   return $ Endnote bps
-      Nothing  -> return $ Endnote []
+                   return $ RunEndnote bps
+      Nothing  -> return $ RunEndnote []
 childElemToRun _ _ = throwError WrongElem
 
 elemToRun :: NameSpaces -> Element -> D Run

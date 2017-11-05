@@ -462,7 +462,7 @@ toXml (Link _ text (url,_)) = do
   ln_text <- cMapM toXml text
   return [ el "a" ( [ attr ("l","href") url ], ln_text) ]
 toXml img@Image{} = insertImage InlineImage img
-toXml (Note bs) = do
+toXml (Note _ bs) = do
   fns <- footnotes `liftM` get
   let n = 1 + length fns
   let fn_id = footnoteID n
@@ -577,7 +577,7 @@ plain (Math _ s)            = s
 plain (RawInline _ _)       = ""
 plain (Link _ text (url,_)) = concat (map plain text ++ [" <", url, ">"])
 plain (Image _ alt _)       = cMap plain alt
-plain (Note _)              = ""  -- FIXME
+plain (Note _ _)            = ""  -- FIXME
 
 -- | Create an XML element.
 el :: (Node t)

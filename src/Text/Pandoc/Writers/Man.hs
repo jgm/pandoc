@@ -338,7 +338,7 @@ inlineToMan opts (Image attr alternate (source, tit)) = do
                else alternate
   linkPart <- inlineToMan opts (Link attr txt (source, tit))
   return $ char '[' <> text "IMAGE: " <> linkPart <> char ']'
-inlineToMan _ (Note contents) = do
+inlineToMan _ (Note _ contents) = do
   -- add to notes in state
   modify $ \st -> st{ stNotes = contents : stNotes st }
   notes <- gets stNotes

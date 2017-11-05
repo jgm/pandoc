@@ -696,8 +696,12 @@ read_link         = matchingElement NsText "a"
 
 read_note        :: InlineMatcher
 read_note         = matchingElement NsText "note"
-                    $ liftA note
-                    $ matchChildContent' [ read_note_body ]
+                    $ liftA2 (\nt -> singleton . Note nt . toList)
+                      (liftA makeNoteType (findAttrWithDefault NsText "note-class" "footnote"))
+                      (matchChildContent' [ read_note_body ])
+  where
+    makeNoteType :: String -> NoteType
+    makeNoteType x = if x == "endnote" then Endnote else Footnote
 
 read_note_body   :: BlockMatcher
 read_note_body    = matchingElement NsText "note-body"

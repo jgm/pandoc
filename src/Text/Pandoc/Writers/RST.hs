@@ -659,7 +659,7 @@ inlineToRST (Link _ txt (src, tit)) = do
 inlineToRST (Image attr alternate (source, tit)) = do
   label <- registerImage attr alternate (source,tit) Nothing
   return $ "|" <> label <> "|"
-inlineToRST (Note contents) = do
+inlineToRST (Note _ contents) = do
   -- add to notes in state
   notes <- gets stNotes
   modify $ \st -> st { stNotes = contents:notes }

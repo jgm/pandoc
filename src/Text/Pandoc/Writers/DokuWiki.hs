@@ -520,7 +520,7 @@ inlineToDokuWiki opts (Image attr alt (source, tit)) = do
       prefix = if isURI source then "" else ":"
   return $ "{{" ++ prefix ++ source ++ imageDims opts attr ++ txt ++ "}}"
 
-inlineToDokuWiki opts (Note contents) = do
+inlineToDokuWiki opts (Note _ contents) = do
   contents' <- blockListToDokuWiki opts contents
   return $ "((" ++ contents' ++ "))"
   -- note - may not work for notes with multiple blocks

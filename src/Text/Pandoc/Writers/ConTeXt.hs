@@ -462,7 +462,7 @@ inlineToConTeXt (Image attr@(_,cls,_) _ (src, _)) = do
                 then src
                 else unEscapeString src
   return $ braces $ "\\externalfigure" <> brackets (text src') <> dims <> clas
-inlineToConTeXt (Note contents) = do
+inlineToConTeXt (Note _ contents) = do
   contents' <- blockListToConTeXt contents
   let codeBlock x@(CodeBlock _ _) = [x]
       codeBlock _                 = []
