@@ -46,6 +46,10 @@ pandoc (2.0.1.1)
 
   * Improve `pandoc-template-mode.el` (Vaclav Haisman).
 
+  * Issue INFO, not WARNING, when a .sty file cannot be
+    read in LaTeX reader.  It is normally not an issue requiring
+    a fix from the user if .sty files are not found.
+
   * INSTALL.md: MacOS instructions needed xar -f (adam234).
 
   * MANUAL.txt:

@@ -45,6 +45,7 @@ import Data.Aeson.Encode.Pretty (Config (..), defConfig, encodePretty',
                                  keyOrder)
 import qualified Data.ByteString.Lazy as BL
 import Data.Data (Data, toConstr)
+import Data.List (isSuffixOf)
 import qualified Data.Text as Text
 import Data.Typeable (Typeable)
 import GHC.Generics (Generic)
@@ -315,7 +316,9 @@ messageVerbosity msg =
        ReferenceNotFound{}          -> WARNING
        CircularReference{}          -> WARNING
        UndefinedToggle{}            -> WARNING
-       CouldNotLoadIncludeFile{}    -> WARNING
+       CouldNotLoadIncludeFile f _
+        | ".sty" `isSuffixOf` f     -> INFO
+        | otherwise                 -> WARNING
        MacroAlreadyDefined{}        -> WARNING
        ParsingUnescaped{}           -> INFO
        InlineNotRendered{}          -> INFO
