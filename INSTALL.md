@@ -7,7 +7,7 @@
   - For PDF output, you'll also need to install LaTeX.
     We recommend [MiKTeX](http://miktex.org/).
 
-  - If you'd prefer, you can extract the pandoc and pandoc-citeproc
+  - If you'd prefer, you can extract the `pandoc` and `pandoc-citeproc`
     executables from the MSI and copy them directly to any directory,
     without running the installer.  Here is an example showing how to
     extract the executables from the pandoc-1.19.1 installer and copy
@@ -20,6 +20,9 @@
         rmdir /s /q "%TEMP%\pandoc\"
 
 ## macOS
+
+  - You can install pandoc using
+    [homebrew](http://brew.sh): `brew install pandoc`.
 
   - There is a package installer at pandoc's [download page].
     If you later want to uninstall the package, you can do so
@@ -35,9 +38,6 @@
         xar -x -f ../pandoc-2.0-macOS.pkg
         cat pandoc.pkg/Payload | gunzip -dc | cpio -i
         # executables are now in ./usr/bin/, man pages in ./usr/share/man
-
-  - You can also install pandoc using
-    [homebrew](http://brew.sh): `brew install pandoc`.
 
   - For PDF output, you'll also need LaTeX.  Because a full [MacTeX]
     installation takes more than a gigabyte of disk space, we recommend
@@ -56,45 +56,36 @@
     old.
 
   - We provide a binary package for amd64 architecture on
-    the [download page].  This provides both pandoc and
-    pandoc-citeproc. The executables are statically linked and
-    have no dynamic dependencies.  Both a tarball and a deb
-    installer are provided.
+    the [download page].  This provides both `pandoc` and
+    `pandoc-citeproc`. The executables are statically linked and
+    have no dynamic dependencies or dependencies on external
+    data files.  Note:  because of the static
+    linking, the pandoc binary from this package cannot use lua
+    filters that require external lua modules written in C.
+
+    Both a tarball and a deb installer are provided.  To install the deb:
 
         sudo dpkg -i $DEB
 
-    where `$DEB` is the path to the downloaded deb, will
-    install the `pandoc` and `pandoc-citeproc` executables
-    and man pages.
+    where `$DEB` is the path to the downloaded deb.  This will
+    install the `pandoc` and `pandoc-citeproc` executables and
+    man pages.
 
-    Note:  because it is statically linked, the pandoc
-    binary from this package cannot use lua filters that
-    require external lua modules written in C.
+    If you use an RPM-based distro, you may be able to install
+    the deb from our download page using `alien`.
 
-  - If you use an RPM-based distro, you may be
-    able to install the deb from our download page
-    using `alien`. Or try
-    
-        ar p $DEB data.tar.xz | sudo tar xvJ --strip-components 2 -C /usr/local
-        
-    For Pandoc versions before 2.0 try instead
+    On any distro, you may install from the tarball into `$DEST`
+    (say, `/usr/local/` or `$HOME/.local`) by doing
 
-        ar p $DEB data.tar.gz | sudo tar xvz --strip-components 2 -C /usr/local
+        tar xvzf $TGZ --strip-components 1 -C $DEST
 
-  - If you'd rather install pandoc in your home directory, say
-    in `$HOME/.local`, then you can unzip the tarball or
-    extract the files manually from the deb:
+    where `$TGZ` is the path to the downloaded zipped tarball.
+    For Pandoc versions before 2.0, which don't provide
+    a tarball, try instead
 
-        ar p $DEB data.tar.xz | tar xvJ --strip-components 2 -C $HOME/.local/
+        ar p $DEB data.tar.gz | tar xvz --strip-components 2 -C $DEST
 
-    where, again, `$DEB` is the path to the downloaded deb.
-    
-    For Pandoc versions before 2.0 try instead
-
-        ar p $DEB data.tar.gz | sudo tar xvz --strip-components 2 -C /usr/local
-
-  - If the version in your repository is too old and you cannot
-    use the deb we provide, you can install from source, using the
+  - You can also install from source, using the
     instructions below under [Compiling from source].
     Note that most distros have the Haskell platform in their
     package repositories.  For example, on Debian/Ubuntu,
