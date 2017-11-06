@@ -247,7 +247,7 @@ getPrettyAnchor = proc (baseIdent, uglyAnchor) -> do
       modifyExtraState (putPrettyAnchor uglyAnchor newPretty) -<< newPretty
 
 -- | Input: basis for a new header anchor
--- Ouput: saved new anchor
+-- Output: saved new anchor
 getHeaderAnchor :: OdtReaderSafe Inlines Anchor
 getHeaderAnchor = proc title -> do
   state <- getExtraState -< ()
@@ -566,7 +566,7 @@ read_text_seq  = matchingElement NsText "sequence"
 
 
 -- specifically. I honor that, although the current implementation of '(<>)'
--- for 'Inlines' in "Text.Pandoc.Builder" will collaps them agein.
+-- for 'Inlines' in "Text.Pandoc.Builder" will collapse them again.
 -- The rational is to be prepared for future modifications.
 read_spaces      :: InlineMatcher
 read_spaces       = matchingElement NsText "s" (

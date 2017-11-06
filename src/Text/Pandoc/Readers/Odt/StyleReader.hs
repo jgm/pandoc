@@ -104,7 +104,7 @@ instance Lookupable FontPitch where
 instance Default FontPitch where
   def = PitchVariable
 
--- The font pitch can be specifed in a style directly. Normally, however,
+-- The font pitch can be specified in a style directly. Normally, however,
 -- it is defined in the font. That is also the specs' recommendation.
 --
 -- Thus, we want
@@ -340,8 +340,8 @@ instance Read XslUnit where
   readsPrec _ "em" = [(XslUnitEM     , "")]
   readsPrec _  _   = []
 
--- | Rough conversion of measures into millimeters.
--- Pixels and em's are actually implemetation dependant/relative measures,
+-- | Rough conversion of measures into millimetres.
+-- Pixels and em's are actually implementation dependant/relative measures,
 -- so I could not really easily calculate anything exact here even if I wanted.
 -- But I do not care about exactness right now, as I only use measures
 -- to determine if a paragraph is "indented" or not.
@@ -425,7 +425,7 @@ instance Read ListItemNumberFormat where
 --------------------------------------------------------------------------------
 -- Readers
 --
--- ...it seems like a whole lot of this should be automatically deriveable
+-- ...it seems like a whole lot of this should be automatically derivable
 --    or at least moveable into a class. Most of this is data concealed in
 --    code.
 --------------------------------------------------------------------------------
