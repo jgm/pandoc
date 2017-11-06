@@ -89,9 +89,9 @@
 
     where, again, `$DEB` is the path to the downloaded deb.
     
-    For Pandoc versions before 2.0 try instead
+    For Pandoc versions before 2.0 use instead
 
-        ar p $DEB data.tar.gz | sudo tar xvz --strip-components 2 -C /usr/local
+        ar p $DEB data.tar.gz | sudo tar xvz --strip-components 2 -C $HOME/.local/
 
   - If the version in your repository is too old and you cannot
     use the deb we provide, you can install from source, using the
