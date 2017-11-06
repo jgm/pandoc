@@ -279,7 +279,7 @@ General options
     `org` (Emacs Org mode), `mediawiki` (MediaWiki markup), `twiki` (TWiki
     markup), `tikiwiki` (TikiWiki markup), `creole` (Creole 1.0),
     `haddock` (Haddock markup), or `latex` (LaTeX).
-    (`markdown_github` provides deprecated and less accurate suppport
+    (`markdown_github` provides deprecated and less accurate support
     for Github-Flavored Markdown; please use `gfm` instead, unless you
     need to use extensions other than `smart`.)
     If `+lhs` is appended to `markdown`, `rst`, `latex`, or
@@ -321,7 +321,7 @@ General options
     `revealjs` (reveal.js HTML5 + JavaScript slide show), `s5`
     (S5 HTML and JavaScript slide show), or the path of a custom
     lua writer (see [Custom writers], below). (`markdown_github`
-    provides deprecated and less accurate suppport for
+    provides deprecated and less accurate support for
     Github-Flavored Markdown; please use `gfm` instead, unless
     you use extensions that do not work with `gfm`.) Note that `odt`,
     `epub`, and `epub3` output will not be directed to *stdout*;
