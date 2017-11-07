@@ -1075,53 +1075,37 @@ Citation rendering
 Math rendering in HTML
 ----------------------
 
-`-m` [*URL*], `--latexmathml`[`=`*URL*]
-
-:   Use the [LaTeXMathML] script to display embedded TeX math in HTML output.
-    To insert a link to a local copy of the `LaTeXMathML.js` script,
-    provide a *URL*. If no *URL* is provided, the contents of the
-    script will be inserted directly into the HTML header, preserving
-    portability at the price of efficiency. If you plan to use math on
-    several pages, it is much better to link to a copy of the script,
-    so it can be cached.
-
-`--mathml`
-
-:   Convert TeX math to [MathML] (in `docbook4`, `docbook5`, `jats`,
-    `html4` and `html5`).  This is the default in `odt` output.
-
-`--jsmath`[`=`*URL*]
-
-:   Use [jsMath] to display embedded TeX math in HTML output.
-    The *URL* should point to the jsMath load script (e.g.
-    `jsMath/easy/load.js`); if provided, it will be linked to in
-    the header of standalone HTML documents. If a *URL* is not provided,
-    no link to the jsMath load script will be inserted; it is then
-    up to the author to provide such a link in the HTML template.
+The default is to render TeX math as far as possible using Unicode characters.
+Formulas are put inside a `span` with `class="math"`, so that they may be styled
+differently from the surrounding text if needed. However, this gives acceptable
+results only for basic math, usually you will want to use `--mathjax` or another
+of the following options.
 
 `--mathjax`[`=`*URL*]
 
 :   Use [MathJax] to display embedded TeX math in HTML output.
+    TeX math will be put between `\(...\)` (for inline math)
+    or `\[...\]` (for display math) and wrapped in `<span>` tags
+    with class `math`. Then the MathJax JavaScript will render it.
     The *URL* should point to the `MathJax.js` load script.
-    If a *URL* is not provided, a link to the MathJax CDN will
+    If a *URL* is not provided, a link to the Cloudflare CDN will
     be inserted.
+ 
+`--mathml`
 
-`--gladtex`
-
-:   Enclose TeX math in `<eq>` tags in HTML output.  These can then
-    be processed by [gladTeX] to produce links to images of the typeset
-    formulas.
-
-`--mimetex`[`=`*URL*]
-
-:   Render TeX math using the [mimeTeX] CGI script.  If *URL* is not
-    specified, it is assumed that the script is at `/cgi-bin/mimetex.cgi`.
+:   Convert TeX math to [MathML] (in `epub3`, `docbook4`, `docbook5`, `jats`,
+    `html4` and `html5`).  This is the default in `odt` output. Note that
+    currently only Firefox and Safari (and select e-book readers) natively
+    support MathML.
 
 `--webtex`[`=`*URL*]
 
-:   Render TeX formulas using an external script that converts TeX
-    formulas to images. The formula will be concatenated with the URL
-    provided. If *URL* is not specified, the CodeCogs will be used.
+:   Convert TeX formulas to `<img>` tags that link to an external script
+    that converts formulas to images. The formula will be URL-encoded
+    and concatenated with the URL provided. For SVG images you can for
+    example use `--webtex https://latex.codecogs.com/svg.latex?`.
+    If no URL is specified, the CodeCogs URL generating PNGs
+    will be used (`https://latex.codecogs.com/png.latex?`).
     Note:  the `--webtex` option will affect Markdown output
     as well as HTML, which is useful if you're targeting a
     version of Markdown without native math support.
@@ -1131,13 +1115,55 @@ Math rendering in HTML
 :   Use [KaTeX] to display embedded TeX math in HTML output.
     The *URL* is the base URL for the KaTeX library. If a *URL* is
     not provided, a link to the KaTeX CDN will be inserted.
-    Note: [KaTeX] seems to work best with `html5` output.
 
 `--katex-stylesheet=`*URL*
 
 :   The *URL* should point to the `katex.css` stylesheet. If this option is
     not specified, a link to the KaTeX CDN will be inserted. Note that this
     option does not imply `--katex`.
+
+`-m` [*URL*], `--latexmathml`[`=`*URL*]
+
+:   Use the [LaTeXMathML] script to display embedded TeX math in HTML output.
+    TeX math will be displayed between `$` or `$$` characters and put in
+    `<span>` tags with class `LaTeX`. The LaTeXMathML JavaScript will then
+    change it to MathML. Note that currently only Firefox and Safari
+    (and select e-book readers) natively support MathML.
+    To insert a link to a local copy of the `LaTeXMathML.js` script,
+    provide a *URL*. If no *URL* is provided, the contents of the
+    script will be inserted directly into the HTML header, preserving
+    portability at the price of efficiency. If you plan to use math on
+    several pages, it is much better to link to a copy of the script,
+    so it can be cached.
+
+`--jsmath`[`=`*URL*]
+
+:   Use [jsMath] (the predecessor of MathJax) to display embedded TeX
+    math in HTML output. TeX math will be put inside `<span>` tags
+    (for inline math) or `<div>` tags (for display math) with class
+    `math` and rendered by the jsMath script. The *URL* should point to
+    the script (e.g. `jsMath/easy/load.js`); if provided, it will be linked
+    to in the header of standalone HTML documents. If a *URL* is not provided,
+    no link to the jsMath load script will be inserted; it is then
+    up to the author to provide such a link in the HTML template.
+
+`--gladtex`
+
+:   Enclose TeX math in `<eq>` tags in HTML output.  The resulting HTML
+    can then be processed by [gladTeX] to produce images of the typeset
+    formulas and an HTML file with links to these images.
+    So, the procedure is:
+
+        pandoc -s --gladtex input.md -o myfile.htex
+        gladtex -d myfile-images myfile.htex
+        # produces myfile.html and images in myfile-images
+
+`--mimetex`[`=`*URL*]
+
+:   Render TeX math using the [mimeTeX] CGI script, which generates an
+    image for each TeX formula. This should work in all browsers. If
+    *URL* is not specified, it is assumed that the script is at
+    `/cgi-bin/mimetex.cgi`.
 
 [MathML]: http://www.w3.org/Math/
 [LaTeXMathML]: http://math.etsu.edu/LaTeXMathML/
@@ -2970,53 +2996,8 @@ FictionBook2
 
 HTML, Slidy, DZSlides, S5, EPUB
   ~ The way math is rendered in HTML will depend on the
-    command-line options selected:
-
-    1.  The default is to render TeX math as far as possible using Unicode
-        characters, as with RTF, DocBook, and OpenDocument output. Formulas
-        are put inside a `span` with `class="math"`, so that they may be
-        styled differently from the surrounding text if needed.
-
-    2.  If the `--latexmathml` option is used, TeX math will be displayed
-        between `$` or `$$` characters and put in `<span>` tags with class `LaTeX`.
-        The [LaTeXMathML] script will be used to render it as formulas.
-        (This trick does not work in all browsers, but it works in Firefox.
-        In browsers that do not support LaTeXMathML, TeX math will appear
-        verbatim between `$` characters.)
-
-    3.  If the `--jsmath` option is used, TeX math will be put inside
-        `<span>` tags (for inline math) or `<div>` tags (for display math)
-        with class `math`.  The [jsMath] script will be used to render
-        it.
-
-    4.  If the `--mimetex` option is used, the [mimeTeX] CGI script will
-        be called to generate images for each TeX formula. This should
-        work in all browsers. The `--mimetex` option takes an optional URL
-        as argument. If no URL is specified, it will be assumed that the
-        mimeTeX CGI script is at `/cgi-bin/mimetex.cgi`.
-
-    5.  If the `--gladtex` option is used, TeX formulas will be enclosed
-        in `<eq>` tags in the HTML output.  The resulting `htex` file may then
-        be processed by [gladTeX], which will produce image files for each
-        formula and an HTML file with links to these images.  So, the
-        procedure is:
-
-            pandoc -s --gladtex myfile.txt -o myfile.htex
-            gladtex -d myfile-images myfile.htex
-            # produces myfile.html and images in myfile-images
-
-    6.  If the `--webtex` option is used, TeX formulas will be converted
-        to `<img>` tags that link to an external script that converts
-        formulas to images. The formula will be URL-encoded and concatenated
-        with the URL provided. For SVG images you can for example use
-        `--webtex https://latex.codecogs.com/svg.latex?`.
-        If no URL is specified, the CodeCogs URL generating PNGs
-        will be used (`https://latex.codecogs.com/png.latex?`).
-
-    7.  If the `--mathjax` option is used, TeX math will be displayed
-        between `\(...\)` (for inline math) or `\[...\]` (for display
-        math) and put in `<span>` tags with class `math`.
-        The [MathJax] script will be used to render it as formulas.
+    command-line options selected. Therefore see [Math rendering in HTML]
+    above.
 
 [interpreted text role `:math:`]: http://docutils.sourceforge.net/docs/ref/rst/roles.html#math
 
