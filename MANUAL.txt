@@ -1124,21 +1124,18 @@ of the following options.
 
 `-m` [*URL*], `--latexmathml`[`=`*URL*]
 
-:   Use the [LaTeXMathML] script to display embedded TeX math in HTML output.
+:   *Deprecated.*
+    Use the [LaTeXMathML] script to display embedded TeX math in HTML output.
     TeX math will be displayed between `$` or `$$` characters and put in
     `<span>` tags with class `LaTeX`. The LaTeXMathML JavaScript will then
     change it to MathML. Note that currently only Firefox and Safari
     (and select e-book readers) natively support MathML.
-    To insert a link to a local copy of the `LaTeXMathML.js` script,
-    provide a *URL*. If no *URL* is provided, the contents of the
-    script will be inserted directly into the HTML header, preserving
-    portability at the price of efficiency. If you plan to use math on
-    several pages, it is much better to link to a copy of the script,
-    so it can be cached.
+    To insert a link the `LaTeXMathML.js` script, provide a *URL*.
 
 `--jsmath`[`=`*URL*]
 
-:   Use [jsMath] (the predecessor of MathJax) to display embedded TeX
+:   *Deprecated.*
+    Use [jsMath] (the predecessor of MathJax) to display embedded TeX
     math in HTML output. TeX math will be put inside `<span>` tags
     (for inline math) or `<div>` tags (for display math) with class
     `math` and rendered by the jsMath script. The *URL* should point to
@@ -1149,7 +1146,8 @@ of the following options.
 
 `--gladtex`
 
-:   Enclose TeX math in `<eq>` tags in HTML output.  The resulting HTML
+:   *Deprecated.*
+    Enclose TeX math in `<eq>` tags in HTML output.  The resulting HTML
     can then be processed by [gladTeX] to produce images of the typeset
     formulas and an HTML file with links to these images.
     So, the procedure is:
@@ -1160,7 +1158,8 @@ of the following options.
 
 `--mimetex`[`=`*URL*]
 
-:   Render TeX math using the [mimeTeX] CGI script, which generates an
+:   *Deprecated.*
+    Render TeX math using the [mimeTeX] CGI script, which generates an
     image for each TeX formula. This should work in all browsers. If
     *URL* is not specified, it is assumed that the script is at
     `/cgi-bin/mimetex.cgi`.

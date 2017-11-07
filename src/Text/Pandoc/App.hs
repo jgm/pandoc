@@ -1401,28 +1401,11 @@ options =
                   (\opt -> return opt { optCiteMethod = Biblatex }))
                  "" -- "Use biblatex cite commands in LaTeX output"
 
-    , Option "m" ["latexmathml", "asciimathml"]
-                 (OptArg
-                  (\arg opt ->
-                      return opt { optHTMLMathMethod = LaTeXMathML arg })
-                  "URL")
-                 "" -- "Use LaTeXMathML script in html output"
-
     , Option "" ["mathml"]
                  (NoArg
                   (\opt ->
                       return opt { optHTMLMathMethod = MathML }))
                  "" -- "Use mathml for HTML math"
-
-    , Option "" ["mimetex"]
-                 (OptArg
-                  (\arg opt -> do
-                      let url' = case arg of
-                                      Just u  -> u ++ "?"
-                                      Nothing -> "/cgi-bin/mimetex.cgi?"
-                      return opt { optHTMLMathMethod = WebTeX url' })
-                  "URL")
-                 "" -- "Use mimetex for HTML math"
 
     , Option "" ["webtex"]
                  (OptArg
@@ -1432,12 +1415,6 @@ options =
                   "URL")
                  "" -- "Use web service for HTML math"
 
-    , Option "" ["jsmath"]
-                 (OptArg
-                  (\arg opt -> return opt { optHTMLMathMethod = JsMath arg})
-                  "URL")
-                 "" -- "Use jsMath for HTML math"
-
     , Option "" ["mathjax"]
                  (OptArg
                   (\arg opt -> do
@@ -1446,6 +1423,7 @@ options =
                       return opt { optHTMLMathMethod = MathJax url'})
                   "URL")
                  "" -- "Use MathJax for HTML math"
+
     , Option "" ["katex"]
                  (OptArg
                   (\arg opt ->
@@ -1455,9 +1433,38 @@ options =
                   "URL")
                   "" -- Use KaTeX for HTML Math
 
+    , Option "m" ["latexmathml", "asciimathml"]
+                 (OptArg
+                  (\arg opt -> do
+                      deprecatedOption "--latexmathml"
+                      return opt { optHTMLMathMethod = LaTeXMathML arg })
+                  "URL")
+                 "" -- "Use LaTeXMathML script in html output"
+
+    , Option "" ["mimetex"]
+                 (OptArg
+                  (\arg opt -> do
+                      deprecatedOption "--mimetex"
+                      let url' = case arg of
+                                      Just u  -> u ++ "?"
+                                      Nothing -> "/cgi-bin/mimetex.cgi?"
+                      return opt { optHTMLMathMethod = WebTeX url' })
+                  "URL")
+                 "" -- "Use mimetex for HTML math"
+
+    , Option "" ["jsmath"]
+                 (OptArg
+                  (\arg opt -> do
+                      deprecatedOption "--jsmath"
+                      return opt { optHTMLMathMethod = JsMath arg})
+                  "URL")
+                 "" -- "Use jsMath for HTML math"
+
     , Option "" ["gladtex"]
                  (NoArg
-                  (\opt -> return opt { optHTMLMathMethod = GladTeX }))
+                  (\opt -> do
+                      deprecatedOption "--gladtex"
+                      return opt { optHTMLMathMethod = GladTeX }))
                  "" -- "Use gladtex for HTML math"
 
     , Option "" ["abbreviations"]
@@ -1655,3 +1662,10 @@ splitField s =
 
 baseWriterName :: String -> String
 baseWriterName = takeWhile (\c -> c /= '+' && c /= '-')
+
+deprecatedOption :: String -> IO ()
+deprecatedOption o =
+  runIO (report $ Deprecated o "") >>=
+    \r -> case r of
+       Right () -> return ()
+       Left e   -> E.throwIO e
