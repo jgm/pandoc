@@ -959,15 +959,21 @@ transformInline  :: PandocMonad m
                  => WriterOptions
                  -> Inline
                  -> E m Inline
-transformInline _opts (Image attr lab (src,tit)) = do
+transformInline opts (Image attr lab (src,tit)) = do
     newsrc <- modifyMediaRef src
-    return $ Image attr lab ("../" ++ newsrc, tit)
+    let pref = if null (writerEpubSubdirectory opts)
+                  then ""
+                  else "../"
+    return $ Image attr lab (pref ++ newsrc, tit)
 transformInline opts (x@(Math t m))
   | WebTeX url <- writerHTMLMathMethod opts = do
     newsrc <- modifyMediaRef (url ++ urlEncode m)
     let mathclass = if t == DisplayMath then "display" else "inline"
+    let pref = if null (writerEpubSubdirectory opts)
+                  then ""
+                  else "../"
     return $ Span ("",["math",mathclass],[])
-                [Image nullAttr [x] ("../" ++ newsrc, "")]
+                [Image nullAttr [x] (pref ++ newsrc, "")]
 transformInline _opts (RawInline fmt raw)
   | fmt == Format "html" = do
   let tags = parseTags raw
