@@ -623,8 +623,9 @@ indentedLine = indentSpaces >> anyLineNewline
 blockDelimiter :: PandocMonad m
                => (Char -> Bool)
                -> Maybe Int
-               -> ParserT [Char] st m Int
+               -> ParserT [Char] ParserState m Int
 blockDelimiter f len = try $ do
+  skipNonindentSpaces
   c <- lookAhead (satisfy f)
   case len of
       Just l  -> count l (char c) >> many (char c) >> return l
@@ -689,6 +690,8 @@ rawAttribute = do
 
 codeBlockFenced :: PandocMonad m => MarkdownParser m (F Blocks)
 codeBlockFenced = try $ do
+  indentchars <- nonindentSpaces
+  let indentLevel = length indentchars
   c <- try (guardEnabled Ext_fenced_code_blocks >> lookAhead (char '~'))
      <|> (guardEnabled Ext_backtick_code_blocks >> lookAhead (char '`'))
   size <- blockDelimiter (== c) Nothing
@@ -701,7 +704,8 @@ codeBlockFenced = try $ do
           <|> ((\x -> ("",[toLanguageId x],[])) <$> many1 nonspaceChar)))
   blankline
   contents <- intercalate "\n" <$>
-                 manyTill anyLine (blockDelimiter (== c) (Just size))
+                 manyTill (gobbleAtMostSpaces indentLevel >> anyLine)
+                          (blockDelimiter (== c) (Just size))
   blanklines
   return $ return $
     case rawattr of
