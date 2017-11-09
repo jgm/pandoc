@@ -3697,7 +3697,7 @@ between two East Asian wide characters.  This is a better choice
 than `ignore_line_breaks` for texts that include a mix of East
 Asian wide characters and other characters.
 
-##### Extension: `emoji` ####
+#### Extension: `emoji` ####
 
 Parses textual emojis like `:smile:` as Unicode emoticons.
 
