@@ -76,7 +76,7 @@ import qualified System.IO as IO (Newline (..))
 import System.IO.Error (isDoesNotExistError)
 import Text.Pandoc
 import Text.Pandoc.BCP47 (Lang (..), parseBCP47)
-import Text.Pandoc.Builder (setMeta)
+import Text.Pandoc.Builder (setMeta, deleteMeta)
 import Text.Pandoc.Highlighting (highlightingStyles)
 import Text.Pandoc.Lua (LuaException (..), runLuaFilter)
 import Text.Pandoc.PDF (makePDF)
@@ -494,7 +494,7 @@ convertWithOpts opts = do
               (   (if isJust (optExtractMedia opts)
                       then fillMediaBag
                       else return)
-              >=> return . flip (foldr addMetadata) metadata
+              >=> return . addMetadata metadata
               >=> applyLuaFilters datadir (optLuaFilters opts) format
               >=> maybe return extractMedia (optExtractMedia opts)
               >=> applyTransforms transforms
@@ -722,14 +722,20 @@ defaultOpts = Opt
     , optStripComments          = False
     }
 
-addMetadata :: (String, String) -> Pandoc -> Pandoc
-addMetadata (k, v) (Pandoc meta bs) = Pandoc meta' bs
+addMetadata :: [(String, String)] -> Pandoc -> Pandoc
+addMetadata kvs pdc = foldr addMeta (removeMetaKeys kvs pdc) kvs
+
+addMeta :: (String, String) -> Pandoc -> Pandoc
+addMeta (k, v) (Pandoc meta bs) = Pandoc meta' bs
   where meta' = case lookupMeta k meta of
                       Nothing -> setMeta k v' meta
                       Just (MetaList xs) ->
                                  setMeta k (MetaList (xs ++ [v'])) meta
                       Just x  -> setMeta k (MetaList [x, v']) meta
         v' = readMetaValue v
+
+removeMetaKeys :: [(String,String)] -> Pandoc -> Pandoc
+removeMetaKeys kvs pdc = foldr (deleteMeta . fst) pdc kvs
 
 readMetaValue :: String -> MetaValue
 readMetaValue s = case decode (UTF8.fromString s) of
