@@ -942,8 +942,8 @@ transformTag tag@(TagOpen name attr)
   newsrc <- modifyMediaRef src
   newposter <- modifyMediaRef poster
   let attr' = filter (\(x,_) -> x /= "src" && x /= "poster") attr ++
-              [("src", newsrc) | not (null newsrc)] ++
-              [("poster", newposter) | not (null newposter)]
+              [("src", "../" ++ newsrc) | not (null newsrc)] ++
+              [("poster", "../" ++ newposter) | not (null newposter)]
   return $ TagOpen name attr'
 transformTag tag = return tag
 
