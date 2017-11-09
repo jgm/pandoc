@@ -54,8 +54,7 @@ import Data.List (intercalate, isPrefixOf)
 import Data.List.Split (wordsBy)
 import qualified Data.Map as M
 import Data.Maybe (fromMaybe, isJust, isNothing)
-import Data.Monoid (First (..))
-import Data.Monoid ((<>))
+import Data.Monoid (First (..), (<>))
 import qualified Data.Set as Set
 import Data.Text (Text)
 import qualified Data.Text as T
@@ -89,7 +88,7 @@ readHtml opts inp = do
              parseTagsOptions parseOptions{ optTagPosition = True }
              (crFilter inp)
       parseDoc = do
-        blocks <- (fixPlains False) . mconcat <$> manyTill block eof
+        blocks <- fixPlains False . mconcat <$> manyTill block eof
         meta <- stateMeta . parserState <$> getState
         bs' <- replaceNotes (B.toList blocks)
         reportLogMessages
@@ -223,10 +222,10 @@ eSwitch constructor parser = try $ do
 eCase :: PandocMonad m => TagParser m (Maybe Inlines)
 eCase = do
   skipMany pBlank
-  TagOpen _ attr' <- lookAhead $ pSatisfy $ (matchTagOpen "case" [])
+  TagOpen _ attr' <- lookAhead $ pSatisfy (matchTagOpen "case" [])
   let attr = toStringAttr attr'
-  case (flip lookup namespaces) =<< lookup "required-namespace" attr of
-    Just p -> Just <$> (pInTags "case" (skipMany pBlank *> p <* skipMany pBlank))
+  case flip lookup namespaces =<< lookup "required-namespace" attr of
+    Just p -> Just <$> pInTags "case" (skipMany pBlank *> p <* skipMany pBlank)
     Nothing -> Nothing <$ manyTill pAnyTag (pSatisfy (matchTagClose "case"))
 
 eFootnote :: PandocMonad m => TagParser m ()
@@ -235,20 +234,20 @@ eFootnote = try $ do
   guardEnabled Ext_epub_html_exts
   (TagOpen tag attr') <- lookAhead pAnyTag
   let attr = toStringAttr attr'
-  guard (maybe False (flip elem notes) (lookup "type" attr))
+  guard $ maybe False (`elem` notes) (lookup "type" attr)
   let ident = fromMaybe "" (lookup "id" attr)
   content <- pInTags tag block
   addNote ident content
 
 addNote :: PandocMonad m => String -> Blocks -> TagParser m ()
-addNote uid cont = updateState (\s -> s {noteTable = (uid, cont) : (noteTable s)})
+addNote uid cont = updateState (\s -> s {noteTable = (uid, cont) : noteTable s})
 
 eNoteref :: PandocMonad m => TagParser m Inlines
 eNoteref = try $ do
   guardEnabled Ext_epub_html_exts
-  TagOpen tag attr' <- lookAhead $ pAnyTag
+  TagOpen tag attr' <- lookAhead pAnyTag
   let attr = toStringAttr attr'
-  guard (maybe False (== "noteref") (lookup "type" attr))
+  guard $ lookup "type" attr == Just "noteref"
   let ident = maybe "" (dropWhile (== '#')) (lookup "href" attr)
   guard (not (null ident))
   pInTags tag block
@@ -258,8 +257,8 @@ eNoteref = try $ do
 eTOC :: PandocMonad m => TagParser m ()
 eTOC = try $ do
   guardEnabled Ext_epub_html_exts
-  (TagOpen tag attr) <- lookAhead $ pAnyTag
-  guard (maybe False (== "toc") (lookup "type" attr))
+  (TagOpen tag attr) <- lookAhead pAnyTag
+  guard $ lookup "type" attr == Just "toc"
   void (pInTags tag block)
 
 pList :: PandocMonad m => TagParser m Blocks
@@ -285,7 +284,7 @@ pListItem nonItem = do
                            (Plain ils:xs) -> B.fromList (Plain
                                 [Span (ident, [], []) ils] : xs)
                            _ -> B.divWith (ident, [], []) bs
-  (maybe id addId (lookup "id" attr)) <$>
+  maybe id addId (lookup "id" attr) <$>
     pInTags "li" block <* skipMany nonItem
 
 parseListStyleType :: String -> ListNumberStyle
@@ -356,14 +355,14 @@ fixPlains :: Bool -> Blocks -> Blocks
 fixPlains inList bs = if any isParaish bs'
                          then B.fromList $ map plainToPara bs'
                          else bs
-  where isParaish (Para _)           = True
-        isParaish (CodeBlock _ _)    = True
-        isParaish (Header _ _ _)     = True
-        isParaish (BlockQuote _)     = True
-        isParaish (BulletList _)     = not inList
-        isParaish (OrderedList _ _)  = not inList
-        isParaish (DefinitionList _) = not inList
-        isParaish _                  = False
+  where isParaish Para{}           = True
+        isParaish CodeBlock{}      = True
+        isParaish Header{}         = True
+        isParaish BlockQuote{}     = True
+        isParaish BulletList{}     = not inList
+        isParaish OrderedList{}    = not inList
+        isParaish DefinitionList{} = not inList
+        isParaish _                = False
         plainToPara (Plain xs) = Para xs
         plainToPara x          = x
         bs' = B.toList bs
@@ -427,10 +426,10 @@ eSection = try $ do
   setInChapter (pInTags tag block)
 
 headerLevel :: PandocMonad m => Text -> TagParser m Int
-headerLevel tagtype = do
+headerLevel tagtype =
   case safeRead (T.unpack (T.drop 1 tagtype)) of
         Just level ->
-          (try $ do
+          try (do
             guardEnabled Ext_epub_html_exts
             asks inChapter >>= guard
             return (level - 1))
@@ -481,12 +480,12 @@ pTable = try $ do
       pTBody = pOptInTag "tbody" $ many1 pTr
   head'' <- pOptInTag "thead" pTh
   head'  <- map snd <$>
-             (pOptInTag "tbody" $
-               if null head'' then pTh else return head'')
+             pOptInTag "tbody"
+               (if null head'' then pTh else return head'')
   rowsLs <- many pTBody
   rows'  <- pOptInTag "tfoot" $ many pTr
   TagClose _ <- pSatisfy (matchTagClose "table")
-  let rows'' = (concat rowsLs) <> rows'
+  let rows'' = concat rowsLs <> rows'
   let rows''' = map (map snd) rows''
   -- let rows''' = map (map snd) rows''
   -- fail on empty table
@@ -691,7 +690,7 @@ pSubscript :: PandocMonad m => TagParser m Inlines
 pSubscript = pInlinesInTags "sub" B.subscript
 
 pStrikeout :: PandocMonad m => TagParser m Inlines
-pStrikeout = do
+pStrikeout =
   pInlinesInTags "s" B.strikeout <|>
     pInlinesInTags "strike" B.strikeout <|>
     pInlinesInTags "del" B.strikeout <|>
@@ -719,7 +718,7 @@ pLink = try $ do
   tag <- pSatisfy $ tagOpenLit "a" (const True)
   let title = T.unpack $ fromAttrib "title" tag
   -- take id from id attribute if present, otherwise name
-  let uid = maybe (T.unpack $ fromAttrib "name" tag) id $
+  let uid = fromMaybe (T.unpack $ fromAttrib "name" tag) $
                maybeFromAttrib "id" tag
   let cls = words $ T.unpack $ fromAttrib "class" tag
   lab <- trimInlines . mconcat <$> manyTill inline (pCloses "a")
@@ -750,7 +749,7 @@ pImage = do
   let getAtt k = case fromAttrib k tag of
                    "" -> []
                    v  -> [(T.unpack k, T.unpack v)]
-  let kvs = concat $ map getAtt ["width", "height", "sizes", "srcset"]
+  let kvs = concatMap getAtt ["width", "height", "sizes", "srcset"]
   return $ B.imageWith (uid, cls, kvs) (escapeURI url) title (B.text alt)
 
 pCode :: PandocMonad m => TagParser m Inlines
@@ -846,7 +845,7 @@ pCloses :: PandocMonad m => Text -> TagParser m ()
 pCloses tagtype = try $ do
   t <- lookAhead $ pSatisfy $ \tag -> isTagClose tag || isTagOpen tag
   case t of
-       (TagClose t') | t' == tagtype -> pAnyTag >> return ()
+       (TagClose t') | t' == tagtype -> void pAnyTag
        (TagOpen t' _) | t' `closes` tagtype -> return ()
        (TagClose "ul") | tagtype == "li" -> return ()
        (TagClose "ol") | tagtype == "li" -> return ()
@@ -1197,7 +1196,7 @@ htmlTag f = try $ do
 mkAttr :: [(String, String)] -> Attr
 mkAttr attr = (attribsId, attribsClasses, attribsKV)
   where attribsId = fromMaybe "" $ lookup "id" attr
-        attribsClasses = (words $ fromMaybe "" $ lookup "class" attr) <> epubTypes
+        attribsClasses = words (fromMaybe "" $ lookup "class" attr) <> epubTypes
         attribsKV = filter (\(k,_) -> k /= "class" && k /= "id") attr
         epubTypes = words $ fromMaybe "" $ lookup "epub:type" attr
 
