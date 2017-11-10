@@ -1,4 +1,3 @@
-{-# LANGUAGE ViewPatterns #-}
 {-
 Copyright (C) 2014 Matthew Pickering <matthewtpickering@gmail.com>
 
@@ -94,7 +93,7 @@ readTxt2Tags opts s = do
         readWithM parseT2T (def {stateOptions = opts}) $
         T.unpack (crFilter s) ++ "\n\n"
   case parsed of
-    Right result -> return $ result
+    Right result -> return result
     Left e       -> throwError e
 
 -- | Read Txt2Tags (ignoring all macros) from an input string returning
@@ -149,7 +148,7 @@ setting = do
   string "%!"
   keyword <- ignoreSpacesCap (many1 alphaNum)
   char ':'
-  value <- ignoreSpacesCap (manyTill anyChar (newline))
+  value <- ignoreSpacesCap (manyTill anyChar newline)
   return (keyword, value)
 
 -- Blocks
@@ -158,7 +157,7 @@ parseBlocks :: T2T Blocks
 parseBlocks = mconcat <$> manyTill block eof
 
 block :: T2T Blocks
-block = do
+block =
   choice
     [ mempty <$ blanklines
     , quote
@@ -196,7 +195,7 @@ para = try $ do
     listStart = try bulletListStart <|> orderedListStart
 
 commentBlock :: T2T Blocks
-commentBlock = try (blockMarkupArea (anyLine) (const mempty) "%%%") <|> comment
+commentBlock = try (blockMarkupArea anyLine (const mempty) "%%%") <|> comment
 
 -- Seperator and Strong line treated the same
 hrule :: T2T Blocks
@@ -230,7 +229,7 @@ orderedList = B.orderedList . compactify
               <$> many1 (listItem orderedListStart parseBlocks)
 
 definitionList :: T2T Blocks
-definitionList = try $ do
+definitionList = try $
   B.definitionList . compactifyDL <$>
     many1 (listItem definitionListStart definitionListEnd)
 
@@ -282,17 +281,17 @@ table = try $ do
   rows <- many1 (many commentLine *> tableRow)
   let columns = transpose rows
   let ncolumns = length columns
-  let aligns = map (foldr1 findAlign) (map (map fst) columns)
+  let aligns = map (foldr1 findAlign . map fst) columns
   let rows' = map (map snd) rows
   let size = maximum (map length rows')
   let rowsPadded = map (pad size) rows'
-  let headerPadded = if (not (null tableHeader)) then pad size tableHeader else mempty
+  let headerPadded = if null tableHeader then mempty else pad size tableHeader
   return $ B.table mempty
                     (zip aligns (replicate ncolumns 0.0))
                       headerPadded rowsPadded
 
 pad :: (Monoid a) => Int -> [a] -> [a]
-pad n xs = xs ++ (replicate (n - length xs) mempty)
+pad n xs = xs ++ replicate (n - length xs) mempty
 
 
 findAlign :: Alignment -> Alignment -> Alignment
@@ -315,7 +314,7 @@ genericRow start = try $ do
 tableCell :: T2T (Alignment, Blocks)
 tableCell = try $ do
   leftSpaces <- length <$> lookAhead (many1 space) -- Case of empty cell means we must lookAhead
-  content <- (manyTill inline (try $ lookAhead (cellEnd)))
+  content <- manyTill inline (try $ lookAhead cellEnd)
   rightSpaces <- length <$> many space
   let align =
         case compare leftSpaces rightSpaces of
@@ -323,9 +322,9 @@ tableCell = try $ do
               EQ -> AlignCenter
               GT -> AlignRight
   endOfCell
-  return $ (align, B.plain (B.trimInlines $ mconcat content))
+  return (align, B.plain (B.trimInlines $ mconcat content))
   where
-    cellEnd = (void newline <|> (many1 space *> endOfCell))
+    cellEnd = void newline <|> (many1 space *> endOfCell)
 
 endOfCell :: T2T ()
 endOfCell = try (skipMany1 $ char '|') <|> ( () <$ lookAhead newline)
@@ -348,10 +347,10 @@ taggedBlock = do
 genericBlock :: Monoid a => T2T a -> (a -> Blocks) -> String -> T2T Blocks
 genericBlock p f s = blockMarkupArea p f s <|> blockMarkupLine p f s
 
-blockMarkupArea :: Monoid a => (T2T a) -> (a -> Blocks) -> String -> T2T Blocks
-blockMarkupArea p f s = try $ (do
+blockMarkupArea :: Monoid a => T2T a -> (a -> Blocks) -> String -> T2T Blocks
+blockMarkupArea p f s = try (do
   string s *> blankline
-  f . mconcat <$> (manyTill p (eof <|> void (string s *> blankline))))
+  f . mconcat <$> manyTill p (eof <|> void (string s *> blankline)))
 
 blockMarkupLine :: T2T a -> (a -> Blocks) -> String -> T2T Blocks
 blockMarkupLine p f s = try (f <$> (string s *> space *> p))
@@ -369,7 +368,7 @@ parseInlines :: T2T Inlines
 parseInlines = trimInlines . mconcat <$> many1 inline
 
 inline :: T2T Inlines
-inline = do
+inline =
   choice
     [ endline
     , macro
@@ -391,16 +390,16 @@ inline = do
     ]
 
 bold :: T2T Inlines
-bold = inlineMarkup inline B.strong '*' (B.str)
+bold = inlineMarkup inline B.strong '*' B.str
 
 underline :: T2T Inlines
-underline = inlineMarkup inline underlineSpan '_' (B.str)
+underline = inlineMarkup inline underlineSpan '_' B.str
 
 strike :: T2T Inlines
-strike = inlineMarkup inline B.strikeout '-' (B.str)
+strike = inlineMarkup inline B.strikeout '-' B.str
 
 italic :: T2T Inlines
-italic = inlineMarkup inline B.emph '/' (B.str)
+italic = inlineMarkup inline B.emph '/' B.str
 
 code :: T2T Inlines
 code = inlineMarkup ((:[]) <$> anyChar) B.code '`' id
@@ -419,7 +418,7 @@ tagged = do
 -- Glued meaning that markup must be tight to content
 -- Markup can't pass newlines
 inlineMarkup :: Monoid a
-             => (T2T a) -- Content parser
+             => T2T a -- Content parser
              -> (a -> Inlines) -- Constructor
              -> Char -- Fence
              -> (String -> a) -- Special Case to handle ******
@@ -431,7 +430,7 @@ inlineMarkup p f c special = try $ do
   when (l == 2) (void $ notFollowedBy space)
   -- We must make sure that there is no space before the start of the
   -- closing tags
-  body <-  optionMaybe (try $ manyTill (noneOf "\n\r") $
+  body <-  optionMaybe (try $ manyTill (noneOf "\n\r")
                 (try $ lookAhead (noneOf " " >> string [c,c] )))
   case body of
     Just middle -> do
@@ -448,7 +447,7 @@ inlineMarkup p f c special = try $ do
       return $ f (start' <> body' <> end')
     Nothing -> do -- Either bad or case such as *****
       guard (l >= 5)
-      let body' = (replicate (l - 4) c)
+      let body' = replicate (l - 4) c
       return $ f (special body')
 
 link :: T2T Inlines
@@ -463,7 +462,7 @@ titleLink = try $ do
   guard (length tokens >= 2)
   char ']'
   let link' = last tokens
-  guard (length link' > 0)
+  guard $ not $ null link'
   let tit = concat (intersperse " " (init tokens))
   return $ B.link link' "" (B.text tit)
 
@@ -489,7 +488,7 @@ macro = try $ do
 -- raw URLs in text are automatically linked
 url :: T2T Inlines
 url = try $ do
-  (rawUrl, escapedUrl) <- (try uri <|> emailAddress)
+  (rawUrl, escapedUrl) <- try uri <|> emailAddress
   return $ B.link rawUrl "" (B.str escapedUrl)
 
 uri :: T2T (String, String)
@@ -563,8 +562,7 @@ endline = try $ do
   return B.softbreak
 
 str :: T2T Inlines
-str = try $ do
-  B.str <$> many1 (noneOf $ specialChars ++ "\n\r ")
+str = try $ B.str <$> many1 (noneOf $ specialChars ++ "\n\r ")
 
 whitespace :: T2T Inlines
 whitespace = try $ B.space <$ spaceChar
