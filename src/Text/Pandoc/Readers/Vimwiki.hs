@@ -244,7 +244,7 @@ preformatted = try $ do
   lookAhead newline
   contents <- manyTill anyChar (try (char '\n' >> many spaceChar >> string "}}}"
     >> many spaceChar >> newline))
-  if not (contents == "") && (head contents == '\n')
+  if (contents /= "") && (head contents == '\n')
      then return $ B.codeBlockWith (makeAttr attrText) (tail contents)
      else return $ B.codeBlockWith (makeAttr attrText) contents
 
@@ -310,10 +310,10 @@ mixedList' prevInd = do
           curLine <- listItemContent
           let listBuilder =
                 if builder == "ul" then B.bulletList else B.orderedList
-          (subList, lowInd) <- (mixedList' curInd)
+          (subList, lowInd) <- mixedList' curInd
           if lowInd >= curInd
              then do
-                  (sameIndList, endInd) <- (mixedList' lowInd)
+                  (sameIndList, endInd) <- mixedList' lowInd
                   let curList = combineList curLine subList ++ sameIndList
                   if curInd > prevInd
                      then return ([listBuilder curList], endInd)
@@ -388,7 +388,7 @@ bulletListMarkers = "ul" <$ (char '*' <|> char '-')
 
 orderedListMarkers :: PandocMonad m => VwParser m String
 orderedListMarkers =
-  ("ol" <$choice ((orderedListMarker Decimal Period):(($OneParen)
+  ("ol" <$choice (orderedListMarker Decimal Period:(($OneParen)
     <$> orderedListMarker
     <$> [Decimal, LowerRoman, UpperRoman, LowerAlpha, UpperAlpha])))
     <|> ("ol" <$ char '#')
@@ -435,7 +435,7 @@ tableRow = try $ do
 
 tableCell :: PandocMonad m => VwParser m Blocks
 tableCell = try $
-  B.plain . trimInlines . mconcat <$> (manyTill inline' (char '|'))
+  B.plain . trimInlines . mconcat <$> manyTill inline' (char '|')
 
 placeholder :: PandocMonad m => VwParser m ()
 placeholder = try $
@@ -444,7 +444,7 @@ placeholder = try $
 ph :: PandocMonad m => String -> VwParser m ()
 ph s = try $ do
   many spaceChar >>string ('%':s) >> spaceChar
-  contents <- trimInlines . mconcat <$> (manyTill inline (lookAhead newline))
+  contents <- trimInlines . mconcat <$> manyTill inline (lookAhead newline)
     --use lookAhead because of placeholder in the whitespace parser
   let meta' = return $ B.setMeta s contents nullMeta :: F Meta
   updateState $ \st -> st { stateMeta' = stateMeta' st <> meta' }
@@ -515,12 +515,12 @@ bareURL = try $ do
 strong :: PandocMonad m => VwParser m Inlines
 strong = try $ do
   s <- lookAhead $ between (char '*') (char '*') (many1 $ noneOf "*")
-  guard $ not ((head s) `elem` spaceChars)
-             &&not ((last s) `elem` spaceChars)
+  guard $ (head s `notElem` spaceChars)
+             && (last s `notElem` spaceChars)
   char '*'
   contents <- mconcat <$>manyTill inline' (char '*'
     >> notFollowedBy alphaNum)
-  return $ B.spanWith ((makeId contents), [], []) mempty
+  return $ B.spanWith (makeId contents, [], []) mempty
     <> B.strong contents
 
 makeId :: Inlines -> String
@@ -529,8 +529,8 @@ makeId i = concat (stringify <$> toList i)
 emph :: PandocMonad m => VwParser m Inlines
 emph = try $ do
   s <- lookAhead $ between (char '_') (char '_') (many1 $ noneOf "_")
-  guard $ not ((head s) `elem` spaceChars)
-          &&not ((last s) `elem` spaceChars)
+  guard $ (head s `notElem` spaceChars)
+          && (last s `notElem` spaceChars)
   char '_'
   contents <- mconcat <$>manyTill inline' (char '_'
     >> notFollowedBy alphaNum)
@@ -539,7 +539,7 @@ emph = try $ do
 strikeout :: PandocMonad m => VwParser m Inlines
 strikeout = try $ do
   string "~~"
-  contents <- mconcat <$>many1Till inline' (string $ "~~")
+  contents <- mconcat <$>many1Till inline' (string "~~")
   return $ B.strikeout contents
 
 code :: PandocMonad m => VwParser m Inlines
@@ -568,7 +568,7 @@ link = try $ do
                     return $ B.link (procLink contents) "" (B.str contents)
                   True  -> do
                     url <- manyTill anyChar $ char '|'
-                    lab <- mconcat <$> (manyTill inline $ string "]]")
+                    lab <- mconcat <$> manyTill inline (string "]]")
                     return $ B.link (procLink url) "" lab
 
 image :: PandocMonad m => VwParser m Inlines
@@ -584,7 +584,7 @@ images k
            return $ B.image (procImgurl imgurl) "" (B.str "")
   | k == 1 = do
            imgurl <- manyTill anyChar (char '|')
-           alt <- mconcat <$> (manyTill inline (try $ string "}}"))
+           alt <- mconcat <$> manyTill inline (try $ string "}}")
            return $ B.image (procImgurl imgurl) "" alt
   | k == 2 = do
            imgurl <- manyTill anyChar (char '|')
@@ -600,8 +600,8 @@ images k
 
 procLink' :: String -> String
 procLink' s
-  | (take 6 s) == "local:" = "file" ++ drop 5 s
-  | (take 6 s) == "diary:" = "diary/" ++ drop 6 s ++ ".html"
+  | take 6 s == "local:" = "file" ++ drop 5 s
+  | take 6 s == "diary:" = "diary/" ++ drop 6 s ++ ".html"
   | or ((`isPrefixOf` s) <$> [ "http:", "https:", "ftp:", "file:", "mailto:",
                               "news:", "telnet:" ])
                              = s
@@ -614,7 +614,7 @@ procLink s = procLink' x ++ y
   where (x, y) = break (=='#') s
 
 procImgurl :: String -> String
-procImgurl s = if (take 6 s) == "local:" then "file" ++ drop 5 s else s
+procImgurl s = if take 6 s == "local:" then "file" ++ drop 5 s else s
 
 inlineMath :: PandocMonad m => VwParser m Inlines
 inlineMath = try $ do
