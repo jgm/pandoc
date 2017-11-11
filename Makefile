@@ -55,10 +55,8 @@ pandoc-$(version)-windows.msi:
 	rm pandoc.msi
 
 man/pandoc.1: MANUAL.txt man/pandoc.1.template
-	pandoc $< -t man -s --template man/pandoc.1.template \
-		--filter man/capitalizeHeaders.hs \
-		--filter man/removeNotes.hs \
-		--filter man/removeLinks.hs \
+	pandoc $< -f markdown-smart -t man -s --template man/pandoc.1.template \
+		--lua-filter man/manfilter.lua \
 		--variable version="pandoc $(version)" \
 		-o $@
 

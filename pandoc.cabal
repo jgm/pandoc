@@ -126,9 +126,7 @@ extra-source-files:
                  -- stack build plan
                  stack.yaml
                  -- files needed to build man page
-                 man/capitalizeHeaders.hs
-                 man/removeNotes.hs
-                 man/removeLinks.hs
+                 man/manfilter.lua
                  man/pandoc.1.template
                  -- trypandoc
                  trypandoc/Makefile
