@@ -1,3 +1,5 @@
+{-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE FlexibleContexts #-}
 {-
 Copyright © 2017 Albert Krewinkel <tarleb+pandoc@moltkeplatz.de>
 
@@ -38,13 +40,15 @@ import Data.Digest.Pure.SHA (sha1, showDigest)
 import Data.IORef
 import Data.Maybe (fromMaybe)
 import Data.Text (pack)
-import Foreign.Lua (FromLuaStack, Lua, NumResults, liftIO)
+import Foreign.Lua (ToLuaStack, FromLuaStack, Lua, NumResults, liftIO)
 import Foreign.Lua.FunctionCalling (ToHaskellFunction)
 import System.Exit (ExitCode (..))
 import Text.Pandoc.Class (CommonState (..), fetchItem, putCommonState,
                           readDataFile, runIO, runIOorExplode, setMediaBag,
                           setUserDataDir)
 import Text.Pandoc.Lua.StackInstances ()
+import Text.Pandoc.Definition (Block, Inline)
+import Text.Pandoc.Walk (Walkable)
 import Text.Pandoc.MIME (MimeType)
 import Text.Pandoc.Options (ReaderOptions (readerExtensions))
 import Text.Pandoc.Process (pipeProcess)
@@ -53,6 +57,7 @@ import Text.Pandoc.Readers (Reader (..), getReader)
 import qualified Data.ByteString.Lazy as BL
 import qualified Foreign.Lua as Lua
 import qualified Text.Pandoc.MediaBag as MB
+import Text.Pandoc.Lua.Filter (walkInlines, walkBlocks, LuaFilter)
 
 -- | Push the "pandoc" on the lua stack.
 pushPandocModule :: Maybe FilePath -> Lua ()
@@ -63,11 +68,26 @@ pushPandocModule datadir = do
   addFunction "_pipe" pipeFn
   addFunction "_read" readDoc
   addFunction "sha1" sha1HashFn
+  addFunction "walk_block" walkBlock
+  addFunction "walk_inline" walkInline
 
 -- | Get the string representation of the pandoc module
 pandocModuleScript :: Maybe FilePath -> IO String
 pandocModuleScript datadir = unpack <$>
   runIOorExplode (setUserDataDir datadir >> readDataFile "pandoc.lua")
+
+walkElement :: (ToLuaStack a, Walkable [Inline] a, Walkable [Block] a)
+            => a -> LuaFilter -> Lua NumResults
+walkElement x f = do
+  x' <- walkInlines f x >>= walkBlocks f
+  Lua.push x'
+  return 1
+
+walkInline :: Inline -> LuaFilter -> Lua NumResults
+walkInline = walkElement
+
+walkBlock :: Block -> LuaFilter -> Lua NumResults
+walkBlock = walkElement
 
 readDoc :: String -> String -> Lua NumResults
 readDoc formatSpec content = do

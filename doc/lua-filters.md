@@ -165,6 +165,8 @@ those elements accessible through the filter function parameter.
 
 Some pandoc functions have been made available in lua:
 
+- `walk_block` and `walk_inline` allow filters to be applied
+  inside specific block or inline elements.
 - `read` allows filters to parse strings into pandoc documents
 - `pipe` runs an external command with input from and output to
   strings
@@ -331,6 +333,20 @@ will output:
 <dd><p><span>Professor of Phrenology</span></p>
 </dd>
 </dl>
+```
+
+## Uppercasing text inside all headers
+
+This filter uses `walk_block` to transform inline elements
+inside headers, converting all their text into uppercase.
+
+``` lua
+function Header(el)
+    return pandoc.walk_block(el, {
+        Str = function(el)
+            return pandoc.Str(el.text:upper())
+        end })
+end
 ```
 
 ## Converting ABC code to music notation
@@ -1070,6 +1086,38 @@ Lua functions for pandoc scripts.
 
 ## Helper Functions
 
+[`walk_block (element, filter)`]{#walk_block}
+
+:   Apply a filter inside a block element, walking its
+    contents.
+
+    Parameters:
+
+    `element`:
+    :   the block element
+
+    `filter`:
+    :   a lua filter (table of functions) to be applied
+        within the block element
+
+    Returns: the transformed block element
+
+[`walk_inline (element, filter)`]{#walk_inline}
+
+:   Apply a filter inside an inline element, walking its
+    contents.
+
+    Parameters:
+
+    `element`:
+    :   the inline element
+
+    `filter`:
+    :   a lua filter (table of functions) to be applied
+        within the inline element
+
+    Returns: the transformed inline element
+
 [`read (markup[, format])`]{#read}
 
 :   Parse the given string into a Pandoc document.
@@ -1141,7 +1189,6 @@ Lua functions for pandoc scripts.
     Usage:
 
         local output = pandoc.pipe("sed", {"-e","s/a/b/"}, "abc")
-
 
 # Submodule mediabag
 
