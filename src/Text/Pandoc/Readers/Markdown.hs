@@ -290,8 +290,8 @@ toMetaValue :: PandocMonad m
 toMetaValue x =
   parseFromString' parser' (T.unpack x)
   where parser' = (asInlines <$> ((trimInlinesF . mconcat)
-                       <$> (guard (not endsWithNewline)
-                             *> manyTill inline eof)))
+                       <$> try (guard (not endsWithNewline)
+                                *> manyTill inline eof)))
                   <|> (asBlocks <$> parseBlocks)
         asBlocks p = do
           p' <- p
