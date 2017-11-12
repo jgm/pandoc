@@ -379,7 +379,7 @@ function Pandoc(doc)
            table.insert(hblocks, el)
         end
     end
-    return pandoc.Pandoc(hblocks, meta)
+    return pandoc.Pandoc(hblocks, doc.meta)
 end
 ```
 
