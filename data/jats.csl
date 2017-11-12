@@ -98,10 +98,7 @@
     </choose>
     <choose>
       <if variable="URL" match="any">
-        <group prefix="{{jats}}&lt;ext-link ext-link-type=&quot;uri&quot; {{/jats}}" suffix="{{jats}}&lt;/ext-link&gt;{{/jats}}">
-          <text variable="URL" prefix="{{jats}}xlink:href=&quot;{{/jats}}" suffix="{{jats}}&quot; xlink:type=&quot;simple&quot;&gt;{{/jats}}"/>
-          <text variable="URL"/>
-        </group>
+        <text variable="URL" />
       </if>
     </choose>
   </macro>
