@@ -153,6 +153,7 @@ data Extension =
     | Ext_smart               -- ^ "Smart" quotes, apostrophes, ellipses, dashes
     | Ext_old_dashes          -- ^ -- = em, - before number = en
     | Ext_spaced_reference_links -- ^ Allow space between two parts of ref link
+    | Ext_emacs -- ^ Try to emulate Emacs Muse instead of Amusewiki
     deriving (Show, Read, Enum, Eq, Ord, Bounded, Data, Typeable, Generic)
 
 instance ToJSON Extension where
