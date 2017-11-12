@@ -362,6 +362,27 @@ function Note(el)
 end
 ```
 
+## Creating a handout from a paper
+
+This filter extracts all the numbered examples, section
+headers, block quotes from a document, in addition to any
+divs with class `handout`:
+
+``` lua
+function Pandoc(doc)
+    local hblocks = {}
+    for i,el in pairs(doc.blocks) do
+        if (el.t == "Div" and el.classes[1] == "handout") or
+           (el.t == "BlockQuote") or
+           (el.t == "OrderedList" and el.style == "Example") or
+           (el.t == "Header") then
+           table.insert(hblocks, el)
+        end
+    end
+    return pandoc.Pandoc(hblocks, meta)
+end
+```
+
 ## Converting ABC code to music notation
 
 This filter replaces code blocks with class `abc` with
