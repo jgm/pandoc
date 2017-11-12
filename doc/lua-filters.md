@@ -335,17 +335,30 @@ will output:
 </dl>
 ```
 
-## Uppercasing text inside all headers
+## Modifying pandoc's `MANUAL.txt` for man pages
 
-This filter uses `walk_block` to transform inline elements
-inside headers, converting all their text into uppercase.
+This is the filter we use when converting `MANUAL.txt`
+to man pages.  It converts level-1 headers to uppercase
+(uisng `walk_block` to transform inline elements
+inside headers), removes footnotes, and replaces links
+with regular text.
 
 ``` lua
 function Header(el)
-    return pandoc.walk_block(el, {
+    if el.level == 1 then
+      return pandoc.walk_block(el, {
         Str = function(el)
             return pandoc.Str(el.text:upper())
         end })
+    end
+end
+
+function Link(el)
+    return el.content
+end
+
+function Note(el)
+    return {}
 end
 ```
 
