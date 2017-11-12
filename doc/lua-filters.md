@@ -365,8 +365,10 @@ end
 ## Creating a handout from a paper
 
 This filter extracts all the numbered examples, section
-headers, block quotes from a document, in addition to any
-divs with class `handout`:
+headers, block quotes, and figures from a document, in addition
+to any divs with class `handout`.  (Note that only blocks
+at the "outer level" are included; this ignores blocks inside
+nested constructs, like list items.)
 
 ``` lua
 function Pandoc(doc)
@@ -375,6 +377,7 @@ function Pandoc(doc)
         if (el.t == "Div" and el.classes[1] == "handout") or
            (el.t == "BlockQuote") or
            (el.t == "OrderedList" and el.style == "Example") or
+           (el.t == "Para" and #el.c == 1 and el.c[1].t == "Image") or
            (el.t == "Header") then
            table.insert(hblocks, el)
         end
