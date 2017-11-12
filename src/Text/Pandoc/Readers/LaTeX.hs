@@ -2406,8 +2406,7 @@ parseAligns = try $ do
         case safeRead ds of
               Just w  -> return w
               Nothing -> return 0.0
-  let alignSpec = try $ do
-        spaces
+  let alignSpec = do
         pref <- option [] alignPrefix
         spaces
         al <- alignChar
@@ -2418,10 +2417,21 @@ parseAligns = try $ do
         spaces
         suff <- option [] alignSuffix
         return (al, width, (pref, suff))
+  let starAlign = do -- *{2}{r} == rr, we just expand like a macro
+        symbol '*'
+        spaces
+        ds <- trim . toksToString <$> braced
+        spaces
+        spec <- braced
+        case safeRead ds of
+             Just n  -> do
+               getInput >>= setInput . (mconcat (replicate n spec) ++)
+             Nothing -> fail $ "Could not parse " ++ ds ++ " as number"
   bgroup
   spaces
   maybeBar
-  aligns' <- many (alignSpec <* maybeBar)
+  aligns' <- many $ try $ spaces >> optional starAlign >>
+                            (alignSpec <* maybeBar)
   spaces
   egroup
   spaces
