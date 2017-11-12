@@ -103,7 +103,7 @@ walkMWithLuaFilter :: LuaFilter -> Pandoc -> Lua Pandoc
 walkMWithLuaFilter f =
   walkInlines f >=> walkBlocks f >=> walkMeta f >=> walkPandoc f
 
-mconcatMapM :: Monad m => (a -> m [a]) -> [a] -> m [a]
+mconcatMapM :: (Monad m, Functor m) => (a -> m [a]) -> [a] -> m [a]
 mconcatMapM f = fmap mconcat . mapM f
 
 hasOneOf :: LuaFilter -> [String] -> Bool
