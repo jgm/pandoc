@@ -2003,7 +2003,7 @@ closing = do
 blockCommands :: PandocMonad m => M.Map Text (LP m Blocks)
 blockCommands = M.fromList $
    [ ("par", mempty <$ skipopts)
-   , ("parbox",  braced >> grouped blocks)
+   , ("parbox",  skipopts >> braced >> grouped blocks)
    , ("title", mempty <$ (skipopts *>
                              (grouped inline >>= addMeta "title")
                          <|> (grouped block >>= addMeta "title")))
