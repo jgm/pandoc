@@ -1,3 +1,65 @@
+pandoc (2.0.2)
+
+  * Deprecated ancient HTML math methods: `--latexmathml`, `--gladtex`,
+    `--mimetex`, `--jsmath`.
+
+  * Fixed URIs in `data/jats.csl`.  They were being rendered twice,
+    leading to invalid XML in default JATS output with pandoc-citeproc.
+
+  * `lua-filters.md`: use real-world man page filter as example.
+
+  * Add lua filter functions `walk_inline` and `walk_block`
+    in the pandoc module, to apply filters inside particular
+    inline and block elements.
+
+  * Refactored some code from `Text.Pandoc.Lua.PandocModule`
+    into new internal module `Text.Pandoc.Lua.Filter`.
+
+  * Markdown reader:
+
+    + Allow fenced code blocks to be indented 1-3 spaces (#4011).
+      This brings our handling of them into alignment with CommonMark's.
+    + Fix YAML metadata with "chomp" (`|-`).  Previously if a
+      YAML block under `|-` contained a blank line, pandoc would
+      not parse it as metadata.
+
+  * Removed `etc.` from abbreviations file.  Often `etc.` ends a
+    sentence, and we want the period to be treated as a
+    sentence-ending period.
+
+  * Fix regression with `--metadata` (#4054).  Values specified with
+    `--metadata` should replace a metadata value set in the document
+    itself, rather than creating a list including a new value.
+
+  * EPUB writer:
+
+    + Fix EPUB OCF structure.  #3720 had been improperly implemented.
+    + Fix modified paths for raw HTML tags (src, poster, etc.)
+      (#4050, #4055). This had not been updated for the new EPUB
+      container layout, with a separate text/ subdirectory.
+    + Fix image paths with empty `--epub-subdirectory`.
+
+  * Miscellaneous code cleanup (Alexander Krotov).
+
+  * Use pandoc-types 1.17.3, which adds `Walkable` instances
+    for `[Block] Block` and `[Inline] Inline`.
+
+  * Remove obsolete `stack.full.yaml` (#4052).
+
+  * Change to using pandoc-citeproc 0.12.1 in binary packages.
+
+  * Consolidate math output method documentation (#4049, Mauro Bieg).
+
+  * `MANUAL.txt`: fix header level of "Extension: emoji" (Albert Krewinkel).
+
+  * Use lua filter to generate man page from `MANUAL.txt`, replacing old
+    Haskell filters.  This is easier and faster.
+
+  * Improved `INSTALL.md`.
+
+  * Update commands to extract deb archive on Linux (#4043, Salim B).
+
+
 pandoc (2.0.1.1)
 
   * Improved fix to #3989 (parsing of HTML tags containing
