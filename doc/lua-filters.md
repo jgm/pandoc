@@ -339,7 +339,7 @@ will output:
 
 This is the filter we use when converting `MANUAL.txt`
 to man pages.  It converts level-1 headers to uppercase
-(uisng `walk_block` to transform inline elements
+(using `walk_block` to transform inline elements
 inside headers), removes footnotes, and replaces links
 with regular text.
 
