@@ -38,8 +38,8 @@ Pandoc's enhanced version of Markdown includes syntax for [footnotes],
 [tables], flexible [ordered lists], [definition lists], [fenced code
 blocks], [superscripts and subscripts], [strikeout], [metadata blocks],
 automatic tables of contents, embedded LaTeX [math], [citations], and
-[Markdown inside HTML block elements][Extension:
-`markdown_in_html_blocks`]. (These enhancements, described further under
+[Markdown inside HTML block elements](#extension-markdown_in_html_blocks).
+(These enhancements, described further under
 [Pandoc's Markdown], can be disabled using the `markdown_strict` input
 or output format.)
 
