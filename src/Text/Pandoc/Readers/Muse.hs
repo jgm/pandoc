@@ -423,7 +423,8 @@ definitionListItem = try $ do
   pure $ do lineContent' <- lineContent
             pure (B.text term, [lineContent'])
   where
-    termParser = many1 spaceChar >> -- Initial space as required by Amusewiki, but not Emacs Muse
+    termParser = (guardEnabled Ext_emacs <|> void spaceChar) >> -- Initial space is required by Amusewiki, but not Emacs Muse
+                 many spaceChar >>
                  many1Till anyChar (lookAhead (void (try (spaceChar >> string "::")) <|> void newline))
     endOfInput = try $ skipMany blankline >> skipSpaces >> eof
     twoBlankLines = try $ blankline >> skipMany1 blankline

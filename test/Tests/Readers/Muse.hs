@@ -16,6 +16,10 @@ muse = purely $ \s -> do
   setOutputFile (Just "out")
   readMuse def s
 
+emacsMuse :: Text -> Pandoc
+emacsMuse = purely $ readMuse def { readerExtensions =
+              enableExtension Ext_emacs pandocExtensions }
+
 infix 4 =:
 (=:) :: ToString c
      => String -> (Text, c) -> TestTree
@@ -622,6 +626,14 @@ tests =
           , "Foo :: bar"
           ] =?>
         para "First :: second Foo :: bar"
+      , test emacsMuse "Emacs Muse definition list"
+        (T.unlines
+          [ "First :: second"
+          , "Foo :: bar"
+          ] =?>
+        definitionList [ ("First", [ para "second" ])
+                       , ("Foo", [ para "bar" ])
+                       ])
       , "Definition list" =:
         T.unlines
           [ " First :: second"
