@@ -153,7 +153,7 @@ data Extension =
     | Ext_smart               -- ^ "Smart" quotes, apostrophes, ellipses, dashes
     | Ext_old_dashes          -- ^ -- = em, - before number = en
     | Ext_spaced_reference_links -- ^ Allow space between two parts of ref link
-    | Ext_emacs -- ^ Try to emulate Emacs Muse instead of Amusewiki
+    | Ext_amuse -- ^ Enable Text::Amuse extensions to Emacs Muse markup
     deriving (Show, Read, Enum, Eq, Ord, Bounded, Data, Typeable, Generic)
 
 instance ToJSON Extension where
@@ -315,6 +315,9 @@ getDefaultExtensions "markdown_phpextra" = phpMarkdownExtraExtensions
 getDefaultExtensions "markdown_mmd" = multimarkdownExtensions
 getDefaultExtensions "markdown_github" = githubMarkdownExtensions
 getDefaultExtensions "markdown"        = pandocExtensions
+getDefaultExtensions "muse"            = extensionsFromList
+                                           [Ext_amuse,
+                                            Ext_auto_identifiers]
 getDefaultExtensions "plain"           = plainExtensions
 getDefaultExtensions "gfm"             = githubMarkdownExtensions
 getDefaultExtensions "org"             = extensionsFromList

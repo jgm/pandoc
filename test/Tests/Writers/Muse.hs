@@ -8,7 +8,9 @@ import Text.Pandoc.Arbitrary ()
 import Text.Pandoc.Builder
 
 muse :: (ToPandoc a) => a -> String
-muse = museWithOpts def{ writerWrapText = WrapNone }
+muse = museWithOpts def{ writerWrapText = WrapNone,
+                         writerExtensions = extensionsFromList [Ext_amuse,
+                                                                Ext_auto_identifiers] }
 
 museWithOpts :: (ToPandoc a) => WriterOptions -> a -> String
 museWithOpts opts = unpack . purely (writeMuse opts) . toPandoc

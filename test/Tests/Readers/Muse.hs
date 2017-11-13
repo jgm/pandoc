@@ -10,20 +10,16 @@ import Text.Pandoc
 import Text.Pandoc.Arbitrary ()
 import Text.Pandoc.Builder
 
-muse :: Text -> Pandoc
-muse = purely $ \s -> do
-  setInputFiles ["in"]
-  setOutputFile (Just "out")
-  readMuse def s
+amuse :: Text -> Pandoc
+amuse = purely $ readMuse def { readerExtensions = extensionsFromList [Ext_amuse]}
 
 emacsMuse :: Text -> Pandoc
-emacsMuse = purely $ readMuse def { readerExtensions =
-              enableExtension Ext_emacs pandocExtensions }
+emacsMuse = purely $ readMuse def { readerExtensions = emptyExtensions }
 
 infix 4 =:
 (=:) :: ToString c
      => String -> (Text, c) -> TestTree
-(=:) = test muse
+(=:) = test amuse
 
 spcSep :: [Inlines] -> Inlines
 spcSep = mconcat . intersperse space
