@@ -371,6 +371,10 @@ at the "outer level" are included; this ignores blocks inside
 nested constructs, like list items.)
 
 ``` lua
+-- creates a handout from an article, using its headings,
+-- blockquotes, numbered examples, figures, and any
+-- Divs with class "handout"
+
 function Pandoc(doc)
     local hblocks = {}
     for i,el in pairs(doc.blocks) do
@@ -383,6 +387,49 @@ function Pandoc(doc)
         end
     end
     return pandoc.Pandoc(hblocks, doc.meta)
+end
+```
+
+## Counting words in a document
+
+This filter counts the words in the body of a document (omitting
+metadata like titles and abstracts), including words in code.
+It should be more accurate than `wc -w` run directly on a
+Markdown document, since the latter will count markup
+characters, like the `#` in front of an ATX header, or
+tags in HTML documents, as words.  To run it,
+`pandoc --lua-filter wordcount.lua myfile.md`.
+
+``` lua
+-- counts words in a document
+
+words = 0
+
+wordcount = {
+  Str = function(el)
+    -- we don't count a word if it's entirely punctuation:
+    local s = el.text:gsub("%p","")
+    if #s > 0 then
+        words = words + 1
+    end
+  end,
+
+  Code = function(el)
+    _,n = el.text:gsub("%S+","")
+    words = words + n
+  end,
+
+  CodeBlock = function(el)
+    _,n = el.text:gsub("%S+","")
+    words = words + n
+  end
+}
+
+function Pandoc(el)
+    -- skip metadata, just count body:
+    pandoc.walk_block(pandoc.Div(el.blocks), wordcount)
+    print(words .. " words in body")
+    os.exit(0)
 end
 ```
 
