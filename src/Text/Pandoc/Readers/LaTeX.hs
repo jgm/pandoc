@@ -2417,7 +2417,7 @@ parseAligns = try $ do
         spaces
         suff <- option [] alignSuffix
         return (al, width, (pref, suff))
-  let starAlign = do -- *{2}{r} == rr, we just expand like a macro
+  let starAlign = do -- '*{2}{r}' == 'rr', we just expand like a macro
         symbol '*'
         spaces
         ds <- trim . toksToString <$> braced
