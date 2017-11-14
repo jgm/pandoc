@@ -189,7 +189,8 @@ blockElements = choice [ comment
                        , definitionList
                        , table
                        , commentTag
-                       , noteBlock
+                       , amuseNoteBlock
+                       , emacsNoteBlock
                        ]
 
 comment :: PandocMonad m => MuseParser m (F Blocks)
@@ -308,8 +309,26 @@ noteMarker = try $ do
   char '['
   many1Till digit $ char ']'
 
-noteBlock :: PandocMonad m => MuseParser m (F Blocks)
-noteBlock = try $ do
+-- Amusewiki version of note
+-- Parsing is similar to list item, except that note marker is used instead of list marker
+amuseNoteBlock :: PandocMonad m => MuseParser m (F Blocks)
+amuseNoteBlock = try $ do
+  guardEnabled Ext_amuse
+  pos <- getPosition
+  ref <- noteMarker <* skipSpaces
+  content <- listItemContents $ 2 + length ref
+  oldnotes <- stateNotes' <$> getState
+  case M.lookup ref oldnotes of
+    Just _  -> logMessage $ DuplicateNoteReference ref pos
+    Nothing -> return ()
+  updateState $ \s -> s{ stateNotes' = M.insert ref (pos, content) oldnotes }
+  return mempty
+
+-- Emacs version of note
+-- Notes are allowed only at the end of text, no indentation is required.
+emacsNoteBlock :: PandocMonad m => MuseParser m (F Blocks)
+emacsNoteBlock = try $ do
+  guardDisabled Ext_amuse
   pos <- getPosition
   ref <- noteMarker <* skipSpaces
   content <- mconcat <$> blocksTillNote
@@ -376,15 +395,19 @@ listStart marker = try $ do
   postWhitespace <- length <$> many1 spaceChar
   return $ preWhitespace + markerLength + postWhitespace
 
-listItem :: PandocMonad m => MuseParser m Int -> MuseParser m (F Blocks)
-listItem start = try $ do
-  markerLength <- start
+listItemContents :: PandocMonad m => Int -> MuseParser m (F Blocks)
+listItemContents markerLength = do
   firstLine <- anyLineNewline
   restLines <- many $ listLine markerLength
   blank <- option "" ("\n" <$ blankline)
   let first = firstLine ++ concat restLines ++ blank
   rest <- many $ listContinuation markerLength
   parseFromString (withListContext parseBlocks) $ concat (first:rest) ++ "\n"
+
+listItem :: PandocMonad m => MuseParser m Int -> MuseParser m (F Blocks)
+listItem start = try $ do
+  markerLength <- start
+  listItemContents markerLength
 
 bulletListItems :: PandocMonad m => MuseParser m (F [Blocks])
 bulletListItems = sequence <$> many1 (listItem bulletListStart)

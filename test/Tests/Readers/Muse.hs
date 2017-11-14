@@ -377,6 +377,43 @@ tests =
                     ] =?>
           para (text "Start recursion here" <>
                 note (para "Recursion continues here[1]"))
+        , testGroup "Multiparagraph footnotes"
+          [ "Amusewiki multiparagraph footnotes" =:
+            T.unlines [ "Multiparagraph[1] footnotes[2]"
+                      , ""
+                      , "[1] First footnote paragraph"
+                      , ""
+                      , "    Second footnote paragraph"
+                      , "Not a note"
+                      , "[2] Second footnote"
+                      ] =?>
+            para (text "Multiparagraph" <>
+                  note (para "First footnote paragraph" <>
+                        para "Second footnote paragraph") <>
+                  text " footnotes" <>
+                  note (para "Second footnote")) <>
+            para (text "Not a note")
+          , test emacsMuse "Emacs multiparagraph footnotes"
+            (T.unlines
+              [ "First footnote reference[1] and second footnote reference[2]."
+              , ""
+              , "[1] First footnote paragraph"
+              , ""
+              , "Second footnote"
+              , "paragraph"
+              , ""
+              , "[2] Third footnote paragraph"
+              , ""
+              , "Fourth footnote paragraph"
+              ] =?>
+            para (text "First footnote reference" <>
+                  note (para "First footnote paragraph" <>
+                        para "Second footnote paragraph") <>
+                  text " and second footnote reference" <>
+                  note (para "Third footnote paragraph" <>
+                        para "Fourth footnote paragraph") <>
+                  text "."))
+          ]
         ]
       ]
     , testGroup "Tables"
