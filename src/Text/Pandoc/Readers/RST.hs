@@ -658,6 +658,7 @@ directive' = do
   body <- option "" $ try $ blanklines >> indentedBlock
   optional blanklines
   let body' = body ++ "\n\n"
+      name = trim $ fromMaybe "" (lookup "name" fields)
       imgAttr cl = ("", classes, widthAttr ++ heightAttr)
         where
           classes = words $ maybe "" trim (lookup cl fields) ++
@@ -691,7 +692,8 @@ directive' = do
         "line-block" -> lineBlockDirective body'
         "raw" -> return $ B.rawBlock (trim top) (stripTrailingNewlines body)
         "role" -> addNewRole top $ map (second trim) fields
-        "container" -> parseFromString' parseBlocks body'
+        "container" -> B.divWith (name, "container" : words top, []) <$>
+                            parseFromString' parseBlocks body'
         "replace" -> B.para <$>  -- consumed by substKey
                    parseInlineFromString (trim top)
         "unicode" -> B.para <$>  -- consumed by substKey
