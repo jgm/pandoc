@@ -56,6 +56,9 @@ import Skylighting (SyntaxMap, defaultSyntaxMap)
 import Text.Pandoc.Extensions
 import Text.Pandoc.Highlighting (Style, pygments)
 
+class HasSyntaxExtensions a where
+  getExtensions :: a -> Extensions
+
 data ReaderOptions = ReaderOptions{
          readerExtensions            :: Extensions  -- ^ Syntax extensions
        , readerStandalone            :: Bool -- ^ Standalone document with header
@@ -68,6 +71,9 @@ data ReaderOptions = ReaderOptions{
        , readerTrackChanges          :: TrackChanges -- ^ Track changes setting for docx
        , readerStripComments         :: Bool -- ^ Strip HTML comments instead of parsing as raw HTML
 } deriving (Show, Read, Data, Typeable, Generic)
+
+instance HasSyntaxExtensions ReaderOptions where
+  getExtensions opts = readerExtensions opts
 
 instance ToJSON ReaderOptions where
   toEncoding = genericToEncoding defaultOptions
@@ -259,6 +265,9 @@ instance Default WriterOptions where
                       , writerSyntaxMap        = defaultSyntaxMap
                       }
 
+instance HasSyntaxExtensions WriterOptions where
+  getExtensions opts = writerExtensions opts
+
 -- | Returns True if the given extension is enabled.
-isEnabled :: Extension -> WriterOptions -> Bool
-isEnabled ext opts = ext `extensionEnabled` writerExtensions opts
+isEnabled :: HasSyntaxExtensions a => Extension -> a -> Bool
+isEnabled ext opts = ext `extensionEnabled` getExtensions opts

@@ -48,18 +48,14 @@ import Text.Pandoc.Walk (walkM)
 -- | Parse a CommonMark formatted string into a 'Pandoc' structure.
 readCommonMark :: PandocMonad m => ReaderOptions -> Text -> m Pandoc
 readCommonMark opts s = return $
-  (if enabled Ext_gfm_auto_identifiers opts
+  (if isEnabled Ext_gfm_auto_identifiers opts
       then addHeaderIdentifiers
       else id) $
   nodeToPandoc opts $ commonmarkToNode opts' exts s
-  where opts' = [ optSmart | enabled Ext_smart opts ]
-        exts = [ extStrikethrough | enabled Ext_strikeout opts ] ++
-               [ extTable | enabled Ext_pipe_tables opts ] ++
-               [ extAutolink | enabled Ext_autolink_bare_uris opts ]
-
--- | Returns True if the given extension is enabled.
-enabled :: Extension -> ReaderOptions -> Bool
-enabled ext opts = ext `extensionEnabled` readerExtensions opts
+  where opts' = [ optSmart | isEnabled Ext_smart opts ]
+        exts = [ extStrikethrough | isEnabled Ext_strikeout opts ] ++
+               [ extTable | isEnabled Ext_pipe_tables opts ] ++
+               [ extAutolink | isEnabled Ext_autolink_bare_uris opts ]
 
 convertEmojis :: String -> String
 convertEmojis (':':xs) =
@@ -112,7 +108,7 @@ addBlock _ (Node _ THEMATIC_BREAK _) =
 addBlock opts (Node _ BLOCK_QUOTE nodes) =
   (BlockQuote (addBlocks opts nodes) :)
 addBlock opts (Node _ (HTML_BLOCK t) _)
-  | enabled Ext_raw_html opts = (RawBlock (Format "html") (unpack t) :)
+  | isEnabled Ext_raw_html opts = (RawBlock (Format "html") (unpack t) :)
   | otherwise                 = id
 -- Note:  the cmark parser will never generate CUSTOM_BLOCK,
 -- so we don't need to handle it:
@@ -210,15 +206,15 @@ addInline opts (Node _ (TEXT t) _) = (map toinl clumps ++)
         samekind _   ' ' = False
         samekind _  _    = True
         toinl (' ':_) = Space
-        toinl xs      = Str $ if enabled Ext_emoji opts
+        toinl xs      = Str $ if isEnabled Ext_emoji opts
                                  then convertEmojis xs
                                  else xs
 addInline _ (Node _ LINEBREAK _) = (LineBreak :)
 addInline opts (Node _ SOFTBREAK _)
-  | enabled Ext_hard_line_breaks opts = (LineBreak :)
+  | isEnabled Ext_hard_line_breaks opts = (LineBreak :)
   | otherwise                           = (SoftBreak :)
 addInline opts (Node _ (HTML_INLINE t) _)
-  | enabled Ext_raw_html opts = (RawInline (Format "html") (unpack t) :)
+  | isEnabled Ext_raw_html opts = (RawInline (Format "html") (unpack t) :)
   | otherwise                 = id
 -- Note:  the cmark parser will never generate CUSTOM_BLOCK,
 -- so we don't need to handle it:
