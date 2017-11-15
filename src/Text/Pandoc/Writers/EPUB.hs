@@ -434,7 +434,7 @@ pandocToEPUB version opts doc@(Pandoc meta _) = do
                 case epubCoverImage metadata of
                      Nothing   -> return ([],[])
                      Just img  -> do
-                       let coverImage = "media/" ++ takeFileName img
+                       let coverImage = takeFileName img
                        cpContent <- lift $ writeHtml
                             opts'{ writerVariables =
                                     ("coverpage","true"):
