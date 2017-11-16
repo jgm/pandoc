@@ -7,9 +7,9 @@ import Test.Tasty (TestTree, localOption)
 import Test.Tasty.HUnit (Assertion, assertEqual, testCase)
 import Test.Tasty.QuickCheck (QuickCheckTests (..), ioProperty, testProperty)
 import Text.Pandoc.Arbitrary ()
-import Text.Pandoc.Builder (bulletList, doc, doubleQuoted, emph, linebreak,
-                            para, plain, rawBlock, singleQuoted, space, str,
-                            strong, (<>))
+import Text.Pandoc.Builder (bulletList, doc, doubleQuoted, emph, header,
+                            linebreak, para, plain, rawBlock, singleQuoted,
+                            space, str, strong, (<>))
 import Text.Pandoc.Class (runIOorExplode)
 import Text.Pandoc.Definition (Block, Inline, Meta, Pandoc)
 import Text.Pandoc.Lua
@@ -77,6 +77,12 @@ tests = map (localOption (QuickCheckTests 20))
       "block-count.lua"
       (doc $ para "one" <> para "two")
       (doc $ para "2")
+
+  , testCase "Convert header upper case" $
+    assertFilterConversion "converting header to upper case failed"
+      "uppercase-header.lua"
+      (doc $ header 1 "les états-unis" <> para "text")
+      (doc $ header 1 "LES ÉTATS-UNIS" <> para "text")
   ]
 
 assertFilterConversion :: String -> FilePath -> Pandoc -> Pandoc -> Assertion

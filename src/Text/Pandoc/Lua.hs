@@ -46,6 +46,7 @@ import Text.Pandoc.Lua.PandocModule (pushMediaBagModule, pushPandocModule)
 import Text.Pandoc.Lua.Filter (LuaFilter, walkMWithLuaFilter)
 import Text.Pandoc.MediaBag (MediaBag)
 import qualified Foreign.Lua as Lua
+import qualified Foreign.Lua.Module.Text as Lua
 
 runLuaFilter :: Maybe FilePath -> FilePath -> String
              -> Pandoc -> PandocIO (Either LuaException Pandoc)
@@ -64,6 +65,7 @@ runLuaFilter' :: CommonState
               -> Pandoc -> Lua Pandoc
 runLuaFilter' commonState datadir filterPath format mbRef pd = do
   Lua.openlibs
+  Lua.preloadTextModule "text"
   -- store module in global "pandoc"
   pushPandocModule datadir
   Lua.setglobal "pandoc"
