@@ -478,6 +478,43 @@ function CodeBlock(block)
 end
 ```
 
+# Module text
+
+UTF-8 aware text manipulation functions, implemented in Haskell.
+These are available to any lua filter.  However, the module must
+be explicitly loaded:
+
+```lua
+-- uppercase all regular text in a document:
+text = require 'text'
+function Str (s)
+  s.text = text.upper(s.text)
+  return s
+end
+```
+
+[`lower (s)`]{#text-lower}
+
+:   Returns a copy of a UTF-8 string, converted to lowercase.
+
+[`upper (s)`]{#text-upper}
+
+:   Returns a copy of a UTF-8 string, converted to uppercase.
+
+[`reverse (s)`]{#text-reverse}
+
+:   Returns a copy of a UTF-8 string, with characters reversed.
+
+[`len (s)`]{#text-len}
+
+:   Returns the length of a UTF-8 string.
+
+[`sub (s)`]{#text-sub}
+
+:   Returns a substring of a UTF-8 string, using lua's string
+    indexing rules.
+
+
 # Module pandoc
 
 Lua functions for pandoc scripts.
