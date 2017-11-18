@@ -627,6 +627,78 @@ M.Superscript = M.Inline:create_constructor(
 -- Helpers
 -- @section helpers
 
+-- Find a value pair in a list.
+-- @function find
+-- @tparam table list to be searched
+-- @param needle element to search for
+-- @param[opt] key when non-nil, compare on this field of each list element
+local function find (alist, needle, key)
+  local test
+  if key then
+    test = function(x) return x[key] == needle end
+  else
+    test = function(x) return x == needle end
+  end
+  for i, k in ipairs(alist) do
+    if test(k) then
+      return i, k
+    end
+  end
+  return nil
+end
+
+-- Lookup a value in an associative list
+-- @function lookup
+-- @tparam {{key, value},...} alist associative list
+-- @param key key for which the associated value is to be looked up
+local function lookup(alist, key)
+  return (select(2, find(alist, key, 1)) or {})[2]
+end
+
+--- Return an iterator which returns key-value pairs of an associative list.
+-- @function apairs
+-- @tparam {{key, value},...} alist associative list
+local apairs = function (alist)
+  local i = 1
+  local cur
+  function nxt ()
+    cur = rawget(alist, i)
+    if cur then
+      i = i + 1
+      return cur[1], cur[2]
+    end
+    return nil
+  end
+  return nxt, nil, nil
+end
+
+-- AttributeList, a metatable to allow table-like access to attribute lists
+-- represented by associative lists.
+local AttributeList = {
+  __index = function (t, k)
+    if type(k) == "number" then
+      return rawget(t, k)
+    else
+      return lookup(t, k)
+    end
+  end,
+
+  __newindex = function (t, k, v)
+    local idx, cur = find(t, k, 1)
+    if type(v) == "nil" then
+      table.remove(t, idx)
+    elseif cur then
+      cur[2] = v
+    elseif type(k) == "number" then
+      rawset(t, k, v)
+    else
+      rawset(t, #t + 1, {k, v})
+    end
+  end,
+
+  __pairs = apairs
+}
+
 -- Attr
 M.Attr = {}
 M.Attr._field_names = {identifier = 1, classes = 2, attributes = 3}
@@ -639,7 +711,7 @@ M.Attr._field_names = {identifier = 1, classes = 2, attributes = 3}
 M.Attr.__call = function(t, identifier, classes, attributes)
   identifier = identifier or ''
   classes = classes or {}
-  attributes = attributes or {}
+  attributes = setmetatable(attributes or {}, AttributeList)
   local attr = {identifier, classes, attributes}
   setmetatable(attr, t)
   return attr

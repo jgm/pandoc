@@ -7,9 +7,9 @@ import Test.Tasty (TestTree, localOption)
 import Test.Tasty.HUnit (Assertion, assertEqual, testCase)
 import Test.Tasty.QuickCheck (QuickCheckTests (..), ioProperty, testProperty)
 import Text.Pandoc.Arbitrary ()
-import Text.Pandoc.Builder (bulletList, doc, doubleQuoted, emph, header,
-                            linebreak, para, plain, rawBlock, singleQuoted,
-                            space, str, strong, (<>))
+import Text.Pandoc.Builder (bulletList, divWith, doc, doubleQuoted, emph,
+                            header, linebreak, para, plain, rawBlock,
+                            singleQuoted, space, str, strong, (<>))
 import Text.Pandoc.Class (runIOorExplode)
 import Text.Pandoc.Definition (Block, Inline, Meta, Pandoc)
 import Text.Pandoc.Lua
@@ -83,6 +83,14 @@ tests = map (localOption (QuickCheckTests 20))
       "uppercase-header.lua"
       (doc $ header 1 "les états-unis" <> para "text")
       (doc $ header 1 "LES ÉTATS-UNIS" <> para "text")
+
+  , testCase "Attribute lists are convenient to use" $
+    let kv_before = [("one", "1"), ("two", "2"), ("three", "3")]
+        kv_after  = [("one", "eins"), ("three", "3"), ("five", "5")]
+    in assertFilterConversion "Attr doesn't behave as expected"
+      "attr-test.lua"
+      (doc $ divWith ("", [], kv_before) (para "nil"))
+      (doc $ divWith ("", [], kv_after) (para "nil"))
   ]
 
 assertFilterConversion :: String -> FilePath -> Pandoc -> Pandoc -> Assertion
