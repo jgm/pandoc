@@ -2930,7 +2930,7 @@ Or, without the `bracketed_spans` extension:
     <span class="smallcaps">Small caps</span>
 
 For compatibility with other Markdown flavors, CSS is also supported:
-    
+
     <span style="font-variant:small-caps;">Small caps</span>
 
 This will work in all output formats that support small caps.
@@ -2997,6 +2997,8 @@ HTML, Slidy, DZSlides, S5, EPUB
   ~ The way math is rendered in HTML will depend on the
     command-line options selected. Therefore see [Math rendering in HTML]
     above.
+
+This extension can be used with both `markdown` and `html` input.
 
 [interpreted text role `:math:`]: http://docutils.sourceforge.net/docs/ref/rst/roles.html#math
 
@@ -3707,6 +3709,8 @@ Causes anything between `\(` and `\)` to be interpreted as inline
 TeX math, and anything between `\[` and `\]` to be interpreted
 as display TeX math.  Note: a drawback of this extension is that
 it precludes escaping `(` and `[`.
+
+This extension can be used with both `markdown` and `html` input.
 
 #### Extension: `tex_math_double_backslash` ####
 
