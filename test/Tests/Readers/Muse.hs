@@ -76,7 +76,7 @@ tests =
                   , ""
                   , "Fourth line</em>"
                   ] =?>
-        para "First line <em>Second line" <>
+        para "First line\n<em>Second line" <>
         para "Fourth line</em>"
 
       , "Linebreak" =: "Line <br>  break" =?> para ("Line" <> linebreak <> "break")
@@ -168,12 +168,12 @@ tests =
           T.unlines [ "First line"
                     , "second line."
                     ] =?>
-          para "First line second line."
+          para "First line\nsecond line."
         , "Indented paragraph" =:
           T.unlines [ " First line"
                     , "second line."
                     ] =?>
-          para "First line second line."
+          para "First line\nsecond line."
         -- Emacs Muse starts a blockquote on the second line.
         -- We copy Amusewiki behavior and require a blank line to start a blockquote.
         , "Indentation in the middle of paragraph" =:
@@ -181,7 +181,7 @@ tests =
                      , "  second line"
                      , "third line"
                      ] =?>
-           para "First line second line third line"
+           para "First line\nsecond line\nthird line"
         , "Quote" =:
           "  This is a quotation\n" =?>
           blockQuote (para "This is a quotation")
@@ -189,7 +189,7 @@ tests =
           T.unlines [ "  This is a quotation"
                     , "  with a continuation"
                     ] =?>
-          blockQuote (para "This is a quotation with a continuation")
+          blockQuote (para "This is a quotation\nwith a continuation")
         , testGroup "Div"
           [ "Div without id" =:
             "<div>Foo bar</div>" =?>
@@ -359,7 +359,7 @@ tests =
           T.unlines [ "Paragraph starts here"
                     , "#anchor and ends here."
                     ] =?>
-          para ("Paragraph starts here " <> spanWith ("anchor", [], []) mempty <> "and ends here.")
+          para ("Paragraph starts here\n" <> spanWith ("anchor", [], []) mempty <> "and ends here.")
         ]
       , testGroup "Footnotes"
         [ "Simple footnote" =:
@@ -408,7 +408,7 @@ tests =
               ] =?>
             para (text "First footnote reference" <>
                   note (para "First footnote paragraph" <>
-                        para "Second footnote paragraph") <>
+                        para "Second footnote\nparagraph") <>
                   text " and second footnote reference" <>
                   note (para "Third footnote paragraph" <>
                         para "Fourth footnote paragraph") <>
@@ -597,7 +597,7 @@ tests =
             , "   bar"
             , " - Baz"
             ] =?>
-          bulletList [ para "Foo bar"
+          bulletList [ para "Foo\nbar"
                      , para "Baz"
                      ]
         , "One blank line after multiline first item" =:
@@ -607,7 +607,7 @@ tests =
             , ""
             , " - Baz"
             ] =?>
-          bulletList [ para "Foo bar"
+          bulletList [ para "Foo\nbar"
                      , para "Baz"
                      ]
         , "Two blank lines after multiline first item" =:
@@ -618,7 +618,7 @@ tests =
             , ""
             , " - Baz"
             ] =?>
-          bulletList [ para "Foo bar" ] <> bulletList [ para "Baz" ]
+          bulletList [ para "Foo\nbar" ] <> bulletList [ para "Baz" ]
         , "No blank line after list continuation" =:
           T.unlines
             [ " - Foo"
@@ -658,7 +658,7 @@ tests =
           [ "First :: second"
           , "Foo :: bar"
           ] =?>
-        para "First :: second Foo :: bar"
+        para "First :: second\nFoo :: bar"
       , test emacsMuse "Emacs Muse definition list"
         (T.unlines
           [ "First :: second"
@@ -688,7 +688,7 @@ tests =
           , "and its continuation."
           , " Second term :: Definition of second term."
           ] =?>
-        definitionList [ ("First term", [ para "Definition of first term and its continuation." ])
+        definitionList [ ("First term", [ para "Definition of first term\nand its continuation." ])
                        , ("Second term", [ para "Definition of second term." ])
                        ]
       -- Emacs Muse creates two separate lists when indentation of items is different.
@@ -699,7 +699,7 @@ tests =
           , "and its continuation."
           , "   Second term :: Definition of second term."
           ] =?>
-        definitionList [ ("First term", [ para "Definition of first term and its continuation." ])
+        definitionList [ ("First term", [ para "Definition of first term\nand its continuation." ])
                        , ("Second term", [ para "Definition of second term." ])
                        ]
       , "Two blank lines separate definition lists" =:

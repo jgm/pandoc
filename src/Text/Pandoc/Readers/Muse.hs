@@ -556,25 +556,35 @@ tableParseCaption = try $ do
 -- inline parsers
 --
 
+inlineList :: PandocMonad m => [MuseParser m (F Inlines)]
+inlineList = [ endline
+             , br
+             , anchor
+             , footnote
+             , strong
+             , strongTag
+             , emph
+             , emphTag
+             , superscriptTag
+             , subscriptTag
+             , strikeoutTag
+             , verbatimTag
+             , link
+             , code
+             , codeTag
+             , whitespace
+             , str
+             , symbol
+             ]
+
 inline :: PandocMonad m => MuseParser m (F Inlines)
-inline = choice [ br
-                , anchor
-                , footnote
-                , strong
-                , strongTag
-                , emph
-                , emphTag
-                , superscriptTag
-                , subscriptTag
-                , strikeoutTag
-                , verbatimTag
-                , link
-                , code
-                , codeTag
-                , whitespace
-                , str
-                , symbol
-                ] <?> "inline"
+inline = (choice inlineList) <?> "inline"
+
+endline :: PandocMonad m => MuseParser m (F Inlines)
+endline = try $ do
+  newline
+  notFollowedBy blankline
+  returnF B.softbreak
 
 anchor :: PandocMonad m => MuseParser m (F Inlines)
 anchor = try $ do
