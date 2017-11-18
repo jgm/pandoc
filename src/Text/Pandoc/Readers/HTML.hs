@@ -429,11 +429,11 @@ headerLevel :: PandocMonad m => Text -> TagParser m Int
 headerLevel tagtype =
   case safeRead (T.unpack (T.drop 1 tagtype)) of
         Just level ->
-          try (do
-            guardEnabled Ext_epub_html_exts
-            asks inChapter >>= guard
-            return (level - 1))
-            <|>
+--          try (do
+--            guardEnabled Ext_epub_html_exts
+--            asks inChapter >>= guard
+--            return (level - 1))
+--            <|>
               return level
         Nothing -> fail "Could not retrieve header level"
 
