@@ -527,28 +527,42 @@ tests =
          orderedListWith (1, Decimal, Period) [ para "Item1"
                                               , para "Item2"
                                               ]
-      , "Nested list" =:
-         T.unlines
-           [ " - Item1"
-           , "   - Item2"
-           , "   - Item3"
-           , " - Item4"
-           , "   1. Nested"
-           , "   2. Ordered"
-           , "   3. List"
-           ] =?>
-         bulletList [ mconcat [ para "Item1"
-                              , bulletList [ para "Item2"
-                                           , para "Item3"
-                                           ]
-                              ]
-                    , mconcat [ para "Item4"
-                              , orderedListWith (1, Decimal, Period) [ para "Nested"
-                                                                     , para "Ordered"
-                                                                     , para "List"
-                                                                     ]
-                              ]
-                    ]
+      , testGroup "Nested lists"
+        [ "Nested list" =:
+          T.unlines
+            [ " - Item1"
+            , "   - Item2"
+            , "   - Item3"
+            , " - Item4"
+            , "   1. Nested"
+            , "   2. Ordered"
+            , "   3. List"
+            ] =?>
+          bulletList [ mconcat [ para "Item1"
+                               , bulletList [ para "Item2"
+                                            , para "Item3"
+                                            ]
+                               ]
+                     , mconcat [ para "Item4"
+                               , orderedListWith (1, Decimal, Period) [ para "Nested"
+                                                                      , para "Ordered"
+                                                                      , para "List"
+                                                                      ]
+                               ]
+                     ]
+        , "Incorrectly indented Text::Amuse nested list" =:
+          T.unlines
+            [ " - First item"
+            , "  - Not nested item"
+            ] =?>
+          bulletList [ para "First item", para "Not nested item"]
+        , "Text::Amuse includes only one space in list marker" =:
+          T.unlines
+            [ " -    First item"
+            , "   - Nested item"
+            ] =?>
+          bulletList [ para "First item" <> bulletList [ para "Nested item"]]
+        ]
       , "List continuation" =:
          T.unlines
            [ " - a"

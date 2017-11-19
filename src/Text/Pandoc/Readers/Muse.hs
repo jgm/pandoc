@@ -392,8 +392,8 @@ listStart marker = try $ do
   st <- stateParserContext <$> getState
   getPosition >>= \pos -> guard (st == ListItemState || sourceColumn pos /= 1)
   markerLength <- marker
-  postWhitespace <- length <$> many1 spaceChar
-  return $ preWhitespace + markerLength + postWhitespace
+  many1 spaceChar
+  return $ preWhitespace + markerLength + 1
 
 listItemContents :: PandocMonad m => Int -> MuseParser m (F Blocks)
 listItemContents markerLength = do
