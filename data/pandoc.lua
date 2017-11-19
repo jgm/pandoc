@@ -685,7 +685,7 @@ local AttributeList = {
 
   __newindex = function (t, k, v)
     local idx, cur = find(t, k, 1)
-    if type(v) == "nil" then
+    if v == nil then
       table.remove(t, idx)
     elseif cur then
       cur[2] = v
@@ -699,6 +699,25 @@ local AttributeList = {
   __pairs = apairs
 }
 
+-- convert a table to an associative list. The order of key-value pairs in the
+-- alist is undefined. The table should either contain no numeric keys or
+-- already be an associative list.
+-- @tparam table associative list or table without numeric keys.
+-- @treturn table associative list
+local to_alist = function (tbl)
+  if #tbl ~= 0 or next(tbl) == nil then
+    -- probably already an alist
+    return tbl
+  end
+  local alist = {}
+  local i = 1
+  for k, v in pairs(tbl) do
+    alist[i] = {k, v}
+    i = i + 1
+  end
+  return alist
+end
+
 -- Attr
 M.Attr = {}
 M.Attr._field_names = {identifier = 1, classes = 2, attributes = 3}
@@ -711,7 +730,7 @@ M.Attr._field_names = {identifier = 1, classes = 2, attributes = 3}
 M.Attr.__call = function(t, identifier, classes, attributes)
   identifier = identifier or ''
   classes = classes or {}
-  attributes = setmetatable(attributes or {}, AttributeList)
+  attributes = setmetatable(to_alist(attributes or {}), AttributeList)
   local attr = {identifier, classes, attributes}
   setmetatable(attr, t)
   return attr
