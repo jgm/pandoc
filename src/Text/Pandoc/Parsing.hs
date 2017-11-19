@@ -586,7 +586,7 @@ uri = try $ do
 mathInlineWith :: Stream s m Char  => String -> String -> ParserT s st m String
 mathInlineWith op cl = try $ do
   string op
-  notFollowedBy space
+  when (op == "$") $ notFollowedBy space
   words' <- many1Till (count 1 (noneOf " \t\n\\")
                    <|> (char '\\' >>
                            -- This next clause is needed because \text{..} can
@@ -600,7 +600,7 @@ mathInlineWith op cl = try $ do
                           return " "
                     ) (try $ string cl)
   notFollowedBy digit  -- to prevent capture of $5
-  return $ concat words'
+  return $ trim $ concat words'
  where
   inBalancedBraces :: Stream s m Char => Int -> String -> ParserT s st m String
   inBalancedBraces 0 "" = do
