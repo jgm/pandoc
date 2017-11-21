@@ -125,6 +125,8 @@ tests =
 
       , "Verbatim inside code" =: "<code><verbatim>foo</verbatim></code>" =?> para (code "<verbatim>foo</verbatim>")
 
+      , "Code normalization" =: "<code><code><</code><code>/code></code>" =?> para (code "<code></code>")
+
       , testGroup "Links"
         [ "Link without description" =:
           "[[https://amusewiki.org/]]" =?>
