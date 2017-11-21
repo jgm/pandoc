@@ -41,8 +41,11 @@ dist: man/pandoc.1
 	cd pandoc-${version}
 	stack setup && stack test && cd .. && rm -rf "pandoc-${version}"
 
+packages: winpkg debpkg macospkg
+
 debpkg: man/pandoc.1
-	make -C linux
+	make -C linux && \
+	cp linux/artifacts/pandoc-$(version)-*.* .
 
 macospkg: man/pandoc.1
 	./macos/make_macos_package.sh
@@ -85,4 +88,4 @@ download_stats:
 clean:
 	stack clean
 
-.PHONY: deps quick full haddock install clean test bench changes_github macospkg dist prof download_stats reformat lint weigh doc/lua-filters.md
+.PHONY: deps quick full haddock install clean test bench changes_github macospkg dist prof download_stats reformat lint weigh doc/lua-filters.md packages
