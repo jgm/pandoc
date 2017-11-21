@@ -228,24 +228,28 @@ example = try $ do
   contents <- manyTill anyChar $ try (optionMaybe blankline >> string "}}}")
   return $ return $ B.codeBlock contents
 
-exampleTag :: PandocMonad m => MuseParser m (F Blocks)
-exampleTag = do
-  (attr, contents) <- htmlElement "example"
-  return $ return $ B.codeBlockWith attr $ chop contents
+-- Trim up to one newline from the beginning and the end,
+-- in case opening and/or closing tags are on separate lines.
+chop :: String -> String
+chop = lchop . rchop
   where lchop s = case s of
                     '\n':ss -> ss
                     _       -> s
         rchop = reverse . lchop . reverse
-        -- Trim up to one newline from the beginning and the end,
-        -- in case opening and/or closing tags are on separate lines.
-        chop = lchop . rchop
+
+exampleTag :: PandocMonad m => MuseParser m (F Blocks)
+exampleTag = do
+  (attr, contents) <- htmlElement "example"
+  return $ return $ B.codeBlockWith attr $ chop contents
 
 literal :: PandocMonad m => MuseParser m (F Blocks)
-literal = (return . rawBlock) <$> htmlElement "literal"
+literal = do
+  guardDisabled Ext_amuse -- Text::Amuse does not support <literal>
+  (return . rawBlock) <$> htmlElement "literal"
   where
     -- FIXME: Emacs Muse inserts <literal> without style into all output formats, but we assume HTML
     format (_, _, kvs)        = fromMaybe "html" $ lookup "style" kvs
-    rawBlock (attrs, content) = B.rawBlock (format attrs) content
+    rawBlock (attrs, content) = B.rawBlock (format attrs) $ chop content
 
 blockTag :: PandocMonad m
           => (Blocks -> Blocks)
