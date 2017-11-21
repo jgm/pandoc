@@ -1,6 +1,7 @@
 #!/bin/bash -e
 
 LOCALBIN=$HOME/.local/bin
+BASEDIR=`pwd`
 DIST=`pwd`/macos_package
 MACOS=`pwd`/macos
 RESOURCES=$DIST/Resources
@@ -69,6 +70,17 @@ productbuild --distribution $MACOS/distribution.xml --resources $DIST/Resources 
 
 # verify signature
 spctl --assess --type install $BASE-macOS.pkg
+
+echo "Created $BASE-macOS.pkg"
+
+# create zip
+cd $DEST
+cd ..
+mv local $BASE
+zip -r $BASEDIR/$BASE-macOS.zip $BASE
+cd $BASEDIR
+
+echo "Created $BASE-macOS.zip"
 
 # cleanup
 rm -r $DIST
