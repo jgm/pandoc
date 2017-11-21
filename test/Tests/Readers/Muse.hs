@@ -5,10 +5,12 @@ import Data.List (intersperse)
 import Data.Text (Text)
 import qualified Data.Text as T
 import Test.Tasty
+import Test.Tasty.QuickCheck
 import Tests.Helpers
 import Text.Pandoc
 import Text.Pandoc.Arbitrary ()
 import Text.Pandoc.Builder
+import Text.Pandoc.Walk (walk)
 
 amuse :: Text -> Pandoc
 amuse = purely $ readMuse def { readerExtensions = extensionsFromList [Ext_amuse]}
@@ -23,6 +25,30 @@ infix 4 =:
 
 spcSep :: [Inlines] -> Inlines
 spcSep = mconcat . intersperse space
+
+-- Tables and code blocks don't round-trip yet
+
+removeTables :: Block -> Block
+removeTables (Table{}) = Para [Str "table was here"]
+removeTables x = x
+
+removeCodeBlocks :: Block -> Block
+removeCodeBlocks (CodeBlock{}) = Para [Str "table was here"]
+removeCodeBlocks x = x
+
+-- Demand that any AST produced by Muse reader and written by Muse writer can be read back exactly the same way.
+-- Currently we remove code blocks and tables and compare third rewrite to the second.
+-- First and second rewrites are not equal yet.
+roundTrip :: Block -> Bool
+roundTrip b = d'' == d'''
+  where d = walk (removeCodeBlocks . removeTables) $ Pandoc nullMeta [b]
+        d' = rewrite d
+        d'' = rewrite d'
+        d''' = rewrite d''
+        rewrite = amuse . T.pack . (++ "\n") . T.unpack .
+                  (purely $ writeMuse def { writerExtensions = extensionsFromList [Ext_amuse]
+                                          , writerWrapText = WrapPreserve
+                                          })
 
 tests :: [TestTree]
 tests =
@@ -165,7 +191,8 @@ tests =
       ]
 
   , testGroup "Blocks"
-      [ "Block elements end paragraphs" =:
+      [ testProperty "Round trip" roundTrip
+      , "Block elements end paragraphs" =:
         T.unlines [ "First paragraph"
                   , "----"
                   , "Second paragraph"
