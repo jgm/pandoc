@@ -1,6 +1,7 @@
 {-# LANGUAGE CPP                 #-}
 {-# LANGUAGE DeriveGeneric       #-}
 {-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE TemplateHaskell     #-}
 {-# LANGUAGE TupleSections       #-}
 {-
 Copyright (C) 2006-2017 John MacFarlane <jgm@berkeley.edu>
@@ -44,8 +45,8 @@ import qualified Control.Exception as E
 import Control.Monad
 import Control.Monad.Except (catchError, throwError)
 import Control.Monad.Trans
-import Data.Aeson (FromJSON (..), ToJSON (..), defaultOptions, eitherDecode',
-                   encode, genericToEncoding)
+import Data.Aeson (defaultOptions, eitherDecode', encode)
+import Data.Aeson.TH (deriveJSON)
 import qualified Data.ByteString as BS
 import qualified Data.ByteString.Lazy as B
 import Data.Char (toLower, toUpper)
@@ -94,10 +95,6 @@ import System.Posix.Terminal (queryTerminal)
 #endif
 
 data LineEnding = LF | CRLF | Native deriving (Show, Generic)
-
-instance ToJSON LineEnding where
-  toEncoding = genericToEncoding defaultOptions
-instance FromJSON LineEnding
 
 parseOptions :: [OptDescr (Opt -> IO Opt)] -> Opt -> IO Opt
 parseOptions options' defaults = do
@@ -645,10 +642,6 @@ data Opt = Opt
     , optEol                   :: LineEnding -- ^ Style of line-endings to use
     , optStripComments         :: Bool       -- ^ Skip HTML comments
     } deriving (Generic, Show)
-
-instance ToJSON Opt where
-  toEncoding = genericToEncoding defaultOptions
-instance FromJSON Opt
 
 -- | Defaults for command-line options.
 defaultOpts :: Opt
@@ -1675,3 +1668,6 @@ deprecatedOption o =
     \r -> case r of
        Right () -> return ()
        Left e   -> E.throwIO e
+
+$(deriveJSON defaultOptions ''LineEnding)
+$(deriveJSON defaultOptions ''Opt)
