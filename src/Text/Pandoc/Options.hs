@@ -1,5 +1,6 @@
 {-# LANGUAGE DeriveDataTypeable #-}
 {-# LANGUAGE DeriveGeneric      #-}
+{-# LANGUAGE TemplateHaskell    #-}
 {-
 Copyright (C) 2012-2017 John MacFarlane <jgm@berkeley.edu>
 
@@ -45,8 +46,8 @@ module Text.Pandoc.Options ( module Text.Pandoc.Extensions
                            , def
                            , isEnabled
                            ) where
-import Data.Aeson (FromJSON (..), ToJSON (..), defaultOptions,
-                   genericToEncoding)
+import Data.Aeson (defaultOptions)
+import Data.Aeson.TH (deriveJSON)
 import Data.Data (Data)
 import Data.Default
 import qualified Data.Set as Set
@@ -74,10 +75,6 @@ data ReaderOptions = ReaderOptions{
 
 instance HasSyntaxExtensions ReaderOptions where
   getExtensions opts = readerExtensions opts
-
-instance ToJSON ReaderOptions where
-  toEncoding = genericToEncoding defaultOptions
-instance FromJSON ReaderOptions
 
 instance Default ReaderOptions
   where def = ReaderOptions{
@@ -116,28 +113,16 @@ data HTMLMathMethod = PlainMath
                     | KaTeX String                -- url of KaTeX files
                     deriving (Show, Read, Eq, Data, Typeable, Generic)
 
-instance ToJSON HTMLMathMethod where
-  toEncoding = genericToEncoding defaultOptions
-instance FromJSON HTMLMathMethod
-
 data CiteMethod = Citeproc                        -- use citeproc to render them
                   | Natbib                        -- output natbib cite commands
                   | Biblatex                      -- output biblatex cite commands
                 deriving (Show, Read, Eq, Data, Typeable, Generic)
-
-instance ToJSON CiteMethod where
-  toEncoding = genericToEncoding defaultOptions
-instance FromJSON CiteMethod
 
 -- | Methods for obfuscating email addresses in HTML.
 data ObfuscationMethod = NoObfuscation
                        | ReferenceObfuscation
                        | JavascriptObfuscation
                        deriving (Show, Read, Eq, Data, Typeable, Generic)
-
-instance ToJSON ObfuscationMethod where
-  toEncoding = genericToEncoding defaultOptions
-instance FromJSON ObfuscationMethod
 
 -- | Varieties of HTML slide shows.
 data HTMLSlideVariant = S5Slides
@@ -148,29 +133,17 @@ data HTMLSlideVariant = S5Slides
                       | NoSlides
                       deriving (Show, Read, Eq, Data, Typeable, Generic)
 
-instance ToJSON HTMLSlideVariant where
-  toEncoding = genericToEncoding defaultOptions
-instance FromJSON HTMLSlideVariant
-
 -- | Options for accepting or rejecting MS Word track-changes.
 data TrackChanges = AcceptChanges
                   | RejectChanges
                   | AllChanges
                   deriving (Show, Read, Eq, Data, Typeable, Generic)
 
-instance ToJSON TrackChanges where
-  toEncoding = genericToEncoding defaultOptions
-instance FromJSON TrackChanges
-
 -- | Options for wrapping text in the output.
 data WrapOption = WrapAuto        -- ^ Automatically wrap to width
                 | WrapNone        -- ^ No non-semantic newlines
                 | WrapPreserve    -- ^ Preserve wrapping of input source
                 deriving (Show, Read, Eq, Data, Typeable, Generic)
-
-instance ToJSON WrapOption where
-  toEncoding = genericToEncoding defaultOptions
-instance FromJSON WrapOption
 
 -- | Options defining the type of top-level headers.
 data TopLevelDivision = TopLevelPart      -- ^ Top-level headers become parts
@@ -180,19 +153,11 @@ data TopLevelDivision = TopLevelPart      -- ^ Top-level headers become parts
                                           --   heuristics
                       deriving (Show, Read, Eq, Data, Typeable, Generic)
 
-instance ToJSON TopLevelDivision where
-  toEncoding = genericToEncoding defaultOptions
-instance FromJSON TopLevelDivision
-
 -- | Locations for footnotes and references in markdown output
 data ReferenceLocation = EndOfBlock    -- ^ End of block
                        | EndOfSection  -- ^ prior to next section header (or end of document)
                        | EndOfDocument -- ^ at end of document
                        deriving (Show, Read, Eq, Data, Typeable, Generic)
-
-instance ToJSON ReferenceLocation where
-  toEncoding = genericToEncoding defaultOptions
-instance FromJSON ReferenceLocation
 
 -- | Options for writers
 data WriterOptions = WriterOptions
@@ -271,3 +236,13 @@ instance HasSyntaxExtensions WriterOptions where
 -- | Returns True if the given extension is enabled.
 isEnabled :: HasSyntaxExtensions a => Extension -> a -> Bool
 isEnabled ext opts = ext `extensionEnabled` getExtensions opts
+
+$(deriveJSON defaultOptions ''ReaderOptions)
+$(deriveJSON defaultOptions ''HTMLMathMethod)
+$(deriveJSON defaultOptions ''CiteMethod)
+$(deriveJSON defaultOptions ''ObfuscationMethod)
+$(deriveJSON defaultOptions ''HTMLSlideVariant)
+$(deriveJSON defaultOptions ''TrackChanges)
+$(deriveJSON defaultOptions ''WrapOption)
+$(deriveJSON defaultOptions ''TopLevelDivision)
+$(deriveJSON defaultOptions ''ReferenceLocation)
