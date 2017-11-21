@@ -284,10 +284,12 @@ escapeString s =
 
 -- | Escape special characters for Muse if needed.
 conditionalEscapeString :: String -> String
-conditionalEscapeString s
-  | any (`elem` ("*<=>[]|" :: String)) s ||
-    "::" `isInfixOf` s = escapeString s
-  | otherwise = s
+conditionalEscapeString s =
+  if any (`elem` ("*<=>[]|" :: String)) s ||
+     "::" `isInfixOf` s ||
+     "----" `isInfixOf` s
+    then escapeString s
+    else s
 
 -- | Convert list of Pandoc inline elements to Muse.
 inlineListToMuse :: PandocMonad m
