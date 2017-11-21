@@ -577,6 +577,7 @@ inlineList = [ endline
              , link
              , code
              , codeTag
+             , inlineLiteralTag
              , whitespace
              , str
              , symbol
@@ -692,6 +693,16 @@ codeTag :: PandocMonad m => MuseParser m (F Inlines)
 codeTag = do
   (attrs, content) <- parseHtmlContentWithAttrs "code" anyChar
   return $ return $ B.codeWith attrs $ fromEntities content
+
+inlineLiteralTag :: PandocMonad m => MuseParser m (F Inlines)
+inlineLiteralTag = do
+  guardDisabled Ext_amuse -- Text::Amuse does not support <literal>
+  (attrs, content) <- parseHtmlContentWithAttrs "literal" anyChar
+  return $ return $ rawInline (attrs, content)
+  where
+    -- FIXME: Emacs Muse inserts <literal> without style into all output formats, but we assume HTML
+    format (_, _, kvs)        = fromMaybe "html" $ lookup "style" kvs
+    rawInline (attrs, content) = B.rawInline (format attrs) $ fromEntities content
 
 str :: PandocMonad m => MuseParser m (F Inlines)
 str = fmap (return . B.str) (many1 alphaNum <|> count 1 characterReference)

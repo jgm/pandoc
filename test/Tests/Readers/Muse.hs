@@ -149,6 +149,15 @@ tests =
         , "No implicit links" =: "http://example.org/index.php?action=view&id=1"
                =?> para "http://example.org/index.php?action=view&id=1"
         ]
+
+      , testGroup "Literal"
+        [ test emacsMuse "Inline literal"
+          ("Foo<literal style=\"html\">lit</literal>bar" =?>
+          para (text "Foo" <> rawInline "html" "lit" <> text "bar"))
+        , "No literal in Text::Amuse" =:
+          "Foo<literal style=\"html\">lit</literal>bar" =?>
+          para "Foo<literal style=\"html\">lit</literal>bar"
+        ]
       ]
 
   , testGroup "Blocks"
