@@ -1671,5 +1671,7 @@ deprecatedOption o =
        Right () -> return ()
        Left e   -> E.throwIO e
 
+-- see https://github.com/jgm/pandoc/pull/4083
+-- using generic deriving caused long compilation times
 $(deriveJSON defaultOptions ''LineEnding)
 $(deriveJSON defaultOptions ''Opt)
