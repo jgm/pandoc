@@ -1,5 +1,5 @@
 .\"t
-.TH PANDOC 1 "November 11, 2017" "pandoc 2.0.2"
+.TH PANDOC 1 "November 20, 2017" "pandoc 2.0.3"
 .SH NAME
 pandoc - general markup converter
 .SH SYNOPSIS
@@ -3728,6 +3728,9 @@ options selected.
 Therefore see Math rendering in HTML above.
 .RS
 .RE
+.PP
+This extension can be used with both \f[C]markdown\f[] and \f[C]html\f[]
+input.
 .SS Raw HTML
 .SS Extension: \f[C]raw_html\f[]
 .PP
@@ -4644,6 +4647,9 @@ as inline TeX math, and anything between \f[C]\\[\f[] and \f[C]\\]\f[]
 to be interpreted as display TeX math.
 Note: a drawback of this extension is that it precludes escaping
 \f[C](\f[] and \f[C][\f[].
+.PP
+This extension can be used with both \f[C]markdown\f[] and \f[C]html\f[]
+input.
 .SS Extension: \f[C]tex_math_double_backslash\f[]
 .PP
 Causes anything between \f[C]\\\\(\f[] and \f[C]\\\\)\f[] to be
