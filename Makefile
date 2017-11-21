@@ -47,7 +47,17 @@ debpkg: man/pandoc.1
 macospkg: man/pandoc.1
 	./macos/make_macos_package.sh
 
-winpkg: pandoc-$(version)-windows.msi
+winpkg: pandoc-$(version)-windows.msi pandoc-$(version)-windows.zip
+
+pandoc-$(version)-windows.zip: pandoc-$(version)-windows.msi
+	-rm -rf wintmp && \
+	msiextract -C wintmp $< && \
+	cd wintmp/"Program Files" && \
+	mv Pandoc pandoc-$(version) && \
+	zip -r $@ pandoc-$(version) && \
+	mv $@ ../../ && \
+	cd ../.. && \
+	rm -rf wintmp
 
 pandoc-$(version)-windows.msi:
 	wget 'https://ci.appveyor.com/api/projects/jgm/pandoc/artifacts/windows/pandoc-windows-i386.msi?branch=$(BRANCH)' -O pandoc.msi && \
