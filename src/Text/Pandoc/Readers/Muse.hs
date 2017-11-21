@@ -243,7 +243,8 @@ exampleTag = do
 literal :: PandocMonad m => MuseParser m (F Blocks)
 literal = (return . rawBlock) <$> htmlElement "literal"
   where
-    format (_, _, kvs)        = fromMaybe "html" $ lookup "format" kvs
+    -- FIXME: Emacs Muse inserts <literal> without style into all output formats, but we assume HTML
+    format (_, _, kvs)        = fromMaybe "html" $ lookup "style" kvs
     rawBlock (attrs, content) = B.rawBlock (format attrs) content
 
 blockTag :: PandocMonad m
