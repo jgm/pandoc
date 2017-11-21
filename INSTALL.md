@@ -3,21 +3,17 @@
 ## Windows
 
   - There is a package installer at pandoc's [download page].
+    This will install pandoc, replacing older versions, and
+    update your path to include the directory where pandoc's
+    binaries are installed.
+
+  - If you prefer not to use the msi installer, we also provide
+    a zip file that contains pandoc's binaries and
+    documentation.  Simply unzip this file and move the binaries
+    to a directory of your choice.
 
   - For PDF output, you'll also need to install LaTeX.
     We recommend [MiKTeX](http://miktex.org/).
-
-  - If you'd prefer, you can extract the `pandoc` and `pandoc-citeproc`
-    executables from the MSI and copy them directly to any directory,
-    without running the installer.  Here is an example showing how to
-    extract the executables from the pandoc-1.19.1 installer and copy
-    them to `C:\Utils\Console\`:
-
-        mkdir "%TEMP%\pandoc\"
-        start /wait msiexec.exe /a pandoc-1.19.1-windows.msi /qn targetdir="%TEMP%\pandoc\"
-        copy /y "%TEMP%\pandoc\pandoc.exe" C:\Utils\Console\
-        copy /y "%TEMP%\pandoc\pandoc-citeproc.exe" C:\Utils\Console\
-        rmdir /s /q "%TEMP%\pandoc\"
 
 ## macOS
 
@@ -29,15 +25,10 @@
     by downloading [this script][uninstaller]
     and running it with `perl uninstall-pandoc.pl`.
 
-  - It is possible to extract the pandoc and pandoc-citeproc
-    executables from the macOS pkg file, if you'd rather not run
-    the installer.  To do this (for the version 1.19.1 package):
-
-        mkdir pandoc-extract
-        cd pandoc-extract
-        xar -x -f ../pandoc-2.0-macOS.pkg
-        cat pandoc.pkg/Payload | gunzip -dc | cpio -i
-        # executables are now in ./usr/bin/, man pages in ./usr/share/man
+  - We also provide a zip file containing the binaries and man
+    pages, for those who prefer not to use the installer.  Simply
+    unzip the file and move the binaries and man pages to
+    whatever directory you like.
 
   - For PDF output, you'll also need LaTeX.  Because a full [MacTeX]
     installation takes more than a gigabyte of disk space, we recommend
