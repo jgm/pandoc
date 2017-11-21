@@ -303,6 +303,20 @@ tests =
                     ] =?>
           codeBlock "Example line\n"
         ]
+      , testGroup "Literal blocks"
+        [ test emacsMuse "Literal block"
+          (T.unlines [ "<literal style=\"latex\">"
+                    , "\\newpage"
+                    , "</literal>"
+                    ] =?>
+          rawBlock "latex" "\\newpage")
+        , "No literal blocks in Text::Amuse" =:
+          T.unlines [ "<literal style=\"latex\">"
+                    , "\\newpage"
+                    , "</literal>"
+                    ] =?>
+          para "<literal style=\"latex\">\n\\newpage\n</literal>"
+        ]
       , "Center" =: "<center>Hello, world</center>" =?> para (text "Hello, world")
       , "Right" =: "<right>Hello, world</right>" =?> para (text "Hello, world")
       , testGroup "Comments"
