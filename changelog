@@ -1,3 +1,96 @@
+pandoc (2.0.3)
+
+  * Lua filters: preload text module (Albert Krewinkel, #4077).
+    The `text` module is preloaded in lua. The module contains some UTF-8
+    aware string functions, implemented in Haskell.  The module is loaded on
+    request only, e.g.:
+
+        text = require 'text'
+        function Str (s)
+          s.text = text.upper(s.text)
+          return s
+        end
+
+  * Allow table-like access to attributes in lua filters (Albert Krewinkel,
+    #4071).  Attribute lists are represented as associative lists in Lua. Pure
+    associative lists are awkward to work with. A metatable is attached to
+    attribute lists, allowing to access and use the associative list as if
+    the attributes were stored in as normal key-value pair in table.
+    Note that this changes the way `pairs` works on attribute lists. Instead
+    of producing integer keys and two-element tables, the resulting iterator
+    function now returns the key and value of those pairs.  Use `ipairs` to
+    get the old behavior.  Warning: the new iteration mechanism only works if
+    pandoc has been compiled with Lua 5.2 or later (current default: 5.3).
+
+  * Text.Pandoc.Parsing.uri:  allow `&` and `=` as word characters (#4068).
+    This fixes a bug where pandoc would stop parsing a URI with an
+    empty attribute:  for example, `&a=&b=` wolud stop at `a`.
+    (The uri parser tries to guess which punctuation characters
+    are part of the URI and which might be punctuation after it.)
+
+  * Introduce `HasSyntaxExtensions` typeclass (Alexander Krotov, #4074).
+
+    + Added new `HasSyntaxExtensions` typeclass for `ReaderOptions` and
+      `WriterOptions`.
+    + Reimplemented `isEnabled` function from `Options.hs` to accept both
+      `ReaderOptions` and `WriterOptions`.
+    + Replaced `enabled` from `CommonMark.hs` with new `isEnabled`.
+
+  * Add `amuse` extension (Alexander Krotov) to enable Amuse wiki
+    behavior for `muse`.  New `Ext_amuse` constructor for
+    `Extension`. Note: this is switched on by default; for
+    Emacs behavior, use `muse-amuse`.
+
+  * Muse reader (Alexander Krotov):
+
+    + Count only one space as part of list item marker.
+    + Produce SoftBreaks on newlines. Now wrapping can be preserved
+      with `--wrap=preserve`.
+    + Add Text::Amuse footnote extensions.  Footnote end is indicated by
+      indentation, so footnotes can be placed anywhere in the text,
+      not just at the end of it.
+    + Accept Emacs Muse definition lists when `-amuse`.
+      Emacs Muse does not require indentation.
+
+  * HTML reader:
+
+    + Ensure we don't produce level 0 headers (#4076), even for chapter
+      sections in epubs.  This causes problems because writers aren't set
+      up to expect these.
+    + Allow spaces after `\(` and before `\)` with `tex_math_single_backslash`.
+      Previously `\( \frac{1}{a} < \frac{1}{b} \)` was not parsed as math in
+      `markdown` or `html` `+tex_math_single_backslash`.
+
+  * MANUAL: clarify that math extensions work with HTML.
+    Clarify that `tex_math_dollars` and `tex_math_single_backslash`
+    will work with HTML as well as Markdown.
+
+  * Creole reader: Fix performance issue for longer lists (Sascha Wilde,
+    #4067).
+
+  * RST reader: better support for 'container' directive (#4066).
+    Create a div, incorporate name attribute and classes.
+
+  * LaTeX reader:
+
+    + Support column specs like `*{2}{r}` (#4056).  This is equivalent to
+      `rr`.  We now expand it like a macro.
+    + Allow optional args for parbox (#4056).
+    + Allow optional arguments on `\footnote` (#4062).
+
+  * EPUB writer: Fixed path for cover image (#4069).  It was previously
+    `media/media/imagename`, and should have been `media/imagename`.
+
+  * Markdown writer: fix bug with doubled footnotes in grid tables
+    (#4061).
+
+  * LaTeX template:  include natbib/biblatex after polyglossia (#4073).
+    Otherwise we seem to get an error; biblatex wants polyglossia
+    language to be defined.
+
+  * Added examples to lua filters documentation.
+
+
 pandoc (2.0.2)
 
   * Deprecated ancient HTML math methods: `--latexmathml`, `--gladtex`,
