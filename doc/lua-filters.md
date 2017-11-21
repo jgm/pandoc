@@ -1,8 +1,9 @@
 ---
-author:
-- 'Albert Krewinkel, John MacFarlane'
-date: 'August 31, 2017'
 title: Pandoc Lua Filters
+author:
+- Albert Krewinkel
+- John MacFarlane
+date: 'November 20, 2017'
 ---
 
 # Introduction
