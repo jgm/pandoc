@@ -296,8 +296,7 @@ tests = [ testGroup "block elements"
           -- Cite is trivial
           , testGroup "code"
             [ "simple" =: code "foo" =?> "<code>foo</code>"
-            , "escape lightweight markup" =: code "foo = bar" =?> "<code><verbatim>foo = bar</verbatim></code>"
-            , "escape tag" =: code "<code>foo = bar</code> baz" =?> "<code><verbatim><code>foo = bar</code> baz</verbatim></code>"
+            , "escape tag" =: code "<code>foo = bar</code> baz" =?> "<code><code>foo = bar<</code><code>/code> baz</code>"
             ]
           , testGroup "spaces"
             [ "space" =: text "a" <> space <> text "b" =?> "a b"

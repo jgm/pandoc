@@ -328,7 +328,7 @@ inlineToMuse (Quoted DoubleQuote lst) = do
 -- so just fallback to expanding inlines.
 inlineToMuse (Cite _  lst) = inlineListToMuse lst
 inlineToMuse (Code _ str) = return $
-  "<code>" <> text (conditionalEscapeString str) <> "</code>"
+  "<code>" <> text (substitute "</code>" "<</code><code>/code>" str) <> "</code>"
 inlineToMuse (Math InlineMath str) =
   lift (texMathToInlines InlineMath str) >>= inlineListToMuse
 inlineToMuse (Math DisplayMath str) = do

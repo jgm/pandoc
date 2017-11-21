@@ -478,8 +478,8 @@ So is <strong><em>this</em></strong> word.
 
 So is <strong><em>this</em></strong> word.
 
-This is code: <code><verbatim>></verbatim></code>, <code>$</code>,
-<code>\</code>, <code>\$</code>, <code><verbatim><html></verbatim></code>.
+This is code: <code>></code>, <code>$</code>, <code>\</code>, <code>\$</code>,
+<code><html></code>.
 
 <del>This is <em>strikeout</em>.</del>
 
@@ -529,8 +529,7 @@ Ellipses…and…and….
 
 These shouldn’t be math:
 
- - To get the famous equation, write
-   <code><verbatim>$e = mc^2$</verbatim></code>.
+ - To get the famous equation, write <code>$e = mc^2$</code>.
  - $22,000 is a <em>lot</em> of money. So is $34,000. (It worked if "lot" is
    emphasized.)
  - Shoes ($20) and socks ($5).
@@ -673,8 +672,7 @@ An e-mail address: [[mailto:nobody@nowhere.net][nobody@nowhere.net]]
 Blockquoted: [[http://example.com/]]
 </quote>
 
-Auto-links should not occur here:
-<code><verbatim><http://example.com/></verbatim></code>
+Auto-links should not occur here: <code><http://example.com/></code>
 
 <example>
 or here: <http://example.com/>
@@ -722,9 +720,8 @@ This paragraph should not be part of the note, as it is not indented.
     indent the first line of each block.
 
 [3] This is <em>easier</em> to type. Inline notes may contain
-    [[http://google.com][links]] and <code><verbatim>]</verbatim></code>
-    verbatim characters, as well as <verbatim>[bracketed</verbatim>
-    <verbatim>text].</verbatim>
+    [[http://google.com][links]] and <code>]</code> verbatim characters, as
+    well as <verbatim>[bracketed</verbatim> <verbatim>text].</verbatim>
 
 [4] In quote.
 
