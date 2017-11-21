@@ -548,7 +548,7 @@ emailAddress = try $ toResult <$> mailbox <*> (char '@' *> domain)
        sepby1 p sep      = (:) <$> p <*> many (try $ sep >> p)
 
 
-uriScheme :: Stream s m Char => ParserT s st m String
+uriScheme :: (Monad m, Stream s m Char) => ParserT s st m String
 uriScheme = oneOfStringsCI (Set.toList schemes)
 
 -- | Parses a URI. Returns pair of original and URI-escaped version.
@@ -1388,18 +1388,20 @@ nested p = do
   updateState $ \st -> st{ stateMaxNestingLevel = nestlevel }
   return res
 
-citeKey :: (Stream s m Char, HasLastStrPosition st)
-        => ParserT s st m (Bool, String)
+citeKey :: (Monad m, HasLastStrPosition st)
+        => ParserT [Char] st m (Bool, String)
 citeKey = try $ do
   guard =<< notAfterString
   suppress_author <- option False (char '-' *> return True)
   char '@'
-  firstChar <- alphaNum <|> char '_' <|> char '*' -- @* for wildcard in nocite
-  let regchar = satisfy (\c -> isAlphaNum c || c == '_')
-  let internal p = try $ p <* lookAhead regchar
-  rest <- many $ regchar <|> internal (oneOf ":.#$%&-+?<>~/") <|>
-                 try (oneOf ":/" <* lookAhead (char '/'))
-  let key = firstChar:rest
+  key <- (fst <$> uri) <|>
+          do firstChar <- alphaNum <|> char '_' <|> char '*'
+             -- @* for wildcard in nocite
+             let regchar = satisfy (\c -> isAlphaNum c || c == '_')
+             let internal p = try $ p <* lookAhead regchar
+             rest <- many $ regchar <|> internal (oneOf ":.#$%&-+?<>~/") <|>
+                            try (oneOf ":/" <* lookAhead (char '/'))
+             return (firstChar:rest)
   return (suppress_author, key)
 
 

@@ -417,6 +417,16 @@ tests = [ testGroup "inline code"
                         , citationHash    = 0
                         }
                 ] "@1657:huyghens")
+          , "key is URI" =:
+            "@https://example.com/cgi-bin/ubb/forumdisplay.cgi?action=topics&number=527" =?> para (cite [
+                Citation{ citationId      = "https://example.com/cgi-bin/ubb/forumdisplay.cgi?action=topics&number=527"
+                        , citationPrefix  = []
+                        , citationSuffix  = []
+                        , citationMode    = AuthorInText
+                        , citationNoteNum = 0
+                        , citationHash    = 0
+                        }
+                ] "@https://example.com/cgi-bin/ubb/forumdisplay.cgi?action=topics&number=527")
           ]
         , let citation = cite [Citation "cita" [] [] AuthorInText 0 0] (str "@cita")
           in testGroup "footnote/link following citation" -- issue #2083
