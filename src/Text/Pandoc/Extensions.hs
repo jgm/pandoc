@@ -15,8 +15,10 @@ You should have received a copy of the GNU General Public License
 along with this program; if not, write to the Free Software
 Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 -}
-{-# LANGUAGE DeriveDataTypeable #-}
-{-# LANGUAGE DeriveGeneric      #-}
+{-# LANGUAGE DeriveDataTypeable         #-}
+{-# LANGUAGE DeriveGeneric              #-}
+{-# LANGUAGE GeneralizedNewtypeDeriving #-}
+{-# LANGUAGE TemplateHaskell            #-}
 
 {- |
    Module      : Text.Pandoc.Extensions
@@ -45,8 +47,8 @@ module Text.Pandoc.Extensions ( Extension(..)
                               , githubMarkdownExtensions
                               , multimarkdownExtensions )
 where
-import Data.Aeson (FromJSON (..), ToJSON (..), defaultOptions,
-                   genericToEncoding)
+import Data.Aeson (FromJSON (..), ToJSON (..), defaultOptions)
+import Data.Aeson.TH (deriveJSON)
 import Data.Bits (clearBit, setBit, testBit, (.|.))
 import Data.Data (Data)
 import Data.Typeable (Typeable)
@@ -55,11 +57,7 @@ import Text.Pandoc.Shared (safeRead)
 import Text.Parsec
 
 newtype Extensions = Extensions Integer
-  deriving (Show, Read, Eq, Ord, Data, Typeable, Generic)
-
-instance ToJSON Extensions where
-  toEncoding = genericToEncoding defaultOptions
-instance FromJSON Extensions
+  deriving (Show, Read, Eq, Ord, Data, Typeable, Generic, ToJSON, FromJSON)
 
 instance Monoid Extensions where
   mempty = Extensions 0
@@ -155,10 +153,6 @@ data Extension =
     | Ext_spaced_reference_links -- ^ Allow space between two parts of ref link
     | Ext_amuse -- ^ Enable Text::Amuse extensions to Emacs Muse markup
     deriving (Show, Read, Enum, Eq, Ord, Bounded, Data, Typeable, Generic)
-
-instance ToJSON Extension where
-  toEncoding = genericToEncoding defaultOptions
-instance FromJSON Extension
 
 -- | Extensions to be used with pandoc-flavored markdown.
 pandocExtensions :: Extensions
@@ -373,3 +367,5 @@ parseFormatSpec = parse formatSpec ""
           return $ case polarity of
                         '-' -> disableExtension ext
                         _   -> enableExtension ext
+
+$(deriveJSON defaultOptions ''Extension)
