@@ -435,6 +435,7 @@ library
                    Text.Pandoc.Readers.RST,
                    Text.Pandoc.Readers.Org,
                    Text.Pandoc.Readers.DocBook,
+                   Text.Pandoc.Readers.JATS,
                    Text.Pandoc.Readers.OPML,
                    Text.Pandoc.Readers.Textile,
                    Text.Pandoc.Readers.Native,
