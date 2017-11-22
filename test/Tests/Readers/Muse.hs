@@ -566,6 +566,27 @@ tests =
                                              , para "Item2"
                                              , para "Item3"
                                              ]
+      , "Bullet list with empty items" =:
+        T.unlines
+          [ " -"
+          , ""
+          , " - Item2"
+          ] =?>
+        bulletList [ mempty
+                   , para "Item2"
+                   ]
+      , "Ordered list with empty items" =:
+        T.unlines
+          [ " 1."
+          , ""
+          , " 2."
+          , ""
+          , " 3. Item3"
+          ] =?>
+        orderedListWith (1, Decimal, Period) [ mempty
+                                             , mempty
+                                             , para "Item3"
+                                             ]
       , testGroup "Nested lists"
         [ "Nested list" =:
           T.unlines

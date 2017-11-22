@@ -412,7 +412,7 @@ listStart marker = try $ do
   st <- stateParserContext <$> getState
   getPosition >>= \pos -> guard (st == ListItemState || sourceColumn pos /= 1)
   markerLength <- marker
-  many1 spaceChar
+  void (many1 spaceChar) <|> eol
   return $ preWhitespace + markerLength + 1
 
 listItemContents :: PandocMonad m => Int -> MuseParser m (F Blocks)
@@ -448,7 +448,7 @@ orderedListStart style delim = listStart (snd <$> withHorizDisplacement (ordered
 
 orderedList :: PandocMonad m => MuseParser m (F Blocks)
 orderedList = try $ do
-  p@(_, style, delim) <- lookAhead (many spaceChar *> anyOrderedListMarker <* spaceChar)
+  p@(_, style, delim) <- lookAhead (many spaceChar *> anyOrderedListMarker <* (eol <|> void spaceChar))
   guard $ style `elem` [Decimal, LowerAlpha, UpperAlpha, LowerRoman, UpperRoman]
   guard $ delim == Period
   items <- sequence <$> many1 (listItem $ orderedListStart style delim)
