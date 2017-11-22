@@ -51,6 +51,7 @@ import Data.Aeson (FromJSON (..), ToJSON (..), defaultOptions)
 import Data.Aeson.TH (deriveJSON)
 import Data.Bits (clearBit, setBit, testBit, (.|.))
 import Data.Data (Data)
+import Data.Semigroup (Semigroup ((<>)))
 import Data.Typeable (Typeable)
 import GHC.Generics (Generic)
 import Text.Pandoc.Shared (safeRead)
@@ -59,6 +60,7 @@ import Text.Parsec
 newtype Extensions = Extensions Integer
   deriving (Show, Read, Eq, Ord, Data, Typeable, Generic, ToJSON, FromJSON)
 
+instance Semigroup Extensions where (<>) = mappend
 instance Monoid Extensions where
   mempty = Extensions 0
   mappend (Extensions a) (Extensions b) = Extensions (a .|. b)

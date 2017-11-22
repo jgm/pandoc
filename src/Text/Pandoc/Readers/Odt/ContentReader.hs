@@ -46,10 +46,11 @@ import qualified Data.ByteString.Lazy as B
 import Data.List (find, intercalate)
 import qualified Data.Map as M
 import Data.Maybe
+import Data.Semigroup (Semigroup ((<>)))
 
 import qualified Text.XML.Light as XML
 
-import Text.Pandoc.Builder
+import Text.Pandoc.Builder hiding ((<>))
 import Text.Pandoc.MediaBag (MediaBag, insertMedia)
 import Text.Pandoc.Shared
 
@@ -513,13 +514,13 @@ type BlockMatcher  = ElementMatcher Blocks
 
 
 --
-matchingElement :: (Monoid e)
+matchingElement :: (Semigroup e)
                 => Namespace -> ElementName
                 -> OdtReaderSafe  e e
                 -> ElementMatcher e
 matchingElement ns name reader = (ns, name, asResultAccumulator reader)
   where
-   asResultAccumulator :: (ArrowChoice a, Monoid m) => a m m -> a m (Fallible m)
+   asResultAccumulator :: (ArrowChoice a, Semigroup m) => a m m -> a m (Fallible m)
    asResultAccumulator a = liftAsSuccess $ keepingTheValue a >>% (<>)
 
 --

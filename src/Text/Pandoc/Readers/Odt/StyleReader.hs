@@ -67,6 +67,7 @@ import Data.List (unfoldr)
 import qualified Data.Map as M
 import Data.Maybe
 import qualified Data.Set as S
+import Data.Semigroup (Semigroup ((<>)))
 
 import qualified Text.XML.Light as XML
 
@@ -183,7 +184,8 @@ data Styles           = Styles
                           }
   deriving ( Show )
 
--- Styles from a monoid under union
+-- | Styles from a semigroup under union
+instance Semigroup Styles where (<>) = mappend
 instance Monoid Styles where
   mempty  = Styles M.empty M.empty M.empty
   mappend  (Styles sBn1 dSm1 lsBn1)
