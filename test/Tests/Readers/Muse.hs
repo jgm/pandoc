@@ -537,23 +537,35 @@ tests =
         ]
     , testGroup "Lists"
       [ "Bullet list" =:
-         T.unlines
+        T.unlines
            [ " - Item1"
            , ""
            , " - Item2"
            ] =?>
-         bulletList [ para "Item1"
-                    , para "Item2"
-                    ]
+        bulletList [ para "Item1"
+                   , para "Item2"
+                   ]
       , "Ordered list" =:
-         T.unlines
-           [ " 1. Item1"
-           , ""
-           , " 2. Item2"
-           ] =?>
-         orderedListWith (1, Decimal, Period) [ para "Item1"
-                                              , para "Item2"
-                                              ]
+        T.unlines
+          [ " 1. Item1"
+          , ""
+          , " 2. Item2"
+          ] =?>
+        orderedListWith (1, Decimal, Period) [ para "Item1"
+                                             , para "Item2"
+                                             ]
+      , "Ordered list with implicit numbers" =:
+        T.unlines
+          [ " 1. Item1"
+          , ""
+          , " 1. Item2"
+          , ""
+          , " 1. Item3"
+          ] =?>
+        orderedListWith (1, Decimal, Period) [ para "Item1"
+                                             , para "Item2"
+                                             , para "Item3"
+                                             ]
       , testGroup "Nested lists"
         [ "Nested list" =:
           T.unlines
