@@ -279,6 +279,8 @@ tests = [ testGroup "block elements"
                =?> "<verbatim>foo<</verbatim><verbatim>/verbatim>bar</verbatim>"
             , "escape pipe to avoid accidental tables" =: str "foo | bar"
                =?> "<verbatim>foo | bar</verbatim>"
+            , "escape hash to avoid accidental anchors" =: text "#foo bar"
+              =?> "<verbatim>#foo</verbatim> bar"
             , "escape definition list markers" =: str "::" =?> "<verbatim>::</verbatim>"
             -- We don't want colons to be escaped if they can't be confused
             -- with definition list item markers.

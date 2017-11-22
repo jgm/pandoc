@@ -285,7 +285,7 @@ escapeString s =
 -- | Escape special characters for Muse if needed.
 conditionalEscapeString :: String -> String
 conditionalEscapeString s =
-  if any (`elem` ("*<=>[]|" :: String)) s ||
+  if any (`elem` ("#*<=>[]|" :: String)) s ||
      "::" `isInfixOf` s ||
      "----" `isInfixOf` s
     then escapeString s

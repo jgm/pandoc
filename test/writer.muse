@@ -589,7 +589,7 @@ Right paren: )
 
 Greater-than: <verbatim>></verbatim>
 
-Hash: #
+Hash: <verbatim>#</verbatim>
 
 Period: .
 
