@@ -467,8 +467,8 @@ definitionListItem = try $ do
   where
     termParser = (guardDisabled Ext_amuse <|> void spaceChar) >> -- Initial space is required by Amusewiki, but not Emacs Muse
                  many spaceChar >>
-                 many1Till anyChar (lookAhead (void (try (spaceChar >> string "::")) <|> void newline))
-    endOfInput = try $ skipMany blankline >> skipSpaces >> eof
+                 many1Till (noneOf "\n") (lookAhead (void (try (spaceChar >> string "::"))))
+    endOfInput = lookAhead $ try $ skipMany blankline >> skipSpaces >> eof
     twoBlankLines = try $ blankline >> skipMany1 blankline
     newDefinitionListItem = try $ void termParser
     endOfListItemElement = lookAhead $ endOfInput <|> newDefinitionListItem <|> twoBlankLines
