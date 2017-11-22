@@ -744,7 +744,7 @@ paraOrPlain = try $ do
   -- is directly followed by a list item, in which case the block is read as
   -- plain text.
   try (guard nl
-       *> notFollowedBy (inList *> (() <$ orderedListStart <|> bulletListStart))
+       *> notFollowedBy (inList *> (orderedListStart <|> bulletListStart))
        *> return (B.para <$> ils))
     <|>  return (B.plain <$> ils)
 
@@ -757,40 +757,34 @@ list :: PandocMonad m => OrgParser m (F Blocks)
 list = choice [ definitionList, bulletList, orderedList ] <?> "list"
 
 definitionList :: PandocMonad m => OrgParser m (F Blocks)
-definitionList = try $ do n <- lookAhead (bulletListStart' Nothing)
-                          fmap (B.definitionList . compactifyDL) . sequence
-                            <$> many1 (definitionListItem $ bulletListStart' (Just n))
+definitionList = try $ do
+  indent <- lookAhead bulletListStart
+  fmap (B.definitionList . compactifyDL) . sequence
+    <$> many1 (definitionListItem (bulletListStart `indented` indent))
 
 bulletList :: PandocMonad m => OrgParser m (F Blocks)
-bulletList = try $ do n <- lookAhead (bulletListStart' Nothing)
-                      fmap (B.bulletList . compactify) . sequence
-                        <$> many1 (listItem (bulletListStart' $ Just n))
+bulletList = try $ do
+  indent <- lookAhead bulletListStart
+  fmap (B.bulletList . compactify) . sequence
+    <$> many1 (listItem (bulletListStart `indented` indent))
+
+indented :: Monad m => OrgParser m Int -> Int -> OrgParser m Int
+indented indentedMarker minIndent = try $ do
+  n <- indentedMarker
+  guard (minIndent <= n)
+  return n
 
 orderedList :: PandocMonad m => OrgParser m (F Blocks)
-orderedList = fmap (B.orderedList . compactify) . sequence
-              <$> many1 (listItem orderedListStart)
-
-bulletListStart' :: Monad m => Maybe Int -> OrgParser m Int
--- returns length of bulletList prefix, inclusive of marker
-bulletListStart' Nothing  = do ind <- length <$> many spaceChar
-                               oneOf (bullets $ ind == 0)
-                               skipSpaces1
-                               return (ind + 1)
-bulletListStart' (Just n) = do count (n-1) spaceChar
-                               oneOf (bullets $ n == 1)
-                               many1 spaceChar
-                               return n
-
--- Unindented lists are legal, but they can't use '*' bullets.
--- We return n to maintain compatibility with the generic listItem.
-bullets :: Bool -> String
-bullets unindented = if unindented then "+-" else "*+-"
+orderedList = try $ do
+  indent <- lookAhead orderedListStart
+  fmap (B.orderedList . compactify) . sequence
+    <$> many1 (listItem (orderedListStart `indented` indent))
 
 definitionListItem :: PandocMonad m
                    => OrgParser m Int
                    -> OrgParser m (F (Inlines, [Blocks]))
-definitionListItem parseMarkerGetLength = try $ do
-  markerLength <- parseMarkerGetLength
+definitionListItem parseIndentedMarker = try $ do
+  markerLength <- parseIndentedMarker
   term <- manyTill (noneOf "\n\r") (try definitionMarker)
   line1 <- anyLineNewline
   blank <- option "" ("\n" <$ blankline)
@@ -802,13 +796,12 @@ definitionListItem parseMarkerGetLength = try $ do
    definitionMarker =
      spaceChar *> string "::" <* (spaceChar <|> lookAhead newline)
 
-
--- parse raw text for one list item, excluding start marker and continuations
+-- | parse raw text for one list item
 listItem :: PandocMonad m
          => OrgParser m Int
          -> OrgParser m (F Blocks)
-listItem start = try . withContext ListItemState $ do
-  markerLength <- try start
+listItem parseIndentedMarker = try . withContext ListItemState $ do
+  markerLength <- try parseIndentedMarker
   firstLine <- anyLineNewline
   blank <- option "" ("\n" <$ blankline)
   rest <- concat <$> many (listContinuation markerLength)
@@ -818,9 +811,9 @@ listItem start = try . withContext ListItemState $ do
 -- Note: nested lists are parsed as continuations.
 listContinuation :: Monad m => Int
                  -> OrgParser m String
-listContinuation markerLength = try $
+listContinuation markerLength = try $ do
   notFollowedBy' blankline
-  *> (mappend <$> (concat <$> many1 listLine)
-              <*> many blankline)
+  mappend <$> (concat <$> many1 listLine)
+          <*> many blankline
  where
    listLine = try $ indentWith markerLength *> anyLineNewline

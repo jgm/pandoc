@@ -1262,6 +1262,12 @@ tests =
                   , headerWith ("notvalidlistitem", [], []) 1 "NotValidListItem"
                   ]
 
+      , "Empty bullet points" =:
+          T.unlines [ "-"
+                    , "- "
+                    ] =?>
+          bulletList [ plain "", plain "" ]
+
       , "Simple Ordered List" =:
           ("1. Item1\n" <>
            "2. Item2\n") =?>
@@ -1288,6 +1294,12 @@ tests =
                               , plain "Item2"
                               ]
           in orderedListWith listStyle listStructure
+
+      , "Empty ordered list item" =:
+          T.unlines [ "1."
+                    , "3. "
+                    ] =?>
+          orderedList [ plain "", plain "" ]
 
       , "Nested Ordered Lists" =:
           ("1. One\n" <>
