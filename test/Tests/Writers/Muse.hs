@@ -313,6 +313,7 @@ tests = [ testGroup "block elements"
           , testGroup "math"
             [ "inline math" =: math "2^3" =?> "2<sup>3</sup>"
             , "display math" =: displayMath "2^3" =?> "<verse>2<sup>3</sup></verse>"
+            , "multiple letters in inline math" =: math "abc" =?> "<em>abc</em>"
             ]
           , "raw inline"
             =: rawInline "html" "<mark>marked text</mark>"
