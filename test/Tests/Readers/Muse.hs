@@ -732,6 +732,31 @@ tests =
         definitionList [ ("First term", [ para "Definition of first term\nand its continuation." ])
                        , ("Second term", [ para "Definition of second term." ])
                        ]
+      , test emacsMuse "Multi-line definition lists from Emacs Muse manual"
+        (T.unlines
+          [ "Term1 ::"
+          , "  This is a first definition"
+          , "  And it has two lines;"
+          , "no, make that three."
+          , ""
+          , "Term2 :: This is a second definition"
+          ] =?>
+         definitionList [ ("Term1", [ para "This is a first definition\nAnd it has two lines;\nno, make that three."])
+                        , ("Term2", [ para "This is a second definition"])
+                        ])
+      -- Text::Amuse requires indentation with one space
+      , "Multi-line definition lists from Emacs Muse manual with initial space" =:
+        (T.unlines
+          [ " Term1 ::"
+          , "  This is a first definition"
+          , "  And it has two lines;"
+          , "no, make that three."
+          , ""
+          , " Term2 :: This is a second definition"
+          ] =?>
+         definitionList [ ("Term1", [ para "This is a first definition\nAnd it has two lines;\nno, make that three."])
+                        , ("Term2", [ para "This is a second definition"])
+                        ])
       -- Emacs Muse creates two separate lists when indentation of items is different.
       -- We follow Amusewiki and allow different indentation within one list.
       , "Changing indentation" =:
