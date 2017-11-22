@@ -315,7 +315,8 @@ commentTag = parseHtmlContent "comment" anyChar >> return mempty
 para :: PandocMonad m => MuseParser m (F Blocks)
 para = do
  indent <- length <$> many spaceChar
- let f = if indent >= 2 && indent < 6 then B.blockQuote else id
+ st <- stateParserContext <$> getState
+ let f = if st /= ListItemState && indent >= 2 && indent < 6 then B.blockQuote else id
  fmap (f . B.para) . normalizeInlinesF . mconcat <$> many1Till inline endOfParaElement
  where
    endOfParaElement = lookAhead $ endOfInput <|> endOfPara <|> newBlockElement
