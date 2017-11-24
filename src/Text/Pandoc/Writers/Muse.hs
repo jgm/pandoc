@@ -292,10 +292,24 @@ conditionalEscapeString s =
     else s
 
 normalizeInlineList :: [Inline] -> [Inline]
+normalizeInlineList (Emph x1 : Emph x2 : ils)
+  = normalizeInlineList $ Emph (x1 ++ x2) : ils
+normalizeInlineList (Strong x1 : Strong x2 : ils)
+  = normalizeInlineList $ Strong (x1 ++ x2) : ils
+normalizeInlineList (Strikeout x1 : Strikeout x2 : ils)
+  = normalizeInlineList $ Strikeout (x1 ++ x2) : ils
+normalizeInlineList (Superscript x1 : Superscript x2 : ils)
+  = normalizeInlineList $ Superscript (x1 ++ x2) : ils
+normalizeInlineList (Subscript x1 : Subscript x2 : ils)
+  = normalizeInlineList $ Subscript (x1 ++ x2) : ils
+normalizeInlineList (SmallCaps x1 : SmallCaps x2 : ils)
+  = normalizeInlineList $ SmallCaps (x1 ++ x2) : ils
 normalizeInlineList (Code a1 x1 : Code a2 x2 : ils) | a1 == a2
   = normalizeInlineList $ Code a1 (x1 ++ x2) : ils
 normalizeInlineList (RawInline f1 x1 : RawInline f2 x2 : ils) | f1 == f2
   = normalizeInlineList $ RawInline f1 (x1 ++ x2) : ils
+normalizeInlineList (Span a1 x1 : Span a2 x2 : ils) | a1 == a2
+  = normalizeInlineList $ Span a1 (x1 ++ x2) : ils
 normalizeInlineList (x:xs) = x : normalizeInlineList xs
 normalizeInlineList [] = []
 
