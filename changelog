@@ -378,7 +378,7 @@ pandoc (2.0)
   * Added lua filters (Albert Krewinkel, #3514).  The new `--lua-filter`
     option works like `--filter` but takes pathnames of special lua filters
     and uses the lua interpreter baked into pandoc, so that no external
-    interpreter is needed.  Note that lua filters are all applied after
+    interpreter is needed.  Note that lua filters are all applied before
     regular filters, regardless of their position on the command line.
     For documentation of lua filters, see `doc/lua-filters.md`.
 
