@@ -754,6 +754,8 @@ tests =
           ] =?>
         para "Foo" <>
         definitionList [ ("Bar", [ para "baz" ]) ]
+      , "One-line definition list" =: " foo :: bar" =?>
+        definitionList [ ("foo", [ para "bar" ]) ]
       , "Multi-line definition lists" =:
         T.unlines
           [ " First term :: Definition of first term"

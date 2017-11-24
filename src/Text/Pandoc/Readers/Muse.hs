@@ -445,7 +445,7 @@ definitionListItem = try $ do
   term <- termParser
   many1 spaceChar
   string "::"
-  firstLine <- anyLineNewline
+  firstLine <- many $ noneOf "\n"
   restLines <- manyTill anyLineNewline endOfListItemElement
   let lns = firstLine : restLines
   lineContent <- parseFromString (withListContext parseBlocks) $ concat lns ++ "\n"
