@@ -442,7 +442,8 @@ orderedList = try $ do
 
 definitionListItem :: PandocMonad m => MuseParser m (F (Inlines, [Blocks]))
 definitionListItem = try $ do
-  term <- termParser
+  rawTerm <- termParser
+  term <- parseFromString (trimInlinesF . mconcat <$> many inline) rawTerm
   many1 spaceChar
   string "::"
   firstLine <- many $ noneOf "\n"
@@ -450,7 +451,8 @@ definitionListItem = try $ do
   let lns = firstLine : restLines
   lineContent <- parseFromString (withListContext parseBlocks) $ concat lns ++ "\n"
   pure $ do lineContent' <- lineContent
-            pure (B.text term, [lineContent'])
+            term' <- term
+            pure (term', [lineContent'])
   where
     termParser = (guardDisabled Ext_amuse <|> void spaceChar) >> -- Initial space is required by Amusewiki, but not Emacs Muse
                  many spaceChar >>

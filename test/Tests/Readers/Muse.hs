@@ -756,6 +756,8 @@ tests =
         definitionList [ ("Bar", [ para "baz" ]) ]
       , "One-line definition list" =: " foo :: bar" =?>
         definitionList [ ("foo", [ para "bar" ]) ]
+      , "Definition list term with emphasis" =: " *Foo* :: bar\n" =?>
+        definitionList [ (emph "Foo", [ para "bar" ]) ]
       , "Multi-line definition lists" =:
         T.unlines
           [ " First term :: Definition of first term"
