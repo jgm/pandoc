@@ -139,20 +139,6 @@ parseHtmlContentWithAttrs tag parser = do
 parseHtmlContent :: PandocMonad m => String -> MuseParser m a -> MuseParser m [a]
 parseHtmlContent tag p = fmap snd (parseHtmlContentWithAttrs tag p)
 
-normalizeInlineList :: [Inline] -> [Inline]
-normalizeInlineList (Code a1 x1 : Code a2 x2 : ils) | a1 == a2
-  = normalizeInlineList $ Code a1 (x1 ++ x2) : ils
-normalizeInlineList (RawInline f1 x1 : RawInline f2 x2 : ils) | f1 == f2
-  = normalizeInlineList $ RawInline f1 (x1 ++ x2) : ils
-normalizeInlineList (x:xs) = x : normalizeInlineList xs
-normalizeInlineList [] = []
-
-normalizeInlines :: Inlines -> Inlines
-normalizeInlines = B.fromList . normalizeInlineList . B.toList . B.trimInlines
-
-normalizeInlinesF :: Future s Inlines -> Future s Inlines
-normalizeInlinesF = liftM normalizeInlines
-
 --
 -- directive parsers
 --
@@ -164,7 +150,7 @@ parseDirective = do
   space
   spaces
   raw <- manyTill anyChar eol
-  value <- parseFromString (normalizeInlinesF . mconcat <$> many inline) raw
+  value <- parseFromString (trimInlinesF . mconcat <$> many inline) raw
   return (key, value)
 
 directive :: PandocMonad m => MuseParser m ()
@@ -231,7 +217,7 @@ header = try $ do
   level <- fmap length $ many1 $ char '*'
   guard $ level <= 5
   spaceChar
-  content <- normalizeInlinesF . mconcat <$> manyTill inline eol
+  content <- trimInlinesF . mconcat <$> manyTill inline eol
   attr <- registerHeader ("", [], []) (runF content defaultParserState)
   return $ B.headerWith attr level <$> content
 
@@ -300,7 +286,7 @@ verseLines :: PandocMonad m => MuseParser m (F Blocks)
 verseLines = do
   optionMaybe blankline -- Skip blankline after opening tag on separate line
   lns <- many verseLine
-  lns' <- mapM (parseFromString' (normalizeInlinesF . mconcat <$> many inline)) lns
+  lns' <- mapM (parseFromString' (trimInlinesF . mconcat <$> many inline)) lns
   return $ B.lineBlock <$> sequence lns'
 
 verseTag :: PandocMonad m => MuseParser m (F Blocks)
@@ -317,7 +303,7 @@ para = do
  indent <- length <$> many spaceChar
  st <- stateParserContext <$> getState
  let f = if st /= ListItemState && indent >= 2 && indent < 6 then B.blockQuote else id
- fmap (f . B.para) . normalizeInlinesF . mconcat <$> many1Till inline endOfParaElement
+ fmap (f . B.para) . trimInlinesF . mconcat <$> many1Till inline endOfParaElement
  where
    endOfParaElement = lookAhead $ endOfInput <|> endOfPara <|> newBlockElement
    endOfInput       = try $ skipMany blankline >> skipSpaces >> eof

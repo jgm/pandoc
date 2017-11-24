@@ -291,11 +291,19 @@ conditionalEscapeString s =
     then escapeString s
     else s
 
+normalizeInlineList :: [Inline] -> [Inline]
+normalizeInlineList (Code a1 x1 : Code a2 x2 : ils) | a1 == a2
+  = normalizeInlineList $ Code a1 (x1 ++ x2) : ils
+normalizeInlineList (RawInline f1 x1 : RawInline f2 x2 : ils) | f1 == f2
+  = normalizeInlineList $ RawInline f1 (x1 ++ x2) : ils
+normalizeInlineList (x:xs) = x : normalizeInlineList xs
+normalizeInlineList [] = []
+
 -- | Convert list of Pandoc inline elements to Muse.
 inlineListToMuse :: PandocMonad m
                  => [Inline]
                  -> StateT WriterState m Doc
-inlineListToMuse lst = liftM hcat (mapM inlineToMuse lst)
+inlineListToMuse lst = liftM hcat (mapM inlineToMuse (normalizeInlineList lst))
 
 -- | Convert Pandoc inline element to Muse.
 inlineToMuse :: PandocMonad m
