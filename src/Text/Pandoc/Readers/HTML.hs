@@ -1147,7 +1147,7 @@ htmlTag f = try $ do
   -- <www.boe.es/buscar/act.php?id=BOE-A-1996-8930#a66>
   -- should NOT be parsed as an HTML tag, see #2277,
   -- so we exclude . even though it's a valid character
-  -- in XML elemnet names
+  -- in XML element names
   let isNameChar c = isAlphaNum c || c == ':' || c == '-' || c == '_'
   let isName s = case s of
                       []     -> False
