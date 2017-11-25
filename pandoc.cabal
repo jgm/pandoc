@@ -110,6 +110,8 @@ data-files:
                  data/sample.lua
                  -- pandoc lua module
                  data/pandoc.lua
+                 -- lua List module
+                 data/List.lua
                  -- sample highlighting theme
                  data/default.theme
                  -- bash completion template

@@ -26,6 +26,8 @@ local M = {
   _VERSION = "0.3.0"
 }
 
+local List = require 'List'
+
 ------------------------------------------------------------------------
 -- The base class for pandoc's AST elements.
 -- @type Element
@@ -141,7 +143,7 @@ end
 function M.Pandoc(blocks, meta)
   meta = meta or {}
   return {
-    ["blocks"] = blocks,
+    ["blocks"] = List:new(blocks),
     ["meta"] = meta,
     ["pandoc-api-version"] = {1,17,0,5},
   }
@@ -250,7 +252,7 @@ M.CodeBlock = M.Block:create_constructor(
 -- @treturn     Block block quote element
 M.DefinitionList = M.Block:create_constructor(
   "DefinitionList",
-  function(content) return {c = content} end,
+  function(content) return {c = List:new(content)} end,
   "content"
 )
 
@@ -262,7 +264,7 @@ M.DefinitionList = M.Block:create_constructor(
 M.Div = M.Block:create_constructor(
   "Div",
   function(content, attr)
-    return {c = {attr or M.Attr(), content}}
+    return {c = {attr or M.Attr(), List:new(content)}}
   end,
   {{"identifier", "classes", "attributes"}, "content"}
 )
@@ -295,7 +297,7 @@ M.HorizontalRule = M.Block:create_constructor(
 -- @treturn     Block                   block quote element
 M.LineBlock = M.Block:create_constructor(
   "LineBlock",
-  function(content) return {c = content} end,
+  function(content) return {c = List:new(content)} end,
   "content"
 )
 
@@ -316,7 +318,7 @@ M.OrderedList = M.Block:create_constructor(
   "OrderedList",
   function(items, listAttributes)
     listAttributes = listAttributes or {1, M.DefaultStyle, M.DefaultDelim}
-    return {c = {listAttributes, items}}
+    return {c = {listAttributes, List:new(items)}}
   end,
   {{"start", "style", "delimiter"}, "content"}
 )
@@ -327,7 +329,7 @@ M.OrderedList = M.Block:create_constructor(
 -- @treturn     Block                   block quote element
 M.Para = M.Block:create_constructor(
   "Para",
-  function(content) return {c = content} end,
+  function(content) return {c = List:new(content)} end,
   "content"
 )
 
@@ -337,7 +339,7 @@ M.Para = M.Block:create_constructor(
 -- @treturn     Block                   block quote element
 M.Plain = M.Block:create_constructor(
   "Plain",
-  function(content) return {c = content} end,
+  function(content) return {c = List:new(content)} end,
   "content"
 )
 
@@ -363,7 +365,15 @@ M.RawBlock = M.Block:create_constructor(
 M.Table = M.Block:create_constructor(
   "Table",
   function(caption, aligns, widths, headers, rows)
-    return {c = {caption, aligns, widths, headers, rows}}
+    return {
+      c = {
+        List:new(caption),
+        List:new(aligns),
+        List:new(widths),
+        List:new(headers),
+        List:new(rows)
+      }
+    }
   end,
   {"caption", "aligns", "widths", "headers", "rows"}
 )
@@ -386,7 +396,9 @@ end
 -- @treturn Inline citations element
 M.Cite = M.Inline:create_constructor(
   "Cite",
-  function(content, citations) return {c = {citations, content}} end,
+  function(content, citations)
+    return {c = {List:new(citations), List:new(content)}}
+  end,
   {"citations", "content"}
 )
 
@@ -407,7 +419,7 @@ M.Code = M.Inline:create_constructor(
 -- @treturn Inline emphasis element
 M.Emph = M.Inline:create_constructor(
   "Emph",
-  function(content) return {c = content} end,
+  function(content) return {c = List:new(content)} end,
   "content"
 )
 
@@ -423,7 +435,7 @@ M.Image = M.Inline:create_constructor(
   function(caption, src, title, attr)
     title = title or ""
     attr = attr or M.Attr()
-    return {c = {attr, caption, {src, title}}}
+    return {c = {attr, List:new(caption), {src, title}}}
   end,
   {{"identifier", "classes", "attributes"}, "caption", {"src", "title"}}
 )
@@ -448,7 +460,7 @@ M.Link = M.Inline:create_constructor(
   function(content, target, title, attr)
     title = title or ""
     attr = attr or M.Attr()
-    return {c = {attr, content, {target, title}}}
+    return {c = {attr, List:new(content), {target, title}}}
   end,
   {{"identifier", "classes", "attributes"}, "content", {"target", "title"}}
 )
@@ -489,7 +501,7 @@ M.InlineMath = M.Inline:create_constructor(
 -- @tparam      {Block,...} content     footnote block content
 M.Note = M.Inline:create_constructor(
   "Note",
-  function(content) return {c = content} end,
+  function(content) return {c = List:new(content)} end,
   "content"
 )
 
@@ -500,7 +512,7 @@ M.Note = M.Inline:create_constructor(
 -- @treturn     Inline                  quoted element
 M.Quoted = M.Inline:create_constructor(
   "Quoted",
-  function(quotetype, content) return {c = {quotetype, content}} end,
+  function(quotetype, content) return {c = {quotetype, List:new(content)}} end,
   {"quotetype", "content"}
 )
 --- Creates a single-quoted inline element (DEPRECATED).
@@ -541,7 +553,7 @@ M.RawInline = M.Inline:create_constructor(
 -- @treturn     Inline                  smallcaps element
 M.SmallCaps = M.Inline:create_constructor(
   "SmallCaps",
-  function(content) return {c = content} end,
+  function(content) return {c = List:new(content)} end,
   "content"
 )
 
@@ -568,7 +580,9 @@ M.Space = M.Inline:create_constructor(
 -- @treturn Inline span element
 M.Span = M.Inline:create_constructor(
   "Span",
-  function(content, attr) return {c = {attr or M.Attr(), content}} end,
+  function(content, attr)
+    return {c = {attr or M.Attr(), List:new(content)}}
+  end,
   {{"identifier", "classes", "attributes"}, "content"}
 )
 
@@ -588,7 +602,7 @@ M.Str = M.Inline:create_constructor(
 -- @treturn     Inline                  strikeout element
 M.Strikeout = M.Inline:create_constructor(
   "Strikeout",
-  function(content) return {c = content} end,
+  function(content) return {c = List:new(content)} end,
   "content"
 )
 
@@ -598,7 +612,7 @@ M.Strikeout = M.Inline:create_constructor(
 -- @treturn     Inline                  strong element
 M.Strong = M.Inline:create_constructor(
   "Strong",
-  function(content) return {c = content} end,
+  function(content) return {c = List:new(content)} end,
   "content"
 )
 
@@ -608,7 +622,7 @@ M.Strong = M.Inline:create_constructor(
 -- @treturn     Inline                  subscript element
 M.Subscript = M.Inline:create_constructor(
   "Subscript",
-  function(content) return {c = content} end,
+  function(content) return {c = List:new(content)} end,
   "content"
 )
 
@@ -618,7 +632,7 @@ M.Subscript = M.Inline:create_constructor(
 -- @treturn     Inline                  strong element
 M.Superscript = M.Inline:create_constructor(
   "Superscript",
-  function(content) return {c = content} end,
+  function(content) return {c = List:new(content)} end,
   "content"
 )
 
@@ -627,24 +641,8 @@ M.Superscript = M.Inline:create_constructor(
 -- Helpers
 -- @section helpers
 
--- Find a value pair in a list.
--- @function find
--- @tparam table list to be searched
--- @param needle element to search for
--- @param[opt] key when non-nil, compare on this field of each list element
-local function find (alist, needle, key)
-  local test
-  if key then
-    test = function(x) return x[key] == needle end
-  else
-    test = function(x) return x == needle end
-  end
-  for i, k in ipairs(alist) do
-    if test(k) then
-      return i, k
-    end
-  end
-  return nil
+local function assoc_key_equals (x)
+  return function (y) return y[1] == x end
 end
 
 -- Lookup a value in an associative list
@@ -652,7 +650,7 @@ end
 -- @tparam {{key, value},...} alist associative list
 -- @param key key for which the associated value is to be looked up
 local function lookup(alist, key)
-  return (select(2, find(alist, key, 1)) or {})[2]
+  return (List.find_if(alist, assoc_key_equals(key)) or {})[2]
 end
 
 --- Return an iterator which returns key-value pairs of an associative list.
@@ -684,7 +682,7 @@ local AttributeList = {
   end,
 
   __newindex = function (t, k, v)
-    local idx, cur = find(t, k, 1)
+    local cur, idx = List.find_if(t, assoc_key_equals(k))
     if v == nil then
       table.remove(t, idx)
     elseif cur then
@@ -729,7 +727,7 @@ M.Attr._field_names = {identifier = 1, classes = 2, attributes = 3}
 -- @return element attributes
 M.Attr.__call = function(t, identifier, classes, attributes)
   identifier = identifier or ''
-  classes = classes or {}
+  classes = List:new(classes or {})
   attributes = setmetatable(to_alist(attributes or {}), AttributeList)
   local attr = {identifier, classes, attributes}
   setmetatable(attr, t)
