@@ -55,7 +55,7 @@ import Text.Pandoc.Class (PandocMonad (..))
 import Text.Pandoc.Definition
 import Text.Pandoc.Logging
 import Text.Pandoc.Options
-import Text.Pandoc.Parsing hiding (nested)
+import Text.Pandoc.Parsing
 import Text.Pandoc.Readers.HTML (htmlTag)
 import Text.Pandoc.Shared (crFilter)
 import Text.Pandoc.XML (fromEntities)
@@ -102,15 +102,6 @@ parseBlocks = do
 eol :: Stream s m Char => ParserT s st m ()
 eol = void newline <|> eof
 
-nested :: PandocMonad m => MuseParser m a -> MuseParser m a
-nested p = do
-  nestlevel <- stateMaxNestingLevel <$>  getState
-  guard $ nestlevel > 0
-  updateState $ \st -> st{ stateMaxNestingLevel = stateMaxNestingLevel st - 1 }
-  res <- p
-  updateState $ \st -> st{ stateMaxNestingLevel = nestlevel }
-  return res
-
 htmlElement :: PandocMonad m => String -> MuseParser m (Attr, String)
 htmlElement tag = try $ do
   (TagOpen _ attr, _) <- htmlTag (~== TagOpen tag [])
@@ -133,7 +124,7 @@ parseHtmlContentWithAttrs tag parser = do
   parsedContent <- parseContent (content ++ "\n")
   return (attr, parsedContent)
   where
-    parseContent = parseFromString $ nested $ manyTill parser endOfContent
+    parseContent = parseFromString $ manyTill parser endOfContent
     endOfContent = try $ skipMany blankline >> skipSpaces >> eof
 
 parseHtmlContent :: PandocMonad m => String -> MuseParser m a -> MuseParser m [a]
