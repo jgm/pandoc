@@ -58,7 +58,6 @@ import Text.Pandoc.Options
 import Text.Pandoc.Parsing
 import Text.Pandoc.Readers.HTML (htmlTag)
 import Text.Pandoc.Shared (crFilter)
-import Text.Pandoc.XML (fromEntities)
 
 -- | Read Muse from an input string and return a Pandoc document.
 readMuse :: PandocMonad m
@@ -667,7 +666,7 @@ strikeoutTag = inlineTag B.strikeout "del"
 verbatimTag :: PandocMonad m => MuseParser m (F Inlines)
 verbatimTag = do
   content <- parseHtmlContent "verbatim" anyChar
-  return $ return $ B.text $ fromEntities content
+  return $ return $ B.text content
 
 code :: PandocMonad m => MuseParser m (F Inlines)
 code = try $ do
@@ -686,7 +685,7 @@ code = try $ do
 codeTag :: PandocMonad m => MuseParser m (F Inlines)
 codeTag = do
   (attrs, content) <- parseHtmlContentWithAttrs "code" anyChar
-  return $ return $ B.codeWith attrs $ fromEntities content
+  return $ return $ B.codeWith attrs content
 
 inlineLiteralTag :: PandocMonad m => MuseParser m (F Inlines)
 inlineLiteralTag = do
@@ -696,13 +695,13 @@ inlineLiteralTag = do
   where
     -- FIXME: Emacs Muse inserts <literal> without style into all output formats, but we assume HTML
     format (_, _, kvs)        = fromMaybe "html" $ lookup "style" kvs
-    rawInline (attrs, content) = B.rawInline (format attrs) $ fromEntities content
+    rawInline (attrs, content) = B.rawInline (format attrs) content
 
 str :: PandocMonad m => MuseParser m (F Inlines)
-str = fmap (return . B.str) (many1 alphaNum <|> count 1 characterReference)
+str = return . B.str <$> many1 alphaNum
 
 symbol :: PandocMonad m => MuseParser m (F Inlines)
-symbol = (return . B.str) <$> count 1 nonspaceChar
+symbol = return . B.str <$> count 1 nonspaceChar
 
 link :: PandocMonad m => MuseParser m (F Inlines)
 link = try $ do

@@ -31,6 +31,8 @@ tests =
           "Hello, World" =?>
           para "Hello, World"
 
+      , "Muse is not XML" =: "&lt;" =?> para "&lt;"
+
       , "Emphasis" =:
         "*Foo bar*" =?>
         para (emph . spcSep $ ["Foo", "bar"])
