@@ -376,11 +376,11 @@ withListContext p = do
   updateState (\st -> st {stateParserContext = oldContext})
   return parsed
 
-listContinuation :: PandocMonad m => Int -> MuseParser m String
+listContinuation :: PandocMonad m => Int -> MuseParser m [String]
 listContinuation markerLength = try $ do
   result <- many1 $ listLine markerLength
-  blank <- option "" ("\n" <$ blankline)
-  return $ concat result ++ blank
+  blank <- option id ((++ ["\n"]) <$ blankline)
+  return $ blank result
 
 listStart :: PandocMonad m => MuseParser m Int -> MuseParser m Int
 listStart marker = try $ do
@@ -388,17 +388,23 @@ listStart marker = try $ do
   st <- stateParserContext <$> getState
   getPosition >>= \pos -> guard (st == ListItemState || sourceColumn pos /= 1)
   markerLength <- marker
-  void (many1 spaceChar) <|> eol
+  void spaceChar <|> eol
   return $ preWhitespace + markerLength + 1
+
+dropSpacePrefix :: [String] -> [String]
+dropSpacePrefix lns =
+  map (drop maxIndent) lns
+  where maxIndent = minimum $ map (length . takeWhile (== ' ')) lns
 
 listItemContents :: PandocMonad m => Int -> MuseParser m (F Blocks)
 listItemContents markerLength = do
   firstLine <- anyLineNewline
   restLines <- many $ listLine markerLength
-  blank <- option "" ("\n" <$ blankline)
-  let first = firstLine ++ concat restLines ++ blank
+  blank <- option id ((++ ["\n"]) <$ blankline)
+  let first = firstLine : blank restLines
   rest <- many $ listContinuation markerLength
-  parseFromString (withListContext parseBlocks) $ concat (first:rest) ++ "\n"
+  let allLines = concat (first : rest)
+  parseFromString (withListContext parseBlocks) $ concat (dropSpacePrefix allLines) ++ "\n"
 
 listItem :: PandocMonad m => MuseParser m Int -> MuseParser m (F Blocks)
 listItem start = try $ do
@@ -436,10 +442,10 @@ definitionListItem = try $ do
   term <- parseFromString (trimInlinesF . mconcat <$> many inline) rawTerm
   many1 spaceChar
   string "::"
-  firstLine <- many $ noneOf "\n"
-  restLines <- manyTill anyLineNewline endOfListItemElement
-  let lns = firstLine : restLines
-  lineContent <- parseFromString (withListContext parseBlocks) $ concat lns ++ "\n"
+  firstLine <- manyTill anyChar eol
+  restLines <- manyTill anyLine endOfListItemElement
+  let lns = (dropWhile (== ' ') firstLine) : dropSpacePrefix restLines
+  lineContent <- parseFromString (withListContext parseBlocks) $ unlines lns ++ "\n"
   pure $ do lineContent' <- lineContent
             term' <- term
             pure (term', [lineContent'])

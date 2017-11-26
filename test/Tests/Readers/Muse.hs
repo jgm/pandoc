@@ -342,6 +342,24 @@ tests =
                     , "</example>"
                     ] =?>
           codeBlock "Example line\n"
+        , "Example inside list" =:
+          T.unlines [ " - <example>"
+                    , "   foo"
+                    , "   </example>"
+                    ] =?>
+          bulletList [ codeBlock "foo" ]
+        , "Indented example inside list" =:
+          T.unlines [ " -  <example>"
+                    , "    foo"
+                    , "    </example>"
+                    ] =?>
+          bulletList [ codeBlock "foo" ]
+        , "Example inside definition list" =:
+          T.unlines [ " foo :: <example>"
+                    , "        bar"
+                    , "        </example>"
+                    ] =?>
+          definitionList [ ("foo", [codeBlock "bar"]) ]
         ]
       , testGroup "Literal blocks"
         [ test emacsMuse "Literal block"
