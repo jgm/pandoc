@@ -105,6 +105,9 @@ tests =
 
       , "Linebreak" =: "Line <br>  break" =?> para ("Line" <> linebreak <> "break")
 
+      , test emacsMuse "Non-breaking space"
+        ("Foo~~bar" =?> para ("Foo\160bar"))
+
       , testGroup "Code markup"
         [ "Code" =: "=foo(bar)=" =?> para (code "foo(bar)")
 

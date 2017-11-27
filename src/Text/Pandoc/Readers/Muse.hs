@@ -581,6 +581,7 @@ inlineList = [ endline
              , subscriptTag
              , strikeoutTag
              , verbatimTag
+             , nbsp
              , link
              , code
              , codeTag
@@ -681,6 +682,12 @@ verbatimTag :: PandocMonad m => MuseParser m (F Inlines)
 verbatimTag = do
   content <- parseHtmlContent "verbatim" anyChar
   return $ return $ B.text content
+
+nbsp :: PandocMonad m => MuseParser m (F Inlines)
+nbsp = do
+  guardDisabled Ext_amuse -- Supported only by Emacs Muse
+  string "~~"
+  return $ return $ B.str "\160"
 
 code :: PandocMonad m => MuseParser m (F Inlines)
 code = try $ do
