@@ -129,6 +129,13 @@ parseHtmlContentWithAttrs tag parser = do
 parseHtmlContent :: PandocMonad m => String -> MuseParser m a -> MuseParser m [a]
 parseHtmlContent tag p = fmap snd (parseHtmlContentWithAttrs tag p)
 
+commonPrefix :: String -> String -> String
+commonPrefix _ [] = []
+commonPrefix [] _ = []
+commonPrefix (x:xs) (y:ys)
+  | x == y    = x : commonPrefix xs ys
+  | otherwise = []
+
 --
 -- directive parsers
 --
@@ -365,7 +372,7 @@ lineBlock = try $ do
 listLine :: PandocMonad m => Int -> MuseParser m String
 listLine markerLength = try $ do
   indentWith markerLength
-  anyLineNewline
+  manyTill anyChar eol
 
 withListContext :: PandocMonad m => MuseParser m a -> MuseParser m a
 withListContext p = do
@@ -379,7 +386,7 @@ withListContext p = do
 listContinuation :: PandocMonad m => Int -> MuseParser m [String]
 listContinuation markerLength = try $ do
   result <- many1 $ listLine markerLength
-  blank <- option id ((++ ["\n"]) <$ blankline)
+  blank <- option id ((++ [""]) <$ blankline)
   return $ blank result
 
 listStart :: PandocMonad m => MuseParser m Int -> MuseParser m Int
@@ -394,17 +401,18 @@ listStart marker = try $ do
 dropSpacePrefix :: [String] -> [String]
 dropSpacePrefix lns =
   map (drop maxIndent) lns
-  where maxIndent = minimum $ map (length . takeWhile (== ' ')) lns
+  where flns = filter (\s -> not $ all (== ' ') s) lns
+        maxIndent = if null flns then 0 else length $ takeWhile (== ' ') $ foldl1 commonPrefix flns
 
 listItemContents :: PandocMonad m => Int -> MuseParser m (F Blocks)
 listItemContents markerLength = do
-  firstLine <- anyLineNewline
+  firstLine <- manyTill anyChar eol
   restLines <- many $ listLine markerLength
-  blank <- option id ((++ ["\n"]) <$ blankline)
+  blank <- option id ((++ [""]) <$ blankline)
   let first = firstLine : blank restLines
   rest <- many $ listContinuation markerLength
   let allLines = concat (first : rest)
-  parseFromString (withListContext parseBlocks) $ concat (dropSpacePrefix allLines) ++ "\n"
+  parseFromString (withListContext parseBlocks) $ unlines (dropSpacePrefix allLines)
 
 listItem :: PandocMonad m => MuseParser m Int -> MuseParser m (F Blocks)
 listItem start = try $ do
@@ -444,8 +452,8 @@ definitionListItem = try $ do
   string "::"
   firstLine <- manyTill anyChar eol
   restLines <- manyTill anyLine endOfListItemElement
-  let lns = (dropWhile (== ' ') firstLine) : dropSpacePrefix restLines
-  lineContent <- parseFromString (withListContext parseBlocks) $ unlines lns ++ "\n"
+  let lns = dropWhile (== ' ') firstLine : dropSpacePrefix restLines
+  lineContent <- parseFromString (withListContext parseBlocks) $ unlines lns
   pure $ do lineContent' <- lineContent
             term' <- term
             pure (term', [lineContent'])

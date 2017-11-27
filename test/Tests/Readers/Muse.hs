@@ -32,16 +32,12 @@ removeTables :: Block -> Block
 removeTables (Table{}) = Para [Str "table was here"]
 removeTables x = x
 
-removeCodeBlocks :: Block -> Block
-removeCodeBlocks (CodeBlock{}) = Para [Str "table was here"]
-removeCodeBlocks x = x
-
 -- Demand that any AST produced by Muse reader and written by Muse writer can be read back exactly the same way.
 -- Currently we remove code blocks and tables and compare third rewrite to the second.
 -- First and second rewrites are not equal yet.
 roundTrip :: Block -> Bool
 roundTrip b = d'' == d'''
-  where d = walk (removeCodeBlocks . removeTables) $ Pandoc nullMeta [b]
+  where d = walk removeTables $ Pandoc nullMeta [b]
         d' = rewrite d
         d'' = rewrite d'
         d''' = rewrite d''
@@ -348,6 +344,18 @@ tests =
                     , "   </example>"
                     ] =?>
           bulletList [ codeBlock "foo" ]
+        , "Example inside list with empty lines" =:
+          T.unlines [ " - <example>"
+                    , "   foo"
+                    , "   </example>"
+                    , ""
+                    , "   bar"
+                    , ""
+                    , "   <example>"
+                    , "   baz"
+                    , "   </example>"
+                    ] =?>
+          bulletList [ codeBlock "foo" <> para "bar" <> codeBlock "baz" ]
         , "Indented example inside list" =:
           T.unlines [ " -  <example>"
                     , "    foo"
@@ -360,6 +368,18 @@ tests =
                     , "        </example>"
                     ] =?>
           definitionList [ ("foo", [codeBlock "bar"]) ]
+        , "Example inside list definition with empty lines" =:
+          T.unlines [ " term :: <example>"
+                    , "         foo"
+                    , "         </example>"
+                    , ""
+                    , "         bar"
+                    , ""
+                    , "         <example>"
+                    , "         baz"
+                    , "         </example>"
+                    ] =?>
+          definitionList [ ("term", [codeBlock "foo" <> para "bar" <> codeBlock "baz"]) ]
         ]
       , testGroup "Literal blocks"
         [ test emacsMuse "Literal block"
