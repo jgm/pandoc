@@ -1437,7 +1437,7 @@ options =
     , Option "m" ["latexmathml", "asciimathml"]
                  (OptArg
                   (\arg opt -> do
-                      deprecatedOption "--latexmathml"
+                      deprecatedOption "--latexmathml, --asciimathml, -m"
                       return opt { optHTMLMathMethod = LaTeXMathML arg })
                   "URL")
                  "" -- "Use LaTeXMathML script in html output"
