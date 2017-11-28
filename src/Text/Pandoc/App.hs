@@ -1119,7 +1119,7 @@ options =
     , Option "" ["highlight-style"]
                 (ReqArg
                  (\arg opt -> return opt{ optHighlightStyle = Just arg })
-                 "STYLE")
+                 "STYLE|FILE")
                  "" -- "Style for highlighted code"
 
     , Option "" ["syntax-definition"]
