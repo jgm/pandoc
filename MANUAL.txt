@@ -685,8 +685,16 @@ General writer options
     Instead of a *STYLE* name, a JSON file with extension
     `.theme` may be supplied.  This will be parsed as a KDE
     syntax highlighting theme and (if valid) used as the
-    highlighting style.  To see a sample theme that can be
-    modified, `pandoc --print-default-data-file default.theme`.
+    highlighting style.
+
+    To generate the JSON version of an existing style,
+    use `--print-highlight-style`.
+
+`--print-highlight-style=`*STYLE*|*FILE*
+
+:   Prints a JSON version of a highlighting style, which can
+    be modified, saved with a `.theme` extension, and used
+    with `--highlight-style`.
 
 `--syntax-definition=`*FILE*
 

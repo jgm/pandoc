@@ -63,7 +63,10 @@ import qualified Data.Yaml as Yaml
 import GHC.Generics
 import Network.URI (URI (..), parseURI)
 import Paths_pandoc (getDataDir)
-import Skylighting (Style, Syntax (..), defaultSyntaxMap, parseTheme)
+import Data.Aeson.Encode.Pretty (encodePretty', Config(..), keyOrder,
+         defConfig, Indent(..), NumberFormat(..))
+import Skylighting (Style, Syntax (..), defaultSyntaxMap, parseTheme,
+                    pygments)
 import Skylighting.Parser (addSyntaxDefinition, missingIncludes,
                            parseSyntaxDefinition)
 import System.Console.GetOpt
@@ -1046,6 +1049,28 @@ options =
                      exitSuccess)
                   "FILE")
                   "" -- "Print default data file"
+
+    , Option "" ["print-highlight-style"]
+                 (ReqArg
+                  (\arg _ -> do
+                     sty <- fromMaybe pygments <$>
+                              lookupHighlightStyle (Just arg)
+                     B.putStr $ encodePretty'
+                       defConfig{confIndent = Spaces 4
+                                ,confCompare = keyOrder
+                                  (map T.pack
+                                   ["text-color"
+                                   ,"background-color"
+                                   ,"line-numbers"
+                                   ,"bold"
+                                   ,"italic"
+                                   ,"underline"
+                                   ,"text-styles"])
+                                ,confNumFormat = Generic
+                                ,confTrailingNewline = True} sty
+                     exitSuccess)
+                  "STYLE|FILE")
+                 "" -- "Print default template for FORMAT"
 
     , Option "" ["dpi"]
                  (ReqArg
