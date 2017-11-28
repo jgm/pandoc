@@ -1068,9 +1068,8 @@ inlineToMarkdown opts (Str str) = do
   return $ text str'
 inlineToMarkdown opts (Math InlineMath str) =
   case writerHTMLMathMethod opts of
-       WebTeX url ->
-             inlineToMarkdown opts (Image nullAttr [Str str]
-                 (url ++ urlEncode str, str))
+       WebTeX url -> inlineToMarkdown opts
+                       (Image nullAttr [Str str] (url ++ urlEncode str, str))
        _ | isEnabled Ext_tex_math_dollars opts ->
              return $ "$" <> text str <> "$"
          | isEnabled Ext_tex_math_single_backslash opts ->

@@ -39,6 +39,7 @@ import Data.List (transpose)
 import Data.Monoid (Any (..), (<>))
 import Data.Text (Text)
 import qualified Data.Text as T
+import Network.HTTP (urlEncode)
 import Text.Pandoc.Class (PandocMonad)
 import Text.Pandoc.Definition
 import Text.Pandoc.Options
@@ -276,12 +277,21 @@ inlineToNodes opts (Quoted qt ils) =
                             | isEnabled Ext_smart opts -> ("\"", "\"")
                             | otherwise -> ("“", "”")
 inlineToNodes _ (Code _ str) = (node (CODE (T.pack str)) [] :)
-inlineToNodes _ (Math mt str) =
-  case mt of
-    InlineMath  ->
-      (node (HTML_INLINE (T.pack ("\\(" ++ str ++ "\\)"))) [] :)
-    DisplayMath ->
-      (node (HTML_INLINE (T.pack ("\\[" ++ str ++ "\\]"))) [] :)
+inlineToNodes opts (Math mt str) =
+  case writerHTMLMathMethod opts of
+       WebTeX url ->
+           let core = inlineToNodes opts
+                        (Image nullAttr [Str str] (url ++ urlEncode str, str))
+               sep = if mt == DisplayMath
+                        then (node LINEBREAK [] :)
+                        else id
+           in  (sep . core . sep)
+       _  ->
+           case mt of
+            InlineMath  ->
+              (node (HTML_INLINE (T.pack ("\\(" ++ str ++ "\\)"))) [] :)
+            DisplayMath ->
+              (node (HTML_INLINE (T.pack ("\\[" ++ str ++ "\\]"))) [] :)
 inlineToNodes opts (Span _ ils) = (inlinesToNodes opts ils ++)
 inlineToNodes opts (Cite _ ils) = (inlinesToNodes opts ils ++)
 inlineToNodes _ (Note _) = id -- should not occur
