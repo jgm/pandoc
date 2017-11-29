@@ -22,14 +22,13 @@ THIS SOFTWARE.
 -- @author Albert Krewinkel
 -- @copyright © 2017 Albert Krewinkel
 -- @license MIT
-local M = {
-  _VERSION = "0.1.0"
-}
 
 ------------------------------------------------------------------------
 -- Metatable for lists
 -- @type List
-local List = {}
+local List = {
+  _VERSION = "0.1.0"
+}
 
 function List:new (o)
   o = o or {}
