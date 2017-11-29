@@ -253,8 +253,10 @@ pandocToLaTeX options (Pandoc meta blocks) = do
                   defField "section-titles" True $
                   defField "geometry" geometryFromMargins $
                   (case getField "papersize" metadata of
-                        Just ("A4" :: String) -> resetField "papersize"
-                                                    ("a4" :: String)
+                        -- uppercase a4, a5, etc.
+                        Just (('A':d:ds) :: String)
+                          | all isDigit (d:ds) -> resetField "papersize"
+                                                    (('a':d:ds) :: String)
                         _                     -> id)
                   metadata
   let context' =
