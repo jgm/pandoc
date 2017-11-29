@@ -318,8 +318,8 @@ amuseNoteBlock :: PandocMonad m => MuseParser m (F Blocks)
 amuseNoteBlock = try $ do
   guardEnabled Ext_amuse
   pos <- getPosition
-  ref <- noteMarker <* skipSpaces
-  content <- listItemContents $ 2 + length ref
+  ref <- noteMarker <* spaceChar
+  content <- listItemContents $ 3 + length ref
   oldnotes <- stateNotes' <$> getState
   case M.lookup ref oldnotes of
     Just _  -> logMessage $ DuplicateNoteReference ref pos

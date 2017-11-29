@@ -385,6 +385,14 @@ tests =
                     , "         </example>"
                     ] =?>
           definitionList [ ("term", [codeBlock "foo" <> para "bar" <> codeBlock "baz"]) ]
+        , "Example inside note" =:
+          T.unlines [ "Foo[1]"
+                    , ""
+                    , "[1] <example>"
+                    , "    bar"
+                    , "    </example>"
+                    ] =?>
+          para ("Foo" <> note (codeBlock "bar"))
         ]
       , testGroup "Literal blocks"
         [ test emacsMuse "Literal block"
