@@ -1245,6 +1245,7 @@ inlineCommands = M.union inlineLanguageCommands $ M.fromList $
   , ("textup", extractSpaces (spanWith ("",["upright"],[])) <$> tok)
   , ("texttt", ttfamily)
   , ("sout", extractSpaces strikeout <$> tok)
+  , ("alert", skipangles >> spanWith ("",["alert"],[]) <$> tok) -- beamer
   , ("lq", return (str "‘"))
   , ("rq", return (str "’"))
   , ("textquoteleft", return (str "‘"))
