@@ -36,17 +36,14 @@ import Control.Applicative ((<|>))
 import Foreign.Lua (FromLuaStack (peek), Lua, LuaInteger, LuaNumber, StackIndex,
                     ToLuaStack (push), Type (..), throwLuaError, tryLua)
 import Text.Pandoc.Definition
-import Text.Pandoc.Lua.Util (addValue, adjustIndexBy, getTable,
-                             pushViaConstructor)
+import Text.Pandoc.Lua.Util (adjustIndexBy, getTable, pushViaConstructor)
 import Text.Pandoc.Shared (safeRead)
 
 import qualified Foreign.Lua as Lua
 
 instance ToLuaStack Pandoc where
-  push (Pandoc meta blocks) = do
-    Lua.newtable
-    addValue "blocks" blocks
-    addValue "meta"   meta
+  push (Pandoc meta blocks) =
+    pushViaConstructor "Pandoc" blocks meta
 
 instance FromLuaStack Pandoc where
   peek idx = do
@@ -55,7 +52,8 @@ instance FromLuaStack Pandoc where
     return $ Pandoc meta blocks
 
 instance ToLuaStack Meta where
-  push (Meta mmap) = push mmap
+  push (Meta mmap) =
+    pushViaConstructor "Meta" mmap
 instance FromLuaStack Meta where
   peek idx = Meta <$> peek idx
 

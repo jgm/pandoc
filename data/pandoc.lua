@@ -153,6 +153,21 @@ end
 M.Doc = M.Pandoc
 
 ------------------------------------------------------------------------
+-- Meta
+-- @section Meta
+
+--- Create a new Meta object. It sets the metatable of the given table to
+--- `Meta`.
+-- @function Meta
+-- @tparam meta table table containing document meta information
+M.Meta = {}
+M.Meta.__call = function(t, meta)
+  return setmetatable(meta, self)
+end
+setmetatable(M.Meta, M.Meta)
+
+
+------------------------------------------------------------------------
 -- MetaValue
 -- @section MetaValue
 M.MetaValue = Element:make_subtype{}

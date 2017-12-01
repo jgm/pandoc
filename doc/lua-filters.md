@@ -617,6 +617,17 @@ Lua functions for pandoc scripts.
     `meta`:
     :   document meta data
 
+## Meta
+
+[`Meta (table)`]{#Meta}
+
+:   Create a new Meta object.
+
+    Parameters:
+
+    `table`:
+    :   table containing document meta information
+
 ## MetaValue
 
 [`MetaBlocks (blocks)`]{#MetaBlocks}
