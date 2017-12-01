@@ -91,7 +91,7 @@ loadListModule :: Maybe FilePath -> Lua ()
 loadListModule datadir = do
   Lua.getglobal' "package.loaded"
   pushListModule datadir
-  Lua.setfield (-2) "List"
+  Lua.setfield (-2) "pandoc.List"
   Lua.pop 1
 
 walkElement :: (ToLuaStack a, Walkable [Inline] a, Walkable [Block] a)

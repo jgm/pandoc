@@ -26,7 +26,7 @@ local M = {
   _VERSION = "0.3.0"
 }
 
-local List = require 'List'
+local List = require 'pandoc.List'
 
 ------------------------------------------------------------------------
 -- The base class for pandoc's AST elements.
