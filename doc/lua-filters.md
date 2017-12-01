@@ -1479,3 +1479,106 @@ storage. The "media bag" is used when pandoc is called with the
 
         local diagram_url = "https://pandoc.org/diagram.jpg"
         local contents = pandoc.mediabag.fetch(diagram_url, ".")
+
+# Module pandoc.List
+
+Pandoc\'s List type and helper methods
+
+## Metamethods
+
+[`pandoc.List:__concat (list)`]{#pandoc.List:__concat}
+
+:   Concatenates two lists.
+
+    Parameters:
+
+    `list`:
+    :   second list concatenated to the first
+
+    Returns: a new list containing all elements from list1 and
+    list2
+
+## Methods
+
+[`pandoc.List:clone ()`]{#pandoc.List:clone}
+
+:   Returns a (shallow) copy of the list.
+
+[`pandoc.List:includes (needle, init)`]{#pandoc.List:includes}
+
+:   Checks if the list has an item equal to the given needle.
+
+    Parameters:
+
+    `needle`:
+    :   item to search for
+
+    `init`:
+    :   index at which the search is started
+
+    Returns: true if a list item is equal to the needle, false
+    otherwise
+
+[`pandoc.List:find (needle, init)`]{#pandoc.List:find}
+
+:   Returns the value and index of the first occurrence of the
+    given item.
+
+    Parameters:
+
+    `needle`:
+    :   item to search for
+
+    `init`:
+    :   index at which the search is started
+
+    Returns: first item equal to the needle, or nil if no such
+    item exists.
+
+[`pandoc.List:find_if (pred, init)`]{#pandoc.List:find_if}
+
+:   Returns the value and index of the first element for which
+    the predicate holds true.
+
+    Parameters:
+
+    `pred`:
+    :   the predicate function
+
+    `init`:
+    :   index at which the search is started
+
+    Returns: first item for which \`test\` succeeds, or nil if
+    no such item exists.
+
+[`pandoc.List:extend (list)`]{#pandoc.List:extend}
+
+:   Adds the given list to the end of this list.
+
+    Parameters:
+
+    `list`:
+    :   list to appended
+
+[`pandoc.List:map (fn)`]{#pandoc.List:map}
+
+:   Returns a copy of the current list by applying the given
+    function to all elements.
+
+    Parameters:
+
+    `fn`:
+    :   function which is applied to all list items.
+
+[`pandoc.List:filter (pred)`]{#pandoc.List:filter}
+
+:   Returns a new list containing all items satisfying a given
+    condition.
+
+    Parameters:
+
+    `pred`:
+    :   condition items must satisfy.
+
+    Returns: a new list containing all items for which \`test\`
+    was true.
