@@ -1125,7 +1125,12 @@ inlineToLaTeX (Image attr _ (source, _)) = do
                            [d <> text (show dim)]
                          Nothing          ->
                            []
-      dimList = showDim Width ++ showDim Height
+      -- if we just have a width or a height, we add keepaspectratio:
+      keepaspectratio = case (dimension Height attr, dimension Width attr) of
+                             (Nothing, Just _) -> ["keepaspectratio"]
+                             (Just _, Nothing) -> ["keepaspectratio"]
+                             _ -> []
+      dimList = showDim Width ++ showDim Height ++ keepaspectratio
       dims = if null dimList
                 then empty
                 else brackets $ cat (intersperse "," dimList)
