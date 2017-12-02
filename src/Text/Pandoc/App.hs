@@ -86,8 +86,8 @@ import Text.Pandoc.Lua (LuaException (..), runLuaFilter)
 import Text.Pandoc.PDF (makePDF)
 import Text.Pandoc.Process (pipeProcess)
 import Text.Pandoc.SelfContained (makeDataURI, makeSelfContained)
-import Text.Pandoc.Shared (eastAsianLineBreakFilter, headerShift, isURI, ordNub,
-                           safeRead, tabFilter)
+import Text.Pandoc.Shared (eastAsianLineBreakFilter, stripEmptyParagraphs,
+         headerShift, isURI, ordNub, safeRead, tabFilter)
 import qualified Text.Pandoc.UTF8 as UTF8
 import Text.Pandoc.Writers.Math (defaultKaTeXURL, defaultMathJaxURL)
 import Text.Pandoc.XML (toEntities)
@@ -461,14 +461,17 @@ convertWithOpts opts = do
 
     let transforms = (case optBaseHeaderLevel opts of
                           x | x > 1     -> (headerShift (x - 1) :)
-                            | otherwise -> id) $
+                            | otherwise -> id) .
+                     (if optStripEmptyParagraphs opts
+                         then (stripEmptyParagraphs :)
+                         else id) .
                      (if extensionEnabled Ext_east_asian_line_breaks
                             readerExts &&
                          not (extensionEnabled Ext_east_asian_line_breaks
                               writerExts &&
                               writerWrapText writerOptions == WrapPreserve)
                          then (eastAsianLineBreakFilter :)
-                         else id)
+                         else id) $
                      []
 
     let sourceToDoc :: [FilePath] -> PandocIO Pandoc
@@ -622,6 +625,7 @@ data Opt = Opt
     , optLuaFilters            :: [FilePath] -- ^ Lua filters to apply
     , optEmailObfuscation      :: ObfuscationMethod
     , optIdentifierPrefix      :: String
+    , optStripEmptyParagraphs  :: Bool -- ^ Strip empty paragraphs
     , optIndentedCodeClasses   :: [String] -- ^ Default classes for indented code blocks
     , optDataDir               :: Maybe FilePath
     , optCiteMethod            :: CiteMethod -- ^ Method to output cites
@@ -694,6 +698,7 @@ defaultOpts = Opt
     , optLuaFilters            = []
     , optEmailObfuscation      = NoObfuscation
     , optIdentifierPrefix      = ""
+    , optStripEmptyParagraphs  = False
     , optIndentedCodeClasses   = []
     , optDataDir               = Nothing
     , optCiteMethod            = Citeproc
@@ -940,7 +945,12 @@ options =
                   "NUMBER")
                  "" -- "Headers base level"
 
-     , Option "" ["indented-code-classes"]
+    , Option "" ["strip-empty-paragraphs"]
+                 (NoArg
+                  (\opt -> return opt{ optStripEmptyParagraphs = True }))
+                 "" -- "Strip empty paragraphs"
+
+    , Option "" ["indented-code-classes"]
                   (ReqArg
                    (\arg opt -> return opt { optIndentedCodeClasses = words $
                                              map (\c -> if c == ',' then ' ' else c) arg })

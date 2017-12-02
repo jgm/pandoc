@@ -72,6 +72,7 @@ module Text.Pandoc.Shared (
                      inlineListToIdentifier,
                      isHeaderBlock,
                      headerShift,
+                     stripEmptyParagraphs,
                      isTightList,
                      addMetaField,
                      makeMeta,
@@ -528,6 +529,14 @@ headerShift n = walk shift
   where shift :: Block -> Block
         shift (Header level attr inner) = Header (level + n) attr inner
         shift x                         = x
+
+-- | Remove empty paragraphs.
+stripEmptyParagraphs :: Pandoc -> Pandoc
+stripEmptyParagraphs = walk go
+  where go :: [Block] -> [Block]
+        go = filter (not . isEmptyParagraph)
+        isEmptyParagraph (Para []) = True
+        isEmptyParagraph _         = False
 
 -- | Detect if a list is tight.
 isTightList :: [[Block]] -> Bool
