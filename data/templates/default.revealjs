@@ -236,7 +236,7 @@ $if(mathjax)$
           config: 'TeX-AMS_HTML-full',
           tex2jax: {
             inlineMath: [['\\(','\\)']],
-            displayMath: [['\[','\]']],
+            displayMath: [['\\[','\\]']],
             balanceBraces: true,
             processEscapes: false,
             processRefs: true,
