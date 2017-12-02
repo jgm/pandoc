@@ -1124,7 +1124,12 @@ inlineToLaTeX (Image attr _ (source, _)) = do
                          Just dim         ->
                            [d <> text (show dim)]
                          Nothing          ->
-                           []
+                           case dir of
+                                Width | isJust (dimension Height attr) ->
+                                  [d <> "\\textwidth"]
+                                Height | isJust (dimension Width attr) ->
+                                  [d <> "\\textheight"]
+                                _ -> []
       dimList = showDim Width ++ showDim Height
       dims = if null dimList
                 then empty
