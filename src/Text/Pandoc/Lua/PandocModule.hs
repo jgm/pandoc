@@ -33,21 +33,21 @@ module Text.Pandoc.Lua.PandocModule
   , pushMediaBagModule
   ) where
 
-import Control.Monad (unless, zipWithM_)
-import Data.ByteString.Char8 (unpack)
+import Control.Monad (zipWithM_)
 import Data.Default (Default (..))
 import Data.Digest.Pure.SHA (sha1, showDigest)
-import Data.IORef
+import Data.IORef (IORef, modifyIORef', readIORef)
 import Data.Maybe (fromMaybe)
 import Data.Text (pack)
 import Foreign.Lua (ToLuaStack, FromLuaStack, Lua, NumResults, liftIO)
 import Foreign.Lua.FunctionCalling (ToHaskellFunction)
 import System.Exit (ExitCode (..))
 import Text.Pandoc.Class (CommonState (..), fetchItem, putCommonState,
-                          readDataFile, runIO, runIOorExplode, setMediaBag,
-                          setUserDataDir)
-import Text.Pandoc.Lua.StackInstances ()
+                          runIO, runIOorExplode, setMediaBag)
 import Text.Pandoc.Definition (Block, Inline)
+import Text.Pandoc.Lua.Filter (walkInlines, walkBlocks, LuaFilter)
+import Text.Pandoc.Lua.StackInstances ()
+import Text.Pandoc.Lua.Util (loadScriptFromDataDir)
 import Text.Pandoc.Walk (Walkable)
 import Text.Pandoc.MIME (MimeType)
 import Text.Pandoc.Options (ReaderOptions (readerExtensions))
@@ -57,42 +57,17 @@ import Text.Pandoc.Readers (Reader (..), getReader)
 import qualified Data.ByteString.Lazy as BL
 import qualified Foreign.Lua as Lua
 import qualified Text.Pandoc.MediaBag as MB
-import Text.Pandoc.Lua.Filter (walkInlines, walkBlocks, LuaFilter)
 
 -- | Push the "pandoc" on the lua stack. Requires the `list` module to be
 -- loaded.
 pushPandocModule :: Maybe FilePath -> Lua ()
 pushPandocModule datadir = do
-  loadListModule datadir
-  script <- liftIO (moduleScript datadir "pandoc.lua")
-  status <- Lua.loadstring script
-  unless (status /= Lua.OK) $ Lua.call 0 1
+  loadScriptFromDataDir datadir "pandoc.lua"
   addFunction "_pipe" pipeFn
   addFunction "_read" readDoc
   addFunction "sha1" sha1HashFn
   addFunction "walk_block" walkBlock
   addFunction "walk_inline" walkInline
-
--- | Get the string representation of the pandoc module
-moduleScript :: Maybe FilePath -> FilePath -> IO String
-moduleScript datadir moduleFile = unpack <$>
-  runIOorExplode (setUserDataDir datadir >> readDataFile moduleFile)
-
--- Loads pandoc's list module without assigning it to a variable.
-pushListModule :: Maybe FilePath -> Lua ()
-pushListModule datadir = do
-  script <- liftIO (moduleScript datadir "List.lua")
-  status <- Lua.loadstring script
-  if status == Lua.OK
-    then Lua.call 0 1
-    else Lua.throwTopMessageAsError' ("Error while loading module `list`\n" ++)
-
-loadListModule :: Maybe FilePath -> Lua ()
-loadListModule datadir = do
-  Lua.getglobal' "package.loaded"
-  pushListModule datadir
-  Lua.setfield (-2) "pandoc.List"
-  Lua.pop 1
 
 walkElement :: (ToLuaStack a, Walkable [Inline] a, Walkable [Block] a)
             => a -> LuaFilter -> Lua NumResults

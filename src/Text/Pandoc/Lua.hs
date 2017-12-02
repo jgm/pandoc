@@ -31,45 +31,46 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 Pandoc lua utils.
 -}
-module Text.Pandoc.Lua (LuaException (..), pushPandocModule, runLuaFilter) where
+module Text.Pandoc.Lua
+  ( LuaException (..)
+  , LuaPackageParams (..)
+  , pushPandocModule
+  , runLuaFilter
+  , initLuaState
+  , luaPackageParams
+  ) where
 
 import Control.Monad (when, (>=>))
 import Control.Monad.Identity (Identity)
 import Control.Monad.Trans (MonadIO (..))
-import Data.IORef (IORef, newIORef, readIORef)
+import Data.IORef (newIORef, readIORef)
 import Foreign.Lua (FromLuaStack (peek), Lua, LuaException (..),
                     Status (OK), ToLuaStack (push))
-import Text.Pandoc.Class (CommonState, PandocIO, getCommonState, getMediaBag,
-                          setMediaBag)
+import Text.Pandoc.Class (PandocIO, getCommonState, getMediaBag, setMediaBag)
 import Text.Pandoc.Definition
+import Text.Pandoc.Lua.Packages (LuaPackageParams (..),
+                                 installPandocPackageSearcher)
 import Text.Pandoc.Lua.PandocModule (pushMediaBagModule, pushPandocModule)
 import Text.Pandoc.Lua.Filter (LuaFilter, walkMWithLuaFilter)
-import Text.Pandoc.MediaBag (MediaBag)
 import qualified Foreign.Lua as Lua
 import qualified Foreign.Lua.Module.Text as Lua
 
 runLuaFilter :: Maybe FilePath -> FilePath -> String
              -> Pandoc -> PandocIO (Either LuaException Pandoc)
 runLuaFilter datadir filterPath format pd = do
-  commonState <- getCommonState
-  mediaBag <- getMediaBag
-  mediaBagRef <- liftIO (newIORef mediaBag)
+  luaPkgParams <- luaPackageParams datadir
   res <- liftIO . Lua.runLuaEither $
-         runLuaFilter' commonState datadir filterPath format mediaBagRef pd
-  newMediaBag <- liftIO (readIORef mediaBagRef)
+         runLuaFilter' luaPkgParams filterPath format pd
+  newMediaBag <- liftIO (readIORef (luaPkgMediaBag luaPkgParams))
   setMediaBag newMediaBag
   return res
 
-runLuaFilter' :: CommonState
-              -> Maybe FilePath -> FilePath -> String -> IORef MediaBag
+runLuaFilter' :: LuaPackageParams
+              -> FilePath -> String
               -> Pandoc -> Lua Pandoc
-runLuaFilter' commonState datadir filterPath format mbRef pd = do
-  Lua.openlibs
-  Lua.preloadTextModule "text"
+runLuaFilter' luaPkgOpts filterPath format pd = do
+  initLuaState luaPkgOpts
   -- store module in global "pandoc"
-  pushPandocModule datadir
-  Lua.setglobal "pandoc"
-  addMediaBagModule
   registerFormat
   top <- Lua.gettop
   stat <- Lua.dofile filterPath
@@ -84,15 +85,33 @@ runLuaFilter' commonState datadir filterPath format mbRef pd = do
       luaFilters <- peek (-1)
       runAll luaFilters pd
  where
-  addMediaBagModule = do
-    Lua.getglobal "pandoc"
-    push "mediabag"
-    pushMediaBagModule commonState mbRef
-    Lua.rawset (-3)
   registerFormat = do
     push format
     Lua.setglobal "FORMAT"
 
+luaPackageParams :: Maybe FilePath -> PandocIO LuaPackageParams
+luaPackageParams datadir = do
+  commonState <- getCommonState
+  mbRef <- liftIO . newIORef =<< getMediaBag
+  return LuaPackageParams
+    { luaPkgCommonState = commonState
+    , luaPkgDataDir = datadir
+    , luaPkgMediaBag = mbRef
+    }
+
+-- Initialize the lua state with all required values
+initLuaState :: LuaPackageParams -> Lua ()
+initLuaState luaPkgParams@(LuaPackageParams commonState datadir mbRef) = do
+  Lua.openlibs
+  Lua.preloadTextModule "text"
+  installPandocPackageSearcher luaPkgParams
+  pushPandocModule datadir
+  -- add MediaBag module
+  push "mediabag"
+  pushMediaBagModule commonState mbRef
+  Lua.rawset (-3)
+  Lua.setglobal "pandoc"
+  return ()
 
 pushGlobalFilter :: Lua ()
 pushGlobalFilter = do

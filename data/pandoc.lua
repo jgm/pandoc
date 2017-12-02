@@ -162,7 +162,7 @@ M.Doc = M.Pandoc
 -- @tparam meta table table containing document meta information
 M.Meta = {}
 M.Meta.__call = function(t, meta)
-  return setmetatable(meta, self)
+  return setmetatable(meta, t)
 end
 setmetatable(M.Meta, M.Meta)
 

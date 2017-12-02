@@ -12,9 +12,9 @@ import Text.Pandoc.Builder (bulletList, divWith, doc, doubleQuoted, emph,
                             singleQuoted, space, str, strong, (<>))
 import Text.Pandoc.Class (runIOorExplode)
 import Text.Pandoc.Definition (Block, Inline, Meta, Pandoc)
-import Text.Pandoc.Lua
+import Text.Pandoc.Lua (initLuaState, runLuaFilter, luaPackageParams)
 
-import Foreign.Lua
+import qualified Foreign.Lua as Lua
 
 tests :: [TestTree]
 tests = map (localOption (QuickCheckTests 20))
@@ -101,20 +101,18 @@ assertFilterConversion msg filterPath docIn docExpected = do
     Left _       -> fail "lua filter failed"
     Right docRes -> assertEqual msg docExpected docRes
 
-roundtripEqual :: (Eq a, FromLuaStack a, ToLuaStack a) => a -> IO Bool
+roundtripEqual :: (Eq a, Lua.FromLuaStack a, Lua.ToLuaStack a) => a -> IO Bool
 roundtripEqual x = (x ==) <$> roundtripped
  where
-  roundtripped :: (FromLuaStack a, ToLuaStack a) => IO a
-  roundtripped = runLua $ do
-    openlibs
-    pushPandocModule (Just "../data")
-    setglobal "pandoc"
-    oldSize <- gettop
-    push x
-    size <- gettop
-    when ((size - oldSize) /= 1) $
+  roundtripped :: (Lua.FromLuaStack a, Lua.ToLuaStack a) => IO a
+  roundtripped = Lua.runLua $ do
+    initLuaState =<< Lua.liftIO (runIOorExplode (luaPackageParams (Just "../data")))
+    oldSize <- Lua.gettop
+    Lua.push x
+    size <- Lua.gettop
+    when (size - oldSize /= 1) $
       error ("not exactly one additional element on the stack: " ++ show size)
-    res <- peekEither (-1)
+    res <- Lua.peekEither (-1)
     case res of
       Left _  -> error "could not read from stack"
       Right y -> return y

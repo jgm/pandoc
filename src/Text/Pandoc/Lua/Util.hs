@@ -38,11 +38,18 @@ module Text.Pandoc.Lua.Util
   , PushViaCall
   , pushViaCall
   , pushViaConstructor
+  , loadScriptFromDataDir
+  , dostring'
   ) where
 
+import Control.Monad (when)
+import Data.ByteString.Char8 (unpack)
 import Foreign.Lua (FromLuaStack (..), Lua, NumArgs, StackIndex,
                     ToLuaStack (..), getglobal')
-import Foreign.Lua.Api (call, pop, rawget, rawgeti, rawset, rawseti)
+import Foreign.Lua.Api (Status, call, pop, rawget, rawgeti, rawset, rawseti)
+import Text.Pandoc.Class (readDataFile, runIOorExplode, setUserDataDir)
+
+import qualified Foreign.Lua as Lua
 
 -- | Adjust the stack index, assuming that @n@ new elements have been pushed on
 -- the stack.
@@ -107,3 +114,27 @@ pushViaCall fn = pushViaCall' fn (return ()) 0
 -- | Call a pandoc element constructor within lua, passing all given arguments.
 pushViaConstructor :: PushViaCall a => String -> a
 pushViaConstructor pandocFn = pushViaCall ("pandoc." ++ pandocFn)
+
+-- | Load a file from pandoc's data directory.
+loadScriptFromDataDir :: Maybe FilePath -> FilePath -> Lua ()
+loadScriptFromDataDir datadir scriptFile = do
+  script <- fmap unpack . Lua.liftIO . runIOorExplode $
+            setUserDataDir datadir >> readDataFile scriptFile
+  status <- dostring' script
+  when (status /= Lua.OK) .
+    Lua.throwTopMessageAsError' $ \msg ->
+      "Couldn't load '" ++ scriptFile ++ "'.\n" ++ msg
+
+-- | Load a string and immediately perform a full garbage collection. This is
+-- important to keep the program from hanging: If the program contained a call
+-- to @require@, the a new loader function was created which then become
+-- garbage. If that function is collected at an inopportune times, i.e. when the
+-- Lua API is called via a function that doesn't allow calling back into Haskell
+-- (getraw, setraw, …). The function's finalizer, and the full program, hangs
+-- when that happens.
+dostring' :: String -> Lua Status
+dostring' script = do
+  loadRes <- Lua.loadstring script
+  if loadRes == Lua.OK
+    then Lua.pcall 0 1 Nothing <* Lua.gc Lua.GCCOLLECT 0
+    else return loadRes
