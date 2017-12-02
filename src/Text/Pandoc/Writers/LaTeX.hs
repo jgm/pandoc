@@ -1013,7 +1013,7 @@ inlineToLaTeX (Code (_,classes,_) str) = do
         let chr = case "!\"&'()*,-./:;?@_" \\ str of
                        (c:_) -> c
                        []    -> '!'
-        let str' = escapeStringUsing (backslashEscapes "\\{}%~") str
+        let str' = escapeStringUsing (backslashEscapes "\\{}%~_") str
         -- we always put lstinline in a dummy 'passthrough' command
         -- (defined in the default template) so that we don't have
         -- to change the way we escape characters depending on whether
