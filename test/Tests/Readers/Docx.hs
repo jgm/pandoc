@@ -10,6 +10,7 @@ import Test.Tasty
 import Test.Tasty.HUnit
 import Tests.Helpers
 import Text.Pandoc
+import Text.Pandoc.Shared (stripEmptyParagraphs)
 import qualified Text.Pandoc.Class as P
 import Text.Pandoc.MediaBag (MediaBag, lookupMedia, mediaDirectory)
 import Text.Pandoc.UTF8 as UTF8
@@ -37,20 +38,23 @@ instance ToString NoNormPandoc where
 instance ToPandoc NoNormPandoc where
   toPandoc = unNoNorm
 
-compareOutput :: ReaderOptions
-                 -> FilePath
-                 -> FilePath
-                 -> IO (NoNormPandoc, NoNormPandoc)
-compareOutput opts docxFile nativeFile = do
+compareOutput :: Bool
+              -> ReaderOptions
+              -> FilePath
+              -> FilePath
+              -> IO (NoNormPandoc, NoNormPandoc)
+compareOutput strip opts docxFile nativeFile = do
   df <- B.readFile docxFile
   nf <- UTF8.toText <$> BS.readFile nativeFile
   p <- runIOorExplode $ readDocx opts df
   df' <- runIOorExplode $ readNative def nf
-  return $ (noNorm p, noNorm df')
+  return $ (noNorm (if strip
+                       then stripEmptyParagraphs p
+                       else p), noNorm df')
 
 testCompareWithOptsIO :: ReaderOptions -> String -> FilePath -> FilePath -> IO TestTree
 testCompareWithOptsIO opts name docxFile nativeFile = do
-  (dp, np) <- compareOutput opts docxFile nativeFile
+  (dp, np) <- compareOutput True opts docxFile nativeFile
   return $ test id name (dp, np)
 
 testCompareWithOpts :: ReaderOptions -> String -> FilePath -> FilePath -> TestTree
@@ -70,6 +74,11 @@ testForWarningsWithOptsIO opts name docxFile expected = do
 testForWarningsWithOpts :: ReaderOptions -> String -> FilePath -> [String] -> TestTree
 testForWarningsWithOpts opts name docxFile expected =
   unsafePerformIO $ testForWarningsWithOptsIO opts name docxFile expected
+
+testCompareNoStrip :: String -> FilePath -> FilePath -> TestTree
+testCompareNoStrip name docxFile nativeFile = unsafePerformIO $ do
+  (dp, np) <- compareOutput False defopts docxFile nativeFile
+  return $ test id name (dp, np)
 
 -- testForWarnings :: String -> FilePath -> [String] -> TestTree
 -- testForWarnings = testForWarningsWithOpts defopts
@@ -257,6 +266,10 @@ tests = [ testGroup "inlines"
             "dropcap paragraphs"
             "docx/drop_cap.docx"
             "docx/drop_cap.native"
+          , testCompareNoStrip
+            "empty paragraphs without stripping"
+            "docx/drop_cap.docx"
+            "docx/drop_cap_nostrip.native"
           ]
         , testGroup "track changes"
           [ testCompare
