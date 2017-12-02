@@ -1,3 +1,132 @@
+pandoc (2.0.4)
+
+  * Added `--print-highlight-style` option.  This generates a JSON version
+    of a highlighting style, which can be saved as a `.theme` file, modified,
+    and used with `--highlight-style` (#4106, #4096).
+
+  * Support `--webtex` for `gfm` output.
+
+  * Recognize `.muse` file extension.
+
+  * Support beamer `\alert` in LaTeX reader. Closes #4091.
+
+  * Org reader (Albert Krewinkel): Allow empty list items (#4090).
+
+  * Muse reader (Alexander Krotov):
+
+    + Parse markup in definition list terms.
+    + Allow definition to end with EOF.
+    + Make code blocks round trip.
+    + Drop common space prefix from list items.
+    + Add partial round trip test.
+    + Don't interpret XML entities.
+    + Remove `nested`.
+    + Parse `~~` as non-breaking space in Emacs mode.
+    + Correctly remove indentation from notes.  Exactly one space is
+      required and considered to be part of the marker.
+    + Allow list items to be empty.
+    + Add ordered list test.
+    + Add more multiline definition tests.
+    + Don't allow blockquotes within lists.
+    + Fix reading of multiline definitions.
+    + Add inline `<literal>` support.
+    + Concatenate inlines of the same type
+
+  * Muse writer (Alexander Krotov):
+
+    + Test that inline math conversion result is normalized.
+      Without normalization this test produced
+      `<em>a</em><em>b</em><em>c</em>`.
+    + Improve inline list normalization and move to writer.
+    + Escape hash symbol.
+    + Escape `----` to avoid accidental horizontal rules.
+    + Escape only `</code>` inside code tag.
+    + Additional `<verbatim>` is not needed as `<code>` is verbatim already.
+
+  * LaTeX writer:
+
+    + Allow specifying just width or height for image size.
+      Previously both needed to be specified (unless the image was
+      being resized to be smaller than its original size).
+      If height but not width is specified, we now set width to
+      textwidth. If width but not height is specified, we now set
+      height to textheight.  Since we have `keepaspectratio`, this
+      yields the desired result.
+    + Escape `~` and `_` in code with `--listings` (#4111).
+
+  * Let papersizes `a0`, `a1`, `a2`, ... be case-insensitive by
+    converting the case as needed in LaTeX and ConTeXt writers.
+
+  * revealjs template:  add `tex2jax` configuration for the
+    math plugin.  With the next release of reveal.js, this will
+    fix the problem of `$`s outside of math contexts being
+    interpreted as math delimiters (#4027).
+
+  * `pandoc.lua` module for use in lua filters (Albert Krewinkel):
+
+    + Add basic lua List module (#4099, #4081).  The List module is
+      automatically loaded, but not assigned to a global variable. It can be
+      included in filters by calling `List = require 'List'`.  Lists of blocks,
+      lists of inlines, and lists of classes are now given `List` as a metatable,
+      making working with them more convenient.  E.g., it is now possible to
+      concatenate lists of inlines using Lua's concatenation operator `..`
+      (requires at least one of the operants to have `List` as a metatable):
+
+          function Emph (emph)
+            local s = {pandoc.Space(), pandoc.Str 'emphasized'}
+            return pandoc.Span(emph.content .. s)
+          end
+
+      The `List` metatable is assigned to the tables which get passed to
+      the constructors `MetaBlocks`, `MetaInline`, and `MetaList`. This
+      enables the use of the resulting objects as lists.
+    + `Lua/StackInstances`: push Pandoc and Meta via constructor.
+      Pandoc and Meta elements are now pushed by calling the respective
+      constructor functions of the pandoc Lua module. This makes serialization
+      consistent with the way blocks and inlines are pushed to lua and allows
+      to use List methods with the `blocks` value.
+    + Add documentation for pandoc.List in `lua-filters.md`.
+
+  * Use latest tagsoup.  This fixes a bug in parsing HTML tags with
+    `&` (but not a valid entity) following them (#4094, #4088).
+
+  * Use skylighting 0.4.4.1, fixing the color of unmarked code text
+    when `numberLines` is used (#4103).
+
+  * Make `normalizeDate` more forgiving (Mauro Bieg, #4101), not
+    requiring a leading 0 on single-digit days.
+
+  * Fix `--help` output for `--highlight-style` to include `FILE` (Mauro
+    Bieg, #4095).
+
+  * Clearer deprecation warning for `--latexmathml, --asciimathml, -m`.
+    Previously we only mentioned `--latexmathml`, even if `-m` was
+    used.
+
+  * Changelog: fix description of lua filters in 2.0 release
+    (Albert Krewinkel).  Lua filters were initially run *after* conventional
+    (JSON) filters.  However, this was changed later to make it easier to deal
+    with files in the mediabag. The changelog is updated to describe that
+    feature of the 2.0 release correctly.
+
+  * Change Generic JSON instances to TemplateHaskell (Jasper Van der Jeugt,
+    #4085).  This reduces compile time and memory usage significantly.
+
+  * `lua-filters.md`: Added tikz filter example.
+
+  * Create alternative zip file for macOS binaries.
+
+  * Create alternative zip file for Windows binaries.
+
+  * Updated INSTALL.md since we now provide zips for binaries.
+
+  * Relax `http-types` dependency (Justus Sagemüller, #4084).
+
+  * Added `epub.md`, `getting-started.md` to docs.  These used to live in
+    the website repo.
+
+  * Added `packages` target to Makefile.
+
 pandoc (2.0.3)
 
   * Lua filters: preload text module (Albert Krewinkel, #4077).
