@@ -107,7 +107,7 @@ import qualified Data.ByteString.Lazy as BL
 import Data.Char (isAlpha, isDigit, isLetter, isLower, isSpace, isUpper,
                   toLower)
 import Data.Data (Data, Typeable)
-import Data.List (find, intercalate, stripPrefix)
+import Data.List (find, intercalate, intersperse, stripPrefix)
 import qualified Data.Map as M
 import Data.Maybe (mapMaybe)
 import Data.Monoid ((<>))
@@ -717,37 +717,40 @@ isURI = maybe False hasKnownScheme . parseURI
 --- Squash blocks into inlines
 ---
 
-blockToInlines :: Block -> [Inline]
-blockToInlines (Plain ils) = ils
-blockToInlines (Para ils) = ils
-blockToInlines (LineBlock lns) = combineLines lns
-blockToInlines (CodeBlock attr str) = [Code attr str]
-blockToInlines (RawBlock fmt str) = [RawInline fmt str]
-blockToInlines (BlockQuote blks) = blocksToInlines blks
+blockToInlines :: Block -> Inlines
+blockToInlines (Plain ils) = B.fromList ils
+blockToInlines (Para ils) = B.fromList ils
+blockToInlines (LineBlock lns) = B.fromList $ combineLines lns
+blockToInlines (CodeBlock attr str) = B.codeWith attr str
+blockToInlines (RawBlock (Format fmt) str) = B.rawInline fmt str
+blockToInlines (BlockQuote blks) = blocksToInlines' blks
 blockToInlines (OrderedList _ blkslst) =
-  concatMap blocksToInlines blkslst
+  mconcat $ map blocksToInlines' blkslst
 blockToInlines (BulletList blkslst) =
-  concatMap blocksToInlines blkslst
+  mconcat $ map blocksToInlines' blkslst
 blockToInlines (DefinitionList pairslst) =
-  concatMap f pairslst
+  mconcat $ map f pairslst
   where
-    f (ils, blkslst) = ils ++
-      [Str ":", Space] ++
-      concatMap blocksToInlines blkslst
-blockToInlines (Header _ _  ils) = ils
-blockToInlines HorizontalRule = []
+    f (ils, blkslst) = B.fromList ils <> B.str ":" <> B.space <>
+      mconcat (map blocksToInlines' blkslst)
+blockToInlines (Header _ _  ils) = B.fromList ils
+blockToInlines HorizontalRule = mempty
 blockToInlines (Table _ _ _ headers rows) =
-  intercalate [LineBreak] $ map (concatMap blocksToInlines) tbl
-  where
-    tbl = headers : rows
-blockToInlines (Div _ blks) = blocksToInlines blks
-blockToInlines Null = []
+  mconcat $ intersperse B.linebreak $
+    map (mconcat . map blocksToInlines') (headers:rows)
+blockToInlines (Div _ blks) = blocksToInlines' blks
+blockToInlines Null = mempty
 
-blocksToInlinesWithSep :: [Inline] -> [Block] -> [Inline]
-blocksToInlinesWithSep sep blks = intercalate sep $ map blockToInlines blks
+blocksToInlinesWithSep :: Inlines -> [Block] -> Inlines
+blocksToInlinesWithSep sep =
+  mconcat . intersperse sep . map blockToInlines
+
+blocksToInlines' :: [Block] -> Inlines
+blocksToInlines' = blocksToInlinesWithSep parSep
+  where parSep = B.space <> B.str "¶" <> B.space
 
 blocksToInlines :: [Block] -> [Inline]
-blocksToInlines = blocksToInlinesWithSep [Space, Str "¶", Space]
+blocksToInlines = B.toList . blocksToInlines'
 
 
 --
