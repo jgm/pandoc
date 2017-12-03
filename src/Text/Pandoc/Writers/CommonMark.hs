@@ -111,9 +111,12 @@ blockToNodes opts (Para xs) ns =
 blockToNodes opts (LineBlock lns) ns = blockToNodes opts (linesToPara lns) ns
 blockToNodes _ (CodeBlock (_,classes,_) xs) ns = return
   (node (CODE_BLOCK (T.pack (unwords classes)) (T.pack xs)) [] : ns)
-blockToNodes _ (RawBlock fmt xs) ns
-  | fmt == Format "html" = return (node (HTML_BLOCK (T.pack xs)) [] : ns)
-  | otherwise = return (node (CUSTOM_BLOCK (T.pack xs) T.empty) [] : ns)
+blockToNodes opts (RawBlock fmt xs) ns
+  | fmt == Format "html" && isEnabled Ext_raw_html opts
+              = return (node (HTML_BLOCK (T.pack xs)) [] : ns)
+  | fmt == Format "latex" || fmt == Format "tex" && isEnabled Ext_raw_tex opts
+              = return (node (CUSTOM_BLOCK (T.pack xs) T.empty) [] : ns)
+  | otherwise = return ns
 blockToNodes opts (BlockQuote bs) ns = do
   nodes <- blocksToNodes opts bs
   return (node BLOCK_QUOTE nodes : ns)
@@ -263,9 +266,12 @@ inlineToNodes opts (Image alt ils (url,'f':'i':'g':':':tit)) =
   inlineToNodes opts (Image alt ils (url,tit))
 inlineToNodes opts (Image _ ils (url,tit)) =
   (node (IMAGE (T.pack url) (T.pack tit)) (inlinesToNodes opts ils) :)
-inlineToNodes _ (RawInline fmt xs)
-  | fmt == Format "html" = (node (HTML_INLINE (T.pack xs)) [] :)
-  | otherwise = (node (CUSTOM_INLINE (T.pack xs) T.empty) [] :)
+inlineToNodes opts (RawInline fmt xs)
+  | fmt == Format "html" && isEnabled Ext_raw_html opts
+              = (node (HTML_INLINE (T.pack xs)) [] :)
+  | (fmt == Format "latex" || fmt == Format "tex") && isEnabled Ext_raw_tex opts
+              = (node (CUSTOM_INLINE (T.pack xs) T.empty) [] :)
+  | otherwise = id
 inlineToNodes opts (Quoted qt ils) =
   ((node (TEXT start) [] :
    inlinesToNodes opts ils ++ [node (TEXT end) []]) ++)
