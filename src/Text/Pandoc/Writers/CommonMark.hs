@@ -46,7 +46,7 @@ import Text.Pandoc.Options
 import Text.Pandoc.Shared (isTightList, linesToPara, substitute)
 import Text.Pandoc.Templates (renderTemplate')
 import Text.Pandoc.Walk (query, walk, walkM)
-import Text.Pandoc.Writers.HTML (writeHtml5String)
+import Text.Pandoc.Writers.HTML (writeHtml5String, tagWithAttributes)
 import Text.Pandoc.Writers.Shared
 
 -- | Convert Pandoc to CommonMark.
@@ -140,9 +140,13 @@ blockToNodes opts (OrderedList (start, _sty, delim) items) ns = do
 blockToNodes _ HorizontalRule ns = return (node THEMATIC_BREAK [] : ns)
 blockToNodes opts (Header lev _ ils) ns =
   return (node (HEADING lev) (inlinesToNodes opts ils) : ns)
-blockToNodes opts (Div _ bs) ns = do
+blockToNodes opts (Div attr bs) ns = do
   nodes <- blocksToNodes opts bs
-  return (nodes ++ ns)
+  let op = tagWithAttributes opts True False "div" attr
+  if isEnabled Ext_raw_html opts
+     then return (node (HTML_BLOCK op) [] : nodes ++
+                  [node (HTML_BLOCK (T.pack "</div>")) []] ++ ns)
+     else return (nodes ++ ns)
 blockToNodes opts (DefinitionList items) ns =
   blockToNodes opts (BulletList items') ns
   where items' = map dlToBullet items
@@ -298,7 +302,13 @@ inlineToNodes opts (Math mt str) =
               (node (HTML_INLINE (T.pack ("\\(" ++ str ++ "\\)"))) [] :)
             DisplayMath ->
               (node (HTML_INLINE (T.pack ("\\[" ++ str ++ "\\]"))) [] :)
-inlineToNodes opts (Span _ ils) = (inlinesToNodes opts ils ++)
+inlineToNodes opts (Span attr ils) =
+  let nodes = inlinesToNodes opts ils
+      op = tagWithAttributes opts True False "span" attr
+  in  if isEnabled Ext_raw_html opts
+         then ((node (HTML_INLINE op) [] : nodes ++
+                [node (HTML_INLINE (T.pack "</span>")) []]) ++)
+         else (nodes ++)
 inlineToNodes opts (Cite _ ils) = (inlinesToNodes opts ils ++)
 inlineToNodes _ (Note _) = id -- should not occur
 -- we remove Note elements in preprocessing
