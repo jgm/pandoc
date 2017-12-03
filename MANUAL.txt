@@ -1,6 +1,6 @@
 % Pandoc User's Guide
 % John MacFarlane
-% November 20, 2017
+% December 2, 2017
 
 Synopsis
 ========

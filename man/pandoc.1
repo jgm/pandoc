@@ -1,5 +1,5 @@
 .\"t
-.TH PANDOC 1 "November 20, 2017" "pandoc 2.0.3"
+.TH PANDOC 1 "December 2, 2017" "pandoc 2.0.4"
 .SH NAME
 pandoc - general markup converter
 .SH SYNOPSIS
@@ -431,6 +431,13 @@ Specify the base level for headers (defaults to 1).
 .RS
 .RE
 .TP
+.B \f[C]\-\-strip\-empty\-paragraphs\f[]
+Ignore paragraphs with non content.
+This option is useful for converting word processing documents where
+users have used empty paragraphs to create inter\-paragraph space.
+.RS
+.RE
+.TP
 .B \f[C]\-\-indented\-code\-classes=\f[]\f[I]CLASSES\f[]
 Specify classes to use for indented code blocks\-\-for example,
 \f[C]perl,numberLines\f[] or \f[C]haskell\f[].
@@ -738,8 +745,16 @@ Instead of a \f[I]STYLE\f[] name, a JSON file with extension
 \f[C]\&.theme\f[] may be supplied.
 This will be parsed as a KDE syntax highlighting theme and (if valid)
 used as the highlighting style.
-To see a sample theme that can be modified,
-\f[C]pandoc\ \-\-print\-default\-data\-file\ default.theme\f[].
+.PP
+To generate the JSON version of an existing style, use
+\f[C]\-\-print\-highlight\-style\f[].
+.RE
+.TP
+.B \f[C]\-\-print\-highlight\-style=\f[]\f[I]STYLE\f[]|\f[I]FILE\f[]
+Prints a JSON version of a highlighting style, which can be modified,
+saved with a \f[C]\&.theme\f[] extension, and used with
+\f[C]\-\-highlight\-style\f[].
+.RS
 .RE
 .TP
 .B \f[C]\-\-syntax\-definition=\f[]\f[I]FILE\f[]
