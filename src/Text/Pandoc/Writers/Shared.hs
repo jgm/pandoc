@@ -196,13 +196,19 @@ fixDisplayMath :: Block -> Block
 fixDisplayMath (Plain lst)
   | any isDisplayMath lst && not (all isDisplayMath lst) =
     -- chop into several paragraphs so each displaymath is its own
-    Div ("",["math"],[]) $ map (Plain . stripLeadingTrailingSpace) $
+    Div ("",["math"],[]) $
+       map Plain $
+       filter (not . null) $
+       map stripLeadingTrailingSpace $
        groupBy (\x y -> (isDisplayMath x && isDisplayMath y) ||
                          not (isDisplayMath x || isDisplayMath y)) lst
 fixDisplayMath (Para lst)
   | any isDisplayMath lst && not (all isDisplayMath lst) =
     -- chop into several paragraphs so each displaymath is its own
-    Div ("",["math"],[]) $ map (Para . stripLeadingTrailingSpace) $
+    Div ("",["math"],[]) $
+       map Para $
+       filter (not . null) $
+       map stripLeadingTrailingSpace $
        groupBy (\x y -> (isDisplayMath x && isDisplayMath y) ||
                          not (isDisplayMath x || isDisplayMath y)) lst
 fixDisplayMath x = x

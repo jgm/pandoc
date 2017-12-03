@@ -922,8 +922,6 @@ blockToOpenXML' opts (Para [Image attr alt (src,'f':'i':'g':':':tit)]) = do
   captionNode <- withParaProp (pCustomStyle "ImageCaption")
                  $ blockToOpenXML opts (Para alt)
   return $ mknode "w:p" [] (paraProps ++ contents) : captionNode
--- fixDisplayMath sometimes produces a Para [] as artifact
-blockToOpenXML' _ (Para []) = return []
 blockToOpenXML' opts (Para lst) = do
   isFirstPara <- gets stFirstPara
   paraProps <- getParaProps $ case lst of
