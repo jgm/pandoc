@@ -1,14 +1,22 @@
 pandoc (2.0.4)
 
-  * Added `--print-highlight-style` option.  This generates a JSON version
+  * Add `--print-highlight-style` option.  This generates a JSON version
     of a highlighting style, which can be saved as a `.theme` file, modified,
     and used with `--highlight-style` (#4106, #4096).
+
+  * Add `--strip-empty-paragraphs` option.  This works for any input format.
+    It is primarily intended for use with docx and odt documents where
+    empty paragraphs have been used for inter-paragraph spaces.
 
   * Support `--webtex` for `gfm` output.
 
   * Recognize `.muse` file extension.
 
   * Support beamer `\alert` in LaTeX reader. Closes #4091.
+
+  * Docx reader: don't strip out empty paragraphs (#2252).
+    Users who have a conversion pipeline from docx may want to consider adding
+    `--strip-empty-paragraphs` to the command line.
 
   * Org reader (Albert Krewinkel): Allow empty list items (#4090).
 
@@ -31,6 +39,8 @@ pandoc (2.0.4)
     + Fix reading of multiline definitions.
     + Add inline `<literal>` support.
     + Concatenate inlines of the same type
+
+  * Docx writer: allow empty paragraphs (#2252).
 
   * Muse writer (Alexander Krotov):
 
@@ -56,6 +66,13 @@ pandoc (2.0.4)
 
   * Let papersizes `a0`, `a1`, `a2`, ... be case-insensitive by
     converting the case as needed in LaTeX and ConTeXt writers.
+
+  * Change `fixDisplayMath` from `Text.Pandoc.Writers.Shared`
+    so that it no longer produces empty `Para`'s as an artifact.
+
+  * `Text.Pandoc.Shared.blocksToInlines`:  rewrote using builder.
+    This gives us automatic normalization, so we don't get
+    for example two consecutive Spaces.
 
   * revealjs template:  add `tex2jax` configuration for the
     math plugin.  With the next release of reveal.js, this will
