@@ -429,7 +429,8 @@ Reader options
 
 `--strip-empty-paragraphs`
 
-:   Ignore paragraphs with non content.  This option is useful
+:   *Deprecated.  Use the `+empty_paragraphs` extension instead.*
+    Ignore paragraphs with no content.  This option is useful
     for converting word processing documents where users have
     used empty paragraphs to create inter-paragraph space.
 
@@ -3816,6 +3817,12 @@ in several respects:
     which is lazily wrapped, or two list items?  To remove the ambiguity
     we must either disallow lazy wrapping or require a blank line between
     list items.
+
+#### Extension: `empty_paragraphs` ####
+
+Allows empty paragraphs.  By default empty paragraphs are
+omitted.  This affects the `docx` reader and writer, the
+`opendocument` and `odt` writer, and all HTML-based readers and writers.
 
 Markdown variants
 -----------------

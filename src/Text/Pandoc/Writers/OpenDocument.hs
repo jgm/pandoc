@@ -130,7 +130,6 @@ setFirstPara :: PandocMonad m => OD m ()
 setFirstPara =  modify $  \s -> s { stFirstPara = True }
 
 inParagraphTags :: PandocMonad m => Doc -> OD m Doc
-inParagraphTags d | isEmpty d = return empty
 inParagraphTags d = do
   b <- gets stFirstPara
   a <- if b
@@ -323,7 +322,8 @@ blockToOpenDocument o bs
                                   else inParagraphTags =<< inlinesToOpenDocument o b
     | Para [Image attr c (s,'f':'i':'g':':':t)] <- bs
                              = figure attr c s t
-    | Para           b <- bs = if null b
+    | Para           b <- bs = if null b &&
+                                    not (isEnabled Ext_empty_paragraphs o)
                                   then return empty
                                   else inParagraphTags =<< inlinesToOpenDocument o b
     | LineBlock      b <- bs = blockToOpenDocument o $ linesToPara b

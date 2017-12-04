@@ -947,7 +947,10 @@ options =
 
     , Option "" ["strip-empty-paragraphs"]
                  (NoArg
-                  (\opt -> return opt{ optStripEmptyParagraphs = True }))
+                  (\opt -> do
+                      deprecatedOption "--stripEmptyParagraphs"
+                        "Use +empty_paragraphs extension."
+                      return opt{ optStripEmptyParagraphs = True }))
                  "" -- "Strip empty paragraphs"
 
     , Option "" ["indented-code-classes"]
@@ -1472,7 +1475,7 @@ options =
     , Option "m" ["latexmathml", "asciimathml"]
                  (OptArg
                   (\arg opt -> do
-                      deprecatedOption "--latexmathml, --asciimathml, -m"
+                      deprecatedOption "--latexmathml, --asciimathml, -m" ""
                       return opt { optHTMLMathMethod = LaTeXMathML arg })
                   "URL")
                  "" -- "Use LaTeXMathML script in html output"
@@ -1480,7 +1483,7 @@ options =
     , Option "" ["mimetex"]
                  (OptArg
                   (\arg opt -> do
-                      deprecatedOption "--mimetex"
+                      deprecatedOption "--mimetex" ""
                       let url' = case arg of
                                       Just u  -> u ++ "?"
                                       Nothing -> "/cgi-bin/mimetex.cgi?"
@@ -1491,7 +1494,7 @@ options =
     , Option "" ["jsmath"]
                  (OptArg
                   (\arg opt -> do
-                      deprecatedOption "--jsmath"
+                      deprecatedOption "--jsmath" ""
                       return opt { optHTMLMathMethod = JsMath arg})
                   "URL")
                  "" -- "Use jsMath for HTML math"
@@ -1499,7 +1502,7 @@ options =
     , Option "" ["gladtex"]
                  (NoArg
                   (\opt -> do
-                      deprecatedOption "--gladtex"
+                      deprecatedOption "--gladtex" ""
                       return opt { optHTMLMathMethod = GladTeX }))
                  "" -- "Use gladtex for HTML math"
 
@@ -1699,9 +1702,9 @@ splitField s =
 baseWriterName :: String -> String
 baseWriterName = takeWhile (\c -> c /= '+' && c /= '-')
 
-deprecatedOption :: String -> IO ()
-deprecatedOption o =
-  runIO (report $ Deprecated o "") >>=
+deprecatedOption :: String -> String -> IO ()
+deprecatedOption o msg =
+  runIO (report $ Deprecated o msg) >>=
     \r -> case r of
        Right () -> return ()
        Left e   -> E.throwIO e

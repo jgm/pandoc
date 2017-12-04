@@ -922,19 +922,22 @@ blockToOpenXML' opts (Para [Image attr alt (src,'f':'i':'g':':':tit)]) = do
   captionNode <- withParaProp (pCustomStyle "ImageCaption")
                  $ blockToOpenXML opts (Para alt)
   return $ mknode "w:p" [] (paraProps ++ contents) : captionNode
-blockToOpenXML' opts (Para lst) = do
-  isFirstPara <- gets stFirstPara
-  paraProps <- getParaProps $ case lst of
-                               [Math DisplayMath _] -> True
-                               _                    -> False
-  bodyTextStyle <- pStyleM "Body Text"
-  let paraProps' = case paraProps of
-        [] | isFirstPara -> [mknode "w:pPr" [] [pCustomStyle "FirstParagraph"]]
-        []               -> [mknode "w:pPr" [] [bodyTextStyle]]
-        ps               -> ps
-  modify $ \s -> s { stFirstPara = False }
-  contents <- inlinesToOpenXML opts lst
-  return [mknode "w:p" [] (paraProps' ++ contents)]
+blockToOpenXML' opts (Para lst)
+  | null lst && not (isEnabled Ext_empty_paragraphs opts) = return []
+  | otherwise = do
+      isFirstPara <- gets stFirstPara
+      paraProps <- getParaProps $ case lst of
+                                   [Math DisplayMath _] -> True
+                                   _                    -> False
+      bodyTextStyle <- pStyleM "Body Text"
+      let paraProps' = case paraProps of
+            [] | isFirstPara -> [mknode "w:pPr" []
+                                [pCustomStyle "FirstParagraph"]]
+            []               -> [mknode "w:pPr" [] [bodyTextStyle]]
+            ps               -> ps
+      modify $ \s -> s { stFirstPara = False }
+      contents <- inlinesToOpenXML opts lst
+      return [mknode "w:p" [] (paraProps' ++ contents)]
 blockToOpenXML' opts (LineBlock lns) = blockToOpenXML opts $ linesToPara lns
 blockToOpenXML' _ b@(RawBlock format str)
   | format == Format "openxml" = return [ x | Elem x <- parseXML str ]

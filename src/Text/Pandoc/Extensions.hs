@@ -152,6 +152,7 @@ data Extension =
     | Ext_old_dashes          -- ^ -- = em, - before number = en
     | Ext_spaced_reference_links -- ^ Allow space between two parts of ref link
     | Ext_amuse -- ^ Enable Text::Amuse extensions to Emacs Muse markup
+    | Ext_empty_paragraphs -- ^ Allow empty paragraphs
     deriving (Show, Read, Enum, Eq, Ord, Bounded, Data, Typeable, Generic)
 
 -- | Extensions to be used with pandoc-flavored markdown.

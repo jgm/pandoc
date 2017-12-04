@@ -534,7 +534,10 @@ bodyPartToBlocks (Paragraph pPr parparts)
       then do modify $ \s -> s { docxDropCap = ils' }
               return mempty
       else do modify $ \s -> s { docxDropCap = mempty }
-              return $ parStyleToTransform pPr $ para ils'
+              opts <- asks docxOptions
+              if isNull ils' && not (isEnabled Ext_empty_paragraphs opts)
+                 then return mempty
+                 else return $ parStyleToTransform pPr $ para ils'
 bodyPartToBlocks (ListItem pPr numId lvl (Just levelInfo) parparts) = do
   let
     kvs = case levelInfo of

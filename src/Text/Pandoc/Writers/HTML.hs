@@ -56,7 +56,7 @@ import qualified Data.Text.Lazy as TL
 import Network.HTTP (urlEncode)
 import Network.URI (URI (..), parseURIReference, unEscapeString)
 import Numeric (showHex)
-import Text.Blaze.Internal (customLeaf)
+import Text.Blaze.Internal (customLeaf, MarkupM(Empty))
 import Text.Blaze.Html hiding (contents)
 import Text.Pandoc.Definition
 import Text.Pandoc.Highlighting (formatHtmlBlock, formatHtmlInline, highlight,
@@ -658,6 +658,7 @@ blockToHtml opts (Para [Image attr txt (s,'f':'i':'g':':':tit)]) =
   figure opts attr txt (s,tit)
 blockToHtml opts (Para lst)
   | isEmptyRaw lst = return mempty
+  | null lst && not (isEnabled Ext_empty_paragraphs opts) = return mempty
   | otherwise = do
       contents <- inlineListToHtml opts lst
       return $ H.p contents
@@ -902,8 +903,7 @@ tableItemToHtml opts tag' align' item = do
   let tag'' = if null alignStr
                  then tag'
                  else tag' ! attribs
-  return $ (
-              tag'' contents) >> nl opts
+  return $ tag'' contents >> nl opts
 
 toListItems :: WriterOptions -> [Html] -> [Html]
 toListItems opts items = map (toListItem opts) items ++ [nl opts]
@@ -911,9 +911,13 @@ toListItems opts items = map (toListItem opts) items ++ [nl opts]
 toListItem :: WriterOptions -> Html -> Html
 toListItem opts item = nl opts >> H.li item
 
-blockListToHtml :: PandocMonad m => WriterOptions -> [Block] -> StateT WriterState m Html
+blockListToHtml :: PandocMonad m
+                => WriterOptions -> [Block] -> StateT WriterState m Html
 blockListToHtml opts lst =
-  (mconcat . intersperse (nl opts)) <$> mapM (blockToHtml opts) lst
+  (mconcat . intersperse (nl opts) . filter nonempty)
+    <$> mapM (blockToHtml opts) lst
+  where nonempty (Empty _) = False
+        nonempty _         = True
 
 -- | Convert list of Pandoc inline elements to HTML.
 inlineListToHtml :: PandocMonad m => WriterOptions -> [Inline] -> StateT WriterState m Html
