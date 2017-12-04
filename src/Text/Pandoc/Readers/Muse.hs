@@ -57,7 +57,7 @@ import Text.Pandoc.Logging
 import Text.Pandoc.Options
 import Text.Pandoc.Parsing
 import Text.Pandoc.Readers.HTML (htmlTag)
-import Text.Pandoc.Shared (crFilter)
+import Text.Pandoc.Shared (crFilter, underlineSpan)
 
 -- | Read Muse from an input string and return a Pandoc document.
 readMuse :: PandocMonad m
@@ -577,6 +577,7 @@ inlineList = [ endline
              , strongTag
              , emph
              , emphTag
+             , underlined
              , superscriptTag
              , subscriptTag
              , strikeoutTag
@@ -665,6 +666,11 @@ strong = fmap B.strong <$> emphasisBetween (string "**")
 
 emph :: PandocMonad m => MuseParser m (F Inlines)
 emph = fmap B.emph <$> emphasisBetween (char '*')
+
+underlined :: PandocMonad m => MuseParser m (F Inlines)
+underlined = do
+  guardDisabled Ext_amuse -- Supported only by Emacs Muse
+  fmap underlineSpan <$> emphasisBetween (char '_')
 
 emphTag :: PandocMonad m => MuseParser m (F Inlines)
 emphTag = inlineTag B.emph "em"
