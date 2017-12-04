@@ -14,7 +14,7 @@ packages:
 - '.'
 extra-deps:
 - pandoc-types-1.17.3
-- hslua-0.9.2
+- hslua-0.9.3
 - hslua-module-text-0.1.2
 - skylighting-0.4.4.1
 - texmath-0.10
