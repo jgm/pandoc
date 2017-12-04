@@ -1267,7 +1267,7 @@ tableCaption :: PandocMonad m => MarkdownParser m (F Inlines)
 tableCaption = try $ do
   guardEnabled Ext_table_captions
   skipNonindentSpaces
-  string ":" <|> string "Table:"
+  (string ":" <* notFollowedBy (string "::")) <|> string "Table:"
   trimInlinesF <$> inlines1 <* blanklines
 
 -- Parse a simple table with '---' header and one line per row.
