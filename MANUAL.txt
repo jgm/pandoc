@@ -3860,8 +3860,9 @@ extensions on `commonmark`:
 
     These can all be individually disabled. Note, however, that
     `commonmark` and `gfm` have limited support for extensions:
-    extensions other than those listed above (and `smart`) will have
-    no effect on `commonmark` or `gfm`.
+    extensions other than those listed above (and `smart` and
+    `raw_tex`) will have no effect on `commonmark` or `gfm`.
+    And `raw_tex` only affects `gfm` output, not input.
 
 Extensions with formats other than Markdown
 -------------------------------------------
