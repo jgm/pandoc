@@ -42,6 +42,13 @@ pandoc (2.0.4)
 
   * Docx writer: allow empty paragraphs (#2252).
 
+  * CommonMark/gfm writer:
+
+    + Use raw html for native divs/spans (#4113).  This allows a pandoc
+      markdown native div or span to be rendered in gfm using raw html tags.
+    + Implement `raw_html` and `raw_tex` extensions.  Note that `raw_html`
+      is enabled by default for `gfm`, while `raw_tex` is disabled by default.
+
   * Muse writer (Alexander Krotov):
 
     + Test that inline math conversion result is normalized.
@@ -64,6 +71,9 @@ pandoc (2.0.4)
       yields the desired result.
     + Escape `~` and `_` in code with `--listings` (#4111).
 
+  * HTML writer: export `tagWithAttributes`.  This is a helper allowing
+    other writers to create single HTML tags.
+
   * Let papersizes `a0`, `a1`, `a2`, ... be case-insensitive by
     converting the case as needed in LaTeX and ConTeXt writers.
 
@@ -73,6 +83,8 @@ pandoc (2.0.4)
   * `Text.Pandoc.Shared.blocksToInlines`:  rewrote using builder.
     This gives us automatic normalization, so we don't get
     for example two consecutive Spaces.
+
+  * Include default CSS for 'underline' class in HTML-based templates.
 
   * revealjs template:  add `tex2jax` configuration for the
     math plugin.  With the next release of reveal.js, this will
@@ -135,14 +147,16 @@ pandoc (2.0.4)
 
   * Create alternative zip file for Windows binaries.
 
-  * Updated INSTALL.md since we now provide zips for binaries.
+  * Update INSTALL.md since we now provide zips for binaries.
 
   * Relax `http-types` dependency (Justus Sagemüller, #4084).
 
-  * Added `epub.md`, `getting-started.md` to docs.  These used to live in
+  * Add `epub.md`, `getting-started.md` to docs.  These used to live in
     the website repo.
 
-  * Added `packages` target to Makefile.
+  * Add `packages` target to Makefile.
+
+  * Bump bounds for binary, http-types, tasty-hunit
 
 pandoc (2.0.3)
 
