@@ -6,12 +6,10 @@
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
 {-# LANGUAGE FlexibleContexts #-}
-{-# LANGUAGE UndecidableInstances #-}
 {-# LANGUAGE ScopedTypeVariables #-}
-#if MIN_VERSION_base(4,8,0)
-#else
-{-# LANGUAGE OverlappingInstances #-}
-#endif
+{-# LANGUAGE DefaultSignatures #-}
+{-# LANGUAGE ConstraintKinds #-}
+{-# LANGUAGE GADTs #-}  -- Access to equality constraints
 
 {-
 Copyright (C) 2016-17 Jesse Rosenthal <jrosenthal@jhu.edu>
@@ -166,6 +164,18 @@ import System.FilePath (splitDirectories)
 import qualified Paths_pandoc as Paths
 #endif
 
+-- Imported to write instances
+import qualified Control.Monad.Trans.State.Strict as SState
+import qualified Control.Monad.Trans.State.Lazy as LState
+import qualified Control.Monad.Trans.Writer.Strict as SWriter
+import qualified Control.Monad.Trans.Writer.Lazy as LWriter
+import qualified Control.Monad.Trans.Reader as Reader
+import qualified Control.Monad.Trans.Identity as IdT
+import qualified Control.Monad.Trans.Maybe as MaybeT
+import qualified Control.Monad.Trans.Except as Except
+import qualified Control.Monad.Trans.RWS.Strict as SRWS
+import qualified Control.Monad.Trans.RWS.Lazy as LRWS
+
 -- | The PandocMonad typeclass contains all the potentially
 -- IO-related functions used in pandoc's readers and writers.
 -- Instances of this typeclass may implement these functions
@@ -175,40 +185,80 @@ class (Functor m, Applicative m, Monad m, MonadError PandocError m)
       => PandocMonad m where
   -- | Lookup an environment variable.
   lookupEnv :: String -> m (Maybe String)
+  default lookupEnv :: TransConstr t m' m
+                    => String -> m (Maybe String)
+  lookupEnv = lift . lookupEnv
   -- | Get the current (UTC) time.
   getCurrentTime :: m UTCTime
+  default getCurrentTime :: TransConstr t m' m
+                         => m UTCTime
+  getCurrentTime = lift getCurrentTime
   -- | Get the locale's time zone.
   getCurrentTimeZone :: m TimeZone
+  default getCurrentTimeZone :: TransConstr t m' m
+                             => m TimeZone
+  getCurrentTimeZone = lift getCurrentTimeZone
   -- | Return a new generator for random numbers.
   newStdGen :: m StdGen
+  default newStdGen :: TransConstr t m' m => m StdGen
+  newStdGen = lift newStdGen
   -- | Return a new unique integer.
   newUniqueHash :: m Int
+  default newUniqueHash :: TransConstr t m' m => m Int
+  newUniqueHash = lift newUniqueHash
   -- | Retrieve contents and mime type from a URL, raising
   -- an error on failure.
   openURL :: String -> m (B.ByteString, Maybe MimeType)
+  default openURL :: TransConstr t m' m
+          => String -> m (B.ByteString, Maybe MimeType)
+  openURL = lift . openURL
   -- | Read the lazy ByteString contents from a file path,
   -- raising an error on failure.
   readFileLazy :: FilePath -> m BL.ByteString
+  default readFileLazy :: TransConstr t m' m
+                       => FilePath -> m BL.ByteString
+  readFileLazy = lift . readFileLazy
   -- | Read the strict ByteString contents from a file path,
   -- raising an error on failure.
   readFileStrict :: FilePath -> m B.ByteString
+  default readFileStrict :: TransConstr t m' m
+                         => FilePath -> m B.ByteString
+  readFileStrict = lift . readFileStrict
   -- | Return a list of paths that match a glob, relative to
   -- the working directory.  See 'System.FilePath.Glob' for
   -- the glob syntax.
   glob :: String -> m [FilePath]
+  default glob :: TransConstr t m' m
+               => String -> m [FilePath]
+  glob = lift . glob
   -- | Returns True if file exists.
   fileExists :: FilePath -> m Bool
+  default fileExists :: TransConstr t m' m
+                     => FilePath -> m Bool
+  fileExists = lift . fileExists
   -- | Returns the path of data file.
   getDataFileName :: FilePath -> m FilePath
+  default getDataFileName :: TransConstr t m' m
+                          => FilePath -> m FilePath
+  getDataFileName = lift . getDataFileName
   -- | Return the modification time of a file.
   getModificationTime :: FilePath -> m UTCTime
+  default getModificationTime :: TransConstr t m' m
+                              => FilePath -> m UTCTime
+  getModificationTime = lift . getModificationTime
   -- | Get the value of the 'CommonState' used by all instances
   -- of 'PandocMonad'.
   getCommonState :: m CommonState
+  default getCommonState :: TransConstr t m' m
+                         => m CommonState
+  getCommonState = lift getCommonState
   -- | Set the value of the 'CommonState' used by all instances
   -- of 'PandocMonad'.
   -- | Get the value of a specific field of 'CommonState'.
   putCommonState :: CommonState -> m ()
+  default putCommonState :: TransConstr t m' m
+                         => CommonState -> m ()
+  putCommonState = lift . putCommonState
   -- | Get the value of a specific field of 'CommonState'.
   getsCommonState :: (CommonState -> a) -> m a
   getsCommonState f = f <$> getCommonState
@@ -217,6 +267,9 @@ class (Functor m, Applicative m, Monad m, MonadError PandocError m)
   modifyCommonState f = getCommonState >>= putCommonState . f
   -- Output a log message.
   logOutput :: LogMessage -> m ()
+  default logOutput :: TransConstr t m' m
+                    => LogMessage -> m ()
+  logOutput = lift . logOutput
   -- Output a debug message to sterr, using 'Debug.Trace.trace',
   -- if tracing is enabled.  Note: this writes to stderr even in
   -- pure instances.
@@ -224,6 +277,13 @@ class (Functor m, Applicative m, Monad m, MonadError PandocError m)
   trace msg = do
     tracing <- getsCommonState stTrace
     when tracing $ Debug.Trace.trace ("[trace] " ++ msg) (return ())
+
+-- Gathers up the constraints needed for PandocMonad
+-- default signatures.
+type TransConstr t m tm =
+  ( MonadTrans t, PandocMonad m, Functor (t m)
+  , MonadError PandocError (t m), Monad (t m)
+  , Applicative (t m), tm ~ t m)
 
 -- * Functions defined for all PandocMonad instances
 
@@ -943,48 +1003,7 @@ instance PandocMonad PandocPure where
 
   logOutput _msg = return ()
 
--- This requires UndecidableInstances.  We could avoid that
--- by repeating the definitions below for every monad transformer
--- we use: ReaderT, WriterT, StateT, RWST.  But this seems to
--- be harmless.
-instance (MonadTrans t, PandocMonad m, Functor (t m),
-          MonadError PandocError (t m), Monad (t m),
-          Applicative (t m)) => PandocMonad (t m) where
-  lookupEnv = lift . lookupEnv
-  getCurrentTime = lift getCurrentTime
-  getCurrentTimeZone = lift getCurrentTimeZone
-  newStdGen = lift newStdGen
-  newUniqueHash = lift newUniqueHash
-  openURL = lift . openURL
-  readFileLazy = lift . readFileLazy
-  readFileStrict = lift . readFileStrict
-  glob = lift . glob
-  fileExists = lift . fileExists
-  getDataFileName = lift . getDataFileName
-  getModificationTime = lift . getModificationTime
-  getCommonState = lift getCommonState
-  putCommonState = lift . putCommonState
-  logOutput = lift . logOutput
-
-#if MIN_VERSION_base(4,8,0)
-instance {-# OVERLAPS #-} PandocMonad m => PandocMonad (ParsecT s st m) where
-#else
 instance PandocMonad m => PandocMonad (ParsecT s st m) where
-#endif
-  lookupEnv = lift . lookupEnv
-  getCurrentTime = lift getCurrentTime
-  getCurrentTimeZone = lift getCurrentTimeZone
-  newStdGen = lift newStdGen
-  newUniqueHash = lift newUniqueHash
-  openURL = lift . openURL
-  readFileLazy = lift . readFileLazy
-  readFileStrict = lift . readFileStrict
-  glob = lift . glob
-  fileExists = lift . fileExists
-  getDataFileName = lift . getDataFileName
-  getModificationTime = lift . getModificationTime
-  getCommonState = lift getCommonState
-  putCommonState = lift . putCommonState
   trace msg = do
     tracing <- getsCommonState stTrace
     when tracing $ do
@@ -996,4 +1015,14 @@ instance PandocMonad m => PandocMonad (ParsecT s st m) where
                then " of chunk"
                else "")
         (return ())
-  logOutput = lift . logOutput
+
+instance PandocMonad m => PandocMonad (Reader.ReaderT e m)
+instance PandocMonad m => PandocMonad (SState.StateT s m)
+instance PandocMonad m => PandocMonad (LState.StateT s m)
+instance (PandocMonad m, Monoid w) => PandocMonad (SWriter.WriterT w m)
+instance (PandocMonad m, Monoid w) => PandocMonad (LWriter.WriterT w m)
+instance PandocMonad m => PandocMonad (IdT.IdentityT m)
+instance PandocMonad m => PandocMonad (MaybeT.MaybeT m)
+instance (PandocMonad m, e ~ PandocError) => PandocMonad (Except.ExceptT e m)
+instance (PandocMonad m, Monoid w) => PandocMonad (LRWS.RWST r w s m)
+instance (PandocMonad m, Monoid w) => PandocMonad (SRWS.RWST r w s m)
