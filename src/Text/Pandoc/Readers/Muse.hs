@@ -140,19 +140,39 @@ commonPrefix (x:xs) (y:ys)
 -- directive parsers
 --
 
-parseDirective :: PandocMonad m => MuseParser m (String, F Inlines)
-parseDirective = do
+-- While not documented, Emacs Muse allows "-" in directive name
+parseDirectiveKey :: PandocMonad m => MuseParser m (String)
+parseDirectiveKey = do
   char '#'
-  key <- many letter
+  many (letter <|> char '-')
+
+parseEmacsDirective :: PandocMonad m => MuseParser m (String, F Inlines)
+parseEmacsDirective = do
+  key <- parseDirectiveKey
   space
   spaces
   raw <- manyTill anyChar eol
   value <- parseFromString (trimInlinesF . mconcat <$> many inline) raw
   return (key, value)
 
+parseAmuseDirective :: PandocMonad m => MuseParser m (String, F Inlines)
+parseAmuseDirective = do
+  key <- parseDirectiveKey
+  space
+  spaces
+  first <- manyTill anyChar eol
+  rest <- manyTill anyLine endOfDirective
+  many blankline
+  value <- parseFromString (trimInlinesF . mconcat <$> many inline) $ unlines (first : rest)
+  return (key, value)
+  where
+    endOfDirective = lookAhead $ endOfInput <|> (try $ void blankline) <|> (try $ void parseDirectiveKey)
+    endOfInput     = try $ skipMany blankline >> skipSpaces >> eof
+
 directive :: PandocMonad m => MuseParser m ()
 directive = do
-  (key, value) <- parseDirective
+  ext <- getOption readerExtensions
+  (key, value) <- if extensionEnabled Ext_amuse ext then parseAmuseDirective else parseEmacsDirective
   updateState $ \st -> st { stateMeta' = B.setMeta key <$> value <*> stateMeta' st }
 
 --
