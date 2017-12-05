@@ -13,7 +13,12 @@
       hslua = "0.9.2";
       doctemplates = "0.2.1";
       texmath = "0.10";
-      pandoc-types = ../pandoc-types;
+      pandoc-types = pkgs.fetchFromGitHub {
+        owner = "jgm";
+        repo = "pandoc-types";
+        rev = "f1278603a4766f32b8375de84b8581f4bb1e665a";
+        sha256 = "05ykcs8qdjrxly9b6chjr939mv6r42mh51bl58k7jxsr1crxrrf9";
+      };
     };
 
     root = ./.;
