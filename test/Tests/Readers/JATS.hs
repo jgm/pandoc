@@ -12,4 +12,11 @@ jats :: Text -> Pandoc
 jats = purely $ readJATS def
 
 tests :: [TestTree]
-tests = []
+tests = [ testGroup "inline code"
+          [ test jats "basic" $ "<p>\n  <monospace>@&amp;</monospace>\n</p>" =?> para (code "@&")
+          ]
+        , testGroup "images"
+          [ test jats "basic" $ "<graphic mimetype=\"image\" mime-subtype=\"\" xlink:href=\"/url\" xlink:title=\"title\" />"
+            =?> image "/url" "title" mempty
+          ]
+        ]

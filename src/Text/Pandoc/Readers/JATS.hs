@@ -1,3 +1,4 @@
+{-# LANGUAGE TupleSections #-}
 {-# LANGUAGE FlexibleContexts      #-}
 {-# LANGUAGE FlexibleInstances     #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
@@ -33,27 +34,19 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 Conversion of JATS to 'Pandoc' document.
 -}
 module Text.Pandoc.Readers.JATS ( readJATS
-                                , htmlTag
-                                , htmlInBalanced
-                                , isInlineTag
-                                , isBlockTag
-                                , NamedTag(..)
-                                , isTextTag
-                                , isCommentTag
                                 ) where
 
 import Control.Applicative ((<|>))
 import Control.Arrow (first)
-import Control.Monad (guard, mplus, mzero, unless, void)
+import Control.Monad (guard, mplus, unless, void)
 import Control.Monad.Except (throwError)
 import Control.Monad.Reader (ReaderT, ask, asks, lift, local, runReaderT)
-import Data.Char (isAlphaNum, isDigit, isLetter)
+import Data.Char (isDigit)
 import Data.Default (Default (..), def)
 import Data.Foldable (for_)
-import Data.List (isPrefixOf)
 import Data.List.Split (wordsBy)
 import qualified Data.Map as M
-import Data.Maybe (fromMaybe, isJust)
+import Data.Maybe (maybeToList, fromMaybe, isJust)
 import Data.Monoid (First (..), (<>))
 import qualified Data.Set as Set
 import Data.Text (Text)
@@ -68,7 +61,7 @@ import Text.Pandoc.Definition
 import Text.Pandoc.Error
 import Text.Pandoc.Logging
 import Text.Pandoc.Options (Extension (Ext_epub_html_exts, Ext_raw_html),
-                            ReaderOptions (readerExtensions, readerStripComments),
+                            ReaderOptions (readerExtensions),
                             extensionEnabled)
 import Text.Pandoc.Parsing hiding ((<|>))
 import Text.Pandoc.Shared (addMetaField, crFilter, escapeURI, extractSpaces,
@@ -125,14 +118,15 @@ data JATSState =
 data JATSLocal = JATSLocal { quoteContext :: QuoteContext
                            , inPlain      :: Bool -- ^ Set if in pPlain
                            , secLevel     :: Int
+                           , secId        :: String
                            , inCaption    :: Bool
                            }
 
 setInPlain :: PandocMonad m => JATSParser m s a -> JATSParser m s a
 setInPlain = local (\s -> s {inPlain = True})
 
-setSecLevel :: PandocMonad m => JATSParser m s a -> JATSParser m s a
-setSecLevel = local (\s -> s {secLevel = succ (secLevel s)})
+setSec :: PandocMonad m => String -> JATSParser m s a -> JATSParser m s a
+setSec i = local (\s -> s {secLevel = succ (secLevel s), secId = i})
 
 setInCaption :: PandocMonad m => JATSParser m s a -> JATSParser m s a
 setInCaption = local (\s -> s {inCaption = True})
@@ -155,7 +149,7 @@ pFront :: PandocMonad m => TagParser m Blocks
 pFront = pInTags "front" $ pArticleMeta <|> (mempty <$ pAnyTag)
 
 pBack :: PandocMonad m => TagParser m Blocks
-pBack = pInTags "back" $ mempty <$ pAnyTag
+pBack = pInTags "back" block
 
 pArticleMeta :: PandocMonad m => TagParser m Blocks
 pArticleMeta = pInTags "article-meta" $ pAbstract <|> pTransAbstract <|> pOtherMeta <|> (mempty <$ pAnyTag)
@@ -194,6 +188,7 @@ block = do
             , pFront
             , pBody
             , pBack
+            , pRefList
             , pPlain
             , pRawHtmlBlock
             ]
@@ -383,16 +378,30 @@ pHtmlBlock t = try $ do
   return $ renderTags' $ [open] <> contents <> [TagClose t]
 
 pSec :: PandocMonad m => TagParser m Blocks
-pSec = setSecLevel $ pInTags "sec" block
+pSec = do
+  TagOpen _ attr' <- pSatisfy $ matchTagOpen "sec" []
+  let attr = toStringAttr attr'
+  let ident = fromMaybe "" (lookup "id" attr)
+  setSec ident $ mconcat <$> manyTill block (pCloses "sec")
+
+pAsDiv :: PandocMonad m => Text -> TagParser m Blocks
+pAsDiv tagType = do
+  TagOpen _ attr' <- pSatisfy $ matchTagOpen tagType []
+  let attr = toStringAttr attr'
+  let ident = fromMaybe "" (lookup "id" attr)
+  B.singleton . Div (ident, [T.unpack tagType], []) . B.toList . mconcat <$> manyTill block (pCloses tagType)
 
 pFig :: PandocMonad m => TagParser m Blocks
-pFig = B.singleton . Div ("", ["fig"], []) . B.toList <$> pInTags "fig" block
+pFig = pAsDiv "fig"
 
 pTableWrap :: PandocMonad m => TagParser m Blocks
-pTableWrap = B.singleton . Div ("", ["table-wrap"], []) . B.toList <$> pInTags "table-wrap" block
+pTableWrap = pAsDiv "table-wrap"
 
 pCaption :: PandocMonad m => TagParser m Blocks
-pCaption = setInCaption $ pInTags "caption" block
+pCaption = setInCaption $ pAsDiv "caption"
+
+pRefList :: PandocMonad m => TagParser m Blocks
+pRefList = B.singleton . Div ("refs", [], []) . B.toList <$> pInTags "ref-list" block
 
 headingLevel :: JATSLocal -> Int
 headingLevel s = if inCaption s then 6 else min 6 (secLevel s)
@@ -403,17 +412,13 @@ pTitle = try $ do
                            tagOpen (`elem` ["title"])
                            (const True)
   let attr = toStringAttr attr'
-  let bodyTitle = TagOpen tagtype attr' ~== TagOpen ("h1" :: Text)
-                                               [("class","title")]
   level <- asks headingLevel
   contents <- trimInlines . mconcat <$> manyTill inline (pCloses tagtype <|> eof)
   let ident = fromMaybe "" $ lookup "id" attr
   let classes = maybe [] words $ lookup "class" attr
   let keyvals = [(k,v) | (k,v) <- attr, k /= "class", k /= "id"]
   attr'' <- registerHeader (ident, classes, keyvals) contents
-  return $ if bodyTitle
-              then mempty  -- skip a representation of the title in the body
-              else B.headerWith attr'' level contents
+  return $ B.headerWith attr'' level contents
 
 pHrule :: PandocMonad m => TagParser m Blocks
 pHrule = do
@@ -569,7 +574,6 @@ inline = choice
            , pCode
            , pSmallCaps
            , pMath False
-           -- , pRawHtmlInline
            ]
 
 pLocation :: PandocMonad m => TagParser m ()
@@ -670,13 +674,14 @@ pXRef = try $ do
   let uid = fromMaybe (T.unpack $ fromAttrib "name" tag) $
                maybeFromAttrib "id" tag
   let cls = words $ T.unpack $ fromAttrib "class" tag
+  let refType = maybeToList $ ("ref-type",) <$> maybeFromAttrib "ref-type" tag
   lab <- trimInlines . mconcat <$> manyTill inline (pCloses "xref")
   -- check for href; if href, then a link, otherwise a span
   case maybeFromAttrib "rid" tag of
        Nothing   ->
-         return $ B.spanWith (uid, cls, []) lab
+         return $ B.spanWith (uid, cls, refType) lab
        Just rid ->
-         return $ B.linkWith (uid, cls, []) (escapeURI ("#" <> rid)) title lab
+         return $ B.linkWith (uid, cls, refType) (escapeURI ("#" <> rid)) title lab
 
 pImage :: PandocMonad m => TagParser m Inlines
 pImage = try $ do
@@ -706,19 +711,6 @@ pCode = try $ do
 
 pSmallCaps :: PandocMonad m => TagParser m Inlines
 pSmallCaps = pInlinesInTags "sc" B.smallcaps
-
-pRawHtmlInline :: PandocMonad m => TagParser m Inlines
-pRawHtmlInline = do
-  inplain <- asks inPlain
-  result <- pSatisfy (tagComment (const True))
-            <|> if inplain
-                   then pSatisfy (not . isBlockTag)
-                   else pSatisfy isInlineTag
-  exts <- getOption readerExtensions
-  let raw = T.unpack $ renderTags' [result]
-  if extensionEnabled Ext_raw_html exts
-     then return $ B.rawInline "html" raw
-     else ignore raw
 
 mathMLToTeXMath :: String -> Either String String
 mathMLToTeXMath s = writeTeX <$> readMathML s
@@ -874,203 +866,6 @@ pSpace = many1 (satisfy isSpace) >>= \xs ->
 -- Constants
 --
 
-eitherBlockOrInline :: Set.Set Text
-eitherBlockOrInline = Set.fromList
-  ["audio", "applet", "button", "iframe", "embed",
-   "del", "ins", "progress", "map", "area", "noscript", "script",
-   "object", "svg", "video", "source"]
-
-blockJatsTags :: Set.Set Text
-blockJatsTags = Set.fromList
-   ["?xml", "!DOCTYPE", "address", "article", "aside",
-    "disp-quote", "body", "canvas",
-    "caption", "center", "col", "colgroup", "def", "details",
-    "dir", "div", "def-list", "term", "fieldset", "figcaption", "figure",
-    "footer", "form",
-    "head", "header", "hgroup", "hr", "html",
-    "isindex", "main", "menu", "meta", "noframes", "list", "output", "p", "preformat",
-    "section", "table", "tbody", "textarea",
-    "thead", "tfoot", "def",
-    "term", "frameset", "list-item", "tbody", "td", "tfoot",
-    "th", "thead", "tr", "script", "style"]
-
--- We want to allow raw docbook in markdown documents, so we
--- include docbook block tags here too.
-blockDocBookTags :: Set.Set Text
-blockDocBookTags = Set.fromList
-   ["calloutlist", "bibliolist", "glosslist", "itemizedlist",
-    "orderedlist", "segmentedlist", "simplelist",
-    "variablelist", "caution", "important", "note", "tip",
-    "warning", "address", "literallayout", "programlisting",
-    "programlistingco", "screen", "screenco", "screenshot",
-    "synopsis", "example", "informalexample", "figure",
-    "informalfigure", "table", "informaltable", "para",
-    "simpara", "formalpara", "equation", "informalequation",
-    "figure", "screenshot", "mediaobject", "qandaset",
-    "procedure", "task", "cmdsynopsis", "funcsynopsis",
-    "classsynopsis", "disp-quote", "epigraph", "msgset",
-    "sidebar"]
-
-epubTags :: Set.Set Text
-epubTags = Set.fromList ["case", "switch", "default"]
-
-blockTags :: Set.Set Text
-blockTags = Set.unions [blockJatsTags, blockDocBookTags, epubTags]
-
-class NamedTag a where
-  getTagName :: a -> Maybe Text
-
-instance NamedTag (Tag Text) where
-  getTagName (TagOpen t _) = Just t
-  getTagName (TagClose t)  = Just t
-  getTagName _             = Nothing
-
-instance NamedTag (Tag String) where
-  getTagName (TagOpen t _) = Just (T.pack t)
-  getTagName (TagClose t)  = Just (T.pack t)
-  getTagName _             = Nothing
-
-isInlineTag :: NamedTag (Tag a) => Tag a -> Bool
-isInlineTag t = isInlineTagName || isCommentTag t
-                 where isInlineTagName = case getTagName t of
-                                              Just x -> x
-                                                  `Set.notMember` blockTags
-                                              Nothing -> False
-
-isBlockTag :: NamedTag (Tag a) => Tag a -> Bool
-isBlockTag t = isBlockTagName || isTagComment t
-                 where isBlockTagName =
-                         case getTagName t of
-                              Just x
-                                | "?" `T.isPrefixOf` x -> True
-                                | "!" `T.isPrefixOf` x -> True
-                                | otherwise -> x `Set.member` blockTags
-                                    || x `Set.member` eitherBlockOrInline
-                              Nothing -> False
-
-isTextTag :: Tag a -> Bool
-isTextTag = tagText (const True)
-
-isCommentTag :: Tag a -> Bool
-isCommentTag = tagComment (const True)
-
---- parsers for use in markdown, textile readers
-
--- | Matches a stretch of HTML in balanced tags.
-htmlInBalanced :: (HasReaderOptions st, Monad m)
-               => (Tag String -> Bool)
-               -> ParserT String st m String
-htmlInBalanced f = try $ do
-  lookAhead (char '<')
-  inp <- getInput
-  let ts = canonicalizeTags $
-        parseTagsOptions parseOptions{ optTagWarning = True,
-                                       optTagPosition = True } inp
-  case ts of
-    (TagPosition sr sc : t@(TagOpen tn _) : rest) -> do
-       guard $ f t
-       guard $ not $ hasTagWarning (t : take 1 rest)
-       case htmlInBalanced' tn (t:rest) of
-            []  -> mzero
-            xs  -> case reverse xs of
-                        (TagClose _ : TagPosition er ec : _) -> do
-                          let ls = er - sr
-                          let cs = ec - sc
-                          lscontents <- unlines <$> count ls anyLine
-                          cscontents <- count cs anyChar
-                          closetag <- do
-                            x <- many (satisfy (/='>'))
-                            char '>'
-                            return (x <> ">")
-                          return (lscontents <> cscontents <> closetag)
-                        _ -> mzero
-    _ -> mzero
-
-htmlInBalanced' :: String
-                -> [Tag String]
-                -> [Tag String]
-htmlInBalanced' tagname ts = fromMaybe [] $ go 0 ts
-  where go :: Int -> [Tag String] -> Maybe [Tag String]
-        go n (t@(TagOpen tn' _):rest) | tn' == tagname =
-              (t :) <$> go (n + 1) rest
-        go 1 (t@(TagClose tn'):_) | tn' == tagname =
-              return [t]
-        go n (t@(TagClose tn'):rest)  | tn' == tagname =
-              (t :) <$> go (n - 1) rest
-        go n (t:ts') = (t :) <$> go n ts'
-        go _ [] = mzero
-
-hasTagWarning :: [Tag a] -> Bool
-hasTagWarning (TagWarning _:_) = True
-hasTagWarning _                = False
-
--- | Matches a tag meeting a certain condition.
-htmlTag :: (HasReaderOptions st, Monad m)
-        => (Tag String -> Bool)
-        -> ParserT String st m (Tag String, String)
-htmlTag f = try $ do
-  lookAhead (char '<')
-  startpos <- getPosition
-  inp <- getInput
-  let ts = canonicalizeTags $ parseTagsOptions
-                               parseOptions{ optTagWarning = False
-                                           , optTagPosition = True }
-                               (inp ++ " ") -- add space to ensure that
-                               -- we get a TagPosition after the tag
-  (next, ln, col) <- case ts of
-                      (TagPosition{} : next : TagPosition ln col : _)
-                        | f next -> return (next, ln, col)
-                      _ -> mzero
-
-  -- <www.boe.es/buscar/act.php?id=BOE-A-1996-8930#a66>
-  -- should NOT be parsed as an HTML tag, see #2277,
-  -- so we exclude . even though it's a valid character
-  -- in XML elemnet names
-  let isNameChar c = isAlphaNum c || c == ':' || c == '-' || c == '_'
-  let isName s = case s of
-                      []     -> False
-                      (c:cs) -> isLetter c && all isNameChar cs
-
-  let endpos = if ln == 1
-                  then setSourceColumn startpos
-                         (sourceColumn startpos + (col - 1))
-                  else setSourceColumn (setSourceLine startpos
-                                        (sourceLine startpos + (ln - 1)))
-                         col
-  let endAngle = try $
-        do char '>'
-           pos <- getPosition
-           guard $ pos >= endpos
-
-  let handleTag tagname = do
-       -- basic sanity check, since the parser is very forgiving
-       -- and finds tags in stuff like x<y)
-       guard $ isName tagname
-       guard $ not $ null tagname
-       -- <https://example.org> should NOT be a tag either.
-       -- tagsoup will parse it as TagOpen "https:" [("example.org","")]
-       guard $ last tagname /= ':'
-       char '<'
-       rendered <- manyTill anyChar endAngle
-       return (next, "<" ++ rendered ++ ">")
-  case next of
-       TagComment s
-         | "<!--" `isPrefixOf` inp -> do
-          string "<!--"
-          count (length s) anyChar
-          string "-->"
-          stripComments <- getOption readerStripComments
-          if stripComments
-             then return (next, "")
-             else return (next, "<!--" <> s <> "-->")
-         | otherwise -> fail "bogus comment mode, HTML5 parse error"
-       TagOpen tagname attr -> do
-         guard $ all (isName . fst) attr
-         handleTag tagname
-       TagClose tagname ->
-         handleTag tagname
-       _ -> mzero
-
 mkAttr :: [(String, String)] -> Attr
 mkAttr attr = (attribsId, attribsClasses, attribsKV)
   where attribsId = fromMaybe "" $ lookup "id" attr
@@ -1128,7 +923,7 @@ instance HasMeta JATSState where
   deleteMeta s st = st {parserState = deleteMeta s $ parserState st}
 
 instance Default JATSLocal where
-  def = JATSLocal NoQuote False 0 False
+  def = JATSLocal NoQuote False 0 "" False
 
 instance HasLastStrPosition JATSState where
   setLastStrPos s st = st {parserState = setLastStrPos s (parserState st)}
