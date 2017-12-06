@@ -689,7 +689,7 @@ blockToLaTeX (Header level (id',classes,_) lst) = do
   hdr <- sectionHeader ("unnumbered" `elem` classes) id' level lst
   modify $ \s -> s{stInHeading = False}
   return hdr
-blockToLaTeX (Table caption aligns widths heads rows) = do
+blockToLaTeX (Table caption aligns widths _ _ heads rows) = do
   let toHeaders hs = do contents <- tableRowToLaTeX True aligns widths hs
                         return ("\\toprule" $$ contents $$ "\\midrule")
   let removeNote (Note _) = Span ("", [], []) []

@@ -137,7 +137,7 @@ blockToHaddock _ (CodeBlock (_,_,_) str) =
 blockToHaddock opts (BlockQuote blocks) =
   blockListToHaddock opts blocks
 -- Haddock doesn't have tables.  Use haddock tables in code.
-blockToHaddock opts (Table caption aligns widths headers rows) = do
+blockToHaddock opts (Table caption aligns widths _ _ headers rows) = do
   caption' <- inlineListToHaddock opts caption
   let caption'' = if null caption
                      then empty

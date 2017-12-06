@@ -232,7 +232,7 @@ blockToMuse (Header level (ident,_,_) inlines) = do
                  $$ attr' <> blankline
 -- https://www.gnu.org/software/emacs-muse/manual/muse.html#Horizontal-Rules-and-Anchors
 blockToMuse HorizontalRule = return $ blankline $$ "----" $$ blankline
-blockToMuse (Table caption _ _ headers rows) =  do
+blockToMuse (Table caption _ _ _ _ headers rows) =  do
   caption' <- inlineListToMuse caption
   headers' <- mapM blockListToMuse headers
   rows' <- mapM (mapM blockListToMuse) rows

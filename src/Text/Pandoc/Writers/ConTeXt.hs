@@ -251,7 +251,7 @@ blockToConTeXt (DefinitionList lst) =
 blockToConTeXt HorizontalRule = return $ "\\thinrule" <> blankline
 -- If this is ever executed, provide a default for the reference identifier.
 blockToConTeXt (Header level attr lst) = sectionHeader attr level lst
-blockToConTeXt (Table caption aligns widths heads rows) = do
+blockToConTeXt (Table caption aligns widths _ _ heads rows) = do
     let colDescriptor colWidth alignment = (case alignment of
                                                AlignLeft    -> 'l'
                                                AlignRight   -> 'r'

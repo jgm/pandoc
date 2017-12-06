@@ -198,7 +198,7 @@ blockToOrg (BlockQuote blocks) = do
   contents <- blockListToOrg blocks
   return $ blankline $$ "#+BEGIN_QUOTE" $$
            nest 2 contents $$ "#+END_QUOTE" $$ blankline
-blockToOrg (Table caption' _ _ headers rows) =  do
+blockToOrg (Table caption' _ _ _ _ headers rows) =  do
   caption'' <- inlineListToOrg caption'
   let caption = if null caption'
                    then empty

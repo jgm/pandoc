@@ -361,7 +361,7 @@ blockToXml HorizontalRule = return
                             [ el "empty-line" ()
                             , el "p" (txt (replicate 10 '—'))
                             , el "empty-line" () ]
-blockToXml (Table caption aligns _ headers rows) = do
+blockToXml (Table caption aligns _ _ _ headers rows) = do
     hd <- mkrow "th" headers aligns
     bd <- mapM (\r -> mkrow "td" r aligns) rows
     c <- el "emphasis" <$> cMapM toXml caption

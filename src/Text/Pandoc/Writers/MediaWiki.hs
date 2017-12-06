@@ -154,7 +154,7 @@ blockToMediaWiki (BlockQuote blocks) = do
   contents <- blockListToMediaWiki blocks
   return $ "<blockquote>" ++ contents ++ "</blockquote>"
 
-blockToMediaWiki (Table capt aligns widths headers rows') = do
+blockToMediaWiki (Table capt aligns widths _ _ headers rows') = do
   caption <- if null capt
                 then return ""
                 else do

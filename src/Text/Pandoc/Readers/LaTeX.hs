@@ -2517,11 +2517,11 @@ simpTable envname hasWidthParameter = try $ do
 
 addTableCaption :: PandocMonad m => Blocks -> LP m Blocks
 addTableCaption = walkM go
-  where go (Table c als ws hs rs) = do
+  where go (Table c als ws hs hspec rspec rs) = do
           mbcapt <- sCaption <$> getState
           return $ case mbcapt of
-               Just ils -> Table (toList ils) als ws hs rs
-               Nothing  -> Table c als ws hs rs
+               Just ils -> Table (toList ils) als ws hs hspec rspec rs
+               Nothing  -> Table c als ws hs hspec rspec rs
         go x = return x
 
 

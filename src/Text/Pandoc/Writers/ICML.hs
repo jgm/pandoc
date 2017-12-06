@@ -316,7 +316,7 @@ blockToICML opts style (Header lvl _ lst) =
   let stl = (headerName ++ show lvl):style
   in parStyle opts stl lst
 blockToICML _ _ HorizontalRule = return empty -- we could insert a page break instead
-blockToICML opts style (Table caption aligns widths headers rows) =
+blockToICML opts style (Table caption aligns widths _ _ headers rows) =
   let style' = tableName : style
       noHeader  = all null headers
       nrHeaders = if noHeader

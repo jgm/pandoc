@@ -278,8 +278,8 @@ blockToRST (CodeBlock (_,classes,kvs) str) = do
 blockToRST (BlockQuote blocks) = do
   tabstop <- gets $ writerTabStop . stOptions
   contents <- blockListToRST blocks
-  return $ nest tabstop contents <> blankline
-blockToRST (Table caption aligns widths headers rows) = do
+  return $ (nest tabstop contents) <> blankline
+blockToRST (Table caption aligns widths _ _ headers rows) =  do
   caption' <- inlineListToRST caption
   let blocksToDoc opts bs = do
          oldOpts <- gets stOptions

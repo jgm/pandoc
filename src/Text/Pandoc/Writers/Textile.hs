@@ -182,7 +182,7 @@ blockToTextile opts (BlockQuote blocks) = do
   contents <- blockListToTextile opts blocks
   return $ "<blockquote>\n\n" ++ contents ++ "\n</blockquote>\n"
 
-blockToTextile opts (Table [] aligns widths headers rows') |
+blockToTextile opts (Table [] aligns widths _ _ headers rows') |
          all (==0) widths = do
   hs <- mapM (liftM (("_. " ++) . stripTrailingNewlines) . blockListToTextile opts) headers
   let cellsToRow cells = "|" ++ intercalate "|" cells ++ "|"
@@ -200,7 +200,7 @@ blockToTextile opts (Table [] aligns widths headers rows') |
   let body = unlines $ map cellsToRow bs
   return $ header ++ body
 
-blockToTextile opts (Table capt aligns widths headers rows') = do
+blockToTextile opts (Table capt aligns widths _ _ headers rows') = do
   let alignStrings = map alignmentToString aligns
   captionDoc <- if null capt
                    then return ""

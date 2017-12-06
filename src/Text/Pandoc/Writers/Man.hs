@@ -213,7 +213,7 @@ blockToMan _ (CodeBlock _ str) = return $
 blockToMan opts (BlockQuote blocks) = do
   contents <- blockListToMan opts blocks
   return $ text ".RS" $$ contents $$ text ".RE"
-blockToMan opts (Table caption alignments widths headers rows) =
+blockToMan opts (Table caption alignments widths _ _ headers rows) =
   let aligncode AlignLeft    = "l"
       aligncode AlignRight   = "r"
       aligncode AlignCenter  = "c"

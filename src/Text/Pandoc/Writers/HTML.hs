@@ -825,7 +825,7 @@ blockToHtml opts (DefinitionList lst) = do
                      return $ mconcat $ nl opts : term' : nl opts :
                                         intersperse (nl opts) defs') lst
   defList opts contents
-blockToHtml opts (Table capt aligns widths headers rows') = do
+blockToHtml opts (Table capt aligns widths _ _ headers rows') = do
   captionDoc <- if null capt
                    then return mempty
                    else do

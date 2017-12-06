@@ -153,12 +153,12 @@ blockToCustom (CodeBlock attr str) =
 
 blockToCustom (BlockQuote blocks) = callFunc "BlockQuote" (Stringify blocks)
 
-blockToCustom (Table capt aligns widths headers rows) =
+blockToCustom (Table capt aligns widths hspecs rspecs headers rows) =
   let aligns' = map show aligns
       capt' = Stringify capt
       headers' = map Stringify headers
       rows' = map (map Stringify) rows
-  in callFunc "Table" capt' aligns' widths headers' rows'
+  in callFunc "Table" capt' aligns' hspecs rspecs widths headers' rows'
 
 blockToCustom (BulletList items) = callFunc "BulletList" (map Stringify items)
 

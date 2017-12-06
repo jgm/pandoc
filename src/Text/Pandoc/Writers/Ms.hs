@@ -311,7 +311,7 @@ blockToMs opts (BlockQuote blocks) = do
   contents <- blockListToMs opts blocks
   setFirstPara
   return $ text ".RS" $$ contents $$ text ".RE"
-blockToMs opts (Table caption alignments widths headers rows) =
+blockToMs opts (Table caption alignments widths _ _ headers rows) =
   let aligncode AlignLeft    = "l"
       aligncode AlignRight   = "r"
       aligncode AlignCenter  = "c"

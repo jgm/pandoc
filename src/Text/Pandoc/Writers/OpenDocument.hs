@@ -336,7 +336,7 @@ blockToOpenDocument o bs
     | BulletList     b <- bs = setFirstPara >> bulletListToOpenDocument o b
     | OrderedList  a b <- bs = setFirstPara >> orderedList a b
     | CodeBlock    _ s <- bs = setFirstPara >> preformatted s
-    | Table  c a w h r <- bs = setFirstPara >> table c a w h r
+    | Table  c a w _ _ h r <- bs = setFirstPara >> table c a w h r
     | HorizontalRule   <- bs = setFirstPara >> return (selfClosingTag "text:p"
                                 [ ("text:style-name", "Horizontal_20_Line") ])
     | RawBlock f     s <- bs = if f == Format "opendocument"

@@ -156,7 +156,7 @@ blockToNodes opts (DefinitionList items) ns =
           Plain (term ++ [LineBreak] ++ xs) : ys ++ concat zs
         dlToBullet (term, xs) =
           Para term : concat xs
-blockToNodes opts t@(Table capt aligns _widths headers rows) ns = do
+blockToNodes opts t@(Table capt aligns _widths _ _ headers rows) ns = do
   let allcells = concat (headers:rows)
   let isLineBreak LineBreak = Any True
       isLineBreak _         = Any False

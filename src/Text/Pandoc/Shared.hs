@@ -735,7 +735,7 @@ blockToInlines (DefinitionList pairslst) =
       mconcat (map blocksToInlines' blkslst)
 blockToInlines (Header _ _  ils) = B.fromList ils
 blockToInlines HorizontalRule = mempty
-blockToInlines (Table _ _ _ headers rows) =
+blockToInlines (Table _ _ _ _ _ headers rows) =
   mconcat $ intersperse B.linebreak $
     map (mconcat . map blocksToInlines') (headers:rows)
 blockToInlines (Div _ blks) = blocksToInlines' blks

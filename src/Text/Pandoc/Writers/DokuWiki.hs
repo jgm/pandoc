@@ -181,7 +181,7 @@ blockToDokuWiki opts (BlockQuote blocks) = do
      then return $ unlines $ map ("> " ++) $ lines contents
      else return $ "<HTML><blockquote>\n" ++ contents ++ "</blockquote></HTML>"
 
-blockToDokuWiki opts (Table capt aligns _ headers rows) = do
+blockToDokuWiki opts (Table capt aligns _ _ _ headers rows) = do
   captionDoc <- if null capt
                    then return ""
                    else do

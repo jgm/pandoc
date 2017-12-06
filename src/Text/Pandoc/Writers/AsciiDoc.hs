@@ -195,7 +195,7 @@ blockToAsciiDoc opts (BlockQuote blocks) = do
   let cols = offset contents'
   let bar = text $ replicate cols '_'
   return $ bar $$ chomp contents' $$ bar <> blankline
-blockToAsciiDoc opts (Table caption aligns widths headers rows) =  do
+blockToAsciiDoc opts (Table caption aligns widths _ _ headers rows) =  do
   caption' <- inlineListToAsciiDoc opts caption
   let caption'' = if null caption
                      then empty

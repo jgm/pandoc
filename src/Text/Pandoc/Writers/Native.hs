@@ -58,9 +58,11 @@ prettyBlock (DefinitionList items) = "DefinitionList" $$
   prettyList (map deflistitem items)
     where deflistitem (term, defs) = "(" <> text (show term) <> "," <> cr <>
            nest 1 (prettyList $ map (prettyList . map prettyBlock) defs) <> ")"
-prettyBlock (Table caption aligns widths header rows) =
+prettyBlock (Table caption aligns widths hspecs rspecs header rows) =
   "Table " <> text (show caption) <> " " <> text (show aligns) <> " " <>
   text (show widths) $$
+  text (show hspecs) $$
+  text (show rspecs) $$
   prettyRow header $$
   prettyList (map prettyRow rows)
     where prettyRow cols = prettyList (map (prettyList . map prettyBlock) cols)

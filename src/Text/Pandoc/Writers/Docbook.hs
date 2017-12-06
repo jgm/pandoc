@@ -292,7 +292,7 @@ blockToDocbook _ b@(RawBlock f str)
       report $ BlockNotRendered b
       return empty
 blockToDocbook _ HorizontalRule = return empty -- not semantic
-blockToDocbook opts (Table caption aligns widths headers rows) = do
+blockToDocbook opts (Table caption aligns widths _ _ headers rows) = do
   captionDoc <- if null caption
                    then return empty
                    else inTagsIndented "title" <$>

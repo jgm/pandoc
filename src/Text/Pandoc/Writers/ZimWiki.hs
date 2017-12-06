@@ -148,7 +148,7 @@ blockToZimWiki opts (BlockQuote blocks) = do
   contents <- blockListToZimWiki opts blocks
   return $ unlines $ map ("> " ++) $ lines contents
 
-blockToZimWiki opts (Table capt aligns _ headers rows) = do
+blockToZimWiki opts (Table capt aligns _ _ _ headers rows) = do
   captionDoc <- if null capt
                    then return ""
                    else do

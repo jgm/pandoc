@@ -134,7 +134,7 @@ addBlock opts (Node _ (LIST listAttrs) nodes) =
                      PERIOD_DELIM -> Period
                      PAREN_DELIM  -> OneParen
 addBlock opts (Node _ (TABLE alignments) nodes) =
-  (Table [] aligns widths headers rows :)
+  (Table [] aligns widths [] [] headers rows :)
   where aligns = map fromTableCellAlignment alignments
         fromTableCellAlignment NoAlignment   = AlignDefault
         fromTableCellAlignment LeftAligned   = AlignLeft

@@ -280,7 +280,7 @@ blockToJATS _ b@(RawBlock f str)
       report $ BlockNotRendered b
       return empty
 blockToJATS _ HorizontalRule = return empty -- not semantic
-blockToJATS opts (Table [] aligns widths headers rows) = do
+blockToJATS opts (Table [] aligns widths _ _ headers rows) = do
   let percent w    = show (truncate (100*w) :: Integer) ++ "*"
   let coltags = vcat $ zipWith (\w al -> selfClosingTag "col"
                        ([("width", percent w) | w > 0] ++
@@ -291,9 +291,9 @@ blockToJATS opts (Table [] aligns widths headers rows) = do
   tbody <- (inTagsIndented "tbody" . vcat) <$>
                 mapM (tableRowToJATS opts False) rows
   return $ inTags True "table" [] $ coltags $$ thead $$ tbody
-blockToJATS opts (Table caption aligns widths headers rows) = do
+blockToJATS opts (Table caption aligns widths hspecs rspecs headers rows) = do
   captionDoc <- inTagsIndented "caption" <$> blockToJATS opts (Para caption)
-  tbl <- blockToJATS opts (Table [] aligns widths headers rows)
+  tbl <- blockToJATS opts (Table [] aligns widths hspecs rspecs headers rows)
   return $ inTags True "table-wrap" [] $ captionDoc $$ tbl
 
 alignmentToString :: Alignment -> [Char]

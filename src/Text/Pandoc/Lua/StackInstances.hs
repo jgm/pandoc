@@ -196,8 +196,8 @@ pushBlock = \case
   Para blcks               -> pushViaConstructor "Para" blcks
   Plain blcks              -> pushViaConstructor "Plain" blcks
   RawBlock f cs            -> pushViaConstructor "RawBlock" f cs
-  Table capt aligns widths headers rows ->
-    pushViaConstructor "Table" capt aligns widths headers rows
+  Table capt aligns widths hspecs rspecs headers rows ->
+    pushViaConstructor "Table" capt aligns widths hspecs rspecs headers rows
 
 -- | Return the value at the given index as block if possible.
 peekBlock :: StackIndex -> Lua Block
@@ -218,8 +218,8 @@ peekBlock idx = do
       "Para"           -> Para <$> elementContent
       "Plain"          -> Plain <$> elementContent
       "RawBlock"       -> uncurry RawBlock <$> elementContent
-      "Table"          -> (\(capt, aligns, widths, headers, body) ->
-                                  Table capt aligns widths headers body)
+      "Table"          -> (\(capt, aligns, widths, hspecs, rspecs, headers, body) ->
+                                  Table capt aligns widths hspecs rspecs headers body)
                           <$> elementContent
       _ -> throwLuaError ("Unknown block type: " ++ tag)
  where

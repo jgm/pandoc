@@ -553,7 +553,7 @@ blockToMarkdown' opts (BlockQuote blocks) = do
                   else if plain then "  " else "> "
   contents <- blockListToMarkdown opts blocks
   return $ (prefixed leader contents) <> blankline
-blockToMarkdown' opts t@(Table caption aligns widths headers rows) =  do
+blockToMarkdown' opts t@(Table caption aligns widths _ _ headers rows) =  do
   let numcols = maximum (length aligns : length widths :
                            map length (headers:rows))
   caption' <- inlineListToMarkdown opts caption
