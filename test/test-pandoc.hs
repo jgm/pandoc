@@ -38,7 +38,17 @@ import qualified Tests.Writers.TEI
 import Text.Pandoc.Shared (inDirectory)
 
 tests :: TestTree
-tests = testGroup "pandoc tests" [ Tests.Command.tests
+tests = testGroup "pandoc tests"
+        [ testGroup "Writers"
+          [ testGroup "JATS" Tests.Writers.JATS.tests
+          ]
+        , testGroup "Readers"
+          [ testGroup "JATS" Tests.Readers.JATS.tests
+          ]
+        ]
+
+testsX :: TestTree
+testsX = testGroup "pandoc tests" [ Tests.Command.tests
         , testGroup "Old" Tests.Old.tests
         , testGroup "Shared" Tests.Shared.tests
         , testGroup "Writers"
