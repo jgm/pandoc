@@ -116,7 +116,7 @@ tests =
       , "Linebreak" =: "Line <br>  break" =?> para ("Line" <> linebreak <> "break")
 
       , test emacsMuse "Non-breaking space"
-        ("Foo~~bar" =?> para ("Foo\160bar"))
+        ("Foo~~bar" =?> para "Foo\160bar")
 
       , testGroup "Code markup"
         [ "Code" =: "=foo(bar)=" =?> para (code "foo(bar)")
@@ -457,15 +457,15 @@ tests =
       , testGroup "Directives"
         [ "Title" =:
           "#title Document title" =?>
-          let titleInline = toList $ "Document title"
-              meta = setMeta "title" (MetaInlines titleInline) $ nullMeta
+          let titleInline = toList "Document title"
+              meta = setMeta "title" (MetaInlines titleInline) nullMeta
           in Pandoc meta mempty
         -- Emacs Muse documentation says that "You can use any combination
         -- of uppercase and lowercase letters for directives",
         -- but also allows '-', which is not documented, but used for disable-tables.
         , test emacsMuse "Disable tables"
           ("#disable-tables t" =?>
-          Pandoc (setMeta "disable-tables" (MetaInlines $ toList "t") $ nullMeta) mempty)
+          Pandoc (setMeta "disable-tables" (MetaInlines $ toList "t") nullMeta) mempty)
         ]
       , testGroup "Anchors"
         [ "Anchor" =:

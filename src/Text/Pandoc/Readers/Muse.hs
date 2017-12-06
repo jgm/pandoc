@@ -148,7 +148,7 @@ atStart p = do
 --
 
 -- While not documented, Emacs Muse allows "-" in directive name
-parseDirectiveKey :: PandocMonad m => MuseParser m (String)
+parseDirectiveKey :: PandocMonad m => MuseParser m String
 parseDirectiveKey = do
   char '#'
   many (letter <|> char '-')
@@ -173,7 +173,7 @@ parseAmuseDirective = do
   value <- parseFromString (trimInlinesF . mconcat <$> many inline) $ unlines (first : rest)
   return (key, value)
   where
-    endOfDirective = lookAhead $ endOfInput <|> (try $ void blankline) <|> (try $ void parseDirectiveKey)
+    endOfDirective = lookAhead $ endOfInput <|> try (void blankline) <|> try (void parseDirectiveKey)
     endOfInput     = try $ skipMany blankline >> skipSpaces >> eof
 
 directive :: PandocMonad m => MuseParser m ()
@@ -428,7 +428,7 @@ listStart marker = try $ do
 dropSpacePrefix :: [String] -> [String]
 dropSpacePrefix lns =
   map (drop maxIndent) lns
-  where flns = filter (\s -> not $ all (== ' ') s) lns
+  where flns = filter (not . all (== ' ')) lns
         maxIndent = if null flns then 0 else length $ takeWhile (== ' ') $ foldl1 commonPrefix flns
 
 listItemContents :: PandocMonad m => Int -> MuseParser m (F Blocks)
@@ -620,7 +620,7 @@ inlineList = [ endline
              ]
 
 inline :: PandocMonad m => MuseParser m (F Inlines)
-inline = (choice inlineList) <?> "inline"
+inline = choice inlineList <?> "inline"
 
 endline :: PandocMonad m => MuseParser m (F Inlines)
 endline = try $ do
