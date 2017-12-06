@@ -481,14 +481,16 @@ pTable = try $ do
                   pInTags "tr" (pCell "td" <|> pCell "th")
       pTBody = pOptInTag "tbody" $ many1 pTr
   head'' <- pOptInTag "thead" pTh
-  head'  <- map snd <$>
+  head'  <- map (fst . snd) <$>
              pOptInTag "tbody"
                (if null head'' then pTh else return head'')
   rowsLs <- many pTBody
   rows'  <- pOptInTag "tfoot" $ many pTr
   TagClose _ <- pSatisfy (matchTagClose "table")
   let rows'' = concat rowsLs <> rows'
-  let rows''' = map (map snd) rows''
+  let rows''' = map (map (fst . snd)) rows''
+  let headerspecs = map (snd . snd) head''
+  let rowspecs = map (map (snd . snd)) rows''
   -- let rows''' = map (map snd) rows''
   -- fail on empty table
   guard $ not $ null head' && null rows'''
@@ -497,21 +499,19 @@ pTable = try $ do
                              [Plain _] -> True
                              _         -> False
   let isSimple = all isSinglePlain $ concat (head':rows''')
-  let cols = length $ if null head' then head rows''' else head'
+  let cols = foldr (+) 0 $ map fst headerspecs
   -- add empty cells to short rows
   let addEmpties r = case cols - length r of
                            n | n > 0 -> r <> replicate n mempty
                              | otherwise -> r
   let rows = map addEmpties rows'''
-  let aligns = case rows'' of
-                    (cs:_) -> map fst cs
-                    _      -> replicate cols AlignDefault
+  let aligns = replicate cols AlignDefault
   let widths = if null widths'
                   then if isSimple
                        then replicate cols 0
                        else replicate cols (1.0 / fromIntegral cols)
                   else widths'
-  return $ B.table caption (zip aligns widths) head' rows
+  return $ B.fullTable caption (zip aligns widths) headerspecs rowspecs head' rows
 
 pCol :: PandocMonad m => TagParser m Double
 pCol = try $ do
@@ -537,17 +537,17 @@ pColgroup = try $ do
   manyTill pCol (pCloses "colgroup" <|> eof) <* skipMany pBlank
 
 noColOrRowSpans :: Tag Text -> Bool
-noColOrRowSpans t = isNullOrOne "colspan" && isNullOrOne "rowspan"
+noColOrRowSpans t = isNullOrOne "rowspan"
   where isNullOrOne x = case fromAttrib x t of
                               ""  -> True
                               "1" -> True
                               _   -> False
 
-pCell :: PandocMonad m => Text -> TagParser m [(Alignment, Blocks)]
+pCell :: PandocMonad m => Text -> TagParser m [(Alignment, (Blocks, CellSpec))]
 pCell celltype = try $ do
   skipMany pBlank
   tag <- lookAhead $
-           pSatisfy (\t -> t ~== TagOpen celltype [] && noColOrRowSpans t)
+           pSatisfy (\t -> t ~== TagOpen celltype [])
   let extractAlign' []                 = ""
       extractAlign' ("text-align":x:_) = x
       extractAlign' (_:xs)             = extractAlign' xs
@@ -558,9 +558,15 @@ pCell celltype = try $ do
                    Just "right"  -> AlignRight
                    Just "center" -> AlignCenter
                    _             -> AlignDefault
-  res <- pInTags' celltype noColOrRowSpans block
+  let colspan = case maybeFromAttrib "colspan" tag of
+                   Just cs -> read $ cs
+                   Nothing -> 1
+  let rowspan = case maybeFromAttrib "rowspan" tag of
+                   Just rs -> read $ rs
+                   Nothing -> 1
+  res <- pInTags' celltype (\t -> True) block
   skipMany pBlank
-  return [(align, res)]
+  return [(align, (res, (colspan, rowspan)))]
 
 pBlockQuote :: PandocMonad m => TagParser m Blocks
 pBlockQuote = do
