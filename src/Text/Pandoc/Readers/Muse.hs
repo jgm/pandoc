@@ -136,6 +136,13 @@ commonPrefix (x:xs) (y:ys)
   | x == y    = x : commonPrefix xs ys
   | otherwise = []
 
+atStart :: PandocMonad m => MuseParser m a -> MuseParser m a
+atStart p = do
+  pos <- getPosition
+  st <- getState
+  guard $ stateLastStrPos st /= Just pos
+  p
+
 --
 -- directive parsers
 --
@@ -668,7 +675,7 @@ enclosedInlines :: (PandocMonad m, Show a, Show b)
                 -> MuseParser m b
                 -> MuseParser m (F Inlines)
 enclosedInlines start end = try $
-  trimInlinesF . mconcat <$> (enclosed start end inline <* notFollowedBy (satisfy isLetter))
+  trimInlinesF . mconcat <$> (enclosed (atStart start) end inline <* notFollowedBy (satisfy isLetter))
 
 inlineTag :: PandocMonad m
           => (Inlines -> Inlines)
@@ -745,7 +752,10 @@ inlineLiteralTag = do
     rawInline (attrs, content) = B.rawInline (format attrs) content
 
 str :: PandocMonad m => MuseParser m (F Inlines)
-str = return . B.str <$> many1 alphaNum
+str = do
+  result <- many1 alphaNum
+  updateLastStrPos
+  return $ return $ B.str result
 
 symbol :: PandocMonad m => MuseParser m (F Inlines)
 symbol = return . B.str <$> count 1 nonspaceChar
