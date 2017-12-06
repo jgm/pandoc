@@ -454,6 +454,19 @@ tests =
                     ] =?>
           blockQuote (para "* Hi")
         ]
+      , testGroup "Directives"
+        [ "Title" =:
+          "#title Document title" =?>
+          let titleInline = toList $ "Document title"
+              meta = setMeta "title" (MetaInlines titleInline) $ nullMeta
+          in Pandoc meta mempty
+        -- Emacs Muse documentation says that "You can use any combination
+        -- of uppercase and lowercase letters for directives",
+        -- but also allows '-', which is not documented, but used for disable-tables.
+        , test emacsMuse "Disable tables"
+          ("#disable-tables t" =?>
+          Pandoc (setMeta "disable-tables" (MetaInlines $ toList "t") $ nullMeta) mempty)
+        ]
       , testGroup "Anchors"
         [ "Anchor" =:
           T.unlines [ "; A comment to make sure anchor is not parsed as a directive"
@@ -939,12 +952,5 @@ tests =
                                                          , para "Second"
                                                          , para "Third"
                                                          ])
-      ]
-  , testGroup "Meta"
-      [ "Title" =:
-        "#title Document title" =?>
-        let titleInline = toList $ "Document title"
-            meta = setMeta "title" (MetaInlines titleInline) $ nullMeta
-        in Pandoc meta mempty
       ]
   ]
