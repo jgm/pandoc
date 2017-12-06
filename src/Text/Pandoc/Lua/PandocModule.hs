@@ -60,7 +60,7 @@ import qualified Text.Pandoc.MediaBag as MB
 
 -- | Push the "pandoc" on the lua stack. Requires the `list` module to be
 -- loaded.
-pushPandocModule :: Maybe FilePath -> Lua ()
+pushPandocModule :: Maybe FilePath -> Lua NumResults
 pushPandocModule datadir = do
   loadScriptFromDataDir datadir "pandoc.lua"
   addFunction "_pipe" pipeFn
@@ -68,6 +68,7 @@ pushPandocModule datadir = do
   addFunction "sha1" sha1HashFn
   addFunction "walk_block" walkBlock
   addFunction "walk_inline" walkInline
+  return 1
 
 walkElement :: (ToLuaStack a, Walkable [Inline] a, Walkable [Block] a)
             => a -> LuaFilter -> Lua NumResults
@@ -99,14 +100,14 @@ readDoc formatSpec content = do
 --
 -- MediaBag submodule
 --
-pushMediaBagModule :: CommonState -> IORef MB.MediaBag -> Lua ()
+pushMediaBagModule :: CommonState -> IORef MB.MediaBag -> Lua NumResults
 pushMediaBagModule commonState mediaBagRef = do
   Lua.newtable
   addFunction "insert" (insertMediaFn mediaBagRef)
   addFunction "lookup" (lookupMediaFn mediaBagRef)
   addFunction "list" (mediaDirectoryFn mediaBagRef)
   addFunction "fetch" (fetch commonState mediaBagRef)
-  return ()
+  return 1
 
 addFunction :: ToHaskellFunction a => String -> a -> Lua ()
 addFunction name fn = do

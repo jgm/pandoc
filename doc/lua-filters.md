@@ -3,7 +3,7 @@ title: Pandoc Lua Filters
 author:
 - Albert Krewinkel
 - John MacFarlane
-date: 'November 20, 2017'
+date: 'December 6, 2017'
 ---
 
 # Introduction
@@ -175,6 +175,34 @@ Some pandoc functions have been made available in lua:
 - The `mediabag` module allows access to the "mediabag,"
   which stores binary content such as images that may be
   included in the final document.
+
+# Lua interpreter initialization
+
+The way the Lua interpreter is set-up can be controlled by
+placing a file `init.lua` in pandoc's data directory. The
+default init file loads the `pandoc` and `pandoc.mediabag`
+modules:
+
+``` lua
+pandoc = require 'pandoc'
+pandoc.mediabag = require 'pandoc.mediabag'
+```
+
+A common use-case would be to add code to load additional
+modules or to alter default modules. E.g., the following snippet
+adds all unicode-aware functions defined in the [`text`
+module](#module-text) to the default `string` module, prefixed
+with the string `uc_`.
+
+```lua
+for name, fn in pairs(require 'text') do
+  string['uc_' .. name] = fn
+end
+```
+
+This makes it possible to apply these functions on strings using
+colon syntax (`mystring:uc_upper()`).
+
 
 # Examples
 

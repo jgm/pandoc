@@ -48,10 +48,11 @@ import Foreign.Lua (FromLuaStack (peek), Lua, LuaException (..),
                     Status (OK), ToLuaStack (push))
 import Text.Pandoc.Class (PandocIO, getCommonState, getMediaBag, setMediaBag)
 import Text.Pandoc.Definition
+import Text.Pandoc.Lua.Filter (LuaFilter, walkMWithLuaFilter)
 import Text.Pandoc.Lua.Packages (LuaPackageParams (..),
                                  installPandocPackageSearcher)
-import Text.Pandoc.Lua.PandocModule (pushMediaBagModule, pushPandocModule)
-import Text.Pandoc.Lua.Filter (LuaFilter, walkMWithLuaFilter)
+import Text.Pandoc.Lua.PandocModule (pushPandocModule) -- TODO: remove
+import Text.Pandoc.Lua.Util (loadScriptFromDataDir)
 import qualified Foreign.Lua as Lua
 import qualified Foreign.Lua.Module.Text as Lua
 
@@ -101,17 +102,11 @@ luaPackageParams datadir = do
 
 -- Initialize the lua state with all required values
 initLuaState :: LuaPackageParams -> Lua ()
-initLuaState luaPkgParams@(LuaPackageParams commonState datadir mbRef) = do
+initLuaState luaPkgParams = do
   Lua.openlibs
   Lua.preloadTextModule "text"
   installPandocPackageSearcher luaPkgParams
-  pushPandocModule datadir
-  -- add MediaBag module
-  push "mediabag"
-  pushMediaBagModule commonState mbRef
-  Lua.rawset (-3)
-  Lua.setglobal "pandoc"
-  return ()
+  loadScriptFromDataDir (luaPkgDataDir luaPkgParams) "init.lua"
 
 pushGlobalFilter :: Lua ()
 pushGlobalFilter = do
