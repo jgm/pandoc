@@ -622,6 +622,7 @@ test-suite test-pandoc
                   Tests.Shared
                   Tests.Readers.LaTeX
                   Tests.Readers.HTML
+                  Tests.Readers.JATS
                   Tests.Readers.Markdown
                   Tests.Readers.Org
                   Tests.Readers.RST
@@ -635,6 +636,7 @@ test-suite test-pandoc
                   Tests.Writers.ConTeXt
                   Tests.Writers.Docbook
                   Tests.Writers.HTML
+                  Tests.Writers.JATS
                   Tests.Writers.Markdown
                   Tests.Writers.Org
                   Tests.Writers.Plain
