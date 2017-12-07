@@ -497,7 +497,7 @@ library
 
 executable pandoc
   build-depends: pandoc, base >= 4.7 && < 5
-  ghc-options:   -rtsopts -with-rtsopts=-K16m -Wall -fno-warn-unused-do-bind
+  ghc-options:   -rtsopts -with-rtsopts=-K16m -Wall -fno-warn-unused-do-bind -threaded
   ghc-prof-options: -fprof-auto-exported -rtsopts -with-rtsopts=-K16m
   if flag(static)
     ld-options:     -static
