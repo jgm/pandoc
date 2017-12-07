@@ -1155,8 +1155,9 @@ htmlTag f = try $ do
   -- in XML element names
   let isNameChar c = isAlphaNum c || c == ':' || c == '-' || c == '_'
   let isName s = case s of
-                      []     -> False
-                      (c:cs) -> isLetter c && all isNameChar cs
+                      []      -> False
+                      ('?':_) -> True -- processing instruction
+                      (c:cs)  -> isLetter c && all isNameChar cs
 
   let endpos = if ln == 1
                   then setSourceColumn startpos
