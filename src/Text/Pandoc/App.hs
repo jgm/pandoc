@@ -1074,7 +1074,8 @@ options =
                                   (map T.pack
                                    ["text-color"
                                    ,"background-color"
-                                   ,"line-numbers"
+                                   ,"line-number-color"
+                                   ,"line-number-background-color"
                                    ,"bold"
                                    ,"italic"
                                    ,"underline"

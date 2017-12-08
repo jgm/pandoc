@@ -586,7 +586,7 @@ styleToMs sty = vcat $ colordefs ++ map (toMacro sty) alltoktypes
         allcolors = catMaybes $ ordNub $
           [defaultColor sty, backgroundColor sty,
            lineNumberColor sty, lineNumberBackgroundColor sty] ++
-           concatMap (colorsForToken. snd) (tokenStyles sty)
+           concatMap (colorsForToken. snd) (Map.toList (tokenStyles sty))
         colorsForToken ts = [tokenColor ts, tokenBackground ts]
 
 hexColor :: Color -> String
@@ -611,7 +611,7 @@ toMacro sty toktype =
         resetfont = if tokBold || tokItalic
                        then text "\\\\f[C]"
                        else empty
-        tokSty = lookup toktype (tokenStyles sty)
+        tokSty = Map.lookup toktype (tokenStyles sty)
         tokCol = (tokSty >>= tokenColor) `mplus` defaultColor sty
         -- tokBg  = (tokSty >>= tokenBackground) `mplus` backgroundColor sty
         tokBold = fromMaybe False (tokenBold <$> tokSty)

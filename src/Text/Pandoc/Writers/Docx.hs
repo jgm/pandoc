@@ -625,12 +625,12 @@ styleToOpenXml sm style =
                                [ mknode "w:u" [] () | tokFeature tokenUnderline toktype ]
                              ]
         tokStyles = tokenStyles style
-        tokFeature f toktype = maybe False f $ lookup toktype tokStyles
+        tokFeature f toktype = maybe False f $ M.lookup toktype tokStyles
         tokCol toktype = maybe "auto" (drop 1 . fromColor)
-                         $ (tokenColor =<< lookup toktype tokStyles)
+                         $ (tokenColor =<< M.lookup toktype tokStyles)
                            `mplus` defaultColor style
         tokBg toktype = maybe "auto" (drop 1 . fromColor)
-                         $ (tokenBackground =<< lookup toktype tokStyles)
+                         $ (tokenBackground =<< M.lookup toktype tokStyles)
                            `mplus` backgroundColor style
         parStyle | hasStyleName "Source Code" (sParaStyleMap sm) = Nothing
                  | otherwise = Just $
