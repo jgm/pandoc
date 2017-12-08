@@ -91,6 +91,7 @@ Markdown can be expected to be lossy.
 [TWiki markup]: http://twiki.org/cgi-bin/view/TWiki/TextFormattingRules
 [Haddock markup]: https://www.haskell.org/haddock/doc/html/ch03s08.html
 [groff man]: http://man7.org/linux/man-pages/man7/groff_man.7.html
+[groff ms]: http://man7.org/linux/man-pages/man7/groff_ms.7.html
 [Haskell]: https://www.haskell.org
 [GNU Texinfo]: http://www.gnu.org/software/texinfo/
 [Emacs Org mode]: http://orgmode.org
