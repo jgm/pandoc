@@ -1,6 +1,6 @@
 % Pandoc User's Guide
 % John MacFarlane
-% December 2, 2017
+% December 8, 2017
 
 Synopsis
 ========
@@ -1043,6 +1043,13 @@ Options affecting specific writers
 :   Use the given string as a command-line argument to the `pdf-engine`.
     If used multiple times, the arguments are provided with spaces between
     them. Note that no check for duplicate options is done.
+    
+`--pagestyle=`*STRING*
+
+:   Pass the string to a LaTeX `\pagestyle{}`. The default article class
+    supports 'plain' (default), 'empty', and 'headings'; headings puts
+    section titles in the header. This works for LaTeX and PDF output
+    using LaTeX.
 
 [Dublin Core elements]: http://dublincore.org/documents/dces/
 [ISO 8601 format]: http://www.w3.org/TR/NOTE-datetime
