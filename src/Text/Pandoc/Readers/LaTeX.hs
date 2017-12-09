@@ -332,9 +332,20 @@ totoks pos t =
                       in  Tok pos (CtrlSeq ws) ("\\" <> ws <> ss)
                           : totoks (incSourceColumn pos
                                (1 + T.length ws + T.length ss)) rest'''
-                  | d == '\t' || d == '\n' ->
-                      Tok pos Symbol "\\"
-                      : totoks (incSourceColumn pos 1) rest
+                  | isSpaceOrTab d || d == '\n' ->
+                      let (w1, r1) = T.span isSpaceOrTab rest
+                          (w2, (w3, r3)) = case T.uncons r1 of
+                                          Just ('\n', r2)
+                                                  -> (T.pack "\n",
+                                                        T.span isSpaceOrTab r2)
+                                          _ -> (mempty, (w1, r1))
+                      in  case T.uncons r3 of
+                               Just ('\n', _) ->
+                                 Tok pos (CtrlSeq " ") ("\\" <> w1)
+                                 : totoks (incSourceColumn pos 1) r1
+                               _ ->
+                                 Tok pos (CtrlSeq " ") ("\\" <> w1 <> w2 <> w3)
+                                 : totoks (incSourceColumn pos 1) r3
                   | otherwise  ->
                       Tok pos (CtrlSeq (T.singleton d)) (T.pack [c,d])
                       : totoks (incSourceColumn pos 2) rest'
