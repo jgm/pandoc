@@ -373,6 +373,8 @@ inlineToMan _ LineBreak = return $
   cr <> text ".PD 0" $$ text ".P" $$ text ".PD" <> cr
 inlineToMan _ SoftBreak = return space
 inlineToMan _ Space = return space
+inlineToMan opts (Link _ txt ('#':_, _)) =
+  inlineListToMan opts txt -- skip internal links
 inlineToMan opts (Link _ txt (src, _)) = do
   linktext <- inlineListToMan opts txt
   let srcSuffix = fromMaybe src (stripPrefix "mailto:" src)
