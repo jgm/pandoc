@@ -674,6 +674,66 @@ getDefaultReferenceODT = do
      Nothing   -> foldr addEntryToArchive emptyArchive <$>
                      mapM pathToEntry paths
 
+getDefaultReferencePptx :: PandocMonad m => m Archive
+getDefaultReferencePptx = do
+  -- We're going to narrow this down substantially once we get it
+  -- working.
+  let paths = [ "[Content_Types].xml"
+              , "_rels/.rels"
+              , "docProps/app.xml"
+              , "docProps/core.xml"
+              , "ppt/_rels/presentation.xml.rels"
+              , "ppt/presProps.xml"
+              , "ppt/presentation.xml"
+              , "ppt/slideLayouts/_rels/slideLayout1.xml.rels"
+              , "ppt/slideLayouts/_rels/slideLayout10.xml.rels"
+              , "ppt/slideLayouts/_rels/slideLayout11.xml.rels"
+              , "ppt/slideLayouts/_rels/slideLayout2.xml.rels"
+              , "ppt/slideLayouts/_rels/slideLayout3.xml.rels"
+              , "ppt/slideLayouts/_rels/slideLayout4.xml.rels"
+              , "ppt/slideLayouts/_rels/slideLayout5.xml.rels"
+              , "ppt/slideLayouts/_rels/slideLayout6.xml.rels"
+              , "ppt/slideLayouts/_rels/slideLayout7.xml.rels"
+              , "ppt/slideLayouts/_rels/slideLayout8.xml.rels"
+              , "ppt/slideLayouts/_rels/slideLayout9.xml.rels"
+              , "ppt/slideLayouts/slideLayout1.xml"
+              , "ppt/slideLayouts/slideLayout10.xml"
+              , "ppt/slideLayouts/slideLayout11.xml"
+              , "ppt/slideLayouts/slideLayout2.xml"
+              , "ppt/slideLayouts/slideLayout3.xml"
+              , "ppt/slideLayouts/slideLayout4.xml"
+              , "ppt/slideLayouts/slideLayout5.xml"
+              , "ppt/slideLayouts/slideLayout6.xml"
+              , "ppt/slideLayouts/slideLayout7.xml"
+              , "ppt/slideLayouts/slideLayout8.xml"
+              , "ppt/slideLayouts/slideLayout9.xml"
+              , "ppt/slideMasters/_rels/slideMaster1.xml.rels"
+              , "ppt/slideMasters/slideMaster1.xml"
+              , "ppt/slides/_rels/slide1.xml.rels"
+              , "ppt/slides/slide1.xml"
+              , "ppt/tableStyles.xml"
+              , "ppt/theme/theme1.xml"
+              , "ppt/viewProps.xml"
+              ]
+  let toLazy = BL.fromChunks . (:[])
+  let pathToEntry path = do
+        epochtime <- (floor . utcTimeToPOSIXSeconds) <$> getCurrentTime
+        contents <- toLazy <$> readDataFile ("pptx/" ++ path)
+        return $ toEntry path epochtime contents
+  datadir <- getUserDataDir        
+  mbArchive <- case datadir of
+                    Nothing   -> return Nothing
+                    Just d    -> do
+                       exists <- fileExists (d </> "reference.pptx")
+                       if exists
+                          then return (Just (d </> "reference.pptx"))
+                          else return Nothing
+  case mbArchive of
+     Just arch -> toArchive <$> readFileLazy arch
+     Nothing   -> foldr addEntryToArchive emptyArchive <$>
+                     mapM pathToEntry paths
+                     
+
 -- | Read file from user data directory or,
 -- if not found there, from Cabal data directory.
 readDataFile :: PandocMonad m => FilePath -> m B.ByteString
@@ -691,6 +751,8 @@ readDataFile fname = do
 readDefaultDataFile :: PandocMonad m => FilePath -> m B.ByteString
 readDefaultDataFile "reference.docx" =
   (B.concat . BL.toChunks . fromArchive) <$> getDefaultReferenceDocx
+readDefaultDataFile "reference.pptx" =
+  (B.concat . BL.toChunks . fromArchive) <$> getDefaultReferencePptx
 readDefaultDataFile "reference.odt" =
   (B.concat . BL.toChunks . fromArchive) <$> getDefaultReferenceODT
 readDefaultDataFile fname =
@@ -806,6 +868,7 @@ data PureState = PureState { stStdGen     :: StdGen
                            , stTime :: UTCTime
                            , stTimeZone :: TimeZone
                            , stReferenceDocx :: Archive
+                           , stReferencePptx :: Archive
                            , stReferenceODT :: Archive
                            , stFiles :: FileTree
                            , stUserDataFiles :: FileTree
@@ -820,6 +883,7 @@ instance Default PureState where
                   , stTime = posixSecondsToUTCTime 0
                   , stTimeZone = utc
                   , stReferenceDocx = emptyArchive
+                  , stReferencePptx = emptyArchive
                   , stReferenceODT = emptyArchive
                   , stFiles = mempty
                   , stUserDataFiles = mempty
