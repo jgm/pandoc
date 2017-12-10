@@ -1658,8 +1658,6 @@ getContentType fp
   | "ppt" : "theme" : f : [] <- splitDirectories fp
   , (_, ".xml") <- splitExtension f =
       Just $ noPresML ++ ".theme+xml"
-  -- | "ppt" : "slideLayouts" : f : [] <- splitDirectories fp
-  -- , (_, ".xml") <- splitExtension f =
   | "ppt" : "slideLayouts" : _ : [] <- splitDirectories fp=
       Just $ presML ++ ".slideLayout+xml"
   | otherwise = Nothing
