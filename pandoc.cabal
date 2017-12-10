@@ -98,6 +98,46 @@ data-files:
                  data/odt/Configurations2/accelerator/current.xml
                  data/odt/Thumbnails/thumbnail.png
                  data/odt/META-INF/manifest.xml
+                 -- source files for reference.pptx
+                 data/pptx/_rels/.rels
+                 data/pptx/docProps/thumbnail.jpeg
+                 data/pptx/docProps/app.xml
+                 data/pptx/docProps/core.xml
+                 data/pptx/ppt/slideLayouts/slideLayout4.xml
+                 data/pptx/ppt/slideLayouts/_rels/slideLayout9.xml.rels
+                 data/pptx/ppt/slideLayouts/_rels/slideLayout2.xml.rels
+                 data/pptx/ppt/slideLayouts/_rels/slideLayout10.xml.rels
+                 data/pptx/ppt/slideLayouts/_rels/slideLayout1.xml.rels
+                 data/pptx/ppt/slideLayouts/_rels/slideLayout3.xml.rels
+                 data/pptx/ppt/slideLayouts/_rels/slideLayout5.xml.rels
+                 data/pptx/ppt/slideLayouts/_rels/slideLayout7.xml.rels
+                 data/pptx/ppt/slideLayouts/_rels/slideLayout8.xml.rels
+                 data/pptx/ppt/slideLayouts/_rels/slideLayout11.xml.rels
+                 data/pptx/ppt/slideLayouts/_rels/slideLayout4.xml.rels
+                 data/pptx/ppt/slideLayouts/_rels/slideLayout6.xml.rels
+                 data/pptx/ppt/slideLayouts/slideLayout2.xml
+                 data/pptx/ppt/slideLayouts/slideLayout8.xml
+                 data/pptx/ppt/slideLayouts/slideLayout11.xml
+                 data/pptx/ppt/slideLayouts/slideLayout3.xml
+                 data/pptx/ppt/slideLayouts/slideLayout6.xml
+                 data/pptx/ppt/slideLayouts/slideLayout9.xml
+                 data/pptx/ppt/slideLayouts/slideLayout5.xml
+                 data/pptx/ppt/slideLayouts/slideLayout7.xml
+                 data/pptx/ppt/slideLayouts/slideLayout1.xml
+                 data/pptx/ppt/slideLayouts/slideLayout10.xml
+                 data/pptx/ppt/_rels/presentation.xml.rels
+                 data/pptx/ppt/theme/theme1.xml
+                 data/pptx/ppt/presProps.xml
+                 data/pptx/ppt/slides/_rels/slide1.xml.rels
+                 data/pptx/ppt/slides/_rels/slide2.xml.rels
+                 data/pptx/ppt/slides/slide2.xml
+                 data/pptx/ppt/slides/slide1.xml
+                 data/pptx/ppt/viewProps.xml
+                 data/pptx/ppt/tableStyles.xml
+                 data/pptx/ppt/slideMasters/_rels/slideMaster1.xml.rels
+                 data/pptx/ppt/slideMasters/slideMaster1.xml
+                 data/pptx/ppt/presentation.xml
+                 data/pptx/[Content_Types].xml
                   -- stylesheet for EPUB writer
                  data/epub.css
                  -- data for LaTeXMathML writer
@@ -433,12 +473,14 @@ library
                    Text.Pandoc.Writers.RTF,
                    Text.Pandoc.Writers.ODT,
                    Text.Pandoc.Writers.Docx,
+                   Text.Pandoc.Writers.Powerpoint,
                    Text.Pandoc.Writers.EPUB,
                    Text.Pandoc.Writers.FB2,
                    Text.Pandoc.Writers.TEI,
                    Text.Pandoc.Writers.Muse,
                    Text.Pandoc.Writers.Math,
                    Text.Pandoc.Writers.Shared,
+                   Text.Pandoc.Writers.OOXML,                   
                    Text.Pandoc.Lua,
                    Text.Pandoc.PDF,
                    Text.Pandoc.UTF8,

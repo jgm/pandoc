@@ -68,6 +68,7 @@ module Text.Pandoc.Writers
     , writeOpenDocument
     , writeOrg
     , writePlain
+    , writePowerpoint
     , writeRST
     , writeRTF
     , writeRevealJs
@@ -113,6 +114,7 @@ import Text.Pandoc.Writers.ODT
 import Text.Pandoc.Writers.OpenDocument
 import Text.Pandoc.Writers.OPML
 import Text.Pandoc.Writers.Org
+import Text.Pandoc.Writers.Powerpoint
 import Text.Pandoc.Writers.RST
 import Text.Pandoc.Writers.RTF
 import Text.Pandoc.Writers.TEI
@@ -131,6 +133,7 @@ writers = [
   ,("json"         , TextWriter $ \o d -> return $ writeJSON o d)
   ,("docx"         , ByteStringWriter writeDocx)
   ,("odt"          , ByteStringWriter writeODT)
+  ,("pptx"         , ByteStringWriter writePowerpoint)
   ,("epub"         , ByteStringWriter writeEPUB3)
   ,("epub2"        , ByteStringWriter writeEPUB2)
   ,("epub3"        , ByteStringWriter writeEPUB3)

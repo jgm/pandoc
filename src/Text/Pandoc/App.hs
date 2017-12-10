@@ -815,6 +815,7 @@ defaultWriterName x =
     ".tei"      -> "tei"
     ".ms"       -> "ms"
     ".roff"     -> "ms"
+    ".pptx"     -> "pptx"
     ['.',y]     | y `elem` ['1'..'9'] -> "man"
     _           -> "html"
 
