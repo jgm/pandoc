@@ -40,12 +40,10 @@ import Control.Monad.Reader
 import Control.Monad.State.Strict
 import qualified Data.ByteString as B
 import qualified Data.ByteString.Lazy as BL
-import qualified Data.ByteString.Lazy.Char8 as BL8
 import Data.Char (isSpace, ord, toLower)
 import Data.List (intercalate, isPrefixOf, isSuffixOf)
 import qualified Data.Map as M
 import Data.Maybe (fromMaybe, isNothing, mapMaybe, maybeToList)
-import Data.Monoid ((<>))
 import qualified Data.Set as Set
 import qualified Data.Text as T
 import Data.Time.Clock.POSIX
@@ -65,7 +63,6 @@ import Text.Pandoc.MIME (MimeType, extensionFromMimeType, getMimeType,
 import Text.Pandoc.Options
 import Text.Pandoc.Readers.Docx.StyleMap
 import Text.Pandoc.Shared hiding (Element)
-import qualified Text.Pandoc.UTF8 as UTF8
 import Text.Pandoc.Walk
 import Text.Pandoc.Writers.Math
 import Text.Pandoc.Writers.Shared (fixDisplayMath)
