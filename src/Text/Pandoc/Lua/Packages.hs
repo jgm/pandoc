@@ -53,7 +53,10 @@ data LuaPackageParams = LuaPackageParams
 -- | Insert pandoc's package loader as the first loader, making it the default.
 installPandocPackageSearcher :: LuaPackageParams -> Lua ()
 installPandocPackageSearcher luaPkgParams = do
-  Lua.getglobal' "package.searchers"
+  luaVersion <- Lua.getglobal "_VERSION" *> Lua.peek (-1)
+  if luaVersion == "Lua 5.1"
+    then Lua.getglobal' "package.loaders"
+    else Lua.getglobal' "package.searchers"
   shiftArray
   Lua.pushHaskellFunction (pandocPackageSearcher luaPkgParams)
   Lua.wrapHaskellFunction
