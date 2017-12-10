@@ -73,6 +73,7 @@ import Text.Printf (printf)
 import Text.TeXMath
 import Text.XML.Light as XML
 import Text.XML.Light.Cursor as XMLC
+import Text.Pandoc.Writers.OOXML
 
 data ListMarker = NoMarker
                 | BulletMarker
@@ -156,22 +157,6 @@ defaultWriterState = WriterState{
 
 type WS m = ReaderT WriterEnv (StateT WriterState m)
 
-mknode :: Node t => String -> [(String,String)] -> t -> Element
-mknode s attrs =
-  add_attrs (map (\(k,v) -> Attr (nodename k) v) attrs) .  node (nodename s)
-
-nodename :: String -> QName
-nodename s = QName{ qName = name, qURI = Nothing, qPrefix = prefix }
- where (name, prefix) = case break (==':') s of
-                             (xs,[])    -> (xs, Nothing)
-                             (ys, _:zs) -> (zs, Just ys)
-
-toLazy :: B.ByteString -> BL.ByteString
-toLazy = BL.fromChunks . (:[])
-
-renderXml :: Element -> BL.ByteString
-renderXml elt = BL8.pack "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" <>
-  UTF8.fromStringLazy (showElement elt)
 
 renumIdMap :: Int -> [Element] -> M.Map String String
 renumIdMap _ [] = M.empty
@@ -1393,23 +1378,6 @@ defaultFootnotes = [ mknode "w:footnote"
                        [ mknode "w:r" [] $
                          [ mknode "w:continuationSeparator" [] ()]]]]
 
-parseXml :: (PandocMonad m) => Archive -> Archive -> String -> m Element
-parseXml refArchive distArchive relpath =
-  case findEntryByPath relpath refArchive `mplus`
-         findEntryByPath relpath distArchive of
-            Nothing -> fail $ relpath ++ " missing in reference docx"
-            Just e  -> case parseXMLDoc . UTF8.toStringLazy . fromEntry $ e of
-                       Nothing -> fail $ relpath ++ " corrupt in reference docx"
-                       Just d  -> return d
-
--- | Scales the image to fit the page
--- sizes are passed in emu
-fitToPage :: (Double, Double) -> Integer -> (Integer, Integer)
-fitToPage (x, y) pageWidth
-  -- Fixes width to the page width and scales the height
-  | x > fromIntegral pageWidth =
-    (pageWidth, floor $ (fromIntegral pageWidth / x) * y)
-  | otherwise = (floor x, floor y)
 
 withDirection :: PandocMonad m => WS m a -> WS m a
 withDirection x = do
