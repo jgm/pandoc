@@ -1405,7 +1405,7 @@ options =
                  (ReqArg
                   (\arg opt -> do
                       let oldArgs = optPdfEngineArgs opt
-                      return opt { optPdfEngineArgs = arg : oldArgs })
+                      return opt { optPdfEngineArgs = oldArgs ++ [arg]})
                   "STRING")
                  "" -- "Flags to pass to the PDF-engine, all instances of this option are accumulated and used"
 
