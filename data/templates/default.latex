@@ -245,6 +245,9 @@ $else$
 \fi
 $endif$
 $endif$
+$if(pagestyle)$
+\pagestyle{$pagestyle$}
+$endif$
 
 % set default figure placement to htbp
 \makeatletter

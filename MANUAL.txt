@@ -1,6 +1,6 @@
 % Pandoc User's Guide
 % John MacFarlane
-% December 2, 2017
+% December 8, 2017
 
 Synopsis
 ========
@@ -1531,6 +1531,11 @@ LaTeX variables are used when [creating a PDF].
 
 `natbiboptions`
 :   list of options for natbib.
+
+`pagestyle`
+:   An option for LaTeX's `\pagestyle{}`. The default article class
+    supports 'plain' (default), 'empty', and 'headings'; headings puts
+    section titles in the header.
 
 [`article`]: https://ctan.org/pkg/article
 [`report`]: https://ctan.org/pkg/report
