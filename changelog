@@ -1,4 +1,4 @@
-pandoc (2.1)
+pandoc (2.0.5)
 
   * Fix a bug in 2.0.4, whereby pandoc could not read the theme files
     generated with `--print-highlight-style` (#4133).  Improve JSON
