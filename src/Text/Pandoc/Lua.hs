@@ -1,9 +1,3 @@
-{-# LANGUAGE CPP                   #-}
-{-# LANGUAGE FlexibleContexts      #-}
-{-# LANGUAGE FlexibleInstances     #-}
-{-# LANGUAGE MultiParamTypeClasses #-}
-{-# LANGUAGE ScopedTypeVariables   #-}
-{-# OPTIONS_GHC -fno-warn-orphans #-}
 {-
 Copyright © 2017 Albert Krewinkel <tarleb+pandoc@moltkeplatz.de>
 
@@ -29,7 +23,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
    Maintainer  : Albert Krewinkel <tarleb+pandoc@moltkeplatz.de>
    Stability   : alpha
 
-Pandoc lua utils.
+Running pandoc Lua filters.
 -}
 module Text.Pandoc.Lua
   ( LuaException (..)
@@ -41,7 +35,6 @@ module Text.Pandoc.Lua
   ) where
 
 import Control.Monad (when, (>=>))
-import Control.Monad.Identity (Identity)
 import Control.Monad.Trans (MonadIO (..))
 import Data.IORef (newIORef, readIORef)
 import Foreign.Lua (FromLuaStack (peek), Lua, LuaException (..),
@@ -117,6 +110,3 @@ pushGlobalFilter = do
 
 runAll :: [LuaFilter] -> Pandoc -> Lua Pandoc
 runAll = foldr ((>=>) . walkMWithLuaFilter) return
-
-instance (FromLuaStack a) => FromLuaStack (Identity a) where
-  peek = fmap return . peek
