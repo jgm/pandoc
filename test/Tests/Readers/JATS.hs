@@ -58,6 +58,7 @@ tests = [ testGroup "inline code"
             =?> definitionList [(link "#go" "" (str "testing"),
                 [para (text "hi there")])]
           ]
+-- TODO find a way to deduplicate alternative formula
 --        , testGroup "math"
 --          [ test jats "escape |" $
 --            "<p>\n\
@@ -68,6 +69,7 @@ tests = [ testGroup "inline code"
 --            =?> para (math "\\sigma|_{\\{x\\}}")
 --          ]
         , testGroup "headers"
+-- TODO fix footnotes in headers
 --          [ test jats "unnumbered header" $
 --            "<sec>\n\
 --            \  <title>Header 1<fn>\n\

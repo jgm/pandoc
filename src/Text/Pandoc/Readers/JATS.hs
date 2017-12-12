@@ -190,7 +190,7 @@ block = do
             , pBack
             , pRefList
             , pPlain
-            , pRawHtmlBlock
+            , pIgnoreRawBlock
             ]
   trace (take 60 $ show $ B.toList res)
   return res
@@ -349,18 +349,15 @@ fixPlains inList bs = if any isParaish bs'
 pRawTag :: PandocMonad m => TagParser m Text
 pRawTag = do
   tag <- pAnyTag
-  let ignorable x = x `elem` ["html","head","body","!DOCTYPE","?xml"]
+  let ignorable x = x `elem` ["!DOCTYPE","?xml"]
   if tagOpen ignorable (const True) tag || tagClose ignorable tag
      then return mempty
      else return $ renderTags' [tag]
 
-pRawHtmlBlock :: PandocMonad m => TagParser m Blocks
-pRawHtmlBlock = do
-  raw <- T.unpack <$> (pHtmlBlock "script" <|> pHtmlBlock "style" <|> pRawTag)
-  exts <- getOption readerExtensions
-  if extensionEnabled Ext_raw_html exts && not (null raw)
-     then return $ B.rawBlock "html" raw
-     else ignore raw
+pIgnoreRawBlock :: PandocMonad m => TagParser m Blocks
+pIgnoreRawBlock = do
+  raw <- T.unpack <$> pRawTag
+  ignore raw
 
 ignore :: (Monoid a, PandocMonad m) => String -> TagParser m a
 ignore raw = do
@@ -370,12 +367,6 @@ ignore raw = do
   unless (null raw) $
     logMessage $ SkippedContent raw pos
   return mempty
-
-pHtmlBlock :: PandocMonad m => Text -> TagParser m Text
-pHtmlBlock t = try $ do
-  open <- pSatisfy (matchTagOpen t [])
-  contents <- manyTill pAnyTag (pSatisfy (matchTagClose t))
-  return $ renderTags' $ [open] <> contents <> [TagClose t]
 
 pSec :: PandocMonad m => TagParser m Blocks
 pSec = do
@@ -613,7 +604,7 @@ pQ = do
                             SingleQuote -> B.singleQuoted
                             DoubleQuote -> B.doubleQuoted
   withQuoteContext innerQuoteContext $
-    pInlinesInTags "q" constructor
+    pInlinesInTags "disp-quote" constructor
 
 pEmph :: PandocMonad m => TagParser m Inlines
 pEmph = pInlinesInTags "italic" B.emph
