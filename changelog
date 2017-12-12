@@ -49,10 +49,10 @@ pandoc (2.0.5)
 
   * Muse reader (Alexander Krotov):
 
-    + Ddd test for `#disable-tables` directive in Emacs mode.
+    + Add test for `#disable-tables` directive in Emacs mode.
     + Don't allow emphasis to be preceded by letter.
     + Add underline support in Emacs Muse mode..
-    +  support multiline directives in Amusewiki mode
+    + Support multiline directives in Amusewiki mode
 
   * Man writer: omit internal links (#4136).  That is, just print the link
     text without the URL.
@@ -671,7 +671,7 @@ pandoc (2.0)
     specified if the `--resource-path` option is used.
 
   * Added --abbreviations=FILE option for custom abbreviations file
-    (#256).  Dfault abbreviations file (`data/abbreviations`) contains
+    (#256).  Default abbreviations file (`data/abbreviations`) contains
     a list of strings that will be recognized by pandoc's
     Markdown parser as abbreviations.  (A nonbreaking space will
     be inserted after the period, preventing a sentence space in
@@ -747,9 +747,9 @@ pandoc (2.0)
 
   * Add `space_in_atx_header` extension (#3512).  This is enabled by default
     in pandoc and GitHub markdown but not the other flavors.
-    This requirse a space between the opening #'s and the header
+    This requires a space between the opening #'s and the header
     text in ATX headers (as CommonMark does but many other implementations
-    do not).  This is desirable to avoid falsely capturing things ilke
+    do not).  This is desirable to avoid falsely capturing things like
 
         #hashtag
 
@@ -1543,7 +1543,7 @@ pandoc (2.0)
       interpreted using Markdown rules.
     + Preserve classes in JS obfuscated links (Timm Albers, #2989).
       HTML links containing classes originally now preserve them when using
-      javascript email obfuscation.
+      JavaScript email obfuscation.
     + Render `SmallCaps` as a native span when `native_spans` are enabled.
     + Always write attributes with `bracketed_spans` (d-dorazio).
 
