@@ -25,8 +25,9 @@ description:     Pandoc is a Haskell library for converting from one markup
                  RTF, MediaWiki, DokuWiki, ZimWiki, Textile, groff man,
                  groff ms, plain text, Emacs Org-Mode, AsciiDoc,
                  Haddock markup, EPUB (v2 and v3), FictionBook2, InDesign
-                 ICML, Muse, and several kinds of HTML/JavaScript slide
-                 shows (S5, Slidy, Slideous, DZSlides, reveal.js).
+                 ICML, Muse, LaTeX beamer slides, PowerPoint, and several
+                 kinds of HTML/JavaScript slide shows (S5, Slidy, Slideous,
+                 DZSlides, reveal.js).
                  .
                  In contrast to most existing tools for converting Markdown
                  to HTML, pandoc has a modular design: it consists of a set of
@@ -480,7 +481,7 @@ library
                    Text.Pandoc.Writers.Muse,
                    Text.Pandoc.Writers.Math,
                    Text.Pandoc.Writers.Shared,
-                   Text.Pandoc.Writers.OOXML,                   
+                   Text.Pandoc.Writers.OOXML,
                    Text.Pandoc.Lua,
                    Text.Pandoc.PDF,
                    Text.Pandoc.UTF8,
