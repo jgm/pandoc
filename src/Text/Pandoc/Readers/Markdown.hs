@@ -1353,8 +1353,8 @@ pipeTable = try $ do
   numColumns <- getOption readerColumns
   let widths = if maxlength > numColumns
                   then map (\len ->
-                           fromIntegral (len + 1) / fromIntegral numColumns)
-                             seplengths
+                         fromIntegral (len + 1) / fromIntegral (sum seplengths))
+                         seplengths
                   else replicate (length aligns) 0.0
   return (aligns, widths, heads', sequence lines'')
 

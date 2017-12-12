@@ -85,7 +85,7 @@
  ,[[Plain [Str "4"]]
   ,[Plain [Str "44"]]]]
 ,Para [Str "Long",Space,Str "pipe",Space,Str "table",Space,Str "with",Space,Str "relative",Space,Str "widths:"]
-,Table [] [AlignDefault,AlignDefault,AlignDefault] [0.125,0.1375,0.5]
+,Table [] [AlignDefault,AlignDefault,AlignDefault] [0.1639344262295082,0.18032786885245902,0.6557377049180328]
  [[Plain [Str "Default1"]]
  ,[Plain [Str "Default2"]]
  ,[Plain [Str "Default3"]]]
