@@ -60,9 +60,8 @@ import Text.Pandoc.Class (PandocMonad (..))
 import Text.Pandoc.Definition
 import Text.Pandoc.Error
 import Text.Pandoc.Logging
-import Text.Pandoc.Options (Extension (Ext_epub_html_exts, Ext_raw_html),
-                            ReaderOptions (readerExtensions),
-                            extensionEnabled)
+import Text.Pandoc.Options (Extension (Ext_epub_html_exts),
+                            ReaderOptions)
 import Text.Pandoc.Parsing hiding ((<|>))
 import Text.Pandoc.Shared (addMetaField, crFilter, escapeURI, extractSpaces,
                            safeRead, underlineSpan)
