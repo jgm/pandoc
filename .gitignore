@@ -24,3 +24,4 @@ data/reference.docx
 data/reference.odt
 .stack-work
 *.lkshf
+/result
