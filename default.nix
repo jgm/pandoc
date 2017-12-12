@@ -35,6 +35,8 @@ let haskellPackages = pkgs.haskellPackages;
           && pkgs.lib.all (i: !(pkgs.lib.hasSuffix i path)) [ ".lkshf" ]
           && pkgs.lib.all (i: !(pkgs.lib.hasPrefix i path)) [ ".ghc.environment." ]
         ) src;
+
+    # Normal nix derivation
     drv = (
         haskellPackages.extend (
           pkgs.lib.composeExtensions (
@@ -43,13 +45,9 @@ let haskellPackages = pkgs.haskellPackages;
         )
       ).callCabal2nix "pandoc" (filterHaskellSource ./.) {};
 
-    # Patch binaries for use on macOS and linux systems without nix
-    # Linux version will still need GMP to be installed
-    patched = pkgs.haskell.lib.justStaticExecutables (drv.overrideAttrs (old: {
+    # Like drv but with static linking for haskell libraries
+    static = pkgs.haskell.lib.justStaticExecutables (drv.overrideAttrs (old: {
         buildInputs = old.buildInputs ++ [
-          pkgs.zip
-          pkgs.gnutar
-          pkgs.libiconv
           pkgs.zlib.static
           haskellPackages.file-embed
         ];
@@ -57,27 +55,47 @@ let haskellPackages = pkgs.haskellPackages;
           "-fembed_data_files"
           "--disable-executable-dynamic"
         ];
-        postInstall = if pkgs.stdenv.isDarwin
+      }));
+
+    # Patch binaries for use on macOS and linux systems without nix
+    # and bundle the required gmp and lua libraries
+    patched = pkgs.stdenv.mkDerivation {
+        name = "pandoc-patched";
+        buildInputs = [
+          static
+          pkgs.zip
+          pkgs.gnutar
+        ];
+        unpackPhase = "true";
+        buildPhase = "true";
+        installPhase = if pkgs.stdenv.isDarwin
           then ''
+              mkdir -p $out/bin
+              cp ${static}/bin/pandoc $out/bin
               cp ${pkgs.gmp}/lib/libgmp.10.dylib $out/bin
-              chmod +w $out/bin/libgmp.10.dylib
-              echo patching libgmp.10.dylib
+              cp ${pkgs.lua5_3}/lib/liblua.5.3.4.dylib $out/bin
+              chmod +w $out/bin/*
+              echo patching libgmp and liblua
               install_name_tool -id "@executable_path/libgmp.10.dylib" "$out/bin/libgmp.10.dylib"
+              install_name_tool -id "@executable_path/liblua.5.3.4.dylib" "$out/bin/liblua.5.3.4.dylib"
               for fn in $out/bin/*; do
                 echo patching $fn
                 install_name_tool -change "${pkgs.libiconv}/lib/libiconv.dylib" /usr/lib/libiconv.dylib "$fn"
                 install_name_tool -change "${pkgs.stdenv.libc}/lib/libSystem.B.dylib" /usr/lib/libSystem.B.dylib "$fn"
                 install_name_tool -change "${pkgs.gmp}/lib/libgmp.10.dylib" "@executable_path/libgmp.10.dylib" "$fn"
+                install_name_tool -change "${pkgs.lua5_3}/lib/liblua.5.3.4.dylib" "@executable_path/liblua.5.3.4.dylib" "$fn"
               done
               (cd $out/.. && zip -r $out/pandoc-macOS.zip `basename $out`/bin)
             ''
           else ''
-              for fn in $out/bin/*; do
-                echo patching $fn
-                patchelf --set-interpreter /lib64/ld-linux-x86-64.so.2 $fn
-              done
-              (cd $out/.. && tar -czf $out/pandoc-linux.tar.gz $out/bin)
+              mkdir -p $out/bin
+              cp ${static}/bin/pandoc $out/bin
+              cp ${pkgs.gmp}/lib/libgmp.so* $out/bin
+              cp ${pkgs.lua5_3}/lib/liblua.so* $out/bin
+              chmod +w $out/bin/pandoc
+              patchelf --set-interpreter /lib64/ld-linux-x86-64.so.2 $out/bin/pandoc
+              patchelf --set-rpath '$ORIGIN' $out/bin/pandoc
+              (cd $out/.. && tar -czf $out/pandoc-linux.tar.gz `basename $out`/bin)
             '';
-      }
-    ));
-in if pkgs.lib.inNixShell then drv.env else drv // { inherit patched; }
+    };
+in if pkgs.lib.inNixShell then drv.env else drv // { inherit static patched; }
