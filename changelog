@@ -1,3 +1,91 @@
+pandoc (2.1)
+
+  * Fix a bug in 2.0.4, whereby pandoc could not read the theme files
+    generated with `--print-highlight-style` (#4133).  Improve JSON
+    serialization of styles.
+
+  * Fix CSS issues involving line numbers (#4128).
+    Highlighted code blocks are now enclosed in a div with class `sourceCode`.
+    Highlighting CSS no longer sets a generic color for pre and code; we only
+    set these for class `sourceCode`.
+
+  * `--pdf-engine-opt`: fix bug where option order was reversed (#4137).
+
+  * Add PowerPoint (pptx) writer (Jesse Rosenthal).
+    It works following the standard Pandoc conventions for making other
+    sorts of slides. Caveats:
+
+    + Syntax highlighting is not yet implemented. (This is difficult
+      because there are no character classes in Powerpoint.)
+    + Footnotes and Definition lists are not yet implemented. (Notes will
+      usually take the form of a final slide.
+    + Image placement and auto-resizing has a few glitches.
+    + Reference powerpoint files don't work dependably from the command
+      line. This will be implemented, but at the moment users are advised
+      to change themes from within Powerpoint.
+
+  * Create shared Text.Pandoc.Writers.OOXML module (Jesse Rosenthal).
+    This is for functions used by both Powerpoint and Docx writers.
+
+  * Add default pptx data for Powerpoint writer (Jesse Rosenthal).
+
+  * Add `empty_paragraphs` extension.
+
+    + Deprecate `--strip-empty-paragraphs` option.  Instead we now
+      use an `empty_paragraphs` extension that can be enabled on
+      the reader or writer.  By default, disabled.
+    + Add `Ext_empty_paragraphs` constructor to `Extension`.
+    + Revert "Docx reader: don't strip out empty paragraphs."
+      This reverts commit d6c58eb836f033a48955796de4d9ffb3b30e297b.
+    + Implement `empty_paragraphs` extension in docx reader and writer,
+      opendocument writer, html reader and writer.
+    + Add tests for `empty_paragraphs` extension.
+
+  * Markdown reader: Don't parse native div as table caption (#4119).
+
+  * LaTeX reader: fix `\` before newline (#4134).  This should be a space,
+    as long as it's not followed by a blank line. This has been fixed at the
+    tokenizer level.
+
+  * Muse reader (Alexander Krotov):
+
+    + Ddd test for `#disable-tables` directive in Emacs mode.
+    + Don't allow emphasis to be preceded by letter.
+    + Add underline support in Emacs Muse mode..
+    +  support multiline directives in Amusewiki mode
+
+  * Man writer: omit internal links (#4136).  That is, just print the link
+    text without the URL.
+
+  * Markdown reader: accept processing instructions as raw HTML (#4125).
+
+  * Lua filters (Albert Krewinkel):
+
+    + Use script to initialize the interpreter.  The file `init.lua` is
+      used to initialize the Lua interpreter which is used in Lua filters.
+      This gives users the option to require libraries which they want to
+      use in all of their filters, and to extend default modules.
+    + Fix package loading for Lua 5.1.  The list of package searchers is
+      named `package.loaders` in Lua 5.1 and LuaJIT, and `package.searchers`
+      in Lua 5.2 and later.
+    + Refactor lua module handling.  The integration with Lua's package/module
+      system is improved: A pandoc-specific package searcher is prepended to
+      the searchers in `package.searchers`. The modules `pandoc` and
+      `pandoc.mediabag` can now be loaded via `require`.
+    + Bump lower bound of hslua.  The release hslua 0.9.3 contains a new
+      function which makes using Haskell functions as package loaders much
+      easier.
+
+  * reveal.js template:  add title-slide identifier to title slide (#4120).
+    This allows it to be styled more easily.
+
+  * LaTeX template: Added support for `pagestyle` variable (#4135,
+    Thomas Hodgson)
+
+  * Add `-threaded` to ghc-options for executable (#4130, fixes a build
+    error on linux).
+
+
 pandoc (2.0.4)
 
   * Add `--print-highlight-style` option.  This generates a JSON version
