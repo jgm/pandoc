@@ -1,5 +1,5 @@
 .\"t
-.TH PANDOC 1 "December 2, 2017" "pandoc 2.0.4"
+.TH PANDOC 1 "December 8, 2017" "pandoc 2.1"
 .SH NAME
 pandoc - general markup converter
 .SH SYNOPSIS
@@ -19,8 +19,9 @@ MultiMarkdown, reStructuredText, XHTML, HTML5, LaTeX (including
 \f[C]beamer\f[] slide shows), ConTeXt, RTF, OPML, DocBook, OpenDocument,
 ODT, Word docx, GNU Texinfo, MediaWiki markup, DokuWiki markup, ZimWiki
 markup, Haddock markup, EPUB (v2 or v3), FictionBook2, Textile, groff
-man, groff ms, Emacs Org mode, AsciiDoc, InDesign ICML, TEI Simple, Muse
-and Slidy, Slideous, DZSlides, reveal.js or S5 HTML slide shows.
+man, groff ms, Emacs Org mode, AsciiDoc, InDesign ICML, TEI Simple,
+Muse, PowerPoint slide shows and Slidy, Slideous, DZSlides, reveal.js or
+S5 HTML slide shows.
 It can also produce PDF output on systems where LaTeX, ConTeXt,
 \f[C]pdfroff\f[], \f[C]wkhtmltopdf\f[], \f[C]prince\f[], or
 \f[C]weasyprint\f[] is installed.
@@ -286,8 +287,8 @@ e\-book), \f[C]asciidoc\f[] (AsciiDoc), \f[C]icml\f[] (InDesign ICML),
 slide show), \f[C]slideous\f[] (Slideous HTML and JavaScript slide
 show), \f[C]dzslides\f[] (DZSlides HTML5 + JavaScript slide show),
 \f[C]revealjs\f[] (reveal.js HTML5 + JavaScript slide show), \f[C]s5\f[]
-(S5 HTML and JavaScript slide show), or the path of a custom lua writer
-(see Custom writers, below).
+(S5 HTML and JavaScript slide show), \f[C]pptx\f[] (PowerPoint slide
+show) or the path of a custom lua writer (see Custom writers, below).
 (\f[C]markdown_github\f[] provides deprecated and less accurate support
 for Github\-Flavored Markdown; please use \f[C]gfm\f[] instead, unless
 you use extensions that do not work with \f[C]gfm\f[].) Note that
@@ -432,7 +433,8 @@ Specify the base level for headers (defaults to 1).
 .RE
 .TP
 .B \f[C]\-\-strip\-empty\-paragraphs\f[]
-Ignore paragraphs with non content.
+\f[I]Deprecated. Use the \f[CI]+empty_paragraphs\f[I] extension
+instead.\f[] Ignore paragraphs with no content.
 This option is useful for converting word processing documents where
 users have used empty paragraphs to create inter\-paragraph space.
 .RS
@@ -1807,6 +1809,14 @@ list of options for biblatex.
 .TP
 .B \f[C]natbiboptions\f[]
 list of options for natbib.
+.RS
+.RE
+.TP
+.B \f[C]pagestyle\f[]
+An option for LaTeX\[aq]s \f[C]\\pagestyle{}\f[].
+The default article class supports \[aq]plain\[aq] (default),
+\[aq]empty\[aq], and \[aq]headings\[aq]; headings puts section titles in
+the header.
 .RS
 .RE
 .SS Variables for ConTeXt
@@ -4752,6 +4762,13 @@ anything.
 .IP \[bu] 2
 Lazy wrapping of paragraphs is not allowed: the entire definition must
 be indented four spaces.
+.SS Extension: \f[C]empty_paragraphs\f[]
+.PP
+Allows empty paragraphs.
+By default empty paragraphs are omitted.
+This affects the \f[C]docx\f[] reader and writer, the
+\f[C]opendocument\f[] and \f[C]odt\f[] writer, and all HTML\-based
+readers and writers.
 .SS Markdown variants
 .PP
 In addition to pandoc\[aq]s extended Markdown, the following Markdown
@@ -4811,8 +4828,9 @@ extensions on \f[C]commonmark\f[]:
 \f[C]
 These\ can\ all\ be\ individually\ disabled.\ Note,\ however,\ that
 `commonmark`\ and\ `gfm`\ have\ limited\ support\ for\ extensions:
-extensions\ other\ than\ those\ listed\ above\ (and\ `smart`)\ will\ have
-no\ effect\ on\ `commonmark`\ or\ `gfm`.
+extensions\ other\ than\ those\ listed\ above\ (and\ `smart`\ and
+`raw_tex`)\ will\ have\ no\ effect\ on\ `commonmark`\ or\ `gfm`.
+And\ `raw_tex`\ only\ affects\ `gfm`\ output,\ not\ input.
 \f[]
 .fi
 .SS Extensions with formats other than Markdown
@@ -4833,7 +4851,8 @@ You can use pandoc to produce an HTML + JavaScript slide presentation
 that can be viewed via a web browser.
 There are five ways to do this, using S5, DZSlides, Slidy, Slideous, or
 reveal.js.
-You can also produce a PDF slide show using LaTeX \f[C]beamer\f[].
+You can also produce a PDF slide show using LaTeX \f[C]beamer\f[], or
+slides shows in Microsoft PowerPoint format.
 .PP
 Here\[aq]s the Markdown source for a simple slide show,
 \f[C]habits.txt\f[]:
@@ -4912,6 +4931,14 @@ pandoc\ \-t\ beamer\ habits.txt\ \-o\ habits.pdf
 .PP
 Note that a reveal.js slide show can also be converted to a PDF by
 printing it to a file from the browser.
+.PP
+To produce a Powerpoint slide show, type
+.IP
+.nf
+\f[C]
+pandoc\ habits.txt\ \-o\ habits.pptx
+\f[]
+.fi
 .SS Structuring the slide show
 .PP
 By default, the \f[I]slide level\f[] is the highest header level in the
