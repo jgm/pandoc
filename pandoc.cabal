@@ -213,6 +213,7 @@ extra-source-files:
                  test/creole-reader.txt
                  test/creole-reader.native
                  test/rst-reader.rst
+                 test/jats-reader.xml
                  test/s5-basic.html
                  test/s5-fancy.html
                  test/s5-fragment.html
