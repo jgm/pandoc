@@ -121,6 +121,9 @@ data DState = DState { docxAnchorMap :: M.Map String String
                      , docxMediaBag  :: MediaBag
                      , docxDropCap   :: Inlines
                      , docxWarnings  :: [String]
+                     -- keep track of (numId, lvl) values for
+                     -- restarting
+                     , docxListState :: M.Map (String, String) Integer
                      }
 
 instance Default DState where
@@ -128,6 +131,7 @@ instance Default DState where
                , docxMediaBag  = mempty
                , docxDropCap   = mempty
                , docxWarnings  = []
+               , docxListState = M.empty
                }
 
 data DEnv = DEnv { docxOptions       :: ReaderOptions
@@ -539,22 +543,25 @@ bodyPartToBlocks (Paragraph pPr parparts)
                  then return mempty
                  else return $ parStyleToTransform pPr $ para ils'
 bodyPartToBlocks (ListItem pPr numId lvl (Just levelInfo) parparts) = do
-  let
-    kvs = case levelInfo of
-      (_, fmt, txt, Just start) -> [ ("level", lvl)
-                                   , ("num-id", numId)
-                                   , ("format", fmt)
-                                   , ("text", txt)
-                                   , ("start", show start)
-                                   ]
-
-      (_, fmt, txt, Nothing)    -> [ ("level", lvl)
-                                   , ("num-id", numId)
-                                   , ("format", fmt)
-                                   , ("text", txt)
-                                   ]
+  -- We check whether this current numId has previously been used,
+  -- since Docx expects us to pick up where we left off.
+  listState <- gets docxListState
+  let startFromState = M.lookup (numId, lvl) listState
+      (_, fmt,txt, startFromLevelInfo) = levelInfo
+      start = case startFromState of
+        Just n -> n + 1
+        Nothing -> case startFromLevelInfo of
+          Just n' -> n'
+          Nothing -> 1
+      kvs = [ ("level", lvl)
+            , ("num-id", numId)
+            , ("format", fmt)
+            , ("text", txt)
+            , ("start", show start)
+            ]
+  modify $ \st -> st{ docxListState = M.insert (numId, lvl) start listState}
   blks <- bodyPartToBlocks (Paragraph pPr parparts)
-  return $ divWith ("", ["list-item"], kvs) blks
+  return $ divWith ("", ["list-item"], kvs) blks 
 bodyPartToBlocks (ListItem pPr _ _ _ parparts) =
   let pPr' = pPr {pStyle = "ListParagraph": pStyle pPr}
   in
