@@ -33,18 +33,20 @@ module Text.Pandoc.Writers.Custom ( writeCustom ) where
 import Control.Arrow ((***))
 import Control.Exception
 import Control.Monad (when)
+import Control.Monad.Trans (MonadIO (liftIO))
 import Data.Char (toLower)
 import Data.List (intersperse)
 import qualified Data.Map as M
 import Data.Text (Text, pack)
 import Data.Typeable
-import Foreign.Lua (Lua, ToLuaStack (..), callFunc, runLua)
+import Foreign.Lua (Lua, ToLuaStack (..), callFunc)
 import Foreign.Lua.Api
-import GHC.IO.Encoding (getForeignEncoding, setForeignEncoding, utf8)
+import Text.Pandoc.Class (PandocIO)
 import Text.Pandoc.Definition
 import Text.Pandoc.Error
+import Text.Pandoc.Lua.Init (runPandocLua)
 import Text.Pandoc.Lua.StackInstances ()
-import Text.Pandoc.Lua.Util (addValue)
+import Text.Pandoc.Lua.Util (addValue, dostring')
 import Text.Pandoc.Options
 import Text.Pandoc.Templates
 import qualified Text.Pandoc.UTF8 as UTF8
@@ -91,14 +93,11 @@ data PandocLuaException = PandocLuaException String
 instance Exception PandocLuaException
 
 -- | Convert Pandoc to custom markup.
-writeCustom :: FilePath -> WriterOptions -> Pandoc -> IO Text
+writeCustom :: FilePath -> WriterOptions -> Pandoc -> PandocIO Text
 writeCustom luaFile opts doc@(Pandoc meta _) = do
-  luaScript <- UTF8.readFile luaFile
-  enc <- getForeignEncoding
-  setForeignEncoding utf8
-  (body, context) <- runLua $ do
-    openlibs
-    stat <- loadstring luaScript
+  luaScript <- liftIO $ UTF8.readFile luaFile
+  res <- runPandocLua $ do
+    stat <- dostring' luaScript
     -- check for error in lua script (later we'll change the return type
     -- to handle this more gracefully):
     when (stat /= OK) $
@@ -111,7 +110,9 @@ writeCustom luaFile opts doc@(Pandoc meta _) = do
                inlineListToCustom
                meta
     return (rendered, context)
-  setForeignEncoding enc
+  let (body, context) = case res of
+        Left e -> throw (PandocLuaException (show e))
+        Right x -> x
   case writerTemplate opts of
        Nothing  -> return $ pack body
        Just tpl ->
