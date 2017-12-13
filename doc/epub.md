@@ -111,7 +111,7 @@ above these fields.
 Now run pandoc to make the ebook, using our title page and modified
 chapter files as sources:
 
-    pandoc -S -o progit.epub title.txt \
+    pandoc -o progit.epub title.txt \
       01-introduction/01-chapter1.markdown \
       02-git-basics/01-chapter2.markdown \
       03-git-branching/01-chapter3.markdown \
