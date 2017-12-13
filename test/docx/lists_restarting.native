@@ -1,0 +1,8 @@
+[OrderedList (2,Decimal,Period)
+ [[Para [Str "Foo"]]
+ ,[Para [Str "Bar"]]
+ ,[Para [Str "Baz"]]]
+,BlockQuote
+ [Para [Str "Interruption"]]
+,OrderedList (1,Decimal,Period)
+ [[Para [Str "Bop."]]]]

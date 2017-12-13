@@ -206,6 +206,14 @@ tests = [ testGroup "inlines"
             "docx/lists.docx"
             "docx/lists.native"
           , testCompare
+            "lists continuing after interruption"
+            "docx/lists_continuing.docx"
+            "docx/lists_continuing.native"
+          , testCompare
+            "lists restarting after interruption"
+            "docx/lists_restarting.docx"
+            "docx/lists_restarting.native"
+          , testCompare
             "definition lists"
             "docx/definition_list.docx"
             "docx/definition_list.native"
