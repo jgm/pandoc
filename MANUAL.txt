@@ -2369,6 +2369,12 @@ document:
 The label can be any string of alphanumeric characters, underscores,
 or hyphens.
 
+Note:  continuation paragraphs in example lists must always
+be indented four spaces, regardless of the length of the
+list marker.  That is, example lists always behave as if the
+`four_space_rule` extension is set.  This is because example
+labels tend to be long, and indenting content to the
+first non-space character after the label would be awkward.
 
 ### Compact and loose lists ###
 

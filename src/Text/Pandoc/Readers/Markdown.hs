@@ -863,14 +863,16 @@ listLineCommon = concat <$> manyTill
 
 -- parse raw text for one list item, excluding start marker and continuations
 rawListItem :: PandocMonad m
-            => MarkdownParser m a
+            => Bool -- four space rule
+            -> MarkdownParser m a
             -> MarkdownParser m (String, Int)
-rawListItem start = try $ do
+rawListItem fourSpaceRule start = try $ do
   pos1 <- getPosition
   start
   pos2 <- getPosition
-  continuationIndent <- (4 <$ guardEnabled Ext_four_space_rule)
-                    <|> return (sourceColumn pos2 - sourceColumn pos1)
+  let continuationIndent = if fourSpaceRule
+                              then 4
+                              else (sourceColumn pos2 - sourceColumn pos1)
   first <- listLineCommon
   rest <- many (do notFollowedBy listStart
                    notFollowedBy (() <$ codeBlockFenced)
@@ -914,10 +916,11 @@ notFollowedByHtmlCloser = do
         Nothing -> return ()
 
 listItem :: PandocMonad m
-         => MarkdownParser m a
+         => Bool -- four-space rule
+         -> MarkdownParser m a
          -> MarkdownParser m (F Blocks)
-listItem start = try $ do
-  (first, continuationIndent) <- rawListItem start
+listItem fourSpaceRule start = try $ do
+  (first, continuationIndent) <- rawListItem fourSpaceRule start
   continuations <- many (listContinuation continuationIndent)
   -- parsing with ListItemState forces markers at beginning of lines to
   -- count as list item markers, even if not separated by blank space.
@@ -938,14 +941,18 @@ orderedList = try $ do
           delim `elem` [DefaultDelim, Period]) $
     guardEnabled Ext_fancy_lists
   when (style == Example) $ guardEnabled Ext_example_lists
-  items <- fmap sequence $ many1 $ listItem
+  fourSpaceRule <- (True <$ guardEnabled Ext_four_space_rule)
+               <|> return (style == Example)
+  items <- fmap sequence $ many1 $ listItem fourSpaceRule
                  (orderedListStart (Just (style, delim)))
   start' <- (start <$ guardEnabled Ext_startnum) <|> return 1
   return $ B.orderedListWith (start', style, delim) <$> fmap compactify items
 
 bulletList :: PandocMonad m => MarkdownParser m (F Blocks)
 bulletList = do
-  items <- fmap sequence $ many1 $ listItem  bulletListStart
+  fourSpaceRule <- (True <$ guardEnabled Ext_four_space_rule)
+               <|> return False
+  items <- fmap sequence $ many1 $ listItem fourSpaceRule bulletListStart
   return $ B.bulletList <$> fmap compactify items
 
 -- definition lists
