@@ -3233,6 +3233,9 @@ If a pipe table contains a row whose printable content is wider than the
 column width (see \f[C]\-\-columns\f[]), then the cell contents will
 wrap, with the relative cell widths determined by the widths of the
 separator lines.
+(In this case, the table will take up the full text width.) If no lines
+are wider than column width, then cell contents will not be wrapped, and
+the cells will be sized to their contents.
 .PP
 Note: pandoc also recognizes pipe tables of the following form, as can
 be produced by Emacs\[aq] orgtbl\-mode:
