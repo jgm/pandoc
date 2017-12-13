@@ -41,7 +41,17 @@ pandoc (2.0.5)
       opendocument writer, html reader and writer.
     + Add tests for `empty_paragraphs` extension.
 
-  * Markdown reader: Don't parse native div as table caption (#4119).
+  * Markdown reader:
+
+    + Don't parse native div as table caption (#4119).
+    + Improved computation of column widths in pipe tables.
+      Pipe tables with lines longer than the text width (as set
+      by `--columns`) are now scaled to text width, with the relative
+      widths of columns determined by the ratios between the
+      header lines.  Previously we computed column widths using
+      the ratio of header line lengths to column width, so that
+      tables with narrow header lines were extremely thin, which
+      was very rarely the desired result.
 
   * LaTeX reader: fix `\` before newline (#4134).  This should be a space,
     as long as it's not followed by a blank line. This has been fixed at the
