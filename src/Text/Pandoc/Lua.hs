@@ -1,9 +1,3 @@
-{-# LANGUAGE CPP                   #-}
-{-# LANGUAGE FlexibleContexts      #-}
-{-# LANGUAGE FlexibleInstances     #-}
-{-# LANGUAGE MultiParamTypeClasses #-}
-{-# LANGUAGE ScopedTypeVariables   #-}
-{-# OPTIONS_GHC -fno-warn-orphans #-}
 {-
 Copyright © 2017 Albert Krewinkel <tarleb+pandoc@moltkeplatz.de>
 
@@ -29,48 +23,36 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
    Maintainer  : Albert Krewinkel <tarleb+pandoc@moltkeplatz.de>
    Stability   : alpha
 
-Pandoc lua utils.
+Running pandoc Lua filters.
 -}
 module Text.Pandoc.Lua
   ( LuaException (..)
-  , LuaPackageParams (..)
-  , pushPandocModule
   , runLuaFilter
-  , initLuaState
-  , luaPackageParams
+  , runPandocLua
+  , pushPandocModule
   ) where
 
 import Control.Monad (when, (>=>))
-import Control.Monad.Identity (Identity)
-import Control.Monad.Trans (MonadIO (..))
-import Data.IORef (newIORef, readIORef)
 import Foreign.Lua (FromLuaStack (peek), Lua, LuaException (..),
                     Status (OK), ToLuaStack (push))
-import Text.Pandoc.Class (PandocIO, getCommonState, getMediaBag, setMediaBag)
-import Text.Pandoc.Definition
+import Text.Pandoc.Class (PandocIO)
+import Text.Pandoc.Definition (Pandoc)
 import Text.Pandoc.Lua.Filter (LuaFilter, walkMWithLuaFilter)
-import Text.Pandoc.Lua.Packages (LuaPackageParams (..),
-                                 installPandocPackageSearcher)
+import Text.Pandoc.Lua.Init (runPandocLua)
 import Text.Pandoc.Lua.PandocModule (pushPandocModule) -- TODO: remove
-import Text.Pandoc.Lua.Util (loadScriptFromDataDir)
 import qualified Foreign.Lua as Lua
-import qualified Foreign.Lua.Module.Text as Lua
 
-runLuaFilter :: Maybe FilePath -> FilePath -> String
+-- | Run the Lua filter in @filterPath@ for a transformation to target
+-- format @format@. Pandoc uses Lua init files to setup the Lua
+-- interpreter.
+runLuaFilter :: FilePath -> String
              -> Pandoc -> PandocIO (Either LuaException Pandoc)
-runLuaFilter datadir filterPath format pd = do
-  luaPkgParams <- luaPackageParams datadir
-  res <- liftIO . Lua.runLuaEither $
-         runLuaFilter' luaPkgParams filterPath format pd
-  newMediaBag <- liftIO (readIORef (luaPkgMediaBag luaPkgParams))
-  setMediaBag newMediaBag
-  return res
+runLuaFilter filterPath format doc =
+  runPandocLua (runLuaFilter' filterPath format doc)
 
-runLuaFilter' :: LuaPackageParams
-              -> FilePath -> String
+runLuaFilter' :: FilePath -> String
               -> Pandoc -> Lua Pandoc
-runLuaFilter' luaPkgOpts filterPath format pd = do
-  initLuaState luaPkgOpts
+runLuaFilter' filterPath format pd = do
   -- store module in global "pandoc"
   registerFormat
   top <- Lua.gettop
@@ -90,24 +72,6 @@ runLuaFilter' luaPkgOpts filterPath format pd = do
     push format
     Lua.setglobal "FORMAT"
 
-luaPackageParams :: Maybe FilePath -> PandocIO LuaPackageParams
-luaPackageParams datadir = do
-  commonState <- getCommonState
-  mbRef <- liftIO . newIORef =<< getMediaBag
-  return LuaPackageParams
-    { luaPkgCommonState = commonState
-    , luaPkgDataDir = datadir
-    , luaPkgMediaBag = mbRef
-    }
-
--- Initialize the lua state with all required values
-initLuaState :: LuaPackageParams -> Lua ()
-initLuaState luaPkgParams = do
-  Lua.openlibs
-  Lua.preloadTextModule "text"
-  installPandocPackageSearcher luaPkgParams
-  loadScriptFromDataDir (luaPkgDataDir luaPkgParams) "init.lua"
-
 pushGlobalFilter :: Lua ()
 pushGlobalFilter = do
   Lua.newtable
@@ -117,6 +81,3 @@ pushGlobalFilter = do
 
 runAll :: [LuaFilter] -> Pandoc -> Lua Pandoc
 runAll = foldr ((>=>) . walkMWithLuaFilter) return
-
-instance (FromLuaStack a) => FromLuaStack (Identity a) where
-  peek = fmap return . peek

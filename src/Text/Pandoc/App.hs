@@ -223,7 +223,7 @@ convertWithOpts opts = do
             if ".lua" `isSuffixOf` format
                -- note:  use non-lowercased version writerName
                then return (TextWriter
-                       (\o d -> liftIO $ writeCustom writerName o d)
+                       (\o d -> writeCustom writerName o d)
                                :: Writer PandocIO, mempty)
                else case getWriter writerName of
                          Left e  -> E.throwIO $ PandocAppError $
@@ -846,7 +846,7 @@ applyLuaFilters :: Maybe FilePath -> [FilePath] -> String -> Pandoc
 applyLuaFilters mbDatadir filters format d = do
   expandedFilters <- mapM (expandFilterPath mbDatadir) filters
   let go f d' = do
-        res <- runLuaFilter mbDatadir f format d'
+        res <- runLuaFilter f format d'
         case res of
           Right x               -> return x
           Left (LuaException s) -> E.throw (PandocFilterError f s)

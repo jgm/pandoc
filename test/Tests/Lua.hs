@@ -10,9 +10,9 @@ import Text.Pandoc.Arbitrary ()
 import Text.Pandoc.Builder (bulletList, divWith, doc, doubleQuoted, emph,
                             header, linebreak, para, plain, rawBlock,
                             singleQuoted, space, str, strong, (<>))
-import Text.Pandoc.Class (runIOorExplode)
+import Text.Pandoc.Class (runIOorExplode, setUserDataDir)
 import Text.Pandoc.Definition (Block, Inline, Meta, Pandoc)
-import Text.Pandoc.Lua (initLuaState, runLuaFilter, luaPackageParams)
+import Text.Pandoc.Lua (runLuaFilter, runPandocLua)
 
 import qualified Foreign.Lua as Lua
 
@@ -95,8 +95,9 @@ tests = map (localOption (QuickCheckTests 20))
 
 assertFilterConversion :: String -> FilePath -> Pandoc -> Pandoc -> Assertion
 assertFilterConversion msg filterPath docIn docExpected = do
-  docEither <- runIOorExplode $
-               runLuaFilter (Just "../data") ("lua" </> filterPath) [] docIn
+  docEither <- runIOorExplode $ do
+    setUserDataDir (Just "../data")
+    runLuaFilter ("lua" </> filterPath) [] docIn
   case docEither of
     Left _       -> fail "lua filter failed"
     Right docRes -> assertEqual msg docExpected docRes
@@ -105,14 +106,18 @@ roundtripEqual :: (Eq a, Lua.FromLuaStack a, Lua.ToLuaStack a) => a -> IO Bool
 roundtripEqual x = (x ==) <$> roundtripped
  where
   roundtripped :: (Lua.FromLuaStack a, Lua.ToLuaStack a) => IO a
-  roundtripped = Lua.runLua $ do
-    initLuaState =<< Lua.liftIO (runIOorExplode (luaPackageParams (Just "../data")))
-    oldSize <- Lua.gettop
-    Lua.push x
-    size <- Lua.gettop
-    when (size - oldSize /= 1) $
-      error ("not exactly one additional element on the stack: " ++ show size)
-    res <- Lua.peekEither (-1)
+  roundtripped = runIOorExplode $ do
+    setUserDataDir (Just "../data")
+    res <- runPandocLua $ do
+      oldSize <- Lua.gettop
+      Lua.push x
+      size <- Lua.gettop
+      when (size - oldSize /= 1) $
+        error ("not exactly one additional element on the stack: " ++ show size)
+      res <- Lua.peekEither (-1)
+      case res of
+        Left _  -> error "could not read from stack"
+        Right y -> return y
     case res of
-      Left _  -> error "could not read from stack"
+      Left e -> error (show e)
       Right y -> return y
