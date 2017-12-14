@@ -193,22 +193,34 @@ $if(beamer)$
 \widowpenalties 1 10000
 \raggedbottom
 $if(section-titles)$
+\setbeamertemplate{part page}{
+\centering
+\begin{beamercolorbox}[sep=16pt,center]{part title}
+  \usebeamerfont{part title}\insertpart\par
+\end{beamercolorbox}
+}
+\setbeamertemplate{section page}{
+\centering
+\begin{beamercolorbox}[sep=12pt,center]{part title}
+  \usebeamerfont{section title}\insertsection\par
+\end{beamercolorbox}
+}
+\setbeamertemplate{subsection page}{
+\centering
+\begin{beamercolorbox}[sep=8pt,center]{part title}
+  \usebeamerfont{subsection title}\insertsubsection\par
+\end{beamercolorbox}
+}
 \AtBeginPart{
-  \let\insertpartnumber\relax
-  \let\partname\relax
   \frame{\partpage}
 }
 \AtBeginSection{
   \ifbibliography
   \else
-    \let\insertsectionnumber\relax
-    \let\sectionname\relax
     \frame{\sectionpage}
   \fi
 }
 \AtBeginSubsection{
-  \let\insertsubsectionnumber\relax
-  \let\subsectionname\relax
   \frame{\subsectionpage}
 }
 $endif$
