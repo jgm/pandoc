@@ -1030,7 +1030,7 @@ noteBlock' marker = try $ do
 citationMarker :: Monad m => RSTParser m [Char]
 citationMarker = do
   char '['
-  res <- simpleReferenceName'
+  res <- simpleReferenceName
   char ']'
   return res
 
@@ -1039,7 +1039,7 @@ noteMarker = do
   char '['
   res <- many1 digit
       <|>
-                  try (char '#' >> liftM ('#':) simpleReferenceName')
+                  try (char '#' >> liftM ('#':) simpleReferenceName)
       <|> count 1 (oneOf "#*")
   char ']'
   return res
@@ -1048,34 +1048,24 @@ noteMarker = do
 -- reference key
 --
 
-quotedReferenceName :: PandocMonad m => RSTParser m Inlines
+quotedReferenceName :: PandocMonad m => RSTParser m String
 quotedReferenceName = try $ do
   char '`' >> notFollowedBy (char '`') -- `` means inline code!
-  trimInlines . mconcat <$> many1Till inline (char '`')
-
-unquotedReferenceName :: PandocMonad m => RSTParser m Inlines
-unquotedReferenceName = try $ do -- `` means inline code!
-  trimInlines . mconcat <$> many1Till inline (lookAhead $ char ':')
+  manyTill anyChar (char '`')
 
 -- Simple reference names are single words consisting of alphanumerics
 -- plus isolated (no two adjacent) internal hyphens, underscores,
 -- periods, colons and plus signs; no whitespace or other characters
 -- are allowed.
-simpleReferenceName' :: Monad m => ParserT [Char] st m String
-simpleReferenceName' = do
+simpleReferenceName :: Monad m => ParserT [Char] st m String
+simpleReferenceName = do
   x <- alphaNum
   xs <- many $  alphaNum
-            <|>
-                  try (oneOf "-_:+." <* lookAhead alphaNum)
+            <|> try (oneOf "-_:+." <* lookAhead alphaNum)
   return (x:xs)
 
-simpleReferenceName :: Monad m => ParserT [Char] st m Inlines
-simpleReferenceName = B.str <$> simpleReferenceName'
-
-referenceName :: PandocMonad m => RSTParser m Inlines
-referenceName = quotedReferenceName <|>
-                try (simpleReferenceName <* lookAhead (char ':')) <|>
-                unquotedReferenceName
+referenceName :: PandocMonad m => RSTParser m String
+referenceName = quotedReferenceName <|> simpleReferenceName
 
 referenceKey :: PandocMonad m => RSTParser m [Char]
 referenceKey = do
@@ -1123,16 +1113,17 @@ anonymousKey = try $ do
   updateState $ \s -> s { stateKeys = M.insert key ((src,""), nullAttr) $
                           stateKeys s }
 
-stripTicks :: String -> String
-stripTicks = reverse . stripTick . reverse . stripTick
-  where stripTick ('`':xs) = xs
-        stripTick xs       = xs
-
 referenceNames :: PandocMonad m => RSTParser m [String]
 referenceNames = do
   let rn = try $ do
              string ".. _"
-             (_, ref) <- withRaw referenceName
+             ref <- quotedReferenceName
+                  <|> many (  noneOf ":\n"
+                          <|> try (char '\n' <*
+                                   string "   " <*
+                                   notFollowedBy blankline)
+                          <|> try (char ':' <* lookAhead alphaNum)
+                           )
              char ':'
              return ref
   first <- rn
@@ -1147,16 +1138,15 @@ regularKey = try $ do
   refs <- referenceNames
   src <- targetURI
   guard $ not (null src)
-  let keys = map (toKey . stripTicks) refs
+  let keys = map toKey refs
   forM_ keys $ \key ->
     updateState $ \s -> s { stateKeys = M.insert key ((src,""), nullAttr) $
                             stateKeys s }
 
 anchorDef :: PandocMonad m => RSTParser m [Char]
 anchorDef = try $ do
-  (refs, raw) <- withRaw (try (referenceNames <* blanklines))
-  let keys = map stripTicks refs
-  forM_ keys $ \rawkey ->
+  (refs, raw) <- withRaw $ try (referenceNames <* blanklines)
+  forM_ refs $ \rawkey ->
     updateState $ \s -> s { stateKeys =
        M.insert (toKey rawkey) (('#':rawkey,""), nullAttr) $ stateKeys s }
   -- keep this for 2nd round of parsing, where we'll add the divs (anchor)
@@ -1479,22 +1469,20 @@ explicitLink = try $ do
                           _      -> return ((src, ""), nullAttr)
   return $ B.linkWith attr (escapeURI src') tit label''
 
-citationName :: PandocMonad m => RSTParser m Inlines
+citationName :: PandocMonad m => RSTParser m String
 citationName = do
   raw <- citationMarker
-  return $ B.str $ "[" ++ raw ++ "]"
+  return $ "[" ++ raw ++ "]"
 
 referenceLink :: PandocMonad m => RSTParser m Inlines
 referenceLink = try $ do
-  (label',ref) <- withRaw (quotedReferenceName
-                          <|> simpleReferenceName
-                          <|> citationName) <*
-                   char '_'
+  ref <- (referenceName <|> citationName) <* char '_'
+  let label' = B.text ref
   let isAnonKey (Key ('_':_)) = True
       isAnonKey _             = False
   state <- getState
   let keyTable = stateKeys state
-  key <- option (toKey $ stripTicks ref) $
+  key <- option (toKey ref) $
                 do char '_'
                    let anonKeys = sort $ filter isAnonKey $ M.keys keyTable
                    case anonKeys of
