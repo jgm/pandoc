@@ -159,6 +159,17 @@ listItemToJATS opts mbmarker item = do
            maybe empty (\lbl -> inTagsIndented "label" (text lbl)) mbmarker
            $$ contents
 
+imageMimeType :: String -> [(String, String)] -> (String, String)
+imageMimeType src kvs =
+  let mbMT = getMimeType src
+      maintype = fromMaybe "image" $
+                  lookup "mimetype" kvs `mplus`
+                  (takeWhile (/='/') <$> mbMT)
+      subtype = fromMaybe "" $
+                  lookup "mime-subtype" kvs `mplus`
+                  ((drop 1 . dropWhile (/='/')) <$> mbMT)
+  in (maintype, subtype)
+
 -- | Convert a Pandoc block element to JATS.
 blockToJATS :: PandocMonad m => WriterOptions -> Block -> JATS m Doc
 blockToJATS _ Null = return empty
@@ -168,6 +179,13 @@ blockToJATS opts (Div ('r':'e':'f':'-':_,_,_) [Para lst]) =
 blockToJATS opts (Div ("refs",_,_) xs) = do
   contents <- blocksToJATS opts xs
   return $ inTagsIndented "ref-list" contents
+blockToJATS opts (Div (ident,[cls],kvs) bs) | cls `elem` ["fig", "caption", "table-wrap"] = do
+  contents <- blocksToJATS opts bs
+  let attr = [("id", ident) | not (null ident)] ++
+             [("xml:lang",l) | ("lang",l) <- kvs] ++
+             [(k,v) | (k,v) <- kvs, k `elem` ["specific-use",
+                 "content-type", "orientation", "position"]]
+  return $ inTags True cls attr contents
 blockToJATS opts (Div (ident,_,kvs) bs) = do
   contents <- blocksToJATS opts bs
   let attr = [("id", ident) | not (null ident)] ++
@@ -175,35 +193,40 @@ blockToJATS opts (Div (ident,_,kvs) bs) = do
              [(k,v) | (k,v) <- kvs, k `elem` ["specific-use",
                  "content-type", "orientation", "position"]]
   return $ inTags True "boxed-text" attr contents
-blockToJATS _ h@(Header{}) = do
-  -- should not occur after hierarchicalize, except inside lists/blockquotes
-  report $ BlockNotRendered h
-  return empty
+blockToJATS opts (Header _ _ title) = do
+  title' <- inlinesToJATS opts title
+  return $ inTagsSimple "title" title'
 -- No Plain, everything needs to be in a block-level tag
 blockToJATS opts (Plain lst) = blockToJATS opts (Para lst)
 -- title beginning with fig: indicates that the image is a figure
 blockToJATS opts (Para [Image (ident,_,kvs) txt
   (src,'f':'i':'g':':':tit)]) = do
   alt <- inlinesToJATS opts txt
+  let (maintype, subtype) = imageMimeType src kvs
   let capt = if null txt
                 then empty
                 else inTagsSimple "caption" alt
   let attr = [("id", ident) | not (null ident)] ++
              [(k,v) | (k,v) <- kvs, k `elem` ["fig-type", "orientation",
                                               "position", "specific-use"]]
-  let mbMT = getMimeType src
-  let maintype = fromMaybe "image" $
-                  lookup "mimetype" kvs `mplus`
-                  (takeWhile (/='/') <$> mbMT)
-  let subtype = fromMaybe "" $
-                  lookup "mime-subtype" kvs `mplus`
-                  ((drop 1 . dropWhile (/='/')) <$> mbMT)
   let graphicattr = [("mimetype",maintype),
-                     ("mime-subtype",drop 1 subtype),
+                     ("mime-subtype",subtype),
                      ("xlink:href",src),  -- do we need to URL escape this?
                      ("xlink:title",tit)]
   return $ inTags True "fig" attr $
               capt $$ selfClosingTag "graphic" graphicattr
+blockToJATS _ (Para [Image (ident,_,kvs) _ (src, tit)]) = do
+  let (maintype, subtype) = imageMimeType src kvs
+  let attr = [("id", ident) | not (null ident)] ++
+             [("mimetype", maintype),
+              ("mime-subtype", subtype),
+              ("xlink:href", src)] ++
+             [("xlink:title", tit) | not (null tit)] ++
+             [(k,v) | (k,v) <- kvs, k `elem` ["baseline-shift",
+                        "content-type", "specific-use", "xlink:actuate",
+                        "xlink:href", "xlink:role", "xlink:show",
+                        "xlink:type"]]
+  return $ selfClosingTag "graphic" attr
 blockToJATS opts (Para lst) =
   inTagsIndented "p" <$> inlinesToJATS opts lst
 blockToJATS opts (LineBlock lns) =
@@ -379,8 +402,8 @@ inlineToJATS _ (Link _attr [Str t] ('m':'a':'i':'l':'t':'o':':':email, _))
   return $ inTagsSimple "email" $ text (escapeStringForXML email)
 inlineToJATS opts (Link (ident,_,kvs) txt ('#':src, _)) = do
   let attr = [("id", ident) | not (null ident)] ++
-             [("alt", stringify txt),
-              ("rid", src)] ++
+             [("alt", stringify txt) | not (null txt)] ++
+             [("rid", src)] ++
              [(k,v) | (k,v) <- kvs, k `elem` ["ref-type", "specific-use"]]
   contents <- inlinesToJATS opts txt
   return $ inTags False "xref" attr contents

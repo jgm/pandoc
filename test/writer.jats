@@ -1379,7 +1379,7 @@ These should not be escaped:  \$ \\ \&gt; \[ \{</preformat>
   </p>
   <fig>
     <caption>lalune</caption>
-    <graphic mimetype="image" mime-subtype="peg" xlink:href="lalune.jpg" xlink:title="Voyage dans la Lune" />
+    <graphic mimetype="image" mime-subtype="jpeg" xlink:href="lalune.jpg" xlink:title="Voyage dans la Lune" />
   </fig>
   <p>
     Here is a movie
