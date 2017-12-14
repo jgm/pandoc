@@ -3463,6 +3463,8 @@ inserted after certain abbreviations, such as "Mr."  This
 option currently affects the input formats `markdown`,
 `commonmark`, `latex`, `mediawiki`, `org`, `rst`, and `twiki`,
 and the output formats `markdown`, `latex`, and `context`.
+It is enabled by default for `markdown`, `latex`, and `context`
+(in both input and output).
 
 Note: If you are *writing* Markdown, then the `smart` extension
 has the reverse effect: what would have been curly quotes comes
