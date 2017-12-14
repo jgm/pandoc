@@ -18,5 +18,5 @@ dataFiles' = ("MANUAL.txt", $(embedFile "MANUAL.txt")) :
              -- handle the hidden file separately, since embedDir doesn't
              -- include it:
              ("docx/_rels/.rels", $(embedFile "data/docx/_rels/.rels")) :
-             ("pptx/_rels/.rels", $(embedFile "data/pptx/_rels/.rels")) :             
+             ("pptx/_rels/.rels", $(embedFile "data/pptx/_rels/.rels")) :
              $(embedDir "data")

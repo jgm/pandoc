@@ -76,12 +76,12 @@ parseXml refArchive distArchive relpath =
                        Nothing -> fail $ relpath ++ " corrupt in reference file"
                        Just d  -> return d
 
--- Copied from Util                       
+-- Copied from Util
 
 attrToNSPair :: XML.Attr -> Maybe (String, String)
 attrToNSPair (XML.Attr (QName s _ (Just "xmlns")) val) = Just (s, val)
 attrToNSPair _                                     = Nothing
-                       
+
 
 elemToNameSpaces :: Element -> NameSpaces
 elemToNameSpaces = mapMaybe attrToNSPair . elAttribs

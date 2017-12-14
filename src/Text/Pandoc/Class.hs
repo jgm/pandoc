@@ -453,7 +453,7 @@ runIO :: PandocIO a -> IO (Either PandocError a)
 runIO ma = flip evalStateT def $ runExceptT $ unPandocIO ma
 
 -- | Evaluate a 'PandocIO' operation, handling any errors
--- by exiting with an appropriate message and error status. 
+-- by exiting with an appropriate message and error status.
 runIOorExplode :: PandocIO a -> IO a
 runIOorExplode ma = runIO ma >>= handleError
 
@@ -720,7 +720,7 @@ getDefaultReferencePptx = do
         epochtime <- (floor . utcTimeToPOSIXSeconds) <$> getCurrentTime
         contents <- toLazy <$> readDataFile ("pptx/" ++ path)
         return $ toEntry path epochtime contents
-  datadir <- getUserDataDir        
+  datadir <- getUserDataDir
   mbArchive <- case datadir of
                     Nothing   -> return Nothing
                     Just d    -> do
@@ -732,7 +732,7 @@ getDefaultReferencePptx = do
      Just arch -> toArchive <$> readFileLazy arch
      Nothing   -> foldr addEntryToArchive emptyArchive <$>
                      mapM pathToEntry paths
-                     
+
 
 -- | Read file from user data directory or,
 -- if not found there, from Cabal data directory.

@@ -174,7 +174,7 @@ getPageHeight :: PresentationSize -> Pixels
 getPageHeight sz = case presSizeRatio sz of
   Ratio4x3 -> floor (((fromInteger (presSizeWidth sz)) / 4) * 3 :: Double)
   Ratio16x9 -> floor (((fromInteger (presSizeWidth sz)) / 16) * 9 :: Double)
-  Ratio16x10 -> floor (((fromInteger (presSizeWidth sz)) / 16) * 10 :: Double)  
+  Ratio16x10 -> floor (((fromInteger (presSizeWidth sz)) / 16) * 10 :: Double)
 
 instance Default PresentationSize where
   def = PresentationSize 720 Ratio4x3
@@ -183,7 +183,7 @@ data Slide = MetadataSlide { metadataSlideTitle :: [ParaElem]
                             , metadataSlideSubtitle :: [ParaElem]
                             , metadataSlideAuthors :: [[ParaElem]]
                             , metadataSlideDate :: [ParaElem]
-                            } 
+                            }
            | TitleSlide { titleSlideHeader :: [ParaElem]}
            | ContentSlide { contentSlideHeader :: [ParaElem]
                           , contentSlideContent :: [Shape]
@@ -206,7 +206,7 @@ data TableProps = TableProps { tblPrFirstRow :: Bool
 
 type ColWidth = Integer
 
-data Graphic = Tbl TableProps [ColWidth] [Cell] [[Cell]] 
+data Graphic = Tbl TableProps [ColWidth] [Cell] [[Cell]]
   deriving (Show, Eq)
 
 
@@ -217,7 +217,7 @@ data Paragraph = Paragraph { paraProps :: ParaProps
 data HeaderType = TitleHeader | SlideHeader | InternalHeader Int
                 deriving (Show, Eq)
 
--- type StartingAt = Int 
+-- type StartingAt = Int
 
 -- data AutoNumType = ArabicNum
 --                  | AlphaUpperNum
@@ -362,7 +362,7 @@ blockToParagraphs (Plain ils) = do
   return [Paragraph pProps parElems]
 blockToParagraphs (Para ils) = do
   parElems <- inlinesToParElems ils
-  pProps <- asks envParaProps  
+  pProps <- asks envParaProps
   return [Paragraph pProps parElems]
 blockToParagraphs (LineBlock ilsList) = do
   parElems <- inlinesToParElems $ intercalate [LineBreak] ilsList
@@ -380,9 +380,9 @@ blockToParagraphs (BlockQuote blks) =
 -- TODO: work out the format
 blockToParagraphs (RawBlock _ _) = return []
   -- parElems <- inlinesToParElems [Str str]
-  -- paraProps <- asks envParaProps  
+  -- paraProps <- asks envParaProps
   -- return [Paragraph paraProps parElems]
--- TODO: work out the format  
+-- TODO: work out the format
 blockToParagraphs (Header n _ ils) = do
   slideLevel <- asks envSlideLevel
   parElems <- inlinesToParElems ils
@@ -490,7 +490,7 @@ splitBlocks' cur acc (h@(Header n _ _) : blks) = do
     EQ -> splitBlocks' [h] (acc ++ (if null cur then [] else [cur])) blks
     GT -> splitBlocks' (cur ++ [h]) acc blks
 splitBlocks' cur acc ((Para (img@(Image _ _ _):ils)) : blks) = do
-  slideLevel <- asks envSlideLevel  
+  slideLevel <- asks envSlideLevel
   case cur of
     (Header n _ _) : [] | n == slideLevel ->
                             splitBlocks' []
@@ -500,7 +500,7 @@ splitBlocks' cur acc ((Para (img@(Image _ _ _):ils)) : blks) = do
           (acc ++ (if null cur then [] else [cur]) ++ [[Para [img]]])
           (if null ils then blks else (Para ils) : blks)
 splitBlocks' cur acc ((Plain (img@(Image _ _ _):ils)) : blks) = do
-  slideLevel <- asks envSlideLevel  
+  slideLevel <- asks envSlideLevel
   case cur of
     (Header n _ _) : [] | n == slideLevel ->
                             splitBlocks' []
@@ -510,7 +510,7 @@ splitBlocks' cur acc ((Plain (img@(Image _ _ _):ils)) : blks) = do
           (acc ++ (if null cur then [] else [cur]) ++ [[Para [img]]])
           (if null ils then blks else (Plain ils) : blks)
 splitBlocks' cur acc (tbl@(Table _ _ _ _ _) : blks) = do
-  slideLevel <- asks envSlideLevel  
+  slideLevel <- asks envSlideLevel
   case cur of
     (Header n _ _) : [] | n == slideLevel ->
                             splitBlocks' [] (acc ++ [cur ++ [tbl]]) blks
@@ -592,7 +592,7 @@ getMediaFiles = do
   distArchive <- asks envDistArchive
   let allEntries = nub $ filesInArchive refArchive ++ filesInArchive distArchive
   return $ filter (isPrefixOf "ppt/media") allEntries
-  
+
 
 copyFileToArchiveIfExists :: PandocMonad m => Archive -> FilePath -> P m Archive
 copyFileToArchiveIfExists arch fp = do
@@ -635,7 +635,7 @@ inheritedFiles = [ "_rels/.rels"
                  -- , "ppt/slides/_rels/slide2.xml.rels"
                  -- This is the one we're
                  -- going to build
-                 -- , "ppt/slides/slide2.xml" 
+                 -- , "ppt/slides/slide2.xml"
                  -- , "ppt/slides/slide1.xml"
                  , "ppt/viewProps.xml"
                  , "ppt/tableStyles.xml"
@@ -670,7 +670,7 @@ presentationToArchive p@(Presentation _ slides) = do
     slideEntries ++
     slideRelEntries ++
     mediaEntries ++
-    [contentTypesEntry, presEntry, presRelsEntry] 
+    [contentTypesEntry, presEntry, presRelsEntry]
 
 --------------------------------------------------
 
@@ -726,25 +726,25 @@ shapeHasName ns name element
 
 -- getContentTitleShape :: NameSpaces -> Element -> Maybe Element
 -- getContentTitleShape ns spTreeElem
---   | isElem ns "p" "spTree" spTreeElem = 
+--   | isElem ns "p" "spTree" spTreeElem =
 --   filterChild (\e -> (isElem ns "p" "sp" e) && (shapeHasName ns "Title 1" e)) spTreeElem
 --   | otherwise = Nothing
 
 -- getSubtitleShape :: NameSpaces -> Element -> Maybe Element
 -- getSubtitleShape ns spTreeElem
---   | isElem ns "p" "spTree" spTreeElem = 
+--   | isElem ns "p" "spTree" spTreeElem =
 --   filterChild (\e -> (isElem ns "p" "sp" e) && (shapeHasName ns "Subtitle 2" e)) spTreeElem
 --   | otherwise = Nothing
 
 -- getDateShape :: NameSpaces -> Element -> Maybe Element
 -- getDateShape ns spTreeElem
---   | isElem ns "p" "spTree" spTreeElem = 
+--   | isElem ns "p" "spTree" spTreeElem =
 --   filterChild (\e -> (isElem ns "p" "sp" e) && (shapeHasName ns "Date Placeholder 3" e)) spTreeElem
 --   | otherwise = Nothing
-  
+
 getContentShape :: NameSpaces -> Element -> Maybe Element
 getContentShape ns spTreeElem
-  | isElem ns "p" "spTree" spTreeElem = 
+  | isElem ns "p" "spTree" spTreeElem =
   filterChild (\e -> (isElem ns "p" "sp" e) && (shapeHasName ns "Content Placeholder 2" e)) spTreeElem
   | otherwise = Nothing
 
@@ -831,7 +831,7 @@ registerMedia fp caption = do
 
   (imgBytes, mbMt) <- P.fetchItem fp
   let imgExt = (mbMt >>= extensionFromMimeType >>= (\x -> return $ '.':x))
-               <|> 
+               <|>
                case imageType imgBytes of
                  Just Png  -> Just ".png"
                  Just Jpeg -> Just ".jpeg"
@@ -840,7 +840,7 @@ registerMedia fp caption = do
                  Just Eps  -> Just ".eps"
                  Just Svg  -> Just ".svg"
                  Nothing   -> Nothing
-  
+
   let newGlobalId = case M.lookup fp globalIds of
         Just ident -> ident
         Nothing    -> maxGlobalId + 1
@@ -893,7 +893,7 @@ fitToPage' (x, y) pageWidth pageHeight
       (floor x, floor y)
   | x / fromIntegral pageWidth > y / fromIntegral pageWidth =
       (pageWidth, floor $ ((fromIntegral pageWidth) / x) * y)
-  | otherwise = 
+  | otherwise =
       (floor $ ((fromIntegral pageHeight) / y) * x, pageHeight)
 
 positionImage :: (Double, Double) -> Integer -> Integer -> (Integer, Integer)
@@ -957,7 +957,7 @@ createCaption :: PandocMonad m => [ParaElem] -> P m Element
 createCaption paraElements = do
   let para = Paragraph def{pPropAlign = Just AlgnCenter} paraElements
   elements <- mapM paragraphToElement [para]
-  let ((x, y), (cx, cy)) = captionPosition  
+  let ((x, y), (cx, cy)) = captionPosition
   let txBody = mknode "p:txBody" [] $
                [mknode "a:bodyPr" [] (), mknode "a:lstStyle" [] ()] ++ elements
   return $
@@ -1041,7 +1041,7 @@ makePicElement mInfo attr = do
       , blipFill
       , spPr ]
 
--- Currently hardcoded, until I figure out how to make it dynamic.    
+-- Currently hardcoded, until I figure out how to make it dynamic.
 blockQuoteSize :: Pixels
 blockQuoteSize = 20
 
@@ -1150,7 +1150,7 @@ shapeToElement layout (TextBox paras)
                    [mknode "a:bodyPr" [] (), mknode "a:lstStyle" [] ()] ++ elements
           emptySpPr = mknode "p:spPr" [] ()
       return $
-        surroundWithMathAlternate $ 
+        surroundWithMathAlternate $
         replaceNamedChildren ns "p" "txBody" [txBody] $
         replaceNamedChildren ns "p" "spPr" [emptySpPr] $
         sp
@@ -1199,7 +1199,7 @@ shapesToElements layout shps = do
 
 hardcodedTableMargin :: Integer
 hardcodedTableMargin = 36
-   
+
 
 graphicToElement :: PandocMonad m => Graphic -> P m Element
 graphicToElement (Tbl tblPr colWidths hdrCells rows) = do
@@ -1241,7 +1241,7 @@ graphicToElement (Tbl tblPr colWidths hdrCells rows) = do
 
 getShapeByName :: NameSpaces -> Element -> String -> Maybe Element
 getShapeByName ns spTreeElem name
-  | isElem ns "p" "spTree" spTreeElem = 
+  | isElem ns "p" "spTree" spTreeElem =
   filterChild (\e -> (isElem ns "p" "sp" e) && (shapeHasName ns name e)) spTreeElem
   | otherwise = Nothing
 
@@ -1266,7 +1266,7 @@ nonBodyTextToElement layout shapeName paraElements
 --   | ns <- elemToNameSpaces layout
 --   , Just cSld <- findChild (elemName ns "p" "cSld") layout
 --   , Just spTree <- findChild (elemName ns "p" "spTree") cSld
---   , Just sp <- getContentTitleShape ns spTree = 
+--   , Just sp <- getContentTitleShape ns spTree =
 --   let hdrPara = Paragraph def paraElems
 --       txBody = mknode "p:txBody" [] $
 --                [mknode "a:bodyPr" [] (), mknode "a:lstStyle" [] ()] ++
@@ -1387,7 +1387,7 @@ elementToRel element
 
 slideToPresRel :: Monad m => Slide -> Int -> P m Relationship
 slideToPresRel slide idNum = do
-  n <- gets stSlideIdOffset 
+  n <- gets stSlideIdOffset
   let rId = idNum + n
       fp = "slides/" ++ slideToFilePath slide idNum
   return $ Relationship { relId = rId
@@ -1429,7 +1429,7 @@ presentationToRels (Presentation _ slides) = do
       modifyRelNum n = n - minRelNotOne + 2 + length slides
 
       relsWithoutSlides' = map (\r -> r{relId = modifyRelNum $ relId r}) relsWithoutSlides
-  
+
   return $ mySlideRels ++ relsWithoutSlides'
 
 relToElement :: Relationship -> Element
@@ -1479,7 +1479,7 @@ mediaRelElement mInfo =
   let ext = case mInfoExt mInfo of
               Just e -> e
               Nothing -> ""
-  in              
+  in
     mknode "Relationship" [ ("Id", "rId" ++ (show $ mInfoLocalId mInfo))
                           , ("Type", "http://schemas.openxmlformats.org/officeDocument/2006/relationships/image")
                           , ("Target", "../media/image" ++ (show $ mInfoGlobalId mInfo) ++ ext)
@@ -1503,7 +1503,7 @@ slideToSlideRelElement slide idNum = do
                    Nothing -> []
 
   return $
-    mknode "Relationships" 
+    mknode "Relationships"
     [("xmlns", "http://schemas.openxmlformats.org/package/2006/relationships")]
     ([mknode "Relationship" [ ("Id", "rId1")
                            , ("Type", "http://schemas.openxmlformats.org/officeDocument/2006/relationships/slideLayout")
@@ -1546,9 +1546,9 @@ presentationToPresentationElement pres = do
 presentationToPresEntry :: PandocMonad m => Presentation -> P m Entry
 presentationToPresEntry pres = presentationToPresentationElement pres >>=
   elemToEntry "ppt/presentation.xml"
-  
 
-  
+
+
 
 defaultContentTypeToElem :: DefaultContentType -> Element
 defaultContentTypeToElem dct =
@@ -1558,7 +1558,7 @@ defaultContentTypeToElem dct =
   ()
 
 overrideContentTypeToElem :: OverrideContentType -> Element
-overrideContentTypeToElem oct = 
+overrideContentTypeToElem oct =
   mknode "Override"
   [("PartName", overrideContentTypesPart oct),
     ("ContentType", overrideContentTypesType oct)]
@@ -1571,7 +1571,7 @@ contentTypesToElement ct =
     mknode "Types" [("xmlns", ns)] $
     (map defaultContentTypeToElem $ contentTypesDefaults ct) ++
     (map overrideContentTypeToElem $ contentTypesOverrides ct)
-    
+
 data DefaultContentType = DefaultContentType
                            { defContentTypesExt :: String
                            , defContentTypesType:: MimeType
@@ -1634,7 +1634,7 @@ presML = "application/vnd.openxmlformats-officedocument.presentationml"
 
 noPresML :: String
 noPresML = "application/vnd.openxmlformats-officedocument"
-  
+
 getContentType :: FilePath -> Maybe MimeType
 getContentType fp
   | fp == "ppt/presentation.xml" = Just $ presML ++ ".presentation.main+xml"
