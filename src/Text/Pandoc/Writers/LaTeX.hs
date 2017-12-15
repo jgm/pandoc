@@ -276,10 +276,13 @@ pandocToLaTeX options (Pandoc meta blocks) = do
                     "\\AddBabelHook{" ++ poly ++ "}{afterextras}" ++
                       "{\\renewcommand{\\text" ++ poly ++ "}[2][]{\\foreignlanguage{"
                       ++ poly ++ "}{##2}}}\n"
-               else "\\newcommand{\\text" ++ poly ++ "}[2][]{\\foreignlanguage{"
-                      ++ babel ++ "}{#2}}\n" ++
-                    "\\newenvironment{" ++ poly ++ "}[2][]{\\begin{otherlanguage}{"
-                      ++ babel ++ "}}{\\end{otherlanguage}}\n"
+               else (if poly == "latin" -- see #4161
+                        then "\\providecommand{\\textlatin}{}\n\\renewcommand"
+                        else "\\newcommand") ++ "{\\text" ++ poly ++
+                    "}[2][]{\\foreignlanguage{" ++ babel ++ "}{#2}}\n" ++
+                    "\\newenvironment{" ++ poly ++
+                    "}[2][]{\\begin{otherlanguage}{" ++
+                    babel ++ "}}{\\end{otherlanguage}}\n"
             )
             -- eliminate duplicates that have same polyglossia name
             $ nubBy (\a b -> fst a == fst b)
