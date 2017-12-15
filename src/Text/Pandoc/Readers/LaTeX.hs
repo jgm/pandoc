@@ -37,7 +37,9 @@ module Text.Pandoc.Readers.LaTeX ( readLaTeX,
                                    applyMacros,
                                    rawLaTeXInline,
                                    rawLaTeXBlock,
-                                   inlineCommand
+                                   inlineCommand,
+                                   tokenize,
+                                   untokenize
                                  ) where
 
 import Control.Applicative (many, optional, (<|>))
