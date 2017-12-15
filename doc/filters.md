@@ -204,9 +204,9 @@ pandoc can produce and consume:
                                   ↓
                             target format
 
-The module `Text.Pandoc.JSON` contains a function `toJSONFilter`
-that makes it easy to write such filters.  Here is a filter
-version of `behead.hs`:
+The module `Text.Pandoc.JSON` (from `pandoc-types`) contains a
+function `toJSONFilter` that makes it easy to write such
+filters.  Here is a filter version of `behead.hs`:
 
 ~~~~                          {.haskell}
 #!/usr/bin/env runhaskell
