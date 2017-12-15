@@ -320,7 +320,7 @@ totoks pos t =
                : totoks (incSourceColumn pos (1 + T.length cs)) rest'
          | c == '\\' ->
            case T.uncons rest of
-                Nothing -> [Tok pos Symbol (T.singleton c)]
+                Nothing -> [Tok pos (CtrlSeq " ") "\\"]
                 Just (d, rest')
                   | isLetterOrAt d ->
                       -- \makeatletter is common in macro defs;
@@ -338,7 +338,7 @@ totoks pos t =
                                           Just ('\n', r2)
                                                   -> (T.pack "\n",
                                                         T.span isSpaceOrTab r2)
-                                          _ -> (mempty, (w1, r1))
+                                          _ -> (mempty, (mempty, r1))
                       in  case T.uncons r3 of
                                Just ('\n', _) ->
                                  Tok pos (CtrlSeq " ") ("\\" <> w1)
