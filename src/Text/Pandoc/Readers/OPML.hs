@@ -12,7 +12,7 @@ import Text.Pandoc.Class (PandocMonad)
 import Text.Pandoc.Options
 import Text.Pandoc.Readers.HTML (readHtml)
 import Text.Pandoc.Readers.Markdown (readMarkdown)
-import Text.Pandoc.Shared (crFilter)
+import Text.Pandoc.Shared (crFilter, blocksToInlines)
 import Text.XML.Light
 
 type OPML m = StateT OPMLState m
@@ -22,6 +22,7 @@ data OPMLState = OPMLState{
                       , opmlDocTitle     :: Inlines
                       , opmlDocAuthors   :: [Inlines]
                       , opmlDocDate      :: Inlines
+                      , opmlOptions      :: ReaderOptions
                       } deriving Show
 
 instance Default OPMLState where
@@ -29,13 +30,14 @@ instance Default OPMLState where
                  , opmlDocTitle = mempty
                  , opmlDocAuthors = []
                  , opmlDocDate = mempty
-                  }
+                 , opmlOptions = def
+                 }
 
 readOPML :: PandocMonad m => ReaderOptions -> Text -> m Pandoc
-readOPML _ inp  = do
+readOPML opts inp  = do
   (bs, st') <- runStateT
                  (mapM parseBlock $ normalizeTree $
-                    parseXML (unpack (crFilter inp))) def
+                    parseXML (unpack (crFilter inp))) def{ opmlOptions = opts }
   return $
     setTitle (opmlDocTitle st') $
     setAuthors (opmlDocAuthors st') $
@@ -69,13 +71,16 @@ attrValue attr elt =
 -- exceptT = either throwError return
 
 asHtml :: PandocMonad m => String -> OPML m Inlines
-asHtml s =
-  (\(Pandoc _ bs) -> case bs of
-                                [Plain ils] -> fromList ils
-                                _           -> mempty) <$> lift (readHtml def (pack s))
+asHtml s = do
+  opts <- gets opmlOptions
+  Pandoc _ bs <- readHtml def{ readerExtensions = readerExtensions opts } (pack s)
+  return $ fromList $ blocksToInlines bs
 
 asMarkdown :: PandocMonad m => String -> OPML m Blocks
-asMarkdown s = (\(Pandoc _ bs) -> fromList bs) <$> lift (readMarkdown def (pack s))
+asMarkdown s = do
+  opts <- gets opmlOptions
+  Pandoc _ bs <- readMarkdown def{ readerExtensions = readerExtensions opts }  (pack s)
+  return $ fromList bs
 
 getBlocks :: PandocMonad m => Element -> OPML m Blocks
 getBlocks e =  mconcat <$> mapM parseBlock (elContent e)
