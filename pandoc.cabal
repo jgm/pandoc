@@ -506,6 +506,7 @@ library
                    Text.Pandoc.Writers.Textile,
                    Text.Pandoc.Writers.MediaWiki,
                    Text.Pandoc.Writers.DokuWiki,
+                   Text.Pandoc.Writers.XWiki,
                    Text.Pandoc.Writers.ZimWiki,
                    Text.Pandoc.Writers.RTF,
                    Text.Pandoc.Writers.ODT,
