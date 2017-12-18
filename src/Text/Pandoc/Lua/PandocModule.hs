@@ -71,16 +71,13 @@ pushPandocModule datadir = do
   return 1
 
 walkElement :: (ToLuaStack a, Walkable [Inline] a, Walkable [Block] a)
-            => a -> LuaFilter -> Lua NumResults
-walkElement x f = do
-  x' <- walkInlines f x >>= walkBlocks f
-  Lua.push x'
-  return 1
+            => a -> LuaFilter -> Lua a
+walkElement x f = walkInlines f x >>= walkBlocks f
 
-walkInline :: Inline -> LuaFilter -> Lua NumResults
+walkInline :: Inline -> LuaFilter -> Lua Inline
 walkInline = walkElement
 
-walkBlock :: Block -> LuaFilter -> Lua NumResults
+walkBlock :: Block -> LuaFilter -> Lua Block
 walkBlock = walkElement
 
 readDoc :: String -> String -> Lua NumResults

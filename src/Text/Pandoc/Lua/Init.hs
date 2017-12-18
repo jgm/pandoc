@@ -50,8 +50,7 @@ import qualified Foreign.Lua.Module.Text as Lua
 -- initalization.
 runPandocLua :: Lua a -> PandocIO (Either LuaException a)
 runPandocLua luaOp = do
-  datadir <- getUserDataDir
-  luaPkgParams <- luaPackageParams datadir
+  luaPkgParams <- luaPackageParams
   enc <- liftIO $ getForeignEncoding <* setForeignEncoding utf8
   res <- liftIO $ Lua.runLuaEither (initLuaState luaPkgParams *> luaOp)
   liftIO $ setForeignEncoding enc
@@ -60,9 +59,10 @@ runPandocLua luaOp = do
   return res
 
 -- | Generate parameters required to setup pandoc's lua environment.
-luaPackageParams :: Maybe FilePath -> PandocIO LuaPackageParams
-luaPackageParams datadir = do
+luaPackageParams :: PandocIO LuaPackageParams
+luaPackageParams = do
   commonState <- getCommonState
+  datadir <- getUserDataDir
   mbRef <- liftIO . newIORef =<< getMediaBag
   return LuaPackageParams
     { luaPkgCommonState = commonState
