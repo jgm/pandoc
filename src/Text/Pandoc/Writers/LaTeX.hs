@@ -689,8 +689,8 @@ blockToLaTeX (Header level (id',classes,_) lst) = do
   hdr <- sectionHeader ("unnumbered" `elem` classes) id' level lst
   modify $ \s -> s{stInHeading = False}
   return hdr
-blockToLaTeX (Table caption aligns widths _ _ heads rows) = do
-  let toHeaders hs = do contents <- tableRowToLaTeX True aligns widths hs
+blockToLaTeX (Table caption aligns widths hspecs rspecs heads rows) = do
+  let toHeaders hs = do contents <- tableRowToLaTeX True aligns widths (hspecs, hs)
                         return ("\\toprule" $$ contents $$ "\\midrule")
   let removeNote (Note _) = Span ("", [], []) []
       removeNote x        = x
@@ -709,7 +709,7 @@ blockToLaTeX (Table caption aligns widths _ _ heads rows) = do
                 then empty
                 else text "\\caption" <>
                       braces captionText <> "\\tabularnewline"
-  rows' <- mapM (tableRowToLaTeX False aligns widths) rows
+  rows' <- mapM (tableRowToLaTeX False aligns widths) (zip rspecs rows)
   let colDescriptors = text $ concatMap toColDescriptor aligns
   modify $ \s -> s{ stTable = True }
   return $ "\\begin{longtable}[]" <>
@@ -739,7 +739,7 @@ tableRowToLaTeX :: PandocMonad m
                 => Bool
                 -> [Alignment]
                 -> [Double]
-                -> [[Block]]
+                -> ([CellSpec], [[Block]])
                 -> LW m Doc
 tableRowToLaTeX header aligns widths cols = do
   -- scale factor compensates for extra space between columns
@@ -750,11 +750,11 @@ tableRowToLaTeX header aligns widths cols = do
       isSimple []        = True
       isSimple _         = False
   -- simple tables have to have simple cells:
-  let widths' = if not (all isSimple cols)
+  let widths' = if not (all isSimple (snd cols))
                    then replicate (length aligns)
                           (0.97 / fromIntegral (length aligns))
                    else map (scaleFactor *) widths
-  cells <- mapM (tableCellToLaTeX header) $ zip3 widths' aligns cols
+  cells <- mapM (tableCellToLaTeX header) $ zip3 widths' aligns (zip (fst cols) (snd cols))
   return $ hsep (intersperse "&" cells) <> "\\tabularnewline"
 
 -- For simple latex tables (without minipages or parboxes),
@@ -781,13 +781,15 @@ displayMathToInline :: Inline -> Inline
 displayMathToInline (Math DisplayMath x) = Math InlineMath x
 displayMathToInline x                    = x
 
-tableCellToLaTeX :: PandocMonad m => Bool -> (Double, Alignment, [Block])
+tableCellToLaTeX :: PandocMonad m => Bool -> (Double, Alignment, (CellSpec, [Block]))
                  -> LW m Doc
-tableCellToLaTeX _      (0,     _,     blocks) =
-  blockListToLaTeX $ walk fixLineBreaks $ walk displayMathToInline blocks
+tableCellToLaTeX _      (0, _, blocks) = do
+  let mColumn = (text (printf "\\multicolumn{%d}{c}{" $ fst $ fst blocks))
+  doc <- blockListToLaTeX $ walk fixLineBreaks $ walk displayMathToInline (snd blocks)
+  return $ mColumn <> doc <> "} "
 tableCellToLaTeX header (width, align, blocks) = do
   modify $ \st -> st{ stInMinipage = True, stNotes = [] }
-  cellContents <- blockListToLaTeX blocks
+  cellContents <- blockListToLaTeX (snd blocks)
   notes <- gets stNotes
   modify $ \st -> st{ stInMinipage = False, stNotes = [] }
   let valign = text $ if header then "[b]" else "[t]"
