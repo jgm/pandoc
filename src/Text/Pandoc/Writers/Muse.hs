@@ -313,11 +313,17 @@ normalizeInlineList (Span a1 x1 : Span a2 x2 : ils) | a1 == a2
 normalizeInlineList (x:xs) = x : normalizeInlineList xs
 normalizeInlineList [] = []
 
+fixNotes :: [Inline] -> [Inline]
+fixNotes [] = []
+fixNotes (Space : n@Note{} : rest) = Str " " : n : fixNotes rest
+fixNotes (SoftBreak : n@Note{} : rest) = Str " " : n : fixNotes rest
+fixNotes (x:xs) = x : fixNotes xs
+
 -- | Convert list of Pandoc inline elements to Muse.
 inlineListToMuse :: PandocMonad m
                  => [Inline]
                  -> StateT WriterState m Doc
-inlineListToMuse lst = liftM hcat (mapM inlineToMuse (normalizeInlineList lst))
+inlineListToMuse lst = hcat <$> mapM inlineToMuse (fixNotes $ normalizeInlineList lst)
 
 -- | Convert Pandoc inline element to Muse.
 inlineToMuse :: PandocMonad m
