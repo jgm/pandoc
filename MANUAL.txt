@@ -4335,19 +4335,19 @@ using `div`s and `span`s, respectively.
 
 If you define a `div` or `span` with the attribute `custom-style`,
 pandoc will apply your specified style to the contained elements. So,
-for example,
+for example using the `bracketed_spans` syntax,
 
-    <span custom-style="Emphatically">Get out,</span> he said.
+    [Get out,]{custom-style="Emphatically"} he said.
 
 would produce a docx file with "Get out," styled with character
-style `Emphatically`. Similarly,
+style `Emphatically`. Similarly, using the `fenced_divs` syntax,
 
     Dickinson starts the poem simply:
 
-    <div custom-style="Poetry">
+    ::: {custom-style="Poetry"}
     | A Bird came down the Walk---
     | He did not know I saw---
-    </div>
+    :::
 
 would style the two contained lines with the `Poetry` paragraph style.
 
