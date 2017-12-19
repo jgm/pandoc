@@ -421,6 +421,8 @@ tests =
       , testGroup "Comments"
         [ "Comment tag" =: "<comment>\nThis is a comment\n</comment>" =?> (mempty::Blocks)
         , "Line comment" =: "; Comment" =?> (mempty::Blocks)
+        , "Empty comment" =: ";" =?> (mempty::Blocks)
+        , "Text after empty comment" =: ";\nfoo" =?> para "foo" -- Make sure we don't consume newline while looking for whitespace
         , "Not a comment (does not start with a semicolon)" =: " ; Not a comment" =?> para (text "; Not a comment")
         , "Not a comment (has no space after semicolon)" =: ";Not a comment" =?> para (text ";Not a comment")
         ]

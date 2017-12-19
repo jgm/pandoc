@@ -220,8 +220,7 @@ blockElements = choice [ comment
 comment :: PandocMonad m => MuseParser m (F Blocks)
 comment = try $ do
   char ';'
-  space
-  many $ noneOf "\n"
+  optionMaybe (spaceChar >> (many $ noneOf "\n"))
   eol
   return mempty
 
