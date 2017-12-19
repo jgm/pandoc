@@ -91,6 +91,17 @@ tests = map (localOption (QuickCheckTests 20))
       "attr-test.lua"
       (doc $ divWith ("", [], kv_before) (para "nil"))
       (doc $ divWith ("", [], kv_after) (para "nil"))
+
+  , testCase "Test module pandoc.utils" $
+    assertFilterConversion "pandoc.utils doesn't work as expected."
+      "test-pandoc-utils.lua"
+      (doc $ para "doesn't matter")
+      (doc $ mconcat [ plain (str "sha1: OK")
+                     , plain (str "pipe: OK")
+                     , plain (str "failing pipe: OK")
+                     , plain (str "read: OK")
+                     , plain (str "failing read: OK")
+                     ])
   ]
 
 assertFilterConversion :: String -> FilePath -> Pandoc -> Pandoc -> Assertion
