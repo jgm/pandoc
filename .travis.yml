@@ -61,12 +61,12 @@ matrix:
 
   # The Stack builds. We can pass in arbitrary Stack arguments via the ARGS
   # variable, such as using --stack-yaml to point to a different file.
-  - env: BUILD=stack ARGS="--resolver lts-9" OPTS="-Wall -Wincomplete-record-updates -Wnoncanonical-monad-instances -Wnoncanonical-monadfail-instances -fno-warn-unused-do-bind -Werror"
-    compiler: ": #stack 8.0.2"
-    addons: {apt: {packages: [ghc-8.0.2], sources: [hvr-ghc]}}
+  - env: BUILD=stack ARGS="--resolver lts-10" OPTS="-Wall -Wincomplete-record-updates -Wnoncanonical-monad-instances -Wnoncanonical-monadfail-instances -fno-warn-unused-do-bind -Werror"
+    compiler: ": #stack 8.2.2"
+    addons: {apt: {packages: [ghc-8.2.2], sources: [hvr-ghc]}}
 
   # Nightly builds are allowed to fail
-  - env: BUILD=stack ARGS="--resolver nightly"
+  - env: BUILD=stack ARGS="--resolver nightly" OPTS="-Wall -Wincomplete-record-updates -Wnoncanonical-monad-instances -Wnoncanonical-monadfail-instances -fno-warn-unused-do-bind -Werror"
     compiler: ": #stack nightly"
     addons: {apt: {packages: [ghc-8.2.2], sources: [hvr-ghc]}}
 

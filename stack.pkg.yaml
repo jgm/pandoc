@@ -12,18 +12,5 @@ flags:
     debug: false
 packages:
 - '.'
-extra-deps:
-- pandoc-types-1.17.3
-- hslua-0.9.3
-- hslua-module-text-0.1.2
-- skylighting-0.5
-- texmath-0.10
-- cmark-gfm-0.1.1
-- QuickCheck-2.10.0.1
-- tasty-quickcheck-0.9.1
-- hs-bibutils-6.2.0.1
-- doctemplates-0.2.1
-- pandoc-citeproc-0.12.1.1
-- haddock-library-1.4.3
-- tagsoup-0.14.2
-resolver: lts-9.14
+extra-deps: []
+resolver: lts-10.0
