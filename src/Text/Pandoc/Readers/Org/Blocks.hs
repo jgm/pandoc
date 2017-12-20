@@ -737,7 +737,7 @@ noteBlock = try $ do
 paraOrPlain :: PandocMonad m => OrgParser m (F Blocks)
 paraOrPlain = try $ do
   -- Make sure we are not looking at a headline
-  notFollowedBy' (char '*' *> oneOf " *")
+  notFollowedBy' headerStart
   ils <- inlines
   nl <- option False (newline *> return True)
   -- Read block as paragraph, except if we are in a list context and the block
