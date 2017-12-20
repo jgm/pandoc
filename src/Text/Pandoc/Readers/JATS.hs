@@ -15,6 +15,8 @@ import Text.Pandoc.Options
 import Text.Pandoc.Shared (underlineSpan, crFilter, safeRead)
 import Text.TeXMath (readMathML, writeTeX)
 import Text.XML.Light
+import qualified Data.Set as S (fromList, member)
+import Data.Set ((\\))
 
 type JATS m = StateT JATSState m
 
@@ -98,8 +100,8 @@ instance HasMeta JATSState where
   deleteMeta field s = s {jatsMeta = deleteMeta field (jatsMeta s)}
 
 isBlockElement :: Content -> Bool
-isBlockElement (Elem e) = qName (elName e) `elem` blocktags
-  where blocktags = paragraphLevel ++ lists ++ mathML ++ other
+isBlockElement (Elem e) = qName (elName e) `S.member` blocktags
+  where blocktags = S.fromList (paragraphLevel ++ lists ++ mathML ++ other) \\ S.fromList inlinetags
         paragraphLevel = ["address", "array", "boxed-text", "chem-struct-wrap",
             "code", "fig", "fig-group", "graphic", "media", "preformat",
             "supplementary-material", "table-wrap", "table-wrap-group",
@@ -108,6 +110,21 @@ isBlockElement (Elem e) = qName (elName e) `elem` blocktags
         mathML = ["tex-math", "mml:math"]
         other = ["p", "related-article", "related-object", "ack", "disp-quote",
             "speech", "statement", "verse-group", "x"]
+        inlinetags = ["email", "ext-link", "uri", "inline-supplementary-material",
+            "related-article", "related-object", "hr", "bold", "fixed-case",
+            "italic", "monospace", "overline", "overline-start", "overline-end",
+            "roman", "sans-serif", "sc", "strike", "underline", "underline-start",
+            "underline-end", "ruby", "alternatives", "inline-graphic", "private-char",
+            "chem-struct", "inline-formula", "tex-math", "mml:math", "abbrev",
+            "milestone-end", "milestone-start", "named-content", "styled-content",
+            "fn", "target", "xref", "sub", "sup", "x", "address", "array",
+            "boxed-text", "chem-struct-wrap", "code", "fig", "fig-group", "graphic",
+            "media", "preformat", "supplementary-material", "table-wrap",
+            "table-wrap-group", "disp-formula", "disp-formula-group",
+            "citation-alternatives", "element-citation", "mixed-citation",
+            "nlm-citation", "award-id", "funding-source", "open-access",
+            "def-list", "list", "ack", "disp-quote", "speech", "statement",
+            "verse-group"]
 isBlockElement _ = False
 
 -- Trim leading and trailing newline characters

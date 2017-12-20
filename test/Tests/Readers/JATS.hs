@@ -14,6 +14,11 @@ jats = purely $ readJATS def
 tests :: [TestTree]
 tests = [ testGroup "inline code"
           [ test jats "basic" $ "<p>\n  <monospace>@&amp;</monospace>\n</p>" =?> para (code "@&")
+          , test jats "lang" $ "<p>\n  <code language=\"c\">@&amp;</code>\n</p>" =?> para (codeWith ("", ["c"], []) "@&")
+          ]
+        , testGroup "block code"
+          [ test jats "basic" $ "<preformat>@&amp;</preformat>" =?> codeBlock "@&"
+          , test jats "lang" $ "<code language=\"c\">@&amp;</code>" =?> codeBlockWith ("", ["c"], []) "@&"
           ]
         , testGroup "images"
           [ test jats "basic" $ "<graphic mimetype=\"image\" mime-subtype=\"\" xlink:href=\"/url\" xlink:title=\"title\" />"

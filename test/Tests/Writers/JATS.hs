@@ -31,6 +31,11 @@ infix 4 =:
 tests :: [TestTree]
 tests = [ testGroup "inline code"
           [ "basic" =: code "@&" =?> "<p>\n  <monospace>@&amp;</monospace>\n</p>"
+          , "lang" =: codeWith ("", ["c"], []) "@&" =?> "<p>\n  <code language=\"c\">@&amp;</code>\n</p>"
+          ]
+        , testGroup "block code"
+          [ "basic" =: codeBlock "@&" =?> "<preformat>@&amp;</preformat>"
+          , "lang" =: codeBlockWith ("", ["c"], []) "@&" =?> "<code language=\"c\">@&amp;</code>"
           ]
         , testGroup "images"
           [ "basic" =:
@@ -38,7 +43,7 @@ tests = [ testGroup "inline code"
             =?> "<graphic mimetype=\"image\" mime-subtype=\"\" xlink:href=\"/url\" xlink:title=\"title\" />"
           ]
         , testGroup "inlines"
-          [ "Emphasis" =: emph ("emphasized")
+          [ "Emphasis" =: emph "emphasized"
             =?> "<p>\n  <italic>emphasized</italic>\n</p>"
           ]
         , "bullet list" =: bulletList [ plain $ text "first"
