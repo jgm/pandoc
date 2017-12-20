@@ -505,6 +505,20 @@ tests =
                     ] =?>
           para (text "Start recursion here" <>
                 note (para "Recursion continues here[1]"))
+        , "No zero footnotes" =:
+          T.unlines [ "Here is a footnote[0]."
+                    , ""
+                    , "[0] Footnote contents"
+                    ] =?>
+          para "Here is a footnote[0]." <>
+          para "[0] Footnote contents"
+        , "Footnotes can't start with zero" =:
+          T.unlines [ "Here is a footnote[01]."
+                    , ""
+                    , "[01] Footnote contents"
+                    ] =?>
+          para "Here is a footnote[01]." <>
+          para "[01] Footnote contents"
         , testGroup "Multiparagraph footnotes"
           [ "Amusewiki multiparagraph footnotes" =:
             T.unlines [ "Multiparagraph[1] footnotes[2]"

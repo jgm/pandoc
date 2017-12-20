@@ -336,7 +336,9 @@ para = do
 noteMarker :: PandocMonad m => MuseParser m String
 noteMarker = try $ do
   char '['
-  many1Till digit $ char ']'
+  first <- oneOf "123456789"
+  rest <- manyTill digit (char ']')
+  return $ first:rest
 
 -- Amusewiki version of note
 -- Parsing is similar to list item, except that note marker is used instead of list marker
