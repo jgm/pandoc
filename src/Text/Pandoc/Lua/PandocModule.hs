@@ -1,5 +1,3 @@
-{-# LANGUAGE ScopedTypeVariables #-}
-{-# LANGUAGE FlexibleContexts #-}
 {-
 Copyright © 2017 Albert Krewinkel <tarleb+pandoc@moltkeplatz.de>
 
@@ -17,7 +15,7 @@ You should have received a copy of the GNU General Public License
 along with this program; if not, write to the Free Software
 Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 -}
-{-# LANGUAGE CPP #-}
+{-# LANGUAGE FlexibleContexts #-}
 {- |
    Module      : Text.Pandoc.Lua.PandocModule
    Copyright   : Copyright © 2017 Albert Krewinkel
@@ -33,21 +31,20 @@ module Text.Pandoc.Lua.PandocModule
   , pushMediaBagModule
   ) where
 
-import Control.Monad (zipWithM_)
+import Control.Monad (when, zipWithM_)
 import Data.Default (Default (..))
 import Data.Digest.Pure.SHA (sha1, showDigest)
 import Data.IORef (IORef, modifyIORef', readIORef)
 import Data.Maybe (fromMaybe)
 import Data.Text (pack)
 import Foreign.Lua (ToLuaStack, FromLuaStack, Lua, NumResults, liftIO)
-import Foreign.Lua.FunctionCalling (ToHaskellFunction)
 import System.Exit (ExitCode (..))
 import Text.Pandoc.Class (CommonState (..), fetchItem, putCommonState,
                           runIO, runIOorExplode, setMediaBag)
 import Text.Pandoc.Definition (Block, Inline)
 import Text.Pandoc.Lua.Filter (walkInlines, walkBlocks, LuaFilter)
 import Text.Pandoc.Lua.StackInstances ()
-import Text.Pandoc.Lua.Util (loadScriptFromDataDir)
+import Text.Pandoc.Lua.Util (addFunction, addValue, loadScriptFromDataDir)
 import Text.Pandoc.Walk (Walkable)
 import Text.Pandoc.MIME (MimeType)
 import Text.Pandoc.Options (ReaderOptions (readerExtensions))
@@ -55,6 +52,7 @@ import Text.Pandoc.Process (pipeProcess)
 import Text.Pandoc.Readers (Reader (..), getReader)
 
 import qualified Data.ByteString.Lazy as BL
+import qualified Data.ByteString.Lazy.Char8 as BSL
 import qualified Foreign.Lua as Lua
 import qualified Text.Pandoc.MediaBag as MB
 
@@ -63,8 +61,8 @@ import qualified Text.Pandoc.MediaBag as MB
 pushPandocModule :: Maybe FilePath -> Lua NumResults
 pushPandocModule datadir = do
   loadScriptFromDataDir datadir "pandoc.lua"
-  addFunction "_pipe" pipeFn
-  addFunction "_read" readDoc
+  addFunction "read" readDoc
+  addFunction "pipe" pipeFn
   addFunction "sha1" sha1HashFn
   addFunction "walk_block" walkBlock
   addFunction "walk_inline" walkInline
@@ -80,19 +78,23 @@ walkInline = walkElement
 walkBlock :: Block -> LuaFilter -> Lua Block
 walkBlock = walkElement
 
-readDoc :: String -> String -> Lua NumResults
-readDoc formatSpec content = do
+readDoc :: String -> OrNil String -> Lua NumResults
+readDoc content formatSpecOrNil = do
+  let formatSpec = fromMaybe "markdown" (toMaybe formatSpecOrNil)
   case getReader formatSpec of
-    Left  s      -> Lua.push s -- Unknown reader
+    Left  s      -> raiseError s -- Unknown reader
     Right (reader, es) ->
       case reader of
         TextReader r -> do
           res <- liftIO $ runIO $ r def{ readerExtensions = es } (pack content)
           case res of
-            Left s   -> Lua.push $ show s -- error while reading
-            Right pd -> Lua.push pd       -- success, push Pandoc
-        _  -> Lua.push "Only string formats are supported at the moment."
-  return 1
+            Right pd -> (1 :: NumResults) <$ Lua.push pd -- success, push Pandoc
+            Left s   -> raiseError (show s)              -- error while reading
+        _  -> raiseError "Only string formats are supported at the moment."
+ where
+  raiseError s = do
+    Lua.push s
+    fromIntegral <$> Lua.lerror
 
 --
 -- MediaBag submodule
@@ -106,29 +108,64 @@ pushMediaBagModule commonState mediaBagRef = do
   addFunction "fetch" (fetch commonState mediaBagRef)
   return 1
 
-addFunction :: ToHaskellFunction a => String -> a -> Lua ()
-addFunction name fn = do
-  Lua.push name
-  Lua.pushHaskellFunction fn
-  Lua.rawset (-3)
-
 sha1HashFn :: BL.ByteString
            -> Lua NumResults
 sha1HashFn contents = do
   Lua.push $ showDigest (sha1 contents)
   return 1
 
+-- | Pipes input through a command.
 pipeFn :: String
        -> [String]
        -> BL.ByteString
        -> Lua NumResults
 pipeFn command args input = do
   (ec, output) <- liftIO $ pipeProcess Nothing command args input
-  Lua.push $ case ec of
-                  ExitSuccess   -> 0
-                  ExitFailure n -> n
-  Lua.push output
-  return 2
+  case ec of
+    ExitSuccess -> do
+      Lua.push output
+      return 1
+    ExitFailure n -> do
+      Lua.push (PipeError command n output)
+      fromIntegral <$> Lua.lerror
+
+data PipeError = PipeError
+  { pipeErrorCommand :: String
+  , pipeErrorCode :: Int
+  , pipeErrorOutput :: BL.ByteString
+  }
+
+instance FromLuaStack PipeError where
+  peek idx =
+    PipeError
+    <$> (Lua.getfield idx "command"    *> Lua.peek (-1) <* Lua.pop 1)
+    <*> (Lua.getfield idx "error_code" *> Lua.peek (-1) <* Lua.pop 1)
+    <*> (Lua.getfield idx "output"     *> Lua.peek (-1) <* Lua.pop 1)
+
+instance ToLuaStack PipeError where
+  push pipeErr = do
+    Lua.newtable
+    addValue "command" (pipeErrorCommand pipeErr)
+    addValue "error_code" (pipeErrorCode pipeErr)
+    addValue "output" (pipeErrorOutput pipeErr)
+    pushPipeErrorMetaTable
+    Lua.setmetatable (-2)
+      where
+        pushPipeErrorMetaTable :: Lua ()
+        pushPipeErrorMetaTable = do
+          v <- Lua.newmetatable "pandoc pipe error"
+          when v $ addFunction "__tostring" pipeErrorMessage
+
+        pipeErrorMessage :: PipeError -> Lua BL.ByteString
+        pipeErrorMessage (PipeError cmd errorCode output) = return $ mconcat
+          [ BSL.pack "Error running "
+          , BSL.pack cmd
+          , BSL.pack " (error code "
+          , BSL.pack $ show errorCode
+          , BSL.pack "): "
+          , if output == mempty then BSL.pack "<no output>" else output
+          ]
+-- end: pipe
 
 insertMediaFn :: IORef MB.MediaBag
               -> FilePath
@@ -183,14 +220,14 @@ fetch commonState mbRef src = do
   return 2 -- returns 2 values: contents, mimetype
 
 --
--- Helper types and orphan instances
+-- Helper types
 --
 
 newtype OrNil a = OrNil { toMaybe :: Maybe a }
 
 instance FromLuaStack a => FromLuaStack (OrNil a) where
   peek idx = do
-    noValue <- Lua.isnil idx
+    noValue <- Lua.isnoneornil idx
     if noValue
       then return (OrNil Nothing)
       else OrNil . Just <$> Lua.peek idx

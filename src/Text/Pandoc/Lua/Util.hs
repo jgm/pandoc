@@ -32,6 +32,7 @@ module Text.Pandoc.Lua.Util
   ( adjustIndexBy
   , getTable
   , addValue
+  , addFunction
   , getRawInt
   , setRawInt
   , addRawInt
@@ -44,8 +45,8 @@ module Text.Pandoc.Lua.Util
 
 import Control.Monad (when)
 import Data.ByteString.Char8 (unpack)
-import Foreign.Lua (FromLuaStack (..), Lua, NumArgs, StackIndex,
-                    ToLuaStack (..), getglobal')
+import Foreign.Lua (FromLuaStack (..), ToHaskellFunction, Lua, NumArgs,
+                    StackIndex, ToLuaStack (..), getglobal')
 import Foreign.Lua.Api (Status, call, pop, rawget, rawgeti, rawset, rawseti)
 import Text.Pandoc.Class (readDataFile, runIOorExplode, setUserDataDir)
 
@@ -66,12 +67,20 @@ getTable idx key = do
   rawget (idx `adjustIndexBy` 1)
   peek (-1) <* pop 1
 
--- | Add a key-value pair to the table at the top of the stack
+-- | Add a key-value pair to the table at the top of the stack.
 addValue :: (ToLuaStack a, ToLuaStack b) => a -> b -> Lua ()
 addValue key value = do
   push key
   push value
   rawset (-3)
+
+-- | Add a function to the table at the top of the stack, using the given name.
+addFunction :: ToHaskellFunction a => String -> a -> Lua ()
+addFunction name fn = do
+  Lua.push name
+  Lua.pushHaskellFunction fn
+  Lua.wrapHaskellFunction
+  Lua.rawset (-3)
 
 -- | Get value behind key from table at given index.
 getRawInt :: FromLuaStack a => StackIndex -> Int -> Lua a
