@@ -17,7 +17,7 @@ tests = [ testGroup "inline code"
           ]
         , testGroup "images"
           [ test jats "basic" $ "<graphic mimetype=\"image\" mime-subtype=\"\" xlink:href=\"/url\" xlink:title=\"title\" />"
-            =?> image "/url" "title" mempty
+            =?> para (image "/url" "title" mempty)
           ]
         , test jats "bullet list" $
                             "<list list-type=\"bullet\">\n\
@@ -58,16 +58,27 @@ tests = [ testGroup "inline code"
             =?> definitionList [(link "#go" "" (str "testing"),
                 [para (text "hi there")])]
           ]
--- TODO find a way to deduplicate alternative formula
---        , testGroup "math"
---          [ test jats "escape |" $
---            "<p>\n\
---            \  <inline-formula><alternatives>\n\
---            \  <tex-math><![CDATA[\\sigma|_{\\{x\\}}]]></tex-math>\n\
---            \  <mml:math display=\"inline\" xmlns:mml=\"http://www.w3.org/1998/Math/MathML\"><mml:mrow><mml:mi>σ</mml:mi><mml:msub><mml:mo stretchy=\"false\" form=\"prefix\">|</mml:mo><mml:mrow><mml:mo stretchy=\"false\" form=\"prefix\">{</mml:mo><mml:mi>x</mml:mi><mml:mo stretchy=\"false\" form=\"postfix\">}</mml:mo></mml:mrow></mml:msub></mml:mrow></mml:math></alternatives></inline-formula>\n\
---            \</p>"
---            =?> para (math "\\sigma|_{\\{x\\}}")
---          ]
+        , testGroup "math"
+          [ test jats "escape |" $
+            "<p>\n\
+            \  <inline-formula><alternatives>\n\
+            \  <tex-math><![CDATA[\\sigma|_{\\{x\\}}]]></tex-math>\n\
+            \  <mml:math display=\"inline\" xmlns:mml=\"http://www.w3.org/1998/Math/MathML\"><mml:mrow><mml:mi>σ</mml:mi><mml:msub><mml:mo stretchy=\"false\" form=\"prefix\">|</mml:mo><mml:mrow><mml:mo stretchy=\"false\" form=\"prefix\">{</mml:mo><mml:mi>x</mml:mi><mml:mo stretchy=\"false\" form=\"postfix\">}</mml:mo></mml:mrow></mml:msub></mml:mrow></mml:math></alternatives></inline-formula>\n\
+            \</p>"
+            =?> para (math "\\sigma|_{\\{x\\}}")
+          , test jats "tex-math only" $
+            "<p>\n\
+            \  <inline-formula><alternatives>\n\
+            \  <tex-math><![CDATA[\\sigma|_{\\{x\\}}]]></tex-math>\n\
+            \</p>"
+            =?> para (math "\\sigma|_{\\{x\\}}")
+          , test jats "math ml only" $
+            "<p>\n\
+            \  <inline-formula><alternatives>\n\
+            \  <mml:math display=\"inline\" xmlns:mml=\"http://www.w3.org/1998/Math/MathML\"><mml:mrow><mml:mi>σ</mml:mi><mml:msub><mml:mo stretchy=\"false\" form=\"prefix\">|</mml:mo><mml:mrow><mml:mo stretchy=\"false\" form=\"prefix\">{</mml:mo><mml:mi>x</mml:mi><mml:mo stretchy=\"false\" form=\"postfix\">}</mml:mo></mml:mrow></mml:msub></mml:mrow></mml:math></alternatives></inline-formula>\n\
+            \</p>"
+            =?> para (math "\\sigma|_{\\{ x\\}}")
+          ]
         , testGroup "headers"
 -- TODO fix footnotes in headers
 --          [ test jats "unnumbered header" $
@@ -83,13 +94,13 @@ tests = [ testGroup "inline code"
           [ test jats "unnumbered sub header" $
             "<sec id=\"foo\">\n\
             \  <title>Header</title>\n\
-            \  <sec id=\"foo\">\n\
+            \  <sec id=\"foo2\">\n\
             \    <title>Sub-Header</title>\n\
             \  </sec>\n\
             \</sec>"
-            =?> header 1
+            =?> headerWith ("foo", [], []) 1
                   (text "Header")
-                <> header 2
+                <> headerWith  ("foo2", [], []) 2
                   (text "Sub-Header")
           , test jats "containing image" $
             "<sec>\n\
