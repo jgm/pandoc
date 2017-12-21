@@ -4337,9 +4337,9 @@ If you define a `div` or `span` with the attribute `custom-style`,
 pandoc will apply your specified style to the contained elements. So,
 for example using the `bracketed_spans` syntax,
 
-    [Get out,]{custom-style="Emphatically"} he said.
+    [Get out]{custom-style="Emphatically"}, he said.
 
-would produce a docx file with "Get out," styled with character
+would produce a docx file with "Get out" styled with character
 style `Emphatically`. Similarly, using the `fenced_divs` syntax,
 
     Dickinson starts the poem simply:
