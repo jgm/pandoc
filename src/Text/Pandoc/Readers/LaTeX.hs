@@ -376,8 +376,9 @@ totoks pos t =
                          | d < '\128' ->
                                   Tok pos Esc1 (T.pack ['^','^',d])
                                   : totoks (incSourceColumn pos 3) rest''
-                       _ -> [Tok pos Symbol ("^"),
-                             Tok (incSourceColumn pos 1) Symbol ("^")]
+                       _ -> Tok pos Symbol ("^") :
+                            Tok (incSourceColumn pos 1) Symbol ("^") :
+                            totoks (incSourceColumn pos 2) rest'
                 _ -> Tok pos Symbol ("^")
                      : totoks (incSourceColumn pos 1) rest
          | otherwise ->
