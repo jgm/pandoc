@@ -455,6 +455,18 @@ tests =
                     , "</quote>"
                     ] =?>
           blockQuote (para "* Hi")
+        , "Headers consume anchors" =:
+          T.unlines [ "** Foo"
+                    , "#bar"
+                    ] =?>
+          headerWith ("bar",[],[]) 2 "Foo"
+        , "Headers don't consume anchors separated with a blankline" =:
+          T.unlines [ "** Foo"
+                    , ""
+                    , "#bar"
+                    ] =?>
+          header 2 "Foo" <>
+          para (spanWith ("bar", [], []) mempty)
         ]
       , testGroup "Directives"
         [ "Title" =:

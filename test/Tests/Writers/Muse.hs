@@ -234,6 +234,11 @@ tests = [ testGroup "block elements"
                       , ""
                       , "*** Third level"
                       ]
+            , "heading with ID" =:
+               headerWith ("bar", [], []) 2 (text "Foo") =?>
+               unlines [ "** Foo"
+                       , "#bar"
+                      ]
             ]
           , "horizontal rule" =: horizontalRule =?> "----"
           , "escape horizontal rule" =: para (text "----") =?> "<verbatim>----</verbatim>"
