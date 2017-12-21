@@ -59,6 +59,7 @@ getDefaultTemplate writer = do
        "json"    -> return ""
        "docx"    -> return ""
        "fb2"     -> return ""
+       "pptx"    -> return ""
        "odt"     -> getDefaultTemplate "opendocument"
        "html"    -> getDefaultTemplate "html5"
        "docbook" -> getDefaultTemplate "docbook5"
