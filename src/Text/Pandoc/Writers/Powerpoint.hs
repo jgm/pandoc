@@ -353,6 +353,14 @@ inlineToParElems (Code _ str) = do
     inlineToParElems $ Str str
 inlineToParElems (Math mathtype str) =
   return [MathElem mathtype (TeXString str)]
+inlineToParElems (Note blks) = do
+  notes <- gets stNoteIds
+  let maxNoteId = case M.keys notes of
+        [] -> 0
+        lst -> maximum lst
+      curNoteId = maxNoteId + 1
+  modify $ \st -> st { stNoteIds = M.insert curNoteId blks notes }
+  inlineToParElems $ Superscript [Str $ show curNoteId]
 inlineToParElems (Span _ ils) = concatMapM inlineToParElems ils
 inlineToParElems (RawInline _ _) = return []
 inlineToParElems _ = return []
