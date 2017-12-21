@@ -903,4 +903,9 @@ function M.global_filter()
   return res
 end
 
+------------------------------------------------------------------------
+-- Functions which have moved to different modules
+local utils = require 'pandoc.utils'
+M.sha1 = utils.sha1
+
 return M

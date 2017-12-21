@@ -32,7 +32,6 @@ module Text.Pandoc.Lua.Module.Pandoc
 
 import Control.Monad (when)
 import Data.Default (Default (..))
-import Data.Digest.Pure.SHA (sha1, showDigest)
 import Data.Maybe (fromMaybe)
 import Data.Text (pack)
 import Foreign.Lua (ToLuaStack, FromLuaStack, Lua, NumResults, liftIO)
@@ -59,7 +58,6 @@ pushModule datadir = do
   loadScriptFromDataDir datadir "pandoc.lua"
   addFunction "read" readDoc
   addFunction "pipe" pipeFn
-  addFunction "sha1" sha1HashFn
   addFunction "walk_block" walkBlock
   addFunction "walk_inline" walkInline
   return 1
@@ -87,12 +85,6 @@ readDoc content formatSpecOrNil = do
             Right pd -> (1 :: NumResults) <$ Lua.push pd -- success, push Pandoc
             Left s   -> raiseError (show s)              -- error while reading
         _  -> raiseError "Only string formats are supported at the moment."
-
-sha1HashFn :: BL.ByteString
-           -> Lua NumResults
-sha1HashFn contents = do
-  Lua.push $ showDigest (sha1 contents)
-  return 1
 
 -- | Pipes input through a command.
 pipeFn :: String

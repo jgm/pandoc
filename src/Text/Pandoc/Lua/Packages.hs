@@ -43,6 +43,7 @@ import Text.Pandoc.Lua.Util (dostring')
 import qualified Foreign.Lua as Lua
 import Text.Pandoc.Lua.Module.Pandoc as Pandoc
 import Text.Pandoc.Lua.Module.MediaBag as MediaBag
+import Text.Pandoc.Lua.Module.Utils as Utils
 
 -- | Parameters used to create lua packages/modules.
 data LuaPackageParams = LuaPackageParams
@@ -77,6 +78,7 @@ pandocPackageSearcher luaPkgParams pkgName =
     "pandoc.mediabag" -> let st    = luaPkgCommonState luaPkgParams
                              mbRef = luaPkgMediaBag luaPkgParams
                          in pushWrappedHsFun (MediaBag.pushModule st mbRef)
+    "pandoc.utils"    -> pushWrappedHsFun Utils.pushModule
     _ -> searchPureLuaLoader
  where
   pushWrappedHsFun f = do

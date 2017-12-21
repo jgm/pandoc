@@ -1405,18 +1405,6 @@ Lua functions for pandoc scripts.
         -- the above is equivallent to
         -- return {{Str = Str}}
 
-[`sha1 (contents)`]{#mediabag-sha1}
-
-:   Returns the SHA1 has of the contents.
-
-    Returns:
-
-    -   SHA1 hash of the contents.
-
-    Usage:
-
-        local fp = pandoc.mediabag.sha1("foobar")
-
 [`pipe (command, args, input)`]{#mediabag-sha1}
 
 :   Runs command with arguments, passing it some input,
@@ -1436,9 +1424,28 @@ Lua functions for pandoc scripts.
 
         local output = pandoc.pipe("sed", {"-e","s/a/b/"}, "abc")
 
-# Submodule mediabag
 
-The submodule `mediabag` allows accessing pandoc's media
+# Module pandoc.utils
+
+This module exposes internal pandoc functions and utility
+functions.
+
+[`sha1 (contents)`]{#utils-sha1}
+
+:   Returns the SHA1 has of the contents.
+
+    Returns:
+
+    -   SHA1 hash of the contents.
+
+    Usage:
+
+        local fp = pandoc.utils.sha1("foobar")
+
+
+# Module pandoc.mediabag
+
+The `pandoc.mediabag` module allows accessing pandoc's media
 storage. The "media bag" is used when pandoc is called with the
 `--extract-media` or `--standalone`/`-s` option.
 
