@@ -36,6 +36,8 @@ module Text.Pandoc.Lua.Util
   , getRawInt
   , setRawInt
   , addRawInt
+  , raiseError
+  , OrNil (..)
   , PushViaCall
   , pushViaCall
   , pushViaConstructor
@@ -45,8 +47,8 @@ module Text.Pandoc.Lua.Util
 
 import Control.Monad (when)
 import Data.ByteString.Char8 (unpack)
-import Foreign.Lua (FromLuaStack (..), ToHaskellFunction, Lua, NumArgs,
-                    StackIndex, ToLuaStack (..), getglobal')
+import Foreign.Lua (FromLuaStack (..), NumResults, Lua, NumArgs, StackIndex,
+                    ToLuaStack (..), ToHaskellFunction, getglobal')
 import Foreign.Lua.Api (Status, call, pop, rawget, rawgeti, rawset, rawseti)
 import Text.Pandoc.Class (readDataFile, runIOorExplode, setUserDataDir)
 
@@ -98,6 +100,22 @@ setRawInt idx key value = do
 -- | Set numeric key/value in table at the top of the stack.
 addRawInt :: ToLuaStack a => Int -> a -> Lua ()
 addRawInt = setRawInt (-1)
+
+raiseError :: ToLuaStack a => a -> Lua NumResults
+raiseError e = do
+  Lua.push e
+  fromIntegral <$> Lua.lerror
+
+-- | Newtype wrapper intended to be used for optional Lua values. Nesting this
+-- type is strongly discouraged and will likely lead to a wrong result.
+newtype OrNil a = OrNil { toMaybe :: Maybe a }
+
+instance FromLuaStack a => FromLuaStack (OrNil a) where
+  peek idx = do
+    noValue <- Lua.isnoneornil idx
+    if noValue
+      then return (OrNil Nothing)
+      else OrNil . Just <$> Lua.peek idx
 
 -- | Helper class for pushing a single value to the stack via a lua function.
 -- See @pushViaCall@.

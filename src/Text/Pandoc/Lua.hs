@@ -39,7 +39,7 @@ import Text.Pandoc.Class (PandocIO)
 import Text.Pandoc.Definition (Pandoc)
 import Text.Pandoc.Lua.Filter (LuaFilter, walkMWithLuaFilter)
 import Text.Pandoc.Lua.Init (runPandocLua)
-import Text.Pandoc.Lua.PandocModule (pushPandocModule) -- TODO: remove
+import Text.Pandoc.Lua.Module.Pandoc (pushModule) -- TODO: remove
 import qualified Foreign.Lua as Lua
 
 -- | Run the Lua filter in @filterPath@ for a transformation to target
@@ -81,3 +81,7 @@ pushGlobalFilter = do
 
 runAll :: [LuaFilter] -> Pandoc -> Lua Pandoc
 runAll = foldr ((>=>) . walkMWithLuaFilter) return
+
+-- | DEPRECATED: Push the pandoc module to the Lua Stack.
+pushPandocModule :: Maybe FilePath -> Lua Lua.NumResults
+pushPandocModule = pushModule

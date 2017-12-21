@@ -17,7 +17,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 -}
 {-# LANGUAGE FlexibleContexts #-}
 {- |
-   Module      : Text.Pandoc.Lua.PandocModule
+   Module      : Text.Pandoc.Lua.Module.Pandoc
    Copyright   : Copyright © 2017 Albert Krewinkel
    License     : GNU GPL, version 2 or above
 
@@ -26,8 +26,8 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 Pandoc module for lua.
 -}
-module Text.Pandoc.Lua.PandocModule
-  ( pushPandocModule
+module Text.Pandoc.Lua.Module.Pandoc
+  ( pushModule
   , pushMediaBagModule
   ) where
 
@@ -44,7 +44,8 @@ import Text.Pandoc.Class (CommonState (..), fetchItem, putCommonState,
 import Text.Pandoc.Definition (Block, Inline)
 import Text.Pandoc.Lua.Filter (walkInlines, walkBlocks, LuaFilter)
 import Text.Pandoc.Lua.StackInstances ()
-import Text.Pandoc.Lua.Util (addFunction, addValue, loadScriptFromDataDir)
+import Text.Pandoc.Lua.Util (OrNil (toMaybe), addFunction, addValue,
+                             loadScriptFromDataDir, raiseError)
 import Text.Pandoc.Walk (Walkable)
 import Text.Pandoc.MIME (MimeType)
 import Text.Pandoc.Options (ReaderOptions (readerExtensions))
@@ -58,8 +59,8 @@ import qualified Text.Pandoc.MediaBag as MB
 
 -- | Push the "pandoc" on the lua stack. Requires the `list` module to be
 -- loaded.
-pushPandocModule :: Maybe FilePath -> Lua NumResults
-pushPandocModule datadir = do
+pushModule :: Maybe FilePath -> Lua NumResults
+pushModule datadir = do
   loadScriptFromDataDir datadir "pandoc.lua"
   addFunction "read" readDoc
   addFunction "pipe" pipeFn
@@ -91,10 +92,6 @@ readDoc content formatSpecOrNil = do
             Right pd -> (1 :: NumResults) <$ Lua.push pd -- success, push Pandoc
             Left s   -> raiseError (show s)              -- error while reading
         _  -> raiseError "Only string formats are supported at the moment."
- where
-  raiseError s = do
-    Lua.push s
-    fromIntegral <$> Lua.lerror
 
 --
 -- MediaBag submodule
@@ -122,12 +119,8 @@ pipeFn :: String
 pipeFn command args input = do
   (ec, output) <- liftIO $ pipeProcess Nothing command args input
   case ec of
-    ExitSuccess -> do
-      Lua.push output
-      return 1
-    ExitFailure n -> do
-      Lua.push (PipeError command n output)
-      fromIntegral <$> Lua.lerror
+    ExitSuccess -> 1 <$ Lua.push output
+    ExitFailure n -> raiseError (PipeError command n output)
 
 data PipeError = PipeError
   { pipeErrorCommand :: String
@@ -218,16 +211,3 @@ fetch commonState mbRef src = do
   Lua.push $ fromMaybe "" mimeType
   Lua.push bs
   return 2 -- returns 2 values: contents, mimetype
-
---
--- Helper types
---
-
-newtype OrNil a = OrNil { toMaybe :: Maybe a }
-
-instance FromLuaStack a => FromLuaStack (OrNil a) where
-  peek idx = do
-    noValue <- Lua.isnoneornil idx
-    if noValue
-      then return (OrNil Nothing)
-      else OrNil . Just <$> Lua.peek idx
