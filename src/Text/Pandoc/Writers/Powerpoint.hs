@@ -139,6 +139,7 @@ data WriterState = WriterState { stCurSlideId :: Int
                                -- (FP, Local ID, Global ID, Maybe Mime)
                                , stMediaIds :: M.Map Int [MediaInfo]
                                , stMediaGlobalIds :: M.Map FilePath Int
+                               , stNoteIds :: M.Map Int [Block]
                                } deriving (Show, Eq)
 
 instance Default WriterState where
@@ -147,6 +148,7 @@ instance Default WriterState where
                     , stLinkIds = mempty
                     , stMediaIds = mempty
                     , stMediaGlobalIds = mempty
+                    , stNoteIds = mempty
                     }
 
 type P m = ReaderT WriterEnv (StateT WriterState m)
