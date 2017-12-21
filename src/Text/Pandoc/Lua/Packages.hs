@@ -38,11 +38,11 @@ import Data.IORef (IORef)
 import Foreign.Lua (Lua, NumResults, liftIO)
 import Text.Pandoc.Class (CommonState, readDataFile, runIO, setUserDataDir)
 import Text.Pandoc.MediaBag (MediaBag)
-import Text.Pandoc.Lua.Module.Pandoc (pushMediaBagModule)
 import Text.Pandoc.Lua.Util (dostring')
 
 import qualified Foreign.Lua as Lua
 import Text.Pandoc.Lua.Module.Pandoc as Pandoc
+import Text.Pandoc.Lua.Module.MediaBag as MediaBag
 
 -- | Parameters used to create lua packages/modules.
 data LuaPackageParams = LuaPackageParams
@@ -76,7 +76,7 @@ pandocPackageSearcher luaPkgParams pkgName =
                          in pushWrappedHsFun (Pandoc.pushModule datadir)
     "pandoc.mediabag" -> let st    = luaPkgCommonState luaPkgParams
                              mbRef = luaPkgMediaBag luaPkgParams
-                         in pushWrappedHsFun (pushMediaBagModule st mbRef)
+                         in pushWrappedHsFun (MediaBag.pushModule st mbRef)
     _ -> searchPureLuaLoader
  where
   pushWrappedHsFun f = do

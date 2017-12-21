@@ -28,26 +28,22 @@ Pandoc module for lua.
 -}
 module Text.Pandoc.Lua.Module.Pandoc
   ( pushModule
-  , pushMediaBagModule
   ) where
 
-import Control.Monad (when, zipWithM_)
+import Control.Monad (when)
 import Data.Default (Default (..))
 import Data.Digest.Pure.SHA (sha1, showDigest)
-import Data.IORef (IORef, modifyIORef', readIORef)
 import Data.Maybe (fromMaybe)
 import Data.Text (pack)
 import Foreign.Lua (ToLuaStack, FromLuaStack, Lua, NumResults, liftIO)
 import System.Exit (ExitCode (..))
-import Text.Pandoc.Class (CommonState (..), fetchItem, putCommonState,
-                          runIO, runIOorExplode, setMediaBag)
+import Text.Pandoc.Class (runIO)
 import Text.Pandoc.Definition (Block, Inline)
 import Text.Pandoc.Lua.Filter (walkInlines, walkBlocks, LuaFilter)
 import Text.Pandoc.Lua.StackInstances ()
 import Text.Pandoc.Lua.Util (OrNil (toMaybe), addFunction, addValue,
                              loadScriptFromDataDir, raiseError)
 import Text.Pandoc.Walk (Walkable)
-import Text.Pandoc.MIME (MimeType)
 import Text.Pandoc.Options (ReaderOptions (readerExtensions))
 import Text.Pandoc.Process (pipeProcess)
 import Text.Pandoc.Readers (Reader (..), getReader)
@@ -55,7 +51,6 @@ import Text.Pandoc.Readers (Reader (..), getReader)
 import qualified Data.ByteString.Lazy as BL
 import qualified Data.ByteString.Lazy.Char8 as BSL
 import qualified Foreign.Lua as Lua
-import qualified Text.Pandoc.MediaBag as MB
 
 -- | Push the "pandoc" on the lua stack. Requires the `list` module to be
 -- loaded.
@@ -92,18 +87,6 @@ readDoc content formatSpecOrNil = do
             Right pd -> (1 :: NumResults) <$ Lua.push pd -- success, push Pandoc
             Left s   -> raiseError (show s)              -- error while reading
         _  -> raiseError "Only string formats are supported at the moment."
-
---
--- MediaBag submodule
---
-pushMediaBagModule :: CommonState -> IORef MB.MediaBag -> Lua NumResults
-pushMediaBagModule commonState mediaBagRef = do
-  Lua.newtable
-  addFunction "insert" (insertMediaFn mediaBagRef)
-  addFunction "lookup" (lookupMediaFn mediaBagRef)
-  addFunction "list" (mediaDirectoryFn mediaBagRef)
-  addFunction "fetch" (fetch commonState mediaBagRef)
-  return 1
 
 sha1HashFn :: BL.ByteString
            -> Lua NumResults
@@ -158,56 +141,3 @@ instance ToLuaStack PipeError where
           , BSL.pack "): "
           , if output == mempty then BSL.pack "<no output>" else output
           ]
--- end: pipe
-
-insertMediaFn :: IORef MB.MediaBag
-              -> FilePath
-              -> OrNil MimeType
-              -> BL.ByteString
-              -> Lua NumResults
-insertMediaFn mbRef fp nilOrMime contents = do
-  liftIO . modifyIORef' mbRef $
-    MB.insertMedia fp (toMaybe nilOrMime) contents
-  return 0
-
-lookupMediaFn :: IORef MB.MediaBag
-              -> FilePath
-              -> Lua NumResults
-lookupMediaFn mbRef fp = do
-  res <- MB.lookupMedia fp <$> liftIO (readIORef mbRef)
-  case res of
-    Nothing -> Lua.pushnil *> return 1
-    Just (mimeType, contents) -> do
-      Lua.push mimeType
-      Lua.push contents
-      return 2
-
-mediaDirectoryFn :: IORef MB.MediaBag
-                 -> Lua NumResults
-mediaDirectoryFn mbRef = do
-  dirContents <- MB.mediaDirectory <$> liftIO (readIORef mbRef)
-  Lua.newtable
-  zipWithM_ addEntry [1..] dirContents
-  return 1
- where
-  addEntry :: Int -> (FilePath, MimeType, Int) -> Lua ()
-  addEntry idx (fp, mimeType, contentLength) = do
-    Lua.newtable
-    Lua.push "path" *> Lua.push fp *> Lua.rawset (-3)
-    Lua.push "type" *> Lua.push mimeType *> Lua.rawset (-3)
-    Lua.push "length" *> Lua.push contentLength *> Lua.rawset (-3)
-    Lua.rawseti (-2) idx
-
-fetch :: CommonState
-      -> IORef MB.MediaBag
-      -> String
-      -> Lua NumResults
-fetch commonState mbRef src = do
-  mediaBag <- liftIO $ readIORef mbRef
-  (bs, mimeType) <- liftIO . runIOorExplode $ do
-    putCommonState commonState
-    setMediaBag mediaBag
-    fetchItem src
-  Lua.push $ fromMaybe "" mimeType
-  Lua.push bs
-  return 2 -- returns 2 values: contents, mimetype

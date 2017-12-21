@@ -523,6 +523,7 @@ library
                    Text.Pandoc.Readers.Org.Shared,
                    Text.Pandoc.Lua.Filter,
                    Text.Pandoc.Lua.Init,
+                   Text.Pandoc.Lua.Module.MediaBag,
                    Text.Pandoc.Lua.Module.Pandoc,
                    Text.Pandoc.Lua.Packages,
                    Text.Pandoc.Lua.StackInstances,
