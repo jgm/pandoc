@@ -105,6 +105,7 @@ data WriterEnv = WriterEnv { envMetadata :: Meta
                            , envPresentationSize :: PresentationSize
                            , envSlideHasHeader :: Bool
                            , envInList :: Bool
+                           , envInNoteSlide :: Bool
                            }
                  deriving (Show)
 
@@ -120,6 +121,7 @@ instance Default WriterEnv where
                   , envPresentationSize = def
                   , envSlideHasHeader = False
                   , envInList = False
+                  , envInNoteSlide = False
                   }
 
 data MediaInfo = MediaInfo { mInfoFilePath :: FilePath
@@ -548,12 +550,18 @@ blocksToSlide' lvl ((Header n _ ils) : blks)
       return $ TitleSlide {titleSlideHeader = hdr}
   | n == lvl = do
       hdr <- inlinesToParElems ils
-      shapes <- blocksToShapes blks
+      inNoteSlide <- asks envInNoteSlide
+      shapes <- if inNoteSlide
+                then forceFontSize noteSize $ blocksToShapes blks
+                else blocksToShapes blks
       return $ ContentSlide { contentSlideHeader = hdr
                             , contentSlideContent = shapes
                             }
 blocksToSlide' _ (blk : blks) = do
-      shapes <- blocksToShapes (blk : blks)
+      inNoteSlide <- asks envInNoteSlide
+      shapes <- if inNoteSlide
+                then forceFontSize noteSize $ blocksToShapes (blk : blks)
+                else blocksToShapes (blk : blks)
       return $ ContentSlide { contentSlideHeader = []
                             , contentSlideContent = shapes
                             }
@@ -574,6 +582,11 @@ makeNoteEntry n blks =
       (Para ils : blks') -> (Para $ enum : Space : ils) : blks'
       _ -> (Para [enum]) : blks
 
+forceFontSize :: PandocMonad m => Pixels -> P m a -> P m a
+forceFontSize px x = do
+  rpr <- asks envRunProps
+  local (\r -> r {envRunProps = rpr{rPropForceSize = Just px}}) x
+
 -- Right now, there's no logic for making more than one slide, but I
 -- want to leave the option open to make multiple slides if we figure
 -- out how to guess at how much space the text of the notes will take
@@ -582,13 +595,14 @@ makeNoteEntry n blks =
 -- `blocksToPresentation` function (since we can just add an empty
 -- list without checking the state).
 makeNotesSlides :: PandocMonad m => P m [Slide]
-makeNotesSlides = do
+makeNotesSlides = local (\env -> env{envInNoteSlide=True}) $ do
   noteIds <- gets stNoteIds
   if M.null noteIds
     then return []
     else do let hdr = Header 2 nullAttr [Str "Notes"]
-                blks = concatMap (\(n, bs) -> makeNoteEntry n bs) $
-                       M.toList noteIds
+            blks <- return $
+                    concatMap (\(n, bs) -> makeNoteEntry n bs) $
+                    M.toList noteIds
             sld <- blocksToSlide $ hdr : blks
             return [sld]
 
@@ -1093,6 +1107,9 @@ makePicElement mInfo attr = do
 -- Currently hardcoded, until I figure out how to make it dynamic.
 blockQuoteSize :: Pixels
 blockQuoteSize = 20
+
+noteSize :: Pixels
+noteSize = 18
 
 paraElemToElement :: PandocMonad m => ParaElem -> P m Element
 paraElemToElement Break = return $ mknode "a:br" [] ()
