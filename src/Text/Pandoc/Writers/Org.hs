@@ -308,13 +308,18 @@ blockListToOrg blocks = vcat <$> mapM blockToOrg blocks
 inlineListToOrg :: PandocMonad m
                 => [Inline]
                 -> Org m Doc
-inlineListToOrg lst = hcat <$> mapM inlineToOrg (fixNotes lst)
-  where fixNotes [] = []  -- prevent note ref from wrapping, see #4171
-        fixNotes (Space : n@Note{} : rest) =
-          Str " " : n : fixNotes rest
-        fixNotes (SoftBreak : n@Note{} : rest) =
-          Str " " : n : fixNotes rest
-        fixNotes (x : rest) = x : fixNotes rest
+inlineListToOrg lst = hcat <$> mapM inlineToOrg (fixMarkers lst)
+  where fixMarkers [] = []  -- prevent note refs and list markers from wrapping, see #4171
+        fixMarkers (Space : x : rest) | shouldFix x =
+          Str " " : x : fixMarkers rest
+        fixMarkers (SoftBreak : x : rest) | shouldFix x =
+          Str " " : x : fixMarkers rest
+        fixMarkers (x : rest) = x : fixMarkers rest
+
+        shouldFix Note{} = True -- Prevent footnotes
+        shouldFix (Str "-") = True -- Prevent bullet list items
+        -- TODO: prevent ordered list items
+        shouldFix _ = False
 
 -- | Convert Pandoc inline element to Org.
 inlineToOrg :: PandocMonad m => Inline -> Org m Doc
