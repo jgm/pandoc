@@ -302,6 +302,7 @@ data RunProps = RunProps { rPropBold :: Bool
                          , rLink :: Maybe (URL, String)
                          , rPropCode :: Bool
                          , rPropBlockQuote :: Bool
+                         , rPropForceSize :: Maybe Pixels
                          } deriving (Show, Eq)
 
 instance Default RunProps where
@@ -313,6 +314,7 @@ instance Default RunProps where
                  , rLink = Nothing
                  , rPropCode = False
                  , rPropBlockQuote = False
+                 , rPropForceSize = Nothing
                  }
 
 --------------------------------------------------
@@ -385,7 +387,7 @@ blockToParagraphs (CodeBlock attr str) =
 -- TODO: work out the format
 blockToParagraphs (BlockQuote blks) =
   local (\r -> r{ envParaProps = (envParaProps r){pPropMarginLeft = Just 100}
-                , envRunProps = (envRunProps r){rPropBlockQuote = True}})$
+                , envRunProps = (envRunProps r){rPropForceSize = Just blockQuoteSize}})$
   concatMapM blockToParagraphs blks
 -- TODO: work out the format
 blockToParagraphs (RawBlock _ _) = return []
@@ -1098,7 +1100,9 @@ paraElemToElement (Run rpr s) = do
   let attrs =
         if rPropCode rpr
         then []
-        else (if rPropBlockQuote rpr then [("sz", (show $ blockQuoteSize * 100))] else []) ++
+        else (case rPropForceSize rpr of
+                Just n -> [("sz", (show $ n * 100))]
+                Nothing -> []) ++
              (if rPropBold rpr then [("b", "1")] else []) ++
              (if rPropItalics rpr then [("i", "1")] else []) ++
              (case rStrikethrough rpr of
