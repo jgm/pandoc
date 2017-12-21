@@ -411,6 +411,15 @@ blockToParagraphs (OrderedList listAttr blksLst) = do
                                            , pPropMarginLeft = Nothing
                                            }}) $
     concatMapM multiParBullet blksLst
+blockToParagraphs (DefinitionList entries) = do
+  let go :: PandocMonad m => ([Inline], [[Block]]) -> P m [Paragraph]
+      go (ils, blksLst) = do
+        term <-blockToParagraphs $ Para [Strong ils]
+        -- For now, we'll treat each definition term as a
+        -- blockquote. We can extend this further later.
+        definition <- concatMapM (blockToParagraphs . BlockQuote) blksLst
+        return $ term ++ definition
+  concatMapM go entries
 blockToParagraphs (Div _ blks)  = concatMapM blockToParagraphs blks
 -- TODO
 blockToParagraphs blk = do
