@@ -11,6 +11,7 @@ import qualified Tests.Readers.Creole
 import qualified Tests.Readers.Docx
 import qualified Tests.Readers.EPUB
 import qualified Tests.Readers.HTML
+import qualified Tests.Readers.JATS
 import qualified Tests.Readers.LaTeX
 import qualified Tests.Readers.Markdown
 import qualified Tests.Readers.Muse
@@ -61,6 +62,7 @@ tests = testGroup "pandoc tests" [ Tests.Command.tests
           [ testGroup "LaTeX" Tests.Readers.LaTeX.tests
           , testGroup "Markdown" Tests.Readers.Markdown.tests
           , testGroup "HTML" Tests.Readers.HTML.tests
+          , testGroup "JATS" Tests.Readers.JATS.tests
           , testGroup "Org" Tests.Readers.Org.tests
           , testGroup "RST" Tests.Readers.RST.tests
           , testGroup "Docx" Tests.Readers.Docx.tests
