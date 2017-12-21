@@ -564,6 +564,32 @@ blocksToSlide blks = do
   slideLevel <- asks envSlideLevel
   blocksToSlide' slideLevel blks
 
+makeNoteEntry :: Int -> [Block] -> [Block]
+makeNoteEntry n blks =
+  let enum = Str (show n ++ ".")
+  in
+    case blks of
+      (Para ils : blks') -> (Para $ enum : Space : ils) : blks'
+      _ -> (Para [enum]) : blks
+
+-- Right now, there's no logic for making more than one slide, but I
+-- want to leave the option open to make multiple slides if we figure
+-- out how to guess at how much space the text of the notes will take
+-- up (or if we allow a way for it to be manually controlled). Plus a
+-- list will make it easier to put together in the final
+-- `blocksToPresentation` function (since we can just add an empty
+-- list without checking the state).
+makeNotesSlides :: PandocMonad m => P m [Slide]
+makeNotesSlides = do
+  noteIds <- gets stNoteIds
+  if M.null noteIds
+    then return []
+    else do let hdr = Header 2 nullAttr [Str "Notes"]
+                blks = concatMap (\(n, bs) -> makeNoteEntry n bs) $
+                       M.toList noteIds
+            sld <- blocksToSlide $ hdr : blks
+            return [sld]
+
 getMetaSlide :: PandocMonad m => P m (Maybe Slide)
 getMetaSlide  = do
   meta <- asks envMetadata
@@ -589,11 +615,13 @@ blocksToPresentation :: PandocMonad m => [Block] -> P m Presentation
 blocksToPresentation blks = do
   blksLst <- splitBlocks blks
   slides <- mapM blocksToSlide blksLst
+  noteSlides <- makeNotesSlides
+  let slides' = slides ++ noteSlides
   metadataslide <- getMetaSlide
   presSize <- asks envPresentationSize
   return $ case metadataslide of
-             Just metadataslide' -> Presentation presSize $ metadataslide' : slides
-             Nothing            -> Presentation presSize slides
+             Just metadataslide' -> Presentation presSize $ metadataslide' : slides'
+             Nothing            -> Presentation presSize slides'
 
 --------------------------------------------------------------------
 
