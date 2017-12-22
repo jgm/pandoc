@@ -166,15 +166,17 @@ those elements accessible through the filter function parameter.
 
 Some pandoc functions have been made available in lua:
 
-- `walk_block` and `walk_inline` allow filters to be applied
-  inside specific block or inline elements.
-- `read` allows filters to parse strings into pandoc documents
-- `pipe` runs an external command with input from and output to
-  strings
-- `sha1` generates a SHA1 hash
-- The `mediabag` module allows access to the "mediabag,"
-  which stores binary content such as images that may be
-  included in the final document.
+- [`walk_block`](#walk_block) and [`walk_inline`](#walk_inline)
+  allow filters to be applied inside specific block or inline
+  elements;
+- [`read`](#read) allows filters to parse strings into pandoc
+  documents;
+- [`pipe`](#pipe) runs an external command with input from and
+  output to strings;
+- [`sha1`](#utils-sha1) generates a SHA1 hash;
+- the [`pandoc.mediabag`](#module-pandoc.mediabag) module allows
+  access to the "mediabag," which stores binary content such as
+  images that may be included in the final document.
 
 # Lua interpreter initialization
 
@@ -1405,7 +1407,7 @@ Lua functions for pandoc scripts.
         -- the above is equivallent to
         -- return {{Str = Str}}
 
-[`pipe (command, args, input)`]{#mediabag-sha1}
+[`pipe (command, args, input)`]{#pipe}
 
 :   Runs command with arguments, passing it some input,
     and returns the output.
@@ -1441,6 +1443,21 @@ functions.
     Usage:
 
         local fp = pandoc.utils.sha1("foobar")
+
+[`stringify (element)`]{#utils-stringify}
+
+:   Converts the given element (Pandoc, Meta, Block, or Inline)
+    into a string with all formatting removed.
+
+    Returns:
+
+    -   A plain string representation of the given element.
+
+    Usage:
+
+        local inline = pandoc.Emph{pandoc.Str 'Moin'}
+         -- outputs "Moin"
+        print(pandoc.utils.stringify(inline))
 
 
 # Module pandoc.mediabag
