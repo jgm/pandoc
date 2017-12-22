@@ -1,4 +1,4 @@
-utils = require 'pandoc'
+utils = require 'pandoc.utils'
 
 -- SHA1
 ------------------------------------------------------------------------
@@ -22,7 +22,7 @@ function test_pipe ()
     warn 'Did not find /bin/sed, skipping test'
     return true
   end
-  local pipe_result = utils.pipe('/bin/sed', {'-e', 's/a/b/'}, 'abc')
+  local pipe_result = pandoc.pipe('/bin/sed', {'-e', 's/a/b/'}, 'abc')
   return pipe_result == 'bbc'
 end
 
@@ -31,7 +31,7 @@ function test_failing_pipe ()
     warn 'Did not find /bin/false, skipping test'
     return true
   end
-  local res, err = pcall(utils.pipe, '/bin/false', {}, 'abc')
+  local res, err = pcall(pandoc.pipe, '/bin/false', {}, 'abc')
   return not res and
     err.command == '/bin/false' and
     err.error_code == 1 and
@@ -51,6 +51,18 @@ function test_failing_read ()
   return not res and err:match 'Unknown reader: nosuchreader'
 end
 
+-- Stringify
+------------------------------------------------------------------------
+function test_stringify ()
+  local inline = pandoc.Emph{
+    pandoc.Str 'Cogito',
+    pandoc.Space(),
+    pandoc.Str 'ergo',
+    pandoc.Space(),
+    pandoc.Str 'sum.',
+  }
+  return utils.stringify(inline) == 'Cogito ergo sum.'
+end
 
 -- Return result
 ------------------------------------------------------------------------
@@ -65,5 +77,6 @@ function Para (el)
     pandoc.Plain{pandoc.Str("failing pipe: " .. run(test_failing_pipe))},
     pandoc.Plain{pandoc.Str("read: " .. run(test_read))},
     pandoc.Plain{pandoc.Str("failing read: " .. run(test_failing_read))},
+    pandoc.Plain{pandoc.Str("stringify: " .. run(test_stringify))},
   }
 end

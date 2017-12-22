@@ -101,6 +101,7 @@ tests = map (localOption (QuickCheckTests 20))
                      , plain (str "failing pipe: OK")
                      , plain (str "read: OK")
                      , plain (str "failing read: OK")
+                     , plain (str "stringify: OK")
                      ])
   ]
 

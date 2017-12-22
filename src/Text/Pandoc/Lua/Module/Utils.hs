@@ -29,22 +29,51 @@ module Text.Pandoc.Lua.Module.Utils
   ( pushModule
   ) where
 
-import Data.Digest.Pure.SHA (sha1, showDigest)
-import Foreign.Lua (Lua, NumResults)
+import Control.Applicative ((<|>))
+import Foreign.Lua (FromLuaStack, Lua, NumResults)
+import Text.Pandoc.Definition (Pandoc, Meta, Block, Inline)
 import Text.Pandoc.Lua.StackInstances ()
 import Text.Pandoc.Lua.Util (addFunction)
 
+import qualified Data.Digest.Pure.SHA as SHA
 import qualified Data.ByteString.Lazy as BSL
 import qualified Foreign.Lua as Lua
+import qualified Text.Pandoc.Shared as Shared
 
 -- | Push the "pandoc.utils" module to the lua stack.
 pushModule :: Lua NumResults
 pushModule = do
   Lua.newtable
-  addFunction "sha1" sha1HashFn
+  addFunction "sha1" sha1
+  addFunction "stringify" stringify
   return 1
 
 -- | Calculate the hash of the given contents.
-sha1HashFn :: BSL.ByteString
-           -> Lua String
-sha1HashFn = return . showDigest . sha1
+sha1 :: BSL.ByteString
+     -> Lua String
+sha1 = return . SHA.showDigest . SHA.sha1
+
+stringify :: AstElement -> Lua String
+stringify el = return $ case el of
+  PandocElement pd -> Shared.stringify pd
+  InlineElement i  -> Shared.stringify i
+  BlockElement b   -> Shared.stringify b
+  MetaElement m    -> Shared.stringify m
+
+data AstElement
+  = PandocElement Pandoc
+  | MetaElement Meta
+  | BlockElement Block
+  | InlineElement Inline
+  deriving (Show)
+
+instance FromLuaStack AstElement where
+  peek idx  = do
+    res <- Lua.tryLua $  (PandocElement <$> Lua.peek idx)
+                     <|> (InlineElement <$> Lua.peek idx)
+                     <|> (BlockElement <$> Lua.peek idx)
+                     <|> (MetaElement <$> Lua.peek idx)
+    case res of
+      Right x -> return x
+      Left _ -> Lua.throwLuaError
+        "Expected an AST element, but could not parse value as such."
