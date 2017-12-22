@@ -15,92 +15,60 @@
     <thead>
       <tr>
         <th>
-          <p>
-            Right
-          </p>
+          Right
         </th>
         <th>
-          <p>
-            Left
-          </p>
+          Left
         </th>
         <th>
-          <p>
-            Center
-          </p>
+          Center
         </th>
         <th>
-          <p>
-            Default
-          </p>
+          Default
         </th>
       </tr>
     </thead>
     <tbody>
       <tr>
         <td>
-          <p>
-            12
-          </p>
+          12
         </td>
         <td>
-          <p>
-            12
-          </p>
+          12
         </td>
         <td>
-          <p>
-            12
-          </p>
+          12
         </td>
         <td>
-          <p>
-            12
-          </p>
+          12
         </td>
       </tr>
       <tr>
         <td>
-          <p>
-            123
-          </p>
+          123
         </td>
         <td>
-          <p>
-            123
-          </p>
+          123
         </td>
         <td>
-          <p>
-            123
-          </p>
+          123
         </td>
         <td>
-          <p>
-            123
-          </p>
+          123
         </td>
       </tr>
       <tr>
         <td>
-          <p>
-            1
-          </p>
+          1
         </td>
         <td>
-          <p>
-            1
-          </p>
+          1
         </td>
         <td>
-          <p>
-            1
-          </p>
+          1
         </td>
         <td>
-          <p>
-            1
-          </p>
+          1
         </td>
       </tr>
     </tbody>
@@ -117,92 +85,60 @@
   <thead>
     <tr>
       <th>
-        <p>
-          Right
-        </p>
+        Right
       </th>
       <th>
-        <p>
-          Left
-        </p>
+        Left
       </th>
       <th>
-        <p>
-          Center
-        </p>
+        Center
       </th>
       <th>
-        <p>
-          Default
-        </p>
+        Default
       </th>
     </tr>
   </thead>
   <tbody>
     <tr>
       <td>
-        <p>
-          12
-        </p>
+        12
       </td>
       <td>
-        <p>
-          12
-        </p>
+        12
       </td>
       <td>
-        <p>
-          12
-        </p>
+        12
       </td>
       <td>
-        <p>
-          12
-        </p>
+        12
       </td>
     </tr>
     <tr>
       <td>
-        <p>
-          123
-        </p>
+        123
       </td>
       <td>
-        <p>
-          123
-        </p>
+        123
       </td>
       <td>
-        <p>
-          123
-        </p>
+        123
       </td>
       <td>
-        <p>
-          123
-        </p>
+        123
       </td>
     </tr>
     <tr>
       <td>
-        <p>
-          1
-        </p>
+        1
       </td>
       <td>
-        <p>
-          1
-        </p>
+        1
       </td>
       <td>
-        <p>
-          1
-        </p>
+        1
       </td>
       <td>
-        <p>
-          1
-        </p>
+        1
       </td>
     </tr>
   </tbody>
@@ -224,92 +160,60 @@
     <thead>
       <tr>
         <th>
-          <p>
-            Right
-          </p>
+          Right
         </th>
         <th>
-          <p>
-            Left
-          </p>
+          Left
         </th>
         <th>
-          <p>
-            Center
-          </p>
+          Center
         </th>
         <th>
-          <p>
-            Default
-          </p>
+          Default
         </th>
       </tr>
     </thead>
     <tbody>
       <tr>
         <td>
-          <p>
-            12
-          </p>
+          12
         </td>
         <td>
-          <p>
-            12
-          </p>
+          12
         </td>
         <td>
-          <p>
-            12
-          </p>
+          12
         </td>
         <td>
-          <p>
-            12
-          </p>
+          12
         </td>
       </tr>
       <tr>
         <td>
-          <p>
-            123
-          </p>
+          123
         </td>
         <td>
-          <p>
-            123
-          </p>
+          123
         </td>
         <td>
-          <p>
-            123
-          </p>
+          123
         </td>
         <td>
-          <p>
-            123
-          </p>
+          123
         </td>
       </tr>
       <tr>
         <td>
-          <p>
-            1
-          </p>
+          1
         </td>
         <td>
-          <p>
-            1
-          </p>
+          1
         </td>
         <td>
-          <p>
-            1
-          </p>
+          1
         </td>
         <td>
-          <p>
-            1
-          </p>
+          1
         </td>
       </tr>
     </tbody>
@@ -332,70 +236,46 @@
     <thead>
       <tr>
         <th>
-          <p>
-            Centered Header
-          </p>
+          Centered Header
         </th>
         <th>
-          <p>
-            Left Aligned
-          </p>
+          Left Aligned
         </th>
         <th>
-          <p>
-            Right Aligned
-          </p>
+          Right Aligned
         </th>
         <th>
-          <p>
-            Default aligned
-          </p>
+          Default aligned
         </th>
       </tr>
     </thead>
     <tbody>
       <tr>
         <td>
-          <p>
-            First
-          </p>
+          First
         </td>
         <td>
-          <p>
-            row
-          </p>
+          row
         </td>
         <td>
-          <p>
-            12.0
-          </p>
+          12.0
         </td>
         <td>
-          <p>
-            Example of a row that spans multiple lines.
-          </p>
+          Example of a row that spans multiple lines.
         </td>
       </tr>
       <tr>
         <td>
-          <p>
-            Second
-          </p>
+          Second
         </td>
         <td>
-          <p>
-            row
-          </p>
+          row
         </td>
         <td>
-          <p>
-            5.0
-          </p>
+          5.0
         </td>
         <td>
-          <p>
-            Here’s another one. Note the blank line between rows.
-          </p>
+          Here’s another one. Note the blank line between rows.
         </td>
       </tr>
     </tbody>
@@ -412,70 +292,46 @@
   <thead>
     <tr>
       <th>
-        <p>
-          Centered Header
-        </p>
+        Centered Header
       </th>
       <th>
-        <p>
-          Left Aligned
-        </p>
+        Left Aligned
       </th>
       <th>
-        <p>
-          Right Aligned
-        </p>
+        Right Aligned
       </th>
       <th>
-        <p>
-          Default aligned
-        </p>
+        Default aligned
       </th>
     </tr>
   </thead>
   <tbody>
     <tr>
       <td>
-        <p>
-          First
-        </p>
+        First
       </td>
       <td>
-        <p>
-          row
-        </p>
+        row
       </td>
       <td>
-        <p>
-          12.0
-        </p>
+        12.0
       </td>
       <td>
-        <p>
-          Example of a row that spans multiple lines.
-        </p>
+        Example of a row that spans multiple lines.
       </td>
     </tr>
     <tr>
       <td>
-        <p>
-          Second
-        </p>
+        Second
       </td>
       <td>
-        <p>
-          row
-        </p>
+        row
       </td>
       <td>
-        <p>
-          5.0
-        </p>
+        5.0
       </td>
       <td>
-        <p>
-          Here’s another one. Note the blank line between rows.
-        </p>
+        Here’s another one. Note the blank line between rows.
       </td>
     </tr>
   </tbody>
@@ -491,68 +347,44 @@
   <tbody>
     <tr>
       <td>
-        <p>
-          12
-        </p>
+        12
       </td>
       <td>
-        <p>
-          12
-        </p>
+        12
       </td>
       <td>
-        <p>
-          12
-        </p>
+        12
       </td>
       <td>
-        <p>
-          12
-        </p>
+        12
       </td>
     </tr>
     <tr>
       <td>
-        <p>
-          123
-        </p>
+        123
       </td>
       <td>
-        <p>
-          123
-        </p>
+        123
       </td>
       <td>
-        <p>
-          123
-        </p>
+        123
       </td>
       <td>
-        <p>
-          123
-        </p>
+        123
       </td>
     </tr>
     <tr>
       <td>
-        <p>
-          1
-        </p>
+        1
       </td>
       <td>
-        <p>
-          1
-        </p>
+        1
       </td>
       <td>
-        <p>
-          1
-        </p>
+        1
       </td>
       <td>
-        <p>
-          1
-        </p>
+        1
       </td>
     </tr>
   </tbody>
@@ -568,46 +400,30 @@
   <tbody>
     <tr>
       <td>
-        <p>
-          First
-        </p>
+        First
       </td>
       <td>
-        <p>
-          row
-        </p>
+        row
       </td>
       <td>
-        <p>
-          12.0
-        </p>
+        12.0
       </td>
       <td>
-        <p>
-          Example of a row that spans multiple lines.
-        </p>
+        Example of a row that spans multiple lines.
       </td>
     </tr>
     <tr>
       <td>
-        <p>
-          Second
-        </p>
+        Second
       </td>
       <td>
-        <p>
-          row
-        </p>
+        row
       </td>
       <td>
-        <p>
-          5.0
-        </p>
+        5.0
       </td>
       <td>
-        <p>
-          Here’s another one. Note the blank line between rows.
-        </p>
+        Here’s another one. Note the blank line between rows.
       </td>
     </tr>
   </tbody>
