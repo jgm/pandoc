@@ -79,6 +79,8 @@ tests = [ testGroup "markdown"
           ]
         , testGroup "jats"
           [ testGroup "writer" $ writerTests "jats"
+          , test "reader" ["-r", "jats", "-w", "native", "-s"]
+            "jats-reader.xml" "jats-reader.native"
           ]
         , testGroup "native"
           [ testGroup "writer" $ writerTests "native"
