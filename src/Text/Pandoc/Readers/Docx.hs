@@ -337,7 +337,7 @@ blocksToInlinesWarn cmtId blks = do
   unless (null $ filter notParaOrPlain blkList) $
     lift $ P.report $ DocxParserWarning $
       "Docx comment " ++ cmtId ++ " will not retain formatting"
-  return $ fromList $ blocksToInlines blkList
+  return $ blocksToInlines' blkList
 
 parPartToInlines :: PandocMonad m => ParPart -> DocxContext m Inlines
 parPartToInlines (PlainRun r) = runToInlines r

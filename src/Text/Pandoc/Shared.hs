@@ -91,6 +91,7 @@ module Text.Pandoc.Shared (
                      mapLeft,
                      -- * for squashing blocks
                      blocksToInlines,
+                     blocksToInlines',
                      -- * Safe read
                      safeRead,
                      -- * Temp directory
