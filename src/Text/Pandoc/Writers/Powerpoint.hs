@@ -369,6 +369,12 @@ inlineToParElems (Span _ ils) = concatMapM inlineToParElems ils
 inlineToParElems (RawInline _ _) = return []
 inlineToParElems _ = return []
 
+isListType :: Block -> Bool
+isListType (OrderedList _ _) = True
+isListType (BulletList _) = True
+isListType (DefinitionList _) = True
+isListType _ = False
+
 blockToParagraphs :: PandocMonad m => Block -> P m [Paragraph]
 blockToParagraphs (Plain ils) = do
   parElems <- inlinesToParElems ils
@@ -386,7 +392,13 @@ blockToParagraphs (LineBlock ilsList) = do
 blockToParagraphs (CodeBlock attr str) =
   local (\r -> r{envParaProps = def{pPropMarginLeft = Just 100}}) $
   blockToParagraphs $ Para [Code attr str]
--- TODO: work out the format
+-- We can't yet do incremental lists, but we should render a
+-- (BlockQuote List) as a list to maintain compatibility with other
+-- formats.
+blockToParagraphs (BlockQuote (blk : blks)) | isListType blk = do
+  ps  <- blockToParagraphs blk
+  ps' <- blockToParagraphs $ BlockQuote blks
+  return $ ps ++ ps'
 blockToParagraphs (BlockQuote blks) =
   local (\r -> r{ envParaProps = (envParaProps r){pPropMarginLeft = Just 100}
                 , envRunProps = (envRunProps r){rPropForceSize = Just blockQuoteSize}})$
