@@ -316,6 +316,9 @@ tableItemToJATS :: PandocMonad m
                    -> Bool
                    -> [Block]
                    -> JATS m Doc
+tableItemToJATS opts isHeader [Plain item] =
+  inTags True (if isHeader then "th" else "td") [] <$>
+    inlinesToJATS opts item
 tableItemToJATS opts isHeader item =
   (inTags True (if isHeader then "th" else "td") [] . vcat) <$>
     mapM (blockToJATS opts) item
@@ -405,8 +408,11 @@ inlineToJATS opts (Link (ident,_,kvs) txt ('#':src, _)) = do
              [("alt", stringify txt) | not (null txt)] ++
              [("rid", src)] ++
              [(k,v) | (k,v) <- kvs, k `elem` ["ref-type", "specific-use"]]
-  contents <- inlinesToJATS opts txt
-  return $ inTags False "xref" attr contents
+  if null txt
+     then return $ selfClosingTag "xref" attr
+     else do
+        contents <- inlinesToJATS opts txt
+        return $ inTags False "xref" attr contents
 inlineToJATS opts (Link (ident,_,kvs) txt (src, tit)) = do
   let attr = [("id", ident) | not (null ident)] ++
              [("ext-link-type", "uri"),
