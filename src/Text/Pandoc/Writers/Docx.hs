@@ -213,8 +213,12 @@ writeDocx opts doc@(Pandoc meta _) = do
   let doc' = walk fixDisplayMath doc
   username <- P.lookupEnv "USERNAME"
   utctime <- P.getCurrentTime
-  distArchive <- (toArchive . BL.fromStrict) <$>
-                      P.readDefaultDataFile "reference.docx"
+  distArchive <- (toArchive . BL.fromStrict) <$> do
+    oldUserDataDir <- P.getUserDataDir
+    P.setUserDataDir Nothing
+    res <- P.readDefaultDataFile "reference.docx"
+    P.setUserDataDir oldUserDataDir
+    return res
   refArchive <- case writerReferenceDoc opts of
                      Just f  -> toArchive <$> P.readFileLazy f
                      Nothing -> (toArchive . BL.fromStrict) <$>
