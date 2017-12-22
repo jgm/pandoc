@@ -20,11 +20,11 @@ another, and a command-line tool that uses this library. It can read
 Markdown], [MultiMarkdown], and (subsets of) [Textile],
 [reStructuredText], [HTML], [LaTeX], [MediaWiki markup], [TWiki markup],
 [TikiWiki markup], [Creole 1.0], [Haddock markup], [OPML], [Emacs Org mode],
-[DocBook], [Muse], [txt2tags], [Vimwiki], [EPUB], [ODT], and [Word docx];
-and it can write plain text, [Markdown], [CommonMark], [PHP Markdown
-Extra], [GitHub-Flavored Markdown], [MultiMarkdown],
+[DocBook], [JATS], [Muse], [txt2tags], [Vimwiki], [EPUB], [ODT], and
+[Word docx]; and it can write plain text, [Markdown], [CommonMark], [PHP
+Markdown Extra], [GitHub-Flavored Markdown], [MultiMarkdown],
 [reStructuredText], [XHTML], [HTML5], [LaTeX] \(including
-[`beamer`] slide shows\), [ConTeXt], [RTF], [OPML], [DocBook],
+[`beamer`] slide shows\), [ConTeXt], [RTF], [OPML], [DocBook], [JATS],
 [OpenDocument], [ODT], [Word docx], [GNU Texinfo], [MediaWiki
 markup], [DokuWiki markup], [ZimWiki markup], [Haddock markup],
 [EPUB] \(v2 or v3\), [FictionBook2], [Textile], [groff man],
@@ -79,6 +79,7 @@ Markdown can be expected to be lossy.
 [RTF]: http://en.wikipedia.org/wiki/Rich_Text_Format
 [Creole 1.0]: http://www.wikicreole.org/wiki/Creole1.0
 [DocBook]: http://docbook.org
+[JATS]: https://jats.nlm.nih.gov
 [txt2tags]: http://txt2tags.org
 [EPUB]: http://idpf.org/epub
 [OPML]: http://dev.opml.org/spec2.html
@@ -106,7 +107,6 @@ Markdown can be expected to be lossy.
 [Muse]: https://amusewiki.org/library/manual
 [PowerPoint]: https://en.wikipedia.org/wiki/Microsoft_PowerPoint
 [Vimwiki]: https://vimwiki.github.io
-
 
 
 
