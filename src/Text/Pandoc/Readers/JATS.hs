@@ -248,7 +248,13 @@ parseBlock (Elem e) =
                       authors <- mapM getContrib $ filterChildren
                                   (\x -> named "contrib" x &&
                                          attrValue "contrib-type" x == "author") e
-                      unless (null authors) $ addMeta "author" authors
+                      unless (null authors) $
+                        addMeta "author" authors
+
+         getAffiliations :: PandocMonad m => Element -> JATS m ()
+         getAffiliations x = do
+                      affs <- mapM getInlines $ filterChildren (named "aff") x
+                      unless (null affs) $ addMeta "institute" affs
 
          getContrib :: PandocMonad m => Element -> JATS m Inlines
          getContrib x = do
@@ -328,7 +334,10 @@ parseBlock (Elem e) =
                      modify $ \st -> st{ jatsSectionLevel = oldN }
                      return $ headerWith (ident,[],[]) n' headerText <> b
 --         lineItems = mapM getInlines $ filterChildren (named "line") e
-         metaBlock = acceptingMetadata (getBlocks e) >> return mempty
+         metaBlock = do
+           acceptingMetadata (getBlocks e)
+           getAffiliations e
+           return mempty
 
 getInlines :: PandocMonad m => Element -> JATS m Inlines
 getInlines e' = (trimInlines . mconcat) <$>
