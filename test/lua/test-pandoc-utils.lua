@@ -1,5 +1,20 @@
 utils = require 'pandoc.utils'
 
+-- hierarchicalize
+------------------------------------------------------------------------
+function test_hierarchicalize ()
+  local blks = {
+    pandoc.Header(1, {pandoc.Str 'First'}),
+    pandoc.Header(2, {pandoc.Str 'Second'}),
+    pandoc.Header(2, {pandoc.Str 'Third'}),
+  }
+  local hblks = utils.hierarchicalize(blks)
+  return hblks[1].t == "Sec"
+    and hblks[1].contents[1].t == "Sec"
+    and hblks[1].contents[2].numbering[1] == 1
+    and hblks[1].contents[2].numbering[2] == 2
+end
+
 -- SHA1
 ------------------------------------------------------------------------
 function test_sha1 ()
@@ -87,6 +102,7 @@ end
 
 function Para (el)
   return {
+    pandoc.Plain{pandoc.Str("hierarchicalize: " .. run(test_hierarchicalize))},
     pandoc.Plain{pandoc.Str("normalize_date: " .. run(test_normalize_date))},
     pandoc.Plain{pandoc.Str("pipe: " .. run(test_pipe))},
     pandoc.Plain{pandoc.Str("failing pipe: " .. run(test_failing_pipe))},

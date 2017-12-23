@@ -44,11 +44,23 @@ import qualified Text.Pandoc.Shared as Shared
 pushModule :: Lua NumResults
 pushModule = do
   Lua.newtable
+  addFunction "hierarchicalize" hierarchicalize
   addFunction "normalize_date" normalizeDate
   addFunction "sha1" sha1
   addFunction "stringify" stringify
   addFunction "to_roman_numeral" toRomanNumeral
   return 1
+
+-- | Convert list of Pandoc blocks into (hierarchical) list of Elements.
+hierarchicalize :: [Block] -> Lua [Shared.Element]
+hierarchicalize = return . Shared.hierarchicalize
+
+-- | Parse a date and convert (if possible) to "YYYY-MM-DD" format. We
+-- limit years to the range 1601-9999 (ISO 8601 accepts greater than
+-- or equal to 1583, but MS Word only accepts dates starting 1601).
+-- Returns nil instead of a string if the conversion failed.
+normalizeDate :: String -> Lua (OrNil String)
+normalizeDate = return . OrNil . Shared.normalizeDate
 
 -- | Calculate the hash of the given contents.
 sha1 :: BSL.ByteString
@@ -86,10 +98,3 @@ instance FromLuaStack AstElement where
 -- | Convert a number < 4000 to uppercase roman numeral.
 toRomanNumeral :: LuaInteger -> Lua String
 toRomanNumeral = return . Shared.toRomanNumeral . fromIntegral
-
--- | Parse a date and convert (if possible) to "YYYY-MM-DD" format. We
--- limit years to the range 1601-9999 (ISO 8601 accepts greater than
--- or equal to 1583, but MS Word only accepts dates starting 1601).
--- Returns nil instead of a string if the conversion failed.
-normalizeDate :: String -> Lua (OrNil String)
-normalizeDate = return . OrNil . Shared.normalizeDate

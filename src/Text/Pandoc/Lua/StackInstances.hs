@@ -33,13 +33,15 @@ StackValue instances for pandoc types.
 module Text.Pandoc.Lua.StackInstances () where
 
 import Control.Applicative ((<|>))
+import Control.Monad (when)
 import Foreign.Lua (FromLuaStack (peek), Lua, LuaInteger, LuaNumber, StackIndex,
                     ToLuaStack (push), Type (..), throwLuaError, tryLua)
 import Text.Pandoc.Definition
 import Text.Pandoc.Lua.Util (adjustIndexBy, getTable, pushViaConstructor)
-import Text.Pandoc.Shared (safeRead)
+import Text.Pandoc.Shared (Element (Blk, Sec), safeRead)
 
 import qualified Foreign.Lua as Lua
+import qualified Text.Pandoc.Lua.Util as LuaUtil
 
 instance ToLuaStack Pandoc where
   push (Pandoc meta blocks) =
@@ -306,3 +308,27 @@ instance ToLuaStack LuaAttr where
 
 instance FromLuaStack LuaAttr where
   peek idx = LuaAttr <$> peek idx
+
+--
+-- Hierarchical elements
+--
+instance ToLuaStack Element where
+  push (Blk blk) = push blk
+  push (Sec lvl num attr label contents) = do
+    Lua.newtable
+    LuaUtil.addValue "level" lvl
+    LuaUtil.addValue "numbering" num
+    LuaUtil.addValue "attr" (LuaAttr attr)
+    LuaUtil.addValue "label" label
+    LuaUtil.addValue "contents" contents
+    pushSecMetaTable
+    Lua.setmetatable (-2)
+      where
+        pushSecMetaTable :: Lua ()
+        pushSecMetaTable = do
+          inexistant <- Lua.newmetatable "PandocElementSec"
+          when inexistant $ do
+            LuaUtil.addValue "t" "Sec"
+            Lua.push "__index"
+            Lua.pushvalue (-2)
+            Lua.rawset (-3)

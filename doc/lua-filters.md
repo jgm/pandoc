@@ -1433,6 +1433,34 @@ Lua functions for pandoc scripts.
 This module exposes internal pandoc functions and utility
 functions.
 
+[`hierarchicalize (blocks)`]{#utils-hierarchicalize}
+
+:   Convert list of blocks into an hierarchical list. An
+    hierarchical elements is either a normal block (but no
+    Header), or a `Sec` element. The latter has the following
+    fields:
+
+    -   level: level in the document hierarchy;
+    -   numbering: list of integers of length `level`,
+        specifying the absolute position of the section in the
+        document;
+    -   attr: section attributes (see [Attr](#Attr));
+    -   contents: nested list of hierarchical elements.
+
+    Returns:
+
+    -   List of hierarchical elements
+
+    Usage:
+
+        local blocks = {
+          pandoc.Header(2, pandoc.Str 'first'),
+          pandoc.Header(2, pandoc.Str 'second'),
+        }
+        local elements = pandoc.utils.hierarchicalize(blocks)
+        print(table.concat(elements[1].numbering, '.')) -- 0.1
+        print(table.concat(elements[2].numbering, '.')) -- 0.2
+
 [`normalize_date (date_string)`]{#utils-normalize_date}
 
 :   Parse a date and convert (if possible) to "YYYY-MM-DD"
