@@ -12,7 +12,7 @@ import Text.Pandoc.Class (PandocMonad)
 import Text.Pandoc.Options
 import Text.Pandoc.Readers.HTML (readHtml)
 import Text.Pandoc.Readers.Markdown (readMarkdown)
-import Text.Pandoc.Shared (crFilter, blocksToInlines)
+import Text.Pandoc.Shared (crFilter, blocksToInlines')
 import Text.XML.Light
 
 type OPML m = StateT OPMLState m
@@ -74,7 +74,7 @@ asHtml :: PandocMonad m => String -> OPML m Inlines
 asHtml s = do
   opts <- gets opmlOptions
   Pandoc _ bs <- readHtml def{ readerExtensions = readerExtensions opts } (pack s)
-  return $ fromList $ blocksToInlines bs
+  return $ blocksToInlines' bs
 
 asMarkdown :: PandocMonad m => String -> OPML m Blocks
 asMarkdown s = do
