@@ -32,7 +32,7 @@ F & T &\\
 F & F &\\
 \end{tabular}
 ^D
-[RawBlock (Format "latex") "\\begin{tabular}[t]{cc|c}\n\\(P\\) & \\(Q\\) & \\(P\\wedge Q\\)\\\\\n\\hline\nT & T &\\\\\nT & F &\\\\\nF & T &\\\\\nF & F &\\\\\n\\end{tabular}\\hspace{1em}\\begin{tabular}[t]{cc|c}\n\\(P\\) & \\(Q\\) & \\(P\\vee Q\\)\\\\\n\\hline\nT & T &\\\\\nT & F &\\\\\nF & T &\\\\\nF & F &\\\\\n\\end{tabular}"]
+[RawBlock (Format "latex") "\\begin{tabular}[t]{cc|c}\n\\(P\\) & \\(Q\\) & \\(P\\wedge Q\\)\\\\\n\\hline\nT & T &\\\\\nT & F &\\\\\nF & T &\\\\\nF & F &\\\\\n\\end{tabular}\n\\hspace{1em}\n\\begin{tabular}[t]{cc|c}\n\\(P\\) & \\(Q\\) & \\(P\\vee Q\\)\\\\\n\\hline\nT & T &\\\\\nT & F &\\\\\nF & T &\\\\\nF & F &\\\\\n\\end{tabular}"]
 ```
 
 ```
