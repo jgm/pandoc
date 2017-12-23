@@ -64,6 +64,14 @@ function test_stringify ()
   return utils.stringify(inline) == 'Cogito ergo sum.'
 end
 
+-- to_roman_numeral
+------------------------------------------------------------------------
+function test_to_roman_numeral ()
+  return utils.to_roman_numeral(1888) == 'MDCCCLXXXVIII'
+    -- calling with a string fails
+    and not pcall(utils.to_roman_numeral, 'not a number')
+end
+
 -- Return result
 ------------------------------------------------------------------------
 function run(fn)
@@ -78,5 +86,6 @@ function Para (el)
     pandoc.Plain{pandoc.Str("read: " .. run(test_read))},
     pandoc.Plain{pandoc.Str("failing read: " .. run(test_failing_read))},
     pandoc.Plain{pandoc.Str("stringify: " .. run(test_stringify))},
+    pandoc.Plain{pandoc.Str("to_roman_numeral: " .. run(test_to_roman_numeral))},
   }
 end

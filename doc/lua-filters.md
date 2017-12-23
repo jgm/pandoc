@@ -173,10 +173,11 @@ Some pandoc functions have been made available in lua:
   documents;
 - [`pipe`](#pipe) runs an external command with input from and
   output to strings;
-- [`sha1`](#utils-sha1) generates a SHA1 hash;
 - the [`pandoc.mediabag`](#module-pandoc.mediabag) module allows
   access to the "mediabag," which stores binary content such as
-  images that may be included in the final document.
+  images that may be included in the final document;
+- the [`pandoc.utils`](#module-pandoc.utils) module contains
+  various utility functions.
 
 # Lua interpreter initialization
 
@@ -1456,8 +1457,22 @@ functions.
     Usage:
 
         local inline = pandoc.Emph{pandoc.Str 'Moin'}
-         -- outputs "Moin"
+        -- outputs "Moin"
         print(pandoc.utils.stringify(inline))
+
+[`to_roman_numeral (integer)`]{#utils-to_roman_numeral}
+
+:   Converts an integer < 4000 to uppercase roman numeral.
+
+    Returns:
+
+    -   A roman numeral string.
+
+    Usage:
+
+        local to_roman_numeral = pandoc.utils.to_roman_numeral
+        local pandoc_birth_year = to_roman_numeral(2006)
+        -- pandoc_birth_year == 'MMVI'
 
 
 # Module pandoc.mediabag

@@ -30,7 +30,7 @@ module Text.Pandoc.Lua.Module.Utils
   ) where
 
 import Control.Applicative ((<|>))
-import Foreign.Lua (FromLuaStack, Lua, NumResults)
+import Foreign.Lua (FromLuaStack, Lua, LuaInteger, NumResults)
 import Text.Pandoc.Definition (Pandoc, Meta, Block, Inline)
 import Text.Pandoc.Lua.StackInstances ()
 import Text.Pandoc.Lua.Util (addFunction)
@@ -44,6 +44,7 @@ import qualified Text.Pandoc.Shared as Shared
 pushModule :: Lua NumResults
 pushModule = do
   Lua.newtable
+  addFunction "to_roman_numeral" toRomanNumeral
   addFunction "sha1" sha1
   addFunction "stringify" stringify
   return 1
@@ -53,6 +54,9 @@ sha1 :: BSL.ByteString
      -> Lua String
 sha1 = return . SHA.showDigest . SHA.sha1
 
+-- | Convert pandoc structure to a string with formatting removed.
+-- Footnotes are skipped (since we don't want their contents in link
+-- labels).
 stringify :: AstElement -> Lua String
 stringify el = return $ case el of
   PandocElement pd -> Shared.stringify pd
@@ -77,3 +81,7 @@ instance FromLuaStack AstElement where
       Right x -> return x
       Left _ -> Lua.throwLuaError
         "Expected an AST element, but could not parse value as such."
+
+-- | Convert a number < 4000 to uppercase roman numeral.
+toRomanNumeral :: LuaInteger -> Lua String
+toRomanNumeral = return . Shared.toRomanNumeral . fromIntegral

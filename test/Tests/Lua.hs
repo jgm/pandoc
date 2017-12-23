@@ -102,6 +102,7 @@ tests = map (localOption (QuickCheckTests 20))
                      , plain (str "read: OK")
                      , plain (str "failing read: OK")
                      , plain (str "stringify: OK")
+                     , plain (str "to_roman_numeral: OK")
                      ])
   ]
 
