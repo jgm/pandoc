@@ -5,6 +5,7 @@ import Data.Char (isDigit, isSpace, toUpper)
 import Data.Default
 import Data.Generics
 import Data.List (intersperse)
+import qualified Data.Map as Map
 import Data.Maybe (maybeToList, fromMaybe)
 import Data.Text (Text)
 import qualified Data.Text as T
@@ -189,8 +190,7 @@ parseBlock (Elem e) =
         "fig" -> divWith (attrValue "id" e, ["fig"], []) <$> getBlocks e
         "table-wrap" -> divWith (attrValue "id" e, ["table-wrap"], []) <$> getBlocks e
         "caption" -> divWith (attrValue "id" e, ["caption"], []) <$> sect 6
-        "ref-list" -> divWith ("refs", [], []) <$> getBlocks e
-        "ref" -> divWith ("ref-" <> attrValue "id" e, [], []) <$> getBlocks e
+        "ref-list" -> parseRefList e
         "?xml"  -> return mempty
         _       -> getBlocks e
    where parseMixed container conts = do
@@ -312,6 +312,74 @@ getInlines :: PandocMonad m => Element -> JATS m Inlines
 getInlines e' = (trimInlines . mconcat) <$>
                  mapM parseInline (elContent e')
 
+parseRefList :: PandocMonad m => Element -> JATS m Blocks
+parseRefList e = do
+  refs <- mapM parseRef $ filterChildren (named "ref") e
+  addMeta "references" refs
+  return mempty
+
+parseRef :: PandocMonad m
+         => Element -> JATS m (Map.Map String MetaValue)
+parseRef e = do
+  let refId = text $ attrValue "id" e
+  let getInlineText n = maybe (return mempty) getInlines . filterChild (named n)
+  case filterChild (named "element-citation") e of
+       Just c  -> do
+         let refType = text $
+               case attrValue "publication-type" c of
+                  "journal" -> "article-journal"
+                  x -> x
+         (refTitle, refContainerTitle) <- do
+           t <- getInlineText "article-title" c
+           ct <- getInlineText "source" c
+           if t == mempty
+              then return (ct, mempty)
+              else return (t, ct)
+         refLabel <- getInlineText "label" c
+         refYear <- getInlineText "year" c
+         refVolume <- getInlineText "volume" c
+         refFirstPage <- getInlineText "fpage" c
+         refLastPage <- getInlineText "lpage" c
+         refPublisher <- getInlineText "publisher-name" c
+         refPublisherPlace <- getInlineText "publisher-loc" c
+         let refPages = refFirstPage <> (if refLastPage == mempty
+                                            then mempty
+                                            else text "\x2013" <> refLastPage)
+         let personGroups' = filterElements (named "person-group") c
+         let getName nm = do
+               given <- maybe (return mempty) getInlines
+                        $ filterElement (named "given-names") nm
+               family <- maybe (return mempty) getInlines
+                         $ filterElement (named "surname") nm
+               return $ toMetaValue $ Map.fromList [
+                   ("given", given)
+                 , ("family", family)
+                 ]
+         personGroups <- mapM (\pg ->
+                                do names <- mapM getName
+                                            (filterElements (named "name") pg)
+                                   return (attrValue "person-group-type" pg,
+                                           toMetaValue names))
+                         personGroups'
+         return $ Map.fromList $
+           [ ("id", toMetaValue refId)
+           , ("type", toMetaValue refType)
+           , ("title", toMetaValue refTitle)
+           , ("container-title", toMetaValue refContainerTitle)
+           , ("publisher", toMetaValue refPublisher)
+           , ("publisher-place", toMetaValue refPublisherPlace)
+           , ("title", toMetaValue refTitle)
+           , ("issued", toMetaValue
+                        $ Map.fromList [
+                            ("year", refYear)
+                          ])
+           , ("volume", toMetaValue refVolume)
+           , ("page", toMetaValue refPages)
+           , ("citation-label", toMetaValue refLabel)
+           ] ++ personGroups
+       Nothing -> return $ Map.insert "id" (toMetaValue refId) mempty
+       -- TODO handle mixed-citation
+
 strContentRecursive :: Element -> String
 strContentRecursive = strContent .
   (\e' -> e'{ elContent = map elementToStr $ elContent e' })
@@ -354,7 +422,15 @@ parseInline (Elem e) =
             let rid = attrValue "rid" e
             let refType = ("ref-type",) <$> maybeAttrValue "ref-type" e
             let attr = (attrValue "id" e, [], maybeToList refType)
-            return $ linkWith attr ('#' : rid) "" ils
+            return $ if refType == Just ("ref-type","bibr")
+                        then cite [Citation{
+                                         citationId = rid
+                                       , citationPrefix = []
+                                       , citationSuffix = []
+                                       , citationMode = NormalCitation
+                                       , citationNoteNum = 0
+                                       , citationHash = 0}] ils
+                        else linkWith attr ('#' : rid) "" ils
         "ext-link" -> do
              ils <- innerInlines
              let title = fromMaybe "" $ findAttr (QName "title" (Just "http://www.w3.org/1999/xlink") Nothing) e
