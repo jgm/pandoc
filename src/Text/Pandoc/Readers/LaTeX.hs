@@ -270,13 +270,16 @@ rawLaTeXBlock :: (PandocMonad m, HasMacros s, HasReaderOptions s)
               => ParserT String s m String
 rawLaTeXBlock = do
   lookAhead (try (char '\\' >> letter))
-  snd <$> rawLaTeXParser (environment <|> macroDef <|> blockCommand)
+  -- we don't want to apply newly defined latex macros to their own
+  -- definitions:
+  (snd <$> rawLaTeXParser macroDef) <|>
+     ((snd <$> rawLaTeXParser (environment <|> blockCommand)) >>= applyMacros)
 
 rawLaTeXInline :: (PandocMonad m, HasMacros s, HasReaderOptions s)
                => ParserT String s m String
 rawLaTeXInline = do
   lookAhead (try (char '\\' >> letter) <|> char '$')
-  snd <$> rawLaTeXParser (inlineEnvironment <|> inlineCommand')
+  rawLaTeXParser (inlineEnvironment <|> inlineCommand') >>= applyMacros . snd
 
 inlineCommand :: PandocMonad m => ParserT String ParserState m Inlines
 inlineCommand = do
