@@ -182,6 +182,7 @@ parseBlock (Elem e) =
         "sec" -> gets jatsSectionLevel >>= sect . (+1)
         "title" -> return mempty
         "title-group" -> checkInMeta getTitle
+        "contrib-group" -> checkInMeta getAuthors
         "graphic" -> para <$> getGraphic e
         "journal-meta" -> metaBlock
         "article-meta" -> metaBlock
@@ -239,7 +240,28 @@ parseBlock (Elem e) =
                                   Just s  -> (text ": " <>) <$>
                                               getInlines s
                                   Nothing -> return mempty
-                     addMeta "title" (tit <> subtit)
+                     when (tit /= mempty) $ addMeta "title" tit
+                     when (subtit /= mempty) $ addMeta "subtitle" subtit
+
+         getAuthors :: PandocMonad m => JATS m ()
+         getAuthors = do
+                      authors <- mapM getContrib $ filterChildren
+                                  (\x -> named "contrib" x &&
+                                         attrValue "contrib-type" x == "author") e
+                      unless (null authors) $ addMeta "author" authors
+
+         getContrib :: PandocMonad m => Element -> JATS m Inlines
+         getContrib x = do
+                      given <- maybe (return mempty) getInlines
+                                $ filterElement (named "given-names") x
+                      family <- maybe (return mempty) getInlines
+                                $ filterElement (named "surname") x
+                      if given == mempty && family == mempty
+                         then return mempty
+                         else if given == mempty || family == mempty
+                              then return $ given <> family
+                              else return $ given <> space <> family
+                      -- TODO institute, etc.
 
          parseTable = do
                       let isCaption x = named "title" x || named "caption" x
@@ -345,19 +367,19 @@ parseRef e = do
          let refPages = refFirstPage <> (if refLastPage == mempty
                                             then mempty
                                             else text "\x2013" <> refLastPage)
-         let personGroups' = filterElements (named "person-group") c
+         let personGroups' = filterChildren (named "person-group") c
          let getName nm = do
                given <- maybe (return mempty) getInlines
-                        $ filterElement (named "given-names") nm
+                         $ filterChild (named "given-names") nm
                family <- maybe (return mempty) getInlines
-                         $ filterElement (named "surname") nm
+                         $ filterChild (named "surname") nm
                return $ toMetaValue $ Map.fromList [
                    ("given", given)
                  , ("family", family)
                  ]
          personGroups <- mapM (\pg ->
                                 do names <- mapM getName
-                                            (filterElements (named "name") pg)
+                                            (filterChildren (named "name") pg)
                                    return (attrValue "person-group-type" pg,
                                            toMetaValue names))
                          personGroups'

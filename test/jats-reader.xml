@@ -14,6 +14,18 @@
 <title-group>
 <article-title>Pandoc Test Suite</article-title>
 </title-group>
+<contrib-group>
+  <contrib contrib-type="author">
+    <name>
+      <surname>MacFarlane</surname>
+      <given-names>John</given-names>
+    </name>
+  <contrib contrib-type="author">
+    <name>
+      <surname>Anonymous</surname>
+    </name>
+  </contrib>
+</contrib-group>
 </article-meta>
 </front>
 <body>
