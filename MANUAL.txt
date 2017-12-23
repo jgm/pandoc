@@ -3195,18 +3195,22 @@ LaTeX macros
 
 #### Extension: `latex_macros` ####
 
-For output formats other than LaTeX, pandoc will parse LaTeX `\newcommand` and
-`\renewcommand` definitions and apply the resulting macros to all LaTeX
-math.  So, for example, the following will work in all output formats,
-not just LaTeX:
+For output formats other than LaTeX, pandoc will parse LaTeX
+macro definitions and apply the resulting macros to all LaTeX
+math and raw LaTeX.  So, for example, the following will work in
+all output formats, not just LaTeX:
 
     \newcommand{\tuple}[1]{\langle #1 \rangle}
 
     $\tuple{a, b, c}$
 
-In LaTeX output, the `\newcommand` definition will simply be passed
-unchanged to the output.
+In LaTeX output, the macro definitions will not be passed
+through as raw LaTeX.
 
+When `latex_macros` is disabled, the macro definitions will
+be passed through as raw LaTeX, and the raw LaTeX and math will
+not have macros applied. This is usually a better approach when
+you are targeting LaTeX or PDF.
 
 Links
 -----

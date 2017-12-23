@@ -54,7 +54,6 @@ Pandoc (Meta {unMeta = fromList [("author",MetaList [MetaInlines [Str "Author",S
 ,OrderedList (3,Example,TwoParens)
  [[Plain [Str "Third",Space,Str "example."]]]
 ,Header 2 ("macros",[],[]) [Str "Macros"]
-,RawBlock (Format "latex") "\\newcommand{\\tuple}[1]{\\langle #1 \\rangle}"
 ,Para [Math InlineMath "\\langle x,y \\rangle"]
 ,Header 2 ("case-insensitive-references",[],[]) [Str "Case-insensitive",Space,Str "references"]
 ,Para [Link ("",[],[]) [Str "Fum"] ("/fum","")]

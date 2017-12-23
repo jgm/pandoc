@@ -1120,13 +1120,17 @@ rawVerbatimBlock = htmlInBalanced isVerbTag
 rawTeXBlock :: PandocMonad m => MarkdownParser m (F Blocks)
 rawTeXBlock = do
   guardEnabled Ext_raw_tex
-  result <- (B.rawBlock "context" . trimr . concat <$>
+  result <- (B.rawBlock "context" . trim . concat <$>
                 many1 ((++) <$> (rawConTeXtEnvironment <|> conTeXtCommand)
                             <*> (blanklines <|> many spaceChar)))
-          <|> (B.rawBlock "latex" . trimr . concat <$>
+          <|> (B.rawBlock "latex" . trim . concat <$>
                 many1 ((++) <$> rawLaTeXBlock
                             <*> (blanklines <|> many spaceChar)))
-  return $ return result
+  return $ case B.toList result of
+                [RawBlock _ cs]
+                  | all (`elem` [' ','\t','\n']) cs -> return mempty
+                -- don't create a raw block for suppressed macro defs
+                _ -> return result
 
 conTeXtCommand :: PandocMonad m => MarkdownParser m String
 conTeXtCommand = oneOfStrings ["\\placeformula"]

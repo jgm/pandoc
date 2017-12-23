@@ -3,7 +3,6 @@
 \newcommand{\my}{\phi}
 $\my+\my$
 ^D
-\newcommand{\my}{\phi}
 $\phi+\phi$
 ```
 
@@ -65,4 +64,37 @@ x &= y\\\end{aligned}\]
 \emph{hi}
 
 \emph{hi--ok}
+```
+
+```
+% pandoc -f markdown+latex_macros -t markdown
+\newcommand{\my}{\phi}
+\begin{equation}
+\my+\my
+\end{equation}
+^D
+\begin{equation}
+\phi+\phi
+\end{equation}
+```
+
+```
+% pandoc -f markdown-latex_macros -t markdown
+\newcommand{\my}{\phi}
+\begin{equation}
+\my+\my
+\end{equation}
+^D
+\newcommand{\my}{\phi}
+\begin{equation}
+\my+\my
+\end{equation}
+```
+
+```
+% pandoc -f markdown+latex_macros -t markdown
+\newcommand{\my}{\emph{a}}
+\my
+^D
+\emph{a}
 ```
