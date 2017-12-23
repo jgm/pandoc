@@ -33,7 +33,7 @@ import Control.Applicative ((<|>))
 import Foreign.Lua (FromLuaStack, Lua, LuaInteger, NumResults)
 import Text.Pandoc.Definition (Pandoc, Meta, Block, Inline)
 import Text.Pandoc.Lua.StackInstances ()
-import Text.Pandoc.Lua.Util (addFunction)
+import Text.Pandoc.Lua.Util (OrNil (OrNil), addFunction)
 
 import qualified Data.Digest.Pure.SHA as SHA
 import qualified Data.ByteString.Lazy as BSL
@@ -44,9 +44,10 @@ import qualified Text.Pandoc.Shared as Shared
 pushModule :: Lua NumResults
 pushModule = do
   Lua.newtable
-  addFunction "to_roman_numeral" toRomanNumeral
+  addFunction "normalize_date" normalizeDate
   addFunction "sha1" sha1
   addFunction "stringify" stringify
+  addFunction "to_roman_numeral" toRomanNumeral
   return 1
 
 -- | Calculate the hash of the given contents.
@@ -85,3 +86,10 @@ instance FromLuaStack AstElement where
 -- | Convert a number < 4000 to uppercase roman numeral.
 toRomanNumeral :: LuaInteger -> Lua String
 toRomanNumeral = return . Shared.toRomanNumeral . fromIntegral
+
+-- | Parse a date and convert (if possible) to "YYYY-MM-DD" format. We
+-- limit years to the range 1601-9999 (ISO 8601 accepts greater than
+-- or equal to 1583, but MS Word only accepts dates starting 1601).
+-- Returns nil instead of a string if the conversion failed.
+normalizeDate :: String -> Lua (OrNil String)
+normalizeDate = return . OrNil . Shared.normalizeDate

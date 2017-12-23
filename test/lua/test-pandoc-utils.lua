@@ -72,6 +72,13 @@ function test_to_roman_numeral ()
     and not pcall(utils.to_roman_numeral, 'not a number')
 end
 
+-- normalize_date
+------------------------------------------------------------------------
+function test_normalize_date ()
+  return utils.normalize_date("12/31/2017") == '2017-12-31'
+    and utils.normalize_date("pandoc") == nil
+end
+
 -- Return result
 ------------------------------------------------------------------------
 function run(fn)
@@ -80,11 +87,12 @@ end
 
 function Para (el)
   return {
-    pandoc.Plain{pandoc.Str("sha1: " .. run(test_sha1))},
+    pandoc.Plain{pandoc.Str("normalize_date: " .. run(test_normalize_date))},
     pandoc.Plain{pandoc.Str("pipe: " .. run(test_pipe))},
     pandoc.Plain{pandoc.Str("failing pipe: " .. run(test_failing_pipe))},
     pandoc.Plain{pandoc.Str("read: " .. run(test_read))},
     pandoc.Plain{pandoc.Str("failing read: " .. run(test_failing_read))},
+    pandoc.Plain{pandoc.Str("sha1: " .. run(test_sha1))},
     pandoc.Plain{pandoc.Str("stringify: " .. run(test_stringify))},
     pandoc.Plain{pandoc.Str("to_roman_numeral: " .. run(test_to_roman_numeral))},
   }

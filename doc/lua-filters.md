@@ -1433,6 +1433,17 @@ Lua functions for pandoc scripts.
 This module exposes internal pandoc functions and utility
 functions.
 
+[`normalize_date (date_string)`]{#utils-normalize_date}
+
+:   Parse a date and convert (if possible) to "YYYY-MM-DD"
+    format. We limit years to the range 1601-9999 (ISO 8601
+    accepts greater than or equal to 1583, but MS Word only
+    accepts dates starting 1601).
+
+    Returns:
+
+    -   A date string, or nil when the conversion failed.
+
 [`sha1 (contents)`]{#utils-sha1}
 
 :   Returns the SHA1 has of the contents.

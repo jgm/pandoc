@@ -125,6 +125,10 @@ instance FromLuaStack a => FromLuaStack (OrNil a) where
       then return (OrNil Nothing)
       else OrNil . Just <$> Lua.peek idx
 
+instance ToLuaStack a => ToLuaStack (OrNil a) where
+  push (OrNil Nothing)  = Lua.pushnil
+  push (OrNil (Just x)) = Lua.push x
+
 -- | Helper class for pushing a single value to the stack via a lua function.
 -- See @pushViaCall@.
 class PushViaCall a where
