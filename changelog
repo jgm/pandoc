@@ -1,3 +1,203 @@
+pandoc (2.0.6)
+
+  * Added `jats` as an output format.
+
+    + Add Text.Pandoc.Readers.JATS, exporting `readJATS` (API
+      change) (Hamish Mackenzie).
+    + Improved citation handling in JATS reader.  JATS citations
+      are now converted to pandoc citations, and JATS ref-lists
+      are converted into a `references` field in metadata, suitable
+      for use with pandoc-citeproc. Thus a JATS article with embedded
+      bibliographic information can be processed with pandoc and
+      pandoc-citeproc to produce a formatted bibliography.
+
+  * Markdown reader:
+
+    + Preserve original whitespace between blocks.
+    + Recognize `\placeformula` as context.
+    + Be pickier about table captions.  A caption starts with a `:` which
+      can't be followed by punctuation.  Otherwise we can falsely interpret
+      the start of a fenced div, or even a table header line like
+      `:--:|:--:`, as a caption.
+    + Always use four space rule for example lists.  It would be awkward
+      to indent example list contents to the first non-space character after
+      the label, since example list labels are often long.  Thanks to
+      Bernhard Fisseni for the suggestion.
+    + Improve raw tex parsing.  Note that the Markdown reader is also
+      affected by the `latex_macros` extension changes described below
+      under the LaTeX reader.
+
+  * LaTeX reader:
+
+    + `latex_macros` extension changes (#4179).  Don't pass through macro
+      definitions themselves when `latex_macros` is set.  The macros
+      have already been applied.  If `latex_macros` is enabled, then
+      `rawLaTeXBlock` in Text.Pandoc.Readers.LaTeX will succeed in parsing
+      a macro definition, and will update pandoc's internal macro map
+      accordingly, but the empty string will be returned.
+    + Export `tokenize`, `untokenize` (API change).
+    + Use `applyMacros` in `rawLaTeXBlock`, `rawLaTeXInline`.
+    + Refactored `inlineCommand`.
+    + Fix bug in tokenizer.  Material following `^^` was
+      dropped if it wasn't a character escape.  This only affected
+      invalid LaTeX, so we didn't see it in the wild, but it appeared
+      in a QuickCheck test failure.
+    + Fix regression in LateX tokenization (#4159).  This mainly affects the
+      Markdown reader when parsing raw LaTeX with escaped spaces.
+    + Add tests of LaTeX tokenizer.
+
+  * Muse reader (Alexander Krotov):
+
+    + Parse anchors immediately after headings as IDs.
+    + Require that note references does not start with 0.
+    + Parse empty comments correctly.
+
+  * Org reader (Albert Krewinkel):
+
+    + Fix asterisks-related parsing error (#4180).
+
+  * OPML reader:
+
+    + Enable raw HTML and other extensions by default for notes
+      (#4164).  This fixes a regression in 2.0.  Note that extensions can
+      now be individually disabled, e.g.  `-f opml-smart-raw_html`.
+
+  * RST reader:
+
+    + Allow empty list items (#4193).
+    + More accurate parsing of references (#4156).  Previously we erroneously
+      included the enclosing backticks in a reference ID (#4156).  This
+      change also disables interpretation of syntax inside references, as
+      in docutils.  So, there is no emphasis in `` `my *link*`_ ``.
+
+  * Docx reader:
+
+    + Continue lists after interruption (#4025, Jesse Rosenthal).
+      Docx expects that lists will continue where they left off after an
+      interruption and introduces a new id if a list is starting again. So
+      we keep track of the state of lists and use them to define a "start"
+      attribute, if necessary.
+
+  * Plain writer:
+
+    + Don't linkify table of contents.
+
+  * RST writer:
+
+    + Fix anchors for headers (#4188).  We were missing an `_`.
+
+  * PowerPoint writer (Jesse Rosenthal):
+
+    + Treat lists inside BlockQuotes as lists.  We don't yet produce
+      incremental lists in PowerPoint, but we should at least treat lists
+      inside BlockQuotes as lists, for compatibility with other slide formats.
+    + Add ability to force size.  This replaces the more specific
+      `blockQuote runProp`, which only affected the size of blockquotes. We
+      can use this for notes, etc.
+    + Implement notes.  This currently prints all notes on a final slide.
+      Note that at the moment, there is a danger of text overflowing the
+      note slide, since there is no logic for adding further slides.
+    + Implement basic definition list functionality to PowerPoint writer.
+    + Don't look for default template file for Powerpoint (#4181).
+    + Add pptx to isTextFormat list.  This is used to check standalone
+      and not writing to the terminal.
+
+  * Docx writer:
+
+    + Ensure that `distArchive` is the one that comes with pandoc
+      (#4182).  Previously a `reference.docx` in `~/.pandoc` (or the user data
+      dir) would be used instead, and this could cause problems because a
+      user-modified docx sometimes lacks vital sections that we count
+      on the `distArchive` to supply.
+
+  * Org writer:
+
+    + Do not wrap "-" to avoid accidental bullet lists (Alexander Krotov).
+    + Don't allow fn refs to wrap to beginning of line (#4171, with help from
+      Alexander Krotov).  Otherwise they can be interpreted as footnote
+      definitions.
+
+  * Muse writer (Alexander Krotov):
+
+    + Don't wrap note references to the next line (#4172).
+
+  * LaTeX writer:
+
+    + Use `\renewcommand` for `\textlatin` with babel (#4161).
+      This avoids a clash with a deprecated `\textlatin` command defined
+      in Babel.
+
+  * JATS writer (Hamish Mackenzie):
+
+    + Support writing `<fig>` and `<table-wrap>` elements
+      with `<title>` and `<caption>` inside them by using Divs with class set
+      to one of `fig`, `table-wrap` or `caption` (Hamish Mackenzie).  The
+      title is included as a Heading so the constraint on where Heading can
+      occur is also relaxed.
+    + Leave out empty alt attributes on links.
+    + Deduplicate image mime type code.
+    + Make `<p>` optional in `<td>` and `<th>` (#4178).
+    + Self closing tags for empty xref (#4187).
+    + Improve support for code language.
+
+  * Custom writer (Albert Krewinkel):
+
+    + Use init file to setup Lua interpreter (Albert Krewinkel).
+      The same init file (`data/init`) that is used to setup the Lua
+      interpreter for Lua filters is also used to setup the interpreter of
+      custom writers.lua.
+    + Define instances for newtype wrapper.  The custom writer used its own
+      `ToLuaStack` instance definitions, which made it difficult to share
+      code with Lua filters, as this could result in conflicting instances.
+      A `Stringify` wrapper is introduced to avoid this problem.
+
+  * Fixed regression: when target is PDF, writer extensions were being
+    ignored.  So, for example, `pandoc -t latex-smart -o file.pdf`
+    did not work properly.
+
+  * Lua modules (Albert Krewinkel):
+
+    + Add `pandoc.utils` module, to hold utility functions.
+    + Create a Haskell module Text.Pandoc.Lua.Module.Pandoc to
+      define the `pandoc` lua module.
+    + Make a Haskell module for each Lua module. Move definitions for the
+      `pandoc.mediabag` modules to a separate Haskell module.
+    + Move `sha1` from the main `pandoc` module to `pandoc.utils`.
+    + Add function `pandoc.utils.hierarchicalize` (convert list of
+      Pandoc blocks into (hierarchical) list of Elements).
+    + Add function `pandoc.utils.normalize_date` (parses a date and
+      converts it (if possible) to "YYYY-MM-DD" format).
+    + Add function `pandoc.utils.to_roman_numeral` (allows conversion
+      of numbers below 4000 into roman numerals).
+    + Add function `pandoc.utils.stringify` (converts any AST element
+      to a string with formatting removed).
+    + `data/init.lua`: load `pandoc.utils` by default
+    + Turn pipe, read into full Haskell functions.  The `pipe` and `read`
+      utility functions are converted from hybrid lua/haskell functions
+      into full Haskell functions. This avoids the need for intermediate
+      `_pipe`/`_read` helper functions, which have dropped.
+    + pandoc.lua: re-add missing MetaMap function.  This was a bug
+      introduced in version 2.0.4.
+
+  * Text.Pandoc.Shared: export `blocksToInlines'` (API change, Maura Bieg).
+
+  * Update latex template to work with recent versions of beamer.
+    The old template produced numbered sections with some recent
+    versions of beamer.  Thanks to Thomas Hodgson.
+
+  * Removed `default.theme` data file (#4096).  It is no longer needed now
+    that we have `--print-highlight-style`.
+
+  * MANUAL.txt:
+
+    + Add note on what formats have `+smart` by default.
+    + Use native syntax for custom-style (#4174, Mauro Bieg).
+
+  * filters.md: say that Text.Pandoc.JSON comes form pandoc-types.
+    Closes jgm/pandoc-website#16.
+
+  * epub.md: Delete removed `-S` option from command (#4151, Georger Araújo).
+
 pandoc (2.0.5)
 
   * Fix a bug in 2.0.4, whereby pandoc could not read the theme files
