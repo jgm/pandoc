@@ -305,22 +305,24 @@ escapeString opts (c:cs) =
        _ -> c : escapeString opts cs
 
 -- | Construct table of contents from list of header blocks.
-tableOfContents :: PandocMonad m => WriterOptions -> [Block] -> m Doc
-tableOfContents opts headers =
-  let contents = BulletList $ map (elementToListItem opts) $ hierarchicalize headers
-  in  evalMD (blockToMarkdown opts contents) def def
+tableOfContents :: PandocMonad m => WriterOptions -> [Block] -> MD m Doc
+tableOfContents opts headers = do
+  contents <- BulletList <$> mapM (elementToListItem opts) (hierarchicalize headers)
+  blockToMarkdown opts contents
 
 -- | Converts an Element to a list item for a table of contents,
-elementToListItem :: WriterOptions -> Element -> [Block]
+elementToListItem :: PandocMonad m => WriterOptions -> Element -> MD m [Block]
 elementToListItem opts (Sec lev _nums (ident,_,_) headerText subsecs)
-  = Plain headerLink :
-    [ BulletList (map (elementToListItem opts) subsecs) |
-      not (null subsecs) && lev < writerTOCDepth opts ]
-   where headerLink = if null ident
+  = do isPlain <- asks envPlain
+       let headerLink = if null ident || isPlain
                          then walk deNote headerText
                          else [Link nullAttr (walk deNote headerText)
                                  ('#':ident, "")]
-elementToListItem _ (Blk _) = []
+       listContents <- if null subsecs || lev >= writerTOCDepth opts
+                          then return []
+                          else mapM (elementToListItem opts) subsecs
+       return [Plain headerLink, BulletList listContents]
+elementToListItem _ (Blk _) = return []
 
 attrsToMarkdown :: Attr -> Doc
 attrsToMarkdown attribs = braces $ hsep [attribId, attribClasses, attribKeys]
