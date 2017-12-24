@@ -630,6 +630,18 @@ test-suite test-pandoc
                   Tests.Readers.JATS
                   Tests.Readers.Markdown
                   Tests.Readers.Org
+                  Tests.Readers.Org.Block
+                  Tests.Readers.Org.Block.CodeBlock
+                  Tests.Readers.Org.Block.Figure
+                  Tests.Readers.Org.Block.Header
+                  Tests.Readers.Org.Block.List
+                  Tests.Readers.Org.Block.Table
+                  Tests.Readers.Org.Directive
+                  Tests.Readers.Org.Inline
+                  Tests.Readers.Org.Inline.Note
+                  Tests.Readers.Org.Inline.Smart
+                  Tests.Readers.Org.Meta
+                  Tests.Readers.Org.Shared
                   Tests.Readers.RST
                   Tests.Readers.Docx
                   Tests.Readers.Odt
