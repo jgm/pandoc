@@ -63,6 +63,7 @@
 - Greg Rundlett
 - Grégory Bataille
 - Gwern Branwen
+- Hamish Mackenzie
 - Hans-Peter Deifel
 - Henrik Tramberend
 - Henry de Valence
