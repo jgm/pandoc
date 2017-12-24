@@ -547,7 +547,7 @@ bulletListStart :: Monad m => ParserT [Char] st m Int
 bulletListStart = try $ do
   notFollowedBy' hrule  -- because hrules start out just like lists
   marker <- oneOf bulletListMarkers
-  white <- many1 spaceChar
+  white <- many1 spaceChar <|> "" <$ lookAhead (char '\n')
   return $ length (marker:white)
 
 -- parses ordered list start and returns its length (inc following whitespace)
@@ -556,7 +556,7 @@ orderedListStart :: Monad m => ListNumberStyle
                  -> RSTParser m Int
 orderedListStart style delim = try $ do
   (_, markerLen) <- withHorizDisplacement (orderedListMarker style delim)
-  white <- many1 spaceChar
+  white <- many1 spaceChar <|> "" <$ lookAhead (char '\n')
   return $ markerLen + length white
 
 -- parse a line of a list item
