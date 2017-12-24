@@ -143,7 +143,7 @@ pdfWriterAndProg :: Maybe String              -- ^ user-specified writer name
                  -> IO (String, Maybe String) -- ^ IO (writerName, maybePdfEngineProg)
 pdfWriterAndProg mWriter mEngine = do
   let panErr msg = liftIO $ E.throwIO $ PandocAppError msg
-  case go (baseWriterName <$> mWriter) mEngine of
+  case go mWriter mEngine of
       Right (writ, prog) -> return (writ, Just prog)
       Left err           -> panErr err
     where
@@ -151,7 +151,7 @@ pdfWriterAndProg mWriter mEngine = do
       go (Just writer) Nothing = (writer,) <$> engineForWriter writer
       go Nothing (Just engine) = (,engine) <$> writerForEngine engine
       go (Just writer) (Just engine) =
-           case find (== (writer, engine)) engines of
+           case find (== (baseWriterName writer, engine)) engines of
                 Just _  -> Right (writer, engine)
                 Nothing -> Left $ "pdf-engine " ++ engine ++
                            " is not compatible with output format " ++ writer
@@ -161,7 +161,7 @@ pdfWriterAndProg mWriter mEngine = do
                                  []      -> Left $
                                    "pdf-engine " ++ eng ++ " not known"
 
-      engineForWriter w = case [e |  (f,e) <- engines, f == w] of
+      engineForWriter w = case [e |  (f,e) <- engines, f == baseWriterName w] of
                                 eng : _ -> Right eng
                                 []      -> Left $
                                    "cannot produce pdf output from " ++ w
