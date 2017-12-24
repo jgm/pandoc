@@ -308,8 +308,12 @@ getAuthors e = do
   authors <- mapM getContrib $ filterElements
               (\x -> named "contrib" x &&
                      attrValue "contrib-type" x == "author") e
-  unless (null authors) $
-    addMeta "author" authors
+  authorNotes <- mapM getInlines $ filterElements (named "author-notes") e
+  let authors' = case (reverse authors, authorNotes) of
+                   ([], _)    -> []
+                   (_, [])    -> authors
+                   (a:as, ns) -> reverse as ++ [a <> mconcat ns]
+  unless (null authors) $ addMeta "author" authors'
 
 getAffiliations :: PandocMonad m => Element -> JATS m ()
 getAffiliations x = do
@@ -467,9 +471,6 @@ parseInline (Elem e) =
         "uri" -> return $ link (strContent e) "" $ str $ strContent e
         "fn" -> (note . mconcat) <$>
                          mapM parseBlock (elContent e)
-        -- Note: this isn't a real docbook tag; it's what we convert
-        -- <?asciidor-br?> to in handleInstructions, above.  A kludge to
-        -- work around xml-light's inability to parse an instruction.
         _          -> innerInlines
    where innerInlines = (trimInlines . mconcat) <$>
                           mapM parseInline (elContent e)
