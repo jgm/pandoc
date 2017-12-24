@@ -24,7 +24,6 @@ type JATS m = StateT JATSState m
 data JATSState = JATSState{ jatsSectionLevel :: Int
                           , jatsQuoteType    :: QuoteType
                           , jatsMeta         :: Meta
-                          , jatsAcceptsMeta  :: Bool
                           , jatsBook         :: Bool
                           , jatsFigureTitle  :: Inlines
                           , jatsContent      :: [Content]
@@ -34,7 +33,6 @@ instance Default JATSState where
   def = JATSState{ jatsSectionLevel = 0
                  , jatsQuoteType = DoubleQuote
                  , jatsMeta = mempty
-                 , jatsAcceptsMeta = False
                  , jatsBook = False
                  , jatsFigureTitle = mempty
                  , jatsContent = [] }
@@ -79,19 +77,6 @@ named :: String -> Element -> Bool
 named s e = qName (elName e) == s
 
 --
-
-acceptingMetadata :: PandocMonad m => JATS m a -> JATS m a
-acceptingMetadata p = do
-  modify (\s -> s { jatsAcceptsMeta = True } )
-  res <- p
-  modify (\s -> s { jatsAcceptsMeta = False })
-  return res
-
-checkInMeta :: (PandocMonad m, Monoid a) => JATS m () -> JATS m a
-checkInMeta p = do
-  accepts <- jatsAcceptsMeta <$> get
-  when accepts p
-  return mempty
 
 addMeta :: PandocMonad m => ToMetaValue a => String -> a -> JATS m ()
 addMeta field val = modify (setMeta field val)
@@ -180,13 +165,11 @@ parseBlock (Elem e) =
                         <$> listitems
         "def-list" -> definitionList <$> deflistitems
         "sec" -> gets jatsSectionLevel >>= sect . (+1)
-        "title" -> return mempty
-        "title-group" -> checkInMeta getTitle
-        "contrib-group" -> checkInMeta getAuthors
         "graphic" -> para <$> getGraphic e
-        "journal-meta" -> metaBlock
-        "article-meta" -> metaBlock
-        "custom-meta" -> metaBlock
+        "journal-meta" -> parseMetadata e
+        "article-meta" -> parseMetadata e
+        "custom-meta" -> parseMetadata e
+        "title" -> return mempty -- processed by header
         "table" -> parseTable
         "fig" -> divWith (attrValue "id" e, ["fig"], []) <$> getBlocks e
         "table-wrap" -> divWith (attrValue "id" e, ["table-wrap"], []) <$> getBlocks e
@@ -232,43 +215,6 @@ parseBlock (Elem e) =
                      terms' <- mapM getInlines terms
                      items' <- mapM getBlocks items
                      return (mconcat $ intersperse (str "; ") terms', items')
-         getTitle =  do
-                     tit <-  case filterChild (named "article-title") e of
-                                  Just s  -> getInlines s
-                                  Nothing -> return mempty
-                     subtit <-  case filterChild (named "subtitle") e of
-                                  Just s  -> (text ": " <>) <$>
-                                              getInlines s
-                                  Nothing -> return mempty
-                     when (tit /= mempty) $ addMeta "title" tit
-                     when (subtit /= mempty) $ addMeta "subtitle" subtit
-
-         getAuthors :: PandocMonad m => JATS m ()
-         getAuthors = do
-                      authors <- mapM getContrib $ filterChildren
-                                  (\x -> named "contrib" x &&
-                                         attrValue "contrib-type" x == "author") e
-                      unless (null authors) $
-                        addMeta "author" authors
-
-         getAffiliations :: PandocMonad m => Element -> JATS m ()
-         getAffiliations x = do
-                      affs <- mapM getInlines $ filterChildren (named "aff") x
-                      unless (null affs) $ addMeta "institute" affs
-
-         getContrib :: PandocMonad m => Element -> JATS m Inlines
-         getContrib x = do
-                      given <- maybe (return mempty) getInlines
-                                $ filterElement (named "given-names") x
-                      family <- maybe (return mempty) getInlines
-                                $ filterElement (named "surname") x
-                      if given == mempty && family == mempty
-                         then return mempty
-                         else if given == mempty || family == mempty
-                              then return $ given <> family
-                              else return $ given <> space <> family
-                      -- TODO institute, etc.
-
          parseTable = do
                       let isCaption x = named "title" x || named "caption" x
                       caption <- case filterChild isCaption e of
@@ -333,15 +279,54 @@ parseBlock (Elem e) =
                      let ident = attrValue "id" e
                      modify $ \st -> st{ jatsSectionLevel = oldN }
                      return $ headerWith (ident,[],[]) n' headerText <> b
---         lineItems = mapM getInlines $ filterChildren (named "line") e
-         metaBlock = do
-           acceptingMetadata (getBlocks e)
-           getAffiliations e
-           return mempty
 
 getInlines :: PandocMonad m => Element -> JATS m Inlines
 getInlines e' = (trimInlines . mconcat) <$>
                  mapM parseInline (elContent e')
+
+parseMetadata :: PandocMonad m => Element -> JATS m Blocks
+parseMetadata e = do
+  getTitle e
+  getAuthors e
+  getAffiliations e
+  return mempty
+
+getTitle :: PandocMonad m => Element -> JATS m ()
+getTitle e = do
+  tit <-  case filterElement (named "article-title") e of
+               Just s  -> getInlines s
+               Nothing -> return mempty
+  subtit <-  case filterElement (named "subtitle") e of
+               Just s  -> (text ": " <>) <$>
+                           getInlines s
+               Nothing -> return mempty
+  when (tit /= mempty) $ addMeta "title" tit
+  when (subtit /= mempty) $ addMeta "subtitle" subtit
+
+getAuthors :: PandocMonad m => Element -> JATS m ()
+getAuthors e = do
+  authors <- mapM getContrib $ filterElements
+              (\x -> named "contrib" x &&
+                     attrValue "contrib-type" x == "author") e
+  unless (null authors) $
+    addMeta "author" authors
+
+getAffiliations :: PandocMonad m => Element -> JATS m ()
+getAffiliations x = do
+  affs <- mapM getInlines $ filterChildren (named "aff") x
+  unless (null affs) $ addMeta "institute" affs
+
+getContrib :: PandocMonad m => Element -> JATS m Inlines
+getContrib x = do
+  given <- maybe (return mempty) getInlines
+            $ filterElement (named "given-names") x
+  family <- maybe (return mempty) getInlines
+            $ filterElement (named "surname") x
+  if given == mempty && family == mempty
+     then return mempty
+     else if given == mempty || family == mempty
+          then return $ given <> family
+          else return $ given <> space <> family
 
 parseRefList :: PandocMonad m => Element -> JATS m Blocks
 parseRefList e = do
