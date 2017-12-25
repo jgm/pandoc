@@ -1,12 +1,41 @@
 {-# LANGUAGE OverloadedStrings #-}
 module Tests.Readers.Org.Directive (tests) where
 
+import Control.Arrow (second)
+import Data.Time (UTCTime (UTCTime), secondsToDiffTime)
+import Data.Time.Calendar (Day (ModifiedJulianDay))
 import Test.Tasty (TestTree, testGroup)
-import Tests.Helpers ((=?>))
+import Tests.Helpers ((=?>), ToString, purely, test)
 import Tests.Readers.Org.Shared ((=:), tagSpan)
 import Text.Pandoc
 import Text.Pandoc.Builder
+import qualified Data.ByteString as BS
+import qualified Data.Map as Map
 import qualified Data.Text as T
+
+testWithFiles :: (ToString c)
+              => [(FilePath, BS.ByteString)]
+              -> String         -- ^ name of test case
+              -> (T.Text, c)    -- ^ (input, expected value)
+              -> TestTree
+testWithFiles fileDefs = test (orgWithFiles fileDefs)
+  where
+orgWithFiles :: [(FilePath, BS.ByteString)] -> T.Text -> Pandoc
+orgWithFiles fileDefs input =
+  let readOrg' = readOrg def{ readerExtensions = getDefaultExtensions "org" }
+  in flip purely input $ \inp -> do
+    modifyPureState (\st -> st { stFiles = files fileDefs })
+    readOrg' inp
+
+
+files :: [(FilePath, BS.ByteString)] -> FileTree
+files fileDefs =
+  let dummyTime = UTCTime (ModifiedJulianDay 125) (secondsToDiffTime 0)
+      fileInfo content = FileInfo
+                         { infoFileMTime = dummyTime
+                         , infoFileContents = content
+                         }
+  in FileTree (Map.fromList (map (second fileInfo) fileDefs))
 
 tests :: [TestTree]
 tests =
@@ -124,5 +153,52 @@ tests =
                   , "* Headline :hello:world:"
                   ] =?>
         headerWith ("headline", [], mempty) 1 "Headline"
+    ]
+
+  , testGroup "Include"
+    [ testWithFiles [("./other.org", "content of other file\n")]
+      "file inclusion"
+      (T.unlines [ "#+include: \"other.org\"" ] =?>
+       plain "content of other file")
+
+    , testWithFiles [("./world.org", "World\n\n")]
+      "Included file belongs to item"
+      (T.unlines [ "- Hello,\n  #+include: \"world.org\"" ] =?>
+       bulletList [para "Hello," <> para "World"])
+
+    , testWithFiles [("./level3.org", "*** Level3\n\n")]
+      "Default include preserves level"
+      (T.unlines [ "#+include: \"level3.org\"" ] =?>
+       headerWith ("level3", [], []) 3 "Level3")
+
+    , testWithFiles [("./level3.org", "*** Level3\n\n")]
+      "Minlevel shifts level"
+      (T.unlines [ "#+include: \"level3.org\" :minlevel 1" ] =?>
+       headerWith ("level3", [], []) 1 "Level3")
+
+    , testWithFiles [("./src.hs", "putStrLn outString\n")]
+      "Include file as source code snippet"
+      (T.unlines [ "#+include: \"src.hs\" src haskell" ] =?>
+       codeBlockWith ("", ["haskell"], []) "putStrLn outString\n")
+
+    , testWithFiles [("./export-latex.org", "\\emph{Hello}\n")]
+      "Include file as export snippet"
+      (T.unlines [ "#+include: \"export-latex.org\" export latex" ] =?>
+       rawBlock "latex" "\\emph{Hello}\n")
+
+    , testWithFiles [("./subdir/foo-bar.latex", "foo\n"),
+                     ("./hello.lisp", "(print \"Hello!\")\n")
+                    ]
+      "include directive is limited to one line"
+      (T.unlines [ "#+INCLUDE: \"hello.lisp\" src lisp"
+                 , "#+include: \"subdir/foo-bar.latex\" export latex"
+                 , "bar"
+                 ] =?>
+       mconcat
+         [ codeBlockWith ("", ["lisp"], []) "(print \"Hello!\")\n"
+         , rawBlock "latex" "foo\n"
+         , para "bar"
+         ]
+      )
     ]
   ]
