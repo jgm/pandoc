@@ -30,8 +30,10 @@ module Text.Pandoc.Lua.Module.Utils
   ) where
 
 import Control.Applicative ((<|>))
+import Data.Default (def)
 import Foreign.Lua (FromLuaStack, Lua, LuaInteger, NumResults)
 import Text.Pandoc.Definition (Pandoc, Meta, Block, Inline)
+import Text.Pandoc.Filter.Json (applyFilters)
 import Text.Pandoc.Lua.StackInstances ()
 import Text.Pandoc.Lua.Util (OrNil (OrNil), addFunction)
 
@@ -41,11 +43,12 @@ import qualified Foreign.Lua as Lua
 import qualified Text.Pandoc.Shared as Shared
 
 -- | Push the "pandoc.utils" module to the lua stack.
-pushModule :: Lua NumResults
-pushModule = do
+pushModule :: Maybe FilePath -> Lua NumResults
+pushModule mbDatadir = do
   Lua.newtable
   addFunction "hierarchicalize" hierarchicalize
   addFunction "normalize_date" normalizeDate
+  addFunction "run_json_filter" (runJsonFilter mbDatadir)
   addFunction "sha1" sha1
   addFunction "stringify" stringify
   addFunction "to_roman_numeral" toRomanNumeral
@@ -61,6 +64,12 @@ hierarchicalize = return . Shared.hierarchicalize
 -- Returns nil instead of a string if the conversion failed.
 normalizeDate :: String -> Lua (OrNil String)
 normalizeDate = return . OrNil . Shared.normalizeDate
+
+runJsonFilter :: Maybe FilePath
+              -> String
+              -> Pandoc -> Lua Pandoc
+runJsonFilter mbDatadir filter =
+  applyFilters def mbDatadir [filter] []
 
 -- | Calculate the hash of the given contents.
 sha1 :: BSL.ByteString
