@@ -1,6 +1,6 @@
 pandoc (2.0.6)
 
-  * Added `jats` as an output format.
+  * Added `jats` as an input format.
 
     + Add Text.Pandoc.Readers.JATS, exporting `readJATS` (API
       change) (Hamish Mackenzie).
