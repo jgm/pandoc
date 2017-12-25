@@ -498,7 +498,10 @@ library
                    Text.Pandoc.ImageSize,
                    Text.Pandoc.BCP47,
                    Text.Pandoc.Class
-  other-modules:   Text.Pandoc.Readers.Docx.Lists,
+  other-modules:   Text.Pandoc.Filter,
+                   Text.Pandoc.Filter.Path,
+                   Text.Pandoc.Filter.Json,
+                   Text.Pandoc.Readers.Docx.Lists,
                    Text.Pandoc.Readers.Docx.Combine,
                    Text.Pandoc.Readers.Docx.Parse,
                    Text.Pandoc.Readers.Docx.Util,
