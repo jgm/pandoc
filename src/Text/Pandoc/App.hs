@@ -35,11 +35,12 @@ Does a pandoc conversion based on command-line options.
 module Text.Pandoc.App (
             convertWithOpts
           , Opt(..)
+          , LineEnding(..)
+          , Filter(..)
           , defaultOpts
           , parseOptions
           , options
           , applyFilters
-          , applyLuaFilters
           ) where
 import qualified Control.Exception as E
 import Control.Monad
@@ -184,11 +185,13 @@ convertWithOpts opts = do
                          Nothing -> return Nothing
                          Just fp -> Just <$> UTF8.readFile fp
 
+  let isPandocCiteproc (JSONFilter f) = takeBaseName f == "pandoc-citeproc"
+      isPandocCiteproc _              = False
   -- --bibliography implies -F pandoc-citeproc for backwards compatibility:
   let needsCiteproc = isJust (lookup "bibliography" (optMetadata opts)) &&
                       optCiteMethod opts `notElem` [Natbib, Biblatex] &&
-                      "pandoc-citeproc" `notElem` map takeBaseName filters
-  let filters' = if needsCiteproc then "pandoc-citeproc" : filters
+                      all (not . isPandocCiteproc) filters
+  let filters' = if needsCiteproc then JSONFilter "pandoc-citeproc" : filters
                                   else filters
 
   let sources = case optInputFiles opts of
@@ -501,10 +504,9 @@ convertWithOpts opts = do
                       then fillMediaBag
                       else return)
               >=> return . addMetadata metadata
-              >=> applyLuaFilters datadir (optLuaFilters opts) format
-              >=> maybe return extractMedia (optExtractMedia opts)
               >=> applyTransforms transforms
-              >=> applyFilters readerOpts datadir filters' [format]
+              >=> applyFilters readerOpts filters' [format]
+              >=> maybe return extractMedia (optExtractMedia opts)
               )
 
     case writer of
@@ -583,6 +585,10 @@ externalFilter ropts f args' d = liftIO $ do
  where filterException :: E.SomeException -> IO a
        filterException e = E.throwIO $ PandocFilterError f (show e)
 
+data Filter = LuaFilter FilePath
+            | JSONFilter FilePath
+            deriving (Show)
+
 -- | Data structure for command line options.
 data Opt = Opt
     { optTabStop               :: Int     -- ^ Number of spaces per tab
@@ -626,8 +632,7 @@ data Opt = Opt
     , optDpi                   :: Int     -- ^ Dpi
     , optWrapText              :: WrapOption  -- ^ Options for wrapping text
     , optColumns               :: Int     -- ^ Line length in characters
-    , optFilters               :: [FilePath] -- ^ Filters to apply
-    , optLuaFilters            :: [FilePath] -- ^ Lua filters to apply
+    , optFilters               :: [Filter] -- ^ Filters to apply
     , optEmailObfuscation      :: ObfuscationMethod
     , optIdentifierPrefix      :: String
     , optStripEmptyParagraphs  :: Bool -- ^ Strip empty paragraphs
@@ -700,7 +705,6 @@ defaultOpts = Opt
     , optWrapText              = WrapAuto
     , optColumns               = 72
     , optFilters               = []
-    , optLuaFilters            = []
     , optEmailObfuscation      = NoObfuscation
     , optIdentifierPrefix      = ""
     , optStripEmptyParagraphs  = False
@@ -832,41 +836,46 @@ applyTransforms transforms d = return $ foldr ($) d transforms
   -- First we check to see if a filter is found.  If not, and if it's
   -- not an absolute path, we check to see whether it's in `userdir/filters`.
   -- If not, we leave it unchanged.
-expandFilterPath :: MonadIO m => Maybe FilePath -> FilePath -> m FilePath
-expandFilterPath mbDatadir fp = liftIO $ do
-  fpExists <- doesFileExist fp
+expandFilterPath :: PandocMonad m => FilePath -> m FilePath
+expandFilterPath fp = do
+  mbDatadir <- getUserDataDir
+  fpExists <- fileExists fp
   if fpExists
      then return fp
      else case mbDatadir of
                Just datadir | isRelative fp -> do
                  let filterPath = datadir </> "filters" </> fp
-                 filterPathExists <- doesFileExist filterPath
+                 filterPathExists <- fileExists filterPath
                  if filterPathExists
                     then return filterPath
                     else return fp
                _ -> return fp
 
-applyLuaFilters :: Maybe FilePath -> [FilePath] -> String -> Pandoc
-                -> PandocIO Pandoc
-applyLuaFilters mbDatadir filters format d = do
-  expandedFilters <- mapM (expandFilterPath mbDatadir) filters
-  let go f d' = do
-        res <- runLuaFilter f format d'
-        case res of
-          Right x               -> return x
-          Left (LuaException s) -> E.throw (PandocFilterError f s)
-  foldrM ($) d $ map go expandedFilters
-
-applyFilters :: MonadIO m
-             => ReaderOptions
-             -> Maybe FilePath
-             -> [FilePath]
+applyFilters :: ReaderOptions
+             -> [Filter]
              -> [String]
              -> Pandoc
-             -> m Pandoc
-applyFilters ropts mbDatadir filters args d = do
-  expandedFilters <- mapM (expandFilterPath mbDatadir) filters
-  foldrM ($) d $ map (flip (externalFilter ropts) args) expandedFilters
+             -> PandocIO Pandoc
+applyFilters ropts filters args d = do
+  foldrM ($) d $ map (applyFilter ropts args) filters
+
+applyFilter :: ReaderOptions
+            -> [String]
+            -> Filter
+            -> Pandoc
+            -> PandocIO Pandoc
+applyFilter _ropts args (LuaFilter f) d = do
+  f' <- expandFilterPath f
+  let format = case args of
+                    (x:_) -> x
+                    _     -> error "Format not supplied for lua filter"
+  res <- runLuaFilter f' format d
+  case res of
+       Right x               -> return x
+       Left (LuaException s) -> E.throw (PandocFilterError f s)
+applyFilter ropts args (JSONFilter f) d = do
+  f' <- expandFilterPath f
+  liftIO $ externalFilter ropts f' args d
 
 readSource :: FilePath -> PandocIO Text
 readSource "-" = liftIO (UTF8.toText <$> BS.getContents)
@@ -968,13 +977,15 @@ options =
 
     , Option "F" ["filter"]
                  (ReqArg
-                  (\arg opt -> return opt { optFilters = arg : optFilters opt })
+                  (\arg opt -> return opt { optFilters =
+                                    JSONFilter arg : optFilters opt })
                   "PROGRAM")
                  "" -- "External JSON filter"
 
     , Option "" ["lua-filter"]
                  (ReqArg
-                  (\arg opt -> return opt { optLuaFilters = arg : optLuaFilters opt })
+                  (\arg opt -> return opt { optFilters =
+                                    LuaFilter arg : optFilters opt })
                   "SCRIPTPATH")
                  "" -- "Lua filter"
 
@@ -1720,4 +1731,5 @@ deprecatedOption o msg =
 -- see https://github.com/jgm/pandoc/pull/4083
 -- using generic deriving caused long compilation times
 $(deriveJSON defaultOptions ''LineEnding)
+$(deriveJSON defaultOptions ''Filter)
 $(deriveJSON defaultOptions ''Opt)
