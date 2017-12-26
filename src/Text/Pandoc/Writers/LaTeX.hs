@@ -398,10 +398,10 @@ elementToBeamer slideLevel  (Sec lvl _num (ident,classes,kvs) tit elts)
           hasCode _          = []
       let fragile = "fragile" `elem` classes ||
                     not (null $ query hasCodeBlock elts ++ query hasCode elts)
-      let frameoptions = ["allowdisplaybreaks", "allowframebreaks",
+      let frameoptions = ["allowdisplaybreaks", "allowframebreaks", "fragile",
                           "b", "c", "t", "environment",
                           "label", "plain", "shrink", "standout"]
-      let optionslist = ["fragile" | fragile] ++
+      let optionslist = ["fragile" | fragile && lookup "fragile" kvs == Nothing] ++
                         [k | k <- classes, k `elem` frameoptions] ++
                         [k ++ "=" ++ v | (k,v) <- kvs, k `elem` frameoptions]
       let options = if null optionslist
