@@ -325,6 +325,7 @@ mimeTypesList = -- List borrowed from happstack-server.
            ,("ogv","video/ogg")
            ,("ogx","application/ogg")
            ,("old","application/x-trash")
+           ,("opus","audio/ogg")
            ,("otg","application/vnd.oasis.opendocument.graphics-template")
            ,("oth","application/vnd.oasis.opendocument.text-web")
            ,("otp","application/vnd.oasis.opendocument.presentation-template")
