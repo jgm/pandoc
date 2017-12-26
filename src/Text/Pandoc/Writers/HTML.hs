@@ -670,8 +670,7 @@ blockToHtml opts (LineBlock lns) =
   if writerWrapText opts == WrapNone
   then blockToHtml opts $ linesToPara lns
   else do
-    let lf = preEscapedString "\n"
-    htmlLines <- mconcat . intersperse lf <$> mapM (inlineListToHtml opts) lns
+    htmlLines <- inlineListToHtml opts $ intercalate [LineBreak] lns
     return $ H.div ! A.class_ "line-block" $ htmlLines
 blockToHtml opts (Div attr@(ident, classes, kvs') bs) = do
   html5 <- gets stHtml5
