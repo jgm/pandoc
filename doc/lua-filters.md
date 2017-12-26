@@ -1400,12 +1400,13 @@ Lua functions for pandoc scripts.
     Usage:
 
         -- within a file defining a pandoc filter:
+        local text = require('text')
         function Str(text)
-          return pandoc.Str(utf8.upper(text))
+          return pandoc.Str(text.upper(text))
         end
 
         return {pandoc.global_filter()}
-        -- the above is equivallent to
+        -- the above is equivalent to
         -- return {{Str = Str}}
 
 [`pipe (command, args, input)`]{#pipe}
