@@ -88,11 +88,10 @@ then it would be applied like this:
 
     pandoc --lua-filter=current-date.lua -f markdown MANUAL.txt
 
-The `--lua-filter` can be supplied multiple times, causing the
-filters to be applied sequentially in the order they were given.
-If other, non-Lua filters are given as well (via `--filter`),
-then those are executed *after* all Lua filters have been
-applied.
+The `--lua-filter` option may be supplied multiple times.  Pandoc
+applies all filters (including JSON filters specified via
+`--filter` and lua filters specified via `--lua-filter`)
+in the order they appear on the command line.
 
 Pandoc expects each lua file to return a list of filters. The
 filters in that list are called sequentially, each on the result

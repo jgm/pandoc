@@ -482,6 +482,9 @@ Reader options
 
      3. `$PATH` (executable only)
 
+    Filters and lua-filters are applied in the order specified
+    on the command line.
+
 `--lua-filter=`*SCRIPT*
 
 :   Transform the document in a similar fashion as JSON filters (see
