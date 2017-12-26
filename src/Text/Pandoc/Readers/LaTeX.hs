@@ -1489,7 +1489,16 @@ inlineCommands = M.union inlineLanguageCommands $ M.fromList $
   -- biblatex misc
   , ("RN", romanNumeralUpper)
   , ("Rn", romanNumeralLower)
+  -- babel
+  , ("foreignlanguage", foreignlanguage)
   ]
+
+foreignlanguage :: PandocMonad m => LP m Inlines
+foreignlanguage = do
+  babelLang <- T.unpack . untokenize <$> braced
+  case babelLangToBCP47 babelLang of
+       Just lang -> spanWith ("", [], [("lang", renderLang $ lang)]) <$> tok
+       _ -> tok
 
 inlineLanguageCommands :: PandocMonad m => M.Map Text (LP m Inlines)
 inlineLanguageCommands = M.fromList $ mk <$> M.toList polyglossiaLangToBCP47
@@ -2655,3 +2664,24 @@ polyglossiaLangToBCP47 = M.fromList
   , ("urdu", \_ -> Lang "ur" "" "" [])
   , ("vietnamese", \_ -> Lang "vi" "" "" [])
   ]
+
+babelLangToBCP47 :: String -> Maybe Lang
+babelLangToBCP47 s =
+  case s of
+       "austrian" -> Just $ Lang "de" "" "AT" ["1901"]
+       "naustrian" -> Just $ Lang "de" "" "AT" []
+       "swissgerman" -> Just $ Lang "de" "" "CH" ["1901"]
+       "nswissgerman" -> Just $ Lang "de" "" "CH" []
+       "german" -> Just $ Lang "de" "" "DE" ["1901"]
+       "ngerman" -> Just $ Lang "de" "" "DE" []
+       "lowersorbian" -> Just $ Lang "dsb" "" "" []
+       "uppersorbian" -> Just $ Lang "hsb" "" "" []
+       "polutonikogreek" -> Just $ Lang "el" "" "" ["polyton"]
+       "slovene" -> Just $ Lang "sl" "" "" []
+       "australian" -> Just $ Lang "en" "" "AU" []
+       "canadian" -> Just $ Lang "en" "" "CA" []
+       "british" -> Just $ Lang "en" "" "GB" []
+       "newzealand" -> Just $ Lang "en" "" "NZ" []
+       "american" -> Just $ Lang "en" "" "US" []
+       "classiclatin" -> Just $ Lang "la" "" "" ["x-classic"]
+       _ -> fmap ($ "") $ M.lookup s polyglossiaLangToBCP47
