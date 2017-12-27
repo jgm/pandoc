@@ -85,7 +85,15 @@ download_stats:
 	curl https://api.github.com/repos/jgm/pandoc/releases | \
 		jq -r '.[] | .assets | .[] | "\(.download_count)\t\(.name)"'
 
+pandoc-templates:
+	rm ../pandoc-templates/default.* ; \
+	cp data/templates/default.* ../pandoc-templates/ ; \
+	pushd ../pandoc-templates/ && \
+	git add default.* && \
+	git commit -m "Updated templates for pandoc $(version)" && \
+	popd
+
 clean:
 	stack clean
 
-.PHONY: deps quick full haddock install clean test bench changes_github macospkg dist prof download_stats reformat lint weigh doc/lua-filters.md packages
+.PHONY: deps quick full haddock install clean test bench changes_github macospkg dist prof download_stats reformat lint weigh doc/lua-filters.md packages pandoc-templates

@@ -7,11 +7,10 @@ _ make man/pandoc.1 and commit if needed
 
 _ Tag release in git
 
-_ Push templates:
-  git subtree push --prefix=data/templates git@github.com:jgm/pandoc-templates.git master
+_ make pandoc-templates
   cd ../pandoc-templates
-  git pull
   git tag REL
+  git push
   git push --tags
 
 _ Generate Windows package (make winpkg)
