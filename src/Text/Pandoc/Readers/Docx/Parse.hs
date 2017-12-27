@@ -73,6 +73,7 @@ import Text.TeXMath (Exp)
 import Text.TeXMath.Readers.OMML (readOMML)
 import Text.TeXMath.Unicode.Fonts (Font (..), getUnicode, stringToFont)
 import Text.XML.Light
+import qualified Text.XML.Light.Cursor as XMLC
 
 data ReaderEnv = ReaderEnv { envNotes         :: Notes
                            , envComments      :: Comments
@@ -116,6 +117,32 @@ mapD f xs =
   let handler x = (f x >>= (\y-> return [y])) `catchError` (\_ -> return [])
   in
    concatMapM handler xs
+
+unwrapSDT :: NameSpaces -> Content -> Content
+unwrapSDT ns (Elem element)
+  | isElem ns "w" "sdt" element
+  , Just sdtContent <- findChildByName ns "w" "sdtContent" element
+  , child : _    <- elChildren sdtContent
+  = Elem child
+unwrapSDT _ content = content
+
+walkDocument' :: NameSpaces -> XMLC.Cursor -> XMLC.Cursor
+walkDocument' ns cur =
+  let modifiedCur = XMLC.modifyContent (unwrapSDT ns) cur
+  in
+    case XMLC.nextDF modifiedCur of
+      Just cur' -> walkDocument' ns cur'
+      Nothing   -> XMLC.root modifiedCur
+
+walkDocument :: NameSpaces -> Element -> Maybe Element
+walkDocument ns element =
+  let cur = XMLC.fromContent (Elem element)
+      cur' = walkDocument' ns cur
+  in
+    case XMLC.toTree cur' of
+      Elem element' -> Just element'
+      _             -> Nothing
+
 
 data Docx = Docx Document
           deriving Show
@@ -298,7 +325,10 @@ archiveToDocument zf = do
   docElem <- maybeToD $ (parseXMLDoc . UTF8.toStringLazy . fromEntry) entry
   let namespaces = elemToNameSpaces docElem
   bodyElem <- maybeToD $ findChildByName namespaces "w" "body" docElem
-  body <- elemToBody namespaces bodyElem
+  let bodyElem' = case walkDocument namespaces bodyElem of
+        Just e -> e
+        Nothing -> bodyElem
+  body <- elemToBody namespaces bodyElem'
   return $ Document namespaces body
 
 elemToBody :: NameSpaces -> Element -> D Body
