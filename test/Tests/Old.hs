@@ -162,6 +162,12 @@ tests = [ testGroup "markdown"
           [ test "reader" ["-r", "creole", "-w", "native", "-s"]
             "creole-reader.txt" "creole-reader.native"
           ]
+        , testGroup "custom writer"
+          [ test "basic" ["-f", "native", "-t", "../data/sample.lua"]
+            "testsuite.native" "writer.custom"
+          , test "tables" ["-f", "native", "-t", "../data/sample.lua"]
+            "tables.native" "tables.custom"
+          ]
         ]
 
 -- makes sure file is fully closed after reading
