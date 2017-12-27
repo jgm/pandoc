@@ -601,9 +601,7 @@ pFigure = try $ do
   let pImg  = (\x -> (Just x, Nothing)) <$>
                (pOptInTag "p" pImage <* skipMany pBlank)
       pCapt = (\x -> (Nothing, Just x)) <$> do
-                skipMany pBlank
                 bs <- pInTags "figcaption" block
-                skipMany pBlank
                 return $ blocksToInlines' $ B.toList bs
       pSkip = (Nothing, Nothing) <$ pSatisfy (not . matchTagClose "figure")
   res <- many (pImg <|> pCapt <|> pSkip)
