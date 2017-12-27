@@ -87,6 +87,15 @@ instance ToLuaStack (Stringify Citation) where
     addValue "citationNoteNum" $ citationNoteNum cit
     addValue "citationHash" $ citationHash cit
 
+-- | Key-value pair, pushed as a table with @a@ as the only key and @v@ as the
+-- associated value.
+newtype KeyValue a b = KeyValue (a, b)
+
+instance (ToLuaStack a, ToLuaStack b) => ToLuaStack (KeyValue a b) where
+  push (KeyValue (k, v)) = do
+    newtable
+    addValue k v
+
 data PandocLuaException = PandocLuaException String
     deriving (Show, Typeable)
 
@@ -165,7 +174,8 @@ blockToCustom (OrderedList (num,sty,delim) items) =
   callFunc "OrderedList" (map Stringify items) num (show sty) (show delim)
 
 blockToCustom (DefinitionList items) =
-  callFunc "DefinitionList" (map (Stringify *** map Stringify) items)
+  callFunc "DefinitionList"
+           (map (KeyValue . (Stringify *** map Stringify)) items)
 
 blockToCustom (Div attr items) =
   callFunc "Div" (Stringify items) (attrToMap attr)
