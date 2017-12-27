@@ -199,6 +199,9 @@ pandoc (2.0.6)
 
   * Text.Pandoc.MIME: Add opus to MIME type table as audio/ogg (#4198).
 
+  * Allow lenient decoding of latex error logs, which are not always
+    properly UTF8-encoded (#4200).
+
   * Update latex template to work with recent versions of beamer.
     The old template produced numbered sections with some recent
     versions of beamer.  Thanks to Thomas Hodgson.
