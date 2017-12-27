@@ -93,7 +93,10 @@ pandoc-templates:
 	git commit -m "Updated templates for pandoc $(version)" && \
 	popd
 
+trypandoc:
+	ssh -t macfarlane 'cd src/pandoc && git pull && ~/.local/bin/stack install --flag pandoc:trypandoc --flag pandoc:embed_data_files && cd trypandoc && sudo make install'
+
 clean:
 	stack clean
 
-.PHONY: deps quick full haddock install clean test bench changes_github macospkg dist prof download_stats reformat lint weigh doc/lua-filters.md packages pandoc-templates
+.PHONY: deps quick full haddock install clean test bench changes_github macospkg dist prof download_stats reformat lint weigh doc/lua-filters.md packages pandoc-templates trypandoc
