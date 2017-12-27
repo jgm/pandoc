@@ -242,7 +242,6 @@ function OrderedList(items)
   return "<ol>\n" .. table.concat(buffer, "\n") .. "\n</ol>"
 end
 
--- Revisit association list STackValue instance.
 function DefinitionList(items)
   local buffer = {}
   for _,item in pairs(items) do
