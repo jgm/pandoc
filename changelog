@@ -11,6 +11,9 @@ pandoc (2.0.6)
       bibliographic information can be processed with pandoc and
       pandoc-citeproc to produce a formatted bibliography.
 
+  * Allow `--list-extensions` to take an optional FORMAT argument.
+    This lists the extensions set by default for the selected FORMAT.
+
   * Markdown reader:
 
     + Preserve original whitespace between blocks.
@@ -546,6 +549,7 @@ pandoc (2.0.3)
     + Allow spaces after `\(` and before `\)` with `tex_math_single_backslash`.
       Previously `\( \frac{1}{a} < \frac{1}{b} \)` was not parsed as math in
       `markdown` or `html` `+tex_math_single_backslash`.
+    + Parse div with class `line-block` as LineBlock.
 
   * MANUAL: clarify that math extensions work with HTML.
     Clarify that `tex_math_dollars` and `tex_math_single_backslash`
