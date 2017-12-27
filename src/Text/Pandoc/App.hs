@@ -58,6 +58,9 @@ import Data.Monoid
 import qualified Data.Set as Set
 import Data.Text (Text)
 import qualified Data.Text as T
+import qualified Data.Text.Lazy as TL
+import qualified Data.Text.Lazy.Encoding as TE
+import qualified Data.Text.Encoding.Error as TE
 import Data.Yaml (decode)
 import qualified Data.Yaml as Yaml
 import GHC.Generics
@@ -513,7 +516,9 @@ convertWithOpts opts = do
                 case res of
                      Right pdf -> writeFnBinary outputFile pdf
                      Left err' -> liftIO $
-                       E.throwIO $ PandocPDFError (UTF8.toStringLazy err')
+                       E.throwIO $ PandocPDFError $
+                                     TL.unpack (TE.decodeUtf8With TE.lenientDecode err')
+
         Nothing -> do
                 let htmlFormat = format `elem`
                       ["html","html4","html5","s5","slidy",
