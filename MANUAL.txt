@@ -387,11 +387,11 @@ General options
 
 :   List supported output formats, one per line.
 
-`--list-extensions`
+`--list-extensions`[`=`*FORMAT*]
 
 :   List supported Markdown extensions, one per line, followed
     by a `+` or `-` indicating whether it is enabled by default
-    in pandoc's Markdown.
+    in *FORMAT* (defaulting to pandoc's Markdown).
 
 `--list-highlight-languages`
 
@@ -1096,7 +1096,7 @@ of the following options.
     The *URL* should point to the `MathJax.js` load script.
     If a *URL* is not provided, a link to the Cloudflare CDN will
     be inserted.
- 
+
 `--mathml`
 
 :   Convert TeX math to [MathML] (in `epub3`, `docbook4`, `docbook5`, `jats`,
