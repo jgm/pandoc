@@ -26,12 +26,9 @@ _ Upload to HackageDB: stack upload .
 _ if docs don't build on Hackage:
   'cabal install neil && neil docs --username=MYUSERNAME'
 
-_ Update website, including short description of changes ('make changes')
+_ go to website and 'make update && make && make upload'
+
+_ make trypandoc
 
 _ Announce on pandoc-announce, pandoc-discuss
-
-_ on server, stack install --flag 'pandoc:trypandoc'
-  and then 'cd trypandoc; sudo make install'
-
-_ recompile gitit
 
