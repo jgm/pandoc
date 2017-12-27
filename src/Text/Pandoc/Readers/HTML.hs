@@ -66,12 +66,11 @@ import qualified Text.Pandoc.Builder as B
 import Text.Pandoc.Class (PandocMonad (..))
 import Text.Pandoc.CSS (foldOrElse, pickStyleAttrProps)
 import Text.Pandoc.Definition
-import Text.Pandoc.Extensions (Extension(..))
 import Text.Pandoc.Error
 import Text.Pandoc.Logging
 import Text.Pandoc.Options (
     Extension (Ext_epub_html_exts, Ext_empty_paragraphs, Ext_native_divs,
-               Ext_native_spans, Ext_raw_html),
+               Ext_native_spans, Ext_raw_html, Ext_line_blocks),
     ReaderOptions (readerExtensions, readerStripComments),
     extensionEnabled)
 import Text.Pandoc.Parsing hiding ((<|>))
