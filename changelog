@@ -215,6 +215,8 @@ pandoc (2.0.6)
 
     + Add note on what formats have `+smart` by default.
     + Use native syntax for custom-style (#4174, Mauro Bieg).
+    + Introduce dedicated Extensions section, since some extensions
+      affect formats other than markdown (Mauro Bieg, #4204).
 
   * filters.md: say that Text.Pandoc.JSON comes form pandoc-types.
     Closes jgm/pandoc-website#16.
