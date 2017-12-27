@@ -75,8 +75,8 @@ import Text.Pandoc.Options (
     ReaderOptions (readerExtensions, readerStripComments),
     extensionEnabled)
 import Text.Pandoc.Parsing hiding ((<|>))
-import Text.Pandoc.Shared (addMetaField, crFilter, escapeURI, extractSpaces,
-                           safeRead, underlineSpan)
+import Text.Pandoc.Shared (addMetaField, blocksToInlines', crFilter, escapeURI,
+                           extractSpaces, safeRead, underlineSpan)
 import Text.Pandoc.Walk
 import Text.Parsec.Error
 import Text.TeXMath (readMathML, writeTeX)
@@ -600,8 +600,11 @@ pFigure = try $ do
   skipMany pBlank
   let pImg  = (\x -> (Just x, Nothing)) <$>
                (pOptInTag "p" pImage <* skipMany pBlank)
-      pCapt = (\x -> (Nothing, Just x)) <$>
-               (pInTags "figcaption" inline <* skipMany pBlank)
+      pCapt = (\x -> (Nothing, Just x)) <$> do
+                skipMany pBlank
+                bs <- pInTags "figcaption" block
+                skipMany pBlank
+                return $ blocksToInlines' $ B.toList bs
       pSkip = (Nothing, Nothing) <$ pSatisfy (not . matchTagClose "figure")
   res <- many (pImg <|> pCapt <|> pSkip)
   let mbimg = msum $ map fst res
