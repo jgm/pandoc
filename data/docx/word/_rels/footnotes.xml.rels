@@ -1,2 +1,2 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships" />
+<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/hyperlink" Id="rId30" Target="http://example.com" TargetMode="External" /></Relationships>

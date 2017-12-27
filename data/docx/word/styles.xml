@@ -450,8 +450,7 @@
       <w:rFonts w:asciiTheme="majorHAnsi" w:eastAsiaTheme="majorEastAsia" w:hAnsiTheme="majorHAnsi" w:cstheme="majorBidi" />
       <w:b w:val="0" />
       <w:bCs w:val="0" />
-      <w:color w:val="365F91" w:themeColor="accent1"
-      w:themeShade="BF" />
+      <w:color w:val="365F91" w:themeColor="accent1" w:themeShade="BF" />
     </w:rPr>
   </w:style>
 </w:styles>

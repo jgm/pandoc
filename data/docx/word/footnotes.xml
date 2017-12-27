@@ -1,26 +1,7 @@
-<?xml version="1.0" encoding="utf-8"?>
-<w:footnotes xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main"
-xmlns:m="http://schemas.openxmlformats.org/officeDocument/2006/math"
-xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"
-xmlns:o="urn:schemas-microsoft-com:office:office"
-xmlns:v="urn:schemas-microsoft-com:vml"
-xmlns:w10="urn:schemas-microsoft-com:office:word"
-xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main"
-xmlns:pic="http://schemas.openxmlformats.org/drawingml/2006/picture"
-xmlns:wp="http://schemas.openxmlformats.org/drawingml/2006/wordprocessingDrawing">
-
-  <w:footnote w:type="continuationSeparator" w:id="0">
-    <w:p>
-      <w:r>
-        <w:continuationSeparator />
-      </w:r>
-    </w:p>
-  </w:footnote>
-  <w:footnote w:type="separator" w:id="-1">
-    <w:p>
-      <w:r>
-        <w:separator />
-      </w:r>
-    </w:p>
-  </w:footnote>
-</w:footnotes>
+<?xml version="1.0" encoding="UTF-8"?>
+<w:footnotes xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main" xmlns:m="http://schemas.openxmlformats.org/officeDocument/2006/math" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships" xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:v="urn:schemas-microsoft-com:vml" xmlns:w10="urn:schemas-microsoft-com:office:word" xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main" xmlns:pic="http://schemas.openxmlformats.org/drawingml/2006/picture" xmlns:wp="http://schemas.openxmlformats.org/drawingml/2006/wordprocessingDrawing"><w:footnote w:type="continuationSeparator" w:id="0"><w:p><w:r><w:continuationSeparator /></w:r></w:p></w:footnote><w:footnote w:type="separator" w:id="-1"><w:p><w:r><w:separator /></w:r></w:p></w:footnote><w:footnote w:id="31"><w:p><w:pPr><w:pStyle w:val="FootnoteText" /></w:pPr><w:r>
+  <w:rPr>
+    <w:rStyle w:val="FootnoteReference" />
+  </w:rPr>
+  <w:footnoteRef />
+</w:r><w:r><w:t xml:space="preserve"> </w:t></w:r><w:r><w:t xml:space="preserve">Footnote Text.</w:t></w:r></w:p></w:footnote></w:footnotes>
