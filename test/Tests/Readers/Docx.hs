@@ -171,6 +171,10 @@ tests = [ testGroup "inlines"
             "inline code in subscript and superscript"
             "docx/verbatim_subsuper.docx"
             "docx/verbatim_subsuper.native"
+          , testCompare
+            "inlines inside of Structured Document Tags"
+            "docx/sdt_elements.docx"
+            "docx/sdt_elements.native"
           ]
         , testGroup "blocks"
           [ testCompare
