@@ -321,6 +321,7 @@ getDefaultExtensions "org"             = extensionsFromList
 getDefaultExtensions "html"            = extensionsFromList
                                           [Ext_auto_identifiers,
                                            Ext_native_divs,
+                                           Ext_line_blocks,
                                            Ext_native_spans]
 getDefaultExtensions "html4"           = getDefaultExtensions "html"
 getDefaultExtensions "html5"           = getDefaultExtensions "html"

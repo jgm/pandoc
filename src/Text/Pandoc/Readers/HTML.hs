@@ -51,7 +51,7 @@ import Data.Char (isAlphaNum, isDigit, isLetter)
 import Data.Default (Default (..), def)
 import Data.Foldable (for_)
 import Data.List (intercalate, isPrefixOf)
-import Data.List.Split (wordsBy)
+import Data.List.Split (wordsBy, splitWhen)
 import qualified Data.Map as M
 import Data.Maybe (fromMaybe, isJust, isNothing)
 import Data.Monoid (First (..), (<>))
@@ -66,6 +66,7 @@ import qualified Text.Pandoc.Builder as B
 import Text.Pandoc.Class (PandocMonad (..))
 import Text.Pandoc.CSS (foldOrElse, pickStyleAttrProps)
 import Text.Pandoc.Definition
+import Text.Pandoc.Extensions (Extension(..))
 import Text.Pandoc.Error
 import Text.Pandoc.Logging
 import Text.Pandoc.Options (
@@ -191,6 +192,7 @@ block = do
             , pHtml
             , pHead
             , pBody
+            , pLineBlock
             , pDiv
             , pPlain
             , pFigure
@@ -376,6 +378,16 @@ pRawTag = do
   if tagOpen ignorable (const True) tag || tagClose ignorable tag
      then return mempty
      else return $ renderTags' [tag]
+
+pLineBlock :: PandocMonad m => TagParser m Blocks
+pLineBlock = try $ do
+  guardEnabled Ext_line_blocks
+  _ <- pSatisfy $ tagOpen (=="div") (== [("class","line-block")])
+  ils <- trimInlines . mconcat <$> manyTill inline (pSatisfy (tagClose (=="div")))
+  let lns = map B.fromList $
+            splitWhen (== LineBreak) $ filter (/= SoftBreak) $
+            B.toList ils
+  return $ B.lineBlock lns
 
 pDiv :: PandocMonad m => TagParser m Blocks
 pDiv = try $ do
