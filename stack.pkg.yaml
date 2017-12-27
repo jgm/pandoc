@@ -12,6 +12,5 @@ flags:
     debug: false
 packages:
 - '.'
-extra-deps:
-- pandoc-citeproc-0.12.2
-resolver: lts-10.0
+extra-deps: []
+resolver: lts-10.1
