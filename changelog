@@ -45,6 +45,7 @@ pandoc (2.0.6)
     + Fix regression in LateX tokenization (#4159).  This mainly affects the
       Markdown reader when parsing raw LaTeX with escaped spaces.
     + Add tests of LaTeX tokenizer.
+    + Support `\foreignlanguage` from babel.
 
   * Muse reader (Alexander Krotov):
 
@@ -121,11 +122,20 @@ pandoc (2.0.6)
 
     + Don't wrap note references to the next line (#4172).
 
+  * HTML writer:
+
+    + Use br elements in line blocks instead of relying on CSS
+      (#4162).  HTML-based templates have had the custom CSS for
+      `div.line-block` removed.  Those maintaining custom templates will want
+      to remove this too.  We still enclose line blocks in a div with class
+      `line-block`.
+
   * LaTeX writer:
 
     + Use `\renewcommand` for `\textlatin` with babel (#4161).
       This avoids a clash with a deprecated `\textlatin` command defined
       in Babel.
+    + Allow fragile=singleslide attribute in beamer slides (#4169).
 
   * JATS writer (Hamish Mackenzie):
 
@@ -181,9 +191,16 @@ pandoc (2.0.6)
 
   * Text.Pandoc.Shared: export `blocksToInlines'` (API change, Maura Bieg).
 
+  * Text.Pandoc.MIME: Add opus to MIME type table as audio/ogg (#4198).
+
   * Update latex template to work with recent versions of beamer.
     The old template produced numbered sections with some recent
     versions of beamer.  Thanks to Thomas Hodgson.
+
+  * Updated reference.docx (#4175).  Instead of just "Hello, world", the
+    document now contains exemplars of most of the styles that have an
+    effect on pandoc documents.  This makes it easier to see the effect
+    of style changes.
 
   * Removed `default.theme` data file (#4096).  It is no longer needed now
     that we have `--print-highlight-style`.
