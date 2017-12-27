@@ -78,6 +78,9 @@ pandoc (2.0.6)
       interruption and introduces a new id if a list is starting again. So
       we keep track of the state of lists and use them to define a "start"
       attribute, if necessary.
+    + Add tests for structured document tags unwrapping (Jesse Rosenthal).
+    + Preprocess Document body to unwrap `w:sdt` elements (Jesse Rosenthal,
+      #4190).
 
   * Plain writer:
 
@@ -150,16 +153,19 @@ pandoc (2.0.6)
     + Self closing tags for empty xref (#4187).
     + Improve support for code language.
 
-  * Custom writer (Albert Krewinkel):
+  * Custom writer:
 
     + Use init file to setup Lua interpreter (Albert Krewinkel).
       The same init file (`data/init`) that is used to setup the Lua
       interpreter for Lua filters is also used to setup the interpreter of
       custom writers.lua.
-    + Define instances for newtype wrapper.  The custom writer used its own
-      `ToLuaStack` instance definitions, which made it difficult to share
-      code with Lua filters, as this could result in conflicting instances.
-      A `Stringify` wrapper is introduced to avoid this problem.
+    + Define instances for newtype wrapper (Albert Krewinkel).  The custom
+      writer used its own `ToLuaStack` instance definitions, which made
+      it difficult to share code with Lua filters, as this could result
+      in conflicting instances.  A `Stringify` wrapper is introduced to
+      avoid this problem.
+    + Added tests for custom writer.
+    + Fixed definition lists and tables in `data/sample.lua`.
 
   * Fixed regression: when target is PDF, writer extensions were being
     ignored.  So, for example, `pandoc -t latex-smart -o file.pdf`
