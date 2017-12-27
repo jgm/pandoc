@@ -269,7 +269,7 @@ pandoc (2.0.5)
     + Revert "Docx reader: don't strip out empty paragraphs."
       This reverts commit d6c58eb836f033a48955796de4d9ffb3b30e297b.
     + Implement `empty_paragraphs` extension in docx reader and writer,
-      opendocument writer, html reader and writer.
+      opendocument writer, HTML reader and writer.
     + Add tests for `empty_paragraphs` extension.
 
   * Markdown reader:
@@ -550,6 +550,7 @@ pandoc (2.0.3)
       Previously `\( \frac{1}{a} < \frac{1}{b} \)` was not parsed as math in
       `markdown` or `html` `+tex_math_single_backslash`.
     + Parse div with class `line-block` as LineBlock.
+    + Don't fail with block-level content in figcaption (Mauro Bieg, #4183).
 
   * MANUAL: clarify that math extensions work with HTML.
     Clarify that `tex_math_dollars` and `tex_math_single_backslash`
