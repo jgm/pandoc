@@ -1,5 +1,5 @@
 .\"t
-.TH PANDOC 1 "December 8, 2017" "pandoc 2.0.5"
+.TH PANDOC 1 "December 27, 2017" "pandoc 2.0.6"
 .SH NAME
 pandoc - general markup converter
 .SH SYNOPSIS
@@ -12,16 +12,16 @@ another, and a command\-line tool that uses this library.
 It can read Markdown, CommonMark, PHP Markdown Extra, GitHub\-Flavored
 Markdown, MultiMarkdown, and (subsets of) Textile, reStructuredText,
 HTML, LaTeX, MediaWiki markup, TWiki markup, TikiWiki markup, Creole
-1.0, Haddock markup, OPML, Emacs Org mode, DocBook, Muse, txt2tags,
-Vimwiki, EPUB, ODT, and Word docx; and it can write plain text,
-Markdown, CommonMark, PHP Markdown Extra, GitHub\-Flavored Markdown,
-MultiMarkdown, reStructuredText, XHTML, HTML5, LaTeX (including
-\f[C]beamer\f[] slide shows), ConTeXt, RTF, OPML, DocBook, OpenDocument,
-ODT, Word docx, GNU Texinfo, MediaWiki markup, DokuWiki markup, ZimWiki
-markup, Haddock markup, EPUB (v2 or v3), FictionBook2, Textile, groff
-man, groff ms, Emacs Org mode, AsciiDoc, InDesign ICML, TEI Simple,
-Muse, PowerPoint slide shows and Slidy, Slideous, DZSlides, reveal.js or
-S5 HTML slide shows.
+1.0, Haddock markup, OPML, Emacs Org mode, DocBook, JATS, Muse,
+txt2tags, Vimwiki, EPUB, ODT, and Word docx; and it can write plain
+text, Markdown, CommonMark, PHP Markdown Extra, GitHub\-Flavored
+Markdown, MultiMarkdown, reStructuredText, XHTML, HTML5, LaTeX
+(including \f[C]beamer\f[] slide shows), ConTeXt, RTF, OPML, DocBook,
+JATS, OpenDocument, ODT, Word docx, GNU Texinfo, MediaWiki markup,
+DokuWiki markup, ZimWiki markup, Haddock markup, EPUB (v2 or v3),
+FictionBook2, Textile, groff man, groff ms, Emacs Org mode, AsciiDoc,
+InDesign ICML, TEI Simple, Muse, PowerPoint slide shows and Slidy,
+Slideous, DZSlides, reveal.js or S5 HTML slide shows.
 It can also produce PDF output on systems where LaTeX, ConTeXt,
 \f[C]pdfroff\f[], \f[C]wkhtmltopdf\f[], \f[C]prince\f[], or
 \f[C]weasyprint\f[] is installed.
@@ -2911,6 +2911,13 @@ As\ (\@good)\ illustrates,\ ...
 .PP
 The label can be any string of alphanumeric characters, underscores, or
 hyphens.
+.PP
+Note: continuation paragraphs in example lists must always be indented
+four spaces, regardless of the length of the list marker.
+That is, example lists always behave as if the \f[C]four_space_rule\f[]
+extension is set.
+This is because example labels tend to be long, and indenting content to
+the first non\-space character after the label would be awkward.
 .SS Compact and loose lists
 .PP
 Pandoc behaves differently from \f[C]Markdown.pl\f[] on some "edge
@@ -3951,9 +3958,9 @@ The raw attribute cannot be combined with regular attributes.
 .SS LaTeX macros
 .SS Extension: \f[C]latex_macros\f[]
 .PP
-For output formats other than LaTeX, pandoc will parse LaTeX
-\f[C]\\newcommand\f[] and \f[C]\\renewcommand\f[] definitions and apply
-the resulting macros to all LaTeX math.
+For output formats other than LaTeX, pandoc will parse LaTeX macro
+definitions and apply the resulting macros to all LaTeX math and raw
+LaTeX.
 So, for example, the following will work in all output formats, not just
 LaTeX:
 .IP
@@ -3965,8 +3972,13 @@ $\\tuple{a,\ b,\ c}$
 \f[]
 .fi
 .PP
-In LaTeX output, the \f[C]\\newcommand\f[] definition will simply be
-passed unchanged to the output.
+In LaTeX output, the macro definitions will not be passed through as raw
+LaTeX.
+.PP
+When \f[C]latex_macros\f[] is disabled, the macro definitions will be
+passed through as raw LaTeX, and the raw LaTeX and math will not have
+macros applied.
+This is usually a better approach when you are targeting LaTeX or PDF.
 .SS Links
 .PP
 Markdown allows links to be specified in several ways.
@@ -4298,6 +4310,8 @@ Nonbreaking spaces are inserted after certain abbreviations, such as
 \f[C]commonmark\f[], \f[C]latex\f[], \f[C]mediawiki\f[], \f[C]org\f[],
 \f[C]rst\f[], and \f[C]twiki\f[], and the output formats
 \f[C]markdown\f[], \f[C]latex\f[], and \f[C]context\f[].
+It is enabled by default for \f[C]markdown\f[], \f[C]latex\f[], and
+\f[C]context\f[] (in both input and output).
 .PP
 Note: If you are \f[I]writing\f[] Markdown, then the \f[C]smart\f[]
 extension has the reverse effect: what would have been curly quotes
@@ -5395,26 +5409,26 @@ blocks and text using \f[C]div\f[]s and \f[C]span\f[]s, respectively.
 If you define a \f[C]div\f[] or \f[C]span\f[] with the attribute
 \f[C]custom\-style\f[], pandoc will apply your specified style to the
 contained elements.
-So, for example,
+So, for example using the \f[C]bracketed_spans\f[] syntax,
 .IP
 .nf
 \f[C]
-<span\ custom\-style="Emphatically">Get\ out,</span>\ he\ said.
+[Get\ out]{custom\-style="Emphatically"},\ he\ said.
 \f[]
 .fi
 .PP
-would produce a docx file with "Get out," styled with character style
+would produce a docx file with "Get out" styled with character style
 \f[C]Emphatically\f[].
-Similarly,
+Similarly, using the \f[C]fenced_divs\f[] syntax,
 .IP
 .nf
 \f[C]
 Dickinson\ starts\ the\ poem\ simply:
 
-<div\ custom\-style="Poetry">
+:::\ {custom\-style="Poetry"}
 |\ A\ Bird\ came\ down\ the\ Walk\-\-\-
 |\ He\ did\ not\ know\ I\ saw\-\-\-
-</div>
+:::
 \f[]
 .fi
 .PP
