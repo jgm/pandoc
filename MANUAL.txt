@@ -284,16 +284,9 @@ General options
     (`markdown_github` provides deprecated and less accurate support
     for Github-Flavored Markdown; please use `gfm` instead, unless you
     need to use extensions other than `smart`.)
-    If `+lhs` is appended to `markdown`, `rst`, `latex`, or
-    `html`, the input will be treated as literate Haskell source: see
-    [Literate Haskell support], below. Markdown
-    syntax extensions can be individually enabled or disabled by
-    appending `+EXTENSION` or `-EXTENSION` to the format name. So, for
-    example, `markdown_strict+footnotes+definition_lists` is strict
-    Markdown with footnotes and definition lists enabled, and
-    `markdown-pipe_tables+hard_line_breaks` is pandoc's Markdown
-    without pipe tables and with hard line breaks. See [Pandoc's
-    Markdown], below, for a list of extensions and
+    Extensions can be individually enabled or disabled by
+    appending `+EXTENSION` or `-EXTENSION` to the format name.
+    See [Extensions] below, for a list of extensions and
     their names.  See `--list-input-formats` and `--list-extensions`,
     below.
 
@@ -327,13 +320,10 @@ General options
     unless you use extensions that do not work with `gfm`.) Note that
     `odt`, `epub`, and `epub3` output will not be directed to
     *stdout*; an output filename must be specified using the
-    `-o/--output` option. If `+lhs` is appended to `markdown`, `rst`,
-    `latex`, `beamer`, `html4`, or `html5`, the output will be
-    rendered as literate Haskell source: see [Literate Haskell
-    support], below.  Markdown syntax extensions can be individually
-    enabled or disabled by appending `+EXTENSION` or `-EXTENSION` to
-    the format name, as described above under `-f`.  See
-    `--list-output-formats` and `--list-extensions`, below.
+    `-o/--output` option.  Extensions can be individually enabled or
+    disabled by appending `+EXTENSION` or `-EXTENSION` to the format
+    name.  See [Extensions] below, for a list of extensions and their
+    names.  See `--list-output-formats` and `--list-extensions`, below.
 
 `-o` *FILE*, `--output=`*FILE*
 
@@ -1698,6 +1688,269 @@ will be treated as a comment and ignored.
 
 [pandoc-templates]: https://github.com/jgm/pandoc-templates
 
+Extensions
+==========
+
+The behavior of some of the readers and writers can be adjusted by
+enabling or disabling various extensions.
+
+An extension can be enabled by adding `+EXTENSION`
+to the format name and disabled by adding `-EXTENSION`. For example,
+`--from markdown_strict+footnotes` is strict Markdown with footnotes
+enabled, while `--from markdown-footnotes-pipe_tables` is pandoc's
+Markdown without footnotes or pipe tables.
+
+The markdown reader and writer make by far the most use of extensions.
+Extensions only used by them are therefore covered in the
+section [Pandoc's Markdown] below (See [Markdown variants] for
+`commonmark` and `gfm`.) In the following, extensions that also work
+for other formats are covered.
+
+Typography
+----------
+
+#### Extension: `smart` ####
+
+Interpret straight quotes as curly quotes, `---` as em-dashes,
+`--` as en-dashes, and `...` as ellipses. Nonbreaking spaces are
+inserted after certain abbreviations, such as "Mr." 
+
+This extension can be enabled/disabled for the following formats:
+
+input formats
+:  `markdown`, `commonmark`, `latex`, `mediawiki`, `org`, `rst`, `twiki`
+
+output formats
+:  `markdown`, `latex`, `context`, `rst`
+
+enabled by default in
+:  `markdown`, `latex`, `context` (both input and output)
+
+Note: If you are *writing* Markdown, then the `smart` extension
+has the reverse effect: what would have been curly quotes comes
+out straight.
+
+In LaTeX, `smart` means to use the standard TeX ligatures
+for quotation marks (` `` ` and ` '' ` for double quotes,
+`` ` `` and `` ' `` for single quotes) and dashes (`--` for
+en-dash and `---` for em-dash).  If `smart` is disabled,
+then in reading LaTeX pandoc will parse these characters
+literally.  In writing LaTeX, enabling `smart` tells pandoc
+to use the ligatures when possible; if `smart` is disabled
+pandoc will use unicode quotation mark and dash characters.
+
+Headers and sections
+--------------------
+
+#### Extension: `auto_identifiers` ####
+
+A header without an explicitly specified identifier will be
+automatically assigned a unique identifier based on the header text.
+
+This extension can be enabled/disabled for the following formats:
+
+input formats
+:  `markdown`, `latex`, `rst`, `mediawiki`, `textile`
+
+output formats
+:  `markdown`, `muse`
+
+enabled by default in
+:  `markdown`, `muse`
+
+The algorithm used to derive the identifier from the header text is:
+
+  - Remove all formatting, links, etc.
+  - Remove all footnotes.
+  - Remove all punctuation, except underscores, hyphens, and periods.
+  - Replace all spaces and newlines with hyphens.
+  - Convert all alphabetic characters to lowercase.
+  - Remove everything up to the first letter (identifiers may
+    not begin with a number or punctuation mark).
+  - If nothing is left after this, use the identifier `section`.
+
+Thus, for example,
+
+  Header                            Identifier
+  -------------------------------   ----------------------------
+  `Header identifiers in HTML`      `header-identifiers-in-html`
+  `*Dogs*?--in *my* house?`         `dogs--in-my-house`
+  `[HTML], [S5], or [RTF]?`         `html-s5-or-rtf`
+  `3. Applications`                 `applications`
+  `33`                              `section`
+
+These rules should, in most cases, allow one to determine the identifier
+from the header text. The exception is when several headers have the
+same text; in this case, the first will get an identifier as described
+above; the second will get the same identifier with `-1` appended; the
+third with `-2`; and so on.
+
+These identifiers are used to provide link targets in the table of
+contents generated by the `--toc|--table-of-contents` option. They
+also make it easy to provide links from one section of a document to
+another. A link to this section, for example, might look like this:
+
+    See the section on
+    [header identifiers](#header-identifiers-in-html-latex-and-context).
+
+Note, however, that this method of providing links to sections works
+only in HTML, LaTeX, and ConTeXt formats.
+
+If the `--section-divs` option is specified, then each section will
+be wrapped in a `div` (or a `section`, if `html5` was specified),
+and the identifier will be attached to the enclosing `<div>`
+(or `<section>`) tag rather than the header itself. This allows entire
+sections to be manipulated using JavaScript or treated differently in
+CSS.
+
+#### Extension: `ascii_identifiers` ####
+
+Causes the identifiers produced by `auto_identifiers` to be pure ASCII.
+Accents are stripped off of accented Latin letters, and non-Latin
+letters are omitted.
+
+Math Input
+----------
+
+The extensions [`tex_math_dollars`](#extension-tex_math_dollars),
+[`tex_math_single_backslash`](#extension-tex_math_single_backslash), and
+[`tex_math_double_backslash`](#extension-tex_math_double_backslash)
+are described in the section about Pandoc's Markdown.
+
+However, they can also be used with HTML input. This is handy for
+reading web pages formatted using MathJax, for example.
+
+Raw HTML/TeX
+------------
+
+The following extensions (especially how they affect Markdown
+input/output) are also described in more detail in their respective
+sections of [Pandoc's Markdown].
+
+#### [Extension: `raw_html`] {#raw_html}
+
+When converting from HTML, parse elements to raw HTML which are not
+representable in pandoc's AST.
+By default, this is disabled for HTML input.
+
+#### [Extension: `raw_tex`] {#raw_tex}
+
+Allows raw LaTeX, TeX, and ConTeXt to be included in a document.
+
+This extension can be enabled/disabled for the following formats
+(in addition to `markdown`):
+
+input formats
+:  `latex`, `org`, `textile`
+
+output formats
+:  `textile`
+
+#### [Extension: `native_divs`] {#native_divs}
+
+This extension is enabled by default for HTML input. This means that
+`div`s are parsed to pandoc native elements. (Alternatively, you
+can parse them to raw HTML using `-f html-native_divs+raw_html`.)
+
+When converting HTML to Markdown, for example, you may want to drop all
+`div`s and `span`s:
+
+    pandoc -f html-native_divs-native_spans -t markdown
+
+#### [Extension: `native_spans`] {#native_spans}
+
+Analogous to `native_divs` above.
+
+
+Literate Haskell support
+------------------------
+
+#### Extension: `literate_haskell` ####
+
+Treat the document as literate Haskell source.
+
+This extension can be enabled/disabled for the following formats:
+
+input formats
+:  `markdown`, `rst`, `latex`
+
+output formats
+:  `markdown`, `rst`, `latex`, `html`
+
+If you append `+lhs` (or `+literate_haskell`) to one of the formats
+above, pandoc will treat the document as literate Haskell source.
+This means that
+
+  - In Markdown input, "bird track" sections will be parsed as Haskell
+    code rather than block quotations.  Text between `\begin{code}`
+    and `\end{code}` will also be treated as Haskell code.  For
+    ATX-style headers the character '=' will be used instead of '#'.
+
+  - In Markdown output, code blocks with classes `haskell` and `literate`
+    will be rendered using bird tracks, and block quotations will be
+    indented one space, so they will not be treated as Haskell code.
+    In addition, headers will be rendered setext-style (with underlines)
+    rather than ATX-style (with '#' characters). (This is because ghc
+    treats '#' characters in column 1 as introducing line numbers.)
+
+  - In restructured text input, "bird track" sections will be parsed
+    as Haskell code.
+
+  - In restructured text output, code blocks with class `haskell` will
+    be rendered using bird tracks.
+
+  - In LaTeX input, text in `code` environments will be parsed as
+    Haskell code.
+
+  - In LaTeX output, code blocks with class `haskell` will be rendered
+    inside `code` environments.
+
+  - In HTML output, code blocks with class `haskell` will be rendered
+    with class `literatehaskell` and bird tracks.
+
+Examples:
+
+    pandoc -f markdown+lhs -t html
+
+reads literate Haskell source formatted with Markdown conventions and writes
+ordinary HTML (without bird tracks).
+
+    pandoc -f markdown+lhs -t html+lhs
+
+writes HTML with the Haskell code in bird tracks, so it can be copied
+and pasted as literate Haskell source.
+
+Note that GHC expects the bird tracks in the first column, so indentend literate
+code blocks (e.g. inside an itemized environment) will not be picked up by the
+Haskell compiler.
+
+Other extensions
+----------------
+
+#### Extension: `empty_paragraphs` ####
+
+Allows empty paragraphs.  By default empty paragraphs are
+omitted.
+
+This extension can be enabled/disabled for the following formats:
+
+input formats
+:  `docx`, `html`
+
+output formats
+:  `markdown`, `docx`, `odt`, `opendocument`, `html`
+
+#### Extension: `amuse` ####
+
+In the `muse` input format, this enables Text::Amuse
+extensions to Emacs Muse markup.
+
+#### Extension: `citations` {#org-citations}
+
+Some aspects of [Pandoc's Markdown citation syntax](#citations) are also accepted
+in `org` input.
+
+
 Pandoc's Markdown
 =================
 
@@ -1705,11 +1958,9 @@ Pandoc understands an extended and slightly revised version of
 John Gruber's [Markdown] syntax.  This document explains the syntax,
 noting differences from standard Markdown. Except where noted, these
 differences can be suppressed by using the `markdown_strict` format instead
-of `markdown`.  An extensions can be enabled by adding `+EXTENSION`
-to the format name and disabled by adding `-EXTENSION`. For example,
-`markdown_strict+footnotes` is strict Markdown with footnotes
-enabled, while `markdown-footnotes-pipe_tables` is pandoc's
-Markdown without footnotes or pipe tables.
+of `markdown`. Extensions can be enabled or disabled to specify the
+behavior more granularly. They are described in the following. See also
+[Extensions] above, for extensions that work also on other formats.
 
 Philosophy
 ----------
@@ -1801,6 +2052,8 @@ pandoc does require the space.
 
 ### Header identifiers ###
 
+See also the [`auto_identifiers` extension](#extension-auto_identifiers) above.
+
 #### Extension: `header_attributes` ####
 
 Headers can be assigned attributes using this syntax at the end
@@ -1836,55 +2089,6 @@ documents.  So,
 is just the same as
 
     # My header {.unnumbered}
-
-#### Extension: `auto_identifiers` ####
-
-A header without an explicitly specified identifier will be
-automatically assigned a unique identifier based on the header text.
-To derive the identifier from the header text,
-
-  - Remove all formatting, links, etc.
-  - Remove all footnotes.
-  - Remove all punctuation, except underscores, hyphens, and periods.
-  - Replace all spaces and newlines with hyphens.
-  - Convert all alphabetic characters to lowercase.
-  - Remove everything up to the first letter (identifiers may
-    not begin with a number or punctuation mark).
-  - If nothing is left after this, use the identifier `section`.
-
-Thus, for example,
-
-  Header                            Identifier
-  -------------------------------   ----------------------------
-  `Header identifiers in HTML`      `header-identifiers-in-html`
-  `*Dogs*?--in *my* house?`         `dogs--in-my-house`
-  `[HTML], [S5], or [RTF]?`         `html-s5-or-rtf`
-  `3. Applications`                 `applications`
-  `33`                              `section`
-
-These rules should, in most cases, allow one to determine the identifier
-from the header text. The exception is when several headers have the
-same text; in this case, the first will get an identifier as described
-above; the second will get the same identifier with `-1` appended; the
-third with `-2`; and so on.
-
-These identifiers are used to provide link targets in the table of
-contents generated by the `--toc|--table-of-contents` option. They
-also make it easy to provide links from one section of a document to
-another. A link to this section, for example, might look like this:
-
-    See the section on
-    [header identifiers](#header-identifiers-in-html-latex-and-context).
-
-Note, however, that this method of providing links to sections works
-only in HTML, LaTeX, and ConTeXt formats.
-
-If the `--section-divs` option is specified, then each section will
-be wrapped in a `div` (or a `section`, if `html5` was specified),
-and the identifier will be attached to the enclosing `<div>`
-(or `<section>`) tag rather than the header itself. This allows entire
-sections to be manipulated using JavaScript or treated differently in
-CSS.
 
 #### Extension: `implicit_header_references` ####
 
@@ -3028,8 +3232,6 @@ HTML, Slidy, DZSlides, S5, EPUB
     command-line options selected. Therefore see [Math rendering in HTML]
     above.
 
-This extension can be used with both `markdown` and `html` input.
-
 [interpreted text role `:math:`]: http://docutils.sourceforge.net/docs/ref/rst/roles.html#math
 
 Raw HTML
@@ -3457,33 +3659,6 @@ they cannot contain multiple paragraphs).  The syntax is as follows:
 
 Inline and regular footnotes may be mixed freely.
 
-Typography
-----------
-
-#### Extension: `smart` ####
-
-Interpret straight quotes as curly quotes, `---` as em-dashes,
-`--` as en-dashes, and `...` as ellipses. Nonbreaking spaces are
-inserted after certain abbreviations, such as "Mr."  This
-option currently affects the input formats `markdown`,
-`commonmark`, `latex`, `mediawiki`, `org`, `rst`, and `twiki`,
-and the output formats `markdown`, `latex`, and `context`.
-It is enabled by default for `markdown`, `latex`, and `context`
-(in both input and output).
-
-Note: If you are *writing* Markdown, then the `smart` extension
-has the reverse effect: what would have been curly quotes comes
-out straight.
-
-In LaTeX, `smart` means to use the standard TeX ligatures
-for quotation marks (` `` ` and ` '' ` for double quotes,
-`` ` `` and `` ' `` for single quotes) and dashes (`--` for
-en-dash and `---` for em-dash).  If `smart` is disabled,
-then in reading LaTeX pandoc will parse these characters
-literally.  In writing LaTeX, enabling `smart` tells pandoc
-to use the ligatures when possible; if `smart` is disabled
-pandoc will use unicode quotation mark and dash characters.
-
 Citations
 ---------
 
@@ -3746,8 +3921,6 @@ TeX math, and anything between `\[` and `\]` to be interpreted
 as display TeX math.  Note: a drawback of this extension is that
 it precludes escaping `(` and `[`.
 
-This extension can be used with both `markdown` and `html` input.
-
 #### Extension: `tex_math_double_backslash` ####
 
 Causes anything between `\\(` and `\\)` to be interpreted as inline
@@ -3789,12 +3962,6 @@ simply skipped (as opposed to being parsed as paragraphs).
 
 Makes all absolute URIs into links, even when not surrounded by
 pointy braces `<...>`.
-
-#### Extension: `ascii_identifiers` ####
-
-Causes the identifiers produced by `auto_identifiers` to be pure ASCII.
-Accents are stripped off of accented Latin letters, and non-Latin
-letters are omitted.
 
 #### Extension: `mmd_link_attributes` ####
 
@@ -3839,12 +4006,6 @@ in several respects:
     we must either disallow lazy wrapping or require a blank line between
     list items.
 
-#### Extension: `empty_paragraphs` ####
-
-Allows empty paragraphs.  By default empty paragraphs are
-omitted.  This affects the `docx` reader and writer, the
-`opendocument` and `odt` writer, and all HTML-based readers and writers.
-
 Markdown variants
 -----------------
 
@@ -3878,33 +4039,20 @@ variants are supported:
 :   `raw_html`, `shortcut_reference_links`,
     `spaced_reference_links`.
 
-We also support `gfm` (GitHub-Flavored Markdown) as a set of
-extensions on `commonmark`:
+We also support `commonmark` and `gfm` (GitHub-Flavored Markdown,
+which is implemented as a set of extensions on `commonmark`).
 
+Note, however, that `commonmark` and `gfm` have limited support
+for extensions. Only those  listed below (and `smart` and
+`raw_tex`) will work. The extensions can, however, all be
+individually disabled.
+Also, `raw_tex` only affects `gfm` output, not input.
+
+`gfm` (GitHub-Flavored Markdown)
 :   `pipe_tables`, `raw_html`, `fenced_code_blocks`, `auto_identifiers`,
     `ascii_identifiers`, `backtick_code_blocks`, `autolink_bare_uris`,
     `intraword_underscores`, `strikeout`, `hard_line_breaks`, `emoji`,
     `shortcut_reference_links`, `angle_brackets_escapable`.
-
-    These can all be individually disabled. Note, however, that
-    `commonmark` and `gfm` have limited support for extensions:
-    extensions other than those listed above (and `smart` and
-    `raw_tex`) will have no effect on `commonmark` or `gfm`.
-    And `raw_tex` only affects `gfm` output, not input.
-
-Extensions with formats other than Markdown
--------------------------------------------
-
-Some of the extensions discussed above can be used with formats
-other than Markdown:
-
-* `auto_identifiers` can be used with `latex`, `rst`, `mediawiki`,
-  and `textile` input (and is used by default).
-
-* `tex_math_dollars`, `tex_math_single_backslash`, and
-  `tex_math_double_backslash` can be used with `html` input.
-  (This is handy for reading web pages formatted using MathJax,
-  for example.)
 
 Producing slide shows with pandoc
 =================================
@@ -4256,57 +4404,6 @@ with the `src` attribute.  For example:
               data-external="1" type="audio/mpeg">
       </source>
     </audio>
-
-Literate Haskell support
-========================
-
-If you append `+lhs` (or `+literate_haskell`) to an appropriate input or output
-format (`markdown`, `markdown_strict`, `rst`, or `latex` for input or output;
-`beamer`, `html4` or `html5` for output only), pandoc will treat the document as
-literate Haskell source. This means that
-
-  - In Markdown input, "bird track" sections will be parsed as Haskell
-    code rather than block quotations.  Text between `\begin{code}`
-    and `\end{code}` will also be treated as Haskell code.  For
-    ATX-style headers the character '=' will be used instead of '#'.
-
-  - In Markdown output, code blocks with classes `haskell` and `literate`
-    will be rendered using bird tracks, and block quotations will be
-    indented one space, so they will not be treated as Haskell code.
-    In addition, headers will be rendered setext-style (with underlines)
-    rather than ATX-style (with '#' characters). (This is because ghc
-    treats '#' characters in column 1 as introducing line numbers.)
-
-  - In restructured text input, "bird track" sections will be parsed
-    as Haskell code.
-
-  - In restructured text output, code blocks with class `haskell` will
-    be rendered using bird tracks.
-
-  - In LaTeX input, text in `code` environments will be parsed as
-    Haskell code.
-
-  - In LaTeX output, code blocks with class `haskell` will be rendered
-    inside `code` environments.
-
-  - In HTML output, code blocks with class `haskell` will be rendered
-    with class `literatehaskell` and bird tracks.
-
-Examples:
-
-    pandoc -f markdown+lhs -t html
-
-reads literate Haskell source formatted with Markdown conventions and writes
-ordinary HTML (without bird tracks).
-
-    pandoc -f markdown+lhs -t html+lhs
-
-writes HTML with the Haskell code in bird tracks, so it can be copied
-and pasted as literate Haskell source.
-
-Note that GHC expects the bird tracks in the first column, so indentend literate
-code blocks (e.g. inside an itemized environment) will not be picked up by the
-Haskell compiler.
 
 Syntax highlighting
 ===================
