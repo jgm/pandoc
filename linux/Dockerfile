@@ -7,14 +7,16 @@ RUN apk update
 RUN apk add alpine-sdk git ca-certificates ghc cabal stack zlib-dev \
     dpkg fakeroot sed gawk grep bash linux-headers
 RUN stack update
-RUN stack config set system-ghc --global true
+RUN stack upgrade
+RUN $HOME/.local/bin/stack config set system-ghc --global true
 #RUN mkdir -p /etc/stack
 #RUN echo "build: { split-objs: true }" > /etc/stack/config.yaml
 RUN mkdir -p /usr/src/
 WORKDIR /usr/src/
 RUN git clone https://github.com/jgm/pandoc
 WORKDIR /usr/src/pandoc
-RUN stack install --compiler 'ghc-8.0.2' --only-dependencies \
+RUN $HOME/.local/bin/stack install --compiler 'ghc-8.0.2' \
+    --only-dependencies \
     --flag 'pandoc:static' \
     --flag 'pandoc:embed_data_files' \
     --flag 'pandoc-citeproc:static' \
@@ -24,7 +26,7 @@ RUN stack install --compiler 'ghc-8.0.2' --only-dependencies \
     pandoc pandoc-citeproc
 CMD git pull && \
     git checkout -b work $TREE && \
-    stack install --compiler 'ghc-8.0.2' \
+    $HOME/.local/bin/stack install --compiler 'ghc-8.0.2' \
       --flag 'pandoc:static' \
       --flag 'pandoc:embed_data_files' \
       --flag 'pandoc-citeproc:static' \
