@@ -14,7 +14,7 @@ RUN mkdir -p /usr/src/
 WORKDIR /usr/src/
 RUN git clone https://github.com/jgm/pandoc
 WORKDIR /usr/src/pandoc
-RUN stack install --stack-yaml stack.pkg.yaml --only-dependencies \
+RUN stack install --compiler 'ghc-8.0.2' --only-dependencies \
     --flag 'pandoc:static' \
     --flag 'pandoc:embed_data_files' \
     --flag 'pandoc-citeproc:static' \
@@ -24,7 +24,7 @@ RUN stack install --stack-yaml stack.pkg.yaml --only-dependencies \
     pandoc pandoc-citeproc
 CMD git pull && \
     git checkout -b work $TREE && \
-    stack install --stack-yaml stack.pkg.yaml \
+    stack install --compiler 'ghc-8.0.2' \
       --flag 'pandoc:static' \
       --flag 'pandoc:embed_data_files' \
       --flag 'pandoc-citeproc:static' \

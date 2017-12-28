@@ -1,5 +1,5 @@
 @echo off
-stack install --test --ghc-options="-O2" --stack-yaml=..\stack.pkg.yml
+stack install --test --ghc-options="-O2" --stack-yaml=..\stack.yaml
 if %errorlevel% neq 0 exit /b %errorlevel%
 for /f "delims=" %%a in ('stack path --local-bin-path') do @set BINPATH=%%a
 %BINPATH%\pandoc.exe -s --toc ..\MANUAL.txt -o MANUAL.html

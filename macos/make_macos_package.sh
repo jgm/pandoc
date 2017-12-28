@@ -27,7 +27,7 @@ stack setup
 
 echo Building pandoc...
 stack clean
-stack install --ghc-options="-O2" --stack-yaml=stack.pkg.yaml --local-bin-path $DEST/bin/ pandoc pandoc-citeproc
+stack install --ghc-options="-O2" --local-bin-path $DEST/bin/ pandoc pandoc-citeproc
 
 strip $DEST/bin/pandoc
 strip $DEST/bin/pandoc-citeproc
