@@ -78,7 +78,7 @@ module Text.Pandoc.Class ( PandocMonad(..)
                          , getResourcePath
                          , PandocIO(..)
                          , PandocPure(..)
-                         , FileTree(..)
+                         , FileTree
                          , FileInfo(..)
                          , addToFileTree
                          , insertInFileTree
