@@ -6,11 +6,10 @@ module Tests.Writers.Powerpoint.PureData ( pureFileTree
 import Data.ByteString (ByteString)
 import Data.ByteString.Base64
 import Text.Pandoc.Class
-import qualified Data.Map as M
 import Data.Time.Clock.POSIX
 
 pureFileTree :: FileTree
-pureFileTree = FileTree $ M.fromList [ ("/fakefs/img/lalune.jpg", imgFileInfo) ]
+pureFileTree = insertInFileTree "/fakefs/img/lalune.jpg" imgFileInfo mempty
 
 imgFileInfo :: FileInfo
 imgFileInfo = FileInfo { infoFileMTime = posixSecondsToUTCTime 0
