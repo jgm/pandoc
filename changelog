@@ -13,6 +13,9 @@ pandoc (2.0.6)
 
   * Allow `--list-extensions` to take an optional FORMAT argument.
     This lists the extensions set by default for the selected FORMAT.
+    The extensions are now alphabetized, and the `+` or `-`
+    indicating the default setting comes before, rather than after,
+    the extension.
 
   * Markdown reader:
 
@@ -49,6 +52,8 @@ pandoc (2.0.6)
       Markdown reader when parsing raw LaTeX with escaped spaces.
     + Add tests of LaTeX tokenizer.
     + Support `\foreignlanguage` from babel.
+    + Be more tolerant of `&` character (#4208).  This allows us to parse
+      unknown tabular environments as raw LaTeX.
 
   * Muse reader (Alexander Krotov):
 
@@ -59,6 +64,12 @@ pandoc (2.0.6)
   * Org reader (Albert Krewinkel):
 
     + Fix asterisks-related parsing error (#4180).
+    + Support minlevel option for includes (#4154).  The level of headers
+      in included files can be shifted to a higher level by specifying a
+      minimum header level via the `:minlevel` parameter. E.g.
+      `#+include: "tour.org" :minlevel 1` will shift the headers in
+      tour.org such that the topmost headers become level 1 headers.
+    + Break-up org reader test file into multiple modules.
 
   * OPML reader:
 
@@ -108,6 +119,8 @@ pandoc (2.0.6)
     + Don't look for default template file for Powerpoint (#4181).
     + Add pptx to isTextFormat list.  This is used to check standalone
       and not writing to the terminal.
+    + Obey slide level option (Jesse Rosenthal).
+    + Introduce tests.
 
   * Docx writer:
 
@@ -142,6 +155,12 @@ pandoc (2.0.6)
       This avoids a clash with a deprecated `\textlatin` command defined
       in Babel.
     + Allow fragile=singleslide attribute in beamer slides (#4169).
+    + Use `\endhead` after `\toprule` in headerless tables (#4207).
+
+  * FB2 writer:
+
+    + Add cover image specified by `cover-image` meta (Alexander Krotov,
+      #4195).
 
   * JATS writer (Hamish Mackenzie):
 
@@ -198,9 +217,16 @@ pandoc (2.0.6)
     + pandoc.lua: re-add missing MetaMap function.  This was a bug
       introduced in version 2.0.4.
 
+  * Text.Pandoc.Class: Add `insertInFileTree` [API change].  This gives
+    a pure way to insert an ersatz file into a `FileTree`.  In addition, we
+    normalize paths both on insertion and on lookup.
+
   * Text.Pandoc.Shared: export `blocksToInlines'` (API change, Maura Bieg).
 
   * Text.Pandoc.MIME: Add opus to MIME type table as audio/ogg (#4198).
+
+  * Text.Pandoc.Extensions:   Alphabetical order constructors for
+    `Extension`.  This makes them appear in order in `--list-extensions`.
 
   * Allow lenient decoding of latex error logs, which are not always
     properly UTF8-encoded (#4200).
@@ -217,12 +243,23 @@ pandoc (2.0.6)
   * Removed `default.theme` data file (#4096).  It is no longer needed now
     that we have `--print-highlight-style`.
 
+  * Added `stack.lts9.yaml` for building with lts 9 and ghc 8.0.2.
+    We still need this for the alpine static linux build, since
+    we don't have ghc 8.2.2 for that yet.
+
+  * Removed `stack.pkg.yaml`.  We only really need `stack.yaml`; we
+    can put flag settings for pandoc-citeproc there.
+
+  * Makefile: Add 'trypandoc' and 'pandoc-templates' targets to
+    make releases easier.
+
   * MANUAL.txt:
 
     + Add note on what formats have `+smart` by default.
     + Use native syntax for custom-style (#4174, Mauro Bieg).
     + Introduce dedicated Extensions section, since some extensions
       affect formats other than markdown (Mauro Bieg, #4204).
+    + Clarify default html output for `--section-divs` (Richard Edwards).
 
   * filters.md: say that Text.Pandoc.JSON comes form pandoc-types.
     Closes jgm/pandoc-website#16.
