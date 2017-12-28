@@ -2,47 +2,36 @@
 
 module Tests.Writers.Powerpoint (tests) where
 
+import Control.Exception (throwIO)
 import Text.Pandoc
 import Text.Pandoc.Builder
 import Test.Tasty
 import Test.Tasty.HUnit
 import Codec.Archive.Zip
-import Tests.Writers.Powerpoint.PureData (pureFileTree)
 import Data.List (isPrefixOf, isSuffixOf)
-
-data PowerpointTestError = ErrorFromPandoc PandocError
-                         | ErrorFromZipArchive String
-                         deriving (Show)
-
-fromPandoc :: Either PandocError a -> Either PowerpointTestError a
-fromPandoc x = case x of
-  Right r -> Right r
-  Left e -> Left $ ErrorFromPandoc e
-
-fromZipArchive :: Either String a -> Either PowerpointTestError a
-fromZipArchive x = case x of
-  Right r -> Right r
-  Left s -> Left $ ErrorFromZipArchive s
 
 ----- Number of Slides -----------
 
-numberOfSlides :: WriterOptions -> Pandoc -> Either PowerpointTestError Int
+numberOfSlides :: WriterOptions -> Pandoc -> IO Int
 numberOfSlides opts pd = do
-  bs <- fromPandoc $ runPure $
-        do modifyPureState (\st -> st {stFiles = pureFileTree})
+  mbs <- runIO $
+        do setUserDataDir $ Just "../data"
            writePowerpoint opts pd
-  archive <- fromZipArchive $ toArchiveOrFail bs
-  return $
-    length $
-    filter (isSuffixOf ".xml") $
-    filter (isPrefixOf "ppt/slides/slide") $
-    filesInArchive archive
+  case mbs of
+       Left e   -> throwIO e
+       Right bs -> do
+         let archive = toArchive bs
+         return $
+           length $
+           filter (isSuffixOf ".xml") $
+           filter (isPrefixOf "ppt/slides/slide") $
+           filesInArchive archive
 
 testNumberOfSlides :: TestName -> Int -> WriterOptions -> Pandoc -> TestTree
 testNumberOfSlides name n opts pd =
-  testCase name $ case numberOfSlides opts pd of
-                    Right n' -> n' @=? n
-                    Left e -> assertBool (show e) False
+  testCase name $ do
+    n' <- numberOfSlides opts pd
+    n' @=? n
 
 numSlideTests :: TestTree
 numSlideTests = testGroup "Number of slides in output"
@@ -75,7 +64,7 @@ numSlideTests = testGroup "Number of slides in output"
     def
     (doc $
       para "first slide" <>
-      (para $ image "/fakefs/img/lalune.jpg" "" "") <>
+      (para $ image "lalune.jpg" "" "") <>
       para "foo")
   , testNumberOfSlides
     "With image slide, header" 3
@@ -83,7 +72,7 @@ numSlideTests = testGroup "Number of slides in output"
     (doc $
       para "first slide" <>
       header 2 "image header" <>
-      (para $ image "/fakefs/img/lalune.jpg" "" "") <>
+      (para $ image "lalune.jpg" "" "") <>
       para "foo")
   , testNumberOfSlides
     "With table, no header" 3

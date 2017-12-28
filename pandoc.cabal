@@ -673,7 +673,6 @@ test-suite test-pandoc
                   Tests.Writers.Muse
                   Tests.Writers.FB2
                   Tests.Writers.Powerpoint
-                  Tests.Writers.Powerpoint.PureData
   ghc-options:  -rtsopts -Wall -fno-warn-unused-do-bind -threaded
   default-language: Haskell98
 

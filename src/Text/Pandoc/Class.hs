@@ -145,6 +145,8 @@ import System.Directory (createDirectoryIfMissing, getDirectoryContents,
 import System.FilePath ((</>), (<.>), takeDirectory,
          takeExtension, dropExtension, isRelative, normalise)
 import qualified System.FilePath.Glob as IO (glob)
+import qualified System.FilePath.Posix as Posix
+import System.FilePath (splitDirectories)
 import qualified System.Directory as IO (getModificationTime)
 import Control.Monad as M (fail)
 import Control.Monad.State.Strict
@@ -161,8 +163,6 @@ import Text.Pandoc.Translations (Term(..), Translations, lookupTerm,
 import qualified Debug.Trace
 #ifdef EMBED_DATA_FILES
 import Text.Pandoc.Data (dataFiles)
-import qualified System.FilePath.Posix as Posix
-import System.FilePath (splitDirectories)
 #else
 import qualified Paths_pandoc as Paths
 #endif
