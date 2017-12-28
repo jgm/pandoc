@@ -86,6 +86,9 @@ writePowerpoint opts (Pandoc meta blks) = do
                 , envDistArchive = distArchive
                 , envUTCTime = utctime
                 , envOpts = opts
+                , envSlideLevel = case writerSlideLevel opts of
+                                    Just n -> n
+                                    Nothing -> 2
                 }
   runP env def $ do pres <- blocksToPresentation blks'
                     archv <- presentationToArchive pres
