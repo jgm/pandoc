@@ -4,7 +4,7 @@ module Tests.Readers.Org.Inline.Smart (tests) where
 import Data.Text (Text)
 import Test.Tasty (TestTree)
 import Tests.Helpers ((=?>), purely, test)
-import Text.Pandoc (Pandoc, ReaderOptions (readerExtensions),
+import Text.Pandoc (ReaderOptions (readerExtensions),
                     Extension (Ext_smart), def, enableExtension,
                     getDefaultExtensions, readOrg)
 import Text.Pandoc.Builder
