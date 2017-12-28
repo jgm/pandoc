@@ -386,9 +386,11 @@ List supported output formats, one per line.
 .RE
 .TP
 .B \f[C]\-\-list\-extensions\f[][\f[C]=\f[]\f[I]FORMAT\f[]]
-List supported Markdown extensions, one per line, followed by a
+List supported Markdown extensions, one per line, preceded by a
 \f[C]+\f[] or \f[C]\-\f[] indicating whether it is enabled by default in
-\f[I]FORMAT\f[] (defaulting to pandoc\[aq]s Markdown).
+\f[I]FORMAT\f[].
+If \f[I]FORMAT\f[] is not specified, defaults for pandoc\[aq]s Markdown
+are given.
 .RS
 .RE
 .TP
@@ -938,9 +940,9 @@ document; see Structuring the slide show.
 .RE
 .TP
 .B \f[C]\-\-section\-divs\f[]
-Wrap sections in \f[C]<div>\f[] tags (or \f[C]<section>\f[] tags in
-HTML5), and attach identifiers to the enclosing \f[C]<div>\f[] (or
-\f[C]<section>\f[]) rather than the header itself.
+Wrap sections in \f[C]<section>\f[] tags (or \f[C]<div>\f[] tags for
+\f[C]html4\f[]), and attach identifiers to the enclosing
+\f[C]<section>\f[] (or \f[C]<div>\f[]) rather than the header itself.
 See Header identifiers, below.
 .RS
 .RE
@@ -2183,9 +2185,9 @@ Note, however, that this method of providing links to sections works
 only in HTML, LaTeX, and ConTeXt formats.
 .PP
 If the \f[C]\-\-section\-divs\f[] option is specified, then each section
-will be wrapped in a \f[C]div\f[] (or a \f[C]section\f[], if
-\f[C]html5\f[] was specified), and the identifier will be attached to
-the enclosing \f[C]<div>\f[] (or \f[C]<section>\f[]) tag rather than the
+will be wrapped in a \f[C]section\f[] (or a \f[C]div\f[], if
+\f[C]html4\f[] was specified), and the identifier will be attached to
+the enclosing \f[C]<section>\f[] (or \f[C]<div>\f[]) tag rather than the
 header itself.
 This allows entire sections to be manipulated using JavaScript or
 treated differently in CSS.
