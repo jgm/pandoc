@@ -61,6 +61,10 @@ matrix:
 
   # The Stack builds. We can pass in arbitrary Stack arguments via the ARGS
   # variable, such as using --stack-yaml to point to a different file.
+  - env: BUILD=stack ARGS="--stack-yaml stack.lts9.yaml" OPTS="-Wall -Wincomplete-record-updates -Wnoncanonical-monad-instances -Wnoncanonical-monadfail-instances -fno-warn-unused-do-bind -Werror"
+    compiler: ": #stack 8.0.2"
+    addons: {apt: {packages: [ghc-8.0.2], sources: [hvr-ghc]}}
+
   - env: BUILD=stack ARGS="--resolver lts-10" OPTS="-Wall -Wincomplete-record-updates -Wnoncanonical-monad-instances -Wnoncanonical-monadfail-instances -fno-warn-unused-do-bind -Werror"
     compiler: ": #stack 8.2.2"
     addons: {apt: {packages: [ghc-8.2.2], sources: [hvr-ghc]}}
@@ -107,6 +111,7 @@ install:
   case "$BUILD" in
     stack)
       ulimit -n 4096
+      stack config set system-ghc --global true
       stack --no-terminal --install-ghc $ARGS build --only-dependencies --fast --flag 'pandoc:embed_data_files' --flag 'aeson:fast' --jobs 2
       ;;
     cabal)
@@ -121,6 +126,7 @@ script:
   case "$BUILD" in
     stack)
       ulimit -n 4096
+      stack config set system-ghc --global true
       stack --no-terminal $ARGS test --fast --flag 'aeson:fast' --flag pandoc:embed_data_files --haddock --no-haddock-deps --ghc-options="$OPTS"
       ;;
     cabal)
