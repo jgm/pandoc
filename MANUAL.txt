@@ -855,8 +855,8 @@ Options affecting specific writers
 
 `--section-divs`
 
-:   Wrap sections in `<div>` tags (or `<section>` tags in HTML5),
-    and attach identifiers to the enclosing `<div>` (or `<section>`)
+:   Wrap sections in `<section>` tags (or `<div>` tags for `html4`),
+    and attach identifiers to the enclosing `<section>` (or `<div>`)
     rather than the header itself. See
     [Header identifiers], below.
 
@@ -1798,9 +1798,9 @@ Note, however, that this method of providing links to sections works
 only in HTML, LaTeX, and ConTeXt formats.
 
 If the `--section-divs` option is specified, then each section will
-be wrapped in a `div` (or a `section`, if `html5` was specified),
-and the identifier will be attached to the enclosing `<div>`
-(or `<section>`) tag rather than the header itself. This allows entire
+be wrapped in a `section` (or a `div`, if `html4` was specified),
+and the identifier will be attached to the enclosing `<section>`
+(or `<div>`) tag rather than the header itself. This allows entire
 sections to be manipulated using JavaScript or treated differently in
 CSS.
 
