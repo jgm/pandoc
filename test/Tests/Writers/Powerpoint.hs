@@ -2,14 +2,11 @@
 
 module Tests.Writers.Powerpoint (tests) where
 
-import Text.Pandoc.Writers.Powerpoint (writePowerpoint)
 import Text.Pandoc
 import Text.Pandoc.Builder
--- import Text.Pandoc.Error (PandocError(..))
 import Test.Tasty
 import Test.Tasty.HUnit
 import Codec.Archive.Zip
-import Text.Pandoc.Class (runPure)
 import Tests.Writers.Powerpoint.PureData (pureFileTree)
 import Data.List (isPrefixOf, isSuffixOf)
 
