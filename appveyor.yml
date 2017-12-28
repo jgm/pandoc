@@ -2,7 +2,7 @@ clone_folder: "c:\\pandoc"
 environment:
   global:
     WIXBIN: "c:\\Program Files (x86)\\WiX Toolset v3.11\\bin"
-    STACK_YAML: "c:\\pandoc\\stack.pkg.yaml"
+    STACK_YAML: "c:\\pandoc\\stack.yaml"
     STACK_BUILD_OPTS: "-j1 --no-terminal --test --local-bin-path=.\\windows"
   matrix:
   - STACK_VERSION: "windows-i386"
