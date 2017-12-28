@@ -53,7 +53,6 @@ runLuaFilter filterPath format doc =
 runLuaFilter' :: FilePath -> String
               -> Pandoc -> Lua Pandoc
 runLuaFilter' filterPath format pd = do
-  -- store module in global "pandoc"
   registerFormat
   top <- Lua.gettop
   stat <- Lua.dofile filterPath

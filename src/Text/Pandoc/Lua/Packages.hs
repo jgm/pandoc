@@ -78,7 +78,8 @@ pandocPackageSearcher luaPkgParams pkgName =
     "pandoc.mediabag" -> let st    = luaPkgCommonState luaPkgParams
                              mbRef = luaPkgMediaBag luaPkgParams
                          in pushWrappedHsFun (MediaBag.pushModule st mbRef)
-    "pandoc.utils"    -> pushWrappedHsFun Utils.pushModule
+    "pandoc.utils"    -> let datadirMb = luaPkgDataDir luaPkgParams
+                         in pushWrappedHsFun (Utils.pushModule datadirMb)
     _ -> searchPureLuaLoader
  where
   pushWrappedHsFun f = do
