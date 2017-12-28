@@ -1592,10 +1592,9 @@ options =
                  (OptArg
                   (\arg _ -> do
                      let exts = getDefaultExtensions (fromMaybe "markdown" arg)
-                     let showExt x = drop 4 (show x) ++
-                                       if extensionEnabled x exts
-                                          then " +"
-                                          else " -"
+                     let showExt x = (if extensionEnabled x exts
+                                         then '+'
+                                         else '-') : drop 4 (show x)
                      mapM_ (UTF8.hPutStrLn stdout . showExt)
                                ([minBound..maxBound] :: [Extension])
                      exitSuccess )

@@ -389,9 +389,10 @@ General options
 
 `--list-extensions`[`=`*FORMAT*]
 
-:   List supported Markdown extensions, one per line, followed
+:   List supported Markdown extensions, one per line, preceded
     by a `+` or `-` indicating whether it is enabled by default
-    in *FORMAT* (defaulting to pandoc's Markdown).
+    in *FORMAT*. If *FORMAT* is not specified, defaults for
+    pandoc's Markdown are given.
 
 `--list-highlight-languages`
 
