@@ -33,6 +33,7 @@ import qualified Tests.Writers.Muse
 import qualified Tests.Writers.Native
 import qualified Tests.Writers.Org
 import qualified Tests.Writers.Plain
+import qualified Tests.Writers.Powerpoint
 import qualified Tests.Writers.RST
 import qualified Tests.Writers.TEI
 import Text.Pandoc.Shared (inDirectory)
@@ -57,6 +58,7 @@ tests = testGroup "pandoc tests" [ Tests.Command.tests
           , testGroup "TEI" Tests.Writers.TEI.tests
           , testGroup "Muse" Tests.Writers.Muse.tests
           , testGroup "FB2" Tests.Writers.FB2.tests
+          , testGroup "PowerPoint" Tests.Writers.Powerpoint.tests
           ]
         , testGroup "Readers"
           [ testGroup "LaTeX" Tests.Readers.LaTeX.tests
