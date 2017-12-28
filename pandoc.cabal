@@ -81,6 +81,7 @@ data-files:
                  data/docx/docProps/core.xml
                  data/docx/word/document.xml
                  data/docx/word/fontTable.xml
+                 data/docx/word/comments.xml
                  data/docx/word/footnotes.xml
                  data/docx/word/numbering.xml
                  data/docx/word/settings.xml
