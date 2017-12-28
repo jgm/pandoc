@@ -81,6 +81,7 @@ module Text.Pandoc.Class ( PandocMonad(..)
                          , FileTree(..)
                          , FileInfo(..)
                          , addToFileTree
+                         , insertInFileTree
                          , runIO
                          , runIOorExplode
                          , runPure
@@ -141,7 +142,7 @@ import qualified System.Environment as IO (lookupEnv)
 import System.FilePath.Glob (match, compile)
 import System.Directory (createDirectoryIfMissing, getDirectoryContents,
                           doesDirectoryExist)
-import System.FilePath ((</>), (<.>), takeDirectory,
+import System.FilePath ((</>), (<.>), takeDirectory, makeRelative,
          takeExtension, dropExtension, isRelative, normalise)
 import qualified System.FilePath.Glob as IO (glob)
 import qualified System.Directory as IO (getModificationTime)
@@ -912,12 +913,13 @@ newtype FileTree = FileTree {unFileTree :: M.Map FilePath FileInfo}
   deriving (Monoid)
 
 getFileInfo :: FilePath -> FileTree -> Maybe FileInfo
-getFileInfo fp tree = M.lookup fp $ unFileTree tree
+getFileInfo fp tree =
+  M.lookup (makeRelative "." fp) (unFileTree tree)
 
 -- | Add the specified file to the FileTree. If file
 -- is a directory, add its contents recursively.
 addToFileTree :: FileTree -> FilePath -> IO FileTree
-addToFileTree (FileTree treemap) fp = do
+addToFileTree tree fp = do
   isdir <- doesDirectoryExist fp
   if isdir
      then do -- recursively add contents of directories
@@ -925,13 +927,17 @@ addToFileTree (FileTree treemap) fp = do
            isSpecial "."  = True
            isSpecial _    = False
        fs <- (map (fp </>) . filter (not . isSpecial)) <$> getDirectoryContents fp
-       foldM addToFileTree (FileTree treemap) fs
+       foldM addToFileTree tree fs
      else do
        contents <- B.readFile fp
        mtime <- IO.getModificationTime fp
-       return $ FileTree $
-                M.insert fp FileInfo{ infoFileMTime = mtime
-                                    , infoFileContents = contents } treemap
+       return $ insertInFileTree fp FileInfo{ infoFileMTime = mtime
+                                            , infoFileContents = contents } tree
+
+-- | Insert an ersatz file into the 'FileTree'.
+insertInFileTree :: FilePath -> FileInfo -> FileTree -> FileTree
+insertInFileTree fp info (FileTree treemap) =
+  FileTree $ M.insert (makeRelative "." fp) info treemap
 
 newtype PandocPure a = PandocPure {
   unPandocPure :: ExceptT PandocError

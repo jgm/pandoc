@@ -1,7 +1,6 @@
 {-# LANGUAGE OverloadedStrings #-}
 module Tests.Readers.Org.Directive (tests) where
 
-import Control.Arrow (second)
 import Data.Time (UTCTime (UTCTime), secondsToDiffTime)
 import Data.Time.Calendar (Day (ModifiedJulianDay))
 import Test.Tasty (TestTree, testGroup)
@@ -10,7 +9,6 @@ import Tests.Readers.Org.Shared ((=:), tagSpan)
 import Text.Pandoc
 import Text.Pandoc.Builder
 import qualified Data.ByteString as BS
-import qualified Data.Map as Map
 import qualified Data.Text as T
 
 testWithFiles :: (ToString c)
@@ -31,11 +29,8 @@ orgWithFiles fileDefs input =
 files :: [(FilePath, BS.ByteString)] -> FileTree
 files fileDefs =
   let dummyTime = UTCTime (ModifiedJulianDay 125) (secondsToDiffTime 0)
-      fileInfo content = FileInfo
-                         { infoFileMTime = dummyTime
-                         , infoFileContents = content
-                         }
-  in FileTree (Map.fromList (map (second fileInfo) fileDefs))
+  in foldr (\(fp, bs) -> insertInFileTree fp (FileInfo dummyTime bs))
+      mempty fileDefs
 
 tests :: [TestTree]
 tests =
