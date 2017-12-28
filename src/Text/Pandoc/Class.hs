@@ -142,7 +142,7 @@ import qualified System.Environment as IO (lookupEnv)
 import System.FilePath.Glob (match, compile)
 import System.Directory (createDirectoryIfMissing, getDirectoryContents,
                           doesDirectoryExist)
-import System.FilePath ((</>), (<.>), takeDirectory, makeRelative,
+import System.FilePath ((</>), (<.>), takeDirectory,
          takeExtension, dropExtension, isRelative, normalise)
 import qualified System.FilePath.Glob as IO (glob)
 import qualified System.Directory as IO (getModificationTime)
@@ -621,6 +621,7 @@ getDefaultReferenceDocx = do
                "word/document.xml",
                "word/fontTable.xml",
                "word/footnotes.xml",
+               "word/comments.xml",
                "word/numbering.xml",
                "word/settings.xml",
                "word/webSettings.xml",
@@ -761,14 +762,16 @@ readDefaultDataFile fname =
   case lookup (makeCanonical fname) dataFiles of
     Nothing       -> throwError $ PandocCouldNotFindDataFileError fname
     Just contents -> return contents
-  where makeCanonical = Posix.joinPath . transformPathParts . splitDirectories
-        transformPathParts = reverse . foldl go []
-        go as     "."  = as
-        go (_:as) ".." = as
-        go as     x    = x : as
 #else
   getDataFileName fname' >>= checkExistence >>= readFileStrict
     where fname' = if fname == "MANUAL.txt" then fname else "data" </> fname
+
+makeCanonical :: FilePath -> FilePath
+makeCanonical = Posix.joinPath . transformPathParts . splitDirectories
+ where  transformPathParts = reverse . foldl go []
+        go as     "."  = as
+        go (_:as) ".." = as
+        go as     x    = x : as
 
 checkExistence :: PandocMonad m => FilePath -> m FilePath
 checkExistence fn = do
@@ -914,7 +917,7 @@ newtype FileTree = FileTree {unFileTree :: M.Map FilePath FileInfo}
 
 getFileInfo :: FilePath -> FileTree -> Maybe FileInfo
 getFileInfo fp tree =
-  M.lookup (makeRelative "." fp) (unFileTree tree)
+  M.lookup (makeCanonical fp) (unFileTree tree)
 
 -- | Add the specified file to the FileTree. If file
 -- is a directory, add its contents recursively.
@@ -937,7 +940,7 @@ addToFileTree tree fp = do
 -- | Insert an ersatz file into the 'FileTree'.
 insertInFileTree :: FilePath -> FileInfo -> FileTree -> FileTree
 insertInFileTree fp info (FileTree treemap) =
-  FileTree $ M.insert (makeRelative "." fp) info treemap
+  FileTree $ M.insert (makeCanonical fp) info treemap
 
 newtype PandocPure a = PandocPure {
   unPandocPure :: ExceptT PandocError
