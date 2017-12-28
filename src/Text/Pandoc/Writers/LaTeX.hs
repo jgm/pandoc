@@ -699,10 +699,9 @@ blockToLaTeX (Table caption aligns widths heads rows) = do
                   then return empty
                   else ($$ text "\\endfirsthead") <$> toHeaders heads
   head' <- if all null heads
-              then return empty
+              then return "\\toprule"
               -- avoid duplicate notes in head and firsthead:
-              else ($$ text "\\endhead") <$>
-                   toHeaders (if isEmpty firsthead
+              else toHeaders (if isEmpty firsthead
                                  then heads
                                  else walk removeNote heads)
   let capt = if isEmpty captionText
@@ -717,8 +716,8 @@ blockToLaTeX (Table caption aligns widths heads rows) = do
               -- the @{} removes extra space at beginning and end
          $$ capt
          $$ firsthead
-         $$ (if all null heads then "\\toprule" else empty)
          $$ head'
+         $$ "\\endhead"
          $$ vcat rows'
          $$ "\\bottomrule"
          $$ "\\end{longtable}"

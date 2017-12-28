@@ -136,6 +136,7 @@ Table without column headers:
 
 \begin{longtable}[]{@{}rlcr@{}}
 \toprule
+\endhead
 12 & 12 & 12 & 12\tabularnewline
 123 & 123 & 123 & 123\tabularnewline
 1 & 1 & 1 & 1\tabularnewline
@@ -146,6 +147,7 @@ Multiline table without column headers:
 
 \begin{longtable}[]{@{}clrl@{}}
 \toprule
+\endhead
 \begin{minipage}[t]{0.13\columnwidth}\centering
 First\strut
 \end{minipage} & \begin{minipage}[t]{0.12\columnwidth}\raggedright
