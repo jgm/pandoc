@@ -688,8 +688,6 @@ getDefaultReferencePptx = do
               , "ppt/presProps.xml"
               , "ppt/presentation.xml"
               , "ppt/slideLayouts/_rels/slideLayout1.xml.rels"
-              , "ppt/slideLayouts/_rels/slideLayout10.xml.rels"
-              , "ppt/slideLayouts/_rels/slideLayout11.xml.rels"
               , "ppt/slideLayouts/_rels/slideLayout2.xml.rels"
               , "ppt/slideLayouts/_rels/slideLayout3.xml.rels"
               , "ppt/slideLayouts/_rels/slideLayout4.xml.rels"
@@ -698,6 +696,8 @@ getDefaultReferencePptx = do
               , "ppt/slideLayouts/_rels/slideLayout7.xml.rels"
               , "ppt/slideLayouts/_rels/slideLayout8.xml.rels"
               , "ppt/slideLayouts/_rels/slideLayout9.xml.rels"
+              , "ppt/slideLayouts/_rels/slideLayout10.xml.rels"
+              , "ppt/slideLayouts/_rels/slideLayout11.xml.rels"
               , "ppt/slideLayouts/slideLayout1.xml"
               , "ppt/slideLayouts/slideLayout10.xml"
               , "ppt/slideLayouts/slideLayout11.xml"
@@ -713,6 +713,8 @@ getDefaultReferencePptx = do
               , "ppt/slideMasters/slideMaster1.xml"
               , "ppt/slides/_rels/slide1.xml.rels"
               , "ppt/slides/slide1.xml"
+              , "ppt/slides/_rels/slide2.xml.rels"
+              , "ppt/slides/slide2.xml"
               , "ppt/tableStyles.xml"
               , "ppt/theme/theme1.xml"
               , "ppt/viewProps.xml"
@@ -766,13 +768,6 @@ readDefaultDataFile fname =
   getDataFileName fname' >>= checkExistence >>= readFileStrict
     where fname' = if fname == "MANUAL.txt" then fname else "data" </> fname
 
-makeCanonical :: FilePath -> FilePath
-makeCanonical = Posix.joinPath . transformPathParts . splitDirectories
- where  transformPathParts = reverse . foldl go []
-        go as     "."  = as
-        go (_:as) ".." = as
-        go as     x    = x : as
-
 checkExistence :: PandocMonad m => FilePath -> m FilePath
 checkExistence fn = do
   exists <- fileExists fn
@@ -780,6 +775,13 @@ checkExistence fn = do
      then return fn
      else throwError $ PandocCouldNotFindDataFileError fn
 #endif
+
+makeCanonical :: FilePath -> FilePath
+makeCanonical = Posix.joinPath . transformPathParts . splitDirectories
+ where  transformPathParts = reverse . foldl go []
+        go as     "."  = as
+        go (_:as) ".." = as
+        go as     x    = x : as
 
 withPaths :: PandocMonad m => [FilePath] -> (FilePath -> m a) -> FilePath -> m a
 withPaths [] _ fp = throwError $ PandocResourceNotFound fp

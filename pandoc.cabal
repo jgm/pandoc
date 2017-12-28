@@ -105,28 +105,28 @@ data-files:
                  data/pptx/docProps/thumbnail.jpeg
                  data/pptx/docProps/app.xml
                  data/pptx/docProps/core.xml
-                 data/pptx/ppt/slideLayouts/slideLayout4.xml
-                 data/pptx/ppt/slideLayouts/_rels/slideLayout9.xml.rels
-                 data/pptx/ppt/slideLayouts/_rels/slideLayout2.xml.rels
-                 data/pptx/ppt/slideLayouts/_rels/slideLayout10.xml.rels
                  data/pptx/ppt/slideLayouts/_rels/slideLayout1.xml.rels
+                 data/pptx/ppt/slideLayouts/_rels/slideLayout2.xml.rels
                  data/pptx/ppt/slideLayouts/_rels/slideLayout3.xml.rels
+                 data/pptx/ppt/slideLayouts/_rels/slideLayout4.xml.rels
                  data/pptx/ppt/slideLayouts/_rels/slideLayout5.xml.rels
+                 data/pptx/ppt/slideLayouts/_rels/slideLayout6.xml.rels
                  data/pptx/ppt/slideLayouts/_rels/slideLayout7.xml.rels
                  data/pptx/ppt/slideLayouts/_rels/slideLayout8.xml.rels
+                 data/pptx/ppt/slideLayouts/_rels/slideLayout9.xml.rels
+                 data/pptx/ppt/slideLayouts/_rels/slideLayout10.xml.rels
                  data/pptx/ppt/slideLayouts/_rels/slideLayout11.xml.rels
-                 data/pptx/ppt/slideLayouts/_rels/slideLayout4.xml.rels
-                 data/pptx/ppt/slideLayouts/_rels/slideLayout6.xml.rels
-                 data/pptx/ppt/slideLayouts/slideLayout2.xml
-                 data/pptx/ppt/slideLayouts/slideLayout8.xml
-                 data/pptx/ppt/slideLayouts/slideLayout11.xml
-                 data/pptx/ppt/slideLayouts/slideLayout3.xml
-                 data/pptx/ppt/slideLayouts/slideLayout6.xml
-                 data/pptx/ppt/slideLayouts/slideLayout9.xml
-                 data/pptx/ppt/slideLayouts/slideLayout5.xml
-                 data/pptx/ppt/slideLayouts/slideLayout7.xml
                  data/pptx/ppt/slideLayouts/slideLayout1.xml
+                 data/pptx/ppt/slideLayouts/slideLayout2.xml
+                 data/pptx/ppt/slideLayouts/slideLayout3.xml
+                 data/pptx/ppt/slideLayouts/slideLayout4.xml
+                 data/pptx/ppt/slideLayouts/slideLayout5.xml
+                 data/pptx/ppt/slideLayouts/slideLayout6.xml
+                 data/pptx/ppt/slideLayouts/slideLayout7.xml
+                 data/pptx/ppt/slideLayouts/slideLayout8.xml
+                 data/pptx/ppt/slideLayouts/slideLayout9.xml
                  data/pptx/ppt/slideLayouts/slideLayout10.xml
+                 data/pptx/ppt/slideLayouts/slideLayout11.xml
                  data/pptx/ppt/_rels/presentation.xml.rels
                  data/pptx/ppt/theme/theme1.xml
                  data/pptx/ppt/presProps.xml
