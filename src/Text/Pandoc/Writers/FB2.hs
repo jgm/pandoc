@@ -121,9 +121,18 @@ description meta' = do
                Just (MetaString s)        -> [el "lang" $ iso639 s]
                _                          -> []
              where iso639 = takeWhile (/= '-') -- Convert BCP 47 to ISO 639
+  let coverimage url = do
+        let img = Image nullAttr mempty (url, "")
+        im <- insertImage InlineImage img
+        return [el "coverpage" im]
+  coverpage <- case lookupMeta "cover-image" meta' of
+                    Just (MetaInlines [Str s]) -> coverimage s
+                    Just (MetaString s) -> coverimage s
+                    _       -> return []
   return $ el "description"
     [ el "title-info" (genre : (bt ++ as ++ dd ++ lang))
-    , el "document-info" [ el "program-used" "pandoc" ] -- FIXME: +version
+    , el "document-info" ([ el "program-used" "pandoc" ] -- FIXME: +version
+                          ++ coverpage)
     ]
 
 booktitle :: PandocMonad m => Meta -> FBM m [Content]
