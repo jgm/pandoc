@@ -52,12 +52,12 @@ numSlideTests = testGroup "Number of slides in output"
     def
     (doc $ header 1 "Header" <> header 2 "subeader" <> para "foo")
   , testNumberOfSlides
-    "With h1 slide (using default slide-level)" 2
-    def
+    "With h1 slide (using slide-level 3)" 2
+    def {writerSlideLevel= Just 3}
     (doc $ header 1 "Header" <> para "foo")
   , testNumberOfSlides
-    "With h2 slide (using default slide-level)" 2
-    def
+    "With h2 slide (using slide-level 3)" 3
+    def {writerSlideLevel= Just 3}
     (doc $ header 1 "Header" <> header 2 "subeader" <> para "foo")
   , testNumberOfSlides
     "With image slide, no header" 3
@@ -94,6 +94,11 @@ numSlideTests = testGroup "Number of slides in output"
     def
     (doc $
      para "first slide" <> horizontalRule <> para "last slide")
+  , testNumberOfSlides
+    "with notes slide" 2
+    def
+    (doc $
+      para $ text "Foo" <> note (para "note text"))
   ]
 
 
