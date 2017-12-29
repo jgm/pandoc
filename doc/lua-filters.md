@@ -1323,7 +1323,7 @@ Lua functions for pandoc scripts.
 
     See also: [OrderedList](#OrderedList)
 
-## Helper Functions
+## Helper functions
 
 [`pipe (command, args, input)`]{#pipe}
 
@@ -1346,8 +1346,7 @@ Lua functions for pandoc scripts.
 
 [`walk_block (element, filter)`]{#walk_block}
 
-:   Apply a filter inside a block element, walking its
-    contents.
+:   Apply a filter inside a block element, walking its contents.
 
     Parameters:
 
@@ -1355,8 +1354,8 @@ Lua functions for pandoc scripts.
     :   the block element
 
     `filter`:
-    :   a lua filter (table of functions) to be applied
-        within the block element
+    :   a lua filter (table of functions) to be applied within
+        the block element
 
     Returns: the transformed block element
 
@@ -1371,8 +1370,8 @@ Lua functions for pandoc scripts.
     :   the inline element
 
     `filter`:
-    :   a lua filter (table of functions) to be applied
-        within the inline element
+    :   a lua filter (table of functions) to be applied within
+        the inline element
 
     Returns: the transformed inline element
 
@@ -1398,7 +1397,6 @@ Lua functions for pandoc scripts.
         local block = document.blocks[1]
         -- The inline element in that block is an `Emph`
         assert(block.content[1].t == "Emph")
-
 
 # Module pandoc.utils
 

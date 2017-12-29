@@ -25,7 +25,9 @@ end
 
 function Header (el)
   if in_module_section then
-    if el.level == 1 then
+    if el.level == 1 or
+       -- special case for Module pandoc
+       (el.level == 2 and el.identifier == 'helper-functions') then
       in_module_section = false
       return el
     else
