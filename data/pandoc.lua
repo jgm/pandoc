@@ -246,7 +246,7 @@ M.BlockQuote = M.Block:create_constructor(
 --- Creates a bullet (i.e. unordered) list.
 -- @function BulletList
 -- @tparam      {{Block,...},...} content     list of items
--- @treturn     Block block quote element
+-- @treturn     Block                         bullet list element
 M.BulletList = M.Block:create_constructor(
   "BulletList",
   function(content) return {c = content} end,
@@ -267,7 +267,7 @@ M.CodeBlock = M.Block:create_constructor(
 --- Creates a definition list, containing terms and their explanation.
 -- @function DefinitionList
 -- @tparam      {{{Inline,...},{Block,...}},...} content     list of items
--- @treturn     Block block quote element
+-- @treturn     Block                  definition list element
 M.DefinitionList = M.Block:create_constructor(
   "DefinitionList",
   function(content) return {c = List:new(content)} end,
@@ -278,7 +278,7 @@ M.DefinitionList = M.Block:create_constructor(
 -- @function Div
 -- @tparam      {Block,...} content     block content
 -- @tparam[opt] Attr        attr  element attributes
--- @treturn     Block                   code block element
+-- @treturn     Block                   div element
 M.Div = M.Block:create_constructor(
   "Div",
   function(content, attr)
@@ -287,7 +287,7 @@ M.Div = M.Block:create_constructor(
   {{"identifier", "classes", "attributes"}, "content"}
 )
 
---- Creates a block quote element.
+--- Creates a header element.
 -- @function Header
 -- @tparam      int          level       header level
 -- @tparam      {Inline,...} content     inline content
@@ -312,7 +312,7 @@ M.HorizontalRule = M.Block:create_constructor(
 --- Creates a line block element.
 -- @function LineBlock
 -- @tparam      {{Inline,...},...} content    inline content
--- @treturn     Block                   block quote element
+-- @treturn     Block                   line block element
 M.LineBlock = M.Block:create_constructor(
   "LineBlock",
   function(content) return {c = List:new(content)} end,
@@ -331,7 +331,7 @@ M.Null = M.Block:create_constructor(
 -- @function OrderedList
 -- @tparam      {{Block,...},...} items list items
 -- @param[opt]  listAttributes list parameters
--- @treturn     Block
+-- @treturn     Block  ordered list element
 M.OrderedList = M.Block:create_constructor(
   "OrderedList",
   function(items, listAttributes)
@@ -344,7 +344,7 @@ M.OrderedList = M.Block:create_constructor(
 --- Creates a para element.
 -- @function Para
 -- @tparam      {Inline,...} content    inline content
--- @treturn     Block                   block quote element
+-- @treturn     Block                   paragraph element
 M.Para = M.Block:create_constructor(
   "Para",
   function(content) return {c = List:new(content)} end,
@@ -354,7 +354,7 @@ M.Para = M.Block:create_constructor(
 --- Creates a plain element.
 -- @function Plain
 -- @tparam      {Inline,...} content    inline content
--- @treturn     Block                   block quote element
+-- @treturn     Block                   plain element
 M.Plain = M.Block:create_constructor(
   "Plain",
   function(content) return {c = List:new(content)} end,
@@ -365,7 +365,7 @@ M.Plain = M.Block:create_constructor(
 -- @function RawBlock
 -- @tparam      string      format      format of content
 -- @tparam      string      text        string content
--- @treturn     Block                   block quote element
+-- @treturn     Block                   raw block element
 M.RawBlock = M.Block:create_constructor(
   "RawBlock",
   function(format, text) return {c = {format, text}} end,
@@ -379,7 +379,7 @@ M.RawBlock = M.Block:create_constructor(
 -- @tparam      {int,...}    widths     column widths
 -- @tparam      {Block,...}  headers    header row
 -- @tparam      {{Block,...}} rows      table rows
--- @treturn     Block                   block quote element
+-- @treturn     Block                   table element
 M.Table = M.Block:create_constructor(
   "Table",
   function(caption, aligns, widths, headers, rows)
