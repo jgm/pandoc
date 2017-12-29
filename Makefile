@@ -4,6 +4,7 @@ SOURCEFILES?=$(shell find pandoc.hs src test -name '*.hs')
 BRANCH?=master
 RESOLVER=lts-10
 GHCOPTS=-fdiagnostics-color=always -Wall -fno-warn-unused-do-bind -Wincomplete-record-updates -Wnoncanonical-monad-instances -Wnoncanonical-monadfail-instances
+WEBSITE=../../web/pandoc.org
 
 quick:
 	stack install --resolver=$(RESOLVER) --ghc-options='$(GHCOPTS)' --install-ghc --flag 'pandoc:embed_data_files' --fast --test --test-arguments='-j4 --hide-successes $(TESTARGS)'
@@ -95,6 +96,11 @@ pandoc-templates:
 
 trypandoc:
 	ssh -t macfarlane 'cd src/pandoc && git pull && ~/.local/bin/stack install --flag pandoc:trypandoc --flag pandoc:embed_data_files && cd trypandoc && sudo make install'
+
+update-website:
+	make -C $(WEBSITE) update
+	make -C $(WEBSITE)
+	make -C $(WEBSITE) upload
 
 clean:
 	stack clean
