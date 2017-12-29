@@ -32,7 +32,7 @@ module Text.Pandoc.Lua
   , pushPandocModule
   ) where
 
-import Control.Monad (when, (>=>))
+import Control.Monad ((>=>))
 import Foreign.Lua (FromLuaStack (peek), Lua, LuaException (..),
                     Status (OK), ToLuaStack (push))
 import Text.Pandoc.Class (PandocIO)
@@ -40,6 +40,7 @@ import Text.Pandoc.Definition (Pandoc)
 import Text.Pandoc.Lua.Filter (LuaFilter, walkMWithLuaFilter)
 import Text.Pandoc.Lua.Init (runPandocLua)
 import Text.Pandoc.Lua.Module.Pandoc (pushModule) -- TODO: remove
+import Text.Pandoc.Lua.Util (popValue)
 import qualified Foreign.Lua as Lua
 
 -- | Run the Lua filter in @filterPath@ for a transformation to target
@@ -63,21 +64,16 @@ runLuaFilter' filterPath format pd = do
       Lua.throwLuaError luaErrMsg
     else do
       newtop <- Lua.gettop
-      -- Use the implicitly defined global filter if nothing was returned
-      when (newtop - top < 1) pushGlobalFilter
-      luaFilters <- peek (-1)
+      -- Use the returned filters, or the implicitly defined global filter if
+      -- nothing was returned.
+      luaFilters <- if (newtop - top >= 1)
+                    then peek (-1)
+                    else Lua.getglobal "_G" *> fmap (:[]) popValue
       runAll luaFilters pd
  where
   registerFormat = do
     push format
     Lua.setglobal "FORMAT"
-
-pushGlobalFilter :: Lua ()
-pushGlobalFilter = do
-  Lua.newtable
-  Lua.getglobal' "pandoc.global_filter"
-  Lua.call 0 1
-  Lua.rawseti (-2) 1
 
 runAll :: [LuaFilter] -> Pandoc -> Lua Pandoc
 runAll = foldr ((>=>) . walkMWithLuaFilter) return

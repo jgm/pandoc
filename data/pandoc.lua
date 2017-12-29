@@ -23,7 +23,7 @@ THIS SOFTWARE.
 -- @copyright © 2017 Albert Krewinkel
 -- @license MIT
 local M = {
-  _VERSION = "0.3.0"
+  _VERSION = "0.4.0"
 }
 
 local List = require 'pandoc.List'
@@ -867,41 +867,6 @@ M.LowerAlpha = "LowerAlpha"
 --- List are numbered using upper-case alphabetic characters.
 -- @see OrderedList
 M.UpperAlpha = "UpperAlpha"
-
-
-------------------------------------------------------------------------
--- Helper Functions
--- @section helpers
-
---- Use functions defined in the global namespace to create a pandoc filter.
--- All globally defined functions which have names of pandoc elements are
--- collected into a new table.
--- @return A list of filter functions
--- @usage
--- -- within a file defining a pandoc filter:
--- text = require 'text'
--- function Str(elem)
---   return pandoc.Str(text.upper(elem.text))
--- end
---
--- return {pandoc.global_filter()}
--- -- the above is equivalent to
--- -- return {{Str = Str}}
-function M.global_filter()
-  local res = {}
-  function is_filter_function(k)
-    return M.Inline.constructor[k] or
-      M.Block.constructor[k] or
-      k == "Meta" or k == "Doc" or k == "Pandoc" or
-      k == "Block" or k == "Inline"
-  end
-  for k, v in pairs(_G) do
-    if is_filter_function(k) then
-      res[k] = v
-    end
-  end
-  return res
-end
 
 ------------------------------------------------------------------------
 -- Functions which have moved to different modules

@@ -1325,25 +1325,6 @@ Lua functions for pandoc scripts.
 
 ## Helper Functions
 
-[`global_filter ()`]{#global_filter}
-
-:   Use functions defined in the global namespace to create a
-    pandoc filter.
-
-    Returns: A list of filter functions
-
-    Usage:
-
-        -- within a file defining a pandoc filter:
-        text = require 'text'
-        function Str(elem)
-          return pandoc.Str(text.upper(elem.text))
-        end
-
-        return {pandoc.global_filter()}
-        -- the above is equivalent to
-        -- return {{Str = Str}}
-
 [`pipe (command, args, input)`]{#pipe}
 
 :   Runs command with arguments, passing it some input, and
