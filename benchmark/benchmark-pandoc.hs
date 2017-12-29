@@ -68,10 +68,11 @@ main = do
   movie <- B.readFile "test/movie.jpg"
   time <- Data.Time.getCurrentTime
   let setupFakeFiles = modifyPureState $ \st -> st{ stFiles =
-                        FileTree $ Map.fromList [
-                           ("lalune.jpg", FileInfo time lalune),
-                           ("movie.jpg", FileInfo time movie)
-                           ]}
+                        insertInFileTree "lalune.jpg"
+                          (FileInfo time lalune) $
+                        insertInFileTree "movie.jpg"
+                          (FileInfo time movie) mempty
+                           }
   let opts = def
   let doc = either (error . show) id $ runPure $ readMarkdown opts inp
   let readers' = [(n, \o d ->
