@@ -26,7 +26,7 @@ _ Upload to HackageDB: stack upload .
 _ if docs don't build on Hackage:
   'cabal install neil && neil docs --username=MYUSERNAME'
 
-_ go to website and 'make update && make && make upload'
+_ make update-website
 
 _ make trypandoc
 
