@@ -1,5 +1,5 @@
 .\"t
-.TH PANDOC 1 "December 27, 2017" "pandoc 2.0.6"
+.TH PANDOC 1 "December 27, 2017" "pandoc 2.1"
 .SH NAME
 pandoc - general markup converter
 .SH SYNOPSIS
@@ -497,6 +497,9 @@ a specified full or relative path (executable or non\-executable)
 \f[C]\-\-data\-dir\f[], above).
 .IP "3." 3
 \f[C]$PATH\f[] (executable only)
+.PP
+Filters and lua\-filters are applied in the order specified on the
+command line.
 .RE
 .TP
 .B \f[C]\-\-lua\-filter=\f[]\f[I]SCRIPT\f[]
