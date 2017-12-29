@@ -1,10 +1,10 @@
 pandoc (2.1)
 
-  * Filter changes (#4196).  Previously we ran all lua filters before
-    JSON filters.  Now we run filters in the order they are presented on
-    the command line, whether lua or JSON.  There are two incompatible API
-    changes: The type of `applyFilters` has changed, and `applyLuaFilters`
-    has been removed.
+  * Text.Pandoc.App: Filter changes (#4196).  Previously we ran all lua
+    filters before JSON filters.  Now we run filters in the order they are
+    presented on the command line, whether lua or JSON.  There are two
+    incompatible API changes: The type of `applyFilters` has changed, and
+    `applyLuaFilters` has been removed.  `Filter` is also now exported.
 
   * Text.Pandoc.Class: make `FileTree` opaque (don't export
     `FileTree` constructor).  This forces users to interact with it using
