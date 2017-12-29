@@ -164,5 +164,3 @@ singleElement x = do
         Lua.throwLuaError $
           "Error while trying to get a filter's return " ++
           "value from lua stack.\n" ++ err
-
-

@@ -23,7 +23,7 @@ THIS SOFTWARE.
 -- @copyright © 2017 Albert Krewinkel
 -- @license MIT
 local M = {
-  _VERSION = "0.3.0"
+  _VERSION = "0.4.0"
 }
 
 local List = require 'pandoc.List'
@@ -657,7 +657,6 @@ M.Superscript = M.Inline:create_constructor(
 
 ------------------------------------------------------------------------
 -- Helpers
--- @section helpers
 
 local function assoc_key_equals (x)
   return function (y) return y[1] == x end
@@ -671,7 +670,7 @@ local function lookup(alist, key)
   return (List.find_if(alist, assoc_key_equals(key)) or {})[2]
 end
 
---- Return an iterator which returns key-value pairs of an associative list.
+-- Return an iterator which returns key-value pairs of an associative list.
 -- @function apairs
 -- @tparam {{key, value},...} alist associative list
 local apairs = function (alist)
@@ -868,40 +867,6 @@ M.LowerAlpha = "LowerAlpha"
 --- List are numbered using upper-case alphabetic characters.
 -- @see OrderedList
 M.UpperAlpha = "UpperAlpha"
-
-
-------------------------------------------------------------------------
--- Helper Functions
--- @section helpers
-
---- Use functions defined in the global namespace to create a pandoc filter.
--- All globally defined functions which have names of pandoc elements are
--- collected into a new table.
--- @return A list of filter functions
--- @usage
--- -- within a file defining a pandoc filter:
--- function Str(text)
---   return pandoc.Str(utf8.upper(text))
--- end
---
--- return {pandoc.global_filter()}
--- -- the above is equivallent to
--- -- return {{Str = Str}}
-function M.global_filter()
-  local res = {}
-  function is_filter_function(k)
-    return M.Inline.constructor[k] or
-      M.Block.constructor[k] or
-      k == "Meta" or k == "Doc" or k == "Pandoc" or
-      k == "Block" or k == "Inline"
-  end
-  for k, v in pairs(_G) do
-    if is_filter_function(k) then
-      res[k] = v
-    end
-  end
-  return res
-end
 
 ------------------------------------------------------------------------
 -- Functions which have moved to different modules

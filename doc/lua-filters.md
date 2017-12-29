@@ -1172,18 +1172,6 @@ Lua functions for pandoc scripts.
 
     Returns: strong element
 
-## Helpers
-
-[`apairs (value)`]{#apairs}
-
-:   Return an iterator which returns key-value pairs of an
-    associative list.
-
-    Parameters:
-
-    `value`:
-    :   },\...} alist associative list
-
 [`Attr ([identifier[, classes[, attributes]]])`]{#Attr}
 
 :   Create a new set of attributes (Attr).
@@ -1335,25 +1323,80 @@ Lua functions for pandoc scripts.
 
     See also: [OrderedList](#OrderedList)
 
-## Helper Functions
+## Helper functions
 
-[`global_filter ()`]{#global_filter}
+[`pipe (command, args, input)`]{#pipe}
 
-:   Use functions defined in the global namespace to create a
-    pandoc filter.
+:   Runs command with arguments, passing it some input, and
+    returns the output.
 
-    Returns: A list of filter functions
+    Returns:
+
+    -   Output of command.
+
+    Raises:
+
+    -   A table containing the keys `command`, `error_code`, and
+        `output` is thrown if the command exits with a non-zero
+        error code.
 
     Usage:
 
-        -- within a file defining a pandoc filter:
-        function Str(text)
-          return pandoc.Str(utf8.upper(text))
-        end
+        local output = pandoc.pipe("sed", {"-e","s/a/b/"}, "abc")
 
-        return {pandoc.global_filter()}
-        -- the above is equivallent to
-        -- return {{Str = Str}}
+[`walk_block (element, filter)`]{#walk_block}
+
+:   Apply a filter inside a block element, walking its contents.
+
+    Parameters:
+
+    `element`:
+    :   the block element
+
+    `filter`:
+    :   a lua filter (table of functions) to be applied within
+        the block element
+
+    Returns: the transformed block element
+
+[`walk_inline (element, filter)`]{#walk_inline}
+
+:   Apply a filter inside an inline element, walking its
+    contents.
+
+    Parameters:
+
+    `element`:
+    :   the inline element
+
+    `filter`:
+    :   a lua filter (table of functions) to be applied within
+        the inline element
+
+    Returns: the transformed inline element
+
+[`read (markup[, format])`]{#read}
+
+:   Parse the given string into a Pandoc document.
+
+    Parameters:
+
+    `markup`:
+    :   the markup to be parsed
+
+    `format`:
+    :   format specification, defaults to \"markdown\".
+
+    Returns: pandoc document
+
+    Usage:
+
+        local org_markup = "/emphasis/"  -- Input to be read
+        local document = pandoc.read(org_markup, "org")
+        -- Get the first block of the document
+        local block = document.blocks[1]
+        -- The inline element in that block is an `Emph`
+        assert(block.content[1].t == "Emph")
 
 # Module pandoc.utils
 

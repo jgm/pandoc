@@ -37,6 +37,7 @@ module Text.Pandoc.Lua.Util
   , setRawInt
   , addRawInt
   , raiseError
+  , popValue
   , OrNil (..)
   , PushViaCall
   , pushViaCall
