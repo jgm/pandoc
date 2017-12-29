@@ -173,6 +173,24 @@ inTextStyle d = do
               return $ inTags False
                   "text:span" [("text:style-name",styleName)] d
 
+formulaStyles :: [Doc]
+formulaStyles = [formulaStyle InlineMath, formulaStyle DisplayMath]
+
+formulaStyle :: MathType -> Doc
+formulaStyle mt = inTags False "style:style"
+  [("style:name", if mt == InlineMath then "fr1" else "fr2")
+  ,("style:family", "graphic")
+  ,("style:parent-style-name", "Formula")]
+  $ selfClosingTag "style:graphic-properties" $ if mt == InlineMath then
+                                                  [("style:vertical-pos", "middle")
+                                                  ,("style:vertical-rel", "text")]
+                                                else
+                                                  [("style:vertical-pos",   "middle")
+                                                  ,("style:vertical-rel",   "paragraph-content")
+                                                  ,("style:horizontal-pos", "center")
+                                                  ,("style:horizontal-rel", "paragraph-content")
+                                                  ,("style:wrap",           "none")]
+
 inHeaderTags :: PandocMonad m => Int -> Doc -> OD m Doc
 inHeaderTags i d =
   return $ inTags False "text:h" [ ("text:style-name", "Heading_20_" ++ show i)
@@ -211,7 +229,7 @@ writeOpenDocument opts (Pandoc meta blocks) = do
                   meta
            b <- render' `fmap` blocksToOpenDocument opts blocks
            return (b, m)
-  let styles   = stTableStyles s ++ stParaStyles s ++
+  let styles   = stTableStyles s ++ stParaStyles s ++ formulaStyles ++
                      map snd (sortBy (flip (comparing fst)) (
                         Map.elems (stTextStyles s)))
       listStyle (n,l) = inTags True "text:list-style"
