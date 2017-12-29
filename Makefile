@@ -33,7 +33,7 @@ lint:
 	for f in $(SOURCEFILES); do echo $$f; hlint --verbose --refactor --refactor-options='-i -s' $$f; done
 
 changes_github:
-	pandoc --filter tools/extract-changes.hs changelog -t gfm+hard_line_breaks | sed -e 's/\\#/#/g' | pbcopy
+	pandoc --filter tools/extract-changes.hs changelog -t gfm --wrap=none | sed -e 's/\\#/#/g' | pbcopy
 
 dist: man/pandoc.1
 	cabal sdist
@@ -105,4 +105,4 @@ update-website:
 clean:
 	stack clean
 
-.PHONY: deps quick full haddock install clean test bench changes_github macospkg dist prof download_stats reformat lint weigh doc/lua-filters.md packages pandoc-templates trypandoc
+.PHONY: deps quick full haddock install clean test bench changes_github macospkg dist prof download_stats reformat lint weigh doc/lua-filters.md packages pandoc-templates trypandoc update-website
