@@ -20,7 +20,6 @@ import qualified Text.Pandoc.UTF8 as UTF8
 import Data.Text (Text)
 import Data.Time (getCurrentTime)
 import qualified Data.ByteString as B
-import qualified Data.Map as Map
 import Criterion.Main
 import Criterion.Types (Config(..))
 import Data.Maybe (mapMaybe)
