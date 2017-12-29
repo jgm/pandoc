@@ -7,7 +7,7 @@ pandoc (2.1)
     has been removed.
 
   * Text.Pandoc.Class: make `FileTree` opaque (don't export
-    `FileTree` cosntructor).  This forces users to interact with it using
+    `FileTree` constructor).  This forces users to interact with it using
     `insertInFileTree` and `getFileInfo`, which normalize file names.
 
 pandoc (2.0.6)
