@@ -36,7 +36,7 @@ Simple], [Muse], [PowerPoint] slide shows and [Slidy], [Slideous],
 Pandoc's enhanced version of Markdown includes syntax for [tables],
 [definition lists], [metadata blocks], [`Div` blocks][Extension:
 `fenced_divs`], [footnotes] and [citations], embedded
-[LaTeX][Extension: `raw_tex`] (incl. [math]), [Markdown inside HTML
+[LaTeX][Extension: `raw_tex`] (including [math]), [Markdown inside HTML
 block elements][Extension: `markdown_in_html_blocks`], and much more.
 These enhancements, described further under [Pandoc's Markdown],
 can be disabled using the `markdown_strict` format.
@@ -144,7 +144,11 @@ To convert `hello.html` from HTML to Markdown:
 
     pandoc -f html -t markdown hello.html
 
-Supported input and output formats are listed below under [Options].
+Supported input and output formats are listed below under [Options]
+(see `-f` for input formats and `-t` for output formats).  You
+can also use `pandoc --list-input-formats` and
+`pandoc --list-output-formats` to print lists of supported
+formats.
 
 If the input or output format is not specified explicitly, `pandoc`
 will attempt to guess it from the extensions of the filenames.
@@ -209,8 +213,9 @@ When using LaTeX, the following packages need to be available
 [`ifxetex`], [`ifluatex`], [`listings`] (if the
 `--listings` option is used), [`fancyvrb`], [`longtable`],
 [`booktabs`], [`graphicx`] and [`grffile`] (if the document
-contains images), [`hyperref`], [`xcolor`] (with `colorlinks`), [`ulem`], [`geometry`] (with the
-`geometry` variable set), [`setspace`] (with `linestretch`), and
+contains images), [`hyperref`], [`xcolor`] (with `colorlinks`),
+[`ulem`], [`geometry`] (with the `geometry` variable set),
+[`setspace`] (with `linestretch`), and
 [`babel`] (with `lang`).  The use of `xelatex` or `lualatex` as
 the LaTeX engine requires [`fontspec`].  `xelatex` uses
 [`polyglossia`] (with `lang`), [`xecjk`], and [`bidi`] (with the
