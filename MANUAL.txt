@@ -11,13 +11,16 @@ Description
 ===========
 
 Pandoc is a [Haskell] library for converting from one markup format to
-another, and a command-line tool that uses this library. It can read
-[Markdown], [CommonMark], [PHP Markdown Extra], [GitHub-Flavored
-Markdown], [MultiMarkdown], and (subsets of) [Textile],
+another, and a command-line tool that uses this library.
+
+Pandoc can read [Markdown], [CommonMark], [PHP Markdown Extra],
+[GitHub-Flavored Markdown], [MultiMarkdown], and (subsets of) [Textile],
 [reStructuredText], [HTML], [LaTeX], [MediaWiki markup], [TWiki
 markup], [TikiWiki markup], [Creole 1.0], [Haddock markup], [OPML],
 [Emacs Org mode], [DocBook], [JATS], [Muse], [txt2tags], [Vimwiki],
-[EPUB], [ODT], and [Word docx]; and it can write plain text, [Markdown],
+[EPUB], [ODT], and [Word docx].
+
+Pandoc can write plain text, [Markdown],
 [CommonMark], [PHP Markdown Extra], [GitHub-Flavored Markdown],
 [MultiMarkdown], [reStructuredText], [XHTML], [HTML5], [LaTeX]
 \(including [`beamer`] slide shows\), [ConTeXt], [RTF], [OPML],
@@ -30,21 +33,20 @@ Simple], [Muse], [PowerPoint] slide shows and [Slidy], [Slideous],
 [PDF] output on systems where LaTeX, ConTeXt, `pdfroff`,
 `wkhtmltopdf`, `prince`, or `weasyprint` is installed.
 
-Pandoc's enhanced version of Markdown includes syntax for [footnotes],
-[tables], flexible [ordered lists], [definition lists], [fenced code
-blocks], [superscripts and subscripts], [strikeout], [metadata blocks],
-automatic tables of contents, embedded LaTeX [math], [citations], and
-[Markdown inside HTML block elements][Extension:
-`markdown_in_html_blocks`]. (These enhancements, described further under
-[Pandoc's Markdown], can be disabled using the `markdown_strict` input
-or output format.)
+Pandoc's enhanced version of Markdown includes syntax for [tables],
+[definition lists], [metadata blocks], [`Div` blocks][Extension:
+`fenced_divs`], [footnotes] and [citations], embedded
+[LaTeX][Extension: `raw_tex`] (incl. [math]), [Markdown inside HTML
+block elements][Extension: `markdown_in_html_blocks`], and much more.
+These enhancements, described further under [Pandoc's Markdown],
+can be disabled using the `markdown_strict` format.
 
-In contrast to most existing tools for converting Markdown to HTML, which
-use regex substitutions, pandoc has a modular design: it consists of a
-set of readers, which parse text in a given format and produce a native
-representation of the document, and a set of writers, which convert
+Pandoc has a modular design: it consists of a set of readers, which parse
+text in a given format and produce a native representation of the document
+(like an _abstract syntax tree_ or AST), and a set of writers, which convert
 this native representation into a target format. Thus, adding an input
-or output format requires only adding a reader or writer.
+or output format requires only adding a reader or writer. Users can also
+run custom [pandoc filters] to modify the intermediate AST.
 
 Because pandoc's intermediate representation of a document is less
 expressive than many of the formats it converts between, one should
@@ -109,45 +111,32 @@ Markdown can be expected to be lossy.
 Using `pandoc`
 --------------
 
-If no *input-file* is specified, input is read from *stdin*.
-Otherwise, the *input-files* are concatenated (with a blank
-line between each) and used as input.  Output goes to *stdout* by
-default (though output to the terminal is disabled for the
-`odt`, `docx`, `epub2`, and `epub3` output formats, unless it is
-forced using `-o -`).  For output to a file, use the `-o`
-option:
+If no *input-files* are specified, input is read from *stdin*.
+Output goes to *stdout* by default. For output to a file,
+use the `-o` option:
 
     pandoc -o output.html input.txt
 
-By default, pandoc produces a document fragment, not a standalone
-document with a proper header and footer.  To produce a standalone
-document, use the `-s` or `--standalone` flag:
+By default, pandoc produces a document fragment. To produce a standalone
+document (e.g. a valid HTML file including `<head>` and `<body>`),
+use the `-s` or `--standalone` flag:
 
     pandoc -s -o output.html input.txt
 
 For more information on how standalone documents are produced, see
-[Templates], below.
-
-Instead of a file, an absolute URI may be given.  In this case
-pandoc will fetch the content using HTTP:
-
-    pandoc -f html -t markdown http://www.fsf.org
-
-It is possible to supply a custom User-Agent string or other
-header when requesting a document from a URL:
-
-    pandoc -f html -t markdown --request-header User-Agent:"Mozilla/5.0" \
-      http://www.fsf.org
+[Templates] below.
 
 If multiple input files are given, `pandoc` will concatenate them all (with
-blank lines between them) before parsing. This feature is disabled for
- binary input formats such as `EPUB`, `odt`, and `docx`.
+blank lines between them) before parsing. (Use `--file-scope` to parse files
+individually.)
+
+Specifying formats
+------------------
 
 The format of the input and output can be specified explicitly using
 command-line options.  The input format can be specified using the
-`-r/--read` or `-f/--from` options, the output format using the
-`-w/--write` or `-t/--to` options.  Thus, to convert `hello.txt` from
-Markdown to LaTeX, you could type:
+`-f/--from` option, the output format using the `-t/--to` option.
+Thus, to convert `hello.txt` from Markdown to LaTeX, you could type:
 
     pandoc -f markdown -t latex hello.txt
 
@@ -155,14 +144,11 @@ To convert `hello.html` from HTML to Markdown:
 
     pandoc -f html -t markdown hello.html
 
-Supported output formats are listed below under the `-t/--to` option.
-Supported input formats are listed below under the `-f/--from` option. Note
-that the `rst`, `textile`, `latex`, and `html` readers are not complete;
-there are some constructs that they do not parse.
+Supported input and output formats are listed below under [Options].
 
 If the input or output format is not specified explicitly, `pandoc`
-will attempt to guess it from the extensions of
-the input and output filenames.  Thus, for example,
+will attempt to guess it from the extensions of the filenames.
+Thus, for example,
 
     pandoc -o hello.tex hello.txt
 
@@ -171,7 +157,10 @@ is specified (so that output goes to *stdout*), or if the output file's
 extension is unknown, the output format will default to HTML.
 If no input file is specified (so that input comes from *stdin*), or
 if the input files' extensions are unknown, the input format will
-be assumed to be Markdown unless explicitly specified.
+be assumed to be Markdown.
+
+Character encoding
+------------------
 
 Pandoc uses the UTF-8 character encoding for both input and output.
 If your local character encoding is not UTF-8, you
@@ -189,30 +178,12 @@ will only be included if you use the `-s/--standalone` option.
 Creating a PDF
 --------------
 
-To produce a PDF, specify an output file with a `.pdf` extension.
-By default, pandoc will use LaTeX to create the PDF:
+To produce a PDF, specify an output file with a `.pdf` extension:
 
     pandoc test.txt -o test.pdf
 
-Production of a PDF requires that a LaTeX engine be installed (see
-`--pdf-engine`, below), and assumes that the following LaTeX packages
-are available: [`amsfonts`], [`amsmath`], [`lm`], [`unicode-math`],
-[`ifxetex`], [`ifluatex`], [`listings`] (if the
-`--listings` option is used), [`fancyvrb`], [`longtable`],
-[`booktabs`], [`graphicx`] and [`grffile`] (if the document
-contains images), [`hyperref`], [`xcolor`] (with `colorlinks`), [`ulem`], [`geometry`] (with the
-`geometry` variable set), [`setspace`] (with `linestretch`), and
-[`babel`] (with `lang`).  The use of `xelatex` or `lualatex` as
-the LaTeX engine requires [`fontspec`].  `xelatex` uses
-[`polyglossia`] (with `lang`), [`xecjk`], and [`bidi`] (with the
-`dir` variable set). If the `mathspec` variable is set,
-`xelatex` will use [`mathspec`] instead of [`unicode-math`].
-The [`upquote`] and [`microtype`] packages are used if
-available, and [`csquotes`] will be used for [typography]
-if added to the template or included in any header file. The
-[`natbib`], [`biblatex`], [`bibtex`], and [`biber`] packages can
-optionally be used for [citation rendering]. These are included
-with all recent versions of [TeX Live].
+By default, pandoc will use LaTeX to create the PDF, which requires
+that a LaTeX engine be installed (see `--pdf-engine` below).
 
 Alternatively, pandoc can use [ConTeXt], `pdfroff`, or any of the
 following HTML/CSS-to-PDF-engines, to create a PDF: [`wkhtmltopdf`],
@@ -227,6 +198,29 @@ When using an HTML/CSS-to-PDF-engine, `--css` affects the output.
 If `wkhtmltopdf` is used, then the variables `margin-left`,
 `margin-right`, `margin-top`, `margin-bottom`, and `papersize`
 will affect the output.
+
+To debug the PDF creation, it can be useful to look at the intermediate
+representation: instead of `-o test.pdf`, use for example `-s -o test.tex`
+to output the generated LaTeX. You can then test it with `pdflatex test.tex`.
+
+When using LaTeX, the following packages need to be available
+(they are included with all recent versions of [TeX Live]):
+[`amsfonts`], [`amsmath`], [`lm`], [`unicode-math`],
+[`ifxetex`], [`ifluatex`], [`listings`] (if the
+`--listings` option is used), [`fancyvrb`], [`longtable`],
+[`booktabs`], [`graphicx`] and [`grffile`] (if the document
+contains images), [`hyperref`], [`xcolor`] (with `colorlinks`), [`ulem`], [`geometry`] (with the
+`geometry` variable set), [`setspace`] (with `linestretch`), and
+[`babel`] (with `lang`).  The use of `xelatex` or `lualatex` as
+the LaTeX engine requires [`fontspec`].  `xelatex` uses
+[`polyglossia`] (with `lang`), [`xecjk`], and [`bidi`] (with the
+`dir` variable set). If the `mathspec` variable is set,
+`xelatex` will use [`mathspec`] instead of [`unicode-math`].
+The [`upquote`] and [`microtype`] packages are used if
+available, and [`csquotes`] will be used for [typography]
+if added to the template or included in any header file. The
+[`natbib`], [`biblatex`], [`bibtex`], and [`biber`] packages can
+optionally be used for [citation rendering].
 
 [`amsfonts`]: https://ctan.org/pkg/amsfonts
 [`amsmath`]: https://ctan.org/pkg/amsmath
@@ -261,6 +255,20 @@ will affect the output.
 [`wkhtmltopdf`]: https://wkhtmltopdf.org
 [`weasyprint`]: http://weasyprint.org
 [`prince`]: https://www.princexml.com/
+
+Reading from the Web
+--------------------
+
+Instead of an input file, an absolute URI may be given.  In this case
+pandoc will fetch the content using HTTP:
+
+    pandoc -f html -t markdown http://www.fsf.org
+
+It is possible to supply a custom User-Agent string or other
+header when requesting a document from a URL:
+
+    pandoc -f html -t markdown --request-header User-Agent:"Mozilla/5.0" \
+      http://www.fsf.org
 
 Options
 =======
@@ -318,9 +326,8 @@ General options
     below). (`markdown_github` provides deprecated and less accurate
     support for Github-Flavored Markdown; please use `gfm` instead,
     unless you use extensions that do not work with `gfm`.) Note that
-    `odt`, `epub`, and `epub3` output will not be directed to
-    *stdout*; an output filename must be specified using the
-    `-o/--output` option.  Extensions can be individually enabled or
+    `odt`, `docx`, and `epub` output will not be directed to *stdout*
+    unless forced with `-o -`. Extensions can be individually enabled or
     disabled by appending `+EXTENSION` or `-EXTENSION` to the format
     name.  See [Extensions] below, for a list of extensions and their
     names.  See `--list-output-formats` and `--list-extensions`, below.
@@ -389,7 +396,7 @@ General options
 
 `--list-extensions`[`=`*FORMAT*]
 
-:   List supported Markdown extensions, one per line, preceded
+:   List supported extensions, one per line, preceded
     by a `+` or `-` indicating whether it is enabled by default
     in *FORMAT*. If *FORMAT* is not specified, defaults for
     pandoc's Markdown are given.
@@ -3305,45 +3312,6 @@ For the most part this should give the same output as `raw_html`,
 but it makes it easier to write pandoc filters to manipulate groups
 of inlines.
 
-#### Extension: `fenced_divs` ####
-
-Allow special fenced syntax for native `Div` blocks.  A Div
-starts with a fence containing at least three consecutive
-colons plus some attributes. The attributes may optionally
-be followed by another string of consecutive colons.
-The attribute syntax is exactly as in fenced code blocks (see
-[Extension: `fenced_code_attributes`]).  As with fenced
-code blocks, one can use either attributes in curly braces
-or a single unbraced word, which will be treated as a class
-name.  The Div ends with another line containing a string of at
-least three consecutive colons.  The fenced Div should be
-separated by blank lines from preceding and following blocks.
-
-Example:
-
-    ::::: {#special .sidebar}
-    Here is a paragraph.
-
-    And another.
-    :::::
-
-Fenced divs can be nested.  Opening fences are distinguished
-because they *must* have attributes:
-
-    ::: Warning ::::::
-    This is a warning.
-
-    ::: Danger
-    This is a warning within a warning.
-    :::
-    ::::::::::::::::::
-
-Fences without attributes are always closing fences.  Unlike
-with fenced code blocks, the number of colons in the closing
-fence need not match the number in the opening fence.  However,
-it can be helpful for visual clarity to use fences of different
-lengths to distinguish nested divs from their parents.
-
 #### Extension: `raw_tex` ####
 
 In addition to raw HTML, pandoc allows raw LaTeX, TeX, and ConTeXt to be
@@ -3605,13 +3573,59 @@ For example:
   is to look at the image resolution and the dpi metadata embedded in
   the image file.
 
-Spans
------
+Divs and Spans
+--------------
+
+Using the `native_divs` and `native_spans` extensions
+(see [above][Extension: `native_divs`]), HTML syntax can
+be used as part of markdown to create native `Div` and `Span`
+elements in the pandoc AST (as opposed to raw HTML).
+However, there is also nicer syntax available:
+
+#### Extension: `fenced_divs` ####
+
+Allow special fenced syntax for native `Div` blocks.  A Div
+starts with a fence containing at least three consecutive
+colons plus some attributes. The attributes may optionally
+be followed by another string of consecutive colons.
+The attribute syntax is exactly as in fenced code blocks (see
+[Extension: `fenced_code_attributes`]).  As with fenced
+code blocks, one can use either attributes in curly braces
+or a single unbraced word, which will be treated as a class
+name.  The Div ends with another line containing a string of at
+least three consecutive colons.  The fenced Div should be
+separated by blank lines from preceding and following blocks.
+
+Example:
+
+    ::::: {#special .sidebar}
+    Here is a paragraph.
+
+    And another.
+    :::::
+
+Fenced divs can be nested.  Opening fences are distinguished
+because they *must* have attributes:
+
+    ::: Warning ::::::
+    This is a warning.
+
+    ::: Danger
+    This is a warning within a warning.
+    :::
+    ::::::::::::::::::
+
+Fences without attributes are always closing fences.  Unlike
+with fenced code blocks, the number of colons in the closing
+fence need not match the number in the opening fence.  However,
+it can be helpful for visual clarity to use fences of different
+lengths to distinguish nested divs from their parents.
+
 
 #### Extension: `bracketed_spans` ####
 
 A bracketed sequence of inlines, as one would use to begin
-a link, will be treated as a span with attributes if it is
+a link, will be treated as a `Span` with attributes if it is
 followed immediately by attributes:
 
     [This is *some text*]{.class key="val"}
