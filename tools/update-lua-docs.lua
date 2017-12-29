@@ -36,7 +36,7 @@ function Header (el)
     return module_blocks{'data/pandoc.lua'}
   elseif el.identifier == "module-pandoc.list" then
     in_module_section = true
-    return module_blocks{'data/List.lua'}
+    return module_blocks{'data/pandoc.List.lua'}
   end
 end
 
