@@ -657,7 +657,6 @@ M.Superscript = M.Inline:create_constructor(
 
 ------------------------------------------------------------------------
 -- Helpers
--- @section helpers
 
 local function assoc_key_equals (x)
   return function (y) return y[1] == x end
@@ -671,7 +670,7 @@ local function lookup(alist, key)
   return (List.find_if(alist, assoc_key_equals(key)) or {})[2]
 end
 
---- Return an iterator which returns key-value pairs of an associative list.
+-- Return an iterator which returns key-value pairs of an associative list.
 -- @function apairs
 -- @tparam {{key, value},...} alist associative list
 local apairs = function (alist)
@@ -880,12 +879,13 @@ M.UpperAlpha = "UpperAlpha"
 -- @return A list of filter functions
 -- @usage
 -- -- within a file defining a pandoc filter:
--- function Str(text)
---   return pandoc.Str(utf8.upper(text))
+-- text = require 'text'
+-- function Str(elem)
+--   return pandoc.Str(text.upper(elem.text))
 -- end
 --
 -- return {pandoc.global_filter()}
--- -- the above is equivallent to
+-- -- the above is equivalent to
 -- -- return {{Str = Str}}
 function M.global_filter()
   local res = {}

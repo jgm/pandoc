@@ -1172,18 +1172,6 @@ Lua functions for pandoc scripts.
 
     Returns: strong element
 
-## Helpers
-
-[`apairs (value)`]{#apairs}
-
-:   Return an iterator which returns key-value pairs of an
-    associative list.
-
-    Parameters:
-
-    `value`:
-    :   },\...} alist associative list
-
 [`Attr ([identifier[, classes[, attributes]]])`]{#Attr}
 
 :   Create a new set of attributes (Attr).
@@ -1347,12 +1335,13 @@ Lua functions for pandoc scripts.
     Usage:
 
         -- within a file defining a pandoc filter:
-        function Str(text)
-          return pandoc.Str(utf8.upper(text))
+        text = require 'text'
+        function Str(elem)
+          return pandoc.Str(text.upper(elem.text))
         end
 
         return {pandoc.global_filter()}
-        -- the above is equivallent to
+        -- the above is equivalent to
         -- return {{Str = Str}}
 
 # Module pandoc.utils
