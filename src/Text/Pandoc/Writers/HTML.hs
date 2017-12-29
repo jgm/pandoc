@@ -1042,10 +1042,13 @@ inlineToHtml opts inline = do
                         ppcElement conf (annotateMML r str)
                     Left il  -> (H.span ! A.class_ mathClass) <$>
                                    inlineToHtml opts il
-           MathJax _ -> return $ H.span ! A.class_ mathClass $ toHtml $
-              case t of
-                InlineMath  -> "\\(" ++ str ++ "\\)"
-                DisplayMath -> "\\[" ++ str ++ "\\]"
+           MathJax _ -> do
+              let newLine = strToHtml $ if t == DisplayMath then "\n" else ""
+              let mathExpr = case t of
+                               InlineMath  -> "\\(" ++ str ++ "\\)"
+                               DisplayMath -> "\\[" ++ str ++ "\\]"
+              let m = H.span ! A.class_ mathClass $ toHtml $ mathExpr
+              return $ newLine >> m >> newLine
            KaTeX _ -> return $ H.span ! A.class_ mathClass $ toHtml $
               case t of
                 InlineMath  -> "\\(" ++ str ++ "\\)"
