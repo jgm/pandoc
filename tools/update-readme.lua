@@ -14,6 +14,9 @@ function Div(elem)
         local mdoc = pandoc.read(manual, "markdown")
         local blocks = mdoc.blocks
         while blocks[i] do
+            if blocks[i].t == 'Header' then
+                include = false
+            end
             if include then
                 table.insert(description, pandoc.walk_block(blocks[i],
                              -- remove internal links
@@ -23,12 +26,9 @@ function Div(elem)
                                  end
                                end }))
             end
-            if blocks[i].t == 'Header' then
-                if blocks[i].identifier == 'description' then
+            if blocks[i].t == 'Header' and
+                blocks[i].identifier == 'description' then
                     include = true
-                elseif include then
-                    include = false
-                end
             end
             i = i + 1
         end

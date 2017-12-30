@@ -120,8 +120,6 @@ While conversions from pandoc’s Markdown to all formats aspire to be
 perfect, conversions from formats more expressive than pandoc’s Markdown
 can be expected to be lossy.
 
-## Using `pandoc`
-
 </div>
 
 ## Installing
