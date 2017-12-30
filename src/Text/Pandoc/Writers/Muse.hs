@@ -377,7 +377,7 @@ inlineToMuse (Link _ txt (src, _)) =
              return $ "[[" <> text (escapeLink x) <> "]]"
         _ -> do contents <- inlineListToMuse txt
                 return $ "[[" <> text (escapeLink src) <> "][" <> contents <> "]]"
-  where escapeLink lnk = escapeURI (if isImageUrl lnk then "URL:" ++ lnk else lnk)
+  where escapeLink lnk = if isImageUrl lnk then "URL:" ++ lnk else lnk
         -- Taken from muse-image-regexp defined in Emacs Muse file lisp/muse-regexps.el
         imageExtensions = [".eps", ".gif", ".jpg", ".jpeg", ".pbm", ".png", ".tiff", ".xbm", ".xpm"]
         isImageUrl = (`elem` imageExtensions) . takeExtension
