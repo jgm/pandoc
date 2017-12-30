@@ -82,6 +82,10 @@ doc/lua-filters.md: tools/ldoc.ltp data/pandoc.lua tools/update-lua-docs.lua
 	       -o $@ $@.tmp
 	rm $@.tmp
 
+README.md: README.template MANUAL.txt tools/update-readme.lua
+	pandoc --lua-filter tools/update-readme.lua --reference-links \
+	      --reference-location=section $< -o $@
+
 download_stats:
 	curl https://api.github.com/repos/jgm/pandoc/releases | \
 		jq -r '.[] | .assets | .[] | "\(.download_count)\t\(.name)"'
