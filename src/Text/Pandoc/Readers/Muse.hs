@@ -179,7 +179,9 @@ directive :: PandocMonad m => MuseParser m ()
 directive = do
   ext <- getOption readerExtensions
   (key, value) <- if extensionEnabled Ext_amuse ext then parseAmuseDirective else parseEmacsDirective
-  updateState $ \st -> st { stateMeta' = B.setMeta key <$> value <*> stateMeta' st }
+  updateState $ \st -> st { stateMeta' = B.setMeta (translateKey key) <$> value <*> stateMeta' st }
+  where translateKey "cover" = "cover-image"
+        translateKey x = x
 
 --
 -- block parsers
