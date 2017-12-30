@@ -118,17 +118,21 @@ mapD f xs =
   in
    concatMapM handler xs
 
-unwrapSDT :: NameSpaces -> Content -> Content
+unwrapSDT :: NameSpaces -> Content -> [Content]
 unwrapSDT ns (Elem element)
   | isElem ns "w" "sdt" element
   , Just sdtContent <- findChildByName ns "w" "sdtContent" element
-  , child : _    <- elChildren sdtContent
-  = Elem child
-unwrapSDT _ content = content
+  = map Elem $ elChildren sdtContent
+unwrapSDT _ content = [content]
+
+unwrapSDTchild :: NameSpaces -> Content -> Content
+unwrapSDTchild ns (Elem element) =
+  Elem $ element { elContent = concatMap (unwrapSDT ns) (elContent element) }
+unwrapSDTchild _ content = content
 
 walkDocument' :: NameSpaces -> XMLC.Cursor -> XMLC.Cursor
 walkDocument' ns cur =
-  let modifiedCur = XMLC.modifyContent (unwrapSDT ns) cur
+  let modifiedCur = XMLC.modifyContent (unwrapSDTchild ns) cur
   in
     case XMLC.nextDF modifiedCur of
       Just cur' -> walkDocument' ns cur'
