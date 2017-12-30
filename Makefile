@@ -84,7 +84,7 @@ doc/lua-filters.md: tools/ldoc.ltp data/pandoc.lua tools/update-lua-docs.lua
 
 README.md: README.template MANUAL.txt tools/update-readme.lua
 	pandoc --lua-filter tools/update-readme.lua --reference-links \
-	      --reference-location=section $< -o $@
+	      --reference-location=section -t gfm $< -o $@
 
 download_stats:
 	curl https://api.github.com/repos/jgm/pandoc/releases | \
