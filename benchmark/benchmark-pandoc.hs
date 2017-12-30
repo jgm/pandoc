@@ -48,18 +48,13 @@ writerBench doc (name, writer) = bench (name ++ " writer") $ nf
 main :: IO ()
 main = do
   args <- getArgs
+  print args
   let matchReader (n, TextReader _) =
-        case args of
-             [] -> True
-             [x] -> x == n
-             (x:y:_) -> x == n && y == "reader"
-      matchReader (_, _) = False
+         "reader" `elem` args && n `elem` args
+      matchReader _                 = False
   let matchWriter (n, TextWriter _) =
-        case args of
-             [] -> True
-             [x] -> x == n
-             (x:y:_) -> x == n && y == "writer"
-      matchWriter (_, _) = False
+         "writer" `elem` args && n `elem` args
+      matchWriter _                 = False
   let matchedReaders = filter matchReader readers
   let matchedWriters = filter matchWriter writers
   inp <- UTF8.toText <$> B.readFile "test/testsuite.txt"
