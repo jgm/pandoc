@@ -344,7 +344,7 @@ blocksToInlinesWarn cmtId blks = do
       "Docx comment " ++ cmtId ++ " will not retain formatting"
   return $ blocksToInlines' blkList
 
--- The majority of work in this function is done in the primted
+-- The majority of work in this function is done in the primed
 -- subfunction `partPartToInlines'`. We make this wrapper so that we
 -- don't have to modify `docxImmedPrevAnchor` state after every function.
 parPartToInlines :: PandocMonad m => ParPart -> DocxContext m Inlines
@@ -361,6 +361,7 @@ parPartToInlines parPart =
       ils <- parPartToInlines' parPart
       modify $ \s -> s{ docxImmedPrevAnchor = Nothing}
       return ils
+
 parPartToInlines' :: PandocMonad m => ParPart -> DocxContext m Inlines
 parPartToInlines' (PlainRun r) = runToInlines r
 parPartToInlines' (Insertion _ author date runs) = do
