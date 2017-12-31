@@ -179,6 +179,10 @@ tests = [ testGroup "inlines"
             "remove anchor spans with nothing pointing to them"
             "docx/unused_anchors.docx"
             "docx/unused_anchors.native"
+          , testCompare
+            "collapse overlapping targets (anchor spans)"
+            "docx/overlapping_targets.docx"
+            "docx/overlapping_targets.native"
           ]
         , testGroup "blocks"
           [ testCompare
