@@ -82,6 +82,7 @@ import qualified Data.ByteString.Lazy as B
 import Data.Default (Default)
 import Data.List (delete, intersect)
 import qualified Data.Map as M
+import Data.Maybe (isJust)
 import Data.Sequence (ViewL (..), viewl)
 import qualified Data.Sequence as Seq
 import qualified Data.Set as Set
@@ -119,6 +120,7 @@ readDocx _ _ =
 
 data DState = DState { docxAnchorMap :: M.Map String String
                      , docxAnchorSet :: Set.Set String
+                     , docxImmedPrevAnchor :: Maybe String
                      , docxMediaBag  :: MediaBag
                      , docxDropCap   :: Inlines
                      , docxWarnings  :: [String]
@@ -130,6 +132,7 @@ data DState = DState { docxAnchorMap :: M.Map String String
 instance Default DState where
   def = DState { docxAnchorMap = M.empty
                , docxAnchorSet = mempty
+               , docxImmedPrevAnchor = Nothing
                , docxMediaBag  = mempty
                , docxDropCap   = mempty
                , docxWarnings  = []
@@ -341,9 +344,26 @@ blocksToInlinesWarn cmtId blks = do
       "Docx comment " ++ cmtId ++ " will not retain formatting"
   return $ blocksToInlines' blkList
 
+-- The majority of work in this function is done in the primted
+-- subfunction `partPartToInlines'`. We make this wrapper so that we
+-- don't have to modify `docxImmedPrevAnchor` state after every function.
 parPartToInlines :: PandocMonad m => ParPart -> DocxContext m Inlines
-parPartToInlines (PlainRun r) = runToInlines r
-parPartToInlines (Insertion _ author date runs) = do
+parPartToInlines parPart =
+  case parPart of
+    (BookMark _ anchor) | not $ anchor `elem` dummyAnchors -> do
+      inHdrBool <- asks docxInHeaderBlock
+      ils <- parPartToInlines' parPart
+      immedPrevAnchor <- gets docxImmedPrevAnchor
+      unless (isJust immedPrevAnchor || inHdrBool)
+        (modify $ \s -> s{ docxImmedPrevAnchor = Just anchor})
+      return ils
+    _ -> do
+      ils <- parPartToInlines' parPart
+      modify $ \s -> s{ docxImmedPrevAnchor = Nothing}
+      return ils
+parPartToInlines' :: PandocMonad m => ParPart -> DocxContext m Inlines
+parPartToInlines' (PlainRun r) = runToInlines r
+parPartToInlines' (Insertion _ author date runs) = do
   opts <- asks docxOptions
   case readerTrackChanges opts of
     AcceptChanges -> smushInlines <$> mapM runToInlines runs
@@ -352,7 +372,7 @@ parPartToInlines (Insertion _ author date runs) = do
       ils <- smushInlines <$> mapM runToInlines runs
       let attr = ("", ["insertion"], [("author", author), ("date", date)])
       return $ spanWith attr ils
-parPartToInlines (Deletion _ author date runs) = do
+parPartToInlines' (Deletion _ author date runs) = do
   opts <- asks docxOptions
   case readerTrackChanges opts of
     AcceptChanges -> return mempty
@@ -361,7 +381,7 @@ parPartToInlines (Deletion _ author date runs) = do
       ils <- smushInlines <$> mapM runToInlines runs
       let attr = ("", ["deletion"], [("author", author), ("date", date)])
       return $ spanWith attr ils
-parPartToInlines (CommentStart cmtId author date bodyParts) = do
+parPartToInlines' (CommentStart cmtId author date bodyParts) = do
   opts <- asks docxOptions
   case readerTrackChanges opts of
     AllChanges -> do
@@ -370,16 +390,16 @@ parPartToInlines (CommentStart cmtId author date bodyParts) = do
       let attr = ("", ["comment-start"], [("id", cmtId), ("author", author), ("date", date)])
       return $ spanWith attr ils
     _ -> return mempty
-parPartToInlines (CommentEnd cmtId) = do
+parPartToInlines' (CommentEnd cmtId) = do
   opts <- asks docxOptions
   case readerTrackChanges opts of
     AllChanges -> do
       let attr = ("", ["comment-end"], [("id", cmtId)])
       return $ spanWith attr mempty
     _ -> return mempty
-parPartToInlines (BookMark _ anchor) | anchor `elem` dummyAnchors =
+parPartToInlines' (BookMark _ anchor) | anchor `elem` dummyAnchors =
   return mempty
-parPartToInlines (BookMark _ anchor) =
+parPartToInlines' (BookMark _ anchor) =
   -- We record these, so we can make sure not to overwrite
   -- user-defined anchor links with header auto ids.
   do
@@ -395,27 +415,34 @@ parPartToInlines (BookMark _ anchor) =
     -- of rewriting user-defined anchor links. However, since these
     -- are not defined in pandoc, it seems like a necessary evil to
     -- avoid an extra pass.
-    let newAnchor =
-          if not inHdrBool && anchor `elem` M.elems anchorMap
-          then uniqueIdent [Str anchor] (Set.fromList $ M.elems anchorMap)
-          else anchor
-    unless inHdrBool
-      (modify $ \s -> s { docxAnchorMap = M.insert anchor newAnchor anchorMap})
-    return $ spanWith (newAnchor, ["anchor"], []) mempty
-parPartToInlines (Drawing fp title alt bs ext) = do
+    immedPrevAnchor <- gets docxImmedPrevAnchor
+    case immedPrevAnchor of
+      Just prevAnchor -> do
+        unless inHdrBool
+          (modify $ \s -> s { docxAnchorMap = M.insert anchor prevAnchor anchorMap})
+        return mempty
+      Nothing -> do
+        let newAnchor =
+              if not inHdrBool && anchor `elem` M.elems anchorMap
+              then uniqueIdent [Str anchor] (Set.fromList $ M.elems anchorMap)
+              else anchor
+        unless inHdrBool
+          (modify $ \s -> s { docxAnchorMap = M.insert anchor newAnchor anchorMap})
+        return $ spanWith (newAnchor, ["anchor"], []) mempty
+parPartToInlines' (Drawing fp title alt bs ext) = do
   (lift . lift) $ P.insertMedia fp Nothing bs
   return $ imageWith (extentToAttr ext) fp title $ text alt
-parPartToInlines Chart =
+parPartToInlines' Chart =
   return $ spanWith ("", ["chart"], []) $ text "[CHART]"
-parPartToInlines (InternalHyperLink anchor runs) = do
+parPartToInlines' (InternalHyperLink anchor runs) = do
   ils <- smushInlines <$> mapM runToInlines runs
   return $ link ('#' : anchor) "" ils
-parPartToInlines (ExternalHyperLink target runs) = do
+parPartToInlines' (ExternalHyperLink target runs) = do
   ils <- smushInlines <$> mapM runToInlines runs
   return $ link target "" ils
-parPartToInlines (PlainOMath exps) =
+parPartToInlines' (PlainOMath exps) =
   return $ math $ writeTeX exps
-parPartToInlines (SmartTag runs) = do
+parPartToInlines' (SmartTag runs) = do
   smushInlines <$> mapM runToInlines runs
 
 isAnchorSpan :: Inline -> Bool
