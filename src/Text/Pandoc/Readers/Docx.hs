@@ -118,6 +118,7 @@ readDocx _ _ =
   throwError $ PandocSomeError "couldn't parse docx file"
 
 data DState = DState { docxAnchorMap :: M.Map String String
+                     , docxAnchorSet :: Set.Set String
                      , docxMediaBag  :: MediaBag
                      , docxDropCap   :: Inlines
                      , docxWarnings  :: [String]
@@ -128,6 +129,7 @@ data DState = DState { docxAnchorMap :: M.Map String String
 
 instance Default DState where
   def = DState { docxAnchorMap = M.empty
+               , docxAnchorSet = mempty
                , docxMediaBag  = mempty
                , docxDropCap   = mempty
                , docxWarnings  = []
@@ -561,7 +563,7 @@ bodyPartToBlocks (ListItem pPr numId lvl (Just levelInfo) parparts) = do
             ]
   modify $ \st -> st{ docxListState = M.insert (numId, lvl) start listState}
   blks <- bodyPartToBlocks (Paragraph pPr parparts)
-  return $ divWith ("", ["list-item"], kvs) blks 
+  return $ divWith ("", ["list-item"], kvs) blks
 bodyPartToBlocks (ListItem pPr _ _ _ parparts) =
   let pPr' = pPr {pStyle = "ListParagraph": pStyle pPr}
   in
@@ -603,13 +605,32 @@ bodyPartToBlocks (OMathPara e) =
 rewriteLink' :: PandocMonad m => Inline -> DocxContext m Inline
 rewriteLink' l@(Link attr ils ('#':target, title)) = do
   anchorMap <- gets docxAnchorMap
-  return $ case M.lookup target anchorMap of
-    Just newTarget -> Link attr ils ('#':newTarget, title)
-    Nothing        -> l
+  case M.lookup target anchorMap of
+    Just newTarget -> do
+      modify $ \s -> s{docxAnchorSet = Set.insert newTarget (docxAnchorSet s)}
+      return $ Link attr ils ('#':newTarget, title)
+    Nothing        -> do
+      modify $ \s -> s{docxAnchorSet = Set.insert target (docxAnchorSet s)}
+      return l
 rewriteLink' il = return il
 
 rewriteLinks :: PandocMonad m => [Block] -> DocxContext m [Block]
 rewriteLinks = mapM (walkM rewriteLink')
+
+removeOrphanAnchors'' :: PandocMonad m => Inline -> DocxContext m [Inline]
+removeOrphanAnchors'' s@(Span (ident, classes, _) ils)
+  | "anchor" `elem` classes = do
+      anchorSet <- gets docxAnchorSet
+      return $ if ident `Set.member` anchorSet
+               then [s]
+               else ils
+removeOrphanAnchors'' il = return [il]
+
+removeOrphanAnchors' :: PandocMonad m => [Inline] -> DocxContext m [Inline]
+removeOrphanAnchors' ils = liftM concat $ mapM removeOrphanAnchors'' ils
+
+removeOrphanAnchors :: PandocMonad m => [Block] -> DocxContext m [Block]
+removeOrphanAnchors = mapM (walkM removeOrphanAnchors')
 
 bodyToOutput :: PandocMonad m => Body -> DocxContext m (Meta, [Block])
 bodyToOutput (Body bps) = do
@@ -617,7 +638,8 @@ bodyToOutput (Body bps) = do
   meta <- bodyPartsToMeta metabps
   blks <- smushBlocks <$> mapM bodyPartToBlocks blkbps
   blks' <- rewriteLinks $ blocksToDefinitions $ blocksToBullets $ toList blks
-  return (meta, blks')
+  blks'' <- removeOrphanAnchors blks'
+  return (meta, blks'')
 
 docxToOutput :: PandocMonad m
              => ReaderOptions
