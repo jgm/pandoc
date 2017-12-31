@@ -1120,6 +1120,7 @@ rawVerbatimBlock = htmlInBalanced isVerbTag
 rawTeXBlock :: PandocMonad m => MarkdownParser m (F Blocks)
 rawTeXBlock = do
   guardEnabled Ext_raw_tex
+  lookAhead $ try $ char '\\' >> letter
   result <- (B.rawBlock "context" . trim . concat <$>
                 many1 ((++) <$> (rawConTeXtEnvironment <|> conTeXtCommand)
                             <*> (blanklines <|> many spaceChar)))
@@ -1906,7 +1907,7 @@ inlineNote = try $ do
 rawLaTeXInline' :: PandocMonad m => MarkdownParser m (F Inlines)
 rawLaTeXInline' = try $ do
   guardEnabled Ext_raw_tex
-  lookAhead (char '\\')
+  lookAhead $ try $ char '\\' >> letter
   notFollowedBy' rawConTeXtEnvironment
   s <- rawLaTeXInline
   return $ return $ B.rawInline "tex" s -- "tex" because it might be context
