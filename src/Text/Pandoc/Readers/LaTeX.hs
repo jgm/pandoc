@@ -280,12 +280,12 @@ rawLaTeXBlock = do
 rawLaTeXInline :: (PandocMonad m, HasMacros s, HasReaderOptions s)
                => ParserT String s m String
 rawLaTeXInline = do
-  lookAhead (try (char '\\' >> letter) <|> char '$')
+  lookAhead (try (char '\\' >> letter))
   rawLaTeXParser (inlineEnvironment <|> inlineCommand') >>= applyMacros . snd
 
 inlineCommand :: PandocMonad m => ParserT String ParserState m Inlines
 inlineCommand = do
-  lookAhead (try (char '\\' >> letter) <|> char '$')
+  lookAhead (try (char '\\' >> letter))
   fst <$> rawLaTeXParser (inlineEnvironment <|> inlineCommand')
 
 tokenize :: SourceName -> Text -> [Tok]
