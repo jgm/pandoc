@@ -175,6 +175,10 @@ tests = [ testGroup "inlines"
             "inlines inside of Structured Document Tags"
             "docx/sdt_elements.docx"
             "docx/sdt_elements.native"
+          , testCompare
+            "remove anchor spans with nothing pointing to them"
+            "docx/unused_anchors.docx"
+            "docx/unused_anchors.native"
           ]
         , testGroup "blocks"
           [ testCompare
