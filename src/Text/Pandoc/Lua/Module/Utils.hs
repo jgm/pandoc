@@ -31,7 +31,7 @@ module Text.Pandoc.Lua.Module.Utils
 
 import Control.Applicative ((<|>))
 import Foreign.Lua (FromLuaStack, Lua, LuaInteger, NumResults)
-import Text.Pandoc.Definition (Pandoc, Meta, Block, Inline)
+import Text.Pandoc.Definition (Pandoc, Meta, MetaValue, Block, Inline)
 import Text.Pandoc.Lua.StackInstances ()
 import Text.Pandoc.Lua.Util (OrNil (OrNil), addFunction)
 
@@ -76,12 +76,14 @@ stringify el = return $ case el of
   InlineElement i  -> Shared.stringify i
   BlockElement b   -> Shared.stringify b
   MetaElement m    -> Shared.stringify m
+  MetaValueElement m -> Shared.stringify m
 
 data AstElement
   = PandocElement Pandoc
   | MetaElement Meta
   | BlockElement Block
   | InlineElement Inline
+  | MetaValueElement MetaValue
   deriving (Show)
 
 instance FromLuaStack AstElement where
@@ -90,6 +92,7 @@ instance FromLuaStack AstElement where
                      <|> (InlineElement <$> Lua.peek idx)
                      <|> (BlockElement <$> Lua.peek idx)
                      <|> (MetaElement <$> Lua.peek idx)
+                     <|> (MetaValueElement <$> Lua.peek idx)
     case res of
       Right x -> return x
       Left _ -> Lua.throwLuaError
