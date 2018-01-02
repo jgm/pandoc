@@ -364,7 +364,7 @@ parPartToInlines parPart =
 
 parPartToInlines' :: PandocMonad m => ParPart -> DocxContext m Inlines
 parPartToInlines' (PlainRun r) = runToInlines r
-parPartToInlines' (Insertion _ author date runs) = do
+parPartToInlines' (ChangedRuns (TrackedChange Insertion (ChangeInfo _ author date)) runs) = do
   opts <- asks docxOptions
   case readerTrackChanges opts of
     AcceptChanges -> smushInlines <$> mapM runToInlines runs
@@ -373,7 +373,7 @@ parPartToInlines' (Insertion _ author date runs) = do
       ils <- smushInlines <$> mapM runToInlines runs
       let attr = ("", ["insertion"], [("author", author), ("date", date)])
       return $ spanWith attr ils
-parPartToInlines' (Deletion _ author date runs) = do
+parPartToInlines' (ChangedRuns (TrackedChange Deletion (ChangeInfo _ author date)) runs) = do
   opts <- asks docxOptions
   case readerTrackChanges opts of
     AcceptChanges -> return mempty

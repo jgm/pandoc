@@ -51,6 +51,9 @@ module Text.Pandoc.Readers.Docx.Parse ( Docx(..)
                                       , ParagraphStyle(..)
                                       , Row(..)
                                       , Cell(..)
+                                      , TrackedChange(..)
+                                      , ChangeType(..)
+                                      , ChangeInfo(..)
                                       , archiveToDocx
                                       , archiveToDocxWithWarnings
                                       ) where
@@ -198,6 +201,15 @@ data ParIndentation = ParIndentation { leftParIndent    :: Maybe Integer
                                      , hangingParIndent :: Maybe Integer}
                       deriving Show
 
+data ChangeType = Insertion | Deletion
+                deriving Show
+
+data ChangeInfo = ChangeInfo ChangeId Author ChangeDate
+                deriving Show
+
+data TrackedChange = TrackedChange ChangeType ChangeInfo
+                   deriving Show
+
 data ParagraphStyle = ParagraphStyle { pStyle      :: [String]
                                      , indentation :: Maybe ParIndentation
                                      , dropCap     :: Bool
@@ -241,8 +253,7 @@ data Cell = Cell [BodyPart]
 type Extent = Maybe (Double, Double)
 
 data ParPart = PlainRun Run
-             | Insertion ChangeId Author ChangeDate [Run]
-             | Deletion ChangeId Author ChangeDate [Run]
+             | ChangedRuns TrackedChange [Run]
              | CommentStart CommentId Author CommentDate [BodyPart]
              | CommentEnd CommentId
              | BookMark BookMarkId Anchor
@@ -732,14 +743,16 @@ elemToParPart ns element
   , Just cAuthor <- findAttrByName ns "w" "author" element
   , Just cDate <- findAttrByName ns "w" "date" element = do
     runs <- mapD (elemToRun ns) (elChildren element)
-    return $ Insertion cId cAuthor cDate runs
+    return $ ChangedRuns
+      (TrackedChange Insertion (ChangeInfo cId cAuthor cDate)) runs
 elemToParPart ns element
   | isElem ns "w" "del" element || isElem ns "w" "moveFrom" element
   , Just cId <- findAttrByName ns "w" "id" element
   , Just cAuthor <- findAttrByName ns "w" "author" element
   , Just cDate <- findAttrByName ns "w" "date" element = do
     runs <- mapD (elemToRun ns) (elChildren element)
-    return $ Deletion cId cAuthor cDate runs
+    return $ ChangedRuns
+      (TrackedChange Deletion (ChangeInfo cId cAuthor cDate)) runs
 elemToParPart ns element
   | isElem ns "w" "smartTag" element = do
     runs <- mapD (elemToRun ns) (elChildren element)
