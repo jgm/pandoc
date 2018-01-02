@@ -1134,7 +1134,7 @@ inlineToOpenXML' opts (Span (ident,classes,kvs) ils) = do
                       modify $ \s ->
                         s{stDynamicTextProps = Set.insert sty
                               (stDynamicTextProps s)}
-                      return $ withTextProp (rCustomStyle sty)
+                      return $ withTextPropM (rStyleM sty)
                    _ -> return id
   let dirmod = case lookup "dir" kvs of
                  Just "rtl" -> local (\env -> env { envRTL = True })
