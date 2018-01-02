@@ -127,13 +127,13 @@ script:
     stack)
       ulimit -n 4096
       stack config set system-ghc --global true
-      stack --no-terminal $ARGS test --fast --flag 'aeson:fast' --flag pandoc:embed_data_files --haddock --no-haddock-deps --ghc-options="$OPTS"
+      stack --no-terminal $ARGS test --fast --flag 'aeson:fast' --flag pandoc:embed_data_files --haddock --no-haddock-deps --ghc-options="$OPTS" --jobs=1
       ;;
     cabal)
       cabal sdist --output-directory=sourcedist && \
       cd sourcedist && \
       cabal configure --disable-optimization --enable-tests -v2 --flags="$FLAGS" --ghc-options="$OPTS" $CABALARGS && \
-      cabal build -v2 -j2 && \
+      cabal build -v2 -j1 && \
       cabal test
       ;;
   esac
