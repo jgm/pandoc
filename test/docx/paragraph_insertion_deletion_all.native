@@ -1,0 +1,3 @@
+[Para [Str "This",Space,Str "is",Space,Str "a",Span ("",["paragraph-insertion"],[("author","Seeley, Jason"),("date","2017-09-17T16:39:00Z")]) []]
+,Para [Str "split",Span ("",["paragraph-deletion"],[("author","Seeley, Jason"),("date","2017-09-17T16:39:00Z")]) []]
+,Para [Str "Paragraph."]]

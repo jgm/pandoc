@@ -335,6 +335,18 @@ tests = [ testGroup "inlines"
             "comments (all comments)"
             "docx/comments.docx"
             "docx/comments.native"
+          , testCompareWithOpts def{readerTrackChanges=AcceptChanges}
+            "paragraph insertion/deletion (accept)"
+            "docx/paragraph_insertion_deletion.docx"
+            "docx/paragraph_insertion_deletion_accept.native"
+          , testCompareWithOpts def{readerTrackChanges=RejectChanges}
+            "paragraph insertion/deletion (reject)"
+            "docx/paragraph_insertion_deletion.docx"
+            "docx/paragraph_insertion_deletion_reject.native"
+          , testCompareWithOpts def{readerTrackChanges=AllChanges}
+            "paragraph insertion/deletion (all)"
+            "docx/paragraph_insertion_deletion.docx"
+            "docx/paragraph_insertion_deletion_all.native"
           , testForWarningsWithOpts def{readerTrackChanges=AcceptChanges}
             "comment warnings (accept -- no warnings)"
             "docx/comments_warning.docx"
