@@ -763,9 +763,7 @@ makeTOC _ = return []
 -- OpenXML elements (the main document and footnotes).
 writeOpenXML :: (PandocMonad m) => WriterOptions -> Pandoc -> WS m ([Element], [Element],[Element])
 writeOpenXML opts (Pandoc meta blocks) = do
-  let tit = docTitle meta ++ case lookupMeta "subtitle" meta of
-                                  Just (MetaBlocks [Plain xs]) -> LineBreak : xs
-                                  _ -> []
+  let tit = docTitle meta
   let auths = docAuthors meta
   let dat = docDate meta
   let abstract' = case lookupMeta "abstract" meta of
