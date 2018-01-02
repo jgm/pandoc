@@ -1,7 +1,7 @@
 {-# LANGUAGE CPP               #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE PatternGuards     #-}
-
+{-# LANGUAGE MultiWayIf        #-}
 {-
 Copyright (C) 2014-2017 Jesse Rosenthal <jrosenthal@jhu.edu>
 
@@ -127,6 +127,7 @@ data DState = DState { docxAnchorMap :: M.Map String String
                      -- keep track of (numId, lvl) values for
                      -- restarting
                      , docxListState :: M.Map (String, String) Integer
+                     , docxPrevPara  :: Inlines
                      }
 
 instance Default DState where
@@ -137,6 +138,7 @@ instance Default DState where
                , docxDropCap   = mempty
                , docxWarnings  = []
                , docxListState = M.empty
+               , docxPrevPara  = mempty
                }
 
 data DEnv = DEnv { docxOptions       :: ReaderOptions
@@ -562,16 +564,54 @@ bodyPartToBlocks (Paragraph pPr parparts)
       headerWith ("", delete style (pStyle pPr), []) n ils
   | otherwise = do
     ils <- (trimSps . smushInlines) <$> mapM parPartToInlines parparts
+    prevParaIls <- gets docxPrevPara
     dropIls <- gets docxDropCap
     let ils' = dropIls <> ils
     if dropCap pPr
       then do modify $ \s -> s { docxDropCap = ils' }
               return mempty
       else do modify $ \s -> s { docxDropCap = mempty }
+              let ils'' = prevParaIls <>
+                          (if isNull prevParaIls then mempty else space) <>
+                          ils'
               opts <- asks docxOptions
-              if isNull ils' && not (isEnabled Ext_empty_paragraphs opts)
-                 then return mempty
-                 else return $ parStyleToTransform pPr $ para ils'
+              if | isNull ils'' && not (isEnabled Ext_empty_paragraphs opts) ->
+                     return mempty
+                 | Just (TrackedChange Insertion _) <- pChange pPr
+                 , AcceptChanges <- readerTrackChanges opts -> do
+                     modify $ \s -> s {docxPrevPara = mempty}
+                     return $ parStyleToTransform pPr $ para ils''
+                 | Just (TrackedChange Insertion _) <- pChange pPr
+                 , RejectChanges <- readerTrackChanges opts -> do
+                     modify $ \s -> s {docxPrevPara = ils''}
+                     return mempty
+                 | Just (TrackedChange Insertion cInfo) <- pChange pPr
+                 , AllChanges <- readerTrackChanges opts
+                 , ChangeInfo _ cAuthor cDate <- cInfo -> do
+                     let attr = ("", ["paragraph-insertion"], [("author", cAuthor), ("date", cDate)])
+                         insertMark = spanWith attr mempty
+                     return $
+                       parStyleToTransform pPr $
+                       para $ ils'' <> insertMark
+                 | Just (TrackedChange Deletion _) <- pChange pPr
+                 , AcceptChanges <- readerTrackChanges opts -> do
+                     modify $ \s -> s {docxPrevPara = ils''}
+                     return mempty
+                 | Just (TrackedChange Deletion _) <- pChange pPr
+                 , RejectChanges <- readerTrackChanges opts -> do
+                     modify $ \s -> s {docxPrevPara = mempty}
+                     return $ parStyleToTransform pPr $ para ils''
+                 | Just (TrackedChange Deletion cInfo) <- pChange pPr
+                 , AllChanges <- readerTrackChanges opts
+                 , ChangeInfo _ cAuthor cDate <- cInfo -> do
+                     let attr = ("", ["paragraph-deletion"], [("author", cAuthor), ("date", cDate)])
+                         insertMark = spanWith attr mempty
+                     return $
+                       parStyleToTransform pPr $
+                       para $ ils'' <> insertMark
+                 | otherwise -> do
+                     modify $ \s -> s {docxPrevPara = mempty}
+                     return $ parStyleToTransform pPr $ para ils''
 bodyPartToBlocks (ListItem pPr numId lvl (Just levelInfo) parparts) = do
   -- We check whether this current numId has previously been used,
   -- since Docx expects us to pick up where we left off.
