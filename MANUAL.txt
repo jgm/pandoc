@@ -349,15 +349,15 @@ General options
     If this option is not specified, the default user data directory
     will be used.  This is, in UNIX:
 
-	$HOME/.pandoc
+        $HOME/.pandoc
 
     in Windows XP:
 
-	C:\Documents And Settings\USERNAME\Application Data\pandoc
+        C:\Documents And Settings\USERNAME\Application Data\pandoc
 
     and in Windows Vista or later:
 
-	C:\Users\USERNAME\AppData\Roaming\pandoc
+        C:\Users\USERNAME\AppData\Roaming\pandoc
 
     You can find the default user data directory on your system by
     looking at the output of `pandoc --version`.
@@ -370,7 +370,7 @@ General options
 :   Generate a bash completion script.  To enable bash completion
     with pandoc, add this to your `.bashrc`:
 
-	 eval "$(pandoc --bash-completion)"
+         eval "$(pandoc --bash-completion)"
 
 `--verbose`
 
@@ -468,11 +468,11 @@ Reader options
     JSON input and output.  The name of the output format will be
     passed to the filter as the first argument.  Hence,
 
-	pandoc --filter ./caps.py -t latex
+        pandoc --filter ./caps.py -t latex
 
     is equivalent to
 
-	pandoc -t json | ./caps.py latex | pandoc -f json -t latex
+        pandoc -t json | ./caps.py latex | pandoc -f json -t latex
 
     The latter form may be useful for debugging filters.
 
@@ -511,15 +511,15 @@ Reader options
 
     The following is an example lua script for macro-expansion:
 
-	function expand_hello_world(inline)
-	  if inline.c == '{{helloworld}}' then
-	    return pandoc.Emph{ pandoc.Str "Hello, World" }
-	  else
-	    return inline
-	  end
-	end
+        function expand_hello_world(inline)
+          if inline.c == '{{helloworld}}' then
+            return pandoc.Emph{ pandoc.Str "Hello, World" }
+          else
+            return inline
+          end
+        end
 
-	return {{Str = expand_hello_world}}
+        return {{Str = expand_hello_world}}
 
 
 `-M` *KEY*[`=`*VAL*], `--metadata=`*KEY*[`:`*VAL*]
@@ -554,11 +554,8 @@ Reader options
     `insertion`, `deletion`, `comment-start`, and `comment-end`
     classes, respectively. The author and time of change is
     included. `all` is useful for scripting: only accepting changes
-    from a certain reviewer, say, or before a certain date. If a
-    paragraph is inserted or deleted, `track-changes=all` produces a
-    span with the class `paragraph-insertion`/`paragraph-deletion`
-    before the affected paragraph break. This option only affects the
-    docx reader.
+    from a certain reviewer, say, or before a certain date. This
+    option only affects the docx reader.
 
 `--extract-media=`*DIR*
 
@@ -919,48 +916,48 @@ Options affecting specific writers
     Docx
 
     :   For best results, the reference docx should be a modified
-	version of a docx file produced using pandoc.  The contents
-	of the reference docx are ignored, but its stylesheets and
-	document properties (including margins, page size, header,
-	and footer) are used in the new docx. If no reference docx
-	is specified on the command line, pandoc will look for a
-	file `reference.docx` in the user data directory (see
-	`--data-dir`). If this is not found either, sensible
-	defaults will be used.
+        version of a docx file produced using pandoc.  The contents
+        of the reference docx are ignored, but its stylesheets and
+        document properties (including margins, page size, header,
+        and footer) are used in the new docx. If no reference docx
+        is specified on the command line, pandoc will look for a
+        file `reference.docx` in the user data directory (see
+        `--data-dir`). If this is not found either, sensible
+        defaults will be used.
 
-	To produce a custom `reference.docx`, first get a copy of
-	the default `reference.docx`: `pandoc
-	--print-default-data-file reference.docx >
-	custom-reference.docx`.  Then open `custom-reference.docx`
-	in Word, modify the styles as you wish, and save the file.
-	For best results, do not make changes to this file other
-	than modifying the styles used by pandoc: [paragraph]
-	Normal, Body Text, First Paragraph, Compact, Title,
-	Subtitle, Author, Date, Abstract, Bibliography, Heading 1,
-	Heading 2, Heading 3, Heading 4, Heading 5, Heading 6,
-	Heading 7, Heading 8, Heading 9, Block Text, Footnote Text,
-	Definition Term, Definition, Caption, Table Caption,
-	Image Caption, Figure, Captioned Figure, TOC Heading;
-	[character] Default Paragraph Font, Body Text Char,
-	Verbatim Char, Footnote Reference, Hyperlink; [table]
-	Table.
+        To produce a custom `reference.docx`, first get a copy of
+        the default `reference.docx`: `pandoc
+        --print-default-data-file reference.docx >
+        custom-reference.docx`.  Then open `custom-reference.docx`
+        in Word, modify the styles as you wish, and save the file.
+        For best results, do not make changes to this file other
+        than modifying the styles used by pandoc: [paragraph]
+        Normal, Body Text, First Paragraph, Compact, Title,
+        Subtitle, Author, Date, Abstract, Bibliography, Heading 1,
+        Heading 2, Heading 3, Heading 4, Heading 5, Heading 6,
+        Heading 7, Heading 8, Heading 9, Block Text, Footnote Text,
+        Definition Term, Definition, Caption, Table Caption,
+        Image Caption, Figure, Captioned Figure, TOC Heading;
+        [character] Default Paragraph Font, Body Text Char,
+        Verbatim Char, Footnote Reference, Hyperlink; [table]
+        Table.
 
     ODT
 
     :   For best results, the reference ODT should be a modified
-	version of an ODT produced using pandoc.  The contents of
-	the reference ODT are ignored, but its stylesheets are used
-	in the new ODT. If no reference ODT is specified on the
-	command line, pandoc will look for a file `reference.odt` in
-	the user data directory (see `--data-dir`). If this is not
-	found either, sensible defaults will be used.
+        version of an ODT produced using pandoc.  The contents of
+        the reference ODT are ignored, but its stylesheets are used
+        in the new ODT. If no reference ODT is specified on the
+        command line, pandoc will look for a file `reference.odt` in
+        the user data directory (see `--data-dir`). If this is not
+        found either, sensible defaults will be used.
 
-	To produce a custom `reference.odt`, first get a copy of
-	the default `reference.odt`: `pandoc
-	--print-default-data-file reference.odt >
-	custom-reference.odt`.  Then open `custom-reference.odt` in
-	LibreOffice, modify the styles as you wish, and save the
-	file.
+        To produce a custom `reference.odt`, first get a copy of
+        the default `reference.odt`: `pandoc
+        --print-default-data-file reference.odt >
+        custom-reference.odt`.  Then open `custom-reference.odt` in
+        LibreOffice, modify the styles as you wish, and save the
+        file.
 
 `--epub-cover-image=`*FILE*
 
@@ -975,8 +972,8 @@ Options affecting specific writers
     The file should contain a series of [Dublin Core elements].
     For example:
 
-	 <dc:rights>Creative Commons</dc:rights>
-	 <dc:language>es-AR</dc:language>
+         <dc:rights>Creative Commons</dc:rights>
+         <dc:language>es-AR</dc:language>
 
     By default, pandoc will include the following metadata elements:
     `<dc:title>` (from the document title), `<dc:creator>` (from the
@@ -1000,31 +997,31 @@ Options affecting specific writers
     embedded fonts, you will need to add declarations like the following
     to your CSS (see `--css`):
 
-	@font-face {
-	font-family: DejaVuSans;
-	font-style: normal;
-	font-weight: normal;
-	src:url("DejaVuSans-Regular.ttf");
-	}
-	@font-face {
-	font-family: DejaVuSans;
-	font-style: normal;
-	font-weight: bold;
-	src:url("DejaVuSans-Bold.ttf");
-	}
-	@font-face {
-	font-family: DejaVuSans;
-	font-style: italic;
-	font-weight: normal;
-	src:url("DejaVuSans-Oblique.ttf");
-	}
-	@font-face {
-	font-family: DejaVuSans;
-	font-style: italic;
-	font-weight: bold;
-	src:url("DejaVuSans-BoldOblique.ttf");
-	}
-	body { font-family: "DejaVuSans"; }
+        @font-face {
+        font-family: DejaVuSans;
+        font-style: normal;
+        font-weight: normal;
+        src:url("DejaVuSans-Regular.ttf");
+        }
+        @font-face {
+        font-family: DejaVuSans;
+        font-style: normal;
+        font-weight: bold;
+        src:url("DejaVuSans-Bold.ttf");
+        }
+        @font-face {
+        font-family: DejaVuSans;
+        font-style: italic;
+        font-weight: normal;
+        src:url("DejaVuSans-Oblique.ttf");
+        }
+        @font-face {
+        font-family: DejaVuSans;
+        font-style: italic;
+        font-weight: bold;
+        src:url("DejaVuSans-BoldOblique.ttf");
+        }
+        body { font-family: "DejaVuSans"; }
 
 `--epub-chapter-level=`*NUMBER*
 
@@ -1177,9 +1174,9 @@ of the following options.
     formulas and an HTML file with links to these images.
     So, the procedure is:
 
-	pandoc -s --gladtex input.md -o myfile.htex
-	gladtex -d myfile-images myfile.htex
-	# produces myfile.html and images in myfile-images
+        pandoc -s --gladtex input.md -o myfile.htex
+        gladtex -d myfile-images myfile.htex
+        # produces myfile.html and images in myfile-images
 
 `--mimetex`[`=`*URL*]
 
@@ -1216,11 +1213,11 @@ Options for wrapper scripts
 :   Ignore command-line arguments (for use in wrapper scripts).
     Regular pandoc options are not ignored.  Thus, for example,
 
-	pandoc --ignore-args -o foo.html -s foo.txt -- -e latin1
+        pandoc --ignore-args -o foo.html -s foo.txt -- -e latin1
 
     is equivalent to
 
-	pandoc -o foo.html -s
+        pandoc -o foo.html -s
 
 Templates
 =========
@@ -1266,13 +1263,13 @@ as the following:
     if input is from stdin. You can use the following snippet in your template
     to distinguish them:
 
-	$if(sourcefile)$
-	$for(sourcefile)$
-	$sourcefile$
-	$endfor$
-	$else$
-	(stdin)
-	$endif$
+        $if(sourcefile)$
+        $for(sourcefile)$
+        $sourcefile$
+        $endfor$
+        $else$
+        (stdin)
+        $endif$
 
     Similarly, `outputfile` can be `-` if output goes to the terminal.
 
@@ -1282,11 +1279,11 @@ as the following:
     through a [pandoc title block][Extension: `pandoc_title_block`],
     which allows for multiple authors, or through a YAML metadata block:
 
-	---
-	author:
-	- Aristotle
-	- Peter Abelard
-	...
+        ---
+        author:
+        - Aristotle
+        - Peter Abelard
+        ...
 
 `subtitle`
 :   document subtitle, included in HTML, EPUB, LaTeX, ConTeXt, and Word docx;
@@ -1334,11 +1331,11 @@ as the following:
 [^subtitle]: To make `subtitle` work with other LaTeX
     document classes, you can add the following to `header-includes`:
 
-	\providecommand{\subtitle}[1]{%
-	  \usepackage{titling}
-	  \posttitle{%
-	    \par\large#1\end{center}}
-	}
+        \providecommand{\subtitle}[1]{%
+          \usepackage{titling}
+          \posttitle{%
+            \par\large#1\end{center}}
+        }
 
 Language variables
 ------------------
@@ -1732,7 +1729,7 @@ Typography
 
 Interpret straight quotes as curly quotes, `---` as em-dashes,
 `--` as en-dashes, and `...` as ellipses. Nonbreaking spaces are
-inserted after certain abbreviations, such as "Mr."
+inserted after certain abbreviations, such as "Mr." 
 
 This extension can be enabled/disabled for the following formats:
 
@@ -2209,9 +2206,9 @@ A block of text indented four spaces (or one tab) is treated as verbatim
 text: that is, special characters do not trigger special formatting,
 and all spaces and line breaks are preserved.  For example,
 
-	if (a > 3) {
-	  moveShip(5 * gravity, DOWN);
-	}
+        if (a > 3) {
+          moveShip(5 * gravity, DOWN);
+        }
 
 The initial (four space or one tab) indentation is not considered part
 of the verbatim text, and is removed in the output.
@@ -2260,7 +2257,7 @@ this syntax:
     ~~~~ {#mycode .haskell .numberLines startFrom="100"}
     qsort []     = []
     qsort (x:xs) = qsort (filter (< x) xs) ++ [x] ++
-		   qsort (filter (>= x) xs)
+                   qsort (filter (>= x) xs)
     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Here `mycode` is an identifier, `haskell` and `numberLines` are classes, and
@@ -2384,12 +2381,12 @@ the list marker.
 
       * First paragraph.
 
-	Continued.
+        Continued.
 
       * Second paragraph. With a code block, which must be indented
-	eight spaces:
+        eight spaces:
 
-	    { code }
+            { code }
 
 Exception: if the list marker is followed by an indented code
 block, which must begin 5 spaces after the list marker, then
@@ -2407,8 +2404,8 @@ containing list item.
 
     * fruits
       + apples
-	- macintosh
-	- red delicious
+        - macintosh
+        - red delicious
       + pears
       + peaches
     * vegetables
@@ -2425,7 +2422,7 @@ other blocks in a list item, the first line of each must be indented.
     + Another one; this looks
     bad but is legal.
 
-	Second paragraph of second
+        Second paragraph of second
     list item.
 
 ### Ordered lists ###
@@ -2459,18 +2456,18 @@ capital letter with a period, by at least two spaces.[^2]
 [^2]:  The point of this rule is to ensure that normal paragraphs
     starting with people's initials, like
 
-	B. Russell was an English philosopher.
+        B. Russell was an English philosopher.
 
     do not get treated as list items.
 
     This rule will not prevent
 
-	(C) 2007 Joe Smith
+        (C) 2007 Joe Smith
 
     from being interpreted as a list item.  In this case, a backslash
     escape can be used:
 
-	(C\) 2007 Joe Smith
+        (C\) 2007 Joe Smith
 
 The `fancy_lists` extension also allows '`#`' to be used as an
 ordered list marker in place of a numeral:
@@ -2489,9 +2486,9 @@ roman numerals:
      9)  Ninth
     10)  Tenth
     11)  Eleventh
-	   i. subone
-	  ii. subtwo
-	 iii. subthree
+           i. subone
+          ii. subtwo
+         iii. subthree
 
 Pandoc will start a new list each time a different type of list
 marker is used.  So, the following will create three lists:
@@ -2523,9 +2520,9 @@ Pandoc supports definition lists, using the syntax of
 
     :   Definition 2
 
-	    { some code, part of Definition 2 }
+            { some code, part of Definition 2 }
 
-	Third paragraph of definition 2.
+        Third paragraph of definition 2.
 
 Each term must fit on one line, which may optionally be followed by
 a blank line, and must be followed by one or more definitions.
@@ -2544,7 +2541,7 @@ at the beginning of a paragraph or other block element:
     :   Definition
     with lazy continuation.
 
-	Second paragraph of the definition.
+        Second paragraph of the definition.
 
 If you leave space before the definition (as in the example above),
 the text of the definition will be treated as a paragraph.  In some
@@ -2607,9 +2604,9 @@ cases" involving lists.  Consider this source:
 
     +   First
     +   Second:
-	-   Fee
-	-   Fie
-	-   Foe
+    	-   Fee
+    	-   Fie
+    	-   Foe
 
     +   Third
 
@@ -2632,7 +2629,7 @@ What if you want to put an indented code block after a list?
     -   item one
     -   item two
 
-	{ my code block }
+        { my code block }
 
 Trouble! Here pandoc (like other Markdown implementations) will treat
 `{ my code block }` as the second paragraph of item two, and not as
@@ -2647,7 +2644,7 @@ any format:
 
     <!-- end of list -->
 
-	{ my code block }
+        { my code block }
 
 You can use the same trick if you want two consecutive lists instead
 of one big list:
@@ -2693,9 +2690,9 @@ Simple tables look like this:
 
       Right     Left     Center     Default
     -------     ------ ----------   -------
-	 12     12        12            12
-	123     123       123          123
-	  1     1          1             1
+         12     12        12            12
+        123     123       123          123
+          1     1          1             1
 
     Table:  Demonstration of simple table syntax.
 
@@ -2722,9 +2719,9 @@ The column headers may be omitted, provided a dashed line is used
 to end the table. For example:
 
     -------     ------ ----------   -------
-	 12     12        12             12
-	123     123       123           123
-	  1     1          1              1
+         12     12        12             12
+        123     123       123           123
+          1     1          1              1
     -------     ------ ----------   -------
 
 When headers are omitted, column alignments are determined on the basis
@@ -2742,11 +2739,11 @@ not supported).  Here is an example:
       Header    Aligned         Aligned Aligned
     ----------- ------- --------------- -------------------------
        First    row                12.0 Example of a row that
-					spans multiple lines.
+                                        spans multiple lines.
 
       Second    row                 5.0 Here's another one. Note
-					the blank line between
-					rows.
+                                        the blank line between
+                                        rows.
     -------------------------------------------------------------
 
     Table: Here's the caption. It, too, may span
@@ -2768,11 +2765,11 @@ Headers may be omitted in multiline tables as well as simple tables:
 
     ----------- ------- --------------- -------------------------
        First    row                12.0 Example of a row that
-					spans multiple lines.
+                                        spans multiple lines.
 
       Second    row                 5.0 Here's another one. Note
-					the blank line between
-					rows.
+                                        the blank line between
+                                        rows.
     ----------- ------- --------------- -------------------------
 
     : Here's a multiline table without headers.
@@ -3532,7 +3529,7 @@ If you just want a regular inline image, just make sure it is not
 the only thing in the paragraph. One way to do this is to insert a
 nonbreaking space after the image:
 
-    ![This image won't be a figure](/url/of/image.png)\
+    ![This image won't be a figure](/url/of/image.png)\ 
 
 Note that in reveal.js slide shows, an image in a paragraph
 by itself that has the `stretch` class will fill the screen,
@@ -3651,14 +3648,14 @@ Pandoc's Markdown allows footnotes, using the following syntax:
 
     [^longnote]: Here's one with multiple blocks.
 
-	Subsequent paragraphs are indented to show that they
+        Subsequent paragraphs are indented to show that they
     belong to the previous footnote.
 
-	    { some.code }
+            { some.code }
 
-	The whole paragraph can be indented, or just the first
-	line.  In this way, multi-paragraph footnotes work like
-	multi-paragraph list items.
+        The whole paragraph can be indented, or just the first
+        line.  In this way, multi-paragraph footnotes work like
+        multi-paragraph list items.
 
     This paragraph won't be part of the note, because it
     isn't indented.
@@ -3758,16 +3755,16 @@ YAML-encoded references, for example:
       id: WatsonCrick1953
       author:
       - family: Watson
-	given: J. D.
+        given: J. D.
       - family: Crick
-	given: F. H. C.
+        given: F. H. C.
       issued:
-	date-parts:
-	- - 1953
-	  - 4
-	  - 25
+        date-parts:
+        - - 1953
+          - 4
+          - 25
       title: 'Molecular structure of nucleic acids: a structure for deoxyribose
-	nucleic acid'
+        nucleic acid'
       title-short: Molecular structure of nucleic acids
       container-title: Nature
       volume: 171
@@ -3968,7 +3965,7 @@ the document, for example:
     Author:  John Doe
     Date:    September 1, 2008
     Comment: This is a sample mmd title block, with
-	     a field spanning multiple lines.
+             a field spanning multiple lines.
 
 See the MultiMarkdown documentation for details.  If `pandoc_title_block` or
 `yaml_metadata_block` is enabled, it will take precedence over
@@ -3998,7 +3995,7 @@ and image references. This extension should not be confused with the
     This is a reference ![image][ref] with multimarkdown attributes.
 
     [ref]: http://path.to/image "Image title" width=20px height=30px
-	   id=myId class="myClass1 myClass2"
+           id=myId class="myClass1 myClass2"
 
 #### Extension: `mmd_header_identifiers` ####
 
@@ -4022,10 +4019,10 @@ in several respects:
 [^6]:  To see why laziness is incompatible with relaxing the requirement
     of a blank line between items, consider the following example:
 
-	bar
-	:    definition
-	foo
-	:    definition
+        bar
+        :    definition
+        foo
+        :    definition
 
     Is this a single list item with two definitions of "bar," the first of
     which is lazily wrapped, or two list items?  To remove the ambiguity
@@ -4427,7 +4424,7 @@ with the `src` attribute.  For example:
 
     <audio controls="1">
       <source src="http://example.com/music/toccata.mp3"
-	      data-external="1" type="audio/mpeg">
+              data-external="1" type="audio/mpeg">
       </source>
     </audio>
 
