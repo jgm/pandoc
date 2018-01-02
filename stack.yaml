@@ -13,5 +13,5 @@ flags:
 packages:
 - '.'
 extra-deps:
-- pandoc-citeproc-0.12.2.2
+- pandoc-citeproc-0.12.2.3
 resolver: lts-10.1
