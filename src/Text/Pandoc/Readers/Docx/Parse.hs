@@ -216,6 +216,7 @@ data ParagraphStyle = ParagraphStyle { pStyle      :: [String]
                                      , pHeading    :: Maybe (String, Int)
                                      , pNumInfo    :: Maybe (String, String)
                                      , pBlockQuote :: Maybe Bool
+                                     , pChange     :: Maybe TrackedChange
                                      }
                       deriving Show
 
@@ -226,6 +227,7 @@ defaultParagraphStyle = ParagraphStyle { pStyle = []
                                        , pHeading    = Nothing
                                        , pNumInfo    = Nothing
                                        , pBlockQuote = Nothing
+                                       , pChange     = Nothing
                                        }
 
 
@@ -738,21 +740,9 @@ elemToParPart ns element
   | isElem ns "w" "r" element =
     elemToRun ns element >>= (\r -> return $ PlainRun r)
 elemToParPart ns element
-  | isElem ns "w" "ins" element || isElem ns "w" "moveTo" element
-  , Just cId <- findAttrByName ns "w" "id" element
-  , Just cAuthor <- findAttrByName ns "w" "author" element
-  , Just cDate <- findAttrByName ns "w" "date" element = do
-    runs <- mapD (elemToRun ns) (elChildren element)
-    return $ ChangedRuns
-      (TrackedChange Insertion (ChangeInfo cId cAuthor cDate)) runs
-elemToParPart ns element
-  | isElem ns "w" "del" element || isElem ns "w" "moveFrom" element
-  , Just cId <- findAttrByName ns "w" "id" element
-  , Just cAuthor <- findAttrByName ns "w" "author" element
-  , Just cDate <- findAttrByName ns "w" "date" element = do
-    runs <- mapD (elemToRun ns) (elChildren element)
-    return $ ChangedRuns
-      (TrackedChange Deletion (ChangeInfo cId cAuthor cDate)) runs
+  | Just change <- getTrackedChange ns element = do
+      runs <- mapD (elemToRun ns) (elChildren element)
+      return $ ChangedRuns change runs
 elemToParPart ns element
   | isElem ns "w" "smartTag" element = do
     runs <- mapD (elemToRun ns) (elChildren element)
@@ -903,6 +893,21 @@ getParStyleField field stylemap styles
            = Just y
 getParStyleField _ _ _ = Nothing
 
+getTrackedChange :: NameSpaces -> Element -> Maybe TrackedChange
+getTrackedChange ns element
+  | isElem ns "w" "ins" element || isElem ns "w" "moveTo" element
+  , Just cId <- findAttrByName ns "w" "id" element
+  , Just cAuthor <- findAttrByName ns "w" "author" element
+  , Just cDate <- findAttrByName ns "w" "date" element =
+      Just $ TrackedChange Insertion (ChangeInfo cId cAuthor cDate)
+getTrackedChange ns element
+  | isElem ns "w" "del" element || isElem ns "w" "moveFrom" element
+  , Just cId <- findAttrByName ns "w" "id" element
+  , Just cAuthor <- findAttrByName ns "w" "author" element
+  , Just cDate <- findAttrByName ns "w" "date" element =
+      Just $ TrackedChange Deletion (ChangeInfo cId cAuthor cDate)
+getTrackedChange _ _ = Nothing
+
 elemToParagraphStyle :: NameSpaces -> Element -> ParStyleMap -> ParagraphStyle
 elemToParagraphStyle ns element sty
   | Just pPr <- findChildByName ns "w" "pPr" element =
@@ -926,6 +931,13 @@ elemToParagraphStyle ns element sty
       , pHeading = getParStyleField headingLev sty style
       , pNumInfo = getParStyleField numInfo sty style
       , pBlockQuote = getParStyleField isBlockQuote sty style
+      , pChange     = findChildByName ns "w" "rPr" pPr >>=
+                      filterChild (\e -> isElem ns "w" "ins" e ||
+                                         isElem ns "w" "moveTo" e ||
+                                         isElem ns "w" "del" e ||
+                                         isElem ns "w" "moveFrom" e
+                                  ) >>=
+                      getTrackedChange ns
       }
 elemToParagraphStyle _ _ _ =  defaultParagraphStyle
 
