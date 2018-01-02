@@ -763,9 +763,7 @@ makeTOC _ = return []
 -- OpenXML elements (the main document and footnotes).
 writeOpenXML :: (PandocMonad m) => WriterOptions -> Pandoc -> WS m ([Element], [Element],[Element])
 writeOpenXML opts (Pandoc meta blocks) = do
-  let tit = docTitle meta ++ case lookupMeta "subtitle" meta of
-                                  Just (MetaBlocks [Plain xs]) -> LineBreak : xs
-                                  _ -> []
+  let tit = docTitle meta
   let auths = docAuthors meta
   let dat = docDate meta
   let abstract' = case lookupMeta "abstract" meta of
@@ -983,7 +981,7 @@ blockToOpenXML' opts (Table caption aligns widths headers rows) = do
       ( mknode "w:tblPr" []
         (   mknode "w:tblStyle" [("w:val","Table")] () :
             mknode "w:tblW" [("w:type", "pct"), ("w:w", show rowwidth)] () :
-            mknode "w:tblLook" [("w:firstRow","1") | hasHeader ] () :
+            mknode "w:tblLook" [("w:firstRow",if hasHeader then "1" else "0") ] () :
           [ mknode "w:tblCaption" [("w:val", captionStr)] ()
           | not (null caption) ] )
       : mknode "w:tblGrid" []
