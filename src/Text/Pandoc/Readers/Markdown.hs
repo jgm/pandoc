@@ -148,25 +148,19 @@ litChar = escapedChar'
 -- | Parse a sequence of inline elements between square brackets,
 -- including inlines between balanced pairs of square brackets.
 inlinesInBalancedBrackets :: PandocMonad m => MarkdownParser m (F Inlines)
-inlinesInBalancedBrackets = do
-  char '['
-  pos <- getPosition
-  (_, raw) <- withRaw $ charsInBalancedBrackets 1
-  guard $ not $ null raw
-  parseFromString' (setPosition pos >>
-                   trimInlinesF <$> inlines) (init raw)
-
-charsInBalancedBrackets :: PandocMonad m => Int -> MarkdownParser m ()
-charsInBalancedBrackets 0 = return ()
-charsInBalancedBrackets openBrackets =
-      (char '[' >> charsInBalancedBrackets (openBrackets + 1))
-  <|> (char ']' >> charsInBalancedBrackets (openBrackets - 1))
-  <|> ((  (() <$ code)
-     <|> (() <$ escapedChar')
-     <|> (newline >> notFollowedBy blankline)
-     <|> skipMany1 (noneOf "[]`\n\\")
-     <|> (() <$ count 1 (oneOf "`\\"))
-      ) >> charsInBalancedBrackets openBrackets)
+inlinesInBalancedBrackets = try $ char '[' >> go 1
+  where go :: PandocMonad m => Int -> MarkdownParser m (F Inlines)
+        go 0 = return mempty
+        go openBrackets =
+                    (mappend <$> (bracketedSpan <|> link <|> image) <*>
+                         go openBrackets)
+                   <|> ((if openBrackets > 1
+                            then (return (B.str "]") <>)
+                            else id) <$>
+                             (char ']' >> go (openBrackets - 1)))
+                   <|> ((return (B.str "[") <>) <$>
+                             (char '[' >> go (openBrackets + 1)))
+                   <|> (mappend <$> inline <*> go openBrackets)
 
 --
 -- document structure
