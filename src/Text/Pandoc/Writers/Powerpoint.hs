@@ -205,7 +205,7 @@ data Slide = MetadataSlide { metadataSlideTitle :: [ParaElem]
 data SlideElement = SlideElement Pixels Pixels Pixels Pixels Shape
   deriving (Show, Eq)
 
-data Shape = Pic FilePath Text.Pandoc.Definition.Attr [ParaElem]
+data Shape = Pic PicProps FilePath Text.Pandoc.Definition.Attr [ParaElem]
            | GraphicFrame [Graphic] [ParaElem]
            | TextBox [Paragraph]
   deriving (Show, Eq)
@@ -325,6 +325,13 @@ instance Default RunProps where
                  , rPropCode = False
                  , rPropBlockQuote = False
                  , rPropForceSize = Nothing
+                 }
+
+data PicProps = PicProps { picPropLink :: Maybe (URL, String)
+                         } deriving (Show, Eq)
+
+instance Default PicProps where
+  def = PicProps { picPropLink = Nothing
                  }
 
 --------------------------------------------------
@@ -489,9 +496,15 @@ rowToParagraphs algns tblCells = do
 
 blockToShape :: PandocMonad m => Block -> P m Shape
 blockToShape (Plain (il:_)) | Image attr ils (url, _) <- il =
-      Pic url attr <$> (inlinesToParElems ils)
+      Pic def url attr <$> (inlinesToParElems ils)
 blockToShape (Para (il:_))  | Image attr ils (url, _) <- il =
-      Pic url attr <$> (inlinesToParElems ils)
+      Pic def url attr <$> (inlinesToParElems ils)
+blockToShape (Plain (il:_)) | Link _ (il':_) target <- il
+                            , Image attr ils (url, _) <- il' =
+      Pic def{picPropLink = Just target} url attr <$> (inlinesToParElems ils)
+blockToShape (Para (il:_))  | Link _ (il':_) target <- il
+                            , Image attr ils (url, _) <- il' =
+      Pic def{picPropLink = Just target} url attr <$> (inlinesToParElems ils)
 blockToShape (Table caption algn _ hdrCells rows) = do
   caption' <- inlinesToParElems caption
   pageWidth <- presSizeWidth <$> asks envPresentationSize
@@ -781,7 +794,7 @@ presentationToArchive p@(Presentation _ slides) = do
 combineShapes :: [Shape] -> [Shape]
 combineShapes [] = []
 combineShapes (s : []) = [s]
-combineShapes (pic@(Pic _ _ _) : ss) = pic : combineShapes ss
+combineShapes (pic@(Pic _ _ _ _) : ss) = pic : combineShapes ss
 combineShapes ((TextBox []) : ss) = combineShapes ss
 combineShapes (s : TextBox [] : ss) = combineShapes (s : ss)
 combineShapes (s@(TextBox (p:ps)) : s'@(TextBox (p':ps')) : ss)
@@ -1087,10 +1100,11 @@ createCaption paraElements = do
 -- Largely lifted from inlineToOpenXML' in T.P.W.Docx. Can't be easily
 -- abstracted because of some different namespaces and monads. TODO.
 makePicElement :: PandocMonad m
-               => MediaInfo
+               => PicProps
+               -> MediaInfo
                -> Text.Pandoc.Definition.Attr
                -> P m Element
-makePicElement mInfo attr = do
+makePicElement picProps mInfo attr = do
   opts <- asks envOpts
   pageWidth <- presSizeWidth <$> asks envPresentationSize
   pageHeight <- getPageHeight <$> asks envPresentationSize
@@ -1119,9 +1133,16 @@ makePicElement mInfo attr = do
   let cNvPicPr = mknode "p:cNvPicPr" [] $
                  mknode "a:picLocks" [("noGrp","1")
                                      ,("noChangeAspect","1")] ()
+  -- cNvPr will contain the link information so we do that separately,
+  -- and register the link if necessary.
+  let cNvPrAttr = [("descr", mInfoFilePath mInfo), ("id","0"),("name","Picture 1")]
+  cNvPr <- case picPropLink picProps of
+    Just link -> do idNum <- registerLink link
+                    return $ mknode "p:cNvPr" cNvPrAttr $
+                      mknode "a:hlinkClick" [("r:id", "rId" ++ show idNum)] ()
+    Nothing   -> return $ mknode "p:cNvPr" cNvPrAttr ()
   let nvPicPr  = mknode "p:nvPicPr" []
-                 [ mknode "p:cNvPr"
-                   [("descr", mInfoFilePath mInfo),("id","0"),("name","Picture 1")] ()
+                 [ cNvPr
                  , cNvPicPr
                  , mknode "p:nvPr" [] ()]
   let blipFill = mknode "p:blipFill" []
@@ -1267,10 +1288,10 @@ shapeToElement layout (TextBox paras)
   -- XXX: TODO
   | otherwise = return $ mknode "p:sp" [] ()
 -- XXX: TODO
-shapeToElement layout (Pic fp attr alt) = do
+shapeToElement layout (Pic picProps fp attr alt) = do
   mInfo <- registerMedia fp alt
   case mInfoExt mInfo of
-    Just _ -> makePicElement mInfo attr
+    Just _ -> makePicElement picProps mInfo attr
     Nothing -> shapeToElement layout $ TextBox [Paragraph def alt]
 shapeToElement _ (GraphicFrame tbls _) = do
   elements <- mapM graphicToElement tbls
@@ -1291,7 +1312,7 @@ shapeToElement _ (GraphicFrame tbls _) = do
 shapeToElements :: PandocMonad m => Element -> Shape -> P m [Element]
 shapeToElements layout shp = do
   case shp of
-    (Pic _ _ alt) | (not . null) alt -> do
+    (Pic _ _ _ alt) | (not . null) alt -> do
       element <- shapeToElement layout shp
       caption <- createCaption alt
       return [element, caption]
