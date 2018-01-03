@@ -37,7 +37,6 @@ import Control.Monad.Reader
 import Control.Monad.State
 import Codec.Archive.Zip
 import Data.List (intercalate, stripPrefix, isPrefixOf, nub)
--- import Control.Monad (mplus)
 import Data.Default
 import Data.Time.Clock (UTCTime)
 import Data.Time.Clock.POSIX (utcTimeToPOSIXSeconds, posixSecondsToUTCTime)
@@ -53,8 +52,6 @@ import Text.Pandoc.Options
 import Text.Pandoc.MIME
 import Text.Pandoc.Logging
 import qualified Data.ByteString.Lazy as BL
--- import qualified Data.ByteString.Lazy.Char8 as BL8
--- import qualified Text.Pandoc.UTF8 as UTF8
 import Text.Pandoc.Walk
 import Text.Pandoc.Writers.Shared (fixDisplayMath)
 import Text.Pandoc.Writers.OOXML
@@ -228,20 +225,6 @@ data Paragraph = Paragraph { paraProps :: ParaProps
 
 data HeaderType = TitleHeader | SlideHeader | InternalHeader Int
                 deriving (Show, Eq)
-
--- type StartingAt = Int
-
--- data AutoNumType = ArabicNum
---                  | AlphaUpperNum
---                  | AlphaLowerNum
---                  | RomanUpperNum
---                  | RomanLowerNum
---                  deriving (Show, Eq)
-
--- data AutoNumDelim = PeriodDelim
---                   | OneParenDelim
---                   | TwoParensDelim
---                   deriving (Show, Eq)
 
 autoNumberingToType :: ListAttributes -> String
 autoNumberingToType (_, numStyle, numDelim) =
@@ -420,10 +403,6 @@ blockToParagraphs (BlockQuote blks) =
   concatMapM blockToParagraphs blks
 -- TODO: work out the format
 blockToParagraphs (RawBlock _ _) = return []
-  -- parElems <- inlinesToParElems [Str str]
-  -- paraProps <- asks envParaProps
-  -- return [Paragraph paraProps parElems]
--- TODO: work out the format
 blockToParagraphs (Header n _ ils) = do
   slideLevel <- asks envSlideLevel
   parElems <- inlinesToParElems ils
@@ -462,7 +441,6 @@ blockToParagraphs (DefinitionList entries) = do
         return $ term ++ definition
   concatMapM go entries
 blockToParagraphs (Div _ blks)  = concatMapM blockToParagraphs blks
--- TODO
 blockToParagraphs blk = do
   P.report $ BlockNotRendered blk
   return []
@@ -827,12 +805,6 @@ getLayout slide = do
                    PandocSomeError $
                    layoutpath ++ " missing in reference file"
   return root
-  -- let ns = elemToNameSpaces root
-  -- case findChild (elemName ns "p" "cSld") root of
-  --   Just element' -> return element'
-  --   Nothing       -> throwError $
-  --                    PandocSomeError $
-  --                    layoutpath ++ " not correctly formed layout file"
 
 shapeHasName :: NameSpaces -> String -> Element -> Bool
 shapeHasName ns name element
@@ -842,54 +814,11 @@ shapeHasName ns name element
       nm == name
   | otherwise = False
 
--- getContentTitleShape :: NameSpaces -> Element -> Maybe Element
--- getContentTitleShape ns spTreeElem
---   | isElem ns "p" "spTree" spTreeElem =
---   filterChild (\e -> (isElem ns "p" "sp" e) && (shapeHasName ns "Title 1" e)) spTreeElem
---   | otherwise = Nothing
-
--- getSubtitleShape :: NameSpaces -> Element -> Maybe Element
--- getSubtitleShape ns spTreeElem
---   | isElem ns "p" "spTree" spTreeElem =
---   filterChild (\e -> (isElem ns "p" "sp" e) && (shapeHasName ns "Subtitle 2" e)) spTreeElem
---   | otherwise = Nothing
-
--- getDateShape :: NameSpaces -> Element -> Maybe Element
--- getDateShape ns spTreeElem
---   | isElem ns "p" "spTree" spTreeElem =
---   filterChild (\e -> (isElem ns "p" "sp" e) && (shapeHasName ns "Date Placeholder 3" e)) spTreeElem
---   | otherwise = Nothing
-
 getContentShape :: NameSpaces -> Element -> Maybe Element
 getContentShape ns spTreeElem
   | isElem ns "p" "spTree" spTreeElem =
   filterChild (\e -> (isElem ns "p" "sp" e) && (shapeHasName ns "Content Placeholder 2" e)) spTreeElem
   | otherwise = Nothing
-
-
--- cursorHasName :: QName -> XMLC.Cursor -> Bool
--- cursorHasName nm cur = case XMLC.current cur of
---   Elem element -> case XMLC.tagName $ XMLC.getTag element of
---                        nm -> True
---                        _ -> False
---   _ -> False
-
--- fillInTxBody :: NameSpaces -> [Paragraph] -> Element -> Element
--- fillInTxBody ns paras txBodyElem
---   | isElem ns "p" "txBody" txBodyElem =
---       replaceNamedChildren ns "a" "p" (map paragraphToElement paras) txBodyElem
---   | otherwise = txBodyElem
-
--- fillInShape :: NameSpaces -> Shape -> Element -> Element
--- fillInShape ns shape spElem
---   | TextBox paras <- shape
---   , isElemn ns "p" "sp" spElem =
---       replaceNamedChildren ns "p" "txBody" (fillInTxBody ns paras sp
-
-
--- fillInShape :: NameSpaces -> Element -> Shape -> Element
--- fillInShape ns spElem (TextBox paras) = fillInParagraphs ns spElem paras
--- fillInShape _ spElem pic = spElem
 
 contentIsElem :: NameSpaces -> String -> String -> Content -> Bool
 contentIsElem ns prefix name (Elem element) = isElem ns prefix name element
@@ -901,7 +830,6 @@ replaceNamedChildren ns prefix name newKids element =
       content' = filter (\c -> not (contentIsElem ns prefix name c)) content
   in
     element{elContent = content' ++ map Elem newKids}
-
 
 ----------------------------------------------------------------
 
@@ -1129,7 +1057,6 @@ makePicElement picProps mInfo attr = do
       xoff' = if hasHeader then xoff + hXoff else xoff
       xoff'' = if hasCaption then xoff' + capX else xoff'
       yoff' = if hasHeader then hYoff + hYext else yoff
-      -- let (xemu,yemu)=((floor $ xpt * 12700), (floor $ ypt * 12700))
   let cNvPicPr = mknode "p:cNvPicPr" [] $
                  mknode "a:picLocks" [("noGrp","1")
                                      ,("noChangeAspect","1")] ()
@@ -1353,9 +1280,6 @@ graphicToElement (Tbl tblPr colWidths hdrCells rows) = do
                                then emptyCell
                                else contents) ++ [ borderProps | border ]
   let mkrow border cells = mknode "a:tr" [("h", "0")] $ map (mkcell border) cells
-  -- let textwidth = 14400  -- 5.5 in in twips, 1/20 pt
-  -- let fullrow = 14400 -- 100% specified in pct
-  -- let rowwidth = fullrow * sum colWidths
 
   let mkgridcol w = mknode "a:gridCol"
                        [("w", show ((12700 * w) :: Integer))] ()
@@ -1394,24 +1318,6 @@ nonBodyTextToElement layout shapeName paraElements
       return $ replaceNamedChildren ns "p" "txBody" [txBody] sp
   -- XXX: TODO
   | otherwise = return $ mknode "p:sp" [] ()
-
-
--- hdrToElement :: Element -> [ParaElem] -> Element
--- hdrToElement layout paraElems
---   | ns <- elemToNameSpaces layout
---   , Just cSld <- findChild (elemName ns "p" "cSld") layout
---   , Just spTree <- findChild (elemName ns "p" "spTree") cSld
---   , Just sp <- getContentTitleShape ns spTree =
---   let hdrPara = Paragraph def paraElems
---       txBody = mknode "p:txBody" [] $
---                [mknode "a:bodyPr" [] (), mknode "a:lstStyle" [] ()] ++
---                [paragraphToElement hdrPara]
---   in
---     replaceNamedChildren ns "p" "txBody" [txBody] sp
---   -- XXX: TODO
---   | otherwise = mknode "p:sp" [] ()
--- -- XXX: TODO
--- hdrToElement _ _ = mknode "p:sp" [] ()
 
 contentToElement :: PandocMonad m => Element -> [ParaElem] -> [Shape] -> P m Element
 contentToElement layout hdrShape shapes
@@ -1704,11 +1610,6 @@ slideToSlideRelElement slide idNum = do
                            , ("Target", target)] ()
     ] ++ linkRels ++ mediaRels)
 
--- slideToSlideRelEntry :: PandocMonad m => Slide -> Int -> P m Entry
--- slideToSlideRelEntry slide idNum = do
---   let fp = "ppt/slides/_rels/slide" ++ (show idNum) ++ ".xml.rels"
---   elemToEntry fp $ slideToSlideRelElement slide
-
 slideToSldIdElement :: PandocMonad m => Slide -> Int -> P m Element
 slideToSldIdElement slide idNum = do
   let id' = show $ idNum + 255
@@ -1818,10 +1719,6 @@ presentationToContentTypes (Presentation _ slides) = do
   return $ ContentTypes
     (defaults ++ mediaDefaults)
     (inheritedOverrides ++ presOverride ++ slideOverrides)
-
--- slideToElement :: Element -> Slide -> Element
--- slideToElement layout (ContentSlide _ shapes) =
---   let sps = map (shapeToElement layout) shapes
 
 presML :: String
 presML = "application/vnd.openxmlformats-officedocument.presentationml"
