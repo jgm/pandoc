@@ -1313,12 +1313,16 @@ hardcodedTableMargin = 36
 
 graphicToElement :: PandocMonad m => Graphic -> P m Element
 graphicToElement (Tbl tblPr colWidths hdrCells rows) = do
-  let cellToOpenXML paras = do elements <- mapM paragraphToElement paras
-                               return $
-                                 [mknode "a:txBody" [] $
-                                  ([ mknode "a:bodyPr" [] ()
-                                   , mknode "a:lstStyle" [] ()]
-                                   ++ elements)]
+  let cellToOpenXML paras =
+        do elements <- mapM paragraphToElement paras
+           let elements' = if null elements
+                           then [mknode "a:p" [] [mknode "a:endParaRPr" [] ()]]
+                           else elements
+           return $
+             [mknode "a:txBody" [] $
+               ([ mknode "a:bodyPr" [] ()
+                , mknode "a:lstStyle" [] ()]
+                 ++ elements')]
   headers' <- mapM cellToOpenXML hdrCells
   rows' <- mapM (mapM cellToOpenXML) rows
   let borderProps = mknode "a:tcPr" [] ()
