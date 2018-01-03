@@ -43,6 +43,7 @@ import Data.Time.Clock (UTCTime)
 import Data.Time.Clock.POSIX (utcTimeToPOSIXSeconds, posixSecondsToUTCTime)
 import System.FilePath.Posix (splitDirectories, splitExtension)
 import Text.XML.Light
+import qualified Text.XML.Light.Cursor as XMLC
 import Text.Pandoc.Definition
 import qualified Text.Pandoc.UTF8 as UTF8
 import Text.Pandoc.Class (PandocMonad)
@@ -191,10 +192,14 @@ data Slide = MetadataSlide { metadataSlideTitle :: [ParaElem]
                             , metadataSlideAuthors :: [[ParaElem]]
                             , metadataSlideDate :: [ParaElem]
                             }
-           | TitleSlide { titleSlideHeader :: [ParaElem]}
-           | ContentSlide { contentSlideHeader :: [ParaElem]
+           | TitleSlide { slideHeader :: [ParaElem]}
+           | ContentSlide { slideHeader :: [ParaElem]
                           , contentSlideContent :: [Shape]
                           }
+           | TwoColumnSlide { slideHeader :: [ParaElem]
+                            , twoColumnSlideLeft   :: [Shape]
+                            , twoColumnSlideRight  :: [Shape]
+                            }
            deriving (Show, Eq)
 
 data SlideElement = SlideElement Pixels Pixels Pixels Pixels Shape
@@ -553,6 +558,12 @@ splitBlocks' cur acc (tbl@(Table _ _ _ _ _) : blks) = do
     (Header n _ _) : [] | n == slideLevel ->
                             splitBlocks' [] (acc ++ [cur ++ [tbl]]) blks
     _ ->  splitBlocks' [] (acc ++ (if null cur then [] else [cur]) ++ [[tbl]]) blks
+splitBlocks' cur acc (d@(Div (_, classes, _) _): blks) | "columns" `elem` classes =  do
+  slideLevel <- asks envSlideLevel
+  case cur of
+    (Header n _ _) : [] | n == slideLevel ->
+                            splitBlocks' [] (acc ++ [cur ++ [d]]) blks
+    _ ->  splitBlocks' [] (acc ++ (if null cur then [] else [cur]) ++ [[d]]) blks
 splitBlocks' cur acc (blk : blks) = splitBlocks' (cur ++ [blk]) acc blks
 
 splitBlocks :: Monad m => [Block] -> P m [[Block]]
@@ -562,25 +573,37 @@ blocksToSlide' :: PandocMonad m => Int -> [Block] -> P m Slide
 blocksToSlide' lvl ((Header n _ ils) : blks)
   | n < lvl = do
       hdr <- inlinesToParElems ils
-      return $ TitleSlide {titleSlideHeader = hdr}
+      return $ TitleSlide {slideHeader = hdr}
   | n == lvl = do
       hdr <- inlinesToParElems ils
-      inNoteSlide <- asks envInNoteSlide
-      shapes <- if inNoteSlide
-                then forceFontSize noteSize $ blocksToShapes blks
-                else blocksToShapes blks
-      return $ ContentSlide { contentSlideHeader = hdr
-                            , contentSlideContent = shapes
-                            }
+      -- Now get the slide without the header, and then add the header
+      -- in.
+      slide <- blocksToSlide' lvl blks
+      return $ slide {slideHeader = hdr}
+blocksToSlide' _ (blk : blks)
+  | Div (_, classes, _) divBlks <- blk
+  , "columns" `elem` classes
+  , (Div (_, clsL, _) blksL) : (Div (_, clsR, _) blksR) : remaining <- divBlks
+  , "column" `elem` clsL, "column" `elem` clsR = do
+      unless (null blks)
+        (mapM (P.report . BlockNotRendered) blks >> return ())
+      unless (null remaining)
+        (mapM (P.report . BlockNotRendered) remaining >> return ())
+      shapesL <- blocksToShapes blksL
+      shapesR <- blocksToShapes blksR
+      return $ TwoColumnSlide { slideHeader = []
+                              , twoColumnSlideLeft = shapesL
+                              , twoColumnSlideRight = shapesR
+                              }
 blocksToSlide' _ (blk : blks) = do
       inNoteSlide <- asks envInNoteSlide
       shapes <- if inNoteSlide
                 then forceFontSize noteSize $ blocksToShapes (blk : blks)
                 else blocksToShapes (blk : blks)
-      return $ ContentSlide { contentSlideHeader = []
+      return $ ContentSlide { slideHeader = []
                             , contentSlideContent = shapes
                             }
-blocksToSlide' _ [] = return $ ContentSlide { contentSlideHeader = []
+blocksToSlide' _ [] = return $ ContentSlide { slideHeader = []
                                             , contentSlideContent = []
                                             }
 
@@ -776,6 +799,7 @@ getLayout slide = do
         (MetadataSlide _ _ _ _) -> "ppt/slideLayouts/slideLayout1.xml"
         (TitleSlide _)          -> "ppt/slideLayouts/slideLayout3.xml"
         (ContentSlide _ _)      -> "ppt/slideLayouts/slideLayout2.xml"
+        (TwoColumnSlide _ _ _)    -> "ppt/slideLayouts/slideLayout4.xml"
   distArchive <- asks envDistArchive
   root <- case findEntryByPath layoutpath distArchive of
         Just e -> case parseXMLDoc $ UTF8.toStringLazy $ fromEntry e of
@@ -1377,6 +1401,53 @@ contentToElement layout hdrShape shapes
         spTree
 contentToElement _ _ _ = return $ mknode "p:sp" [] ()
 
+setIdx'' :: NameSpaces -> String -> Content -> Content
+setIdx'' _ idx (Elem element) =
+  let tag = XMLC.getTag element
+      attrs = XMLC.tagAttribs tag
+      idxKey = (QName "idx" Nothing Nothing)
+      attrs' = Attr idxKey idx : (filter (\a -> attrKey a /= idxKey) attrs)
+      tag' = tag {XMLC.tagAttribs = attrs'}
+  in Elem $ XMLC.setTag tag' element
+setIdx'' _ _ c = c
+
+setIdx' :: NameSpaces -> String -> XMLC.Cursor -> XMLC.Cursor
+setIdx' ns idx cur =
+  let modifiedCur = XMLC.modifyContent (setIdx'' ns idx) cur
+  in
+    case XMLC.nextDF modifiedCur of
+      Just cur' -> setIdx' ns idx cur'
+      Nothing   -> XMLC.root modifiedCur
+
+setIdx :: NameSpaces -> String -> Element -> Element
+setIdx ns idx element =
+  let cur = XMLC.fromContent (Elem element)
+      cur' = setIdx' ns idx cur
+  in
+    case XMLC.toTree cur' of
+      Elem element' -> element'
+      _             -> element
+
+twoColumnToElement :: PandocMonad m => Element -> [ParaElem] -> [Shape] -> [Shape] -> P m Element
+twoColumnToElement layout hdrShape shapesL shapesR
+  | ns <- elemToNameSpaces layout
+  , Just cSld <- findChild (elemName ns "p" "cSld") layout
+  , Just spTree <- findChild (elemName ns "p" "spTree") cSld = do
+      element <- nonBodyTextToElement layout "Title 1" hdrShape
+      let hdrShapeElements = if null hdrShape
+                             then []
+                             else [element]
+      contentElementsL <- shapesToElements layout shapesL
+      contentElementsR <- shapesToElements layout shapesR
+      let contentElementsL' = map (setIdx ns "1") contentElementsL
+          contentElementsR' = map (setIdx ns "2") contentElementsR
+      return $
+        replaceNamedChildren ns "p" "sp"
+        (hdrShapeElements ++ contentElementsL' ++ contentElementsR')
+        spTree
+twoColumnToElement _ _ _ _= return $ mknode "p:sp" [] ()
+
+
 titleToElement :: PandocMonad m => Element -> [ParaElem] -> P m Element
 titleToElement layout titleElems
   | ns <- elemToNameSpaces layout
@@ -1417,6 +1488,17 @@ slideToElement s@(ContentSlide hdrElems shapes) = do
                            then env
                            else env{envSlideHasHeader=True}) $
             contentToElement layout hdrElems shapes
+  return $ mknode "p:sld"
+    [ ("xmlns:a", "http://schemas.openxmlformats.org/drawingml/2006/main"),
+      ("xmlns:r", "http://schemas.openxmlformats.org/officeDocument/2006/relationships"),
+      ("xmlns:p", "http://schemas.openxmlformats.org/presentationml/2006/main")
+    ] [mknode "p:cSld" [] [spTree]]
+slideToElement s@(TwoColumnSlide hdrElems shapesL shapesR) = do
+  layout <- getLayout s
+  spTree <- local (\env -> if null hdrElems
+                           then env
+                           else env{envSlideHasHeader=True}) $
+            twoColumnToElement layout hdrElems shapesL shapesR
   return $ mknode "p:sld"
     [ ("xmlns:a", "http://schemas.openxmlformats.org/drawingml/2006/main"),
       ("xmlns:r", "http://schemas.openxmlformats.org/officeDocument/2006/relationships"),
@@ -1574,6 +1656,7 @@ slideToSlideRelElement slide idNum = do
         (MetadataSlide _ _ _ _) -> "../slideLayouts/slideLayout1.xml"
         (TitleSlide _)        -> "../slideLayouts/slideLayout3.xml"
         (ContentSlide _ _)    -> "../slideLayouts/slideLayout2.xml"
+        (TwoColumnSlide _ _ _)    -> "../slideLayouts/slideLayout4.xml"
 
   linkIds <- gets stLinkIds
   mediaIds <- gets stMediaIds
