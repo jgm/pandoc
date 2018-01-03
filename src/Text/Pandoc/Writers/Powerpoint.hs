@@ -820,13 +820,6 @@ getContentShape ns spTreeElem
   filterChild (\e -> (isElem ns "p" "sp" e) && (shapeHasName ns "Content Placeholder 2" e)) spTreeElem
   | otherwise = Nothing
 
-replaceChildren :: (Element -> [Element]) -> Element -> Element
-replaceChildren fun element =
-  element{elContent = concatMap fun' $ elContent element}
-  where fun' :: Content -> [Content]
-        fun' (Elem e) = map Elem $ fun e
-        fun' content  = [content]
-
 replaceNamedChildren :: NameSpaces
                    -> String
                    -> String
@@ -834,10 +827,15 @@ replaceNamedChildren :: NameSpaces
                    -> Element
                    -> Element
 replaceNamedChildren ns prefix name newKids element =
-  let fun :: Element -> [Element]
-      fun e | isElem ns prefix name e = newKids
-            | otherwise = [e]
-  in replaceChildren fun element
+  element { elContent = concat $ fun True $ elContent element }
+  where
+    fun :: Bool -> [Content] -> [[Content]]
+    fun _ [] = []
+    fun switch ((Elem e) : conts) | isElem ns prefix name e =
+                                      if switch
+                                      then (map Elem $ newKids) : fun False conts
+                                      else fun False conts
+    fun switch (cont : conts) = [cont] : fun switch conts
 
 ----------------------------------------------------------------
 
