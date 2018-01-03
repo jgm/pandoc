@@ -56,7 +56,7 @@ import Text.Pandoc.Walk
 import Text.Pandoc.Writers.Shared (fixDisplayMath)
 import Text.Pandoc.Writers.OOXML
 import qualified Data.Map as M
-import Data.Maybe (mapMaybe, listToMaybe)
+import Data.Maybe (mapMaybe, listToMaybe, maybeToList)
 import Text.Pandoc.ImageSize
 import Control.Applicative ((<|>))
 
@@ -1200,7 +1200,7 @@ paragraphToElement par = do
                  [mknode "a:buAutoNum" [("type", autoNumberingToType attrs')] ()]
                Nothing -> [mknode "a:buNone" [] ()]
             )
-  paras <- mapM paraElemToElement (paraElems par)
+  paras <- mapM paraElemToElement (combineParaElems $ paraElems par)
   return $ mknode "a:p" [] $ [mknode "a:pPr" attrs props] ++ paras
 
 shapeToElement :: PandocMonad m => Element -> Shape -> P m Element
@@ -1758,3 +1758,20 @@ getContentType fp
   | "ppt" : "slideLayouts" : _ : [] <- splitDirectories fp=
       Just $ presML ++ ".slideLayout+xml"
   | otherwise = Nothing
+
+-------------------------------------------------------
+
+combineParaElems' :: Maybe ParaElem -> [ParaElem] -> [ParaElem]
+combineParaElems' mbPElem [] = maybeToList mbPElem
+combineParaElems' Nothing (pElem : pElems) =
+  combineParaElems' (Just pElem) pElems
+combineParaElems' (Just pElem') (pElem : pElems)
+  | Run rPr' s' <- pElem'
+  , Run rPr s <- pElem
+  , rPr == rPr' =
+    combineParaElems' (Just $ Run rPr' $ s' ++ s) pElems
+  | otherwise =
+    pElem' : combineParaElems' (Just pElem) pElems
+
+combineParaElems :: [ParaElem] -> [ParaElem]
+combineParaElems = combineParaElems' Nothing
