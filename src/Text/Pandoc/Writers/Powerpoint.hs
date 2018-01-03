@@ -580,9 +580,9 @@ blocksToSlide' lvl ((Header n _ ils) : blks)
       -- in.
       slide <- blocksToSlide' lvl blks
       return $ case slide of
-        ContentSlide _ _     -> slide {contentSlideHeader = hdr}
-        TwoColumnSlide _ _ _ -> slide {twoColumnSlideHeader = hdr}
-        _                    -> slide
+        ContentSlide _ cont          -> ContentSlide hdr cont
+        TwoColumnSlide _ contL contR -> TwoColumnSlide hdr contL contR
+        slide'                       -> slide'
 blocksToSlide' _ (blk : blks)
   | Div (_, classes, _) divBlks <- blk
   , "columns" `elem` classes
