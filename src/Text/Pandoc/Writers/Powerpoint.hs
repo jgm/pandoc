@@ -192,11 +192,11 @@ data Slide = MetadataSlide { metadataSlideTitle :: [ParaElem]
                             , metadataSlideAuthors :: [[ParaElem]]
                             , metadataSlideDate :: [ParaElem]
                             }
-           | TitleSlide { slideHeader :: [ParaElem]}
-           | ContentSlide { slideHeader :: [ParaElem]
+           | TitleSlide { titleSlideHeader :: [ParaElem]}
+           | ContentSlide { contentSlideHeader :: [ParaElem]
                           , contentSlideContent :: [Shape]
                           }
-           | TwoColumnSlide { slideHeader :: [ParaElem]
+           | TwoColumnSlide { twoColumnSlideHeader :: [ParaElem]
                             , twoColumnSlideLeft   :: [Shape]
                             , twoColumnSlideRight  :: [Shape]
                             }
@@ -573,13 +573,16 @@ blocksToSlide' :: PandocMonad m => Int -> [Block] -> P m Slide
 blocksToSlide' lvl ((Header n _ ils) : blks)
   | n < lvl = do
       hdr <- inlinesToParElems ils
-      return $ TitleSlide {slideHeader = hdr}
+      return $ TitleSlide {titleSlideHeader = hdr}
   | n == lvl = do
       hdr <- inlinesToParElems ils
       -- Now get the slide without the header, and then add the header
       -- in.
       slide <- blocksToSlide' lvl blks
-      return $ slide {slideHeader = hdr}
+      return $ case slide of
+        ContentSlide _ _     -> slide {contentSlideHeader = hdr}
+        TwoColumnSlide _ _ _ -> slide {twoColumnSlideHeader = hdr}
+        _                    -> slide
 blocksToSlide' _ (blk : blks)
   | Div (_, classes, _) divBlks <- blk
   , "columns" `elem` classes
@@ -591,7 +594,7 @@ blocksToSlide' _ (blk : blks)
         (mapM (P.report . BlockNotRendered) remaining >> return ())
       shapesL <- blocksToShapes blksL
       shapesR <- blocksToShapes blksR
-      return $ TwoColumnSlide { slideHeader = []
+      return $ TwoColumnSlide { twoColumnSlideHeader = []
                               , twoColumnSlideLeft = shapesL
                               , twoColumnSlideRight = shapesR
                               }
@@ -600,10 +603,10 @@ blocksToSlide' _ (blk : blks) = do
       shapes <- if inNoteSlide
                 then forceFontSize noteSize $ blocksToShapes (blk : blks)
                 else blocksToShapes (blk : blks)
-      return $ ContentSlide { slideHeader = []
+      return $ ContentSlide { contentSlideHeader = []
                             , contentSlideContent = shapes
                             }
-blocksToSlide' _ [] = return $ ContentSlide { slideHeader = []
+blocksToSlide' _ [] = return $ ContentSlide { contentSlideHeader = []
                                             , contentSlideContent = []
                                             }
 
