@@ -351,7 +351,7 @@ inlineToParElems (Link _ ils (url, title)) = do
   local (\r ->r{envRunProps = (envRunProps r){rLink = Just (url, title)}}) $
     inlinesToParElems ils
 inlineToParElems (Code _ str) = do
-  local (\r ->r{envRunProps = def{rPropCode = True}}) $
+  local (\r ->r{envRunProps = (envRunProps r){rPropCode = True}}) $
     inlineToParElems $ Str str
 inlineToParElems (Math mathtype str) =
   return [MathElem mathtype (TeXString str)]
@@ -1112,13 +1112,13 @@ noteSize = 18
 paraElemToElement :: PandocMonad m => ParaElem -> P m Element
 paraElemToElement Break = return $ mknode "a:br" [] ()
 paraElemToElement (Run rpr s) = do
-  let attrs =
+  let sizeAttrs = case rPropForceSize rpr of
+                    Just n -> [("sz", (show $ n * 100))]
+                    Nothing -> []
+      attrs = sizeAttrs ++
         if rPropCode rpr
         then []
-        else (case rPropForceSize rpr of
-                Just n -> [("sz", (show $ n * 100))]
-                Nothing -> []) ++
-             (if rPropBold rpr then [("b", "1")] else []) ++
+        else (if rPropBold rpr then [("b", "1")] else []) ++
              (if rPropItalics rpr then [("i", "1")] else []) ++
              (case rStrikethrough rpr of
                 Just NoStrike     -> [("strike", "noStrike")]
