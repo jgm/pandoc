@@ -38,7 +38,6 @@ module Text.Pandoc.Lua.Util
   , addRawInt
   , raiseError
   , popValue
-  , OrNil (..)
   , PushViaCall
   , pushViaCall
   , pushViaConstructor
@@ -114,21 +113,6 @@ popValue = do
   case resOrError of
     Left err -> Lua.throwLuaError err
     Right x -> return x
-
--- | Newtype wrapper intended to be used for optional Lua values. Nesting this
--- type is strongly discouraged and will likely lead to a wrong result.
-newtype OrNil a = OrNil { toMaybe :: Maybe a }
-
-instance FromLuaStack a => FromLuaStack (OrNil a) where
-  peek idx = do
-    noValue <- Lua.isnoneornil idx
-    if noValue
-      then return (OrNil Nothing)
-      else OrNil . Just <$> Lua.peek idx
-
-instance ToLuaStack a => ToLuaStack (OrNil a) where
-  push (OrNil Nothing)  = Lua.pushnil
-  push (OrNil (Just x)) = Lua.push x
 
 -- | Helper class for pushing a single value to the stack via a lua function.
 -- See @pushViaCall@.

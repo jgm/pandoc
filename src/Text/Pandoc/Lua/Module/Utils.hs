@@ -33,7 +33,7 @@ import Control.Applicative ((<|>))
 import Foreign.Lua (FromLuaStack, Lua, LuaInteger, NumResults)
 import Text.Pandoc.Definition (Pandoc, Meta, MetaValue, Block, Inline)
 import Text.Pandoc.Lua.StackInstances ()
-import Text.Pandoc.Lua.Util (OrNil (OrNil), addFunction)
+import Text.Pandoc.Lua.Util (addFunction)
 
 import qualified Data.Digest.Pure.SHA as SHA
 import qualified Data.ByteString.Lazy as BSL
@@ -59,8 +59,8 @@ hierarchicalize = return . Shared.hierarchicalize
 -- limit years to the range 1601-9999 (ISO 8601 accepts greater than
 -- or equal to 1583, but MS Word only accepts dates starting 1601).
 -- Returns nil instead of a string if the conversion failed.
-normalizeDate :: String -> Lua (OrNil String)
-normalizeDate = return . OrNil . Shared.normalizeDate
+normalizeDate :: String -> Lua (Lua.Optional String)
+normalizeDate = return . Lua.Optional . Shared.normalizeDate
 
 -- | Calculate the hash of the given contents.
 sha1 :: BSL.ByteString

@@ -34,14 +34,13 @@ import Control.Monad (when)
 import Data.Default (Default (..))
 import Data.Maybe (fromMaybe)
 import Data.Text (pack)
-import Foreign.Lua (ToLuaStack, FromLuaStack, Lua, NumResults, liftIO)
+import Foreign.Lua (ToLuaStack, FromLuaStack, Lua, NumResults, Optional, liftIO)
 import System.Exit (ExitCode (..))
 import Text.Pandoc.Class (runIO)
 import Text.Pandoc.Definition (Block, Inline)
 import Text.Pandoc.Lua.Filter (walkInlines, walkBlocks, LuaFilter)
 import Text.Pandoc.Lua.StackInstances ()
-import Text.Pandoc.Lua.Util (OrNil (toMaybe), addFunction, addValue,
-                             loadScriptFromDataDir, raiseError)
+import Text.Pandoc.Lua.Util (addFunction, addValue, loadScriptFromDataDir)
 import Text.Pandoc.Walk (Walkable)
 import Text.Pandoc.Options (ReaderOptions (readerExtensions))
 import Text.Pandoc.Process (pipeProcess)
@@ -72,19 +71,19 @@ walkInline = walkElement
 walkBlock :: Block -> LuaFilter -> Lua Block
 walkBlock = walkElement
 
-readDoc :: String -> OrNil String -> Lua NumResults
+readDoc :: String -> Optional String -> Lua NumResults
 readDoc content formatSpecOrNil = do
-  let formatSpec = fromMaybe "markdown" (toMaybe formatSpecOrNil)
+  let formatSpec = fromMaybe "markdown" (Lua.fromOptional formatSpecOrNil)
   case getReader formatSpec of
-    Left  s      -> raiseError s -- Unknown reader
+    Left  s      -> Lua.raiseError s -- Unknown reader
     Right (reader, es) ->
       case reader of
         TextReader r -> do
           res <- liftIO $ runIO $ r def{ readerExtensions = es } (pack content)
           case res of
             Right pd -> (1 :: NumResults) <$ Lua.push pd -- success, push Pandoc
-            Left s   -> raiseError (show s)              -- error while reading
-        _  -> raiseError "Only string formats are supported at the moment."
+            Left s   -> Lua.raiseError (show s)              -- error while reading
+        _  -> Lua.raiseError "Only string formats are supported at the moment."
 
 -- | Pipes input through a command.
 pipeFn :: String
@@ -95,7 +94,7 @@ pipeFn command args input = do
   (ec, output) <- liftIO $ pipeProcess Nothing command args input
   case ec of
     ExitSuccess -> 1 <$ Lua.push output
-    ExitFailure n -> raiseError (PipeError command n output)
+    ExitFailure n -> Lua.raiseError (PipeError command n output)
 
 data PipeError = PipeError
   { pipeErrorCommand :: String
