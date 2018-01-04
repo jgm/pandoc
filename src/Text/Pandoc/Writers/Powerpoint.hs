@@ -441,6 +441,7 @@ blockToParagraphs (DefinitionList entries) = do
         definition <- concatMapM (blockToParagraphs . BlockQuote) blksLst
         return $ term ++ definition
   concatMapM go entries
+blockToParagraphs (Div (_, ("notes" : []), _) _) = return []
 blockToParagraphs (Div _ blks)  = concatMapM blockToParagraphs blks
 blockToParagraphs blk = do
   P.report $ BlockNotRendered blk
