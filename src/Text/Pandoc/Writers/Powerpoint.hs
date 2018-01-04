@@ -47,6 +47,7 @@ import Text.Pandoc.Definition
 import qualified Text.Pandoc.UTF8 as UTF8
 import Text.Pandoc.Class (PandocMonad)
 import Text.Pandoc.Error (PandocError(..))
+import Text.Pandoc.Slides (getSlideLevel)
 import qualified Text.Pandoc.Class as P
 import Text.Pandoc.Options
 import Text.Pandoc.MIME
@@ -86,7 +87,7 @@ writePowerpoint opts (Pandoc meta blks) = do
                 , envOpts = opts
                 , envSlideLevel = case writerSlideLevel opts of
                                     Just n -> n
-                                    Nothing -> 2
+                                    Nothing -> getSlideLevel blks'
                 }
   runP env def $ do pres <- blocksToPresentation blks'
                     archv <- presentationToArchive pres

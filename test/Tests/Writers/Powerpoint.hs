@@ -52,7 +52,7 @@ numSlideTests = testGroup "Number of slides in output"
     def
     (setTitle "My Title" $ doc $ para "foo")
   , testNumberOfSlides
-    "With h1 slide (using default slide-level)" 2
+    "With h1 slide (using default slide-level)" 1
     def
     (doc $ header 1 "Header" <> para "foo")
   , testNumberOfSlides
