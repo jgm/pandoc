@@ -513,6 +513,11 @@ blockToShape blk = TextBox <$> blockToParagraphs blk
 blocksToShapes :: PandocMonad m => [Block] -> P m [Shape]
 blocksToShapes blks = combineShapes <$> mapM blockToShape blks
 
+isImage :: Inline -> Bool
+isImage (Image _ _ _) = True
+isImage (Link _ ((Image _ _ _) : _) _) = True
+isImage _ = False
+
 splitBlocks' :: Monad m => [Block] -> [[Block]] -> [Block] -> P m [[Block]]
 splitBlocks' cur acc [] = return $ acc ++ (if null cur then [] else [cur])
 splitBlocks' cur acc (HorizontalRule : blks) =
@@ -523,26 +528,26 @@ splitBlocks' cur acc (h@(Header n _ _) : blks) = do
     LT -> splitBlocks' [] (acc ++ (if null cur then [] else [cur]) ++ [[h]]) blks
     EQ -> splitBlocks' [h] (acc ++ (if null cur then [] else [cur])) blks
     GT -> splitBlocks' (cur ++ [h]) acc blks
-splitBlocks' cur acc ((Para (img@(Image _ _ _):ils)) : blks) = do
+splitBlocks' cur acc ((Para (il:ils)) : blks) | isImage il = do
   slideLevel <- asks envSlideLevel
   case cur of
     (Header n _ _) : [] | n == slideLevel ->
                             splitBlocks' []
-                            (acc ++ [cur ++ [Para [img]]])
+                            (acc ++ [cur ++ [Para [il]]])
                             (if null ils then blks else (Para ils) : blks)
-    _ ->  splitBlocks' []
-          (acc ++ (if null cur then [] else [cur]) ++ [[Para [img]]])
-          (if null ils then blks else (Para ils) : blks)
-splitBlocks' cur acc ((Plain (img@(Image _ _ _):ils)) : blks) = do
+    _ -> splitBlocks' []
+         (acc ++ (if null cur then [] else [cur]) ++ [[Para [il]]])
+         (if null ils then blks else (Para ils) : blks)
+splitBlocks' cur acc ((Plain (il:ils)) : blks) | isImage il = do
   slideLevel <- asks envSlideLevel
   case cur of
     (Header n _ _) : [] | n == slideLevel ->
                             splitBlocks' []
-                            (acc ++ [cur ++ [Para [img]]])
+                            (acc ++ [cur ++ [Plain [il]]])
                             (if null ils then blks else (Plain ils) : blks)
-    _ ->  splitBlocks' []
-          (acc ++ (if null cur then [] else [cur]) ++ [[Para [img]]])
-          (if null ils then blks else (Plain ils) : blks)
+    _ -> splitBlocks' []
+         (acc ++ (if null cur then [] else [cur]) ++ [[Plain [il]]])
+         (if null ils then blks else (Plain ils) : blks)
 splitBlocks' cur acc (tbl@(Table _ _ _ _ _) : blks) = do
   slideLevel <- asks envSlideLevel
   case cur of
