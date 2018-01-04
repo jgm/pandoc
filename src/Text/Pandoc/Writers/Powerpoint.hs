@@ -530,6 +530,9 @@ splitBlocks' cur acc (h@(Header n _ _) : blks) = do
     LT -> splitBlocks' [] (acc ++ (if null cur then [] else [cur]) ++ [[h]]) blks
     EQ -> splitBlocks' [h] (acc ++ (if null cur then [] else [cur])) blks
     GT -> splitBlocks' (cur ++ [h]) acc blks
+-- `blockToParagraphs` treats Plain and Para the same, so we can save
+-- some code duplication by treating them the same here.
+splitBlocks' cur acc ((Plain ils) : blks) = splitBlocks' cur acc ((Para ils) : blks)
 splitBlocks' cur acc ((Para (il:ils)) : blks) | isImage il = do
   slideLevel <- asks envSlideLevel
   case cur of
@@ -540,16 +543,6 @@ splitBlocks' cur acc ((Para (il:ils)) : blks) | isImage il = do
     _ -> splitBlocks' []
          (acc ++ (if null cur then [] else [cur]) ++ [[Para [il]]])
          (if null ils then blks else (Para ils) : blks)
-splitBlocks' cur acc ((Plain (il:ils)) : blks) | isImage il = do
-  slideLevel <- asks envSlideLevel
-  case cur of
-    (Header n _ _) : [] | n == slideLevel ->
-                            splitBlocks' []
-                            (acc ++ [cur ++ [Plain [il]]])
-                            (if null ils then blks else (Plain ils) : blks)
-    _ -> splitBlocks' []
-         (acc ++ (if null cur then [] else [cur]) ++ [[Plain [il]]])
-         (if null ils then blks else (Plain ils) : blks)
 splitBlocks' cur acc (tbl@(Table _ _ _ _ _) : blks) = do
   slideLevel <- asks envSlideLevel
   case cur of
