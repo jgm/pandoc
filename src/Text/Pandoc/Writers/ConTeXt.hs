@@ -264,21 +264,24 @@ blockToConTeXt (Table caption aligns widths heads rows) = do
                                  zipWith colDescriptor widths aligns)
     headers <- if all null heads
                   then return empty
-                  else liftM ($$ "\\HL") $ tableRowToConTeXt heads
+                  else tableRowToConTeXt heads
     captionText <- inlineListToConTeXt caption
     rows' <- mapM tableRowToConTeXt rows
-    return $ "\\placetable" <> (if null caption
-                                   then brackets "none"
-                                   else empty)
-                            <> braces captionText $$
-             "\\starttable" <> brackets (text colDescriptors) $$
-             "\\HL" $$ headers $$
-             vcat rows' $$ "\\HL" $$ "\\stoptable" <> blankline
+    return $ "\\startplacetable" <> brackets (
+      (if null caption
+        then "location=none"
+        else ("caption=" <> braces captionText))
+      ) $$
+      "\\startxtable" $$
+      headers $$
+      vcat rows' $$
+      "\\stopxtable" $$
+      "\\stopplacetable" <> blankline
 
 tableRowToConTeXt :: PandocMonad m => [[Block]] -> WM m Doc
 tableRowToConTeXt cols = do
   cols' <- mapM blockListToConTeXt cols
-  return $ vcat (map ("\\NC " <>) cols') $$ "\\NC\\AR"
+  return $ vcat (map ("\\NC " <>) cols') $$ "\\NR"
 
 listItemToConTeXt :: PandocMonad m => [Block] -> WM m Doc
 listItemToConTeXt list = blockListToConTeXt list >>=
