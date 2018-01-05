@@ -252,22 +252,12 @@ blockToConTeXt HorizontalRule = return $ "\\thinrule" <> blankline
 -- If this is ever executed, provide a default for the reference identifier.
 blockToConTeXt (Header level attr lst) = sectionHeader attr level lst
 blockToConTeXt (Table caption aligns widths heads rows) = do
-    let colDescriptor colWidth alignment = (case alignment of
-                                               AlignLeft    -> 'l'
-                                               AlignRight   -> 'r'
-                                               AlignCenter  -> 'c'
-                                               AlignDefault -> 'l'):
-           if colWidth == 0
-              then "|"
-              else ("p(" ++ printf "%.2f" colWidth ++ "\\textwidth)|")
-    let colDescriptors = "|" ++ concat (
-                                 zipWith colDescriptor widths aligns)
     headers <- if all null heads
                   then return empty
                   else liftM ("\\startxtablehead[topframe=on,bottomframe=on]" $$) $
-                       liftM ($$ "\\stopxtablehead") $ tableRowToConTeXt heads
+                       liftM ($$ "\\stopxtablehead") $ tableRowToConTeXt aligns widths heads
     captionText <- inlineListToConTeXt caption
-    rows' <- mapM tableRowToConTeXt rows
+    rows' <- mapM (tableRowToConTeXt aligns widths) rows
     return $ "\\startplacetable" <> brackets (
       (if null caption
         then "location=none"
@@ -281,10 +271,23 @@ blockToConTeXt (Table caption aligns widths heads rows) = do
       "\\stopxtable" $$
       "\\stopplacetable" <> blankline
 
-tableRowToConTeXt :: PandocMonad m => [[Block]] -> WM m Doc
-tableRowToConTeXt cols = do
-  cols' <- mapM blockListToConTeXt cols
-  return $ vcat (map ("\\NC " <>) cols') $$ "\\NR"
+tableRowToConTeXt :: PandocMonad m => [Alignment] -> [Double] -> [[Block]] -> WM m Doc
+tableRowToConTeXt aligns widths cols = do
+  cells <- mapM (tableCellToConTeXt) $ zip3 aligns widths cols
+  return $ "\\startxrow" $$ vcat cells $$ "\\stopxrow"
+
+tableCellToConTeXt :: PandocMonad m => (Alignment, Double, [Block]) -> WM m Doc
+tableCellToConTeXt (align, width, blocks) = do
+  cellContents <- blockListToConTeXt blocks
+  let colWidth = if width == 0
+        then ""
+        else ",width=" <> braces (text (printf "%.2f\\textwidth" width))
+  let halign = case align of
+               AlignLeft    -> "align=right"
+               AlignRight   -> "align=left"
+               AlignCenter  -> "align=middle"
+               AlignDefault -> "align=right"
+  return $ ("\\startxcell" <> brackets (halign <> colWidth) $$ cellContents $$ "\\stopxcell")
 
 listItemToConTeXt :: PandocMonad m => [Block] -> WM m Doc
 listItemToConTeXt list = blockListToConTeXt list >>=
