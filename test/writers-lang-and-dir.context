@@ -49,6 +49,10 @@
 
 \setupthinrules[width=15em] % width of horizontal rules
 
+\setupxtable[frame=off]
+\setupxtable[head][topframe=on,bottomframe=on]
+\setupxtable[foot][bottomframe=on]
+
 
 \starttext
 

@@ -254,23 +254,25 @@ blockToConTeXt (Header level attr lst) = sectionHeader attr level lst
 blockToConTeXt (Table caption aligns widths heads rows) = do
     headers <- if all null heads
                   then return empty
-                  else liftM ("\\startxtablehead[topframe=on,bottomframe=on]" $$) $
+                  else liftM ("\\startxtablehead[head]" $$) $
                        liftM ($$ "\\stopxtablehead") $ tableRowToConTeXt aligns widths heads
     captionText <- inlineListToConTeXt caption
-    rows' <- mapM (tableRowToConTeXt aligns widths) rows
+    rows' <- mapM (tableRowToConTeXt aligns widths) $ init rows
+    footer' <- (tableRowToConTeXt aligns widths) $ last rows
     return $ "\\startplacetable" <> brackets (
       (if null caption
         then "location=none"
         else ("caption=" <> braces captionText))
       ) $$
-      "\\startxtable[frame=off]" $$ headers $$
-      "\\startxtablebody" $$ vcat rows' $$ "\\stopxtablebody" $$
+      "\\startxtable" $$ headers $$
+      "\\startxtablebody[body]" $$ vcat rows' $$ "\\stopxtablebody" $$
+      "\\startxtablefoot[foot]" $$footer' $$ "\\stopxtablefoot" $$
       "\\stopxtable" $$ "\\stopplacetable" <> blankline
 
 tableRowToConTeXt :: PandocMonad m => [Alignment] -> [Double] -> [[Block]] -> WM m Doc
 tableRowToConTeXt aligns widths cols = do
   cells <- mapM tableCellToConTeXt $ zip3 aligns widths cols
-  return $ "\\startxrow" $$ vcat cells $$ "\\stopxrow"
+  return $ ("\\startxrow") $$ vcat cells $$ "\\stopxrow"
 
 tableCellToConTeXt :: PandocMonad m => (Alignment, Double, [Block]) -> WM m Doc
 tableCellToConTeXt (align, width, blocks) = do
@@ -283,8 +285,8 @@ tableCellToConTeXt (align, width, blocks) = do
                AlignRight   -> "align=left"
                AlignCenter  -> "align=middle"
                AlignDefault -> "align=right"
-  return $ ("\\startxcell" <> brackets (halign <> colWidth) $$
-            cellContents $$ "\\stopxcell")
+  return $ ("\\startxcell" <> brackets (halign <> colWidth) <>
+            " " <> cellContents <> " \\stopxcell")
 
 listItemToConTeXt :: PandocMonad m => [Block] -> WM m Doc
 listItemToConTeXt list = blockListToConTeXt list >>=
