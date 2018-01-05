@@ -84,12 +84,12 @@ instance ToLuaStack Citation where
 
 instance FromLuaStack Citation where
   peek idx = do
-    id' <- getTable idx "citationId"
-    prefix <- getTable idx "citationPrefix"
-    suffix <- getTable idx "citationSuffix"
-    mode <- getTable idx "citationMode"
-    num <- getTable idx "citationNoteNum"
-    hash <- getTable idx "citationHash"
+    id' <- getTable idx "id"
+    prefix <- getTable idx "prefix"
+    suffix <- getTable idx "suffix"
+    mode <- getTable idx "mode"
+    num <- getTable idx "note_num"
+    hash <- getTable idx "hash"
     return $ Citation id' prefix suffix mode num hash
 
 instance ToLuaStack Alignment where

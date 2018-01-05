@@ -764,6 +764,8 @@ M.Attr.__newindex = function(t, k, v)
 end
 setmetatable(M.Attr, M.Attr)
 
+-- Citation
+M.Citation = {}
 
 --- Creates a single citation.
 -- @function Citation
@@ -773,20 +775,20 @@ setmetatable(M.Attr, M.Attr)
 -- @tparam[opt] {Inline,...} suffix   citation suffix
 -- @tparam[opt] int          note_num note number
 -- @tparam[opt] int          hash  hash number
-M.Citation = function(id, mode, prefix, suffix, note_num, hash)
-  prefix = prefix or {}
-  suffix = suffix or {}
-  note_num = note_num or 0
-  hash = hash or 0
-  return {
-    citationId = id,
-    citationPrefix = prefix,
-    citationSuffix = suffix,
-    citationMode = mode,
-    citationNoteNum = note_num,
-    citationHash = hash,
-  }
+M.Citation.__call = function(t, id, mode, prefix, suffix, note_num, hash)
+  return setmetatable(
+    {
+      id = id,
+      mode = mode,
+      prefix = prefix or {},
+      suffix = suffix or {},
+      note_num = note_num or 0,
+      hash = hash or 0,
+    },
+    t
+  )
 end
+setmetatable(M.Citation, M.Citation)
 
 
 ------------------------------------------------------------------------
