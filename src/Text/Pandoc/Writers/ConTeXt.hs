@@ -264,7 +264,8 @@ blockToConTeXt (Table caption aligns widths heads rows) = do
                                  zipWith colDescriptor widths aligns)
     headers <- if all null heads
                   then return empty
-                  else tableRowToConTeXt heads
+                  else liftM ("\\startxtablehead[topframe=on,bottomframe=on]" $$) $
+                       liftM ($$ "\\stopxtablehead") $ tableRowToConTeXt heads
     captionText <- inlineListToConTeXt caption
     rows' <- mapM tableRowToConTeXt rows
     return $ "\\startplacetable" <> brackets (
@@ -272,9 +273,11 @@ blockToConTeXt (Table caption aligns widths heads rows) = do
         then "location=none"
         else ("caption=" <> braces captionText))
       ) $$
-      "\\startxtable" $$
+      "\\startxtable[frame=off]" $$
       headers $$
+      "\\startxtablebody" $$
       vcat rows' $$
+      "\\stopxtablebody" $$
       "\\stopxtable" $$
       "\\stopplacetable" <> blankline
 
