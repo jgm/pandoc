@@ -263,17 +263,13 @@ blockToConTeXt (Table caption aligns widths heads rows) = do
         then "location=none"
         else ("caption=" <> braces captionText))
       ) $$
-      "\\startxtable[frame=off]" $$
-      headers $$
-      "\\startxtablebody" $$
-      vcat rows' $$
-      "\\stopxtablebody" $$
-      "\\stopxtable" $$
-      "\\stopplacetable" <> blankline
+      "\\startxtable[frame=off]" $$ headers $$
+      "\\startxtablebody" $$ vcat rows' $$ "\\stopxtablebody" $$
+      "\\stopxtable" $$ "\\stopplacetable" <> blankline
 
 tableRowToConTeXt :: PandocMonad m => [Alignment] -> [Double] -> [[Block]] -> WM m Doc
 tableRowToConTeXt aligns widths cols = do
-  cells <- mapM (tableCellToConTeXt) $ zip3 aligns widths cols
+  cells <- mapM tableCellToConTeXt $ zip3 aligns widths cols
   return $ "\\startxrow" $$ vcat cells $$ "\\stopxrow"
 
 tableCellToConTeXt :: PandocMonad m => (Alignment, Double, [Block]) -> WM m Doc
@@ -287,7 +283,8 @@ tableCellToConTeXt (align, width, blocks) = do
                AlignRight   -> "align=left"
                AlignCenter  -> "align=middle"
                AlignDefault -> "align=right"
-  return $ ("\\startxcell" <> brackets (halign <> colWidth) $$ cellContents $$ "\\stopxcell")
+  return $ ("\\startxcell" <> brackets (halign <> colWidth) $$
+            cellContents $$ "\\stopxcell")
 
 listItemToConTeXt :: PandocMonad m => [Block] -> WM m Doc
 listItemToConTeXt list = blockListToConTeXt list >>=
