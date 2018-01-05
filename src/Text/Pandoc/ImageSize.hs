@@ -1,7 +1,7 @@
 {-# LANGUAGE OverloadedStrings, ScopedTypeVariables, CPP #-}
 {-# OPTIONS_GHC -fno-warn-type-defaults #-}
 {-
-  Copyright (C) 2011-2017 John MacFarlane <jgm@berkeley.edu>
+  Copyright (C) 2011-2018 John MacFarlane <jgm@berkeley.edu>
 
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -20,7 +20,7 @@
 
 {- |
 Module      : Text.Pandoc.ImageSize
-Copyright   : Copyright (C) 2011-2017 John MacFarlane
+Copyright   : Copyright (C) 2011-2018 John MacFarlane
 License     : GNU GPL, version 2 or above
 
 Maintainer  : John MacFarlane <jgm@berkeley.edu>

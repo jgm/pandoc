@@ -1,5 +1,5 @@
 {-
-  Copyright (C) 2017 Yuchen Pei <me@ypei.me>
+  Copyright (C) 2017-2018 Yuchen Pei <me@ypei.me>
 
 This program is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -18,7 +18,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 {- |
    Module      : Text.Pandoc.Readers.Vimwiki
-   Copyright   : Copyright (C) 2017 Yuchen Pei
+   Copyright   : Copyright (C) 2017-2018 Yuchen Pei
    License     : GNU GPL, version 2 or above
 
    Maintainer  : Yuchen Pei <me@ypei.me>

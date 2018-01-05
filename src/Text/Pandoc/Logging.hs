@@ -20,7 +20,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 -}
 {- |
    Module      : Text.Pandoc.Logging
-   Copyright   : Copyright (C) 2006-2017 John MacFarlane
+   Copyright   : Copyright (C) 2006-2018 John MacFarlane
    License     : GNU GPL, version 2 or above
 
    Maintainer  : John MacFarlane <jgm@berkeley.edu>

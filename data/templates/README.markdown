@@ -17,7 +17,7 @@ All of the templates in this repository are dual licensed, under both
 the GPL (v2 or higher, same as pandoc) and the BSD 3-clause license
 (included below).
 
-Copyright (c) 2014--2017, John MacFarlane
+Copyright (c) 2014--2018, John MacFarlane
 
 All rights reserved.
 

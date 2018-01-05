@@ -1,7 +1,7 @@
 --[[
 List.lua
 
-Copyright © 2017 Albert Krewinkel
+Copyright © 2017–2018 Albert Krewinkel
 
 Permission to use, copy, modify, and/or distribute this software for any purpose
 with or without fee is hereby granted, provided that the above copyright notice
@@ -19,7 +19,7 @@ THIS SOFTWARE.
 --- Pandoc's List type and helper methods
 -- @classmod pandoc.List
 -- @author Albert Krewinkel
--- @copyright © 2017 Albert Krewinkel
+-- @copyright © 2017–2018 Albert Krewinkel
 -- @license MIT
 local List = {
   _VERSION = "0.1.0"
