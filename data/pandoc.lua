@@ -33,13 +33,15 @@ local List = require 'pandoc.List'
 -- @type Element
 -- @local
 local Element = {}
+Element.__index = Element
 
 --- Create a new element subtype
 -- @local
 function Element:make_subtype(o)
   o = o or {}
   setmetatable(o, self)
-  self.__index = self
+  -- Make subtype usable as a metatable
+  o.__index = o
   return o
 end
 
@@ -57,7 +59,6 @@ function Element:new(tag, ...)
     element.c = content
   end
   setmetatable(element, self)
-  self.__index = self
   return element
 end
 
