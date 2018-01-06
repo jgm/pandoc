@@ -30,14 +30,14 @@ local List = require 'pandoc.List'
 
 ------------------------------------------------------------------------
 -- The base class for pandoc's AST elements.
--- @type Element
+-- @type AstElement
 -- @local
-local Element = {}
-Element.__index = Element
+local AstElement = {}
+AstElement.__index = AstElement
 
 --- Create a new element subtype
 -- @local
-function Element:make_subtype(o)
+function AstElement:make_subtype(o)
   o = o or {}
   setmetatable(o, self)
   -- Make subtype usable as a metatable
@@ -47,7 +47,7 @@ end
 
 --- Create a new element given its tag and arguments
 -- @local
-function Element:new(tag, ...)
+function AstElement:new(tag, ...)
   local element = { t = tag }
   local content = {...}
   -- special case for unary constructors
@@ -68,7 +68,7 @@ end
 -- @param fn Function to be called when constructing a new element
 -- @param accessors names to use as accessors for numerical fields
 -- @return function that constructs a new element
-function Element:create_constructor(tag, fn, accessors)
+function AstElement:create_constructor(tag, fn, accessors)
   local constr = self:make_subtype({tag = tag, getters = {}, setters = {}})
 
   -- Add accessors to the metatable
@@ -165,7 +165,7 @@ setmetatable(M.Meta, M.Meta)
 ------------------------------------------------------------------------
 -- MetaValue
 -- @section MetaValue
-M.MetaValue = Element:make_subtype{}
+M.MetaValue = AstElement:make_subtype{}
 M.MetaValue.__call = function(t, ...)
   return t:new(...)
 end
@@ -224,7 +224,7 @@ end
 
 --- Block elements
 -- @type Block
-M.Block = Element:make_subtype{}
+M.Block = AstElement:make_subtype{}
 M.Block.__call = function (t, ...)
   return t:new(...)
 end
@@ -399,7 +399,7 @@ M.Table = M.Block:create_constructor(
 
 --- Inline element class
 -- @type Inline
-M.Inline = Element:make_subtype{}
+M.Inline = AstElement:make_subtype{}
 M.Inline.__call = function (t, ...)
   return t:new(...)
 end
