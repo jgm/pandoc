@@ -257,16 +257,17 @@ blockToConTeXt (Table caption aligns widths heads rows) = do
                   else liftM ("\\startxtablehead[head]" $$) $
                        liftM ($$ "\\stopxtablehead") $ tableRowToConTeXt aligns widths heads
     captionText <- inlineListToConTeXt caption
-    rows' <- mapM (tableRowToConTeXt aligns widths) $ init rows
-    footer' <- (tableRowToConTeXt aligns widths) $ last rows
+    rows' <- mapM (tableRowToConTeXt aligns widths) rows
     return $ "\\startplacetable" <> brackets (
       (if null caption
         then "location=none"
         else ("caption=" <> braces captionText))
       ) $$
       "\\startxtable" $$ headers $$
-      "\\startxtablebody[body]" $$ vcat rows' $$ "\\stopxtablebody" $$
-      "\\startxtablefoot[foot]" $$footer' $$ "\\stopxtablefoot" $$
+      (if null rows
+        then ""
+        else "\\startxtablebody[body]" $$ vcat (init rows') $$ "\\stopxtablebody" $$
+             "\\startxtablefoot[foot]" $$ (last rows') $$ "\\stopxtablefoot") $$
       "\\stopxtable" $$ "\\stopplacetable" <> blankline
 
 tableRowToConTeXt :: PandocMonad m => [Alignment] -> [Double] -> [[Block]] -> WM m Doc
