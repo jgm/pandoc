@@ -29,38 +29,53 @@ local M = {
 local List = require 'pandoc.List'
 
 ------------------------------------------------------------------------
+-- The base class for types
+-- @type Type
+-- @local
+local Type = {}
+Type.name = 'Type'
+Type.__index = Type
+Type.behavior = {
+  __type = Type,
+  new = function (obj)
+    obj = obj or {}
+    setmetatable(obj, self)
+    return obj
+  end
+}
+Type.behavior.__index = Type.behavior
+
+--- Set a new behavior for the type, inheriting that of the parent type if none
+--- is specified explicitely
+-- @param behavior the behavior object for this type.
+-- @local
+function Type:set_behavior (behavior)
+  behavior = behavior or {}
+  behavior.__index = rawget(behavior, '__index') or behavior
+  behavior.__type = self
+  if not getmetatable(behavior) and getmetatable(self) then
+    setmetatable(behavior, getmetatable(self).behavior)
+  end
+  self.behavior = behavior
+end
+
+--- Create a new subtype, using the given table as base.
+-- @param obj type object
+-- @local
+function Type:make_subtype(name, behavior)
+  local newtype = setmetatable({}, self)
+  newtype.name = name
+  newtype.__index = newtype
+  newtype:set_behavior(behavior)
+  return newtype
+end
+
+
+------------------------------------------------------------------------
 -- The base class for pandoc's AST elements.
 -- @type AstElement
 -- @local
-local AstElement = {}
-AstElement.__index = AstElement
-
---- Create a new element subtype
--- @local
-function AstElement:make_subtype(o)
-  o = o or {}
-  setmetatable(o, self)
-  -- Make subtype usable as a metatable
-  o.__index = o
-  return o
-end
-
---- Create a new element given its tag and arguments
--- @local
-function AstElement:new(tag, ...)
-  local element = { t = tag }
-  local content = {...}
-  -- special case for unary constructors
-  if #content == 1 then
-    element.c = content[1]
-  -- Don't set 'c' field if no further arguments were given. This is important
-  -- for nullary constructors like `Space` and `HorizontalRule`.
-  elseif #content > 0 then
-    element.c = content
-  end
-  setmetatable(element, self)
-  return element
-end
+local AstElement = Type:make_subtype 'AstElement'
 
 --- Create a new constructor
 -- @local
@@ -69,31 +84,48 @@ end
 -- @param accessors names to use as accessors for numerical fields
 -- @return function that constructs a new element
 function AstElement:create_constructor(tag, fn, accessors)
-  local constr = self:make_subtype({tag = tag, getters = {}, setters = {}})
+  local constr = self:make_subtype(tag, {tag = tag, getters = {}, setters = {}})
+  behavior = constr.behavior
+  behavior.__index = function(t, k)
+    if getmetatable(t).getters[k] then
+      return getmetatable(t).getters[k](t)
+    elseif k == "t" then
+      return getmetatable(t)["tag"]
+    else
+      return getmetatable(t)[k]
+    end
+  end
+  behavior.__newindex = function(t, k, v)
+    if getmetatable(t).setters[k] then
+      getmetatable(t).setters[k](t, v)
+    else
+      rawset(t, k, v)
+    end
+  end
 
   -- Add accessors to the metatable
   if type(accessors) == "string" then
-    constr.getters[accessors] = function(elem)
+    behavior.getters[accessors] = function(elem)
       return elem.c
     end
-    constr.setters[accessors] = function(elem, v)
+    behavior.setters[accessors] = function(elem, v)
       elem.c = v
     end
   else
     for i = 1, #(accessors or {}) do
       if type(accessors[i]) == "string" then
-        constr.getters[accessors[i]] = function(elem)
+        behavior.getters[accessors[i]] = function(elem)
           return elem.c[i]
         end
-        constr.setters[accessors[i]] = function(elem, v)
+        behavior.setters[accessors[i]] = function(elem, v)
           elem.c[i] = v
         end
       else -- only two levels of nesting are supported
         for k, v in ipairs(accessors[i]) do
-          constr.getters[v] = function(elem)
+          behavior.getters[v] = function(elem)
             return elem.c[i][k]
           end
-          constr.setters[v] = function(elem, v)
+          behavior.setters[v] = function(elem, v)
             elem.c[i][k] = v
           end
         end
@@ -102,29 +134,29 @@ function AstElement:create_constructor(tag, fn, accessors)
   end
 
   function constr:new(...)
-    local obj = fn(...)
-    setmetatable(obj, self)
-    self.__index = function(t, k)
-      if getmetatable(t).getters[k] then
-        return getmetatable(t).getters[k](t)
-      elseif k == "t" then
-        return getmetatable(t)["tag"]
-      else
-        return getmetatable(t)[k]
-      end
-    end
-    self.__newindex = function(t, k, v)
-      if getmetatable(t).setters[k] then
-        getmetatable(t).setters[k](t, v)
-      else
-        rawset(t, k, v)
-      end
-    end
-    return obj
+    return setmetatable(fn(...), self.behavior)
   end
   self.constructor = self.constructor or {}
   self.constructor[tag] = constr
   return constr
+end
+
+--- Create a new element given its tag and arguments
+-- @local
+function AstElement.new(constr, ...)
+  local element = { t = constr.__type.name }
+  local content = {...}
+  -- special case for unary constructors
+  if #content == 1 then
+    element.c = content[1]
+    -- Don't set 'c' field if no further arguments were given. This is important
+    -- for nullary constructors like `Space` and `HorizontalRule`.
+  elseif #content > 0 then
+    element.c = content
+  end
+  setmetatable(element, constr)
+  element.__index = element
+  return element
 end
 
 ------------------------------------------------------------------------
