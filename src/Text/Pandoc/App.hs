@@ -268,7 +268,8 @@ convertWithOpts opts = do
   syntaxMap <- foldM addSyntaxMap defaultSyntaxMap
                      (optSyntaxDefinitions opts)
 
-  case missingIncludes (M.elems syntaxMap) of
+  unless (null (optSyntaxDefinitions opts)) $
+    case missingIncludes (M.elems syntaxMap) of
        [] -> return ()
        xs -> E.throwIO $ PandocSyntaxMapError $
                 "Missing syntax definitions:\n" ++
