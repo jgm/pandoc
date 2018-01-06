@@ -127,12 +127,6 @@ function Element:create_constructor(tag, fn, accessors)
   return constr
 end
 
---- Calls the constructor, creating a new element.
--- @local
-function Element.__call(t, ...)
-  return t:new(...)
-end
-
 ------------------------------------------------------------------------
 --- Pandoc Document
 -- @section document
@@ -229,6 +223,7 @@ end
 -- @section Block
 
 --- Block elements
+-- @type Block
 M.Block = Element:make_subtype{}
 M.Block.__call = function (t, ...)
   return t:new(...)
@@ -403,6 +398,7 @@ M.Table = M.Block:create_constructor(
 -- @section Inline
 
 --- Inline element class
+-- @type Inline
 M.Inline = Element:make_subtype{}
 M.Inline.__call = function (t, ...)
   return t:new(...)
