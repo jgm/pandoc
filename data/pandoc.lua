@@ -76,6 +76,14 @@ end
 -- @type AstElement
 -- @local
 local AstElement = Type:make_subtype 'AstElement'
+AstElement.__call = function(t, ...)
+  local success, ret = pcall(t.constructor, ...)
+  if success then
+    return setmetatable(ret, t.behavior)
+  else
+    error(string.format('Constructor for %s failed: %s\n', t.name, ret))
+  end
+end
 
 --- Create a new constructor
 -- @local
@@ -144,7 +152,7 @@ end
 --- Create a new element given its tag and arguments
 -- @local
 function AstElement.new(constr, ...)
-  local element = { t = constr.__type.name }
+  local element = {}
   local content = {...}
   -- special case for unary constructors
   if #content == 1 then
@@ -167,7 +175,8 @@ end
 -- @function Pandoc
 -- @tparam      {Block,...} blocks      document content
 -- @tparam[opt] Meta        meta        document meta data
-function M.Pandoc(blocks, meta)
+M.Pandoc = AstElement:make_subtype'Pandoc'
+function M.Pandoc.constructor (blocks, meta)
   meta = meta or {}
   return {
     ["blocks"] = List:new(blocks),
@@ -187,20 +196,18 @@ M.Doc = M.Pandoc
 --- `Meta`.
 -- @function Meta
 -- @tparam meta table table containing document meta information
-M.Meta = {}
-M.Meta.__call = function(t, meta)
-  return setmetatable(meta, t)
-end
-setmetatable(M.Meta, M.Meta)
+M.Meta = AstElement:make_subtype'Meta'
+M.Meta.constructor = function (meta) return meta end
 
 
 ------------------------------------------------------------------------
 -- MetaValue
 -- @section MetaValue
-M.MetaValue = AstElement:make_subtype{}
-M.MetaValue.__call = function(t, ...)
+M.MetaValue = AstElement:make_subtype('MetaValue')
+M.MetaValue.__call = function (t, ...)
   return t:new(...)
 end
+
 --- Meta blocks
 -- @function MetaBlocks
 -- @tparam {Block,...} blocks blocks
@@ -256,7 +263,7 @@ end
 
 --- Block elements
 -- @type Block
-M.Block = AstElement:make_subtype{}
+M.Block = AstElement:make_subtype'Block'
 M.Block.__call = function (t, ...)
   return t:new(...)
 end
@@ -431,7 +438,7 @@ M.Table = M.Block:create_constructor(
 
 --- Inline element class
 -- @type Inline
-M.Inline = AstElement:make_subtype{}
+M.Inline = AstElement:make_subtype'Inline'
 M.Inline.__call = function (t, ...)
   return t:new(...)
 end
@@ -794,7 +801,7 @@ end
 setmetatable(M.Attr, M.Attr)
 
 -- Citation
-M.Citation = {}
+M.Citation = AstElement:make_subtype'Citation'
 
 --- Creates a single citation.
 -- @function Citation
@@ -804,20 +811,16 @@ M.Citation = {}
 -- @tparam[opt] {Inline,...} suffix   citation suffix
 -- @tparam[opt] int          note_num note number
 -- @tparam[opt] int          hash  hash number
-M.Citation.__call = function(t, id, mode, prefix, suffix, note_num, hash)
-  return setmetatable(
-    {
-      id = id,
-      mode = mode,
-      prefix = prefix or {},
-      suffix = suffix or {},
-      note_num = note_num or 0,
-      hash = hash or 0,
-    },
-    t
-  )
+function M.Citation.constructor (id, mode, prefix, suffix, note_num, hash)
+  return {
+    id = id,
+    mode = mode,
+    prefix = prefix or {},
+    suffix = suffix or {},
+    note_num = note_num or 0,
+    hash = hash or 0,
+  }
 end
-setmetatable(M.Citation, M.Citation)
 
 
 ------------------------------------------------------------------------
