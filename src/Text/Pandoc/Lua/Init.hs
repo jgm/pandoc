@@ -41,6 +41,7 @@ import GHC.IO.Encoding (getForeignEncoding, setForeignEncoding, utf8)
 import Paths_pandoc (version)
 import Text.Pandoc.Class (PandocIO, getCommonState, getUserDataDir, getMediaBag,
                           setMediaBag)
+import Text.Pandoc.Definition (pandocTypesVersion)
 import Text.Pandoc.Lua.Packages (LuaPackageParams (..),
                                  installPandocPackageSearcher)
 import Text.Pandoc.Lua.Util (loadScriptFromDataDir)
@@ -79,5 +80,7 @@ initLuaState luaPkgParams = do
   Lua.preloadTextModule "text"
   Lua.push (versionBranch version)
   Lua.setglobal "PANDOC_VERSION"
+  Lua.push (versionBranch pandocTypesVersion)
+  Lua.setglobal "PANDOC_API_VERSION"
   installPandocPackageSearcher luaPkgParams
   loadScriptFromDataDir (luaPkgDataDir luaPkgParams) "init.lua"

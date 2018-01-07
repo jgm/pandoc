@@ -2,6 +2,7 @@
 module Tests.Lua ( tests ) where
 
 import Control.Monad (when)
+import Data.Version (Version (versionBranch))
 import System.FilePath ((</>))
 import Test.Tasty (TestTree, localOption)
 import Test.Tasty.HUnit (Assertion, assertEqual, testCase)
@@ -11,7 +12,7 @@ import Text.Pandoc.Builder (bulletList, divWith, doc, doubleQuoted, emph,
                             header, linebreak, para, plain, rawBlock,
                             singleQuoted, space, str, strong, (<>))
 import Text.Pandoc.Class (runIOorExplode, setUserDataDir)
-import Text.Pandoc.Definition (Block, Inline, Meta, Pandoc)
+import Text.Pandoc.Definition (Block, Inline, Meta, Pandoc, pandocTypesVersion)
 import Text.Pandoc.Lua (runLuaFilter, runPandocLua)
 import Text.Pandoc.Shared (pandocVersion)
 
@@ -114,6 +115,12 @@ tests = map (localOption (QuickCheckTests 20))
       Lua.push ("." :: String) -- seperator
       Lua.call 2 1
       Lua.liftIO . assertEqual "pandoc version is wrong" pandocVersion
+        =<< Lua.peek Lua.stackTop
+
+  , testCase "Pandoc types version is set" . runPandocLua' $ do
+      let versionNums = versionBranch pandocTypesVersion
+      Lua.getglobal "PANDOC_API_VERSION"
+      Lua.liftIO . assertEqual "pandoc version is wrong" versionNums
         =<< Lua.peek Lua.stackTop
   ]
 
