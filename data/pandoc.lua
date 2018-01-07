@@ -768,35 +768,33 @@ local to_alist = function (tbl)
 end
 
 -- Attr
-M.Attr = {}
-M.Attr._field_names = {identifier = 1, classes = 2, attributes = 3}
+
 --- Create a new set of attributes (Attr).
 -- @function Attr
 -- @tparam[opt] string       identifier element identifier
 -- @tparam[opt] {string,...} classes    element classes
 -- @tparam[opt] table        attributes table containing string keys and values
 -- @return element attributes
-M.Attr.__call = function(t, identifier, classes, attributes)
+M.Attr = AstElement:make_subtype'Attr'
+M.Attr.constructor = function(identifier, classes, attributes)
   identifier = identifier or ''
   classes = List:new(classes or {})
   attributes = setmetatable(to_alist(attributes or {}), AttributeList)
-  local attr = {identifier, classes, attributes}
-  setmetatable(attr, t)
-  return attr
+  return {identifier, classes, attributes}
 end
-M.Attr.__index = function(t, k)
+M.Attr.behavior._field_names = {identifier = 1, classes = 2, attributes = 3}
+M.Attr.behavior.__index = function(t, k)
   return rawget(t, k) or
     rawget(t, M.Attr._field_names[k]) or
     rawget(getmetatable(t), k)
 end
-M.Attr.__newindex = function(t, k, v)
+M.Attr.behavior.__newindex = function(t, k, v)
   if M.Attr._field_names[k] then
     rawset(t, M.Attr._field_names[k], v)
   else
     rawset(t, k, v)
   end
 end
-setmetatable(M.Attr, M.Attr)
 
 -- Citation
 M.Citation = AstElement:make_subtype'Citation'
