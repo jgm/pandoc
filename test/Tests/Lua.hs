@@ -13,6 +13,7 @@ import Text.Pandoc.Builder (bulletList, divWith, doc, doubleQuoted, emph,
 import Text.Pandoc.Class (runIOorExplode, setUserDataDir)
 import Text.Pandoc.Definition (Block, Inline, Meta, Pandoc)
 import Text.Pandoc.Lua (runLuaFilter, runPandocLua)
+import Text.Pandoc.Shared (pandocVersion)
 
 import qualified Foreign.Lua as Lua
 
@@ -106,6 +107,14 @@ tests = map (localOption (QuickCheckTests 20))
                      , plain (str "stringify: OK")
                      , plain (str "to_roman_numeral: OK")
                      ])
+
+  , testCase "Pandoc version is set" . runPandocLua' $ do
+      Lua.getglobal' "table.concat"
+      Lua.getglobal "PANDOC_VERSION"
+      Lua.push ("." :: String) -- seperator
+      Lua.call 2 1
+      Lua.liftIO . assertEqual "pandoc version is wrong" pandocVersion
+        =<< Lua.peek Lua.stackTop
   ]
 
 assertFilterConversion :: String -> FilePath -> Pandoc -> Pandoc -> Assertion
@@ -121,18 +130,21 @@ roundtripEqual :: (Eq a, Lua.FromLuaStack a, Lua.ToLuaStack a) => a -> IO Bool
 roundtripEqual x = (x ==) <$> roundtripped
  where
   roundtripped :: (Lua.FromLuaStack a, Lua.ToLuaStack a) => IO a
-  roundtripped = runIOorExplode $ do
-    setUserDataDir (Just "../data")
-    res <- runPandocLua $ do
-      oldSize <- Lua.gettop
-      Lua.push x
-      size <- Lua.gettop
-      when (size - oldSize /= 1) $
-        error ("not exactly one additional element on the stack: " ++ show size)
-      res <- Lua.peekEither (-1)
-      case res of
-        Left _  -> error "could not read from stack"
-        Right y -> return y
+  roundtripped = runPandocLua' $ do
+    oldSize <- Lua.gettop
+    Lua.push x
+    size <- Lua.gettop
+    when (size - oldSize /= 1) $
+      error ("not exactly one additional element on the stack: " ++ show size)
+    res <- Lua.peekEither (-1)
     case res of
-      Left e -> error (show e)
+      Left _  -> error "could not read from stack"
       Right y -> return y
+
+runPandocLua' :: Lua.Lua a -> IO a
+runPandocLua' op = runIOorExplode $ do
+  setUserDataDir (Just "../data")
+  res <- runPandocLua op
+  case res of
+    Left e -> error (show e)
+    Right x -> return x

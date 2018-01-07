@@ -35,8 +35,10 @@ module Text.Pandoc.Lua.Init
 
 import Control.Monad.Trans (MonadIO (..))
 import Data.IORef (newIORef, readIORef)
+import Data.Version (Version (versionBranch))
 import Foreign.Lua (Lua, LuaException (..))
 import GHC.IO.Encoding (getForeignEncoding, setForeignEncoding, utf8)
+import Paths_pandoc (version)
 import Text.Pandoc.Class (PandocIO, getCommonState, getUserDataDir, getMediaBag,
                           setMediaBag)
 import Text.Pandoc.Lua.Packages (LuaPackageParams (..),
@@ -75,5 +77,7 @@ initLuaState :: LuaPackageParams -> Lua ()
 initLuaState luaPkgParams = do
   Lua.openlibs
   Lua.preloadTextModule "text"
+  Lua.push (versionBranch version)
+  Lua.setglobal "PANDOC_VERSION"
   installPandocPackageSearcher luaPkgParams
   loadScriptFromDataDir (luaPkgDataDir luaPkgParams) "init.lua"
