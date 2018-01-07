@@ -60,7 +60,9 @@ function Type:set_behavior (behavior)
 end
 
 --- Create a new subtype, using the given table as base.
--- @param obj type object
+-- @param name name of the new type
+-- @param[opt] behavior behavioral object for the new type.
+-- @return a new type
 -- @local
 function Type:make_subtype(name, behavior)
   local newtype = setmetatable({}, self)
@@ -260,7 +262,6 @@ end
 -- @section Block
 
 --- Block elements
--- @type Block
 M.Block = AstElement:make_subtype'Block'
 M.Block.__call = function (t, ...)
   return t:new(...)
@@ -435,7 +436,6 @@ M.Table = M.Block:create_constructor(
 -- @section Inline
 
 --- Inline element class
--- @type Inline
 M.Inline = AstElement:make_subtype'Inline'
 M.Inline.__call = function (t, ...)
   return t:new(...)
@@ -690,22 +690,29 @@ M.Superscript = M.Inline:create_constructor(
 
 
 ------------------------------------------------------------------------
--- Helpers
+-- Element components
+-- @section components
 
+--- Check if the first element of a pair matches the given value.
+-- @param x  key value to be checked
+-- @return function returning true iff first element of its argument matches x
+-- @local
 local function assoc_key_equals (x)
   return function (y) return y[1] == x end
 end
 
--- Lookup a value in an associative list
+--- Lookup a value in an associative list
 -- @function lookup
+-- @local
 -- @tparam {{key, value},...} alist associative list
 -- @param key key for which the associated value is to be looked up
 local function lookup(alist, key)
   return (List.find_if(alist, assoc_key_equals(key)) or {})[2]
 end
 
--- Return an iterator which returns key-value pairs of an associative list.
+--- Return an iterator which returns key-value pairs of an associative list.
 -- @function apairs
+-- @local
 -- @tparam {{key, value},...} alist associative list
 local apairs = function (alist)
   local i = 1
@@ -721,8 +728,9 @@ local apairs = function (alist)
   return nxt, nil, nil
 end
 
--- AttributeList, a metatable to allow table-like access to attribute lists
+--- AttributeList, a metatable to allow table-like access to attribute lists
 -- represented by associative lists.
+-- @local
 local AttributeList = {
   __index = function (t, k)
     if type(k) == "number" then
@@ -748,10 +756,11 @@ local AttributeList = {
   __pairs = apairs
 }
 
--- convert a table to an associative list. The order of key-value pairs in the
+--- Convert a table to an associative list. The order of key-value pairs in the
 -- alist is undefined. The table should either contain no numeric keys or
 -- already be an associative list.
--- @tparam table associative list or table without numeric keys.
+-- @local
+-- @tparam table tbl associative list or table without numeric keys.
 -- @treturn table associative list
 local to_alist = function (tbl)
   if #tbl ~= 0 or next(tbl) == nil then
