@@ -177,11 +177,9 @@ end
 -- @tparam[opt] Meta        meta        document meta data
 M.Pandoc = AstElement:make_subtype'Pandoc'
 function M.Pandoc.constructor (blocks, meta)
-  meta = meta or {}
   return {
-    ["blocks"] = List:new(blocks),
-    ["meta"] = meta,
-    ["pandoc-api-version"] = {1,17,0,5},
+    blocks = List:new(blocks),
+    meta = meta or {},
   }
 end
 
