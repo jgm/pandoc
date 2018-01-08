@@ -1,9 +1,9 @@
-[ ] make packages
-[ ] make update-website
-[ ] make trypandoc
 [ ] Finalize changelog
     git log --pretty='format:%n%n* %s (%an)%n%b%n%h%n' \
       --reverse --name-only LASTRELEASE..HEAD > LOG
+[ ] make packages
+[ ] make update-website
+[ ] make trypandoc
 [ ] make man/pandoc.1 and commit if needed
 [ ] make README.md and commit if needed
 [ ] Tag release in git
