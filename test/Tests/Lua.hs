@@ -120,7 +120,7 @@ tests = map (localOption (QuickCheckTests 20))
   , testCase "Pandoc types version is set" . runPandocLua' $ do
       let versionNums = versionBranch pandocTypesVersion
       Lua.getglobal "PANDOC_API_VERSION"
-      Lua.liftIO . assertEqual "pandoc version is wrong" versionNums
+      Lua.liftIO . assertEqual "pandoc-types version is wrong" versionNums
         =<< Lua.peek Lua.stackTop
   ]
 
@@ -145,7 +145,7 @@ roundtripEqual x = (x ==) <$> roundtripped
       error ("not exactly one additional element on the stack: " ++ show size)
     res <- Lua.peekEither (-1)
     case res of
-      Left _  -> error "could not read from stack"
+      Left e -> error (show e)
       Right y -> return y
 
 runPandocLua' :: Lua.Lua a -> IO a

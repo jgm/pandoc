@@ -29,6 +29,84 @@ local M = {
 local List = require 'pandoc.List'
 
 ------------------------------------------------------------------------
+-- Accessor objects
+--
+-- Create metatables which allow to access numerical indices via accessor
+-- methods.
+-- @section
+-- @local
+
+--- Create a new indexing function.
+-- @param template function template
+-- @param indices list of indices, starting with the most significant
+-- @return newly created function
+-- @local
+function make_indexing_function(template, indices)
+  local loadstring = loadstring or load
+  local bracketed = {}
+  for i = 1, #indices do bracketed[i] = string.format('[%d]', indices[i]) end
+  local fnstr = string.format('return ' .. template, table.concat(bracketed))
+  return assert(loadstring(fnstr))()
+end
+
+--- Create accessor functions using a function template.
+-- @param fn_template function template in which '%s' is replacd with indices
+-- @param accessors list of accessors
+-- @return mapping from accessor names to accessor functions
+-- @local
+local function create_accessor_functions (fn_template, accessors)
+  local res = {}
+  function add_accessors(acc, ...)
+    local indices = {...} -- ensure a fresh indices table
+    if type(acc) == "string" then
+      res[acc] = make_indexing_function(fn_template, indices)
+    else
+      local ind_len = #indices
+      local unpack = table.unpack or unpack
+      for i = 1, #(acc or {}) do
+        indices[ind_len + 1] = i
+        add_accessors(acc[i], unpack(indices))
+      end
+    end
+  end
+  add_accessors(accessors)
+  return res
+end
+
+--- Create a new table which allows to access numerical indices via accessor
+-- functions.
+-- @local
+local function create_accessor_behavior (tag, accessors)
+  local behavior = {tag = tag}
+  behavior.getters = create_accessor_functions(
+    'function (x) return x.c%s end',
+    accessors
+  )
+  behavior.setters = create_accessor_functions(
+    'function (x, v) x.c%s = v end',
+    accessors
+  )
+  behavior.__index = function(t, k)
+    if getmetatable(t).getters[k] then
+      return getmetatable(t).getters[k](t)
+    elseif k == "t" then
+      return getmetatable(t)["tag"]
+    else
+      return getmetatable(t)[k]
+    end
+  end
+  behavior.__newindex = function(t, k, v)
+    if getmetatable(t).setters[k] then
+      getmetatable(t).setters[k](t, v)
+    else
+      rawset(t, k, v)
+    end
+  end
+  return behavior
+end
+
+
+------------------------------------------------------------------------
 -- The base class for types
 -- @type Type
 -- @local
@@ -79,12 +157,18 @@ end
 -- @local
 local AstElement = Type:make_subtype 'AstElement'
 AstElement.__call = function(t, ...)
-  local success, ret = pcall(t.constructor, ...)
+  local success, ret = pcall(t.new, t, ...)
   if success then
     return setmetatable(ret, t.behavior)
   else
     error(string.format('Constructor for %s failed: %s\n', t.name, ret))
   end
+end
+
+function AstElement:make_subtype(...)
+  local newtype = Type.make_subtype(self, ...)
+  newtype.__call = self.__call
+  return newtype
 end
 
 --- Create a new constructor
@@ -94,79 +178,13 @@ end
 -- @param accessors names to use as accessors for numerical fields
 -- @return function that constructs a new element
 function AstElement:create_constructor(tag, fn, accessors)
-  local constr = self:make_subtype(tag, {tag = tag, getters = {}, setters = {}})
-  behavior = constr.behavior
-  behavior.__index = function(t, k)
-    if getmetatable(t).getters[k] then
-      return getmetatable(t).getters[k](t)
-    elseif k == "t" then
-      return getmetatable(t)["tag"]
-    else
-      return getmetatable(t)[k]
-    end
-  end
-  behavior.__newindex = function(t, k, v)
-    if getmetatable(t).setters[k] then
-      getmetatable(t).setters[k](t, v)
-    else
-      rawset(t, k, v)
-    end
-  end
-
-  -- Add accessors to the metatable
-  if type(accessors) == "string" then
-    behavior.getters[accessors] = function(elem)
-      return elem.c
-    end
-    behavior.setters[accessors] = function(elem, v)
-      elem.c = v
-    end
-  else
-    for i = 1, #(accessors or {}) do
-      if type(accessors[i]) == "string" then
-        behavior.getters[accessors[i]] = function(elem)
-          return elem.c[i]
-        end
-        behavior.setters[accessors[i]] = function(elem, v)
-          elem.c[i] = v
-        end
-      else -- only two levels of nesting are supported
-        for k, v in ipairs(accessors[i]) do
-          behavior.getters[v] = function(elem)
-            return elem.c[i][k]
-          end
-          behavior.setters[v] = function(elem, v)
-            elem.c[i][k] = v
-          end
-        end
-      end
-    end
-  end
-
+  local constr = self:make_subtype(tag, create_accessor_behavior(tag, accessors))
   function constr:new(...)
     return setmetatable(fn(...), self.behavior)
   end
   self.constructor = self.constructor or {}
   self.constructor[tag] = constr
   return constr
-end
-
---- Create a new element given its tag and arguments
--- @local
-function AstElement.new(constr, ...)
-  local element = {}
-  local content = {...}
-  -- special case for unary constructors
-  if #content == 1 then
-    element.c = content[1]
-    -- Don't set 'c' field if no further arguments were given. This is important
-    -- for nullary constructors like `Space` and `HorizontalRule`.
-  elseif #content > 0 then
-    element.c = content
-  end
-  setmetatable(element, constr)
-  element.__index = element
-  return element
 end
 
 ------------------------------------------------------------------------
@@ -178,7 +196,7 @@ end
 -- @tparam      {Block,...} blocks      document content
 -- @tparam[opt] Meta        meta        document meta data
 M.Pandoc = AstElement:make_subtype'Pandoc'
-function M.Pandoc.constructor (blocks, meta)
+function M.Pandoc:new (blocks, meta)
   return {
     blocks = List:new(blocks),
     meta = meta or {},
@@ -197,16 +215,13 @@ M.Doc = M.Pandoc
 -- @function Meta
 -- @tparam meta table table containing document meta information
 M.Meta = AstElement:make_subtype'Meta'
-M.Meta.constructor = function (meta) return meta end
+function M.Meta:new (meta) return meta end
 
 
 ------------------------------------------------------------------------
 -- MetaValue
 -- @section MetaValue
 M.MetaValue = AstElement:make_subtype('MetaValue')
-M.MetaValue.__call = function (t, ...)
-  return t:new(...)
-end
 
 --- Meta blocks
 -- @function MetaBlocks
@@ -263,9 +278,6 @@ end
 
 --- Block elements
 M.Block = AstElement:make_subtype'Block'
-M.Block.__call = function (t, ...)
-  return t:new(...)
-end
 
 --- Creates a block quote element
 -- @function BlockQuote
@@ -437,9 +449,6 @@ M.Table = M.Block:create_constructor(
 
 --- Inline element class
 M.Inline = AstElement:make_subtype'Inline'
-M.Inline.__call = function (t, ...)
-  return t:new(...)
-end
 
 --- Creates a Cite inline element
 -- @function Cite
@@ -785,7 +794,7 @@ end
 -- @tparam[opt] table        attributes table containing string keys and values
 -- @return element attributes
 M.Attr = AstElement:make_subtype'Attr'
-M.Attr.constructor = function(identifier, classes, attributes)
+function M.Attr:new (identifier, classes, attributes)
   identifier = identifier or ''
   classes = List:new(classes or {})
   attributes = setmetatable(to_alist(attributes or {}), AttributeList)
@@ -816,7 +825,7 @@ M.Citation = AstElement:make_subtype'Citation'
 -- @tparam[opt] {Inline,...} suffix   citation suffix
 -- @tparam[opt] int          note_num note number
 -- @tparam[opt] int          hash  hash number
-function M.Citation.constructor (id, mode, prefix, suffix, note_num, hash)
+function M.Citation:new (id, mode, prefix, suffix, note_num, hash)
   return {
     id = id,
     mode = mode,
