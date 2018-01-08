@@ -71,8 +71,7 @@ import Data.Aeson.Encode.Pretty (encodePretty', Config(..), keyOrder,
          defConfig, Indent(..), NumberFormat(..))
 import Skylighting (Style, Syntax (..), defaultSyntaxMap, parseTheme,
                     pygments)
-import Skylighting.Parser (addSyntaxDefinition, missingIncludes,
-                           parseSyntaxDefinition)
+import Skylighting.Parser (addSyntaxDefinition, parseSyntaxDefinition)
 import System.Console.GetOpt
 import System.Directory (Permissions (..), doesFileExist, findExecutable,
                          getAppUserDataDirectory, getPermissions)
@@ -267,15 +266,6 @@ convertWithOpts opts = do
 
   syntaxMap <- foldM addSyntaxMap defaultSyntaxMap
                      (optSyntaxDefinitions opts)
-
-  unless (null (optSyntaxDefinitions opts)) $
-    case missingIncludes (M.elems syntaxMap) of
-       [] -> return ()
-       xs -> E.throwIO $ PandocSyntaxMapError $
-                "Missing syntax definitions:\n" ++
-                unlines (map
-                  (\(syn,dep) -> (T.unpack syn ++ " requires " ++
-                    T.unpack dep ++ " through IncludeRules.")) xs)
 
   -- We don't want to send output to the terminal if the user
   -- does 'pandoc -t docx input.txt'; though we allow them to

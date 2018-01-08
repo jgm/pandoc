@@ -15,4 +15,5 @@ packages:
 extra-deps:
 - pandoc-citeproc-0.12.2.5
 - hslua-0.9.5
-resolver: lts-10.1
+- skylighting-0.5.1
+resolver: lts-10.2
