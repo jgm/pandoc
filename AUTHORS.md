@@ -147,6 +147,7 @@
 - RyanGlScott
 - Sascha Wilde
 - Scott Morrison
+- Sebastian Talmon
 - Sergei Trofimovich
 - Sergey Astanin
 - Shahbaz Youssefi

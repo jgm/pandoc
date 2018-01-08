@@ -1,5 +1,5 @@
 .\"t
-.TH PANDOC 1 "December 27, 2017" "pandoc 2.1"
+.TH PANDOC 1 "January 7, 2018" "pandoc 2.1"
 .SH NAME
 pandoc - general markup converter
 .SH SYNOPSIS
@@ -9,38 +9,39 @@ pandoc - general markup converter
 .PP
 Pandoc is a Haskell library for converting from one markup format to
 another, and a command\-line tool that uses this library.
-It can read Markdown, CommonMark, PHP Markdown Extra, GitHub\-Flavored
-Markdown, MultiMarkdown, and (subsets of) Textile, reStructuredText,
-HTML, LaTeX, MediaWiki markup, TWiki markup, TikiWiki markup, Creole
-1.0, Haddock markup, OPML, Emacs Org mode, DocBook, JATS, Muse,
-txt2tags, Vimwiki, EPUB, ODT, and Word docx; and it can write plain
-text, Markdown, CommonMark, PHP Markdown Extra, GitHub\-Flavored
-Markdown, MultiMarkdown, reStructuredText, XHTML, HTML5, LaTeX
-(including \f[C]beamer\f[] slide shows), ConTeXt, RTF, OPML, DocBook,
-JATS, OpenDocument, ODT, Word docx, GNU Texinfo, MediaWiki markup,
-DokuWiki markup, ZimWiki markup, Haddock markup, EPUB (v2 or v3),
-FictionBook2, Textile, groff man, groff ms, Emacs Org mode, AsciiDoc,
-InDesign ICML, TEI Simple, Muse, PowerPoint slide shows and Slidy,
-Slideous, DZSlides, reveal.js or S5 HTML slide shows.
+.PP
+Pandoc can read Markdown, CommonMark, PHP Markdown Extra,
+GitHub\-Flavored Markdown, MultiMarkdown, and (subsets of) Textile,
+reStructuredText, HTML, LaTeX, MediaWiki markup, TWiki markup, TikiWiki
+markup, Creole 1.0, Haddock markup, OPML, Emacs Org mode, DocBook, JATS,
+Muse, txt2tags, Vimwiki, EPUB, ODT, and Word docx.
+.PP
+Pandoc can write plain text, Markdown, CommonMark, PHP Markdown Extra,
+GitHub\-Flavored Markdown, MultiMarkdown, reStructuredText, XHTML,
+HTML5, LaTeX (including \f[C]beamer\f[] slide shows), ConTeXt, RTF,
+OPML, DocBook, JATS, OpenDocument, ODT, Word docx, GNU Texinfo,
+MediaWiki markup, DokuWiki markup, ZimWiki markup, Haddock markup, EPUB
+(v2 or v3), FictionBook2, Textile, groff man, groff ms, Emacs Org mode,
+AsciiDoc, InDesign ICML, TEI Simple, Muse, PowerPoint slide shows and
+Slidy, Slideous, DZSlides, reveal.js or S5 HTML slide shows.
 It can also produce PDF output on systems where LaTeX, ConTeXt,
 \f[C]pdfroff\f[], \f[C]wkhtmltopdf\f[], \f[C]prince\f[], or
 \f[C]weasyprint\f[] is installed.
 .PP
-Pandoc\[aq]s enhanced version of Markdown includes syntax for footnotes,
-tables, flexible ordered lists, definition lists, fenced code blocks,
-superscripts and subscripts, strikeout, metadata blocks, automatic
-tables of contents, embedded LaTeX math, citations, and Markdown inside
-HTML block elements.
-(These enhancements, described further under Pandoc\[aq]s Markdown, can
-be disabled using the \f[C]markdown_strict\f[] input or output format.)
+Pandoc\[aq]s enhanced version of Markdown includes syntax for tables,
+definition lists, metadata blocks, \f[C]Div\f[] blocks, footnotes and
+citations, embedded LaTeX (including math), Markdown inside HTML block
+elements, and much more.
+These enhancements, described further under Pandoc\[aq]s Markdown, can
+be disabled using the \f[C]markdown_strict\f[] format.
 .PP
-In contrast to most existing tools for converting Markdown to HTML,
-which use regex substitutions, pandoc has a modular design: it consists
-of a set of readers, which parse text in a given format and produce a
-native representation of the document, and a set of writers, which
-convert this native representation into a target format.
+Pandoc has a modular design: it consists of a set of readers, which
+parse text in a given format and produce a native representation of the
+document (like an \f[I]abstract syntax tree\f[] or AST), and a set of
+writers, which convert this native representation into a target format.
 Thus, adding an input or output format requires only adding a reader or
 writer.
+Users can also run custom pandoc filters to modify the intermediate AST.
 .PP
 Because pandoc\[aq]s intermediate representation of a document is less
 expressive than many of the formats it converts between, one should not
@@ -54,14 +55,9 @@ perfect, conversions from formats more expressive than pandoc\[aq]s
 Markdown can be expected to be lossy.
 .SS Using \f[C]pandoc\f[]
 .PP
-If no \f[I]input\-file\f[] is specified, input is read from
+If no \f[I]input\-files\f[] are specified, input is read from
 \f[I]stdin\f[].
-Otherwise, the \f[I]input\-files\f[] are concatenated (with a blank line
-between each) and used as input.
-Output goes to \f[I]stdout\f[] by default (though output to the terminal
-is disabled for the \f[C]odt\f[], \f[C]docx\f[], \f[C]epub2\f[], and
-\f[C]epub3\f[] output formats, unless it is forced using
-\f[C]\-o\ \-\f[]).
+Output goes to \f[I]stdout\f[] by default.
 For output to a file, use the \f[C]\-o\f[] option:
 .IP
 .nf
@@ -70,10 +66,10 @@ pandoc\ \-o\ output.html\ input.txt
 \f[]
 .fi
 .PP
-By default, pandoc produces a document fragment, not a standalone
-document with a proper header and footer.
-To produce a standalone document, use the \f[C]\-s\f[] or
-\f[C]\-\-standalone\f[] flag:
+By default, pandoc produces a document fragment.
+To produce a standalone document (e.g.
+a valid HTML file including \f[C]<head>\f[] and \f[C]<body>\f[]), use
+the \f[C]\-s\f[] or \f[C]\-\-standalone\f[] flag:
 .IP
 .nf
 \f[C]
@@ -82,37 +78,17 @@ pandoc\ \-s\ \-o\ output.html\ input.txt
 .fi
 .PP
 For more information on how standalone documents are produced, see
-Templates, below.
-.PP
-Instead of a file, an absolute URI may be given.
-In this case pandoc will fetch the content using HTTP:
-.IP
-.nf
-\f[C]
-pandoc\ \-f\ html\ \-t\ markdown\ http://www.fsf.org
-\f[]
-.fi
-.PP
-It is possible to supply a custom User\-Agent string or other header
-when requesting a document from a URL:
-.IP
-.nf
-\f[C]
-pandoc\ \-f\ html\ \-t\ markdown\ \-\-request\-header\ User\-Agent:"Mozilla/5.0"\ \\
-\ \ http://www.fsf.org
-\f[]
-.fi
+Templates below.
 .PP
 If multiple input files are given, \f[C]pandoc\f[] will concatenate them
 all (with blank lines between them) before parsing.
-This feature is disabled for binary input formats such as \f[C]EPUB\f[],
-\f[C]odt\f[], and \f[C]docx\f[].
+(Use \f[C]\-\-file\-scope\f[] to parse files individually.)
+.SS Specifying formats
 .PP
 The format of the input and output can be specified explicitly using
 command\-line options.
-The input format can be specified using the \f[C]\-r/\-\-read\f[] or
-\f[C]\-f/\-\-from\f[] options, the output format using the
-\f[C]\-w/\-\-write\f[] or \f[C]\-t/\-\-to\f[] options.
+The input format can be specified using the \f[C]\-f/\-\-from\f[]
+option, the output format using the \f[C]\-t/\-\-to\f[] option.
 Thus, to convert \f[C]hello.txt\f[] from Markdown to LaTeX, you could
 type:
 .IP
@@ -130,17 +106,15 @@ pandoc\ \-f\ html\ \-t\ markdown\ hello.html
 \f[]
 .fi
 .PP
-Supported output formats are listed below under the \f[C]\-t/\-\-to\f[]
-option.
-Supported input formats are listed below under the \f[C]\-f/\-\-from\f[]
-option.
-Note that the \f[C]rst\f[], \f[C]textile\f[], \f[C]latex\f[], and
-\f[C]html\f[] readers are not complete; there are some constructs that
-they do not parse.
+Supported input and output formats are listed below under Options (see
+\f[C]\-f\f[] for input formats and \f[C]\-t\f[] for output formats).
+You can also use \f[C]pandoc\ \-\-list\-input\-formats\f[] and
+\f[C]pandoc\ \-\-list\-output\-formats\f[] to print lists of supported
+formats.
 .PP
 If the input or output format is not specified explicitly,
 \f[C]pandoc\f[] will attempt to guess it from the extensions of the
-input and output filenames.
+filenames.
 Thus, for example,
 .IP
 .nf
@@ -155,7 +129,8 @@ or if the output file\[aq]s extension is unknown, the output format will
 default to HTML.
 If no input file is specified (so that input comes from \f[I]stdin\f[]),
 or if the input files\[aq] extensions are unknown, the input format will
-be assumed to be Markdown unless explicitly specified.
+be assumed to be Markdown.
+.SS Character encoding
 .PP
 Pandoc uses the UTF\-8 character encoding for both input and output.
 If your local character encoding is not UTF\-8, you should pipe input
@@ -174,8 +149,7 @@ the \f[C]\-s/\-\-standalone\f[] option.
 .SS Creating a PDF
 .PP
 To produce a PDF, specify an output file with a \f[C]\&.pdf\f[]
-extension.
-By default, pandoc will use LaTeX to create the PDF:
+extension:
 .IP
 .nf
 \f[C]
@@ -183,10 +157,34 @@ pandoc\ test.txt\ \-o\ test.pdf
 \f[]
 .fi
 .PP
-Production of a PDF requires that a LaTeX engine be installed (see
-\f[C]\-\-pdf\-engine\f[], below), and assumes that the following LaTeX
-packages are available: \f[C]amsfonts\f[], \f[C]amsmath\f[],
-\f[C]lm\f[], \f[C]unicode\-math\f[], \f[C]ifxetex\f[],
+By default, pandoc will use LaTeX to create the PDF, which requires that
+a LaTeX engine be installed (see \f[C]\-\-pdf\-engine\f[] below).
+.PP
+Alternatively, pandoc can use ConTeXt, \f[C]pdfroff\f[], or any of the
+following HTML/CSS\-to\-PDF\-engines, to create a PDF:
+\f[C]wkhtmltopdf\f[], \f[C]weasyprint\f[] or \f[C]prince\f[].
+To do this, specify an output file with a \f[C]\&.pdf\f[] extension, as
+before, but add the \f[C]\-\-pdf\-engine\f[] option or
+\f[C]\-t\ context\f[], \f[C]\-t\ html\f[], or \f[C]\-t\ ms\f[] to the
+command line (\f[C]\-t\ html\f[] defaults to
+\f[C]\-\-pdf\-engine=wkhtmltopdf\f[]).
+.PP
+PDF output can be controlled using variables for LaTeX (if LaTeX is
+used) and variables for ConTeXt (if ConTeXt is used).
+When using an HTML/CSS\-to\-PDF\-engine, \f[C]\-\-css\f[] affects the
+output.
+If \f[C]wkhtmltopdf\f[] is used, then the variables
+\f[C]margin\-left\f[], \f[C]margin\-right\f[], \f[C]margin\-top\f[],
+\f[C]margin\-bottom\f[], and \f[C]papersize\f[] will affect the output.
+.PP
+To debug the PDF creation, it can be useful to look at the intermediate
+representation: instead of \f[C]\-o\ test.pdf\f[], use for example
+\f[C]\-s\ \-o\ test.tex\f[] to output the generated LaTeX.
+You can then test it with \f[C]pdflatex\ test.tex\f[].
+.PP
+When using LaTeX, the following packages need to be available (they are
+included with all recent versions of TeX Live): \f[C]amsfonts\f[],
+\f[C]amsmath\f[], \f[C]lm\f[], \f[C]unicode\-math\f[], \f[C]ifxetex\f[],
 \f[C]ifluatex\f[], \f[C]listings\f[] (if the \f[C]\-\-listings\f[]
 option is used), \f[C]fancyvrb\f[], \f[C]longtable\f[],
 \f[C]booktabs\f[], \f[C]graphicx\f[] and \f[C]grffile\f[] (if the
@@ -205,24 +203,26 @@ available, and \f[C]csquotes\f[] will be used for typography if added to
 the template or included in any header file.
 The \f[C]natbib\f[], \f[C]biblatex\f[], \f[C]bibtex\f[], and
 \f[C]biber\f[] packages can optionally be used for citation rendering.
-These are included with all recent versions of TeX Live.
+.SS Reading from the Web
 .PP
-Alternatively, pandoc can use ConTeXt, \f[C]pdfroff\f[], or any of the
-following HTML/CSS\-to\-PDF\-engines, to create a PDF:
-\f[C]wkhtmltopdf\f[], \f[C]weasyprint\f[] or \f[C]prince\f[].
-To do this, specify an output file with a \f[C]\&.pdf\f[] extension, as
-before, but add the \f[C]\-\-pdf\-engine\f[] option or
-\f[C]\-t\ context\f[], \f[C]\-t\ html\f[], or \f[C]\-t\ ms\f[] to the
-command line (\f[C]\-t\ html\f[] defaults to
-\f[C]\-\-pdf\-engine=wkhtmltopdf\f[]).
+Instead of an input file, an absolute URI may be given.
+In this case pandoc will fetch the content using HTTP:
+.IP
+.nf
+\f[C]
+pandoc\ \-f\ html\ \-t\ markdown\ http://www.fsf.org
+\f[]
+.fi
 .PP
-PDF output can be controlled using variables for LaTeX (if LaTeX is
-used) and variables for ConTeXt (if ConTeXt is used).
-When using an HTML/CSS\-to\-PDF\-engine, \f[C]\-\-css\f[] affects the
-output.
-If \f[C]wkhtmltopdf\f[] is used, then the variables
-\f[C]margin\-left\f[], \f[C]margin\-right\f[], \f[C]margin\-top\f[],
-\f[C]margin\-bottom\f[], and \f[C]papersize\f[] will affect the output.
+It is possible to supply a custom User\-Agent string or other header
+when requesting a document from a URL:
+.IP
+.nf
+\f[C]
+pandoc\ \-f\ html\ \-t\ markdown\ \-\-request\-header\ User\-Agent:"Mozilla/5.0"\ \\
+\ \ http://www.fsf.org
+\f[]
+.fi
 .SH OPTIONS
 .SS General options
 .TP
@@ -283,9 +283,8 @@ show) or the path of a custom lua writer (see Custom writers, below).
 (\f[C]markdown_github\f[] provides deprecated and less accurate support
 for Github\-Flavored Markdown; please use \f[C]gfm\f[] instead, unless
 you use extensions that do not work with \f[C]gfm\f[].) Note that
-\f[C]odt\f[], \f[C]epub\f[], and \f[C]epub3\f[] output will not be
-directed to \f[I]stdout\f[]; an output filename must be specified using
-the \f[C]\-o/\-\-output\f[] option.
+\f[C]odt\f[], \f[C]docx\f[], and \f[C]epub\f[] output will not be
+directed to \f[I]stdout\f[] unless forced with \f[C]\-o\ \-\f[].
 Extensions can be individually enabled or disabled by appending
 \f[C]+EXTENSION\f[] or \f[C]\-EXTENSION\f[] to the format name.
 See Extensions below, for a list of extensions and their names.
@@ -386,8 +385,8 @@ List supported output formats, one per line.
 .RE
 .TP
 .B \f[C]\-\-list\-extensions\f[][\f[C]=\f[]\f[I]FORMAT\f[]]
-List supported Markdown extensions, one per line, preceded by a
-\f[C]+\f[] or \f[C]\-\f[] indicating whether it is enabled by default in
+List supported extensions, one per line, preceded by a \f[C]+\f[] or
+\f[C]\-\f[] indicating whether it is enabled by default in
 \f[I]FORMAT\f[].
 If \f[I]FORMAT\f[] is not specified, defaults for pandoc\[aq]s Markdown
 are given.
@@ -574,6 +573,10 @@ respectively.
 The author and time of change is included.
 \f[C]all\f[] is useful for scripting: only accepting changes from a
 certain reviewer, say, or before a certain date.
+If a paragraph is inserted or deleted, \f[C]track\-changes=all\f[]
+produces a span with the class
+\f[C]paragraph\-insertion\f[]/\f[C]paragraph\-deletion\f[] before the
+affected paragraph break.
 This option only affects the docx reader.
 .RS
 .RE
@@ -4071,55 +4074,6 @@ Use native pandoc \f[C]Span\f[] blocks for content inside
 For the most part this should give the same output as \f[C]raw_html\f[],
 but it makes it easier to write pandoc filters to manipulate groups of
 inlines.
-.SS Extension: \f[C]fenced_divs\f[]
-.PP
-Allow special fenced syntax for native \f[C]Div\f[] blocks.
-A Div starts with a fence containing at least three consecutive colons
-plus some attributes.
-The attributes may optionally be followed by another string of
-consecutive colons.
-The attribute syntax is exactly as in fenced code blocks (see Extension:
-\f[C]fenced_code_attributes\f[]).
-As with fenced code blocks, one can use either attributes in curly
-braces or a single unbraced word, which will be treated as a class name.
-The Div ends with another line containing a string of at least three
-consecutive colons.
-The fenced Div should be separated by blank lines from preceding and
-following blocks.
-.PP
-Example:
-.IP
-.nf
-\f[C]
-:::::\ {#special\ .sidebar}
-Here\ is\ a\ paragraph.
-
-And\ another.
-:::::
-\f[]
-.fi
-.PP
-Fenced divs can be nested.
-Opening fences are distinguished because they \f[I]must\f[] have
-attributes:
-.IP
-.nf
-\f[C]
-:::\ Warning\ ::::::
-This\ is\ a\ warning.
-
-:::\ Danger
-This\ is\ a\ warning\ within\ a\ warning.
-:::
-::::::::::::::::::
-\f[]
-.fi
-.PP
-Fences without attributes are always closing fences.
-Unlike with fenced code blocks, the number of colons in the closing
-fence need not match the number in the opening fence.
-However, it can be helpful for visual clarity to use fences of different
-lengths to distinguish nested divs from their parents.
 .SS Extension: \f[C]raw_tex\f[]
 .PP
 In addition to raw HTML, pandoc allows raw LaTeX, TeX, and ConTeXt to be
@@ -4467,12 +4421,67 @@ identifier (LaTeX \f[C]\\caption\f[]), or both (HTML).
 When no \f[C]width\f[] or \f[C]height\f[] attributes are specified, the
 fallback is to look at the image resolution and the dpi metadata
 embedded in the image file.
-.SS Spans
+.SS Divs and Spans
+.PP
+Using the \f[C]native_divs\f[] and \f[C]native_spans\f[] extensions (see
+above), HTML syntax can be used as part of markdown to create native
+\f[C]Div\f[] and \f[C]Span\f[] elements in the pandoc AST (as opposed to
+raw HTML).
+However, there is also nicer syntax available:
+.SS Extension: \f[C]fenced_divs\f[]
+.PP
+Allow special fenced syntax for native \f[C]Div\f[] blocks.
+A Div starts with a fence containing at least three consecutive colons
+plus some attributes.
+The attributes may optionally be followed by another string of
+consecutive colons.
+The attribute syntax is exactly as in fenced code blocks (see Extension:
+\f[C]fenced_code_attributes\f[]).
+As with fenced code blocks, one can use either attributes in curly
+braces or a single unbraced word, which will be treated as a class name.
+The Div ends with another line containing a string of at least three
+consecutive colons.
+The fenced Div should be separated by blank lines from preceding and
+following blocks.
+.PP
+Example:
+.IP
+.nf
+\f[C]
+:::::\ {#special\ .sidebar}
+Here\ is\ a\ paragraph.
+
+And\ another.
+:::::
+\f[]
+.fi
+.PP
+Fenced divs can be nested.
+Opening fences are distinguished because they \f[I]must\f[] have
+attributes:
+.IP
+.nf
+\f[C]
+:::\ Warning\ ::::::
+This\ is\ a\ warning.
+
+:::\ Danger
+This\ is\ a\ warning\ within\ a\ warning.
+:::
+::::::::::::::::::
+\f[]
+.fi
+.PP
+Fences without attributes are always closing fences.
+Unlike with fenced code blocks, the number of colons in the closing
+fence need not match the number in the opening fence.
+However, it can be helpful for visual clarity to use fences of different
+lengths to distinguish nested divs from their parents.
 .SS Extension: \f[C]bracketed_spans\f[]
 .PP
 A bracketed sequence of inlines, as one would use to begin a link, will
-be treated as a span with attributes if it is followed immediately by
-attributes:
+be treated as a \f[C]Span\f[] with attributes if it is followed
+immediately by attributes:
 .IP
 .nf
 \f[C]

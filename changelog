@@ -1,14 +1,164 @@
 pandoc (2.1)
 
-  * Text.Pandoc.App: Filter changes (#4196).  Previously we ran all lua
-    filters before JSON filters.  Now we run filters in the order they are
-    presented on the command line, whether lua or JSON.  There are two
-    incompatible API changes: The type of `applyFilters` has changed, and
-    `applyLuaFilters` has been removed.  `Filter` is also now exported.
+  * Allow filters and lua filters to be interspersed (#4196).  Previously
+    we ran all lua filters before JSON filters.  Now we run filters in
+    the order they are presented on the command line, whether lua or JSON.
+    There are two incompatible API changes: The type of `applyFilters`
+    has changed, and `applyLuaFilters` has been removed.  `Filter` is
+    also now exported.
+
+  * Use latest skylighting and omit the `missingIncludes` check, fixing
+    a major performance regression in earlier releases of the 2.x series
+    (#4226).  Behavior change: If you use a custom syntax definition that
+    refers to a syntax you haven't loaded, pandoc will now complain when
+    it is highlighting the text, rather than doing a check at the start.
+    This change dramatically speeds up invocations of pandoc on short
+    inputs.
 
   * Text.Pandoc.Class: make `FileTree` opaque (don't export
     `FileTree` constructor).  This forces users to interact with it using
     `insertInFileTree` and `getFileInfo`, which normalize file names.
+
+  * Markdown reader:
+
+    + Rewrite `inlinesInBalancedBrackets`.  The rewrite is much more
+      direct, avoiding `parseFromString`.  And it performs significantly
+      better; unfortunately, parsing time still increases exponentially
+      (see #1735).
+    + Avoid parsing raw tex unless `\` + letter seen.  This seems to
+      help with the performance problem, #4216.
+
+  * LaTeX reader: Simplified a check for raw tex command.
+
+  * Muse reader (Alexander Krotov):
+
+    + Enable round trip test (#4107).
+    + Automatically translate `#cover` into `#cover-image`.
+      Amusewiki uses #cover directive to specify cover image.
+
+  * Docx reader (Jesse Rosenthal):
+
+    + Allow for insertion/deletion of paragraphs (#3927).
+      If the paragraph has a deleted or inserted paragraph break (depending
+      on the track-changes setting) we hold onto it until the next
+      paragraph. This takes care of accept and reject. For this we introduce
+      a new state which holds the ils from the previous para if necessary.
+      For `--track-changes=all`, we add an empty span with class
+      `paragraph-insertion`/`paragraph-deletion` at the end of the paragraph
+      prior to the break to be inserted or deleted.
+    + Remove unused anchors (#3679).  Docx produces a lot of anchors with
+      nothing pointing to them---we now remove these to produce cleaner
+      output. Note that this has to occur at the end of the process
+      because it has to follow link/anchor rewriting.
+    + Read multiple children of `w:sdtContents`.
+    + Combine adjacent anchors.  There isn't any reason to have numerous
+      anchors in the same place, since we can't maintain docx's
+      non-nesting overlapping. So we reduce to a single anchor.
+    + Improved tests.
+
+  * Muse writer (Alexander Krotov): don't escape URIs from AST
+
+  * Docx writer:
+
+    + Removed redundant subtitle in title (Sebastian Talmon).
+    + `firstRow` table definition compatibility for Word 2016 (Sebastian
+      Talmon).  Word 2016 seems to use a default value of "1" for table
+      headers, if there is no firstRow definition (although a default
+      value of 0 is documented), so all tables get the first Row formatted
+      as header.  Setting the parameter to 0 if the table has no header
+      row fixes this for Word 2016
+    + Fix custom styles with spaces in the name (#3290).
+
+  * Powerpoint writer (Jesse Rosenthal):
+
+    + Ignore Notes div for parity with other slide outputs.
+    + Set default slidelevel correctly.  We had previously defaulted to
+      slideLevel 2. Now we use the correct behavior of defaulting to the
+      highest level header followed by content. We change an expected test
+      result to match this behavior.
+    + Split blocks correctly for linked images.
+    + Combine adjacent runs.
+    + Make inline code inherit code size.  Previously (a) the code size
+      wasn't set when we force size, and (b) the properties was set from
+      the default, instead of inheriting.
+    + Simplify `replaceNamedChildren` function.
+    + Allow linked images.  The following markdown:
+      `[![Image Title](image.jpg)](http://www.example.com)`
+      will now produce a linked image in the resulting PowerPoint file.
+    + Fix error with empty table cell.  We require an empty `<a:p>` tag,
+      even if the cell contains no paragraphs---otherwise PowerPoint
+      complains of corruption.
+    + Implement two-column slides.  This uses the columns/column div
+      format described in the pandoc manual. At the moment, only two
+      columns (half the screen each) are allowed. Custom widths are not
+      supported.
+    + Added more tests.
+
+  * Lua filters (Albert Krewinkel):
+
+    + `data/pandoc.lua`: drop 'pandoc-api-version' from Pandoc objects
+    + The current pandoc-types version is made available to Lua programs in
+      the global `PANDOC_API_VERSION`. It contains the version as a list of
+      numbers.
+    + The pandoc version available as a global `PANDOC_VERSION` (a list
+      of numbers).
+    + `data/pandoc.lua`: make `Attr` an `AstElement`.
+    + `data/pandoc.lua`: make all types subtypes of `AstElement`.
+      `Pandoc`, `Meta`, and `Citation` were just plain functions and did
+      not set a metatable on the returned value, which made it difficult
+      to amend objects of these types with new behavior. They are now
+      subtypes of AstElement, meaning that all their objects can gain
+      new features when a method is added to the behavior object
+      (e.g., `pandoc.Pandoc.behavior`).
+    + `data/pandoc.lua`: split type and behavior tables.  Clearly distinguish
+      between a type and the behavioral properties of an instance of that
+      type. The behavior of a type (and all its subtypes) can now be
+      amended by adding methods to that types `behavior` object, without
+      exposing the type objects internals.  E.g.:
+      ```lua
+      pandoc.Inline.behavior.frob = function () print'42' end
+      local str = pandoc.Str'hello'
+      str.frob() -- outputs '42'
+      ```
+    + `data/pandoc.lua`: fix Element inheritance.  Extending all elements
+      of a given type (e.g., all inline elements) was difficult, as the
+      table used to lookup unknown methods would be reset every time a
+      new element of that type was created, preventing recursive property
+      lookup. This is was changed in that all methods and attributes of
+      supertypes are now available to their subtypes.
+    + `data/pandoc.lua`: fix attribute names of Citation (#4222).  The
+      fields were named like the Haskell fields, not like the documented,
+      shorter version.  The names are changed to match the documentation
+      and Citations are given a shared metatable to enable simple
+      extensibility.
+    + `data/pandoc.lua`: drop function `pandoc.global_filter`.
+    + Bump `hslua` version to 0.9.5.  This version fixes a bug that made it
+      difficult to handle failures while getting lists or a Map from Lua.
+      A bug in pandoc, which made it necessary to always pass a tag when
+      using MetaList or MetaBlock, is fixed as a result. Using the pandoc
+      module's constructor functions for these values is now optional
+      (if still recommended).
+    + Stop exporting `pushPandocModule` (API change).  The introduction
+      of `runPandocLua` renders direct use of this function obsolete.
+    + Update generation of module docs for lua filters.
+    + `Lua.Module.Utils`: make stringify work on `MetaValues` (John
+      MacFarlane).  I'm sure this was intended in the first place,
+      but currently only `Meta` is supported.
+
+  * Improve benchmarks.
+
+    + Set the default extensions properly.
+    + Improve benchmark argument parsing.  You can now say
+      `make bench BENCHARGS="markdown latex reader"` and both the
+      markdown and latex readers will be benchmarked.
+
+  * MANUAL.txt simplify and add more structure (Mauro Bieg).
+
+  * Generate README.md from template and MANUAL.txt.
+    `make README.md` will generate the README.md after changes
+    to MANUAL.txt have been made.
+
+  * Update copyright notices to include 2018 (Albert Krewinkel).
 
 pandoc (2.0.6)
 
