@@ -94,6 +94,8 @@ pandoc (2.1)
       supported.
     + Added more tests.
 
+  * OpenDocument/ODT writers: improved rendering of formulas (#4170, oltolm).
+
   * Lua filters (Albert Krewinkel):
 
     + `data/pandoc.lua`: drop 'pandoc-api-version' from Pandoc objects
