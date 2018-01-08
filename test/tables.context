@@ -7,7 +7,7 @@ Simple table with caption:
 \startxcell[align=left] Right \stopxcell
 \startxcell[align=right] Left \stopxcell
 \startxcell[align=middle] Center \stopxcell
-\startxcell[align=right] Default \stopxcell
+\startxcell Default \stopxcell
 \stopxrow
 \stopxtablehead
 \startxtablebody[body]
@@ -15,13 +15,13 @@ Simple table with caption:
 \startxcell[align=left] 12 \stopxcell
 \startxcell[align=right] 12 \stopxcell
 \startxcell[align=middle] 12 \stopxcell
-\startxcell[align=right] 12 \stopxcell
+\startxcell 12 \stopxcell
 \stopxrow
 \startxrow
 \startxcell[align=left] 123 \stopxcell
 \startxcell[align=right] 123 \stopxcell
 \startxcell[align=middle] 123 \stopxcell
-\startxcell[align=right] 123 \stopxcell
+\startxcell 123 \stopxcell
 \stopxrow
 \stopxtablebody
 \startxtablefoot[foot]
@@ -29,7 +29,7 @@ Simple table with caption:
 \startxcell[align=left] 1 \stopxcell
 \startxcell[align=right] 1 \stopxcell
 \startxcell[align=middle] 1 \stopxcell
-\startxcell[align=right] 1 \stopxcell
+\startxcell 1 \stopxcell
 \stopxrow
 \stopxtablefoot
 \stopxtable
@@ -44,7 +44,7 @@ Simple table without caption:
 \startxcell[align=left] Right \stopxcell
 \startxcell[align=right] Left \stopxcell
 \startxcell[align=middle] Center \stopxcell
-\startxcell[align=right] Default \stopxcell
+\startxcell Default \stopxcell
 \stopxrow
 \stopxtablehead
 \startxtablebody[body]
@@ -52,13 +52,13 @@ Simple table without caption:
 \startxcell[align=left] 12 \stopxcell
 \startxcell[align=right] 12 \stopxcell
 \startxcell[align=middle] 12 \stopxcell
-\startxcell[align=right] 12 \stopxcell
+\startxcell 12 \stopxcell
 \stopxrow
 \startxrow
 \startxcell[align=left] 123 \stopxcell
 \startxcell[align=right] 123 \stopxcell
 \startxcell[align=middle] 123 \stopxcell
-\startxcell[align=right] 123 \stopxcell
+\startxcell 123 \stopxcell
 \stopxrow
 \stopxtablebody
 \startxtablefoot[foot]
@@ -66,7 +66,7 @@ Simple table without caption:
 \startxcell[align=left] 1 \stopxcell
 \startxcell[align=right] 1 \stopxcell
 \startxcell[align=middle] 1 \stopxcell
-\startxcell[align=right] 1 \stopxcell
+\startxcell 1 \stopxcell
 \stopxrow
 \stopxtablefoot
 \stopxtable
@@ -81,7 +81,7 @@ Simple table indented two spaces:
 \startxcell[align=left] Right \stopxcell
 \startxcell[align=right] Left \stopxcell
 \startxcell[align=middle] Center \stopxcell
-\startxcell[align=right] Default \stopxcell
+\startxcell Default \stopxcell
 \stopxrow
 \stopxtablehead
 \startxtablebody[body]
@@ -89,13 +89,13 @@ Simple table indented two spaces:
 \startxcell[align=left] 12 \stopxcell
 \startxcell[align=right] 12 \stopxcell
 \startxcell[align=middle] 12 \stopxcell
-\startxcell[align=right] 12 \stopxcell
+\startxcell 12 \stopxcell
 \stopxrow
 \startxrow
 \startxcell[align=left] 123 \stopxcell
 \startxcell[align=right] 123 \stopxcell
 \startxcell[align=middle] 123 \stopxcell
-\startxcell[align=right] 123 \stopxcell
+\startxcell 123 \stopxcell
 \stopxrow
 \stopxtablebody
 \startxtablefoot[foot]
@@ -103,7 +103,7 @@ Simple table indented two spaces:
 \startxcell[align=left] 1 \stopxcell
 \startxcell[align=right] 1 \stopxcell
 \startxcell[align=middle] 1 \stopxcell
-\startxcell[align=right] 1 \stopxcell
+\startxcell 1 \stopxcell
 \stopxrow
 \stopxtablefoot
 \stopxtable
@@ -213,8 +213,8 @@ Multiline table without column headers:
 \startxcell[align=middle,width={0.15\textwidth}] First \stopxcell
 \startxcell[align=right,width={0.14\textwidth}] row \stopxcell
 \startxcell[align=left,width={0.16\textwidth}] 12.0 \stopxcell
-\startxcell[align=right,width={0.34\textwidth}] Example of a row that spans
-multiple lines. \stopxcell
+\startxcell[width={0.34\textwidth}] Example of a row that spans multiple
+lines. \stopxcell
 \stopxrow
 \stopxtablebody
 \startxtablefoot[foot]
@@ -222,8 +222,8 @@ multiple lines. \stopxcell
 \startxcell[align=middle,width={0.15\textwidth}] Second \stopxcell
 \startxcell[align=right,width={0.14\textwidth}] row \stopxcell
 \startxcell[align=left,width={0.16\textwidth}] 5.0 \stopxcell
-\startxcell[align=right,width={0.34\textwidth}] Here's another one. Note the
-blank line between rows. \stopxcell
+\startxcell[width={0.34\textwidth}] Here's another one. Note the blank line
+between rows. \stopxcell
 \stopxrow
 \stopxtablefoot
 \stopxtable

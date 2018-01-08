@@ -265,7 +265,7 @@ blockToConTeXt (Table caption aligns widths heads rows) = do
       ) $$
       "\\startxtable" $$ headers $$
       (if null rows
-        then ""
+        then empty
         else "\\startxtablebody[body]" $$ vcat (init rows') $$ "\\stopxtablebody" $$
              "\\startxtablefoot[foot]" $$ (last rows') $$ "\\stopxtablefoot") $$
       "\\stopxtable" $$ "\\stopplacetable" <> blankline
@@ -278,16 +278,17 @@ tableRowToConTeXt aligns widths cols = do
 tableCellToConTeXt :: PandocMonad m => (Alignment, Double, [Block]) -> WM m Doc
 tableCellToConTeXt (align, width, blocks) = do
   cellContents <- blockListToConTeXt blocks
-  let colWidth = if width == 0
-        then ""
-        else ",width=" <> braces (text (printf "%.2f\\textwidth" width))
+  let colwidth = if width == 0
+        then empty
+        else "width=" <> braces (text (printf "%.2f\\textwidth" width))
   let halign = case align of
                AlignLeft    -> "align=right"
                AlignRight   -> "align=left"
                AlignCenter  -> "align=middle"
-               AlignDefault -> "align=right"
-  return $ ("\\startxcell" <> brackets (halign <> colWidth) <>
-            " " <> cellContents <> " \\stopxcell")
+               AlignDefault -> empty
+  let options = maybeBrackets (keys /= empty) keys <> space
+        where keys = hcat $ intersperse "," $ filter (empty /=) [halign, colwidth]
+  return $ "\\startxcell" <> options <> cellContents <> " \\stopxcell"
 
 listItemToConTeXt :: PandocMonad m => [Block] -> WM m Doc
 listItemToConTeXt list = blockListToConTeXt list >>=
