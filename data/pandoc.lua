@@ -38,13 +38,15 @@ local List = require 'pandoc.List'
 
 --- Create a new indexing function.
 -- @param template function template
--- @param indices list of indices, starting with the most significant
+-- @param indices list of indices, starting with the most deeply nested
 -- @return newly created function
 -- @local
 function make_indexing_function(template, indices)
   local loadstring = loadstring or load
   local bracketed = {}
-  for i = 1, #indices do bracketed[i] = string.format('[%d]', indices[i]) end
+  for i = 1, #indices do
+    bracketed[i] = string.format('[%d]', indices[#indices - i + 1])
+  end
   local fnstr = string.format('return ' .. template, table.concat(bracketed))
   return assert(loadstring(fnstr))()
 end
@@ -57,15 +59,12 @@ end
 local function create_accessor_functions (fn_template, accessors)
   local res = {}
   function add_accessors(acc, ...)
-    local indices = {...} -- ensure a fresh indices table
     if type(acc) == "string" then
-      res[acc] = make_indexing_function(fn_template, indices)
+      res[acc] = make_indexing_function(fn_template, {...})
     else
-      local ind_len = #indices
       local unpack = table.unpack or unpack
       for i = 1, #(acc or {}) do
-        indices[ind_len + 1] = i
-        add_accessors(acc[i], unpack(indices))
+        add_accessors(acc[i], i, ...)
       end
     end
   end
@@ -165,6 +164,8 @@ AstElement.__call = function(t, ...)
   end
 end
 
+--- Make a new subtype which constructs a new value when called.
+-- @local
 function AstElement:make_subtype(...)
   local newtype = Type.make_subtype(self, ...)
   newtype.__call = self.__call
@@ -226,27 +227,26 @@ M.MetaValue = AstElement:make_subtype('MetaValue')
 --- Meta blocks
 -- @function MetaBlocks
 -- @tparam {Block,...} blocks blocks
+M.MetaBlocks = M.MetaValue:create_constructor(
+  'MetaBlocks',
+  function (content) return List:new(content) end
+)
 
 --- Meta inlines
 -- @function MetaInlines
 -- @tparam {Inline,...} inlines inlines
+M.MetaInlines = M.MetaValue:create_constructor(
+  'MetaInlines',
+  function (content) return List:new(content) end
+)
 
 --- Meta list
 -- @function MetaList
 -- @tparam {MetaValue,...} meta_values list of meta values
-M.meta_value_list_types = {
-  "MetaBlocks",
-  "MetaInlines",
-  "MetaList",
-}
-for i = 1, #M.meta_value_list_types do
-  M[M.meta_value_list_types[i]] = M.MetaValue:create_constructor(
-    M.meta_value_list_types[i],
-    function(content)
-      return List:new(content)
-    end
-  )
-end
+M.MetaList = M.MetaValue:create_constructor(
+  'MetaList',
+  function (content) return List:new(content) end
+)
 
 --- Meta map
 -- @function MetaMap
