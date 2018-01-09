@@ -688,6 +688,6 @@ benchmark benchmark-pandoc
                    time, bytestring, containers,
                    base >= 4.2 && < 5,
                    text >= 0.11 && < 1.3,
-                   criterion >= 1.0 && < 1.3
+                   criterion >= 1.0 && < 1.4
   ghc-options:   -rtsopts -Wall -fno-warn-unused-do-bind
   default-language: Haskell98
