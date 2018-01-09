@@ -62,7 +62,6 @@ local function create_accessor_functions (fn_template, accessors)
     if type(acc) == "string" then
       res[acc] = make_indexing_function(fn_template, {...})
     else
-      local unpack = table.unpack or unpack
       for i = 1, #(acc or {}) do
         add_accessors(acc[i], i, ...)
       end
@@ -802,13 +801,12 @@ function M.Attr:new (identifier, classes, attributes)
 end
 M.Attr.behavior._field_names = {identifier = 1, classes = 2, attributes = 3}
 M.Attr.behavior.__index = function(t, k)
-  return rawget(t, k) or
-    rawget(t, M.Attr._field_names[k]) or
-    rawget(getmetatable(t), k)
+  return rawget(t, getmetatable(t)._field_names[k]) or
+    getmetatable(t)[k]
 end
 M.Attr.behavior.__newindex = function(t, k, v)
-  if M.Attr._field_names[k] then
-    rawset(t, M.Attr._field_names[k], v)
+  if getmetatable(t)._field_names[k] then
+    rawset(t, getmetatable(t)._field_names[k], v)
   else
     rawset(t, k, v)
   end
