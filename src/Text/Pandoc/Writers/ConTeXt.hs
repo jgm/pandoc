@@ -55,6 +55,8 @@ data WriterState =
               , stOptions          :: WriterOptions -- writer options
               }
 
+data Tabl = Xtb | Ntb deriving (Show, Eq)
+
 orderedListStyles :: [Char]
 orderedListStyles = cycle "narg"
 
@@ -252,43 +254,78 @@ blockToConTeXt HorizontalRule = return $ "\\thinrule" <> blankline
 -- If this is ever executed, provide a default for the reference identifier.
 blockToConTeXt (Header level attr lst) = sectionHeader attr level lst
 blockToConTeXt (Table caption aligns widths heads rows) = do
-    headers <- if all null heads
-                  then return empty
-                  else liftM ("\\startxtablehead[head]" $$) $
-                       liftM ($$ "\\stopxtablehead") $ tableRowToConTeXt aligns widths heads
+    opts <- gets stOptions
+    let tabl = if isEnabled Ext_ntb opts
+          then Ntb
+          else Xtb
     captionText <- inlineListToConTeXt caption
-    rows' <- mapM (tableRowToConTeXt aligns widths) rows
+    headers <- if all null heads
+               then return empty
+               else tableRowToConTeXt tabl aligns widths heads
+    rows' <- mapM (tableRowToConTeXt tabl aligns widths) rows
+    body <- tableToConTeXt tabl headers rows'
     return $ "\\startplacetable" <> brackets (
       (if null caption
         then "location=none"
         else ("caption=" <> braces captionText))
-      ) $$
-      "\\startxtable" $$ headers $$
-      (if null rows
-        then empty
-        else "\\startxtablebody[body]" $$ vcat (init rows') $$ "\\stopxtablebody" $$
-             "\\startxtablefoot[foot]" $$ (last rows') $$ "\\stopxtablefoot") $$
-      "\\stopxtable" $$ "\\stopplacetable" <> blankline
+      ) $$ body $$ "\\stopplacetable" <> blankline
 
-tableRowToConTeXt :: PandocMonad m => [Alignment] -> [Double] -> [[Block]] -> WM m Doc
-tableRowToConTeXt aligns widths cols = do
-  cells <- mapM tableCellToConTeXt $ zip3 aligns widths cols
-  return $ ("\\startxrow") $$ vcat cells $$ "\\stopxrow"
+tableToConTeXt :: PandocMonad m => Tabl -> Doc -> [Doc] -> WM m Doc
+tableToConTeXt Xtb heads rows = do
+  return $ "\\startxtable" $$
+    (if isEmpty heads
+      then empty
+      else "\\startxtablehead[head]" $$ heads $$ "\\stopxtablehead") $$
+    (if null rows
+      then empty
+      else "\\startxtablebody[body]" $$ vcat (init rows) $$ "\\stopxtablebody" $$
+           "\\startxtablefoot[foot]" $$ last rows $$ "\\stopxtablefoot") $$
+    "\\stopxtable"
+tableToConTeXt Ntb heads rows = do
+  return $ "\\startTABLE" $$
+    (if isEmpty heads
+      then empty
+      else "\\startTABLEhead" $$ heads $$ "\\stopTABLEhead") $$
+    (if null rows
+      then empty
+      else "\\startTABLEbody" $$ vcat (init rows) $$ "\\stopTABLEbody" $$
+           "\\startTABLEfoot" $$ last rows $$ "\\stopTABLEfoot") $$
+    "\\stopTABLE"
 
-tableCellToConTeXt :: PandocMonad m => (Alignment, Double, [Block]) -> WM m Doc
-tableCellToConTeXt (align, width, blocks) = do
+tableRowToConTeXt :: PandocMonad m => Tabl -> [Alignment] -> [Double] -> [[Block]] -> WM m Doc
+tableRowToConTeXt Xtb aligns widths cols = do
+  cells <- mapM (tableCellToConTeXt Xtb)$ zip3 aligns widths cols
+  return $ "\\startxrow" $$ vcat cells $$ "\\stopxrow"
+tableRowToConTeXt Ntb aligns widths cols = do
+  cells <- mapM (tableCellToConTeXt Ntb) $ zip3 aligns widths cols
+  return $ vcat cells $$ "\\NC\\NR"
+
+tableCellToConTeXt :: PandocMonad m => Tabl -> (Alignment, Double, [Block]) -> WM m Doc
+tableCellToConTeXt Xtb (align, width, blocks) = do
   cellContents <- blockListToConTeXt blocks
   let colwidth = if width == 0
         then empty
         else "width=" <> braces (text (printf "%.2f\\textwidth" width))
-  let halign = case align of
-               AlignLeft    -> "align=right"
-               AlignRight   -> "align=left"
-               AlignCenter  -> "align=middle"
-               AlignDefault -> empty
+  let halign = alignToConTeXt align
   let options = maybeBrackets (keys /= empty) keys <> space
         where keys = hcat $ intersperse "," $ filter (empty /=) [halign, colwidth]
   return $ "\\startxcell" <> options <> cellContents <> " \\stopxcell"
+tableCellToConTeXt Ntb (align, width, blocks) = do
+  cellContents <- blockListToConTeXt blocks
+  let colwidth = if width == 0
+        then empty
+        else "width=" <> braces (text (printf "%.2f\\textwidth" width))
+  let halign = alignToConTeXt align
+  let options = maybeBrackets (keys /= empty) keys <> space
+        where keys = hcat $ intersperse "," $ filter (empty /=) [halign, colwidth]
+  return $ "\\NC" <> options <> cellContents <> " "
+
+alignToConTeXt :: Alignment -> Doc
+alignToConTeXt align = case align of
+                         AlignLeft    -> "align=right"
+                         AlignRight   -> "align=left"
+                         AlignCenter  -> "align=middle"
+                         AlignDefault -> empty
 
 listItemToConTeXt :: PandocMonad m => [Block] -> WM m Doc
 listItemToConTeXt list = blockListToConTeXt list >>=
