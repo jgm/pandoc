@@ -16,4 +16,5 @@ extra-deps:
 - pandoc-citeproc-0.12.2.5
 - hslua-0.9.5
 - skylighting-0.5.1
-resolver: lts-10.2
+- tasty-1.0
+resolver: lts-10.3
