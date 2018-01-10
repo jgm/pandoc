@@ -46,12 +46,11 @@ import qualified Control.Exception as E
 import Control.Monad
 import Control.Monad.Except (catchError, throwError)
 import Control.Monad.Trans
-import Data.Aeson (defaultOptions, eitherDecode', encode)
+import Data.Aeson (defaultOptions)
 import Data.Aeson.TH (deriveJSON)
 import qualified Data.ByteString as BS
 import qualified Data.ByteString.Lazy as B
 import Data.Char (toLower, toUpper)
-import Data.Foldable (foldrM)
 import Data.List (find, intercalate, isPrefixOf, isSuffixOf, sort)
 import qualified Data.Map as M
 import Data.Maybe (fromMaybe, isJust, isNothing)
@@ -73,10 +72,9 @@ import Skylighting (Style, Syntax (..), defaultSyntaxMap, parseTheme,
                     pygments)
 import Skylighting.Parser (addSyntaxDefinition, parseSyntaxDefinition)
 import System.Console.GetOpt
-import System.Directory (Permissions (..), doesFileExist, findExecutable,
-                         getAppUserDataDirectory, getPermissions)
-import System.Environment (getArgs, getEnvironment, getProgName)
-import System.Exit (ExitCode (..), exitSuccess)
+import System.Directory (getAppUserDataDirectory)
+import System.Environment (getArgs, getProgName)
+import System.Exit (exitSuccess)
 import System.FilePath
 import System.IO (nativeNewline, stdout)
 import qualified System.IO as IO (Newline (..))
@@ -84,10 +82,9 @@ import System.IO.Error (isDoesNotExistError)
 import Text.Pandoc
 import Text.Pandoc.BCP47 (Lang (..), parseBCP47)
 import Text.Pandoc.Builder (setMeta, deleteMeta)
+import Text.Pandoc.Filter (Filter (JSONFilter, LuaFilter), applyFilters)
 import Text.Pandoc.Highlighting (highlightingStyles)
-import Text.Pandoc.Lua (LuaException (..), runLuaFilter)
 import Text.Pandoc.PDF (makePDF)
-import Text.Pandoc.Process (pipeProcess)
 import Text.Pandoc.SelfContained (makeDataURI, makeSelfContained)
 import Text.Pandoc.Shared (eastAsianLineBreakFilter, stripEmptyParagraphs,
          headerShift, isURI, ordNub, safeRead, tabFilter)
@@ -538,48 +535,6 @@ type Transform = Pandoc -> Pandoc
 isTextFormat :: String -> Bool
 isTextFormat s = s `notElem` ["odt","docx","epub2","epub3","epub","pptx"]
 
-externalFilter :: MonadIO m
-               => ReaderOptions -> FilePath -> [String] -> Pandoc -> m Pandoc
-externalFilter ropts f args' d = liftIO $ do
-  exists <- doesFileExist f
-  isExecutable <- if exists
-                     then executable <$> getPermissions f
-                     else return True
-  let (f', args'') = if exists
-                        then case map toLower (takeExtension f) of
-                                  _      | isExecutable -> ("." </> f, args')
-                                  ".py"  -> ("python", f:args')
-                                  ".hs"  -> ("runhaskell", f:args')
-                                  ".pl"  -> ("perl", f:args')
-                                  ".rb"  -> ("ruby", f:args')
-                                  ".php" -> ("php", f:args')
-                                  ".js"  -> ("node", f:args')
-                                  ".r"   -> ("Rscript", f:args')
-                                  _      -> (f, args')
-                        else (f, args')
-  unless (exists && isExecutable) $ do
-    mbExe <- findExecutable f'
-    when (isNothing mbExe) $
-      E.throwIO $ PandocFilterError f ("Could not find executable " ++ f')
-  env <- getEnvironment
-  let env' = Just
-           ( ("PANDOC_VERSION", pandocVersion)
-           : ("PANDOC_READER_OPTIONS", UTF8.toStringLazy (encode ropts))
-           : env )
-  (exitcode, outbs) <- E.handle filterException $
-                              pipeProcess env' f' args'' $ encode d
-  case exitcode of
-       ExitSuccess    -> either (E.throwIO . PandocFilterError f)
-                                   return $ eitherDecode' outbs
-       ExitFailure ec -> E.throwIO $ PandocFilterError f
-                           ("Filter returned error status " ++ show ec)
- where filterException :: E.SomeException -> IO a
-       filterException e = E.throwIO $ PandocFilterError f (show e)
-
-data Filter = LuaFilter FilePath
-            | JSONFilter FilePath
-            deriving (Show)
-
 -- | Data structure for command line options.
 data Opt = Opt
     { optTabStop               :: Int     -- ^ Number of spaces per tab
@@ -823,50 +778,6 @@ defaultWriterName x =
 
 applyTransforms :: Monad m => [Transform] -> Pandoc -> m Pandoc
 applyTransforms transforms d = return $ foldr ($) d transforms
-
-  -- First we check to see if a filter is found.  If not, and if it's
-  -- not an absolute path, we check to see whether it's in `userdir/filters`.
-  -- If not, we leave it unchanged.
-expandFilterPath :: PandocMonad m => FilePath -> m FilePath
-expandFilterPath fp = do
-  mbDatadir <- getUserDataDir
-  fpExists <- fileExists fp
-  if fpExists
-     then return fp
-     else case mbDatadir of
-               Just datadir | isRelative fp -> do
-                 let filterPath = datadir </> "filters" </> fp
-                 filterPathExists <- fileExists filterPath
-                 if filterPathExists
-                    then return filterPath
-                    else return fp
-               _ -> return fp
-
-applyFilters :: ReaderOptions
-             -> [Filter]
-             -> [String]
-             -> Pandoc
-             -> PandocIO Pandoc
-applyFilters ropts filters args d = do
-  foldrM ($) d $ map (applyFilter ropts args) filters
-
-applyFilter :: ReaderOptions
-            -> [String]
-            -> Filter
-            -> Pandoc
-            -> PandocIO Pandoc
-applyFilter ropts args (LuaFilter f) d = do
-  f' <- expandFilterPath f
-  let format = case args of
-                    (x:_) -> x
-                    _     -> error "Format not supplied for lua filter"
-  res <- runLuaFilter ropts f' format d
-  case res of
-       Right x               -> return x
-       Left (LuaException s) -> E.throw (PandocFilterError f s)
-applyFilter ropts args (JSONFilter f) d = do
-  f' <- expandFilterPath f
-  liftIO $ externalFilter ropts f' args d
 
 readSource :: FilePath -> PandocIO Text
 readSource "-" = liftIO (UTF8.toText <$> BS.getContents)
@@ -1722,5 +1633,4 @@ deprecatedOption o msg =
 -- see https://github.com/jgm/pandoc/pull/4083
 -- using generic deriving caused long compilation times
 $(deriveJSON defaultOptions ''LineEnding)
-$(deriveJSON defaultOptions ''Filter)
 $(deriveJSON defaultOptions ''Opt)
