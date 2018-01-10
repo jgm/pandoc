@@ -982,6 +982,15 @@ blockToOpenXML' opts (Table caption aligns widths headers rows) = do
         (   mknode "w:tblStyle" [("w:val","Table")] () :
             mknode "w:tblW" [("w:type", "pct"), ("w:w", show rowwidth)] () :
             mknode "w:tblLook" [("w:firstRow",if hasHeader then "1" else "0") ] () :
+            mknode "w:tblBorders" []
+            (  mknode "w:top" [("w:val","double"), ("w:sz", "4"), ("w:space", "0"), ("w:color","#B8CBE4")] () :
+               mknode "w:start" [("w:val","double"), ("w:sz", "4"), ("w:space", "0"), ("w:color","#B8CBE4")] () :
+               mknode "w:bottom" [("w:val","double"), ("w:sz", "4"), ("w:space", "0"), ("w:color","#B8CBE4")] () :
+               mknode "w:end" [("w:val","double"), ("w:sz", "4"), ("w:space", "0"), ("w:color","#B8CBE4")] () :
+               mknode "w:insideH" [("w:val","single"), ("w:sz", "4"), ("w:space", "0"), ("w:color","#B8CBE4")] () :
+               mknode "w:insideV" [("w:val","single"), ("w:sz", "4"), ("w:space", "0"), ("w:color","#B8CBE4")] () :
+               []
+            ) :
           [ mknode "w:tblCaption" [("w:val", captionStr)] ()
           | not (null caption) ] )
       : mknode "w:tblGrid" []
