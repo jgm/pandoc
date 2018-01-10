@@ -749,9 +749,9 @@ tableRowToLaTeX header aligns widths cols = do
       isSimple []        = True
       isSimple _         = False
   -- simple tables have to have simple cells:
-  let widths' = if not (all isSimple cols)
+  let widths' = if all (== 0) widths && not (all isSimple cols)
                    then replicate (length aligns)
-                          (0.97 / fromIntegral (length aligns))
+                          (scaleFactor / fromIntegral (length aligns))
                    else map (scaleFactor *) widths
   cells <- mapM (tableCellToLaTeX header) $ zip3 widths' aligns cols
   return $ hsep (intersperse "&" cells) <> "\\tabularnewline"
