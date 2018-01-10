@@ -1157,9 +1157,19 @@ anchor = try $ do
   refs <- referenceNames
   blanklines
   b <- block
-  -- put identifier on next block:
   let addDiv ref = B.divWith (ref, [], [])
-  return $ foldr addDiv b refs
+  let emptySpanWithId id' = Span (id',[],[]) []
+  -- put identifier on next block:
+  case B.toList b of
+       [Header lev (_,classes,kvs) txt] ->
+         case reverse refs of
+              [] -> return b
+              (r:rs) -> return $ B.singleton $
+                           Header lev (r,classes,kvs)
+                             (txt ++ map emptySpanWithId rs)
+                -- we avoid generating divs for headers,
+                -- because it hides them from promoteHeader, see #4240
+       _ -> return $ foldr addDiv b refs
 
 headerBlock :: PandocMonad m => RSTParser m [Char]
 headerBlock = do
