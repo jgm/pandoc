@@ -108,6 +108,11 @@ data WriterEnv = WriterEnv { envMetadata :: Meta
                            , envSlideHasHeader :: Bool
                            , envInList :: Bool
                            , envInNoteSlide :: Bool
+                           , envCurSlideId :: Int
+                           -- the difference between the number at
+                           -- the end of the slide file name and
+                           -- the rId number
+                           , envSlideIdOffset :: Int
                            }
                  deriving (Show)
 
@@ -124,6 +129,8 @@ instance Default WriterEnv where
                   , envSlideHasHeader = False
                   , envInList = False
                   , envInNoteSlide = False
+                  , envCurSlideId = 1
+                  , envSlideIdOffset = 1
                   }
 
 data MediaInfo = MediaInfo { mInfoFilePath :: FilePath
@@ -134,12 +141,7 @@ data MediaInfo = MediaInfo { mInfoFilePath :: FilePath
                            , mInfoCaption  :: Bool
                            } deriving (Show, Eq)
 
-data WriterState = WriterState { stCurSlideId :: Int
-                               -- the difference between the number at
-                               -- the end of the slide file name and
-                               -- the rId number
-                               , stSlideIdOffset :: Int
-                               , stLinkIds :: M.Map Int (M.Map Int (URL, String))
+data WriterState = WriterState { stLinkIds :: M.Map Int (M.Map Int (URL, String))
                                -- (FP, Local ID, Global ID, Maybe Mime)
                                , stMediaIds :: M.Map Int [MediaInfo]
                                , stMediaGlobalIds :: M.Map FilePath Int
@@ -147,9 +149,7 @@ data WriterState = WriterState { stCurSlideId :: Int
                                } deriving (Show, Eq)
 
 instance Default WriterState where
-  def = WriterState { stCurSlideId = 0
-                    , stSlideIdOffset = 1
-                    , stLinkIds = mempty
+  def = WriterState { stLinkIds = mempty
                     , stMediaIds = mempty
                     , stMediaGlobalIds = mempty
                     , stNoteIds = mempty
@@ -841,7 +841,7 @@ replaceNamedChildren ns prefix name newKids element =
 
 registerLink :: PandocMonad m => (URL, String) -> P m Int
 registerLink link = do
-  curSlideId <- gets stCurSlideId
+  curSlideId <- asks envCurSlideId
   linkReg <- gets stLinkIds
   mediaReg <- gets stMediaIds
   let maxLinkId = case M.lookup curSlideId linkReg of
@@ -862,7 +862,7 @@ registerLink link = do
 
 registerMedia :: PandocMonad m => FilePath -> [ParaElem] -> P m MediaInfo
 registerMedia fp caption = do
-  curSlideId <- gets stCurSlideId
+  curSlideId <- asks envCurSlideId
   linkReg <- gets stLinkIds
   mediaReg <- gets stMediaIds
   globalIds <- gets stMediaGlobalIds
@@ -1468,7 +1468,7 @@ slideToFilePath _ idNum = "slide" ++ (show $ idNum) ++ ".xml"
 
 slideToSlideId :: Monad m => Slide -> Int -> P m String
 slideToSlideId _ idNum = do
-  n <- gets stSlideIdOffset
+  n <- asks envSlideIdOffset
   return $ "rId" ++ (show $ idNum + n)
 
 
@@ -1492,7 +1492,7 @@ elementToRel element
 
 slideToPresRel :: Monad m => Slide -> Int -> P m Relationship
 slideToPresRel slide idNum = do
-  n <- gets stSlideIdOffset
+  n <- asks envSlideIdOffset
   let rId = idNum + n
       fp = "slides/" ++ slideToFilePath slide idNum
   return $ Relationship { relId = rId
@@ -1559,9 +1559,9 @@ elemToEntry fp element = do
 
 slideToEntry :: PandocMonad m => Slide -> Int -> P m Entry
 slideToEntry slide idNum = do
-  modify $ \st -> st{stCurSlideId = idNum}
-  element <- slideToElement slide
-  elemToEntry ("ppt/slides/" ++ slideToFilePath slide idNum) element
+  local (\env -> env{envCurSlideId = idNum}) $ do
+    element <- slideToElement slide
+    elemToEntry ("ppt/slides/" ++ slideToFilePath slide idNum) element
 
 slideToSlideRelEntry :: PandocMonad m => Slide -> Int -> P m Entry
 slideToSlideRelEntry slide idNum = do
