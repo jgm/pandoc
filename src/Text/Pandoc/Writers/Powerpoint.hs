@@ -146,6 +146,8 @@ data WriterState = WriterState { stLinkIds :: M.Map Int (M.Map Int (URL, String)
                                , stMediaIds :: M.Map Int [MediaInfo]
                                , stMediaGlobalIds :: M.Map FilePath Int
                                , stNoteIds :: M.Map Int [Block]
+                               -- anchors in the current slide
+                               , stCurSlideAnchors :: M.Map String Int
                                } deriving (Show, Eq)
 
 instance Default WriterState where
@@ -153,6 +155,7 @@ instance Default WriterState where
                     , stMediaIds = mempty
                     , stMediaGlobalIds = mempty
                     , stNoteIds = mempty
+                    , stCurSlideAnchors = mempty
                     }
 
 type P m = ReaderT WriterEnv (StateT WriterState m)
@@ -606,6 +609,8 @@ blocksToSlide blks = do
   slideLevel <- asks envSlideLevel
   blocksToSlide' slideLevel blks
 
+
+
 makeNoteEntry :: Int -> [Block] -> [Block]
 makeNoteEntry n blks =
   let enum = Str (show n ++ ".")
@@ -662,8 +667,11 @@ getMetaSlide  = do
 blocksToPresentation :: PandocMonad m => [Block] -> P m Presentation
 blocksToPresentation blks = do
   blksLst <- splitBlocks blks
-  slides <- mapM blocksToSlide blksLst
-  noteSlides <- makeNotesSlides
+  slides <- mapM
+            (\(bs, n) -> local (\st -> st{envCurSlideId = n}) (blocksToSlide bs))
+            (zip blksLst [1..])
+  let noteSlidesNum = length blksLst + 1
+  noteSlides <- local (\st -> st {envCurSlideId = noteSlidesNum}) makeNotesSlides
   let slides' = slides ++ noteSlides
   metadataslide <- getMetaSlide
   presSize <- asks envPresentationSize
