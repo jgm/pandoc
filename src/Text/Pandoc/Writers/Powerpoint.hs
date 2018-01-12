@@ -54,6 +54,7 @@ import Text.Pandoc.MIME
 import Text.Pandoc.Logging
 import qualified Data.ByteString.Lazy as BL
 import Text.Pandoc.Walk
+import qualified Text.Pandoc.Shared as Shared -- so we don't overlap "Element"
 import Text.Pandoc.Writers.Shared (fixDisplayMath)
 import Text.Pandoc.Writers.OOXML
 import qualified Data.Map as M
@@ -677,10 +678,40 @@ getMetaSlide  = do
                                        , metadataSlideDate = date
                                        }
 
+-- adapted from the markdown writer
+elementToListItem :: PandocMonad m => Shared.Element -> P m [Block]
+elementToListItem (Shared.Sec lev _nums (ident,_,_) headerText subsecs) = do
+  opts <- asks envOpts
+  let headerLink = if null ident
+                   then walk Shared.deNote headerText
+                   else [Link nullAttr (walk Shared.deNote headerText)
+                          ('#':ident, "")]
+  listContents <- if null subsecs || lev >= writerTOCDepth opts
+                  then return []
+                  else mapM elementToListItem subsecs
+  return [Plain headerLink, BulletList listContents]
+elementToListItem (Shared.Blk _) = return []
+
+makeTOCSlide :: PandocMonad m => [Block] -> P m Slide
+makeTOCSlide blks = do
+  contents <- BulletList <$> mapM elementToListItem (Shared.hierarchicalize blks)
+  slideLevel <- asks envSlideLevel
+  let tocTitle = [Str "Table of Contents"]
+      hdr = Header slideLevel nullAttr tocTitle
+  sld <- blocksToSlide [hdr, contents]
+  return sld
+
 blocksToPresentation :: PandocMonad m => [Block] -> P m Presentation
 blocksToPresentation blks = do
+  opts <- asks envOpts
+  let metadataStartNum = 1
   metadataslides <- maybeToList <$> getMetaSlide
-  let bodyStartNum = length metadataslides + 1
+  let tocStartNum = metadataStartNum + length metadataslides
+  tocSlides <- if writerTableOfContents opts
+               then do toc <- makeTOCSlide blks
+                       return [toc]
+               else return []
+  let bodyStartNum = tocStartNum + length tocSlides
   blksLst <- splitBlocks blks
   bodyslides <- mapM
                 (\(bs, n) -> local (\st -> st{envCurSlideId = n}) (blocksToSlide bs))
@@ -690,7 +721,7 @@ blocksToPresentation blks = do
   presSize <- asks envPresentationSize
   return $
     Presentation presSize $
-    metadataslides ++ bodyslides ++ noteSlides
+    metadataslides ++ tocSlides ++ bodyslides ++ noteSlides
 
 --------------------------------------------------------------------
 
