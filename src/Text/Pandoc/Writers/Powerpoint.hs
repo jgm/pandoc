@@ -679,20 +679,18 @@ getMetaSlide  = do
 
 blocksToPresentation :: PandocMonad m => [Block] -> P m Presentation
 blocksToPresentation blks = do
-  metadataslide <- getMetaSlide
-  let bodyStartNum = case metadataslide of
-        Just _ -> 2
-        Nothing -> 1
+  metadataslides <- maybeToList <$> getMetaSlide
+  let bodyStartNum = length metadataslides + 1
   blksLst <- splitBlocks blks
-  slides <- mapM
-            (\(bs, n) -> local (\st -> st{envCurSlideId = n}) (blocksToSlide bs))
-            (zip blksLst [bodyStartNum..])
-  let noteSlidesNum = length blksLst + 1
-  noteSlides <- local (\st -> st {envCurSlideId = noteSlidesNum}) makeNotesSlides
+  bodyslides <- mapM
+                (\(bs, n) -> local (\st -> st{envCurSlideId = n}) (blocksToSlide bs))
+                (zip blksLst [bodyStartNum..])
+  let noteStartNum = bodyStartNum + length bodyslides
+  noteSlides <- local (\st -> st {envCurSlideId = noteStartNum}) makeNotesSlides
   presSize <- asks envPresentationSize
   return $
     Presentation presSize $
-    (maybeToList metadataslide) ++ slides ++ noteSlides
+    metadataslides ++ bodyslides ++ noteSlides
 
 --------------------------------------------------------------------
 
