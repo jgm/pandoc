@@ -1350,21 +1350,12 @@ Language variables
     format stored in the additional variables `babel-lang`,
     `polyglossia-lang` (LaTeX) and `context-lang` (ConTeXt).
 
-    Native pandoc `span`s and `div`s with the lang attribute
+    Native pandoc Spans and Divs with the lang attribute
     (value in BCP 47) can be used to switch the language in
-    that range.
-
-`otherlangs`
-:   a list of other languages used in the document
-    in the YAML metadata, according to [BCP 47]. For example:
-    `otherlangs: [en-GB, fr]`.
-    This is automatically generated from the `lang` attributes
-    in all `span`s and `div`s but can be overridden.
-    Currently only used by LaTeX through the generated
-    `babel-otherlangs` and `polyglossia-otherlangs` variables.
-    The LaTeX writer outputs polyglossia commands in the text but
-    the `babel-newcommands` variable contains mappings for them
-    to the corresponding babel.
+    that range.  In LaTeX output, `babel-otherlangs` and
+    `polyglossia-otherlangs` variables will be generated
+    automatically based on the `lang` attributes of Spans
+    and Divs in the document.
 
 `dir`
 :   the base direction of the document, either `rtl` (right-to-left)
