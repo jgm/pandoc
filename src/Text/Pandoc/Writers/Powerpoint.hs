@@ -55,7 +55,7 @@ import Text.Pandoc.Logging
 import qualified Data.ByteString.Lazy as BL
 import Text.Pandoc.Walk
 import qualified Text.Pandoc.Shared as Shared -- so we don't overlap "Element"
-import Text.Pandoc.Writers.Shared (fixDisplayMath)
+import Text.Pandoc.Writers.Shared (fixDisplayMath, metaValueToInlines)
 import Text.Pandoc.Writers.OOXML
 import qualified Data.Map as M
 import Data.Maybe (mapMaybe, listToMaybe, maybeToList, catMaybes)
@@ -696,8 +696,11 @@ elementToListItem (Shared.Blk _) = return []
 makeTOCSlide :: PandocMonad m => [Block] -> P m Slide
 makeTOCSlide blks = do
   contents <- BulletList <$> mapM elementToListItem (Shared.hierarchicalize blks)
+  meta <- asks envMetadata
   slideLevel <- asks envSlideLevel
-  let tocTitle = [Str "Table of Contents"]
+  let tocTitle = case lookupMeta "toc-title" meta of
+                   Just val -> metaValueToInlines val
+                   Nothing  -> [Str "Table of Contents"]
       hdr = Header slideLevel nullAttr tocTitle
   sld <- blocksToSlide [hdr, contents]
   return sld
