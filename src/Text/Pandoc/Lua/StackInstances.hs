@@ -35,13 +35,15 @@ module Text.Pandoc.Lua.StackInstances () where
 
 import Control.Applicative ((<|>))
 import Control.Monad (when)
+import Control.Monad.Catch (finally)
 import Data.Data (showConstr, toConstr)
 import Data.Foldable (forM_)
 import Foreign.Lua (FromLuaStack (peek), Lua, LuaInteger, LuaNumber, StackIndex,
                     ToLuaStack (push), Type (..), throwLuaError, tryLua)
 import Text.Pandoc.Definition
 import Text.Pandoc.Extensions (Extensions)
-import Text.Pandoc.Lua.Util (adjustIndexBy, getTable, pushViaConstructor)
+import Text.Pandoc.Lua.Util (adjustIndexBy, getTable, pushViaConstructor,
+                             typeCheck)
 import Text.Pandoc.Options (ReaderOptions (..), TrackChanges)
 import Text.Pandoc.Shared (Element (Blk, Sec), safeRead)
 
@@ -49,21 +51,27 @@ import qualified Foreign.Lua as Lua
 import qualified Data.Set as Set
 import qualified Text.Pandoc.Lua.Util as LuaUtil
 
+defineHowTo :: String -> Lua a -> Lua a
+defineHowTo ctx op = op `Lua.modifyLuaError` (("Could not " ++ ctx ++ ": ") ++)
+
 instance ToLuaStack Pandoc where
   push (Pandoc meta blocks) =
     pushViaConstructor "Pandoc" blocks meta
 
 instance FromLuaStack Pandoc where
-  peek idx = do
+  peek idx = defineHowTo "get Pandoc value" $ do
+    typeCheck idx Lua.TypeTable
     blocks <- getTable idx "blocks"
-    meta   <- getTable idx "meta"
+    meta   <- Lua.getfield idx "meta" *> (Lua.peek Lua.stackTop `finally` Lua.pop 1)
     return $ Pandoc meta blocks
 
 instance ToLuaStack Meta where
   push (Meta mmap) =
     pushViaConstructor "Meta" mmap
 instance FromLuaStack Meta where
-  peek idx = Meta <$> peek idx
+  peek idx = defineHowTo "get Meta value" $ do
+    typeCheck idx Lua.TypeTable
+    Meta <$> peek idx
 
 instance ToLuaStack MetaValue where
   push = pushMetaValue
@@ -160,7 +168,7 @@ pushMetaValue = \case
 
 -- | Interpret the value at the given stack index as meta value.
 peekMetaValue :: StackIndex -> Lua MetaValue
-peekMetaValue idx = do
+peekMetaValue idx = defineHowTo "get MetaValue" $ do
   -- Get the contents of an AST element.
   let elementContent :: FromLuaStack a => Lua a
       elementContent = peek idx
@@ -209,7 +217,8 @@ pushBlock = \case
 
 -- | Return the value at the given index as block if possible.
 peekBlock :: StackIndex -> Lua Block
-peekBlock idx = do
+peekBlock idx = defineHowTo "get Block value" $ do
+  typeCheck idx Lua.TypeTable
   tag <- getTag idx
   case tag of
       "BlockQuote"     -> BlockQuote <$> elementContent
@@ -260,7 +269,8 @@ pushInline = \case
 
 -- | Return the value at the given index as inline if possible.
 peekInline :: StackIndex -> Lua Inline
-peekInline idx = do
+peekInline idx = defineHowTo "get Inline value" $ do
+  typeCheck idx Lua.TypeTable
   tag <- getTag idx
   case tag of
     "Cite"       -> uncurry Cite <$> elementContent
@@ -296,11 +306,7 @@ getTag idx = do
   hasMT <- Lua.getmetatable idx
   push "tag"
   if hasMT then Lua.rawget (-2) else Lua.rawget (idx `adjustIndexBy` 1)
-  r <- tryLua (peek (-1))
-  Lua.settop top
-  case r of
-    Left (Lua.LuaException err) -> throwLuaError err
-    Right res                   -> return res
+  peek Lua.stackTop `finally` Lua.settop top
 
 withAttr :: (Attr -> a -> b) -> (LuaAttr, a) -> b
 withAttr f (attributes, x) = f (fromLuaAttr attributes) x
@@ -313,7 +319,7 @@ instance ToLuaStack LuaAttr where
     pushViaConstructor "Attr" id' classes kv
 
 instance FromLuaStack LuaAttr where
-  peek idx = LuaAttr <$> peek idx
+  peek idx = defineHowTo "get Attr value" (LuaAttr <$> peek idx)
 
 --
 -- Hierarchical elements

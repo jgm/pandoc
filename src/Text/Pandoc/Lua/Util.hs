@@ -36,6 +36,7 @@ module Text.Pandoc.Lua.Util
   , getRawInt
   , setRawInt
   , addRawInt
+  , typeCheck
   , raiseError
   , popValue
   , PushViaCall
@@ -99,6 +100,14 @@ setRawInt idx key value = do
 -- | Set numeric key/value in table at the top of the stack.
 addRawInt :: ToLuaStack a => Int -> a -> Lua ()
 addRawInt = setRawInt (-1)
+
+typeCheck :: StackIndex -> Lua.Type -> Lua ()
+typeCheck idx expected = do
+  actual <- Lua.ltype idx
+  when (actual /= expected) $ do
+    expName <- Lua.typename expected
+    actName <- Lua.typename actual
+    Lua.throwLuaError $ "expected " ++ expName ++ " but got " ++ actName ++ "."
 
 raiseError :: ToLuaStack a => a -> Lua NumResults
 raiseError e = do

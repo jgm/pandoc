@@ -123,6 +123,16 @@ tests = map (localOption (QuickCheckTests 20))
       Lua.getglobal "PANDOC_API_VERSION"
       Lua.liftIO . assertEqual "pandoc-types version is wrong" versionNums
         =<< Lua.peek Lua.stackTop
+
+  , testCase "informative error messages" . runPandocLua' $ do
+      Lua.pushboolean True
+      err <- Lua.peekEither Lua.stackTop :: Lua.Lua (Either String Pandoc)
+      case err of
+        Left msg -> do
+          let expectedMsg = "Could not get Pandoc value: "
+                            ++ "expected table but got boolean."
+          Lua.liftIO $ assertEqual "unexpected error message" expectedMsg msg
+        Right _ -> error "Getting a Pandoc element from a bool should fail."
   ]
 
 assertFilterConversion :: String -> FilePath -> Pandoc -> Pandoc -> Assertion
