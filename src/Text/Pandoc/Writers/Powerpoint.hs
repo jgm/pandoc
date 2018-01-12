@@ -36,11 +36,11 @@ import Control.Monad.Except (throwError)
 import Control.Monad.Reader
 import Control.Monad.State
 import Codec.Archive.Zip
-import Data.List (intercalate, stripPrefix, isPrefixOf, nub)
+import Data.List (intercalate, stripPrefix, nub, union)
 import Data.Default
 import Data.Time.Clock (UTCTime)
 import Data.Time.Clock.POSIX (utcTimeToPOSIXSeconds, posixSecondsToUTCTime)
-import System.FilePath.Posix (splitDirectories, splitExtension)
+import System.FilePath.Posix (splitDirectories, splitExtension, takeExtension)
 import Text.XML.Light
 import qualified Text.XML.Light.Cursor as XMLC
 import Text.Pandoc.Definition
@@ -61,6 +61,7 @@ import qualified Data.Map as M
 import Data.Maybe (mapMaybe, listToMaybe, maybeToList, catMaybes)
 import Text.Pandoc.ImageSize
 import Control.Applicative ((<|>))
+import System.FilePath.Glob
 
 import Text.TeXMath
 import Text.Pandoc.Writers.Math (convertMath)
@@ -90,9 +91,13 @@ writePowerpoint opts (Pandoc meta blks) = do
                                     Just n -> n
                                     Nothing -> getSlideLevel blks'
                 }
-  runP env def $ do pres <- blocksToPresentation blks'
-                    archv <- presentationToArchive pres
-                    return $ fromArchive archv
+
+  let st = def { stMediaGlobalIds = initialGlobalIds refArchive distArchive
+               }
+
+  runP env st $ do pres <- blocksToPresentation blks'
+                   archv <- presentationToArchive pres
+                   return $ fromArchive archv
 
 concatMapM        :: (Monad m) => (a -> m [b]) -> [a] -> m [b]
 concatMapM f xs   =  liftM concat (mapM f xs)
@@ -149,6 +154,8 @@ data WriterState = WriterState { stLinkIds :: M.Map Int (M.Map Int (URL, String)
                                , stNoteIds :: M.Map Int [Block]
                                -- associate anchors with slide id
                                , stAnchorMap :: M.Map String Int
+                               -- media inherited from the template.
+                               , stTemplateMedia :: [FilePath]
                                } deriving (Show, Eq)
 
 instance Default WriterState where
@@ -157,7 +164,24 @@ instance Default WriterState where
                     , stMediaGlobalIds = mempty
                     , stNoteIds = mempty
                     , stAnchorMap= mempty
+                    , stTemplateMedia = []
                     }
+
+-- This populates the global ids map with images already in the
+-- template, so the ids won't be used by images introduced by the
+-- user.
+initialGlobalIds :: Archive -> Archive -> M.Map FilePath Int
+initialGlobalIds refArchive distArchive =
+  let archiveFiles = filesInArchive refArchive `union` filesInArchive distArchive
+      mediaPaths = filter (match (compile "ppt/media/image")) archiveFiles
+
+      go :: FilePath -> Maybe (FilePath, Int)
+      go fp = do
+        s <- stripPrefix "ppt/media/image" $ fst $ splitExtension fp
+        (n, _) <- listToMaybe $ reads s
+        return (fp, n)
+  in
+    M.fromList $ mapMaybe go mediaPaths
 
 type P m = ReaderT WriterEnv (StateT WriterState m)
 
@@ -760,75 +784,111 @@ copyFileToArchive arch fp = do
     Nothing -> fail $ fp ++ " missing in reference file"
     Just e -> return $ addEntryToArchive e arch
 
-getMediaFiles :: PandocMonad m => P m [FilePath]
-getMediaFiles = do
+-- getMediaFiles :: PandocMonad m => P m [FilePath]
+-- getMediaFiles = do
+--   refArchive <- asks envRefArchive
+--   distArchive <- asks envDistArchive
+--   let allEntries = nub $ filesInArchive refArchive ++ filesInArchive distArchive
+--   return $ filter (isPrefixOf "ppt/media") allEntries
+
+
+-- copyFileToArchiveIfExists :: PandocMonad m => Archive -> FilePath -> P m Archive
+-- copyFileToArchiveIfExists arch fp = do
+--   refArchive <- asks envRefArchive
+--   distArchive <- asks envDistArchive
+--   case findEntryByPath fp refArchive `mplus` findEntryByPath fp distArchive of
+--     Nothing -> return $ arch
+--     Just e -> return $ addEntryToArchive e arch
+
+inheritedPatterns :: [Pattern]
+inheritedPatterns = map compile [ "_rels/.rels"
+                                , "docProps/app.xml"
+                                , "docProps/core.xml"
+                                , "ppt/slideLayouts/slideLayout*.xml"
+                                , "ppt/slideLayouts/_rels/slideLayout*.xml.rels"
+                                , "ppt/slideMasters/slideMaster1.xml"
+                                , "ppt/slideMasters/_rels/slideMaster1.xml.rels"
+                                , "ppt/theme/theme1.xml"
+                                , "ppt/theme/_rels/theme1.xml.rels"
+                                , "ppt/presProps.xml"
+                                , "ppt/viewProps.xml"
+                                , "ppt/tableStyles.xml"
+                                , "ppt/media/image*"
+                                ]
+
+patternToFilePaths :: PandocMonad m => Pattern -> P m [FilePath]
+patternToFilePaths pat = do
   refArchive <- asks envRefArchive
   distArchive <- asks envDistArchive
-  let allEntries = nub $ filesInArchive refArchive ++ filesInArchive distArchive
-  return $ filter (isPrefixOf "ppt/media") allEntries
 
+  let archiveFiles = filesInArchive refArchive `union` filesInArchive distArchive
+  return $ filter (match pat) archiveFiles
 
-copyFileToArchiveIfExists :: PandocMonad m => Archive -> FilePath -> P m Archive
-copyFileToArchiveIfExists arch fp = do
-  refArchive <- asks envRefArchive
-  distArchive <- asks envDistArchive
-  case findEntryByPath fp refArchive `mplus` findEntryByPath fp distArchive of
-    Nothing -> return $ arch
-    Just e -> return $ addEntryToArchive e arch
+patternsToFilePaths :: PandocMonad m => [Pattern] -> P m [FilePath]
+patternsToFilePaths pats = concat <$> mapM patternToFilePaths pats
 
-inheritedFiles :: [FilePath]
-inheritedFiles = [ "_rels/.rels"
-                 , "docProps/app.xml"
-                 , "docProps/core.xml"
-                 , "ppt/slideLayouts/slideLayout4.xml"
-                 , "ppt/slideLayouts/_rels/slideLayout9.xml.rels"
-                 , "ppt/slideLayouts/_rels/slideLayout2.xml.rels"
-                 , "ppt/slideLayouts/_rels/slideLayout10.xml.rels"
-                 , "ppt/slideLayouts/_rels/slideLayout1.xml.rels"
-                 , "ppt/slideLayouts/_rels/slideLayout3.xml.rels"
-                 , "ppt/slideLayouts/_rels/slideLayout5.xml.rels"
-                 , "ppt/slideLayouts/_rels/slideLayout7.xml.rels"
-                 , "ppt/slideLayouts/_rels/slideLayout8.xml.rels"
-                 , "ppt/slideLayouts/_rels/slideLayout11.xml.rels"
-                 , "ppt/slideLayouts/_rels/slideLayout4.xml.rels"
-                 , "ppt/slideLayouts/_rels/slideLayout6.xml.rels"
-                 , "ppt/slideLayouts/slideLayout2.xml"
-                 , "ppt/slideLayouts/slideLayout8.xml"
-                 , "ppt/slideLayouts/slideLayout11.xml"
-                 , "ppt/slideLayouts/slideLayout3.xml"
-                 , "ppt/slideLayouts/slideLayout6.xml"
-                 , "ppt/slideLayouts/slideLayout9.xml"
-                 , "ppt/slideLayouts/slideLayout5.xml"
-                 , "ppt/slideLayouts/slideLayout7.xml"
-                 , "ppt/slideLayouts/slideLayout1.xml"
-                 , "ppt/slideLayouts/slideLayout10.xml"
-                 -- , "ppt/_rels/presentation.xml.rels"
-                 , "ppt/theme/theme1.xml"
-                 , "ppt/presProps.xml"
-                 -- , "ppt/slides/_rels/slide1.xml.rels"
-                 -- , "ppt/slides/_rels/slide2.xml.rels"
-                 -- This is the one we're
-                 -- going to build
-                 -- , "ppt/slides/slide2.xml"
-                 -- , "ppt/slides/slide1.xml"
-                 , "ppt/viewProps.xml"
-                 , "ppt/tableStyles.xml"
-                 , "ppt/slideMasters/_rels/slideMaster1.xml.rels"
-                 , "ppt/slideMasters/slideMaster1.xml"
-                 -- , "ppt/presentation.xml"
-                 -- , "[Content_Types].xml"
-                 ]
+-- requiredFiles :: [FilePath]
+-- requiredFiles = inheritedFiles
 
--- Here are some that might not be there. We won't fail if they're not
-possibleInheritedFiles :: [FilePath]
-possibleInheritedFiles = [ "ppt/theme/_rels/theme1.xml.rels" ]
+-- inheritedFiles :: [FilePath]
+-- inheritedFiles = [ "_rels/.rels"
+--                  , "docProps/app.xml"
+--                  , "docProps/core.xml"
+--                  , "ppt/slideLayouts/slideLayout4.xml"
+--                  , "ppt/slideLayouts/_rels/slideLayout9.xml.rels"
+--                  , "ppt/slideLayouts/_rels/slideLayout2.xml.rels"
+--                  , "ppt/slideLayouts/_rels/slideLayout10.xml.rels"
+--                  , "ppt/slideLayouts/_rels/slideLayout1.xml.rels"
+--                  , "ppt/slideLayouts/_rels/slideLayout3.xml.rels"
+--                  , "ppt/slideLayouts/_rels/slideLayout5.xml.rels"
+--                  , "ppt/slideLayouts/_rels/slideLayout7.xml.rels"
+--                  , "ppt/slideLayouts/_rels/slideLayout8.xml.rels"
+--                  , "ppt/slideLayouts/_rels/slideLayout11.xml.rels"
+--                  , "ppt/slideLayouts/_rels/slideLayout4.xml.rels"
+--                  , "ppt/slideLayouts/_rels/slideLayout6.xml.rels"
+--                  , "ppt/slideLayouts/slideLayout2.xml"
+--                  , "ppt/slideLayouts/slideLayout8.xml"
+--                  , "ppt/slideLayouts/slideLayout11.xml"
+--                  , "ppt/slideLayouts/slideLayout3.xml"
+--                  , "ppt/slideLayouts/slideLayout6.xml"
+--                  , "ppt/slideLayouts/slideLayout9.xml"
+--                  , "ppt/slideLayouts/slideLayout5.xml"
+--                  , "ppt/slideLayouts/slideLayout7.xml"
+--                  , "ppt/slideLayouts/slideLayout1.xml"
+--                  , "ppt/slideLayouts/slideLayout10.xml"
+--                  -- , "ppt/_rels/presentation.xml.rels"
+--                  , "ppt/theme/theme1.xml"
+--                  , "ppt/presProps.xml"
+--                  -- , "ppt/slides/_rels/slide1.xml.rels"
+--                  -- , "ppt/slides/_rels/slide2.xml.rels"
+--                  -- This is the one we're
+--                  -- going to build
+--                  -- , "ppt/slides/slide2.xml"
+--                  -- , "ppt/slides/slide1.xml"
+--                  , "ppt/viewProps.xml"
+--                  , "ppt/tableStyles.xml"
+--                  , "ppt/slideMasters/_rels/slideMaster1.xml.rels"
+--                  , "ppt/slideMasters/slideMaster1.xml"
+--                  -- , "ppt/presentation.xml"
+--                  -- , "[Content_Types].xml"
+--                  ]
+
+-- -- Here are some that might not be there. We won't fail if they're not
+-- possibleInheritedFiles :: [FilePath]
+-- possibleInheritedFiles = [ "ppt/theme/_rels/theme1.xml.rels" ]
+
 
 presentationToArchive :: PandocMonad m => Presentation -> P m Archive
 presentationToArchive p@(Presentation _ slides) = do
-  newArch <- foldM copyFileToArchive emptyArchive inheritedFiles
-  mediaDir <- getMediaFiles
-  newArch' <- foldM copyFileToArchiveIfExists newArch $
-              possibleInheritedFiles ++ mediaDir
+  filePaths <- patternsToFilePaths inheritedPatterns
+  newArch' <- foldM copyFileToArchive emptyArchive filePaths
+
+  -- set the template media to the relevant fps:
+
+  -- we register any media fp in the filepaths
+  -- mediaDir <- getMediaFiles
+  -- newArch' <- foldM copyFileToArchiveIfExists newArch $
+  --             possibleInheritedFiles ++ mediaDir
   -- presentation entry and rels. We have to do the rels first to make
   -- sure we know the correct offset for the rIds.
   presEntry <- presentationToPresEntry p
@@ -1808,6 +1868,17 @@ contentTypesToEntry ct = elemToEntry "[Content_Types].xml" $ contentTypesToEleme
 pathToOverride :: FilePath -> Maybe OverrideContentType
 pathToOverride fp = OverrideContentType ("/" ++ fp) <$> (getContentType fp)
 
+mediaFileContentType :: FilePath -> Maybe DefaultContentType
+mediaFileContentType fp = case takeExtension fp of
+  '.' : ext -> Just $
+               DefaultContentType { defContentTypesExt = ext
+                                  , defContentTypesType =
+                                      case getMimeType fp of
+                                        Just mt -> mt
+                                        Nothing -> "application/octet-stream"
+                                  }
+  _ -> Nothing
+
 mediaContentType :: MediaInfo -> Maybe DefaultContentType
 mediaContentType mInfo
   | Just ('.' : ext) <- mInfoExt mInfo =
@@ -1822,11 +1893,16 @@ mediaContentType mInfo
 presentationToContentTypes :: PandocMonad m => Presentation -> P m ContentTypes
 presentationToContentTypes (Presentation _ slides) = do
   mediaInfos <- (mconcat . M.elems) <$> gets stMediaIds
+  filePaths <- patternsToFilePaths inheritedPatterns
+  let mediaFps = filter (match (compile "ppt/media/image*")) filePaths
   let defaults = [ DefaultContentType "xml" "application/xml"
                  , DefaultContentType "rels" "application/vnd.openxmlformats-package.relationships+xml"
                  ]
-      mediaDefaults = nub $ mapMaybe mediaContentType mediaInfos
-      inheritedOverrides = mapMaybe pathToOverride inheritedFiles
+      mediaDefaults = nub $
+                      (mapMaybe mediaContentType $ mediaInfos) ++
+                      (mapMaybe mediaFileContentType $ mediaFps)
+
+      inheritedOverrides = mapMaybe pathToOverride filePaths
       presOverride = mapMaybe pathToOverride ["ppt/presentation.xml"]
       slideOverrides =
         mapMaybe
