@@ -57,7 +57,7 @@ import Text.Pandoc.Walk
 import Text.Pandoc.Writers.Shared (fixDisplayMath)
 import Text.Pandoc.Writers.OOXML
 import qualified Data.Map as M
-import Data.Maybe (mapMaybe, listToMaybe, maybeToList)
+import Data.Maybe (mapMaybe, listToMaybe, maybeToList, catMaybes)
 import Text.Pandoc.ImageSize
 import Control.Applicative ((<|>))
 
@@ -1158,13 +1158,27 @@ paraElemToElement (Run rpr s) = do
   linkProps <- case rLink rpr of
                  Just link -> do
                    idNum <- registerLink link
-                   let (url, _) = link
-                       linkAttrs = [("r:id", "rId" ++ show idNum)]
-                       -- we have to add an extra action if it's an anchor.
-                       linkAttrs' = linkAttrs ++ case url of
-                         '#' : _ -> [("action", "ppaction://hlinksldjump")]
-                         _       -> []
-                   return [mknode "a:hlinkClick" linkAttrs' ()]
+                   -- first we have to make sure that if it's an
+                   -- anchor, it's in the anchor map. If not, there's
+                   -- no link.
+                   anchorMap <- gets stAnchorMap
+                   return $ case link of
+                     -- anchor with nothing in the map
+                     ('#':target, _) | Nothing <- M.lookup target anchorMap ->
+                       []
+                     --  anchor that is in the map
+                     ('#':_, _) ->
+                       let linkAttrs =
+                             [ ("r:id", "rId" ++ show idNum)
+                             , ("action", "ppaction://hlinksldjump")
+                             ]
+                       in [mknode "a:hlinkClick" linkAttrs ()]
+                     -- external
+                     _ ->
+                       let linkAttrs =
+                             [ ("r:id", "rId" ++ show idNum)
+                             ]
+                       in [mknode "a:hlinkClick" linkAttrs ()]
                  Nothing -> return []
   let propContents = if rPropCode rpr
                      then [mknode "a:latin" [("typeface", "Courier")] ()]
@@ -1595,18 +1609,23 @@ slideToSlideRelEntry slide idNum = do
   element <- slideToSlideRelElement slide idNum
   elemToEntry ("ppt/slides/_rels/" ++ slideToFilePath slide idNum ++ ".rels") element
 
-linkRelElement :: PandocMonad m => Int -> (URL, String) -> P m Element
+linkRelElement :: PandocMonad m => Int -> (URL, String) -> P m (Maybe Element)
 linkRelElement idNum (url, _) = do
   anchorMap <- gets stAnchorMap
   case url of
+    -- if it's an anchor in the map, we use the slide number for an
+    -- internal link.
     '#' : anchor | Just num <- M.lookup anchor anchorMap ->
-      return $
+      return $ Just $
       mknode "Relationship" [ ("Id", "rId" ++ show idNum)
                             , ("Type", "http://schemas.openxmlformats.org/officeDocument/2006/relationships/slide")
                             , ("Target", "slide" ++ show num ++ ".xml")
                             ] ()
+    -- if it's an anchor not in the map, we return nothing.
+    '#' : _ -> return Nothing
+    -- Anything else we treat as an external link
     _ ->
-      return $
+      return $ Just $
       mknode "Relationship" [ ("Id", "rId" ++ show idNum)
                             , ("Type", "http://schemas.openxmlformats.org/officeDocument/2006/relationships/hyperlink")
                         , ("Target", url)
@@ -1614,7 +1633,7 @@ linkRelElement idNum (url, _) = do
                         ] ()
 
 linkRelElements :: PandocMonad m => M.Map Int (URL, String) -> P m [Element]
-linkRelElements mp = mapM (\(n, lnk) -> linkRelElement n lnk) (M.toList mp)
+linkRelElements mp = catMaybes <$> mapM (\(n, lnk) -> linkRelElement n lnk) (M.toList mp)
 
 mediaRelElement :: MediaInfo -> Element
 mediaRelElement mInfo =
