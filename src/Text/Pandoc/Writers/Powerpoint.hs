@@ -648,9 +648,10 @@ forceFontSize px x = do
 makeNotesSlides :: PandocMonad m => P m [Slide]
 makeNotesSlides = local (\env -> env{envInNoteSlide=True}) $ do
   noteIds <- gets stNoteIds
+  slideLevel <- asks envSlideLevel
   if M.null noteIds
     then return []
-    else do let hdr = Header 2 nullAttr [Str "Notes"]
+    else do let hdr = Header slideLevel nullAttr [Str "Notes"]
             blks <- return $
                     concatMap (\(n, bs) -> makeNoteEntry n bs) $
                     M.toList noteIds
