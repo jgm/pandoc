@@ -146,8 +146,8 @@ data WriterState = WriterState { stLinkIds :: M.Map Int (M.Map Int (URL, String)
                                , stMediaIds :: M.Map Int [MediaInfo]
                                , stMediaGlobalIds :: M.Map FilePath Int
                                , stNoteIds :: M.Map Int [Block]
-                               -- anchors in the current slide
-                               , stCurSlideAnchors :: M.Map String Int
+                               -- associate anchors with slide id
+                               , stAnchorMap :: M.Map String Int
                                } deriving (Show, Eq)
 
 instance Default WriterState where
@@ -155,7 +155,7 @@ instance Default WriterState where
                     , stMediaIds = mempty
                     , stMediaGlobalIds = mempty
                     , stNoteIds = mempty
-                    , stCurSlideAnchors = mempty
+                    , stAnchorMap= mempty
                     }
 
 type P m = ReaderT WriterEnv (StateT WriterState m)
@@ -377,6 +377,13 @@ isListType (BulletList _) = True
 isListType (DefinitionList _) = True
 isListType _ = False
 
+registerAnchorId :: PandocMonad m => String -> P m ()
+registerAnchorId anchor = do
+  anchorMap <- gets stAnchorMap
+  slideId <- asks envCurSlideId
+  unless (null anchor) $
+    modify $ \st -> st {stAnchorMap = M.insert anchor slideId anchorMap}
+
 blockToParagraphs :: PandocMonad m => Block -> P m [Paragraph]
 blockToParagraphs (Plain ils) = do
   parElems <- inlinesToParElems ils
@@ -407,7 +414,11 @@ blockToParagraphs (BlockQuote blks) =
   concatMapM blockToParagraphs blks
 -- TODO: work out the format
 blockToParagraphs (RawBlock _ _) = return []
-blockToParagraphs (Header n _ ils) = do
+blockToParagraphs (Header n (ident, _, _) ils) = do
+  -- Note that this function will only touch headers that are not at
+  -- the beginning of slides -- all the rest will be taken care of by
+  -- `blocksToSlide'`. We have the register anchors in both of them.
+  registerAnchorId ident
   slideLevel <- asks envSlideLevel
   parElems <- inlinesToParElems ils
   -- For the time being we're not doing headers inside of bullets, but
@@ -564,11 +575,13 @@ splitBlocks :: Monad m => [Block] -> P m [[Block]]
 splitBlocks = splitBlocks' [] []
 
 blocksToSlide' :: PandocMonad m => Int -> [Block] -> P m Slide
-blocksToSlide' lvl ((Header n _ ils) : blks)
+blocksToSlide' lvl ((Header n (ident, _, _) ils) : blks)
   | n < lvl = do
+      registerAnchorId ident
       hdr <- inlinesToParElems ils
       return $ TitleSlide {titleSlideHeader = hdr}
   | n == lvl = do
+      registerAnchorId ident
       hdr <- inlinesToParElems ils
       -- Now get the slide without the header, and then add the header
       -- in.
@@ -1141,11 +1154,15 @@ paraElemToElement (Run rpr s) = do
                 Nothing -> []) ++
              []
   linkProps <- case rLink rpr of
-                 Just link -> do idNum <- registerLink link
-                                 return [mknode "a:hlinkClick"
-                                          [("r:id", "rId" ++ show idNum)]
-                                          ()
-                                        ]
+                 Just link -> do
+                   idNum <- registerLink link
+                   let (url, _) = link
+                       linkAttrs = [("r:id", "rId" ++ show idNum)]
+                       -- we have to add an extra action if it's an anchor.
+                       linkAttrs' = linkAttrs ++ case url of
+                         '#' : _ -> [("action", "ppaction://hlinksldjump")]
+                         _       -> []
+                   return [mknode "a:hlinkClick" linkAttrs' ()]
                  Nothing -> return []
   let propContents = if rPropCode rpr
                      then [mknode "a:latin" [("typeface", "Courier")] ()]
@@ -1576,16 +1593,26 @@ slideToSlideRelEntry slide idNum = do
   element <- slideToSlideRelElement slide idNum
   elemToEntry ("ppt/slides/_rels/" ++ slideToFilePath slide idNum ++ ".rels") element
 
-linkRelElement :: Int -> (URL, String) -> Element
-linkRelElement idNum (url, _) =
-  mknode "Relationship" [ ("Id", "rId" ++ show idNum)
-                        , ("Type", "http://schemas.openxmlformats.org/officeDocument/2006/relationships/hyperlink")
+linkRelElement :: PandocMonad m => Int -> (URL, String) -> P m Element
+linkRelElement idNum (url, _) = do
+  anchorMap <- gets stAnchorMap
+  case url of
+    '#' : anchor | Just num <- M.lookup anchor anchorMap ->
+      return $
+      mknode "Relationship" [ ("Id", "rId" ++ show idNum)
+                            , ("Type", "http://schemas.openxmlformats.org/officeDocument/2006/relationships/slide")
+                            , ("Target", "slide" ++ show num ++ ".xml")
+                            ] ()
+    _ ->
+      return $
+      mknode "Relationship" [ ("Id", "rId" ++ show idNum)
+                            , ("Type", "http://schemas.openxmlformats.org/officeDocument/2006/relationships/hyperlink")
                         , ("Target", url)
                         , ("TargetMode", "External")
                         ] ()
 
-linkRelElements :: M.Map Int (URL, String) -> [Element]
-linkRelElements mp = map (\(n, lnk) -> linkRelElement n lnk) (M.toList mp)
+linkRelElements :: PandocMonad m => M.Map Int (URL, String) -> P m [Element]
+linkRelElements mp = mapM (\(n, lnk) -> linkRelElement n lnk) (M.toList mp)
 
 mediaRelElement :: MediaInfo -> Element
 mediaRelElement mInfo =
@@ -1609,10 +1636,10 @@ slideToSlideRelElement slide idNum = do
   linkIds <- gets stLinkIds
   mediaIds <- gets stMediaIds
 
-  let linkRels = case M.lookup idNum linkIds of
-                   Just mp -> linkRelElements mp
-                   Nothing -> []
-      mediaRels = case M.lookup idNum mediaIds of
+  linkRels <- case M.lookup idNum linkIds of
+                Just mp -> linkRelElements mp
+                Nothing -> return []
+  let mediaRels = case M.lookup idNum mediaIds of
                    Just mInfos -> map mediaRelElement mInfos
                    Nothing -> []
 
