@@ -40,6 +40,7 @@ module Text.Pandoc.Writers.Shared (
                      , fixDisplayMath
                      , unsmartify
                      , gridTable
+                     , metaValueToInlines
                      )
 where
 import Control.Monad (zipWithM)
@@ -55,6 +56,7 @@ import qualified Text.Pandoc.Builder as Builder
 import Text.Pandoc.Definition
 import Text.Pandoc.Options
 import Text.Pandoc.Pretty
+import Text.Pandoc.Walk (query)
 import Text.Pandoc.UTF8 (toStringLazy)
 import Text.Pandoc.XML (escapeStringForXML)
 
@@ -308,3 +310,10 @@ gridTable opts blocksToDoc headless aligns widths headers rows = do
            head'' $$
            body $$
            border '-' (repeat AlignDefault) widthsInChars
+
+metaValueToInlines :: MetaValue -> [Inline]
+metaValueToInlines (MetaString s)    = [Str s]
+metaValueToInlines (MetaInlines ils) = ils
+metaValueToInlines (MetaBlocks bs)   = query return bs
+metaValueToInlines (MetaBool b)      = [Str $ show b]
+metaValueToInlines _                 = []

@@ -1,4 +1,3 @@
-
 {-# LANGUAGE PatternGuards       #-}
 {-# LANGUAGE RankNTypes          #-}
 {-# LANGUAGE ScopedTypeVariables #-}
@@ -65,7 +64,7 @@ import Text.Pandoc.Readers.Docx.StyleMap
 import Text.Pandoc.Shared hiding (Element)
 import Text.Pandoc.Walk
 import Text.Pandoc.Writers.Math
-import Text.Pandoc.Writers.Shared (fixDisplayMath)
+import Text.Pandoc.Writers.Shared (fixDisplayMath, metaValueToInlines)
 import Text.Printf (printf)
 import Text.TeXMath
 import Text.XML.Light as XML
@@ -195,15 +194,6 @@ isValidChar (ord -> c)
   | 0xE000 <= c && c <= 0xFFFD    = True
   | 0x10000 <= c && c <= 0x10FFFF = True
   | otherwise                     = False
-
-metaValueToInlines :: MetaValue -> [Inline]
-metaValueToInlines (MetaString s)    = [Str s]
-metaValueToInlines (MetaInlines ils) = ils
-metaValueToInlines (MetaBlocks bs)   = query return bs
-metaValueToInlines (MetaBool b)      = [Str $ show b]
-metaValueToInlines _                 = []
-
-
 
 writeDocx :: (PandocMonad m)
           => WriterOptions  -- ^ Writer options
