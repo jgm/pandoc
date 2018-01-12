@@ -638,25 +638,26 @@ forceFontSize px x = do
   rpr <- asks envRunProps
   local (\r -> r {envRunProps = rpr{rPropForceSize = Just px}}) x
 
--- Right now, there's no logic for making more than one slide, but I
--- want to leave the option open to make multiple slides if we figure
--- out how to guess at how much space the text of the notes will take
--- up (or if we allow a way for it to be manually controlled). Plus a
--- list will make it easier to put together in the final
--- `blocksToPresentation` function (since we can just add an empty
--- list without checking the state).
-makeNotesSlides :: PandocMonad m => P m [Slide]
-makeNotesSlides = local (\env -> env{envInNoteSlide=True}) $ do
+-- We leave these as blocks because we will want to include them in
+-- the TOC.
+makeNotesSlideBlocks :: PandocMonad m => P m [Block]
+makeNotesSlideBlocks = do
   noteIds <- gets stNoteIds
   slideLevel <- asks envSlideLevel
+  meta <- asks envMetadata
+  -- Get identifiers so we can give the notes section a unique ident.
+  anchorSet <- M.keysSet <$> gets stAnchorMap
   if M.null noteIds
     then return []
-    else do let hdr = Header slideLevel nullAttr [Str "Notes"]
+    else do let title = case lookupMeta "notes-title" meta of
+                  Just val -> metaValueToInlines val
+                  Nothing  -> [Str "Notes"]
+                ident = Shared.uniqueIdent title anchorSet
+                hdr = Header slideLevel (ident, [], []) title
             blks <- return $
                     concatMap (\(n, bs) -> makeNoteEntry n bs) $
                     M.toList noteIds
-            sld <- blocksToSlide $ hdr : blks
-            return [sld]
+            return $ hdr : blks
 
 getMetaSlide :: PandocMonad m => P m (Maybe Slide)
 getMetaSlide  = do
@@ -711,21 +712,43 @@ blocksToPresentation blks = do
   let metadataStartNum = 1
   metadataslides <- maybeToList <$> getMetaSlide
   let tocStartNum = metadataStartNum + length metadataslides
-  tocSlides <- if writerTableOfContents opts
-               then do toc <- makeTOCSlide blks
-                       return [toc]
-               else return []
-  let bodyStartNum = tocStartNum + length tocSlides
+  -- As far as I can tell, if we want to have a variable-length toc in
+  -- the future, we'll have to make it twice. Once to get the length,
+  -- and a second time to include the notes slide. We can't make the
+  -- notes slide before the body slides because we need to know if
+  -- there are notes, and we can't make either before the toc slide,
+  -- because we need to know its length to get slide numbers right.
+  --
+  -- For now, though, since the TOC slide is only length 1, if it
+  -- exists, we'll just get the length, and then come back to make the
+  -- slide later
+  let tocSlidesLength = if writerTableOfContents opts then 1 else 0
+  let bodyStartNum = tocStartNum + tocSlidesLength
   blksLst <- splitBlocks blks
   bodyslides <- mapM
                 (\(bs, n) -> local (\st -> st{envCurSlideId = n}) (blocksToSlide bs))
                 (zip blksLst [bodyStartNum..])
   let noteStartNum = bodyStartNum + length bodyslides
-  noteSlides <- local (\st -> st {envCurSlideId = noteStartNum}) makeNotesSlides
+  notesSlideBlocks <- makeNotesSlideBlocks
+  -- now we come back and make the real toc...
+  tocSlides <- if writerTableOfContents opts
+               then do toc <- makeTOCSlide $ blks ++ notesSlideBlocks
+                       return [toc]
+               else return []
+  -- ... and the notes slide. We test to see if the blocks are empty,
+  -- because we don't want to make an empty slide.
+  notesSlides <- if null notesSlideBlocks
+                 then return []
+                 else do notesSlide <- local
+                           (\env -> env { envCurSlideId = noteStartNum
+                                        , envInNoteSlide = True
+                                        })
+                           (blocksToSlide $ notesSlideBlocks)
+                         return [notesSlide]
   presSize <- asks envPresentationSize
   return $
     Presentation presSize $
-    metadataslides ++ tocSlides ++ bodyslides ++ noteSlides
+    metadataslides ++ tocSlides ++ bodyslides ++ notesSlides
 
 --------------------------------------------------------------------
 
