@@ -39,21 +39,22 @@ import Text.Pandoc.Definition (Pandoc)
 import Text.Pandoc.Lua.Filter (LuaFilter, walkMWithLuaFilter)
 import Text.Pandoc.Lua.Init (runPandocLua)
 import Text.Pandoc.Lua.Util (popValue)
+import Text.Pandoc.Options (ReaderOptions)
 import qualified Foreign.Lua as Lua
 
 -- | Run the Lua filter in @filterPath@ for a transformation to target
 -- format @format@. Pandoc uses Lua init files to setup the Lua
 -- interpreter.
-runLuaFilter :: FilePath -> String
+runLuaFilter :: ReaderOptions -> FilePath -> String
              -> Pandoc -> PandocIO (Either LuaException Pandoc)
-runLuaFilter filterPath format doc =
-  runPandocLua (runLuaFilter' filterPath format doc)
+runLuaFilter ropts filterPath format doc =
+  runPandocLua (runLuaFilter' ropts filterPath format doc)
 
-runLuaFilter' :: FilePath -> String
+runLuaFilter' :: ReaderOptions -> FilePath -> String
               -> Pandoc -> Lua Pandoc
-runLuaFilter' filterPath format pd = do
-  -- store module in global "pandoc"
+runLuaFilter' ropts filterPath format pd = do
   registerFormat
+  registerReaderOptions
   top <- Lua.gettop
   stat <- Lua.dofile filterPath
   if stat /= OK
@@ -72,6 +73,10 @@ runLuaFilter' filterPath format pd = do
   registerFormat = do
     push format
     Lua.setglobal "FORMAT"
+
+  registerReaderOptions = do
+    push ropts
+    Lua.setglobal "PANDOC_READER_OPTIONS"
 
 runAll :: [LuaFilter] -> Pandoc -> Lua Pandoc
 runAll = foldr ((>=>) . walkMWithLuaFilter) return

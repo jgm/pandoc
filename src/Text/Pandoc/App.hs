@@ -855,12 +855,12 @@ applyFilter :: ReaderOptions
             -> Filter
             -> Pandoc
             -> PandocIO Pandoc
-applyFilter _ropts args (LuaFilter f) d = do
+applyFilter ropts args (LuaFilter f) d = do
   f' <- expandFilterPath f
   let format = case args of
                     (x:_) -> x
                     _     -> error "Format not supplied for lua filter"
-  res <- runLuaFilter f' format d
+  res <- runLuaFilter ropts f' format d
   case res of
        Right x               -> return x
        Left (LuaException s) -> E.throw (PandocFilterError f s)

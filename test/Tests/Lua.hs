@@ -14,6 +14,7 @@ import Text.Pandoc.Builder (bulletList, divWith, doc, doubleQuoted, emph,
 import Text.Pandoc.Class (runIOorExplode, setUserDataDir)
 import Text.Pandoc.Definition (Block, Inline, Meta, Pandoc, pandocTypesVersion)
 import Text.Pandoc.Lua (runLuaFilter, runPandocLua)
+import Text.Pandoc.Options (def)
 import Text.Pandoc.Shared (pandocVersion)
 
 import qualified Foreign.Lua as Lua
@@ -128,7 +129,7 @@ assertFilterConversion :: String -> FilePath -> Pandoc -> Pandoc -> Assertion
 assertFilterConversion msg filterPath docIn docExpected = do
   docEither <- runIOorExplode $ do
     setUserDataDir (Just "../data")
-    runLuaFilter ("lua" </> filterPath) [] docIn
+    runLuaFilter def ("lua" </> filterPath) [] docIn
   case docEither of
     Left _       -> fail "lua filter failed"
     Right docRes -> assertEqual msg docExpected docRes

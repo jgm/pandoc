@@ -16,8 +16,9 @@ You should have received a copy of the GNU General Public License
 along with this program; if not, write to the Free Software
 Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 -}
-{-# LANGUAGE FlexibleInstances #-}
-{-# LANGUAGE LambdaCase        #-}
+{-# LANGUAGE FlexibleInstances    #-}
+{-# LANGUAGE LambdaCase           #-}
+{-# LANGUAGE ScopedTypeVariables  #-}
 {-# OPTIONS_GHC -fno-warn-orphans #-}
 {- |
    Module      : Text.Pandoc.Lua.StackInstances
@@ -34,13 +35,18 @@ module Text.Pandoc.Lua.StackInstances () where
 
 import Control.Applicative ((<|>))
 import Control.Monad (when)
+import Data.Data (showConstr, toConstr)
+import Data.Foldable (forM_)
 import Foreign.Lua (FromLuaStack (peek), Lua, LuaInteger, LuaNumber, StackIndex,
                     ToLuaStack (push), Type (..), throwLuaError, tryLua)
 import Text.Pandoc.Definition
+import Text.Pandoc.Extensions (Extensions)
 import Text.Pandoc.Lua.Util (adjustIndexBy, getTable, pushViaConstructor)
+import Text.Pandoc.Options (ReaderOptions (..), TrackChanges)
 import Text.Pandoc.Shared (Element (Blk, Sec), safeRead)
 
 import qualified Foreign.Lua as Lua
+import qualified Data.Set as Set
 import qualified Text.Pandoc.Lua.Util as LuaUtil
 
 instance ToLuaStack Pandoc where
@@ -332,3 +338,43 @@ instance ToLuaStack Element where
             Lua.push "__index"
             Lua.pushvalue (-2)
             Lua.rawset (-3)
+
+
+--
+-- Reader Options
+--
+instance ToLuaStack Extensions where
+  push exts = push (show exts)
+
+instance ToLuaStack TrackChanges where
+  push = push . showConstr . toConstr
+
+instance ToLuaStack a => ToLuaStack (Set.Set a) where
+  push set = do
+    Lua.newtable
+    forM_ set (`LuaUtil.addValue` True)
+
+instance ToLuaStack ReaderOptions where
+  push ro = do
+    let ReaderOptions
+          (extensions            :: Extensions)
+          (standalone            :: Bool)
+          (columns               :: Int)
+          (tabStop               :: Int)
+          (indentedCodeClasses   :: [String])
+          (abbreviations         :: Set.Set String)
+          (defaultImageExtension :: String)
+          (trackChanges          :: TrackChanges)
+          (stripComments         :: Bool)
+          = ro
+    Lua.newtable
+    LuaUtil.addValue "extensions" extensions
+    LuaUtil.addValue "standalone" standalone
+    LuaUtil.addValue "columns" columns
+    LuaUtil.addValue "tabStop" tabStop
+    LuaUtil.addValue "indentedCodeClasses" indentedCodeClasses
+    LuaUtil.addValue "abbreviations" abbreviations
+    LuaUtil.addValue "defaultImageExtension" defaultImageExtension
+    LuaUtil.addValue "trackChanges" trackChanges
+    LuaUtil.addValue "stripComments" stripComments
+
