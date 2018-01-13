@@ -868,13 +868,6 @@ combineShapes (pic@(Pic _ _ _ _) : ss) = pic : combineShapes ss
 combineShapes ((TextBox []) : ss) = combineShapes ss
 combineShapes (s : TextBox [] : ss) = combineShapes (s : ss)
 combineShapes ((TextBox (p:ps)) : (TextBox (p':ps')) : ss) =
-  -- | pPropHeaderType (paraProps p) == Just TitleHeader ||
-  --   pPropHeaderType (paraProps p) == Just SlideHeader =
-  --     TextBox [p] : (combineShapes $ TextBox ps : s' : ss)
-  -- | pPropHeaderType (paraProps p') == Just TitleHeader ||
-  --   pPropHeaderType (paraProps p') == Just SlideHeader =
-  --     s : TextBox [p'] : (combineShapes $ TextBox ps' : ss)
-  -- | otherwise = combineShapes $ TextBox ((p:ps) ++ (p':ps')) : ss
   combineShapes $ TextBox ((p:ps) ++ (p':ps')) : ss
 combineShapes (s:ss) = s : combineShapes ss
 
