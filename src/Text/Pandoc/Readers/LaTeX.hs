@@ -442,19 +442,22 @@ doMacros n = do
                                     Just o  ->
                                        (:) <$> option o bracketedToks
                                            <*> count (numargs - 1) getarg
-                       let addTok (Tok _ (Arg i) _) acc | i > 0
-                                                        , i <= numargs =
-                                 foldr addTok acc (args !! (i - 1))
+                       -- first boolean param is true if we're tokenizing
+                       -- an argument (in which case we don't want to
+                       -- expand #1 etc.)
+                       let addTok False (Tok _ (Arg i) _) acc | i > 0
+                                                              , i <= numargs =
+                                 foldr (addTok True) acc (args !! (i - 1))
                            -- add space if needed after control sequence
                            -- see #4007
-                           addTok (Tok _ (CtrlSeq x) txt)
+                           addTok _ (Tok _ (CtrlSeq x) txt)
                                   acc@(Tok _ Word _ : _)
                              | not (T.null txt) &&
                                (isLetter (T.last txt)) =
                                Tok spos (CtrlSeq x) (txt <> " ") : acc
-                           addTok t acc = setpos spos t : acc
+                           addTok _ t acc = setpos spos t : acc
                        ts' <- getInput
-                       setInput $ foldr addTok ts' newtoks
+                       setInput $ foldr (addTok False) ts' newtoks
                        case expansionPoint of
                             ExpandWhenUsed ->
                               if n > 20  -- detect macro expansion loops
