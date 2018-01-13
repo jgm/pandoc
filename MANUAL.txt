@@ -3037,6 +3037,17 @@ template:
     $endif$
     $endfor$
 
+Raw content to include in the document's header may be specified
+using `header-includes`; however, it is important to mark up
+this content as raw code for a particular output format, using
+the [`raw_attribute` extension](#extension-raw_attribute)), or it
+will be interpreted as markdown. For example:
+
+    header-includes:
+    - ```{=latex}
+      \let\oldsection\section
+      \renewcommand{\section}[1]{\clearpage\oldsection{#1}}
+      ```
 
 Backslash escapes
 -----------------
