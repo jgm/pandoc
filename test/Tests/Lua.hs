@@ -12,8 +12,8 @@ import Text.Pandoc.Builder (bulletList, divWith, doc, doubleQuoted, emph,
                             header, linebreak, para, plain, rawBlock,
                             singleQuoted, space, str, strong, (<>))
 import Text.Pandoc.Class (runIOorExplode, setUserDataDir)
-import Text.Pandoc.Definition (Block (BlockQuote, Para), Inline (Emph, Str),
-                               Meta, Pandoc, pandocTypesVersion)
+import Text.Pandoc.Definition (Block (BlockQuote, Div, Para), Inline (Emph, Str),
+                               Attr, Meta, Pandoc, pandocTypesVersion)
 import Text.Pandoc.Lua (runLuaFilter, runPandocLua)
 import Text.Pandoc.Options (def)
 import Text.Pandoc.Shared (pandocVersion)
@@ -138,6 +138,13 @@ tests = map (localOption (QuickCheckTests 20))
           _ <- Lua.call 1 1
           Lua.peek Lua.stackTop
         )
+
+  , testCase "Elements with Attr have `attr` accessor" . runPandocLua' $ do
+      Lua.push (Div ("hi", ["moin"], [])
+                [Para [Str "ignored"]])
+      Lua.getfield Lua.stackTop "attr"
+      Lua.liftIO . assertEqual "no accessor" (("hi", ["moin"], []) :: Attr)
+        =<< Lua.peek Lua.stackTop
 
   , testCase "informative error messages" . runPandocLua' $ do
       Lua.pushboolean True

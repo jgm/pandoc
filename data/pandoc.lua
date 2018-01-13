@@ -22,10 +22,9 @@ THIS SOFTWARE.
 -- @author Albert Krewinkel
 -- @copyright © 2017–2018 Albert Krewinkel
 -- @license MIT
+local M = {}
 
 local List = require 'pandoc.List'
-
-M = {}
 
 ------------------------------------------------------------------------
 -- Accessor objects
@@ -58,8 +57,12 @@ end
 local function create_accessor_functions (fn_template, accessors)
   local res = {}
   function add_accessors(acc, ...)
-    if type(acc) == "string" then
+    if type(acc) == 'string' then
       res[acc] = make_indexing_function(fn_template, {...})
+    elseif type(acc) == 'table' and #acc == 0 and next(acc) then
+      local name, substructure = next(acc)
+      res[name] = make_indexing_function(fn_template, {...})
+      add_accessors(substructure, ...)
     else
       for i = 1, #(acc or {}) do
         add_accessors(acc[i], i, ...)
@@ -326,7 +329,7 @@ M.BulletList = M.Block:create_constructor(
 M.CodeBlock = M.Block:create_constructor(
   "CodeBlock",
   function(text, attr) return {c = {attr or M.Attr(), text}} end,
-  {{"identifier", "classes", "attributes"}, "text"}
+  {{attr = {"identifier", "classes", "attributes"}}, "text"}
 )
 
 --- Creates a definition list, containing terms and their explanation.
@@ -349,7 +352,7 @@ M.Div = M.Block:create_constructor(
   function(content, attr)
     return {c = {attr or M.Attr(), ensureList(content)}}
   end,
-  {{"identifier", "classes", "attributes"}, "content"}
+  {{attr = {"identifier", "classes", "attributes"}}, "content"}
 )
 
 --- Creates a header element.
@@ -363,7 +366,7 @@ M.Header = M.Block:create_constructor(
   function(level, content, attr)
     return {c = {level, attr or M.Attr(), ensureInlineList(content)}}
   end,
-  {"level", {"identifier", "classes", "attributes"}, "content"}
+  {"level", {attr = {"identifier", "classes", "attributes"}}, "content"}
 )
 
 --- Creates a horizontal rule.
@@ -403,7 +406,7 @@ M.OrderedList = M.Block:create_constructor(
     listAttributes = listAttributes or {1, M.DefaultStyle, M.DefaultDelim}
     return {c = {listAttributes, ensureList(items)}}
   end,
-  {{"start", "style", "delimiter"}, "content"}
+  {{listAttributes = {"start", "style", "delimiter"}}, "content"}
 )
 
 --- Creates a para element.
@@ -490,7 +493,7 @@ M.Cite = M.Inline:create_constructor(
 M.Code = M.Inline:create_constructor(
   "Code",
   function(text, attr) return {c = {attr or M.Attr(), text}} end,
-  {{"identifier", "classes", "attributes"}, "text"}
+  {{attr = {"identifier", "classes", "attributes"}}, "text"}
 )
 
 --- Creates an inline element representing emphasised text.
@@ -517,7 +520,7 @@ M.Image = M.Inline:create_constructor(
     attr = attr or M.Attr()
     return {c = {attr, ensureInlineList(caption), {src, title}}}
   end,
-  {{"identifier", "classes", "attributes"}, "caption", {"src", "title"}}
+  {{attr = {"identifier", "classes", "attributes"}}, "caption", {"src", "title"}}
 )
 
 --- Create a LineBreak inline element
@@ -542,7 +545,7 @@ M.Link = M.Inline:create_constructor(
     attr = attr or M.Attr()
     return {c = {attr, ensureInlineList(content), {target, title}}}
   end,
-  {{"identifier", "classes", "attributes"}, "content", {"target", "title"}}
+  {{attr = {"identifier", "classes", "attributes"}}, "content", {"target", "title"}}
 )
 
 --- Creates a Math element, either inline or displayed.
@@ -663,7 +666,7 @@ M.Span = M.Inline:create_constructor(
   function(content, attr)
     return {c = {attr or M.Attr(), ensureInlineList(content)}}
   end,
-  {{"identifier", "classes", "attributes"}, "content"}
+  {{attr = {"identifier", "classes", "attributes"}}, "content"}
 )
 
 --- Creates a Str inline element
