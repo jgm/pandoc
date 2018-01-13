@@ -82,6 +82,12 @@ writePowerpoint opts (Pandoc meta blks) = do
 
   utctime <- P.getCurrentTime
 
+  presSize <- case getPresentationSize refArchive distArchive of
+                Just sz -> return sz
+                Nothing -> throwError $
+                           PandocSomeError $
+                           "Could not determine presentation size"
+
   let env = def { envMetadata = meta
                 , envRefArchive = refArchive
                 , envDistArchive = distArchive
@@ -90,6 +96,7 @@ writePowerpoint opts (Pandoc meta blks) = do
                 , envSlideLevel = case writerSlideLevel opts of
                                     Just n -> n
                                     Nothing -> getSlideLevel blks'
+                , envPresentationSize = presSize
                 }
 
   let st = def { stMediaGlobalIds = initialGlobalIds refArchive distArchive
@@ -110,7 +117,7 @@ data WriterEnv = WriterEnv { envMetadata :: Meta
                            , envDistArchive :: Archive
                            , envUTCTime :: UTCTime
                            , envOpts :: WriterOptions
-                           , envPresentationSize :: PresentationSize
+                           , envPresentationSize :: (Integer, Integer)
                            , envSlideHasHeader :: Bool
                            , envInList :: Bool
                            , envInNoteSlide :: Bool
@@ -131,7 +138,7 @@ instance Default WriterEnv where
                   , envDistArchive = emptyArchive
                   , envUTCTime = posixSecondsToUTCTime 0
                   , envOpts = def
-                  , envPresentationSize = def
+                  , envPresentationSize = (720, 540)
                   , envSlideHasHeader = False
                   , envInList = False
                   , envInNoteSlide = False
@@ -183,6 +190,19 @@ initialGlobalIds refArchive distArchive =
   in
     M.fromList $ mapMaybe go mediaPaths
 
+getPresentationSize :: Archive -> Archive -> Maybe (Integer, Integer)
+getPresentationSize refArchive distArchive = do
+  entry <- findEntryByPath "ppt/presentation.xml" refArchive  `mplus`
+           findEntryByPath "ppt/presentation.xml" distArchive
+  presElement <- parseXMLDoc $ UTF8.toStringLazy $ fromEntry entry
+  let ns = elemToNameSpaces presElement
+  sldSize <- findChild (elemName ns "p" "sldSz") presElement
+  cxS <- findAttr (QName "cx" Nothing Nothing) sldSize
+  cyS <- findAttr (QName "cy" Nothing Nothing) sldSize
+  (cx, _) <- listToMaybe $ reads cxS :: Maybe (Integer, String)
+  (cy, _) <- listToMaybe $ reads cyS :: Maybe (Integer, String)
+  return (cx `div` 12700, cy `div` 12700)
+
 type P m = ReaderT WriterEnv (StateT WriterState m)
 
 runP :: Monad m => WriterEnv -> WriterState -> P m a -> m a
@@ -190,28 +210,28 @@ runP env st p = evalStateT (runReaderT p env) st
 
 type Pixels = Integer
 
-data Presentation = Presentation PresentationSize [Slide]
+data Presentation = Presentation [Slide]
   deriving (Show)
 
-data PresentationSize = PresentationSize { presSizeWidth :: Pixels
-                                         , presSizeRatio :: PresentationRatio
-                                         }
-                      deriving (Show, Eq)
+-- data PresentationSize = PresentationSize { presSizeWidth :: Pixels
+--                                          , presSizeRatio :: PresentationRatio
+--                                          }
+--                       deriving (Show, Eq)
 
-data PresentationRatio = Ratio4x3
-                       | Ratio16x9
-                       | Ratio16x10
-                       deriving (Show, Eq)
+-- data PresentationRatio = Ratio4x3
+--                        | Ratio16x9
+--                        | Ratio16x10
+--                        deriving (Show, Eq)
 
 -- Note that right now we're only using Ratio4x3.
-getPageHeight :: PresentationSize -> Pixels
-getPageHeight sz = case presSizeRatio sz of
-  Ratio4x3 -> floor (((fromInteger (presSizeWidth sz)) / 4) * 3 :: Double)
-  Ratio16x9 -> floor (((fromInteger (presSizeWidth sz)) / 16) * 9 :: Double)
-  Ratio16x10 -> floor (((fromInteger (presSizeWidth sz)) / 16) * 10 :: Double)
+-- getPageHeight :: PresentationSize -> Pixels
+-- getPageHeight sz = case presSizeRatio sz of
+--   Ratio4x3 -> floor (((fromInteger (presSizeWidth sz)) / 4) * 3 :: Double)
+--   Ratio16x9 -> floor (((fromInteger (presSizeWidth sz)) / 16) * 9 :: Double)
+--   Ratio16x10 -> floor (((fromInteger (presSizeWidth sz)) / 16) * 10 :: Double)
 
-instance Default PresentationSize where
-  def = PresentationSize 720 Ratio4x3
+-- instance Default PresentationSize where
+--   def = PresentationSize 720 Ratio4x3
 
 data Slide = MetadataSlide { metadataSlideTitle :: [ParaElem]
                             , metadataSlideSubtitle :: [ParaElem]
@@ -520,7 +540,7 @@ blockToShape (Para (il:_))  | Link _ (il':_) target <- il
       Pic def{picPropLink = Just target} url attr <$> (inlinesToParElems ils)
 blockToShape (Table caption algn _ hdrCells rows) = do
   caption' <- inlinesToParElems caption
-  pageWidth <- presSizeWidth <$> asks envPresentationSize
+  (pageWidth, _) <- asks envPresentationSize
   hdrCells' <- rowToParagraphs algn hdrCells
   rows' <- mapM (rowToParagraphs algn) rows
   let tblPr = if null hdrCells
@@ -640,8 +660,6 @@ blocksToSlide :: PandocMonad m => [Block] -> P m Slide
 blocksToSlide blks = do
   slideLevel <- asks envSlideLevel
   blocksToSlide' slideLevel blks
-
-
 
 makeNoteEntry :: Int -> [Block] -> [Block]
 makeNoteEntry n blks =
@@ -763,9 +781,8 @@ blocksToPresentation blks = do
                                         })
                            (blocksToSlide $ notesSlideBlocks)
                          return [notesSlide]
-  presSize <- asks envPresentationSize
   return $
-    Presentation presSize $
+    Presentation $
     metadataslides ++ tocSlides ++ bodyslides ++ notesSlides
 
 --------------------------------------------------------------------
@@ -829,7 +846,7 @@ requiredFiles = [ "_rels/.rels"
 
 
 presentationToArchive :: PandocMonad m => Presentation -> P m Archive
-presentationToArchive p@(Presentation _ slides) = do
+presentationToArchive p@(Presentation slides) = do
   filePaths <- patternsToFilePaths inheritedPatterns
 
   -- make sure all required files are available:
@@ -1126,8 +1143,7 @@ makePicElement :: PandocMonad m
                -> P m Element
 makePicElement picProps mInfo attr = do
   opts <- asks envOpts
-  pageWidth <- presSizeWidth <$> asks envPresentationSize
-  pageHeight <- getPageHeight <$> asks envPresentationSize
+  (pageWidth, pageHeight) <- asks envPresentationSize
   hasHeader <- asks envSlideHasHeader
   let hasCaption = mInfoCaption mInfo
   (imgBytes, _) <- P.fetchItem (mInfoFilePath mInfo)
@@ -1621,7 +1637,7 @@ getRels = do
   return $ mapMaybe elementToRel relElems
 
 presentationToRels :: PandocMonad m => Presentation -> P m [Relationship]
-presentationToRels (Presentation _ slides) = do
+presentationToRels (Presentation slides) = do
   mySlideRels <- mapM (\(s, n) -> slideToPresRel s n) $ zip slides [1..]
   rels <- getRels
   let relsWithoutSlides = filter (\r -> relType r /= "http://schemas.openxmlformats.org/officeDocument/2006/relationships/slide") rels
@@ -1749,7 +1765,7 @@ slideToSldIdElement slide idNum = do
   return $ mknode "p:sldId" [("id", id'), ("r:id", rId)] ()
 
 presentationToSldIdLst :: PandocMonad m => Presentation -> P m Element
-presentationToSldIdLst (Presentation _ slides) = do
+presentationToSldIdLst (Presentation slides) = do
   ids <- mapM (\(s,n) -> slideToSldIdElement s n) (zip slides [1..])
   return $ mknode "p:sldIdLst" [] ids
 
@@ -1845,7 +1861,7 @@ mediaContentType mInfo
   | otherwise = Nothing
 
 presentationToContentTypes :: PandocMonad m => Presentation -> P m ContentTypes
-presentationToContentTypes (Presentation _ slides) = do
+presentationToContentTypes (Presentation slides) = do
   mediaInfos <- (mconcat . M.elems) <$> gets stMediaIds
   filePaths <- patternsToFilePaths inheritedPatterns
   let mediaFps = filter (match (compile "ppt/media/image*")) filePaths
