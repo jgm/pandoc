@@ -252,9 +252,6 @@ data Paragraph = Paragraph { paraProps :: ParaProps
                            , paraElems  :: [ParaElem]
                            } deriving (Show, Eq)
 
-data HeaderType = TitleHeader | SlideHeader | InternalHeader Int
-                deriving (Show, Eq)
-
 autoNumberingToType :: ListAttributes -> String
 autoNumberingToType (_, numStyle, numDelim) =
   typeString ++ delimString
@@ -279,21 +276,21 @@ data BulletType = Bullet
 data Algnment = AlgnLeft | AlgnRight | AlgnCenter
   deriving (Show, Eq)
 
-data ParaProps = ParaProps { pPropHeaderType :: Maybe HeaderType
-                           , pPropMarginLeft :: Maybe Pixels
+data ParaProps = ParaProps { pPropMarginLeft :: Maybe Pixels
                            , pPropMarginRight :: Maybe Pixels
                            , pPropLevel :: Int
                            , pPropBullet :: Maybe BulletType
                            , pPropAlign :: Maybe Algnment
+                           , pPropSpaceBefore :: Maybe Pixels
                            } deriving (Show, Eq)
 
 instance Default ParaProps where
-  def = ParaProps { pPropHeaderType = Nothing
-                  , pPropMarginLeft = Just 0
+  def = ParaProps { pPropMarginLeft = Just 0
                   , pPropMarginRight = Just 0
                   , pPropLevel = 0
                   , pPropBullet = Nothing
                   , pPropAlign = Nothing
+                  , pPropSpaceBefore = Nothing
                   }
 
 newtype TeXString = TeXString {unTeXString :: String}
@@ -439,20 +436,17 @@ blockToParagraphs (BlockQuote blks) =
   concatMapM blockToParagraphs blks
 -- TODO: work out the format
 blockToParagraphs (RawBlock _ _) = return []
-blockToParagraphs (Header n (ident, _, _) ils) = do
-  -- Note that this function will only touch headers that are not at
-  -- the beginning of slides -- all the rest will be taken care of by
+blockToParagraphs (Header _ (ident, _, _) ils) = do
+  -- Note that this function only deals with content blocks, so it
+  -- will only touch headers that are above the current slide level --
+  -- slides at or below the slidelevel will be taken care of by
   -- `blocksToSlide'`. We have the register anchors in both of them.
   registerAnchorId ident
-  slideLevel <- asks envSlideLevel
-  parElems <- inlinesToParElems ils
-  -- For the time being we're not doing headers inside of bullets, but
-  -- we might change that.
-  let headerType = case n `compare` slideLevel of
-                     LT -> TitleHeader
-                     EQ -> SlideHeader
-                     GT -> InternalHeader (n - slideLevel)
-  return [Paragraph def{pPropHeaderType = Just headerType} parElems]
+  -- we set the subeader to bold
+  parElems <- local (\e->e{envRunProps = (envRunProps e){rPropBold=True}}) $
+              inlinesToParElems ils
+  -- and give it a bit of space before it.
+  return [Paragraph def{pPropSpaceBefore = Just 30} parElems]
 blockToParagraphs (BulletList blksLst) = do
   pProps <- asks envParaProps
   let lvl = pPropLevel pProps
@@ -873,14 +867,15 @@ combineShapes (s : []) = [s]
 combineShapes (pic@(Pic _ _ _ _) : ss) = pic : combineShapes ss
 combineShapes ((TextBox []) : ss) = combineShapes ss
 combineShapes (s : TextBox [] : ss) = combineShapes (s : ss)
-combineShapes (s@(TextBox (p:ps)) : s'@(TextBox (p':ps')) : ss)
-  | pPropHeaderType (paraProps p) == Just TitleHeader ||
-    pPropHeaderType (paraProps p) == Just SlideHeader =
-      TextBox [p] : (combineShapes $ TextBox ps : s' : ss)
-  | pPropHeaderType (paraProps p') == Just TitleHeader ||
-    pPropHeaderType (paraProps p') == Just SlideHeader =
-      s : TextBox [p'] : (combineShapes $ TextBox ps' : ss)
-  | otherwise = combineShapes $ TextBox ((p:ps) ++ (p':ps')) : ss
+combineShapes ((TextBox (p:ps)) : (TextBox (p':ps')) : ss) =
+  -- | pPropHeaderType (paraProps p) == Just TitleHeader ||
+  --   pPropHeaderType (paraProps p) == Just SlideHeader =
+  --     TextBox [p] : (combineShapes $ TextBox ps : s' : ss)
+  -- | pPropHeaderType (paraProps p') == Just TitleHeader ||
+  --   pPropHeaderType (paraProps p') == Just SlideHeader =
+  --     s : TextBox [p'] : (combineShapes $ TextBox ps' : ss)
+  -- | otherwise = combineShapes $ TextBox ((p:ps) ++ (p':ps')) : ss
+  combineShapes $ TextBox ((p:ps) ++ (p':ps')) : ss
 combineShapes (s:ss) = s : combineShapes ss
 
 --------------------------------------------------
@@ -1310,6 +1305,13 @@ paragraphToElement par = do
                Nothing -> []
             )
     props = [] ++
+            (case pPropSpaceBefore $ paraProps par of
+               Just px -> [mknode "a:spcBef" [] [
+                              mknode "a:spcPts" [("val", show $ 100 * px)] ()
+                              ]
+                          ]
+               Nothing -> []
+            ) ++
             (case pPropBullet $ paraProps par of
                Just Bullet -> []
                Just (AutoNumbering attrs') ->
