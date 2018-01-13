@@ -25,6 +25,8 @@ THIS SOFTWARE.
 
 local List = require 'pandoc.List'
 
+M = {}
+
 ------------------------------------------------------------------------
 -- Accessor objects
 --
@@ -184,6 +186,18 @@ function AstElement:create_constructor(tag, fn, accessors)
   return constr
 end
 
+--- Ensure a given object is an Inline element, or convert it into one.
+local function ensureInlineList (x)
+  if type(x) == string then
+    return List:new{M.Str(x)}
+  elseif x.tag then
+    -- Lists are not tagged, but all elements are
+    return List:new{x}
+  else
+    return x
+  end
+end
+
 ------------------------------------------------------------------------
 --- Pandoc Document
 -- @section document
@@ -233,7 +247,7 @@ M.MetaBlocks = M.MetaValue:create_constructor(
 -- @tparam {Inline,...} inlines inlines
 M.MetaInlines = M.MetaValue:create_constructor(
   'MetaInlines',
-  function (content) return List:new(content) end
+  function (content) return ensureInlineList(content) end
 )
 
 --- Meta list
@@ -338,7 +352,7 @@ M.Div = M.Block:create_constructor(
 M.Header = M.Block:create_constructor(
   "Header",
   function(level, content, attr)
-    return {c = {level, attr or M.Attr(), content}}
+    return {c = {level, attr or M.Attr(), ensureInlineList(content)}}
   end,
   {"level", {"identifier", "classes", "attributes"}, "content"}
 )
@@ -389,7 +403,7 @@ M.OrderedList = M.Block:create_constructor(
 -- @treturn     Block                   paragraph element
 M.Para = M.Block:create_constructor(
   "Para",
-  function(content) return {c = List:new(content)} end,
+  function(content) return {c = ensureInlineList(content)} end,
   "content"
 )
 
@@ -399,7 +413,7 @@ M.Para = M.Block:create_constructor(
 -- @treturn     Block                   plain element
 M.Plain = M.Block:create_constructor(
   "Plain",
-  function(content) return {c = List:new(content)} end,
+  function(content) return {c = ensureInlineList(content)} end,
   "content"
 )
 
@@ -427,7 +441,7 @@ M.Table = M.Block:create_constructor(
   function(caption, aligns, widths, headers, rows)
     return {
       c = {
-        List:new(caption),
+        ensureInlineList(caption),
         List:new(aligns),
         List:new(widths),
         List:new(headers),
@@ -454,7 +468,7 @@ M.Inline = AstElement:make_subtype'Inline'
 M.Cite = M.Inline:create_constructor(
   "Cite",
   function(content, citations)
-    return {c = {List:new(citations), List:new(content)}}
+    return {c = {List:new(citations), ensureInlineList(content)}}
   end,
   {"citations", "content"}
 )
@@ -476,7 +490,7 @@ M.Code = M.Inline:create_constructor(
 -- @treturn Inline emphasis element
 M.Emph = M.Inline:create_constructor(
   "Emph",
-  function(content) return {c = List:new(content)} end,
+  function(content) return {c = ensureInlineList(content)} end,
   "content"
 )
 
@@ -492,7 +506,7 @@ M.Image = M.Inline:create_constructor(
   function(caption, src, title, attr)
     title = title or ""
     attr = attr or M.Attr()
-    return {c = {attr, List:new(caption), {src, title}}}
+    return {c = {attr, ensureInlineList(caption), {src, title}}}
   end,
   {{"identifier", "classes", "attributes"}, "caption", {"src", "title"}}
 )
@@ -517,7 +531,7 @@ M.Link = M.Inline:create_constructor(
   function(content, target, title, attr)
     title = title or ""
     attr = attr or M.Attr()
-    return {c = {attr, List:new(content), {target, title}}}
+    return {c = {attr, ensureInlineList(content), {target, title}}}
   end,
   {{"identifier", "classes", "attributes"}, "content", {"target", "title"}}
 )
@@ -569,7 +583,7 @@ M.Note = M.Inline:create_constructor(
 -- @treturn     Inline                  quoted element
 M.Quoted = M.Inline:create_constructor(
   "Quoted",
-  function(quotetype, content) return {c = {quotetype, List:new(content)}} end,
+  function(quotetype, content) return {c = {quotetype, ensureInlineList(content)}} end,
   {"quotetype", "content"}
 )
 --- Creates a single-quoted inline element (DEPRECATED).
@@ -610,7 +624,7 @@ M.RawInline = M.Inline:create_constructor(
 -- @treturn     Inline                  smallcaps element
 M.SmallCaps = M.Inline:create_constructor(
   "SmallCaps",
-  function(content) return {c = List:new(content)} end,
+  function(content) return {c = ensureInlineList(content)} end,
   "content"
 )
 
@@ -638,7 +652,7 @@ M.Space = M.Inline:create_constructor(
 M.Span = M.Inline:create_constructor(
   "Span",
   function(content, attr)
-    return {c = {attr or M.Attr(), List:new(content)}}
+    return {c = {attr or M.Attr(), ensureInlineList(content)}}
   end,
   {{"identifier", "classes", "attributes"}, "content"}
 )
@@ -659,7 +673,7 @@ M.Str = M.Inline:create_constructor(
 -- @treturn     Inline                  strikeout element
 M.Strikeout = M.Inline:create_constructor(
   "Strikeout",
-  function(content) return {c = List:new(content)} end,
+  function(content) return {c = ensureInlineList(content)} end,
   "content"
 )
 
@@ -669,7 +683,7 @@ M.Strikeout = M.Inline:create_constructor(
 -- @treturn     Inline                  strong element
 M.Strong = M.Inline:create_constructor(
   "Strong",
-  function(content) return {c = List:new(content)} end,
+  function(content) return {c = ensureInlineList(content)} end,
   "content"
 )
 
@@ -679,7 +693,7 @@ M.Strong = M.Inline:create_constructor(
 -- @treturn     Inline                  subscript element
 M.Subscript = M.Inline:create_constructor(
   "Subscript",
-  function(content) return {c = List:new(content)} end,
+  function(content) return {c = ensureInlineList(content)} end,
   "content"
 )
 
@@ -689,7 +703,7 @@ M.Subscript = M.Inline:create_constructor(
 -- @treturn     Inline                  strong element
 M.Superscript = M.Inline:create_constructor(
   "Superscript",
-  function(content) return {c = List:new(content)} end,
+  function(content) return {c = ensureInlineList(content)} end,
   "content"
 )
 
