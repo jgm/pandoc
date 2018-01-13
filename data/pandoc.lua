@@ -22,9 +22,6 @@ THIS SOFTWARE.
 -- @author Albert Krewinkel
 -- @copyright © 2017–2018 Albert Krewinkel
 -- @license MIT
-local M = {
-  _VERSION = "0.4.0"
-}
 
 local List = require 'pandoc.List'
 
