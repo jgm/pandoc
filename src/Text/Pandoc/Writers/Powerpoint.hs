@@ -213,26 +213,6 @@ type Pixels = Integer
 data Presentation = Presentation [Slide]
   deriving (Show)
 
--- data PresentationSize = PresentationSize { presSizeWidth :: Pixels
---                                          , presSizeRatio :: PresentationRatio
---                                          }
---                       deriving (Show, Eq)
-
--- data PresentationRatio = Ratio4x3
---                        | Ratio16x9
---                        | Ratio16x10
---                        deriving (Show, Eq)
-
--- Note that right now we're only using Ratio4x3.
--- getPageHeight :: PresentationSize -> Pixels
--- getPageHeight sz = case presSizeRatio sz of
---   Ratio4x3 -> floor (((fromInteger (presSizeWidth sz)) / 4) * 3 :: Double)
---   Ratio16x9 -> floor (((fromInteger (presSizeWidth sz)) / 16) * 9 :: Double)
---   Ratio16x10 -> floor (((fromInteger (presSizeWidth sz)) / 16) * 10 :: Double)
-
--- instance Default PresentationSize where
---   def = PresentationSize 720 Ratio4x3
-
 data Slide = MetadataSlide { metadataSlideTitle :: [ParaElem]
                             , metadataSlideSubtitle :: [ParaElem]
                             , metadataSlideAuthors :: [[ParaElem]]
@@ -917,10 +897,69 @@ shapeHasName ns name element
       nm == name
   | otherwise = False
 
+shapeHasId :: NameSpaces -> String -> Element -> Bool
+shapeHasId ns ident element
+  | Just nvSpPr <- findChild (elemName ns "p" "nvSpPr") element
+  , Just cNvPr <- findChild (elemName ns "p" "cNvPr") nvSpPr
+  , Just nm <- findAttr (QName "id" Nothing Nothing) cNvPr =
+      nm == ident
+  | otherwise = False
+
 getContentShape :: NameSpaces -> Element -> Maybe Element
 getContentShape ns spTreeElem
   | isElem ns "p" "spTree" spTreeElem =
   filterChild (\e -> (isElem ns "p" "sp" e) && (shapeHasName ns "Content Placeholder 2" e)) spTreeElem
+  | otherwise = Nothing
+
+getShapeDimensions :: NameSpaces
+                   -> Element
+                   -> Maybe ((Integer, Integer), (Integer, Integer))
+getShapeDimensions ns element
+  | isElem ns "p" "sp" element = do
+      spPr <- findChild (elemName ns "p" "spPr") element
+      xfrm <- findChild (elemName ns "a" "xfrm") spPr
+      off <- findChild (elemName ns "a" "off") xfrm
+      xS <- findAttr (QName "x" Nothing Nothing) off
+      yS <- findAttr (QName "y" Nothing Nothing) off
+      ext <- findChild (elemName ns "a" "ext") xfrm
+      cxS <- findAttr (QName "cx" Nothing Nothing) ext
+      cyS <- findAttr (QName "cy" Nothing Nothing) ext
+      (x, _) <- listToMaybe $ reads xS
+      (y, _) <- listToMaybe $ reads yS
+      (cx, _) <- listToMaybe $ reads cxS
+      (cy, _) <- listToMaybe $ reads cyS
+      return $ ((x `div` 12700, y `div` 12700), (cx `div` 12700, cy `div` 12700))
+  | otherwise = Nothing
+
+
+getMasterShapeDimensionsById :: String
+                             -> Element
+                             -> Maybe ((Integer, Integer), (Integer, Integer))
+getMasterShapeDimensionsById ident master = do
+  let ns = elemToNameSpaces master
+  cSld <- findChild (elemName ns "p" "cSld") master
+  spTree <- findChild (elemName ns "p" "spTree") cSld
+  sp <- filterChild (\e -> (isElem ns "p" "sp" e) && (shapeHasId ns ident e)) spTree
+  getShapeDimensions ns sp
+
+getContentShapeSize :: NameSpaces
+                    -> Element
+                    -> Element
+                    -> Maybe ((Integer, Integer), (Integer, Integer))
+getContentShapeSize ns layout master
+  | isElem ns "p" "sldLayout" layout
+  , Just cSld <- findChild (elemName ns "p" "cSld") layout
+  , Just spTree <- findChild (elemName ns "p" "spTree") cSld
+  , Just sp  <- getContentShape ns spTree
+  , Just sz <- getShapeDimensions ns sp = Just sz
+  | isElem ns "p" "sldLayout" layout
+  , Just cSld <- findChild (elemName ns "p" "cSld") layout
+  , Just spTree <- findChild (elemName ns "p" "spTree") cSld
+  , Just sp  <- getContentShape ns spTree
+  , Just ident <- findChild (elemName ns "p" "nvSpPr") sp >>=
+                  findChild (elemName ns "p" "cNvPr") >>=
+                  findAttr (QName "id" Nothing Nothing)
+  , Just sz <- getMasterShapeDimensionsById ident master = Just sz
   | otherwise = Nothing
 
 replaceNamedChildren :: NameSpaces
@@ -1036,26 +1075,26 @@ makeMediaEntries = do
   let allInfos = mconcat $ M.elems mediaInfos
   mapM makeMediaEntry allInfos
 
--- | Scales the image to fit the page
--- sizes are passed in emu
-fitToPage' :: (Double, Double)  -- image size in emu
-           -> Integer           -- pageWidth
-           -> Integer           -- pageHeight
-           -> (Integer, Integer) -- imagesize
-fitToPage' (x, y) pageWidth pageHeight
-  -- Fixes width to the page width and scales the height
-  | x <= fromIntegral pageWidth && y <= fromIntegral pageHeight =
-      (floor x, floor y)
-  | x / fromIntegral pageWidth > y / fromIntegral pageWidth =
-      (pageWidth, floor $ ((fromIntegral pageWidth) / x) * y)
-  | otherwise =
-      (floor $ ((fromIntegral pageHeight) / y) * x, pageHeight)
+-- -- | Scales the image to fit the page
+-- -- sizes are passed in emu
+-- fitToPage' :: (Double, Double)  -- image size in emu
+--            -> Integer           -- pageWidth
+--            -> Integer           -- pageHeight
+--            -> (Integer, Integer) -- imagesize
+-- fitToPage' (x, y) pageWidth pageHeight
+--   -- Fixes width to the page width and scales the height
+--   | x <= fromIntegral pageWidth && y <= fromIntegral pageHeight =
+--       (floor x, floor y)
+--   | x / fromIntegral pageWidth > y / fromIntegral pageWidth =
+--       (pageWidth, floor $ ((fromIntegral pageWidth) / x) * y)
+--   | otherwise =
+--       (floor $ ((fromIntegral pageHeight) / y) * x, pageHeight)
 
-positionImage :: (Double, Double) -> Integer -> Integer -> (Integer, Integer)
-positionImage (x, y) pageWidth pageHeight =
-  let (x', y') = fitToPage' (x, y) pageWidth pageHeight
-  in
-    ((pageWidth - x') `div` 2, (pageHeight - y') `div`  2)
+-- positionImage :: (Double, Double) -> Integer -> Integer -> (Integer, Integer)
+-- positionImage (x, y) pageWidth pageHeight =
+--   let (x', y') = fitToPage' (x, y) pageWidth pageHeight
+--   in
+--     ((pageWidth - x') `div` 2, (pageHeight - y') `div`  2)
 
 getMaster :: PandocMonad m => P m Element
 getMaster = do
@@ -1067,52 +1106,57 @@ getMaster = do
 -- image goes underneath it. We only use this in a content slide if it
 -- has a header.
 
-getHeaderSize :: PandocMonad m => P m ((Integer, Integer), (Integer, Integer))
-getHeaderSize = do
-  master <- getMaster
-  let ns = elemToNameSpaces master
-      sps = [master] >>=
-            findChildren (elemName ns "p" "cSld") >>=
-            findChildren (elemName ns "p" "spTree") >>=
-            findChildren (elemName ns "p" "sp")
-      mbXfrm =
-        listToMaybe (filter (shapeHasName ns "Title Placeholder 1") sps) >>=
-        findChild (elemName ns "p" "spPr") >>=
-        findChild (elemName ns "a" "xfrm")
-      xoff = mbXfrm >>=
-             findChild (elemName ns "a" "off") >>=
-             findAttr (QName "x" Nothing Nothing) >>=
-             (listToMaybe . (\s -> reads s :: [(Integer, String)]))
-      yoff = mbXfrm >>=
-             findChild (elemName ns "a" "off") >>=
-             findAttr (QName "y" Nothing Nothing) >>=
-             (listToMaybe . (\s -> reads s :: [(Integer, String)]))
-      xext = mbXfrm >>=
-             findChild (elemName ns "a" "ext") >>=
-             findAttr (QName "cx" Nothing Nothing) >>=
-             (listToMaybe . (\s -> reads s :: [(Integer, String)]))
-      yext = mbXfrm >>=
-             findChild (elemName ns "a" "ext") >>=
-             findAttr (QName "cy" Nothing Nothing) >>=
-             (listToMaybe . (\s -> reads s :: [(Integer, String)]))
-      off = case xoff of
-              Just (xoff', _) | Just (yoff',_) <- yoff -> (xoff', yoff')
-              _                               -> (1043490, 1027664)
-      ext = case xext of
-              Just (xext', _) | Just (yext',_) <- yext -> (xext', yext')
-              _                               -> (7024744, 1143000)
-  return $ (off, ext)
-
+-- getHeaderSize :: PandocMonad m => P m ((Integer, Integer), (Integer, Integer))
+-- getHeaderSize = do
+--   master <- getMaster
+--   let ns = elemToNameSpaces master
+--       sps = [master] >>=
+--             findChildren (elemName ns "p" "cSld") >>=
+--             findChildren (elemName ns "p" "spTree") >>=
+--             findChildren (elemName ns "p" "sp")
+--       mbXfrm =
+--         listToMaybe (filter (shapeHasName ns "Title Placeholder 1") sps) >>=
+--         findChild (elemName ns "p" "spPr") >>=
+--         findChild (elemName ns "a" "xfrm")
+--       xoff = mbXfrm >>=
+--              findChild (elemName ns "a" "off") >>=
+--              findAttr (QName "x" Nothing Nothing) >>=
+--              (listToMaybe . (\s -> reads s :: [(Integer, String)]))
+--       yoff = mbXfrm >>=
+--              findChild (elemName ns "a" "off") >>=
+--              findAttr (QName "y" Nothing Nothing) >>=
+--              (listToMaybe . (\s -> reads s :: [(Integer, String)]))
+--       xext = mbXfrm >>=
+--              findChild (elemName ns "a" "ext") >>=
+--              findAttr (QName "cx" Nothing Nothing) >>=
+--              (listToMaybe . (\s -> reads s :: [(Integer, String)]))
+--       yext = mbXfrm >>=
+--              findChild (elemName ns "a" "ext") >>=
+--              findAttr (QName "cy" Nothing Nothing) >>=
+--              (listToMaybe . (\s -> reads s :: [(Integer, String)]))
+--       off = case xoff of
+--               Just (xoff', _) | Just (yoff',_) <- yoff -> (xoff', yoff')
+--               _                               -> (1043490, 1027664)
+--       ext = case xext of
+--               Just (xext', _) | Just (yext',_) <- yext -> (xext', yext')
+--               _                               -> (7024744, 1143000)
+--   return $ (off, ext)
 
 -- Hard-coded for now
-captionPosition :: ((Integer, Integer), (Integer, Integer))
-captionPosition = ((457200, 6061972), (8229600, 527087))
+-- captionPosition :: ((Integer, Integer), (Integer, Integer))
+-- captionPosition = ((457200, 6061972), (8229600, 527087))
 
-createCaption :: PandocMonad m => [ParaElem] -> P m Element
-createCaption paraElements = do
+captionHeight :: Integer
+captionHeight = 40
+
+createCaption :: PandocMonad m
+              => ((Integer, Integer), (Integer, Integer))
+              -> [ParaElem]
+              -> P m Element
+createCaption contentShapeDimensions paraElements = do
   let para = Paragraph def{pPropAlign = Just AlgnCenter} paraElements
   elements <- mapM paragraphToElement [para]
-  let ((x, y), (cx, cy)) = captionPosition
+  let ((x, y), (cx, cy)) = contentShapeDimensions
   let txBody = mknode "p:txBody" [] $
                [mknode "a:bodyPr" [] (), mknode "a:lstStyle" [] ()] ++ elements
   return $
@@ -1123,8 +1167,10 @@ createCaption paraElements = do
                        ]
                      , mknode "p:spPr" []
                        [ mknode "a:xfrm" []
-                         [ mknode "a:off" [("x", show x), ("y", show y)] ()
-                         , mknode "a:ext" [("cx", show cx), ("cy", show cy)] ()
+                         [ mknode "a:off" [("x", show $ 12700 * x),
+                                           ("y", show $ 12700 * (y + cy - captionHeight))] ()
+                         , mknode "a:ext" [("cx", show $ 12700 * cx),
+                                           ("cy", show $ 12700 * captionHeight)] ()
                          ]
                        , mknode "a:prstGeom" [("prst", "rect")]
                          [ mknode "a:avLst" [] ()
@@ -1134,37 +1180,41 @@ createCaption paraElements = do
                      , txBody
                      ]
 
--- Largely lifted from inlineToOpenXML' in T.P.W.Docx. Can't be easily
--- abstracted because of some different namespaces and monads. TODO.
-makePicElement :: PandocMonad m
-               => PicProps
-               -> MediaInfo
-               -> Text.Pandoc.Definition.Attr
-               -> P m Element
-makePicElement picProps mInfo attr = do
+makePicElements :: PandocMonad m
+                => Element
+                -> PicProps
+                -> MediaInfo
+                -> Text.Pandoc.Definition.Attr
+                -> [ParaElem]
+                -> P m [Element]
+makePicElements layout picProps mInfo _ alt = do
   opts <- asks envOpts
   (pageWidth, pageHeight) <- asks envPresentationSize
-  hasHeader <- asks envSlideHasHeader
+  -- hasHeader <- asks envSlideHasHeader
   let hasCaption = mInfoCaption mInfo
   (imgBytes, _) <- P.fetchItem (mInfoFilePath mInfo)
-  -- We're not using x exts
-  ((hXoff, hYoff), (_, hYext)) <- if hasHeader
-                                  then getHeaderSize
-                                  else return ((0, 0), (0, 0))
+  let (pxX, pxY) = case imageSize opts imgBytes of
+        Right sz -> sizeInPixels $ sz
+        Left _   -> sizeInPixels $ def
+  master <- getMaster
+  let ns = elemToNameSpaces layout
+  let ((x, y), (cx, cytmp)) = case getContentShapeSize ns layout master of
+        Just dims -> dims
+        Nothing -> ((0, 0), (pageWidth, pageHeight))
 
-  let ((capX, capY), (_, _)) = if hasCaption
-                               then captionPosition
-                               else ((0,0), (0,0))
-  let (xpt,ypt) = desiredSizeInPoints opts attr
-                  (either (const def) id (imageSize opts imgBytes))
-  -- 12700 emu = 1 pt
-  let (xemu,yemu) = fitToPage' (xpt * 12700, ypt * 12700)
-                    ((pageWidth * 12700) - (2 * hXoff) - (2 * capX))
-                    ((if hasCaption then capY else (pageHeight * 12700)) - (hYoff + hYext))
-      (xoff, yoff) = positionImage (xpt * 12700, ypt * 12700) (pageWidth * 12700) (pageHeight * 12700)
-      xoff' = if hasHeader then xoff + hXoff else xoff
-      xoff'' = if hasCaption then xoff' + capX else xoff'
-      yoff' = if hasHeader then hYoff + hYext else yoff
+      cy = if hasCaption then cytmp - captionHeight else cytmp
+
+  let imgRatio = fromIntegral pxX / fromIntegral pxY :: Double
+      boxRatio = fromIntegral cx / fromIntegral cy :: Double
+      (dimX, dimY) = if imgRatio > boxRatio
+                     then (fromIntegral cx, fromIntegral cx / imgRatio)
+                     else (fromIntegral cy * imgRatio, fromIntegral cy)
+
+      (dimX', dimY') = (round dimX * 12700, round dimY * 12700) :: (Integer, Integer)
+      (xoff, yoff) = (fromIntegral x + (fromIntegral cx - dimX) / 2,
+                      fromIntegral y + (fromIntegral cy - dimY) / 2)
+      (xoff', yoff') = (round xoff * 12700, round yoff * 12700) :: (Integer, Integer)
+
   let cNvPicPr = mknode "p:cNvPicPr" [] $
                  mknode "a:picLocks" [("noGrp","1")
                                      ,("noChangeAspect","1")] ()
@@ -1185,9 +1235,9 @@ makePicElement picProps mInfo attr = do
                  , mknode "a:stretch" [] $
                    mknode "a:fillRect" [] () ]
   let xfrm =    mknode "a:xfrm" []
-                [ mknode "a:off" [("x",show xoff''), ("y",show yoff')] ()
-                , mknode "a:ext" [("cx",show xemu)
-                                 ,("cy",show yemu)] () ]
+                [ mknode "a:off" [("x",show xoff'), ("y",show yoff')] ()
+                , mknode "a:ext" [("cx",show dimX')
+                                 ,("cy",show dimY')] () ]
   let prstGeom = mknode "a:prstGeom" [("prst","rect")] $
                  mknode "a:avLst" [] ()
   let ln =      mknode "a:ln" [("w","9525")]
@@ -1196,11 +1246,17 @@ makePicElement picProps mInfo attr = do
                 , mknode "a:tailEnd" [] () ]
   let spPr =    mknode "p:spPr" [("bwMode","auto")]
                 [xfrm, prstGeom, mknode "a:noFill" [] (), ln]
-  return $
-    mknode "p:pic" []
-      [ nvPicPr
-      , blipFill
-      , spPr ]
+
+  let picShape = mknode "p:pic" []
+                 [ nvPicPr
+                 , blipFill
+                 , spPr ]
+
+  -- And now, maybe create the caption:
+  if hasCaption
+    then do cap <- createCaption ((x, y), (cx, cytmp)) alt
+            return [picShape, cap]
+    else return [picShape]
 
 -- Currently hardcoded, until I figure out how to make it dynamic.
 blockQuoteSize :: Pixels
@@ -1345,44 +1401,21 @@ shapeToElement layout (TextBox paras)
         replaceNamedChildren ns "p" "txBody" [txBody] $
         replaceNamedChildren ns "p" "spPr" [emptySpPr] $
         sp
-  -- XXX: TODO
-  | otherwise = return $ mknode "p:sp" [] ()
--- XXX: TODO
-shapeToElement layout (Pic picProps fp attr alt) = do
-  mInfo <- registerMedia fp alt
-  case mInfoExt mInfo of
-    Just _ -> makePicElement picProps mInfo attr
-    Nothing -> shapeToElement layout $ TextBox [Paragraph def alt]
-shapeToElement _ (GraphicFrame tbls _) = do
-  elements <- mapM graphicToElement tbls
-  return $ mknode "p:graphicFrame" [] $
-    [ mknode "p:nvGraphicFramePr" [] $
-      [ mknode "p:cNvPr" [("id", "6"), ("name", "Content Placeholder 5")] ()
-      , mknode "p:cNvGraphicFramePr" [] $
-        [mknode "a:graphicFrameLocks" [("noGrp", "1")] ()]
-      , mknode "p:nvPr" [] $
-        [mknode "p:ph" [("idx", "1")] ()]
-      ]
-    , mknode "p:xfrm" [] $
-      [ mknode "a:off" [("x", "457200"), ("y", "1600200")] ()
-      , mknode "a:ext" [("cx", "8029388"), ("cy", "3644152")] ()
-      ]
-    ] ++ elements
+-- GraphicFrame and Pic should never reach this.
+shapeToElement _ _ = return $ mknode "p:sp" [] ()
 
 shapeToElements :: PandocMonad m => Element -> Shape -> P m [Element]
+shapeToElements layout (Pic picProps fp attr alt) = do
+  mInfo <- registerMedia fp alt
+  case mInfoExt mInfo of
+    Just _ -> do
+      makePicElements layout picProps mInfo attr alt
+    Nothing -> shapeToElements layout $ TextBox [Paragraph def alt]
+shapeToElements layout (GraphicFrame tbls cptn) =
+  graphicFrameToElements layout tbls cptn
 shapeToElements layout shp = do
-  case shp of
-    (Pic _ _ _ alt) | (not . null) alt -> do
-      element <- shapeToElement layout shp
-      caption <- createCaption alt
-      return [element, caption]
-    (GraphicFrame _ cptn) | (not . null) cptn -> do
-      element <- shapeToElement layout shp
-      caption <- createCaption cptn
-      return [element, caption]
-    _ -> do
-      element <- shapeToElement layout shp
-      return [element]
+  element <- shapeToElement layout shp
+  return [element]
 
 shapesToElements :: PandocMonad m => Element -> [Shape] -> P m [Element]
 shapesToElements layout shps = do
@@ -1391,6 +1424,38 @@ shapesToElements layout shps = do
 hardcodedTableMargin :: Integer
 hardcodedTableMargin = 36
 
+graphicFrameToElements :: PandocMonad m => Element -> [Graphic] -> [ParaElem] -> P m [Element]
+graphicFrameToElements layout tbls caption = do
+  -- get the sizing
+  master <- getMaster
+  (pageWidth, pageHeight) <- asks envPresentationSize
+  let ns = elemToNameSpaces layout
+  let ((x, y), (cx, cytmp)) = case getContentShapeSize ns layout master of
+        Just dims -> dims
+        Nothing -> ((0, 0), (pageWidth, pageHeight))
+
+      cy = if (not $ null caption) then cytmp - captionHeight else cytmp
+
+  elements <- mapM graphicToElement tbls
+  let graphicFrameElts =
+        mknode "p:graphicFrame" [] $
+        [ mknode "p:nvGraphicFramePr" [] $
+          [ mknode "p:cNvPr" [("id", "6"), ("name", "Content Placeholder 5")] ()
+          , mknode "p:cNvGraphicFramePr" [] $
+            [mknode "a:graphicFrameLocks" [("noGrp", "1")] ()]
+          , mknode "p:nvPr" [] $
+            [mknode "p:ph" [("idx", "1")] ()]
+          ]
+        , mknode "p:xfrm" [] $
+          [ mknode "a:off" [("x", show $ 12700 * x), ("y", show $ 12700 * y)] ()
+          , mknode "a:ext" [("cx", show $ 12700 * cx), ("cy", show $ 12700 * cy)] ()
+          ]
+        ] ++ elements
+
+  if (not $ null caption)
+    then do capElt <- createCaption ((x, y), (cx, cytmp)) caption
+            return [graphicFrameElts, capElt]
+    else return [graphicFrameElts]
 
 graphicToElement :: PandocMonad m => Graphic -> P m Element
 graphicToElement (Tbl tblPr colWidths hdrCells rows) = do
@@ -1436,6 +1501,12 @@ getShapeByName ns spTreeElem name
   | isElem ns "p" "spTree" spTreeElem =
   filterChild (\e -> (isElem ns "p" "sp" e) && (shapeHasName ns name e)) spTreeElem
   | otherwise = Nothing
+
+-- getShapeById :: NameSpaces -> Element -> String -> Maybe Element
+-- getShapeById ns spTreeElem ident
+--   | isElem ns "p" "spTree" spTreeElem =
+--   filterChild (\e -> (isElem ns "p" "sp" e) && (shapeHasId ns ident e)) spTreeElem
+--   | otherwise = Nothing
 
 nonBodyTextToElement :: PandocMonad m => Element -> String -> [ParaElem] -> P m Element
 nonBodyTextToElement layout shapeName paraElements
