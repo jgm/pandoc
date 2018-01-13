@@ -186,15 +186,24 @@ function AstElement:create_constructor(tag, fn, accessors)
   return constr
 end
 
---- Ensure a given object is an Inline element, or convert it into one.
-local function ensureInlineList (x)
-  if type(x) == string then
-    return List:new{M.Str(x)}
-  elseif x.tag then
+--- Convert AstElement input into a list if necessary.
+-- @local
+local function ensureList (x)
+  if x.tag then
     -- Lists are not tagged, but all elements are
     return List:new{x}
   else
-    return x
+    return List:new(x)
+  end
+end
+
+--- Ensure a given object is an Inline element, or convert it into one.
+-- @local
+local function ensureInlineList (x)
+  if type(x) == 'string' then
+    return List:new{M.Str(x)}
+  else
+    return ensureList(x)
   end
 end
 
@@ -209,7 +218,7 @@ end
 M.Pandoc = AstElement:make_subtype'Pandoc'
 function M.Pandoc:new (blocks, meta)
   return {
-    blocks = List:new(blocks),
+    blocks = ensureList(blocks),
     meta = meta or {},
   }
 end
@@ -239,7 +248,7 @@ M.MetaValue = AstElement:make_subtype('MetaValue')
 -- @tparam {Block,...} blocks blocks
 M.MetaBlocks = M.MetaValue:create_constructor(
   'MetaBlocks',
-  function (content) return List:new(content) end
+  function (content) return ensureList(content) end
 )
 
 --- Meta inlines
@@ -255,7 +264,7 @@ M.MetaInlines = M.MetaValue:create_constructor(
 -- @tparam {MetaValue,...} meta_values list of meta values
 M.MetaList = M.MetaValue:create_constructor(
   'MetaList',
-  function (content) return List:new(content) end
+  function (content) return ensureList(content) end
 )
 
 --- Meta map
@@ -295,7 +304,7 @@ M.Block = AstElement:make_subtype'Block'
 -- @treturn     Block                   block quote element
 M.BlockQuote = M.Block:create_constructor(
   "BlockQuote",
-  function(content) return {c = content} end,
+  function(content) return {c = ensureList(content)} end,
   "content"
 )
 
@@ -305,7 +314,7 @@ M.BlockQuote = M.Block:create_constructor(
 -- @treturn     Block                         bullet list element
 M.BulletList = M.Block:create_constructor(
   "BulletList",
-  function(content) return {c = content} end,
+  function(content) return {c = ensureList(content)} end,
   "content"
 )
 
@@ -326,7 +335,7 @@ M.CodeBlock = M.Block:create_constructor(
 -- @treturn     Block                  definition list element
 M.DefinitionList = M.Block:create_constructor(
   "DefinitionList",
-  function(content) return {c = List:new(content)} end,
+  function(content) return {c = ensureList(content)} end,
   "content"
 )
 
@@ -338,7 +347,7 @@ M.DefinitionList = M.Block:create_constructor(
 M.Div = M.Block:create_constructor(
   "Div",
   function(content, attr)
-    return {c = {attr or M.Attr(), List:new(content)}}
+    return {c = {attr or M.Attr(), ensureList(content)}}
   end,
   {{"identifier", "classes", "attributes"}, "content"}
 )
@@ -371,7 +380,7 @@ M.HorizontalRule = M.Block:create_constructor(
 -- @treturn     Block                   line block element
 M.LineBlock = M.Block:create_constructor(
   "LineBlock",
-  function(content) return {c = List:new(content)} end,
+  function(content) return {c = ensureList(content)} end,
   "content"
 )
 
@@ -392,7 +401,7 @@ M.OrderedList = M.Block:create_constructor(
   "OrderedList",
   function(items, listAttributes)
     listAttributes = listAttributes or {1, M.DefaultStyle, M.DefaultDelim}
-    return {c = {listAttributes, List:new(items)}}
+    return {c = {listAttributes, ensureList(items)}}
   end,
   {{"start", "style", "delimiter"}, "content"}
 )
@@ -468,7 +477,7 @@ M.Inline = AstElement:make_subtype'Inline'
 M.Cite = M.Inline:create_constructor(
   "Cite",
   function(content, citations)
-    return {c = {List:new(citations), ensureInlineList(content)}}
+    return {c = {ensureList(citations), ensureInlineList(content)}}
   end,
   {"citations", "content"}
 )
@@ -572,7 +581,7 @@ M.InlineMath = M.Inline:create_constructor(
 -- @tparam      {Block,...} content     footnote block content
 M.Note = M.Inline:create_constructor(
   "Note",
-  function(content) return {c = List:new(content)} end,
+  function(content) return {c = ensureList(content)} end,
   "content"
 )
 
@@ -806,7 +815,7 @@ end
 M.Attr = AstElement:make_subtype'Attr'
 function M.Attr:new (identifier, classes, attributes)
   identifier = identifier or ''
-  classes = List:new(classes or {})
+  classes = ensureList(classes or {})
   attributes = setmetatable(to_alist(attributes or {}), AttributeList)
   return {identifier, classes, attributes}
 end
@@ -838,8 +847,8 @@ function M.Citation:new (id, mode, prefix, suffix, note_num, hash)
   return {
     id = id,
     mode = mode,
-    prefix = prefix or {},
-    suffix = suffix or {},
+    prefix = ensureList(prefix or {}),
+    suffix = ensureList(suffix or {}),
     note_num = note_num or 0,
     hash = hash or 0,
   }

@@ -12,8 +12,8 @@ import Text.Pandoc.Builder (bulletList, divWith, doc, doubleQuoted, emph,
                             header, linebreak, para, plain, rawBlock,
                             singleQuoted, space, str, strong, (<>))
 import Text.Pandoc.Class (runIOorExplode, setUserDataDir)
-import Text.Pandoc.Definition (Block, Inline (Emph, Str), Meta, Pandoc,
-                               pandocTypesVersion)
+import Text.Pandoc.Definition (Block (BlockQuote, Para), Inline (Emph, Str),
+                               Meta, Pandoc, pandocTypesVersion)
 import Text.Pandoc.Lua (runLuaFilter, runPandocLua)
 import Text.Pandoc.Options (def)
 import Text.Pandoc.Shared (pandocVersion)
@@ -126,8 +126,18 @@ tests = map (localOption (QuickCheckTests 20))
         =<< Lua.peek Lua.stackTop
 
   , testCase "Allow singleton inline in constructors" . runPandocLua' $ do
-      res <- Lua.callFunc "pandoc.Emph" (Str "test")
-      Lua.liftIO $ assertEqual "Not the exptected Emph" (Emph [Str "test"]) res
+      Lua.liftIO . assertEqual "Not the exptected Emph" (Emph [Str "test"])
+        =<< Lua.callFunc "pandoc.Emph" (Str "test")
+      Lua.liftIO . assertEqual "Unexpected element" (Para [Str "test"])
+        =<< Lua.callFunc "pandoc.Para" ("test" :: String)
+      Lua.liftIO . assertEqual "Unexptected element"
+        (BlockQuote [Para [Str "foo"]]) =<< (
+        do
+          Lua.getglobal' "pandoc.BlockQuote"
+          Lua.push (Para [Str "foo"])
+          _ <- Lua.call 1 1
+          Lua.peek Lua.stackTop
+        )
 
   , testCase "informative error messages" . runPandocLua' $ do
       Lua.pushboolean True
