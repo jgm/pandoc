@@ -42,7 +42,6 @@ import Data.Time.Clock (UTCTime)
 import Data.Time.Clock.POSIX (utcTimeToPOSIXSeconds, posixSecondsToUTCTime)
 import System.FilePath.Posix (splitDirectories, splitExtension, takeExtension)
 import Text.XML.Light
-import qualified Text.XML.Light.Cursor as XMLC
 import Text.Pandoc.Definition
 import qualified Text.Pandoc.UTF8 as UTF8
 import Text.Pandoc.Class (PandocMonad)
@@ -126,7 +125,7 @@ data WriterEnv = WriterEnv { envMetadata :: Meta
                            -- the end of the slide file name and
                            -- the rId number
                            , envSlideIdOffset :: Int
-                           , envColumnNumber :: Maybe Int
+                           , envContentType :: ContentType
                            }
                  deriving (Show)
 
@@ -145,8 +144,13 @@ instance Default WriterEnv where
                   , envInNoteSlide = False
                   , envCurSlideId = 1
                   , envSlideIdOffset = 1
-                  , envColumnNumber = Nothing
+                  , envContentType = NormalContent
                   }
+
+data ContentType = NormalContent
+                 | TwoColumnLeftContent
+                 | TwoColumnRightContent
+                 deriving (Show, Eq)
 
 data MediaInfo = MediaInfo { mInfoFilePath :: FilePath
                            , mInfoLocalId  :: Int
@@ -912,15 +916,20 @@ shapeHasId ns ident element
 -- column is id=4.
 getContentShape :: PandocMonad m => NameSpaces -> Element -> P m Element
 getContentShape ns spTreeElem
-  | isElem ns "p" "spTree" spTreeElem =
-   case filterChild
-        (\e -> (isElem ns "p" "sp" e) && (shapeHasId ns "3" e))
-        spTreeElem
-   of
-     Just e -> return e
-     Nothing -> throwError $
-                PandocSomeError $
-                "Could not find shape for Powerpoint content"
+  | isElem ns "p" "spTree" spTreeElem = do
+      contentType <- asks envContentType
+      let ident = case contentType of
+            NormalContent -> "3"
+            TwoColumnLeftContent -> "3"
+            TwoColumnRightContent -> "4"
+      case filterChild
+           (\e -> (isElem ns "p" "sp" e) && (shapeHasId ns ident e))
+           spTreeElem
+        of
+        Just e -> return e
+        Nothing -> throwError $
+                   PandocSomeError $
+                   "Could not find shape for Powerpoint content"
 getContentShape _ _ = throwError $
                       PandocSomeError $
                       "Attempted to find content on non shapeTree"
@@ -1552,39 +1561,14 @@ contentToElement layout hdrShape shapes
       let hdrShapeElements = if null hdrShape
                              then []
                              else [element]
-      contentElements <- shapesToElements layout shapes
+      contentElements <- local
+                         (\env -> env {envContentType = NormalContent})
+                         (shapesToElements layout shapes)
       return $
         replaceNamedChildren ns "p" "sp"
         (hdrShapeElements ++ contentElements)
         spTree
 contentToElement _ _ _ = return $ mknode "p:sp" [] ()
-
-setIdx'' :: NameSpaces -> String -> Content -> Content
-setIdx'' _ idx (Elem element) =
-  let tag = XMLC.getTag element
-      attrs = XMLC.tagAttribs tag
-      idxKey = (QName "idx" Nothing Nothing)
-      attrs' = Attr idxKey idx : (filter (\a -> attrKey a /= idxKey) attrs)
-      tag' = tag {XMLC.tagAttribs = attrs'}
-  in Elem $ XMLC.setTag tag' element
-setIdx'' _ _ c = c
-
-setIdx' :: NameSpaces -> String -> XMLC.Cursor -> XMLC.Cursor
-setIdx' ns idx cur =
-  let modifiedCur = XMLC.modifyContent (setIdx'' ns idx) cur
-  in
-    case XMLC.nextDF modifiedCur of
-      Just cur' -> setIdx' ns idx cur'
-      Nothing   -> XMLC.root modifiedCur
-
-setIdx :: NameSpaces -> String -> Element -> Element
-setIdx ns idx element =
-  let cur = XMLC.fromContent (Elem element)
-      cur' = setIdx' ns idx cur
-  in
-    case XMLC.toTree cur' of
-      Elem element' -> element'
-      _             -> element
 
 twoColumnToElement :: PandocMonad m => Element -> [ParaElem] -> [Shape] -> [Shape] -> P m Element
 twoColumnToElement layout hdrShape shapesL shapesR
@@ -1595,13 +1579,17 @@ twoColumnToElement layout hdrShape shapesL shapesR
       let hdrShapeElements = if null hdrShape
                              then []
                              else [element]
-      contentElementsL <- shapesToElements layout shapesL
-      contentElementsR <- shapesToElements layout shapesR
-      let contentElementsL' = map (setIdx ns "1") contentElementsL
-          contentElementsR' = map (setIdx ns "2") contentElementsR
+      contentElementsL <- local
+                          (\env -> env {envContentType =TwoColumnLeftContent})
+                          (shapesToElements layout shapesL)
+      contentElementsR <- local
+                          (\env -> env {envContentType =TwoColumnRightContent})
+                          (shapesToElements layout shapesR)
+      -- let contentElementsL' = map (setIdx ns "1") contentElementsL
+      --     contentElementsR' = map (setIdx ns "2") contentElementsR
       return $
         replaceNamedChildren ns "p" "sp"
-        (hdrShapeElements ++ contentElementsL' ++ contentElementsR')
+        (hdrShapeElements ++ contentElementsL ++ contentElementsR)
         spTree
 twoColumnToElement _ _ _ _= return $ mknode "p:sp" [] ()
 
