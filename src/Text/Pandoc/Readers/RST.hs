@@ -972,11 +972,16 @@ extractCaption = do
   legend <- optional blanklines >> (mconcat <$> many block)
   return (capt,legend)
 
--- divide string by blanklines
+-- divide string by blanklines, and surround with
+-- \begin{aligned}...\end{aligned} if needed.
 toChunks :: String -> [String]
 toChunks = dropWhile null
-           . map (trim . unlines)
+           . map (addAligned . trim . unlines)
            . splitBy (all (`elem` (" \t" :: String))) . lines
+  -- we put this in an aligned environment if it contains \\, see #4254
+  where addAligned s = if "\\\\" `isInfixOf` s
+                          then "\\begin{aligned}\n" ++ s ++ "\n\\end{aligned}"
+                          else s
 
 codeblock :: [String] -> Maybe String -> String -> String -> RSTParser m Blocks
 codeblock classes numberLines lang body =
