@@ -333,13 +333,16 @@ totoks pos t =
                                                   -> (T.pack "\n",
                                                         T.span isSpaceOrTab r2)
                                           _ -> (mempty, (mempty, r1))
+                          ws = "\\" <> w1 <> w2 <> w3
                       in  case T.uncons r3 of
                                Just ('\n', _) ->
                                  Tok pos (CtrlSeq " ") ("\\" <> w1)
-                                 : totoks (incSourceColumn pos 1) r1
+                                 : totoks (incSourceColumn pos (T.length ws))
+                                   r1
                                _ ->
-                                 Tok pos (CtrlSeq " ") ("\\" <> w1 <> w2 <> w3)
-                                 : totoks (incSourceColumn pos 1) r3
+                                 Tok pos (CtrlSeq " ") ws
+                                 : totoks (incSourceColumn pos (T.length ws))
+                                   r3
                   | otherwise  ->
                       Tok pos (CtrlSeq (T.singleton d)) (T.pack [c,d])
                       : totoks (incSourceColumn pos 2) rest'
