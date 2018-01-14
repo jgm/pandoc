@@ -527,6 +527,8 @@ library
                    Text.Pandoc.Readers.Org.ParserState,
                    Text.Pandoc.Readers.Org.Parsing,
                    Text.Pandoc.Readers.Org.Shared,
+                   Text.Pandoc.Writers.Powerpoint.Presentation,
+                   Text.Pandoc.Writers.Powerpoint.Output,
                    Text.Pandoc.Lua.Filter,
                    Text.Pandoc.Lua.Init,
                    Text.Pandoc.Lua.Module.MediaBag,
