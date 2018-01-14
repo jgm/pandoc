@@ -200,7 +200,7 @@ tests = [ testGroup "inline code"
             ":smile: and :+1:" =?> para (text "😄 and 👍")
           ]
         , "unbalanced brackets" =:
-            "[[[[[[[[[[[[hi" =?> para (text "[[[[[[[[[[[[hi")
+            "[[[[[[[[[[[hi" =?> para (text "[[[[[[[[[[[hi")
         , testGroup "backslash escapes"
           [ "in URL" =:
             "[hi](/there\\))"
