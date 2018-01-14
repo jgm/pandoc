@@ -32,7 +32,7 @@ Conversion of 'Pandoc' documents to powerpoint (pptx).
 
 module Text.Pandoc.Writers.Powerpoint (writePowerpoint) where
 
-import Control.Monad.Except (throwError)
+import Control.Monad.Except (throwError, catchError)
 import Control.Monad.Reader
 import Control.Monad.State
 import Codec.Archive.Zip
@@ -126,6 +126,7 @@ data WriterEnv = WriterEnv { envMetadata :: Meta
                            -- the end of the slide file name and
                            -- the rId number
                            , envSlideIdOffset :: Int
+                           , envColumnNumber :: Maybe Int
                            }
                  deriving (Show)
 
@@ -144,6 +145,7 @@ instance Default WriterEnv where
                   , envInNoteSlide = False
                   , envCurSlideId = 1
                   , envSlideIdOffset = 1
+                  , envColumnNumber = Nothing
                   }
 
 data MediaInfo = MediaInfo { mInfoFilePath :: FilePath
@@ -905,11 +907,23 @@ shapeHasId ns ident element
       nm == ident
   | otherwise = False
 
-getContentShape :: NameSpaces -> Element -> Maybe Element
+-- The content shape in slideLayout2 (Title/Content) has id=3 In
+-- slideLayout4 (two column) the left column is id=3, and the right
+-- column is id=4.
+getContentShape :: PandocMonad m => NameSpaces -> Element -> P m Element
 getContentShape ns spTreeElem
   | isElem ns "p" "spTree" spTreeElem =
-  filterChild (\e -> (isElem ns "p" "sp" e) && (shapeHasName ns "Content Placeholder 2" e)) spTreeElem
-  | otherwise = Nothing
+   case filterChild
+        (\e -> (isElem ns "p" "sp" e) && (shapeHasId ns "3" e))
+        spTreeElem
+   of
+     Just e -> return e
+     Nothing -> throwError $
+                PandocSomeError $
+                "Could not find shape for Powerpoint content"
+getContentShape _ _ = throwError $
+                      PandocSomeError $
+                      "Attempted to find content on non shapeTree"
 
 getShapeDimensions :: NameSpaces
                    -> Element
@@ -942,25 +956,31 @@ getMasterShapeDimensionsById ident master = do
   sp <- filterChild (\e -> (isElem ns "p" "sp" e) && (shapeHasId ns ident e)) spTree
   getShapeDimensions ns sp
 
-getContentShapeSize :: NameSpaces
+getContentShapeSize :: PandocMonad m
+                    => NameSpaces
                     -> Element
                     -> Element
-                    -> Maybe ((Integer, Integer), (Integer, Integer))
+                    -> P m ((Integer, Integer), (Integer, Integer))
 getContentShapeSize ns layout master
   | isElem ns "p" "sldLayout" layout
   , Just cSld <- findChild (elemName ns "p" "cSld") layout
-  , Just spTree <- findChild (elemName ns "p" "spTree") cSld
-  , Just sp  <- getContentShape ns spTree
-  , Just sz <- getShapeDimensions ns sp = Just sz
-  | isElem ns "p" "sldLayout" layout
-  , Just cSld <- findChild (elemName ns "p" "cSld") layout
-  , Just spTree <- findChild (elemName ns "p" "spTree") cSld
-  , Just sp  <- getContentShape ns spTree
-  , Just ident <- findChild (elemName ns "p" "nvSpPr") sp >>=
-                  findChild (elemName ns "p" "cNvPr") >>=
-                  findAttr (QName "id" Nothing Nothing)
-  , Just sz <- getMasterShapeDimensionsById ident master = Just sz
-  | otherwise = Nothing
+  , Just spTree <- findChild (elemName ns "p" "spTree") cSld = do
+      sp  <- getContentShape ns spTree
+      case getShapeDimensions ns sp of
+        Just sz -> return sz
+        Nothing -> do let mbSz =
+                            findChild (elemName ns "p" "nvSpPr") sp >>=
+                            findChild (elemName ns "p" "cNvPr") >>=
+                            findAttr (QName "id" Nothing Nothing) >>=
+                            flip getMasterShapeDimensionsById master
+                      case mbSz of
+                        Just sz' -> return sz'
+                        Nothing -> throwError $
+                                   PandocSomeError $
+                                   "Couldn't find necessary content shape size"
+getContentShapeSize _ _ _ = throwError $
+                            PandocSomeError $
+                            "Attempted to find content shape size in non-layout"
 
 replaceNamedChildren :: NameSpaces
                    -> String
@@ -1198,11 +1218,11 @@ makePicElements layout picProps mInfo _ alt = do
         Left _   -> sizeInPixels $ def
   master <- getMaster
   let ns = elemToNameSpaces layout
-  let ((x, y), (cx, cytmp)) = case getContentShapeSize ns layout master of
-        Just dims -> dims
-        Nothing -> ((0, 0), (pageWidth, pageHeight))
+  ((x, y), (cx, cytmp)) <- getContentShapeSize ns layout master
+                           `catchError`
+                           (\_ -> return ((0, 0), (pageWidth, pageHeight)))
 
-      cy = if hasCaption then cytmp - captionHeight else cytmp
+  let cy = if hasCaption then cytmp - captionHeight else cytmp
 
   let imgRatio = fromIntegral pxX / fromIntegral pxY :: Double
       boxRatio = fromIntegral cx / fromIntegral cy :: Double
@@ -1390,8 +1410,8 @@ shapeToElement :: PandocMonad m => Element -> Shape -> P m Element
 shapeToElement layout (TextBox paras)
   | ns <- elemToNameSpaces layout
   , Just cSld <- findChild (elemName ns "p" "cSld") layout
-  , Just spTree <- findChild (elemName ns "p" "spTree") cSld
-  , Just sp <- getContentShape ns spTree = do
+  , Just spTree <- findChild (elemName ns "p" "spTree") cSld = do
+      sp <- getContentShape ns spTree
       elements <- mapM paragraphToElement paras
       let txBody = mknode "p:txBody" [] $
                    [mknode "a:bodyPr" [] (), mknode "a:lstStyle" [] ()] ++ elements
@@ -1430,11 +1450,11 @@ graphicFrameToElements layout tbls caption = do
   master <- getMaster
   (pageWidth, pageHeight) <- asks envPresentationSize
   let ns = elemToNameSpaces layout
-  let ((x, y), (cx, cytmp)) = case getContentShapeSize ns layout master of
-        Just dims -> dims
-        Nothing -> ((0, 0), (pageWidth, pageHeight))
+  ((x, y), (cx, cytmp)) <- getContentShapeSize ns layout master
+                           `catchError`
+                           (\_ -> return ((0, 0), (pageWidth, pageHeight)))
 
-      cy = if (not $ null caption) then cytmp - captionHeight else cytmp
+  let cy = if (not $ null caption) then cytmp - captionHeight else cytmp
 
   elements <- mapM graphicToElement tbls
   let graphicFrameElts =
