@@ -624,8 +624,16 @@ blocksToSlide' _ (blk : blks)
         (mapM (P.report . BlockNotRendered) blks >> return ())
       unless (null remaining)
         (mapM (P.report . BlockNotRendered) remaining >> return ())
-      shapesL <- blocksToShapes blksL
-      shapesR <- blocksToShapes blksR
+      mbSplitBlksL <- splitBlocks blksL
+      mbSplitBlksR <- splitBlocks blksR
+      let blksL' = case mbSplitBlksL of
+            bs : _ -> bs
+            []     -> []
+      let blksR' = case mbSplitBlksR of
+            bs : _ -> bs
+            []     -> []
+      shapesL <- blocksToShapes blksL'
+      shapesR <- blocksToShapes blksR'
       return $ TwoColumnSlide { twoColumnSlideHeader = []
                               , twoColumnSlideLeft = shapesL
                               , twoColumnSlideRight = shapesR
