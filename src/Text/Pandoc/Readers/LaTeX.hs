@@ -405,7 +405,7 @@ satisfyTok f =
                   | otherwise = Nothing
         updatePos :: SourcePos -> Tok -> [Tok] -> SourcePos
         updatePos _spos _ (Tok pos _ _ : _) = pos
-        updatePos spos _ []                 = spos
+        updatePos spos _ []                 = incSourceColumn spos 1
 
 doMacros :: PandocMonad m => Int -> LP m ()
 doMacros n = do
