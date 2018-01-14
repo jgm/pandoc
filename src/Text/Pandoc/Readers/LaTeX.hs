@@ -272,10 +272,8 @@ rawLaTeXBlock = do
   lookAhead (try (char '\\' >> letter))
   -- we don't want to apply newly defined latex macros to their own
   -- definitions:
-  (do (_, raw) <- rawLaTeXParser macroDef
-      (guardDisabled Ext_latex_macros >> return raw) <|> return "")
-  <|> (do (_, raw) <- rawLaTeXParser (environment <|> blockCommand)
-          applyMacros raw)
+  (snd <$> rawLaTeXParser macroDef)
+  <|> ((snd <$> rawLaTeXParser (environment <|> blockCommand)) >>= applyMacros)
 
 rawLaTeXInline :: (PandocMonad m, HasMacros s, HasReaderOptions s)
                => ParserT String s m String

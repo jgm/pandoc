@@ -3,6 +3,7 @@
 \newcommand{\my}{\phi}
 $\my+\my$
 ^D
+\newcommand{\my}{\phi}
 $\phi+\phi$
 ```
 
@@ -73,6 +74,7 @@ x &= y\\\end{aligned}\]
 \my+\my
 \end{equation}
 ^D
+\newcommand{\my}{\phi}
 \begin{equation}
 \phi+\phi
 \end{equation}
@@ -96,5 +98,6 @@ x &= y\\\end{aligned}\]
 \newcommand{\my}{\emph{a}}
 \my
 ^D
+\newcommand{\my}{\emph{a}}
 \emph{a}
 ```
