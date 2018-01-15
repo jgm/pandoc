@@ -58,6 +58,7 @@ import Control.Monad.State
 import Data.List (intercalate)
 import Data.Default
 import Text.Pandoc.Definition
+import Text.Pandoc.ImageSize
 import Text.Pandoc.Slides (getSlideLevel)
 import Text.Pandoc.Options
 import Text.Pandoc.Logging
@@ -138,7 +139,7 @@ data Slide = MetadataSlide { metadataSlideTitle :: [ParaElem]
                             }
            deriving (Show, Eq)
 
-data Shape = Pic PicProps FilePath Text.Pandoc.Definition.Attr [ParaElem]
+data Shape = Pic PicProps FilePath [ParaElem]
            | GraphicFrame [Graphic] [ParaElem]
            | TextBox [Paragraph]
   deriving (Show, Eq)
@@ -230,10 +231,14 @@ instance Default RunProps where
                  }
 
 data PicProps = PicProps { picPropLink :: Maybe LinkTarget
+                         , picWidth    :: Maybe Dimension
+                         , picHeight   :: Maybe Dimension
                          } deriving (Show, Eq)
 
 instance Default PicProps where
   def = PicProps { picPropLink = Nothing
+                 , picWidth = Nothing
+                 , picHeight = Nothing
                  }
 
 --------------------------------------------------
@@ -407,17 +412,28 @@ rowToParagraphs algns tblCells = do
   let pairs = zip (algns ++ repeat AlignDefault) tblCells
   mapM (\(a, tc) -> cellToParagraphs a tc) pairs
 
+withAttr :: Attr -> Shape -> Shape
+withAttr attr (Pic picPr url caption) =
+  let picPr' = picPr { picWidth = dimension Width attr
+                     , picHeight = dimension Height attr
+                     }
+  in
+    Pic picPr' url caption
+withAttr _ sp = sp
+
 blockToShape :: Block -> Pres Shape
 blockToShape (Plain (il:_)) | Image attr ils (url, _) <- il =
-      Pic def url attr <$> (inlinesToParElems ils)
+      (withAttr attr . Pic def url) <$> (inlinesToParElems ils)
 blockToShape (Para (il:_))  | Image attr ils (url, _) <- il =
-      Pic def url attr <$> (inlinesToParElems ils)
+      (withAttr attr . Pic def url) <$> (inlinesToParElems ils)
 blockToShape (Plain (il:_)) | Link _ (il':_) target <- il
                             , Image attr ils (url, _) <- il' =
-      Pic def{picPropLink = Just $ ExternalTarget target} url attr <$> (inlinesToParElems ils)
+      (withAttr attr . Pic def {picPropLink = Just $ ExternalTarget target} url) <$>
+      (inlinesToParElems ils)
 blockToShape (Para (il:_))  | Link _ (il':_) target <- il
                             , Image attr ils (url, _) <- il' =
-      Pic def{picPropLink = Just $ ExternalTarget target} url attr <$> (inlinesToParElems ils)
+      (withAttr attr . Pic def{picPropLink = Just $ ExternalTarget target} url) <$>
+      (inlinesToParElems ils)
 blockToShape (Table caption algn _ hdrCells rows) = do
   caption' <- inlinesToParElems caption
   hdrCells' <- rowToParagraphs algn hdrCells
@@ -438,7 +454,7 @@ blockToShape blk = do paras <- blockToParagraphs blk
 combineShapes :: [Shape] -> [Shape]
 combineShapes [] = []
 combineShapes (s : []) = [s]
-combineShapes (pic@(Pic _ _ _ _) : ss) = pic : combineShapes ss
+combineShapes (pic@(Pic _ _ _) : ss) = pic : combineShapes ss
 combineShapes ((TextBox []) : ss) = combineShapes ss
 combineShapes (s : TextBox [] : ss) = combineShapes (s : ss)
 combineShapes ((TextBox (p:ps)) : (TextBox (p':ps')) : ss) =
@@ -650,9 +666,9 @@ applyToParagraph f para = do
   return $ para {paraElems = paraElems'}
 
 applyToShape :: Monad m => (ParaElem -> m ParaElem) -> Shape -> m Shape
-applyToShape f (Pic pPr fp attr pes) = do
+applyToShape f (Pic pPr fp pes) = do
   pes' <- mapM f pes
-  return $ Pic pPr fp attr pes'
+  return $ Pic pPr fp pes'
 applyToShape f (GraphicFrame gfx pes) = do
   pes' <- mapM f pes
   return $ GraphicFrame gfx pes'

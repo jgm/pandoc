@@ -616,10 +616,9 @@ makePicElements :: PandocMonad m
                 => Element
                 -> PicProps
                 -> MediaInfo
-                -> Text.Pandoc.Definition.Attr
                 -> [ParaElem]
                 -> P m [Element]
-makePicElements layout picProps mInfo _ alt = do
+makePicElements layout picProps mInfo alt = do
   opts <- asks envOpts
   (pageWidth, pageHeight) <- asks envPresentationSize
   -- hasHeader <- asks envSlideHasHeader
@@ -826,11 +825,11 @@ shapeToElement layout (TextBox paras)
 shapeToElement _ _ = return $ mknode "p:sp" [] ()
 
 shapeToElements :: PandocMonad m => Element -> Shape -> P m [Element]
-shapeToElements layout (Pic picProps fp attr alt) = do
+shapeToElements layout (Pic picProps fp alt) = do
   mInfo <- registerMedia fp alt
   case mInfoExt mInfo of
     Just _ -> do
-      makePicElements layout picProps mInfo attr alt
+      makePicElements layout picProps mInfo alt
     Nothing -> shapeToElements layout $ TextBox [Paragraph def alt]
 shapeToElements layout (GraphicFrame tbls cptn) =
   graphicFrameToElements layout tbls cptn
