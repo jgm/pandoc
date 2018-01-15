@@ -40,6 +40,16 @@ tests = [ testGroup "rubrics"
               , "       :name: foo"
               , "       :class: baz"]
           ]
+        , testGroup "ligatures" -- handling specific sequences of blocks
+          [ "a list is closed by a comment before a quote" =: -- issue 4248
+            bulletList [plain "bulleted"] <> blockQuote (plain "quoted") =?>
+              unlines
+              [ "-  bulleted"
+              , ""
+              , ".."
+              , ""
+              , "    quoted"]
+          ]
         , testGroup "headings"
           [ "normal heading" =:
               header 1 (text "foo") =?>

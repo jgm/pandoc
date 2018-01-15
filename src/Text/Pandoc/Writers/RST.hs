@@ -353,9 +353,20 @@ blockListToRST' :: PandocMonad m
                 -> [Block]       -- ^ List of block elements
                 -> RST m Doc
 blockListToRST' topLevel blocks = do
+  -- insert comment between list and quoted blocks, see #4248
+  let fixBlocks (b1:b2@(BlockQuote _):bs)
+        | isList b1 = b1 : commentSep : b2 : fixBlocks bs
+        where
+          isList (BulletList _)     = True
+          isList (OrderedList _ _)  = True
+          isList (DefinitionList _) = True
+          isList _                  = False
+          commentSep  = RawBlock "rst" ""
+      fixBlocks (b:bs) = b : fixBlocks bs
+      fixBlocks [] = []
   tl <- gets stTopLevel
   modify (\s->s{stTopLevel=topLevel, stLastNested=False})
-  res <- vcat `fmap` mapM blockToRST' blocks
+  res <- vcat `fmap` mapM blockToRST' (fixBlocks blocks)
   modify (\s->s{stTopLevel=tl})
   return res
 
