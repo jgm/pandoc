@@ -317,7 +317,7 @@ tableCellToConTeXt :: PandocMonad m => Tabl -> Doc -> Doc -> WM m Doc
 tableCellToConTeXt Xtb options cellContents =
   return $ "\\startxcell" <> options <> cellContents <> " \\stopxcell"
 tableCellToConTeXt Ntb options cellContents =
-  return $ "\\NC" <> options <> cellContents <> " "
+  return $ "\\NC" <> options <> cellContents
 
 alignToConTeXt :: Alignment -> Doc
 alignToConTeXt align = case align of

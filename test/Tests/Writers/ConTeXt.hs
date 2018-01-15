@@ -15,6 +15,9 @@ context = unpack . purely (writeConTeXt def) . toPandoc
 context' :: (ToPandoc a) => a -> String
 context' = unpack . purely (writeConTeXt def{ writerWrapText = WrapNone }) . toPandoc
 
+contextNtb :: (ToPandoc a) => a -> String
+contextNtb = unpack . purely (writeConTeXt def{ writerExtensions = enableExtension Ext_ntb pandocExtensions }) . toPandoc
+
 {-
   "my test" =: X =?> Y
 
@@ -68,5 +71,57 @@ tests = [ testGroup "inline code"
                 , "  \\stopitemize"
                 , "\\stopitemize" ]
           ]
+        , testGroup "natural tables"
+            [ test contextNtb "table with header and caption" $
+              let caption = text "Table 1"
+                  aligns = [(AlignRight, 0.0), (AlignLeft, 0.0), (AlignCenter, 0.0), (AlignDefault, 0.0)]
+                  headers = [plain $ text "Right",
+                             plain $ text "Left",
+                             plain $ text "Center",
+                             plain $ text "Default"]
+                  rows = [[plain $ text "1.1",
+                           plain $ text "1.2",
+                           plain $ text "1.3",
+                           plain $ text "1.4"]
+                         ,[plain $ text "2.1",
+                           plain $ text "2.2",
+                           plain $ text "2.3",
+                           plain $ text "2.4"]
+                         ,[plain $ text "3.1",
+                           plain $ text "3.2",
+                           plain $ text "3.3",
+                           plain $ text "3.4"]]
+              in table caption aligns headers rows
+              =?> unlines [ "\\startplacetable[caption={Table 1}]"
+                          , "\\startTABLE"
+                          , "\\startTABLEhead"
+                          , "\\NC[align=left] Right"
+                          , "\\NC[align=right] Left"
+                          , "\\NC[align=middle] Center"
+                          , "\\NC Default"
+                          , "\\NC\\NR"
+                          , "\\stopTABLEhead"
+                          , "\\startTABLEbody"
+                          , "\\NC[align=left] 1.1"
+                          , "\\NC[align=right] 1.2"
+                          , "\\NC[align=middle] 1.3"
+                          , "\\NC 1.4"
+                          , "\\NC\\NR"
+                          , "\\NC[align=left] 2.1"
+                          , "\\NC[align=right] 2.2"
+                          , "\\NC[align=middle] 2.3"
+                          , "\\NC 2.4"
+                          , "\\NC\\NR"
+                          , "\\stopTABLEbody"
+                          , "\\startTABLEfoot"
+                          , "\\NC[align=left] 3.1"
+                          , "\\NC[align=right] 3.2"
+                          , "\\NC[align=middle] 3.3"
+                          , "\\NC 3.4"
+                          , "\\NC\\NR"
+                          , "\\stopTABLEfoot"
+                          , "\\stopTABLE"
+                          , "\\stopplacetable" ]
+            ]
         ]
 
