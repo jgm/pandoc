@@ -58,9 +58,7 @@ import Control.Monad.State
 import Data.List (intercalate)
 import Data.Default
 import Text.Pandoc.Definition
-import Text.Pandoc.Class (PandocMonad)
 import Text.Pandoc.Slides (getSlideLevel)
-import qualified Text.Pandoc.Class as P
 import Text.Pandoc.Options
 import Text.Pandoc.Logging
 import Text.Pandoc.Walk
@@ -97,17 +95,23 @@ instance Default WriterEnv where
 data WriterState = WriterState { stNoteIds :: M.Map Int [Block]
                                -- associate anchors with slide id
                                , stAnchorMap :: M.Map String Int
+                               , stLog :: [LogMessage]
                                } deriving (Show, Eq)
 
 instance Default WriterState where
   def = WriterState { stNoteIds = mempty
-                    , stAnchorMap= mempty
+                    , stAnchorMap = mempty
+                    , stLog = []
                     }
 
-type Pres m = ReaderT WriterEnv (StateT WriterState m)
+addLogMessage :: LogMessage -> Pres ()
+addLogMessage msg = modify $ \st -> st{stLog = msg : (stLog st)}
 
-runPres :: Monad m => WriterEnv -> WriterState -> Pres m a -> m a
-runPres env st p = evalStateT (runReaderT p env) st
+type Pres = ReaderT WriterEnv (State WriterState)
+
+runPres :: WriterEnv -> WriterState -> Pres a -> (a, [LogMessage])
+runPres env st p = (pres, reverse $ stLog finalSt)
+  where (pres, finalSt) = runState (runReaderT p env) st
 
 -- GHC 7.8 will still complain about concat <$> mapM unless we specify
 -- Functor. We can get rid of this when we stop supporting GHC 7.8.
@@ -234,10 +238,10 @@ instance Default PicProps where
 
 --------------------------------------------------
 
-inlinesToParElems :: Monad m => [Inline] -> Pres m [ParaElem]
+inlinesToParElems :: [Inline] -> Pres [ParaElem]
 inlinesToParElems ils = concatMapM inlineToParElems ils
 
-inlineToParElems :: Monad m => Inline -> Pres m [ParaElem]
+inlineToParElems :: Inline -> Pres [ParaElem]
 inlineToParElems (Str s) = do
   pr <- asks envRunProps
   return [Run pr s]
@@ -288,7 +292,7 @@ isListType (BulletList _) = True
 isListType (DefinitionList _) = True
 isListType _ = False
 
-registerAnchorId :: PandocMonad m => String -> Pres m ()
+registerAnchorId :: String -> Pres ()
 registerAnchorId anchor = do
   anchorMap <- gets stAnchorMap
   slideId <- asks envCurSlideId
@@ -302,7 +306,7 @@ blockQuoteSize = 20
 noteSize :: Pixels
 noteSize = 18
 
-blockToParagraphs :: PandocMonad m => Block -> Pres m [Paragraph]
+blockToParagraphs :: Block -> Pres [Paragraph]
 blockToParagraphs (Plain ils) = do
   parElems <- inlinesToParElems ils
   pProps <- asks envParaProps
@@ -362,7 +366,7 @@ blockToParagraphs (OrderedList listAttr blksLst) = do
                                            }}) $
     concatMapM multiParBullet blksLst
 blockToParagraphs (DefinitionList entries) = do
-  let go :: PandocMonad m => ([Inline], [[Block]]) -> Pres m [Paragraph]
+  let go :: ([Inline], [[Block]]) -> Pres [Paragraph]
       go (ils, blksLst) = do
         term <-blockToParagraphs $ Para [Strong ils]
         -- For now, we'll treat each definition term as a
@@ -373,11 +377,11 @@ blockToParagraphs (DefinitionList entries) = do
 blockToParagraphs (Div (_, ("notes" : []), _) _) = return []
 blockToParagraphs (Div _ blks)  = concatMapM blockToParagraphs blks
 blockToParagraphs blk = do
-  P.report $ BlockNotRendered blk
+  addLogMessage $ BlockNotRendered blk
   return []
 
 -- Make sure the bullet env gets turned off after the first para.
-multiParBullet :: PandocMonad m => [Block] -> Pres m [Paragraph]
+multiParBullet :: [Block] -> Pres [Paragraph]
 multiParBullet [] = return []
 multiParBullet (b:bs) = do
   pProps <- asks envParaProps
@@ -386,7 +390,7 @@ multiParBullet (b:bs) = do
     concatMapM blockToParagraphs bs
   return $ p ++ ps
 
-cellToParagraphs :: PandocMonad m => Alignment -> TableCell -> Pres m [Paragraph]
+cellToParagraphs :: Alignment -> TableCell -> Pres [Paragraph]
 cellToParagraphs algn tblCell = do
   paras <- mapM (blockToParagraphs) tblCell
   let alignment = case algn of
@@ -397,13 +401,13 @@ cellToParagraphs algn tblCell = do
       paras' = map (map (\p -> p{paraProps = (paraProps p){pPropAlign = alignment}})) paras
   return $ concat paras'
 
-rowToParagraphs :: PandocMonad m => [Alignment] -> [TableCell] -> Pres m [[Paragraph]]
+rowToParagraphs :: [Alignment] -> [TableCell] -> Pres [[Paragraph]]
 rowToParagraphs algns tblCells = do
   -- We have to make sure we have the right number of alignments
   let pairs = zip (algns ++ repeat AlignDefault) tblCells
   mapM (\(a, tc) -> cellToParagraphs a tc) pairs
 
-blockToShape :: PandocMonad m => Block -> Pres m Shape
+blockToShape :: Block -> Pres Shape
 blockToShape (Plain (il:_)) | Image attr ils (url, _) <- il =
       Pic def url attr <$> (inlinesToParElems ils)
 blockToShape (Para (il:_))  | Image attr ils (url, _) <- il =
@@ -441,7 +445,7 @@ combineShapes ((TextBox (p:ps)) : (TextBox (p':ps')) : ss) =
   combineShapes $ TextBox ((p:ps) ++ (p':ps')) : ss
 combineShapes (s:ss) = s : combineShapes ss
 
-blocksToShapes :: PandocMonad m => [Block] -> Pres m [Shape]
+blocksToShapes :: [Block] -> Pres [Shape]
 blocksToShapes blks = combineShapes <$> mapM blockToShape blks
 
 isImage :: Inline -> Bool
@@ -449,7 +453,7 @@ isImage (Image _ _ _) = True
 isImage (Link _ ((Image _ _ _) : _) _) = True
 isImage _ = False
 
-splitBlocks' :: Monad m => [Block] -> [[Block]] -> [Block] -> Pres m [[Block]]
+splitBlocks' :: [Block] -> [[Block]] -> [Block] -> Pres [[Block]]
 splitBlocks' cur acc [] = return $ acc ++ (if null cur then [] else [cur])
 splitBlocks' cur acc (HorizontalRule : blks) =
   splitBlocks' [] (acc ++ (if null cur then [] else [cur])) blks
@@ -486,10 +490,10 @@ splitBlocks' cur acc (d@(Div (_, classes, _) _): blks) | "columns" `elem` classe
     _ ->  splitBlocks' [] (acc ++ (if null cur then [] else [cur]) ++ [[d]]) blks
 splitBlocks' cur acc (blk : blks) = splitBlocks' (cur ++ [blk]) acc blks
 
-splitBlocks :: Monad m => [Block] -> Pres m [[Block]]
+splitBlocks :: [Block] -> Pres [[Block]]
 splitBlocks = splitBlocks' [] []
 
-blocksToSlide' :: PandocMonad m => Int -> [Block] -> Pres m Slide
+blocksToSlide' :: Int -> [Block] -> Pres Slide
 blocksToSlide' lvl ((Header n (ident, _, _) ils) : blks)
   | n < lvl = do
       registerAnchorId ident
@@ -511,9 +515,9 @@ blocksToSlide' _ (blk : blks)
   , (Div (_, clsL, _) blksL) : (Div (_, clsR, _) blksR) : remaining <- divBlks
   , "column" `elem` clsL, "column" `elem` clsR = do
       unless (null blks)
-        (mapM (P.report . BlockNotRendered) blks >> return ())
+        (mapM (addLogMessage . BlockNotRendered) blks >> return ())
       unless (null remaining)
-        (mapM (P.report . BlockNotRendered) remaining >> return ())
+        (mapM (addLogMessage . BlockNotRendered) remaining >> return ())
       mbSplitBlksL <- splitBlocks blksL
       mbSplitBlksR <- splitBlocks blksR
       let blksL' = case mbSplitBlksL of
@@ -540,7 +544,7 @@ blocksToSlide' _ [] = return $ ContentSlide { contentSlideHeader = []
                                             , contentSlideContent = []
                                             }
 
-blocksToSlide :: PandocMonad m => [Block] -> Pres m Slide
+blocksToSlide :: [Block] -> Pres Slide
 blocksToSlide blks = do
   slideLevel <- asks envSlideLevel
   blocksToSlide' slideLevel blks
@@ -553,14 +557,14 @@ makeNoteEntry n blks =
       (Para ils : blks') -> (Para $ enum : Space : ils) : blks'
       _ -> (Para [enum]) : blks
 
-forceFontSize :: PandocMonad m => Pixels -> Pres m a -> Pres m a
+forceFontSize :: Pixels -> Pres a -> Pres a
 forceFontSize px x = do
   rpr <- asks envRunProps
   local (\r -> r {envRunProps = rpr{rPropForceSize = Just px}}) x
 
 -- We leave these as blocks because we will want to include them in
 -- the TOC.
-makeNotesSlideBlocks :: PandocMonad m => Pres m [Block]
+makeNotesSlideBlocks :: Pres [Block]
 makeNotesSlideBlocks = do
   noteIds <- gets stNoteIds
   slideLevel <- asks envSlideLevel
@@ -579,7 +583,7 @@ makeNotesSlideBlocks = do
                     M.toList noteIds
             return $ hdr : blks
 
-getMetaSlide :: PandocMonad m => Pres m (Maybe Slide)
+getMetaSlide :: Pres (Maybe Slide)
 getMetaSlide  = do
   meta <- asks envMetadata
   title <- inlinesToParElems $ docTitle meta
@@ -600,7 +604,7 @@ getMetaSlide  = do
                                        , metadataSlideDate = date
                                        }
 -- adapted from the markdown writer
-elementToListItem :: PandocMonad m => Shared.Element -> Pres m [Block]
+elementToListItem :: Shared.Element -> Pres [Block]
 elementToListItem (Shared.Sec lev _nums (ident,_,_) headerText subsecs) = do
   opts <- asks envOpts
   let headerLink = if null ident
@@ -613,7 +617,7 @@ elementToListItem (Shared.Sec lev _nums (ident,_,_) headerText subsecs) = do
   return [Plain headerLink, BulletList listContents]
 elementToListItem (Shared.Blk _) = return []
 
-makeTOCSlide :: PandocMonad m => [Block] -> Pres m Slide
+makeTOCSlide :: [Block] -> Pres Slide
 makeTOCSlide blks = do
   contents <- BulletList <$> mapM elementToListItem (Shared.hierarchicalize blks)
   meta <- asks envMetadata
@@ -676,7 +680,7 @@ applyToSlide f (TwoColumnSlide hdr contentL contentR) = do
   contentR' <- mapM (applyToShape f) contentR
   return $ TwoColumnSlide hdr' contentL' contentR'
 
-replaceAnchor :: PandocMonad m => ParaElem -> Pres m ParaElem
+replaceAnchor :: ParaElem -> Pres ParaElem
 replaceAnchor (Run rProps s)
   | Just (ExternalTarget ('#':anchor, _)) <- rLink rProps = do
       anchorMap <- gets stAnchorMap
@@ -688,7 +692,7 @@ replaceAnchor (Run rProps s)
       return $ Run rProps' s
 replaceAnchor pe = return pe
 
-blocksToPresentation :: PandocMonad m => [Block] -> Pres m Presentation
+blocksToPresentation :: [Block] -> Pres Presentation
 blocksToPresentation blks = do
   opts <- asks envOpts
   let metadataStartNum = 1
@@ -732,10 +736,9 @@ blocksToPresentation blks = do
   slides' <- mapM (applyToSlide replaceAnchor) slides
   return $ Presentation slides'
 
-documentToPresentation :: PandocMonad m
-                       => WriterOptions
+documentToPresentation :: WriterOptions
                        -> Pandoc
-                       -> m Presentation
+                       -> (Presentation, [LogMessage])
 documentToPresentation opts (Pandoc meta blks) = do
   let env = def { envOpts = opts
                 , envMetadata = meta

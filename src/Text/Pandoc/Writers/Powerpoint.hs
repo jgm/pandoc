@@ -44,7 +44,7 @@ module Text.Pandoc.Writers.Powerpoint (writePowerpoint) where
 import Codec.Archive.Zip
 import Text.Pandoc.Definition
 import Text.Pandoc.Walk
-import Text.Pandoc.Class (PandocMonad)
+import Text.Pandoc.Class (PandocMonad, report)
 import Text.Pandoc.Options (WriterOptions)
 import Text.Pandoc.Writers.Shared (fixDisplayMath)
 import Text.Pandoc.Writers.Powerpoint.Presentation (documentToPresentation)
@@ -57,6 +57,7 @@ writePowerpoint :: (PandocMonad m)
                 -> m BL.ByteString
 writePowerpoint opts (Pandoc meta blks) = do
   let blks' = walk fixDisplayMath blks
-  pres <- documentToPresentation opts (Pandoc meta blks')
+  let (pres, logMsgs) = documentToPresentation opts (Pandoc meta blks')
+  mapM_ report logMsgs
   archv <- presentationToArchive opts pres
   return $ fromArchive archv
