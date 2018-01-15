@@ -1,3 +1,4 @@
+{-# LANGUAGE NoImplicitPrelude #-}
 {-# LANGUAGE PackageImports #-}
 {-# LANGUAGE CPP #-}
 
@@ -6,21 +7,10 @@
 
 module Prelude
 (
-  module P
-#if MIN_VERSION_base(4,8,0)
-#else
-, Monoid(..)
-, Applicative(..)
-, (<$>)
-, (<$)
-#endif
+  module Prelude.Compat
+, module Monoid.Compat
 )
 where
 
-#if MIN_VERSION_base(4,8,0)
-import "base" Prelude as P
-#else
-import "base" Prelude as P
-import Control.Applicative
-import Data.Monoid
-#endif
+import Prelude.Compat
+import Monoid.Compat
