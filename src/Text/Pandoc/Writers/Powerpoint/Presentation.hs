@@ -680,9 +680,12 @@ replaceAnchor :: PandocMonad m => ParaElem -> Pres m ParaElem
 replaceAnchor (Run rProps s)
   | Just (ExternalTarget ('#':anchor, _)) <- rLink rProps = do
       anchorMap <- gets stAnchorMap
-      return $ case M.lookup anchor anchorMap of
-                 Just n  -> Run (rProps{rLink = Just $ InternalTarget n}) s
-                 Nothing -> Run rProps s
+      -- If the anchor is not in the anchormap, we just remove the
+      -- link.
+      let rProps' = case M.lookup anchor anchorMap of
+                      Just n  -> rProps{rLink = Just $ InternalTarget n}
+                      Nothing -> rProps{rLink = Nothing}
+      return $ Run rProps' s
 replaceAnchor pe = return pe
 
 blocksToPresentation :: PandocMonad m => [Block] -> Pres m Presentation
