@@ -8,7 +8,7 @@
 module Prelude
 (
   module Prelude.Compat
-, module Data.Monoid.Compat
+, (<>)
 )
 where
 
