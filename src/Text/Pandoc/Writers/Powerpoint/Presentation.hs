@@ -35,7 +35,6 @@ Presentation.
 module Text.Pandoc.Writers.Powerpoint.Presentation ( documentToPresentation
                                                    , Presentation(..)
                                                    , Slide(..)
-                                                   , SlideElement(..)
                                                    , Shape(..)
                                                    , Graphic(..)
                                                    , BulletType(..)
@@ -50,6 +49,7 @@ module Text.Pandoc.Writers.Powerpoint.Presentation ( documentToPresentation
                                                    , PicProps(..)
                                                    , URL
                                                    , TeXString(..)
+                                                   , LinkTarget(..)
                                                    ) where
 
 
@@ -78,10 +78,6 @@ data WriterEnv = WriterEnv { envMetadata :: Meta
                            , envInList :: Bool
                            , envInNoteSlide :: Bool
                            , envCurSlideId :: Int
-                           -- the difference between the number at
-                           -- the end of the slide file name and
-                           -- the rId number
-                           , envSlideIdOffset :: Int
                            }
                  deriving (Show)
 
@@ -95,7 +91,6 @@ instance Default WriterEnv where
                   , envInList = False
                   , envInNoteSlide = False
                   , envCurSlideId = 1
-                  , envSlideIdOffset = 1
                   }
 
 
@@ -138,9 +133,6 @@ data Slide = MetadataSlide { metadataSlideTitle :: [ParaElem]
                             , twoColumnSlideRight  :: [Shape]
                             }
            deriving (Show, Eq)
-
-data SlideElement = SlideElement Pixels Pixels Pixels Pixels Shape
-  deriving (Show, Eq)
 
 data Shape = Pic PicProps FilePath Text.Pandoc.Definition.Attr [ParaElem]
            | GraphicFrame [Graphic] [ParaElem]
@@ -206,12 +198,16 @@ data Capitals = NoCapitals | SmallCapitals | AllCapitals
 
 type URL = String
 
+data LinkTarget = ExternalTarget (URL, String)
+                | InternalTarget Int -- slideId
+                deriving (Show, Eq)
+
 data RunProps = RunProps { rPropBold :: Bool
                          , rPropItalics :: Bool
                          , rStrikethrough :: Maybe Strikethrough
                          , rBaseline :: Maybe Int
                          , rCap :: Maybe Capitals
-                         , rLink :: Maybe (URL, String)
+                         , rLink :: Maybe LinkTarget
                          , rPropCode :: Bool
                          , rPropBlockQuote :: Bool
                          , rPropForceSize :: Maybe Pixels
@@ -229,7 +225,7 @@ instance Default RunProps where
                  , rPropForceSize = Nothing
                  }
 
-data PicProps = PicProps { picPropLink :: Maybe (URL, String)
+data PicProps = PicProps { picPropLink :: Maybe LinkTarget
                          } deriving (Show, Eq)
 
 instance Default PicProps where
@@ -267,7 +263,7 @@ inlineToParElems Space = inlineToParElems (Str " ")
 inlineToParElems SoftBreak = inlineToParElems (Str " ")
 inlineToParElems LineBreak = return [Break]
 inlineToParElems (Link _ ils (url, title)) = do
-  local (\r ->r{envRunProps = (envRunProps r){rLink = Just (url, title)}}) $
+  local (\r ->r{envRunProps = (envRunProps r){rLink = Just $ ExternalTarget (url, title)}}) $
     inlinesToParElems ils
 inlineToParElems (Code _ str) = do
   local (\r ->r{envRunProps = (envRunProps r){rPropCode = True}}) $
@@ -414,10 +410,10 @@ blockToShape (Para (il:_))  | Image attr ils (url, _) <- il =
       Pic def url attr <$> (inlinesToParElems ils)
 blockToShape (Plain (il:_)) | Link _ (il':_) target <- il
                             , Image attr ils (url, _) <- il' =
-      Pic def{picPropLink = Just target} url attr <$> (inlinesToParElems ils)
+      Pic def{picPropLink = Just $ ExternalTarget target} url attr <$> (inlinesToParElems ils)
 blockToShape (Para (il:_))  | Link _ (il':_) target <- il
                             , Image attr ils (url, _) <- il' =
-      Pic def{picPropLink = Just target} url attr <$> (inlinesToParElems ils)
+      Pic def{picPropLink = Just $ ExternalTarget target} url attr <$> (inlinesToParElems ils)
 blockToShape (Table caption algn _ hdrCells rows) = do
   caption' <- inlinesToParElems caption
   hdrCells' <- rowToParagraphs algn hdrCells
@@ -644,6 +640,51 @@ combineParaElems' (Just pElem') (pElem : pElems)
 combineParaElems :: [ParaElem] -> [ParaElem]
 combineParaElems = combineParaElems' Nothing
 
+applyToParagraph :: Monad m => (ParaElem -> m ParaElem) -> Paragraph -> m Paragraph
+applyToParagraph f para = do
+  paraElems' <- mapM f $ paraElems para
+  return $ para {paraElems = paraElems'}
+
+applyToShape :: Monad m => (ParaElem -> m ParaElem) -> Shape -> m Shape
+applyToShape f (Pic pPr fp attr pes) = do
+  pes' <- mapM f pes
+  return $ Pic pPr fp attr pes'
+applyToShape f (GraphicFrame gfx pes) = do
+  pes' <- mapM f pes
+  return $ GraphicFrame gfx pes'
+applyToShape f (TextBox paras) = do
+  paras' <- mapM (applyToParagraph f) paras
+  return $ TextBox paras'
+
+applyToSlide :: Monad m => (ParaElem -> m ParaElem) -> Slide -> m Slide
+applyToSlide f (MetadataSlide title subtitle authors date) = do
+  title' <- mapM f title
+  subtitle' <- mapM f subtitle
+  authors' <- mapM (mapM f) authors
+  date' <- mapM f date
+  return $ MetadataSlide title' subtitle' authors' date'
+applyToSlide f (TitleSlide title) = do
+  title' <- mapM f title
+  return $ TitleSlide title'
+applyToSlide f (ContentSlide hdr content) = do
+  hdr' <- mapM f hdr
+  content' <- mapM (applyToShape f) content
+  return $ ContentSlide hdr' content'
+applyToSlide f (TwoColumnSlide hdr contentL contentR) = do
+  hdr' <- mapM f hdr
+  contentL' <- mapM (applyToShape f) contentL
+  contentR' <- mapM (applyToShape f) contentR
+  return $ TwoColumnSlide hdr' contentL' contentR'
+
+replaceAnchor :: PandocMonad m => ParaElem -> Pres m ParaElem
+replaceAnchor (Run rProps s)
+  | Just (ExternalTarget ('#':anchor, _)) <- rLink rProps = do
+      anchorMap <- gets stAnchorMap
+      return $ case M.lookup anchor anchorMap of
+                 Just n  -> Run (rProps{rLink = Just $ InternalTarget n}) s
+                 Nothing -> Run rProps s
+replaceAnchor pe = return pe
+
 blocksToPresentation :: PandocMonad m => [Block] -> Pres m Presentation
 blocksToPresentation blks = do
   opts <- asks envOpts
@@ -683,9 +724,10 @@ blocksToPresentation blks = do
                                         })
                            (blocksToSlide $ notesSlideBlocks)
                          return [notesSlide]
-  return $
-    Presentation $
-    metadataslides ++ tocSlides ++ bodyslides ++ notesSlides
+
+  let slides = metadataslides ++ tocSlides ++ bodyslides ++ notesSlides
+  slides' <- mapM (applyToSlide replaceAnchor) slides
+  return $ Presentation slides'
 
 documentToPresentation :: PandocMonad m
                        => WriterOptions

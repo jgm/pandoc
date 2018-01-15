@@ -54,7 +54,7 @@ import Text.Pandoc.MIME
 import qualified Data.ByteString.Lazy as BL
 import Text.Pandoc.Writers.OOXML
 import qualified Data.Map as M
-import Data.Maybe (mapMaybe, listToMaybe, catMaybes)
+import Data.Maybe (mapMaybe, listToMaybe)
 import Text.Pandoc.ImageSize
 import Control.Applicative ((<|>))
 import System.FilePath.Glob
@@ -135,24 +135,16 @@ data MediaInfo = MediaInfo { mInfoFilePath :: FilePath
                            , mInfoCaption  :: Bool
                            } deriving (Show, Eq)
 
-data WriterState = WriterState { stLinkIds :: M.Map Int (M.Map Int (URL, String))
+data WriterState = WriterState { stLinkIds :: M.Map Int (M.Map Int LinkTarget)
                                -- (FP, Local ID, Global ID, Maybe Mime)
                                , stMediaIds :: M.Map Int [MediaInfo]
                                , stMediaGlobalIds :: M.Map FilePath Int
-                               , stNoteIds :: M.Map Int [Block]
-                               -- associate anchors with slide id
-                               , stAnchorMap :: M.Map String Int
-                               -- media inherited from the template.
-                               , stTemplateMedia :: [FilePath]
                                } deriving (Show, Eq)
 
 instance Default WriterState where
   def = WriterState { stLinkIds = mempty
                     , stMediaIds = mempty
                     , stMediaGlobalIds = mempty
-                    , stNoteIds = mempty
-                    , stAnchorMap= mempty
-                    , stTemplateMedia = []
                     }
 
 type P m = ReaderT WriterEnv (StateT WriterState m)
@@ -420,7 +412,7 @@ replaceNamedChildren ns prefix name newKids element =
 
 ----------------------------------------------------------------
 
-registerLink :: PandocMonad m => (URL, String) -> P m Int
+registerLink :: PandocMonad m => LinkTarget -> P m Int
 registerLink link = do
   curSlideId <- asks envCurSlideId
   linkReg <- gets stLinkIds
@@ -729,20 +721,15 @@ paraElemToElement (Run rpr s) = do
                    -- first we have to make sure that if it's an
                    -- anchor, it's in the anchor map. If not, there's
                    -- no link.
-                   anchorMap <- gets stAnchorMap
                    return $ case link of
-                     -- anchor with nothing in the map
-                     ('#':target, _) | Nothing <- M.lookup target anchorMap ->
-                       []
-                     --  anchor that is in the map
-                     ('#':_, _) ->
+                     InternalTarget _ ->
                        let linkAttrs =
                              [ ("r:id", "rId" ++ show idNum)
                              , ("action", "ppaction://hlinksldjump")
                              ]
                        in [mknode "a:hlinkClick" linkAttrs ()]
                      -- external
-                     _ ->
+                     ExternalTarget _ ->
                        let linkAttrs =
                              [ ("r:id", "rId" ++ show idNum)
                              ]
@@ -1191,31 +1178,23 @@ slideToSlideRelEntry slide idNum = do
   element <- slideToSlideRelElement slide idNum
   elemToEntry ("ppt/slides/_rels/" ++ slideToFilePath slide idNum ++ ".rels") element
 
-linkRelElement :: PandocMonad m => Int -> (URL, String) -> P m (Maybe Element)
-linkRelElement idNum (url, _) = do
-  anchorMap <- gets stAnchorMap
-  case url of
-    -- if it's an anchor in the map, we use the slide number for an
-    -- internal link.
-    '#' : anchor | Just num <- M.lookup anchor anchorMap ->
-      return $ Just $
-      mknode "Relationship" [ ("Id", "rId" ++ show idNum)
-                            , ("Type", "http://schemas.openxmlformats.org/officeDocument/2006/relationships/slide")
-                            , ("Target", "slide" ++ show num ++ ".xml")
-                            ] ()
-    -- if it's an anchor not in the map, we return nothing.
-    '#' : _ -> return Nothing
-    -- Anything else we treat as an external link
-    _ ->
-      return $ Just $
-      mknode "Relationship" [ ("Id", "rId" ++ show idNum)
-                            , ("Type", "http://schemas.openxmlformats.org/officeDocument/2006/relationships/hyperlink")
-                        , ("Target", url)
-                        , ("TargetMode", "External")
-                        ] ()
+linkRelElement :: PandocMonad m => Int -> LinkTarget -> P m Element
+linkRelElement idNum (InternalTarget num) = do
+  return $
+    mknode "Relationship" [ ("Id", "rId" ++ show idNum)
+                          , ("Type", "http://schemas.openxmlformats.org/officeDocument/2006/relationships/slide")
+                          , ("Target", "slide" ++ show num ++ ".xml")
+                          ] ()
+linkRelElement idNum (ExternalTarget (url, _)) = do
+  return $
+    mknode "Relationship" [ ("Id", "rId" ++ show idNum)
+                          , ("Type", "http://schemas.openxmlformats.org/officeDocument/2006/relationships/hyperlink")
+                          , ("Target", url)
+                          , ("TargetMode", "External")
+                          ] ()
 
-linkRelElements :: PandocMonad m => M.Map Int (URL, String) -> P m [Element]
-linkRelElements mp = catMaybes <$> mapM (\(n, lnk) -> linkRelElement n lnk) (M.toList mp)
+linkRelElements :: PandocMonad m => M.Map Int LinkTarget -> P m [Element]
+linkRelElements mp = mapM (\(n, lnk) -> linkRelElement n lnk) (M.toList mp)
 
 mediaRelElement :: MediaInfo -> Element
 mediaRelElement mInfo =
