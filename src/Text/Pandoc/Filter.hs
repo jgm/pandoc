@@ -39,7 +39,7 @@ import Data.Foldable (foldrM)
 import Text.Pandoc.Class (PandocIO)
 import Text.Pandoc.Definition (Pandoc)
 import Text.Pandoc.Options (ReaderOptions)
-import qualified Text.Pandoc.Filter.Json as JsonFilter
+import qualified Text.Pandoc.Filter.JSON as JSONFilter
 import qualified Text.Pandoc.Filter.Lua as LuaFilter
 
 data Filter = LuaFilter FilePath
@@ -54,7 +54,7 @@ applyFilters :: ReaderOptions
 applyFilters ropts filters args d = do
   foldrM ($) d $ map applyFilter filters
  where
-  applyFilter (JSONFilter f) = JsonFilter.apply ropts args f
+  applyFilter (JSONFilter f) = JSONFilter.apply ropts args f
   applyFilter (LuaFilter f)  = LuaFilter.apply ropts args f
 
 $(deriveJSON defaultOptions ''Filter)

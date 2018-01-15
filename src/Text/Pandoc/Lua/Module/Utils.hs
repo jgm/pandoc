@@ -40,7 +40,7 @@ import Text.Pandoc.Lua.Util (addFunction, popValue)
 import qualified Data.Digest.Pure.SHA as SHA
 import qualified Data.ByteString.Lazy as BSL
 import qualified Foreign.Lua as Lua
-import qualified Text.Pandoc.Filter.Json as JsonFilter
+import qualified Text.Pandoc.Filter.JSON as JSONFilter
 import qualified Text.Pandoc.Shared as Shared
 
 -- | Push the "pandoc.utils" module to the lua stack.
@@ -49,7 +49,7 @@ pushModule mbDatadir = do
   Lua.newtable
   addFunction "hierarchicalize" hierarchicalize
   addFunction "normalize_date" normalizeDate
-  addFunction "run_json_filter" (runJsonFilter mbDatadir)
+  addFunction "run_json_filter" (runJSONFilter mbDatadir)
   addFunction "sha1" sha1
   addFunction "stringify" stringify
   addFunction "to_roman_numeral" toRomanNumeral
@@ -67,12 +67,12 @@ normalizeDate :: String -> Lua (Lua.Optional String)
 normalizeDate = return . Lua.Optional . Shared.normalizeDate
 
 -- | Run a JSON filter on the given document.
-runJsonFilter :: Maybe FilePath
+runJSONFilter :: Maybe FilePath
               -> Pandoc
               -> FilePath
               -> Lua.Optional [String]
               -> Lua NumResults
-runJsonFilter mbDatadir doc filterFile optArgs = do
+runJSONFilter mbDatadir doc filterFile optArgs = do
   args <- case Lua.fromOptional optArgs of
             Just x -> return x
             Nothing -> do
@@ -80,7 +80,7 @@ runJsonFilter mbDatadir doc filterFile optArgs = do
               (:[]) <$> popValue
   filterRes <- Lua.liftIO . runIO $ do
     setUserDataDir mbDatadir
-    JsonFilter.apply def args filterFile doc
+    JSONFilter.apply def args filterFile doc
   case filterRes of
     Left err -> Lua.raiseError (show err)
     Right d -> (1 :: NumResults) <$ Lua.push d

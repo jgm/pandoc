@@ -27,7 +27,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 Programmatically modifications of pandoc documents via JSON filters.
 -}
-module Text.Pandoc.Filter.Json (apply) where
+module Text.Pandoc.Filter.JSON (apply) where
 
 import Control.Monad (unless, when)
 import Control.Monad.Trans (MonadIO (liftIO))
