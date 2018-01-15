@@ -30,22 +30,26 @@ module Text.Pandoc.Lua.Module.Utils
   ) where
 
 import Control.Applicative ((<|>))
+import Data.Default (def)
 import Foreign.Lua (FromLuaStack, Lua, LuaInteger, NumResults)
+import Text.Pandoc.Class (runIO, setUserDataDir)
 import Text.Pandoc.Definition (Pandoc, Meta, MetaValue, Block, Inline)
 import Text.Pandoc.Lua.StackInstances ()
-import Text.Pandoc.Lua.Util (addFunction)
+import Text.Pandoc.Lua.Util (addFunction, popValue)
 
 import qualified Data.Digest.Pure.SHA as SHA
 import qualified Data.ByteString.Lazy as BSL
 import qualified Foreign.Lua as Lua
+import qualified Text.Pandoc.Filter.Json as JsonFilter
 import qualified Text.Pandoc.Shared as Shared
 
 -- | Push the "pandoc.utils" module to the lua stack.
-pushModule :: Lua NumResults
-pushModule = do
+pushModule :: Maybe FilePath -> Lua NumResults
+pushModule mbDatadir = do
   Lua.newtable
   addFunction "hierarchicalize" hierarchicalize
   addFunction "normalize_date" normalizeDate
+  addFunction "run_json_filter" (runJsonFilter mbDatadir)
   addFunction "sha1" sha1
   addFunction "stringify" stringify
   addFunction "to_roman_numeral" toRomanNumeral
@@ -61,6 +65,25 @@ hierarchicalize = return . Shared.hierarchicalize
 -- Returns nil instead of a string if the conversion failed.
 normalizeDate :: String -> Lua (Lua.Optional String)
 normalizeDate = return . Lua.Optional . Shared.normalizeDate
+
+-- | Run a JSON filter on the given document.
+runJsonFilter :: Maybe FilePath
+              -> Pandoc
+              -> FilePath
+              -> Lua.Optional [String]
+              -> Lua NumResults
+runJsonFilter mbDatadir doc filterFile optArgs = do
+  args <- case Lua.fromOptional optArgs of
+            Just x -> return x
+            Nothing -> do
+              Lua.getglobal "FORMAT"
+              (:[]) <$> popValue
+  filterRes <- Lua.liftIO . runIO $ do
+    setUserDataDir mbDatadir
+    JsonFilter.apply def args filterFile doc
+  case filterRes of
+    Left err -> Lua.raiseError (show err)
+    Right d -> (1 :: NumResults) <$ Lua.push d
 
 -- | Calculate the hash of the given contents.
 sha1 :: BSL.ByteString

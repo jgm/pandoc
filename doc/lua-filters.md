@@ -1433,6 +1433,37 @@ functions.
         print(table.concat(elements[1].numbering, '.')) -- 0.1
         print(table.concat(elements[2].numbering, '.')) -- 0.2
 
+[`run_json_filter (doc, filter[, args])`]{#utils-run_json_filter}
+
+:   Filter the given doc by passing it through the a JSON filter.
+
+    Parameters:
+
+    `doc`:
+    :   the Pandoc document to filter
+
+    `filter`:
+    :   filter to run
+
+    `args`:
+    :   list of arguments passed to the filter. Defaults to
+        `{FORMAT}`.
+
+    Returns:
+
+    -   ([Pandoc](#Pandoc)) Filtered document
+
+    Usage:
+
+        -- Assumes `some_blocks` contains blocks for which a
+        -- separate literature section is required.
+        local sub_doc = pandoc.Pandoc(some_blocks, metadata)
+        sub_doc_with_bib = pandoc.utils.run_json_filter(
+          sub_doc,
+          'pandoc-citeproc'
+        )
+        some_blocks = sub_doc.blocks -- some blocks with bib
+
 [`normalize_date (date_string)`]{#utils-normalize_date}
 
 :   Parse a date and convert (if possible) to "YYYY-MM-DD"
