@@ -8,9 +8,9 @@
 module Prelude
 (
   module Prelude.Compat
-, module Monoid.Compat
+, module Data.Monoid.Compat
 )
 where
 
 import Prelude.Compat
-import Monoid.Compat
+import Data.Monoid.Compat
