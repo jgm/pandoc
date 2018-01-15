@@ -842,9 +842,6 @@ shapesToElements :: PandocMonad m => Element -> [Shape] -> P m [Element]
 shapesToElements layout shps = do
  concat <$> mapM (shapeToElements layout) shps
 
-hardcodedTableMargin :: Integer
-hardcodedTableMargin = 36
-
 graphicFrameToElements :: PandocMonad m => Element -> [Graphic] -> [ParaElem] -> P m [Element]
 graphicFrameToElements layout tbls caption = do
   -- get the sizing
@@ -857,7 +854,7 @@ graphicFrameToElements layout tbls caption = do
 
   let cy = if (not $ null caption) then cytmp - captionHeight else cytmp
 
-  elements <- mapM graphicToElement tbls
+  elements <- mapM (graphicToElement cx) tbls
   let graphicFrameElts =
         mknode "p:graphicFrame" [] $
         [ mknode "p:nvGraphicFramePr" [] $
@@ -878,20 +875,19 @@ graphicFrameToElements layout tbls caption = do
             return [graphicFrameElts, capElt]
     else return [graphicFrameElts]
 
-graphicToElement :: PandocMonad m => Graphic -> P m Element
-graphicToElement (Tbl tblPr hdrCells rows) = do
-  (pageWidth, _) <- asks envPresentationSize
+graphicToElement :: PandocMonad m => Integer -> Graphic -> P m Element
+graphicToElement tableWidth (Tbl tblPr hdrCells rows) = do
   let colWidths = if null hdrCells
                   then case rows of
                          r : _ | not (null r) -> replicate (length r) $
-                                                (pageWidth - (2 * hardcodedTableMargin))`div` (toInteger $ length r)
+                                                (tableWidth `div` (toInteger $ length r))
                          -- satisfy the compiler. This is the same as
                          -- saying that rows is empty, but the compiler
                          -- won't understand that `[]` exhausts the
                          -- alternatives.
                          _ -> []
                   else replicate (length hdrCells) $
-                       (pageWidth - (2 * hardcodedTableMargin)) `div` (toInteger $ length hdrCells)
+                       (tableWidth `div` (toInteger $ length hdrCells))
 
   let cellToOpenXML paras =
         do elements <- mapM paragraphToElement paras
