@@ -163,8 +163,7 @@ copyFileToArchive arch fp = do
     Just e -> return $ addEntryToArchive e arch
 
 inheritedPatterns :: [Pattern]
-inheritedPatterns = map compile [ "_rels/.rels"
-                                , "docProps/app.xml"
+inheritedPatterns = map compile [ "docProps/app.xml"
                                 , "docProps/core.xml"
                                 , "ppt/slideLayouts/slideLayout*.xml"
                                 , "ppt/slideLayouts/_rels/slideLayout*.xml.rels"
@@ -192,24 +191,23 @@ patternsToFilePaths pats = concat <$> mapM patternToFilePaths pats
 -- Here are the files we'll require to make a Powerpoint document. If
 -- any of these are missing, we should error out of our build.
 requiredFiles :: [FilePath]
-requiredFiles = [ "_rels/.rels"
-                 , "docProps/app.xml"
-                 , "docProps/core.xml"
-                 , "ppt/presProps.xml"
-                 , "ppt/slideLayouts/slideLayout1.xml"
-                 , "ppt/slideLayouts/_rels/slideLayout1.xml.rels"
-                 , "ppt/slideLayouts/slideLayout2.xml"
-                 , "ppt/slideLayouts/_rels/slideLayout2.xml.rels"
-                 , "ppt/slideLayouts/slideLayout3.xml"
-                 , "ppt/slideLayouts/_rels/slideLayout3.xml.rels"
-                 , "ppt/slideLayouts/slideLayout4.xml"
-                 , "ppt/slideLayouts/_rels/slideLayout4.xml.rels"
-                 , "ppt/slideMasters/slideMaster1.xml"
-                 , "ppt/slideMasters/_rels/slideMaster1.xml.rels"
-                 , "ppt/theme/theme1.xml"
-                 , "ppt/viewProps.xml"
-                 , "ppt/tableStyles.xml"
-                 ]
+requiredFiles = [ "docProps/app.xml"
+                , "docProps/core.xml"
+                , "ppt/presProps.xml"
+                , "ppt/slideLayouts/slideLayout1.xml"
+                , "ppt/slideLayouts/_rels/slideLayout1.xml.rels"
+                , "ppt/slideLayouts/slideLayout2.xml"
+                , "ppt/slideLayouts/_rels/slideLayout2.xml.rels"
+                , "ppt/slideLayouts/slideLayout3.xml"
+                , "ppt/slideLayouts/_rels/slideLayout3.xml.rels"
+                , "ppt/slideLayouts/slideLayout4.xml"
+                , "ppt/slideLayouts/_rels/slideLayout4.xml.rels"
+                , "ppt/slideMasters/slideMaster1.xml"
+                , "ppt/slideMasters/_rels/slideMaster1.xml.rels"
+                , "ppt/theme/theme1.xml"
+                , "ppt/viewProps.xml"
+                , "ppt/tableStyles.xml"
+                ]
 
 
 presentationToArchiveP :: PandocMonad m => Presentation -> P m Archive
@@ -226,6 +224,9 @@ presentationToArchiveP p@(Presentation slides) = do
     )
 
   newArch' <- foldM copyFileToArchive emptyArchive filePaths
+  -- we make this ourself in case there's something unexpected in the
+  -- one in the reference doc.
+  relsEntry <- topLevelRelsEntry
   -- presentation entry and rels. We have to do the rels first to make
   -- sure we know the correct offset for the rIds.
   presEntry <- presentationToPresEntry p
@@ -241,7 +242,7 @@ presentationToArchiveP p@(Presentation slides) = do
     slideEntries ++
     slideRelEntries ++
     mediaEntries ++
-    [contentTypesEntry, presEntry, presRelsEntry]
+    [contentTypesEntry, relsEntry, presEntry, presRelsEntry]
 
 presentationToArchive :: PandocMonad m => WriterOptions -> Presentation -> m Archive
 presentationToArchive opts pres = do
@@ -1146,6 +1147,27 @@ presentationToRels (Presentation slides) = do
       relsWithoutSlides' = map (\r -> r{relId = modifyRelNum $ relId r}) relsWithoutSlides
 
   return $ mySlideRels ++ relsWithoutSlides'
+
+-- We make this ourselves, in case there's a thumbnail in the one from
+-- the template.
+topLevelRels :: [Relationship]
+topLevelRels =
+  [ Relationship { relId = 1
+                 , relType = "http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument"
+                 , relTarget = "ppt/presentation.xml"
+                 }
+  , Relationship { relId = 2
+                 , relType = "http://schemas.openxmlformats.org/package/2006/relationships/metadata/core-properties"
+                 , relTarget = "docProps/core.xml"
+                 }
+  , Relationship { relId = 3
+                 , relType = "http://schemas.openxmlformats.org/package/2006/relationships/metadata/extended-properties"
+                 , relTarget = "docProps/app.xml"
+                 }
+  ]
+
+topLevelRelsEntry :: PandocMonad m => P m Entry
+topLevelRelsEntry = elemToEntry "_rels/.rels" $ relsToElement topLevelRels
 
 relToElement :: Relationship -> Element
 relToElement rel = mknode "Relationship" [ ("Id", "rId" ++ (show $ relId rel))
