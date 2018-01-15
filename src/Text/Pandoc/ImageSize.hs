@@ -83,6 +83,7 @@ data Dimension = Pixel Integer
                | Inch Double
                | Percent Double
                | Em Double
+               deriving Eq
 
 instance Show Dimension where
   show (Pixel a)      = show   a ++ "px"
