@@ -38,7 +38,7 @@ import Control.Monad.Except (throwError, catchError)
 import Control.Monad.Reader
 import Control.Monad.State
 import Codec.Archive.Zip
-import Data.List (intercalate, stripPrefix, nub, union)
+import Data.List (intercalate, stripPrefix, nub, union, isPrefixOf)
 import Data.Default
 import Data.Time.Clock (UTCTime)
 import Data.Time.Clock.POSIX (utcTimeToPOSIXSeconds, posixSecondsToUTCTime)
@@ -68,7 +68,7 @@ import Text.Pandoc.Writers.Powerpoint.Presentation
 initialGlobalIds :: Archive -> Archive -> M.Map FilePath Int
 initialGlobalIds refArchive distArchive =
   let archiveFiles = filesInArchive refArchive `union` filesInArchive distArchive
-      mediaPaths = filter (match (compile "ppt/media/image")) archiveFiles
+      mediaPaths = filter (isPrefixOf "ppt/media/image") archiveFiles
 
       go :: FilePath -> Maybe (FilePath, Int)
       go fp = do
