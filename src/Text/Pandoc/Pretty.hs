@@ -69,7 +69,6 @@ module Text.Pandoc.Pretty (
      , inside
      , braces
      , brackets
-     , maybeBrackets
      , parens
      , quotes
      , doubleQuotes
@@ -492,11 +491,6 @@ braces = inside (char '{') (char '}')
 -- | Puts a 'Doc' in square brackets.
 brackets :: Doc -> Doc
 brackets = inside (char '[') (char ']')
-
--- | Apply 'brackets' to 'Doc' if boolean is true.
-maybeBrackets :: Bool -> Doc -> Doc
-maybeBrackets False = id
-maybeBrackets True = brackets
 
 -- | Puts a 'Doc' in parentheses.
 parens :: Doc -> Doc

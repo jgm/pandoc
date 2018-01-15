@@ -307,7 +307,9 @@ tableColToConTeXt tabl (align, width, blocks) = do
         then empty
         else "width=" <> braces (text (printf "%.2f\\textwidth" width))
   let halign = alignToConTeXt align
-  let options = maybeBrackets (keys /= empty) keys <> space
+  let options = (if keys == empty
+                 then empty
+                 else brackets keys) <> space
         where keys = hcat $ intersperse "," $ filter (empty /=) [halign, colwidth]
   tableCellToConTeXt tabl options cellContents
 
