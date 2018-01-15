@@ -137,7 +137,7 @@ The easiest way to build pandoc from source is to use [stack]:
 
 1.  Install the [Haskell platform].  This will give you [GHC] and
     the [cabal-install] build tool.  Note that pandoc requires
-    GHC >= 7.8.
+    GHC >= 7.10.
 
 2.  Update your package database:
 

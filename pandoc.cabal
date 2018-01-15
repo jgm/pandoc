@@ -11,7 +11,7 @@ bug-reports:     https://github.com/jgm/pandoc/issues
 stability:       alpha
 homepage:        http://pandoc.org
 category:        Text
-tested-with:     GHC == 7.8.4, GHC == 7.10.3, GHC == 8.0.2, GHC == 8.2.2
+tested-with:     GHC == 7.10.3, GHC == 8.0.2, GHC == 8.2.2
 synopsis:        Conversion between markup formats
 description:     Pandoc is a Haskell library for converting from one markup
                  format to another, and a command-line tool that uses
@@ -415,10 +415,6 @@ library
                       RelaxedPolyRec, DeriveDataTypeable, TypeSynonymInstances,
                       FlexibleInstances
   hs-source-dirs:  src
-  if impl(ghc < 7.10)
-     hs-source-dirs: prelude
-     other-modules:  Prelude
-     build-depends:  base-compat >= 0.9
 
   exposed-modules: Text.Pandoc,
                    Text.Pandoc.App,
@@ -560,10 +556,6 @@ executable pandoc
                     RelaxedPolyRec, DeriveDataTypeable, TypeSynonymInstances,
                     FlexibleInstances
   hs-source-dirs:  .
-  if impl(ghc < 7.10)
-     hs-source-dirs: prelude
-     other-modules:  Prelude
-     build-depends:  base-compat >= 0.9
   main-is:         pandoc.hs
   buildable:       True
   other-modules:   Paths_pandoc
@@ -571,10 +563,6 @@ executable pandoc
 executable trypandoc
   main-is:         trypandoc.hs
   hs-source-dirs:  trypandoc
-  if impl(ghc < 7.10)
-     hs-source-dirs: prelude
-     other-modules:  Prelude
-     build-depends:  base-compat >= 0.9
   default-language: Haskell2010
   if flag(trypandoc)
     build-depends: base, aeson, pandoc,
@@ -586,10 +574,6 @@ executable trypandoc
 executable weigh-pandoc
   main-is:         weigh-pandoc.hs
   hs-source-dirs:  benchmark
-  if impl(ghc < 7.10)
-     hs-source-dirs: prelude
-     other-modules:  Prelude
-     build-depends:  base-compat >= 0.9
   if flag(weigh-pandoc)
      build-depends:   pandoc,
                       base >= 4.2 && < 5,
@@ -606,10 +590,6 @@ test-suite test-pandoc
   type:           exitcode-stdio-1.0
   main-is:        test-pandoc.hs
   hs-source-dirs: test
-  if impl(ghc < 7.10)
-     hs-source-dirs: prelude
-     other-modules:  Prelude
-     build-depends:  base-compat >= 0.9
   build-depends:  base >= 4.2 && < 5,
                   pandoc,
                   pandoc-types >= 1.17.3 && < 1.18,
@@ -689,10 +669,6 @@ benchmark benchmark-pandoc
   type:            exitcode-stdio-1.0
   main-is:         benchmark-pandoc.hs
   hs-source-dirs:  benchmark
-  if impl(ghc < 7.10)
-     hs-source-dirs: prelude
-     other-modules:  Prelude
-     build-depends:  base-compat >= 0.9
   build-depends:   pandoc,
                    time, bytestring, containers,
                    base >= 4.2 && < 5,
