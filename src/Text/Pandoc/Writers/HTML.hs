@@ -634,12 +634,13 @@ figure opts attr@(_,classes,_) txt (s,tit) = do
   capt <- if null txt
              then return mempty
              else tocapt `fmap` inlineListToHtml opts txt
-  let figureClasses = unwords . map (++ "-figure") $ classes
+  let figureClasses = fromString . unwords $
+        [ "figure" | not html5 ] ++ map (++ "-figure") classes
   return $ if html5
-              then H5.figure ! A.class_ (fromString figureClasses) $ mconcat
-                    [nl opts, img, capt, nl opts]
-              else H.div ! A.class_ (fromString $ "figure " ++ figureClasses) $
-                    mconcat [nl opts, img, nl opts, capt, nl opts]
+              then H5.figure !? (not . null $ classes, A.class_ figureClasses) $
+                    mconcat [nl opts, img, capt, nl opts]
+              else H.div ! A.class_ figureClasses $ mconcat
+                    [nl opts, img, nl opts, capt, nl opts]
 
 -- | Convert Pandoc block element to HTML.
 blockToHtml :: PandocMonad m => WriterOptions -> Block -> StateT WriterState m Html
