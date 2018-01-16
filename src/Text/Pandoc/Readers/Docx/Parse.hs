@@ -54,6 +54,7 @@ module Text.Pandoc.Readers.Docx.Parse ( Docx(..)
                                       , TrackedChange(..)
                                       , ChangeType(..)
                                       , ChangeInfo(..)
+                                      , FieldInfo(..)
                                       , archiveToDocx
                                       , archiveToDocxWithWarnings
                                       ) where
@@ -70,6 +71,7 @@ import qualified Data.Map as M
 import Data.Maybe
 import System.FilePath
 import Text.Pandoc.Readers.Docx.Util
+import Text.Pandoc.Readers.Docx.Fields
 import Text.Pandoc.Shared (filteredFilesFromArchive, safeRead)
 import qualified Text.Pandoc.UTF8 as UTF8
 import Text.TeXMath (Exp)
@@ -285,10 +287,6 @@ data Run = Run RunStyle [RunElem]
          | InlineDrawing FilePath String String B.ByteString Extent -- title, alt
          | InlineChart          -- placeholder
            deriving Show
-
-data FieldInfo = HyperlinkField URL
-               | UnknownField
-               deriving (Show)
 
 data RunElem = TextRun String | LnBrk | Tab | SoftHyphen | NoBreakHyphen
              deriving Show
@@ -802,8 +800,18 @@ elemToParPart ns element
           return NullParPart
         FldCharContent info runs | fldCharType == "end" -> do
           modify $ \st -> st {stateFldCharState = FldCharClosed}
-          return $ Field info runs
+          return $ Field info $ reverse runs
         _ -> throwError WrongElem
+elemToParPart ns element
+  | isElem ns "w" "r" element
+  , Just instrText <- findChildByName ns "w" "instrText" element = do
+      fldCharState <- gets stateFldCharState
+      case fldCharState of
+        FldCharOpen -> do
+          info <- eitherToD $ parseFieldInfo $ strContent instrText
+          modify $ \st -> st{stateFldCharState = FldCharFieldInfo info}
+          return NullParPart
+        _ -> return NullParPart
 elemToParPart ns element
   | isElem ns "w" "r" element = do
     run <- elemToRun ns element
