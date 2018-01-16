@@ -446,8 +446,10 @@ parPartToInlines' (PlainOMath exps) =
   return $ math $ writeTeX exps
 parPartToInlines' (SmartTag runs) = do
   smushInlines <$> mapM runToInlines runs
-parPartToInlines' (Field _ runs) = do
-  smushInlines <$> mapM runToInlines runs
+parPartToInlines' (Field info runs) = do
+  case info of
+    HyperlinkField url -> parPartToInlines' $ ExternalHyperLink url runs
+    UnknownField -> smushInlines <$> mapM runToInlines runs
 parPartToInlines' NullParPart = return mempty
 
 isAnchorSpan :: Inline -> Bool
