@@ -17,4 +17,6 @@ extra-deps:
 - hslua-0.9.5
 - skylighting-0.5.1
 - tasty-1.0
+ghc-options:
+   "$locals": -fhide-source-paths
 resolver: lts-10.3
