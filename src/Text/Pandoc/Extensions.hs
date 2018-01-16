@@ -133,6 +133,7 @@ data Extension =
     | Ext_multiline_tables    -- ^ Pandoc-style multiline tables
     | Ext_native_divs             -- ^ Use Div blocks for contents of <div> tags
     | Ext_native_spans            -- ^ Use Span inlines for contents of <span>
+    | Ext_ntb                 -- ^ ConTeXt Natural Tables
     | Ext_old_dashes          -- ^ -- = em, - before number = en
     | Ext_pandoc_title_block  -- ^ Pandoc title block
     | Ext_pipe_tables         -- ^ Pipe tables (as in PHP markdown extra)

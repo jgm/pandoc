@@ -1960,6 +1960,14 @@ extensions to Emacs Muse markup.
 Some aspects of [Pandoc's Markdown citation syntax](#citations) are also accepted
 in `org` input.
 
+#### Extension: `ntb` ####
+
+In the `context` output format this enables the use of [Natural Tables
+(TABLE)](http://wiki.contextgarden.net/TABLE) instead of the default
+[Extreme Tables (xtables)](http://wiki.contextgarden.net/xtables).
+Natural tables allow more fine-grained global customization but come
+at a performance penalty compared to extreme tables.
+
 
 Pandoc's Markdown
 =================
