@@ -189,13 +189,14 @@ where
 
 import Control.Monad.Identity
 import Control.Monad.Reader
+import Control.Applicative (liftA2)
 import Data.Char (chr, isAlphaNum, isAscii, isAsciiUpper, isHexDigit, isPunctuation, isSpace,
                   ord, toLower, toUpper)
 import Data.Default
 import Data.List (intercalate, isSuffixOf, transpose)
 import qualified Data.Map as M
 import Data.Maybe (mapMaybe)
-import Data.Monoid ((<>))
+import Data.Semigroup (Semigroup ((<>)))
 import qualified Data.Set as Set
 import Data.Text (Text)
 import Text.HTML.TagSoup.Entity (lookupEntity)
@@ -243,9 +244,11 @@ returnF = return . return
 trimInlinesF :: Future s Inlines -> Future s Inlines
 trimInlinesF = liftM trimInlines
 
-instance Monoid a => Monoid (Future s a) where
+instance Semigroup a => Semigroup (Future s a) where
+  (<>) = liftA2 (<>)
+instance (Monoid a, Semigroup a) => Monoid (Future s a) where
   mempty = return mempty
-  mappend = liftM2 mappend
+  mappend = (<>)
   mconcat = liftM mconcat . sequence
 
 -- | Parse characters while a predicate is true.
@@ -1412,7 +1415,8 @@ token :: (Stream s m t)
 token pp pos match = tokenPrim pp (\_ t _ -> pos t) match
 
 infixr 5 <+?>
-(<+?>) :: (Monoid a) => ParserT s st m a -> ParserT s st m a -> ParserT s st m a
+(<+?>) :: (Semigroup a, Monoid a)
+              => ParserT s st m a -> ParserT s st m a -> ParserT s st m a
 a <+?> b = a >>= flip fmap (try b <|> return mempty) . (<>)
 
 extractIdClass :: Attr -> Attr
