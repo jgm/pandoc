@@ -221,7 +221,7 @@ blockElements = choice [ comment
 comment :: PandocMonad m => MuseParser m (F Blocks)
 comment = try $ do
   char ';'
-  optionMaybe (spaceChar >> (many $ noneOf "\n"))
+  optionMaybe (spaceChar >> many (noneOf "\n"))
   eol
   return mempty
 
@@ -658,7 +658,7 @@ footnote = try $ do
         return $ B.note contents'
 
 whitespace :: PandocMonad m => MuseParser m (F Inlines)
-whitespace = fmap return (lb <|> regsp)
+whitespace = return <$> (lb <|> regsp)
   where lb = try $ skipMany spaceChar >> linebreak >> return B.space
         regsp = try $ skipMany1 spaceChar >> return B.space
 
