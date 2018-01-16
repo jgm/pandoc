@@ -28,6 +28,12 @@ infix 4 =:
      => String -> (a, String) -> TestTree
 (=:) = test html
 
+imgHTMLWithClasses :: String
+imgHTMLWithClasses =
+  "<div class=\"figure my-class1-figure my-class2-figure\">" ++
+    "<img src=\"/url\" title=\"title\" class=\"my-class1 my-class2\" />" ++
+  "</div>"
+
 tests :: [TestTree]
 tests = [ testGroup "inline code"
           [ "basic" =: code "@&" =?> "<code>@&amp;</code>"
@@ -40,5 +46,9 @@ tests = [ testGroup "inline code"
           [ "alt with formatting" =:
             image "/url" "title" ("my " <> emph "image")
             =?> "<img src=\"/url\" title=\"title\" alt=\"my image\" />"
+          , "with class attribute" =:
+            para (imageWith
+                   ("",[ "my-class1", "my-class2" ],[])  "/url" "fig:title" "")
+            =?> imgHTMLWithClasses
           ]
         ]
