@@ -42,7 +42,8 @@ module Text.Pandoc.Readers.Muse (readMuse) where
 import Control.Monad
 import Control.Monad.Except (throwError)
 import Data.Char (isLetter)
-import Data.List (stripPrefix)
+import Data.List (stripPrefix, intercalate)
+import Data.List.Split (splitOn)
 import qualified Data.Map as M
 import Data.Maybe (fromMaybe)
 import Data.Text (Text, unpack)
@@ -187,17 +188,19 @@ directive = do
 -- block parsers
 --
 
-block :: PandocMonad m => MuseParser m (F Blocks)
-block = do
-  res <- mempty <$ skipMany1 blankline
-         <|> blockElements
-         <|> para
-  skipMany blankline
+parseBlock :: PandocMonad m => MuseParser m (F Blocks)
+parseBlock = do
+  res <- blockElements <|> para
+  optionMaybe blankline
   trace (take 60 $ show $ B.toList $ runF res defaultParserState)
   return res
 
+block :: PandocMonad m => MuseParser m (F Blocks)
+block = parseBlock <* skipMany blankline
+
 blockElements :: PandocMonad m => MuseParser m (F Blocks)
-blockElements = choice [ comment
+blockElements = choice [ mempty <$ blankline
+                       , comment
                        , separator
                        , header
                        , example
@@ -257,15 +260,26 @@ example = try $ do
 -- in case opening and/or closing tags are on separate lines.
 chop :: String -> String
 chop = lchop . rchop
-  where lchop s = case s of
+
+lchop :: String -> String
+lchop s = case s of
                     '\n':ss -> ss
                     _       -> s
-        rchop = reverse . lchop . reverse
+
+rchop :: String -> String
+rchop = reverse . lchop . reverse
+
+dropSpacePrefix :: [String] -> [String]
+dropSpacePrefix lns =
+  map (drop maxIndent) lns
+  where flns = filter (not . all (== ' ')) lns
+        maxIndent = if null flns then maximum (map length lns) else length $ takeWhile (== ' ') $ foldl1 commonPrefix flns
 
 exampleTag :: PandocMonad m => MuseParser m (F Blocks)
-exampleTag = do
+exampleTag = try $ do
+  many spaceChar
   (attr, contents) <- htmlElement "example"
-  return $ return $ B.codeBlockWith attr $ chop contents
+  return $ return $ B.codeBlockWith attr $ rchop $ intercalate "\n" $ dropSpacePrefix $ splitOn "\n" $ lchop contents
 
 literal :: PandocMonad m => MuseParser m (F Blocks)
 literal = do
@@ -309,7 +323,7 @@ verseLine = do
 
 verseLines :: PandocMonad m => MuseParser m (F Blocks)
 verseLines = do
-  optionMaybe blankline -- Skip blankline after opening tag on separate line
+  --optionMaybe blankline -- Skip blankline after opening tag on separate line
   lns <- many verseLine
   lns' <- mapM (parseFromString' (trimInlinesF . mconcat <$> many inline)) lns
   return $ B.lineBlock <$> sequence lns'
@@ -317,7 +331,7 @@ verseLines = do
 verseTag :: PandocMonad m => MuseParser m (F Blocks)
 verseTag = do
   (_, content) <- htmlElement "verse"
-  parseFromString verseLines content
+  parseFromString verseLines (intercalate "\n" $ dropSpacePrefix $ splitOn "\n" $ lchop content)
 
 commentTag :: PandocMonad m => MuseParser m (F Blocks)
 commentTag = parseHtmlContent "comment" anyChar >> return mempty
@@ -349,7 +363,7 @@ amuseNoteBlock = try $ do
   guardEnabled Ext_amuse
   pos <- getPosition
   ref <- noteMarker <* spaceChar
-  content <- listItemContents $ 3 + length ref
+  content <- listItemContents
   oldnotes <- stateNotes' <$> getState
   case M.lookup ref oldnotes of
     Just _  -> logMessage $ DuplicateNoteReference ref pos
@@ -399,11 +413,6 @@ lineBlock = try $ do
 -- lists
 --
 
-listLine :: PandocMonad m => Int -> MuseParser m String
-listLine markerLength = try $ do
-  indentWith markerLength
-  manyTill anyChar eol
-
 withListContext :: PandocMonad m => MuseParser m a -> MuseParser m a
 withListContext p = do
   state <- getState
@@ -413,66 +422,47 @@ withListContext p = do
   updateState (\st -> st {stateParserContext = oldContext})
   return parsed
 
-listContinuation :: PandocMonad m => Int -> MuseParser m [String]
-listContinuation markerLength = try $ do
-  result <- many1 $ listLine markerLength
-  blank <- option id ((++ [""]) <$ blankline)
-  return $ blank result
+listItemContents :: PandocMonad m => MuseParser m (F Blocks)
+listItemContents = do
+  pos <- getPosition
+  let col = sourceColumn pos - 1
+  first <- try $ withListContext parseBlock
+  rest <- many $ try (skipMany blankline >> indentWith col >> withListContext parseBlock)
+  return $ mconcat (first : rest)
 
-listStart :: PandocMonad m => MuseParser m Int -> MuseParser m Int
-listStart marker = try $ do
-  preWhitespace <- length <$> many spaceChar
-  st <- stateParserContext <$> getState
-  getPosition >>= \pos -> guard (st == ListItemState || sourceColumn pos /= 1)
-  markerLength <- marker
-  void spaceChar <|> eol
-  return $ preWhitespace + markerLength + 1
-
-dropSpacePrefix :: [String] -> [String]
-dropSpacePrefix lns =
-  map (drop maxIndent) lns
-  where flns = filter (not . all (== ' ')) lns
-        maxIndent = if null flns then 0 else length $ takeWhile (== ' ') $ foldl1 commonPrefix flns
-
-listItemContents :: PandocMonad m => Int -> MuseParser m (F Blocks)
-listItemContents markerLength = do
-  firstLine <- manyTill anyChar eol
-  restLines <- many $ listLine markerLength
-  blank <- option id ((++ [""]) <$ blankline)
-  let first = firstLine : blank restLines
-  rest <- many $ listContinuation markerLength
-  let allLines = concat (first : rest)
-  parseFromString (withListContext parseBlocks) $ unlines (dropSpacePrefix allLines)
-
-listItem :: PandocMonad m => MuseParser m Int -> MuseParser m (F Blocks)
-listItem start = try $ do
-  markerLength <- start
-  listItemContents markerLength
-
-bulletListItems :: PandocMonad m => MuseParser m (F [Blocks])
-bulletListItems = sequence <$> many1 (listItem bulletListStart)
-
-bulletListStart :: PandocMonad m => MuseParser m Int
-bulletListStart = listStart (char '-' >> return 1)
+listItem :: PandocMonad m => Int -> MuseParser m () -> MuseParser m (F Blocks)
+listItem n p = try $ do
+  optionMaybe blankline
+  count n spaceChar
+  p
+  void spaceChar <|> lookAhead eol
+  listItemContents
 
 bulletList :: PandocMonad m => MuseParser m (F Blocks)
-bulletList = do
-  listItems <- bulletListItems
-  return $ B.bulletList <$> listItems
-
-orderedListStart :: PandocMonad m
-                 => ListNumberStyle
-                 -> ListNumberDelim
-                 -> MuseParser m Int
-orderedListStart style delim = listStart (snd <$> withHorizDisplacement (orderedListMarker style delim))
+bulletList = try $ do
+  many spaceChar
+  pos <- getPosition
+  let col = sourceColumn pos
+  guard $ col /= 1
+  char '-'
+  void spaceChar <|> lookAhead eol
+  first <- listItemContents
+  rest <- many $ listItem (col - 1) (void (char '-'))
+  return $ B.bulletList <$> sequence (first : rest)
 
 orderedList :: PandocMonad m => MuseParser m (F Blocks)
 orderedList = try $ do
-  p@(_, style, delim) <- lookAhead (many spaceChar *> anyOrderedListMarker <* (eol <|> void spaceChar))
+  many spaceChar
+  pos <- getPosition
+  let col = sourceColumn pos
+  guard $ col /= 1
+  p@(_, style, delim) <- anyOrderedListMarker
   guard $ style `elem` [Decimal, LowerAlpha, UpperAlpha, LowerRoman, UpperRoman]
   guard $ delim == Period
-  items <- sequence <$> many1 (listItem $ orderedListStart style delim)
-  return $ B.orderedListWith p <$> items
+  void spaceChar <|> lookAhead eol
+  first <- listItemContents
+  rest <- many $ listItem (col - 1) (void (orderedListMarker style delim))
+  return $ B.orderedListWith p <$> sequence (first : rest)
 
 definitionListItem :: PandocMonad m => MuseParser m (F (Inlines, [Blocks]))
 definitionListItem = try $ do
@@ -482,7 +472,7 @@ definitionListItem = try $ do
   string "::"
   firstLine <- manyTill anyChar eol
   restLines <- manyTill anyLine endOfListItemElement
-  let lns = dropWhile (== ' ') firstLine : dropSpacePrefix restLines
+  let lns = dropWhile (== ' ') firstLine : restLines
   lineContent <- parseFromString (withListContext parseBlocks) $ unlines lns
   pure $ do lineContent' <- lineContent
             term' <- term
@@ -501,8 +491,8 @@ definitionListItems = sequence <$> many1 definitionListItem
 
 definitionList :: PandocMonad m => MuseParser m (F Blocks)
 definitionList = do
-  listItems <- definitionListItems
-  return $ B.definitionList <$> listItems
+  items <- definitionListItems
+  return $ B.definitionList <$> items
 
 --
 -- tables

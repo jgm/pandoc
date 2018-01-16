@@ -161,6 +161,8 @@ tests =
 
       , "Verbatim inside code" =: "<code><verbatim>foo</verbatim></code>" =?> para (code "<verbatim>foo</verbatim>")
 
+      , "Verbatim tag after text" =: "Foo <verbatim>bar</verbatim>" =?> para "Foo bar"
+
       , testGroup "Links"
         [ "Link without description" =:
           "[[https://amusewiki.org/]]" =?>
@@ -279,20 +281,12 @@ tests =
                   , "  One two three"
                   , ""
                   , "</verse>"
-                  , "<verse>Foo bar</verse>"
-                  , "<verse>"
-                  , "Foo bar</verse>"
-                  , "<verse>"
-                  , "   Foo</verse>"
                   ] =?>
         lineBlock [ ""
                   , text "Foo bar baz"
                   , text "\160\160One two three"
                   , ""
-                  ] <>
-        lineBlock [ "Foo bar" ] <>
-        lineBlock [ "Foo bar" ] <>
-        lineBlock [ "\160\160\160Foo" ]
+                  ]
       , testGroup "Example"
         [ "Braces on separate lines" =:
           T.unlines [ "{{{"
@@ -356,6 +350,11 @@ tests =
                     , "   </example>"
                     ] =?>
           bulletList [ codeBlock "foo" ]
+        , "Empty example inside list" =:
+          T.unlines [ " - <example>"
+                    , "   </example>"
+                    ] =?>
+          bulletList [ codeBlock "" ]
         , "Example inside list with empty lines" =:
           T.unlines [ " - <example>"
                     , "   foo"
@@ -537,12 +536,14 @@ tests =
                       , "[1] First footnote paragraph"
                       , ""
                       , "    Second footnote paragraph"
+                      , "with continuation"
+                      , ""
                       , "Not a note"
                       , "[2] Second footnote"
                       ] =?>
             para (text "Multiparagraph" <>
                   note (para "First footnote paragraph" <>
-                        para "Second footnote paragraph") <>
+                        para "Second footnote paragraph\nwith continuation") <>
                   text " footnotes" <>
                   note (para "Second footnote")) <>
             para (text "Not a note")
@@ -713,8 +714,48 @@ tests =
                                              , mempty
                                              , para "Item3"
                                              ]
+      , "Bullet list with last item empty" =:
+        T.unlines
+          [ " -"
+          , ""
+          , "foo"
+          ] =?>
+        bulletList [ mempty ] <>
+        para "foo"
       , testGroup "Nested lists"
-        [ "Nested list" =:
+        [ "Nested bullet list" =:
+          T.unlines [ " - Item1"
+                    , "   - Item2"
+                    , "     - Item3"
+                    , "   - Item4"
+                    , "     - Item5"
+                    , " - Item6"
+                    ] =?>
+          bulletList [ para "Item1" <>
+                       bulletList [ para "Item2" <>
+                                    bulletList [ para "Item3" ]
+                                  , para "Item4" <>
+                                    bulletList [ para "Item5" ]
+                                  ]
+                     , para "Item6"
+                     ]
+        , "Nested ordered list" =:
+          T.unlines [ " 1. Item1"
+                    , "    1. Item2"
+                    , "       1. Item3"
+                    , "    2. Item4"
+                    , "       1. Item5"
+                    , " 2. Item6"
+                    ] =?>
+          orderedListWith (1, Decimal, Period) [ para "Item1" <>
+                                                 orderedListWith (1, Decimal, Period) [ para "Item2" <>
+                                                                                        orderedListWith (1, Decimal, Period) [ para "Item3" ]
+                                                                                      , para "Item4" <>
+                                                                                        orderedListWith (1, Decimal, Period) [ para "Item5" ]
+                                                                                      ]
+                                               , para "Item6"
+                                               ]
+        , "Mixed nested list" =:
           T.unlines
             [ " - Item1"
             , "   - Item2"
@@ -736,12 +777,6 @@ tests =
                                                                       ]
                                ]
                      ]
-        , "Incorrectly indented Text::Amuse nested list" =:
-          T.unlines
-            [ " - First item"
-            , "  - Not nested item"
-            ] =?>
-          bulletList [ para "First item", para "Not nested item"]
         , "Text::Amuse includes only one space in list marker" =:
           T.unlines
             [ " -    First item"
