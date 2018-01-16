@@ -625,7 +625,7 @@ treatAsImage fp =
 figure :: PandocMonad m
        => WriterOptions -> Attr -> [Inline] -> (String, String)
        -> StateT WriterState m Html
-figure opts attr txt (s,tit) = do
+figure opts attr@(_,classes,_) txt (s,tit) = do
   img <- inlineToHtml opts (Image attr txt (s,tit))
   html5 <- gets stHtml5
   let tocapt = if html5
@@ -634,11 +634,12 @@ figure opts attr txt (s,tit) = do
   capt <- if null txt
              then return mempty
              else tocapt `fmap` inlineListToHtml opts txt
+  let figureClasses = unwords . map (++ "-figure") $ classes
   return $ if html5
-              then H5.figure $ mconcat
+              then H5.figure ! A.class_ (fromString figureClasses) $ mconcat
                     [nl opts, img, capt, nl opts]
-              else H.div ! A.class_ "figure" $ mconcat
-                    [nl opts, img, nl opts, capt, nl opts]
+              else H.div ! A.class_ (fromString $ "figure " ++ figureClasses) $
+                    mconcat [nl opts, img, nl opts, capt, nl opts]
 
 -- | Convert Pandoc block element to HTML.
 blockToHtml :: PandocMonad m => WriterOptions -> Block -> StateT WriterState m Html
