@@ -90,10 +90,19 @@ data ReaderEnv = ReaderEnv { envNotes         :: Notes
                            }
                deriving Show
 
-data ReaderState = ReaderState { stateWarnings :: [String] }
+data ReaderState = ReaderState { stateWarnings :: [String]
+                               , stateFldCharState :: FldCharState
+                               }
                  deriving Show
 
-data DocxError = DocxError | WrongElem
+data FldCharState = FldCharOpen
+                  | FldCharFieldInfo FieldInfo
+                  | FldCharContent FieldInfo [Run]
+                  | FldCharClosed
+                  deriving (Show)
+
+data DocxError = DocxError
+               | WrongElem
                deriving Show
 
 type D = ExceptT DocxError (ReaderT ReaderEnv (State ReaderState))
@@ -265,6 +274,9 @@ data ParPart = PlainRun Run
              | Chart                                              -- placeholder for now
              | PlainOMath [Exp]
              | SmartTag [Run]
+             | Field FieldInfo [Run]
+             | NullParPart      -- when we need to return nothing, but
+                                -- not because of an error.
              deriving Show
 
 data Run = Run RunStyle [RunElem]
@@ -273,6 +285,10 @@ data Run = Run RunStyle [RunElem]
          | InlineDrawing FilePath String String B.ByteString Extent -- title, alt
          | InlineChart          -- placeholder
            deriving Show
+
+data FieldInfo = HyperlinkField URL
+               | UnknownField
+               deriving (Show)
 
 data RunElem = TextRun String | LnBrk | Tab | SoftHyphen | NoBreakHyphen
              deriving Show
@@ -328,7 +344,9 @@ archiveToDocxWithWarnings archive = do
       (styles, parstyles) = archiveToStyles archive
       rEnv =
         ReaderEnv notes comments numbering rels media Nothing styles parstyles InDocument
-      rState = ReaderState { stateWarnings = [] }
+      rState = ReaderState { stateWarnings = []
+                           , stateFldCharState = FldCharClosed
+                           }
       (eitherDoc, st) = runD (archiveToDocument archive) rEnv rState
   case eitherDoc of
     Right doc -> Right (Docx doc, stateWarnings st)
@@ -736,9 +754,67 @@ elemToParPart ns element
   , c_ns <- "http://schemas.openxmlformats.org/drawingml/2006/chart"
   , Just _ <- findElement (QName "chart" (Just c_ns) (Just "c")) drawingElem
   = return Chart
+{-
+The next one is a bit complicated. fldChar fields work by first
+having a <w:fldChar fldCharType="begin"> in a run, then a run with
+<w:instrText>, then a <w:fldChar fldCharType="separate"> run, then the
+content runs, and finally a <w:fldChar fldCharType="end"> run. For
+example (omissions and my comments in brackets):
+
+      <w:r>
+        [...]
+        <w:fldChar w:fldCharType="begin"/>
+      </w:r>
+      <w:r>
+        [...]
+        <w:instrText xml:space="preserve"> HYPERLINK [hyperlink url] </w:instrText>
+      </w:r>
+      <w:r>
+        [...]
+        <w:fldChar w:fldCharType="separate"/>
+      </w:r>
+      <w:r w:rsidRPr=[...]>
+        [...]
+        <w:t>Foundations of Analysis, 2nd Edition</w:t>
+      </w:r>
+      <w:r>
+        [...]
+        <w:fldChar w:fldCharType="end"/>
+      </w:r>
+
+So we do this in a number of steps. If we encounter the fldchar begin
+tag, we start open a fldchar state variable (see state above). We add
+the instrtext to it as FieldInfo. Then we close that and start adding
+the runs when we get to separate. Then when we get to end, we produce
+the Field type with approriate FieldInfo and Runs.
+-}
 elemToParPart ns element
-  | isElem ns "w" "r" element =
-    elemToRun ns element >>= (\r -> return $ PlainRun r)
+  | isElem ns "w" "r" element
+  , Just fldChar <- findChildByName ns "w" "fldChar" element
+  , Just fldCharType <- findAttrByName ns "w" "fldCharType" fldChar = do
+      fldCharState <- gets stateFldCharState
+      case fldCharState of
+        FldCharClosed | fldCharType == "begin" -> do
+          modify $ \st -> st {stateFldCharState = FldCharOpen}
+          return NullParPart
+        FldCharFieldInfo info | fldCharType == "separate" -> do
+          modify $ \st -> st {stateFldCharState = FldCharContent info []}
+          return NullParPart
+        FldCharContent info runs | fldCharType == "end" -> do
+          modify $ \st -> st {stateFldCharState = FldCharClosed}
+          return $ Field info runs
+        _ -> throwError WrongElem
+elemToParPart ns element
+  | isElem ns "w" "r" element = do
+    run <- elemToRun ns element
+    -- we check to see if we have an open FldChar in state that we're
+    -- recording.
+    fldCharState <- gets stateFldCharState
+    case fldCharState of
+      FldCharContent info runs -> do
+        modify $ \st -> st{stateFldCharState = FldCharContent info (run : runs)}
+        return NullParPart
+      _ -> return $ PlainRun run
 elemToParPart ns element
   | Just change <- getTrackedChange ns element = do
       runs <- mapD (elemToRun ns) (elChildren element)
