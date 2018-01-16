@@ -128,6 +128,10 @@ tests = [ testGroup "inlines"
             "docx/links.docx"
             "docx/links.native"
           , testCompare
+            "hyperlinks in <w:instrText> tag"
+            "docx/instrText_hyperlink.docx"
+            "docx/instrText_hyperlink.native"
+          , testCompare
             "inline image"
             "docx/image.docx"
             "docx/image_no_embed.native"
