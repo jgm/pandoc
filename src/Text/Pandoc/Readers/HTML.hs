@@ -531,15 +531,18 @@ pCol = try $ do
   skipMany pBlank
   optional $ pSatisfy (matchTagClose "col")
   skipMany pBlank
-  return $ case lookup "width" attribs of
+  let width = case lookup "width" attribs of
            Nothing -> case lookup "style" attribs of
                Just ('w':'i':'d':'t':'h':':':xs) | '%' `elem` xs ->
-                 fromMaybe 0.0 $ safeRead ('0':'.':filter
+                 fromMaybe 0.0 $ safeRead (filter
                    (`notElem` (" \t\r\n%'\";" :: [Char])) xs)
                _ -> 0.0
            Just x | not (null x) && last x == '%' ->
-             fromMaybe 0.0 $ safeRead ('0':'.':init x)
+             fromMaybe 0.0 $ safeRead (init x)
            _ -> 0.0
+  if width > 0.0
+    then return $ width / 100.0
+    else return 0.0
 
 pColgroup :: PandocMonad m => TagParser m [Double]
 pColgroup = try $ do
