@@ -113,8 +113,20 @@ instance Default WriterState where
                     , stLog = []
                     }
 
+metadataSlideId :: SlideId
+metadataSlideId = SlideId "Metadata"
+
+tocSlideId :: SlideId
+tocSlideId = SlideId "TOC"
+
+endNotesSlideId :: SlideId
+endNotesSlideId = SlideId "EndNotes"
+
 reservedSlideIds :: S.Set SlideId
-reservedSlideIds = S.fromList [SlideId "EndNotes"]
+reservedSlideIds = S.fromList [ metadataSlideId
+                              , tocSlideId
+                              , endNotesSlideId
+                              ]
 
 uniqueSlideId' :: Integer -> S.Set SlideId -> String -> SlideId
 uniqueSlideId' n idSet s =
@@ -329,7 +341,8 @@ inlineToParElems (Note blks) = do
         lst -> maximum lst
       curNoteId = maxNoteId + 1
   modify $ \st -> st { stNoteIds = M.insert curNoteId blks notes }
-  inlineToParElems $ Superscript [Str $ show curNoteId]
+  local (\env -> env{envRunProps = (envRunProps env){rLink = Just $ InternalTarget endNotesSlideId}}) $
+    inlineToParElems $ Superscript [Str $ show curNoteId]
 inlineToParElems (Span _ ils) = concatMapM inlineToParElems ils
 inlineToParElems (RawInline _ _) = return []
 inlineToParElems _ = return []
@@ -672,13 +685,12 @@ getMetaSlide  = do
       _                             -> []
   authors <- mapM inlinesToParElems $ docAuthors meta
   date <- inlinesToParElems $ docDate meta
-  sldId <- asks envCurSlideId
   if null title && null subtitle && null authors && null date
     then return Nothing
     else return $
          Just $
          Slide
-         sldId
+         metadataSlideId
          MetadataSlide { metadataSlideTitle = title
                        , metadataSlideSubtitle = subtitle
                        , metadataSlideAuthors = authors
@@ -701,7 +713,7 @@ elementToListItem (Shared.Sec lev _nums (ident,_,_) headerText subsecs) = do
 elementToListItem (Shared.Blk _) = return []
 
 makeTOCSlide :: [Block] -> Pres Slide
-makeTOCSlide blks = do
+makeTOCSlide blks = local (\env -> env{envCurSlideId = tocSlideId}) $ do
   contents <- BulletList <$> mapM elementToListItem (Shared.hierarchicalize blks)
   meta <- asks envMetadata
   slideLevel <- asks envSlideLevel
@@ -787,9 +799,7 @@ replaceAnchor pe = return pe
 blocksToPresentation :: [Block] -> Pres Presentation
 blocksToPresentation blks = do
   opts <- asks envOpts
-  let metadataStartNum = 1
   metadataslides <- maybeToList <$> getMetaSlide
-  let tocStartNum = metadataStartNum + length metadataslides
   -- As far as I can tell, if we want to have a variable-length toc in
   -- the future, we'll have to make it twice. Once to get the length,
   -- and a second time to include the notes slide. We can't make the
@@ -800,18 +810,14 @@ blocksToPresentation blks = do
   -- For now, though, since the TOC slide is only length 1, if it
   -- exists, we'll just get the length, and then come back to make the
   -- slide later
-  let tocSlidesLength = if writerTableOfContents opts then 1 else 0
-  let bodyStartNum = tocStartNum + tocSlidesLength
   blksLst <- splitBlocks blks
-
   bodySlideIds <- mapM
                   (\n -> runUniqueSlideId $ "BodySlide" ++ show n)
-                  ([1..] :: [Integer])
+                  (take (length blksLst) [1..] :: [Integer])
   bodyslides <- mapM
                 (\(bs, ident) ->
                     local (\st -> st{envCurSlideId = ident}) (blocksToSlide bs))
                 (zip blksLst bodySlideIds)
-  let endNoteStartNum = bodyStartNum + length bodyslides
   endNotesSlideBlocks <- makeEndNotesSlideBlocks
   -- now we come back and make the real toc...
   tocSlides <- if writerTableOfContents opts
@@ -821,13 +827,13 @@ blocksToPresentation blks = do
   -- ... and the notes slide. We test to see if the blocks are empty,
   -- because we don't want to make an empty slide.
   endNotesSlides <- if null endNotesSlideBlocks
-                 then return []
-                 else do endNotesSlide <- local
-                           (\env -> env { envCurSlideId = SlideId $ show endNoteStartNum
-                                        , envInNoteSlide = True
-                                        })
-                           (blocksToSlide $ endNotesSlideBlocks)
-                         return [endNotesSlide]
+                    then return []
+                    else do endNotesSlide <- local
+                              (\env -> env { envCurSlideId = endNotesSlideId
+                                           , envInNoteSlide = True
+                                           })
+                              (blocksToSlide $ endNotesSlideBlocks)
+                            return [endNotesSlide]
 
   let slides = metadataslides ++ tocSlides ++ bodyslides ++ endNotesSlides
   slides' <- mapM (applyToSlide replaceAnchor) slides
