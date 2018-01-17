@@ -279,9 +279,9 @@ presentationToArchive opts pres = do
 
 --------------------------------------------------
 
-getLayout :: PandocMonad m => Slide -> P m Element
-getLayout slide = do
-  let layoutpath = case slide of
+getLayout :: PandocMonad m => Layout -> P m Element
+getLayout layout = do
+  let layoutpath = case layout of
         (MetadataSlide _ _ _ _) -> "ppt/slideLayouts/slideLayout1.xml"
         (TitleSlide _)          -> "ppt/slideLayouts/slideLayout3.xml"
         (ContentSlide _ _)      -> "ppt/slideLayouts/slideLayout2.xml"
@@ -1028,8 +1028,8 @@ metadataToElement layout titleElems subtitleElems authorsElems dateElems
 metadataToElement _ _ _ _ _ = return $ mknode "p:sp" [] ()
 
 slideToElement :: PandocMonad m => Slide -> P m Element
-slideToElement s@(ContentSlide hdrElems shapes) = do
-  layout <- getLayout s
+slideToElement (Slide _ l@(ContentSlide hdrElems shapes) _ )= do
+  layout <- getLayout l
   spTree <- local (\env -> if null hdrElems
                            then env
                            else env{envSlideHasHeader=True}) $
@@ -1039,8 +1039,8 @@ slideToElement s@(ContentSlide hdrElems shapes) = do
       ("xmlns:r", "http://schemas.openxmlformats.org/officeDocument/2006/relationships"),
       ("xmlns:p", "http://schemas.openxmlformats.org/presentationml/2006/main")
     ] [mknode "p:cSld" [] [spTree]]
-slideToElement s@(TwoColumnSlide hdrElems shapesL shapesR) = do
-  layout <- getLayout s
+slideToElement (Slide _ l@(TwoColumnSlide hdrElems shapesL shapesR) _) = do
+  layout <- getLayout l
   spTree <- local (\env -> if null hdrElems
                            then env
                            else env{envSlideHasHeader=True}) $
@@ -1050,16 +1050,16 @@ slideToElement s@(TwoColumnSlide hdrElems shapesL shapesR) = do
       ("xmlns:r", "http://schemas.openxmlformats.org/officeDocument/2006/relationships"),
       ("xmlns:p", "http://schemas.openxmlformats.org/presentationml/2006/main")
     ] [mknode "p:cSld" [] [spTree]]
-slideToElement s@(TitleSlide hdrElems) = do
-  layout <- getLayout s
+slideToElement (Slide _ l@(TitleSlide hdrElems) _) = do
+  layout <- getLayout l
   spTree <- titleToElement layout hdrElems
   return $ mknode "p:sld"
     [ ("xmlns:a", "http://schemas.openxmlformats.org/drawingml/2006/main"),
       ("xmlns:r", "http://schemas.openxmlformats.org/officeDocument/2006/relationships"),
       ("xmlns:p", "http://schemas.openxmlformats.org/presentationml/2006/main")
     ] [mknode "p:cSld" [] [spTree]]
-slideToElement s@(MetadataSlide titleElems subtitleElems authorElems dateElems) = do
-  layout <- getLayout s
+slideToElement (Slide _ l@(MetadataSlide titleElems subtitleElems authorElems dateElems) _) = do
+  layout <- getLayout l
   spTree <- metadataToElement layout titleElems subtitleElems authorElems dateElems
   return $ mknode "p:sld"
     [ ("xmlns:a", "http://schemas.openxmlformats.org/drawingml/2006/main"),
@@ -1227,10 +1227,10 @@ mediaRelElement mInfo =
 slideToSlideRelElement :: PandocMonad m => Slide -> Int -> P m Element
 slideToSlideRelElement slide idNum = do
   let target =  case slide of
-        (MetadataSlide _ _ _ _) -> "../slideLayouts/slideLayout1.xml"
-        (TitleSlide _)        -> "../slideLayouts/slideLayout3.xml"
-        (ContentSlide _ _)    -> "../slideLayouts/slideLayout2.xml"
-        (TwoColumnSlide _ _ _)    -> "../slideLayouts/slideLayout4.xml"
+        (Slide _ (MetadataSlide _ _ _ _) _) -> "../slideLayouts/slideLayout1.xml"
+        (Slide _ (TitleSlide _) _)          -> "../slideLayouts/slideLayout3.xml"
+        (Slide _ (ContentSlide _ _) _)      -> "../slideLayouts/slideLayout2.xml"
+        (Slide _ (TwoColumnSlide _ _ _) _)  -> "../slideLayouts/slideLayout4.xml"
 
   linkIds <- gets stLinkIds
   mediaIds <- gets stMediaIds
