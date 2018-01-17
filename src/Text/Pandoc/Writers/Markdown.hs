@@ -701,7 +701,7 @@ pandocTable opts multiline headless aligns widths rawHeaders rawRows = do
   let columns = transpose (rawHeaders : rawRows)
   -- minimal column width without wrapping a single word
   let relWidth w col =
-         max (floor $ fromIntegral (writerColumns opts) * w)
+         max (floor $ fromIntegral (writerColumns opts - 1) * w)
              (if writerWrapText opts == WrapAuto
                  then minNumChars col
                  else numChars col)
