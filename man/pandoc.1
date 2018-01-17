@@ -1,5 +1,5 @@
 .\"t
-.TH PANDOC 1 "January 7, 2018" "pandoc 2.1"
+.TH PANDOC 1 "January 7, 2018" "pandoc 2.1.1"
 .SH NAME
 pandoc - general markup converter
 .SH SYNOPSIS
@@ -307,28 +307,16 @@ If this option is not specified, the default user data directory will be
 used.
 This is, in UNIX:
 .RS
-.IP
-.nf
-\f[C]
+.PP
 $HOME/.pandoc
-\f[]
-.fi
 .PP
 in Windows XP:
-.IP
-.nf
-\f[C]
-C:\\Documents\ And\ Settings\\USERNAME\\Application\ Data\\pandoc
-\f[]
-.fi
+.PP
+C:And SettingsData
 .PP
 and in Windows Vista or later:
-.IP
-.nf
-\f[C]
-C:\\Users\\USERNAME\\AppData\\Roaming\\pandoc
-\f[]
-.fi
+.PP
+C:
 .PP
 You can find the default user data directory on your system by looking
 at the output of \f[C]pandoc\ \-\-version\f[].
@@ -343,12 +331,8 @@ Generate a bash completion script.
 To enable bash completion with pandoc, add this to your
 \f[C]\&.bashrc\f[]:
 .RS
-.IP
-.nf
-\f[C]
-\ eval\ "$(pandoc\ \-\-bash\-completion)"
-\f[]
-.fi
+.PP
+eval "$(pandoc \-\-bash\-completion)"
 .RE
 .TP
 .B \f[C]\-\-verbose\f[]
@@ -462,20 +446,12 @@ The name of the output format will be passed to the filter as the first
 argument.
 Hence,
 .RS
-.IP
-.nf
-\f[C]
-pandoc\ \-\-filter\ ./caps.py\ \-t\ latex
-\f[]
-.fi
+.PP
+pandoc \-\-filter ./caps.py \-t latex
 .PP
 is equivalent to
-.IP
-.nf
-\f[C]
-pandoc\ \-t\ json\ |\ ./caps.py\ latex\ |\ pandoc\ \-f\ json\ \-t\ latex
-\f[]
-.fi
+.PP
+pandoc \-t json | ./caps.py latex | pandoc \-f json \-t latex
 .PP
 The latter form may be useful for debugging filters.
 .PP
@@ -517,20 +493,12 @@ creation.
 It is always loaded into the script\[aq]s lua environment.
 .PP
 The following is an example lua script for macro\-expansion:
-.IP
-.nf
-\f[C]
-function\ expand_hello_world(inline)
-\ \ if\ inline.c\ ==\ \[aq]{{helloworld}}\[aq]\ then
-\ \ \ \ return\ pandoc.Emph{\ pandoc.Str\ "Hello,\ World"\ }
-\ \ else
-\ \ \ \ return\ inline
-\ \ end
-end
-
-return\ {{Str\ =\ expand_hello_world}}
-\f[]
-.fi
+.PP
+function expand_hello_world(inline) if inline.c ==
+\[aq]{{helloworld}}\[aq] then return pandoc.Emph{ pandoc.Str "Hello,
+World" } else return inline end end
+.PP
+return {{Str = expand_hello_world}}
 .RE
 .TP
 .B \f[C]\-M\f[] \f[I]KEY\f[][\f[C]=\f[]\f[I]VAL\f[]], \f[C]\-\-metadata=\f[]\f[I]KEY\f[][\f[C]:\f[]\f[I]VAL\f[]]
@@ -1010,6 +978,7 @@ for a file \f[C]reference.docx\f[] in the user data directory (see
 \f[C]\-\-data\-dir\f[]).
 If this is not found either, sensible defaults will be used.
 .RS
+.RE
 .PP
 To produce a custom \f[C]reference.docx\f[], first get a copy of the
 default \f[C]reference.docx\f[]:
@@ -1025,7 +994,6 @@ Definition Term, Definition, Caption, Table Caption, Image Caption,
 Figure, Captioned Figure, TOC Heading; [character] Default Paragraph
 Font, Body Text Char, Verbatim Char, Footnote Reference, Hyperlink;
 [table] Table.
-.RE
 .TP
 .B ODT
 For best results, the reference ODT should be a modified version of an
@@ -1037,13 +1005,13 @@ for a file \f[C]reference.odt\f[] in the user data directory (see
 \f[C]\-\-data\-dir\f[]).
 If this is not found either, sensible defaults will be used.
 .RS
+.RE
 .PP
 To produce a custom \f[C]reference.odt\f[], first get a copy of the
 default \f[C]reference.odt\f[]:
 \f[C]pandoc\ \-\-print\-default\-data\-file\ reference.odt\ >\ custom\-reference.odt\f[].
 Then open \f[C]custom\-reference.odt\f[] in LibreOffice, modify the
 styles as you wish, and save the file.
-.RE
 .RE
 .TP
 .B \f[C]\-\-epub\-cover\-image=\f[]\f[I]FILE\f[]
@@ -1061,13 +1029,8 @@ Look in the specified XML file for metadata for the EPUB.
 The file should contain a series of Dublin Core elements.
 For example:
 .RS
-.IP
-.nf
-\f[C]
-\ <dc:rights>Creative\ Commons</dc:rights>
-\ <dc:language>es\-AR</dc:language>
-\f[]
-.fi
+.PP
+Creative Commons es\-AR
 .PP
 By default, pandoc will include the following metadata elements:
 \f[C]<dc:title>\f[] (from the document title), \f[C]<dc:creator>\f[]
@@ -1092,36 +1055,16 @@ being interpreted by the shell.
 To use the embedded fonts, you will need to add declarations like the
 following to your CSS (see \f[C]\-\-css\f[]):
 .RS
-.IP
-.nf
-\f[C]
-\@font\-face\ {
-font\-family:\ DejaVuSans;
-font\-style:\ normal;
-font\-weight:\ normal;
-src:url("DejaVuSans\-Regular.ttf");
-}
-\@font\-face\ {
-font\-family:\ DejaVuSans;
-font\-style:\ normal;
-font\-weight:\ bold;
-src:url("DejaVuSans\-Bold.ttf");
-}
-\@font\-face\ {
-font\-family:\ DejaVuSans;
-font\-style:\ italic;
-font\-weight:\ normal;
-src:url("DejaVuSans\-Oblique.ttf");
-}
-\@font\-face\ {
-font\-family:\ DejaVuSans;
-font\-style:\ italic;
-font\-weight:\ bold;
-src:url("DejaVuSans\-BoldOblique.ttf");
-}
-body\ {\ font\-family:\ "DejaVuSans";\ }
-\f[]
-.fi
+.PP
+\@font\-face { font\-family: DejaVuSans; font\-style: normal;
+font\-weight: normal; src:url("DejaVuSans\-Regular.ttf"); } \@font\-face
+{ font\-family: DejaVuSans; font\-style: normal; font\-weight: bold;
+src:url("DejaVuSans\-Bold.ttf"); } \@font\-face { font\-family:
+DejaVuSans; font\-style: italic; font\-weight: normal;
+src:url("DejaVuSans\-Oblique.ttf"); } \@font\-face { font\-family:
+DejaVuSans; font\-style: italic; font\-weight: bold;
+src:url("DejaVuSans\-BoldOblique.ttf"); } body { font\-family:
+"DejaVuSans"; }
 .RE
 .TP
 .B \f[C]\-\-epub\-chapter\-level=\f[]\f[I]NUMBER\f[]
@@ -1306,14 +1249,10 @@ The resulting HTML can then be processed by gladTeX to produce images of
 the typeset formulas and an HTML file with links to these images.
 So, the procedure is:
 .RS
-.IP
-.nf
-\f[C]
-pandoc\ \-s\ \-\-gladtex\ input.md\ \-o\ myfile.htex
-gladtex\ \-d\ myfile\-images\ myfile.htex
-#\ produces\ myfile.html\ and\ images\ in\ myfile\-images
-\f[]
-.fi
+.PP
+pandoc \-s \-\-gladtex input.md \-o myfile.htex gladtex \-d
+myfile\-images myfile.htex # produces myfile.html and images in
+myfile\-images
 .RE
 .TP
 .B \f[C]\-\-mimetex\f[][\f[C]=\f[]\f[I]URL\f[]]
@@ -1346,20 +1285,12 @@ Ignore command\-line arguments (for use in wrapper scripts).
 Regular pandoc options are not ignored.
 Thus, for example,
 .RS
-.IP
-.nf
-\f[C]
-pandoc\ \-\-ignore\-args\ \-o\ foo.html\ \-s\ foo.txt\ \-\-\ \-e\ latin1
-\f[]
-.fi
+.PP
+pandoc \-\-ignore\-args \-o foo.html \-s foo.txt \-\- \-e latin1
 .PP
 is equivalent to
-.IP
-.nf
-\f[C]
-pandoc\ \-o\ foo.html\ \-s
-\f[]
-.fi
+.PP
+pandoc \-o foo.html \-s
 .RE
 .SH TEMPLATES
 .PP
@@ -1413,18 +1344,13 @@ source and destination filenames, as given on the command line.
 files, or empty if input is from stdin.
 You can use the following snippet in your template to distinguish them:
 .RS
-.IP
-.nf
-\f[C]
-$if(sourcefile)$
-$for(sourcefile)$
-$sourcefile$
-$endfor$
-$else$
-(stdin)
-$endif$
-\f[]
-.fi
+.PP
+\f[I]i\f[]\f[I]f\f[](\f[I]s\f[]\f[I]o\f[]\f[I]u\f[]\f[I]r\f[]\f[I]c\f[]\f[I]e\f[]\f[I]f\f[]\f[I]i\f[]\f[I]l\f[]\f[I]e\f[])
+\f[I]f\f[]\f[I]o\f[]\f[I]r\f[](\f[I]s\f[]\f[I]o\f[]\f[I]u\f[]\f[I]r\f[]\f[I]c\f[]\f[I]e\f[]\f[I]f\f[]\f[I]i\f[]\f[I]l\f[]\f[I]e\f[])
+\f[I]s\f[]\f[I]o\f[]\f[I]u\f[]\f[I]r\f[]\f[I]c\f[]\f[I]e\f[]\f[I]f\f[]\f[I]i\f[]\f[I]l\f[]\f[I]e\f[]
+\f[I]e\f[]\f[I]n\f[]\f[I]d\f[]\f[I]f\f[]\f[I]o\f[]\f[I]r\f[]
+\f[I]e\f[]\f[I]l\f[]\f[I]s\f[]\f[I]e\f[] (stdin)
+\f[I]e\f[]\f[I]n\f[]\f[I]d\f[]\f[I]i\f[]\f[I]f\f[]
 .PP
 Similarly, \f[C]outputfile\f[] can be \f[C]\-\f[] if output goes to the
 terminal.
@@ -1436,16 +1362,6 @@ Included in PDF metadata through LaTeX and ConTeXt.
 These can be set through a pandoc title block, which allows for multiple
 authors, or through a YAML metadata block:
 .RS
-.IP
-.nf
-\f[C]
-\-\-\-
-author:
-\-\ Aristotle
-\-\ Peter\ Abelard
-\&...
-\f[]
-.fi
 .RE
 .TP
 .B \f[C]subtitle\f[]
@@ -1487,7 +1403,7 @@ specified
 .TP
 .B \f[C]toc\-title\f[]
 title of table of contents (works only with EPUB, opendocument, odt,
-docx)
+docx, pptx)
 .RS
 .RE
 .TP
@@ -1524,23 +1440,12 @@ stored in the additional variables \f[C]babel\-lang\f[],
 \f[C]polyglossia\-lang\f[] (LaTeX) and \f[C]context\-lang\f[] (ConTeXt).
 .RS
 .PP
-Native pandoc \f[C]span\f[]s and \f[C]div\f[]s with the lang attribute
-(value in BCP 47) can be used to switch the language in that range.
-.RE
-.TP
-.B \f[C]otherlangs\f[]
-a list of other languages used in the document in the YAML metadata,
-according to BCP 47.
-For example: \f[C]otherlangs:\ [en\-GB,\ fr]\f[].
-This is automatically generated from the \f[C]lang\f[] attributes in all
-\f[C]span\f[]s and \f[C]div\f[]s but can be overridden.
-Currently only used by LaTeX through the generated
-\f[C]babel\-otherlangs\f[] and \f[C]polyglossia\-otherlangs\f[]
-variables.
-The LaTeX writer outputs polyglossia commands in the text but the
-\f[C]babel\-newcommands\f[] variable contains mappings for them to the
-corresponding babel.
-.RS
+Native pandoc Spans and Divs with the lang attribute (value in BCP 47)
+can be used to switch the language in that range.
+In LaTeX output, \f[C]babel\-otherlangs\f[] and
+\f[C]polyglossia\-otherlangs\f[] variables will be generated
+automatically based on the \f[C]lang\f[] attributes of Spans and Divs in
+the document.
 .RE
 .TP
 .B \f[C]dir\f[]
@@ -2360,6 +2265,12 @@ to Emacs Muse markup.
 .PP
 Some aspects of Pandoc\[aq]s Markdown citation syntax are also accepted
 in \f[C]org\f[] input.
+.SS Extension: \f[C]ntb\f[]
+.PP
+In the \f[C]context\f[] output format this enables the use of Natural
+Tables (TABLE) instead of the default Extreme Tables (xtables).
+Natural tables allow more fine\-grained global customization but come at
+a performance penalty compared to extreme tables.
 .SH PANDOC\[aq]S MARKDOWN
 .PP
 Pandoc understands an extended and slightly revised version of John
@@ -2677,9 +2588,9 @@ For example,
 .IP
 .nf
 \f[C]
-\ \ \ \ if\ (a\ >\ 3)\ {
-\ \ \ \ \ \ moveShip(5\ *\ gravity,\ DOWN);
-\ \ \ \ }
+if\ (a\ >\ 3)\ {
+\ \ moveShip(5\ *\ gravity,\ DOWN);
+}
 \f[]
 .fi
 .PP
@@ -2736,7 +2647,7 @@ using this syntax:
 ~~~~\ {#mycode\ .haskell\ .numberLines\ startFrom="100"}
 qsort\ []\ \ \ \ \ =\ []
 qsort\ (x:xs)\ =\ qsort\ (filter\ (<\ x)\ xs)\ ++\ [x]\ ++
-\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ qsort\ (filter\ (>=\ x)\ xs)
+\ \ \ \ \ \ \ qsort\ (filter\ (>=\ x)\ xs)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 \f[]
 .fi
@@ -2898,12 +2809,12 @@ marker.
 \f[C]
 \ \ *\ First\ paragraph.
 
-\ \ \ \ Continued.
+Continued.
 
 \ \ *\ Second\ paragraph.\ With\ a\ code\ block,\ which\ must\ be\ indented
-\ \ \ \ eight\ spaces:
+eight\ spaces:
 
-\ \ \ \ \ \ \ \ {\ code\ }
+\ \ \ \ {\ code\ }
 \f[]
 .fi
 .PP
@@ -2929,8 +2840,8 @@ character after the list marker of the containing list item.
 \f[C]
 *\ fruits
 \ \ +\ apples
-\ \ \ \ \-\ macintosh
-\ \ \ \ \-\ red\ delicious
+\-\ macintosh
+\-\ red\ delicious
 \ \ +\ pears
 \ \ +\ peaches
 *\ vegetables
@@ -2952,7 +2863,7 @@ item.
 +\ Another\ one;\ this\ looks
 bad\ but\ is\ legal.
 
-\ \ \ \ Second\ paragraph\ of\ second
+Second\ paragraph\ of\ second
 list\ item.
 \f[]
 .fi
@@ -3017,9 +2928,9 @@ numerals:
 \ 9)\ \ Ninth
 10)\ \ Tenth
 11)\ \ Eleventh
-\ \ \ \ \ \ \ i.\ subone
-\ \ \ \ \ \ ii.\ subtwo
-\ \ \ \ \ iii.\ subthree
+\ \ \ i.\ subone
+\ \ ii.\ subtwo
+\ iii.\ subthree
 \f[]
 .fi
 .PP
@@ -3061,9 +2972,9 @@ Term\ 2\ with\ *inline\ markup*
 
 :\ \ \ Definition\ 2
 
-\ \ \ \ \ \ \ \ {\ some\ code,\ part\ of\ Definition\ 2\ }
+\ \ \ \ {\ some\ code,\ part\ of\ Definition\ 2\ }
 
-\ \ \ \ Third\ paragraph\ of\ definition\ 2.
+Third\ paragraph\ of\ definition\ 2.
 \f[]
 .fi
 .PP
@@ -3087,7 +2998,7 @@ Term\ 1
 :\ \ \ Definition
 with\ lazy\ continuation.
 
-\ \ \ \ Second\ paragraph\ of\ the\ definition.
+Second\ paragraph\ of\ the\ definition.
 \f[]
 .fi
 .PP
@@ -3165,9 +3076,9 @@ Consider this source:
 \f[C]
 +\ \ \ First
 +\ \ \ Second:
-\ \ \ \ \-\ \ \ Fee
-\ \ \ \ \-\ \ \ Fie
-\ \ \ \ \-\ \ \ Foe
+\-\ \ \ Fee
+\-\ \ \ Fie
+\-\ \ \ Foe
 
 +\ \ \ Third
 \f[]
@@ -3196,7 +3107,7 @@ What if you want to put an indented code block after a list?
 \-\ \ \ item\ one
 \-\ \ \ item\ two
 
-\ \ \ \ {\ my\ code\ block\ }
+{\ my\ code\ block\ }
 \f[]
 .fi
 .PP
@@ -3215,7 +3126,7 @@ any format:
 
 <!\-\-\ end\ of\ list\ \-\->
 
-\ \ \ \ {\ my\ code\ block\ }
+{\ my\ code\ block\ }
 \f[]
 .fi
 .PP
@@ -3270,9 +3181,9 @@ Simple tables look like this:
 \f[C]
 \ \ Right\ \ \ \ \ Left\ \ \ \ \ Center\ \ \ \ \ Default
 \-\-\-\-\-\-\-\ \ \ \ \ \-\-\-\-\-\-\ \-\-\-\-\-\-\-\-\-\-\ \ \ \-\-\-\-\-\-\-
-\ \ \ \ \ 12\ \ \ \ \ 12\ \ \ \ \ \ \ \ 12\ \ \ \ \ \ \ \ \ \ \ \ 12
-\ \ \ \ 123\ \ \ \ \ 123\ \ \ \ \ \ \ 123\ \ \ \ \ \ \ \ \ \ 123
-\ \ \ \ \ \ 1\ \ \ \ \ 1\ \ \ \ \ \ \ \ \ \ 1\ \ \ \ \ \ \ \ \ \ \ \ \ 1
+\ 12\ \ \ \ \ 12\ \ \ \ \ \ \ \ 12\ \ \ \ \ \ \ \ \ \ \ \ 12
+123\ \ \ \ \ 123\ \ \ \ \ \ \ 123\ \ \ \ \ \ \ \ \ \ 123
+\ \ 1\ \ \ \ \ 1\ \ \ \ \ \ \ \ \ \ 1\ \ \ \ \ \ \ \ \ \ \ \ \ 1
 
 Table:\ \ Demonstration\ of\ simple\ table\ syntax.
 \f[]
@@ -3304,9 +3215,9 @@ For example:
 .nf
 \f[C]
 \-\-\-\-\-\-\-\ \ \ \ \ \-\-\-\-\-\-\ \-\-\-\-\-\-\-\-\-\-\ \ \ \-\-\-\-\-\-\-
-\ \ \ \ \ 12\ \ \ \ \ 12\ \ \ \ \ \ \ \ 12\ \ \ \ \ \ \ \ \ \ \ \ \ 12
-\ \ \ \ 123\ \ \ \ \ 123\ \ \ \ \ \ \ 123\ \ \ \ \ \ \ \ \ \ \ 123
-\ \ \ \ \ \ 1\ \ \ \ \ 1\ \ \ \ \ \ \ \ \ \ 1\ \ \ \ \ \ \ \ \ \ \ \ \ \ 1
+\ 12\ \ \ \ \ 12\ \ \ \ \ \ \ \ 12\ \ \ \ \ \ \ \ \ \ \ \ \ 12
+123\ \ \ \ \ 123\ \ \ \ \ \ \ 123\ \ \ \ \ \ \ \ \ \ \ 123
+\ \ 1\ \ \ \ \ 1\ \ \ \ \ \ \ \ \ \ 1\ \ \ \ \ \ \ \ \ \ \ \ \ \ 1
 \-\-\-\-\-\-\-\ \ \ \ \ \-\-\-\-\-\-\ \-\-\-\-\-\-\-\-\-\-\ \ \ \-\-\-\-\-\-\-
 \f[]
 .fi
@@ -3329,11 +3240,11 @@ Here is an example:
 \ \ Header\ \ \ \ Aligned\ \ \ \ \ \ \ \ \ Aligned\ Aligned
 \-\-\-\-\-\-\-\-\-\-\-\ \-\-\-\-\-\-\-\ \-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\ \-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-
 \ \ \ First\ \ \ \ row\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 12.0\ Example\ of\ a\ row\ that
-\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ spans\ multiple\ lines.
+\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ spans\ multiple\ lines.
 
 \ \ Second\ \ \ \ row\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 5.0\ Here\[aq]s\ another\ one.\ Note
-\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ the\ blank\ line\ between
-\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ rows.
+\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ the\ blank\ line\ between
+\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ rows.
 \-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-
 
 Table:\ Here\[aq]s\ the\ caption.\ It,\ too,\ may\ span
@@ -3362,11 +3273,11 @@ Headers may be omitted in multiline tables as well as simple tables:
 \f[C]
 \-\-\-\-\-\-\-\-\-\-\-\ \-\-\-\-\-\-\-\ \-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\ \-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-
 \ \ \ First\ \ \ \ row\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 12.0\ Example\ of\ a\ row\ that
-\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ spans\ multiple\ lines.
+\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ spans\ multiple\ lines.
 
 \ \ Second\ \ \ \ row\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 5.0\ Here\[aq]s\ another\ one.\ Note
-\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ the\ blank\ line\ between
-\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ rows.
+\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ the\ blank\ line\ between
+\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ rows.
 \-\-\-\-\-\-\-\-\-\-\-\ \-\-\-\-\-\-\-\ \-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\ \-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-
 
 :\ Here\[aq]s\ a\ multiline\ table\ without\ headers.
@@ -3712,6 +3623,23 @@ $else$
 $author$
 $endif$
 $endfor$
+\f[]
+.fi
+.PP
+Raw content to include in the document\[aq]s header may be specified
+using \f[C]header\-includes\f[]; however, it is important to mark up
+this content as raw code for a particular output format, using the
+\f[C]raw_attribute\f[] extension), or it will be interpreted as
+markdown.
+For example:
+.IP
+.nf
+\f[C]
+header\-includes:
+\-\ ```{=latex}
+\ \ \\let\\oldsection\\section
+\ \ \\renewcommand{\\section}[1]{\\clearpage\\oldsection{#1}}
+\ \ ```
 \f[]
 .fi
 .SS Backslash escapes
@@ -4157,13 +4085,15 @@ $\\tuple{a,\ b,\ c}$
 \f[]
 .fi
 .PP
-In LaTeX output, the macro definitions will not be passed through as raw
-LaTeX.
+Note that LaTeX macros will not be applied if they occur inside inside a
+raw span or block marked with the \f[C]raw_attribute\f[] extension.
 .PP
-When \f[C]latex_macros\f[] is disabled, the macro definitions will be
-passed through as raw LaTeX, and the raw LaTeX and math will not have
-macros applied.
+When \f[C]latex_macros\f[] is disabled, the raw LaTeX and math will not
+have macros applied.
 This is usually a better approach when you are targeting LaTeX or PDF.
+.PP
+Whether or not \f[C]latex_macros\f[] is enabled, the macro definitions
+will still be passed through as raw LaTeX.
 .SS Links
 .PP
 Markdown allows links to be specified in several ways.
@@ -4359,7 +4289,7 @@ One way to do this is to insert a nonbreaking space after the image:
 .IP
 .nf
 \f[C]
-![This\ image\ won\[aq]t\ be\ a\ figure](/url/of/image.png)\\\ 
+![This\ image\ won\[aq]t\ be\ a\ figure](/url/of/image.png)\\
 \f[]
 .fi
 .PP
@@ -4501,14 +4431,14 @@ Here\ is\ a\ footnote\ reference,[^1]\ and\ another.[^longnote]
 
 [^longnote]:\ Here\[aq]s\ one\ with\ multiple\ blocks.
 
-\ \ \ \ Subsequent\ paragraphs\ are\ indented\ to\ show\ that\ they
+Subsequent\ paragraphs\ are\ indented\ to\ show\ that\ they
 belong\ to\ the\ previous\ footnote.
 
-\ \ \ \ \ \ \ \ {\ some.code\ }
+\ \ \ \ {\ some.code\ }
 
-\ \ \ \ The\ whole\ paragraph\ can\ be\ indented,\ or\ just\ the\ first
-\ \ \ \ line.\ \ In\ this\ way,\ multi\-paragraph\ footnotes\ work\ like
-\ \ \ \ multi\-paragraph\ list\ items.
+The\ whole\ paragraph\ can\ be\ indented,\ or\ just\ the\ first
+line.\ \ In\ this\ way,\ multi\-paragraph\ footnotes\ work\ like
+multi\-paragraph\ list\ items.
 
 This\ paragraph\ won\[aq]t\ be\ part\ of\ the\ note,\ because\ it
 isn\[aq]t\ indented.
@@ -4687,16 +4617,16 @@ references:
 \ \ id:\ WatsonCrick1953
 \ \ author:
 \ \ \-\ family:\ Watson
-\ \ \ \ given:\ J.\ D.
+given:\ J.\ D.
 \ \ \-\ family:\ Crick
-\ \ \ \ given:\ F.\ H.\ C.
+given:\ F.\ H.\ C.
 \ \ issued:
-\ \ \ \ date\-parts:
-\ \ \ \ \-\ \-\ 1953
-\ \ \ \ \ \ \-\ 4
-\ \ \ \ \ \ \-\ 25
+date\-parts:
+\-\ \-\ 1953
+\ \ \-\ 4
+\ \ \-\ 25
 \ \ title:\ \[aq]Molecular\ structure\ of\ nucleic\ acids:\ a\ structure\ for\ deoxyribose
-\ \ \ \ nucleic\ acid\[aq]
+nucleic\ acid\[aq]
 \ \ title\-short:\ Molecular\ structure\ of\ nucleic\ acids
 \ \ container\-title:\ Nature
 \ \ volume:\ 171
@@ -4926,7 +4856,7 @@ Title:\ \ \ My\ title
 Author:\ \ John\ Doe
 Date:\ \ \ \ September\ 1,\ 2008
 Comment:\ This\ is\ a\ sample\ mmd\ title\ block,\ with
-\ \ \ \ \ \ \ \ \ a\ field\ spanning\ multiple\ lines.
+\ \ \ \ \ a\ field\ spanning\ multiple\ lines.
 \f[]
 .fi
 .PP
@@ -4962,7 +4892,7 @@ extension.
 This\ is\ a\ reference\ ![image][ref]\ with\ multimarkdown\ attributes.
 
 [ref]:\ http://path.to/image\ "Image\ title"\ width=20px\ height=30px
-\ \ \ \ \ \ \ id=myId\ class="myClass1\ myClass2"
+\ \ \ id=myId\ class="myClass1\ myClass2"
 \f[]
 .fi
 .SS Extension: \f[C]mmd_header_identifiers\f[]
@@ -5495,7 +5425,7 @@ For example:
 \f[C]
 <audio\ controls="1">
 \ \ <source\ src="http://example.com/music/toccata.mp3"
-\ \ \ \ \ \ \ \ \ \ data\-external="1"\ type="audio/mpeg">
+\ \ \ \ \ \ data\-external="1"\ type="audio/mpeg">
 \ \ </source>
 </audio>
 \f[]
