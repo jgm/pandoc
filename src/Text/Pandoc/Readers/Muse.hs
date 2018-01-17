@@ -714,8 +714,7 @@ verbatimTag = do
   return $ return $ B.text content
 
 nbsp :: PandocMonad m => MuseParser m (F Inlines)
-nbsp = do
-  guardDisabled Ext_amuse -- Supported only by Emacs Muse
+nbsp = try $ do
   string "~~"
   return $ return $ B.str "\160"
 
