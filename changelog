@@ -1,3 +1,212 @@
+pandoc (2.1.1)
+
+  * Markdown reader:
+
+    + Don't coalesce adjacent raw LaTeX blocks if they are separated by a
+      blank line.  See lierdakil/pandoc-crossref#160.
+    + Improved `inlinesInBalancedBrackets` (#4272, jgm/pandoc-citeproc#315).
+      The change both improves performance and fixes a regression whereby
+      normal citations inside inline notes and figure captions were not
+      parsed correctly.
+
+  * RST reader:
+
+    + Better handling for headers with an anchor (#4240).  Instead of creating a
+      Div containing the header, we put the id directly on the header.
+      This way header promotion will work properly.
+    + Add aligned environment when needed in math (#4254).  `rst2latex.py`
+      uses an `align*` environment for math in `.. math::` blocks, so this
+      math may contain line breaks.  If it does, we put the math in an
+      `aligned` environment to simulate `rst2latex.py`'s behavior.
+
+  * HTML reader: Fix col width parsing for percentages < 10% (#4262,
+    n3fariox).
+
+  * LaTeX reader:
+
+    + Advance source position at end of stream.
+    + Pass through macro defs in `rawLaTeXBlock` even if the `latex_macros`
+      extension is set (#4246).  This reverts to earlier behavior and is
+      probably safer on the whole, since some macros only modify things in
+      included packages, which pandoc's macro expansion can't modify.
+    + Fixed pos calculation in tokenizing escaped space.
+    + Allow macro definitions inside macros (#4253).  Previously we went into
+      an infinite loop with
+      ```
+      \newcommand{\noop}[1]{#1}
+      \noop{\newcommand{\foo}[1]{#1}}
+      \foo{hi}
+      ```
+    + Fix inconsistent column widths (#4238).  This fixes a bug whereby column
+      widths for the body were different from widths for the header in some
+      tables.
+
+  * Docx reader (Jesse Rosenthal):
+
+    + Parse hyperlinks in `instrText` tags (#3389, #4266).  This was a form of
+      hyperlink found in older versions of word. The changes introduced for
+      this, though, create a framework for parsing further fields in MS Word
+      (see the spec, ECMA-376-1:2016, §17.16.5, for more on these fields).
+      We introduce a new module, `Text.Pandoc.Readers.Docx.Fields` which
+      contains a simple parsec parser. At the moment, only simple hyperlink
+      fields are accepted, but that can be extended in the future.
+
+
+  * Powerpoint writer (Jesse Rosenthal):
+
+    + Change reference to `notesSlide` to `endNotesSlide`.
+      This will prevent confusion when speakers notes are implemented.
+    + Move image sizing into `picProps`.  Rather than passing around
+      attributes, we can have image sizing in the picProps and then
+      pass it along to write to XML.
+    + Improve table placement.
+    + Make our own `_rels/.rels` file.  The toplevel .rels file could
+      have a thumbnail image if taken from the template. Rather than
+      removing it from the inherited file, it's easier to just make our own.
+    + Import reference-doc images properly.  There was a glob error that
+      was leading to images from the reference-doc pptx not being imported.
+    + Move `Presentation.hs` out of `PandocMonad`.
+    + Ignore anchor links to nowhere.  We don't convert a `#target`
+      `ExternalTarget` to an `InternalTarget` if `target` is not in the
+      `AnchorMap`. We just remove the link. This prevents broken links.
+    + Refactor into separate modules.  This separates the conversion into
+      separate modules (T.P.W.Powerpoint.Presentation, which defineds the
+      Presentation datatype and goes Pandoc->Presentation)
+      and (T.P.W.Pandoc.Output, which goes Presentation->Archive).
+      Text.Pandoc.Writers.Powerpoint a thin wrapper around the two modules.
+    + Avoid overlapping blocks in column output.  Just as a slide can't
+      have an image and text on the same slide because
+      of overlapping, we can't have both in a single column. We run
+      `splitBlocks` on the text in the column and discard the rest.
+    + Position images correctly in two-column layout.
+      You can have two images side-by-side, or text alongside an image. The
+      image will be fit correctly within the column.
+    + Make content shape retrieval environment-aware.  We put
+      `getContentShape` and `getContentShapeSize` inside the P monad,
+      so that we can (in the future) make use of knowledge of what slide
+      environment we're in to get the correct shape. This will allow us, for
+      example, to get individual columns for a two-column layout, and place
+      images in them appropriately.
+    + Improve image handling.  We now determine image and caption placement
+      by getting the dimensions of the content box in a given layout.
+      This allows for images to be correctly sized and positioned in a
+      different template.  Note that images without captions and headers are
+      no longer full-screened. We can't do this dependably in different
+      layouts, because we don't know where the header is (it could be to
+      the side of the content, for example).
+    + Read presentation size from reference file.  Our presentation size is
+      now dependent on the reference/template file we use. This will make it
+      easier to set different output sizes by supplying different reference
+      files.
+    + Handle (sub)headers above slidelevel correctly.  Above the slidelevel,
+      subheaders will be printed in bold and given a bit of extra space
+      before them. Note that at the moment, no distinction is made between
+      levels of headers above the slide header, though that can be changed.
+      (It has to be changed in pandoc, since PowerPoint has no concept of
+      paragraph or character classes.)
+    + Check for required files.  Since we now import from reference/dist
+      file by glob, we need to make sure that we're getting the files we
+      need to make a non-corrupt Powerpoint. This performs that check.
+    + Improve templating using `--reference-doc`.  Templating should work
+      much more reliably now.
+    + Include Notes slide in TOC.
+    + Set notes slide header with slide-level.  It used to be hardcoded to 2.
+      This will set it to the appropriate slide-level.
+    + Add table of contents.  This is triggered by the `--toc` flag. Note
+      that in a long slide deck this risks overrunning the text box. The user
+      can address this by setting `--toc-depth=1`.
+    + Set notes slide number correctly.  Previously, this hadn't been aware
+      of a metadata slide.
+    + Ignore internal links without targets.  If the user entered an
+      internal link without a corresponding anchor, it would produce a
+      corrupted file. Now we check the anchor map, and make sure the target
+      is in the file. If it isn't, we ignore it.
+    + Clean up adding metadata slide.  We want to count the slide numbers
+      correctly if it's in there.
+    + Add anchor links.  For anchor-type links (`[foo](#bar)`) we produce
+      an anchor link. In powerpoint these are links to slides, so we keep
+      track of a map relating anchors to the slides they occur on.
+    + Make the slide number available to the blocks.  For anchors,
+      block-processing functions need to know what slide number
+      they're in. We make the envCurSlideId available to blocks.
+    + Move curSlideId to environment.  It really isn't a moving state, and
+      that can be misleading.
+    + Allow setting `toc-title` in metadata.
+
+  * Markdown writer:
+
+    + Fix cell width calculation (#4265).  Previously we could get
+      ever-lengthening cell widths when a table was run repeatedly through
+      `pandoc -f markdown -t markdown`.
+
+  * LaTeX writer:
+
+    + Escape `&` in lstinline (Robert Schütz).
+
+  * ConTeXt writer:
+
+    + Use xtables instead of Tables (#4223, Henri Menke).
+      Default to xtables for context output.  Natural Tables are used
+      if the new `ntb` extension is set.
+
+  * HTML writer:
+
+     + Fixed footnote backlinks with `--id-prefix` (#4235).
+
+  * `Text.Pandoc.Extensions`:  Added `Ext_ntb` constructor (API change,
+    Henri Menke).
+
+  * `Text.Pandoc.ImageSize`: add derived `Eq` instance to `Dimension`
+    (Jesse Rosenthal, API change).
+
+  * Lua filters (Albert Krewinkel):
+
+    + Make `PANDOC_READER_OPTIONS` available.
+      The options which were used to read the document are made available to
+      Lua filters via the `PANDOC_READER_OPTIONS` global.
+    + Add lua module `pandoc.utils.run_json_filter`, which runs a JSON filter
+      on a Pandoc document.
+    + Refactor filter-handling code into `Text.Pandoc.Filter.JSON`,
+      `Text.Pandoc.Filter.Lua`, and `Text.Pandoc.Filter.Path`.
+    + Improve error messages.  Provide more context about the task
+      which caused an error.
+
+  * data/pandoc.lua (Albert Krewinkel):
+
+    + Add attr, listAttributes accessors (Albert Krewinkel).  Elements with
+      attributes got an additional `attr` accessor. Attributes were
+      accessible only via the `identifier`, `classes`, and `attributes`,
+      which was in conflict with the documentation, which indirectly states
+      that such elements have the an `attr` property.
+    + Accept single block as singleton list. Every constructor which accepts
+      a list of blocks now also accepts a single block element for convenience.
+      Furthermore, strings are accepted as shorthand for `{pandoc.Str "text"}`
+      in constructors.
+    + Drop `_VERSION`.  Having a `_VERSION` became superfluous, as this module
+      is closely tied to the pandoc version, which is available via
+      `PANDOC_VERSION`.
+    + Accept singleton inline as a list.  Every constructor which accepts a
+      list of inlines now also accepts a single inline element for convenience.
+    + Fix access to Attr components.  Accessing an Attr value (e.g.,
+      ` Attr().classes`) was broken; the more common case of accessing it via
+      an Inline or Block element was unaffected by this.
+
+  * Move `metaValueToInlines` to from Docx writer to
+    `Text.Pandoc.Writers.Shared`, so it can be used by other writers
+    (Jesse Rosenthal).
+
+  * MANUAL.txt:
+
+    + Clarify otherlangs in LaTeX (#4072).
+    + Clarify `latex_macros` extension.
+    + Recommend use of `raw_attribute` extension in header includes (#4253).
+
+  * Allow latest QuickCheck, tasty, criterion.
+
+  * Remove custom prelude and ghc 7.8 support.
+
+  * Reduce compiler noise (exact paths for compiled modules).
+
 pandoc (2.1)
 
   * Allow filters and lua filters to be interspersed (#4196).  Previously
