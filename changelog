@@ -51,42 +51,21 @@ pandoc (2.1.1)
       contains a simple parsec parser. At the moment, only simple hyperlink
       fields are accepted, but that can be extended in the future.
 
-
   * Powerpoint writer (Jesse Rosenthal):
 
     + Change reference to `notesSlide` to `endNotesSlide`.
-      This will prevent confusion when speakers notes are implemented.
-    + Move image sizing into `picProps`.  Rather than passing around
-      attributes, we can have image sizing in the picProps and then
-      pass it along to write to XML.
+    + Move image sizing into `picProps`.
     + Improve table placement.
-    + Make our own `_rels/.rels` file.  The toplevel .rels file could
-      have a thumbnail image if taken from the template. Rather than
-      removing it from the inherited file, it's easier to just make our own.
-    + Import reference-doc images properly.  There was a glob error that
-      was leading to images from the reference-doc pptx not being imported.
+    + Make our own `_rels/.rels` file.
+    + Import reference-doc images properly.
     + Move `Presentation.hs` out of `PandocMonad`.
-    + Ignore anchor links to nowhere.  We don't convert a `#target`
-      `ExternalTarget` to an `InternalTarget` if `target` is not in the
-      `AnchorMap`. We just remove the link. This prevents broken links.
-    + Refactor into separate modules.  This separates the conversion into
-      separate modules (T.P.W.Powerpoint.Presentation, which defineds the
-      Presentation datatype and goes Pandoc->Presentation)
-      and (T.P.W.Pandoc.Output, which goes Presentation->Archive).
+    + Refactor into separate modules.  T.P.W.Powerpoint.Presentation
+      defines the Presentation datatype and goes Pandoc->Presentation;
+      T.P.W.Pandoc.Output goes Presentation->Archive.
       Text.Pandoc.Writers.Powerpoint a thin wrapper around the two modules.
-    + Avoid overlapping blocks in column output.  Just as a slide can't
-      have an image and text on the same slide because
-      of overlapping, we can't have both in a single column. We run
-      `splitBlocks` on the text in the column and discard the rest.
+    + Avoid overlapping blocks in column output.
     + Position images correctly in two-column layout.
-      You can have two images side-by-side, or text alongside an image. The
-      image will be fit correctly within the column.
-    + Make content shape retrieval environment-aware.  We put
-      `getContentShape` and `getContentShapeSize` inside the P monad,
-      so that we can (in the future) make use of knowledge of what slide
-      environment we're in to get the correct shape. This will allow us, for
-      example, to get individual columns for a two-column layout, and place
-      images in them appropriately.
+    + Make content shape retrieval environment-aware.
     + Improve image handling.  We now determine image and caption placement
       by getting the dimensions of the content box in a given layout.
       This allows for images to be correctly sized and positioned in a
@@ -95,32 +74,22 @@ pandoc (2.1.1)
       layouts, because we don't know where the header is (it could be to
       the side of the content, for example).
     + Read presentation size from reference file.  Our presentation size is
-      now dependent on the reference/template file we use. This will make it
-      easier to set different output sizes by supplying different reference
-      files.
+      now dependent on the reference/template file we use.
     + Handle (sub)headers above slidelevel correctly.  Above the slidelevel,
       subheaders will be printed in bold and given a bit of extra space
       before them. Note that at the moment, no distinction is made between
       levels of headers above the slide header, though that can be changed.
-      (It has to be changed in pandoc, since PowerPoint has no concept of
-      paragraph or character classes.)
     + Check for required files.  Since we now import from reference/dist
       file by glob, we need to make sure that we're getting the files we
       need to make a non-corrupt Powerpoint. This performs that check.
     + Improve templating using `--reference-doc`.  Templating should work
       much more reliably now.
     + Include Notes slide in TOC.
-    + Set notes slide header with slide-level.  It used to be hardcoded to 2.
-      This will set it to the appropriate slide-level.
+    + Set notes slide header to slide-level.
     + Add table of contents.  This is triggered by the `--toc` flag. Note
       that in a long slide deck this risks overrunning the text box. The user
       can address this by setting `--toc-depth=1`.
-    + Set notes slide number correctly.  Previously, this hadn't been aware
-      of a metadata slide.
-    + Ignore internal links without targets.  If the user entered an
-      internal link without a corresponding anchor, it would produce a
-      corrupted file. Now we check the anchor map, and make sure the target
-      is in the file. If it isn't, we ignore it.
+    + Set notes slide number correctly.
     + Clean up adding metadata slide.  We want to count the slide numbers
       correctly if it's in there.
     + Add anchor links.  For anchor-type links (`[foo](#bar)`) we produce
@@ -128,9 +97,8 @@ pandoc (2.1.1)
       track of a map relating anchors to the slides they occur on.
     + Make the slide number available to the blocks.  For anchors,
       block-processing functions need to know what slide number
-      they're in. We make the envCurSlideId available to blocks.
-    + Move curSlideId to environment.  It really isn't a moving state, and
-      that can be misleading.
+      they're in. We make the `envCurSlideId` available to blocks.
+    + Move `curSlideId` to environment.
     + Allow setting `toc-title` in metadata.
 
   * Markdown writer:
@@ -173,20 +141,21 @@ pandoc (2.1.1)
 
   * data/pandoc.lua (Albert Krewinkel):
 
-    + Add attr, listAttributes accessors (Albert Krewinkel).  Elements with
+    + Accept singleton inline as a list.  Every constructor which accepts a
+      list of inlines now also accepts a single inline element for
+      convenience.
+    + Accept single block as singleton list. Every constructor which accepts
+      a list of blocks now also accepts a single block element for
+      convenience.  Furthermore, strings are accepted as shorthand for
+      `{pandoc.Str "text"}` in constructors.
+    + Add attr, listAttributes accessors.  Elements with
       attributes got an additional `attr` accessor. Attributes were
       accessible only via the `identifier`, `classes`, and `attributes`,
       which was in conflict with the documentation, which indirectly states
       that such elements have the an `attr` property.
-    + Accept single block as singleton list. Every constructor which accepts
-      a list of blocks now also accepts a single block element for convenience.
-      Furthermore, strings are accepted as shorthand for `{pandoc.Str "text"}`
-      in constructors.
-    + Drop `_VERSION`.  Having a `_VERSION` became superfluous, as this module
-      is closely tied to the pandoc version, which is available via
+    + Drop `_VERSION`.  Having a `_VERSION` became superfluous, as this
+      module is closely tied to the pandoc version, which is available via
       `PANDOC_VERSION`.
-    + Accept singleton inline as a list.  Every constructor which accepts a
-      list of inlines now also accepts a single inline element for convenience.
     + Fix access to Attr components.  Accessing an Attr value (e.g.,
       ` Attr().classes`) was broken; the more common case of accessing it via
       an Inline or Block element was unaffected by this.
