@@ -69,6 +69,7 @@ import Text.Pandoc.Walk
 import qualified Text.Pandoc.Shared as Shared -- so we don't overlap "Element"
 import Text.Pandoc.Writers.Shared (metaValueToInlines)
 import qualified Data.Map as M
+import qualified Data.Set as S
 import Data.Maybe (maybeToList)
 
 data WriterEnv = WriterEnv { envMetadata :: Meta
@@ -92,21 +93,45 @@ instance Default WriterEnv where
                   , envSlideHasHeader = False
                   , envInList = False
                   , envInNoteSlide = False
-                  , envCurSlideId = SlideId "1"
+                  , envCurSlideId = SlideId "Default"
                   }
 
 
 data WriterState = WriterState { stNoteIds :: M.Map Int [Block]
                                -- associate anchors with slide id
                                , stAnchorMap :: M.Map String SlideId
+                               , stSlideIdSet :: S.Set SlideId
                                , stLog :: [LogMessage]
+
                                } deriving (Show, Eq)
 
 instance Default WriterState where
   def = WriterState { stNoteIds = mempty
                     , stAnchorMap = mempty
+                    -- we reserve this s
+                    , stSlideIdSet = reservedSlideIds
                     , stLog = []
                     }
+
+reservedSlideIds :: S.Set SlideId
+reservedSlideIds = S.fromList [SlideId "EndNotes"]
+
+uniqueSlideId' :: Integer -> S.Set SlideId -> String -> SlideId
+uniqueSlideId' n idSet s =
+  let s' = if n == 0 then s else (s ++ "-" ++ show n)
+  in if SlideId s' `S.member` idSet
+     then uniqueSlideId' (n+1) idSet s
+     else SlideId s'
+
+uniqueSlideId :: S.Set SlideId -> String -> SlideId
+uniqueSlideId = uniqueSlideId' 0
+
+runUniqueSlideId :: String -> Pres SlideId
+runUniqueSlideId s = do
+  idSet <- gets stSlideIdSet
+  let sldId = uniqueSlideId idSet s
+  modify $ \st -> st{stSlideIdSet = S.insert sldId idSet}
+  return sldId
 
 addLogMessage :: LogMessage -> Pres ()
 addLogMessage msg = modify $ \st -> st{stLog = msg : (stLog st)}
@@ -778,9 +803,14 @@ blocksToPresentation blks = do
   let tocSlidesLength = if writerTableOfContents opts then 1 else 0
   let bodyStartNum = tocStartNum + tocSlidesLength
   blksLst <- splitBlocks blks
+
+  bodySlideIds <- mapM
+                  (\n -> runUniqueSlideId $ "BodySlide" ++ show n)
+                  ([1..] :: [Integer])
   bodyslides <- mapM
-                (\(bs, n) -> local (\st -> st{envCurSlideId = SlideId $ show n}) (blocksToSlide bs))
-                (zip blksLst [bodyStartNum..])
+                (\(bs, ident) ->
+                    local (\st -> st{envCurSlideId = ident}) (blocksToSlide bs))
+                (zip blksLst bodySlideIds)
   let endNoteStartNum = bodyStartNum + length bodyslides
   endNotesSlideBlocks <- makeEndNotesSlideBlocks
   -- now we come back and make the real toc...
