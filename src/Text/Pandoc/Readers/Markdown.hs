@@ -122,6 +122,13 @@ spnl = try $ do
   skipSpaces
   notFollowedBy (char '\n')
 
+spnl' :: PandocMonad m => ParserT [Char] st m String
+spnl' = try $ do
+  xs <- many spaceChar
+  ys <- option "" $ try $ (:) <$> newline
+                              <*> (many spaceChar <* notFollowedBy (char '\n'))
+  return (xs ++ ys)
+
 indentSpaces :: PandocMonad m => MarkdownParser m String
 indentSpaces = try $ do
   tabStop <- getOption readerTabStop
@@ -1125,10 +1132,9 @@ rawTeXBlock = do
   lookAhead $ try $ char '\\' >> letter
   result <- (B.rawBlock "context" . trim . concat <$>
                 many1 ((++) <$> (rawConTeXtEnvironment <|> conTeXtCommand)
-                            <*> (blanklines <|> many spaceChar)))
+                            <*> spnl'))
           <|> (B.rawBlock "latex" . trim . concat <$>
-                many1 ((++) <$> rawLaTeXBlock
-                            <*> (blanklines <|> many spaceChar)))
+                many1 ((++) <$> rawLaTeXBlock <*> spnl'))
   return $ case B.toList result of
                 [RawBlock _ cs]
                   | all (`elem` [' ','\t','\n']) cs -> return mempty
