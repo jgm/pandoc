@@ -580,8 +580,8 @@ forceFontSize px x = do
 
 -- We leave these as blocks because we will want to include them in
 -- the TOC.
-makeNotesSlideBlocks :: Pres [Block]
-makeNotesSlideBlocks = do
+makeEndNotesSlideBlocks :: Pres [Block]
+makeEndNotesSlideBlocks = do
   noteIds <- gets stNoteIds
   slideLevel <- asks envSlideLevel
   meta <- asks envMetadata
@@ -730,25 +730,25 @@ blocksToPresentation blks = do
   bodyslides <- mapM
                 (\(bs, n) -> local (\st -> st{envCurSlideId = n}) (blocksToSlide bs))
                 (zip blksLst [bodyStartNum..])
-  let noteStartNum = bodyStartNum + length bodyslides
-  notesSlideBlocks <- makeNotesSlideBlocks
+  let endNoteStartNum = bodyStartNum + length bodyslides
+  endNotesSlideBlocks <- makeEndNotesSlideBlocks
   -- now we come back and make the real toc...
   tocSlides <- if writerTableOfContents opts
-               then do toc <- makeTOCSlide $ blks ++ notesSlideBlocks
+               then do toc <- makeTOCSlide $ blks ++ endNotesSlideBlocks
                        return [toc]
                else return []
   -- ... and the notes slide. We test to see if the blocks are empty,
   -- because we don't want to make an empty slide.
-  notesSlides <- if null notesSlideBlocks
+  endNotesSlides <- if null endNotesSlideBlocks
                  then return []
-                 else do notesSlide <- local
-                           (\env -> env { envCurSlideId = noteStartNum
+                 else do endNotesSlide <- local
+                           (\env -> env { envCurSlideId = endNoteStartNum
                                         , envInNoteSlide = True
                                         })
-                           (blocksToSlide $ notesSlideBlocks)
-                         return [notesSlide]
+                           (blocksToSlide $ endNotesSlideBlocks)
+                         return [endNotesSlide]
 
-  let slides = metadataslides ++ tocSlides ++ bodyslides ++ notesSlides
+  let slides = metadataslides ++ tocSlides ++ bodyslides ++ endNotesSlides
   slides' <- mapM (applyToSlide replaceAnchor) slides
   return $ Presentation slides'
 
