@@ -105,6 +105,7 @@ data WriterEnv = WriterEnv { envRefArchive :: Archive
                            -- the rId number
                            , envSlideIdOffset :: Int
                            , envContentType :: ContentType
+                           , envSlideIdMap :: M.Map SlideId Int
                            }
                  deriving (Show)
 
@@ -120,6 +121,7 @@ instance Default WriterEnv where
                   , envCurSlideId = 1
                   , envSlideIdOffset = 1
                   , envContentType = NormalContent
+                  , envSlideIdMap = mempty
                   }
 
 data ContentType = NormalContent
@@ -231,8 +233,8 @@ presentationToArchiveP p@(Presentation slides) = do
   -- sure we know the correct offset for the rIds.
   presEntry <- presentationToPresEntry p
   presRelsEntry <- presentationToRelsEntry p
-  slideEntries <- mapM (\(s, n) -> slideToEntry s n) $ zip slides [1..]
-  slideRelEntries <- mapM (\(s,n) -> slideToSlideRelEntry s n) $ zip slides [1..]
+  slideEntries <- mapM slideToEntry slides
+  slideRelEntries <- mapM slideToSlideRelEntry slides
   -- These have to come after everything, because they need the info
   -- built up in the state.
   mediaEntries <- makeMediaEntries
@@ -243,6 +245,10 @@ presentationToArchiveP p@(Presentation slides) = do
     slideRelEntries ++
     mediaEntries ++
     [contentTypesEntry, relsEntry, presEntry, presRelsEntry]
+
+makeSlideIdMap :: Presentation -> M.Map SlideId Int
+makeSlideIdMap (Presentation slides) =
+  M.fromList $ (map slideId slides) `zip` [1..]
 
 presentationToArchive :: PandocMonad m => WriterOptions -> Presentation -> m Archive
 presentationToArchive opts pres = do
@@ -266,6 +272,7 @@ presentationToArchive opts pres = do
                 , envUTCTime = utctime
                 , envOpts = opts
                 , envPresentationSize = presSize
+                , envSlideIdMap = makeSlideIdMap pres
                 }
 
   let st = def { stMediaGlobalIds = initialGlobalIds refArchive distArchive
@@ -1069,13 +1076,31 @@ slideToElement (Slide _ l@(MetadataSlide titleElems subtitleElems authorElems da
 
 -----------------------------------------------------------------------
 
-slideToFilePath :: Slide -> Int -> FilePath
-slideToFilePath _ idNum = "slide" ++ (show $ idNum) ++ ".xml"
+getSlideIdNum :: PandocMonad m => SlideId -> P m Int
+getSlideIdNum sldId = do
+  slideIdMap <- asks envSlideIdMap
+  case  M.lookup sldId slideIdMap of
+    Just n -> return n
+    Nothing -> throwError $
+               PandocShouldNeverHappenError $
+               "Slide Id " ++ (show sldId) ++ " not found."
 
-slideToSlideId :: Monad m => Slide -> Int -> P m String
-slideToSlideId _ idNum = do
-  n <- asks envSlideIdOffset
-  return $ "rId" ++ (show $ idNum + n)
+slideNum :: PandocMonad m => Slide -> P m Int
+slideNum slide = getSlideIdNum $ slideId slide
+
+idNumToFilePath :: Int -> FilePath
+idNumToFilePath idNum = "slide" ++ (show $ idNum) ++ ".xml"
+
+slideToFilePath :: PandocMonad m => Slide -> P m FilePath
+slideToFilePath slide = do
+  idNum <- slideNum slide
+  return $ "slide" ++ (show $ idNum) ++ ".xml"
+
+slideToRelId :: PandocMonad m => Slide -> P m String
+slideToRelId slide = do
+  n <- slideNum slide
+  offset <- asks envSlideIdOffset
+  return $ "rId" ++ (show $ n + offset)
 
 
 data Relationship = Relationship { relId :: Int
@@ -1096,11 +1121,12 @@ elementToRel element
          return $ Relationship num type' target
   | otherwise = Nothing
 
-slideToPresRel :: Monad m => Slide -> Int -> P m Relationship
-slideToPresRel slide idNum = do
+slideToPresRel :: PandocMonad m => Slide -> P m Relationship
+slideToPresRel slide = do
+  idNum <- slideNum slide
   n <- asks envSlideIdOffset
   let rId = idNum + n
-      fp = "slides/" ++ slideToFilePath slide idNum
+      fp = "slides/" ++ idNumToFilePath idNum
   return $ Relationship { relId = rId
                         , relType = "http://schemas.openxmlformats.org/officeDocument/2006/relationships/slide"
                         , relTarget = fp
@@ -1117,7 +1143,7 @@ getRels = do
 
 presentationToRels :: PandocMonad m => Presentation -> P m [Relationship]
 presentationToRels (Presentation slides) = do
-  mySlideRels <- mapM (\(s, n) -> slideToPresRel s n) $ zip slides [1..]
+  mySlideRels <- mapM slideToPresRel slides
   rels <- getRels
   let relsWithoutSlides = filter (\r -> relType r /= "http://schemas.openxmlformats.org/officeDocument/2006/relationships/slide") rels
   -- We want to make room for the slides in the id space. The slides
@@ -1184,27 +1210,30 @@ elemToEntry fp element = do
   epochtime <- (floor . utcTimeToPOSIXSeconds) <$> asks envUTCTime
   return $ toEntry fp epochtime $ renderXml element
 
-slideToEntry :: PandocMonad m => Slide -> Int -> P m Entry
-slideToEntry slide idNum = do
+slideToEntry :: PandocMonad m => Slide -> P m Entry
+slideToEntry slide = do
+  idNum <- slideNum slide
   local (\env -> env{envCurSlideId = idNum}) $ do
     element <- slideToElement slide
-    elemToEntry ("ppt/slides/" ++ slideToFilePath slide idNum) element
+    elemToEntry ("ppt/slides/" ++ idNumToFilePath idNum) element
 
-slideToSlideRelEntry :: PandocMonad m => Slide -> Int -> P m Entry
-slideToSlideRelEntry slide idNum = do
-  element <- slideToSlideRelElement slide idNum
-  elemToEntry ("ppt/slides/_rels/" ++ slideToFilePath slide idNum ++ ".rels") element
+slideToSlideRelEntry :: PandocMonad m => Slide -> P m Entry
+slideToSlideRelEntry slide = do
+  idNum <- slideNum slide
+  element <- slideToSlideRelElement slide
+  elemToEntry ("ppt/slides/_rels/" ++ idNumToFilePath idNum ++ ".rels") element
 
 linkRelElement :: PandocMonad m => Int -> LinkTarget -> P m Element
-linkRelElement idNum (InternalTarget num) = do
+linkRelElement rIdNum (InternalTarget targetId) = do
+  targetIdNum <- getSlideIdNum targetId
   return $
-    mknode "Relationship" [ ("Id", "rId" ++ show idNum)
+    mknode "Relationship" [ ("Id", "rId" ++ show rIdNum)
                           , ("Type", "http://schemas.openxmlformats.org/officeDocument/2006/relationships/slide")
-                          , ("Target", "slide" ++ show num ++ ".xml")
+                          , ("Target", "slide" ++ show targetIdNum ++ ".xml")
                           ] ()
-linkRelElement idNum (ExternalTarget (url, _)) = do
+linkRelElement rIdNum (ExternalTarget (url, _)) = do
   return $
-    mknode "Relationship" [ ("Id", "rId" ++ show idNum)
+    mknode "Relationship" [ ("Id", "rId" ++ show rIdNum)
                           , ("Type", "http://schemas.openxmlformats.org/officeDocument/2006/relationships/hyperlink")
                           , ("Target", url)
                           , ("TargetMode", "External")
@@ -1224,8 +1253,9 @@ mediaRelElement mInfo =
                           , ("Target", "../media/image" ++ (show $ mInfoGlobalId mInfo) ++ ext)
                           ] ()
 
-slideToSlideRelElement :: PandocMonad m => Slide -> Int -> P m Element
-slideToSlideRelElement slide idNum = do
+slideToSlideRelElement :: PandocMonad m => Slide -> P m Element
+slideToSlideRelElement slide = do
+  idNum <- slideNum slide
   let target =  case slide of
         (Slide _ (MetadataSlide _ _ _ _) _) -> "../slideLayouts/slideLayout1.xml"
         (Slide _ (TitleSlide _) _)          -> "../slideLayouts/slideLayout3.xml"
@@ -1250,15 +1280,16 @@ slideToSlideRelElement slide idNum = do
                            , ("Target", target)] ()
     ] ++ linkRels ++ mediaRels)
 
-slideToSldIdElement :: PandocMonad m => Slide -> Int -> P m Element
-slideToSldIdElement slide idNum = do
-  let id' = show $ idNum + 255
-  rId <- slideToSlideId slide idNum
+slideToSldIdElement :: PandocMonad m => Slide -> P m Element
+slideToSldIdElement slide = do
+  n <- slideNum slide
+  let id' = show $ n + 255
+  rId <- slideToRelId slide
   return $ mknode "p:sldId" [("id", id'), ("r:id", rId)] ()
 
 presentationToSldIdLst :: PandocMonad m => Presentation -> P m Element
 presentationToSldIdLst (Presentation slides) = do
-  ids <- mapM (\(s,n) -> slideToSldIdElement s n) (zip slides [1..])
+  ids <- mapM slideToSldIdElement slides
   return $ mknode "p:sldIdLst" [] ids
 
 presentationToPresentationElement :: PandocMonad m => Presentation -> P m Element
@@ -1366,12 +1397,10 @@ presentationToContentTypes (Presentation slides) = do
 
       inheritedOverrides = mapMaybe pathToOverride filePaths
       presOverride = mapMaybe pathToOverride ["ppt/presentation.xml"]
-      slideOverrides =
-        mapMaybe
-        (\(s, n) ->
-           pathToOverride $ "ppt/slides/" ++ slideToFilePath s n)
-        (zip slides [1..])
-      -- propOverride = mapMaybe pathToOverride ["docProps/core.xml"]
+  relativePaths <- mapM slideToFilePath slides
+  let slideOverrides = mapMaybe
+                       (\fp -> pathToOverride $ "ppt/slides/" ++ fp)
+                       relativePaths
   return $ ContentTypes
     (defaults ++ mediaDefaults)
     (inheritedOverrides ++ presOverride ++ slideOverrides)

@@ -128,11 +128,13 @@ data Presentation = Presentation [Slide]
   deriving (Show)
 
 
-data Slide = Slide SlideId Layout (Maybe Notes)
-  deriving (Show, Eq)
+data Slide = Slide { slideId :: SlideId
+                   , slideLayout :: Layout
+                   , slideNotes :: (Maybe Notes)
+                   } deriving (Show, Eq)
 
 newtype SlideId = SlideId String
-  deriving (Show, Eq)
+  deriving (Show, Eq, Ord)
 
 -- In theory you could have anything on a notes slide but it seems
 -- designed mainly for one textbox, so we'll just put in the contents
@@ -316,9 +318,9 @@ isListType _ = False
 registerAnchorId :: String -> Pres ()
 registerAnchorId anchor = do
   anchorMap <- gets stAnchorMap
-  slideId <- asks envCurSlideId
+  sldId <- asks envCurSlideId
   unless (null anchor) $
-    modify $ \st -> st {stAnchorMap = M.insert anchor slideId anchorMap}
+    modify $ \st -> st {stAnchorMap = M.insert anchor sldId anchorMap}
 
 -- Currently hardcoded, until I figure out how to make it dynamic.
 blockQuoteSize :: Pixels
@@ -529,20 +531,20 @@ blocksToSlide' :: Int -> [Block] -> Pres Slide
 blocksToSlide' lvl ((Header n (ident, _, _) ils) : blks)
   | n < lvl = do
       registerAnchorId ident
-      slideId <- asks envCurSlideId
+      sldId <- asks envCurSlideId
       hdr <- inlinesToParElems ils
-      return $ Slide slideId (TitleSlide {titleSlideHeader = hdr}) Nothing
+      return $ Slide sldId (TitleSlide {titleSlideHeader = hdr}) Nothing
   | n == lvl = do
       registerAnchorId ident
       hdr <- inlinesToParElems ils
       -- Now get the slide without the header, and then add the header
       -- in.
-      (Slide slideId layout mbNotes) <- blocksToSlide' lvl blks
-      let layout' = case layout of
+      slide <- blocksToSlide' lvl blks
+      let layout = case slideLayout slide of
             ContentSlide _ cont          -> ContentSlide hdr cont
             TwoColumnSlide _ contL contR -> TwoColumnSlide hdr contL contR
-            layout''                     -> layout''
-      return $ Slide slideId layout' mbNotes
+            layout'                     -> layout'
+      return $ slide{slideLayout = layout}
 blocksToSlide' _ (blk : blks)
   | Div (_, classes, _) divBlks <- blk
   , "columns" `elem` classes
@@ -562,9 +564,9 @@ blocksToSlide' _ (blk : blks)
             []     -> []
       shapesL <- blocksToShapes blksL'
       shapesR <- blocksToShapes blksR'
-      slideId <- asks envCurSlideId
+      sldId <- asks envCurSlideId
       return $ Slide
-        slideId
+        sldId
         TwoColumnSlide { twoColumnSlideHeader = []
                        , twoColumnSlideLeft = shapesL
                        , twoColumnSlideRight = shapesR
@@ -575,19 +577,19 @@ blocksToSlide' _ (blk : blks) = do
       shapes <- if inNoteSlide
                 then forceFontSize noteSize $ blocksToShapes (blk : blks)
                 else blocksToShapes (blk : blks)
-      slideId <- asks envCurSlideId
+      sldId <- asks envCurSlideId
       return $
         Slide
-        slideId
+        sldId
         ContentSlide { contentSlideHeader = []
                      , contentSlideContent = shapes
                      }
         Nothing
 blocksToSlide' _ [] = do
-  slideId <- asks envCurSlideId
+  sldId <- asks envCurSlideId
   return $
     Slide
-    slideId
+    sldId
     ContentSlide { contentSlideHeader = []
                  , contentSlideContent = []
                  }
@@ -645,13 +647,13 @@ getMetaSlide  = do
       _                             -> []
   authors <- mapM inlinesToParElems $ docAuthors meta
   date <- inlinesToParElems $ docDate meta
-  slideId <- asks envCurSlideId
+  sldId <- asks envCurSlideId
   if null title && null subtitle && null authors && null date
     then return Nothing
     else return $
          Just $
          Slide
-         slideId
+         sldId
          MetadataSlide { metadataSlideTitle = title
                        , metadataSlideSubtitle = subtitle
                        , metadataSlideAuthors = authors
@@ -737,13 +739,13 @@ applyToLayout f (TwoColumnSlide hdr contentL contentR) = do
   return $ TwoColumnSlide hdr' contentL' contentR'
 
 applyToSlide :: Monad m => (ParaElem -> m ParaElem) -> Slide -> m Slide
-applyToSlide f (Slide slideId layout mbNotes) = do
-  layout' <- applyToLayout f layout
-  mbNotes' <- case mbNotes of
+applyToSlide f slide = do
+  layout' <- applyToLayout f $ slideLayout slide
+  mbNotes' <- case slideNotes slide of
                 Just (Notes notes) -> (Just . Notes) <$>
                                       mapM (applyToParagraph f) notes
                 Nothing -> return Nothing
-  return $ Slide slideId layout' mbNotes'
+  return slide{slideLayout = layout', slideNotes = mbNotes'}
 
 replaceAnchor :: ParaElem -> Pres ParaElem
 replaceAnchor (Run rProps s)
