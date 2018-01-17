@@ -728,7 +728,7 @@ code = try $ do
 
 codeTag :: PandocMonad m => MuseParser m (F Inlines)
 codeTag = do
-  (attrs, content) <- parseHtmlContentWithAttrs "code" anyChar
+  (attrs, content) <- htmlElement "code"
   return $ return $ B.codeWith attrs content
 
 inlineLiteralTag :: PandocMonad m => MuseParser m (F Inlines)
