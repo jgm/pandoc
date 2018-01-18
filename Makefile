@@ -42,7 +42,10 @@ dist: man/pandoc.1
 	cd pandoc-${version}
 	stack setup && stack test && cd .. && rm -rf "pandoc-${version}"
 
-packages: winpkg debpkg macospkg
+packages: checkdocs sanitycheck winpkg debpkg macospkg
+
+checkdocs: README.md
+	! grep -n -e "\t" MANUAL.txt changelog
 
 debpkg: man/pandoc.1
 	make -C linux && \
@@ -109,4 +112,4 @@ update-website:
 clean:
 	stack clean
 
-.PHONY: deps quick full haddock install clean test bench changes_github macospkg dist prof download_stats reformat lint weigh doc/lua-filters.md packages pandoc-templates trypandoc update-website
+.PHONY: deps quick full haddock install clean test bench changes_github macospkg dist prof download_stats reformat lint weigh doc/lua-filters.md packages pandoc-templates trypandoc update-website debpkg macospkg winpkg checkdocs
