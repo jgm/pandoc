@@ -66,6 +66,7 @@ import Text.Pandoc.Slides (getSlideLevel)
 import Text.Pandoc.Options
 import Text.Pandoc.Logging
 import Text.Pandoc.Walk
+import Text.Pandoc.Compat.Time (UTCTime)
 import qualified Text.Pandoc.Shared as Shared -- so we don't overlap "Element"
 import Text.Pandoc.Writers.Shared (metaValueToInlines)
 import qualified Data.Map as M
@@ -161,8 +162,15 @@ concatMapM f xs   =  liftM concat (mapM f xs)
 
 type Pixels = Integer
 
-data Presentation = Presentation [Slide]
+data Presentation = Presentation DocProps [Slide]
   deriving (Show)
+
+data DocProps = DocProps { dcTitle :: Maybe String
+                         , dcSubject :: Maybe String
+                         , dcCreator :: Maybe String
+                         , dcKeywords :: Maybe [String]
+                         , dcCreated :: Maybe UTCTime
+                         } deriving (Show, Eq)
 
 
 data Slide = Slide { slideId :: SlideId
@@ -796,8 +804,8 @@ replaceAnchor (Run rProps s)
       return $ Run rProps' s
 replaceAnchor pe = return pe
 
-blocksToPresentation :: [Block] -> Pres Presentation
-blocksToPresentation blks = do
+blocksToPresentationSlides :: [Block] -> Pres [Slide]
+blocksToPresentationSlides blks = do
   opts <- asks envOpts
   metadataslides <- maybeToList <$> getMetaSlide
   -- As far as I can tell, if we want to have a variable-length toc in
@@ -836,17 +844,36 @@ blocksToPresentation blks = do
                             return [endNotesSlide]
 
   let slides = metadataslides ++ tocSlides ++ bodyslides ++ endNotesSlides
-  slides' <- mapM (applyToSlide replaceAnchor) slides
-  return $ Presentation slides'
+  mapM (applyToSlide replaceAnchor) slides
+
+metaToDocProps :: Meta -> DocProps
+metaToDocProps meta =
+  let keywords = case lookupMeta "keywords" meta of
+                   Just (MetaList xs) -> Just $ map Shared.stringify xs
+                   _                  -> Nothing
+
+      authors = case lookupMeta "author" meta of
+                  Just (MetaList xs) -> Just $ map Shared.stringify xs
+                  _                  -> Nothing
+  in
+    DocProps{ dcTitle = Shared.stringify <$> lookupMeta "title" meta
+            , dcSubject = Shared.stringify <$> lookupMeta "subject" meta
+            , dcCreator = (intercalate "; ") <$> authors
+            , dcKeywords = keywords
+            , dcCreated = Nothing
+            }
 
 documentToPresentation :: WriterOptions
                        -> Pandoc
                        -> (Presentation, [LogMessage])
-documentToPresentation opts (Pandoc meta blks) = do
+documentToPresentation opts (Pandoc meta blks) =
   let env = def { envOpts = opts
                 , envMetadata = meta
                 , envSlideLevel = case writerSlideLevel opts of
                                     Just lvl -> lvl
                                     Nothing  -> getSlideLevel blks
                 }
-  runPres env def $ blocksToPresentation blks
+      (presSlides, msgs) = runPres env def $ blocksToPresentationSlides blks
+      docProps = metaToDocProps meta
+  in
+    (Presentation docProps presSlides, msgs)

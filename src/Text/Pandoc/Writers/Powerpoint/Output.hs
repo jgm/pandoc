@@ -213,7 +213,7 @@ requiredFiles = [ "docProps/app.xml"
 
 
 presentationToArchiveP :: PandocMonad m => Presentation -> P m Archive
-presentationToArchiveP p@(Presentation slides) = do
+presentationToArchiveP p@(Presentation _ slides) = do
   filePaths <- patternsToFilePaths inheritedPatterns
 
   -- make sure all required files are available:
@@ -247,7 +247,7 @@ presentationToArchiveP p@(Presentation slides) = do
     [contentTypesEntry, relsEntry, presEntry, presRelsEntry]
 
 makeSlideIdMap :: Presentation -> M.Map SlideId Int
-makeSlideIdMap (Presentation slides) =
+makeSlideIdMap (Presentation _ slides) =
   M.fromList $ (map slideId slides) `zip` [1..]
 
 presentationToArchive :: PandocMonad m => WriterOptions -> Presentation -> m Archive
@@ -1142,7 +1142,7 @@ getRels = do
   return $ mapMaybe elementToRel relElems
 
 presentationToRels :: PandocMonad m => Presentation -> P m [Relationship]
-presentationToRels (Presentation slides) = do
+presentationToRels (Presentation _ slides) = do
   mySlideRels <- mapM slideToPresRel slides
   rels <- getRels
   let relsWithoutSlides = filter (\r -> relType r /= "http://schemas.openxmlformats.org/officeDocument/2006/relationships/slide") rels
@@ -1288,7 +1288,7 @@ slideToSldIdElement slide = do
   return $ mknode "p:sldId" [("id", id'), ("r:id", rId)] ()
 
 presentationToSldIdLst :: PandocMonad m => Presentation -> P m Element
-presentationToSldIdLst (Presentation slides) = do
+presentationToSldIdLst (Presentation _ slides) = do
   ids <- mapM slideToSldIdElement slides
   return $ mknode "p:sldIdLst" [] ids
 
@@ -1384,7 +1384,7 @@ mediaContentType mInfo
   | otherwise = Nothing
 
 presentationToContentTypes :: PandocMonad m => Presentation -> P m ContentTypes
-presentationToContentTypes (Presentation slides) = do
+presentationToContentTypes (Presentation _ slides) = do
   mediaInfos <- (mconcat . M.elems) <$> gets stMediaIds
   filePaths <- patternsToFilePaths inheritedPatterns
   let mediaFps = filter (match (compile "ppt/media/image*")) filePaths
