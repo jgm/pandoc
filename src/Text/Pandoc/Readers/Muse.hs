@@ -473,10 +473,7 @@ definitionListItem = try $ do
   guardDisabled Ext_amuse <|> void spaceChar -- Initial space is required by Amusewiki, but not Emacs Muse
   many spaceChar
   pos <- getPosition
-  rawTerm <- many1Till (noneOf "\n") (lookAhead (void (try (spaceChar >> string "::"))))
-  term <- parseFromString (trimInlinesF . mconcat <$> many inline) rawTerm
-  many1 spaceChar
-  string "::"
+  term <- trimInlinesF . mconcat <$> manyTill (choice inlineList) (string "::")
   void spaceChar <|> lookAhead eol
   contents <- listItemContents' $ sourceColumn pos
   optionMaybe blankline
@@ -587,7 +584,7 @@ tableParseCaption = try $ do
 --
 
 inlineList :: PandocMonad m => [MuseParser m (F Inlines)]
-inlineList = [ endline
+inlineList = [ whitespace
              , br
              , anchor
              , footnote
@@ -605,13 +602,12 @@ inlineList = [ endline
              , code
              , codeTag
              , inlineLiteralTag
-             , whitespace
              , str
              , symbol
              ]
 
 inline :: PandocMonad m => MuseParser m (F Inlines)
-inline = choice inlineList <?> "inline"
+inline = choice [endline, linebreak] <|> choice inlineList <?> "inline"
 
 endline :: PandocMonad m => MuseParser m (F Inlines)
 endline = try $ do
@@ -645,22 +641,22 @@ footnote = try $ do
         let contents' = runF contents st { stateNotes' = M.empty }
         return $ B.note contents'
 
+linebreak :: PandocMonad m => MuseParser m (F Inlines)
+linebreak = try $ do
+  skipMany spaceChar
+  newline
+  notFollowedBy newline
+  return $ return B.space
+
 whitespace :: PandocMonad m => MuseParser m (F Inlines)
-whitespace = return <$> (lb <|> regsp)
-  where lb = try $ skipMany spaceChar >> linebreak >> return B.space
-        regsp = try $ skipMany1 spaceChar >> return B.space
+whitespace = try $ do
+  skipMany1 spaceChar
+  return $ return B.space
 
 br :: PandocMonad m => MuseParser m (F Inlines)
 br = try $ do
   string "<br>"
   return $ return B.linebreak
-
-linebreak :: PandocMonad m => MuseParser m (F Inlines)
-linebreak = newline >> notFollowedBy newline >> (lastNewline <|> innerNewline)
-  where lastNewline  = do
-                         eof
-                         return $ return mempty
-        innerNewline = return $ return B.space
 
 emphasisBetween :: (PandocMonad m, Show a) => MuseParser m a -> MuseParser m (F Inlines)
 emphasisBetween c = try $ enclosedInlines c c
