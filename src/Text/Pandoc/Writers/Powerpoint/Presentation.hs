@@ -73,6 +73,10 @@ import Text.Pandoc.Writers.Shared (metaValueToInlines)
 import qualified Data.Map as M
 import qualified Data.Set as S
 import Data.Maybe (maybeToList)
+import Text.Pandoc.Highlighting
+import qualified Data.Text as T
+import Control.Applicative ((<|>))
+import Skylighting
 
 data WriterEnv = WriterEnv { envMetadata :: Meta
                            , envRunProps :: RunProps
@@ -280,6 +284,10 @@ data RunProps = RunProps { rPropBold :: Bool
                          , rPropCode :: Bool
                          , rPropBlockQuote :: Bool
                          , rPropForceSize :: Maybe Pixels
+                         , rSolidFill :: Maybe Color
+                         -- TODO: Make a full underline data type with
+                         -- the different options.
+                         , rPropUnderline :: Bool
                          } deriving (Show, Eq)
 
 instance Default RunProps where
@@ -292,6 +300,8 @@ instance Default RunProps where
                  , rPropCode = False
                  , rPropBlockQuote = False
                  , rPropForceSize = Nothing
+                 , rSolidFill = Nothing
+                 , rPropUnderline = False
                  }
 
 data PicProps = PicProps { picPropLink :: Maybe LinkTarget
@@ -391,8 +401,17 @@ blockToParagraphs (LineBlock ilsList) = do
   return [Paragraph pProps parElems]
 -- TODO: work out the attributes
 blockToParagraphs (CodeBlock attr str) =
-  local (\r -> r{envParaProps = def{pPropMarginLeft = Just 100}}) $
-  blockToParagraphs $ Para [Code attr str]
+  local (\r -> r{ envParaProps = def{pPropMarginLeft = Just 100}
+                , envRunProps = (envRunProps r){rPropCode = True}}) $ do
+  mbSty <- writerHighlightStyle <$> asks envOpts
+  synMap <- writerSyntaxMap <$> asks envOpts
+  case mbSty of
+    Just sty ->
+      case highlight synMap (formatSourceLines sty) attr str of
+        Right pElems -> do pProps <- asks envParaProps
+                           return $ [Paragraph pProps pElems]
+        Left _ -> blockToParagraphs $ Para [Str str]
+    Nothing -> blockToParagraphs $ Para [Str str]
 -- We can't yet do incremental lists, but we should render a
 -- (BlockQuote List) as a list to maintain compatibility with other
 -- formats.
@@ -878,3 +897,29 @@ documentToPresentation opts (Pandoc meta blks) =
       docProps = metaToDocProps meta
   in
     (Presentation docProps presSlides, msgs)
+
+-- --------------------------------------------------------------
+
+applyTokStyToRunProps :: TokenStyle -> RunProps -> RunProps
+applyTokStyToRunProps tokSty rProps =
+  rProps{ rSolidFill     = tokenColor tokSty <|> rSolidFill rProps
+        , rPropBold      = tokenBold tokSty || rPropBold rProps
+        , rPropItalics   = tokenItalic tokSty || rPropItalics rProps
+        , rPropUnderline = tokenUnderline tokSty || rPropUnderline rProps
+        }
+
+formatToken :: Style -> Token -> ParaElem
+formatToken sty (tokType, txt) =
+  let rProps = def{rPropCode = True, rSolidFill = defaultColor sty}
+      rProps' = case M.lookup tokType (tokenStyles sty) of
+        Just tokSty -> applyTokStyToRunProps tokSty rProps
+        Nothing     -> rProps
+  in
+    Run rProps' $ T.unpack txt
+
+formatSourceLine :: Style -> FormatOptions -> SourceLine -> [ParaElem]
+formatSourceLine sty _ srcLn = map (formatToken sty) srcLn
+
+formatSourceLines :: Style -> FormatOptions -> [SourceLine] -> [ParaElem]
+formatSourceLines sty opts srcLns = intercalate [Break] $
+                                    map (formatSourceLine sty opts) srcLns

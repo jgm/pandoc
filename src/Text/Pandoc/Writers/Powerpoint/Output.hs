@@ -38,6 +38,7 @@ import Control.Monad.Except (throwError, catchError)
 import Control.Monad.Reader
 import Control.Monad.State
 import Codec.Archive.Zip
+import Data.Char (toUpper)
 import Data.List (intercalate, stripPrefix, nub, union, isPrefixOf)
 import Data.Default
 import Text.Pandoc.Compat.Time (formatTime, defaultTimeLocale)
@@ -62,6 +63,7 @@ import System.FilePath.Glob
 import Text.TeXMath
 import Text.Pandoc.Writers.Math (convertMath)
 import Text.Pandoc.Writers.Powerpoint.Presentation
+import Skylighting (fromColor)
 
 -- This populates the global ids map with images already in the
 -- template, so the ids won't be used by images introduced by the
@@ -703,26 +705,28 @@ paraElemToElement Break = return $ mknode "a:br" [] ()
 paraElemToElement (Run rpr s) = do
   let sizeAttrs = case rPropForceSize rpr of
                     Just n -> [("sz", (show $ n * 100))]
-                    Nothing -> []
+                    Nothing -> if rPropCode rpr
+                               -- hardcoded size for code for now
+                               then [("sz", "1800")]
+                               else []
       attrs = sizeAttrs ++
-        if rPropCode rpr
-        then []
-        else (if rPropBold rpr then [("b", "1")] else []) ++
-             (if rPropItalics rpr then [("i", "1")] else []) ++
-             (case rStrikethrough rpr of
-                Just NoStrike     -> [("strike", "noStrike")]
-                Just SingleStrike -> [("strike", "sngStrike")]
-                Just DoubleStrike -> [("strike", "dblStrike")]
-                Nothing -> []) ++
-             (case rBaseline rpr of
-                Just n -> [("baseline", show n)]
-                Nothing -> []) ++
-             (case rCap rpr of
-                Just NoCapitals -> [("cap", "none")]
-                Just SmallCapitals -> [("cap", "small")]
-                Just AllCapitals -> [("cap", "all")]
-                Nothing -> []) ++
-             []
+        (if rPropBold rpr then [("b", "1")] else []) ++
+        (if rPropItalics rpr then [("i", "1")] else []) ++
+        (if rPropUnderline rpr then [("u", "sng")] else []) ++
+        (case rStrikethrough rpr of
+            Just NoStrike     -> [("strike", "noStrike")]
+            Just SingleStrike -> [("strike", "sngStrike")]
+            Just DoubleStrike -> [("strike", "dblStrike")]
+            Nothing -> []) ++
+        (case rBaseline rpr of
+            Just n -> [("baseline", show n)]
+            Nothing -> []) ++
+        (case rCap rpr of
+            Just NoCapitals -> [("cap", "none")]
+            Just SmallCapitals -> [("cap", "small")]
+            Just AllCapitals -> [("cap", "all")]
+            Nothing -> []) ++
+        []
   linkProps <- case rLink rpr of
                  Just link -> do
                    idNum <- registerLink link
@@ -743,10 +747,19 @@ paraElemToElement (Run rpr s) = do
                              ]
                        in [mknode "a:hlinkClick" linkAttrs ()]
                  Nothing -> return []
-  let propContents = if rPropCode rpr
+  let colorContents = case rSolidFill rpr of
+                        Just color ->
+                          case fromColor color of
+                            '#':hx ->  [mknode "a:solidFill" []
+                                        [mknode "a:srgbClr" [("val", map toUpper hx)] ()]
+                                       ]
+                            _ -> []
+                        Nothing -> []
+  let codeContents = if rPropCode rpr
                      then [mknode "a:latin" [("typeface", "Courier")] ()]
-                     else linkProps
-  return $ mknode "a:r" [] [ mknode "a:rPr" attrs propContents
+                     else []
+  let propContents = linkProps ++ colorContents ++ codeContents
+  return $ mknode "a:r" [] [ mknode "a:rPr" attrs $ propContents
                            , mknode "a:t" [] s
                            ]
 paraElemToElement (MathElem mathType texStr) = do

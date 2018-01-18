@@ -2265,11 +2265,11 @@ this syntax:
 Here `mycode` is an identifier, `haskell` and `numberLines` are classes, and
 `startFrom` is an attribute with value `100`. Some output formats can use this
 information to do syntax highlighting. Currently, the only output formats
-that uses this information are HTML, LaTeX, Docx, and Ms. If highlighting
-is supported for your output format and language, then the code block above
-will appear highlighted, with numbered lines. (To see which languages are
-supported, type `pandoc --list-highlight-languages`.) Otherwise, the code
-block above will appear as follows:
+that uses this information are HTML, LaTeX, Docx, Ms, and PowerPoint. If
+highlighting is supported for your output format and language, then the code
+block above will appear highlighted, with numbered lines. (To see which
+languages are supported, type `pandoc --list-highlight-languages`.) Otherwise,
+the code block above will appear as follows:
 
     <pre id="mycode" class="haskell numberLines" startFrom="100">
       <code>
