@@ -19,8 +19,9 @@ pandoc (2.1.1)
       math may contain line breaks.  If it does, we put the math in an
       `aligned` environment to simulate `rst2latex.py`'s behavior.
 
-  * HTML reader: Fix col width parsing for percentages < 10% (#4262,
-    n3fariox).
+  * HTML reader:
+
+    + Fix col width parsing for percentages < 10% (#4262, n3fariox).
 
   * LaTeX reader:
 
@@ -50,6 +51,11 @@ pandoc (2.1.1)
       We introduce a new module, `Text.Pandoc.Readers.Docx.Fields` which
       contains a simple parsec parser. At the moment, only simple hyperlink
       fields are accepted, but that can be extended in the future.
+
+  * Muse reader (Alexander Krotov):
+
+    + Parse `~~` as non-breaking space in Text::Amuse mode.
+    + Refactor list parsing.
 
   * Powerpoint writer (Jesse Rosenthal):
 
@@ -100,6 +106,7 @@ pandoc (2.1.1)
       they're in. We make the `envCurSlideId` available to blocks.
     + Move `curSlideId` to environment.
     + Allow setting `toc-title` in metadata.
+    + Link notes to endnotes slide.
 
   * Markdown writer:
 
