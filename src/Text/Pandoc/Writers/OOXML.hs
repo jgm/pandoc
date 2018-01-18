@@ -1,54 +1,54 @@
+{-
+Copyright (C) 2012-2018 John MacFarlane <jgm@berkeley.edu>
+
+This program is free software; you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation; either version 2 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program; if not, write to the Free Software
+Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+-}
+
+{- |
+   Module      : Text.Pandoc.Writers.OOXML
+   Copyright   : Copyright (C) 2012-2018 John MacFarlane
+   License     : GNU GPL, version 2 or above
+
+   Maintainer  : John MacFarlane <jgm@berkeley.edu>
+   Stability   : alpha
+   Portability : portable
+
+Functions common to OOXML writers (Docx and Powerpoint)
+-}
 module Text.Pandoc.Writers.OOXML ( mknode
-                                , nodename
-                                , toLazy
-                                , renderXml
-                                , parseXml
-                                , elemToNameSpaces
-                                , elemName
-                                , isElem
-                                , NameSpaces
-                                , fitToPage
-                                ) where
+                                 , nodename
+                                 , toLazy
+                                 , renderXml
+                                 , parseXml
+                                 , elemToNameSpaces
+                                 , elemName
+                                 , isElem
+                                 , NameSpaces
+                                 , fitToPage
+                                 ) where
+
 import Codec.Archive.Zip
---import Control.Applicative ((<|>))
--- import Control.Monad.Except (catchError)
 import Control.Monad.Reader
--- import Control.Monad.State
 import qualified Data.ByteString as B
 import qualified Data.ByteString.Lazy as BL
 import qualified Data.ByteString.Lazy.Char8 as BL8
--- import Data.Char (isSpace, ord, toLower)
--- import Data.List (intercalate, isPrefixOf, isSuffixOf)
--- import qualified Data.Map as M
 import Data.Maybe (mapMaybe)
 import Data.Monoid ((<>))
--- import qualified Data.Set as Set
--- import qualified Data.Text as T
--- import Data.Time.Clock.POSIX
--- import Skylighting
--- import System.Random (randomR)
 import Text.Pandoc.Class (PandocMonad)
--- import qualified Text.Pandoc.Class as P
--- import Text.Pandoc.Compat.Time
--- import Text.Pandoc.Definition
--- import Text.Pandoc.Generic
--- import Text.Pandoc.Highlighting (highlight)
--- import Text.Pandoc.ImageSize
--- import Text.Pandoc.Logging
--- import Text.Pandoc.MIME (MimeType, extensionFromMimeType, getMimeType,
---                          getMimeTypeDef)
--- import Text.Pandoc.Options
--- import Text.Pandoc.Readers.Docx.StyleMap
--- import Text.Pandoc.Shared hiding (Element)
 import qualified Text.Pandoc.UTF8 as UTF8
--- import Text.Pandoc.Walk
--- import Text.Pandoc.Writers.Math
--- import Text.Pandoc.Writers.Shared (fixDisplayMath)
--- import Text.Printf (printf)
--- import Text.TeXMath
 import Text.XML.Light as XML
--- import Text.XML.Light.Cursor as XMLC
-
 
 mknode :: Node t => String -> [(String,String)] -> t -> Element
 mknode s attrs =
@@ -106,4 +106,3 @@ fitToPage (x, y) pageWidth
   | x > fromIntegral pageWidth =
     (pageWidth, floor $ ((fromIntegral pageWidth) / x) * y)
   | otherwise = (floor x, floor y)
-
