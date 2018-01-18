@@ -42,7 +42,7 @@ dist: man/pandoc.1
 	cd pandoc-${version}
 	stack setup && stack test && cd .. && rm -rf "pandoc-${version}"
 
-packages: checkdocs sanitycheck winpkg debpkg macospkg
+packages: checkdocs winpkg debpkg macospkg
 
 checkdocs: README.md
 	! grep -n -e "\t" MANUAL.txt changelog
