@@ -17,6 +17,7 @@ extra-deps:
 - hslua-0.9.5
 - hslua-module-text-0.1.2
 - skylighting-0.6
+- ansi-terminal-0.7.1.1
 - texmath-0.10.1
 - cmark-gfm-0.1.1
 - QuickCheck-2.10.0.1
