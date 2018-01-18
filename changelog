@@ -11522,7 +11522,7 @@ pandoc (1.5)
 
   * Added Maybe datadir parameter to readDataFile, saveOpenDocumentAsODT,
     latexMathMLScript, s5HeaderIncludes, and getDefaultTemplate. If
-	  Nothing, no user directory is searched for an override.
+    Nothing, no user directory is searched for an override.
 
   * Added 'plain' output format. This is similar to markdown, but
     removes links, pictures, inline formatting, and most anything that
@@ -11636,8 +11636,8 @@ pandoc (1.5)
     + Allow footnotes to be indented < 4 spaces.
       This fixes a regression.  A test case has been added.
     + Escape spaces in URLs as %20. Previously they were incorrectly
-		  escaped as +, which is appropriate only for the query part of
-			a URL. Resolves Issue #220.
+      escaped as +, which is appropriate only for the query part of
+      a URL. Resolves Issue #220.
     + Require two spaces after capital letter + period for list item.
       Otherwise "E. coli" starts a list. This might change the semantics
       of some existing documents, since previously the two-space
@@ -11764,7 +11764,7 @@ pandoc (1.4)
   * Pandoc no longer requires Template Haskell.  Resolves Issue #186.
 
     + Removed need for TH in ODT module. Instead get reference.odt from
-	  data file at run time.
+      data file at run time.
     + Removed TH dependency from S5 module. S5 module now exports
       s5HeaderIncludes, which pandoc.hs includes if writer is s5 and
       standalone.
@@ -11781,7 +11781,7 @@ pandoc (1.4)
     on unix), or, if not found there, from the system data
     directory ($CABALDIR/shared/pandoc-VERSION/). All data
     files, including templates, LaTeXMathML.js, s5 styles,
-	and reference.odt, can be overridden by the user.
+    and reference.odt, can be overridden by the user.
 
   * s5 files moved from data/ui/default to s5/default.
 
@@ -11806,7 +11806,7 @@ pandoc (1.4)
 
   * Added --reference-odt option, so users may customize the styles
     used in pandoc-generated ODT files.  Users may also place a
-	default reference.odt in the ~\.pandoc directory.
+    default reference.odt in the ~\.pandoc directory.
 
   * ODT writer:
     + Indented and line-broke styles.xml so it can be modified more easily.
@@ -11890,8 +11890,8 @@ pandoc (1.3)
 
   * Treat a backslash followed by a newline as a hard line break
     in markdown.  Resolves Issue #154.  This is a nice alternative
-	to markdown's "invisible" way of indicating hardline breaks
-	using lines that end with two spaces.
+    to markdown's "invisible" way of indicating hardline breaks
+    using lines that end with two spaces.
 
   * Improved performance of markdown reader by ~10% by eliminating the
     need for a separate parsing pass for notes. Raw notes are now stored
@@ -11902,7 +11902,7 @@ pandoc (1.3)
 
   * In markdown reader, treat 4 or more * or _ in a row as literal
     text.  (Trying to parse long strings of * or _ as strong or emph
-	leads to exponential performance problems.)
+    leads to exponential performance problems.)
 
   * Markdown reader: Use + rather than %20 for spaces in URLs.
 
@@ -11920,8 +11920,8 @@ pandoc (1.3)
 
   * Modified html+lhs output to use "haskell" highlighter instead
     of "literateHaskell". The highlighting module now adds bird tracks
-	after highlighting (for HTML output), if the code block has the
-	"literate" class.  This gives better results, because kate's
+    after highlighting (for HTML output), if the code block has the
+    "literate" class.  This gives better results, because kate's
     haskell highlighter is much better than the literateHaskell
     highlighter.
 
@@ -12042,7 +12042,7 @@ pandoc (1.2.1)
       explicit marker. For example:
 
         A. my list
-		#. continued
+        #. continued
 
       Resolves Issue #140.
     + Allow continuation lines in line blocks. Also added test cases for
@@ -12075,7 +12075,7 @@ pandoc (1.2.1)
 
   * Added new Haskell version of markdown2pdf, due to
     Paulo Tanimoto.  This should be more portable than the old
-	shell script.
+    shell script.
 
   * Made 'pandoc -v' more explicit about compiler options.
     Resolves Issue #139.
