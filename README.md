@@ -83,7 +83,7 @@ man](http://man7.org/linux/man-pages/man7/groff_man.7.html), [groff
 ms](http://man7.org/linux/man-pages/man7/groff_ms.7.html), [Emacs Org
 mode](http://orgmode.org),
 [AsciiDoc](http://www.methods.co.nz/asciidoc/), [InDesign
-ICML](https://www.adobe.com/content/dam/Adobe/en/devnet/indesign/cs55-docs/IDML/idml-specification.pdf),
+ICML](http://wwwimages.adobe.com/www.adobe.com/content/dam/acom/en/devnet/indesign/sdk/cs6/idml/idml-cookbook.pdf),
 [TEI Simple](https://github.com/TEIC/TEI-Simple),
 [Muse](https://amusewiki.org/library/manual),
 [PowerPoint](https://en.wikipedia.org/wiki/Microsoft_PowerPoint) slide
