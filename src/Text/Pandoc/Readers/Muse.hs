@@ -422,13 +422,17 @@ withListContext p = do
   updateState (\st -> st {stateParserContext = oldContext})
   return parsed
 
+listItemContents' :: PandocMonad m => Int -> MuseParser m (F Blocks)
+listItemContents' col = do
+  first <- try $ withListContext parseBlock
+  rest <- many $ try (skipMany blankline >> indentWith col >> withListContext parseBlock)
+  return $ mconcat (first : rest)
+
 listItemContents :: PandocMonad m => MuseParser m (F Blocks)
 listItemContents = do
   pos <- getPosition
   let col = sourceColumn pos - 1
-  first <- try $ withListContext parseBlock
-  rest <- many $ try (skipMany blankline >> indentWith col >> withListContext parseBlock)
-  return $ mconcat (first : rest)
+  listItemContents' col
 
 listItem :: PandocMonad m => Int -> MuseParser m () -> MuseParser m (F Blocks)
 listItem n p = try $ do
@@ -466,25 +470,19 @@ orderedList = try $ do
 
 definitionListItem :: PandocMonad m => MuseParser m (F (Inlines, [Blocks]))
 definitionListItem = try $ do
-  rawTerm <- termParser
+  guardDisabled Ext_amuse <|> void spaceChar -- Initial space is required by Amusewiki, but not Emacs Muse
+  many spaceChar
+  pos <- getPosition
+  rawTerm <- many1Till (noneOf "\n") (lookAhead (void (try (spaceChar >> string "::"))))
   term <- parseFromString (trimInlinesF . mconcat <$> many inline) rawTerm
   many1 spaceChar
   string "::"
-  firstLine <- manyTill anyChar eol
-  restLines <- manyTill anyLine endOfListItemElement
-  let lns = dropWhile (== ' ') firstLine : restLines
-  lineContent <- parseFromString (withListContext parseBlocks) $ unlines lns
-  pure $ do lineContent' <- lineContent
+  void spaceChar <|> lookAhead eol
+  contents <- listItemContents' $ sourceColumn pos
+  optionMaybe blankline
+  pure $ do lineContent' <- contents
             term' <- term
             pure (term', [lineContent'])
-  where
-    termParser = (guardDisabled Ext_amuse <|> void spaceChar) >> -- Initial space is required by Amusewiki, but not Emacs Muse
-                 many spaceChar >>
-                 many1Till (noneOf "\n") (lookAhead (void (try (spaceChar >> string "::"))))
-    endOfInput = lookAhead $ try $ skipMany blankline >> skipSpaces >> eof
-    twoBlankLines = try $ blankline >> skipMany1 blankline
-    newDefinitionListItem = try $ void termParser
-    endOfListItemElement = lookAhead $ endOfInput <|> newDefinitionListItem <|> twoBlankLines
 
 definitionListItems :: PandocMonad m => MuseParser m (F [(Inlines, [Blocks])])
 definitionListItems = sequence <$> many1 definitionListItem

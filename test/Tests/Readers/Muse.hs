@@ -955,17 +955,6 @@ tests =
          definitionList [ ("Term1", [ para "This is a first definition\nAnd it has two lines;\nno, make that three."])
                         , ("Term2", [ para "This is a second definition"])
                         ])
-      -- Emacs Muse creates two separate lists when indentation of items is different.
-      -- We follow Amusewiki and allow different indentation within one list.
-      , "Changing indentation" =:
-        T.unlines
-          [ " First term :: Definition of first term"
-          , "and its continuation."
-          , "   Second term :: Definition of second term."
-          ] =?>
-        definitionList [ ("First term", [ para "Definition of first term\nand its continuation." ])
-                       , ("Second term", [ para "Definition of second term." ])
-                       ]
       , "Two blank lines separate definition lists" =:
         T.unlines
           [ " First :: list"
