@@ -16,7 +16,7 @@ extra-deps:
 - pandoc-types-1.17.3
 - hslua-0.9.5
 - hslua-module-text-0.1.2
-- skylighting-0.5.1
+- skylighting-0.6
 - texmath-0.10.1
 - cmark-gfm-0.1.1
 - QuickCheck-2.10.0.1
@@ -25,5 +25,5 @@ extra-deps:
 - haddock-library-1.4.3
 - tagsoup-0.14.2
 - hs-bibutils-6.2.0.1
-- pandoc-citeproc-0.12.2.5
+- pandoc-citeproc-0.13.0.1
 resolver: lts-9.14

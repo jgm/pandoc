@@ -13,10 +13,10 @@ flags:
 packages:
 - '.'
 extra-deps:
-- pandoc-citeproc-0.12.2.5
+- pandoc-citeproc-0.13.0.1
 - hslua-0.9.5
-- skylighting-0.5.1
-- tasty-1.0
+- skylighting-0.6
+- tasty-1.0.0.1
 ghc-options:
    "$locals": -fhide-source-paths
 resolver: lts-10.3
