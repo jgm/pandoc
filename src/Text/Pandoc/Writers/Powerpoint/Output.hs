@@ -40,6 +40,7 @@ import Control.Monad.State
 import Codec.Archive.Zip
 import Data.List (intercalate, stripPrefix, nub, union, isPrefixOf)
 import Data.Default
+import Text.Pandoc.Compat.Time (formatTime, defaultTimeLocale)
 import Data.Time.Clock (UTCTime)
 import Data.Time.Clock.POSIX (utcTimeToPOSIXSeconds, posixSecondsToUTCTime)
 import System.FilePath.Posix (splitDirectories, splitExtension, takeExtension)
@@ -54,7 +55,7 @@ import Text.Pandoc.MIME
 import qualified Data.ByteString.Lazy as BL
 import Text.Pandoc.Writers.OOXML
 import qualified Data.Map as M
-import Data.Maybe (mapMaybe, listToMaybe)
+import Data.Maybe (mapMaybe, listToMaybe, fromMaybe)
 import Text.Pandoc.ImageSize
 import Control.Applicative ((<|>))
 import System.FilePath.Glob
@@ -166,7 +167,6 @@ copyFileToArchive arch fp = do
 
 inheritedPatterns :: [Pattern]
 inheritedPatterns = map compile [ "docProps/app.xml"
-                                , "docProps/core.xml"
                                 , "ppt/slideLayouts/slideLayout*.xml"
                                 , "ppt/slideLayouts/_rels/slideLayout*.xml.rels"
                                 , "ppt/slideMasters/slideMaster1.xml"
@@ -194,7 +194,6 @@ patternsToFilePaths pats = concat <$> mapM patternToFilePaths pats
 -- any of these are missing, we should error out of our build.
 requiredFiles :: [FilePath]
 requiredFiles = [ "docProps/app.xml"
-                , "docProps/core.xml"
                 , "ppt/presProps.xml"
                 , "ppt/slideLayouts/slideLayout1.xml"
                 , "ppt/slideLayouts/_rels/slideLayout1.xml.rels"
@@ -213,7 +212,7 @@ requiredFiles = [ "docProps/app.xml"
 
 
 presentationToArchiveP :: PandocMonad m => Presentation -> P m Archive
-presentationToArchiveP p@(Presentation _ slides) = do
+presentationToArchiveP p@(Presentation docProps slides) = do
   filePaths <- patternsToFilePaths inheritedPatterns
 
   -- make sure all required files are available:
@@ -226,6 +225,8 @@ presentationToArchiveP p@(Presentation _ slides) = do
     )
 
   newArch' <- foldM copyFileToArchive emptyArchive filePaths
+  -- we make a docProps/core.xml entry out of the presentation docprops
+  docPropsEntry <- docPropsToEntry docProps
   -- we make this ourself in case there's something unexpected in the
   -- one in the reference doc.
   relsEntry <- topLevelRelsEntry
@@ -244,7 +245,7 @@ presentationToArchiveP p@(Presentation _ slides) = do
     slideEntries ++
     slideRelEntries ++
     mediaEntries ++
-    [contentTypesEntry, relsEntry, presEntry, presRelsEntry]
+    [contentTypesEntry, docPropsEntry, relsEntry, presEntry, presRelsEntry]
 
 makeSlideIdMap :: Presentation -> M.Map SlideId Int
 makeSlideIdMap (Presentation _ slides) =
@@ -1313,7 +1314,30 @@ presentationToPresEntry :: PandocMonad m => Presentation -> P m Entry
 presentationToPresEntry pres = presentationToPresentationElement pres >>=
   elemToEntry "ppt/presentation.xml"
 
+-- adapted from the Docx writer
+docPropsElement :: PandocMonad m => DocProps -> P m Element
+docPropsElement docProps = do
+  utctime <- asks envUTCTime
+  let keywords = case dcKeywords docProps of
+        Just xs -> intercalate "," xs
+        Nothing -> ""
+  return $
+    mknode "cp:coreProperties"
+    [("xmlns:cp","http://schemas.openxmlformats.org/package/2006/metadata/core-properties")
+    ,("xmlns:dc","http://purl.org/dc/elements/1.1/")
+    ,("xmlns:dcterms","http://purl.org/dc/terms/")
+    ,("xmlns:dcmitype","http://purl.org/dc/dcmitype/")
+    ,("xmlns:xsi","http://www.w3.org/2001/XMLSchema-instance")]
+    $ (mknode "dc:title" [] $ fromMaybe "" $ dcTitle docProps)
+    : (mknode "dc:creator" [] $ fromMaybe "" $ dcCreator docProps)
+    : (mknode "cp:keywords" [] keywords)
+    : (\x -> [ mknode "dcterms:created" [("xsi:type","dcterms:W3CDTF")] x
+             , mknode "dcterms:modified" [("xsi:type","dcterms:W3CDTF")] x
+             ]) (formatTime defaultTimeLocale "%FT%XZ" utctime)
 
+docPropsToEntry :: PandocMonad m => DocProps -> P m Entry
+docPropsToEntry docProps = docPropsElement docProps >>=
+                           elemToEntry "docProps/core.xml"
 
 
 defaultContentTypeToElem :: DefaultContentType -> Element
@@ -1396,6 +1420,7 @@ presentationToContentTypes (Presentation _ slides) = do
                       (mapMaybe mediaFileContentType $ mediaFps)
 
       inheritedOverrides = mapMaybe pathToOverride filePaths
+      docPropsOverride = mapMaybe pathToOverride ["docProps/core.xml"]
       presOverride = mapMaybe pathToOverride ["ppt/presentation.xml"]
   relativePaths <- mapM slideToFilePath slides
   let slideOverrides = mapMaybe
@@ -1403,7 +1428,7 @@ presentationToContentTypes (Presentation _ slides) = do
                        relativePaths
   return $ ContentTypes
     (defaults ++ mediaDefaults)
-    (inheritedOverrides ++ presOverride ++ slideOverrides)
+    (inheritedOverrides ++ docPropsOverride ++ presOverride ++ slideOverrides)
 
 presML :: String
 presML = "application/vnd.openxmlformats-officedocument.presentationml"

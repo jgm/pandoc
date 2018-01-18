@@ -34,6 +34,7 @@ Presentation.
 
 module Text.Pandoc.Writers.Powerpoint.Presentation ( documentToPresentation
                                                    , Presentation(..)
+                                                   , DocProps(..)
                                                    , Slide(..)
                                                    , Layout(..)
                                                    , Notes(..)
@@ -852,13 +853,13 @@ metaToDocProps meta =
                    Just (MetaList xs) -> Just $ map Shared.stringify xs
                    _                  -> Nothing
 
-      authors = case lookupMeta "author" meta of
-                  Just (MetaList xs) -> Just $ map Shared.stringify xs
-                  _                  -> Nothing
+      authors = case map Shared.stringify $ docAuthors meta of
+                  [] -> Nothing
+                  ss -> Just $ intercalate ";" ss
   in
     DocProps{ dcTitle = Shared.stringify <$> lookupMeta "title" meta
             , dcSubject = Shared.stringify <$> lookupMeta "subject" meta
-            , dcCreator = (intercalate "; ") <$> authors
+            , dcCreator = authors
             , dcKeywords = keywords
             , dcCreated = Nothing
             }
