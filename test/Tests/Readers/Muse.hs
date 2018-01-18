@@ -153,6 +153,9 @@ tests =
                     ] =?>
           para "foo =bar" <>
           para "baz= foo"
+
+        , "Code at the beginning of paragraph but not first column" =:
+          " - =foo=" =?> bulletList [ para $ code "foo" ]
         ]
 
       , "Code tag" =: "<code>foo(bar)</code>" =?> para (code "foo(bar)")

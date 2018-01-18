@@ -718,17 +718,13 @@ nbsp = try $ do
 
 code :: PandocMonad m => MuseParser m (F Inlines)
 code = try $ do
-  pos <- getPosition
-  sp <- if sourceColumn pos == 1
-          then pure mempty
-          else skipMany1 spaceChar >> pure B.space
-  char '='
+  atStart $ char '='
   contents <- many1Till (noneOf "\n\r" <|> (newline <* notFollowedBy newline)) $ char '='
   guard $ not $ null contents
   guard $ head contents `notElem` " \t\n"
   guard $ last contents `notElem` " \t\n"
   notFollowedBy $ satisfy isLetter
-  return $ return (sp B.<> B.code contents)
+  return $ return $ B.code contents
 
 codeTag :: PandocMonad m => MuseParser m (F Inlines)
 codeTag = do
