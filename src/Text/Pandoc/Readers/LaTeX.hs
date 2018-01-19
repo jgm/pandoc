@@ -2105,7 +2105,7 @@ environments = M.fromList
           resetCaption *> simpTable "longtable" False >>= addTableCaption)
    , ("table",  env "table" $
           resetCaption *> skipopts *> blocks >>= addTableCaption)
-   , ("tabular*", env "tabular" $ simpTable "tabular*" True)
+   , ("tabular*", env "tabular*" $ simpTable "tabular*" True)
    , ("tabularx", env "tabularx" $ simpTable "tabularx" True)
    , ("tabular", env "tabular"  $ simpTable "tabular" False)
    , ("quote", blockQuote <$> env "quote" blocks)
