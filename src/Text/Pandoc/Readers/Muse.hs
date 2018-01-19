@@ -575,9 +575,7 @@ tableParseCaption :: PandocMonad m => MuseParser m MuseTableElement
 tableParseCaption = try $ do
   many spaceChar
   string "|+"
-  contents <- trimInlinesF . mconcat <$> many1Till inline (lookAhead $ string "+|")
-  string "+|"
-  return $ MuseCaption contents
+  MuseCaption <$> (trimInlinesF . mconcat <$> many1Till inline (string "+|"))
 
 --
 -- inline parsers
