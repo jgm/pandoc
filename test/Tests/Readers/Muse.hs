@@ -27,15 +27,14 @@ infix 4 =:
 spcSep :: [Inlines] -> Inlines
 spcSep = mconcat . intersperse space
 
--- Tables and definition lists don't round-trip yet
+-- Tables don't round-trip yet
 
 makeRoundTrip :: Block -> Block
 makeRoundTrip Table{} = Para [Str "table was here"]
-makeRoundTrip DefinitionList{} = Para [Str "deflist was here"]
 makeRoundTrip x = x
 
 -- Demand that any AST produced by Muse reader and written by Muse writer can be read back exactly the same way.
--- Currently we remove code blocks and tables and compare third rewrite to the second.
+-- Currently we remove tables and compare third rewrite to the second.
 -- First and second rewrites are not equal yet.
 roundTrip :: Block -> Bool
 roundTrip b = d'' == d'''
