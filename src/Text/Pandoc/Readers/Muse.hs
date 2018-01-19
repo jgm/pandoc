@@ -156,10 +156,8 @@ parseDirectiveKey = do
 parseEmacsDirective :: PandocMonad m => MuseParser m (String, F Inlines)
 parseEmacsDirective = do
   key <- parseDirectiveKey
-  space
-  spaces
-  raw <- manyTill anyChar eol
-  value <- parseFromString (trimInlinesF . mconcat <$> many inline) raw
+  spaceChar
+  value <- trimInlinesF . mconcat <$> manyTill (choice inlineList) eol
   return (key, value)
 
 parseAmuseDirective :: PandocMonad m => MuseParser m (String, F Inlines)
