@@ -960,9 +960,19 @@ tests =
          definitionList [ ("Term1", [ para "This is a first definition\nAnd it has two lines;\nno, make that three."])
                         , ("Term2", [ para "This is a second definition"])
                         ])
-      , "Nested definition list" =:
+      , "One-line nested definition list" =:
         " Foo :: bar :: baz" =?>
         definitionList [ ("Foo", [ definitionList [ ("bar", [ para "baz" ])]])]
+      , "Nested definition list" =:
+        T.unlines
+        [ " First :: Second :: Third"
+        , "          Fourth :: Fifth :: Sixth"
+        , " Seventh :: Eighth"
+        ] =?>
+        definitionList [ ("First", [ definitionList [ ("Second", [ para "Third" ]),
+                                                      ("Fourth", [ definitionList [ ("Fifth", [ para "Sixth"] ) ] ] ) ] ] )
+                       , ("Seventh", [ para "Eighth" ])
+                       ]
       , "Two blank lines separate definition lists" =:
         T.unlines
           [ " First :: list"

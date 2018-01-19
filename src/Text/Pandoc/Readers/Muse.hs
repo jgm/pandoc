@@ -467,26 +467,25 @@ orderedList = try $ do
   rest <- many $ listItem (col - 1) (void (orderedListMarker style delim))
   return $ B.orderedListWith p <$> sequence (first : rest)
 
-definitionListItem :: PandocMonad m => MuseParser m (F (Inlines, [Blocks]))
-definitionListItem = try $ do
-  many spaceChar
+definitionListItem :: PandocMonad m => Int -> MuseParser m (F (Inlines, [Blocks]))
+definitionListItem n = try $ do
+  count n spaceChar
   pos <- getPosition
-  (guardDisabled Ext_amuse) <|> (guard (sourceColumn pos /= 1)) -- Initial space is required by Amusewiki, but not Emacs Muse
   term <- trimInlinesF . mconcat <$> manyTill (choice inlineList) (string "::")
   void spaceChar <|> lookAhead eol
   contents <- listItemContents' $ sourceColumn pos
-  optionMaybe blankline
   pure $ do lineContent' <- contents
             term' <- term
             pure (term', [lineContent'])
 
-definitionListItems :: PandocMonad m => MuseParser m (F [(Inlines, [Blocks])])
-definitionListItems = sequence <$> many1 definitionListItem
-
 definitionList :: PandocMonad m => MuseParser m (F Blocks)
-definitionList = do
-  items <- definitionListItems
-  return $ B.definitionList <$> items
+definitionList = try $ do
+  many spaceChar
+  pos <- getPosition
+  (guardDisabled Ext_amuse) <|> (guard (sourceColumn pos /= 1)) -- Initial space is required by Amusewiki, but not Emacs Muse
+  first <- definitionListItem 0
+  rest <- many $ try (optionMaybe blankline >> definitionListItem (sourceColumn pos - 1))
+  return $ B.definitionList <$> sequence (first : rest)
 
 --
 -- tables
