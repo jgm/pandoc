@@ -321,7 +321,6 @@ verseLine = do
 
 verseLines :: PandocMonad m => MuseParser m (F Blocks)
 verseLines = do
-  --optionMaybe blankline -- Skip blankline after opening tag on separate line
   lns <- many verseLine
   lns' <- mapM (parseFromString' (trimInlinesF . mconcat <$> many inline)) lns
   return $ B.lineBlock <$> sequence lns'
