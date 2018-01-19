@@ -960,6 +960,9 @@ tests =
          definitionList [ ("Term1", [ para "This is a first definition\nAnd it has two lines;\nno, make that three."])
                         , ("Term2", [ para "This is a second definition"])
                         ])
+      , "Nested definition list" =:
+        " Foo :: bar :: baz" =?>
+        definitionList [ ("Foo", [ definitionList [ ("bar", [ para "baz" ])]])]
       , "Two blank lines separate definition lists" =:
         T.unlines
           [ " First :: list"
