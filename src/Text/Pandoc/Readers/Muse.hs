@@ -390,21 +390,23 @@ emacsNoteBlock = try $ do
 -- Verse markup
 --
 
-lineVerseLine :: PandocMonad m => MuseParser m String
+lineVerseLine :: PandocMonad m => MuseParser m (F Inlines)
 lineVerseLine = try $ do
-  char '>'
-  white <- many1 (char ' ' >> pure '\160')
-  rest <- anyLine
-  return $ tail white ++ rest
+  string "> "
+  indent <- B.str <$> many (char ' ' >> pure '\160')
+  rest <- manyTill (choice inlineList) eol
+  return $ trimInlinesF $ mconcat (pure indent : rest)
 
-blanklineVerseLine :: PandocMonad m => MuseParser m Char
-blanklineVerseLine = try $ char '>' >> blankline
+blanklineVerseLine :: PandocMonad m => MuseParser m (F Inlines)
+blanklineVerseLine = try $ do
+  char '>'
+  blankline
+  pure mempty
 
 lineBlock :: PandocMonad m => MuseParser m (F Blocks)
 lineBlock = try $ do
-  lns <- many1 (pure <$> blanklineVerseLine <|> lineVerseLine)
-  lns' <- mapM (parseFromString' (trimInlinesF . mconcat <$> many inline)) lns
-  return $ B.lineBlock <$> sequence lns'
+  lns <- many1 (blanklineVerseLine <|> lineVerseLine)
+  return $ B.lineBlock <$> sequence lns
 
 --
 -- lists
