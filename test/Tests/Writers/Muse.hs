@@ -94,6 +94,15 @@ tests = [ testGroup "block elements"
                                               , " second definition :: second description"
                                               , " third definition :: third description"
                                               ]
+              , "definition list with multiple descriptions" =:
+                definitionList [ (text "first definition", [plain $ text "first description"
+                                                           ,plain $ text "second description"])
+                               , (text "second definition", [plain $ text "third description"])
+                               ]
+                =?> unlines [ " first definition :: first description"
+                            , "                  :: second description"
+                            , " second definition :: third description"
+                            ]
               ]
             -- Test that lists of the same type and style are separated with two blanklines
             , testGroup "sequential lists"
@@ -197,8 +206,8 @@ tests = [ testGroup "block elements"
                                                   ]
               , "nested definition lists" =: definitionList [ (text "first definition", [plain $ text "first description"])
                                                             , (text "second definition",
-                                                               [ plain (text "second description")
-                                                               , definitionList [ ( text "first inner definition"
+                                                               [ plain (text "second description") <>
+                                                                 definitionList [ ( text "first inner definition"
                                                                                   , [plain $ text "first inner description"])
                                                                                 , ( text "second inner definition"
                                                                                   , [plain $ text "second inner description"])

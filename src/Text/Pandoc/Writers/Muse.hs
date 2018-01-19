@@ -212,10 +212,13 @@ blockToMuse (DefinitionList items) = do
                                  -> StateT WriterState m Doc
         definitionListItemToMuse (label, defs) = do
           label' <- inlineListToMuse label
-          contents <- liftM vcat $ mapM blockListToMuse defs
-          let label'' = label' <> " :: "
-          let ind = offset label''
-          return $ hang ind label'' contents
+          contents <- liftM vcat $ mapM descriptionToMuse defs
+          let ind = offset label'
+          return $ hang ind label' contents
+        descriptionToMuse :: PandocMonad m
+                          => [Block]
+                          -> StateT WriterState m Doc
+        descriptionToMuse desc = (hang 4 " :: ") <$> blockListToMuse desc
 blockToMuse (Header level (ident,_,_) inlines) = do
   opts <- gets stOptions
   contents <- inlineListToMuse inlines

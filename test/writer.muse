@@ -287,24 +287,21 @@ Multiple blocks with italics:
 Multiple definitions, tight:
 
  apple :: red fruit
-          computer
+       :: computer
  orange :: orange fruit
-           bank
+        :: bank
 
 Multiple definitions, loose:
 
  apple :: red fruit
-
-          computer
+       :: computer
  orange :: orange fruit
-
-           bank
+        :: bank
 
 Blank line after term, indented marker, alternate markers:
 
  apple :: red fruit
-
-          computer
+       :: computer
  orange :: orange fruit
 
            1. sublist
