@@ -470,9 +470,8 @@ orderedList = try $ do
 definitionListItem :: PandocMonad m => MuseParser m (F (Inlines, [Blocks]))
 definitionListItem = try $ do
   many spaceChar
-  startPos <- getPosition
-  (guardDisabled Ext_amuse) <|> (guard (sourceColumn startPos /= 1)) -- Initial space is required by Amusewiki, but not Emacs Muse
   pos <- getPosition
+  (guardDisabled Ext_amuse) <|> (guard (sourceColumn pos /= 1)) -- Initial space is required by Amusewiki, but not Emacs Muse
   term <- trimInlinesF . mconcat <$> manyTill (choice inlineList) (string "::")
   void spaceChar <|> lookAhead eol
   contents <- listItemContents' $ sourceColumn pos
