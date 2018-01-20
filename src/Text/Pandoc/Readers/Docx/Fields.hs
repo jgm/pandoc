@@ -63,7 +63,7 @@ quotedString = do
   concat <$> manyTill inQuotes (try (char '"'))
 
 unquotedString :: Parser String
-unquotedString = manyTill anyChar (try space)
+unquotedString = manyTill anyChar (try $ lookAhead space $> () <|> eof)
 
 fieldArgument :: Parser String
 fieldArgument = quotedString <|> unquotedString
