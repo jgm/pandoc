@@ -18,6 +18,7 @@ extra-deps:
 - skylighting-0.6
 - ansi-terminal-0.7.1.1
 - tasty-1.0.0.1
+- texmath-0.10.1.1
 ghc-options:
    "$locals": -fhide-source-paths
 resolver: lts-10.3
