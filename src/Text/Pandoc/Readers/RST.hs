@@ -352,7 +352,7 @@ singleHeader' :: PandocMonad m => RSTParser m (Inlines, Char)
 singleHeader' = try $ do
   notFollowedBy' whitespace
   lookAhead $ anyLine >> oneOf underlineChars
-  txt <- trimInlines . mconcat <$> many1 (do {notFollowedBy newline; inline})
+  txt <- trimInlines . mconcat <$> many1 (notFollowedBy blankline >> inline)
   pos <- getPosition
   let len = sourceColumn pos - 1
   blankline
