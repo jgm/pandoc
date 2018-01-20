@@ -56,8 +56,11 @@ import qualified Data.Text.Lazy as TL
 import Network.HTTP (urlEncode)
 import Network.URI (URI (..), parseURIReference, unEscapeString)
 import Numeric (showHex)
-import Text.Blaze.Internal
-       (customLeaf, MarkupM(Empty), preEscapedString, preEscapedText)
+import Text.Blaze.Internal (customLeaf, MarkupM(Empty))
+#if MIN_VERSION_blaze_markup(0,6,3)
+#else
+import Text.Blaze.Internal (preEscapedString, preEscapedText)
+#endif
 import Text.Blaze.Html hiding (contents)
 import Text.Pandoc.Definition
 import Text.Pandoc.Highlighting (formatHtmlBlock, formatHtmlInline, highlight,
