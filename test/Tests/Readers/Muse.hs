@@ -28,9 +28,15 @@ spcSep :: [Inlines] -> Inlines
 spcSep = mconcat . intersperse space
 
 -- Tables don't round-trip yet
+-- Definition lists with multiple descriptions are supported by writer, but not reader yet
+
+singleDescription :: ([Inline], [[Block]]) -> ([Inline], [[Block]])
+singleDescription (a, x:_) = (a, [x])
+singleDescription x = x
 
 makeRoundTrip :: Block -> Block
 makeRoundTrip Table{} = Para [Str "table was here"]
+makeRoundTrip (DefinitionList items) = DefinitionList $ map singleDescription items
 makeRoundTrip x = x
 
 -- Demand that any AST produced by Muse reader and written by Muse writer can be read back exactly the same way.
