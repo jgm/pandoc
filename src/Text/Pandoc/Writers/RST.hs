@@ -57,7 +57,6 @@ data WriterState =
               , stHasRawTeX   :: Bool
               , stOptions     :: WriterOptions
               , stTopLevel    :: Bool
-              , stLastNested  :: Bool
               }
 
 type RST = StateT WriterState
@@ -68,7 +67,7 @@ writeRST opts document = do
   let st = WriterState { stNotes = [], stLinks = [],
                          stImages = [], stHasMath = False,
                          stHasRawTeX = False, stOptions = opts,
-                         stTopLevel = True, stLastNested = False}
+                         stTopLevel = True }
   evalStateT (pandocToRST document) st
 
 -- | Return RST representation of document.
@@ -353,32 +352,25 @@ blockListToRST' :: PandocMonad m
                 -> [Block]       -- ^ List of block elements
                 -> RST m Doc
 blockListToRST' topLevel blocks = do
+  -- insert comment between list and quoted blocks, see #4248 and #3675
+  let fixBlocks (b1:b2@(BlockQuote _):bs)
+        | toClose b1 = b1 : commentSep : b2 : fixBlocks bs
+        where
+          toClose (Plain{})                                = False
+          toClose (Header{})                               = False
+          toClose (LineBlock{})                            = False
+          toClose (HorizontalRule)                         = False
+          toClose (Para [Image _ _ (_,'f':'i':'g':':':_)]) = True
+          toClose (Para{})                                 = False
+          toClose _                                        = True
+          commentSep  = RawBlock "rst" "..\n\n"
+      fixBlocks (b:bs) = b : fixBlocks bs
+      fixBlocks [] = []
   tl <- gets stTopLevel
-  modify (\s->s{stTopLevel=topLevel, stLastNested=False})
-  res <- vcat `fmap` mapM blockToRST' blocks
+  modify (\s->s{stTopLevel=topLevel})
+  res <- vcat `fmap` mapM blockToRST (fixBlocks blocks)
   modify (\s->s{stTopLevel=tl})
   return res
-
-blockToRST' :: PandocMonad m => Block -> RST m Doc
-blockToRST' (x@BlockQuote{}) = do
-  lastNested <- gets stLastNested
-  res <- blockToRST x
-  modify (\s -> s{stLastNested = True})
-  return $ if lastNested
-              then ".." $+$ res
-              else res
-blockToRST' x = do
-  modify (\s -> s{stLastNested =
-    case x of
-         Para [Image _ _ (_,'f':'i':'g':':':_)] -> True
-         Para{}                                 -> False
-         Plain{}                                -> False
-         Header{}                               -> False
-         LineBlock{}                            -> False
-         HorizontalRule                         -> False
-         _                                      -> True
-    })
-  blockToRST x
 
 blockListToRST :: PandocMonad m
                => [Block]       -- ^ List of block elements
