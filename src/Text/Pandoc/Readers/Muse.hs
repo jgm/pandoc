@@ -341,9 +341,8 @@ para = do
  let f = if st /= ListItemState && indent >= 2 && indent < 6 then B.blockQuote else id
  fmap (f . B.para) . trimInlinesF . mconcat <$> many1Till inline endOfParaElement
  where
-   endOfParaElement = lookAhead $ endOfInput <|> endOfPara <|> newBlockElement
+   endOfParaElement = lookAhead $ endOfInput <|> newBlockElement
    endOfInput       = try $ skipMany blankline >> skipSpaces >> eof
-   endOfPara        = try $ blankline >> skipMany1 blankline
    newBlockElement  = try $ blankline >> void blockElements
 
 noteMarker :: PandocMonad m => MuseParser m String
