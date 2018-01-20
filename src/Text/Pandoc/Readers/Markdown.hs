@@ -1971,7 +1971,6 @@ divHtml = try $ do
 divFenced :: PandocMonad m => MarkdownParser m (F Blocks)
 divFenced = try $ do
   guardEnabled Ext_fenced_divs
-  nonindentSpaces
   string ":::"
   skipMany (char ':')
   skipMany spaceChar
@@ -1986,7 +1985,6 @@ divFenced = try $ do
 
 divFenceEnd :: PandocMonad m => MarkdownParser m ()
 divFenceEnd = try $ do
-  nonindentSpaces
   string ":::"
   skipMany (char ':')
   blanklines
