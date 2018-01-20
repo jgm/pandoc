@@ -494,7 +494,7 @@ hierarchicalizeWithIds (Header level attr@(_,classes,_) title':xs) = do
   return $ Sec level newnum attr title' sectionContents' : rest'
 hierarchicalizeWithIds (Div ("",["references"],[])
                          (Header level (ident,classes,kvs) title' : xs):ys) =
-  hierarchicalizeWithIds (Header level (ident,("references":classes),kvs)
+  hierarchicalizeWithIds (Header level (ident,"references":classes,kvs)
                            title' : (xs ++ ys))
 hierarchicalizeWithIds (x:rest) = do
   rest' <- hierarchicalizeWithIds rest

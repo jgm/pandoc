@@ -30,32 +30,32 @@ tests =
   , "Title" =:
     "#+TITLE: Hello, World" =?>
     let titleInline = toList $ "Hello," <> space <> "World"
-        meta = setMeta "title" (MetaInlines titleInline) $ nullMeta
+        meta = setMeta "title" (MetaInlines titleInline) nullMeta
     in Pandoc meta mempty
 
   , "Author" =:
     "#+author: John /Emacs-Fanboy/ Doe" =?>
     let author = toList . spcSep $ [ "John", emph "Emacs-Fanboy", "Doe" ]
-        meta = setMeta "author" (MetaList [MetaInlines author]) $ nullMeta
+        meta = setMeta "author" (MetaList [MetaInlines author]) nullMeta
     in Pandoc meta mempty
 
   , "Multiple authors" =:
     "#+author: James Dewey Watson, Francis Harry Compton Crick " =?>
     let watson = MetaInlines $ toList "James Dewey Watson"
         crick = MetaInlines $ toList "Francis Harry Compton Crick"
-        meta = setMeta "author" (MetaList [watson, crick]) $ nullMeta
+        meta = setMeta "author" (MetaList [watson, crick]) nullMeta
     in Pandoc meta mempty
 
   , "Date" =:
     "#+Date: Feb. *28*, 2014" =?>
-    let date = toList . spcSep $ [ "Feb.", (strong "28") <> ",", "2014" ]
-        meta = setMeta "date" (MetaInlines date) $ nullMeta
+    let date = toList . spcSep $ [ "Feb.", strong "28" <> ",", "2014" ]
+        meta = setMeta "date" (MetaInlines date) nullMeta
     in Pandoc meta mempty
 
   , "Description" =:
     "#+DESCRIPTION: Explanatory text" =?>
     let description = "Explanatory text"
-        meta = setMeta "description" (MetaString description) $ nullMeta
+        meta = setMeta "description" (MetaString description) nullMeta
     in Pandoc meta mempty
 
   , "Properties drawer" =:
@@ -94,7 +94,7 @@ tests =
                 , "#+author: Max"
                 ] =?>
       let author = MetaInlines [Str "Max"]
-          meta = setMeta "author" (MetaList [author]) $ nullMeta
+          meta = setMeta "author" (MetaList [author]) nullMeta
       in Pandoc meta mempty
 
   , "Logbook drawer" =:
@@ -135,7 +135,7 @@ tests =
 
   , "Search links are read as emph" =:
       "[[Wally][Where's Wally?]]" =?>
-      (para (emph $ "Where's" <> space <> "Wally?"))
+      para (emph $ "Where's" <> space <> "Wally?")
 
   , "Link to nonexistent anchor" =:
       T.unlines [ "<<link-here>> Target."
@@ -149,25 +149,25 @@ tests =
       T.unlines [ "#+LINK: wp https://en.wikipedia.org/wiki/%s"
                 , "[[wp:Org_mode][Wikipedia on Org-mode]]"
                 ] =?>
-      (para (link "https://en.wikipedia.org/wiki/Org_mode" ""
-                  ("Wikipedia" <> space <> "on" <> space <> "Org-mode")))
+      para (link "https://en.wikipedia.org/wiki/Org_mode" ""
+                  ("Wikipedia" <> space <> "on" <> space <> "Org-mode"))
 
   , "Link abbreviation, defined after first use" =:
       T.unlines [ "[[zl:non-sense][Non-sense articles]]"
                 , "#+LINK: zl http://zeitlens.com/tags/%s.html"
                 ] =?>
-      (para (link "http://zeitlens.com/tags/non-sense.html" ""
-                  ("Non-sense" <> space <> "articles")))
+      para (link "http://zeitlens.com/tags/non-sense.html" ""
+                  ("Non-sense" <> space <> "articles"))
 
   , "Link abbreviation, URL encoded arguments" =:
       T.unlines [ "#+link: expl http://example.com/%h/foo"
                 , "[[expl:Hello, World!][Moin!]]"
                 ] =?>
-      (para (link "http://example.com/Hello%2C%20World%21/foo" "" "Moin!"))
+      para (link "http://example.com/Hello%2C%20World%21/foo" "" "Moin!")
 
   , "Link abbreviation, append arguments" =:
       T.unlines [ "#+link: expl http://example.com/"
                 , "[[expl:foo][bar]]"
                 ] =?>
-      (para (link "http://example.com/foo" "" "bar"))
+      para (link "http://example.com/foo" "" "bar")
   ]

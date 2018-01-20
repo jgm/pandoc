@@ -154,7 +154,7 @@ writeICML opts (Pandoc meta blocks) = do
 -- | Auxilary functions for parStylesToDoc and charStylesToDoc.
 contains :: String -> (String, (String, String)) -> [(String, String)]
 contains s rule =
-  [snd rule | isInfixOf (fst rule) s]
+  [snd rule | (fst rule) `isInfixOf` s]
 
 -- | The monospaced font to use as default.
 monospacedFont :: Doc
@@ -282,7 +282,7 @@ hyperlinksToDoc (x:xs) = hyp x $$ hyperlinksToDoc xs
                     ("Source","htss-"++show ident), ("Visible","true"), ("DestinationUniqueKey","1")]
                   $ inTags True "Properties" []
                   $ inTags False "BorderColor" [("type","enumeration")] (text "Black")
-                  $$ inTags False "Destination" [("type","object")] (text $ "HyperlinkURLDestination/"++(escapeColons (escapeStringForXML url))) -- HyperlinkURLDestination with more than one colon crashes CS6
+                  $$ inTags False "Destination" [("type","object")] (text $ "HyperlinkURLDestination/"++escapeColons (escapeStringForXML url)) -- HyperlinkURLDestination with more than one colon crashes CS6
 
 
 -- | Convert a list of Pandoc blocks to ICML.

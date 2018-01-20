@@ -36,8 +36,8 @@ tests = [ "line block with blank line" =:
              , ":Parameter i: integer"
              , ":Final: item"
              , "  on two lines" ]
-             =?> ( doc
-                 $ para "para" <>
+             =?>
+              doc (para "para" <>
                    definitionList [ (str "Hostname", [para "media08"])
                                   , (text "IP address", [para "10.0.0.19"])
                                   , (str "Size", [para "3ru"])
@@ -56,10 +56,10 @@ tests = [ "line block with blank line" =:
              , ""
              , ":Version: 1"
              ]
-             =?> ( setMeta "version" (para "1")
-                 $ setMeta "title" ("Title" :: Inlines)
+             =?>
+              setMeta "version" (para "1") (setMeta "title" ("Title" :: Inlines)
                  $ setMeta "subtitle" ("Subtitle" :: Inlines)
-                 $ doc mempty )
+                 $ doc mempty)
           , "with inline markup" =: T.unlines
              [ ":*Date*: today"
              , ""
@@ -73,8 +73,8 @@ tests = [ "line block with blank line" =:
              , ".. _two: http://example.com"
              , ".. _three: http://example.org"
              ]
-             =?> ( setMeta "date" (str "today")
-                 $ doc
+             =?>
+              setMeta "date" (str "today") (doc
                  $ definitionList [ (emph "one", [para "emphasis"])
                                   , (link "http://example.com" "" "two", [para "reference"])
                                   , (link "http://example.org" "" "three", [para "another one"])
@@ -102,13 +102,12 @@ tests = [ "line block with blank line" =:
             , "  def func(x):"
             , "    return y"
             ]  =?>
-              ( doc $ codeBlockWith
+              doc (codeBlockWith
                   ( ""
                   , ["sourceCode", "python", "numberLines", "class1", "class2", "class3"]
                   , [ ("startFrom", "34") ]
                   )
-                  "def func(x):\n  return y"
-              )
+                  "def func(x):\n  return y")
         , "Code directive with number-lines, no line specified" =: T.unlines
             [ ".. code::python"
             , "   :number-lines: "
@@ -116,13 +115,12 @@ tests = [ "line block with blank line" =:
             , "  def func(x):"
             , "    return y"
             ]  =?>
-              ( doc $ codeBlockWith
+              doc (codeBlockWith
                   ( ""
                   , ["sourceCode", "python", "numberLines"]
                   , [ ("startFrom", "") ]
                   )
-                  "def func(x):\n  return y"
-              )
+                  "def func(x):\n  return y")
         , testGroup "literal / line / code blocks"
           [ "indented literal block" =: T.unlines
             [ "::"
@@ -131,7 +129,8 @@ tests = [ "line block with blank line" =:
             , ""
             , "  can go on for many lines"
             , "but must stop here"]
-            =?> (doc $
+            =?>
+              doc (
                  codeBlock "block quotes\n\ncan go on for many lines" <>
                  para "but must stop here")
           , "line block with 3 lines" =: "| a\n| b\n| c"
@@ -185,6 +184,6 @@ tests = [ "line block with blank line" =:
             , ".. [1]"
             , "   bar"
             ] =?>
-            (para $ "foo" <> (note $ para "bar"))
+              para ("foo" <> (note $ para "bar"))
           ]
         ]

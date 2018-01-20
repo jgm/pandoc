@@ -322,7 +322,7 @@ type InlineModifier = Inlines -> Inlines
 modifierFromStyleDiff :: PropertyTriple -> InlineModifier
 modifierFromStyleDiff propertyTriple  =
   composition $
-  (getVPosModifier propertyTriple)
+  getVPosModifier propertyTriple
   : map (first ($ propertyTriple) >>> ifThen_else ignore)
         [ (hasEmphChanged           , emph      )
         , (hasChanged isStrong      , strong    )
@@ -352,7 +352,7 @@ modifierFromStyleDiff propertyTriple  =
                                ]
 
     hasChanged property triple@(_, property -> newProperty, _) =
-        maybe True (/=newProperty) (lookupPreviousValue property triple)
+        (/= Just newProperty) (lookupPreviousValue property triple)
 
     hasChangedM property triple@(_, textProps,_) =
       fromMaybe False $ (/=) <$> property textProps <*> lookupPreviousValueM property triple
@@ -362,7 +362,7 @@ modifierFromStyleDiff propertyTriple  =
     lookupPreviousValueM f = lookupPreviousStyleValue ((f =<<).textProperties)
 
     lookupPreviousStyleValue f (ReaderState{..},_,mFamily)
-      =     ( findBy f $ extendedStylePropertyChain styleTrace styleSet )
+      =     findBy f (extendedStylePropertyChain styleTrace styleSet)
         <|> ( f =<< fmap (lookupDefaultStyle' styleSet) mFamily         )
 
 
@@ -793,8 +793,7 @@ read_image_src = matchingElement NsDraw "image"
                       Left _    -> returnV ""  -< ()
 
 read_frame_title :: InlineMatcher
-read_frame_title = matchingElement NsSVG "title"
-                   $ (matchChildContent [] read_plain_text)
+read_frame_title = matchingElement NsSVG "title" (matchChildContent [] read_plain_text)
 
 read_frame_text_box :: InlineMatcher
 read_frame_text_box = matchingElement NsDraw "text-box"
@@ -803,12 +802,12 @@ read_frame_text_box = matchingElement NsDraw "text-box"
                          arr read_img_with_caption                             -< toList paragraphs
 
 read_img_with_caption :: [Block] -> Inlines
-read_img_with_caption ((Para [Image attr alt (src,title)]) : _) =
+read_img_with_caption (Para [Image attr alt (src,title)] : _) =
   singleton (Image attr alt (src, 'f':'i':'g':':':title))   -- no text, default caption
 read_img_with_caption (Para (Image attr _ (src,title) : txt) : _) =
   singleton (Image attr txt (src, 'f':'i':'g':':':title) )  -- override caption with the text that follows
-read_img_with_caption  ( (Para (_ : xs)) : ys) =
-  read_img_with_caption ((Para xs) : ys)
+read_img_with_caption  ( Para (_ : xs) : ys) =
+  read_img_with_caption (Para xs : ys)
 read_img_with_caption _ =
   mempty
 
@@ -909,8 +908,8 @@ post_process (Pandoc m blocks) =
   Pandoc m (post_process' blocks)
 
 post_process' :: [Block] -> [Block]
-post_process' ((Table _ a w h r) : (Div ("", ["caption"], _) [Para inlines] ) : xs) =
-  (Table inlines a w h r) : ( post_process' xs )
+post_process' (Table _ a w h r : Div ("", ["caption"], _) [Para inlines] : xs) =
+  Table inlines a w h r : post_process' xs
 post_process' bs = bs
 
 read_body :: OdtReader _x (Pandoc, MediaBag)

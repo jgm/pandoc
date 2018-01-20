@@ -104,5 +104,5 @@ fitToPage :: (Double, Double) -> Integer -> (Integer, Integer)
 fitToPage (x, y) pageWidth
   -- Fixes width to the page width and scales the height
   | x > fromIntegral pageWidth =
-    (pageWidth, floor $ ((fromIntegral pageWidth) / x) * y)
+    (pageWidth, floor $ (fromIntegral pageWidth / x) * y)
   | otherwise = (floor x, floor y)

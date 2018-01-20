@@ -46,7 +46,7 @@ parseFieldInfo = parse fieldInfo ""
 
 fieldInfo :: Parser FieldInfo
 fieldInfo =
-  (try $ HyperlinkField <$> hyperlink)
+  try (HyperlinkField <$> hyperlink)
   <|>
   return UnknownField
 
@@ -54,7 +54,7 @@ escapedQuote :: Parser String
 escapedQuote = string "\\\""
 
 inQuotes :: Parser String
-inQuotes = do
+inQuotes =
   (try escapedQuote) <|> (anyChar >>= (\c -> return [c]))
 
 quotedString :: Parser String
@@ -63,7 +63,7 @@ quotedString = do
   concat <$> manyTill inQuotes (try (char '"'))
 
 unquotedString :: Parser String
-unquotedString = manyTill anyChar (try (space))
+unquotedString = manyTill anyChar (try space)
 
 fieldArgument :: Parser String
 fieldArgument = quotedString <|> unquotedString
@@ -82,7 +82,7 @@ hyperlink = do
   string "HYPERLINK"
   spaces
   farg <- fieldArgument
-  switches <- (spaces *> many hyperlinkSwitch)
+  switches <- spaces *> many hyperlinkSwitch
   let url = case switches of
               ("\\l", s) : _ -> farg ++ ('#': s)
               _              -> farg

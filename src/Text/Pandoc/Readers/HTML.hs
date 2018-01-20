@@ -43,14 +43,14 @@ module Text.Pandoc.Readers.HTML ( readHtml
                                 ) where
 
 import Control.Applicative ((<|>))
-import Control.Arrow ((***))
+import Control.Arrow (first)
 import Control.Monad (guard, mplus, msum, mzero, unless, void)
 import Control.Monad.Except (throwError)
 import Control.Monad.Reader (ReaderT, ask, asks, lift, local, runReaderT)
 import Data.Char (isAlphaNum, isDigit, isLetter)
 import Data.Default (Default (..), def)
 import Data.Foldable (for_)
-import Data.List (intercalate, isPrefixOf)
+import Data.List (isPrefixOf)
 import Data.List.Split (wordsBy, splitWhen)
 import qualified Data.Map as M
 import Data.Maybe (fromMaybe, isJust, isNothing)
@@ -777,7 +777,7 @@ pCode = try $ do
   (TagOpen open attr') <- pSatisfy $ tagOpen (`elem` ["code","tt"]) (const True)
   let attr = toStringAttr attr'
   result <- manyTill pAnyTag (pCloses open)
-  return $ B.codeWith (mkAttr attr) $ intercalate " " $ lines $ T.unpack $
+  return $ B.codeWith (mkAttr attr) $ unwords $ lines $ T.unpack $
            innerText result
 
 pSpan :: PandocMonad m => TagParser m Inlines
@@ -1227,7 +1227,7 @@ stripPrefixes = map stripPrefix
 
 stripPrefix :: Tag Text -> Tag Text
 stripPrefix (TagOpen s as) =
-    TagOpen (stripPrefix' s) (map (stripPrefix' *** id) as)
+    TagOpen (stripPrefix' s) (map (first stripPrefix') as)
 stripPrefix (TagClose s) = TagClose (stripPrefix' s)
 stripPrefix x = x
 

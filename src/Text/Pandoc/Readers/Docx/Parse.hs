@@ -358,9 +358,7 @@ archiveToDocument zf = do
   docElem <- maybeToD $ (parseXMLDoc . UTF8.toStringLazy . fromEntry) entry
   let namespaces = elemToNameSpaces docElem
   bodyElem <- maybeToD $ findChildByName namespaces "w" "body" docElem
-  let bodyElem' = case walkDocument namespaces bodyElem of
-        Just e -> e
-        Nothing -> bodyElem
+  let bodyElem' = fromMaybe bodyElem (walkDocument namespaces bodyElem)
   body <- elemToBody namespaces bodyElem'
   return $ Document namespaces body
 
@@ -603,7 +601,7 @@ elemToTblLook ns element | isElem ns "w" "tblLook" element =
             Just bitMask -> testBitMask bitMask 0x020
             Nothing      -> False
   in
-   return $ TblLook{firstRowFormatting = firstRowFmt}
+   return TblLook{firstRowFormatting = firstRowFmt}
 elemToTblLook _ _ = throwError WrongElem
 
 elemToRow :: NameSpaces -> Element -> D Row
@@ -623,7 +621,7 @@ elemToCell _ _ = throwError WrongElem
 
 elemToParIndentation :: NameSpaces -> Element -> Maybe ParIndentation
 elemToParIndentation ns element | isElem ns "w" "ind" element =
-  Just $ ParIndentation {
+ Just ParIndentation {
     leftParIndent =
        findAttrByName ns "w" "left" element >>=
        stringToInteger
@@ -1173,8 +1171,7 @@ elemToRunElems ns element
        let font = do
                     fontElem <- findElement (qualName "rFonts") element
                     stringToFont =<<
-                      foldr (<|>) Nothing (
-                        map (flip findAttr fontElem . qualName) ["ascii", "hAnsi"])
+                       foldr ((<|>) . (flip findAttr fontElem . qualName)) Nothing ["ascii", "hAnsi"]
        local (setFont font) (mapD (elemToRunElem ns) (elChildren element))
 elemToRunElems _ _ = throwError WrongElem
 

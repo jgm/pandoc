@@ -31,6 +31,7 @@ Conversion of 'Pandoc' documents to RTF (rich text format).
 module Text.Pandoc.Writers.RTF ( writeRTF
                                ) where
 import Control.Monad.Except (catchError, throwError)
+import Control.Monad
 import qualified Data.ByteString as B
 import Data.Char (chr, isDigit, ord)
 import Data.List (intercalate, isSuffixOf)
@@ -278,8 +279,7 @@ blockToRTF indent alignment (BulletList lst) = (spaceAtEnd . concat) <$>
   mapM (listItemToRTF alignment indent (bulletMarker indent)) lst
 blockToRTF indent alignment (OrderedList attribs lst) =
   (spaceAtEnd . concat) <$>
-   mapM (uncurry (listItemToRTF alignment indent))
-   (zip (orderedMarkers indent attribs) lst)
+   zipWithM (listItemToRTF alignment indent) (orderedMarkers indent attribs) lst
 blockToRTF indent alignment (DefinitionList lst) = (spaceAtEnd . concat) <$>
   mapM (definitionListItemToRTF alignment indent) lst
 blockToRTF indent _ HorizontalRule = return $
@@ -303,8 +303,8 @@ tableRowToRTF header indent aligns sizes' cols = do
   let sizes = if all (== 0) sizes'
                  then replicate (length cols) (1.0 / fromIntegral (length cols))
                  else sizes'
-  columns <- concat <$> mapM (uncurry (tableItemToRTF indent))
-                         (zip aligns cols)
+  columns <- concat <$>
+     zipWithM (tableItemToRTF indent) aligns cols
   let rightEdges = tail $ scanl (\sofar new -> sofar + floor (new * totalTwips))
                                 (0 :: Integer) sizes
   let cellDefs = map (\edge -> (if header

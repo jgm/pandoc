@@ -494,4 +494,3 @@ parseInline (Elem e) =
                                "" -> []
                                l  -> [l]
            return $ codeWith (attrValue "id" e,classes',[]) $ strContentRecursive e
-

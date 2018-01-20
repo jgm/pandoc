@@ -120,5 +120,3 @@ tests = [ testGroup "inline code"
             \</sec>"
           ]
         ]
-
-

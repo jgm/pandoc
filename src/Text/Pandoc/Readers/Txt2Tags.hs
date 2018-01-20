@@ -36,7 +36,7 @@ import Control.Monad.Except (catchError, throwError)
 import Control.Monad.Reader (Reader, asks, runReader)
 import Data.Char (toLower)
 import Data.Default
-import Data.List (intercalate, intersperse, transpose)
+import Data.List (intercalate, transpose)
 import Data.Maybe (fromMaybe)
 import Data.Monoid ((<>))
 import Data.Text (Text)
@@ -463,7 +463,7 @@ titleLink = try $ do
   char ']'
   let link' = last tokens
   guard $ not $ null link'
-  let tit = concat (intersperse " " (init tokens))
+  let tit = unwords (init tokens)
   return $ B.link link' "" (B.text tit)
 
 -- Link with image

@@ -51,7 +51,7 @@ applyFilters :: ReaderOptions
              -> [String]
              -> Pandoc
              -> PandocIO Pandoc
-applyFilters ropts filters args d = do
+applyFilters ropts filters args d =
   foldrM ($) d $ map applyFilter filters
  where
   applyFilter (JSONFilter f) = JSONFilter.apply ropts args f

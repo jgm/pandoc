@@ -107,8 +107,8 @@ tests =
                   ] =?>
         mconcat [ para "first block"
                 , orderedList
-                  [ (para "top-level section 1" <>
-                     orderedList [ para "subsection" ])
+                  [ para "top-level section 1" <>
+                     orderedList [ para "subsection" ]
                   , para "top-level section 2" ]
                 ]
 

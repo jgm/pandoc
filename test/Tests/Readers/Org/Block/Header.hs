@@ -130,7 +130,7 @@ tests =
       mconcat [ para "foo"
               , headerWith ("thing-other-thing", [], [])
                            1
-                           ((strikeout "thing") <> " other thing")
+                           (strikeout "thing" <> " other thing")
               ]
 
   , "Comment Trees" =:

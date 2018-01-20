@@ -211,9 +211,9 @@ a ^>>?% f = arr a >>?^ (uncurry f)
 ---
 (>>?%?) :: (ArrowChoice a)
            => FallibleArrow a x f (b,b')
-           -> (b -> b' -> (Either f c))
+           -> (b -> b' -> Either f c)
            -> FallibleArrow a x f c
-a >>?%? f = a >>?^? (uncurry f)
+a >>?%? f = a >>?^? uncurry f
 
 infixr 1  >>?,  >>?^,  >>?^?
 infixr 1 ^>>?, >>?!

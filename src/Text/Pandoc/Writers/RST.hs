@@ -132,7 +132,7 @@ keyToRST (label, (src, _)) = do
 -- | Return RST representation of notes.
 notesToRST :: PandocMonad m => [[Block]] -> RST m Doc
 notesToRST notes =
-  mapM (uncurry noteToRST) (zip [1..] notes) >>=
+   zipWithM noteToRST [1..] notes >>=
   return . vsep
 
 -- | Return RST representation of a note.
@@ -306,8 +306,7 @@ blockToRST (OrderedList (start, style', delim) items) = do
   let maxMarkerLength = maximum $ map length markers
   let markers' = map (\m -> let s = maxMarkerLength - length m
                             in  m ++ replicate s ' ') markers
-  contents <- mapM (uncurry orderedListItemToRST) $
-              zip markers' items
+  contents <- zipWithM orderedListItemToRST markers' items
   -- ensure that sublists have preceding blank line
   return $ blankline $$ chomp (vcat contents) $$ blankline
 blockToRST (DefinitionList items) = do
@@ -356,12 +355,12 @@ blockListToRST' topLevel blocks = do
   let fixBlocks (b1:b2@(BlockQuote _):bs)
         | toClose b1 = b1 : commentSep : b2 : fixBlocks bs
         where
-          toClose (Plain{})                                = False
-          toClose (Header{})                               = False
-          toClose (LineBlock{})                            = False
-          toClose (HorizontalRule)                         = False
+          toClose Plain{}                                = False
+          toClose Header{}                               = False
+          toClose LineBlock{}                            = False
+          toClose HorizontalRule                         = False
           toClose (Para [Image _ _ (_,'f':'i':'g':':':_)]) = True
-          toClose (Para{})                                 = False
+          toClose Para{}                                 = False
           toClose _                                        = True
           commentSep  = RawBlock "rst" "..\n\n"
       fixBlocks (b:bs) = b : fixBlocks bs

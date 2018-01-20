@@ -56,7 +56,8 @@ import qualified Data.Text.Lazy as TL
 import Network.HTTP (urlEncode)
 import Network.URI (URI (..), parseURIReference, unEscapeString)
 import Numeric (showHex)
-import Text.Blaze.Internal (customLeaf, MarkupM(Empty))
+import Text.Blaze.Internal
+       (customLeaf, MarkupM(Empty), preEscapedString, preEscapedText)
 import Text.Blaze.Html hiding (contents)
 import Text.Pandoc.Definition
 import Text.Pandoc.Highlighting (formatHtmlBlock, formatHtmlInline, highlight,
@@ -424,7 +425,7 @@ elementToHtml slideLevel opts (Sec level num (id',classes,keyvals) title' elemen
                   modify (\st -> st{ stElement = False})
                   return res
 
-  let isSec (Sec{}) = True
+  let isSec Sec{} = True
       isSec (Blk _) = False
   let isPause (Blk x) = x == Para [Str ".",Space,Str ".",Space,Str "."]
       isPause _       = False
@@ -618,7 +619,7 @@ imageExts = [ "art", "bmp", "cdr", "cdt", "cpt", "cr2", "crw", "djvu", "erf",
 
 treatAsImage :: FilePath -> Bool
 treatAsImage fp =
-  let path = fromMaybe fp (uriPath `fmap` parseURIReference fp)
+  let path = maybe fp uriPath (parseURIReference fp)
       ext  = map toLower $ drop 1 $ takeExtension path
   in  null ext || ext `elem` imageExts
 
@@ -797,8 +798,8 @@ blockToHtml opts (OrderedList (startnum, numstyle, _) lst) = do
   let numstyle' = case numstyle of
                        Example -> "decimal"
                        _       -> camelCaseToHyphenated $ show numstyle
-  let attribs = ([A.start $ toValue startnum | startnum /= 1]) ++
-                ([A.class_ "example" | numstyle == Example]) ++
+  let attribs = [A.start $ toValue startnum | startnum /= 1] ++
+                [A.class_ "example" | numstyle == Example] ++
                 (if numstyle /= DefaultStyle
                    then if html5
                            then [A.type_ $
@@ -819,7 +820,7 @@ blockToHtml opts (DefinitionList lst) = do
                   do term' <- if null term
                                  then return mempty
                                  else liftM H.dt $ inlineListToHtml opts term
-                     defs' <- mapM (liftM (\x -> H.dd $ (x >> nl opts)) .
+                     defs' <- mapM (liftM (\x -> H.dd (x >> nl opts)) .
                                     blockListToHtml opts) defs
                      return $ mconcat $ nl opts : term' : nl opts :
                                         intersperse (nl opts) defs') lst

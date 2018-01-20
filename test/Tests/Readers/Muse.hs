@@ -30,8 +30,8 @@ spcSep = mconcat . intersperse space
 -- Tables and definition lists don't round-trip yet
 
 makeRoundTrip :: Block -> Block
-makeRoundTrip (Table{}) = Para [Str "table was here"]
-makeRoundTrip (DefinitionList{}) = Para [Str "deflist was here"]
+makeRoundTrip Table{} = Para [Str "table was here"]
+makeRoundTrip DefinitionList{} = Para [Str "deflist was here"]
 makeRoundTrip x = x
 
 -- Demand that any AST produced by Muse reader and written by Muse writer can be read back exactly the same way.
@@ -44,7 +44,7 @@ roundTrip b = d'' == d'''
         d'' = rewrite d'
         d''' = rewrite d''
         rewrite = amuse . T.pack . (++ "\n") . T.unpack .
-                  (purely $ writeMuse def { writerExtensions = extensionsFromList [Ext_amuse]
+                  purely (writeMuse def { writerExtensions = extensionsFromList [Ext_amuse]
                                           , writerWrapText = WrapPreserve
                                           })
 

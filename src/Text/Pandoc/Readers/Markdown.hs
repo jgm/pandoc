@@ -36,7 +36,7 @@ import Control.Monad
 import Control.Monad.Except (throwError)
 import Data.Char (isAlphaNum, isPunctuation, isSpace, toLower)
 import qualified Data.HashMap.Strict as H
-import Data.List (findIndex, intercalate, sortBy, transpose)
+import Data.List (intercalate, sortBy, transpose, elemIndex)
 import qualified Data.Map as M
 import Data.Maybe
 import Data.Monoid ((<>))
@@ -162,16 +162,14 @@ inlinesInBalancedBrackets =
         stripBracket xs = if last xs == ']' then init xs else xs
         go :: PandocMonad m => Int -> MarkdownParser m ()
         go 0 = return ()
-        go openBrackets = do
+        go openBrackets = 
           (() <$ (escapedChar <|>
-                  code <|>
-                  rawHtmlInline <|>
-                  rawLaTeXInline') >> go openBrackets)
+                code <|>
+                rawHtmlInline <|>
+                rawLaTeXInline') >> go openBrackets)
           <|>
           (do char ']'
-              if openBrackets > 1
-                 then go (openBrackets - 1)
-                 else return ())
+              Control.Monad.when (openBrackets > 1) $ go (openBrackets - 1))
           <|>
           (char '[' >> go (openBrackets + 1))
           <|>
@@ -257,13 +255,13 @@ yamlMetaBlock = try $ do
                   v' <- yamlToMeta v
                   let k' = T.unpack k
                   updateState $ \st -> st{ stateMeta' =
-                     (do m <- stateMeta' st
-                         -- if there's already a value, leave it unchanged
-                         case lookupMeta k' m of
-                              Just _ -> return m
-                              Nothing -> do
-                                v'' <- v'
-                                return $ B.setMeta (T.unpack k) v'' m)}
+                     do m <- stateMeta' st
+                        -- if there's already a value, leave it unchanged
+                        case lookupMeta k' m of
+                             Just _ -> return m
+                             Nothing -> do
+                               v'' <- v'
+                               return $ B.setMeta (T.unpack k) v'' m}
            ) alist
        Right Yaml.Null -> return ()
        Right _ -> do
@@ -596,7 +594,7 @@ setextHeader = try $ do
   underlineChar <- oneOf setextHChars
   many (char underlineChar)
   blanklines
-  let level = fromMaybe 0 (findIndex (== underlineChar) setextHChars) + 1
+  let level = fromMaybe 0 (elemIndex underlineChar setextHChars) + 1
   attr' <- registerHeader attr (runF text defaultParserState)
   guardDisabled Ext_implicit_header_references
     <|> registerImplicitHeader raw attr'
@@ -851,7 +849,7 @@ orderedListStart mbstydelim = try $ do
        return (num, style, delim))
 
 listStart :: PandocMonad m => MarkdownParser m ()
-listStart = bulletListStart <|> (Control.Monad.void (orderedListStart Nothing))
+listStart = bulletListStart <|> Control.Monad.void (orderedListStart Nothing)
 
 listLine :: PandocMonad m => Int -> MarkdownParser m String
 listLine continuationIndent = try $ do
@@ -881,7 +879,7 @@ rawListItem fourSpaceRule start = try $ do
   pos2 <- getPosition
   let continuationIndent = if fourSpaceRule
                               then 4
-                              else (sourceColumn pos2 - sourceColumn pos1)
+                              else sourceColumn pos2 - sourceColumn pos1
   first <- listLineCommon
   rest <- many (do notFollowedBy listStart
                    notFollowedBy (() <$ codeBlockFenced)
@@ -912,10 +910,10 @@ listContinuation continuationIndent = try $ do
   return $ concat (x:xs) ++ blanks
 
 notFollowedByDivCloser :: PandocMonad m => MarkdownParser m ()
-notFollowedByDivCloser = do
+notFollowedByDivCloser =
   guardDisabled Ext_fenced_divs <|>
-    do divLevel <- stateFencedDivLevel <$> getState
-       guard (divLevel < 1) <|> notFollowedBy divFenceEnd
+  do divLevel <- stateFencedDivLevel <$> getState
+     guard (divLevel < 1) <|> notFollowedBy divFenceEnd
 
 notFollowedByHtmlCloser :: PandocMonad m => MarkdownParser m ()
 notFollowedByHtmlCloser = do
@@ -1222,7 +1220,7 @@ simpleTableHeader headless = try $ do
               if headless
                  then lookAhead anyLine
                  else return rawContent
-  let aligns   = zipWith alignType (map ((: [])) rawHeads) lengths
+  let aligns   = zipWith alignType (map (: []) rawHeads) lengths
   let rawHeads' = if headless
                      then replicate (length dashes) ""
                      else rawHeads
@@ -1418,11 +1416,11 @@ pipeTableHeaderPart = try $ do
   skipMany spaceChar
   let len = length pipe + maybe 0 (const 1) left + maybe 0 (const 1) right
   return
-    ((case (left,right) of
-       (Nothing,Nothing) -> AlignDefault
-       (Just _,Nothing)  -> AlignLeft
-       (Nothing,Just _)  -> AlignRight
-       (Just _,Just _)   -> AlignCenter), len)
+    (case (left,right) of
+      (Nothing,Nothing) -> AlignDefault
+      (Just _,Nothing)  -> AlignLeft
+      (Nothing,Just _)  -> AlignRight
+      (Just _,Just _)   -> AlignCenter, len)
 
 -- Succeed only if current line contains a pipe.
 scanForPipe :: PandocMonad m => ParserT [Char] st m ()
@@ -1929,7 +1927,7 @@ rawConTeXtEnvironment = try $ do
                        (try $ string "\\stop" >> string completion)
   return $ "\\start" ++ completion ++ concat contents ++ "\\stop" ++ completion
 
-inBrackets :: PandocMonad m => (ParserT [Char] st m Char) -> ParserT [Char] st m String
+inBrackets :: PandocMonad m => ParserT [Char] st m Char -> ParserT [Char] st m String
 inBrackets parser = do
   char '['
   contents <- many parser
@@ -2150,6 +2148,6 @@ doubleQuoted :: PandocMonad m => MarkdownParser m (F Inlines)
 doubleQuoted = try $ do
   doubleQuoteStart
   contents <- mconcat <$> many (try $ notFollowedBy doubleQuoteEnd >> inline)
-  (withQuoteContext InDoubleQuote $ doubleQuoteEnd >> return
+  withQuoteContext InDoubleQuote (doubleQuoteEnd >> return
        (fmap B.doubleQuoted . trimInlinesF $ contents))
-   <|> (return $ return (B.str "\8220") <> contents)
+   <|> return (return (B.str "\8220") <> contents)

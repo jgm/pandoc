@@ -113,4 +113,3 @@ dataDirScript datadir moduleFile = do
   return $ case res of
     Left _ -> Nothing
     Right s -> Just (unpack s)
-

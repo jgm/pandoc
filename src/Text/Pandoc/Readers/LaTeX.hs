@@ -272,7 +272,7 @@ rawLaTeXBlock = do
   lookAhead (try (char '\\' >> letter))
   -- we don't want to apply newly defined latex macros to their own
   -- definitions:
-  (snd <$> rawLaTeXParser macroDef)
+  snd <$> rawLaTeXParser macroDef
   <|> ((snd <$> rawLaTeXParser (environment <|> blockCommand)) >>= applyMacros)
 
 rawLaTeXInline :: (PandocMonad m, HasMacros s, HasReaderOptions s)
@@ -351,7 +351,7 @@ totoks pos t =
                        Tok pos (Arg i) ("#" <> t1)
                        : totoks (incSourceColumn pos (1 + T.length t1)) t2
                     Nothing ->
-                       Tok pos Symbol ("#")
+                       Tok pos Symbol "#"
                        : totoks (incSourceColumn pos 1) t2
          | c == '^' ->
            case T.uncons rest of
@@ -369,10 +369,10 @@ totoks pos t =
                          | d < '\128' ->
                                   Tok pos Esc1 (T.pack ['^','^',d])
                                   : totoks (incSourceColumn pos 3) rest''
-                       _ -> Tok pos Symbol ("^") :
-                            Tok (incSourceColumn pos 1) Symbol ("^") :
+                       _ -> Tok pos Symbol "^" :
+                            Tok (incSourceColumn pos 1) Symbol "^" :
                             totoks (incSourceColumn pos 2) rest'
-                _ -> Tok pos Symbol ("^")
+                _ -> Tok pos Symbol "^"
                      : totoks (incSourceColumn pos 1) rest
          | otherwise ->
            Tok pos Symbol (T.singleton c) : totoks (incSourceColumn pos 1) rest
@@ -454,7 +454,7 @@ doMacros n = do
                            addTok _ (Tok _ (CtrlSeq x) txt)
                                   acc@(Tok _ Word _ : _)
                              | not (T.null txt) &&
-                               (isLetter (T.last txt)) =
+                               isLetter (T.last txt) =
                                Tok spos (CtrlSeq x) (txt <> " ") : acc
                            addTok _ t acc = setpos spos t : acc
                        ts' <- getInput
@@ -1244,7 +1244,7 @@ inlineEnvironments = M.fromList [
   ]
 
 inlineCommands :: PandocMonad m => M.Map Text (LP m Inlines)
-inlineCommands = M.union inlineLanguageCommands $ M.fromList $
+inlineCommands = M.union inlineLanguageCommands $ M.fromList
   [ ("emph", extractSpaces emph <$> tok)
   , ("textit", extractSpaces emph <$> tok)
   , ("textsl", extractSpaces emph <$> tok)
@@ -1501,7 +1501,7 @@ foreignlanguage :: PandocMonad m => LP m Inlines
 foreignlanguage = do
   babelLang <- T.unpack . untokenize <$> braced
   case babelLangToBCP47 babelLang of
-       Just lang -> spanWith ("", [], [("lang", renderLang $ lang)]) <$> tok
+       Just lang -> spanWith ("", [], [("lang",  renderLang lang)]) <$> tok
        _ -> tok
 
 inlineLanguageCommands :: PandocMonad m => M.Map Text (LP m Inlines)
@@ -2021,7 +2021,7 @@ closing = do
   return $ para (trimInlines contents) <> sigs
 
 blockCommands :: PandocMonad m => M.Map Text (LP m Blocks)
-blockCommands = M.fromList $
+blockCommands = M.fromList
    [ ("par", mempty <$ skipopts)
    , ("parbox",  skipopts >> braced >> grouped blocks)
    , ("title", mempty <$ (skipopts *>
@@ -2444,7 +2444,7 @@ parseAligns = try $ do
         spaces
         spec <- braced
         case safeRead ds of
-             Just n  -> do
+             Just n  ->
                getInput >>= setInput . (mconcat (replicate n spec) ++)
              Nothing -> fail $ "Could not parse " ++ ds ++ " as number"
   bgroup

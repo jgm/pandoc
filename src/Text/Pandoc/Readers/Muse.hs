@@ -482,7 +482,7 @@ definitionList :: PandocMonad m => MuseParser m (F Blocks)
 definitionList = try $ do
   many spaceChar
   pos <- getPosition
-  (guardDisabled Ext_amuse) <|> (guard (sourceColumn pos /= 1)) -- Initial space is required by Amusewiki, but not Emacs Muse
+  guardDisabled Ext_amuse <|> guard (sourceColumn pos /= 1) -- Initial space is required by Amusewiki, but not Emacs Muse
   first <- definitionListItem 0
   rest <- many $ try (optionMaybe blankline >> definitionListItem (sourceColumn pos - 1))
   return $ B.definitionList <$> sequence (first : rest)

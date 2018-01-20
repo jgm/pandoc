@@ -80,7 +80,7 @@ noteTestDoc =
         ".") <>
   blockQuote (para ("A note inside a block quote." <>
                     note (para "The second note.")) <>
-              para ("A second paragraph.")) <>
+              para "A second paragraph.") <>
   header 1 "Second Header" <>
   para "Some more text."
 
@@ -91,7 +91,7 @@ noteTests = testGroup "note and reference location"
   [ test (markdownWithOpts defopts)
     "footnotes at the end of a document" $
     noteTestDoc =?>
-    (unlines $ [ "First Header"
+    (unlines [ "First Header"
                , "============"
                , ""
                , "This is a footnote.[^1] And this is a [link](https://www.google.com)."
@@ -112,7 +112,7 @@ noteTests = testGroup "note and reference location"
   , test (markdownWithOpts defopts{writerReferenceLocation=EndOfBlock})
     "footnotes at the end of blocks" $
     noteTestDoc =?>
-    (unlines $ [ "First Header"
+    (unlines [ "First Header"
                , "============"
                , ""
                , "This is a footnote.[^1] And this is a [link](https://www.google.com)."
@@ -133,7 +133,7 @@ noteTests = testGroup "note and reference location"
   , test (markdownWithOpts defopts{writerReferenceLocation=EndOfBlock, writerReferenceLinks=True})
     "footnotes and reference links at the end of blocks" $
     noteTestDoc =?>
-    (unlines $ [ "First Header"
+    (unlines [ "First Header"
                , "============"
                , ""
                , "This is a footnote.[^1] And this is a [link]."
@@ -156,7 +156,7 @@ noteTests = testGroup "note and reference location"
   , test (markdownWithOpts defopts{writerReferenceLocation=EndOfSection})
     "footnotes at the end of section" $
     noteTestDoc =?>
-    (unlines $ [ "First Header"
+    (unlines [ "First Header"
                , "============"
                , ""
                , "This is a footnote.[^1] And this is a [link](https://www.google.com)."
@@ -186,27 +186,27 @@ shortcutLinkRefsTests =
       (=:) = test (purely (writeMarkdown defopts{writerReferenceLinks = True}) . toPandoc)
   in testGroup "Shortcut reference links"
      [ "Simple link (shortcutable)"
-           =: (para (link "/url" "title" "foo"))
+           =: para (link "/url" "title" "foo")
            =?> "[foo]\n\n  [foo]: /url \"title\""
      , "Followed by another link (unshortcutable)"
-           =: (para ((link "/url1" "title1" "first")
-                  <> (link "/url2" "title2" "second")))
+           =: para ((link "/url1" "title1" "first")
+                  <> (link "/url2" "title2" "second"))
            =?> unlines [ "[first][][second]"
                        , ""
                        , "  [first]: /url1 \"title1\""
                        , "  [second]: /url2 \"title2\""
                        ]
      , "Followed by space and another link (unshortcutable)"
-           =: (para ((link "/url1" "title1" "first") <> " "
-                  <> (link "/url2" "title2" "second")))
+           =: para ((link "/url1" "title1" "first") <> " "
+                  <> (link "/url2" "title2" "second"))
            =?> unlines [ "[first][] [second]"
                        , ""
                        , "  [first]: /url1 \"title1\""
                        , "  [second]: /url2 \"title2\""
                        ]
      , "Reference link is used multiple times (unshortcutable)"
-           =: (para ((link "/url1" "" "foo") <> (link "/url2" "" "foo")
-                                             <> (link "/url3" "" "foo")))
+           =: para ((link "/url1" "" "foo") <> (link "/url2" "" "foo")
+                                             <> (link "/url3" "" "foo"))
            =?> unlines [ "[foo][][foo][1][foo][2]"
                        , ""
                        , "  [foo]: /url1"
@@ -214,8 +214,8 @@ shortcutLinkRefsTests =
                        , "  [2]: /url3"
                        ]
      , "Reference link is used multiple times (unshortcutable)"
-           =: (para ((link "/url1" "" "foo") <> " " <> (link "/url2" "" "foo")
-                                             <> " " <> (link "/url3" "" "foo")))
+           =: para ((link "/url1" "" "foo") <> " " <> (link "/url2" "" "foo")
+                                             <> " " <> (link "/url3" "" "foo"))
            =?> unlines [ "[foo][] [foo][1] [foo][2]"
                        , ""
                        , "  [foo]: /url1"
@@ -223,43 +223,43 @@ shortcutLinkRefsTests =
                        , "  [2]: /url3"
                        ]
      , "Reference link is followed by text in brackets"
-          =:  (para ((link "/url" "" "link") <> "[text in brackets]"))
+          =:  para ((link "/url" "" "link") <> "[text in brackets]")
           =?> unlines [ "[link][]\\[text in brackets\\]"
                       , ""
                       , "  [link]: /url"
                       ]
      , "Reference link is followed by space and text in brackets"
-          =:  (para ((link "/url" "" "link") <> " [text in brackets]"))
+          =:  para ((link "/url" "" "link") <> " [text in brackets]")
           =?> unlines [ "[link][] \\[text in brackets\\]"
                       , ""
                       , "  [link]: /url"
                       ]
      , "Reference link is followed by RawInline"
-          =: (para ((link "/url" "" "link") <> rawInline "markdown" "[rawText]"))
+          =: para ((link "/url" "" "link") <> rawInline "markdown" "[rawText]")
           =?> unlines [ "[link][][rawText]"
                       , ""
                       , "  [link]: /url"
                       ]
      , "Reference link is followed by space and RawInline"
-          =: (para ((link "/url" "" "link") <> space <> rawInline "markdown" "[rawText]"))
+          =: para ((link "/url" "" "link") <> space <> rawInline "markdown" "[rawText]")
           =?> unlines [ "[link][] [rawText]"
                       , ""
                       , "  [link]: /url"
                       ]
      , "Reference link is followed by RawInline with space"
-          =: (para ((link "/url" "" "link") <> rawInline "markdown" " [rawText]"))
+          =: para ((link "/url" "" "link") <> rawInline "markdown" " [rawText]")
           =?> unlines [ "[link][] [rawText]"
                       , ""
                       , "  [link]: /url"
                       ]
      , "Reference link is followed by citation"
-          =: (para ((link "/url" "" "link") <> cite [Citation "author" [] [] NormalCitation 0 0] (str "[@author]")))
+          =: para ((link "/url" "" "link") <> cite [Citation "author" [] [] NormalCitation 0 0] (str "[@author]"))
           =?> unlines [ "[link][][@author]"
                       , ""
                       , "  [link]: /url"
                       ]
      , "Reference link is followed by space and citation"
-          =: (para ((link "/url" "" "link") <> space <> cite [Citation "author" [] [] NormalCitation 0 0] (str "[@author]")))
+          =: para ((link "/url" "" "link") <> space <> cite [Citation "author" [] [] NormalCitation 0 0] (str "[@author]"))
           =?> unlines [ "[link][] [@author]"
                       , ""
                       , "  [link]: /url"

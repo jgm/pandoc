@@ -142,11 +142,11 @@ import qualified System.Environment as IO (lookupEnv)
 import System.FilePath.Glob (match, compile)
 import System.Directory (createDirectoryIfMissing, getDirectoryContents,
                           doesDirectoryExist)
-import System.FilePath ((</>), (<.>), takeDirectory,
-         takeExtension, dropExtension, isRelative, normalise)
+import System.FilePath
+       ((</>), (<.>), takeDirectory, takeExtension, dropExtension,
+        isRelative, normalise, splitDirectories)
 import qualified System.FilePath.Glob as IO (glob)
 import qualified System.FilePath.Posix as Posix
-import System.FilePath (splitDirectories)
 import qualified System.Directory as IO (getModificationTime)
 import Control.Monad as M (fail)
 import Control.Monad.State.Strict

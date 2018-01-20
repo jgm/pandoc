@@ -218,7 +218,7 @@ blockToMuse (DefinitionList items) = do
         descriptionToMuse :: PandocMonad m
                           => [Block]
                           -> StateT WriterState m Doc
-        descriptionToMuse desc = (hang 4 " :: ") <$> blockListToMuse desc
+        descriptionToMuse desc = hang 4 " :: " <$> blockListToMuse desc
 blockToMuse (Header level (ident,_,_) inlines) = do
   opts <- gets stOptions
   contents <- inlineListToMuse inlines

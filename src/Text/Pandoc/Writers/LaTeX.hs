@@ -41,7 +41,7 @@ import Data.Char (isAlphaNum, isAscii, isDigit, isLetter, isPunctuation, ord,
                   toLower)
 import Data.List (foldl', intercalate, intersperse, isInfixOf, nubBy,
                   stripPrefix, (\\))
-import Data.Maybe (catMaybes, fromMaybe, isJust, mapMaybe)
+import Data.Maybe (catMaybes, fromMaybe, isJust, mapMaybe, isNothing)
 import Data.Text (Text)
 import qualified Data.Text as T
 import Network.URI (unEscapeString)
@@ -401,7 +401,7 @@ elementToBeamer slideLevel  (Sec lvl _num (ident,classes,kvs) tit elts)
       let frameoptions = ["allowdisplaybreaks", "allowframebreaks", "fragile",
                           "b", "c", "t", "environment",
                           "label", "plain", "shrink", "standout"]
-      let optionslist = ["fragile" | fragile && lookup "fragile" kvs == Nothing] ++
+      let optionslist = ["fragile" | fragile && isNothing (lookup "fragile" kvs)] ++
                         [k | k <- classes, k `elem` frameoptions] ++
                         [k ++ "=" ++ v | (k,v) <- kvs, k `elem` frameoptions]
       let options = if null optionslist
@@ -819,7 +819,7 @@ listItemToLaTeX lst
   -- we need to put some text before a header if it's the first
   -- element in an item. This will look ugly in LaTeX regardless, but
   -- this will keep the typesetter from throwing an error.
-  | (Header _ _ _ :_) <- lst =
+  | (Header{} :_) <- lst =
     blockListToLaTeX lst >>= return . (text "\\item ~" $$) . nest 2
   | otherwise = blockListToLaTeX lst >>= return .  (text "\\item" $$) .
                       nest 2
@@ -856,7 +856,7 @@ sectionHeader unnumbered ident level lst = do
   plain <- stringToLaTeX TextString $ concatMap stringify lst
   let removeInvalidInline (Note _)             = []
       removeInvalidInline (Span (id', _, _) _) | not (null id') = []
-      removeInvalidInline (Image{})            = []
+      removeInvalidInline Image{}            = []
       removeInvalidInline x                    = [x]
   let lstNoNotes = foldr (mappend . (\x -> walkM removeInvalidInline x)) mempty lst
   txtNoNotes <- inlineListToLaTeX lstNoNotes

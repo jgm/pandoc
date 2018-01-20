@@ -230,7 +230,7 @@ tests = [ testGroup "line blocks"
                                       ]
             ]
           ]
-        , testGroup "writer options" $
+        , testGroup "writer options"
           [ testGroup "top-level division" $
             let
               headers =  header 1 (text "header1")

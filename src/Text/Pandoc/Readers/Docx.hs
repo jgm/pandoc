@@ -81,7 +81,7 @@ import qualified Data.ByteString.Lazy as B
 import Data.Default (Default)
 import Data.List (delete, intersect)
 import qualified Data.Map as M
-import Data.Maybe (isJust)
+import Data.Maybe (isJust, fromMaybe)
 import Data.Sequence (ViewL (..), viewl)
 import qualified Data.Sequence as Seq
 import qualified Data.Set as Set
@@ -187,7 +187,7 @@ bodyPartsToMeta' :: PandocMonad m => [BodyPart] -> DocxContext m (M.Map String M
 bodyPartsToMeta' [] = return M.empty
 bodyPartsToMeta' (bp : bps)
   | (Paragraph pPr parParts) <- bp
-  , (c : _)<- intersect (pStyle pPr) (M.keys metaStyles)
+  , (c : _)<- (pStyle pPr) `intersect` (M.keys metaStyles)
   , (Just metaField) <- M.lookup c metaStyles = do
     inlines <- smushInlines <$> mapM parPartToInlines parParts
     remaining <- bodyPartsToMeta' bps
@@ -340,7 +340,7 @@ blocksToInlinesWarn cmtId blks = do
       notParaOrPlain (Para _)  = False
       notParaOrPlain (Plain _) = False
       notParaOrPlain _         = True
-  unless (null $ filter notParaOrPlain blkList) $
+  unless ( not (any notParaOrPlain blkList)) $
     lift $ P.report $ DocxParserWarning $
       "Docx comment " ++ cmtId ++ " will not retain formatting"
   return $ blocksToInlines' blkList
@@ -351,7 +351,7 @@ blocksToInlinesWarn cmtId blks = do
 parPartToInlines :: PandocMonad m => ParPart -> DocxContext m Inlines
 parPartToInlines parPart =
   case parPart of
-    (BookMark _ anchor) | not $ anchor `elem` dummyAnchors -> do
+    (BookMark _ anchor) | notElem anchor dummyAnchors -> do
       inHdrBool <- asks docxInHeaderBlock
       ils <- parPartToInlines' parPart
       immedPrevAnchor <- gets docxImmedPrevAnchor
@@ -444,9 +444,9 @@ parPartToInlines' (ExternalHyperLink target runs) = do
   return $ link target "" ils
 parPartToInlines' (PlainOMath exps) =
   return $ math $ writeTeX exps
-parPartToInlines' (SmartTag runs) = do
+parPartToInlines' (SmartTag runs) =
   smushInlines <$> mapM runToInlines runs
-parPartToInlines' (Field info runs) = do
+parPartToInlines' (Field info runs) =
   case info of
     HyperlinkField url -> parPartToInlines' $ ExternalHyperLink url runs
     UnknownField -> smushInlines <$> mapM runToInlines runs
@@ -626,9 +626,7 @@ bodyPartToBlocks (ListItem pPr numId lvl (Just levelInfo) parparts) = do
       (_, fmt,txt, startFromLevelInfo) = levelInfo
       start = case startFromState of
         Just n -> n + 1
-        Nothing -> case startFromLevelInfo of
-          Just n' -> n'
-          Nothing -> 1
+        Nothing -> fromMaybe 1 startFromLevelInfo
       kvs = [ ("level", lvl)
             , ("num-id", numId)
             , ("format", fmt)

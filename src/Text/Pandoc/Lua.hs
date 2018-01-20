@@ -65,7 +65,7 @@ runLuaFilter' ropts filterPath format pd = do
       newtop <- Lua.gettop
       -- Use the returned filters, or the implicitly defined global filter if
       -- nothing was returned.
-      luaFilters <- if (newtop - top >= 1)
+      luaFilters <- if newtop - top >= 1
                     then peek (-1)
                     else Lua.getglobal "_G" *> fmap (:[]) popValue
       runAll luaFilters pd

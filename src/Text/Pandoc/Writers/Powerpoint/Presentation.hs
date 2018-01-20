@@ -72,7 +72,7 @@ import qualified Text.Pandoc.Shared as Shared -- so we don't overlap "Element"
 import Text.Pandoc.Writers.Shared (metaValueToInlines)
 import qualified Data.Map as M
 import qualified Data.Set as S
-import Data.Maybe (maybeToList)
+import Data.Maybe (maybeToList, fromMaybe)
 import Text.Pandoc.Highlighting
 import qualified Data.Text as T
 import Control.Applicative ((<|>))
@@ -136,7 +136,7 @@ reservedSlideIds = S.fromList [ metadataSlideId
 
 uniqueSlideId' :: Integer -> S.Set SlideId -> String -> SlideId
 uniqueSlideId' n idSet s =
-  let s' = if n == 0 then s else (s ++ "-" ++ show n)
+  let s' = if n == 0 then s else s ++ "-" ++ show n
   in if SlideId s' `S.member` idSet
      then uniqueSlideId' (n+1) idSet s
      else SlideId s'
@@ -152,7 +152,7 @@ runUniqueSlideId s = do
   return sldId
 
 addLogMessage :: LogMessage -> Pres ()
-addLogMessage msg = modify $ \st -> st{stLog = msg : (stLog st)}
+addLogMessage msg = modify $ \st -> st{stLog = msg : stLog st}
 
 type Pres = ReaderT WriterEnv (State WriterState)
 
@@ -180,7 +180,7 @@ data DocProps = DocProps { dcTitle :: Maybe String
 
 data Slide = Slide { slideId :: SlideId
                    , slideLayout :: Layout
-                   , slideNotes :: (Maybe Notes)
+                   , slideNotes :: Maybe Notes
                    } deriving (Show, Eq)
 
 newtype SlideId = SlideId String
@@ -345,12 +345,12 @@ inlineToParElems (SmallCaps ils) =
 inlineToParElems Space = inlineToParElems (Str " ")
 inlineToParElems SoftBreak = inlineToParElems (Str " ")
 inlineToParElems LineBreak = return [Break]
-inlineToParElems (Link _ ils (url, title)) = do
+inlineToParElems (Link _ ils (url, title)) =
   local (\r ->r{envRunProps = (envRunProps r){rLink = Just $ ExternalTarget (url, title)}}) $
-    inlinesToParElems ils
-inlineToParElems (Code _ str) = do
+  inlinesToParElems ils
+inlineToParElems (Code _ str) =
   local (\r ->r{envRunProps = (envRunProps r){rPropCode = True}}) $
-    inlineToParElems $ Str str
+  inlineToParElems $ Str str
 inlineToParElems (Math mathtype str) =
   return [MathElem mathtype (TeXString str)]
 inlineToParElems (Note blks) = do
@@ -409,7 +409,7 @@ blockToParagraphs (CodeBlock attr str) =
     Just sty ->
       case highlight synMap (formatSourceLines sty) attr str of
         Right pElems -> do pProps <- asks envParaProps
-                           return $ [Paragraph pProps pElems]
+                           return [Paragraph pProps pElems]
         Left _ -> blockToParagraphs $ Para [Str str]
     Nothing -> blockToParagraphs $ Para [Str str]
 -- We can't yet do incremental lists, but we should render a
@@ -463,7 +463,7 @@ blockToParagraphs (DefinitionList entries) = do
         definition <- concatMapM (blockToParagraphs . BlockQuote) blksLst
         return $ term ++ definition
   concatMapM go entries
-blockToParagraphs (Div (_, ("notes" : []), _) _) = return []
+blockToParagraphs (Div (_, "notes" : [], _) _) = return []
 blockToParagraphs (Div _ blks)  = concatMapM blockToParagraphs blks
 blockToParagraphs blk = do
   addLogMessage $ BlockNotRendered blk
@@ -481,7 +481,7 @@ multiParBullet (b:bs) = do
 
 cellToParagraphs :: Alignment -> TableCell -> Pres [Paragraph]
 cellToParagraphs algn tblCell = do
-  paras <- mapM (blockToParagraphs) tblCell
+  paras <- mapM blockToParagraphs tblCell
   let alignment = case algn of
         AlignLeft -> Just AlgnLeft
         AlignRight -> Just AlgnRight
@@ -494,7 +494,7 @@ rowToParagraphs :: [Alignment] -> [TableCell] -> Pres [[Paragraph]]
 rowToParagraphs algns tblCells = do
   -- We have to make sure we have the right number of alignments
   let pairs = zip (algns ++ repeat AlignDefault) tblCells
-  mapM (\(a, tc) -> cellToParagraphs a tc) pairs
+  mapM (uncurry cellToParagraphs) pairs
 
 withAttr :: Attr -> Shape -> Shape
 withAttr attr (Pic picPr url caption) =
@@ -507,17 +507,17 @@ withAttr _ sp = sp
 
 blockToShape :: Block -> Pres Shape
 blockToShape (Plain (il:_)) | Image attr ils (url, _) <- il =
-      (withAttr attr . Pic def url) <$> (inlinesToParElems ils)
+      (withAttr attr . Pic def url) <$> inlinesToParElems ils
 blockToShape (Para (il:_))  | Image attr ils (url, _) <- il =
-      (withAttr attr . Pic def url) <$> (inlinesToParElems ils)
+      (withAttr attr . Pic def url) <$> inlinesToParElems ils
 blockToShape (Plain (il:_)) | Link _ (il':_) target <- il
                             , Image attr ils (url, _) <- il' =
       (withAttr attr . Pic def {picPropLink = Just $ ExternalTarget target} url) <$>
-      (inlinesToParElems ils)
+      inlinesToParElems ils
 blockToShape (Para (il:_))  | Link _ (il':_) target <- il
                             , Image attr ils (url, _) <- il' =
       (withAttr attr . Pic def{picPropLink = Just $ ExternalTarget target} url) <$>
-      (inlinesToParElems ils)
+      inlinesToParElems ils
 blockToShape (Table caption algn _ hdrCells rows) = do
   caption' <- inlinesToParElems caption
   hdrCells' <- rowToParagraphs algn hdrCells
@@ -537,11 +537,11 @@ blockToShape blk = do paras <- blockToParagraphs blk
 
 combineShapes :: [Shape] -> [Shape]
 combineShapes [] = []
-combineShapes (s : []) = [s]
-combineShapes (pic@(Pic _ _ _) : ss) = pic : combineShapes ss
-combineShapes ((TextBox []) : ss) = combineShapes ss
+combineShapes[s] = [s]
+combineShapes (pic@(Pic{}) : ss) = pic : combineShapes ss
+combineShapes (TextBox [] : ss) = combineShapes ss
 combineShapes (s : TextBox [] : ss) = combineShapes (s : ss)
-combineShapes ((TextBox (p:ps)) : (TextBox (p':ps')) : ss) =
+combineShapes (TextBox (p:ps) : TextBox (p':ps') : ss) =
   combineShapes $ TextBox ((p:ps) ++ (p':ps')) : ss
 combineShapes (s:ss) = s : combineShapes ss
 
@@ -549,8 +549,8 @@ blocksToShapes :: [Block] -> Pres [Shape]
 blocksToShapes blks = combineShapes <$> mapM blockToShape blks
 
 isImage :: Inline -> Bool
-isImage (Image _ _ _) = True
-isImage (Link _ ((Image _ _ _) : _) _) = True
+isImage (Image{}) = True
+isImage (Link _ (Image _ _ _ : _) _) = True
 isImage _ = False
 
 splitBlocks' :: [Block] -> [[Block]] -> [Block] -> Pres [[Block]]
@@ -565,27 +565,27 @@ splitBlocks' cur acc (h@(Header n _ _) : blks) = do
     GT -> splitBlocks' (cur ++ [h]) acc blks
 -- `blockToParagraphs` treats Plain and Para the same, so we can save
 -- some code duplication by treating them the same here.
-splitBlocks' cur acc ((Plain ils) : blks) = splitBlocks' cur acc ((Para ils) : blks)
-splitBlocks' cur acc ((Para (il:ils)) : blks) | isImage il = do
+splitBlocks' cur acc (Plain ils : blks) = splitBlocks' cur acc (Para ils : blks)
+splitBlocks' cur acc (Para (il:ils) : blks) | isImage il = do
   slideLevel <- asks envSlideLevel
   case cur of
-    (Header n _ _) : [] | n == slideLevel ->
+    [(Header n _ _)] | n == slideLevel ->
                             splitBlocks' []
                             (acc ++ [cur ++ [Para [il]]])
-                            (if null ils then blks else (Para ils) : blks)
+                            (if null ils then blks else Para ils : blks)
     _ -> splitBlocks' []
          (acc ++ (if null cur then [] else [cur]) ++ [[Para [il]]])
-         (if null ils then blks else (Para ils) : blks)
-splitBlocks' cur acc (tbl@(Table _ _ _ _ _) : blks) = do
+         (if null ils then blks else Para ils : blks)
+splitBlocks' cur acc (tbl@(Table{}) : blks) = do
   slideLevel <- asks envSlideLevel
   case cur of
-    (Header n _ _) : [] | n == slideLevel ->
+    [(Header n _ _)] | n == slideLevel ->
                             splitBlocks' [] (acc ++ [cur ++ [tbl]]) blks
     _ ->  splitBlocks' [] (acc ++ (if null cur then [] else [cur]) ++ [[tbl]]) blks
 splitBlocks' cur acc (d@(Div (_, classes, _) _): blks) | "columns" `elem` classes =  do
   slideLevel <- asks envSlideLevel
   case cur of
-    (Header n _ _) : [] | n == slideLevel ->
+    [(Header n _ _)] | n == slideLevel ->
                             splitBlocks' [] (acc ++ [cur ++ [d]]) blks
     _ ->  splitBlocks' [] (acc ++ (if null cur then [] else [cur]) ++ [[d]]) blks
 splitBlocks' cur acc (blk : blks) = splitBlocks' (cur ++ [blk]) acc blks
@@ -594,12 +594,12 @@ splitBlocks :: [Block] -> Pres [[Block]]
 splitBlocks = splitBlocks' [] []
 
 blocksToSlide' :: Int -> [Block] -> Pres Slide
-blocksToSlide' lvl ((Header n (ident, _, _) ils) : blks)
+blocksToSlide' lvl (Header n (ident, _, _) ils : blks)
   | n < lvl = do
       registerAnchorId ident
       sldId <- asks envCurSlideId
       hdr <- inlinesToParElems ils
-      return $ Slide sldId (TitleSlide {titleSlideHeader = hdr}) Nothing
+      return $ Slide sldId TitleSlide {titleSlideHeader = hdr} Nothing
   | n == lvl = do
       registerAnchorId ident
       hdr <- inlinesToParElems ils
@@ -614,7 +614,7 @@ blocksToSlide' lvl ((Header n (ident, _, _) ils) : blks)
 blocksToSlide' _ (blk : blks)
   | Div (_, classes, _) divBlks <- blk
   , "columns" `elem` classes
-  , (Div (_, clsL, _) blksL) : (Div (_, clsR, _) blksR) : remaining <- divBlks
+  , Div (_, clsL, _) blksL : Div (_, clsR, _) blksR : remaining <- divBlks
   , "column" `elem` clsL, "column" `elem` clsR = do
       unless (null blks)
         (mapM (addLogMessage . BlockNotRendered) blks >> return ())
@@ -672,7 +672,7 @@ makeNoteEntry n blks =
   in
     case blks of
       (Para ils : blks') -> (Para $ enum : Space : ils) : blks'
-      _ -> (Para [enum]) : blks
+      _ -> Para [enum] : blks
 
 forceFontSize :: Pixels -> Pres a -> Pres a
 forceFontSize px x = do
@@ -860,7 +860,7 @@ blocksToPresentationSlides blks = do
                               (\env -> env { envCurSlideId = endNotesSlideId
                                            , envInNoteSlide = True
                                            })
-                              (blocksToSlide $ endNotesSlideBlocks)
+                              (blocksToSlide endNotesSlideBlocks)
                             return [endNotesSlide]
 
   let slides = metadataslides ++ tocSlides ++ bodyslides ++ endNotesSlides
@@ -889,9 +889,7 @@ documentToPresentation :: WriterOptions
 documentToPresentation opts (Pandoc meta blks) =
   let env = def { envOpts = opts
                 , envMetadata = meta
-                , envSlideLevel = case writerSlideLevel opts of
-                                    Just lvl -> lvl
-                                    Nothing  -> getSlideLevel blks
+                , envSlideLevel = fromMaybe (getSlideLevel blks) (writerSlideLevel opts)
                 }
       (presSlides, msgs) = runPres env def $ blocksToPresentationSlides blks
       docProps = metaToDocProps meta

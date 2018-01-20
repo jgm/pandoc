@@ -38,9 +38,9 @@ tests =
 
   , test orgSmart "Single quotes can be followed by emphasized text"
     ("Singles on the '/meat market/'" =?>
-     para ("Singles on the " <> (singleQuoted $ emph "meat market")))
+     para ("Singles on the " <> singleQuoted (emph "meat market")))
 
   , test orgSmart "Double quotes can be followed by emphasized text"
     ("Double income, no kids: \"/DINK/\"" =?>
-     para ("Double income, no kids: " <> (doubleQuoted $ emph "DINK")))
+     para ("Double income, no kids: " <> doubleQuoted (emph "DINK")))
   ]

@@ -516,7 +516,7 @@ include = try $ do
   blocksParser <- case includeArgs of
       ("example" : _) -> return $ pure . B.codeBlock <$> parseRaw
       ["export"] -> return . returnF $ B.fromList []
-      ("export" : format : []) -> return $ pure . B.rawBlock format <$> parseRaw
+      ["export", format] -> return $ pure . B.rawBlock format <$> parseRaw
       ("src" : rest) -> do
         let attr = case rest of
                      [lang] -> (mempty, [lang], mempty)

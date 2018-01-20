@@ -40,8 +40,8 @@ $endif$
 .nr FL \n[LL]
 .\" footnote point size
 .nr FPS (\n[PS] - 2000)
-.\" paper size
 $if(papersize)$
+.\" paper size
 .ds paper $papersize$
 $endif$
 .\" color used for strikeout

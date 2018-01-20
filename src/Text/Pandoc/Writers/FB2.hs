@@ -131,8 +131,7 @@ description meta' = do
                     _       -> return []
   return $ el "description"
     [ el "title-info" (genre : (bt ++ as ++ dd ++ lang))
-    , el "document-info" ([ el "program-used" "pandoc" ] -- FIXME: +version
-                          ++ coverpage)
+    , el "document-info" (el "program-used" "pandoc" : coverpage)
     ]
 
 booktitle :: PandocMonad m => Meta -> FBM m [Content]

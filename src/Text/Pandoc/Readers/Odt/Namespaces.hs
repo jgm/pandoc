@@ -48,7 +48,7 @@ instance NameSpaceID Namespace where
 
 
 findID :: NameSpaceIRI -> Maybe Namespace
-findID iri = listToMaybe [nsID | (iri',~nsID) <- nsIDs, iri' `isPrefixOf` iri]
+findID iri = listToMaybe [nsID | (iri',nsID) <- nsIDs, iri' `isPrefixOf` iri]
 
 nsIDmap :: NameSpaceIRIs Namespace
 nsIDmap = foldr (uncurry $ flip M.insert) M.empty nsIDs

@@ -388,9 +388,7 @@ bulletListMarkers = "ul" <$ (char '*' <|> char '-')
 
 orderedListMarkers :: PandocMonad m => VwParser m String
 orderedListMarkers =
-  ("ol" <$choice (orderedListMarker Decimal Period:(($OneParen)
-    <$> orderedListMarker
-    <$> [Decimal, LowerRoman, UpperRoman, LowerAlpha, UpperAlpha])))
+  ("ol" <$choice (orderedListMarker Decimal Period:(($OneParen) . orderedListMarker <$> [Decimal, LowerRoman, UpperRoman, LowerAlpha, UpperAlpha])))
     <|> ("ol" <$ char '#')
 
 --many need trimInlines

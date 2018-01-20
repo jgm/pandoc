@@ -5,6 +5,7 @@ import qualified Data.ByteString as BS
 import qualified Data.ByteString.Lazy as B
 import qualified Data.Map as M
 import qualified Data.Text as T
+import Data.Maybe
 import System.IO.Unsafe
 import Test.Tasty
 import Test.Tasty.HUnit
@@ -46,7 +47,7 @@ compareOutput opts docxFile nativeFile = do
   nf <- UTF8.toText <$> BS.readFile nativeFile
   p <- runIOorExplode $ readDocx opts df
   df' <- runIOorExplode $ readNative def nf
-  return $ (noNorm p, noNorm df')
+  return (noNorm p, noNorm df')
 
 testCompareWithOptsIO :: ReaderOptions -> String -> FilePath -> FilePath -> IO TestTree
 testCompareWithOptsIO opts name docxFile nativeFile = do
@@ -87,11 +88,9 @@ compareMediaPathIO mediaPath mediaBag docxPath = do
                  Nothing      -> error ("couldn't find " ++
                                         mediaPath ++
                                         " in media bag")
-      docxBS = case docxMedia of
-                 Just bs -> bs
-                 Nothing -> error ("couldn't find " ++
-                                   mediaPath ++
-                                   " in media bag")
+      docxBS = fromMaybe (error ("couldn't find " ++
+                        mediaPath ++
+                        " in media bag")) docxMedia
   return $ mbBS == docxBS
 
 compareMediaBagIO :: FilePath -> IO Bool

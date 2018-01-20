@@ -1263,7 +1263,7 @@ simpleTableHeader headless = try $ do
   let rawHeads = if headless
                     then replicate (length dashes) ""
                     else simpleTableSplitLine indices rawContent
-  heads <- mapM ( (parseFromString' (mconcat <$> many plain)) . trim) rawHeads
+  heads <- mapM ( parseFromString' (mconcat <$> many plain) . trim) rawHeads
   return (heads, aligns, indices)
 
 -- Parse a simple table.
@@ -1414,7 +1414,7 @@ renderRole contents fmt role attr = case role of
            pepUrl = "http://www.python.org/dev/peps/pep-" ++ padNo ++ "/"
 
 addClass :: String -> Attr -> Attr
-addClass c (ident, classes, keyValues) = (ident, union classes [c], keyValues)
+addClass c (ident, classes, keyValues) = (ident, classes `union` [c], keyValues)
 
 roleName :: PandocMonad m => RSTParser m String
 roleName = many1 (letter <|> char '-')
@@ -1454,7 +1454,7 @@ endline = try $ do
   notFollowedBy blankline
   -- parse potential list-starts at beginning of line differently in a list:
   st <- getState
-  when ((stateParserContext st) == ListItemState) $ notFollowedBy (anyOrderedListMarker >> spaceChar) >>
+  when (stateParserContext st == ListItemState) $ notFollowedBy (anyOrderedListMarker >> spaceChar) >>
           notFollowedBy' bulletListStart
   return B.softbreak
 
@@ -1577,7 +1577,7 @@ note = try $ do
       -- not yet in this implementation.
       updateState $ \st -> st{ stateNotes = [] }
       contents <- parseFromString' parseBlocks raw
-      let newnotes = if (ref == "*" || ref == "#") -- auto-numbered
+      let newnotes = if ref == "*" || ref == "#" -- auto-numbered
                         -- delete the note so the next auto-numbered note
                         -- doesn't get the same contents:
                         then deleteFirstsBy (==) notes [(ref,raw)]

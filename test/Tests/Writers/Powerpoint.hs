@@ -72,7 +72,7 @@ numSlideTests = testGroup "Number of slides in output"
     def
     (doc $
       para "first slide" <>
-      (para $ image "lalune.jpg" "" "") <>
+      para (image "lalune.jpg" "" "") <>
       para "foo")
   , testNumberOfSlides
     "With image slide, header" 3
@@ -80,14 +80,14 @@ numSlideTests = testGroup "Number of slides in output"
     (doc $
       para "first slide" <>
       header 2 "image header" <>
-      (para $ image "lalune.jpg" "" "") <>
+      para (image "lalune.jpg" "" "") <>
       para "foo")
   , testNumberOfSlides
     "With table, no header" 3
     def
     (doc $
      para "first slide" <>
-     (simpleTable [para "foo" <> para "bar"] [[para "this" <> para "that"]]) <>
+     simpleTable [para "foo" <> para "bar"] [[para "this" <> para "that"]] <>
      para "foo")
   , testNumberOfSlides
     "With table, header" 3
@@ -95,7 +95,7 @@ numSlideTests = testGroup "Number of slides in output"
     (doc $
      para "first slide" <>
      header 2 "table header" <>
-     (simpleTable [para "foo" <> para "bar"] [[para "this" <> para "that"]]) <>
+     simpleTable [para "foo" <> para "bar"] [[para "this" <> para "that"]] <>
      para "foo")
   , testNumberOfSlides
     "hrule" 2
@@ -117,7 +117,7 @@ contentTypesFileExists opts pd =
   testCase "Existence of [Content_Types].xml file" $
   do archive <- getPptxArchive opts pd
      assertBool "Missing [Content_Types].xml file" $
-       "[Content_Types].xml" `elem` (filesInArchive archive)
+       "[Content_Types].xml" `elem` filesInArchive archive
 
 
 
@@ -138,7 +138,7 @@ prop_ContentOverrides pd = do
                     Nothing  -> throwIO $
                       PandocSomeError "Missing [Content_Types].xml file"
   typesElem <- case parseXMLDoc contentTypes of
-                    Just element -> return $ element
+                    Just element -> return element
                     Nothing      -> throwIO $
                       PandocSomeError "[Content_Types].xml cannot be parsed"
   let ns = findAttr (QName "xmlns" Nothing Nothing) typesElem

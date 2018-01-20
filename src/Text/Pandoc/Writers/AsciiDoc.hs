@@ -265,8 +265,7 @@ blockToAsciiDoc opts (OrderedList (_start, sty, _delim) items) = do
   let markers' = map (\m -> if length m < 3
                                then m ++ replicate (3 - length m) ' '
                                else m) markers
-  contents <- mapM (uncurry (orderedListItemToAsciiDoc opts)) $
-              zip markers' items
+  contents <- zipWithM (orderedListItemToAsciiDoc opts) markers' items
   return $ cat contents <> blankline
 blockToAsciiDoc opts (DefinitionList items) = do
   contents <- mapM (definitionListItemToAsciiDoc opts) items
@@ -452,7 +451,7 @@ inlineToAsciiDoc opts (Link _ txt (src, _tit)) = do
               else prefix <> text src <> "[" <> linktext <> "]"
 inlineToAsciiDoc opts (Image attr alternate (src, tit)) = do
 -- image:images/logo.png[Company logo, title="blah"]
-  let txt = if (null alternate) || (alternate == [Str ""])
+  let txt = if null alternate || (alternate == [Str ""])
                then [Str "image"]
                else alternate
   linktext <- inlineListToAsciiDoc opts txt

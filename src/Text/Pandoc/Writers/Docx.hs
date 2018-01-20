@@ -1057,12 +1057,9 @@ getParaProps displayMathPara = do
   props <- asks envParaProperties
   listLevel <- asks envListLevel
   numid <- asks envListNumId
-  let listPr = if listLevel >= 0 && not displayMathPara
-                  then [ mknode "w:numPr" []
-                         [ mknode "w:numId" [("w:val",show numid)] ()
-                         , mknode "w:ilvl" [("w:val",show listLevel)] () ]
-                       ]
-                  else []
+  let listPr = [mknode "w:numPr" []
+                [ mknode "w:numId" [("w:val",show numid)] ()
+                , mknode "w:ilvl" [("w:val",show listLevel)] () ] | listLevel >= 0 && not displayMathPara]
   return $ case props ++ listPr of
                 [] -> []
                 ps -> [mknode "w:pPr" [] ps]
@@ -1145,7 +1142,7 @@ inlineToOpenXML' opts (Span (ident,classes,kvs) ils) = do
                  return $ \f -> do
                    x <- f
                    return [ mknode "w:ins"
-                              [("w:id", (show insId)),
+                              [("w:id", show insId),
                               ("w:author", author),
                               ("w:date", date)] x ]
                else return id
@@ -1272,7 +1269,7 @@ inlineToOpenXML' opts (Image attr alt (src, title)) = do
     Nothing ->
       catchError
       (do (img, mt) <- P.fetchItem src
-          ident <- ("rId"++) `fmap` ((lift . lift) getUniqueId)
+          ident <- ("rId"++) `fmap` (lift . lift) getUniqueId
           let (xpt,ypt) = desiredSizeInPoints opts attr
                  (either (const def) id (imageSize opts img))
           -- 12700 emu = 1 pt

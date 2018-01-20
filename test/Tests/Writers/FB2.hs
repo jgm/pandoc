@@ -23,7 +23,7 @@ tests = [ testGroup "block elements"
           ]
         , testGroup "inlines"
           [
-            "Emphasis"      =:  emph ("emphasized")
+            "Emphasis"      =:  emph "emphasized"
                             =?> fb2 "<emphasis>emphasized</emphasis>"
           ]
         , "bullet list" =: bulletList [ plain $ text "first"

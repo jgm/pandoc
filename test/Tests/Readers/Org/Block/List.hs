@@ -75,16 +75,16 @@ tests =
                  ]
 
   , "Bullet List with Decreasing Indent" =:
-       ("  - Discovery\n\
-        \ - Human After All\n") =?>
+       "  - Discovery\n\
+        \ - Human After All\n" =?>
        mconcat [ bulletList [ plain "Discovery" ]
                , bulletList [ plain ("Human" <> space <> "After" <> space <> "All")]
                ]
 
   , "Header follows Bullet List" =:
-      ("  - Discovery\n\
+      "  - Discovery\n\
        \  - Human After All\n\
-       \* Homework") =?>
+       \* Homework" =?>
       mconcat [ bulletList [ plain "Discovery"
                            , plain ("Human" <> space <> "After" <> space <> "All")
                            ]
@@ -92,9 +92,9 @@ tests =
               ]
 
   , "Bullet List Unindented with trailing Header" =:
-      ("- Discovery\n\
+      "- Discovery\n\
        \- Homework\n\
-       \* NotValidListItem") =?>
+       \* NotValidListItem" =?>
       mconcat [ bulletList [ plain "Discovery"
                            , plain "Homework"
                            ]
@@ -166,14 +166,14 @@ tests =
   , "Ordered List in Bullet List" =:
       ("- Emacs\n" <>
        "  1. Org\n") =?>
-      bulletList [ (plain "Emacs") <>
-                   (orderedList [ plain "Org"])
+      bulletList [ plain "Emacs" <>
+                   orderedList [ plain "Org"]
                  ]
 
   , "Bullet List in Ordered List" =:
       ("1. GNU\n" <>
        "   - Freedom\n") =?>
-      orderedList [ (plain "GNU") <> bulletList [ (plain "Freedom") ] ]
+      orderedList [ plain "GNU" <> bulletList [ plain "Freedom" ] ]
 
   , "Definition List" =:
       T.unlines [ "- PLL :: phase-locked loop"

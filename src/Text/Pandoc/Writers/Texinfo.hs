@@ -475,7 +475,7 @@ inlineToTexinfo (Link _ txt (src@('#':_), _)) = do
 inlineToTexinfo (Link _ txt (src, _)) =
   case txt of
         [Str x] | escapeURI x == src ->  -- autolink
-             do return $ text $ "@url{" ++ x ++ "}"
+             return $ text $ "@url{" ++ x ++ "}"
         _ -> do contents <- escapeCommas $ inlineListToTexinfo txt
                 let src1 = stringToTexinfo src
                 return $ text ("@uref{" ++ src1 ++ ",") <> contents <>

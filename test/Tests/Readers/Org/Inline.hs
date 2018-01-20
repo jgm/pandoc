@@ -36,7 +36,7 @@ tests =
 
   , "Underline" =:
       "_underline_" =?>
-      para (underlineSpan $ "underline")
+      para (underlineSpan "underline")
 
   , "Strikeout" =:
       "+Kill Bill+" =?>
@@ -127,11 +127,12 @@ tests =
 
   , "Markup should work properly after a blank line" =:
     T.unlines ["foo", "", "/bar/"] =?>
-    (para $ text "foo") <> (para $ emph $ text "bar")
+    para (text "foo") <>
+    para (emph $ text "bar")
 
   , "Inline math must stay within three lines" =:
       T.unlines [ "$a", "b", "c$", "$d", "e", "f", "g$" ] =?>
-      para ((math "a\nb\nc") <> softbreak <>
+      para (math "a\nb\nc" <> softbreak <>
             "$d" <> softbreak <> "e" <> softbreak <>
             "f" <> softbreak <> "g$")
 
@@ -139,7 +140,7 @@ tests =
       "$a$ $b$! $c$?" =?>
       para (spcSep [ math "a"
                    , "$b$!"
-                   , (math "c") <> "?"
+                   , math "c" <> "?"
                    ])
 
   , "Markup may not span more than two lines" =:
@@ -166,12 +167,12 @@ tests =
      para (mconcat $ intersperse softbreak
                   [ "a" <> subscript "(a(b)(c)d)"
                   , "e" <> superscript "(f(g)h)"
-                  , "i" <> (subscript "(jk)") <> "l)"
-                  , "m" <> (superscript "()") <> "n"
+                  , "i" <> subscript "(jk)" <> "l)"
+                  , "m" <> superscript "()" <> "n"
                   , "o" <> subscript "p{q{}r}"
                   , "s" <> superscript "t{u}v"
-                  , "w" <> (subscript "xy") <> "z}"
-                  , "1" <> (superscript "") <> "2"
+                  , "w" <> subscript "xy" <> "z}"
+                  , "1" <> superscript "" <> "2"
                   , "3" <> subscript "{}"
                   , "4" <> superscript ("(a(" <> strong "b(c" <> ")d))")
                   ])
@@ -182,17 +183,17 @@ tests =
   , testGroup "Images"
     [ "Image" =:
         "[[./sunset.jpg]]" =?>
-        (para $ image "./sunset.jpg" "" "")
+    para (image "./sunset.jpg" "" "")
 
     , "Image with explicit file: prefix" =:
         "[[file:sunrise.jpg]]" =?>
-        (para $ image "sunrise.jpg" "" "")
+    para (image "sunrise.jpg" "" "")
 
     , "Multiple images within a paragraph" =:
         T.unlines [ "[[file:sunrise.jpg]]"
                   , "[[file:sunset.jpg]]"
                   ] =?>
-        (para $ (image "sunrise.jpg" "" "")
+    para ((image "sunrise.jpg" "" "")
              <> softbreak
              <> (image "sunset.jpg" "" ""))
 
@@ -200,75 +201,75 @@ tests =
         T.unlines [ "#+ATTR_HTML: :width 50%"
                   , "[[file:guinea-pig.gif]]"
                   ] =?>
-        (para $ imageWith ("", [], [("width", "50%")]) "guinea-pig.gif" "" "")
+    para (imageWith ("", [], [("width", "50%")]) "guinea-pig.gif" "" "")
     ]
 
   , "Explicit link" =:
       "[[http://zeitlens.com/][pseudo-random /nonsense/]]" =?>
-      (para $ link "http://zeitlens.com/" ""
+    para (link "http://zeitlens.com/" ""
                    ("pseudo-random" <> space <> emph "nonsense"))
 
   , "Self-link" =:
       "[[http://zeitlens.com/]]" =?>
-      (para $ link "http://zeitlens.com/" "" "http://zeitlens.com/")
+    para (link "http://zeitlens.com/" "" "http://zeitlens.com/")
 
   , "Absolute file link" =:
       "[[/url][hi]]" =?>
-      (para $ link "file:///url" "" "hi")
+    para (link "file:///url" "" "hi")
 
   , "Link to file in parent directory" =:
       "[[../file.txt][moin]]" =?>
-      (para $ link "../file.txt" "" "moin")
+    para (link "../file.txt" "" "moin")
 
   , "Empty link (for gitit interop)" =:
       "[[][New Link]]" =?>
-      (para $ link "" "" "New Link")
+    para (link "" "" "New Link")
 
   , "Image link" =:
       "[[sunset.png][file:dusk.svg]]" =?>
-      (para $ link "sunset.png" "" (image "dusk.svg" "" ""))
+    para (link "sunset.png" "" (image "dusk.svg" "" ""))
 
   , "Image link with non-image target" =:
       "[[http://example.com][./logo.png]]" =?>
-      (para $ link "http://example.com" "" (image "./logo.png" "" ""))
+    para (link "http://example.com" "" (image "./logo.png" "" ""))
 
   , "Plain link" =:
       "Posts on http://zeitlens.com/ can be funny at times." =?>
-      (para $ spcSep [ "Posts", "on"
+    para (spcSep [ "Posts", "on"
                      , link "http://zeitlens.com/" "" "http://zeitlens.com/"
                      , "can", "be", "funny", "at", "times."
                      ])
 
   , "Angle link" =:
       "Look at <http://moltkeplatz.de> for fnords." =?>
-      (para $ spcSep [ "Look", "at"
+    para (spcSep [ "Look", "at"
                      , link "http://moltkeplatz.de" "" "http://moltkeplatz.de"
                      , "for", "fnords."
                      ])
 
   , "Absolute file link" =:
       "[[file:///etc/passwd][passwd]]" =?>
-      (para $ link "file:///etc/passwd" "" "passwd")
+    para (link "file:///etc/passwd" "" "passwd")
 
   , "File link" =:
       "[[file:target][title]]" =?>
-      (para $ link "target" "" "title")
+    para (link "target" "" "title")
 
   , "Anchor" =:
       "<<anchor>> Link here later." =?>
-      (para $ spanWith ("anchor", [], []) mempty <>
+    para (spanWith ("anchor", [], []) mempty <>
               "Link" <> space <> "here" <> space <> "later.")
 
   , "Inline code block" =:
       "src_emacs-lisp{(message \"Hello\")}" =?>
-      (para $ codeWith ( ""
+    para (codeWith ( ""
                        , [ "commonlisp" ]
                        , [ ("org-language", "emacs-lisp") ])
                        "(message \"Hello\")")
 
   , "Inline code block with arguments" =:
       "src_sh[:export both :results output]{echo 'Hello, World'}" =?>
-      (para $ codeWith ( ""
+    para (codeWith ( ""
                        , [ "bash" ]
                        , [ ("org-language", "sh")
                          , ("export", "both")
@@ -279,7 +280,7 @@ tests =
 
   , "Inline code block with toggle" =:
       "src_sh[:toggle]{echo $HOME}" =?>
-      (para $ codeWith ( ""
+    para (codeWith ( ""
                        , [ "bash" ]
                        , [ ("org-language", "sh")
                          , ("toggle", "yes")
@@ -415,7 +416,7 @@ tests =
     in [
         "Berkeley-style in-text citation" =:
           "See @Dominik201408." =?>
-            (para $ "See "
+        para ("See "
                   <> cite [dominikInText] "@Dominik201408"
                   <> ".")
 
@@ -468,7 +469,7 @@ tests =
 
   , "MathML symbol in LaTeX-style" =:
       "There is a hackerspace in Lübeck, Germany, called nbsp (unicode symbol: '\\nbsp')." =?>
-      para ("There is a hackerspace in Lübeck, Germany, called nbsp (unicode symbol: ' ').")
+      para "There is a hackerspace in Lübeck, Germany, called nbsp (unicode symbol: ' ')."
 
   , "MathML symbol in LaTeX-style, including braces" =:
       "\\Aacute{}stor" =?>

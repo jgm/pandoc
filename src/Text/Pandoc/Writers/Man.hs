@@ -114,7 +114,7 @@ notesToMan :: PandocMonad m => WriterOptions -> [[Block]] -> StateT WriterState 
 notesToMan opts notes =
   if null notes
      then return empty
-     else mapM (uncurry (noteToMan opts)) (zip [1..] notes) >>=
+     else zipWithM (noteToMan opts) [1..] notes >>=
           return . (text ".SH NOTES" $$) . vcat
 
 -- | Return man representation of a note.

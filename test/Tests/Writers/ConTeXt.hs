@@ -41,9 +41,9 @@ tests = [ testGroup "inline code"
           , "without '}'" =: code "]" =?> "\\type{]}"
           , testProperty "code property" $ \s -> null s ||
                 if '{' `elem` s || '}' `elem` s
-                   then (context' $ code s) == "\\mono{" ++
-                             (context' $ str s) ++ "}"
-                   else (context' $ code s) == "\\type{" ++ s ++ "}"
+                   then context' (code s) == "\\mono{" ++
+                             context' (str s) ++ "}"
+                   else context' (code s) == "\\type{" ++ s ++ "}"
           ]
         , testGroup "headers"
           [ "level 1" =:
@@ -124,4 +124,3 @@ tests = [ testGroup "inline code"
                           , "\\stopplacetable" ]
             ]
         ]
-

@@ -383,4 +383,3 @@ instance ToLuaStack ReaderOptions where
     LuaUtil.addValue "defaultImageExtension" defaultImageExtension
     LuaUtil.addValue "trackChanges" trackChanges
     LuaUtil.addValue "stripComments" stripComments
-

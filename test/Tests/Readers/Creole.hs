@@ -224,7 +224,7 @@ tests = [
                     <> " bar")
         , "escaped auto link" =:
           "foo ~http://foo.example.com/bar/baz.html bar"
-          =?> para ("foo http://foo.example.com/bar/baz.html bar")
+          =?> para "foo http://foo.example.com/bar/baz.html bar"
         , "wiki link simple" =:
           "foo [[http://foo.example.com/foo.png]] bar"
           =?> para ("foo "

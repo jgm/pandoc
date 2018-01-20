@@ -18,5 +18,5 @@ p_write_blocks_rt bs =
 tests :: [TestTree]
 tests = [ testProperty "p_write_rt" p_write_rt
         , testProperty "p_write_blocks_rt" $ mapSize
-             (\x -> if x > 3 then 3 else x) $ p_write_blocks_rt
+             (\x -> if x > 3 then 3 else x) p_write_blocks_rt
         ]

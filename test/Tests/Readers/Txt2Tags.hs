@@ -30,11 +30,11 @@ simpleTable' :: Int
              -> [Blocks]
              -> [[Blocks]]
              -> Blocks
-simpleTable' n = table "" (take n $ repeat (AlignCenter, 0.0))
+simpleTable' n = table "" (replicate n (AlignCenter, 0.0))
 
 tests :: [TestTree]
 tests =
-  [ testGroup "Inlines" $
+  [ testGroup "Inlines"
       [ "Plain String" =:
           "Hello, World" =?>
           para (spcSep [ "Hello,", "World" ])
@@ -114,7 +114,7 @@ tests =
 
       ]
 
-  , testGroup "Basic Blocks" $
+  , testGroup "Basic Blocks"
       ["Paragraph, lines grouped together" =:
           "A paragraph\n A blank line ends the \n current paragraph\n"
             =?> para "A paragraph\n A blank line ends the\n current paragraph"
@@ -197,7 +197,7 @@ tests =
 
     ]
 
-  , testGroup "Lists" $
+  , testGroup "Lists"
       [ "Simple Bullet Lists" =:
           ("- Item1\n" <>
            "- Item2\n") =?>

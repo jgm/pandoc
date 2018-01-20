@@ -110,7 +110,7 @@ noteBlock = try $ do
   startPos <- getPosition
   ref <- noteMarker
   optional blankline
-  contents <- fmap unlines $ many1Till anyLine (blanklines <|> noteBlock)
+  contents <- unlines <$> many1Till anyLine (blanklines <|> noteBlock)
   endPos <- getPosition
   let newnote = (ref, contents ++ "\n")
   st <- getState
@@ -360,7 +360,7 @@ cellAttributes = try $ do
 tableCell :: PandocMonad m => ParserT [Char] ParserState m ((Bool, Alignment), Blocks)
 tableCell = try $ do
   char '|'
-  (isHeader, alignment) <- option (False, AlignDefault) $ cellAttributes
+  (isHeader, alignment) <- option (False, AlignDefault) cellAttributes
   notFollowedBy blankline
   raw <- trim <$>
          many (noneOf "|\n" <|> try (char '\n' <* notFollowedBy blankline))
@@ -499,7 +499,7 @@ copy = do
 
 note :: PandocMonad m => ParserT [Char] ParserState m Inlines
 note = try $ do
-  ref <- (char '[' *> many1 digit <* char ']')
+  ref <- char '[' *> many1 digit <* char ']'
   notes <- stateNotes <$> getState
   case lookup ref notes of
     Nothing  -> fail "note not found"
@@ -530,7 +530,7 @@ hyphenedWords = do
 wordChunk :: PandocMonad m => ParserT [Char] ParserState m String
 wordChunk = try $ do
   hd <- noneOf wordBoundaries
-  tl <- many ( (noneOf wordBoundaries) <|>
+  tl <- many ( noneOf wordBoundaries <|>
                try (notFollowedBy' note *> oneOf markupChars
                      <* lookAhead (noneOf wordBoundaries) ) )
   return $ hd:tl
@@ -614,7 +614,7 @@ escapedEqs = B.str <$>
 -- | literal text escaped btw <notextile> tags
 escapedTag :: PandocMonad m => ParserT [Char] ParserState m Inlines
 escapedTag = B.str <$>
-  (try $ string "<notextile>" *>
+  try (string "<notextile>" *>
          manyTill anyChar' (try $ string "</notextile>"))
 
 -- | Any special symbol defined in wordBoundaries
@@ -630,7 +630,8 @@ code = code1 <|> code2
 -- any character except a newline before a blank line
 anyChar' :: PandocMonad m => ParserT [Char] ParserState m Char
 anyChar' =
-  satisfy (/='\n') <|> (try $ char '\n' <* notFollowedBy blankline)
+  satisfy (/='\n') <|>
+  try (char '\n' <* notFollowedBy blankline)
 
 code1 :: PandocMonad m => ParserT [Char] ParserState m Inlines
 code1 = B.code <$> surrounded (char '@') anyChar'

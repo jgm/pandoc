@@ -168,8 +168,7 @@ blockToHaddock opts (OrderedList (start,_,delim) items) = do
   let markers' = map (\m -> if length m < 3
                                then m ++ replicate (3 - length m) ' '
                                else m) markers
-  contents <- mapM (uncurry (orderedListItemToHaddock opts)) $
-              zip markers' items
+  contents <- zipWithM (orderedListItemToHaddock opts) markers' items
   return $ cat contents <> blankline
 blockToHaddock opts (DefinitionList items) = do
   contents <- mapM (definitionListItemToHaddock opts) items
