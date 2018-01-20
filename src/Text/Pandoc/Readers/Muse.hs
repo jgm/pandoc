@@ -432,7 +432,7 @@ listItemContents = do
   let col = sourceColumn pos - 1
   listItemContents' col
 
-listItem :: PandocMonad m => Int -> MuseParser m () -> MuseParser m (F Blocks)
+listItem :: PandocMonad m => Int -> MuseParser m a -> MuseParser m (F Blocks)
 listItem n p = try $ do
   optionMaybe blankline
   count n spaceChar
@@ -449,7 +449,7 @@ bulletList = try $ do
   char '-'
   void spaceChar <|> lookAhead eol
   first <- listItemContents
-  rest <- many $ listItem (col - 1) (void (char '-'))
+  rest <- many $ listItem (col - 1) (char '-')
   return $ B.bulletList <$> sequence (first : rest)
 
 orderedList :: PandocMonad m => MuseParser m (F Blocks)
@@ -463,7 +463,7 @@ orderedList = try $ do
   guard $ delim == Period
   void spaceChar <|> lookAhead eol
   first <- listItemContents
-  rest <- many $ listItem (col - 1) (void (orderedListMarker style delim))
+  rest <- many $ listItem (col - 1) (orderedListMarker style delim)
   return $ B.orderedListWith p <$> sequence (first : rest)
 
 definitionListItem :: PandocMonad m => Int -> MuseParser m (F (Inlines, [Blocks]))
