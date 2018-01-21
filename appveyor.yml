@@ -3,7 +3,7 @@ environment:
   global:
     WIXBIN: "c:\\Program Files (x86)\\WiX Toolset v3.11\\bin"
     STACK_YAML: "c:\\pandoc\\stack.yaml"
-    STACK_BUILD_OPTS: "-j1 --no-terminal --test --local-bin-path=.\\windows --ghc-options=-fexternal-interpreter"
+    STACK_BUILD_OPTS: "-j1 --no-terminal --test --local-bin-path=.\\windows"
     # see #4201, https://github.com/haskell-tools/haskell-tools/issues/277
   matrix:
   - STACK_VERSION: "windows-i386"
