@@ -79,20 +79,14 @@ type MuseParser = ParserT String ParserState
 parseMuse :: PandocMonad m => MuseParser m Pandoc
 parseMuse = do
   many directive
-  blocks <- parseBlocks
+  blocks <- mconcat <$> many block
+  eof
   st <- getState
   let doc = runF (do Pandoc _ bs <- B.doc <$> blocks
                      meta <- stateMeta' st
                      return $ Pandoc meta bs) st
   reportLogMessages
   return doc
-
-parseBlocks :: PandocMonad m => MuseParser m (F Blocks)
-parseBlocks = do
-  res <- mconcat <$> many block
-  spaces
-  eof
-  return res
 
 --
 -- utility functions
