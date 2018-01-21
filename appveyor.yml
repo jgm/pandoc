@@ -37,10 +37,7 @@ cache:
 
 # Note: to reset build cache, do the following in JavaScript
 # console on appveyor:
-# $.ajax({
-#    url: 'https://ci.appveyor.com/api/projects/jgm/pandoc/buildcache',
-#    type: 'DELETE'})
-
+# $.ajax({ url: 'https://ci.appveyor.com/api/projects/jgm/pandoc/buildcache', type: 'DELETE'})
 # We don't do a normal C build, but build in test_script via stack
 build: off
 
