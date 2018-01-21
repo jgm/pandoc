@@ -302,6 +302,8 @@ extra-source-files:
                  test/docx/*.native
                  test/epub/*.epub
                  test/epub/*.native
+                 test/pptx/*.pptx
+                 test/pptx/*.native
                  test/txt2tags.t2t
                  test/twiki-reader.twiki
                  test/tikiwiki-reader.tikiwiki

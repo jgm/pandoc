@@ -1,169 +1,196 @@
+{-# LANGUAGE PatternGuards     #-}
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE MultiWayIf        #-}
 
 module Tests.Writers.Powerpoint (tests) where
 
-import Control.Exception (throwIO)
+-- import Control.Exception (throwIO)
 import Text.Pandoc
-import Text.Pandoc.Builder
-import Text.Pandoc.Arbitrary ()
-import Text.Pandoc.Walk
 import Test.Tasty
 import Test.Tasty.HUnit
-import Test.Tasty.QuickCheck
 import Codec.Archive.Zip
 import Text.XML.Light
-import Data.List (isPrefixOf, isSuffixOf, sort)
-import Data.Maybe (mapMaybe)
-
-getPptxArchive :: WriterOptions -> Pandoc -> IO Archive
-getPptxArchive opts pd = do
-  mbs <- runIO $
-         do setUserDataDir $ Just "../data"
-            writePowerpoint opts pd
-  case mbs of
-       Left e   -> throwIO e
-       Right bs -> return $ toArchive bs
-
------ Number of Slides -----------
-
-numberOfSlides :: WriterOptions -> Pandoc -> IO Int
-numberOfSlides opts pd = do
-  archive <- getPptxArchive opts pd
-  return $
-    length $
-    filter (isSuffixOf ".xml") $
-    filter (isPrefixOf "ppt/slides/slide") $
-    filesInArchive archive
-
-testNumberOfSlides :: TestName -> Int -> WriterOptions -> Pandoc -> TestTree
-testNumberOfSlides name n opts pd =
-  testCase name $ do
-    n' <- numberOfSlides opts pd
-    n' @=? n
-
-numSlideTests :: TestTree
-numSlideTests = testGroup "Number of slides in output"
-  [ testNumberOfSlides
-    "simple one-slide deck" 1
-    def
-    (doc $ para "foo")
-  , testNumberOfSlides
-    "with metadata (header slide)" 2
-    def
-    (setTitle "My Title" $ doc $ para "foo")
-  , testNumberOfSlides
-    "With h1 slide (using default slide-level)" 1
-    def
-    (doc $ header 1 "Header" <> para "foo")
-  , testNumberOfSlides
-    "With h2 slide (using default slide-level)" 2
-    def
-    (doc $ header 1 "Header" <> header 2 "subeader" <> para "foo")
-  , testNumberOfSlides
-    "With h1 slide (using slide-level 3)" 2
-    def {writerSlideLevel= Just 3}
-    (doc $ header 1 "Header" <> para "foo")
-  , testNumberOfSlides
-    "With h2 slide (using slide-level 3)" 3
-    def {writerSlideLevel= Just 3}
-    (doc $ header 1 "Header" <> header 2 "subeader" <> para "foo")
-  , testNumberOfSlides
-    "With image slide, no header" 3
-    def
-    (doc $
-      para "first slide" <>
-      para (image "lalune.jpg" "" "") <>
-      para "foo")
-  , testNumberOfSlides
-    "With image slide, header" 3
-    def
-    (doc $
-      para "first slide" <>
-      header 2 "image header" <>
-      para (image "lalune.jpg" "" "") <>
-      para "foo")
-  , testNumberOfSlides
-    "With table, no header" 3
-    def
-    (doc $
-     para "first slide" <>
-     simpleTable [para "foo" <> para "bar"] [[para "this" <> para "that"]] <>
-     para "foo")
-  , testNumberOfSlides
-    "With table, header" 3
-    def
-    (doc $
-     para "first slide" <>
-     header 2 "table header" <>
-     simpleTable [para "foo" <> para "bar"] [[para "this" <> para "that"]] <>
-     para "foo")
-  , testNumberOfSlides
-    "hrule" 2
-    def
-    (doc $
-     para "first slide" <> horizontalRule <> para "last slide")
-  , testNumberOfSlides
-    "with notes slide" 2
-    def
-    (doc $
-      para $ text "Foo" <> note (para "note text"))
-  ]
-
------ Content Types -----------
+import qualified Data.ByteString.Lazy as BL
+import qualified Data.Text.IO as T
+import Data.List (isPrefixOf, isSuffixOf, sort, (\\), intercalate)
+import Data.Maybe (fromJust, isNothing)
+import Tests.Helpers
+import Data.Algorithm.Diff
+import Control.Monad (when)
 
 
-contentTypesFileExists :: WriterOptions -> Pandoc -> TestTree
-contentTypesFileExists opts pd =
-  testCase "Existence of [Content_Types].xml file" $
-  do archive <- getPptxArchive opts pd
-     assertBool "Missing [Content_Types].xml file" $
-       "[Content_Types].xml" `elem` filesInArchive archive
+getPptxBytes :: WriterOptions
+             -> FilePath
+             -> FilePath
+             -> IO (BL.ByteString, BL.ByteString)
+getPptxBytes opts nativeFp pptxFp = do
+  ntvTxt <- T.readFile nativeFp
+  ntv <- runIOorExplode $ readNative def ntvTxt
+  myPptxBs <- runIOorExplode $ writePowerpoint opts ntv
+  goodPptxBs <- BL.readFile pptxFp
+  return (myPptxBs, goodPptxBs)
 
 
+assertSameFileList :: Archive -> Archive -> FilePath -> Assertion
+assertSameFileList myArch goodArch pptxFp = do
+  let filesMy = filesInArchive myArch
+      filesGood = filesInArchive goodArch
+      diffMyGood = filesMy \\ filesGood
+      diffGoodMy = filesGood \\ filesMy
+  if | null diffMyGood && null diffGoodMy -> return ()
+     | null diffMyGood ->
+         assertFailure $
+         "Files in " ++ pptxFp ++ " but not in generated archive:\n" ++
+         intercalate ", " diffGoodMy
+     | null diffGoodMy ->
+         assertFailure $
+         "Files in generated archive but not in " ++ pptxFp ++ ":\n" ++
+         intercalate ", " diffMyGood
+     | otherwise ->
+         assertFailure $
+         "Files in " ++ pptxFp ++ " but not in generated archive:\n" ++
+         intercalate ", " diffGoodMy ++
+         "\n" ++
+         "Files in generated archive but not in " ++ pptxFp ++ ":\n" ++
+         intercalate ", " diffMyGood
 
--- We want an "Override" entry for each xml file under ppt/.
-prop_ContentOverrides :: Pandoc -> IO Bool
-prop_ContentOverrides pd = do
-  -- remove Math to avoid warnings
-  let go :: Inline -> Inline
-      go (Math _ _) = Str "Math"
-      go i = i
-      pd' = walk go pd
-  archive <- getPptxArchive def pd'
-  let xmlFiles = filter ("[Content_Types].xml" /=) $
-                  filter (isSuffixOf ".xml") $
-                  filesInArchive archive
-  contentTypes <- case findEntryByPath "[Content_Types].xml" archive of
-                    Just ent -> return $ fromEntry ent
-                    Nothing  -> throwIO $
-                      PandocSomeError "Missing [Content_Types].xml file"
-  typesElem <- case parseXMLDoc contentTypes of
-                    Just element -> return element
-                    Nothing      -> throwIO $
-                      PandocSomeError "[Content_Types].xml cannot be parsed"
-  let ns = findAttr (QName "xmlns" Nothing Nothing) typesElem
-      overrides = findChildren (QName "Override" ns Nothing) typesElem
-      partNames = mapMaybe (findAttr (QName "PartName" Nothing Nothing)) overrides
-      -- files in content_types are absolute
-      absXmlFiles = map (\fp -> case fp of
-                                  ('/':_) -> fp
-                                  _       -> '/': fp
-                        )
-                    xmlFiles
-  return $ sort absXmlFiles == sort partNames
+compareXMLBool :: Content -> Content -> Bool
+-- We make a special exception for times at the moment, and just pass
+-- them because we can't control the utctime when running IO. Besides,
+-- so long as we have two times, we're okay.
+compareXMLBool (Elem myElem) (Elem goodElem)
+  | (QName "created" _ (Just "dcterms")) <- elName myElem
+  , (QName "created" _ (Just "dcterms")) <- elName goodElem =
+      True
+compareXMLBool (Elem myElem) (Elem goodElem)
+  | (QName "modified" _ (Just "dcterms")) <- elName myElem
+  , (QName "modified" _ (Just "dcterms")) <- elName goodElem =
+      True
+compareXMLBool (Elem myElem) (Elem goodElem) =
+  and [ elName myElem == elName goodElem
+      , elAttribs myElem == elAttribs goodElem
+      , and $
+        map (uncurry compareXMLBool) $
+        zip (elContent myElem) (elContent goodElem)
+      ]
+compareXMLBool (Text myCData) (Text goodCData) =
+  and [ cdVerbatim myCData == cdVerbatim goodCData
+      , cdData myCData == cdData goodCData
+      , cdLine myCData == cdLine goodCData
+      ]
+compareXMLBool (CRef myStr) (CRef goodStr) =
+  myStr == goodStr
+compareXMLBool _ _ = False
 
-contentOverridesTests :: TestTree
-contentOverridesTests = localOption (QuickCheckTests 20) $
-                       testProperty "Content Overrides for each XML file" $
-                       \x -> ioProperty $ prop_ContentOverrides (x :: Pandoc)
+displayDiff :: Content -> Content -> String
+displayDiff elemA elemB =
+  showDiff (1,1) $ getDiff (lines $ ppContent elemA) (lines $ ppContent elemB)
 
-contentTypeTests :: TestTree
-contentTypeTests = testGroup "[Content_Types].xml file"
-  [ contentTypesFileExists def (doc $ para "foo")
-  , contentOverridesTests
-  ]
+compareXMLFile :: FilePath -> Archive -> Archive -> Assertion
+compareXMLFile fp myArch goodArch = do
+  let mbMyEntry = findEntryByPath fp myArch
+  when (isNothing mbMyEntry)
+    (assertFailure $
+    "Can't extract " ++ fp ++ " from generated archive")
+  let mbMyXMLDoc = parseXMLDoc $ fromEntry $ fromJust mbMyEntry
+  when (isNothing mbMyXMLDoc)
+    (assertFailure $
+    "Can't parse xml in  " ++ fp ++ " from generated archive")
+  let myContent = Elem $ fromJust mbMyXMLDoc
+
+  let mbGoodEntry = findEntryByPath fp goodArch
+  when (isNothing mbGoodEntry)
+    (assertFailure $
+    "Can't extract " ++ fp ++ " from archive in stored pptx file")
+  let mbGoodXMLDoc = parseXMLDoc $ fromEntry $ fromJust mbGoodEntry
+  when (isNothing mbGoodXMLDoc)
+    (assertFailure $
+    "Can't parse xml in  " ++ fp ++ " from archive in stored pptx file")
+  let goodContent = Elem $ fromJust mbGoodXMLDoc
+
+  assertBool
+    ("Non-matching xml in " ++ fp ++ ":\n" ++ displayDiff myContent goodContent)
+    (compareXMLBool myContent goodContent)
+
+compareBinaryFile :: FilePath -> Archive -> Archive -> Assertion
+compareBinaryFile fp myArch goodArch = do
+  let mbMyEntry = findEntryByPath fp myArch
+  when (isNothing mbMyEntry)
+    (assertFailure $
+    "Can't extract " ++ fp ++ " from generated archive")
+  let myBytes = fromEntry $ fromJust mbMyEntry
+
+  let mbGoodEntry = findEntryByPath fp goodArch
+  when (isNothing mbGoodEntry)
+    (assertFailure $
+    "Can't extract " ++ fp ++ " from archive in stored pptx file")
+  let goodBytes = fromEntry $ fromJust mbGoodEntry
+
+  assertBool (fp ++ " doesn't match") (myBytes == goodBytes)
+
+testSameFileList :: WriterOptions -> FilePath -> FilePath -> TestTree
+testSameFileList opts myFp goodFp =
+  testCase ("Identical file list in archives") $ do
+  (myBS, goodBS) <- getPptxBytes opts myFp goodFp
+  let myArch = toArchive myBS
+      goodArch = toArchive goodBS
+  (assertSameFileList myArch goodArch goodFp)
+
+testSameXML :: WriterOptions -> FilePath -> FilePath -> TestTree
+testSameXML opts myFp goodFp = testCaseSteps "Comparing extracted xml files" $
+  \step -> do
+    (myBS, goodBS) <- getPptxBytes opts myFp goodFp
+    let myArch = toArchive myBS
+        goodArch = toArchive goodBS
+
+    let xmlFileList = sort $
+          filter (\fp -> ".xml" `isSuffixOf` fp || ".rels" `isSuffixOf` fp)
+          (filesInArchive myArch)
+    mapM_
+      (\fp -> step ("- " ++ fp) >> compareXMLFile fp myArch goodArch)
+      xmlFileList
+
+testSameMedia :: WriterOptions -> FilePath -> FilePath -> TestTree
+testSameMedia opts myFp goodFp = testCaseSteps "Comparing media files" $
+  \step -> do
+    (myBS, goodBS) <- getPptxBytes opts myFp goodFp
+    let myArch = toArchive myBS
+        goodArch = toArchive goodBS
+
+    let mediaFileList = sort $
+          filter (\fp -> "ppt/media/" `isPrefixOf` fp)
+          (filesInArchive myArch)
+
+    mapM_
+      (\fp -> step ("- " ++ fp) >> compareBinaryFile fp myArch goodArch)
+      mediaFileList
+
+testCompareWithOpts :: String -> WriterOptions ->FilePath -> FilePath -> TestTree
+testCompareWithOpts testName opts nativeFp pptxFp =
+  testGroup testName [ testSameFileList opts nativeFp pptxFp
+                     , testSameXML opts nativeFp pptxFp
+                     , testSameMedia opts nativeFp pptxFp
+                     ]
+
+
+testCompare :: String -> FilePath -> FilePath -> TestTree
+testCompare testName nativeFp pptxFp =
+  testCompareWithOpts testName def nativeFp pptxFp
+
+--------------------------------------------------------------
 
 tests :: [TestTree]
-tests = [ numSlideTests
-        , contentTypeTests
+tests = [ testCompare
+          "Inline formatting"
+          "pptx/inline_formatting.native"
+          "pptx/inline_formatting.pptx"
+        , testCompare
+          "slide breaks (default slide-level)"
+          "pptx/slide_breaks.native"
+          "pptx/slide_breaks.pptx"
+        , testCompareWithOpts
+          "slide breaks (slide-level set to 1)"
+          def{writerSlideLevel=Just 1}
+          "pptx/slide_breaks.native"
+          "pptx/slide_breaks_slide_level_1.pptx"
         ]

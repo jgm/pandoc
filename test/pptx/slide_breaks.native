@@ -1,0 +1,7 @@
+Pandoc (Meta {unMeta = fromList []})
+[Para [Str "Break",Space,Str "with",Space,Str "a",Space,Str "new",Space,Str "section-level",Space,Str "header"]
+,Header 1 ("below-section-level",[],[]) [Str "Below",Space,Str "section-level"]
+,Header 2 ("section-level",[],[]) [Str "Section-level"]
+,Para [Str "Third",Space,Str "slide",Space,Str "(with",Space,Str "a",Space,Str "section-level",Space,Str "of",Space,Str "2)"]
+,HorizontalRule
+,Para [Str "This",Space,Str "is",Space,Str "another",Space,Str "slide."]]
