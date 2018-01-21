@@ -200,7 +200,7 @@ PDF output can be controlled using [variables for LaTeX] (if
 LaTeX is used) and [variables for ConTeXt] (if ConTeXt is used).
 When using an HTML/CSS-to-PDF-engine, `--css` affects the output.
 If `wkhtmltopdf` is used, then the variables `margin-left`,
-`margin-right`, `margin-top`, `margin-bottom`, `footer-html`, 
+`margin-right`, `margin-top`, `margin-bottom`, `footer-html`,
 `header-html` and `papersize` will affect the output.
 
 To debug the PDF creation, it can be useful to look at the intermediate
