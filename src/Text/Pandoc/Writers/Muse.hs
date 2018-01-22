@@ -259,7 +259,7 @@ blockToMuse (Table caption _ _ headers rows) =  do
          $$ body
          $$ (if null caption then empty else " |+ " <> caption' <> " +|")
          $$ blankline
-blockToMuse (Div _ bs) = blockListToMuse bs
+blockToMuse (Div _ bs) = flatBlockListToMuse bs
 blockToMuse Null = return empty
 
 -- | Return Muse representation of notes.

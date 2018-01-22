@@ -282,7 +282,9 @@ tests = [ testGroup "block elements"
                           , " |+ Table 1 +|"
                           ]
             ]
-          -- Div is trivial
+          , "div with bullet list" =:
+            divWith nullAttr (bulletList [para $ text "foo"]) =?>
+            unlines [ " - foo" ] -- Making sure bullets are indented
           -- Null is trivial
           ]
         , testGroup "inline elements"
