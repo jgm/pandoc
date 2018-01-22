@@ -58,12 +58,6 @@ testArchive opts fp = do
   bs <- runIOorExplode $ readNative def txt >>= writePowerpoint opts
   return $ toArchive bs
 
-updateGoldenFile :: WriterOptions -> FilePath -> FilePath -> IO ()
-updateGoldenFile opts nativeFP goldenFP = do
-  txt <- T.readFile nativeFP
-  bs <- runIOorExplode $ readNative def txt >>= writePowerpoint opts
-  BL.writeFile goldenFP bs
-
 compareFileList :: FilePath -> Archive -> Archive -> Maybe String
 compareFileList goldenFP goldenArch testArch =
   let testFiles = filesInArchive testArch
@@ -184,7 +178,7 @@ pptxTest testName opts nativeFP goldenFP =
                          , compareAllMediaFiles goldenArch testArch
                          ]
      in return $ if null res then Nothing else Just $ unlines res)
-  (\_ -> updateGoldenFile opts nativeFP goldenFP)
+  (\a -> BL.writeFile goldenFP $ fromArchive a)
 
 --------------------------------------------------------------
 
