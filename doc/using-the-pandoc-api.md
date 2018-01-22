@@ -454,7 +454,7 @@ structure and calling this function.
 [Text.Pandoc.Class]: https://hackage.haskell.org/package/pandoc/docs/Text-Pandoc-Class.html
 [Text.Pandoc.Options]: https://hackage.haskell.org/package/pandoc/docs/Text-Pandoc-Options.html
 [Text.Pandoc.Extensions]: https://hackage.haskell.org/package/pandoc/docs/Text-Pandoc-Extensions.html
-[Text.Pandoc.Builder]: https://hackage.haskell.org/package/pandoc-types/docs/Text-Pandoc-Definition.html
+[Text.Pandoc.Builder]: https://hackage.haskell.org/package/pandoc-types/docs/Text-Pandoc-Builder.html
 [Text.Pandoc.Templates]: https://hackage.haskell.org/package/pandoc/docs/Text-Pandoc-Templates.html
 [Text.Pandoc.Logging]: https://hackage.haskell.org/package/pandoc/docs/Text-Pandoc-Logging.html
 [Text.Pandoc.App]: https://hackage.haskell.org/package/pandoc/docs/Text-Pandoc-App.html
