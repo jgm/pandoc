@@ -213,4 +213,14 @@ tests = [ pptxTest
           def { writerTableOfContents = True }
           "pptx/endnotes.native"
           "pptx/endnotes_toc.pptx"
+        , pptxTest
+          "images"
+          def
+          "pptx/images.native"
+          "pptx/images.pptx"
+        , pptxTest
+          "two-column layout"
+          def
+          "pptx/two_column.native"
+          "pptx/two_column.pptx"
         ]
