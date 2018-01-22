@@ -92,7 +92,7 @@ tests = [ testGroup "inline code"
                            plain $ text "3.3",
                            plain $ text "3.4"]]
               in table caption aligns headers rows
-              =?> unlines [ "\\startplacetable[caption={Table 1}]"
+              =?> unlines [ "\\startplacetable[title={Table 1}]"
                           , "\\startTABLE"
                           , "\\startTABLEhead"
                           , "\\NC[align=left] Right"

@@ -1,6 +1,6 @@
 Simple table with caption:
 
-\startplacetable[caption={Demonstration of simple table syntax.}]
+\startplacetable[title={Demonstration of simple table syntax.}]
 \startxtable
 \startxtablehead[head]
 \startxrow
@@ -74,7 +74,7 @@ Simple table without caption:
 
 Simple table indented two spaces:
 
-\startplacetable[caption={Demonstration of simple table syntax.}]
+\startplacetable[title={Demonstration of simple table syntax.}]
 \startxtable
 \startxtablehead[head]
 \startxrow
@@ -111,7 +111,7 @@ Simple table indented two spaces:
 
 Multiline table with caption:
 
-\startplacetable[caption={Here's the caption. It may span multiple lines.}]
+\startplacetable[title={Here's the caption. It may span multiple lines.}]
 \startxtable
 \startxtablehead[head]
 \startxrow
