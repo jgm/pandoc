@@ -198,4 +198,19 @@ tests = [ pptxTest
           def{ writerSlideLevel = Just 1 }
           "pptx/slide_breaks.native"
           "pptx/slide_breaks_slide_level_1.pptx"
+        , pptxTest
+          "table of contents"
+          def{ writerTableOfContents = True }
+          "pptx/slide_breaks.native"
+          "pptx/slide_breaks_toc.pptx"
+        , pptxTest
+          "end notes"
+          def
+          "pptx/endnotes.native"
+          "pptx/endnotes.pptx"
+        , pptxTest
+          "end notes, with table of contents"
+          def { writerTableOfContents = True }
+          "pptx/endnotes.native"
+          "pptx/endnotes_toc.pptx"
         ]
