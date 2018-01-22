@@ -316,6 +316,7 @@ tests = [ testGroup "block elements"
           , testGroup "code"
             [ "simple" =: code "foo" =?> "<code>foo</code>"
             , "escape tag" =: code "<code>foo = bar</code> baz" =?> "<code><code>foo = bar<</code><code>/code> baz</code>"
+            , "normalization with attributes" =: codeWith ("",["haskell"],[]) "foo" <> code "bar" =?> "<code>foobar</code>"
             , "normalization" =: code "</co" <> code "de>" =?> "<code><</code><code>/code></code>"
             ]
           , testGroup "spaces"
