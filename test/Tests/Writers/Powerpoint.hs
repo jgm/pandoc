@@ -4,55 +4,18 @@
 
 module Tests.Writers.Powerpoint (tests) where
 
--- import Control.Exception (throwIO)
 import Text.Pandoc
 import Test.Tasty
-import Test.Tasty.HUnit
+import Test.Tasty.Golden.Advanced
 import Codec.Archive.Zip
 import Text.XML.Light
+import qualified Data.ByteString as BS
 import qualified Data.ByteString.Lazy as BL
 import qualified Data.Text.IO as T
-import Data.List (isPrefixOf, isSuffixOf, sort, (\\), intercalate)
-import Data.Maybe (fromJust, isNothing)
+import Data.List (isPrefixOf, isSuffixOf, sort, (\\), intercalate, union)
+import Data.Maybe (catMaybes, mapMaybe)
 import Tests.Helpers
 import Data.Algorithm.Diff
-import Control.Monad (when)
-
-
-getPptxBytes :: WriterOptions
-             -> FilePath
-             -> FilePath
-             -> IO (BL.ByteString, BL.ByteString)
-getPptxBytes opts nativeFp pptxFp = do
-  ntvTxt <- T.readFile nativeFp
-  ntv <- runIOorExplode $ readNative def ntvTxt
-  myPptxBs <- runIOorExplode $ writePowerpoint opts ntv
-  goodPptxBs <- BL.readFile pptxFp
-  return (myPptxBs, goodPptxBs)
-
-
-assertSameFileList :: Archive -> Archive -> FilePath -> Assertion
-assertSameFileList myArch goodArch pptxFp = do
-  let filesMy = filesInArchive myArch
-      filesGood = filesInArchive goodArch
-      diffMyGood = filesMy \\ filesGood
-      diffGoodMy = filesGood \\ filesMy
-  if | null diffMyGood && null diffGoodMy -> return ()
-     | null diffMyGood ->
-         assertFailure $
-         "Files in " ++ pptxFp ++ " but not in generated archive:\n" ++
-         intercalate ", " diffGoodMy
-     | null diffGoodMy ->
-         assertFailure $
-         "Files in generated archive but not in " ++ pptxFp ++ ":\n" ++
-         intercalate ", " diffMyGood
-     | otherwise ->
-         assertFailure $
-         "Files in " ++ pptxFp ++ " but not in generated archive:\n" ++
-         intercalate ", " diffGoodMy ++
-         "\n" ++
-         "Files in generated archive but not in " ++ pptxFp ++ ":\n" ++
-         intercalate ", " diffMyGood
 
 compareXMLBool :: Content -> Content -> Bool
 -- We make a special exception for times at the moment, and just pass
@@ -86,111 +49,159 @@ displayDiff :: Content -> Content -> String
 displayDiff elemA elemB =
   showDiff (1,1) $ getDiff (lines $ ppContent elemA) (lines $ ppContent elemB)
 
-compareXMLFile :: FilePath -> Archive -> Archive -> Assertion
-compareXMLFile fp myArch goodArch = do
-  let mbMyEntry = findEntryByPath fp myArch
-  when (isNothing mbMyEntry)
-    (assertFailure $
-    "Can't extract " ++ fp ++ " from generated archive")
-  let mbMyXMLDoc = parseXMLDoc $ fromEntry $ fromJust mbMyEntry
-  when (isNothing mbMyXMLDoc)
-    (assertFailure $
-    "Can't parse xml in  " ++ fp ++ " from generated archive")
-  let myContent = Elem $ fromJust mbMyXMLDoc
+goldenArchive :: FilePath -> IO Archive
+goldenArchive fp = (toArchive . BL.fromStrict) <$> BS.readFile fp
 
-  let mbGoodEntry = findEntryByPath fp goodArch
-  when (isNothing mbGoodEntry)
-    (assertFailure $
-    "Can't extract " ++ fp ++ " from archive in stored pptx file")
-  let mbGoodXMLDoc = parseXMLDoc $ fromEntry $ fromJust mbGoodEntry
-  when (isNothing mbGoodXMLDoc)
-    (assertFailure $
-    "Can't parse xml in  " ++ fp ++ " from archive in stored pptx file")
-  let goodContent = Elem $ fromJust mbGoodXMLDoc
+testArchive :: WriterOptions -> FilePath -> IO Archive
+testArchive opts fp = do
+  txt <- T.readFile fp
+  bs <- runIOorExplode $ readNative def txt >>= writePowerpoint opts
+  return $ toArchive bs
 
-  assertBool
-    ("Non-matching xml in " ++ fp ++ ":\n" ++ displayDiff myContent goodContent)
-    (compareXMLBool myContent goodContent)
+updateGoldenFile :: WriterOptions -> FilePath -> FilePath -> IO ()
+updateGoldenFile opts nativeFP goldenFP = do
+  txt <- T.readFile nativeFP
+  bs <- runIOorExplode $ readNative def txt >>= writePowerpoint opts
+  BL.writeFile goldenFP bs
 
-compareBinaryFile :: FilePath -> Archive -> Archive -> Assertion
-compareBinaryFile fp myArch goodArch = do
-  let mbMyEntry = findEntryByPath fp myArch
-  when (isNothing mbMyEntry)
-    (assertFailure $
-    "Can't extract " ++ fp ++ " from generated archive")
-  let myBytes = fromEntry $ fromJust mbMyEntry
+compareFileList :: FilePath -> Archive -> Archive -> Maybe String
+compareFileList goldenFP goldenArch testArch =
+  let testFiles = filesInArchive testArch
+      goldenFiles = filesInArchive goldenArch
+      diffTestGolden = testFiles \\ goldenFiles
+      diffGoldenTest = goldenFiles \\ testFiles
 
-  let mbGoodEntry = findEntryByPath fp goodArch
-  when (isNothing mbGoodEntry)
-    (assertFailure $
-    "Can't extract " ++ fp ++ " from archive in stored pptx file")
-  let goodBytes = fromEntry $ fromJust mbGoodEntry
+      results =
+        [ if null diffGoldenTest
+          then Nothing
+          else Just $
+               "Files in " ++ goldenFP ++ " but not in generated archive:\n" ++
+               intercalate ", " diffGoldenTest
+        , if null diffTestGolden
+          then Nothing
+          else Just $
+               "Files in generated archive but not in " ++ goldenFP ++ ":\n" ++
+               intercalate ", " diffTestGolden
+        ]
+  in
+    if null $ catMaybes results
+    then Nothing
+    else Just $ intercalate "\n" $ catMaybes results
 
-  assertBool (fp ++ " doesn't match") (myBytes == goodBytes)
+compareXMLFile' :: FilePath -> Archive -> Archive -> Either String ()
+compareXMLFile' fp goldenArch testArch = do
+  testEntry <- case findEntryByPath fp testArch of
+                 Just entry -> Right entry
+                 Nothing -> Left $
+                   "Can't extract " ++ fp ++ " from generated archive"
+  testXMLDoc <- case parseXMLDoc $ fromEntry testEntry of
+                  Just doc -> Right doc
+                  Nothing -> Left $
+                    "Can't parse xml in  " ++ fp ++ " from generated archive"
 
-testSameFileList :: WriterOptions -> FilePath -> FilePath -> TestTree
-testSameFileList opts myFp goodFp =
-  testCase ("Identical file list in archives") $ do
-  (myBS, goodBS) <- getPptxBytes opts myFp goodFp
-  let myArch = toArchive myBS
-      goodArch = toArchive goodBS
-  (assertSameFileList myArch goodArch goodFp)
+  goldenEntry <- case findEntryByPath fp goldenArch of
+                 Just entry -> Right entry
+                 Nothing -> Left $
+                   "Can't extract " ++ fp ++ " from archive in stored pptx file"
+  goldenXMLDoc <- case parseXMLDoc $ fromEntry goldenEntry of
+                  Just doc -> Right doc
+                  Nothing -> Left $
+                    "Can't parse xml in  " ++ fp ++ " from archive in stored pptx file"
 
-testSameXML :: WriterOptions -> FilePath -> FilePath -> TestTree
-testSameXML opts myFp goodFp = testCaseSteps "Comparing extracted xml files" $
-  \step -> do
-    (myBS, goodBS) <- getPptxBytes opts myFp goodFp
-    let myArch = toArchive myBS
-        goodArch = toArchive goodBS
+  let testContent = Elem $ testXMLDoc
+      goldenContent = Elem $ goldenXMLDoc
 
-    let xmlFileList = sort $
-          filter (\fp -> ".xml" `isSuffixOf` fp || ".rels" `isSuffixOf` fp)
-          (filesInArchive myArch)
-    mapM_
-      (\fp -> step ("- " ++ fp) >> compareXMLFile fp myArch goodArch)
-      xmlFileList
+  if (compareXMLBool goldenContent testContent)
+    then Right ()
+    else Left $
+    "Non-matching xml in " ++ fp ++ ":\n" ++ displayDiff testContent goldenContent
 
-testSameMedia :: WriterOptions -> FilePath -> FilePath -> TestTree
-testSameMedia opts myFp goodFp = testCaseSteps "Comparing media files" $
-  \step -> do
-    (myBS, goodBS) <- getPptxBytes opts myFp goodFp
-    let myArch = toArchive myBS
-        goodArch = toArchive goodBS
+compareXMLFile :: FilePath -> Archive -> Archive -> Maybe String
+compareXMLFile fp goldenArch testArch =
+  case compareXMLFile' fp goldenArch testArch of
+    Right _ -> Nothing
+    Left s -> Just s
 
-    let mediaFileList = sort $
-          filter (\fp -> "ppt/media/" `isPrefixOf` fp)
-          (filesInArchive myArch)
+compareAllXMLFiles :: Archive -> Archive -> Maybe String
+compareAllXMLFiles goldenArch testArch =
+  let allFiles = filesInArchive goldenArch `union` filesInArchive testArch
+      allXMLFiles = sort $
+        filter
+        (\fp -> ".xml" `isSuffixOf` fp || ".rels" `isSuffixOf` fp)
+        allFiles
+      results =
+        mapMaybe (\fp -> compareXMLFile fp goldenArch testArch) allXMLFiles
+  in
+    if null results
+    then Nothing
+    else Just $ unlines results
 
-    mapM_
-      (\fp -> step ("- " ++ fp) >> compareBinaryFile fp myArch goodArch)
-      mediaFileList
+compareMediaFile' :: FilePath -> Archive -> Archive -> Either String ()
+compareMediaFile' fp goldenArch testArch = do
+  testEntry <- case findEntryByPath fp testArch of
+                 Just entry -> Right entry
+                 Nothing -> Left $
+                   "Can't extract " ++ fp ++ " from generated archive"
+  goldenEntry <- case findEntryByPath fp goldenArch of
+                 Just entry -> Right entry
+                 Nothing -> Left $
+                   "Can't extract " ++ fp ++ " from archive in stored pptx file"
 
-testCompareWithOpts :: String -> WriterOptions ->FilePath -> FilePath -> TestTree
-testCompareWithOpts testName opts nativeFp pptxFp =
-  testGroup testName [ testSameFileList opts nativeFp pptxFp
-                     , testSameXML opts nativeFp pptxFp
-                     , testSameMedia opts nativeFp pptxFp
-                     ]
+  if (fromEntry testEntry == fromEntry goldenEntry)
+    then Right ()
+    else Left $
+    "Non-matching binary file: " ++ fp
 
+compareMediaFile :: FilePath -> Archive -> Archive -> Maybe String
+compareMediaFile fp goldenArch testArch =
+  case compareMediaFile' fp goldenArch testArch of
+    Right _ -> Nothing
+    Left s -> Just s
 
-testCompare :: String -> FilePath -> FilePath -> TestTree
-testCompare testName nativeFp pptxFp =
-  testCompareWithOpts testName def nativeFp pptxFp
+compareAllMediaFiles :: Archive -> Archive -> Maybe String
+compareAllMediaFiles goldenArch testArch =
+  let allFiles = filesInArchive goldenArch `union` filesInArchive testArch
+      allMediaFiles = sort $
+        filter
+        (\fp -> "/ppt/media/" `isPrefixOf` fp)
+        allFiles
+      results =
+        mapMaybe (\fp -> compareMediaFile fp goldenArch testArch) allMediaFiles
+  in
+    if null results
+    then Nothing
+    else Just $ unlines results
+
+pptxTest :: String -> WriterOptions -> FilePath -> FilePath -> TestTree
+pptxTest testName opts nativeFP goldenFP =
+  goldenTest
+  testName
+  (goldenArchive goldenFP)
+  (testArchive opts nativeFP)
+  (\goldenArch testArch ->
+     let res = catMaybes [ compareFileList goldenFP goldenArch testArch
+                         , compareAllXMLFiles goldenArch testArch
+                         , compareAllMediaFiles goldenArch testArch
+                         ]
+     in return $ if null res then Nothing else Just $ unlines res)
+  (\_ -> updateGoldenFile opts nativeFP goldenFP)
 
 --------------------------------------------------------------
 
 tests :: [TestTree]
-tests = [ testCompare
+tests = [ pptxTest
           "Inline formatting"
+          def
           "pptx/inline_formatting.native"
           "pptx/inline_formatting.pptx"
-        , testCompare
-          "slide breaks (default slide-level)"
+        , pptxTest
+          "Slide breaks (default slide-level)"
+          def
           "pptx/slide_breaks.native"
           "pptx/slide_breaks.pptx"
-        , testCompareWithOpts
+        , pptxTest
           "slide breaks (slide-level set to 1)"
-          def{writerSlideLevel=Just 1}
+          def{ writerSlideLevel = Just 1 }
           "pptx/slide_breaks.native"
           "pptx/slide_breaks_slide_level_1.pptx"
         ]
