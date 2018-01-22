@@ -267,7 +267,7 @@ blockToConTeXt (Table caption aligns widths heads rows) = do
     return $ "\\startplacetable" <> brackets (
       if null caption
         then "location=none"
-        else "caption=" <> braces captionText
+        else "title=" <> braces captionText
       ) $$ body $$ "\\stopplacetable" <> blankline
 
 tableToConTeXt :: PandocMonad m => Tabl -> Doc -> [Doc] -> WM m Doc
