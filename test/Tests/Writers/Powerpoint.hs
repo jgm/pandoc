@@ -30,17 +30,15 @@ compareXMLBool (Elem myElem) (Elem goodElem)
   , (QName "modified" _ (Just "dcterms")) <- elName goodElem =
       True
 compareXMLBool (Elem myElem) (Elem goodElem) =
-  and [ elName myElem == elName goodElem
-      , elAttribs myElem == elAttribs goodElem
-      , and $
-        map (uncurry compareXMLBool) $
-        zip (elContent myElem) (elContent goodElem)
-      ]
+  elName myElem == elName goodElem &&
+  elAttribs myElem == elAttribs goodElem &&
+  and (zipWith compareXMLBool (elContent myElem) (elContent goodElem))
+
 compareXMLBool (Text myCData) (Text goodCData) =
-  and [ cdVerbatim myCData == cdVerbatim goodCData
-      , cdData myCData == cdData goodCData
-      , cdLine myCData == cdLine goodCData
-      ]
+  cdVerbatim myCData == cdVerbatim goodCData &&
+  cdData myCData == cdData goodCData &&
+  cdLine myCData == cdLine goodCData
+
 compareXMLBool (CRef myStr) (CRef goodStr) =
   myStr == goodStr
 compareXMLBool _ _ = False
@@ -102,10 +100,10 @@ compareXMLFile' fp goldenArch testArch = do
                   Nothing -> Left $
                     "Can't parse xml in  " ++ fp ++ " from archive in stored pptx file"
 
-  let testContent = Elem $ testXMLDoc
-      goldenContent = Elem $ goldenXMLDoc
+  let testContent = Elem testXMLDoc
+      goldenContent = Elem goldenXMLDoc
 
-  if (compareXMLBool goldenContent testContent)
+  if compareXMLBool goldenContent testContent
     then Right ()
     else Left $
     "Non-matching xml in " ++ fp ++ ":\n" ++ displayDiff testContent goldenContent
@@ -141,7 +139,7 @@ compareMediaFile' fp goldenArch testArch = do
                  Nothing -> Left $
                    "Can't extract " ++ fp ++ " from archive in stored pptx file"
 
-  if (fromEntry testEntry == fromEntry goldenEntry)
+  if fromEntry testEntry == fromEntry goldenEntry
     then Right ()
     else Left $
     "Non-matching binary file: " ++ fp
