@@ -188,6 +188,8 @@ blockToConTeXt (CodeBlock _ str) =
   return $ flush ("\\starttyping" <> cr <> text str <> cr <> "\\stoptyping") $$ blankline
   -- blankline because \stoptyping can't have anything after it, inc. '}'
 blockToConTeXt (RawBlock "context" str) = return $ text str <> blankline
+blockToConTeXt (RawBlock "latex" str) = return $ text str <> blankline
+blockToConTeXt (RawBlock "tex" str) = return $ text str <> blankline
 blockToConTeXt b@(RawBlock _ _ ) = do
   report $ BlockNotRendered b
   return empty
@@ -399,6 +401,7 @@ inlineToConTeXt (Math InlineMath str) =
 inlineToConTeXt (Math DisplayMath str) =
   return $ text "\\startformula "  <> text str <> text " \\stopformula" <> space
 inlineToConTeXt (RawInline "context" str) = return $ text str
+inlineToConTeXt (RawInline "latex" str) = return $ text str
 inlineToConTeXt (RawInline "tex" str) = return $ text str
 inlineToConTeXt il@(RawInline _ _) = do
   report $ InlineNotRendered il

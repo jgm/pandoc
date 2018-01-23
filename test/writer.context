@@ -703,6 +703,12 @@ These shouldn't be math:
 
 Here's a LaTeX table:
 
+\begin{tabular}{|l|l|}\hline
+Animal & Number \\ \hline
+Dog    & 2      \\
+Cat    & 1      \\ \hline
+\end{tabular}
+
 \thinrule
 
 \section[special-characters]{Special Characters}
