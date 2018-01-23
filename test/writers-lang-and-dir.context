@@ -57,7 +57,7 @@
 
 \starttext
 
-\section[empty-divs-and-spans]{Empty Divs and Spans}
+\section[title={Empty Divs and Spans},reference={empty-divs-and-spans}]
 
 Some text and
 
@@ -67,7 +67,7 @@ and more text.
 
 Next paragraph with a span and a word-thatincludesaspanright?
 
-\section[directionality]{Directionality}
+\section[title={Directionality},reference={directionality}]
 
 Some text and
 
@@ -86,7 +86,7 @@ and a ltr div. with a {\righttoleft rtl span}.
 Next paragraph with a {\righttoleft rtl span} and a
 word-that-includesa{\lefttoright ltrspan}right?
 
-\section[languages]{Languages}
+\section[title={Languages},reference={languages}]
 
 Some text and
 
@@ -102,7 +102,7 @@ word-that-includesa\start\language[de-ch]Swiss German span\stop right?
 
 Some \start\language[es]Spanish text\stop .
 
-\section[combined]{Combined}
+\section[title={Combined},reference={combined}]
 
 Some text and
 

@@ -159,8 +159,9 @@ elementToConTeXt :: PandocMonad m => WriterOptions -> Element -> WM m Doc
 elementToConTeXt _ (Blk block) = blockToConTeXt block
 elementToConTeXt opts (Sec level _ attr title' elements) = do
   header' <- sectionHeader attr level title'
+  footer' <- sectionFooter attr level
   innerContents <- mapM (elementToConTeXt opts) elements
-  return $ vcat (header' : innerContents)
+  return $ header' $$ vcat innerContents $$ footer'
 
 -- | Convert Pandoc block element to ConTeXt.
 blockToConTeXt :: PandocMonad m => Block -> WM m Doc
@@ -485,32 +486,51 @@ sectionHeader :: PandocMonad m
               -> Int
               -> [Inline]
               -> WM m Doc
-sectionHeader (ident,classes,_) hdrLevel lst = do
+sectionHeader (ident,classes,kvs) hdrLevel lst = do
+  opts <- gets stOptions
   contents <- inlineListToConTeXt lst
-  st <- get
-  let opts = stOptions st
+  levelText <- sectionLevelToText opts (ident,classes,kvs) hdrLevel
+  let ident' = if null ident
+               then empty
+               else "reference=" <> braces (text (toLabel ident))
+  let contents' = if contents == empty
+                  then empty
+                  else "title=" <> braces contents
+  let options = if keys == empty || levelText == empty
+                then empty
+                else brackets keys
+        where keys = hcat $ intersperse "," $ filter (empty /=) [contents', ident']
+  let starter = if writerSectionDivs opts
+                then "\\start"
+                else "\\"
+  return $ starter <> levelText <> options <> blankline
+
+-- | Craft the section footer
+sectionFooter :: PandocMonad m => Attr -> Int -> WM m Doc
+sectionFooter attr hdrLevel = do
+  opts <- gets stOptions
+  levelText <- sectionLevelToText opts attr hdrLevel
+  return $ if writerSectionDivs opts
+           then "\\stop" <> levelText <> blankline
+           else empty
+
+-- | Generate a textual representation of the section level
+sectionLevelToText :: PandocMonad m => WriterOptions -> Attr -> Int -> WM m Doc
+sectionLevelToText opts (_,classes,_) hdrLevel = do
   let level' = case writerTopLevelDivision opts of
                  TopLevelPart    -> hdrLevel - 2
                  TopLevelChapter -> hdrLevel - 1
                  TopLevelSection -> hdrLevel
                  TopLevelDefault -> hdrLevel
-  let ident' = if null ident
-                  then empty
-                  else brackets (text (toLabel ident))
   let (section, chapter) = if "unnumbered" `elem` classes
                               then (text "subject", text "title")
                               else (text "section", text "chapter")
   return $ case level' of
-             -1                   -> text "\\part" <> ident' <> braces contents
-             0                    -> char '\\' <> chapter <> ident' <>
-                                           braces contents
-             n | n >= 1 && n <= 5 -> char '\\'
-                                     <> text (concat (replicate (n - 1) "sub"))
+             -1                   -> text "part"
+             0                    -> chapter
+             n | n >= 1 && n <= 5 -> text (concat (replicate (n - 1) "sub"))
                                      <> section
-                                     <> ident'
-                                     <> braces contents
-                                     <> blankline
-             _                    -> contents <> blankline
+             _                    -> empty
 
 fromBCP47 :: PandocMonad m => Maybe String -> WM m (Maybe String)
 fromBCP47 mbs = fromBCP47' <$> toLang mbs
