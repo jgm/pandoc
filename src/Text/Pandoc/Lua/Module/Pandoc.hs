@@ -82,7 +82,7 @@ readDoc content formatSpecOrNil = do
           res <- liftIO $ runIO $ r def{ readerExtensions = es } (pack content)
           case res of
             Right pd -> (1 :: NumResults) <$ Lua.push pd -- success, push Pandoc
-            Left s   -> Lua.raiseError (show s)              -- error while reading
+            Left s   -> Lua.raiseError (show s)          -- error while reading
         _  -> Lua.raiseError "Only string formats are supported at the moment."
 
 -- | Pipes input through a command.

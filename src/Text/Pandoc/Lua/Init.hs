@@ -34,6 +34,7 @@ module Text.Pandoc.Lua.Init
   ) where
 
 import Control.Monad.Trans (MonadIO (..))
+import Data.Data (Data, dataTypeConstrs, dataTypeOf, showConstr)
 import Data.IORef (newIORef, readIORef)
 import Data.Version (Version (versionBranch))
 import Foreign.Lua (Lua, LuaException (..))
@@ -48,6 +49,7 @@ import Text.Pandoc.Lua.Util (loadScriptFromDataDir)
 
 import qualified Foreign.Lua as Lua
 import qualified Foreign.Lua.Module.Text as Lua
+import qualified Text.Pandoc.Definition as Pandoc
 
 -- | Run the lua interpreter, using pandoc's default way of environment
 -- initalization.
@@ -84,3 +86,26 @@ initLuaState luaPkgParams = do
   Lua.setglobal "PANDOC_API_VERSION"
   installPandocPackageSearcher luaPkgParams
   loadScriptFromDataDir (luaPkgDataDir luaPkgParams) "init.lua"
+  putConstructorsInRegistry
+
+putConstructorsInRegistry :: Lua ()
+putConstructorsInRegistry = do
+  Lua.getglobal "pandoc"
+  constrsToReg $ Pandoc.Pandoc mempty mempty
+  constrsToReg $ Pandoc.Str mempty
+  constrsToReg $ Pandoc.Para mempty
+  constrsToReg $ Pandoc.Meta mempty
+  constrsToReg $ Pandoc.MetaList mempty
+  constrsToReg $ Pandoc.Citation mempty mempty mempty Pandoc.AuthorInText 0 0
+  putInReg "Attr"  -- used for Attr type alias
+  Lua.pop 1
+ where
+  constrsToReg :: Data a => a -> Lua ()
+  constrsToReg = mapM_ putInReg . map showConstr . dataTypeConstrs . dataTypeOf
+
+  putInReg :: String -> Lua ()
+  putInReg name = do
+    Lua.push ("pandoc." ++ name) -- name in registry
+    Lua.push name -- in pandoc module
+    Lua.rawget (Lua.nthFromTop 3)
+    Lua.rawset Lua.registryindex

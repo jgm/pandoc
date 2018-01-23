@@ -50,7 +50,7 @@ import Control.Monad (when)
 import Control.Monad.Catch (finally)
 import Data.ByteString.Char8 (unpack)
 import Foreign.Lua (FromLuaStack (..), NumResults, Lua, NumArgs, StackIndex,
-                    ToLuaStack (..), ToHaskellFunction, getglobal')
+                    ToLuaStack (..), ToHaskellFunction)
 import Foreign.Lua.Api (Status, call, pop, rawget, rawgeti, rawset, rawseti)
 import Text.Pandoc.Class (readDataFile, runIOorExplode, setUserDataDir)
 
@@ -131,7 +131,8 @@ class PushViaCall a where
 
 instance PushViaCall (Lua ()) where
   pushViaCall' fn pushArgs num = do
-    getglobal' fn
+    Lua.push fn
+    Lua.rawget (Lua.registryindex)
     pushArgs
     call num 1
 
