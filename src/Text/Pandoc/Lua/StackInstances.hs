@@ -42,8 +42,7 @@ import Foreign.Lua (FromLuaStack (peek), Lua, LuaInteger, LuaNumber, StackIndex,
                     ToLuaStack (push), Type (..), throwLuaError, tryLua)
 import Text.Pandoc.Definition
 import Text.Pandoc.Extensions (Extensions)
-import Text.Pandoc.Lua.Util (adjustIndexBy, getTable, pushViaConstructor,
-                             typeCheck)
+import Text.Pandoc.Lua.Util (getTable, getTag, pushViaConstructor, typeCheck)
 import Text.Pandoc.Options (ReaderOptions (..), TrackChanges)
 import Text.Pandoc.Shared (Element (Blk, Sec), safeRead)
 
@@ -299,14 +298,6 @@ peekInline idx = defineHowTo "get Inline value" $ do
    -- Get the contents of an AST element.
    elementContent :: FromLuaStack a => Lua a
    elementContent = getTable idx "c"
-
-getTag :: StackIndex -> Lua String
-getTag idx = do
-  top <- Lua.gettop
-  hasMT <- Lua.getmetatable idx
-  push "tag"
-  if hasMT then Lua.rawget (-2) else Lua.rawget (idx `adjustIndexBy` 1)
-  peek Lua.stackTop `finally` Lua.settop top
 
 withAttr :: (Attr -> a -> b) -> (LuaAttr, a) -> b
 withAttr f (attributes, x) = f (fromLuaAttr attributes) x

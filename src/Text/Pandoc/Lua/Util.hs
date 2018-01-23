@@ -29,7 +29,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 Lua utility functions.
 -}
 module Text.Pandoc.Lua.Util
-  ( adjustIndexBy
+  ( getTag
   , getTable
   , addValue
   , addFunction
@@ -47,6 +47,7 @@ module Text.Pandoc.Lua.Util
   ) where
 
 import Control.Monad (when)
+import Control.Monad.Catch (finally)
 import Data.ByteString.Char8 (unpack)
 import Foreign.Lua (FromLuaStack (..), NumResults, Lua, NumArgs, StackIndex,
                     ToLuaStack (..), ToHaskellFunction, getglobal')
@@ -163,11 +164,23 @@ loadScriptFromDataDir datadir scriptFile = do
 -- to @require@, the a new loader function was created which then become
 -- garbage. If that function is collected at an inopportune times, i.e. when the
 -- Lua API is called via a function that doesn't allow calling back into Haskell
--- (getraw, setraw, …). The function's finalizer, and the full program, hangs
--- when that happens.
+-- (getraw, setraw, …), then the function's finalizer, and the full program,
+-- will hang.
 dostring' :: String -> Lua Status
 dostring' script = do
   loadRes <- Lua.loadstring script
   if loadRes == Lua.OK
     then Lua.pcall 0 1 Nothing <* Lua.gc Lua.GCCOLLECT 0
     else return loadRes
+
+-- | Get the tag of a value. This is an optimized and specialized version of
+-- @Lua.getfield idx "tag"@. It only checks for the field on the table at index
+-- @idx@ and on its metatable, also ignoring any @__index@ value on the
+-- metatable.
+getTag :: StackIndex -> Lua String
+getTag idx = do
+  top <- Lua.gettop
+  hasMT <- Lua.getmetatable idx
+  push "tag"
+  if hasMT then Lua.rawget (-2) else Lua.rawget (idx `adjustIndexBy` 1)
+  peek Lua.stackTop `finally` Lua.settop top
