@@ -658,8 +658,9 @@ inlineTag :: PandocMonad m
           => (Inlines -> Inlines)
           -> String
           -> MuseParser m (F Inlines)
-inlineTag f s = try $ do
-  res <- parseHtmlContent s inline
+inlineTag f tag = try $ do
+  htmlTag (~== TagOpen tag [])
+  res <- manyTill inline (void $ htmlTag (~== TagClose tag))
   return $ f <$> mconcat res
 
 strongTag :: PandocMonad m => MuseParser m (F Inlines)

@@ -171,6 +171,9 @@ tests =
 
       , "Verbatim tag after text" =: "Foo <verbatim>bar</verbatim>" =?> para "Foo bar"
 
+      -- <em> tag should match with the last </em> tag, not verbatim one
+      , "Nested \"</em>\" inside em tag" =: "<em>foo<verbatim></em></verbatim>bar</em>" =?> para (emph ("foo</em>bar"))
+
       , testGroup "Links"
         [ "Link without description" =:
           "[[https://amusewiki.org/]]" =?>
