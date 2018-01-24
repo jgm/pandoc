@@ -526,11 +526,11 @@ sectionLevelToText opts (_,classes,_) hdrLevel = do
                               then (text "subject", text "title")
                               else (text "section", text "chapter")
   return $ case level' of
-             -1                   -> text "part"
-             0                    -> chapter
-             n | n >= 1 && n <= 5 -> text (concat (replicate (n - 1) "sub"))
-                                     <> section
-             _                    -> empty
+             -1         -> text "part"
+             0          -> chapter
+             n | n >= 1 -> text (concat (replicate (n - 1) "sub"))
+                           <> section
+             _          -> empty -- cannot happen
 
 fromBCP47 :: PandocMonad m => Maybe String -> WM m (Maybe String)
 fromBCP47 mbs = fromBCP47' <$> toLang mbs
