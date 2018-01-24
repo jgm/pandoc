@@ -18,6 +18,9 @@ context' = unpack . purely (writeConTeXt def{ writerWrapText = WrapNone }) . toP
 contextNtb :: (ToPandoc a) => a -> String
 contextNtb = unpack . purely (writeConTeXt def{ writerExtensions = enableExtension Ext_ntb pandocExtensions }) . toPandoc
 
+contextDiv :: (ToPandoc a) => a -> String
+contextDiv = unpack . purely (writeConTeXt def{ writerSectionDivs = True }) . toPandoc
+
 {-
   "my test" =: X =?> Y
 
@@ -48,6 +51,26 @@ tests = [ testGroup "inline code"
         , testGroup "headers"
           [ "level 1" =:
             headerWith ("my-header",[],[]) 1 "My header" =?> "\\section[title={My header},reference={my-header}]"
+          , test contextDiv "section-divs" $
+                   (   headerWith ("header1", [], []) 1 (text "Header1")
+                    <> headerWith ("header2", [], []) 2 (text "Header2")
+                    <> headerWith ("header3", [], []) 3 (text "Header3")
+                    <> headerWith ("header4", [], []) 4 (text "Header4")
+                    <> headerWith ("header5", [], []) 5 (text "Header5")
+                    <> headerWith ("header6", [], []) 6 (text "Header6"))
+                   =?>
+              unlines [ "\\startsection[title={Header1},reference={header1}]\n"
+                      , "\\startsubsection[title={Header2},reference={header2}]\n"
+                      , "\\startsubsubsection[title={Header3},reference={header3}]\n"
+                      , "\\startsubsubsubsection[title={Header4},reference={header4}]\n"
+                      , "\\startsubsubsubsubsection[title={Header5},reference={header5}]\n"
+                      , "\\startsubsubsubsubsubsection[title={Header6},reference={header6}]\n"
+                      , "\\stopsubsubsubsubsubsection\n"
+                      , "\\stopsubsubsubsubsection\n"
+                      , "\\stopsubsubsubsection\n"
+                      , "\\stopsubsubsection\n"
+                      , "\\stopsubsection\n"
+                      , "\\stopsection" ]
           ]
         , testGroup "bullet lists"
           [ "nested" =:
