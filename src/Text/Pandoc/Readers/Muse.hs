@@ -79,7 +79,7 @@ type MuseParser = ParserT String ParserState
 parseMuse :: PandocMonad m => MuseParser m Pandoc
 parseMuse = do
   many directive
-  blocks <- mconcat <$> many block
+  blocks <- mconcat <$> many parseBlock
   eof
   st <- getState
   let doc = runF (do Pandoc _ bs <- B.doc <$> blocks
@@ -187,9 +187,6 @@ parseBlock = do
   trace (take 60 $ show $ B.toList $ runF res defaultParserState)
   return res
 
-block :: PandocMonad m => MuseParser m (F Blocks)
-block = parseBlock <* skipMany blankline
-
 blockElements :: PandocMonad m => MuseParser m (F Blocks)
 blockElements = choice [ mempty <$ blankline
                        , comment
@@ -287,7 +284,7 @@ blockTag :: PandocMonad m
           -> String
           -> MuseParser m (F Blocks)
 blockTag f s = do
-  res <- parseHtmlContent s block
+  res <- parseHtmlContent s parseBlock
   return $ f <$> mconcat res
 
 -- <center> tag is ignored
@@ -304,7 +301,7 @@ quoteTag = withQuoteContext InDoubleQuote $ blockTag B.blockQuote "quote"
 -- <div> tag is supported by Emacs Muse, but not Amusewiki 2.025
 divTag :: PandocMonad m => MuseParser m (F Blocks)
 divTag = do
-  (attrs, content) <- parseHtmlContentWithAttrs "div" block
+  (attrs, content) <- parseHtmlContentWithAttrs "div" parseBlock
   return $ B.divWith attrs <$> mconcat content
 
 verseLine :: PandocMonad m => MuseParser m String
@@ -377,7 +374,7 @@ emacsNoteBlock = try $ do
   return mempty
   where
     blocksTillNote =
-      many1Till block (eof <|> () <$ lookAhead noteMarker)
+      many1Till parseBlock (eof <|> () <$ lookAhead noteMarker)
 
 --
 -- Verse markup
