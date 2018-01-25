@@ -1146,18 +1146,18 @@ inlineToOpenXML' opts (Span (ident,classes,kvs) ils) = do
                               ("w:author", author),
                               ("w:date", date)] x ]
                else return id
-  delmod <- if "insertion" `elem` classes
+  delmod <- if "deletion" `elem` classes
                then do
                  defaultAuthor <- asks envChangesAuthor
                  defaultDate <- asks envChangesDate
                  let author = fromMaybe defaultAuthor (lookup "author" kvs)
                      date   = fromMaybe defaultDate (lookup "date" kvs)
-                 insId <- gets stInsId
-                 modify $ \s -> s{stInsId = insId + 1}
-                 return $ \f -> do
+                 delId <- gets stDelId
+                 modify $ \s -> s{stDelId = delId + 1}
+                 return $ \f -> local (\env->env{envInDel=True}) $ do
                    x <- f
-                   return [mknode "w:ins"
-                           [("w:id", show insId),
+                   return [mknode "w:del"
+                           [("w:id", show delId),
                            ("w:author", author),
                            ("w:date", date)] x]
                else return id
