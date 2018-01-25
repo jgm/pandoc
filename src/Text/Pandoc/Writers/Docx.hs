@@ -47,7 +47,7 @@ import qualified Data.Set as Set
 import qualified Data.Text as T
 import Data.Time.Clock.POSIX
 import Skylighting
-import System.Random (randomR)
+import System.Random (randomR, StdGen, mkStdGen)
 import Text.Pandoc.BCP47 (getLang, renderLang)
 import Text.Pandoc.Class (PandocMonad, report, toLang)
 import qualified Text.Pandoc.Class as P
@@ -132,6 +132,7 @@ data WriterState = WriterState{
        , stTocTitle       :: [Inline]
        , stDynamicParaProps :: Set.Set String
        , stDynamicTextProps :: Set.Set String
+       , stCurId          :: Int
        }
 
 defaultWriterState :: WriterState
@@ -149,6 +150,7 @@ defaultWriterState = WriterState{
       , stTocTitle       = [Str "Table of Contents"]
       , stDynamicParaProps = Set.empty
       , stDynamicTextProps = Set.empty
+      , stCurId          = 20
       }
 
 type WS m = ReaderT WriterEnv (StateT WriterState m)
@@ -642,7 +644,7 @@ baseListId = 1000
 
 mkNumbering :: (PandocMonad m) => [ListMarker] -> m [Element]
 mkNumbering lists = do
-  elts <- mapM mkAbstractNum (ordNub lists)
+  elts <- evalStateT (mapM mkAbstractNum (ordNub lists)) (mkStdGen 1848)
   return $ elts ++ zipWith mkNum lists [baseListId..(baseListId + length lists - 1)]
 
 maxListLevel :: Int
@@ -660,10 +662,11 @@ mkNum marker numid =
               $ mknode "w:startOverride" [("w:val",show start)] ())
                 [0..maxListLevel]
 
-mkAbstractNum :: (PandocMonad m) => ListMarker -> m Element
+mkAbstractNum :: (PandocMonad m) => ListMarker -> StateT StdGen m Element
 mkAbstractNum marker = do
-  gen <- P.newStdGen
-  let (nsid, _) = randomR (0x10000000 :: Integer, 0xFFFFFFFF :: Integer) gen
+  gen <- get
+  let (nsid, gen') = randomR (0x10000000 :: Integer, 0xFFFFFFFF :: Integer) gen
+  put gen'
   return $ mknode "w:abstractNum" [("w:abstractNumId",listMarkerToId marker)]
     $ mknode "w:nsid" [("w:val", printf "%8x" nsid)] ()
     : mknode "w:multiLevelType" [("w:val","multilevel")] ()
@@ -822,10 +825,13 @@ rStyleM styleName = do
   let sty' = getStyleId styleName $ sCharStyleMap styleMaps
   return $ mknode "w:rStyle" [("w:val",sty')] ()
 
-getUniqueId :: (PandocMonad m) => m String
+getUniqueId :: (PandocMonad m) => WS m String
 -- the + 20 is to ensure that there are no clashes with the rIds
 -- already in word/document.xml.rel
-getUniqueId = (show . (+ 20)) <$> P.newUniqueHash
+getUniqueId = do
+  n <- gets stCurId
+  modify $ \st -> st{stCurId = n + 1}
+  return $ show n
 
 -- | Key for specifying user-defined docx styles.
 dynamicStyleKey :: String
@@ -1232,7 +1238,7 @@ inlineToOpenXML' opts (Code attrs str) = do
                       unhighlighted
 inlineToOpenXML' opts (Note bs) = do
   notes <- gets stFootnotes
-  notenum <- (lift . lift) getUniqueId
+  notenum <- getUniqueId
   footnoteStyle <- rStyleM "Footnote Reference"
   let notemarker = mknode "w:r" []
                    [ mknode "w:rPr" [] footnoteStyle
@@ -1263,7 +1269,7 @@ inlineToOpenXML' opts (Link _ txt (src,_)) = do
   id' <- case M.lookup src extlinks of
             Just i   -> return i
             Nothing  -> do
-              i <- ("rId"++) `fmap` (lift . lift) getUniqueId
+              i <- ("rId"++) `fmap` getUniqueId
               modify $ \st -> st{ stExternalLinks =
                         M.insert src i extlinks }
               return i
@@ -1277,7 +1283,7 @@ inlineToOpenXML' opts (Image attr alt (src, title)) = do
     Nothing ->
       catchError
       (do (img, mt) <- P.fetchItem src
-          ident <- ("rId"++) `fmap` (lift . lift) getUniqueId
+          ident <- ("rId"++) `fmap` getUniqueId
           let (xpt,ypt) = desiredSizeInPoints opts attr
                  (either (const def) id (imageSize opts img))
           -- 12700 emu = 1 pt
