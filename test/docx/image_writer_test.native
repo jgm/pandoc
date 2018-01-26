@@ -1,0 +1,5 @@
+Pandoc (Meta {unMeta = fromList []})
+[Para [Image ("",[],[]) [] ("lalune.jpg","")]
+,Para [Image ("",[],[]) [Str "The",Space,Str "Moon"] ("lalune.jpg","fig:")]
+,Header 1 ("one-more",[],[]) [Str "One",Space,Str "More"]
+,Para [Image ("",[],[]) [Str "The",Space,Str "Moon"] ("lalune.jpg","fig:")]]

@@ -1,161 +1,147 @@
 module Tests.Writers.Docx (tests) where
 
-import qualified Data.ByteString as BS
-import System.FilePath ((</>))
-import System.IO.Unsafe (unsafePerformIO)
+import Text.Pandoc
 import Test.Tasty
-import Tests.Helpers
-import Text.Pandoc.Class (runIOorExplode, setUserDataDir)
-import Text.Pandoc.Definition
-import Text.Pandoc.Options
-import Text.Pandoc.Readers.Docx
-import Text.Pandoc.Readers.Native
-import qualified Text.Pandoc.UTF8 as UTF8
-import Text.Pandoc.Walk
-import Text.Pandoc.Writers.Docx
+import Tests.Writers.OOXML
+import Test.Tasty.HUnit
+import Data.List (isPrefixOf)
 
-type Options = (WriterOptions, ReaderOptions)
-
-compareOutput :: Options
-              -> FilePath
-              -> FilePath
-              -> IO (Pandoc, Pandoc)
-compareOutput (wopts, ropts) nativeFileIn nativeFileOut = do
-  nf <- UTF8.toText <$> BS.readFile nativeFileIn
-  nf' <- UTF8.toText <$> BS.readFile nativeFileOut
-  runIOorExplode $ do
-    setUserDataDir $ Just (".." </> "data")
-    roundtripped <- readNative def nf >>=
-            writeDocx wopts >>= readDocx ropts
-    orig <- readNative def nf'
-    return (walk fixImages roundtripped, walk fixImages orig)
-
--- make all image filenames "image", since otherwise round-trip
--- tests fail because of different behavior of Data.Unique in
--- different ghc versions...
-fixImages :: Inline -> Inline
-fixImages (Image attr alt (_,tit)) = Image attr alt ("image",tit)
-fixImages x                        = x
-
-testCompareWithOptsIO :: Options -> String -> FilePath -> FilePath -> IO TestTree
-testCompareWithOptsIO opts name nativeFileIn nativeFileOut = do
-  (dp, np) <- compareOutput opts nativeFileIn nativeFileOut
-  return $ test id name (dp, np)
-
-testCompareWithOpts :: Options -> String -> FilePath -> FilePath -> TestTree
-testCompareWithOpts opts name nativeFileIn nativeFileOut =
-  unsafePerformIO $ testCompareWithOptsIO opts name nativeFileIn nativeFileOut
-
-roundTripCompareWithOpts :: Options -> String -> FilePath -> TestTree
-roundTripCompareWithOpts opts name nativeFile =
-  testCompareWithOpts opts name nativeFile nativeFile
-
--- testCompare :: String -> FilePath -> FilePath -> TestTree
--- testCompare = testCompareWithOpts def
-
-roundTripCompare :: String -> FilePath -> TestTree
-roundTripCompare = roundTripCompareWithOpts def
+-- we add an extra check to make sure that we're not writing in the
+-- toplevel docx directory. We don't want to accidentally overwrite an
+-- Word-generated docx file used to test the reader.
+docxTest :: String -> WriterOptions -> FilePath -> FilePath -> TestTree
+docxTest testName opts nativeFP goldenFP =
+  if "docx/golden/" `isPrefixOf` goldenFP
+  then ooxmlTest writeDocx testName opts nativeFP goldenFP
+  else testCase testName $
+       assertFailure $
+       goldenFP ++ " is not in `test/docx/golden`"
 
 tests :: [TestTree]
 tests = [ testGroup "inlines"
-          [ roundTripCompare
+          [ docxTest
             "font formatting"
-            "docx/inline_formatting_writer.native"
-          , roundTripCompare
-            "font formatting with character styles"
-            "docx/char_styles.native"
-          , roundTripCompare
+            def
+            "docx/inline_formatting.native"
+            "docx/golden/inline_formatting.docx"
+          , docxTest
             "hyperlinks"
-            "docx/links_writer.native"
-          , roundTripCompare
+            def
+            "docx/links.native"
+            "docx/golden/links.docx"
+          , docxTest
             "inline image"
-            "docx/image_no_embed_writer.native"
-          , roundTripCompare
-            "inline image in links"
-            "docx/inline_images_writer.native"
-          , roundTripCompare
+            def
+            "docx/image_writer_test.native"
+            "docx/golden/image.docx"
+          , docxTest
+            "inline images"
+            def
+            "docx/inline_images_writer_test.native"
+            "docx/golden/inline_images.docx"
+          , docxTest
             "handling unicode input"
+            def
             "docx/unicode.native"
-          , roundTripCompare
-            "literal tabs"
-            "docx/tabs.native"
-          , roundTripCompare
-            "normalizing inlines"
-            "docx/normalize.native"
-          , roundTripCompare
-            "normalizing inlines deep inside blocks"
-            "docx/deep_normalize.native"
-          , roundTripCompare
-            "move trailing spaces outside of formatting"
-            "docx/trailing_spaces_in_formatting.native"
-          , roundTripCompare
-            "inline code (with VerbatimChar style)"
+            "docx/golden/unicode.docx"
+          , docxTest
+            "inline code"
+            def
             "docx/inline_code.native"
-          , roundTripCompare
+            "docx/golden/inline_code.docx"
+          , docxTest
             "inline code in subscript and superscript"
+            def
             "docx/verbatim_subsuper.native"
+            "docx/golden/verbatim_subsuper.docx"
           ]
         , testGroup "blocks"
-          [ roundTripCompare
+          [ docxTest
             "headers"
+            def
             "docx/headers.native"
-          , roundTripCompare
-            "headers already having auto identifiers"
-            "docx/already_auto_ident.native"
-          , roundTripCompare
-            "numbered headers automatically made into list"
-            "docx/numbered_header.native"
-          , roundTripCompare
-            "i18n blocks (headers and blockquotes)"
-            "docx/i18n_blocks.native"
-          -- Continuation does not survive round-trip
-          , roundTripCompare
+            "docx/golden/headers.docx"
+          , docxTest
+            "nested anchor spans in header"
+            def
+            "docx/nested_anchors_in_header.native"
+            "docx/golden/nested_anchors_in_header.docx"
+          , docxTest
             "lists"
-            "docx/lists_writer.native"
-          , roundTripCompare
+            def
+            "docx/lists.native"
+            "docx/golden/lists.docx"
+          , docxTest
+            "lists continuing after interruption"
+            def
+            "docx/lists_continuing.native"
+            "docx/golden/lists_continuing.docx"
+          , docxTest
+            "lists restarting after interruption"
+            def
+            "docx/lists_restarting.native"
+            "docx/golden/lists_restarting.docx"
+          , docxTest
             "definition lists"
+            def
             "docx/definition_list.native"
-          , roundTripCompare
-            "custom defined lists in styles"
-            "docx/german_styled_lists.native"
-          , roundTripCompare
+            "docx/golden/definition_list.docx"
+          , docxTest
             "footnotes and endnotes"
+            def
             "docx/notes.native"
-          , roundTripCompare
-            "blockquotes (parsing indent as blockquote)"
+            "docx/golden/notes.docx"
+          , docxTest
+            "links in footnotes and endnotes"
+            def
+            "docx/link_in_notes.native"
+            "docx/golden/link_in_notes.docx"
+          , docxTest
+            "blockquotes"
+            def
             "docx/block_quotes_parse_indent.native"
-          , roundTripCompare
-            "hanging indents"
-            "docx/hanging_indent.native"
-          -- tables headers do not survive round-trip, should look into that
-          , roundTripCompare
+            "docx/golden/block_quotes.docx"
+          , docxTest
             "tables"
+            def
             "docx/tables.native"
-          , roundTripCompare
+            "docx/golden/tables.docx"
+          , docxTest
             "tables with lists in cells"
+            def
             "docx/table_with_list_cell.native"
-          , roundTripCompare
+            "docx/golden/table_with_list_cell.docx"
+          , docxTest
+            "tables with one row"
+            def
+            "docx/table_one_row.native"
+            "docx/golden/table_one_row.docx"
+          , docxTest
             "code block"
+            def
             "docx/codeblock.native"
-          , roundTripCompare
-            "dropcap paragraphs"
-            "docx/drop_cap.native"
+            "docx/golden/codeblock.docx"
           ]
-        , testGroup "metadata"
-          [ roundTripCompareWithOpts (def,def{readerStandalone=True})
-            "metadata fields"
-            "docx/metadata.native"
-          , roundTripCompareWithOpts (def,def{readerStandalone=True})
-            "stop recording metadata with normal text"
-            "docx/metadata_after_normal.native"
+        , testGroup "track changes"
+          [ docxTest
+            "insertion"
+            def
+            "docx/track_changes_insertion_all.native"
+            "docx/golden/track_changes_insertion.docx"
+          , docxTest
+            "deletion"
+            def
+            "docx/track_changes_deletion_all.native"
+            "docx/golden/track_changes_deletion.docx"
+          , docxTest
+            "move text"
+            def
+            "docx/track_changes_move_all.native"
+            "docx/golden/track_changes_move.docx"
+          , docxTest
+            "comments"
+            def
+            "docx/comments.native"
+            "docx/golden/comments.docx"
           ]
-        , testGroup "customized styles"
-          [ testCompareWithOpts
-            ( def{writerReferenceDoc=Just "docx/custom-style-reference.docx"}
-            , def)
-            "simple customized blocks and inlines"
-            "docx/custom-style-roundtrip-start.native"
-            "docx/custom-style-roundtrip-end.native"
-          ]
-
         ]
