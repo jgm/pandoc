@@ -65,7 +65,7 @@ tags. These are used to indicate the *complexity* and *nature* of a
 bug. There is not yet a way to indicate priority. An up to date
 summary of issues can be found on [GitHub labels].
 
-* [beginner-friendly] — The perfect starting point for new contributors. The
+* [good first issue] — The perfect starting point for new contributors. The
   issue is generic and can be resolved without deep knowledge of the code
   base.
 * [enhancement] — A feature which would be desirable. We recommend
@@ -314,7 +314,7 @@ The library is structured as follows:
 [Haskell platform]: http://www.haskell.org/platform/
 [hsb2hs]: http://hackage.haskell.org/package/hsb2hs
 [GitHub labels]: https://github.com/jgm/pandoc/labels
-[beginner-friendly]: https://github.com/jgm/pandoc/labels/beginner-friendly
+[good first issue]:https://github.com/jgm/pandoc/labels/good%20first%20issue
 [enhancement]: https://github.com/jgm/pandoc/labels/enhancement
 [bug]: https://github.com/jgm/pandoc/labels/bug
 [complexity:low]: https://github.com/jgm/pandoc/labels/complexity:low
