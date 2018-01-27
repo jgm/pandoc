@@ -1104,15 +1104,23 @@ inlineToOpenXML' _ (Str str) =
 inlineToOpenXML' opts Space = inlineToOpenXML opts (Str " ")
 inlineToOpenXML' opts SoftBreak = inlineToOpenXML opts (Str " ")
 inlineToOpenXML' _ (Span (ident,["comment-start"],kvs) ils) = do
-  modify $ \st -> st{ stComments = (("id",ident):kvs, ils) : stComments st }
-  return [ mknode "w:commentRangeStart" [("w:id", ident)] () ]
-inlineToOpenXML' _ (Span (ident,["comment-end"],_) _) =
-  return [ mknode "w:commentRangeEnd" [("w:id", ident)] ()
-       , mknode "w:r" []
-         [ mknode "w:rPr" []
-           [ mknode "w:rStyle" [("w:val", "CommentReference")] () ]
-         , mknode "w:commentReference" [("w:id", ident)] () ]
-       ]
+  -- prefer the "id" in kvs, since that is the one produced by the docx
+  -- reader.
+  let ident' = fromMaybe ident (lookup "id" kvs)
+      kvs' = filter (("id" /=) . fst) kvs
+  modify $ \st -> st{ stComments = (("id",ident'):kvs', ils) : stComments st }
+  return [ mknode "w:commentRangeStart" [("w:id", ident')] () ]
+inlineToOpenXML' _ (Span (ident,["comment-end"],kvs) _) =
+  -- prefer the "id" in kvs, since that is the one produced by the docx
+  -- reader.
+  let ident' = fromMaybe ident (lookup "id" kvs)
+  in
+    return [ mknode "w:commentRangeEnd" [("w:id", ident')] ()
+           , mknode "w:r" []
+             [ mknode "w:rPr" []
+               [ mknode "w:rStyle" [("w:val", "CommentReference")] () ]
+             , mknode "w:commentReference" [("w:id", ident')] () ]
+           ]
 inlineToOpenXML' opts (Span (ident,classes,kvs) ils) = do
   stylemod <- case lookup dynamicStyleKey kvs of
                    Just sty -> do
