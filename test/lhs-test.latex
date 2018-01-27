@@ -34,9 +34,10 @@
 \urlstyle{same}  % don't use monospace font for urls
 \usepackage{color}
 \usepackage{fancyvrb}
+\usepackage{fvextra}
 \newcommand{\VerbBar}{|}
 \newcommand{\VERB}{\Verb[commandchars=\\\{\}]}
-\DefineVerbatimEnvironment{Highlighting}{Verbatim}{commandchars=\\\{\}}
+\DefineVerbatimEnvironment{Highlighting}{Verbatim}{breaklines,commandchars=\\\{\}}
 % Add ',fontsize=\small' for more characters per line
 \newenvironment{Shaded}{}{}
 \newcommand{\AlertTok}[1]{\textcolor[rgb]{1.00,0.00,0.00}{\textbf{#1}}}
