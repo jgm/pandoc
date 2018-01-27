@@ -592,7 +592,7 @@ inlineList = [ whitespace
              ]
 
 inline :: PandocMonad m => MuseParser m (F Inlines)
-inline = choice [endline, linebreak] <|> choice inlineList <?> "inline"
+inline = endline <|> choice inlineList <?> "inline"
 
 endline :: PandocMonad m => MuseParser m (F Inlines)
 endline = try $ do
@@ -625,13 +625,6 @@ footnote = try $ do
         st <- askF
         let contents' = runF contents st { stateNotes' = M.empty }
         return $ B.note contents'
-
-linebreak :: PandocMonad m => MuseParser m (F Inlines)
-linebreak = try $ do
-  skipMany spaceChar
-  newline
-  notFollowedBy newline
-  return $ return B.space
 
 whitespace :: PandocMonad m => MuseParser m (F Inlines)
 whitespace = try $ do

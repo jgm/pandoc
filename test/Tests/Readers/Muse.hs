@@ -119,6 +119,12 @@ tests =
 
       , "Linebreak" =: "Line <br>  break" =?> para ("Line" <> linebreak <> "break")
 
+      , "Trailing whitespace inside paragraph" =:
+        T.unlines [ "First line " -- trailing whitespace here
+                  , "second line"
+                  ]
+        =?> para "First line\nsecond line"
+
       , "Non-breaking space" =: "Foo~~bar" =?> para "Foo\160bar"
       , "Single ~" =: "Foo~bar" =?> para "Foo~bar"
 
