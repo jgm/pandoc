@@ -211,7 +211,7 @@ When using LaTeX, the following packages need to be available
 (they are included with all recent versions of [TeX Live]):
 [`amsfonts`], [`amsmath`], [`lm`], [`unicode-math`],
 [`ifxetex`], [`ifluatex`], [`listings`] (if the
-`--listings` option is used), [`fancyvrb`], [`longtable`],
+`--listings` option is used), [`fancyvrb`], [`fvextra`], [`longtable`],
 [`booktabs`], [`graphicx`] and [`grffile`] (if the document
 contains images), [`hyperref`], [`xcolor`] (with `colorlinks`),
 [`ulem`], [`geometry`] (with the `geometry` variable set),
@@ -234,6 +234,7 @@ optionally be used for [citation rendering].
 [`ifluatex`]: https://ctan.org/pkg/ifluatex
 [`listings`]: https://ctan.org/pkg/listings
 [`fancyvrb`]: https://ctan.org/pkg/fancyvrb
+[`fvextra`]: https://ctan.org/pkg/fvextra
 [`longtable`]: https://ctan.org/pkg/longtable
 [`booktabs`]: https://ctan.org/pkg/booktabs
 [`graphicx`]: https://ctan.org/pkg/graphicx
