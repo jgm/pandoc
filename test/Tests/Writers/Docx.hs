@@ -144,4 +144,14 @@ tests = [ testGroup "inlines"
             "docx/comments.native"
             "docx/golden/comments.docx"
           ]
+        , testGroup "custom styles"
+          [ docxTest "custom styles without reference.docx"
+            def
+            "docx/custom_style.native"
+            "docx/golden/custom_style_no_reference.docx"
+          , docxTest "custom styles without reference.docx"
+            def{writerReferenceDoc = Just "docx/custom-style-reference.docx"}
+            "docx/custom_style.native"
+            "docx/golden/custom_style_reference.docx"
+          ]
         ]
