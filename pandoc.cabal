@@ -299,6 +299,7 @@ extra-source-files:
                  test/fb2/test-small.png
                  test/fb2/test.jpg
                  test/docx/*.docx
+                 test/docx/golden/*.docx
                  test/docx/*.native
                  test/epub/*.epub
                  test/epub/*.native
