@@ -149,7 +149,7 @@ tests = [ testGroup "inlines"
             def
             "docx/custom_style.native"
             "docx/golden/custom_style_no_reference.docx"
-          , docxTest "custom styles without reference.docx"
+          , docxTest "custom styles with reference.docx"
             def{writerReferenceDoc = Just "docx/custom-style-reference.docx"}
             "docx/custom_style.native"
             "docx/golden/custom_style_reference.docx"
