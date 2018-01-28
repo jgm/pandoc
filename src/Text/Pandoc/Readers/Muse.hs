@@ -302,17 +302,17 @@ divTag = do
   (attrs, content) <- parseHtmlContentWithAttrs "div" parseBlock
   return $ B.divWith attrs <$> mconcat content
 
-verseLine :: PandocMonad m => MuseParser m String
+verseLine :: PandocMonad m => MuseParser m (F Inlines)
 verseLine = do
   line <- anyLine <|> many1Till anyChar eof
   let (white, rest) = span (== ' ') line
-  return $ replicate (length white) '\160' ++ rest
+  let s = replicate (length white) '\160' ++ rest
+  parseFromString' (trimInlinesF . mconcat <$> many inline) s
 
 verseLines :: PandocMonad m => MuseParser m (F Blocks)
 verseLines = do
   lns <- many verseLine
-  lns' <- mapM (parseFromString' (trimInlinesF . mconcat <$> many inline)) lns
-  return $ B.lineBlock <$> sequence lns'
+  return $ B.lineBlock <$> sequence lns
 
 verseTag :: PandocMonad m => MuseParser m (F Blocks)
 verseTag = do
