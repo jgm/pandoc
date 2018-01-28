@@ -157,16 +157,14 @@ parseEmacsDirective = do
 parseAmuseDirective :: PandocMonad m => MuseParser m (String, F Inlines)
 parseAmuseDirective = do
   key <- parseDirectiveKey
-  space
-  spaces
-  first <- manyTill anyChar eol
-  rest <- manyTill anyLine endOfDirective
+  many1 spaceChar
+  value <- trimInlinesF . mconcat <$> many1Till inline endOfDirective
   many blankline
-  value <- parseFromString (trimInlinesF . mconcat <$> many inline) $ unlines (first : rest)
   return (key, value)
   where
-    endOfDirective = lookAhead $ endOfInput <|> try (void blankline) <|> try (void parseDirectiveKey)
-    endOfInput     = try $ skipMany blankline >> skipSpaces >> eof
+    endOfDirective = lookAhead $ try (eof <|>
+                                      void (newline >> blankline) <|>
+                                      void (newline >> parseDirectiveKey))
 
 directive :: PandocMonad m => MuseParser m ()
 directive = do
