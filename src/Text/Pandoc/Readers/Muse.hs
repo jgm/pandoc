@@ -319,7 +319,7 @@ verseTag = do
   parseFromString verseLines (intercalate "\n" $ dropSpacePrefix $ splitOn "\n" $ lchop content)
 
 commentTag :: PandocMonad m => MuseParser m (F Blocks)
-commentTag = parseHtmlContent "comment" anyChar >> return mempty
+commentTag = htmlElement "comment" >> return mempty
 
 -- Indented paragraph is either center, right or quote
 para :: PandocMonad m => MuseParser m (F Blocks)
@@ -679,9 +679,7 @@ strikeoutTag :: PandocMonad m => MuseParser m (F Inlines)
 strikeoutTag = inlineTag B.strikeout "del"
 
 verbatimTag :: PandocMonad m => MuseParser m (F Inlines)
-verbatimTag = do
-  content <- parseHtmlContent "verbatim" anyChar
-  return $ return $ B.text content
+verbatimTag = return . B.text . snd <$> htmlElement "verbatim"
 
 nbsp :: PandocMonad m => MuseParser m (F Inlines)
 nbsp = try $ do
