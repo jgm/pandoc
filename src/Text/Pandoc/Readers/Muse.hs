@@ -704,8 +704,7 @@ codeTag = do
 inlineLiteralTag :: PandocMonad m => MuseParser m (F Inlines)
 inlineLiteralTag = do
   guardDisabled Ext_amuse -- Text::Amuse does not support <literal>
-  (attrs, content) <- parseHtmlContentWithAttrs "literal" anyChar
-  return $ return $ rawInline (attrs, content)
+  (return . rawInline) <$> htmlElement "literal"
   where
     -- FIXME: Emacs Muse inserts <literal> without style into all output formats, but we assume HTML
     format (_, _, kvs)        = fromMaybe "html" $ lookup "style" kvs
