@@ -110,18 +110,15 @@ htmlAttrToPandoc attrs = (ident, classes, keyvals)
     classes = maybe [] words $ lookup "class" attrs
     keyvals = [(k,v) | (k,v) <- attrs, k /= "id" && k /= "class"]
 
-parseHtmlContentWithAttrs :: PandocMonad m
-                          => String -> MuseParser m a -> MuseParser m (Attr, [a])
-parseHtmlContentWithAttrs tag parser = do
+parseHtmlContent :: PandocMonad m
+                 => String -> MuseParser m (Attr, F Blocks)
+parseHtmlContent tag = do
   (attr, content) <- htmlElement tag
   parsedContent <- parseContent (content ++ "\n")
-  return (attr, parsedContent)
+  return (attr, mconcat parsedContent)
   where
-    parseContent = parseFromString $ manyTill parser endOfContent
+    parseContent = parseFromString $ manyTill parseBlock endOfContent
     endOfContent = try $ skipMany blankline >> skipSpaces >> eof
-
-parseHtmlContent :: PandocMonad m => String -> MuseParser m a -> MuseParser m [a]
-parseHtmlContent tag p = fmap snd (parseHtmlContentWithAttrs tag p)
 
 commonPrefix :: String -> String -> String
 commonPrefix _ [] = []
@@ -277,30 +274,24 @@ literal = do
     format (_, _, kvs)        = fromMaybe "html" $ lookup "style" kvs
     rawBlock (attrs, content) = B.rawBlock (format attrs) $ chop content
 
-blockTag :: PandocMonad m
-          => (Blocks -> Blocks)
-          -> String
-          -> MuseParser m (F Blocks)
-blockTag f s = do
-  res <- parseHtmlContent s parseBlock
-  return $ f <$> mconcat res
-
 -- <center> tag is ignored
 centerTag :: PandocMonad m => MuseParser m (F Blocks)
-centerTag = blockTag id "center"
+centerTag = snd <$> parseHtmlContent "center"
 
 -- <right> tag is ignored
 rightTag :: PandocMonad m => MuseParser m (F Blocks)
-rightTag = blockTag id "right"
+rightTag = snd <$> parseHtmlContent "right"
 
 quoteTag :: PandocMonad m => MuseParser m (F Blocks)
-quoteTag = withQuoteContext InDoubleQuote $ blockTag B.blockQuote "quote"
+quoteTag = do
+  res <- snd <$> withQuoteContext InDoubleQuote (parseHtmlContent "quote")
+  return $ B.blockQuote <$> res
 
 -- <div> tag is supported by Emacs Muse, but not Amusewiki 2.025
 divTag :: PandocMonad m => MuseParser m (F Blocks)
 divTag = do
-  (attrs, content) <- parseHtmlContentWithAttrs "div" parseBlock
-  return $ B.divWith attrs <$> mconcat content
+  (attrs, content) <- parseHtmlContent "div"
+  return $ B.divWith attrs <$> content
 
 verseLine :: PandocMonad m => MuseParser m (F Inlines)
 verseLine = do
