@@ -290,7 +290,8 @@ conditionalEscapeString :: String -> String
 conditionalEscapeString s =
   if any (`elem` ("#*<=>[]|" :: String)) s ||
      "::" `isInfixOf` s ||
-     "----" `isInfixOf` s
+     "----" `isInfixOf` s ||
+     "~~" `isInfixOf` s
     then escapeString s
     else s
 

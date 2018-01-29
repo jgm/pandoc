@@ -251,6 +251,7 @@ tests = [ testGroup "block elements"
             ]
           , "horizontal rule" =: horizontalRule =?> "----"
           , "escape horizontal rule" =: para (text "----") =?> "<verbatim>----</verbatim>"
+          , "escape nonbreaking space" =: para (text "~~") =?> "<verbatim>~~</verbatim>"
           , testGroup "tables"
             [ "table without header" =:
               let rows = [[para $ text "Para 1.1", para $ text "Para 1.2"]
