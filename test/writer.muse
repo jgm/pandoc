@@ -520,7 +520,7 @@ Ellipses…and…and….
  - 223
  - <em>p</em>-Tree
  - Here’s some display math:
-   <verse><verbatim>$$\frac{d}{dx}f(x)=\lim_{h\to 0}\frac{f(x+h)-f(x)}{h}$$</verbatim></verse>
+   <verbatim>$$\frac{d}{dx}f(x)=\lim_{h\to 0}\frac{f(x+h)-f(x)}{h}$$</verbatim>
  - Here’s one that has a line break in it:
    <em>α</em> + <em>ω</em> × <em>x</em><sup>2</sup>.
 

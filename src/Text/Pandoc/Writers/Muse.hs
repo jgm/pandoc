@@ -363,11 +363,8 @@ inlineToMuse (Quoted DoubleQuote lst) = do
 inlineToMuse (Cite _  lst) = inlineListToMuse lst
 inlineToMuse (Code _ str) = return $
   "<code>" <> text (substitute "</code>" "<</code><code>/code>" str) <> "</code>"
-inlineToMuse (Math InlineMath str) =
-  lift (texMathToInlines InlineMath str) >>= inlineListToMuse
-inlineToMuse (Math DisplayMath str) = do
-  contents <- lift (texMathToInlines DisplayMath str) >>= inlineListToMuse
-  return $ "<verse>" <> contents <> "</verse>" <> blankline
+inlineToMuse (Math t str) =
+  lift (texMathToInlines t str) >>= inlineListToMuse
 inlineToMuse (RawInline (Format f) str) =
   return $ "<literal style=\"" <> text f <> "\">" <> text str <> "</literal>"
 inlineToMuse LineBreak = return $ "<br>" <> cr
