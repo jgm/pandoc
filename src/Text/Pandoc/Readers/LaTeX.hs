@@ -665,7 +665,7 @@ dosiunitx = do
   skipopts
   value <- tok
   valueprefix <- option "" $ bracketed tok
-  unit <- tok
+  unit <- inlineCommand' <|> tok
   let emptyOr160 "" = ""
       emptyOr160 _  = "\160"
   return . mconcat $ [valueprefix,
@@ -673,6 +673,12 @@ dosiunitx = do
                       value,
                       emptyOr160 unit,
                       unit]
+
+-- siunitx's \square command
+dosquare :: PandocMonad m => LP m Inlines
+dosquare = do
+  unit <- inlineCommand' <|> tok
+  return . mconcat $ [unit, "\178"]
 
 lit :: String -> LP m Inlines
 lit = pure . str
@@ -1467,6 +1473,13 @@ inlineCommands = M.union inlineLanguageCommands $ M.fromList
   , ("acsp", doAcronymPlural "abbrv")
   -- siuntix
   , ("SI", dosiunitx)
+  -- units of siuntix
+  , ("celsius", lit "°C")
+  , ("degreeCelsius", lit "°C")
+  , ("gram", lit "g")
+  , ("meter", lit "m")
+  , ("milli", lit "m")
+  , ("square", dosquare)
   -- hyphenat
   , ("bshyp", lit "\\\173")
   , ("fshyp", lit "/\173")
