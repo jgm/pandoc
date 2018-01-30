@@ -240,25 +240,32 @@ gridTable :: Monad m
           -> [[[Block]]]
           -> m Doc
 gridTable opts blocksToDoc headless aligns widths headers rows = do
+  -- the number of columns will be used in case of even widths
   let numcols = maximum (length aligns : length widths :
                            map length (headers:rows))
+  -- handleGivenWidths wraps the given blocks in order for them to fit
+  -- in cells with given widths. the returned content can be
+  -- concatenated with borders and frames
   let handleGivenWidths widths' = do
         let widthsInChars' = map (
                       (\x -> if x < 1 then 1 else x) .
                       (\x -> x - 3) . floor .
                       (fromIntegral (writerColumns opts) *)
                       ) widths'
-        rawHeaders' <- zipWithM blocksToDoc
-            (map (\w -> opts{writerColumns =
-                      min (w - 2) (writerColumns opts)}) widthsInChars')
-            headers
+            -- replace page width (in columns) in the options with a
+            -- given width if smaller (adjusting by two)
+            useWidth w = opts{writerColumns = min (w - 2) (writerColumns opts)}
+            -- prepare options to use with header and row cells
+            columnOptions = map useWidth widthsInChars'
+        rawHeaders' <- zipWithM blocksToDoc columnOptions headers
         rawRows' <- mapM
-             (\cs -> zipWithM blocksToDoc
-               (map (\w -> opts{writerColumns =
-                         min (w - 2) (writerColumns opts)}) widthsInChars')
-               cs)
+             (\cs -> zipWithM blocksToDoc columnOptions cs)
              rows
         return (widthsInChars', rawHeaders', rawRows')
+  -- handleZeroWidths tries to wrap cells to the page width thus
+  -- leaving the content an wide as possible. if the resulting table
+  -- would be wider than the page width, it calculates even widths and
+  -- passes the content to handleGivenWidths
   let handleZeroWidths = do
         rawHeaders' <- mapM (blocksToDoc opts) headers
         rawRows' <- mapM (mapM (blocksToDoc opts)) rows
@@ -271,6 +278,8 @@ gridTable opts blocksToDoc headless aligns widths headers rows = do
                 handleGivenWidths
                   (replicate numcols (1.0 / fromIntegral numcols) :: [Double])
            else return (widthsInChars', rawHeaders', rawRows')
+  -- gridTable uses given widths when there is any, falling back to
+  -- even widths
   (widthsInChars, rawHeaders, rawRows) <- if all (== 0) widths
                                              then handleZeroWidths
                                              else handleGivenWidths widths
