@@ -42,9 +42,11 @@ module Text.Pandoc.Readers.Muse (readMuse) where
 import Control.Monad
 import Control.Monad.Except (throwError)
 import Data.Char (isLetter)
+import Data.Default
 import Data.List (stripPrefix, intercalate)
 import Data.List.Split (splitOn)
 import qualified Data.Map as M
+import qualified Data.Set as Set
 import Data.Maybe (fromMaybe)
 import Data.Text (Text, unpack)
 import System.FilePath (takeExtension)
@@ -55,7 +57,7 @@ import Text.Pandoc.Class (PandocMonad (..))
 import Text.Pandoc.Definition
 import Text.Pandoc.Logging
 import Text.Pandoc.Options
-import Text.Pandoc.Parsing
+import Text.Pandoc.Parsing hiding (F)
 import Text.Pandoc.Readers.HTML (htmlTag)
 import Text.Pandoc.Shared (crFilter, underlineSpan)
 
@@ -65,12 +67,61 @@ readMuse :: PandocMonad m
          -> Text
          -> m Pandoc
 readMuse opts s = do
-  res <- readWithM parseMuse def{ stateOptions = opts } (unpack (crFilter s))
+  res <- readWithM parseMuse def{ museOptions = opts } (unpack (crFilter s))
   case res of
        Left e  -> throwError e
        Right d -> return d
 
-type MuseParser = ParserT String ParserState
+type F = Future MuseState
+
+data MuseState = MuseState { museMeta :: F Meta -- ^ Document metadata
+                           , museOptions :: ReaderOptions
+                           , museHeaders :: M.Map Inlines String -- ^ List of headers and ids (used for implicit ref links)
+                           , museIdentifierList :: Set.Set String
+                           , museLastStrPos :: Maybe SourcePos -- ^ Position after last str parsed
+                           , museLogMessages :: [LogMessage]
+                           , museNotes :: M.Map String (SourcePos, F Blocks)
+                           , museInQuote :: Bool
+                           , museInList :: Bool
+                           , museInLink :: Bool
+                           }
+
+instance Default MuseState where
+  def = defaultMuseState
+
+defaultMuseState :: MuseState
+defaultMuseState = MuseState { museMeta = return nullMeta
+                             , museOptions = def
+                             , museHeaders = M.empty
+                             , museIdentifierList = Set.empty
+                             , museLastStrPos = Nothing
+                             , museLogMessages = []
+                             , museNotes = M.empty
+                             , museInQuote = False
+                             , museInList = False
+                             , museInLink = False
+                             }
+
+type MuseParser = ParserT String MuseState
+
+instance HasReaderOptions MuseState where
+  extractReaderOptions = museOptions
+
+instance HasHeaderMap MuseState where
+  extractHeaderMap     = museHeaders
+  updateHeaderMap f st = st{ museHeaders = f $ museHeaders st }
+
+instance HasIdentifierList MuseState where
+  extractIdentifierList     = museIdentifierList
+  updateIdentifierList f st = st{ museIdentifierList = f $ museIdentifierList st }
+
+instance HasLastStrPosition MuseState where
+  setLastStrPos pos st = st{ museLastStrPos = Just pos }
+  getLastStrPos st     = museLastStrPos st
+
+instance HasLogMessages MuseState where
+  addLogMessage m s = s{ museLogMessages = m : museLogMessages s }
+  getLogMessages = reverse . museLogMessages
 
 --
 -- main parser
@@ -83,7 +134,7 @@ parseMuse = do
   eof
   st <- getState
   let doc = runF (do Pandoc _ bs <- B.doc <$> blocks
-                     meta <- stateMeta' st
+                     meta <- museMeta st
                      return $ Pandoc meta bs) st
   reportLogMessages
   return doc
@@ -131,7 +182,7 @@ atStart :: PandocMonad m => MuseParser m a -> MuseParser m a
 atStart p = do
   pos <- getPosition
   st <- getState
-  guard $ stateLastStrPos st /= Just pos
+  guard $ museLastStrPos st /= Just pos
   p
 
 --
@@ -167,7 +218,7 @@ directive :: PandocMonad m => MuseParser m ()
 directive = do
   ext <- getOption readerExtensions
   (key, value) <- if extensionEnabled Ext_amuse ext then parseAmuseDirective else parseEmacsDirective
-  updateState $ \st -> st { stateMeta' = B.setMeta (translateKey key) <$> value <*> stateMeta' st }
+  updateState $ \st -> st { museMeta = B.setMeta (translateKey key) <$> value <*> museMeta st }
   where translateKey "cover" = "cover-image"
         translateKey x = x
 
@@ -179,7 +230,7 @@ parseBlock :: PandocMonad m => MuseParser m (F Blocks)
 parseBlock = do
   res <- blockElements <|> para
   optionMaybe blankline
-  trace (take 60 $ show $ B.toList $ runF res defaultParserState)
+  trace (take 60 $ show $ B.toList $ runF res def)
   return res
 
 blockElements :: PandocMonad m => MuseParser m (F Blocks)
@@ -222,15 +273,15 @@ separator = try $ do
 
 header :: PandocMonad m => MuseParser m (F Blocks)
 header = try $ do
-  st <- stateParserContext <$> getState
-  q <- stateQuoteContext <$> getState
-  getPosition >>= \pos -> guard (st == NullState && q == NoQuote && sourceColumn pos == 1)
+  st <- museInList <$> getState
+  q <- museInQuote <$> getState
+  getPosition >>= \pos -> guard (not st && not q && sourceColumn pos == 1)
   level <- fmap length $ many1 $ char '*'
   guard $ level <= 5
   spaceChar
   content <- trimInlinesF . mconcat <$> manyTill inline eol
   anchorId <- option "" parseAnchor
-  attr <- registerHeader (anchorId, [], []) (runF content defaultParserState)
+  attr <- registerHeader (anchorId, [], []) (runF content def)
   return $ B.headerWith attr level <$> content
 
 example :: PandocMonad m => MuseParser m (F Blocks)
@@ -284,7 +335,11 @@ rightTag = snd <$> parseHtmlContent "right"
 
 quoteTag :: PandocMonad m => MuseParser m (F Blocks)
 quoteTag = do
-  res <- snd <$> withQuoteContext InDoubleQuote (parseHtmlContent "quote")
+  st <- getState
+  let oldInQuote = museInQuote st
+  setState $ st{ museInQuote = True }
+  res <- snd <$> (parseHtmlContent "quote")
+  setState $ st{ museInQuote = oldInQuote }
   return $ B.blockQuote <$> res
 
 -- <div> tag is supported by Emacs Muse, but not Amusewiki 2.025
@@ -316,8 +371,8 @@ commentTag = htmlElement "comment" >> return mempty
 para :: PandocMonad m => MuseParser m (F Blocks)
 para = do
  indent <- length <$> many spaceChar
- st <- stateParserContext <$> getState
- let f = if st /= ListItemState && indent >= 2 && indent < 6 then B.blockQuote else id
+ st <- museInList <$> getState
+ let f = if not st && indent >= 2 && indent < 6 then B.blockQuote else id
  fmap (f . B.para) . trimInlinesF . mconcat <$> many1Till inline endOfParaElement
  where
    endOfParaElement = lookAhead $ try (eof <|> newBlockElement)
@@ -338,11 +393,11 @@ amuseNoteBlock = try $ do
   pos <- getPosition
   ref <- noteMarker <* spaceChar
   content <- listItemContents
-  oldnotes <- stateNotes' <$> getState
+  oldnotes <- museNotes <$> getState
   case M.lookup ref oldnotes of
     Just _  -> logMessage $ DuplicateNoteReference ref pos
     Nothing -> return ()
-  updateState $ \s -> s{ stateNotes' = M.insert ref (pos, content) oldnotes }
+  updateState $ \s -> s{ museNotes = M.insert ref (pos, content) oldnotes }
   return mempty
 
 -- Emacs version of note
@@ -353,11 +408,11 @@ emacsNoteBlock = try $ do
   pos <- getPosition
   ref <- noteMarker <* skipSpaces
   content <- mconcat <$> blocksTillNote
-  oldnotes <- stateNotes' <$> getState
+  oldnotes <- museNotes <$> getState
   case M.lookup ref oldnotes of
     Just _  -> logMessage $ DuplicateNoteReference ref pos
     Nothing -> return ()
-  updateState $ \s -> s{ stateNotes' = M.insert ref (pos, content) oldnotes }
+  updateState $ \s -> s{ museNotes = M.insert ref (pos, content) oldnotes }
   return mempty
   where
     blocksTillNote =
@@ -392,10 +447,10 @@ lineBlock = try $ do
 withListContext :: PandocMonad m => MuseParser m a -> MuseParser m a
 withListContext p = do
   state <- getState
-  let oldContext = stateParserContext state
-  setState $ state { stateParserContext = ListItemState }
+  let oldInList = museInList state
+  setState $ state { museInList = True }
   parsed <- p
-  updateState (\st -> st {stateParserContext = oldContext})
+  updateState (\st -> st { museInList = oldInList })
   return parsed
 
 listItemContents' :: PandocMonad m => Int -> MuseParser m (F Blocks)
@@ -430,18 +485,38 @@ bulletList = try $ do
   rest <- many $ listItem (col - 1) (char '-')
   return $ B.bulletList <$> sequence (first : rest)
 
+-- | Parses an ordered list marker and returns list attributes.
+anyMuseOrderedListMarker :: PandocMonad m => MuseParser m ListAttributes
+anyMuseOrderedListMarker = do
+  (style, start) <- decimal <|> lowerAlpha <|> lowerRoman <|> upperAlpha <|> upperRoman
+  char '.'
+  return (start, style, Period)
+
+museOrderedListMarker :: PandocMonad m
+                      => ListNumberStyle
+                      -> MuseParser m Int
+museOrderedListMarker style = do
+  (_, start) <- case style of
+                  Decimal    -> decimal
+                  UpperRoman -> upperRoman
+                  LowerRoman -> lowerRoman
+                  UpperAlpha -> upperAlpha
+                  LowerAlpha -> lowerAlpha
+                  _          -> fail "Unhandled case"
+  char '.'
+  return start
+
 orderedList :: PandocMonad m => MuseParser m (F Blocks)
 orderedList = try $ do
   many spaceChar
   pos <- getPosition
   let col = sourceColumn pos
   guard $ col /= 1
-  p@(_, style, delim) <- anyOrderedListMarker
+  p@(_, style, _) <- anyMuseOrderedListMarker
   guard $ style `elem` [Decimal, LowerAlpha, UpperAlpha, LowerRoman, UpperRoman]
-  guard $ delim == Period
   void spaceChar <|> lookAhead eol
   first <- listItemContents
-  rest <- many $ listItem (col - 1) (orderedListMarker style delim)
+  rest <- many $ listItem (col - 1) (museOrderedListMarker style)
   return $ B.orderedListWith p <$> sequence (first : rest)
 
 definitionListItem :: PandocMonad m => Int -> MuseParser m (F (Inlines, [Blocks]))
@@ -606,12 +681,12 @@ footnote :: PandocMonad m => MuseParser m (F Inlines)
 footnote = try $ do
   ref <- noteMarker
   return $ do
-    notes <- asksF stateNotes'
+    notes <- asksF museNotes
     case M.lookup ref notes of
       Nothing -> return $ B.str $ "[" ++ ref ++ "]"
       Just (_pos, contents) -> do
         st <- askF
-        let contents' = runF contents st { stateNotes' = M.empty }
+        let contents' = runF contents st { museNotes = M.empty }
         return $ B.note contents'
 
 whitespace :: PandocMonad m => MuseParser m (F Inlines)
@@ -713,10 +788,10 @@ symbol = return . B.str <$> count 1 nonspaceChar
 link :: PandocMonad m => MuseParser m (F Inlines)
 link = try $ do
   st <- getState
-  guard $ stateAllowLinks st
-  setState $ st{ stateAllowLinks = False }
+  guard $ not $ museInLink st
+  setState $ st{ museInLink = True }
   (url, title, content) <- linkText
-  setState $ st{ stateAllowLinks = True }
+  setState $ st{ museInLink = False }
   return $ case stripPrefix "URL:" url of
              Nothing -> if isImageUrl url
                           then B.image url title <$> fromMaybe (return mempty) content
