@@ -4342,7 +4342,7 @@ This will override any parallaxBackgroundImage for this slide:
 
     {data-background-image="/path/to/image"}
 
-Note that in reveal.js's overview mode, the background image will show up 
+Note that in reveal.js's overview mode, the parallaxBackgroundImage will show up 
 only on the first slide, while a data-background-image will show up each 
 time it is used. 
 
