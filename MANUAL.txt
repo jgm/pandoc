@@ -4323,6 +4323,54 @@ the [Beamer User's Guide] may also be used: `allowdisplaybreaks`,
 `allowframebreaks`, `b`, `c`, `t`, `environment`, `label`, `plain`,
 `shrink`.
 
+Background images in reveal.js
+------------------------------
+
+Background images can be added to self-contained reveal.js slideshows.
+
+For the same image on every slide, use the reveal.js configuration 
+option `parallaxBackgroundImage` either in the YAML metadata block 
+or as a command-line variable. You can also set the 
+`parallaxBackgroundHorizontal` and 	`parallaxBackgroundVertical` 
+variables the same way and must also set `parallaxBackgroundSize` to 
+have your values take effect. If you include a size, but do not set 
+the horizontal or vertical values, reveal.js will apply its own.
+
+To set the image for a particular slide, add the following attribute 
+to the first slide-level header on the slide (which may even be empty). 
+This will override any parallaxBackgroundImage for this slide: 
+
+    {data-background-image="/path/to/image"}
+
+Note that in reveal.js's overview mode, the background image will show up 
+only on the first slide, while a data-background-image will show up each 
+time it is used. 
+
+For example:
+
+```
+---
+title: My Slideshow
+parallaxBackgroundImage: /path/to/my/background_image.png
+---
+
+## Slide One
+
+Here's my first slide. It has background_image.png as its background.
+
+## Slide Two {data-background-image="/path/to/special_image.jpg"}
+
+My second slide has a special image for its background.
+
+## Slide Three
+
+Back to my first background image!
+
+## {data-background-image="/path/to/special_image.jpg"}
+
+Slide Four has a special image for its background, even though the header has no content.
+```
+
 Creating EPUBs with pandoc
 ==========================
 
