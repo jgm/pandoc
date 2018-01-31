@@ -262,27 +262,36 @@ gridTable opts blocksToDoc headless aligns widths headers rows = do
              (\cs -> zipWithM blocksToDoc columnOptions cs)
              rows
         return (widthsInChars', rawHeaders', rawRows')
-  -- handleZeroWidths tries to wrap cells to the page width thus
-  -- leaving the content an wide as possible. if the resulting table
-  -- would be wider than the page width, it calculates even widths and
-  -- passes the content to handleGivenWidths
-  let handleZeroWidths = do
+  -- handleFullWidths tries to wrap cells to the page width or even
+  -- more in cases where `--wrap=none`. thus the content here is left
+  -- as wide as possible
+  let handleFullWidths = do
         rawHeaders' <- mapM (blocksToDoc opts) headers
         rawRows' <- mapM (mapM (blocksToDoc opts)) rows
         let numChars [] = 0
             numChars xs = maximum . map offset $ xs
         let widthsInChars' =
                 map numChars $ transpose (rawHeaders' : rawRows')
+        return (widthsInChars', rawHeaders', rawRows')
+  -- handleZeroWidths calls handleFullWidths to check whether a wide
+  -- table would fit in the page. if the produced table is too wide,
+  -- it calculates even widths and passes the content to
+  -- handleGivenWidths
+  let handleZeroWidths = do
+        (widthsInChars', rawHeaders', rawRows') <- handleFullWidths
         if sum widthsInChars' > writerColumns opts
            then -- use even widths
                 handleGivenWidths
                   (replicate numcols (1.0 / fromIntegral numcols) :: [Double])
            else return (widthsInChars', rawHeaders', rawRows')
-  -- gridTable uses given widths when there is any, falling back to
-  -- even widths
-  (widthsInChars, rawHeaders, rawRows) <- if all (== 0) widths
-                                             then handleZeroWidths
-                                             else handleGivenWidths widths
+  -- render the contents of header and row cells differently depending
+  -- on command line options, widths given in this specific table, and
+  -- cells' contents
+  let handleWidths
+        | (writerWrapText opts) == WrapNone  = handleFullWidths
+        | all (== 0) widths                  = handleZeroWidths
+        | otherwise                          = handleGivenWidths widths
+  (widthsInChars, rawHeaders, rawRows) <- handleWidths
   let hpipeBlocks blocks = hcat [beg, middle, end]
         where h       = maximum (1 : map height blocks)
               sep'    = lblock 3 $ vcat (replicate h (text " | "))
