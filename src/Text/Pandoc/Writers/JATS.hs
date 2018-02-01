@@ -28,7 +28,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 Conversion of 'Pandoc' documents to JATS XML.
 Reference:
-https://jats.nlm.nih.gov/publishing/tag-library/1.1d3/element/mml-math.html
+https://jats.nlm.nih.gov/publishing/tag-library
 -}
 module Text.Pandoc.Writers.JATS ( writeJATS ) where
 import Control.Monad.Reader
