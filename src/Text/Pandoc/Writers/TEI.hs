@@ -145,7 +145,7 @@ imageToTEI :: PandocMonad m => WriterOptions -> Attr -> String -> m Doc
 imageToTEI _ attr src = return $ selfClosingTag "graphic" $
   ("url", src) : idAndRole attr ++ dims
   where
-    dims = go Width "width" ++ go Height "depth"
+    dims = go Width "width" ++ go Height "height"
     go dir dstr = case dimension dir attr of
                     Just a  -> [(dstr, show a)]
                     Nothing -> []
