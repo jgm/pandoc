@@ -26,6 +26,6 @@ extra-deps:
 - haddock-library-1.4.3
 - tagsoup-0.14.2
 - hs-bibutils-6.2.0.1
-- pandoc-citeproc-0.14
+- pandoc-citeproc-0.14.1.2
 - tagsoup-0.14.3
 resolver: lts-9.14
