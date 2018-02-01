@@ -1,11 +1,7 @@
-<p>
-  Simple table with caption:
-</p>
+<p>Simple table with caption:</p>
 <table-wrap>
   <caption>
-    <p>
-      Demonstration of simple table syntax.
-    </p>
+    <p>Demonstration of simple table syntax.</p>
   </caption>
   <table>
     <col align="right" />
@@ -74,9 +70,7 @@
     </tbody>
   </table>
 </table-wrap>
-<p>
-  Simple table without caption:
-</p>
+<p>Simple table without caption:</p>
 <table>
   <col align="right" />
   <col align="left" />
@@ -143,14 +137,10 @@
     </tr>
   </tbody>
 </table>
-<p>
-  Simple table indented two spaces:
-</p>
+<p>Simple table indented two spaces:</p>
 <table-wrap>
   <caption>
-    <p>
-      Demonstration of simple table syntax.
-    </p>
+    <p>Demonstration of simple table syntax.</p>
   </caption>
   <table>
     <col align="right" />
@@ -219,14 +209,10 @@
     </tbody>
   </table>
 </table-wrap>
-<p>
-  Multiline table with caption:
-</p>
+<p>Multiline table with caption:</p>
 <table-wrap>
   <caption>
-    <p>
-      Here’s the caption. It may span multiple lines.
-    </p>
+    <p>Here’s the caption. It may span multiple lines.</p>
   </caption>
   <table>
     <col width="15*" align="center" />
@@ -281,9 +267,7 @@
     </tbody>
   </table>
 </table-wrap>
-<p>
-  Multiline table without caption:
-</p>
+<p>Multiline table without caption:</p>
 <table>
   <col width="15*" align="center" />
   <col width="13*" align="left" />
@@ -336,9 +320,7 @@
     </tr>
   </tbody>
 </table>
-<p>
-  Table without column headers:
-</p>
+<p>Table without column headers:</p>
 <table>
   <col align="right" />
   <col align="left" />
@@ -389,9 +371,7 @@
     </tr>
   </tbody>
 </table>
-<p>
-  Multiline table without column headers:
-</p>
+<p>Multiline table without column headers:</p>
 <table>
   <col width="15*" align="center" />
   <col width="13*" align="left" />

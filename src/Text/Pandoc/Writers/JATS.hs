@@ -69,11 +69,8 @@ docToJATS opts (Pandoc meta blocks) = do
   let (backblocks, bodyblocks) = partition isBackBlock blocks
   let elements = hierarchicalize bodyblocks
   let backElements = hierarchicalize backblocks
-  let colwidth = if writerWrapText opts == WrapAuto
-                    then Just $ writerColumns opts
-                    else Nothing
   let render'  :: Doc -> Text
-      render'  = render colwidth
+      render'  = render Nothing
   let opts'    = if maybe False (("/book>" `isSuffixOf`) . trimr)
                             (writerTemplate opts) &&
                      TopLevelDefault == writerTopLevelDivision opts
@@ -250,7 +247,7 @@ blockToJATS _ (Para [Image (ident,_,kvs) _ (src, tit)]) = do
                         "xlink:type"]]
   return $ selfClosingTag "graphic" attr
 blockToJATS opts (Para lst) =
-  inTagsIndented "p" <$> inlinesToJATS opts lst
+  inTagsSimple "p" <$> inlinesToJATS opts lst
 blockToJATS opts (LineBlock lns) =
   blockToJATS opts $ linesToPara lns
 blockToJATS opts (BlockQuote blocks) =
