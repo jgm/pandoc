@@ -153,7 +153,7 @@ listItemToJATS :: PandocMonad m
 listItemToJATS opts mbmarker item = do
   contents <- blocksToJATS opts item
   return $ inTagsIndented "list-item" $
-           maybe empty (\lbl -> inTagsIndented "label" (text lbl)) mbmarker
+           maybe empty (\lbl -> inTagsSimple "label" (text lbl)) mbmarker
            $$ contents
 
 imageMimeType :: String -> [(String, String)] -> (String, String)

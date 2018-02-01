@@ -343,40 +343,28 @@ These should not be escaped:  \$ \\ \&gt; \[ \{</preformat>
     <title>Fancy list markers</title>
     <list list-type="order">
       <list-item>
-        <label>
-          (2)
-        </label>
+        <label>(2)</label>
         <p>begins with 2</p>
       </list-item>
       <list-item>
-        <label>
-          (3)
-        </label>
+        <label>(3)</label>
         <p>and now 3</p>
         <p>with a continuation</p>
         <list list-type="roman-lower">
           <list-item>
-            <label>
-              iv.
-            </label>
+            <label>iv.</label>
             <p>sublist with roman numerals, starting with 4</p>
           </list-item>
           <list-item>
-            <label>
-              v.
-            </label>
+            <label>v.</label>
             <p>more items</p>
             <list list-type="alpha-upper">
               <list-item>
-                <label>
-                  (A)
-                </label>
+                <label>(A)</label>
                 <p>a subsublist</p>
               </list-item>
               <list-item>
-                <label>
-                  (B)
-                </label>
+                <label>(B)</label>
                 <p>a subsublist</p>
               </list-item>
             </list>
@@ -393,15 +381,11 @@ These should not be escaped:  \$ \\ \&gt; \[ \{</preformat>
             <p>Upper Roman.</p>
             <list list-type="order">
               <list-item>
-                <label>
-                  (6)
-                </label>
+                <label>(6)</label>
                 <p>Decimal start with 6</p>
                 <list list-type="alpha-lower">
                   <list-item>
-                    <label>
-                      c)
-                    </label>
+                    <label>c)</label>
                     <p>Lower alpha with paren</p>
                   </list-item>
                 </list>
