@@ -66,9 +66,7 @@ tests = [ testGroup "inline code"
              [plain (text "hi there")])] =?>
             "<def-list>\n\
             \  <def-item>\n\
-            \    <term>\n\
-            \      <xref alt=\"testing\" rid=\"go\">testing</xref>\n\
-            \    </term>\n\
+            \    <term><xref alt=\"testing\" rid=\"go\">testing</xref></term>\n\
             \    <def>\n\
             \      <p>hi there</p>\n\
             \    </def>\n\

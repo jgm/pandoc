@@ -136,7 +136,7 @@ deflistItemToJATS opts term defs = do
   term' <- inlinesToJATS opts term
   def' <- blocksToJATS opts $ concatMap (map plainToPara) defs
   return $ inTagsIndented "def-item" $
-      inTagsIndented "term" term' $$
+      inTagsSimple "term" term' $$
       inTagsIndented "def" def'
 
 -- | Convert a list of lists of blocks to a list of JATS list items.

@@ -435,25 +435,19 @@ These should not be escaped:  \$ \\ \&gt; \[ \{</preformat>
   <p>Tight using spaces:</p>
   <def-list>
     <def-item>
-      <term>
-        apple
-      </term>
+      <term>apple</term>
       <def>
         <p>red fruit</p>
       </def>
     </def-item>
     <def-item>
-      <term>
-        orange
-      </term>
+      <term>orange</term>
       <def>
         <p>orange fruit</p>
       </def>
     </def-item>
     <def-item>
-      <term>
-        banana
-      </term>
+      <term>banana</term>
       <def>
         <p>yellow fruit</p>
       </def>
@@ -462,25 +456,19 @@ These should not be escaped:  \$ \\ \&gt; \[ \{</preformat>
   <p>Tight using tabs:</p>
   <def-list>
     <def-item>
-      <term>
-        apple
-      </term>
+      <term>apple</term>
       <def>
         <p>red fruit</p>
       </def>
     </def-item>
     <def-item>
-      <term>
-        orange
-      </term>
+      <term>orange</term>
       <def>
         <p>orange fruit</p>
       </def>
     </def-item>
     <def-item>
-      <term>
-        banana
-      </term>
+      <term>banana</term>
       <def>
         <p>yellow fruit</p>
       </def>
@@ -489,25 +477,19 @@ These should not be escaped:  \$ \\ \&gt; \[ \{</preformat>
   <p>Loose:</p>
   <def-list>
     <def-item>
-      <term>
-        apple
-      </term>
+      <term>apple</term>
       <def>
         <p>red fruit</p>
       </def>
     </def-item>
     <def-item>
-      <term>
-        orange
-      </term>
+      <term>orange</term>
       <def>
         <p>orange fruit</p>
       </def>
     </def-item>
     <def-item>
-      <term>
-        banana
-      </term>
+      <term>banana</term>
       <def>
         <p>yellow fruit</p>
       </def>
@@ -516,18 +498,14 @@ These should not be escaped:  \$ \\ \&gt; \[ \{</preformat>
   <p>Multiple blocks with italics:</p>
   <def-list>
     <def-item>
-      <term>
-        <italic>apple</italic>
-      </term>
+      <term><italic>apple</italic></term>
       <def>
         <p>red fruit</p>
         <p>contains seeds, crisp, pleasant to taste</p>
       </def>
     </def-item>
     <def-item>
-      <term>
-        <italic>orange</italic>
-      </term>
+      <term><italic>orange</italic></term>
       <def>
         <p>orange fruit</p>
         <preformat>{ orange code block }</preformat>
@@ -540,18 +518,14 @@ These should not be escaped:  \$ \\ \&gt; \[ \{</preformat>
   <p>Multiple definitions, tight:</p>
   <def-list>
     <def-item>
-      <term>
-        apple
-      </term>
+      <term>apple</term>
       <def>
         <p>red fruit</p>
         <p>computer</p>
       </def>
     </def-item>
     <def-item>
-      <term>
-        orange
-      </term>
+      <term>orange</term>
       <def>
         <p>orange fruit</p>
         <p>bank</p>
@@ -561,18 +535,14 @@ These should not be escaped:  \$ \\ \&gt; \[ \{</preformat>
   <p>Multiple definitions, loose:</p>
   <def-list>
     <def-item>
-      <term>
-        apple
-      </term>
+      <term>apple</term>
       <def>
         <p>red fruit</p>
         <p>computer</p>
       </def>
     </def-item>
     <def-item>
-      <term>
-        orange
-      </term>
+      <term>orange</term>
       <def>
         <p>orange fruit</p>
         <p>bank</p>
@@ -582,18 +552,14 @@ These should not be escaped:  \$ \\ \&gt; \[ \{</preformat>
   <p>Blank line after term, indented marker, alternate markers:</p>
   <def-list>
     <def-item>
-      <term>
-        apple
-      </term>
+      <term>apple</term>
       <def>
         <p>red fruit</p>
         <p>computer</p>
       </def>
     </def-item>
     <def-item>
-      <term>
-        orange
-      </term>
+      <term>orange</term>
       <def>
         <p>orange fruit</p>
         <list list-type="order">
