@@ -323,10 +323,10 @@ tableItemToJATS :: PandocMonad m
                    -> [Block]
                    -> JATS m Doc
 tableItemToJATS opts isHeader [Plain item] =
-  inTags True (if isHeader then "th" else "td") [] <$>
+  inTags False (if isHeader then "th" else "td") [] <$>
     inlinesToJATS opts item
 tableItemToJATS opts isHeader item =
-  (inTags True (if isHeader then "th" else "td") [] . vcat) <$>
+  (inTags False (if isHeader then "th" else "td") [] . vcat) <$>
     mapM (blockToJATS opts) item
 
 -- | Convert a list of inline elements to JATS.
