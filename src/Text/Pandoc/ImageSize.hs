@@ -138,7 +138,7 @@ imageSize opts img =
        Just Jpeg -> jpegSize img
        Just Svg  -> mbToEither "could not determine SVG size" $ svgSize opts img
        Just Eps  -> mbToEither "could not determine EPS size" $ epsSize img
-       Just Pdf  -> Left "could not determine PDF size" -- TODO
+       Just Pdf  -> mbToEither "Could not determine PDF size" $ pdfSize img
        Nothing   -> Left "could not determine image type"
   where mbToEither msg Nothing  = Left msg
         mbToEither _   (Just x) = Right x
@@ -276,6 +276,27 @@ epsSize img = do
                           , dpiX = 72
                           , dpiY = 72 }
                      _ -> mzero
+
+pdfSize :: ByteString -> Maybe ImageSize
+pdfSize img =
+  case dropWhile (\l -> not (l == "stream" ||
+                             "/MediaBox" `B.isPrefixOf` l)) (B.lines img) of
+       (x:_)
+         | "/MediaBox" `B.isPrefixOf` x
+         -> case B.words $ B.filter (\c -> c /= '[' && c /= ']')
+                         $ B.drop 10 x of
+                     [x1, y1, x2, y2] -> do
+                        x1' <- safeRead $ B.unpack x1
+                        x2' <- safeRead $ B.unpack x2
+                        y1' <- safeRead $ B.unpack y1
+                        y2' <- safeRead $ B.unpack y2
+                        return ImageSize{
+                            pxX  = x2' - x1'
+                          , pxY  = y2' - y1'
+                          , dpiX = 72
+                          , dpiY = 72 }
+                     _ -> mzero
+       _    -> mzero
 
 pngSize :: ByteString -> Maybe ImageSize
 pngSize img = do
