@@ -207,7 +207,7 @@ inlineToXWiki (Image _ alt (source, tit)) = do
         if null alt' then [] else "alt=\"" ++ alt' ++ "\"",
           if null tit  then [] else "title=\"" ++ tit ++ "\""
         ]
-  return $ "[[image: (" ++ source ++ ")" ++ (if null params then "" else "|| " ++ params) ++ "]]"
+  return $ "[[image:" ++ source ++ (if null params then "" else "|| " ++ params) ++ "]]"
 
 inlineToXWiki (Note contents) = blockListToXWiki contents
 
