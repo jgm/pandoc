@@ -34,12 +34,14 @@ XWiki Syntax:  <http://www.xwiki.org/xwiki/bin/view/Documentation/UserGuide/Feat
 module Text.Pandoc.Writers.XWiki ( writeXWiki ) where
 import Control.Monad.Reader (ReaderT, asks, local, runReaderT)
 import Data.List (intercalate)
+import qualified Data.Set as Set
 import Data.Text (Text, pack)
 import Text.Pandoc.Class (PandocMonad, report)
 import Text.Pandoc.Definition
 import Text.Pandoc.Logging
 import Text.Pandoc.Options
 import Text.Pandoc.Shared (escapeURI, isURI, linesToPara)
+import Text.Pandoc.Writers.MediaWiki (highlightingLangs)
 
 data WriterState = WriterState {
   listLevel :: String -- String at the beginning of items
@@ -92,9 +94,8 @@ blockToXWiki (Header level _ inlines) = do
   let eqs = replicate level '='
   return $ eqs ++ " " ++ contents ++ " " ++ eqs ++ "\n"
 
--- TODO: Optionally support code highlight plugin
-blockToXWiki (CodeBlock _ str) = do
-  return $ "{{{\n" ++ str ++ "\n}}}"
+-- XWiki doesn't appear to differentiate between inline and block-form code, so we delegate
+blockToXWiki (CodeBlock attrs str) = inlineToXWiki (Code attrs str)
 
 -- TODO: Figure out how to handle this better
 blockToXWiki (BlockQuote blocks) =
@@ -177,8 +178,12 @@ inlineToXWiki (Quoted DoubleQuote lst) = do
   contents <- inlineListToXWiki lst
   return $ "\"" ++ contents ++ "\""
 
-inlineToXWiki (Code _ contents) = do
-  return $ "{{\n" ++ contents ++ "\n}}"
+inlineToXWiki (Code (_,classes,_) contents) = do
+  let at  = Set.fromList classes `Set.intersection` highlightingLangs
+  return $
+    case Set.toList at of
+      [] -> "{{" ++ contents ++ "}}"
+      (l:_) -> "{{code language=\"" ++ l ++ "\"}}" ++ contents ++ "{{/code}}"
 
 inlineToXWiki (Cite _ lst) = inlineListToXWiki lst
 
