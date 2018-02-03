@@ -120,7 +120,7 @@ the last released version.
 
 The easiest way to build pandoc from source is to use [stack]:
 
-1.  Install [stack].
+1.  Install [stack]. Note that Pandoc requires stack >= 1.6.0.
 
 2.  Change to the pandoc source directory and issue the following commands:
 
