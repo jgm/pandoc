@@ -48,6 +48,7 @@ import Data.List (intersperse, transpose, isInfixOf)
 import System.FilePath (takeExtension)
 import Text.Pandoc.Class (PandocMonad)
 import Text.Pandoc.Definition
+import Text.Pandoc.ImageSize
 import Text.Pandoc.Options
 import Text.Pandoc.Pretty
 import Text.Pandoc.Shared
@@ -384,14 +385,18 @@ inlineToMuse (Link _ txt (src, _)) =
         isImageUrl = (`elem` imageExtensions) . takeExtension
 inlineToMuse (Image attr alt (source,'f':'i':'g':':':title)) =
   inlineToMuse (Image attr alt (source,title))
-inlineToMuse (Image _ inlines (source, title)) = do
+inlineToMuse (Image attr inlines (source, title)) = do
+  opts <- gets stOptions
   alt <- inlineListToMuse inlines
   let title' = if null title
                   then if null inlines
                           then ""
                           else "[" <> alt <> "]"
                   else "[" <> text title <> "]"
-  return $ "[[" <> text source <> "]" <> title' <> "]"
+  let width = case dimension Width attr of
+                Just (Percent x) | isEnabled Ext_amuse opts -> " " ++ show (round x :: Integer)
+                _ -> ""
+  return $ "[[" <> text (source ++ width) <> "]" <> title' <> "]"
 inlineToMuse (Note contents) = do
   -- add to notes in state
   notes <- gets stNotes

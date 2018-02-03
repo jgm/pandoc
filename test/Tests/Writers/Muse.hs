@@ -351,6 +351,9 @@ tests = [ testGroup "block elements"
                                                   =?> "[[URL:1.png]]"
             ]
           , "image" =: image "image.png" "Image 1" (str "") =?> "[[image.png][Image 1]]"
+          , "image with width" =:
+            imageWith ("", [], [("width", "60%")]) "image.png" "Image" (str "") =?>
+            "[[image.png 60][Image]]"
           , "note" =: note (plain (text "Foo"))
                    =?> unlines [ "[1]"
                                , ""
