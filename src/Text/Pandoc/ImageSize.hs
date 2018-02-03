@@ -138,7 +138,7 @@ imageSize opts img =
        Just Jpeg -> jpegSize img
        Just Svg  -> mbToEither "could not determine SVG size" $ svgSize opts img
        Just Eps  -> mbToEither "could not determine EPS size" $ epsSize img
-       Just Pdf  -> mbToEither "Could not determine PDF size" $ pdfSize img
+       Just Pdf  -> mbToEither "could not determine PDF size" $ pdfSize img
        Nothing   -> Left "could not determine image type"
   where mbToEither msg Nothing  = Left msg
         mbToEither _   (Just x) = Right x
