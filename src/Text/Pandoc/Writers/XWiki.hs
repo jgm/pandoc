@@ -25,7 +25,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
    Stability   : alpha
    Portability : portable
 
-Conversion of 'Pandoc' documents to DokuWiki markup.
+Conversion of 'Pandoc' documents to XWiki markup.
 
 XWiki:  <http://www.xwiki.org/>
 XWiki Syntax:  <http://www.xwiki.org/xwiki/bin/view/Documentation/UserGuide/Features/XWikiSyntax/>
