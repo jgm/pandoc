@@ -454,10 +454,8 @@ withListContext p = do
   return parsed
 
 listItemContents' :: PandocMonad m => Int -> MuseParser m (F Blocks)
-listItemContents' col = do
-  first <- try $ withListContext parseBlock
-  rest <- many $ try (skipMany blankline >> indentWith col >> withListContext parseBlock)
-  return $ mconcat (first : rest)
+listItemContents' col =
+  mconcat <$> withListContext (parseBlock `sepBy1` try (skipMany blankline >> indentWith col))
 
 listItemContents :: PandocMonad m => MuseParser m (F Blocks)
 listItemContents = do
