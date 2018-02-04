@@ -373,12 +373,10 @@ para = do
  indent <- length <$> many spaceChar
  st <- museInList <$> getState
  let f = if not st && indent >= 2 && indent < 6 then B.blockQuote else id
- res <- fmap (f . B.para) . trimInlinesF . mconcat <$> many1Till inline endOfParaElement
- manyTill spaceChar eol
- return res
+ fmap (f . B.para) . trimInlinesF . mconcat <$> many1Till inline endOfParaElement
  where
-   endOfParaElement = lookAhead $ try (eof <|> newBlockElement)
-   newBlockElement  = blankline >> void blockElements
+   endOfParaElement = try (eof <|> newBlockElement)
+   newBlockElement  = blankline >> void (lookAhead blockElements)
 
 noteMarker :: PandocMonad m => MuseParser m String
 noteMarker = try $ do
