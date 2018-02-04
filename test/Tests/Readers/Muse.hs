@@ -902,6 +902,33 @@ tests =
             , " - Baz"
             ] =?>
           bulletList [ para "Foo" <> para "bar" ] <> bulletList [ para "Baz" ]
+        , "No blank line after blockquote" =:
+          T.unlines
+            [ " - <quote>"
+            , "   foo"
+            , "   </quote>"
+            , " - bar"
+            ] =?>
+          bulletList [ blockQuote $ para "foo", para "bar" ]
+        , "One blank line after blockquote" =:
+          T.unlines
+            [ " - <quote>"
+            , "   foo"
+            , "   </quote>"
+            , ""
+            , " - bar"
+            ] =?>
+          bulletList [ blockQuote $ para "foo", para "bar" ]
+        , "Two blank lines after blockquote" =:
+          T.unlines
+            [ " - <quote>"
+            , "   foo"
+            , "   </quote>"
+            , ""
+            , ""
+            , " - bar"
+            ] =?>
+          bulletList [ blockQuote $ para "foo" ] <> bulletList [ para "bar" ]
         ]
       -- Test that definition list requires a leading space.
       -- Emacs Muse does not require a space, we follow Amusewiki here.
