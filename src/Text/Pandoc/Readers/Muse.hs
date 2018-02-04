@@ -166,6 +166,7 @@ parseHtmlContent :: PandocMonad m
 parseHtmlContent tag = do
   (attr, content) <- htmlElement tag
   parsedContent <- parseContent (content ++ "\n")
+  manyTill spaceChar eol -- closing tag must be followed by optional whitespace and newline
   return (attr, mconcat parsedContent)
   where
     parseContent = parseFromString $ manyTill parseBlock endOfContent
@@ -229,7 +230,6 @@ directive = do
 parseBlock :: PandocMonad m => MuseParser m (F Blocks)
 parseBlock = do
   res <- blockElements <|> para
-  optionMaybe blankline
   trace (take 60 $ show $ B.toList $ runF res def)
   return res
 
@@ -338,7 +338,7 @@ quoteTag = do
   st <- getState
   let oldInQuote = museInQuote st
   setState $ st{ museInQuote = True }
-  res <- snd <$> (parseHtmlContent "quote")
+  res <- snd <$> parseHtmlContent "quote"
   setState $ st{ museInQuote = oldInQuote }
   return $ B.blockQuote <$> res
 
@@ -373,7 +373,9 @@ para = do
  indent <- length <$> many spaceChar
  st <- museInList <$> getState
  let f = if not st && indent >= 2 && indent < 6 then B.blockQuote else id
- fmap (f . B.para) . trimInlinesF . mconcat <$> many1Till inline endOfParaElement
+ res <- fmap (f . B.para) . trimInlinesF . mconcat <$> many1Till inline endOfParaElement
+ manyTill spaceChar eol
+ return res
  where
    endOfParaElement = lookAhead $ try (eof <|> newBlockElement)
    newBlockElement  = blankline >> void blockElements
