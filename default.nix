@@ -9,16 +9,11 @@
 { pkgs ?
     import ((import <nixpkgs> {}).pkgs.fetchFromGitHub {
       owner = "NixOS"; repo = "nixpkgs";
-      rev = "1354099daf98b7a1f79e6c41ce6bfda5c40177ae";
-      sha256 = "1dwnmxirzjrshlaan7cpag77y7nd09chrbakfx3c3f1lzsldbi97";
+      rev = "42b9b8f7c8687cb26e69c3559e0e1346fb0e680f";
+      sha256 = "01zcd0dh9x3qf5yflclbrcvff9yh8k9pmccc7vjlq3phc440qsyb";
     }) {} }:
 let haskellPackages = pkgs.haskellPackages;
-    overrides = self: super: {
-      hslua-module-text = pkgs.haskell.lib.dontCheck
-            super.hslua-module-text;
-      skylighting = super.skylighting_0_5;
-      hslua = super.hslua_0_9_3;
-    };
+    overrides = self: super: { };
     source-overrides = {
       doctemplates = "0.2.1";
       texmath = "0.10";
