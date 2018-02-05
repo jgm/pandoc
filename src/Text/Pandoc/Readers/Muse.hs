@@ -186,6 +186,29 @@ atStart p = do
   guard $ museLastStrPos st /= Just pos
   p
 
+-- Like manyTill, but also returns result of end parser
+manyUntil :: (Stream s m t)
+          => ParserT s u m a
+          -> ParserT s u m b
+          -> ParserT s u m ([a], b)
+manyUntil p end = scan
+  where scan =
+          (do e <- end
+              return ([], e)
+          ) <|>
+          (do x <- p
+              (xs, e) <- scan
+              return (x:xs, e))
+
+someUntil :: (Stream s m t)
+          => ParserT s u m a
+          -> ParserT s u m b
+          -> ParserT s u m ([a], b)
+someUntil p end = do
+  first <- p
+  (rest, e) <- manyUntil p end
+  return (first:rest, e)
+
 --
 -- directive parsers
 --
@@ -368,15 +391,20 @@ commentTag :: PandocMonad m => MuseParser m (F Blocks)
 commentTag = htmlElement "comment" >> return mempty
 
 -- Indented paragraph is either center, right or quote
+paraUntil :: PandocMonad m
+          => MuseParser m a
+          -> MuseParser m (F Blocks, a)
+paraUntil end = do
+  indent <- length <$> many spaceChar
+  st <- museInList <$> getState
+  let f = if not st && indent >= 2 && indent < 6 then B.blockQuote else id
+  (l, e) <- someUntil inline $ try end
+  let p = fmap (f . B.para) $ trimInlinesF $ mconcat l
+  return (p, e)
+
 para :: PandocMonad m => MuseParser m (F Blocks)
-para = do
- indent <- length <$> many spaceChar
- st <- museInList <$> getState
- let f = if not st && indent >= 2 && indent < 6 then B.blockQuote else id
- fmap (f . B.para) . trimInlinesF . mconcat <$> many1Till inline endOfParaElement
- where
-   endOfParaElement = try (eof <|> newBlockElement)
-   newBlockElement  = blankline >> void (lookAhead blockElements)
+para =
+  fst <$> paraUntil (try (eof <|> (blankline >> void (lookAhead blockElements))))
 
 noteMarker :: PandocMonad m => MuseParser m String
 noteMarker = try $ do
