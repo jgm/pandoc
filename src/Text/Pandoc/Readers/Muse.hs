@@ -275,7 +275,7 @@ blockElements = choice [ mempty <$ blankline
                        , header
                        , example
                        , exampleTag
-                       , literal
+                       , literalTag
                        , centerTag
                        , rightTag
                        , quoteTag
@@ -351,8 +351,8 @@ exampleTag = try $ do
   (attr, contents) <- htmlElement "example"
   return $ return $ B.codeBlockWith attr $ rchop $ intercalate "\n" $ dropSpacePrefix $ splitOn "\n" $ lchop contents
 
-literal :: PandocMonad m => MuseParser m (F Blocks)
-literal = do
+literalTag :: PandocMonad m => MuseParser m (F Blocks)
+literalTag = do
   guardDisabled Ext_amuse -- Text::Amuse does not support <literal>
   (return . rawBlock) <$> htmlElement "literal"
   where
