@@ -130,8 +130,7 @@ instance HasLogMessages MuseState where
 parseMuse :: PandocMonad m => MuseParser m Pandoc
 parseMuse = do
   many directive
-  blocks <- mconcat <$> many parseBlock
-  eof
+  blocks <- parseBlocks
   st <- getState
   let doc = runF (do Pandoc _ bs <- B.doc <$> blocks
                      meta <- museMeta st
@@ -249,6 +248,19 @@ directive = do
 --
 -- block parsers
 --
+
+parseBlocks :: PandocMonad m
+            => MuseParser m (F Blocks)
+parseBlocks =
+  try (mempty <$ eof) <|>
+  try blockStart <|>
+  try paraStart
+  where
+    blockStart = do first <- blockElements
+                    rest <- parseBlocks
+                    return $ first B.<> rest
+    paraStart = do (first, rest) <- paraUntil ((mempty <$ eof) <|> (blankline >> blockStart))
+                   return $ first B.<> rest
 
 parseBlock :: PandocMonad m => MuseParser m (F Blocks)
 parseBlock = do
