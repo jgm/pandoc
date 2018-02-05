@@ -267,6 +267,7 @@ parseBlock = do
   res <- blockElements <|> para
   trace (take 60 $ show $ B.toList $ runF res def)
   return res
+  where para = fst <$> paraUntil (try (eof <|> void (lookAhead blockElements)))
 
 blockElements :: PandocMonad m => MuseParser m (F Blocks)
 blockElements = choice [ mempty <$ blankline
@@ -413,10 +414,6 @@ paraUntil end = do
   (l, e) <- someUntil inline $ try (manyTill spaceChar eol >> end)
   let p = fmap (f . B.para) $ trimInlinesF $ mconcat l
   return (p, e)
-
-para :: PandocMonad m => MuseParser m (F Blocks)
-para =
-  fst <$> paraUntil (try (eof <|> void (lookAhead blockElements)))
 
 noteMarker :: PandocMonad m => MuseParser m String
 noteMarker = try $ do
