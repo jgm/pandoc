@@ -4351,6 +4351,8 @@ Other background settings also work on individual slides, including
 - data-background-size
 - data-background-repeat
 - data-background-color (which will fill in where the image does not cover)
+- data-transition
+- data-transition-speed
 
 See the [reveal.js documentation](https://github.com/hakimel/reveal.js#slide-backgrounds)
 for more details.
@@ -4361,6 +4363,7 @@ For example:
 ---
 title: My Slideshow
 parallaxBackgroundImage: /path/to/my/background_image.png
+backgroundTransition: zoom
 ---
 
 ## Slide One
@@ -4369,17 +4372,17 @@ Here's my first slide. It has background_image.png as its background.
 
 ## Slide Two {data-background-image="/path/to/special_image.jpg"}
 
-My second slide has a special image for its background.
+My second slide has a special image for its background, which will zoom in and out.
 
 ## Slide Three
 
-Back to my first background image!
+Back to my first background image after the special one zoomed out.
 
 ## {data-background-image="/path/to/special_image.jpg" data-background-position="center" 
 data-background-size="contain" data-background-repeat="no-repeat"}
 
 Slide Four has a special image for its background, even though the header has no content.
-The image is centered, contained in the slide and does not repeat.
+The image is centered, contained in the slide, and does not repeat.
 
 ## Slide Five {data-background-color="#555"}
 
