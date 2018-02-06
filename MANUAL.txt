@@ -4375,7 +4375,7 @@ My second slide has a special image for its background.
 
 Back to my first background image!
 
-## {data-background-image="/path/to/special_image.jpg"data-background-position="center" 
+## {data-background-image="/path/to/special_image.jpg" data-background-position="center" 
 data-background-size="contain" data-background-repeat="no-repeat"}
 
 Slide Four has a special image for its background, even though the header has no content.
