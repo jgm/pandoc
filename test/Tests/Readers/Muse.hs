@@ -313,6 +313,16 @@ tests =
                   , "</quote>"
                   ]
         =?> blockQuote (para $ text "Hello, world")
+      , "Nested quote tag" =:
+        T.unlines [ "<quote>"
+                  , "foo"
+                  , "<quote>"
+                  , "bar"
+                  , "</quote>"
+                  , "baz"
+                  , "</quote>"
+                  ] =?>
+        blockQuote (para "foo" <> blockQuote (para "bar") <> para "baz")
       , "Verse tag" =:
         T.unlines [ "<verse>"
                   , ""
@@ -514,6 +524,12 @@ tests =
                     ] =?>
           header 2 "Foo" <>
           para (spanWith ("bar", [], []) mempty)
+        , "Headers terminate lists" =:
+          T.unlines [ " - foo"
+                    , "* bar"
+                    ] =?>
+          bulletList [ para "foo" ] <>
+          header 1 "bar"
         ]
       , testGroup "Directives"
         [ "Title" =:
@@ -846,6 +862,15 @@ tests =
                               , para "c"
                               ]
                     ]
+      , "List continuation afeter nested list" =:
+         T.unlines
+           [ " - - foo"
+           , ""
+           , "   bar"
+           ] =?>
+         bulletList [ bulletList [ para "foo" ] <>
+                      para "bar"
+                    ]
       -- Emacs Muse allows to separate lists with two or more blank lines.
       -- Text::Amuse (Amusewiki engine) always creates a single list as of version 0.82.
       -- pandoc follows Emacs Muse behavior
@@ -1087,7 +1112,21 @@ tests =
                              , para "* Bar"
                              ]
                    ]
-      , "List inside a tag" =:
+      , "Bullet list inside a tag" =:
+        T.unlines
+          [ "<quote>"
+          , " - First"
+          , ""
+          , " - Second"
+          , ""
+          , " - Third"
+          , "</quote>"
+          ] =?>
+        blockQuote (bulletList [ para "First"
+                               , para "Second"
+                               , para "Third"
+                               ])
+      , "Ordered list inside a tag" =:
         T.unlines
           [ "<quote>"
           , " 1. First"
