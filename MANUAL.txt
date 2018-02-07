@@ -4324,35 +4324,25 @@ the [Beamer User's Guide] may also be used: `allowdisplaybreaks`,
 `shrink`.
 
 Background in reveal.js
-------------------------------
+-----------------------
 
 Background images can be added to self-contained reveal.js slideshows.
 
 For the same image on every slide, use the reveal.js configuration 
 option `parallaxBackgroundImage` either in the YAML metadata block 
-or as a command-line variable. You can also set the 
-`parallaxBackgroundHorizontal` and `parallaxBackgroundVertical` 
-variables the same way and must also set `parallaxBackgroundSize` to 
-have your values take effect. If you include a size, but do not set 
-the horizontal or vertical values, reveal.js will apply its own.
+or as a command-line variable. You can also set `parallaxBackgroundHorizontal`
+and `parallaxBackgroundVertical` the same way and must also set
+`parallaxBackgroundSize` to have your values take effect.
 
-To set the image for a particular slide, add the following attribute 
-to the first slide-level header on the slide (which may even be empty). 
-This will override any parallaxBackgroundImage for this slide: 
+To set an image for a particular slide, add `{data-background-image="/path/to/image"}`
+to the first slide-level header on the slide (which may even be empty):
 
-    {data-background-image="/path/to/image"}
-
-Note that in reveal.js's overview mode, the parallaxBackgroundImage will show up 
-only on the first slide, while a data-background-image will show up each 
-time it is used. 
+In reveal.js's overview mode, the parallaxBackgroundImage will show up 
+only on the first slide. 
 
 Other background settings also work on individual slides, including
-
-- data-background-size
-- data-background-repeat
-- data-background-color (which will fill in where the image does not cover)
-- data-transition
-- data-transition-speed
+`data-background-size`, `data-background-repeat`, `data-background-color`, 
+`data-transition`, and `data-transition-speed`.
 
 See the [reveal.js documentation](https://github.com/hakimel/reveal.js#slide-backgrounds)
 for more details.
@@ -4363,30 +4353,15 @@ For example:
 ---
 title: My Slideshow
 parallaxBackgroundImage: /path/to/my/background_image.png
-backgroundTransition: zoom
 ---
 
 ## Slide One
 
-Here's my first slide. It has background_image.png as its background.
+Slide 1 has background_image.png as its background.
 
-## Slide Two {data-background-image="/path/to/special_image.jpg"}
+## {data-background-image="/path/to/special_image.jpg"}
 
-My second slide has a special image for its background, which will zoom in and out.
-
-## Slide Three
-
-Back to my first background image after the special one zoomed out.
-
-## {data-background-image="/path/to/special_image.jpg" data-background-position="center" 
-data-background-size="contain" data-background-repeat="no-repeat"}
-
-Slide Four has a special image for its background, even though the header has no content.
-The image is centered, contained in the slide, and does not repeat.
-
-## Slide Five {data-background-color="#555"}
-
-Slide Five has a gray background for its background.
+Slide 2 has a special image for its background, even though the header has no content.
 ```
 
 Creating EPUBs with pandoc
