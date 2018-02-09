@@ -6,10 +6,6 @@ Pandoc Test Suite
 :Author: Anonymous
 :Date:   July 17, 2006
 
-.. role:: math(raw)
-   :format: html latex
-..
-
 .. role:: raw-latex(raw)
    :format: latex
 ..
