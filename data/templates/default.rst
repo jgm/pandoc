@@ -15,12 +15,6 @@ $if(date)$
 
 $endif$
 $endif$
-$if(math)$
-.. role:: math(raw)
-   :format: html latex
-..
-
-$endif$
 $if(rawtex)$
 .. role:: raw-latex(raw)
    :format: latex
