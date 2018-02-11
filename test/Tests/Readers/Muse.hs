@@ -259,10 +259,16 @@ tests =
           blockQuote (para "This is a quotation\nwith a continuation")
         , testGroup "Div"
           [ "Div without id" =:
-            "<div>Foo bar</div>" =?>
+            T.unlines [ "<div>"
+                      , "Foo bar"
+                      , "</div>"
+                      ] =?>
             divWith nullAttr (para "Foo bar")
           , "Div with id" =:
-            "<div id=\"foo\">Foo bar</div>" =?>
+            T.unlines [ "<div id=\"foo\">"
+                      , "Foo bar"
+                      , "</div>"
+                      ] =?>
             divWith ("foo", [], []) (para "Foo bar")
           ]
         , "Verse" =:
@@ -290,7 +296,12 @@ tests =
                     , "\160\160\160is here"
                     ]
         ]
-      , "Quote tag" =: "<quote>Hello, world</quote>" =?> blockQuote (para $ text "Hello, world")
+      , "Quote tag" =:
+        T.unlines [ "<quote>"
+                  , "Hello, world"
+                  , "</quote>"
+                  ]
+        =?> blockQuote (para $ text "Hello, world")
       , "Verse tag" =:
         T.unlines [ "<verse>"
                   , ""
@@ -431,8 +442,18 @@ tests =
                     ] =?>
           para "<literal style=\"latex\">\n\\newpage\n</literal>"
         ]
-      , "Center" =: "<center>Hello, world</center>" =?> para (text "Hello, world")
-      , "Right" =: "<right>Hello, world</right>" =?> para (text "Hello, world")
+      , "Center" =:
+        T.unlines [ "<center>"
+                  , "Hello, world"
+                  , "</center>"
+                  ] =?>
+        para (text "Hello, world")
+      , "Right" =:
+        T.unlines [ "<right>"
+                  , "Hello, world"
+                  , "</right>"
+                  ] =?>
+        para (text "Hello, world")
       , testGroup "Comments"
         [ "Comment tag" =: "<comment>\nThis is a comment\n</comment>" =?> (mempty::Blocks)
         , "Line comment" =: "; Comment" =?> (mempty::Blocks)
@@ -1064,20 +1085,6 @@ tests =
           , ""
           , " 3. Third"
           , "</quote>"
-          ] =?>
-        blockQuote (orderedListWith (1, Decimal, Period) [ para "First"
-                                                         , para "Second"
-                                                         , para "Third"
-                                                         ])
-      -- Amusewiki requires block tags to be on separate lines,
-      -- but Emacs Muse allows them to be on the same line as contents.
-      , "List inside an inline tag" =:
-        T.unlines
-          [ "<quote> 1. First"
-          , ""
-          , " 2. Second"
-          , ""
-          , " 3. Third</quote>"
           ] =?>
         blockQuote (orderedListWith (1, Decimal, Period) [ para "First"
                                                          , para "Second"
