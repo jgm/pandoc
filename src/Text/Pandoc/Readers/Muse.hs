@@ -259,7 +259,7 @@ parseBlocks =
     blockStart = do first <- blockElements
                     rest <- parseBlocks
                     return $ first B.<> rest
-    paraStart = do (first, rest) <- paraUntil ((mempty <$ eof) <|> (blankline >> blockStart))
+    paraStart = do (first, rest) <- paraUntil ((mempty <$ eof) <|> blockStart)
                    return $ first B.<> rest
 
 parseBlock :: PandocMonad m => MuseParser m (F Blocks)
@@ -410,13 +410,13 @@ paraUntil end = do
   indent <- length <$> many spaceChar
   st <- museInList <$> getState
   let f = if not st && indent >= 2 && indent < 6 then B.blockQuote else id
-  (l, e) <- someUntil inline $ try end
+  (l, e) <- someUntil inline $ try (manyTill spaceChar eol >> end)
   let p = fmap (f . B.para) $ trimInlinesF $ mconcat l
   return (p, e)
 
 para :: PandocMonad m => MuseParser m (F Blocks)
 para =
-  fst <$> paraUntil (try (eof <|> (blankline >> void (lookAhead blockElements))))
+  fst <$> paraUntil (try (eof <|> void (lookAhead blockElements)))
 
 noteMarker :: PandocMonad m => MuseParser m String
 noteMarker = try $ do
