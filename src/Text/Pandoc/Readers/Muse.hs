@@ -295,7 +295,7 @@ blockElements = choice [ mempty <$ blankline
 comment :: PandocMonad m => MuseParser m (F Blocks)
 comment = try $ do
   char ';'
-  optionMaybe (spaceChar >> many (noneOf "\n"))
+  optional (spaceChar >> many (noneOf "\n"))
   eol
   return mempty
 
@@ -323,8 +323,8 @@ header = try $ do
 example :: PandocMonad m => MuseParser m (F Blocks)
 example = try $ do
   string "{{{"
-  optionMaybe blankline
-  contents <- manyTill anyChar $ try (optionMaybe blankline >> string "}}}")
+  optional blankline
+  contents <- manyTill anyChar $ try (optional blankline >> string "}}}")
   return $ return $ B.codeBlock contents
 
 -- Trim up to one newline from the beginning and the end,
@@ -502,7 +502,7 @@ listItemContents = do
 
 listItem :: PandocMonad m => Int -> MuseParser m a -> MuseParser m (F Blocks)
 listItem n p = try $ do
-  optionMaybe blankline
+  optional blankline
   count n spaceChar
   p
   void spaceChar <|> lookAhead eol
@@ -571,7 +571,7 @@ definitionList = try $ do
   pos <- getPosition
   guardDisabled Ext_amuse <|> guard (sourceColumn pos /= 1) -- Initial space is required by Amusewiki, but not Emacs Muse
   first <- definitionListItem 0
-  rest <- many $ try (optionMaybe blankline >> definitionListItem (sourceColumn pos - 1))
+  rest <- many $ try (optional blankline >> definitionListItem (sourceColumn pos - 1))
   return $ B.definitionList <$> sequence (first : rest)
 
 --
