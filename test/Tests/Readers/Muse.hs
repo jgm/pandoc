@@ -296,6 +296,11 @@ tests =
                     , "\160\160\160is here"
                     ]
         ]
+      , "Empty quote tag" =:
+        T.unlines [ "<quote>"
+                  , "</quote>"
+                  ]
+        =?> blockQuote mempty
       , "Quote tag" =:
         T.unlines [ "<quote>"
                   , "Hello, world"
