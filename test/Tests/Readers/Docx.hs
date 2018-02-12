@@ -273,6 +273,10 @@ tests = [ testGroup "inlines"
             "docx/table_one_row.docx"
             "docx/table_one_row.native"
           , testCompare
+            "tables with variable width"
+            "docx/table_variable_width.docx"
+            "docx/table_variable_width.native"
+          , testCompare
             "code block"
             "docx/codeblock.docx"
             "docx/codeblock.native"
