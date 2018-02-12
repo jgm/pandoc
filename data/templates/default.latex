@@ -11,6 +11,9 @@ $if(beamer)$
 \setbeamertemplate{caption label separator}{: }
 \setbeamercolor{caption name}{fg=normal text.fg}
 \beamertemplatenavigationsymbols$if(navigation)$$navigation$$else$empty$endif$
+$for(beameroption)$
+\setbeameroption{$beameroption$}
+$endfor$
 $endif$
 $if(beamerarticle)$
 \usepackage{beamerarticle} % needs to be loaded first
