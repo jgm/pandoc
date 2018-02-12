@@ -252,6 +252,12 @@ tests =
         , "Quote" =:
           "  This is a quotation\n" =?>
           blockQuote (para "This is a quotation")
+        , "Indentation does not indicate quote inside quote tag" =:
+          T.unlines [ "<quote>"
+                    , "  Not a nested quote"
+                    , "</quote>"
+                    ] =?>
+          blockQuote (para "Not a nested quote")
         , "Multiline quote" =:
           T.unlines [ "  This is a quotation"
                     , "  with a continuation"

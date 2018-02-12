@@ -81,8 +81,6 @@ data MuseState = MuseState { museMeta :: F Meta -- ^ Document metadata
                            , museLastStrPos :: Maybe SourcePos -- ^ Position after last str parsed
                            , museLogMessages :: [LogMessage]
                            , museNotes :: M.Map String (SourcePos, F Blocks)
-                           , museInQuote :: Bool
-                           , museInList :: Bool
                            , museInLink :: Bool
                            }
 
@@ -97,8 +95,6 @@ defaultMuseState = MuseState { museMeta = return nullMeta
                              , museLastStrPos = Nothing
                              , museLogMessages = []
                              , museNotes = M.empty
-                             , museInQuote = False
-                             , museInList = False
                              , museInLink = False
                              }
 
@@ -256,11 +252,14 @@ parseBlocks =
   try blockStart <|>
   try paraStart
   where
-    blockStart = do first <- blockElements
+    blockStart = do first <- header <|> blockElements <|> amuseNoteBlock <|> emacsNoteBlock
                     rest <- parseBlocks
                     return $ first B.<> rest
-    paraStart = do (first, rest) <- paraUntil ((mempty <$ eof) <|> blockStart)
-                   return $ first B.<> rest
+    paraStart = do
+      indent <- length <$> many spaceChar
+      (first, rest) <- paraUntil ((mempty <$ eof) <|> blockStart)
+      let first' = if indent >= 2 && indent < 6 then B.blockQuote <$> first else first
+      return $ first' B.<> rest
 
 parseBlock :: PandocMonad m => MuseParser m (F Blocks)
 parseBlock = do
@@ -273,7 +272,6 @@ blockElements :: PandocMonad m => MuseParser m (F Blocks)
 blockElements = choice [ mempty <$ blankline
                        , comment
                        , separator
-                       , header
                        , example
                        , exampleTag
                        , literalTag
@@ -288,8 +286,6 @@ blockElements = choice [ mempty <$ blankline
                        , definitionList
                        , table
                        , commentTag
-                       , amuseNoteBlock
-                       , emacsNoteBlock
                        ]
 
 comment :: PandocMonad m => MuseParser m (F Blocks)
@@ -309,9 +305,7 @@ separator = try $ do
 
 header :: PandocMonad m => MuseParser m (F Blocks)
 header = try $ do
-  st <- museInList <$> getState
-  q <- museInQuote <$> getState
-  getPosition >>= \pos -> guard (not st && not q && sourceColumn pos == 1)
+  getPosition >>= \pos -> guard (sourceColumn pos == 1)
   level <- fmap length $ many1 $ char '*'
   guard $ level <= 5
   spaceChar
@@ -370,13 +364,7 @@ rightTag :: PandocMonad m => MuseParser m (F Blocks)
 rightTag = snd <$> parseHtmlContent "right"
 
 quoteTag :: PandocMonad m => MuseParser m (F Blocks)
-quoteTag = do
-  st <- getState
-  let oldInQuote = museInQuote st
-  setState $ st{ museInQuote = True }
-  res <- snd <$> parseHtmlContent "quote"
-  setState $ st{ museInQuote = oldInQuote }
-  return $ B.blockQuote <$> res
+quoteTag = (fmap B.blockQuote) <$> snd <$> parseHtmlContent "quote"
 
 -- <div> tag is supported by Emacs Muse, but not Amusewiki 2.025
 divTag :: PandocMonad m => MuseParser m (F Blocks)
@@ -408,12 +396,8 @@ paraUntil :: PandocMonad m
           => MuseParser m a
           -> MuseParser m (F Blocks, a)
 paraUntil end = do
-  indent <- length <$> many spaceChar
-  st <- museInList <$> getState
-  let f = if not st && indent >= 2 && indent < 6 then B.blockQuote else id
   (l, e) <- someUntil inline $ try (manyTill spaceChar eol >> end)
-  let p = fmap (f . B.para) $ trimInlinesF $ mconcat l
-  return (p, e)
+  return (fmap (B.para) $ trimInlinesF $ mconcat l, e)
 
 noteMarker :: PandocMonad m => MuseParser m String
 noteMarker = try $ do
@@ -481,18 +465,9 @@ lineBlock = try $ do
 -- lists
 --
 
-withListContext :: PandocMonad m => MuseParser m a -> MuseParser m a
-withListContext p = do
-  state <- getState
-  let oldInList = museInList state
-  setState $ state { museInList = True }
-  parsed <- p
-  updateState (\st -> st { museInList = oldInList })
-  return parsed
-
 listItemContents' :: PandocMonad m => Int -> MuseParser m (F Blocks)
 listItemContents' col =
-  mconcat <$> withListContext (parseBlock `sepBy1` try (skipMany blankline >> indentWith col))
+  mconcat <$> parseBlock `sepBy1` try (skipMany blankline >> indentWith col)
 
 listItemContents :: PandocMonad m => MuseParser m (F Blocks)
 listItemContents = do
