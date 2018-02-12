@@ -1533,6 +1533,10 @@ LaTeX variables are used when [creating a PDF].
 `natbiboptions`
 :   list of options for natbib.
 
+`notes2screen`
+:   In beamer, show notes on second screen. Value can be 'top', 'left', 'right' or
+    'bottom'.
+
 `pagestyle`
 :   An option for LaTeX's `\pagestyle{}`. The default article class
     supports 'plain' (default), 'empty', and 'headings'; headings puts
