@@ -298,7 +298,7 @@ parseBlocksTill end =
         Right rest -> return $ first B.<> rest
     paraStart = do (first, e) <- paraUntil ((Left <$> end) <|> (Right <$> continuation))
                    case e of
-                     Left _ -> return $ first
+                     Left _ -> return first
                      Right rest -> return $ first B.<> rest
     continuation = parseBlocksTill end
 
@@ -330,7 +330,7 @@ listItemContentsUntil col pre end =
       (first, e) <- anyListUntil ((Left <$> pre) <|> (Right <$> continuation) <|> (Left <$> end))
       case e of
         Left ee -> return (first, ee)
-        Right (rest, ee) -> return $ (first B.<> rest, ee)
+        Right (rest, ee) -> return (first B.<> rest, ee)
     continuation = try $ do blank <- optionMaybe blankline
                             skipMany blankline
                             indentWith col
@@ -441,7 +441,7 @@ rightTag :: PandocMonad m => MuseParser m (F Blocks)
 rightTag = snd <$> parseHtmlContent "right"
 
 quoteTag :: PandocMonad m => MuseParser m (F Blocks)
-quoteTag = (fmap B.blockQuote) <$> snd <$> parseHtmlContent "quote"
+quoteTag = fmap B.blockQuote . snd <$> parseHtmlContent "quote"
 
 -- <div> tag is supported by Emacs Muse, but not Amusewiki 2.025
 divTag :: PandocMonad m => MuseParser m (F Blocks)
@@ -451,7 +451,7 @@ divTag = do
 
 verseLine :: PandocMonad m => MuseParser m (F Inlines)
 verseLine = do
-  indent <- (B.str <$> many1 (char ' ' >> pure '\160')) <|> (pure mempty)
+  indent <- (B.str <$> many1 (char ' ' >> pure '\160')) <|> pure mempty
   rest <- manyTill (choice inlineList) newline
   return $ trimInlinesF $ mconcat (pure indent : rest)
 
@@ -478,7 +478,7 @@ paraUntil end = do
   setState $ state{ museInPara = True }
   (l, e) <- someUntil inline $ try (manyTill spaceChar eol >> end)
   updateState (\st -> st { museInPara = False })
-  return (fmap (B.para) $ trimInlinesF $ mconcat l, e)
+  return (fmap B.para $ trimInlinesF $ mconcat l, e)
 
 noteMarker :: PandocMonad m => MuseParser m String
 noteMarker = try $ do
@@ -571,7 +571,7 @@ bulletListUntil end = try $ do
   let indent = sourceColumn pos - 1
   guard $ indent /= 0
   (items, e) <- bulletListItemsUntil indent end
-  return $ (B.bulletList <$> sequence items, e)
+  return (B.bulletList <$> sequence items, e)
 
 listItemContents :: PandocMonad m => MuseParser m (F Blocks)
 listItemContents = do
@@ -629,7 +629,7 @@ orderedListUntil end = try $ do
   p@(_, style, _) <- anyMuseOrderedListMarker
   guard $ style `elem` [Decimal, LowerAlpha, UpperAlpha, LowerRoman, UpperRoman]
   (items, e) <- orderedListItemsUntil indent style end
-  return $ (B.orderedListWith p <$> sequence items, e)
+  return (B.orderedListWith p <$> sequence items, e)
 
 descriptionsUntil :: PandocMonad m
                   => Int
