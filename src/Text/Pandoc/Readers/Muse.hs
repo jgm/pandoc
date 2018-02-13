@@ -262,13 +262,13 @@ parseBlocks =
   try paraStart
   where
     parseEnd = mempty <$ eof
-    blockStart = do first <- header <|> blockElements <|> amuseNoteBlock <|> emacsNoteBlock
+    blockStart = do first <- header <|> blockElements <|> emacsNoteBlock
                     rest <- parseBlocks
                     return $ first B.<> rest
     listStart = do
       st <- getState
       setState $ st{ museInPara = False }
-      (first, rest) <- anyListUntil parseBlocks
+      (first, rest) <- anyListUntil parseBlocks <|> amuseNoteBlockUntil parseBlocks
       return $ first B.<> rest
     paraStart = do
       indent <- length <$> many spaceChar
@@ -489,20 +489,22 @@ noteMarker = try $ do
 
 -- Amusewiki version of note
 -- Parsing is similar to list item, except that note marker is used instead of list marker
-amuseNoteBlock :: PandocMonad m => MuseParser m (F Blocks)
-amuseNoteBlock = try $ do
+amuseNoteBlockUntil :: PandocMonad m
+                    => MuseParser m a
+                    -> MuseParser m (F Blocks, a)
+amuseNoteBlockUntil end = try $ do
   guardEnabled Ext_amuse
   pos <- getPosition
   ref <- noteMarker <* spaceChar
   st <- getState
   setState $ st{ museInPara = False }
-  content <- listItemContents
+  (content, e) <- listItemContentsUntil (sourceColumn pos) (fail "x") end
   oldnotes <- museNotes <$> getState
   case M.lookup ref oldnotes of
     Just _  -> logMessage $ DuplicateNoteReference ref pos
     Nothing -> return ()
   updateState $ \s -> s{ museNotes = M.insert ref (pos, content) oldnotes }
-  return mempty
+  return (mempty, e)
 
 -- Emacs version of note
 -- Notes are allowed only at the end of text, no indentation is required.
@@ -572,12 +574,6 @@ bulletListUntil end = try $ do
   guard $ indent /= 0
   (items, e) <- bulletListItemsUntil indent end
   return (B.bulletList <$> sequence items, e)
-
-listItemContents :: PandocMonad m => MuseParser m (F Blocks)
-listItemContents = do
-  pos <- getPosition
-  let col = sourceColumn pos - 1
-  mconcat <$> parseBlock `sepBy1` try (skipMany blankline >> indentWith col)
 
 -- | Parses an ordered list marker and returns list attributes.
 anyMuseOrderedListMarker :: PandocMonad m => MuseParser m ListAttributes
