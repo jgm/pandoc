@@ -305,26 +305,29 @@ parseBlocksTill end =
 listItemContentsUntil :: PandocMonad m
                       => Int
                       -> MuseParser m a
+                      -> MuseParser m a
                       -> MuseParser m (F Blocks, a)
-listItemContentsUntil col end =
+listItemContentsUntil col pre end =
   try blockStart <|>
   try listStart <|>
   try paraStart
   where
+    parsePre = do e <- pre
+                  return (mempty, e)
     parseEnd = do e <- end
                   return (mempty, e)
     paraStart = do
-      (first, e) <- paraUntil ((Right <$> continuation) <|> (Left <$> end))
+      (first, e) <- paraUntil ((Left <$> pre) <|> (Right <$> continuation) <|> (Left <$> end))
       case e of
         Left ee -> return (first, ee)
         Right (rest, ee) -> return (first B.<> rest, ee)
     blockStart = do first <- blockElements
-                    (rest, e) <- continuation <|> parseEnd
+                    (rest, e) <- parsePre <|> continuation <|> parseEnd
                     return (first B.<> rest, e)
     listStart = do
       st <- getState
       setState $ st{ museInPara = False }
-      (first, e) <- anyListUntil ((Right <$> continuation) <|> (Left <$> end))
+      (first, e) <- anyListUntil ((Left <$> pre) <|> (Right <$> continuation) <|> (Left <$> end))
       case e of
         Left ee -> return (first, ee)
         Right (rest, ee) -> return $ (first B.<> rest, ee)
@@ -333,7 +336,7 @@ listItemContentsUntil col end =
                             indentWith col
                             st <- getState
                             setState $ st{ museInPara = museInPara st && isNothing blank }
-                            listItemContentsUntil col end
+                            listItemContentsUntil col pre end
 
 parseBlock :: PandocMonad m => MuseParser m (F Blocks)
 parseBlock = do
@@ -554,7 +557,7 @@ bulletListItemsUntil indent end = try $ do
   void spaceChar <|> lookAhead eol
   st <- getState
   setState $ st{ museInPara = False }
-  (x, e) <- listItemContentsUntil (indent + 2) ((Right <$> try (optional blankline >> indentWith indent >> bulletListItemsUntil indent end)) <|> (Left <$> end))
+  (x, e) <- listItemContentsUntil (indent + 2) (Right <$> try (optional blankline >> indentWith indent >> bulletListItemsUntil indent end)) (Left <$> end)
   case e of
     Left ee -> return ([x], ee)
     Right (xs, ee) -> return (x:xs, ee)
@@ -610,7 +613,7 @@ orderedListItemsUntil indent style end =
       void spaceChar <|> lookAhead eol
       st <- getState
       setState $ st{ museInPara = False }
-      (x, e) <- listItemContentsUntil (sourceColumn pos) ((Right <$> try (optionMaybe blankline >> indentWith indent >> museOrderedListMarker style >> continuation)) <|> (Left <$> end))
+      (x, e) <- listItemContentsUntil (sourceColumn pos) (Right <$> try (optionMaybe blankline >> indentWith indent >> museOrderedListMarker style >> continuation)) (Left <$> end)
       case e of
         Left ee -> return ([x], ee)
         Right (xs, ee) -> return (x:xs, ee)
