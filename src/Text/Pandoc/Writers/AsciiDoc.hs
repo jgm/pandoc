@@ -43,6 +43,7 @@ import Data.Char (isPunctuation, isSpace)
 import Data.List (intercalate, intersperse, stripPrefix)
 import qualified Data.Map as M
 import Data.Maybe (fromMaybe, isJust)
+import qualified Data.Set as Set
 import Data.Text (Text)
 import qualified Data.Text as T
 import Text.Pandoc.Class (PandocMonad, report)
@@ -60,6 +61,7 @@ data WriterState = WriterState { defListMarker    :: String
                                , orderedListLevel :: Int
                                , bulletListLevel  :: Int
                                , intraword        :: Bool
+                               , autoIds          :: Set.Set String
                                }
 
 -- | Convert Pandoc to AsciiDoc.
@@ -70,6 +72,7 @@ writeAsciiDoc opts document =
     , orderedListLevel = 1
     , bulletListLevel = 1
     , intraword = False
+    , autoIds = Set.empty
     }
 
 type ADW = StateT WriterState
@@ -164,7 +167,11 @@ blockToAsciiDoc opts (Header level (ident,_,_) inlines) = do
   let len = offset contents
   -- ident seem to be empty most of the time and asciidoc will generate them automatically
   -- so lets make them not show up when null
-  let identifier = if null ident then empty else "[[" <> text ident <> "]]"
+  ids <- gets autoIds
+  let autoId = uniqueIdent inlines ids
+  modify $ \st -> st{ autoIds = Set.insert autoId ids }
+  let identifier = if null ident || (isEnabled Ext_auto_identifiers opts && ident == autoId)
+                     then empty else "[[" <> text ident <> "]]"
   let setext = writerSetextHeaders opts
   return
          (if setext
