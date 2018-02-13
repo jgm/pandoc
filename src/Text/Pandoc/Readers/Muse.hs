@@ -631,26 +631,37 @@ orderedListUntil end = try $ do
   (items, e) <- orderedListItemsUntil indent style end
   return $ (B.orderedListWith p <$> sequence items, e)
 
+descriptionsUntil :: PandocMonad m
+                  => Int
+                  -> MuseParser m a
+                  -> MuseParser m ([F Blocks], a)
+descriptionsUntil indent end = do
+  void spaceChar <|> lookAhead eol
+  st <- getState
+  setState $ st{ museInPara = False }
+  (x, e) <- listItemContentsUntil indent (Right <$> try (optional blankline >> indentWith indent >> manyTill spaceChar (string "::") >> descriptionsUntil indent end)) (Left <$> end)
+  case e of
+    Right (xs, ee) -> return (x:xs, ee)
+    Left ee -> return ([x], ee)
+
 definitionListItemsUntil :: PandocMonad m
                          => Int
                          -> MuseParser m a
                          -> MuseParser m ([F (Inlines, [Blocks])], a)
 definitionListItemsUntil indent end =
   continuation
-  where continuation = try $ do
-          pos <- getPosition
-          term <- trimInlinesF . mconcat <$> manyTill (choice inlineList) (string "::")
-          void spaceChar <|> lookAhead eol
-          st <- getState
-          setState $ st{ museInPara = False }
-          (x, e) <- listItemContentsUntil (sourceColumn pos) ((Right <$> try (optional blankline >> count indent spaceChar >> continuation)) <|> (Left <$> end))
-          let xx = do
-                term' <- term
-                x' <- x
-                (return (term', [x']))::(F (Inlines, [Blocks]))
-          case e of
-            Left ee -> return $ ([xx], ee)
-            Right (xs, ee) -> return $ (xx : xs, ee)
+  where
+    continuation = try $ do
+      pos <- getPosition
+      term <- trimInlinesF . mconcat <$> manyTill (choice inlineList) (string "::")
+      (x, e) <- descriptionsUntil (sourceColumn pos) ((Right <$> try (optional blankline >> indentWith indent >> continuation)) <|> (Left <$> end))
+      let xx = do
+            term' <- term
+            x' <- sequence x
+            return (term', x')
+      case e of
+        Left ee -> return ([xx], ee)
+        Right (xs, ee) -> return (xx:xs, ee)
 
 definitionListUntil :: PandocMonad m
                     => MuseParser m a
