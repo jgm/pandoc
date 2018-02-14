@@ -615,21 +615,21 @@ This is *emphasized*, and so *is this*.
 
 This is **strong**, and so **is this**.
 
-An *`emphasized link </url>`__*.
+An `emphasized link </url>`__.
 
-***This is strong and em.***
+**This is strong and em.**
 
-So is ***this*** word.
+So is **this** word.
 
-***This is strong and em.***
+**This is strong and em.**
 
-So is ***this*** word.
+So is **this** word.
 
 This is code: ``>``, ``$``, ``\``, ``\$``, ``<html>``.
 
-[STRIKEOUT:This is *strikeout*.]
+[STRIKEOUT:This is strikeout.]
 
-Superscripts: a\ :sup:`bc`\ d a\ :sup:`*hello*` a\ :sup:`hello there`.
+Superscripts: a\ :sup:`bc`\ d a\ :sup:`hello` a\ :sup:`hello there`.
 
 Subscripts: H\ :sub:`2`\ O, H\ :sub:`23`\ O, H\ :sub:`many of them`\ O.
 
@@ -649,8 +649,8 @@ Smart quotes, ellipses, dashes
 
 ‘He said, “I want to go.”’ Were you alive in the 70’s?
 
-Here is some quoted ‘``code``’ and a “`quoted
-link <http://example.com/?foo=1&bar=2>`__”.
+Here is some quoted ‘``code``’ and a `quoted
+link <http://example.com/?foo=1&bar=2>`__.
 
 Some dashes: one—two — three—four — five.
 
