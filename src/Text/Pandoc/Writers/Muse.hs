@@ -353,10 +353,10 @@ inlineToMuse (Subscript lst) = do
 inlineToMuse (SmallCaps lst) = inlineListToMuse lst
 inlineToMuse (Quoted SingleQuote lst) = do
   contents <- inlineListToMuse lst
-  return $ "'" <> contents <> "'"
+  return $ "‘" <> contents <> "’"
 inlineToMuse (Quoted DoubleQuote lst) = do
   contents <- inlineListToMuse lst
-  return $ "\"" <> contents <> "\""
+  return $ "“" <> contents <> "”"
 -- Amusewiki does not support <cite> tag,
 -- and Emacs Muse citation support is limited
 -- (https://www.gnu.org/software/emacs-muse/manual/html_node/Citations.html#Citation)
