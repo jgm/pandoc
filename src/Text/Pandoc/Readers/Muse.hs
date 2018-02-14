@@ -521,7 +521,8 @@ blanklineVerseLine = try $ do
 
 lineBlock :: PandocMonad m => MuseParser m (F Blocks)
 lineBlock = try $ do
-  lns <- many1 (blanklineVerseLine <|> lineVerseLine)
+  col <- sourceColumn <$> getPosition
+  lns <- (blanklineVerseLine <|> lineVerseLine) `sepBy1'` try (indentWith (col - 1))
   return $ B.lineBlock <$> sequence lns
 
 --

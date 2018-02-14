@@ -296,6 +296,17 @@ tests =
                     , "\160\160\160is here"
                     ]
         ]
+      , "Verse in list" =: " - > foo" =?> bulletList [ lineBlock [ "foo" ] ]
+      , "Multiline verse in list" =:
+        T.unlines [ " - > foo"
+                  , "   > bar"
+                  ] =?>
+        bulletList [ lineBlock [ "foo", "bar" ] ]
+      , "Paragraph after verse in list" =:
+        T.unlines [ " - > foo"
+                  , "   bar"
+                  ] =?>
+        bulletList [ lineBlock [ "foo" ] <> para "bar" ]
       , "Empty quote tag" =:
         T.unlines [ "<quote>"
                   , "</quote>"
