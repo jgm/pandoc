@@ -773,6 +773,16 @@ dolstinline :: PandocMonad m => LP m Inlines
 dolstinline = do
   options <- option [] keyvals
   let classes = maybeToList $ lookup "language" options >>= fromListingsLanguage
+  doinlinecode classes
+
+domintinline :: PandocMonad m => LP m Inlines
+domintinline = do
+  skipopts
+  cls <- toksToString <$> braced
+  doinlinecode [cls]
+
+doinlinecode :: PandocMonad m => [String] -> LP m Inlines
+doinlinecode classes = do
   Tok _ Symbol t <- anySymbol
   marker <- case T.uncons t of
               Just (c, ts) | T.null ts -> return c
@@ -1353,6 +1363,7 @@ inlineCommands = M.union inlineLanguageCommands $ M.fromList
   , ("footnote", skipopts >> note <$> grouped block)
   , ("verb", doverb)
   , ("lstinline", dolstinline)
+  , ("mintinline", domintinline)
   , ("Verb", doverb)
   , ("url", ((unescapeURL . T.unpack . untokenize) <$> braced) >>= \url ->
                   pure (link url "" (str url)))
