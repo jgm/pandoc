@@ -537,6 +537,21 @@ tests =
         , test emacsMuse "Disable tables"
           ("#disable-tables t" =?>
           Pandoc (setMeta "disable-tables" (MetaInlines $ toList "t") nullMeta) mempty)
+        , "Multiple directives" =:
+          T.unlines [ "#title Document title"
+                    , "#subtitle Document subtitle"
+                    ] =?>
+          Pandoc (setMeta "title" (MetaInlines $ toList "Document title") $
+                  setMeta "subtitle" (MetaInlines $ toList "Document subtitle") nullMeta) mempty
+        , "Multiline directive" =:
+          T.unlines [ "#title Document title"
+                    , "#notes First line"
+                    , "and second line"
+                    , "#author Name"
+                    ] =?>
+          Pandoc (setMeta "title" (MetaInlines $ toList "Document title") $
+                  setMeta "notes" (MetaInlines $ toList "First line\nand second line") $
+                  setMeta "author" (MetaInlines $ toList "Name") nullMeta) mempty
         ]
       , testGroup "Anchors"
         [ "Anchor" =:

@@ -237,9 +237,7 @@ parseAmuseDirective = do
   many blankline
   return (key, value)
   where
-    endOfDirective = lookAhead $ try (eof <|>
-                                      void (newline >> blankline) <|>
-                                      void (newline >> parseDirectiveKey))
+    endOfDirective = lookAhead $ eof <|> try (newline >> (void blankline <|> void parseDirectiveKey))
 
 directive :: PandocMonad m => MuseParser m ()
 directive = do
