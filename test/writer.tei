@@ -20,15 +20,15 @@
 <p>This is a set of tests for pandoc. Most of them are adapted from John
 Gruber’s markdown test suite.</p>
 <milestone unit="undefined" type="separator" rendition="line" />
-<div type="level1" id="headers">
+<div type="level1" xml:id="headers">
   <head>Headers</head>
-  <div type="level2" id="level-2-with-an-embedded-link">
+  <div type="level2" xml:id="level-2-with-an-embedded-link">
     <head>Level 2 with an <ref target="/url">embedded link</ref></head>
-    <div type="level3" id="level-3-with-emphasis">
+    <div type="level3" xml:id="level-3-with-emphasis">
       <head>Level 3 with <hi rendition="simple:italic">emphasis</hi></head>
-      <div type="level4" id="level-4">
+      <div type="level4" xml:id="level-4">
         <head>Level 4</head>
-        <div type="level5" id="level-5">
+        <div type="level5" xml:id="level-5">
           <head>Level 5</head>
           <p></p>
         </div>
@@ -36,22 +36,22 @@ Gruber’s markdown test suite.</p>
     </div>
   </div>
 </div>
-<div type="level1" id="level-1">
+<div type="level1" xml:id="level-1">
   <head>Level 1</head>
-  <div type="level2" id="level-2-with-emphasis">
+  <div type="level2" xml:id="level-2-with-emphasis">
     <head>Level 2 with <hi rendition="simple:italic">emphasis</hi></head>
-    <div type="level3" id="level-3">
+    <div type="level3" xml:id="level-3">
       <head>Level 3</head>
       <p>with no blank line</p>
     </div>
   </div>
-  <div type="level2" id="level-2">
+  <div type="level2" xml:id="level-2">
     <head>Level 2</head>
     <p>with no blank line</p>
     <milestone unit="undefined" type="separator" rendition="line" />
   </div>
 </div>
-<div type="level1" id="paragraphs">
+<div type="level1" xml:id="paragraphs">
   <head>Paragraphs</head>
   <p>Here’s a regular paragraph.</p>
   <p>In Markdown 1.0.0 and earlier. Version 8. This line turns into a list
@@ -61,7 +61,7 @@ Gruber’s markdown test suite.</p>
   <p>There should be a hard line break<lb />here.</p>
   <milestone unit="undefined" type="separator" rendition="line" />
 </div>
-<div type="level1" id="block-quotes">
+<div type="level1" xml:id="block-quotes">
   <head>Block Quotes</head>
   <p>E-mail style:</p>
   <quote>
@@ -95,7 +95,7 @@ sub status {
   <p>And a following paragraph.</p>
   <milestone unit="undefined" type="separator" rendition="line" />
 </div>
-<div type="level1" id="code-blocks">
+<div type="level1" xml:id="code-blocks">
   <head>Code Blocks</head>
   <p>Code:</p>
   <ab type='codeblock '>
@@ -115,9 +115,9 @@ These should not be escaped:  \$ \\ \&gt; \[ \{
 </ab>
   <milestone unit="undefined" type="separator" rendition="line" />
 </div>
-<div type="level1" id="lists">
+<div type="level1" xml:id="lists">
   <head>Lists</head>
-  <div type="level2" id="unordered">
+  <div type="level2" xml:id="unordered">
     <head>Unordered</head>
     <p>Asterisks tight:</p>
     <list type="unordered">
@@ -192,7 +192,7 @@ These should not be escaped:  \$ \\ \&gt; \[ \{
       </item>
     </list>
   </div>
-  <div type="level2" id="ordered">
+  <div type="level2" xml:id="ordered">
     <head>Ordered</head>
     <p>Tight:</p>
     <list type="ordered:arabic">
@@ -257,7 +257,7 @@ These should not be escaped:  \$ \\ \&gt; \[ \{
       </item>
     </list>
   </div>
-  <div type="level2" id="nested">
+  <div type="level2" xml:id="nested">
     <head>Nested</head>
     <list type="unordered">
       <item>
@@ -321,7 +321,7 @@ These should not be escaped:  \$ \\ \&gt; \[ \{
       </item>
     </list>
   </div>
-  <div type="level2" id="tabs-and-spaces">
+  <div type="level2" xml:id="tabs-and-spaces">
     <head>Tabs and spaces</head>
     <list type="unordered">
       <item>
@@ -340,7 +340,7 @@ These should not be escaped:  \$ \\ \&gt; \[ \{
       </item>
     </list>
   </div>
-  <div type="level2" id="fancy-list-markers">
+  <div type="level2" xml:id="fancy-list-markers">
     <head>Fancy list markers</head>
     <list type="ordered:arabic">
       <item n="2">
@@ -408,7 +408,7 @@ These should not be escaped:  \$ \\ \&gt; \[ \{
     <milestone unit="undefined" type="separator" rendition="line" />
   </div>
 </div>
-<div type="level1" id="definition-lists">
+<div type="level1" xml:id="definition-lists">
   <head>Definition Lists</head>
   <p>Tight using spaces:</p>
   <list type="definition">
@@ -554,7 +554,7 @@ These should not be escaped:  \$ \\ \&gt; \[ \{
     </item>
   </list>
 </div>
-<div type="level1" id="html-blocks">
+<div type="level1" xml:id="html-blocks">
   <head>HTML Blocks</head>
   <p>Simple block on one line:</p>
   <p>foo</p>
@@ -592,7 +592,7 @@ These should not be escaped:  \$ \\ \&gt; \[ \{
   <p>Hr’s:</p>
   <milestone unit="undefined" type="separator" rendition="line" />
 </div>
-<div type="level1" id="inline-markup">
+<div type="level1" xml:id="inline-markup">
   <head>Inline Markup</head>
   <p>This is <hi rendition="simple:italic">emphasized</hi>, and so
   <hi rendition="simple:italic">is this</hi>.</p>
@@ -625,7 +625,7 @@ These should not be escaped:  \$ \\ \&gt; \[ \{
   spaces: a^b c^d, a~b c~d.</p>
   <milestone unit="undefined" type="separator" rendition="line" />
 </div>
-<div type="level1" id="smart-quotes-ellipses-dashes">
+<div type="level1" xml:id="smart-quotes-ellipses-dashes">
   <head>Smart quotes, ellipses, dashes</head>
   <p><quote>Hello,</quote> said the spider. <quote><quote>Shelob</quote> is my
   name.</quote></p>
@@ -642,7 +642,7 @@ These should not be escaped:  \$ \\ \&gt; \[ \{
   <p>Ellipses…and…and….</p>
   <milestone unit="undefined" type="separator" rendition="line" />
 </div>
-<div type="level1" id="latex">
+<div type="level1" xml:id="latex">
   <head>LaTeX</head>
   <list type="unordered">
     <item>
@@ -694,7 +694,7 @@ These should not be escaped:  \$ \\ \&gt; \[ \{
   <p>Here’s a LaTeX table:</p>
   <milestone unit="undefined" type="separator" rendition="line" />
 </div>
-<div type="level1" id="special-characters">
+<div type="level1" xml:id="special-characters">
   <head>Special Characters</head>
   <p>Here is some unicode:</p>
   <list type="unordered">
@@ -737,9 +737,9 @@ These should not be escaped:  \$ \\ \&gt; \[ \{
   <p>Minus: -</p>
   <milestone unit="undefined" type="separator" rendition="line" />
 </div>
-<div type="level1" id="links">
+<div type="level1" xml:id="links">
   <head>Links</head>
-  <div type="level2" id="explicit">
+  <div type="level2" xml:id="explicit">
     <head>Explicit</head>
     <p>Just a <ref target="/url/">URL</ref>.</p>
     <p><ref target="/url/">URL and title</ref>.</p>
@@ -751,7 +751,7 @@ These should not be escaped:  \$ \\ \&gt; \[ \{
     <p>Email link (nobody@nowhere.net)</p>
     <p><ref target="">Empty</ref>.</p>
   </div>
-  <div type="level2" id="reference">
+  <div type="level2" xml:id="reference">
     <head>Reference</head>
     <p>Foo <ref target="/url/">bar</ref>.</p>
     <p>With <ref target="/url/">embedded [brackets]</ref>.</p>
@@ -766,7 +766,7 @@ These should not be escaped:  \$ \\ \&gt; \[ \{
     <p>Foo <ref target="/url/">bar</ref>.</p>
     <p>Foo <ref target="/url/">biz</ref>.</p>
   </div>
-  <div type="level2" id="with-ampersands">
+  <div type="level2" xml:id="with-ampersands">
     <head>With ampersands</head>
     <p>Here’s a <ref target="http://example.com/?foo=1&amp;bar=2">link with an
     ampersand in the URL</ref>.</p>
@@ -776,7 +776,7 @@ These should not be escaped:  \$ \\ \&gt; \[ \{
     <p>Here’s an <ref target="/script?foo=1&amp;bar=2">inline link in pointy
     braces</ref>.</p>
   </div>
-  <div type="level2" id="autolinks">
+  <div type="level2" xml:id="autolinks">
     <head>Autolinks</head>
     <p>With an ampersand:
     <ref target="http://example.com/?foo=1&amp;bar=2">http://example.com/?foo=1&amp;bar=2</ref></p>
@@ -804,7 +804,7 @@ or here: &lt;http://example.com/&gt;
     <milestone unit="undefined" type="separator" rendition="line" />
   </div>
 </div>
-<div type="level1" id="images">
+<div type="level1" xml:id="images">
   <head>Images</head>
   <p>From <quote>Voyage dans la Lune</quote> by Georges Melies (1902):</p>
   <p><figure>
@@ -818,7 +818,7 @@ or here: &lt;http://example.com/&gt;
   </figure> icon.</p>
   <milestone unit="undefined" type="separator" rendition="line" />
 </div>
-<div type="level1" id="footnotes">
+<div type="level1" xml:id="footnotes">
   <head>Footnotes</head>
   <p>Here is a footnote reference,<note>
     <p>Here is the footnote. It can go anywhere after the footnote reference.

@@ -104,7 +104,7 @@ elementToTEI opts lvl (Sec _ _num (id',_,_) title elements) = do
   contents <- vcat <$> mapM (elementToTEI opts (lvl + 1)) elements'
   titleContents <- inlinesToTEI opts title
   return $ inTags True "div" (("type", divType) :
-    [("id", writerIdentifierPrefix opts ++ id') | not (null id')]) $
+    [("xml:id", writerIdentifierPrefix opts ++ id') | not (null id')]) $
       inTagsSimple "head" titleContents $$ contents
 
 -- | Convert a list of Pandoc blocks to TEI.
@@ -156,7 +156,7 @@ blockToTEI _ Null = return empty
 -- Add ids to paragraphs in divs with ids - this is needed for
 -- pandoc-citeproc to get link anchors in bibliographies:
 blockToTEI opts (Div (ident,_,_) [Para lst]) = do
-  let attribs = [("id", ident) | not (null ident)]
+  let attribs = [("xml:id", ident) | not (null ident)]
   inTags False "p" attribs <$> inlinesToTEI opts lst
 blockToTEI opts (Div _ bs) = blocksToTEI opts $ map plainToPara bs
 blockToTEI _ h@Header{} = do
@@ -342,7 +342,7 @@ idAndRole (id',cls,_) = ident ++ role
   where
     ident = if null id'
                then []
-               else [("id", id')]
+               else [("xml:id", id')]
     role  = if null cls
                then []
                else [("role", unwords cls)]
