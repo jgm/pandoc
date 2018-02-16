@@ -36,7 +36,7 @@ Markdown:  <http://daringfireball.net/projects/markdown/>
 module Text.Pandoc.Writers.Markdown (writeMarkdown, writePlain) where
 import Control.Monad.Reader
 import Control.Monad.State.Strict
-import Data.Char (chr, isPunctuation, isSpace, ord)
+import Data.Char (chr, isPunctuation, isSpace, ord, isAlphaNum)
 import Data.Default
 import qualified Data.HashMap.Strict as H
 import Data.List (find, group, intersperse, sortBy, stripPrefix, transpose)
@@ -286,6 +286,12 @@ escapeString opts (c:cs) =
        '>' | isEnabled Ext_all_symbols_escapable opts ->
               '\\' : '>' : escapeString opts cs
            | otherwise -> "&gt;" ++ escapeString opts cs
+       '@' | isEnabled Ext_citations opts ->
+               case cs of
+                    (d:_)
+                      | isAlphaNum d || d == '_'
+                         -> '\\':'@':escapeString opts cs
+                    _ -> '@':escapeString opts cs
        _ | c `elem` ['\\','`','*','_','[',']','#'] ->
               '\\':c:escapeString opts cs
        '|' | isEnabled Ext_pipe_tables opts -> '\\':'|':escapeString opts cs
