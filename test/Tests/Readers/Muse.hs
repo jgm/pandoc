@@ -767,6 +767,18 @@ tests =
                                              , para "Item2"
                                              , para "Item3"
                                              ]
+      , "Ordered list with roman numerals" =:
+        T.unlines
+          [ " i. First"
+          , " ii. Second"
+          , " iii. Third"
+          , " iv. Fourth"
+          ] =?>
+        orderedListWith (1, LowerRoman, Period) [ para "First"
+                                                , para "Second"
+                                                , para "Third"
+                                                , para "Fourth"
+                                                ]
       , "Bullet list with empty items" =:
         T.unlines
           [ " -"

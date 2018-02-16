@@ -576,7 +576,7 @@ bulletListUntil end = try $ do
 -- | Parses an ordered list marker and returns list attributes.
 anyMuseOrderedListMarker :: PandocMonad m => MuseParser m ListAttributes
 anyMuseOrderedListMarker = do
-  (style, start) <- decimal <|> lowerAlpha <|> lowerRoman <|> upperAlpha <|> upperRoman
+  (style, start) <- decimal <|> lowerRoman <|> upperRoman <|> lowerAlpha <|> upperAlpha
   char '.'
   return (start, style, Period)
 
