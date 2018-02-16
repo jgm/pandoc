@@ -283,8 +283,10 @@ pdfSize img =
                              "/MediaBox" `B.isPrefixOf` l)) (B.lines img) of
        (x:_)
          | "/MediaBox" `B.isPrefixOf` x
-         -> case B.words $ B.filter (\c -> c /= '[' && c /= ']')
-                         $ B.drop 10 x of
+         -> case B.words . B.takeWhile (/=']')
+                         . B.drop 1
+                         . B.dropWhile (/='[')
+                         $ x of
                      [x1, y1, x2, y2] -> do
                         x1' <- safeRead $ B.unpack x1
                         x2' <- safeRead $ B.unpack x2
