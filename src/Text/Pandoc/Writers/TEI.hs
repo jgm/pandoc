@@ -90,7 +90,7 @@ writeTEI opts (Pandoc meta blocks) = do
 -- | Convert an Element to TEI.
 elementToTEI :: PandocMonad m => WriterOptions -> Int -> Element -> m Doc
 elementToTEI opts _   (Blk block) = blockToTEI opts block
-elementToTEI opts lvl (Sec _ _num (id',_,_) title elements) = do
+elementToTEI opts lvl (Sec _ _num attr title elements) = do
   -- TEI doesn't allow sections with no content, so insert some if needed
   let elements' = if null elements
                     then [Blk (Para [])]
@@ -103,8 +103,7 @@ elementToTEI opts lvl (Sec _ _num (id',_,_) title elements) = do
                    | otherwise        -> "section"
   contents <- vcat <$> mapM (elementToTEI opts (lvl + 1)) elements'
   titleContents <- inlinesToTEI opts title
-  return $ inTags True "div" (("type", divType) :
-    [("xml:id", writerIdentifierPrefix opts ++ id') | not (null id')]) $
+  return $ inTags True "div" (("type", divType) : idFromAttr opts attr) $
       inTagsSimple "head" titleContents $$ contents
 
 -- | Convert a list of Pandoc blocks to TEI.
@@ -142,8 +141,8 @@ listItemToTEI opts item =
   inTagsIndented "item" <$> blocksToTEI opts (map plainToPara item)
 
 imageToTEI :: PandocMonad m => WriterOptions -> Attr -> String -> m Doc
-imageToTEI _ attr src = return $ selfClosingTag "graphic" $
-  ("url", src) : idAndRole attr ++ dims
+imageToTEI opts attr src = return $ selfClosingTag "graphic" $
+  ("url", src) : idFromAttr opts attr ++ dims
   where
     dims = go Width "width" ++ go Height "height"
     go dir dstr = case dimension dir attr of
@@ -155,8 +154,8 @@ blockToTEI :: PandocMonad m => WriterOptions -> Block -> m Doc
 blockToTEI _ Null = return empty
 -- Add ids to paragraphs in divs with ids - this is needed for
 -- pandoc-citeproc to get link anchors in bibliographies:
-blockToTEI opts (Div (ident,_,_) [Para lst]) = do
-  let attribs = [("xml:id", ident) | not (null ident)]
+blockToTEI opts (Div attr [Para lst]) = do
+  let attribs = idFromAttr opts attr
   inTags False "p" attribs <$> inlinesToTEI opts lst
 blockToTEI opts (Div _ bs) = blocksToTEI opts $ map plainToPara bs
 blockToTEI _ h@Header{} = do
@@ -320,8 +319,10 @@ inlineToTEI opts (Link attr txt (src, _))
               return $ linktext <+> char '(' <> emailLink <> char ')'
   | otherwise =
       (if "#" `isPrefixOf` src
-            then inTags False "ref" $ ("target", drop 1 src) : idAndRole attr
-            else inTags False "ref" $ ("target", src) : idAndRole attr ) <$>
+            then inTags False "ref" $ ("target", drop 1 src)
+                 : idFromAttr opts attr
+            else inTags False "ref" $ ("target", src)
+                 : idFromAttr opts attr ) <$>
         inlinesToTEI opts txt
 inlineToTEI opts (Image attr description (src, tit)) = do
   let titleDoc = if null tit
@@ -337,12 +338,8 @@ inlineToTEI opts (Image attr description (src, tit)) = do
 inlineToTEI opts (Note contents) =
   inTagsIndented "note" <$> blocksToTEI opts contents
 
-idAndRole :: Attr -> [(String, String)]
-idAndRole (id',cls,_) = ident ++ role
-  where
-    ident = if null id'
-               then []
-               else [("xml:id", id')]
-    role  = if null cls
-               then []
-               else [("role", unwords cls)]
+idFromAttr :: WriterOptions -> Attr -> [(String, String)]
+idFromAttr opts (id',_,_) =
+  if null id'
+     then []
+     else [("xml:id", writerIdentifierPrefix opts ++ id')]
