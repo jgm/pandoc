@@ -139,6 +139,12 @@ data-files:
                  data/pptx/ppt/slideMasters/_rels/slideMaster1.xml.rels
                  data/pptx/ppt/slideMasters/slideMaster1.xml
                  data/pptx/ppt/presentation.xml
+                 data/pptx/ppt/notesMasters/_rels/notesMaster1.xml.rels
+                 data/pptx/ppt/notesMasters/notesMaster1.xml
+                 data/pptx/ppt/notesSlides/_rels/notesSlide1.xml.rels
+                 data/pptx/ppt/notesSlides/notesSlide1.xml
+                 data/pptx/ppt/notesSlides/_rels/notesSlide1.xml.rels
+                 data/pptx/ppt/theme/theme2.xml
                  data/pptx/[Content_Types].xml
                   -- stylesheet for EPUB writer
                  data/epub.css
