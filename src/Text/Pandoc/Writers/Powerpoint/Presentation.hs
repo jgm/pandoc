@@ -37,7 +37,7 @@ module Text.Pandoc.Writers.Powerpoint.Presentation ( documentToPresentation
                                                    , DocProps(..)
                                                    , Slide(..)
                                                    , Layout(..)
-                                                   , Notes(..)
+                                                   , SpeakerNotes(..)
                                                    , SlideId(..)
                                                    , Shape(..)
                                                    , Graphic(..)
@@ -180,7 +180,7 @@ data DocProps = DocProps { dcTitle :: Maybe String
 
 data Slide = Slide { slideId :: SlideId
                    , slideLayout :: Layout
-                   , slideNotes :: Maybe Notes
+                   , slideSpeakerNotes :: Maybe SpeakerNotes
                    } deriving (Show, Eq)
 
 newtype SlideId = SlideId String
@@ -189,7 +189,7 @@ newtype SlideId = SlideId String
 -- In theory you could have anything on a notes slide but it seems
 -- designed mainly for one textbox, so we'll just put in the contents
 -- of that textbox, to avoid other shapes that won't work as well.
-newtype Notes = Notes [Paragraph]
+newtype SpeakerNotes = SpeakerNotes {fromSpeakerNotes :: [Paragraph]}
   deriving (Show, Eq)
 
 data Layout = MetadataSlide { metadataSlideTitle :: [ParaElem]
@@ -806,11 +806,11 @@ applyToLayout f (TwoColumnSlide hdr contentL contentR) = do
 applyToSlide :: Monad m => (ParaElem -> m ParaElem) -> Slide -> m Slide
 applyToSlide f slide = do
   layout' <- applyToLayout f $ slideLayout slide
-  mbNotes' <- case slideNotes slide of
-                Just (Notes notes) -> (Just . Notes) <$>
-                                      mapM (applyToParagraph f) notes
+  mbNotes' <- case slideSpeakerNotes slide of
+                Just (SpeakerNotes notes) -> (Just . SpeakerNotes) <$>
+                                             mapM (applyToParagraph f) notes
                 Nothing -> return Nothing
-  return slide{slideLayout = layout', slideNotes = mbNotes'}
+  return slide{slideLayout = layout', slideSpeakerNotes = mbNotes'}
 
 replaceAnchor :: ParaElem -> Pres ParaElem
 replaceAnchor (Run rProps s)
