@@ -71,7 +71,7 @@ import Data.Maybe (fromMaybe)
 -- quick and dirty functions to get image sizes
 -- algorithms borrowed from wwwis.pl
 
-data ImageType = Png | Gif | Jpeg | Svg | Pdf | Eps deriving Show
+data ImageType = Png | Gif | Jpeg | Svg | Pdf | Eps | Emf deriving Show
 data Direction = Width | Height
 instance Show Direction where
   show Width  = "width"
@@ -125,6 +125,8 @@ imageType img = case B.take 4 img of
                      "%!PS"
                        |  B.take 4 (B.drop 1 $ B.dropWhile (/=' ') img) == "EPSF"
                                         -> return Eps
+                     "\x01\x00\x00\x00"
+                       | B.take 4 (B.drop 40 img) == " EMF" -> return Emf
                      _                  -> mzero
 
 findSvgTag :: ByteString -> Bool
@@ -139,6 +141,7 @@ imageSize opts img =
        Just Svg  -> mbToEither "could not determine SVG size" $ svgSize opts img
        Just Eps  -> mbToEither "could not determine EPS size" $ epsSize img
        Just Pdf  -> mbToEither "could not determine PDF size" $ pdfSize img
+       Just Emf  -> mbToEither "could not determine EMF size" $ emfSize img
        Nothing   -> Left "could not determine image type"
   where mbToEither msg Nothing  = Left msg
         mbToEither _   (Just x) = Right x
@@ -357,6 +360,39 @@ svgSize opts img = do
   , dpiX = dpi
   , dpiY = dpi
   }
+  
+emfSize :: WriterOptions -> ByteString -> Maybe ImageSize
+emfSize img = 
+  let
+    hundredthsOfMMinIN = 2540
+  
+    result = runGetOrFail img $ do
+      getWord32le -- Type
+      getWord32le -- Header Size
+      boundsL <- getWord32le
+      boundsT <- getWord32le
+      boundsR <- getWord32le
+      boundsB <- getWord32le
+      frameL <- getWord32le
+      frameT <- getWord32le
+      frameR <- getWord32le
+      frameB <- getWord32le
+      let
+        w = boundsR - boundsL + 1 -- bounds are inclusive-inclusive, so + 1
+        h = boundsB - boundsT + 1 -- frame is the same
+        dpiW = (w * hundredthsOfMMinIN) `quot` (frameR - frameL + 1)
+        dpiH = (h * hundredthsOfMMinIN) `quot` (frameB - frameT + 1)
+      return $ ImageSize
+        { pxX = fromIntegral w
+        , pxY = fromIntegral h
+        , dpiX = fromIntegral dpiW
+        , dpiY = fromIntegral dpiH
+        }
+  in 
+    case result of
+      Left _ -> Nothing
+      Right result -> Just result
+  
 
 jpegSize :: ByteString -> Either String ImageSize
 jpegSize img =
