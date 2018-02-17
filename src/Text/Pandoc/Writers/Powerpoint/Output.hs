@@ -56,7 +56,7 @@ import Text.Pandoc.MIME
 import qualified Data.ByteString.Lazy as BL
 import Text.Pandoc.Writers.OOXML
 import qualified Data.Map as M
-import Data.Maybe (mapMaybe, listToMaybe, fromMaybe, isJust)
+import Data.Maybe (mapMaybe, listToMaybe, fromMaybe, isJust, maybeToList, catMaybes)
 import Text.Pandoc.ImageSize
 import Control.Applicative ((<|>))
 import System.FilePath.Glob
@@ -109,6 +109,11 @@ data WriterEnv = WriterEnv { envRefArchive :: Archive
                            , envSlideIdOffset :: Int
                            , envContentType :: ContentType
                            , envSlideIdMap :: M.Map SlideId Int
+                           -- maps the slide number to the
+                           -- corresponding notes id number. If there
+                           -- are no notes for a slide, there will be
+                           -- no entry in the map for it.
+                           , envSpeakerNotesIdMap :: M.Map Int Int
                            }
                  deriving (Show)
 
@@ -125,6 +130,7 @@ instance Default WriterEnv where
                   , envSlideIdOffset = 1
                   , envContentType = NormalContent
                   , envSlideIdMap = mempty
+                  , envSpeakerNotesIdMap = mempty
                   }
 
 data ContentType = NormalContent
@@ -185,7 +191,7 @@ alwaysInheritedPatterns =
 -- We only look for these under special conditions
 contingentInheritedPatterns :: Presentation -> [Pattern]
 contingentInheritedPatterns pres = [] ++
-  if hasSpeakerNotes pres
+  if presHasSpeakerNotes pres
   then map compile [ "ppt/notesMasters/notesMaster*.xml"
                    , "ppt/notesMasters/_rels/notesMaster*.xml.rels"
                    , "ppt/theme/theme2.xml"
@@ -253,6 +259,8 @@ presentationToArchiveP p@(Presentation docProps slides) = do
   presRelsEntry <- presentationToRelsEntry p
   slideEntries <- mapM slideToEntry slides
   slideRelEntries <- mapM slideToSlideRelEntry slides
+  spkNotesEntries <- catMaybes <$> mapM slideToSpeakerNotesEntry slides
+  spkNotesRelEntries <- catMaybes <$> mapM slideToSpeakerNotesRelEntry slides
   -- These have to come after everything, because they need the info
   -- built up in the state.
   mediaEntries <- makeMediaEntries
@@ -261,12 +269,20 @@ presentationToArchiveP p@(Presentation docProps slides) = do
   return $ foldr addEntryToArchive newArch' $
     slideEntries ++
     slideRelEntries ++
+    spkNotesEntries ++
+    spkNotesRelEntries ++
     mediaEntries ++
     [contentTypesEntry, docPropsEntry, relsEntry, presEntry, presRelsEntry]
 
 makeSlideIdMap :: Presentation -> M.Map SlideId Int
 makeSlideIdMap (Presentation _ slides) =
   M.fromList $ (map slideId slides) `zip` [1..]
+
+makeSpeakerNotesMap :: Presentation -> M.Map Int Int
+makeSpeakerNotesMap (Presentation _ slides) =
+  M.fromList $ (mapMaybe f $ slides `zip` [1..]) `zip` [1..]
+  where f (Slide _ _ Nothing, _) = Nothing
+        f (Slide _ _ (Just _), n)  = Just n
 
 presentationToArchive :: PandocMonad m => WriterOptions -> Presentation -> m Archive
 presentationToArchive opts pres = do
@@ -291,6 +307,7 @@ presentationToArchive opts pres = do
                 , envOpts = opts
                 , envPresentationSize = presSize
                 , envSlideIdMap = makeSlideIdMap pres
+                , envSpeakerNotesIdMap = makeSpeakerNotesMap pres
                 }
 
   let st = def { stMediaGlobalIds = initialGlobalIds refArchive distArchive
@@ -304,8 +321,14 @@ presentationToArchive opts pres = do
 
 -- Check to see if the presentation has speaker notes. This will
 -- influence whether we import the notesMaster template.
-hasSpeakerNotes :: Presentation -> Bool
-hasSpeakerNotes (Presentation _ slides) = any isJust $ map slideSpeakerNotes slides
+presHasSpeakerNotes :: Presentation -> Bool
+presHasSpeakerNotes (Presentation _ slides) = any isJust $ map slideSpeakerNotes slides
+
+curSlideHasSpeakerNotes :: PandocMonad m => P m Bool
+curSlideHasSpeakerNotes = do
+  sldId <- asks envCurSlideId
+  notesIdMap <- asks envSpeakerNotesIdMap
+  return $ isJust $ M.lookup sldId notesIdMap
 
 --------------------------------------------------
 
@@ -448,15 +471,16 @@ registerLink link = do
   curSlideId <- asks envCurSlideId
   linkReg <- gets stLinkIds
   mediaReg <- gets stMediaIds
+  hasSpeakerNotes <- curSlideHasSpeakerNotes
   let maxLinkId = case M.lookup curSlideId linkReg of
         Just mp -> case M.keys mp of
-          [] -> 1
+          [] -> if hasSpeakerNotes then 2 else 1
           ks -> maximum ks
-        Nothing -> 1
+        Nothing -> if hasSpeakerNotes then 2 else 1
       maxMediaId = case M.lookup curSlideId mediaReg of
-        Just [] -> 1
+        Just [] -> if hasSpeakerNotes then 2 else 1
         Just mInfos -> maximum $ map mInfoLocalId mInfos
-        Nothing -> 1
+        Nothing -> if hasSpeakerNotes then 2 else 1
       maxId = max maxLinkId maxMediaId
       slideLinks = case M.lookup curSlideId linkReg of
         Just mp -> M.insert (maxId + 1) link mp
@@ -470,15 +494,16 @@ registerMedia fp caption = do
   linkReg <- gets stLinkIds
   mediaReg <- gets stMediaIds
   globalIds <- gets stMediaGlobalIds
+  hasSpeakerNotes <- curSlideHasSpeakerNotes
   let maxLinkId = case M.lookup curSlideId linkReg of
         Just mp -> case M.keys mp of
-          [] -> 1
+          [] -> if hasSpeakerNotes then 2 else 1
           ks -> maximum ks
-        Nothing -> 1
+        Nothing -> if hasSpeakerNotes then 2 else 1
       maxMediaId = case M.lookup curSlideId mediaReg of
-        Just [] -> 1
+        Just [] -> if hasSpeakerNotes then 2 else 1
         Just mInfos -> maximum $ map mInfoLocalId mInfos
-        Nothing -> 1
+        Nothing -> if hasSpeakerNotes then 2 else 1
       maxLocalId = max maxLinkId maxMediaId
 
       maxGlobalId = case M.elems globalIds of
@@ -973,6 +998,21 @@ getShapeByName ns spTreeElem name
   filterChild (\e -> (isElem ns "p" "sp" e) && (shapeHasName ns name e)) spTreeElem
   | otherwise = Nothing
 
+
+
+getShapeByPlaceHolderType :: NameSpaces -> Element -> String -> Maybe Element
+getShapeByPlaceHolderType ns spTreeElem phType
+  | isElem ns "p" "spTree" spTreeElem =
+    let findPhType element = isElem ns "p" "sp" element &&
+                             Just phType == (Just element >>=
+                                             findChild (elemName ns "p" "nvSpPr") >>=
+                                             findChild (elemName ns "p" "nvPr") >>=
+                                             findChild (elemName ns "p" "ph") >>=
+                                             findAttr (QName "type" Nothing Nothing))
+    in
+      filterChild findPhType spTreeElem
+  | otherwise = Nothing
+
 -- getShapeById :: NameSpaces -> Element -> String -> Maybe Element
 -- getShapeById ns spTreeElem ident
 --   | isElem ns "p" "spTree" spTreeElem =
@@ -1108,6 +1148,148 @@ slideToElement (Slide _ l@(MetadataSlide titleElems subtitleElems authorElems da
       ("xmlns:r", "http://schemas.openxmlformats.org/officeDocument/2006/relationships"),
       ("xmlns:p", "http://schemas.openxmlformats.org/presentationml/2006/main")
     ] [mknode "p:cSld" [] [spTree]]
+
+
+--------------------------------------------------------------------
+-- Notes:
+
+getNotesMaster :: PandocMonad m => P m Element
+getNotesMaster = do
+  let notesMasterPath = "ppt/notesMasters/notesMaster1.xml"
+  distArchive <- asks envDistArchive
+  root <- case findEntryByPath notesMasterPath distArchive of
+        Just e -> case parseXMLDoc $ UTF8.toStringLazy $ fromEntry e of
+                    Just element -> return $ element
+                    Nothing      -> throwError $
+                                    PandocSomeError $
+                                    notesMasterPath ++ " corrupt in reference file"
+        Nothing -> throwError $
+                   PandocSomeError $
+                   notesMasterPath ++ " missing in reference file"
+  return root
+
+getSlideNumberFieldId :: PandocMonad m => Element -> P m String
+getSlideNumberFieldId notesMaster
+  | ns <- elemToNameSpaces notesMaster
+  , Just cSld <- findChild (elemName ns "p" "cSld") notesMaster
+  , Just spTree <- findChild (elemName ns "p" "spTree") cSld
+  , Just sp <- getShapeByPlaceHolderType ns spTree "sldNum"
+  , Just txBody <- findChild (elemName ns "p" "txBody") sp
+  , Just p <- findChild (elemName ns "a" "p") txBody
+  , Just fld <- findChild (elemName ns "a" "fld") p
+  , Just fldId <- findAttr (QName "id" Nothing Nothing) fld =
+      return fldId
+  | otherwise = throwError $
+                PandocSomeError $
+                "No field id for slide numbers in notesMaster.xml"
+
+speakerNotesSlideImage :: Element
+speakerNotesSlideImage =
+  mknode "p:sp" [] $
+  [ mknode "p:nvSpPr" [] $
+    [ mknode "p:cNvPr" [ ("id", "2")
+                       , ("name", "Slide Image Placeholder 1")
+                       ] ()
+    , mknode "p:cNvSpPr" [] $
+      [ mknode "a:spLocks" [ ("noGrp", "1")
+                           , ("noRot", "1")
+                           , ("noChangeAspect", "1")
+                           ] ()
+      ]
+    , mknode "p:nvPr" [] $
+      [ mknode "p:ph" [("type", "sldImg")] ()]
+    ]
+  , mknode "p:spPr" [] ()
+  ]
+
+speakerNotesBody :: PandocMonad m => [Paragraph] -> P m Element
+speakerNotesBody paras = do
+  elements <- mapM paragraphToElement paras
+  let txBody = mknode "p:txBody" [] $
+               [mknode "a:bodyPr" [] (), mknode "a:lstStyle" [] ()] ++ elements
+  return $
+    mknode "p:sp" [] $
+    [ mknode "p:nvSpPr" [] $
+      [ mknode "p:cNvPr" [ ("id", "3")
+                         , ("name", "Notes Placeholder 2")
+                         ] ()
+      , mknode "p:cNvSpPr" [] $
+        [ mknode "a:spLocks" [("noGrp", "1")] ()]
+      , mknode "p:nvPr" [] $
+        [ mknode "p:ph" [("type", "body"), ("idx", "1")] ()]
+      ]
+    , mknode "p:spPr" [] ()
+    , txBody
+    ]
+
+speakerNotesSlideNumber :: Int -> String -> Element
+speakerNotesSlideNumber pgNum fieldId =
+  mknode "p:sp" [] $
+  [ mknode "p:nvSpPr" [] $
+    [ mknode "p:cNvPr" [ ("id", "4")
+                       , ("name", "Slide Number Placeholder 3")
+                       ] ()
+    , mknode "p:cNvSpPr" [] $
+      [ mknode "a:spLocks" [("noGrp", "1")] ()]
+    , mknode "p:nvPr" [] $
+      [ mknode "p:ph" [ ("type", "sldNum")
+                      , ("sz", "quarter")
+                      , ("idx", "10")
+                      ] ()
+      ]
+    ]
+  , mknode "p:spPr" [] ()
+  , mknode "p:txBody" [] $
+    [ mknode "a:bodyPr" [] ()
+    , mknode "a:lstStyle" [] ()
+    , mknode "a:p" [] $
+      [ mknode "a:fld" [ ("id", fieldId)
+                       , ("type", "slidenum")
+                       ]
+        [ mknode "a:rPr" [("lang", "en-US")] ()
+        , mknode "a:t" [] (show pgNum)
+        ]
+      , mknode "a:endParaRPr" [("lang", "en-US")] ()
+      ]
+    ]
+  ]
+
+slideToSpeakerNotesElement :: PandocMonad m => Slide -> P m (Maybe Element)
+slideToSpeakerNotesElement sld@(Slide _ _ mbNotes)
+  | Nothing                   <- mbNotes = return Nothing
+  | Just (SpeakerNotes paras) <- mbNotes = do
+      master <- getNotesMaster
+      fieldId  <- getSlideNumberFieldId master
+      num <- slideNum sld
+      let imgShape = speakerNotesSlideImage
+          sldNumShape = speakerNotesSlideNumber num fieldId
+      bodyShape <- speakerNotesBody paras
+      return $ Just $
+        mknode "p:notes"
+        [ ("xmlns:a", "http://schemas.openxmlformats.org/drawingml/2006/main")
+        , ("xmlns:r", "http://schemas.openxmlformats.org/officeDocument/2006/relationships")
+        , ("xmlns:p", "http://schemas.openxmlformats.org/presentationml/2006/main")
+        ] [ mknode "p:cSld" []
+            [ mknode "p:spTree" []
+              [ mknode "p:nvGrpSpPr" []
+                [ mknode "p:cNvPr" [("id", "1"), ("name", "")] ()
+                , mknode "p:cNvGrpSpPr" [] ()
+                , mknode "p:nvPr" [] ()
+                ]
+            , mknode "p:grpSpPr" []
+              [ mknode "a:xfrm" []
+                [ mknode "a:off" [("x", "0"), ("y", "0")] ()
+                , mknode "a:ext" [("cx", "0"), ("cy", "0")] ()
+                , mknode "a:chOff" [("x", "0"), ("y", "0")] ()
+                , mknode "a:chExt" [("cx", "0"), ("cy", "0")] ()
+                ]
+              ]
+            , imgShape
+            , bodyShape
+            , sldNumShape
+            ]
+            ]
+          ]
 
 -----------------------------------------------------------------------
 
@@ -1252,6 +1434,53 @@ slideToEntry slide = do
     element <- slideToElement slide
     elemToEntry ("ppt/slides/" ++ idNumToFilePath idNum) element
 
+slideToSpeakerNotesEntry :: PandocMonad m => Slide -> P m (Maybe Entry)
+slideToSpeakerNotesEntry slide = do
+  idNum <- slideNum slide
+  local (\env -> env{envCurSlideId = idNum}) $ do
+    mbElement <- slideToSpeakerNotesElement slide
+    mbNotesIdNum <- do mp <- asks envSpeakerNotesIdMap
+                       return $ M.lookup idNum mp
+    case mbElement of
+      Just element | Just notesIdNum <- mbNotesIdNum ->
+                       Just <$>
+                       elemToEntry
+                       ("ppt/notesSlides/notesSlide" ++ show notesIdNum ++ ".xml")
+                       element
+      _ -> return Nothing
+
+slideToSpeakerNotesRelElement :: PandocMonad m => Slide -> P m (Maybe Element)
+slideToSpeakerNotesRelElement slide@(Slide _ _ mbNotes)
+  | Nothing <- mbNotes = return Nothing
+  | Just _ <- mbNotes = do
+      idNum <- slideNum slide
+      return $ Just $
+        mknode "Relationships"
+        [("xmlns", "http://schemas.openxmlformats.org/package/2006/relationships")]
+        [ mknode "Relationship" [ ("Id", "rId2")
+                                , ("Type", "http://schemas.openxmlformats.org/officeDocument/2006/relationships/slide")
+                                , ("Target", "../slides/slide" ++ show idNum ++ ".xml")
+                                ] ()
+        , mknode "Relationship" [ ("Id", "rId1")
+                                , ("Type", "http://schemas.openxmlformats.org/officeDocument/2006/relationships/notesMaster")
+                                , ("Target", "../notesMasters/notesMaster1.xml")
+                                ] ()
+        ]
+
+slideToSpeakerNotesRelEntry :: PandocMonad m => Slide -> P m (Maybe Entry)
+slideToSpeakerNotesRelEntry slide = do
+  idNum <- slideNum slide
+  mbElement <- slideToSpeakerNotesRelElement slide
+  mp <- asks envSpeakerNotesIdMap
+  let mbNotesIdNum = M.lookup idNum mp
+  case mbElement of
+    Just element | Just notesIdNum <- mbNotesIdNum ->
+      Just <$>
+      elemToEntry
+      ("ppt/notesSlides/_rels/notesSlide" ++ show notesIdNum ++ ".xml.rels")
+      element
+    _ -> return Nothing
+
 slideToSlideRelEntry :: PandocMonad m => Slide -> P m Entry
 slideToSlideRelEntry slide = do
   idNum <- slideNum slide
@@ -1288,6 +1517,20 @@ mediaRelElement mInfo =
                           , ("Target", "../media/image" ++ (show $ mInfoGlobalId mInfo) ++ ext)
                           ] ()
 
+speakerNotesSlideRelElement :: PandocMonad m => Slide -> P m (Maybe Element)
+speakerNotesSlideRelElement slide = do
+  idNum <- slideNum slide
+  mp <- asks envSpeakerNotesIdMap
+  return $ case M.lookup idNum mp of
+    Nothing -> Nothing
+    Just n ->
+      let target = "../notesSlides/notesSlide" ++ show n ++ ".xml"
+      in Just $
+         mknode "Relationship" [ ("Id", "rId2")
+                               , ("Type", "http://schemas.openxmlformats.org/officeDocument/2006/relationships/notesSlide")
+                               , ("Target", target)
+                               ] ()
+
 slideToSlideRelElement :: PandocMonad m => Slide -> P m Element
 slideToSlideRelElement slide = do
   idNum <- slideNum slide
@@ -1296,6 +1539,8 @@ slideToSlideRelElement slide = do
         (Slide _ (TitleSlide _) _)          -> "../slideLayouts/slideLayout3.xml"
         (Slide _ (ContentSlide _ _) _)      -> "../slideLayouts/slideLayout2.xml"
         (Slide _ (TwoColumnSlide _ _ _) _)  -> "../slideLayouts/slideLayout4.xml"
+
+  speakerNotesRels <- maybeToList <$> speakerNotesSlideRelElement slide
 
   linkIds <- gets stLinkIds
   mediaIds <- gets stMediaIds
@@ -1313,7 +1558,7 @@ slideToSlideRelElement slide = do
     ([mknode "Relationship" [ ("Id", "rId1")
                            , ("Type", "http://schemas.openxmlformats.org/officeDocument/2006/relationships/slideLayout")
                            , ("Target", target)] ()
-    ] ++ linkRels ++ mediaRels)
+    ] ++ speakerNotesRels ++ linkRels ++ mediaRels)
 
 slideToSldIdElement :: PandocMonad m => Slide -> P m Element
 slideToSldIdElement slide = do
@@ -1328,7 +1573,7 @@ presentationToSldIdLst (Presentation _ slides) = do
   return $ mknode "p:sldIdLst" [] ids
 
 presentationToPresentationElement :: PandocMonad m => Presentation -> P m Element
-presentationToPresentationElement pres = do
+presentationToPresentationElement pres@(Presentation _ slds) = do
   refArchive <- asks envRefArchive
   distArchive <- asks envDistArchive
   element <- parseXml refArchive distArchive "ppt/presentation.xml"
@@ -1340,18 +1585,28 @@ presentationToPresentationElement pres = do
         _                      -> Elem e
       modifySldIdLst ct = ct
 
-      removeSpeakerNotes' :: Content -> [Content]
-      removeSpeakerNotes' (Elem e) = case elName e of
-        (QName "notesMasterIdLst" _ _) -> []
-        _                              -> [Elem e]
-      removeSpeakerNotes' ct = [ct]
+      notesMasterRId = length slds + 2
 
-      removeSpeakerNotes :: [Content] -> [Content]
-      removeSpeakerNotes = if not (hasSpeakerNotes pres)
-                           then concatMap removeSpeakerNotes'
-                           else id
+      modifySpeakerNotes' :: Content -> [Content]
+      modifySpeakerNotes' (Elem e) = case elName e of
+        (QName "notesMasterIdLst" _ _) ->
+          if presHasSpeakerNotes pres
+          then [Elem $
+                 mknode "p:notesMasterIdLst" []
+                 [ mknode
+                   "p:NotesMasterId"
+                   [("r:id", "rId" ++ show notesMasterRId)]
+                   ()
+                 ]
+               ]
+          else []
+        _ -> [Elem e]
+      modifySpeakerNotes' ct = [ct]
 
-      newContent = removeSpeakerNotes $ map modifySldIdLst $ elContent element
+      modifySpeakerNotes :: [Content] -> [Content]
+      modifySpeakerNotes = concatMap modifySpeakerNotes'
+
+      newContent = modifySpeakerNotes $ map modifySldIdLst $ elContent element
 
   return $ element{elContent = newContent}
 
@@ -1452,6 +1707,12 @@ mediaContentType mInfo
                                 }
   | otherwise = Nothing
 
+getSpeakerNotesFilePaths :: PandocMonad m => P m [FilePath]
+getSpeakerNotesFilePaths = do
+  mp <- asks envSpeakerNotesIdMap
+  let notesIdNums = M.elems mp
+  return $ map (\n -> "ppt/notesSlides/notesSlide" ++ show n ++ ".xml") notesIdNums
+
 presentationToContentTypes :: PandocMonad m => Presentation -> P m ContentTypes
 presentationToContentTypes p@(Presentation _ slides) = do
   mediaInfos <- (mconcat . M.elems) <$> gets stMediaIds
@@ -1471,9 +1732,10 @@ presentationToContentTypes p@(Presentation _ slides) = do
   let slideOverrides = mapMaybe
                        (\fp -> pathToOverride $ "ppt/slides/" ++ fp)
                        relativePaths
+  speakerNotesOverrides <- (mapMaybe pathToOverride) <$> getSpeakerNotesFilePaths
   return $ ContentTypes
     (defaults ++ mediaDefaults)
-    (inheritedOverrides ++ docPropsOverride ++ presOverride ++ slideOverrides)
+    (inheritedOverrides ++ docPropsOverride ++ presOverride ++ slideOverrides ++ speakerNotesOverrides)
 
 presML :: String
 presML = "application/vnd.openxmlformats-officedocument.presentationml"
