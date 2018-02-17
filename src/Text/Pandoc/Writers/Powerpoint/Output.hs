@@ -56,7 +56,7 @@ import Text.Pandoc.MIME
 import qualified Data.ByteString.Lazy as BL
 import Text.Pandoc.Writers.OOXML
 import qualified Data.Map as M
-import Data.Maybe (mapMaybe, listToMaybe, fromMaybe)
+import Data.Maybe (mapMaybe, listToMaybe, fromMaybe, isJust)
 import Text.Pandoc.ImageSize
 import Control.Applicative ((<|>))
 import System.FilePath.Glob
@@ -167,19 +167,35 @@ copyFileToArchive arch fp = do
     Nothing -> fail $ fp ++ " missing in reference file"
     Just e -> return $ addEntryToArchive e arch
 
-inheritedPatterns :: [Pattern]
-inheritedPatterns = map compile [ "docProps/app.xml"
-                                , "ppt/slideLayouts/slideLayout*.xml"
-                                , "ppt/slideLayouts/_rels/slideLayout*.xml.rels"
-                                , "ppt/slideMasters/slideMaster1.xml"
-                                , "ppt/slideMasters/_rels/slideMaster1.xml.rels"
-                                , "ppt/theme/theme1.xml"
-                                , "ppt/theme/_rels/theme1.xml.rels"
-                                , "ppt/presProps.xml"
-                                , "ppt/viewProps.xml"
-                                , "ppt/tableStyles.xml"
-                                , "ppt/media/image*"
-                                ]
+alwaysInheritedPatterns :: [Pattern]
+alwaysInheritedPatterns =
+  map compile [ "docProps/app.xml"
+              , "ppt/slideLayouts/slideLayout*.xml"
+              , "ppt/slideLayouts/_rels/slideLayout*.xml.rels"
+              , "ppt/slideMasters/slideMaster1.xml"
+              , "ppt/slideMasters/_rels/slideMaster1.xml.rels"
+              , "ppt/theme/theme1.xml"
+              , "ppt/theme/_rels/theme1.xml.rels"
+              , "ppt/presProps.xml"
+              , "ppt/viewProps.xml"
+              , "ppt/tableStyles.xml"
+              , "ppt/media/image*"
+              ]
+
+-- We only look for these under special conditions
+contingentInheritedPatterns :: Presentation -> [Pattern]
+contingentInheritedPatterns pres = [] ++
+  if hasSpeakerNotes pres
+  then map compile [ "ppt/notesMasters/notesMaster*.xml"
+                   , "ppt/notesMasters/_rels/notesMaster*.xml.rels"
+                   , "ppt/theme/theme2.xml"
+                   , "ppt/theme/_rels/theme2.xml.rels"
+                   ]
+  else []
+
+inheritedPatterns :: Presentation -> [Pattern]
+inheritedPatterns pres =
+  alwaysInheritedPatterns ++ contingentInheritedPatterns pres
 
 patternToFilePaths :: PandocMonad m => Pattern -> P m [FilePath]
 patternToFilePaths pat = do
@@ -212,10 +228,9 @@ requiredFiles = [ "docProps/app.xml"
                 , "ppt/tableStyles.xml"
                 ]
 
-
 presentationToArchiveP :: PandocMonad m => Presentation -> P m Archive
 presentationToArchiveP p@(Presentation docProps slides) = do
-  filePaths <- patternsToFilePaths inheritedPatterns
+  filePaths <- patternsToFilePaths $ inheritedPatterns p
 
   -- make sure all required files are available:
   let missingFiles = filter (\fp -> not (fp `elem` filePaths)) requiredFiles
@@ -286,6 +301,11 @@ presentationToArchive opts pres = do
 
 
 --------------------------------------------------
+
+-- Check to see if the presentation has speaker notes. This will
+-- influence whether we import the notesMaster template.
+hasSpeakerNotes :: Presentation -> Bool
+hasSpeakerNotes (Presentation _ slides) = any isJust $ map slideSpeakerNotes slides
 
 --------------------------------------------------
 
@@ -1422,9 +1442,9 @@ mediaContentType mInfo
   | otherwise = Nothing
 
 presentationToContentTypes :: PandocMonad m => Presentation -> P m ContentTypes
-presentationToContentTypes (Presentation _ slides) = do
+presentationToContentTypes p@(Presentation _ slides) = do
   mediaInfos <- (mconcat . M.elems) <$> gets stMediaIds
-  filePaths <- patternsToFilePaths inheritedPatterns
+  filePaths <- patternsToFilePaths $ inheritedPatterns p
   let mediaFps = filter (match (compile "ppt/media/image*")) filePaths
   let defaults = [ DefaultContentType "xml" "application/xml"
                  , DefaultContentType "rels" "application/vnd.openxmlformats-package.relationships+xml"
