@@ -4335,7 +4335,7 @@ and `parallaxBackgroundVertical` the same way and must also set
 `parallaxBackgroundSize` to have your values take effect.
 
 To set an image for a particular slide, add `{data-background-image="/path/to/image"}`
-to the first slide-level header on the slide (which may even be empty):
+to the first slide-level header on the slide (which may even be empty).
 
 In reveal.js's overview mode, the parallaxBackgroundImage will show up 
 only on the first slide. 
