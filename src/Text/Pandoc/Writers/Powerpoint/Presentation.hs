@@ -108,7 +108,7 @@ data WriterState = WriterState { stNoteIds :: M.Map Int [Block]
                                , stAnchorMap :: M.Map String SlideId
                                , stSlideIdSet :: S.Set SlideId
                                , stLog :: [LogMessage]
-
+                               , stSpeakerNotesMap :: M.Map SlideId [[Paragraph]]
                                } deriving (Show, Eq)
 
 instance Default WriterState where
@@ -117,6 +117,7 @@ instance Default WriterState where
                     -- we reserve this s
                     , stSlideIdSet = reservedSlideIds
                     , stLog = []
+                    , stSpeakerNotesMap = mempty
                     }
 
 metadataSlideId :: SlideId
@@ -463,7 +464,15 @@ blockToParagraphs (DefinitionList entries) = do
         definition <- concatMapM (blockToParagraphs . BlockQuote) blksLst
         return $ term ++ definition
   concatMapM go entries
-blockToParagraphs (Div (_, "notes" : [], _) _) = return []
+blockToParagraphs (Div (_, "notes" : [], _) blks) = do
+  sldId <- asks envCurSlideId
+  spkNotesMap <- gets stSpeakerNotesMap
+  paras <- concatMapM blockToParagraphs blks
+  let spkNotesMap' = case M.lookup sldId spkNotesMap of
+        Just lst -> M.insert sldId (paras : lst) spkNotesMap
+        Nothing  -> M.insert sldId [paras] spkNotesMap
+  modify $ \st -> st{stSpeakerNotesMap = spkNotesMap'}
+  return []
 blockToParagraphs (Div _ blks)  = concatMapM blockToParagraphs blks
 blockToParagraphs blk = do
   addLogMessage $ BlockNotRendered blk
@@ -593,6 +602,12 @@ splitBlocks' cur acc (blk : blks) = splitBlocks' (cur ++ [blk]) acc blks
 splitBlocks :: [Block] -> Pres [[Block]]
 splitBlocks = splitBlocks' [] []
 
+getSpeakerNotes :: Pres (Maybe SpeakerNotes)
+getSpeakerNotes = do
+  sldId <- asks envCurSlideId
+  spkNtsMap <- gets stSpeakerNotesMap
+  return $ (SpeakerNotes . concat . reverse) <$> (M.lookup sldId spkNtsMap)
+
 blocksToSlide' :: Int -> [Block] -> Pres Slide
 blocksToSlide' lvl (Header n (ident, _, _) ils : blks)
   | n < lvl = do
@@ -664,7 +679,9 @@ blocksToSlide' _ [] = do
 blocksToSlide :: [Block] -> Pres Slide
 blocksToSlide blks = do
   slideLevel <- asks envSlideLevel
-  blocksToSlide' slideLevel blks
+  sld <- blocksToSlide' slideLevel blks
+  spkNotes <- getSpeakerNotes
+  return $ sld{slideSpeakerNotes = spkNotes}
 
 makeNoteEntry :: Int -> [Block] -> [Block]
 makeNoteEntry n blks =
