@@ -1340,7 +1340,18 @@ presentationToPresentationElement pres = do
         _                      -> Elem e
       modifySldIdLst ct = ct
 
-      newContent = map modifySldIdLst $ elContent element
+      removeSpeakerNotes' :: Content -> [Content]
+      removeSpeakerNotes' (Elem e) = case elName e of
+        (QName "notesMasterIdLst" _ _) -> []
+        _                              -> [Elem e]
+      removeSpeakerNotes' ct = [ct]
+
+      removeSpeakerNotes :: [Content] -> [Content]
+      removeSpeakerNotes = if not (hasSpeakerNotes pres)
+                           then concatMap removeSpeakerNotes'
+                           else id
+
+      newContent = removeSpeakerNotes $ map modifySldIdLst $ elContent element
 
   return $ element{elContent = newContent}
 
