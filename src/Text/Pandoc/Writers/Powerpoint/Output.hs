@@ -39,7 +39,7 @@ import Control.Monad.Reader
 import Control.Monad.State
 import Codec.Archive.Zip
 import Data.Char (toUpper)
-import Data.List (intercalate, stripPrefix, nub, union, isPrefixOf)
+import Data.List (intercalate, stripPrefix, nub, union, isPrefixOf, intersperse)
 import Data.Default
 import Text.Pandoc.Compat.Time (formatTime, defaultTimeLocale)
 import Data.Time.Clock (UTCTime)
@@ -1205,14 +1205,18 @@ speakerNotesSlideImage =
 -- we want to wipe links from the speaker notes in the
 -- paragraphs. Powerpoint doesn't allow you to input them, and it
 -- would provide extra complications.
-removeLinks :: Paragraph -> Paragraph
-removeLinks paragraph = paragraph{paraElems = map f (paraElems paragraph)}
+removeParaLinks :: Paragraph -> Paragraph
+removeParaLinks paragraph = paragraph{paraElems = map f (paraElems paragraph)}
   where f (Run rProps s) = Run rProps{rLink=Nothing} s
         f pe             = pe
 
+-- put an empty paragraph between paragraphs for more expected spacing.
+spaceParas :: [Paragraph] -> [Paragraph]
+spaceParas = intersperse (Paragraph def [])
+
 speakerNotesBody :: PandocMonad m => [Paragraph] -> P m Element
 speakerNotesBody paras = do
-  elements <- mapM paragraphToElement $ map removeLinks paras
+  elements <- mapM paragraphToElement $ spaceParas $ map removeParaLinks paras
   let txBody = mknode "p:txBody" [] $
                [mknode "a:bodyPr" [] (), mknode "a:lstStyle" [] ()] ++ elements
   return $
