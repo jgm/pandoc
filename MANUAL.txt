@@ -4276,8 +4276,8 @@ bibliographies:
 Speaker notes
 -------------
 
-reveal.js has good support for speaker notes.  You can add notes to your
-Markdown document thus:
+Speaker notes are supported in reveal.js and PowerPoint (pptx)
+output. You can add notes to your Markdown document thus:
 
     ::: notes
 
