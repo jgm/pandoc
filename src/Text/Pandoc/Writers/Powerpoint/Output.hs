@@ -1202,9 +1202,17 @@ speakerNotesSlideImage =
   , mknode "p:spPr" [] ()
   ]
 
+-- we want to wipe links from the speaker notes in the
+-- paragraphs. Powerpoint doesn't allow you to input them, and it
+-- would provide extra complications.
+removeLinks :: Paragraph -> Paragraph
+removeLinks paragraph = paragraph{paraElems = map f (paraElems paragraph)}
+  where f (Run rProps s) = Run rProps{rLink=Nothing} s
+        f pe             = pe
+
 speakerNotesBody :: PandocMonad m => [Paragraph] -> P m Element
 speakerNotesBody paras = do
-  elements <- mapM paragraphToElement paras
+  elements <- mapM paragraphToElement $ map removeLinks paras
   let txBody = mknode "p:txBody" [] $
                [mknode "a:bodyPr" [] (), mknode "a:lstStyle" [] ()] ++ elements
   return $

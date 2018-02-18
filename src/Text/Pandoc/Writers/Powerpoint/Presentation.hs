@@ -87,6 +87,7 @@ data WriterEnv = WriterEnv { envMetadata :: Meta
                            , envInList :: Bool
                            , envInNoteSlide :: Bool
                            , envCurSlideId :: SlideId
+                           , envInSpeakerNotes :: Bool
                            }
                  deriving (Show)
 
@@ -100,6 +101,7 @@ instance Default WriterEnv where
                   , envInList = False
                   , envInNoteSlide = False
                   , envCurSlideId = SlideId "Default"
+                  , envInSpeakerNotes = False
                   }
 
 
@@ -354,15 +356,24 @@ inlineToParElems (Code _ str) =
   inlineToParElems $ Str str
 inlineToParElems (Math mathtype str) =
   return [MathElem mathtype (TeXString str)]
+-- We ignore notes if we're in a speaker notes div. Otherwise this
+-- would add an entry to the endnotes slide, which would put speaker
+-- notes in the public presentation. In the future, we can entertain a
+-- way of adding a speakernotes-specific note that would just add
+-- paragraphs to the bottom of the notes page.
 inlineToParElems (Note blks) = do
-  notes <- gets stNoteIds
-  let maxNoteId = case M.keys notes of
-        [] -> 0
-        lst -> maximum lst
-      curNoteId = maxNoteId + 1
-  modify $ \st -> st { stNoteIds = M.insert curNoteId blks notes }
-  local (\env -> env{envRunProps = (envRunProps env){rLink = Just $ InternalTarget endNotesSlideId}}) $
-    inlineToParElems $ Superscript [Str $ show curNoteId]
+  inSpNotes <- asks envInSpeakerNotes
+  if inSpNotes
+    then return []
+    else do
+    notes <- gets stNoteIds
+    let maxNoteId = case M.keys notes of
+          [] -> 0
+          lst -> maximum lst
+        curNoteId = maxNoteId + 1
+    modify $ \st -> st { stNoteIds = M.insert curNoteId blks notes }
+    local (\env -> env{envRunProps = (envRunProps env){rLink = Just $ InternalTarget endNotesSlideId}}) $
+      inlineToParElems $ Superscript [Str $ show curNoteId]
 inlineToParElems (Span _ ils) = concatMapM inlineToParElems ils
 inlineToParElems (RawInline _ _) = return []
 inlineToParElems _ = return []
@@ -464,7 +475,8 @@ blockToParagraphs (DefinitionList entries) = do
         definition <- concatMapM (blockToParagraphs . BlockQuote) blksLst
         return $ term ++ definition
   concatMapM go entries
-blockToParagraphs (Div (_, "notes" : [], _) blks) = do
+blockToParagraphs (Div (_, "notes" : [], _) blks) =
+  local (\env -> env{envInSpeakerNotes=True}) $ do
   sldId <- asks envCurSlideId
   spkNotesMap <- gets stSpeakerNotesMap
   paras <- concatMapM blockToParagraphs blks
