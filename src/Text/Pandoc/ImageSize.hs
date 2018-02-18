@@ -126,7 +126,8 @@ imageType img = case B.take 4 img of
                        |  B.take 4 (B.drop 1 $ B.dropWhile (/=' ') img) == "EPSF"
                                         -> return Eps
                      "\x01\x00\x00\x00"
-                       | B.take 4 (B.drop 40 img) == " EMF" -> return Emf
+                       | B.take 4 (B.drop 40 img) == " EMF" 
+                                        -> return Emf
                      _                  -> mzero
 
 findSvgTag :: ByteString -> Bool
@@ -361,27 +362,26 @@ svgSize opts img = do
   , dpiY = dpi
   }
   
-emfSize :: WriterOptions -> ByteString -> Maybe ImageSize
+emfSize :: ByteString -> Maybe ImageSize
 emfSize img = 
   let
-    hundredthsOfMMinIN = 2540
-  
-    result = runGetOrFail img $ do
-      getWord32le -- Type
-      getWord32le -- Header Size
-      boundsL <- getWord32le
-      boundsT <- getWord32le
-      boundsR <- getWord32le
-      boundsB <- getWord32le
-      frameL <- getWord32le
-      frameT <- getWord32le
-      frameR <- getWord32le
-      frameB <- getWord32le
+    parseheader = runGetOrFail $ do
+      skip 0x18             -- 0x00
+      frameL <- getWord32le -- 0x18  measured in 1/100 of a millimetre
+      frameT <- getWord32le -- 0x1C
+      frameR <- getWord32le -- 0x20
+      frameB <- getWord32le -- 0x24
+      skip 0x20             -- 0x28
+      deviceX <- getWord32le  -- 0x48 pixels of reference device
+      deviceY <- getWord32le  -- 0x4C
+      mmX <- getWord32le      -- 0x50 real mm of reference device (always 320*240?)
+      mmY <- getWord32le      -- 0x58
+      -- end of header
       let
-        w = boundsR - boundsL + 1 -- bounds are inclusive-inclusive, so + 1
-        h = boundsB - boundsT + 1 -- frame is the same
-        dpiW = (w * hundredthsOfMMinIN) `quot` (frameR - frameL + 1)
-        dpiH = (h * hundredthsOfMMinIN) `quot` (frameB - frameT + 1)
+        w = (deviceX * (frameR - frameL)) `quot` (mmX * 100)
+        h = (deviceY * (frameB - frameT)) `quot` (mmY * 100)
+        dpiW = (deviceX * 254) `quot` (mmX * 10)
+        dpiH = (deviceY * 254) `quot` (mmY * 10)
       return $ ImageSize
         { pxX = fromIntegral w
         , pxY = fromIntegral h
@@ -389,9 +389,9 @@ emfSize img =
         , dpiY = fromIntegral dpiH
         }
   in 
-    case result of
+    case parseheader . BL.fromStrict $ img of
       Left _ -> Nothing
-      Right result -> Just result
+      Right (_, _, size) -> Just size
   
 
 jpegSize :: ByteString -> Either String ImageSize
