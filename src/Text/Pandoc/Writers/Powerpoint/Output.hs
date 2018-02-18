@@ -1267,12 +1267,14 @@ speakerNotesSlideNumber pgNum fieldId =
   ]
 
 slideToSpeakerNotesElement :: PandocMonad m => Slide -> P m (Maybe Element)
-slideToSpeakerNotesElement sld@(Slide _ _ mbNotes)
-  | Nothing                   <- mbNotes = return Nothing
-  | Just (SpeakerNotes paras) <- mbNotes = do
+slideToSpeakerNotesElement slide
+  | Slide _ _ mbNotes <- slide
+  , Nothing <- mbNotes = return Nothing
+  | Slide _ _ mbNotes <- slide
+  , Just (SpeakerNotes paras) <- mbNotes = do
       master <- getNotesMaster
       fieldId  <- getSlideNumberFieldId master
-      num <- slideNum sld
+      num <- slideNum slide
       let imgShape = speakerNotesSlideImage
           sldNumShape = speakerNotesSlideNumber num fieldId
       bodyShape <- speakerNotesBody paras
@@ -1462,9 +1464,11 @@ slideToSpeakerNotesEntry slide = do
       _ -> return Nothing
 
 slideToSpeakerNotesRelElement :: PandocMonad m => Slide -> P m (Maybe Element)
-slideToSpeakerNotesRelElement slide@(Slide _ _ mbNotes)
-  | Nothing <- mbNotes = return Nothing
-  | Just _ <- mbNotes = do
+slideToSpeakerNotesRelElement slide
+  | Slide _ _ mbNotes <- slide
+  , Nothing <- mbNotes = return Nothing
+  | Slide _ _ mbNotes <- slide
+  , Just _ <- mbNotes = do
       idNum <- slideNum slide
       return $ Just $
         mknode "Relationships"
