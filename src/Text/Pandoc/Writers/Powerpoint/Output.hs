@@ -1269,8 +1269,6 @@ speakerNotesSlideNumber pgNum fieldId =
 slideToSpeakerNotesElement :: PandocMonad m => Slide -> P m (Maybe Element)
 slideToSpeakerNotesElement slide
   | Slide _ _ mbNotes <- slide
-  , Nothing <- mbNotes = return Nothing
-  | Slide _ _ mbNotes <- slide
   , Just (SpeakerNotes paras) <- mbNotes = do
       master <- getNotesMaster
       fieldId  <- getSlideNumberFieldId master
@@ -1304,6 +1302,7 @@ slideToSpeakerNotesElement slide
             ]
             ]
           ]
+slideToSpeakerNotesElement _ = return Nothing
 
 -----------------------------------------------------------------------
 
@@ -1466,8 +1465,6 @@ slideToSpeakerNotesEntry slide = do
 slideToSpeakerNotesRelElement :: PandocMonad m => Slide -> P m (Maybe Element)
 slideToSpeakerNotesRelElement slide
   | Slide _ _ mbNotes <- slide
-  , Nothing <- mbNotes = return Nothing
-  | Slide _ _ mbNotes <- slide
   , Just _ <- mbNotes = do
       idNum <- slideNum slide
       return $ Just $
@@ -1482,6 +1479,7 @@ slideToSpeakerNotesRelElement slide
                                 , ("Target", "../notesMasters/notesMaster1.xml")
                                 ] ()
         ]
+slideToSpeakerNotesRelElement _ = return Nothing
 
 slideToSpeakerNotesRelEntry :: PandocMonad m => Slide -> P m (Maybe Entry)
 slideToSpeakerNotesRelEntry slide = do
