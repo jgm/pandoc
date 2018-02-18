@@ -475,6 +475,7 @@ registerMedia fp caption = do
                  Just Pdf  -> Just ".pdf"
                  Just Eps  -> Just ".eps"
                  Just Svg  -> Just ".svg"
+                 Just Emf  -> Just ".emf"
                  Nothing   -> Nothing
 
   let newGlobalId = case M.lookup fp globalIds of
