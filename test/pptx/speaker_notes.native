@@ -1,0 +1,17 @@
+[Para [Str "Here",Space,Str "is",Space,Str "a",Space,Str "slide."]
+,Div ("",["notes"],[])
+ [Para [Str "Here",Space,Str "is",Space,Str "a",Space,Str "note."]
+ ,Para [Str "Here",Space,Str "is",Space,Emph [Str "some"],Space,Strong [Str "other"],Space,Str "formatting."]]
+,HorizontalRule
+,Para [Str "A",Space,Str "page",Space,Str "with",Space,Str "no",Space,Str "speaker",Space,Str "notes"]
+,HorizontalRule
+,Div ("",["notes"],[])
+ [Para [Str "The",Space,Str "first",Space,Str "note",Space,Str "div"]]
+,Para [Str "A",Space,Str "page",Space,Str "with",Space,Str "two",Space,Str "notes."]
+,Div ("",["notes"],[])
+ [Para [Str "The",Space,Str "second",Space,Str "note",Space,Str "div"]]
+,HorizontalRule
+,Para [Str "Strip",Space,Str "links",Space,Str "and",Space,Str "footnotes."]
+,Div ("",["notes"],[])
+ [Para [Str "No",Space,Link ("",[],[]) [Str "link"] ("https://www.google.com",""),Space,Str "here."]
+ ,Para [Str "No",Space,Str "note",Space,Str "here.",Note [Para [Str "You\8217ll",Space,Str "never",Space,Str "read",Space,Str "this"]]]]]

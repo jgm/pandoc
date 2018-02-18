@@ -48,4 +48,9 @@ tests = [ pptxTest
           def
           "pptx/two_column.native"
           "pptx/two_column.pptx"
+        , pptxTest
+          "speaker notes"
+          def
+          "pptx/speaker_notes.native"
+          "pptx/speaker_notes.pptx"
         ]
