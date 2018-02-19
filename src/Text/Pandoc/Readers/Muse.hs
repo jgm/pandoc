@@ -189,20 +189,6 @@ atStart p = do
   guard $ museLastStrPos st /= Just pos
   p
 
--- Like manyTill, but also returns result of end parser
-manyUntil :: (Stream s m t)
-          => ParserT s u m a
-          -> ParserT s u m b
-          -> ParserT s u m ([a], b)
-manyUntil p end = scan
-  where scan =
-          (do e <- end
-              return ([], e)
-          ) <|>
-          (do x <- p
-              (xs, e) <- scan
-              return (x:xs, e))
-
 someUntil :: (Stream s m t)
           => ParserT s u m a
           -> ParserT s u m b

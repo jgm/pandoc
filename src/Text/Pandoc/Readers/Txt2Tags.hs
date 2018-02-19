@@ -529,8 +529,7 @@ image =  try $ do
   -- List taken from txt2tags source
   let extensions = [".jpg", ".jpeg", ".gif", ".png", ".eps", ".bmp"]
   char '['
-  path <- manyTill (noneOf "\n\t\r ") (try $ lookAhead (oneOfStrings extensions))
-  ext <- oneOfStrings extensions
+  (path, ext) <- manyUntil (noneOf "\n\t\r ") (oneOfStrings extensions)
   char ']'
   return $ B.image (path ++ ext) "" mempty
 
