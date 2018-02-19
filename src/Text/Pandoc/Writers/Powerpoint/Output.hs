@@ -1372,10 +1372,23 @@ getRels = do
   return $ mapMaybe elementToRel relElems
 
 presentationToRels :: PandocMonad m => Presentation -> P m [Relationship]
-presentationToRels (Presentation _ slides) = do
+presentationToRels pres@(Presentation _ slides) = do
   mySlideRels <- mapM slideToPresRel slides
+  let notesMasterRels =
+        if presHasSpeakerNotes pres
+        then [Relationship { relId = length mySlideRels + 2
+                           , relType = "http://schemas.openxmlformats.org/officeDocument/2006/relationships/notesMaster"
+                           , relTarget = "notesMasters/notesMaster1.xml"
+                           }]
+        else []
+      insertedRels = mySlideRels ++ notesMasterRels
   rels <- getRels
-  let relsWithoutSlides = filter (\r -> relType r /= "http://schemas.openxmlformats.org/officeDocument/2006/relationships/slide") rels
+  -- we remove the slide rels and the notesmaster (if it's
+  -- there). We'll put these back in ourselves, if necessary.
+  let relsWeKeep = filter
+                   (\r -> relType r /= "http://schemas.openxmlformats.org/officeDocument/2006/relationships/slide" &&
+                          relType r /= "http://schemas.openxmlformats.org/officeDocument/2006/relationships/notesMaster")
+                   rels
   -- We want to make room for the slides in the id space. The slides
   -- will start at Id2 (since Id1 is for the slide master). There are
   -- two slides in the data file, but that might change in the future,
@@ -1384,8 +1397,9 @@ presentationToRels (Presentation _ slides) = do
   -- 1. We look to see what the minimum relWithoutSlide id (greater than 1) is.
   -- 2. We add the difference between this and the number of slides to
   -- all relWithoutSlide rels (unless they're 1)
+  -- 3. If we have a notesmaster slide, we make space for that as well.
 
-  let minRelNotOne = case filter (1<) $ map relId relsWithoutSlides of
+  let minRelNotOne = case filter (1<) $ map relId relsWeKeep of
         [] -> 0                 -- doesn't matter in this case, since
                                 -- there will be nothing to map the
                                 -- function over
@@ -1393,11 +1407,11 @@ presentationToRels (Presentation _ slides) = do
 
       modifyRelNum :: Int -> Int
       modifyRelNum 1 = 1
-      modifyRelNum n = n - minRelNotOne + 2 + length slides
+      modifyRelNum n = n - minRelNotOne + 2 + length insertedRels
 
-      relsWithoutSlides' = map (\r -> r{relId = modifyRelNum $ relId r}) relsWithoutSlides
+      relsWeKeep' = map (\r -> r{relId = modifyRelNum $ relId r}) relsWeKeep
 
-  return $ mySlideRels ++ relsWithoutSlides'
+  return $ insertedRels ++ relsWeKeep'
 
 -- We make this ourselves, in case there's a thumbnail in the one from
 -- the template.
@@ -1601,26 +1615,41 @@ presentationToPresentationElement pres@(Presentation _ slds) = do
 
       notesMasterRId = length slds + 2
 
-      modifySpeakerNotes' :: Content -> [Content]
-      modifySpeakerNotes' (Elem e) = case elName e of
-        (QName "notesMasterIdLst" _ _) ->
-          if presHasSpeakerNotes pres
-          then [Elem $
-                 mknode "p:notesMasterIdLst" []
-                 [ mknode
-                   "p:NotesMasterId"
-                   [("r:id", "rId" ++ show notesMasterRId)]
-                   ()
-                 ]
-               ]
-          else []
-        _ -> [Elem e]
-      modifySpeakerNotes' ct = [ct]
+      notesMasterElem =  mknode "p:notesMasterIdLst" []
+                         [ mknode
+                           "p:NotesMasterId"
+                           [("r:id", "rId" ++ show notesMasterRId)]
+                           ()
+                         ]
 
-      modifySpeakerNotes :: [Content] -> [Content]
-      modifySpeakerNotes = concatMap modifySpeakerNotes'
+      -- if there's a notesMasterIdLst in the presentation.xml file,
+      -- we want to remove it. We then want to put our own, if
+      -- necessary, after the slideMasterIdLst element.
 
-      newContent = modifySpeakerNotes $ map modifySldIdLst $ elContent element
+      removeNotesMaster' :: Content -> [Content]
+      removeNotesMaster' (Elem e) = case elName e of
+        (QName "notesMasterIdLst" _ _) -> []
+        _                              -> [Elem e]
+      removeNotesMaster' ct = [ct]
+
+      removeNotesMaster :: [Content] -> [Content]
+      removeNotesMaster = concatMap removeNotesMaster'
+
+      insertNotesMaster' :: Content -> [Content]
+      insertNotesMaster' (Elem e) = case elName e of
+        (QName "sldMasterIdLst" _ _) -> [Elem e, Elem notesMasterElem]
+        _                            -> [Elem e]
+      insertNotesMaster' ct = [ct]
+
+      insertNotesMaster :: [Content] -> [Content]
+      insertNotesMaster = if presHasSpeakerNotes pres
+                          then concatMap insertNotesMaster'
+                          else id
+
+      newContent = insertNotesMaster $
+                   removeNotesMaster $
+                   map modifySldIdLst $
+                   elContent element
 
   return $ element{elContent = newContent}
 
