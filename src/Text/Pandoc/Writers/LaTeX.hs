@@ -442,54 +442,75 @@ blockToLaTeX :: PandocMonad m
              => Block     -- ^ Block to convert
              -> LW m Doc
 blockToLaTeX Null = return empty
-blockToLaTeX (Div (identifier,classes,kvs) bs) = do
-  beamer <- gets stBeamer
-  linkAnchor' <- hypertarget True identifier empty
-  -- see #2704 for the motivation for adding \leavevmode:
-  let linkAnchor =
-       case bs of
-            Para _ : _
-              | not (isEmpty linkAnchor')
-              -> "\\leavevmode" <> linkAnchor' <> "%"
-            _ -> linkAnchor'
-  let align dir txt = inCmd "begin" dir $$ txt $$ inCmd "end" dir
-  lang <- toLang $ lookup "lang" kvs
-  let wrapColumns = if "columns" `elem` classes
-                       then \contents ->
-                          inCmd "begin" "columns" <> brackets "T"
-                              $$ contents
-                              $$ inCmd "end" "columns"
-                       else id
-      wrapColumn  = if "column" `elem` classes
-                       then \contents ->
-                          let fromPct xs =
-                                case reverse xs of
-                                     '%':ds -> '0':'.': reverse ds
-                                     _      -> xs
-                              w = maybe "0.48" fromPct (lookup "width" kvs)
-                          in  inCmd "begin" "column" <>
-                              braces (text w <> "\\textwidth")
-                              $$ contents
-                              $$ inCmd "end" "column"
-                       else id
-      wrapDir = case lookup "dir" kvs of
-                  Just "rtl" -> align "RTL"
-                  Just "ltr" -> align "LTR"
-                  _          -> id
-      wrapLang txt = case lang of
-                       Just lng -> let (l, o) = toPolyglossiaEnv lng
-                                       ops = if null o
-                                                then ""
-                                                else brackets $ text o
-                                   in  inCmd "begin" (text l) <> ops
-                                       $$ blankline <> txt <> blankline
-                                       $$ inCmd "end" (text l)
-                       Nothing  -> txt
-      wrapNotes txt = if beamer && "notes" `elem` classes
+blockToLaTeX (Div (identifier,classes,kvs) bs)
+  | "incremental" `elem` classes = do
+      let classes' = filter ("incremental"/=) classes
+      beamer <- gets stBeamer
+      if beamer
+        then do oldIncremental <- gets stIncremental
+                modify $ \s -> s{ stIncremental = True }
+                result <- blockToLaTeX $ Div (identifier,classes',kvs) bs
+                modify $ \s -> s{ stIncremental = oldIncremental }
+                return result
+        else blockToLaTeX $ Div (identifier,classes',kvs) bs
+  | "nonincremental" `elem` classes = do
+      let classes' = filter ("nonincremental"/=) classes
+      beamer <- gets stBeamer
+      if beamer
+        then do oldIncremental <- gets stIncremental
+                modify $ \s -> s{ stIncremental = False }
+                result <- blockToLaTeX $ Div (identifier,classes',kvs) bs
+                modify $ \s -> s{ stIncremental = oldIncremental }
+                return result
+        else blockToLaTeX $ Div (identifier,classes',kvs) bs
+  | otherwise = do
+      beamer <- gets stBeamer
+      linkAnchor' <- hypertarget True identifier empty
+    -- see #2704 for the motivation for adding \leavevmode:
+      let linkAnchor =
+            case bs of
+              Para _ : _
+                | not (isEmpty linkAnchor')
+                  -> "\\leavevmode" <> linkAnchor' <> "%"
+              _ -> linkAnchor'
+      let align dir txt = inCmd "begin" dir $$ txt $$ inCmd "end" dir
+      lang <- toLang $ lookup "lang" kvs
+      let wrapColumns = if "columns" `elem` classes
+                        then \contents ->
+                               inCmd "begin" "columns" <> brackets "T"
+                               $$ contents
+                               $$ inCmd "end" "columns"
+                        else id
+          wrapColumn  = if "column" `elem` classes
+                        then \contents ->
+                               let fromPct xs =
+                                     case reverse xs of
+                                       '%':ds -> '0':'.': reverse ds
+                                       _      -> xs
+                                   w = maybe "0.48" fromPct (lookup "width" kvs)
+                               in  inCmd "begin" "column" <>
+                                   braces (text w <> "\\textwidth")
+                                   $$ contents
+                                   $$ inCmd "end" "column"
+                        else id
+          wrapDir = case lookup "dir" kvs of
+                      Just "rtl" -> align "RTL"
+                      Just "ltr" -> align "LTR"
+                      _          -> id
+          wrapLang txt = case lang of
+                           Just lng -> let (l, o) = toPolyglossiaEnv lng
+                                           ops = if null o
+                                                 then ""
+                                                 else brackets $ text o
+                                       in  inCmd "begin" (text l) <> ops
+                                           $$ blankline <> txt <> blankline
+                                           $$ inCmd "end" (text l)
+                           Nothing  -> txt
+          wrapNotes txt = if beamer && "notes" `elem` classes
                           then "\\note" <> braces txt -- speaker notes
                           else linkAnchor $$ txt
-  (wrapColumns . wrapColumn . wrapDir . wrapLang . wrapNotes)
-    <$> blockListToLaTeX bs
+      (wrapColumns . wrapColumn . wrapDir . wrapLang . wrapNotes)
+        <$> blockListToLaTeX bs
 blockToLaTeX (Plain lst) =
   inlineListToLaTeX $ dropWhile isLineBreakOrSpace lst
 -- title beginning with fig: indicates that the image is a figure

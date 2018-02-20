@@ -2,6 +2,7 @@
 {-# LANGUAGE OverloadedStrings   #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE ViewPatterns        #-}
+{-# LANGUAGE MultiWayIf          #-}
 {-
 Copyright (C) 2006-2018 John MacFarlane <jgm@berkeley.edu>
 
@@ -678,23 +679,31 @@ blockToHtml opts (LineBlock lns) =
     return $ H.div ! A.class_ "line-block" $ htmlLines
 blockToHtml opts (Div attr@(ident, classes, kvs') bs) = do
   html5 <- gets stHtml5
+  slideVariant <- gets stSlideVariant
   let kvs = [(k,v) | (k,v) <- kvs', k /= "width"] ++
             [("style", "width:" ++ w ++ ";")
              | ("width",w) <- kvs', "column" `elem` classes]
   let speakerNotes = "notes" `elem` classes
   -- we don't want incremental output inside speaker notes, see #1394
-  let opts' = if speakerNotes then opts{ writerIncremental = False } else opts
-  contents <- if "columns" `elem` classes
+  let opts' = if | speakerNotes -> opts{ writerIncremental = False }
+                 | "incremental" `elem` classes -> opts{ writerIncremental = True }
+                 | "nonincremental" `elem` classes -> opts{ writerIncremental = False }
+                 | otherwise -> opts
+      -- we remove "incremental" and "nonincremental" if we're in a
+      -- slide presentaiton format.
+      classes' = case slideVariant of
+        NoSlides -> classes
+        _ -> filter (\k -> k /= "incremental" && k /= "nonincremental") classes
+  contents <- if "columns" `elem` classes'
                  then -- we don't use blockListToHtml because it inserts
                       -- a newline between the column divs, which throws
                       -- off widths! see #4028
                       mconcat <$> mapM (blockToHtml opts) bs
                  else blockListToHtml opts' bs
   let contents' = nl opts >> contents >> nl opts
-  let (divtag, classes') = if html5 && "section" `elem` classes
-                              then (H5.section, filter (/= "section") classes)
-                              else (H.div, classes)
-  slideVariant <- gets stSlideVariant
+  let (divtag, classes'') = if html5 && "section" `elem` classes'
+                            then (H5.section, filter (/= "section") classes')
+                            else (H.div, classes')
   if speakerNotes
      then case slideVariant of
                RevealJsSlides -> addAttrs opts' attr $
@@ -706,7 +715,7 @@ blockToHtml opts (Div attr@(ident, classes, kvs') bs) = do
                NoSlides       -> addAttrs opts' attr $
                            H.div contents'
                _              -> return mempty
-     else addAttrs opts (ident, classes', kvs) $
+     else addAttrs opts (ident, classes'', kvs) $
               divtag contents'
 blockToHtml opts (RawBlock f str) = do
   ishtml <- isRawHtml f
