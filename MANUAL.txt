@@ -962,6 +962,30 @@ Options affecting specific writers
         LibreOffice, modify the styles as you wish, and save the
         file.
 
+    PowerPoint
+
+    :   Any template included with a recent install of Microsoft
+        PowerPoint (either with `.pptx` or `.potx` extension) should
+        work, as will most templates derived from these:
+
+        The specific requirement is that the template should contain
+        the following four layouts as its first four layouts:
+
+        1. Title Slide
+        2. Title and Content
+        3. Section Header
+        4. Two Content
+
+        All templates included with a recent version of MS PowerPoint
+        will fit these criteria. (You can click on `Layout` under the
+        `Home` menu to check.)
+
+        You can also modify the default `reference.pptx`: first run
+        `pandoc --print-default-data-file reference.pptx >
+        custom-reference.pptx`, and then modify
+        `custom-reference.pptx` in MS PowerPoint (pandoc will use the
+        first four layout slides, as mentioned above).
+
 `--epub-cover-image=`*FILE*
 
 :   Use the specified image as the EPUB cover.  It is recommended
