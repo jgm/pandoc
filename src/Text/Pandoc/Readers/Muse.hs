@@ -912,7 +912,7 @@ link = try $ do
   guard $ not $ museInLink st
   setState $ st{ museInLink = True }
   (url, title, content) <- linkText
-  updateState (\st -> st { museInLink = False })
+  updateState (\state -> state { museInLink = False })
   return $ case stripPrefix "URL:" url of
              Nothing -> if isImageUrl url
                           then B.image url title <$> fromMaybe (return mempty) content
