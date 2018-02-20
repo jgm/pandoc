@@ -4312,7 +4312,10 @@ output. You can add notes to your Markdown document thus:
 
     :::
 
-To show the notes window, press `s` while viewing the presentation.
+To show the notes window in reveal.js, press `s` while viewing the
+presentation. Speaker notes in PowerPoint will be available, as usual,
+in handouts and presenter view.
+
 Notes are not yet supported for other slide formats, but the notes
 will not appear on the slides themselves.
 
