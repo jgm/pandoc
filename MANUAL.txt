@@ -966,7 +966,7 @@ Options affecting specific writers
 
     :   Any template included with a recent install of Microsoft
         PowerPoint (either with `.pptx` or `.potx` extension) should
-        work, as will most templates derived from these:
+        work, as will most templates derived from these.
 
         The specific requirement is that the template should contain
         the following four layouts as its first four layouts:
