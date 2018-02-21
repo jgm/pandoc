@@ -4248,14 +4248,38 @@ Incremental lists
 By default, these writers produce lists that display "all at once."
 If you want your lists to display incrementally (one item at a time),
 use the `-i` option. If you want a particular list to depart from the
-default (that is, to display incrementally without the `-i` option and
-all at once with the `-i` option), put it in a block quote:
+default, put it in a `div` block with class `incremental` or
+`nonincremental`. So, for example, using the `fenced div` syntax, the
+following would be incremental regardless of the document default:
+
+    ::: incremental
+
+    - Eat spaghetti
+    - Drink wine
+
+    :::
+
+or
+
+    ::: nonincremental
+
+    - Eat spaghetti
+    - Drink wine
+
+    :::
+
+While using `incremental` and `nonincremental` divs are the
+recommended method of setting incremental lists on a per-case basis,
+an older method is also supported: putting lists inside a blockquote
+will depart from the document default (that is, it will display
+incrementally without the `-i` option and all at once with the `-i`
+option):
 
     > - Eat spaghetti
     > - Drink wine
 
-In this way incremental and nonincremental lists can be mixed in
-a single document.
+Both methods allow incremental and nonincremental lists to be mixed
+in a single document.
 
 Inserting pauses
 ----------------
