@@ -718,6 +718,14 @@ getDefaultReferencePptx = do
               , "ppt/tableStyles.xml"
               , "ppt/theme/theme1.xml"
               , "ppt/viewProps.xml"
+              -- These relate to notes slides.
+              , "ppt/notesMasters/notesMaster1.xml"
+              , "ppt/notesMasters/_rels/notesMaster1.xml.rels"
+              , "ppt/notesSlides/notesSlide1.xml"
+              , "ppt/notesSlides/_rels/notesSlide1.xml.rels"
+              , "ppt/notesSlides/notesSlide2.xml"
+              , "ppt/notesSlides/_rels/notesSlide2.xml.rels"
+              , "ppt/theme/theme2.xml"
               ]
   let toLazy = BL.fromChunks . (:[])
   let pathToEntry path = do

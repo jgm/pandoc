@@ -311,8 +311,8 @@ tests = [ testGroup "block elements"
           , "superscript" =: superscript (text "foo") =?> "<sup>foo</sup>"
           , "subscript" =: subscript (text "foo") =?> "<sub>foo</sub>"
           , "smallcaps" =: smallcaps (text "foo") =?> "foo"
-          , "single quoted" =: singleQuoted (text "foo") =?> "'foo'"
-          , "double quoted" =: doubleQuoted (text "foo") =?> "\"foo\""
+          , "single quoted" =: singleQuoted (text "foo") =?> "‘foo’"
+          , "double quoted" =: doubleQuoted (text "foo") =?> "“foo”"
           -- Cite is trivial
           , testGroup "code"
             [ "simple" =: code "foo" =?> "<code>foo</code>"
@@ -351,6 +351,9 @@ tests = [ testGroup "block elements"
                                                   =?> "[[URL:1.png]]"
             ]
           , "image" =: image "image.png" "Image 1" (str "") =?> "[[image.png][Image 1]]"
+          , "image with width" =:
+            imageWith ("", [], [("width", "60%")]) "image.png" "Image" (str "") =?>
+            "[[image.png 60][Image]]"
           , "note" =: note (plain (text "Foo"))
                    =?> unlines [ "[1]"
                                , ""
@@ -367,7 +370,7 @@ tests = [ testGroup "block elements"
                     "<em>foo</em>bar"
             , "emph quoted" =:
                 para (doubleQuoted (emph (text "foo"))) =?>
-                    "\"<em>foo</em>\""
+                    "“<em>foo</em>”"
             , "strong word before" =:
                 para (text "foo" <> strong (text "bar")) =?>
                     "foo<strong>bar</strong>"
@@ -376,7 +379,7 @@ tests = [ testGroup "block elements"
                     "<strong>foo</strong>bar"
             , "strong quoted" =:
                 para (singleQuoted (strong (text "foo"))) =?>
-                    "'<strong>foo</strong>'"
+                    "‘<strong>foo</strong>’"
             ]
          ]
        ]

@@ -28,15 +28,9 @@ spcSep :: [Inlines] -> Inlines
 spcSep = mconcat . intersperse space
 
 -- Tables don't round-trip yet
--- Definition lists with multiple descriptions are supported by writer, but not reader yet
-
-singleDescription :: ([Inline], [[Block]]) -> ([Inline], [[Block]])
-singleDescription (a, x:_) = (a, [x])
-singleDescription x = x
-
+--
 makeRoundTrip :: Block -> Block
 makeRoundTrip Table{} = Para [Str "table was here"]
-makeRoundTrip (DefinitionList items) = DefinitionList $ map singleDescription items
 makeRoundTrip x = x
 
 -- Demand that any AST produced by Muse reader and written by Muse writer can be read back exactly the same way.
@@ -252,6 +246,12 @@ tests =
         , "Quote" =:
           "  This is a quotation\n" =?>
           blockQuote (para "This is a quotation")
+        , "Indentation does not indicate quote inside quote tag" =:
+          T.unlines [ "<quote>"
+                    , "  Not a nested quote"
+                    , "</quote>"
+                    ] =?>
+          blockQuote (para "Not a nested quote")
         , "Multiline quote" =:
           T.unlines [ "  This is a quotation"
                     , "  with a continuation"
@@ -259,10 +259,16 @@ tests =
           blockQuote (para "This is a quotation\nwith a continuation")
         , testGroup "Div"
           [ "Div without id" =:
-            "<div>Foo bar</div>" =?>
+            T.unlines [ "<div>"
+                      , "Foo bar"
+                      , "</div>"
+                      ] =?>
             divWith nullAttr (para "Foo bar")
           , "Div with id" =:
-            "<div id=\"foo\">Foo bar</div>" =?>
+            T.unlines [ "<div id=\"foo\">"
+                      , "Foo bar"
+                      , "</div>"
+                      ] =?>
             divWith ("foo", [], []) (para "Foo bar")
           ]
         , "Verse" =:
@@ -290,7 +296,27 @@ tests =
                     , "\160\160\160is here"
                     ]
         ]
-      , "Quote tag" =: "<quote>Hello, world</quote>" =?> blockQuote (para $ text "Hello, world")
+      , "Empty quote tag" =:
+        T.unlines [ "<quote>"
+                  , "</quote>"
+                  ]
+        =?> blockQuote mempty
+      , "Quote tag" =:
+        T.unlines [ "<quote>"
+                  , "Hello, world"
+                  , "</quote>"
+                  ]
+        =?> blockQuote (para $ text "Hello, world")
+      , "Nested quote tag" =:
+        T.unlines [ "<quote>"
+                  , "foo"
+                  , "<quote>"
+                  , "bar"
+                  , "</quote>"
+                  , "baz"
+                  , "</quote>"
+                  ] =?>
+        blockQuote (para "foo" <> blockQuote (para "bar") <> para "baz")
       , "Verse tag" =:
         T.unlines [ "<verse>"
                   , ""
@@ -431,8 +457,18 @@ tests =
                     ] =?>
           para "<literal style=\"latex\">\n\\newpage\n</literal>"
         ]
-      , "Center" =: "<center>Hello, world</center>" =?> para (text "Hello, world")
-      , "Right" =: "<right>Hello, world</right>" =?> para (text "Hello, world")
+      , "Center" =:
+        T.unlines [ "<center>"
+                  , "Hello, world"
+                  , "</center>"
+                  ] =?>
+        para (text "Hello, world")
+      , "Right" =:
+        T.unlines [ "<right>"
+                  , "Hello, world"
+                  , "</right>"
+                  ] =?>
+        para (text "Hello, world")
       , testGroup "Comments"
         [ "Comment tag" =: "<comment>\nThis is a comment\n</comment>" =?> (mempty::Blocks)
         , "Line comment" =: "; Comment" =?> (mempty::Blocks)
@@ -482,6 +518,12 @@ tests =
                     ] =?>
           header 2 "Foo" <>
           para (spanWith ("bar", [], []) mempty)
+        , "Headers terminate lists" =:
+          T.unlines [ " - foo"
+                    , "* bar"
+                    ] =?>
+          bulletList [ para "foo" ] <>
+          header 1 "bar"
         ]
       , testGroup "Directives"
         [ "Title" =:
@@ -495,6 +537,21 @@ tests =
         , test emacsMuse "Disable tables"
           ("#disable-tables t" =?>
           Pandoc (setMeta "disable-tables" (MetaInlines $ toList "t") nullMeta) mempty)
+        , "Multiple directives" =:
+          T.unlines [ "#title Document title"
+                    , "#subtitle Document subtitle"
+                    ] =?>
+          Pandoc (setMeta "title" (MetaInlines $ toList "Document title") $
+                  setMeta "subtitle" (MetaInlines $ toList "Document subtitle") nullMeta) mempty
+        , "Multiline directive" =:
+          T.unlines [ "#title Document title"
+                    , "#notes First line"
+                    , "and second line"
+                    , "#author Name"
+                    ] =?>
+          Pandoc (setMeta "title" (MetaInlines $ toList "Document title") $
+                  setMeta "notes" (MetaInlines $ toList "First line\nand second line") $
+                  setMeta "author" (MetaInlines $ toList "Name") nullMeta) mempty
         ]
       , testGroup "Anchors"
         [ "Anchor" =:
@@ -710,6 +767,18 @@ tests =
                                              , para "Item2"
                                              , para "Item3"
                                              ]
+      , "Ordered list with roman numerals" =:
+        T.unlines
+          [ " i. First"
+          , " ii. Second"
+          , " iii. Third"
+          , " iv. Fourth"
+          ] =?>
+        orderedListWith (1, LowerRoman, Period) [ para "First"
+                                                , para "Second"
+                                                , para "Third"
+                                                , para "Fourth"
+                                                ]
       , "Bullet list with empty items" =:
         T.unlines
           [ " -"
@@ -814,6 +883,15 @@ tests =
                               , para "c"
                               ]
                     ]
+      , "List continuation afeter nested list" =:
+         T.unlines
+           [ " - - foo"
+           , ""
+           , "   bar"
+           ] =?>
+         bulletList [ bulletList [ para "foo" ] <>
+                      para "bar"
+                    ]
       -- Emacs Muse allows to separate lists with two or more blank lines.
       -- Text::Amuse (Amusewiki engine) always creates a single list as of version 0.82.
       -- pandoc follows Emacs Muse behavior
@@ -902,6 +980,54 @@ tests =
             , " - Baz"
             ] =?>
           bulletList [ para "Foo" <> para "bar" ] <> bulletList [ para "Baz" ]
+        , "No blank line after blockquote" =:
+          T.unlines
+            [ " - <quote>"
+            , "   foo"
+            , "   </quote>"
+            , " - bar"
+            ] =?>
+          bulletList [ blockQuote $ para "foo", para "bar" ]
+        , "One blank line after blockquote" =:
+          T.unlines
+            [ " - <quote>"
+            , "   foo"
+            , "   </quote>"
+            , ""
+            , " - bar"
+            ] =?>
+          bulletList [ blockQuote $ para "foo", para "bar" ]
+        , "Two blank lines after blockquote" =:
+          T.unlines
+            [ " - <quote>"
+            , "   foo"
+            , "   </quote>"
+            , ""
+            , ""
+            , " - bar"
+            ] =?>
+          bulletList [ blockQuote $ para "foo" ] <> bulletList [ para "bar" ]
+        , "No blank line after verse" =:
+          T.unlines
+            [ " - > foo"
+            , " - bar"
+            ] =?>
+          bulletList [ lineBlock [ "foo" ], para "bar" ]
+        , "One blank line after verse" =:
+          T.unlines
+            [ " - > foo"
+            , ""
+            , " - bar"
+            ] =?>
+          bulletList [ lineBlock [ "foo" ], para "bar" ]
+        , "Two blank lines after verse" =:
+          T.unlines
+            [ " - > foo"
+            , ""
+            , ""
+            , " - bar"
+            ] =?>
+          bulletList [ lineBlock [ "foo" ] ] <> bulletList [ para "bar" ]
         ]
       -- Test that definition list requires a leading space.
       -- Emacs Muse does not require a space, we follow Amusewiki here.
@@ -987,6 +1113,25 @@ tests =
                                                       ("Fourth", [ definitionList [ ("Fifth", [ para "Sixth"] ) ] ] ) ] ] )
                        , ("Seventh", [ para "Eighth" ])
                        ]
+      , testGroup "Definition lists with multiple descriptions"
+        [ "Correctly indented second description" =:
+          T.unlines
+          [ " First term :: first description"
+          , "  :: second description"
+          ] =?>
+          definitionList [ ("First term", [ para "first description"
+                                          , para "second description"
+                                          ])
+                         ]
+        , "Incorrectly indented second description" =:
+          T.unlines
+          [ " First term :: first description"
+          , " :: second description"
+          ] =?>
+          definitionList [ ("First term", [ para "first description" ])
+                         , ("", [ para "second description" ])
+                         ]
+        ]
       , "Two blank lines separate definition lists" =:
         T.unlines
           [ " First :: list"
@@ -1007,7 +1152,21 @@ tests =
                              , para "* Bar"
                              ]
                    ]
-      , "List inside a tag" =:
+      , "Bullet list inside a tag" =:
+        T.unlines
+          [ "<quote>"
+          , " - First"
+          , ""
+          , " - Second"
+          , ""
+          , " - Third"
+          , "</quote>"
+          ] =?>
+        blockQuote (bulletList [ para "First"
+                               , para "Second"
+                               , para "Third"
+                               ])
+      , "Ordered list inside a tag" =:
         T.unlines
           [ "<quote>"
           , " 1. First"
@@ -1016,20 +1175,6 @@ tests =
           , ""
           , " 3. Third"
           , "</quote>"
-          ] =?>
-        blockQuote (orderedListWith (1, Decimal, Period) [ para "First"
-                                                         , para "Second"
-                                                         , para "Third"
-                                                         ])
-      -- Amusewiki requires block tags to be on separate lines,
-      -- but Emacs Muse allows them to be on the same line as contents.
-      , "List inside an inline tag" =:
-        T.unlines
-          [ "<quote> 1. First"
-          , ""
-          , " 2. Second"
-          , ""
-          , " 3. Third</quote>"
           ] =?>
         blockQuote (orderedListWith (1, Decimal, Period) [ para "First"
                                                          , para "Second"

@@ -40,6 +40,7 @@ module Text.Pandoc.Parsing ( takeWhileP,
                              anyLineNewline,
                              indentWith,
                              many1Till,
+                             manyUntil,
                              notFollowedBy',
                              oneOfStrings,
                              oneOfStringsCI,
@@ -324,6 +325,20 @@ many1Till p end = do
          first <- p
          rest <- manyTill p end
          return (first:rest)
+
+-- | Like @manyTill@, but also returns the result of end parser.
+manyUntil :: (Stream s m t)
+          => ParserT s u m a
+          -> ParserT s u m b
+          -> ParserT s u m ([a], b)
+manyUntil p end = scan
+  where scan =
+          (do e <- end
+              return ([], e)
+          ) <|>
+          (do x <- p
+              (xs, e) <- scan
+              return (x:xs, e))
 
 -- | A more general form of @notFollowedBy@.  This one allows any
 -- type of parser to be specified, and succeeds only if that parser fails.

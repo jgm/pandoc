@@ -96,9 +96,12 @@ tests =
       , "Autolink" =:
           "http://www.google.com" =?>
             para (link "http://www.google.com" "" (str "http://www.google.com"))
-      , "Image" =:
+      , "JPEG Image" =:
           "[image.jpg]" =?>
             para (image "image.jpg" "" mempty)
+      , "PNG Image" =:
+          "[image.png]" =?>
+            para (image "image.png" "" mempty)
 
       , "Link" =:
           "[title http://google.com]" =?>
