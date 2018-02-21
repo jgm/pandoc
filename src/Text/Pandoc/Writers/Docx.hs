@@ -1326,7 +1326,7 @@ inlineToOpenXML' opts (Image attr alt (src, title)) = do
               , mknode "wp:effectExtent"
                 [("b","0"),("l","0"),("r","0"),("t","0")] ()
               , mknode "wp:docPr" 
-                [ ("descr",stringify alt)
+                [ ("descr", stringify alt)
                 , ("title", title)
                 , ("id","1")
                 , ("name","Picture")
