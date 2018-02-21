@@ -69,8 +69,11 @@ docToJATS opts (Pandoc meta blocks) = do
   let (backblocks, bodyblocks) = partition isBackBlock blocks
   let elements = hierarchicalize bodyblocks
   let backElements = hierarchicalize backblocks
+  let colwidth = if writerWrapText opts == WrapAuto
+                    then Just $ writerColumns opts
+                    else Nothing
   let render'  :: Doc -> Text
-      render'  = render Nothing
+      render'  = render colwidth
   let opts'    = if maybe False (("/book>" `isSuffixOf`) . trimr)
                             (writerTemplate opts) &&
                      TopLevelDefault == writerTopLevelDivision opts
