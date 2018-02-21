@@ -1,7 +1,7 @@
 {-# LANGUAGE OverloadedStrings #-}
 module Tests.Readers.Org.Meta (tests) where
 
-import Test.Tasty (TestTree)
+import Test.Tasty (TestTree, testGroup)
 import Tests.Helpers ((=?>))
 import Tests.Readers.Org.Shared ((=:), spcSep)
 import Text.Pandoc
@@ -170,4 +170,22 @@ tests =
                 , "[[expl:foo][bar]]"
                 ] =?>
       para (link "http://example.com/foo" "" "bar")
+
+  , testGroup "emphasis config"
+    [ "Changing pre and post chars for emphasis" =:
+        T.unlines [ "#+pandoc-emphasis-pre: \"[)\""
+                  , "#+pandoc-emphasis-post: \"]\\n\""
+                  , "([/emph/])*foo*"
+                  ] =?>
+        para ("([" <> emph "emph" <> "])" <> strong "foo")
+
+    , "setting an invalid value restores the default" =:
+        T.unlines [ "#+pandoc-emphasis-pre: \"[\""
+                  , "#+pandoc-emphasis-post: \"]\""
+                  , "#+pandoc-emphasis-pre:"
+                  , "#+pandoc-emphasis-post:"
+                  , "[/noemph/]"
+                  ] =?>
+        para ("[/noemph/]")
+    ]
   ]

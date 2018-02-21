@@ -603,6 +603,8 @@ updatePositions :: PandocMonad m
                 => Char
                 -> OrgParser m Char
 updatePositions c = do
+  st <- getState
+  let emphasisPreChars = orgStateEmphasisPreChars st
   when (c `elem` emphasisPreChars) updateLastPreCharPos
   when (c `elem` emphasisForbiddenBorderChars) updateLastForbiddenCharPos
   return c
@@ -681,8 +683,10 @@ emphasisEnd c = try $ do
   updateLastStrPos
   popInlineCharStack
   return c
- where acceptablePostChars =
-           surroundingEmphasisChar >>= \x -> oneOf (x ++ emphasisPostChars)
+ where
+  acceptablePostChars = do
+    emphasisPostChars <- orgStateEmphasisPostChars <$> getState
+    surroundingEmphasisChar >>= \x -> oneOf (x ++ emphasisPostChars)
 
 mathStart :: PandocMonad m => Char -> OrgParser m Char
 mathStart c = try $
@@ -733,14 +737,6 @@ many1TillNOrLessNewlines n p end = try $
 -- Org allows customization of the way it reads emphasis.  We use the defaults
 -- here (see, e.g., the Emacs Lisp variable `org-emphasis-regexp-components`
 -- for details).
-
--- | Chars allowed to occur before emphasis (spaces and newlines are ok, too)
-emphasisPreChars :: [Char]
-emphasisPreChars = "-\t ('\"{"
-
--- | Chars allowed at after emphasis
-emphasisPostChars :: [Char]
-emphasisPostChars = "-\t\n .,:!?;'\")}["
 
 -- | Chars not allowed at the (inner) border of emphasis
 emphasisForbiddenBorderChars :: [Char]

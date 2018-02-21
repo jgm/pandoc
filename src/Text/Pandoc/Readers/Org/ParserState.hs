@@ -29,6 +29,7 @@ Define the Org-mode parser state.
 -}
 module Text.Pandoc.Readers.Org.ParserState
   ( OrgParserState (..)
+  , defaultOrgParserState
   , OrgParserLocal (..)
   , OrgNoteRecord
   , HasReaderOptions (..)
@@ -104,6 +105,11 @@ type TodoSequence = [TodoMarker]
 data OrgParserState = OrgParserState
   { orgStateAnchorIds            :: [String]
   , orgStateEmphasisCharStack    :: [Char]
+  , orgStateEmphasisPreChars     :: [Char] -- ^ Chars allowed to occur before
+                                           -- emphasis; spaces and newlines are
+                                           -- always ok in addition to what is
+                                           -- specified here.
+  , orgStateEmphasisPostChars    :: [Char] -- ^ Chars allowed at after emphasis
   , orgStateEmphasisNewlines     :: Maybe Int
   , orgStateExportSettings       :: ExportSettings
   , orgStateHeaderMap            :: M.Map Inlines String
@@ -124,7 +130,9 @@ data OrgParserState = OrgParserState
   , orgMacros                    :: M.Map Text Macro
   }
 
-data OrgParserLocal = OrgParserLocal { orgLocalQuoteContext :: QuoteContext }
+data OrgParserLocal = OrgParserLocal
+  { orgLocalQuoteContext :: QuoteContext
+  }
 
 instance Default OrgParserLocal where
   def = OrgParserLocal NoQuote
@@ -168,6 +176,8 @@ instance Default OrgParserState where
 defaultOrgParserState :: OrgParserState
 defaultOrgParserState = OrgParserState
   { orgStateAnchorIds = []
+  , orgStateEmphasisPreChars = "-\t ('\"{"
+  , orgStateEmphasisPostChars  = "-\t\n .,:!?;'\")}["
   , orgStateEmphasisCharStack = []
   , orgStateEmphasisNewlines = Nothing
   , orgStateExportSettings = def

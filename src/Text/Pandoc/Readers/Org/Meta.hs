@@ -43,6 +43,7 @@ import Text.Pandoc.Builder (Blocks, Inlines)
 import qualified Text.Pandoc.Builder as B
 import Text.Pandoc.Class (PandocMonad)
 import Text.Pandoc.Definition
+import Text.Pandoc.Shared (safeRead)
 
 import Control.Monad (mzero, void, when)
 import Data.Char (toLower)
@@ -154,6 +155,8 @@ optionLine = try $ do
     "seq_todo" -> todoSequence >>= updateState . registerTodoSequence
     "typ_todo" -> todoSequence >>= updateState . registerTodoSequence
     "macro"    -> macroDefinition >>= updateState . registerMacro
+    "pandoc-emphasis-pre" -> emphChars >>= updateState . setEmphasisPreChar
+    "pandoc-emphasis-post" -> emphChars >>= updateState . setEmphasisPostChar
     _          -> mzero
 
 addLinkFormat :: Monad m => String
@@ -183,6 +186,25 @@ parseFormat = try $ replacePlain <|> replaceUrl <|> justAppend
 
    rest            = manyTill anyChar         (eof <|> () <$ oneOf "\n\r")
    tillSpecifier c = manyTill (noneOf "\n\r") (try $ string ('%':c:""))
+
+setEmphasisPreChar :: Maybe [Char] -> OrgParserState -> OrgParserState
+setEmphasisPreChar csMb st =
+  let preChars = case csMb of
+                   Nothing -> orgStateEmphasisPreChars defaultOrgParserState
+                   Just cs -> cs
+  in st { orgStateEmphasisPreChars = preChars }
+
+setEmphasisPostChar :: Maybe [Char] -> OrgParserState -> OrgParserState
+setEmphasisPostChar csMb st =
+  let postChars = case csMb of
+                   Nothing -> orgStateEmphasisPostChars defaultOrgParserState
+                   Just cs -> cs
+  in st { orgStateEmphasisPostChars = postChars }
+
+emphChars :: Monad m => OrgParser m (Maybe [Char])
+emphChars = do
+  skipSpaces
+  safeRead <$> anyLine
 
 inlinesTillNewline :: PandocMonad m => OrgParser m (F Inlines)
 inlinesTillNewline = do
