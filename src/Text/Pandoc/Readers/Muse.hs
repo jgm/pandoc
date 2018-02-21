@@ -250,8 +250,7 @@ parseBlocks =
                     rest <- parseBlocks
                     return $ first B.<> rest
     listStart = do
-      st <- getState
-      setState $ st{ museInPara = False }
+      updateState (\st -> st { museInPara = False })
       (first, rest) <- anyListUntil parseBlocks <|> amuseNoteBlockUntil parseBlocks
       return $ first B.<> rest
     paraStart = do
@@ -274,8 +273,7 @@ parseBlocksTill end =
                     rest <- continuation
                     return $ first B.<> rest
     listStart = do
-      st <- getState
-      setState $ st{ museInPara = False }
+      updateState (\st -> st { museInPara = False })
       (first, e) <- anyListUntil ((Left <$> end) <|> (Right <$> continuation))
       case e of
         Left _ -> return first
@@ -309,8 +307,7 @@ listItemContentsUntil col pre end =
                     (rest, e) <- parsePre <|> continuation <|> parseEnd
                     return (first B.<> rest, e)
     listStart = do
-      st <- getState
-      setState $ st{ museInPara = False }
+      updateState (\st -> st { museInPara = False })
       (first, e) <- anyListUntil ((Left <$> pre) <|> (Right <$> continuation) <|> (Left <$> end))
       case e of
         Left ee -> return (first, ee)
@@ -318,8 +315,7 @@ listItemContentsUntil col pre end =
     continuation = try $ do blank <- optionMaybe blankline
                             skipMany blankline
                             indentWith col
-                            st <- getState
-                            setState $ st{ museInPara = museInPara st && isNothing blank }
+                            updateState (\st -> st { museInPara = museInPara st && isNothing blank })
                             listItemContentsUntil col pre end
 
 parseBlock :: PandocMonad m => MuseParser m (F Blocks)
@@ -331,8 +327,7 @@ parseBlock = do
 
 blockElements :: PandocMonad m => MuseParser m (F Blocks)
 blockElements = do
-  st <- getState
-  setState $ st{ museInPara = False }
+  updateState (\st -> st { museInPara = False })
   choice [ mempty <$ blankline
          , comment
          , separator
@@ -480,8 +475,7 @@ amuseNoteBlockUntil end = try $ do
   guardEnabled Ext_amuse
   pos <- getPosition
   ref <- noteMarker <* spaceChar
-  st <- getState
-  setState $ st{ museInPara = False }
+  updateState (\st -> st { museInPara = False })
   (content, e) <- listItemContentsUntil (sourceColumn pos) (fail "x") end
   oldnotes <- museNotes <$> getState
   case M.lookup ref oldnotes of
@@ -541,8 +535,7 @@ bulletListItemsUntil :: PandocMonad m
 bulletListItemsUntil indent end = try $ do
   char '-'
   void spaceChar <|> lookAhead eol
-  st <- getState
-  setState $ st{ museInPara = False }
+  updateState (\st -> st { museInPara = False })
   (x, e) <- listItemContentsUntil (indent + 2) (Right <$> try (optional blankline >> indentWith indent >> bulletListItemsUntil indent end)) (Left <$> end)
   case e of
     Left ee -> return ([x], ee)
@@ -591,8 +584,7 @@ orderedListItemsUntil indent style end =
     continuation = try $ do
       pos <- getPosition
       void spaceChar <|> lookAhead eol
-      st <- getState
-      setState $ st{ museInPara = False }
+      updateState (\st -> st { museInPara = False })
       (x, e) <- listItemContentsUntil (sourceColumn pos) (Right <$> try (optionMaybe blankline >> indentWith indent >> museOrderedListMarker style >> continuation)) (Left <$> end)
       case e of
         Left ee -> return ([x], ee)
@@ -617,8 +609,7 @@ descriptionsUntil :: PandocMonad m
                   -> MuseParser m ([F Blocks], a)
 descriptionsUntil indent end = do
   void spaceChar <|> lookAhead eol
-  st <- getState
-  setState $ st{ museInPara = False }
+  updateState (\st -> st { museInPara = False })
   (x, e) <- listItemContentsUntil indent (Right <$> try (optional blankline >> indentWith indent >> manyTill spaceChar (string "::") >> descriptionsUntil indent end)) (Left <$> end)
   case e of
     Right (xs, ee) -> return (x:xs, ee)
