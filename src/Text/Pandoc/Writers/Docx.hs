@@ -1277,6 +1277,7 @@ inlineToOpenXML' opts (Link _ txt (src,_)) = do
 inlineToOpenXML' opts (Image attr alt (src, title)) = do
   pageWidth <- asks envPrintWidth
   imgs <- gets stImages
+  
   let 
     stImage = M.lookup src imgs
     generateImgElt (ident, _, _, img) =

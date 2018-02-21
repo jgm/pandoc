@@ -37,7 +37,7 @@ module Text.Pandoc.Writers.Powerpoint.Presentation ( documentToPresentation
                                                    , DocProps(..)
                                                    , Slide(..)
                                                    , Layout(..)
-                                                   , Notes(..)
+                                                   , SpeakerNotes(..)
                                                    , SlideId(..)
                                                    , Shape(..)
                                                    , Graphic(..)
@@ -87,6 +87,7 @@ data WriterEnv = WriterEnv { envMetadata :: Meta
                            , envInList :: Bool
                            , envInNoteSlide :: Bool
                            , envCurSlideId :: SlideId
+                           , envInSpeakerNotes :: Bool
                            }
                  deriving (Show)
 
@@ -100,6 +101,7 @@ instance Default WriterEnv where
                   , envInList = False
                   , envInNoteSlide = False
                   , envCurSlideId = SlideId "Default"
+                  , envInSpeakerNotes = False
                   }
 
 
@@ -108,7 +110,7 @@ data WriterState = WriterState { stNoteIds :: M.Map Int [Block]
                                , stAnchorMap :: M.Map String SlideId
                                , stSlideIdSet :: S.Set SlideId
                                , stLog :: [LogMessage]
-
+                               , stSpeakerNotesMap :: M.Map SlideId [[Paragraph]]
                                } deriving (Show, Eq)
 
 instance Default WriterState where
@@ -117,6 +119,7 @@ instance Default WriterState where
                     -- we reserve this s
                     , stSlideIdSet = reservedSlideIds
                     , stLog = []
+                    , stSpeakerNotesMap = mempty
                     }
 
 metadataSlideId :: SlideId
@@ -180,7 +183,7 @@ data DocProps = DocProps { dcTitle :: Maybe String
 
 data Slide = Slide { slideId :: SlideId
                    , slideLayout :: Layout
-                   , slideNotes :: Maybe Notes
+                   , slideSpeakerNotes :: Maybe SpeakerNotes
                    } deriving (Show, Eq)
 
 newtype SlideId = SlideId String
@@ -189,7 +192,7 @@ newtype SlideId = SlideId String
 -- In theory you could have anything on a notes slide but it seems
 -- designed mainly for one textbox, so we'll just put in the contents
 -- of that textbox, to avoid other shapes that won't work as well.
-newtype Notes = Notes [Paragraph]
+newtype SpeakerNotes = SpeakerNotes {fromSpeakerNotes :: [Paragraph]}
   deriving (Show, Eq)
 
 data Layout = MetadataSlide { metadataSlideTitle :: [ParaElem]
@@ -353,15 +356,24 @@ inlineToParElems (Code _ str) =
   inlineToParElems $ Str str
 inlineToParElems (Math mathtype str) =
   return [MathElem mathtype (TeXString str)]
+-- We ignore notes if we're in a speaker notes div. Otherwise this
+-- would add an entry to the endnotes slide, which would put speaker
+-- notes in the public presentation. In the future, we can entertain a
+-- way of adding a speakernotes-specific note that would just add
+-- paragraphs to the bottom of the notes page.
 inlineToParElems (Note blks) = do
-  notes <- gets stNoteIds
-  let maxNoteId = case M.keys notes of
-        [] -> 0
-        lst -> maximum lst
-      curNoteId = maxNoteId + 1
-  modify $ \st -> st { stNoteIds = M.insert curNoteId blks notes }
-  local (\env -> env{envRunProps = (envRunProps env){rLink = Just $ InternalTarget endNotesSlideId}}) $
-    inlineToParElems $ Superscript [Str $ show curNoteId]
+  inSpNotes <- asks envInSpeakerNotes
+  if inSpNotes
+    then return []
+    else do
+    notes <- gets stNoteIds
+    let maxNoteId = case M.keys notes of
+          [] -> 0
+          lst -> maximum lst
+        curNoteId = maxNoteId + 1
+    modify $ \st -> st { stNoteIds = M.insert curNoteId blks notes }
+    local (\env -> env{envRunProps = (envRunProps env){rLink = Just $ InternalTarget endNotesSlideId}}) $
+      inlineToParElems $ Superscript [Str $ show curNoteId]
 inlineToParElems (Span _ ils) = concatMapM inlineToParElems ils
 inlineToParElems (RawInline _ _) = return []
 inlineToParElems _ = return []
@@ -463,7 +475,16 @@ blockToParagraphs (DefinitionList entries) = do
         definition <- concatMapM (blockToParagraphs . BlockQuote) blksLst
         return $ term ++ definition
   concatMapM go entries
-blockToParagraphs (Div (_, "notes" : [], _) _) = return []
+blockToParagraphs (Div (_, "notes" : [], _) blks) =
+  local (\env -> env{envInSpeakerNotes=True}) $ do
+  sldId <- asks envCurSlideId
+  spkNotesMap <- gets stSpeakerNotesMap
+  paras <- concatMapM blockToParagraphs blks
+  let spkNotesMap' = case M.lookup sldId spkNotesMap of
+        Just lst -> M.insert sldId (paras : lst) spkNotesMap
+        Nothing  -> M.insert sldId [paras] spkNotesMap
+  modify $ \st -> st{stSpeakerNotesMap = spkNotesMap'}
+  return []
 blockToParagraphs (Div _ blks)  = concatMapM blockToParagraphs blks
 blockToParagraphs blk = do
   addLogMessage $ BlockNotRendered blk
@@ -593,6 +614,12 @@ splitBlocks' cur acc (blk : blks) = splitBlocks' (cur ++ [blk]) acc blks
 splitBlocks :: [Block] -> Pres [[Block]]
 splitBlocks = splitBlocks' [] []
 
+getSpeakerNotes :: Pres (Maybe SpeakerNotes)
+getSpeakerNotes = do
+  sldId <- asks envCurSlideId
+  spkNtsMap <- gets stSpeakerNotesMap
+  return $ (SpeakerNotes . concat . reverse) <$> (M.lookup sldId spkNtsMap)
+
 blocksToSlide' :: Int -> [Block] -> Pres Slide
 blocksToSlide' lvl (Header n (ident, _, _) ils : blks)
   | n < lvl = do
@@ -664,7 +691,9 @@ blocksToSlide' _ [] = do
 blocksToSlide :: [Block] -> Pres Slide
 blocksToSlide blks = do
   slideLevel <- asks envSlideLevel
-  blocksToSlide' slideLevel blks
+  sld <- blocksToSlide' slideLevel blks
+  spkNotes <- getSpeakerNotes
+  return $ sld{slideSpeakerNotes = spkNotes}
 
 makeNoteEntry :: Int -> [Block] -> [Block]
 makeNoteEntry n blks =
@@ -806,11 +835,11 @@ applyToLayout f (TwoColumnSlide hdr contentL contentR) = do
 applyToSlide :: Monad m => (ParaElem -> m ParaElem) -> Slide -> m Slide
 applyToSlide f slide = do
   layout' <- applyToLayout f $ slideLayout slide
-  mbNotes' <- case slideNotes slide of
-                Just (Notes notes) -> (Just . Notes) <$>
-                                      mapM (applyToParagraph f) notes
+  mbNotes' <- case slideSpeakerNotes slide of
+                Just (SpeakerNotes notes) -> (Just . SpeakerNotes) <$>
+                                             mapM (applyToParagraph f) notes
                 Nothing -> return Nothing
-  return slide{slideLayout = layout', slideNotes = mbNotes'}
+  return slide{slideLayout = layout', slideSpeakerNotes = mbNotes'}
 
 replaceAnchor :: ParaElem -> Pres ParaElem
 replaceAnchor (Run rProps s)

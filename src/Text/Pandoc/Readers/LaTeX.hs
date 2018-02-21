@@ -1074,12 +1074,12 @@ simpleCiteArgs = try $ do
 
 citationLabel :: PandocMonad m => LP m String
 citationLabel  = do
-  optional sp
+  optional spaces
   toksToString <$>
     (many1 (satisfyTok isWordTok <|> symbolIn bibtexKeyChar)
-          <* optional sp
+          <* optional spaces
           <* optional (symbol ',')
-          <* optional sp)
+          <* optional spaces)
   where bibtexKeyChar = ".:;?!`'()/*@_+=-[]" :: [Char]
 
 cites :: PandocMonad m => CitationMode -> Bool -> LP m [Citation]
