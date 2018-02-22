@@ -4538,8 +4538,8 @@ And with the extension:
     :::
 
     ::: {custom-style="BodyText"}
-    This is text with an *[emphasized]{custom-style="Emphatic"}* text style.
-    And this is text with a **[strengthened]{custom-style="Strengthened"}**
+    This is text with an [*emphasized*]{custom-style="Emphatic"} text style.
+    And this is text with a [**strengthened**]{custom-style="Strengthened"}
     text style.
     :::
 

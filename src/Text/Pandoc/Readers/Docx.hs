@@ -301,37 +301,37 @@ runStyleToTransform rPr
       extraInfo <- extraRunStyleInfo rPr
       transform <- local (\e -> e{docxCustomStyleAlready = True}) $
                    runStyleToTransform rPr {isItalic = Nothing}
-      return $ emph . extraInfo . transform
+      return $ extraInfo . emph  . transform
   | Just True <- isBold rPr = do
       extraInfo <- extraRunStyleInfo rPr
       transform <- local (\e -> e{docxCustomStyleAlready = True}) $
                    runStyleToTransform rPr {isBold = Nothing}
-      return $ strong . extraInfo . transform
+      return $ extraInfo . strong . transform
   | Just True <- isSmallCaps rPr = do
       extraInfo <- extraRunStyleInfo rPr
       transform <- local (\e -> e{docxCustomStyleAlready = True}) $
                    runStyleToTransform rPr {isSmallCaps = Nothing}
-      return $ smallcaps . extraInfo .transform
+      return $ extraInfo . smallcaps . transform
   | Just True <- isStrike rPr = do
       extraInfo <- extraRunStyleInfo rPr
       transform <- local (\e -> e{docxCustomStyleAlready = True}) $
                    runStyleToTransform rPr {isStrike = Nothing}
-      return $ strikeout . extraInfo . transform
+      return $ extraInfo . strikeout . transform
   | Just SupScrpt <- rVertAlign rPr = do
       extraInfo <- extraRunStyleInfo rPr
       transform <- local (\e -> e{docxCustomStyleAlready = True}) $
                    runStyleToTransform rPr {rVertAlign = Nothing}
-      return $ superscript . extraInfo . transform
+      return $ extraInfo . superscript . transform
   | Just SubScrpt <- rVertAlign rPr = do
       extraInfo <- extraRunStyleInfo rPr
       transform <- local (\e -> e{docxCustomStyleAlready = True}) $
                    runStyleToTransform rPr {rVertAlign = Nothing}
-      return $ subscript . extraInfo . transform
+      return $ extraInfo . subscript . transform
   | Just "single" <- rUnderline rPr = do
       extraInfo <- extraRunStyleInfo rPr
       transform <- local (\e -> e{docxCustomStyleAlready = True}) $
                    runStyleToTransform rPr {rUnderline = Nothing}
-      return $ underlineSpan . extraInfo . transform
+      return $ extraInfo . underlineSpan . transform
   | otherwise = extraRunStyleInfo rPr
 
 runToInlines :: PandocMonad m => Run -> DocxContext m Inlines
