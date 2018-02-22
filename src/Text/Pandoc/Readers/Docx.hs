@@ -278,28 +278,51 @@ resolveDependentRunStyle rPr
                 , rStyle = rStyle rPr }
   | otherwise = rPr
 
-runStyleToTransform :: RunStyle -> (Inlines -> Inlines)
+extraRunStyleInfo :: PandocMonad m => RunStyle -> DocxContext m (Inlines -> Inlines)
+extraRunStyleInfo rPr
+  | Just (s, _) <- rStyle rPr = do
+      opts <- asks docxOptions
+      return $ if isEnabled Ext_styles opts
+               then spanWith ("", [], [("custom-style", s)])
+               else id
+  | otherwise = return id
+
+runStyleToTransform :: PandocMonad m => RunStyle -> DocxContext m (Inlines -> Inlines)
 runStyleToTransform rPr
   | Just (s, _) <- rStyle rPr
-  , s `elem` spansToKeep =
-    let rPr' = rPr{rStyle = Nothing}
-    in
-     spanWith ("", [s], []) . runStyleToTransform rPr'
-  | Just True <- isItalic rPr =
-      emph . runStyleToTransform rPr {isItalic = Nothing}
-  | Just True <- isBold rPr =
-      strong . runStyleToTransform rPr {isBold = Nothing}
-  | Just True <- isSmallCaps rPr =
-      smallcaps . runStyleToTransform rPr {isSmallCaps = Nothing}
-  | Just True <- isStrike rPr =
-      strikeout . runStyleToTransform rPr {isStrike = Nothing}
-  | Just SupScrpt <- rVertAlign rPr =
-      superscript . runStyleToTransform rPr {rVertAlign = Nothing}
-  | Just SubScrpt <- rVertAlign rPr =
-      subscript . runStyleToTransform rPr {rVertAlign = Nothing}
-  | Just "single" <- rUnderline rPr =
-      underlineSpan . runStyleToTransform rPr {rUnderline = Nothing}
-  | otherwise = id
+  , s `elem` spansToKeep = do
+      let rPr' = rPr{rStyle = Nothing}
+      transform <- runStyleToTransform rPr'
+      return $ spanWith ("", [s], []) . transform
+  | Just True <- isItalic rPr = do
+      transform <- runStyleToTransform rPr {isItalic = Nothing}
+      extraInfo <- extraRunStyleInfo rPr
+      return $ emph . extraInfo . transform
+  | Just True <- isBold rPr = do
+      transform <- runStyleToTransform rPr {isBold = Nothing}
+      extraInfo <- extraRunStyleInfo rPr
+      return $ strong . extraInfo . transform
+  | Just True <- isSmallCaps rPr = do
+      transform <- runStyleToTransform rPr {isSmallCaps = Nothing}
+      extraInfo <- extraRunStyleInfo rPr
+      return $ smallcaps . extraInfo .transform
+  | Just True <- isStrike rPr = do
+      transform <- runStyleToTransform rPr {isStrike = Nothing}
+      extraInfo <- extraRunStyleInfo rPr
+      return $ strikeout . extraInfo . transform
+  | Just SupScrpt <- rVertAlign rPr = do
+      transform <- runStyleToTransform rPr {rVertAlign = Nothing}
+      extraInfo <- extraRunStyleInfo rPr
+      return $ superscript . extraInfo . transform
+  | Just SubScrpt <- rVertAlign rPr = do
+      transform <- runStyleToTransform rPr {rVertAlign = Nothing}
+      extraInfo <- extraRunStyleInfo rPr
+      return $ subscript . extraInfo . transform
+  | Just "single" <- rUnderline rPr = do
+      transform <- runStyleToTransform rPr {rUnderline = Nothing}
+      extraInfo <- extraRunStyleInfo rPr
+      return $ underlineSpan . extraInfo . transform
+  | otherwise = extraRunStyleInfo rPr
 
 runToInlines :: PandocMonad m => Run -> DocxContext m Inlines
 runToInlines (Run rs runElems)
@@ -314,7 +337,8 @@ runToInlines (Run rs runElems)
      _             -> codeString
   | otherwise = do
     let ils = smushInlines (map runElemToInlines runElems)
-    return $ (runStyleToTransform $ resolveDependentRunStyle rs) ils
+    transform <- runStyleToTransform $ resolveDependentRunStyle rs
+    return $ transform ils
 runToInlines (Footnote bps) = do
   blksList <- smushBlocks <$> mapM bodyPartToBlocks bps
   return $ note blksList
@@ -516,51 +540,60 @@ trimSps (Many ils) = Many $ Seq.dropWhileL isSp $Seq.dropWhileR isSp ils
         isSp LineBreak = True
         isSp _         = False
 
-parStyleToTransform :: ParagraphStyle -> (Blocks -> Blocks)
+parStyleToTransform :: PandocMonad m => ParagraphStyle -> DocxContext m (Blocks -> Blocks)
 parStyleToTransform pPr
   | (c:cs) <- pStyle pPr
-  , c `elem` divsToKeep =
-    let pPr' = pPr { pStyle = cs }
-    in
-     divWith ("", [c], []) . parStyleToTransform pPr'
+  , c `elem` divsToKeep = do
+      let pPr' = pPr { pStyle = cs }
+      transform <- parStyleToTransform pPr'
+      return $ divWith ("", [c], []) . transform
   | (c:cs) <- pStyle pPr,
-    c `elem` listParagraphDivs =
+    c `elem` listParagraphDivs = do
       let pPr' = pPr { pStyle = cs, indentation = Nothing}
-      in
-       divWith ("", [c], []) . parStyleToTransform pPr'
-  | (_:cs) <- pStyle pPr
-  , Just True <- pBlockQuote pPr =
-    let pPr' = pPr { pStyle = cs }
-    in
-     blockQuote . parStyleToTransform pPr'
-  | (_:cs) <- pStyle pPr =
+      transform <- parStyleToTransform pPr'
+      return $ divWith ("", [c], []) . transform
+  | (c:cs) <- pStyle pPr
+  , Just True <- pBlockQuote pPr = do
+      opts <- asks docxOptions
+      let pPr' = pPr { pStyle = cs }
+      transform <- parStyleToTransform pPr'
+      let extraInfo = if isEnabled Ext_styles opts
+                      then divWith ("", [], [("custom-style", c)])
+                      else id
+      return $ extraInfo . blockQuote . transform
+  | (c:cs) <- pStyle pPr = do
+      opts <- asks docxOptions
       let pPr' = pPr { pStyle = cs}
-      in
-       parStyleToTransform pPr'
+      transform <- parStyleToTransform pPr'
+      let extraInfo = if isEnabled Ext_styles opts
+                      then divWith ("", [], [("custom-style", c)])
+                      else id
+      return $ extraInfo . transform
   | null (pStyle pPr)
   , Just left <- indentation pPr >>= leftParIndent
-  , Just hang <- indentation pPr >>= hangingParIndent =
+  , Just hang <- indentation pPr >>= hangingParIndent = do
     let pPr' = pPr { indentation = Nothing }
-    in
-     case (left - hang) > 0 of
-       True  -> blockQuote . (parStyleToTransform pPr')
-       False -> parStyleToTransform pPr'
+    transform <- parStyleToTransform pPr'
+    return $ case (left - hang) > 0 of
+               True  -> blockQuote . transform
+               False -> transform
   | null (pStyle pPr),
-    Just left <- indentation pPr >>= leftParIndent =
+    Just left <- indentation pPr >>= leftParIndent = do
       let pPr' = pPr { indentation = Nothing }
-      in
-       case left > 0 of
-         True  -> blockQuote . (parStyleToTransform pPr')
-         False -> parStyleToTransform pPr'
-parStyleToTransform _ = id
+      transform <- parStyleToTransform pPr'
+      return $ case left > 0 of
+         True  -> blockQuote . transform
+         False -> transform
+parStyleToTransform _ = return id
 
 bodyPartToBlocks :: PandocMonad m => BodyPart -> DocxContext m Blocks
 bodyPartToBlocks (Paragraph pPr parparts)
-  | not $ null $ codeDivs `intersect` (pStyle pPr) =
-    return
-    $ parStyleToTransform pPr
-    $ codeBlock
-    $ concatMap parPartToString parparts
+  | not $ null $ codeDivs `intersect` (pStyle pPr) = do
+      transform <- parStyleToTransform pPr
+      return $
+        transform $
+        codeBlock $
+        concatMap parPartToString parparts
   | Just (style, n) <- pHeading pPr = do
     ils <-local (\s-> s{docxInHeaderBlock=True})
            (smushInlines <$> mapM parPartToInlines parparts)
@@ -586,7 +619,8 @@ bodyPartToBlocks (Paragraph pPr parparts)
                 _ | Just (TrackedChange Insertion _) <- pChange pPr
                   , AcceptChanges <- readerTrackChanges opts -> do
                       modify $ \s -> s {docxPrevPara = mempty}
-                      return $ parStyleToTransform pPr $ para ils''
+                      transform <- parStyleToTransform pPr
+                      return $ transform $ para ils''
                 _ | Just (TrackedChange Insertion _) <- pChange pPr
                   , RejectChanges <- readerTrackChanges opts -> do
                       modify $ \s -> s {docxPrevPara = ils''}
@@ -596,8 +630,8 @@ bodyPartToBlocks (Paragraph pPr parparts)
                   , ChangeInfo _ cAuthor cDate <- cInfo -> do
                       let attr = ("", ["paragraph-insertion"], [("author", cAuthor), ("date", cDate)])
                           insertMark = spanWith attr mempty
-                      return $
-                        parStyleToTransform pPr $
+                      transform <- parStyleToTransform pPr
+                      return $ transform $
                         para $ ils'' <> insertMark
                 _ | Just (TrackedChange Deletion _) <- pChange pPr
                   , AcceptChanges <- readerTrackChanges opts -> do
@@ -606,18 +640,20 @@ bodyPartToBlocks (Paragraph pPr parparts)
                 _ | Just (TrackedChange Deletion _) <- pChange pPr
                   , RejectChanges <- readerTrackChanges opts -> do
                       modify $ \s -> s {docxPrevPara = mempty}
-                      return $ parStyleToTransform pPr $ para ils''
+                      transform <- parStyleToTransform pPr
+                      return $ transform $ para ils''
                 _ | Just (TrackedChange Deletion cInfo) <- pChange pPr
                   , AllChanges <- readerTrackChanges opts
                   , ChangeInfo _ cAuthor cDate <- cInfo -> do
                       let attr = ("", ["paragraph-deletion"], [("author", cAuthor), ("date", cDate)])
                           insertMark = spanWith attr mempty
-                      return $
-                        parStyleToTransform pPr $
+                      transform <- parStyleToTransform pPr
+                      return $ transform $
                         para $ ils'' <> insertMark
                 _ | otherwise -> do
                       modify $ \s -> s {docxPrevPara = mempty}
-                      return $ parStyleToTransform pPr $ para ils''
+                      transform <- parStyleToTransform pPr
+                      return $ transform $ para ils''
 bodyPartToBlocks (ListItem pPr numId lvl (Just levelInfo) parparts) = do
   -- We check whether this current numId has previously been used,
   -- since Docx expects us to pick up where we left off.
