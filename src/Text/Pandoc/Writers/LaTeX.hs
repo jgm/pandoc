@@ -509,14 +509,14 @@ blockToLaTeX (Para [Image attr@(ident, _, _) txt (src,'f':'i':'g':':':tit)]) = d
   let footnotes = notesToLaTeX notes
   lab <- labelFor ident
   let caption = "\\caption" <> captForLof <> braces capt <> lab
-  let figure = cr <> "\\begin{figure}" $$ "\\centering" $$ img $$
-              caption $$ "\\end{figure}" <> cr
-  figure' <- hypertarget True ident figure
+  innards <- hypertarget True ident $
+                 "\\centering" $$ img $$ caption <> cr
+  let figure = cr <> "\\begin{figure}" $$ innards $$ "\\end{figure}"
   return $ if inNote || inMinipage
               -- can't have figures in notes or minipage (here, table cell)
               -- http://www.tex.ac.uk/FAQ-ouparmd.html
               then "\\begin{center}" $$ img $+$ capt $$ "\\end{center}"
-              else figure' $$ footnotes
+              else figure $$ footnotes
 -- . . . indicates pause in beamer slides
 blockToLaTeX (Para [Str ".",Space,Str ".",Space,Str "."]) = do
   beamer <- gets stBeamer
