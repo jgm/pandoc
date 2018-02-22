@@ -1974,6 +1974,16 @@ input formats
 output formats
 :  `markdown`, `docx`, `odt`, `opendocument`, `html`
 
+#### Extension: `styles` #### {#ext-styles}
+
+Read all docx styles as divs (for paragraph styles) and spans (for
+character styles) regardless of whether pandoc understands the meaning
+of these styles. This can be used with [docx custom
+styles](#custom-styles-in-docx). Disabled by default.
+
+input formats
+:  `docx`
+
 #### Extension: `amuse` ####
 
 In the `muse` input format, this enables Text::Amuse
@@ -4490,8 +4500,60 @@ To disable highlighting, use the `--no-highlight` option.
 
 [skylighting]: https://github.com/jgm/skylighting
 
-Custom Styles in Docx Output
-============================
+Custom Styles in Docx
+=====================
+
+Input
+-----
+
+The docx reader, by default, only reads those styles that it can
+convert into pandoc elements, either by direct conversion or
+interpreting the derivation of the input document's styles.
+
+By enabling the [`styles` extension](#ext-styles) in the docx reader
+(`-f docx+styles`), you can produce output that maintains the styles
+of the input document, using the `custom-style` class. Paragraph
+styles are interpreted as divs, while character styles are interpreted
+as spans.
+
+For example, using the `custom-style-reference.docx` file in the test
+directory, we have the following different outputs:
+
+Without the `+styles` extension:
+
+    $ pandoc test/docx/custom-style-reference.docx -f docx -t markdown
+    This is some text.
+
+    This is text with an *emphasized* text style. And this is text with a
+    **strengthened** text style.
+
+    > Here is a styled paragraph that inherits from Block Text.
+
+And with the extension:
+
+    $ pandoc test/docx/custom-style-reference.docx -f docx+styles -t markdown
+    ::: {custom-style="FirstParagraph"}
+    This is some text.
+    :::
+
+    ::: {custom-style="BodyText"}
+    This is text with an
+    *[[emphasized]{custom-style="Emphatic"}]{custom-style="Emphatic"}* text
+    style. And this is text with a
+    **[[strengthened]{custom-style="Strengthened"}]{custom-style="Strengthened"}**
+    text style.
+    :::
+
+    ::: {custom-style="MyBlockStyle"}
+    > Here is a styled paragraph that inherits from Block Text.
+    :::
+
+With these custom styles, you can use your input document as a
+reference-doc while creating docx output (see below), and maintain the
+same styles in your input and output files.
+
+Output
+------
 
 By default, pandoc's docx output applies a predefined set of styles for
 blocks such as paragraphs and block quotes, and uses largely default
