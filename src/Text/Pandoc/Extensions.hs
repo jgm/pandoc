@@ -149,6 +149,7 @@ data Extension =
     | Ext_strikeout           -- ^ Strikeout using ~~this~~ syntax
     | Ext_subscript           -- ^ Subscript using ~this~ syntax
     | Ext_superscript         -- ^ Superscript using ^this^ syntax
+    | Ext_styles              -- ^ Read styles that pandoc doesn't know
     | Ext_table_captions      -- ^ Pandoc-style table captions
     | Ext_tex_math_dollars    -- ^ TeX math between $..$ or $$..$$
     | Ext_tex_math_double_backslash  -- ^ TeX math btw \\(..\\) \\[..\\]
