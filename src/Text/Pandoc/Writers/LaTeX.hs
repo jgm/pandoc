@@ -1122,7 +1122,11 @@ inlineToLaTeX (Image attr _ (source, _)) = do
                          Just (Pixel a)   ->
                            [d <> text (showInInch opts (Pixel a)) <> "in"]
                          Just (Percent a) ->
-                           [d <> text (showFl (a / 100)) <> "\\textwidth"]
+                           [d <> text (showFl (a / 100)) <>
+                             case dir of
+                                Width  -> "\\textwidth"
+                                Height -> "\\textheight"
+                           ]
                          Just dim         ->
                            [d <> text (show dim)]
                          Nothing          ->
