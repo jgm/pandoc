@@ -141,10 +141,12 @@ instance Default DState where
                }
 
 data DEnv = DEnv { docxOptions       :: ReaderOptions
-                 , docxInHeaderBlock :: Bool }
+                 , docxInHeaderBlock :: Bool
+                 , docxCustomStyleAlready :: Bool
+                 }
 
 instance Default DEnv where
-  def = DEnv def False
+  def = DEnv def False False
 
 type DocxContext m = ReaderT DEnv (StateT DState m)
 
@@ -281,8 +283,9 @@ resolveDependentRunStyle rPr
 extraRunStyleInfo :: PandocMonad m => RunStyle -> DocxContext m (Inlines -> Inlines)
 extraRunStyleInfo rPr
   | Just (s, _) <- rStyle rPr = do
+      already <- asks docxCustomStyleAlready
       opts <- asks docxOptions
-      return $ if isEnabled Ext_styles opts
+      return $ if isEnabled Ext_styles opts && not already
                then spanWith ("", [], [("custom-style", s)])
                else id
   | otherwise = return id
@@ -295,32 +298,39 @@ runStyleToTransform rPr
       transform <- runStyleToTransform rPr'
       return $ spanWith ("", [s], []) . transform
   | Just True <- isItalic rPr = do
-      transform <- runStyleToTransform rPr {isItalic = Nothing}
       extraInfo <- extraRunStyleInfo rPr
+      transform <- local (\e -> e{docxCustomStyleAlready = True}) $
+                   runStyleToTransform rPr {isItalic = Nothing}
       return $ emph . extraInfo . transform
   | Just True <- isBold rPr = do
-      transform <- runStyleToTransform rPr {isBold = Nothing}
       extraInfo <- extraRunStyleInfo rPr
+      transform <- local (\e -> e{docxCustomStyleAlready = True}) $
+                   runStyleToTransform rPr {isBold = Nothing}
       return $ strong . extraInfo . transform
   | Just True <- isSmallCaps rPr = do
-      transform <- runStyleToTransform rPr {isSmallCaps = Nothing}
       extraInfo <- extraRunStyleInfo rPr
+      transform <- local (\e -> e{docxCustomStyleAlready = True}) $
+                   runStyleToTransform rPr {isSmallCaps = Nothing}
       return $ smallcaps . extraInfo .transform
   | Just True <- isStrike rPr = do
-      transform <- runStyleToTransform rPr {isStrike = Nothing}
       extraInfo <- extraRunStyleInfo rPr
+      transform <- local (\e -> e{docxCustomStyleAlready = True}) $
+                   runStyleToTransform rPr {isStrike = Nothing}
       return $ strikeout . extraInfo . transform
   | Just SupScrpt <- rVertAlign rPr = do
-      transform <- runStyleToTransform rPr {rVertAlign = Nothing}
       extraInfo <- extraRunStyleInfo rPr
+      transform <- local (\e -> e{docxCustomStyleAlready = True}) $
+                   runStyleToTransform rPr {rVertAlign = Nothing}
       return $ superscript . extraInfo . transform
   | Just SubScrpt <- rVertAlign rPr = do
-      transform <- runStyleToTransform rPr {rVertAlign = Nothing}
       extraInfo <- extraRunStyleInfo rPr
+      transform <- local (\e -> e{docxCustomStyleAlready = True}) $
+                   runStyleToTransform rPr {rVertAlign = Nothing}
       return $ subscript . extraInfo . transform
   | Just "single" <- rUnderline rPr = do
-      transform <- runStyleToTransform rPr {rUnderline = Nothing}
       extraInfo <- extraRunStyleInfo rPr
+      transform <- local (\e -> e{docxCustomStyleAlready = True}) $
+                   runStyleToTransform rPr {rUnderline = Nothing}
       return $ underlineSpan . extraInfo . transform
   | otherwise = extraRunStyleInfo rPr
 

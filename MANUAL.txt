@@ -4532,15 +4532,14 @@ Without the `+styles` extension:
 And with the extension:
 
     $ pandoc test/docx/custom-style-reference.docx -f docx+styles -t markdown
+
     ::: {custom-style="FirstParagraph"}
     This is some text.
     :::
 
     ::: {custom-style="BodyText"}
-    This is text with an
-    *[[emphasized]{custom-style="Emphatic"}]{custom-style="Emphatic"}* text
-    style. And this is text with a
-    **[[strengthened]{custom-style="Strengthened"}]{custom-style="Strengthened"}**
+    This is text with an *[emphasized]{custom-style="Emphatic"}* text style.
+    And this is text with a **[strengthened]{custom-style="Strengthened"}**
     text style.
     :::
 
