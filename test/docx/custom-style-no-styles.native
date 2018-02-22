@@ -1,0 +1,4 @@
+[Para [Str "This",Space,Str "is",Space,Str "some",Space,Str "text."]
+,Para [Str "This",Space,Str "is",Space,Str "text",Space,Str "with",Space,Str "an",Space,Emph [Str "emphasized"],Space,Str "text",Space,Str "style.",Space,Str "And",Space,Str "this",Space,Str "is",Space,Str "text",Space,Str "with",Space,Str "a",Space,Strong [Str "strengthened"],Space,Str "text",Space,Str "style."]
+,BlockQuote
+ [Para [Str "Here",Space,Str "is",Space,Str "a",Space,Str "styled",Space,Str "paragraph",Space,Str "that",Space,Str "inherits",Space,Str "from",Space,Str "Block",Space,Str "Text."]]]

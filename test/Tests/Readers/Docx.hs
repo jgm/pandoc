@@ -372,6 +372,17 @@ tests = [ testGroup "inlines"
             "image extraction"
             "docx/image.docx"
           ]
+        , testGroup "custom styles"
+          [ testCompare
+            "custom styles (`+styles`) not enabled (default)"
+            "docx/custom-style-reference.docx"
+            "docx/custom-style-no-styles.native"
+          , testCompareWithOpts
+            def{readerExtensions=extensionsFromList [Ext_styles]}
+            "custom styles (`+styles`) enabled"
+            "docx/custom-style-reference.docx"
+            "docx/custom-style-with-styles.native"
+          ]
         , testGroup "metadata"
           [ testCompareWithOpts def{readerStandalone=True}
             "metadata fields"
