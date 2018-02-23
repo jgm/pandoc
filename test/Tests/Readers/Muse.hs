@@ -1073,6 +1073,9 @@ tests =
         definitionList [ ("Bar", [ para "baz" ]) ]
       , "One-line definition list" =: " foo :: bar" =?>
         definitionList [ ("foo", [ para "bar" ]) ]
+      , "Definition list term may include single colon" =:
+        " foo:bar :: baz" =?>
+        definitionList [ ("foo:bar", [ para "baz" ]) ]
       , "Definition list term with emphasis" =: " *Foo* :: bar\n" =?>
         definitionList [ (emph "Foo", [ para "bar" ]) ]
       , "Definition list term with :: inside code" =: " foo <code> :: </code> :: bar <code> :: </code> baz\n" =?>

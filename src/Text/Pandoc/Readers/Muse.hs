@@ -625,7 +625,7 @@ definitionListItemsUntil indent end =
   where
     continuation = try $ do
       pos <- getPosition
-      term <- trimInlinesF . mconcat <$> manyTill (choice inlineList) (string "::")
+      term <- trimInlinesF . mconcat <$> manyTill (choice inlineList) (try $ string "::")
       (x, e) <- descriptionsUntil (sourceColumn pos) ((Right <$> try (optional blankline >> indentWith indent >> continuation)) <|> (Left <$> end))
       let xx = do
             term' <- term
