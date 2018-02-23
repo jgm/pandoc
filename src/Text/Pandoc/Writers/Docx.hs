@@ -1276,8 +1276,8 @@ inlineToOpenXML' opts (Link _ txt (src,_)) = do
   return [ mknode "w:hyperlink" [("r:id",id')] contents ]
 inlineToOpenXML' opts (Image attr alt (src, title)) = do
   pageWidth <- asks envPrintWidth
-  imgs <- gets stImages  
-  let 
+  imgs <- gets stImages
+  let
     stImage = M.lookup src imgs
     generateImgElt (ident, _, _, img) =
       let
@@ -1296,7 +1296,7 @@ inlineToOpenXML' opts (Image attr alt (src, title)) = do
         blipFill = mknode "pic:blipFill" []
           [ mknode "a:blip" [("r:embed",ident)] ()
           , mknode "a:stretch" [] $
-              mknode "a:fillRect" [] () 
+              mknode "a:fillRect" [] ()
           ]
         xfrm =    mknode "a:xfrm" []
                         [ mknode "a:off" [("x","0"),("y","0")] ()
@@ -1316,7 +1316,7 @@ inlineToOpenXML' opts (Image attr alt (src, title)) = do
             [ mknode "pic:pic" []
               [ nvPicPr
               , blipFill
-              , spPr 
+              , spPr
               ]
             ]
         imgElt = mknode "w:r" [] $
@@ -1325,24 +1325,24 @@ inlineToOpenXML' opts (Image attr alt (src, title)) = do
               [ mknode "wp:extent" [("cx",show xemu),("cy",show yemu)] ()
               , mknode "wp:effectExtent"
                 [("b","0"),("l","0"),("r","0"),("t","0")] ()
-              , mknode "wp:docPr" 
+              , mknode "wp:docPr"
                 [ ("descr", stringify alt)
                 , ("title", title)
                 , ("id","1")
                 , ("name","Picture")
                 ] ()
               , graphic
-              ]       
+              ]
       in
-        imgElt   
-        
+        imgElt
+
   case stImage of
     Just imgData -> return $ [generateImgElt imgData]
-    Nothing -> ( do --try   
+    Nothing -> ( do --try
       (img, mt) <- P.fetchItem src
       ident <- ("rId"++) `fmap` getUniqueId
-      
-      let 
+
+      let
         imgext = case mt >>= extensionFromMimeType of
           Just x    -> '.':x
           Nothing   -> case imageType img of
@@ -1353,12 +1353,12 @@ inlineToOpenXML' opts (Image attr alt (src, title)) = do
             Just Eps  -> ".eps"
             Just Svg  -> ".svg"
             Just Emf  -> ".emf"
-            Nothing   -> ""  
+            Nothing   -> ""
         imgpath = "media/" ++ ident ++ imgext
         mbMimeType = mt <|> getMimeType imgpath
-        
+
         imgData = (ident, imgpath, mbMimeType, img)
-          
+
       if null imgext
          then -- without an extension there is no rule for content type
            inlinesToOpenXML opts alt -- return alt to avoid corrupted docx
