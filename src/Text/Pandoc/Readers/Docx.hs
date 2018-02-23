@@ -286,36 +286,35 @@ runStyleToTransform :: PandocMonad m => RunStyle -> DocxContext m (Inlines -> In
 runStyleToTransform rPr
   | Just (s, _) <- rStyle rPr
   , s `elem` spansToKeep = do
-      let rPr' = rPr{rStyle = Nothing}
-      transform <- runStyleToTransform rPr'
+      transform <- runStyleToTransform rPr{rStyle = Nothing}
       return $ spanWith ("", [s], []) . transform
   | Just (s, _) <- rStyle rPr = do
       opts <- asks docxOptions
       let extraInfo = if isEnabled Ext_styles opts
                       then spanWith ("", [], [("custom-style", s)])
                       else id
-      transform <- runStyleToTransform rPr {rStyle = Nothing}
+      transform <- runStyleToTransform rPr{rStyle = Nothing}
       return $ extraInfo . transform
   | Just True <- isItalic rPr = do
-      transform <- runStyleToTransform rPr {isItalic = Nothing}
+      transform <- runStyleToTransform rPr{isItalic = Nothing}
       return $ emph  . transform
   | Just True <- isBold rPr = do
-      transform <- runStyleToTransform rPr {isBold = Nothing}
+      transform <- runStyleToTransform rPr{isBold = Nothing}
       return $ strong . transform
   | Just True <- isSmallCaps rPr = do
-      transform <- runStyleToTransform rPr {isSmallCaps = Nothing}
+      transform <- runStyleToTransform rPr{isSmallCaps = Nothing}
       return $ smallcaps . transform
   | Just True <- isStrike rPr = do
-      transform <- runStyleToTransform rPr {isStrike = Nothing}
+      transform <- runStyleToTransform rPr{isStrike = Nothing}
       return $ strikeout . transform
   | Just SupScrpt <- rVertAlign rPr = do
-      transform <- runStyleToTransform rPr {rVertAlign = Nothing}
+      transform <- runStyleToTransform rPr{rVertAlign = Nothing}
       return $ superscript . transform
   | Just SubScrpt <- rVertAlign rPr = do
-      transform <- runStyleToTransform rPr {rVertAlign = Nothing}
+      transform <- runStyleToTransform rPr{rVertAlign = Nothing}
       return $ subscript . transform
   | Just "single" <- rUnderline rPr = do
-      transform <- runStyleToTransform rPr {rUnderline = Nothing}
+      transform <- runStyleToTransform rPr{rUnderline = Nothing}
       return $ underlineSpan . transform
   | otherwise = return id
 
