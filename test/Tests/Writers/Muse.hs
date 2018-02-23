@@ -217,8 +217,8 @@ tests = [ testGroup "block elements"
                                                             ]
                                           =?> unlines [ " first definition :: first description"
                                                       , " second definition :: second description"
-                                                      , "                       first inner definition :: first inner description"
-                                                      , "                       second inner definition :: second inner description"
+                                                      , "                      first inner definition :: first inner description"
+                                                      , "                      second inner definition :: second inner description"
                                                       ]
               ]
             -- Check that list is intended with one space even inside a quote

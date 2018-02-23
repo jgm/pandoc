@@ -207,7 +207,9 @@ blockToMuse (BulletList items) = do
           return $ hang 2 "- " contents
 blockToMuse (DefinitionList items) = do
   contents <- mapM definitionListItemToMuse items
-  return $ cr $$ nest 1 (vcat contents) $$ blankline
+  -- ensure that sublists have preceding blank line
+  topLevel <- gets stTopLevel
+  return $ cr $$ (if topLevel then nest 1 else id) (vcat contents) $$ blankline
   where definitionListItemToMuse :: PandocMonad m
                                  => ([Inline], [[Block]])
                                  -> StateT WriterState m Doc
