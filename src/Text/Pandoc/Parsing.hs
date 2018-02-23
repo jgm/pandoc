@@ -41,6 +41,7 @@ module Text.Pandoc.Parsing ( takeWhileP,
                              indentWith,
                              many1Till,
                              manyUntil,
+                             sepBy1',
                              notFollowedBy',
                              oneOfStrings,
                              oneOfStringsCI,
@@ -340,6 +341,14 @@ manyUntil p end = scan
               (xs, e) <- scan
               return (x:xs, e))
 
+-- | Like @sepBy1@ from Parsec,
+-- but does not fail if it @sep@ succeeds and @p@ fails.
+sepBy1' :: (Stream s m t)
+        => ParsecT s u m a
+        -> ParsecT s u m sep
+        -> ParsecT s u m [a]
+sepBy1' p sep = (:) <$> p <*> many (try $ sep >> p)
+
 -- | A more general form of @notFollowedBy@.  This one allows any
 -- type of parser to be specified, and succeeds only if that parser fails.
 -- It does not consume any input.
@@ -546,8 +555,8 @@ emailAddress :: Stream s m Char => ParserT s st m (String, String)
 emailAddress = try $ toResult <$> mailbox <*> (char '@' *> domain)
  where toResult mbox dom = let full = fromEntities $ mbox ++ '@':dom
                            in  (full, escapeURI $ "mailto:" ++ full)
-       mailbox           = intercalate "." <$> (emailWord `sepby1` dot)
-       domain            = intercalate "." <$> (subdomain `sepby1` dot)
+       mailbox           = intercalate "." <$> (emailWord `sepBy1'` dot)
+       domain            = intercalate "." <$> (subdomain `sepBy1'` dot)
        dot               = char '.'
        subdomain         = many1 $ alphaNum <|> innerPunct
        -- this excludes some valid email addresses, since an
@@ -564,9 +573,6 @@ emailAddress = try $ toResult <$> mailbox <*> (char '@' *> domain)
                               return (x:xs)
        isEmailChar c     = isAlphaNum c || isEmailPunct c
        isEmailPunct c    = c `elem` "!\"#$%&'*+-/=?^_{|}~;"
-       -- note: sepBy1 from parsec consumes input when sep
-       -- succeeds and p fails, so we use this variant here.
-       sepby1 p sep      = (:) <$> p <*> many (try $ sep >> p)
 
 
 uriScheme :: Stream s m Char => ParserT s st m String
