@@ -252,33 +252,36 @@ parPartToString _                          = ""
 blacklistedCharStyles :: [String]
 blacklistedCharStyles = ["Hyperlink"]
 
-resolveDependentRunStyle :: RunStyle -> RunStyle
+resolveDependentRunStyle :: PandocMonad m => RunStyle -> DocxContext m RunStyle
 resolveDependentRunStyle rPr
   | Just (s, _)  <- rStyle rPr, s `elem` blacklistedCharStyles =
-    rPr
-  | Just (_, cs) <- rStyle rPr =
-      let rPr' = resolveDependentRunStyle cs
-      in
-       RunStyle { isBold = case isBold rPr of
-                     Just bool -> Just bool
-                     Nothing   -> isBold rPr'
-                , isItalic = case isItalic rPr of
-                     Just bool -> Just bool
-                     Nothing   -> isItalic rPr'
-                , isSmallCaps = case isSmallCaps rPr of
-                     Just bool -> Just bool
-                     Nothing   -> isSmallCaps rPr'
-                , isStrike = case isStrike rPr of
-                     Just bool -> Just bool
-                     Nothing   -> isStrike rPr'
-                , rVertAlign = case rVertAlign rPr of
-                     Just valign -> Just valign
-                     Nothing     -> rVertAlign rPr'
-                , rUnderline = case rUnderline rPr of
-                     Just ulstyle -> Just ulstyle
-                     Nothing      -> rUnderline rPr'
-                , rStyle = rStyle rPr }
-  | otherwise = rPr
+    return rPr
+  | Just (_, cs) <- rStyle rPr = do
+      opts <- asks docxOptions
+      if isEnabled Ext_styles opts
+        then return rPr
+        else do rPr' <- resolveDependentRunStyle cs
+                return $
+                  RunStyle { isBold = case isBold rPr of
+                               Just bool -> Just bool
+                               Nothing   -> isBold rPr'
+                           , isItalic = case isItalic rPr of
+                               Just bool -> Just bool
+                               Nothing   -> isItalic rPr'
+                           , isSmallCaps = case isSmallCaps rPr of
+                               Just bool -> Just bool
+                               Nothing   -> isSmallCaps rPr'
+                           , isStrike = case isStrike rPr of
+                               Just bool -> Just bool
+                               Nothing   -> isStrike rPr'
+                           , rVertAlign = case rVertAlign rPr of
+                               Just valign -> Just valign
+                               Nothing     -> rVertAlign rPr'
+                           , rUnderline = case rUnderline rPr of
+                               Just ulstyle -> Just ulstyle
+                               Nothing      -> rUnderline rPr'
+                           , rStyle = rStyle rPr }
+  | otherwise = return rPr
 
 extraRunStyleInfo :: PandocMonad m => RunStyle -> DocxContext m (Inlines -> Inlines)
 extraRunStyleInfo rPr
@@ -337,18 +340,18 @@ runStyleToTransform rPr
 runToInlines :: PandocMonad m => Run -> DocxContext m Inlines
 runToInlines (Run rs runElems)
   | Just (s, _) <- rStyle rs
-  , s `elem` codeStyles =
-    let rPr = resolveDependentRunStyle rs
-        codeString = code $ concatMap runElemToString runElems
-    in
-     return $ case rVertAlign rPr of
-     Just SupScrpt -> superscript codeString
-     Just SubScrpt -> subscript codeString
-     _             -> codeString
+  , s `elem` codeStyles = do
+      rPr <- resolveDependentRunStyle rs
+      let codeString = code $ concatMap runElemToString runElems
+      return $ case rVertAlign rPr of
+        Just SupScrpt -> superscript codeString
+        Just SubScrpt -> subscript codeString
+        _             -> codeString
   | otherwise = do
-    let ils = smushInlines (map runElemToInlines runElems)
-    transform <- runStyleToTransform $ resolveDependentRunStyle rs
-    return $ transform ils
+      rPr <- resolveDependentRunStyle rs
+      let ils = smushInlines (map runElemToInlines runElems)
+      transform <- runStyleToTransform rPr
+      return $ transform ils
 runToInlines (Footnote bps) = do
   blksList <- smushBlocks <$> mapM bodyPartToBlocks bps
   return $ note blksList
