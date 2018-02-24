@@ -44,7 +44,7 @@ import Foreign.Lua.Api
 import Text.Pandoc.Class (PandocIO)
 import Text.Pandoc.Definition
 import Text.Pandoc.Error
-import Text.Pandoc.Lua.Init (runPandocLua)
+import Text.Pandoc.Lua.Init (runPandocLua, registerScriptPath)
 import Text.Pandoc.Lua.StackInstances ()
 import Text.Pandoc.Lua.Util (addValue, dostring')
 import Text.Pandoc.Options
@@ -106,6 +106,7 @@ writeCustom :: FilePath -> WriterOptions -> Pandoc -> PandocIO Text
 writeCustom luaFile opts doc@(Pandoc meta _) = do
   luaScript <- liftIO $ UTF8.readFile luaFile
   res <- runPandocLua $ do
+    registerScriptPath luaFile
     stat <- dostring' luaScript
     -- check for error in lua script (later we'll change the return type
     -- to handle this more gracefully):

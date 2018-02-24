@@ -111,6 +111,12 @@ tests = map (localOption (QuickCheckTests 20))
                      , plain (str "to_roman_numeral: OK")
                      ])
 
+  , testCase "Script filename is set" $
+    assertFilterConversion "unexpected script name"
+      "script-name.lua"
+      (doc $ para "ignored")
+      (doc $ para "lua/script-name.lua")
+
   , testCase "Pandoc version is set" . runPandocLua' $ do
       Lua.getglobal' "table.concat"
       Lua.getglobal "PANDOC_VERSION"

@@ -31,6 +31,7 @@ module Text.Pandoc.Lua.Init
   , runPandocLua
   , initLuaState
   , luaPackageParams
+  , registerScriptPath
   ) where
 
 import Control.Monad.Trans (MonadIO (..))
@@ -88,6 +89,11 @@ initLuaState luaPkgParams = do
   loadScriptFromDataDir (luaPkgDataDir luaPkgParams) "init.lua"
   putConstructorsInRegistry
 
+registerScriptPath :: FilePath -> Lua ()
+registerScriptPath fp = do
+  Lua.push fp
+  Lua.setglobal "PANDOC_SCRIPT_FILE"
+
 putConstructorsInRegistry :: Lua ()
 putConstructorsInRegistry = do
   Lua.getglobal "pandoc"
@@ -101,7 +107,7 @@ putConstructorsInRegistry = do
   Lua.pop 1
  where
   constrsToReg :: Data a => a -> Lua ()
-  constrsToReg = mapM_ putInReg . map showConstr . dataTypeConstrs . dataTypeOf
+  constrsToReg = mapM_ (putInReg . showConstr) . dataTypeConstrs . dataTypeOf
 
   putInReg :: String -> Lua ()
   putInReg name = do

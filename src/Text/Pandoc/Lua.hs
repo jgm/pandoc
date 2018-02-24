@@ -37,7 +37,7 @@ import Foreign.Lua (FromLuaStack (peek), Lua, LuaException (..),
 import Text.Pandoc.Class (PandocIO)
 import Text.Pandoc.Definition (Pandoc)
 import Text.Pandoc.Lua.Filter (LuaFilter, walkMWithLuaFilter)
-import Text.Pandoc.Lua.Init (runPandocLua)
+import Text.Pandoc.Lua.Init (runPandocLua, registerScriptPath)
 import Text.Pandoc.Lua.Util (popValue)
 import Text.Pandoc.Options (ReaderOptions)
 import qualified Foreign.Lua as Lua
@@ -55,11 +55,12 @@ runLuaFilter' :: ReaderOptions -> FilePath -> String
 runLuaFilter' ropts filterPath format pd = do
   registerFormat
   registerReaderOptions
+  registerScriptPath filterPath
   top <- Lua.gettop
   stat <- Lua.dofile filterPath
   if stat /= OK
     then do
-      luaErrMsg <- peek (-1) <* Lua.pop 1
+      luaErrMsg <- popValue
       Lua.throwLuaError luaErrMsg
     else do
       newtop <- Lua.gettop
