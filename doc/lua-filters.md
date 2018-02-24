@@ -135,9 +135,42 @@ Elements without matching functions are left untouched.
 See [module documentation](#module-pandoc) for a list of pandoc
 elements.
 
-The global `FORMAT` is set to the format of the pandoc writer
-being used (`html5`, `latex`, etc.), so the behavior of a filter
-can be made conditional on the eventual output format.
+
+## Global variables
+
+Pandoc passes additional data to Lua filters by setting global
+variables.
+
+`FORMAT`
+:   The global `FORMAT` is set to the format of the pandoc
+    writer being used (`html5`, `latex`, etc.), so the behavior
+    of a filter can be made conditional on the eventual output
+    format.
+
+`PANDOC_READER_OPTIONS`
+:   Table of the options which were provided to the parser.
+
+`PANDOC_VERSION`
+:   Contains the pandoc version as a numerically indexed table,
+    most significant number first. E.g., for pandoc 2.1.1, the
+    value of the variable is a table `{2, 1, 1}`. Use
+    `table.concat(PANDOC_VERSION, '.')` to produce a version
+    string. This variable is also set in custom writers.
+
+`PANDOC_API_VERSION`
+:   Contains the version of the pandoc-types API against which
+    pandoc was compiled. It is given as a numerically indexed
+    table, most significant number first. E.g., if pandoc was
+    compiled against pandoc-types 1.17.3, then the value of the
+    variable will be a table `{1, 17, 3}`. Use
+    `table.concat(PANDOC_API_VERSION, '.')` to produce a version
+    string from this table. This variable is also set in custom
+    writers.
+
+`PANDOC_SCRIPT_FILE`
+:   The name used to involve the filter. This value can be used
+    to find files relative to the script file. This variable is
+    also set in custom writers.
 
 # Pandoc Module
 
