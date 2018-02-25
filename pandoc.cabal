@@ -458,6 +458,7 @@ library
                    Text.Pandoc.Readers.Odt,
                    Text.Pandoc.Readers.EPUB,
                    Text.Pandoc.Readers.Muse,
+                   Text.Pandoc.Readers.Man,
                    Text.Pandoc.Writers,
                    Text.Pandoc.Writers.Native,
                    Text.Pandoc.Writers.Docbook,
@@ -662,6 +663,7 @@ test-suite test-pandoc
                   Tests.Readers.EPUB
                   Tests.Readers.Muse
                   Tests.Readers.Creole
+                  Tests.Readers.Man
                   Tests.Writers.Native
                   Tests.Writers.ConTeXt
                   Tests.Writers.Docbook
