@@ -115,7 +115,7 @@ tests = map (localOption (QuickCheckTests 20))
     assertFilterConversion "unexpected script name"
       "script-name.lua"
       (doc $ para "ignored")
-      (doc $ para "lua/script-name.lua")
+      (doc $ para (str $ "lua" </> "script-name.lua"))
 
   , testCase "Pandoc version is set" . runPandocLua' $ do
       Lua.getglobal' "table.concat"
