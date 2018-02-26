@@ -60,7 +60,7 @@ import Text.Pandoc.BCP47 (Lang (..), renderLang)
 import Text.Pandoc.Builder
 import Text.Pandoc.Class (PandocMonad, PandocPure, getResourcePath, lookupEnv,
                           readFileFromDirs, report, setResourcePath,
-                          setTranslations, translateTerm)
+                          setTranslations, translateTerm, trace)
 import Text.Pandoc.Error (PandocError (PandocMacroLoop, PandocParseError, PandocParsecError))
 import Text.Pandoc.Highlighting (fromListingsLanguage, languagesByExtension)
 import Text.Pandoc.ImageSize (numUnit, showFl)
@@ -74,6 +74,7 @@ import Text.Pandoc.Shared
 import qualified Text.Pandoc.Translations as Translations
 import Text.Pandoc.Walk
 import Text.Parsec.Pos
+import qualified Text.Pandoc.Builder as B
 
 -- for debugging:
 -- import Text.Pandoc.Extensions (getDefaultExtensions)
@@ -2532,13 +2533,16 @@ addTableCaption = walkM go
 
 
 block :: PandocMonad m => LP m Blocks
-block = (mempty <$ spaces1)
+block = do
+  res <- (mempty <$ spaces1)
     <|> environment
     <|> include
     <|> macroDef
     <|> blockCommand
     <|> paragraph
     <|> grouped block
+  trace (take 60 $ show $ B.toList res)
+  return res
 
 blocks :: PandocMonad m => LP m Blocks
 blocks = mconcat <$> many block
