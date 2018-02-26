@@ -649,6 +649,7 @@ test-suite test-pandoc
                   Tests.Readers.Org.Block.Table
                   Tests.Readers.Org.Directive
                   Tests.Readers.Org.Inline
+                  Tests.Readers.Org.Inline.Citation
                   Tests.Readers.Org.Inline.Note
                   Tests.Readers.Org.Inline.Smart
                   Tests.Readers.Org.Meta
