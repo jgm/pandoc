@@ -77,4 +77,8 @@ tests = groupPptxTests [ pptxTests "Inline formatting"
                          def
                          "pptx/speaker_notes.native"
                          "pptx/speaker_notes.pptx"
+                       , pptxTests "remove empty slides"
+                         def
+                         "pptx/remove_empty_slides.native"
+                         "pptx/remove_empty_slides.pptx"
                        ]

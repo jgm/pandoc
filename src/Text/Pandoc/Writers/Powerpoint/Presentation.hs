@@ -76,6 +76,7 @@ import Data.Maybe (maybeToList, fromMaybe)
 import Text.Pandoc.Highlighting
 import qualified Data.Text as T
 import Control.Applicative ((<|>))
+import Data.Char (isSpace)
 import Skylighting
 
 data WriterEnv = WriterEnv { envMetadata :: Meta
@@ -228,7 +229,6 @@ data Graphic = Tbl TableProps [Cell] [[Cell]]
 data Paragraph = Paragraph { paraProps :: ParaProps
                            , paraElems  :: [ParaElem]
                            } deriving (Show, Eq)
-
 
 data BulletType = Bullet
                 | AutoNumbering ListAttributes
@@ -853,6 +853,41 @@ replaceAnchor (Run rProps s)
       return $ Run rProps' s
 replaceAnchor pe = return pe
 
+emptyParaElem :: ParaElem -> Bool
+emptyParaElem (Run _ s) =
+  null $ dropWhile isSpace $ reverse $ dropWhile isSpace $ reverse s
+emptyParaElem (MathElem _ ts) =
+  null $ dropWhile isSpace $ reverse $ dropWhile isSpace $ reverse $ unTeXString ts
+emptyParaElem _ = False
+
+emptyParagraph :: Paragraph -> Bool
+emptyParagraph para = all emptyParaElem $ paraElems para
+
+
+emptyShape :: Shape -> Bool
+emptyShape (TextBox paras) = all emptyParagraph $ paras
+emptyShape _ = False
+
+emptyLayout :: Layout -> Bool
+emptyLayout layout = case layout of
+  MetadataSlide title subtitle authors date ->
+    all emptyParaElem title &&
+    all emptyParaElem subtitle &&
+    all (all emptyParaElem) authors &&
+    all emptyParaElem date
+  TitleSlide hdr -> all emptyParaElem hdr
+  ContentSlide hdr shapes ->
+    all emptyParaElem hdr &&
+    all emptyShape shapes
+  TwoColumnSlide hdr shapes1 shapes2 ->
+    all emptyParaElem hdr &&
+    all emptyShape shapes1 &&
+    all emptyShape shapes2
+
+emptySlide :: Slide -> Bool
+emptySlide (Slide _ layout Nothing) = emptyLayout layout
+emptySlide _ = False
+
 blocksToPresentationSlides :: [Block] -> Pres [Slide]
 blocksToPresentationSlides blks = do
   opts <- asks envOpts
@@ -893,7 +928,8 @@ blocksToPresentationSlides blks = do
                             return [endNotesSlide]
 
   let slides = metadataslides ++ tocSlides ++ bodyslides ++ endNotesSlides
-  mapM (applyToSlide replaceAnchor) slides
+      slides' = filter (not . emptySlide) slides
+  mapM (applyToSlide replaceAnchor) slides'
 
 metaToDocProps :: Meta -> DocProps
 metaToDocProps meta =
