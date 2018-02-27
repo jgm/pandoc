@@ -172,6 +172,7 @@ data WriterOptions = WriterOptions
   , writerSectionDivs       :: Bool   -- ^ Put sections in div tags in HTML
   , writerExtensions        :: Extensions -- ^ Markdown extensions that can be used
   , writerReferenceLinks    :: Bool   -- ^ Use reference links in writing markdown, rst
+  , writerSpacedLists       :: Bool   -- ^ Space RST list items with blank lines
   , writerDpi               :: Int    -- ^ Dpi for pixel to/from inch/cm conversions
   , writerWrapText          :: WrapOption  -- ^ Option for wrapping text
   , writerColumns           :: Int    -- ^ Characters in a line (for text wrapping)
@@ -208,6 +209,7 @@ instance Default WriterOptions where
                       , writerSectionDivs      = False
                       , writerExtensions       = emptyExtensions
                       , writerReferenceLinks   = False
+                      , writerSpacedLists      = False
                       , writerDpi              = 96
                       , writerWrapText         = WrapAuto
                       , writerColumns          = 72
