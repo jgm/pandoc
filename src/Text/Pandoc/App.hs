@@ -419,6 +419,7 @@ convertWithOpts opts = do
           , writerSectionDivs      = optSectionDivs opts
           , writerExtensions       = writerExts
           , writerReferenceLinks   = optReferenceLinks opts
+          , writerSpacedLists      = optSpacedLists opts
           , writerReferenceLocation = optReferenceLocation opts
           , writerDpi              = optDpi opts
           , writerWrapText         = optWrapText opts
@@ -574,6 +575,7 @@ data Opt = Opt
     , optLogFile               :: Maybe FilePath -- ^ File to write JSON log output
     , optFailIfWarnings        :: Bool    -- ^ Fail on warnings
     , optReferenceLinks        :: Bool    -- ^ Use reference links in writing markdown, rst
+    , optSpacedLists           :: Bool    -- ^ Space RST list items with blank lines
     , optReferenceLocation     :: ReferenceLocation -- ^ location for footnotes and link references in markdown output
     , optDpi                   :: Int     -- ^ Dpi
     , optWrapText              :: WrapOption  -- ^ Options for wrapping text
@@ -646,6 +648,7 @@ defaultOpts = Opt
     , optLogFile               = Nothing
     , optFailIfWarnings        = False
     , optReferenceLinks        = False
+    , optSpacedLists           = False
     , optReferenceLocation     = EndOfDocument
     , optDpi                   = 96
     , optWrapText              = WrapAuto
@@ -1148,6 +1151,11 @@ options =
                  (NoArg
                   (\opt -> return opt { optReferenceLinks = True } ))
                  "" -- "Use reference links in parsing HTML"
+
+    , Option "" ["spaced-lists"]
+                 (NoArg
+                  (\opt -> return opt { optSpacedLists = True } ))
+                 "" -- "Space RST list items with blank lines"
 
     , Option "" ["reference-location"]
                  (ReqArg

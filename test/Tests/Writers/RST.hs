@@ -7,10 +7,18 @@ import Text.Pandoc
 import Text.Pandoc.Arbitrary ()
 import Text.Pandoc.Builder
 
+
+rstWithOpts :: (ToPandoc a, ToString a)
+               => WriterOptions -> String -> (a, String) -> TestTree
+rstWithOpts opts = test (purely (writeRST opts . toPandoc))
+
+rstWithSpacedLists :: String -> (Blocks, String) -> TestTree
+rstWithSpacedLists = rstWithOpts def{ writerSpacedLists = True }
+
 infix 4 =:
 (=:) :: (ToString a, ToPandoc a)
      => String -> (a, String) -> TestTree
-(=:) = test (purely (writeRST def . toPandoc))
+(=:) = rstWithOpts def
 
 tests :: [TestTree]
 tests = [ testGroup "rubrics"
@@ -49,6 +57,14 @@ tests = [ testGroup "rubrics"
               , ".."
               , ""
               , "    quoted"]
+          ]
+        , testGroup "blank lines between list items"
+          [ "are not added by default" =:
+            bulletList [plain "first", plain "second"] =?>
+              unlines [ "-  first" , "-  second"]
+          , rstWithSpacedLists "are added when the option is set" $
+            bulletList [plain "first", plain "second"] =?>
+              unlines [ "-  first" , "", "-  second"]
           ]
         , testGroup "headings"
           [ "normal heading" =:

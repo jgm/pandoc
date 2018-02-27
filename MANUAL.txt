@@ -806,6 +806,11 @@ Options affecting specific writers
     placement of link references is affected by the
     `--reference-location` option.
 
+`--spaced-lists`
+
+:   Add empty lines between list items, in writing reStructuredText.
+    By default empty lines would be added just before and after sublists
+
 `--reference-location = block`|`section`|`document`
 
 :   Specify whether footnotes (and references, if `reference-links` is
