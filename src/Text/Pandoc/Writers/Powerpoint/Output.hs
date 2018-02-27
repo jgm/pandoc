@@ -930,6 +930,13 @@ graphicFrameToElements layout tbls caption = do
             return [graphicFrameElts, capElt]
     else return [graphicFrameElts]
 
+getDefaultTableStyle :: PandocMonad m => P m (Maybe String)
+getDefaultTableStyle = do
+  refArchive <- asks envRefArchive
+  distArchive <- asks envDistArchive
+  tblStyleLst <- parseXml refArchive distArchive "ppt/tableStyles.xml"
+  return $ findAttr (QName "def" Nothing Nothing) tblStyleLst
+
 graphicToElement :: PandocMonad m => Integer -> Graphic -> P m Element
 graphicToElement tableWidth (Tbl tblPr hdrCells rows) = do
   let colWidths = if null hdrCells
@@ -967,12 +974,19 @@ graphicToElement tableWidth (Tbl tblPr hdrCells rows) = do
   let mkgridcol w = mknode "a:gridCol"
                        [("w", show ((12700 * w) :: Integer))] ()
   let hasHeader = not (all null hdrCells)
+
+  mbDefTblStyle <- getDefaultTableStyle
+  let tblPrElt = mknode "a:tblPr"
+                 [ ("firstRow", if tblPrFirstRow tblPr then "1" else "0")
+                 , ("bandRow", if tblPrBandRow tblPr then "1" else "0")
+                 ] (case mbDefTblStyle of
+                      Nothing -> []
+                      Just sty -> [mknode "a:tableStyleId" [] sty])
+
   return $ mknode "a:graphic" [] $
     [mknode "a:graphicData" [("uri", "http://schemas.openxmlformats.org/drawingml/2006/table")] $
      [mknode "a:tbl" [] $
-      [ mknode "a:tblPr" [ ("firstRow", if tblPrFirstRow tblPr then "1" else "0")
-                         , ("bandRow", if tblPrBandRow tblPr then "1" else "0")
-                         ] ()
+      [ tblPrElt
       , mknode "a:tblGrid" [] (if all (==0) colWidths
                                then []
                                else map mkgridcol colWidths)
