@@ -19,7 +19,7 @@ extra-deps:
 - ansi-terminal-0.7.1.1
 - tasty-1.0.0.1
 - texmath-0.10.1.1
-- tagsoup-0.14.3
+- tagsoup-0.14.4
 ghc-options:
    "$locals": -fhide-source-paths
 resolver: lts-10.3
