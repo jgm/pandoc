@@ -76,7 +76,6 @@ import Data.Maybe (maybeToList, fromMaybe)
 import Text.Pandoc.Highlighting
 import qualified Data.Text as T
 import Control.Applicative ((<|>))
-import Data.Char (isSpace)
 import Skylighting
 
 data WriterEnv = WriterEnv { envMetadata :: Meta
@@ -855,9 +854,9 @@ replaceAnchor pe = return pe
 
 emptyParaElem :: ParaElem -> Bool
 emptyParaElem (Run _ s) =
-  null $ dropWhile isSpace $ reverse $ dropWhile isSpace $ reverse s
+  null $ Shared.trim s
 emptyParaElem (MathElem _ ts) =
-  null $ dropWhile isSpace $ reverse $ dropWhile isSpace $ reverse $ unTeXString ts
+  null $ Shared.trim $ unTeXString ts
 emptyParaElem _ = False
 
 emptyParagraph :: Paragraph -> Bool
