@@ -53,6 +53,14 @@ tests = groupPptxTests [ pptxTests "Inline formatting"
                          def{ writerSlideLevel = Just 1 }
                          "pptx/slide_breaks.native"
                          "pptx/slide_breaks_slide_level_1.pptx"
+                       , pptxTests "lists"
+                         def
+                         "pptx/lists.native"
+                         "pptx/lists.pptx"
+                       , pptxTests "tables"
+                         def
+                         "pptx/tables.native"
+                         "pptx/tables.pptx"
                        , pptxTests "table of contents"
                          def{ writerTableOfContents = True }
                          "pptx/slide_breaks.native"
@@ -81,4 +89,5 @@ tests = groupPptxTests [ pptxTests "Inline formatting"
                          def
                          "pptx/remove_empty_slides.native"
                          "pptx/remove_empty_slides.pptx"
+
                        ]
