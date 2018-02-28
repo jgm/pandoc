@@ -347,6 +347,12 @@ tests =
                   , text "\160\160One two three"
                   , ""
                   ]
+      , "Verse tag with empty line inside" =:
+        T.unlines [ "<verse>"
+                  , ""
+                  , "</verse>"
+                  ] =?>
+        lineBlock [ "" ]
       , testGroup "Example"
         [ "Braces on separate lines" =:
           T.unlines [ "{{{"
