@@ -153,6 +153,7 @@ htmlElement tag = try $ do
 
 htmlBlock :: PandocMonad m => String -> MuseParser m (Attr, String)
 htmlBlock tag = try $ do
+  many spaceChar
   res <- htmlElement tag
   manyTill spaceChar eol
   return res
@@ -166,7 +167,8 @@ htmlAttrToPandoc attrs = (ident, classes, keyvals)
 
 parseHtmlContent :: PandocMonad m
                  => String -> MuseParser m (Attr, F Blocks)
-parseHtmlContent tag = do
+parseHtmlContent tag = try $ do
+  many spaceChar
   (TagOpen _ attr, _) <- htmlTag (~== TagOpen tag [])
   manyTill spaceChar eol
   content <- parseBlocksTill (manyTill spaceChar endtag)
@@ -398,7 +400,6 @@ dropSpacePrefix lns =
 
 exampleTag :: PandocMonad m => MuseParser m (F Blocks)
 exampleTag = try $ do
-  many spaceChar
   (attr, contents) <- htmlBlock "example"
   return $ return $ B.codeBlockWith attr $ rchop $ intercalate "\n" $ dropSpacePrefix $ splitOn "\n" $ lchop contents
 

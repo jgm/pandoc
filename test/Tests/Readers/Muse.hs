@@ -328,6 +328,12 @@ tests =
                   , "</quote>"
                   ] =?>
         blockQuote (para "foo" <> blockQuote (para "bar") <> para "baz")
+      , "Indented quote inside list" =:
+        T.unlines [ " -  <quote>"
+                  , "    foo"
+                  , "    </quote>"
+                  ] =?>
+        bulletList [ blockQuote (para "foo") ]
       , "Verse tag" =:
         T.unlines [ "<verse>"
                   , ""
