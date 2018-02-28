@@ -136,7 +136,7 @@ unwrapSDT :: NameSpaces -> Content -> [Content]
 unwrapSDT ns (Elem element)
   | isElem ns "w" "sdt" element
   , Just sdtContent <- findChildByName ns "w" "sdtContent" element
-  = map Elem $ elChildren sdtContent
+  = concatMap (unwrapSDT ns) $ map Elem $ elChildren sdtContent
 unwrapSDT _ content = [content]
 
 unwrapSDTchild :: NameSpaces -> Content -> Content
