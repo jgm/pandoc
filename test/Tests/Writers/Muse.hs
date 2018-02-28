@@ -34,11 +34,9 @@ tests = [ testGroup "block elements"
                                            ]
             ]
           , "line block" =: lineBlock [text "Foo", text "bar", text "baz"]
-                         =?> unlines [ "<verse>"
-                                     , "Foo"
-                                     , "bar"
-                                     , "baz"
-                                     , "</verse>"
+                         =?> unlines [ "> Foo"
+                                     , "> bar"
+                                     , "> baz"
                                      ]
           , "code block" =: codeBlock "int main(void) {\n\treturn 0;\n}"
                          =?> unlines [ "<example>"

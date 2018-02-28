@@ -156,15 +156,8 @@ blockToMuse (Para inlines) = do
   contents <- inlineListToMuse inlines
   return $ contents <> blankline
 blockToMuse (LineBlock lns) = do
-  let splitStanza [] = []
-      splitStanza xs = case break (== mempty) xs of
-        (l, [])  -> [l]
-        (l, _:r) -> l : splitStanza r
-  let joinWithLinefeeds  = nowrap . mconcat . intersperse cr
-  let joinWithBlankLines = mconcat . intersperse blankline
-  let prettyfyStanza ls  = joinWithLinefeeds <$> mapM inlineListToMuse ls
-  contents <- joinWithBlankLines <$> mapM prettyfyStanza (splitStanza lns)
-  return $ blankline $$ "<verse>" $$ contents $$ "</verse>" <> blankline
+  lns' <- mapM inlineListToMuse lns
+  return $ nowrap $ vcat (map ((text "> ") <>) lns') <> blankline
 blockToMuse (CodeBlock (_,_,_) str) =
   return $ "<example>" $$ text str $$ "</example>" $$ blankline
 blockToMuse (RawBlock (Format format) str) =
