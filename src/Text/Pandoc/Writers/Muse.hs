@@ -299,6 +299,8 @@ conditionalEscapeString s =
     else s
 
 normalizeInlineList :: [Inline] -> [Inline]
+normalizeInlineList (x : Str "" : xs)
+  = normalizeInlineList (x:xs)
 normalizeInlineList (Emph x1 : Emph x2 : ils)
   = normalizeInlineList $ Emph (x1 ++ x2) : ils
 normalizeInlineList (Strong x1 : Strong x2 : ils)
