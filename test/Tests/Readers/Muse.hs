@@ -31,6 +31,8 @@ spcSep = mconcat . intersperse space
 --
 makeRoundTrip :: Block -> Block
 makeRoundTrip Table{} = Para [Str "table was here"]
+makeRoundTrip (OrderedList (start, LowerAlpha, _) items) = OrderedList (start, Decimal, Period) items
+makeRoundTrip (OrderedList (start, UpperAlpha, _) items) = OrderedList (start, Decimal, Period) items
 makeRoundTrip x = x
 
 -- Demand that any AST produced by Muse reader and written by Muse writer can be read back exactly the same way.
