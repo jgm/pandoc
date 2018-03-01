@@ -1208,5 +1208,16 @@ tests =
                                                          , para "Second"
                                                          , para "Third"
                                                          ])
+      -- Regression test for a bug caught by round-trip test
+      , "Do not consume whitespace while looking for end tag" =:
+        T.unlines
+          [ "<quote>"
+          , " - <quote>"
+          , "   foo"
+          , "   </quote>"
+          , " bar" -- Do not consume whitespace while looking for arbitraritly indented </quote>
+          , "</quote>"
+          ] =?>
+        blockQuote (bulletList [ blockQuote $ para "foo" ] <> para "bar")
       ]
   ]

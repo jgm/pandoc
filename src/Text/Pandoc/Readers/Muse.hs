@@ -171,7 +171,7 @@ parseHtmlContent tag = try $ do
   many spaceChar
   (TagOpen _ attr, _) <- htmlTag (~== TagOpen tag [])
   manyTill spaceChar eol
-  content <- parseBlocksTill (manyTill spaceChar endtag)
+  content <- parseBlocksTill (try $ manyTill spaceChar endtag)
   manyTill spaceChar eol -- closing tag must be followed by optional whitespace and newline
   return (htmlAttrToPandoc attr, content)
   where
