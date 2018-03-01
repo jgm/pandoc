@@ -514,7 +514,7 @@ Ellipses…and…and….
 * LaTeX
 
  - <literal style="tex">\cite[22-23]{smith.1899}</literal>
- - 2 + 2 <verbatim>=</verbatim> 4
+ - <verbatim>2 + 2 = 4</verbatim>
  - <em>x</em> ∈ <em>y</em>
  - <em>α</em> ∧ <em>ω</em>
  - 223
