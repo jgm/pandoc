@@ -297,6 +297,7 @@ tests = [ testGroup "block elements"
             , "escape hash to avoid accidental anchors" =: text "#foo bar"
               =?> "<verbatim>#foo</verbatim> bar"
             , "escape definition list markers" =: str "::" =?> "<verbatim>::</verbatim>"
+            , "normalize strings before escaping" =: fromList [Str ":", Str ":"] =?> "<verbatim>::</verbatim>"
             -- We don't want colons to be escaped if they can't be confused
             -- with definition list item markers.
             , "do not escape colon" =: str ":" =?> ":"
