@@ -157,7 +157,7 @@ blockToMuse (Para inlines) = do
   return $ contents <> blankline
 blockToMuse (LineBlock lns) = do
   lns' <- mapM inlineListToMuse lns
-  return $ nowrap $ vcat (map ((text "> ") <>) lns') <> blankline
+  return $ nowrap $ vcat (map (text "> " <>) lns') <> blankline
 blockToMuse (CodeBlock (_,_,_) str) =
   return $ "<example>" $$ text str $$ "</example>" $$ blankline
 blockToMuse (RawBlock (Format format) str) =

@@ -401,7 +401,7 @@ exampleTag = try $ do
   return $ return $ B.codeBlockWith attr $ rchop $ intercalate "\n" $ dropSpacePrefix $ splitOn "\n" $ lchop contents
 
 literalTag :: PandocMonad m => MuseParser m (F Blocks)
-literalTag = do
+literalTag =
   (return . rawBlock) <$> htmlBlock "literal"
   where
     -- FIXME: Emacs Muse inserts <literal> without style into all output formats, but we assume HTML
@@ -878,7 +878,7 @@ codeTag = do
   return $ return $ B.codeWith attrs content
 
 inlineLiteralTag :: PandocMonad m => MuseParser m (F Inlines)
-inlineLiteralTag = do
+inlineLiteralTag =
   (return . rawInline) <$> htmlElement "literal"
   where
     -- FIXME: Emacs Muse inserts <literal> without style into all output formats, but we assume HTML
