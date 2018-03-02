@@ -1,3 +1,268 @@
+pandoc (2.1.2)
+
+  * Markdown reader:
+
+    + Fix parsing bug with nested fenced divs (#4281).  Previously we allowed
+    "nonindent spaces" before the opening and closing `:::`, but this
+    interfered with list parsing, so now we require the fences to be flush with
+    the margin of the containing block.
+
+  * Org reader (Albert Krewinkel):
+
+    + Move citation tests to separate module.
+    + Allow changing emphasis syntax (#4378).  The characters allowed before
+      and after emphasis can be configured via `#+pandoc-emphasis-pre` and
+      `#+pandoc-emphasis-post`, respectively. This allows to change which
+      strings are recognized as emphasized text on a per-document or even
+      per-paragraph basis.  Example:
+
+          #+pandoc-emphasis-pre: "-\t ('\"{"
+          #+pandoc-emphasis-post: "-\t\n .,:!?;'\")}["
+
+  * LaTeX reader:
+
+    + Fixed comments inside citations (#4374).
+    + Fix regression in package options including underscore (#4424).
+    + Make `--trace` work.
+    + Fixed parsing of `tabular*` environment (#4279).
+
+  * RST reader:
+
+    + Fix regression in parsing of headers with trailing space (#4280).
+
+  * Muse reader (Alexander Krotov):
+
+    + Enable `<literal>` tags even if amuse extension is enabled.
+      Amusewiki disables <literal> tags for security reasons.
+      If user wants similar behavior in pandoc, RawBlocks and RawInlines
+      can be removed or replaced with filters.
+    + Remove space prefix from `<literal>` tag contents.
+    + Do not consume whitespace while looking for closing end tag.
+    + Convert alphabetical list markers to decimal in round-trip test.
+      Alphabetical lists are an addition of Text::Amuse.
+      They are not present in Emacs Muse and can be ambiguous
+      when list starts with "i.", "c." etc.
+    + Allow `<quote>` and other tags to be indented.
+    + Allow single colon in definition list term.
+    + Fix parsing of verse in lists.
+    + Improved parsing efficiency.  Avoid `parseFromString`.
+      Lists are parsed in linear instead of exponential time now.
+    + Replace ParserState with MuseState.
+    + Prioritize lists with roman numerals over alphabetical lists.
+      This is to make sure "i." starts a roman numbered list,
+      instead of a list with letter "i" (followed by "j", "k", ...").
+    + Fix directive parsing.
+    + Parse definition lists with multiple descriptions.
+    + Parse next list item before parsing more item contents.
+    + Fixed a bug: headers did not terminate lists.
+    + Move indentation parsing from `definitionListItem` to `definitionList`.
+    + Paragraph indentation does not indicate nested quote.
+      Muse allows indentation to indicate quotation or alignment,
+      but only on the top level, not within a <quote> or list.
+    + Require that block tags are on separate lines.
+      Text::Amuse already explicitly requires it anyway.
+    + Fix matching of closing inline tags.
+    + Various internal changes.
+    + Fix parsing of nested definition lists.
+    + Require only one space for nested definition list indentation.
+    + Do not remove trailing whitespace from `<code>`.
+    + Fix parsing of trailing whitespace.  Newline after whitespace now
+      results in softbreak instead of space.
+
+  * Docx reader (Jesse Rosenthal, except where noted):
+
+    + Handle nested sdt tags (#4415).
+    + Don't look up dependant run styles if `+styles` is enabled.
+    + Move pandoc inline styling inside custom-style span.
+    + Read custom styles (#1843).  This will read all paragraph and
+      character classes as divs and spans, respectively. Dependent styles
+      will still be resolved, but will be wrapped with appropriate style
+      tags. It is controlled by the `+styles` extension (`-f docx+styles`).
+      This can be used in conjunction with the `custom-style` feature in the
+      docx writer for a pandoc-docx editing workflow. Users can convert from
+      an input docx, reading the custom-styles, and then use that same input
+      docx file as a reference-doc for producing an output docx file. Styles
+      will be maintained across the conversion, even if pandoc doesn't
+      understand them.
+    + Small change to Fields hyperlink parser.  Previously, unquoted string
+      required a space at the end of the line (and consumed it). Now we
+      either take a space (and don't consume it), or end of input.
+    + Pick table width from the longest row or header (Francesco Occhipinti,
+      #4360).
+
+  * Muse writer (Alexander Krotov):
+
+    + Change verse markup: `> ` instead of `<verse>` tag.
+    + Remove empty strings during inline normalization.
+    + Don't indent nested definition lists.
+    + Use unicode quotes for quoted text.
+    + Write image width specified in percent in Text::Amuse mode.
+    + Don't wrap displayMath into `<verse>`.
+    + Escape nonbreaking space (`~~`).
+    + Join code with different attributes during normalization.
+    + Indent lists inside Div.
+    + Support definitions with multiple descriptions.
+
+  * Powerpoint writer (Jesse Rosenthal):
+
+    + Use table styles This will use the default table style in the
+      reference-doc file. As a result they will be easier when using
+      in a template, and match the color scheme.
+    + Remove empty slides.  Because of the way that slides were split, these
+      could be accidentally produced by comments after images.  When animations
+      are added, there will be a way to add an empty slide with either
+      incremental lists or pauses.
+    + Implement syntax highlighting.  Note that background colors can't
+      be implemented in PowerPoint, so highlighting styles that require
+      these will be incomplete.
+    + New test framework for pptx.  We now compare the output of the
+      Powerpoint writer with files that we know to (a) not be corrupt,
+      and (b) to show the desired output behavior (details below).
+    + Add `notesMaster` to `presentation.xml` if necessary.
+    + Ignore links and (end)notes in speaker notes.
+    + Output speaker notes.
+    + Read speaker note templates conditionally.  If there are speaker
+      notes in the presentation, we read in the notesMasters templates
+      from the reference pptx file.
+    + Fix deletion track changes (#4303, Jesse Rosenthal).
+
+  * Markdown writer: properly escape @ to avoid capture as citation
+    (#4366).
+
+  * LaTeX writer:
+
+    + Put hypertarget inside figure environment (#4388).
+      This works around a problem with the endfloat package and
+      makes pandoc's output compatible with it.
+    + Fix image height with percentage (#4389).  This previously caused
+      the image to be resized to a percentage of textwidth, rather than
+      textheight.
+
+  * ConTeXt writer (Henri Menke):
+
+    + New section syntax and support `--section-divs` (#2609).
+      `\section[my-header]{My Header}` ->
+      `\section[title={My Header},reference={my-header}]`.
+      The ConTeXt writer now supports the `--section-divs` option to
+      write sections in the fenced style, with `\startsection` and
+      `\stopsection`.
+    + xtables: correct wrong usage of caption (Henri Menke).
+
+  * Docx writer:
+
+    + Fix image resizing with multiple images (#3930, Andrew Pritchard).
+    + Use new golden framework (Jesse Rosenthal).
+    + Make more deterministic to facilitate testing (Jesse Rosenthal).
+      - `getUniqueId` now calls to the state to get an incremented digit,
+        instead of calling to P.uniqueHash.
+      - we always start the PRNG in mkNumbering/mkAbstractNum with the same
+        seed (1848), so our randoms should be the same each time.
+    + Fix ids in comment writing (Jesse Rosenthal).  Comments from
+      `--track-changes=all` were producing corrupt docx, because the
+      writer was trying to get id from the `(ID,_,_)` field of
+      the attributes, and ignoring the "id" entry in the key-value pairs. We
+      now check both.
+
+  * Ms writer: Added papersize variable.
+
+  * TEI writer:
+
+    + Use `height` instead of `depth` for images (#4331).
+    + Ensure that id prefix is always used.
+    + Don't emit `role` attribute; that was a leftover from the
+      Docbook writer.
+    + Use 'xml:id', not 'id' attribute (#4371).
+
+  * AsciiDoc writer:
+
+    + Do not output implicit heading IDs (#4363, Alexander
+      Krotov).  Convert to `asciidoc-auto_identifiers` for old behaviour.
+
+  * RST writer:
+
+    + Remove `blockToRST'` moving its logic into `fixBlocks`
+      (Francesco Occhipinti).
+    + Insert comment between lists and quotes (#4248, Francesco Occchipinti).
+
+  * RST template: remove definition of 'math' role as raw.
+    This used to be needed prior to v 0.8 of docutils, but
+    now math support is built-in.
+
+  * Slides: Use divs to set incremental/non-incremental (#4381,
+    Jesse Rosenthal).  The old method (list inside blockquote) still
+    works, but we are encouraging the use of divs with class
+    `incremental` or `nonincremental`.
+
+  * Text.Pandoc.ImageSize:
+
+    + Make image size detection for PDFs more robust (#4322).
+    + Determine image size for PDFs (#4322).
+    + EMF Image size support (#4375, Andrew Pritchard).
+
+  * Text.Pandoc.Extensions: Add `Ext_styles` (Jesse Rosenthal,
+    API change).  This will be used in the docx reader (defaulting to off) to
+    read pargraph and character styles not understood by pandoc (as divs and
+    spans, respectively).
+
+  * Text.Pandoc.Parsing:
+
+    + Export `manyUntil` (Alexander Krotov, API change).
+    + Export improved `sepBy1` (Alexander Krotov).
+    + Export list marker parsers: `upperRoman`, `lowerRoman`,
+      `decimal`, `lowerAlpha`, `upperAlpha` (Alexander Krotov, API change).
+
+  * Tests/Lua: fix tests on windows (Albert Krewinkel).
+
+  * Lua: register script name in global variable (#4393).  The name of the Lua
+    script which is executed is made available in the global Lua variable
+    `PANDOC_SCRIPT_FILE`, both for Lua filters and custom writers.
+
+  * Tests: Abstract powerpoint tests out to OOXML tests (Jesse Rosenthal).
+    There is very little pptx-specific in these tests, so we abstract out
+    the basic testing function so it can be used for docx as well. This
+    should allow us to catch some errors in the docx writer that slipped
+    by the roundtrip testing.
+
+  * Lua filters: store constructors in registry (Albert Krewinkel).  Lua
+    functions used to construct AST element values are stored in the Lua
+    registry for quicker access. Getting a value from the registry is much
+    faster than getting a global value (partly to idiosyncrasies of hslua);
+    this change results in a considerable performance boost.
+
+  * Documentation:
+
+    + `doc/org.md` Add draft of Org-mode documentation (Albert Krewinkel).
+    + `doc/lua-filters.md`: document global vars set for filters
+      (Albert Krewinkel).
+    + INSTALL.md: mention Stack version. (#4343, Adam Brandizzi).
+    + MANUAL: add documentation on custom styles (Jesse Rosenthal).
+    + MANUAL.txt: Document incremental and nonincremental divs (Jesse
+      Rosenthal).  Blockquoted lists are still described, but fenced divs are
+      presented in preference.
+    + MANUAL.txt: document header and footer variables (newmana).
+    + MANUAL.txt: self-contained implies standalone (#4304, Daniel Lublin).
+    + CONTRIBUTING.md: label was renamed. (#4310, Alexander Brandizzi).
+
+  * Require tagsoup 0.14.3 (#4282), fixing HTML tokenization bug.
+
+  * Use latest texmath.
+
+  * Use latest pandoc-citeproc.
+
+  * Allow exceptions 0.9.
+
+  * Require aeson-pretty 0.8.5 (#4394).
+
+  * Bump blaze-markup, blaze-html lower bounds to 0.8, 0.9 (#4334).
+
+  * Update tagsoup to 0.14.6 (Alexander Krotov, #4282).
+
+  * Removed ghc-prof-options.  As of cabal 1.24, sensible defaults are used.
+
+  * Update default.nix to current nixpkgs-unstable for hslua-0.9.5 (#4348,
+    jarlg).
+
+
 pandoc (2.1.1)
 
   * Markdown reader:
