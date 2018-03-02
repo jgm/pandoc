@@ -1162,7 +1162,7 @@ singleChar = try $ do
      else return $ Tok pos toktype t
 
 opt :: PandocMonad m => LP m Inlines
-opt = bracketed inline
+opt = bracketed inline <|> (str . T.unpack <$> rawopt)
 
 rawopt :: PandocMonad m => LP m Text
 rawopt = do
