@@ -207,9 +207,6 @@ tests =
         [ test emacsMuse "Inline literal"
           ("Foo<literal style=\"html\">lit</literal>bar" =?>
           para (text "Foo" <> rawInline "html" "lit" <> text "bar"))
-        , "No literal in Text::Amuse" =:
-          "Foo<literal style=\"html\">lit</literal>bar" =?>
-          para "Foo<literal style=\"html\">lit</literal>bar"
         ]
       ]
 
@@ -475,12 +472,6 @@ tests =
                     , "</literal>"
                     ] =?>
           rawBlock "latex" "\\newpage")
-        , "No literal blocks in Text::Amuse" =:
-          T.unlines [ "<literal style=\"latex\">"
-                    , "\\newpage"
-                    , "</literal>"
-                    ] =?>
-          para "<literal style=\"latex\">\n\\newpage\n</literal>"
         ]
       , "Center" =:
         T.unlines [ "<center>"

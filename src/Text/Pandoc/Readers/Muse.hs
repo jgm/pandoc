@@ -402,7 +402,6 @@ exampleTag = try $ do
 
 literalTag :: PandocMonad m => MuseParser m (F Blocks)
 literalTag = do
-  guardDisabled Ext_amuse -- Text::Amuse does not support <literal>
   (return . rawBlock) <$> htmlBlock "literal"
   where
     -- FIXME: Emacs Muse inserts <literal> without style into all output formats, but we assume HTML
@@ -880,7 +879,6 @@ codeTag = do
 
 inlineLiteralTag :: PandocMonad m => MuseParser m (F Inlines)
 inlineLiteralTag = do
-  guardDisabled Ext_amuse -- Text::Amuse does not support <literal>
   (return . rawInline) <$> htmlElement "literal"
   where
     -- FIXME: Emacs Muse inserts <literal> without style into all output formats, but we assume HTML
