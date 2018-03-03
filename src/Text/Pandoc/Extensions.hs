@@ -317,6 +317,8 @@ getDefaultExtensions "muse"            = extensionsFromList
                                             Ext_auto_identifiers]
 getDefaultExtensions "plain"           = plainExtensions
 getDefaultExtensions "gfm"             = githubMarkdownExtensions
+getDefaultExtensions "commonmark"      = extensionsFromList
+                                          [Ext_raw_html]
 getDefaultExtensions "org"             = extensionsFromList
                                           [Ext_citations,
                                            Ext_auto_identifiers]

@@ -199,10 +199,12 @@ pandoc (2.1.2)
     + Determine image size for PDFs (#4322).
     + EMF Image size support (#4375, Andrew Pritchard).
 
-  * Text.Pandoc.Extensions: Add `Ext_styles` (Jesse Rosenthal,
-    API change).  This will be used in the docx reader (defaulting to off) to
-    read pargraph and character styles not understood by pandoc (as divs and
-    spans, respectively).
+  * Text.Pandoc.Extensions:
+
+    + Add `Ext_styles` (Jesse Rosenthal, API change).  This will be used in
+      the docx reader (defaulting to off) to read pargraph and character
+      styles not understood by pandoc (as divs and spans, respectively).
+    + Made `Ext_raw_html` default for `commonmark` format.
 
   * Text.Pandoc.Parsing:
 
@@ -1969,7 +1971,7 @@ pandoc (2.0)
   * HTML reader: parse a span with class `smallcaps` as `SmallCaps`.
 
   * LaTeX reader:
- 
+
     + Implemented `\graphicspath` (#736).
     + Properly handle column prefixes/suffixes.  For example, in
       `\begin{tabular}{>{$}l<{$}>{$}l<{$} >{$}l<{$}}`
