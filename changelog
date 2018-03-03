@@ -3,9 +3,14 @@ pandoc (2.1.2)
   * Markdown reader:
 
     + Fix parsing bug with nested fenced divs (#4281).  Previously we allowed
-    "nonindent spaces" before the opening and closing `:::`, but this
-    interfered with list parsing, so now we require the fences to be flush with
-    the margin of the containing block.
+      "nonindent spaces" before the opening and closing `:::`, but this
+      interfered with list parsing, so now we require the fences to be flush with
+      the margin of the containing block.
+
+  * Commonmark reader:
+
+    + `raw_html` is now on by default.  It can be disabled explicitly
+      using `-f commonmark-raw_html`.
 
   * Org reader (Albert Krewinkel):
 
