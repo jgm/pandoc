@@ -1,5 +1,5 @@
 .\"t
-.TH PANDOC 1 "January 18, 2018" "pandoc 2.1.1"
+.TH PANDOC 1 "March 2, 2018" "pandoc 2.1.2"
 .SH NAME
 pandoc - general markup converter
 .SH SYNOPSIS
@@ -175,7 +175,8 @@ When using an HTML/CSS\-to\-PDF\-engine, \f[C]\-\-css\f[] affects the
 output.
 If \f[C]wkhtmltopdf\f[] is used, then the variables
 \f[C]margin\-left\f[], \f[C]margin\-right\f[], \f[C]margin\-top\f[],
-\f[C]margin\-bottom\f[], and \f[C]papersize\f[] will affect the output.
+\f[C]margin\-bottom\f[], \f[C]footer\-html\f[], \f[C]header\-html\f[]
+and \f[C]papersize\f[] will affect the output.
 .PP
 To debug the PDF creation, it can be useful to look at the intermediate
 representation: instead of \f[C]\-o\ test.pdf\f[], use for example
@@ -821,6 +822,7 @@ line, or when resources used in a document must be downloaded).
 Produce a standalone HTML file with no external dependencies, using
 \f[C]data:\f[] URIs to incorporate the contents of linked scripts,
 stylesheets, images, and videos.
+Implies \f[C]\-\-standalone\f[].
 The resulting file should be "self\-contained," in the sense that it
 needs no external files and no net access to be displayed properly by a
 browser.
@@ -1043,6 +1045,34 @@ default \f[C]reference.odt\f[]:
 \f[C]pandoc\ \-\-print\-default\-data\-file\ reference.odt\ >\ custom\-reference.odt\f[].
 Then open \f[C]custom\-reference.odt\f[] in LibreOffice, modify the
 styles as you wish, and save the file.
+.RE
+.TP
+.B PowerPoint
+Any template included with a recent install of Microsoft PowerPoint
+(either with \f[C]\&.pptx\f[] or \f[C]\&.potx\f[] extension) should
+work, as will most templates derived from these.
+.RS
+.PP
+The specific requirement is that the template should contain the
+following four layouts as its first four layouts:
+.IP "1." 3
+Title Slide
+.IP "2." 3
+Title and Content
+.IP "3." 3
+Section Header
+.IP "4." 3
+Two Content
+.PP
+All templates included with a recent version of MS PowerPoint will fit
+these criteria.
+(You can click on \f[C]Layout\f[] under the \f[C]Home\f[] menu to
+check.)
+.PP
+You can also modify the default \f[C]reference.pptx\f[]: first run
+\f[C]pandoc\ \-\-print\-default\-data\-file\ reference.pptx\ >\ custom\-reference.pptx\f[],
+and then modify \f[C]custom\-reference.pptx\f[] in MS PowerPoint (pandoc
+will use the first four layout slides, as mentioned above).
 .RE
 .RE
 .TP
@@ -2341,6 +2371,18 @@ This extension can be enabled/disabled for the following formats:
 \f[C]html\f[]
 .RS
 .RE
+.SS Extension: \f[C]styles\f[]
+.PP
+Read all docx styles as divs (for paragraph styles) and spans (for
+character styles) regardless of whether pandoc understands the meaning
+of these styles.
+This can be used with docx custom styles.
+Disabled by default.
+.TP
+.B input formats
+\f[C]docx\f[]
+.RS
+.RE
 .SS Extension: \f[C]amuse\f[]
 .PP
 In the \f[C]muse\f[] input format, this enables Text::Amuse extensions
@@ -2741,7 +2783,7 @@ Here \f[C]mycode\f[] is an identifier, \f[C]haskell\f[] and
 with value \f[C]100\f[].
 Some output formats can use this information to do syntax highlighting.
 Currently, the only output formats that uses this information are HTML,
-LaTeX, Docx, and Ms.
+LaTeX, Docx, Ms, and PowerPoint.
 If highlighting is supported for your output format and language, then
 the code block above will appear highlighted, with numbered lines.
 (To see which languages are supported, type
@@ -5204,9 +5246,42 @@ reveal.js.
 By default, these writers produce lists that display "all at once." If
 you want your lists to display incrementally (one item at a time), use
 the \f[C]\-i\f[] option.
-If you want a particular list to depart from the default (that is, to
+If you want a particular list to depart from the default, put it in a
+\f[C]div\f[] block with class \f[C]incremental\f[] or
+\f[C]nonincremental\f[].
+So, for example, using the \f[C]fenced\ div\f[] syntax, the following
+would be incremental regardless of the document default:
+.IP
+.nf
+\f[C]
+:::\ incremental
+
+\-\ Eat\ spaghetti
+\-\ Drink\ wine
+
+:::
+\f[]
+.fi
+.PP
+or
+.IP
+.nf
+\f[C]
+:::\ nonincremental
+
+\-\ Eat\ spaghetti
+\-\ Drink\ wine
+
+:::
+\f[]
+.fi
+.PP
+While using \f[C]incremental\f[] and \f[C]nonincremental\f[] divs are
+the recommended method of setting incremental lists on a per\-case
+basis, an older method is also supported: putting lists inside a
+blockquote will depart from the document default (that is, it will
 display incrementally without the \f[C]\-i\f[] option and all at once
-with the \f[C]\-i\f[] option), put it in a block quote:
+with the \f[C]\-i\f[] option):
 .IP
 .nf
 \f[C]
@@ -5215,7 +5290,7 @@ with the \f[C]\-i\f[] option), put it in a block quote:
 \f[]
 .fi
 .PP
-In this way incremental and nonincremental lists can be mixed in a
+Both methods allow incremental and nonincremental lists to be mixed in a
 single document.
 .SS Inserting pauses
 .PP
@@ -5286,7 +5361,7 @@ This is recommended especially for bibliographies:
 .fi
 .SS Speaker notes
 .PP
-reveal.js has good support for speaker notes.
+Speaker notes are supported in reveal.js and PowerPoint (pptx) output.
 You can add notes to your Markdown document thus:
 .IP
 .nf
@@ -5302,8 +5377,11 @@ This\ is\ my\ note.
 \f[]
 .fi
 .PP
-To show the notes window, press \f[C]s\f[] while viewing the
-presentation.
+To show the notes window in reveal.js, press \f[C]s\f[] while viewing
+the presentation.
+Speaker notes in PowerPoint will be available, as usual, in handouts and
+presenter view.
+.PP
 Notes are not yet supported for other slide formats, but the notes will
 not appear on the slides themselves.
 .SS Columns
@@ -5532,7 +5610,62 @@ To see a list of highlight styles, type
 \f[C]pandoc\ \-\-list\-highlight\-styles\f[].
 .PP
 To disable highlighting, use the \f[C]\-\-no\-highlight\f[] option.
-.SH CUSTOM STYLES IN DOCX OUTPUT
+.SH CUSTOM STYLES IN DOCX
+.SS Input
+.PP
+The docx reader, by default, only reads those styles that it can convert
+into pandoc elements, either by direct conversion or interpreting the
+derivation of the input document\[aq]s styles.
+.PP
+By enabling the \f[C]styles\f[] extension in the docx reader
+(\f[C]\-f\ docx+styles\f[]), you can produce output that maintains the
+styles of the input document, using the \f[C]custom\-style\f[] class.
+Paragraph styles are interpreted as divs, while character styles are
+interpreted as spans.
+.PP
+For example, using the \f[C]custom\-style\-reference.docx\f[] file in
+the test directory, we have the following different outputs:
+.PP
+Without the \f[C]+styles\f[] extension:
+.IP
+.nf
+\f[C]
+$\ pandoc\ test/docx/custom\-style\-reference.docx\ \-f\ docx\ \-t\ markdown
+This\ is\ some\ text.
+
+This\ is\ text\ with\ an\ *emphasized*\ text\ style.\ And\ this\ is\ text\ with\ a
+**strengthened**\ text\ style.
+
+>\ Here\ is\ a\ styled\ paragraph\ that\ inherits\ from\ Block\ Text.
+\f[]
+.fi
+.PP
+And with the extension:
+.IP
+.nf
+\f[C]
+$\ pandoc\ test/docx/custom\-style\-reference.docx\ \-f\ docx+styles\ \-t\ markdown
+
+:::\ {custom\-style="FirstParagraph"}
+This\ is\ some\ text.
+:::
+
+:::\ {custom\-style="BodyText"}
+This\ is\ text\ with\ an\ [emphasized]{custom\-style="Emphatic"}\ text\ style.
+And\ this\ is\ text\ with\ a\ [strengthened]{custom\-style="Strengthened"}
+text\ style.
+:::
+
+:::\ {custom\-style="MyBlockStyle"}
+>\ Here\ is\ a\ styled\ paragraph\ that\ inherits\ from\ Block\ Text.
+:::
+\f[]
+.fi
+.PP
+With these custom styles, you can use your input document as a
+reference\-doc while creating docx output (see below), and maintain the
+same styles in your input and output files.
+.SS Output
 .PP
 By default, pandoc\[aq]s docx output applies a predefined set of styles
 for blocks such as paragraphs and block quotes, and uses largely default
