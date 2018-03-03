@@ -637,6 +637,16 @@ tests =
                   text " footnotes" <>
                   note (para "Second footnote")) <>
             para (text "Not a note")
+
+          -- Verse requires precise indentation, so it is good to test indentation requirements
+          , "Note continuation with verse" =:
+            T.unlines [ "Foo[1]"
+                      , ""
+                      , "[1] Bar"
+                      , ""
+                      , "    > Baz"
+                      ] =?>
+            para ("Foo" <> note (para "Bar" <> lineBlock ["Baz"]))
           , test emacsMuse "Emacs multiparagraph footnotes"
             (T.unlines
               [ "First footnote reference[1] and second footnote reference[2]."

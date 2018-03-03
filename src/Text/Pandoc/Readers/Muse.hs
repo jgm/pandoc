@@ -470,10 +470,10 @@ amuseNoteBlockUntil :: PandocMonad m
                     -> MuseParser m (F Blocks, a)
 amuseNoteBlockUntil end = try $ do
   guardEnabled Ext_amuse
-  pos <- getPosition
   ref <- noteMarker <* spaceChar
+  pos <- getPosition
   updateState (\st -> st { museInPara = False })
-  (content, e) <- listItemContentsUntil (sourceColumn pos) (fail "x") end
+  (content, e) <- listItemContentsUntil (sourceColumn pos - 1) (fail "x") end
   oldnotes <- museNotes <$> getState
   case M.lookup ref oldnotes of
     Just _  -> logMessage $ DuplicateNoteReference ref pos
