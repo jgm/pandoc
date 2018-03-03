@@ -109,7 +109,7 @@ addBlock opts (Node _ BLOCK_QUOTE nodes) =
   (BlockQuote (addBlocks opts nodes) :)
 addBlock opts (Node _ (HTML_BLOCK t) _)
   | isEnabled Ext_raw_html opts = (RawBlock (Format "html") (unpack t) :)
-  | otherwise                   = (Para [Str (unpack t)] :)
+  | otherwise                 = id
 -- Note:  the cmark parser will never generate CUSTOM_BLOCK,
 -- so we don't need to handle it:
 addBlock _ (Node _ (CUSTOM_BLOCK _onEnter _onExit) _nodes) =
@@ -215,7 +215,7 @@ addInline opts (Node _ SOFTBREAK _)
   | otherwise                           = (SoftBreak :)
 addInline opts (Node _ (HTML_INLINE t) _)
   | isEnabled Ext_raw_html opts = (RawInline (Format "html") (unpack t) :)
-  | otherwise                   = (Str (unpack t) :)
+  | otherwise                 = id
 -- Note:  the cmark parser will never generate CUSTOM_BLOCK,
 -- so we don't need to handle it:
 addInline _ (Node _ (CUSTOM_INLINE _onEnter _onExit) _nodes) =
