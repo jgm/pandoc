@@ -332,6 +332,7 @@ tests = [ testGroup "block elements"
             [ "inline math" =: math "2^3" =?> "2<sup>3</sup>"
             , "display math" =: displayMath "2^3" =?> "2<sup>3</sup>"
             , "multiple letters in inline math" =: math "abc" =?> "<em>abc</em>"
+            , "expand math before normalization" =: math "[" <> str "2]" =?> "<verbatim>[2]</verbatim>"
             ]
           , "raw inline"
             =: rawInline "html" "<mark>marked text</mark>"

@@ -291,6 +291,14 @@ conditionalEscapeString s =
     then escapeString s
     else s
 
+-- Expand Math before normalizing inline list
+preprocessInlineList :: PandocMonad m
+                     => [Inline]
+                     -> m [Inline]
+preprocessInlineList (Math t str:xs) = (++ xs) <$> texMathToInlines t str
+preprocessInlineList (x:xs) = (x:) <$> preprocessInlineList xs
+preprocessInlineList [] = return []
+
 normalizeInlineList :: [Inline] -> [Inline]
 normalizeInlineList (x : Str "" : xs)
   = normalizeInlineList (x:xs)
@@ -327,7 +335,9 @@ fixNotes (x:xs) = x : fixNotes xs
 inlineListToMuse :: PandocMonad m
                  => [Inline]
                  -> StateT WriterState m Doc
-inlineListToMuse lst = hcat <$> mapM inlineToMuse (fixNotes $ normalizeInlineList lst)
+inlineListToMuse lst = do
+  lst' <- preprocessInlineList lst
+  hcat <$> mapM inlineToMuse (fixNotes $ normalizeInlineList lst')
 
 -- | Convert Pandoc inline element to Muse.
 inlineToMuse :: PandocMonad m
@@ -363,8 +373,8 @@ inlineToMuse (Quoted DoubleQuote lst) = do
 inlineToMuse (Cite _  lst) = inlineListToMuse lst
 inlineToMuse (Code _ str) = return $
   "<code>" <> text (substitute "</code>" "<</code><code>/code>" str) <> "</code>"
-inlineToMuse (Math t str) =
-  lift (texMathToInlines t str) >>= inlineListToMuse
+inlineToMuse Math{} =
+  fail "Math should be expanded before normalization"
 inlineToMuse (RawInline (Format f) str) =
   return $ "<literal style=\"" <> text f <> "\">" <> text str <> "</literal>"
 inlineToMuse LineBreak = return $ "<br>" <> cr
