@@ -1,4 +1,4 @@
-{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE OverloadedStrings, NamedFieldPuns #-}
 {-
 Copyright (C) 2006-2018 John MacFarlane <jgm@berkeley.edu>
 
@@ -33,7 +33,7 @@ reStructuredText:  <http://docutils.sourceforge.net/rst.html>
 module Text.Pandoc.Writers.RST ( writeRST ) where
 import Control.Monad.State.Strict
 import Data.Char (isSpace, toLower)
-import Data.List (isPrefixOf, stripPrefix)
+import Data.List (isPrefixOf, stripPrefix, intersperse)
 import Data.Maybe (fromMaybe)
 import Data.Text (Text, stripEnd)
 import qualified Text.Pandoc.Builder as B
@@ -296,8 +296,7 @@ blockToRST (Table caption aligns widths headers rows) = do
                    blankline
 blockToRST (BulletList items) = do
   contents <- mapM bulletListItemToRST items
-  -- ensure that sublists have preceding blank line
-  return $ blankline $$ chomp (vcat contents) $$ blankline
+  concatItems contents
 blockToRST (OrderedList (start, style', delim) items) = do
   let markers = if start == 1 && style' == DefaultStyle && delim == DefaultDelim
                    then replicate (length items) "#."
@@ -307,18 +306,23 @@ blockToRST (OrderedList (start, style', delim) items) = do
   let markers' = map (\m -> let s = maxMarkerLength - length m
                             in  m ++ replicate s ' ') markers
   contents <- zipWithM orderedListItemToRST markers' items
-  -- ensure that sublists have preceding blank line
-  return $ blankline $$ chomp (vcat contents) $$ blankline
+  concatItems contents
 blockToRST (DefinitionList items) = do
   contents <- mapM definitionListItemToRST items
-  -- ensure that sublists have preceding blank line
-  return $ blankline $$ chomp (vcat contents) $$ blankline
+  concatItems contents
+
+concatItems :: PandocMonad m => [Doc] -> RST m Doc
+concatItems contents = do
+  WriterOptions{writerSpacedLists} <- gets stOptions
+  return $ addBlanks writerSpacedLists contents
+  where addBlanks opt = terminal . intermediate opt
+        intermediate opt con = if opt then intersperse blankline con else con
+        -- ensure that sublists have preceding blank line
+        terminal con = blankline $$ chomp (vcat con) $$ blankline
 
 -- | Convert bullet list item (list of blocks) to RST.
 bulletListItemToRST :: PandocMonad m => [Block] -> RST m Doc
-bulletListItemToRST items = do
-  contents <- blockListToRST items
-  return $ hang 3 "-  " $ contents <> cr
+bulletListItemToRST = orderedListItemToRST "- "
 
 -- | Convert ordered list item (a list of blocks) to RST.
 orderedListItemToRST :: PandocMonad m
