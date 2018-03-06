@@ -1276,11 +1276,11 @@ inlineCommands = M.union inlineLanguageCommands $ M.fromList
   , ("mdots", lit "…")
   , ("sim", lit "~")
   , ("sep", lit ",")
-  , ("label", rawInlineOr "label" dolabel)
-  , ("ref", rawInlineOr "ref" $ doref "ref")
-  , ("cref", rawInlineOr "cref" $ doref "ref")       -- from cleveref.sty
-  , ("vref", rawInlineOr "vref" $ doref "ref+page")  -- from varioref.sty
-  , ("eqref", rawInlineOr "eqref" $ doref "eqref")   -- from amsmath.sty
+  , ("label", dolabel)
+  , ("ref", doref "ref")
+  , ("cref", doref "ref")      -- from cleveref.sty
+  , ("vref", doref "ref+page") -- from varioref.sty
+  , ("eqref", doref "eqref")   -- from amsmath.sty
   , ("lettrine", optional opt >> extractSpaces (spanWith ("",["lettrine"],[])) <$> tok)
   , ("(", mathInline . toksToString <$> manyTill anyTok (controlSeq ")"))
   , ("[", mathDisplay . toksToString <$> manyTill anyTok (controlSeq "]"))
@@ -1615,13 +1615,6 @@ coloredInline stylename = do
 
 ttfamily :: PandocMonad m => LP m Inlines
 ttfamily = (code . stringify . toList) <$> tok
-
-rawInlineOr :: PandocMonad m => Text -> LP m Inlines -> LP m Inlines
-rawInlineOr name' fallback = do
-  parseRaw <- extensionEnabled Ext_raw_tex <$> getOption readerExtensions
-  if parseRaw
-     then rawInline "latex" <$> getRawCommand name' ("\\" <> name')
-     else fallback
 
 getRawCommand :: PandocMonad m => Text -> Text -> LP m String
 getRawCommand name txt = do
