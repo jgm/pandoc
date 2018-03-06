@@ -295,7 +295,7 @@ conditionalEscapeString s =
 preprocessInlineList :: PandocMonad m
                      => [Inline]
                      -> m [Inline]
-preprocessInlineList (Math t str:xs) = (++ xs) <$> texMathToInlines t str
+preprocessInlineList (Math t str:xs) = (++) <$> texMathToInlines t str <*> preprocessInlineList xs
 preprocessInlineList (x:xs) = (x:) <$> preprocessInlineList xs
 preprocessInlineList [] = return []
 
