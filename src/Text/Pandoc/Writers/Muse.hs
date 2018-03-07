@@ -287,7 +287,8 @@ conditionalEscapeString s =
   if any (`elem` ("#*<=>[]|" :: String)) s ||
      "::" `isInfixOf` s ||
      "----" `isInfixOf` s ||
-     "~~" `isInfixOf` s
+     "~~" `isInfixOf` s ||
+     "-" == s
     then escapeString s
     else s
 

@@ -301,6 +301,15 @@ tests = [ testGroup "block elements"
             -- We don't want colons to be escaped if they can't be confused
             -- with definition list item markers.
             , "do not escape colon" =: str ":" =?> ":"
+            , "escape - to avoid accidental unordered lists" =: text " - foo" =?> " <verbatim>-</verbatim> foo"
+            , "escape - inside a list to avoid accidental nested unordered lists" =:
+              bulletList [ (para $ text "foo") <>
+                           (para $ text "- bar")
+                         ] =?>
+              unlines [ " - foo"
+                      , ""
+                      , "   <verbatim>-</verbatim> bar"
+                      ]
             ]
           , testGroup "emphasis"
             [ "emph" =: emph (text "foo") =?> "<em>foo</em>"
