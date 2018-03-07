@@ -369,7 +369,7 @@ inlineToMuse (Superscript lst) = do
 inlineToMuse (Subscript lst) = do
   contents <- inlineListToMuse lst
   return $ "<sub>" <> contents <> "</sub>"
-inlineToMuse (SmallCaps lst) = inlineListToMuse lst
+inlineToMuse (SmallCaps lst) = inlineToMuse (Emph lst)
 inlineToMuse (Quoted SingleQuote lst) = do
   contents <- inlineListToMuse lst
   return $ "‘" <> contents <> "’"

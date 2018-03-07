@@ -327,7 +327,7 @@ tests = [ testGroup "block elements"
             ]
           , "superscript" =: superscript (text "foo") =?> "<sup>foo</sup>"
           , "subscript" =: subscript (text "foo") =?> "<sub>foo</sub>"
-          , "smallcaps" =: smallcaps (text "foo") =?> "foo"
+          , "smallcaps" =: smallcaps (text "foo") =?> "<em>foo</em>"
           , "single quoted" =: singleQuoted (text "foo") =?> "‘foo’"
           , "double quoted" =: doubleQuoted (text "foo") =?> "“foo”"
           -- Cite is trivial
