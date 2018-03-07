@@ -339,8 +339,10 @@ inlineListToMuse :: PandocMonad m
                  => [Inline]
                  -> StateT WriterState m Doc
 inlineListToMuse lst = do
-  lst' <- preprocessInlineList lst
-  hcat <$> mapM inlineToMuse (fixNotes $ normalizeInlineList lst')
+  lst' <- normalizeInlineList <$> preprocessInlineList lst
+  if null lst'
+    then pure "<verbatim></verbatim>"
+    else hcat <$> mapM inlineToMuse (fixNotes lst')
 
 -- | Convert Pandoc inline element to Muse.
 inlineToMuse :: PandocMonad m

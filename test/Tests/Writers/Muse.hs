@@ -101,6 +101,15 @@ tests = [ testGroup "block elements"
                             , "                  :: second description"
                             , " second definition :: third description"
                             ]
+              , "definition list with empty term" =:
+                definitionList [ (text "first definition", [plain $ text "first description"])
+                               , (mempty, [plain $ text "second description"])
+                               , (str "", [plain $ text "third description"])
+                               ]
+                =?> unlines [ " first definition :: first description"
+                            , " <verbatim></verbatim> :: second description"
+                            , " <verbatim></verbatim> :: third description"
+                            ]
               ]
             -- Test that lists of the same type and style are separated with two blanklines
             , testGroup "sequential lists"
