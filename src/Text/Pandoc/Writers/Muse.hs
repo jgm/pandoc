@@ -301,6 +301,8 @@ preprocessInlineList (x:xs) = (x:) <$> preprocessInlineList xs
 preprocessInlineList [] = return []
 
 normalizeInlineList :: [Inline] -> [Inline]
+normalizeInlineList (Str "" : xs)
+  = normalizeInlineList xs
 normalizeInlineList (x : Str "" : xs)
   = normalizeInlineList (x:xs)
 normalizeInlineList (Str x1 : Str x2 : xs)
