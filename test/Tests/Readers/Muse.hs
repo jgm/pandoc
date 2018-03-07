@@ -296,6 +296,7 @@ tests =
                     ]
         ]
       , "Verse in list" =: " - > foo" =?> bulletList [ lineBlock [ "foo" ] ]
+      , "Verse line starting with emphasis" =: "> *foo* bar" =?> lineBlock [ emph "foo" <> text " bar" ]
       , "Multiline verse in list" =:
         T.unlines [ " - > foo"
                   , "   > bar"

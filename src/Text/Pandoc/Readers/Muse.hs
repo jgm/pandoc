@@ -506,9 +506,10 @@ emacsNoteBlock = try $ do
 lineVerseLine :: PandocMonad m => MuseParser m (F Inlines)
 lineVerseLine = try $ do
   string "> "
-  indent <- B.str <$> many (char ' ' >> pure '\160')
+  indent <- many (char ' ' >> pure '\160')
+  let indentEl = if null indent then mempty else B.str indent
   rest <- manyTill (choice inlineList) eol
-  return $ trimInlinesF $ mconcat (pure indent : rest)
+  return $ trimInlinesF $ mconcat (pure indentEl : rest)
 
 blanklineVerseLine :: PandocMonad m => MuseParser m (F Inlines)
 blanklineVerseLine = try $ do
