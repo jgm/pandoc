@@ -292,11 +292,16 @@ conditionalEscapeString s =
     then escapeString s
     else s
 
--- Expand Math before normalizing inline list
+-- Expand Math and Cite before normalizing inline list
 preprocessInlineList :: PandocMonad m
                      => [Inline]
                      -> m [Inline]
 preprocessInlineList (Math t str:xs) = (++) <$> texMathToInlines t str <*> preprocessInlineList xs
+-- Amusewiki does not support <cite> tag,
+-- and Emacs Muse citation support is limited
+-- (https://www.gnu.org/software/emacs-muse/manual/html_node/Citations.html#Citation)
+-- so just fallback to expanding inlines.
+preprocessInlineList (Cite _  lst:xs) = (lst ++) <$> preprocessInlineList xs
 preprocessInlineList (x:xs) = (x:) <$> preprocessInlineList xs
 preprocessInlineList [] = return []
 
@@ -371,11 +376,8 @@ inlineToMuse (Quoted SingleQuote lst) = do
 inlineToMuse (Quoted DoubleQuote lst) = do
   contents <- inlineListToMuse lst
   return $ "“" <> contents <> "”"
--- Amusewiki does not support <cite> tag,
--- and Emacs Muse citation support is limited
--- (https://www.gnu.org/software/emacs-muse/manual/html_node/Citations.html#Citation)
--- so just fallback to expanding inlines.
-inlineToMuse (Cite _  lst) = inlineListToMuse lst
+inlineToMuse (Cite {}) =
+  fail "Citations should be expanded before normalization"
 inlineToMuse (Code _ str) = return $
   "<code>" <> text (substitute "</code>" "<</code><code>/code>" str) <> "</code>"
 inlineToMuse Math{} =
