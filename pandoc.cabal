@@ -9,7 +9,7 @@ author:          John MacFarlane <jgm@berkeley.edu>
 maintainer:      John MacFarlane <jgm@berkeley.edu>
 bug-reports:     https://github.com/jgm/pandoc/issues
 stability:       alpha
-homepage:        http://pandoc.org
+homepage:        https://pandoc.org
 category:        Text
 tested-with:     GHC == 7.10.3, GHC == 8.0.2, GHC == 8.2.2
 synopsis:        Conversion between markup formats
