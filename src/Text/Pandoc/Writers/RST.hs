@@ -378,8 +378,23 @@ blockListToRST :: PandocMonad m
 blockListToRST = blockListToRST' False
 
 transformInlines :: [Inline] -> [Inline]
-transformInlines = removeSpaceAfterDisplayMath . insertBS
-  where -- remove spaces after displaymath, as they screw up indentation:
+transformInlines =  insertBS . filter hasContents . removeSpaceAfterDisplayMath
+  where -- empty inlines are not valid RST syntax
+        hasContents :: Inline -> Bool
+        hasContents (Str "")              = False
+        hasContents (Emph [])             = False
+        hasContents (Strong [])           = False
+        hasContents (Strikeout [])        = False
+        hasContents (Superscript [])      = False
+        hasContents (Subscript [])        = False
+        hasContents (SmallCaps [])        = False
+        hasContents (Quoted _ [])         = False
+        hasContents (Cite _ [])           = False
+        hasContents (Span _ [])           = False
+        hasContents (Link _ [] ("", ""))  = False
+        hasContents (Image _ [] ("", "")) = False
+        hasContents _                     = True
+        -- remove spaces after displaymath, as they screw up indentation:
         removeSpaceAfterDisplayMath (Math DisplayMath x : zs) =
               Math DisplayMath x : dropWhile (==Space) zs
         removeSpaceAfterDisplayMath (x:xs) = x : removeSpaceAfterDisplayMath xs

@@ -50,6 +50,12 @@ tests = [ testGroup "rubrics"
               , ""
               , "    quoted"]
           ]
+        , testGroup "inlines"
+          [ "are removed when empty" =: -- #4434
+            plain (strong (str "")) =?> ""
+          , "do not cause the introduction of extra spaces when removed" =:
+            plain (strong (str "") <> emph (str "text")) =?> "*text*"
+          ]
         , testGroup "headings"
           [ "normal heading" =:
               header 1 (text "foo") =?>
