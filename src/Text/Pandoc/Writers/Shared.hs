@@ -41,6 +41,7 @@ module Text.Pandoc.Writers.Shared (
                      , unsmartify
                      , gridTable
                      , metaValueToInlines
+                     , stripLeadingTrailingSpace
                      )
 where
 import Control.Monad (zipWithM)
