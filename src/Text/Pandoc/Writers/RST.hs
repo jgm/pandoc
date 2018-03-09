@@ -46,6 +46,7 @@ import Text.Pandoc.Pretty
 import Text.Pandoc.Shared
 import Text.Pandoc.Templates (renderTemplate')
 import Text.Pandoc.Writers.Shared
+import Text.Pandoc.Walk
 
 type Refs = [([Inline], Target)]
 
@@ -376,11 +377,8 @@ blockListToRST :: PandocMonad m
                -> RST m Doc
 blockListToRST = blockListToRST' False
 
--- | Convert list of Pandoc inline elements to RST.
-inlineListToRST :: PandocMonad m => [Inline] -> RST m Doc
-inlineListToRST lst =
-  mapM inlineToRST (removeSpaceAfterDisplayMath $ insertBS lst) >>=
-    return . hcat
+transformInlines :: [Inline] -> [Inline]
+transformInlines = removeSpaceAfterDisplayMath . insertBS
   where -- remove spaces after displaymath, as they screw up indentation:
         removeSpaceAfterDisplayMath (Math DisplayMath x : zs) =
               Math DisplayMath x : dropWhile (==Space) zs
@@ -436,44 +434,51 @@ inlineListToRST lst =
         isComplex (Span _ (x:_))  = isComplex x
         isComplex _               = False
 
+inlineListToRST :: PandocMonad m => [Inline] -> RST m Doc
+inlineListToRST = writeInlines . walk transformInlines
+
+-- | Convert list of Pandoc inline elements to RST.
+writeInlines :: PandocMonad m => [Inline] -> RST m Doc
+writeInlines lst = mapM inlineToRST lst >>= return . hcat
+
 -- | Convert Pandoc inline element to RST.
 inlineToRST :: PandocMonad m => Inline -> RST m Doc
 inlineToRST (Span (_,_,kvs) ils) = do
-  contents <- inlineListToRST ils
+  contents <- writeInlines ils
   return $
     case lookup "role" kvs of
           Just role -> ":" <> text role <> ":`" <> contents <> "`"
           Nothing   -> contents
 inlineToRST (Emph lst) = do
-  contents <- inlineListToRST lst
+  contents <- writeInlines lst
   return $ "*" <> contents <> "*"
 inlineToRST (Strong lst) = do
-  contents <- inlineListToRST lst
+  contents <- writeInlines lst
   return $ "**" <> contents <> "**"
 inlineToRST (Strikeout lst) = do
-  contents <- inlineListToRST lst
+  contents <- writeInlines lst
   return $ "[STRIKEOUT:" <> contents <> "]"
 inlineToRST (Superscript lst) = do
-  contents <- inlineListToRST lst
+  contents <- writeInlines lst
   return $ ":sup:`" <> contents <> "`"
 inlineToRST (Subscript lst) = do
-  contents <- inlineListToRST lst
+  contents <- writeInlines lst
   return $ ":sub:`" <> contents <> "`"
-inlineToRST (SmallCaps lst) = inlineListToRST lst
+inlineToRST (SmallCaps lst) = writeInlines lst
 inlineToRST (Quoted SingleQuote lst) = do
-  contents <- inlineListToRST lst
+  contents <- writeInlines lst
   opts <- gets stOptions
   if isEnabled Ext_smart opts
      then return $ "'" <> contents <> "'"
      else return $ "‘" <> contents <> "’"
 inlineToRST (Quoted DoubleQuote lst) = do
-  contents <- inlineListToRST lst
+  contents <- writeInlines lst
   opts <- gets stOptions
   if isEnabled Ext_smart opts
      then return $ "\"" <> contents <> "\""
      else return $ "“" <> contents <> "”"
 inlineToRST (Cite _  lst) =
-  inlineListToRST lst
+  writeInlines lst
 inlineToRST (Code _ str) = do
   opts <- gets stOptions
   -- we trim the string because the delimiters must adjoin a
@@ -524,7 +529,7 @@ inlineToRST (Link _ [Image attr alt (imgsrc,imgtit)] (src, _tit)) = do
   return $ "|" <> label <> "|"
 inlineToRST (Link _ txt (src, tit)) = do
   useReferenceLinks <- gets $ writerReferenceLinks . stOptions
-  linktext <- inlineListToRST $ B.toList . B.trimInlines . B.fromList $ txt
+  linktext <- writeInlines $ B.toList . B.trimInlines . B.fromList $ txt
   if useReferenceLinks
     then do refs <- gets stLinks
             case lookup txt refs of
