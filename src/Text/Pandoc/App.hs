@@ -967,6 +967,9 @@ options =
                                 setUserDataDir Nothing
                                 getDefaultTemplate arg
                      case templ of
+                          Right "" -> do -- e.g. for docx, odt, json:
+                            E.throwIO $ PandocCouldNotFindDataFileError
+                               ("templates/default." ++ arg)
                           Right t -> UTF8.hPutStr stdout t
                           Left e  -> E.throwIO e
                      exitSuccess)
