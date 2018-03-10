@@ -756,6 +756,7 @@ inlineList = [ whitespace
              , subscriptTag
              , strikeoutTag
              , verbatimTag
+             , classTag
              , nbsp
              , link
              , code
@@ -857,6 +858,13 @@ strikeoutTag = inlineTag B.strikeout "del"
 
 verbatimTag :: PandocMonad m => MuseParser m (F Inlines)
 verbatimTag = return . B.text . snd <$> htmlElement "verbatim"
+
+classTag :: PandocMonad m => MuseParser m (F Inlines)
+classTag = do
+  (TagOpen _ attrs, _) <- htmlTag (~== TagOpen "class" [])
+  res <- manyTill inline (void $ htmlTag (~== TagClose "class"))
+  let classes = maybe [] words $ lookup "name" attrs
+  return $ B.spanWith ("", classes, []) <$> mconcat res
 
 nbsp :: PandocMonad m => MuseParser m (F Inlines)
 nbsp = try $ do

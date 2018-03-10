@@ -173,6 +173,9 @@ tests =
 
       , "Verbatim tag after text" =: "Foo <verbatim>bar</verbatim>" =?> para "Foo bar"
 
+      , "Class tag" =: "<class name=\"foo\">bar</class>" =?> para (spanWith ("", ["foo"], []) "bar")
+      , "Class tag without name" =: "<class>foobar</class>" =?> para (spanWith ("", [], []) "foobar")
+
       -- <em> tag should match with the last </em> tag, not verbatim one
       , "Nested \"</em>\" inside em tag" =: "<em>foo<verbatim></em></verbatim>bar</em>" =?> para (emph ("foo</em>bar"))
 
