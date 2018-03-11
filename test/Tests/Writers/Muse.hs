@@ -380,8 +380,12 @@ tests = [ testGroup "block elements"
                                , ""
                                , "[1] Foo"
                                ]
-          , "span" =: spanWith ("",["foobar"],[]) (str "Some text")
+          , "span with class" =: spanWith ("",["foobar"],[]) (text "Some text")
                    =?> "<class name=\"foobar\">Some text</class>"
+          , "span with anchor" =: spanWith ("anchor", [], []) (text "Foo bar")
+                               =?> "#anchor Foo bar"
+          , "span with class and anchor" =: spanWith ("anchor", ["foo"], []) (text "bar")
+                                         =?> "#anchor <class name=\"foo\">bar</class>"
           , testGroup "combined"
             [ "emph word before" =:
                 para (text "foo" <> emph (text "bar")) =?>

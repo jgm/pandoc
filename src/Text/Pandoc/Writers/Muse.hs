@@ -424,7 +424,11 @@ inlineToMuse (Note contents) = do
   modify $ \st -> st { stNotes = contents:notes }
   let ref = show $ length notes + 1
   return $ "[" <> text ref <> "]"
-inlineToMuse (Span (_,name:_,_) inlines) = do
+inlineToMuse (Span (anchor,names,_) inlines) = do
   contents <- inlineListToMuse inlines
-  return $ "<class name=\"" <> text name <> "\">" <> contents <> "</class>"
-inlineToMuse (Span _ lst) = inlineListToMuse lst
+  let anchorDoc = if null anchor
+                     then mempty
+                     else text ('#':anchor) <> space
+  return $ anchorDoc <> if null names
+                           then contents
+                           else "<class name=\"" <> text (head names) <> "\">" <> contents <> "</class>"
