@@ -479,7 +479,11 @@ inlineToDokuWiki _ il@(RawInline f str)
   | f == Format "html"     = return $ "<html>" ++ str ++ "</html>"
   | otherwise              = "" <$ report (InlineNotRendered il)
 
-inlineToDokuWiki _ LineBreak = return "\\\\\n"
+inlineToDokuWiki _ LineBreak = do
+  backSlash <- stBackSlashLB <$> ask
+  return $ if backSlash
+           then "\n"
+           else "\\\\\n"
 
 inlineToDokuWiki opts SoftBreak =
   case writerWrapText opts of
