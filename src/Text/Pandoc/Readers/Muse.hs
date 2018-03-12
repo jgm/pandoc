@@ -169,9 +169,10 @@ parseHtmlContent :: PandocMonad m
                  => String -> MuseParser m (Attr, F Blocks)
 parseHtmlContent tag = try $ do
   many spaceChar
+  pos <- getPosition
   (TagOpen _ attr, _) <- htmlTag (~== TagOpen tag [])
   manyTill spaceChar eol
-  content <- parseBlocksTill (try $ manyTill spaceChar endtag)
+  content <- parseBlocksTill (try $ ((count (sourceColumn pos - 1) spaceChar) >> endtag))
   manyTill spaceChar eol -- closing tag must be followed by optional whitespace and newline
   return (htmlAttrToPandoc attr, content)
   where

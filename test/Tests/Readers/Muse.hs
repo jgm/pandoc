@@ -1242,5 +1242,23 @@ tests =
           , "   </verse>"
           ] =?>
         bulletList [ para "<quote>" <> lineBlock [ "</quote>" ] ]
+
+      -- Allowing indented closing tags is dangerous,
+      -- as they may terminate lists
+      , "No indented closing tags" =:
+        T.unlines
+          [ "<quote>"
+          , ""
+          , " - Foo"
+          , ""
+          , "   </quote>"
+          , ""
+          , "   bar"
+          , ""
+          , "   <verse>"
+          , "   </quote>"
+          , "   </verse>"
+          ] =?>
+        para "<quote>" <> bulletList [ para "Foo" <> para "</quote>" <> para "bar" <> lineBlock [ "</quote>" ] ]
       ]
   ]
