@@ -1,3 +1,4 @@
+image: Visual Studio 2013
 clone_folder: "c:\\pandoc"
 environment:
   global:
