@@ -243,10 +243,10 @@ directive = do
 parseBlocks :: PandocMonad m
             => MuseParser m (F Blocks)
 parseBlocks =
-  try parseEnd <|>
-  try blockStart <|>
-  try listStart <|>
-  try paraStart
+  try (parseEnd <|>
+       blockStart <|>
+       listStart <|>
+       paraStart)
   where
     parseEnd = mempty <$ eof
     blockStart = do first <- header <|> blockElements <|> emacsNoteBlock
