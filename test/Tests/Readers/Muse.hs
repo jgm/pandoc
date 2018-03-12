@@ -1224,5 +1224,23 @@ tests =
           , "</quote>"
           ] =?>
         blockQuote (bulletList [ blockQuote $ para "foo" ] <> para "bar")
+
+      , "Unclosed quote tag" =:
+        T.unlines
+          [ "<quote>"
+          , "<verse>"
+          , "</quote>"
+          , "</verse>"
+          ] =?>
+        para "<quote>" <> lineBlock [ "</quote>" ]
+
+      , "Unclosed quote tag inside list" =:
+        T.unlines
+          [ " - <quote>"
+          , "   <verse>"
+          , "   </quote>"
+          , "   </verse>"
+          ] =?>
+        bulletList [ para "<quote>" <> lineBlock [ "</quote>" ] ]
       ]
   ]

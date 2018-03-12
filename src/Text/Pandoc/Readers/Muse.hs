@@ -265,10 +265,10 @@ parseBlocksTill :: PandocMonad m
                 => MuseParser m a
                 -> MuseParser m (F Blocks)
 parseBlocksTill end =
-  try parseEnd <|>
-  try blockStart <|>
-  try listStart <|>
-  try paraStart
+  try (parseEnd <|>
+       blockStart <|>
+       listStart <|>
+       paraStart)
   where
     parseEnd = mempty <$ end
     blockStart = do first <- blockElements
