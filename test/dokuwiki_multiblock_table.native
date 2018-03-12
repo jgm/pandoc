@@ -10,4 +10,9 @@
   ,[Para [Str "$2.10"]]
   ,[BulletList
     [[Plain [Str "cures",Space,Str "scurvy"]]
-    ,[Plain [Str "tasty"]]]]]]]
+    ,[Plain [Str "tasty"]]]]]
+ ,[[Para [Str "Apples"]]
+  ,[Para [Str "$1.10"]]
+  ,[Para [Str "Some",Space,Str "text",LineBreak,LineBreak,Str "after",Space,Str "two",Space,Str "linebreaks"] 
+    ]]
+ ]]
