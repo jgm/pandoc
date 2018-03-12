@@ -122,7 +122,6 @@ data DState = DState { docxAnchorMap :: M.Map String String
                      , docxImmedPrevAnchor :: Maybe String
                      , docxMediaBag  :: MediaBag
                      , docxDropCap   :: Inlines
-                     , docxWarnings  :: [String]
                      -- keep track of (numId, lvl) values for
                      -- restarting
                      , docxListState :: M.Map (String, String) Integer
@@ -135,7 +134,6 @@ instance Default DState where
                , docxImmedPrevAnchor = Nothing
                , docxMediaBag  = mempty
                , docxDropCap   = mempty
-               , docxWarnings  = []
                , docxListState = M.empty
                , docxPrevPara  = mempty
                }
