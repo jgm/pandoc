@@ -460,8 +460,6 @@ parPartToInlines' (ExternalHyperLink target runs) = do
   return $ link target "" ils
 parPartToInlines' (PlainOMath exps) =
   return $ math $ writeTeX exps
-parPartToInlines' (SmartTag runs) =
-  smushInlines <$> mapM runToInlines runs
 parPartToInlines' (Field info runs) =
   case info of
     HyperlinkField url -> parPartToInlines' $ ExternalHyperLink url runs
