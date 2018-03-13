@@ -411,15 +411,15 @@ elementToBeamer slideLevel  (Sec lvl _num (ident,classes,kvs) tit elts)
       slideTitle <-
             if tit == [Str "\0"] -- marker for hrule
                then return []
-               else
-                 if null ident
-                    then return $ latex "{" : tit ++ [latex "}"]
-                    else do
-                      ref <- toLabel ident
-                      return $ latex ("{%\n\\protect\\hypertarget{" ++
-                                ref ++ "}{%\n") : tit ++ [latex "}}"]
+               else return $ latex "{" : tit ++ [latex "}"]
+      ref <- toLabel ident
+      let slideAnchor = if null ident
+                           then []
+                           else [latex ("\n\\protect\\hypertarget{" ++
+                                  ref ++ "}{}")]
       let slideStart = Para $
-              RawInline "latex" ("\\begin{frame}" ++ options) : slideTitle
+              RawInline "latex" ("\\begin{frame}" ++ options) :
+                 slideTitle ++ slideAnchor
       let slideEnd = RawBlock "latex" "\\end{frame}"
       -- now carve up slide into blocks if there are sections inside
       bs <- concat `fmap` mapM (elementToBeamer slideLevel) elts
