@@ -520,7 +520,7 @@ matchingElement :: (Monoid e)
 matchingElement ns name reader = (ns, name, asResultAccumulator reader)
   where
    asResultAccumulator :: (ArrowChoice a, Monoid m) => a m m -> a m (Fallible m)
-   asResultAccumulator a = liftAsSuccess $ keepingTheValue a >>% (<>)
+   asResultAccumulator a = liftAsSuccess $ keepingTheValue a >>% mappend
 
 --
 matchChildContent'   :: (Monoid result)
@@ -554,7 +554,7 @@ read_plain_text =  fst ^&&& read_plain_text' >>% recover
     read_plain_text' =      (     second ( arr extractText )
                               >>^ spreadChoice >>?! second text
                             )
-                       >>?% (<>)
+                       >>?% mappend
     --
     extractText     :: XML.Content -> Fallible String
     extractText (XML.Text cData) = succeedWith (XML.cdData cData)
@@ -565,7 +565,7 @@ read_text_seq  = matchingElement NsText "sequence"
                  $ matchChildContent [] read_plain_text
 
 
--- specifically. I honor that, although the current implementation of '(<>)'
+-- specifically. I honor that, although the current implementation of 'mappend'
 -- for 'Inlines' in "Text.Pandoc.Builder" will collapse them again.
 -- The rational is to be prepared for future modifications.
 read_spaces      :: InlineMatcher

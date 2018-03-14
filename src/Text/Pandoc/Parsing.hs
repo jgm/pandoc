@@ -1,3 +1,4 @@
+{-# LANGUAGE CPP                        #-}
 {-# LANGUAGE ExplicitForAll             #-}
 {-# LANGUAGE FlexibleContexts           #-}
 {-# LANGUAGE FlexibleInstances          #-}
@@ -202,7 +203,11 @@ import Data.Default
 import Data.List (intercalate, isSuffixOf, transpose)
 import qualified Data.Map as M
 import Data.Maybe (mapMaybe, fromMaybe)
+#if MIN_VERSION_base(4,9,0)
+import Data.Semigroup (Semigroup, (<>))
+#else
 import Data.Monoid ((<>))
+#endif
 import qualified Data.Set as Set
 import Data.Text (Text)
 import Text.HTML.TagSoup.Entity (lookupEntity)
@@ -250,10 +255,17 @@ returnF = return . return
 trimInlinesF :: Future s Inlines -> Future s Inlines
 trimInlinesF = liftM trimInlines
 
+#if MIN_VERSION_base(4,9,0)
+instance Semigroup a => Semigroup (Future s a) where
+  (<>) = liftM2 (<>)
+instance (Semigroup a, Monoid a) => Monoid (Future s a) where
+  mempty = return mempty
+  mappend = (<>)
+#else
 instance Monoid a => Monoid (Future s a) where
   mempty = return mempty
   mappend = liftM2 mappend
-  mconcat = liftM mconcat . sequence
+#endif
 
 -- | Parse characters while a predicate is true.
 takeWhileP :: Monad m
@@ -1437,7 +1449,7 @@ token pp pos match = tokenPrim pp (\_ t _ -> pos t) match
 
 infixr 5 <+?>
 (<+?>) :: (Monoid a) => ParserT s st m a -> ParserT s st m a -> ParserT s st m a
-a <+?> b = a >>= flip fmap (try b <|> return mempty) . (<>)
+a <+?> b = a >>= flip fmap (try b <|> return mempty) . mappend
 
 extractIdClass :: Attr -> Attr
 extractIdClass (ident, cls, kvs) = (ident', cls', kvs')
