@@ -576,9 +576,9 @@ Left brace: {
 
 Right brace: }
 
-Left bracket: <verbatim>[</verbatim>
+Left bracket: [
 
-Right bracket: <verbatim>]</verbatim>
+Right bracket: ]
 
 Left paren: (
 
@@ -634,7 +634,7 @@ Indented [[/url][twice]].
 
 Indented [[/url][thrice]].
 
-This should <verbatim>[not][]</verbatim> be a link.
+This should [not][] be a link.
 
 <example>
 [not]: /url
@@ -690,8 +690,8 @@ Here is a movie [[movie.jpg][movie]] icon.
 * Footnotes
 
 Here is a footnote reference,[1] and another.[2] This should <em>not</em> be a
-footnote reference, because it contains a <verbatim>space.[^my</verbatim>
-<verbatim>note]</verbatim> Here is an inline note.[3]
+footnote reference, because it contains a space.[^my note] Here is an inline
+note.[3]
 
 <quote>
 Notes can go in quotes.[4]
@@ -718,7 +718,7 @@ This paragraph should not be part of the note, as it is not indented.
 
 [3] This is <em>easier</em> to type. Inline notes may contain
     [[http://google.com][links]] and <code>]</code> verbatim characters, as
-    well as <verbatim>[bracketed</verbatim> <verbatim>text].</verbatim>
+    well as [bracketed text].
 
 [4] In quote.
 

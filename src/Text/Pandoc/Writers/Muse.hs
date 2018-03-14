@@ -67,11 +67,12 @@ type Notes = [[Block]]
 type Muse m = ReaderT WriterEnv (StateT WriterState m)
 
 data WriterEnv =
-  WriterEnv { envOptions     :: WriterOptions
-            , envTopLevel    :: Bool
+  WriterEnv { envOptions :: WriterOptions
+            , envTopLevel :: Bool
             , envInsideBlock :: Bool
             , envInlineStart :: Bool
-            , envAfterSpace  :: Bool
+            , envInsideLinkDescription :: Bool -- Escape ] if True
+            , envAfterSpace :: Bool
             }
 
 data WriterState =
@@ -98,6 +99,7 @@ writeMuse opts document =
                         , envTopLevel = True
                         , envInsideBlock = False
                         , envInlineStart = True
+                        , envInsideLinkDescription = False
                         , envAfterSpace = True
                         }
 
@@ -304,12 +306,31 @@ startsWithMarker f (x:xs) =
 startsWithMarker _ [] = False
 
 -- | Escape special characters for Muse if needed.
-conditionalEscapeString :: String -> String
-conditionalEscapeString s =
-  if any (`elem` ("#*<=>[]|" :: String)) s ||
+containsFootnotes :: String -> Bool
+containsFootnotes st =
+  p st
+  where p ('[':xs) = q xs || p xs
+        p (_:xs) = p xs
+        p "" = False
+        q (x:xs)
+          | (x `elem` ("123456789"::String)) = r xs || p xs
+          | otherwise = p xs
+        q [] = False
+        r ('0':xs) = r xs || p xs
+        r (xs) = s xs || q xs || p xs
+        s (']':_) = True
+        s (_:xs) = p xs
+        s [] = False
+
+conditionalEscapeString :: Bool -> String -> String
+conditionalEscapeString isInsideLinkDescription s =
+  if any (`elem` ("#*<=>|" :: String)) s ||
      "::" `isInfixOf` s ||
      "----" `isInfixOf` s ||
-     "~~" `isInfixOf` s
+     "~~" `isInfixOf` s ||
+     "[[" `isInfixOf` s ||
+     ("]" `isInfixOf` s && isInsideLinkDescription) ||
+     containsFootnotes s
     then escapeString s
     else s
 
@@ -428,7 +449,9 @@ inlineListToMuse = inlineListToMuse'' False
 inlineToMuse :: PandocMonad m
              => Inline
              -> Muse m Doc
-inlineToMuse (Str str) = return $ text $ conditionalEscapeString str
+inlineToMuse (Str str) = do
+  insideLink <- asks envInsideLinkDescription
+  return $ text $ conditionalEscapeString insideLink str
 inlineToMuse (Emph lst) = do
   contents <- inlineListToMuse lst
   return $ "<em>" <> contents <> "</em>"
@@ -469,7 +492,7 @@ inlineToMuse (Link _ txt (src, _)) =
   case txt of
         [Str x] | escapeURI x == src ->
              return $ "[[" <> text (escapeLink x) <> "]]"
-        _ -> do contents <- inlineListToMuse txt
+        _ -> do contents <- local (\env -> env { envInsideLinkDescription = True }) $ inlineListToMuse txt
                 return $ "[[" <> text (escapeLink src) <> "][" <> contents <> "]]"
   where escapeLink lnk = if isImageUrl lnk then "URL:" ++ urlEscapeBrackets lnk else urlEscapeBrackets lnk
         -- Taken from muse-image-regexp defined in Emacs Muse file lisp/muse-regexps.el
@@ -479,7 +502,7 @@ inlineToMuse (Image attr alt (source,'f':'i':'g':':':title)) =
   inlineToMuse (Image attr alt (source,title))
 inlineToMuse (Image attr inlines (source, title)) = do
   opts <- asks envOptions
-  alt <- inlineListToMuse inlines
+  alt <- local (\env -> env { envInsideLinkDescription = True }) $ inlineListToMuse inlines
   let title' = if null title
                   then if null inlines
                           then ""
@@ -489,7 +512,7 @@ inlineToMuse (Image attr inlines (source, title)) = do
                 Just (Percent x) | isEnabled Ext_amuse opts -> " " ++ show (round x :: Integer)
                 _ -> ""
   return $ "[[" <> text (urlEscapeBrackets source ++ width) <> "]" <> title' <> "]"
-  where escape s = if "]" `isInfixOf` s then escapeString s else conditionalEscapeString s
+  where escape s = if "]" `isInfixOf` s then escapeString s else conditionalEscapeString True s
 inlineToMuse (Note contents) = do
   -- add to notes in state
   notes <- gets stNotes
