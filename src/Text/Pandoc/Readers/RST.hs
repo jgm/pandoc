@@ -80,7 +80,7 @@ type RSTParser m = ParserT [Char] ParserState m
 ---
 
 bulletListMarkers :: [Char]
-bulletListMarkers = "*+-"
+bulletListMarkers = "*+-•‣⁃"
 
 underlineChars :: [Char]
 underlineChars = "!\"#$%&'()*+,-./:;<=>?@[\\]^_`{|}~"
