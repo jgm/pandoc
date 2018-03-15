@@ -205,8 +205,6 @@ import qualified Data.Map as M
 import Data.Maybe (mapMaybe, fromMaybe)
 #if MIN_VERSION_base(4,9,0)
 import Data.Semigroup (Semigroup, (<>))
-#else
-import Data.Monoid ((<>))
 #endif
 import qualified Data.Set as Set
 import Data.Text (Text)
