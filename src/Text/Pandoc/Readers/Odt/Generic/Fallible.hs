@@ -39,8 +39,6 @@ compatible instances of "ArrowChoice".
 -- We export everything
 module Text.Pandoc.Readers.Odt.Generic.Fallible where
 
-import Data.Monoid ((<>))
-
 -- | Default for now. Will probably become a class at some point.
 type Failure = ()
 
@@ -90,7 +88,7 @@ collapseEither (Right (Right x)) = Right x
 -- (possibly combined) non-error. If both values represent an error, an error
 -- is returned.
 chooseMax :: (Monoid a, Monoid b) => Either a b -> Either a b -> Either a b
-chooseMax = chooseMaxWith (<>)
+chooseMax = chooseMaxWith mappend
 
 -- | If either of the values represents a non-error, the result is a
 -- (possibly combined) non-error. If both values represent an error, an error
@@ -100,7 +98,7 @@ chooseMaxWith :: (Monoid a) => (b -> b -> b)
                             -> Either a b
                             -> Either a b
 chooseMaxWith (><) (Right a) (Right b) = Right $ a >< b
-chooseMaxWith  _   (Left  a) (Left  b) = Left  $ a <> b
+chooseMaxWith  _   (Left  a) (Left  b) = Left  $ a `mappend` b
 chooseMaxWith  _   (Right a)     _     = Right a
 chooseMaxWith  _       _     (Right b) = Right b
 

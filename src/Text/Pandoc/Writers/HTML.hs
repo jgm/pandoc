@@ -49,7 +49,6 @@ import Control.Monad.State.Strict
 import Data.Char (ord, toLower)
 import Data.List (intercalate, intersperse, isPrefixOf, partition)
 import Data.Maybe (catMaybes, fromMaybe, isJust, isNothing)
-import Data.Monoid ((<>))
 import qualified Data.Set as Set
 import Data.String (fromString)
 import Data.Text (Text)

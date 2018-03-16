@@ -17,7 +17,6 @@ module Text.Pandoc.Readers.Haddock
 import Control.Monad.Except (throwError)
 import Data.List (intersperse, stripPrefix)
 import Data.Maybe (fromMaybe)
-import Data.Monoid ((<>))
 import Data.Text (Text, unpack)
 import Documentation.Haddock.Parser
 import Documentation.Haddock.Types

@@ -81,11 +81,7 @@ data Term =
   deriving (Show, Eq, Ord, Generic, Enum, Read)
 
 newtype Translations = Translations (M.Map Term String)
-#if MIN_VERSION_base(4,9,0)
         deriving (Show, Generic, Semigroup, Monoid)
-#else
-        deriving (Show, Generic, Monoid)
-#endif
 
 instance FromJSON Term where
   parseJSON (String t) = case safeRead (T.unpack t) of

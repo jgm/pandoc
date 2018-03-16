@@ -182,7 +182,6 @@ data Styles           = Styles
   deriving ( Show )
 
 -- Styles from a monoid under union
-#if MIN_VERSION_base(4,9,0)
 instance Semigroup Styles where
   (Styles sBn1 dSm1 lsBn1) <> (Styles sBn2 dSm2 lsBn2)
           = Styles (M.union sBn1  sBn2)
@@ -191,15 +190,6 @@ instance Semigroup Styles where
 instance Monoid Styles where
   mempty  = Styles M.empty M.empty M.empty
   mappend = (<>)
-#else
-instance Monoid Styles where
-  mempty  = Styles M.empty M.empty M.empty
-  mappend  (Styles sBn1 dSm1 lsBn1)
-           (Styles sBn2 dSm2 lsBn2)
-          = Styles (M.union sBn1  sBn2)
-                   (M.union dSm1  dSm2)
-                   (M.union lsBn1 lsBn2)
-#endif
 
 -- Not all families from the specifications are implemented, only those we need.
 -- But there are none that are not mentioned here.

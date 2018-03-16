@@ -60,17 +60,11 @@ import Text.Parsec
 newtype Extensions = Extensions Integer
   deriving (Show, Read, Eq, Ord, Data, Typeable, Generic, ToJSON, FromJSON)
 
-#if MIN_VERSION_base(4,9,0)
 instance Semigroup Extensions where
   (Extensions a) <> (Extensions b) = Extensions (a .|. b)
 instance Monoid Extensions where
   mempty = Extensions 0
   mappend = (<>)
-#else
-instance Monoid Extensions where
-  mempty = Extensions 0
-  mappend (Extensions a) (Extensions b) = Extensions (a .|. b)
-#endif
 
 extensionsFromList :: [Extension] -> Extensions
 extensionsFromList = foldr enableExtension emptyExtensions

@@ -55,7 +55,6 @@ import Data.Char (isAlphaNum, isSpace)
 import Data.List (intersperse)
 import qualified Data.Map as M
 import Data.Maybe (fromMaybe)
-import Data.Monoid
 import Data.Traversable (sequence)
 import Prelude hiding (sequence)
 

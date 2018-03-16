@@ -51,11 +51,7 @@ import Text.Pandoc.MIME (MimeType, getMimeTypeDef)
 -- can be used for an empty 'MediaBag', and '<>' can be used to append
 -- two 'MediaBag's.
 newtype MediaBag = MediaBag (M.Map [String] (MimeType, BL.ByteString))
-#if MIN_VERSION_base(4,9,0)
         deriving (Semigroup, Monoid, Data, Typeable)
-#else
-        deriving (Monoid, Data, Typeable)
-#endif
 
 instance Show MediaBag where
   show bag = "MediaBag " ++ show (mediaDirectory bag)

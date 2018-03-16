@@ -45,7 +45,6 @@ import qualified Data.Foldable as F
 import Data.List (intercalate, intersperse, isPrefixOf)
 import qualified Data.Map as M
 import Data.Maybe (fromMaybe, maybeToList)
-import Data.Monoid ((<>))
 import Data.Sequence (ViewL (..), viewl, (<|))
 import qualified Data.Set as Set
 import Data.Text (Text, unpack)
