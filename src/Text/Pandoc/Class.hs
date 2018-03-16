@@ -923,7 +923,11 @@ data FileInfo = FileInfo { infoFileMTime :: UTCTime
                          }
 
 newtype FileTree = FileTree {unFileTree :: M.Map FilePath FileInfo}
+#if MIN_VERSION_base(4,9,0)
+  deriving (Semigroup, Monoid)
+#else
   deriving (Monoid)
+#endif
 
 getFileInfo :: FilePath -> FileTree -> Maybe FileInfo
 getFileInfo fp tree =
