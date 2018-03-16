@@ -112,7 +112,11 @@ data D = Text Int String
        deriving (Show, Eq)
 
 newtype Doc = Doc { unDoc :: Seq D }
+#if MIN_VERSION_base(4,9,0)
+              deriving (Semigroup, Monoid, Show, Eq)
+#else
               deriving (Monoid, Show, Eq)
+#endif
 
 instance IsString Doc where
   fromString = text
