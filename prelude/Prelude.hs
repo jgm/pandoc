@@ -7,11 +7,6 @@ module Prelude
 , Monoid(..)
 , Semigroup(..)
 , Applicative(..)
-#if MIN_VERSION_base(4,9,0)
--- <> is exported in Semigroup
-#else
-, (<>)
-#endif
 )
 where
 
