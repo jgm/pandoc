@@ -147,7 +147,9 @@ docHToInlines isCode d' =
     DocAName s -> B.spanWith (s,["anchor"],[]) mempty
     DocProperty _ -> mempty
     DocExamples _ -> mempty
+#if MIN_VERSION_haddock_library(1,5,0)
     DocTable _ -> mempty
+#endif
 
 -- | Create an 'Example', stripping superfluous characters as appropriate
 makeExample :: String -> String -> [String] -> Blocks
