@@ -19,7 +19,7 @@ import Data.List (intersperse, stripPrefix)
 import Data.Maybe (fromMaybe)
 import Data.Text (Text, unpack)
 import Documentation.Haddock.Parser
-import Documentation.Haddock.Types
+import Documentation.Haddock.Types as H
 import Text.Pandoc.Builder (Blocks, Inlines)
 import qualified Text.Pandoc.Builder as B
 import Text.Pandoc.Class (PandocMonad)
@@ -85,6 +85,18 @@ docHToBlocks d' =
     DocProperty s -> B.codeBlockWith ("",["property","haskell"],[]) (trim s)
     DocExamples es -> mconcat $ map (\e ->
        makeExample ">>>" (exampleExpression e) (exampleResult e)) es
+    DocTable H.Table{ tableHeaderRows = headerRows
+                    , tableBodyRows = bodyRows
+                    }
+      -> let toCells = map (docHToBlocks . tableCellContents) . tableRowCells
+             (header, body) =
+               if null headerRows
+                  then ([], map toCells bodyRows)
+                  else (toCells (head headerRows),
+                        map toCells (tail headerRows ++ bodyRows))
+             colspecs = replicate (maximum (map length body))
+                             (AlignDefault, 0.0)
+         in  B.table mempty colspecs header body
 
   where inlineFallback = B.plain $ docHToInlines False d'
         consolidatePlains = B.fromList . consolidatePlains' . B.toList
@@ -133,6 +145,7 @@ docHToInlines isCode d' =
     DocAName s -> B.spanWith (s,["anchor"],[]) mempty
     DocProperty _ -> mempty
     DocExamples _ -> mempty
+    DocTable _ -> mempty
 
 -- | Create an 'Example', stripping superfluous characters as appropriate
 makeExample :: String -> String -> [String] -> Blocks
