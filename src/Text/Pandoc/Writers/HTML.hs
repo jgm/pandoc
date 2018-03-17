@@ -276,17 +276,15 @@ pandocToHtml opts (Pandoc meta blocks) = do
                          H.script ! A.src (toValue url)
                                   ! A.type_ "text/javascript"
                                   $ mempty
-                      KaTeX url ->
-                         (H.script !
-                           A.src (toValue $ url ++ "katex.min.js") $ mempty) <>
-                         (H.script !
-                           A.src (toValue $ url ++ "contrib/auto-render.min.js")
-                             $ mempty) <>
-                         (
-                                  H.script
-                            "document.addEventListener(\"DOMContentLoaded\", function() {\n  renderMathInElement(document.body);\n});") <>
-                         (H.link ! A.rel "stylesheet" !
-                           A.href (toValue $ url ++ "katex.min.css"))
+                      KaTeX url -> do
+                         H.script !
+                           A.src (toValue $ url ++ "katex.min.js") $ mempty
+                         H.script !
+                           A.src (toValue $ url ++ "contrib/auto-render.min.js") $ mempty
+                         H.script
+                            "document.addEventListener(\"DOMContentLoaded\", function() {\n  renderMathInElement(document.body);\n});"
+                         H.link ! A.rel "stylesheet" !
+                           A.href (toValue $ url ++ "katex.min.css")
 
                       _ -> case lookup "mathml-script" (writerVariables opts) of
                                  Just s | not (stHtml5 st) ->
@@ -961,8 +959,9 @@ inlineToHtml opts inline = do
                                      WrapNone     -> preEscapedString " "
                                      WrapAuto     -> preEscapedString " "
                                      WrapPreserve -> preEscapedString "\n"
-    LineBreak      -> return $ (if html5 then H5.br else H.br)
-                                 <> strToHtml "\n"
+    LineBreak      -> return $ do
+                        if html5 then H5.br else H.br
+                        strToHtml "\n"
     (Span (id',classes,kvs) ils)
                      -> inlineListToHtml opts ils >>=
                            addAttrs opts attr' . H.span
