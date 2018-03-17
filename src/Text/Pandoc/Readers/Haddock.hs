@@ -85,6 +85,7 @@ docHToBlocks d' =
     DocProperty s -> B.codeBlockWith ("",["property","haskell"],[]) (trim s)
     DocExamples es -> mconcat $ map (\e ->
        makeExample ">>>" (exampleExpression e) (exampleResult e)) es
+#if MIN_VERSION_haddock_library(1,5,0)
     DocTable H.Table{ tableHeaderRows = headerRows
                     , tableBodyRows = bodyRows
                     }
@@ -97,6 +98,7 @@ docHToBlocks d' =
              colspecs = replicate (maximum (map length body))
                              (AlignDefault, 0.0)
          in  B.table mempty colspecs header body
+#endif
 
   where inlineFallback = B.plain $ docHToInlines False d'
         consolidatePlains = B.fromList . consolidatePlains' . B.toList
