@@ -38,7 +38,6 @@ $endif$
 $if(pagenumbering)$
 \setuppagenumbering[$for(pagenumbering)$$pagenumbering$$sep$,$endfor$]
 $endif$
-
 $if(pdfa)$
 % attempt to generate PDF/A
 \setupbackend
