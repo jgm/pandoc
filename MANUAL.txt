@@ -1624,12 +1624,22 @@ Variables for ConTeXt
 `lof`, `lot`
 :   include list of figures, list of tables
 
+`pdfa`
+:   adds to the preamble the setup necessary to generate PDF/A-1b:2005.
+    To successfully generate PDF/A the required ICC color profiles have to
+    be available and the content and all included files (such as images)
+    have to be standard conforming.  The ICC profiles can be obtained
+    from [ConTeXt ICC Profiles].  See also [ConTeXt PDFA] for more
+    details.
+
 [ConTeXt Paper Setup]: http://wiki.contextgarden.net/PaperSetup
 [ConTeXt Layout]: http://wiki.contextgarden.net/Layout
 [ConTeXt Font Switching]: http://wiki.contextgarden.net/Font_Switching
 [ConTeXt Color]: http://wiki.contextgarden.net/Color
 [ConTeXt Headers and Footers]: http://wiki.contextgarden.net/Headers_and_Footers
 [ConTeXt Indentation]: http://wiki.contextgarden.net/Indentation
+[ConTeXt ICC Profiles]: http://wiki.contextgarden.net/PDFX#ICC_profiles
+[ConTeXt PDFA]: http://wiki.contextgarden.net/PDF/A
 [`setupwhitespace`]: http://wiki.contextgarden.net/Command/setupwhitespace
 [`setupinterlinespace`]: http://wiki.contextgarden.net/Command/setupinterlinespace
 [`setuppagenumbering`]: http://wiki.contextgarden.net/Command/setuppagenumbering
