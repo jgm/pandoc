@@ -51,7 +51,6 @@ import Data.Char (isSpace, toLower, toUpper)
 import Data.Default (Default)
 import Data.List (foldl', isPrefixOf)
 import Data.Maybe (fromMaybe, isJust, isNothing)
-import Data.Monoid ((<>))
 
 import qualified Text.Pandoc.Builder as B
 import qualified Text.Pandoc.Walk as Walk

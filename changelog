@@ -1,3 +1,94 @@
+pandoc (2.1.3)
+
+  * Docx reader (Jesse Rosenthal):
+
+    + Add tests for nested smart tags.
+    + Parse nested smart tags.
+    + Make unwrapSDT into a general `unwrap` function that can unwrap both
+      nested SDT tags and smartTags. This makes the SmartTags constructor in
+      the Docx type unnecessary, so we remove it (#4446).
+    + Remove unused `docxWarnings` (Alexander Krotov).
+
+  * RST reader: Allow unicode bullet characters (#4454).
+
+  * Haddock reader:  Better table handling, using haddock-library's
+    new table support, if compiled against a version that
+    includes it.  Note that tables with col/rowspans will not
+    translate well into Pandoc.
+
+  * Muse reader (Alexander Krotov):
+
+    + Various internal improvements.
+    + Require closing tag to have the same indentation as opening.
+    + Do not reparse blocks inside unclosed block tag (#4425).
+    + Parse `<class>` tag (supported by Emacs Muse).
+    + Do not produce empty Str element for unindented verse lines.
+
+  * Haddock writer:  In the writer, we now render tables always as
+    grid tables, since Haddock supports these.
+
+  * DokuWiki writer: rewrite backSlashLineBreaks (#4445, Mauro Bieg).
+
+  * Docx writer: Fixed formatting of `DefaultStyle` ordered lists in
+    docx writer.  We want decimal for the top level, not lower roman.
+
+  * Muse writer (Alexander Krotov):
+
+    + Support spans with anchors.
+    + Replace smallcaps with emphasis before normalization.
+    + Output smallcaps as emphasis.
+    + Expand Cite before list normalization.
+    + Write empty inline lists as `<verbatim></verbatim>`.
+    + Remove empty Str from the beginning of inline lists during normalization.
+    + Escape "-" to avoid creating bullet lists.
+    + Fix math expansion for more than one expression per paragraph.
+    + Expand math before inline list normalization.
+
+  * Dokuwiki writer: fix LineBreaks in Tables (#4313, Mauro Bieg).
+
+  * Ms writer: asciify pdf anchors, since unicode anchors don't work (#4436).
+    Internal links should be converted automatically, so this shouldn't affect
+    users directly.
+
+  * Beamer writer: put hyperlink after `\begin{frame}` and not in the title
+    (#4307).  If it's in the title, then we get a titlebar on slides with
+    the `plain` attribute, when the id is non-null.  This fixes a regression
+    in 2.0.
+
+  * JATS writer: Remove extraneous, significant whitespace (#4335,
+    Nokome Bentley).
+
+  * html2pdf: inject base tag wih current working directory (#4413, Mauro
+    Bieg).  This helps ensure that linked resources are included.
+
+  * Add Semigroup instances for everything for which we defined a
+    Monoid instance previously (API change):
+
+    + Text.Pandoc.Class.FileTree.
+    + Text.Pandoc.Translations.Translations.
+    + Text.Pandoc.Extensions.Extensions.
+    + Text.Pandoc.Readers.Odt.StyleReader.Styles.
+    + Text.Pandoc.Pretty.Doc.
+    + Text.Pandoc.MediaBag.MediaBag.
+
+  * Add custom prelude to give clean code for Monoid and Semigroup
+    that works with GHC 7.10-8.4.
+
+  * Raise error if someone tries to print docx, odt, etc. template (#4441).
+
+  * Use latest pandoc-types, skylighting.
+
+  * Bump upper bound for time, criterion, haddock-library, exceptions,
+    http-types, aeson, haddock-library.
+
+  * Bump upper bound tasty-quickcheck 0.10 (#4429, Felix Yan).
+
+  * MANUAL: add instructions for background images reveal.js (#4325, John
+    Muccigrosso).
+
+  * appveyor: use VS 2013 environment instead of VS 2015 for Windows builds.
+
+
 pandoc (2.1.2)
 
   * Markdown reader:

@@ -378,7 +378,8 @@ blockListToRST :: PandocMonad m
 blockListToRST = blockListToRST' False
 
 transformInlines :: [Inline] -> [Inline]
-transformInlines =  insertBS . filter hasContents . removeSpaceAfterDisplayMath
+transformInlines =  removeLeadingTrailingSpace . insertBS
+                    . filter hasContents . removeSpaceAfterDisplayMath
   where -- empty inlines are not valid RST syntax
         hasContents :: Inline -> Bool
         hasContents (Str "")              = False

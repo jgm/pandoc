@@ -1,3 +1,4 @@
+{-# LANGUAGE CPP #-}
 {-
   Copyright (C) 2017-2018 Yuchen Pei <me@ypei.me>
 
@@ -68,7 +69,6 @@ import Control.Monad.Except (throwError)
 import Data.Default
 import Data.List (isInfixOf, isPrefixOf)
 import Data.Maybe
-import Data.Monoid ((<>))
 import Data.Text (Text, unpack)
 import Text.Pandoc.Builder (Blocks, Inlines, fromList, toList, trimInlines)
 import qualified Text.Pandoc.Builder as B (blockQuote, bulletList, code,

@@ -183,6 +183,10 @@ tests = [ testGroup "inlines"
             "docx/nested_sdt.docx"
             "docx/nested_sdt.native"
           , testCompare
+            "nested Smart Tags"
+            "docx/nested_smart_tags.docx"
+            "docx/nested_smart_tags.native"
+          , testCompare
             "remove anchor spans with nothing pointing to them"
             "docx/unused_anchors.docx"
             "docx/unused_anchors.native"

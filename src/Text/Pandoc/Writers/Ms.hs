@@ -37,7 +37,7 @@ TODO:
 
 module Text.Pandoc.Writers.Ms ( writeMs ) where
 import Control.Monad.State.Strict
-import Data.Char (isLower, isUpper, toUpper)
+import Data.Char (isLower, isUpper, toUpper, ord)
 import Data.List (intercalate, intersperse, sort)
 import qualified Data.Map as Map
 import Data.Maybe (catMaybes, fromMaybe)
@@ -46,6 +46,7 @@ import qualified Data.Text as T
 import Network.URI (escapeURIString, isAllowedInURI)
 import Skylighting
 import System.FilePath (takeExtension)
+import Text.Pandoc.Asciify (toAsciiChar)
 import Text.Pandoc.Class (PandocMonad, report)
 import Text.Pandoc.Definition
 import Text.Pandoc.Highlighting
@@ -266,7 +267,8 @@ blockToMs opts (Header level (ident,classes,_) inlines) = do
   let anchor = if null ident
                   then empty
                   else nowrap $
-                         text ".pdfhref M " <> doubleQuotes (text ident)
+                         text ".pdfhref M "
+                         <> doubleQuotes (text (toAscii ident))
   let bookmark = text ".pdfhref O " <> text (show level ++ " ") <>
                       doubleQuotes (text $ secnum ++
                                       (if null secnum
@@ -274,7 +276,7 @@ blockToMs opts (Header level (ident,classes,_) inlines) = do
                                           else "  ") ++
                                       escapeString (stringify inlines))
   let backlink = nowrap (text ".pdfhref L -D " <>
-       doubleQuotes (text ident) <> space <> text "\\") <> cr <>
+       doubleQuotes (text (toAscii ident)) <> space <> text "\\") <> cr <>
        text " -- "
   let tocEntry = if writerTableOfContents opts &&
                      level <= writerTOCDepth opts
@@ -513,7 +515,7 @@ inlineToMs opts (Link _ txt ('#':ident, _)) = do
   -- internal link
   contents <- inlineListToMs' opts $ map breakToSpace txt
   return $ text "\\c" <> cr <> nowrap (text ".pdfhref L -D " <>
-       doubleQuotes (text ident) <> text " -A " <>
+       doubleQuotes (text (toAscii ident)) <> text " -A " <>
        doubleQuotes (text "\\c") <> space <> text "\\") <> cr <>
        text " -- " <> doubleQuotes (nowrap contents) <> cr <> text "\\&"
 inlineToMs opts (Link _ txt (src, _)) = do
@@ -637,3 +639,8 @@ highlightCode opts attr str =
          Right h -> do
            modify (\st -> st{ stHighlighting = True })
            return h
+
+toAscii :: String -> String
+toAscii = concatMap (\c -> case toAsciiChar c of
+                                     Nothing -> 'u':show (ord c)
+                                     Just c' -> [c'])

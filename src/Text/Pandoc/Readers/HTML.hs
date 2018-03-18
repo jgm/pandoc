@@ -54,7 +54,7 @@ import Data.List (isPrefixOf)
 import Data.List.Split (wordsBy, splitWhen)
 import qualified Data.Map as M
 import Data.Maybe (fromMaybe, isJust, isNothing)
-import Data.Monoid (First (..), (<>))
+import Data.Monoid (First (..))
 import qualified Data.Set as Set
 import Data.Text (Text)
 import qualified Data.Text as T

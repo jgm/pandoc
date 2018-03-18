@@ -36,7 +36,6 @@ import Control.Arrow ((***))
 import Control.Monad (guard, void)
 import Data.Char (toLower, toUpper)
 import Data.List (intersperse)
-import Data.Monoid ((<>))
 import Text.Pandoc.Builder (Blocks, Inlines)
 import Text.Pandoc.Class (PandocMonad)
 import Text.Pandoc.Definition

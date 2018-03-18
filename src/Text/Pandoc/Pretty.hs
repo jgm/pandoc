@@ -82,7 +82,6 @@ import Control.Monad.State.Strict
 import Data.Char (isSpace)
 import Data.Foldable (toList)
 import Data.List (intersperse)
-import Data.Monoid ((<>))
 import Data.Sequence (Seq, ViewL (..), fromList, mapWithIndex, singleton, viewl,
                       (<|))
 import qualified Data.Sequence as Seq
@@ -112,7 +111,7 @@ data D = Text Int String
        deriving (Show, Eq)
 
 newtype Doc = Doc { unDoc :: Seq D }
-              deriving (Monoid, Show, Eq)
+              deriving (Semigroup, Monoid, Show, Eq)
 
 instance IsString Doc where
   fromString = text

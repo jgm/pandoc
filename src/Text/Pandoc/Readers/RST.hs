@@ -40,7 +40,6 @@ import Data.List (deleteFirstsBy, elemIndex, intercalate, isInfixOf, isSuffixOf,
                   nub, sort, transpose, union)
 import qualified Data.Map as M
 import Data.Maybe (fromMaybe, isJust)
-import Data.Monoid ((<>))
 import Data.Sequence (ViewR (..), viewr)
 import Data.Text (Text)
 import qualified Data.Text as T
@@ -80,7 +79,7 @@ type RSTParser m = ParserT [Char] ParserState m
 ---
 
 bulletListMarkers :: [Char]
-bulletListMarkers = "*+-"
+bulletListMarkers = "*+-•‣⁃"
 
 underlineChars :: [Char]
 underlineChars = "!\"#$%&'()*+,-./:;<=>?@[\\]^_`{|}~"

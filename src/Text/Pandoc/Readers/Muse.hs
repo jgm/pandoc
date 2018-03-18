@@ -169,9 +169,10 @@ parseHtmlContent :: PandocMonad m
                  => String -> MuseParser m (Attr, F Blocks)
 parseHtmlContent tag = try $ do
   many spaceChar
+  pos <- getPosition
   (TagOpen _ attr, _) <- htmlTag (~== TagOpen tag [])
   manyTill spaceChar eol
-  content <- parseBlocksTill (try $ manyTill spaceChar endtag)
+  content <- parseBlocksTill (try $ ((count (sourceColumn pos - 1) spaceChar) >> endtag))
   manyTill spaceChar eol -- closing tag must be followed by optional whitespace and newline
   return (htmlAttrToPandoc attr, content)
   where
@@ -242,10 +243,10 @@ directive = do
 parseBlocks :: PandocMonad m
             => MuseParser m (F Blocks)
 parseBlocks =
-  try parseEnd <|>
-  try blockStart <|>
-  try listStart <|>
-  try paraStart
+  try (parseEnd <|>
+       blockStart <|>
+       listStart <|>
+       paraStart)
   where
     parseEnd = mempty <$ eof
     blockStart = do first <- header <|> blockElements <|> emacsNoteBlock
@@ -265,10 +266,10 @@ parseBlocksTill :: PandocMonad m
                 => MuseParser m a
                 -> MuseParser m (F Blocks)
 parseBlocksTill end =
-  try parseEnd <|>
-  try blockStart <|>
-  try listStart <|>
-  try paraStart
+  try (parseEnd <|>
+       blockStart <|>
+       listStart <|>
+       paraStart)
   where
     parseEnd = mempty <$ end
     blockStart = do first <- blockElements
@@ -756,6 +757,7 @@ inlineList = [ whitespace
              , subscriptTag
              , strikeoutTag
              , verbatimTag
+             , classTag
              , nbsp
              , link
              , code
@@ -857,6 +859,13 @@ strikeoutTag = inlineTag B.strikeout "del"
 
 verbatimTag :: PandocMonad m => MuseParser m (F Inlines)
 verbatimTag = return . B.text . snd <$> htmlElement "verbatim"
+
+classTag :: PandocMonad m => MuseParser m (F Inlines)
+classTag = do
+  (TagOpen _ attrs, _) <- htmlTag (~== TagOpen "class" [])
+  res <- manyTill inline (void $ htmlTag (~== TagClose "class"))
+  let classes = maybe [] words $ lookup "name" attrs
+  return $ B.spanWith ("", classes, []) <$> mconcat res
 
 nbsp :: PandocMonad m => MuseParser m (F Inlines)
 nbsp = try $ do
