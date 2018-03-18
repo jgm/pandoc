@@ -51,6 +51,7 @@
 - Eric Seidel
 - Felix Yan
 - Florian Eitel
+- Francesco Occhipinti
 - François Gannaz
 - Freiric Barral
 - Freirich Raabe

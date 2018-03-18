@@ -32,6 +32,14 @@ pandoc (2.1.3)
   * Docx writer: Fixed formatting of `DefaultStyle` ordered lists in
     docx writer.  We want decimal for the top level, not lower roman.
 
+  * RST writer:
+
+    + Strip whitespace at beginning and ending of inline containers
+      (#4327, Francesco Occhipinti).
+    + Filter out empty inline containers (#4434).  There is nothing in
+      RST that corresponds to e.g. `Emph []`, so we just ignore elements
+      like this (Francesco Occhipinti).
+
   * Muse writer (Alexander Krotov):
 
     + Support spans with anchors.
@@ -74,7 +82,21 @@ pandoc (2.1.3)
   * Add custom prelude to give clean code for Monoid and Semigroup
     that works with GHC 7.10-8.4.
 
+  * Text.Pandoc.Writers.Shared (Francesco Occhipinti):
+
+    + Export `stripLeadingTrailingSpace`.
+    + Don't wrap lines in grid tables when `--wrap=none` (#4320).
+    + `gridTable`: Don't wrap lines in tables when `--wrap=none`.  Instead,
+      expand cells, even if it results in cells that don't respect relative
+      widths or surpass page column width.  This change affects RST,
+      Markdown, and Haddock writers.
+
   * Raise error if someone tries to print docx, odt, etc. template (#4441).
+
+  * latex template: Provide `bidi` package's option using
+    `\PassOptionsToPackage`  (#4357, Václav Haisman).  This avoid a
+    clash when   `polyglossia` loads it first and then it is loaded again
+    for XeLaTeX.
 
   * Use latest pandoc-types, skylighting.
 
