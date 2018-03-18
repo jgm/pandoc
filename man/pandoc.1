@@ -1,5 +1,5 @@
 .\"t
-.TH PANDOC 1 "March 2, 2018" "pandoc 2.1.2"
+.TH PANDOC 1 "March 17, 2018" "pandoc 2.1.3"
 .SH NAME
 pandoc - general markup converter
 .SH SYNOPSIS
@@ -5420,6 +5420,49 @@ All of the other frame attributes described in Section 8.1 of the Beamer
 User\[aq]s Guide may also be used: \f[C]allowdisplaybreaks\f[],
 \f[C]allowframebreaks\f[], \f[C]b\f[], \f[C]c\f[], \f[C]t\f[],
 \f[C]environment\f[], \f[C]label\f[], \f[C]plain\f[], \f[C]shrink\f[].
+.SS Background in reveal.js
+.PP
+Background images can be added to self\-contained reveal.js slideshows.
+.PP
+For the same image on every slide, use the reveal.js configuration
+option \f[C]parallaxBackgroundImage\f[] either in the YAML metadata
+block or as a command\-line variable.
+You can also set \f[C]parallaxBackgroundHorizontal\f[] and
+\f[C]parallaxBackgroundVertical\f[] the same way and must also set
+\f[C]parallaxBackgroundSize\f[] to have your values take effect.
+.PP
+To set an image for a particular slide, add
+\f[C]{data\-background\-image="/path/to/image"}\f[] to the first
+slide\-level header on the slide (which may even be empty).
+.PP
+In reveal.js\[aq]s overview mode, the parallaxBackgroundImage will show
+up only on the first slide.
+.PP
+Other background settings also work on individual slides, including
+\f[C]data\-background\-size\f[], \f[C]data\-background\-repeat\f[],
+\f[C]data\-background\-color\f[], \f[C]data\-transition\f[], and
+\f[C]data\-transition\-speed\f[].
+.PP
+See the reveal.js documentation for more details.
+.PP
+For example:
+.IP
+.nf
+\f[C]
+\-\-\-
+title:\ My\ Slideshow
+parallaxBackgroundImage:\ /path/to/my/background_image.png
+\-\-\-
+
+##\ Slide\ One
+
+Slide\ 1\ has\ background_image.png\ as\ its\ background.
+
+##\ {data\-background\-image="/path/to/special_image.jpg"}
+
+Slide\ 2\ has\ a\ special\ image\ for\ its\ background,\ even\ though\ the\ header\ has\ no\ content.
+\f[]
+.fi
 .SH CREATING EPUBS WITH PANDOC
 .SS EPUB Metadata
 .PP
