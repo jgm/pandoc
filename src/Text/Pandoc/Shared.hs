@@ -127,7 +127,7 @@ import Text.HTML.TagSoup (RenderOptions (..), Tag (..), renderOptions,
                           renderTagsOptions)
 import Text.Pandoc.Builder (Blocks, Inlines, ToMetaValue (..))
 import qualified Text.Pandoc.Builder as B
-import Text.Pandoc.Compat.Time
+import Data.Time
 import Text.Pandoc.Definition
 import Text.Pandoc.Generic (bottomUp)
 import Text.Pandoc.Pretty (charWidth)
@@ -287,12 +287,7 @@ normalizeDate s = fmap (formatTime defaultTimeLocale "%F")
   where rejectBadYear day = case toGregorian day of
           (y, _, _) | y >= 1601 && y <= 9999 -> Just day
           _         -> Nothing
-        parsetimeWith =
-#if MIN_VERSION_time(1,5,0)
-             parseTimeM True defaultTimeLocale
-#else
-             parseTime defaultTimeLocale
-#endif
+        parsetimeWith = parseTimeM True defaultTimeLocale
         formats = ["%x","%m/%d/%Y", "%D","%F", "%d %b %Y",
                     "%e %B %Y", "%b. %e, %Y", "%B %e, %Y",
                     "%Y%m%d", "%Y%m", "%Y"]

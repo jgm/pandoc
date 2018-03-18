@@ -43,7 +43,7 @@ import Codec.Archive.Zip
 import Data.Char (toUpper)
 import Data.List (intercalate, stripPrefix, nub, union, isPrefixOf, intersperse)
 import Data.Default
-import Text.Pandoc.Compat.Time (formatTime, defaultTimeLocale)
+import Data.Time (formatTime, defaultTimeLocale)
 import Data.Time.Clock (UTCTime)
 import Data.Time.Clock.POSIX (utcTimeToPOSIXSeconds, posixSecondsToUTCTime)
 import System.FilePath.Posix (splitDirectories, splitExtension, takeExtension)

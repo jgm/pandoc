@@ -69,7 +69,7 @@ import Text.Pandoc.Slides (getSlideLevel)
 import Text.Pandoc.Options
 import Text.Pandoc.Logging
 import Text.Pandoc.Walk
-import Text.Pandoc.Compat.Time (UTCTime)
+import Data.Time (UTCTime)
 import qualified Text.Pandoc.Shared as Shared -- so we don't overlap "Element"
 import Text.Pandoc.Writers.Shared (metaValueToInlines)
 import qualified Data.Map as M

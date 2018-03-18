@@ -36,7 +36,7 @@ import Data.Text (Text, unpack)
 import qualified Data.Text as T
 import qualified Text.Pandoc.Builder as B
 import Text.Pandoc.Class (PandocMonad)
-import Text.Pandoc.Compat.Time
+import Data.Time
 import Text.Pandoc.Definition
 import Text.Pandoc.Error
 import Text.Pandoc.Options
@@ -77,12 +77,7 @@ showDateTimeRFC822 = formatTime defaultTimeLocale "%a, %d %b %Y %X %Z"
 
 convertDate :: [Inline] -> String
 convertDate ils = maybe "" showDateTimeRFC822 $
-#if MIN_VERSION_time(1,5,0)
-  parseTimeM True
-#else
-  parseTime
-#endif
-  defaultTimeLocale "%F" =<< normalizeDate (stringify ils)
+  parseTimeM True defaultTimeLocale "%F" =<< normalizeDate (stringify ils)
 
 -- | Convert an Element to OPML.
 elementToOPML :: PandocMonad m => WriterOptions -> Element -> m Doc

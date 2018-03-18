@@ -53,7 +53,7 @@ import System.Random (randomR, StdGen, mkStdGen)
 import Text.Pandoc.BCP47 (getLang, renderLang)
 import Text.Pandoc.Class (PandocMonad, report, toLang)
 import qualified Text.Pandoc.Class as P
-import Text.Pandoc.Compat.Time
+import Data.Time
 import Text.Pandoc.Definition
 import Text.Pandoc.Generic
 import Text.Pandoc.Highlighting (highlight)

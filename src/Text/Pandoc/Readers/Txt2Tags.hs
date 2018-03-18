@@ -47,7 +47,7 @@ import Text.Pandoc.Builder (Blocks, Inlines, trimInlines)
 import qualified Text.Pandoc.Builder as B
 import Text.Pandoc.Class (PandocMonad)
 import qualified Text.Pandoc.Class as P
-import Text.Pandoc.Compat.Time (defaultTimeLocale)
+import Data.Time (defaultTimeLocale)
 import Text.Pandoc.Definition
 import Text.Pandoc.Options
 import Text.Pandoc.Parsing hiding (space, spaces, uri)

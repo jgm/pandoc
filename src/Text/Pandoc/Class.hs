@@ -108,10 +108,10 @@ import Data.List (stripPrefix)
 import qualified Data.Unique as IO (newUnique)
 import qualified Text.Pandoc.UTF8 as UTF8
 import qualified System.Directory as Directory
-import Text.Pandoc.Compat.Time (UTCTime)
+import Data.Time (UTCTime)
 import Text.Pandoc.Logging
 import Text.Parsec (ParsecT, getPosition, sourceLine, sourceName)
-import qualified Text.Pandoc.Compat.Time as IO (getCurrentTime)
+import qualified Data.Time as IO (getCurrentTime)
 import Text.Pandoc.MIME (MimeType, getMimeType, extensionFromMimeType)
 import Text.Pandoc.Definition
 import Data.Digest.Pure.SHA (sha1, showDigest)
