@@ -13,7 +13,7 @@ flags:
 packages:
 - '.'
 extra-deps:
-- pandoc-citeproc-0.14.1.5
+- pandoc-citeproc-0.14.2
 - hslua-0.9.5
 - skylighting-0.7.0.2
 - skylighting-core-0.7.0.2
