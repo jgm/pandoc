@@ -184,6 +184,6 @@ tests = [ "line block with blank line" =:
             , ".. [1]"
             , "   bar"
             ] =?>
-              para ("foo" <> (note $ para "bar"))
+              para ("foo" <> note (para "bar"))
           ]
         ]

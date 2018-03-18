@@ -132,7 +132,7 @@ class PushViaCall a where
 instance PushViaCall (Lua ()) where
   pushViaCall' fn pushArgs num = do
     Lua.push fn
-    Lua.rawget (Lua.registryindex)
+    Lua.rawget Lua.registryindex
     pushArgs
     call num 1
 

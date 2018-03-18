@@ -61,7 +61,7 @@ tests = [ testGroup "rubrics"
             -- http://docutils.sourceforge.net/docs/ref/rst/restructuredtext.html#inline-markup
             strong (space <> str "text" <> space <> space) =?> "**text**"
           , "single space stripped" =:
-            strong (space) =?> ""
+            strong space =?> ""
           ]
         , testGroup "headings"
           [ "normal heading" =:

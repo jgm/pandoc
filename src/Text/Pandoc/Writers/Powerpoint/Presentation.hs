@@ -474,7 +474,7 @@ blockToParagraphs (DefinitionList entries) = do
         definition <- concatMapM (blockToParagraphs . BlockQuote) blksLst
         return $ term ++ definition
   concatMapM go entries
-blockToParagraphs (Div (_, "notes" : [], _) blks) =
+blockToParagraphs (Div (_, ["notes"], _) blks) =
   local (\env -> env{envInSpeakerNotes=True}) $ do
   sldId <- asks envCurSlideId
   spkNotesMap <- gets stSpeakerNotesMap
@@ -558,7 +558,7 @@ blockToShape blk = do paras <- blockToParagraphs blk
 combineShapes :: [Shape] -> [Shape]
 combineShapes [] = []
 combineShapes[s] = [s]
-combineShapes (pic@(Pic{}) : ss) = pic : combineShapes ss
+combineShapes (pic@Pic{} : ss) = pic : combineShapes ss
 combineShapes (TextBox [] : ss) = combineShapes ss
 combineShapes (s : TextBox [] : ss) = combineShapes (s : ss)
 combineShapes (TextBox (p:ps) : TextBox (p':ps') : ss) =
@@ -569,8 +569,8 @@ blocksToShapes :: [Block] -> Pres [Shape]
 blocksToShapes blks = combineShapes <$> mapM blockToShape blks
 
 isImage :: Inline -> Bool
-isImage (Image{}) = True
-isImage (Link _ (Image _ _ _ : _) _) = True
+isImage Image{} = True
+isImage (Link _ (Image{} : _) _) = True
 isImage _ = False
 
 splitBlocks' :: [Block] -> [[Block]] -> [Block] -> Pres [[Block]]
@@ -589,23 +589,23 @@ splitBlocks' cur acc (Plain ils : blks) = splitBlocks' cur acc (Para ils : blks)
 splitBlocks' cur acc (Para (il:ils) : blks) | isImage il = do
   slideLevel <- asks envSlideLevel
   case cur of
-    [(Header n _ _)] | n == slideLevel ->
+    [Header n _ _] | n == slideLevel ->
                             splitBlocks' []
                             (acc ++ [cur ++ [Para [il]]])
                             (if null ils then blks else Para ils : blks)
     _ -> splitBlocks' []
          (acc ++ (if null cur then [] else [cur]) ++ [[Para [il]]])
          (if null ils then blks else Para ils : blks)
-splitBlocks' cur acc (tbl@(Table{}) : blks) = do
+splitBlocks' cur acc (tbl@Table{} : blks) = do
   slideLevel <- asks envSlideLevel
   case cur of
-    [(Header n _ _)] | n == slideLevel ->
+    [Header n _ _] | n == slideLevel ->
                             splitBlocks' [] (acc ++ [cur ++ [tbl]]) blks
     _ ->  splitBlocks' [] (acc ++ (if null cur then [] else [cur]) ++ [[tbl]]) blks
 splitBlocks' cur acc (d@(Div (_, classes, _) _): blks) | "columns" `elem` classes =  do
   slideLevel <- asks envSlideLevel
   case cur of
-    [(Header n _ _)] | n == slideLevel ->
+    [Header n _ _] | n == slideLevel ->
                             splitBlocks' [] (acc ++ [cur ++ [d]]) blks
     _ ->  splitBlocks' [] (acc ++ (if null cur then [] else [cur]) ++ [[d]]) blks
 splitBlocks' cur acc (blk : blks) = splitBlocks' (cur ++ [blk]) acc blks
@@ -617,7 +617,7 @@ getSpeakerNotes :: Pres (Maybe SpeakerNotes)
 getSpeakerNotes = do
   sldId <- asks envCurSlideId
   spkNtsMap <- gets stSpeakerNotesMap
-  return $ (SpeakerNotes . concat . reverse) <$> (M.lookup sldId spkNtsMap)
+  return $ (SpeakerNotes . concat . reverse) <$> M.lookup sldId spkNtsMap
 
 blocksToSlide' :: Int -> [Block] -> Pres Slide
 blocksToSlide' lvl (Header n (ident, _, _) ils : blks)
@@ -864,7 +864,7 @@ emptyParagraph para = all emptyParaElem $ paraElems para
 
 
 emptyShape :: Shape -> Bool
-emptyShape (TextBox paras) = all emptyParagraph $ paras
+emptyShape (TextBox paras) = all emptyParagraph paras
 emptyShape _ = False
 
 emptyLayout :: Layout -> Bool

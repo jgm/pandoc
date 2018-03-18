@@ -175,7 +175,7 @@ tests =
       , "Class tag without name" =: "<class>foobar</class>" =?> para (spanWith ("", [], []) "foobar")
 
       -- <em> tag should match with the last </em> tag, not verbatim one
-      , "Nested \"</em>\" inside em tag" =: "<em>foo<verbatim></em></verbatim>bar</em>" =?> para (emph ("foo</em>bar"))
+      , "Nested \"</em>\" inside em tag" =: "<em>foo<verbatim></em></verbatim>bar</em>" =?> para (emph "foo</em>bar")
 
       , testGroup "Links"
         [ "Link without description" =:

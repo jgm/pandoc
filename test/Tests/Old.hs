@@ -286,4 +286,3 @@ findDynlibDir :: [FilePath] -> Maybe FilePath
 findDynlibDir []           = Nothing
 findDynlibDir ("build":xs) = Just $ joinPath (reverse xs) </> "build"
 findDynlibDir (_:xs)       = findDynlibDir xs
-

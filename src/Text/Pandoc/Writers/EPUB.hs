@@ -458,7 +458,7 @@ pandocToEPUB version opts doc@(Pandoc meta _) = do
   -- mediaRef <- P.newIORef []
   Pandoc _ blocks <- walkM (transformInline opts') doc >>=
                      walkM transformBlock
-  picEntries <- (mapMaybe (snd . snd)) <$> gets stMediaPaths
+  picEntries <- mapMaybe (snd . snd) <$> gets stMediaPaths
   -- handle fonts
   let matchingGlob f = do
         xs <- lift $ P.glob f
@@ -872,7 +872,7 @@ metadataElement version md currentTime =
         dcTag' n s = [dcTag n s]
         toIdentifierNode id' (Identifier txt scheme)
           | version == EPUB2 = [dcNode "identifier" !
-              ([("id",id')] ++ maybe [] (\x -> [("opf:scheme", x)]) scheme) $
+              (("id",id') : maybe [] (\x -> [("opf:scheme", x)]) scheme) $
               txt]
           | otherwise = [dcNode "identifier" ! [("id",id')] $ txt] ++
               maybe [] (\x -> [unode "meta" !

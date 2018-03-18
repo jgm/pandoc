@@ -372,9 +372,9 @@ backSlashLineBreaks :: [String] -> String
 backSlashLineBreaks ls = vcatBackSlash $ map escape ls
   where
     vcatBackSlash = intercalate "\\\\ \\\\ " -- simulate paragraphs.
-    escape ('\n':[]) = "" -- remove trailing newlines
+    escape ['\n'] = "" -- remove trailing newlines
     escape ('\n':cs) = "\\\\ " ++ escape cs
-    escape (c:cs)    = c : (escape cs)
+    escape (c:cs)    = c : escape cs
     escape []        = []
 
 -- Auxiliary functions for tables:

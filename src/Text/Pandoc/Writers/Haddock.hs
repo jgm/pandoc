@@ -1,6 +1,6 @@
 {-# LANGUAGE OverloadedStrings   #-}
 {-# LANGUAGE ScopedTypeVariables #-}
-{-# LANGUAGE TupleSections       #-}
+
 {-
 Copyright (C) 2014-2015, 2017-2018 John MacFarlane <jgm@berkeley.edu>
 
@@ -141,7 +141,7 @@ blockToHaddock opts (Table caption aligns widths headers rows) = do
                      then empty
                      else blankline <> caption' <> blankline
   tbl <- gridTable opts blockListToHaddock
-              (all null headers) (map (\_ -> AlignDefault) aligns)
+              (all null headers) (map (const AlignDefault) aligns)
                 widths headers rows
   return $ prefixed "> " (tbl $$ blankline $$ caption'') $$ blankline
 blockToHaddock opts (BulletList items) = do

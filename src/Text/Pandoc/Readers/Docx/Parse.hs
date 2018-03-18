@@ -136,9 +136,9 @@ unwrap :: NameSpaces -> Content -> [Content]
 unwrap ns (Elem element)
   | isElem ns "w" "sdt" element
   , Just sdtContent <- findChildByName ns "w" "sdtContent" element
-  = concatMap (unwrap ns) $ map Elem $ elChildren sdtContent
+  = concatMap ((unwrap ns) . Elem) (elChildren sdtContent)
   | isElem ns "w" "smartTag" element
-  = concatMap (unwrap ns) $ map Elem $ elChildren element
+  = concatMap ((unwrap ns) . Elem) (elChildren element)
 unwrap _ content = [content]
 
 unwrapChild :: NameSpaces -> Content -> Content

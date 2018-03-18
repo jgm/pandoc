@@ -161,7 +161,7 @@ inlinesInBalancedBrackets =
         stripBracket xs = if last xs == ']' then init xs else xs
         go :: PandocMonad m => Int -> MarkdownParser m ()
         go 0 = return ()
-        go openBrackets = 
+        go openBrackets =
           (() <$ (escapedChar <|>
                 code <|>
                 rawHtmlInline <|>

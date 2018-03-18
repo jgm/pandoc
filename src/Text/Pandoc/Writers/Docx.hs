@@ -1337,7 +1337,7 @@ inlineToOpenXML' opts (Image attr alt (src, title)) = do
         imgElt
 
   case stImage of
-    Just imgData -> return $ [generateImgElt imgData]
+    Just imgData -> return [generateImgElt imgData]
     Nothing -> ( do --try
       (img, mt) <- P.fetchItem src
       ident <- ("rId"++) `fmap` getUniqueId
@@ -1386,12 +1386,12 @@ breakElement kind = mknode "w:r" [] [mknode "w:br" [("w:type",kind)] () ]
 defaultFootnotes :: [Element]
 defaultFootnotes = [ mknode "w:footnote"
                      [("w:type", "separator"), ("w:id", "-1")]
-                     [ mknode "w:p" [] $
+                     [ mknode "w:p" []
                        [mknode "w:r" [] $
                         [ mknode "w:separator" [] ()]]]
                    , mknode "w:footnote"
                      [("w:type", "continuationSeparator"), ("w:id", "0")]
-                     [ mknode "w:p" [] $
+                     [ mknode "w:p" []
                        [ mknode "w:r" [] $
                          [ mknode "w:continuationSeparator" [] ()]]]]
 

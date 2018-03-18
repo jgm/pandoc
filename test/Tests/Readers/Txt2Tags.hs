@@ -143,7 +143,7 @@ tests =
 
       , "Header with label" =:
           "= header =[label]" =?>
-            headerWith ("label", [], []) 1 ("header")
+            headerWith ("label", [], []) 1 "header"
 
       , "Invalid header, mismatched delimiters" =:
           "== header =" =?>

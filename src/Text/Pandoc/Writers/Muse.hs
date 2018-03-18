@@ -373,7 +373,7 @@ inlineToMuse (Superscript lst) = do
 inlineToMuse (Subscript lst) = do
   contents <- inlineListToMuse lst
   return $ "<sub>" <> contents <> "</sub>"
-inlineToMuse (SmallCaps {}) =
+inlineToMuse SmallCaps {} =
   fail "SmallCaps should be expanded before normalization"
 inlineToMuse (Quoted SingleQuote lst) = do
   contents <- inlineListToMuse lst
@@ -381,7 +381,7 @@ inlineToMuse (Quoted SingleQuote lst) = do
 inlineToMuse (Quoted DoubleQuote lst) = do
   contents <- inlineListToMuse lst
   return $ "“" <> contents <> "”"
-inlineToMuse (Cite {}) =
+inlineToMuse Cite {} =
   fail "Citations should be expanded before normalization"
 inlineToMuse (Code _ str) = return $
   "<code>" <> text (substitute "</code>" "<</code><code>/code>" str) <> "</code>"

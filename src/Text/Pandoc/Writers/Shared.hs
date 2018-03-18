@@ -289,7 +289,7 @@ gridTable opts blocksToDoc headless aligns widths headers rows = do
   -- on command line options, widths given in this specific table, and
   -- cells' contents
   let handleWidths
-        | (writerWrapText opts) == WrapNone  = handleFullWidths
+        | writerWrapText opts == WrapNone  = handleFullWidths
         | all (== 0) widths                  = handleZeroWidths
         | otherwise                          = handleGivenWidths widths
   (widthsInChars, rawHeaders, rawRows) <- handleWidths

@@ -367,7 +367,7 @@ blocksToInlinesWarn cmtId blks = do
 parPartToInlines :: PandocMonad m => ParPart -> DocxContext m Inlines
 parPartToInlines parPart =
   case parPart of
-    (BookMark _ anchor) | notElem anchor dummyAnchors -> do
+    (BookMark _ anchor) | anchor `notElem` dummyAnchors -> do
       inHdrBool <- asks docxInHeaderBlock
       ils <- parPartToInlines' parPart
       immedPrevAnchor <- gets docxImmedPrevAnchor
