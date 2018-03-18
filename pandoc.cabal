@@ -335,10 +335,6 @@ flag trypandoc
   Description:   Build trypandoc cgi executable.
   Default:       False
 
-flag weigh-pandoc
-  Description:   Build weigh-pandoc to measure memory usage.
-  Default:       False
-
 flag network-uri
   Description:   Get Network.URI from the network-uri package
   Default:       True
@@ -588,18 +584,15 @@ executable trypandoc
      other-modules:  Prelude
      build-depends:  base-compat >= 0.9
 
-executable weigh-pandoc
+benchmark weigh-pandoc
+  type:            exitcode-stdio-1.0
   main-is:         weigh-pandoc.hs
   hs-source-dirs:  benchmark
-  if flag(weigh-pandoc)
-     build-depends:   pandoc,
-                      base >= 4.2 && < 5,
-                      text,
-                      weigh >= 0.0 && < 0.1,
-                      mtl >= 2.2 && < 2.3
-     buildable:       True
-  else
-    buildable:     False
+  build-depends:   pandoc,
+                   base >= 4.2 && < 5,
+                   text,
+                   weigh >= 0.0 && < 0.1,
+                   mtl >= 2.2 && < 2.3
   if impl(ghc < 8.0)
     build-depends: semigroups == 0.18.*
   if impl(ghc < 8.4)
