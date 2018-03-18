@@ -24,6 +24,11 @@ pandoc (2.1.3)
     + Parse `<class>` tag (supported by Emacs Muse).
     + Do not produce empty Str element for unindented verse lines.
 
+  * LaTeX reader:
+
+    + Add support to parse unit string of `\SI` command (closes #4296,
+      Marc Schreiber).
+
   * Haddock writer:  In the writer, we now render tables always as
     grid tables, since Haddock supports these.
 
@@ -93,10 +98,17 @@ pandoc (2.1.3)
 
   * Raise error if someone tries to print docx, odt, etc. template (#4441).
 
-  * latex template: Provide `bidi` package's option using
+  * LaTeX template: Provide `bidi` package's option using
     `\PassOptionsToPackage`  (#4357, Václav Haisman).  This avoid a
     clash when   `polyglossia` loads it first and then it is loaded again
     for XeLaTeX.
+
+  * ConTeXt template: Added `pdfa` variable to generate PDF/A (#4294, Henri
+    Menke).  Instructions on how to install the ICC profiles on ConTeXt
+    standalone can be found in the wiki:
+    <http://wiki.contextgarden.net/PDFX#ICC_profiles>.
+    If the ICC profiles are not available the log will contain error
+    messages.
 
   * Use latest pandoc-types, skylighting.
 
