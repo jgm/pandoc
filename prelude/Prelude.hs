@@ -1,17 +1,17 @@
+{-# LANGUAGE NoImplicitPrelude #-}
 {-# LANGUAGE PackageImports #-}
 {-# LANGUAGE CPP #-}
 
+-- The intent is that this Prelude provide the API of
+-- the base 4.11 Prelude in a way that is portable for
+-- all base versions.
+
 module Prelude
 (
-  module P
-, Monoid(..)
+  module Prelude.Compat
 , Semigroup(..)
-, Applicative(..)
 )
 where
 
-import "base" Prelude as P
+import Prelude.Compat
 import Data.Semigroup (Semigroup(..))  -- includes (<>)
-#if MIN_VERSION_base(4,11,0)
-import Data.Monoid (Monoid(..))
-#endif
