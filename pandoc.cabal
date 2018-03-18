@@ -429,7 +429,7 @@ library
                       ScopedTypeVariables, GeneralizedNewtypeDeriving,
                       RelaxedPolyRec, DeriveDataTypeable, TypeSynonymInstances,
                       FlexibleInstances
-  hs-source-dirs:  src, prelude
+  hs-source-dirs:  src
 
   exposed-modules: Text.Pandoc,
                    Text.Pandoc.App,
@@ -514,8 +514,7 @@ library
                    Text.Pandoc.ImageSize,
                    Text.Pandoc.BCP47,
                    Text.Pandoc.Class
-  other-modules:   Prelude,
-                   Text.Pandoc.Filter,
+  other-modules:   Text.Pandoc.Filter,
                    Text.Pandoc.Filter.JSON,
                    Text.Pandoc.Filter.Lua,
                    Text.Pandoc.Filter.Path,
@@ -581,16 +580,14 @@ executable pandoc
                     ScopedTypeVariables, GeneralizedNewtypeDeriving,
                     RelaxedPolyRec, DeriveDataTypeable, TypeSynonymInstances,
                     FlexibleInstances
-  hs-source-dirs:  ., prelude
+  hs-source-dirs:  .
   main-is:         pandoc.hs
   buildable:       True
   other-modules:   Paths_pandoc
-                   Prelude
 
 executable trypandoc
   main-is:         trypandoc.hs
-  hs-source-dirs:  trypandoc, prelude
-  other-modules:   Prelude
+  hs-source-dirs:  trypandoc
   default-language: Haskell2010
   if flag(trypandoc)
     build-depends: base, aeson, pandoc,
@@ -607,8 +604,7 @@ executable trypandoc
 
 executable weigh-pandoc
   main-is:         weigh-pandoc.hs
-  hs-source-dirs:  benchmark, prelude
-  other-modules: Prelude
+  hs-source-dirs:  benchmark
   if flag(weigh-pandoc)
      build-depends:   pandoc,
                       base >= 4.2 && < 5,
@@ -630,7 +626,7 @@ executable weigh-pandoc
 test-suite test-pandoc
   type:           exitcode-stdio-1.0
   main-is:        test-pandoc.hs
-  hs-source-dirs: test, prelude
+  hs-source-dirs: test
   build-depends:  base >= 4.2 && < 5,
                   pandoc,
                   pandoc-types >= 1.17.4.2 && < 1.18,
@@ -665,8 +661,7 @@ test-suite test-pandoc
                     time >= 1.2 && < 1.5
   else
      build-depends: time >= 1.5 && < 1.10
-  other-modules:  Prelude
-                  Tests.Old
+  other-modules:  Tests.Old
                   Tests.Command
                   Tests.Helpers
                   Tests.Lua
@@ -719,8 +714,7 @@ test-suite test-pandoc
 benchmark benchmark-pandoc
   type:            exitcode-stdio-1.0
   main-is:         benchmark-pandoc.hs
-  hs-source-dirs:  benchmark, prelude
-  other-modules:   Prelude
+  hs-source-dirs:  benchmark
   build-depends:   pandoc,
                    time, bytestring, containers,
                    base >= 4.2 && < 5,
