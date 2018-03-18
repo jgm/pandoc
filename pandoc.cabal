@@ -424,11 +424,8 @@ library
   if os(windows)
     cpp-options:      -D_WINDOWS
   ghc-options:   -Wall -fno-warn-unused-do-bind
-  default-language: Haskell98
-  other-extensions:   PatternGuards, OverloadedStrings,
-                      ScopedTypeVariables, GeneralizedNewtypeDeriving,
-                      RelaxedPolyRec, DeriveDataTypeable, TypeSynonymInstances,
-                      FlexibleInstances
+  default-language: Haskell2010
+  other-extensions: NoImplicitPrelude
   hs-source-dirs:  src
 
   exposed-modules: Text.Pandoc,
@@ -575,11 +572,8 @@ executable pandoc
   ghc-options:   -rtsopts -with-rtsopts=-K16m -Wall -fno-warn-unused-do-bind -threaded
   if flag(static)
     ld-options:     -static
-  default-language: Haskell98
-  other-extensions: PatternGuards, OverloadedStrings,
-                    ScopedTypeVariables, GeneralizedNewtypeDeriving,
-                    RelaxedPolyRec, DeriveDataTypeable, TypeSynonymInstances,
-                    FlexibleInstances
+  default-language: Haskell2010
+  other-extensions: NoImplicitPrelude
   hs-source-dirs:  .
   main-is:         pandoc.hs
   buildable:       True
@@ -589,6 +583,7 @@ executable trypandoc
   main-is:         trypandoc.hs
   hs-source-dirs:  trypandoc
   default-language: Haskell2010
+  other-extensions: NoImplicitPrelude
   if flag(trypandoc)
     build-depends: base, aeson, pandoc,
                    text, wai-extra, wai >= 0.3, http-types
@@ -621,7 +616,8 @@ executable weigh-pandoc
      other-modules:  Prelude
      build-depends:  base-compat >= 0.9
   ghc-options:   -rtsopts -Wall -fno-warn-unused-do-bind
-  default-language: Haskell98
+  default-language: Haskell2010
+  other-extensions: NoImplicitPrelude
 
 test-suite test-pandoc
   type:           exitcode-stdio-1.0
@@ -709,7 +705,8 @@ test-suite test-pandoc
                   Tests.Writers.Powerpoint
                   Tests.Writers.OOXML
   ghc-options:  -rtsopts -Wall -fno-warn-unused-do-bind -threaded
-  default-language: Haskell98
+  default-language: Haskell2010
+  other-extensions: NoImplicitPrelude
 
 benchmark benchmark-pandoc
   type:            exitcode-stdio-1.0
@@ -727,4 +724,5 @@ benchmark benchmark-pandoc
      other-modules:  Prelude
      build-depends:  base-compat >= 0.9
   ghc-options:   -rtsopts -Wall -fno-warn-unused-do-bind
-  default-language: Haskell98
+  default-language: Haskell2010
+  other-extensions: NoImplicitPrelude
