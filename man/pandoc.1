@@ -1921,6 +1921,16 @@ include table of contents (can also be set using
 include list of figures, list of tables
 .RS
 .RE
+.TP
+.B \f[C]pdfa\f[]
+adds to the preamble the setup necessary to generate PDF/A\-1b:2005.
+To successfully generate PDF/A the required ICC color profiles have to
+be available and the content and all included files (such as images)
+have to be standard conforming.
+The ICC profiles can be obtained from ConTeXt ICC Profiles.
+See also ConTeXt PDFA for more details.
+.RS
+.RE
 .SS Variables for man pages
 .TP
 .B \f[C]section\f[]
