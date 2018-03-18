@@ -59,9 +59,12 @@ pandoc (2.1.3)
 
   * Dokuwiki writer: fix LineBreaks in Tables (#4313, Mauro Bieg).
 
-  * Ms writer: asciify pdf anchors, since unicode anchors don't work (#4436).
-    Internal links should be converted automatically, so this shouldn't affect
-    users directly.
+  * Ms writer:
+
+    + Asciify pdf anchors, since unicode anchors don't work (#4436).
+      Internal links should be converted automatically, so this shouldn't
+      affect users directly.
+    + Don't escape hyphens as `\-`; that's for a minus sign (#4467).
 
   * Beamer writer: put hyperlink after `\begin{frame}` and not in the title
     (#4307).  If it's in the title, then we get a titlebar on slides with
