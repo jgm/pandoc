@@ -4399,23 +4399,26 @@ Background in reveal.js
 
 Background images can be added to self-contained reveal.js slideshows.
 
-For the same image on every slide, use the reveal.js configuration 
-option `parallaxBackgroundImage` either in the YAML metadata block 
-or as a command-line variable. You can also set `parallaxBackgroundHorizontal`
-and `parallaxBackgroundVertical` the same way and must also set
-`parallaxBackgroundSize` to have your values take effect.
+For the same image on every slide, use the reveal.js configuration
+option `parallaxBackgroundImage` either in the YAML metadata block
+or as a command-line variable. You can also set
+`parallaxBackgroundHorizontal` and `parallaxBackgroundVertical` the same
+way and must also set `parallaxBackgroundSize` to have your values
+take effect.
 
-To set an image for a particular slide, add `{data-background-image="/path/to/image"}`
+To set an image for a particular slide, add
+`{data-background-image="/path/to/image"}`
 to the first slide-level header on the slide (which may even be empty).
 
-In reveal.js's overview mode, the parallaxBackgroundImage will show up 
-only on the first slide. 
+In reveal.js's overview mode, the parallaxBackgroundImage will show up
+only on the first slide.
 
 Other background settings also work on individual slides, including
-`data-background-size`, `data-background-repeat`, `data-background-color`, 
+`data-background-size`, `data-background-repeat`, `data-background-color`,
 `data-transition`, and `data-transition-speed`.
 
-See the [reveal.js documentation](https://github.com/hakimel/reveal.js#slide-backgrounds)
+See the [reveal.js
+documentation](https://github.com/hakimel/reveal.js#slide-backgrounds)
 for more details.
 
 For example:
