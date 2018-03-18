@@ -379,7 +379,9 @@ blockListToRST = blockListToRST' False
 -- | Convert list of Pandoc inline elements to RST.
 inlineListToRST :: PandocMonad m => [Inline] -> RST m Doc
 inlineListToRST lst =
-  mapM inlineToRST (removeSpaceAfterDisplayMath $ insertBS lst) >>=
+  mapM inlineToRST ((stripLeadingTrailingSpace .
+                     removeSpaceAfterDisplayMath .
+                     insertBS) lst) >>=
     return . hcat
   where -- remove spaces after displaymath, as they screw up indentation:
         removeSpaceAfterDisplayMath (Math DisplayMath x : zs) =
