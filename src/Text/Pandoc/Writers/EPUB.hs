@@ -751,12 +751,13 @@ pandocToEPUB version opts doc@(Pandoc meta _) = do
                                (writeHtmlStringForEPUB version
                                  opts{ writerTemplate = Nothing }
                                  (Pandoc nullMeta
-                                   [Plain $ walk delink tit])) of
+                                   [Plain $ walk clean tit])) of
                                 Left _  -> TS.pack $ stringify tit
                                 Right x -> x
-                -- can't have a element inside a...
-                delink (Link _ ils _) = Span ("", [], []) ils
-                delink x              = x
+                -- can't have <a> elements inside generated links...
+                clean (Link _ ils _) = Span ("", [], []) ils
+                clean (Note _)       = Str ""
+                clean x              = x
 
   let navtag = if epub3 then "nav" else "div"
   tocBlocks <- lift $ evalStateT (mapM (navPointNode navXhtmlFormatter) secs) 1
