@@ -1,3 +1,4 @@
+{-# LANGUAGE NoImplicitPrelude #-}
 {-# LANGUAGE MultiWayIf          #-}
 {-# LANGUAGE OverloadedStrings   #-}
 {-# LANGUAGE ScopedTypeVariables #-}
@@ -34,6 +35,7 @@ Conversion of 'Pandoc' documents to markdown-formatted plain text.
 Markdown:  <http://daringfireball.net/projects/markdown/>
 -}
 module Text.Pandoc.Writers.Markdown (writeMarkdown, writePlain) where
+import Prelude
 import Control.Monad.Reader
 import Control.Monad.State.Strict
 import Data.Char (chr, isPunctuation, isSpace, ord, isAlphaNum)

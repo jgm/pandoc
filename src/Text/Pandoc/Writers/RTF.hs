@@ -1,3 +1,4 @@
+{-# LANGUAGE NoImplicitPrelude #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-
 Copyright (C) 2006-2018 John MacFarlane <jgm@berkeley.edu>
@@ -30,6 +31,7 @@ Conversion of 'Pandoc' documents to RTF (rich text format).
 -}
 module Text.Pandoc.Writers.RTF ( writeRTF
                                ) where
+import Prelude
 import Control.Monad.Except (catchError, throwError)
 import Control.Monad
 import qualified Data.ByteString as B

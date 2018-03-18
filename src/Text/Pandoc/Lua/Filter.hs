@@ -1,3 +1,4 @@
+{-# LANGUAGE NoImplicitPrelude #-}
 {-# LANGUAGE FlexibleContexts #-}
 
 module Text.Pandoc.Lua.Filter ( LuaFilterFunction
@@ -10,6 +11,7 @@ module Text.Pandoc.Lua.Filter ( LuaFilterFunction
                               , blockElementNames
                               , inlineElementNames
                               ) where
+import Prelude
 import Control.Monad (mplus, unless, when, (>=>))
 import Control.Monad.Catch (finally)
 import Text.Pandoc.Definition

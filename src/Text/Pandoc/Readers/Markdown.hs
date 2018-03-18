@@ -1,3 +1,4 @@
+{-# LANGUAGE NoImplicitPrelude #-}
 {-# LANGUAGE RelaxedPolyRec      #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 
@@ -32,6 +33,7 @@ Conversion of markdown-formatted plain text to 'Pandoc' document.
 -}
 module Text.Pandoc.Readers.Markdown ( readMarkdown ) where
 
+import Prelude
 import Control.Monad
 import Control.Monad.Except (throwError)
 import Data.Char (isAlphaNum, isPunctuation, isSpace, toLower)

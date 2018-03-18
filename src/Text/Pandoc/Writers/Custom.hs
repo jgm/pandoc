@@ -1,3 +1,4 @@
+{-# LANGUAGE NoImplicitPrelude #-}
 {-# LANGUAGE DeriveDataTypeable   #-}
 {-# LANGUAGE FlexibleInstances    #-}
 {- Copyright (C) 2012-2018 John MacFarlane <jgm@berkeley.edu>
@@ -30,6 +31,7 @@ Conversion of 'Pandoc' documents to custom markup using
 a lua writer.
 -}
 module Text.Pandoc.Writers.Custom ( writeCustom ) where
+import Prelude
 import Control.Arrow ((***))
 import Control.Exception
 import Control.Monad (when)

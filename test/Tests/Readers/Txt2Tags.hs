@@ -1,6 +1,8 @@
+{-# LANGUAGE NoImplicitPrelude #-}
 {-# LANGUAGE OverloadedStrings #-}
 module Tests.Readers.Txt2Tags (tests) where
 
+import Prelude
 import Data.List (intersperse)
 import Data.Text (Text)
 import qualified Data.Text as T

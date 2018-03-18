@@ -1,7 +1,9 @@
+{-# LANGUAGE NoImplicitPrelude #-}
 {-# LANGUAGE OverloadedStrings   #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 module Tests.Readers.RST (tests) where
 
+import Prelude
 import Data.Text (Text)
 import qualified Data.Text as T
 import Test.Tasty

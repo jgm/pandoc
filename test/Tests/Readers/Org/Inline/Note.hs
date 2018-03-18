@@ -1,6 +1,8 @@
+{-# LANGUAGE NoImplicitPrelude #-}
 {-# LANGUAGE OverloadedStrings #-}
 module Tests.Readers.Org.Inline.Note (tests) where
 
+import Prelude
 import Test.Tasty (TestTree)
 import Tests.Helpers ((=?>))
 import Tests.Readers.Org.Shared ((=:))

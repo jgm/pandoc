@@ -1,3 +1,4 @@
+{-# LANGUAGE NoImplicitPrelude #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-
 Copyright (C) 2006-2018 John MacFarlane <jgm@berkeley.edu>
@@ -37,6 +38,7 @@ that it has omitted the construct.
 AsciiDoc:  <http://www.methods.co.nz/asciidoc/>
 -}
 module Text.Pandoc.Writers.AsciiDoc (writeAsciiDoc) where
+import Prelude
 import Control.Monad.State.Strict
 import Data.Aeson (Result (..), Value (String), fromJSON, toJSON)
 import Data.Char (isPunctuation, isSpace)

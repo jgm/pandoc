@@ -1,3 +1,4 @@
+{-# LANGUAGE NoImplicitPrelude #-}
 {-
 Copyright (C) 2010-2018 John MacFarlane <jgm@berkeley.edu>
 
@@ -30,6 +31,7 @@ Conversion of 'Pandoc' documents to Textile markup.
 Textile:  <http://thresholdstate.com/articles/4312/the-textile-reference-manual>
 -}
 module Text.Pandoc.Writers.Textile ( writeTextile ) where
+import Prelude
 import Control.Monad.State.Strict
 import Data.Char (isSpace)
 import Data.List (intercalate)

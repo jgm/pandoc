@@ -1,3 +1,4 @@
+{-# LANGUAGE NoImplicitPrelude #-}
 {-
 Copyright (C) 2017–2018 John MacFarlane <jgm@berkeley.edu>
 
@@ -34,6 +35,7 @@ module Text.Pandoc.CSV (
   ParseError
 ) where
 
+import Prelude
 import Control.Monad (void)
 import Data.Text (Text)
 import qualified Data.Text as T

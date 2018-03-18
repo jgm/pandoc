@@ -1,3 +1,4 @@
+{-# LANGUAGE NoImplicitPrelude #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-
 Copyright (C) 2008-2018 John MacFarlane <jgm@berkeley.edu>
@@ -29,6 +30,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 Conversion of 'Pandoc' documents to ODT.
 -}
 module Text.Pandoc.Writers.ODT ( writeODT ) where
+import Prelude
 import Codec.Archive.Zip
 import Control.Monad.Except (catchError)
 import Control.Monad.State.Strict

@@ -1,3 +1,4 @@
+{-# LANGUAGE NoImplicitPrelude #-}
 {-# LANGUAGE CPP                        #-}
 {-# LANGUAGE DeriveDataTypeable         #-}
 {-# LANGUAGE DeriveGeneric              #-}
@@ -48,6 +49,7 @@ module Text.Pandoc.Extensions ( Extension(..)
                               , githubMarkdownExtensions
                               , multimarkdownExtensions )
 where
+import Prelude
 import Data.Aeson (FromJSON (..), ToJSON (..), defaultOptions)
 import Data.Aeson.TH (deriveJSON)
 import Data.Bits (clearBit, setBit, testBit, (.|.))

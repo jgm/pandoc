@@ -1,6 +1,8 @@
+{-# LANGUAGE NoImplicitPrelude #-}
 {-# LANGUAGE OverloadedStrings #-}
 module Tests.Readers.Org.Block.List (tests) where
 
+import Prelude
 import Test.Tasty (TestTree)
 import Tests.Helpers ((=?>))
 import Tests.Readers.Org.Shared ((=:), spcSep)

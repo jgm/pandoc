@@ -1,3 +1,4 @@
+{-# LANGUAGE NoImplicitPrelude #-}
 {-
 Copyright (C) 2014-2018 Jesse Rosenthal <jrosenthal@jhu.edu>
 
@@ -32,6 +33,7 @@ module Text.Pandoc.Readers.Docx.Fields ( FieldInfo(..)
                                        , parseFieldInfo
                                        ) where
 
+import Prelude
 import Text.Parsec
 import Text.Parsec.String (Parser)
 

@@ -1,3 +1,4 @@
+{-# LANGUAGE NoImplicitPrelude #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-
 Copyright (C) 2014-2018 Albert Krewinkel <tarleb+pandoc@moltkeplatz.de>
@@ -33,6 +34,7 @@ module Text.Pandoc.Readers.Org.Inlines
   , linkTarget
   ) where
 
+import Prelude
 import Text.Pandoc.Readers.Org.BlockStarts (endOfBlock, noteMarker)
 import Text.Pandoc.Readers.Org.ParserState
 import Text.Pandoc.Readers.Org.Parsing

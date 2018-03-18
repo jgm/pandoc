@@ -1,3 +1,4 @@
+{-# LANGUAGE NoImplicitPrelude #-}
 {-# LANGUAGE DeriveDataTypeable #-}
 {-# LANGUAGE DeriveGeneric      #-}
 {-
@@ -34,6 +35,7 @@ module Text.Pandoc.Error (
   PandocError(..),
   handleError) where
 
+import Prelude
 import Control.Exception (Exception)
 import Data.Typeable (Typeable)
 import GHC.Generics (Generic)

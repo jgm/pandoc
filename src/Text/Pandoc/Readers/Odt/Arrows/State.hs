@@ -1,3 +1,4 @@
+{-# LANGUAGE NoImplicitPrelude #-}
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE TupleSections     #-}
 {-
@@ -37,13 +38,12 @@ faster and easier to implement this way.
 
 module Text.Pandoc.Readers.Odt.Arrows.State where
 
+import Prelude
 import Prelude hiding (foldl, foldr)
 
 import Control.Arrow
 import qualified Control.Category as Cat
 import Control.Monad
-
-import Data.Foldable
 
 import Text.Pandoc.Readers.Odt.Arrows.Utils
 import Text.Pandoc.Readers.Odt.Generic.Fallible

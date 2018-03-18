@@ -1,6 +1,8 @@
+{-# LANGUAGE NoImplicitPrelude #-}
 {-# LANGUAGE OverloadedStrings #-}
 module Tests.Readers.HTML (tests) where
 
+import Prelude
 import Data.Text (Text)
 import Test.Tasty
 import Tests.Helpers

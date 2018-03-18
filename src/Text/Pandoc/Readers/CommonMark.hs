@@ -1,3 +1,4 @@
+{-# LANGUAGE NoImplicitPrelude #-}
 {-
 Copyright (C) 2015-2018 John MacFarlane <jgm@berkeley.edu>
 
@@ -32,6 +33,7 @@ CommonMark is a strongly specified variant of Markdown: http://commonmark.org.
 module Text.Pandoc.Readers.CommonMark (readCommonMark)
 where
 
+import Prelude
 import CMarkGFM
 import Control.Monad.State
 import Data.Char (isAlphaNum, isLetter, isSpace, toLower)

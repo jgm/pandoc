@@ -1,5 +1,7 @@
+{-# LANGUAGE NoImplicitPrelude #-}
 module Tests.Shared (tests) where
 
+import Prelude
 import System.FilePath.Posix (joinPath)
 import Test.Tasty
 import Test.Tasty.HUnit (assertBool, testCase, (@?=))

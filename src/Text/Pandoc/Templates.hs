@@ -1,3 +1,4 @@
+{-# LANGUAGE NoImplicitPrelude #-}
 {-# LANGUAGE FlexibleInstances    #-}
 
 {-# LANGUAGE OverloadedStrings    #-}
@@ -38,6 +39,7 @@ module Text.Pandoc.Templates ( module Text.DocTemplates
                              , getDefaultTemplate
                              ) where
 
+import Prelude
 import Control.Monad.Except (throwError)
 import Data.Aeson (ToJSON (..))
 import qualified Data.Text as T

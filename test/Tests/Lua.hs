@@ -1,6 +1,8 @@
+{-# LANGUAGE NoImplicitPrelude #-}
 {-# LANGUAGE OverloadedStrings #-}
 module Tests.Lua ( tests ) where
 
+import Prelude
 import Control.Monad (when)
 import Data.Version (Version (versionBranch))
 import System.FilePath ((</>))

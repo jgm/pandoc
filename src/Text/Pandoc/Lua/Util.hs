@@ -1,3 +1,4 @@
+{-# LANGUAGE NoImplicitPrelude #-}
 {-
 Copyright © 2012-2018 John MacFarlane <jgm@berkeley.edu>
             2017-2018 Albert Krewinkel <tarleb+pandoc@moltkeplatz.de>
@@ -46,6 +47,7 @@ module Text.Pandoc.Lua.Util
   , dostring'
   ) where
 
+import Prelude
 import Control.Monad (when)
 import Control.Monad.Catch (finally)
 import Data.ByteString.Char8 (unpack)

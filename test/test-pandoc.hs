@@ -1,7 +1,9 @@
+{-# LANGUAGE NoImplicitPrelude #-}
 {-# OPTIONS_GHC -Wall #-}
 
 module Main where
 
+import Prelude
 import GHC.IO.Encoding
 import Test.Tasty
 import qualified Tests.Command

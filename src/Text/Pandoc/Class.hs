@@ -1,3 +1,4 @@
+{-# LANGUAGE NoImplicitPrelude #-}
 {-# LANGUAGE CPP #-}
 {-# LANGUAGE PatternGuards #-}
 {-# LANGUAGE DeriveFunctor #-}
@@ -96,6 +97,7 @@ module Text.Pandoc.Class ( PandocMonad(..)
                          , Translations
                          ) where
 
+import Prelude
 import Prelude hiding (readFile)
 import System.Random (StdGen, next, mkStdGen)
 import qualified System.Random as IO (newStdGen)

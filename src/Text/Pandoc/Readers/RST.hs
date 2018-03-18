@@ -1,3 +1,4 @@
+{-# LANGUAGE NoImplicitPrelude #-}
 {-# LANGUAGE FlexibleContexts    #-}
 {-# LANGUAGE OverloadedStrings   #-}
 {-# LANGUAGE ScopedTypeVariables #-}
@@ -31,6 +32,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 Conversion from reStructuredText to 'Pandoc' document.
 -}
 module Text.Pandoc.Readers.RST ( readRST ) where
+import Prelude
 import Control.Arrow (second)
 import Control.Monad (forM_, guard, liftM, mplus, mzero, when)
 import Control.Monad.Except (throwError)

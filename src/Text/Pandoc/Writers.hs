@@ -1,3 +1,4 @@
+{-# LANGUAGE NoImplicitPrelude #-}
 {-
 Copyright (C) 2006-2018 John MacFarlane <jgm@berkeley.edu>
 
@@ -82,6 +83,7 @@ module Text.Pandoc.Writers
     , getWriter
     ) where
 
+import Prelude
 import Data.Aeson
 import qualified Data.ByteString.Lazy as BL
 import Data.List (intercalate)

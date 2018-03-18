@@ -1,3 +1,4 @@
+{-# LANGUAGE NoImplicitPrelude #-}
 {-# LANGUAGE DeriveDataTypeable #-}
 {-# LANGUAGE DeriveGeneric      #-}
 {-# LANGUAGE TemplateHaskell    #-}
@@ -46,6 +47,7 @@ module Text.Pandoc.Options ( module Text.Pandoc.Extensions
                            , def
                            , isEnabled
                            ) where
+import Prelude
 import Data.Aeson (defaultOptions)
 import Data.Aeson.TH (deriveJSON)
 import Data.Data (Data)

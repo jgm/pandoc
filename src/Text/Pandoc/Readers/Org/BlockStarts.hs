@@ -1,3 +1,4 @@
+{-# LANGUAGE NoImplicitPrelude #-}
 {-
 Copyright (C) 2014-2018 Albert Krewinkel <tarleb+pandoc@moltkeplatz.de>
 
@@ -40,6 +41,7 @@ module Text.Pandoc.Readers.Org.BlockStarts
   , endOfBlock
   ) where
 
+import Prelude
 import Control.Monad (void)
 import Text.Pandoc.Readers.Org.Parsing
 

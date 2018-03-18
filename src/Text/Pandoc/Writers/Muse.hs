@@ -1,3 +1,4 @@
+{-# LANGUAGE NoImplicitPrelude #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-
 Copyright (C) 2017-2018 Alexander Krotov <ilabdsf@gmail.com>
@@ -42,6 +43,7 @@ However, @\<literal style="html">@ tag is used for HTML raw blocks
 even though it is supported only in Emacs Muse.
 -}
 module Text.Pandoc.Writers.Muse (writeMuse) where
+import Prelude
 import Control.Monad.State.Strict
 import Data.Text (Text)
 import Data.List (intersperse, transpose, isInfixOf)
@@ -185,8 +187,8 @@ blockToMuse (OrderedList (start, style, _) items) = do
                               -> [Block]  -- ^ list item (list of blocks)
                               -> StateT WriterState m Doc
         orderedListItemToMuse marker item = do
-        contents <- blockListToMuse item
-        return $ hang (length marker + 1) (text marker <> space) contents
+          contents <- blockListToMuse item
+          return $ hang (length marker + 1) (text marker <> space) contents
 blockToMuse (BulletList items) = do
   contents <- mapM bulletListItemToMuse items
   -- ensure that sublists have preceding blank line

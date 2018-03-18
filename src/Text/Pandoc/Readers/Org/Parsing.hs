@@ -1,3 +1,4 @@
+{-# LANGUAGE NoImplicitPrelude #-}
 {-
 Copyright (C) 2014-2018 Albert Krewinkel <tarleb+pandoc@moltkeplatz.de>
 
@@ -112,6 +113,7 @@ module Text.Pandoc.Readers.Org.Parsing
   , getPosition
   ) where
 
+import Prelude
 import Text.Pandoc.Readers.Org.ParserState
 
 import Text.Pandoc.Parsing hiding (F, anyLine, blanklines, newline,

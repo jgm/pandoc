@@ -1,5 +1,7 @@
+{-# LANGUAGE NoImplicitPrelude #-}
 module Tests.Readers.Docx (tests) where
 
+import Prelude
 import Codec.Archive.Zip
 import qualified Data.ByteString as BS
 import qualified Data.ByteString.Lazy as B

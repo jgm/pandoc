@@ -1,3 +1,4 @@
+{-# LANGUAGE NoImplicitPrelude #-}
 {-# LANGUAGE CPP                        #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
 {-
@@ -77,6 +78,7 @@ module Text.Pandoc.Pretty (
      )
 
 where
+import Prelude
 import Control.Monad
 import Control.Monad.State.Strict
 import Data.Char (isSpace)

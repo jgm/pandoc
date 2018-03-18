@@ -1,3 +1,4 @@
+{-# LANGUAGE NoImplicitPrelude #-}
 {-# LANGUAGE DeriveDataTypeable #-}
 {-# LANGUAGE DeriveGeneric      #-}
 {-# LANGUAGE OverloadedStrings  #-}
@@ -39,6 +40,7 @@ module Text.Pandoc.Logging (
   , messageVerbosity
   ) where
 
+import Prelude
 import Control.Monad (mzero)
 import Data.Aeson
 import Data.Aeson.Encode.Pretty (Config (..), defConfig, encodePretty',

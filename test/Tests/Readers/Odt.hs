@@ -1,5 +1,7 @@
+{-# LANGUAGE NoImplicitPrelude #-}
 module Tests.Readers.Odt (tests) where
 
+import Prelude
 import Control.Monad (liftM)
 import qualified Data.ByteString as BS
 import qualified Data.ByteString.Lazy as B

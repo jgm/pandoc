@@ -1,3 +1,4 @@
+{-# LANGUAGE NoImplicitPrelude #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-
 Copyright (C) 2006-2018 John MacFarlane <jgm@berkeley.edu>
@@ -31,6 +32,7 @@ Conversion of 'Pandoc' documents to reStructuredText.
 reStructuredText:  <http://docutils.sourceforge.net/rst.html>
 -}
 module Text.Pandoc.Writers.RST ( writeRST ) where
+import Prelude
 import Control.Monad.State.Strict
 import Data.Char (isSpace, toLower)
 import Data.List (isPrefixOf, stripPrefix)

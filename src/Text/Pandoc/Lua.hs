@@ -1,3 +1,4 @@
+{-# LANGUAGE NoImplicitPrelude #-}
 {-
 Copyright © 2017–2018 Albert Krewinkel <tarleb+pandoc@moltkeplatz.de>
 
@@ -31,6 +32,7 @@ module Text.Pandoc.Lua
   , runPandocLua
   ) where
 
+import Prelude
 import Control.Monad ((>=>))
 import Foreign.Lua (FromLuaStack (peek), Lua, LuaException (..),
                     Status (OK), ToLuaStack (push))

@@ -1,3 +1,4 @@
+{-# LANGUAGE NoImplicitPrelude #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-
 Copyright (C) 2014-2018 Albert Krewinkel <tarleb+pandoc@moltkeplatz.de>
@@ -33,6 +34,7 @@ module Text.Pandoc.Readers.Org.Shared
   , translateLang
   ) where
 
+import Prelude
 import Data.Char (isAlphaNum)
 import Data.List (isPrefixOf, isSuffixOf)
 

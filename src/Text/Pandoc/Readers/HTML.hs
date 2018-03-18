@@ -1,3 +1,4 @@
+{-# LANGUAGE NoImplicitPrelude #-}
 {-# LANGUAGE FlexibleContexts      #-}
 {-# LANGUAGE FlexibleInstances     #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
@@ -42,6 +43,7 @@ module Text.Pandoc.Readers.HTML ( readHtml
                                 , isCommentTag
                                 ) where
 
+import Prelude
 import Control.Applicative ((<|>))
 import Control.Arrow (first)
 import Control.Monad (guard, mplus, msum, mzero, unless, void)

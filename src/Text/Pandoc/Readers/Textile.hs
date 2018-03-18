@@ -1,3 +1,4 @@
+{-# LANGUAGE NoImplicitPrelude #-}
 {-
 Copyright (C) 2010-2012 Paul Rivier <paul*rivier#demotera*com> | tr '*#' '.@'
               2010-2018 John MacFarlane
@@ -52,6 +53,7 @@ TODO : refactor common patterns across readers :
 
 
 module Text.Pandoc.Readers.Textile ( readTextile) where
+import Prelude
 import Control.Monad (guard, liftM)
 import Control.Monad.Except (throwError)
 import Data.Char (digitToInt, isUpper)

@@ -1,3 +1,4 @@
+{-# LANGUAGE NoImplicitPrelude #-}
 {-# LANGUAGE PatternGuards #-}
 
 {-
@@ -57,6 +58,7 @@ module Text.Pandoc.Writers.Powerpoint.Presentation ( documentToPresentation
                                                    ) where
 
 
+import Prelude
 import Control.Monad.Reader
 import Control.Monad.State
 import Data.List (intercalate)

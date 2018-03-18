@@ -1,3 +1,4 @@
+{-# LANGUAGE NoImplicitPrelude #-}
 {-
 Copyright (C) 2007-2018 John MacFarlane <jgm@berkeley.edu>
 
@@ -36,6 +37,7 @@ TODO:
 -}
 
 module Text.Pandoc.Writers.Ms ( writeMs ) where
+import Prelude
 import Control.Monad.State.Strict
 import Data.Char (isLower, isUpper, toUpper, ord)
 import Data.List (intercalate, intersperse, sort)

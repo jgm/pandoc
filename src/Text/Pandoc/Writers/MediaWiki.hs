@@ -1,3 +1,4 @@
+{-# LANGUAGE NoImplicitPrelude #-}
 {-
 Copyright (C) 2008-2018 John MacFarlane <jgm@berkeley.edu>
 
@@ -30,6 +31,7 @@ Conversion of 'Pandoc' documents to MediaWiki markup.
 MediaWiki:  <http://www.mediawiki.org/wiki/MediaWiki>
 -}
 module Text.Pandoc.Writers.MediaWiki ( writeMediaWiki ) where
+import Prelude
 import Control.Monad.Reader
 import Control.Monad.State.Strict
 import Data.List (intercalate)

@@ -1,3 +1,4 @@
+{-# LANGUAGE NoImplicitPrelude #-}
 module Text.Pandoc.Readers.Docx.Util (
                                         NameSpaces
                                       , elemName
@@ -8,6 +9,7 @@ module Text.Pandoc.Readers.Docx.Util (
                                       , findAttrByName
                                       ) where
 
+import Prelude
 import Data.Maybe (mapMaybe)
 import Text.XML.Light
 

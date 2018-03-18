@@ -1,3 +1,4 @@
+{-# LANGUAGE NoImplicitPrelude #-}
 {-# LANGUAGE OverloadedStrings #-}
 
 {-
@@ -31,6 +32,7 @@ Reference:
 https://jats.nlm.nih.gov/publishing/tag-library
 -}
 module Text.Pandoc.Writers.JATS ( writeJATS ) where
+import Prelude
 import Control.Monad.Reader
 import Data.Char (toLower)
 import Data.Generics (everywhere, mkT)

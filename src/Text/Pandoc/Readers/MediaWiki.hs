@@ -1,3 +1,4 @@
+{-# LANGUAGE NoImplicitPrelude #-}
 {-# LANGUAGE FlexibleInstances    #-}
 {-# LANGUAGE RelaxedPolyRec       #-}
 {-# LANGUAGE TypeSynonymInstances #-}
@@ -38,6 +39,7 @@ _ parse templates?
 -}
 module Text.Pandoc.Readers.MediaWiki ( readMediaWiki ) where
 
+import Prelude
 import Control.Monad
 import Control.Monad.Except (throwError)
 import Data.Char (isDigit, isSpace)

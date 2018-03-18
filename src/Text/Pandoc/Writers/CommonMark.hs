@@ -1,3 +1,4 @@
+{-# LANGUAGE NoImplicitPrelude #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-
 Copyright (C) 2015-2018 John MacFarlane <jgm@berkeley.edu>
@@ -32,6 +33,7 @@ CommonMark:  <http://commonmark.org>
 -}
 module Text.Pandoc.Writers.CommonMark (writeCommonMark) where
 
+import Prelude
 import CMarkGFM
 import Control.Monad.State.Strict (State, get, modify, runState)
 import Data.Foldable (foldrM)

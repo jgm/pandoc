@@ -1,3 +1,4 @@
+{-# LANGUAGE NoImplicitPrelude #-}
 {-
 Copyright (C) 2014-2018 Albert Krewinkel <tarleb+pandoc@moltkeplatz.de>
 
@@ -32,6 +33,7 @@ module Text.Pandoc.Readers.Org.DocumentTree
   , headlineToBlocks
   ) where
 
+import Prelude
 import Control.Arrow ((***))
 import Control.Monad (guard, void)
 import Data.Char (toLower, toUpper)

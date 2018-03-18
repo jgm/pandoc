@@ -1,6 +1,8 @@
+{-# LANGUAGE NoImplicitPrelude #-}
 {-# LANGUAGE OverloadedStrings #-}
 module Tests.Readers.Org.Directive (tests) where
 
+import Prelude
 import Data.Time (UTCTime (UTCTime), secondsToDiffTime)
 import Data.Time.Calendar (Day (ModifiedJulianDay))
 import Test.Tasty (TestTree, testGroup)

@@ -1,6 +1,8 @@
+{-# LANGUAGE NoImplicitPrelude #-}
 module Tests.Command (findPandoc, runTest, tests)
 where
 
+import Prelude
 import Data.Algorithm.Diff
 import qualified Data.ByteString as BS
 import Data.List (isSuffixOf)

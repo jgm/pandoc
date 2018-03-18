@@ -1,6 +1,8 @@
+{-# LANGUAGE NoImplicitPrelude #-}
 {-# LANGUAGE OverloadedStrings #-}
 module Tests.Readers.LaTeX (tests) where
 
+import Prelude
 import Data.Text (Text)
 import qualified Data.Text as T
 import qualified Text.Pandoc.UTF8 as UTF8

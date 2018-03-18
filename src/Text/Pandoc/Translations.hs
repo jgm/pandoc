@@ -1,3 +1,4 @@
+{-# LANGUAGE NoImplicitPrelude #-}
 {-# LANGUAGE CPP                        #-}
 {-# LANGUAGE DeriveGeneric              #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
@@ -46,6 +47,7 @@ module Text.Pandoc.Translations (
                          , readTranslations
                          )
 where
+import Prelude
 import Data.Aeson.Types (typeMismatch)
 import qualified Data.HashMap.Strict as HM
 import qualified Data.Map as M

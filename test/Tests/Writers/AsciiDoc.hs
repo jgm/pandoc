@@ -1,5 +1,7 @@
+{-# LANGUAGE NoImplicitPrelude #-}
 module Tests.Writers.AsciiDoc (tests) where
 
+import Prelude
 import Data.Text (unpack)
 import Test.Tasty
 import Tests.Helpers

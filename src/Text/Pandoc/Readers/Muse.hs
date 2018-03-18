@@ -1,3 +1,4 @@
+{-# LANGUAGE NoImplicitPrelude #-}
 {-# LANGUAGE FlexibleContexts      #-}
 {-
   Copyright (C) 2017-2018 Alexander Krotov <ilabdsf@gmail.com>
@@ -39,6 +40,7 @@ TODO:
 -}
 module Text.Pandoc.Readers.Muse (readMuse) where
 
+import Prelude
 import Control.Monad
 import Control.Monad.Except (throwError)
 import Data.Char (isLetter)

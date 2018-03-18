@@ -1,3 +1,4 @@
+{-# LANGUAGE NoImplicitPrelude #-}
 {-# LANGUAGE FlexibleContexts #-}
 
 {-# LANGUAGE TupleSections    #-}
@@ -7,6 +8,7 @@ module Text.Pandoc.Readers.EPUB
   (readEPUB)
   where
 
+import Prelude
 import Codec.Archive.Zip (Archive (..), Entry, findEntryByPath, fromEntry,
                           toArchiveOrFail)
 import Control.DeepSeq (NFData, deepseq)

@@ -1,5 +1,7 @@
+{-# LANGUAGE NoImplicitPrelude #-}
 module Tests.Old (tests) where
 
+import Prelude
 import Data.Algorithm.Diff
 import Prelude hiding (readFile)
 import System.Exit

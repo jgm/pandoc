@@ -1,3 +1,4 @@
+{-# LANGUAGE NoImplicitPrelude #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-
 Copyright (C) 2013-2018 John MacFarlane <jgm@berkeley.edu>
@@ -44,6 +45,7 @@ module Text.Pandoc.Writers.Shared (
                      , stripLeadingTrailingSpace
                      )
 where
+import Prelude
 import Control.Monad (zipWithM)
 import Data.Aeson (FromJSON (..), Result (..), ToJSON (..), Value (Object),
                    encode, fromJSON)

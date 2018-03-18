@@ -1,3 +1,4 @@
+{-# LANGUAGE NoImplicitPrelude #-}
 {-# LANGUAGE FlexibleContexts     #-}
 {-# LANGUAGE FlexibleInstances    #-}
 {-# LANGUAGE OverloadedStrings    #-}
@@ -19,6 +20,7 @@ Conversion of TikiWiki text to 'Pandoc' document.
 module Text.Pandoc.Readers.TikiWiki ( readTikiWiki
                                     ) where
 
+import Prelude
 import Control.Monad
 import Control.Monad.Except (throwError)
 import qualified Data.Foldable as F

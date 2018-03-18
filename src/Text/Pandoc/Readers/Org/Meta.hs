@@ -1,3 +1,4 @@
+{-# LANGUAGE NoImplicitPrelude #-}
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE TupleSections    #-}
 {-
@@ -33,6 +34,7 @@ module Text.Pandoc.Readers.Org.Meta
   , metaLine
   ) where
 
+import Prelude
 import Text.Pandoc.Readers.Org.BlockStarts
 import Text.Pandoc.Readers.Org.ExportSettings (exportSettings)
 import Text.Pandoc.Readers.Org.Inlines

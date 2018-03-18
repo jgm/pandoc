@@ -1,3 +1,4 @@
+{-# LANGUAGE NoImplicitPrelude #-}
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE PatternGuards     #-}
 {-# LANGUAGE ViewPatterns      #-}
@@ -58,6 +59,7 @@ module Text.Pandoc.Readers.Docx.Parse ( Docx(..)
                                       , archiveToDocx
                                       , archiveToDocxWithWarnings
                                       ) where
+import Prelude
 import Codec.Archive.Zip
 import Control.Applicative ((<|>))
 import Control.Monad.Except

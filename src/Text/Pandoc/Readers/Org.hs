@@ -1,3 +1,4 @@
+{-# LANGUAGE NoImplicitPrelude #-}
 {-
 Copyright (C) 2014-2018 Albert Krewinkel <tarleb+pandoc@moltkeplatz.de>
 
@@ -27,6 +28,7 @@ Conversion of org-mode formatted plain text to 'Pandoc' document.
 -}
 module Text.Pandoc.Readers.Org ( readOrg ) where
 
+import Prelude
 import Text.Pandoc.Readers.Org.Blocks (blockList, meta)
 import Text.Pandoc.Readers.Org.ParserState (optionsToParserState)
 import Text.Pandoc.Readers.Org.Parsing (OrgParser, readWithM)

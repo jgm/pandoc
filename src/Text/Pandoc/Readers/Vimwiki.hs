@@ -1,3 +1,4 @@
+{-# LANGUAGE NoImplicitPrelude #-}
 {-# LANGUAGE CPP #-}
 {-
   Copyright (C) 2017-2018 Yuchen Pei <me@ypei.me>
@@ -64,6 +65,7 @@ Conversion of vimwiki text to 'Pandoc' document.
 
 module Text.Pandoc.Readers.Vimwiki ( readVimwiki
                                  ) where
+import Prelude
 import Control.Monad (guard)
 import Control.Monad.Except (throwError)
 import Data.Default

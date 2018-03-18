@@ -1,3 +1,4 @@
+{-# LANGUAGE NoImplicitPrelude #-}
 
 
 {-
@@ -41,6 +42,7 @@ This is a wrapper around two modules:
 
 module Text.Pandoc.Writers.Powerpoint (writePowerpoint) where
 
+import Prelude
 import Codec.Archive.Zip
 import Text.Pandoc.Definition
 import Text.Pandoc.Walk

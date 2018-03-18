@@ -1,3 +1,4 @@
+{-# LANGUAGE NoImplicitPrelude #-}
 {-
 Copyright (C) 2006-2018 John MacFarlane <jgm@berkeley.edu>
 
@@ -29,6 +30,7 @@ Apply Lua filters to modify a pandoc documents programmatically.
 -}
 module Text.Pandoc.Filter.Lua (apply) where
 
+import Prelude
 import Control.Exception (throw)
 import Text.Pandoc.Class (PandocIO)
 import Text.Pandoc.Definition (Pandoc)

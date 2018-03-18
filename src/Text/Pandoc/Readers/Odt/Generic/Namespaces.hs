@@ -1,3 +1,4 @@
+{-# LANGUAGE NoImplicitPrelude #-}
 {-
 Copyright (C) 2015 Martin Linnemann <theCodingMarlin@googlemail.com>
 
@@ -31,6 +32,7 @@ typesafe Haskell namespace identifiers and unsafe "real world" namespaces.
 
 module Text.Pandoc.Readers.Odt.Generic.Namespaces where
 
+import Prelude
 import qualified Data.Map as M
 
 --

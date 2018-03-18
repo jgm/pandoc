@@ -1,3 +1,4 @@
+{-# LANGUAGE NoImplicitPrelude #-}
 {-
 Copyright (C) 2012-2018 John MacFarlane <jgm@berkeley.edu>
 
@@ -39,6 +40,7 @@ module Text.Pandoc.Writers.OOXML ( mknode
                                  , fitToPage
                                  ) where
 
+import Prelude
 import Codec.Archive.Zip
 import Control.Monad.Reader
 import qualified Data.ByteString as B

@@ -1,3 +1,4 @@
+{-# LANGUAGE NoImplicitPrelude #-}
 {-
 Copyright © 2017-2018 Albert Krewinkel <tarleb+pandoc@moltkeplatz.de>
 
@@ -29,6 +30,7 @@ module Text.Pandoc.Lua.Module.Utils
   ( pushModule
   ) where
 
+import Prelude
 import Control.Applicative ((<|>))
 import Data.Default (def)
 import Foreign.Lua (FromLuaStack, Lua, LuaInteger, NumResults)

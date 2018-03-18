@@ -1,5 +1,7 @@
+{-# LANGUAGE NoImplicitPrelude #-}
 {-# LANGUAGE ExplicitForAll, TupleSections #-}
 module Text.Pandoc.Readers.JATS ( readJATS ) where
+import Prelude
 import Control.Monad.State.Strict
 import Data.Char (isDigit, isSpace, toUpper)
 import Data.Default

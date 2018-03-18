@@ -1,8 +1,10 @@
+{-# LANGUAGE NoImplicitPrelude #-}
 {-# LANGUAGE PatternGuards     #-}
 {-# LANGUAGE OverloadedStrings #-}
 
 module Tests.Writers.OOXML (ooxmlTest) where
 
+import Prelude
 import Text.Pandoc
 import Test.Tasty
 import Test.Tasty.Golden.Advanced

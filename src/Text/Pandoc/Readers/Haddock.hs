@@ -1,3 +1,4 @@
+{-# LANGUAGE NoImplicitPrelude #-}
 {-# LANGUAGE CPP #-}
 {- |
    Module      : Text.Pandoc.Readers.Haddock
@@ -14,6 +15,7 @@ module Text.Pandoc.Readers.Haddock
     ( readHaddock
     ) where
 
+import Prelude
 import Control.Monad.Except (throwError)
 import Data.List (intersperse, stripPrefix)
 import Data.Maybe (fromMaybe)

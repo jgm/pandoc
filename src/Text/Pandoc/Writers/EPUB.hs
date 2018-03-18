@@ -1,3 +1,4 @@
+{-# LANGUAGE NoImplicitPrelude #-}
 {-# LANGUAGE CPP                 #-}
 {-# LANGUAGE FlexibleContexts    #-}
 {-# LANGUAGE PatternGuards       #-}
@@ -32,6 +33,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 Conversion of 'Pandoc' documents to EPUB.
 -}
 module Text.Pandoc.Writers.EPUB ( writeEPUB2, writeEPUB3 ) where
+import Prelude
 import Codec.Archive.Zip (Entry, addEntryToArchive, eRelativePath, emptyArchive,
                           fromArchive, fromEntry, toEntry)
 import Control.Monad (mplus, unless, when, zipWithM)

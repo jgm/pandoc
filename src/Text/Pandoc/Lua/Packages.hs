@@ -1,3 +1,4 @@
+{-# LANGUAGE NoImplicitPrelude #-}
 {-
 Copyright © 2017-2018 Albert Krewinkel <tarleb+pandoc@moltkeplatz.de>
 
@@ -32,6 +33,7 @@ module Text.Pandoc.Lua.Packages
   , installPandocPackageSearcher
   ) where
 
+import Prelude
 import Control.Monad (forM_)
 import Data.ByteString.Char8 (unpack)
 import Data.IORef (IORef)

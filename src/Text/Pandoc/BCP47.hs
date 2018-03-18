@@ -1,3 +1,4 @@
+{-# LANGUAGE NoImplicitPrelude #-}
 {-
 Copyright (C) 2017–2018 John MacFarlane <jgm@berkeley.edu>
 
@@ -34,6 +35,7 @@ module Text.Pandoc.BCP47 (
                      , renderLang
                      )
 where
+import Prelude
 import Control.Monad (guard)
 import Data.Char (isAlphaNum, isAscii, isLetter, isLower, isUpper, toLower,
                   toUpper)

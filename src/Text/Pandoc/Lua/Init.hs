@@ -1,3 +1,4 @@
+{-# LANGUAGE NoImplicitPrelude #-}
 {-
 Copyright © 2017-2018 Albert Krewinkel <tarleb+pandoc@moltkeplatz.de>
 
@@ -34,6 +35,7 @@ module Text.Pandoc.Lua.Init
   , registerScriptPath
   ) where
 
+import Prelude
 import Control.Monad.Trans (MonadIO (..))
 import Data.Data (Data, dataTypeConstrs, dataTypeOf, showConstr)
 import Data.IORef (newIORef, readIORef)

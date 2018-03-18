@@ -1,3 +1,4 @@
+{-# LANGUAGE NoImplicitPrelude #-}
 {-# LANGUAGE CPP                 #-}
 {-# LANGUAGE OverloadedStrings   #-}
 {-# LANGUAGE ScopedTypeVariables #-}
@@ -45,6 +46,7 @@ module Text.Pandoc.Writers.HTML (
   writeRevealJs,
   tagWithAttributes
   ) where
+import Prelude
 import Control.Monad.State.Strict
 import Data.Char (ord, toLower)
 import Data.List (intercalate, intersperse, isPrefixOf, partition)

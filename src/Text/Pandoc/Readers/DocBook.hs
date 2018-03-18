@@ -1,5 +1,7 @@
+{-# LANGUAGE NoImplicitPrelude #-}
 {-# LANGUAGE ExplicitForAll #-}
 module Text.Pandoc.Readers.DocBook ( readDocBook ) where
+import Prelude
 import Control.Monad.State.Strict
 import Data.Char (isSpace, toUpper)
 import Data.Default

@@ -1,3 +1,4 @@
+{-# LANGUAGE NoImplicitPrelude #-}
 {-
 Copyright (C) 2008-2018 John MacFarlane <jgm@berkeley.edu>
 
@@ -39,6 +40,7 @@ DokuWiki:  <https://www.dokuwiki.org/dokuwiki>
 -}
 
 module Text.Pandoc.Writers.DokuWiki ( writeDokuWiki ) where
+import Prelude
 import Control.Monad (zipWithM)
 import Control.Monad.Reader (ReaderT, ask, local, runReaderT)
 import Control.Monad.State.Strict (StateT, evalStateT)

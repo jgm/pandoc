@@ -1,7 +1,9 @@
+{-# LANGUAGE NoImplicitPrelude #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# OPTIONS_GHC -fno-warn-name-shadowing #-}
 module Tests.Writers.Markdown (tests) where
 
+import Prelude
 import Data.Text (unpack)
 import Test.Tasty
 import Tests.Helpers

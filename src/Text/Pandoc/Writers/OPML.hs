@@ -1,3 +1,4 @@
+{-# LANGUAGE NoImplicitPrelude #-}
 {-# LANGUAGE CPP #-}
 {-
 Copyright (C) 2013-2018 John MacFarlane <jgm@berkeley.edu>
@@ -29,6 +30,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 Conversion of 'Pandoc' documents to OPML XML.
 -}
 module Text.Pandoc.Writers.OPML ( writeOPML) where
+import Prelude
 import Control.Monad.Except (throwError)
 import Data.Text (Text, unpack)
 import qualified Data.Text as T
