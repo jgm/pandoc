@@ -15,8 +15,8 @@ extra-deps:
 - pandoc-citeproc-0.14.2
 - skylighting-0.7.0.2
 - skylighting-core-0.7.0.2
-- ansi-terminal-0.7.1.1
-- tasty-1.0.0.1
+- ansi-terminal-0.8.0.2
+- tasty-1.0.1.1
 - pandoc-types-1.17.4.2
 ghc-options:
    "$locals": -fhide-source-paths -XNoImplicitPrelude
