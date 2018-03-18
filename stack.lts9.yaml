@@ -12,7 +12,6 @@ flags:
 packages:
 - '.'
 extra-deps:
-- pandoc-types-1.17.3
 - hslua-0.9.5
 - hslua-module-text-0.1.2
 - skylighting-0.7.0.2
