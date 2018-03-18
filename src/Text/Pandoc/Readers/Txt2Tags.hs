@@ -38,7 +38,6 @@ import Data.Char (toLower)
 import Data.Default
 import Data.List (intercalate, transpose)
 import Data.Maybe (fromMaybe)
-import Data.Monoid ((<>))
 import Data.Text (Text)
 import qualified Data.Text as T
 import Data.Time.Format (formatTime)
@@ -444,7 +443,7 @@ inlineMarkup p f c special = try $ do
       let end' = case drop 2 end of
                           "" -> mempty
                           xs -> special xs
-      return $ f (start' <> body' <> end')
+      return $ f (start' `mappend` body' `mappend` end')
     Nothing -> do -- Either bad or case such as *****
       guard (l >= 5)
       let body' = replicate (l - 4) c

@@ -54,7 +54,6 @@ import Data.Char (toLower, toUpper)
 import Data.List (find, intercalate, isPrefixOf, isSuffixOf, sort)
 import qualified Data.Map as M
 import Data.Maybe (fromMaybe, isJust, isNothing)
-import Data.Monoid
 import qualified Data.Set as Set
 import Data.Text (Text)
 import qualified Data.Text as T
@@ -967,6 +966,9 @@ options =
                                 setUserDataDir Nothing
                                 getDefaultTemplate arg
                      case templ of
+                          Right "" -> do -- e.g. for docx, odt, json:
+                            E.throwIO $ PandocCouldNotFindDataFileError
+                               ("templates/default." ++ arg)
                           Right t -> UTF8.hPutStr stdout t
                           Left e  -> E.throwIO e
                      exitSuccess)

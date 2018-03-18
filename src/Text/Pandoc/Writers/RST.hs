@@ -378,7 +378,8 @@ blockListToRST :: PandocMonad m
 blockListToRST = blockListToRST' False
 
 transformInlines :: [Inline] -> [Inline]
-transformInlines = removeSpaceAfterDisplayMath . insertBS
+transformInlines =
+  removeLeadingTrailingSpace . removeSpaceAfterDisplayMath . insertBS
   where -- remove spaces after displaymath, as they screw up indentation:
         removeSpaceAfterDisplayMath (Math DisplayMath x : zs) =
               Math DisplayMath x : dropWhile (==Space) zs

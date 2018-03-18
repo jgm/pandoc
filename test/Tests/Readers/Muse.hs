@@ -36,14 +36,12 @@ makeRoundTrip (OrderedList (start, UpperAlpha, _) items) = OrderedList (start, D
 makeRoundTrip x = x
 
 -- Demand that any AST produced by Muse reader and written by Muse writer can be read back exactly the same way.
--- Currently we remove tables and compare third rewrite to the second.
--- First and second rewrites are not equal yet.
+-- Currently we remove tables and compare first rewrite to the second.
 roundTrip :: Block -> Bool
-roundTrip b = d'' == d'''
+roundTrip b = d' == d''
   where d = walk makeRoundTrip $ Pandoc nullMeta [b]
         d' = rewrite d
         d'' = rewrite d'
-        d''' = rewrite d''
         rewrite = amuse . T.pack . (++ "\n") . T.unpack .
                   purely (writeMuse def { writerExtensions = extensionsFromList [Ext_amuse]
                                           , writerWrapText = WrapPreserve
@@ -172,6 +170,9 @@ tests =
       , "Verbatim inside code" =: "<code><verbatim>foo</verbatim></code>" =?> para (code "<verbatim>foo</verbatim>")
 
       , "Verbatim tag after text" =: "Foo <verbatim>bar</verbatim>" =?> para "Foo bar"
+
+      , "Class tag" =: "<class name=\"foo\">bar</class>" =?> para (spanWith ("", ["foo"], []) "bar")
+      , "Class tag without name" =: "<class>foobar</class>" =?> para (spanWith ("", [], []) "foobar")
 
       -- <em> tag should match with the last </em> tag, not verbatim one
       , "Nested \"</em>\" inside em tag" =: "<em>foo<verbatim></em></verbatim>bar</em>" =?> para (emph ("foo</em>bar"))
@@ -1221,5 +1222,41 @@ tests =
           , "</quote>"
           ] =?>
         blockQuote (bulletList [ blockQuote $ para "foo" ] <> para "bar")
+
+      , "Unclosed quote tag" =:
+        T.unlines
+          [ "<quote>"
+          , "<verse>"
+          , "</quote>"
+          , "</verse>"
+          ] =?>
+        para "<quote>" <> lineBlock [ "</quote>" ]
+
+      , "Unclosed quote tag inside list" =:
+        T.unlines
+          [ " - <quote>"
+          , "   <verse>"
+          , "   </quote>"
+          , "   </verse>"
+          ] =?>
+        bulletList [ para "<quote>" <> lineBlock [ "</quote>" ] ]
+
+      -- Allowing indented closing tags is dangerous,
+      -- as they may terminate lists
+      , "No indented closing tags" =:
+        T.unlines
+          [ "<quote>"
+          , ""
+          , " - Foo"
+          , ""
+          , "   </quote>"
+          , ""
+          , "   bar"
+          , ""
+          , "   <verse>"
+          , "   </quote>"
+          , "   </verse>"
+          ] =?>
+        para "<quote>" <> bulletList [ para "Foo" <> para "</quote>" <> para "bar" <> lineBlock [ "</quote>" ] ]
       ]
   ]

@@ -39,7 +39,6 @@ import qualified Data.HashMap.Strict as H
 import Data.List (intercalate, sortBy, transpose, elemIndex)
 import qualified Data.Map as M
 import Data.Maybe
-import Data.Monoid ((<>))
 import Data.Ord (comparing)
 import Data.Scientific (base10Exponent, coefficient)
 import qualified Data.Set as Set

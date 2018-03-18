@@ -366,12 +366,16 @@ isSimpleBlockQuote bs  = all isPlainOrPara bs
 vcat :: [String] -> String
 vcat = intercalate "\n"
 
-backSlashLineBreaks :: String -> String
-backSlashLineBreaks cs = reverse $ g $ reverse $ concatMap f cs
-  where f '\n' = "\\\\ "
-        f c    = [c]
-        g (' ' : '\\':'\\': xs) = xs
-        g s                     = s
+-- | For each string in the input list, convert all newlines to
+-- dokuwiki escaped newlines. Then concat the list using double linebreaks.
+backSlashLineBreaks :: [String] -> String
+backSlashLineBreaks ls = vcatBackSlash $ map escape ls
+  where
+    vcatBackSlash = intercalate "\\\\ \\\\ " -- simulate paragraphs.
+    escape ('\n':[]) = "" -- remove trailing newlines
+    escape ('\n':cs) = "\\\\ " ++ escape cs
+    escape (c:cs)    = c : (escape cs)
+    escape []        = []
 
 -- Auxiliary functions for tables:
 
@@ -400,7 +404,7 @@ blockListToDokuWiki opts blocks = do
   backSlash <- stBackSlashLB <$> ask
   let blocks' = consolidateRawBlocks blocks
   if backSlash
-    then (backSlashLineBreaks . vcat) <$> mapM (blockToDokuWiki opts) blocks'
+    then backSlashLineBreaks <$> mapM (blockToDokuWiki opts) blocks'
     else vcat <$> mapM (blockToDokuWiki opts) blocks'
 
 consolidateRawBlocks :: [Block] -> [Block]
@@ -479,7 +483,11 @@ inlineToDokuWiki _ il@(RawInline f str)
   | f == Format "html"     = return $ "<html>" ++ str ++ "</html>"
   | otherwise              = "" <$ report (InlineNotRendered il)
 
-inlineToDokuWiki _ LineBreak = return "\\\\\n"
+inlineToDokuWiki _ LineBreak = do
+  backSlash <- stBackSlashLB <$> ask
+  return $ if backSlash
+           then "\n"
+           else "\\\\\n"
 
 inlineToDokuWiki opts SoftBreak =
   case writerWrapText opts of

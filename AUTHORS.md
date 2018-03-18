@@ -129,6 +129,7 @@
 - Nick Bart
 - Nicolas Kaiser
 - Nikolay Yakimov
+- Nokome Bentley
 - Oliver Matthews
 - Ophir Lifshitz
 - Or Neeman

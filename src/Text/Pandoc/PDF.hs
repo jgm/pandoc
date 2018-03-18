@@ -41,7 +41,6 @@ import Data.ByteString.Lazy (ByteString)
 import qualified Data.ByteString.Lazy as BL
 import qualified Data.ByteString.Lazy.Char8 as BC
 import Data.Maybe (fromMaybe)
-import Data.Monoid ((<>))
 import Data.Text (Text)
 import qualified Data.Text as T
 import qualified Data.Text.IO as TextIO
@@ -56,6 +55,8 @@ import System.IO.Error (IOError, isDoesNotExistError)
 #else
 import System.IO.Error (isDoesNotExistError)
 #endif
+import Text.HTML.TagSoup
+import Text.HTML.TagSoup.Match
 import Text.Pandoc.Definition
 import Text.Pandoc.Error (PandocError (PandocPDFProgramNotFoundError))
 import Text.Pandoc.MIME (getMimeType)
@@ -353,7 +354,13 @@ html2pdf  :: Verbosity    -- ^ Verbosity level
           -> [String]     -- ^ Args to program
           -> Text         -- ^ HTML5 source
           -> IO (Either ByteString ByteString)
-html2pdf verbosity program args source = do
+html2pdf verbosity program args htmlSource = do
+  cwd <- getCurrentDirectory
+  let tags = parseTags htmlSource
+      (hd, tl) = break (tagClose (== "head")) tags
+      baseTag = TagOpen "base"
+        [("href", T.pack cwd <> T.singleton pathSeparator)] : [TagText "\n"]
+      source = renderTags $ hd ++ baseTag ++ tl
   pdfFile <- withTempFile "." "html2pdf.pdf" $ \fp _ -> return fp
   let pdfFileArgName = ["-o" | program == "prince"]
   let programArgs = args ++ ["-"] ++ pdfFileArgName ++ [pdfFile]

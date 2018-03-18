@@ -10,7 +10,7 @@ import Test.Tasty.QuickCheck (QuickCheckTests (..), ioProperty, testProperty)
 import Text.Pandoc.Arbitrary ()
 import Text.Pandoc.Builder (bulletList, divWith, doc, doubleQuoted, emph,
                             header, linebreak, para, plain, rawBlock,
-                            singleQuoted, space, str, strong, (<>))
+                            singleQuoted, space, str, strong)
 import Text.Pandoc.Class (runIOorExplode, setUserDataDir)
 import Text.Pandoc.Definition (Block (BlockQuote, Div, Para), Inline (Emph, Str),
                                Attr, Meta, Pandoc, pandocTypesVersion)

@@ -41,7 +41,6 @@ import qualified Data.ByteString.Char8 as B
 import qualified Data.ByteString.Lazy as L
 import Data.Char (isAlphaNum, isAscii, toLower)
 import Data.List (isPrefixOf)
-import Data.Monoid ((<>))
 import Network.URI (escapeURIString)
 import System.FilePath (takeDirectory, takeExtension, (</>))
 import Text.HTML.TagSoup

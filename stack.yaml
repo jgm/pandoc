@@ -21,6 +21,8 @@ extra-deps:
 - tasty-1.0.0.1
 - texmath-0.10.1.1
 - tagsoup-0.14.6
+- pandoc-types-1.17.4.2
+- haddock-library-1.5.0.1
 ghc-options:
    "$locals": -fhide-source-paths
 resolver: lts-10.3

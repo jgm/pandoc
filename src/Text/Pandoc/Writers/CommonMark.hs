@@ -36,7 +36,7 @@ import CMarkGFM
 import Control.Monad.State.Strict (State, get, modify, runState)
 import Data.Foldable (foldrM)
 import Data.List (transpose)
-import Data.Monoid (Any (..), (<>))
+import Data.Monoid (Any (..))
 import Data.Text (Text)
 import qualified Data.Text as T
 import Network.HTTP (urlEncode)
