@@ -1696,7 +1696,7 @@ pandoc (2.0)
     directory.  However, the working directory must be explicitly
     specified if the `--resource-path` option is used.
 
-  * Added --abbreviations=FILE option for custom abbreviations file
+  * Added `--abbreviations=FILE` option for custom abbreviations file
     (#256).  Default abbreviations file (`data/abbreviations`) contains
     a list of strings that will be recognized by pandoc's
     Markdown parser as abbreviations.  (A nonbreaking space will
