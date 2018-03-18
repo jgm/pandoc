@@ -50,14 +50,18 @@ tests = [ testGroup "rubrics"
               , ""
               , "    quoted"]
           ]
-        , testGroup "spaces are stripped within inlines"
-          -- pandoc issue 4327 "The text within inline markup may not
-          -- begin or end with whitespace"
-          -- http://docutils.sourceforge.net/docs/ref/rst/restructuredtext.html#inline-markup
-          [ "multiple" =:
+        , testGroup "inlines"
+          [ "are removed when empty" =: -- #4434
+            plain (strong (str "")) =?> ""
+          , "do not cause the introduction of extra spaces when removed" =:
+            plain (strong (str "") <> emph (str "text")) =?> "*text*"
+          , "spaces are stripped at beginning and end" =:
+            -- pandoc issue 4327 "The text within inline markup may not
+            -- begin or end with whitespace"
+            -- http://docutils.sourceforge.net/docs/ref/rst/restructuredtext.html#inline-markup
             strong (space <> str "text" <> space <> space) =?> "**text**"
-          , "single" =:
-            strong (space) =?> "****"
+          , "single space stripped" =:
+            strong (space) =?> ""
           ]
         , testGroup "headings"
           [ "normal heading" =:
