@@ -74,8 +74,8 @@
 \fi
 \ifxetex
   % load bidi as late as possible as it modifies e.g. graphicx
-    \usepackage{bidi}
-  \fi
+  \usepackage{bidi}
+\fi
 \ifnum 0\ifxetex 1\fi\ifluatex 1\fi=0 % if pdftex
   \TeXXeTstate=1
   \newcommand{\RL}[1]{\beginR #1\endR}
