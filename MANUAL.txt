@@ -605,6 +605,13 @@ Reader options
     before the affected paragraph break. This option only affects the
     docx reader.
 
+`--font-attributes`
+
+:   Useful for developing filters that turn font information into
+    formatting. When the option is set pandoc parses DOCX font names
+    and stores them in a `font` attribute in a `Span` containing the
+    text.
+
 `--extract-media=`*DIR*
 
 :   Extract images and other media contained in or linked from

@@ -303,7 +303,8 @@ data RunStyle = RunStyle { isBold      :: Maybe Bool
                          , isStrike    :: Maybe Bool
                          , rVertAlign  :: Maybe VertAlign
                          , rUnderline  :: Maybe String
-                         , rStyle      :: Maybe CharStyle}
+                         , rStyle      :: Maybe CharStyle
+                         , rFontName   :: Maybe String}
                 deriving Show
 
 data ParStyleData = ParStyleData { headingLev   :: Maybe (String, Int)
@@ -319,7 +320,8 @@ defaultRunStyle = RunStyle { isBold = Nothing
                            , isStrike = Nothing
                            , rVertAlign = Nothing
                            , rUnderline = Nothing
-                           , rStyle = Nothing}
+                           , rStyle = Nothing
+                           , rFontName = Nothing}
 
 type Target = String
 type Anchor = String
@@ -1037,6 +1039,7 @@ checkOnOff ns rPr tag
   | Just _ <- findChild tag rPr = Just True
 checkOnOff _ _ _ = Nothing
 
+-- | parse the style of a run element into a @D RunStyle@
 elemToRunStyleD :: NameSpaces -> Element -> D RunStyle
 elemToRunStyleD ns element
   | Just rPr <- findChildByName ns "w" "rPr" element = do
@@ -1071,7 +1074,12 @@ elemToRunStyle ns element parentStyle
           findChildByName ns "w" "u" rPr >>=
           findAttrByName ns "w" "val"
       , rStyle = parentStyle
-        }
+        -- choose the parent style font or go looking for the font if
+        -- the former is Nothing
+      , rFontName = (maybe Nothing (rFontName . snd) parentStyle) <|>
+                    (findChildByName ns "w" "rFonts" rPr >>=
+                     findAttrByName ns "w" "ascii")
+      }
 elemToRunStyle _ _ _ = defaultRunStyle
 
 getHeaderLevel :: NameSpaces -> Element -> Maybe (String,Int)

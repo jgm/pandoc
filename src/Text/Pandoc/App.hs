@@ -448,6 +448,7 @@ convertWithOpts opts = do
           , readerDefaultImageExtension =
              optDefaultImageExtension opts
           , readerTrackChanges = optTrackChanges opts
+          , readerFontAttributes = optFontAttributes opts
           , readerAbbreviations = abbrevs
           , readerExtensions = readerExts
           , readerStripComments = optStripComments opts
@@ -603,6 +604,7 @@ data Opt = Opt
     , optDefaultImageExtension :: String -- ^ Default image extension
     , optExtractMedia          :: Maybe FilePath -- ^ Path to extract embedded media
     , optTrackChanges          :: TrackChanges -- ^ Accept or reject MS Word track-changes.
+    , optFontAttributes        :: Bool -- ^ Store DOCX font names into Span attributes for filters
     , optFileScope             :: Bool         -- ^ Parse input files before combining
     , optTitlePrefix           :: Maybe String     -- ^ Prefix for title
     , optCss                   :: [FilePath]       -- ^ CSS files to link to
@@ -675,6 +677,7 @@ defaultOpts = Opt
     , optDefaultImageExtension = ""
     , optExtractMedia          = Nothing
     , optTrackChanges          = AcceptChanges
+    , optFontAttributes        = False
     , optFileScope             = False
     , optTitlePrefix           = Nothing
     , optCss                   = []
@@ -929,6 +932,11 @@ options =
                      return opt { optTrackChanges = action })
                   "accept|reject|all")
                  "" -- "Accepting or reject MS Word track-changes.""
+
+    , Option "" ["font-attributes"]
+                 (NoArg
+                  (\opt -> return opt { optFontAttributes = True }))
+                 "" -- "Parse DOCX fonts into Span attributes"
 
     , Option "" ["file-scope"]
                  (NoArg

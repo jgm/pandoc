@@ -407,5 +407,11 @@ tests = [ testGroup "inlines"
             "docx/metadata_after_normal.docx"
             "docx/metadata_after_normal.native"
           ]
+        , testGroup "font attributes"
+          [ testCompareWithOpts def{readerFontAttributes=True}
+            "inlines and blocks"
+            "docx/font-attributes.docx"
+            "docx/font-attributes.native"
+          ]
 
         ]

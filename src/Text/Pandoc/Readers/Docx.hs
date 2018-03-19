@@ -251,6 +251,9 @@ parPartToString _                          = ""
 blacklistedCharStyles :: [String]
 blacklistedCharStyles = ["Hyperlink"]
 
+-- | RunStyle can be nested to support layers of styles. when the
+-- `styles` extension is not set, this function navigates the layers
+-- and merges their properties in a single RunStyle element
 resolveDependentRunStyle :: PandocMonad m => RunStyle -> DocxContext m RunStyle
 resolveDependentRunStyle rPr
   | Just (s, _)  <- rStyle rPr, s `elem` blacklistedCharStyles =
@@ -279,7 +282,8 @@ resolveDependentRunStyle rPr
                            , rUnderline = case rUnderline rPr of
                                Just ulstyle -> Just ulstyle
                                Nothing      -> rUnderline rPr'
-                           , rStyle = rStyle rPr }
+                           , rStyle = rStyle rPr
+                           , rFontName = rFontName rPr } -- choose outer font
   | otherwise = return rPr
 
 runStyleToTransform :: PandocMonad m => RunStyle -> DocxContext m (Inlines -> Inlines)
@@ -316,7 +320,16 @@ runStyleToTransform rPr
   | Just "single" <- rUnderline rPr = do
       transform <- runStyleToTransform rPr{rUnderline = Nothing}
       return $ underlineSpan . transform
+  | Just f <- rFontName rPr = do
+      opts <- asks docxOptions
+      transform <- runStyleToTransform rPr{rFontName = Nothing}
+      -- this font corresponds to the value of the `w:ascii`
+      -- attribute, which should be enough for most applications. see
+      -- ECMA spec part 1, section L.1.9.2 for details
+      return $ fontToAttr (readerFontAttributes opts) f . transform
   | otherwise = return id
+  where fontToAttr True f = spanWith ("", [], [("font", f)])
+        fontToAttr False _ = id
 
 runToInlines :: PandocMonad m => Run -> DocxContext m Inlines
 runToInlines (Run rs runElems)
