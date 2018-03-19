@@ -3429,9 +3429,10 @@ a pagebreak:
 The format name should match the target format name (see
 `-t/--to`, above, for a list, or use `pandoc
 --list-output-formats`). Use `openxml` for `docx` output,
-`opendocument` for `odt` output, and `latex`, `beamer`,
-`ms`, or `html5` for `pdf` output, depending on what you
-use for `--pdf-engine`.
+`opendocument` for `odt` output, `html5` for `epub3` output,
+`html4` for `epub2` output, and `latex`, `beamer`,
+`ms`, or `html5` for `pdf` output (depending on what you
+use for `--pdf-engine`).
 
 This extension presupposes that the relevant kind of
 inline code or fenced code block is enabled.  Thus, for
