@@ -3415,9 +3415,20 @@ And the following produces a raw `html` inline element:
 
     This is `<a>html</a>`{=html}
 
+This can be useful to insert raw xml into `docx` documents, e.g.
+a pagebreak:
+
+    ```{=openxml}
+    <w:p>
+      <w:r>
+        <w:br w:type="page"/>
+      </w:r>
+    </w:p>
+    ```
+
 The format name should match the target format name (see
 `-t/--to`, above, for a list, or use `pandoc
---list-output-formats`).
+--list-output-formats`). Use `=openxml` for `docx` output.
 
 This extension presupposes that the relevant kind of
 inline code or fenced code block is enabled.  Thus, for
