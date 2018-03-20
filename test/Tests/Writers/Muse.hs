@@ -372,6 +372,21 @@ tests = [ testGroup "block elements"
                                                =?> "[[URL:1.png][Link to image]]"
             , "link to image without description" =: link "1.png" "" (str "1.png")
                                                   =?> "[[URL:1.png]]"
+
+            , testGroup "escape brackets in links"
+              [ "link with description"
+                =: link "https://example.com/foo].txt" "" (str "Description")
+                =?> "[[https://example.com/foo%5D.txt][Description]]"
+              , "link without description"
+                =: link "https://example.com/foo].txt" "" (str "https://example.com/foo].txt")
+                =?> "[[https://example.com/foo%5D.txt][<verbatim>https://example.com/foo].txt</verbatim>]]"
+              , "image link with description"
+                =: link "foo]bar.png" "" (str "Image link")
+                =?> "[[URL:foo%5Dbar.png][Image link]]"
+              , "image link without description"
+                =: link "foo]bar.png" "" (str "foo]bar.png")
+                =?> "[[URL:foo%5Dbar.png][<verbatim>foo]bar.png</verbatim>]]"
+              ]
             ]
           , "image" =: image "image.png" "Image 1" (str "") =?> "[[image.png][Image 1]]"
           , "image with width" =:

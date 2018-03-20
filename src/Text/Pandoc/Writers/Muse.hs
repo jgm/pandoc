@@ -345,6 +345,11 @@ fixNotes (Space : n@Note{} : rest) = Str " " : n : fixNotes rest
 fixNotes (SoftBreak : n@Note{} : rest) = Str " " : n : fixNotes rest
 fixNotes (x:xs) = x : fixNotes xs
 
+urlEscapeBrackets :: String -> String
+urlEscapeBrackets (']':xs) = '%':'5':'D':urlEscapeBrackets xs
+urlEscapeBrackets (x:xs) = x:urlEscapeBrackets xs
+urlEscapeBrackets [] = []
+
 -- | Convert list of Pandoc inline elements to Muse.
 inlineListToMuse :: PandocMonad m
                  => [Inline]
@@ -402,7 +407,7 @@ inlineToMuse (Link _ txt (src, _)) =
              return $ "[[" <> text (escapeLink x) <> "]]"
         _ -> do contents <- inlineListToMuse txt
                 return $ "[[" <> text (escapeLink src) <> "][" <> contents <> "]]"
-  where escapeLink lnk = if isImageUrl lnk then "URL:" ++ lnk else lnk
+  where escapeLink lnk = if isImageUrl lnk then "URL:" ++ urlEscapeBrackets lnk else urlEscapeBrackets lnk
         -- Taken from muse-image-regexp defined in Emacs Muse file lisp/muse-regexps.el
         imageExtensions = [".eps", ".gif", ".jpg", ".jpeg", ".pbm", ".png", ".tiff", ".xbm", ".xpm"]
         isImageUrl = (`elem` imageExtensions) . takeExtension
@@ -419,7 +424,7 @@ inlineToMuse (Image attr inlines (source, title)) = do
   let width = case dimension Width attr of
                 Just (Percent x) | isEnabled Ext_amuse opts -> " " ++ show (round x :: Integer)
                 _ -> ""
-  return $ "[[" <> text (source ++ width) <> "]" <> title' <> "]"
+  return $ "[[" <> text (urlEscapeBrackets source ++ width) <> "]" <> title' <> "]"
 inlineToMuse (Note contents) = do
   -- add to notes in state
   notes <- gets stNotes
