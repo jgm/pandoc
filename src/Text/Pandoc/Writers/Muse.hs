@@ -312,6 +312,13 @@ replaceSmallCaps :: Inline -> Inline
 replaceSmallCaps (SmallCaps lst) = Emph lst
 replaceSmallCaps x = x
 
+removeKeyValues :: Inline -> Inline
+removeKeyValues (Code (i, cls, _) xs) = Code (i, cls, []) xs
+-- Do not remove attributes from Link
+-- Do not remove attributes, such as "width", from Image
+removeKeyValues (Span (i, cls, _) xs) = Span (i, cls, []) xs
+removeKeyValues x = x
+
 normalizeInlineList :: [Inline] -> [Inline]
 normalizeInlineList (Str "" : xs)
   = normalizeInlineList xs
@@ -356,7 +363,7 @@ inlineListToMuse :: PandocMonad m
                  => [Inline]
                  -> StateT WriterState m Doc
 inlineListToMuse lst = do
-  lst' <- normalizeInlineList <$> preprocessInlineList (map replaceSmallCaps lst)
+  lst' <- normalizeInlineList <$> preprocessInlineList (map (removeKeyValues . replaceSmallCaps) lst)
   if null lst'
     then pure "<verbatim></verbatim>"
     else hcat <$> mapM inlineToMuse (fixNotes lst')
