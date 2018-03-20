@@ -428,11 +428,12 @@ inlineToMuse (Image attr inlines (source, title)) = do
                   then if null inlines
                           then ""
                           else "[" <> alt <> "]"
-                  else "[" <> text title <> "]"
+                  else "[" <> text (escape title) <> "]"
   let width = case dimension Width attr of
                 Just (Percent x) | isEnabled Ext_amuse opts -> " " ++ show (round x :: Integer)
                 _ -> ""
   return $ "[[" <> text (urlEscapeBrackets source ++ width) <> "]" <> title' <> "]"
+  where escape s = if "]" `isInfixOf` s then escapeString s else conditionalEscapeString s
 inlineToMuse (Note contents) = do
   -- add to notes in state
   notes <- gets stNotes

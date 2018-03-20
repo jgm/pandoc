@@ -393,6 +393,7 @@ tests = [ testGroup "block elements"
           , "image with width" =:
             imageWith ("", [], [("width", "60%")]) "image.png" "Image" (str "") =?>
             "[[image.png 60][Image]]"
+          , "escape brackets in image title" =: image "image.png" "Foo]bar" (str "") =?> "[[image.png][<verbatim>Foo]bar</verbatim>]]"
           , "note" =: note (plain (text "Foo"))
                    =?> unlines [ "[1]"
                                , ""
