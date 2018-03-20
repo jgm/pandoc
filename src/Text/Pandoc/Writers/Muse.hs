@@ -290,7 +290,8 @@ conditionalEscapeString s =
      "::" `isInfixOf` s ||
      "----" `isInfixOf` s ||
      "~~" `isInfixOf` s ||
-     "-" == s
+     "-" == s ||
+     ";" == s
     then escapeString s
     else s
 

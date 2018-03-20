@@ -321,6 +321,7 @@ tests = [ testGroup "block elements"
                       , ""
                       , "   <verbatim>-</verbatim> bar"
                       ]
+            , "escape ; to avoid accidental comments" =: text "; foo" =?> "<verbatim>;</verbatim> foo"
             ]
           , testGroup "emphasis"
             [ "emph" =: emph (text "foo") =?> "<em>foo</em>"
