@@ -175,10 +175,7 @@ blockToMuse (BlockQuote blocks) = do
 blockToMuse (OrderedList (start, style, _) items) = do
   let markers = take (length items) $ orderedListMarkers
                                       (start, style, Period)
-  let maxMarkerLength = maximum $ map length markers
-  let markers' = map (\m -> let s = maxMarkerLength - length m
-                            in  m ++ replicate s ' ') markers
-  contents <- zipWithM orderedListItemToMuse markers' items
+  contents <- zipWithM orderedListItemToMuse markers items
   -- ensure that sublists have preceding blank line
   topLevel <- gets stTopLevel
   return $ cr $$ (if topLevel then nest 1 else id) (vcat contents) $$ blankline

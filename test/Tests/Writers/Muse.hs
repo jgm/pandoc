@@ -74,8 +74,8 @@ tests = [ testGroup "block elements"
                    , plain $ text "second"
                    , plain $ text "third"
                    ]
-                =?> unlines [ " I.   first"
-                            , " II.  second"
+                =?> unlines [ " I. first"
+                            , " II. second"
                             , " III. third"
                             ]
               , "bullet list" =: bulletList [ plain $ text "first"
@@ -138,11 +138,11 @@ tests = [ testGroup "block elements"
                 orderedListWith (1, UpperRoman, DefaultDelim) [ para $ text "Third"
                                                               , para $ text "Fourth"
                                                               ] =?>
-                unlines [ " I.  First"
+                unlines [ " I. First"
                         , " II. Second"
                         , ""
                         , ""
-                        , " I.  Third"
+                        , " I. Third"
                         , " II. Fourth"
                         ]
               , "ordered lists with equal styles" =:
@@ -169,7 +169,7 @@ tests = [ testGroup "block elements"
                 unlines [ " - First"
                         , " - Second"
                         , ""
-                        , " I.  Third"
+                        , " I. Third"
                         , " II. Fourth"
                         ]
               , "different style ordered lists" =:
@@ -179,7 +179,7 @@ tests = [ testGroup "block elements"
                 orderedListWith (1, Decimal, DefaultDelim) [ para $ text "Third"
                                                            , para $ text "Fourth"
                                                            ] =?>
-                unlines [ " I.  First"
+                unlines [ " I. First"
                         , " II. Second"
                         , ""
                         , " 1. Third"
