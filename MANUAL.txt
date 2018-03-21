@@ -3096,7 +3096,8 @@ the [`raw_attribute` extension](#extension-raw_attribute)), or it
 will be interpreted as markdown. For example:
 
     header-includes:
-    - ```{=latex}
+    - |
+      ```{=latex}
       \let\oldsection\section
       \renewcommand{\section}[1]{\clearpage\oldsection{#1}}
       ```
