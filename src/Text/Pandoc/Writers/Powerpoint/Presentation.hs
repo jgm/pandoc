@@ -476,16 +476,6 @@ blockToParagraphs (DefinitionList entries) = do
         definition <- concatMapM (blockToParagraphs . BlockQuote) blksLst
         return $ term ++ definition
   concatMapM go entries
-blockToParagraphs (Div (_, ["notes"], _) blks) =
-  local (\env -> env{envInSpeakerNotes=True}) $ do
-  sldId <- asks envCurSlideId
-  spkNotesMap <- gets stSpeakerNotesMap
-  paras <- concatMapM blockToParagraphs blks
-  let spkNotesMap' = case M.lookup sldId spkNotesMap of
-        Just lst -> M.insert sldId (paras : lst) spkNotesMap
-        Nothing  -> M.insert sldId [paras] spkNotesMap
-  modify $ \st -> st{stSpeakerNotesMap = spkNotesMap'}
-  return []
 blockToParagraphs (Div _ blks)  = concatMapM blockToParagraphs blks
 blockToParagraphs blk = do
   addLogMessage $ BlockNotRendered blk
@@ -567,6 +557,27 @@ combineShapes (TextBox (p:ps) : TextBox (p':ps') : ss) =
   combineShapes $ TextBox ((p:ps) ++ (p':ps')) : ss
 combineShapes (s:ss) = s : combineShapes ss
 
+isNotesDiv :: Block -> Bool
+isNotesDiv (Div (_, ["notes"], _) _) = True
+isNotesDiv _ = False
+
+handleNotes :: Block -> Pres ()
+handleNotes (Div (_, ["notes"], _) blks) =
+  local (\env -> env{envInSpeakerNotes=True}) $ do
+  sldId <- asks envCurSlideId
+  spkNotesMap <- gets stSpeakerNotesMap
+  paras <- concatMapM blockToParagraphs blks
+  let spkNotesMap' = case M.lookup sldId spkNotesMap of
+        Just lst -> M.insert sldId (paras : lst) spkNotesMap
+        Nothing  -> M.insert sldId [paras] spkNotesMap
+  modify $ \st -> st{stSpeakerNotesMap = spkNotesMap'}
+handleNotes _ = return ()
+
+handleAndFilterNotes :: [Block] -> Pres [Block]
+handleAndFilterNotes blks = do
+  mapM_ handleNotes blks
+  return $ filter (not . isNotesDiv) blks
+
 blocksToShapes :: [Block] -> Pres [Shape]
 blocksToShapes blks = combineShapes <$> mapM blockToShape blks
 
@@ -574,10 +585,6 @@ isImage :: Inline -> Bool
 isImage Image{} = True
 isImage (Link _ (Image{} : _) _) = True
 isImage _ = False
-
-isNotesDiv :: Block -> Bool
-isNotesDiv (Div (_, ["notes"], _) _) = True
-isNotesDiv _ = False
 
 splitBlocks' :: [Block] -> [[Block]] -> [Block] -> Pres [[Block]]
 splitBlocks' cur acc [] = return $ acc ++ (if null cur then [] else [cur])
@@ -701,7 +708,8 @@ blocksToSlide' _ [] = do
 blocksToSlide :: [Block] -> Pres Slide
 blocksToSlide blks = do
   slideLevel <- asks envSlideLevel
-  sld <- blocksToSlide' slideLevel blks
+  blks' <- walkM handleAndFilterNotes blks
+  sld <- blocksToSlide' slideLevel blks'
   spkNotes <- getSpeakerNotes
   return $ sld{slideSpeakerNotes = spkNotes}
 
