@@ -532,15 +532,15 @@ romanNumeral upperCase = do
           map char romanDigits
     thousands <- ((1000 *) . length) <$> many thousand
     ninehundreds <- option 0 $ try $ hundred >> thousand >> return 900
-    fivehundreds <- ((500 *) . length) <$> many fivehundred
+    fivehundreds <- option 0 $ 500 <$ fivehundred
     fourhundreds <- option 0 $ try $ hundred >> fivehundred >> return 400
     hundreds <- ((100 *) . length) <$> many hundred
     nineties <- option 0 $ try $ ten >> hundred >> return 90
-    fifties <- ((50 *) . length) <$> many fifty
+    fifties <- option 0 $ (50 <$ fifty)
     forties <- option 0 $ try $ ten >> fifty >> return 40
     tens <- ((10 *) . length) <$> many ten
     nines <- option 0 $ try $ one >> ten >> return 9
-    fives <- ((5 *) . length) <$> many five
+    fives <- option 0 $ (5 <$ five)
     fours <- option 0 $ try $ one >> five >> return 4
     ones <- length <$> many one
     let total = thousands + ninehundreds + fivehundreds + fourhundreds +
