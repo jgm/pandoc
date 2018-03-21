@@ -87,6 +87,10 @@ tests = groupPptxTests [ pptxTests "Inline formatting"
                          def
                          "pptx/speaker_notes.native"
                          "pptx/speaker_notes.pptx"
+                       , pptxTests "speaker notes after a separating block"
+                         def
+                         "pptx/speaker_notes_afterseps.native"
+                         "pptx/speaker_notes_afterseps.pptx"
                        , pptxTests "remove empty slides"
                          def
                          "pptx/remove_empty_slides.native"
