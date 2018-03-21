@@ -575,6 +575,10 @@ isImage Image{} = True
 isImage (Link _ (Image{} : _) _) = True
 isImage _ = False
 
+isNotesDiv :: Block -> Bool
+isNotesDiv (Div (_, ["notes"], _) _) = True
+isNotesDiv _ = False
+
 splitBlocks' :: [Block] -> [[Block]] -> [Block] -> Pres [[Block]]
 splitBlocks' cur acc [] = return $ acc ++ (if null cur then [] else [cur])
 splitBlocks' cur acc (HorizontalRule : blks) =
@@ -590,26 +594,31 @@ splitBlocks' cur acc (h@(Header n _ _) : blks) = do
 splitBlocks' cur acc (Plain ils : blks) = splitBlocks' cur acc (Para ils : blks)
 splitBlocks' cur acc (Para (il:ils) : blks) | isImage il = do
   slideLevel <- asks envSlideLevel
+  let (nts, blks') = if null ils
+                     then span isNotesDiv blks
+                     else ([], blks)
   case cur of
     [Header n _ _] | n == slideLevel ->
                             splitBlocks' []
-                            (acc ++ [cur ++ [Para [il]]])
-                            (if null ils then blks else Para ils : blks)
+                            (acc ++ [cur ++ [Para [il]] ++ nts])
+                            (if null ils then blks' else Para ils : blks')
     _ -> splitBlocks' []
-         (acc ++ (if null cur then [] else [cur]) ++ [[Para [il]]])
-         (if null ils then blks else Para ils : blks)
+         (acc ++ (if null cur then [] else [cur]) ++ [[Para [il]] ++ nts])
+         (if null ils then blks' else Para ils : blks')
 splitBlocks' cur acc (tbl@Table{} : blks) = do
   slideLevel <- asks envSlideLevel
+  let (nts, blks') = span isNotesDiv blks
   case cur of
     [Header n _ _] | n == slideLevel ->
-                            splitBlocks' [] (acc ++ [cur ++ [tbl]]) blks
-    _ ->  splitBlocks' [] (acc ++ (if null cur then [] else [cur]) ++ [[tbl]]) blks
+                            splitBlocks' [] (acc ++ [cur ++ [tbl] ++ nts]) blks'
+    _ ->  splitBlocks' [] (acc ++ (if null cur then [] else [cur]) ++ [[tbl] ++ nts]) blks'
 splitBlocks' cur acc (d@(Div (_, classes, _) _): blks) | "columns" `elem` classes =  do
   slideLevel <- asks envSlideLevel
+  let (nts, blks') = span isNotesDiv blks
   case cur of
     [Header n _ _] | n == slideLevel ->
-                            splitBlocks' [] (acc ++ [cur ++ [d]]) blks
-    _ ->  splitBlocks' [] (acc ++ (if null cur then [] else [cur]) ++ [[d]]) blks
+                            splitBlocks' [] (acc ++ [cur ++ [d] ++ nts]) blks'
+    _ ->  splitBlocks' [] (acc ++ (if null cur then [] else [cur]) ++ [[d] ++ nts]) blks'
 splitBlocks' cur acc (blk : blks) = splitBlocks' (cur ++ [blk]) acc blks
 
 splitBlocks :: [Block] -> Pres [[Block]]
