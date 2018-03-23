@@ -113,7 +113,7 @@ data WriterState = WriterState { stNoteIds :: M.Map Int [Block]
                                , stAnchorMap :: M.Map String SlideId
                                , stSlideIdSet :: S.Set SlideId
                                , stLog :: [LogMessage]
-                               , stSpeakerNotesMap :: M.Map SlideId [[Paragraph]]
+                               , stSpeakerNotes :: SpeakerNotes
                                } deriving (Show, Eq)
 
 instance Default WriterState where
@@ -122,7 +122,7 @@ instance Default WriterState where
                     -- we reserve this s
                     , stSlideIdSet = reservedSlideIds
                     , stLog = []
-                    , stSpeakerNotesMap = mempty
+                    , stSpeakerNotes = mempty
                     }
 
 metadataSlideId :: SlideId
@@ -196,7 +196,7 @@ newtype SlideId = SlideId String
 -- designed mainly for one textbox, so we'll just put in the contents
 -- of that textbox, to avoid other shapes that won't work as well.
 newtype SpeakerNotes = SpeakerNotes {fromSpeakerNotes :: [Paragraph]}
-  deriving (Show, Eq, Monoid)
+  deriving (Show, Eq, Monoid, Semigroup)
 
 data Layout = MetadataSlide { metadataSlideTitle :: [ParaElem]
                             , metadataSlideSubtitle :: [ParaElem]
@@ -565,13 +565,8 @@ isNotesDiv _ = False
 handleNotes :: Block -> Pres ()
 handleNotes (Div (_, ["notes"], _) blks) =
   local (\env -> env{envInSpeakerNotes=True}) $ do
-  sldId <- asks envCurSlideId
-  spkNotesMap <- gets stSpeakerNotesMap
-  paras <- concatMapM blockToParagraphs blks
-  let spkNotesMap' = case M.lookup sldId spkNotesMap of
-        Just lst -> M.insert sldId (paras : lst) spkNotesMap
-        Nothing  -> M.insert sldId [paras] spkNotesMap
-  modify $ \st -> st{stSpeakerNotesMap = spkNotesMap'}
+  spNotes <- SpeakerNotes <$> concatMapM blockToParagraphs blks
+  modify $ \st -> st{stSpeakerNotes = (stSpeakerNotes st) <> spNotes}
 handleNotes _ = return ()
 
 handleAndFilterNotes :: [Block] -> Pres [Block]
@@ -631,13 +626,6 @@ splitBlocks' cur acc (blk : blks) = splitBlocks' (cur ++ [blk]) acc blks
 
 splitBlocks :: [Block] -> Pres [[Block]]
 splitBlocks = splitBlocks' [] []
-
-getSpeakerNotes :: Pres SpeakerNotes
-getSpeakerNotes = do
-  sldId <- asks envCurSlideId
-  spkNtsMap <- gets stSpeakerNotesMap
-  let paras = fromMaybe [] (M.lookup sldId spkNtsMap)
-  return $ SpeakerNotes $ concat $ reverse paras
 
 blocksToSlide' :: Int -> [Block] -> Pres Slide
 blocksToSlide' lvl (Header n (ident, _, _) ils : blks)
@@ -710,9 +698,10 @@ blocksToSlide' _ [] = do
 blocksToSlide :: [Block] -> Pres Slide
 blocksToSlide blks = do
   slideLevel <- asks envSlideLevel
+  modify $ \st -> st{stSpeakerNotes = mempty}
   blks' <- walkM handleAndFilterNotes blks
   sld <- blocksToSlide' slideLevel blks'
-  spkNotes <- getSpeakerNotes
+  spkNotes <- gets stSpeakerNotes
   return $ sld{slideSpeakerNotes = spkNotes}
 
 makeNoteEntry :: Int -> [Block] -> [Block]
