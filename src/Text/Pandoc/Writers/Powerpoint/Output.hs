@@ -283,8 +283,9 @@ makeSlideIdMap (Presentation _ slides) =
 makeSpeakerNotesMap :: Presentation -> M.Map Int Int
 makeSpeakerNotesMap (Presentation _ slides) =
   M.fromList $ (mapMaybe f $ slides `zip` [1..]) `zip` [1..]
-  where f (Slide _ _ Nothing, _) = Nothing
-        f (Slide _ _ (Just _), n)  = Just n
+  where f (Slide _ _ notes, n) = if notes == mempty
+                                 then Nothing
+                                 else Just n
 
 presentationToArchive :: PandocMonad m => WriterOptions -> Presentation -> m Archive
 presentationToArchive opts pres = do
@@ -324,7 +325,7 @@ presentationToArchive opts pres = do
 -- Check to see if the presentation has speaker notes. This will
 -- influence whether we import the notesMaster template.
 presHasSpeakerNotes :: Presentation -> Bool
-presHasSpeakerNotes (Presentation _ slides) = any isJust $ map slideSpeakerNotes slides
+presHasSpeakerNotes (Presentation _ slides) = not $ all (mempty ==) $ map slideSpeakerNotes slides
 
 curSlideHasSpeakerNotes :: PandocMonad m => P m Bool
 curSlideHasSpeakerNotes = do
@@ -1272,42 +1273,40 @@ speakerNotesSlideNumber pgNum fieldId =
   ]
 
 slideToSpeakerNotesElement :: PandocMonad m => Slide -> P m (Maybe Element)
-slideToSpeakerNotesElement slide
-  | Slide _ _ mbNotes <- slide
-  , Just (SpeakerNotes paras) <- mbNotes = do
-      master <- getNotesMaster
-      fieldId  <- getSlideNumberFieldId master
-      num <- slideNum slide
-      let imgShape = speakerNotesSlideImage
-          sldNumShape = speakerNotesSlideNumber num fieldId
-      bodyShape <- speakerNotesBody paras
-      return $ Just $
-        mknode "p:notes"
-        [ ("xmlns:a", "http://schemas.openxmlformats.org/drawingml/2006/main")
-        , ("xmlns:r", "http://schemas.openxmlformats.org/officeDocument/2006/relationships")
-        , ("xmlns:p", "http://schemas.openxmlformats.org/presentationml/2006/main")
-        ] [ mknode "p:cSld" []
-            [ mknode "p:spTree" []
-              [ mknode "p:nvGrpSpPr" []
-                [ mknode "p:cNvPr" [("id", "1"), ("name", "")] ()
-                , mknode "p:cNvGrpSpPr" [] ()
-                , mknode "p:nvPr" [] ()
-                ]
-            , mknode "p:grpSpPr" []
-              [ mknode "a:xfrm" []
-                [ mknode "a:off" [("x", "0"), ("y", "0")] ()
-                , mknode "a:ext" [("cx", "0"), ("cy", "0")] ()
-                , mknode "a:chOff" [("x", "0"), ("y", "0")] ()
-                , mknode "a:chExt" [("cx", "0"), ("cy", "0")] ()
-                ]
+slideToSpeakerNotesElement (Slide _ _ (SpeakerNotes [])) = return Nothing
+slideToSpeakerNotesElement slide@(Slide _ _ (SpeakerNotes paras)) = do
+  master <- getNotesMaster
+  fieldId  <- getSlideNumberFieldId master
+  num <- slideNum slide
+  let imgShape = speakerNotesSlideImage
+      sldNumShape = speakerNotesSlideNumber num fieldId
+  bodyShape <- speakerNotesBody paras
+  return $ Just $
+    mknode "p:notes"
+    [ ("xmlns:a", "http://schemas.openxmlformats.org/drawingml/2006/main")
+    , ("xmlns:r", "http://schemas.openxmlformats.org/officeDocument/2006/relationships")
+    , ("xmlns:p", "http://schemas.openxmlformats.org/presentationml/2006/main")
+    ] [ mknode "p:cSld" []
+        [ mknode "p:spTree" []
+          [ mknode "p:nvGrpSpPr" []
+            [ mknode "p:cNvPr" [("id", "1"), ("name", "")] ()
+            , mknode "p:cNvGrpSpPr" [] ()
+            , mknode "p:nvPr" [] ()
+            ]
+          , mknode "p:grpSpPr" []
+            [ mknode "a:xfrm" []
+              [ mknode "a:off" [("x", "0"), ("y", "0")] ()
+              , mknode "a:ext" [("cx", "0"), ("cy", "0")] ()
+              , mknode "a:chOff" [("x", "0"), ("y", "0")] ()
+              , mknode "a:chExt" [("cx", "0"), ("cy", "0")] ()
               ]
-            , imgShape
-            , bodyShape
-            , sldNumShape
             ]
-            ]
+          , imgShape
+          , bodyShape
+          , sldNumShape
           ]
-slideToSpeakerNotesElement _ = return Nothing
+        ]
+      ]
 
 -----------------------------------------------------------------------
 
@@ -1482,23 +1481,22 @@ slideToSpeakerNotesEntry slide = do
       _ -> return Nothing
 
 slideToSpeakerNotesRelElement :: PandocMonad m => Slide -> P m (Maybe Element)
-slideToSpeakerNotesRelElement slide
-  | Slide _ _ mbNotes <- slide
-  , Just _ <- mbNotes = do
-      idNum <- slideNum slide
-      return $ Just $
-        mknode "Relationships"
-        [("xmlns", "http://schemas.openxmlformats.org/package/2006/relationships")]
-        [ mknode "Relationship" [ ("Id", "rId2")
-                                , ("Type", "http://schemas.openxmlformats.org/officeDocument/2006/relationships/slide")
-                                , ("Target", "../slides/slide" ++ show idNum ++ ".xml")
-                                ] ()
-        , mknode "Relationship" [ ("Id", "rId1")
-                                , ("Type", "http://schemas.openxmlformats.org/officeDocument/2006/relationships/notesMaster")
-                                , ("Target", "../notesMasters/notesMaster1.xml")
-                                ] ()
-        ]
-slideToSpeakerNotesRelElement _ = return Nothing
+slideToSpeakerNotesRelElement (Slide _ _ (SpeakerNotes [])) = return Nothing
+slideToSpeakerNotesRelElement slide@(Slide _ _ _) = do
+  idNum <- slideNum slide
+  return $ Just $
+    mknode "Relationships"
+    [("xmlns", "http://schemas.openxmlformats.org/package/2006/relationships")]
+    [ mknode "Relationship" [ ("Id", "rId2")
+                            , ("Type", "http://schemas.openxmlformats.org/officeDocument/2006/relationships/slide")
+                            , ("Target", "../slides/slide" ++ show idNum ++ ".xml")
+                            ] ()
+    , mknode "Relationship" [ ("Id", "rId1")
+                            , ("Type", "http://schemas.openxmlformats.org/officeDocument/2006/relationships/notesMaster")
+                            , ("Target", "../notesMasters/notesMaster1.xml")
+                            ] ()
+    ]
+
 
 slideToSpeakerNotesRelEntry :: PandocMonad m => Slide -> P m (Maybe Entry)
 slideToSpeakerNotesRelEntry slide = do

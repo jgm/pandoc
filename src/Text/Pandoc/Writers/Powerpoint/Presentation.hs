@@ -1,5 +1,6 @@
-{-# LANGUAGE NoImplicitPrelude #-}
-{-# LANGUAGE PatternGuards #-}
+{-# LANGUAGE NoImplicitPrelude          #-}
+{-# LANGUAGE PatternGuards              #-}
+{-# LANGUAGE GeneralizedNewtypeDeriving #-}
 
 {-
 Copyright (C) 2017-2018 Jesse Rosenthal <jrosenthal@jhu.edu>
@@ -185,7 +186,7 @@ data DocProps = DocProps { dcTitle :: Maybe String
 
 data Slide = Slide { slideId :: SlideId
                    , slideLayout :: Layout
-                   , slideSpeakerNotes :: Maybe SpeakerNotes
+                   , slideSpeakerNotes :: SpeakerNotes
                    } deriving (Show, Eq)
 
 newtype SlideId = SlideId String
@@ -195,7 +196,7 @@ newtype SlideId = SlideId String
 -- designed mainly for one textbox, so we'll just put in the contents
 -- of that textbox, to avoid other shapes that won't work as well.
 newtype SpeakerNotes = SpeakerNotes {fromSpeakerNotes :: [Paragraph]}
-  deriving (Show, Eq)
+  deriving (Show, Eq, Monoid)
 
 data Layout = MetadataSlide { metadataSlideTitle :: [ParaElem]
                             , metadataSlideSubtitle :: [ParaElem]
@@ -631,11 +632,12 @@ splitBlocks' cur acc (blk : blks) = splitBlocks' (cur ++ [blk]) acc blks
 splitBlocks :: [Block] -> Pres [[Block]]
 splitBlocks = splitBlocks' [] []
 
-getSpeakerNotes :: Pres (Maybe SpeakerNotes)
+getSpeakerNotes :: Pres SpeakerNotes
 getSpeakerNotes = do
   sldId <- asks envCurSlideId
   spkNtsMap <- gets stSpeakerNotesMap
-  return $ (SpeakerNotes . concat . reverse) <$> M.lookup sldId spkNtsMap
+  let paras = fromMaybe [] (M.lookup sldId spkNtsMap)
+  return $ SpeakerNotes $ concat $ reverse paras
 
 blocksToSlide' :: Int -> [Block] -> Pres Slide
 blocksToSlide' lvl (Header n (ident, _, _) ils : blks)
@@ -643,7 +645,7 @@ blocksToSlide' lvl (Header n (ident, _, _) ils : blks)
       registerAnchorId ident
       sldId <- asks envCurSlideId
       hdr <- inlinesToParElems ils
-      return $ Slide sldId TitleSlide {titleSlideHeader = hdr} Nothing
+      return $ Slide sldId TitleSlide {titleSlideHeader = hdr} mempty
   | n == lvl = do
       registerAnchorId ident
       hdr <- inlinesToParElems ils
@@ -681,7 +683,7 @@ blocksToSlide' _ (blk : blks)
                        , twoColumnSlideLeft = shapesL
                        , twoColumnSlideRight = shapesR
                        }
-        Nothing
+        mempty
 blocksToSlide' _ (blk : blks) = do
       inNoteSlide <- asks envInNoteSlide
       shapes <- if inNoteSlide
@@ -694,7 +696,7 @@ blocksToSlide' _ (blk : blks) = do
         ContentSlide { contentSlideHeader = []
                      , contentSlideContent = shapes
                      }
-        Nothing
+        mempty
 blocksToSlide' _ [] = do
   sldId <- asks envCurSlideId
   return $
@@ -703,7 +705,7 @@ blocksToSlide' _ [] = do
     ContentSlide { contentSlideHeader = []
                  , contentSlideContent = []
                  }
-    Nothing
+    mempty
 
 blocksToSlide :: [Block] -> Pres Slide
 blocksToSlide blks = do
@@ -771,7 +773,7 @@ getMetaSlide  = do
                        , metadataSlideAuthors = authors
                        , metadataSlideDate = date
                        }
-         Nothing
+         mempty
 
 -- adapted from the markdown writer
 elementToListItem :: Shared.Element -> Pres [Block]
@@ -853,11 +855,9 @@ applyToLayout f (TwoColumnSlide hdr contentL contentR) = do
 applyToSlide :: Monad m => (ParaElem -> m ParaElem) -> Slide -> m Slide
 applyToSlide f slide = do
   layout' <- applyToLayout f $ slideLayout slide
-  mbNotes' <- case slideSpeakerNotes slide of
-                Just (SpeakerNotes notes) -> (Just . SpeakerNotes) <$>
-                                             mapM (applyToParagraph f) notes
-                Nothing -> return Nothing
-  return slide{slideLayout = layout', slideSpeakerNotes = mbNotes'}
+  let paras = fromSpeakerNotes $ slideSpeakerNotes slide
+  notes' <- SpeakerNotes <$> mapM (applyToParagraph f) paras
+  return slide{slideLayout = layout', slideSpeakerNotes = notes'}
 
 replaceAnchor :: ParaElem -> Pres ParaElem
 replaceAnchor (Run rProps s)
@@ -903,8 +903,10 @@ emptyLayout layout = case layout of
     all emptyShape shapes2
 
 emptySlide :: Slide -> Bool
-emptySlide (Slide _ layout Nothing) = emptyLayout layout
-emptySlide _ = False
+emptySlide (Slide _ layout notes) =
+  if notes == mempty
+  then emptyLayout layout
+  else False
 
 blocksToPresentationSlides :: [Block] -> Pres [Slide]
 blocksToPresentationSlides blks = do
