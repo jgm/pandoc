@@ -1036,7 +1036,11 @@ nonBodyTextToElement layout phType paraElements
       let txBody = mknode "p:txBody" [] $
                    [mknode "a:bodyPr" [] (), mknode "a:lstStyle" [] ()] ++
                    [element]
-      return $ replaceNamedChildren ns "p" "txBody" [txBody] sp
+          emptySpPr = mknode "p:spPr" [] ()
+      return $
+        replaceNamedChildren ns "p" "txBody" [txBody] $
+        replaceNamedChildren ns "p" "spPr" [emptySpPr] $
+        sp
   -- XXX: TODO
   | otherwise = return $ mknode "p:sp" [] ()
 
