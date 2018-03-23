@@ -562,18 +562,6 @@ isNotesDiv :: Block -> Bool
 isNotesDiv (Div (_, ["notes"], _) _) = True
 isNotesDiv _ = False
 
-handleNotes :: Block -> Pres ()
-handleNotes (Div (_, ["notes"], _) blks) =
-  local (\env -> env{envInSpeakerNotes=True}) $ do
-  spNotes <- SpeakerNotes <$> concatMapM blockToParagraphs blks
-  modify $ \st -> st{stSpeakerNotes = (stSpeakerNotes st) <> spNotes}
-handleNotes _ = return ()
-
-handleAndFilterNotes :: [Block] -> Pres [Block]
-handleAndFilterNotes blks = do
-  mapM_ handleNotes blks
-  return $ filter (not . isNotesDiv) blks
-
 blocksToShapes :: [Block] -> Pres [Shape]
 blocksToShapes blks = combineShapes <$> mapM blockToShape blks
 
@@ -627,25 +615,25 @@ splitBlocks' cur acc (blk : blks) = splitBlocks' (cur ++ [blk]) acc blks
 splitBlocks :: [Block] -> Pres [[Block]]
 splitBlocks = splitBlocks' [] []
 
-blocksToSlide' :: Int -> [Block] -> Pres Slide
-blocksToSlide' lvl (Header n (ident, _, _) ils : blks)
+blocksToSlide' :: Int -> [Block] -> SpeakerNotes -> Pres Slide
+blocksToSlide' lvl (Header n (ident, _, _) ils : blks) spkNotes
   | n < lvl = do
       registerAnchorId ident
       sldId <- asks envCurSlideId
       hdr <- inlinesToParElems ils
-      return $ Slide sldId TitleSlide {titleSlideHeader = hdr} mempty
+      return $ Slide sldId TitleSlide {titleSlideHeader = hdr} spkNotes
   | n == lvl = do
       registerAnchorId ident
       hdr <- inlinesToParElems ils
       -- Now get the slide without the header, and then add the header
       -- in.
-      slide <- blocksToSlide' lvl blks
+      slide <- blocksToSlide' lvl blks spkNotes
       let layout = case slideLayout slide of
             ContentSlide _ cont          -> ContentSlide hdr cont
             TwoColumnSlide _ contL contR -> TwoColumnSlide hdr contL contR
             layout'                     -> layout'
       return $ slide{slideLayout = layout}
-blocksToSlide' _ (blk : blks)
+blocksToSlide' _ (blk : blks) spkNotes
   | Div (_, classes, _) divBlks <- blk
   , "columns" `elem` classes
   , Div (_, clsL, _) blksL : Div (_, clsR, _) blksR : remaining <- divBlks
@@ -671,8 +659,8 @@ blocksToSlide' _ (blk : blks)
                        , twoColumnSlideLeft = shapesL
                        , twoColumnSlideRight = shapesR
                        }
-        mempty
-blocksToSlide' _ (blk : blks) = do
+        spkNotes
+blocksToSlide' _ (blk : blks) spkNotes = do
       inNoteSlide <- asks envInNoteSlide
       shapes <- if inNoteSlide
                 then forceFontSize noteSize $ blocksToShapes (blk : blks)
@@ -684,8 +672,8 @@ blocksToSlide' _ (blk : blks) = do
         ContentSlide { contentSlideHeader = []
                      , contentSlideContent = shapes
                      }
-        mempty
-blocksToSlide' _ [] = do
+        spkNotes
+blocksToSlide' _ [] spkNotes = do
   sldId <- asks envCurSlideId
   return $
     Slide
@@ -693,16 +681,32 @@ blocksToSlide' _ [] = do
     ContentSlide { contentSlideHeader = []
                  , contentSlideContent = []
                  }
-    mempty
+    spkNotes
+
+handleNotes :: Block -> Pres ()
+handleNotes (Div (_, ["notes"], _) blks) =
+  local (\env -> env{envInSpeakerNotes=True}) $ do
+  spNotes <- SpeakerNotes <$> concatMapM blockToParagraphs blks
+  modify $ \st -> st{stSpeakerNotes = (stSpeakerNotes st) <> spNotes}
+handleNotes _ = return ()
+
+handleAndFilterNotes' :: [Block] -> Pres [Block]
+handleAndFilterNotes' blks = do
+  mapM_ handleNotes blks
+  return $ filter (not . isNotesDiv) blks
+
+handleAndFilterNotes :: [Block] -> Pres ([Block], SpeakerNotes)
+handleAndFilterNotes blks = do
+  modify $ \st -> st{stSpeakerNotes = mempty}
+  blks' <- walkM handleAndFilterNotes' blks
+  spkNotes <- gets stSpeakerNotes
+  return (blks', spkNotes)
 
 blocksToSlide :: [Block] -> Pres Slide
 blocksToSlide blks = do
+  (blks', spkNotes) <- handleAndFilterNotes blks
   slideLevel <- asks envSlideLevel
-  modify $ \st -> st{stSpeakerNotes = mempty}
-  blks' <- walkM handleAndFilterNotes blks
-  sld <- blocksToSlide' slideLevel blks'
-  spkNotes <- gets stSpeakerNotes
-  return $ sld{slideSpeakerNotes = spkNotes}
+  blocksToSlide' slideLevel blks' spkNotes
 
 makeNoteEntry :: Int -> [Block] -> [Block]
 makeNoteEntry n blks =
