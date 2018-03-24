@@ -490,8 +490,7 @@ footnoteSection opts notes = do
   return $
     if null notes
        then mempty
-       else nl opts >> container (nl opts >> hrtag >> nl opts >>
-              H.ol (mconcat notes >> nl opts) >> nl opts)
+       else nl opts >> container (nl opts >> hrtag >> mconcat notes >> nl opts)
 
 -- | Parse a mailto link; return Just (name, domain) or Nothing.
 parseMailto :: String -> Maybe (String, String)
@@ -1166,22 +1165,21 @@ inlineToHtml opts inline = do
 
 blockListToNote :: PandocMonad m => WriterOptions -> String -> [Block] -> StateT WriterState m Html
 blockListToNote opts ref blocks =
-  -- If last block is Para or Plain, include the backlink at the end of
+  -- If first block is Para or Plain, include the backlink at the start of
   -- that block. Otherwise, insert a new Plain block with the backlink.
-  let backlink = [Link ("",["footnote-back"],[]) [Str "↩"] ("#" ++ "fnref" ++ ref,[])]
-      blocks'  = if null blocks
-                    then []
-                    else let lastBlock   = last blocks
-                             otherBlocks = init blocks
-                         in  case lastBlock of
-                                  (Para lst)  -> otherBlocks ++
-                                                 [Para (lst ++ backlink)]
-                                  (Plain lst) -> otherBlocks ++
-                                                 [Plain (lst ++ backlink)]
-                                  _           -> otherBlocks ++ [lastBlock,
-                                                 Plain backlink]
+  let backlink = [Link ("",["footnote-back"],[]) [Str (ref ++ ".")] ("#" ++ "fnref" ++ ref,[]), Space]
+      blocks'  = case blocks of
+                  [] -> []
+                  (firstBlock:otherBlocks) ->
+                    case firstBlock of
+                      (Para lst) -> Para (backlink ++ lst) : otherBlocks
+                      (Plain lst) -> Plain (backlink ++ lst) : otherBlocks
+                      _ -> Plain backlink : blocks
+
   in  do contents <- blockListToHtml opts blocks'
-         let noteItem = H.li ! prefixedId opts ("fn" ++ ref) $ contents
+         html5 <- gets stHtml5
+         let noteElement = if html5 then H5.aside else H.div
+         let noteItem = noteElement ! prefixedId opts ("fn" ++ ref) $ contents
          epubVersion <- gets stEPUBVersion
          let noteItem' = case epubVersion of
                               Just EPUB3 -> noteItem ! customAttribute "epub:type" "footnote"

@@ -534,16 +534,14 @@ Blah
 <p>This paragraph should not be part of the note, as it is not indented.</p>
 <div class="footnotes">
 <hr />
-<ol>
-<li id="fn1"><p>Here is the footnote. It can go anywhere after the footnote reference. It need not be placed at the end of the document.<a href="#fnref1" class="footnote-back">↩</a></p></li>
-<li id="fn2"><p>Here’s the long note. This one contains multiple blocks.</p>
+<div id="fn1"><p><a href="#fnref1" class="footnote-back">1.</a> Here is the footnote. It can go anywhere after the footnote reference. It need not be placed at the end of the document.</p></div>
+<div id="fn2"><p><a href="#fnref2" class="footnote-back">2.</a> Here’s the long note. This one contains multiple blocks.</p>
 <p>Subsequent blocks are indented to show that they belong to the footnote (as with list items).</p>
 <pre><code>  { &lt;code&gt; }</code></pre>
-<p>If you want, you can indent every line, but you can also be lazy and just indent the first line of each block.<a href="#fnref2" class="footnote-back">↩</a></p></li>
-<li id="fn3"><p>This is <em>easier</em> to type. Inline notes may contain <a href="http://google.com">links</a> and <code>]</code> verbatim characters, as well as [bracketed text].<a href="#fnref3" class="footnote-back">↩</a></p></li>
-<li id="fn4"><p>In quote.<a href="#fnref4" class="footnote-back">↩</a></p></li>
-<li id="fn5"><p>In list.<a href="#fnref5" class="footnote-back">↩</a></p></li>
-</ol>
+<p>If you want, you can indent every line, but you can also be lazy and just indent the first line of each block.</p></div>
+<div id="fn3"><p><a href="#fnref3" class="footnote-back">3.</a> This is <em>easier</em> to type. Inline notes may contain <a href="http://google.com">links</a> and <code>]</code> verbatim characters, as well as [bracketed text].</p></div>
+<div id="fn4"><p><a href="#fnref4" class="footnote-back">4.</a> In quote.</p></div>
+<div id="fn5"><p><a href="#fnref5" class="footnote-back">5.</a> In list.</p></div>
 </div>
 </body>
 </html>
