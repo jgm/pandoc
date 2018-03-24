@@ -1013,6 +1013,14 @@ getShapeByPlaceHolderType ns spTreeElem phType
       filterChild findPhType spTreeElem
   | otherwise = Nothing
 
+-- Like the above, but it tries a number of different placeholder types
+getShapeByPlaceHolderTypes :: NameSpaces -> Element -> [String] -> Maybe Element
+getShapeByPlaceHolderTypes _ _ [] = Nothing
+getShapeByPlaceHolderTypes ns spTreeElem (s:ss) =
+  case getShapeByPlaceHolderType ns spTreeElem s of
+    Just element -> Just element
+    Nothing -> getShapeByPlaceHolderTypes ns spTreeElem ss
+
 getShapeByPlaceHolderIndex :: NameSpaces -> Element -> String -> Maybe Element
 getShapeByPlaceHolderIndex ns spTreeElem phIdx
   | isElem ns "p" "spTree" spTreeElem =
@@ -1027,12 +1035,12 @@ getShapeByPlaceHolderIndex ns spTreeElem phIdx
   | otherwise = Nothing
 
 
-nonBodyTextToElement :: PandocMonad m => Element -> String -> [ParaElem] -> P m Element
-nonBodyTextToElement layout phType paraElements
+nonBodyTextToElement :: PandocMonad m => Element -> [String] -> [ParaElem] -> P m Element
+nonBodyTextToElement layout phTypes paraElements
   | ns <- elemToNameSpaces layout
   , Just cSld <- findChild (elemName ns "p" "cSld") layout
   , Just spTree <- findChild (elemName ns "p" "spTree") cSld
-  , Just sp <- getShapeByPlaceHolderType ns spTree phType = do
+  , Just sp <- getShapeByPlaceHolderTypes ns spTree phTypes = do
       let hdrPara = Paragraph def paraElements
       element <- paragraphToElement hdrPara
       let txBody = mknode "p:txBody" [] $
@@ -1047,7 +1055,7 @@ contentToElement layout hdrShape shapes
   | ns <- elemToNameSpaces layout
   , Just cSld <- findChild (elemName ns "p" "cSld") layout
   , Just spTree <- findChild (elemName ns "p" "spTree") cSld = do
-      element <- nonBodyTextToElement layout "title" hdrShape
+      element <- nonBodyTextToElement layout ["title"] hdrShape
       let hdrShapeElements = if null hdrShape
                              then []
                              else [element]
@@ -1065,7 +1073,7 @@ twoColumnToElement layout hdrShape shapesL shapesR
   | ns <- elemToNameSpaces layout
   , Just cSld <- findChild (elemName ns "p" "cSld") layout
   , Just spTree <- findChild (elemName ns "p" "spTree") cSld = do
-      element <- nonBodyTextToElement layout "title" hdrShape
+      element <- nonBodyTextToElement layout ["title"] hdrShape
       let hdrShapeElements = if null hdrShape
                              then []
                              else [element]
@@ -1089,7 +1097,7 @@ titleToElement layout titleElems
   | ns <- elemToNameSpaces layout
   , Just cSld <- findChild (elemName ns "p" "cSld") layout
   , Just spTree <- findChild (elemName ns "p" "spTree") cSld = do
-      element <- nonBodyTextToElement layout "title" titleElems
+      element <- nonBodyTextToElement layout ["title", "ctrTitle"] titleElems
       let titleShapeElements = if null titleElems
                                then []
                                else [element]
@@ -1103,15 +1111,15 @@ metadataToElement layout titleElems subtitleElems authorsElems dateElems
   , Just spTree <- findChild (elemName ns "p" "spTree") cSld = do
       titleShapeElements <- if null titleElems
                             then return []
-                            else sequence [nonBodyTextToElement layout "ctrTitle" titleElems]
+                            else sequence [nonBodyTextToElement layout ["ctrTitle"] titleElems]
       let combinedAuthorElems = intercalate [Break] authorsElems
           subtitleAndAuthorElems = intercalate [Break, Break] [subtitleElems, combinedAuthorElems]
       subtitleShapeElements <- if null subtitleAndAuthorElems
                                then return []
-                               else sequence [nonBodyTextToElement layout "subTitle" subtitleAndAuthorElems]
+                               else sequence [nonBodyTextToElement layout ["subTitle"] subtitleAndAuthorElems]
       dateShapeElements <- if null dateElems
                            then return []
-                           else sequence [nonBodyTextToElement layout "dt" dateElems]
+                           else sequence [nonBodyTextToElement layout ["dt"] dateElems]
       return $ replaceNamedChildren ns "p" "sp"
         (titleShapeElements ++ subtitleShapeElements ++ dateShapeElements)
         spTree
