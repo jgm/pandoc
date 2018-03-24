@@ -344,17 +344,7 @@ getLayout layout = do
         (TwoColumnSlide _ _ _)    -> "ppt/slideLayouts/slideLayout4.xml"
   refArchive <- asks envRefArchive
   distArchive <- asks envDistArchive
-  root <- case findEntryByPath layoutpath refArchive `mplus`
-               findEntryByPath layoutpath distArchive of
-        Just e -> case parseXMLDoc $ UTF8.toStringLazy $ fromEntry e of
-                    Just element -> return $ element
-                    Nothing      -> throwError $
-                                    PandocSomeError $
-                                    layoutpath ++ " corrupt in reference file"
-        Nothing -> throwError $
-                   PandocSomeError $
-                   layoutpath ++ " missing in reference file"
-  return root
+  parseXml refArchive distArchive layoutpath
 
 shapeHasId :: NameSpaces -> String -> Element -> Bool
 shapeHasId ns ident element
@@ -1171,20 +1161,9 @@ slideToElement (Slide _ l@(MetadataSlide titleElems subtitleElems authorElems da
 
 getNotesMaster :: PandocMonad m => P m Element
 getNotesMaster = do
-  let notesMasterPath = "ppt/notesMasters/notesMaster1.xml"
   refArchive <- asks envRefArchive
   distArchive <- asks envDistArchive
-  root <- case findEntryByPath notesMasterPath refArchive `mplus`
-               findEntryByPath notesMasterPath distArchive of
-        Just e -> case parseXMLDoc $ UTF8.toStringLazy $ fromEntry e of
-                    Just element -> return $ element
-                    Nothing      -> throwError $
-                                    PandocSomeError $
-                                    notesMasterPath ++ " corrupt in reference file"
-        Nothing -> throwError $
-                   PandocSomeError $
-                   notesMasterPath ++ " missing in reference file"
-  return root
+  parseXml refArchive distArchive "ppt/notesMasters/notesMaster1.xml"
 
 getSlideNumberFieldId :: PandocMonad m => Element -> P m String
 getSlideNumberFieldId notesMaster
