@@ -19,7 +19,7 @@ extra-deps:
 - tasty-1.0.1.1
 - pandoc-types-1.17.4.2
 - cmark-gfm-0.1.3
-- haddock-library-1.5.0.1
+#- haddock-library-1.5.0.1
 - hslua-module-text-0.1.2.1
 ghc-options:
    "$locals": -fhide-source-paths -XNoImplicitPrelude
