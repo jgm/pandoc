@@ -339,8 +339,7 @@ normalizeInlineList (Code _ x1 : Code _ x2 : ils)
   = normalizeInlineList $ Code nullAttr (x1 ++ x2) : ils
 normalizeInlineList (RawInline f1 x1 : RawInline f2 x2 : ils) | f1 == f2
   = normalizeInlineList $ RawInline f1 (x1 ++ x2) : ils
-normalizeInlineList (Span a1 x1 : Span a2 x2 : ils) | a1 == a2
-  = normalizeInlineList $ Span a1 (x1 ++ x2) : ils
+-- Do not join Span's during normalization
 normalizeInlineList (x:xs) = x : normalizeInlineList xs
 normalizeInlineList [] = []
 

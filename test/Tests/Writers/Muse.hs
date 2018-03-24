@@ -405,6 +405,9 @@ tests = [ testGroup "block elements"
                                =?> "#anchor Foo bar"
           , "span with class and anchor" =: spanWith ("anchor", ["foo"], []) (text "bar")
                                          =?> "#anchor <class name=\"foo\">bar</class>"
+          , "adjacent spans" =: spanWith ("", ["syllable"], []) (str "wa") <>
+                                spanWith ("", ["syllable"], []) (str "ter")
+                             =?> "<class name=\"syllable\">wa</class><class name=\"syllable\">ter</class>"
           , testGroup "combined"
             [ "emph word before" =:
                 para (text "foo" <> emph (text "bar")) =?>
