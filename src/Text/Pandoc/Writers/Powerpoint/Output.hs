@@ -342,8 +342,10 @@ getLayout layout = do
         (TitleSlide _)          -> "ppt/slideLayouts/slideLayout3.xml"
         (ContentSlide _ _)      -> "ppt/slideLayouts/slideLayout2.xml"
         (TwoColumnSlide _ _ _)    -> "ppt/slideLayouts/slideLayout4.xml"
+  refArchive <- asks envRefArchive
   distArchive <- asks envDistArchive
-  root <- case findEntryByPath layoutpath distArchive of
+  root <- case findEntryByPath layoutpath refArchive `mplus`
+               findEntryByPath layoutpath distArchive of
         Just e -> case parseXMLDoc $ UTF8.toStringLazy $ fromEntry e of
                     Just element -> return $ element
                     Nothing      -> throwError $
@@ -1166,8 +1168,10 @@ slideToElement (Slide _ l@(MetadataSlide titleElems subtitleElems authorElems da
 getNotesMaster :: PandocMonad m => P m Element
 getNotesMaster = do
   let notesMasterPath = "ppt/notesMasters/notesMaster1.xml"
+  refArchive <- asks envRefArchive
   distArchive <- asks envDistArchive
-  root <- case findEntryByPath notesMasterPath distArchive of
+  root <- case findEntryByPath notesMasterPath refArchive `mplus`
+               findEntryByPath notesMasterPath distArchive of
         Just e -> case parseXMLDoc $ UTF8.toStringLazy $ fromEntry e of
                     Just element -> return $ element
                     Nothing      -> throwError $
