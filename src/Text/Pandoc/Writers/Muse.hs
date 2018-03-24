@@ -441,6 +441,8 @@ inlineToMuse (Span (anchor,names,_) inlines) = do
   let anchorDoc = if null anchor
                      then mempty
                      else text ('#':anchor) <> space
-  return $ anchorDoc <> if null names
-                           then contents
-                           else "<class name=\"" <> text (head names) <> "\">" <> contents <> "</class>"
+  return $ anchorDoc <> (if null inlines && not (null anchor)
+                         then mempty
+                         else (if null names
+                               then "<class>"
+                               else "<class name=\"" <> text (head names) <> "\">") <> contents <> "</class>")

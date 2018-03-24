@@ -400,9 +400,15 @@ tests = [ testGroup "block elements"
                                , "[1] Foo"
                                ]
           , "span with class" =: spanWith ("",["foobar"],[]) (text "Some text")
-                   =?> "<class name=\"foobar\">Some text</class>"
-          , "span with anchor" =: spanWith ("anchor", [], []) (text "Foo bar")
+                              =?> "<class name=\"foobar\">Some text</class>"
+          , "span without class" =: spanWith ("",[],[]) (text "Some text")
+                                 =?> "<class>Some text</class>"
+          , "span with anchor" =: spanWith ("anchor", [], []) (mempty) <> (text "Foo bar")
                                =?> "#anchor Foo bar"
+          , "empty span with anchor" =: spanWith ("anchor", [], []) (mempty)
+                                     =?> "#anchor"
+          , "empty span without class and anchor" =: spanWith ("", [], []) (mempty)
+                                                  =?> "<class><verbatim></verbatim></class>"
           , "span with class and anchor" =: spanWith ("anchor", ["foo"], []) (text "bar")
                                          =?> "#anchor <class name=\"foo\">bar</class>"
           , "adjacent spans" =: spanWith ("", ["syllable"], []) (str "wa") <>
