@@ -10,7 +10,7 @@ import Text.Pandoc.Arbitrary ()
 import Text.Pandoc.Builder
 
 muse :: (ToPandoc a) => a -> String
-muse = museWithOpts def{ writerWrapText = WrapNone,
+muse = museWithOpts def{ writerWrapText = WrapPreserve,
                          writerExtensions = extensionsFromList [Ext_amuse,
                                                                 Ext_auto_identifiers] }
 
@@ -344,10 +344,10 @@ tests = [ testGroup "block elements"
             ]
           , testGroup "spaces"
             [ "space" =: text "a" <> space <> text "b" =?> "a b"
-            , "soft break" =: text "a" <> softbreak <> text "b" =?> "a b"
-            , test (museWithOpts def{ writerWrapText = WrapPreserve })
-                   "preserve soft break" $ text "a" <> softbreak <> text "b"
-                   =?> "a\nb"
+            , "soft break" =: text "a" <> softbreak <> text "b" =?> "a\nb"
+            , test (museWithOpts def{ writerWrapText = WrapNone })
+                   "remove soft break" $ text "a" <> softbreak <> text "b"
+                   =?> "a b"
             , "line break" =: text "a" <> linebreak <> text "b" =?> "a<br>\nb"
             ]
           , testGroup "math"
