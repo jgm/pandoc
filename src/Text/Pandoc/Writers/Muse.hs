@@ -380,12 +380,12 @@ renderInlineList :: PandocMonad m
                  -> StateT WriterState m Doc
 renderInlineList True [] = pure "<verbatim></verbatim>"
 renderInlineList False [] = pure ""
-renderInlineList start lst@(x:xs) = do r <- inlineToMuse x
-                                       opts <- gets stOptions
-                                       lst' <- renderInlineList (x == SoftBreak && writerWrapText opts == WrapPreserve) xs --hcat <$> mapM inlineToMuse xs
-                                       if start && fixOrEscape x
-                                         then pure ((text "<verbatim></verbatim>") <> r <> lst')
-                                         else pure (r <> lst')
+renderInlineList start (x:xs) = do r <- inlineToMuse x
+                                   opts <- gets stOptions
+                                   lst' <- renderInlineList (x == SoftBreak && writerWrapText opts == WrapPreserve) xs --hcat <$> mapM inlineToMuse xs
+                                   if start && fixOrEscape x
+                                     then pure ((text "<verbatim></verbatim>") <> r <> lst')
+                                     else pure (r <> lst')
 
 -- | Normalize and convert list of Pandoc inline elements to Muse.
 inlineListToMuse'' :: PandocMonad m
