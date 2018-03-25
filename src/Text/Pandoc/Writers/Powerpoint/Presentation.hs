@@ -401,10 +401,7 @@ noteSize :: Pixels
 noteSize = 18
 
 blockToParagraphs :: Block -> Pres [Paragraph]
-blockToParagraphs (Plain ils) = do
-  parElems <- inlinesToParElems ils
-  pProps <- asks envParaProps
-  return [Paragraph pProps parElems]
+blockToParagraphs (Plain ils) = blockToParagraphs (Para ils)
 blockToParagraphs (Para ils) = do
   parElems <- inlinesToParElems ils
   pProps <- asks envParaProps
@@ -519,14 +516,9 @@ withAttr attr (Pic picPr url caption) =
 withAttr _ sp = sp
 
 blockToShape :: Block -> Pres Shape
-blockToShape (Plain (il:_)) | Image attr ils (url, _) <- il =
-      (withAttr attr . Pic def url) <$> inlinesToParElems ils
+blockToShape (Plain ils) = blockToShape (Para ils)
 blockToShape (Para (il:_))  | Image attr ils (url, _) <- il =
       (withAttr attr . Pic def url) <$> inlinesToParElems ils
-blockToShape (Plain (il:_)) | Link _ (il':_) target <- il
-                            , Image attr ils (url, _) <- il' =
-      (withAttr attr . Pic def {picPropLink = Just $ ExternalTarget target} url) <$>
-      inlinesToParElems ils
 blockToShape (Para (il:_))  | Link _ (il':_) target <- il
                             , Image attr ils (url, _) <- il' =
       (withAttr attr . Pic def{picPropLink = Just $ ExternalTarget target} url) <$>
@@ -550,7 +542,6 @@ blockToShape blk = do paras <- blockToParagraphs blk
 
 combineShapes :: [Shape] -> [Shape]
 combineShapes [] = []
-combineShapes[s] = [s]
 combineShapes (pic@Pic{} : ss) = pic : combineShapes ss
 combineShapes (TextBox [] : ss) = combineShapes ss
 combineShapes (s : TextBox [] : ss) = combineShapes (s : ss)
@@ -639,9 +630,9 @@ blocksToSlide' _ (blk : blks) spkNotes
   , Div (_, clsL, _) blksL : Div (_, clsR, _) blksR : remaining <- divBlks
   , "column" `elem` clsL, "column" `elem` clsR = do
       unless (null blks)
-        (mapM (addLogMessage . BlockNotRendered) blks >> return ())
+        (mapM_ (addLogMessage . BlockNotRendered) blks >> return ())
       unless (null remaining)
-        (mapM (addLogMessage . BlockNotRendered) remaining >> return ())
+        (mapM_ (addLogMessage . BlockNotRendered) remaining >> return ())
       mbSplitBlksL <- splitBlocks blksL
       mbSplitBlksR <- splitBlocks blksR
       let blksL' = case mbSplitBlksL of
@@ -732,15 +723,14 @@ makeEndNotesSlideBlocks = do
   anchorSet <- M.keysSet <$> gets stAnchorMap
   if M.null noteIds
     then return []
-    else do let title = case lookupMeta "notes-title" meta of
-                  Just val -> metaValueToInlines val
-                  Nothing  -> [Str "Notes"]
-                ident = Shared.uniqueIdent title anchorSet
-                hdr = Header slideLevel (ident, [], []) title
-            blks <- return $
-                    concatMap (\(n, bs) -> makeNoteEntry n bs) $
+    else let title = case lookupMeta "notes-title" meta of
+                       Just val -> metaValueToInlines val
+                       Nothing  -> [Str "Notes"]
+             ident = Shared.uniqueIdent title anchorSet
+             hdr = Header slideLevel (ident, [], []) title
+             blks = concatMap (\(n, bs) -> makeNoteEntry n bs) $
                     M.toList noteIds
-            return $ hdr : blks
+         in return $ hdr : blks
 
 getMetaSlide :: Pres (Maybe Slide)
 getMetaSlide  = do
@@ -791,8 +781,7 @@ makeTOCSlide blks = local (\env -> env{envCurSlideId = tocSlideId}) $ do
                    Just val -> metaValueToInlines val
                    Nothing  -> [Str "Table of Contents"]
       hdr = Header slideLevel nullAttr tocTitle
-  sld <- blocksToSlide [hdr, contents]
-  return sld
+  blocksToSlide [hdr, contents]
 
 combineParaElems' :: Maybe ParaElem -> [ParaElem] -> [ParaElem]
 combineParaElems' mbPElem [] = maybeToList mbPElem
@@ -815,15 +804,9 @@ applyToParagraph f para = do
   return $ para {paraElems = paraElems'}
 
 applyToShape :: Monad m => (ParaElem -> m ParaElem) -> Shape -> m Shape
-applyToShape f (Pic pPr fp pes) = do
-  pes' <- mapM f pes
-  return $ Pic pPr fp pes'
-applyToShape f (GraphicFrame gfx pes) = do
-  pes' <- mapM f pes
-  return $ GraphicFrame gfx pes'
-applyToShape f (TextBox paras) = do
-  paras' <- mapM (applyToParagraph f) paras
-  return $ TextBox paras'
+applyToShape f (Pic pPr fp pes) = Pic pPr fp <$> mapM f pes
+applyToShape f (GraphicFrame gfx pes) = GraphicFrame gfx <$> mapM f pes
+applyToShape f (TextBox paras) = TextBox <$> mapM (applyToParagraph f) paras
 
 applyToLayout :: Monad m => (ParaElem -> m ParaElem) -> Layout -> m Layout
 applyToLayout f (MetadataSlide title subtitle authors date) = do
@@ -832,9 +815,7 @@ applyToLayout f (MetadataSlide title subtitle authors date) = do
   authors' <- mapM (mapM f) authors
   date' <- mapM f date
   return $ MetadataSlide title' subtitle' authors' date'
-applyToLayout f (TitleSlide title) = do
-  title' <- mapM f title
-  return $ TitleSlide title'
+applyToLayout f (TitleSlide title) = TitleSlide <$> mapM f title
 applyToLayout f (ContentSlide hdr content) = do
   hdr' <- mapM f hdr
   content' <- mapM (applyToShape f) content
@@ -896,10 +877,7 @@ emptyLayout layout = case layout of
     all emptyShape shapes2
 
 emptySlide :: Slide -> Bool
-emptySlide (Slide _ layout notes) =
-  if notes == mempty
-  then emptyLayout layout
-  else False
+emptySlide (Slide _ layout notes) = (notes == mempty) && (emptyLayout layout)
 
 blocksToPresentationSlides :: [Block] -> Pres [Slide]
 blocksToPresentationSlides blks = do
