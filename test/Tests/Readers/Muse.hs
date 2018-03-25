@@ -186,6 +186,9 @@ tests =
         , "Link with description" =:
           "[[https://amusewiki.org/][A Muse Wiki]]" =?>
           para (link "https://amusewiki.org/" "" (text "A Muse Wiki"))
+        , "Link with empty description" =:
+          "[[https://amusewiki.org/][]]" =?>
+          para (link "https://amusewiki.org/" "" (text ""))
         , "Image" =:
           "[[image.jpg]]" =?>
           para (image "image.jpg" "" mempty)

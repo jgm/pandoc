@@ -931,7 +931,7 @@ link = try $ do
 linkContent :: PandocMonad m => MuseParser m (F Inlines)
 linkContent = do
   char '['
-  trimInlinesF . mconcat <$> many1Till inline (string "]")
+  trimInlinesF . mconcat <$> manyTill inline (string "]")
 
 linkText :: PandocMonad m => MuseParser m (String, String, Maybe (F Inlines))
 linkText = do
