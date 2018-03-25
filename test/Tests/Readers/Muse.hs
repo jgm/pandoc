@@ -210,6 +210,9 @@ tests =
         [ test emacsMuse "Inline literal"
           ("Foo<literal style=\"html\">lit</literal>bar" =?>
           para (text "Foo" <> rawInline "html" "lit" <> text "bar"))
+        , test emacsMuse "Single inline literal in paragraph"
+          ("<literal style=\"html\">lit</literal>" =?>
+          para (rawInline "html" "lit"))
         ]
       ]
 

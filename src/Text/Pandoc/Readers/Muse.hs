@@ -404,9 +404,15 @@ exampleTag = try $ do
   return $ return $ B.codeBlockWith attr $ rchop $ intercalate "\n" $ dropSpacePrefix $ splitOn "\n" $ lchop contents
 
 literalTag :: PandocMonad m => MuseParser m (F Blocks)
-literalTag =
-  (return . rawBlock) <$> htmlBlock "literal"
+literalTag = try $ do
+  many spaceChar
+  (TagOpen _ attr, _) <- htmlTag (~== TagOpen "literal" [])
+  manyTill spaceChar eol
+  content <- manyTill anyChar endtag
+  manyTill spaceChar eol
+  return $ return $ rawBlock (htmlAttrToPandoc attr, content)
   where
+    endtag = void $ htmlTag (~== TagClose "literal")
     -- FIXME: Emacs Muse inserts <literal> without style into all output formats, but we assume HTML
     format (_, _, kvs)        = fromMaybe "html" $ lookup "style" kvs
     rawBlock (attrs, content) = B.rawBlock (format attrs) $ rchop $ intercalate "\n" $ dropSpacePrefix $ splitOn "\n" $ lchop content
