@@ -45,6 +45,7 @@ even though it is supported only in Emacs Muse.
 module Text.Pandoc.Writers.Muse (writeMuse) where
 import Prelude
 import Control.Monad.State.Strict
+import Data.Char (isSpace, isDigit, isAsciiUpper, isAsciiLower)
 import Data.Text (Text)
 import Data.List (intersperse, transpose, isInfixOf)
 import System.FilePath (takeExtension)
@@ -153,9 +154,9 @@ blockListToMuse blocks = do
 blockToMuse :: PandocMonad m
             => Block         -- ^ Block element
             -> StateT WriterState m Doc
-blockToMuse (Plain inlines) = inlineListToMuse inlines
+blockToMuse (Plain inlines) = inlineListToMuse' inlines
 blockToMuse (Para inlines) = do
-  contents <- inlineListToMuse inlines
+  contents <- inlineListToMuse' inlines
   return $ contents <> blankline
 blockToMuse (LineBlock lns) = do
   lns' <- mapM inlineListToMuse lns
@@ -206,7 +207,7 @@ blockToMuse (DefinitionList items) = do
                                  => ([Inline], [[Block]])
                                  -> StateT WriterState m Doc
         definitionListItemToMuse (label, defs) = do
-          label' <- inlineListToMuse label
+          label' <- inlineListToMuse' label
           contents <- liftM vcat $ mapM descriptionToMuse defs
           let ind = offset label'
           return $ hang ind label' contents
@@ -280,15 +281,23 @@ escapeString s =
   substitute "</verbatim>" "<</verbatim><verbatim>/verbatim>" s ++
   "</verbatim>"
 
+startsWithMarker :: (Char -> Bool) -> String -> Bool
+startsWithMarker f (' ':xs) = startsWithMarker f xs
+startsWithMarker f (x:xs) =
+  f x && (startsWithMarker f xs || startsWithDot xs)
+  where
+    startsWithDot ('.':[]) = True
+    startsWithDot ('.':c:_) = isSpace c
+    startsWithDot _ = False
+startsWithMarker _ [] = False
+
 -- | Escape special characters for Muse if needed.
 conditionalEscapeString :: String -> String
 conditionalEscapeString s =
   if any (`elem` ("#*<=>[]|" :: String)) s ||
      "::" `isInfixOf` s ||
      "----" `isInfixOf` s ||
-     "~~" `isInfixOf` s ||
-     "-" == s ||
-     ";" == s
+     "~~" `isInfixOf` s
     then escapeString s
     else s
 
@@ -354,15 +363,44 @@ urlEscapeBrackets (']':xs) = '%':'5':'D':urlEscapeBrackets xs
 urlEscapeBrackets (x:xs) = x:urlEscapeBrackets xs
 urlEscapeBrackets [] = []
 
--- | Convert list of Pandoc inline elements to Muse.
-inlineListToMuse :: PandocMonad m
-                 => [Inline]
+fixOrEscape :: Inline -> Bool
+fixOrEscape (Str "-") = True -- TODO: "  - " should be escaped too
+fixOrEscape (Str ";") = True
+fixOrEscape (Str s) = startsWithMarker isDigit s ||
+                      startsWithMarker isAsciiLower s ||
+                      startsWithMarker isAsciiUpper s
+fixOrEscape (Space) = True
+fixOrEscape (SoftBreak) = True
+fixOrEscape _ = False
+
+-- | Convert list of Pandoc inline elements to Muse
+renderInlineList :: PandocMonad m
+                 => Bool
+                 -> [Inline]
                  -> StateT WriterState m Doc
-inlineListToMuse lst = do
-  lst' <- normalizeInlineList <$> preprocessInlineList (map (removeKeyValues . replaceSmallCaps) lst)
-  if null lst'
-    then pure "<verbatim></verbatim>"
-    else hcat <$> mapM inlineToMuse (fixNotes lst')
+renderInlineList True [] = pure "<verbatim></verbatim>"
+renderInlineList False [] = pure ""
+renderInlineList start lst@(x:xs) = do r <- inlineToMuse x
+                                       opts <- gets stOptions
+                                       lst' <- renderInlineList (x == SoftBreak && writerWrapText opts == WrapPreserve) xs --hcat <$> mapM inlineToMuse xs
+                                       if start && fixOrEscape x
+                                         then pure ((text "<verbatim></verbatim>") <> r <> lst')
+                                         else pure (r <> lst')
+
+-- | Normalize and convert list of Pandoc inline elements to Muse.
+inlineListToMuse'' :: PandocMonad m
+                  => Bool
+                  -> [Inline]
+                  -> StateT WriterState m Doc
+inlineListToMuse'' start lst = do
+  lst' <- (normalizeInlineList . fixNotes) <$> preprocessInlineList (map (removeKeyValues . replaceSmallCaps) lst)
+  renderInlineList start lst'
+
+inlineListToMuse' :: PandocMonad m => [Inline] -> StateT WriterState m Doc
+inlineListToMuse' = inlineListToMuse'' True
+
+inlineListToMuse :: PandocMonad m => [Inline] -> StateT WriterState m Doc
+inlineListToMuse = inlineListToMuse'' False
 
 -- | Convert Pandoc inline element to Muse.
 inlineToMuse :: PandocMonad m

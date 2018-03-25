@@ -312,16 +312,17 @@ tests = [ testGroup "block elements"
             -- We don't want colons to be escaped if they can't be confused
             -- with definition list item markers.
             , "do not escape colon" =: str ":" =?> ":"
-            , "escape - to avoid accidental unordered lists" =: text " - foo" =?> " <verbatim>-</verbatim> foo"
+            , "escape - to avoid accidental unordered lists" =: text " - foo" =?> "<verbatim></verbatim> - foo"
             , "escape - inside a list to avoid accidental nested unordered lists" =:
               bulletList [ (para $ text "foo") <>
                            (para $ text "- bar")
                          ] =?>
               unlines [ " - foo"
                       , ""
-                      , "   <verbatim>-</verbatim> bar"
+                      , "   <verbatim></verbatim>- bar"
                       ]
-            , "escape ; to avoid accidental comments" =: text "; foo" =?> "<verbatim>;</verbatim> foo"
+            , "escape ; to avoid accidental comments" =: text "; foo" =?> "<verbatim></verbatim>; foo"
+            , "escape ; after softbreak" =: text "foo" <> softbreak <> text "; bar" =?> "foo\n<verbatim></verbatim>; bar"
             ]
           , testGroup "emphasis"
             [ "emph" =: emph (text "foo") =?> "<em>foo</em>"
@@ -408,7 +409,7 @@ tests = [ testGroup "block elements"
           , "empty span with anchor" =: spanWith ("anchor", [], []) (mempty)
                                      =?> "#anchor"
           , "empty span without class and anchor" =: spanWith ("", [], []) (mempty)
-                                                  =?> "<class><verbatim></verbatim></class>"
+                                                  =?> "<class></class>"
           , "span with class and anchor" =: spanWith ("anchor", ["foo"], []) (text "bar")
                                          =?> "#anchor <class name=\"foo\">bar</class>"
           , "adjacent spans" =: spanWith ("", ["syllable"], []) (str "wa") <>
