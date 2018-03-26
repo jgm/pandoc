@@ -286,7 +286,7 @@ startsWithMarker f (' ':xs) = startsWithMarker f xs
 startsWithMarker f (x:xs) =
   f x && (startsWithMarker f xs || startsWithDot xs)
   where
-    startsWithDot ('.':[]) = True
+    startsWithDot ['.'] = True
     startsWithDot ('.':c:_) = isSpace c
     startsWithDot _ = False
 startsWithMarker _ [] = False
@@ -369,8 +369,8 @@ fixOrEscape (Str ";") = True
 fixOrEscape (Str s) = startsWithMarker isDigit s ||
                       startsWithMarker isAsciiLower s ||
                       startsWithMarker isAsciiUpper s
-fixOrEscape (Space) = True
-fixOrEscape (SoftBreak) = True
+fixOrEscape Space = True
+fixOrEscape SoftBreak = True
 fixOrEscape _ = False
 
 -- | Convert list of Pandoc inline elements to Muse
@@ -382,9 +382,9 @@ renderInlineList True [] = pure "<verbatim></verbatim>"
 renderInlineList False [] = pure ""
 renderInlineList start (x:xs) = do r <- inlineToMuse x
                                    opts <- gets stOptions
-                                   lst' <- renderInlineList (x == SoftBreak && writerWrapText opts == WrapPreserve) xs --hcat <$> mapM inlineToMuse xs
+                                   lst' <- renderInlineList (x == SoftBreak && writerWrapText opts == WrapPreserve) xs
                                    if start && fixOrEscape x
-                                     then pure ((text "<verbatim></verbatim>") <> r <> lst')
+                                     then pure (text "<verbatim></verbatim>" <> r <> lst')
                                      else pure (r <> lst')
 
 -- | Normalize and convert list of Pandoc inline elements to Muse.

@@ -1,5 +1,6 @@
 {-# LANGUAGE NoImplicitPrelude #-}
-{-# LANGUAGE FlexibleContexts      #-}
+{-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE TupleSections #-}
 {-
   Copyright (C) 2017-2018 Alexander Krotov <ilabdsf@gmail.com>
 
@@ -174,7 +175,7 @@ parseHtmlContent tag = try $ do
   pos <- getPosition
   (TagOpen _ attr, _) <- htmlTag (~== TagOpen tag [])
   manyTill spaceChar eol
-  content <- parseBlocksTill (try $ ((count (sourceColumn pos - 1) spaceChar) >> endtag))
+  content <- parseBlocksTill $ try $ count (sourceColumn pos - 1) spaceChar >> endtag
   manyTill spaceChar eol -- closing tag must be followed by optional whitespace and newline
   return (htmlAttrToPandoc attr, content)
   where
@@ -274,9 +275,7 @@ parseBlocksTill end =
        paraStart)
   where
     parseEnd = mempty <$ end
-    blockStart = do first <- blockElements
-                    rest <- continuation
-                    return $ first B.<> rest
+    blockStart = (B.<>) <$> blockElements <*> continuation
     listStart = do
       updateState (\st -> st { museInPara = False })
       (first, e) <- anyListUntil ((Left <$> end) <|> (Right <$> continuation))
@@ -299,10 +298,8 @@ listItemContentsUntil col pre end =
   try listStart <|>
   try paraStart
   where
-    parsePre = do e <- pre
-                  return (mempty, e)
-    parseEnd = do e <- end
-                  return (mempty, e)
+    parsePre = (mempty,) <$> pre
+    parseEnd = (mempty,) <$> end
     paraStart = do
       (first, e) <- paraUntil ((Left <$> pre) <|> (Right <$> continuation) <|> (Left <$> end))
       case e of
@@ -468,9 +465,7 @@ paraUntil end = do
 noteMarker :: PandocMonad m => MuseParser m String
 noteMarker = try $ do
   char '['
-  first <- oneOf "123456789"
-  rest <- manyTill digit (char ']')
-  return $ first:rest
+  (:) <$> oneOf "123456789" <*> manyTill digit (char ']')
 
 -- Amusewiki version of note
 -- Parsing is similar to list item, except that note marker is used instead of list marker
@@ -713,11 +708,7 @@ elementsToTable = foldM museAppendElement emptyTable
   where emptyTable = MuseTable mempty mempty mempty mempty
 
 table :: PandocMonad m => MuseParser m (F Blocks)
-table = try $ do
-  rows <- tableElements
-  let tbl = elementsToTable rows
-  let pandocTbl = museToPandocTable <$> tbl :: F Blocks
-  return pandocTbl
+table = try $ fmap museToPandocTable <$> (elementsToTable <$> tableElements)
 
 tableParseElement :: PandocMonad m => MuseParser m MuseTableElement
 tableParseElement = tableParseHeader
@@ -831,16 +822,14 @@ enclosedInlines start end = try $
   trimInlinesF . mconcat <$> (enclosed (atStart start) end inline <* notFollowedBy (satisfy isLetter))
 
 inlineTag :: PandocMonad m
-          => (Inlines -> Inlines)
-          -> String
+          => String
           -> MuseParser m (F Inlines)
-inlineTag f tag = try $ do
+inlineTag tag = try $ do
   htmlTag (~== TagOpen tag [])
-  res <- manyTill inline (void $ htmlTag (~== TagClose tag))
-  return $ f <$> mconcat res
+  mconcat <$> manyTill inline (void $ htmlTag (~== TagClose tag))
 
 strongTag :: PandocMonad m => MuseParser m (F Inlines)
-strongTag = inlineTag B.strong "strong"
+strongTag = fmap B.strong <$> inlineTag "strong"
 
 strong :: PandocMonad m => MuseParser m (F Inlines)
 strong = fmap B.strong <$> emphasisBetween (string "**")
@@ -854,16 +843,16 @@ underlined = do
   fmap underlineSpan <$> emphasisBetween (char '_')
 
 emphTag :: PandocMonad m => MuseParser m (F Inlines)
-emphTag = inlineTag B.emph "em"
+emphTag = fmap B.emph <$> inlineTag "em"
 
 superscriptTag :: PandocMonad m => MuseParser m (F Inlines)
-superscriptTag = inlineTag B.superscript "sup"
+superscriptTag = fmap B.superscript <$> inlineTag "sup"
 
 subscriptTag :: PandocMonad m => MuseParser m (F Inlines)
-subscriptTag = inlineTag B.subscript "sub"
+subscriptTag = fmap B.subscript <$> inlineTag "sub"
 
 strikeoutTag :: PandocMonad m => MuseParser m (F Inlines)
-strikeoutTag = inlineTag B.strikeout "del"
+strikeoutTag = fmap B.strikeout <$> inlineTag "del"
 
 verbatimTag :: PandocMonad m => MuseParser m (F Inlines)
 verbatimTag = return . B.text . snd <$> htmlElement "verbatim"
@@ -891,9 +880,7 @@ code = try $ do
   return $ return $ B.code contents
 
 codeTag :: PandocMonad m => MuseParser m (F Inlines)
-codeTag = do
-  (attrs, content) <- htmlElement "code"
-  return $ return $ B.codeWith attrs content
+codeTag = return . uncurry B.codeWith <$> htmlElement "code"
 
 inlineLiteralTag :: PandocMonad m => MuseParser m (F Inlines)
 inlineLiteralTag =
@@ -904,10 +891,7 @@ inlineLiteralTag =
     rawInline (attrs, content) = B.rawInline (format attrs) content
 
 str :: PandocMonad m => MuseParser m (F Inlines)
-str = do
-  result <- many1 alphaNum
-  updateLastStrPos
-  return $ return $ B.str result
+str = return . B.str <$> many1 alphaNum <* updateLastStrPos
 
 symbol :: PandocMonad m => MuseParser m (F Inlines)
 symbol = return . B.str <$> count 1 nonspaceChar
@@ -929,9 +913,7 @@ link = try $ do
           isImageUrl = (`elem` imageExtensions) . takeExtension
 
 linkContent :: PandocMonad m => MuseParser m (F Inlines)
-linkContent = do
-  char '['
-  trimInlinesF . mconcat <$> manyTill inline (string "]")
+linkContent = char '[' >> trimInlinesF . mconcat <$> manyTill inline (string "]")
 
 linkText :: PandocMonad m => MuseParser m (String, String, Maybe (F Inlines))
 linkText = do
