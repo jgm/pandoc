@@ -1,8 +1,5 @@
 {-# LANGUAGE NoImplicitPrelude #-}
-{-# LANGUAGE FlexibleContexts #-}
-
-{-# LANGUAGE TupleSections    #-}
-{-# LANGUAGE ViewPatterns     #-}
+{-# LANGUAGE TupleSections, ViewPatterns #-}
 
 module Text.Pandoc.Readers.EPUB
   (readEPUB)

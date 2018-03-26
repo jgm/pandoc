@@ -1,5 +1,4 @@
 {-# LANGUAGE NoImplicitPrelude #-}
-{-# LANGUAGE FlexibleContexts #-}
 module Text.Pandoc.Readers.OPML ( readOPML ) where
 import Prelude
 import Control.Monad.State.Strict

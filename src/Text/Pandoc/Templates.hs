@@ -1,8 +1,4 @@
-{-# LANGUAGE NoImplicitPrelude #-}
-{-# LANGUAGE FlexibleInstances    #-}
-
-{-# LANGUAGE OverloadedStrings    #-}
-{-# LANGUAGE TypeSynonymInstances #-}
+{-# LANGUAGE OverloadedStrings #-}
 {-
 Copyright (C) 2009-2018 John MacFarlane <jgm@berkeley.edu>
 

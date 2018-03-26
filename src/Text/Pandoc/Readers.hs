@@ -1,7 +1,4 @@
-{-# LANGUAGE NoImplicitPrelude #-}
-{-# LANGUAGE FlexibleInstances   #-}
-{-# LANGUAGE GADTs               #-}
-{-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE MonoLocalBinds, NoImplicitPrelude, ScopedTypeVariables #-}
 {-
 Copyright (C) 2006-2018 John MacFarlane <jgm@berkeley.edu>
 
