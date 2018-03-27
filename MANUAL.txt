@@ -525,13 +525,15 @@ Reader options
 `-M` *KEY*[`=`*VAL*], `--metadata=`*KEY*[`:`*VAL*]
 
 :   Set the metadata field *KEY* to the value *VAL*.  A value specified
-    on the command line overrides a value specified in the document.
+    on the command line overrides a value specified in the document
+    using [YAML metadata blocks][Extension:`yaml_metadata_block`].
     Values will be parsed as YAML boolean or string values. If no value is
     specified, the value will be treated as Boolean true.  Like
     `--variable`, `--metadata` causes template variables to be set.
     But unlike `--variable`, `--metadata` affects the metadata of the
     underlying document (which is accessible from filters and may be
-    printed in some output formats).
+    printed in some output formats) and metadata values will be escaped
+    when inserted into the template.
 
 `-p`, `--preserve-tabs`
 
@@ -1266,23 +1268,22 @@ directory (see `--data-dir`, above). *Exceptions:*
 - For `pdf` output, customize the `default.latex` template
   (or the `default.context` template, if you use `-t context`,
   or the `default.ms` template, if you use `-t ms`, or the
-  `default.html5` template, if you use `-t html5`).
+  `default.html` template, if you use `-t html`).
 - `docx` has no template (however, you can use
   `--reference-doc` to customize the output).
 
 Templates contain *variables*, which allow for the inclusion of
-arbitrary information at any point in the file. Variables may be set
-within the document using [YAML metadata blocks][Extension:
-`yaml_metadata_block`].  They may also be set at the
-command line using the `-V/--variable` option: variables set in this
-way override metadata fields with the same name.
+arbitrary information at any point in the file. They may be set at the
+command line using the `-V/--variable` option. If a variable is not set,
+pandoc will look for the key in the document's metadata – which can be set
+using either [YAML metadata blocks][Extension:`yaml_metadata_block`]
+or with the `--metadata` option.
 
 Variables set by pandoc
 -----------------------
 
 Some variables are set automatically by pandoc.  These vary somewhat
-depending on the output format, but include metadata fields as well
-as the following:
+depending on the output format, but include the following:
 
 `sourcefile`, `outputfile`
 :   source and destination filenames, as given on the command line.
