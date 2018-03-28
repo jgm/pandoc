@@ -382,7 +382,7 @@ renderInlineList True [] = pure "<verbatim></verbatim>"
 renderInlineList False [] = pure ""
 renderInlineList start (x:xs) = do r <- inlineToMuse x
                                    opts <- gets stOptions
-                                   lst' <- renderInlineList (x == SoftBreak && writerWrapText opts == WrapPreserve) xs
+                                   lst' <- renderInlineList ((x == SoftBreak && writerWrapText opts == WrapPreserve) || x == LineBreak) xs
                                    if start && fixOrEscape x
                                      then pure (text "<verbatim></verbatim>" <> r <> lst')
                                      else pure (r <> lst')

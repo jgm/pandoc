@@ -323,6 +323,7 @@ tests = [ testGroup "block elements"
                       ]
             , "escape ; to avoid accidental comments" =: text "; foo" =?> "<verbatim></verbatim>; foo"
             , "escape ; after softbreak" =: text "foo" <> softbreak <> text "; bar" =?> "foo\n<verbatim></verbatim>; bar"
+            , "escape ; after linebreak" =: text "foo" <> linebreak <> text "; bar" =?> "foo<br>\n<verbatim></verbatim>; bar"
             ]
           , testGroup "emphasis"
             [ "emph" =: emph (text "foo") =?> "<em>foo</em>"

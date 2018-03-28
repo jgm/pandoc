@@ -42,7 +42,7 @@ item.
 Here’s one with a bullet. <verbatim>*</verbatim> criminey.
 
 There should be a hard line break<br>
-here.
+<verbatim></verbatim>here.
 
 ----
 
