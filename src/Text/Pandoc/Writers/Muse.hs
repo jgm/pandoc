@@ -44,6 +44,7 @@ even though it is supported only in Emacs Muse.
 -}
 module Text.Pandoc.Writers.Muse (writeMuse) where
 import Prelude
+import Control.Monad.Reader
 import Control.Monad.State.Strict
 import Data.Char (isSpace, isDigit, isAsciiUpper, isAsciiLower)
 import Data.Text (Text)
@@ -61,15 +62,22 @@ import Text.Pandoc.Writers.Shared
 import qualified Data.Set as Set
 
 type Notes = [[Block]]
+
+type Muse m = ReaderT WriterEnv (StateT WriterState m)
+
+data WriterEnv =
+  WriterEnv { envOptions     :: WriterOptions
+            , envTopLevel    :: Bool
+            , envInsideBlock :: Bool
+            }
+
 data WriterState =
   WriterState { stNotes       :: Notes
-              , stOptions     :: WriterOptions
-              , stTopLevel    :: Bool
-              , stInsideBlock :: Bool
               , stIds         :: Set.Set String
               }
 
-type Muse = StateT WriterState
+evalMuse :: PandocMonad m => Muse m a -> WriterEnv -> WriterState -> m a
+evalMuse document env st = evalStateT (runReaderT document env) st
 
 -- | Convert Pandoc to Muse.
 writeMuse :: PandocMonad m
@@ -77,20 +85,21 @@ writeMuse :: PandocMonad m
           -> Pandoc
           -> m Text
 writeMuse opts document =
-  let st = WriterState { stNotes = []
-                       , stOptions = opts
-                       , stTopLevel = True
-                       , stInsideBlock = False
-                       , stIds = Set.empty
-                       }
-  in evalStateT (pandocToMuse document) st
+  evalMuse (pandocToMuse document) env st
+  where  env = WriterEnv { envOptions = opts
+                         , envTopLevel = True
+                         , envInsideBlock = False
+                         }
+         st = WriterState { stNotes = []
+                          , stIds = Set.empty
+                          }
 
 -- | Return Muse representation of document.
 pandocToMuse :: PandocMonad m
              => Pandoc
              -> Muse m Text
 pandocToMuse (Pandoc meta blocks) = do
-  opts <- gets stOptions
+  opts <- asks envOptions
   let colwidth = if writerWrapText opts == WrapAuto
                     then Just $ writerColumns opts
                     else Nothing
@@ -121,7 +130,7 @@ catWithBlankLines (b : bs) n = do
 catWithBlankLines _ _ = error "Expected at least one block"
 
 -- | Convert list of Pandoc block elements to Muse
--- | without setting stTopLevel.
+-- | without setting envTopLevel.
 flatBlockListToMuse :: PandocMonad m
                 => [Block]       -- ^ List of block elements
                 -> Muse m Doc
@@ -141,16 +150,10 @@ flatBlockListToMuse [] = return mempty
 blockListToMuse :: PandocMonad m
                 => [Block]       -- ^ List of block elements
                 -> Muse m Doc
-blockListToMuse blocks = do
-  oldState <- get
-  modify $ \s -> s { stTopLevel = not $ stInsideBlock s
-                   , stInsideBlock = True
-                   }
-  result <- flatBlockListToMuse blocks
-  modify $ \s -> s { stTopLevel = stTopLevel oldState
-                   , stInsideBlock = stInsideBlock oldState
-                   }
-  return result
+blockListToMuse =
+  local (\env -> env { envTopLevel = not (envInsideBlock env)
+                     , envInsideBlock = True
+                     }) . flatBlockListToMuse
 
 -- | Convert Pandoc block element to Muse.
 blockToMuse :: PandocMonad m
@@ -180,7 +183,7 @@ blockToMuse (OrderedList (start, style, _) items) = do
                                       (start, style, Period)
   contents <- zipWithM orderedListItemToMuse markers items
   -- ensure that sublists have preceding blank line
-  topLevel <- gets stTopLevel
+  topLevel <- asks envTopLevel
   return $ cr $$ (if topLevel then nest 1 else id) (vcat contents) $$ blankline
   where orderedListItemToMuse :: PandocMonad m
                               => String   -- ^ marker for list item
@@ -192,7 +195,7 @@ blockToMuse (OrderedList (start, style, _) items) = do
 blockToMuse (BulletList items) = do
   contents <- mapM bulletListItemToMuse items
   -- ensure that sublists have preceding blank line
-  topLevel <- gets stTopLevel
+  topLevel <- asks envTopLevel
   return $ cr $$ (if topLevel then nest 1 else id) (vcat contents) $$ blankline
   where bulletListItemToMuse :: PandocMonad m
                              => [Block]
@@ -203,7 +206,7 @@ blockToMuse (BulletList items) = do
 blockToMuse (DefinitionList items) = do
   contents <- mapM definitionListItemToMuse items
   -- ensure that sublists have preceding blank line
-  topLevel <- gets stTopLevel
+  topLevel <- asks envTopLevel
   return $ cr $$ (if topLevel then nest 1 else id) (vcat contents) $$ blankline
   where definitionListItemToMuse :: PandocMonad m
                                  => ([Inline], [[Block]])
@@ -218,7 +221,7 @@ blockToMuse (DefinitionList items) = do
                           -> Muse m Doc
         descriptionToMuse desc = hang 4 " :: " <$> blockListToMuse desc
 blockToMuse (Header level (ident,_,_) inlines) = do
-  opts <- gets stOptions
+  opts <- asks envOptions
   contents <- inlineListToMuse inlines
 
   ids <- gets stIds
@@ -383,7 +386,7 @@ renderInlineList :: PandocMonad m
 renderInlineList True [] = pure "<verbatim></verbatim>"
 renderInlineList False [] = pure ""
 renderInlineList start (x:xs) = do r <- inlineToMuse x
-                                   opts <- gets stOptions
+                                   opts <- asks envOptions
                                    lst' <- renderInlineList ((x == SoftBreak && writerWrapText opts == WrapPreserve) || x == LineBreak) xs
                                    if start && fixOrEscape x
                                      then pure (text "<verbatim></verbatim>" <> r <> lst')
@@ -443,7 +446,7 @@ inlineToMuse (RawInline (Format f) str) =
 inlineToMuse LineBreak = return $ "<br>" <> cr
 inlineToMuse Space = return space
 inlineToMuse SoftBreak = do
-  wrapText <- gets $ writerWrapText . stOptions
+  wrapText <- asks $ writerWrapText . envOptions
   return $ if wrapText == WrapPreserve then cr else space
 inlineToMuse (Link _ txt (src, _)) =
   case txt of
@@ -458,7 +461,7 @@ inlineToMuse (Link _ txt (src, _)) =
 inlineToMuse (Image attr alt (source,'f':'i':'g':':':title)) =
   inlineToMuse (Image attr alt (source,title))
 inlineToMuse (Image attr inlines (source, title)) = do
-  opts <- gets stOptions
+  opts <- asks envOptions
   alt <- inlineListToMuse inlines
   let title' = if null title
                   then if null inlines
