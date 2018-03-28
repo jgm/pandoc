@@ -47,6 +47,7 @@ import Prelude
 import Control.Monad.Reader
 import Control.Monad.State.Strict
 import Data.Char (isSpace, isDigit, isAsciiUpper, isAsciiLower)
+import Data.Default
 import Data.Text (Text)
 import Data.List (intersperse, transpose, isInfixOf)
 import System.FilePath (takeExtension)
@@ -76,6 +77,11 @@ data WriterState =
               , stIds         :: Set.Set String
               }
 
+instance Default WriterState
+  where def = WriterState { stNotes = []
+                          , stIds = Set.empty
+                          }
+
 evalMuse :: PandocMonad m => Muse m a -> WriterEnv -> WriterState -> m a
 evalMuse document env st = evalStateT (runReaderT document env) st
 
@@ -85,14 +91,11 @@ writeMuse :: PandocMonad m
           -> Pandoc
           -> m Text
 writeMuse opts document =
-  evalMuse (pandocToMuse document) env st
-  where  env = WriterEnv { envOptions = opts
-                         , envTopLevel = True
-                         , envInsideBlock = False
-                         }
-         st = WriterState { stNotes = []
-                          , stIds = Set.empty
-                          }
+  evalMuse (pandocToMuse document) env def
+  where env = WriterEnv { envOptions = opts
+                        , envTopLevel = True
+                        , envInsideBlock = False
+                        }
 
 -- | Return Muse representation of document.
 pandocToMuse :: PandocMonad m
