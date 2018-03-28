@@ -1,4 +1,7 @@
-{-# LANGUAGE MonoLocalBinds, NoImplicitPrelude, ScopedTypeVariables #-}
+{-# LANGUAGE MonoLocalBinds      #-}
+{-# LANGUAGE NoImplicitPrelude   #-}
+{-# LANGUAGE ScopedTypeVariables #-}
+
 {-
 Copyright (C) 2006-2018 John MacFarlane <jgm@berkeley.edu>
 

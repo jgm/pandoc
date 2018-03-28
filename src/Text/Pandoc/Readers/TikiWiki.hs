@@ -1,5 +1,7 @@
 {-# LANGUAGE NoImplicitPrelude #-}
-{-# LANGUAGE FlexibleContexts, OverloadedStrings, RelaxedPolyRec #-}
+{-# LANGUAGE FlexibleContexts  #-}
+{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE RelaxedPolyRec    #-}
 
 {- |
    Module      : Text.Pandoc.Readers.TikiWiki
