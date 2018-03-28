@@ -69,6 +69,8 @@ data WriterState =
               , stIds         :: Set.Set String
               }
 
+type Muse = StateT WriterState
+
 -- | Convert Pandoc to Muse.
 writeMuse :: PandocMonad m
           => WriterOptions
@@ -86,7 +88,7 @@ writeMuse opts document =
 -- | Return Muse representation of document.
 pandocToMuse :: PandocMonad m
              => Pandoc
-             -> StateT WriterState m Text
+             -> Muse m Text
 pandocToMuse (Pandoc meta blocks) = do
   opts <- gets stOptions
   let colwidth = if writerWrapText opts == WrapAuto
@@ -111,7 +113,7 @@ pandocToMuse (Pandoc meta blocks) = do
 catWithBlankLines :: PandocMonad m
                   => [Block]       -- ^ List of block elements
                   -> Int           -- ^ Number of blank lines
-                  -> StateT WriterState m Doc
+                  -> Muse m Doc
 catWithBlankLines (b : bs) n = do
   b' <- blockToMuse b
   bs' <- flatBlockListToMuse bs
@@ -122,7 +124,7 @@ catWithBlankLines _ _ = error "Expected at least one block"
 -- | without setting stTopLevel.
 flatBlockListToMuse :: PandocMonad m
                 => [Block]       -- ^ List of block elements
-                -> StateT WriterState m Doc
+                -> Muse m Doc
 flatBlockListToMuse bs@(BulletList _ : BulletList _ : _) = catWithBlankLines bs 2
 flatBlockListToMuse bs@(OrderedList (_, style1, _) _ : OrderedList (_, style2, _) _ : _) =
   catWithBlankLines bs (if style1' == style2' then 2 else 0)
@@ -138,7 +140,7 @@ flatBlockListToMuse [] = return mempty
 -- | Convert list of Pandoc block elements to Muse.
 blockListToMuse :: PandocMonad m
                 => [Block]       -- ^ List of block elements
-                -> StateT WriterState m Doc
+                -> Muse m Doc
 blockListToMuse blocks = do
   oldState <- get
   modify $ \s -> s { stTopLevel = not $ stInsideBlock s
@@ -153,7 +155,7 @@ blockListToMuse blocks = do
 -- | Convert Pandoc block element to Muse.
 blockToMuse :: PandocMonad m
             => Block         -- ^ Block element
-            -> StateT WriterState m Doc
+            -> Muse m Doc
 blockToMuse (Plain inlines) = inlineListToMuse' inlines
 blockToMuse (Para inlines) = do
   contents <- inlineListToMuse' inlines
@@ -183,7 +185,7 @@ blockToMuse (OrderedList (start, style, _) items) = do
   where orderedListItemToMuse :: PandocMonad m
                               => String   -- ^ marker for list item
                               -> [Block]  -- ^ list item (list of blocks)
-                              -> StateT WriterState m Doc
+                              -> Muse m Doc
         orderedListItemToMuse marker item = do
           contents <- blockListToMuse item
           return $ hang (length marker + 1) (text marker <> space) contents
@@ -194,7 +196,7 @@ blockToMuse (BulletList items) = do
   return $ cr $$ (if topLevel then nest 1 else id) (vcat contents) $$ blankline
   where bulletListItemToMuse :: PandocMonad m
                              => [Block]
-                             -> StateT WriterState m Doc
+                             -> Muse m Doc
         bulletListItemToMuse item = do
           contents <- blockListToMuse item
           return $ hang 2 "- " contents
@@ -205,7 +207,7 @@ blockToMuse (DefinitionList items) = do
   return $ cr $$ (if topLevel then nest 1 else id) (vcat contents) $$ blankline
   where definitionListItemToMuse :: PandocMonad m
                                  => ([Inline], [[Block]])
-                                 -> StateT WriterState m Doc
+                                 -> Muse m Doc
         definitionListItemToMuse (label, defs) = do
           label' <- inlineListToMuse' label
           contents <- liftM vcat $ mapM descriptionToMuse defs
@@ -213,7 +215,7 @@ blockToMuse (DefinitionList items) = do
           return $ hang ind label' contents
         descriptionToMuse :: PandocMonad m
                           => [Block]
-                          -> StateT WriterState m Doc
+                          -> Muse m Doc
         descriptionToMuse desc = hang 4 " :: " <$> blockListToMuse desc
 blockToMuse (Header level (ident,_,_) inlines) = do
   opts <- gets stOptions
@@ -261,14 +263,14 @@ blockToMuse Null = return empty
 -- | Return Muse representation of notes.
 notesToMuse :: PandocMonad m
             => Notes
-            -> StateT WriterState m Doc
+            -> Muse m Doc
 notesToMuse notes = liftM vsep (zipWithM noteToMuse [1 ..] notes)
 
 -- | Return Muse representation of a note.
 noteToMuse :: PandocMonad m
            => Int
            -> [Block]
-           -> StateT WriterState m Doc
+           -> Muse m Doc
 noteToMuse num note = do
   contents <- blockListToMuse note
   let marker = "[" ++ show num ++ "] "
@@ -377,7 +379,7 @@ fixOrEscape _ = False
 renderInlineList :: PandocMonad m
                  => Bool
                  -> [Inline]
-                 -> StateT WriterState m Doc
+                 -> Muse m Doc
 renderInlineList True [] = pure "<verbatim></verbatim>"
 renderInlineList False [] = pure ""
 renderInlineList start (x:xs) = do r <- inlineToMuse x
@@ -391,21 +393,21 @@ renderInlineList start (x:xs) = do r <- inlineToMuse x
 inlineListToMuse'' :: PandocMonad m
                   => Bool
                   -> [Inline]
-                  -> StateT WriterState m Doc
+                  -> Muse m Doc
 inlineListToMuse'' start lst = do
   lst' <- (normalizeInlineList . fixNotes) <$> preprocessInlineList (map (removeKeyValues . replaceSmallCaps) lst)
   renderInlineList start lst'
 
-inlineListToMuse' :: PandocMonad m => [Inline] -> StateT WriterState m Doc
+inlineListToMuse' :: PandocMonad m => [Inline] -> Muse m Doc
 inlineListToMuse' = inlineListToMuse'' True
 
-inlineListToMuse :: PandocMonad m => [Inline] -> StateT WriterState m Doc
+inlineListToMuse :: PandocMonad m => [Inline] -> Muse m Doc
 inlineListToMuse = inlineListToMuse'' False
 
 -- | Convert Pandoc inline element to Muse.
 inlineToMuse :: PandocMonad m
              => Inline
-             -> StateT WriterState m Doc
+             -> Muse m Doc
 inlineToMuse (Str str) = return $ text $ conditionalEscapeString str
 inlineToMuse (Emph lst) = do
   contents <- inlineListToMuse lst
