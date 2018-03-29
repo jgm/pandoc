@@ -1,7 +1,5 @@
 {-# LANGUAGE NoImplicitPrelude #-}
-{-# LANGUAGE FlexibleInstances    #-}
-{-# LANGUAGE RelaxedPolyRec       #-}
-{-# LANGUAGE TypeSynonymInstances #-}
+{-# LANGUAGE RelaxedPolyRec #-}
 -- RelaxedPolyRec needed for inlinesBetween on GHC < 7
 {-
   Copyright (C) 2012-2018 John MacFarlane <jgm@berkeley.edu>
