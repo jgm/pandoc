@@ -395,7 +395,7 @@ table = try $ do
                              (toprow:rest) | any (fst . fst) toprow ->
                                 (toprow, rest)
                              _ -> (mempty, rawrows)
-  let nbOfCols = max (length headers) (length $ head rows)
+  let nbOfCols = maximum $ map length (headers:rows)
   let aligns = map minimum $ transpose $ map (map (snd . fst)) (headers:rows)
   return $ B.table caption
     (zip aligns (replicate nbOfCols 0.0))
