@@ -345,6 +345,10 @@ getDefaultExtensions "latex"           = extensionsFromList
                                           [Ext_smart,
                                            Ext_latex_macros,
                                            Ext_auto_identifiers]
+getDefaultExtensions "beamer"          = extensionsFromList
+                                          [Ext_smart,
+                                           Ext_latex_macros,
+                                           Ext_auto_identifiers]
 getDefaultExtensions "context"         = extensionsFromList
                                           [Ext_smart,
                                            Ext_auto_identifiers]
