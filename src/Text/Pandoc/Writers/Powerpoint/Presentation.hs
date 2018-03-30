@@ -629,10 +629,7 @@ blocksToSlide' _ (blk : blks) spkNotes
   , "columns" `elem` classes
   , Div (_, clsL, _) blksL : Div (_, clsR, _) blksR : remaining <- divBlks
   , "column" `elem` clsL, "column" `elem` clsR = do
-      unless (null blks)
-        (mapM_ (addLogMessage . BlockNotRendered) blks >> return ())
-      unless (null remaining)
-        (mapM_ (addLogMessage . BlockNotRendered) remaining >> return ())
+      mapM_ (addLogMessage . BlockNotRendered) (blks ++ remaining)
       mbSplitBlksL <- splitBlocks blksL
       mbSplitBlksR <- splitBlocks blksR
       let blksL' = case mbSplitBlksL of
