@@ -89,6 +89,7 @@ import Text.Pandoc.Builder (setMeta, deleteMeta)
 import Text.Pandoc.Filter (Filter (JSONFilter, LuaFilter), applyFilters)
 import Text.Pandoc.Highlighting (highlightingStyles)
 import Text.Pandoc.PDF (makePDF)
+import Text.Pandoc.Readers.Markdown (yamlToMeta)
 import Text.Pandoc.SelfContained (makeDataURI, makeSelfContained)
 import Text.Pandoc.Shared (eastAsianLineBreakFilter, stripEmptyParagraphs,
          headerShift, isURI, ordNub, safeRead, tabFilter, uriPathToPath)
@@ -399,6 +400,10 @@ convertWithOpts opts = do
                                          ("application/xml", jatsCSL)
                      return $ ("csl", jatsEncoded) : optMetadata opts
                    else return $ optMetadata opts
+    metadataFromFile <-
+      case optMetadataFile opts of
+        Nothing   -> return mempty
+        Just file -> readFileLazy file >>= yamlToMeta
 
     case lookup "lang" (optMetadata opts) of
            Just l  -> case parseBCP47 l of
@@ -491,6 +496,7 @@ convertWithOpts opts = do
               (   (if isJust (optExtractMedia opts)
                       then fillMediaBag
                       else return)
+              >=> return . addNonPresentMetadata metadataFromFile
               >=> return . addMetadata metadata
               >=> applyTransforms transforms
               >=> applyFilters readerOpts filters' [format]
@@ -556,6 +562,7 @@ data Opt = Opt
     , optTemplate              :: Maybe FilePath  -- ^ Custom template
     , optVariables             :: [(String,String)] -- ^ Template variables to set
     , optMetadata              :: [(String, String)] -- ^ Metadata fields to set
+    , optMetadataFile          :: Maybe FilePath  -- ^ Name of YAML metadata file
     , optOutputFile            :: Maybe FilePath  -- ^ Name of output file
     , optInputFiles            :: [FilePath] -- ^ Names of input files
     , optNumberSections        :: Bool    -- ^ Number sections in LaTeX
@@ -628,6 +635,7 @@ defaultOpts = Opt
     , optTemplate              = Nothing
     , optVariables             = []
     , optMetadata              = []
+    , optMetadataFile          = Nothing
     , optOutputFile            = Nothing
     , optInputFiles            = []
     , optNumberSections        = False
@@ -686,6 +694,9 @@ defaultOpts = Opt
     , optEol                   = Native
     , optStripComments          = False
     }
+
+addNonPresentMetadata :: Text.Pandoc.Meta -> Pandoc -> Pandoc
+addNonPresentMetadata newmeta (Pandoc meta bs) = Pandoc (meta <> newmeta) bs
 
 addMetadata :: [(String, String)] -> Pandoc -> Pandoc
 addMetadata kvs pdc = foldr addMeta (removeMetaKeys kvs pdc) kvs
@@ -961,6 +972,12 @@ options =
                      let (key, val) = splitField arg
                      return opt{ optMetadata = (key, val) : optMetadata opt })
                   "KEY[:VALUE]")
+                 ""
+
+    , Option "" ["metadata-file"]
+                 (ReqArg
+                  (\arg opt -> return opt{ optMetadataFile = Just arg })
+                  "FILE")
                  ""
 
     , Option "V" ["variable"]

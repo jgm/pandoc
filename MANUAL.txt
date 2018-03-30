@@ -578,6 +578,16 @@ Reader options
     printed in some output formats) and metadata values will be escaped
     when inserted into the template.
 
+`--metadata-file=`*FILE*
+
+:   Read metadata from the supplied YAML (or JSON) file.
+    This option can be used with every input format, but string
+    scalars in the YAML file will always be parsed as Markdown.
+    Generally, the input will be handled the same as in
+    [YAML metadata blocks][Extension: `yaml_metadata_block`].
+    Metadata values specified inside the document, or by using `-M`,
+    overwrite values specified with this option.
+
 `-p`, `--preserve-tabs`
 
 :   Preserve tabs instead of converting them to spaces (the default).
@@ -3061,7 +3071,9 @@ and pass it to pandoc as an argument, along with your Markdown files:
     pandoc chap1.md chap2.md chap3.md metadata.yaml -s -o book.html
 
 Just be sure that the YAML file begins with `---` and ends with `---` or
-`...`.)
+`...`.) Alternatively, you can use the `--metadata-file` option. Using
+that approach however, you cannot reference content (like footnotes)
+from the main markdown input document.
 
 Metadata will be taken from the fields of the YAML object and added to any
 existing document metadata.  Metadata can contain lists and objects (nested

@@ -31,7 +31,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 Conversion of markdown-formatted plain text to 'Pandoc' document.
 -}
-module Text.Pandoc.Readers.Markdown ( readMarkdown ) where
+module Text.Pandoc.Readers.Markdown ( readMarkdown, yamlToMeta ) where
 
 import Prelude
 import Control.Monad
@@ -246,11 +246,23 @@ yamlMetaBlock = try $ do
   updateState $ \st -> st{ stateMeta' = (stateMeta' st) <> newMetaF }
   return mempty
 
+-- | Read a YAML string and convert it to pandoc metadata.
+-- String scalars in the YAML are parsed as Markdown.
+yamlToMeta :: PandocMonad m => BS.ByteString -> m Meta
+yamlToMeta bstr = do
+  let parser = do
+        meta <- yamlBsToMeta bstr
+        return $ runF meta defaultParserState
+  parsed <- readWithM parser def ""
+  case parsed of
+    Right result -> return result
+    Left e       -> throwError e
+
 yamlBsToMeta :: PandocMonad m => BS.ByteString -> MarkdownParser m (F Meta)
 yamlBsToMeta bstr = do
   pos <- getPosition
   case YAML.decodeNode' YAML.failsafeSchemaResolver False False bstr of
-       Right [YAML.Doc (YAML.Mapping _ o)] -> (fmap Meta) <$> yamlMap o
+       Right ((YAML.Doc (YAML.Mapping _ o)):_) -> (fmap Meta) <$> yamlMap o
        Right [] -> return . return $ mempty
        Right [YAML.Doc (YAML.Scalar YAML.SNull)] -> return . return $ mempty
        Right _ -> do
