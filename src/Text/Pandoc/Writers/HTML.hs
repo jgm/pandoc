@@ -478,7 +478,12 @@ footnoteSection opts notes = do
   html5 <- gets stHtml5
   slideVariant <- gets stSlideVariant
   let hrtag = if html5 then H5.hr else H.hr
+  epubVersion <- gets stEPUBVersion
   let container x
+        | html5
+        , epubVersion == Just EPUB3
+                = H5.section ! A.class_ "footnotes"
+                             ! customAttribute "epub:type" "footnotes" $ x
         | html5 = H5.section ! A.class_ "footnotes" $ x
         | slideVariant /= NoSlides = H.div ! A.class_ "footnotes slide" $ x
         | otherwise = H.div ! A.class_ "footnotes" $ x
