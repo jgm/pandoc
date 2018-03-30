@@ -1468,6 +1468,9 @@ LaTeX variables are used when [creating a PDF].
 :   option for document class, e.g. `oneside`; may be repeated
     for multiple options
 
+`beameroption`
+:   In beamer, add extra beamer option with `\setbeameroption{}`
+
 `geometry`
 :   option for [`geometry`] package, e.g. `margin=1in`;
     may be repeated for multiple options
