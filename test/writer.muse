@@ -42,7 +42,7 @@ item.
 Here’s one with a bullet. <verbatim>*</verbatim> criminey.
 
 There should be a hard line break<br>
-<verbatim></verbatim>here.
+here.
 
 ----
 
@@ -245,7 +245,7 @@ Should not be a list item:
 
 M.A. 2007
 
-<verbatim></verbatim>B. Williams
+B. Williams
 
 ----
 

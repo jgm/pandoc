@@ -70,6 +70,8 @@ data WriterEnv =
   WriterEnv { envOptions     :: WriterOptions
             , envTopLevel    :: Bool
             , envInsideBlock :: Bool
+            , envInlineStart :: Bool
+            , envAfterSpace  :: Bool
             }
 
 data WriterState =
@@ -95,6 +97,8 @@ writeMuse opts document =
   where env = WriterEnv { envOptions = opts
                         , envTopLevel = True
                         , envInsideBlock = False
+                        , envInlineStart = True
+                        , envAfterSpace = True
                         }
 
 -- | Return Muse representation of document.
@@ -371,29 +375,36 @@ urlEscapeBrackets (']':xs) = '%':'5':'D':urlEscapeBrackets xs
 urlEscapeBrackets (x:xs) = x:urlEscapeBrackets xs
 urlEscapeBrackets [] = []
 
-fixOrEscape :: Inline -> Bool
-fixOrEscape (Str "-") = True -- TODO: "  - " should be escaped too
-fixOrEscape (Str ";") = True
-fixOrEscape (Str s) = startsWithMarker isDigit s ||
-                      startsWithMarker isAsciiLower s ||
-                      startsWithMarker isAsciiUpper s
-fixOrEscape Space = True
-fixOrEscape SoftBreak = True
-fixOrEscape _ = False
+fixOrEscape :: Bool -> Inline -> Bool
+fixOrEscape sp (Str "-") = sp
+fixOrEscape sp (Str ";") = not sp
+fixOrEscape sp (Str s) = sp && (startsWithMarker isDigit s ||
+                                startsWithMarker isAsciiLower s ||
+                                startsWithMarker isAsciiUpper s)
+fixOrEscape _ Space = True
+fixOrEscape _ SoftBreak = True
+fixOrEscape _ _ = False
 
 -- | Convert list of Pandoc inline elements to Muse
 renderInlineList :: PandocMonad m
-                 => Bool
-                 -> [Inline]
+                 => [Inline]
                  -> Muse m Doc
-renderInlineList True [] = pure "<verbatim></verbatim>"
-renderInlineList False [] = pure ""
-renderInlineList start (x:xs) = do r <- inlineToMuse x
-                                   opts <- asks envOptions
-                                   lst' <- renderInlineList ((x == SoftBreak && writerWrapText opts == WrapPreserve) || x == LineBreak) xs
-                                   if start && fixOrEscape x
-                                     then pure (text "<verbatim></verbatim>" <> r <> lst')
-                                     else pure (r <> lst')
+renderInlineList [] = do
+  start <- asks envInlineStart
+  pure $ if start then "<verbatim></verbatim>" else ""
+renderInlineList (x:xs) = do
+  start <- asks envInlineStart
+  afterSpace <- asks envAfterSpace
+  topLevel <- asks envTopLevel
+  r <- inlineToMuse x
+  opts <- asks envOptions
+  let isNewline = (x == SoftBreak && writerWrapText opts == WrapPreserve) || x == LineBreak
+  lst' <- local (\env -> env { envInlineStart = isNewline
+                             , envAfterSpace = (x == Space || (not topLevel && isNewline))
+                             }) $ renderInlineList xs
+  if start && fixOrEscape afterSpace x
+    then pure (text "<verbatim></verbatim>" <> r <> lst')
+    else pure (r <> lst')
 
 -- | Normalize and convert list of Pandoc inline elements to Muse.
 inlineListToMuse'' :: PandocMonad m
@@ -402,7 +413,10 @@ inlineListToMuse'' :: PandocMonad m
                   -> Muse m Doc
 inlineListToMuse'' start lst = do
   lst' <- (normalizeInlineList . fixNotes) <$> preprocessInlineList (map (removeKeyValues . replaceSmallCaps) lst)
-  renderInlineList start lst'
+  topLevel <- asks envTopLevel
+  local (\env -> env { envInlineStart = start
+                     , envAfterSpace = start && not topLevel
+                     }) $ renderInlineList lst'
 
 inlineListToMuse' :: PandocMonad m => [Inline] -> Muse m Doc
 inlineListToMuse' = inlineListToMuse'' True
