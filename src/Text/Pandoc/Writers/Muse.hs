@@ -119,7 +119,7 @@ pandocToMuse (Pandoc meta blocks) = do
                (fmap render' . inlineListToMuse)
                meta
   body <- blockListToMuse blocks
-  notes <- liftM (reverse . stNotes) get >>= notesToMuse
+  notes <- fmap (reverse . stNotes) get >>= notesToMuse
   let main = render colwidth $ body $+$ notes
   let context = defField "body" main metadata
   case writerTemplate opts of
@@ -222,7 +222,7 @@ blockToMuse (DefinitionList items) = do
                                  -> Muse m Doc
         definitionListItemToMuse (label, defs) = do
           label' <- inlineListToMuse' label
-          contents <- liftM vcat $ mapM descriptionToMuse defs
+          contents <- vcat <$> mapM descriptionToMuse defs
           let ind = offset label'
           return $ hang ind label' contents
         descriptionToMuse :: PandocMonad m
@@ -275,7 +275,7 @@ blockToMuse Null = return empty
 notesToMuse :: PandocMonad m
             => Notes
             -> Muse m Doc
-notesToMuse notes = liftM vsep (zipWithM noteToMuse [1 ..] notes)
+notesToMuse notes = vsep <$> (zipWithM noteToMuse [1 ..] notes)
 
 -- | Return Muse representation of a note.
 noteToMuse :: PandocMonad m
@@ -312,11 +312,11 @@ containsFootnotes st =
         p (_:xs) = p xs
         p "" = False
         q (x:xs)
-          | (x `elem` ("123456789"::String)) = r xs || p xs
+          | x `elem` ("123456789"::String) = r xs || p xs
           | otherwise = p xs
         q [] = False
         r ('0':xs) = r xs || p xs
-        r (xs) = s xs || q xs || p xs
+        r xs = s xs || q xs || p xs
         s (']':_) = True
         s (_:xs) = p xs
         s [] = False
@@ -420,7 +420,7 @@ renderInlineList (x:xs) = do
   opts <- asks envOptions
   let isNewline = (x == SoftBreak && writerWrapText opts == WrapPreserve) || x == LineBreak
   lst' <- local (\env -> env { envInlineStart = isNewline
-                             , envAfterSpace = (x == Space || (not topLevel && isNewline))
+                             , envAfterSpace = x == Space || (not topLevel && isNewline)
                              }) $ renderInlineList xs
   if start && fixOrEscape afterSpace x
     then pure (text "<verbatim></verbatim>" <> r <> lst')
