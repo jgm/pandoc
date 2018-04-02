@@ -1968,9 +1968,9 @@ ordinary HTML (without bird tracks).
 writes HTML with the Haskell code in bird tracks, so it can be copied
 and pasted as literate Haskell source.
 
-Note that GHC expects the bird tracks in the first column, so indentend literate
-code blocks (e.g. inside an itemized environment) will not be picked up by the
-Haskell compiler.
+Note that GHC expects the bird tracks in the first column, so indented
+literate code blocks (e.g. inside an itemized environment) will not be
+picked up by the Haskell compiler.
 
 Other extensions
 ----------------
