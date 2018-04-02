@@ -165,6 +165,8 @@ data LaTeXState = LaTeXState{ sOptions       :: ReaderOptions
                             , sLastHeaderNum :: HeaderNum
                             , sLabels        :: M.Map String [Inline]
                             , sToggles       :: M.Map String Bool
+                            , sParallelLWdth :: String
+                            , sParallelRWdth :: String 
                             }
      deriving Show
 
@@ -184,6 +186,8 @@ defaultLaTeXState = LaTeXState{ sOptions       = def
                               , sLastHeaderNum = HeaderNum []
                               , sLabels        = M.empty
                               , sToggles       = M.empty
+                              , sParallelLWdth = ""
+                              , sParallelRWdth = "" 
                               }
 
 instance PandocMonad m => HasQuoteContext LaTeXState m where
@@ -2104,6 +2108,8 @@ blockCommands = M.fromList
    -- LaTeX colors
    , ("textcolor", coloredBlock "color")
    , ("colorbox", coloredBlock "background-color")
+   , ("ParallelLText", parallelText "left")
+   , ("ParallelRText", parallelText "right")
    ]
 
 
@@ -2162,6 +2168,8 @@ environments = M.fromList
    , ("toggletrue", braced >>= setToggle True)
    , ("togglefalse", braced >>= setToggle False)
    , ("iftoggle", try $ ifToggle >> block)
+   -- Parallel package: two column text blocks
+   , ("Parallel", parallel)
    ]
 
 environment :: PandocMonad m => LP m Blocks
@@ -2245,6 +2253,26 @@ minted = do
                   lookup "linenos" options == Just "true" ]
   let attr = ("",classes,kvs)
   codeBlockWith attr <$> verbEnv "minted"
+
+parallel :: PandocMonad m => LP m Blocks
+parallel = do
+  leftWidth <- parallelWidth
+  rightWidth <- parallelWidth
+  updateState $ \st -> st{ sParallelLWdth = leftWidth }
+  updateState $ \st -> st{ sParallelRWdth = rightWidth }
+  blocks <* end_ "Parallel"
+
+parallelText :: PandocMonad m => String -> LP m Blocks
+parallelText float = do
+  let width = case float of
+                   "left"  -> "aaaa"
+                         _ -> "bbbb"
+  let constructor = divWith ("",[],[("style","float: " ++ float ++ "; width: " ++ width)])
+  constructor <$> grouped block
+
+parallelWidth :: PandocMonad m => LP m String
+parallelWidth = do
+  toksToString <$> braced
 
 letterContents :: PandocMonad m => LP m Blocks
 letterContents = do
