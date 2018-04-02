@@ -761,6 +761,7 @@ inlineList = [ whitespace
              , link
              , code
              , codeTag
+             , mathTag
              , inlineLiteralTag
              , str
              , symbol
@@ -881,6 +882,10 @@ code = try $ do
 
 codeTag :: PandocMonad m => MuseParser m (F Inlines)
 codeTag = return . uncurry B.codeWith <$> htmlElement "code"
+
+-- <math> tag is an Emacs Muse extension enabled by (require 'muse-latex2png)
+mathTag :: PandocMonad m => MuseParser m (F Inlines)
+mathTag = return . B.math . snd <$> htmlElement "math"
 
 inlineLiteralTag :: PandocMonad m => MuseParser m (F Inlines)
 inlineLiteralTag =

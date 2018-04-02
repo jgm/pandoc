@@ -167,6 +167,8 @@ tests =
 
       , "Code tag" =: "<code>foo(bar)</code>" =?> para (code "foo(bar)")
 
+      , "Math tag" =: "<math>\\sum_{i=0}^n i^2</math>" =?> para (math "\\sum_{i=0}^n i^2")
+
       , "Verbatim tag" =: "*<verbatim>*</verbatim>*" =?> para (emph "*")
 
       , "Verbatim inside code" =: "<code><verbatim>foo</verbatim></code>" =?> para (code "<verbatim>foo</verbatim>")
