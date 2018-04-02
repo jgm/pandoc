@@ -2111,6 +2111,7 @@ environments :: PandocMonad m => M.Map Text (LP m Blocks)
 environments = M.fromList
    [ ("document", env "document" blocks)
    , ("abstract", mempty <$ (env "abstract" blocks >>= addMeta "abstract"))
+   , ("sloppypar", env "sloppypar" $ blocks)
    , ("letter", env "letter" letterContents)
    , ("minipage", env "minipage" $
           skipopts *> spaces *> optional braced *> spaces *> blocks)
