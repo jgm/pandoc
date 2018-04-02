@@ -254,8 +254,8 @@ tests = [ testGroup "block elements"
                       ]
             , "heading with ID" =:
                headerWith ("bar", [], []) 2 (text "Foo") =?>
-               unlines [ "** Foo"
-                       , "#bar"
+               unlines [ "#bar"
+                       , "** Foo"
                       ]
             ]
           , "horizontal rule" =: horizontalRule =?> "----"

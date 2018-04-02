@@ -241,8 +241,7 @@ blockToMuse (Header level (ident,_,_) inlines) = do
                  then empty
                  else "#" <> text ident <> cr
   let header' = text $ replicate level '*'
-  return $ blankline <> nowrap (header' <> space <> contents)
-                 $$ attr' <> blankline
+  return $ blankline <> attr' $$ nowrap (header' <> space <> contents) <> blankline
 -- https://www.gnu.org/software/emacs-muse/manual/muse.html#Horizontal-Rules-and-Anchors
 blockToMuse HorizontalRule = return $ blankline $$ "----" $$ blankline
 blockToMuse (Table caption _ _ headers rows) =  do

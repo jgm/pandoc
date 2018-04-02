@@ -533,8 +533,9 @@ tests =
                     ] =?>
           blockQuote (para "* Hi")
         , "Headers consume anchors" =:
-          T.unlines [ "** Foo"
+          T.unlines [ "; A comment to make sure anchor is not parsed as a directive"
                     , "#bar"
+                    , "** Foo"
                     ] =?>
           headerWith ("bar",[],[]) 2 "Foo"
         , "Headers don't consume anchors separated with a blankline" =:

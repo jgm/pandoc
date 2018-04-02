@@ -363,12 +363,12 @@ separator = try $ do
 
 header :: PandocMonad m => MuseParser m (F Blocks)
 header = try $ do
+  anchorId <- option "" $ try (parseAnchor <* manyTill spaceChar eol)
   getPosition >>= \pos -> guard (sourceColumn pos == 1)
   level <- fmap length $ many1 $ char '*'
   guard $ level <= 5
   spaceChar
   content <- trimInlinesF . mconcat <$> manyTill inline eol
-  anchorId <- option "" parseAnchor
   attr <- registerHeader (anchorId, [], []) (runF content def)
   return $ B.headerWith attr level <$> content
 
@@ -781,12 +781,12 @@ parseAnchor = try $ do
   char '#'
   first <- letter
   rest <- many (letter <|> digit)
-  skipMany spaceChar <|> void newline
   return $ first:rest
 
 anchor :: PandocMonad m => MuseParser m (F Inlines)
 anchor = try $ do
   anchorId <- parseAnchor
+  skipMany spaceChar <|> void newline
   return $ return $ B.spanWith (anchorId, [], []) mempty
 
 footnote :: PandocMonad m => MuseParser m (F Inlines)
