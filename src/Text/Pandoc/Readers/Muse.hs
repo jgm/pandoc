@@ -563,16 +563,15 @@ anyMuseOrderedListMarker = do
 museOrderedListMarker :: PandocMonad m
                       => ListNumberStyle
                       -> MuseParser m Int
-museOrderedListMarker style = do
-  (_, start) <- case style of
-                  Decimal    -> decimal
-                  UpperRoman -> upperRoman
-                  LowerRoman -> lowerRoman
-                  UpperAlpha -> upperAlpha
-                  LowerAlpha -> lowerAlpha
-                  _          -> fail "Unhandled case"
-  char '.'
-  return start
+museOrderedListMarker style =
+  snd <$> p <* char '.'
+  where p = case style of
+              Decimal    -> decimal
+              UpperRoman -> upperRoman
+              LowerRoman -> lowerRoman
+              UpperAlpha -> upperAlpha
+              LowerAlpha -> lowerAlpha
+              _          -> fail "Unhandled case"
 
 orderedListItemsUntil :: PandocMonad m
                       => Int
