@@ -778,9 +778,7 @@ parseAnchor :: PandocMonad m => MuseParser m String
 parseAnchor = try $ do
   getPosition >>= \pos -> guard (sourceColumn pos == 1)
   char '#'
-  first <- letter
-  rest <- many (letter <|> digit)
-  return $ first:rest
+  (:) <$> letter <*> many (letter <|> digit)
 
 anchor :: PandocMonad m => MuseParser m (F Inlines)
 anchor = try $ do
