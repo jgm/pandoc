@@ -210,9 +210,7 @@ someUntil p end = do
 
 -- While not documented, Emacs Muse allows "-" in directive name
 parseDirectiveKey :: PandocMonad m => MuseParser m String
-parseDirectiveKey = do
-  char '#'
-  many (letter <|> char '-')
+parseDirectiveKey = char '#' *> many (letter <|> char '-')
 
 parseEmacsDirective :: PandocMonad m => MuseParser m (String, F Inlines)
 parseEmacsDirective = do
