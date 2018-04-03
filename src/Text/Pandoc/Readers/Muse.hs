@@ -44,6 +44,7 @@ module Text.Pandoc.Readers.Muse (readMuse) where
 import Prelude
 import Control.Monad
 import Control.Monad.Except (throwError)
+import Data.Bifunctor
 import Data.Char (isLetter)
 import Data.Default
 import Data.List (stripPrefix, intercalate)
@@ -199,10 +200,7 @@ someUntil :: (Stream s m t)
           => ParserT s u m a
           -> ParserT s u m b
           -> ParserT s u m ([a], b)
-someUntil p end = do
-  first <- p
-  (rest, e) <- manyUntil p end
-  return (first:rest, e)
+someUntil p end = first <$> ((:) <$> p) <*> manyUntil p end
 
 --
 -- directive parsers
@@ -250,18 +248,15 @@ parseBlocks =
        paraStart)
   where
     parseEnd = mempty <$ eof
-    blockStart = do first <- header <|> blockElements <|> emacsNoteBlock
-                    rest <- parseBlocks
-                    return $ first B.<> rest
+    blockStart = (B.<>) <$> (header <|> blockElements <|> emacsNoteBlock)
+                        <*> parseBlocks
     listStart = do
       updateState (\st -> st { museInPara = False })
-      (first, rest) <- anyListUntil parseBlocks <|> amuseNoteBlockUntil parseBlocks
-      return $ first B.<> rest
+      uncurry (B.<>) <$> (anyListUntil parseBlocks <|> amuseNoteBlockUntil parseBlocks)
     paraStart = do
       indent <- length <$> many spaceChar
-      (first, rest) <- paraUntil parseBlocks
-      let first' = if indent >= 2 && indent < 6 then B.blockQuote <$> first else first
-      return $ first' B.<> rest
+      uncurry (B.<>) . first (p indent) <$> paraUntil parseBlocks
+      where p indent = if indent >= 2 && indent < 6 then fmap B.blockQuote else id
 
 parseBlocksTill :: PandocMonad m
                 => MuseParser m a
@@ -276,14 +271,8 @@ parseBlocksTill end =
     blockStart = (B.<>) <$> blockElements <*> continuation
     listStart = do
       updateState (\st -> st { museInPara = False })
-      (first, e) <- anyListUntil ((Left <$> end) <|> (Right <$> continuation))
-      case e of
-        Left _ -> return first
-        Right rest -> return $ first B.<> rest
-    paraStart = do (first, e) <- paraUntil ((Left <$> end) <|> (Right <$> continuation))
-                   case e of
-                     Left _ -> return first
-                     Right rest -> return $ first B.<> rest
+      uncurry (B.<>) <$> anyListUntil (parseEnd <|> continuation)
+    paraStart = uncurry (B.<>) <$> paraUntil (parseEnd <|> continuation)
     continuation = parseBlocksTill end
 
 listItemContentsUntil :: PandocMonad m
@@ -299,19 +288,14 @@ listItemContentsUntil col pre end =
     parsePre = (mempty,) <$> pre
     parseEnd = (mempty,) <$> end
     paraStart = do
-      (first, e) <- paraUntil ((Left <$> pre) <|> (Right <$> continuation) <|> (Left <$> end))
-      case e of
-        Left ee -> return (first, ee)
-        Right (rest, ee) -> return (first B.<> rest, ee)
-    blockStart = do first <- blockElements
-                    (rest, e) <- parsePre <|> continuation <|> parseEnd
-                    return (first B.<> rest, e)
+      (f, (r, e)) <- paraUntil (parsePre <|> continuation <|> parseEnd)
+      return (f B.<> r, e)
+    blockStart = first <$> ((B.<>) <$> blockElements)
+                       <*> (parsePre <|> continuation <|> parseEnd)
     listStart = do
       updateState (\st -> st { museInPara = False })
-      (first, e) <- anyListUntil ((Left <$> pre) <|> (Right <$> continuation) <|> (Left <$> end))
-      case e of
-        Left ee -> return (first, ee)
-        Right (rest, ee) -> return (first B.<> rest, ee)
+      (f, (r, e)) <- anyListUntil (parsePre <|> continuation <|> parseEnd)
+      return (f B.<> r, e)
     continuation = try $ do blank <- optionMaybe blankline
                             skipMany blankline
                             indentWith col
@@ -585,7 +569,7 @@ orderedListItemsUntil indent style end =
       pos <- getPosition
       void spaceChar <|> lookAhead eol
       updateState (\st -> st { museInPara = False })
-      (x, e) <- listItemContentsUntil (sourceColumn pos) (Right <$> try (optionMaybe blankline >> indentWith indent >> museOrderedListMarker style >> continuation)) (Left <$> end)
+      (x, e) <- listItemContentsUntil (sourceColumn pos) (Right <$> try (optional blankline >> indentWith indent >> museOrderedListMarker style >> continuation)) (Left <$> end)
       case e of
         Left ee -> return ([x], ee)
         Right (xs, ee) -> return (x:xs, ee)
@@ -642,8 +626,7 @@ definitionListUntil end = try $ do
   pos <- getPosition
   let indent = sourceColumn pos - 1
   guardDisabled Ext_amuse <|> guard (indent /= 0) -- Initial space is required by Amusewiki, but not Emacs Muse
-  (items, e) <- definitionListItemsUntil indent end
-  return (B.definitionList <$> sequence items, e)
+  first (fmap B.definitionList . sequence) <$> definitionListItemsUntil indent end
 
 anyListUntil :: PandocMonad m
              => MuseParser m a
