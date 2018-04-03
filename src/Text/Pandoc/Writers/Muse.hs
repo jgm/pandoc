@@ -282,10 +282,10 @@ noteToMuse :: PandocMonad m
            => Int
            -> [Block]
            -> Muse m Doc
-noteToMuse num note = do
-  contents <- blockListToMuse note
-  let marker = "[" ++ show num ++ "] "
-  return $ hang (length marker) (text marker) contents
+noteToMuse num note =
+  hang (length marker) (text marker) <$> blockListToMuse note
+  where
+    marker = "[" ++ show num ++ "] "
 
 -- | Escape special characters for Muse.
 escapeString :: String -> String
