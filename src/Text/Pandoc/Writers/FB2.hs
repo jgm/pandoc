@@ -46,7 +46,7 @@ import Data.ByteString.Base64 (encode)
 import qualified Data.ByteString.Char8 as B8
 import Data.Char (isAscii, isControl, isSpace, toLower)
 import Data.Either (lefts, rights)
-import Data.List (intercalate, intersperse, isPrefixOf, stripPrefix)
+import Data.List (intercalate, isPrefixOf, stripPrefix)
 import Data.Text (Text, pack)
 import Network.HTTP (urlEncode)
 import Text.XML.Light
@@ -180,7 +180,7 @@ renderSection :: PandocMonad m => Int -> ([Inline], [Block]) -> FBM m Content
 renderSection level (ttl, body) = do
     title <- if null ttl
             then return []
-            else return . list . el "title" . formatTitle $ ttl
+            else list . el "title" <$> formatTitle ttl
     content <- if hasSubsections body
                then renderSections (level + 1) body
                else cMapM blockToXml body
@@ -189,11 +189,9 @@ renderSection level (ttl, body) = do
     hasSubsections = any isHeaderBlock
 
 -- | Only <p> and <empty-line> are allowed within <title> in FB2.
-formatTitle :: [Inline] -> [Content]
+formatTitle :: PandocMonad m => [Inline] -> FBM m [Content]
 formatTitle inlines =
-  let lns = split isLineBreak inlines
-      lns' = map (el "p" . cMap plain) lns
-  in  intersperse (el "empty-line" ()) lns'
+  cMapM (blockToXml . Para) $ split (== LineBreak) inlines
 
 split :: (a -> Bool) -> [a] -> [[a]]
 split _ [] = []
