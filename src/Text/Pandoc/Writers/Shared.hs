@@ -48,12 +48,15 @@ module Text.Pandoc.Writers.Shared (
                      , lookupMetaString
                      , stripLeadingTrailingSpace
                      , groffEscape
+                     , toSubscript
+                     , toSuperscript
                      )
 where
 import Prelude
 import Control.Monad (zipWithM)
 import Data.Aeson (FromJSON (..), Result (..), ToJSON (..), Value (Object),
                    encode, fromJSON)
+import Data.Char (chr, ord, isAscii, isSpace)
 import qualified Data.HashMap.Strict as H
 import Data.List (groupBy, intersperse, transpose)
 import qualified Data.Map as M
@@ -68,7 +71,6 @@ import Text.Pandoc.Shared (stringify)
 import Text.Pandoc.UTF8 (toStringLazy)
 import Text.Pandoc.XML (escapeStringForXML)
 import Text.Printf (printf)
-import Data.Char (isAscii, ord)
 
 -- | Create JSON value for template from a 'Meta' and an association list
 -- of variables, specified at the command line or in the writer.
@@ -392,3 +394,30 @@ groffEscape = T.concatMap toUchar
          | isAscii c = T.singleton c
          | otherwise = T.pack $ printf "\\[u%04X]" (ord c)
 
+
+toSuperscript :: Char -> Maybe Char
+toSuperscript '1' = Just '\x00B9'
+toSuperscript '2' = Just '\x00B2'
+toSuperscript '3' = Just '\x00B3'
+toSuperscript '+' = Just '\x207A'
+toSuperscript '-' = Just '\x207B'
+toSuperscript '=' = Just '\x207C'
+toSuperscript '(' = Just '\x207D'
+toSuperscript ')' = Just '\x207E'
+toSuperscript c
+  | c >= '0' && c <= '9' =
+                 Just $ chr (0x2070 + (ord c - 48))
+  | isSpace c = Just c
+  | otherwise = Nothing
+
+toSubscript :: Char -> Maybe Char
+toSubscript '+' = Just '\x208A'
+toSubscript '-' = Just '\x208B'
+toSubscript '=' = Just '\x208C'
+toSubscript '(' = Just '\x208D'
+toSubscript ')' = Just '\x208E'
+toSubscript c
+  | c >= '0' && c <= '9' =
+                 Just $ chr (0x2080 + (ord c - 48))
+  | isSpace c = Just c
+  | otherwise = Nothing
