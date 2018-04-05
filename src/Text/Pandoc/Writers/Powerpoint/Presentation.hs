@@ -376,9 +376,20 @@ inlineToParElems (Note blks) = do
     modify $ \st -> st { stNoteIds = M.insert curNoteId blks notes }
     local (\env -> env{envRunProps = (envRunProps env){rLink = Just $ InternalTarget endNotesSlideId}}) $
       inlineToParElems $ Superscript [Str $ show curNoteId]
-inlineToParElems (Span _ ils) = concatMapM inlineToParElems ils
+inlineToParElems (Span _ ils) = inlinesToParElems ils
+inlineToParElems (Quoted quoteType ils) =
+  inlinesToParElems $ [Str open] ++ ils ++ [Str close]
+  where (open, close) = case quoteType of
+                          SingleQuote -> ("\x2018", "\x2019")
+                          DoubleQuote -> ("\x201C", "\x201D")
 inlineToParElems (RawInline _ _) = return []
-inlineToParElems _ = return []
+inlineToParElems (Cite _ ils) = inlinesToParElems ils
+-- Note: we shouldn't reach this, because images should be handled at
+-- the shape level, but should that change in the future, we render
+-- the alt text.
+inlineToParElems (Image _ alt _) = inlinesToParElems alt
+
+
 
 isListType :: Block -> Bool
 isListType (OrderedList _ _) = True
