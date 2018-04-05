@@ -688,6 +688,10 @@ bodyPartToBlocks (Tbl cap _ look parts@(r:rs)) = do
       rowLength :: Row -> Int
       rowLength (Row c) = length c
 
+  -- pad cells.  New Text.Pandoc.Builder will do that for us,
+  -- so this is for compatibility while we switch over.
+  let cells' = map (\row -> take width (row ++ repeat mempty)) cells
+
   hdrCells <- case hdr of
     Just r' -> rowToBlocksList r'
     Nothing -> return $ replicate width mempty
@@ -700,7 +704,7 @@ bodyPartToBlocks (Tbl cap _ look parts@(r:rs)) = do
   let alignments = replicate width AlignDefault
       widths = replicate width 0 :: [Double]
 
-  return $ table caption (zip alignments widths) hdrCells cells
+  return $ table caption (zip alignments widths) hdrCells cells'
 bodyPartToBlocks (OMathPara e) =
   return $ para $ displayMath (writeTeX e)
 
