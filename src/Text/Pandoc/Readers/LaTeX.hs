@@ -164,6 +164,7 @@ data LaTeXState = LaTeXState{ sOptions       :: ReaderOptions
                             , sInTableCell   :: Bool
                             , sLastHeaderNum :: HeaderNum
                             , sLabels        :: M.Map String [Inline]
+                            , sHasChapters   :: Bool
                             , sToggles       :: M.Map String Bool
                             }
      deriving Show
@@ -183,6 +184,7 @@ defaultLaTeXState = LaTeXState{ sOptions       = def
                               , sInTableCell   = False
                               , sLastHeaderNum = HeaderNum []
                               , sLabels        = M.empty
+                              , sHasChapters   = False
                               , sToggles       = M.empty
                               }
 
@@ -1984,9 +1986,13 @@ section starred (ident, classes, kvs) lvl = do
           try (spaces >> controlSeq "label"
                >> spaces >> toksToString <$> braced)
   let classes' = if starred then "unnumbered" : classes else classes
+  when (lvl == 0) $
+    updateState $ \st -> st{ sHasChapters = True }
   unless starred $ do
     hn <- sLastHeaderNum <$> getState
-    let num = incrementHeaderNum lvl hn
+    hasChapters <- sHasChapters <$> getState
+    let lvl' = lvl + if hasChapters then 1 else 0
+    let num = incrementHeaderNum lvl' hn
     updateState $ \st -> st{ sLastHeaderNum = num }
     updateState $ \st -> st{ sLabels = M.insert lab
                             [Str (renderHeaderNum num)]
