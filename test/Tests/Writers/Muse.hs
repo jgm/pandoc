@@ -259,7 +259,9 @@ tests = [ testGroup "block elements"
                       ]
             ]
           , "horizontal rule" =: horizontalRule =?> "----"
-          , "escape horizontal rule" =: para (text "----") =?> "<verbatim>----</verbatim>"
+          , "escape horizontal rule" =: para (text "----") =?> "<verbatim></verbatim>----"
+          , "escape long horizontal rule" =: para (text "----------") =?> "<verbatim></verbatim>----------"
+          , "don't escape horizontal inside paragraph" =: para (text "foo ---- bar") =?> "foo ---- bar"
           , "escape nonbreaking space" =: para (text "~~") =?> "<verbatim>~~</verbatim>"
           , testGroup "tables"
             [ "table without header" =:

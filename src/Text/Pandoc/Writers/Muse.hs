@@ -325,7 +325,6 @@ conditionalEscapeString :: Bool -> String -> String
 conditionalEscapeString isInsideLinkDescription s =
   if any (`elem` ("#*<=>|" :: String)) s ||
      "::" `isInfixOf` s ||
-     "----" `isInfixOf` s ||
      "~~" `isInfixOf` s ||
      "[[" `isInfixOf` s ||
      ("]" `isInfixOf` s && isInsideLinkDescription) ||
@@ -395,12 +394,18 @@ urlEscapeBrackets (']':xs) = '%':'5':'D':urlEscapeBrackets xs
 urlEscapeBrackets (x:xs) = x:urlEscapeBrackets xs
 urlEscapeBrackets [] = []
 
+isHorizontalRule :: String -> Bool
+isHorizontalRule s =
+  ((length xs) >= 4) && null ys
+  where (xs, ys) = span (== '-') s
+
 fixOrEscape :: Bool -> Inline -> Bool
 fixOrEscape sp (Str "-") = sp
 fixOrEscape sp (Str ";") = not sp
-fixOrEscape sp (Str s) = sp && (startsWithMarker isDigit s ||
+fixOrEscape sp (Str s) = (sp && (startsWithMarker isDigit s ||
                                 startsWithMarker isAsciiLower s ||
-                                startsWithMarker isAsciiUpper s)
+                                startsWithMarker isAsciiUpper s))
+                         || isHorizontalRule s
 fixOrEscape _ Space = True
 fixOrEscape _ SoftBreak = True
 fixOrEscape _ _ = False
