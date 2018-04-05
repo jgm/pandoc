@@ -17,6 +17,7 @@ extra-deps:
 - skylighting-core-0.7.0.2
 - ansi-terminal-0.8.0.2
 - tasty-1.0.1.1
+- test-framework-0.8.2.0
 - pandoc-types-1.17.4.2
 - cmark-gfm-0.1.3
 #- haddock-library-1.5.0.1
