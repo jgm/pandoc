@@ -116,7 +116,7 @@ blockToNodes _ (CodeBlock (_,classes,_) xs) ns = return
 blockToNodes opts (RawBlock fmt xs) ns
   | fmt == Format "html" && isEnabled Ext_raw_html opts
               = return (node (HTML_BLOCK (T.pack xs)) [] : ns)
-  | fmt == Format "latex" || fmt == Format "tex" && isEnabled Ext_raw_tex opts
+  | (fmt == Format "latex" || fmt == Format "tex") && isEnabled Ext_raw_tex opts
               = return (node (CUSTOM_BLOCK (T.pack xs) T.empty) [] : ns)
   | otherwise = return ns
 blockToNodes opts (BlockQuote bs) ns = do
