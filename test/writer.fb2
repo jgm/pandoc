@@ -33,9 +33,7 @@
 </title>
 <section>
 <title>
-<p>Level 2 with an embedded link<a l:href="#l1" type="note">
-<sup>[1]</sup>
-</a>
+<p>Level 2 with an <a l:href="/url">embedded link</a>
 </p>
 </title>
 <section>
@@ -490,9 +488,8 @@
 </title>
 <p>This is <emphasis>emphasized</emphasis>, and so <emphasis>is this</emphasis>.</p>
 <p>This is <strong>strong</strong>, and so <strong>is this</strong>.</p>
-<p>An <emphasis>emphasized link<a l:href="#l2" type="note">
-<sup>[2]</sup>
-</a>
+<p>An <emphasis>
+<a l:href="/url">emphasized link</a>
 </emphasis>.</p>
 <p>
 <strong>
@@ -531,9 +528,7 @@
 <p>‘A’, ‘B’, and ‘C’ are letters.</p>
 <p>‘Oak,’ ‘elm,’ and ‘beech’ are names of trees. So is ‘pine.’</p>
 <p>‘He said, “I want to go.”’ Were you alive in the 70’s?</p>
-<p>Here is some quoted ‘<code>code</code>’ and a “quoted link<a l:href="#l3" type="note">
-<sup>[3]</sup>
-</a>”.</p>
+<p>Here is some quoted ‘<code>code</code>’ and a “<a l:href="http://example.com/?foo=1&amp;bar=2">quoted link</a>”.</p>
 <p>Some dashes: one—two — three—four — five.</p>
 <p>Dashes between numbers: 5–7, 255–66, 1987–1999.</p>
 <p>Ellipses…and…and….</p>
@@ -611,112 +606,71 @@
 <title>
 <p>Explicit</p>
 </title>
-<p>Just a URL<a l:href="#l4" type="note">
-<sup>[4]</sup>
-</a>.</p>
-<p>URL and title<a l:href="#l5" type="note">
-<sup>[5]</sup>
-</a>.</p>
-<p>URL and title<a l:href="#l6" type="note">
-<sup>[6]</sup>
-</a>.</p>
-<p>URL and title<a l:href="#l7" type="note">
-<sup>[7]</sup>
-</a>.</p>
-<p>URL and title<a l:href="#l8" type="note">
-<sup>[8]</sup>
-</a>
+<p>Just a <a l:href="/url/">URL</a>.</p>
+<p>
+<a l:href="/url/">URL and title</a>.</p>
+<p>
+<a l:href="/url/">URL and title</a>.</p>
+<p>
+<a l:href="/url/">URL and title</a>.</p>
+<p>
+<a l:href="/url/">URL and title</a>
 </p>
-<p>URL and title<a l:href="#l9" type="note">
-<sup>[9]</sup>
-</a>
+<p>
+<a l:href="/url/">URL and title</a>
 </p>
-<p>with_underscore<a l:href="#l10" type="note">
-<sup>[10]</sup>
-</a>
+<p>
+<a l:href="/url/with_underscore">with_underscore</a>
 </p>
-<p>Email link<a l:href="#l11" type="note">
-<sup>[11]</sup>
-</a>
+<p>
+<a l:href="mailto:nobody@nowhere.net">Email link</a>
 </p>
-<p>Empty<a l:href="#l12" type="note">
-<sup>[12]</sup>
-</a>.</p>
+<p>
+<a l:href="">Empty</a>.</p>
 </section>
 <section>
 <title>
 <p>Reference</p>
 </title>
-<p>Foo bar<a l:href="#l13" type="note">
-<sup>[13]</sup>
-</a>.</p>
-<p>With embedded [brackets]<a l:href="#l14" type="note">
-<sup>[14]</sup>
-</a>.</p>
-<p>b<a l:href="#l15" type="note">
-<sup>[15]</sup>
-</a> by itself should be a link.</p>
-<p>Indented once<a l:href="#l16" type="note">
-<sup>[16]</sup>
-</a>.</p>
-<p>Indented twice<a l:href="#l17" type="note">
-<sup>[17]</sup>
-</a>.</p>
-<p>Indented thrice<a l:href="#l18" type="note">
-<sup>[18]</sup>
-</a>.</p>
+<p>Foo <a l:href="/url/">bar</a>.</p>
+<p>With <a l:href="/url/">embedded [brackets]</a>.</p>
+<p>
+<a l:href="/url/">b</a> by itself should be a link.</p>
+<p>Indented <a l:href="/url">once</a>.</p>
+<p>Indented <a l:href="/url">twice</a>.</p>
+<p>Indented <a l:href="/url">thrice</a>.</p>
 <p>This should [not][] be a link.</p>
 <empty-line />
 <p>
 <code>[not]: /url</code>
 </p>
 <empty-line />
-<p>Foo bar<a l:href="#l19" type="note">
-<sup>[19]</sup>
-</a>.</p>
-<p>Foo biz<a l:href="#l20" type="note">
-<sup>[20]</sup>
-</a>.</p>
+<p>Foo <a l:href="/url/">bar</a>.</p>
+<p>Foo <a l:href="/url/">biz</a>.</p>
 </section>
 <section>
 <title>
 <p>With ampersands</p>
 </title>
-<p>Here’s a link with an ampersand in the URL<a l:href="#l21" type="note">
-<sup>[21]</sup>
-</a>.</p>
-<p>Here’s a link with an amersand in the link text: AT&amp;T<a l:href="#l22" type="note">
-<sup>[22]</sup>
-</a>.</p>
-<p>Here’s an inline link<a l:href="#l23" type="note">
-<sup>[23]</sup>
-</a>.</p>
-<p>Here’s an inline link in pointy braces<a l:href="#l24" type="note">
-<sup>[24]</sup>
-</a>.</p>
+<p>Here’s a <a l:href="http://example.com/?foo=1&amp;bar=2">link with an ampersand in the URL</a>.</p>
+<p>Here’s a link with an amersand in the link text: <a l:href="http://att.com/">AT&amp;T</a>.</p>
+<p>Here’s an <a l:href="/script?foo=1&amp;bar=2">inline link</a>.</p>
+<p>Here’s an <a l:href="/script?foo=1&amp;bar=2">inline link in pointy braces</a>.</p>
 </section>
 <section>
 <title>
 <p>Autolinks</p>
 </title>
-<p>With an ampersand: http://example.com/?foo=1&amp;bar=2<a l:href="#l25" type="note">
-<sup>[25]</sup>
-</a>
+<p>With an ampersand: <a l:href="http://example.com/?foo=1&amp;bar=2">http://example.com/?foo=1&amp;bar=2</a>
 </p>
 <p>• In a list?</p>
-<p>• http://example.com/<a l:href="#l26" type="note">
-<sup>[26]</sup>
-</a>
+<p>• <a l:href="http://example.com/">http://example.com/</a>
 </p>
 <p>• It should.</p>
-<p>An e-mail address: nobody@nowhere.net<a l:href="#l27" type="note">
-<sup>[27]</sup>
-</a>
+<p>An e-mail address: <a l:href="mailto:nobody@nowhere.net">nobody@nowhere.net</a>
 </p>
 <cite>
-<p>Blockquoted: http://example.com/<a l:href="#l28" type="note">
-<sup>[28]</sup>
-</a>
+<p>Blockquoted: <a l:href="http://example.com/">http://example.com/</a>
 </p>
 </cite>
 <p>Auto-links should not occur here: <code>&lt;http://example.com/&gt;</code>
@@ -746,254 +700,37 @@
 <title>
 <p>Footnotes</p>
 </title>
-<p>Here is a footnote reference,<a l:href="#n29" type="note">
-<sup>[29]</sup>
-</a> and another.<a l:href="#n30" type="note">
-<sup>[30]</sup>
-</a> This should <emphasis>not</emphasis> be a footnote reference, because it contains a space.[^my note] Here is an inline note.<a l:href="#n31" type="note">
-<sup>[31]</sup>
+<p>Here is a footnote reference,<a l:href="#n1" type="note">
+<sup>[1]</sup>
+</a> and another.<a l:href="#n2" type="note">
+<sup>[2]</sup>
+</a> This should <emphasis>not</emphasis> be a footnote reference, because it contains a space.[^my note] Here is an inline note.<a l:href="#n3" type="note">
+<sup>[3]</sup>
 </a>
 </p>
 <cite>
-<p>Notes can go in quotes.<a l:href="#n32" type="note">
-<sup>[32]</sup>
+<p>Notes can go in quotes.<a l:href="#n4" type="note">
+<sup>[4]</sup>
 </a>
 </p>
 </cite>
-<p>1. And in list items.<a l:href="#n33" type="note">
-<sup>[33]</sup>
+<p>1. And in list items.<a l:href="#n5" type="note">
+<sup>[5]</sup>
 </a>
 </p>
 <p>This paragraph should not be part of the note, as it is not indented.</p>
 </section>
 </body>
 <body name="notes">
-<section id="l1">
+<section id="n1">
 <title>
 <p>1</p>
 </title>
-<p>
-<code>/url</code>
-</p>
-</section>
-<section id="l2">
-<title>
-<p>2</p>
-</title>
-<p>
-<code>/url</code>
-</p>
-</section>
-<section id="l3">
-<title>
-<p>3</p>
-</title>
-<p>
-<code>http://example.com/?foo=1&amp;bar=2</code>
-</p>
-</section>
-<section id="l4">
-<title>
-<p>4</p>
-</title>
-<p>
-<code>/url/</code>
-</p>
-</section>
-<section id="l5">
-<title>
-<p>5</p>
-</title>
-<p>title: <code>/url/</code>
-</p>
-</section>
-<section id="l6">
-<title>
-<p>6</p>
-</title>
-<p>title preceded by two spaces: <code>/url/</code>
-</p>
-</section>
-<section id="l7">
-<title>
-<p>7</p>
-</title>
-<p>title preceded by a tab: <code>/url/</code>
-</p>
-</section>
-<section id="l8">
-<title>
-<p>8</p>
-</title>
-<p>title with &quot;quotes&quot; in it: <code>/url/</code>
-</p>
-</section>
-<section id="l9">
-<title>
-<p>9</p>
-</title>
-<p>title with single quotes: <code>/url/</code>
-</p>
-</section>
-<section id="l10">
-<title>
-<p>10</p>
-</title>
-<p>
-<code>/url/with_underscore</code>
-</p>
-</section>
-<section id="l11">
-<title>
-<p>11</p>
-</title>
-<p>
-<code>mailto:nobody@nowhere.net</code>
-</p>
-</section>
-<section id="l12">
-<title>
-<p>12</p>
-</title>
-<p>
-<code>
-</code>
-</p>
-</section>
-<section id="l13">
-<title>
-<p>13</p>
-</title>
-<p>
-<code>/url/</code>
-</p>
-</section>
-<section id="l14">
-<title>
-<p>14</p>
-</title>
-<p>
-<code>/url/</code>
-</p>
-</section>
-<section id="l15">
-<title>
-<p>15</p>
-</title>
-<p>
-<code>/url/</code>
-</p>
-</section>
-<section id="l16">
-<title>
-<p>16</p>
-</title>
-<p>
-<code>/url</code>
-</p>
-</section>
-<section id="l17">
-<title>
-<p>17</p>
-</title>
-<p>
-<code>/url</code>
-</p>
-</section>
-<section id="l18">
-<title>
-<p>18</p>
-</title>
-<p>
-<code>/url</code>
-</p>
-</section>
-<section id="l19">
-<title>
-<p>19</p>
-</title>
-<p>Title with &quot;quotes&quot; inside: <code>/url/</code>
-</p>
-</section>
-<section id="l20">
-<title>
-<p>20</p>
-</title>
-<p>Title with &quot;quote&quot; inside: <code>/url/</code>
-</p>
-</section>
-<section id="l21">
-<title>
-<p>21</p>
-</title>
-<p>
-<code>http://example.com/?foo=1&amp;bar=2</code>
-</p>
-</section>
-<section id="l22">
-<title>
-<p>22</p>
-</title>
-<p>AT&amp;T: <code>http://att.com/</code>
-</p>
-</section>
-<section id="l23">
-<title>
-<p>23</p>
-</title>
-<p>
-<code>/script?foo=1&amp;bar=2</code>
-</p>
-</section>
-<section id="l24">
-<title>
-<p>24</p>
-</title>
-<p>
-<code>/script?foo=1&amp;bar=2</code>
-</p>
-</section>
-<section id="l25">
-<title>
-<p>25</p>
-</title>
-<p>
-<code>http://example.com/?foo=1&amp;bar=2</code>
-</p>
-</section>
-<section id="l26">
-<title>
-<p>26</p>
-</title>
-<p>
-<code>http://example.com/</code>
-</p>
-</section>
-<section id="l27">
-<title>
-<p>27</p>
-</title>
-<p>
-<code>mailto:nobody@nowhere.net</code>
-</p>
-</section>
-<section id="l28">
-<title>
-<p>28</p>
-</title>
-<p>
-<code>http://example.com/</code>
-</p>
-</section>
-<section id="n29">
-<title>
-<p>29</p>
-</title>
 <p>Here is the footnote. It can go anywhere after the footnote reference. It need not be placed at the end of the document.</p>
 </section>
-<section id="n30">
+<section id="n2">
 <title>
-<p>30</p>
+<p>2</p>
 </title>
 <p>Here’s the long note. This one contains multiple blocks.</p>
 <p>Subsequent blocks are indented to show that they belong to the footnote (as with list items).</p>
@@ -1004,23 +741,21 @@
 <empty-line />
 <p>If you want, you can indent every line, but you can also be lazy and just indent the first line of each block.</p>
 </section>
-<section id="n31">
+<section id="n3">
 <title>
-<p>31</p>
+<p>3</p>
 </title>
-<p>This is <emphasis>easier</emphasis> to type. Inline notes may contain links<a l:href="#l31" type="note">
-<sup>[31]</sup>
-</a> and <code>]</code> verbatim characters, as well as [bracketed text].</p>
+<p>This is <emphasis>easier</emphasis> to type. Inline notes may contain <a l:href="http://google.com">links</a> and <code>]</code> verbatim characters, as well as [bracketed text].</p>
 </section>
-<section id="n32">
+<section id="n4">
 <title>
-<p>32</p>
+<p>4</p>
 </title>
 <p>In quote.</p>
 </section>
-<section id="n33">
+<section id="n5">
 <title>
-<p>33</p>
+<p>5</p>
 </title>
 <p>In list.</p>
 </section>

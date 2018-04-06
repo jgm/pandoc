@@ -311,9 +311,6 @@ isMimeType s =
 footnoteID :: Int -> String
 footnoteID i = "n" ++ show i
 
-linkID :: Int -> String
-linkID i = "l" ++ show i
-
 -- | Convert a block-level Pandoc's element to FictionBook XML representation.
 blockToXml :: PandocMonad m => Block -> FBM m [Content]
 blockToXml (Plain ss) = cMapM toXml ss  -- FIXME: can lead to malformed FB2
@@ -455,23 +452,9 @@ toXml (Math _ formula) = insertMath InlineImage formula
 toXml il@(RawInline _ _) = do
   report $ InlineNotRendered il
   return []  -- raw TeX and raw HTML are suppressed
-toXml (Link _ text (url,ttl)) = do
-  fns <- footnotes `liftM` get
-  let n = 1 + length fns
-  let ln_id = linkID n
-  let ln_ref = list . el "sup" . txt $ "[" ++ show n ++ "]"
+toXml (Link _ text (url,_)) = do
   ln_text <- cMapM toXml text
-  let ln_desc =
-          let ttl' = dropWhile isSpace ttl
-          in if null ttl'
-             then list . el "p" $ el "code" url
-             else list . el "p" $ [ txt (ttl' ++ ": "), el "code" url ]
-  modify (\s -> s { footnotes = (n, ln_id, ln_desc) : fns })
-  return $ ln_text ++
-         [ el "a"
-                  ( [ attr ("l","href") ('#':ln_id)
-                    , uattr "type" "note" ]
-                  , ln_ref) ]
+  return [ el "a" ( [ attr ("l","href") url ], ln_text) ]
 toXml img@Image{} = insertImage InlineImage img
 toXml (Note bs) = do
   fns <- footnotes `liftM` get
