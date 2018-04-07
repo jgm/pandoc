@@ -754,7 +754,7 @@ endline :: PandocMonad m => MuseParser m (F Inlines)
 endline = try $ do
   newline
   notFollowedBy blankline
-  returnF B.softbreak
+  return $ return B.softbreak
 
 parseAnchor :: PandocMonad m => MuseParser m String
 parseAnchor = try $ do
