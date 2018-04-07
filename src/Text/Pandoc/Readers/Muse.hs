@@ -50,7 +50,7 @@ import Data.List (stripPrefix, intercalate)
 import Data.List.Split (splitOn)
 import qualified Data.Map as M
 import qualified Data.Set as Set
-import Data.Maybe (fromMaybe, isNothing)
+import Data.Maybe (fromMaybe, isJust, isNothing)
 import Data.Text (Text, unpack)
 import System.FilePath (takeExtension)
 import Text.HTML.TagSoup
@@ -474,9 +474,8 @@ amuseNoteBlockUntil end = try $ do
   updateState (\st -> st { museInPara = False })
   (content, e) <- listItemContentsUntil (sourceColumn pos - 1) (fail "x") end
   oldnotes <- museNotes <$> getState
-  case M.lookup ref oldnotes of
-    Just _  -> logMessage $ DuplicateNoteReference ref pos
-    Nothing -> return ()
+  when (isJust (M.lookup ref oldnotes))
+    (logMessage $ DuplicateNoteReference ref pos)
   updateState $ \s -> s{ museNotes = M.insert ref (pos, content) oldnotes }
   return (mempty, e)
 
@@ -489,9 +488,8 @@ emacsNoteBlock = try $ do
   ref <- noteMarker <* skipSpaces
   content <- mconcat <$> blocksTillNote
   oldnotes <- museNotes <$> getState
-  case M.lookup ref oldnotes of
-    Just _  -> logMessage $ DuplicateNoteReference ref pos
-    Nothing -> return ()
+  when (isJust (M.lookup ref oldnotes))
+    (logMessage $ DuplicateNoteReference ref pos)
   updateState $ \s -> s{ museNotes = M.insert ref (pos, content) oldnotes }
   return mempty
   where
