@@ -281,6 +281,23 @@ tests =
                       ] =?>
             divWith ("foo", [], []) (para "Foo bar")
           ]
+        , "Biblio" =:
+          T.unlines [ "<biblio>"
+                    , ""
+                    , "Author, *Title*, description"
+                    , ""
+                    , "Another author, *Another title*, another description"
+                    , ""
+                    , "</biblio>"
+                    ] =?>
+          divWith ("", ["biblio"], []) (para (text "Author, " <> emph "Title" <> ", description") <>
+                                        para (text "Another author, " <> emph "Another title" <> text ", another description"))
+        , "Play" =:
+          T.unlines [ "<play>"
+                    , "Foo bar"
+                    , "</play>"
+                    ] =?>
+          divWith ("", ["play"], []) (para "Foo bar")
         , "Verse" =:
           T.unlines [ "> This is"
                     , "> First stanza"

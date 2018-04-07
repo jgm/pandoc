@@ -36,8 +36,7 @@ TODO:
 - Org tables
 - table.el tables
 - Images with attributes (floating and width)
-- Citations and <biblio>
-- <play> environment
+- <cite> tag
 -}
 module Text.Pandoc.Readers.Muse (readMuse) where
 
@@ -322,6 +321,8 @@ blockElements = do
          , rightTag
          , quoteTag
          , divTag
+         , biblioTag
+         , playTag
          , verseTag
          , lineBlock
          , table
@@ -412,6 +413,18 @@ divTag :: PandocMonad m => MuseParser m (F Blocks)
 divTag = do
   (attrs, content) <- parseHtmlContent "div"
   return $ B.divWith attrs <$> content
+
+-- <biblio> tag is supported by Amusewiki only
+biblioTag :: PandocMonad m => MuseParser m (F Blocks)
+biblioTag = do
+  guardEnabled Ext_amuse
+  fmap (B.divWith ("", ["biblio"], [])) . snd <$> parseHtmlContent "biblio"
+
+-- <play> tag is supported by Amusewiki only
+playTag :: PandocMonad m => MuseParser m (F Blocks)
+playTag = do
+  guardEnabled Ext_amuse
+  fmap (B.divWith ("", ["play"], [])) . snd <$> parseHtmlContent "play"
 
 verseLine :: PandocMonad m => MuseParser m (F Inlines)
 verseLine = do
