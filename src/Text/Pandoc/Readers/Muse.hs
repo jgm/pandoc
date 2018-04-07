@@ -897,13 +897,13 @@ link = try $ do
   st <- getState
   guard $ not $ museInLink st
   setState $ st{ museInLink = True }
-  (url, title, content) <- linkText
+  (url, content) <- linkText
   updateState (\state -> state { museInLink = False })
   return $ case stripPrefix "URL:" url of
              Nothing -> if isImageUrl url
-                          then B.image url title <$> fromMaybe (return mempty) content
-                          else B.link url title <$> fromMaybe (return $ B.str url) content
-             Just url' -> B.link url' title <$> fromMaybe (return $ B.str url') content
+                          then B.image url "" <$> fromMaybe (return mempty) content
+                          else B.link url "" <$> fromMaybe (return $ B.str url) content
+             Just url' -> B.link url' "" <$> fromMaybe (return $ B.str url') content
     where -- Taken from muse-image-regexp defined in Emacs Muse file lisp/muse-regexps.el
           imageExtensions = [".eps", ".gif", ".jpg", ".jpeg", ".pbm", ".png", ".tiff", ".xbm", ".xpm"]
           isImageUrl = (`elem` imageExtensions) . takeExtension
@@ -911,10 +911,10 @@ link = try $ do
 linkContent :: PandocMonad m => MuseParser m (F Inlines)
 linkContent = char '[' >> trimInlinesF . mconcat <$> manyTill inline (string "]")
 
-linkText :: PandocMonad m => MuseParser m (String, String, Maybe (F Inlines))
+linkText :: PandocMonad m => MuseParser m (String, Maybe (F Inlines))
 linkText = do
   string "[["
   url <- many1Till anyChar $ char ']'
   content <- optionMaybe linkContent
   char ']'
-  return (url, "", content)
+  return (url, content)
