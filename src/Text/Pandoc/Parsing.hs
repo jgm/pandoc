@@ -135,7 +135,7 @@ module Text.Pandoc.Parsing ( takeWhileP,
                              extractIdClass,
                              insertIncludedFile,
                              insertIncludedFileF,
-                             -- * Re-exports from Text.Pandoc.Parsec
+                             -- * Re-exports from Text.Parsec
                              Stream,
                              runParser,
                              runParserT,
