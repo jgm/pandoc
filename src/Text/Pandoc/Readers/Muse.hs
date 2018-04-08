@@ -263,8 +263,8 @@ parseBlocks =
        paraStart)
   where
     parseEnd = mempty <$ eof
-    blockStart = (B.<>) <$> (header <|> blockElements <|> emacsNoteBlock)
-                        <*> parseBlocks
+    blockStart = ((B.<>) <$> (emacsHeading <|> blockElements <|> emacsNoteBlock)
+                         <*> parseBlocks) <|> (uncurry (B.<>) <$> amuseHeadingUntil parseBlocks)
     listStart = do
       updateState (\st -> st { museInPara = False })
       uncurry (B.<>) <$> (anyListUntil parseBlocks <|> amuseNoteBlockUntil parseBlocks)
@@ -362,9 +362,10 @@ separator = try $ do
   eol
   return $ return B.horizontalRule
 
--- | Parse a heading.
-header :: PandocMonad m => MuseParser m (F Blocks)
-header = try $ do
+-- | Parse a single-line heading.
+emacsHeading :: PandocMonad m => MuseParser m (F Blocks)
+emacsHeading = try $ do
+  guardDisabled Ext_amuse
   anchorId <- option "" $ try (parseAnchor <* manyTill spaceChar eol)
   getPosition >>= \pos -> guard (sourceColumn pos == 1)
   level <- fmap length $ many1 $ char '*'
@@ -373,6 +374,22 @@ header = try $ do
   content <- trimInlinesF . mconcat <$> manyTill inline eol
   attr <- registerHeader (anchorId, [], []) (runF content def)
   return $ B.headerWith attr level <$> content
+
+-- | Parse a multi-line heading.
+-- It is a Text::Amuse extension, Emacs Muse does not allow heading to span multiple lines.
+amuseHeadingUntil :: PandocMonad m
+                  => MuseParser m a -- ^ Terminator parser
+                  -> MuseParser m (F Blocks, a)
+amuseHeadingUntil end = try $ do
+  guardEnabled Ext_amuse
+  anchorId <- option "" $ try (parseAnchor <* manyTill spaceChar eol)
+  getPosition >>= \pos -> guard (sourceColumn pos == 1)
+  level <- fmap length $ many1 $ char '*'
+  guard $ level <= 5
+  spaceChar
+  (content, e) <- paraContentsUntil end
+  attr <- registerHeader (anchorId, [], []) (runF content def)
+  return (B.headerWith attr level <$> content, e)
 
 -- | Parse an example between @{{{@ and @}}}@.
 -- It is an Amusewiki extension influenced by Creole wiki, as described in @Text::Amuse@ documentation.
@@ -461,6 +478,16 @@ verseTag = do
 commentTag :: PandocMonad m => MuseParser m (F Blocks)
 commentTag = htmlBlock "comment" >> return mempty
 
+-- | Parse paragraph contents.
+paraContentsUntil :: PandocMonad m
+                  => MuseParser m a -- ^ Terminator parser
+                  -> MuseParser m (F Inlines, a)
+paraContentsUntil end = do
+  updateState (\st -> st { museInPara = True })
+  (l, e) <- someUntil inline $ try (manyTill spaceChar eol >> end)
+  updateState (\st -> st { museInPara = False })
+  return (trimInlinesF $ mconcat l, e)
+
 -- | Parse a paragraph.
 paraUntil :: PandocMonad m
           => MuseParser m a -- ^ Terminator parser
@@ -468,10 +495,7 @@ paraUntil :: PandocMonad m
 paraUntil end = do
   state <- getState
   guard $ not $ museInPara state
-  setState $ state{ museInPara = True }
-  (l, e) <- someUntil inline $ try (manyTill spaceChar eol >> end)
-  updateState (\st -> st { museInPara = False })
-  return (fmap B.para $ trimInlinesF $ mconcat l, e)
+  first (fmap B.para) <$> paraContentsUntil end
 
 noteMarker :: PandocMonad m => MuseParser m String
 noteMarker = try $ do

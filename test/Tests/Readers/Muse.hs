@@ -558,18 +558,32 @@ tests =
                     ] =?>
           headerWith ("bar",[],[]) 2 "Foo"
         , "Headers don't consume anchors separated with a blankline" =:
-          T.unlines [ "** Foo"
-                    , ""
+          T.unlines [ "; A comment to make sure anchor is not parsed as a directive"
                     , "#bar"
+                    , ""
+                    , "** Foo"
                     ] =?>
-          header 2 "Foo" <>
-          para (spanWith ("bar", [], []) mempty)
+          para (spanWith ("bar", [], []) mempty) <>
+          header 2 "Foo"
+        , "Headers terminate paragraph" =:
+          T.unlines [ "foo"
+                    , "* bar"
+                    ] =?>
+          para "foo" <> header 1 "bar"
         , "Headers terminate lists" =:
           T.unlines [ " - foo"
                     , "* bar"
                     ] =?>
           bulletList [ para "foo" ] <>
           header 1 "bar"
+        , test emacsMuse "Paragraphs terminate Emacs Muse headers"
+          (T.unlines [ "* Foo"
+                    , "bar"
+                    ] =?> header 1 "Foo" <> para "bar")
+        , "Paragraphs don't terminate Text::Amuse headers" =:
+          T.unlines [ "* Foo"
+                    , "bar"
+                    ] =?> header 1 "Foo\nbar"
         ]
       , testGroup "Directives"
         [ "Title" =:
