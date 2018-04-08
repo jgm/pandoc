@@ -676,7 +676,7 @@ data MuseTable = MuseTable
 data MuseTableElement = MuseHeaderRow [Blocks]
                       | MuseBodyRow [Blocks]
                       | MuseFooterRow [Blocks]
-                      | MuseCaption (Inlines)
+                      | MuseCaption Inlines
 
 museToPandocTable :: MuseTable -> Blocks
 museToPandocTable (MuseTable caption headers body footers) =
