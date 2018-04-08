@@ -686,14 +686,14 @@ museToPandocTable (MuseTable caption headers body footers) =
         headRow = if null headers then [] else head headers
         rows = (if null headers then [] else tail headers) ++ body ++ footers
 
-museAppendElement :: MuseTable
-                  -> MuseTableElement
+museAppendElement :: MuseTableElement
                   -> MuseTable
-museAppendElement tbl element =
+                  -> MuseTable
+museAppendElement element tbl =
   case element of
-    MuseHeaderRow row -> tbl{ museTableHeaders = museTableHeaders tbl ++ [row] }
-    MuseBodyRow row -> tbl{ museTableRows = museTableRows tbl ++ [row] }
-    MuseFooterRow row -> tbl{ museTableFooters = museTableFooters tbl ++ [row] }
+    MuseHeaderRow row -> tbl{ museTableHeaders = row : museTableHeaders tbl }
+    MuseBodyRow row -> tbl{ museTableRows = row : museTableRows tbl }
+    MuseFooterRow row -> tbl{ museTableFooters = row : museTableFooters tbl }
     MuseCaption inlines -> tbl{ museTableCaption = inlines }
 
 tableCell :: PandocMonad m => MuseParser m (F Blocks)
@@ -704,7 +704,7 @@ tableElements :: PandocMonad m => MuseParser m (F [MuseTableElement])
 tableElements = sequence <$> (tableParseElement `sepEndBy1` eol)
 
 elementsToTable :: [MuseTableElement] -> MuseTable
-elementsToTable = foldl museAppendElement emptyTable
+elementsToTable = foldr museAppendElement emptyTable
   where emptyTable = MuseTable mempty mempty mempty mempty
 
 -- | Parse a table.
