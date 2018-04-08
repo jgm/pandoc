@@ -673,10 +673,10 @@ data MuseTable = MuseTable
   , museTableFooters :: [[Blocks]]
   }
 
-data MuseTableElement = MuseHeaderRow (F [Blocks])
-                      | MuseBodyRow   (F [Blocks])
-                      | MuseFooterRow (F [Blocks])
-                      | MuseCaption (F Inlines)
+data MuseTableElement = MuseHeaderRow [Blocks]
+                      | MuseBodyRow [Blocks]
+                      | MuseFooterRow [Blocks]
+                      | MuseCaption (Inlines)
 
 museToPandocTable :: MuseTable -> Blocks
 museToPandocTable (MuseTable caption headers body footers) =
@@ -688,38 +688,30 @@ museToPandocTable (MuseTable caption headers body footers) =
 
 museAppendElement :: MuseTable
                   -> MuseTableElement
-                  -> F MuseTable
+                  -> MuseTable
 museAppendElement tbl element =
   case element of
-    MuseHeaderRow row -> do
-      row' <- row
-      return tbl{ museTableHeaders = museTableHeaders tbl ++ [row'] }
-    MuseBodyRow row -> do
-      row' <- row
-      return tbl{ museTableRows = museTableRows tbl ++ [row'] }
-    MuseFooterRow row-> do
-      row' <- row
-      return tbl{ museTableFooters = museTableFooters tbl ++ [row'] }
-    MuseCaption inlines -> do
-      inlines' <- inlines
-      return tbl{ museTableCaption = inlines' }
+    MuseHeaderRow row -> tbl{ museTableHeaders = museTableHeaders tbl ++ [row] }
+    MuseBodyRow row -> tbl{ museTableRows = museTableRows tbl ++ [row] }
+    MuseFooterRow row -> tbl{ museTableFooters = museTableFooters tbl ++ [row] }
+    MuseCaption inlines -> tbl{ museTableCaption = inlines }
 
 tableCell :: PandocMonad m => MuseParser m (F Blocks)
 tableCell = try $ fmap B.plain . trimInlinesF . mconcat <$> manyTill inline (lookAhead cellEnd)
   where cellEnd = try $ void (many1 spaceChar >> char '|') <|> eol
 
-tableElements :: PandocMonad m => MuseParser m [MuseTableElement]
-tableElements = tableParseElement `sepEndBy1` eol
+tableElements :: PandocMonad m => MuseParser m (F [MuseTableElement])
+tableElements = sequence <$> (tableParseElement `sepEndBy1` eol)
 
-elementsToTable :: [MuseTableElement] -> F MuseTable
-elementsToTable = foldM museAppendElement emptyTable
+elementsToTable :: [MuseTableElement] -> MuseTable
+elementsToTable = foldl museAppendElement emptyTable
   where emptyTable = MuseTable mempty mempty mempty mempty
 
 -- | Parse a table.
 table :: PandocMonad m => MuseParser m (F Blocks)
-table = try $ fmap museToPandocTable <$> (elementsToTable <$> tableElements)
+table = try $ fmap (museToPandocTable . elementsToTable) <$> tableElements
 
-tableParseElement :: PandocMonad m => MuseParser m MuseTableElement
+tableParseElement :: PandocMonad m => MuseParser m (F MuseTableElement)
 tableParseElement = tableParseHeader
                 <|> tableParseBody
                 <|> tableParseFooter
@@ -735,23 +727,23 @@ tableParseRow n = try $ do
           fieldSep = many1 spaceChar >> count n (char '|') >> (void (many1 spaceChar) <|> void (lookAhead newline))
 
 -- | Parse a table header row.
-tableParseHeader :: PandocMonad m => MuseParser m MuseTableElement
-tableParseHeader = MuseHeaderRow <$> tableParseRow 2
+tableParseHeader :: PandocMonad m => MuseParser m (F MuseTableElement)
+tableParseHeader = fmap MuseHeaderRow <$> tableParseRow 2
 
 -- | Parse a table body row.
-tableParseBody :: PandocMonad m => MuseParser m MuseTableElement
-tableParseBody = MuseBodyRow <$> tableParseRow 1
+tableParseBody :: PandocMonad m => MuseParser m (F MuseTableElement)
+tableParseBody = fmap MuseBodyRow <$> tableParseRow 1
 
 -- | Parse a table footer row.
-tableParseFooter :: PandocMonad m => MuseParser m MuseTableElement
-tableParseFooter = MuseFooterRow <$> tableParseRow 3
+tableParseFooter :: PandocMonad m => MuseParser m (F MuseTableElement)
+tableParseFooter = fmap MuseFooterRow <$> tableParseRow 3
 
 -- | Parse table caption.
-tableParseCaption :: PandocMonad m => MuseParser m MuseTableElement
+tableParseCaption :: PandocMonad m => MuseParser m (F MuseTableElement)
 tableParseCaption = try $ do
   many spaceChar
   string "|+"
-  MuseCaption <$> (trimInlinesF . mconcat <$> many1Till inline (string "+|"))
+  fmap MuseCaption <$> (trimInlinesF . mconcat <$> many1Till inline (string "+|"))
 
 -- ** Inline parsers
 
