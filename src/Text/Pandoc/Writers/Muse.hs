@@ -71,7 +71,7 @@ data WriterEnv =
             , envTopLevel :: Bool
             , envInsideBlock :: Bool
             , envInlineStart :: Bool
-            , envInsideLinkDescription :: Bool -- Escape ] if True
+            , envInsideLinkDescription :: Bool -- ^ Escape ] if True
             , envAfterSpace :: Bool
             }
 
