@@ -73,6 +73,7 @@ data WriterEnv =
             , envInlineStart :: Bool
             , envInsideLinkDescription :: Bool -- ^ Escape ] if True
             , envAfterSpace :: Bool
+            , envOneLine :: Bool -- ^ True if newlines are not allowed
             }
 
 data WriterState =
@@ -101,6 +102,7 @@ writeMuse opts document =
                         , envInlineStart = True
                         , envInsideLinkDescription = False
                         , envAfterSpace = True
+                        , envOneLine = False
                         }
 
 -- | Return Muse representation of document.
@@ -173,7 +175,7 @@ blockToMuse (Para inlines) = do
   contents <- inlineListToMuse' inlines
   return $ contents <> blankline
 blockToMuse (LineBlock lns) = do
-  lns' <- mapM inlineListToMuse lns
+  lns' <- local (\env -> env { envOneLine = True }) $ mapM inlineListToMuse lns
   return $ nowrap $ vcat (map (text "> " <>) lns') <> blankline
 blockToMuse (CodeBlock (_,_,_) str) =
   return $ "<example>" $$ text str $$ "</example>" $$ blankline
@@ -221,7 +223,7 @@ blockToMuse (DefinitionList items) = do
                                  => ([Inline], [[Block]])
                                  -> Muse m Doc
         definitionListItemToMuse (label, defs) = do
-          label' <- inlineListToMuse' label
+          label' <- local (\env -> env { envOneLine = True }) $ inlineListToMuse' label
           contents <- vcat <$> mapM descriptionToMuse defs
           let ind = offset label'
           return $ hang ind label' contents
@@ -231,7 +233,7 @@ blockToMuse (DefinitionList items) = do
         descriptionToMuse desc = hang 4 " :: " <$> blockListToMuse desc
 blockToMuse (Header level (ident,_,_) inlines) = do
   opts <- asks envOptions
-  contents <- inlineListToMuse' inlines
+  contents <- local (\env -> env { envOneLine = True }) $ inlineListToMuse' inlines
   ids <- gets stIds
   let autoId = uniqueIdent inlines ids
   modify $ \st -> st{ stIds = Set.insert autoId ids }
@@ -486,11 +488,14 @@ inlineToMuse Math{} =
   fail "Math should be expanded before normalization"
 inlineToMuse (RawInline (Format f) str) =
   return $ "<literal style=\"" <> text f <> "\">" <> text str <> "</literal>"
-inlineToMuse LineBreak = return $ "<br>" <> cr
+inlineToMuse LineBreak = do
+  oneline <- asks envOneLine
+  return $ if oneline then "<br>" else "<br>" <> cr
 inlineToMuse Space = return space
 inlineToMuse SoftBreak = do
+  oneline <- asks envOneLine
   wrapText <- asks $ writerWrapText . envOptions
-  return $ if wrapText == WrapPreserve then cr else space
+  return $ if not oneline && wrapText == WrapPreserve then cr else space
 inlineToMuse (Link _ txt (src, _)) =
   case txt of
         [Str x] | escapeURI x == src ->

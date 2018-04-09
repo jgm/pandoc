@@ -360,6 +360,8 @@ tests = [ testGroup "block elements"
                    "remove soft break" $ text "a" <> softbreak <> text "b"
                    =?> "a b"
             , "line break" =: text "a" <> linebreak <> text "b" =?> "a<br>\nb"
+            , "no newline after line break in header" =: header 1 (text "a" <> linebreak <> text "b") =?> "* a<br>b"
+            , "no softbreak in header" =: header 1 (text "a" <> softbreak <> text "b") =?> "* a b"
             ]
           , testGroup "math"
             [ "inline math" =: math "2^3" =?> "2<sup>3</sup>"
