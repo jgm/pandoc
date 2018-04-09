@@ -231,8 +231,7 @@ blockToMuse (DefinitionList items) = do
         descriptionToMuse desc = hang 4 " :: " <$> blockListToMuse desc
 blockToMuse (Header level (ident,_,_) inlines) = do
   opts <- asks envOptions
-  contents <- inlineListToMuse inlines
-
+  contents <- inlineListToMuse' inlines
   ids <- gets stIds
   let autoId = uniqueIdent inlines ids
   modify $ \st -> st{ stIds = Set.insert autoId ids }

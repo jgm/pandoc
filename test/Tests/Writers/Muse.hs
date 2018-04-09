@@ -257,6 +257,7 @@ tests = [ testGroup "block elements"
                unlines [ "#bar"
                        , "** Foo"
                       ]
+            , "empty heading" =: header 4 (mempty) =?> "**** <verbatim></verbatim>"
             ]
           , "horizontal rule" =: horizontalRule =?> "----"
           , "escape horizontal rule" =: para (text "----") =?> "<verbatim></verbatim>----"
