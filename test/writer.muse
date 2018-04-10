@@ -79,7 +79,7 @@ nested
 </quote>
 </quote>
 
-This should not be a block quote: 2 <verbatim>></verbatim> 1.
+This should not be a block quote: 2 > 1.
 
 And a following paragraph.
 
@@ -562,7 +562,7 @@ This & that.
 
 4 <verbatim><</verbatim> 5.
 
-6 <verbatim>></verbatim> 5.
+6 > 5.
 
 Backslash: \
 
@@ -584,7 +584,7 @@ Left paren: (
 
 Right paren: )
 
-Greater-than: <verbatim>></verbatim>
+Greater-than: >
 
 Hash: <verbatim>#</verbatim>
 

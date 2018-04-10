@@ -324,7 +324,7 @@ containsFootnotes st =
 
 conditionalEscapeString :: Bool -> String -> String
 conditionalEscapeString isInsideLinkDescription s =
-  if any (`elem` ("#*<=>|" :: String)) s ||
+  if any (`elem` ("#*<=|" :: String)) s ||
      "::" `isInfixOf` s ||
      "~~" `isInfixOf` s ||
      "[[" `isInfixOf` s ||
@@ -403,6 +403,7 @@ isHorizontalRule s =
 fixOrEscape :: Bool -> Inline -> Bool
 fixOrEscape sp (Str "-") = sp
 fixOrEscape sp (Str ";") = not sp
+fixOrEscape _ (Str ">") = True
 fixOrEscape sp (Str s) = (sp && (startsWithMarker isDigit s ||
                                 startsWithMarker isAsciiLower s ||
                                 startsWithMarker isAsciiUpper s))

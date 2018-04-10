@@ -264,6 +264,7 @@ tests = [ testGroup "block elements"
           , "escape long horizontal rule" =: para (text "----------") =?> "<verbatim></verbatim>----------"
           , "don't escape horizontal inside paragraph" =: para (text "foo ---- bar") =?> "foo ---- bar"
           , "escape nonbreaking space" =: para (text "~~") =?> "<verbatim>~~</verbatim>"
+          , "escape > in the beginning of line" =: para (text "> foo bar") =?> "<verbatim></verbatim>> foo bar"
           , testGroup "tables"
             [ "table without header" =:
               let rows = [[para $ text "Para 1.1", para $ text "Para 1.2"]
