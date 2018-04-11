@@ -78,7 +78,7 @@ import Text.Pandoc.Options (
     ReaderOptions (readerExtensions, readerStripComments),
     extensionEnabled)
 import Text.Pandoc.Parsing hiding ((<|>))
-import Text.Pandoc.Shared (addMetaField, blocksToInlines', crFilter, escapeURI,
+import Text.Pandoc.Shared (addMetaField, blocksToInlines', escapeURI,
                            extractSpaces, safeRead, underlineSpan)
 import Text.Pandoc.Walk
 import Text.Parsec.Error
@@ -92,7 +92,7 @@ readHtml :: PandocMonad m
 readHtml opts inp = do
   let tags = stripPrefixes . canonicalizeTags $
              parseTagsOptions parseOptions{ optTagPosition = True }
-             (crFilter inp)
+             inp
       parseDoc = do
         blocks <- fixPlains False . mconcat <$> manyTill block eof
         meta <- stateMeta . parserState <$> getState
@@ -992,7 +992,7 @@ pBad = do
 
 pSpace :: PandocMonad m => InlinesParser m Inlines
 pSpace = many1 (satisfy isSpace) >>= \xs ->
-            if '\n' `elem` xs
+            if '\n' `elem` xs || '\r' `elem` xs
                then return B.softbreak
                else return B.space
 
