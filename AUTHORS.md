@@ -1,5 +1,6 @@
 # Contributors
 
+- Anabra
 - Arata Mizuki
 - Aaron Wolen
 - Albert Krewinkel
@@ -49,6 +50,7 @@
 - Emily Eisenberg
 - Eric Kow
 - Eric Seidel
+- Étienne Bersac
 - Felix Yan
 - Florian Eitel
 - Francesco Occhipinti
@@ -188,6 +190,7 @@
 - lwolfsonkin
 - nkalvi
 - oltolm
+- quasicomputational
 - qerub
 - robabla
 - roblabla

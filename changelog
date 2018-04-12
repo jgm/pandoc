@@ -1,3 +1,139 @@
+pandoc (2.1.4)
+
+  * LaTeX reader:
+
+    + Properly resolve section numbers with `\ref` and chapters (#4529).
+    + Parse sloppypar environment (#4517, Marc Schreiber).
+
+  * Textile reader:
+
+    + Fixed tables with no body rows (#4513).
+      Previously these raised an exception.
+
+  * Mediawiki reader:
+
+    + Improve table parsing (#4508).  This fixes detection of table
+      attributes and also handles `!` characters in cells.
+
+  * DocBook reader:
+
+    + Properly handle title in `section` element (#4526).
+      Previously we just got `section_title` for `section` (though `sect1`,
+      `sect2`, etc. were handled properly).
+
+  * Muse reader (Alexander Krotov):
+
+    + Add support for Text:Amuse multiline headings.
+    + Add `<math>` tag support.
+    + Add support for `<biblio>` and `<play>` tags.
+    + Allow links to have empty descriptions.
+    + Require block `<literal>` tags to be on separate lines.
+    + Internal improvements.
+
+  * Muse writer (Alexander Krotov):
+
+    + Escape `>` only at the beginning of a line.
+    + Escape `]` in image title.
+    + Escape `]` brackets in URLs as `%5D`.
+    + Only escape brackets when necessary.
+    + Escape ordered list markers.
+    + Do not escape list markers unless preceded by space.
+    + Escape semicolons and markers after line break.
+    + Escape `;` to avoid accidental comments.
+    + Don't break headers, line blocks and tables with line breaks.
+    + Correctly output empty headings.
+    + Escape horizontal rule only if at the beginning of the line.
+    + Place header IDs before header.
+    + Improve span writing.
+    + Do not join Spans in normalization.
+    + Don't align ordered list items.
+    + Remove key-value pairs from attributes before normalization.
+    + Enable `--wrap=preserve` for all tests by default.
+    + Reduced `<verbatim>` tags in output.
+    + Internal changes.
+
+  * EPUB writer:
+
+    + Ensure that `pagetitle` is always set, even when structured titles
+      are used.  This prevents spurious warnings about empty title
+      elements (#4486).
+
+  * FB2 writer (Alexander Krotov):
+
+    + Output links inline instead of producing notes.  Previously all links
+      were turned into footnotes with unclickable URLs inside.
+    + Allow emphasis and notes in titles.
+    + Don't intersperse paragraph with empty lines.
+
+  * Powerpoint writer (Jesse Rosenthal):
+
+    + Handle Quoted Inlines (#4532).
+    + Simplify code with `ParseXml`.
+    + Allow fallback options when looking for placeholder type.
+    + Check reference-doc for all layouts.
+    + Simplify speaker notes logic.
+    + Change notes state to a simpler per-slide value.
+    + Remove `Maybe` from `SpeakerNotes` in `Slide`. `mempty`
+      means no speaker notes.
+    + Add tests for improved speaker notes.
+    + Handle speaker notes earlier in the conversion process.
+    + Keep notes with related blocks (#4477).  Some blocks automatically
+      split slides (imgs, tables, `column` divs). We assume that any
+      speaker notes immediately following these are connected to these
+      elements, and keep them with the related blocks, splitting after them.
+
+  * CommonMark writer:
+
+    + Correctly ignore LaTeX raw blocks when `raw_tex` is not
+      enabled (#4527, quasicomputational).
+
+  * EPUB writer: add `epub:type="footnotes"` to notes section in EPUB3
+    (#4489).
+
+  * Text.Pandoc.Parsing: Fix `romanNumeral` parser (#4480).
+    We previously accepted 'DDC' as 1100.
+
+  * Text.Pandoc.PDF:
+
+    + Use `withTempDir` in `html2pdf`.
+    + With `xelatex`, don't compress images til the last run (#4484).
+      This saves time for image-heavy documents.
+
+  * Changes to tests to accommodate changes in pandoc-types.
+    In <https://github.com/jgm/pandoc-types/pull/36> we changed
+    the table builder to pad cells.  This commit changes tests
+    (and two readers) to accord with this behavior.
+
+  * Set default extensions for `beamer` same as `latex`.
+
+  * LaTeX template:
+
+    + Add `beameroption` variable (#4359, Étienne Bersac).
+    + Use `pgfpages` package; this is needed for notes on second
+      screen in beamer (Étienne Bersac).
+
+  * Removed pragmas for unused extensions (#4506, Anabra).
+
+  * MANUAL:
+
+    + Clarify template vs metadata variables (#4501, Mauro Bieg).
+    + Fix raw content example (#4479, Mauro Bieg).
+    + Specify that you use html for raw output in epub.
+    + Add examples for raw docx blocks (#4472, Tristan Stenner).
+      The documentation states that the target format name should match
+      the output format, which isn't the case for `docx`/`openxml` and
+      some others.
+
+  * Fix example in lua-filters docs (#4459, HeirOfNorton).
+
+  * Bump temporary upper bound to 1.4.
+
+  * Use pandoc-citeproc 0.14.3.
+
+  * Removed old lib directory.  This was used for something long ago,
+    but plays no role now.
+
+
 pandoc (2.1.3)
 
   * Docx reader (Jesse Rosenthal):
