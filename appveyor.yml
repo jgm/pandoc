@@ -11,10 +11,10 @@ environment:
     STACK_ROOT: "c:\\sr32"
     STACK: "%STACK_ROOT%\\stack.exe"
     STACK_FLAGS: "--flag=hslua:lua_32bits"
-#  - STACK_VERSION: "windows-x86_64"
-#    STACK_ROOT: "c:\\sr64"
-#    STACK: "%STACK_ROOT%\\stack.exe"
-#    STACK_FLAGS: ""
+  - STACK_VERSION: "windows-x86_64"
+    STACK_ROOT: "c:\\sr64"
+    STACK: "%STACK_ROOT%\\stack.exe"
+    STACK_FLAGS: ""
 
 skip_commits:
   files:
