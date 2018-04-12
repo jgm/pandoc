@@ -66,7 +66,11 @@ import Data.Yaml (decode)
 import qualified Data.Yaml as Yaml
 import GHC.Generics
 import Network.URI (URI (..), parseURI)
+#ifdef EMBED_DATA_FILES
+import Text.Pandoc.Data (dataFiles)
+#else
 import Paths_pandoc (getDataDir)
+#endif
 import Data.Aeson.Encode.Pretty (encodePretty', Config(..), keyOrder,
          defConfig, Indent(..), NumberFormat(..))
 import Skylighting (Style, Syntax (..), defaultSyntaxMap, parseTheme,
@@ -1475,7 +1479,7 @@ options =
     , Option "" ["bash-completion"]
                  (NoArg
                   (\_ -> do
-                     ddir <- getDataDir
+                     datafiles <- getDataFileNames
                      tpl <- runIOorExplode $
                               UTF8.toString <$>
                                 readDefaultDataFile "bash_completion.tpl"
@@ -1487,7 +1491,7 @@ options =
                          (unwords readersNames)
                          (unwords writersNames)
                          (unwords $ map fst highlightingStyles)
-                         ddir
+                         (unwords datafiles)
                      exitSuccess ))
                  "" -- "Print bash completion script"
 
@@ -1560,6 +1564,16 @@ options =
                  "" -- "Show help"
 
     ]
+
+getDataFileNames :: IO [FilePath]
+getDataFileNames = do
+#ifdef EMBED_DATA_FILES
+  let allDataFiles = map fst dataFiles
+#else
+  allDataFiles <- filter (\x -> x /= "." && x /= "..") <$>
+                      (getDataDir >>= getDirectoryContents)
+#endif
+  return $ "reference.docx" : "reference.odt" : "reference.pptx" : allDataFiles
 
 -- Returns usage message
 usageMessage :: String -> [OptDescr (Opt -> IO Opt)] -> String
