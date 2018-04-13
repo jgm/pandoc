@@ -4,10 +4,12 @@ module Tests.Writers.RST (tests) where
 
 import Prelude
 import Test.Tasty
+import Test.Tasty.HUnit
 import Tests.Helpers
 import Text.Pandoc
 import Text.Pandoc.Arbitrary ()
 import Text.Pandoc.Builder
+import Text.Pandoc.Writers.RST
 
 infix 4 =:
 (=:) :: (ToString a, ToPandoc a)
@@ -52,6 +54,17 @@ tests = [ testGroup "rubrics"
               , ""
               , "    quoted"]
           ]
+        , testGroup "flatten"
+          [ testCase "emerges nested styles as expected" $
+            flatten (Emph [Str "1", Strong [Str "2"], Str "3"]) @?=
+            [Emph [Str "1"], Strong [Str "2"], Emph [Str "3"]]
+          , testCase "could introduce trailing spaces" $
+            flatten (Emph [Str "f", Space, Strong [Str "2"]]) @?=
+            [Emph [Str "f", Space], Strong [Str "2"]]
+            -- the test above is the reason why we call
+            -- stripLeadingTrailingSpace through transformNested after
+            -- flatten
+          ]
         , testGroup "inlines"
           [ "are removed when empty" =: -- #4434
             plain (strong (str "")) =?> ""
@@ -64,6 +77,17 @@ tests = [ testGroup "rubrics"
             strong (space <> str "text" <> space <> space) =?> "**text**"
           , "single space stripped" =:
             strong space =?> ""
+          , "give priority to strong style over emphasis" =:
+            strong (emph (strong (str "s"))) =?> "**s**"
+          , "links are not elided by outer style" =:
+            strong (emph (link "loc" "" (str "text"))) =?>
+            "`text <loc>`__"
+          , "RST inlines cannot start nor end with spaces" =:
+            emph (str "f" <> space <> strong (str "d") <> space <> str "l") =?>
+            "*f*\\ **d**\\ *l*"
+          , "keeps quotes" =:
+            strong (str "f" <> doubleQuoted (str "d") <> str "l") =?>
+            "**f“d”l**"
           ]
         , testGroup "headings"
           [ "normal heading" =:
