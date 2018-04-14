@@ -72,7 +72,7 @@ Anonymous
 .1C
 .LP
 This is a set of tests for pandoc.
-Most of them are adapted from John Gruber's markdown test suite.
+Most of them are adapted from John Gruber’s markdown test suite.
 .HLINE
 .SH 1
 Headers
@@ -123,7 +123,7 @@ Paragraphs
 .pdfhref O 1 "Paragraphs"
 .pdfhref M "paragraphs"
 .LP
-Here's a regular paragraph.
+Here’s a regular paragraph.
 .PP
 In Markdown 1.0.0 and earlier.
 Version 8.
@@ -131,7 +131,7 @@ This line turns into a list item.
 Because a hard-wrapped line in the middle of a paragraph looked like a list
 item.
 .PP
-Here's one with a bullet.
+Here’s one with a bullet.
 * criminey.
 .PP
 There should be a hard line break
@@ -311,7 +311,7 @@ Item 1, graf one.
 .PP
 Item 1.
 graf two.
-The quick brown fox jumped over the lazy dog's back.
+The quick brown fox jumped over the lazy dog’s back.
 .RE
 .IP " 2." 4
 Item 2.
@@ -332,7 +332,7 @@ Tab
 .RE
 .RE
 .LP
-Here's another:
+Here’s another:
 .IP " 1." 4
 First
 .IP " 2." 4
@@ -567,7 +567,7 @@ Interpreted markdown in a table:
 This is \f[I]emphasized\f[]
 And this is \f[B]strong\f[]
 .PP
-Here's a simple block:
+Here’s a simple block:
 .LP
 foo
 .LP
@@ -614,7 +614,7 @@ Code:
 \f[]
 .fi
 .LP
-Hr's:
+Hr’s:
 .HLINE
 .SH 1
 Inline Markup
@@ -663,7 +663,7 @@ Smart quotes, ellipses, dashes
 `Oak,' `elm,' and `beech' are names of trees.
 So is `pine.'
 .PP
-`He said, \[lq]I want to go.\[rq]' Were you alive in the 70's?
+`He said, \[lq]I want to go.\[rq]' Were you alive in the 70’s?
 .PP
 Here is some quoted `\f[C]code\f[]' and a \[lq]\c
 .pdfhref W -D "http://example.com/?foo=1&bar=2" -A "\c" \
@@ -692,14 +692,14 @@ LaTeX
 .IP \[bu] 3
 @p@-Tree
 .IP \[bu] 3
-Here's some display math:
+Here’s some display math:
 .EQ
 d over {d x} f ( x ) = lim sub {h -> 0} {f ( x + h ) \[u2212] f ( x )} over h
 .EN
 .IP \[bu] 3
-Here's one that has a line break in it: @alpha + omega times x sup 2@.
+Here’s one that has a line break in it: @alpha + omega times x sup 2@.
 .LP
-These shouldn't be math:
+These shouldn’t be math:
 .IP \[bu] 3
 To get the famous equation, write \f[C]$e\ =\ mc\[ha]2$\f[].
 .IP \[bu] 3
@@ -711,7 +711,7 @@ Shoes ($20) and socks ($5).
 .IP \[bu] 3
 Escaped \f[C]$\f[]: $73 \f[I]this should be emphasized\f[] 23$.
 .LP
-Here's a LaTeX table:
+Here’s a LaTeX table:
 .HLINE
 .SH 1
 Special Characters
@@ -882,22 +882,22 @@ With ampersands
 .pdfhref O 2 "With ampersands"
 .pdfhref M "with-ampersands"
 .LP
-Here's a \c
+Here’s a \c
 .pdfhref W -D "http://example.com/?foo=1&bar=2" -A "\c" \
  -- "link with an ampersand in the URL"
 \&.
 .PP
-Here's a link with an amersand in the link text: \c
+Here’s a link with an amersand in the link text: \c
 .pdfhref W -D "http://att.com/" -A "\c" \
  -- "AT&T"
 \&.
 .PP
-Here's an \c
+Here’s an \c
 .pdfhref W -D "/script?foo=1&bar=2" -A "\c" \
  -- "inline link"
 \&.
 .PP
-Here's an \c
+Here’s an \c
 .pdfhref W -D "/script?foo=1&bar=2" -A "\c" \
  -- "inline link in pointy braces"
 \&.
@@ -964,7 +964,7 @@ It need not be placed at the end of the document.
 .FE
 and another.\**
 .FS
-Here's the long note.
+Here’s the long note.
 This one contains multiple blocks.
 .PP
 Subsequent blocks are indented to show that they belong to the footnote (as
