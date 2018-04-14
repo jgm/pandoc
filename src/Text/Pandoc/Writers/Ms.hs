@@ -217,11 +217,16 @@ blockToMs :: PandocMonad m
           -> Block         -- ^ Block element
           -> MS m Doc
 blockToMs _ Null = return empty
-blockToMs opts (Div _ bs) = do
+blockToMs opts (Div (ident,_,_) bs) = do
+  let anchor = if null ident
+                  then empty
+                  else nowrap $
+                         text ".pdfhref M "
+                         <> doubleQuotes (text (toAscii ident))
   setFirstPara
   res <- blockListToMs opts bs
   setFirstPara
-  return res
+  return $ anchor $$ res
 blockToMs opts (Plain inlines) =
   liftM vcat $ mapM (inlineListToMs' opts) $ splitSentences inlines
 blockToMs opts (Para [Image attr alt (src,_tit)])
@@ -640,7 +645,10 @@ highlightCode opts attr str =
            modify (\st -> st{ stHighlighting = True })
            return h
 
+-- This is used for PDF anchors.
 toAscii :: String -> String
-toAscii = concatMap (\c -> case toAsciiChar c of
-                                     Nothing -> 'u':show (ord c)
-                                     Just c' -> [c'])
+toAscii = concatMap
+  (\c -> case toAsciiChar c of
+              Nothing -> '_':'u':show (ord c) ++ "_"
+              Just '/' -> '_':'u':show (ord c) ++ "_" -- see #4515
+              Just c' -> [c'])
