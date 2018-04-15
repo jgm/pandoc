@@ -972,7 +972,7 @@ linkContent = char '[' >> trimInlinesF . mconcat <$> manyTill inline (string "]"
 linkText :: PandocMonad m => MuseParser m (String, Maybe (F Inlines))
 linkText = do
   string "[["
-  url <- many1Till anyChar $ char ']'
+  url <- manyTill anyChar $ char ']'
   content <- optionMaybe linkContent
   char ']'
   return (url, content)

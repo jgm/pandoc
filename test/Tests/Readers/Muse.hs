@@ -209,6 +209,7 @@ tests =
         -- This test also makes sure '=' without whitespace is not treated as code markup
         , "No implicit links" =: "http://example.org/index.php?action=view&id=1"
                =?> para "http://example.org/index.php?action=view&id=1"
+        , "Link with empty URL" =: "[[][empty URL]]" =?> para (link "" "" (text "empty URL"))
         ]
 
       , testGroup "Literal"
