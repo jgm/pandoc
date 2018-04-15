@@ -348,6 +348,7 @@ blockElements = do
 -- | Parse a line comment, starting with @;@ in the first column.
 comment :: PandocMonad m => MuseParser m (F Blocks)
 comment = try $ do
+  getPosition >>= \pos -> guard (sourceColumn pos == 1)
   char ';'
   optional (spaceChar >> many (noneOf "\n"))
   eol

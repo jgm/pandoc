@@ -521,6 +521,7 @@ tests =
         , "Text after empty comment" =: ";\nfoo" =?> para "foo" -- Make sure we don't consume newline while looking for whitespace
         , "Not a comment (does not start with a semicolon)" =: " ; Not a comment" =?> para (text "; Not a comment")
         , "Not a comment (has no space after semicolon)" =: ";Not a comment" =?> para (text ";Not a comment")
+        , "Not a comment (semicolon not in the first column)" =: " - ; foo" =?> bulletList [para "; foo"]
         ]
       , testGroup "Headers"
         [ "Part" =:
