@@ -822,6 +822,8 @@ anchor = try $ do
 -- | Parse a footnote reference.
 footnote :: PandocMonad m => MuseParser m (F Inlines)
 footnote = try $ do
+  inLink <- museInLink <$> getState
+  guard $ not inLink
   ref <- noteMarker
   return $ do
     notes <- asksF museNotes

@@ -210,6 +210,9 @@ tests =
         , "No implicit links" =: "http://example.org/index.php?action=view&id=1"
                =?> para "http://example.org/index.php?action=view&id=1"
         , "Link with empty URL" =: "[[][empty URL]]" =?> para (link "" "" (text "empty URL"))
+        , "No footnotes inside links" =:
+          "[[https://amusewiki.org/][foo[1]]" =?>
+          para (link "https://amusewiki.org/" "" (text "foo[1"))
         ]
 
       , testGroup "Literal"
