@@ -69,6 +69,7 @@ import Network.URI (URI (..), parseURI)
 #ifdef EMBED_DATA_FILES
 import Text.Pandoc.Data (dataFiles)
 #else
+import System.Directory (getDirectoryContents)
 import Paths_pandoc (getDataDir)
 #endif
 import Data.Aeson.Encode.Pretty (encodePretty', Config(..), keyOrder,
