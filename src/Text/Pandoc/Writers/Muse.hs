@@ -400,6 +400,10 @@ isHorizontalRule s =
   ((length xs) >= 4) && null ys
   where (xs, ys) = span (== '-') s
 
+startsWithSpace :: String -> Bool
+startsWithSpace (x:_) = isSpace x
+startsWithSpace [] = False
+
 fixOrEscape :: Bool -> Inline -> Bool
 fixOrEscape sp (Str "-") = sp
 fixOrEscape sp (Str ";") = not sp
@@ -407,7 +411,7 @@ fixOrEscape _ (Str ">") = True
 fixOrEscape sp (Str s) = (sp && (startsWithMarker isDigit s ||
                                 startsWithMarker isAsciiLower s ||
                                 startsWithMarker isAsciiUpper s))
-                         || isHorizontalRule s
+                         || isHorizontalRule s || startsWithSpace s
 fixOrEscape _ Space = True
 fixOrEscape _ SoftBreak = True
 fixOrEscape _ _ = False

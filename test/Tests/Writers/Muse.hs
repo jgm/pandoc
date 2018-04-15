@@ -112,6 +112,15 @@ tests = [ testGroup "block elements"
                             , " <verbatim></verbatim> :: second description"
                             , " <verbatim></verbatim> :: third description"
                             ]
+              , "definition list terms starting with space" =:
+                definitionList [ (text "first definition", [plain $ text "first description"])
+                               , (space <> str "foo", [plain $ text "second description"])
+                               , (str " > bar", [plain $ text "third description"])
+                               ]
+                =?> unlines [ " first definition :: first description"
+                            , " <verbatim></verbatim> foo :: second description"
+                            , " <verbatim></verbatim> > bar :: third description"
+                            ]
               ]
             -- Test that lists of the same type and style are separated with two blanklines
             , testGroup "sequential lists"
