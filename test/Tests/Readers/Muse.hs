@@ -1153,6 +1153,24 @@ tests =
         definitionList [ ("First term", [ para "Definition of first term\nand its continuation." ])
                        , ("Second term", [ para "Definition of second term." ])
                        ]
+      , "Definition list with verse" =:
+        T.unlines
+          [ " First term :: Definition of first term"
+          , "  > First verse"
+          , "  > Second line of first verse"
+          , ""
+          , "               > Second verse"
+          , "               > Second line of second verse"
+          ] =?>
+        definitionList [ ("First term", [ para "Definition of first term" <>
+                                          lineBlock [ text "First verse"
+                                                    , text "Second line of first verse"
+                                                    ] <>
+                                          lineBlock [ text "Second verse"
+                                                    , text "Second line of second verse"
+                                                    ]
+                                        ])
+                       ]
       , test emacsMuse "Multi-line definition lists from Emacs Muse manual"
         (T.unlines
           [ "Term1 ::"

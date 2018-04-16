@@ -558,6 +558,7 @@ blanklineVerseLine = try $ do
 -- | Parse a line block indicated by @\'>\'@ characters.
 lineBlock :: PandocMonad m => MuseParser m (F Blocks)
 lineBlock = try $ do
+  many spaceChar
   col <- sourceColumn <$> getPosition
   lns <- (blanklineVerseLine <|> lineVerseLine) `sepBy1'` try (indentWith (col - 1))
   return $ B.lineBlock <$> sequence lns
