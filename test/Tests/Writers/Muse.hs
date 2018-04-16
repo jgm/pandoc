@@ -121,6 +121,15 @@ tests = [ testGroup "block elements"
                             , " <verbatim></verbatim> foo :: second description"
                             , " <verbatim></verbatim> > bar :: third description"
                             ]
+              , "definition list terms starting with list markers" =:
+                definitionList [ (text "first definition", [plain $ text "first description"])
+                               , (str "-", [plain $ text "second description"])
+                               , (str "1.", [plain $ text "third description"])
+                               ]
+                =?> unlines [ " first definition :: first description"
+                            , " <verbatim></verbatim>- :: second description"
+                            , " <verbatim></verbatim>1. :: third description"
+                            ]
               ]
             -- Test that lists of the same type and style are separated with two blanklines
             , testGroup "sequential lists"

@@ -101,7 +101,7 @@ writeMuse opts document =
                         , envInsideBlock = False
                         , envInlineStart = True
                         , envInsideLinkDescription = False
-                        , envAfterSpace = True
+                        , envAfterSpace = False
                         , envOneLine = False
                         }
 
@@ -223,7 +223,7 @@ blockToMuse (DefinitionList items) = do
                                  => ([Inline], [[Block]])
                                  -> Muse m Doc
         definitionListItemToMuse (label, defs) = do
-          label' <- local (\env -> env { envOneLine = True }) $ inlineListToMuse' label
+          label' <- local (\env -> env { envOneLine = True, envAfterSpace = True }) $ inlineListToMuse' label
           contents <- vcat <$> mapM descriptionToMuse defs
           let ind = offset label'
           return $ hang ind label' contents
@@ -439,14 +439,15 @@ renderInlineList (x:xs) = do
 
 -- | Normalize and convert list of Pandoc inline elements to Muse.
 inlineListToMuse'' :: PandocMonad m
-                  => Bool
-                  -> [Inline]
-                  -> Muse m Doc
+                   => Bool
+                   -> [Inline]
+                   -> Muse m Doc
 inlineListToMuse'' start lst = do
   lst' <- (normalizeInlineList . fixNotes) <$> preprocessInlineList (map (removeKeyValues . replaceSmallCaps) lst)
   topLevel <- asks envTopLevel
+  afterSpace <- asks envAfterSpace
   local (\env -> env { envInlineStart = start
-                     , envAfterSpace = start && not topLevel
+                     , envAfterSpace = afterSpace || (start && not topLevel)
                      }) $ renderInlineList lst'
 
 inlineListToMuse' :: PandocMonad m => [Inline] -> Muse m Doc
