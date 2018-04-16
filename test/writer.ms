@@ -86,7 +86,7 @@ Level 2 with an \c
 .pdfhref O 2 "Level 2 with an embedded link"
 .pdfhref M "level-2-with-an-embedded-link"
 .SH 3
-Level 3 with \f[I]emphasis\f[]
+Level 3 with \f[BI]emphasis\f[B]
 .pdfhref O 3 "Level 3 with emphasis"
 .pdfhref M "level-3-with-emphasis"
 .SH 4
@@ -102,7 +102,7 @@ Level 1
 .pdfhref O 1 "Level 1"
 .pdfhref M "level-1"
 .SH 2
-Level 2 with \f[I]emphasis\f[]
+Level 2 with \f[BI]emphasis\f[B]
 .pdfhref O 2 "Level 2 with emphasis"
 .pdfhref M "level-2-with-emphasis"
 .SH 3
@@ -481,13 +481,13 @@ yellow fruit
 .RE
 .LP
 Multiple blocks with italics:
-.IP "\f[I]apple\f[]"
+.IP "\f[I]apple\f[R]"
 red fruit
 .RS
 .PP
 contains seeds, crisp, pleasant to taste
 .RE
-.IP "\f[I]orange\f[]"
+.IP "\f[I]orange\f[R]"
 orange fruit
 .RS
 .IP
@@ -564,8 +564,8 @@ foo
 bar
 .LP
 Interpreted markdown in a table:
-This is \f[I]emphasized\f[]
-And this is \f[B]strong\f[]
+This is \f[I]emphasized\f[R]
+And this is \f[B]strong\f[R]
 .PP
 Here’s a simple block:
 .LP
@@ -621,29 +621,29 @@ Inline Markup
 .pdfhref O 1 "Inline Markup"
 .pdfhref M "inline-markup"
 .LP
-This is \f[I]emphasized\f[], and so \f[I]is this\f[].
+This is \f[I]emphasized\f[R], and so \f[I]is this\f[R].
 .PP
-This is \f[B]strong\f[], and so \f[B]is this\f[].
+This is \f[B]strong\f[R], and so \f[B]is this\f[R].
 .PP
 An \f[I]\c
 .pdfhref W -D "/url" -A "\c" \
  -- "emphasized link"
-\&\f[].
+\&\f[R].
 .PP
-\f[B]\f[BI]This is strong and em.\f[B]\f[]
+\f[B]\f[BI]This is strong and em.\f[B]\f[R]
 .PP
-So is \f[B]\f[BI]this\f[B]\f[] word.
+So is \f[B]\f[BI]this\f[B]\f[R] word.
 .PP
-\f[B]\f[BI]This is strong and em.\f[B]\f[]
+\f[B]\f[BI]This is strong and em.\f[B]\f[R]
 .PP
-So is \f[B]\f[BI]this\f[B]\f[] word.
+So is \f[B]\f[BI]this\f[B]\f[R] word.
 .PP
-This is code: \f[C]>\f[], \f[C]$\f[], \f[C]\\\f[], \f[C]\\$\f[],
-\f[C]<html>\f[].
+This is code: \f[C]>\f[R], \f[C]$\f[R], \f[C]\\\f[R], \f[C]\\$\f[R],
+\f[C]<html>\f[R].
 .PP
-\m[strikecolor]This is \f[I]strikeout\f[].\m[]
+\m[strikecolor]This is \f[I]strikeout\f[R].\m[]
 .PP
-Superscripts: a\*{bc\*}d a\*{\f[I]hello\f[]\*} a\*{hello\~there\*}.
+Superscripts: a\*{bc\*}d a\*{\f[I]hello\f[R]\*} a\*{hello\~there\*}.
 .PP
 Subscripts: H\*<2\*>O, H\*<23\*>O, H\*<many\~of\~them\*>O.
 .PP
@@ -665,7 +665,7 @@ So is `pine.'
 .PP
 `He said, \[lq]I want to go.\[rq]' Were you alive in the 70’s?
 .PP
-Here is some quoted `\f[C]code\f[]' and a \[lq]\c
+Here is some quoted `\f[C]code\f[R]' and a \[lq]\c
 .pdfhref W -D "http://example.com/?foo=1&bar=2" -A "\c" \
  -- "quoted link"
 \&\[rq].
@@ -701,15 +701,15 @@ Here’s one that has a line break in it: @alpha + omega times x sup 2@.
 .LP
 These shouldn’t be math:
 .IP \[bu] 3
-To get the famous equation, write \f[C]$e\ =\ mc\[ha]2$\f[].
+To get the famous equation, write \f[C]$e\ =\ mc\[ha]2$\f[R].
 .IP \[bu] 3
-$22,000 is a \f[I]lot\f[] of money.
+$22,000 is a \f[I]lot\f[R] of money.
 So is $34,000.
 (It worked if \[lq]lot\[rq] is emphasized.)
 .IP \[bu] 3
 Shoes ($20) and socks ($5).
 .IP \[bu] 3
-Escaped \f[C]$\f[]: $73 \f[I]this should be emphasized\f[] 23$.
+Escaped \f[C]$\f[R]: $73 \f[I]this should be emphasized\f[R] 23$.
 .LP
 Here’s a LaTeX table:
 .HLINE
@@ -932,7 +932,7 @@ Blockquoted: \c
 \&
 .RE
 .LP
-Auto-links should not occur here: \f[C]<http://example.com/>\f[]
+Auto-links should not occur here: \f[C]<http://example.com/>\f[R]
 .IP
 .nf
 \f[C]
@@ -979,14 +979,14 @@ with list items).
 If you want, you can indent every line, but you can also be lazy and just
 indent the first line of each block.
 .FE
-This should \f[I]not\f[] be a footnote reference, because it contains a
+This should \f[I]not\f[R] be a footnote reference, because it contains a
 space.[\[ha]my note] Here is an inline note.\**
 .FS
-This is \f[I]easier\f[] to type.
+This is \f[I]easier\f[R] to type.
 Inline notes may contain \c
 .pdfhref W -D "http://google.com" -A "\c" \
  -- "links"
-\& and \f[C]]\f[] verbatim characters, as well as [bracketed text].
+\& and \f[C]]\f[R] verbatim characters, as well as [bracketed text].
 .FE
 .RS
 .LP

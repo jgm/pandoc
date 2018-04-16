@@ -40,7 +40,7 @@ module Text.Pandoc.Writers.Ms ( writeMs ) where
 import Prelude
 import Control.Monad.State.Strict
 import Data.Char (isLower, isUpper, toUpper, ord)
-import Data.List (intercalate, intersperse, sort)
+import Data.List (intercalate, intersperse)
 import qualified Data.Map as Map
 import Data.Maybe (catMaybes, fromMaybe)
 import Data.Text (Text)
@@ -68,6 +68,7 @@ data WriterState = WriterState { stHasInlineMath :: Bool
                                , stNotes         :: [Note]
                                , stSmallCaps     :: Bool
                                , stHighlighting  :: Bool
+                               , stInHeader      :: Bool
                                , stFontFeatures  :: Map.Map Char Bool
                                }
 
@@ -77,6 +78,7 @@ defaultWriterState = WriterState{ stHasInlineMath = False
                                 , stNotes         = []
                                 , stSmallCaps     = False
                                 , stHighlighting  = False
+                                , stInHeader      = False
                                 , stFontFeatures  = Map.fromList [
                                                        ('I',False)
                                                      , ('B',False)
@@ -264,7 +266,9 @@ blockToMs _ HorizontalRule = do
   return $ text ".HLINE"
 blockToMs opts (Header level (ident,classes,_) inlines) = do
   setFirstPara
+  modify $ \st -> st{ stInHeader = True }
   contents <- inlineListToMs' opts $ map breakToSpace inlines
+  modify $ \st -> st{ stInHeader = False }
   let (heading, secnum) = if writerNumberSections opts &&
                               "unnumbered" `notElem` classes
                              then (".NH", "\\*[SN]")
@@ -559,8 +563,15 @@ handleNote opts bs = do
 fontChange :: PandocMonad m => MS m Doc
 fontChange = do
   features <- gets stFontFeatures
-  let filling = sort [c | (c,True) <- Map.toList features]
-  return $ text $ "\\f[" ++ filling ++ "]"
+  inHeader <- gets stInHeader
+  let filling = ['C' | fromMaybe False $ Map.lookup 'C' features] ++
+                ['B' | inHeader ||
+                       fromMaybe False (Map.lookup 'B' features)] ++
+                ['I' | fromMaybe False $ Map.lookup 'I' features]
+  return $
+    if null filling
+       then text "\\f[R]"
+       else text $ "\\f[" ++ filling ++ "]"
 
 withFontFeature :: PandocMonad m => Char -> MS m Doc -> MS m Doc
 withFontFeature c action = do
