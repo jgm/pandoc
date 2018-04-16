@@ -87,7 +87,7 @@ instance Default WriterState
                           }
 
 evalMuse :: PandocMonad m => Muse m a -> WriterEnv -> WriterState -> m a
-evalMuse document env st = evalStateT (runReaderT document env) st
+evalMuse document env = evalStateT $ runReaderT document env
 
 -- | Convert Pandoc to Muse.
 writeMuse :: PandocMonad m
@@ -276,7 +276,7 @@ blockToMuse Null = return empty
 notesToMuse :: PandocMonad m
             => Notes
             -> Muse m Doc
-notesToMuse notes = vsep <$> (zipWithM noteToMuse [1 ..] notes)
+notesToMuse notes = vsep <$> zipWithM noteToMuse [1 ..] notes
 
 -- | Return Muse representation of a note.
 noteToMuse :: PandocMonad m
@@ -307,8 +307,7 @@ startsWithMarker _ [] = False
 
 -- | Escape special characters for Muse if needed.
 containsFootnotes :: String -> Bool
-containsFootnotes st =
-  p st
+containsFootnotes = p
   where p ('[':xs) = q xs || p xs
         p (_:xs) = p xs
         p "" = False
