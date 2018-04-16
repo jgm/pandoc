@@ -1986,7 +1986,7 @@ input formats
 :  `docx`, `html`
 
 output formats
-:  `markdown`, `docx`, `odt`, `opendocument`, `html`
+:  `docx`, `odt`, `opendocument`, `html`
 
 #### Extension: `styles` #### {#ext-styles}
 
