@@ -572,10 +572,8 @@ bulletListItemsUntil indent end = try $ do
   char '-'
   void spaceChar <|> lookAhead eol
   updateState (\st -> st { museInPara = False })
-  (x, e) <- listItemContentsUntil (indent + 2) (Right <$> try (optional blankline >> indentWith indent >> bulletListItemsUntil indent end)) (Left <$> end)
-  case e of
-    Left ee -> return ([x], ee)
-    Right (xs, ee) -> return (x:xs, ee)
+  (x, (xs, e)) <- listItemContentsUntil (indent + 2) (try (optional blankline >> indentWith indent >> bulletListItemsUntil indent end)) (([],) <$> end)
+  return (x:xs, e)
 
 -- | Parse a bullet list.
 bulletListUntil :: PandocMonad m
@@ -621,10 +619,8 @@ orderedListItemsUntil indent style end =
       pos <- getPosition
       void spaceChar <|> lookAhead eol
       updateState (\st -> st { museInPara = False })
-      (x, e) <- listItemContentsUntil (sourceColumn pos) (Right <$> try (optional blankline >> indentWith indent >> museOrderedListMarker style >> continuation)) (Left <$> end)
-      case e of
-        Left ee -> return ([x], ee)
-        Right (xs, ee) -> return (x:xs, ee)
+      (x, (xs, e)) <- listItemContentsUntil (sourceColumn pos) (try (optional blankline >> indentWith indent >> museOrderedListMarker style >> continuation)) (([],) <$> end)
+      return (x:xs, e)
 
 -- | Parse an ordered list.
 orderedListUntil :: PandocMonad m
@@ -647,10 +643,8 @@ descriptionsUntil :: PandocMonad m
 descriptionsUntil indent end = do
   void spaceChar <|> lookAhead eol
   updateState (\st -> st { museInPara = False })
-  (x, e) <- listItemContentsUntil indent (Right <$> try (optional blankline >> indentWith indent >> manyTill spaceChar (string "::") >> descriptionsUntil indent end)) (Left <$> end)
-  case e of
-    Right (xs, ee) -> return (x:xs, ee)
-    Left ee -> return ([x], ee)
+  (x, (xs, e)) <- listItemContentsUntil indent (try (optional blankline >> indentWith indent >> manyTill spaceChar (string "::") >> descriptionsUntil indent end)) (([],) <$> end)
+  return (x:xs, e)
 
 definitionListItemsUntil :: PandocMonad m
                          => Int
@@ -662,14 +656,9 @@ definitionListItemsUntil indent end =
     continuation = try $ do
       pos <- getPosition
       term <- trimInlinesF . mconcat <$> manyTill (choice inlineList) (try $ string "::")
-      (x, e) <- descriptionsUntil (sourceColumn pos) ((Right <$> try (optional blankline >> indentWith indent >> continuation)) <|> (Left <$> end))
-      let xx = do
-            term' <- term
-            x' <- sequence x
-            return (term', x')
-      case e of
-        Left ee -> return ([xx], ee)
-        Right (xs, ee) -> return (xx:xs, ee)
+      (x, (xs, e)) <- descriptionsUntil (sourceColumn pos) (try (optional blankline >> indentWith indent >> continuation) <|> (([],) <$> end))
+      let xx = (,) <$> term <*> sequence x
+      return (xx:xs, e)
 
 -- | Parse a definition list.
 definitionListUntil :: PandocMonad m
