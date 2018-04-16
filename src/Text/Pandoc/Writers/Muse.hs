@@ -396,9 +396,7 @@ urlEscapeBrackets (x:xs) = x:urlEscapeBrackets xs
 urlEscapeBrackets [] = []
 
 isHorizontalRule :: String -> Bool
-isHorizontalRule s =
-  ((length xs) >= 4) && null ys
-  where (xs, ys) = span (== '-') s
+isHorizontalRule s = length s >= 4 && all (== '-') s
 
 startsWithSpace :: String -> Bool
 startsWithSpace (x:_) = isSpace x
