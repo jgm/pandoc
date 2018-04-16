@@ -1265,7 +1265,7 @@ tests =
           , " - <quote>"
           , "   foo"
           , "   </quote>"
-          , " bar" -- Do not consume whitespace while looking for arbitraritly indented </quote>
+          , " bar" -- Do not consume whitespace while looking for arbitrarily indented </quote>
           , "</quote>"
           ] =?>
         blockQuote (bulletList [ blockQuote $ para "foo" ] <> para "bar")
