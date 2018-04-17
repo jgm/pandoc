@@ -295,6 +295,9 @@ tests = [ testGroup "inline code"
           , test markdownSmart "apostrophe after math" $ -- issue #1909
               "The value of the $x$'s and the systems' condition." =?>
               para (text "The value of the " <> math "x" <> text "\8217s and the systems\8217 condition.")
+          , test markdownSmart "unclosed double quote"
+            ("**this should \"be bold**"
+            =?> para (strong "this should \"be bold"))
           ]
         , testGroup "footnotes"
           [ "indent followed by newline and flush-left text" =:
