@@ -678,6 +678,7 @@ blockToLaTeX (OrderedList (start, numstyle, numdelim) lst) = do
   let enum = text $ "enum" ++ map toLower (toRomanNumeral oldlevel)
   let stylecommand
         | numstyle == DefaultStyle && numdelim == DefaultDelim = empty
+        | beamer && numstyle == Decimal && numdelim == Period = empty
         | beamer = brackets (todelim exemplar)
         | otherwise = "\\def" <> "\\label" <> enum <>
           braces (todelim $ tostyle enum)
