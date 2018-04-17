@@ -291,6 +291,10 @@ tests = [ testGroup "inlines"
             "docx/codeblock.docx"
             "docx/codeblock.native"
           , testCompare
+            "combine adjacent code blocks"
+            "docx/adjacent_codeblocks.docx"
+            "docx/adjacent_codeblocks.native"
+          , testCompare
             "dropcap paragraphs"
             "docx/drop_cap.docx"
             "docx/drop_cap.native"
