@@ -2146,7 +2146,6 @@ singleQuoted = try $ do
 doubleQuoted :: PandocMonad m => MarkdownParser m (F Inlines)
 doubleQuoted = try $ do
   doubleQuoteStart
-  contents <- mconcat <$> many (try $ notFollowedBy doubleQuoteEnd >> inline)
-  withQuoteContext InDoubleQuote (doubleQuoteEnd >> return
-       (fmap B.doubleQuoted . trimInlinesF $ contents))
-   <|> return (return (B.str "\8220") <> contents)
+  withQuoteContext InDoubleQuote $
+    fmap B.doubleQuoted . trimInlinesF . mconcat <$>
+      many1Till inline doubleQuoteEnd
