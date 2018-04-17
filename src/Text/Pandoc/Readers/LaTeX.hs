@@ -1315,6 +1315,7 @@ inlineCommands = M.union inlineLanguageCommands $ M.fromList
   , ("slshape", extractSpaces emph <$> inlines)
   , ("scshape", extractSpaces smallcaps <$> inlines)
   , ("bfseries", extractSpaces strong <$> inlines)
+  , ("noindent", pure mempty)
   , ("/", pure mempty) -- italic correction
   , ("aa", lit "å")
   , ("AA", lit "Å")
@@ -2123,6 +2124,8 @@ environments = M.fromList
           skipopts *> spaces *> optional braced *> spaces *> blocks)
    , ("figure", env "figure" $ skipopts *> figure)
    , ("subfigure", env "subfigure" $ skipopts *> tok *> figure)
+   , ("flushleft", env "flushleft" blocks)
+   , ("flushright", env "flushright" blocks)
    , ("center", env "center" blocks)
    , ("longtable",  env "longtable" $
           resetCaption *> simpTable "longtable" False >>= addTableCaption)
