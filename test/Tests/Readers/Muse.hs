@@ -637,6 +637,11 @@ tests =
                     , "#anchor and ends here."
                     ] =?>
           para ("Paragraph starts here\n" <> spanWith ("anchor", [], []) mempty <> "and ends here.")
+        , "Anchor with \"-\"" =:
+          T.unlines [ "; A comment to make sure anchor is not parsed as a directive"
+                    , "#anchor-id Target"
+                    ] =?>
+          para (spanWith ("anchor-id", [], []) mempty <> "Target")
         ]
       , testGroup "Footnotes"
         [ "Simple footnote" =:
