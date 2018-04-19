@@ -855,7 +855,7 @@ writeMedia :: FilePath -> MediaBag -> FilePath -> PandocIO ()
 writeMedia dir mediabag subpath = do
   -- we join and split to convert a/b/c to a\b\c on Windows;
   -- in zip containers all paths use /
-  let fullpath = dir </> normalise subpath
+  let fullpath = dir </> unEscapeString (normalise subpath)
   let mbcontents = lookupMedia subpath mediabag
   case mbcontents of
        Nothing -> throwError $ PandocResourceNotFound subpath
