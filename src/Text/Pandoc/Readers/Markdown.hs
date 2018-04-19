@@ -910,6 +910,17 @@ listContinuation continuationIndent = try $ do
   blanks <- many blankline
   return $ concat (x:xs) ++ blanks
 
+-- Variant of blanklines that doesn't require blank lines
+-- before a fence or eof.
+blanklines' :: PandocMonad m => MarkdownParser m [Char]
+blanklines' = blanklines <|> try checkDivCloser
+  where checkDivCloser = do
+          guardEnabled Ext_fenced_divs
+          divLevel <- stateFencedDivLevel <$> getState
+          guard (divLevel >= 1)
+          lookAhead divFenceEnd
+          return ""
+
 notFollowedByDivCloser :: PandocMonad m => MarkdownParser m ()
 notFollowedByDivCloser =
   guardDisabled Ext_fenced_divs <|>
@@ -1251,7 +1262,7 @@ alignType strLst len =
 
 -- Parse a table footer - dashed lines followed by blank line.
 tableFooter :: PandocMonad m => MarkdownParser m String
-tableFooter = try $ skipNonindentSpaces >> many1 (dashedLine '-') >> blanklines
+tableFooter = try $ skipNonindentSpaces >> many1 (dashedLine '-') >> blanklines'
 
 -- Parse a table separator - dashed line.
 tableSep :: PandocMonad m => MarkdownParser m Char
@@ -1262,7 +1273,7 @@ rawTableLine :: PandocMonad m
              => [Int]
              -> MarkdownParser m [String]
 rawTableLine indices = do
-  notFollowedBy' (blanklines <|> tableFooter)
+  notFollowedBy' (blanklines' <|> tableFooter)
   line <- many1Till anyChar newline
   return $ map trim $ tail $
            splitStringByIndices (init indices) line
@@ -1300,7 +1311,7 @@ simpleTable headless = do
   (aligns, _widths, heads', lines') <-
        tableWith (simpleTableHeader headless) tableLine
               (return ())
-              (if headless then tableFooter else tableFooter <|> blanklines)
+              (if headless then tableFooter else tableFooter <|> blanklines')
   -- Simple tables get 0s for relative column widths (i.e., use default)
   return (aligns, replicate (length aligns) 0, heads', lines')
 
