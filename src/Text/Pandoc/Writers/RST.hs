@@ -263,7 +263,6 @@ blockToRST (Header level (name,classes,_) inlines) = do
           return $ nowrap $ hang 3 ".. " (rub $$ name' $$ cls) $$ blankline
 blockToRST (CodeBlock (_,classes,kvs) str) = do
   opts <- gets stOptions
-  let tabstop = writerTabStop opts
   let startnum = maybe "" (\x -> " " <> text x) $ lookup "startFrom" kvs
   let numberlines = if "numberLines" `elem` classes
                        then "   :number-lines:" <> startnum
@@ -276,11 +275,10 @@ blockToRST (CodeBlock (_,classes,kvs) str) = do
                      c `notElem` ["sourceCode","literate","numberLines"]] of
              []       -> "::"
              (lang:_) -> (".. code:: " <> text lang) $$ numberlines)
-          $+$ nest tabstop (text str) $$ blankline
+          $+$ nest 3 (text str) $$ blankline
 blockToRST (BlockQuote blocks) = do
-  tabstop <- gets $ writerTabStop . stOptions
   contents <- blockListToRST blocks
-  return $ nest tabstop contents <> blankline
+  return $ nest 3 contents <> blankline
 blockToRST (Table caption aligns widths headers rows) = do
   caption' <- inlineListToRST caption
   let blocksToDoc opts bs = do
@@ -338,8 +336,7 @@ definitionListItemToRST :: PandocMonad m => ([Inline], [[Block]]) -> RST m Doc
 definitionListItemToRST (label, defs) = do
   label' <- inlineListToRST label
   contents <- liftM vcat $ mapM blockListToRST defs
-  tabstop <- gets $ writerTabStop . stOptions
-  return $ nowrap label' $$ nest tabstop (nestle contents <> cr)
+  return $ nowrap label' $$ nest 3 (nestle contents <> cr)
 
 -- | Format a list of lines as line block.
 linesToLineBlock :: PandocMonad m => [[Inline]] -> RST m Doc

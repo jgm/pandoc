@@ -24,23 +24,23 @@ tests = [ testGroup "rubrics"
                                             para $ text "baz"])] =?>
               unlines
               [ "foo"
-              , "    .. rubric:: bar"
+              , "   .. rubric:: bar"
               , ""
-              , "    baz"]
+              , "   baz"]
           , "in block quote" =:
               blockQuote (header 1 (text "bar")) =?>
-              "    .. rubric:: bar"
+              "   .. rubric:: bar"
           , "with id" =:
               blockQuote (headerWith ("foo",[],[]) 1 (text "bar")) =?>
               unlines
-              [ "    .. rubric:: bar"
-              , "       :name: foo"]
+              [ "   .. rubric:: bar"
+              , "      :name: foo"]
           , "with id class" =:
               blockQuote (headerWith ("foo",["baz"],[]) 1 (text "bar")) =?>
               unlines
-              [ "    .. rubric:: bar"
-              , "       :name: foo"
-              , "       :class: baz"]
+              [ "   .. rubric:: bar"
+              , "      :name: foo"
+              , "      :class: baz"]
           ]
         , testGroup "ligatures" -- handling specific sequences of blocks
           [ "a list is closed by a comment before a quote" =: -- issue 4248
@@ -50,7 +50,7 @@ tests = [ testGroup "rubrics"
               , ""
               , ".."
               , ""
-              , "    quoted"]
+              , "   quoted"]
           ]
         , testGroup "inlines"
           [ "are removed when empty" =: -- #4434
