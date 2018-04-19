@@ -593,7 +593,7 @@ uri = try $ do
   -- http://en.wikipedia.org/wiki/State_of_emergency_(disambiguation)
   -- as a URL, while NOT picking up the closing paren in
   -- (http://wikipedia.org). So we include balanced parens in the URL.
-  let isWordChar c = isAlphaNum c || c `elem` "#$%*+/@\\_-&="
+  let isWordChar c = isAlphaNum c || c `elem` "#$%+/@\\_-&="
   let wordChar = satisfy isWordChar
   let percentEscaped = try $ char '%' >> skipMany1 (satisfy isHexDigit)
   let entity = () <$ characterReference
