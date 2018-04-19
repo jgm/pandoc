@@ -118,6 +118,9 @@ description meta' = do
   bt <- booktitle meta'
   let as = authors meta'
   dd <- docdate meta'
+  annotation <- case lookupMeta "abstract" meta' of
+                  Just (MetaBlocks bs) -> (list . el "annotation") <$> cMapM blockToXml bs
+                  _ -> pure mempty
   let lang = case lookupMeta "lang" meta' of
                Just (MetaInlines [Str s]) -> [el "lang" $ iso639 s]
                Just (MetaString s)        -> [el "lang" $ iso639 s]
@@ -132,7 +135,7 @@ description meta' = do
                     Just (MetaString s) -> coverimage s
                     _       -> return []
   return $ el "description"
-    [ el "title-info" (genre : (bt ++ as ++ dd ++ lang))
+    [ el "title-info" (genre : (bt ++ annotation ++ as ++ dd ++ lang))
     , el "document-info" (el "program-used" "pandoc" : coverpage)
     ]
 

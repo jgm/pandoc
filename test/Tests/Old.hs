@@ -95,6 +95,7 @@ tests = [ testGroup "markdown"
           , fb2WriterTest "images" [] "fb2/images.markdown" "fb2/images.fb2"
           , fb2WriterTest "images-embedded" [] "fb2/images-embedded.html" "fb2/images-embedded.fb2"
           , fb2WriterTest "math" [] "fb2/math.markdown" "fb2/math.fb2"
+          , fb2WriterTest "meta" [] "fb2/meta.markdown" "fb2/meta.fb2"
           , fb2WriterTest "tables" [] "tables.native" "tables.fb2"
           , fb2WriterTest "testsuite" [] "testsuite.native" "writer.fb2"
           ]
