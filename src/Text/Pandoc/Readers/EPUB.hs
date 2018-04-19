@@ -93,7 +93,7 @@ fetchImages mimes root arc (query iq -> links) =
     mapM_ (uncurry3 insertMedia) (mapMaybe getEntry links)
   where
     getEntry link =
-        let abslink = normalise (root </> link) in
+        let abslink = normalise (unEscapeString (root </> link)) in
         (link , lookup link mimes, ) . fromEntry
           <$> findEntryByPath abslink arc
 
@@ -264,7 +264,7 @@ findAttrE :: PandocMonad m => QName -> Element -> m String
 findAttrE q e = mkE "findAttr" $ findAttr q e
 
 findEntryByPathE :: PandocMonad m => FilePath -> Archive -> m Entry
-findEntryByPathE (normalise -> path) a =
+findEntryByPathE (normalise . unEscapeString -> path) a =
   mkE ("No entry on path: " ++ path) $ findEntryByPath path a
 
 parseXMLDocE :: PandocMonad m => String -> m Element
