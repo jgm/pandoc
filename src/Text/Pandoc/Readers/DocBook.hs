@@ -16,7 +16,7 @@ import Text.Pandoc.Builder
 import Text.Pandoc.Class (PandocMonad)
 import Text.Pandoc.Options
 import Text.Pandoc.Shared (crFilter, safeRead)
-import Text.TeXMath (readMathML, writeTeX)
+import Text.TeXMath (readMathML, readTeX, writeTeX)
 import Text.XML.Light
 
 {-
@@ -236,7 +236,7 @@ List of all DocBook tags, with [x] indicating implemented,
 [ ] manvolnum - A reference volume number
 [x] markup - A string of formatting markup in text that is to be
     represented literally
-[ ] mathphrase - A mathematical phrase, an expression that can be represented
+[x] mathphrase - A mathematical phrase, an expression that can be represented
     with ordinary text and a small amount of markup
 [ ] medialabel - A name that identifies the physical medium on which some
     information resides
@@ -698,6 +698,8 @@ parseBlock (Elem e) =
         "bibliodiv" -> sect 1
         "biblioentry" -> parseMixed para (elContent e)
         "bibliomixed" -> parseMixed para (elContent e)
+        "equation"         -> para <$> equation e displayMath
+        "informalequation" -> para <$> equation e displayMath
         "glosssee" -> para . (\ils -> text "See " <> ils <> str ".")
                          <$> getInlines e
         "glossseealso" -> para . (\ils -> text "See also " <> ils <> str ".")
@@ -924,9 +926,9 @@ parseInline (CRef ref) =
   return $ maybe (text $ map toUpper ref) text $ lookupEntity ref
 parseInline (Elem e) =
   case qName (elName e) of
-        "equation" -> equation displayMath
-        "informalequation" -> equation displayMath
-        "inlineequation" -> equation math
+        "equation" -> equation e displayMath
+        "informalequation" -> equation e displayMath
+        "inlineequation" -> equation e math
         "subscript" -> subscript <$> innerInlines
         "superscript" -> superscript <$> innerInlines
         "inlinemediaobject" -> getMediaobject e
@@ -1005,13 +1007,6 @@ parseInline (Elem e) =
         _          -> innerInlines
    where innerInlines = (trimInlines . mconcat) <$>
                           mapM parseInline (elContent e)
-         equation constructor = return $ mconcat $
-           map (constructor . writeTeX)
-           $ rights
-           $ map (readMathML . showElement . everywhere (mkT removePrefix))
-           $ filterChildren (\x -> qName (elName x) == "math" &&
-                                   qPrefix (elName x) == Just "mml") e
-         removePrefix elname = elname { qPrefix = Nothing }
          codeWithLang = do
            let classes' = case attrValue "language" e of
                                "" -> []
@@ -1062,3 +1057,26 @@ parseInline (Elem e) =
             xrefLabel = attrValue "xreflabel" el
             descendantContent name = maybe "???" strContent
                                    . filterElementName (\n -> qName n == name)
+
+equation e constructor =
+  return
+    $  mconcat
+    $  map (constructor . writeTeX)
+    $  rights
+    $  ( map (readMathML . showElement . everywhere (mkT removePrefix))
+       $ filterChildren
+           (\x ->
+             qName (elName x) == "math" && qPrefix (elName x) == Just "mml"
+           )
+           e
+       )
+    ++ ( map
+           (readTeX . concat . fmap showVerbatimCData . elContent . everywhere
+             (mkT removePrefix)
+           )
+       $ filterChildren (\x -> qName (elName x) == "mathphrase") e
+       )
+
+showVerbatimCData (Text (CData _ d _)) = d
+
+removePrefix elname = elname { qPrefix = Nothing }
