@@ -16,7 +16,7 @@ import Text.Pandoc.Builder
 import Text.Pandoc.Class (PandocMonad)
 import Text.Pandoc.Options
 import Text.Pandoc.Shared (crFilter, safeRead)
-import Text.TeXMath (readMathML, readTeX, writeTeX)
+import Text.TeXMath (readMathML, writeTeX)
 import Text.XML.Light
 
 {-
@@ -1058,25 +1058,44 @@ parseInline (Elem e) =
             descendantContent name = maybe "???" strContent
                                    . filterElementName (\n -> qName n == name)
 
+-- | Extract a math equation from an element
+--
+-- asciidoc can generate Latex math in CDATA sections.
+--
+-- Note that if some MathML can't be parsed it is silently ignored!
+equation
+  :: Monad m
+  => Element
+  -- ^ The element from which to extract a mathematical equation
+  -> (String -> Inlines)
+  -- ^ A constructor for some Inlines, taking the TeX code as input
+  -> m Inlines
 equation e constructor =
-  return
-    $  mconcat
-    $  map (constructor . writeTeX)
-    $  rights
-    $  ( map (readMathML . showElement . everywhere (mkT removePrefix))
-       $ filterChildren
-           (\x ->
-             qName (elName x) == "math" && qPrefix (elName x) == Just "mml"
-           )
-           e
-       )
-    ++ ( map
-           (readTeX . concat . fmap showVerbatimCData . elContent . everywhere
-             (mkT removePrefix)
-           )
-       $ filterChildren (\x -> qName (elName x) == "mathphrase") e
-       )
+  return $ mconcat $ map constructor $ mathMLEquations ++ latexEquations
+  where
+    mathMLEquations :: [String]
+    mathMLEquations = map writeTeX $ rights $ readMath
+      (\x -> qName (elName x) == "math" && qPrefix (elName x) == Just "mml")
+      (readMathML . showElement)
 
-showVerbatimCData (Text (CData _ d _)) = d
+    latexEquations :: [String]
+    latexEquations = readMath (\x -> qName (elName x) == "mathphrase")
+                              (concat . fmap showVerbatimCData . elContent)
 
+    readMath :: (Element -> Bool) -> (Element -> b) -> [b]
+    readMath childPredicate fromElement =
+      ( map (fromElement . everywhere (mkT removePrefix))
+      $ filterChildren childPredicate e
+      )
+
+-- | Get the actual text stored in a verbatim CData block. 'showContent'
+-- returns the text still surrounded by the [[CDATA]] tags.
+--
+-- Returns 'showContent' if this is not a verbatim CData
+showVerbatimCData :: Content -> String
+showVerbatimCData (Text (CData CDataVerbatim d _)) = d
+showVerbatimCData c = showContent c
+
+-- | Set the prefix of a name to 'Nothing'
+removePrefix :: QName -> QName
 removePrefix elname = elname { qPrefix = Nothing }
