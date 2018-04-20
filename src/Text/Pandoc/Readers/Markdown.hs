@@ -674,6 +674,8 @@ keyValAttr = try $ do
   char '='
   val <- enclosed (char '"') (char '"') litChar
      <|> enclosed (char '\'') (char '\'') litChar
+     <|> ("" <$ try (string "\"\""))
+     <|> ("" <$ try (string "''"))
      <|> many (escapedChar' <|> noneOf " \t\n\r}")
   return $ \(id',cs,kvs) ->
     case key of
