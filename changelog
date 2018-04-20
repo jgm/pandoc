@@ -1,5 +1,20 @@
 pandoc (2.1.4)
 
+  * Markdown reader:
+
+    + Allow empty key-value attributes, like `title=""` (#2944).
+    + Handle table w/o following blank line in fenced div (#4560).
+    + Remove "fallback" for `doubleQuote` parser.  Previously the
+      parser tried to be efficient -- if no end double quote was found,
+      it would just return the contents.  But this could backfire in a
+      case `**this should "be bold**`, since the fallback would return
+      the content `"be bold**` and the closing boldface delimiter
+      would never be encountered.
+
+  * EPUB reader:
+
+    + Fix images with space in file path (#4344).
+
   * LaTeX reader:
 
     + Properly resolve section numbers with `\ref` and chapters (#4529).
@@ -21,6 +36,12 @@ pandoc (2.1.4)
       Previously we just got `section_title` for `section` (though `sect1`,
       `sect2`, etc. were handled properly).
 
+  * Docx reader:
+
+    + Combine adjacent CodeBlocks with the same attributes into
+      a single CodeBlock.  This prevents a multiline codeblock in
+      Word from being read as different paragraphs.
+
   * Muse reader (Alexander Krotov):
 
     + Add support for Text:Amuse multiline headings.
@@ -28,6 +49,8 @@ pandoc (2.1.4)
     + Add support for `<biblio>` and `<play>` tags.
     + Allow links to have empty descriptions.
     + Require block `<literal>` tags to be on separate lines.
+    + Allow `-` in anchors.
+    + Allow verse to be indented.
     + Internal improvements.
 
   * Muse writer (Alexander Krotov):
@@ -38,11 +61,13 @@ pandoc (2.1.4)
     + Only escape brackets when necessary.
     + Escape ordered list markers.
     + Do not escape list markers unless preceded by space.
+    + Escape strings starting with space.
     + Escape semicolons and markers after line break.
     + Escape `;` to avoid accidental comments.
     + Don't break headers, line blocks and tables with line breaks.
     + Correctly output empty headings.
     + Escape horizontal rule only if at the beginning of the line.
+    + Escape definition list terms starting with list markers.
     + Place header IDs before header.
     + Improve span writing.
     + Do not join Spans in normalization.
@@ -51,6 +76,13 @@ pandoc (2.1.4)
     + Enable `--wrap=preserve` for all tests by default.
     + Reduced `<verbatim>` tags in output.
     + Internal changes.
+
+  * RST writer:
+
+    + Use more consistent indentation (#4563).  Previously we
+      used an odd mix of 3- and 4-space indentation.  Now we use 3-space
+      indentation, except for ordered lists, where indentation must
+      depend on the width of the list marker.
 
   * EPUB writer:
 
@@ -64,6 +96,7 @@ pandoc (2.1.4)
       were turned into footnotes with unclickable URLs inside.
     + Allow emphasis and notes in titles.
     + Don't intersperse paragraph with empty lines.
+    + Convert metadata value `abstract` to book annotation.
 
   * Powerpoint writer (Jesse Rosenthal):
 
@@ -87,11 +120,41 @@ pandoc (2.1.4)
     + Correctly ignore LaTeX raw blocks when `raw_tex` is not
       enabled (#4527, quasicomputational).
 
-  * EPUB writer: add `epub:type="footnotes"` to notes section in EPUB3
-    (#4489).
+  * EPUB writer:
 
-  * Text.Pandoc.Parsing: Fix `romanNumeral` parser (#4480).
-    We previously accepted 'DDC' as 1100.
+    + Add `epub:type="footnotes"` to notes section in EPUB3 (#4489).
+
+  * LaTeX writer:
+
+    + In beamer, don't use format specifier for default ordered lists
+      (#4556).  This gives better results for styles that put ordered list
+      markers in boxes or circles.
+
+  * Ms writer:
+
+    + Use `\f[R]` rather than `\f[]` to reset font (#4552).
+    + Use `\f[BI]` and `\f[CB]` in headers, instead of `\f[I]` and `\f[C]`,
+      since the header font is automatically bold (#4552).
+    + Use `\f[CB]` rather than `\f[BC]` for monospace bold (#4552).
+    + Create pdf anchor for a Div with an identifier (#4515).
+    + Escape `/` character in anchor ids (#4515).
+    + Improve escaping for anchor ids: we now use _uNNN_ instead of uNNN
+      to avoid ambiguity.
+
+  * Man writer:
+
+    + Don't escape U+2019 as `'` (#4550).
+
+  * Text.Pandoc.Class:
+
+    + `writeMedia`: unescape URI-escaping in file path.  This avoids
+      writing things like `file%20one.png` to the file system.
+
+  * Text.Pandoc.Parsing:
+
+    + Fix `romanNumeral` parser (#4480).  We previously accepted 'DDC'
+      as 1100.
+    + `uri`: don't treat `*` characters at end as part of URI (#4561).
 
   * Text.Pandoc.PDF:
 
@@ -114,6 +177,12 @@ pandoc (2.1.4)
 
   * Removed pragmas for unused extensions (#4506, Anabra).
 
+  * Fix bash completion for `--print-default-data-file` (#4549).
+    Previously this looked in the filesystem, even if pandoc
+    was compiled with `embed_data_files` (and sometimes it looked
+    in a nonexistent build directory).  Now the bash completion
+    script just includes a hard-coded list of data file names.
+
   * MANUAL:
 
     + Clarify template vs metadata variables (#4501, Mauro Bieg).
@@ -123,6 +192,7 @@ pandoc (2.1.4)
       The documentation states that the target format name should match
       the output format, which isn't the case for `docx`/`openxml` and
       some others.
+    + Don't say that `empty_paragraphs` affects markdown output (#4540).
 
   * Fix example in lua-filters docs (#4459, HeirOfNorton).
 
@@ -133,6 +203,7 @@ pandoc (2.1.4)
   * Removed old lib directory.  This was used for something long ago,
     but plays no role now.
 
+  * Create 64- and 32-bit versions of Windows binary packages.
 
 pandoc (2.1.3)
 
@@ -154,11 +225,14 @@ pandoc (2.1.3)
 
   * Muse reader (Alexander Krotov):
 
-    + Various internal improvements.
     + Require closing tag to have the same indentation as opening.
     + Do not reparse blocks inside unclosed block tag (#4425).
     + Parse `<class>` tag (supported by Emacs Muse).
     + Do not produce empty Str element for unindented verse lines.
+    + Don't allow footnote references inside links.
+    + Allow URL to be empty.
+    + Require that comment semicolons are in the first column (#4551).
+    + Various internal improvements.
 
   * LaTeX reader:
 
