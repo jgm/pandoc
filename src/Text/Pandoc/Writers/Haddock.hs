@@ -248,14 +248,18 @@ inlineToHaddock opts SoftBreak =
        WrapPreserve -> return cr
 inlineToHaddock _ Space = return space
 inlineToHaddock opts (Cite _ lst) = inlineListToHaddock opts lst
-inlineToHaddock _ (Link _ txt (src, _)) = do
+inlineToHaddock opts (Link _ txt (src, _)) = do
   let linktext = text $ escapeString $ stringify txt
   let useAuto = isURI src &&
                 case txt of
                       [Str s] | escapeURI s == src -> True
                       _       -> False
-  return $ nowrap $ "<" <> text src <>
-           (if useAuto then empty else space <> linktext) <> ">"
+  if useAuto
+    then return $ nowrap $ "<" <> text src <> ">"
+    -- else "[" <> linktext <> "]" <> "(" <> text src <> ")"
+    else do
+      t <- inlineListToHaddock opts txt
+      pure $ "[" <> t <> "]" <> "(" <> text src <> ")"
 inlineToHaddock opts (Image attr alternate (source, tit)) = do
   linkhaddock <- inlineToHaddock opts (Link attr alternate (source, tit))
   return $ "<" <> linkhaddock <> ">"
