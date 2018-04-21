@@ -174,7 +174,7 @@ mimeTypesList = -- List borrowed from happstack-server.
            ,("eml","message/rfc822")
            ,("ent","chemical/x-ncbi-asn1-ascii")
            ,("eot","application/vnd.ms-fontobject")
-           ,("eps","application/postscript")
+           ,("eps","application/eps")
            ,("etx","text/x-setext")
            ,("exe","application/x-msdos-program")
            ,("ez","application/andrew-inset")
