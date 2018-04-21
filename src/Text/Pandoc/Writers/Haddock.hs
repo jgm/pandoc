@@ -251,8 +251,8 @@ inlineToHaddock _ (Str str) =
   return $ text $ escapeString str
 inlineToHaddock _ (Math mt str) =
   return $ case mt of
-    DisplayMath -> cr <> "\\\\[" <> text str <> "\\\\]" <> cr
-    InlineMath  -> ("\\(" <> text str <> "\\)")
+    DisplayMath -> cr <> "\\[" <> text str <> "\\]" <> cr
+    InlineMath  -> "\\(" <> text str <> "\\)"
 inlineToHaddock _ il@(RawInline f str)
   | f == "haddock" = return $ text str
   | otherwise = do
