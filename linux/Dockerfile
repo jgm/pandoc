@@ -6,7 +6,9 @@ ADD https://raw.githubusercontent.com/mitchty/alpine-ghc/master/mitch.tishmack%4
 RUN apk update
 RUN apk add alpine-sdk git ca-certificates ghc cabal stack zlib-dev \
     dpkg fakeroot sed gawk grep bash linux-headers
+ENV PATH="/root/.local/bin:${PATH}"
 RUN stack update
+RUN stack upgrade
 RUN stack config set system-ghc --global true
 #RUN mkdir -p /etc/stack
 #RUN echo "build: { split-objs: true }" > /etc/stack/config.yaml
