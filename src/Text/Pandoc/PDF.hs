@@ -175,6 +175,8 @@ convertImage tmpdir fname =
     Just "image/png" -> doNothing
     Just "image/jpeg" -> doNothing
     Just "application/pdf" -> doNothing
+    -- Note: eps is converted by pdflatex using epstopdf.pl
+    Just "application/eps" -> doNothing
     Just "image/svg+xml" -> E.catch (do
       (exit, _) <- pipeProcess Nothing "rsvg-convert"
                      ["-f","pdf","-a","-o",pdfOut,fname] BL.empty
