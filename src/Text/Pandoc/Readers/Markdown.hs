@@ -1341,11 +1341,16 @@ multilineTableHeader headless = try $ do
   newline
   let (lengths, lines') = unzip dashes
   let indices  = scanl (+) (length initSp) lines'
+  -- compensate for the fact that intercolumn spaces are
+  -- not included in the last index:
+  let indices' = case reverse indices of
+                      []     -> []
+                      (x:xs) -> reverse (x+1:xs)
   rawHeadsList <- if headless
                      then fmap (map (:[]) . tail .
-                              splitStringByIndices (init indices)) $ lookAhead anyLine
+                              splitStringByIndices (init indices')) $ lookAhead anyLine
                      else return $ transpose $ map
-                           (tail . splitStringByIndices (init indices))
+                           (tail . splitStringByIndices (init indices'))
                            rawContent
   let aligns   = zipWith alignType rawHeadsList lengths
   let rawHeads = if headless
@@ -1353,7 +1358,7 @@ multilineTableHeader headless = try $ do
                     else map (unlines . map trim) rawHeadsList
   heads <- fmap sequence $
             mapM ((parseFromString' (mconcat <$> many plain)).trim) rawHeads
-  return (heads, aligns, indices)
+  return (heads, aligns, indices')
 
 -- Parse a grid table:  starts with row of '-' on top, then header
 -- (which may be grid), then the rows,

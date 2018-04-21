@@ -33,7 +33,7 @@ Simple table indented two spaces:
 Multiline table with caption:
 
 .Here’s the caption. It may span multiple lines.
-[width="78%",cols="^21%,<17%,>20%,<42%",options="header",]
+[width="80%",cols="^20%,<17%,>20%,<43%",options="header",]
 |=======================================================================
 |Centered Header |Left Aligned |Right Aligned |Default aligned
 |First |row |12.0 |Example of a row that spans multiple lines.
@@ -42,7 +42,7 @@ Multiline table with caption:
 
 Multiline table without caption:
 
-[width="78%",cols="^21%,<17%,>20%,<42%",options="header",]
+[width="80%",cols="^20%,<17%,>20%,<43%",options="header",]
 |=======================================================================
 |Centered Header |Left Aligned |Right Aligned |Default aligned
 |First |row |12.0 |Example of a row that spans multiple lines.
@@ -60,7 +60,7 @@ Table without column headers:
 
 Multiline table without column headers:
 
-[width="78%",cols="^21%,<17%,>20%,42%",]
+[width="80%",cols="^20%,<17%,>20%,43%",]
 |=======================================================================
 |First |row |12.0 |Example of a row that spans multiple lines.
 |Second |row |5.0 |Here’s another one. Note the blank line between rows.

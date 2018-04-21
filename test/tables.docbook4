@@ -228,7 +228,7 @@
     <colspec colwidth="15*" align="center" />
     <colspec colwidth="13*" align="left" />
     <colspec colwidth="16*" align="right" />
-    <colspec colwidth="33*" align="left" />
+    <colspec colwidth="35*" align="left" />
     <thead>
       <row>
         <entry>
@@ -285,7 +285,7 @@
     <colspec colwidth="15*" align="center" />
     <colspec colwidth="13*" align="left" />
     <colspec colwidth="16*" align="right" />
-    <colspec colwidth="33*" align="left" />
+    <colspec colwidth="35*" align="left" />
     <thead>
       <row>
         <entry>
@@ -397,7 +397,7 @@
     <colspec colwidth="15*" align="center" />
     <colspec colwidth="13*" align="left" />
     <colspec colwidth="16*" align="right" />
-    <colspec colwidth="33*" align="left" />
+    <colspec colwidth="35*" align="left" />
     <tbody>
       <row>
         <entry>

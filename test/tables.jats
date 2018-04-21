@@ -122,7 +122,7 @@
     <col width="15*" align="center" />
     <col width="13*" align="left" />
     <col width="16*" align="right" />
-    <col width="33*" align="left" />
+    <col width="35*" align="left" />
     <thead>
       <tr>
         <th>Centered Header</th>
@@ -152,7 +152,7 @@
   <col width="15*" align="center" />
   <col width="13*" align="left" />
   <col width="16*" align="right" />
-  <col width="33*" align="left" />
+  <col width="35*" align="left" />
   <thead>
     <tr>
       <th>Centered Header</th>
@@ -208,7 +208,7 @@
   <col width="15*" align="center" />
   <col width="13*" align="left" />
   <col width="16*" align="right" />
-  <col width="33*" align="left" />
+  <col width="35*" align="left" />
   <tbody>
     <tr>
       <td>First</td>

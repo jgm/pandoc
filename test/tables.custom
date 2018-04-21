@@ -95,7 +95,7 @@ It may span multiple lines.</caption>
 <col width="15%" />
 <col width="14%" />
 <col width="16%" />
-<col width="34%" />
+<col width="35%" />
 <tr class="header">
 <th align="center">Centered
 Header</th>
@@ -127,7 +127,7 @@ the blank line between rows.</td>
 <col width="15%" />
 <col width="14%" />
 <col width="16%" />
-<col width="34%" />
+<col width="35%" />
 <tr class="header">
 <th align="center">Centered
 Header</th>
@@ -182,7 +182,7 @@ the blank line between rows.</td>
 <col width="15%" />
 <col width="14%" />
 <col width="16%" />
-<col width="34%" />
+<col width="35%" />
 <tr class="odd">
 <td align="center">First</td>
 <td align="left">row</td>

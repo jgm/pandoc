@@ -83,7 +83,7 @@ Right
 Multiline table with caption:
 
 @float
-@multitable @columnfractions 0.15 0.14 0.16 0.34 
+@multitable @columnfractions 0.15 0.14 0.16 0.35 
 @headitem 
 Centered Header
  @tab Left Aligned
@@ -104,7 +104,7 @@ Second
 @end float
 Multiline table without caption:
 
-@multitable @columnfractions 0.15 0.14 0.16 0.34 
+@multitable @columnfractions 0.15 0.14 0.16 0.35 
 @headitem 
 Centered Header
  @tab Left Aligned
@@ -144,7 +144,7 @@ Table without column headers:
 
 Multiline table without column headers:
 
-@multitable @columnfractions 0.15 0.14 0.16 0.34 
+@multitable @columnfractions 0.15 0.14 0.16 0.35 
 @item 
 First
  @tab row

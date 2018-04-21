@@ -732,7 +732,10 @@ pandocTable opts multiline headless aligns widths rawHeaders rawRows = do
                   then empty
                   else border <> cr <> head'
   let body = if multiline
-                then vsep rows'
+                then vsep rows' $$
+                     if length rows' < 2
+                        then blankline -- #4578
+                        else empty
                 else vcat rows'
   let bottom = if headless
                   then underline

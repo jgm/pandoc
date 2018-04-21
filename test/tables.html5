@@ -94,13 +94,13 @@
 </tbody>
 </table>
 <p>Multiline table with caption:</p>
-<table style="width:79%;">
+<table style="width:80%;">
 <caption>Here’s the caption. It may span multiple lines.</caption>
 <colgroup>
 <col style="width: 15%" />
 <col style="width: 13%" />
 <col style="width: 16%" />
-<col style="width: 33%" />
+<col style="width: 35%" />
 </colgroup>
 <thead>
 <tr class="header">
@@ -126,12 +126,12 @@
 </tbody>
 </table>
 <p>Multiline table without caption:</p>
-<table style="width:79%;">
+<table style="width:80%;">
 <colgroup>
 <col style="width: 15%" />
 <col style="width: 13%" />
 <col style="width: 16%" />
-<col style="width: 33%" />
+<col style="width: 35%" />
 </colgroup>
 <thead>
 <tr class="header">
@@ -180,12 +180,12 @@
 </tbody>
 </table>
 <p>Multiline table without column headers:</p>
-<table style="width:79%;">
+<table style="width:80%;">
 <colgroup>
 <col style="width: 15%" />
 <col style="width: 13%" />
 <col style="width: 16%" />
-<col style="width: 33%" />
+<col style="width: 35%" />
 </colgroup>
 <tbody>
 <tr class="odd">

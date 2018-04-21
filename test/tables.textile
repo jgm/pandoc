@@ -80,7 +80,7 @@ Multiline table with caption:
 <col width="15%" />
 <col width="13%" />
 <col width="16%" />
-<col width="33%" />
+<col width="35%" />
 <thead>
 <tr class="header">
 <th align="center">Centered Header</th>
@@ -111,7 +111,7 @@ Multiline table without caption:
 <col width="15%" />
 <col width="13%" />
 <col width="16%" />
-<col width="33%" />
+<col width="35%" />
 <thead>
 <tr class="header">
 <th align="center">Centered Header</th>
@@ -148,7 +148,7 @@ Multiline table without column headers:
 <col width="15%" />
 <col width="13%" />
 <col width="16%" />
-<col width="33%" />
+<col width="35%" />
 <tbody>
 <tr class="odd">
 <td align="center">First</td>
