@@ -130,9 +130,11 @@ makePDF "pdfroff" pdfargs writer opts doc = do
   verbosity <- getVerbosity
   liftIO $ ms2pdf verbosity args source
 makePDF program pdfargs writer opts doc = do
-  let withTemp = if takeBaseName program == "context"
-                    then withTempDirectory "."
-                    else withTempDir
+  -- With context and latex, we create a temp directory within
+  -- the working directory, since pdflatex sometimes tries to
+  -- use tools like epstopdf.pl, which are restricted if run
+  -- on files outside the working directory.
+  let withTemp = withTempDirectory "."
   commonState <- getCommonState
   verbosity <- getVerbosity
   liftIO $ withTemp "tex2pdf." $ \tmpdir -> do
