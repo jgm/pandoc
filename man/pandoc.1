@@ -1,5 +1,5 @@
 .\"t
-.TH PANDOC 1 "March 17, 2018" "pandoc 2.1.3"
+.TH PANDOC 1 "March 17, 2018" "pandoc 2.1.4"
 .SH NAME
 pandoc - general markup converter
 .SH SYNOPSIS
@@ -537,14 +537,16 @@ return\ {{Str\ =\ expand_hello_world}}
 .B \f[C]\-M\f[] \f[I]KEY\f[][\f[C]=\f[]\f[I]VAL\f[]], \f[C]\-\-metadata=\f[]\f[I]KEY\f[][\f[C]:\f[]\f[I]VAL\f[]]
 Set the metadata field \f[I]KEY\f[] to the value \f[I]VAL\f[].
 A value specified on the command line overrides a value specified in the
-document.
+document using [YAML metadata
+blocks][Extension:\f[C]yaml_metadata_block\f[]].
 Values will be parsed as YAML boolean or string values.
 If no value is specified, the value will be treated as Boolean true.
 Like \f[C]\-\-variable\f[], \f[C]\-\-metadata\f[] causes template
 variables to be set.
 But unlike \f[C]\-\-variable\f[], \f[C]\-\-metadata\f[] affects the
 metadata of the underlying document (which is accessible from filters
-and may be printed in some output formats).
+and may be printed in some output formats) and metadata values will be
+escaped when inserted into the template.
 .RS
 .RE
 .TP
@@ -1419,23 +1421,25 @@ template.
 For \f[C]pdf\f[] output, customize the \f[C]default.latex\f[] template
 (or the \f[C]default.context\f[] template, if you use
 \f[C]\-t\ context\f[], or the \f[C]default.ms\f[] template, if you use
-\f[C]\-t\ ms\f[], or the \f[C]default.html5\f[] template, if you use
-\f[C]\-t\ html5\f[]).
+\f[C]\-t\ ms\f[], or the \f[C]default.html\f[] template, if you use
+\f[C]\-t\ html\f[]).
 .IP \[bu] 2
 \f[C]docx\f[] has no template (however, you can use
 \f[C]\-\-reference\-doc\f[] to customize the output).
 .PP
 Templates contain \f[I]variables\f[], which allow for the inclusion of
 arbitrary information at any point in the file.
-Variables may be set within the document using YAML metadata blocks.
-They may also be set at the command line using the
-\f[C]\-V/\-\-variable\f[] option: variables set in this way override
-metadata fields with the same name.
+They may be set at the command line using the \f[C]\-V/\-\-variable\f[]
+option.
+If a variable is not set, pandoc will look for the key in the
+document\[aq]s metadata \[en] which can be set using either [YAML
+metadata blocks][Extension:\f[C]yaml_metadata_block\f[]] or with the
+\f[C]\-\-metadata\f[] option.
 .SS Variables set by pandoc
 .PP
 Some variables are set automatically by pandoc.
-These vary somewhat depending on the output format, but include metadata
-fields as well as the following:
+These vary somewhat depending on the output format, but include the
+following:
 .TP
 .B \f[C]sourcefile\f[], \f[C]outputfile\f[]
 source and destination filenames, as given on the command line.
@@ -1675,6 +1679,11 @@ document class, e.g.
 .B \f[C]classoption\f[]
 option for document class, e.g.
 \f[C]oneside\f[]; may be repeated for multiple options
+.RS
+.RE
+.TP
+.B \f[C]beameroption\f[]
+In beamer, add extra beamer option with \f[C]\\setbeameroption{}\f[]
 .RS
 .RE
 .TP
@@ -2359,7 +2368,7 @@ pandoc\ \-f\ markdown+lhs\ \-t\ html+lhs
 writes HTML with the Haskell code in bird tracks, so it can be copied
 and pasted as literate Haskell source.
 .PP
-Note that GHC expects the bird tracks in the first column, so indentend
+Note that GHC expects the bird tracks in the first column, so indented
 literate code blocks (e.g.
 inside an itemized environment) will not be picked up by the Haskell
 compiler.
@@ -2377,8 +2386,7 @@ This extension can be enabled/disabled for the following formats:
 .RE
 .TP
 .B output formats
-\f[C]markdown\f[], \f[C]docx\f[], \f[C]odt\f[], \f[C]opendocument\f[],
-\f[C]html\f[]
+\f[C]docx\f[], \f[C]odt\f[], \f[C]opendocument\f[], \f[C]html\f[]
 .RS
 .RE
 .SS Extension: \f[C]styles\f[]
@@ -3772,7 +3780,8 @@ For example:
 .nf
 \f[C]
 header\-includes:
-\-\ ```{=latex}
+\-\ |
+\ \ ```{=latex}
 \ \ \\let\\oldsection\\section
 \ \ \\renewcommand{\\section}[1]{\\clearpage\\oldsection{#1}}
 \ \ ```
@@ -4194,9 +4203,29 @@ This\ is\ `<a>html</a>`{=html}
 \f[]
 .fi
 .PP
+This can be useful to insert raw xml into \f[C]docx\f[] documents, e.g.
+a pagebreak:
+.IP
+.nf
+\f[C]
+```{=openxml}
+<w:p>
+\ \ <w:r>
+\ \ \ \ <w:br\ w:type="page"/>
+\ \ </w:r>
+</w:p>
+```
+\f[]
+.fi
+.PP
 The format name should match the target format name (see
 \f[C]\-t/\-\-to\f[], above, for a list, or use
 \f[C]pandoc\ \-\-list\-output\-formats\f[]).
+Use \f[C]openxml\f[] for \f[C]docx\f[] output, \f[C]opendocument\f[] for
+\f[C]odt\f[] output, \f[C]html5\f[] for \f[C]epub3\f[] output,
+\f[C]html4\f[] for \f[C]epub2\f[] output, and \f[C]latex\f[],
+\f[C]beamer\f[], \f[C]ms\f[], or \f[C]html5\f[] for \f[C]pdf\f[] output
+(depending on what you use for \f[C]\-\-pdf\-engine\f[]).
 .PP
 This extension presupposes that the relevant kind of inline code or
 fenced code block is enabled.
