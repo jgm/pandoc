@@ -22,93 +22,148 @@ groups](https://img.shields.io/badge/pandoc-discuss-red.svg?style=social)](https
 
 ## The universal markup converter
 
-<div id="description">
+Pandoc is a \[Haskell\] library for converting from one markup format to
+another, and a command-line tool that uses this library. It can convert
+*from*
 
-Pandoc is a [Haskell](https://www.haskell.org) library for converting
-from one markup format to another, and a command-line tool that uses
-this library.
+<div id="input-formats">
 
-Pandoc can read
-[Markdown](http://daringfireball.net/projects/markdown/),
-[CommonMark](http://commonmark.org), [PHP Markdown
-Extra](https://michelf.ca/projects/php-markdown/extra/),
-[GitHub-Flavored
-Markdown](https://help.github.com/articles/github-flavored-markdown/),
-[MultiMarkdown](http://fletcherpenney.net/multimarkdown/), and (subsets
-of) [Textile](http://redcloth.org/textile),
-[reStructuredText](http://docutils.sourceforge.net/docs/ref/rst/introduction.html),
-[HTML](http://www.w3.org/html/), [LaTeX](http://latex-project.org),
-[MediaWiki markup](https://www.mediawiki.org/wiki/Help:Formatting),
-[TWiki markup](http://twiki.org/cgi-bin/view/TWiki/TextFormattingRules),
-[TikiWiki
-markup](https://doc.tiki.org/Wiki-Syntax-Text#The_Markup_Language_Wiki-Syntax),
-[Creole 1.0](http://www.wikicreole.org/wiki/Creole1.0), [Haddock
-markup](https://www.haskell.org/haddock/doc/html/ch03s08.html),
-[OPML](http://dev.opml.org/spec2.html), [Emacs Org
-mode](http://orgmode.org), [DocBook](http://docbook.org),
-[JATS](https://jats.nlm.nih.gov),
-[Muse](https://amusewiki.org/library/manual),
-[txt2tags](http://txt2tags.org), [Vimwiki](https://vimwiki.github.io),
-[EPUB](http://idpf.org/epub),
-[ODT](http://en.wikipedia.org/wiki/OpenDocument), and [Word
-docx](https://en.wikipedia.org/wiki/Office_Open_XML).
+  - `commonmark` ([CommonMark](http://commonmark.org) Markdown)
+  - `creole` ([Creole 1.0](http://www.wikicreole.org/wiki/Creole1.0))
+  - `docbook` ([DocBook](http://docbook.org))
+  - `docx` ([Word docx](https://en.wikipedia.org/wiki/Office_Open_XML))
+  - `epub` ([EPUB](http://idpf.org/epub))
+  - `gfm` ([GitHub-Flavored
+    Markdown](https://help.github.com/articles/github-flavored-markdown/)),
+    or `markdown_github`, which provides deprecated and less accurate
+    support for Github-Flavored Markdown; please use `gfm` instead,
+    unless you need to use extensions other than `smart`.
+  - `haddock` ([Haddock
+    markup](https://www.haskell.org/haddock/doc/html/ch03s08.html))
+  - `html` ([HTML](http://www.w3.org/html/))
+  - `jats` ([JATS](https://jats.nlm.nih.gov) XML)
+  - `json` (JSON version of native AST)
+  - `latex` ([LaTeX](http://latex-project.org))
+  - `markdown` ([Pandoc’s Markdown](#pandocs-markdown))
+  - `markdown_mmd`
+    ([MultiMarkdown](http://fletcherpenney.net/multimarkdown/))
+  - `markdown_phpextra` ([PHP Markdown
+    Extra](https://michelf.ca/projects/php-markdown/extra/))
+  - `markdown_strict` (original unextended
+    [Markdown](http://daringfireball.net/projects/markdown/))
+  - `mediawiki` ([MediaWiki
+    markup](https://www.mediawiki.org/wiki/Help:Formatting))
+  - `muse` ([Muse](https://amusewiki.org/library/manual))
+  - `native` (native Haskell)
+  - `odt` ([ODT](http://en.wikipedia.org/wiki/OpenDocument))
+  - `opml` ([OPML](http://dev.opml.org/spec2.html))
+  - `org` ([Emacs Org mode](http://orgmode.org))
+  - `rst`
+    ([reStructuredText](http://docutils.sourceforge.net/docs/ref/rst/introduction.html))
+  - `t2t` ([txt2tags](http://txt2tags.org))
+  - `textile` ([Textile](http://redcloth.org/textile))
+  - `tikiwiki` ([TikiWiki
+    markup](https://doc.tiki.org/Wiki-Syntax-Text#The_Markup_Language_Wiki-Syntax))
+  - `twiki` ([TWiki
+    markup](http://twiki.org/cgi-bin/view/TWiki/TextFormattingRules))
+  - `vimwiki` ([Vimwiki](https://vimwiki.github.io))
 
-Pandoc can write plain text,
-[Markdown](http://daringfireball.net/projects/markdown/),
-[CommonMark](http://commonmark.org), [PHP Markdown
-Extra](https://michelf.ca/projects/php-markdown/extra/),
-[GitHub-Flavored
-Markdown](https://help.github.com/articles/github-flavored-markdown/),
-[MultiMarkdown](http://fletcherpenney.net/multimarkdown/),
-[reStructuredText](http://docutils.sourceforge.net/docs/ref/rst/introduction.html),
-[XHTML](http://www.w3.org/TR/xhtml1/),
-[HTML5](http://www.w3.org/TR/html5/), [LaTeX](http://latex-project.org)
-(including [`beamer`](https://ctan.org/pkg/beamer) slide shows),
-[ConTeXt](http://www.contextgarden.net/),
-[RTF](http://en.wikipedia.org/wiki/Rich_Text_Format),
-[OPML](http://dev.opml.org/spec2.html), [DocBook](http://docbook.org),
-[JATS](https://jats.nlm.nih.gov),
-[OpenDocument](http://opendocument.xml.org),
-[ODT](http://en.wikipedia.org/wiki/OpenDocument), [Word
-docx](https://en.wikipedia.org/wiki/Office_Open_XML), [GNU
-Texinfo](http://www.gnu.org/software/texinfo/), [MediaWiki
-markup](https://www.mediawiki.org/wiki/Help:Formatting), [DokuWiki
-markup](https://www.dokuwiki.org/dokuwiki), [ZimWiki
-markup](http://zim-wiki.org/manual/Help/Wiki_Syntax.html), [Haddock
-markup](https://www.haskell.org/haddock/doc/html/ch03s08.html),
-[EPUB](http://idpf.org/epub) (v2 or v3),
-[FictionBook2](http://www.fictionbook.org/index.php/Eng:XML_Schema_Fictionbook_2.1),
-[Textile](http://redcloth.org/textile), [groff
-man](http://man7.org/linux/man-pages/man7/groff_man.7.html), [groff
-ms](http://man7.org/linux/man-pages/man7/groff_ms.7.html), [Emacs Org
-mode](http://orgmode.org),
-[AsciiDoc](http://www.methods.co.nz/asciidoc/), [InDesign
-ICML](http://wwwimages.adobe.com/www.adobe.com/content/dam/acom/en/devnet/indesign/sdk/cs6/idml/idml-cookbook.pdf),
-[TEI Simple](https://github.com/TEIC/TEI-Simple),
-[Muse](https://amusewiki.org/library/manual),
-[PowerPoint](https://en.wikipedia.org/wiki/Microsoft_PowerPoint) slide
-shows and [Slidy](http://www.w3.org/Talks/Tools/Slidy/),
-[Slideous](http://goessner.net/articles/slideous/),
-[DZSlides](http://paulrouget.com/dzslides/),
-[reveal.js](http://lab.hakim.se/reveal-js/) or
-[S5](http://meyerweb.com/eric/tools/s5/) HTML slide shows. It can also
-produce [PDF](https://www.adobe.com/pdf/) output on systems where LaTeX,
-ConTeXt, `pdfroff`, `wkhtmltopdf`, `prince`, or `weasyprint` is
-installed.
+</div>
+
+It can convert *to*
+
+<div id="output-formats">
+
+  - `asciidoc` ([AsciiDoc](http://www.methods.co.nz/asciidoc/))
+  - `beamer` ([LaTeX beamer](https://ctan.org/pkg/beamer) slide show)
+  - `commonmark` ([CommonMark](http://commonmark.org) Markdown)
+  - `context` ([ConTeXt](http://www.contextgarden.net/))
+  - `docbook` or `docbook4` ([DocBook](http://docbook.org) 4)
+  - `docbook5` (DocBook 5)
+  - `docx` ([Word docx](https://en.wikipedia.org/wiki/Office_Open_XML))
+  - `dokuwiki` ([DokuWiki markup](https://www.dokuwiki.org/dokuwiki))
+  - `epub` or `epub3` ([EPUB](http://idpf.org/epub) v3 book)
+  - `epub2` (EPUB v2)
+  - `fb2`
+    ([FictionBook2](http://www.fictionbook.org/index.php/Eng:XML_Schema_Fictionbook_2.1)
+    e-book)
+  - `gfm` ([GitHub-Flavored
+    Markdown](https://help.github.com/articles/github-flavored-markdown/)),
+    or `markdown_github`, which provides deprecated and less accurate
+    support for Github-Flavored Markdown; please use `gfm` instead,
+    unless you use extensions that do not work with `gfm`.
+  - `haddock` ([Haddock
+    markup](https://www.haskell.org/haddock/doc/html/ch03s08.html))
+  - `html` or `html5` ([HTML](http://www.w3.org/html/), i.e.
+    [HTML5](http://www.w3.org/TR/html5/)/XHTML [polyglot
+    markup](https://www.w3.org/TR/html-polyglot/))
+  - `html4` ([XHTML](http://www.w3.org/TR/xhtml1/) 1.0 Transitional)
+  - `icml` ([InDesign
+    ICML](http://wwwimages.adobe.com/www.adobe.com/content/dam/acom/en/devnet/indesign/sdk/cs6/idml/idml-cookbook.pdf))
+  - `jats` ([JATS](https://jats.nlm.nih.gov) XML)
+  - `json` (JSON version of native AST)
+  - `latex` ([LaTeX](http://latex-project.org))
+  - `man` ([groff
+    man](http://man7.org/linux/man-pages/man7/groff_man.7.html))
+  - `markdown` ([Pandoc’s Markdown](#pandocs-markdown))
+  - `markdown_mmd`
+    ([MultiMarkdown](http://fletcherpenney.net/multimarkdown/))
+  - `markdown_phpextra` ([PHP Markdown
+    Extra](https://michelf.ca/projects/php-markdown/extra/))
+  - `markdown_strict` (original unextended
+    [Markdown](http://daringfireball.net/projects/markdown/))
+  - `mediawiki` ([MediaWiki
+    markup](https://www.mediawiki.org/wiki/Help:Formatting))
+  - `ms` ([groff
+    ms](http://man7.org/linux/man-pages/man7/groff_ms.7.html))
+  - `muse` ([Muse](https://amusewiki.org/library/manual)),
+  - `native` (native Haskell),
+  - `odt` ([OpenOffice text
+    document](http://en.wikipedia.org/wiki/OpenDocument))
+  - `opml` ([OPML](http://dev.opml.org/spec2.html))
+  - `opendocument` ([OpenDocument](http://opendocument.xml.org))
+  - `org` ([Emacs Org mode](http://orgmode.org))
+  - `plain` (plain text),
+  - `pptx`
+    ([PowerPoint](https://en.wikipedia.org/wiki/Microsoft_PowerPoint)
+    slide show)
+  - `rst`
+    ([reStructuredText](http://docutils.sourceforge.net/docs/ref/rst/introduction.html))
+  - `rtf` ([Rich Text
+    Format](http://en.wikipedia.org/wiki/Rich_Text_Format))
+  - `texinfo` ([GNU Texinfo](http://www.gnu.org/software/texinfo/))
+  - `textile` ([Textile](http://redcloth.org/textile))
+  - `slideous` ([Slideous](http://goessner.net/articles/slideous/) HTML
+    and JavaScript slide show)
+  - `slidy` ([Slidy](http://www.w3.org/Talks/Tools/Slidy/) HTML and
+    JavaScript slide show)
+  - `dzslides` ([DZSlides](http://paulrouget.com/dzslides/) HTML5 +
+    JavaScript slide show),
+  - `revealjs` ([reveal.js](http://lab.hakim.se/reveal-js/) HTML5 +
+    JavaScript slide show)
+  - `s5` ([S5](http://meyerweb.com/eric/tools/s5/) HTML and JavaScript
+    slide show)
+  - `tei` ([TEI Simple](https://github.com/TEIC/TEI-Simple))
+  - `zimwiki` ([ZimWiki
+    markup](http://zim-wiki.org/manual/Help/Wiki_Syntax.html))
+  - the path of a custom lua writer, see [Custom
+    writers](#custom-writers) below
+
+</div>
+
+Pandoc can also produce PDF output via LaTeX, Groff ms, or HTML.
 
 Pandoc’s enhanced version of Markdown includes syntax for tables,
-definition lists, metadata blocks, `Div` blocks, footnotes and
-citations, embedded LaTeX (including math), Markdown inside HTML block
-elements, and much more. These enhancements, described further under
-Pandoc’s Markdown, can be disabled using the `markdown_strict` format.
+definition lists, metadata blocks, footnotes, citations, math, and much
+more. See the User’s Manual below under [Pandoc’s
+Markdown](https://pandoc.org/MANUAL.html#pandocs-markdown).
 
 Pandoc has a modular design: it consists of a set of readers, which
 parse text in a given format and produce a native representation of the
-document (like an *abstract syntax tree* or AST), and a set of writers,
-which convert this native representation into a target format. Thus,
-adding an input or output format requires only adding a reader or
-writer. Users can also run custom [pandoc
-filters](http://pandoc.org/filters.html) to modify the intermediate AST.
+document (an *abstract syntax tree* or AST), and a set of writers, which
+convert this native representation into a target format. Thus, adding an
+input or output format requires only adding a reader or writer. Users
+can also run custom \[pandoc filters\] to modify the intermediate AST.
 
 Because pandoc’s intermediate representation of a document is less
 expressive than many of the formats it converts between, one should not
@@ -119,8 +174,6 @@ as complex tables, may not fit into pandoc’s simple document model.
 While conversions from pandoc’s Markdown to all formats aspire to be
 perfect, conversions from formats more expressive than pandoc’s Markdown
 can be expected to be lossy.
-
-</div>
 
 ## Installing
 

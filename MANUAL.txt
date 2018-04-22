@@ -17,19 +17,15 @@ Pandoc can convert between numerous markup and word processing formats,
 including, but not limited to, various flavors of [Markdown], [HTML],
 [LaTeX] and [Word docx]. For the full lists of input and output formats,
 see the `--from` and `--to` [options below][General options].
-
-Pandoc can also produce [PDF] output, see [creating a PDF] below.
+Pandoc can also produce [PDF] output: see [creating a PDF], below.
 
 Pandoc's enhanced version of Markdown includes syntax for [tables],
-[definition lists], [metadata blocks], [`Div` blocks][Extension:
-`fenced_divs`], [footnotes] and [citations], embedded
-[LaTeX][Extension: `raw_tex`] (including [math]), [Markdown inside HTML
-block elements][Extension: `markdown_in_html_blocks`], and much more.
-See below under [Pandoc's Markdown].
+[definition lists], [metadata blocks], [footnotes], [citations], [math],
+and much more.  See below under [Pandoc's Markdown].
 
 Pandoc has a modular design: it consists of a set of readers, which parse
 text in a given format and produce a native representation of the document
-(like an _abstract syntax tree_ or AST), and a set of writers, which convert
+(an _abstract syntax tree_ or AST), and a set of writers, which convert
 this native representation into a target format. Thus, adding an input
 or output format requires only adding a reader or writer. Users can also
 run custom [pandoc filters] to modify the intermediate AST.
@@ -221,6 +217,7 @@ General options
 
 :   Specify input format.  *FORMAT* can be:
 
+    ::: {#input-formats}
     - `commonmark` ([CommonMark] Markdown)
     - `creole` ([Creole 1.0])
     - `docbook` ([DocBook])
@@ -251,6 +248,7 @@ General options
     - `tikiwiki` ([TikiWiki markup])
     - `twiki` ([TWiki markup])
     - `vimwiki` ([Vimwiki])
+    :::
 
     Extensions can be individually enabled or disabled by
     appending `+EXTENSION` or `-EXTENSION` to the format name.
@@ -262,6 +260,7 @@ General options
 
 :   Specify output format.  *FORMAT* can be:
 
+    ::: {#output-formats}
     - `asciidoc` ([AsciiDoc])
     - `beamer` ([LaTeX beamer][`beamer`] slide show)
     - `commonmark` ([CommonMark] Markdown)
@@ -311,6 +310,7 @@ General options
     - `tei` ([TEI Simple])
     - `zimwiki` ([ZimWiki markup])
     - the path of a custom lua writer, see [Custom writers] below
+    :::
 
     Note that `odt`, `docx`, and `epub` output will not be directed
     to *stdout* unless forced with `-o -`.
