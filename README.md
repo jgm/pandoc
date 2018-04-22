@@ -163,7 +163,9 @@ parse text in a given format and produce a native representation of the
 document (an *abstract syntax tree* or AST), and a set of writers, which
 convert this native representation into a target format. Thus, adding an
 input or output format requires only adding a reader or writer. Users
-can also run custom \[pandoc filters\] to modify the intermediate AST.
+can also run custom pandoc filters to modify the intermediate AST (see
+the documentation for [filters](https://pandoc.org/filters.html) and
+[lua filters](https://pandoc.org/lua-filters.html)).
 
 Because pandoc’s intermediate representation of a document is less
 expressive than many of the formats it converts between, one should not
