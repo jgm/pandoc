@@ -651,11 +651,15 @@ directive' = do
   skipMany spaceChar
   top <- many $ satisfy (/='\n')
              <|> try (char '\n' <*
-                      notFollowedBy' (rawFieldListItem 3) <*
-                      count 3 (char ' ') <*
+                      notFollowedBy' (rawFieldListItem 1) <*
+                      many1 (char ' ') <*
                       notFollowedBy blankline)
   newline
-  fields <- many $ rawFieldListItem 3
+  fields <- do
+    fieldIndent <- length <$> lookAhead (many (char ' '))
+    if fieldIndent == 0
+       then return []
+       else many $ rawFieldListItem fieldIndent
   body <- option "" $ try $ blanklines >> indentedBlock
   optional blanklines
   let body' = body ++ "\n\n"
