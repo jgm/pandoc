@@ -205,6 +205,10 @@ placed in the source directory):
 Profiling
 ---------
 
+To diagnose a performance issue with parsing, first try using
+the `--trace` option.  This will give you a record of when block
+parsers succeed, so you can spot backtracking issues.
+
 To use the GHC profiler with cabal:
 
     cabal clean
