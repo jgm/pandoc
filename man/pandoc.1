@@ -10,34 +10,21 @@ pandoc - general markup converter
 Pandoc is a Haskell library for converting from one markup format to
 another, and a command\-line tool that uses this library.
 .PP
-Pandoc can read Markdown, CommonMark, PHP Markdown Extra,
-GitHub\-Flavored Markdown, MultiMarkdown, and (subsets of) Textile,
-reStructuredText, HTML, LaTeX, MediaWiki markup, TWiki markup, TikiWiki
-markup, Creole 1.0, Haddock markup, OPML, Emacs Org mode, DocBook, JATS,
-Muse, txt2tags, Vimwiki, EPUB, ODT, and Word docx.
-.PP
-Pandoc can write plain text, Markdown, CommonMark, PHP Markdown Extra,
-GitHub\-Flavored Markdown, MultiMarkdown, reStructuredText, XHTML,
-HTML5, LaTeX (including \f[C]beamer\f[] slide shows), ConTeXt, RTF,
-OPML, DocBook, JATS, OpenDocument, ODT, Word docx, GNU Texinfo,
-MediaWiki markup, DokuWiki markup, ZimWiki markup, Haddock markup, EPUB
-(v2 or v3), FictionBook2, Textile, groff man, groff ms, Emacs Org mode,
-AsciiDoc, InDesign ICML, TEI Simple, Muse, PowerPoint slide shows and
-Slidy, Slideous, DZSlides, reveal.js or S5 HTML slide shows.
-It can also produce PDF output on systems where LaTeX, ConTeXt,
-\f[C]pdfroff\f[], \f[C]wkhtmltopdf\f[], \f[C]prince\f[], or
-\f[C]weasyprint\f[] is installed.
+Pandoc can convert between numerous markup and word processing formats,
+including, but not limited to, various flavors of Markdown, HTML, LaTeX
+and Word docx.
+For the full lists of input and output formats, see the
+\f[C]\-\-from\f[] and \f[C]\-\-to\f[] options below.
+Pandoc can also produce PDF output: see creating a PDF, below.
 .PP
 Pandoc\[aq]s enhanced version of Markdown includes syntax for tables,
-definition lists, metadata blocks, \f[C]Div\f[] blocks, footnotes and
-citations, embedded LaTeX (including math), Markdown inside HTML block
-elements, and much more.
-These enhancements, described further under Pandoc\[aq]s Markdown, can
-be disabled using the \f[C]markdown_strict\f[] format.
+definition lists, metadata blocks, footnotes, citations, math, and much
+more.
+See below under Pandoc\[aq]s Markdown.
 .PP
 Pandoc has a modular design: it consists of a set of readers, which
 parse text in a given format and produce a native representation of the
-document (like an \f[I]abstract syntax tree\f[] or AST), and a set of
+document (an \f[I]abstract syntax tree\f[] or AST), and a set of
 writers, which convert this native representation into a target format.
 Thus, adding an input or output format requires only adding a reader or
 writer.
@@ -229,69 +216,182 @@ pandoc\ \-f\ html\ \-t\ markdown\ \-\-request\-header\ User\-Agent:"Mozilla/5.0"
 .TP
 .B \f[C]\-f\f[] \f[I]FORMAT\f[], \f[C]\-r\f[] \f[I]FORMAT\f[], \f[C]\-\-from=\f[]\f[I]FORMAT\f[], \f[C]\-\-read=\f[]\f[I]FORMAT\f[]
 Specify input format.
-\f[I]FORMAT\f[] can be \f[C]native\f[] (native Haskell), \f[C]json\f[]
-(JSON version of native AST), \f[C]markdown\f[] (pandoc\[aq]s extended
-Markdown), \f[C]markdown_strict\f[] (original unextended Markdown),
-\f[C]markdown_phpextra\f[] (PHP Markdown Extra), \f[C]markdown_mmd\f[]
-(MultiMarkdown), \f[C]gfm\f[] (GitHub\-Flavored Markdown),
-\f[C]commonmark\f[] (CommonMark Markdown), \f[C]textile\f[] (Textile),
-\f[C]rst\f[] (reStructuredText), \f[C]html\f[] (HTML), \f[C]docbook\f[]
-(DocBook), \f[C]t2t\f[] (txt2tags), \f[C]docx\f[] (docx), \f[C]odt\f[]
-(ODT), \f[C]epub\f[] (EPUB), \f[C]opml\f[] (OPML), \f[C]org\f[] (Emacs
-Org mode), \f[C]mediawiki\f[] (MediaWiki markup), \f[C]twiki\f[] (TWiki
-markup), \f[C]tikiwiki\f[] (TikiWiki markup), \f[C]creole\f[] (Creole
-1.0), \f[C]haddock\f[] (Haddock markup), or \f[C]latex\f[] (LaTeX).
-(\f[C]markdown_github\f[] provides deprecated and less accurate support
-for Github\-Flavored Markdown; please use \f[C]gfm\f[] instead, unless
-you need to use extensions other than \f[C]smart\f[].) Extensions can be
-individually enabled or disabled by appending \f[C]+EXTENSION\f[] or
-\f[C]\-EXTENSION\f[] to the format name.
+\f[I]FORMAT\f[] can be:
+.RS
+.IP \[bu] 2
+\f[C]commonmark\f[] (CommonMark Markdown)
+.IP \[bu] 2
+\f[C]creole\f[] (Creole 1.0)
+.IP \[bu] 2
+\f[C]docbook\f[] (DocBook)
+.IP \[bu] 2
+\f[C]docx\f[] (Word docx)
+.IP \[bu] 2
+\f[C]epub\f[] (EPUB)
+.IP \[bu] 2
+\f[C]gfm\f[] (GitHub\-Flavored Markdown), or \f[C]markdown_github\f[],
+which provides deprecated and less accurate support for Github\-Flavored
+Markdown; please use \f[C]gfm\f[] instead, unless you need to use
+extensions other than \f[C]smart\f[].
+.IP \[bu] 2
+\f[C]haddock\f[] (Haddock markup)
+.IP \[bu] 2
+\f[C]html\f[] (HTML)
+.IP \[bu] 2
+\f[C]jats\f[] (JATS XML)
+.IP \[bu] 2
+\f[C]json\f[] (JSON version of native AST)
+.IP \[bu] 2
+\f[C]latex\f[] (LaTeX)
+.IP \[bu] 2
+\f[C]markdown\f[] (Pandoc\[aq]s Markdown)
+.IP \[bu] 2
+\f[C]markdown_mmd\f[] (MultiMarkdown)
+.IP \[bu] 2
+\f[C]markdown_phpextra\f[] (PHP Markdown Extra)
+.IP \[bu] 2
+\f[C]markdown_strict\f[] (original unextended Markdown)
+.IP \[bu] 2
+\f[C]mediawiki\f[] (MediaWiki markup)
+.IP \[bu] 2
+\f[C]muse\f[] (Muse)
+.IP \[bu] 2
+\f[C]native\f[] (native Haskell)
+.IP \[bu] 2
+\f[C]odt\f[] (ODT)
+.IP \[bu] 2
+\f[C]opml\f[] (OPML)
+.IP \[bu] 2
+\f[C]org\f[] (Emacs Org mode)
+.IP \[bu] 2
+\f[C]rst\f[] (reStructuredText)
+.IP \[bu] 2
+\f[C]t2t\f[] (txt2tags)
+.IP \[bu] 2
+\f[C]textile\f[] (Textile)
+.IP \[bu] 2
+\f[C]tikiwiki\f[] (TikiWiki markup)
+.IP \[bu] 2
+\f[C]twiki\f[] (TWiki markup)
+.IP \[bu] 2
+\f[C]vimwiki\f[] (Vimwiki)
+.PP
+Extensions can be individually enabled or disabled by appending
+\f[C]+EXTENSION\f[] or \f[C]\-EXTENSION\f[] to the format name.
 See Extensions below, for a list of extensions and their names.
 See \f[C]\-\-list\-input\-formats\f[] and \f[C]\-\-list\-extensions\f[],
 below.
-.RS
 .RE
 .TP
 .B \f[C]\-t\f[] \f[I]FORMAT\f[], \f[C]\-w\f[] \f[I]FORMAT\f[], \f[C]\-\-to=\f[]\f[I]FORMAT\f[], \f[C]\-\-write=\f[]\f[I]FORMAT\f[]
 Specify output format.
-\f[I]FORMAT\f[] can be \f[C]native\f[] (native Haskell), \f[C]json\f[]
-(JSON version of native AST), \f[C]plain\f[] (plain text),
-\f[C]markdown\f[] (pandoc\[aq]s extended Markdown),
-\f[C]markdown_strict\f[] (original unextended Markdown),
-\f[C]markdown_phpextra\f[] (PHP Markdown Extra), \f[C]markdown_mmd\f[]
-(MultiMarkdown), \f[C]gfm\f[] (GitHub\-Flavored Markdown),
-\f[C]commonmark\f[] (CommonMark Markdown), \f[C]rst\f[]
-(reStructuredText), \f[C]html4\f[] (XHTML 1.0 Transitional),
-\f[C]html\f[] or \f[C]html5\f[] (HTML5/XHTML polyglot markup),
-\f[C]latex\f[] (LaTeX), \f[C]beamer\f[] (LaTeX beamer slide show),
-\f[C]context\f[] (ConTeXt), \f[C]man\f[] (groff man), \f[C]mediawiki\f[]
-(MediaWiki markup), \f[C]dokuwiki\f[] (DokuWiki markup),
-\f[C]zimwiki\f[] (ZimWiki markup), \f[C]textile\f[] (Textile),
-\f[C]org\f[] (Emacs Org mode), \f[C]texinfo\f[] (GNU Texinfo),
-\f[C]opml\f[] (OPML), \f[C]docbook\f[] or \f[C]docbook4\f[] (DocBook 4),
-\f[C]docbook5\f[] (DocBook 5), \f[C]jats\f[] (JATS XML),
-\f[C]opendocument\f[] (OpenDocument), \f[C]odt\f[] (OpenOffice text
-document), \f[C]docx\f[] (Word docx), \f[C]haddock\f[] (Haddock markup),
-\f[C]rtf\f[] (rich text format), \f[C]epub2\f[] (EPUB v2 book),
-\f[C]epub\f[] or \f[C]epub3\f[] (EPUB v3), \f[C]fb2\f[] (FictionBook2
-e\-book), \f[C]asciidoc\f[] (AsciiDoc), \f[C]icml\f[] (InDesign ICML),
-\f[C]tei\f[] (TEI Simple), \f[C]slidy\f[] (Slidy HTML and JavaScript
-slide show), \f[C]slideous\f[] (Slideous HTML and JavaScript slide
-show), \f[C]dzslides\f[] (DZSlides HTML5 + JavaScript slide show),
-\f[C]revealjs\f[] (reveal.js HTML5 + JavaScript slide show), \f[C]s5\f[]
-(S5 HTML and JavaScript slide show), \f[C]pptx\f[] (PowerPoint slide
-show) or the path of a custom lua writer (see Custom writers, below).
-(\f[C]markdown_github\f[] provides deprecated and less accurate support
-for Github\-Flavored Markdown; please use \f[C]gfm\f[] instead, unless
-you use extensions that do not work with \f[C]gfm\f[].) Note that
-\f[C]odt\f[], \f[C]docx\f[], and \f[C]epub\f[] output will not be
-directed to \f[I]stdout\f[] unless forced with \f[C]\-o\ \-\f[].
+\f[I]FORMAT\f[] can be:
+.RS
+.IP \[bu] 2
+\f[C]asciidoc\f[] (AsciiDoc)
+.IP \[bu] 2
+\f[C]beamer\f[] (LaTeX beamer slide show)
+.IP \[bu] 2
+\f[C]commonmark\f[] (CommonMark Markdown)
+.IP \[bu] 2
+\f[C]context\f[] (ConTeXt)
+.IP \[bu] 2
+\f[C]docbook\f[] or \f[C]docbook4\f[] (DocBook 4)
+.IP \[bu] 2
+\f[C]docbook5\f[] (DocBook 5)
+.IP \[bu] 2
+\f[C]docx\f[] (Word docx)
+.IP \[bu] 2
+\f[C]dokuwiki\f[] (DokuWiki markup)
+.IP \[bu] 2
+\f[C]epub\f[] or \f[C]epub3\f[] (EPUB v3 book)
+.IP \[bu] 2
+\f[C]epub2\f[] (EPUB v2)
+.IP \[bu] 2
+\f[C]fb2\f[] (FictionBook2 e\-book)
+.IP \[bu] 2
+\f[C]gfm\f[] (GitHub\-Flavored Markdown), or \f[C]markdown_github\f[],
+which provides deprecated and less accurate support for Github\-Flavored
+Markdown; please use \f[C]gfm\f[] instead, unless you use extensions
+that do not work with \f[C]gfm\f[].
+.IP \[bu] 2
+\f[C]haddock\f[] (Haddock markup)
+.IP \[bu] 2
+\f[C]html\f[] or \f[C]html5\f[] (HTML, i.e.
+HTML5/XHTML polyglot markup)
+.IP \[bu] 2
+\f[C]html4\f[] (XHTML 1.0 Transitional)
+.IP \[bu] 2
+\f[C]icml\f[] (InDesign ICML)
+.IP \[bu] 2
+\f[C]jats\f[] (JATS XML)
+.IP \[bu] 2
+\f[C]json\f[] (JSON version of native AST)
+.IP \[bu] 2
+\f[C]latex\f[] (LaTeX)
+.IP \[bu] 2
+\f[C]man\f[] (groff man)
+.IP \[bu] 2
+\f[C]markdown\f[] (Pandoc\[aq]s Markdown)
+.IP \[bu] 2
+\f[C]markdown_mmd\f[] (MultiMarkdown)
+.IP \[bu] 2
+\f[C]markdown_phpextra\f[] (PHP Markdown Extra)
+.IP \[bu] 2
+\f[C]markdown_strict\f[] (original unextended Markdown)
+.IP \[bu] 2
+\f[C]mediawiki\f[] (MediaWiki markup)
+.IP \[bu] 2
+\f[C]ms\f[] (groff ms)
+.IP \[bu] 2
+\f[C]muse\f[] (Muse),
+.IP \[bu] 2
+\f[C]native\f[] (native Haskell),
+.IP \[bu] 2
+\f[C]odt\f[] (OpenOffice text document)
+.IP \[bu] 2
+\f[C]opml\f[] (OPML)
+.IP \[bu] 2
+\f[C]opendocument\f[] (OpenDocument)
+.IP \[bu] 2
+\f[C]org\f[] (Emacs Org mode)
+.IP \[bu] 2
+\f[C]plain\f[] (plain text),
+.IP \[bu] 2
+\f[C]pptx\f[] (PowerPoint slide show)
+.IP \[bu] 2
+\f[C]rst\f[] (reStructuredText)
+.IP \[bu] 2
+\f[C]rtf\f[] (Rich Text Format)
+.IP \[bu] 2
+\f[C]texinfo\f[] (GNU Texinfo)
+.IP \[bu] 2
+\f[C]textile\f[] (Textile)
+.IP \[bu] 2
+\f[C]slideous\f[] (Slideous HTML and JavaScript slide show)
+.IP \[bu] 2
+\f[C]slidy\f[] (Slidy HTML and JavaScript slide show)
+.IP \[bu] 2
+\f[C]dzslides\f[] (DZSlides HTML5 + JavaScript slide show),
+.IP \[bu] 2
+\f[C]revealjs\f[] (reveal.js HTML5 + JavaScript slide show)
+.IP \[bu] 2
+\f[C]s5\f[] (S5 HTML and JavaScript slide show)
+.IP \[bu] 2
+\f[C]tei\f[] (TEI Simple)
+.IP \[bu] 2
+\f[C]zimwiki\f[] (ZimWiki markup)
+.IP \[bu] 2
+the path of a custom lua writer, see Custom writers below
+.PP
+Note that \f[C]odt\f[], \f[C]docx\f[], and \f[C]epub\f[] output will not
+be directed to \f[I]stdout\f[] unless forced with \f[C]\-o\ \-\f[].
+.PP
 Extensions can be individually enabled or disabled by appending
 \f[C]+EXTENSION\f[] or \f[C]\-EXTENSION\f[] to the format name.
 See Extensions below, for a list of extensions and their names.
 See \f[C]\-\-list\-output\-formats\f[] and
 \f[C]\-\-list\-extensions\f[], below.
-.RS
 .RE
 .TP
 .B \f[C]\-o\f[] \f[I]FILE\f[], \f[C]\-\-output=\f[]\f[I]FILE\f[]
