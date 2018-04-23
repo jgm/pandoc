@@ -45,7 +45,6 @@ import Data.Maybe (fromMaybe, isJust)
 import Data.Sequence (ViewR (..), viewr)
 import Data.Text (Text)
 import qualified Data.Text as T
-import Text.Pandoc.Walk (walk)
 import Text.Pandoc.Builder (Blocks, Inlines, fromList, setMeta, trimInlines)
 import qualified Text.Pandoc.Builder as B
 import Text.Pandoc.Class (PandocMonad, fetchItem, readFileFromDirs)
@@ -1314,19 +1313,24 @@ table = gridTable False <|> simpleTable False <|>
 
 inline :: PandocMonad m => RSTParser m Inlines
 inline = choice [ note          -- can start with whitespace, so try before ws
-                , whitespace
                 , link
-                , str
                 , endline
                 , strong
                 , emph
                 , code
                 , subst
                 , interpretedRole
-                , smart
-                , hyphens
-                , escapedChar
-                , symbol ] <?> "inline"
+                , inlineContent ] <?> "inline"
+
+-- strings, spaces and other characters that can appear either by
+-- themselves or within inline markup
+inlineContent :: PandocMonad m => RSTParser m Inlines
+inlineContent = choice [ whitespace
+                       , str
+                       , smart
+                       , hyphens
+                       , escapedChar
+                       , symbol ] <?> "inline content"
 
 parseInlineFromString :: PandocMonad m => String -> RSTParser m Inlines
 parseInlineFromString = parseFromString' (trimInlines . mconcat <$> many inline)
@@ -1369,11 +1373,11 @@ atStart p = do
 
 emph :: PandocMonad m => RSTParser m Inlines
 emph = B.emph . trimInlines . mconcat <$>
-         enclosed (atStart $ char '*') (char '*') inline
+         enclosed (atStart $ char '*') (char '*') inlineContent
 
 strong :: PandocMonad m => RSTParser m Inlines
 strong = B.strong . trimInlines . mconcat <$>
-          enclosed (atStart $ string "**") (try $ string "**") inline
+          enclosed (atStart $ string "**") (try $ string "**") inlineContent
 
 -- Note, this doesn't precisely implement the complex rule in
 -- http://docutils.sourceforge.net/docs/ref/rst/restructuredtext.html#inline-markup-recognition-rules
@@ -1480,8 +1484,8 @@ explicitLink :: PandocMonad m => RSTParser m Inlines
 explicitLink = try $ do
   char '`'
   notFollowedBy (char '`') -- `` marks start of inline code
-  label' <- removeLinks . trimInlines . mconcat <$>
-             manyTill (notFollowedBy (char '`') >> inline) (char '<')
+  label' <- trimInlines . mconcat <$>
+             manyTill (notFollowedBy (char '`') >> inlineContent) (char '<')
   src <- trim <$> manyTill (noneOf ">\n") (char '>')
   skipSpaces
   string "`_"
@@ -1494,12 +1498,6 @@ explicitLink = try $ do
                           '_':xs -> lookupKey [] (toKey (reverse xs))
                           _      -> return ((src, ""), nullAttr)
   return $ B.linkWith attr (escapeURI src') tit label''
-
-removeLinks :: B.Inlines -> B.Inlines
-removeLinks = B.fromList . walk (concatMap go) . B.toList
-  where go :: Inline -> [Inline]
-        go (Link _ lab _) = lab
-        go x              = [x]
 
 citationName :: PandocMonad m => RSTParser m String
 citationName = do
