@@ -1313,19 +1313,24 @@ table = gridTable False <|> simpleTable False <|>
 
 inline :: PandocMonad m => RSTParser m Inlines
 inline = choice [ note          -- can start with whitespace, so try before ws
-                , whitespace
                 , link
-                , str
                 , endline
                 , strong
                 , emph
                 , code
                 , subst
                 , interpretedRole
-                , smart
-                , hyphens
-                , escapedChar
-                , symbol ] <?> "inline"
+                , inlineContent ] <?> "inline"
+
+-- strings, spaces and other characters that can appear either by
+-- themselves or within inline markup
+inlineContent :: PandocMonad m => RSTParser m Inlines
+inlineContent = choice [ whitespace
+                       , str
+                       , smart
+                       , hyphens
+                       , escapedChar
+                       , symbol ] <?> "inline content"
 
 parseInlineFromString :: PandocMonad m => String -> RSTParser m Inlines
 parseInlineFromString = parseFromString' (trimInlines . mconcat <$> many inline)
@@ -1368,11 +1373,11 @@ atStart p = do
 
 emph :: PandocMonad m => RSTParser m Inlines
 emph = B.emph . trimInlines . mconcat <$>
-         enclosed (atStart $ char '*') (char '*') inline
+         enclosed (atStart $ char '*') (char '*') inlineContent
 
 strong :: PandocMonad m => RSTParser m Inlines
 strong = B.strong . trimInlines . mconcat <$>
-          enclosed (atStart $ string "**") (try $ string "**") inline
+          enclosed (atStart $ string "**") (try $ string "**") inlineContent
 
 -- Note, this doesn't precisely implement the complex rule in
 -- http://docutils.sourceforge.net/docs/ref/rst/restructuredtext.html#inline-markup-recognition-rules
@@ -1480,7 +1485,7 @@ explicitLink = try $ do
   char '`'
   notFollowedBy (char '`') -- `` marks start of inline code
   label' <- trimInlines . mconcat <$>
-             manyTill (notFollowedBy (char '`') >> inline) (char '<')
+             manyTill (notFollowedBy (char '`') >> inlineContent) (char '<')
   src <- trim <$> manyTill (noneOf ">\n") (char '>')
   skipSpaces
   string "`_"
