@@ -10,6 +10,9 @@ pandoc (2.1.4)
       case `**this should "be bold**`, since the fallback would return
       the content `"be bold**` and the closing boldface delimiter
       would never be encountered.
+    + Improve computation of the relative width of the last column in a
+      multiline table, so we can round-trip tables without constantly
+      shrinking the last column.
 
   * EPUB reader:
 
@@ -41,6 +44,10 @@ pandoc (2.1.4)
     + Combine adjacent CodeBlocks with the same attributes into
       a single CodeBlock.  This prevents a multiline codeblock in
       Word from being read as different paragraphs.
+
+  * RST reader:
+
+    + Allow < 3 spaces indent under directives (#4579).
 
   * Muse reader (Alexander Krotov):
 
@@ -115,6 +122,11 @@ pandoc (2.1.4)
       speaker notes immediately following these are connected to these
       elements, and keep them with the related blocks, splitting after them.
 
+  * Markdown writer:
+
+    + Include a blank line at the end of the row in a single-row multiline
+      table, to prevent it from being interpreted as a simple table (#4578).
+
   * CommonMark writer:
 
     + Correctly ignore LaTeX raw blocks when `raw_tex` is not
@@ -156,11 +168,23 @@ pandoc (2.1.4)
       as 1100.
     + `uri`: don't treat `*` characters at end as part of URI (#4561).
 
+  * Text.Pandoc.MIME:
+
+    + Use the alias `application/eps` for EPS (#2067).
+      This will ensure that we retain the eps extension after reading the
+      image into a mediabag and writing it again.
+
   * Text.Pandoc.PDF:
 
     + Use `withTempDir` in `html2pdf`.
     + With `xelatex`, don't compress images til the last run (#4484).
       This saves time for image-heavy documents.
+    + Don't try to convert EPS files (#2067).  `pdflatex converts them
+      itself, and JuicyPixels can't do it.
+    + For `pdflatex`, use a temp directory in the working directory.
+      Otherwise we can have problems with the EPS conversion pdflatex
+      tries to do, which can't operate on a file above the working
+      directory without `--shell-escape`.
 
   * Changes to tests to accommodate changes in pandoc-types.
     In <https://github.com/jgm/pandoc-types/pull/36> we changed
@@ -193,6 +217,9 @@ pandoc (2.1.4)
       the output format, which isn't the case for `docx`/`openxml` and
       some others.
     + Don't say that `empty_paragraphs` affects markdown output (#4540).
+    + Consolidate input/output format documentation (#4577, Mauro Bieg).
+
+  * New README template. Take in/out formats from manual.
 
   * Fix example in lua-filters docs (#4459, HeirOfNorton).
 
