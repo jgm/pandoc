@@ -223,6 +223,9 @@ pandoc (2.1.4)
 
   * Fix example in lua-filters docs (#4459, HeirOfNorton).
 
+  * Use the `-threaded` GHC flag when building benchmarks (#4587,
+    Francesco Occhipinti).
+
   * Bump temporary upper bound to 1.4.
 
   * Use pandoc-citeproc 0.14.3.
