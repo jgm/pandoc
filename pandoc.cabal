@@ -599,7 +599,7 @@ benchmark weigh-pandoc
      hs-source-dirs: prelude
      other-modules:  Prelude
      build-depends:  base-compat >= 0.9
-  ghc-options:   -rtsopts -Wall -fno-warn-unused-do-bind
+  ghc-options:   -rtsopts -Wall -fno-warn-unused-do-bind -threaded
   default-language: Haskell2010
   other-extensions: NoImplicitPrelude
 
@@ -702,6 +702,6 @@ benchmark benchmark-pandoc
      hs-source-dirs: prelude
      other-modules:  Prelude
      build-depends:  base-compat >= 0.9
-  ghc-options:   -rtsopts -Wall -fno-warn-unused-do-bind
+  ghc-options:   -rtsopts -Wall -fno-warn-unused-do-bind -threaded
   default-language: Haskell2010
   other-extensions: NoImplicitPrelude
