@@ -102,7 +102,6 @@ data-files:
                  data/odt/META-INF/manifest.xml
                  -- source files for reference.pptx
                  data/pptx/_rels/.rels
-                 data/pptx/docProps/thumbnail.jpeg
                  data/pptx/docProps/app.xml
                  data/pptx/docProps/core.xml
                  data/pptx/ppt/slideLayouts/_rels/slideLayout1.xml.rels
