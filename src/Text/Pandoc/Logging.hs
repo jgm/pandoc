@@ -85,6 +85,7 @@ data LogMessage =
   | InlineNotRendered Inline
   | BlockNotRendered Block
   | DocxParserWarning String
+  | IgnoredIOError String
   | CouldNotFetchResource String String
   | CouldNotDetermineImageSize String String
   | CouldNotConvertImage String String
@@ -174,6 +175,8 @@ instance ToJSON LogMessage where
       BlockNotRendered bl ->
            ["contents" .= toJSON bl]
       DocxParserWarning s ->
+           ["contents" .= Text.pack s]
+      IgnoredIOError s ->
            ["contents" .= Text.pack s]
       CouldNotFetchResource fp s ->
            ["path" .= Text.pack fp,
@@ -265,6 +268,8 @@ showLogMessage msg =
          "Not rendering " ++ show bl
        DocxParserWarning s ->
          "Docx parser warning: " ++ s
+       IgnoredIOError s ->
+         "IO Error (ignored): " ++ s
        CouldNotFetchResource fp s ->
          "Could not fetch resource '" ++ fp ++ "'" ++
            if null s then "" else ": " ++ s
@@ -332,6 +337,7 @@ messageVerbosity msg =
        InlineNotRendered{}          -> INFO
        BlockNotRendered{}           -> INFO
        DocxParserWarning{}          -> INFO
+       IgnoredIOError{}             -> WARNING
        CouldNotFetchResource{}      -> WARNING
        CouldNotDetermineImageSize{} -> WARNING
        CouldNotConvertImage{}       -> WARNING
