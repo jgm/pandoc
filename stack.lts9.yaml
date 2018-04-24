@@ -27,5 +27,4 @@ extra-deps:
 - pandoc-citeproc-0.14.3
 - tagsoup-0.14.6
 - pandoc-types-1.17.4.2
-- haddock-library-1.4.5
 resolver: lts-9.14
