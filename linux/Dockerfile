@@ -14,6 +14,7 @@ ADD https://github.com/lalyos/docker-upx/releases/download/v3.91/upx /usr/local/
 RUN chmod 755 /usr/local/bin/upx
 RUN ulimit -n 4096
 RUN stack config set system-ghc --global true
+RUN stack --resolver lts-9 setup --install-cabal 2.0.1.1
 #RUN mkdir -p /etc/stack
 #RUN echo "build: { split-objs: true }" > /etc/stack/config.yaml
 RUN mkdir -p /usr/src/
