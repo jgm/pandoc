@@ -120,6 +120,18 @@ Copyright (C) 2010-2018 Paul Rivier and John MacFarlane
 Released under the GNU General Public License version 2 or later.
 
 ----------------------------------------------------------------------
+src/Text/Pandoc/Readers/JATS.hs
+Copyright (C) 2017-2018 Hamish Mackenzie
+
+Released under the GNU General Public License version 2 or later.
+
+----------------------------------------------------------------------
+src/Text/Pandoc/Readers/EPUB.hs
+Copyright (C) 2014-2018 Matthew Pickering
+
+Released under the GNU General Public License version 2 or later.
+
+----------------------------------------------------------------------
 src/Text/Pandoc/Readers/Org.hs
 src/Text/Pandoc/Readers/Org/*
 test/Tests/Readers/Org/*
