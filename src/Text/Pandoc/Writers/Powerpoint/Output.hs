@@ -328,10 +328,8 @@ presHasSpeakerNotes :: Presentation -> Bool
 presHasSpeakerNotes (Presentation _ slides) = not $ all (mempty ==) $ map slideSpeakerNotes slides
 
 curSlideHasSpeakerNotes :: PandocMonad m => P m Bool
-curSlideHasSpeakerNotes = do
-  sldId <- asks envCurSlideId
-  notesIdMap <- asks envSpeakerNotesIdMap
-  return $ isJust $ M.lookup sldId notesIdMap
+curSlideHasSpeakerNotes =
+  M.member <$> asks envCurSlideId <*> asks envSpeakerNotesIdMap
 
 --------------------------------------------------
 
