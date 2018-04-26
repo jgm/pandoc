@@ -365,10 +365,7 @@ blockToXml h@Header{} = do
   -- should not occur after hierarchicalize, except inside lists/blockquotes
   report $ BlockNotRendered h
   return []
-blockToXml HorizontalRule = return
-                            [ el "empty-line" ()
-                            , el "p" (txt (replicate 10 '—'))
-                            , el "empty-line" () ]
+blockToXml HorizontalRule = return [ el "empty-line" () ]
 blockToXml (Table caption aligns _ headers rows) = do
     hd <- mkrow "th" headers aligns
     bd <- mapM (\r -> mkrow "td" r aligns) rows
@@ -398,7 +395,7 @@ plainToPara [] = []
 plainToPara (Plain inlines : rest) =
     Para inlines : plainToPara rest
 plainToPara (Para inlines : rest) =
-    Para inlines : Plain [LineBreak] : plainToPara rest
+    Para inlines : HorizontalRule : plainToPara rest -- HorizontalRule will be converted to <empty-line />
 plainToPara (p:rest) = p : plainToPara rest
 
 -- Simulate increased indentation level. Will not really work
@@ -449,8 +446,8 @@ toXml (Quoted DoubleQuote ss) = do
 toXml (Cite _ ss) = cMapM toXml ss  -- FIXME: support citation styles
 toXml (Code _ s) = return [el "code" s]
 toXml Space = return [txt " "]
-toXml SoftBreak = return [txt " "]
-toXml LineBreak = return [el "empty-line" ()]
+toXml SoftBreak = return [txt "\n"]
+toXml LineBreak = return [txt "\n"]
 toXml (Math _ formula) = insertMath InlineImage formula
 toXml il@(RawInline _ _) = do
   report $ InlineNotRendered il
