@@ -48,7 +48,7 @@ import Control.Applicative (many, optional, (<|>))
 import Control.Monad
 import Control.Monad.Except (throwError)
 import Control.Monad.Trans (lift)
-import Data.Char (chr, isAlphaNum, isDigit, isLetter, ord, toLower)
+import Data.Char (chr, isAlphaNum, isDigit, isLetter, ord, toLower, toUpper)
 import Data.Default
 import Data.List (intercalate, isPrefixOf)
 import qualified Data.Map as M
@@ -1315,6 +1315,12 @@ inlineCommands = M.union inlineLanguageCommands $ M.fromList
   , ("slshape", extractSpaces emph <$> inlines)
   , ("scshape", extractSpaces smallcaps <$> inlines)
   , ("bfseries", extractSpaces strong <$> inlines)
+  , ("MakeUppercase", makeUppercase <$> tok)
+  , ("MakeTextUppercase", makeUppercase <$> tok) -- textcase
+  , ("uppercase", makeUppercase <$> tok)
+  , ("MakeLowercase", makeLowercase <$> tok)
+  , ("MakeTextLowercase", makeLowercase <$> tok)
+  , ("lowercase", makeLowercase <$> tok)
   , ("/", pure mempty) -- italic correction
   , ("aa", lit "å")
   , ("AA", lit "Å")
@@ -1514,6 +1520,16 @@ inlineCommands = M.union inlineLanguageCommands $ M.fromList
   -- babel
   , ("foreignlanguage", foreignlanguage)
   ]
+
+makeUppercase :: Inlines -> Inlines
+makeUppercase = fromList . walk (alterStr (map toUpper)) . toList
+
+makeLowercase :: Inlines -> Inlines
+makeLowercase = fromList . walk (alterStr (map toLower)) . toList
+
+alterStr :: (String -> String) -> Inline -> Inline
+alterStr f (Str xs) = Str (f xs)
+alterStr _ x = x
 
 foreignlanguage :: PandocMonad m => LP m Inlines
 foreignlanguage = do
