@@ -25,8 +25,8 @@ tests = [ testGroup "block elements"
           ]
         , testGroup "inlines"
           [
-            "Emphasis"      =:  emph "emphasized"
-                            =?> fb2 "<emphasis>emphasized</emphasis>"
+            "Emphasis"      =:  para (emph "emphasized")
+                            =?> fb2 "<p><emphasis>emphasized</emphasis></p>"
           ]
         , "bullet list" =: bulletList [ plain $ text "first"
                                       , plain $ text "second"

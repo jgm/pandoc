@@ -22,9 +22,8 @@
 <p>Pandoc Test Suite</p>
 </title>
 <section>
-<p>This is a set of tests for pandoc. Most of them are adapted from John Gruber’s markdown test suite.</p>
-<empty-line />
-<p>——————————</p>
+<p>This is a set of tests for pandoc. Most of them are adapted from
+John Gruber’s markdown test suite.</p>
 <empty-line />
 </section>
 <section>
@@ -76,8 +75,6 @@
 </title>
 <p>with no blank line</p>
 <empty-line />
-<p>——————————</p>
-<empty-line />
 </section>
 </section>
 <section>
@@ -85,11 +82,15 @@
 <p>Paragraphs</p>
 </title>
 <p>Here’s a regular paragraph.</p>
-<p>In Markdown 1.0.0 and earlier. Version 8. This line turns into a list item. Because a hard-wrapped line in the middle of a paragraph looked like a list item.</p>
-<p>Here’s one with a bullet. * criminey.</p>
-<p>There should be a hard line break<empty-line />here.</p>
-<empty-line />
-<p>——————————</p>
+<p>In Markdown 1.0.0 and earlier. Version
+8. This line turns into a list item.
+Because a hard-wrapped line in the
+middle of a paragraph looked like a
+list item.</p>
+<p>Here’s one with a bullet.
+* criminey.</p>
+<p>There should be a hard line break
+here.</p>
 <empty-line />
 </section>
 <section>
@@ -98,7 +99,8 @@
 </title>
 <p>E-mail style:</p>
 <cite>
-<p>This is a block quote. It is pretty short.</p>
+<p>This is a block quote.
+It is pretty short.</p>
 </cite>
 <cite>
 <p>Code in a block quote:</p>
@@ -124,10 +126,9 @@
 <p>nested</p>
 </cite>
 </cite>
-<p>This should not be a block quote: 2 &gt; 1.</p>
+<p>This should not be a block quote: 2
+&gt; 1.</p>
 <p>And a following paragraph.</p>
-<empty-line />
-<p>——————————</p>
 <empty-line />
 </section>
 <section>
@@ -173,8 +174,6 @@
 <code>These should not be escaped:  \$ \\ \&gt; \[ \{</code>
 </p>
 <empty-line />
-<empty-line />
-<p>——————————</p>
 <empty-line />
 </section>
 <section>
@@ -248,7 +247,8 @@
 <p>Multiple paragraphs:</p>
 <p>1. Item 1, graf one.</p>
 <empty-line />
-<p>   Item 1. graf two. The quick brown fox jumped over the lazy dog’s back.</p>
+<p>   Item 1. graf two. The quick brown fox jumped over the lazy dog’s
+back.</p>
 <empty-line />
 <p>2. Item 2.</p>
 <empty-line />
@@ -284,13 +284,17 @@
 <title>
 <p>Tabs and spaces</p>
 </title>
-<p>• this is a list item indented with tabs</p>
+<p>• this is a list item
+indented with tabs</p>
 <empty-line />
-<p>• this is a list item indented with spaces</p>
+<p>• this is a list item
+indented with spaces</p>
 <empty-line />
-<p>• • this is an example list item indented with tabs</p>
+<p>• • this is an example list item
+indented with tabs</p>
 <empty-line />
-<p>• • this is an example list item indented with spaces</p>
+<p>• • this is an example list item
+indented with spaces</p>
 <empty-line />
 </section>
 <section>
@@ -302,7 +306,8 @@
 <empty-line />
 <p>    with a continuation</p>
 <empty-line />
-<p>(3) iv. sublist with roman numerals, starting with 4</p>
+<p>(3) iv. sublist with roman numerals,
+starting with 4</p>
 <p>(3) v. more items</p>
 <p>(3) v. (A) a subsublist</p>
 <p>(3) v. (B) a subsublist</p>
@@ -318,8 +323,6 @@
 <p>Should not be a list item:</p>
 <p>M.A. 2007</p>
 <p>B. Williams</p>
-<empty-line />
-<p>——————————</p>
 <empty-line />
 </section>
 </section>
@@ -377,7 +380,8 @@
 </p>
 <p>    red fruit</p>
 <empty-line />
-<p>    contains seeds, crisp, pleasant to taste</p>
+<p>    contains seeds,
+crisp, pleasant to taste</p>
 <empty-line />
 <p>
 <strong>
@@ -479,8 +483,6 @@
 <empty-line />
 <p>Hr’s:</p>
 <empty-line />
-<p>——————————</p>
-<empty-line />
 </section>
 <section>
 <title>
@@ -515,9 +517,8 @@
 <emphasis>hello</emphasis>
 </sup> a<sup>hello there</sup>.</p>
 <p>Subscripts: H<sub>2</sub>O, H<sub>23</sub>O, H<sub>many of them</sub>O.</p>
-<p>These should not be superscripts or subscripts, because of the unescaped spaces: a^b c^d, a~b c~d.</p>
-<empty-line />
-<p>——————————</p>
+<p>These should not be superscripts or subscripts,
+because of the unescaped spaces: a^b c^d, a~b c~d.</p>
 <empty-line />
 </section>
 <section>
@@ -526,14 +527,14 @@
 </title>
 <p>“Hello,” said the spider. “‘Shelob’ is my name.”</p>
 <p>‘A’, ‘B’, and ‘C’ are letters.</p>
-<p>‘Oak,’ ‘elm,’ and ‘beech’ are names of trees. So is ‘pine.’</p>
-<p>‘He said, “I want to go.”’ Were you alive in the 70’s?</p>
+<p>‘Oak,’ ‘elm,’ and ‘beech’ are names of trees.
+So is ‘pine.’</p>
+<p>‘He said, “I want to go.”’ Were you alive in the
+70’s?</p>
 <p>Here is some quoted ‘<code>code</code>’ and a “<a l:href="http://example.com/?foo=1&amp;bar=2">quoted link</a>”.</p>
 <p>Some dashes: one—two — three—four — five.</p>
 <p>Dashes between numbers: 5–7, 255–66, 1987–1999.</p>
 <p>Ellipses…and…and….</p>
-<empty-line />
-<p>——————————</p>
 <empty-line />
 </section>
 <section>
@@ -550,17 +551,17 @@
 <p>• <code>223</code>
 </p>
 <p>• <code>p</code>-Tree</p>
-<p>• Here’s some display math: <code>\frac{d}{dx}f(x)=\lim_{h\to 0}\frac{f(x+h)-f(x)}{h}</code>
+<p>• Here’s some display math:
+<code>\frac{d}{dx}f(x)=\lim_{h\to 0}\frac{f(x+h)-f(x)}{h}</code>
 </p>
 <p>• Here’s one that has a line break in it: <code>\alpha + \omega \times x^2</code>.</p>
 <p>These shouldn’t be math:</p>
 <p>• To get the famous equation, write <code>$e = mc^2$</code>.</p>
-<p>• $22,000 is a <emphasis>lot</emphasis> of money. So is $34,000. (It worked if “lot” is emphasized.)</p>
+<p>• $22,000 is a <emphasis>lot</emphasis> of money. So is $34,000.
+(It worked if “lot” is emphasized.)</p>
 <p>• Shoes ($20) and socks ($5).</p>
 <p>• Escaped <code>$</code>: $73 <emphasis>this should be emphasized</emphasis> 23$.</p>
 <p>Here’s a LaTeX table:</p>
-<empty-line />
-<p>——————————</p>
 <empty-line />
 </section>
 <section>
@@ -594,8 +595,6 @@
 <p>Bang: !</p>
 <p>Plus: +</p>
 <p>Minus: -</p>
-<empty-line />
-<p>——————————</p>
 <empty-line />
 </section>
 <section>
@@ -681,8 +680,6 @@
 </p>
 <empty-line />
 <empty-line />
-<p>——————————</p>
-<empty-line />
 </section>
 </section>
 <section>
@@ -693,8 +690,6 @@
 <image l:href="#image1" l:type="imageType" alt="lalune" title="Voyage dans la Lune" />
 <p>Here is a movie <image l:href="#image2" l:type="inlineImageType" alt="movie" /> icon.</p>
 <empty-line />
-<p>——————————</p>
-<empty-line />
 </section>
 <section>
 <title>
@@ -704,7 +699,9 @@
 <sup>[1]</sup>
 </a> and another.<a l:href="#n2" type="note">
 <sup>[2]</sup>
-</a> This should <emphasis>not</emphasis> be a footnote reference, because it contains a space.[^my note] Here is an inline note.<a l:href="#n3" type="note">
+</a>
+This should <emphasis>not</emphasis> be a footnote reference, because it
+contains a space.[^my note] Here is an inline note.<a l:href="#n3" type="note">
 <sup>[3]</sup>
 </a>
 </p>
@@ -726,26 +723,33 @@
 <title>
 <p>1</p>
 </title>
-<p>Here is the footnote. It can go anywhere after the footnote reference. It need not be placed at the end of the document.</p>
+<p>Here is the footnote. It can go anywhere after the footnote
+reference. It need not be placed at the end of the document.</p>
 </section>
 <section id="n2">
 <title>
 <p>2</p>
 </title>
-<p>Here’s the long note. This one contains multiple blocks.</p>
-<p>Subsequent blocks are indented to show that they belong to the footnote (as with list items).</p>
+<p>Here’s the long note. This one contains multiple
+blocks.</p>
+<p>Subsequent blocks are indented to show that they belong to the
+footnote (as with list items).</p>
 <empty-line />
 <p>
 <code>  { &lt;code&gt; }</code>
 </p>
 <empty-line />
-<p>If you want, you can indent every line, but you can also be lazy and just indent the first line of each block.</p>
+<p>If you want, you can indent every line, but you can also be
+lazy and just indent the first line of each block.</p>
 </section>
 <section id="n3">
 <title>
 <p>3</p>
 </title>
-<p>This is <emphasis>easier</emphasis> to type. Inline notes may contain <a l:href="http://google.com">links</a> and <code>]</code> verbatim characters, as well as [bracketed text].</p>
+<p>This
+is <emphasis>easier</emphasis> to type. Inline notes may contain
+<a l:href="http://google.com">links</a> and <code>]</code> verbatim characters,
+as well as [bracketed text].</p>
 </section>
 <section id="n4">
 <title>
@@ -761,4 +765,3 @@
 </section>
 </body>
 </FictionBook>
-
