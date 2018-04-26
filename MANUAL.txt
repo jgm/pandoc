@@ -830,9 +830,10 @@ Options affecting specific writers
 
 `--ascii`
 
-:   Use only ASCII characters in output.  Currently supported only for
-    HTML and DocBook output (which uses numerical entities instead of
-    UTF-8 when this option is selected).
+:   Use only ASCII characters in output.  Currently supported for
+    XML and HTML formats (which use numerical entities instead of
+    UTF-8 when this option is selected) and for groff ms and man
+    (which use hexadecimal escapes).
 
 `--reference-links`
 

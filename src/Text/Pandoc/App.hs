@@ -516,8 +516,9 @@ convertWithOpts opts = do
                     escape
                       | optAscii opts
                       , htmlFormat || format == "docbook4" ||
-                        format == "docbook5" || format == "docbook" =
-                          toEntities
+                        format == "docbook5" || format == "docbook" ||
+                        format == "jats" || format == "opml" ||
+                        format == "icml" = toEntities
                       | optAscii opts
                       , format == "ms" || format == "man" = groffEscape
                       | otherwise = id
