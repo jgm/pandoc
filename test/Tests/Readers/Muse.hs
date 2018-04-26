@@ -659,6 +659,15 @@ tests =
                     ] =?>
           para (text "Start recursion here" <>
                 note (para "Recursion continues here[1]"))
+        , "Nested footnotes" =:
+          T.unlines [ "Footnote: [1]"
+                    , ""
+                    , "[1] Nested: [2]"
+                    , ""
+                    , "[2] No recursion: [1]"
+                    ] =?>
+          para (text "Footnote: " <>
+                note (para (text "Nested: " <> note (para $ text "No recursion: [1]"))))
         , "No zero footnotes" =:
           T.unlines [ "Here is a footnote[0]."
                     , ""

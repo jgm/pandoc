@@ -821,7 +821,7 @@ footnote = try $ do
       Nothing -> return $ B.str $ "[" ++ ref ++ "]"
       Just (_pos, contents) -> do
         st <- askF
-        let contents' = runF contents st { museNotes = M.empty }
+        let contents' = runF contents st { museNotes = M.delete ref (museNotes st) }
         return $ B.note contents'
 
 whitespace :: PandocMonad m => MuseParser m (F Inlines)
