@@ -1090,10 +1090,15 @@ targetURI :: Monad m => ParserT [Char] st m [Char]
 targetURI = do
   skipSpaces
   optional newline
-  contents <- many1 (try (many spaceChar >> newline >>
-                          many1 spaceChar >> noneOf " \t\n") <|> noneOf "\n")
+  contents <- trim <$>
+     many1 (satisfy (/='\n')
+     <|> try (newline >> many1 spaceChar >> noneOf " \t\n"))
   blanklines
-  return $ escapeURI $ trim contents
+  case reverse contents of
+       -- strip backticks
+       '_':'`':xs -> return (dropWhile (=='`') (reverse xs) ++ "_")
+       '_':_      -> return contents
+       _          -> return (escapeURI contents)
 
 substKey :: PandocMonad m => RSTParser m ()
 substKey = try $ do
