@@ -1,0 +1,2 @@
+Pandoc (Meta {unMeta = fromList [("abstract",MetaBlocks [Para [Str "Book",Space,Str "annotation"],Para [Str "Second",Space,Str "paragraph",Space,Str "of",Space,Str "book",Space,Str "annotation"]]),("author",MetaList [MetaInlines [Str "First",Space,Str "Middle",Space,Str "Last"],MetaInlines [Str "Another",Space,Str "Author"]]),("date",MetaInlines [Str "2018"]),("keywords",MetaList [MetaString "foo",MetaString "bar",MetaString "baz"]),("title",MetaInlines [Str "Book",Space,Str "title"])]})
+[Header 1 ("",[],[]) [Str "Body",Space,Str "title"]]

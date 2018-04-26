@@ -1,0 +1,8 @@
+Pandoc (Meta {unMeta = fromList []})
+[Header 1 ("",[],[]) [Str "Body",Space,Str "title"]
+,Div ("",["section"],[])
+ [Header 2 ("",[],[]) [Str "Section",Space,Str "title"]
+ ,Div ("",["section"],[])
+  [Header 3 ("",[],[]) [Str "Subsection",Space,Str "title",LineBreak,Str "with",Space,Str "multiple",Space,Str "paragraphs"]]
+ ,Div ("",["section"],[])
+  [Header 3 ("",[],[]) [Str "Another",Space,Str "subsection",Space,Str "title"]]]]

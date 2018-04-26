@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<FictionBook xmlns="http://www.gribuser.ru/xml/fictionbook/2.0" xmlns:l="http://www.w3.org/1999/xlink">
+	<body>
+		<section>
+			<poem>
+				<title>
+					<p>Poem title</p>
+				</title>
+				<epigraph>
+					<p>Poem epigraph</p>
+				</epigraph>
+				<stanza>
+					<subtitle>Subtitle</subtitle>
+					<title>
+						<p>First stanza title</p>
+					</title>
+					<v>Verse</v>
+					<v><emphasis>More</emphasis> verse</v>
+				</stanza>
+				<stanza>
+					<v>One more stanza</v>
+				</stanza>
+				<text-author>Author</text-author>
+				<date>April 2018</date>
+			</poem>
+		</section>
+	</body>
+</FictionBook>

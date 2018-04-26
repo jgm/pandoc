@@ -738,6 +738,7 @@ defaultReaderName fallback (x:xs) =
     ".odt"      -> "odt"
     ".pdf"      -> "pdf"  -- so we get an "unknown reader" error
     ".doc"      -> "doc"  -- so we get an "unknown reader" error
+    ".fb2"      -> "fb2"
     _           -> defaultReaderName fallback xs
 
 -- Determine default writer based on output file extension
