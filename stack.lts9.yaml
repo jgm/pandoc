@@ -17,7 +17,6 @@ extra-deps:
 - skylighting-0.7.0.2
 - skylighting-core-0.7.0.2
 - ansi-terminal-0.8.0.2
-- texmath-0.10.1.1
 - cmark-gfm-0.1.3
 - QuickCheck-2.11.3
 - tasty-1.0.1.1
@@ -28,4 +27,5 @@ extra-deps:
 - tagsoup-0.14.6
 - pandoc-types-1.17.4.2
 - haddock-library-1.5.0.1
+- texmath-0.10.1.2
 resolver: lts-9.14
