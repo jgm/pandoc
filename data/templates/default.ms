@@ -90,7 +90,10 @@ $for(author)$
 $author$
 $endfor$
 $if(date)$
-.ND "$date$"
+.AU
+.sp 0.5
+.ft R
+$date$
 $endif$
 $if(abstract)$
 .AB

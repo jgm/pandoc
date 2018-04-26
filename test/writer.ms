@@ -67,7 +67,10 @@ Pandoc Test Suite
 John MacFarlane
 .AU
 Anonymous
-.ND "July 17, 2006"
+.AU
+.sp 0.5
+.ft R
+July 17, 2006
 .\" 1 column (use .2C for two column)
 .1C
 .LP
