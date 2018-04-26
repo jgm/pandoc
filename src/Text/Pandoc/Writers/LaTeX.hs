@@ -1036,7 +1036,7 @@ inlineToLaTeX (Code (_,classes,_) str) = do
                                Nothing -> ""
         inNote <- gets stInNote
         when inNote $ modify $ \s -> s{ stVerbInNote = True }
-        let chr = case "!\"&'()*,-./:;?@_" \\ str of
+        let chr = case "!\"'()*,-./:;?@" \\ str of
                        (c:_) -> c
                        []    -> '!'
         let str' = escapeStringUsing (backslashEscapes "\\{}%~_&") str
