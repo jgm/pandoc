@@ -12,7 +12,7 @@ flags:
 packages:
 - '.'
 extra-deps:
-- pandoc-citeproc-0.14.3
+- pandoc-citeproc-0.14.3.1
 - skylighting-0.7.0.2
 - skylighting-core-0.7.0.2
 - ansi-terminal-0.8.0.2
