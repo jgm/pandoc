@@ -286,18 +286,18 @@ rawLaTeXBlock = do
   lookAhead (try (char '\\' >> letter))
   -- we don't want to apply newly defined latex macros to their own
   -- definitions:
-  snd <$> rawLaTeXParser (environment <|> macroDef <|> blockCommand) block
+  snd <$> rawLaTeXParser (environment <|> macroDef <|> blockCommand) blocks
 
 rawLaTeXInline :: (PandocMonad m, HasMacros s, HasReaderOptions s)
                => ParserT String s m String
 rawLaTeXInline = do
   lookAhead (try (char '\\' >> letter))
-  snd <$> rawLaTeXParser (inlineEnvironment <|> inlineCommand') inline
+  snd <$> rawLaTeXParser (inlineEnvironment <|> inlineCommand') inlines
 
 inlineCommand :: PandocMonad m => ParserT String ParserState m Inlines
 inlineCommand = do
   lookAhead (try (char '\\' >> letter))
-  fst <$> rawLaTeXParser (inlineEnvironment <|> inlineCommand') inline
+  fst <$> rawLaTeXParser (inlineEnvironment <|> inlineCommand') inlines
 
 tokenize :: SourceName -> Text -> [Tok]
 tokenize sourcename = totoks (initialPos sourcename)
