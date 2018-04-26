@@ -554,6 +554,14 @@ Reader options
 
         return {{Str = expand_hello_world}}
 
+    In order of preference, pandoc will look for lua filters in
+
+     1. a specified full or relative path (executable or
+     non-executable)
+
+     2. `$DATADIR/filters` (executable or non-executable)
+     where `$DATADIR` is the user data directory (see
+     `--data-dir`, above).
 
 `-M` *KEY*[`=`*VAL*], `--metadata=`*KEY*[`:`*VAL*]
 
