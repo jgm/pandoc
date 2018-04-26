@@ -223,6 +223,7 @@ General options
     - `docbook` ([DocBook])
     - `docx` ([Word docx])
     - `epub` ([EPUB])
+    - `fb2` ([FictionBook2] e-book)
     - `gfm` ([GitHub-Flavored Markdown]),
       or `markdown_github`, which provides deprecated and less accurate
       support for Github-Flavored Markdown; please use `gfm` instead,
