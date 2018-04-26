@@ -52,7 +52,7 @@ import Data.Aeson (defaultOptions)
 import Data.Aeson.TH (deriveJSON)
 import qualified Data.ByteString as BS
 import qualified Data.ByteString.Lazy as B
-import Data.Char (toLower, toUpper)
+import Data.Char (toLower, toUpper, isAscii, ord)
 import Data.List (find, intercalate, isPrefixOf, isSuffixOf, sort)
 import qualified Data.Map as M
 import Data.Maybe (fromMaybe, isJust, isNothing)
@@ -513,22 +513,30 @@ convertWithOpts opts = do
                 let htmlFormat = format `elem`
                       ["html","html4","html5","s5","slidy",
                        "slideous","dzslides","revealjs"]
-                    handleEntities = if (htmlFormat ||
-                                         format == "docbook4" ||
-                                         format == "docbook5" ||
-                                         format == "docbook") && optAscii opts
-                                     then toEntities
-                                     else id
+                    escape
+                      | optAscii opts
+                      , htmlFormat || format == "docbook4" ||
+                        format == "docbook5" || format == "docbook" =
+                          toEntities
+                      | optAscii opts
+                      , format == "ms" || format == "man" = groffEscape
+                      | otherwise = id
                     addNl = if standalone
                                then id
                                else (<> T.singleton '\n')
-                output <- (addNl . handleEntities) <$> f writerOptions doc
+                output <- (addNl . escape) <$> f writerOptions doc
                 writerFn eol outputFile =<<
                   if optSelfContained opts && htmlFormat
                      -- TODO not maximally efficient; change type
                      -- of makeSelfContained so it works w/ Text
                      then T.pack <$> makeSelfContained (T.unpack output)
                      else return output
+
+groffEscape :: Text -> Text
+groffEscape = T.concatMap toUchar
+  where toUchar c
+         | isAscii c = T.singleton c
+         | otherwise = T.pack $ printf "\\[u%04X]" (ord c)
 
 type Transform = Pandoc -> Pandoc
 
