@@ -1206,54 +1206,8 @@ of the following options.
     not specified, a link to the KaTeX CDN will be inserted. Note that this
     option does not imply `--katex`.
 
-`-m` [*URL*], `--latexmathml`[`=`*URL*]
-
-:   *Deprecated.*
-    Use the [LaTeXMathML] script to display embedded TeX math in HTML output.
-    TeX math will be displayed between `$` or `$$` characters and put in
-    `<span>` tags with class `LaTeX`. The LaTeXMathML JavaScript will then
-    change it to MathML. Note that currently only Firefox and Safari
-    (and select e-book readers) natively support MathML.
-    To insert a link the `LaTeXMathML.js` script, provide a *URL*.
-
-`--jsmath`[`=`*URL*]
-
-:   *Deprecated.*
-    Use [jsMath] (the predecessor of MathJax) to display embedded TeX
-    math in HTML output. TeX math will be put inside `<span>` tags
-    (for inline math) or `<div>` tags (for display math) with class
-    `math` and rendered by the jsMath script. The *URL* should point to
-    the script (e.g. `jsMath/easy/load.js`); if provided, it will be linked
-    to in the header of standalone HTML documents. If a *URL* is not provided,
-    no link to the jsMath load script will be inserted; it is then
-    up to the author to provide such a link in the HTML template.
-
-`--gladtex`
-
-:   *Deprecated.*
-    Enclose TeX math in `<eq>` tags in HTML output.  The resulting HTML
-    can then be processed by [gladTeX] to produce images of the typeset
-    formulas and an HTML file with links to these images.
-    So, the procedure is:
-
-        pandoc -s --gladtex input.md -o myfile.htex
-        gladtex -d myfile-images myfile.htex
-        # produces myfile.html and images in myfile-images
-
-`--mimetex`[`=`*URL*]
-
-:   *Deprecated.*
-    Render TeX math using the [mimeTeX] CGI script, which generates an
-    image for each TeX formula. This should work in all browsers. If
-    *URL* is not specified, it is assumed that the script is at
-    `/cgi-bin/mimetex.cgi`.
-
 [MathML]: http://www.w3.org/Math/
-[LaTeXMathML]: http://math.etsu.edu/LaTeXMathML/
-[jsMath]: http://www.math.union.edu/~dpvc/jsmath/
 [MathJax]: https://www.mathjax.org
-[gladTeX]: http://ans.hsh.no/home/mgg/gladtex/
-[mimeTeX]: http://www.forkosh.com/mimetex.html
 [KaTeX]: https://github.com/Khan/KaTeX
 
 Options for wrapper scripts

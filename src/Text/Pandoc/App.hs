@@ -357,12 +357,6 @@ convertWithOpts opts = do
         maybe return (addStringAsVariable "epub-cover-image")
                      (optEpubCoverImage opts)
         >>=
-        (\vars -> case optHTMLMathMethod opts of
-                       LaTeXMathML Nothing -> do
-                          s <- UTF8.toString <$> readDataFile "LaTeXMathML.js"
-                          return $ ("mathml-script", s) : vars
-                       _ -> return vars)
-        >>=
         (\vars ->  if format == "dzslides"
                       then do
                           dztempl <- UTF8.toString <$> readDataFile
@@ -1400,40 +1394,6 @@ options =
                            fromMaybe defaultKaTeXURL arg })
                   "URL")
                   "" -- Use KaTeX for HTML Math
-
-    , Option "m" ["latexmathml", "asciimathml"]
-                 (OptArg
-                  (\arg opt -> do
-                      deprecatedOption "--latexmathml, --asciimathml, -m" ""
-                      return opt { optHTMLMathMethod = LaTeXMathML arg })
-                  "URL")
-                 "" -- "Use LaTeXMathML script in html output"
-
-    , Option "" ["mimetex"]
-                 (OptArg
-                  (\arg opt -> do
-                      deprecatedOption "--mimetex" ""
-                      let url' = case arg of
-                                      Just u  -> u ++ "?"
-                                      Nothing -> "/cgi-bin/mimetex.cgi?"
-                      return opt { optHTMLMathMethod = WebTeX url' })
-                  "URL")
-                 "" -- "Use mimetex for HTML math"
-
-    , Option "" ["jsmath"]
-                 (OptArg
-                  (\arg opt -> do
-                      deprecatedOption "--jsmath" ""
-                      return opt { optHTMLMathMethod = JsMath arg})
-                  "URL")
-                 "" -- "Use jsMath for HTML math"
-
-    , Option "" ["gladtex"]
-                 (NoArg
-                  (\opt -> do
-                      deprecatedOption "--gladtex" ""
-                      return opt { optHTMLMathMethod = GladTeX }))
-                 "" -- "Use gladtex for HTML math"
 
     , Option "" ["abbreviations"]
                 (ReqArg

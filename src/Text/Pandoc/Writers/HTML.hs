@@ -260,10 +260,6 @@ pandocToHtml opts (Pandoc meta blocks) = do
   notes <- footnoteSection opts (reverse (stNotes st))
   let thebody = blocks' >> notes
   let  math = case writerHTMLMathMethod opts of
-                      LaTeXMathML (Just url) ->
-                         H.script ! A.src (toValue url)
-                                  ! A.type_ "text/javascript"
-                                  $ mempty
                       MathJax url
                         | slideVariant /= RevealJsSlides ->
                         -- mathjax is handled via a special plugin in revealjs
@@ -274,10 +270,6 @@ pandocToHtml opts (Pandoc meta blocks) = do
                                             preEscapedString
                                             "MathJax.Hub.Queue([\"Typeset\",MathJax.Hub]);"
                                          _ -> mempty
-                      JsMath (Just url) ->
-                         H.script ! A.src (toValue url)
-                                  ! A.type_ "text/javascript"
-                                  $ mempty
                       KaTeX url -> do
                          H.script !
                            A.src (toValue $ url ++ "katex.min.js") $ mempty
@@ -1024,19 +1016,6 @@ inlineToHtml opts inline = do
       let mathClass = toValue $ ("math " :: String) ++
                       if t == InlineMath then "inline" else "display"
       case writerHTMLMathMethod opts of
-           LaTeXMathML _ ->
-              -- putting LaTeXMathML in container with class "LaTeX" prevents
-              -- non-math elements on the page from being treated as math by
-              -- the javascript
-              return $ H.span ! A.class_ "LaTeX" $
-                     case t of
-                       InlineMath  -> toHtml ("$" ++ str ++ "$")
-                       DisplayMath -> toHtml ("$$" ++ str ++ "$$")
-           JsMath _ -> do
-              let m = preEscapedString str
-              return $ case t of
-                       InlineMath  -> H.span ! A.class_ mathClass $ m
-                       DisplayMath -> H.div ! A.class_ mathClass $ m
            WebTeX url -> do
               let imtag = if html5 then H5.img else H.img
               let m = imtag ! A.style "vertical-align:middle"
@@ -1047,10 +1026,6 @@ inlineToHtml opts inline = do
               return $ case t of
                         InlineMath  -> m
                         DisplayMath -> brtag >> m >> brtag
-           GladTeX ->
-              return $ case t of
-                         InlineMath -> preEscapedString $ "<EQ ENV=\"math\">" ++ str ++ "</EQ>"
-                         DisplayMath -> preEscapedString $ "<EQ ENV=\"displaymath\">" ++ str ++ "</EQ>"
            MathML -> do
               let conf = useShortEmptyTags (const False)
                            defaultConfigPP

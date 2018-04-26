@@ -1,5 +1,5 @@
 name:            pandoc
-version:         2.1.4
+version:         2.2
 cabal-version:   >= 1.10
 build-type:      Custom
 license:         GPL-2
@@ -148,8 +148,6 @@ data-files:
                  data/pptx/[Content_Types].xml
                   -- stylesheet for EPUB writer
                  data/epub.css
-                 -- data for LaTeXMathML writer
-                 data/LaTeXMathML.js
                  -- data for dzslides writer
                  data/dzslides/template.html
                  -- default abbreviations file

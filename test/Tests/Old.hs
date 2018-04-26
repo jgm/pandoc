@@ -59,7 +59,7 @@ tests = [ testGroup "markdown"
           ]
         , testGroup "s5"
           [ s5WriterTest "basic" ["-s"] "s5"
-          , s5WriterTest "fancy" ["-s","-m","-i"] "s5"
+          , s5WriterTest "fancy" ["-s","--mathjax","-i"] "s5"
           , s5WriterTest "fragment" [] "html4"
           , s5WriterTest "inserts"  ["-s", "-H", "insert",
             "-B", "insert", "-A", "insert", "-c", "main.css"] "html4"
