@@ -242,21 +242,30 @@ withVerbatimMode parser = do
   return result
 
 rawLaTeXParser :: (PandocMonad m, HasMacros s, HasReaderOptions s)
-               => LP m a -> ParserT String s m (a, String)
-rawLaTeXParser parser = do
+               => LP m a -> LP m a -> ParserT String s m (a, String)
+rawLaTeXParser parser valParser = do
   inp <- getInput
   let toks = tokenize "source" $ T.pack inp
   pstate <- getState
-  let lstate = def{ sOptions = extractReaderOptions pstate
-                  , sMacros = extractMacros pstate }
-  let rawparser = (,) <$> withRaw parser <*> getState
-  res <- lift $ runParserT rawparser lstate "chunk" toks
-  case res of
+  let lstate = def{ sOptions = extractReaderOptions pstate }
+  let lstate' = lstate { sMacros = extractMacros pstate }
+  let rawparser = (,) <$> withRaw valParser <*> getState
+  res' <- lift $ runParserT (snd <$> withRaw parser) lstate "chunk" toks
+  case res' of
        Left _    -> mzero
-       Right ((val, raw), st) -> do
-         updateState (updateMacros (sMacros st <>))
-         rawstring <- takeP (T.length (untokenize raw))
-         return (val, rawstring)
+       Right toks' -> do
+         res <- lift $ runParserT (do doMacros 0
+                                      -- retokenize, applying macros
+                                      ts <- many (satisfyTok (const True))
+                                      setInput ts
+                                      rawparser)
+                        lstate' "chunk" toks'
+         case res of
+              Left _    -> mzero
+              Right ((val, raw), st) -> do
+                updateState (updateMacros (sMacros st <>))
+                _ <- takeP (T.length (untokenize toks'))
+                return (val, T.unpack (untokenize raw))
 
 applyMacros :: (PandocMonad m, HasMacros s, HasReaderOptions s)
             => String -> ParserT String s m String
@@ -277,19 +286,18 @@ rawLaTeXBlock = do
   lookAhead (try (char '\\' >> letter))
   -- we don't want to apply newly defined latex macros to their own
   -- definitions:
-  snd <$> rawLaTeXParser macroDef
-  <|> ((snd <$> rawLaTeXParser (environment <|> blockCommand)) >>= applyMacros)
+  snd <$> rawLaTeXParser (environment <|> macroDef <|> blockCommand) block
 
 rawLaTeXInline :: (PandocMonad m, HasMacros s, HasReaderOptions s)
                => ParserT String s m String
 rawLaTeXInline = do
   lookAhead (try (char '\\' >> letter))
-  rawLaTeXParser (inlineEnvironment <|> inlineCommand') >>= applyMacros . snd
+  snd <$> rawLaTeXParser (inlineEnvironment <|> inlineCommand') inline
 
 inlineCommand :: PandocMonad m => ParserT String ParserState m Inlines
 inlineCommand = do
   lookAhead (try (char '\\' >> letter))
-  fst <$> rawLaTeXParser (inlineEnvironment <|> inlineCommand')
+  fst <$> rawLaTeXParser (inlineEnvironment <|> inlineCommand') inline
 
 tokenize :: SourceName -> Text -> [Tok]
 tokenize sourcename = totoks (initialPos sourcename)
@@ -1703,6 +1711,9 @@ treatAsBlock = Set.fromList
    , "clearpage"
    , "pagebreak"
    , "titleformat"
+   , "listoffigures"
+   , "listoftables"
+   , "write"
    ]
 
 isInlineCommand :: Text -> Bool
@@ -2165,19 +2176,6 @@ environments = M.fromList
                        codeBlockWith attr <$> verbEnv "lstlisting")
    , ("minted", minted)
    , ("obeylines", obeylines)
-   , ("displaymath", mathEnvWith para Nothing "displaymath")
-   , ("equation", mathEnvWith para Nothing "equation")
-   , ("equation*", mathEnvWith para Nothing "equation*")
-   , ("gather", mathEnvWith para (Just "gathered") "gather")
-   , ("gather*", mathEnvWith para (Just "gathered") "gather*")
-   , ("multline", mathEnvWith para (Just "gathered") "multline")
-   , ("multline*", mathEnvWith para (Just "gathered") "multline*")
-   , ("eqnarray", mathEnvWith para (Just "aligned") "eqnarray")
-   , ("eqnarray*", mathEnvWith para (Just "aligned") "eqnarray*")
-   , ("align", mathEnvWith para (Just "aligned") "align")
-   , ("align*", mathEnvWith para (Just "aligned") "align*")
-   , ("alignat", mathEnvWith para (Just "aligned") "alignat")
-   , ("alignat*", mathEnvWith para (Just "aligned") "alignat*")
    , ("tikzpicture", rawVerbEnv "tikzpicture")
    -- etoolbox
    , ("ifstrequal", ifstrequal)
@@ -2188,11 +2186,14 @@ environments = M.fromList
    ]
 
 environment :: PandocMonad m => LP m Blocks
-environment = do
+environment = try $ do
   controlSeq "begin"
   name <- untokenize <$> braced
-  M.findWithDefault mzero name environments
-    <|> rawEnv name
+  M.findWithDefault mzero name environments <|>
+    if M.member name (inlineEnvironments
+                       :: M.Map Text (LP PandocPure Inlines))
+       then mzero
+       else rawEnv name
 
 env :: PandocMonad m => Text -> LP m a -> LP m a
 env name p = p <* end_ name
