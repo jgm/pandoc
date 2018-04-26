@@ -7,6 +7,11 @@ $endif$$if(dir)$$if(latex-dir-rtl)$
 $endif$$endif$%
 \documentclass[$if(fontsize)$$fontsize$,$endif$$if(lang)$$babel-lang$,$endif$$if(papersize)$$papersize$paper,$endif$$if(beamer)$ignorenonframetext,$if(handout)$handout,$endif$$if(aspectratio)$aspectratio=$aspectratio$,$endif$$endif$$for(classoption)$$classoption$$sep$,$endfor$]{$documentclass$}
 $if(beamer)$
+$if(background-image)$
+\usebackgroundtemplate{%
+\includegraphics[width=\paperwidth]{$background-image$}%
+}
+$endif$
 \usepackage{pgfpages}
 \setbeamertemplate{caption}[numbered]
 \setbeamertemplate{caption label separator}{: }
