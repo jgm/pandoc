@@ -31,7 +31,7 @@ Conversion of 'Pandoc' documents to reStructuredText.
 
 reStructuredText:  <http://docutils.sourceforge.net/rst.html>
 -}
-module Text.Pandoc.Writers.RST ( writeRST ) where
+module Text.Pandoc.Writers.RST ( writeRST, flatten ) where
 import Prelude
 import Control.Monad.State.Strict
 import Data.Char (isSpace, toLower)
@@ -377,8 +377,10 @@ blockListToRST :: PandocMonad m
 blockListToRST = blockListToRST' False
 
 transformInlines :: [Inline] -> [Inline]
-transformInlines =  stripLeadingTrailingSpace . insertBS
-                    . filter hasContents . removeSpaceAfterDisplayMath
+transformInlines =  insertBS .
+                    filter hasContents .
+                    removeSpaceAfterDisplayMath .
+                    concatMap (transformNested . flatten)
   where -- empty inlines are not valid RST syntax
         hasContents :: Inline -> Bool
         hasContents (Str "")              = False
@@ -412,6 +414,8 @@ transformInlines =  stripLeadingTrailingSpace . insertBS
               x : insertBS (y : zs)
         insertBS (x:ys) = x : insertBS ys
         insertBS [] = []
+        transformNested :: [Inline] -> [Inline]
+        transformNested = map (mapNested stripLeadingTrailingSpace)
         surroundComplex :: Inline -> Inline -> Bool
         surroundComplex (Str s@(_:_)) (Str s'@(_:_)) =
           case (last s, head s') of
@@ -448,6 +452,74 @@ transformInlines =  stripLeadingTrailingSpace . insertBS
         isComplex (Cite _ (x:_))  = isComplex x
         isComplex (Span _ (x:_))  = isComplex x
         isComplex _               = False
+
+-- | Flattens nested inlines. Extracts nested inlines and goes through
+-- them either collapsing them in the outer inline container or
+-- pulling them out of it
+flatten :: Inline -> [Inline]
+flatten outer = combineAll $ dropInlineParent outer
+  where combineAll = foldl combine []
+
+        combine :: [Inline] -> Inline -> [Inline]
+        combine f i = 
+          case (outer, i) of
+          -- quotes are not rendered using RST inlines, so we can keep
+          -- them and they will be readable and parsable
+          (Quoted _ _, _)          -> keep f i
+          (_, Quoted _ _)          -> keep f i
+          -- parent inlines would prevent links from being correctly
+          -- parsed, in this case we prioritise the content over the
+          -- style
+          (_, Link _ _ _)          -> emerge f i
+          -- always give priority to strong text over emphasis
+          (Emph _, Strong _)       -> emerge f i
+          -- drop all other nested styles
+          (_, _)                   -> collapse f i
+
+        emerge f i = f <> [i]
+        keep f i = appendToLast f [i]
+        collapse f i = appendToLast f $ dropInlineParent i
+
+        appendToLast :: [Inline] -> [Inline] -> [Inline]
+        appendToLast [] toAppend = [setInlineChildren outer toAppend]
+        appendToLast flattened toAppend
+          | isOuter lastFlat = init flattened <> [appendTo lastFlat toAppend]
+          | otherwise =  flattened <> [setInlineChildren outer toAppend]
+          where lastFlat = last flattened
+                appendTo o i = mapNested (<> i) o
+                isOuter i = emptyParent i == emptyParent outer
+                emptyParent i = setInlineChildren i []
+
+mapNested :: ([Inline] -> [Inline]) -> Inline -> Inline
+mapNested f i = setInlineChildren i (f (dropInlineParent i))
+
+dropInlineParent :: Inline -> [Inline]
+dropInlineParent (Link _ i _)    = i
+dropInlineParent (Emph i)        = i
+dropInlineParent (Strong i)      = i
+dropInlineParent (Strikeout i)   = i
+dropInlineParent (Superscript i) = i
+dropInlineParent (Subscript i)   = i
+dropInlineParent (SmallCaps i)   = i
+dropInlineParent (Cite _ i)      = i
+dropInlineParent (Image _ i _)   = i
+dropInlineParent (Span _ i)      = i
+dropInlineParent (Quoted _ i)    = i
+dropInlineParent i               = [i] -- not a parent, like Str or Space
+
+setInlineChildren :: Inline -> [Inline] -> Inline
+setInlineChildren (Link a _ t) i    = Link a i t
+setInlineChildren (Emph _) i        = Emph i
+setInlineChildren (Strong _) i      = Strong i
+setInlineChildren (Strikeout _) i   = Strikeout i
+setInlineChildren (Superscript _) i = Superscript i
+setInlineChildren (Subscript _) i   = Subscript i
+setInlineChildren (SmallCaps _) i   = SmallCaps i
+setInlineChildren (Quoted q _) i    = Quoted q i
+setInlineChildren (Cite c _) i      = Cite c i
+setInlineChildren (Image a _ t) i   = Image a i t
+setInlineChildren (Span a _) i      = Span a i
+setInlineChildren leaf _            = leaf
 
 inlineListToRST :: PandocMonad m => [Inline] -> RST m Doc
 inlineListToRST = writeInlines . walk transformInlines
