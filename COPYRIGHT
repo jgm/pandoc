@@ -120,6 +120,12 @@ Copyright (C) 2010-2018 Paul Rivier and John MacFarlane
 Released under the GNU General Public License version 2 or later.
 
 ----------------------------------------------------------------------
+src/Text/Pandoc/Readers/TikiWiki.hs
+Copyright (C) 2017 Robin Lee Powell
+
+Released under the GNU General Public License version 2.
+
+----------------------------------------------------------------------
 src/Text/Pandoc/Readers/JATS.hs
 Copyright (C) 2017-2018 Hamish Mackenzie
 
