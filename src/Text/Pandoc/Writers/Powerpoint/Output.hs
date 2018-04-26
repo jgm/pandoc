@@ -58,7 +58,7 @@ import Text.Pandoc.MIME
 import qualified Data.ByteString.Lazy as BL
 import Text.Pandoc.Writers.OOXML
 import qualified Data.Map as M
-import Data.Maybe (mapMaybe, listToMaybe, fromMaybe, isJust, maybeToList, catMaybes)
+import Data.Maybe (mapMaybe, listToMaybe, fromMaybe, maybeToList, catMaybes)
 import Text.Pandoc.ImageSize
 import Control.Applicative ((<|>))
 import System.FilePath.Glob
