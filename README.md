@@ -33,6 +33,9 @@ another, and a command-line tool that uses this library. It can convert
   - `docbook` ([DocBook](http://docbook.org))
   - `docx` ([Word docx](https://en.wikipedia.org/wiki/Office_Open_XML))
   - `epub` ([EPUB](http://idpf.org/epub))
+  - `fb2`
+    ([FictionBook2](http://www.fictionbook.org/index.php/Eng:XML_Schema_Fictionbook_2.1)
+    e-book)
   - `gfm` ([GitHub-Flavored
     Markdown](https://help.github.com/articles/github-flavored-markdown/)),
     or `markdown_github`, which provides deprecated and less accurate
