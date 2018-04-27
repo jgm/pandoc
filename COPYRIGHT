@@ -146,20 +146,6 @@ Copyright (C) 2014-2018 Albert Krewinkel
 Released under the GNU General Public License version 2 or later.
 
 ----------------------------------------------------------------------
-data/LaTeXMathML.js
-Adapted by Jeff Knisely and Douglas Woodall from
-ASCIIMathML.js v. 1.4.7
-Copyright (C) 2005 Peter Jipsen
-
-Released under the GNU General Public License version 2 or later.
-
-----------------------------------------------------------------------
-data/MathMLinHTML.js
-Copyright (C) 2004 Peter Jipsen http://www.chapman.edu/~jipsen
-
-Released under the GNU General Public License version 2 or later.
-
-------------------------------------------------------------------------
 data/pandoc.lua
 Copyright (C) 2017-2018 Albert Krewinkel
 
