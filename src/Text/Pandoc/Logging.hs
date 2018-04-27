@@ -101,6 +101,7 @@ data LogMessage =
   | Deprecated String String
   | NoTranslation String
   | CouldNotLoadTranslations String String
+  | UnexpectedXmlElement String String
   deriving (Show, Eq, Data, Ord, Typeable, Generic)
 
 instance ToJSON LogMessage where
@@ -211,6 +212,9 @@ instance ToJSON LogMessage where
       CouldNotLoadTranslations lang msg ->
            ["lang" .= Text.pack lang,
             "message" .= Text.pack msg]
+      UnexpectedXmlElement element parent ->
+           ["element" .= Text.pack element,
+            "parent" .= Text.pack parent]
 
 
 showPos :: SourcePos -> String
@@ -305,6 +309,8 @@ showLogMessage msg =
        CouldNotLoadTranslations lang m ->
          "Could not load translations for " ++ lang ++
            if null m then "" else '\n' : m
+       UnexpectedXmlElement element parent ->
+         "Unexpected XML element " ++ element ++ " in " ++ parent
 
 messageVerbosity:: LogMessage -> Verbosity
 messageVerbosity msg =
@@ -342,3 +348,4 @@ messageVerbosity msg =
        Deprecated{}                 -> WARNING
        NoTranslation{}              -> WARNING
        CouldNotLoadTranslations{}   -> WARNING
+       UnexpectedXmlElement {}      -> WARNING

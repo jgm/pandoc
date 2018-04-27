@@ -46,6 +46,7 @@ import Control.Monad.State.Strict
 import Data.ByteString.Lazy.Char8 ( pack )
 import Data.ByteString.Base64.Lazy
 import Data.Char (isSpace, toUpper)
+import Data.Functor
 import Data.List (dropWhileEnd, intersperse)
 import Data.List.Split (splitOn)
 import Data.Text (Text)
@@ -53,8 +54,9 @@ import Data.Default
 import Data.Maybe
 import Text.HTML.TagSoup.Entity (lookupEntity)
 import Text.Pandoc.Builder
-import Text.Pandoc.Class (PandocMonad, insertMedia)
+import Text.Pandoc.Class (PandocMonad, insertMedia, report)
 import Text.Pandoc.Error
+import Text.Pandoc.Logging
 import Text.Pandoc.Options
 import Text.Pandoc.Shared (crFilter)
 import Text.XML.Light
@@ -122,7 +124,7 @@ parseBlock (Elem e) =
   case qName $ elName e of
     "?xml"  -> pure mempty
     "FictionBook" -> mconcat <$> mapM parseFictionBookChild (elChildren e)
-    name -> throwError $ PandocParseError ("Couldn't parse FB2 file: unexpected element " ++ name ++ ".")
+    name -> report (UnexpectedXmlElement name "root") $> mempty
 parseBlock _ = pure mempty
 
 -- | Parse a child of @\<FictionBook>@ element.
@@ -133,7 +135,7 @@ parseFictionBookChild e =
     "description" -> mempty <$ mapM_ parseDescriptionChild (elChildren e)
     "body" -> mconcat <$> mapM parseBodyChild (elChildren e)
     "binary" -> mempty <$ parseBinaryElement e
-    name -> throwError $ PandocParseError ("Couldn't parse FB2 file: unexpected element " ++ name ++ "in FictionBook.")
+    name -> report (UnexpectedXmlElement name "FictionBook") $> mempty
 
 -- | Parse a child of @\<description>@ element.
 parseDescriptionChild :: PandocMonad m => Element -> FB2 m ()
@@ -226,7 +228,7 @@ parseCiteChild e =
     "subtitle" -> parseSubtitle e
     "table" -> parseTable e
     "text-author" -> para <$> parsePType e
-    name -> throwError $ PandocParseError ("Couldn't parse FB2 file: unexpected element " ++ name ++ " in cite.")
+    name -> report (UnexpectedXmlElement name "cite") $> mempty
 
 -- | Parse @poemType@
 parsePoem :: PandocMonad m => Element -> FB2 m Blocks
@@ -241,7 +243,7 @@ parsePoemChild e =
     "stanza" -> parseStanza e
     "text-author" -> para <$> parsePType e
     "date" -> pure $ para $ text $ strContent e
-    name -> throwError $ PandocParseError ("Couldn't parse FB2 file: unexpected element " ++ name ++ " in poem.")
+    name -> report (UnexpectedXmlElement name "poem") $> mempty
 
 parseStanza :: PandocMonad m => Element -> FB2 m Blocks
 parseStanza e = fromList . joinLineBlocks . toList . mconcat <$> mapM parseStanzaChild (elChildren e)
@@ -257,7 +259,7 @@ parseStanzaChild e =
     "title" -> parseTitle e
     "subtitle" -> parseSubtitle e
     "v" -> lineBlock . (:[]) <$> parsePType e
-    name -> throwError $ PandocParseError ("Couldn't parse FB2 file: unexpected element " ++ name ++ " in stanza.")
+    name -> report (UnexpectedXmlElement name "stanza") $> mempty
 
 -- | Parse @epigraphType@
 parseEpigraph :: PandocMonad m => Element -> FB2 m Blocks
@@ -273,7 +275,7 @@ parseEpigraphChild e =
     "cite" -> parseCite e
     "empty-line" -> pure horizontalRule
     "text-author" -> para <$> parsePType e
-    name -> throwError $ PandocParseError ("Couldn't parse FB2 file: unexpected element " ++ name ++ " in epigraph.")
+    name -> report (UnexpectedXmlElement name "epigraph") $> mempty
 
 -- | Parse @annotationType@
 parseAnnotation :: PandocMonad m => Element -> FB2 m Blocks
@@ -288,7 +290,7 @@ parseAnnotationChild e =
     "subtitle" -> parseSubtitle e
     "table" -> parseTable e
     "empty-line" -> pure horizontalRule
-    name -> throwError $ PandocParseError ("Couldn't parse FB2 file: unexpected element " ++ name ++ " in annotation.")
+    name -> report (UnexpectedXmlElement name "annotation") $> mempty
 
 -- | Parse @sectionType@
 parseSection :: PandocMonad m => Element -> FB2 m Blocks
@@ -314,7 +316,7 @@ parseSectionChild e =
     "subtitle" -> parseSubtitle e
     "p" -> para <$> parsePType e
     "section" -> parseSection e
-    name -> throwError $ PandocParseError ("Couldn't parse FB2 file: unexpected element " ++ name ++ " in section.")
+    name -> report (UnexpectedXmlElement name "section") $> mempty
 
 -- | parse @styleType@
 parseStyleType :: PandocMonad m => Element -> FB2 m Inlines
