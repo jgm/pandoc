@@ -1,4 +1,15 @@
-pandoc (2.1.4)
+pandoc (2.2)
+
+  * New input format: `fb2` (FictionBook2) (Alexander Krotov).
+
+  * Make `--ascii` work for all XML formats (ICML, OPML, JATS,...),
+    and for `ms` and `man`.
+
+  * Remove deprecated `--latexmathml`, `--gladtex`, `--mimetex`, `--jsmath`, `-m`,
+    `--asciimathml` options.
+
+  * New module Text.Pandoc.Readers.FB2, exporting readFB2 (Alexander
+    Krotov, API change).
 
   * Markdown reader:
 
@@ -22,6 +33,11 @@ pandoc (2.1.4)
 
     + Properly resolve section numbers with `\ref` and chapters (#4529).
     + Parse sloppypar environment (#4517, Marc Schreiber).
+    + Improve handling of raw LaTeX (for markdown etc.) (#4589, #4594).
+      Previously there were some bugs in how macros were handled.
+    + Support `\MakeUppercase`, `\MakeLowercase', `\uppercase`, `\lowercase`,
+      and also `\MakeTextUppercase` and `\MakeTextLowercase` from textcase
+      (#4959).
 
   * Textile reader:
 
@@ -38,6 +54,7 @@ pandoc (2.1.4)
     + Properly handle title in `section` element (#4526).
       Previously we just got `section_title` for `section` (though `sect1`,
       `sect2`, etc. were handled properly).
+    + Read tex math as output by asciidoctor (#4569, Joe Hermaszewski).
 
   * Docx reader:
 
@@ -48,6 +65,7 @@ pandoc (2.1.4)
   * RST reader:
 
     + Allow < 3 spaces indent under directives (#4579).
+    + Fix anonymous redirects with backticks (#4598).
 
   * Muse reader (Alexander Krotov):
 
@@ -58,6 +76,7 @@ pandoc (2.1.4)
     + Require block `<literal>` tags to be on separate lines.
     + Allow `-` in anchors.
     + Allow verse to be indented.
+    + Allow nested footnotes.
     + Internal improvements.
 
   * Muse writer (Alexander Krotov):
@@ -90,6 +109,9 @@ pandoc (2.1.4)
       used an odd mix of 3- and 4-space indentation.  Now we use 3-space
       indentation, except for ordered lists, where indentation must
       depend on the width of the list marker.
+    + Flatten nested inlines (#4368, Francesco Occhipinti).
+      Nested inlines are not valid RST syntax, so we flatten them following
+      some readability criteria discussed in #4368.
 
   * EPUB writer:
 
@@ -104,6 +126,10 @@ pandoc (2.1.4)
     + Allow emphasis and notes in titles.
     + Don't intersperse paragraph with empty lines.
     + Convert metadata value `abstract` to book annotation.
+    + Use `<empty-line />` for `HorizontalRule' rather than `LineBreak`.
+      FB2 does not have a way to represent line breaks inside paragraphs;
+      previously we used `<empty-line />` elements, but these are not allowed
+      inside paragraphs.
 
   * Powerpoint writer (Jesse Rosenthal):
 
@@ -121,6 +147,9 @@ pandoc (2.1.4)
       split slides (imgs, tables, `column` divs). We assume that any
       speaker notes immediately following these are connected to these
       elements, and keep them with the related blocks, splitting after them.
+    + Remove `docProps/thumbnail.jpeg` in data dir (Jesse Rosenthal, #4588).
+      It contained a nonfree ICC color calibration profile and is not needed
+      for production of a powerpoint document.
 
   * Markdown writer:
 
@@ -141,6 +170,7 @@ pandoc (2.1.4)
     + In beamer, don't use format specifier for default ordered lists
       (#4556).  This gives better results for styles that put ordered list
       markers in boxes or circles.
+    + Update `\lstinline` delimiters (#4369, Tim Parenti).
 
   * Ms writer:
 
@@ -156,6 +186,11 @@ pandoc (2.1.4)
   * Man writer:
 
     + Don't escape U+2019 as `'` (#4550).
+
+  * Text.Pandoc.Options:
+
+    + Removed `JsMath`, `LaTeXMathML`, and `GladTeX` constructors from
+    `Text.Pandoc.Options.HTMLMathMethod` [API change].
 
   * Text.Pandoc.Class:
 
@@ -198,6 +233,13 @@ pandoc (2.1.4)
     + Add `beameroption` variable (#4359, Étienne Bersac).
     + Use `pgfpages` package; this is needed for notes on second
       screen in beamer (Étienne Bersac).
+    + Add `background-image` variable (#4601, John Muccigrosso).
+
+  * reveal.js template: Add `background-image` variable (#4600,
+    John Muccigrosso).
+
+  * ms template: Fix date.  Previously `.ND` was used, but this only
+    works if you have a title page, which we don't.  Thanks to @teoric.
 
   * Removed pragmas for unused extensions (#4506, Anabra).
 
@@ -228,10 +270,14 @@ pandoc (2.1.4)
 
   * Bump temporary upper bound to 1.4.
 
-  * Use pandoc-citeproc 0.14.3.
+  * Use pandoc-citeproc 0.14.3.1.
+
+  * Use texmath-0.10.1.2 (fixes escapes in math in ms, #4597).
 
   * Removed old lib directory.  This was used for something long ago,
     but plays no role now.
+
+  * Removed unneeded data file `LaTeXMathML.js`.
 
   * Create 64- and 32-bit versions of Windows binary packages.
 
