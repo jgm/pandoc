@@ -1,5 +1,5 @@
 .\"t
-.TH PANDOC 1 "March 17, 2018" "pandoc 2.1.4"
+.TH PANDOC 1 "April 26, 2018" "pandoc 2.2"
 .SH NAME
 pandoc - general markup converter
 .SH SYNOPSIS
@@ -228,6 +228,8 @@ Specify input format.
 \f[C]docx\f[] (Word docx)
 .IP \[bu] 2
 \f[C]epub\f[] (EPUB)
+.IP \[bu] 2
+\f[C]fb2\f[] (FictionBook2 e\-book)
 .IP \[bu] 2
 \f[C]gfm\f[] (GitHub\-Flavored Markdown), or \f[C]markdown_github\f[],
 which provides deprecated and less accurate support for Github\-Flavored
@@ -632,6 +634,14 @@ end
 return\ {{Str\ =\ expand_hello_world}}
 \f[]
 .fi
+.PP
+In order of preference, pandoc will look for lua filters in
+.IP "1." 3
+a specified full or relative path (executable or non\-executable)
+.IP "2." 3
+\f[C]$DATADIR/filters\f[] (executable or non\-executable) where
+\f[C]$DATADIR\f[] is the user data directory (see
+\f[C]\-\-data\-dir\f[], above).
 .RE
 .TP
 .B \f[C]\-M\f[] \f[I]KEY\f[][\f[C]=\f[]\f[I]VAL\f[]], \f[C]\-\-metadata=\f[]\f[I]KEY\f[][\f[C]:\f[]\f[I]VAL\f[]]
@@ -954,8 +964,9 @@ Use \f[C]<q>\f[] tags for quotes in HTML.
 .TP
 .B \f[C]\-\-ascii\f[]
 Use only ASCII characters in output.
-Currently supported only for HTML and DocBook output (which uses
-numerical entities instead of UTF\-8 when this option is selected).
+Currently supported for XML and HTML formats (which use numerical
+entities instead of UTF\-8 when this option is selected) and for groff
+ms and man (which use hexadecimal escapes).
 .RS
 .RE
 .TP
@@ -1400,60 +1411,6 @@ The \f[I]URL\f[] should point to the \f[C]katex.css\f[] stylesheet.
 If this option is not specified, a link to the KaTeX CDN will be
 inserted.
 Note that this option does not imply \f[C]\-\-katex\f[].
-.RS
-.RE
-.TP
-.B \f[C]\-m\f[] [\f[I]URL\f[]], \f[C]\-\-latexmathml\f[][\f[C]=\f[]\f[I]URL\f[]]
-\f[I]Deprecated.\f[] Use the LaTeXMathML script to display embedded TeX
-math in HTML output.
-TeX math will be displayed between \f[C]$\f[] or \f[C]$$\f[] characters
-and put in \f[C]<span>\f[] tags with class \f[C]LaTeX\f[].
-The LaTeXMathML JavaScript will then change it to MathML.
-Note that currently only Firefox and Safari (and select e\-book readers)
-natively support MathML.
-To insert a link the \f[C]LaTeXMathML.js\f[] script, provide a
-\f[I]URL\f[].
-.RS
-.RE
-.TP
-.B \f[C]\-\-jsmath\f[][\f[C]=\f[]\f[I]URL\f[]]
-\f[I]Deprecated.\f[] Use jsMath (the predecessor of MathJax) to display
-embedded TeX math in HTML output.
-TeX math will be put inside \f[C]<span>\f[] tags (for inline math) or
-\f[C]<div>\f[] tags (for display math) with class \f[C]math\f[] and
-rendered by the jsMath script.
-The \f[I]URL\f[] should point to the script (e.g.
-\f[C]jsMath/easy/load.js\f[]); if provided, it will be linked to in the
-header of standalone HTML documents.
-If a \f[I]URL\f[] is not provided, no link to the jsMath load script
-will be inserted; it is then up to the author to provide such a link in
-the HTML template.
-.RS
-.RE
-.TP
-.B \f[C]\-\-gladtex\f[]
-\f[I]Deprecated.\f[] Enclose TeX math in \f[C]<eq>\f[] tags in HTML
-output.
-The resulting HTML can then be processed by gladTeX to produce images of
-the typeset formulas and an HTML file with links to these images.
-So, the procedure is:
-.RS
-.IP
-.nf
-\f[C]
-pandoc\ \-s\ \-\-gladtex\ input.md\ \-o\ myfile.htex
-gladtex\ \-d\ myfile\-images\ myfile.htex
-#\ produces\ myfile.html\ and\ images\ in\ myfile\-images
-\f[]
-.fi
-.RE
-.TP
-.B \f[C]\-\-mimetex\f[][\f[C]=\f[]\f[I]URL\f[]]
-\f[I]Deprecated.\f[] Render TeX math using the mimeTeX CGI script, which
-generates an image for each TeX formula.
-This should work in all browsers.
-If \f[I]URL\f[] is not specified, it is assumed that the script is at
-\f[C]/cgi\-bin/mimetex.cgi\f[].
 .RS
 .RE
 .SS Options for wrapper scripts
