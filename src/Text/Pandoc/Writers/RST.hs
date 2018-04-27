@@ -457,8 +457,11 @@ transformInlines =  insertBS .
 -- them either collapsing them in the outer inline container or
 -- pulling them out of it
 flatten :: Inline -> [Inline]
-flatten outer = combineAll $ dropInlineParent outer
-  where combineAll = foldl combine []
+flatten outer
+  | null contents = [outer]
+  | otherwise     = combineAll contents
+  where contents = dropInlineParent outer
+        combineAll = foldl combine []
 
         combine :: [Inline] -> Inline -> [Inline]
         combine f i = 
