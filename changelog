@@ -126,7 +126,7 @@ pandoc (2.2)
     + Allow emphasis and notes in titles.
     + Don't intersperse paragraph with empty lines.
     + Convert metadata value `abstract` to book annotation.
-    + Use `<empty-line />` for `HorizontalRule' rather than `LineBreak`.
+    + Use `<empty-line />` for `HorizontalRule` rather than `LineBreak`.
       FB2 does not have a way to represent line breaks inside paragraphs;
       previously we used `<empty-line />` elements, but these are not allowed
       inside paragraphs.
