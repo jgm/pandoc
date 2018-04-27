@@ -22,9 +22,9 @@ groups](https://img.shields.io/badge/pandoc-discuss-red.svg?style=social)](https
 
 ## The universal markup converter
 
-Pandoc is a \[Haskell\] library for converting from one markup format to
-another, and a command-line tool that uses this library. It can convert
-*from*
+Pandoc is a [Haskell](http://haskell.org) library for converting from
+one markup format to another, and a command-line tool that uses this
+library. It can convert *from*
 
 <div id="input-formats">
 
