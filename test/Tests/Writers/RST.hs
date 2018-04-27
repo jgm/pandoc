@@ -64,6 +64,9 @@ tests = [ testGroup "rubrics"
             -- the test above is the reason why we call
             -- stripLeadingTrailingSpace through transformNested after
             -- flatten
+          , testCase "preserves empty parents" $
+            flatten (Image ("",[],[]) [] ("loc","title")) @?=
+            [Image ("",[],[]) [] ("loc","title")]
           ]
         , testGroup "inlines"
           [ "are removed when empty" =: -- #4434
