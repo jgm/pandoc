@@ -69,7 +69,7 @@ pandoc (2.2)
 
   * Muse reader (Alexander Krotov):
 
-    + Add support for Text:Amuse multiline headings.
+    + Add support for Text::Amuse multiline headings.
     + Add `<math>` tag support.
     + Add support for `<biblio>` and `<play>` tags.
     + Allow links to have empty descriptions.
