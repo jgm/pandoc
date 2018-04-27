@@ -214,7 +214,7 @@ pandoc (2.2)
     + Use `withTempDir` in `html2pdf`.
     + With `xelatex`, don't compress images til the last run (#4484).
       This saves time for image-heavy documents.
-    + Don't try to convert EPS files (#2067).  `pdflatex converts them
+    + Don't try to convert EPS files (#2067).  `pdflatex` converts them
       itself, and JuicyPixels can't do it.
     + For `pdflatex`, use a temp directory in the working directory.
       Otherwise we can have problems with the EPS conversion pdflatex
