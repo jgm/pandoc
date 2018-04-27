@@ -86,6 +86,7 @@
 - Jens Getreu
 - Jens Petersen
 - Jesse Rosenthal
+- Joe Hermaszewski
 - Joe Hillenbrand
 - John MacFarlane
 - John Muccigrosso
