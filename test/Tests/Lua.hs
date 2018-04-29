@@ -12,7 +12,8 @@ import Test.Tasty.QuickCheck (QuickCheckTests (..), ioProperty, testProperty)
 import Text.Pandoc.Arbitrary ()
 import Text.Pandoc.Builder (bulletList, divWith, doc, doubleQuoted, emph,
                             header, linebreak, para, plain, rawBlock,
-                            singleQuoted, space, str, strong)
+                            singleQuoted, space, str, strong,
+                            math, displayMath)
 import Text.Pandoc.Class (runIOorExplode, setUserDataDir)
 import Text.Pandoc.Definition (Block (BlockQuote, Div, Para), Inline (Emph, Str),
                                Attr, Meta, Pandoc, pandocTypesVersion)
@@ -47,6 +48,12 @@ tests = map (localOption (QuickCheckTests 20))
       "plain-to-para.lua"
       (doc $ bulletList [plain (str "alfa"), plain (str "bravo")])
       (doc $ bulletList [para (str "alfa"), para (str "bravo")])
+
+  , testCase "convert display math to inline math" $
+    assertFilterConversion "display math becomes inline math"
+      "math.lua"
+      (doc $ para (displayMath "5+5"))
+      (doc $ para (math "5+5"))
 
   , testCase "make hello world document" $
     assertFilterConversion "Document contains 'Hello, World!'"
