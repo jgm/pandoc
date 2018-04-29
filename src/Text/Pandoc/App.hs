@@ -223,17 +223,16 @@ convertWithOpts opts = do
        then pdfWriterAndProg (optWriter opts) (optPdfEngine opts)
        else return (nonPdfWriterName $ optWriter opts, Nothing)
 
-  let format = baseWriterName
+  let format = map toLower $ baseWriterName
                  $ takeFileName writerName  -- in case path to lua script
 
   -- disabling the custom writer for now
   (writer, writerExts) <-
             if ".lua" `isSuffixOf` format
-               -- note:  use non-lowercased version writerName
                then return (TextWriter
                        (\o d -> writeCustom writerName o d)
                                :: Writer PandocIO, mempty)
-               else case getWriter writerName of
+               else case getWriter (map toLower writerName) of
                          Left e  -> E.throwIO $ PandocAppError $
                            if format == "pdf"
                               then e ++
@@ -844,8 +843,7 @@ options =
 
     , Option "tw" ["to","write"]
                  (ReqArg
-                  (\arg opt -> return opt { optWriter =
-                                              Just (map toLower arg) })
+                  (\arg opt -> return opt { optWriter = Just arg })
                   "FORMAT")
                  ""
 
