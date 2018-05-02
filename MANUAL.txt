@@ -568,7 +568,7 @@ Reader options
 
 :   Set the metadata field *KEY* to the value *VAL*.  A value specified
     on the command line overrides a value specified in the document
-    using [YAML metadata blocks][Extension:`yaml_metadata_block`].
+    using [YAML metadata blocks][Extension: `yaml_metadata_block`].
     Values will be parsed as YAML boolean or string values. If no value is
     specified, the value will be treated as Boolean true.  Like
     `--variable`, `--metadata` causes template variables to be set.
@@ -1273,7 +1273,7 @@ Templates contain *variables*, which allow for the inclusion of
 arbitrary information at any point in the file. They may be set at the
 command line using the `-V/--variable` option. If a variable is not set,
 pandoc will look for the key in the document's metadata – which can be set
-using either [YAML metadata blocks][Extension:`yaml_metadata_block`]
+using either [YAML metadata blocks][Extension: `yaml_metadata_block`]
 or with the `--metadata` option.
 
 Variables set by pandoc
