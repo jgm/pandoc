@@ -28,7 +28,7 @@ import Text.Pandoc.Definition
 import Text.DocLayout
   ( Doc, braces, brackets, cr, empty, hcat, hsep, isEmpty, literal, nest
   , text, vcat, ($$))
-import Text.Pandoc.Shared (splitBy, tshow)
+import Text.Pandoc.Shared (deNote, splitBy, tshow)
 import Text.Pandoc.Walk (walk, query)
 import Data.Monoid (Any(..))
 import Text.Pandoc.Writers.LaTeX.Caption (getCaption)
@@ -55,8 +55,10 @@ tableToLaTeX inlnsToLaTeX blksToLaTeX tbl = do
   -- table environment; otherwise we use longtable
   beamer <- gets stBeamer
   let float = "float" `elem` classes
+  let repeatCaption = not float && "repeat-caption" `elem` classes
   let renderTable = do
-       capt <- captionToLaTeX inlnsToLaTeX caption ident
+       (capt, repeatedCapt) <-
+         captionToLaTeX inlnsToLaTeX repeatCaption caption ident
        let isSimpleTable =
              all ((== ColWidthDefault) . snd) specs &&
              all (all isSimpleCell)
@@ -72,7 +74,8 @@ tableToLaTeX inlnsToLaTeX blksToLaTeX tbl = do
        let mkRow = rowToLaTeX blksToLaTeX isSimpleTable colCount BodyCell
        if float
           then tableToLaTeXTable placement colDesc mkHead mkRow capt thead tbodies tfoot
-          else tableToLaTeXLongtable colDesc mkHead mkRow capt thead tbodies tfoot
+          else tableToLaTeXLongtable colDesc mkHead mkRow capt repeatedCapt
+                 thead tbodies tfoot
   -- See #5367 -- footnotehyper/footnote don't work in beamer,
   -- so we need to produce the notes outside the table...
   if float || beamer
@@ -129,28 +132,33 @@ tableToLaTeXLongtable :: PandocMonad m
                       -> (Ann.TableHead -> LW m (Doc Text))
                       -> ([Ann.Cell] -> LW m (Doc Text))
                       -> Doc Text
+                      -> Doc Text
                       -> Ann.TableHead
                       -> [Ann.TableBody]
                       -> Ann.TableFoot
                       -> LW m (Doc Text)
-tableToLaTeXLongtable colDesc mkHead mkRow capt thead tbodies tfoot = do
+tableToLaTeXLongtable colDesc mkHead mkRow capt repeatedCapt
+                      thead tbodies tfoot = do
   opts <- gets stOptions
   let hasTopCaption = not (isEmpty capt) &&
                         writerTableCaptionPosition opts == CaptionAbove
   let hasBottomCaption = not (isEmpty capt) &&
                           writerTableCaptionPosition opts == CaptionBelow
-  -- The first head is not repeated on the following pages. If we were to just
-  -- use a single head, without a separate first head, then the caption would be
-  -- repeated on all pages that contain a part of the table. We avoid this by
-  -- making the caption part of the first head. The downside is that we must
-  -- duplicate the header rows for this.
+  -- The first head is not repeated on the following pages. Keep the numbered
+  -- caption in that head, and add the unnumbered repeated caption to the regular
+  -- head only when requested. The downside is that we must duplicate the header
+  -- rows.
   head' <- do
     case (hasTopCaption, isEmptyHead thead) of
       (False, True) -> return "\\toprule\\noalign{}"
       (False, False)  -> mkHead thead
       (True, True)  -> return (capt <> "\\tabularnewline"
                                 $$ "\\toprule\\noalign{}"
-                                $$ "\\endfirsthead")
+                                $$ "\\endfirsthead"
+                                $$ (if isEmpty repeatedCapt
+                                       then mempty
+                                       else repeatedCapt <> "\\tabularnewline"
+                                            $$ "\\toprule\\noalign{}"))
       (True, False)   -> do
         -- avoid duplicate notes in head and firsthead:
         firsthead <- mkHead thead
@@ -160,6 +168,9 @@ tableToLaTeXLongtable colDesc mkHead mkRow capt thead tbodies tfoot = do
         return $ capt <> "\\tabularnewline"
                  $$ firsthead
                  $$ "\\endfirsthead"
+                 $$ (if isEmpty repeatedCapt
+                        then mempty
+                        else repeatedCapt <> "\\tabularnewline")
                  $$ repeated
   rows' <- mapM mkRow $ mconcat (map bodyRows tbodies)
   lastfoot <- mapM mkRow $ footRows tfoot
@@ -170,6 +181,9 @@ tableToLaTeXLongtable colDesc mkHead mkRow capt thead tbodies tfoot = do
               $$ (if hasBottomCaption
                      then "\\tabularnewline" $$ capt
                      else mempty)
+  let repeatedFoot = "\\bottomrule\\noalign{}"
+                     $$ "\\tabularnewline"
+                     $$ repeatedCapt
   modify $ \s -> s{ stTable = True }
   beamer <- gets stBeamer
   let makeUnnumbered x = "{\\def\\LTcaptype{none} % do not increment counter" $$ x $$ "}"
@@ -187,9 +201,12 @@ tableToLaTeXLongtable colDesc mkHead mkRow capt thead tbodies tfoot = do
              then [ vcat rows'
                   , foot'
                   ]
-             else [ foot'
+             else (if hasBottomCaption && not (isEmpty repeatedCapt)
+                      then [ repeatedFoot, "\\endfoot" ]
+                      else []) <>
+                  [ foot'
                   , "\\endlastfoot"
-                  ,  vcat rows'
+                  , vcat rows'
                   ])
     $$ "\\end{longtable}"
 
@@ -256,16 +273,25 @@ colAlign = \case
 
 captionToLaTeX :: PandocMonad m
                => ([Inline] -> LW m (Doc Text))
+               -> Bool     -- ^ repeat caption on subsequent pages
                -> Caption
                -> Text     -- ^ table identifier (label)
-               -> LW m (Doc Text)
-captionToLaTeX inlnsToLaTeX caption ident = do
+               -> LW m (Doc Text, Doc Text)
+captionToLaTeX inlnsToLaTeX repeatCaption caption ident = do
   (captionText, captForLot) <- getCaption inlnsToLaTeX caption
+  repeatedCaptionText <-
+    if repeatCaption
+       then fst <$> getCaption inlnsToLaTeX (walk deNote caption)
+       else pure empty
   label <- labelFor ident
-  return $ if isEmpty captionText && isEmpty label
-              then empty
-              else "\\caption" <> captForLot <>
-                     braces captionText <> label
+  let capt = if isEmpty captionText && isEmpty label
+                then empty
+                else "\\caption" <> captForLot <>
+                       braces captionText <> label
+  let repeatedCapt = if isEmpty repeatedCaptionText
+                        then empty
+                        else "\\caption[]" <> braces repeatedCaptionText
+  return (capt, repeatedCapt)
 
 type BlocksWriter m = [Block] -> LW m (Doc Text)
 
