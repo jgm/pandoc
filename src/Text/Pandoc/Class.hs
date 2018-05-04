@@ -477,6 +477,14 @@ liftIOError f u = do
          Left e  -> throwError $ PandocIOError u e
          Right r -> return r
 
+-- | Show potential IO errors to the user continuing execution anyway
+logIOError :: IO () -> PandocIO ()
+logIOError f = do
+  res <- liftIO $ tryIOError f
+  case res of
+    Left e -> report $ IgnoredIOError (E.displayException e)
+    Right _ -> pure ()
+
 instance PandocMonad PandocIO where
   lookupEnv = liftIO . IO.lookupEnv
   getCurrentTime = liftIO IO.getCurrentTime
@@ -862,7 +870,7 @@ writeMedia dir mediabag subpath = do
        Just (_, bs) -> do
          report $ Extracting fullpath
          liftIOError (createDirectoryIfMissing True) (takeDirectory fullpath)
-         liftIOError (\p -> BL.writeFile p bs) fullpath
+         logIOError $ BL.writeFile fullpath bs
 
 adjustImagePath :: FilePath -> [FilePath] -> Inline -> Inline
 adjustImagePath dir paths (Image attr lab (src, tit))
