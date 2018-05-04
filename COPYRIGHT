@@ -123,7 +123,7 @@ Released under the GNU General Public License version 2 or later.
 src/Text/Pandoc/Readers/TikiWiki.hs
 Copyright (C) 2017 Robin Lee Powell
 
-Released under the GNU General Public License version 2.
+Released under the GNU General Public License version 2 or later.
 
 ----------------------------------------------------------------------
 src/Text/Pandoc/Readers/JATS.hs

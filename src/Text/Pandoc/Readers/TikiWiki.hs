@@ -6,7 +6,7 @@
 {- |
    Module      : Text.Pandoc.Readers.TikiWiki
    Copyright   : Copyright (C) 2017 Robin Lee Powell
-   License     : GPLv2
+   License     : GNU GPL, version 2 or above
 
    Maintainer  : Robin Lee Powell <robinleepowell@gmail.com>
    Stability   : alpha
