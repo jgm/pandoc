@@ -146,6 +146,12 @@ Copyright (C) 2014-2018 Albert Krewinkel
 Released under the GNU General Public License version 2 or later.
 
 ----------------------------------------------------------------------
+src/Text/Pandoc/Readers/FB2.hs
+Copyright (C) 2018 Alexander Krotov
+
+Released under the GNU General Public License version 2 or later.
+
+----------------------------------------------------------------------
 data/pandoc.lua
 Copyright (C) 2017-2018 Albert Krewinkel
 
