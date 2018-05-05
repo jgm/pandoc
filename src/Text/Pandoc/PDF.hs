@@ -45,26 +45,23 @@ import qualified Data.ByteString.Lazy.Char8 as BC
 import Data.Maybe (fromMaybe)
 import Data.Text (Text)
 import qualified Data.Text as T
-import qualified Data.Text.IO as TextIO
 import System.Directory
 import System.Environment
 import System.Exit (ExitCode (..))
 import System.FilePath
 import System.IO (stdout)
-import System.IO.Temp (withTempDirectory)
+import System.IO.Temp (withTempDirectory, withTempFile)
 #if MIN_VERSION_base(4,8,3)
 import System.IO.Error (IOError, isDoesNotExistError)
 #else
 import System.IO.Error (isDoesNotExistError)
 #endif
-import Text.HTML.TagSoup
-import Text.HTML.TagSoup.Match
 import Text.Pandoc.Definition
 import Text.Pandoc.Error (PandocError (PandocPDFProgramNotFoundError))
 import Text.Pandoc.MIME (getMimeType)
 import Text.Pandoc.Options (HTMLMathMethod (..), WriterOptions (..))
 import Text.Pandoc.Process (pipeProcess)
-import Text.Pandoc.Shared (inDirectory, stringify, withTempDir)
+import Text.Pandoc.Shared (inDirectory, stringify)
 import qualified Text.Pandoc.UTF8 as UTF8
 import Text.Pandoc.Walk (walkM)
 import Text.Pandoc.Writers.Shared (getField, metaToJSON)
@@ -365,51 +362,50 @@ html2pdf  :: Verbosity    -- ^ Verbosity level
           -> [String]     -- ^ Args to program
           -> Text         -- ^ HTML5 source
           -> IO (Either ByteString ByteString)
-html2pdf verbosity program args htmlSource = do
-  cwd <- getCurrentDirectory
-  let tags = parseTags htmlSource
-      (hd, tl) = break (tagClose (== "head")) tags
-      baseTag = TagOpen "base"
-        [("href", T.pack cwd <> T.singleton pathSeparator)] : [TagText "\n"]
-      source = renderTags $ hd ++ baseTag ++ tl
-  withTempDir "html2pdf.pdf" $ \tmpdir -> do
-    let pdfFile = tmpdir </> "out.pdf"
-    let pdfFileArgName = ["-o" | program == "prince"]
-    let programArgs = args ++ ["-"] ++ pdfFileArgName ++ [pdfFile]
-    env' <- getEnvironment
-    when (verbosity >= INFO) $ do
-      putStrLn "[makePDF] Command line:"
-      putStrLn $ program ++ " " ++ unwords (map show programArgs)
-      putStr "\n"
-      putStrLn "[makePDF] Environment:"
-      mapM_ print env'
-      putStr "\n"
-      putStrLn "[makePDF] Contents of intermediate HTML:"
-      TextIO.putStr source
-      putStr "\n"
-    (exit, out) <- E.catch
-      (pipeProcess (Just env') program programArgs $ BL.fromStrict $ UTF8.fromText source)
-      (\(e :: IOError) -> if isDoesNotExistError e
-                             then E.throwIO $
-                                    PandocPDFProgramNotFoundError program
-                             else E.throwIO e)
-    when (verbosity >= INFO) $ do
-      BL.hPutStr stdout out
-      putStr "\n"
-    pdfExists <- doesFileExist pdfFile
-    mbPdf <- if pdfExists
-              -- We read PDF as a strict bytestring to make sure that the
-              -- temp directory is removed on Windows.
-              -- See https://github.com/jgm/pandoc/issues/1192.
-              then do
-                res <- (Just . BL.fromChunks . (:[])) `fmap` BS.readFile pdfFile
-                removeFile pdfFile
-                return res
-              else return Nothing
-    return $ case (exit, mbPdf) of
-               (ExitFailure _, _)      -> Left out
-               (ExitSuccess, Nothing)  -> Left ""
-               (ExitSuccess, Just pdf) -> Right pdf
+html2pdf verbosity program args source = do
+  -- write HTML to temp file so we don't have to rewrite
+  -- all links in `a`, `img`, `style`, `script`, etc. tags,
+  -- and piping to weasyprint didn't work on Windows either.
+  file    <- withTempFile "." "html2pdf.html" $ \fp _ -> return fp
+  pdfFile <- withTempFile "." "html2pdf.pdf" $ \fp _ -> return fp
+  BS.writeFile file $ UTF8.fromText source
+  let pdfFileArgName = ["-o" | program == "prince"]
+  let programArgs = args ++ [file] ++ pdfFileArgName ++ [pdfFile]
+  env' <- getEnvironment
+  when (verbosity >= INFO) $ do
+    putStrLn "[makePDF] Command line:"
+    putStrLn $ program ++ " " ++ unwords (map show programArgs)
+    putStr "\n"
+    putStrLn "[makePDF] Environment:"
+    mapM_ print env'
+    putStr "\n"
+    putStrLn $ "[makePDF] Contents of " ++ file ++ ":"
+    BL.readFile file >>= BL.putStr
+    putStr "\n"
+  (exit, out) <- E.catch
+    (pipeProcess (Just env') program programArgs BL.empty)
+    (\(e :: IOError) -> if isDoesNotExistError e
+                           then E.throwIO $
+                                  PandocPDFProgramNotFoundError program
+                           else E.throwIO e)
+  removeFile file
+  when (verbosity >= INFO) $ do
+    BL.hPutStr stdout out
+    putStr "\n"
+  pdfExists <- doesFileExist pdfFile
+  mbPdf <- if pdfExists
+            -- We read PDF as a strict bytestring to make sure that the
+            -- temp directory is removed on Windows.
+            -- See https://github.com/jgm/pandoc/issues/1192.
+            then do
+              res <- (Just . BL.fromChunks . (:[])) `fmap` BS.readFile pdfFile
+              removeFile pdfFile
+              return res
+            else return Nothing
+  return $ case (exit, mbPdf) of
+             (ExitFailure _, _)      -> Left out
+             (ExitSuccess, Nothing)  -> Left ""
+             (ExitSuccess, Just pdf) -> Right pdf
 
 context2pdf :: Verbosity    -- ^ Verbosity level
             -> FilePath     -- ^ temp directory for output
