@@ -1701,10 +1701,24 @@ Templates may contain conditionals.  The syntax is as follows:
     Y
     $endif$
 
-This will include `X` in the template if `variable` has a non-null
-value; otherwise it will include `Y`. `X` and `Y` are placeholders for
-any valid template text, and may include interpolated variables or other
-conditionals. The `$else$` section may be omitted.
+This will include `X` in the template if `variable` has a truthy
+value; otherwise it will include `Y`. Here a truthy value is any
+of the following:
+
+- a string that is not entirely white space,
+- a non-empty array where the first value is truthy,
+- any number (including zero),
+- any object,
+- the boolean `true` (to specify the boolean `true`
+  value using YAML metadata or the `--metadata` flag,
+  use `y`, `Y`, `yes`, `Yes`, `YES`, `true`, `True`,
+  `TRUE`, `on`, `On`, or `ON`; with the `--variable`
+  flag, simply omit a value for the variable, e.g.
+  `--variable draft`).
+
+`X` and `Y` are placeholders for any valid template text,
+and may include interpolated variables or other conditionals.
+The `$else$` section may be omitted.
 
 When variables can have multiple values (for example, `author` in
 a multi-author document), you can use the `$for$` keyword:
