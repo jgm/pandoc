@@ -511,7 +511,7 @@ inlineToMuse (Link _ txt (src, _)) =
         isImageUrl = (`elem` imageExtensions) . takeExtension
 inlineToMuse (Image attr alt (source,'f':'i':'g':':':title)) =
   inlineToMuse (Image attr alt (source,title))
-inlineToMuse (Image attr inlines (source, title)) = do
+inlineToMuse (Image attr@(_, classes, _) inlines (source, title)) = do
   opts <- asks envOptions
   alt <- local (\env -> env { envInsideLinkDescription = True }) $ inlineListToMuse inlines
   let title' = if null title
@@ -522,7 +522,13 @@ inlineToMuse (Image attr inlines (source, title)) = do
   let width = case dimension Width attr of
                 Just (Percent x) | isEnabled Ext_amuse opts -> " " ++ show (round x :: Integer)
                 _ -> ""
-  return $ "[[" <> text (urlEscapeBrackets source ++ width) <> "]" <> title' <> "]"
+  let leftalign = if "align-left" `elem` classes
+                  then " l"
+                  else ""
+  let rightalign = if "align-right" `elem` classes
+                   then " r"
+                   else ""
+  return $ "[[" <> text (urlEscapeBrackets source ++ width ++ leftalign ++ rightalign) <> "]" <> title' <> "]"
 inlineToMuse (Note contents) = do
   -- add to notes in state
   notes <- gets stNotes
