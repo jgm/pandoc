@@ -41,7 +41,7 @@ function test_pipe ()
     local pipe_result = pandoc.pipe('echo', {}, 'hi')
     return pipe_result == 'hi\n' or pipe_result == 'hi'
   else
-    local pipe_result = pandoc.pipe('sed', {'-e', 's/a/b/'}, 'abc')
+    local pipe_result = pandoc.pipe('tr', {'a', 'b'}, 'abc')
     return pipe_result == 'bbc\n' or pipe_result == 'bbc'
   end
 end
