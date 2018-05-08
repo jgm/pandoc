@@ -354,7 +354,8 @@ defList :: PandocMonad m
 defList opts items = toList H.dl opts (items ++ [nl opts])
 
 -- | Construct table of contents from list of elements.
-tableOfContents :: PandocMonad m => WriterOptions -> [Element] -> StateT WriterState m (Maybe Html)
+tableOfContents :: PandocMonad m => WriterOptions -> [Element]
+                -> StateT WriterState m (Maybe Html)
 tableOfContents _ [] = return Nothing
 tableOfContents opts sects = do
   contents  <- mapM (elementToListItem opts) sects
@@ -369,7 +370,8 @@ showSecNum = intercalate "." . map show
 
 -- | Converts an Element to a list item for a table of contents,
 -- retrieving the appropriate identifier from state.
-elementToListItem :: PandocMonad m => WriterOptions -> Element -> StateT WriterState m (Maybe Html)
+elementToListItem :: PandocMonad m => WriterOptions -> Element
+                  -> StateT WriterState m (Maybe Html)
 -- Don't include the empty headers created in slide shows
 -- shows when an hrule is used to separate slides without a new title:
 elementToListItem _ (Sec _ _ _ [Str "\0"] _) = return Nothing
@@ -381,7 +383,8 @@ elementToListItem opts (Sec lev num (id',classes,_) headerText subsecs)
                    then (H.span ! A.class_ "toc-section-number"
                         $ toHtml $ showSecNum num') >> preEscapedString " "
                    else mempty
-  txt <- liftM (sectnum >>) $ inlineListToHtml opts $ walk deNote headerText
+  txt <- liftM (sectnum >>) $
+         inlineListToHtml opts $ walk (deLink . deNote) headerText
   subHeads <- mapM (elementToListItem opts) subsecs >>= return . catMaybes
   subList <- if null subHeads
                 then return mempty
@@ -397,8 +400,13 @@ elementToListItem opts (Sec lev num (id',classes,_) headerText subsecs)
                        $ toHtml txt) >> subList
 elementToListItem _ _ = return Nothing
 
+deLink :: Inline -> Inline
+deLink (Link _ ils _) = Span nullAttr ils
+deLink x              = x
+
 -- | Convert an Element to Html.
-elementToHtml :: PandocMonad m => Int -> WriterOptions -> Element -> StateT WriterState m Html
+elementToHtml :: PandocMonad m => Int -> WriterOptions -> Element
+              -> StateT WriterState m Html
 elementToHtml _slideLevel opts (Blk block) = blockToHtml opts block
 elementToHtml slideLevel opts (Sec level num (id',classes,keyvals) title' elements) = do
   slideVariant <- gets stSlideVariant
