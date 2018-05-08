@@ -1111,6 +1111,9 @@ inlineToOpenXML' _ (Str str) =
   formattedString str
 inlineToOpenXML' opts Space = inlineToOpenXML opts (Str " ")
 inlineToOpenXML' opts SoftBreak = inlineToOpenXML opts (Str " ")
+inlineToOpenXML' opts (Span (_,["underline"],_) ils) = do
+  withTextProp (mknode "w:u" [("w:val","single")] ()) $
+    inlinesToOpenXML opts ils
 inlineToOpenXML' _ (Span (ident,["comment-start"],kvs) ils) = do
   -- prefer the "id" in kvs, since that is the one produced by the docx
   -- reader.
