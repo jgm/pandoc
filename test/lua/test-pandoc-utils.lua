@@ -32,25 +32,34 @@ end
 
 function warn (...) io.stderr:write(...) end
 
+function os_is_windows ()
+  return package.config:sub(1,1) == '\\'
+end
+
 function test_pipe ()
-  if not file_exists('/bin/sed') then
-    warn 'Did not find /bin/sed, skipping test'
-    return true
+  if os_is_windows() then
+    local pipe_result = pandoc.pipe('echo', {}, 'hi')
+    return pipe_result == 'hi\n'
+  else
+    local pipe_result = pandoc.pipe('sed', {'-e', 's/a/b/'}, 'abc')
+    return pipe_result == 'bbc\n'
   end
-  local pipe_result = pandoc.pipe('/bin/sed', {'-e', 's/a/b/'}, 'abc')
-  return pipe_result == 'bbc'
 end
 
 function test_failing_pipe ()
-  if not file_exists('/bin/false') then
-    warn 'Did not find /bin/false, skipping test'
-    return true
+  if os_is_windows() then
+    local res, err = pcall(pandoc.pipe, 'cd', {}, 'NoNExistEnt')
+    return not res and
+      err.command == 'cd' and
+      err.error_code == 1 and
+      err.output == ''
+  else
+    local res, err = pcall(pandoc.pipe, 'false', {}, 'abc')
+    return not res and
+      err.command == 'false' and
+      err.error_code == 1 and
+      err.output == ''
   end
-  local res, err = pcall(pandoc.pipe, '/bin/false', {}, 'abc')
-  return not res and
-    err.command == '/bin/false' and
-    err.error_code == 1 and
-    err.output == ''
 end
 
 -- Read
