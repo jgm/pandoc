@@ -38,7 +38,7 @@ end
 
 function test_pipe ()
   if os_is_windows() then
-    local pipe_result = pandoc.pipe('echo', {}, 'hi')
+    local pipe_result = pandoc.pipe('find', {'hi'}, 'hi')
     return pipe_result == 'hi\n' or pipe_result == 'hi'
   else
     local pipe_result = pandoc.pipe('tr', {'a', 'b'}, 'abc')
@@ -48,11 +48,10 @@ end
 
 function test_failing_pipe ()
   if os_is_windows() then
-    local res, err = pcall(pandoc.pipe, 'cd', {}, 'NoNExistEnt')
+    local res, err = pcall(pandoc.pipe, 'find', {'/a'}, 'hi')
     return not res and
-      err.command == 'cd' and
-      err.error_code == 1 and
-      err.output == ''
+      err.command == 'find' and
+      err.error_code ~= 0
   else
     local res, err = pcall(pandoc.pipe, 'false', {}, 'abc')
     return not res and
