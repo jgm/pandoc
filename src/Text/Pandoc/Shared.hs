@@ -644,7 +644,7 @@ uriPathToPath path =
 #ifdef _WINDOWS
   case path of
     '/':ps -> ps
-    _      -> p
+    ps     -> ps
 #else
   path
 #endif
