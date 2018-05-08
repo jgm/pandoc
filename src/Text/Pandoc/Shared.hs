@@ -84,6 +84,7 @@ module Text.Pandoc.Shared (
                      -- * File handling
                      inDirectory,
                      collapseFilePath,
+                     uriPathToPath,
                      filteredFilesFromArchive,
                      -- * URI handling
                      schemes,
@@ -634,6 +635,19 @@ collapseFilePath = Posix.joinPath . reverse . foldl go [] . splitDirectories
     isSingleton [x] = Just x
     isSingleton _   = Nothing
     checkPathSeperator = fmap isPathSeparator . isSingleton
+
+-- Convert the path part of a file: URI to a regular path.
+-- On windows, @/c:/foo@ should be @c:/foo@.
+-- On linux, @/foo@ should be @/foo@.
+uriPathToPath :: String -> FilePath
+uriPathToPath path =
+#ifdef _WINDOWS
+  case path of
+    '/':ps -> ps
+    _      -> p
+#else
+  path
+#endif
 
 --
 -- File selection from the archive
