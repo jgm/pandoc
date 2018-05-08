@@ -93,7 +93,7 @@ import Text.Pandoc.Highlighting (highlightingStyles)
 import Text.Pandoc.PDF (makePDF)
 import Text.Pandoc.SelfContained (makeDataURI, makeSelfContained)
 import Text.Pandoc.Shared (eastAsianLineBreakFilter, stripEmptyParagraphs,
-         headerShift, isURI, ordNub, safeRead, tabFilter)
+         headerShift, isURI, ordNub, safeRead, tabFilter, uriPathToPath)
 import qualified Text.Pandoc.UTF8 as UTF8
 import Text.Pandoc.Writers.Math (defaultKaTeXURL, defaultMathJaxURL)
 import Text.Pandoc.XML (toEntities)
@@ -795,7 +795,7 @@ readSource src = case parseURI src of
                                  readURI src
                              | uriScheme u == "file:" ->
                                  liftIO $ UTF8.toText <$>
-                                    BS.readFile (uriPath u)
+                                    BS.readFile (uriPathToPath $ uriPath u)
                       _       -> liftIO $ UTF8.toText <$>
                                     BS.readFile src
 

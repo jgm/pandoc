@@ -110,6 +110,7 @@ import qualified Text.Pandoc.UTF8 as UTF8
 import qualified System.Directory as Directory
 import Data.Time (UTCTime)
 import Text.Pandoc.Logging
+import Text.Pandoc.Shared (uriPathToPath)
 import Text.Parsec (ParsecT, getPosition, sourceLine, sourceName)
 import qualified Data.Time as IO (getCurrentTime)
 import Text.Pandoc.MIME (MimeType, getMimeType, extensionFromMimeType)
@@ -598,7 +599,7 @@ downloadOrRead s = do
             -- We don't want to treat C:/ as a scheme:
             Just u' | length (uriScheme u') > 2 -> openURL (show u')
             Just u' | uriScheme u' == "file:" ->
-                 readLocalFile $ dropWhile (=='/') (uriPath u')
+                 readLocalFile $ uriPathToPath (uriPath u')
             _ -> readLocalFile fp -- get from local file system
    where readLocalFile f = do
              resourcePath <- getResourcePath
