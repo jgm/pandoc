@@ -1053,13 +1053,28 @@ dollarsMath :: PandocMonad m => LP m Inlines
 dollarsMath = do
   symbol '$'
   display <- option False (True <$ symbol '$')
-  contents <- trim . toksToString <$>
-               many (notFollowedBy (symbol '$') >> anyTok)
-  if display
-     then
-       mathDisplay contents <$ try (symbol '$' >> symbol '$')
-   <|> (guard (null contents) >> return (mathInline ""))
-     else mathInline contents <$ symbol '$'
+  (do contents <- try $ T.unpack <$> pDollarsMath 0
+      if display
+         then (mathDisplay contents <$ symbol '$')
+         else return $ mathInline contents)
+   <|> (guard display >> return (mathInline ""))
+
+-- Int is number of embedded groupings
+pDollarsMath :: PandocMonad m => Int -> LP m Text
+pDollarsMath n = do
+  Tok _ toktype t <- anyTok
+  case toktype of
+       Symbol | t == "$"
+              , n == 0 -> return mempty
+              | t == "\\" -> do
+                  Tok _ _ t' <- anyTok
+                  return (t <> t')
+              | t == "{" -> (t <>) <$> pDollarsMath (n+1)
+              | t == "}" ->
+                if n > 0
+                then (t <>) <$> pDollarsMath (n-1)
+                else mzero
+       _ -> (t <>) <$> pDollarsMath n
 
 -- citations
 
