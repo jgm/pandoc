@@ -665,16 +665,11 @@ blockToHtml opts (Para [Image attr@(_,classes,_) txt (src,tit)])
 -- title beginning with fig: indicates that the image is a figure
 blockToHtml opts (Para [Image attr txt (s,'f':'i':'g':':':tit)]) =
   figure opts attr txt (s,tit)
-blockToHtml opts (Para lst)
-  | isEmptyRaw lst = return mempty
-  | null lst && not (isEnabled Ext_empty_paragraphs opts) = return mempty
-  | otherwise = do
-      contents <- inlineListToHtml opts lst
-      return $ H.p contents
-  where
-    isEmptyRaw [RawInline f _] = f `notElem` [Format "html",
-                                    Format "html4", Format "html5"]
-    isEmptyRaw _               = False
+blockToHtml opts (Para lst) = do
+  contents <- inlineListToHtml opts lst
+  case contents of
+       Empty _ | not (isEnabled Ext_empty_paragraphs opts) -> return mempty
+       _ -> return $ H.p contents
 blockToHtml opts (LineBlock lns) =
   if writerWrapText opts == WrapNone
   then blockToHtml opts $ linesToPara lns
@@ -1063,7 +1058,6 @@ inlineToHtml opts inline = do
       if ishtml
          then return $ preEscapedString str
          else if (f == Format "latex" || f == Format "tex") &&
-                "\\begin" `isPrefixOf` str &&
                 allowsMathEnvironments (writerHTMLMathMethod opts) &&
                 isMathEnvironment str
                 then inlineToHtml opts $ Math DisplayMath str
