@@ -1217,9 +1217,21 @@ of the following options.
     not specified, a link to the KaTeX CDN will be inserted. Note that this
     option does not imply `--katex`.
 
+`--gladtex`
+
+:   Enclose TeX math in `<eq>` tags in HTML output.  The resulting HTML
+    can then be processed by [GladTeX] to produce images of the typeset
+    formulas and an HTML file with links to these images.
+    So, the procedure is:
+
+        pandoc -s --gladtex input.md -o myfile.htex
+        gladtex -d myfile-images myfile.htex
+        # produces myfile.html and images in myfile-images
+
 [MathML]: http://www.w3.org/Math/
 [MathJax]: https://www.mathjax.org
 [KaTeX]: https://github.com/Khan/KaTeX
+[GladTeX]: http://humenda.github.io/GladTeX/
 
 Options for wrapper scripts
 ---------------------------

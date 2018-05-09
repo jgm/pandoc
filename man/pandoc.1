@@ -647,8 +647,7 @@ a specified full or relative path (executable or non\-executable)
 .B \f[C]\-M\f[] \f[I]KEY\f[][\f[C]=\f[]\f[I]VAL\f[]], \f[C]\-\-metadata=\f[]\f[I]KEY\f[][\f[C]:\f[]\f[I]VAL\f[]]
 Set the metadata field \f[I]KEY\f[] to the value \f[I]VAL\f[].
 A value specified on the command line overrides a value specified in the
-document using [YAML metadata
-blocks][Extension:\f[C]yaml_metadata_block\f[]].
+document using YAML metadata blocks.
 Values will be parsed as YAML boolean or string values.
 If no value is specified, the value will be treated as Boolean true.
 Like \f[C]\-\-variable\f[], \f[C]\-\-metadata\f[] causes template
@@ -727,6 +726,8 @@ Produce output with an appropriate header and footer (e.g.
 a standalone HTML, LaTeX, TEI, or RTF file, not a fragment).
 This option is set automatically for \f[C]pdf\f[], \f[C]epub\f[],
 \f[C]epub3\f[], \f[C]fb2\f[], \f[C]docx\f[], and \f[C]odt\f[] output.
+For \f[C]native\f[] output, this option causes metadata to be included;
+otherwise, metadata is suppressed.
 .RS
 .RE
 .TP
@@ -1413,6 +1414,22 @@ inserted.
 Note that this option does not imply \f[C]\-\-katex\f[].
 .RS
 .RE
+.TP
+.B \f[C]\-\-gladtex\f[]
+Enclose TeX math in \f[C]<eq>\f[] tags in HTML output.
+The resulting HTML can then be processed by GladTeX to produce images of
+the typeset formulas and an HTML file with links to these images.
+So, the procedure is:
+.RS
+.IP
+.nf
+\f[C]
+pandoc\ \-s\ \-\-gladtex\ input.md\ \-o\ myfile.htex
+gladtex\ \-d\ myfile\-images\ myfile.htex
+#\ produces\ myfile.html\ and\ images\ in\ myfile\-images
+\f[]
+.fi
+.RE
 .SS Options for wrapper scripts
 .TP
 .B \f[C]\-\-dump\-args\f[]
@@ -1489,9 +1506,8 @@ arbitrary information at any point in the file.
 They may be set at the command line using the \f[C]\-V/\-\-variable\f[]
 option.
 If a variable is not set, pandoc will look for the key in the
-document\[aq]s metadata \[en] which can be set using either [YAML
-metadata blocks][Extension:\f[C]yaml_metadata_block\f[]] or with the
-\f[C]\-\-metadata\f[] option.
+document\[aq]s metadata \[en] which can be set using either YAML
+metadata blocks or with the \f[C]\-\-metadata\f[] option.
 .SS Variables set by pandoc
 .PP
 Some variables are set automatically by pandoc.
@@ -2081,7 +2097,25 @@ $endif$
 .fi
 .PP
 This will include \f[C]X\f[] in the template if \f[C]variable\f[] has a
-non\-null value; otherwise it will include \f[C]Y\f[].
+truthy value; otherwise it will include \f[C]Y\f[].
+Here a truthy value is any of the following:
+.IP \[bu] 2
+a string that is not entirely white space,
+.IP \[bu] 2
+a non\-empty array where the first value is truthy,
+.IP \[bu] 2
+any number (including zero),
+.IP \[bu] 2
+any object,
+.IP \[bu] 2
+the boolean \f[C]true\f[] (to specify the boolean \f[C]true\f[] value
+using YAML metadata or the \f[C]\-\-metadata\f[] flag, use \f[C]y\f[],
+\f[C]Y\f[], \f[C]yes\f[], \f[C]Yes\f[], \f[C]YES\f[], \f[C]true\f[],
+\f[C]True\f[], \f[C]TRUE\f[], \f[C]on\f[], \f[C]On\f[], or \f[C]ON\f[];
+with the \f[C]\-\-variable\f[] flag, simply omit a value for the
+variable, e.g.
+\f[C]\-\-variable\ draft\f[]).
+.PP
 \f[C]X\f[] and \f[C]Y\f[] are placeholders for any valid template text,
 and may include interpolated variables or other conditionals.
 The \f[C]$else$\f[] section may be omitted.

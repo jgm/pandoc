@@ -107,6 +107,7 @@ data EPUBVersion = EPUB2 | EPUB3 deriving (Eq, Show, Read, Data, Typeable, Gener
 
 data HTMLMathMethod = PlainMath
                     | WebTeX String               -- url of TeX->image script.
+                    | GladTeX
                     | MathML
                     | MathJax String              -- url of MathJax.js
                     | KaTeX String                -- url of KaTeX files

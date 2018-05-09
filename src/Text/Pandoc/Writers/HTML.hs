@@ -58,7 +58,7 @@ import qualified Data.Text.Lazy as TL
 import Network.HTTP (urlEncode)
 import Network.URI (URI (..), parseURIReference, unEscapeString)
 import Numeric (showHex)
-import Text.Blaze.Internal (customLeaf, MarkupM(Empty))
+import Text.Blaze.Internal (customLeaf, customParent, MarkupM(Empty))
 #if MIN_VERSION_blaze_markup(0,6,3)
 #else
 import Text.Blaze.Internal (preEscapedString, preEscapedText)
@@ -1029,6 +1029,13 @@ inlineToHtml opts inline = do
               return $ case t of
                         InlineMath  -> m
                         DisplayMath -> brtag >> m >> brtag
+           GladTeX ->
+              return $
+                customParent (textTag "eq") !
+                  customAttribute "env"
+                    (toValue $ if t == InlineMath
+                                  then ("math" :: Text)
+                                  else "displaymath") $ strToHtml str
            MathML -> do
               let conf = useShortEmptyTags (const False)
                            defaultConfigPP
