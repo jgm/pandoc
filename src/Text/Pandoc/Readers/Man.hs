@@ -35,7 +35,7 @@ module Text.Pandoc.Readers.Man where
 import Control.Monad.Except (throwError)
 import Data.Default (Default)
 import Data.Map (insert)
-import Data.Maybe (isJust)
+import Data.Maybe (isJust, maybeToList)
 import Data.List (intersperse, intercalate)
 import qualified Data.Text as T
 
@@ -109,18 +109,26 @@ parseMacro = do
   macroName <- many1 (letter <|> oneOf ['\\', '"'])
   args <- parseArgs
   let joinedArgs = concat $ intersperse " " args
+  let toBold = return $ Plain [Strong [Str joinedArgs]]
+  let toBoldItalic = return $ Plain [Strong [Emph [Str joinedArgs]]]
+  let toItalic = return $ Plain [Emph [Str joinedArgs]]
   case macroName of
     "\\\"" -> return Null -- comment
-    "TH"   -> macroTitle (if null args then "" else head args)
+    "TH"   -> macroTitle (if null args then "" else head args) -- man-title
+    "TP"   -> return Null -- tab-indented paragraph
+    "PP"   -> return Null -- end of tab-indented paragraphs
     "nf"   -> macroCodeBlock True >> return Null
     "fi"   -> macroCodeBlock False >> return Null
-    "B"    -> return $ Plain [Strong [Str joinedArgs]]
-    "BR"   -> return $ Plain [Strong [Str joinedArgs]]
-    "BI"   -> return $ Plain [Strong [Emph [Str joinedArgs]]]
-    "I"    -> return $ Plain [Emph   [Str joinedArgs]]
+    "B"    -> toBold
+    "BR"   -> return $ linkToMan joinedArgs
+    "BI"   -> toBoldItalic
+    "IB"   -> toBoldItalic
+    "I"    -> toItalic
+    "IR"   -> toItalic
+    "RI"   -> toItalic
     "SH"   -> return $ Header 2 nullAttr [Str joinedArgs]
     "sp"   -> return $ Plain [LineBreak]
-    _      -> unkownMacro macroName args
+    _      -> unkownMacro macroName
 
   where
 
@@ -131,21 +139,37 @@ parseMacro = do
       then return Null
       else return $ Header 1 nullAttr [Str mantitle]
     where
-    changeTitle title mst @ ManState{ pState = pst} =
+    changeTitle title mst@ManState{ pState = pst} =
       let meta = stateMeta pst
           metaUp = Meta $ insert "title" (MetaString title) (unMeta meta)
       in
       mst { pState = pst {stateMeta = metaUp} }
 
-
   macroCodeBlock :: PandocMonad m => Bool -> ManParser m ()
   macroCodeBlock insideCB = modifyRoffState (\rst -> rst{inCodeBlock = insideCB}) >> return ()
+
+  linkToMan :: String -> Block
+  linkToMan txt = case runParser linkParser () "" txt of
+      Right lnk -> Plain [lnk]
+      Left _ -> Plain [Emph [Str txt]]
+    where
+    linkParser :: Parsec String () Inline
+    linkParser = do
+      mpage <- many1 alphaNum
+      space
+      char '('
+      mansect <- digit
+      char ')'
+      -- assuming man pages are generated from Linux-like repository
+      let manurl pagename section = "../"++section++"/"++pagename++"."++section
+      return $ Link nullAttr [Str txt] (manurl mpage [mansect], mpage)
+
     
-  unkownMacro :: PandocMonad m => String -> [String] -> ManParser m Block
-  unkownMacro mname args = do
+  unkownMacro :: PandocMonad m => String -> ManParser m Block
+  unkownMacro mname = do
     pos <- getPosition
     logMessage $ SkippedContent ("Unknown macro: " ++ mname) pos
-    return $ Plain $ Str <$> args
+    return Null
    
   parseArgs :: PandocMonad m => ManParser m [String]
   parseArgs = do
@@ -173,61 +197,70 @@ parseMacro = do
     quotedChar :: PandocMonad m => ManParser m Char
     quotedChar = noneOf "\"\n" <|> try (string "\"\"" >> return '"')
 
-roffInline :: RoffState -> String -> (Maybe Inline)
+roffInline :: RoffState -> String -> [Inline]
 roffInline rst str
-  | null str        = Nothing
-  | inCodeBlock rst = Just $ Code nullAttr str
-  | otherwise       = Just $ case fontKind rst of
-    Regular -> Str str
-    Italic  -> Emph [Str str]
-    _       -> Strong [Str str]
+  | null str        = []
+  | inCodeBlock rst = [Code nullAttr str, LineBreak]
+  | otherwise       = case fontKind rst of
+    Regular    -> [Str str]
+    Italic     -> [Emph [Str str]]
+    Bold       -> [Strong [Str str]]
+    ItalicBold -> [Emph [Strong [Str str]]]
 
 parseLine :: PandocMonad m => ManParser m Block
 parseLine = do
   parts <- parseLineParts
   newline
   return $ if null parts
-    then Plain [LineBreak]
+    then Null
     else Plain parts
   where
     parseLineParts :: PandocMonad m => ManParser m [Inline]
     parseLineParts = do
       lnpart <- many $ noneOf "\n\\"
       ManState {rState = roffSt} <- getState
-      let inl = roffInline roffSt lnpart
+      let inls = roffInline roffSt lnpart
       others <- backSlash <|> return []
-      return $ case inl of
-        Just x  -> x:others
-        Nothing -> others
+      return $ inls ++ others
     
     backSlash :: PandocMonad m => ManParser m [Inline]
     backSlash = do
       char '\\'
       esc <- choice [ char 'f' >> fEscape
                     , char '-' >> return (Just '-')
+                    , char '%' >> return Nothing
                     , Just <$> noneOf "\n"
                     ]
       ManState {rState = roffSt} <- getState
       case esc of
-        Just c -> case roffInline roffSt [c] of
-          Just inl -> do
-            oth <- parseLineParts
-            return $ inl : oth
-          Nothing -> parseLineParts
+        Just c -> let inls = roffInline roffSt [c]
+                  in parseLineParts >>= (\oth -> return $ inls ++ oth)
         Nothing -> parseLineParts
       where
       
       fEscape :: PandocMonad m => ManParser m (Maybe Char)
       fEscape = choice [ char 'B' >> modifyRoffState (\rst -> rst {fontKind = Bold})
                        , char 'I' >> modifyRoffState (\rst -> rst {fontKind = Italic})
-                       , char 'P' >> modifyRoffState (\rst -> rst {fontKind = Regular})
+                       , (char 'P' <|> anyChar) >> modifyRoffState (\rst -> rst {fontKind = Regular})
                        ]
                 >> return Nothing
-      
-      
+
+createParas :: [Block] -> [Block]
+createParas bs = inner bs [] where
+  inner :: [Block] -> [Inline] -> [Block]
+  inner [] inls = maybeToList $ inlinesToPara inls
+  inner (Plain einls : oth) inls = inner oth (inls ++ einls)
+  inner (block : oth) inls = case inlinesToPara inls of
+    Just par -> par : block : inner oth []
+    Nothing  -> block : inner oth []
+
+  inlinesToPara :: [Inline] -> Maybe Block
+  inlinesToPara []   = Nothing
+  inlinesToPara inls = Just $ Para (intersperse (Str " ") inls)
+
 
 parseMan :: PandocMonad m => ManParser m Pandoc
 parseMan = do
-  blocks <- many (parseMacro <|> parseLine)
+  blocks <- createParas <$> many (parseMacro <|> parseLine)
   parserst <- pState <$> getState
   return $ Pandoc (stateMeta parserst) blocks
