@@ -74,7 +74,7 @@ tests = testGroup "pandoc tests" [ Tests.Command.tests
           , testGroup "EPUB" Tests.Readers.EPUB.tests
           , testGroup "Muse" Tests.Readers.Muse.tests
           , testGroup "Creole" Tests.Readers.Creole.tests
-          , testGroup "Man" Tests.Readers
+          , testGroup "Man" Tests.Readers.Man.tests
           ]
         , testGroup "Lua filters" Tests.Lua.tests
         ]

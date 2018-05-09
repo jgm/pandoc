@@ -2,15 +2,30 @@
 module Tests.Readers.Man (tests) where
 
 import Data.Text (Text)
-import qualified Data.Text as T
 import Test.Tasty
 import Tests.Helpers
 import Text.Pandoc
 import Text.Pandoc.Arbitrary ()
 import Text.Pandoc.Builder
+import Text.Pandoc.Readers.Man
 
-creole :: Text -> Pandoc
-creole = purely $ readCreole def{ readerStandalone = True }
+man :: Text -> Pandoc
+man = purely $ readMan def
+
+infix 4 =:
+(=:) :: ToString c
+     => String -> (Text, c) -> TestTree
+(=:) = test man
 
 tests :: [TestTree]
-tests = []
+tests = [
+  -- .SH "HEllo bbb" "aaa"" as"
+  testGroup "Macros" [
+          "Bold" =:
+          ".B foo\n"
+          =?> strong "foo"
+        , "Italic" =:
+          ".I foo\n"
+          =?> emph "foo"
+        ]
+  ]
