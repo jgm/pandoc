@@ -38,6 +38,13 @@ $endif$
 $if(pagenumbering)$
 \setuppagenumbering[$for(pagenumbering)$$pagenumbering$$sep$,$endfor$]
 $endif$
+$if(pdfa)$
+% attempt to generate PDF/A
+\setupbackend
+  [format=PDF/A-1b:2005,
+   intent=sRGB IEC61966-2.1,
+   profile=sRGB.icc]
+$endif$
 
 % use microtypography
 \definefontfeature[default][default][script=latn, protrusion=quality, expansion=quality, itlc=yes, textitalics=yes, onum=yes, pnum=yes]
@@ -47,7 +54,7 @@ $endif$
 
 \setupbodyfontenvironment[default][em=italic] % use italic as em, not slanted
 
-\definefallbackfamily[mainface][rm][DejaVu Serif][preset=range:greek, force=yes]
+\definefallbackfamily[mainface][rm][CMU Serif][preset=range:greek, force=yes]
 \definefontfamily[mainface][rm][$if(mainfont)$$mainfont$$else$Latin Modern Roman$endif$]
 \definefontfamily[mainface][mm][$if(mathfont)$$mathfont$$else$Latin Modern Math$endif$]
 \definefontfamily[mainface][ss][$if(sansfont)$$sansfont$$else$Latin Modern Sans$endif$]

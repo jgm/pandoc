@@ -1,5 +1,7 @@
+{-# LANGUAGE NoImplicitPrelude #-}
 module Tests.Writers.Powerpoint (tests) where
 
+import Prelude
 import Tests.Writers.OOXML (ooxmlTest)
 import Text.Pandoc
 import Test.Tasty
@@ -53,6 +55,14 @@ tests = groupPptxTests [ pptxTests "Inline formatting"
                          def{ writerSlideLevel = Just 1 }
                          "pptx/slide_breaks.native"
                          "pptx/slide_breaks_slide_level_1.pptx"
+                       , pptxTests "lists"
+                         def
+                         "pptx/lists.native"
+                         "pptx/lists.pptx"
+                       , pptxTests "tables"
+                         def
+                         "pptx/tables.native"
+                         "pptx/tables.pptx"
                        , pptxTests "table of contents"
                          def{ writerTableOfContents = True }
                          "pptx/slide_breaks.native"
@@ -77,4 +87,13 @@ tests = groupPptxTests [ pptxTests "Inline formatting"
                          def
                          "pptx/speaker_notes.native"
                          "pptx/speaker_notes.pptx"
+                       , pptxTests "speaker notes after a separating block"
+                         def
+                         "pptx/speaker_notes_afterseps.native"
+                         "pptx/speaker_notes_afterseps.pptx"
+                       , pptxTests "remove empty slides"
+                         def
+                         "pptx/remove_empty_slides.native"
+                         "pptx/remove_empty_slides.pptx"
+
                        ]

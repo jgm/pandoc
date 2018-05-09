@@ -395,7 +395,7 @@
   <Column Name="0" SingleColumnWidth="75.0" />
   <Column Name="1" SingleColumnWidth="68.75" />
   <Column Name="2" SingleColumnWidth="81.25" />
-  <Column Name="3" SingleColumnWidth="168.75" />
+  <Column Name="3" SingleColumnWidth="175.0" />
   <Cell Name="0:0" AppliedCellStyle="CellStyle/Cell">
     <ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/TablePar &gt; TableHeader &gt; CenterAlign">
       <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
@@ -497,7 +497,7 @@
   <Column Name="0" SingleColumnWidth="75.0" />
   <Column Name="1" SingleColumnWidth="68.75" />
   <Column Name="2" SingleColumnWidth="81.25" />
-  <Column Name="3" SingleColumnWidth="168.75" />
+  <Column Name="3" SingleColumnWidth="175.0" />
   <Cell Name="0:0" AppliedCellStyle="CellStyle/Cell">
     <ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/TablePar &gt; TableHeader &gt; CenterAlign">
       <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
@@ -695,7 +695,7 @@
   <Column Name="0" SingleColumnWidth="75.0" />
   <Column Name="1" SingleColumnWidth="68.75" />
   <Column Name="2" SingleColumnWidth="81.25" />
-  <Column Name="3" SingleColumnWidth="168.75" />
+  <Column Name="3" SingleColumnWidth="175.0" />
   <Cell Name="0:0" AppliedCellStyle="CellStyle/Cell">
     <ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/TablePar &gt; CenterAlign">
       <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">

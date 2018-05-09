@@ -1,3 +1,4 @@
+{-# LANGUAGE NoImplicitPrelude #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-
 Copyright (C) 2015-2018 John MacFarlane <jgm@berkeley.edu>
@@ -32,11 +33,12 @@ CommonMark:  <http://commonmark.org>
 -}
 module Text.Pandoc.Writers.CommonMark (writeCommonMark) where
 
+import Prelude
 import CMarkGFM
 import Control.Monad.State.Strict (State, get, modify, runState)
 import Data.Foldable (foldrM)
 import Data.List (transpose)
-import Data.Monoid (Any (..), (<>))
+import Data.Monoid (Any (..))
 import Data.Text (Text)
 import qualified Data.Text as T
 import Network.HTTP (urlEncode)
@@ -114,7 +116,7 @@ blockToNodes _ (CodeBlock (_,classes,_) xs) ns = return
 blockToNodes opts (RawBlock fmt xs) ns
   | fmt == Format "html" && isEnabled Ext_raw_html opts
               = return (node (HTML_BLOCK (T.pack xs)) [] : ns)
-  | fmt == Format "latex" || fmt == Format "tex" && isEnabled Ext_raw_tex opts
+  | (fmt == Format "latex" || fmt == Format "tex") && isEnabled Ext_raw_tex opts
               = return (node (CUSTOM_BLOCK (T.pack xs) T.empty) [] : ns)
   | otherwise = return ns
 blockToNodes opts (BlockQuote bs) ns = do

@@ -1,5 +1,3 @@
-
-
 {-
 Copyright (C) 2015 Martin Linnemann <theCodingMarlin@googlemail.com>
 

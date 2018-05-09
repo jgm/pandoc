@@ -6,9 +6,9 @@ return a single value:
 
 .. code:: haskell
 
-    unsplit :: (Arrow a) => (b -> c -> d) -> a (b, c) d
-    unsplit = arr . uncurry
-              -- arr (\op (x,y) -> x `op` y)
+   unsplit :: (Arrow a) => (b -> c -> d) -> a (b, c) d
+   unsplit = arr . uncurry
+             -- arr (\op (x,y) -> x `op` y)
 
 ``(***)`` combines two arrows into a new arrow by running the two arrows on a
 pair of values (one arrow on the first item of the pair and one arrow on the
@@ -16,8 +16,8 @@ second item of the pair).
 
 ::
 
-    f *** g = first f >>> second g
+   f *** g = first f >>> second g
 
 Block quote:
 
-    foo bar
+   foo bar

@@ -1,3 +1,4 @@
+{-# LANGUAGE NoImplicitPrelude #-}
 {-# LANGUAGE FlexibleInstances    #-}
 {-# LANGUAGE TypeSynonymInstances #-}
 -- Utility functions for the test suite.
@@ -13,6 +14,7 @@ module Tests.Helpers ( test
                      )
                      where
 
+import Prelude
 import Data.Algorithm.Diff
 import qualified Data.Map as M
 import Data.Text (Text, unpack)

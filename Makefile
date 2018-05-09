@@ -54,9 +54,9 @@ debpkg: man/pandoc.1
 macospkg: man/pandoc.1
 	./macos/make_macos_package.sh
 
-winpkg: pandoc-$(version)-windows.msi pandoc-$(version)-windows.zip
+winpkg: pandoc-$(version)-windows-i386.msi pandoc-$(version)-windows-i386.zip pandoc-$(version)-windows-x86_64.msi pandoc-$(version)-windows-x86_64.zip
 
-pandoc-$(version)-windows.zip: pandoc-$(version)-windows.msi
+pandoc-$(version)-windows-%.zip: pandoc-$(version)-windows-%.msi
 	-rm -rf wintmp && \
 	msiextract -C wintmp $< && \
 	cd wintmp/"Program Files" && \
@@ -66,10 +66,17 @@ pandoc-$(version)-windows.zip: pandoc-$(version)-windows.msi
 	cd ../.. && \
 	rm -rf wintmp
 
-pandoc-$(version)-windows.msi:
-	wget 'https://ci.appveyor.com/api/projects/jgm/pandoc/artifacts/windows/pandoc-windows-i386.msi?branch=$(BRANCH)' -O pandoc.msi && \
-	osslsigncode sign -pkcs12 ~/Private/ComodoCodeSigning.exp2019.p12 -in pandoc.msi -i http://johnmacfarlane.net/ -t http://timestamp.comodoca.com/ -out $@ -askpass
-	rm pandoc.msi
+pandoc-$(version)-windows-%.msi: pandoc-windows-%.msi
+	osslsigncode sign -pkcs12 ~/Private/ComodoCodeSigning.exp2019.p12 -in $< -i http://johnmacfarlane.net/ -t http://timestamp.comodoca.com/ -out $@ -askpass
+	rm $<
+
+pandoc-windows-i386.msi:
+	JOBID=$(shell curl 'https://ci.appveyor.com/api/projects/jgm/pandoc' | jq -r '.build.jobs[0].jobId') && \
+	wget "https://ci.appveyor.com/api/buildjobs/$$JOBID/artifacts/windows%2F$@" -O $@
+
+pandoc-windows-x86_64.msi:
+	JOBID=$(shell curl 'https://ci.appveyor.com/api/projects/jgm/pandoc' | jq -r '.build.jobs[1].jobId') && \
+	wget "https://ci.appveyor.com/api/buildjobs/$$JOBID/artifacts/windows%2F$@" -O $@
 
 man/pandoc.1: MANUAL.txt man/pandoc.1.template
 	pandoc $< -f markdown-smart -t man -s --template man/pandoc.1.template \

@@ -1,5 +1,6 @@
+{-# LANGUAGE NoImplicitPrelude #-}
+{-# LANGUAGE CPP             #-}
 {-# LANGUAGE Arrows          #-}
-
 {-# LANGUAGE RecordWildCards #-}
 {-# LANGUAGE TupleSections   #-}
 
@@ -57,6 +58,7 @@ module Text.Pandoc.Readers.Odt.StyleReader
 , readStylesAt
 ) where
 
+import Prelude
 import Control.Applicative hiding (liftA, liftA2, liftA3)
 import Control.Arrow
 
@@ -79,7 +81,6 @@ import Text.Pandoc.Readers.Odt.Generic.XMLConverter
 
 import Text.Pandoc.Readers.Odt.Base
 import Text.Pandoc.Readers.Odt.Namespaces
-
 
 readStylesAt :: XML.Element -> Fallible Styles
 readStylesAt e = runConverter' readAllStyles mempty e
@@ -183,13 +184,14 @@ data Styles           = Styles
   deriving ( Show )
 
 -- Styles from a monoid under union
-instance Monoid Styles where
-  mempty  = Styles M.empty M.empty M.empty
-  mappend  (Styles sBn1 dSm1 lsBn1)
-           (Styles sBn2 dSm2 lsBn2)
+instance Semigroup Styles where
+  (Styles sBn1 dSm1 lsBn1) <> (Styles sBn2 dSm2 lsBn2)
           = Styles (M.union sBn1  sBn2)
                    (M.union dSm1  dSm2)
                    (M.union lsBn1 lsBn2)
+instance Monoid Styles where
+  mempty  = Styles M.empty M.empty M.empty
+  mappend = (<>)
 
 -- Not all families from the specifications are implemented, only those we need.
 -- But there are none that are not mentioned here.

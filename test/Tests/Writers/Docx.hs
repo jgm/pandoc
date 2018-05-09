@@ -1,5 +1,7 @@
+{-# LANGUAGE NoImplicitPrelude #-}
 module Tests.Writers.Docx (tests) where
 
+import Prelude
 import Text.Pandoc
 import Test.Tasty
 import Tests.Writers.OOXML

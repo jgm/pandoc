@@ -1,3 +1,4 @@
+{-# LANGUAGE NoImplicitPrelude #-}
 {-# LANGUAGE FlexibleInstances    #-}
 {-# LANGUAGE PatternGuards        #-}
 {-# LANGUAGE TypeSynonymInstances #-}
@@ -7,6 +8,7 @@ module Text.Pandoc.Readers.Docx.Combine ( smushInlines
                                         )
        where
 
+import Prelude
 import Data.List
 import Data.Sequence (ViewL (..), ViewR (..), viewl, viewr, (><), (|>))
 import qualified Data.Sequence as Seq (null)
@@ -133,6 +135,10 @@ combineBlocks bs cs
   | bs' :> BlockQuote bs'' <- viewr (unMany bs)
   , BlockQuote cs'' :< cs' <- viewl (unMany cs) =
       Many $ (bs' |> BlockQuote (bs'' <> cs'')) >< cs'
+  | bs' :> CodeBlock attr codeStr <- viewr (unMany bs)
+  , CodeBlock attr' codeStr' :< cs' <- viewl (unMany cs)
+  , attr == attr' =
+      Many $ (bs' |> CodeBlock attr (codeStr <> "\n" <> codeStr')) >< cs'
 combineBlocks bs cs = bs <> cs
 
 instance (Monoid a, Eq a) => Eq (Modifier a) where

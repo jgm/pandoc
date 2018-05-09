@@ -1,5 +1,7 @@
+{-# LANGUAGE NoImplicitPrelude #-}
 module Tests.Old (tests) where
 
+import Prelude
 import Data.Algorithm.Diff
 import Prelude hiding (readFile)
 import System.Exit
@@ -57,7 +59,7 @@ tests = [ testGroup "markdown"
           ]
         , testGroup "s5"
           [ s5WriterTest "basic" ["-s"] "s5"
-          , s5WriterTest "fancy" ["-s","-m","-i"] "s5"
+          , s5WriterTest "fancy" ["-s","--mathjax","-i"] "s5"
           , s5WriterTest "fragment" [] "html4"
           , s5WriterTest "inserts"  ["-s", "-H", "insert",
             "-B", "insert", "-A", "insert", "-c", "main.css"] "html4"
@@ -93,6 +95,7 @@ tests = [ testGroup "markdown"
           , fb2WriterTest "images" [] "fb2/images.markdown" "fb2/images.fb2"
           , fb2WriterTest "images-embedded" [] "fb2/images-embedded.html" "fb2/images-embedded.fb2"
           , fb2WriterTest "math" [] "fb2/math.markdown" "fb2/math.fb2"
+          , fb2WriterTest "meta" [] "fb2/meta.markdown" "fb2/meta.fb2"
           , fb2WriterTest "tables" [] "tables.native" "tables.fb2"
           , fb2WriterTest "testsuite" [] "testsuite.native" "writer.fb2"
           ]
@@ -286,4 +289,3 @@ findDynlibDir :: [FilePath] -> Maybe FilePath
 findDynlibDir []           = Nothing
 findDynlibDir ("build":xs) = Just $ joinPath (reverse xs) </> "build"
 findDynlibDir (_:xs)       = findDynlibDir xs
-

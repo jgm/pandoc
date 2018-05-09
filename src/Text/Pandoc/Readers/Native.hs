@@ -1,3 +1,4 @@
+{-# LANGUAGE NoImplicitPrelude #-}
 {-
 Copyright (C) 2011-2018 John MacFarlane <jgm@berkeley.edu>
 
@@ -30,6 +31,7 @@ Conversion of a string representation of a pandoc type (@Pandoc@,
 -}
 module Text.Pandoc.Readers.Native ( readNative ) where
 
+import Prelude
 import Text.Pandoc.Definition
 import Text.Pandoc.Options (ReaderOptions)
 import Text.Pandoc.Shared (safeRead)

@@ -1,3 +1,4 @@
+{-# LANGUAGE NoImplicitPrelude #-}
 {-
 Copyright (C) 2007-2018 John MacFarlane <jgm@berkeley.edu>
 
@@ -36,9 +37,10 @@ TODO:
 -}
 
 module Text.Pandoc.Writers.Ms ( writeMs ) where
+import Prelude
 import Control.Monad.State.Strict
-import Data.Char (isLower, isUpper, toUpper)
-import Data.List (intercalate, intersperse, sort)
+import Data.Char (isLower, isUpper, toUpper, ord)
+import Data.List (intercalate, intersperse)
 import qualified Data.Map as Map
 import Data.Maybe (catMaybes, fromMaybe)
 import Data.Text (Text)
@@ -46,6 +48,7 @@ import qualified Data.Text as T
 import Network.URI (escapeURIString, isAllowedInURI)
 import Skylighting
 import System.FilePath (takeExtension)
+import Text.Pandoc.Asciify (toAsciiChar)
 import Text.Pandoc.Class (PandocMonad, report)
 import Text.Pandoc.Definition
 import Text.Pandoc.Highlighting
@@ -65,6 +68,7 @@ data WriterState = WriterState { stHasInlineMath :: Bool
                                , stNotes         :: [Note]
                                , stSmallCaps     :: Bool
                                , stHighlighting  :: Bool
+                               , stInHeader      :: Bool
                                , stFontFeatures  :: Map.Map Char Bool
                                }
 
@@ -74,6 +78,7 @@ defaultWriterState = WriterState{ stHasInlineMath = False
                                 , stNotes         = []
                                 , stSmallCaps     = False
                                 , stHighlighting  = False
+                                , stInHeader      = False
                                 , stFontFeatures  = Map.fromList [
                                                        ('I',False)
                                                      , ('B',False)
@@ -132,14 +137,12 @@ msEscapes = Map.fromList
               [ ('\160', "\\~")
               , ('\'', "\\[aq]")
               , ('`', "\\`")
-              , ('\8217', "'")
               , ('"', "\\[dq]")
               , ('\x2014', "\\[em]")
               , ('\x2013', "\\[en]")
               , ('\x2026', "\\&...")
               , ('~', "\\[ti]")
               , ('^', "\\[ha]")
-              , ('-', "\\-")
               , ('@', "\\@")
               , ('\\', "\\\\")
               ]
@@ -216,11 +219,16 @@ blockToMs :: PandocMonad m
           -> Block         -- ^ Block element
           -> MS m Doc
 blockToMs _ Null = return empty
-blockToMs opts (Div _ bs) = do
+blockToMs opts (Div (ident,_,_) bs) = do
+  let anchor = if null ident
+                  then empty
+                  else nowrap $
+                         text ".pdfhref M "
+                         <> doubleQuotes (text (toAscii ident))
   setFirstPara
   res <- blockListToMs opts bs
   setFirstPara
-  return res
+  return $ anchor $$ res
 blockToMs opts (Plain inlines) =
   liftM vcat $ mapM (inlineListToMs' opts) $ splitSentences inlines
 blockToMs opts (Para [Image attr alt (src,_tit)])
@@ -258,7 +266,9 @@ blockToMs _ HorizontalRule = do
   return $ text ".HLINE"
 blockToMs opts (Header level (ident,classes,_) inlines) = do
   setFirstPara
+  modify $ \st -> st{ stInHeader = True }
   contents <- inlineListToMs' opts $ map breakToSpace inlines
+  modify $ \st -> st{ stInHeader = False }
   let (heading, secnum) = if writerNumberSections opts &&
                               "unnumbered" `notElem` classes
                              then (".NH", "\\*[SN]")
@@ -266,7 +276,8 @@ blockToMs opts (Header level (ident,classes,_) inlines) = do
   let anchor = if null ident
                   then empty
                   else nowrap $
-                         text ".pdfhref M " <> doubleQuotes (text ident)
+                         text ".pdfhref M "
+                         <> doubleQuotes (text (toAscii ident))
   let bookmark = text ".pdfhref O " <> text (show level ++ " ") <>
                       doubleQuotes (text $ secnum ++
                                       (if null secnum
@@ -274,7 +285,7 @@ blockToMs opts (Header level (ident,classes,_) inlines) = do
                                           else "  ") ++
                                       escapeString (stringify inlines))
   let backlink = nowrap (text ".pdfhref L -D " <>
-       doubleQuotes (text ident) <> space <> text "\\") <> cr <>
+       doubleQuotes (text (toAscii ident)) <> space <> text "\\") <> cr <>
        text " -- "
   let tocEntry = if writerTableOfContents opts &&
                      level <= writerTOCDepth opts
@@ -513,7 +524,7 @@ inlineToMs opts (Link _ txt ('#':ident, _)) = do
   -- internal link
   contents <- inlineListToMs' opts $ map breakToSpace txt
   return $ text "\\c" <> cr <> nowrap (text ".pdfhref L -D " <>
-       doubleQuotes (text ident) <> text " -A " <>
+       doubleQuotes (text (toAscii ident)) <> text " -A " <>
        doubleQuotes (text "\\c") <> space <> text "\\") <> cr <>
        text " -- " <> doubleQuotes (nowrap contents) <> cr <> text "\\&"
 inlineToMs opts (Link _ txt (src, _)) = do
@@ -552,8 +563,15 @@ handleNote opts bs = do
 fontChange :: PandocMonad m => MS m Doc
 fontChange = do
   features <- gets stFontFeatures
-  let filling = sort [c | (c,True) <- Map.toList features]
-  return $ text $ "\\f[" ++ filling ++ "]"
+  inHeader <- gets stInHeader
+  let filling = ['C' | fromMaybe False $ Map.lookup 'C' features] ++
+                ['B' | inHeader ||
+                       fromMaybe False (Map.lookup 'B' features)] ++
+                ['I' | fromMaybe False $ Map.lookup 'I' features]
+  return $
+    if null filling
+       then text "\\f[R]"
+       else text $ "\\f[" ++ filling ++ "]"
 
 withFontFeature :: PandocMonad m => Char -> MS m Doc -> MS m Doc
 withFontFeature c action = do
@@ -637,3 +655,11 @@ highlightCode opts attr str =
          Right h -> do
            modify (\st -> st{ stHighlighting = True })
            return h
+
+-- This is used for PDF anchors.
+toAscii :: String -> String
+toAscii = concatMap
+  (\c -> case toAsciiChar c of
+              Nothing -> '_':'u':show (ord c) ++ "_"
+              Just '/' -> '_':'u':show (ord c) ++ "_" -- see #4515
+              Just c' -> [c'])

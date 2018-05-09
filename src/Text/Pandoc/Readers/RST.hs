@@ -1,3 +1,4 @@
+{-# LANGUAGE NoImplicitPrelude #-}
 {-# LANGUAGE FlexibleContexts    #-}
 {-# LANGUAGE OverloadedStrings   #-}
 {-# LANGUAGE ScopedTypeVariables #-}
@@ -31,6 +32,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 Conversion from reStructuredText to 'Pandoc' document.
 -}
 module Text.Pandoc.Readers.RST ( readRST ) where
+import Prelude
 import Control.Arrow (second)
 import Control.Monad (forM_, guard, liftM, mplus, mzero, when)
 import Control.Monad.Except (throwError)
@@ -40,7 +42,6 @@ import Data.List (deleteFirstsBy, elemIndex, intercalate, isInfixOf, isSuffixOf,
                   nub, sort, transpose, union)
 import qualified Data.Map as M
 import Data.Maybe (fromMaybe, isJust)
-import Data.Monoid ((<>))
 import Data.Sequence (ViewR (..), viewr)
 import Data.Text (Text)
 import qualified Data.Text as T
@@ -80,7 +81,7 @@ type RSTParser m = ParserT [Char] ParserState m
 ---
 
 bulletListMarkers :: [Char]
-bulletListMarkers = "*+-"
+bulletListMarkers = "*+-•‣⁃"
 
 underlineChars :: [Char]
 underlineChars = "!\"#$%&'()*+,-./:;<=>?@[\\]^_`{|}~"
@@ -650,11 +651,15 @@ directive' = do
   skipMany spaceChar
   top <- many $ satisfy (/='\n')
              <|> try (char '\n' <*
-                      notFollowedBy' (rawFieldListItem 3) <*
-                      count 3 (char ' ') <*
+                      notFollowedBy' (rawFieldListItem 1) <*
+                      many1 (char ' ') <*
                       notFollowedBy blankline)
   newline
-  fields <- many $ rawFieldListItem 3
+  fields <- do
+    fieldIndent <- length <$> lookAhead (many (char ' '))
+    if fieldIndent == 0
+       then return []
+       else many $ rawFieldListItem fieldIndent
   body <- option "" $ try $ blanklines >> indentedBlock
   optional blanklines
   let body' = body ++ "\n\n"
@@ -1085,10 +1090,15 @@ targetURI :: Monad m => ParserT [Char] st m [Char]
 targetURI = do
   skipSpaces
   optional newline
-  contents <- many1 (try (many spaceChar >> newline >>
-                          many1 spaceChar >> noneOf " \t\n") <|> noneOf "\n")
+  contents <- trim <$>
+     many1 (satisfy (/='\n')
+     <|> try (newline >> many1 spaceChar >> noneOf " \t\n"))
   blanklines
-  return $ escapeURI $ trim contents
+  case reverse contents of
+       -- strip backticks
+       '_':'`':xs -> return (dropWhile (=='`') (reverse xs) ++ "_")
+       '_':_      -> return contents
+       _          -> return (escapeURI contents)
 
 substKey :: PandocMonad m => RSTParser m ()
 substKey = try $ do

@@ -58,7 +58,7 @@ Centered Header\strut
 Left Aligned\strut
 \end{minipage} & \begin{minipage}[b]{0.14\columnwidth}\raggedleft
 Right Aligned\strut
-\end{minipage} & \begin{minipage}[b]{0.30\columnwidth}\raggedright
+\end{minipage} & \begin{minipage}[b]{0.31\columnwidth}\raggedright
 Default aligned\strut
 \end{minipage}\tabularnewline
 \midrule
@@ -70,7 +70,7 @@ Centered Header\strut
 Left Aligned\strut
 \end{minipage} & \begin{minipage}[b]{0.14\columnwidth}\raggedleft
 Right Aligned\strut
-\end{minipage} & \begin{minipage}[b]{0.30\columnwidth}\raggedright
+\end{minipage} & \begin{minipage}[b]{0.31\columnwidth}\raggedright
 Default aligned\strut
 \end{minipage}\tabularnewline
 \midrule
@@ -81,7 +81,7 @@ First\strut
 row\strut
 \end{minipage} & \begin{minipage}[t]{0.14\columnwidth}\raggedleft
 12.0\strut
-\end{minipage} & \begin{minipage}[t]{0.30\columnwidth}\raggedright
+\end{minipage} & \begin{minipage}[t]{0.31\columnwidth}\raggedright
 Example of a row that spans multiple lines.\strut
 \end{minipage}\tabularnewline
 \begin{minipage}[t]{0.13\columnwidth}\centering
@@ -90,7 +90,7 @@ Second\strut
 row\strut
 \end{minipage} & \begin{minipage}[t]{0.14\columnwidth}\raggedleft
 5.0\strut
-\end{minipage} & \begin{minipage}[t]{0.30\columnwidth}\raggedright
+\end{minipage} & \begin{minipage}[t]{0.31\columnwidth}\raggedright
 Here's another one. Note the blank line between rows.\strut
 \end{minipage}\tabularnewline
 \bottomrule
@@ -106,7 +106,7 @@ Centered Header\strut
 Left Aligned\strut
 \end{minipage} & \begin{minipage}[b]{0.14\columnwidth}\raggedleft
 Right Aligned\strut
-\end{minipage} & \begin{minipage}[b]{0.30\columnwidth}\raggedright
+\end{minipage} & \begin{minipage}[b]{0.31\columnwidth}\raggedright
 Default aligned\strut
 \end{minipage}\tabularnewline
 \midrule
@@ -117,7 +117,7 @@ First\strut
 row\strut
 \end{minipage} & \begin{minipage}[t]{0.14\columnwidth}\raggedleft
 12.0\strut
-\end{minipage} & \begin{minipage}[t]{0.30\columnwidth}\raggedright
+\end{minipage} & \begin{minipage}[t]{0.31\columnwidth}\raggedright
 Example of a row that spans multiple lines.\strut
 \end{minipage}\tabularnewline
 \begin{minipage}[t]{0.13\columnwidth}\centering
@@ -126,7 +126,7 @@ Second\strut
 row\strut
 \end{minipage} & \begin{minipage}[t]{0.14\columnwidth}\raggedleft
 5.0\strut
-\end{minipage} & \begin{minipage}[t]{0.30\columnwidth}\raggedright
+\end{minipage} & \begin{minipage}[t]{0.31\columnwidth}\raggedright
 Here's another one. Note the blank line between rows.\strut
 \end{minipage}\tabularnewline
 \bottomrule
@@ -154,7 +154,7 @@ First\strut
 row\strut
 \end{minipage} & \begin{minipage}[t]{0.14\columnwidth}\raggedleft
 12.0\strut
-\end{minipage} & \begin{minipage}[t]{0.30\columnwidth}\raggedright
+\end{minipage} & \begin{minipage}[t]{0.31\columnwidth}\raggedright
 Example of a row that spans multiple lines.\strut
 \end{minipage}\tabularnewline
 \begin{minipage}[t]{0.13\columnwidth}\centering
@@ -163,7 +163,7 @@ Second\strut
 row\strut
 \end{minipage} & \begin{minipage}[t]{0.14\columnwidth}\raggedleft
 5.0\strut
-\end{minipage} & \begin{minipage}[t]{0.30\columnwidth}\raggedright
+\end{minipage} & \begin{minipage}[t]{0.31\columnwidth}\raggedright
 Here's another one. Note the blank line between rows.\strut
 \end{minipage}\tabularnewline
 \bottomrule

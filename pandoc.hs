@@ -1,3 +1,4 @@
+{-# LANGUAGE NoImplicitPrelude #-}
 {-
 Copyright (C) 2006-2018 John MacFarlane <jgm@berkeley.edu>
 
@@ -29,6 +30,7 @@ Parses command-line options and calls the appropriate readers and
 writers.
 -}
 module Main where
+import Prelude
 import qualified Control.Exception as E
 import Text.Pandoc.App (convertWithOpts, defaultOpts, options, parseOptions)
 import Text.Pandoc.Error (handleError)

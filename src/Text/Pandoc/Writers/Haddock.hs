@@ -1,6 +1,7 @@
+{-# LANGUAGE NoImplicitPrelude #-}
 {-# LANGUAGE OverloadedStrings   #-}
 {-# LANGUAGE ScopedTypeVariables #-}
-{-# LANGUAGE TupleSections       #-}
+
 {-
 Copyright (C) 2014-2015, 2017-2018 John MacFarlane <jgm@berkeley.edu>
 
@@ -33,9 +34,9 @@ Conversion of 'Pandoc' documents to haddock markup.
 Haddock:  <http://www.haskell.org/haddock/doc/html/>
 -}
 module Text.Pandoc.Writers.Haddock (writeHaddock) where
+import Prelude
 import Control.Monad.State.Strict
 import Data.Default
-import Data.List (intersperse, transpose)
 import Data.Text (Text)
 import Text.Pandoc.Class (PandocMonad, report)
 import Text.Pandoc.Definition
@@ -136,29 +137,15 @@ blockToHaddock _ (CodeBlock (_,_,_) str) =
 -- Nothing in haddock corresponds to block quotes:
 blockToHaddock opts (BlockQuote blocks) =
   blockListToHaddock opts blocks
--- Haddock doesn't have tables.  Use haddock tables in code.
 blockToHaddock opts (Table caption aligns widths headers rows) = do
   caption' <- inlineListToHaddock opts caption
   let caption'' = if null caption
                      then empty
                      else blankline <> caption' <> blankline
-  rawHeaders <- mapM (blockListToHaddock opts) headers
-  rawRows <- mapM (mapM (blockListToHaddock opts)) rows
-  let isSimple = all (==0) widths
-  let isPlainBlock (Plain _) = True
-      isPlainBlock _         = False
-  let hasBlocks = not (all isPlainBlock $ concat . concat $ headers:rows)
-  (nst,tbl) <- case True of
-                _ | isSimple -> (nest 2,) <$>
-                         pandocTable opts (all null headers) aligns widths
-                             rawHeaders rawRows
-                  | not hasBlocks -> (nest 2,) <$>
-                         pandocTable opts (all null headers) aligns widths
-                             rawHeaders rawRows
-                  | otherwise -> (id,) <$>
-                         gridTable opts blockListToHaddock
-                          (all null headers) aligns widths headers rows
-  return $ prefixed "> " (nst $ tbl $$ blankline $$ caption'') $$ blankline
+  tbl <- gridTable opts blockListToHaddock
+              (all null headers) (map (const AlignDefault) aligns)
+                widths headers rows
+  return $ prefixed "> " (tbl $$ blankline $$ caption'') $$ blankline
 blockToHaddock opts (BulletList items) = do
   contents <- mapM (bulletListItemToHaddock opts) items
   return $ cat contents <> blankline
@@ -173,46 +160,6 @@ blockToHaddock opts (OrderedList (start,_,delim) items) = do
 blockToHaddock opts (DefinitionList items) = do
   contents <- mapM (definitionListItemToHaddock opts) items
   return $ cat contents <> blankline
-
-pandocTable :: PandocMonad m
-            => WriterOptions -> Bool -> [Alignment] -> [Double]
-            -> [Doc] -> [[Doc]] -> StateT WriterState m Doc
-pandocTable opts headless aligns widths rawHeaders rawRows =  do
-  let isSimple = all (==0) widths
-  let alignHeader alignment = case alignment of
-                                AlignLeft    -> lblock
-                                AlignCenter  -> cblock
-                                AlignRight   -> rblock
-                                AlignDefault -> lblock
-  let numChars = maximum . map offset
-  let widthsInChars = if isSimple
-                         then map ((+2) . numChars)
-                              $ transpose (rawHeaders : rawRows)
-                         else map
-                              (floor . (fromIntegral (writerColumns opts) *))
-                              widths
-  let makeRow = hcat . intersperse (lblock 1 (text " ")) .
-                   zipWith3 alignHeader aligns widthsInChars
-  let rows' = map makeRow rawRows
-  let head' = makeRow rawHeaders
-  let maxRowHeight = maximum $ map height (head':rows')
-  let underline = cat $ intersperse (text " ") $
-                  map (\width -> text (replicate width '-')) widthsInChars
-  let border
-        | maxRowHeight > 1 = text (replicate (sum widthsInChars +
-                 length widthsInChars - 1) '-')
-        | headless = underline
-        | otherwise = empty
-  let head'' = if headless
-                  then empty
-                  else border <> cr <> head'
-  let body = if maxRowHeight > 1
-                then vsep rows'
-                else vcat rows'
-  let bottom = if headless
-                  then underline
-                  else border
-  return $ head'' $$ underline $$ body $$ bottom
 
 -- | Convert bullet list item (list of blocks) to haddock
 bulletListItemToHaddock :: PandocMonad m

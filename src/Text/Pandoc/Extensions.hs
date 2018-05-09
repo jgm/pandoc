@@ -1,3 +1,9 @@
+{-# LANGUAGE NoImplicitPrelude #-}
+{-# LANGUAGE CPP                        #-}
+{-# LANGUAGE DeriveDataTypeable         #-}
+{-# LANGUAGE DeriveGeneric              #-}
+{-# LANGUAGE GeneralizedNewtypeDeriving #-}
+{-# LANGUAGE TemplateHaskell            #-}
 {-
 Copyright (C) 2012-2018 John MacFarlane <jgm@berkeley.edu>
 
@@ -15,10 +21,6 @@ You should have received a copy of the GNU General Public License
 along with this program; if not, write to the Free Software
 Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 -}
-{-# LANGUAGE DeriveDataTypeable         #-}
-{-# LANGUAGE DeriveGeneric              #-}
-{-# LANGUAGE GeneralizedNewtypeDeriving #-}
-{-# LANGUAGE TemplateHaskell            #-}
 
 {- |
    Module      : Text.Pandoc.Extensions
@@ -47,6 +49,7 @@ module Text.Pandoc.Extensions ( Extension(..)
                               , githubMarkdownExtensions
                               , multimarkdownExtensions )
 where
+import Prelude
 import Data.Aeson (FromJSON (..), ToJSON (..), defaultOptions)
 import Data.Aeson.TH (deriveJSON)
 import Data.Bits (clearBit, setBit, testBit, (.|.))
@@ -59,9 +62,11 @@ import Text.Parsec
 newtype Extensions = Extensions Integer
   deriving (Show, Read, Eq, Ord, Data, Typeable, Generic, ToJSON, FromJSON)
 
+instance Semigroup Extensions where
+  (Extensions a) <> (Extensions b) = Extensions (a .|. b)
 instance Monoid Extensions where
   mempty = Extensions 0
-  mappend (Extensions a) (Extensions b) = Extensions (a .|. b)
+  mappend = (<>)
 
 extensionsFromList :: [Extension] -> Extensions
 extensionsFromList = foldr enableExtension emptyExtensions
@@ -317,6 +322,8 @@ getDefaultExtensions "muse"            = extensionsFromList
                                             Ext_auto_identifiers]
 getDefaultExtensions "plain"           = plainExtensions
 getDefaultExtensions "gfm"             = githubMarkdownExtensions
+getDefaultExtensions "commonmark"      = extensionsFromList
+                                          [Ext_raw_html]
 getDefaultExtensions "org"             = extensionsFromList
                                           [Ext_citations,
                                            Ext_auto_identifiers]
@@ -335,6 +342,10 @@ getDefaultExtensions "epub"            = extensionsFromList
 getDefaultExtensions "epub2"           = getDefaultExtensions "epub"
 getDefaultExtensions "epub3"           = getDefaultExtensions "epub"
 getDefaultExtensions "latex"           = extensionsFromList
+                                          [Ext_smart,
+                                           Ext_latex_macros,
+                                           Ext_auto_identifiers]
+getDefaultExtensions "beamer"          = extensionsFromList
                                           [Ext_smart,
                                            Ext_latex_macros,
                                            Ext_auto_identifiers]

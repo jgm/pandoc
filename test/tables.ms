@@ -135,10 +135,10 @@ T}
 .LP
 Multiline table with caption:
 .PP
-Here's the caption. It may span multiple lines.
+Here’s the caption. It may span multiple lines.
 .TS
 delim(@@) tab(	);
-cw(10.5n) lw(9.6n) rw(11.4n) lw(23.6n).
+cw(10.5n) lw(9.6n) rw(11.4n) lw(24.5n).
 T{
 Centered Header
 T}	T{
@@ -165,7 +165,7 @@ row
 T}	T{
 5.0
 T}	T{
-Here's another one.
+Here’s another one.
 Note the blank line between rows.
 T}
 .TE
@@ -174,7 +174,7 @@ Multiline table without caption:
 .PP
 .TS
 delim(@@) tab(	);
-cw(10.5n) lw(9.6n) rw(11.4n) lw(23.6n).
+cw(10.5n) lw(9.6n) rw(11.4n) lw(24.5n).
 T{
 Centered Header
 T}	T{
@@ -201,7 +201,7 @@ row
 T}	T{
 5.0
 T}	T{
-Here's another one.
+Here’s another one.
 Note the blank line between rows.
 T}
 .TE
@@ -244,7 +244,7 @@ Multiline table without column headers:
 .PP
 .TS
 delim(@@) tab(	);
-cw(10.5n) lw(9.6n) rw(11.4n) lw(23.6n).
+cw(10.5n) lw(9.6n) rw(11.4n) lw(24.5n).
 T{
 First
 T}	T{
@@ -261,7 +261,7 @@ row
 T}	T{
 5.0
 T}	T{
-Here's another one.
+Here’s another one.
 Note the blank line between rows.
 T}
 .TE

@@ -1,3 +1,4 @@
+{-# LANGUAGE NoImplicitPrelude #-}
 {-
 Copyright (C) 2006-2018 John MacFarlane <jgm@berkeley.edu>
 
@@ -29,6 +30,7 @@ Programmatically modifications of pandoc documents via JSON filters.
 -}
 module Text.Pandoc.Filter.JSON (apply) where
 
+import Prelude
 import Control.Monad (unless, when)
 import Control.Monad.Trans (MonadIO (liftIO))
 import Data.Aeson (eitherDecode', encode)

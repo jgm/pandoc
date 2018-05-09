@@ -1,5 +1,6 @@
 # Contributors
 
+- Anabra
 - Arata Mizuki
 - Aaron Wolen
 - Albert Krewinkel
@@ -49,8 +50,10 @@
 - Emily Eisenberg
 - Eric Kow
 - Eric Seidel
+- Étienne Bersac
 - Felix Yan
 - Florian Eitel
+- Francesco Occhipinti
 - François Gannaz
 - Freiric Barral
 - Freirich Raabe
@@ -83,6 +86,7 @@
 - Jens Getreu
 - Jens Petersen
 - Jesse Rosenthal
+- Joe Hermaszewski
 - Joe Hillenbrand
 - John MacFarlane
 - John Muccigrosso
@@ -129,6 +133,7 @@
 - Nick Bart
 - Nicolas Kaiser
 - Nikolay Yakimov
+- Nokome Bentley
 - Oliver Matthews
 - Ophir Lifshitz
 - Or Neeman
@@ -186,6 +191,7 @@
 - lwolfsonkin
 - nkalvi
 - oltolm
+- quasicomputational
 - qerub
 - robabla
 - roblabla

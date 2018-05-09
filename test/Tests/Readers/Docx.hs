@@ -1,5 +1,7 @@
+{-# LANGUAGE NoImplicitPrelude #-}
 module Tests.Readers.Docx (tests) where
 
+import Prelude
 import Codec.Archive.Zip
 import qualified Data.ByteString as BS
 import qualified Data.ByteString.Lazy as B
@@ -179,6 +181,14 @@ tests = [ testGroup "inlines"
             "docx/sdt_elements.docx"
             "docx/sdt_elements.native"
           , testCompare
+            "nested Structured Document Tags"
+            "docx/nested_sdt.docx"
+            "docx/nested_sdt.native"
+          , testCompare
+            "nested Smart Tags"
+            "docx/nested_smart_tags.docx"
+            "docx/nested_smart_tags.native"
+          , testCompare
             "remove anchor spans with nothing pointing to them"
             "docx/unused_anchors.docx"
             "docx/unused_anchors.native"
@@ -280,6 +290,10 @@ tests = [ testGroup "inlines"
             "code block"
             "docx/codeblock.docx"
             "docx/codeblock.native"
+          , testCompare
+            "combine adjacent code blocks"
+            "docx/adjacent_codeblocks.docx"
+            "docx/adjacent_codeblocks.native"
           , testCompare
             "dropcap paragraphs"
             "docx/drop_cap.docx"

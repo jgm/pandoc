@@ -118,7 +118,7 @@ Multiline table with caption:
 \startxcell[align=middle,width={0.15\textwidth}] Centered Header \stopxcell
 \startxcell[align=right,width={0.14\textwidth}] Left Aligned \stopxcell
 \startxcell[align=left,width={0.16\textwidth}] Right Aligned \stopxcell
-\startxcell[align=right,width={0.34\textwidth}] Default aligned \stopxcell
+\startxcell[align=right,width={0.35\textwidth}] Default aligned \stopxcell
 \stopxrow
 \stopxtablehead
 \startxtablebody[body]
@@ -126,7 +126,7 @@ Multiline table with caption:
 \startxcell[align=middle,width={0.15\textwidth}] First \stopxcell
 \startxcell[align=right,width={0.14\textwidth}] row \stopxcell
 \startxcell[align=left,width={0.16\textwidth}] 12.0 \stopxcell
-\startxcell[align=right,width={0.34\textwidth}] Example of a row that spans
+\startxcell[align=right,width={0.35\textwidth}] Example of a row that spans
 multiple lines. \stopxcell
 \stopxrow
 \stopxtablebody
@@ -135,7 +135,7 @@ multiple lines. \stopxcell
 \startxcell[align=middle,width={0.15\textwidth}] Second \stopxcell
 \startxcell[align=right,width={0.14\textwidth}] row \stopxcell
 \startxcell[align=left,width={0.16\textwidth}] 5.0 \stopxcell
-\startxcell[align=right,width={0.34\textwidth}] Here's another one. Note the
+\startxcell[align=right,width={0.35\textwidth}] Here's another one. Note the
 blank line between rows. \stopxcell
 \stopxrow
 \stopxtablefoot
@@ -151,7 +151,7 @@ Multiline table without caption:
 \startxcell[align=middle,width={0.15\textwidth}] Centered Header \stopxcell
 \startxcell[align=right,width={0.14\textwidth}] Left Aligned \stopxcell
 \startxcell[align=left,width={0.16\textwidth}] Right Aligned \stopxcell
-\startxcell[align=right,width={0.34\textwidth}] Default aligned \stopxcell
+\startxcell[align=right,width={0.35\textwidth}] Default aligned \stopxcell
 \stopxrow
 \stopxtablehead
 \startxtablebody[body]
@@ -159,7 +159,7 @@ Multiline table without caption:
 \startxcell[align=middle,width={0.15\textwidth}] First \stopxcell
 \startxcell[align=right,width={0.14\textwidth}] row \stopxcell
 \startxcell[align=left,width={0.16\textwidth}] 12.0 \stopxcell
-\startxcell[align=right,width={0.34\textwidth}] Example of a row that spans
+\startxcell[align=right,width={0.35\textwidth}] Example of a row that spans
 multiple lines. \stopxcell
 \stopxrow
 \stopxtablebody
@@ -168,7 +168,7 @@ multiple lines. \stopxcell
 \startxcell[align=middle,width={0.15\textwidth}] Second \stopxcell
 \startxcell[align=right,width={0.14\textwidth}] row \stopxcell
 \startxcell[align=left,width={0.16\textwidth}] 5.0 \stopxcell
-\startxcell[align=right,width={0.34\textwidth}] Here's another one. Note the
+\startxcell[align=right,width={0.35\textwidth}] Here's another one. Note the
 blank line between rows. \stopxcell
 \stopxrow
 \stopxtablefoot
@@ -213,7 +213,7 @@ Multiline table without column headers:
 \startxcell[align=middle,width={0.15\textwidth}] First \stopxcell
 \startxcell[align=right,width={0.14\textwidth}] row \stopxcell
 \startxcell[align=left,width={0.16\textwidth}] 12.0 \stopxcell
-\startxcell[width={0.34\textwidth}] Example of a row that spans multiple
+\startxcell[width={0.35\textwidth}] Example of a row that spans multiple
 lines. \stopxcell
 \stopxrow
 \stopxtablebody
@@ -222,7 +222,7 @@ lines. \stopxcell
 \startxcell[align=middle,width={0.15\textwidth}] Second \stopxcell
 \startxcell[align=right,width={0.14\textwidth}] row \stopxcell
 \startxcell[align=left,width={0.16\textwidth}] 5.0 \stopxcell
-\startxcell[width={0.34\textwidth}] Here's another one. Note the blank line
+\startxcell[width={0.35\textwidth}] Here's another one. Note the blank line
 between rows. \stopxcell
 \stopxrow
 \stopxtablefoot

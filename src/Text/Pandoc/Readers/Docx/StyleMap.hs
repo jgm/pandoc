@@ -1,3 +1,4 @@
+{-# LANGUAGE NoImplicitPrelude #-}
 module Text.Pandoc.Readers.Docx.StyleMap (  StyleMaps(..)
                                           , alterMap
                                           , getMap
@@ -7,6 +8,7 @@ module Text.Pandoc.Readers.Docx.StyleMap (  StyleMaps(..)
                                           , hasStyleName
                                           ) where
 
+import Prelude
 import Control.Monad.State.Strict
 import Data.Char (toLower)
 import qualified Data.Map as M

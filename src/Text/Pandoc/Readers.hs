@@ -1,6 +1,7 @@
-{-# LANGUAGE FlexibleInstances   #-}
-{-# LANGUAGE GADTs               #-}
+{-# LANGUAGE MonoLocalBinds      #-}
+{-# LANGUAGE NoImplicitPrelude   #-}
 {-# LANGUAGE ScopedTypeVariables #-}
+
 {-
 Copyright (C) 2006-2018 John MacFarlane <jgm@berkeley.edu>
 
@@ -64,11 +65,13 @@ module Text.Pandoc.Readers
   , readTxt2Tags
   , readEPUB
   , readMuse
+  , readFB2
   -- * Miscellaneous
   , getReader
   , getDefaultExtensions
   ) where
 
+import Prelude
 import Control.Monad.Except (throwError)
 import Data.Aeson
 import qualified Data.ByteString.Lazy as BL
@@ -84,6 +87,7 @@ import Text.Pandoc.Readers.Creole
 import Text.Pandoc.Readers.DocBook
 import Text.Pandoc.Readers.Docx
 import Text.Pandoc.Readers.EPUB
+import Text.Pandoc.Readers.FB2
 import Text.Pandoc.Readers.Haddock
 import Text.Pandoc.Readers.HTML (readHtml)
 import Text.Pandoc.Readers.JATS (readJATS)
@@ -143,6 +147,7 @@ readers = [ ("native"       , TextReader readNative)
            ,("epub"         , ByteStringReader readEPUB)
            ,("muse"         , TextReader readMuse)
            ,("man"          , TextReader readMan)
+           ,("fb2"          , TextReader readFB2)
            ]
 
 -- | Retrieve reader, extensions based on formatSpec (format+extensions).

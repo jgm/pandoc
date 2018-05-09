@@ -1,3 +1,4 @@
+{-# LANGUAGE NoImplicitPrelude #-}
 {-# LANGUAGE FlexibleContexts      #-}
 {-# LANGUAGE FlexibleInstances     #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
@@ -42,6 +43,7 @@ module Text.Pandoc.Readers.HTML ( readHtml
                                 , isCommentTag
                                 ) where
 
+import Prelude
 import Control.Applicative ((<|>))
 import Control.Arrow (first)
 import Control.Monad (guard, mplus, msum, mzero, unless, void)
@@ -54,7 +56,7 @@ import Data.List (isPrefixOf)
 import Data.List.Split (wordsBy, splitWhen)
 import qualified Data.Map as M
 import Data.Maybe (fromMaybe, isJust, isNothing)
-import Data.Monoid (First (..), (<>))
+import Data.Monoid (First (..))
 import qualified Data.Set as Set
 import Data.Text (Text)
 import qualified Data.Text as T
@@ -508,14 +510,16 @@ pTable = try $ do
                              [Plain _] -> True
                              _         -> False
   let isSimple = all isSinglePlain $ concat (head':rows''')
-  let cols = length $ if null head' then head rows''' else head'
+  let cols = if null head'
+                then maximum (map length rows''')
+                else length head'
   -- add empty cells to short rows
   let addEmpties r = case cols - length r of
                            n | n > 0 -> r <> replicate n mempty
                              | otherwise -> r
   let rows = map addEmpties rows'''
   let aligns = case rows'' of
-                    (cs:_) -> map fst cs
+                    (cs:_) -> take cols $ map fst cs ++ repeat AlignDefault
                     _      -> replicate cols AlignDefault
   let widths = if null widths'
                   then if isSimple

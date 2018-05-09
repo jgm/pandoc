@@ -1,3 +1,4 @@
+{-# LANGUAGE NoImplicitPrelude #-}
 {-# LANGUAGE CPP #-}
 {-# LANGUAGE PatternGuards #-}
 {-# LANGUAGE DeriveFunctor #-}
@@ -96,6 +97,7 @@ module Text.Pandoc.Class ( PandocMonad(..)
                          , Translations
                          ) where
 
+import Prelude
 import Prelude hiding (readFile)
 import System.Random (StdGen, next, mkStdGen)
 import qualified System.Random as IO (newStdGen)
@@ -106,10 +108,11 @@ import Data.List (stripPrefix)
 import qualified Data.Unique as IO (newUnique)
 import qualified Text.Pandoc.UTF8 as UTF8
 import qualified System.Directory as Directory
-import Text.Pandoc.Compat.Time (UTCTime)
+import Data.Time (UTCTime)
 import Text.Pandoc.Logging
+import Text.Pandoc.Shared (uriPathToPath)
 import Text.Parsec (ParsecT, getPosition, sourceLine, sourceName)
-import qualified Text.Pandoc.Compat.Time as IO (getCurrentTime)
+import qualified Data.Time as IO (getCurrentTime)
 import Text.Pandoc.MIME (MimeType, getMimeType, extensionFromMimeType)
 import Text.Pandoc.Definition
 import Data.Digest.Pure.SHA (sha1, showDigest)
@@ -475,6 +478,14 @@ liftIOError f u = do
          Left e  -> throwError $ PandocIOError u e
          Right r -> return r
 
+-- | Show potential IO errors to the user continuing execution anyway
+logIOError :: IO () -> PandocIO ()
+logIOError f = do
+  res <- liftIO $ tryIOError f
+  case res of
+    Left e -> report $ IgnoredIOError (E.displayException e)
+    Right _ -> pure ()
+
 instance PandocMonad PandocIO where
   lookupEnv = liftIO . IO.lookupEnv
   getCurrentTime = liftIO IO.getCurrentTime
@@ -588,7 +599,7 @@ downloadOrRead s = do
             -- We don't want to treat C:/ as a scheme:
             Just u' | length (uriScheme u') > 2 -> openURL (show u')
             Just u' | uriScheme u' == "file:" ->
-                 readLocalFile $ dropWhile (=='/') (uriPath u')
+                 readLocalFile $ uriPathToPath (uriPath u')
             _ -> readLocalFile fp -- get from local file system
    where readLocalFile f = do
              resourcePath <- getResourcePath
@@ -853,14 +864,14 @@ writeMedia :: FilePath -> MediaBag -> FilePath -> PandocIO ()
 writeMedia dir mediabag subpath = do
   -- we join and split to convert a/b/c to a\b\c on Windows;
   -- in zip containers all paths use /
-  let fullpath = dir </> normalise subpath
+  let fullpath = dir </> unEscapeString (normalise subpath)
   let mbcontents = lookupMedia subpath mediabag
   case mbcontents of
        Nothing -> throwError $ PandocResourceNotFound subpath
        Just (_, bs) -> do
          report $ Extracting fullpath
          liftIOError (createDirectoryIfMissing True) (takeDirectory fullpath)
-         liftIOError (\p -> BL.writeFile p bs) fullpath
+         logIOError $ BL.writeFile fullpath bs
 
 adjustImagePath :: FilePath -> [FilePath] -> Inline -> Inline
 adjustImagePath dir paths (Image attr lab (src, tit))
@@ -923,7 +934,7 @@ data FileInfo = FileInfo { infoFileMTime :: UTCTime
                          }
 
 newtype FileTree = FileTree {unFileTree :: M.Map FilePath FileInfo}
-  deriving (Monoid)
+  deriving (Semigroup, Monoid)
 
 getFileInfo :: FilePath -> FileTree -> Maybe FileInfo
 getFileInfo fp tree =

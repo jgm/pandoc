@@ -69,30 +69,30 @@ Block Quotes
 
 E-mail style:
 
-    This is a block quote. It is pretty short.
+   This is a block quote. It is pretty short.
 
 ..
 
-    Code in a block quote:
+   Code in a block quote:
 
-    ::
+   ::
 
-        sub status {
-            print "working";
-        }
+      sub status {
+          print "working";
+      }
 
-    A list:
+   A list:
 
-    1. item one
-    2. item two
+   1. item one
+   2. item two
 
-    Nested block quotes:
+   Nested block quotes:
 
-        nested
+      nested
 
-    ..
+   ..
 
-        nested
+      nested
 
 This should not be a block quote: 2 > 1.
 
@@ -107,21 +107,21 @@ Code:
 
 ::
 
-    ---- (should be four hyphens)
+   ---- (should be four hyphens)
 
-    sub status {
-        print "working";
-    }
+   sub status {
+       print "working";
+   }
 
-    this code block is indented by one tab
+   this code block is indented by one tab
 
 And:
 
 ::
 
-        this code block is indented by two tabs
+       this code block is indented by two tabs
 
-    These should not be escaped:  \$ \\ \> \[ \{
+   These should not be escaped:  \$ \\ \> \[ \{
 
 --------------
 
@@ -302,83 +302,83 @@ Definition Lists
 Tight using spaces:
 
 apple
-    red fruit
+   red fruit
 orange
-    orange fruit
+   orange fruit
 banana
-    yellow fruit
+   yellow fruit
 
 Tight using tabs:
 
 apple
-    red fruit
+   red fruit
 orange
-    orange fruit
+   orange fruit
 banana
-    yellow fruit
+   yellow fruit
 
 Loose:
 
 apple
-    red fruit
+   red fruit
 
 orange
-    orange fruit
+   orange fruit
 
 banana
-    yellow fruit
+   yellow fruit
 
 Multiple blocks with italics:
 
 *apple*
-    red fruit
+   red fruit
 
-    contains seeds, crisp, pleasant to taste
+   contains seeds, crisp, pleasant to taste
 
 *orange*
-    orange fruit
+   orange fruit
 
-    ::
+   ::
 
-        { orange code block }
+      { orange code block }
 
-    ..
+   ..
 
-        orange block quote
+      orange block quote
 
 Multiple definitions, tight:
 
 apple
-    red fruit
-    computer
+   red fruit
+   computer
 orange
-    orange fruit
-    bank
+   orange fruit
+   bank
 
 Multiple definitions, loose:
 
 apple
-    red fruit
+   red fruit
 
-    computer
+   computer
 
 orange
-    orange fruit
+   orange fruit
 
-    bank
+   bank
 
 Blank line after term, indented marker, alternate markers:
 
 apple
-    red fruit
+   red fruit
 
-    computer
+   computer
 
 orange
-    orange fruit
+   orange fruit
 
-    1. sublist
-    2. sublist
+   1. sublist
+   2. sublist
 
 HTML Blocks
 ===========
@@ -491,15 +491,15 @@ This should be a code block, though:
 
 ::
 
-    <div>
-        foo
-    </div>
+   <div>
+       foo
+   </div>
 
 As should this:
 
 ::
 
-    <div>foo</div>
+   <div>foo</div>
 
 Now, nested:
 
@@ -554,7 +554,7 @@ Code block:
 
 ::
 
-    <!-- Comment -->
+   <!-- Comment -->
 
 Just plain comment, with trailing spaces on the line:
 
@@ -566,7 +566,7 @@ Code:
 
 ::
 
-    <hr />
+   <hr />
 
 Hr’s:
 
@@ -615,21 +615,21 @@ This is *emphasized*, and so *is this*.
 
 This is **strong**, and so **is this**.
 
-An *`emphasized link </url>`__*.
+An `emphasized link </url>`__.
 
-***This is strong and em.***
+**This is strong and em.**
 
-So is ***this*** word.
+So is **this** word.
 
-***This is strong and em.***
+**This is strong and em.**
 
-So is ***this*** word.
+So is **this** word.
 
 This is code: ``>``, ``$``, ``\``, ``\$``, ``<html>``.
 
-[STRIKEOUT:This is *strikeout*.]
+[STRIKEOUT:This is strikeout.]
 
-Superscripts: a\ :sup:`bc`\ d a\ :sup:`*hello*` a\ :sup:`hello there`.
+Superscripts: a\ :sup:`bc`\ d a\ :sup:`hello` a\ :sup:`hello there`.
 
 Subscripts: H\ :sub:`2`\ O, H\ :sub:`23`\ O, H\ :sub:`many of them`\ O.
 
@@ -793,7 +793,7 @@ This should [not][] be a link.
 
 ::
 
-    [not]: /url
+   [not]: /url
 
 Foo `bar </url/>`__.
 
@@ -822,13 +822,13 @@ With an ampersand: http://example.com/?foo=1&bar=2
 
 An e-mail address: nobody@nowhere.net
 
-    Blockquoted: http://example.com/
+   Blockquoted: http://example.com/
 
 Auto-links should not occur here: ``<http://example.com/>``
 
 ::
 
-    or here: <http://example.com/>
+   or here: <http://example.com/>
 
 --------------
 
@@ -853,7 +853,7 @@ Here is a footnote reference, [1]_ and another. [2]_ This should *not* be a
 footnote reference, because it contains a space.[^my note] Here is an inline
 note. [3]_
 
-    Notes can go in quotes. [4]_
+   Notes can go in quotes. [4]_
 
 1. And in list items. [5]_
 
@@ -871,7 +871,7 @@ This paragraph should not be part of the note, as it is not indented.
 
    ::
 
-         { <code> }
+        { <code> }
 
    If you want, you can indent every line, but you can also be lazy and just
    indent the first line of each block.

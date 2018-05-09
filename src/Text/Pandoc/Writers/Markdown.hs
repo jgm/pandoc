@@ -1,3 +1,4 @@
+{-# LANGUAGE NoImplicitPrelude #-}
 {-# LANGUAGE MultiWayIf          #-}
 {-# LANGUAGE OverloadedStrings   #-}
 {-# LANGUAGE ScopedTypeVariables #-}
@@ -34,6 +35,7 @@ Conversion of 'Pandoc' documents to markdown-formatted plain text.
 Markdown:  <http://daringfireball.net/projects/markdown/>
 -}
 module Text.Pandoc.Writers.Markdown (writeMarkdown, writePlain) where
+import Prelude
 import Control.Monad.Reader
 import Control.Monad.State.Strict
 import Data.Char (chr, isPunctuation, isSpace, ord, isAlphaNum)
@@ -730,7 +732,10 @@ pandocTable opts multiline headless aligns widths rawHeaders rawRows = do
                   then empty
                   else border <> cr <> head'
   let body = if multiline
-                then vsep rows'
+                then vsep rows' $$
+                     if length rows' < 2
+                        then blankline -- #4578
+                        else empty
                 else vcat rows'
   let bottom = if headless
                   then underline

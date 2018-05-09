@@ -1,7 +1,9 @@
+{-# LANGUAGE NoImplicitPrelude #-}
 {-# LANGUAGE TemplateHaskell #-}
 
 module Text.Pandoc.Data (dataFiles) where
 
+import Prelude
 import qualified Data.ByteString as B
 import Data.FileEmbed
 import System.FilePath (splitDirectories)

@@ -1,3 +1,4 @@
+{-# LANGUAGE NoImplicitPrelude #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-
 Copyright (C) 2014-2018 Albert Krewinkel <tarleb+pandoc@moltkeplatz.de>
@@ -33,6 +34,7 @@ module Text.Pandoc.Readers.Org.Inlines
   , linkTarget
   ) where
 
+import Prelude
 import Text.Pandoc.Readers.Org.BlockStarts (endOfBlock, noteMarker)
 import Text.Pandoc.Readers.Org.ParserState
 import Text.Pandoc.Readers.Org.Parsing
@@ -55,9 +57,6 @@ import Data.Char (isAlphaNum, isSpace)
 import Data.List (intersperse)
 import qualified Data.Map as M
 import Data.Maybe (fromMaybe)
-import Data.Monoid ((<>))
-import Data.Traversable (sequence)
-import Prelude hiding (sequence)
 
 --
 -- Functions acting on the parser state

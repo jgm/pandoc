@@ -1,3 +1,4 @@
+{-# LANGUAGE NoImplicitPrelude #-}
 module Tests.Readers.Org.Shared
   ( (=:)
   , org
@@ -5,6 +6,7 @@ module Tests.Readers.Org.Shared
   , tagSpan
   ) where
 
+import Prelude
 import Data.List (intersperse)
 import Data.Text (Text)
 import Tests.Helpers (ToString, purely, test)

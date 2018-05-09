@@ -1,4 +1,6 @@
-{-# LANGUAGE PatternGuards #-}
+{-# LANGUAGE NoImplicitPrelude          #-}
+{-# LANGUAGE PatternGuards              #-}
+{-# LANGUAGE GeneralizedNewtypeDeriving #-}
 
 {-
 Copyright (C) 2017-2018 Jesse Rosenthal <jrosenthal@jhu.edu>
@@ -57,6 +59,7 @@ module Text.Pandoc.Writers.Powerpoint.Presentation ( documentToPresentation
                                                    ) where
 
 
+import Prelude
 import Control.Monad.Reader
 import Control.Monad.State
 import Data.List (intercalate)
@@ -67,7 +70,7 @@ import Text.Pandoc.Slides (getSlideLevel)
 import Text.Pandoc.Options
 import Text.Pandoc.Logging
 import Text.Pandoc.Walk
-import Text.Pandoc.Compat.Time (UTCTime)
+import Data.Time (UTCTime)
 import qualified Text.Pandoc.Shared as Shared -- so we don't overlap "Element"
 import Text.Pandoc.Writers.Shared (metaValueToInlines)
 import qualified Data.Map as M
@@ -110,7 +113,7 @@ data WriterState = WriterState { stNoteIds :: M.Map Int [Block]
                                , stAnchorMap :: M.Map String SlideId
                                , stSlideIdSet :: S.Set SlideId
                                , stLog :: [LogMessage]
-                               , stSpeakerNotesMap :: M.Map SlideId [[Paragraph]]
+                               , stSpeakerNotes :: SpeakerNotes
                                } deriving (Show, Eq)
 
 instance Default WriterState where
@@ -119,7 +122,7 @@ instance Default WriterState where
                     -- we reserve this s
                     , stSlideIdSet = reservedSlideIds
                     , stLog = []
-                    , stSpeakerNotesMap = mempty
+                    , stSpeakerNotes = mempty
                     }
 
 metadataSlideId :: SlideId
@@ -183,7 +186,7 @@ data DocProps = DocProps { dcTitle :: Maybe String
 
 data Slide = Slide { slideId :: SlideId
                    , slideLayout :: Layout
-                   , slideSpeakerNotes :: Maybe SpeakerNotes
+                   , slideSpeakerNotes :: SpeakerNotes
                    } deriving (Show, Eq)
 
 newtype SlideId = SlideId String
@@ -193,7 +196,7 @@ newtype SlideId = SlideId String
 -- designed mainly for one textbox, so we'll just put in the contents
 -- of that textbox, to avoid other shapes that won't work as well.
 newtype SpeakerNotes = SpeakerNotes {fromSpeakerNotes :: [Paragraph]}
-  deriving (Show, Eq)
+  deriving (Show, Eq, Monoid, Semigroup)
 
 data Layout = MetadataSlide { metadataSlideTitle :: [ParaElem]
                             , metadataSlideSubtitle :: [ParaElem]
@@ -228,7 +231,6 @@ data Graphic = Tbl TableProps [Cell] [[Cell]]
 data Paragraph = Paragraph { paraProps :: ParaProps
                            , paraElems  :: [ParaElem]
                            } deriving (Show, Eq)
-
 
 data BulletType = Bullet
                 | AutoNumbering ListAttributes
@@ -374,9 +376,20 @@ inlineToParElems (Note blks) = do
     modify $ \st -> st { stNoteIds = M.insert curNoteId blks notes }
     local (\env -> env{envRunProps = (envRunProps env){rLink = Just $ InternalTarget endNotesSlideId}}) $
       inlineToParElems $ Superscript [Str $ show curNoteId]
-inlineToParElems (Span _ ils) = concatMapM inlineToParElems ils
+inlineToParElems (Span _ ils) = inlinesToParElems ils
+inlineToParElems (Quoted quoteType ils) =
+  inlinesToParElems $ [Str open] ++ ils ++ [Str close]
+  where (open, close) = case quoteType of
+                          SingleQuote -> ("\x2018", "\x2019")
+                          DoubleQuote -> ("\x201C", "\x201D")
 inlineToParElems (RawInline _ _) = return []
-inlineToParElems _ = return []
+inlineToParElems (Cite _ ils) = inlinesToParElems ils
+-- Note: we shouldn't reach this, because images should be handled at
+-- the shape level, but should that change in the future, we render
+-- the alt text.
+inlineToParElems (Image _ alt _) = inlinesToParElems alt
+
+
 
 isListType :: Block -> Bool
 isListType (OrderedList _ _) = True
@@ -399,10 +412,7 @@ noteSize :: Pixels
 noteSize = 18
 
 blockToParagraphs :: Block -> Pres [Paragraph]
-blockToParagraphs (Plain ils) = do
-  parElems <- inlinesToParElems ils
-  pProps <- asks envParaProps
-  return [Paragraph pProps parElems]
+blockToParagraphs (Plain ils) = blockToParagraphs (Para ils)
 blockToParagraphs (Para ils) = do
   parElems <- inlinesToParElems ils
   pProps <- asks envParaProps
@@ -475,16 +485,6 @@ blockToParagraphs (DefinitionList entries) = do
         definition <- concatMapM (blockToParagraphs . BlockQuote) blksLst
         return $ term ++ definition
   concatMapM go entries
-blockToParagraphs (Div (_, "notes" : [], _) blks) =
-  local (\env -> env{envInSpeakerNotes=True}) $ do
-  sldId <- asks envCurSlideId
-  spkNotesMap <- gets stSpeakerNotesMap
-  paras <- concatMapM blockToParagraphs blks
-  let spkNotesMap' = case M.lookup sldId spkNotesMap of
-        Just lst -> M.insert sldId (paras : lst) spkNotesMap
-        Nothing  -> M.insert sldId [paras] spkNotesMap
-  modify $ \st -> st{stSpeakerNotesMap = spkNotesMap'}
-  return []
 blockToParagraphs (Div _ blks)  = concatMapM blockToParagraphs blks
 blockToParagraphs blk = do
   addLogMessage $ BlockNotRendered blk
@@ -527,14 +527,9 @@ withAttr attr (Pic picPr url caption) =
 withAttr _ sp = sp
 
 blockToShape :: Block -> Pres Shape
-blockToShape (Plain (il:_)) | Image attr ils (url, _) <- il =
-      (withAttr attr . Pic def url) <$> inlinesToParElems ils
+blockToShape (Plain ils) = blockToShape (Para ils)
 blockToShape (Para (il:_))  | Image attr ils (url, _) <- il =
       (withAttr attr . Pic def url) <$> inlinesToParElems ils
-blockToShape (Plain (il:_)) | Link _ (il':_) target <- il
-                            , Image attr ils (url, _) <- il' =
-      (withAttr attr . Pic def {picPropLink = Just $ ExternalTarget target} url) <$>
-      inlinesToParElems ils
 blockToShape (Para (il:_))  | Link _ (il':_) target <- il
                             , Image attr ils (url, _) <- il' =
       (withAttr attr . Pic def{picPropLink = Just $ ExternalTarget target} url) <$>
@@ -558,20 +553,23 @@ blockToShape blk = do paras <- blockToParagraphs blk
 
 combineShapes :: [Shape] -> [Shape]
 combineShapes [] = []
-combineShapes[s] = [s]
-combineShapes (pic@(Pic{}) : ss) = pic : combineShapes ss
+combineShapes (pic@Pic{} : ss) = pic : combineShapes ss
 combineShapes (TextBox [] : ss) = combineShapes ss
 combineShapes (s : TextBox [] : ss) = combineShapes (s : ss)
 combineShapes (TextBox (p:ps) : TextBox (p':ps') : ss) =
   combineShapes $ TextBox ((p:ps) ++ (p':ps')) : ss
 combineShapes (s:ss) = s : combineShapes ss
 
+isNotesDiv :: Block -> Bool
+isNotesDiv (Div (_, ["notes"], _) _) = True
+isNotesDiv _ = False
+
 blocksToShapes :: [Block] -> Pres [Shape]
 blocksToShapes blks = combineShapes <$> mapM blockToShape blks
 
 isImage :: Inline -> Bool
-isImage (Image{}) = True
-isImage (Link _ (Image _ _ _ : _) _) = True
+isImage Image{} = True
+isImage (Link _ (Image{} : _) _) = True
 isImage _ = False
 
 splitBlocks' :: [Block] -> [[Block]] -> [Block] -> Pres [[Block]]
@@ -589,64 +587,60 @@ splitBlocks' cur acc (h@(Header n _ _) : blks) = do
 splitBlocks' cur acc (Plain ils : blks) = splitBlocks' cur acc (Para ils : blks)
 splitBlocks' cur acc (Para (il:ils) : blks) | isImage il = do
   slideLevel <- asks envSlideLevel
+  let (nts, blks') = if null ils
+                     then span isNotesDiv blks
+                     else ([], blks)
   case cur of
-    [(Header n _ _)] | n == slideLevel ->
+    [Header n _ _] | n == slideLevel ->
                             splitBlocks' []
-                            (acc ++ [cur ++ [Para [il]]])
-                            (if null ils then blks else Para ils : blks)
+                            (acc ++ [cur ++ [Para [il]] ++ nts])
+                            (if null ils then blks' else Para ils : blks')
     _ -> splitBlocks' []
-         (acc ++ (if null cur then [] else [cur]) ++ [[Para [il]]])
-         (if null ils then blks else Para ils : blks)
-splitBlocks' cur acc (tbl@(Table{}) : blks) = do
+         (acc ++ (if null cur then [] else [cur]) ++ [[Para [il]] ++ nts])
+         (if null ils then blks' else Para ils : blks')
+splitBlocks' cur acc (tbl@Table{} : blks) = do
   slideLevel <- asks envSlideLevel
+  let (nts, blks') = span isNotesDiv blks
   case cur of
-    [(Header n _ _)] | n == slideLevel ->
-                            splitBlocks' [] (acc ++ [cur ++ [tbl]]) blks
-    _ ->  splitBlocks' [] (acc ++ (if null cur then [] else [cur]) ++ [[tbl]]) blks
+    [Header n _ _] | n == slideLevel ->
+                            splitBlocks' [] (acc ++ [cur ++ [tbl] ++ nts]) blks'
+    _ ->  splitBlocks' [] (acc ++ (if null cur then [] else [cur]) ++ [[tbl] ++ nts]) blks'
 splitBlocks' cur acc (d@(Div (_, classes, _) _): blks) | "columns" `elem` classes =  do
   slideLevel <- asks envSlideLevel
+  let (nts, blks') = span isNotesDiv blks
   case cur of
-    [(Header n _ _)] | n == slideLevel ->
-                            splitBlocks' [] (acc ++ [cur ++ [d]]) blks
-    _ ->  splitBlocks' [] (acc ++ (if null cur then [] else [cur]) ++ [[d]]) blks
+    [Header n _ _] | n == slideLevel ->
+                            splitBlocks' [] (acc ++ [cur ++ [d] ++ nts]) blks'
+    _ ->  splitBlocks' [] (acc ++ (if null cur then [] else [cur]) ++ [[d] ++ nts]) blks'
 splitBlocks' cur acc (blk : blks) = splitBlocks' (cur ++ [blk]) acc blks
 
 splitBlocks :: [Block] -> Pres [[Block]]
 splitBlocks = splitBlocks' [] []
 
-getSpeakerNotes :: Pres (Maybe SpeakerNotes)
-getSpeakerNotes = do
-  sldId <- asks envCurSlideId
-  spkNtsMap <- gets stSpeakerNotesMap
-  return $ (SpeakerNotes . concat . reverse) <$> (M.lookup sldId spkNtsMap)
-
-blocksToSlide' :: Int -> [Block] -> Pres Slide
-blocksToSlide' lvl (Header n (ident, _, _) ils : blks)
+blocksToSlide' :: Int -> [Block] -> SpeakerNotes -> Pres Slide
+blocksToSlide' lvl (Header n (ident, _, _) ils : blks) spkNotes
   | n < lvl = do
       registerAnchorId ident
       sldId <- asks envCurSlideId
       hdr <- inlinesToParElems ils
-      return $ Slide sldId TitleSlide {titleSlideHeader = hdr} Nothing
+      return $ Slide sldId TitleSlide {titleSlideHeader = hdr} spkNotes
   | n == lvl = do
       registerAnchorId ident
       hdr <- inlinesToParElems ils
       -- Now get the slide without the header, and then add the header
       -- in.
-      slide <- blocksToSlide' lvl blks
+      slide <- blocksToSlide' lvl blks spkNotes
       let layout = case slideLayout slide of
             ContentSlide _ cont          -> ContentSlide hdr cont
             TwoColumnSlide _ contL contR -> TwoColumnSlide hdr contL contR
             layout'                     -> layout'
       return $ slide{slideLayout = layout}
-blocksToSlide' _ (blk : blks)
+blocksToSlide' _ (blk : blks) spkNotes
   | Div (_, classes, _) divBlks <- blk
   , "columns" `elem` classes
   , Div (_, clsL, _) blksL : Div (_, clsR, _) blksR : remaining <- divBlks
   , "column" `elem` clsL, "column" `elem` clsR = do
-      unless (null blks)
-        (mapM (addLogMessage . BlockNotRendered) blks >> return ())
-      unless (null remaining)
-        (mapM (addLogMessage . BlockNotRendered) remaining >> return ())
+      mapM_ (addLogMessage . BlockNotRendered) (blks ++ remaining)
       mbSplitBlksL <- splitBlocks blksL
       mbSplitBlksR <- splitBlocks blksR
       let blksL' = case mbSplitBlksL of
@@ -664,8 +658,8 @@ blocksToSlide' _ (blk : blks)
                        , twoColumnSlideLeft = shapesL
                        , twoColumnSlideRight = shapesR
                        }
-        Nothing
-blocksToSlide' _ (blk : blks) = do
+        spkNotes
+blocksToSlide' _ (blk : blks) spkNotes = do
       inNoteSlide <- asks envInNoteSlide
       shapes <- if inNoteSlide
                 then forceFontSize noteSize $ blocksToShapes (blk : blks)
@@ -677,8 +671,8 @@ blocksToSlide' _ (blk : blks) = do
         ContentSlide { contentSlideHeader = []
                      , contentSlideContent = shapes
                      }
-        Nothing
-blocksToSlide' _ [] = do
+        spkNotes
+blocksToSlide' _ [] spkNotes = do
   sldId <- asks envCurSlideId
   return $
     Slide
@@ -686,14 +680,32 @@ blocksToSlide' _ [] = do
     ContentSlide { contentSlideHeader = []
                  , contentSlideContent = []
                  }
-    Nothing
+    spkNotes
+
+handleNotes :: Block -> Pres ()
+handleNotes (Div (_, ["notes"], _) blks) =
+  local (\env -> env{envInSpeakerNotes=True}) $ do
+  spNotes <- SpeakerNotes <$> concatMapM blockToParagraphs blks
+  modify $ \st -> st{stSpeakerNotes = (stSpeakerNotes st) <> spNotes}
+handleNotes _ = return ()
+
+handleAndFilterNotes' :: [Block] -> Pres [Block]
+handleAndFilterNotes' blks = do
+  mapM_ handleNotes blks
+  return $ filter (not . isNotesDiv) blks
+
+handleAndFilterNotes :: [Block] -> Pres ([Block], SpeakerNotes)
+handleAndFilterNotes blks = do
+  modify $ \st -> st{stSpeakerNotes = mempty}
+  blks' <- walkM handleAndFilterNotes' blks
+  spkNotes <- gets stSpeakerNotes
+  return (blks', spkNotes)
 
 blocksToSlide :: [Block] -> Pres Slide
 blocksToSlide blks = do
+  (blks', spkNotes) <- handleAndFilterNotes blks
   slideLevel <- asks envSlideLevel
-  sld <- blocksToSlide' slideLevel blks
-  spkNotes <- getSpeakerNotes
-  return $ sld{slideSpeakerNotes = spkNotes}
+  blocksToSlide' slideLevel blks' spkNotes
 
 makeNoteEntry :: Int -> [Block] -> [Block]
 makeNoteEntry n blks =
@@ -719,15 +731,14 @@ makeEndNotesSlideBlocks = do
   anchorSet <- M.keysSet <$> gets stAnchorMap
   if M.null noteIds
     then return []
-    else do let title = case lookupMeta "notes-title" meta of
-                  Just val -> metaValueToInlines val
-                  Nothing  -> [Str "Notes"]
-                ident = Shared.uniqueIdent title anchorSet
-                hdr = Header slideLevel (ident, [], []) title
-            blks <- return $
-                    concatMap (\(n, bs) -> makeNoteEntry n bs) $
+    else let title = case lookupMeta "notes-title" meta of
+                       Just val -> metaValueToInlines val
+                       Nothing  -> [Str "Notes"]
+             ident = Shared.uniqueIdent title anchorSet
+             hdr = Header slideLevel (ident, [], []) title
+             blks = concatMap (\(n, bs) -> makeNoteEntry n bs) $
                     M.toList noteIds
-            return $ hdr : blks
+         in return $ hdr : blks
 
 getMetaSlide :: Pres (Maybe Slide)
 getMetaSlide  = do
@@ -753,7 +764,7 @@ getMetaSlide  = do
                        , metadataSlideAuthors = authors
                        , metadataSlideDate = date
                        }
-         Nothing
+         mempty
 
 -- adapted from the markdown writer
 elementToListItem :: Shared.Element -> Pres [Block]
@@ -778,8 +789,7 @@ makeTOCSlide blks = local (\env -> env{envCurSlideId = tocSlideId}) $ do
                    Just val -> metaValueToInlines val
                    Nothing  -> [Str "Table of Contents"]
       hdr = Header slideLevel nullAttr tocTitle
-  sld <- blocksToSlide [hdr, contents]
-  return sld
+  blocksToSlide [hdr, contents]
 
 combineParaElems' :: Maybe ParaElem -> [ParaElem] -> [ParaElem]
 combineParaElems' mbPElem [] = maybeToList mbPElem
@@ -802,15 +812,9 @@ applyToParagraph f para = do
   return $ para {paraElems = paraElems'}
 
 applyToShape :: Monad m => (ParaElem -> m ParaElem) -> Shape -> m Shape
-applyToShape f (Pic pPr fp pes) = do
-  pes' <- mapM f pes
-  return $ Pic pPr fp pes'
-applyToShape f (GraphicFrame gfx pes) = do
-  pes' <- mapM f pes
-  return $ GraphicFrame gfx pes'
-applyToShape f (TextBox paras) = do
-  paras' <- mapM (applyToParagraph f) paras
-  return $ TextBox paras'
+applyToShape f (Pic pPr fp pes) = Pic pPr fp <$> mapM f pes
+applyToShape f (GraphicFrame gfx pes) = GraphicFrame gfx <$> mapM f pes
+applyToShape f (TextBox paras) = TextBox <$> mapM (applyToParagraph f) paras
 
 applyToLayout :: Monad m => (ParaElem -> m ParaElem) -> Layout -> m Layout
 applyToLayout f (MetadataSlide title subtitle authors date) = do
@@ -819,9 +823,7 @@ applyToLayout f (MetadataSlide title subtitle authors date) = do
   authors' <- mapM (mapM f) authors
   date' <- mapM f date
   return $ MetadataSlide title' subtitle' authors' date'
-applyToLayout f (TitleSlide title) = do
-  title' <- mapM f title
-  return $ TitleSlide title'
+applyToLayout f (TitleSlide title) = TitleSlide <$> mapM f title
 applyToLayout f (ContentSlide hdr content) = do
   hdr' <- mapM f hdr
   content' <- mapM (applyToShape f) content
@@ -835,11 +837,9 @@ applyToLayout f (TwoColumnSlide hdr contentL contentR) = do
 applyToSlide :: Monad m => (ParaElem -> m ParaElem) -> Slide -> m Slide
 applyToSlide f slide = do
   layout' <- applyToLayout f $ slideLayout slide
-  mbNotes' <- case slideSpeakerNotes slide of
-                Just (SpeakerNotes notes) -> (Just . SpeakerNotes) <$>
-                                             mapM (applyToParagraph f) notes
-                Nothing -> return Nothing
-  return slide{slideLayout = layout', slideSpeakerNotes = mbNotes'}
+  let paras = fromSpeakerNotes $ slideSpeakerNotes slide
+  notes' <- SpeakerNotes <$> mapM (applyToParagraph f) paras
+  return slide{slideLayout = layout', slideSpeakerNotes = notes'}
 
 replaceAnchor :: ParaElem -> Pres ParaElem
 replaceAnchor (Run rProps s)
@@ -852,6 +852,40 @@ replaceAnchor (Run rProps s)
                       Nothing -> rProps{rLink = Nothing}
       return $ Run rProps' s
 replaceAnchor pe = return pe
+
+emptyParaElem :: ParaElem -> Bool
+emptyParaElem (Run _ s) =
+  null $ Shared.trim s
+emptyParaElem (MathElem _ ts) =
+  null $ Shared.trim $ unTeXString ts
+emptyParaElem _ = False
+
+emptyParagraph :: Paragraph -> Bool
+emptyParagraph para = all emptyParaElem $ paraElems para
+
+
+emptyShape :: Shape -> Bool
+emptyShape (TextBox paras) = all emptyParagraph paras
+emptyShape _ = False
+
+emptyLayout :: Layout -> Bool
+emptyLayout layout = case layout of
+  MetadataSlide title subtitle authors date ->
+    all emptyParaElem title &&
+    all emptyParaElem subtitle &&
+    all (all emptyParaElem) authors &&
+    all emptyParaElem date
+  TitleSlide hdr -> all emptyParaElem hdr
+  ContentSlide hdr shapes ->
+    all emptyParaElem hdr &&
+    all emptyShape shapes
+  TwoColumnSlide hdr shapes1 shapes2 ->
+    all emptyParaElem hdr &&
+    all emptyShape shapes1 &&
+    all emptyShape shapes2
+
+emptySlide :: Slide -> Bool
+emptySlide (Slide _ layout notes) = (notes == mempty) && (emptyLayout layout)
 
 blocksToPresentationSlides :: [Block] -> Pres [Slide]
 blocksToPresentationSlides blks = do
@@ -893,7 +927,8 @@ blocksToPresentationSlides blks = do
                             return [endNotesSlide]
 
   let slides = metadataslides ++ tocSlides ++ bodyslides ++ endNotesSlides
-  mapM (applyToSlide replaceAnchor) slides
+      slides' = filter (not . emptySlide) slides
+  mapM (applyToSlide replaceAnchor) slides'
 
 metaToDocProps :: Meta -> DocProps
 metaToDocProps meta =

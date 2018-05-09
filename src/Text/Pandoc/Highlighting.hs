@@ -1,3 +1,4 @@
+{-# LANGUAGE NoImplicitPrelude #-}
 {-
 Copyright (C) 2008-2018 John MacFarlane <jgm@berkeley.edu>
 
@@ -49,6 +50,7 @@ module Text.Pandoc.Highlighting ( highlightingStyles
                                 , fromListingsLanguage
                                 , toListingsLanguage
                                 ) where
+import Prelude
 import Control.Monad
 import Data.Char (toLower)
 import qualified Data.Map as M

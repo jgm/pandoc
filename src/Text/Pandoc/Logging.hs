@@ -1,3 +1,4 @@
+{-# LANGUAGE NoImplicitPrelude #-}
 {-# LANGUAGE DeriveDataTypeable #-}
 {-# LANGUAGE DeriveGeneric      #-}
 {-# LANGUAGE OverloadedStrings  #-}
@@ -39,6 +40,7 @@ module Text.Pandoc.Logging (
   , messageVerbosity
   ) where
 
+import Prelude
 import Control.Monad (mzero)
 import Data.Aeson
 import Data.Aeson.Encode.Pretty (Config (..), defConfig, encodePretty',
@@ -83,6 +85,7 @@ data LogMessage =
   | InlineNotRendered Inline
   | BlockNotRendered Block
   | DocxParserWarning String
+  | IgnoredIOError String
   | CouldNotFetchResource String String
   | CouldNotDetermineImageSize String String
   | CouldNotConvertImage String String
@@ -99,6 +102,7 @@ data LogMessage =
   | Deprecated String String
   | NoTranslation String
   | CouldNotLoadTranslations String String
+  | UnexpectedXmlElement String String
   deriving (Show, Eq, Data, Ord, Typeable, Generic)
 
 instance ToJSON LogMessage where
@@ -172,6 +176,8 @@ instance ToJSON LogMessage where
            ["contents" .= toJSON bl]
       DocxParserWarning s ->
            ["contents" .= Text.pack s]
+      IgnoredIOError s ->
+           ["contents" .= Text.pack s]
       CouldNotFetchResource fp s ->
            ["path" .= Text.pack fp,
             "message" .= Text.pack s]
@@ -209,6 +215,9 @@ instance ToJSON LogMessage where
       CouldNotLoadTranslations lang msg ->
            ["lang" .= Text.pack lang,
             "message" .= Text.pack msg]
+      UnexpectedXmlElement element parent ->
+           ["element" .= Text.pack element,
+            "parent" .= Text.pack parent]
 
 
 showPos :: SourcePos -> String
@@ -259,6 +268,8 @@ showLogMessage msg =
          "Not rendering " ++ show bl
        DocxParserWarning s ->
          "Docx parser warning: " ++ s
+       IgnoredIOError s ->
+         "IO Error (ignored): " ++ s
        CouldNotFetchResource fp s ->
          "Could not fetch resource '" ++ fp ++ "'" ++
            if null s then "" else ": " ++ s
@@ -303,6 +314,8 @@ showLogMessage msg =
        CouldNotLoadTranslations lang m ->
          "Could not load translations for " ++ lang ++
            if null m then "" else '\n' : m
+       UnexpectedXmlElement element parent ->
+         "Unexpected XML element " ++ element ++ " in " ++ parent
 
 messageVerbosity:: LogMessage -> Verbosity
 messageVerbosity msg =
@@ -324,6 +337,7 @@ messageVerbosity msg =
        InlineNotRendered{}          -> INFO
        BlockNotRendered{}           -> INFO
        DocxParserWarning{}          -> INFO
+       IgnoredIOError{}             -> WARNING
        CouldNotFetchResource{}      -> WARNING
        CouldNotDetermineImageSize{} -> WARNING
        CouldNotConvertImage{}       -> WARNING
@@ -340,3 +354,4 @@ messageVerbosity msg =
        Deprecated{}                 -> WARNING
        NoTranslation{}              -> WARNING
        CouldNotLoadTranslations{}   -> WARNING
+       UnexpectedXmlElement {}      -> WARNING

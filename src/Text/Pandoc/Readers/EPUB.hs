@@ -1,12 +1,41 @@
-{-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE NoImplicitPrelude #-}
+{-# LANGUAGE TupleSections     #-}
+{-# LANGUAGE ViewPatterns      #-}
+{-
+Copyright (C) 2014-2018 Matthew Pickering
 
-{-# LANGUAGE TupleSections    #-}
-{-# LANGUAGE ViewPatterns     #-}
+This program is free software; you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation; either version 2 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program; if not, write to the Free Software
+Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+-}
+
+{- |
+   Module      : Text.Pandoc.Readers.EPUB
+   Copyright   : Copyright (C) 2014-2018 Matthew Pickering
+   License     : GNU GPL, version 2 or above
+
+   Maintainer  : John MacFarlane <jgm@berkeley.edu>
+   Stability   : alpha
+   Portability : portable
+
+Conversion of EPUB to 'Pandoc' document.
+-}
 
 module Text.Pandoc.Readers.EPUB
   (readEPUB)
   where
 
+import Prelude
 import Codec.Archive.Zip (Archive (..), Entry, findEntryByPath, fromEntry,
                           toArchiveOrFail)
 import Control.DeepSeq (NFData, deepseq)
@@ -16,7 +45,6 @@ import qualified Data.ByteString.Lazy as BL (ByteString)
 import Data.List (isInfixOf, isPrefixOf)
 import qualified Data.Map as M (Map, elems, fromList, lookup)
 import Data.Maybe (fromMaybe, mapMaybe)
-import Data.Monoid ((<>))
 import qualified Data.Text.Lazy as TL
 import qualified Data.Text.Lazy.Encoding as TL
 import Network.URI (unEscapeString)
@@ -93,7 +121,7 @@ fetchImages mimes root arc (query iq -> links) =
     mapM_ (uncurry3 insertMedia) (mapMaybe getEntry links)
   where
     getEntry link =
-        let abslink = normalise (root </> link) in
+        let abslink = normalise (unEscapeString (root </> link)) in
         (link , lookup link mimes, ) . fromEntry
           <$> findEntryByPath abslink arc
 
@@ -264,7 +292,7 @@ findAttrE :: PandocMonad m => QName -> Element -> m String
 findAttrE q e = mkE "findAttr" $ findAttr q e
 
 findEntryByPathE :: PandocMonad m => FilePath -> Archive -> m Entry
-findEntryByPathE (normalise -> path) a =
+findEntryByPathE (normalise . unEscapeString -> path) a =
   mkE ("No entry on path: " ++ path) $ findEntryByPath path a
 
 parseXMLDocE :: PandocMonad m => String -> m Element

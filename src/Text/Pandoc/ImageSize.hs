@@ -1,3 +1,4 @@
+{-# LANGUAGE NoImplicitPrelude #-}
 {-# LANGUAGE OverloadedStrings, ScopedTypeVariables, CPP #-}
 {-# OPTIONS_GHC -fno-warn-type-defaults #-}
 {-
@@ -49,6 +50,7 @@ module Text.Pandoc.ImageSize ( ImageType(..)
                              , showInPixel
                              , showFl
                              ) where
+import Prelude
 import Data.ByteString (ByteString, unpack)
 import qualified Data.ByteString.Char8 as B
 import qualified Data.ByteString.Lazy as BL
@@ -126,7 +128,7 @@ imageType img = case B.take 4 img of
                        |  B.take 4 (B.drop 1 $ B.dropWhile (/=' ') img) == "EPSF"
                                         -> return Eps
                      "\x01\x00\x00\x00"
-                       | B.take 4 (B.drop 40 img) == " EMF" 
+                       | B.take 4 (B.drop 40 img) == " EMF"
                                         -> return Emf
                      _                  -> mzero
 
@@ -361,9 +363,9 @@ svgSize opts img = do
   , dpiX = dpi
   , dpiY = dpi
   }
-  
+
 emfSize :: ByteString -> Maybe ImageSize
-emfSize img = 
+emfSize img =
   let
     parseheader = runGetOrFail $ do
       skip 0x18             -- 0x00
@@ -388,11 +390,11 @@ emfSize img =
         , dpiX = fromIntegral dpiW
         , dpiY = fromIntegral dpiH
         }
-  in 
+  in
     case parseheader . BL.fromStrict $ img of
       Left _ -> Nothing
       Right (_, _, size) -> Just size
-  
+
 
 jpegSize :: ByteString -> Either String ImageSize
 jpegSize img =

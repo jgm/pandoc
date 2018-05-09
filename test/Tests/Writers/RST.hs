@@ -1,11 +1,15 @@
+{-# LANGUAGE NoImplicitPrelude #-}
 {-# LANGUAGE OverloadedStrings #-}
 module Tests.Writers.RST (tests) where
 
+import Prelude
 import Test.Tasty
+import Test.Tasty.HUnit
 import Tests.Helpers
 import Text.Pandoc
 import Text.Pandoc.Arbitrary ()
 import Text.Pandoc.Builder
+import Text.Pandoc.Writers.RST
 
 infix 4 =:
 (=:) :: (ToString a, ToPandoc a)
@@ -22,23 +26,23 @@ tests = [ testGroup "rubrics"
                                             para $ text "baz"])] =?>
               unlines
               [ "foo"
-              , "    .. rubric:: bar"
+              , "   .. rubric:: bar"
               , ""
-              , "    baz"]
+              , "   baz"]
           , "in block quote" =:
               blockQuote (header 1 (text "bar")) =?>
-              "    .. rubric:: bar"
+              "   .. rubric:: bar"
           , "with id" =:
               blockQuote (headerWith ("foo",[],[]) 1 (text "bar")) =?>
               unlines
-              [ "    .. rubric:: bar"
-              , "       :name: foo"]
+              [ "   .. rubric:: bar"
+              , "      :name: foo"]
           , "with id class" =:
               blockQuote (headerWith ("foo",["baz"],[]) 1 (text "bar")) =?>
               unlines
-              [ "    .. rubric:: bar"
-              , "       :name: foo"
-              , "       :class: baz"]
+              [ "   .. rubric:: bar"
+              , "      :name: foo"
+              , "      :class: baz"]
           ]
         , testGroup "ligatures" -- handling specific sequences of blocks
           [ "a list is closed by a comment before a quote" =: -- issue 4248
@@ -48,7 +52,45 @@ tests = [ testGroup "rubrics"
               , ""
               , ".."
               , ""
-              , "    quoted"]
+              , "   quoted"]
+          ]
+        , testGroup "flatten"
+          [ testCase "emerges nested styles as expected" $
+            flatten (Emph [Str "1", Strong [Str "2"], Str "3"]) @?=
+            [Emph [Str "1"], Strong [Str "2"], Emph [Str "3"]]
+          , testCase "could introduce trailing spaces" $
+            flatten (Emph [Str "f", Space, Strong [Str "2"]]) @?=
+            [Emph [Str "f", Space], Strong [Str "2"]]
+            -- the test above is the reason why we call
+            -- stripLeadingTrailingSpace through transformNested after
+            -- flatten
+          , testCase "preserves empty parents" $
+            flatten (Image ("",[],[]) [] ("loc","title")) @?=
+            [Image ("",[],[]) [] ("loc","title")]
+          ]
+        , testGroup "inlines"
+          [ "are removed when empty" =: -- #4434
+            plain (strong (str "")) =?> ""
+          , "do not cause the introduction of extra spaces when removed" =:
+            plain (strong (str "") <> emph (str "text")) =?> "*text*"
+          , "spaces are stripped at beginning and end" =:
+            -- pandoc issue 4327 "The text within inline markup may not
+            -- begin or end with whitespace"
+            -- http://docutils.sourceforge.net/docs/ref/rst/restructuredtext.html#inline-markup
+            strong (space <> str "text" <> space <> space) =?> "**text**"
+          , "single space stripped" =:
+            strong space =?> ""
+          , "give priority to strong style over emphasis" =:
+            strong (emph (strong (str "s"))) =?> "**s**"
+          , "links are not elided by outer style" =:
+            strong (emph (link "loc" "" (str "text"))) =?>
+            "`text <loc>`__"
+          , "RST inlines cannot start nor end with spaces" =:
+            emph (str "f" <> space <> strong (str "d") <> space <> str "l") =?>
+            "*f*\\ **d**\\ *l*"
+          , "keeps quotes" =:
+            strong (str "f" <> doubleQuoted (str "d") <> str "l") =?>
+            "**f“d”l**"
           ]
         , testGroup "headings"
           [ "normal heading" =:

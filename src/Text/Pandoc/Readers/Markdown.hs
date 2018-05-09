@@ -1,3 +1,4 @@
+{-# LANGUAGE NoImplicitPrelude #-}
 {-# LANGUAGE RelaxedPolyRec      #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 
@@ -32,6 +33,7 @@ Conversion of markdown-formatted plain text to 'Pandoc' document.
 -}
 module Text.Pandoc.Readers.Markdown ( readMarkdown ) where
 
+import Prelude
 import Control.Monad
 import Control.Monad.Except (throwError)
 import Data.Char (isAlphaNum, isPunctuation, isSpace, toLower)
@@ -39,7 +41,6 @@ import qualified Data.HashMap.Strict as H
 import Data.List (intercalate, sortBy, transpose, elemIndex)
 import qualified Data.Map as M
 import Data.Maybe
-import Data.Monoid ((<>))
 import Data.Ord (comparing)
 import Data.Scientific (base10Exponent, coefficient)
 import qualified Data.Set as Set
@@ -162,7 +163,7 @@ inlinesInBalancedBrackets =
         stripBracket xs = if last xs == ']' then init xs else xs
         go :: PandocMonad m => Int -> MarkdownParser m ()
         go 0 = return ()
-        go openBrackets = 
+        go openBrackets =
           (() <$ (escapedChar <|>
                 code <|>
                 rawHtmlInline <|>
@@ -673,6 +674,8 @@ keyValAttr = try $ do
   char '='
   val <- enclosed (char '"') (char '"') litChar
      <|> enclosed (char '\'') (char '\'') litChar
+     <|> ("" <$ try (string "\"\""))
+     <|> ("" <$ try (string "''"))
      <|> many (escapedChar' <|> noneOf " \t\n\r}")
   return $ \(id',cs,kvs) ->
     case key of
@@ -908,6 +911,17 @@ listContinuation continuationIndent = try $ do
          anyLineNewline
   blanks <- many blankline
   return $ concat (x:xs) ++ blanks
+
+-- Variant of blanklines that doesn't require blank lines
+-- before a fence or eof.
+blanklines' :: PandocMonad m => MarkdownParser m [Char]
+blanklines' = blanklines <|> try checkDivCloser
+  where checkDivCloser = do
+          guardEnabled Ext_fenced_divs
+          divLevel <- stateFencedDivLevel <$> getState
+          guard (divLevel >= 1)
+          lookAhead divFenceEnd
+          return ""
 
 notFollowedByDivCloser :: PandocMonad m => MarkdownParser m ()
 notFollowedByDivCloser =
@@ -1250,7 +1264,7 @@ alignType strLst len =
 
 -- Parse a table footer - dashed lines followed by blank line.
 tableFooter :: PandocMonad m => MarkdownParser m String
-tableFooter = try $ skipNonindentSpaces >> many1 (dashedLine '-') >> blanklines
+tableFooter = try $ skipNonindentSpaces >> many1 (dashedLine '-') >> blanklines'
 
 -- Parse a table separator - dashed line.
 tableSep :: PandocMonad m => MarkdownParser m Char
@@ -1261,7 +1275,7 @@ rawTableLine :: PandocMonad m
              => [Int]
              -> MarkdownParser m [String]
 rawTableLine indices = do
-  notFollowedBy' (blanklines <|> tableFooter)
+  notFollowedBy' (blanklines' <|> tableFooter)
   line <- many1Till anyChar newline
   return $ map trim $ tail $
            splitStringByIndices (init indices) line
@@ -1299,7 +1313,7 @@ simpleTable headless = do
   (aligns, _widths, heads', lines') <-
        tableWith (simpleTableHeader headless) tableLine
               (return ())
-              (if headless then tableFooter else tableFooter <|> blanklines)
+              (if headless then tableFooter else tableFooter <|> blanklines')
   -- Simple tables get 0s for relative column widths (i.e., use default)
   return (aligns, replicate (length aligns) 0, heads', lines')
 
@@ -1327,11 +1341,16 @@ multilineTableHeader headless = try $ do
   newline
   let (lengths, lines') = unzip dashes
   let indices  = scanl (+) (length initSp) lines'
+  -- compensate for the fact that intercolumn spaces are
+  -- not included in the last index:
+  let indices' = case reverse indices of
+                      []     -> []
+                      (x:xs) -> reverse (x+1:xs)
   rawHeadsList <- if headless
                      then fmap (map (:[]) . tail .
-                              splitStringByIndices (init indices)) $ lookAhead anyLine
+                              splitStringByIndices (init indices')) $ lookAhead anyLine
                      else return $ transpose $ map
-                           (tail . splitStringByIndices (init indices))
+                           (tail . splitStringByIndices (init indices'))
                            rawContent
   let aligns   = zipWith alignType rawHeadsList lengths
   let rawHeads = if headless
@@ -1339,7 +1358,7 @@ multilineTableHeader headless = try $ do
                     else map (unlines . map trim) rawHeadsList
   heads <- fmap sequence $
             mapM ((parseFromString' (mconcat <$> many plain)).trim) rawHeads
-  return (heads, aligns, indices)
+  return (heads, aligns, indices')
 
 -- Parse a grid table:  starts with row of '-' on top, then header
 -- (which may be grid), then the rows,
@@ -2145,7 +2164,6 @@ singleQuoted = try $ do
 doubleQuoted :: PandocMonad m => MarkdownParser m (F Inlines)
 doubleQuoted = try $ do
   doubleQuoteStart
-  contents <- mconcat <$> many (try $ notFollowedBy doubleQuoteEnd >> inline)
-  withQuoteContext InDoubleQuote (doubleQuoteEnd >> return
-       (fmap B.doubleQuoted . trimInlinesF $ contents))
-   <|> return (return (B.str "\8220") <> contents)
+  withQuoteContext InDoubleQuote $
+    fmap B.doubleQuoted . trimInlinesF . mconcat <$>
+      many1Till inline doubleQuoteEnd

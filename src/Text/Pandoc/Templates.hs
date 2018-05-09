@@ -1,7 +1,4 @@
-{-# LANGUAGE FlexibleInstances    #-}
-
-{-# LANGUAGE OverloadedStrings    #-}
-{-# LANGUAGE TypeSynonymInstances #-}
+{-# LANGUAGE OverloadedStrings #-}
 {-
 Copyright (C) 2009-2018 John MacFarlane <jgm@berkeley.edu>
 
@@ -38,6 +35,7 @@ module Text.Pandoc.Templates ( module Text.DocTemplates
                              , getDefaultTemplate
                              ) where
 
+import Prelude
 import Control.Monad.Except (throwError)
 import Data.Aeson (ToJSON (..))
 import qualified Data.Text as T

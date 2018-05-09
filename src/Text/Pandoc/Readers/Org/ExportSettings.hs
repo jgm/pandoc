@@ -1,3 +1,4 @@
+{-# LANGUAGE NoImplicitPrelude #-}
 {-
 Copyright (C) 2016-2018 Albert Krewinkel <tarleb+pandoc@moltkeplatz.de>
 
@@ -29,6 +30,7 @@ module Text.Pandoc.Readers.Org.ExportSettings
   ( exportSettings
   ) where
 
+import Prelude
 import Text.Pandoc.Readers.Org.ParserState
 import Text.Pandoc.Readers.Org.Parsing
 

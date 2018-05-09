@@ -1,3 +1,4 @@
+{-# LANGUAGE NoImplicitPrelude #-}
 {-
 Copyright (C) 2006-2018 John MacFarlane <jgm@berkeley.edu>
 
@@ -36,6 +37,7 @@ module Text.Pandoc.XML ( escapeCharForXML,
                          toEntities,
                          fromEntities ) where
 
+import Prelude
 import Data.Char (isAscii, isSpace, ord)
 import Data.Text (Text)
 import qualified Data.Text as T

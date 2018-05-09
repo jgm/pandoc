@@ -1,3 +1,4 @@
+{-# LANGUAGE NoImplicitPrelude #-}
 {-
 Copyright © 2012-2018 John MacFarlane <jgm@berkeley.edu>
             2017-2018 Albert Krewinkel <tarleb+pandoc@moltkeplatz.de>
@@ -33,6 +34,7 @@ StackValue instances for pandoc types.
 -}
 module Text.Pandoc.Lua.StackInstances () where
 
+import Prelude
 import Control.Applicative ((<|>))
 import Control.Monad (when)
 import Control.Monad.Catch (finally)

@@ -1,5 +1,5 @@
 .\"t
-.TH PANDOC 1 "January 18, 2018" "pandoc 2.1.1"
+.TH PANDOC 1 "April 26, 2018" "pandoc 2.2"
 .SH NAME
 pandoc - general markup converter
 .SH SYNOPSIS
@@ -10,34 +10,21 @@ pandoc - general markup converter
 Pandoc is a Haskell library for converting from one markup format to
 another, and a command\-line tool that uses this library.
 .PP
-Pandoc can read Markdown, CommonMark, PHP Markdown Extra,
-GitHub\-Flavored Markdown, MultiMarkdown, and (subsets of) Textile,
-reStructuredText, HTML, LaTeX, MediaWiki markup, TWiki markup, TikiWiki
-markup, Creole 1.0, Haddock markup, OPML, Emacs Org mode, DocBook, JATS,
-Muse, txt2tags, Vimwiki, EPUB, ODT, and Word docx.
-.PP
-Pandoc can write plain text, Markdown, CommonMark, PHP Markdown Extra,
-GitHub\-Flavored Markdown, MultiMarkdown, reStructuredText, XHTML,
-HTML5, LaTeX (including \f[C]beamer\f[] slide shows), ConTeXt, RTF,
-OPML, DocBook, JATS, OpenDocument, ODT, Word docx, GNU Texinfo,
-MediaWiki markup, DokuWiki markup, ZimWiki markup, Haddock markup, EPUB
-(v2 or v3), FictionBook2, Textile, groff man, groff ms, Emacs Org mode,
-AsciiDoc, InDesign ICML, TEI Simple, Muse, PowerPoint slide shows and
-Slidy, Slideous, DZSlides, reveal.js or S5 HTML slide shows.
-It can also produce PDF output on systems where LaTeX, ConTeXt,
-\f[C]pdfroff\f[], \f[C]wkhtmltopdf\f[], \f[C]prince\f[], or
-\f[C]weasyprint\f[] is installed.
+Pandoc can convert between numerous markup and word processing formats,
+including, but not limited to, various flavors of Markdown, HTML, LaTeX
+and Word docx.
+For the full lists of input and output formats, see the
+\f[C]\-\-from\f[] and \f[C]\-\-to\f[] options below.
+Pandoc can also produce PDF output: see creating a PDF, below.
 .PP
 Pandoc\[aq]s enhanced version of Markdown includes syntax for tables,
-definition lists, metadata blocks, \f[C]Div\f[] blocks, footnotes and
-citations, embedded LaTeX (including math), Markdown inside HTML block
-elements, and much more.
-These enhancements, described further under Pandoc\[aq]s Markdown, can
-be disabled using the \f[C]markdown_strict\f[] format.
+definition lists, metadata blocks, footnotes, citations, math, and much
+more.
+See below under Pandoc\[aq]s Markdown.
 .PP
 Pandoc has a modular design: it consists of a set of readers, which
 parse text in a given format and produce a native representation of the
-document (like an \f[I]abstract syntax tree\f[] or AST), and a set of
+document (an \f[I]abstract syntax tree\f[] or AST), and a set of
 writers, which convert this native representation into a target format.
 Thus, adding an input or output format requires only adding a reader or
 writer.
@@ -175,7 +162,8 @@ When using an HTML/CSS\-to\-PDF\-engine, \f[C]\-\-css\f[] affects the
 output.
 If \f[C]wkhtmltopdf\f[] is used, then the variables
 \f[C]margin\-left\f[], \f[C]margin\-right\f[], \f[C]margin\-top\f[],
-\f[C]margin\-bottom\f[], and \f[C]papersize\f[] will affect the output.
+\f[C]margin\-bottom\f[], \f[C]footer\-html\f[], \f[C]header\-html\f[]
+and \f[C]papersize\f[] will affect the output.
 .PP
 To debug the PDF creation, it can be useful to look at the intermediate
 representation: instead of \f[C]\-o\ test.pdf\f[], use for example
@@ -228,69 +216,184 @@ pandoc\ \-f\ html\ \-t\ markdown\ \-\-request\-header\ User\-Agent:"Mozilla/5.0"
 .TP
 .B \f[C]\-f\f[] \f[I]FORMAT\f[], \f[C]\-r\f[] \f[I]FORMAT\f[], \f[C]\-\-from=\f[]\f[I]FORMAT\f[], \f[C]\-\-read=\f[]\f[I]FORMAT\f[]
 Specify input format.
-\f[I]FORMAT\f[] can be \f[C]native\f[] (native Haskell), \f[C]json\f[]
-(JSON version of native AST), \f[C]markdown\f[] (pandoc\[aq]s extended
-Markdown), \f[C]markdown_strict\f[] (original unextended Markdown),
-\f[C]markdown_phpextra\f[] (PHP Markdown Extra), \f[C]markdown_mmd\f[]
-(MultiMarkdown), \f[C]gfm\f[] (GitHub\-Flavored Markdown),
-\f[C]commonmark\f[] (CommonMark Markdown), \f[C]textile\f[] (Textile),
-\f[C]rst\f[] (reStructuredText), \f[C]html\f[] (HTML), \f[C]docbook\f[]
-(DocBook), \f[C]t2t\f[] (txt2tags), \f[C]docx\f[] (docx), \f[C]odt\f[]
-(ODT), \f[C]epub\f[] (EPUB), \f[C]opml\f[] (OPML), \f[C]org\f[] (Emacs
-Org mode), \f[C]mediawiki\f[] (MediaWiki markup), \f[C]twiki\f[] (TWiki
-markup), \f[C]tikiwiki\f[] (TikiWiki markup), \f[C]creole\f[] (Creole
-1.0), \f[C]haddock\f[] (Haddock markup), or \f[C]latex\f[] (LaTeX).
-(\f[C]markdown_github\f[] provides deprecated and less accurate support
-for Github\-Flavored Markdown; please use \f[C]gfm\f[] instead, unless
-you need to use extensions other than \f[C]smart\f[].) Extensions can be
-individually enabled or disabled by appending \f[C]+EXTENSION\f[] or
-\f[C]\-EXTENSION\f[] to the format name.
+\f[I]FORMAT\f[] can be:
+.RS
+.IP \[bu] 2
+\f[C]commonmark\f[] (CommonMark Markdown)
+.IP \[bu] 2
+\f[C]creole\f[] (Creole 1.0)
+.IP \[bu] 2
+\f[C]docbook\f[] (DocBook)
+.IP \[bu] 2
+\f[C]docx\f[] (Word docx)
+.IP \[bu] 2
+\f[C]epub\f[] (EPUB)
+.IP \[bu] 2
+\f[C]fb2\f[] (FictionBook2 e\-book)
+.IP \[bu] 2
+\f[C]gfm\f[] (GitHub\-Flavored Markdown), or \f[C]markdown_github\f[],
+which provides deprecated and less accurate support for Github\-Flavored
+Markdown; please use \f[C]gfm\f[] instead, unless you need to use
+extensions other than \f[C]smart\f[].
+.IP \[bu] 2
+\f[C]haddock\f[] (Haddock markup)
+.IP \[bu] 2
+\f[C]html\f[] (HTML)
+.IP \[bu] 2
+\f[C]jats\f[] (JATS XML)
+.IP \[bu] 2
+\f[C]json\f[] (JSON version of native AST)
+.IP \[bu] 2
+\f[C]latex\f[] (LaTeX)
+.IP \[bu] 2
+\f[C]markdown\f[] (Pandoc\[aq]s Markdown)
+.IP \[bu] 2
+\f[C]markdown_mmd\f[] (MultiMarkdown)
+.IP \[bu] 2
+\f[C]markdown_phpextra\f[] (PHP Markdown Extra)
+.IP \[bu] 2
+\f[C]markdown_strict\f[] (original unextended Markdown)
+.IP \[bu] 2
+\f[C]mediawiki\f[] (MediaWiki markup)
+.IP \[bu] 2
+\f[C]muse\f[] (Muse)
+.IP \[bu] 2
+\f[C]native\f[] (native Haskell)
+.IP \[bu] 2
+\f[C]odt\f[] (ODT)
+.IP \[bu] 2
+\f[C]opml\f[] (OPML)
+.IP \[bu] 2
+\f[C]org\f[] (Emacs Org mode)
+.IP \[bu] 2
+\f[C]rst\f[] (reStructuredText)
+.IP \[bu] 2
+\f[C]t2t\f[] (txt2tags)
+.IP \[bu] 2
+\f[C]textile\f[] (Textile)
+.IP \[bu] 2
+\f[C]tikiwiki\f[] (TikiWiki markup)
+.IP \[bu] 2
+\f[C]twiki\f[] (TWiki markup)
+.IP \[bu] 2
+\f[C]vimwiki\f[] (Vimwiki)
+.PP
+Extensions can be individually enabled or disabled by appending
+\f[C]+EXTENSION\f[] or \f[C]\-EXTENSION\f[] to the format name.
 See Extensions below, for a list of extensions and their names.
 See \f[C]\-\-list\-input\-formats\f[] and \f[C]\-\-list\-extensions\f[],
 below.
-.RS
 .RE
 .TP
 .B \f[C]\-t\f[] \f[I]FORMAT\f[], \f[C]\-w\f[] \f[I]FORMAT\f[], \f[C]\-\-to=\f[]\f[I]FORMAT\f[], \f[C]\-\-write=\f[]\f[I]FORMAT\f[]
 Specify output format.
-\f[I]FORMAT\f[] can be \f[C]native\f[] (native Haskell), \f[C]json\f[]
-(JSON version of native AST), \f[C]plain\f[] (plain text),
-\f[C]markdown\f[] (pandoc\[aq]s extended Markdown),
-\f[C]markdown_strict\f[] (original unextended Markdown),
-\f[C]markdown_phpextra\f[] (PHP Markdown Extra), \f[C]markdown_mmd\f[]
-(MultiMarkdown), \f[C]gfm\f[] (GitHub\-Flavored Markdown),
-\f[C]commonmark\f[] (CommonMark Markdown), \f[C]rst\f[]
-(reStructuredText), \f[C]html4\f[] (XHTML 1.0 Transitional),
-\f[C]html\f[] or \f[C]html5\f[] (HTML5/XHTML polyglot markup),
-\f[C]latex\f[] (LaTeX), \f[C]beamer\f[] (LaTeX beamer slide show),
-\f[C]context\f[] (ConTeXt), \f[C]man\f[] (groff man), \f[C]mediawiki\f[]
-(MediaWiki markup), \f[C]dokuwiki\f[] (DokuWiki markup),
-\f[C]zimwiki\f[] (ZimWiki markup), \f[C]textile\f[] (Textile),
-\f[C]org\f[] (Emacs Org mode), \f[C]texinfo\f[] (GNU Texinfo),
-\f[C]opml\f[] (OPML), \f[C]docbook\f[] or \f[C]docbook4\f[] (DocBook 4),
-\f[C]docbook5\f[] (DocBook 5), \f[C]jats\f[] (JATS XML),
-\f[C]opendocument\f[] (OpenDocument), \f[C]odt\f[] (OpenOffice text
-document), \f[C]docx\f[] (Word docx), \f[C]haddock\f[] (Haddock markup),
-\f[C]rtf\f[] (rich text format), \f[C]epub2\f[] (EPUB v2 book),
-\f[C]epub\f[] or \f[C]epub3\f[] (EPUB v3), \f[C]fb2\f[] (FictionBook2
-e\-book), \f[C]asciidoc\f[] (AsciiDoc), \f[C]icml\f[] (InDesign ICML),
-\f[C]tei\f[] (TEI Simple), \f[C]slidy\f[] (Slidy HTML and JavaScript
-slide show), \f[C]slideous\f[] (Slideous HTML and JavaScript slide
-show), \f[C]dzslides\f[] (DZSlides HTML5 + JavaScript slide show),
-\f[C]revealjs\f[] (reveal.js HTML5 + JavaScript slide show), \f[C]s5\f[]
-(S5 HTML and JavaScript slide show), \f[C]pptx\f[] (PowerPoint slide
-show) or the path of a custom lua writer (see Custom writers, below).
-(\f[C]markdown_github\f[] provides deprecated and less accurate support
-for Github\-Flavored Markdown; please use \f[C]gfm\f[] instead, unless
-you use extensions that do not work with \f[C]gfm\f[].) Note that
-\f[C]odt\f[], \f[C]docx\f[], and \f[C]epub\f[] output will not be
-directed to \f[I]stdout\f[] unless forced with \f[C]\-o\ \-\f[].
+\f[I]FORMAT\f[] can be:
+.RS
+.IP \[bu] 2
+\f[C]asciidoc\f[] (AsciiDoc)
+.IP \[bu] 2
+\f[C]beamer\f[] (LaTeX beamer slide show)
+.IP \[bu] 2
+\f[C]commonmark\f[] (CommonMark Markdown)
+.IP \[bu] 2
+\f[C]context\f[] (ConTeXt)
+.IP \[bu] 2
+\f[C]docbook\f[] or \f[C]docbook4\f[] (DocBook 4)
+.IP \[bu] 2
+\f[C]docbook5\f[] (DocBook 5)
+.IP \[bu] 2
+\f[C]docx\f[] (Word docx)
+.IP \[bu] 2
+\f[C]dokuwiki\f[] (DokuWiki markup)
+.IP \[bu] 2
+\f[C]epub\f[] or \f[C]epub3\f[] (EPUB v3 book)
+.IP \[bu] 2
+\f[C]epub2\f[] (EPUB v2)
+.IP \[bu] 2
+\f[C]fb2\f[] (FictionBook2 e\-book)
+.IP \[bu] 2
+\f[C]gfm\f[] (GitHub\-Flavored Markdown), or \f[C]markdown_github\f[],
+which provides deprecated and less accurate support for Github\-Flavored
+Markdown; please use \f[C]gfm\f[] instead, unless you use extensions
+that do not work with \f[C]gfm\f[].
+.IP \[bu] 2
+\f[C]haddock\f[] (Haddock markup)
+.IP \[bu] 2
+\f[C]html\f[] or \f[C]html5\f[] (HTML, i.e.
+HTML5/XHTML polyglot markup)
+.IP \[bu] 2
+\f[C]html4\f[] (XHTML 1.0 Transitional)
+.IP \[bu] 2
+\f[C]icml\f[] (InDesign ICML)
+.IP \[bu] 2
+\f[C]jats\f[] (JATS XML)
+.IP \[bu] 2
+\f[C]json\f[] (JSON version of native AST)
+.IP \[bu] 2
+\f[C]latex\f[] (LaTeX)
+.IP \[bu] 2
+\f[C]man\f[] (groff man)
+.IP \[bu] 2
+\f[C]markdown\f[] (Pandoc\[aq]s Markdown)
+.IP \[bu] 2
+\f[C]markdown_mmd\f[] (MultiMarkdown)
+.IP \[bu] 2
+\f[C]markdown_phpextra\f[] (PHP Markdown Extra)
+.IP \[bu] 2
+\f[C]markdown_strict\f[] (original unextended Markdown)
+.IP \[bu] 2
+\f[C]mediawiki\f[] (MediaWiki markup)
+.IP \[bu] 2
+\f[C]ms\f[] (groff ms)
+.IP \[bu] 2
+\f[C]muse\f[] (Muse),
+.IP \[bu] 2
+\f[C]native\f[] (native Haskell),
+.IP \[bu] 2
+\f[C]odt\f[] (OpenOffice text document)
+.IP \[bu] 2
+\f[C]opml\f[] (OPML)
+.IP \[bu] 2
+\f[C]opendocument\f[] (OpenDocument)
+.IP \[bu] 2
+\f[C]org\f[] (Emacs Org mode)
+.IP \[bu] 2
+\f[C]plain\f[] (plain text),
+.IP \[bu] 2
+\f[C]pptx\f[] (PowerPoint slide show)
+.IP \[bu] 2
+\f[C]rst\f[] (reStructuredText)
+.IP \[bu] 2
+\f[C]rtf\f[] (Rich Text Format)
+.IP \[bu] 2
+\f[C]texinfo\f[] (GNU Texinfo)
+.IP \[bu] 2
+\f[C]textile\f[] (Textile)
+.IP \[bu] 2
+\f[C]slideous\f[] (Slideous HTML and JavaScript slide show)
+.IP \[bu] 2
+\f[C]slidy\f[] (Slidy HTML and JavaScript slide show)
+.IP \[bu] 2
+\f[C]dzslides\f[] (DZSlides HTML5 + JavaScript slide show),
+.IP \[bu] 2
+\f[C]revealjs\f[] (reveal.js HTML5 + JavaScript slide show)
+.IP \[bu] 2
+\f[C]s5\f[] (S5 HTML and JavaScript slide show)
+.IP \[bu] 2
+\f[C]tei\f[] (TEI Simple)
+.IP \[bu] 2
+\f[C]zimwiki\f[] (ZimWiki markup)
+.IP \[bu] 2
+the path of a custom lua writer, see Custom writers below
+.PP
+Note that \f[C]odt\f[], \f[C]docx\f[], and \f[C]epub\f[] output will not
+be directed to \f[I]stdout\f[] unless forced with \f[C]\-o\ \-\f[].
+.PP
 Extensions can be individually enabled or disabled by appending
 \f[C]+EXTENSION\f[] or \f[C]\-EXTENSION\f[] to the format name.
 See Extensions below, for a list of extensions and their names.
 See \f[C]\-\-list\-output\-formats\f[] and
 \f[C]\-\-list\-extensions\f[], below.
-.RS
 .RE
 .TP
 .B \f[C]\-o\f[] \f[I]FILE\f[], \f[C]\-\-output=\f[]\f[I]FILE\f[]
@@ -531,19 +634,29 @@ end
 return\ {{Str\ =\ expand_hello_world}}
 \f[]
 .fi
+.PP
+In order of preference, pandoc will look for lua filters in
+.IP "1." 3
+a specified full or relative path (executable or non\-executable)
+.IP "2." 3
+\f[C]$DATADIR/filters\f[] (executable or non\-executable) where
+\f[C]$DATADIR\f[] is the user data directory (see
+\f[C]\-\-data\-dir\f[], above).
 .RE
 .TP
 .B \f[C]\-M\f[] \f[I]KEY\f[][\f[C]=\f[]\f[I]VAL\f[]], \f[C]\-\-metadata=\f[]\f[I]KEY\f[][\f[C]:\f[]\f[I]VAL\f[]]
 Set the metadata field \f[I]KEY\f[] to the value \f[I]VAL\f[].
 A value specified on the command line overrides a value specified in the
-document.
+document using [YAML metadata
+blocks][Extension:\f[C]yaml_metadata_block\f[]].
 Values will be parsed as YAML boolean or string values.
 If no value is specified, the value will be treated as Boolean true.
 Like \f[C]\-\-variable\f[], \f[C]\-\-metadata\f[] causes template
 variables to be set.
 But unlike \f[C]\-\-variable\f[], \f[C]\-\-metadata\f[] affects the
 metadata of the underlying document (which is accessible from filters
-and may be printed in some output formats).
+and may be printed in some output formats) and metadata values will be
+escaped when inserted into the template.
 .RS
 .RE
 .TP
@@ -821,6 +934,7 @@ line, or when resources used in a document must be downloaded).
 Produce a standalone HTML file with no external dependencies, using
 \f[C]data:\f[] URIs to incorporate the contents of linked scripts,
 stylesheets, images, and videos.
+Implies \f[C]\-\-standalone\f[].
 The resulting file should be "self\-contained," in the sense that it
 needs no external files and no net access to be displayed properly by a
 browser.
@@ -850,8 +964,9 @@ Use \f[C]<q>\f[] tags for quotes in HTML.
 .TP
 .B \f[C]\-\-ascii\f[]
 Use only ASCII characters in output.
-Currently supported only for HTML and DocBook output (which uses
-numerical entities instead of UTF\-8 when this option is selected).
+Currently supported for XML and HTML formats (which use numerical
+entities instead of UTF\-8 when this option is selected) and for groff
+ms and man (which use hexadecimal escapes).
 .RS
 .RE
 .TP
@@ -1043,6 +1158,34 @@ default \f[C]reference.odt\f[]:
 \f[C]pandoc\ \-\-print\-default\-data\-file\ reference.odt\ >\ custom\-reference.odt\f[].
 Then open \f[C]custom\-reference.odt\f[] in LibreOffice, modify the
 styles as you wish, and save the file.
+.RE
+.TP
+.B PowerPoint
+Any template included with a recent install of Microsoft PowerPoint
+(either with \f[C]\&.pptx\f[] or \f[C]\&.potx\f[] extension) should
+work, as will most templates derived from these.
+.RS
+.PP
+The specific requirement is that the template should contain the
+following four layouts as its first four layouts:
+.IP "1." 3
+Title Slide
+.IP "2." 3
+Title and Content
+.IP "3." 3
+Section Header
+.IP "4." 3
+Two Content
+.PP
+All templates included with a recent version of MS PowerPoint will fit
+these criteria.
+(You can click on \f[C]Layout\f[] under the \f[C]Home\f[] menu to
+check.)
+.PP
+You can also modify the default \f[C]reference.pptx\f[]: first run
+\f[C]pandoc\ \-\-print\-default\-data\-file\ reference.pptx\ >\ custom\-reference.pptx\f[],
+and then modify \f[C]custom\-reference.pptx\f[] in MS PowerPoint (pandoc
+will use the first four layout slides, as mentioned above).
 .RE
 .RE
 .TP
@@ -1270,60 +1413,6 @@ inserted.
 Note that this option does not imply \f[C]\-\-katex\f[].
 .RS
 .RE
-.TP
-.B \f[C]\-m\f[] [\f[I]URL\f[]], \f[C]\-\-latexmathml\f[][\f[C]=\f[]\f[I]URL\f[]]
-\f[I]Deprecated.\f[] Use the LaTeXMathML script to display embedded TeX
-math in HTML output.
-TeX math will be displayed between \f[C]$\f[] or \f[C]$$\f[] characters
-and put in \f[C]<span>\f[] tags with class \f[C]LaTeX\f[].
-The LaTeXMathML JavaScript will then change it to MathML.
-Note that currently only Firefox and Safari (and select e\-book readers)
-natively support MathML.
-To insert a link the \f[C]LaTeXMathML.js\f[] script, provide a
-\f[I]URL\f[].
-.RS
-.RE
-.TP
-.B \f[C]\-\-jsmath\f[][\f[C]=\f[]\f[I]URL\f[]]
-\f[I]Deprecated.\f[] Use jsMath (the predecessor of MathJax) to display
-embedded TeX math in HTML output.
-TeX math will be put inside \f[C]<span>\f[] tags (for inline math) or
-\f[C]<div>\f[] tags (for display math) with class \f[C]math\f[] and
-rendered by the jsMath script.
-The \f[I]URL\f[] should point to the script (e.g.
-\f[C]jsMath/easy/load.js\f[]); if provided, it will be linked to in the
-header of standalone HTML documents.
-If a \f[I]URL\f[] is not provided, no link to the jsMath load script
-will be inserted; it is then up to the author to provide such a link in
-the HTML template.
-.RS
-.RE
-.TP
-.B \f[C]\-\-gladtex\f[]
-\f[I]Deprecated.\f[] Enclose TeX math in \f[C]<eq>\f[] tags in HTML
-output.
-The resulting HTML can then be processed by gladTeX to produce images of
-the typeset formulas and an HTML file with links to these images.
-So, the procedure is:
-.RS
-.IP
-.nf
-\f[C]
-pandoc\ \-s\ \-\-gladtex\ input.md\ \-o\ myfile.htex
-gladtex\ \-d\ myfile\-images\ myfile.htex
-#\ produces\ myfile.html\ and\ images\ in\ myfile\-images
-\f[]
-.fi
-.RE
-.TP
-.B \f[C]\-\-mimetex\f[][\f[C]=\f[]\f[I]URL\f[]]
-\f[I]Deprecated.\f[] Render TeX math using the mimeTeX CGI script, which
-generates an image for each TeX formula.
-This should work in all browsers.
-If \f[I]URL\f[] is not specified, it is assumed that the script is at
-\f[C]/cgi\-bin/mimetex.cgi\f[].
-.RS
-.RE
 .SS Options for wrapper scripts
 .TP
 .B \f[C]\-\-dump\-args\f[]
@@ -1389,23 +1478,25 @@ template.
 For \f[C]pdf\f[] output, customize the \f[C]default.latex\f[] template
 (or the \f[C]default.context\f[] template, if you use
 \f[C]\-t\ context\f[], or the \f[C]default.ms\f[] template, if you use
-\f[C]\-t\ ms\f[], or the \f[C]default.html5\f[] template, if you use
-\f[C]\-t\ html5\f[]).
+\f[C]\-t\ ms\f[], or the \f[C]default.html\f[] template, if you use
+\f[C]\-t\ html\f[]).
 .IP \[bu] 2
 \f[C]docx\f[] has no template (however, you can use
 \f[C]\-\-reference\-doc\f[] to customize the output).
 .PP
 Templates contain \f[I]variables\f[], which allow for the inclusion of
 arbitrary information at any point in the file.
-Variables may be set within the document using YAML metadata blocks.
-They may also be set at the command line using the
-\f[C]\-V/\-\-variable\f[] option: variables set in this way override
-metadata fields with the same name.
+They may be set at the command line using the \f[C]\-V/\-\-variable\f[]
+option.
+If a variable is not set, pandoc will look for the key in the
+document\[aq]s metadata \[en] which can be set using either [YAML
+metadata blocks][Extension:\f[C]yaml_metadata_block\f[]] or with the
+\f[C]\-\-metadata\f[] option.
 .SS Variables set by pandoc
 .PP
 Some variables are set automatically by pandoc.
-These vary somewhat depending on the output format, but include metadata
-fields as well as the following:
+These vary somewhat depending on the output format, but include the
+following:
 .TP
 .B \f[C]sourcefile\f[], \f[C]outputfile\f[]
 source and destination filenames, as given on the command line.
@@ -1645,6 +1736,11 @@ document class, e.g.
 .B \f[C]classoption\f[]
 option for document class, e.g.
 \f[C]oneside\f[]; may be repeated for multiple options
+.RS
+.RE
+.TP
+.B \f[C]beameroption\f[]
+In beamer, add extra beamer option with \f[C]\\setbeameroption{}\f[]
 .RS
 .RE
 .TP
@@ -1889,6 +1985,16 @@ include table of contents (can also be set using
 .TP
 .B \f[C]lof\f[], \f[C]lot\f[]
 include list of figures, list of tables
+.RS
+.RE
+.TP
+.B \f[C]pdfa\f[]
+adds to the preamble the setup necessary to generate PDF/A\-1b:2005.
+To successfully generate PDF/A the required ICC color profiles have to
+be available and the content and all included files (such as images)
+have to be standard conforming.
+The ICC profiles can be obtained from ConTeXt ICC Profiles.
+See also ConTeXt PDFA for more details.
 .RS
 .RE
 .SS Variables for man pages
@@ -2319,7 +2425,7 @@ pandoc\ \-f\ markdown+lhs\ \-t\ html+lhs
 writes HTML with the Haskell code in bird tracks, so it can be copied
 and pasted as literate Haskell source.
 .PP
-Note that GHC expects the bird tracks in the first column, so indentend
+Note that GHC expects the bird tracks in the first column, so indented
 literate code blocks (e.g.
 inside an itemized environment) will not be picked up by the Haskell
 compiler.
@@ -2337,8 +2443,19 @@ This extension can be enabled/disabled for the following formats:
 .RE
 .TP
 .B output formats
-\f[C]markdown\f[], \f[C]docx\f[], \f[C]odt\f[], \f[C]opendocument\f[],
-\f[C]html\f[]
+\f[C]docx\f[], \f[C]odt\f[], \f[C]opendocument\f[], \f[C]html\f[]
+.RS
+.RE
+.SS Extension: \f[C]styles\f[]
+.PP
+Read all docx styles as divs (for paragraph styles) and spans (for
+character styles) regardless of whether pandoc understands the meaning
+of these styles.
+This can be used with docx custom styles.
+Disabled by default.
+.TP
+.B input formats
+\f[C]docx\f[]
 .RS
 .RE
 .SS Extension: \f[C]amuse\f[]
@@ -2741,7 +2858,7 @@ Here \f[C]mycode\f[] is an identifier, \f[C]haskell\f[] and
 with value \f[C]100\f[].
 Some output formats can use this information to do syntax highlighting.
 Currently, the only output formats that uses this information are HTML,
-LaTeX, Docx, and Ms.
+LaTeX, Docx, Ms, and PowerPoint.
 If highlighting is supported for your output format and language, then
 the code block above will appear highlighted, with numbered lines.
 (To see which languages are supported, type
@@ -3720,7 +3837,8 @@ For example:
 .nf
 \f[C]
 header\-includes:
-\-\ ```{=latex}
+\-\ |
+\ \ ```{=latex}
 \ \ \\let\\oldsection\\section
 \ \ \\renewcommand{\\section}[1]{\\clearpage\\oldsection{#1}}
 \ \ ```
@@ -4142,9 +4260,29 @@ This\ is\ `<a>html</a>`{=html}
 \f[]
 .fi
 .PP
+This can be useful to insert raw xml into \f[C]docx\f[] documents, e.g.
+a pagebreak:
+.IP
+.nf
+\f[C]
+```{=openxml}
+<w:p>
+\ \ <w:r>
+\ \ \ \ <w:br\ w:type="page"/>
+\ \ </w:r>
+</w:p>
+```
+\f[]
+.fi
+.PP
 The format name should match the target format name (see
 \f[C]\-t/\-\-to\f[], above, for a list, or use
 \f[C]pandoc\ \-\-list\-output\-formats\f[]).
+Use \f[C]openxml\f[] for \f[C]docx\f[] output, \f[C]opendocument\f[] for
+\f[C]odt\f[] output, \f[C]html5\f[] for \f[C]epub3\f[] output,
+\f[C]html4\f[] for \f[C]epub2\f[] output, and \f[C]latex\f[],
+\f[C]beamer\f[], \f[C]ms\f[], or \f[C]html5\f[] for \f[C]pdf\f[] output
+(depending on what you use for \f[C]\-\-pdf\-engine\f[]).
 .PP
 This extension presupposes that the relevant kind of inline code or
 fenced code block is enabled.
@@ -5204,9 +5342,42 @@ reveal.js.
 By default, these writers produce lists that display "all at once." If
 you want your lists to display incrementally (one item at a time), use
 the \f[C]\-i\f[] option.
-If you want a particular list to depart from the default (that is, to
+If you want a particular list to depart from the default, put it in a
+\f[C]div\f[] block with class \f[C]incremental\f[] or
+\f[C]nonincremental\f[].
+So, for example, using the \f[C]fenced\ div\f[] syntax, the following
+would be incremental regardless of the document default:
+.IP
+.nf
+\f[C]
+:::\ incremental
+
+\-\ Eat\ spaghetti
+\-\ Drink\ wine
+
+:::
+\f[]
+.fi
+.PP
+or
+.IP
+.nf
+\f[C]
+:::\ nonincremental
+
+\-\ Eat\ spaghetti
+\-\ Drink\ wine
+
+:::
+\f[]
+.fi
+.PP
+While using \f[C]incremental\f[] and \f[C]nonincremental\f[] divs are
+the recommended method of setting incremental lists on a per\-case
+basis, an older method is also supported: putting lists inside a
+blockquote will depart from the document default (that is, it will
 display incrementally without the \f[C]\-i\f[] option and all at once
-with the \f[C]\-i\f[] option), put it in a block quote:
+with the \f[C]\-i\f[] option):
 .IP
 .nf
 \f[C]
@@ -5215,7 +5386,7 @@ with the \f[C]\-i\f[] option), put it in a block quote:
 \f[]
 .fi
 .PP
-In this way incremental and nonincremental lists can be mixed in a
+Both methods allow incremental and nonincremental lists to be mixed in a
 single document.
 .SS Inserting pauses
 .PP
@@ -5286,7 +5457,7 @@ This is recommended especially for bibliographies:
 .fi
 .SS Speaker notes
 .PP
-reveal.js has good support for speaker notes.
+Speaker notes are supported in reveal.js and PowerPoint (pptx) output.
 You can add notes to your Markdown document thus:
 .IP
 .nf
@@ -5302,8 +5473,11 @@ This\ is\ my\ note.
 \f[]
 .fi
 .PP
-To show the notes window, press \f[C]s\f[] while viewing the
-presentation.
+To show the notes window in reveal.js, press \f[C]s\f[] while viewing
+the presentation.
+Speaker notes in PowerPoint will be available, as usual, in handouts and
+presenter view.
+.PP
 Notes are not yet supported for other slide formats, but the notes will
 not appear on the slides themselves.
 .SS Columns
@@ -5342,6 +5516,49 @@ All of the other frame attributes described in Section 8.1 of the Beamer
 User\[aq]s Guide may also be used: \f[C]allowdisplaybreaks\f[],
 \f[C]allowframebreaks\f[], \f[C]b\f[], \f[C]c\f[], \f[C]t\f[],
 \f[C]environment\f[], \f[C]label\f[], \f[C]plain\f[], \f[C]shrink\f[].
+.SS Background in reveal.js
+.PP
+Background images can be added to self\-contained reveal.js slideshows.
+.PP
+For the same image on every slide, use the reveal.js configuration
+option \f[C]parallaxBackgroundImage\f[] either in the YAML metadata
+block or as a command\-line variable.
+You can also set \f[C]parallaxBackgroundHorizontal\f[] and
+\f[C]parallaxBackgroundVertical\f[] the same way and must also set
+\f[C]parallaxBackgroundSize\f[] to have your values take effect.
+.PP
+To set an image for a particular slide, add
+\f[C]{data\-background\-image="/path/to/image"}\f[] to the first
+slide\-level header on the slide (which may even be empty).
+.PP
+In reveal.js\[aq]s overview mode, the parallaxBackgroundImage will show
+up only on the first slide.
+.PP
+Other background settings also work on individual slides, including
+\f[C]data\-background\-size\f[], \f[C]data\-background\-repeat\f[],
+\f[C]data\-background\-color\f[], \f[C]data\-transition\f[], and
+\f[C]data\-transition\-speed\f[].
+.PP
+See the reveal.js documentation for more details.
+.PP
+For example:
+.IP
+.nf
+\f[C]
+\-\-\-
+title:\ My\ Slideshow
+parallaxBackgroundImage:\ /path/to/my/background_image.png
+\-\-\-
+
+##\ Slide\ One
+
+Slide\ 1\ has\ background_image.png\ as\ its\ background.
+
+##\ {data\-background\-image="/path/to/special_image.jpg"}
+
+Slide\ 2\ has\ a\ special\ image\ for\ its\ background,\ even\ though\ the\ header\ has\ no\ content.
+\f[]
+.fi
 .SH CREATING EPUBS WITH PANDOC
 .SS EPUB Metadata
 .PP
@@ -5532,7 +5749,62 @@ To see a list of highlight styles, type
 \f[C]pandoc\ \-\-list\-highlight\-styles\f[].
 .PP
 To disable highlighting, use the \f[C]\-\-no\-highlight\f[] option.
-.SH CUSTOM STYLES IN DOCX OUTPUT
+.SH CUSTOM STYLES IN DOCX
+.SS Input
+.PP
+The docx reader, by default, only reads those styles that it can convert
+into pandoc elements, either by direct conversion or interpreting the
+derivation of the input document\[aq]s styles.
+.PP
+By enabling the \f[C]styles\f[] extension in the docx reader
+(\f[C]\-f\ docx+styles\f[]), you can produce output that maintains the
+styles of the input document, using the \f[C]custom\-style\f[] class.
+Paragraph styles are interpreted as divs, while character styles are
+interpreted as spans.
+.PP
+For example, using the \f[C]custom\-style\-reference.docx\f[] file in
+the test directory, we have the following different outputs:
+.PP
+Without the \f[C]+styles\f[] extension:
+.IP
+.nf
+\f[C]
+$\ pandoc\ test/docx/custom\-style\-reference.docx\ \-f\ docx\ \-t\ markdown
+This\ is\ some\ text.
+
+This\ is\ text\ with\ an\ *emphasized*\ text\ style.\ And\ this\ is\ text\ with\ a
+**strengthened**\ text\ style.
+
+>\ Here\ is\ a\ styled\ paragraph\ that\ inherits\ from\ Block\ Text.
+\f[]
+.fi
+.PP
+And with the extension:
+.IP
+.nf
+\f[C]
+$\ pandoc\ test/docx/custom\-style\-reference.docx\ \-f\ docx+styles\ \-t\ markdown
+
+:::\ {custom\-style="FirstParagraph"}
+This\ is\ some\ text.
+:::
+
+:::\ {custom\-style="BodyText"}
+This\ is\ text\ with\ an\ [emphasized]{custom\-style="Emphatic"}\ text\ style.
+And\ this\ is\ text\ with\ a\ [strengthened]{custom\-style="Strengthened"}
+text\ style.
+:::
+
+:::\ {custom\-style="MyBlockStyle"}
+>\ Here\ is\ a\ styled\ paragraph\ that\ inherits\ from\ Block\ Text.
+:::
+\f[]
+.fi
+.PP
+With these custom styles, you can use your input document as a
+reference\-doc while creating docx output (see below), and maintain the
+same styles in your input and output files.
+.SS Output
 .PP
 By default, pandoc\[aq]s docx output applies a predefined set of styles
 for blocks such as paragraphs and block quotes, and uses largely default

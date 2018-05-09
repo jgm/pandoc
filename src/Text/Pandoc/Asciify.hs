@@ -1,3 +1,4 @@
+{-# LANGUAGE NoImplicitPrelude #-}
 {-
 Copyright (C) 2013-2018 John MacFarlane <jgm@berkeley.edu>
 
@@ -30,6 +31,7 @@ ascii equivalents (used in constructing HTML identifiers).
 -}
 module Text.Pandoc.Asciify (toAsciiChar)
 where
+import Prelude
 import Data.Char (isAscii)
 import qualified Data.Map as M
 

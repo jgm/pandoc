@@ -1,6 +1,8 @@
+{-# LANGUAGE NoImplicitPrelude #-}
 {-# LANGUAGE OverloadedStrings #-}
 module Tests.Writers.JATS (tests) where
 
+import Prelude
 import Data.Text (unpack)
 import Test.Tasty
 import Tests.Helpers
@@ -30,8 +32,8 @@ infix 4 =:
 
 tests :: [TestTree]
 tests = [ testGroup "inline code"
-          [ "basic" =: code "@&" =?> "<p>\n  <monospace>@&amp;</monospace>\n</p>"
-          , "lang" =: codeWith ("", ["c"], []) "@&" =?> "<p>\n  <code language=\"c\">@&amp;</code>\n</p>"
+          [ "basic" =: code "@&" =?> "<p><monospace>@&amp;</monospace></p>"
+          , "lang" =: codeWith ("", ["c"], []) "@&" =?> "<p><code language=\"c\">@&amp;</code></p>"
           ]
         , testGroup "block code"
           [ "basic" =: codeBlock "@&" =?> "<preformat>@&amp;</preformat>"
@@ -44,7 +46,7 @@ tests = [ testGroup "inline code"
           ]
         , testGroup "inlines"
           [ "Emphasis" =: emph "emphasized"
-            =?> "<p>\n  <italic>emphasized</italic>\n</p>"
+            =?> "<p><italic>emphasized</italic></p>"
           ]
         , "bullet list" =: bulletList [ plain $ text "first"
                                       , plain $ text "second"
@@ -52,19 +54,13 @@ tests = [ testGroup "inline code"
                                       ]
             =?> "<list list-type=\"bullet\">\n\
                 \  <list-item>\n\
-                \    <p>\n\
-                \      first\n\
-                \    </p>\n\
+                \    <p>first</p>\n\
                 \  </list-item>\n\
                 \  <list-item>\n\
-                \    <p>\n\
-                \      second\n\
-                \    </p>\n\
+                \    <p>second</p>\n\
                 \  </list-item>\n\
                 \  <list-item>\n\
-                \    <p>\n\
-                \      third\n\
-                \    </p>\n\
+                \    <p>third</p>\n\
                 \  </list-item>\n\
                 \</list>"
         , testGroup "definition lists"
@@ -72,24 +68,18 @@ tests = [ testGroup "inline code"
              [plain (text "hi there")])] =?>
             "<def-list>\n\
             \  <def-item>\n\
-            \    <term>\n\
-            \      <xref alt=\"testing\" rid=\"go\">testing</xref>\n\
-            \    </term>\n\
+            \    <term><xref alt=\"testing\" rid=\"go\">testing</xref></term>\n\
             \    <def>\n\
-            \      <p>\n\
-            \        hi there\n\
-            \      </p>\n\
+            \      <p>hi there</p>\n\
             \    </def>\n\
             \  </def-item>\n\
             \</def-list>"
           ]
         , testGroup "math"
           [ "escape |" =: para (math "\\sigma|_{\\{x\\}}") =?>
-            "<p>\n\
-            \  <inline-formula><alternatives>\n\
-            \  <tex-math><![CDATA[\\sigma|_{\\{x\\}}]]></tex-math>\n\
-            \  <mml:math display=\"inline\" xmlns:mml=\"http://www.w3.org/1998/Math/MathML\"><mml:mrow><mml:mi>σ</mml:mi><mml:msub><mml:mo stretchy=\"false\" form=\"prefix\">|</mml:mo><mml:mrow><mml:mo stretchy=\"false\" form=\"prefix\">{</mml:mo><mml:mi>x</mml:mi><mml:mo stretchy=\"false\" form=\"postfix\">}</mml:mo></mml:mrow></mml:msub></mml:mrow></mml:math></alternatives></inline-formula>\n\
-            \</p>"
+            "<p><inline-formula><alternatives>\n\
+            \<tex-math><![CDATA[\\sigma|_{\\{x\\}}]]></tex-math>\n\
+            \<mml:math display=\"inline\" xmlns:mml=\"http://www.w3.org/1998/Math/MathML\"><mml:mrow><mml:mi>σ</mml:mi><mml:msub><mml:mo stretchy=\"false\" form=\"prefix\">|</mml:mo><mml:mrow><mml:mo stretchy=\"false\" form=\"prefix\">{</mml:mo><mml:mi>x</mml:mi><mml:mo stretchy=\"false\" form=\"postfix\">}</mml:mo></mml:mrow></mml:msub></mml:mrow></mml:math></alternatives></inline-formula></p>"
           ]
         , testGroup "headers"
           [ "unnumbered header" =:
@@ -97,9 +87,7 @@ tests = [ testGroup "inline code"
               (text "Header 1" <> note (plain $ text "note")) =?>
             "<sec id=\"foo\">\n\
             \  <title>Header 1<fn>\n\
-            \    <p>\n\
-            \      note\n\
-            \    </p>\n\
+            \    <p>note</p>\n\
             \  </fn></title>\n\
             \</sec>"
           , "unnumbered sub header" =:

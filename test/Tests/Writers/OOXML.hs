@@ -1,8 +1,10 @@
+{-# LANGUAGE NoImplicitPrelude #-}
 {-# LANGUAGE PatternGuards     #-}
 {-# LANGUAGE OverloadedStrings #-}
 
 module Tests.Writers.OOXML (ooxmlTest) where
 
+import Prelude
 import Text.Pandoc
 import Test.Tasty
 import Test.Tasty.Golden.Advanced
@@ -33,12 +35,10 @@ compareXMLBool (Elem myElem) (Elem goodElem) =
   elName myElem == elName goodElem &&
   elAttribs myElem == elAttribs goodElem &&
   and (zipWith compareXMLBool (elContent myElem) (elContent goodElem))
-
 compareXMLBool (Text myCData) (Text goodCData) =
   cdVerbatim myCData == cdVerbatim goodCData &&
   cdData myCData == cdData goodCData &&
   cdLine myCData == cdLine goodCData
-
 compareXMLBool (CRef myStr) (CRef goodStr) =
   myStr == goodStr
 compareXMLBool _ _ = False

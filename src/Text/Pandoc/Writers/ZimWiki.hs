@@ -1,3 +1,4 @@
+{-# LANGUAGE NoImplicitPrelude #-}
 {-
 Copyright (C) 2008-2018 John MacFarlane <jgm@berkeley.edu>
               2017-2018 Alex Ivkin
@@ -32,6 +33,7 @@ http://zim-wiki.org/manual/Help/Wiki_Syntax.html
 -}
 
 module Text.Pandoc.Writers.ZimWiki ( writeZimWiki ) where
+import Prelude
 import Control.Monad (zipWithM)
 import Control.Monad.State.Strict (StateT, evalStateT, gets, modify)
 import Data.Default (Default (..))

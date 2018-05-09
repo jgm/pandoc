@@ -1,38 +1,22 @@
 -- update README.md based on MANUAL.txt
--- assumes that the README.md has a div with id 'description'.
--- this gets replaced by the contents of the 'description' section
--- of the manual.
+-- inserts contents of input-formats and output-formats
+
+local f = assert(io.open("MANUAL.txt", "r"))
+local manual = f:read("*all")
+mdoc = pandoc.read(manual, "markdown")
+f:close()
+result = {}
 
 function Div(elem)
-    if elem.classes[1] and elem.classes[1] == 'description' then
-        local f = assert(io.open("MANUAL.txt", "r"))
-        local manual = f:read("*all")
-        f:close()
-        local description = {}
-        local i = 1
-        local include = false
-        local mdoc = pandoc.read(manual, "markdown")
-        local blocks = mdoc.blocks
-        while blocks[i] do
-            if blocks[i].t == 'Header' then
-                include = false
-            end
-            if include then
-                table.insert(description, pandoc.walk_block(blocks[i],
-                             -- remove internal links
-                             { Link = function(el)
-                                 if el.target:match("^#") then
-                                     return el.content
-                                 end
-                               end }))
-            end
-            if blocks[i].t == 'Header' and
-                blocks[i].identifier == 'description' then
-                    include = true
-            end
-            i = i + 1
-        end
-        return pandoc.Div(description, pandoc.Attr("description",{},{}))
+    local ident = elem.identifier or ""
+    local get = function(el)
+                    if el.identifier == ident then
+                        result = el
+                    end
+                end
+    if ident == 'input-formats' or ident == 'output-formats' then
+      pandoc.walk_block(pandoc.Div(mdoc.blocks), { Div = get })
+      return result
     end
 end
 

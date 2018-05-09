@@ -1,3 +1,4 @@
+{-# LANGUAGE NoImplicitPrelude #-}
 {-# LANGUAGE CPP                 #-}
 {-# LANGUAGE OverloadedStrings   #-}
 {-# LANGUAGE ScopedTypeVariables #-}
@@ -32,6 +33,7 @@ Conversion of LaTeX documents to PDF.
 -}
 module Text.Pandoc.PDF ( makePDF ) where
 
+import Prelude
 import qualified Codec.Picture as JP
 import qualified Control.Exception as E
 import Control.Monad (unless, when)
@@ -41,10 +43,8 @@ import Data.ByteString.Lazy (ByteString)
 import qualified Data.ByteString.Lazy as BL
 import qualified Data.ByteString.Lazy.Char8 as BC
 import Data.Maybe (fromMaybe)
-import Data.Monoid ((<>))
 import Data.Text (Text)
 import qualified Data.Text as T
-import qualified Data.Text.IO as TextIO
 import System.Directory
 import System.Environment
 import System.Exit (ExitCode (..))
@@ -61,7 +61,7 @@ import Text.Pandoc.Error (PandocError (PandocPDFProgramNotFoundError))
 import Text.Pandoc.MIME (getMimeType)
 import Text.Pandoc.Options (HTMLMathMethod (..), WriterOptions (..))
 import Text.Pandoc.Process (pipeProcess)
-import Text.Pandoc.Shared (inDirectory, stringify, withTempDir)
+import Text.Pandoc.Shared (inDirectory, stringify)
 import qualified Text.Pandoc.UTF8 as UTF8
 import Text.Pandoc.Walk (walkM)
 import Text.Pandoc.Writers.Shared (getField, metaToJSON)
@@ -127,9 +127,11 @@ makePDF "pdfroff" pdfargs writer opts doc = do
   verbosity <- getVerbosity
   liftIO $ ms2pdf verbosity args source
 makePDF program pdfargs writer opts doc = do
-  let withTemp = if takeBaseName program == "context"
-                    then withTempDirectory "."
-                    else withTempDir
+  -- With context and latex, we create a temp directory within
+  -- the working directory, since pdflatex sometimes tries to
+  -- use tools like epstopdf.pl, which are restricted if run
+  -- on files outside the working directory.
+  let withTemp = withTempDirectory "."
   commonState <- getCommonState
   verbosity <- getVerbosity
   liftIO $ withTemp "tex2pdf." $ \tmpdir -> do
@@ -170,6 +172,8 @@ convertImage tmpdir fname =
     Just "image/png" -> doNothing
     Just "image/jpeg" -> doNothing
     Just "application/pdf" -> doNothing
+    -- Note: eps is converted by pdflatex using epstopdf.pl
+    Just "application/eps" -> doNothing
     Just "image/svg+xml" -> E.catch (do
       (exit, _) <- pipeProcess Nothing "rsvg-convert"
                      ["-f","pdf","-a","-o",pdfOut,fname] BL.empty
@@ -274,7 +278,12 @@ runTeXProgram verbosity program args runNumber numRuns tmpDir source = do
     let file' = file
 #endif
     let programArgs = ["-halt-on-error", "-interaction", "nonstopmode",
-         "-output-directory", tmpDir'] ++ args ++ [file']
+         "-output-directory", tmpDir'] ++
+         -- see #4484, only compress images on last run:
+         if program == "xelatex" && runNumber < numRuns
+            then ["-output-driver", "xdvipdfmx -z0"]
+            else []
+         ++ args ++ [file']
     env' <- getEnvironment
     let sep = [searchPathSeparator]
     let texinputs = maybe (tmpDir' ++ sep) ((tmpDir' ++ sep) ++)
@@ -354,9 +363,14 @@ html2pdf  :: Verbosity    -- ^ Verbosity level
           -> Text         -- ^ HTML5 source
           -> IO (Either ByteString ByteString)
 html2pdf verbosity program args source = do
+  -- write HTML to temp file so we don't have to rewrite
+  -- all links in `a`, `img`, `style`, `script`, etc. tags,
+  -- and piping to weasyprint didn't work on Windows either.
+  file    <- withTempFile "." "html2pdf.html" $ \fp _ -> return fp
   pdfFile <- withTempFile "." "html2pdf.pdf" $ \fp _ -> return fp
+  BS.writeFile file $ UTF8.fromText source
   let pdfFileArgName = ["-o" | program == "prince"]
-  let programArgs = args ++ ["-"] ++ pdfFileArgName ++ [pdfFile]
+  let programArgs = args ++ [file] ++ pdfFileArgName ++ [pdfFile]
   env' <- getEnvironment
   when (verbosity >= INFO) $ do
     putStrLn "[makePDF] Command line:"
@@ -365,15 +379,16 @@ html2pdf verbosity program args source = do
     putStrLn "[makePDF] Environment:"
     mapM_ print env'
     putStr "\n"
-    putStrLn "[makePDF] Contents of intermediate HTML:"
-    TextIO.putStr source
+    putStrLn $ "[makePDF] Contents of " ++ file ++ ":"
+    BL.readFile file >>= BL.putStr
     putStr "\n"
   (exit, out) <- E.catch
-    (pipeProcess (Just env') program programArgs $ BL.fromStrict $ UTF8.fromText source)
+    (pipeProcess (Just env') program programArgs BL.empty)
     (\(e :: IOError) -> if isDoesNotExistError e
                            then E.throwIO $
                                   PandocPDFProgramNotFoundError program
                            else E.throwIO e)
+  removeFile file
   when (verbosity >= INFO) $ do
     BL.hPutStr stdout out
     putStr "\n"

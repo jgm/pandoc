@@ -1,17 +1,17 @@
 name:            pandoc
-version:         2.1.1
+version:         2.2
 cabal-version:   >= 1.10
 build-type:      Custom
-license:         GPL
+license:         GPL-2
 license-file:    COPYING.md
 copyright:       (c) 2006-2018 John MacFarlane
 author:          John MacFarlane <jgm@berkeley.edu>
 maintainer:      John MacFarlane <jgm@berkeley.edu>
 bug-reports:     https://github.com/jgm/pandoc/issues
 stability:       alpha
-homepage:        http://pandoc.org
+homepage:        https://pandoc.org
 category:        Text
-tested-with:     GHC == 7.10.3, GHC == 8.0.2, GHC == 8.2.2
+tested-with:     GHC == 7.10.3, GHC == 8.0.2, GHC == 8.2.2, GHC == 8.4.1
 synopsis:        Conversion between markup formats
 description:     Pandoc is a Haskell library for converting from one markup
                  format to another, and a command-line tool that uses
@@ -19,11 +19,11 @@ description:     Pandoc is a Haskell library for converting from one markup
                  (subsets of) HTML, reStructuredText, LaTeX, DocBook, JATS,
                  MediaWiki markup, TWiki markup, TikiWiki markup, Creole 1.0,
                  Haddock markup, OPML, Emacs Org-Mode, Emacs Muse, txt2tags,
-                 Vimwiki, Word Docx, ODT, and Textile, and it can write
-                 Markdown, reStructuredText, XHTML, HTML 5, LaTeX, ConTeXt,
-                 DocBook, JATS, OPML, TEI, OpenDocument, ODT, Word docx,
-                 RTF, MediaWiki, DokuWiki, ZimWiki, Textile, groff man,
-                 groff ms, plain text, Emacs Org-Mode, AsciiDoc,
+                 Vimwiki, Word Docx, ODT, EPUB, FictionBook2, and Textile,
+                 and it can write Markdown, reStructuredText, XHTML, HTML 5,
+                 LaTeX, ConTeXt, DocBook, JATS, OPML, TEI, OpenDocument,
+                 ODT, Word docx, RTF, MediaWiki, DokuWiki, ZimWiki, Textile,
+                 groff man, groff ms, plain text, Emacs Org-Mode, AsciiDoc,
                  Haddock markup, EPUB (v2 and v3), FictionBook2, InDesign
                  ICML, Muse, LaTeX beamer slides, PowerPoint, and several
                  kinds of HTML/JavaScript slide shows (S5, Slidy, Slideous,
@@ -102,7 +102,6 @@ data-files:
                  data/odt/META-INF/manifest.xml
                  -- source files for reference.pptx
                  data/pptx/_rels/.rels
-                 data/pptx/docProps/thumbnail.jpeg
                  data/pptx/docProps/app.xml
                  data/pptx/docProps/core.xml
                  data/pptx/ppt/slideLayouts/_rels/slideLayout1.xml.rels
@@ -149,8 +148,6 @@ data-files:
                  data/pptx/[Content_Types].xml
                   -- stylesheet for EPUB writer
                  data/epub.css
-                 -- data for LaTeXMathML writer
-                 data/LaTeXMathML.js
                  -- data for dzslides writer
                  data/dzslides/template.html
                  -- default abbreviations file
@@ -304,6 +301,8 @@ extra-source-files:
                  test/fb2/images-embedded.html
                  test/fb2/images-embedded.fb2
                  test/fb2/test-small.png
+                 test/fb2/reader/*.fb2
+                 test/fb2/reader/*.native
                  test/fb2/test.jpg
                  test/docx/*.docx
                  test/docx/golden/*.docx
@@ -335,17 +334,9 @@ flag trypandoc
   Description:   Build trypandoc cgi executable.
   Default:       False
 
-flag weigh-pandoc
-  Description:   Build weigh-pandoc to measure memory usage.
-  Default:       False
-
 flag network-uri
   Description:   Get Network.URI from the network-uri package
   Default:       True
-
-flag old-locale
-  Description:   Use old-locale and time < 1.5
-  Default:       False
 
 custom-setup
   setup-depends: base, Cabal
@@ -357,12 +348,13 @@ library
                  unordered-containers >= 0.2 && < 0.3,
                  parsec >= 3.1 && < 3.2,
                  mtl >= 2.2 && < 2.3,
-                 exceptions >= 0.8 && < 0.9,
+                 exceptions >= 0.8 && < 0.11,
                  filepath >= 1.1 && < 1.5,
                  process >= 1.2.3 && < 1.7,
                  directory >= 1 && < 1.4,
                  bytestring >= 0.9 && < 0.11,
                  text >= 0.11 && < 1.3,
+                 time >= 1.5 && < 1.10,
                  safe >= 0.3 && < 0.4,
                  zip-archive >= 0.2.3.4 && < 0.4,
                  HTTP >= 4000.0.5 && < 4000.4,
@@ -370,25 +362,25 @@ library
                  xml >= 1.3.12 && < 1.4,
                  split >= 0.2 && < 0.3,
                  random >= 1 && < 1.2,
-                 pandoc-types >= 1.17.3 && < 1.18,
-                 aeson >= 0.7 && < 1.3,
+                 pandoc-types >= 1.17.4.2 && < 1.18,
+                 aeson >= 0.7 && < 1.4,
                  aeson-pretty >= 0.8.5 && < 0.9,
-                 tagsoup >= 0.14.3 && < 0.15,
+                 tagsoup >= 0.14.6 && < 0.15,
                  base64-bytestring >= 0.1 && < 1.1,
                  zlib >= 0.5 && < 0.7,
-                 skylighting >= 0.5.1 && < 0.7,
+                 skylighting >= 0.5.1 && < 0.8,
                  data-default >= 0.4 && < 0.8,
-                 temporary >= 1.1 && < 1.3,
+                 temporary >= 1.1 && < 1.4,
                  blaze-html >= 0.9 && < 0.10,
                  blaze-markup >= 0.8 && < 0.9,
                  yaml >= 0.8.8.2 && < 0.9,
                  scientific >= 0.2 && < 0.4,
                  vector >= 0.10 && < 0.13,
-                 hslua >= 0.9.5 && < 0.10,
+                 hslua >= 0.9.5 && < 0.9.6,
                  hslua-module-text >= 0.1.2 && < 0.2,
                  binary >= 0.5 && < 0.10,
                  SHA >= 1.6 && < 1.7,
-                 haddock-library >= 1.1 && < 1.5,
+                 haddock-library >= 1.1 && < 1.6,
                  deepseq >= 1.3 && < 1.5,
                  JuicyPixels >= 3.1.6.1 && < 3.3,
                  Glob >= 0.7 && < 0.10,
@@ -396,17 +388,18 @@ library
                  doctemplates >= 0.2.1 && < 0.3,
                  http-client >= 0.4.30 && < 0.6,
                  http-client-tls >= 0.2.4 && < 0.4,
-                 http-types >= 0.8 && < 0.12,
+                 http-types >= 0.8 && < 0.13,
                  case-insensitive >= 1.2 && < 1.3
+  if impl(ghc < 8.0)
+    build-depends: semigroups == 0.18.*
+  if impl(ghc < 8.4)
+     hs-source-dirs: prelude
+     other-modules:  Prelude
+     build-depends:  base-compat >= 0.9
   if os(windows)
     cpp-options:      -D_WINDOWS
   else
     build-depends:  unix >= 2.4 && < 2.8
-  if flag(old-locale)
-     build-depends: old-locale >= 1 && < 1.1,
-                    time >= 1.2 && < 1.5
-  else
-     build-depends: time >= 1.5 && < 1.9
   if flag(network-uri)
      build-depends: network-uri >= 2.6 && < 2.7, network >= 2.6
   else
@@ -418,12 +411,8 @@ library
   if os(windows)
     cpp-options:      -D_WINDOWS
   ghc-options:   -Wall -fno-warn-unused-do-bind
-  ghc-prof-options: -fprof-auto-exported
-  default-language: Haskell98
-  other-extensions:   PatternGuards, OverloadedStrings,
-                      ScopedTypeVariables, GeneralizedNewtypeDeriving,
-                      RelaxedPolyRec, DeriveDataTypeable, TypeSynonymInstances,
-                      FlexibleInstances
+  default-language: Haskell2010
+  other-extensions: NoImplicitPrelude
   hs-source-dirs:  src
 
   exposed-modules: Text.Pandoc,
@@ -459,6 +448,7 @@ library
                    Text.Pandoc.Readers.EPUB,
                    Text.Pandoc.Readers.Muse,
                    Text.Pandoc.Readers.Man,
+                   Text.Pandoc.Readers.FB2,
                    Text.Pandoc.Writers,
                    Text.Pandoc.Writers.Native,
                    Text.Pandoc.Writers.Docbook,
@@ -555,22 +545,23 @@ library
                    Text.Pandoc.UUID,
                    Text.Pandoc.Translations,
                    Text.Pandoc.Slides,
-                   Text.Pandoc.Compat.Time,
                    Paths_pandoc
 
   buildable:       True
 
 executable pandoc
   build-depends: pandoc, base >= 4.7 && < 5
+  if impl(ghc < 8.0)
+    build-depends: semigroups == 0.18.*
+  if impl(ghc < 8.4)
+     hs-source-dirs: prelude
+     other-modules:  Prelude
+     build-depends:  base-compat >= 0.9
   ghc-options:   -rtsopts -with-rtsopts=-K16m -Wall -fno-warn-unused-do-bind -threaded
-  ghc-prof-options: -fprof-auto-exported -rtsopts -with-rtsopts=-K16m
   if flag(static)
     ld-options:     -static
-  default-language: Haskell98
-  other-extensions: PatternGuards, OverloadedStrings,
-                    ScopedTypeVariables, GeneralizedNewtypeDeriving,
-                    RelaxedPolyRec, DeriveDataTypeable, TypeSynonymInstances,
-                    FlexibleInstances
+  default-language: Haskell2010
+  other-extensions: NoImplicitPrelude
   hs-source-dirs:  .
   main-is:         pandoc.hs
   buildable:       True
@@ -580,27 +571,38 @@ executable trypandoc
   main-is:         trypandoc.hs
   hs-source-dirs:  trypandoc
   default-language: Haskell2010
+  other-extensions: NoImplicitPrelude
   if flag(trypandoc)
     build-depends: base, aeson, pandoc,
                    text, wai-extra, wai >= 0.3, http-types
     buildable:     True
   else
     buildable:     False
+  if impl(ghc < 8.0)
+    build-depends: semigroups == 0.18.*
+  if impl(ghc < 8.4)
+     hs-source-dirs: prelude
+     other-modules:  Prelude
+     build-depends:  base-compat >= 0.9
 
-executable weigh-pandoc
+benchmark weigh-pandoc
+  type:            exitcode-stdio-1.0
   main-is:         weigh-pandoc.hs
   hs-source-dirs:  benchmark
-  if flag(weigh-pandoc)
-     build-depends:   pandoc,
-                      base >= 4.2 && < 5,
-                      text,
-                      weigh >= 0.0 && < 0.1,
-                      mtl >= 2.2 && < 2.3
-     buildable:       True
-  else
-    buildable:     False
-  ghc-options:   -rtsopts -Wall -fno-warn-unused-do-bind
-  default-language: Haskell98
+  build-depends:   pandoc,
+                   base >= 4.2 && < 5,
+                   text,
+                   weigh >= 0.0 && < 0.1,
+                   mtl >= 2.2 && < 2.3
+  if impl(ghc < 8.0)
+    build-depends: semigroups == 0.18.*
+  if impl(ghc < 8.4)
+     hs-source-dirs: prelude
+     other-modules:  Prelude
+     build-depends:  base-compat >= 0.9
+  ghc-options:   -rtsopts -Wall -fno-warn-unused-do-bind -threaded
+  default-language: Haskell2010
+  other-extensions: NoImplicitPrelude
 
 test-suite test-pandoc
   type:           exitcode-stdio-1.0
@@ -608,20 +610,20 @@ test-suite test-pandoc
   hs-source-dirs: test
   build-depends:  base >= 4.2 && < 5,
                   pandoc,
-                  pandoc-types >= 1.17.3 && < 1.18,
+                  pandoc-types >= 1.17.4.2 && < 1.18,
                   bytestring >= 0.9 && < 0.11,
                   base64-bytestring >= 0.1 && < 1.1,
                   text >= 0.11 && < 1.3,
-                  time >= 1.5 && < 1.9,
+                  time >= 1.5 && < 1.10,
                   directory >= 1 && < 1.4,
                   filepath >= 1.1 && < 1.5,
-                  hslua >= 0.9 && < 0.10,
+                  hslua >= 0.9.5 && < 0.9.6,
                   process >= 1.2.3 && < 1.7,
-                  temporary >= 1.1 && < 1.3,
+                  temporary >= 1.1 && < 1.4,
                   Diff >= 0.2 && < 0.4,
                   tasty >= 0.11 && < 1.1,
                   tasty-hunit >= 0.9 && < 0.11,
-                  tasty-quickcheck >= 0.8 && < 0.10,
+                  tasty-quickcheck >= 0.8 && < 0.11,
                   tasty-golden >= 2.3 && < 2.4,
                   QuickCheck >= 2.4 && < 2.12,
                   containers >= 0.4.2.1 && < 0.6,
@@ -629,11 +631,12 @@ test-suite test-pandoc
                   zip-archive >= 0.2.3.4 && < 0.4,
                   xml >= 1.3.12 && < 1.4,
                   Glob >= 0.7 && < 0.10
-  if flag(old-locale)
-     build-depends: old-locale >= 1 && < 1.1,
-                    time >= 1.2 && < 1.5
-  else
-     build-depends: time >= 1.5 && < 1.9
+  if impl(ghc < 8.0)
+    build-depends: semigroups == 0.18.*
+  if impl(ghc < 8.4)
+     hs-source-dirs: prelude
+     other-modules:  Prelude
+     build-depends:  base-compat >= 0.9
   other-modules:  Tests.Old
                   Tests.Command
                   Tests.Helpers
@@ -652,6 +655,7 @@ test-suite test-pandoc
                   Tests.Readers.Org.Block.Table
                   Tests.Readers.Org.Directive
                   Tests.Readers.Org.Inline
+                  Tests.Readers.Org.Inline.Citation
                   Tests.Readers.Org.Inline.Note
                   Tests.Readers.Org.Inline.Smart
                   Tests.Readers.Org.Meta
@@ -664,6 +668,7 @@ test-suite test-pandoc
                   Tests.Readers.Muse
                   Tests.Readers.Creole
                   Tests.Readers.Man
+                  Tests.Readers.FB2
                   Tests.Writers.Native
                   Tests.Writers.ConTeXt
                   Tests.Writers.Docbook
@@ -682,7 +687,8 @@ test-suite test-pandoc
                   Tests.Writers.Powerpoint
                   Tests.Writers.OOXML
   ghc-options:  -rtsopts -Wall -fno-warn-unused-do-bind -threaded
-  default-language: Haskell98
+  default-language: Haskell2010
+  other-extensions: NoImplicitPrelude
 
 benchmark benchmark-pandoc
   type:            exitcode-stdio-1.0
@@ -692,6 +698,13 @@ benchmark benchmark-pandoc
                    time, bytestring, containers,
                    base >= 4.2 && < 5,
                    text >= 0.11 && < 1.3,
-                   criterion >= 1.0 && < 1.4
-  ghc-options:   -rtsopts -Wall -fno-warn-unused-do-bind
-  default-language: Haskell98
+                   criterion >= 1.0 && < 1.5
+  if impl(ghc < 8.0)
+    build-depends: semigroups == 0.18.*
+  if impl(ghc < 8.4)
+     hs-source-dirs: prelude
+     other-modules:  Prelude
+     build-depends:  base-compat >= 0.9
+  ghc-options:   -rtsopts -Wall -fno-warn-unused-do-bind -threaded
+  default-language: Haskell2010
+  other-extensions: NoImplicitPrelude

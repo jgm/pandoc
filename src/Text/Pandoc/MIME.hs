@@ -1,3 +1,4 @@
+{-# LANGUAGE NoImplicitPrelude #-}
 {-
 Copyright (C) 2011-2018 John MacFarlane <jgm@berkeley.edu>
 
@@ -29,6 +30,7 @@ Mime type lookup for ODT writer.
 -}
 module Text.Pandoc.MIME ( MimeType, getMimeType, getMimeTypeDef,
                           extensionFromMimeType )where
+import Prelude
 import Data.Char (toLower)
 import Data.List (isPrefixOf, isSuffixOf)
 import qualified Data.Map as M
@@ -172,7 +174,7 @@ mimeTypesList = -- List borrowed from happstack-server.
            ,("eml","message/rfc822")
            ,("ent","chemical/x-ncbi-asn1-ascii")
            ,("eot","application/vnd.ms-fontobject")
-           ,("eps","application/postscript")
+           ,("eps","application/eps")
            ,("etx","text/x-setext")
            ,("exe","application/x-msdos-program")
            ,("ez","application/andrew-inset")

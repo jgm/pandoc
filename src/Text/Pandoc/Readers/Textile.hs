@@ -1,3 +1,4 @@
+{-# LANGUAGE NoImplicitPrelude #-}
 {-
 Copyright (C) 2010-2012 Paul Rivier <paul*rivier#demotera*com> | tr '*#' '.@'
               2010-2018 John MacFarlane
@@ -52,11 +53,11 @@ TODO : refactor common patterns across readers :
 
 
 module Text.Pandoc.Readers.Textile ( readTextile) where
+import Prelude
 import Control.Monad (guard, liftM)
 import Control.Monad.Except (throwError)
 import Data.Char (digitToInt, isUpper)
 import Data.List (intercalate, intersperse, transpose)
-import Data.Monoid ((<>))
 import Data.Text (Text)
 import qualified Data.Text as T
 import Text.HTML.TagSoup (Tag (..), fromAttrib)
@@ -394,7 +395,7 @@ table = try $ do
                              (toprow:rest) | any (fst . fst) toprow ->
                                 (toprow, rest)
                              _ -> (mempty, rawrows)
-  let nbOfCols = max (length headers) (length $ head rows)
+  let nbOfCols = maximum $ map length (headers:rows)
   let aligns = map minimum $ transpose $ map (map (snd . fst)) (headers:rows)
   return $ B.table caption
     (zip aligns (replicate nbOfCols 0.0))

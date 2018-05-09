@@ -1,3 +1,4 @@
+{-# LANGUAGE NoImplicitPrelude #-}
 {-# LANGUAGE DeriveDataTypeable #-}
 {-# LANGUAGE DeriveGeneric      #-}
 {-# LANGUAGE TemplateHaskell    #-}
@@ -46,6 +47,7 @@ module Text.Pandoc.Options ( module Text.Pandoc.Extensions
                            , def
                            , isEnabled
                            ) where
+import Prelude
 import Data.Aeson (defaultOptions)
 import Data.Aeson.TH (deriveJSON)
 import Data.Data (Data)
@@ -104,9 +106,6 @@ defaultAbbrevs = Set.fromList
 data EPUBVersion = EPUB2 | EPUB3 deriving (Eq, Show, Read, Data, Typeable, Generic)
 
 data HTMLMathMethod = PlainMath
-                    | LaTeXMathML (Maybe String)  -- url of LaTeXMathML.js
-                    | JsMath (Maybe String)       -- url of jsMath load script
-                    | GladTeX
                     | WebTeX String               -- url of TeX->image script.
                     | MathML
                     | MathJax String              -- url of MathJax.js

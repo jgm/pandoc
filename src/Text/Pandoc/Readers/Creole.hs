@@ -1,3 +1,4 @@
+{-# LANGUAGE NoImplicitPrelude #-}
 {-
   Copyright (C) 2017 Sascha Wilde <wilde@sha-bang.de>
 
@@ -35,10 +36,10 @@ Conversion of creole text to 'Pandoc' document.
 module Text.Pandoc.Readers.Creole ( readCreole
                                   ) where
 
+import Prelude
 import Control.Monad.Except (guard, liftM2, throwError)
 import qualified Data.Foldable as F
 import Data.Maybe (fromMaybe)
-import Data.Monoid
 import Data.Text (Text)
 import qualified Data.Text as T
 import qualified Text.Pandoc.Builder as B
@@ -67,7 +68,7 @@ type CRLParser = ParserT [Char] ParserState
 -- Utility functions
 --
 
-(<+>) :: (Monad m, Monoid a) => m a -> m a -> m a
+(<+>) :: (Monad m, Semigroup a) => m a -> m a -> m a
 (<+>) = liftM2 (<>)
 
 -- we have to redefine `enclosed' from Text.Pandoc.Parsing, because it

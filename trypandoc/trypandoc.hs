@@ -1,5 +1,7 @@
+{-# LANGUAGE NoImplicitPrelude #-}
 {-# LANGUAGE OverloadedStrings #-}
 module Main where
+import Prelude
 import Network.Wai.Handler.CGI
 import Network.Wai
 import Control.Applicative ((<$>))

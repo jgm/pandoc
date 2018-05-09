@@ -69,8 +69,9 @@ THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 ----------------------------------------------------------------------
-Pandoc's templates (in `data/templates`) are dual-licensed GPL (v2 or
-higher, same as pandoc) and the BSD 3-clause license.
+Pandoc's templates (in `data/templates`) are dual-licensed as either
+GPL (v2 or higher, same as pandoc) or (at your option) the BSD
+3-clause license.
 
 Copyright (c) 2014--2018, John MacFarlane
 
@@ -119,6 +120,24 @@ Copyright (C) 2010-2018 Paul Rivier and John MacFarlane
 Released under the GNU General Public License version 2 or later.
 
 ----------------------------------------------------------------------
+src/Text/Pandoc/Readers/TikiWiki.hs
+Copyright (C) 2017 Robin Lee Powell
+
+Released under the GNU General Public License version 2 or later.
+
+----------------------------------------------------------------------
+src/Text/Pandoc/Readers/JATS.hs
+Copyright (C) 2017-2018 Hamish Mackenzie
+
+Released under the GNU General Public License version 2 or later.
+
+----------------------------------------------------------------------
+src/Text/Pandoc/Readers/EPUB.hs
+Copyright (C) 2014-2018 Matthew Pickering
+
+Released under the GNU General Public License version 2 or later.
+
+----------------------------------------------------------------------
 src/Text/Pandoc/Readers/Org.hs
 src/Text/Pandoc/Readers/Org/*
 test/Tests/Readers/Org/*
@@ -127,20 +146,12 @@ Copyright (C) 2014-2018 Albert Krewinkel
 Released under the GNU General Public License version 2 or later.
 
 ----------------------------------------------------------------------
-data/LaTeXMathML.js
-Adapted by Jeff Knisely and Douglas Woodall from
-ASCIIMathML.js v. 1.4.7
-Copyright (C) 2005 Peter Jipsen
+src/Text/Pandoc/Readers/FB2.hs
+Copyright (C) 2018 Alexander Krotov
 
 Released under the GNU General Public License version 2 or later.
 
 ----------------------------------------------------------------------
-data/MathMLinHTML.js
-Copyright (C) 2004 Peter Jipsen http://www.chapman.edu/~jipsen
-
-Released under the GNU General Public License version 2 or later.
-
-------------------------------------------------------------------------
 data/pandoc.lua
 Copyright (C) 2017-2018 Albert Krewinkel
 

@@ -1,14 +1,16 @@
+{-# LANGUAGE NoImplicitPrelude #-}
 {-# LANGUAGE OverloadedStrings #-}
 module Tests.Readers.Org.Inline (tests) where
 
+import Prelude
 import Data.List (intersperse)
 import Test.Tasty (TestTree, testGroup)
 import Tests.Helpers ((=?>))
 import Tests.Readers.Org.Shared ((=:), spcSep)
-import Text.Pandoc
 import Text.Pandoc.Builder
 import Text.Pandoc.Shared (underlineSpan)
 import qualified Data.Text as T
+import qualified Tests.Readers.Org.Inline.Citation as Citation
 import qualified Tests.Readers.Org.Inline.Note as Note
 import qualified Tests.Readers.Org.Inline.Smart as Smart
 
@@ -288,161 +290,6 @@ tests =
                        )
                        "echo $HOME")
 
-  , "Citation" =:
-      "[@nonexistent]" =?>
-      let citation = Citation
-                     { citationId = "nonexistent"
-                     , citationPrefix = []
-                     , citationSuffix = []
-                     , citationMode = NormalCitation
-                     , citationNoteNum = 0
-                     , citationHash = 0}
-      in (para $ cite [citation] "[@nonexistent]")
-
-  , "Citation containing text" =:
-      "[see @item1 p. 34-35]" =?>
-      let citation = Citation
-                     { citationId = "item1"
-                     , citationPrefix = [Str "see"]
-                     , citationSuffix = [Space ,Str "p.",Space,Str "34-35"]
-                     , citationMode = NormalCitation
-                     , citationNoteNum = 0
-                     , citationHash = 0}
-      in (para $ cite [citation] "[see @item1 p. 34-35]")
-
-  , "Org-ref simple citation" =:
-    "cite:pandoc" =?>
-    let citation = Citation
-                   { citationId = "pandoc"
-                   , citationPrefix = mempty
-                   , citationSuffix = mempty
-                   , citationMode = AuthorInText
-                   , citationNoteNum = 0
-                   , citationHash = 0
-                   }
-    in (para $ cite [citation] "cite:pandoc")
-
-  , "Org-ref simple citation with underscores" =:
-    "cite:pandoc_org_ref" =?>
-    let citation = Citation
-                   { citationId = "pandoc_org_ref"
-                   , citationPrefix = mempty
-                   , citationSuffix = mempty
-                   , citationMode = AuthorInText
-                   , citationNoteNum = 0
-                   , citationHash = 0
-                   }
-    in (para $ cite [citation] "cite:pandoc_org_ref")
-
-  , "Org-ref simple citation succeeded by comma" =:
-    "cite:pandoc," =?>
-    let citation = Citation
-                   { citationId = "pandoc"
-                   , citationPrefix = mempty
-                   , citationSuffix = mempty
-                   , citationMode = AuthorInText
-                   , citationNoteNum = 0
-                   , citationHash = 0
-                   }
-    in (para $ cite [citation] "cite:pandoc" <> str ",")
-
-  , "Org-ref simple citation succeeded by dot" =:
-    "cite:pandoc." =?>
-    let citation = Citation
-                   { citationId = "pandoc"
-                   , citationPrefix = mempty
-                   , citationSuffix = mempty
-                   , citationMode = AuthorInText
-                   , citationNoteNum = 0
-                   , citationHash = 0
-                   }
-    in (para $ cite [citation] "cite:pandoc" <> str ".")
-
-  , "Org-ref simple citation succeeded by colon" =:
-    "cite:pandoc:" =?>
-    let citation = Citation
-                   { citationId = "pandoc"
-                   , citationPrefix = mempty
-                   , citationSuffix = mempty
-                   , citationMode = AuthorInText
-                   , citationNoteNum = 0
-                   , citationHash = 0
-                   }
-    in (para $ cite [citation] "cite:pandoc" <> str ":")
-
-  , "Org-ref simple citep citation" =:
-    "citep:pandoc" =?>
-    let citation = Citation
-                   { citationId = "pandoc"
-                   , citationPrefix = mempty
-                   , citationSuffix = mempty
-                   , citationMode = NormalCitation
-                   , citationNoteNum = 0
-                   , citationHash = 0
-                   }
-    in (para $ cite [citation] "citep:pandoc")
-
-  , "Org-ref extended citation" =:
-    "[[citep:Dominik201408][See page 20::, for example]]" =?>
-    let citation = Citation
-                   { citationId = "Dominik201408"
-                   , citationPrefix = toList "See page 20"
-                   , citationSuffix = toList ", for example"
-                   , citationMode = NormalCitation
-                   , citationNoteNum = 0
-                   , citationHash = 0
-                   }
-    in (para $ cite [citation] "[[citep:Dominik201408][See page 20::, for example]]")
-
-  , testGroup "Berkeley-style citations" $
-    let pandocCite = Citation
-          { citationId = "Pandoc"
-          , citationPrefix = mempty
-          , citationSuffix = mempty
-          , citationMode = NormalCitation
-          , citationNoteNum = 0
-          , citationHash = 0
-          }
-        pandocInText = pandocCite { citationMode = AuthorInText }
-        dominikCite = Citation
-          { citationId = "Dominik201408"
-          , citationPrefix = mempty
-          , citationSuffix = mempty
-          , citationMode = NormalCitation
-          , citationNoteNum = 0
-          , citationHash = 0
-          }
-        dominikInText = dominikCite { citationMode = AuthorInText }
-    in [
-        "Berkeley-style in-text citation" =:
-          "See @Dominik201408." =?>
-        para ("See "
-                  <> cite [dominikInText] "@Dominik201408"
-                  <> ".")
-
-      , "Berkeley-style parenthetical citation list" =:
-          "[(cite): see; @Dominik201408;also @Pandoc; and others]" =?>
-          let pandocCite'  = pandocCite {
-                               citationPrefix = toList "also"
-                             , citationSuffix = toList "and others"
-                             }
-              dominikCite' = dominikCite {
-                               citationPrefix = toList "see"
-                             }
-          in (para $ cite [dominikCite', pandocCite'] "")
-
-      , "Berkeley-style plain citation list" =:
-          "[cite: See; @Dominik201408; and @Pandoc; and others]" =?>
-          let pandocCite' = pandocInText {
-                              citationPrefix = toList "and"
-                            }
-          in (para $ "See "
-                  <> cite [dominikInText] ""
-                  <> "," <> space
-                  <> cite [pandocCite'] ""
-                  <> "," <> space <> "and others")
-    ]
-
   , "Inline LaTeX symbol" =:
       "\\dots" =?>
       para "…"
@@ -483,17 +330,6 @@ tests =
       "\\ForAll \\Auml" =?>
       para "∀ Ä"
 
-  , "LaTeX citation" =:
-      "\\cite{Coffee}" =?>
-      let citation = Citation
-                     { citationId = "Coffee"
-                     , citationPrefix = []
-                     , citationSuffix = []
-                     , citationMode = NormalCitation
-                     , citationNoteNum = 0
-                     , citationHash = 0}
-      in (para . cite [citation] $ rawInline "latex" "\\cite{Coffee}")
-
   , "Macro" =:
       T.unlines [ "#+MACRO: HELLO /Hello, $1/"
                 , "{{{HELLO(World)}}}"
@@ -512,6 +348,7 @@ tests =
                 ] =?>
       para "Foo Bar"
 
+  , testGroup "Citations" Citation.tests
   , testGroup "Footnotes" Note.tests
   , testGroup "Smart punctuation" Smart.tests
   ]

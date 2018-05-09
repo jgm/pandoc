@@ -19,7 +19,7 @@
 
 \setupbodyfontenvironment[default][em=italic] % use italic as em, not slanted
 
-\definefallbackfamily[mainface][rm][DejaVu Serif][preset=range:greek, force=yes]
+\definefallbackfamily[mainface][rm][CMU Serif][preset=range:greek, force=yes]
 \definefontfamily[mainface][rm][Latin Modern Roman]
 \definefontfamily[mainface][mm][Latin Modern Math]
 \definefontfamily[mainface][ss][Latin Modern Sans]

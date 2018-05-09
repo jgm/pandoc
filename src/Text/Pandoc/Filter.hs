@@ -1,3 +1,4 @@
+{-# LANGUAGE NoImplicitPrelude #-}
 {-
 Copyright (C) 2006-2017 John MacFarlane <jgm@berkeley.edu>
 
@@ -33,6 +34,7 @@ module Text.Pandoc.Filter
   , applyFilters
   ) where
 
+import Prelude
 import Data.Aeson (defaultOptions)
 import Data.Aeson.TH (deriveJSON)
 import Data.Foldable (foldrM)

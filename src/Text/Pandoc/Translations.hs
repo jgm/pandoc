@@ -1,3 +1,5 @@
+{-# LANGUAGE NoImplicitPrelude #-}
+{-# LANGUAGE CPP                        #-}
 {-# LANGUAGE DeriveGeneric              #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
 {-
@@ -45,6 +47,7 @@ module Text.Pandoc.Translations (
                          , readTranslations
                          )
 where
+import Prelude
 import Data.Aeson.Types (typeMismatch)
 import qualified Data.HashMap.Strict as HM
 import qualified Data.Map as M
@@ -80,7 +83,7 @@ data Term =
   deriving (Show, Eq, Ord, Generic, Enum, Read)
 
 newtype Translations = Translations (M.Map Term String)
-        deriving (Show, Generic, Monoid)
+        deriving (Show, Generic, Semigroup, Monoid)
 
 instance FromJSON Term where
   parseJSON (String t) = case safeRead (T.unpack t) of

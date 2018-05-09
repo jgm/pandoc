@@ -1,3 +1,4 @@
+{-# LANGUAGE NoImplicitPrelude #-}
 {-
 Copyright (C) 2014-2018 Albert Krewinkel <tarleb+pandoc@moltkeplatz.de>
 
@@ -31,6 +32,7 @@ module Text.Pandoc.Readers.Org.Blocks
   , meta
   ) where
 
+import Prelude
 import Text.Pandoc.Readers.Org.BlockStarts
 import Text.Pandoc.Readers.Org.DocumentTree (documentTree, headlineToBlocks)
 import Text.Pandoc.Readers.Org.Inlines
@@ -51,7 +53,6 @@ import Data.Char (isSpace, toLower, toUpper)
 import Data.Default (Default)
 import Data.List (foldl', isPrefixOf)
 import Data.Maybe (fromMaybe, isJust, isNothing)
-import Data.Monoid ((<>))
 
 import qualified Text.Pandoc.Builder as B
 import qualified Text.Pandoc.Walk as Walk

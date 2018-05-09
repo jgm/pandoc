@@ -1,4 +1,4 @@
-
+{-# LANGUAGE NoImplicitPrelude #-}
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE TupleSections     #-}
 {-
@@ -38,14 +38,12 @@ faster and easier to implement this way.
 
 module Text.Pandoc.Readers.Odt.Arrows.State where
 
+import Prelude
 import Prelude hiding (foldl, foldr)
 
 import Control.Arrow
 import qualified Control.Category as Cat
 import Control.Monad
-
-import Data.Foldable
-import Data.Monoid
 
 import Text.Pandoc.Readers.Odt.Arrows.Utils
 import Text.Pandoc.Readers.Odt.Generic.Fallible
@@ -131,7 +129,7 @@ withSubStateF' unlift a = ArrowState go
 -- and one with any function.
 foldS :: (Foldable f, Monoid m) => ArrowState s x m -> ArrowState s (f x) m
 foldS a = ArrowState $ \(s,f) -> foldr a' (s,mempty) f
-  where a' x (s',m) = second (m <>)  $ runArrowState a (s',x)
+  where a' x (s',m) = second (mappend m)  $ runArrowState a (s',x)
 
 -- | Fold a state arrow through something 'Foldable'. Collect the results in a
 -- 'MonadPlus'.

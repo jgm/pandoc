@@ -1,5 +1,35 @@
-{-# LANGUAGE ExplicitForAll #-}
+{-# LANGUAGE NoImplicitPrelude #-}
+{-
+Copyright (C) 2006-2018 John MacFarlane <jgm@berkeley.edu>
+
+This program is free software; you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation; either version 2 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program; if not, write to the Free Software
+Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+-}
+
+{- |
+   Module      : Text.Pandoc.Readers.DocBook
+   Copyright   : Copyright (C) 2006-2018 John MacFarlane
+   License     : GNU GPL, version 2 or above
+
+   Maintainer  : John MacFarlane <jgm@berkeley.edu>
+   Stability   : alpha
+   Portability : portable
+
+Conversion of DocBook XML to 'Pandoc' document.
+-}
 module Text.Pandoc.Readers.DocBook ( readDocBook ) where
+import Prelude
 import Control.Monad.State.Strict
 import Data.Char (isSpace, toUpper)
 import Data.Default
@@ -235,7 +265,7 @@ List of all DocBook tags, with [x] indicating implemented,
 [ ] manvolnum - A reference volume number
 [x] markup - A string of formatting markup in text that is to be
     represented literally
-[ ] mathphrase - A mathematical phrase, an expression that can be represented
+[x] mathphrase - A mathematical phrase, an expression that can be represented
     with ordinary text and a small amount of markup
 [ ] medialabel - A name that identifies the physical medium on which some
     information resides
@@ -697,6 +727,8 @@ parseBlock (Elem e) =
         "bibliodiv" -> sect 1
         "biblioentry" -> parseMixed para (elContent e)
         "bibliomixed" -> parseMixed para (elContent e)
+        "equation"         -> para <$> equation e displayMath
+        "informalequation" -> para <$> equation e displayMath
         "glosssee" -> para . (\ils -> text "See " <> ils <> str ".")
                          <$> getInlines e
         "glossseealso" -> para . (\ils -> text "See also " <> ils <> str ".")
@@ -923,9 +955,9 @@ parseInline (CRef ref) =
   return $ maybe (text $ map toUpper ref) text $ lookupEntity ref
 parseInline (Elem e) =
   case qName (elName e) of
-        "equation" -> equation displayMath
-        "informalequation" -> equation displayMath
-        "inlineequation" -> equation math
+        "equation" -> equation e displayMath
+        "informalequation" -> equation e displayMath
+        "inlineequation" -> equation e math
         "subscript" -> subscript <$> innerInlines
         "superscript" -> superscript <$> innerInlines
         "inlinemediaobject" -> getMediaobject e
@@ -1004,13 +1036,6 @@ parseInline (Elem e) =
         _          -> innerInlines
    where innerInlines = (trimInlines . mconcat) <$>
                           mapM parseInline (elContent e)
-         equation constructor = return $ mconcat $
-           map (constructor . writeTeX)
-           $ rights
-           $ map (readMathML . showElement . everywhere (mkT removePrefix))
-           $ filterChildren (\x -> qName (elName x) == "math" &&
-                                   qPrefix (elName x) == Just "mml") e
-         removePrefix elname = elname { qPrefix = Nothing }
          codeWithLang = do
            let classes' = case attrValue "language" e of
                                "" -> []
@@ -1048,6 +1073,7 @@ parseInline (Elem e) =
              | not (null xrefLabel) = xrefLabel
              | otherwise            = case qName (elName el) of
                   "chapter"      -> descendantContent "title" el
+                  "section"      -> descendantContent "title" el
                   "sect1"        -> descendantContent "title" el
                   "sect2"        -> descendantContent "title" el
                   "sect3"        -> descendantContent "title" el
@@ -1060,3 +1086,45 @@ parseInline (Elem e) =
             xrefLabel = attrValue "xreflabel" el
             descendantContent name = maybe "???" strContent
                                    . filterElementName (\n -> qName n == name)
+
+-- | Extract a math equation from an element
+--
+-- asciidoc can generate Latex math in CDATA sections.
+--
+-- Note that if some MathML can't be parsed it is silently ignored!
+equation
+  :: Monad m
+  => Element
+  -- ^ The element from which to extract a mathematical equation
+  -> (String -> Inlines)
+  -- ^ A constructor for some Inlines, taking the TeX code as input
+  -> m Inlines
+equation e constructor =
+  return $ mconcat $ map constructor $ mathMLEquations ++ latexEquations
+  where
+    mathMLEquations :: [String]
+    mathMLEquations = map writeTeX $ rights $ readMath
+      (\x -> qName (elName x) == "math" && qPrefix (elName x) == Just "mml")
+      (readMathML . showElement)
+
+    latexEquations :: [String]
+    latexEquations = readMath (\x -> qName (elName x) == "mathphrase")
+                              (concat . fmap showVerbatimCData . elContent)
+
+    readMath :: (Element -> Bool) -> (Element -> b) -> [b]
+    readMath childPredicate fromElement =
+      ( map (fromElement . everywhere (mkT removePrefix))
+      $ filterChildren childPredicate e
+      )
+
+-- | Get the actual text stored in a verbatim CData block. 'showContent'
+-- returns the text still surrounded by the [[CDATA]] tags.
+--
+-- Returns 'showContent' if this is not a verbatim CData
+showVerbatimCData :: Content -> String
+showVerbatimCData (Text (CData CDataVerbatim d _)) = d
+showVerbatimCData c = showContent c
+
+-- | Set the prefix of a name to 'Nothing'
+removePrefix :: QName -> QName
+removePrefix elname = elname { qPrefix = Nothing }

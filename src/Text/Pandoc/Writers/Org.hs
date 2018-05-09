@@ -1,3 +1,4 @@
+{-# LANGUAGE NoImplicitPrelude #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-
 Copyright (C) 2010-2015 Puneeth Chaganti <punchagan@gmail.com>
@@ -35,6 +36,7 @@ Conversion of 'Pandoc' documents to Emacs Org-Mode.
 Org-Mode:  <http://orgmode.org>
 -}
 module Text.Pandoc.Writers.Org (writeOrg) where
+import Prelude
 import Control.Monad.State.Strict
 import Data.Char (isAlphaNum, toLower)
 import Data.List (intersect, intersperse, isPrefixOf, partition, transpose)
@@ -166,8 +168,8 @@ blockToOrg (LineBlock lns) = do
         (l, _:r) -> l : splitStanza r
   let joinWithLinefeeds  = nowrap . mconcat . intersperse cr
   let joinWithBlankLines = mconcat . intersperse blankline
-  let prettyfyStanza ls  = joinWithLinefeeds <$> mapM inlineListToOrg ls
-  contents <- joinWithBlankLines <$> mapM prettyfyStanza (splitStanza lns)
+  let prettifyStanza ls  = joinWithLinefeeds <$> mapM inlineListToOrg ls
+  contents <- joinWithBlankLines <$> mapM prettifyStanza (splitStanza lns)
   return $ blankline $$ "#+BEGIN_VERSE" $$
            nest 2 contents $$ "#+END_VERSE" <> blankline
 blockToOrg (RawBlock "html" str) =

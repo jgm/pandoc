@@ -1,3 +1,4 @@
+{-# LANGUAGE NoImplicitPrelude #-}
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE TupleSections    #-}
 {-
@@ -33,6 +34,7 @@ module Text.Pandoc.Readers.Org.Meta
   , metaLine
   ) where
 
+import Prelude
 import Text.Pandoc.Readers.Org.BlockStarts
 import Text.Pandoc.Readers.Org.ExportSettings (exportSettings)
 import Text.Pandoc.Readers.Org.Inlines
@@ -48,6 +50,7 @@ import Text.Pandoc.Shared (safeRead)
 import Control.Monad (mzero, void, when)
 import Data.Char (toLower)
 import Data.List (intersperse)
+import Data.Maybe (fromMaybe)
 import qualified Data.Map as M
 import Network.HTTP (urlEncode)
 
@@ -189,16 +192,12 @@ parseFormat = try $ replacePlain <|> replaceUrl <|> justAppend
 
 setEmphasisPreChar :: Maybe [Char] -> OrgParserState -> OrgParserState
 setEmphasisPreChar csMb st =
-  let preChars = case csMb of
-                   Nothing -> orgStateEmphasisPreChars defaultOrgParserState
-                   Just cs -> cs
+  let preChars = fromMaybe (orgStateEmphasisPostChars defaultOrgParserState) csMb
   in st { orgStateEmphasisPreChars = preChars }
 
 setEmphasisPostChar :: Maybe [Char] -> OrgParserState -> OrgParserState
 setEmphasisPostChar csMb st =
-  let postChars = case csMb of
-                   Nothing -> orgStateEmphasisPostChars defaultOrgParserState
-                   Just cs -> cs
+  let postChars = fromMaybe (orgStateEmphasisPostChars defaultOrgParserState) csMb
   in st { orgStateEmphasisPostChars = postChars }
 
 emphChars :: Monad m => OrgParser m (Maybe [Char])

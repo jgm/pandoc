@@ -1,3 +1,4 @@
+{-# LANGUAGE NoImplicitPrelude #-}
 {-# LANGUAGE CPP               #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE PatternGuards     #-}
@@ -74,6 +75,7 @@ module Text.Pandoc.Readers.Docx
        ( readDocx
        ) where
 
+import Prelude
 import Codec.Archive.Zip
 import Control.Monad.Reader
 import Control.Monad.State.Strict
@@ -122,7 +124,6 @@ data DState = DState { docxAnchorMap :: M.Map String String
                      , docxImmedPrevAnchor :: Maybe String
                      , docxMediaBag  :: MediaBag
                      , docxDropCap   :: Inlines
-                     , docxWarnings  :: [String]
                      -- keep track of (numId, lvl) values for
                      -- restarting
                      , docxListState :: M.Map (String, String) Integer
@@ -135,18 +136,16 @@ instance Default DState where
                , docxImmedPrevAnchor = Nothing
                , docxMediaBag  = mempty
                , docxDropCap   = mempty
-               , docxWarnings  = []
                , docxListState = M.empty
                , docxPrevPara  = mempty
                }
 
 data DEnv = DEnv { docxOptions       :: ReaderOptions
                  , docxInHeaderBlock :: Bool
-                 , docxCustomStyleAlready :: Bool
                  }
 
 instance Default DEnv where
-  def = DEnv def False False
+  def = DEnv def False
 
 type DocxContext m = ReaderT DEnv (StateT DState m)
 
@@ -252,103 +251,88 @@ parPartToString _                          = ""
 blacklistedCharStyles :: [String]
 blacklistedCharStyles = ["Hyperlink"]
 
-resolveDependentRunStyle :: RunStyle -> RunStyle
+resolveDependentRunStyle :: PandocMonad m => RunStyle -> DocxContext m RunStyle
 resolveDependentRunStyle rPr
   | Just (s, _)  <- rStyle rPr, s `elem` blacklistedCharStyles =
-    rPr
-  | Just (_, cs) <- rStyle rPr =
-      let rPr' = resolveDependentRunStyle cs
-      in
-       RunStyle { isBold = case isBold rPr of
-                     Just bool -> Just bool
-                     Nothing   -> isBold rPr'
-                , isItalic = case isItalic rPr of
-                     Just bool -> Just bool
-                     Nothing   -> isItalic rPr'
-                , isSmallCaps = case isSmallCaps rPr of
-                     Just bool -> Just bool
-                     Nothing   -> isSmallCaps rPr'
-                , isStrike = case isStrike rPr of
-                     Just bool -> Just bool
-                     Nothing   -> isStrike rPr'
-                , rVertAlign = case rVertAlign rPr of
-                     Just valign -> Just valign
-                     Nothing     -> rVertAlign rPr'
-                , rUnderline = case rUnderline rPr of
-                     Just ulstyle -> Just ulstyle
-                     Nothing      -> rUnderline rPr'
-                , rStyle = rStyle rPr }
-  | otherwise = rPr
-
-extraRunStyleInfo :: PandocMonad m => RunStyle -> DocxContext m (Inlines -> Inlines)
-extraRunStyleInfo rPr
-  | Just (s, _) <- rStyle rPr = do
-      already <- asks docxCustomStyleAlready
+    return rPr
+  | Just (_, cs) <- rStyle rPr = do
       opts <- asks docxOptions
-      return $ if isEnabled Ext_styles opts && not already
-               then spanWith ("", [], [("custom-style", s)])
-               else id
-  | otherwise = return id
+      if isEnabled Ext_styles opts
+        then return rPr
+        else do rPr' <- resolveDependentRunStyle cs
+                return $
+                  RunStyle { isBold = case isBold rPr of
+                               Just bool -> Just bool
+                               Nothing   -> isBold rPr'
+                           , isItalic = case isItalic rPr of
+                               Just bool -> Just bool
+                               Nothing   -> isItalic rPr'
+                           , isSmallCaps = case isSmallCaps rPr of
+                               Just bool -> Just bool
+                               Nothing   -> isSmallCaps rPr'
+                           , isStrike = case isStrike rPr of
+                               Just bool -> Just bool
+                               Nothing   -> isStrike rPr'
+                           , rVertAlign = case rVertAlign rPr of
+                               Just valign -> Just valign
+                               Nothing     -> rVertAlign rPr'
+                           , rUnderline = case rUnderline rPr of
+                               Just ulstyle -> Just ulstyle
+                               Nothing      -> rUnderline rPr'
+                           , rStyle = rStyle rPr }
+  | otherwise = return rPr
 
 runStyleToTransform :: PandocMonad m => RunStyle -> DocxContext m (Inlines -> Inlines)
 runStyleToTransform rPr
   | Just (s, _) <- rStyle rPr
   , s `elem` spansToKeep = do
-      let rPr' = rPr{rStyle = Nothing}
-      transform <- runStyleToTransform rPr'
+      transform <- runStyleToTransform rPr{rStyle = Nothing}
       return $ spanWith ("", [s], []) . transform
+  | Just (s, _) <- rStyle rPr = do
+      opts <- asks docxOptions
+      let extraInfo = if isEnabled Ext_styles opts
+                      then spanWith ("", [], [("custom-style", s)])
+                      else id
+      transform <- runStyleToTransform rPr{rStyle = Nothing}
+      return $ extraInfo . transform
   | Just True <- isItalic rPr = do
-      extraInfo <- extraRunStyleInfo rPr
-      transform <- local (\e -> e{docxCustomStyleAlready = True}) $
-                   runStyleToTransform rPr {isItalic = Nothing}
-      return $ extraInfo . emph  . transform
+      transform <- runStyleToTransform rPr{isItalic = Nothing}
+      return $ emph  . transform
   | Just True <- isBold rPr = do
-      extraInfo <- extraRunStyleInfo rPr
-      transform <- local (\e -> e{docxCustomStyleAlready = True}) $
-                   runStyleToTransform rPr {isBold = Nothing}
-      return $ extraInfo . strong . transform
+      transform <- runStyleToTransform rPr{isBold = Nothing}
+      return $ strong . transform
   | Just True <- isSmallCaps rPr = do
-      extraInfo <- extraRunStyleInfo rPr
-      transform <- local (\e -> e{docxCustomStyleAlready = True}) $
-                   runStyleToTransform rPr {isSmallCaps = Nothing}
-      return $ extraInfo . smallcaps . transform
+      transform <- runStyleToTransform rPr{isSmallCaps = Nothing}
+      return $ smallcaps . transform
   | Just True <- isStrike rPr = do
-      extraInfo <- extraRunStyleInfo rPr
-      transform <- local (\e -> e{docxCustomStyleAlready = True}) $
-                   runStyleToTransform rPr {isStrike = Nothing}
-      return $ extraInfo . strikeout . transform
+      transform <- runStyleToTransform rPr{isStrike = Nothing}
+      return $ strikeout . transform
   | Just SupScrpt <- rVertAlign rPr = do
-      extraInfo <- extraRunStyleInfo rPr
-      transform <- local (\e -> e{docxCustomStyleAlready = True}) $
-                   runStyleToTransform rPr {rVertAlign = Nothing}
-      return $ extraInfo . superscript . transform
+      transform <- runStyleToTransform rPr{rVertAlign = Nothing}
+      return $ superscript . transform
   | Just SubScrpt <- rVertAlign rPr = do
-      extraInfo <- extraRunStyleInfo rPr
-      transform <- local (\e -> e{docxCustomStyleAlready = True}) $
-                   runStyleToTransform rPr {rVertAlign = Nothing}
-      return $ extraInfo . subscript . transform
+      transform <- runStyleToTransform rPr{rVertAlign = Nothing}
+      return $ subscript . transform
   | Just "single" <- rUnderline rPr = do
-      extraInfo <- extraRunStyleInfo rPr
-      transform <- local (\e -> e{docxCustomStyleAlready = True}) $
-                   runStyleToTransform rPr {rUnderline = Nothing}
-      return $ extraInfo . underlineSpan . transform
-  | otherwise = extraRunStyleInfo rPr
+      transform <- runStyleToTransform rPr{rUnderline = Nothing}
+      return $ underlineSpan . transform
+  | otherwise = return id
 
 runToInlines :: PandocMonad m => Run -> DocxContext m Inlines
 runToInlines (Run rs runElems)
   | Just (s, _) <- rStyle rs
-  , s `elem` codeStyles =
-    let rPr = resolveDependentRunStyle rs
-        codeString = code $ concatMap runElemToString runElems
-    in
-     return $ case rVertAlign rPr of
-     Just SupScrpt -> superscript codeString
-     Just SubScrpt -> subscript codeString
-     _             -> codeString
+  , s `elem` codeStyles = do
+      rPr <- resolveDependentRunStyle rs
+      let codeString = code $ concatMap runElemToString runElems
+      return $ case rVertAlign rPr of
+        Just SupScrpt -> superscript codeString
+        Just SubScrpt -> subscript codeString
+        _             -> codeString
   | otherwise = do
-    let ils = smushInlines (map runElemToInlines runElems)
-    transform <- runStyleToTransform $ resolveDependentRunStyle rs
-    return $ transform ils
+      rPr <- resolveDependentRunStyle rs
+      let ils = smushInlines (map runElemToInlines runElems)
+      transform <- runStyleToTransform rPr
+      return $ transform ils
 runToInlines (Footnote bps) = do
   blksList <- smushBlocks <$> mapM bodyPartToBlocks bps
   return $ note blksList
@@ -385,7 +369,7 @@ blocksToInlinesWarn cmtId blks = do
 parPartToInlines :: PandocMonad m => ParPart -> DocxContext m Inlines
 parPartToInlines parPart =
   case parPart of
-    (BookMark _ anchor) | notElem anchor dummyAnchors -> do
+    (BookMark _ anchor) | anchor `notElem` dummyAnchors -> do
       inHdrBool <- asks docxInHeaderBlock
       ils <- parPartToInlines' parPart
       immedPrevAnchor <- gets docxImmedPrevAnchor
@@ -478,8 +462,6 @@ parPartToInlines' (ExternalHyperLink target runs) = do
   return $ link target "" ils
 parPartToInlines' (PlainOMath exps) =
   return $ math $ writeTeX exps
-parPartToInlines' (SmartTag runs) =
-  smushInlines <$> mapM runToInlines runs
 parPartToInlines' (Field info runs) =
   case info of
     HyperlinkField url -> parPartToInlines' $ ExternalHyperLink url runs
@@ -706,6 +688,10 @@ bodyPartToBlocks (Tbl cap _ look parts@(r:rs)) = do
       rowLength :: Row -> Int
       rowLength (Row c) = length c
 
+  -- pad cells.  New Text.Pandoc.Builder will do that for us,
+  -- so this is for compatibility while we switch over.
+  let cells' = map (\row -> take width (row ++ repeat mempty)) cells
+
   hdrCells <- case hdr of
     Just r' -> rowToBlocksList r'
     Nothing -> return $ replicate width mempty
@@ -718,7 +704,7 @@ bodyPartToBlocks (Tbl cap _ look parts@(r:rs)) = do
   let alignments = replicate width AlignDefault
       widths = replicate width 0 :: [Double]
 
-  return $ table caption (zip alignments widths) hdrCells cells
+  return $ table caption (zip alignments widths) hdrCells cells'
 bodyPartToBlocks (OMathPara e) =
   return $ para $ displayMath (writeTeX e)
 

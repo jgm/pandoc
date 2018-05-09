@@ -1,3 +1,5 @@
+{-# LANGUAGE NoImplicitPrelude #-}
+{-# LANGUAGE CPP                        #-}
 {-# LANGUAGE DeriveDataTypeable         #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
 {-
@@ -36,6 +38,7 @@ module Text.Pandoc.MediaBag (
                      insertMedia,
                      mediaDirectory,
                      ) where
+import Prelude
 import qualified Data.ByteString.Lazy as BL
 import Data.Data (Data)
 import qualified Data.Map as M
@@ -50,7 +53,7 @@ import Text.Pandoc.MIME (MimeType, getMimeTypeDef)
 -- can be used for an empty 'MediaBag', and '<>' can be used to append
 -- two 'MediaBag's.
 newtype MediaBag = MediaBag (M.Map [String] (MimeType, BL.ByteString))
-        deriving (Monoid, Data, Typeable)
+        deriving (Semigroup, Monoid, Data, Typeable)
 
 instance Show MediaBag where
   show bag = "MediaBag " ++ show (mediaDirectory bag)

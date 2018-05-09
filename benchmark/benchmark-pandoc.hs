@@ -1,3 +1,4 @@
+{-# LANGUAGE NoImplicitPrelude #-}
 {-# LANGUAGE TupleSections #-}
 {-
 Copyright (C) 2012-2018 John MacFarlane <jgm@berkeley.edu>
@@ -16,6 +17,7 @@ You should have received a copy of the GNU General Public License
 along with this program; if not, write to the Free Software
 Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 -}
+import Prelude
 import Text.Pandoc
 import qualified Text.Pandoc.UTF8 as UTF8
 import qualified Data.ByteString as B

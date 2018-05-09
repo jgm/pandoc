@@ -1,7 +1,9 @@
+{-# LANGUAGE NoImplicitPrelude #-}
 {-# LANGUAGE OverloadedStrings   #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 module Tests.Readers.RST (tests) where
 
+import Prelude
 import Data.Text (Text)
 import qualified Data.Text as T
 import Test.Tasty
@@ -184,6 +186,6 @@ tests = [ "line block with blank line" =:
             , ".. [1]"
             , "   bar"
             ] =?>
-              para ("foo" <> (note $ para "bar"))
+              para ("foo" <> note (para "bar"))
           ]
         ]

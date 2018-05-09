@@ -29,10 +29,7 @@
 </article-meta>
 </front>
 <body>
-<p>
-  This is a set of tests for pandoc. Most of them are adapted from John
-  Gruber's markdown test suite.
-</p>
+<p>This is a set of tests for pandoc. Most of them are adapted from John Gruber's markdown test suite.</p>
 <sec id="headers">
   <title>Headers</title>
   <sec id="level-2-with-an-embedded-link">
@@ -56,91 +53,53 @@
     <title>Level 2 with <italic>emphasis</italic></title>
     <sec id="level-3">
       <title>Level 3</title>
-      <p>
-        with no blank line
-      </p>
+      <p>with no blank line</p>
     </sec>
   </sec>
   <sec id="level-2">
     <title>Level 2</title>
-    <p>
-      with no blank line
-    </p>
+    <p>with no blank line</p>
   </sec>
 </sec>
 <sec id="paragraphs">
   <title>Paragraphs</title>
-  <p>
-    Here's a regular paragraph.
-  </p>
-  <p>
-    In Markdown 1.0.0 and earlier. Version 8. This line turns into a
-    list item. Because a hard-wrapped line in the middle of a paragraph
-    looked like a list item.
-  </p>
-  <p>
-    Here's one with a bullet. * criminey.
-  </p>
-  <p>
-    There should be a hard line break<break />here.
-  </p>
+  <p>Here's a regular paragraph.</p>
+  <p>In Markdown 1.0.0 and earlier. Version 8. This line turns into a list item. Because a hard-wrapped line in the middle of a paragraph looked like a list item.</p>
+  <p>Here's one with a bullet. * criminey.</p>
+  <p>There should be a hard line break<break />here.</p>
 </sec>
 <sec id="block-quotes">
   <title>Block Quotes</title>
-  <p>
-    E-mail style:
-  </p>
+  <p>E-mail style:</p>
   <disp-quote>
-    <p>
-      This is a block quote. It is pretty short.
-    </p>
+    <p>This is a block quote. It is pretty short.</p>
   </disp-quote>
   <disp-quote>
-    <p>
-      Code in a block quote:
-    </p>
+    <p>Code in a block quote:</p>
     <preformat>sub status {
     print &quot;working&quot;;
 }</preformat>
-    <p>
-      A list:
-    </p>
+    <p>A list:</p>
     <list list-type="order">
       <list-item>
-        <p>
-          item one
-        </p>
+        <p>item one</p>
       </list-item>
       <list-item>
-        <p>
-          item two
-        </p>
+        <p>item two</p>
       </list-item>
     </list>
-    <p>
-      Nested block quotes:
-    </p>
+    <p>Nested block quotes:</p>
     <disp-quote>
-      <p>
-        nested
-      </p>
+      <p>nested</p>
     </disp-quote>
     <disp-quote>
-      <p>
-        nested
-      </p>
+      <p>nested</p>
     </disp-quote>
   </disp-quote>
-  <p>
-    This should not be a block quote: 2 &gt; 1.
-  </p>
-  <p>
-    Box-style:
-  </p>
+  <p>This should not be a block quote: 2 &gt; 1.</p>
+  <p>Box-style:</p>
   <disp-quote>
-    <p>
-      Example:
-    </p>
+    <p>Example:</p>
     <preformat>sub status {
     print &quot;working&quot;;
 }</preformat>
@@ -148,39 +107,25 @@
   <disp-quote>
     <list list-type="order">
       <list-item>
-        <p>
-          do laundry
-        </p>
+        <p>do laundry</p>
       </list-item>
       <list-item>
-        <p>
-          take out the trash
-        </p>
+        <p>take out the trash</p>
       </list-item>
     </list>
   </disp-quote>
-  <p>
-    Here's a nested one:
-  </p>
+  <p>Here's a nested one:</p>
   <disp-quote>
-    <p>
-      Joe said:
-    </p>
+    <p>Joe said:</p>
     <disp-quote>
-      <p>
-        Don't quote me.
-      </p>
+      <p>Don't quote me.</p>
     </disp-quote>
   </disp-quote>
-  <p>
-    And a following paragraph.
-  </p>
+  <p>And a following paragraph.</p>
 </sec>
 <sec id="code-blocks">
   <title>Code Blocks</title>
-  <p>
-    Code:
-  </p>
+  <p>Code:</p>
   <preformat>---- (should be four hyphens)
 
 sub status {
@@ -188,9 +133,7 @@ sub status {
 }
 
 this code block is indented by one tab</preformat>
-  <p>
-    And:
-  </p>
+  <p>And:</p>
   <preformat>    this code block is indented by two tabs
 
 These should not be escaped:  \$ \\ \&gt; \[ \{</preformat>
@@ -199,236 +142,144 @@ These should not be escaped:  \$ \\ \&gt; \[ \{</preformat>
   <title>Lists</title>
   <sec id="unordered">
     <title>Unordered</title>
-    <p>
-      Asterisks tight:
-    </p>
+    <p>Asterisks tight:</p>
     <list list-type="bullet">
       <list-item>
-        <p>
-          asterisk 1
-        </p>
+        <p>asterisk 1</p>
       </list-item>
       <list-item>
-        <p>
-          asterisk 2
-        </p>
+        <p>asterisk 2</p>
       </list-item>
       <list-item>
-        <p>
-          asterisk 3
-        </p>
+        <p>asterisk 3</p>
       </list-item>
     </list>
-    <p>
-      Asterisks loose:
-    </p>
+    <p>Asterisks loose:</p>
     <list list-type="bullet">
       <list-item>
-        <p>
-          asterisk 1
-        </p>
+        <p>asterisk 1</p>
       </list-item>
       <list-item>
-        <p>
-          asterisk 2
-        </p>
+        <p>asterisk 2</p>
       </list-item>
       <list-item>
-        <p>
-          asterisk 3
-        </p>
+        <p>asterisk 3</p>
       </list-item>
     </list>
-    <p>
-      Pluses tight:
-    </p>
+    <p>Pluses tight:</p>
     <list list-type="bullet">
       <list-item>
-        <p>
-          Plus 1
-        </p>
+        <p>Plus 1</p>
       </list-item>
       <list-item>
-        <p>
-          Plus 2
-        </p>
+        <p>Plus 2</p>
       </list-item>
       <list-item>
-        <p>
-          Plus 3
-        </p>
+        <p>Plus 3</p>
       </list-item>
     </list>
-    <p>
-      Pluses loose:
-    </p>
+    <p>Pluses loose:</p>
     <list list-type="bullet">
       <list-item>
-        <p>
-          Plus 1
-        </p>
+        <p>Plus 1</p>
       </list-item>
       <list-item>
-        <p>
-          Plus 2
-        </p>
+        <p>Plus 2</p>
       </list-item>
       <list-item>
-        <p>
-          Plus 3
-        </p>
+        <p>Plus 3</p>
       </list-item>
     </list>
-    <p>
-      Minuses tight:
-    </p>
+    <p>Minuses tight:</p>
     <list list-type="bullet">
       <list-item>
-        <p>
-          Minus 1
-        </p>
+        <p>Minus 1</p>
       </list-item>
       <list-item>
-        <p>
-          Minus 2
-        </p>
+        <p>Minus 2</p>
       </list-item>
       <list-item>
-        <p>
-          Minus 3
-        </p>
+        <p>Minus 3</p>
       </list-item>
     </list>
-    <p>
-      Minuses loose:
-    </p>
+    <p>Minuses loose:</p>
     <list list-type="bullet">
       <list-item>
-        <p>
-          Minus 1
-        </p>
+        <p>Minus 1</p>
       </list-item>
       <list-item>
-        <p>
-          Minus 2
-        </p>
+        <p>Minus 2</p>
       </list-item>
       <list-item>
-        <p>
-          Minus 3
-        </p>
+        <p>Minus 3</p>
       </list-item>
     </list>
   </sec>
   <sec id="ordered">
     <title>Ordered</title>
-    <p>
-      Tight:
-    </p>
+    <p>Tight:</p>
     <list list-type="order">
       <list-item>
-        <p>
-          First
-        </p>
+        <p>First</p>
       </list-item>
       <list-item>
-        <p>
-          Second
-        </p>
+        <p>Second</p>
       </list-item>
       <list-item>
-        <p>
-          Third
-        </p>
+        <p>Third</p>
       </list-item>
     </list>
-    <p>
-      and:
-    </p>
+    <p>and:</p>
     <list list-type="order">
       <list-item>
-        <p>
-          One
-        </p>
+        <p>One</p>
       </list-item>
       <list-item>
-        <p>
-          Two
-        </p>
+        <p>Two</p>
       </list-item>
       <list-item>
-        <p>
-          Three
-        </p>
+        <p>Three</p>
       </list-item>
     </list>
-    <p>
-      Loose using tabs:
-    </p>
+    <p>Loose using tabs:</p>
     <list list-type="order">
       <list-item>
-        <p>
-          First
-        </p>
+        <p>First</p>
       </list-item>
       <list-item>
-        <p>
-          Second
-        </p>
+        <p>Second</p>
       </list-item>
       <list-item>
-        <p>
-          Third
-        </p>
+        <p>Third</p>
       </list-item>
     </list>
-    <p>
-      and using spaces:
-    </p>
+    <p>and using spaces:</p>
     <list list-type="order">
       <list-item>
-        <p>
-          One
-        </p>
+        <p>One</p>
       </list-item>
       <list-item>
-        <p>
-          Two
-        </p>
+        <p>Two</p>
       </list-item>
       <list-item>
-        <p>
-          Three
-        </p>
+        <p>Three</p>
       </list-item>
     </list>
-    <p>
-      Multiple paragraphs:
-    </p>
+    <p>Multiple paragraphs:</p>
     <list list-type="order">
       <list-item>
-        <p>
-          Item 1, graf one.
-        </p>
-        <p>
-          Item 1. graf two. The quick brown fox jumped over the lazy
-          dog's back.
-        </p>
+        <p>Item 1, graf one.</p>
+        <p>Item 1. graf two. The quick brown fox jumped over the lazy
+          dog's back.</p>
       </list-item>
       <list-item>
-        <p>
-          Item 2.
-        </p>
+        <p>Item 2.</p>
       </list-item>
       <list-item>
-        <p>
-          Item 3.
-        </p>
+        <p>Item 3.</p>
       </list-item>
     </list>
-    <p>
-      List styles:
-    </p>
+    <p>List styles:</p>
     <list list-type="order"></list>
     <list list-type="roman-lower"></list>
   </sec>
@@ -436,97 +287,63 @@ These should not be escaped:  \$ \\ \&gt; \[ \{</preformat>
     <title>Nested</title>
     <list list-type="bullet">
       <list-item>
-        <p>
-          Tab
-        </p>
+        <p>Tab</p>
         <list list-type="bullet">
           <list-item>
-            <p>
-              Tab
-            </p>
+            <p>Tab</p>
             <list list-type="bullet">
               <list-item>
-                <p>
-                  Tab
-                </p>
+                <p>Tab</p>
               </list-item>
             </list>
           </list-item>
         </list>
       </list-item>
     </list>
-    <p>
-      Here's another:
-    </p>
+    <p>Here's another:</p>
     <list list-type="order">
       <list-item>
-        <p>
-          First
-        </p>
+        <p>First</p>
       </list-item>
       <list-item>
-        <p>
-          Second:
-        </p>
+        <p>Second:</p>
         <list list-type="bullet">
           <list-item>
-            <p>
-              Fee
-            </p>
+            <p>Fee</p>
           </list-item>
           <list-item>
-            <p>
-              Fie
-            </p>
+            <p>Fie</p>
           </list-item>
           <list-item>
-            <p>
-              Foe
-            </p>
+            <p>Foe</p>
           </list-item>
         </list>
       </list-item>
       <list-item>
-        <p>
-          Third
-        </p>
+        <p>Third</p>
       </list-item>
     </list>
-    <p>
-      Same thing but with paragraphs:
-    </p>
+    <p>Same thing but with paragraphs:</p>
     <list list-type="order">
       <list-item>
-        <p>
-          First
-        </p>
+        <p>First</p>
       </list-item>
       <list-item>
-        <p>
-          Second:
-        </p>
+        <p>Second:</p>
         <list list-type="bullet">
           <list-item>
-            <p>
-              Fee
-            </p>
+            <p>Fee</p>
           </list-item>
           <list-item>
-            <p>
-              Fie
-            </p>
+            <p>Fie</p>
           </list-item>
           <list-item>
-            <p>
-              Foe
-            </p>
+            <p>Foe</p>
           </list-item>
         </list>
       </list-item>
       <list-item>
-        <p>
-          Third
-        </p>
+        <p>Third</p>
       </list-item>
     </list>
   </sec>
@@ -534,24 +351,16 @@ These should not be escaped:  \$ \\ \&gt; \[ \{</preformat>
     <title>Tabs and spaces</title>
     <list list-type="bullet">
       <list-item>
-        <p>
-          this is a list item indented with tabs
-        </p>
+        <p>this is a list item indented with tabs</p>
       </list-item>
       <list-item>
-        <p>
-          this is a list item indented with spaces
-        </p>
+        <p>this is a list item indented with spaces</p>
         <list list-type="bullet">
           <list-item>
-            <p>
-              this is an example list item indented with tabs
-            </p>
+            <p>this is an example list item indented with tabs</p>
           </list-item>
           <list-item>
-            <p>
-              this is an example list item indented with spaces
-            </p>
+            <p>this is an example list item indented with spaces</p>
           </list-item>
         </list>
       </list-item>
@@ -559,24 +368,16 @@ These should not be escaped:  \$ \\ \&gt; \[ \{</preformat>
   </sec>
   <sec id="fancy-list-markers">
     <title>Fancy list markers</title>
-    <p>
-      Autonumbering:
-    </p>
+    <p>Autonumbering:</p>
     <list list-type="order">
       <list-item>
-        <p>
-          Autonumber.
-        </p>
+        <p>Autonumber.</p>
       </list-item>
       <list-item>
-        <p>
-          More.
-        </p>
+        <p>More.</p>
         <list list-type="order">
           <list-item>
-            <p>
-              Nested.
-            </p>
+            <p>Nested.</p>
           </list-item>
         </list>
       </list-item>
@@ -590,12 +391,8 @@ These should not be escaped:  \$ \\ \&gt; \[ \{</preformat>
           Violin
         </term>
         <def>
-          <p>
-            Stringed musical instrument.
-          </p>
-          <p>
-            Torture device.
-          </p>
+          <p>Stringed musical instrument.</p>
+          <p>Torture device.</p>
         </def>
       </def-item>
       <def-item>
@@ -603,9 +400,7 @@ These should not be escaped:  \$ \\ \&gt; \[ \{</preformat>
           Cello<break />Violoncello
         </term>
         <def>
-          <p>
-            Low-voiced stringed instrument.
-          </p>
+          <p>Low-voiced stringed instrument.</p>
         </def>
       </def-item>
     </def-list>
@@ -613,452 +408,244 @@ These should not be escaped:  \$ \\ \&gt; \[ \{</preformat>
 </sec>
 <sec id="inline-markup">
   <title>Inline Markup</title>
-  <p>
-    This is <italic>emphasized</italic>, and so <italic>is
-    this</italic>.
-  </p>
-  <p>
-    This is <bold role="strong">strong</bold>, and so
-    <bold role="strong">is this</bold>.
-  </p>
-  <p>
-    Empty <bold role="strong"></bold> and <italic></italic>.
-  </p>
-  <p>
-    An
+  <p>This is <italic>emphasized</italic>, and so <italic>is
+    this</italic>.</p>
+  <p>This is <bold role="strong">strong</bold>, and so
+    <bold role="strong">is this</bold>.</p>
+  <p>Empty <bold role="strong"></bold> and <italic></italic>.</p>
+  <p>An
     <italic><ext-link ext-link-type="uri" xlink:href="/url">emphasized
-    link</ext-link></italic>.
-  </p>
-  <p>
-    <bold role="strong"><italic>This is strong and em.</italic></bold>
-  </p>
-  <p>
-    So is <bold role="strong"><italic>this</italic></bold> word.
-  </p>
-  <p>
-    <bold role="strong"><italic>This is strong and em.</italic></bold>
-  </p>
-  <p>
-    So is <bold role="strong"><italic>this</italic></bold> word.
-  </p>
-  <p>
-    This is code: <monospace>&gt;</monospace>, <monospace>$</monospace>,
+    link</ext-link></italic>.</p>
+  <p><bold role="strong"><italic>This is strong and em.</italic></bold></p>
+  <p>So is <bold role="strong"><italic>this</italic></bold> word.</p>
+  <p><bold role="strong"><italic>This is strong and em.</italic></bold></p>
+  <p>So is <bold role="strong"><italic>this</italic></bold> word.</p>
+  <p>This is code: <monospace>&gt;</monospace>, <monospace>$</monospace>,
     <monospace>\</monospace>, <monospace>\$</monospace>,
-    <monospace>&lt;html&gt;</monospace>.
-  </p>
-  <p>
-    This is <sc role="smallcaps">small caps</sc>.
-  </p>
-  <p>
-    These are all underlined: foo and bar.
-  </p>
-  <p>
-    These are all strikethrough: <strike>foo</strike>,
-    <strike>bar</strike>, and <strike>baz</strike>.
-  </p>
+    <monospace>&lt;html&gt;</monospace>.</p>
+  <p>This is <sc role="smallcaps">small caps</sc>.</p>
+  <p>These are all underlined: foo and bar.</p>
+  <p>These are all strikethrough: <strike>foo</strike>,
+    <strike>bar</strike>, and <strike>baz</strike>.</p>
 </sec>
 <sec id="smart-quotes-ellipses-dashes">
   <title>Smart quotes, ellipses, dashes</title>
-  <p>
-    &quot;Hello,&quot; said the spider. &quot;'Shelob' is my name.&quot;
-  </p>
-  <p>
-    'A', 'B', and 'C' are letters.
-  </p>
-  <p>
-    'Oak,' 'elm,' and 'beech' are names of trees. So is 'pine.'
-  </p>
-  <p>
-    'He said, &quot;I want to go.&quot;' Were you alive in the 70's?
-  </p>
-  <p>
-    Here is some quoted '<monospace>code</monospace>' and a
+  <p>&quot;Hello,&quot; said the spider. &quot;'Shelob' is my name.&quot;</p>
+  <p>'A', 'B', and 'C' are letters.</p>
+  <p>'Oak,' 'elm,' and 'beech' are names of trees. So is 'pine.'</p>
+  <p>'He said, &quot;I want to go.&quot;' Were you alive in the 70's?</p>
+  <p>Here is some quoted '<monospace>code</monospace>' and a
     &quot;<ext-link ext-link-type="uri" xlink:href="http://example.com/?foo=1&amp;bar=2">quoted
-    link</ext-link>&quot;.
-  </p>
-  <p>
-    Some dashes: one---two --- three--four -- five.
-  </p>
-  <p>
-    Dashes between numbers: 5-7, 255-66, 1987-1999.
-  </p>
-  <p>
-    Ellipses...and. . .and . . . .
-  </p>
+    link</ext-link>&quot;.</p>
+  <p>Some dashes: one---two --- three--four -- five.</p>
+  <p>Dashes between numbers: 5-7, 255-66, 1987-1999.</p>
+  <p>Ellipses...and. . .and . . . .</p>
 </sec>
 <sec id="latex">
   <title>LaTeX</title>
   <list list-type="bullet">
     <list-item>
-      <p>
-        \cite[22-23]{smith.1899}
-      </p>
+      <p>\cite[22-23]{smith.1899}</p>
     </list-item>
     <list-item>
-      <p>
-        \doublespacing
-      </p>
+      <p>\doublespacing</p>
     </list-item>
     <list-item>
-      <p>
-        $2+2=4$
-      </p>
+      <p>$2+2=4$</p>
     </list-item>
     <list-item>
-      <p>
-        $x \in y$
-      </p>
+      <p>$x \in y$</p>
     </list-item>
     <list-item>
-      <p>
-        $\alpha \wedge \omega$
-      </p>
+      <p>$\alpha \wedge \omega$</p>
     </list-item>
     <list-item>
-      <p>
-        $223$
-      </p>
+      <p>$223$</p>
     </list-item>
     <list-item>
-      <p>
-        $p$-Tree
-      </p>
+      <p>$p$-Tree</p>
     </list-item>
     <list-item>
-      <p>
-        $\frac{d}{dx}f(x)=\lim_{h\to 0}\frac{f(x+h)-f(x)}{h}$
-      </p>
+      <p>$\frac{d}{dx}f(x)=\lim_{h\to 0}\frac{f(x+h)-f(x)}{h}$</p>
     </list-item>
     <list-item>
-      <p>
-        Here's one that has a line break in it: $\alpha + \omega \times
-        x^2$.
-      </p>
+      <p>Here's one that has a line break in it: $\alpha + \omega \times
+        x^2$.</p>
     </list-item>
   </list>
-  <p>
-    These shouldn't be math:
-  </p>
+  <p>These shouldn't be math:</p>
   <list list-type="bullet">
     <list-item>
-      <p>
-        To get the famous equation, write
-        <monospace>$e = mc^2$</monospace>.
-      </p>
+      <p>To get the famous equation, write
+        <monospace>$e = mc^2$</monospace>.</p>
     </list-item>
     <list-item>
-      <p>
-        $22,000 is a <italic>lot</italic> of money. So is $34,000. (It
-        worked if &quot;lot&quot; is emphasized.)
-      </p>
+      <p>$22,000 is a <italic>lot</italic> of money. So is $34,000. (It
+        worked if &quot;lot&quot; is emphasized.)</p>
     </list-item>
     <list-item>
-      <p>
-        Escaped <monospace>$</monospace>: $73 <italic>this should be
-        emphasized</italic> 23$.
-      </p>
+      <p>Escaped <monospace>$</monospace>: $73 <italic>this should be
+        emphasized</italic> 23$.</p>
     </list-item>
   </list>
-  <p>
-    Here's a LaTeX table:
-  </p>
-  <p>
-    \begin{tabular}{|l|l|}\hline Animal &amp; Number \\ \hline Dog &amp;
-    2 \\ Cat &amp; 1 \\ \hline \end{tabular}
-  </p>
+  <p>Here's a LaTeX table:</p>
+  <p>\begin{tabular}{|l|l|}\hline Animal &amp; Number \\ \hline Dog &amp;
+    2 \\ Cat &amp; 1 \\ \hline \end{tabular}</p>
 </sec>
 <sec id="special-characters">
   <title>Special Characters</title>
-  <p>
-    Here is some unicode:
-  </p>
+  <p>Here is some unicode:</p>
   <list list-type="bullet">
     <list-item>
-      <p>
-        I hat: Î
-      </p>
+      <p>I hat: Î</p>
     </list-item>
     <list-item>
-      <p>
-        o umlaut: ö
-      </p>
+      <p>o umlaut: ö</p>
     </list-item>
     <list-item>
-      <p>
-        section: §
-      </p>
+      <p>section: §</p>
     </list-item>
     <list-item>
-      <p>
-        set membership: elem
-      </p>
+      <p>set membership: elem</p>
     </list-item>
     <list-item>
-      <p>
-        copyright: ©
-      </p>
+      <p>copyright: ©</p>
     </list-item>
   </list>
-  <p>
-    AT&amp;T has an ampersand in their name.
-  </p>
-  <p>
-    AT&amp;T is another way to write it.
-  </p>
-  <p>
-    This &amp; that.
-  </p>
-  <p>
-    4 &lt; 5.
-  </p>
-  <p>
-    6 &gt; 5.
-  </p>
-  <p>
-    Backslash: \
-  </p>
-  <p>
-    Backtick: `
-  </p>
-  <p>
-    Asterisk: *
-  </p>
-  <p>
-    Underscore: _
-  </p>
-  <p>
-    Left brace: {
-  </p>
-  <p>
-    Right brace: }
-  </p>
-  <p>
-    Left bracket: [
-  </p>
-  <p>
-    Right bracket: ]
-  </p>
-  <p>
-    Left paren: (
-  </p>
-  <p>
-    Right paren: )
-  </p>
-  <p>
-    Greater-than: &gt;
-  </p>
-  <p>
-    Hash: #
-  </p>
-  <p>
-    Period: .
-  </p>
-  <p>
-    Bang: !
-  </p>
-  <p>
-    Plus: +
-  </p>
-  <p>
-    Minus: -
-  </p>
+  <p>AT&amp;T has an ampersand in their name.</p>
+  <p>AT&amp;T is another way to write it.</p>
+  <p>This &amp; that.</p>
+  <p>4 &lt; 5.</p>
+  <p>6 &gt; 5.</p>
+  <p>Backslash: \</p>
+  <p>Backtick: `</p>
+  <p>Asterisk: *</p>
+  <p>Underscore: _</p>
+  <p>Left brace: {</p>
+  <p>Right brace: }</p>
+  <p>Left bracket: [</p>
+  <p>Right bracket: ]</p>
+  <p>Left paren: (</p>
+  <p>Right paren: )</p>
+  <p>Greater-than: &gt;</p>
+  <p>Hash: #</p>
+  <p>Period: .</p>
+  <p>Bang: !</p>
+  <p>Plus: +</p>
+  <p>Minus: -</p>
 </sec>
 <sec id="links">
   <title>Links</title>
   <sec id="explicit">
     <title>Explicit</title>
-    <p>
-      Just a
-      <ext-link ext-link-type="uri" xlink:href="/url/">URL</ext-link>.
-    </p>
-    <p>
-      <ext-link ext-link-type="uri" xlink:href="/url/" xlink:title="title">URL
-      and title</ext-link>.
-    </p>
-    <p>
-      <ext-link ext-link-type="uri" xlink:href="/url/" xlink:title="title preceded by two spaces">URL
-      and title</ext-link>.
-    </p>
-    <p>
-      <ext-link ext-link-type="uri" xlink:href="/url/" xlink:title="title preceded by a tab">URL
-      and title</ext-link>.
-    </p>
-    <p>
-      <ext-link ext-link-type="uri" xlink:href="/url/" xlink:title="title with &quot;quotes&quot; in it">URL
-      and title</ext-link>
-    </p>
-    <p>
-      <ext-link ext-link-type="uri" xlink:href="/url/" xlink:title="title with single quotes">URL
-      and title</ext-link>
-    </p>
-    <p>
-      Email link (nobody [at] nowhere.net)
-    </p>
-    <p>
-      <ext-link ext-link-type="uri" xlink:href="">Empty</ext-link>.
-    </p>
+    <p>Just a
+      <ext-link ext-link-type="uri" xlink:href="/url/">URL</ext-link>.</p>
+    <p><ext-link ext-link-type="uri" xlink:href="/url/" xlink:title="title">URL
+      and title</ext-link>.</p>
+    <p><ext-link ext-link-type="uri" xlink:href="/url/" xlink:title="title preceded by two spaces">URL
+      and title</ext-link>.</p>
+    <p><ext-link ext-link-type="uri" xlink:href="/url/" xlink:title="title preceded by a tab">URL
+      and title</ext-link>.</p>
+    <p><ext-link ext-link-type="uri" xlink:href="/url/" xlink:title="title with &quot;quotes&quot; in it">URL
+      and title</ext-link></p>
+    <p><ext-link ext-link-type="uri" xlink:href="/url/" xlink:title="title with single quotes">URL
+      and title</ext-link></p>
+    <p>Email link (nobody [at] nowhere.net)</p>
+    <p><ext-link ext-link-type="uri" xlink:href="">Empty</ext-link>.</p>
   </sec>
   <sec id="reference">
     <title>Reference</title>
-    <p>
-      Foo
-      <ext-link ext-link-type="uri" xlink:href="/url/">bar</ext-link>.
-    </p>
-    <p>
-      Foo
-      <ext-link ext-link-type="uri" xlink:href="/url/">bar</ext-link>.
-    </p>
-    <p>
-      Foo
-      <ext-link ext-link-type="uri" xlink:href="/url/">bar</ext-link>.
-    </p>
-    <p>
-      With <ext-link ext-link-type="uri" xlink:href="/url/">embedded
-      [brackets]</ext-link>.
-    </p>
-    <p>
-      <ext-link ext-link-type="uri" xlink:href="/url/">b</ext-link> by
-      itself should be a link.
-    </p>
-    <p>
-      Indented
-      <ext-link ext-link-type="uri" xlink:href="/url">once</ext-link>.
-    </p>
-    <p>
-      Indented
-      <ext-link ext-link-type="uri" xlink:href="/url">twice</ext-link>.
-    </p>
-    <p>
-      Indented
-      <ext-link ext-link-type="uri" xlink:href="/url">thrice</ext-link>.
-    </p>
-    <p>
-      This should [not] be a link.
-    </p>
+    <p>Foo
+      <ext-link ext-link-type="uri" xlink:href="/url/">bar</ext-link>.</p>
+    <p>Foo
+      <ext-link ext-link-type="uri" xlink:href="/url/">bar</ext-link>.</p>
+    <p>Foo
+      <ext-link ext-link-type="uri" xlink:href="/url/">bar</ext-link>.</p>
+    <p>With <ext-link ext-link-type="uri" xlink:href="/url/">embedded
+      [brackets]</ext-link>.</p>
+    <p><ext-link ext-link-type="uri" xlink:href="/url/">b</ext-link> by
+      itself should be a link.</p>
+    <p>Indented
+      <ext-link ext-link-type="uri" xlink:href="/url">once</ext-link>.</p>
+    <p>Indented
+      <ext-link ext-link-type="uri" xlink:href="/url">twice</ext-link>.</p>
+    <p>Indented
+      <ext-link ext-link-type="uri" xlink:href="/url">thrice</ext-link>.</p>
+    <p>This should [not] be a link.</p>
     <preformat>[not]: /url</preformat>
-    <p>
-      Foo
-      <ext-link ext-link-type="uri" xlink:href="/url/" xlink:title="Title with &quot;quotes&quot; inside">bar</ext-link>.
-    </p>
-    <p>
-      Foo
-      <ext-link ext-link-type="uri" xlink:href="/url/" xlink:title="Title with &quot;quote&quot; inside">biz</ext-link>.
-    </p>
+    <p>Foo
+      <ext-link ext-link-type="uri" xlink:href="/url/" xlink:title="Title with &quot;quotes&quot; inside">bar</ext-link>.</p>
+    <p>Foo
+      <ext-link ext-link-type="uri" xlink:href="/url/" xlink:title="Title with &quot;quote&quot; inside">biz</ext-link>.</p>
   </sec>
   <sec id="with-ampersands">
     <title>With ampersands</title>
-    <p>
-      Here's a
+    <p>Here's a
       <ext-link ext-link-type="uri" xlink:href="http://example.com/?foo=1&amp;bar=2">link
-      with an ampersand in the URL</ext-link>.
-    </p>
-    <p>
-      Here's a link with an amersand in the link text:
-      <ext-link ext-link-type="uri" xlink:href="http://att.com/" xlink:title="AT&amp;T">AT&amp;T</ext-link>.
-    </p>
-    <p>
-      Here's an
+      with an ampersand in the URL</ext-link>.</p>
+    <p>Here's a link with an amersand in the link text:
+      <ext-link ext-link-type="uri" xlink:href="http://att.com/" xlink:title="AT&amp;T">AT&amp;T</ext-link>.</p>
+    <p>Here's an
       <ext-link ext-link-type="uri" xlink:href="/script?foo=1&amp;bar=2">inline
-      link</ext-link>.
-    </p>
-    <p>
-      Here's an
+      link</ext-link>.</p>
+    <p>Here's an
       <ext-link ext-link-type="uri" xlink:href="/script?foo=1&amp;bar=2">inline
-      link in pointy braces</ext-link>.
-    </p>
+      link in pointy braces</ext-link>.</p>
   </sec>
   <sec id="autolinks">
     <title>Autolinks</title>
-    <p>
-      With an ampersand:
-      <ext-link ext-link-type="uri" xlink:href="http://example.com/?foo=1&amp;bar=2">http://example.com/?foo=1&amp;bar=2</ext-link>
-    </p>
+    <p>With an ampersand:
+      <ext-link ext-link-type="uri" xlink:href="http://example.com/?foo=1&amp;bar=2">http://example.com/?foo=1&amp;bar=2</ext-link></p>
     <list list-type="bullet">
       <list-item>
-        <p>
-          In a list?
-        </p>
+        <p>In a list?</p>
       </list-item>
       <list-item>
-        <p>
-          <ext-link ext-link-type="uri" xlink:href="http://example.com/">http://example.com/</ext-link>
-        </p>
+        <p><ext-link ext-link-type="uri" xlink:href="http://example.com/">http://example.com/</ext-link></p>
       </list-item>
       <list-item>
-        <p>
-          It should.
-        </p>
+        <p>It should.</p>
       </list-item>
     </list>
-    <p>
-      An e-mail address: nobody [at] nowhere.net
-    </p>
+    <p>An e-mail address: nobody [at] nowhere.net</p>
     <disp-quote>
-      <p>
-        Blockquoted:
-        <ext-link ext-link-type="uri" xlink:href="http://example.com/">http://example.com/</ext-link>
-      </p>
+      <p>Blockquoted:
+        <ext-link ext-link-type="uri" xlink:href="http://example.com/">http://example.com/</ext-link></p>
     </disp-quote>
-    <p>
-      Auto-links should not occur here:
-      <monospace>&lt;http://example.com/&gt;</monospace>
-    </p>
+    <p>Auto-links should not occur here:
+      <monospace>&lt;http://example.com/&gt;</monospace></p>
     <preformat>or here: &lt;http://example.com/&gt;</preformat>
   </sec>
 </sec>
 <sec id="images">
   <title>Images</title>
-  <p>
-    From &quot;Voyage dans la Lune&quot; by Georges Melies (1902):
-  </p>
-  <p>
-    <inline-graphic mimetype="image" mime-subtype="jpeg" xlink:href="lalune.jpg" xlink:title="Voyage dans la Lune" />
-  </p>
-  <p>
-    Here is a movie
+  <p>From &quot;Voyage dans la Lune&quot; by Georges Melies (1902):</p>
+  <p><inline-graphic mimetype="image" mime-subtype="jpeg" xlink:href="lalune.jpg" xlink:title="Voyage dans la Lune" /></p>
+  <p>Here is a movie
     <inline-graphic mimetype="image" mime-subtype="jpeg" xlink:href="movie.jpg" />
-    icon.
-  </p>
+    icon.</p>
 </sec>
 <sec id="footnotes">
   <title>Footnotes</title>
-  <p>
-    Here is a footnote reference<xref alt="(1)" rid="note_1">(1)</xref>,
+  <p>Here is a footnote reference<xref alt="(1)" rid="note_1">(1)</xref>,
     and
     another<xref alt="(longnote)" rid="note_longnote">(longnote)</xref>.
     This should <italic>not</italic> be a footnote reference, because it
-    contains a space^(my note).
-  </p>
-  <p>
-    <xref alt="(1)" rid="ref_1">(1)</xref> Here is the footnote. It can
-    go anywhere in the document, not just at the end.
-  </p>
-  <p>
-    <xref alt="(longnote)" rid="ref_longnote">(longnote)</xref> Here's
-    the other note. This one contains multiple blocks.
-  </p>
-  <p>
-    Caret characters are used to indicate that the blocks all belong to
-    a single footnote (as with block quotes).
-  </p>
+    contains a space^(my note).</p>
+  <p><xref alt="(1)" rid="ref_1">(1)</xref> Here is the footnote. It can
+    go anywhere in the document, not just at the end.</p>
+  <p><xref alt="(longnote)" rid="ref_longnote">(longnote)</xref> Here's
+    the other note. This one contains multiple blocks.</p>
+  <p>Caret characters are used to indicate that the blocks all belong to
+    a single footnote (as with block quotes).</p>
   <preformat>  { &lt;code&gt; }</preformat>
-  <p>
-    If you want, you can use a caret at the beginning of every line, as
+  <p>If you want, you can use a caret at the beginning of every line, as
     with blockquotes, but all that you need is a caret at the beginning
-    of the first line of the block and any preceding blank lines.
-  </p>
-  <p>
-    text <italic>Leading space</italic>
-  </p>
-  <p>
-    <italic>Trailing space</italic> text
-  </p>
-  <p>
-    text <italic>Leading spaces</italic>
-  </p>
-  <p>
-    <italic>Trailing spaces</italic> text
-  </p>
+    of the first line of the block and any preceding blank lines.</p>
+  <p>text <italic>Leading space</italic></p>
+  <p><italic>Trailing space</italic> text</p>
+  <p>text <italic>Leading spaces</italic></p>
+  <p><italic>Trailing spaces</italic> text</p>
 </sec>
 <sec id="tables">
   <title>Tables</title>
@@ -1071,55 +658,37 @@ These should not be escaped:  \$ \\ \&gt; \[ \{</preformat>
       <thead>
         <tr>
           <th>
-            <p>
-              X
-            </p>
+            <p>X</p>
           </th>
           <th>
-            <p>
-              Y
-            </p>
+            <p>Y</p>
           </th>
           <th>
-            <p>
-              Z
-            </p>
+            <p>Z</p>
           </th>
         </tr>
       </thead>
       <tbody>
         <tr>
           <td>
-            <p>
-              1
-            </p>
+            <p>1</p>
           </td>
           <td>
-            <p>
-              2
-            </p>
+            <p>2</p>
           </td>
           <td>
-            <p>
-              3
-            </p>
+            <p>3</p>
           </td>
         </tr>
         <tr>
           <td>
-            <p>
-              4
-            </p>
+            <p>4</p>
           </td>
           <td>
-            <p>
-              5
-            </p>
+            <p>5</p>
           </td>
           <td>
-            <p>
-              6
-            </p>
+            <p>6</p>
           </td>
         </tr>
       </tbody>
@@ -1131,55 +700,37 @@ These should not be escaped:  \$ \\ \&gt; \[ \{</preformat>
       <thead>
         <tr>
           <th>
-            <p>
-              X
-            </p>
+            <p>X</p>
           </th>
           <th>
-            <p>
-              Y
-            </p>
+            <p>Y</p>
           </th>
           <th>
-            <p>
-              Z
-            </p>
+            <p>Z</p>
           </th>
         </tr>
       </thead>
       <tbody>
         <tr>
           <td>
-            <p>
-              1
-            </p>
+            <p>1</p>
           </td>
           <td>
-            <p>
-              2
-            </p>
+            <p>2</p>
           </td>
           <td>
-            <p>
-              3
-            </p>
+            <p>3</p>
           </td>
         </tr>
         <tr>
           <td>
-            <p>
-              4
-            </p>
+            <p>4</p>
           </td>
           <td>
-            <p>
-              5
-            </p>
+            <p>5</p>
           </td>
           <td>
-            <p>
-              6
-            </p>
+            <p>6</p>
           </td>
         </tr>
       </tbody>
@@ -1191,55 +742,37 @@ These should not be escaped:  \$ \\ \&gt; \[ \{</preformat>
       <thead>
         <tr>
           <th>
-            <p>
-              X
-            </p>
+            <p>X</p>
           </th>
           <th>
-            <p>
-              Y
-            </p>
+            <p>Y</p>
           </th>
           <th>
-            <p>
-              Z
-            </p>
+            <p>Z</p>
           </th>
         </tr>
       </thead>
       <tbody>
         <tr>
           <td>
-            <p>
-              1
-            </p>
+            <p>1</p>
           </td>
           <td>
-            <p>
-              2
-            </p>
+            <p>2</p>
           </td>
           <td>
-            <p>
-              3
-            </p>
+            <p>3</p>
           </td>
         </tr>
         <tr>
           <td>
-            <p>
-              4
-            </p>
+            <p>4</p>
           </td>
           <td>
-            <p>
-              5
-            </p>
+            <p>5</p>
           </td>
           <td>
-            <p>
-              6
-            </p>
+            <p>6</p>
           </td>
         </tr>
       </tbody>
@@ -1251,55 +784,37 @@ These should not be escaped:  \$ \\ \&gt; \[ \{</preformat>
       <thead>
         <tr>
           <th>
-            <p>
-              X
-            </p>
+            <p>X</p>
           </th>
           <th>
-            <p>
-              Y
-            </p>
+            <p>Y</p>
           </th>
           <th>
-            <p>
-              Z
-            </p>
+            <p>Z</p>
           </th>
         </tr>
       </thead>
       <tbody>
         <tr>
           <td>
-            <p>
-              1
-            </p>
+            <p>1</p>
           </td>
           <td>
-            <p>
-              2
-            </p>
+            <p>2</p>
           </td>
           <td>
-            <p>
-              3
-            </p>
+            <p>3</p>
           </td>
         </tr>
         <tr>
           <td>
-            <p>
-              4
-            </p>
+            <p>4</p>
           </td>
           <td>
-            <p>
-              5
-            </p>
+            <p>5</p>
           </td>
           <td>
-            <p>
-              6
-            </p>
+            <p>6</p>
           </td>
         </tr>
       </tbody>
@@ -1311,55 +826,37 @@ These should not be escaped:  \$ \\ \&gt; \[ \{</preformat>
       <thead>
         <tr>
           <th>
-            <p>
-              X
-            </p>
+            <p>X</p>
           </th>
           <th>
-            <p>
-              Y
-            </p>
+            <p>Y</p>
           </th>
           <th>
-            <p>
-              Z
-            </p>
+            <p>Z</p>
           </th>
         </tr>
       </thead>
       <tbody>
         <tr>
           <td>
-            <p>
-              1
-            </p>
+            <p>1</p>
           </td>
           <td>
-            <p>
-              2
-            </p>
+            <p>2</p>
           </td>
           <td>
-            <p>
-              3
-            </p>
+            <p>3</p>
           </td>
         </tr>
         <tr>
           <td>
-            <p>
-              4
-            </p>
+            <p>4</p>
           </td>
           <td>
-            <p>
-              5
-            </p>
+            <p>5</p>
           </td>
           <td>
-            <p>
-              6
-            </p>
+            <p>6</p>
           </td>
         </tr>
       </tbody>
@@ -1371,55 +868,37 @@ These should not be escaped:  \$ \\ \&gt; \[ \{</preformat>
       <thead>
         <tr>
           <th>
-            <p>
-              X
-            </p>
+            <p>X</p>
           </th>
           <th>
-            <p>
-              Y
-            </p>
+            <p>Y</p>
           </th>
           <th>
-            <p>
-              Z
-            </p>
+            <p>Z</p>
           </th>
         </tr>
       </thead>
       <tbody>
         <tr>
           <td>
-            <p>
-              1
-            </p>
+            <p>1</p>
           </td>
           <td>
-            <p>
-              2
-            </p>
+            <p>2</p>
           </td>
           <td>
-            <p>
-              3
-            </p>
+            <p>3</p>
           </td>
         </tr>
         <tr>
           <td>
-            <p>
-              4
-            </p>
+            <p>4</p>
           </td>
           <td>
-            <p>
-              5
-            </p>
+            <p>5</p>
           </td>
           <td>
-            <p>
-              6
-            </p>
+            <p>6</p>
           </td>
         </tr>
       </tbody>
@@ -1431,55 +910,37 @@ These should not be escaped:  \$ \\ \&gt; \[ \{</preformat>
       <thead>
         <tr>
           <th>
-            <p>
-              X
-            </p>
+            <p>X</p>
           </th>
           <th>
-            <p>
-              Y
-            </p>
+            <p>Y</p>
           </th>
           <th>
-            <p>
-              Z
-            </p>
+            <p>Z</p>
           </th>
         </tr>
       </thead>
       <tbody>
         <tr>
           <td>
-            <p>
-              1
-            </p>
+            <p>1</p>
           </td>
           <td>
-            <p>
-              2
-            </p>
+            <p>2</p>
           </td>
           <td>
-            <p>
-              3
-            </p>
+            <p>3</p>
           </td>
         </tr>
         <tr>
           <td>
-            <p>
-              4
-            </p>
+            <p>4</p>
           </td>
           <td>
-            <p>
-              5
-            </p>
+            <p>5</p>
           </td>
           <td>
-            <p>
-              6
-            </p>
+            <p>6</p>
           </td>
         </tr>
       </tbody>
@@ -1491,55 +952,37 @@ These should not be escaped:  \$ \\ \&gt; \[ \{</preformat>
       <thead>
         <tr>
           <th>
-            <p>
-              X
-            </p>
+            <p>X</p>
           </th>
           <th>
-            <p>
-              Y
-            </p>
+            <p>Y</p>
           </th>
           <th>
-            <p>
-              Z
-            </p>
+            <p>Z</p>
           </th>
         </tr>
       </thead>
       <tbody>
         <tr>
           <td>
-            <p>
-              1
-            </p>
+            <p>1</p>
           </td>
           <td>
-            <p>
-              2
-            </p>
+            <p>2</p>
           </td>
           <td>
-            <p>
-              3
-            </p>
+            <p>3</p>
           </td>
         </tr>
         <tr>
           <td>
-            <p>
-              4
-            </p>
+            <p>4</p>
           </td>
           <td>
-            <p>
-              5
-            </p>
+            <p>5</p>
           </td>
           <td>
-            <p>
-              6
-            </p>
+            <p>6</p>
           </td>
         </tr>
       </tbody>
@@ -1551,55 +994,37 @@ These should not be escaped:  \$ \\ \&gt; \[ \{</preformat>
       <thead>
         <tr>
           <th>
-            <p>
-              X
-            </p>
+            <p>X</p>
           </th>
           <th>
-            <p>
-              Y
-            </p>
+            <p>Y</p>
           </th>
           <th>
-            <p>
-              Z
-            </p>
+            <p>Z</p>
           </th>
         </tr>
       </thead>
       <tbody>
         <tr>
           <td>
-            <p>
-              1
-            </p>
+            <p>1</p>
           </td>
           <td>
-            <p>
-              2
-            </p>
+            <p>2</p>
           </td>
           <td>
-            <p>
-              3
-            </p>
+            <p>3</p>
           </td>
         </tr>
         <tr>
           <td>
-            <p>
-              4
-            </p>
+            <p>4</p>
           </td>
           <td>
-            <p>
-              5
-            </p>
+            <p>5</p>
           </td>
           <td>
-            <p>
-              6
-            </p>
+            <p>6</p>
           </td>
         </tr>
       </tbody>
@@ -1614,36 +1039,24 @@ These should not be escaped:  \$ \\ \&gt; \[ \{</preformat>
       <tbody>
         <tr>
           <td>
-            <p>
-              1
-            </p>
+            <p>1</p>
           </td>
           <td>
-            <p>
-              2
-            </p>
+            <p>2</p>
           </td>
           <td>
-            <p>
-              3
-            </p>
+            <p>3</p>
           </td>
         </tr>
         <tr>
           <td>
-            <p>
-              4
-            </p>
+            <p>4</p>
           </td>
           <td>
-            <p>
-              5
-            </p>
+            <p>5</p>
           </td>
           <td>
-            <p>
-              6
-            </p>
+            <p>6</p>
           </td>
         </tr>
       </tbody>
@@ -1655,36 +1068,24 @@ These should not be escaped:  \$ \\ \&gt; \[ \{</preformat>
       <tbody>
         <tr>
           <td>
-            <p>
-              1
-            </p>
+            <p>1</p>
           </td>
           <td>
-            <p>
-              2
-            </p>
+            <p>2</p>
           </td>
           <td>
-            <p>
-              3
-            </p>
+            <p>3</p>
           </td>
         </tr>
         <tr>
           <td>
-            <p>
-              4
-            </p>
+            <p>4</p>
           </td>
           <td>
-            <p>
-              5
-            </p>
+            <p>5</p>
           </td>
           <td>
-            <p>
-              6
-            </p>
+            <p>6</p>
           </td>
         </tr>
       </tbody>
@@ -1696,36 +1097,24 @@ These should not be escaped:  \$ \\ \&gt; \[ \{</preformat>
       <tbody>
         <tr>
           <td>
-            <p>
-              1
-            </p>
+            <p>1</p>
           </td>
           <td>
-            <p>
-              2
-            </p>
+            <p>2</p>
           </td>
           <td>
-            <p>
-              3
-            </p>
+            <p>3</p>
           </td>
         </tr>
         <tr>
           <td>
-            <p>
-              4
-            </p>
+            <p>4</p>
           </td>
           <td>
-            <p>
-              5
-            </p>
+            <p>5</p>
           </td>
           <td>
-            <p>
-              6
-            </p>
+            <p>6</p>
           </td>
         </tr>
       </tbody>
@@ -1737,36 +1126,24 @@ These should not be escaped:  \$ \\ \&gt; \[ \{</preformat>
       <tbody>
         <tr>
           <td>
-            <p>
-              1
-            </p>
+            <p>1</p>
           </td>
           <td>
-            <p>
-              2
-            </p>
+            <p>2</p>
           </td>
           <td>
-            <p>
-              3
-            </p>
+            <p>3</p>
           </td>
         </tr>
         <tr>
           <td>
-            <p>
-              4
-            </p>
+            <p>4</p>
           </td>
           <td>
-            <p>
-              5
-            </p>
+            <p>5</p>
           </td>
           <td>
-            <p>
-              6
-            </p>
+            <p>6</p>
           </td>
         </tr>
       </tbody>
@@ -1774,9 +1151,7 @@ These should not be escaped:  \$ \\ \&gt; \[ \{</preformat>
   </sec>
   <sec id="empty-tables">
     <title>Empty Tables</title>
-    <p>
-      This section should be empty.
-    </p>
+    <p>This section should be empty.</p>
   </sec>
 </sec>
 </body>

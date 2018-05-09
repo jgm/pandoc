@@ -1,3 +1,4 @@
+{-# LANGUAGE NoImplicitPrelude #-}
 {-
 Copyright (C) 2015 John MacFarlane <jgm@berkeley.edu>
 
@@ -28,6 +29,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 Emoji symbol lookup from canonical string identifier.
 -}
 module Text.Pandoc.Emoji ( emojis ) where
+import Prelude
 import qualified Data.Map as M
 
 emojis :: M.Map String String

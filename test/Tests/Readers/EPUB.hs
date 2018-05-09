@@ -1,5 +1,7 @@
+{-# LANGUAGE NoImplicitPrelude #-}
 module Tests.Readers.EPUB (tests) where
 
+import Prelude
 import qualified Data.ByteString.Lazy as BL
 import Test.Tasty
 import Test.Tasty.HUnit

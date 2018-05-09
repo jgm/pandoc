@@ -1,6 +1,8 @@
+{-# LANGUAGE NoImplicitPrelude #-}
 {-# LANGUAGE OverloadedStrings #-}
 module Tests.Readers.Org.Inline.Smart (tests) where
 
+import Prelude
 import Data.Text (Text)
 import Test.Tasty (TestTree)
 import Tests.Helpers ((=?>), purely, test)

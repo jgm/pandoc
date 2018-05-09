@@ -1,3 +1,4 @@
+{-# LANGUAGE NoImplicitPrelude #-}
 {-# LANGUAGE DeriveDataTypeable   #-}
 {-# LANGUAGE FlexibleInstances    #-}
 {- Copyright (C) 2012-2018 John MacFarlane <jgm@berkeley.edu>
@@ -30,6 +31,7 @@ Conversion of 'Pandoc' documents to custom markup using
 a lua writer.
 -}
 module Text.Pandoc.Writers.Custom ( writeCustom ) where
+import Prelude
 import Control.Arrow ((***))
 import Control.Exception
 import Control.Monad (when)
@@ -44,7 +46,7 @@ import Foreign.Lua.Api
 import Text.Pandoc.Class (PandocIO)
 import Text.Pandoc.Definition
 import Text.Pandoc.Error
-import Text.Pandoc.Lua.Init (runPandocLua)
+import Text.Pandoc.Lua.Init (runPandocLua, registerScriptPath)
 import Text.Pandoc.Lua.StackInstances ()
 import Text.Pandoc.Lua.Util (addValue, dostring')
 import Text.Pandoc.Options
@@ -106,6 +108,7 @@ writeCustom :: FilePath -> WriterOptions -> Pandoc -> PandocIO Text
 writeCustom luaFile opts doc@(Pandoc meta _) = do
   luaScript <- liftIO $ UTF8.readFile luaFile
   res <- runPandocLua $ do
+    registerScriptPath luaFile
     stat <- dostring' luaScript
     -- check for error in lua script (later we'll change the return type
     -- to handle this more gracefully):

@@ -1,3 +1,4 @@
+{-# LANGUAGE NoImplicitPrelude #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-
 Copyright (C) 2007-2018 John MacFarlane <jgm@berkeley.edu>
@@ -30,6 +31,7 @@ Conversion of 'Pandoc' documents to groff man page format.
 
 -}
 module Text.Pandoc.Writers.Man ( writeMan) where
+import Prelude
 import Control.Monad.State.Strict
 import Data.List (intercalate, intersperse, sort, stripPrefix)
 import qualified Data.Map as Map

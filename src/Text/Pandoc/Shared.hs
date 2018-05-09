@@ -1,3 +1,4 @@
+{-# LANGUAGE NoImplicitPrelude #-}
 {-# LANGUAGE CPP                   #-}
 {-# LANGUAGE DeriveDataTypeable    #-}
 {-# LANGUAGE FlexibleContexts      #-}
@@ -83,6 +84,7 @@ module Text.Pandoc.Shared (
                      -- * File handling
                      inDirectory,
                      collapseFilePath,
+                     uriPathToPath,
                      filteredFilesFromArchive,
                      -- * URI handling
                      schemes,
@@ -100,6 +102,7 @@ module Text.Pandoc.Shared (
                      pandocVersion
                     ) where
 
+import Prelude
 import Codec.Archive.Zip
 import qualified Control.Exception as E
 import Control.Monad (MonadPlus (..), msum, unless)
@@ -111,7 +114,6 @@ import Data.Data (Data, Typeable)
 import Data.List (find, intercalate, intersperse, stripPrefix)
 import qualified Data.Map as M
 import Data.Maybe (mapMaybe)
-import Data.Monoid ((<>))
 import Data.Sequence (ViewL (..), ViewR (..), viewl, viewr)
 import qualified Data.Set as Set
 import qualified Data.Text as T
@@ -126,7 +128,7 @@ import Text.HTML.TagSoup (RenderOptions (..), Tag (..), renderOptions,
                           renderTagsOptions)
 import Text.Pandoc.Builder (Blocks, Inlines, ToMetaValue (..))
 import qualified Text.Pandoc.Builder as B
-import Text.Pandoc.Compat.Time
+import Data.Time
 import Text.Pandoc.Definition
 import Text.Pandoc.Generic (bottomUp)
 import Text.Pandoc.Pretty (charWidth)
@@ -286,12 +288,7 @@ normalizeDate s = fmap (formatTime defaultTimeLocale "%F")
   where rejectBadYear day = case toGregorian day of
           (y, _, _) | y >= 1601 && y <= 9999 -> Just day
           _         -> Nothing
-        parsetimeWith =
-#if MIN_VERSION_time(1,5,0)
-             parseTimeM True defaultTimeLocale
-#else
-             parseTime defaultTimeLocale
-#endif
+        parsetimeWith = parseTimeM True defaultTimeLocale
         formats = ["%x","%m/%d/%Y", "%D","%F", "%d %b %Y",
                     "%e %B %Y", "%b. %e, %Y", "%B %e, %Y",
                     "%Y%m%d", "%Y%m", "%Y"]
@@ -447,7 +444,7 @@ instance Walkable Inline Element where
     elts' <- walkM f elts
     return $ Sec lev nums attr ils' elts'
   query f (Blk x)              = query f x
-  query f (Sec _ _ _ ils elts) = query f ils <> query f elts
+  query f (Sec _ _ _ ils elts) = query f ils `mappend` query f elts
 
 instance Walkable Block Element where
   walk f (Blk x) = Blk (walk f x)
@@ -458,7 +455,7 @@ instance Walkable Block Element where
     elts' <- walkM f elts
     return $ Sec lev nums attr ils' elts'
   query f (Blk x)              = query f x
-  query f (Sec _ _ _ ils elts) = query f ils <> query f elts
+  query f (Sec _ _ _ ils elts) = query f ils `mappend` query f elts
 
 
 -- | Convert Pandoc inline list to plain text identifier.  HTML
@@ -638,6 +635,19 @@ collapseFilePath = Posix.joinPath . reverse . foldl go [] . splitDirectories
     isSingleton [x] = Just x
     isSingleton _   = Nothing
     checkPathSeperator = fmap isPathSeparator . isSingleton
+
+-- Convert the path part of a file: URI to a regular path.
+-- On windows, @/c:/foo@ should be @c:/foo@.
+-- On linux, @/foo@ should be @/foo@.
+uriPathToPath :: String -> FilePath
+uriPathToPath path =
+#ifdef _WINDOWS
+  case path of
+    '/':ps -> ps
+    ps     -> ps
+#else
+  path
+#endif
 
 --
 -- File selection from the archive

@@ -1,3 +1,4 @@
+{-# LANGUAGE NoImplicitPrelude #-}
 {-
 Copyright © 2017-2018 Albert Krewinkel <tarleb+pandoc@moltkeplatz.de>
 
@@ -29,6 +30,7 @@ module Text.Pandoc.Lua.Module.MediaBag
   ( pushModule
   ) where
 
+import Prelude
 import Control.Monad (zipWithM_)
 import Data.IORef (IORef, modifyIORef', readIORef)
 import Data.Maybe (fromMaybe)

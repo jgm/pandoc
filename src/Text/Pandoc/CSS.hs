@@ -1,9 +1,11 @@
+{-# LANGUAGE NoImplicitPrelude #-}
 module Text.Pandoc.CSS ( foldOrElse
                        , pickStyleAttrProps
                        , pickStylesToKVs
                        )
 where
 
+import Prelude
 import Text.Pandoc.Shared (trim)
 import Text.Parsec
 import Text.Parsec.String

@@ -1,6 +1,6 @@
 # Simple title
 
-This example tests if Pandoc doesn't insert forbidden elements in FictionBook titles.
+This example tests FictionBook titles.
 
 # *Emphasized* **Strong** Title
 

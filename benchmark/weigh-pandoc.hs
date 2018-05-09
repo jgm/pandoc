@@ -1,3 +1,5 @@
+{-# LANGUAGE NoImplicitPrelude #-}
+import Prelude
 import Weigh
 import Text.Pandoc
 import Data.Text (Text)

@@ -1,3 +1,4 @@
+{-# LANGUAGE NoImplicitPrelude #-}
 module Text.Pandoc.Writers.Math
   ( texMathToInlines
   , convertMath
@@ -6,6 +7,7 @@ module Text.Pandoc.Writers.Math
   )
 where
 
+import Prelude
 import Text.Pandoc.Class
 import Text.Pandoc.Definition
 import Text.Pandoc.Logging

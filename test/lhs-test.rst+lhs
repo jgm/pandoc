@@ -14,8 +14,8 @@ second item of the pair).
 
 ::
 
-    f *** g = first f >>> second g
+   f *** g = first f >>> second g
 
 Block quote:
 
-    foo bar
+   foo bar

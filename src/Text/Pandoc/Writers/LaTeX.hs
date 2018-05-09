@@ -1,3 +1,4 @@
+{-# LANGUAGE NoImplicitPrelude #-}
 {-# LANGUAGE OverloadedStrings   #-}
 {-# LANGUAGE PatternGuards       #-}
 {-# LANGUAGE ScopedTypeVariables #-}
@@ -34,6 +35,7 @@ module Text.Pandoc.Writers.LaTeX (
     writeLaTeX
   , writeBeamer
   ) where
+import Prelude
 import Control.Applicative ((<|>))
 import Control.Monad.State.Strict
 import Data.Aeson (FromJSON, object, (.=))
@@ -411,15 +413,15 @@ elementToBeamer slideLevel  (Sec lvl _num (ident,classes,kvs) tit elts)
       slideTitle <-
             if tit == [Str "\0"] -- marker for hrule
                then return []
-               else
-                 if null ident
-                    then return $ latex "{" : tit ++ [latex "}"]
-                    else do
-                      ref <- toLabel ident
-                      return $ latex ("{%\n\\protect\\hypertarget{" ++
-                                ref ++ "}{%\n") : tit ++ [latex "}}"]
+               else return $ latex "{" : tit ++ [latex "}"]
+      ref <- toLabel ident
+      let slideAnchor = if null ident
+                           then []
+                           else [latex ("\n\\protect\\hypertarget{" ++
+                                  ref ++ "}{}")]
       let slideStart = Para $
-              RawInline "latex" ("\\begin{frame}" ++ options) : slideTitle
+              RawInline "latex" ("\\begin{frame}" ++ options) :
+                 slideTitle ++ slideAnchor
       let slideEnd = RawBlock "latex" "\\end{frame}"
       -- now carve up slide into blocks if there are sections inside
       bs <- concat `fmap` mapM (elementToBeamer slideLevel) elts
@@ -676,6 +678,7 @@ blockToLaTeX (OrderedList (start, numstyle, numdelim) lst) = do
   let enum = text $ "enum" ++ map toLower (toRomanNumeral oldlevel)
   let stylecommand
         | numstyle == DefaultStyle && numdelim == DefaultDelim = empty
+        | beamer && numstyle == Decimal && numdelim == Period = empty
         | beamer = brackets (todelim exemplar)
         | otherwise = "\\def" <> "\\label" <> enum <>
           braces (todelim $ tostyle enum)
@@ -1033,7 +1036,7 @@ inlineToLaTeX (Code (_,classes,_) str) = do
                                Nothing -> ""
         inNote <- gets stInNote
         when inNote $ modify $ \s -> s{ stVerbInNote = True }
-        let chr = case "!\"&'()*,-./:;?@_" \\ str of
+        let chr = case "!\"'()*,-./:;?@" \\ str of
                        (c:_) -> c
                        []    -> '!'
         let str' = escapeStringUsing (backslashEscapes "\\{}%~_&") str

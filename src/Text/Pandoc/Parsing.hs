@@ -1,3 +1,5 @@
+{-# LANGUAGE NoImplicitPrelude #-}
+{-# LANGUAGE CPP                        #-}
 {-# LANGUAGE ExplicitForAll             #-}
 {-# LANGUAGE FlexibleContexts           #-}
 {-# LANGUAGE FlexibleInstances          #-}
@@ -133,7 +135,7 @@ module Text.Pandoc.Parsing ( takeWhileP,
                              extractIdClass,
                              insertIncludedFile,
                              insertIncludedFileF,
-                             -- * Re-exports from Text.Pandoc.Parsec
+                             -- * Re-exports from Text.Parsec
                              Stream,
                              runParser,
                              runParserT,
@@ -194,6 +196,7 @@ module Text.Pandoc.Parsing ( takeWhileP,
                              )
 where
 
+import Prelude
 import Control.Monad.Identity
 import Control.Monad.Reader
 import Data.Char (chr, isAlphaNum, isAscii, isAsciiUpper, isHexDigit,
@@ -202,7 +205,6 @@ import Data.Default
 import Data.List (intercalate, isSuffixOf, transpose)
 import qualified Data.Map as M
 import Data.Maybe (mapMaybe, fromMaybe)
-import Data.Monoid ((<>))
 import qualified Data.Set as Set
 import Data.Text (Text)
 import Text.HTML.TagSoup.Entity (lookupEntity)
@@ -250,10 +252,11 @@ returnF = return . return
 trimInlinesF :: Future s Inlines -> Future s Inlines
 trimInlinesF = liftM trimInlines
 
-instance Monoid a => Monoid (Future s a) where
+instance Semigroup a => Semigroup (Future s a) where
+  (<>) = liftM2 (<>)
+instance (Semigroup a, Monoid a) => Monoid (Future s a) where
   mempty = return mempty
-  mappend = liftM2 mappend
-  mconcat = liftM mconcat . sequence
+  mappend = (<>)
 
 -- | Parse characters while a predicate is true.
 takeWhileP :: Monad m
@@ -529,15 +532,15 @@ romanNumeral upperCase = do
           map char romanDigits
     thousands <- ((1000 *) . length) <$> many thousand
     ninehundreds <- option 0 $ try $ hundred >> thousand >> return 900
-    fivehundreds <- ((500 *) . length) <$> many fivehundred
+    fivehundreds <- option 0 $ 500 <$ fivehundred
     fourhundreds <- option 0 $ try $ hundred >> fivehundred >> return 400
     hundreds <- ((100 *) . length) <$> many hundred
     nineties <- option 0 $ try $ ten >> hundred >> return 90
-    fifties <- ((50 *) . length) <$> many fifty
+    fifties <- option 0 $ (50 <$ fifty)
     forties <- option 0 $ try $ ten >> fifty >> return 40
     tens <- ((10 *) . length) <$> many ten
     nines <- option 0 $ try $ one >> ten >> return 9
-    fives <- ((5 *) . length) <$> many five
+    fives <- option 0 $ (5 <$ five)
     fours <- option 0 $ try $ one >> five >> return 4
     ones <- length <$> many one
     let total = thousands + ninehundreds + fivehundreds + fourhundreds +
@@ -590,7 +593,7 @@ uri = try $ do
   -- http://en.wikipedia.org/wiki/State_of_emergency_(disambiguation)
   -- as a URL, while NOT picking up the closing paren in
   -- (http://wikipedia.org). So we include balanced parens in the URL.
-  let isWordChar c = isAlphaNum c || c `elem` "#$%*+/@\\_-&="
+  let isWordChar c = isAlphaNum c || c `elem` "#$%+/@\\_-&="
   let wordChar = satisfy isWordChar
   let percentEscaped = try $ char '%' >> skipMany1 (satisfy isHexDigit)
   let entity = () <$ characterReference
@@ -1437,7 +1440,7 @@ token pp pos match = tokenPrim pp (\_ t _ -> pos t) match
 
 infixr 5 <+?>
 (<+?>) :: (Monoid a) => ParserT s st m a -> ParserT s st m a -> ParserT s st m a
-a <+?> b = a >>= flip fmap (try b <|> return mempty) . (<>)
+a <+?> b = a >>= flip fmap (try b <|> return mempty) . mappend
 
 extractIdClass :: Attr -> Attr
 extractIdClass (ident, cls, kvs) = (ident', cls', kvs')

@@ -1,7 +1,9 @@
+{-# LANGUAGE NoImplicitPrelude #-}
 {-# OPTIONS_GHC -Wall #-}
 
 module Main where
 
+import Prelude
 import GHC.IO.Encoding
 import Test.Tasty
 import qualified Tests.Command
@@ -10,6 +12,7 @@ import qualified Tests.Old
 import qualified Tests.Readers.Creole
 import qualified Tests.Readers.Docx
 import qualified Tests.Readers.EPUB
+import qualified Tests.Readers.FB2
 import qualified Tests.Readers.HTML
 import qualified Tests.Readers.JATS
 import qualified Tests.Readers.LaTeX
@@ -75,6 +78,7 @@ tests = testGroup "pandoc tests" [ Tests.Command.tests
           , testGroup "Muse" Tests.Readers.Muse.tests
           , testGroup "Creole" Tests.Readers.Creole.tests
           , testGroup "Man" Tests.Readers.Man.tests
+          , testGroup "FB2" Tests.Readers.FB2.tests
           ]
         , testGroup "Lua filters" Tests.Lua.tests
         ]

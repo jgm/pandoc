@@ -79,7 +79,7 @@ Multiline table with caption:
 !align="center" width="15%"| Centered Header
 !width="13%"| Left Aligned
 !align="right" width="16%"| Right Aligned
-!width="33%"| Default aligned
+!width="35%"| Default aligned
 |-
 |align="center"| First
 | row
@@ -98,7 +98,7 @@ Multiline table without caption:
 !align="center" width="15%"| Centered Header
 !width="13%"| Left Aligned
 !align="right" width="16%"| Right Aligned
-!width="33%"| Default aligned
+!width="35%"| Default aligned
 |-
 |align="center"| First
 | row
@@ -136,7 +136,7 @@ Multiline table without column headers:
 |align="center" width="15%"| First
 |width="13%"| row
 |align="right" width="16%"| 12.0
-|width="33%"| Example of a row that spans multiple lines.
+|width="35%"| Example of a row that spans multiple lines.
 |-
 |align="center"| Second
 | row

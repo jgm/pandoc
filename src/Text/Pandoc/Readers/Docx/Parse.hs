@@ -1,3 +1,4 @@
+{-# LANGUAGE NoImplicitPrelude #-}
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE PatternGuards     #-}
 {-# LANGUAGE ViewPatterns      #-}
@@ -58,6 +59,7 @@ module Text.Pandoc.Readers.Docx.Parse ( Docx(..)
                                       , archiveToDocx
                                       , archiveToDocxWithWarnings
                                       ) where
+import Prelude
 import Codec.Archive.Zip
 import Control.Applicative ((<|>))
 import Control.Monad.Except
@@ -132,21 +134,23 @@ mapD f xs =
   in
    concatMapM handler xs
 
-unwrapSDT :: NameSpaces -> Content -> [Content]
-unwrapSDT ns (Elem element)
+unwrap :: NameSpaces -> Content -> [Content]
+unwrap ns (Elem element)
   | isElem ns "w" "sdt" element
   , Just sdtContent <- findChildByName ns "w" "sdtContent" element
-  = map Elem $ elChildren sdtContent
-unwrapSDT _ content = [content]
+  = concatMap ((unwrap ns) . Elem) (elChildren sdtContent)
+  | isElem ns "w" "smartTag" element
+  = concatMap ((unwrap ns) . Elem) (elChildren element)
+unwrap _ content = [content]
 
-unwrapSDTchild :: NameSpaces -> Content -> Content
-unwrapSDTchild ns (Elem element) =
-  Elem $ element { elContent = concatMap (unwrapSDT ns) (elContent element) }
-unwrapSDTchild _ content = content
+unwrapChild :: NameSpaces -> Content -> Content
+unwrapChild ns (Elem element) =
+  Elem $ element { elContent = concatMap (unwrap ns) (elContent element) }
+unwrapChild _ content = content
 
 walkDocument' :: NameSpaces -> XMLC.Cursor -> XMLC.Cursor
 walkDocument' ns cur =
-  let modifiedCur = XMLC.modifyContent (unwrapSDTchild ns) cur
+  let modifiedCur = XMLC.modifyContent (unwrapChild ns) cur
   in
     case XMLC.nextDF modifiedCur of
       Just cur' -> walkDocument' ns cur'
@@ -275,7 +279,6 @@ data ParPart = PlainRun Run
              | Drawing FilePath String String B.ByteString Extent -- title, alt
              | Chart                                              -- placeholder for now
              | PlainOMath [Exp]
-             | SmartTag [Run]
              | Field FieldInfo [Run]
              | NullParPart      -- when we need to return nothing, but
                                 -- not because of an error.
@@ -825,10 +828,6 @@ elemToParPart ns element
   | Just change <- getTrackedChange ns element = do
       runs <- mapD (elemToRun ns) (elChildren element)
       return $ ChangedRuns change runs
-elemToParPart ns element
-  | isElem ns "w" "smartTag" element = do
-    runs <- mapD (elemToRun ns) (elChildren element)
-    return $ SmartTag runs
 elemToParPart ns element
   | isElem ns "w" "bookmarkStart" element
   , Just bmId <- findAttrByName ns "w" "id" element

@@ -1,3 +1,4 @@
+{-# LANGUAGE NoImplicitPrelude #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-
 Copyright (C) 2006-2018 John MacFarlane <jgm@berkeley.edu>
@@ -30,7 +31,8 @@ Conversion of 'Pandoc' documents to reStructuredText.
 
 reStructuredText:  <http://docutils.sourceforge.net/rst.html>
 -}
-module Text.Pandoc.Writers.RST ( writeRST ) where
+module Text.Pandoc.Writers.RST ( writeRST, flatten ) where
+import Prelude
 import Control.Monad.State.Strict
 import Data.Char (isSpace, toLower)
 import Data.List (isPrefixOf, stripPrefix)
@@ -46,6 +48,7 @@ import Text.Pandoc.Pretty
 import Text.Pandoc.Shared
 import Text.Pandoc.Templates (renderTemplate')
 import Text.Pandoc.Writers.Shared
+import Text.Pandoc.Walk
 
 type Refs = [([Inline], Target)]
 
@@ -260,7 +263,6 @@ blockToRST (Header level (name,classes,_) inlines) = do
           return $ nowrap $ hang 3 ".. " (rub $$ name' $$ cls) $$ blankline
 blockToRST (CodeBlock (_,classes,kvs) str) = do
   opts <- gets stOptions
-  let tabstop = writerTabStop opts
   let startnum = maybe "" (\x -> " " <> text x) $ lookup "startFrom" kvs
   let numberlines = if "numberLines" `elem` classes
                        then "   :number-lines:" <> startnum
@@ -273,11 +275,10 @@ blockToRST (CodeBlock (_,classes,kvs) str) = do
                      c `notElem` ["sourceCode","literate","numberLines"]] of
              []       -> "::"
              (lang:_) -> (".. code:: " <> text lang) $$ numberlines)
-          $+$ nest tabstop (text str) $$ blankline
+          $+$ nest 3 (text str) $$ blankline
 blockToRST (BlockQuote blocks) = do
-  tabstop <- gets $ writerTabStop . stOptions
   contents <- blockListToRST blocks
-  return $ nest tabstop contents <> blankline
+  return $ nest 3 contents <> blankline
 blockToRST (Table caption aligns widths headers rows) = do
   caption' <- inlineListToRST caption
   let blocksToDoc opts bs = do
@@ -335,8 +336,7 @@ definitionListItemToRST :: PandocMonad m => ([Inline], [[Block]]) -> RST m Doc
 definitionListItemToRST (label, defs) = do
   label' <- inlineListToRST label
   contents <- liftM vcat $ mapM blockListToRST defs
-  tabstop <- gets $ writerTabStop . stOptions
-  return $ nowrap label' $$ nest tabstop (nestle contents <> cr)
+  return $ nowrap label' $$ nest 3 (nestle contents <> cr)
 
 -- | Format a list of lines as line block.
 linesToLineBlock :: PandocMonad m => [[Inline]] -> RST m Doc
@@ -376,12 +376,27 @@ blockListToRST :: PandocMonad m
                -> RST m Doc
 blockListToRST = blockListToRST' False
 
--- | Convert list of Pandoc inline elements to RST.
-inlineListToRST :: PandocMonad m => [Inline] -> RST m Doc
-inlineListToRST lst =
-  mapM inlineToRST (removeSpaceAfterDisplayMath $ insertBS lst) >>=
-    return . hcat
-  where -- remove spaces after displaymath, as they screw up indentation:
+transformInlines :: [Inline] -> [Inline]
+transformInlines =  insertBS .
+                    filter hasContents .
+                    removeSpaceAfterDisplayMath .
+                    concatMap (transformNested . flatten)
+  where -- empty inlines are not valid RST syntax
+        hasContents :: Inline -> Bool
+        hasContents (Str "")              = False
+        hasContents (Emph [])             = False
+        hasContents (Strong [])           = False
+        hasContents (Strikeout [])        = False
+        hasContents (Superscript [])      = False
+        hasContents (Subscript [])        = False
+        hasContents (SmallCaps [])        = False
+        hasContents (Quoted _ [])         = False
+        hasContents (Cite _ [])           = False
+        hasContents (Span _ [])           = False
+        hasContents (Link _ [] ("", ""))  = False
+        hasContents (Image _ [] ("", "")) = False
+        hasContents _                     = True
+        -- remove spaces after displaymath, as they screw up indentation:
         removeSpaceAfterDisplayMath (Math DisplayMath x : zs) =
               Math DisplayMath x : dropWhile (==Space) zs
         removeSpaceAfterDisplayMath (x:xs) = x : removeSpaceAfterDisplayMath xs
@@ -399,6 +414,8 @@ inlineListToRST lst =
               x : insertBS (y : zs)
         insertBS (x:ys) = x : insertBS ys
         insertBS [] = []
+        transformNested :: [Inline] -> [Inline]
+        transformNested = map (mapNested stripLeadingTrailingSpace)
         surroundComplex :: Inline -> Inline -> Bool
         surroundComplex (Str s@(_:_)) (Str s'@(_:_)) =
           case (last s, head s') of
@@ -436,44 +453,122 @@ inlineListToRST lst =
         isComplex (Span _ (x:_))  = isComplex x
         isComplex _               = False
 
+-- | Flattens nested inlines. Extracts nested inlines and goes through
+-- them either collapsing them in the outer inline container or
+-- pulling them out of it
+flatten :: Inline -> [Inline]
+flatten outer
+  | null contents = [outer]
+  | otherwise     = combineAll contents
+  where contents = dropInlineParent outer
+        combineAll = foldl combine []
+
+        combine :: [Inline] -> Inline -> [Inline]
+        combine f i = 
+          case (outer, i) of
+          -- quotes are not rendered using RST inlines, so we can keep
+          -- them and they will be readable and parsable
+          (Quoted _ _, _)          -> keep f i
+          (_, Quoted _ _)          -> keep f i
+          -- parent inlines would prevent links from being correctly
+          -- parsed, in this case we prioritise the content over the
+          -- style
+          (_, Link _ _ _)          -> emerge f i
+          -- always give priority to strong text over emphasis
+          (Emph _, Strong _)       -> emerge f i
+          -- drop all other nested styles
+          (_, _)                   -> collapse f i
+
+        emerge f i = f <> [i]
+        keep f i = appendToLast f [i]
+        collapse f i = appendToLast f $ dropInlineParent i
+
+        appendToLast :: [Inline] -> [Inline] -> [Inline]
+        appendToLast [] toAppend = [setInlineChildren outer toAppend]
+        appendToLast flattened toAppend
+          | isOuter lastFlat = init flattened <> [appendTo lastFlat toAppend]
+          | otherwise =  flattened <> [setInlineChildren outer toAppend]
+          where lastFlat = last flattened
+                appendTo o i = mapNested (<> i) o
+                isOuter i = emptyParent i == emptyParent outer
+                emptyParent i = setInlineChildren i []
+
+mapNested :: ([Inline] -> [Inline]) -> Inline -> Inline
+mapNested f i = setInlineChildren i (f (dropInlineParent i))
+
+dropInlineParent :: Inline -> [Inline]
+dropInlineParent (Link _ i _)    = i
+dropInlineParent (Emph i)        = i
+dropInlineParent (Strong i)      = i
+dropInlineParent (Strikeout i)   = i
+dropInlineParent (Superscript i) = i
+dropInlineParent (Subscript i)   = i
+dropInlineParent (SmallCaps i)   = i
+dropInlineParent (Cite _ i)      = i
+dropInlineParent (Image _ i _)   = i
+dropInlineParent (Span _ i)      = i
+dropInlineParent (Quoted _ i)    = i
+dropInlineParent i               = [i] -- not a parent, like Str or Space
+
+setInlineChildren :: Inline -> [Inline] -> Inline
+setInlineChildren (Link a _ t) i    = Link a i t
+setInlineChildren (Emph _) i        = Emph i
+setInlineChildren (Strong _) i      = Strong i
+setInlineChildren (Strikeout _) i   = Strikeout i
+setInlineChildren (Superscript _) i = Superscript i
+setInlineChildren (Subscript _) i   = Subscript i
+setInlineChildren (SmallCaps _) i   = SmallCaps i
+setInlineChildren (Quoted q _) i    = Quoted q i
+setInlineChildren (Cite c _) i      = Cite c i
+setInlineChildren (Image a _ t) i   = Image a i t
+setInlineChildren (Span a _) i      = Span a i
+setInlineChildren leaf _            = leaf
+
+inlineListToRST :: PandocMonad m => [Inline] -> RST m Doc
+inlineListToRST = writeInlines . walk transformInlines
+
+-- | Convert list of Pandoc inline elements to RST.
+writeInlines :: PandocMonad m => [Inline] -> RST m Doc
+writeInlines lst = mapM inlineToRST lst >>= return . hcat
+
 -- | Convert Pandoc inline element to RST.
 inlineToRST :: PandocMonad m => Inline -> RST m Doc
 inlineToRST (Span (_,_,kvs) ils) = do
-  contents <- inlineListToRST ils
+  contents <- writeInlines ils
   return $
     case lookup "role" kvs of
           Just role -> ":" <> text role <> ":`" <> contents <> "`"
           Nothing   -> contents
 inlineToRST (Emph lst) = do
-  contents <- inlineListToRST lst
+  contents <- writeInlines lst
   return $ "*" <> contents <> "*"
 inlineToRST (Strong lst) = do
-  contents <- inlineListToRST lst
+  contents <- writeInlines lst
   return $ "**" <> contents <> "**"
 inlineToRST (Strikeout lst) = do
-  contents <- inlineListToRST lst
+  contents <- writeInlines lst
   return $ "[STRIKEOUT:" <> contents <> "]"
 inlineToRST (Superscript lst) = do
-  contents <- inlineListToRST lst
+  contents <- writeInlines lst
   return $ ":sup:`" <> contents <> "`"
 inlineToRST (Subscript lst) = do
-  contents <- inlineListToRST lst
+  contents <- writeInlines lst
   return $ ":sub:`" <> contents <> "`"
-inlineToRST (SmallCaps lst) = inlineListToRST lst
+inlineToRST (SmallCaps lst) = writeInlines lst
 inlineToRST (Quoted SingleQuote lst) = do
-  contents <- inlineListToRST lst
+  contents <- writeInlines lst
   opts <- gets stOptions
   if isEnabled Ext_smart opts
      then return $ "'" <> contents <> "'"
      else return $ "‘" <> contents <> "’"
 inlineToRST (Quoted DoubleQuote lst) = do
-  contents <- inlineListToRST lst
+  contents <- writeInlines lst
   opts <- gets stOptions
   if isEnabled Ext_smart opts
      then return $ "\"" <> contents <> "\""
      else return $ "“" <> contents <> "”"
 inlineToRST (Cite _  lst) =
-  inlineListToRST lst
+  writeInlines lst
 inlineToRST (Code _ str) = do
   opts <- gets stOptions
   -- we trim the string because the delimiters must adjoin a
@@ -524,7 +619,7 @@ inlineToRST (Link _ [Image attr alt (imgsrc,imgtit)] (src, _tit)) = do
   return $ "|" <> label <> "|"
 inlineToRST (Link _ txt (src, tit)) = do
   useReferenceLinks <- gets $ writerReferenceLinks . stOptions
-  linktext <- inlineListToRST $ B.toList . B.trimInlines . B.fromList $ txt
+  linktext <- writeInlines $ B.toList . B.trimInlines . B.fromList $ txt
   if useReferenceLinks
     then do refs <- gets stLinks
             case lookup txt refs of

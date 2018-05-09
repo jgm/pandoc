@@ -1,3 +1,4 @@
+{-# LANGUAGE NoImplicitPrelude #-}
 {-
 Copyright (C) 2015 Martin Linnemann <theCodingMarlin@googlemail.com>
 
@@ -39,6 +40,7 @@ with an equivalent return value.
 -- We export everything
 module Text.Pandoc.Readers.Odt.Arrows.Utils where
 
+import Prelude
 import Control.Arrow
 import Control.Monad (join)
 
@@ -61,13 +63,13 @@ and6 :: (Arrow a)
      => a b c0->a b c1->a b c2->a b c3->a b c4->a b c5
      -> a b (c0,c1,c2,c3,c4,c5      )
 
-and3 a b c           = (and2 a b          ) &&& c
+and3 a b c           = and2 a b &&& c
                        >>^ \((z,y          ) , x) -> (z,y,x          )
-and4 a b c d         = (and3 a b c        ) &&& d
+and4 a b c d         = and3 a b c &&& d
                        >>^ \((z,y,x        ) , w) -> (z,y,x,w        )
-and5 a b c d e       = (and4 a b c d      ) &&& e
+and5 a b c d e       = and4 a b c d &&& e
                        >>^ \((z,y,x,w      ) , v) -> (z,y,x,w,v      )
-and6 a b c d e f     = (and5 a b c d e    ) &&& f
+and6 a b c d e f     = and5 a b c d e &&& f
                        >>^ \((z,y,x,w,v    ) , u) -> (z,y,x,w,v,u    )
 
 liftA2 :: (Arrow a) => (x -> y -> z) -> a b x -> a b y -> a b z

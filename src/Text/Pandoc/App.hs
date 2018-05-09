@@ -1,3 +1,4 @@
+{-# LANGUAGE NoImplicitPrelude #-}
 {-# LANGUAGE CPP                 #-}
 {-# LANGUAGE DeriveGeneric       #-}
 {-# LANGUAGE ScopedTypeVariables #-}
@@ -42,6 +43,7 @@ module Text.Pandoc.App (
           , options
           , applyFilters
           ) where
+import Prelude
 import qualified Control.Exception as E
 import Control.Monad
 import Control.Monad.Except (catchError, throwError)
@@ -50,11 +52,10 @@ import Data.Aeson (defaultOptions)
 import Data.Aeson.TH (deriveJSON)
 import qualified Data.ByteString as BS
 import qualified Data.ByteString.Lazy as B
-import Data.Char (toLower, toUpper)
+import Data.Char (toLower, toUpper, isAscii, ord)
 import Data.List (find, intercalate, isPrefixOf, isSuffixOf, sort)
 import qualified Data.Map as M
 import Data.Maybe (fromMaybe, isJust, isNothing)
-import Data.Monoid
 import qualified Data.Set as Set
 import Data.Text (Text)
 import qualified Data.Text as T
@@ -65,7 +66,12 @@ import Data.Yaml (decode)
 import qualified Data.Yaml as Yaml
 import GHC.Generics
 import Network.URI (URI (..), parseURI)
+#ifdef EMBED_DATA_FILES
+import Text.Pandoc.Data (dataFiles)
+#else
+import System.Directory (getDirectoryContents)
 import Paths_pandoc (getDataDir)
+#endif
 import Data.Aeson.Encode.Pretty (encodePretty', Config(..), keyOrder,
          defConfig, Indent(..), NumberFormat(..))
 import Skylighting (Style, Syntax (..), defaultSyntaxMap, parseTheme,
@@ -87,7 +93,7 @@ import Text.Pandoc.Highlighting (highlightingStyles)
 import Text.Pandoc.PDF (makePDF)
 import Text.Pandoc.SelfContained (makeDataURI, makeSelfContained)
 import Text.Pandoc.Shared (eastAsianLineBreakFilter, stripEmptyParagraphs,
-         headerShift, isURI, ordNub, safeRead, tabFilter)
+         headerShift, isURI, ordNub, safeRead, tabFilter, uriPathToPath)
 import qualified Text.Pandoc.UTF8 as UTF8
 import Text.Pandoc.Writers.Math (defaultKaTeXURL, defaultMathJaxURL)
 import Text.Pandoc.XML (toEntities)
@@ -217,17 +223,16 @@ convertWithOpts opts = do
        then pdfWriterAndProg (optWriter opts) (optPdfEngine opts)
        else return (nonPdfWriterName $ optWriter opts, Nothing)
 
-  let format = baseWriterName
+  let format = map toLower $ baseWriterName
                  $ takeFileName writerName  -- in case path to lua script
 
   -- disabling the custom writer for now
   (writer, writerExts) <-
             if ".lua" `isSuffixOf` format
-               -- note:  use non-lowercased version writerName
                then return (TextWriter
                        (\o d -> writeCustom writerName o d)
                                :: Writer PandocIO, mempty)
-               else case getWriter writerName of
+               else case getWriter (map toLower writerName) of
                          Left e  -> E.throwIO $ PandocAppError $
                            if format == "pdf"
                               then e ++
@@ -350,12 +355,6 @@ convertWithOpts opts = do
         >>=
         maybe return (addStringAsVariable "epub-cover-image")
                      (optEpubCoverImage opts)
-        >>=
-        (\vars -> case optHTMLMathMethod opts of
-                       LaTeXMathML Nothing -> do
-                          s <- UTF8.toString <$> readDataFile "LaTeXMathML.js"
-                          return $ ("mathml-script", s) : vars
-                       _ -> return vars)
         >>=
         (\vars ->  if format == "dzslides"
                       then do
@@ -513,22 +512,31 @@ convertWithOpts opts = do
                 let htmlFormat = format `elem`
                       ["html","html4","html5","s5","slidy",
                        "slideous","dzslides","revealjs"]
-                    handleEntities = if (htmlFormat ||
-                                         format == "docbook4" ||
-                                         format == "docbook5" ||
-                                         format == "docbook") && optAscii opts
-                                     then toEntities
-                                     else id
+                    escape
+                      | optAscii opts
+                      , htmlFormat || format == "docbook4" ||
+                        format == "docbook5" || format == "docbook" ||
+                        format == "jats" || format == "opml" ||
+                        format == "icml" = toEntities
+                      | optAscii opts
+                      , format == "ms" || format == "man" = groffEscape
+                      | otherwise = id
                     addNl = if standalone
                                then id
                                else (<> T.singleton '\n')
-                output <- (addNl . handleEntities) <$> f writerOptions doc
+                output <- (addNl . escape) <$> f writerOptions doc
                 writerFn eol outputFile =<<
                   if optSelfContained opts && htmlFormat
                      -- TODO not maximally efficient; change type
                      -- of makeSelfContained so it works w/ Text
                      then T.pack <$> makeSelfContained (T.unpack output)
                      else return output
+
+groffEscape :: Text -> Text
+groffEscape = T.concatMap toUchar
+  where toUchar c
+         | isAscii c = T.singleton c
+         | otherwise = T.pack $ printf "\\[u%04X]" (ord c)
 
 type Transform = Pandoc -> Pandoc
 
@@ -729,6 +737,7 @@ defaultReaderName fallback (x:xs) =
     ".odt"      -> "odt"
     ".pdf"      -> "pdf"  -- so we get an "unknown reader" error
     ".doc"      -> "doc"  -- so we get an "unknown reader" error
+    ".fb2"      -> "fb2"
     _           -> defaultReaderName fallback xs
 
 -- Determine default writer based on output file extension
@@ -786,7 +795,7 @@ readSource src = case parseURI src of
                                  readURI src
                              | uriScheme u == "file:" ->
                                  liftIO $ UTF8.toText <$>
-                                    BS.readFile (uriPath u)
+                                    BS.readFile (uriPathToPath $ uriPath u)
                       _       -> liftIO $ UTF8.toText <$>
                                     BS.readFile src
 
@@ -834,8 +843,7 @@ options =
 
     , Option "tw" ["to","write"]
                  (ReqArg
-                  (\arg opt -> return opt { optWriter =
-                                              Just (map toLower arg) })
+                  (\arg opt -> return opt { optWriter = Just arg })
                   "FORMAT")
                  ""
 
@@ -967,6 +975,9 @@ options =
                                 setUserDataDir Nothing
                                 getDefaultTemplate arg
                      case templ of
+                          Right "" -> do -- e.g. for docx, odt, json:
+                            E.throwIO $ PandocCouldNotFindDataFileError
+                               ("templates/default." ++ arg)
                           Right t -> UTF8.hPutStr stdout t
                           Left e  -> E.throwIO e
                      exitSuccess)
@@ -1392,40 +1403,6 @@ options =
                   "URL")
                   "" -- Use KaTeX for HTML Math
 
-    , Option "m" ["latexmathml", "asciimathml"]
-                 (OptArg
-                  (\arg opt -> do
-                      deprecatedOption "--latexmathml, --asciimathml, -m" ""
-                      return opt { optHTMLMathMethod = LaTeXMathML arg })
-                  "URL")
-                 "" -- "Use LaTeXMathML script in html output"
-
-    , Option "" ["mimetex"]
-                 (OptArg
-                  (\arg opt -> do
-                      deprecatedOption "--mimetex" ""
-                      let url' = case arg of
-                                      Just u  -> u ++ "?"
-                                      Nothing -> "/cgi-bin/mimetex.cgi?"
-                      return opt { optHTMLMathMethod = WebTeX url' })
-                  "URL")
-                 "" -- "Use mimetex for HTML math"
-
-    , Option "" ["jsmath"]
-                 (OptArg
-                  (\arg opt -> do
-                      deprecatedOption "--jsmath" ""
-                      return opt { optHTMLMathMethod = JsMath arg})
-                  "URL")
-                 "" -- "Use jsMath for HTML math"
-
-    , Option "" ["gladtex"]
-                 (NoArg
-                  (\opt -> do
-                      deprecatedOption "--gladtex" ""
-                      return opt { optHTMLMathMethod = GladTeX }))
-                 "" -- "Use gladtex for HTML math"
-
     , Option "" ["abbreviations"]
                 (ReqArg
                  (\arg opt -> return opt { optAbbreviations = Just arg })
@@ -1471,7 +1448,7 @@ options =
     , Option "" ["bash-completion"]
                  (NoArg
                   (\_ -> do
-                     ddir <- getDataDir
+                     datafiles <- getDataFileNames
                      tpl <- runIOorExplode $
                               UTF8.toString <$>
                                 readDefaultDataFile "bash_completion.tpl"
@@ -1483,7 +1460,7 @@ options =
                          (unwords readersNames)
                          (unwords writersNames)
                          (unwords $ map fst highlightingStyles)
-                         ddir
+                         (unwords datafiles)
                      exitSuccess ))
                  "" -- "Print bash completion script"
 
@@ -1556,6 +1533,16 @@ options =
                  "" -- "Show help"
 
     ]
+
+getDataFileNames :: IO [FilePath]
+getDataFileNames = do
+#ifdef EMBED_DATA_FILES
+  let allDataFiles = map fst dataFiles
+#else
+  allDataFiles <- filter (\x -> x /= "." && x /= "..") <$>
+                      (getDataDir >>= getDirectoryContents)
+#endif
+  return $ "reference.docx" : "reference.odt" : "reference.pptx" : allDataFiles
 
 -- Returns usage message
 usageMessage :: String -> [OptDescr (Opt -> IO Opt)] -> String

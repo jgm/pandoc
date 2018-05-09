@@ -1,3 +1,4 @@
+{-# LANGUAGE NoImplicitPrelude #-}
 {-
 Copyright (C) 2014-2018 Jesse Rosenthal <jrosenthal@jhu.edu>
 
@@ -33,6 +34,7 @@ module Text.Pandoc.Readers.Docx.Lists ( blocksToBullets
                                       , listParagraphDivs
                                       ) where
 
+import Prelude
 import Data.List
 import Data.Maybe
 import Text.Pandoc.Generic (bottomUp)
