@@ -35,7 +35,7 @@ module Text.Pandoc.Readers.Man where
 import Control.Monad.Except (throwError)
 import Data.Default (Default)
 import Data.Map (insert)
-import Data.Maybe (isJust, maybeToList)
+import Data.Maybe (isJust, fromMaybe)
 import Data.List (intersperse, intercalate)
 import qualified Data.Text as T
 
@@ -109,9 +109,13 @@ parseMacro = do
   macroName <- many1 (letter <|> oneOf ['\\', '"'])
   args <- parseArgs
   let joinedArgs = concat $ intersperse " " args
-  let toBold = return $ Plain [Strong [Str joinedArgs]]
-  let toBoldItalic = return $ Plain [Strong [Emph [Str joinedArgs]]]
-  let toItalic = return $ Plain [Emph [Str joinedArgs]]
+  ManState { rState = rst } <- getState
+  let toTextF transf = if inCodeBlock rst then [Code nullAttr joinedArgs] else transf [Str joinedArgs]
+  let toText = return . Plain . toTextF
+  let toBold       = toText (\s -> [Strong s])
+  let toItalic     = toText (\s -> [Emph s])
+  let toBoldItalic = toText (\s -> [Strong [Emph s]])
+  
   case macroName of
     "\\\"" -> return Null -- comment
     "TH"   -> macroTitle (if null args then "" else head args) -- man-title
@@ -120,14 +124,14 @@ parseMacro = do
     "nf"   -> macroCodeBlock True >> return Null
     "fi"   -> macroCodeBlock False >> return Null
     "B"    -> toBold
-    "BR"   -> return $ linkToMan joinedArgs
+    "BR"   -> return $ macroBR joinedArgs (inCodeBlock rst)
     "BI"   -> toBoldItalic
     "IB"   -> toBoldItalic
     "I"    -> toItalic
     "IR"   -> toItalic
     "RI"   -> toItalic
     "SH"   -> return $ Header 2 nullAttr [Str joinedArgs]
-    "sp"   -> return $ Plain [LineBreak]
+    "sp"   -> return $ if inCodeBlock rst then Null else Plain [LineBreak]
     _      -> unkownMacro macroName
 
   where
@@ -148,10 +152,14 @@ parseMacro = do
   macroCodeBlock :: PandocMonad m => Bool -> ManParser m ()
   macroCodeBlock insideCB = modifyRoffState (\rst -> rst{inCodeBlock = insideCB}) >> return ()
 
-  linkToMan :: String -> Block
+  macroBR :: String -> Bool -> Block
+  macroBR txt inCode | inCode    = Plain [Code nullAttr txt]
+                     | otherwise = fromMaybe (Plain [Strong [Str txt]]) (linkToMan txt)
+
+  linkToMan :: String -> Maybe Block
   linkToMan txt = case runParser linkParser () "" txt of
-      Right lnk -> Plain [lnk]
-      Left _ -> Plain [Emph [Str txt]]
+      Right lnk -> Just $ Plain [lnk]
+      Left _ -> Nothing
     where
     linkParser :: Parsec String () Inline
     linkParser = do
@@ -199,8 +207,8 @@ parseMacro = do
 
 roffInline :: RoffState -> String -> [Inline]
 roffInline rst str
-  | null str        = []
-  | inCodeBlock rst = [Code nullAttr str, LineBreak]
+  | null str && (not $ inCodeBlock rst) = []
+  | inCodeBlock rst = [Code nullAttr str]
   | otherwise       = case fontKind rst of
     Regular    -> [Str str]
     Italic     -> [Emph [Str str]]
@@ -245,19 +253,51 @@ parseLine = do
                        ]
                 >> return Nothing
 
+finds :: (a -> Bool) -> [a] -> ([a], [a])
+finds predic els = let matched = finds' els
+  in (matched, drop (length matched) els) where
+  finds' [] = []
+  finds' (e:es) | predic e = e : finds' es
+                | otherwise = []
+
+-- | return (matched, notmatched, others)
+findsBoth :: (a -> Bool) -> [a] -> ([a], [a], [a])
+findsBoth predic els =
+  let (matched, els')     = finds predic els
+      (notmatched, els'') = finds (not . predic) els'
+  in (matched, notmatched, els'')
+
 createParas :: [Block] -> [Block]
 createParas bs = inner bs [] where
   inner :: [Block] -> [Inline] -> [Block]
-  inner [] inls = maybeToList $ inlinesToPara inls
-  inner (Plain einls : oth) inls = inner oth (inls ++ einls)
-  inner (block : oth) inls = case inlinesToPara inls of
-    Just par -> par : block : inner oth []
-    Nothing  -> block : inner oth []
+  inner [] inls = plainInlinesToPara inls
+  inner (Plain einls : oth) inls = inner oth (inls ++ joinCode einls)
+  inner (block : oth) inls = (plainInlinesToPara inls ++ [block]) ++ inner oth []
 
-  inlinesToPara :: [Inline] -> Maybe Block
-  inlinesToPara []   = Nothing
-  inlinesToPara inls = Just $ Para (intersperse (Str " ") inls)
+  joinCode :: [Inline] -> [Inline]
+  joinCode inls =
+    let (codes, notcodes) = finds isCode inls
+        codeStr (Code _ s) = s
+        codeStr _          = ""
+        joined = Code nullAttr (concat $ codeStr <$> codes)
+    in if null codes
+         then notcodes
+         else joined : notcodes
 
+  plainInlinesToPara :: [Inline] -> [Block]
+  plainInlinesToPara []   = []
+  plainInlinesToPara inls =
+    let (cds, ncds, oth) = findsBoth isCode inls
+        codeToStr (Code _ s) = s
+        codeToStr _ = ""
+        cbs = if null cds
+                then []
+                else [CodeBlock nullAttr (intercalate "\n" $ codeToStr <$> cds)]
+        paras = [Para (intersperse (Str " ") ncds)]
+    in cbs ++ paras ++ plainInlinesToPara oth
+
+  isCode (Code _ _) = True
+  isCode _ = False
 
 parseMan :: PandocMonad m => ManParser m Pandoc
 parseMan = do
