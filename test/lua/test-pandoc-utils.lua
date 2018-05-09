@@ -39,6 +39,7 @@ end
 function test_pipe ()
   if os_is_windows() then
     local pipe_result = pandoc.pipe('find', {'hi'}, 'hi')
+    print(pipe_result)
     return pipe_result == 'hi\n' or pipe_result == 'hi'
   else
     local pipe_result = pandoc.pipe('tr', {'a', 'b'}, 'abc')
