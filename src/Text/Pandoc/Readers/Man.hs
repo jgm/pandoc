@@ -32,6 +32,7 @@ Conversion of man to 'Pandoc' document.
 -}
 module Text.Pandoc.Readers.Man (readMan) where
 
+import Prelude
 import Control.Monad.Except (throwError)
 import Data.Default (Default)
 import Data.Map (insert)

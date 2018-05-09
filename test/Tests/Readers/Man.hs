@@ -1,6 +1,7 @@
 {-# LANGUAGE OverloadedStrings #-}
 module Tests.Readers.Man (tests) where
 
+import Prelude
 import Data.Text (Text)
 import Test.Tasty
 import Tests.Helpers
@@ -23,9 +24,9 @@ tests = [
   testGroup "Macros" [
           "Bold" =:
           ".B foo\n"
-          =?> strong "foo"
+          =?> (para $ strong "foo")
         , "Italic" =:
           ".I foo\n"
-          =?> emph "foo"
+          =?> (para $ emph "foo")
         ]
   ]
