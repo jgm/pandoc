@@ -30,7 +30,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 Conversion of man to 'Pandoc' document.
 -}
-module Text.Pandoc.Readers.Man where
+module Text.Pandoc.Readers.Man (readMan) where
 
 import Control.Monad.Except (throwError)
 import Data.Default (Default)
@@ -39,12 +39,11 @@ import Data.Maybe (isJust, fromMaybe)
 import Data.List (intersperse, intercalate)
 import qualified Data.Text as T
 
-import Text.Pandoc.Class (PandocMonad(..), runPure)
+import Text.Pandoc.Class (PandocMonad(..))
 import Text.Pandoc.Definition
-import Text.Pandoc.Error (PandocError)
 import Text.Pandoc.Logging (LogMessage(..))
 import Text.Pandoc.Options
-import Text.Pandoc.Parsing hiding (enclosed)
+import Text.Pandoc.Parsing
 import Text.Pandoc.Shared (crFilter)
 import Text.Parsec
 import Text.Parsec.Char ()
@@ -70,37 +69,6 @@ modifyRoffState f = do
   setState mst { rState = f $ rState mst }
 
 type ManParser m = ParserT [Char] ManState m
-
-testStrr :: [Char] -> SourceName -> Either PandocError (Either ParseError Pandoc)
-testStrr s srcnm = runPure (runParserT parseMan (ManState {pState=def, rState=def}) srcnm s)
-
-printPandoc :: Pandoc -> [Char]
-printPandoc (Pandoc m content) =
-  let ttl = "Pandoc: " ++ (show $ unMeta m)
-      cnt = intercalate "\n" $ map show content
-  in ttl ++ "\n" ++ cnt
-
-strrepr :: (Show a2, Show a1) => Either a2 (Either a1 Pandoc) -> [Char]
-strrepr obj = case obj of
-  Right x -> case x of
-    Right x' -> printPandoc x'
-    Left y' -> show y'
-  Left y -> show y
-
-testFile :: FilePath -> IO ()
-testFile fname = do
-  cont <- readFile fname
-  putStrLn . strrepr $ testStrr cont fname
-
-
--- | Read man (troff) from an input string and return a Pandoc document.
-readMan :: PandocMonad m => ReaderOptions -> T.Text -> m Pandoc
-readMan opts txt = do
-  let state = ManState { pState = def{ stateOptions = opts }, rState = def}
-  parsed <- readWithM parseMan state (T.unpack $ crFilter txt)
-  case parsed of
-    Right result -> return result
-    Left e       -> throwError e
 
 parseMacro :: PandocMonad m => ManParser m Block
 parseMacro = do
@@ -304,3 +272,12 @@ parseMan = do
   blocks <- createParas <$> many (parseMacro <|> parseLine)
   parserst <- pState <$> getState
   return $ Pandoc (stateMeta parserst) blocks
+
+-- | Read man (troff) from an input string and return a Pandoc document.
+readMan :: PandocMonad m => ReaderOptions -> T.Text -> m Pandoc
+readMan opts txt = do
+  let state = ManState { pState = def{ stateOptions = opts }, rState = def}
+  parsed <- readWithM parseMan state (T.unpack $ crFilter txt)
+  case parsed of
+    Right result -> return result
+    Left e       -> throwError e
