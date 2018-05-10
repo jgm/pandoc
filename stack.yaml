@@ -21,7 +21,7 @@ extra-deps:
 - pandoc-types-1.17.4.2
 - cmark-gfm-0.1.3
 - hslua-module-text-0.1.2.1
-- texmath-0.10.1.2
+- texmath-0.11
 ghc-options:
    "$locals": -fhide-source-paths -XNoImplicitPrelude
 resolver: lts-10.10

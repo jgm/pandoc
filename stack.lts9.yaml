@@ -27,5 +27,5 @@ extra-deps:
 - tagsoup-0.14.6
 - pandoc-types-1.17.4.2
 - haddock-library-1.5.0.1
-- texmath-0.10.1.2
+- texmath-0.11
 resolver: lts-9.14
