@@ -8,7 +8,7 @@ pandoc (2.2.1)
 
   * LaTeX reader:  Handle `$` in `/text{..}` inside math (#4576).
 
-  * Org reader (Albert Krewinkel): Fix image filename recognition.
+  * Org reader: Fix image filename recognition (Albert Krewinkel).
     Use a function from the filepath library to check whether a string is a
     valid file name.  The custom validity checker that was used before gave
     wrong results (e.g. for absolute file paths on Windows,
