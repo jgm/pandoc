@@ -6,9 +6,15 @@ pandoc (2.2.1)
       [API change, reverts removal in v2.2]
     + Restored and undeprecated `--gladtex` option, removed in v2.2.
 
-  * LaTeX reader:  handle `$` in `/text{..}` inside math (#4576).
+  * LaTeX reader:  Handle `$` in `/text{..}` inside math (#4576).
 
-  * FB2 reader: replace some errors with warnings (Alexander Krotov).
+  * Org reader (Albert Krewinkel): Fix image filename recognition.
+    Use a function from the filepath library to check whether a string is a
+    valid file name.  The custom validity checker that was used before gave
+    wrong results (e.g. for absolute file paths on Windows,
+    kawabata/ox-pandoc#52).
+
+  * FB2 reader: Replace some errors with warnings (Alexander Krotov).
 
   * HTML writer:
 
@@ -47,7 +53,10 @@ pandoc (2.2.1)
 
   * Don't lowercase custom writer filename (Alexander Krotov, #4610).
 
-  * MANUAL: clarify truthiness in template variables (Mauro Bieg, #2281).
+  * MANUAL (Mauro Bieg):
+
+    + Clarify truthiness in template variables (#2281).
+    + Clarify pipe table width calculation (#4520).
 
   * ConTeXt template: New Greek fallback typeface (Pablo Rodríguez, #4405).
     CMU Serif gives better typographic results than the previous
@@ -55,6 +64,9 @@ pandoc (2.2.1)
 
   * Make HTML template polyglot (#4606, OvidiusCicero), by making
     `<link rel="stylesheet" href="$css$">` self-closing.
+
+  * Use texmath 0.11, allowing better translation of non-ASCII
+    characters in math (#4642).
 
 pandoc (2.2)
 
