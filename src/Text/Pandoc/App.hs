@@ -1403,6 +1403,12 @@ options =
                   "URL")
                   "" -- Use KaTeX for HTML Math
 
+    , Option "" ["gladtex"]
+                 (NoArg
+                  (\opt ->
+                      return opt { optHTMLMathMethod = GladTeX }))
+                 "" -- "Use gladtex for HTML math"
+
     , Option "" ["abbreviations"]
                 (ReqArg
                  (\arg opt -> return opt { optAbbreviations = Just arg })

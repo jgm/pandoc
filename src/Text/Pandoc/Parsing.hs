@@ -1366,7 +1366,9 @@ singleQuoteStart = do
   failIfInQuoteContext InSingleQuote
   -- single quote start can't be right after str
   guard =<< notAfterString
-  () <$ charOrRef "'\8216\145"
+  try $ do
+    charOrRef "'\8216\145"
+    notFollowedBy (oneOf [' ', '\t', '\n'])
 
 singleQuoteEnd :: Stream s m Char
                => ParserT s st m ()
@@ -1379,7 +1381,7 @@ doubleQuoteStart :: (HasQuoteContext st m, Stream s m Char)
 doubleQuoteStart = do
   failIfInQuoteContext InDoubleQuote
   try $ do charOrRef "\"\8220\147"
-           notFollowedBy . satisfy $ flip elem [' ', '\t', '\n']
+           notFollowedBy (oneOf [' ', '\t', '\n'])
 
 doubleQuoteEnd :: Stream s m Char
                => ParserT s st m ()

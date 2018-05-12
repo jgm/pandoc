@@ -1,3 +1,73 @@
+pandoc (2.2.1)
+
+  * Restored and undeprecated gladtex for HTML math (#4607).
+
+    + Added `GladTeX` constructor to `Text.Pandoc.Options.HTMLMathMethod`
+      [API change, reverts removal in v2.2]
+    + Restored and undeprecated `--gladtex` option, removed in v2.2.
+
+  * LaTeX reader:  Handle `$` in `/text{..}` inside math (#4576).
+
+  * Org reader: Fix image filename recognition (Albert Krewinkel).
+    Use a function from the filepath library to check whether a string is a
+    valid file name.  The custom validity checker that was used before gave
+    wrong results (e.g. for absolute file paths on Windows,
+    kawabata/ox-pandoc#52).
+
+  * FB2 reader: Replace some errors with warnings (Alexander Krotov).
+
+  * HTML writer:
+
+    + Strip links from headers when creating TOC (#4340).
+      Otherwise the TOC entries will not link to the sections.
+    + Fix regression with tex math environments in HTML + MathJax (#4639).
+
+  * Muse writer (Alexander Krotov): Add support for left-align and
+    right-align classes (#4542).
+
+  * Docx writer: Support underline (#4633).
+
+  * Text.Pandoc.Parsing: Lookahead for non-whitespace after
+    `singleQuoteStart` and `doubleQuoteStart` (#4637).
+
+  * `test-pandoc-utils.lua`:  more robust testing on both windows
+    and \*nix. Previously the pipe tests were only run if
+    `\bin/false` and `/bin/sed` were present, which they aren't
+    in default MacOS and Windows systems.  Fixed by using `tr`
+    and `false`, which should always be in the path on a \*nix
+    system, and `find` and `echo` for Windows.
+
+  * Text.Pandoc.Shared: add `uriPathToPath`.
+    This adjusts the path from a file: URI in a way that is sensitive
+    to Windows/Linux differences.  Thus, on Windows,
+    `/c:/foo` gets interpreted as `c:/foo`, but on Linux,
+    `/c:/foo` gets interpreted as `/c:/foo`.  See #4613.
+
+  * Use `uriPathToPath` with file: URIs (#4613).
+
+  * Revert piping HTML to pdf-engine (Mauro Bieg, #4413).  Use a temp
+    file as before.
+
+  * Text.Pandoc.Class: Catch IO errors when writing media files
+    and issue a warning, rather than an error (Francesco Occhipinti, #4559).
+
+  * Don't lowercase custom writer filename (Alexander Krotov, #4610).
+
+  * MANUAL (Mauro Bieg):
+
+    + Clarify truthiness in template variables (#2281).
+    + Clarify pipe table width calculation (#4520).
+
+  * ConTeXt template: New Greek fallback typeface (Pablo Rodríguez, #4405).
+    CMU Serif gives better typographic results than the previous
+    Greek fallback DejaVu Serif.
+
+  * Make HTML template polyglot (#4606, OvidiusCicero), by making
+    `<link rel="stylesheet" href="$css$">` self-closing.
+
+  * Use texmath 0.11, allowing better translation of non-ASCII
+    characters in math (#4642).
+
 pandoc (2.2)
 
   * New input format: `fb2` (FictionBook2) (Alexander Krotov).

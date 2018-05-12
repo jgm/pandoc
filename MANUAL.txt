@@ -1,6 +1,6 @@
 % Pandoc User's Guide
 % John MacFarlane
-% April 26, 2018
+% May 10, 2018
 
 Synopsis
 ========
@@ -1217,9 +1217,21 @@ of the following options.
     not specified, a link to the KaTeX CDN will be inserted. Note that this
     option does not imply `--katex`.
 
+`--gladtex`
+
+:   Enclose TeX math in `<eq>` tags in HTML output.  The resulting HTML
+    can then be processed by [GladTeX] to produce images of the typeset
+    formulas and an HTML file with links to these images.
+    So, the procedure is:
+
+        pandoc -s --gladtex input.md -o myfile.htex
+        gladtex -d myfile-images myfile.htex
+        # produces myfile.html and images in myfile-images
+
 [MathML]: http://www.w3.org/Math/
 [MathJax]: https://www.mathjax.org
 [KaTeX]: https://github.com/Khan/KaTeX
+[GladTeX]: http://humenda.github.io/GladTeX/
 
 Options for wrapper scripts
 ---------------------------
@@ -2924,10 +2936,12 @@ legal (though ugly) pipe table:
 The cells of pipe tables cannot contain block elements like paragraphs
 and lists, and cannot span multiple lines.  If a pipe table contains a
 row whose printable content is wider than the column width (see
-`--columns`), then the cell contents will wrap, with the
-relative cell widths determined by the widths of the separator
-lines.  (In this case, the table will take up the full text
-width.)  If no lines are wider than column width, then
+`--columns`), then the table will take up the full text width and
+the cell contents will wrap, with the relative cell widths determined
+by the number of dashes in the line separating the table header from
+the table body. (For example `---|-` would make the first column 3/4
+and the second column 1/4 of the full text width.)
+On the other hand, if no lines are wider than column width, then
 cell contents will not be wrapped, and the cells will be sized
 to their contents.
 
