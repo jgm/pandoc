@@ -74,6 +74,7 @@ import Text.Printf (printf)
 import Text.XML.Light (Attr (..), Element (..), Node (..), QName (..),
                        add_attrs, lookupAttr, node, onlyElems, parseXML,
                        ppElement, showElement, strContent, unode, unqual)
+import Text.Pandoc.XML (escapeStringForXML)
 
 -- A Chapter includes a list of blocks and maybe a section
 -- number offset.  Note, some chapters are unnumbered. The section
@@ -446,7 +447,8 @@ pandocToEPUB version opts doc@(Pandoc meta _) = do
                        cpContent <- lift $ writeHtml
                             opts'{ writerVariables =
                                     ("coverpage","true"):
-                                    ("pagetitle",plainTitle):
+                                    ("pagetitle",
+                                       escapeStringForXML plainTitle):
                                      cssvars True ++ vars }
                             (Pandoc meta [RawBlock (Format "html") $ "<div id=\"cover-image\">\n<img src=\"../media/" ++ coverImage ++ "\" alt=\"cover image\" />\n</div>"])
                        imgContent <- lift $ P.readFileLazy img
@@ -459,7 +461,7 @@ pandocToEPUB version opts doc@(Pandoc meta _) = do
   -- title page
   tpContent <- lift $ writeHtml opts'{
                                   writerVariables = ("titlepage","true"):
-                                  ("pagetitle",plainTitle):
+                                  ("pagetitle", escapeStringForXML plainTitle):
                                   cssvars True ++ vars }
                                (Pandoc meta [])
   tpEntry <- mkEntry "text/title_page.xhtml" tpContent
@@ -754,7 +756,8 @@ pandocToEPUB version opts doc@(Pandoc meta _) = do
                                (writeHtmlStringForEPUB version
                                  opts{ writerTemplate = Nothing
                                      , writerVariables =
-                                       ("pagetitle",plainTitle):
+                                       ("pagetitle",
+                                         escapeStringForXML plainTitle):
                                        writerVariables opts}
                                  (Pandoc nullMeta
                                    [Plain $ walk clean tit])) of
