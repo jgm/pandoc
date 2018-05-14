@@ -193,10 +193,15 @@ formulaStyle mt = inTags False "style:style"
                                                   ,("style:horizontal-rel", "paragraph-content")
                                                   ,("style:wrap",           "none")]
 
-inHeaderTags :: PandocMonad m => Int -> Doc -> OD m Doc
-inHeaderTags i d =
+inHeaderTags :: PandocMonad m => Int -> String -> Doc -> OD m Doc
+inHeaderTags i ident d =
   return $ inTags False "text:h" [ ("text:style-name", "Heading_20_" ++ show i)
-                                 , ("text:outline-level", show i)] d
+                                 , ("text:outline-level", show i)]
+         $ if null ident
+              then d
+              else selfClosingTag "text:bookmark-start" [ ("text:name", ident) ]
+                   <> d <>
+                   selfClosingTag "text:bookmark-end" [ ("text:name", ident) ]
 
 inQuotes :: QuoteType -> Doc -> Doc
 inQuotes SingleQuote s = char '\8216' <> s <> char '\8217'
@@ -349,8 +354,9 @@ blockToOpenDocument o bs
     | LineBlock      b <- bs = blockToOpenDocument o $ linesToPara b
     | Div attr xs      <- bs = withLangFromAttr attr
                                   (blocksToOpenDocument o xs)
-    | Header     i _ b <- bs = setFirstPara >>
-                               (inHeaderTags  i =<< inlinesToOpenDocument o b)
+    | Header     i (ident,_,_) b
+                       <- bs = setFirstPara >> (inHeaderTags i ident
+                                  =<< inlinesToOpenDocument o b)
     | BlockQuote     b <- bs = setFirstPara >> mkBlockQuote b
     | DefinitionList b <- bs = setFirstPara >> defList b
     | BulletList     b <- bs = setFirstPara >> bulletListToOpenDocument o b
