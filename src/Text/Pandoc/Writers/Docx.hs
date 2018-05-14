@@ -727,7 +727,7 @@ getNumId = (((baseListId - 1) +) . length) `fmap` gets stLists
 
 
 makeTOC :: (PandocMonad m) => WriterOptions -> WS m [Element]
-makeTOC opts | writerTableOfContents opts = do
+makeTOC opts = do
   let depth = "1-"++show (writerTOCDepth opts)
   let tocCmd = "TOC \\o \""++depth++"\" \\h \\z \\u"
   tocTitle <- gets stTocTitle
@@ -751,8 +751,6 @@ makeTOC opts | writerTableOfContents opts = do
         ) -- w:p
       ])
     ])] -- w:sdt
-makeTOC _ = return []
-
 
 -- | Convert Pandoc document to two lists of
 -- OpenXML elements (the main document and footnotes).
@@ -770,6 +768,13 @@ writeOpenXML opts (Pandoc meta blocks) = do
                        Just (MetaBlocks [Para  xs]) -> xs
                        Just (MetaInlines xs)        -> xs
                        _                            -> []
+  let includeTOC = writerTableOfContents opts ||
+                   case lookupMeta "toc" meta of
+                       Just (MetaBlocks _)     -> True
+                       Just (MetaInlines _)    -> True
+                       Just (MetaString (_:_)) -> True
+                       Just (MetaBool True)    -> True
+                       _                       -> False
   title <- withParaPropM (pStyleM "Title") $ blocksToOpenXML opts [Para tit | not (null tit)]
   subtitle <- withParaPropM (pStyleM "Subtitle") $ blocksToOpenXML opts [Para subtitle' | not (null subtitle')]
   authors <- withParaProp (pCustomStyle "Author") $ blocksToOpenXML opts $
@@ -801,7 +806,9 @@ writeOpenXML opts (Pandoc meta blocks) = do
               ] ++ annotation
             ]
   comments' <- mapM toComment comments
-  toc <- makeTOC opts
+  toc <- if includeTOC
+            then makeTOC opts
+            else return []
   let meta' = title ++ subtitle ++ authors ++ date ++ abstract ++ toc
   return (meta' ++ doc', notes', comments')
 
