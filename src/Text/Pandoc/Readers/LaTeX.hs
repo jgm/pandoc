@@ -242,8 +242,8 @@ withVerbatimMode parser = do
   return result
 
 rawLaTeXParser :: (PandocMonad m, HasMacros s, HasReaderOptions s)
-               => LP m a -> LP m a -> ParserT String s m (a, String)
-rawLaTeXParser parser valParser = do
+               => Bool -> LP m a -> LP m a -> ParserT String s m (a, String)
+rawLaTeXParser retokenize parser valParser = do
   inp <- getInput
   let toks = tokenize "source" $ T.pack inp
   pstate <- getState
@@ -254,10 +254,11 @@ rawLaTeXParser parser valParser = do
   case res' of
        Left _    -> mzero
        Right toks' -> do
-         res <- lift $ runParserT (do doMacros 0
-                                      -- retokenize, applying macros
-                                      ts <- many (satisfyTok (const True))
-                                      setInput ts
+         res <- lift $ runParserT (do when retokenize $ do
+                                        -- retokenize, applying macros
+                                        doMacros 0
+                                        ts <- many (satisfyTok (const True))
+                                        setInput ts
                                       rawparser)
                         lstate' "chunk" toks'
          case res of
@@ -284,20 +285,19 @@ rawLaTeXBlock :: (PandocMonad m, HasMacros s, HasReaderOptions s)
               => ParserT String s m String
 rawLaTeXBlock = do
   lookAhead (try (char '\\' >> letter))
-  -- we don't want to apply newly defined latex macros to their own
-  -- definitions:
-  snd <$> rawLaTeXParser (environment <|> macroDef <|> blockCommand) blocks
+  snd <$> (rawLaTeXParser False macroDef blocks
+      <|> rawLaTeXParser True(environment <|> macroDef <|> blockCommand) blocks)
 
 rawLaTeXInline :: (PandocMonad m, HasMacros s, HasReaderOptions s)
                => ParserT String s m String
 rawLaTeXInline = do
   lookAhead (try (char '\\' >> letter))
-  snd <$> rawLaTeXParser (inlineEnvironment <|> inlineCommand') inlines
+  snd <$> rawLaTeXParser True (inlineEnvironment <|> inlineCommand') inlines
 
 inlineCommand :: PandocMonad m => ParserT String ParserState m Inlines
 inlineCommand = do
   lookAhead (try (char '\\' >> letter))
-  fst <$> rawLaTeXParser (inlineEnvironment <|> inlineCommand') inlines
+  fst <$> rawLaTeXParser True (inlineEnvironment <|> inlineCommand') inlines
 
 tokenize :: SourceName -> Text -> [Tok]
 tokenize sourcename = totoks (initialPos sourcename)
