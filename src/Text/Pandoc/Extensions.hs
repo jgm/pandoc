@@ -97,6 +97,8 @@ data Extension =
     | Ext_blank_before_header     -- ^ Require blank line before a header
     | Ext_bracketed_spans         -- ^ Bracketed spans with attributes
     | Ext_citations           -- ^ Pandoc/citeproc citations
+    | Ext_code_block_source_position -- ^ Insert attributes corresponding to original
+                                     --   CodeBlock source positions
     | Ext_compact_definition_lists  -- ^ Definition lists without space between items,
                                     --   and disallow laziness
     | Ext_definition_lists    -- ^ Definition lists as in pandoc, mmd, php
