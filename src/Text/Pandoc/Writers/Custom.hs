@@ -113,7 +113,7 @@ writeCustom luaFile opts doc@(Pandoc meta _) = do
     -- check for error in lua script (later we'll change the return type
     -- to handle this more gracefully):
     when (stat /= OK) $
-      tostring 1 >>= throw . PandocLuaException . UTF8.toString
+      tostring (-1) >>= throw . PandocLuaException . UTF8.toString
     -- TODO - call hierarchicalize, so we have that info
     rendered <- docToCustom opts doc
     context <- metaToJSON opts
