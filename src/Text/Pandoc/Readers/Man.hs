@@ -35,6 +35,7 @@ module Text.Pandoc.Readers.Man (readMan) where
 import Prelude
 import Control.Monad.Except (throwError)
 import Data.Default (Default)
+import Data.Functor.Identity (Identity)
 import Data.Map (insert)
 import Data.Maybe (isJust, fromMaybe)
 import Data.List (intersperse, intercalate)
@@ -46,10 +47,37 @@ import Text.Pandoc.Logging (LogMessage(..))
 import Text.Pandoc.Options
 import Text.Pandoc.Parsing
 import Text.Pandoc.Shared (crFilter)
-import Text.Parsec
+import Text.Parsec hiding (tokenPrim)
 import Text.Parsec.Char ()
+import Text.Parsec.Pos (updatePosString)
+
+--
+-- Data Types
+--
 
 data FontKind = Regular | Italic | Bold | ItalicBold deriving Show
+
+data MacroKind = KTitle
+               | KCodeBlStart
+               | KCodeBlEnd
+               | KTab
+               | KTabEnd
+               deriving Show
+
+data ManToken = MStr String FontKind
+              | MLine [(String, FontKind)]
+              | MLink String Target
+              | MEmptyLine
+              | MHeader Integer String
+              | MMacro MacroKind [String]
+              | MUnknownMacro String [String]
+              | MComment String
+              deriving Show
+
+data EscapeThing = EFont FontKind
+                 | EChar Char
+                 | ENothing
+                 deriving Show
 
 data RoffState = RoffState { inCodeBlock :: Bool
                            , fontKind :: FontKind
@@ -60,48 +88,60 @@ instance Default RoffState where
 
 data ManState = ManState {pState :: ParserState, rState :: RoffState}
 
+type ManParser m = ParserT [Char] ManState m
+type ManCompiler m = ParserT [ManToken] ManState m
+
 instance HasLogMessages ManState where
   addLogMessage lm mst  = mst {pState = addLogMessage lm (pState mst)}
   getLogMessages mst = getLogMessages $ pState mst
+
+-- | Read man (troff) from an input string and return a Pandoc document.
+readMan :: PandocMonad m => ReaderOptions -> T.Text -> m Pandoc
+readMan opts txt = do
+  let state = ManState { pState = def{ stateOptions = opts }, rState = def}
+  parsed <- readWithM parseMan state (T.unpack $ crFilter txt)
+  case parsed of
+    Right result -> return result
+    Left e       -> throwError e
+
+--
+-- String -> ManToken function
+--
+
+parseMan :: PandocMonad m => ManParser m Pandoc
+parseMan = do
+  tokens <- many (parseMacro <|> parseLine <|> parseEmptyLine)
+  let blocks = []
+  parserst <- pState <$> getState
+  return $ Pandoc (stateMeta parserst) blocks
 
 modifyRoffState :: PandocMonad m => (RoffState -> RoffState) -> ParsecT a ManState m ()
 modifyRoffState f = do
   mst <- getState
   setState mst { rState = f $ rState mst }
 
-type ManParser m = ParserT [Char] ManState m
-
-parseMacro :: PandocMonad m => ManParser m Block
+parseMacro :: PandocMonad m => ManParser m ManToken
 parseMacro = do
   char '.' <|> char '\''
   many space
   macroName <- many1 (letter <|> oneOf ['\\', '"'])
   args <- parseArgs
   let joinedArgs = concat $ intersperse " " args
-  ManState { rState = rst } <- getState
-  let toTextF transf = if inCodeBlock rst then [Code nullAttr joinedArgs] else transf [Str joinedArgs]
-  let toText = return . Plain . toTextF
-  let toBold       = toText (\s -> [Strong s])
-  let toItalic     = toText (\s -> [Emph s])
-  let toBoldItalic = toText (\s -> [Strong [Emph s]])
-  
-  case macroName of
-    "\\\"" -> return Null -- comment
-    "TH"   -> macroTitle (if null args then "" else head args) -- man-title
-    "TP"   -> return Null -- tab-indented paragraph
-    "PP"   -> return Null -- end of tab-indented paragraphs
-    "nf"   -> macroCodeBlock True >> return Null
-    "fi"   -> macroCodeBlock False >> return Null
-    "B"    -> toBold
-    "BR"   -> return $ macroBR joinedArgs (inCodeBlock rst)
-    "BI"   -> toBoldItalic
-    "IB"   -> toBoldItalic
-    "I"    -> toItalic
-    "IR"   -> toItalic
-    "RI"   -> toItalic
-    "SH"   -> return $ Header 2 nullAttr [Str joinedArgs]
-    "sp"   -> return $ if inCodeBlock rst then Null else Plain [LineBreak]
-    _      -> unkownMacro macroName
+
+  let tok = case macroName of
+              x | x `elem` ["\\\"", "\\#"] -> MComment joinedArgs
+              "TH"   -> MMacro KTitle args
+              "TP"   -> MMacro KTab []
+              "PP"   -> MMacro KTabEnd []
+              "nf"   -> MMacro KCodeBlStart []
+              "fi"   -> MMacro KCodeBlEnd []
+              x | x `elem` ["B", "BR"]    -> MStr joinedArgs Bold -- "BR" is often used as a link to another man
+              x | x `elem` ["BI", "IB"] -> MStr joinedArgs ItalicBold
+              x | x `elem` ["I", "IR", "RI"]  -> MStr joinedArgs Italic
+              "SH"   -> MHeader 2 joinedArgs
+              "sp"   -> MEmptyLine
+              _      -> MUnknownMacro macroName args
+  return tok
 
   where
 
@@ -174,111 +214,115 @@ parseMacro = do
     quotedChar :: PandocMonad m => ManParser m Char
     quotedChar = noneOf "\"\n" <|> try (string "\"\"" >> return '"')
 
-roffInline :: RoffState -> String -> [Inline]
-roffInline rst str
-  | null str && (not $ inCodeBlock rst) = []
-  | inCodeBlock rst = [Code nullAttr str]
-  | otherwise       = case fontKind rst of
-    Regular    -> [Str str]
-    Italic     -> [Emph [Str str]]
-    Bold       -> [Strong [Str str]]
-    ItalicBold -> [Emph [Strong [Str str]]]
-
-parseLine :: PandocMonad m => ManParser m Block
-parseLine = do
-  parts <- parseLineParts
-  newline
-  return $ if null parts
-    then Null
-    else Plain parts
+escapeParser :: PandocMonad m => ManParser m EscapeThing
+escapeParser = do
+  char '\\'
+  choice [escChar, escFont]
   where
-    parseLineParts :: PandocMonad m => ManParser m [Inline]
-    parseLineParts = do
-      lnpart <- many $ noneOf "\n\\"
-      ManState {rState = roffSt} <- getState
-      let inls = roffInline roffSt lnpart
-      others <- backSlash <|> return []
-      return $ inls ++ others
+
+  escChar :: PandocMonad m => ManParser m EscapeThing
+  escChar = choice [ char '-' >> return (EChar '-')
+                  , oneOf ['%', '{', '}'] >> return ENothing
+                  ]
+
+  escFont :: PandocMonad m => ManParser m EscapeThing
+  escFont = do
+    char 'f'
+    font <- choice [ char 'B' >> return Bold
+          , char 'I' >> return Italic
+          , (char 'P' <|> anyChar) >> return Regular
+          , char '(' >> anyChar >> anyChar >> return Regular
+          , string "[]"  >> return Regular
+          , char '[' >> many1 letter >> char ']'  >> return Regular
+          ]
+    modifyRoffState (\r -> RoffState {fontKind = font})
+    return $ EFont font
+
+parseLine :: PandocMonad m => ManParser m ManToken
+parseLine = do
+  lnparts <- many1 (esc <|> linePart)
+  return $ MLine lnparts
+  where
+
+  esc :: PandocMonad m => ManParser m (String, FontKind)
+  esc = do
+    someesc <- escapeParser
+    font <- currentFont
+    let rv = case someesc of
+               EChar c -> ([c], font)
+               _ -> ("", font)
+    return rv
+
+  linePart :: PandocMonad m => ManParser m (String, FontKind)
+  linePart = do
+    lnpart <- many1 $ noneOf "\n\\"
+    font <- currentFont
+    return (lnpart, font)
+  
+  currentFont :: PandocMonad m => ManParser m FontKind
+  currentFont = do
+    RoffState {fontKind = fk} <- rState <$> getState
+    return fk
+
     
-    backSlash :: PandocMonad m => ManParser m [Inline]
-    backSlash = do
-      char '\\'
-      esc <- choice [ char 'f' >> fEscape
-                    , char '-' >> return (Just '-')
-                    , char '%' >> return Nothing
-                    , Just <$> noneOf "\n"
-                    ]
-      ManState {rState = roffSt} <- getState
-      case esc of
-        Just c -> let inls = roffInline roffSt [c]
-                  in parseLineParts >>= (\oth -> return $ inls ++ oth)
-        Nothing -> parseLineParts
-      where
-      
-      fEscape :: PandocMonad m => ManParser m (Maybe Char)
-      fEscape = choice [ char 'B' >> modifyRoffState (\rst -> rst {fontKind = Bold})
-                       , char 'I' >> modifyRoffState (\rst -> rst {fontKind = Italic})
-                       , (char 'P' <|> anyChar) >> modifyRoffState (\rst -> rst {fontKind = Regular})
-                       ]
-                >> return Nothing
+parseEmptyLine :: PandocMonad m => ManParser m ManToken
+parseEmptyLine = char '\n' >> return MEmptyLine
 
-finds :: (a -> Bool) -> [a] -> ([a], [a])
-finds predic els = let matched = finds' els
-  in (matched, drop (length matched) els) where
-  finds' [] = []
-  finds' (e:es) | predic e = e : finds' es
-                | otherwise = []
+--
+-- ManToken parsec functions
+--
 
--- | return (matched, notmatched, others)
-findsBoth :: (a -> Bool) -> [a] -> ([a], [a], [a])
-findsBoth predic els =
-  let (matched, els')     = finds predic els
-      (notmatched, els'') = finds (not . predic) els'
-  in (matched, notmatched, els'')
+msatisfy :: (Show t, Stream s m t) => (t -> Bool) -> ParserT s st m t
+msatisfy pred = tokenPrim show nextPos testTok
+  where
+    posFromTok (pos,t)  = pos
+    testTok t     = if pred t then Just t else Nothing
+    nextPos pos x xs  = updatePosString pos (show x)
 
-createParas :: [Block] -> [Block]
-createParas bs = inner bs [] where
-  inner :: [Block] -> [Inline] -> [Block]
-  inner [] inls = plainInlinesToPara inls
-  inner (Plain einls : oth) inls = inner oth (inls ++ joinCode einls)
-  inner (block : oth) inls = (plainInlinesToPara inls ++ [block]) ++ inner oth []
+mstr :: PandocMonad m => ManCompiler m ManToken
+mstr = msatisfy isMStr where
+  isMStr (MStr _ _) = True
+  isMStr _ = False
 
-  joinCode :: [Inline] -> [Inline]
-  joinCode inls =
-    let (codes, notcodes) = finds isCode inls
-        codeStr (Code _ s) = s
-        codeStr _          = ""
-        joined = Code nullAttr (concat $ codeStr <$> codes)
-    in if null codes
-         then notcodes
-         else joined : notcodes
+mline :: PandocMonad m => ManCompiler m ManToken
+mline = msatisfy isMLine where
+  isMLine (MLine _) = True
+  isMLine _ = False
 
-  plainInlinesToPara :: [Inline] -> [Block]
-  plainInlinesToPara []   = []
-  plainInlinesToPara inls =
-    let (cds, ncds, oth) = findsBoth isCode inls
-        codeToStr (Code _ s) = s
-        codeToStr _ = ""
-        cbs = if null cds
-                then []
-                else [CodeBlock nullAttr (intercalate "\n" $ codeToStr <$> cds)]
-        paras = [Para (intersperse (Str " ") ncds)]
-    in cbs ++ paras ++ plainInlinesToPara oth
+mlink :: PandocMonad m => ManCompiler m ManToken
+mlink = msatisfy isMLink where
+  isMLink (MLink _ _) = True
+  isMLink _ = False
 
-  isCode (Code _ _) = True
-  isCode _ = False
+memplyLine :: PandocMonad m => ManCompiler m ManToken
+memplyLine = msatisfy isMEmptyLine where
+  isMEmptyLine MEmptyLine = True
+  isMEmptyLine _ = False
 
-parseMan :: PandocMonad m => ManParser m Pandoc
-parseMan = do
-  blocks <- createParas <$> many (parseMacro <|> parseLine)
-  parserst <- pState <$> getState
-  return $ Pandoc (stateMeta parserst) blocks
+mheader :: PandocMonad m => ManCompiler m ManToken
+mheader = msatisfy isMHeader where
+  isMHeader (MHeader _ _) = True
+  isMHeader _ = False
 
--- | Read man (troff) from an input string and return a Pandoc document.
-readMan :: PandocMonad m => ReaderOptions -> T.Text -> m Pandoc
-readMan opts txt = do
-  let state = ManState { pState = def{ stateOptions = opts }, rState = def}
-  parsed <- readWithM parseMan state (T.unpack $ crFilter txt)
-  case parsed of
-    Right result -> return result
-    Left e       -> throwError e
+mmacro :: PandocMonad m => ManCompiler m ManToken
+mmacro = msatisfy isMMacro where
+  isMMacro (MMacro _ _) = True
+  isMMacro _ = False
+
+munknownMacro :: PandocMonad m => ManCompiler m ManToken
+munknownMacro = msatisfy isMUnknownMacro where
+  isMUnknownMacro (MUnknownMacro _ _) = True
+  isMUnknownMacro _ = False
+
+mcomment :: PandocMonad m => ManCompiler m ManToken
+mcomment = msatisfy isMComment where
+  isMComment (MComment _) = True
+  isMComment _ = False
+
+--
+-- ManToken -> Block functions
+--
+
+compileHeader :: PandocMonad m => ManCompiler m Block
+compileHeader = undefined --do
+
