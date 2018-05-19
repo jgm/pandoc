@@ -30,19 +30,20 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 Conversion of man to 'Pandoc' document.
 -}
-module Text.Pandoc.Readers.Man (readMan) where
+module Text.Pandoc.Readers.Man (readMan, testFile) where
 
 import Prelude
+import Control.Monad (liftM)
 import Control.Monad.Except (throwError)
 import Data.Default (Default)
-import Data.Functor.Identity (Identity)
 import Data.Map (insert)
-import Data.Maybe (isJust, fromMaybe)
+import Data.Maybe (isJust, catMaybes)
 import Data.List (intersperse, intercalate)
 import qualified Data.Text as T
 
-import Text.Pandoc.Class (PandocMonad(..))
+import Text.Pandoc.Class (PandocMonad(..), runPure, runIOorExplode)
 import Text.Pandoc.Definition
+import Text.Pandoc.Error (PandocError (PandocParsecError))
 import Text.Pandoc.Logging (LogMessage(..))
 import Text.Pandoc.Options
 import Text.Pandoc.Parsing
@@ -62,7 +63,7 @@ data MacroKind = KTitle
                | KCodeBlEnd
                | KTab
                | KTabEnd
-               deriving Show
+               deriving (Show, Eq)
 
 data ManToken = MStr String FontKind
               | MLine [(String, FontKind)]
@@ -95,23 +96,67 @@ instance HasLogMessages ManState where
   addLogMessage lm mst  = mst {pState = addLogMessage lm (pState mst)}
   getLogMessages mst = getLogMessages $ pState mst
 
+----
+testStrr :: [Char] -> Either PandocError Pandoc
+testStrr s = runPure $ readMan def (T.pack s)
+
+printPandoc :: Pandoc -> [Char]
+printPandoc (Pandoc m content) =
+  let ttl = "Pandoc: " ++ (show $ unMeta m)
+      cnt = intercalate "\n" $ map show content
+  in ttl ++ "\n" ++ cnt
+
+strrepr :: Either PandocError Pandoc -> [Char]
+strrepr obj = case obj of
+  Right x -> printPandoc x
+  Left y -> show y
+
+testFile :: FilePath -> IO ()
+testFile fname = do
+  cont <- readFile fname
+  pand <- runIOorExplode $ readMan def (T.pack cont)
+  putStrLn $ printPandoc pand
+----
+
+
 -- | Read man (troff) from an input string and return a Pandoc document.
 readMan :: PandocMonad m => ReaderOptions -> T.Text -> m Pandoc
 readMan opts txt = do
   let state = ManState { pState = def{ stateOptions = opts }, rState = def}
-  parsed <- readWithM parseMan state (T.unpack $ crFilter txt)
-  case parsed of
-    Right result -> return result
+  eithertokens <- readWithM parseMan state (T.unpack $ crFilter txt)
+  case eithertokens of
+    Right tokenz -> do
+      eitherdoc <- readWithMTokens compileMan state tokenz
+      case eitherdoc of
+        Right doc -> return doc
+        Left e -> throwError e
     Left e       -> throwError e
+
+  where
+
+  readWithMTokens :: PandocMonad m
+          => ParserT [ManToken] ManState m a  -- ^ parser
+          -> ManState                         -- ^ initial state
+          -> [ManToken]                       -- ^ input
+          -> m (Either PandocError a)
+  readWithMTokens parser state input =
+    mapLeft (PandocParsecError . concat $ show <$> input) `liftM` runParserT parser state "source" input
+
+  mapLeft :: (a -> c) -> Either a b -> Either c b
+  mapLeft f (Left x) = Left $ f x
+  mapLeft _ (Right r) = Right r
 
 --
 -- String -> ManToken function
 --
 
-parseMan :: PandocMonad m => ManParser m Pandoc
-parseMan = do
-  tokens <- many (parseMacro <|> parseLine <|> parseEmptyLine)
-  let blocks = []
+parseMan :: PandocMonad m => ManParser m [ManToken]
+parseMan = many (parseMacro <|> parseLine <|> parseEmptyLine)
+
+compileMan :: PandocMonad m => ManCompiler m Pandoc
+compileMan = do
+  let compilers = [compileTitle, compilePara, compileSkippedContent]
+  blocks <- many $ choice compilers
   parserst <- pState <$> getState
   return $ Pandoc (stateMeta parserst) blocks
 
@@ -145,26 +190,6 @@ parseMacro = do
 
   where
 
-  macroTitle :: PandocMonad m => String -> ManParser m Block
-  macroTitle mantitle = do
-    modifyState (changeTitle mantitle)
-    if null mantitle
-      then return Null
-      else return $ Header 1 nullAttr [Str mantitle]
-    where
-    changeTitle title mst@ManState{ pState = pst} =
-      let meta = stateMeta pst
-          metaUp = Meta $ insert "title" (MetaString title) (unMeta meta)
-      in
-      mst { pState = pst {stateMeta = metaUp} }
-
-  macroCodeBlock :: PandocMonad m => Bool -> ManParser m ()
-  macroCodeBlock insideCB = modifyRoffState (\rst -> rst{inCodeBlock = insideCB}) >> return ()
-
-  macroBR :: String -> Bool -> Block
-  macroBR txt inCode | inCode    = Plain [Code nullAttr txt]
-                     | otherwise = fromMaybe (Plain [Strong [Str txt]]) (linkToMan txt)
-
   linkToMan :: String -> Maybe Block
   linkToMan txt = case runParser linkParser () "" txt of
       Right lnk -> Just $ Plain [lnk]
@@ -180,13 +205,6 @@ parseMacro = do
       -- assuming man pages are generated from Linux-like repository
       let manurl pagename section = "../"++section++"/"++pagename++"."++section
       return $ Link nullAttr [Str txt] (manurl mpage [mansect], mpage)
-
-    
-  unkownMacro :: PandocMonad m => String -> ManParser m Block
-  unkownMacro mname = do
-    pos <- getPosition
-    logMessage $ SkippedContent ("Unknown macro: " ++ mname) pos
-    return Null
    
   parseArgs :: PandocMonad m => ManParser m [String]
   parseArgs = do
@@ -235,29 +253,30 @@ escapeParser = do
           , string "[]"  >> return Regular
           , char '[' >> many1 letter >> char ']'  >> return Regular
           ]
-    modifyRoffState (\r -> RoffState {fontKind = font})
+    modifyRoffState (\r -> r {fontKind = font})
     return $ EFont font
 
 parseLine :: PandocMonad m => ManParser m ManToken
 parseLine = do
   lnparts <- many1 (esc <|> linePart)
-  return $ MLine lnparts
+  newline
+  return $ MLine $ catMaybes lnparts
   where
 
-  esc :: PandocMonad m => ManParser m (String, FontKind)
+  esc :: PandocMonad m => ManParser m (Maybe (String, FontKind))
   esc = do
     someesc <- escapeParser
     font <- currentFont
     let rv = case someesc of
-               EChar c -> ([c], font)
-               _ -> ("", font)
+               EChar c -> Just ([c], font)
+               _ -> Nothing
     return rv
 
-  linePart :: PandocMonad m => ManParser m (String, FontKind)
+  linePart :: PandocMonad m => ManParser m (Maybe (String, FontKind))
   linePart = do
     lnpart <- many1 $ noneOf "\n\\"
     font <- currentFont
-    return (lnpart, font)
+    return $ Just (lnpart, font)
   
   currentFont :: PandocMonad m => ManParser m FontKind
   currentFont = do
@@ -273,11 +292,10 @@ parseEmptyLine = char '\n' >> return MEmptyLine
 --
 
 msatisfy :: (Show t, Stream s m t) => (t -> Bool) -> ParserT s st m t
-msatisfy pred = tokenPrim show nextPos testTok
+msatisfy predic = tokenPrim show nextPos testTok
   where
-    posFromTok (pos,t)  = pos
-    testTok t     = if pred t then Just t else Nothing
-    nextPos pos x xs  = updatePosString pos (show x)
+    testTok t     = if predic t then Just t else Nothing
+    nextPos pos x _xs  = updatePosString pos (show x)
 
 mstr :: PandocMonad m => ManCompiler m ManToken
 mstr = msatisfy isMStr where
@@ -304,9 +322,10 @@ mheader = msatisfy isMHeader where
   isMHeader (MHeader _ _) = True
   isMHeader _ = False
 
-mmacro :: PandocMonad m => ManCompiler m ManToken
-mmacro = msatisfy isMMacro where
-  isMMacro (MMacro _ _) = True
+mmacro :: PandocMonad m => MacroKind -> ManCompiler m ManToken
+mmacro mk = msatisfy isMMacro where
+  isMMacro (MMacro mk' _) | mk == mk' = True
+                          | otherwise = False
   isMMacro _ = False
 
 munknownMacro :: PandocMonad m => ManCompiler m ManToken
@@ -323,6 +342,56 @@ mcomment = msatisfy isMComment where
 -- ManToken -> Block functions
 --
 
-compileHeader :: PandocMonad m => ManCompiler m Block
-compileHeader = undefined --do
+compileTitle :: PandocMonad m => ManCompiler m Block
+compileTitle = do
+  (MMacro _ args) <- mmacro KTitle
+  if null args
+    then return Null
+    else do
+         let mantitle = head args
+         modifyState (changeTitle mantitle)
+         return $ Header 1 nullAttr [Str mantitle]
+  where
+  changeTitle title mst@ManState{ pState = pst} =
+    let meta = stateMeta pst
+        metaUp = Meta $ insert "title" (MetaString title) (unMeta meta)
+    in
+    mst { pState = pst {stateMeta = metaUp} }
+      
+compileSkippedContent :: PandocMonad m => ManCompiler m Block
+compileSkippedContent = do
+  tok <- munknownMacro <|> mcomment <|> memplyLine
+  onToken tok
+  return Null
 
+  where
+
+  onToken :: PandocMonad m => ManToken -> ManCompiler m ()
+  onToken (MUnknownMacro mname _) = do
+    pos <- getPosition
+    logMessage $ SkippedContent ("Unknown macro: " ++ mname) pos
+  onToken _ = return ()
+
+strToInline :: String -> FontKind -> Inline
+strToInline s Regular = Str s
+strToInline s Italic = Emph [Str s]
+strToInline s Bold = Strong [Str s]
+strToInline s ItalicBold = Strong [Emph [Str s]]
+
+compilePara :: PandocMonad m => ManCompiler m Block
+compilePara = do
+  inls <- many1 (strInl <|> lineInl)
+  let withspaces = intersperse [Str " "] inls
+  return $ Para (concat withspaces)
+
+  where
+
+  strInl :: PandocMonad m => ManCompiler m [Inline]
+  strInl = do
+    (MStr str fk) <- mstr
+    return [strToInline str fk]
+
+  lineInl :: PandocMonad m => ManCompiler m [Inline]
+  lineInl = do
+    (MLine fragments) <- mline
+    return $ fmap (\(s,f) -> strToInline s f) fragments
