@@ -17,9 +17,6 @@
 
 ## macOS
 
-  - You can install pandoc using
-    [homebrew](http://brew.sh): `brew install pandoc`.
-
   - There is a package installer at pandoc's [download page].
     If you later want to uninstall the package, you can do so
     by downloading [this script][uninstaller]
@@ -29,6 +26,12 @@
     pages, for those who prefer not to use the installer.  Simply
     unzip the file and move the binaries and man pages to
     whatever directory you like.
+
+  - Alternatively, you can install pandoc using
+    [homebrew](http://brew.sh): `brew install pandoc`.
+    Note: This method installs pandoc from source, so it
+    will take a long time and a lot of disk space for the
+    ghc compiler and dependent Haskell libraries.
 
   - For PDF output, you'll also need LaTeX.  Because a full [MacTeX]
     installation takes more than a gigabyte of disk space, we recommend
