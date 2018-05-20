@@ -86,8 +86,8 @@ data RoffState = RoffState { fontKind :: FontKind
 instance Default RoffState where
   def = RoffState {fontKind = Regular}
 
-type ManParser m = ParserT [Char] RoffState m
-type ManCompiler m = ParserT [ManToken] ParserState m
+type ManLexer m = ParserT [Char] RoffState m
+type ManParser m = ParserT [ManToken] ParserState m
 
 ----
 -- testStrr :: [Char] -> Either PandocError Pandoc
@@ -115,11 +115,11 @@ testFile fname = do
 -- | Read man (troff) from an input string and return a Pandoc document.
 readMan :: PandocMonad m => ReaderOptions -> T.Text -> m Pandoc
 readMan opts txt = do
-  eithertokens <- readWithM parseMan def (T.unpack $ crFilter txt)
+  eithertokens <- readWithM lexMan def (T.unpack $ crFilter txt)
   case eithertokens of
     Right tokenz -> do
       let state = def {stateOptions = opts} :: ParserState
-      eitherdoc <- readWithMTokens compileMan state tokenz
+      eitherdoc <- readWithMTokens parseMan state tokenz
       case eitherdoc of
         Right doc -> return doc
         Left e -> throwError e
@@ -143,14 +143,14 @@ readMan opts txt = do
 -- String -> ManToken function
 --
 
-parseMan :: PandocMonad m => ManParser m [ManToken]
-parseMan = many (parseMacro <|> parseLine <|> parseEmptyLine)
+lexMan :: PandocMonad m => ManLexer m [ManToken]
+lexMan = many (lexMacro <|> lexLine <|> lexEmptyLine)
 
-compileMan :: PandocMonad m => ManCompiler m Pandoc
-compileMan = do
-  let compilers = [compileTitle, compilePara, compileSkippedContent
-                  , compileCodeBlock, compileHeader, compileSkipMacro]
-  blocks <- many $ choice compilers
+parseMan :: PandocMonad m => ManParser m Pandoc
+parseMan = do
+  let parsers = [parseTitle, parsePara, parseSkippedContent
+                  , parseCodeBlock, parseHeader, parseSkipMacro]
+  blocks <- many $ choice parsers
   parserst <- getState
   return $ Pandoc (stateMeta parserst) (filter (not . isNull) blocks)
 
@@ -159,12 +159,12 @@ compileMan = do
   isNull Null = True
   isNull _    = False
 
-parseMacro :: PandocMonad m => ManParser m ManToken
-parseMacro = do
+lexMacro :: PandocMonad m => ManLexer m ManToken
+lexMacro = do
   char '.' <|> char '\''
   many space
   macroName <- many1 (letter <|> oneOf ['\\', '"'])
-  args <- parseArgs
+  args <- lexArgs
   let joinedArgs = concat $ intersperse " " args
 
   let tok = case macroName of
@@ -200,44 +200,44 @@ parseMacro = do
       let manurl pagename section = "../"++section++"/"++pagename++"."++section
       return $ Link nullAttr [Str txt] (manurl mpage [mansect], mpage)
    
-  parseArgs :: PandocMonad m => ManParser m [String]
-  parseArgs = do
+  lexArgs :: PandocMonad m => ManLexer m [String]
+  lexArgs = do
     eolOpt <- optionMaybe $ char '\n'
     if isJust eolOpt
       then return []
       else do
         many1 space
         arg <- try quotedArg <|> plainArg
-        otherargs <- parseArgs
+        otherargs <- lexArgs
         return $ arg : otherargs
 
     where
 
-    plainArg :: PandocMonad m => ManParser m String
+    plainArg :: PandocMonad m => ManLexer m String
     plainArg = many1 $ noneOf " \t\n"
 
-    quotedArg :: PandocMonad m => ManParser m String
+    quotedArg :: PandocMonad m => ManLexer m String
     quotedArg = do
       char '"'
       val <- many1 quotedChar
       char '"'
       return val
 
-    quotedChar :: PandocMonad m => ManParser m Char
+    quotedChar :: PandocMonad m => ManLexer m Char
     quotedChar = noneOf "\"\n" <|> try (string "\"\"" >> return '"')
 
-escapeParser :: PandocMonad m => ManParser m EscapeThing
-escapeParser = do
+escapeLexer :: PandocMonad m => ManLexer m EscapeThing
+escapeLexer = do
   char '\\'
   choice [escChar, escFont]
   where
 
-  escChar :: PandocMonad m => ManParser m EscapeThing
+  escChar :: PandocMonad m => ManLexer m EscapeThing
   escChar = choice [ char '-' >> return (EChar '-')
                   , oneOf ['%', '{', '}'] >> return ENothing
                   ]
 
-  escFont :: PandocMonad m => ManParser m EscapeThing
+  escFont :: PandocMonad m => ManLexer m EscapeThing
   escFont = do
     char 'f'
     font <- choice [ char 'B' >> return Bold
@@ -250,36 +250,36 @@ escapeParser = do
     modifyState (\r -> r {fontKind = font})
     return $ EFont font
 
-parseLine :: PandocMonad m => ManParser m ManToken
-parseLine = do
+lexLine :: PandocMonad m => ManLexer m ManToken
+lexLine = do
   lnparts <- many1 (esc <|> linePart)
   newline
   return $ MLine $ catMaybes lnparts
   where
 
-  esc :: PandocMonad m => ManParser m (Maybe (String, FontKind))
+  esc :: PandocMonad m => ManLexer m (Maybe (String, FontKind))
   esc = do
-    someesc <- escapeParser
+    someesc <- escapeLexer
     font <- currentFont
     let rv = case someesc of
                EChar c -> Just ([c], font)
                _ -> Nothing
     return rv
 
-  linePart :: PandocMonad m => ManParser m (Maybe (String, FontKind))
+  linePart :: PandocMonad m => ManLexer m (Maybe (String, FontKind))
   linePart = do
     lnpart <- many1 $ noneOf "\n\\"
     font <- currentFont
     return $ Just (lnpart, font)
   
-  currentFont :: PandocMonad m => ManParser m FontKind
+  currentFont :: PandocMonad m => ManLexer m FontKind
   currentFont = do
     RoffState {fontKind = fk} <- getState
     return fk
 
     
-parseEmptyLine :: PandocMonad m => ManParser m ManToken
-parseEmptyLine = char '\n' >> return MEmptyLine
+lexEmptyLine :: PandocMonad m => ManLexer m ManToken
+lexEmptyLine = char '\n' >> return MEmptyLine
 
 --
 -- ManToken parsec functions
@@ -291,48 +291,48 @@ msatisfy predic = tokenPrim show nextPos testTok
     testTok t     = if predic t then Just t else Nothing
     nextPos pos x _xs  = updatePosString pos (show x)
 
-mstr :: PandocMonad m => ManCompiler m ManToken
+mstr :: PandocMonad m => ManParser m ManToken
 mstr = msatisfy isMStr where
   isMStr (MStr _ _) = True
   isMStr _ = False
 
-mline :: PandocMonad m => ManCompiler m ManToken
+mline :: PandocMonad m => ManParser m ManToken
 mline = msatisfy isMLine where
   isMLine (MLine _) = True
   isMLine _ = False
 
-mlink :: PandocMonad m => ManCompiler m ManToken
+mlink :: PandocMonad m => ManParser m ManToken
 mlink = msatisfy isMLink where
   isMLink (MLink _ _) = True
   isMLink _ = False
 
-memplyLine :: PandocMonad m => ManCompiler m ManToken
+memplyLine :: PandocMonad m => ManParser m ManToken
 memplyLine = msatisfy isMEmptyLine where
   isMEmptyLine MEmptyLine = True
   isMEmptyLine _ = False
 
-mheader :: PandocMonad m => ManCompiler m ManToken
+mheader :: PandocMonad m => ManParser m ManToken
 mheader = msatisfy isMHeader where
   isMHeader (MHeader _ _) = True
   isMHeader _ = False
 
-mmacro :: PandocMonad m => MacroKind -> ManCompiler m ManToken
+mmacro :: PandocMonad m => MacroKind -> ManParser m ManToken
 mmacro mk = msatisfy isMMacro where
   isMMacro (MMacro mk' _) | mk == mk' = True
                           | otherwise = False
   isMMacro _ = False
 
-mmacroAny :: PandocMonad m => ManCompiler m ManToken
+mmacroAny :: PandocMonad m => ManParser m ManToken
 mmacroAny = msatisfy isMMacro where
   isMMacro (MMacro _ _) = True
   isMMacro _ = False
 
-munknownMacro :: PandocMonad m => ManCompiler m ManToken
+munknownMacro :: PandocMonad m => ManParser m ManToken
 munknownMacro = msatisfy isMUnknownMacro where
   isMUnknownMacro (MUnknownMacro _ _) = True
   isMUnknownMacro _ = False
 
-mcomment :: PandocMonad m => ManCompiler m ManToken
+mcomment :: PandocMonad m => ManParser m ManToken
 mcomment = msatisfy isMComment where
   isMComment (MComment _) = True
   isMComment _ = False
@@ -341,8 +341,8 @@ mcomment = msatisfy isMComment where
 -- ManToken -> Block functions
 --
 
-compileTitle :: PandocMonad m => ManCompiler m Block
-compileTitle = do
+parseTitle :: PandocMonad m => ManParser m Block
+parseTitle = do
   (MMacro _ args) <- mmacro KTitle
   if null args
     then return Null
@@ -357,15 +357,15 @@ compileTitle = do
     in
     pst {stateMeta = metaUp}
       
-compileSkippedContent :: PandocMonad m => ManCompiler m Block
-compileSkippedContent = do
+parseSkippedContent :: PandocMonad m => ManParser m Block
+parseSkippedContent = do
   tok <- munknownMacro <|> mcomment <|> memplyLine
   onToken tok
   return Null
 
   where
 
-  onToken :: PandocMonad m => ManToken -> ManCompiler m ()
+  onToken :: PandocMonad m => ManToken -> ManParser m ()
   onToken (MUnknownMacro mname _) = do
     pos <- getPosition
     logMessage $ SkippedContent ("Unknown macro: " ++ mname) pos
@@ -377,30 +377,30 @@ strToInline s Italic = Emph [Str s]
 strToInline s Bold = Strong [Str s]
 strToInline s ItalicBold = Strong [Emph [Str s]]
 
-compilePara :: PandocMonad m => ManCompiler m Block
-compilePara = do
+parsePara :: PandocMonad m => ManParser m Block
+parsePara = do
   inls <- many1 (strInl <|> lineInl <|> comment)
   let withspaces = intersperse [Str " "] inls
   return $ Para (concat withspaces)
 
   where
 
-  strInl :: PandocMonad m => ManCompiler m [Inline]
+  strInl :: PandocMonad m => ManParser m [Inline]
   strInl = do
     (MStr str fk) <- mstr
     return [strToInline str fk]
 
-  lineInl :: PandocMonad m => ManCompiler m [Inline]
+  lineInl :: PandocMonad m => ManParser m [Inline]
   lineInl = do
     (MLine fragments) <- mline
     return $ fmap (\(s,f) -> strToInline s f) fragments
 
-  comment :: PandocMonad m => ManCompiler m [Inline]
+  comment :: PandocMonad m => ManParser m [Inline]
   comment = mcomment >> return []
 
 
-compileCodeBlock :: PandocMonad m => ManCompiler m Block
-compileCodeBlock = do
+parseCodeBlock :: PandocMonad m => ManParser m Block
+parseCodeBlock = do
   mmacro KCodeBlStart
   toks <- many (mstr <|> mline <|> mlink <|> memplyLine <|> munknownMacro <|> mcomment)
   mmacro KCodeBlEnd
@@ -415,10 +415,10 @@ compileCodeBlock = do
   extractText MEmptyLine = Just "" -- string are intercalated with '\n', this prevents double '\n'
   extractText _ = Nothing
 
-compileHeader :: PandocMonad m => ManCompiler m Block
-compileHeader = do
+parseHeader :: PandocMonad m => ManParser m Block
+parseHeader = do
   (MHeader lvl s) <- mheader
   return $ Header lvl nullAttr [Str s]
 
-compileSkipMacro :: PandocMonad m => ManCompiler m Block
-compileSkipMacro = mmacroAny >> return Null
+parseSkipMacro :: PandocMonad m => ManParser m Block
+parseSkipMacro = mmacroAny >> return Null
