@@ -133,7 +133,7 @@ readMan opts txt = do
           -> [ManToken]                       -- ^ input
           -> m (Either PandocError a)
   readWithMTokens parser state input =
-    mapLeft (PandocParsecError . concat $ show <$> input) `liftM` runParserT parser state "source" input
+    mapLeft (PandocParsecError . (intercalate "\n") $ show <$> input) `liftM` runParserT parser state "source" input
 
   mapLeft :: (a -> c) -> Either a b -> Either c b
   mapLeft f (Left x) = Left $ f x
@@ -148,8 +148,8 @@ lexMan = many (lexMacro <|> lexLine <|> lexEmptyLine)
 
 parseMan :: PandocMonad m => ManParser m Pandoc
 parseMan = do
-  let parsers = [parseTitle, parsePara, parseSkippedContent
-                  , parseCodeBlock, parseHeader, parseSkipMacro]
+  let parsers = [ parseBulletList, parseTitle, parsePara, parseSkippedContent
+                , parseCodeBlock, parseHeader, parseSkipMacro]
   blocks <- many $ choice parsers
   parserst <- getState
   return $ Pandoc (stateMeta parserst) (filter (not . isNull) blocks)
@@ -159,6 +159,7 @@ parseMan = do
   isNull Null = True
   isNull _    = False
 
+-- TODO escape characters in arguments
 lexMacro :: PandocMonad m => ManLexer m ManToken
 lexMacro = do
   char '.' <|> char '\''
@@ -180,6 +181,7 @@ lexMacro = do
               x | x `elem` ["BI", "IB"] -> MStr joinedArgs ItalicBold
               x | x `elem` ["I", "IR", "RI"]  -> MStr joinedArgs Italic
               "SH"   -> MHeader 2 joinedArgs
+              "SS"   -> MHeader 3 joinedArgs
               x | x `elem` [ "P", "PP", "LP", "sp"] -> MEmptyLine
               _      -> MUnknownMacro macroName args
   return tok
@@ -410,7 +412,7 @@ parsePara = do
     -- assuming man pages are generated from Linux-like repository
     linkParser :: Parsec String () [Inline]
     linkParser = do
-      mpage <- many1 alphaNum
+      mpage <- many1 (alphaNum <|> char '_')
       space
       char '('
       mansect <- digit
@@ -444,6 +446,20 @@ parseHeader :: PandocMonad m => ManParser m Block
 parseHeader = do
   (MHeader lvl s) <- mheader
   return $ Header lvl nullAttr [Str s]
+
+parseBulletList :: PandocMonad m => ManParser m Block
+parseBulletList = do
+  bls <- many1 block
+  return $ BulletList $ map (:[]) bls
+
+  where
+
+  block :: PandocMonad m => ManParser m Block
+  block = do
+    mmacro KTab
+    pars <- parsePara
+    many $ mmacro KTabEnd
+    return pars
 
 -- In case of weird man file it will be parsed succesfully
 parseSkipMacro :: PandocMonad m => ManParser m Block
