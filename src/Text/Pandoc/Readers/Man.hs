@@ -67,7 +67,7 @@ data MacroKind = KTitle
 
 data ManToken = MStr String FontKind
               | MLine [(String, FontKind)]
-              | MLink String Target
+              | MMaybeLink String
               | MEmptyLine
               | MHeader Int String
               | MMacro MacroKind [String]
@@ -166,40 +166,26 @@ lexMacro = do
   macroName <- many1 (letter <|> oneOf ['\\', '"'])
   args <- lexArgs
   let joinedArgs = concat $ intersperse " " args
+  let knownMacro mkind = MMacro mkind args
 
   let tok = case macroName of
               x | x `elem` ["\\\"", "\\#"] -> MComment joinedArgs
-              "TH"   -> MMacro KTitle args
-              "TP"   -> MMacro KTab []
-              "PP"   -> MMacro KTabEnd []
-              "nf"   -> MMacro KCodeBlStart []
-              "fi"   -> MMacro KCodeBlEnd []
-              x | x `elem` ["B", "BR"]    -> MStr joinedArgs Bold -- "BR" is often used as a link to another man
+              "TH"   -> knownMacro KTitle
+              "TP"   -> knownMacro KTab
+              "RE"   -> knownMacro KTabEnd
+              "nf"   -> knownMacro KCodeBlStart
+              "fi"   -> knownMacro KCodeBlEnd
+              "B"    -> MStr joinedArgs Bold
+              "BR"   -> MMaybeLink joinedArgs
               x | x `elem` ["BI", "IB"] -> MStr joinedArgs ItalicBold
               x | x `elem` ["I", "IR", "RI"]  -> MStr joinedArgs Italic
               "SH"   -> MHeader 2 joinedArgs
-              "sp"   -> MEmptyLine
+              x | x `elem` [ "P", "PP", "LP", "sp"] -> MEmptyLine
               _      -> MUnknownMacro macroName args
   return tok
 
   where
 
-  linkToMan :: String -> Maybe Block
-  linkToMan txt = case runParser linkParser () "" txt of
-      Right lnk -> Just $ Plain [lnk]
-      Left _ -> Nothing
-    where
-    linkParser :: Parsec String () Inline
-    linkParser = do
-      mpage <- many1 alphaNum
-      space
-      char '('
-      mansect <- digit
-      char ')'
-      -- assuming man pages are generated from Linux-like repository
-      let manurl pagename section = "../"++section++"/"++pagename++"."++section
-      return $ Link nullAttr [Str txt] (manurl mpage [mansect], mpage)
-   
   lexArgs :: PandocMonad m => ManLexer m [String]
   lexArgs = do
     eolOpt <- optionMaybe $ char '\n'
@@ -226,6 +212,7 @@ lexMacro = do
     quotedChar :: PandocMonad m => ManLexer m Char
     quotedChar = noneOf "\"\n" <|> try (string "\"\"" >> return '"')
 
+-- TODO handle more cases
 escapeLexer :: PandocMonad m => ManLexer m EscapeThing
 escapeLexer = do
   char '\\'
@@ -233,22 +220,37 @@ escapeLexer = do
   where
 
   escChar :: PandocMonad m => ManLexer m EscapeThing
-  escChar = choice [ char '-' >> return (EChar '-')
-                  , oneOf ['%', '{', '}'] >> return ENothing
+  escChar =
+    let skipChars = ['%', '{', '}', '&']
+        subsChars = [ ("-", '-'), (" ", ' '), ("\\", '\\'), ("[lq]", '“'), ("[rq]", '”')
+                    , ("[em]", '—'), ("[en]", '–') ]
+        substitute :: PandocMonad m =>  (String,Char) -> ManLexer m EscapeThing
+        substitute (from,to) = try $ string from >> return (EChar to)
+        others = [ oneOf skipChars >> return ENothing
+                  , char '[' >> many alphaNum >> char ']' >> return ENothing
                   ]
+    in choice $ (substitute <$> subsChars) ++ others
 
   escFont :: PandocMonad m => ManLexer m EscapeThing
   escFont = do
     char 'f'
-    font <- choice [ char 'B' >> return Bold
-          , char 'I' >> return Italic
-          , (char 'P' <|> anyChar) >> return Regular
+    font <- choice [ letterFont
           , char '(' >> anyChar >> anyChar >> return Regular
-          , string "[]"  >> return Regular
-          , char '[' >> many1 letter >> char ']'  >> return Regular
+          , try (char '[' >> letterFont >>= \f -> char ']'  >> return f)
+          , try $ string "[BI]" >> return ItalicBold
+          , char '[' >> many letter >> char ']'  >> return Regular
           ]
     modifyState (\r -> r {fontKind = font})
     return $ EFont font
+
+    where
+
+    letterFont :: PandocMonad m => ManLexer m FontKind
+    letterFont = choice [
+        char 'B' >> return Bold
+      , char 'I' >> return Italic
+      , char 'P' >> return Regular
+      ]
 
 lexLine :: PandocMonad m => ManLexer m ManToken
 lexLine = do
@@ -301,10 +303,10 @@ mline = msatisfy isMLine where
   isMLine (MLine _) = True
   isMLine _ = False
 
-mlink :: PandocMonad m => ManParser m ManToken
-mlink = msatisfy isMLink where
-  isMLink (MLink _ _) = True
-  isMLink _ = False
+mmaybeLink :: PandocMonad m => ManParser m ManToken
+mmaybeLink = msatisfy isMMaybeLink where
+  isMMaybeLink (MMaybeLink _) = True
+  isMMaybeLink _ = False
 
 memplyLine :: PandocMonad m => ManParser m ManToken
 memplyLine = msatisfy isMEmptyLine where
@@ -379,7 +381,7 @@ strToInline s ItalicBold = Strong [Emph [Str s]]
 
 parsePara :: PandocMonad m => ManParser m Block
 parsePara = do
-  inls <- many1 (strInl <|> lineInl <|> comment)
+  inls <- many1 (strInl <|> lineInl <|> linkInl <|> comment)
   let withspaces = intersperse [Str " "] inls
   return $ Para (concat withspaces)
 
@@ -395,6 +397,29 @@ parsePara = do
     (MLine fragments) <- mline
     return $ fmap (\(s,f) -> strToInline s f) fragments
 
+  linkInl :: PandocMonad m => ManParser m [Inline]
+  linkInl = do
+    (MMaybeLink txt) <- mmaybeLink
+    let inls = case runParser linkParser () "" txt of
+                  Right lnk -> lnk
+                  Left _ -> [Strong [Str txt]]
+    return inls
+
+    where
+
+    -- assuming man pages are generated from Linux-like repository
+    linkParser :: Parsec String () [Inline]
+    linkParser = do
+      mpage <- many1 alphaNum
+      space
+      char '('
+      mansect <- digit
+      char ')'
+      other <- many anyChar
+      let manurl pagename section = "../"++section++"/"++pagename++"."++section
+      return $ [ Link nullAttr [Strong [Str mpage]] (manurl mpage [mansect], mpage)
+               , Strong [Str $ " ("++[mansect] ++ ")", Str other]]
+
   comment :: PandocMonad m => ManParser m [Inline]
   comment = mcomment >> return []
 
@@ -402,7 +427,7 @@ parsePara = do
 parseCodeBlock :: PandocMonad m => ManParser m Block
 parseCodeBlock = do
   mmacro KCodeBlStart
-  toks <- many (mstr <|> mline <|> mlink <|> memplyLine <|> munknownMacro <|> mcomment)
+  toks <- many (mstr <|> mline <|> mmaybeLink <|> memplyLine <|> munknownMacro <|> mcomment)
   mmacro KCodeBlEnd
   return $ CodeBlock nullAttr (intercalate "\n" . catMaybes $ extractText <$> toks)
 
@@ -410,8 +435,8 @@ parseCodeBlock = do
 
   extractText :: ManToken -> Maybe String
   extractText (MStr s _) = Just s
-  extractText (MLine ss) = Just . intercalate " " $ map fst ss
-  extractText (MLink s _) = Just s
+  extractText (MLine ss) = Just . concat $ map fst ss -- TODO maybe unwords?
+  extractText (MMaybeLink s) = Just s
   extractText MEmptyLine = Just "" -- string are intercalated with '\n', this prevents double '\n'
   extractText _ = Nothing
 
@@ -420,5 +445,6 @@ parseHeader = do
   (MHeader lvl s) <- mheader
   return $ Header lvl nullAttr [Str s]
 
+-- In case of weird man file it will be parsed succesfully
 parseSkipMacro :: PandocMonad m => ManParser m Block
 parseSkipMacro = mmacroAny >> return Null
