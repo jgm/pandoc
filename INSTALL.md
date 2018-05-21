@@ -29,9 +29,9 @@
 
   - Alternatively, you can install pandoc using
     [homebrew](http://brew.sh): `brew install pandoc`.
-    Note: This method installs pandoc from source, so it
-    will take a long time and a lot of disk space for the
-    ghc compiler and dependent Haskell libraries.
+    Note: If you are using macOS < 10.10, this method installs 
+    pandoc from source, so it will take a long time and a lot of 
+    disk space for the ghc compiler and dependent Haskell libraries.
 
   - For PDF output, you'll also need LaTeX.  Because a full [MacTeX]
     installation takes more than a gigabyte of disk space, we recommend
