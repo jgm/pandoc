@@ -37,7 +37,7 @@ import Control.Monad (liftM)
 import Control.Monad.Except (throwError)
 import Data.Default (Default)
 import Data.Map (insert)
-import Data.Maybe (isJust, catMaybes)
+import Data.Maybe (catMaybes)
 import Data.List (intersperse, intercalate)
 import qualified Data.Text as T
 
@@ -159,6 +159,9 @@ parseMan = do
   isNull Null = True
   isNull _    = False
 
+eofline :: PandocMonad m => ManLexer m ()
+eofline = (newline >> return ()) <|> eof
+
 -- TODO escape characters in arguments
 lexMacro :: PandocMonad m => ManLexer m ManToken
 lexMacro = do
@@ -166,7 +169,7 @@ lexMacro = do
   many space
   macroName <- many1 (letter <|> oneOf ['\\', '"'])
   args <- lexArgs
-  let joinedArgs = concat $ intersperse " " args
+  let joinedArgs = unwords args
   let knownMacro mkind = MMacro mkind args
 
   let tok = case macroName of
@@ -190,16 +193,16 @@ lexMacro = do
 
   lexArgs :: PandocMonad m => ManLexer m [String]
   lexArgs = do
-    eolOpt <- optionMaybe $ char '\n'
-    if isJust eolOpt
-      then return []
-      else do
-        many1 space
-        arg <- try quotedArg <|> plainArg
-        otherargs <- lexArgs
-        return $ arg : otherargs
+    args <- many oneArg
+    eofline
+    return args
 
     where
+
+    oneArg :: PandocMonad m => ManLexer m String
+    oneArg = do
+      many1 $ char ' '
+      try quotedArg <|> plainArg
 
     plainArg :: PandocMonad m => ManLexer m String
     plainArg = many1 $ noneOf " \t\n"
@@ -257,7 +260,7 @@ escapeLexer = do
 lexLine :: PandocMonad m => ManLexer m ManToken
 lexLine = do
   lnparts <- many1 (esc <|> linePart)
-  newline
+  eofline
   return $ MLine $ catMaybes lnparts
   where
 
@@ -384,7 +387,7 @@ strToInline s ItalicBold = Strong [Emph [Str s]]
 parsePara :: PandocMonad m => ManParser m Block
 parsePara = do
   inls <- many1 (strInl <|> lineInl <|> linkInl <|> comment)
-  let withspaces = intersperse [Str " "] inls
+  let withspaces = intersperse [Space] inls
   return $ Para (concat withspaces)
 
   where
@@ -420,7 +423,9 @@ parsePara = do
       other <- many anyChar
       let manurl pagename section = "../"++section++"/"++pagename++"."++section
       return $ [ Link nullAttr [Strong [Str mpage]] (manurl mpage [mansect], mpage)
-               , Strong [Str $ " ("++[mansect] ++ ")", Str other]]
+               , Strong [Str $ " ("++[mansect] ++ ")"
+               , Str other]
+               ]
 
   comment :: PandocMonad m => ManParser m [Inline]
   comment = mcomment >> return []
@@ -448,9 +453,7 @@ parseHeader = do
   return $ Header lvl nullAttr [Str s]
 
 parseBulletList :: PandocMonad m => ManParser m Block
-parseBulletList = do
-  bls <- many1 block
-  return $ BulletList $ map (:[]) bls
+parseBulletList = BulletList . map (: []) <$> many1 block
 
   where
 
