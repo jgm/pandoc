@@ -36,6 +36,7 @@ module Text.Pandoc.Readers.Man (readMan, testFile) where
 import Prelude
 import Control.Monad (liftM)
 import Control.Monad.Except (throwError)
+import Data.Char (isDigit, isUpper, isLower)
 import Data.Default (Default)
 import Data.Map (insert)
 import Data.Maybe (catMaybes)
@@ -64,18 +65,18 @@ data MacroKind = KTitle
                | KCodeBlEnd
                | KTab
                | KTabEnd
+               | KSubTab
                deriving (Show, Eq)
 
--- TODO header strings
--- TODO remove MStr
--- TODO filter skipped content
-data ManToken = MStr String FontKind
-              | MLine [(String, FontKind)]
+type RoffStr = (String, FontKind)
+
+data ManToken = MStr RoffStr
+              | MLine [RoffStr]
               | MMaybeLink String
               | MEmptyLine
-              | MHeader Int String
-              | MMacro MacroKind [String]
-              | MUnknownMacro String [String]
+              | MHeader Int [RoffStr]
+              | MMacro MacroKind [RoffStr]
+              | MUnknownMacro String [RoffStr]
               | MComment String
               deriving Show
 
@@ -152,7 +153,7 @@ lexMan = many (lexMacro <|> lexLine <|> lexEmptyLine)
 
 parseMan :: PandocMonad m => ManParser m Pandoc
 parseMan = do
-  let parsers = [ parseBulletList, parseTitle, parsePara, parseSkippedContent
+  let parsers = [ try parseBulletList, parseTitle, parsePara, parseSkippedContent
                 , parseCodeBlock, parseHeader, parseSkipMacro]
   blocks <- many $ choice parsers
   parserst <- getState
@@ -212,13 +213,18 @@ escapeLexer = do
       , char 'P' >> return Regular
       ]
 
+currentFont :: PandocMonad m => ManLexer m FontKind
+currentFont = do
+  RoffState {fontKind = fk} <- getState
+  return fk
+
 lexMacro :: PandocMonad m => ManLexer m ManToken
 lexMacro = do
   char '.' <|> char '\''
   many spacetab
   macroName <- many1 (letter <|> oneOf ['\\', '"'])
   args <- lexArgs
-  let joinedArgs = unwords args
+  let joinedArgs = unwords $ fst <$> args
   let knownMacro mkind = MMacro mkind args
 
   let tok = case macroName of
@@ -227,21 +233,22 @@ lexMacro = do
               "IP"   -> knownMacro KTab
               "TP"   -> knownMacro KTab
               "RE"   -> knownMacro KTabEnd
+              "RS"   -> knownMacro KSubTab
               "nf"   -> knownMacro KCodeBlStart
               "fi"   -> knownMacro KCodeBlEnd
-              "B"    -> MStr joinedArgs Bold
+              "B"    -> MStr (joinedArgs,Bold)
               "BR"   -> MMaybeLink joinedArgs
-              x | x `elem` ["BI", "IB"] -> MStr joinedArgs ItalicBold
-              x | x `elem` ["I", "IR", "RI"]  -> MStr joinedArgs Italic
-              "SH"   -> MHeader 2 joinedArgs
-              "SS"   -> MHeader 3 joinedArgs
+              x | x `elem` ["BI", "IB"] -> MStr (joinedArgs, ItalicBold)
+              x | x `elem` ["I", "IR", "RI"]  -> MStr (joinedArgs, Italic)
+              "SH"   -> MHeader 2 args
+              "SS"   -> MHeader 3 args
               x | x `elem` [ "P", "PP", "LP", "sp"] -> MEmptyLine
               _      -> MUnknownMacro macroName args
   return tok
 
   where
 
-  lexArgs :: PandocMonad m => ManLexer m [String]
+  lexArgs :: PandocMonad m => ManLexer m [RoffStr]
   lexArgs = do
     args <- many oneArg
     eofline
@@ -249,20 +256,24 @@ lexMacro = do
 
     where
 
-    oneArg :: PandocMonad m => ManLexer m String
+    oneArg :: PandocMonad m => ManLexer m RoffStr
     oneArg = do
       many1 spacetab
       quotedArg <|> plainArg
 
-    plainArg :: PandocMonad m => ManLexer m String
-    plainArg = fmap catMaybes . many1 $ escChar <|> (Just <$> noneOf " \t\n")
+    plainArg :: PandocMonad m => ManLexer m RoffStr
+    plainArg = do
+      arg <- many1 $ escChar <|> (Just <$> noneOf " \t\n")
+      f <- currentFont
+      return (catMaybes arg, f)
 
-    quotedArg :: PandocMonad m => ManLexer m String
+    quotedArg :: PandocMonad m => ManLexer m RoffStr
     quotedArg = do
       char '"'
       val <- catMaybes <$> many quotedChar
       char '"'
-      return val
+      f <- currentFont
+      return (val, f)
 
     quotedChar :: PandocMonad m => ManLexer m (Maybe Char)
     quotedChar = escChar <|> (Just <$> noneOf "\"\n") <|> (Just <$> try (string "\"\"" >> return '"'))
@@ -295,11 +306,6 @@ lexLine = do
     lnpart <- many1 $ noneOf "\n\\"
     font <- currentFont
     return $ Just (lnpart, font)
-  
-  currentFont :: PandocMonad m => ManLexer m FontKind
-  currentFont = do
-    RoffState {fontKind = fk} <- getState
-    return fk
 
     
 lexEmptyLine :: PandocMonad m => ManLexer m ManToken
@@ -313,11 +319,11 @@ msatisfy :: (Show t, Stream s m t) => (t -> Bool) -> ParserT s st m t
 msatisfy predic = tokenPrim show nextPos testTok
   where
     testTok t     = if predic t then Just t else Nothing
-    nextPos pos x _xs  = updatePosString pos (show x)
+    nextPos pos x _xs  = updatePosString (setSourceLine pos $ sourceLine pos + (if predic x then 1 else 0)) (show x)
 
 mstr :: PandocMonad m => ManParser m ManToken
 mstr = msatisfy isMStr where
-  isMStr (MStr _ _) = True
+  isMStr (MStr _) = True
   isMStr _ = False
 
 mline :: PandocMonad m => ManParser m ManToken
@@ -371,7 +377,7 @@ parseTitle = do
   if null args
     then return Null
     else do
-         let mantitle = head args
+         let mantitle = fst $ head args
          modifyState (changeTitle mantitle)
          return $ Header 1 nullAttr [Str mantitle]
   where
@@ -395,29 +401,32 @@ parseSkippedContent = do
     logMessage $ SkippedContent ("Unknown macro: " ++ mname) pos
   onToken _ = return ()
 
-strToInline :: String -> FontKind -> Inline
-strToInline s Regular = Str s
-strToInline s Italic = Emph [Str s]
-strToInline s Bold = Strong [Str s]
-strToInline s ItalicBold = Strong [Emph [Str s]]
+strToInline :: RoffStr -> Inline
+strToInline (s, Regular) = Str s
+strToInline (s, Italic) = Emph [Str s]
+strToInline (s, Bold) = Strong [Str s]
+strToInline (s, ItalicBold) = Strong [Emph [Str s]]
 
 parsePara :: PandocMonad m => ManParser m Block
-parsePara = do
+parsePara = Para <$> parseInlines
+
+parseInlines :: PandocMonad m => ManParser m [Inline]
+parseInlines = do
   inls <- many1 (strInl <|> lineInl <|> linkInl <|> comment)
   let withspaces = intersperse [Space] inls
-  return $ Para (concat withspaces)
+  return $ concat withspaces
 
   where
 
   strInl :: PandocMonad m => ManParser m [Inline]
   strInl = do
-    (MStr str fk) <- mstr
-    return [strToInline str fk]
+    (MStr rstr) <- mstr
+    return [strToInline rstr]
 
   lineInl :: PandocMonad m => ManParser m [Inline]
   lineInl = do
     (MLine fragments) <- mline
-    return $ fmap (\(s,f) -> strToInline s f) fragments
+    return $ strToInline <$> fragments
 
   linkInl :: PandocMonad m => ManParser m [Inline]
   linkInl = do
@@ -458,7 +467,7 @@ parseCodeBlock = do
   where
 
   extractText :: ManToken -> Maybe String
-  extractText (MStr s _) = Just s
+  extractText (MStr (s, _)) = Just s
   extractText (MLine ss) = Just . concat $ map fst ss -- TODO maybe unwords?
   extractText (MMaybeLink s) = Just s
   extractText MEmptyLine = Just "" -- string are intercalated with '\n', this prevents double '\n'
@@ -466,20 +475,43 @@ parseCodeBlock = do
 
 parseHeader :: PandocMonad m => ManParser m Block
 parseHeader = do
-  (MHeader lvl s) <- mheader
-  return $ Header lvl nullAttr [Str s]
+  (MHeader lvl ss) <- mheader
+  return $ Header lvl nullAttr $ intersperse Space $ strToInline <$> ss
 
 parseBulletList :: PandocMonad m => ManParser m Block
-parseBulletList = BulletList . map (: []) <$> many1 block
+parseBulletList = BulletList <$> many1 paras where
 
-  where
+  macroIPInl :: [RoffStr] -> [Inline]
+  macroIPInl (x:_:[]) = [strToInline x, Space]
+  macroIPInl _        = []
 
-  block :: PandocMonad m => ManParser m Block
-  block = do
-    mmacro KTab
-    pars <- parsePara
-    many $ mmacro KTabEnd
-    return pars
+  listKind :: [RoffStr] -> Maybe ([[Block]] -> Block)
+  listKind (((c:_), _):_:[]) =
+    let params style = OrderedList (1, style, DefaultDelim)
+    in Just $ case c of
+      _ | isDigit c -> params Decimal
+      _ | isUpper c -> params UpperAlpha
+      _ | isLower c -> params LowerAlpha
+      _             -> BulletList
+
+  listKind _ = Nothing
+
+  paras :: PandocMonad m => ManParser m [Block]
+  paras = do
+    (MMacro _ args) <- mmacro KTab
+    let lk = listKind args
+    inls <- parseInlines
+    let macroinl = macroIPInl args
+    let para = Plain $ macroinl ++ inls
+    subls <- many sublist
+    return $ para : subls
+  
+  sublist :: PandocMonad m => ManParser m Block
+  sublist = do
+    mmacro KSubTab
+    bl <- parseBulletList
+    mmacro KTabEnd
+    return bl
 
 -- In case of weird man file it will be parsed succesfully
 parseSkipMacro :: PandocMonad m => ManParser m Block
