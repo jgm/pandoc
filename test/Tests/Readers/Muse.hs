@@ -197,6 +197,9 @@ tests =
         , "Image with description" =:
           "[[image.jpg][Image]]" =?>
           para (image "image.jpg" "" (text "Image"))
+        , "Image with space in filename" =:
+          "[[image name.jpg]]" =?>
+          para (image "image name.jpg" "" mempty)
         , "Image link" =:
           "[[URL:image.jpg]]" =?>
           para (link "image.jpg" "" (str "image.jpg"))
