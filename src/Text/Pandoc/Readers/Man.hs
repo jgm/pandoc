@@ -39,7 +39,7 @@ import Control.Monad.Except (throwError)
 import Data.Char (isDigit, isUpper, isLower)
 import Data.Default (Default)
 import Data.Map (insert)
-import Data.Maybe (catMaybes)
+import Data.Maybe (catMaybes, fromMaybe, isNothing)
 import Data.List (intersperse, intercalate)
 import qualified Data.Text as T
 
@@ -153,7 +153,7 @@ lexMan = many (lexMacro <|> lexLine <|> lexEmptyLine)
 
 parseMan :: PandocMonad m => ManParser m Pandoc
 parseMan = do
-  let parsers = [ try parseBulletList, parseTitle, parsePara, parseSkippedContent
+  let parsers = [ try parseList, parseTitle, parsePara, parseSkippedContent
                 , parseCodeBlock, parseHeader, parseSkipMacro]
   blocks <- many $ choice parsers
   parserst <- getState
@@ -210,7 +210,7 @@ escapeLexer = do
     letterFont = choice [
         char 'B' >> return Bold
       , char 'I' >> return Italic
-      , char 'P' >> return Regular
+      , (char 'P' <|> char 'R') >> return Regular
       ]
 
 currentFont :: PandocMonad m => ManLexer m FontKind
@@ -248,6 +248,7 @@ lexMacro = do
 
   where
 
+  -- TODO rework args
   lexArgs :: PandocMonad m => ManLexer m [RoffStr]
   lexArgs = do
     args <- many oneArg
@@ -478,38 +479,47 @@ parseHeader = do
   (MHeader lvl ss) <- mheader
   return $ Header lvl nullAttr $ intersperse Space $ strToInline <$> ss
 
-parseBulletList :: PandocMonad m => ManParser m Block
-parseBulletList = BulletList <$> many1 paras where
+type ListBuilder = [[Block]] -> Block
+
+parseList :: PandocMonad m => ManParser m Block
+parseList = do
+  xx <- many1 paras
+  let bls = map snd xx
+  let bldr = fst $ head xx
+  return $ bldr bls
+
+  where
 
   macroIPInl :: [RoffStr] -> [Inline]
   macroIPInl (x:_:[]) = [strToInline x, Space]
   macroIPInl _        = []
 
-  listKind :: [RoffStr] -> Maybe ([[Block]] -> Block)
+  listKind :: [RoffStr] -> Maybe ListBuilder
   listKind (((c:_), _):_:[]) =
     let params style = OrderedList (1, style, DefaultDelim)
-    in Just $ case c of
-      _ | isDigit c -> params Decimal
-      _ | isUpper c -> params UpperAlpha
-      _ | isLower c -> params LowerAlpha
-      _             -> BulletList
+    in case c of
+      _ | isDigit c -> Just $ params Decimal
+      _ | isUpper c -> Just $ params UpperAlpha
+      _ | isLower c -> Just $ params LowerAlpha
+      _             -> Nothing
 
   listKind _ = Nothing
 
-  paras :: PandocMonad m => ManParser m [Block]
+  paras :: PandocMonad m => ManParser m (ListBuilder, [Block])
   paras = do
     (MMacro _ args) <- mmacro KTab
-    let lk = listKind args
+    let lbuilderOpt = listKind args
+    let lbuilder = fromMaybe BulletList lbuilderOpt
     inls <- parseInlines
     let macroinl = macroIPInl args
-    let para = Plain $ macroinl ++ inls
+    let parainls = if isNothing lbuilderOpt then macroinl ++ inls  else inls
     subls <- many sublist
-    return $ para : subls
+    return $ (lbuilder, (Plain parainls) : subls) 
   
   sublist :: PandocMonad m => ManParser m Block
   sublist = do
     mmacro KSubTab
-    bl <- parseBulletList
+    bl <- parseList
     mmacro KTabEnd
     return bl
 
