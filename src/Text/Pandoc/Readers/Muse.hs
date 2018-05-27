@@ -46,7 +46,7 @@ import Control.Monad.Except (throwError)
 import Data.Bifunctor
 import Data.Char (isLetter)
 import Data.Default
-import Data.List (stripPrefix, intercalate)
+import Data.List (intercalate)
 import Data.List.Split (splitOn)
 import qualified Data.Map as M
 import qualified Data.Set as Set
@@ -947,24 +947,31 @@ link = try $ do
   st <- getState
   guard $ not $ museInLink st
   setState $ st{ museInLink = True }
-  (url, content) <- linkText
+  res <- explicitLink <|> linkText
   updateState (\state -> state { museInLink = False })
-  return $ case stripPrefix "URL:" url of
-             Nothing -> if isImageUrl url
-                          then B.image url "" <$> fromMaybe (return mempty) content
-                          else B.link url "" <$> fromMaybe (return $ B.str url) content
-             Just url' -> B.link url' "" <$> fromMaybe (return $ B.str url') content
-    where -- Taken from muse-image-regexp defined in Emacs Muse file lisp/muse-regexps.el
-          imageExtensions = [".eps", ".gif", ".jpg", ".jpeg", ".pbm", ".png", ".tiff", ".xbm", ".xpm"]
-          isImageUrl = (`elem` imageExtensions) . takeExtension
+  return res
 
 linkContent :: PandocMonad m => MuseParser m (F Inlines)
 linkContent = char '[' >> trimInlinesF . mconcat <$> manyTill inline (string "]")
 
-linkText :: PandocMonad m => MuseParser m (String, Maybe (F Inlines))
+-- | Parse a link starting with @URL:@
+explicitLink :: PandocMonad m => MuseParser m (F Inlines)
+explicitLink = try $ do
+  string "[[URL:"
+  url <- manyTill anyChar $ char ']'
+  content <- option (pure $ B.str url) linkContent
+  char ']'
+  return $ B.link url "" <$> content
+
+linkText :: PandocMonad m => MuseParser m (F Inlines)
 linkText = do
   string "[["
   url <- manyTill anyChar $ char ']'
   content <- optionMaybe linkContent
   char ']'
-  return (url, content)
+  return $ if isImageUrl url
+             then B.image url "" <$> fromMaybe (return mempty) content
+             else B.link url "" <$> fromMaybe (return $ B.str url) content
+  where -- Taken from muse-image-regexp defined in Emacs Muse file lisp/muse-regexps.el
+        imageExtensions = [".eps", ".gif", ".jpg", ".jpeg", ".pbm", ".png", ".tiff", ".xbm", ".xpm"]
+        isImageUrl = (`elem` imageExtensions) . takeExtension
