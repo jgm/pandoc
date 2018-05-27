@@ -778,7 +778,7 @@ inlineList = [ whitespace
              , verbatimTag
              , classTag
              , nbsp
-             , link
+             , linkOrImage
              , code
              , codeTag
              , mathTag
@@ -942,17 +942,17 @@ symbol :: PandocMonad m => MuseParser m (F Inlines)
 symbol = return . B.str <$> count 1 nonspaceChar
 
 -- | Parse a link or image.
-link :: PandocMonad m => MuseParser m (F Inlines)
-link = try $ do
+linkOrImage :: PandocMonad m => MuseParser m (F Inlines)
+linkOrImage = try $ do
   st <- getState
   guard $ not $ museInLink st
   setState $ st{ museInLink = True }
-  res <- explicitLink <|> linkText
+  res <- explicitLink <|> image <|> link
   updateState (\state -> state { museInLink = False })
   return res
 
 linkContent :: PandocMonad m => MuseParser m (F Inlines)
-linkContent = char '[' >> trimInlinesF . mconcat <$> manyTill inline (string "]")
+linkContent = char '[' >> trimInlinesF . mconcat <$> manyTill inline (char ']')
 
 -- | Parse a link starting with @URL:@
 explicitLink :: PandocMonad m => MuseParser m (F Inlines)
@@ -963,15 +963,22 @@ explicitLink = try $ do
   char ']'
   return $ B.link url "" <$> content
 
-linkText :: PandocMonad m => MuseParser m (F Inlines)
-linkText = do
+image :: PandocMonad m => MuseParser m (F Inlines)
+image = try $ do
   string "[["
   url <- manyTill anyChar $ char ']'
   content <- optionMaybe linkContent
   char ']'
-  return $ if isImageUrl url
-             then B.image url "" <$> fromMaybe (return mempty) content
-             else B.link url "" <$> fromMaybe (return $ B.str url) content
+  guard $ isImageUrl url
+  return $ B.image url "" <$> fromMaybe (return mempty) content
   where -- Taken from muse-image-regexp defined in Emacs Muse file lisp/muse-regexps.el
         imageExtensions = [".eps", ".gif", ".jpg", ".jpeg", ".pbm", ".png", ".tiff", ".xbm", ".xpm"]
         isImageUrl = (`elem` imageExtensions) . takeExtension
+
+link :: PandocMonad m => MuseParser m (F Inlines)
+link = try $ do
+  string "[["
+  url <- manyTill anyChar $ char ']'
+  content <- optionMaybe linkContent
+  char ']'
+  return $ B.link url "" <$> fromMaybe (return $ B.str url) content
