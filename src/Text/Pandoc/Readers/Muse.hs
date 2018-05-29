@@ -52,7 +52,6 @@ import qualified Data.Map as M
 import qualified Data.Set as Set
 import Data.Maybe (fromMaybe, isNothing)
 import Data.Text (Text, unpack)
-import System.FilePath (takeExtension)
 import Text.HTML.TagSoup
 import Text.Pandoc.Builder (Blocks, Inlines)
 import qualified Text.Pandoc.Builder as B
@@ -966,14 +965,13 @@ explicitLink = try $ do
 image :: PandocMonad m => MuseParser m (F Inlines)
 image = try $ do
   string "[["
-  url <- manyTill anyChar $ char ']'
+  (url, ext) <- manyUntil (noneOf "]") $ (imageExtension <* char ']')
   content <- optionMaybe linkContent
   char ']'
-  guard $ isImageUrl url
-  return $ B.image url "" <$> fromMaybe (return mempty) content
+  return $ B.image (url ++ ext) "" <$> fromMaybe (return mempty) content
   where -- Taken from muse-image-regexp defined in Emacs Muse file lisp/muse-regexps.el
         imageExtensions = [".eps", ".gif", ".jpg", ".jpeg", ".pbm", ".png", ".tiff", ".xbm", ".xpm"]
-        isImageUrl = (`elem` imageExtensions) . takeExtension
+        imageExtension = choice (try . string <$> imageExtensions)
 
 link :: PandocMonad m => MuseParser m (F Inlines)
 link = try $ do

@@ -194,6 +194,9 @@ tests =
         , "Image" =:
           "[[image.jpg]]" =?>
           para (image "image.jpg" "" mempty)
+        , "Closing bracket is not allowed in image filename" =:
+          "[[foo]bar.jpg]]" =?>
+          para (text "[[foo]bar.jpg]]")
         , "Image with description" =:
           "[[image.jpg][Image]]" =?>
           para (image "image.jpg" "" (text "Image"))
