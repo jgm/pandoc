@@ -339,7 +339,7 @@ flag network-uri
   Default:       True
 
 custom-setup
-  setup-depends: base, Cabal
+  setup-depends: base, Cabal >= 2.0
 
 library
   build-depends: base >= 4.7 && < 5,
