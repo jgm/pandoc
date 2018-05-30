@@ -44,7 +44,13 @@ readHaddockEither :: ReaderOptions -- ^ Reader options
                   -> String        -- ^ String to parse
                   -> Either PandocError Pandoc
 readHaddockEither _opts =
+#if MIN_VERSION_haddock_library(1,6,0)
   Right . B.doc . docHToBlocks . _doc . parseParas Nothing
+#elif MIN_VERSION_haddock_library(1,2,0)
+  Right . B.doc . docHToBlocks . _doc . parseParas
+#else
+  Right .  B.doc . docHToBlocks . parseParas
+#endif
 
 docHToBlocks :: DocH String Identifier -> Blocks
 docHToBlocks d' =
@@ -64,8 +70,10 @@ docHToBlocks d' =
     DocEmphasis _ -> inlineFallback
     DocMonospaced _ -> inlineFallback
     DocBold _ -> inlineFallback
+#if MIN_VERSION_haddock_library(1,4,0)
     DocMathInline _ -> inlineFallback
     DocMathDisplay _ -> inlineFallback
+#endif
     DocHeader h -> B.header (headerLevel h)
                            (docHToInlines False $ headerTitle h)
     DocUnorderedList items -> B.bulletList (map docHToBlocks items)
@@ -81,6 +89,7 @@ docHToBlocks d' =
     DocProperty s -> B.codeBlockWith ("",["property","haskell"],[]) (trim s)
     DocExamples es -> mconcat $ map (\e ->
        makeExample ">>>" (exampleExpression e) (exampleResult e)) es
+#if MIN_VERSION_haddock_library(1,5,0)
     DocTable H.Table{ tableHeaderRows = headerRows
                     , tableBodyRows = bodyRows
                     }
@@ -93,7 +102,7 @@ docHToBlocks d' =
              colspecs = replicate (maximum (map length body))
                              (AlignDefault, 0.0)
          in  B.table mempty colspecs header body
-
+#endif
   where inlineFallback = B.plain $ docHToInlines False d'
         consolidatePlains = B.fromList . consolidatePlains' . B.toList
         consolidatePlains' zs@(Plain _ : _) =
@@ -125,8 +134,10 @@ docHToInlines isCode d' =
     DocMonospaced (DocString s) -> B.code s
     DocMonospaced d -> docHToInlines True d
     DocBold d -> B.strong (docHToInlines isCode d)
+#if MIN_VERSION_haddock_library(1,4,0)
     DocMathInline s -> B.math s
     DocMathDisplay s -> B.displayMath s
+#endif
     DocHeader _ -> mempty
     DocUnorderedList _ -> mempty
     DocOrderedList _ -> mempty
@@ -139,7 +150,9 @@ docHToInlines isCode d' =
     DocAName s -> B.spanWith (s,["anchor"],[]) mempty
     DocProperty _ -> mempty
     DocExamples _ -> mempty
+#if MIN_VERSION_haddock_library(1,5,0)
     DocTable _ -> mempty
+#endif
 
 -- | Create an 'Example', stripping superfluous characters as appropriate
 makeExample :: String -> String -> [String] -> Blocks
