@@ -1204,16 +1204,28 @@ rawopt = do
   return $ "[" <> inner <> "]"
 
 skipopts :: PandocMonad m => LP m ()
-skipopts = skipMany rawopt
+skipopts = skipMany (overlaySpecification <|> void rawopt)
 
 -- opts in angle brackets are used in beamer
-rawangle :: PandocMonad m => LP m ()
-rawangle = try $ do
+overlaySpecification :: PandocMonad m => LP m ()
+overlaySpecification = try $ do
   symbol '<'
-  () <$ manyTill anyTok (symbol '>')
+  ts <- manyTill overlayTok (symbol '>')
+  guard $ case ts of
+               -- see issue #3368
+               [Tok _ Word s] | T.all isLetter s -> s `elem`
+                                ["beamer","presentation", "trans",
+                                 "handout","article", "second"]
+               _ -> True
 
-skipangles :: PandocMonad m => LP m ()
-skipangles = skipMany rawangle
+overlayTok :: PandocMonad m => LP m Tok
+overlayTok =
+  satisfyTok (\t ->
+                  case t of
+                    Tok _ Word _       -> True
+                    Tok _ Spaces _     -> True
+                    Tok _ Symbol c     -> c `elem` ["-","+","@","|",":",","]
+                    _                  -> False)
 
 ignore :: (Monoid a, PandocMonad m) => String -> ParserT s u m a
 ignore raw = do
@@ -1289,7 +1301,7 @@ inlineCommands = M.union inlineLanguageCommands $ M.fromList
   , ("textup", extractSpaces (spanWith ("",["upright"],[])) <$> tok)
   , ("texttt", ttfamily)
   , ("sout", extractSpaces strikeout <$> tok)
-  , ("alert", skipangles >> spanWith ("",["alert"],[]) <$> tok) -- beamer
+  , ("alert", skipopts >> spanWith ("",["alert"],[]) <$> tok) -- beamer
   , ("lq", return (str "‘"))
   , ("rq", return (str "’"))
   , ("textquoteleft", return (str "‘"))
@@ -1765,7 +1777,6 @@ getRawCommand name txt = do
            "def" ->
              void $ manyTill anyTok braced
            _ -> do
-             skipangles
              skipopts
              option "" (try (optional sp *> dimenarg))
              void $ many braced
