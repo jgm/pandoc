@@ -101,7 +101,10 @@ data Extension =
                                     --   and disallow laziness
     | Ext_definition_lists    -- ^ Definition lists as in pandoc, mmd, php
     | Ext_east_asian_line_breaks  -- ^ Newlines in paragraphs are ignored between
-                                  --   East Asian wide characters
+                                  --   East Asian wide characters. Note: this extension
+                                  --   does not affect readers/writers directly; it causes
+                                  --   the eastAsianLineBreakFilter to be applied after
+                                  --   parsing, in Text.Pandoc.App.convertWithOpts.
     | Ext_emoji               -- ^ Support emoji like :smile:
     | Ext_empty_paragraphs -- ^ Allow empty paragraphs
     | Ext_epub_html_exts      -- ^ Recognise the EPUB extended version of HTML
