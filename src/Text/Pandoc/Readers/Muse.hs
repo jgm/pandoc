@@ -35,7 +35,7 @@ TODO:
 - Page breaks (five "*")
 - Org tables
 - table.el tables
-- Images with attributes (floating and width)
+- Floating images
 - <cite> tag
 -}
 module Text.Pandoc.Readers.Muse (readMuse) where
@@ -50,7 +50,7 @@ import Data.List (intercalate)
 import Data.List.Split (splitOn)
 import qualified Data.Map as M
 import qualified Data.Set as Set
-import Data.Maybe (fromMaybe, isNothing)
+import Data.Maybe (fromMaybe, isNothing, maybeToList)
 import Data.Text (Text, unpack)
 import Text.HTML.TagSoup
 import Text.Pandoc.Builder (Blocks, Inlines)
@@ -965,13 +965,18 @@ explicitLink = try $ do
 image :: PandocMonad m => MuseParser m (F Inlines)
 image = try $ do
   string "[["
-  (url, ext) <- manyUntil (noneOf "]") $ (imageExtension <* char ']')
+  (url, (ext, width)) <- manyUntil (noneOf "]") $ (imageExtensionAndOptions <* char ']')
   content <- optionMaybe linkContent
   char ']'
-  return $ B.image (url ++ ext) "" <$> fromMaybe (return mempty) content
+  let widthAttr = maybeToList (("width",) . (++ "%") <$> width)
+  return $ B.imageWith ("", [], widthAttr) (url ++ ext) mempty <$> fromMaybe (return mempty) content
   where -- Taken from muse-image-regexp defined in Emacs Muse file lisp/muse-regexps.el
         imageExtensions = [".eps", ".gif", ".jpg", ".jpeg", ".pbm", ".png", ".tiff", ".xbm", ".xpm"]
         imageExtension = choice (try . string <$> imageExtensions)
+        imageExtensionAndOptions = do
+          ext <- imageExtension
+          width <- optionMaybe (many1 spaceChar *> many1 digit)
+          return (ext, width)
 
 link :: PandocMonad m => MuseParser m (F Inlines)
 link = try $ do

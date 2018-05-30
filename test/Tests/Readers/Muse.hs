@@ -203,6 +203,12 @@ tests =
         , "Image with space in filename" =:
           "[[image name.jpg]]" =?>
           para (image "image name.jpg" "" mempty)
+        , "Image with width" =:
+          "[[image.jpg 60]]" =?>
+          para (imageWith ("", [], [("width", "60%")]) "image.jpg" mempty mempty)
+        , "At least one space is required between image filename and width" =:
+          "[[image.jpg60]]" =?>
+          para (link "image.jpg60" mempty (str "image.jpg60"))
         , "Image link" =:
           "[[URL:image.jpg]]" =?>
           para (link "image.jpg" "" (str "image.jpg"))
