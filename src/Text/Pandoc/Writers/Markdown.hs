@@ -452,8 +452,14 @@ blockToMarkdown' opts (Plain inlines) = do
               | otherwise -> contents
   return $ contents' <> cr
 -- title beginning with fig: indicates figure
-blockToMarkdown' opts (Para [Image attr alt (src,'f':'i':'g':':':tit)]) =
-  blockToMarkdown opts (Para [Image attr alt (src,tit)])
+blockToMarkdown' opts (Para [Image attr alt (src,'f':'i':'g':':':tit)])
+  | isEnabled Ext_raw_html opts &&
+    not (isEnabled Ext_link_attributes opts) &&
+    attr /= nullAttr = -- use raw HTML
+    (text . T.unpack . T.strip) <$>
+      writeHtml5String opts{ writerTemplate = Nothing }
+        (Pandoc nullMeta [Para [Image attr alt (src,"fig:" ++ tit)]])
+  | otherwise = blockToMarkdown opts (Para [Image attr alt (src,tit)])
 blockToMarkdown' opts (Para inlines) =
   (<> blankline) `fmap` blockToMarkdown opts (Plain inlines)
 blockToMarkdown' opts (LineBlock lns) =
@@ -619,7 +625,7 @@ blockToMarkdown' opts t@(Table caption aligns widths headers rows) =  do
                   (all null headers) aligns' widths' headers rows
             | isEnabled Ext_raw_html opts -> fmap (id,) $
                    (text . T.unpack) <$>
-                   (writeHtml5String def $ Pandoc nullMeta [t])
+                   (writeHtml5String opts{ writerTemplate = Nothing } $ Pandoc nullMeta [t])
             | hasSimpleCells &&
               isEnabled Ext_pipe_tables opts -> do
                 rawHeaders <- padRow <$> mapM (blockListToMarkdown opts) headers
@@ -1172,7 +1178,7 @@ inlineToMarkdown opts lnk@(Link attr txt (src, tit))
     not (isEnabled Ext_link_attributes opts) &&
     attr /= nullAttr = -- use raw HTML
     (text . T.unpack . T.strip) <$>
-      writeHtml5String def (Pandoc nullMeta [Plain [lnk]])
+      writeHtml5String opts{ writerTemplate = Nothing } (Pandoc nullMeta [Plain [lnk]])
   | otherwise = do
   plain <- asks envPlain
   linktext <- inlineListToMarkdown opts txt
@@ -1212,7 +1218,7 @@ inlineToMarkdown opts img@(Image attr alternate (source, tit))
     not (isEnabled Ext_link_attributes opts) &&
     attr /= nullAttr = -- use raw HTML
     (text . T.unpack . T.strip) <$>
-      writeHtml5String def (Pandoc nullMeta [Plain [img]])
+      writeHtml5String opts{ writerTemplate = Nothing } (Pandoc nullMeta [Plain [img]])
   | otherwise = do
   plain <- asks envPlain
   let txt = if null alternate || alternate == [Str source]
