@@ -286,7 +286,23 @@ rawLaTeXBlock :: (PandocMonad m, HasMacros s, HasReaderOptions s)
 rawLaTeXBlock = do
   lookAhead (try (char '\\' >> letter))
   snd <$> (rawLaTeXParser False macroDef blocks
-      <|> rawLaTeXParser True(environment <|> macroDef <|> blockCommand) blocks)
+      <|> rawLaTeXParser True
+           (environment <|> macroDef <|> blockCommand)
+           (mconcat <$> (many (block <|> beginOrEndCommand))))
+
+-- See #4667 for motivation; sometimes people write macros
+-- that just evaluate to a begin or end command, which blockCommand
+-- won't accept.
+beginOrEndCommand :: PandocMonad m => LP m Blocks
+beginOrEndCommand = try $ do
+  Tok _ (CtrlSeq name) txt <- anyControlSeq
+  guard $ name == "begin" || name == "end"
+  (envname, rawargs) <- withRaw braced
+  if M.member (untokenize envname)
+      (inlineEnvironments :: M.Map Text (LP PandocPure Inlines))
+     then mzero
+     else return $ rawBlock "latex"
+                    (T.unpack (txt <> untokenize rawargs))
 
 rawLaTeXInline :: (PandocMonad m, HasMacros s, HasReaderOptions s)
                => ParserT String s m String
