@@ -209,6 +209,12 @@ tests =
         , "At least one space is required between image filename and width" =:
           "[[image.jpg60]]" =?>
           para (link "image.jpg60" mempty (str "image.jpg60"))
+        , "Left-aligned image with width" =:
+          "[[image.png 60 l][Image]]" =?>
+          para (imageWith ("", ["align-left"], [("width", "60%")]) "image.png" "" (str "Image"))
+        , "Right-aligned image with width" =:
+          "[[image.png 60 r][Image]]" =?>
+          para (imageWith ("", ["align-right"], [("width", "60%")]) "image.png" "" (str "Image"))
         , "Image link" =:
           "[[URL:image.jpg]]" =?>
           para (link "image.jpg" "" (str "image.jpg"))
