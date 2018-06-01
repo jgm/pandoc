@@ -1642,6 +1642,8 @@ inlineCommands = M.union inlineLanguageCommands $ M.fromList
   , ("Rn", romanNumeralLower)
   -- babel
   , ("foreignlanguage", foreignlanguage)
+  -- include
+  , ("input", include "input")
   ]
 
 makeUppercase :: Inlines -> Inlines
@@ -1917,7 +1919,6 @@ end_ t = try (do
 preamble :: PandocMonad m => LP m Blocks
 preamble = mempty <$ many preambleBlock
   where preambleBlock =  spaces1
-                     <|> void include
                      <|> void macroDef
                      <|> void blockCommand
                      <|> void braced
@@ -1930,11 +1931,8 @@ paragraph = do
      then return mempty
      else return $ para x
 
-include :: PandocMonad m => LP m Blocks
-include = do
-  (Tok _ (CtrlSeq name) _) <-
-                    controlSeq "include" <|> controlSeq "input" <|>
-                    controlSeq "subfile" <|> controlSeq "usepackage"
+include :: (PandocMonad m, Monoid a) => Text -> LP m a
+include name = do
   skipMany opt
   fs <- (map (T.unpack . removeDoubleQuotes . T.strip) . T.splitOn "," .
          untokenize) <$> braced
@@ -2251,6 +2249,11 @@ blockCommands = M.fromList
    -- LaTeX colors
    , ("textcolor", coloredBlock "color")
    , ("colorbox", coloredBlock "background-color")
+   -- include
+   , ("include", include "include")
+   , ("input", include "input")
+   , ("subfile", include "subfile")
+   , ("usepackage", include "usepackage")
    ]
 
 
@@ -2689,7 +2692,6 @@ block :: PandocMonad m => LP m Blocks
 block = do
   res <- (mempty <$ spaces1)
     <|> environment
-    <|> include
     <|> macroDef
     <|> blockCommand
     <|> paragraph
