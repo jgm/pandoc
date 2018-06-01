@@ -974,7 +974,7 @@ image = try $ do
                      Just 'r' -> ["align-right"]
                      Just 'l' -> ["align-left"]
                      Just 'f' -> []
-                     Nothing -> []
+                     _        -> []
   return $ B.imageWith ("", alignClass, widthAttr) (url ++ ext) mempty <$> fromMaybe (return mempty) content
   where -- Taken from muse-image-regexp defined in Emacs Muse file lisp/muse-regexps.el
         imageExtensions = [".eps", ".gif", ".jpg", ".jpeg", ".pbm", ".png", ".tiff", ".xbm", ".xpm"]
