@@ -155,9 +155,9 @@ pdfWriterAndProg mWriter mEngine = do
     where
       go Nothing Nothing       = Right ("latex", "pdflatex")
       go (Just writer) Nothing = (writer,) <$> engineForWriter writer
-      go Nothing (Just engine) = (,engine) <$> writerForEngine engine
+      go Nothing (Just engine) = (,engine) <$> writerForEngine (takeBaseName engine)
       go (Just writer) (Just engine) =
-           case find (== (baseWriterName writer, engine)) engines of
+           case find (== (baseWriterName writer, takeBaseName engine)) engines of
                 Just _  -> Right (writer, engine)
                 Nothing -> Left $ "pdf-engine " ++ engine ++
                            " is not compatible with output format " ++ writer
