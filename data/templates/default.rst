@@ -31,6 +31,10 @@ $if(toc)$
 ..
 
 $endif$
+$if(number-sections)$
+.. section-numbering::
+
+$endif$
 $for(header-includes)$
 $header-includes$
 

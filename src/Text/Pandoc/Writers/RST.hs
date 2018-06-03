@@ -103,6 +103,7 @@ pandocToRST (Pandoc meta blocks) = do
   let context = defField "body" main
               $ defField "toc" (writerTableOfContents opts)
               $ defField "toc-depth" (show $ writerTOCDepth opts)
+              $ defField "number-sections" (writerNumberSections opts)
               $ defField "math" hasMath
               $ defField "title" (render Nothing title :: String)
               $ defField "math" hasMath
