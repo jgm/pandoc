@@ -719,19 +719,23 @@ blockToLaTeX (Table caption aligns widths heads rows) = do
   let removeNote (Note _) = Span ("", [], []) []
       removeNote x        = x
   captionText <- inlineListToLaTeX caption
-  firsthead <- if isEmpty captionText || all null heads
-                  then return empty
-                  else ($$ text "\\endfirsthead") <$> toHeaders heads
+  let capt = if isEmpty captionText
+                then empty
+                else text "\\caption" <>
+                      braces captionText <> "\\tabularnewline"
+  firsthead <- if all null heads
+                  then return "\\toprule"
+                  else toHeaders heads
+  let captRepeated = if isEmpty captionText
+                        then empty
+                        else text "\\caption[]" <>
+                              braces captionText <> "\\tabularnewline"
   head' <- if all null heads
               then return "\\toprule"
               -- avoid duplicate notes in head and firsthead:
               else toHeaders (if isEmpty firsthead
                                  then heads
                                  else walk removeNote heads)
-  let capt = if isEmpty captionText
-                then empty
-                else text "\\caption" <>
-                      braces captionText <> "\\tabularnewline"
   rows' <- mapM (tableRowToLaTeX False aligns widths) rows
   let colDescriptors = text $ concatMap toColDescriptor aligns
   modify $ \s -> s{ stTable = True }
@@ -740,6 +744,8 @@ blockToLaTeX (Table caption aligns widths heads rows) = do
               -- the @{} removes extra space at beginning and end
          $$ capt
          $$ firsthead
+         $$ "\\endfirsthead"
+         $$ captRepeated
          $$ head'
          $$ "\\endhead"
          $$ vcat rows'

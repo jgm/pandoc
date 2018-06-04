@@ -6,6 +6,7 @@ Simple table with caption:
 Right & Left & Center & Default\tabularnewline
 \midrule
 \endfirsthead
+\caption[]{Demonstration of simple table syntax.}\tabularnewline
 \toprule
 Right & Left & Center & Default\tabularnewline
 \midrule
@@ -19,6 +20,10 @@ Right & Left & Center & Default\tabularnewline
 Simple table without caption:
 
 \begin{longtable}[]{@{}rlcl@{}}
+\toprule
+Right & Left & Center & Default\tabularnewline
+\midrule
+\endfirsthead
 \toprule
 Right & Left & Center & Default\tabularnewline
 \midrule
@@ -37,6 +42,7 @@ Simple table indented two spaces:
 Right & Left & Center & Default\tabularnewline
 \midrule
 \endfirsthead
+\caption[]{Demonstration of simple table syntax.}\tabularnewline
 \toprule
 Right & Left & Center & Default\tabularnewline
 \midrule
@@ -63,6 +69,7 @@ Default aligned\strut
 \end{minipage}\tabularnewline
 \midrule
 \endfirsthead
+\caption[]{Here's the caption. It may span multiple lines.}\tabularnewline
 \toprule
 \begin{minipage}[b]{0.13\columnwidth}\centering
 Centered Header\strut
@@ -110,6 +117,18 @@ Right Aligned\strut
 Default aligned\strut
 \end{minipage}\tabularnewline
 \midrule
+\endfirsthead
+\toprule
+\begin{minipage}[b]{0.13\columnwidth}\centering
+Centered Header\strut
+\end{minipage} & \begin{minipage}[b]{0.12\columnwidth}\raggedright
+Left Aligned\strut
+\end{minipage} & \begin{minipage}[b]{0.14\columnwidth}\raggedleft
+Right Aligned\strut
+\end{minipage} & \begin{minipage}[b]{0.31\columnwidth}\raggedright
+Default aligned\strut
+\end{minipage}\tabularnewline
+\midrule
 \endhead
 \begin{minipage}[t]{0.13\columnwidth}\centering
 First\strut
@@ -136,6 +155,8 @@ Table without column headers:
 
 \begin{longtable}[]{@{}rlcr@{}}
 \toprule
+\endfirsthead
+\toprule
 \endhead
 12 & 12 & 12 & 12\tabularnewline
 123 & 123 & 123 & 123\tabularnewline
@@ -146,6 +167,8 @@ Table without column headers:
 Multiline table without column headers:
 
 \begin{longtable}[]{@{}clrl@{}}
+\toprule
+\endfirsthead
 \toprule
 \endhead
 \begin{minipage}[t]{0.13\columnwidth}\centering
