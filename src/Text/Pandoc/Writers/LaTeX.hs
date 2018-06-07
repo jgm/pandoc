@@ -487,7 +487,7 @@ blockToLaTeX (Div (identifier,classes,kvs) bs)
                         then \contents ->
                                let fromPct xs =
                                      case reverse xs of
-                                       '%':ds -> '0':'.': reverse ds
+                                       '%':ds -> showFl (read (reverse ds) / 100 :: Double)
                                        _      -> xs
                                    w = maybe "0.48" fromPct (lookup "width" kvs)
                                in  inCmd "begin" "column" <>
