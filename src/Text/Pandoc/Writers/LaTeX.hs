@@ -517,25 +517,15 @@ blockToLaTeX (Plain lst) =
   inlineListToLaTeX $ dropWhile isLineBreakOrSpace lst
 -- title beginning with fig: indicates that the image is a figure
 blockToLaTeX (Para [Image attr@(ident, _, _) txt (src,'f':'i':'g':':':tit)]) = do
-  inNote <- gets stInNote
-  inMinipage <- gets stInMinipage
-  modify $ \st -> st{ stInMinipage = True, stNotes = [] }
-  capt <- inlineListToLaTeX txt
-  notes <- gets stNotes
-  modify $ \st -> st{ stInMinipage = False, stNotes = [] }
-
-  -- We can't have footnotes in the list of figures, so remove them:
-  captForLof <- if null notes
-                   then return empty
-                   else brackets <$> inlineListToLaTeX (walk deNote txt)
-  img <- inlineToLaTeX (Image attr txt (src,tit))
-  let footnotes = notesToLaTeX notes
+  (capt, captForLof, footnotes) <- getCaption txt
   lab <- labelFor ident
   let caption = "\\caption" <> captForLof <> braces capt <> lab
+  img <- inlineToLaTeX (Image attr txt (src,tit))
   innards <- hypertarget True ident $
                  "\\centering" $$ img $$ caption <> cr
   let figure = cr <> "\\begin{figure}" $$ innards $$ "\\end{figure}"
-  return $ if inNote || inMinipage
+  st <- get
+  return $ if stInNote st || stInMinipage st
               -- can't have figures in notes or minipage (here, table cell)
               -- http://www.tex.ac.uk/FAQ-ouparmd.html
               then "\\begin{center}" $$ img $+$ capt $$ "\\end{center}"
@@ -714,11 +704,11 @@ blockToLaTeX (Header level (id',classes,_) lst) = do
   modify $ \s -> s{stInHeading = False}
   return hdr
 blockToLaTeX (Table caption aligns widths heads rows) = do
+  (captionText, captForLof, footnotes) <- getCaption caption
   let toHeaders hs = do contents <- tableRowToLaTeX True aligns widths hs
                         return ("\\toprule" $$ contents $$ "\\midrule")
   let removeNote (Note _) = Span ("", [], []) []
       removeNote x        = x
-  captionText <- inlineListToLaTeX caption
   firsthead <- if isEmpty captionText || all null heads
                   then return empty
                   else ($$ text "\\endfirsthead") <$> toHeaders heads
@@ -730,8 +720,8 @@ blockToLaTeX (Table caption aligns widths heads rows) = do
                                  else walk removeNote heads)
   let capt = if isEmpty captionText
                 then empty
-                else text "\\caption" <>
-                      braces captionText <> "\\tabularnewline"
+                else "\\caption" <> captForLof <> braces captionText
+                         <> "\\tabularnewline"
   rows' <- mapM (tableRowToLaTeX False aligns widths) rows
   let colDescriptors = text $ concatMap toColDescriptor aligns
   modify $ \s -> s{ stTable = True }
@@ -745,6 +735,21 @@ blockToLaTeX (Table caption aligns widths heads rows) = do
          $$ vcat rows'
          $$ "\\bottomrule"
          $$ "\\end{longtable}"
+         $$ footnotes
+
+getCaption :: PandocMonad m => [Inline] -> LW m (Doc, Doc, Doc)
+getCaption txt = do
+  inMinipage <- gets stInMinipage
+  modify $ \st -> st{ stInMinipage = True, stNotes = [] }
+  capt <- inlineListToLaTeX txt
+  notes <- gets stNotes
+  modify $ \st -> st{ stInMinipage = inMinipage, stNotes = [] }
+  -- We can't have footnotes in the list of figures/tables, so remove them:
+  captForLof <- if null notes
+                   then return empty
+                   else brackets <$> inlineListToLaTeX (walk deNote txt)
+  let footnotes = notesToLaTeX notes
+  return (capt, captForLof, footnotes)
 
 toColDescriptor :: Alignment -> String
 toColDescriptor align =
