@@ -124,7 +124,7 @@ Type.behavior = {
 Type.behavior.__index = Type.behavior
 
 --- Set a new behavior for the type, inheriting that of the parent type if none
---- is specified explicitely
+--- is specified explicitly
 -- @param behavior the behavior object for this type.
 -- @local
 function Type:set_behavior (behavior)
