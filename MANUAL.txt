@@ -4438,7 +4438,7 @@ introducing the slide:
 All of the other frame attributes described in Section 8.1 of
 the [Beamer User's Guide] may also be used: `allowdisplaybreaks`,
 `allowframebreaks`, `b`, `c`, `t`, `environment`, `label`, `plain`,
-`shrink`.
+`shrink`, `standout`, `noframenumbering`.
 
 Background in reveal.js
 -----------------------
