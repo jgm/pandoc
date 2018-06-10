@@ -364,7 +364,7 @@ library
                  split >= 0.2 && < 0.3,
                  random >= 1 && < 1.2,
                  pandoc-types >= 1.17.4.2 && < 1.18,
-                 aeson >= 0.7 && < 1.4,
+                 aeson >= 0.7 && < 1.5,
                  aeson-pretty >= 0.8.5 && < 0.9,
                  tagsoup >= 0.14.6 && < 0.15,
                  base64-bytestring >= 0.1 && < 1.1,
