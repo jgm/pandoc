@@ -18,7 +18,7 @@ extra-deps:
 - ansi-terminal-0.8.0.2
 - tasty-1.0.1.1
 - test-framework-0.8.2.0
-- pandoc-types-1.17.4.2
+- pandoc-types-1.17.5
 - cmark-gfm-0.1.3
 - hslua-module-text-0.1.2.1
 - texmath-0.11
