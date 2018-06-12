@@ -381,7 +381,7 @@ convertWithOpts opts = do
                                      "" -> tp <.> format
                                      _  -> tp
                       Just . UTF8.toString <$>
-                            (readFileStrict tp' `catchError`
+                            ((fst <$> fetchItem tp') `catchError`
                              (\e ->
                                  case e of
                                       PandocIOError _ e' |

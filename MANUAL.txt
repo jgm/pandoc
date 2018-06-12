@@ -645,10 +645,10 @@ General writer options
     output.  For `native` output, this option causes metadata to
     be included; otherwise, metadata is suppressed.
 
-`--template=`*FILE*
+`--template=`*FILE*|*URL*
 
-:   Use *FILE* as a custom template for the generated document. Implies
-    `--standalone`. See [Templates], below, for a description
+:   Use the specified file as a custom template for the generated document.
+    Implies `--standalone`. See [Templates], below, for a description
     of template syntax. If no extension is specified, an extension
     corresponding to the writer will be added, so that `--template=special`
     looks for `special.html` for HTML output.  If the template is not
