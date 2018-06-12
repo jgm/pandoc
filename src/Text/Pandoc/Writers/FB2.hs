@@ -135,7 +135,7 @@ description meta' = do
                     Just (MetaString s) -> coverimage s
                     _       -> return []
   return $ el "description"
-    [ el "title-info" (genre : (bt ++ annotation ++ as ++ dd ++ lang))
+    [ el "title-info" (genre : (as ++ bt ++ annotation ++ dd ++ lang))
     , el "document-info" (el "program-used" "pandoc" : coverpage)
     ]
 

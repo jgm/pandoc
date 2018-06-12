@@ -3,7 +3,6 @@
 <description>
 <title-info>
 <genre>unrecognised</genre>
-<book-title>Pandoc Test Suite</book-title>
 <author>
 <first-name>John</first-name>
 <last-name>MacFarlane</last-name>
@@ -11,6 +10,7 @@
 <author>
 <nickname>Anonymous</nickname>
 </author>
+<book-title>Pandoc Test Suite</book-title>
 <date>July 17, 2006</date>
 </title-info>
 <document-info>
