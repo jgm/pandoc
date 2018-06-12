@@ -3976,7 +3976,7 @@ For more information, see the [pandoc-citeproc man page].
 [Chicago Manual of Style]: http://chicagomanualofstyle.org
 [Citation Style Language]: http://citationstyles.org
 [Zotero Style Repository]: https://www.zotero.org/styles
-[finding and editing styles]: http://citationstyles.org/styles/
+[finding and editing styles]: https://citationstyles.org/authors/
 [CSL locale files]: https://github.com/citation-style-language/locales
 [pandoc-citeproc man page]: https://github.com/jgm/pandoc-citeproc/blob/master/man/pandoc-citeproc.1.md
 
