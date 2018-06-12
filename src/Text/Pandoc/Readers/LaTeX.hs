@@ -2423,7 +2423,8 @@ coloredBlock stylename = try $ do
 
 graphicsPath :: PandocMonad m => LP m Blocks
 graphicsPath = do
-  ps <- map toksToString <$> (bgroup *> manyTill braced egroup)
+  ps <- map toksToString <$>
+          (bgroup *> spaces *> manyTill (braced <* spaces) egroup)
   getResourcePath >>= setResourcePath . (++ ps)
   return mempty
 
