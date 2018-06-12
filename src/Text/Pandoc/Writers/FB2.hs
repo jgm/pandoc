@@ -119,7 +119,7 @@ description meta' = do
   let as = authors meta'
   dd <- docdate meta'
   annotation <- case lookupMeta "abstract" meta' of
-                  Just (MetaBlocks bs) -> (list . el "annotation") <$> cMapM blockToXml bs
+                  Just (MetaBlocks bs) -> (list . el "annotation") <$> (cMapM blockToXml $ map unPlain bs)
                   _ -> pure mempty
   let lang = case lookupMeta "lang" meta' of
                Just (MetaInlines [Str s]) -> [el "lang" $ iso639 s]
@@ -397,6 +397,11 @@ plainToPara (Plain inlines : rest) =
 plainToPara (Para inlines : rest) =
     Para inlines : HorizontalRule : plainToPara rest -- HorizontalRule will be converted to <empty-line />
 plainToPara (p:rest) = p : plainToPara rest
+
+-- Replace plain text with paragraphs
+unPlain :: Block -> Block
+unPlain (Plain inlines) = Para inlines
+unPlain x = x
 
 -- Simulate increased indentation level. Will not really work
 -- for multi-line paragraphs.
