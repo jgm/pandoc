@@ -259,7 +259,7 @@ pandocToHtml opts (Pandoc meta blocks) = do
   st <- get
   notes <- footnoteSection opts (reverse (stNotes st))
   let thebody = blocks' >> notes
-  let  math = case writerHTMLMathMethod opts of
+  let math = case writerHTMLMathMethod opts of
                       MathJax url
                         | slideVariant /= RevealJsSlides ->
                         -- mathjax is handled via a special plugin in revealjs
@@ -296,10 +296,11 @@ pandocToHtml opts (Pandoc meta blocks) = do
                   (if stMath st
                       then defField "math" (renderHtml' math)
                       else id) $
-                  defField "mathjax"
-                      (case writerHTMLMathMethod opts of
-                            MathJax _ -> True
-                            _         -> False) $
+                  (case writerHTMLMathMethod opts of
+                        MathJax u -> defField "mathjax" True .
+                                     defField "mathjaxurl"
+                                       (takeWhile (/='?') u)
+                        _         -> defField "mathjax" False) $
                   defField "quotes" (stQuotes st) $
                   -- for backwards compatibility we populate toc
                   -- with the contents of the toc, rather than a
