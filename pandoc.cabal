@@ -484,6 +484,7 @@ library
                    Text.Pandoc.Writers.Math,
                    Text.Pandoc.Writers.Shared,
                    Text.Pandoc.Writers.OOXML,
+                   Text.Pandoc.Writers.Slack,
                    Text.Pandoc.Lua,
                    Text.Pandoc.PDF,
                    Text.Pandoc.UTF8,
@@ -685,6 +686,7 @@ test-suite test-pandoc
                   Tests.Writers.FB2
                   Tests.Writers.Powerpoint
                   Tests.Writers.OOXML
+                  Tests.Writers.Slack
   ghc-options:  -rtsopts -Wall -fno-warn-unused-do-bind -threaded
   default-language: Haskell2010
   other-extensions: NoImplicitPrelude
