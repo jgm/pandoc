@@ -42,7 +42,7 @@ Accuracy~\eqref{eq:Accuracy} is the proportion, measuring true results among all
 
 Figure \ref{fig:Logo} illustrated the SVG logo
 ^D
-[Para [Image ("",[],[]) [Str "Logo",Span ("",[],[("label","fig:Logo")]) []] ("command/SVG_logo.svg","fig:")]
+[Para [Image ("fig:Logo",[],[]) [Str "Logo",Span ("",[],[("label","fig:Logo")]) []] ("command/SVG_logo.svg","fig:")]
 ,Para [Str "Figure",Space,Link ("",[],[("reference-type","ref"),("reference","fig:Logo")]) [Str "[fig:Logo]"] ("#fig:Logo",""),Space,Str "illustrated",Space,Str "the",Space,Str "SVG",Space,Str "logo"]]
 ```
 
