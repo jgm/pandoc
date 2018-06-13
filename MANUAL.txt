@@ -713,8 +713,9 @@ General writer options
 :   Include an automatically generated table of contents (or, in
     the case of `latex`, `context`, `docx`, `odt`,
     `opendocument`, `rst`, or `ms`, an instruction to create
-    one) in the output document. This option has no effect on
-    `man`, `docbook4`, `docbook5`, or `jats` output.
+    one) in the output document. This option has no effect
+    unless `-s/--standalone` is used, and it has no effect
+    on `man`, `docbook4`, `docbook5`, or `jats` output.
 
 `--toc-depth=`*NUMBER*
 
