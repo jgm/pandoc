@@ -159,7 +159,7 @@ data LaTeXState = LaTeXState{ sOptions       :: ReaderOptions
                             , sLogMessages   :: [LogMessage]
                             , sIdentifiers   :: Set.Set String
                             , sVerbatimMode  :: Bool
-                            , sCaption       :: Maybe Inlines
+                            , sCaption       :: (Maybe Inlines, Maybe String)
                             , sInListItem    :: Bool
                             , sInTableCell   :: Bool
                             , sLastHeaderNum :: HeaderNum
@@ -179,7 +179,7 @@ defaultLaTeXState = LaTeXState{ sOptions       = def
                               , sLogMessages   = []
                               , sIdentifiers   = Set.empty
                               , sVerbatimMode  = False
-                              , sCaption       = Nothing
+                              , sCaption       = (Nothing, Nothing)
                               , sInListItem    = False
                               , sInTableCell   = False
                               , sLastHeaderNum = HeaderNum []
@@ -2100,11 +2100,13 @@ setCaption = do
   ils <- tok
   mblabel <- option Nothing $
                try $ spaces >> controlSeq "label" >> (Just <$> tok)
-  let ils' = case mblabel of
-                  Just lab -> ils <> spanWith
-                                ("",[],[("label", stringify lab)]) mempty
-                  Nothing  -> ils
-  updateState $ \st -> st{ sCaption = Just ils' }
+  let capt = case mblabel of
+                  Just lab -> let slab = stringify lab
+                                  ils' = ils <> spanWith
+                                    ("",[],[("label", slab)]) mempty
+                              in  (Just ils', Just slab)
+                  Nothing  -> (Just ils, Nothing)
+  updateState $ \st -> st{ sCaption = capt }
   return mempty
 
 looseItem :: PandocMonad m => LP m Blocks
@@ -2115,7 +2117,7 @@ looseItem = do
   return mempty
 
 resetCaption :: PandocMonad m => LP m ()
-resetCaption = updateState $ \st -> st{ sCaption = Nothing }
+resetCaption = updateState $ \st -> st{ sCaption = (Nothing, Nothing) }
 
 section :: PandocMonad m => Bool -> Attr -> Int -> LP m Blocks
 section starred (ident, classes, kvs) lvl = do
@@ -2405,12 +2407,16 @@ figure = try $ do
 
 addImageCaption :: PandocMonad m => Blocks -> LP m Blocks
 addImageCaption = walkM go
-  where go (Image attr alt (src,tit))
+  where go (Image attr@(_, cls, kvs) alt (src,tit))
             | not ("fig:" `isPrefixOf` tit) = do
-          mbcapt <- sCaption <$> getState
-          return $ case mbcapt of
-               Just ils -> Image attr (toList ils) (src, "fig:" ++ tit)
-               Nothing  -> Image attr alt (src,tit)
+          (mbcapt, mblab) <- sCaption <$> getState
+          let (alt', tit') = case mbcapt of
+                               Just ils -> (toList ils, "fig:" ++ tit)
+                               Nothing  -> (alt, tit)
+              attr' = case mblab of
+                        Just lab -> (lab, cls, kvs)
+                        Nothing  -> attr
+          return $ Image attr' alt' (src, tit')
         go x = return x
 
 coloredBlock :: PandocMonad m => String -> LP m Blocks
@@ -2682,7 +2688,7 @@ simpTable envname hasWidthParameter = try $ do
 addTableCaption :: PandocMonad m => Blocks -> LP m Blocks
 addTableCaption = walkM go
   where go (Table c als ws hs rs) = do
-          mbcapt <- sCaption <$> getState
+          (mbcapt, _) <- sCaption <$> getState
           return $ case mbcapt of
                Just ils -> Table (toList ils) als ws hs rs
                Nothing  -> Table c als ws hs rs
