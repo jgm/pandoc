@@ -1591,7 +1591,7 @@ code = try $ do
   starts <- many1 (char '`')
   skipSpaces
   result <- (trim . concat) <$>
-            many1Till (many1 (noneOf "`\n") <|> many1 (char '`') <|>
+            manyTill (many1 (noneOf "`\n") <|> many1 (char '`') <|>
                        (char '\n' >> notFollowedBy' blankline >> return " "))
                       (try (skipSpaces >> count (length starts) (char '`') >>
                       notFollowedBy (char '`')))
