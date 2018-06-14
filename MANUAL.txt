@@ -809,7 +809,8 @@ General writer options
 :   Set the request header *NAME* to the value *VAL* when making
     HTTP requests (for example, when a URL is given on the
     command line, or when resources used in a document must be
-    downloaded).
+    downloaded). If you're behind a proxy, you also need to set
+    the environment variable `http_proxy` to `http://...`.
 
 Options affecting specific writers
 ----------------------------------
