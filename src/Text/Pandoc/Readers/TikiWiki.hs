@@ -22,6 +22,7 @@ import Prelude
 import Control.Monad
 import Control.Monad.Except (throwError)
 import qualified Data.Foldable as F
+import Data.List (dropWhileEnd)
 import Data.Maybe (fromMaybe)
 import Data.Text (Text)
 import qualified Data.Text as T
@@ -319,7 +320,7 @@ listItem = choice [
 bulletItem :: PandocMonad m => TikiWikiParser m (ListNesting, B.Blocks)
 bulletItem = try $ do
   prefix <- many1 $ char '*'
-  many1 $ char ' '
+  many $ char ' '
   content <- listItemLine (length prefix)
   return (LN Bullet (length prefix), B.plain content)
 
@@ -331,7 +332,7 @@ bulletItem = try $ do
 numberedItem :: PandocMonad m => TikiWikiParser m (ListNesting, B.Blocks)
 numberedItem = try $ do
   prefix <- many1 $ char '#'
-  many1 $ char ' '
+  many $ char ' '
   content <- listItemLine (length prefix)
   return (LN Numbered (length prefix), B.plain content)
 
@@ -346,7 +347,7 @@ listItemLine nest = lineContent >>= parseContent
     listContinuation = string (replicate nest '+') >> lineContent
     parseContent x = do
       parsed <- parseFromString (many1 inline) x
-      return $ mconcat parsed
+      return $ mconcat $ dropWhileEnd (== B.space) parsed
 
 -- Turn the CODE macro attributes into Pandoc code block attributes.
 mungeAttrs :: [(String, String)] -> (String, [String], [(String, String)])

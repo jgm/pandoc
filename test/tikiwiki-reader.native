@@ -43,52 +43,52 @@ Pandoc (Meta {unMeta = fromList []})
 ,Para [Str "info@example.org"]
 ,Header 1 ("lists",[],[]) [Str "lists"]
 ,BulletList
- [[Plain [Str "Start",Space,Str "each",Space,Str "line",Space]]
- ,[Plain [Str "with",Space,Str "an",Space,Str "asterisk",Space,Str "(*).",Space]
+ [[Plain [Str "Start",Space,Str "each",Space,Str "line"]]
+ ,[Plain [Str "with",Space,Str "an",Space,Str "asterisk",Space,Str "(*)."]
   ,BulletList
-   [[Plain [Str "More",Space,Str "asterisks",Space,Str "gives",Space,Str "deeper",Space]
+   [[Plain [Str "More",Space,Str "asterisks",Space,Str "gives",Space,Str "deeper"]
     ,BulletList
-     [[Plain [Str "and",Space,Str "deeper",Space,Str "levels.",Space]]]]]]
- ,[Plain [Str "Line",Space,Str "breaks",LineBreak,Str "don't",Space,Str "break",Space,Str "levels.",Space]]
- ,[Plain [Str "Continuations",Space,Str "are",Space,Str "also",Space,Str "possible",Space]
+     [[Plain [Str "and",Space,Str "deeper",Space,Str "levels."]]]]]]
+ ,[Plain [Str "Line",Space,Str "breaks",LineBreak,Str "don't",Space,Str "break",Space,Str "levels."]]
+ ,[Plain [Str "Continuations",Space,Str "are",Space,Str "also",Space,Str "possible"]
   ,BulletList
-   [[Plain [Str "and",Space,Str "do",Space,Str "not",Space,Str "break",Space,Str "the",Space,Str "list",Space,Str "flow",Space]]]]
- ,[Plain [Str "Level",Space,Str "one",Space]]]
+   [[Plain [Str "and",Space,Str "do",Space,Str "not",Space,Str "break",Space,Str "the",Space,Str "list",Space,Str "flow"]]]]
+ ,[Plain [Str "Level",Space,Str "one"]]]
 ,Para [Str "Any",Space,Str "other",Space,Str "start",Space,Str "ends",Space,Str "the",Space,Str "list."]
 ,OrderedList (1,DefaultStyle,DefaultDelim)
- [[Plain [Str "Start",Space,Str "each",Space,Str "line",Space]]
- ,[Plain [Str "with",Space,Str "a",Space,Str "number",Space,Str "(1.).",Space]
+ [[Plain [Str "Start",Space,Str "each",Space,Str "line"]]
+ ,[Plain [Str "with",Space,Str "a",Space,Str "number",Space,Str "(1.)."]
   ,OrderedList (1,DefaultStyle,DefaultDelim)
-   [[Plain [Str "More",Space,Str "number",Space,Str "signs",Space,Str "gives",Space,Str "deeper",Space]
+   [[Plain [Str "More",Space,Str "number",Space,Str "signs",Space,Str "gives",Space,Str "deeper"]
     ,OrderedList (1,DefaultStyle,DefaultDelim)
-     [[Plain [Str "and",Space,Str "deeper",Space]]
-     ,[Plain [Str "levels.",Space]]]]]]
- ,[Plain [Str "Line",Space,Str "breaks",LineBreak,Str "don't",Space,Str "break",Space,Str "levels.",Space]]
- ,[Plain [Str "Blank",Space,Str "lines",Space]]]
+     [[Plain [Str "and",Space,Str "deeper"]]
+     ,[Plain [Str "levels."]]]]]]
+ ,[Plain [Str "Line",Space,Str "breaks",LineBreak,Str "don't",Space,Str "break",Space,Str "levels."]]
+ ,[Plain [Str "Blank",Space,Str "lines"]]]
 ,OrderedList (1,DefaultStyle,DefaultDelim)
- [[Plain [Str "end",Space,Str "the",Space,Str "list",Space,Str "and",Space,Str "start",Space,Str "another.",Space]]]
+ [[Plain [Str "end",Space,Str "the",Space,Str "list",Space,Str "and",Space,Str "start",Space,Str "another."]]]
 ,Para [Str "Any",Space,Str "other",Space,Str "start",Space,Str "also",Space,Str "ends",Space,Str "the",Space,Str "list."]
 ,DefinitionList
  [([Str "item",Space,Str "1"],
-   [[Plain [Str "definition",Space,Str "1",Space]]])
+   [[Plain [Str "definition",Space,Str "1"]]])
  ,([Str "item",Space,Str "2"],
-   [[Plain [Str "definition",Space,Str "2-1",Space,Str "definition",Space,Str "2-2",Space]]])
+   [[Plain [Str "definition",Space,Str "2-1",Space,Str "definition",Space,Str "2-2"]]])
  ,([Str "item",Space,Emph [Str "3"]],
-   [[Plain [Str "definition",Space,Emph [Str "3"],Space]]])]
+   [[Plain [Str "definition",Space,Emph [Str "3"]]]])]
 ,OrderedList (1,DefaultStyle,DefaultDelim)
- [[Plain [Str "one",Space]]
- ,[Plain [Str "two",Space]
+ [[Plain [Str "one"]]
+ ,[Plain [Str "two"]
   ,BulletList
-   [[Plain [Str "two",Space,Str "point",Space,Str "one",Space]]
-   ,[Plain [Str "two",Space,Str "point",Space,Str "two",Space]]]]
- ,[Plain [Str "three",Space]]
- ,[Plain [Str "four",Space]]
- ,[Plain [Str "five",Space]
+   [[Plain [Str "two",Space,Str "point",Space,Str "one"]]
+   ,[Plain [Str "two",Space,Str "point",Space,Str "two"]]]]
+ ,[Plain [Str "three"]]
+ ,[Plain [Str "four"]]
+ ,[Plain [Str "five"]
   ,OrderedList (1,DefaultStyle,DefaultDelim)
-   [[Plain [Str "five",Space,Str "sub",Space,Str "1",Space]
+   [[Plain [Str "five",Space,Str "sub",Space,Str "1"]
     ,OrderedList (1,DefaultStyle,DefaultDelim)
-     [[Plain [Str "five",Space,Str "sub",Space,Str "1",Space,Str "sub",Space,Str "1",Space]]]]
-   ,[Plain [Str "five",Space,Str "sub",Space,Str "2",Space]]]]]
+     [[Plain [Str "five",Space,Str "sub",Space,Str "1",Space,Str "sub",Space,Str "1"]]]]
+   ,[Plain [Str "five",Space,Str "sub",Space,Str "2"]]]]]
 ,Header 1 ("tables",[],[]) [Str "tables"]
 ,Table [] [AlignDefault,AlignDefault] [0.0,0.0]
  [[Plain [Str ""]]
