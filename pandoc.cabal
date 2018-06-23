@@ -374,7 +374,7 @@ library
                  temporary >= 1.1 && < 1.4,
                  blaze-html >= 0.9 && < 0.10,
                  blaze-markup >= 0.8 && < 0.9,
-                 yaml >= 0.8.8.2 && < 0.9,
+                 yaml >= 0.8.10.1 && < 0.9,
                  scientific >= 0.2 && < 0.4,
                  vector >= 0.10 && < 0.13,
                  hslua >= 0.9.5 && < 0.9.6,
