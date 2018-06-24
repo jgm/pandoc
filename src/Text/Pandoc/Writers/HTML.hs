@@ -49,8 +49,8 @@ module Text.Pandoc.Writers.HTML (
 import Prelude
 import Control.Monad.State.Strict
 import Data.Char (ord, toLower)
-import Data.List (intercalate, intersperse, isPrefixOf, partition)
-import Data.Maybe (catMaybes, fromMaybe, isJust, isNothing)
+import Data.List (intercalate, intersperse, isPrefixOf, partition, stripPrefix)
+import Data.Maybe (catMaybes, fromMaybe, isJust, isNothing, fromJust)
 import qualified Data.Set as Set
 import Data.String (fromString)
 import Data.Text (Text)
@@ -98,6 +98,8 @@ import Text.TeXMath
 import Text.XML.Light (elChildren, unode, unqual)
 import qualified Text.XML.Light as XML
 import Text.XML.Light.Output
+import Text.Pandoc.Emoji (emojis)
+import qualified Data.Map as M
 
 data WriterState = WriterState
     { stNotes        :: [Html]  -- ^ List of notes
@@ -122,12 +124,37 @@ defaultWriterState = WriterState {stNotes= [], stMath = False, stQuotes = False,
 
 -- Helpers to render HTML with the appropriate function.
 
+emojiStartData :: M.Map Char [(String, String)]
+emojiStartData = M.foldrWithKey (\k (v@(c:_)) a -> M.insert c ((k,v):fromMaybe [] (M.lookup c a)) a) M.empty emojis
+
+emojiClassName :: WriterOptions -> String -> String
+emojiClassName opts emojiName = case writerHtmlEmojiClass opts of
+  Just confedName -> confedName ++ " " ++ confedName ++ "-" ++ emojiName
+  Nothing -> undefined
+
+strToHtmlOne :: WriterOptions -> String -> [(String, String)] -> Html
+strToHtmlOne opts s ((emojiName,x):xs) = if x `isPrefixOf` s
+                  then
+                      (H.span ! A.class_ (toValue $ emojiClassName opts emojiName) $ toHtml x) `mappend` strToHtml opts (fromJust $ stripPrefix x s)
+                  else
+                      strToHtmlOne opts s xs
+strToHtmlOne opts (x:xs) [] = toHtml [x] `mappend` strToHtml opts xs
+strToHtmlOne _ [] [] = undefined
+
 strToHtml :: WriterOptions -> String -> Html
-strToHtml opts ('\'':xs) = preEscapedString "\'" `mappend` strToHtml opts xs
-strToHtml opts xs@(_:_)  = case break (=='\'') xs of
-                           (_ ,[]) -> toHtml xs
-                           (ys,zs) -> toHtml ys `mappend` strToHtml opts zs
 strToHtml _ [] = ""
+strToHtml opts s@(x:_) =
+  case M.lookup x emojiStarts of
+    Just candidates -> strToHtmlOne opts s candidates
+    Nothing ->
+      case break (\c -> c == '\'' || M.member c emojiStarts) s of
+        (l, []) -> toHtml l
+        (l, '\'':r) -> toHtml l `mappend` preEscapedString "'" `mappend` strToHtml opts r
+        (l, r) -> toHtml l `mappend` strToHtml opts r
+  where emojiStarts = if isJust $ writerHtmlEmojiClass opts
+                      then emojiStartData
+                      else M.empty
+
 
 -- | Hard linebreak.
 nl :: WriterOptions -> Html

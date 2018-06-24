@@ -425,6 +425,7 @@ convertWithOpts opts = do
           , writerEmailObfuscation = optEmailObfuscation opts
           , writerIdentifierPrefix = optIdentifierPrefix opts
           , writerHtmlQTags        = optHtmlQTags opts
+          , writerHtmlEmojiClass   = optHtmlEmojiClass opts
           , writerTopLevelDivision = optTopLevelDivision opts
           , writerListings         = optListings opts
           , writerSlideLevel       = optSlideLevel opts
@@ -563,6 +564,7 @@ data Opt = Opt
     , optIncremental           :: Bool    -- ^ Use incremental lists in Slidy/Slideous/S5
     , optSelfContained         :: Bool    -- ^ Make HTML accessible offline
     , optHtmlQTags             :: Bool    -- ^ Use <q> tags in HTML
+    , optHtmlEmojiClass        :: Maybe String -- ^ Class to use for emojis in HTML
     , optHighlightStyle        :: Maybe String -- ^ Style to use for highlighted code
     , optSyntaxDefinitions     :: [FilePath]  -- ^ xml syntax defs to load
     , optTopLevelDivision      :: TopLevelDivision -- ^ Type of the top-level divisions
@@ -635,6 +637,7 @@ defaultOpts = Opt
     , optIncremental           = False
     , optSelfContained         = False
     , optHtmlQTags             = False
+    , optHtmlEmojiClass        = Nothing
     , optHighlightStyle        = Just "pygments"
     , optSyntaxDefinitions     = []
     , optTopLevelDivision      = TopLevelDefault
@@ -1149,6 +1152,13 @@ options =
                   (\opt ->
                      return opt { optHtmlQTags = True }))
                  "" -- "Use <q> tags for quotes in HTML"
+
+    , Option "" ["html-emoji-class"]
+                 (ReqArg
+                  (\arg opt ->
+                     return opt { optHtmlEmojiClass = Just arg })
+                  "STRING")
+                 "" -- "Wrap emojis in span tags with specified class in HTML output"
 
     , Option "" ["ascii"]
                  (NoArg
