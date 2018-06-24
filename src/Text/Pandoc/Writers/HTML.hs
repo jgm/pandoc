@@ -122,12 +122,12 @@ defaultWriterState = WriterState {stNotes= [], stMath = False, stQuotes = False,
 
 -- Helpers to render HTML with the appropriate function.
 
-strToHtml :: String -> Html
-strToHtml ('\'':xs) = preEscapedString "\'" `mappend` strToHtml xs
-strToHtml xs@(_:_)  = case break (=='\'') xs of
+strToHtml :: WriterOptions -> String -> Html
+strToHtml opts ('\'':xs) = preEscapedString "\'" `mappend` strToHtml opts xs
+strToHtml opts xs@(_:_)  = case break (=='\'') xs of
                            (_ ,[]) -> toHtml xs
-                           (ys,zs) -> toHtml ys `mappend` strToHtml zs
-strToHtml [] = ""
+                           (ys,zs) -> toHtml ys `mappend` strToHtml opts zs
+strToHtml _ [] = ""
 
 -- | Hard linebreak.
 nl :: WriterOptions -> Html
@@ -789,7 +789,7 @@ blockToHtml opts (Header level attr@(_,classes,_) lst) = do
   let contents' = if writerNumberSections opts && not (null secnum)
                      && "unnumbered" `notElem` classes
                      then (H.span ! A.class_ "header-section-number" $ toHtml
-                          $ showSecNum secnum) >> strToHtml " " >> contents
+                          $ showSecNum secnum) >> strToHtml opts " " >> contents
                      else contents
   inElement <- gets stElement
   (if inElement then return else addAttrs opts attr)
@@ -956,15 +956,15 @@ inlineToHtml :: PandocMonad m
 inlineToHtml opts inline = do
   html5 <- gets stHtml5
   case inline of
-    (Str str)        -> return $ strToHtml str
-    Space          -> return $ strToHtml " "
+    (Str str)        -> return $ strToHtml opts str
+    Space          -> return $ strToHtml opts " "
     SoftBreak      -> return $ case writerWrapText opts of
                                      WrapNone     -> preEscapedString " "
                                      WrapAuto     -> preEscapedString " "
                                      WrapPreserve -> preEscapedString "\n"
     LineBreak      -> return $ do
                         if html5 then H5.br else H.br
-                        strToHtml "\n"
+                        strToHtml opts "\n"
     (Span (id',classes,kvs) ils)
                      -> inlineListToHtml opts ils >>=
                            addAttrs opts attr' . H.span
@@ -987,7 +987,7 @@ inlineToHtml opts inline = do
                              Left msg -> do
                                unless (null msg) $
                                  report $ CouldNotHighlight msg
-                               addAttrs opts attr $ H.code $ strToHtml str
+                               addAttrs opts attr $ H.code $ strToHtml opts str
                              Right h -> do
                                modify $ \st -> st{ stHighlighting = True }
                                addAttrs opts (id',[],keyvals) h
@@ -1005,10 +1005,10 @@ inlineToHtml opts inline = do
     (Subscript lst)   -> inlineListToHtml opts lst >>= return . H.sub
     (Quoted quoteType lst) ->
                         let (leftQuote, rightQuote) = case quoteType of
-                              SingleQuote -> (strToHtml "‘",
-                                              strToHtml "’")
-                              DoubleQuote -> (strToHtml "“",
-                                              strToHtml "”")
+                              SingleQuote -> (strToHtml opts "‘",
+                                              strToHtml opts "’")
+                              DoubleQuote -> (strToHtml opts "“",
+                                              strToHtml opts "”")
                         in  if writerHtmlQTags opts
                                then do
                                  modify $ \st -> st{ stQuotes = True }
@@ -1036,7 +1036,7 @@ inlineToHtml opts inline = do
                   customAttribute "env"
                     (toValue $ if t == InlineMath
                                   then ("math" :: Text)
-                                  else "displaymath") $ strToHtml str
+                                  else "displaymath") $ strToHtml opts str
            MathML -> do
               let conf = useShortEmptyTags (const False)
                            defaultConfigPP
