@@ -5,24 +5,6 @@
 ~~\text\~~
 @end macro
 
-@macro textsubscript{text}
-@iftex
-@textsubscript{\text\}
-@end iftex
-@ifnottex
-_@{\text\@}
-@end ifnottex
-@end macro
-
-@macro textsuperscript{text}
-@iftex
-@textsuperscript{\text\}
-@end iftex
-@ifnottex
-^@{\text\@}
-@end ifnottex
-@end macro
-
 @ifnottex
 @paragraphindent 0
 @end ifnottex
@@ -738,11 +720,9 @@ This is code: @code{>}, @code{$}, @code{\}, @code{\$}, @code{<html>}.
 
 @textstrikeout{This is @emph{strikeout}.}
 
-Superscripts: a@textsuperscript{bc}d a@textsuperscript{@emph{hello}}
-a@textsuperscript{hello@ there}.
+Superscripts: a@sup{bc}d a@sup{@emph{hello}} a@sup{hello@ there}.
 
-Subscripts: H@textsubscript{2}O, H@textsubscript{23}O,
-H@textsubscript{many@ of@ them}O.
+Subscripts: H@sub{2}O, H@sub{23}O, H@sub{many@ of@ them}O.
 
 These should not be superscripts or subscripts, because of the unescaped
 spaces: a^b c^d, a~b c~d.
