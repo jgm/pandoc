@@ -2296,6 +2296,7 @@ environments = M.fromList
    , ("minted", minted)
    , ("obeylines", obeylines)
    , ("tikzpicture", rawVerbEnv "tikzpicture")
+   , ("lilypond", rawVerbEnv "lilypond")
    -- etoolbox
    , ("ifstrequal", ifstrequal)
    , ("newtoggle", braced >>= newToggle)
@@ -2338,7 +2339,7 @@ rawVerbEnv :: PandocMonad m => Text -> LP m Blocks
 rawVerbEnv name = do
   pos <- getPosition
   (_, raw) <- withRaw $ verbEnv name
-  let raw' = "\\begin{" ++ name ++ "}" ++ toksToString raw
+  let raw' = "\\begin{" ++ T.unpack name ++ "}" ++ toksToString raw
   exts <- getOption readerExtensions
   let parseRaw = extensionEnabled Ext_raw_tex exts
   if parseRaw
