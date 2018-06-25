@@ -3296,7 +3296,7 @@ LaTeX
   ~ It will appear verbatim surrounded by `\(...\)` (for inline
     math) or `\[...\]` (for display math).
 
-Markdown, LaTeX, Emacs Org mode, ConTeXt, ZimWiki
+Markdown, Emacs Org mode, ConTeXt, ZimWiki
   ~ It will appear verbatim surrounded by `$...$` (for inline
     math) or `$$...$$` (for display math).
 
