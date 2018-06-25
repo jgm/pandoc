@@ -493,7 +493,7 @@ Reader options
     footnotes and links will not work across files. Reading binary
     files (docx, odt, epub) implies `--file-scope`.
 
-`--filter=`*PROGRAM*
+`-F` *PROGRAM*, `--filter=`*PROGRAM*
 
 :   Specify an executable to be used as a filter transforming the
     pandoc AST after the input is parsed and before the output is
