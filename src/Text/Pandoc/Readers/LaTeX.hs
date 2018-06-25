@@ -2338,7 +2338,7 @@ rawVerbEnv :: PandocMonad m => Text -> LP m Blocks
 rawVerbEnv name = do
   pos <- getPosition
   (_, raw) <- withRaw $ verbEnv name
-  let raw' = "\\begin{tikzpicture}" ++ toksToString raw
+  let raw' = "\\begin{" ++ name ++ "}" ++ toksToString raw
   exts <- getOption readerExtensions
   let parseRaw = extensionEnabled Ext_raw_tex exts
   if parseRaw
