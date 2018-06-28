@@ -32,7 +32,7 @@ matrix:
   # We grab the appropriate GHC and cabal-install versions from hvr's PPA. See:
   # https://github.com/hvr/multi-ghc-travis
   # don't build benchmarks for ghc 7.10.3, because build takes too long...
-  - env: BUILD=cabal GHCVER=7.10.3 CABALVER=2.2 OPTS="-O0 -Wall -fno-warn-unused-do-bind -Werror" FLAGS="fast embed_data_files" CABALARGS=""
+  - env: BUILD=cabal GHCVER=7.10.3 CABALVER=2.0 OPTS="-O0 -Wall -fno-warn-unused-do-bind -Werror" FLAGS="fast embed_data_files" CABALARGS=""
     compiler: ": #GHC 7.10.3"
     addons: {apt: {packages: [cabal-install-2.0,ghc-7.10.3,happy-1.19.5], sources: [hvr-ghc]}}
 
