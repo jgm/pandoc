@@ -113,7 +113,7 @@ install:
     cabal)
       cabal --version
       travis_retry cabal update
-      cabal install --enable-per-component --disable-optimization --only-dependencies --flags="$FLAGS" --enable-tests --force-reinstalls --reorder-goals --max-backjumps=-1 $CABALARGS
+      cabal install -v2 --disable-optimization --only-dependencies --flags="$FLAGS" --enable-tests --force-reinstalls --reorder-goals --max-backjumps=-1 $CABALARGS
       ;;
   esac
 
