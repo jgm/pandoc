@@ -132,7 +132,7 @@ import Network.HTTP.Client.Internal (addProxy)
 import Network.HTTP.Client.TLS (tlsManagerSettings)
 import System.Environment (getEnv)
 import Network.HTTP.Types.Header ( hContentType )
-import Network (withSocketsDo)
+import Network.Socket (withSocketsDo)
 import Data.ByteString.Lazy (toChunks)
 import qualified Control.Exception as E
 import qualified Data.Time.LocalTime as IO (getCurrentTimeZone)

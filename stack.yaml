@@ -2,7 +2,6 @@ flags:
   pandoc:
     trypandoc: false
     embed_data_files: true
-    network-uri: true
   pandoc-citeproc:
     bibutils: true
     embed_data_files: true
