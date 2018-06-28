@@ -113,7 +113,14 @@ install:
     cabal)
       cabal --version
       travis_retry cabal update
-      cabal install -v2 --disable-optimization --only-dependencies --flags="$FLAGS" --enable-tests --force-reinstalls --reorder-goals --max-backjumps=-1 $CABALARGS
+      case "$GHCVER" in
+        7.10.3)
+           cabal install -v2 --disable-optimization --flags="$FLAGS" --enable-tests --force-reinstalls --reorder-goals --max-backjumps=-1 $CABALARGS
+           ;;
+        *)
+           cabal install -v2 --disable-optimization --only-dependencies --flags="$FLAGS" --enable-tests --force-reinstalls --reorder-goals --max-backjumps=-1 $CABALARGS
+           ;;
+      esac
       ;;
   esac
 
