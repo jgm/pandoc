@@ -117,6 +117,7 @@ install:
     cabal)
       cabal --version
       travis_retry cabal update
+      cabal install --disable-optimization --only-dependencies --flags="$FLAGS" --enable-tests --force-reinstalls --reorder-goals --max-backjumps=-1 $CABALARGS
       ;;
   esac
 
@@ -131,6 +132,8 @@ script:
     cabal)
       cabal sdist --output-directory=sourcedist && \
       cd sourcedist && \
-      cabal install -j2 --disable-optimization --enable-tests --run-tests --enable-benchmarks -v2 --flags="$FLAGS" --ghc-options="$OPTS" $CABALARGS
+      cabal configure --disable-optimization --enable-tests -v2 --flags="$FLAGS" --ghc-options="$OPTS" $CABALARGS && \
+      cabal build -v2 -j2 && \
+      cabal test
       ;;
   esac
