@@ -370,7 +370,6 @@ library
                  temporary >= 1.1 && < 1.4,
                  blaze-html >= 0.9 && < 0.10,
                  blaze-markup >= 0.8 && < 0.9,
-                 yaml >= 0.8.11 && < 0.9,
                  scientific >= 0.2 && < 0.4,
                  vector >= 0.10 && < 0.13,
                  hslua >= 0.9.5 && < 0.9.6,
@@ -390,7 +389,10 @@ library
                  http-types >= 0.8 && < 0.13,
                  case-insensitive >= 1.2 && < 1.3
   if impl(ghc < 8.0)
-    build-depends: semigroups == 0.18.*
+    build-depends: semigroups == 0.18.*,
+                   yaml >= 0.8.11 && < 0.8.31
+  else
+    build-depends: yaml >= 0.8.11 && < 0.9
   if impl(ghc < 8.4)
      hs-source-dirs: prelude
      other-modules:  Prelude
