@@ -50,7 +50,7 @@ import qualified Data.Set as Set
 import Data.Text (Text)
 import qualified Data.Text as T
 import qualified Data.Vector as V
-import Data.Yaml (Value (Array, Bool, Number, Object, String))
+import Data.Aeson (Value (Array, Bool, Number, Object, String))
 import Network.HTTP (urlEncode)
 import Text.HTML.TagSoup (Tag (..), isTagText, parseTags)
 import Text.Pandoc.Class (PandocMonad, report)

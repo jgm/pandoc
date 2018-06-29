@@ -27,4 +27,6 @@ extra-deps:
 - pandoc-types-1.17.5
 - haddock-library-1.6.0
 - texmath-0.11
+- HsYAML-0.1.1.1
+- text-1.2.3.0
 resolver: lts-9.14

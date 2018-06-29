@@ -22,6 +22,8 @@ extra-deps:
 - hslua-module-text-0.1.2.1
 - texmath-0.11
 - haddock-library-1.6.0
+- HsYAML-0.1.1.1
+- text-1.2.3.0
 ghc-options:
    "$locals": -fhide-source-paths -XNoImplicitPrelude
 resolver: lts-10.10

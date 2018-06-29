@@ -37,18 +37,14 @@ import Prelude
 import Control.Monad
 import Control.Monad.Except (throwError)
 import Data.Char (isAlphaNum, isPunctuation, isSpace, toLower)
-import qualified Data.HashMap.Strict as H
 import Data.List (intercalate, sortBy, transpose, elemIndex)
 import qualified Data.Map as M
 import Data.Maybe
 import Data.Ord (comparing)
-import Data.Scientific (base10Exponent, coefficient)
 import qualified Data.Set as Set
 import Data.Text (Text)
 import qualified Data.Text as T
-import qualified Data.Vector as V
-import Data.Yaml (ParseException (..), YamlException (..), YamlMark (..))
-import qualified Data.Yaml as Yaml
+import qualified Data.YAML as YAML
 import System.FilePath (addExtension, takeExtension)
 import Text.HTML.TagSoup
 import Text.Pandoc.Builder (Blocks, Inlines)
@@ -246,47 +242,38 @@ yamlMetaBlock = try $ do
   -- by including --- and ..., we allow yaml blocks with just comments:
   let rawYaml = unlines ("---" : (rawYamlLines ++ ["..."]))
   optional blanklines
-  case Yaml.decodeEither' $ UTF8.fromString rawYaml of
-       Right (Yaml.Object hashmap) -> do
-         let alist = H.toList hashmap
-         mapM_ (\(k, v) ->
-             if ignorable k
-                then return ()
-                else do
-                  v' <- yamlToMeta v
-                  let k' = T.unpack k
-                  updateState $ \st -> st{ stateMeta' =
-                     do m <- stateMeta' st
-                        -- if there's already a value, leave it unchanged
-                        case lookupMeta k' m of
-                             Just _ -> return m
-                             Nothing -> do
-                               v'' <- v'
-                               return $ B.setMeta (T.unpack k) v'' m}
+  case YAML.decodeStrict (UTF8.fromString rawYaml) of
+       Right (YAML.Mapping _ hashmap : _) -> do
+         let alist = M.toList hashmap
+         mapM_ (\(k', v) ->
+           case YAML.parseEither (YAML.parseYAML k') of
+                Left e  -> fail e
+                Right k -> do
+                  if ignorable k
+                     then return ()
+                     else do
+                       v' <- yamlToMeta v
+                       let k' = T.unpack k
+                       updateState $ \st -> st{ stateMeta' =
+                          do m <- stateMeta' st
+                             -- if there's already a value, leave it unchanged
+                             case lookupMeta k' m of
+                                  Just _ -> return m
+                                  Nothing -> do
+                                    v'' <- v'
+                                    return $ B.setMeta (T.unpack k) v'' m}
            ) alist
-       Right Yaml.Null -> return ()
+       Right [] -> return ()
+       Right (YAML.Scalar YAML.SNull:_) -> return ()
        Right _ -> do
-                   logMessage $
-                      CouldNotParseYamlMetadata "not an object"
-                      pos
-                   return ()
+                  logMessage $
+                     CouldNotParseYamlMetadata "not an object"
+                     pos
+                  return ()
        Left err' -> do
-                case err' of
-                   InvalidYaml (Just YamlParseException{
-                               yamlProblem = problem
-                             , yamlContext = _ctxt
-                             , yamlProblemMark = Yaml.YamlMark {
-                                   yamlLine = yline
-                                 , yamlColumn = ycol
-                             }}) ->
-                        logMessage $ CouldNotParseYamlMetadata
-                           problem (setSourceLine
-                           (setSourceColumn pos
-                              (sourceColumn pos + ycol))
-                           (sourceLine pos + 1 + yline))
-                   _ -> logMessage $ CouldNotParseYamlMetadata
-                           (show err') pos
-                return ()
+                    logMessage $ CouldNotParseYamlMetadata
+                                 err' pos
+                    return ()
   return mempty
 
 -- ignore fields ending with _
@@ -313,22 +300,25 @@ toMetaValue x =
         -- `|` or `>` will.
 
 yamlToMeta :: PandocMonad m
-           => Yaml.Value -> MarkdownParser m (F MetaValue)
-yamlToMeta (Yaml.String t) = toMetaValue t
-yamlToMeta (Yaml.Number n)
-  -- avoid decimal points for numbers that don't need them:
-  | base10Exponent n >= 0     = return $ return $ MetaString $ show
-                                $ coefficient n * (10 ^ base10Exponent n)
-  | otherwise                 = return $ return $ MetaString $ show n
-yamlToMeta (Yaml.Bool b) = return $ return $ MetaBool b
-yamlToMeta (Yaml.Array xs) = do
-  xs' <- mapM yamlToMeta (V.toList xs)
+           => YAML.Node -> MarkdownParser m (F MetaValue)
+yamlToMeta (YAML.Scalar x) =
+  case x of
+       YAML.SStr t   -> toMetaValue t
+       YAML.SBool b  -> return $ return $ MetaBool b
+       YAML.SFloat d -> return $ return $ MetaString (show d)
+       YAML.SInt i   -> return $ return $ MetaString (show i)
+       _             -> return $ return $ MetaString ""
+yamlToMeta (YAML.Sequence _ xs) = do
+  xs' <- mapM yamlToMeta xs
   return $ do
     xs'' <- sequence xs'
     return $ B.toMetaValue xs''
-yamlToMeta (Yaml.Object o) = do
-  let alist = H.toList o
-  foldM (\m (k,v) ->
+yamlToMeta (YAML.Mapping _ o) = do
+  let alist = M.toList o
+  foldM (\m (k',v) ->
+     case YAML.parseEither (YAML.parseYAML k') of
+          Left e  -> fail e
+          Right k -> do
            if ignorable k
               then return m
               else do

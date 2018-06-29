@@ -3059,7 +3059,9 @@ Metadata will be taken from the fields of the YAML object and added to any
 existing document metadata.  Metadata can contain lists and objects (nested
 arbitrarily), but all string scalars will be interpreted as Markdown.  Fields
 with names ending in an underscore will be ignored by pandoc.  (They may be
-given a role by external processors.)
+given a role by external processors.)  Field names must not be
+interpretable as YAML numbers or boolean values (so, for
+example, `yes`, `True`, and `15` cannot be used as field names).
 
 A document may contain multiple metadata blocks.  The metadata fields will
 be combined through a *left-biased union*:  if two metadata blocks attempt

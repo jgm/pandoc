@@ -62,8 +62,7 @@ import qualified Data.Text as T
 import qualified Data.Text.Lazy as TL
 import qualified Data.Text.Lazy.Encoding as TE
 import qualified Data.Text.Encoding.Error as TE
-import Data.Yaml (decodeEither')
-import qualified Data.Yaml as Yaml
+import qualified Data.YAML as YAML
 import GHC.Generics
 import Network.URI (URI (..), parseURI)
 #ifdef EMBED_DATA_FILES
@@ -702,9 +701,11 @@ removeMetaKeys :: [(String,String)] -> Pandoc -> Pandoc
 removeMetaKeys kvs pdc = foldr (deleteMeta . fst) pdc kvs
 
 readMetaValue :: String -> MetaValue
-readMetaValue s = case decodeEither' (UTF8.fromString s) of
-                       Right (Yaml.String t) -> MetaString $ T.unpack t
-                       Right (Yaml.Bool b)   -> MetaBool b
+readMetaValue s = case YAML.decodeStrict (UTF8.fromString s) of
+                       Right [YAML.Scalar (YAML.SStr t)]
+                                             -> MetaString $ T.unpack t
+                       Right [YAML.Scalar (YAML.SBool b)]
+                                             -> MetaBool b
                        _                     -> MetaString s
 
 -- Determine default reader based on source file extensions
