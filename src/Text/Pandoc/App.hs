@@ -62,7 +62,7 @@ import qualified Data.Text as T
 import qualified Data.Text.Lazy as TL
 import qualified Data.Text.Lazy.Encoding as TE
 import qualified Data.Text.Encoding.Error as TE
-import Data.Yaml (decodeEither)
+import Data.Yaml (decodeEither')
 import qualified Data.Yaml as Yaml
 import GHC.Generics
 import Network.URI (URI (..), parseURI)
@@ -702,7 +702,7 @@ removeMetaKeys :: [(String,String)] -> Pandoc -> Pandoc
 removeMetaKeys kvs pdc = foldr (deleteMeta . fst) pdc kvs
 
 readMetaValue :: String -> MetaValue
-readMetaValue s = case decodeEither (UTF8.fromString s) of
+readMetaValue s = case decodeEither' (UTF8.fromString s) of
                        Right (Yaml.String t) -> MetaString $ T.unpack t
                        Right (Yaml.Bool b)   -> MetaBool b
                        _                     -> MetaString s
