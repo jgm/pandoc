@@ -115,6 +115,7 @@ install:
       travis_retry cabal update
       case "$GHCVER" in
         7.10.3)
+           cabal install --disable-optimization --force-reinstalls yaml && \
            cabal install -v1 --disable-optimization --flags="$FLAGS" --enable-tests --force-reinstalls --reorder-goals --max-backjumps=-1 $CABALARGS
            ;;
         *)
