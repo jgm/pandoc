@@ -245,8 +245,8 @@ yamlMetaBlock = try $ do
   case YAML.decodeStrict (UTF8.fromString rawYaml) of
        Right (YAML.Mapping _ hashmap : _) -> do
          let alist = M.toList hashmap
-         mapM_ (\(k', v) ->
-           case YAML.parseEither (YAML.parseYAML k') of
+         mapM_ (\(key, v) ->
+           case YAML.parseEither (YAML.parseYAML key) of
                 Left e  -> fail e
                 Right k -> do
                   if ignorable k
@@ -315,8 +315,8 @@ yamlToMeta (YAML.Sequence _ xs) = do
     return $ B.toMetaValue xs''
 yamlToMeta (YAML.Mapping _ o) = do
   let alist = M.toList o
-  foldM (\m (k',v) ->
-     case YAML.parseEither (YAML.parseYAML k') of
+  foldM (\m (key, v) ->
+     case YAML.parseEither (YAML.parseYAML key) of
           Left e  -> fail e
           Right k -> do
            if ignorable k
