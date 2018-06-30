@@ -45,9 +45,9 @@ matrix:
     compiler: ": #GHC 8.2.2"
     addons: {apt: {packages: [cabal-install-2.0,ghc-8.2.2,happy-1.19.5], sources: [hvr-ghc]}}
 
-  - env: BUILD=cabal GHCVER=8.4.1 CABALVER=2.2 OPTS="-O0 -Wall -Wincomplete-record-updates -Wnoncanonical-monad-instances -Wnoncanonical-monadfail-instances -fno-warn-unused-do-bind -Werror" FLAGS="fast embed_data_files" CABALARGS="--enable-benchmarks"
-    compiler: ": #GHC 8.4.1"
-    addons: {apt: {packages: [cabal-install-2.2,ghc-8.4.1,happy-1.19.5], sources: [hvr-ghc]}}
+  - env: BUILD=cabal GHCVER=8.4.2 CABALVER=2.2 OPTS="-O0 -Wall -Wincomplete-record-updates -Wnoncanonical-monad-instances -Wnoncanonical-monadfail-instances -fno-warn-unused-do-bind -Werror" FLAGS="fast embed_data_files" CABALARGS="--enable-benchmarks"
+    compiler: ": #GHC 8.4.2"
+    addons: {apt: {packages: [cabal-install-2.2,ghc-8.4.2,happy-1.19.5], sources: [hvr-ghc]}}
 
   # Build with the newest GHC and cabal-install. This is an accepted failure,
   # see below.
