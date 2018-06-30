@@ -1725,8 +1725,7 @@ of the following:
 - any object,
 - the boolean `true` (to specify the boolean `true`
   value using YAML metadata or the `--metadata` flag,
-  use `y`, `Y`, `yes`, `Yes`, `YES`, `true`, `True`,
-  `TRUE`, `on`, `On`, or `ON`; with the `--variable`
+  use `true`, `True`, or `TRUE`; with the `--variable`
   flag, simply omit a value for the variable, e.g.
   `--variable draft`).
 
