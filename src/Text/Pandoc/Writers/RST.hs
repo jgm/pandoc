@@ -273,7 +273,8 @@ blockToRST (CodeBlock (_,classes,kvs) str) = do
      then return $ prefixed "> " (text str) $$ blankline
      else return $
           (case [c | c <- classes,
-                     c `notElem` ["sourceCode","literate","numberLines"]] of
+                     c `notElem` ["sourceCode","literate","numberLines",
+                                  "number-lines","example"]] of
              []       -> "::"
              (lang:_) -> (".. code:: " <> text lang) $$ numberlines)
           $+$ nest 3 (text str) $$ blankline
