@@ -712,7 +712,7 @@ schemes = Set.fromList
   , "ws", "wss", "wtai", "wyciwyg", "xcon", "xcon-userid", "xfire"
   , "xmlrpc.beep", "xmlrpc.beeps", "xmpp", "xri", "ymsgr", "z39.50", "z39.50r"
   , "z39.50s"
-  -- Inofficial schemes
+  -- Unofficial schemes
   , "doi", "isbn", "javascript", "pmid"
   ]
 

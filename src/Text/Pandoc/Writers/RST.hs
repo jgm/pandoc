@@ -333,7 +333,7 @@ orderedListItemToRST marker items = do
   let marker' = marker ++ " "
   return $ hang (length marker') (text marker') $ contents <> cr
 
--- | Convert defintion list item (label, list of blocks) to RST.
+-- | Convert definition list item (label, list of blocks) to RST.
 definitionListItemToRST :: PandocMonad m => ([Inline], [[Block]]) -> RST m Doc
 definitionListItemToRST (label, defs) = do
   label' <- inlineListToRST label

@@ -785,7 +785,7 @@ So we do this in a number of steps. If we encounter the fldchar begin
 tag, we start open a fldchar state variable (see state above). We add
 the instrtext to it as FieldInfo. Then we close that and start adding
 the runs when we get to separate. Then when we get to end, we produce
-the Field type with approriate FieldInfo and Runs.
+the Field type with appropriate FieldInfo and Runs.
 -}
 elemToParPart ns element
   | isElem ns "w" "r" element

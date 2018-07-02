@@ -153,7 +153,7 @@ writeICML opts (Pandoc meta blocks) = do
        Nothing  -> return main
        Just tpl -> renderTemplate' tpl context
 
--- | Auxilary functions for parStylesToDoc and charStylesToDoc.
+-- | Auxiliary functions for parStylesToDoc and charStylesToDoc.
 contains :: String -> (String, (String, String)) -> [(String, String)]
 contains s rule =
   [snd rule | (fst rule) `isInfixOf` s]

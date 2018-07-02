@@ -266,7 +266,7 @@ orderedListItemToOrg marker items = do
   contents <- blockListToOrg items
   return $ hang (length marker + 1) (text marker <> space) (contents <> cr)
 
--- | Convert defintion list item (label, list of blocks) to Org.
+-- | Convert definition list item (label, list of blocks) to Org.
 definitionListItemToOrg :: PandocMonad m
                         => ([Inline], [[Block]]) -> Org m Doc
 definitionListItemToOrg (label, defs) = do

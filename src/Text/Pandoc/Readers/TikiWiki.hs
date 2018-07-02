@@ -167,7 +167,7 @@ table = try $ do
   -- return $ B.simpleTable (headers rows) $ trace ("rows: " ++ (show rows)) rows
   return $B.simpleTable (headers rows) rows
   where
-    -- The headers are as many empty srings as the number of columns
+    -- The headers are as many empty strings as the number of columns
     -- in the first row
     headers rows = map (B.plain . B.str) $replicate (length $ head rows) ""
 

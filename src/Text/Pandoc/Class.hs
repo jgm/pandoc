@@ -882,10 +882,10 @@ adjustImagePath _ _ x = x
 -- of things that would normally be obtained through IO.
 data PureState = PureState { stStdGen     :: StdGen
                            , stWord8Store :: [Word8] -- should be
-                                                     -- inifinite,
+                                                     -- infinite,
                                                      -- i.e. [1..]
                            , stUniqStore  :: [Int] -- should be
-                                                   -- inifinite and
+                                                   -- infinite and
                                                    -- contain every
                                                    -- element at most
                                                    -- once, e.g. [1..]

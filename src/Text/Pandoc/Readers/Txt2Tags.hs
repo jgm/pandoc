@@ -198,7 +198,7 @@ para = try $ do
 commentBlock :: T2T Blocks
 commentBlock = try (blockMarkupArea anyLine (const mempty) "%%%") <|> comment
 
--- Seperator and Strong line treated the same
+-- Separator and Strong line treated the same
 hrule :: T2T Blocks
 hrule = try $ do
   spaces

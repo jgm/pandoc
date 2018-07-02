@@ -73,7 +73,7 @@ readEPUB opts bytes = case toArchiveOrFail bytes of
 -- runEPUB :: Except PandocError a -> Either PandocError a
 -- runEPUB = runExcept
 
--- Note that internal reference are aggresively normalised so that all ids
+-- Note that internal reference are aggressively normalised so that all ids
 -- are of the form "filename#id"
 --
 archiveToEPUB :: (PandocMonad m) => ReaderOptions -> Archive -> m Pandoc

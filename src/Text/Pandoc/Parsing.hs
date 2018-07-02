@@ -1289,7 +1289,7 @@ type SubstTable = M.Map Key Inlines
 --  unique identifier, and update the list of identifiers
 --  in state.  Issue a warning if an explicit identifier
 --  is encountered that duplicates an earlier identifier
---  (explict or automatically generated).
+--  (explicit or automatically generated).
 registerHeader :: (Stream s m a, HasReaderOptions st,
                     HasHeaderMap st, HasLogMessages st, HasIdentifierList st)
                => Attr -> Inlines -> ParserT s st m Attr

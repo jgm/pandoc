@@ -743,7 +743,7 @@ latexEnd envName = try $
 
 
 --
--- Footnote defintions
+-- Footnote definitions
 --
 noteBlock :: PandocMonad m => OrgParser m (F Blocks)
 noteBlock = try $ do

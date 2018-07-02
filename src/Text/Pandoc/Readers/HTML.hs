@@ -852,7 +852,7 @@ pInTags' tagtype tagtest parser = try $ do
   pSatisfy (\t -> t ~== TagOpen tagtype [] && tagtest t)
   mconcat <$> manyTill parser (pCloses tagtype <|> eof)
 
--- parses p, preceeded by an optional opening tag
+-- parses p, preceded by an optional opening tag
 -- and followed by an optional closing tags
 pOptInTag :: PandocMonad m => Text -> TagParser m a -> TagParser m a
 pOptInTag tagtype p = try $ do
@@ -1281,7 +1281,7 @@ instance HasLastStrPosition HTMLState where
   setLastStrPos s st = st {parserState = setLastStrPos s (parserState st)}
   getLastStrPos = getLastStrPos . parserState
 
--- For now we need a special verison here; the one in Shared has String type
+-- For now we need a special version here; the one in Shared has String type
 renderTags' :: [Tag Text] -> Text
 renderTags' = renderTagsOptions
                renderOptions{ optMinimize = matchTags ["hr", "br", "img",

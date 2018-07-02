@@ -50,7 +50,7 @@ class (Eq nsID, Ord nsID) => NameSpaceID nsID where
   getNamespaceID   :: NameSpaceIRI
                       -> NameSpaceIRIs nsID
                       -> Maybe (NameSpaceIRIs nsID, nsID)
-  -- | Given a namespace id, lookup its IRI. May be overriden for performance.
+  -- | Given a namespace id, lookup its IRI. May be overridden for performance.
   getIRI           :: nsID
                       -> NameSpaceIRIs nsID
                       -> Maybe NameSpaceIRI

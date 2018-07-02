@@ -510,7 +510,7 @@ anchor =  try $ do
                      <* string ">>"
                      <* skipSpaces
 
--- | Replace every char but [a-zA-Z0-9_.-:] with a hypen '-'.  This mirrors
+-- | Replace every char but [a-zA-Z0-9_.-:] with a hyphen '-'.  This mirrors
 -- the org function @org-export-solidify-link-text@.
 
 solidify :: String -> String

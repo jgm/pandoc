@@ -55,7 +55,7 @@ import qualified Foreign.Lua.Module.Text as Lua
 import qualified Text.Pandoc.Definition as Pandoc
 
 -- | Run the lua interpreter, using pandoc's default way of environment
--- initalization.
+-- initialization.
 runPandocLua :: Lua a -> PandocIO (Either LuaException a)
 runPandocLua luaOp = do
   luaPkgParams <- luaPackageParams

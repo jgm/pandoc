@@ -230,7 +230,7 @@ writeDocx opts doc@(Pandoc meta _) = do
   let mbAttrMarLeft = (elAttribs <$> mbpgmar) >>= lookupAttrBy ((=="left") . qName)
   let mbAttrMarRight = (elAttribs <$> mbpgmar) >>= lookupAttrBy ((=="right") . qName)
 
-  -- Get the avaible area (converting the size and the margins to int and
+  -- Get the available area (converting the size and the margins to int and
   -- doing the difference
   let pgContentWidth = (-) <$> (read <$> mbAttrSzWidth ::Maybe Integer)
                        <*> (

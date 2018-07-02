@@ -61,7 +61,7 @@ import qualified Data.Foldable as F (Foldable, foldr)
 import Data.Maybe
 
 
--- | Aequivalent to
+-- | Equivalent to
 -- > foldr (.) id
 -- where '(.)' are 'id' are the ones from "Control.Category"
 -- and 'foldr' is the one from "Data.Foldable".
@@ -72,7 +72,7 @@ import Data.Maybe
 composition        :: (Category cat, F.Foldable f) => f (cat a a) -> cat a a
 composition        = F.foldr (<<<) Cat.id
 
--- | Aequivalent to
+-- | Equivalent to
 -- > foldr (flip (.)) id
 -- where '(.)' are 'id' are the ones from "Control.Category"
 -- and 'foldr' is the one from "Data.Foldable".

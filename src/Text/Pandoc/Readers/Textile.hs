@@ -540,7 +540,7 @@ wordChunk = try $ do
 str :: PandocMonad m => ParserT [Char] ParserState m Inlines
 str = do
   baseStr <- hyphenedWords
-  -- RedCloth compliance : if parsed word is uppercase and immediatly
+  -- RedCloth compliance : if parsed word is uppercase and immediately
   -- followed by parens, parens content is unconditionally word acronym
   fullStr <- option baseStr $ try $ do
     guard $ all isUpper baseStr

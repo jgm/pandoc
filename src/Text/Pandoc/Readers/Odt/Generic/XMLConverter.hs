@@ -261,7 +261,7 @@ convertingExtraState v a = withSubStateF setVAsExtraState modifyWithA
 -- The resulting converter even behaves like an identity converter on the
 -- value level.
 --
--- Aequivalent to
+-- Equivalent to
 --
 -- > \v x a -> convertingExtraState v (returnV x >>> a)
 --
