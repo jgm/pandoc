@@ -25,7 +25,7 @@ main = run app
 app :: Application
 app req respond = do
   let query = queryToQueryText $ queryString req
-  let getParam x = maybe (error $ T.unpack x ++ " paramater not set")
+  let getParam x = maybe (error $ T.unpack x ++ " parameter not set")
                        return $ lookup x query
   text <- getParam "text" >>= checkLength . fromMaybe T.empty
   fromFormat <- fromMaybe "" <$> getParam "from"

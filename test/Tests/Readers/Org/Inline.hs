@@ -96,7 +96,7 @@ tests =
       "[fn::Schreib mir eine E-Mail]" =?>
       para (note $ para "Schreib mir eine E-Mail")
 
-  , "Markup-chars not occuring on word break are symbols" =:
+  , "Markup-chars not occurring on word break are symbols" =:
       T.unlines [ "this+that+ +so+on"
                 , "seven*eight* nine*"
                 , "+not+funny+"

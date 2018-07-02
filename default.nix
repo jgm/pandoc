@@ -2,7 +2,7 @@
 #
 # To build pandoc run:
 #    nix-build
-# To run a nix shell with everthing needed to build pandoc with cabal:
+# To run a nix shell with everything needed to build pandoc with cabal:
 #    nix-shell
 # To build pandoc for use on Linux and macOS systems without Nix:
 #    nix-build -A patched

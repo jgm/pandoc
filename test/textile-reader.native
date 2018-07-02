@@ -2,7 +2,7 @@ Pandoc (Meta {unMeta = fromList []})
 [Para [Str "This",Space,Str "is",Space,Str "a",Space,Str "set",Space,Str "of",Space,Str "tests",Space,Str "for",Space,Str "pandoc",Space,Str "Textile",Space,Str "Reader.",Space,Str "Part",Space,Str "of",Space,Str "it",Space,Str "comes",LineBreak,Str "from",Space,Str "John",Space,Str "Gruber\8217s",Space,Str "markdown",Space,Str "test",Space,Str "suite."]
 ,HorizontalRule
 ,Header 1 ("headers",[],[]) [Str "Headers"]
-,Header 2 ("level-2-with-an-embeded-link",[],[]) [Str "Level",Space,Str "2",Space,Str "with",Space,Str "an",Space,Link ("",[],[]) [Str "embeded",Space,Str "link"] ("http://www.example.com","")]
+,Header 2 ("level-2-with-an-embedded-link",[],[]) [Str "Level",Space,Str "2",Space,Str "with",Space,Str "an",Space,Link ("",[],[]) [Str "embedded",Space,Str "link"] ("http://www.example.com","")]
 ,Header 3 ("level-3-with-emphasis",[],[]) [Str "Level",Space,Str "3",Space,Str "with",Space,Strong [Str "emphasis"]]
 ,Header 4 ("level-4",[],[]) [Str "Level",Space,Str "4"]
 ,Header 5 ("level-5",[],[]) [Str "Level",Space,Str "5"]

@@ -432,7 +432,7 @@ pandoc (2.1.3)
   * JATS writer: Remove extraneous, significant whitespace (#4335,
     Nokome Bentley).
 
-  * html2pdf: inject base tag wih current working directory (#4413, Mauro
+  * html2pdf: inject base tag with current working directory (#4413, Mauro
     Bieg).  This helps ensure that linked resources are included.
 
   * Add Semigroup instances for everything for which we defined a
@@ -580,7 +580,7 @@ pandoc (2.1.2)
   * Docx reader (Jesse Rosenthal, except where noted):
 
     + Handle nested sdt tags (#4415).
-    + Don't look up dependant run styles if `+styles` is enabled.
+    + Don't look up dependent run styles if `+styles` is enabled.
     + Move pandoc inline styling inside custom-style span.
     + Read custom styles (#1843).  This will read all paragraph and
       character classes as divs and spans, respectively. Dependent styles
@@ -2283,7 +2283,7 @@ pandoc (2.0)
 
   * Removed `hard_line_breaks` extension from `markdown_github` (#3594).
     GitHub has two Markdown modes, one for long-form documents like READMEs
-    and one for short things like issue coments. In issue comments, a line
+    and one for short things like issue comments. In issue comments, a line
     break is treated as a hard line break. In README, wikis, etc., it is
     treated as a space as in regular Markdown.  Since pandoc is more likely to
     be used to convert long-form documents from GitHub Markdown,
@@ -2636,7 +2636,7 @@ pandoc (2.0)
     top-level `Text.Pandoc` module.
 
     + Changed `StringWriter` -> `TextWriter`.
-    + `getWriter` now retuns a pair of a reader and
+    + `getWriter` now returns a pair of a reader and
       `Extensions`, instead of building the extensions into the
       reader (#3659).  The calling code must explicitly set
       `readerExtensions` using the `Extensions` returned.  The
@@ -3049,7 +3049,7 @@ pandoc (2.0)
       of item disappear or are misplaced.  Use `\texttt` instead.
     + Fix problem with escaping in `lstinline` (#1629).  Previously the
       LaTeX writer created invalid LaTeX when `--listings` was specified and
-      a code span occured inside emphasis or another construction.
+      a code span occurred inside emphasis or another construction.
     + Fix error with line breaks after empty content (#2874).  LaTeX
       requires something before a line break, so we insert a `~` if no
       printable content has yet been emitted.
@@ -3156,7 +3156,7 @@ pandoc (2.0)
 
     + Don't drop smartTag contents (#2242).
     + Handle local namespace declarations (#3365).  Previously we didn't
-      recognize math, for example, when the xmlns declaration occured on
+      recognize math, for example, when the xmlns declaration occurred on
       the element and not the root.
     + More efficient trimSps (#1530).  Replacing `trimLineBreaks`.  This
       does the work of `normalizeSpaces` as well, so we avoid the need for
@@ -3390,7 +3390,7 @@ pandoc (2.0)
     + Allow `]` inside group in option brackets (#3857).
     + lstinline with braces can be used (verb cannot be used with braces)
       (Marc Schreiber, #3535).
-    + Fix keyval funtion: pandoc did not parse options in braces correctly
+    + Fix keyval function: pandoc did not parse options in braces correctly
       (Marc Schreiber, #3642).
     + When parsing raw LaTeX commands, include trailing space (#1773).
       Otherwise things like `\noindent foo` break and turn into
@@ -3482,7 +3482,7 @@ pandoc (2.0)
       parse, the parser was applied too often, consuming too much of the
       input. This only affects `many1Till p end` where `p` matches on a
       prefix of `end`.
-    + Provide `parseFromString` (#3690).  This is a verison of
+    + Provide `parseFromString` (#3690).  This is a version of
       `parseFromString` specialied to ParserState, which resets
       `stateLastStrPos` at the end.  This is almost always what we want.
       This fixes a bug where `_hi_` wasn't treated as emphasis in the
@@ -3588,7 +3588,7 @@ pandoc (2.0)
     + Use `unicode-math` (Vaclav Haisman).  Use `mathspec` with only
       XeLaTeX on request.
     + Don't load `fontspec` before `unicode-math` (over there).
-      The `unicode-math` package loads `fontspec` so explict loading of
+      The `unicode-math` package loads `fontspec` so explicit loading of
       `fontspec` before `unicode-math` is not necessary.
     + Use `unicode-math` by default in default.latex template.  mathspec will
       be used in xelatex if the `mathspec` variable is set; otherwise
@@ -4241,7 +4241,7 @@ pandoc (1.18)
     is now used in parsing RST and Markdown line blocks, DocBook
     `linegroup`/`line` combinations, and Org-mode `VERSE` blocks.
     Previously `Para` blocks with hard linebreaks were used.  `LineBlock`s
-    are handled specially in the following ouput formats: AsciiDoc
+    are handled specially in the following output formats: AsciiDoc
     (as `[verse]` blocks), ConTeXt (`\startlines`/`\endlines`),
     HTML (`div` with a style), Markdown (line blocks if `line_blocks`
     is enabled), Org-mode (`VERSE` blocks), RST (line blocks). In
@@ -4388,7 +4388,7 @@ pandoc (1.18)
       comma-separated list.
     + Give precedence to later meta lines.  The last meta-line of any given
       type is the significant line.  Previously the value of the first line
-      was kept, even if more lines of the same type were encounterd.
+      was kept, even if more lines of the same type were encountered.
     + Read LaTeX_header as header-includes.  LaTeX-specific header commands
       can be defined in `#+LaTeX_header` lines.  They are parsed as
       format-specific inlines to ensure that they will only show up in LaTeX
@@ -4436,7 +4436,7 @@ pandoc (1.18)
       be able to figure out internal links to a header in a docx if the
       anchor span was empty. We change that to read the inlines out of the
       first anchor span in a header.
-    + Let headers use exisiting id.  Previously we always generated an id for
+    + Let headers use existing id.  Previously we always generated an id for
       headers (since they wouldn't bring one from Docx). Now we let it use an
       existing one if possible. This should allow us to recurs through anchor
       spans.
@@ -4543,7 +4543,7 @@ pandoc (1.18)
     + Don't emit HTML for tables unless `raw_html` extension is set (#3154).
       Emit `[TABLE]` if no suitable table formats are enabled and raw HTML
       is disabled.
-    + Check for the `raw_html` extension before emiting a raw HTML block.
+    + Check for the `raw_html` extension before emitting a raw HTML block.
     + Abstract out note/ref function (Jesse Rosenthal).
     + Add ReaderT monad for environment variables (Jesse Rosenthal).
 
@@ -5023,7 +5023,7 @@ pandoc (1.17.1)
       character.  Empty rows where parsed as alignment rows and dropped from
       the output.
     + Fix spacing after LaTeX-style symbols.
-      The org-reader was droping space after unescaped LaTeX-style symbol
+      The org-reader was dropping space after unescaped LaTeX-style symbol
       commands: `\ForAll \Auml` resulted in `∀Ä` but should give `∀ Ä`
       instead.  This seems to be because the LaTeX-reader treats the
       command-terminating space as part of the command.  Dropping the trailing
@@ -5117,7 +5117,7 @@ pandoc (1.17.1)
     + Clarified documentation of `implicit_header_references` (#2904).
     + Improved documentation of `--columns` option.
 
-  * Added appveyor setup, with artefacts (Jan Schulz).
+  * Added appveyor setup, with artifacts (Jan Schulz).
 
   * stack.yaml versions: Use proper flags used for texmath, pandoc-citeproc.
 
@@ -5356,7 +5356,7 @@ pandoc (1.16.0.1)
 
   * Entity handling fixes: improved handling of entities like
     `&lang;` that require a trailing semicolon.  Allow uppercase
-    `x` in numerical hexidecimal character references, working
+    `x` in numerical hexadecimal character references, working
     around a tagsoup bug.
 
   * `stack.yaml` - use lts-4.0, but with older aeson to avoid excessive
@@ -6852,7 +6852,7 @@ pandoc (1.14)
   * `Text.Pandoc.Shared`:
 
     + Make safeRead safe (#1801, Matthew Pickering).
-    + Addded `mapLeft`, `hush` (Matthew Pickering).
+    + Added `mapLeft`, `hush` (Matthew Pickering).
 
   * `Text.Pandoc.Pretty`:
 
@@ -6920,7 +6920,7 @@ pandoc (1.14)
 
     + Use `text:p` instead of `text:h` for title.
       Using `text:h` causes problems with numbering.  Closes #2059.
-      Thansk to @nkalvi for diagnosing this.
+      Thanks to @nkalvi for diagnosing this.
 
   * reveal.js template:
 
@@ -7026,7 +7026,7 @@ pandoc (1.13.2)
     + Parse RST class directives. The class directive accepts one or more
       class names, and creates a Div value with those classes.  If the
       directive has an indented body, the body is parsed as the children of
-      the Div.  If not, the first block folowing the directive is made a
+      the Div.  If not, the first block following the directive is made a
       child of the Div. This differs from the behavior of rst2xml, which
       does not create a Div element.  Instead, the specified classes are
       applied to each child of the directive.  However, most Pandoc Block
@@ -7971,7 +7971,7 @@ pandoc (1.13)
     different versions of the `directory` library.
 
   + Added `Text.Pandoc.Compat.Except` to allow building against
-    different verions of `mtl`.
+    different versions of `mtl`.
 
   * Code cleanup in some writers, using Reader monad to avoid
     passing options parameter around (Matej Kollar).
@@ -8631,7 +8631,7 @@ pandoc (1.12.2)
     + Parse contents of curly quotes or matched `"` as quotes.
     + Support `\textnormal` as span with class `nodecor`.
       This is needed for pandoc-citeproc.
-    + Improved citation parsing.  This fixes a run-time error that occured
+    + Improved citation parsing.  This fixes a run-time error that occurred
       with `\citet{}` (empty list of keys).  It also ensures that empty keys
       don't get produced.
 
@@ -8914,7 +8914,7 @@ pandoc (1.12)
     to make that the current directory before running pandoc. (#942)
 
   * Better error reporting in some readers, due to changes in `readWith`:
-    the line in which the error occured is printed, with a caret pointing
+    the line in which the error occurred is printed, with a caret pointing
     to the column.
 
   * All slide formats now support incremental slide view for definition lists.
@@ -9608,7 +9608,7 @@ pandoc (1.11)
     + Include HTML TOC, even in epub2.  The TOC is included in `<spine>`,
       but `linear` is set to `no` unless the `--toc` option is specified.
       Include `<guide>` element in OPF.  This should allow the TOC to
-      be useable in Kindles when converted with kindlegen. Closes #773.
+      be usable in Kindles when converted with kindlegen. Closes #773.
 
   * `Text.Pandoc.Parsing`: Optimized `oneOfStringsCI`.
     This dramatically reduces the speed penalty that comes from enabling the
@@ -9973,7 +9973,7 @@ pandoc (1.10)
   [API changes]
 
   * `Text.Pandoc.Definition`: Added `Attr` field to `Header`.
-    Previously header identifers were autogenerated by the writers.
+    Previously header identifiers were autogenerated by the writers.
     Now they are added in the readers (either automatically or explicitly).
 
   * `Text.Pandoc.Builder`:
@@ -10210,7 +10210,7 @@ pandoc (1.10)
       incorrectly implented RST-style autolinks for URLs and email
       addresses.  This has been fixed.  Now an autolink is done this way:
       `"$":http://myurl.com`.
-    + Fixed footnotes bug in textile.  This affected notes occuring
+    + Fixed footnotes bug in textile.  This affected notes occurring
       before punctuation, e.g. `foo[1].`.  Closes #518.
 
   * LaTeX reader:
@@ -11243,7 +11243,7 @@ pandoc (1.9)
     Items are no longer installed as root.
     Man pages are zipped and given proper permissions.
 
-  * Modified windows installer generater to use cabal-dev.
+  * Modified windows installer generator to use cabal-dev.
 
   * Setup: Making man pages now works with cabal-dev (at least on OSX). In
     Setup.hs we now invoke 'runghc' in a way that points it to the correct
@@ -12286,7 +12286,7 @@ pandoc (1.5)
       better browsers) as text/html.
     + Removed Text.Pandoc.LaTeXMathML.  The module was no longer
       necessary; it was replaced by two lines in pandoc.hs.
-    + Replaced LaTeXMathML.js.commend and LaTeXMathML.js.packed with a
+    + Replaced LaTeXMathML.js.comment and LaTeXMathML.js.packed with a
       single combined file, LaTeXMathML.js.
 
   * Added --data-dir option.
@@ -12520,7 +12520,7 @@ pandoc (1.4)
   * Replaced old headers with templates.  Now users have much more
     control over the way documents appear in --standalone mode,
     and writer code is simplified.  Resolves Issues #59, 147.
-    Every effort has been made to retain backwards compatibilty.
+    Every effort has been made to retain backwards compatibility.
     So, the --custom-header option should still work as before.
 
     + Added Text.Pandoc.Templates.  This provides functions for
@@ -13488,7 +13488,7 @@ pandoc (0.46) unstable; urgency=low
 
     + Don't interpret contents of style tags as markdown.
       (Resolves Issue #40.)
-      - Added htmlStyle, analagous to htmlScript.
+      - Added htmlStyle, analogous to htmlScript.
       - Use htmlStyle in htmlBlockElement and rawHtmlInline.
       - Moved "script" from the list of tags that can be either block or
         inline to the list of block tags.
@@ -14267,7 +14267,7 @@ pandoc (0.4) unstable; urgency=low
       notes and add information to state. (Reference keys may be needed
       at this stage.) Finally, parse everything else.
     + Replaced named constants like 'emphStart' with literals.
-    + Removed an extra occurance of escapedChar in definition of inline.
+    + Removed an extra occurrence of escapedChar in definition of inline.
 
   * RST reader:
 
@@ -14307,7 +14307,7 @@ pandoc (0.4) unstable; urgency=low
     + The Html header is now written programmatically, so it has been
       removed from the 'headers' directory. The S5 header is still
       needed, but the doctype and some of the meta declarations have
-      been removed, since they are written programatically. This change
+      been removed, since they are written programmatically. This change
       introduces a new dependency on the xhtml package.
     + Fixed two bugs in email obfuscation involving improper escaping
       of '&' in the `<noscript>` section and in `--strict` mode. Resolves
@@ -14616,7 +14616,7 @@ pandoc (0.3) unstable; urgency=low
     + win-pkg target creates Windows binary package.
     + tarball target creates distribution source tarball.
     + website target generates pandoc's website automatically, including
-      demos.  New 'web' directory containts files needed for construction
+      demos.  New 'web' directory contains files needed for construction
       of the website (which will be created as the 'pandoc' subdirectory
       of 'web').
     + Makefile checks to see if we're running Windows/Cygwin; if so,

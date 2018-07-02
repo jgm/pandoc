@@ -114,7 +114,7 @@ The return of a filter function must one of the following:
 -   a pandoc object: this must be of the same type as the input
     and will replace the original object.
 -   a list of pandoc objects: these will replace the original
-    object; the list is merged with the neighbors of the orignal
+    object; the list is merged with the neighbors of the original
     objects (spliced into the list the original object belongs
     to); returning an empty list deletes the object.
 

@@ -264,7 +264,7 @@ The library is structured as follows:
   - `Text.Pandoc.Definition` (in `pandoc-types`) defines the types
     used for representing a pandoc document.
   - `Text.Pandoc.Builder` (in `pandoc-types`) provides functions for
-    building pandoc documents programatically.
+    building pandoc documents programmatically.
   - `Text.Pandoc.Generics` (in `pandoc-types`) provides functions allowing
     you to promote functions that operate on parts of pandoc documents
     to functions that operate on whole pandoc documents, walking the

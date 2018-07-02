@@ -129,7 +129,7 @@ tests = map (localOption (QuickCheckTests 20))
   , testCase "Pandoc version is set" . runPandocLua' $ do
       Lua.getglobal' "table.concat"
       Lua.getglobal "PANDOC_VERSION"
-      Lua.push ("." :: String) -- seperator
+      Lua.push ("." :: String) -- separator
       Lua.call 2 1
       Lua.liftIO . assertEqual "pandoc version is wrong" pandocVersion
         =<< Lua.peek Lua.stackTop
