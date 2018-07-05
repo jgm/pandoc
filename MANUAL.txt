@@ -4601,8 +4601,9 @@ The following fields are recognized:
 Linked media
 ------------
 
-By default, pandoc will download linked media (including audio and
-video) and include it in the EPUB container, yielding a completely
+By default, pandoc will download media referenced from any `<img>`, `<audio>`,
+`<video>` or `<source>` element present in the generated EPUB,
+and include it in the EPUB container, yielding a completely
 self-contained EPUB.  If you want to link to external media resources
 instead, use raw HTML in your source and add `data-external="1"` to the tag
 with the `src` attribute.  For example:
