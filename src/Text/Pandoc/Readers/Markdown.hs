@@ -51,7 +51,7 @@ import Text.Pandoc.Builder (Blocks, Inlines)
 import qualified Text.Pandoc.Builder as B
 import Text.Pandoc.Class (PandocMonad (..), report)
 import Text.Pandoc.Definition
-import Text.Pandoc.Emoji (emojis)
+import Text.Pandoc.Emoji (emojiToInline)
 import Text.Pandoc.Error
 import Text.Pandoc.Logging
 import Text.Pandoc.Options
@@ -2027,9 +2027,9 @@ emoji = try $ do
   char ':'
   emojikey <- many1 (oneOf emojiChars)
   char ':'
-  case M.lookup emojikey emojis of
-       Just s  -> return (return (B.str s))
-       Nothing -> mzero
+  case emojiToInline emojikey of
+    Just i -> return (return $ B.singleton i)
+    Nothing -> mzero
 
 -- Citations
 

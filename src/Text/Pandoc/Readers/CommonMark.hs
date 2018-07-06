@@ -44,7 +44,7 @@ import Data.Text (Text, unpack)
 import Text.Pandoc.Asciify (toAsciiChar)
 import Text.Pandoc.Class (PandocMonad)
 import Text.Pandoc.Definition
-import Text.Pandoc.Emoji (emojis)
+import Text.Pandoc.Emoji (emojiToInline)
 import Text.Pandoc.Options
 import Text.Pandoc.Shared (stringify)
 import Text.Pandoc.Walk (walkM)
@@ -61,16 +61,19 @@ readCommonMark opts s = return $
                [ extTable | isEnabled Ext_pipe_tables opts ] ++
                [ extAutolink | isEnabled Ext_autolink_bare_uris opts ]
 
-convertEmojis :: String -> String
-convertEmojis (':':xs) =
+convertEmojis :: String -> [Inline]
+convertEmojis s@(':':xs) =
    case break (==':') xs of
         (ys,':':zs) ->
-           case Map.lookup ys emojis of
-                Just s  -> s ++ convertEmojis zs
-                Nothing -> ':' : ys ++ convertEmojis (':':zs)
-        _ -> ':':xs
-convertEmojis (x:xs) = x : convertEmojis xs
-convertEmojis [] = []
+           case emojiToInline ys of
+                Just em -> em : convertEmojis zs
+                Nothing -> Str (':' : ys) : convertEmojis (':':zs)
+        _ -> [Str s]
+convertEmojis s =
+  case break (==':') s of
+    ("","") -> []
+    (_,"") -> [Str s]
+    (xs,ys) -> Str xs:convertEmojis ys
 
 addHeaderIdentifiers :: ReaderOptions -> Pandoc -> Pandoc
 addHeaderIdentifiers opts doc = evalState (walkM (addHeaderId opts) doc) mempty
@@ -205,17 +208,17 @@ addInlines :: ReaderOptions -> [Node] -> [Inline]
 addInlines opts = foldr (addInline opts) []
 
 addInline :: ReaderOptions -> Node -> [Inline] -> [Inline]
-addInline opts (Node _ (TEXT t) _) = (map toinl clumps ++)
+addInline opts (Node _ (TEXT t) _) = (foldr ((++) . toinl) [] clumps ++)
   where raw = unpack t
         clumps = groupBy samekind raw
         samekind ' ' ' ' = True
         samekind ' ' _   = False
         samekind _   ' ' = False
         samekind _  _    = True
-        toinl (' ':_) = Space
-        toinl xs      = Str $ if isEnabled Ext_emoji opts
-                                 then convertEmojis xs
-                                 else xs
+        toinl (' ':_) = [Space]
+        toinl xs      = if isEnabled Ext_emoji opts
+                        then convertEmojis xs
+                        else [Str xs]
 addInline _ (Node _ LINEBREAK _) = (LineBreak :)
 addInline opts (Node _ SOFTBREAK _)
   | isEnabled Ext_hard_line_breaks opts = (LineBreak :)

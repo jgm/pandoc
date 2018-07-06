@@ -38,7 +38,7 @@ gfm tests:
 % pandoc -f gfm -t native
 My:thumbsup:emoji:heart:
 ^D
-[Para [Str "My\128077emoji\10084\65039"]]
+[Para [Str "My",Str "\128077",Str "emoji",Str "\10084\65039"]]
 ```
 
 ```
