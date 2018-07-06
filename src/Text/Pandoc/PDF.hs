@@ -285,12 +285,7 @@ runTeXProgram verbosity program args runNumber numRuns tmpDir source = do
     let file' = file
 #endif
     let programArgs = ["-halt-on-error", "-interaction", "nonstopmode",
-         "-output-directory", tmpDir'] ++
-         -- see #4484, only compress images on last run:
-         if program == "xelatex" && runNumber < numRuns
-            then ["-output-driver", "xdvipdfmx -z0"]
-            else []
-         ++ args ++ [file']
+         "-output-directory", tmpDir'] ++ args ++ [file']
     env' <- getEnvironment
     let sep = [searchPathSeparator]
     let texinputs = maybe (tmpDir' ++ sep) ((tmpDir' ++ sep) ++)
