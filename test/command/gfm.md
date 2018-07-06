@@ -38,7 +38,7 @@ gfm tests:
 % pandoc -f gfm -t native
 My:thumbsup:emoji:heart:
 ^D
-[Para [Str "My",Str "\128077",Str "emoji",Str "\10084\65039"]]
+[Para [Str "My",Span ("",["emoji"],[("data-emoji","thumbsup")]) [Str "\128077"],Str "emoji",Span ("",["emoji"],[("data-emoji","heart")]) [Str "\10084\65039"]]]
 ```
 
 ```

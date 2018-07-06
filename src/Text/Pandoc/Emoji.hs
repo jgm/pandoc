@@ -31,7 +31,7 @@ Emoji symbol lookup from canonical string identifier.
 module Text.Pandoc.Emoji ( emojis, emojiToInline ) where
 import Prelude
 import qualified Data.Map as M
-import Text.Pandoc.Definition (Inline (Str))
+import Text.Pandoc.Definition (Inline (Span, Str))
 
 emojis :: M.Map String String
 emojis = M.fromList
@@ -908,4 +908,5 @@ emojis = M.fromList
   ]
 
 emojiToInline :: String -> Maybe Inline
-emojiToInline emojikey = Str <$> M.lookup emojikey emojis
+emojiToInline emojikey = makeSpan <$> M.lookup emojikey emojis
+  where makeSpan = Span ("", ["emoji"], [("data-emoji", emojikey)]) . (:[]) . Str
