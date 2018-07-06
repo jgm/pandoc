@@ -314,7 +314,7 @@ runTeXProgram verbosity program args runNumber numRuns tmpDir source = do
       putStrLn $ "[makePDF] Run #" ++ show runNumber
       BL.hPutStr stdout out
       putStr "\n"
-    if runNumber <= numRuns
+    if runNumber < numRuns
        then runTeXProgram verbosity program args (runNumber + 1) numRuns tmpDir source
        else do
          let pdfFile = replaceDirectory (replaceExtension file ".pdf") tmpDir
