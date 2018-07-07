@@ -840,6 +840,12 @@ Options affecting specific writers
 
 :   Use `<q>` tags for quotes in HTML.
 
+`--html-emoji-class=CLASSNAME`
+
+:   Enclose emojis in `<span>` tags in HTML output. The tags will have
+    class attribute with the specified classname both as is and with
+    the name of the emoji appended.
+
 `--ascii`
 
 :   Use only ASCII characters in output.  Currently supported for

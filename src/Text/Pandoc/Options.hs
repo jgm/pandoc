@@ -180,6 +180,7 @@ data WriterOptions = WriterOptions
                                      -- and for footnote marks in markdown
   , writerCiteMethod        :: CiteMethod -- ^ How to print cites
   , writerHtmlQTags         :: Bool       -- ^ Use @<q>@ tags for quotes in HTML
+  , writerHtmlEmojiClass    :: Maybe String -- ^
   , writerSlideLevel        :: Maybe Int  -- ^ Force header level of slides
   , writerTopLevelDivision  :: TopLevelDivision -- ^ Type of top-level divisions
   , writerListings          :: Bool       -- ^ Use listings package for code
@@ -215,6 +216,7 @@ instance Default WriterOptions where
                       , writerIdentifierPrefix = ""
                       , writerCiteMethod       = Citeproc
                       , writerHtmlQTags        = False
+                      , writerHtmlEmojiClass   = Nothing
                       , writerSlideLevel       = Nothing
                       , writerTopLevelDivision = TopLevelDefault
                       , writerListings         = False
