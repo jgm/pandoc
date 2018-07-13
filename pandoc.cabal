@@ -390,9 +390,10 @@ library
                  HsYAML >= 0.1.1.1 && < 0.2
   if impl(ghc < 8.0)
     build-depends: semigroups == 0.18.*,
-                   -- basement 0.0.8 drops support for ghc 7.10
-                   -- and it is a transitive dependency:
-                   basement < 0.0.8
+                   -- basement 0.0.8 and foundation 0.0.21, transitive
+                   -- dependencies, drop support for ghc 7.10:
+                   basement < 0.0.8,
+                   foundation < 0.0.21
   if impl(ghc < 8.4)
      hs-source-dirs: prelude
      other-modules:  Prelude
