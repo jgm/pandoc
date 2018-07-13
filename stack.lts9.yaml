@@ -24,9 +24,9 @@ extra-deps:
 - hs-bibutils-6.2.0.1
 - pandoc-citeproc-0.14.3.1
 - tagsoup-0.14.6
-- pandoc-types-1.17.5
+- pandoc-types-1.17.5.1
 - haddock-library-1.6.0
-- texmath-0.11
+- texmath-0.11.0.1
 - HsYAML-0.1.1.1
 - text-1.2.3.0
 resolver: lts-9.14

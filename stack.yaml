@@ -11,12 +11,8 @@ flags:
 packages:
 - '.'
 extra-deps:
-- skylighting-0.7.2
-- skylighting-core-0.7.2
-- pandoc-types-1.17.5
-- texmath-0.11
 - haddock-library-1.6.0
 - HsYAML-0.1.1.1
 ghc-options:
    "$locals": -fhide-source-paths -XNoImplicitPrelude
-resolver: lts-11.17
+resolver: lts-12.0
