@@ -14,6 +14,7 @@ extra-deps:
 - pandoc-citeproc-0.14.3.1
 - haddock-library-1.6.0
 - HsYAML-0.1.1.1
+- network-2.7.0.2
 ghc-options:
    "$locals": -fhide-source-paths -XNoImplicitPrelude
 resolver: lts-12.0
