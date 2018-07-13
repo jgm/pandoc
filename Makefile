@@ -2,7 +2,7 @@ version?=$(shell grep '^[Vv]ersion:' pandoc.cabal | awk '{print $$2;}')
 pandoc=$(shell find dist -name pandoc -type f -exec ls -t {} \; | head -1)
 SOURCEFILES?=$(shell find pandoc.hs src test -name '*.hs')
 BRANCH?=master
-RESOLVER=lts-10
+RESOLVER=lts-12
 GHCOPTS=-fdiagnostics-color=always -Wall -fno-warn-unused-do-bind -Wincomplete-record-updates -Wnoncanonical-monad-instances -Wnoncanonical-monadfail-instances
 WEBSITE=../../web/pandoc.org
 
