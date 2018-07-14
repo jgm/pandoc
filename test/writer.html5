@@ -19,7 +19,7 @@
   <![endif]-->
 </head>
 <body>
-<header>
+<header id="document-summary-header">
 <h1 class="title">Pandoc Test Suite</h1>
 <p class="author">John MacFarlane</p>
 <p class="author">Anonymous</p>
