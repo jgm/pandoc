@@ -56,7 +56,6 @@ test_script:
       %STACK% setup > nul
       %STACK% path
       echo "" | %STACK% clean
-      echo "" | %STACK% install %STACK_BUILD_OPTS% aeson-pretty --flag=aeson-pretty:lib-only
       echo "" | %STACK% install %STACK_BUILD_OPTS% pandoc pandoc-citeproc %STACK_FLAGS%
 
 after_test:
