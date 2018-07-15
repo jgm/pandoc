@@ -1,5 +1,5 @@
 .\"t
-.TH PANDOC 1 "May 10, 2018" "pandoc 2.2.1"
+.TH PANDOC 1 "July 15, 2018" "pandoc 2.2.2"
 .SH NAME
 pandoc - general markup converter
 .SH SYNOPSIS
@@ -556,7 +556,7 @@ Reading binary files (docx, odt, epub) implies \f[C]\-\-file\-scope\f[].
 .RS
 .RE
 .TP
-.B \f[C]\-\-filter=\f[]\f[I]PROGRAM\f[]
+.B \f[C]\-F\f[] \f[I]PROGRAM\f[], \f[C]\-\-filter=\f[]\f[I]PROGRAM\f[]
 Specify an executable to be used as a filter transforming the pandoc AST
 after the input is parsed and before the output is written.
 The executable should read JSON from stdin and write JSON to stdout.
@@ -731,8 +731,8 @@ otherwise, metadata is suppressed.
 .RS
 .RE
 .TP
-.B \f[C]\-\-template=\f[]\f[I]FILE\f[]
-Use \f[I]FILE\f[] as a custom template for the generated document.
+.B \f[C]\-\-template=\f[]\f[I]FILE\f[]|\f[I]URL\f[]
+Use the specified file as a custom template for the generated document.
 Implies \f[C]\-\-standalone\f[].
 See Templates, below, for a description of template syntax.
 If no extension is specified, an extension corresponding to the writer
@@ -815,7 +815,8 @@ Include an automatically generated table of contents (or, in the case of
 \f[C]latex\f[], \f[C]context\f[], \f[C]docx\f[], \f[C]odt\f[],
 \f[C]opendocument\f[], \f[C]rst\f[], or \f[C]ms\f[], an instruction to
 create one) in the output document.
-This option has no effect on \f[C]man\f[], \f[C]docbook4\f[],
+This option has no effect unless \f[C]\-s/\-\-standalone\f[] is used,
+and it has no effect on \f[C]man\f[], \f[C]docbook4\f[],
 \f[C]docbook5\f[], or \f[C]jats\f[] output.
 .RS
 .RE
@@ -927,6 +928,8 @@ directory and the \f[C]test\f[] subdirectory, in that order.
 Set the request header \f[I]NAME\f[] to the value \f[I]VAL\f[] when
 making HTTP requests (for example, when a URL is given on the command
 line, or when resources used in a document must be downloaded).
+If you\[aq]re behind a proxy, you also need to set the environment
+variable \f[C]http_proxy\f[] to \f[C]http://...\f[].
 .RS
 .RE
 .SS Options affecting specific writers
@@ -2109,11 +2112,9 @@ any number (including zero),
 any object,
 .IP \[bu] 2
 the boolean \f[C]true\f[] (to specify the boolean \f[C]true\f[] value
-using YAML metadata or the \f[C]\-\-metadata\f[] flag, use \f[C]y\f[],
-\f[C]Y\f[], \f[C]yes\f[], \f[C]Yes\f[], \f[C]YES\f[], \f[C]true\f[],
-\f[C]True\f[], \f[C]TRUE\f[], \f[C]on\f[], \f[C]On\f[], or \f[C]ON\f[];
-with the \f[C]\-\-variable\f[] flag, simply omit a value for the
-variable, e.g.
+using YAML metadata or the \f[C]\-\-metadata\f[] flag, use
+\f[C]true\f[], \f[C]True\f[], or \f[C]TRUE\f[]; with the
+\f[C]\-\-variable\f[] flag, simply omit a value for the variable, e.g.
 \f[C]\-\-variable\ draft\f[]).
 .PP
 \f[C]X\f[] and \f[C]Y\f[] are placeholders for any valid template text,
@@ -3779,7 +3780,10 @@ any existing document metadata.
 Metadata can contain lists and objects (nested arbitrarily), but all
 string scalars will be interpreted as Markdown.
 Fields with names ending in an underscore will be ignored by pandoc.
-(They may be given a role by external processors.)
+(They may be given a role by external processors.) Field names must not
+be interpretable as YAML numbers or boolean values (so, for example,
+\f[C]yes\f[], \f[C]True\f[], and \f[C]15\f[] cannot be used as field
+names).
 .PP
 A document may contain multiple metadata blocks.
 The metadata fields will be combined through a \f[I]left\-biased
@@ -4094,8 +4098,15 @@ delimiters.
 TeX math will be printed in all output formats.
 How it is rendered depends on the output format:
 .TP
-.B Markdown, LaTeX, Emacs Org mode, ConTeXt, ZimWiki
-It will appear verbatim between \f[C]$\f[] characters.
+.B LaTeX
+It will appear verbatim surrounded by \f[C]\\(...\\)\f[] (for inline
+math) or \f[C]\\[...\\]\f[] (for display math).
+.RS
+.RE
+.TP
+.B Markdown, Emacs Org mode, ConTeXt, ZimWiki
+It will appear verbatim surrounded by \f[C]$...$\f[] (for inline math)
+or \f[C]$$...$$\f[] (for display math).
 .RS
 .RE
 .TP
@@ -5551,7 +5562,8 @@ introducing the slide:
 All of the other frame attributes described in Section 8.1 of the Beamer
 User\[aq]s Guide may also be used: \f[C]allowdisplaybreaks\f[],
 \f[C]allowframebreaks\f[], \f[C]b\f[], \f[C]c\f[], \f[C]t\f[],
-\f[C]environment\f[], \f[C]label\f[], \f[C]plain\f[], \f[C]shrink\f[].
+\f[C]environment\f[], \f[C]label\f[], \f[C]plain\f[], \f[C]shrink\f[],
+\f[C]standout\f[], \f[C]noframenumbering\f[].
 .SS Background in reveal.js
 .PP
 Background images can be added to self\-contained reveal.js slideshows.
@@ -5750,9 +5762,10 @@ iBooks\-specific metadata, with the following fields:
 .RE
 .SS Linked media
 .PP
-By default, pandoc will download linked media (including audio and
-video) and include it in the EPUB container, yielding a completely
-self\-contained EPUB.
+By default, pandoc will download media referenced from any
+\f[C]<img>\f[], \f[C]<audio>\f[], \f[C]<video>\f[] or \f[C]<source>\f[]
+element present in the generated EPUB, and include it in the EPUB
+container, yielding a completely self\-contained EPUB.
 If you want to link to external media resources instead, use raw HTML in
 your source and add \f[C]data\-external="1"\f[] to the tag with the
 \f[C]src\f[] attribute.
