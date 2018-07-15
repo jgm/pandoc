@@ -199,7 +199,9 @@ tests = [ testGroup "inline code"
           ]
         , testGroup "emoji"
           [ test markdownGH "emoji symbols" $
-            ":smile: and :+1:" =?> para (text "😄 and 👍")
+            ":smile: and :+1:" =?> para (spanWith ("", ["emoji"], [("data-emoji", "smile")]) "😄" <>
+                                         space <> str "and" <> space <>
+                                         spanWith ("", ["emoji"], [("data-emoji", "+1")]) "👍")
           ]
         , "unbalanced brackets" =:
             "[[[[[[[[[[[[hi" =?> para (text "[[[[[[[[[[[[hi")
