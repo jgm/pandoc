@@ -11,10 +11,10 @@ pandoc (2.2.2)
   * Fix regression: make `--pdf-engine` work with full paths (#4681, Mauro
     Bieg).
 
-  * CommonMark reader: Handle ascii_identifiers extension (#4742,
+  * CommonMark reader: Handle `ascii_identifiers` extension (#4742,
     Anders Waldenborg).  Non-ascii characters were not stripped from
-    identifiers even if the `ascii_identifiers` extension was enabled (which is
-    is by default for gfm).
+    identifiers even if the `ascii_identifiers` extension was
+    enabled (which is is by default for gfm).
 
   * TikiWiki reader: Improve list parsing (#4722, Mauro Bieg).
     Remove trailing Space from list items.  Parse lists that have no space
@@ -65,12 +65,12 @@ pandoc (2.2.2)
   * ODT/OpenDocument writer: Make internal links work (#4358).
     This adds proper bookmarks to the headers with non-null IDs.
 
-  * EPUB writer: Properly escape pagetitle.  Previously we weren't escaping `&`
-    and other XML characters in the pagetitle, so a title containing a `&`
-    would be invalid.
+  * EPUB writer: Properly escape pagetitle.  Previously we weren't
+    escaping `&` and other XML characters in the pagetitle, so a title
+    containing a `&` would be invalid.
 
-  * AsciiDoc Writer: Eescape square brackets at start of line (#4545, Mauro
-    Bieg).
+  * AsciiDoc Writer: Eescape square brackets at start of line (#4545,
+    Mauro Bieg).
 
   * RST writer:
 
@@ -104,8 +104,8 @@ pandoc (2.2.2)
       This will mean some increase in the time it takes to
       produce an image-heavy PDF with xelatex, but it will
       make tables of contents correct, which is more important.
-    + Fix logic error in runTeXProgram.  We were running the tex program one
-      more time than requested.  This should speed up pdf production.
+    + Fix logic error in `runTeXProgram`.  We were running the tex program
+      one more time than requested.  This should speed up PDF production.
 
   * Allow `--template` to take a URL as argument.
 
@@ -114,15 +114,15 @@ pandoc (2.2.2)
 
   * Clarify macOS install in INSTALL.md (#4661).  Make the binary package
     installer the recommended method, and note that on some older versions of
-    macOS, homebrew installs from source and takes a lot of disk space (#4664,
-    Ian).
+    macOS, homebrew installs from source and takes a lot of disk space
+    (#4664, Ian).
 
   * MANUAL:
 
     + Clarify EPUB linked media (#4756, Mauro Bieg)
     + Update manual for "true" YAML values.  Now that we're using HsYAML and
-      YAML 1.2, the valid true values are `true`, `True`, `TRUE`.  NOTE!  `y`,
-      `yes`, `on` no longer count as true values.
+      YAML 1.2, the valid true values are `true`, `True`, `TRUE`.  NOTE!
+      `y`, `yes`, `on` no longer count as true values.
     + Document `-F` as alias for `--filter` (thanks to Gandalf Saxe).
     + Update manual on how math is rendered in LaTeX.
     + Add proxy description (#4131, Mauro Bieg).
@@ -130,16 +130,16 @@ pandoc (2.2.2)
     + Update citation styles link (#4699, wiefling).
 
   * In API docs, clarify how `Ext_east_asian_line_breaks` extension works
-    (kaizshang91).  Note that it will not take effect when readers/writers are
-    called as libraries (#4674).
+    (kaizshang91).  Note that it will not take effect when readers/writers
+    are called as libraries (#4674).
 
   * Improved translations/fr (#4766, lux-lth).
 
-  * Removed inadvertently added .orig files from repository (#4648).
+  * Removed inadvertently added `.orig` files from repository (#4648).
 
   * Remove `network-uri` flag and use 'Network.Socket'.
-    This removes a compiler warning.  There is no need for the old network-uri
-    flag, since network 2.6 was released in 2014.
+    This removes a compiler warning.  There is no need for the old
+    `network-uri` flag, since network 2.6 was released in 2014.
 
   * Add stack.lts10.yaml, stack.lts11.yaml.  use lts-12 in stack.yaml.
 
