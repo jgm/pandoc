@@ -56,7 +56,7 @@ test_script:
       %STACK% setup > nul
       %STACK% path
       echo "" | %STACK% clean
-      echo "" | %STACK% install %STACK_BUILD_OPTS% pandoc pandoc-citeproc %STACK_FLAGS%
+      echo "" | %STACK% install %STACK_BUILD_OPTS% pandoc aeson-pretty %STACK_FLAGS%
 
 after_test:
     # .\ in the stack commandline seems to be .\windows\ (where the stack-appveyor.yaml is)
