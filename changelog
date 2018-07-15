@@ -42,7 +42,14 @@ pandoc (2.2.2)
     + Parse more siunitx unit commands (#4296, #4773).
     + Be more forgiving in key/value option parsing (#4761).
 
-  * Markdown reader: Allow empty code spans, e.g. `` ` ` ``.
+  * Markdown reader:
+
+    + Allow empty code spans, e.g. `` ` ` ``.
+    + Emojis are now wrapped in Spans with class `emoji` and
+      attribute `data-emoji` (Anders Waldenborg, #4743).
+      This allows the writer to handle them in a special way
+      (e.g. using a special font, or just rendering the
+      emoji name).
 
   * Muse reader (Alexander Krotov, except where indicated):
 
@@ -59,6 +66,11 @@ pandoc (2.2.2)
 
   * Markdown writer: Preserve `implicit_figures` with attributes, even if
     `implicit_attributes` is not set, by rendering in raw HTML (#4677).
+
+  * Markdown and commonmark/github writers now respect the `emoji`
+    extension.  So, `-f markdown+emoji -t markdown+emoji` now leaves
+    `:smile:` as `:smile:` rather than converting it to a smile
+    character.
 
   * Docx writer: Be sensitive to `toc` in YAML metadata (#4645).
 
@@ -97,6 +109,11 @@ pandoc (2.2.2)
 
   * Custom writer: fix error message on script failure (Albert Krewinkel).
     Error messages produced by Lua were not displayed by Pandoc.
+
+  * Text.Pandoc.Emoji now exports `emojiToInline`, which returns a Span
+    inline containing the emoji character and some attributes with metadata
+    (class `emoji`, attribute `data-emoji` with emoji name).  (API change,
+    Anders Waldenborg, #4743).
 
   * Text.Pandoc.PDF:
 
