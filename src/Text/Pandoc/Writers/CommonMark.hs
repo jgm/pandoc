@@ -304,6 +304,11 @@ inlineToNodes opts (Math mt str) =
               (node (HTML_INLINE (T.pack ("\\(" ++ str ++ "\\)"))) [] :)
             DisplayMath ->
               (node (HTML_INLINE (T.pack ("\\[" ++ str ++ "\\]"))) [] :)
+inlineToNodes opts (Span ("",["emoji"],kvs) [Str s]) = do
+  case lookup "data-emoji" kvs of
+       Just emojiname | isEnabled Ext_emoji opts ->
+            (node (TEXT (":" <> T.pack emojiname <> ":")) [] :)
+       _ -> (node (TEXT (T.pack s)) [] :)
 inlineToNodes opts (Span attr ils) =
   let nodes = inlinesToNodes opts ils
       op = tagWithAttributes opts True False "span" attr

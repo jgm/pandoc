@@ -982,6 +982,11 @@ isRight (Left  _) = False
 
 -- | Convert Pandoc inline element to markdown.
 inlineToMarkdown :: PandocMonad m => WriterOptions -> Inline -> MD m Doc
+inlineToMarkdown opts (Span ("",["emoji"],kvs) [Str s]) = do
+  case lookup "data-emoji" kvs of
+       Just emojiname | isEnabled Ext_emoji opts ->
+            return $ ":" <> text emojiname <> ":"
+       _ -> inlineToMarkdown opts (Str s)
 inlineToMarkdown opts (Span attrs ils) = do
   plain <- asks envPlain
   contents <- inlineListToMarkdown opts ils
