@@ -501,13 +501,17 @@ setpos spos (Tok _ tt txt) = Tok spos tt txt
 
 anyControlSeq :: PandocMonad m => LP m Tok
 anyControlSeq = satisfyTok isCtrlSeq
-  where isCtrlSeq (Tok _ (CtrlSeq _) _) = True
-        isCtrlSeq _                     = False
+
+isCtrlSeq :: Tok -> Bool
+isCtrlSeq (Tok _ (CtrlSeq _) _) = True
+isCtrlSeq _                     = False
 
 anySymbol :: PandocMonad m => LP m Tok
-anySymbol = satisfyTok isSym
-  where isSym (Tok _ Symbol _) = True
-        isSym _                = False
+anySymbol = satisfyTok isSymbolTok
+
+isSymbolTok :: Tok -> Bool
+isSymbolTok (Tok _ Symbol _) = True
+isSymbolTok _                = False
 
 spaces :: PandocMonad m => LP m ()
 spaces = skipMany (satisfyTok (tokTypeIn [Comment, Spaces, Newline]))
@@ -542,8 +546,10 @@ sp = whitespace <|> endline
 
 whitespace :: PandocMonad m => LP m ()
 whitespace = () <$ satisfyTok isSpaceTok
-  where isSpaceTok (Tok _ Spaces _) = True
-        isSpaceTok _                = False
+
+isSpaceTok :: Tok -> Bool
+isSpaceTok (Tok _ Spaces _) = True
+isSpaceTok _                = False
 
 newlineTok :: PandocMonad m => LP m ()
 newlineTok = () <$ satisfyTok isNewlineTok
@@ -554,8 +560,10 @@ isNewlineTok _                 = False
 
 comment :: PandocMonad m => LP m ()
 comment = () <$ satisfyTok isCommentTok
-  where isCommentTok (Tok _ Comment _) = True
-        isCommentTok _                 = False
+
+isCommentTok :: Tok -> Bool
+isCommentTok (Tok _ Comment _) = True
+isCommentTok _                 = False
 
 anyTok :: PandocMonad m => LP m Tok
 anyTok = satisfyTok (const True)
@@ -819,18 +827,25 @@ dolstinline = do
 keyval :: PandocMonad m => LP m (String, String)
 keyval = try $ do
   Tok _ Word key <- satisfyTok isWordTok
-  let isSpecSym (Tok _ Symbol t) = t /= "]" && t /= ","
-      isSpecSym _                = False
   optional sp
-  val <- option [] $ do
+  val <- option mempty $ do
            symbol '='
            optional sp
-           braced <|> many1 (satisfyTok isWordTok <|> satisfyTok isSpecSym
-                               <|> anyControlSeq)
-  optional sp
+           (untokenize <$> braced) <|>
+             (mconcat <$> many1 (
+                 (untokenize . snd <$> withRaw braced)
+                 <|>
+                 (untokenize <$> (many1
+                      (satisfyTok
+                         (\t -> case t of
+                                Tok _ Symbol "]" -> False
+                                Tok _ Symbol "," -> False
+                                Tok _ Symbol "{" -> False
+                                Tok _ Symbol "}" -> False
+                                _                -> True))))))
   optional (symbol ',')
   optional sp
-  return (T.unpack key, T.unpack . untokenize $ val)
+  return (T.unpack key, T.unpack $ T.strip val)
 
 keyvals :: PandocMonad m => LP m [(String, String)]
 keyvals = try $ symbol '[' >> manyTill keyval (symbol ']')
@@ -1644,7 +1659,15 @@ inlineCommands = M.union inlineLanguageCommands $ M.fromList
   , ("foreignlanguage", foreignlanguage)
   -- include
   , ("input", include "input")
+  -- plain tex stuff that should just be passed through as raw tex
+  , ("ifdim", ifdim)
   ]
+
+ifdim :: PandocMonad m => LP m Inlines
+ifdim = do
+  contents <- manyTill anyTok (controlSeq "fi")
+  return $ rawInline "latex" $ T.unpack $
+           "\\ifdim" <> untokenize contents <> "\\fi"
 
 makeUppercase :: Inlines -> Inlines
 makeUppercase = fromList . walk (alterStr (map toUpper)) . toList
