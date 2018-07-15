@@ -4,7 +4,7 @@ environment:
   global:
     WIXBIN: "c:\\Program Files (x86)\\WiX Toolset v3.11\\bin"
     STACK_YAML: "c:\\pandoc\\stack.yaml"
-    STACK_BUILD_OPTS: "--no-terminal -j1 --no-terminal --test --local-bin-path=.\\windows"
+    STACK_BUILD_OPTS: "--no-terminal -j1 --stack-yaml=.\\stack.lts11.yaml --no-terminal --test --local-bin-path=.\\windows"
     # see #4201, https://github.com/haskell-tools/haskell-tools/issues/277
   matrix:
   - STACK_VERSION: "windows-i386"
@@ -53,10 +53,10 @@ test_script:
   # The ugly echo "" hack is to avoid complaints about 0 being an invalid file
   # descriptor
   - |
-      %STACK% setup > nul
+      %STACK% setup --stack-yaml=.\\stack.lts11.yaml > nul
       %STACK% path
       echo "" | %STACK% clean
-      echo "" | %STACK% install %STACK_BUILD_OPTS% pandoc pandoc-citeproc %STACK_FLAGS%
+      echo "" | %STACK% install --stack-yaml=.\\stack.lts11.yaml %STACK_BUILD_OPTS% pandoc pandoc-citeproc %STACK_FLAGS%
 
 after_test:
     # .\ in the stack commandline seems to be .\windows\ (where the stack-appveyor.yaml is)
