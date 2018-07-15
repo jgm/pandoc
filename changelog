@@ -1,3 +1,158 @@
+pandoc (2.2.2)
+
+  * Use HsYAML instead of yaml for translations and YAML metadata (#4747).
+    yaml wraps a C library; HsYAML is pure Haskell.  Advances #4535.
+
+    Note: HsYAML implements YAML 1.2, in which the valid true
+    values are `true`, `True`, `TRUE`.  This means a change in
+    the semantics of YAML metadata that could affect users:
+    `y`, `yes`, and `on` no longer count as true values.
+
+  * Fix regression: make `--pdf-engine` work with full paths (#4681, Mauro
+    Bieg).
+
+  * CommonMark reader: Handle ascii_identifiers extension (#4742,
+    Anders Waldenborg).  Non-ascii characters were not stripped from
+    identifiers even if the `ascii_identifiers` extension was enabled (which is
+    is by default for gfm).
+
+  * TikiWiki reader: Improve list parsing (#4722, Mauro Bieg).
+    Remove trailing Space from list items.  Parse lists that have no space
+    after marker.
+
+  * LaTeX reader:
+
+    + Treat `lilypond` as a verbatim environment (#4725).
+    + Parse figure label into Image id (#4700, Mauro Bieg).
+    + Beamer: Allow "noframenumbering" option (#4696, Raymond Ehlers).
+    + Allow spaces around `\graphicspath` arguments (#4698).
+    + Handle includes without surrounding blanklines (#4553).
+      In addition, `\input` can now be used in an inline context,
+      e.g. to provide part of a paragraph, as it can in LaTeX.
+    + In `rawLaTeXBlock`, handle macros that resolve to a
+      `\begin` or `\end` (#4667).
+    + In `rawLaTeXBlock`, don't expand macros in macro definitions (#4653).
+      Note that this only affected LaTeX in markdown.
+    + Tighten up reading of beamer overlay specifications (#4669).
+      Ideally we'd turn these on only when reading beamer, but currently
+      beamer is not distinguished from latex as an input format.
+      This commit also activates parsing of overlay specifications
+      after commands in general (e.g. `\item`), since they can occur
+      in many contexts in beamer.
+    + Parse more siunitx unit commands (#4296, #4773).
+    + Be more forgiving in key/value option parsing (#4761).
+
+  * Markdown reader: Allow empty code spans, e.g. `` ` ` ``.
+
+  * Muse reader (Alexander Krotov, except where indicated):
+
+    + Get rid of non-exhaustive pattern match warning (Mauro Bieg).
+    + Add support for floating images.
+    + Add support for images with specified width.
+    + Parse image URLs without "guard" and "takeExtension".
+    + Split link and image parsing into separate functions.
+    + Parse links starting with "URL:" explicitly instead of trying to strip
+      "URL:" prefix after parsing.
+
+  * Texinfo writer: Use `@sup` and `@sub` instead of custom macros (#4728,
+    Alexander Krotov).
+
+  * Markdown writer: Preserve `implicit_figures` with attributes, even if
+    `implicit_attributes` is not set, by rendering in raw HTML (#4677).
+
+  * Docx writer: Be sensitive to `toc` in YAML metadata (#4645).
+
+  * ODT/OpenDocument writer: Make internal links work (#4358).
+    This adds proper bookmarks to the headers with non-null IDs.
+
+  * EPUB writer: Properly escape pagetitle.  Previously we weren't escaping `&`
+    and other XML characters in the pagetitle, so a title containing a `&`
+    would be invalid.
+
+  * AsciiDoc Writer: Eescape square brackets at start of line (#4545, Mauro
+    Bieg).
+
+  * RST writer:
+
+    + Don't treat 'example' as a syntax name (#4748).
+      This fixes conversions from org with example blocks.
+    + Support `--number-sections` via the `section-numbering`
+      directive in standalone output.
+
+  * reveal.js writer and template: reuse mathjax URL
+    provided by the argument to `--mathjax` or the normal pandoc default,
+    rather than a hard-coded one in the template (#4701).
+
+  * LaTeX writer:
+
+    + Properly handle footnotes in table captions (#4683).
+      Refactored code from figure captions to use in both places.
+    + In beamer output, fix single digit column percentage (#4690, Mauro
+      Bieg).
+
+  * FB2 writer (Alexander Krotov):
+
+    + Convert Plain to Para in annotation (#2424).
+    + Fix order of items in title-info (#2424).
+
+  * Custom writer: fix error message on script failure (Albert Krewinkel).
+    Error messages produced by Lua were not displayed by Pandoc.
+
+  * Text.Pandoc.PDF:
+
+    + Revert fix for #4484 (only compress images on last run, #4755).
+      This will mean some increase in the time it takes to
+      produce an image-heavy PDF with xelatex, but it will
+      make tables of contents correct, which is more important.
+    + Fix logic error in runTeXProgram.  We were running the tex program one
+      more time than requested.  This should speed up pdf production.
+
+  * Allow `--template` to take a URL as argument.
+
+  * Text.Pandoc.Highlighting: Add missing re-export of `breezeDark`
+    highlighting style (#4687, Adrian Sieber, API change).
+
+  * Clarify macOS install in INSTALL.md (#4661).  Make the binary package
+    installer the recommended method, and note that on some older versions of
+    macOS, homebrew installs from source and takes a lot of disk space (#4664,
+    Ian).
+
+  * MANUAL:
+
+    + Clarify EPUB linked media (#4756, Mauro Bieg)
+    + Update manual for "true" YAML values.  Now that we're using HsYAML and
+      YAML 1.2, the valid true values are `true`, `True`, `TRUE`.  NOTE!  `y`,
+      `yes`, `on` no longer count as true values.
+    + Document `-F` as alias for `--filter` (thanks to Gandalf Saxe).
+    + Update manual on how math is rendered in LaTeX.
+    + Add proxy description (#4131, Mauro Bieg).
+    + Clarify that `--toc` requires `--standalone` (#4703).
+    + Update citation styles link (#4699, wiefling).
+
+  * In API docs, clarify how `Ext_east_asian_line_breaks` extension works
+    (kaizshang91).  Note that it will not take effect when readers/writers are
+    called as libraries (#4674).
+
+  * Improved translations/fr (#4766, lux-lth).
+
+  * Removed inadvertently added .orig files from repository (#4648).
+
+  * Remove `network-uri` flag and use 'Network.Socket'.
+    This removes a compiler warning.  There is no need for the old network-uri
+    flag, since network 2.6 was released in 2014.
+
+  * Add stack.lts10.yaml, stack.lts11.yaml.  use lts-12 in stack.yaml.
+
+  * Bump upper bounds for dependent packages.
+
+  * Exclude foundation 0.0.21 for ghc 7.10.  Otherwise cabal gets
+    confused because of the way ghc 7.10 is excluded in foundation's
+    cabal file.  This can be removed when haskell-foundation/foundation#500
+    is fixed.
+
+  * Require cabal-version >= 2.0.  This is needed for haddock-library.
+
+
 pandoc (2.2.1)
 
   * Restored and undeprecated gladtex for HTML math (#4607).
