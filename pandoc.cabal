@@ -1,6 +1,6 @@
 name:            pandoc
 version:         2.2.2
-cabal-version:   >= 2.0
+cabal-version:   2.0
 build-type:      Custom
 license:         GPL-2
 license-file:    COPYING.md
@@ -543,7 +543,7 @@ library
                    Text.Pandoc.Translations,
                    Text.Pandoc.Slides,
                    Paths_pandoc
-
+  autogen-modules: Paths_pandoc
   buildable:       True
 
 executable pandoc
