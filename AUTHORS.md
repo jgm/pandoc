@@ -11,6 +11,7 @@
 - Alexander Sulfrian
 - Alexander V Vershilov
 - Alfred Wechselberger
+- Anders Waldenborg
 - Andreas Lööw
 - Andrew Dunning
 - Antoine Latter
@@ -148,6 +149,7 @@
 - Puneeth Chaganti
 - Ralf Stephan
 - Raniere Silva
+- Raymond Ehlers
 - Recai Oktaş
 - Roland Hieber
 - RyanGlScott
@@ -189,6 +191,8 @@
 - d-dorazio
 - iandol
 - infinity0x
+- kaizshang91
+- lux-lth
 - lwolfsonkin
 - nkalvi
 - oltolm
@@ -202,3 +206,4 @@
 - takahashim
 - tgkokk
 - thsutton
+- wiefling
