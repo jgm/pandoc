@@ -287,7 +287,7 @@ rawLaTeXBlock = do
   lookAhead (try (char '\\' >> letter))
   snd <$> (rawLaTeXParser False macroDef blocks
       <|> rawLaTeXParser True
-           (environment <|> macroDef <|> blockCommand)
+           (environment <|> blockCommand)
            (mconcat <$> (many (block <|> beginOrEndCommand))))
 
 -- See #4667 for motivation; sometimes people write macros
