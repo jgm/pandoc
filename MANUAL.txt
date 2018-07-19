@@ -3082,7 +3082,7 @@ when the field contains blank lines or block-level formatting:
     author:
     - Author One
     - Author Two
-    tags: [nothing, nothingness]
+    keywords: [nothing, nothingness]
     abstract: |
       This is the abstract.
 
