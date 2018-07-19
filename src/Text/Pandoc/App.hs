@@ -417,6 +417,7 @@ convertWithOpts opts = do
           , writerSectionDivs      = optSectionDivs opts
           , writerExtensions       = writerExts
           , writerReferenceLinks   = optReferenceLinks opts
+          , writerListTables       = optListTables opts
           , writerReferenceLocation = optReferenceLocation opts
           , writerDpi              = optDpi opts
           , writerWrapText         = optWrapText opts
@@ -581,6 +582,7 @@ data Opt = Opt
     , optLogFile               :: Maybe FilePath -- ^ File to write JSON log output
     , optFailIfWarnings        :: Bool    -- ^ Fail on warnings
     , optReferenceLinks        :: Bool    -- ^ Use reference links in writing markdown, rst
+    , optListTables            :: Bool    -- ^ Use list tables in writing rst
     , optReferenceLocation     :: ReferenceLocation -- ^ location for footnotes and link references in markdown output
     , optDpi                   :: Int     -- ^ Dpi
     , optWrapText              :: WrapOption  -- ^ Options for wrapping text
@@ -653,6 +655,7 @@ defaultOpts = Opt
     , optLogFile               = Nothing
     , optFailIfWarnings        = False
     , optReferenceLinks        = False
+    , optListTables            = False
     , optReferenceLocation     = EndOfDocument
     , optDpi                   = 96
     , optWrapText              = WrapAuto
@@ -1159,7 +1162,12 @@ options =
     , Option "" ["reference-links"]
                  (NoArg
                   (\opt -> return opt { optReferenceLinks = True } ))
-                 "" -- "Use reference links in parsing HTML"
+                 "" -- "Use reference links in writing markdown, rST"
+
+    , Option "" ["list-tables"]
+                 (NoArg
+                  (\opt -> return opt { optListTables = True } ))
+                 "" -- "Use list tables in writing rST"
 
     , Option "" ["reference-location"]
                  (ReqArg

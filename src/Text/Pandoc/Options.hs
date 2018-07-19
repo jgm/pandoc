@@ -30,7 +30,9 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
    Portability : portable
 
 Data structures and functions for representing parser and writer
-options.
+options. In Text.Pandoc.App, these get filled in with values from the
+@Opt@ options parsed from the command line
+
 -}
 module Text.Pandoc.Options ( module Text.Pandoc.Extensions
                            , ReaderOptions(..)
@@ -172,6 +174,7 @@ data WriterOptions = WriterOptions
   , writerSectionDivs       :: Bool   -- ^ Put sections in div tags in HTML
   , writerExtensions        :: Extensions -- ^ Markdown extensions that can be used
   , writerReferenceLinks    :: Bool   -- ^ Use reference links in writing markdown, rst
+  , writerListTables        :: Bool   -- ^ Use list tables in writing rst
   , writerDpi               :: Int    -- ^ Dpi for pixel to/from inch/cm conversions
   , writerWrapText          :: WrapOption  -- ^ Option for wrapping text
   , writerColumns           :: Int    -- ^ Characters in a line (for text wrapping)
@@ -208,6 +211,7 @@ instance Default WriterOptions where
                       , writerSectionDivs      = False
                       , writerExtensions       = emptyExtensions
                       , writerReferenceLinks   = False
+                      , writerListTables       = False
                       , writerDpi              = 96
                       , writerWrapText         = WrapAuto
                       , writerColumns          = 72

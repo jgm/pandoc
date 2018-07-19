@@ -35,7 +35,7 @@ module Text.Pandoc.Writers.RST ( writeRST, flatten ) where
 import Prelude
 import Control.Monad.State.Strict
 import Data.Char (isSpace, toLower)
-import Data.List (isPrefixOf, stripPrefix)
+import Data.List (isPrefixOf, stripPrefix, intercalate)
 import Data.Maybe (fromMaybe)
 import Data.Text (Text, stripEnd)
 import qualified Text.Pandoc.Builder as B
@@ -282,21 +282,11 @@ blockToRST (BlockQuote blocks) = do
   contents <- blockListToRST blocks
   return $ nest 3 contents <> blankline
 blockToRST (Table caption aligns widths headers rows) = do
-  caption' <- inlineListToRST caption
-  let blocksToDoc opts bs = do
-         oldOpts <- gets stOptions
-         modify $ \st -> st{ stOptions = opts }
-         result <- blockListToRST bs
-         modify $ \st -> st{ stOptions = oldOpts }
-         return result
   opts <- gets stOptions
-  tbl <- gridTable opts blocksToDoc (all null headers)
-            (map (const AlignDefault) aligns) widths
-            headers rows
-  return $ if null caption
-              then tbl $$ blankline
-              else (".. table:: " <> caption') $$ blankline $$ nest 3 tbl $$
-                   blankline
+  (tableToRST opts) caption aligns widths headers rows
+  where tableToRST opts = if writerListTables opts
+                          then tableToRSTList
+                          else tableToRSTGrid
 blockToRST (BulletList items) = do
   contents <- mapM bulletListItemToRST items
   -- ensure that sublists have preceding blank line
@@ -316,6 +306,106 @@ blockToRST (DefinitionList items) = do
   contents <- mapM definitionListItemToRST items
   -- ensure that sublists have preceding blank line
   return $ blankline $$ chomp (vcat contents) $$ blankline
+
+tableToRSTGrid :: PandocMonad m
+                  => [Inline]
+                  -> [Alignment]
+                  -> [Double]
+                  -> [TableCell]
+                  -> [[TableCell]]
+                  -> RST m Doc
+tableToRSTGrid caption aligns widths headers rows = do
+  caption' <- inlineListToRST caption
+  let blocksToDoc opts bs = do
+         oldOpts <- gets stOptions
+         modify $ \st -> st{ stOptions = opts }
+         result <- blockListToRST bs
+         modify $ \st -> st{ stOptions = oldOpts }
+         return result
+  opts <- gets stOptions
+  tbl <- gridTable opts blocksToDoc (all null headers)
+            (map (const AlignDefault) aligns) widths
+            headers rows
+  return $ if null caption
+              then tbl $$ blankline
+              else (".. table:: " <> caption') $$ blankline $$ nest 3 tbl $$
+                   blankline
+
+{-
+
+http://docutils.sourceforge.net/docs/ref/rst/restructuredtext.html#directives
+ 
+According to the terminology used in the spec a marker includes a
+final whitespace and a block includes the directive arguments. Here
+the variable names have slightly different meanings because we don't
+want to finish the line with a space if there are no arguments, it
+would produce rST that differs from what users expect in a way that's
+not easy to detect
+
+-}
+toRSTDirective :: Doc -> Doc -> [(Doc, Doc)] -> Doc -> Doc
+toRSTDirective typ args options content = marker <> spaceArgs <> cr <> block
+  where marker = ".. " <> typ <> "::"
+        block = nest 3 (fieldList $$
+                        blankline $$
+                        content $$
+                        blankline)
+        spaceArgs = if isEmpty args then "" else " " <> args
+        -- a field list could end up being an empty doc thus being
+        -- omitted by $$
+        fieldList = foldl ($$) "" $ map joinField options
+        -- a field body can contain multiple lines
+        joinField (name, body) = ":" <> name <> ": " <> body
+
+tableToRSTList :: PandocMonad m
+             => [Inline]
+             -> [Alignment]
+             -> [Double]
+             -> [TableCell]
+             -> [[TableCell]]
+             -> RST m Doc
+tableToRSTList caption _ propWidths headers rows = do
+  captionRST <- inlineListToRST caption
+  opts <- gets stOptions
+  content <- listTableContent toWrite
+  pure $ toRSTDirective "list-table" captionRST (directiveOptions opts) content
+  where directiveOptions opts = widths (writerColumns opts) propWidths <>
+                                headerRows
+        toWrite = if noHeaders then rows else headers:rows
+        headerRows = if noHeaders
+                     then []
+                     else [("header-rows", text $ show (1 :: Int))]
+        widths tot pro = if (null propWidths) || (all (==0.0) propWidths)
+                 then []
+                 else [("widths", showWidths tot pro)]
+        noHeaders = all null headers
+        -- >>> showWidths 70 [0.5, 0.5]
+        -- "35 35"
+        showWidths :: Int -> [Double] -> Doc
+        showWidths tot = text . intercalate " " . map (show . toColumns tot)
+        -- toColumns converts a width expressed as a proportion of the
+        -- total into a width expressed as a number of columns
+        toColumns :: Int -> Double -> Int
+        toColumns t p = round (p * fromIntegral t)
+        listTableContent :: PandocMonad m => [[[Block]]] -> RST m Doc
+        listTableContent = joinTable joinDocsM joinDocsM .
+                           mapTable blockListToRST
+        -- joinDocsM adapts joinDocs in order to work in the `RST m` monad
+        joinDocsM :: PandocMonad m => [RST m Doc] -> RST m Doc
+        joinDocsM = fmap joinDocs . sequence
+        -- joinDocs will be used to join cells and to join rows
+        joinDocs :: [Doc] -> Doc
+        joinDocs items = blankline $$
+                         (chomp . vcat . map formatItem) items $$
+                         blankline
+        formatItem :: Doc -> Doc
+        formatItem i = hang 3 "- " (i <> cr)
+        -- apply a function to all table cells changing their type
+        mapTable :: (a -> b) -> [[a]] -> [[b]]
+        mapTable = map . map
+        -- function hor to join cells and function ver to join rows
+        joinTable :: ([a] -> a) -> ([a] -> a) -> [[a]] -> a
+        joinTable hor ver = ver . map hor
 
 -- | Convert bullet list item (list of blocks) to RST.
 bulletListItemToRST :: PandocMonad m => [Block] -> RST m Doc
