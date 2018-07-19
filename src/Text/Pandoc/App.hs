@@ -83,7 +83,6 @@ import System.Exit (exitSuccess)
 import System.FilePath
 import System.IO (nativeNewline, stdout)
 import qualified System.IO as IO (Newline (..))
-import System.IO.Error (isDoesNotExistError)
 import Text.Pandoc
 import Text.Pandoc.BCP47 (Lang (..), parseBCP47)
 import Text.Pandoc.Builder (setMeta, deleteMeta)
@@ -383,8 +382,7 @@ convertWithOpts opts = do
                             ((fst <$> fetchItem tp') `catchError`
                              (\e ->
                                  case e of
-                                      PandocIOError _ e' |
-                                        isDoesNotExistError e' ->
+                                      PandocResourceNotFound _ ->
                                          readDataFile ("templates" </> tp')
                                       _ -> throwError e))
 
