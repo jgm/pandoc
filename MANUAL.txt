@@ -225,9 +225,8 @@ General options
     - `epub` ([EPUB])
     - `fb2` ([FictionBook2] e-book)
     - `gfm` ([GitHub-Flavored Markdown]),
-      or `markdown_github`, which provides deprecated and less accurate
-      support for Github-Flavored Markdown; please use `gfm` instead,
-      unless you need to use extensions other than `smart`.
+      or the deprecated and less accurate `markdown_github`;
+      use `gfm` unless you need extensions other than `smart`.
     - `haddock` ([Haddock markup])
     - `html` ([HTML])
     - `jats` ([JATS] XML)
@@ -274,9 +273,8 @@ General options
     - `epub2` (EPUB v2)
     - `fb2` ([FictionBook2] e-book)
     - `gfm` ([GitHub-Flavored Markdown]),
-      or `markdown_github`, which provides deprecated and less accurate
-      support for Github-Flavored Markdown; please use `gfm` instead,
-      unless you use extensions that do not work with `gfm`.
+      or the deprecated and less accurate `markdown_github`;
+      use `gfm` unless you need extensions other than `smart`.
     - `haddock` ([Haddock markup])
     - `html` or `html5` ([HTML], i.e. [HTML5]/XHTML [polyglot markup])
     - `html4` ([XHTML] 1.0 Transitional)
