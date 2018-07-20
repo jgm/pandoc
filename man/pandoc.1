@@ -1,5 +1,5 @@
 .\"t
-.TH PANDOC 1 "July 15, 2018" "pandoc 2.2.2"
+.TH PANDOC 1 "July 19, 2018" "pandoc 2.2.2.1"
 .SH NAME
 pandoc - general markup converter
 .SH SYNOPSIS
@@ -231,10 +231,9 @@ Specify input format.
 .IP \[bu] 2
 \f[C]fb2\f[] (FictionBook2 e\-book)
 .IP \[bu] 2
-\f[C]gfm\f[] (GitHub\-Flavored Markdown), or \f[C]markdown_github\f[],
-which provides deprecated and less accurate support for Github\-Flavored
-Markdown; please use \f[C]gfm\f[] instead, unless you need to use
-extensions other than \f[C]smart\f[].
+\f[C]gfm\f[] (GitHub\-Flavored Markdown), or the deprecated and less
+accurate \f[C]markdown_github\f[]; use \f[C]markdown_github\f[] only if
+you need extensions not supported in \f[C]gfm\f[].
 .IP \[bu] 2
 \f[C]haddock\f[] (Haddock markup)
 .IP \[bu] 2
@@ -312,10 +311,9 @@ Specify output format.
 .IP \[bu] 2
 \f[C]fb2\f[] (FictionBook2 e\-book)
 .IP \[bu] 2
-\f[C]gfm\f[] (GitHub\-Flavored Markdown), or \f[C]markdown_github\f[],
-which provides deprecated and less accurate support for Github\-Flavored
-Markdown; please use \f[C]gfm\f[] instead, unless you use extensions
-that do not work with \f[C]gfm\f[].
+\f[C]gfm\f[] (GitHub\-Flavored Markdown), or the deprecated and less
+accurate \f[C]markdown_github\f[]; use \f[C]markdown_github\f[] only if
+you need extensions not supported in \f[C]gfm\f[].
 .IP \[bu] 2
 \f[C]haddock\f[] (Haddock markup)
 .IP \[bu] 2
@@ -3810,7 +3808,7 @@ title:\ \ \[aq]This\ is\ the\ title:\ it\ contains\ a\ colon\[aq]
 author:
 \-\ Author\ One
 \-\ Author\ Two
-tags:\ [nothing,\ nothingness]
+keywords:\ [nothing,\ nothingness]
 abstract:\ |
 \ \ This\ is\ the\ abstract.
 
@@ -5241,7 +5239,7 @@ Also, \f[C]raw_tex\f[] only affects \f[C]gfm\f[] output, not input.
 .TP
 .B \f[C]gfm\f[] (GitHub\-Flavored Markdown)
 \f[C]pipe_tables\f[], \f[C]raw_html\f[], \f[C]fenced_code_blocks\f[],
-\f[C]auto_identifiers\f[], \f[C]ascii_identifiers\f[],
+\f[C]gfm_auto_identifiers\f[], \f[C]ascii_identifiers\f[],
 \f[C]backtick_code_blocks\f[], \f[C]autolink_bare_uris\f[],
 \f[C]intraword_underscores\f[], \f[C]strikeout\f[],
 \f[C]hard_line_breaks\f[], \f[C]emoji\f[],

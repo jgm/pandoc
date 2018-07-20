@@ -72,6 +72,7 @@
 - Henrik Tramberend
 - Henry de Valence
 - Hubert Plociniczak
+- Igor Khorlo
 - Ilya V. Portnov
 - Ivo Clarysse
 - J. Lewis Muir

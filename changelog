@@ -1,3 +1,25 @@
+pandoc (2.2.2.1)
+
+  * Fix regression finding templates in user data directory (#4777).
+    Under version 2.2.1 and prior pandoc found latex templates in the
+    templates directory under the data directory, but this broke in 2.2.2.
+
+  * Fix for bug in parsing `\input` in `rawLaTeXBlock` and
+    `rawLaTeXInline` (#4781). (This primarily affects the markdown
+    reader, and other readers that accept raw tex.)
+    Starting in 2.2.2, everything after an `\input` (or `\include`)
+    in a markdown file would be parsed as raw LaTeX.
+
+  * MANUAL:
+
+    + Clarify `gfm` vs `markdown_github` (#4783, Mauro Bieg).
+    * Use `keywords` instead of `tags` in YAML metadata example (#4779).
+      Unlike `tags`, `keywords` is used in some of the writers
+      and default templates.
+
+  * Add missing `rollingLinks` option to revealjs template (#4778,
+    Igor Khorlo).
+
 pandoc (2.2.2)
 
   * Use HsYAML instead of yaml for translations and YAML metadata (#4747).
