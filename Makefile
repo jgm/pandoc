@@ -70,6 +70,8 @@ pandoc-$(version)-windows-%.msi: pandoc-windows-%.msi
 	osslsigncode sign -pkcs12 ~/Private/ComodoCodeSigning.exp2019.p12 -in $< -i http://johnmacfarlane.net/ -t http://timestamp.comodoca.com/ -out $@ -askpass
 	rm $<
 
+.INTERMEDIATE: pandoc-windows-i386.msi pandoc-windows-x86_64.msi
+
 pandoc-windows-i386.msi:
 	JOBID=$(shell curl 'https://ci.appveyor.com/api/projects/jgm/pandoc' | jq -r '.build.jobs[0].jobId') && \
 	wget "https://ci.appveyor.com/api/buildjobs/$$JOBID/artifacts/windows%2F$@" -O $@
