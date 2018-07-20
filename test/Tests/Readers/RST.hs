@@ -188,4 +188,12 @@ tests = [ "line block with blank line" =:
             ] =?>
               para ("foo" <> note (para "bar"))
           ]
+        , testGroup "inlines"
+          [ "links can contain an URI without being parsed twice" =:
+            "`http://loc <http://loc>`__" =?>
+            para (link "http://loc" "" "http://loc")
+          , "inline markup cannot be nested" =:
+            "**a*b*c**" =?>
+            para (strong "a*b*c")
+          ]
         ]
