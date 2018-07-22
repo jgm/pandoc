@@ -45,6 +45,7 @@ import Data.Maybe (fromMaybe, isJust)
 import Data.Sequence (ViewR (..), viewr)
 import Data.Text (Text)
 import qualified Data.Text as T
+import Text.Pandoc.Walk (walk)
 import Text.Pandoc.Builder (Blocks, Inlines, fromList, setMeta, trimInlines)
 import qualified Text.Pandoc.Builder as B
 import Text.Pandoc.Class (PandocMonad, fetchItem, readFileFromDirs)
@@ -1479,7 +1480,7 @@ explicitLink :: PandocMonad m => RSTParser m Inlines
 explicitLink = try $ do
   char '`'
   notFollowedBy (char '`') -- `` marks start of inline code
-  label' <- trimInlines . mconcat <$>
+  label' <- removeLinks . trimInlines . mconcat <$>
              manyTill (notFollowedBy (char '`') >> inline) (char '<')
   src <- trim <$> manyTill (noneOf ">\n") (char '>')
   skipSpaces
@@ -1493,6 +1494,12 @@ explicitLink = try $ do
                           '_':xs -> lookupKey [] (toKey (reverse xs))
                           _      -> return ((src, ""), nullAttr)
   return $ B.linkWith attr (escapeURI src') tit label''
+
+removeLinks :: B.Inlines -> B.Inlines
+removeLinks = B.fromList . walk (concatMap go) . B.toList
+  where go :: Inline -> [Inline]
+        go (Link _ lab _) = lab
+        go x              = [x]
 
 citationName :: PandocMonad m => RSTParser m String
 citationName = do
