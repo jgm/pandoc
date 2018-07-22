@@ -155,9 +155,10 @@ the LaTeX engine requires [`fontspec`].  `xelatex` uses
 `xelatex` will use [`mathspec`] instead of [`unicode-math`].
 The [`upquote`] and [`microtype`] packages are used if
 available, and [`csquotes`] will be used for [typography]
-if added to the template or included in any header file. The
-[`natbib`], [`biblatex`], [`bibtex`], and [`biber`] packages can
-optionally be used for [citation rendering].
+if `\usepackage{csquotes}` is present in the template or
+included via `/H/--include-in-header`.  The [`natbib`],
+[`biblatex`], [`bibtex`], and [`biber`] packages can optionally
+be used for [citation rendering].
 
 [`amsfonts`]: https://ctan.org/pkg/amsfonts
 [`amsmath`]: https://ctan.org/pkg/amsmath
