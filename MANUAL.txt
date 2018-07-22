@@ -1917,7 +1917,7 @@ input formats
 :  `latex`, `org`, `textile`
 
 output formats
-:  `textile`
+:  `textile`, `commonmark`
 
 #### [Extension: `native_divs`] {#native_divs}
 
