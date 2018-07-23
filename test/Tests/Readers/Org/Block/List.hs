@@ -243,4 +243,15 @@ tests =
       mconcat [ para "CLOSED: [2015-10-19 Mon 15:03]"
               , bulletList [ plain "Note taken on [2015-10-19 Mon 13:24]" ]
               ]
+
+  , "Markup after header and list" =:
+      T.unlines [ "* headline"
+                , "- list"
+                , ""
+                , "~variable name~"
+                ] =?>
+      mconcat [ headerWith ("headline", [], []) 1 "headline"
+              , bulletList [ plain "list" ]
+              , para (code "variable name")
+              ]
   ]
