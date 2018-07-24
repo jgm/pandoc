@@ -313,6 +313,7 @@ tableCellToMediaWiki headless rownum (alignment, width, bs) = do
   let sep = case bs of
                  [Plain _] -> " "
                  [Para  _] -> " "
+                 []        -> ""
                  _         -> "\n"
   return $ marker ++ attr ++ sep ++ trimr contents
 
