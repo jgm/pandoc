@@ -1,7 +1,6 @@
 # USE ALPINE LINUX
 FROM alpine
 RUN apk update
-RUN apk update
 RUN apk add alpine-sdk git ca-certificates ghc gmp-dev zlib-dev bash dpkg fakeroot
 # GRAB A RECENT BINARY OF STACK
 # Note that 1.6.5 is the last one with a static binary...
