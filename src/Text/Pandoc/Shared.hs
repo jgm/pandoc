@@ -94,6 +94,8 @@ module Text.Pandoc.Shared (
                      -- * for squashing blocks
                      blocksToInlines,
                      blocksToInlines',
+                     blocksToInlinesWithSep,
+                     defaultBlocksSeparator,
                      -- * Safe read
                      safeRead,
                      -- * Temp directory
@@ -757,11 +759,18 @@ blocksToInlinesWithSep sep =
   mconcat . intersperse sep . map blockToInlines
 
 blocksToInlines' :: [Block] -> Inlines
-blocksToInlines' = blocksToInlinesWithSep parSep
-  where parSep = B.space <> B.str "¶" <> B.space
+blocksToInlines' = blocksToInlinesWithSep defaultBlocksSeparator
 
 blocksToInlines :: [Block] -> [Inline]
 blocksToInlines = B.toList . blocksToInlines'
+
+-- | Inline elements used to separate blocks when squashing blocks into
+-- inlines.
+defaultBlocksSeparator :: Inlines
+defaultBlocksSeparator =
+  -- This is used in the pandoc.utils.blocks_to_inlines function. Docs
+  -- there should be updated if this is changed.
+  B.space <> B.str "¶" <> B.space
 
 
 --

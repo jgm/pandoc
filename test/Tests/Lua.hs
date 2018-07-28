@@ -109,7 +109,8 @@ tests = map (localOption (QuickCheckTests 20))
     assertFilterConversion "pandoc.utils doesn't work as expected."
       "test-pandoc-utils.lua"
       (doc $ para "doesn't matter")
-      (doc $ mconcat [ plain (str "hierarchicalize: OK")
+      (doc $ mconcat [ plain (str "blocks_to_inlines: OK")
+                     , plain (str "hierarchicalize: OK")
                      , plain (str "normalize_date: OK")
                      , plain (str "pipe: OK")
                      , plain (str "failing pipe: OK")
