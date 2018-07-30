@@ -42,6 +42,7 @@ import Text.Pandoc.Lua.Util (addFunction, popValue)
 import qualified Data.Digest.Pure.SHA as SHA
 import qualified Data.ByteString.Lazy as BSL
 import qualified Foreign.Lua as Lua
+import qualified Text.Pandoc.Builder as B
 import qualified Text.Pandoc.Filter.JSON as JSONFilter
 import qualified Text.Pandoc.Shared as Shared
 
@@ -49,6 +50,7 @@ import qualified Text.Pandoc.Shared as Shared
 pushModule :: Maybe FilePath -> Lua NumResults
 pushModule mbDatadir = do
   Lua.newtable
+  addFunction "blocks_to_inlines" blocksToInlines
   addFunction "hierarchicalize" hierarchicalize
   addFunction "normalize_date" normalizeDate
   addFunction "run_json_filter" (runJSONFilter mbDatadir)
@@ -56,6 +58,14 @@ pushModule mbDatadir = do
   addFunction "stringify" stringify
   addFunction "to_roman_numeral" toRomanNumeral
   return 1
+
+-- | Squashes a list of blocks into inlines.
+blocksToInlines :: [Block] -> Lua.Optional [Inline] -> Lua [Inline]
+blocksToInlines blks optSep = do
+  let sep = case Lua.fromOptional optSep of
+              Just x -> B.fromList x
+              Nothing -> Shared.defaultBlocksSeparator
+  return $ B.toList (Shared.blocksToInlinesWithSep sep blks)
 
 -- | Convert list of Pandoc blocks into (hierarchical) list of Elements.
 hierarchicalize :: [Block] -> Lua [Shared.Element]

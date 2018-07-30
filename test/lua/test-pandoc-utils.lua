@@ -1,5 +1,19 @@
 utils = require 'pandoc.utils'
 
+-- Squash blocks to inlines
+------------------------------------------------------------------------
+function test_blocks_to_inlines ()
+  local blocks = {
+    pandoc.Para{ pandoc.Str 'Paragraph1' },
+    pandoc.Para{ pandoc.Emph 'Paragraph2' }
+  }
+  local inlines = utils.blocks_to_inlines(blocks, {pandoc.LineBreak()})
+  return #inlines == 3
+    and inlines[1].text == "Paragraph1"
+    and inlines[2].t == 'LineBreak'
+    and inlines[3].content[1].text == "Paragraph2"
+end
+
 -- hierarchicalize
 ------------------------------------------------------------------------
 function test_hierarchicalize ()
@@ -110,6 +124,7 @@ end
 
 function Para (el)
   return {
+    pandoc.Plain{pandoc.Str("blocks_to_inlines: " .. run(test_blocks_to_inlines))},
     pandoc.Plain{pandoc.Str("hierarchicalize: " .. run(test_hierarchicalize))},
     pandoc.Plain{pandoc.Str("normalize_date: " .. run(test_normalize_date))},
     pandoc.Plain{pandoc.Str("pipe: " .. run(test_pipe))},

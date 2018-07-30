@@ -1438,6 +1438,37 @@ Lua functions for pandoc scripts.
 This module exposes internal pandoc functions and utility
 functions.
 
+[`blocks_to_inlines (blocks[, sep])`]{#utils-blocks_to_inlines}
+
+:   Squash a list of blocks into a list of inlines.
+
+    Parameters:
+
+    `blocks`:
+    :   List of blocks to be flattened.
+
+    `sep`:
+    :   List of inlines inserted as separator between two
+        consecutive blocks; defaults to `{ pandoc.Space(),
+        pandoc.Str'¶', pandoc.Space()}`.
+
+    Returns:
+
+    -   ({[Inline][#Inline]}) List of inlines
+
+    Usage:
+
+        local blocks = {
+          pandoc.Para{ pandoc.Str 'Paragraph1' },
+          pandoc.Para{ pandoc.Emph 'Paragraph2' }
+        }
+        local inlines = pandoc.utils.blocks_to_inlines(blocks)
+        -- inlines = {
+        --   pandoc.Str 'Paragraph1',
+        --   pandoc.Space(), pandoc.Str'¶', pandoc.Space(),
+        --   pandoc.Emph{ pandoc.Str 'Paragraph2' }
+        -- }
+
 [`hierarchicalize (blocks)`]{#utils-hierarchicalize}
 
 :   Convert list of blocks into an hierarchical list. An
