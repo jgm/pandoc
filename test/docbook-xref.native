@@ -1,4 +1,4 @@
-Pandoc (Meta {unMeta = fromList []})
+Pandoc (Meta {unMeta = fromList [("title",MetaInlines [Str "An",Space,Str "Example",Space,Str "Book"])]})
 [Header 1 ("ch01",[],[]) [Str "XRef",Space,Str "Samples"]
 ,Para [Str "This",Space,Str "paragraph",Space,Str "demonstrates",Space,Str "several",Space,Str "features",Space,Str "of",SoftBreak,Str "XRef."]
 ,BulletList
