@@ -4449,26 +4449,30 @@ the [Beamer User's Guide] may also be used: `allowdisplaybreaks`,
 `allowframebreaks`, `b`, `c`, `t`, `environment`, `label`, `plain`,
 `shrink`, `standout`, `noframenumbering`.
 
-Background in reveal.js
------------------------
+Background in reveal.js and beamer
+----------------------------------
 
-Background images can be added to self-contained reveal.js slideshows.
+Background images can be added to self-contained reveal.js slideshows and 
+to beamer slideshows.
 
-For the same image on every slide, use the reveal.js configuration
-option `parallaxBackgroundImage` either in the YAML metadata block
-or as a command-line variable. You can also set
-`parallaxBackgroundHorizontal` and `parallaxBackgroundVertical` the same
-way and must also set `parallaxBackgroundSize` to have your values
-take effect.
+For the same image on every slide, use the  configuration
+option `background-image` either in the YAML metadata block
+or as a command-line variable. (There are no other options in
+beamer and the rest of this section concerns reveal.js slideshows.)
 
-To set an image for a particular slide, add
+For reveal.js, you can instead use the reveal.js-native option 
+`parallaxBackgroundImage`. You can also set `parallaxBackgroundHorizontal` 
+and `parallaxBackgroundVertical` the same way and must also set 
+`parallaxBackgroundSize` to have your values take effect.
+
+To set an image for a particular reveal.js slide, add
 `{data-background-image="/path/to/image"}`
 to the first slide-level header on the slide (which may even be empty).
 
 In reveal.js's overview mode, the parallaxBackgroundImage will show up
 only on the first slide.
 
-Other background settings also work on individual slides, including
+Other reavel.js background settings also work on individual slides, including
 `data-background-size`, `data-background-repeat`, `data-background-color`,
 `data-transition`, and `data-transition-speed`.
 
@@ -4476,7 +4480,7 @@ See the [reveal.js
 documentation](https://github.com/hakimel/reveal.js#slide-backgrounds)
 for more details.
 
-For example:
+For example in reveal.js:
 
 ```
 ---
