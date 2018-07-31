@@ -82,14 +82,11 @@ pandocToRST (Pandoc meta blocks) = do
                     else Nothing
   let render' :: Doc -> Text
       render' = render colwidth
-  let subtit = case lookupMeta "subtitle" meta of
-                    Just (MetaBlocks [Plain xs]) -> xs
-                    _                            -> []
-  title <- titleToRST (docTitle meta) subtit
+  title <- titleToRST $ docTitle meta
   metadata <- metaToJSON opts
                 (fmap render' . blockListToRST)
                 (fmap (stripEnd . render') . inlineListToRST)
-                $ B.deleteMeta "title" $ B.deleteMeta "subtitle" meta
+                $ B.deleteMeta "title" meta
   body <- blockListToRST' True $ case writerTemplate opts of
                                       Just _  -> normalizeHeadings 1 blocks
                                       Nothing -> blocks
@@ -190,12 +187,11 @@ escapeString = escapeString' True
                      _            -> '.':escapeString' False opts cs
          _ -> c : escapeString' False opts cs
 
-titleToRST :: PandocMonad m => [Inline] -> [Inline] -> RST m Doc
-titleToRST [] _ = return empty
-titleToRST tit subtit = do
+titleToRST :: PandocMonad m => [Inline] -> RST m Doc
+titleToRST [] = return empty
+titleToRST tit = do
   title <- inlineListToRST tit
-  subtitle <- inlineListToRST subtit
-  return $ bordered title '=' $$ bordered subtitle '-'
+  return $ bordered title '='
 
 bordered :: Doc -> Char -> Doc
 bordered contents c =
