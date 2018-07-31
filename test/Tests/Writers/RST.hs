@@ -155,5 +155,8 @@ tests = [ testGroup "rubrics"
               , ""
               , "Header 2"
               , "--------"]
+          , test (purely (writeRST def{ writerTemplate = Just "$subtitle$\n" }) . toPandoc)
+            "subtitle" $ (setMeta "subtitle" ("subtitle" :: Inlines) $ doc $ plain "") =?>
+            ("subtitle" :: String)
           ]
         ]
