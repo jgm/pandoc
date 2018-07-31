@@ -242,7 +242,7 @@ yamlMetaBlock = try $ do
   -- by including --- and ..., we allow yaml blocks with just comments:
   let rawYaml = unlines ("---" : (rawYamlLines ++ ["..."]))
   optional blanklines
-  case YAML.decodeStrict (UTF8.fromString rawYaml) of
+  case YAML.decode (UTF8.fromStringLazy rawYaml) of
        Right (YAML.Mapping _ hashmap : _) -> do
          let alist = M.toList hashmap
          mapM_ (\(key, v) ->
