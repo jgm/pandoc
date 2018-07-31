@@ -4472,7 +4472,7 @@ to the first slide-level header on the slide (which may even be empty).
 In reveal.js's overview mode, the parallaxBackgroundImage will show up
 only on the first slide.
 
-Other reavel.js background settings also work on individual slides, including
+Other reveal.js background settings also work on individual slides, including
 `data-background-size`, `data-background-repeat`, `data-background-color`,
 `data-transition`, and `data-transition-speed`.
 
