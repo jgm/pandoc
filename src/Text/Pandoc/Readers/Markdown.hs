@@ -230,7 +230,6 @@ pandocTitleBlock = try $ do
                    $ nullMeta
   updateState $ \st -> st{ stateMeta' = stateMeta' st <> meta' }
 
-
 yamlMetaBlock :: PandocMonad m => MarkdownParser m (F Blocks)
 yamlMetaBlock = try $ do
   guardEnabled Ext_yaml_metadata_block
@@ -242,29 +241,31 @@ yamlMetaBlock = try $ do
   -- by including --- and ..., we allow yaml blocks with just comments:
   let rawYaml = unlines ("---" : (rawYamlLines ++ ["..."]))
   optional blanklines
-  case YAML.decode (UTF8.fromStringLazy rawYaml) of
-       Right (YAML.Mapping _ hashmap : _) -> do
+  case YAML.decodeNode' YAML.failsafeSchemaResolver False False
+               (UTF8.fromStringLazy rawYaml) of
+       Right [YAML.Doc (YAML.Mapping _ hashmap)] -> do
          let alist = M.toList hashmap
          mapM_ (\(key, v) ->
-           case YAML.parseEither (YAML.parseYAML key) of
-                Left e  -> fail e
-                Right k -> do
-                  if ignorable k
-                     then return ()
-                     else do
-                       v' <- yamlToMeta v
-                       let k' = T.unpack k
-                       updateState $ \st -> st{ stateMeta' =
-                          do m <- stateMeta' st
-                             -- if there's already a value, leave it unchanged
-                             case lookupMeta k' m of
-                                  Just _ -> return m
-                                  Nothing -> do
-                                    v'' <- v'
-                                    return $ B.setMeta (T.unpack k) v'' m}
-           ) alist
+           case key of
+                (YAML.Scalar (YAML.SStr t))       -> handleKey t v
+                (YAML.Scalar (YAML.SUnknown _ t)) -> handleKey t v
+                _                -> fail "Non-string key in YAML mapping") alist
+           where handleKey k v =
+                    if ignorable k
+                       then return ()
+                       else do
+                         v' <- yamlToMeta v
+                         let k' = T.unpack k
+                         updateState $ \st -> st{ stateMeta' =
+                            do m <- stateMeta' st
+                               -- if there's already a value, leave it unchanged
+                               case lookupMeta k' m of
+                                    Just _ -> return m
+                                    Nothing -> do
+                                      v'' <- v'
+                                      return $ B.setMeta (T.unpack k) v'' m}
        Right [] -> return ()
-       Right (YAML.Scalar YAML.SNull:_) -> return ()
+       Right [YAML.Doc (YAML.Scalar YAML.SNull)] -> return ()
        Right _ -> do
                   logMessage $
                      CouldNotParseYamlMetadata "not an object"
@@ -303,11 +304,12 @@ yamlToMeta :: PandocMonad m
            => YAML.Node -> MarkdownParser m (F MetaValue)
 yamlToMeta (YAML.Scalar x) =
   case x of
-       YAML.SStr t   -> toMetaValue t
-       YAML.SBool b  -> return $ return $ MetaBool b
-       YAML.SFloat d -> return $ return $ MetaString (show d)
-       YAML.SInt i   -> return $ return $ MetaString (show i)
-       _             -> return $ return $ MetaString ""
+       YAML.SStr t       -> toMetaValue t
+       YAML.SBool b      -> return $ return $ MetaBool b
+       YAML.SFloat d     -> return $ return $ MetaString (show d)
+       YAML.SInt i       -> return $ return $ MetaString (show i)
+       YAML.SUnknown _ t -> toMetaValue t
+       YAML.SNull        -> return $ return $ MetaString ""
 yamlToMeta (YAML.Sequence _ xs) = do
   xs' <- mapM yamlToMeta xs
   return $ do
