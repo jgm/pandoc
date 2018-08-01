@@ -83,13 +83,14 @@ pandocToRST (Pandoc meta blocks) = do
   let render' :: Doc -> Text
       render' = render colwidth
   let subtit = case lookupMeta "subtitle" meta of
-                    Just (MetaBlocks [Plain xs]) -> xs
-                    _                            -> []
+                    Just (MetaBlocks [Plain xs])  -> xs
+                    Just (MetaInlines xs)         -> xs
+                    _                             -> []
   title <- titleToRST (docTitle meta) subtit
   metadata <- metaToJSON opts
                 (fmap render' . blockListToRST)
                 (fmap (stripEnd . render') . inlineListToRST)
-                $ B.deleteMeta "title" $ B.deleteMeta "subtitle" meta
+                meta
   body <- blockListToRST' True $ case writerTemplate opts of
                                       Just _  -> normalizeHeadings 1 blocks
                                       Nothing -> blocks
@@ -105,7 +106,7 @@ pandocToRST (Pandoc meta blocks) = do
               $ defField "toc-depth" (show $ writerTOCDepth opts)
               $ defField "number-sections" (writerNumberSections opts)
               $ defField "math" hasMath
-              $ defField "title" (render Nothing title :: String)
+              $ defField "titleblock" (render Nothing title :: String)
               $ defField "math" hasMath
               $ defField "rawtex" rawTeX metadata
   case writerTemplate opts of

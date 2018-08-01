@@ -16,6 +16,11 @@ infix 4 =:
      => String -> (a, String) -> TestTree
 (=:) = test (purely (writeRST def . toPandoc))
 
+testTemplate :: (ToString a, ToString c, ToPandoc a) =>
+                String -> String -> (a, c) -> TestTree
+testTemplate t =
+  test (purely (writeRST def{ writerTemplate = Just t }) . toPandoc)
+
 tests :: [TestTree]
 tests = [ testGroup "rubrics"
           [ "in list item" =:
@@ -156,4 +161,7 @@ tests = [ testGroup "rubrics"
               , "Header 2"
               , "--------"]
           ]
+        , testTemplate "$subtitle$\n" "subtitle" $
+          (setMeta "subtitle" ("subtitle" :: Inlines) $ doc $ plain "") =?>
+          ("subtitle" :: String)
         ]
