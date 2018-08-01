@@ -334,5 +334,5 @@ To run just the markdown benchmarks:
 [openSUSE]: https://software.opensuse.org/package/pandoc
 [source tarball]: http://hackage.haskell.org/package/pandoc
 [stack]: http://docs.haskellstack.org/en/stable/install_and_upgrade.html
-[cabal-install]: http://hackage.haskell.org/trac/hackage/wiki/CabalInstall
+[cabal-install]: http://hackage.haskell.org/package/cabal-install
 [uninstaller]: https://raw.githubusercontent.com/jgm/pandoc/master/macos/uninstall-pandoc.pl
