@@ -472,6 +472,8 @@ flatten outer
           -- them and they will be readable and parsable
           (Quoted _ _, _)          -> keep f i
           (_, Quoted _ _)          -> keep f i
+          -- inlineToRST handles this case properly so it's safe to keep
+          (Link _ _ _, Image _ _ _) -> keep f i
           -- parent inlines would prevent links from being correctly
           -- parsed, in this case we prioritise the content over the
           -- style
