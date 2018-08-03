@@ -142,6 +142,13 @@ engines = map ("html",) htmlEngines ++
 pdfEngines :: [String]
 pdfEngines = ordNub $ map snd engines
 
+pdfIsNoWriterErrorMsg :: String
+pdfIsNoWriterErrorMsg =
+  "To create a pdf using pandoc, use " ++
+  "-t latex|beamer|context|ms|html5" ++
+  "\nand specify an output file with " ++
+  ".pdf extension (-o filename.pdf)."
+
 pdfWriterAndProg :: Maybe String              -- ^ user-specified writer name
                  -> Maybe String              -- ^ user-specified pdf-engine
                  -> IO (String, Maybe String) -- ^ IO (writerName, maybePdfEngineProg)
@@ -165,6 +172,7 @@ pdfWriterAndProg mWriter mEngine = do
                                  []      -> Left $
                                    "pdf-engine " ++ eng ++ " not known"
 
+      engineForWriter "pdf" = Left pdfIsNoWriterErrorMsg
       engineForWriter w = case [e |  (f,e) <- engines, f == baseWriterName w] of
                                 eng : _ -> Right eng
                                 []      -> Left $
@@ -233,11 +241,7 @@ convertWithOpts opts = do
                else case getWriter (map toLower writerName) of
                          Left e  -> E.throwIO $ PandocAppError $
                            if format == "pdf"
-                              then e ++
-                               "\nTo create a pdf using pandoc, use " ++
-                               "-t latex|beamer|context|ms|html5" ++
-                               "\nand specify an output file with " ++
-                               ".pdf extension (-o filename.pdf)."
+                              then e ++ "\n" ++ pdfIsNoWriterErrorMsg
                               else e
                          Right (w, es) -> return (w :: Writer PandocIO, es)
 
