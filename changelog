@@ -2610,6 +2610,11 @@ pandoc (2.0)
       (since the two-space version of a line break doesn't work inside ATX
       headers, and neither version works inside Setext headers).
 
+    + A space between the opening # and the header is now required for
+      pandoc and GitHub markdown (but not the other flavors). Disable
+      the `space_in_atx_header` extension (#3512) to restore the
+      original behavior.
+
 
   * Org reader (Albert Krewinkel, unless noted):
 
