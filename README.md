@@ -38,9 +38,9 @@ library. It can convert *from*
     e-book)
   - `gfm` ([GitHub-Flavored
     Markdown](https://help.github.com/articles/github-flavored-markdown/)),
-    or `markdown_github`, which provides deprecated and less accurate
-    support for Github-Flavored Markdown; please use `gfm` instead,
-    unless you need to use extensions other than `smart`.
+    or the deprecated and less accurate `markdown_github`; use
+    [`markdown_github`](#markdown-variants) only if you need extensions
+    not supported in [`gfm`](#markdown-variants).
   - `haddock` ([Haddock
     markup](https://www.haskell.org/haddock/doc/html/ch03s08.html))
   - `html` ([HTML](http://www.w3.org/html/))
@@ -92,9 +92,9 @@ It can convert *to*
     e-book)
   - `gfm` ([GitHub-Flavored
     Markdown](https://help.github.com/articles/github-flavored-markdown/)),
-    or `markdown_github`, which provides deprecated and less accurate
-    support for Github-Flavored Markdown; please use `gfm` instead,
-    unless you use extensions that do not work with `gfm`.
+    or the deprecated and less accurate `markdown_github`; use
+    [`markdown_github`](#markdown-variants) only if you need extensions
+    not supported in [`gfm`](#markdown-variants).
   - `haddock` ([Haddock
     markup](https://www.haskell.org/haddock/doc/html/ch03s08.html))
   - `html` or `html5` ([HTML](http://www.w3.org/html/), i.e.
