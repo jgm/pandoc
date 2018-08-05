@@ -37,7 +37,7 @@ import Control.Arrow (second)
 import Control.Monad (forM_, guard, liftM, mplus, mzero, when)
 import Control.Monad.Except (throwError)
 import Control.Monad.Identity (Identity (..))
-import Data.Char (isHexDigit, isSpace, toLower, toUpper)
+import Data.Char (isHexDigit, isSpace, toLower, toUpper, isAlphaNum)
 import Data.List (deleteFirstsBy, elemIndex, intercalate, isInfixOf, isSuffixOf,
                   nub, sort, transpose, union)
 import qualified Data.Map as M
@@ -1385,7 +1385,6 @@ strong = B.strong . trimInlines . mconcat <$>
 --
 -- TODO:
 --  - Classes are silently discarded in addNewRole
---  - Lacks sensible implementation for title-reference (which is the default)
 --  - Allows direct use of the :raw: role, rST only allows inherited use.
 interpretedRole :: PandocMonad m => RSTParser m Inlines
 interpretedRole = try $ do
@@ -1395,12 +1394,12 @@ interpretedRole = try $ do
 renderRole :: PandocMonad m
            => String -> Maybe String -> String -> Attr -> RSTParser m Inlines
 renderRole contents fmt role attr = case role of
-    "sup"  -> return $ B.superscript $ B.str contents
-    "superscript" -> return $ B.superscript $ B.str contents
-    "sub"  -> return $ B.subscript $ B.str contents
-    "subscript"  -> return $ B.subscript $ B.str contents
-    "emphasis" -> return $ B.emph $ B.str contents
-    "strong" -> return $ B.strong $ B.str contents
+    "sup"  -> return $ B.superscript $ treatAsText contents
+    "superscript" -> return $ B.superscript $ treatAsText contents
+    "sub"  -> return $ B.subscript $ treatAsText contents
+    "subscript"  -> return $ B.subscript $ treatAsText contents
+    "emphasis" -> return $ B.emph $ treatAsText contents
+    "strong" -> return $ B.strong $ treatAsText contents
     "rfc-reference" -> return $ rfcLink contents
     "RFC" -> return $ rfcLink contents
     "pep-reference" -> return $ pepLink contents
@@ -1411,7 +1410,7 @@ renderRole contents fmt role attr = case role of
     "title" -> titleRef contents
     "t" -> titleRef contents
     "code" -> return $ B.codeWith (addClass "sourceCode" attr) contents
-    "span" -> return $ B.spanWith attr $ B.str contents
+    "span" -> return $ B.spanWith attr $ treatAsText contents
     "raw" -> return $ B.rawInline (fromMaybe "" fmt) contents
     custom -> do
         customRoles <- stateRstCustomRoles <$> getState
@@ -1419,14 +1418,20 @@ renderRole contents fmt role attr = case role of
             Just (newRole, newFmt, newAttr) ->
                 renderRole contents newFmt newRole newAttr
             Nothing -> -- undefined role
-                return $ B.spanWith ("",[],[("role",role)]) (B.str contents)
+                return $ B.codeWith ("",["interpreted-text"],[("role",role)])
+                          contents
  where
-   titleRef ref = return $ B.str ref -- FIXME: Not a sensible behaviour
+   titleRef ref = return $ B.spanWith ("",["title-ref"],[]) $ treatAsText ref
    rfcLink rfcNo = B.link rfcUrl ("RFC " ++ rfcNo) $ B.str ("RFC " ++ rfcNo)
      where rfcUrl = "http://www.faqs.org/rfcs/rfc" ++ rfcNo ++ ".html"
    pepLink pepNo = B.link pepUrl ("PEP " ++ pepNo) $ B.str ("PEP " ++ pepNo)
      where padNo = replicate (4 - length pepNo) '0' ++ pepNo
            pepUrl = "http://www.python.org/dev/peps/pep-" ++ padNo ++ "/"
+   treatAsText = B.text . handleEscapes
+   handleEscapes [] = []
+   handleEscapes ('\\':' ':cs) = handleEscapes cs
+   handleEscapes ('\\':c:cs) = c : handleEscapes cs
+   handleEscapes (c:cs) = c : handleEscapes cs
 
 addClass :: String -> Attr -> Attr
 addClass c (ident, classes, keyValues) = (ident, classes `union` [c], keyValues)
@@ -1450,7 +1455,18 @@ roleAfter = try $ do
   return (role,contents)
 
 unmarkedInterpretedText :: PandocMonad m => RSTParser m [Char]
-unmarkedInterpretedText = enclosed (atStart $ char '`') (char '`') anyChar
+unmarkedInterpretedText = try $ do
+  atStart (char '`')
+  contents <- mconcat <$> (many1
+       (  many1 (noneOf "`\\\n")
+      <|> (char '\\' >> ((\c -> ['\\',c]) <$> noneOf "\n"))
+      <|> (string "\n" <* notFollowedBy blankline)
+      <|> try (string "`" <*
+                notFollowedBy (() <$ roleMarker) <*
+                lookAhead (satisfy isAlphaNum))
+       ))
+  char '`'
+  return contents
 
 whitespace :: PandocMonad m => RSTParser m Inlines
 whitespace = B.space <$ skipMany1 spaceChar <?> "whitespace"
