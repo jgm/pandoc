@@ -1,3 +1,89 @@
+pandoc (2.2.3)
+
+  * RST reader: improve parsing of inline interpreted text roles (#4811).
+
+    + Use a Span with class "title-reference" for the default
+      title-reference role.
+    + Use `B.text` to split up contents into `Space`s, `SoftBreak`s,
+      and `Str`s for `title-reference`.
+    + Use Code with class "interpreted-text" instead of Span and Str for
+      unknown roles.  (The RST writer has also been modified to round-trip
+      this properly.)
+    + Disallow blank lines in interpreted text.
+    + Backslash-escape now works in interpreted text.
+    + Backticks followed by alphanumerics no longer end interpreted text.
+    + Remove support for nested inlines (Francesco Occhipinti).
+      RST does not allow nested emphasis, links, or other inline
+      constructs.  This fixes several bugs (#4581, #4561, #4792).
+
+  * Org reader: fix parsers relying on `parseFromString` (#4784, Albert
+    Krewinkel).  Emphasis was not parsed when it followed directly after
+    some block types (e.g., lists).
+
+  * Markdown reader: Allow unquoted numbers and booleans as YAML mapping
+    keys.  Previously in 2.2.2 you could not do
+    ```
+    ---
+    0: bar
+    ...
+    ```
+    but only
+    ```
+    ---
+    '0': bar
+    ...
+    ```
+    With this change, both forms work.
+
+  * DocBook reader: metadata handling improvements.
+    Now we properly parse title and subtitle elements that are direct
+    children of book and article (as well as children of bookinfo,
+    articleinfo, or info).  We also now use the `subtitle` metadata
+    field for subtitles, rather than tacking the subtitle on to the
+    title.
+
+  * RST writer:
+
+    + Allow images to be directly nested within links (#4810, Francesco
+      Occhipinti).
+    + Use `titleblock` instead of `title` variable for title block (#4803,
+      Francesco Occhipinti).  `titleblock` contains a properly formatted
+      title and subtitle (using top-level headers).  `title` and
+      `subtitle` variables are still available and just contain the
+      title and subtitle text.  Note that this change will require an
+      update to custom rst templates.
+    + Render Code with class "interpreted-text" as interpreted text role.
+
+  * MediaWiki writer: Avoid extra blank line in tables with empty cells
+    (#4794).  Note that the old output is semantically identical, but the
+    new output looks better.
+
+  * Lua Utils module: add function `blocks_to_inlines` (#4799, Albert
+    Krewinkel).  Exposes a function converting which flattenes a list of
+    blocks into a list of inlines. An example use case would be the
+    conversion of Note elements into other inlines.
+
+  * RST template:  use `titleblock` instead of `title`.  Users of
+    custom RST templates will want to update this.
+
+  * LaTeX template: Moved some beamer code in default.latex template.
+    This change allows beamer themes to change the template and font (as
+    Metropolis does) (#4450).
+
+  * Better error message on `-t pdf -o out.pdf` (#1155, Mauro Bieg).
+
+  * Added test case for #4669 to repository.
+
+  * INSTALL.md: Fix broken link for cabal-install (#4806, ChanHoHo).
+
+  * MANUAL.txt:
+
+    + Add beamer info for slide backgrounds (#4802, John Muccigrosso).
+    + Clarify when `csquotes` is used in LaTeX writer (#4514).
+    + Add `commonmark` to list of output formats where `raw_tex` has an
+      effect (see #4527).
+
+
 pandoc (2.2.2.1)
 
   * Fix regression finding templates in user data directory (#4777).

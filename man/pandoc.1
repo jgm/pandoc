@@ -1,5 +1,5 @@
 .\"t
-.TH PANDOC 1 "July 19, 2018" "pandoc 2.2.2.1"
+.TH PANDOC 1 "August 5, 2018" "pandoc 2.2.3"
 .SH NAME
 pandoc - general markup converter
 .SH SYNOPSIS
@@ -187,8 +187,9 @@ requires \f[C]fontspec\f[].
 If the \f[C]mathspec\f[] variable is set, \f[C]xelatex\f[] will use
 \f[C]mathspec\f[] instead of \f[C]unicode\-math\f[].
 The \f[C]upquote\f[] and \f[C]microtype\f[] packages are used if
-available, and \f[C]csquotes\f[] will be used for typography if added to
-the template or included in any header file.
+available, and \f[C]csquotes\f[] will be used for typography if
+\f[C]\\usepackage{csquotes}\f[] is present in the template or included
+via \f[C]/H/\-\-include\-in\-header\f[].
 The \f[C]natbib\f[], \f[C]biblatex\f[], \f[C]bibtex\f[], and
 \f[C]biber\f[] packages can optionally be used for citation rendering.
 .SS Reading from the Web
@@ -2364,7 +2365,7 @@ addition to \f[C]markdown\f[]):
 .RE
 .TP
 .B output formats
-\f[C]textile\f[]
+\f[C]textile\f[], \f[C]commonmark\f[]
 .RS
 .RE
 .SS Extension: \f[C]native_divs\f[]
@@ -5562,32 +5563,38 @@ User\[aq]s Guide may also be used: \f[C]allowdisplaybreaks\f[],
 \f[C]allowframebreaks\f[], \f[C]b\f[], \f[C]c\f[], \f[C]t\f[],
 \f[C]environment\f[], \f[C]label\f[], \f[C]plain\f[], \f[C]shrink\f[],
 \f[C]standout\f[], \f[C]noframenumbering\f[].
-.SS Background in reveal.js
+.SS Background in reveal.js and beamer
 .PP
-Background images can be added to self\-contained reveal.js slideshows.
+Background images can be added to self\-contained reveal.js slideshows
+and to beamer slideshows.
 .PP
-For the same image on every slide, use the reveal.js configuration
-option \f[C]parallaxBackgroundImage\f[] either in the YAML metadata
-block or as a command\-line variable.
+For the same image on every slide, use the configuration option
+\f[C]background\-image\f[] either in the YAML metadata block or as a
+command\-line variable.
+(There are no other options in beamer and the rest of this section
+concerns reveal.js slideshows.)
+.PP
+For reveal.js, you can instead use the reveal.js\-native option
+\f[C]parallaxBackgroundImage\f[].
 You can also set \f[C]parallaxBackgroundHorizontal\f[] and
 \f[C]parallaxBackgroundVertical\f[] the same way and must also set
 \f[C]parallaxBackgroundSize\f[] to have your values take effect.
 .PP
-To set an image for a particular slide, add
+To set an image for a particular reveal.js slide, add
 \f[C]{data\-background\-image="/path/to/image"}\f[] to the first
 slide\-level header on the slide (which may even be empty).
 .PP
 In reveal.js\[aq]s overview mode, the parallaxBackgroundImage will show
 up only on the first slide.
 .PP
-Other background settings also work on individual slides, including
-\f[C]data\-background\-size\f[], \f[C]data\-background\-repeat\f[],
-\f[C]data\-background\-color\f[], \f[C]data\-transition\f[], and
-\f[C]data\-transition\-speed\f[].
+Other reveal.js background settings also work on individual slides,
+including \f[C]data\-background\-size\f[],
+\f[C]data\-background\-repeat\f[], \f[C]data\-background\-color\f[],
+\f[C]data\-transition\f[], and \f[C]data\-transition\-speed\f[].
 .PP
 See the reveal.js documentation for more details.
 .PP
-For example:
+For example in reveal.js:
 .IP
 .nf
 \f[C]
