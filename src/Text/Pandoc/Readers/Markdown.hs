@@ -243,14 +243,9 @@ yamlMetaBlock = try $ do
   optional blanklines
   case YAML.decodeNode' YAML.failsafeSchemaResolver False False
                (UTF8.fromStringLazy rawYaml) of
-       Right [YAML.Doc (YAML.Mapping _ hashmap)] -> do
-         let alist = M.toList hashmap
-         mapM_ (\(key, v) ->
-           case key of
-                (YAML.Scalar (YAML.SStr t))       -> handleKey t v
-                (YAML.Scalar (YAML.SUnknown _ t)) -> handleKey t v
-                _                -> fail "Non-string key in YAML mapping") alist
-           where handleKey k v =
+       Right [YAML.Doc (YAML.Mapping _ hashmap)] ->
+         mapM_ (\(key, v) -> do
+                    k <- nodeToKey key
                     if ignorable k
                        then return ()
                        else do
@@ -263,7 +258,8 @@ yamlMetaBlock = try $ do
                                     Just _ -> return m
                                     Nothing -> do
                                       v'' <- v'
-                                      return $ B.setMeta (T.unpack k) v'' m}
+                                      return $ B.setMeta (T.unpack k) v'' m})
+               (M.toList hashmap)
        Right [] -> return ()
        Right [YAML.Doc (YAML.Scalar YAML.SNull)] -> return ()
        Right _ -> do
@@ -276,6 +272,11 @@ yamlMetaBlock = try $ do
                                  err' pos
                     return ()
   return mempty
+
+nodeToKey :: Monad m => YAML.Node -> m Text
+nodeToKey (YAML.Scalar (YAML.SStr t))       = return t
+nodeToKey (YAML.Scalar (YAML.SUnknown _ t)) = return t
+nodeToKey _                                 = fail "Non-string key in YAML mapping"
 
 -- ignore fields ending with _
 ignorable :: Text -> Bool
@@ -315,22 +316,19 @@ yamlToMeta (YAML.Sequence _ xs) = do
   return $ do
     xs'' <- sequence xs'
     return $ B.toMetaValue xs''
-yamlToMeta (YAML.Mapping _ o) = do
-  let alist = M.toList o
-  foldM (\m (key, v) ->
-     case YAML.parseEither (YAML.parseYAML key) of
-          Left e  -> fail e
-          Right k -> do
-           if ignorable k
-              then return m
-              else do
-                v' <- yamlToMeta v
-                return $ do
-                   MetaMap m' <- m
-                   v'' <- v'
-                   return (MetaMap $ M.insert (T.unpack k) v'' m'))
+yamlToMeta (YAML.Mapping _ o) =
+  foldM (\m (key, v) -> do
+          k <- nodeToKey key
+          if ignorable k
+             then return m
+             else do
+               v' <- yamlToMeta v
+               return $ do
+                  MetaMap m' <- m
+                  v'' <- v'
+                  return (MetaMap $ M.insert (T.unpack k) v'' m'))
         (return $ MetaMap M.empty)
-        alist
+        (M.toList o)
 yamlToMeta _ = return $ return $ MetaString ""
 
 stopLine :: PandocMonad m => MarkdownParser m ()
