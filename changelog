@@ -1,3 +1,13 @@
+pandoc (2.2.3.2)
+
+  * Markdown reader: Properly handle boolean values in YAML metadata (#4819).
+    This fixes a regression in 2.2.3, which cause boolean values to
+    be parsed as MetaInlines instead of MetaBool.
+
+    We here record another undocumented (but desirable) change in 2.2.3:
+    numerical metadata fields are now parsed as MetaInlines rather than
+    MetaString.
+
 pandoc (2.2.3.1)
 
   * Markdown reader: Fix parsing of embedded mappings in YAML metadata
