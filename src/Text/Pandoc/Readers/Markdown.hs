@@ -301,6 +301,14 @@ toMetaValue x =
         -- not end in a newline, but a "block" set off with
         -- `|` or `>` will.
 
+checkBoolean :: Text -> Maybe Bool
+checkBoolean t =
+  if t == T.pack "true" || t == T.pack "True" || t == T.pack "TRUE"
+     then Just True
+     else if t == T.pack "false" || t == T.pack "False" || t == T.pack "FALSE"
+             then Just False
+             else Nothing
+
 yamlToMeta :: PandocMonad m
            => YAML.Node -> MarkdownParser m (F MetaValue)
 yamlToMeta (YAML.Scalar x) =
@@ -309,7 +317,10 @@ yamlToMeta (YAML.Scalar x) =
        YAML.SBool b      -> return $ return $ MetaBool b
        YAML.SFloat d     -> return $ return $ MetaString (show d)
        YAML.SInt i       -> return $ return $ MetaString (show i)
-       YAML.SUnknown _ t -> toMetaValue t
+       YAML.SUnknown _ t ->
+         case checkBoolean t of
+           Just b        -> return $ return $ MetaBool b
+           Nothing       -> toMetaValue t
        YAML.SNull        -> return $ return $ MetaString ""
 yamlToMeta (YAML.Sequence _ xs) = do
   xs' <- mapM yamlToMeta xs
