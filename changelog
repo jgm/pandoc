@@ -1,3 +1,9 @@
+pandoc (2.2.3.1)
+
+  * Markdown reader: Fix parsing of embedded mappings in YAML metadata
+    (#4817).  This fixes a regression in 2.2.3 which caused embedded
+    mappings (e.g. mappings in sequences) not to work in YAML metadata.
+
 pandoc (2.2.3)
 
   * RST reader: improve parsing of inline interpreted text roles (#4811).
