@@ -580,6 +580,7 @@ toAttrs kvs = do
   return $ map (\(x,y) ->
      customAttribute
         (fromString (if not html5 || x `Set.member` html5Attributes
+                                  || "epub:" `isPrefixOf` x
                                   || "data-" `isPrefixOf` x
                         then x
                         else "data-" ++ x)) (toValue y)) kvs
