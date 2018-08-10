@@ -410,20 +410,21 @@ jpegSize img =
 
 jfifSize :: ByteString -> Either String ImageSize
 jfifSize rest =
-  let [dpiDensity,dpix1,dpix2,dpiy1,dpiy2] = map fromIntegral
-                                           $ unpack $ B.take 5 $B.drop 9 rest
-      factor = case dpiDensity of
-                    1 -> id
-                    2 -> \x -> x * 254 `div` 10
-                    _ -> const 72
-      dpix = factor (shift dpix1 8 + dpix2)
-      dpiy = factor (shift dpiy1 8 + dpiy2)
-  in case findJfifSize rest of
-       Left msg    -> Left msg
-       Right (w,h) ->Right ImageSize { pxX = w
+  case map fromIntegral $ unpack $ B.take 5 $ B.drop 9 rest of
+    [dpiDensity,dpix1,dpix2,dpiy1,dpiy2] ->
+      let factor = case dpiDensity of
+                        1 -> id
+                        2 -> \x -> x * 254 `div` 10
+                        _ -> const 72
+          dpix = factor (shift dpix1 8 + dpix2)
+          dpiy = factor (shift dpiy1 8 + dpiy2)
+      in case findJfifSize rest of
+         Left msg    -> Left msg
+         Right (w,h) -> Right ImageSize { pxX = w
                                         , pxY = h
                                         , dpiX = dpix
                                         , dpiY = dpiy }
+    _ -> Left "unable to determine JFIF size"
 
 findJfifSize :: ByteString -> Either String (Integer,Integer)
 findJfifSize bs =
