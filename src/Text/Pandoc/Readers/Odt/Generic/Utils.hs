@@ -133,9 +133,7 @@ class Lookupable a where
 -- can be used directly in almost any case.
 readLookupables :: (Lookupable a) => String -> [(a,String)]
 readLookupables s = [ (a,rest) | (word,rest) <- lex s,
-                                 let result = lookup word lookupTable,
-                                 isJust result,
-                                 let Just a = result
+                                 a <- maybeToList (lookup word lookupTable)
                     ]
 
 -- | Very similar to a simple 'lookup' in the 'lookupTable', but with a lexer.
