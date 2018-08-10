@@ -544,10 +544,12 @@ exifHeader hdr = do
   let resfactor = case lookup ResolutionUnit allentries of
                         Just (UnsignedShort 1) -> 100 / 254
                         _ -> 1
-  let xres = maybe 72 (\(UnsignedRational x) -> floor $ x * resfactor)
-             $ lookup XResolution allentries
-  let yres = maybe 72 (\(UnsignedRational x) -> floor $ x * resfactor)
-             $ lookup YResolution allentries
+  let xres = case lookup XResolution allentries of
+                  Just (UnsignedRational x) -> floor (x * resfactor)
+                  _ -> 72
+  let yres = case lookup YResolution allentries of
+                  Just (UnsignedRational y) -> floor (y * resfactor)
+                  _ -> 72
   return ImageSize{
                     pxX  = wdth
                   , pxY  = hght
