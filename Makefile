@@ -3,7 +3,11 @@ pandoc=$(shell find dist -name pandoc -type f -exec ls -t {} \; | head -1)
 SOURCEFILES?=$(shell find pandoc.hs src test -name '*.hs')
 BRANCH?=master
 RESOLVER=lts-12
-GHCOPTS=-fdiagnostics-color=always -Wall -fno-warn-unused-do-bind -Wincomplete-record-updates -Wnoncanonical-monad-instances -Wnoncanonical-monadfail-instances
+GHCOPTS=-fdiagnostics-color=always -Wall -fno-warn-unused-do-bind -Wincomplete-record-updates -Wnoncanonical-monad-instances -Wnoncanonical-monadfail-instances -Wincomplete-uni-patterns -Werror=missing-home-modules -Widentities -Wcpp-undef
+# Later:
+# -Wpartial-fields        (currently used in Powerpoint writer)
+# -Wmissing-export-lists  (currently some Odt modules violate this)
+# -Wredundant-constraints (problematic if we want to support older base)
 WEBSITE=../../web/pandoc.org
 
 quick:
