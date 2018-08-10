@@ -1153,8 +1153,9 @@ getSymChar :: NameSpaces -> Element -> RunElem
 getSymChar ns element
   | Just s <- lowerFromPrivate <$> getCodepoint
   , Just font <- getFont =
-  let [(char, _)] = readLitChar ("\\x" ++ s) in
-    TextRun . maybe "" (:[]) $ getUnicode font char
+    case readLitChar ("\\x" ++ s) of
+         [(char, _)] -> TextRun . maybe "" (:[]) $ getUnicode font char
+         _           -> TextRun ""
   where
     getCodepoint = findAttrByName ns "w" "char" element
     getFont = stringToFont =<< findAttrByName ns "w" "font" element
