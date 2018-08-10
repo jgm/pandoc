@@ -67,13 +67,14 @@ instance Show UUID where
 
 getUUID :: RandomGen g => g -> UUID
 getUUID gen =
-  let [a,b,c,d,e,f,g,h,i,j,k,l,m,n,o,p] = take 16 $ randoms gen :: [Word8]
-  -- set variant
-      i' = i `setBit` 7 `clearBit` 6
-  -- set version (0100 for random)
-      g' = g `clearBit` 7 `setBit` 6 `clearBit` 5 `clearBit` 4
-  in
-    UUID a b c d e f g' h i' j k l m n o p
+  case take 16 (randoms gen :: [Word8]) of
+       [a,b,c,d,e,f,g,h,i,j,k,l,m,n,o,p] ->
+         -- set variant
+         let i' = i `setBit` 7 `clearBit` 6
+         -- set version (0100 for random)
+             g' = g `clearBit` 7 `setBit` 6 `clearBit` 5 `clearBit` 4
+         in  UUID a b c d e f g' h i' j k l m n o p
+       _ -> error "not enough random numbers for UUID" -- should not happen
 
 getRandomUUID :: IO UUID
 getRandomUUID = getUUID <$> getStdGen
