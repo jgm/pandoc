@@ -48,7 +48,7 @@ import Text.Pandoc.Definition
 import Text.Pandoc.Error
 import Text.Pandoc.Lua.Init (runPandocLua, registerScriptPath)
 import Text.Pandoc.Lua.StackInstances ()
-import Text.Pandoc.Lua.Util (addValue, dostring')
+import Text.Pandoc.Lua.Util (addField, addValue, dostring')
 import Text.Pandoc.Options
 import Text.Pandoc.Templates
 import qualified Text.Pandoc.UTF8 as UTF8
@@ -82,12 +82,12 @@ instance ToLuaStack (Stringify MetaValue) where
 instance ToLuaStack (Stringify Citation) where
   push (Stringify cit) = do
     createtable 6 0
-    addValue "citationId" $ citationId cit
-    addValue "citationPrefix" . Stringify $ citationPrefix cit
-    addValue "citationSuffix" . Stringify $ citationSuffix cit
-    addValue "citationMode" $ show (citationMode cit)
-    addValue "citationNoteNum" $ citationNoteNum cit
-    addValue "citationHash" $ citationHash cit
+    addField "citationId" $ citationId cit
+    addField "citationPrefix" . Stringify $ citationPrefix cit
+    addField "citationSuffix" . Stringify $ citationSuffix cit
+    addField "citationMode" $ show (citationMode cit)
+    addField "citationNoteNum" $ citationNoteNum cit
+    addField "citationHash" $ citationHash cit
 
 -- | Key-value pair, pushed as a table with @a@ as the only key and @v@ as the
 -- associated value.

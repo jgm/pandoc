@@ -44,7 +44,7 @@ import Foreign.Lua (FromLuaStack (peek), Lua, LuaInteger, LuaNumber, StackIndex,
                     ToLuaStack (push), Type (..), throwLuaError, tryLua)
 import Text.Pandoc.Definition
 import Text.Pandoc.Extensions (Extensions)
-import Text.Pandoc.Lua.Util (getTable, getTag, pushViaConstructor, typeCheck)
+import Text.Pandoc.Lua.Util (pushViaConstructor, typeCheck)
 import Text.Pandoc.Options (ReaderOptions (..), TrackChanges)
 import Text.Pandoc.Shared (Element (Blk, Sec), safeRead)
 
@@ -62,7 +62,7 @@ instance ToLuaStack Pandoc where
 instance FromLuaStack Pandoc where
   peek idx = defineHowTo "get Pandoc value" $ do
     typeCheck idx Lua.TypeTable
-    blocks <- getTable idx "blocks"
+    blocks <- LuaUtil.rawField idx "blocks"
     meta   <- Lua.getfield idx "meta" *> (Lua.peek Lua.stackTop `finally` Lua.pop 1)
     return $ Pandoc meta blocks
 
@@ -99,12 +99,12 @@ instance ToLuaStack Citation where
 
 instance FromLuaStack Citation where
   peek idx = do
-    id' <- getTable idx "id"
-    prefix <- getTable idx "prefix"
-    suffix <- getTable idx "suffix"
-    mode <- getTable idx "mode"
-    num <- getTable idx "note_num"
-    hash <- getTable idx "hash"
+    id' <- LuaUtil.rawField idx "id"
+    prefix <- LuaUtil.rawField idx "prefix"
+    suffix <- LuaUtil.rawField idx "suffix"
+    mode <- LuaUtil.rawField idx "mode"
+    num <- LuaUtil.rawField idx "note_num"
+    hash <- LuaUtil.rawField idx "hash"
     return $ Citation id' prefix suffix mode num hash
 
 instance ToLuaStack Alignment where
@@ -178,7 +178,7 @@ peekMetaValue idx = defineHowTo "get MetaValue" $ do
     TypeBoolean -> MetaBool <$> peek idx
     TypeString  -> MetaString <$> peek idx
     TypeTable   -> do
-      tag <- tryLua $ getTag idx
+      tag <- tryLua $ LuaUtil.getTag idx
       case tag of
         Right "MetaBlocks"  -> MetaBlocks  <$> elementContent
         Right "MetaBool"    -> MetaBool    <$> elementContent
@@ -220,7 +220,7 @@ pushBlock = \case
 peekBlock :: StackIndex -> Lua Block
 peekBlock idx = defineHowTo "get Block value" $ do
   typeCheck idx Lua.TypeTable
-  tag <- getTag idx
+  tag <- LuaUtil.getTag idx
   case tag of
       "BlockQuote"     -> BlockQuote <$> elementContent
       "BulletList"     -> BulletList <$> elementContent
@@ -243,7 +243,7 @@ peekBlock idx = defineHowTo "get Block value" $ do
  where
    -- Get the contents of an AST element.
    elementContent :: FromLuaStack a => Lua a
-   elementContent = getTable idx "c"
+   elementContent = LuaUtil.rawField idx "c"
 
 -- | Push an inline element to the top of the lua stack.
 pushInline :: Inline -> Lua ()
@@ -272,7 +272,7 @@ pushInline = \case
 peekInline :: StackIndex -> Lua Inline
 peekInline idx = defineHowTo "get Inline value" $ do
   typeCheck idx Lua.TypeTable
-  tag <- getTag idx
+  tag <- LuaUtil.getTag idx
   case tag of
     "Cite"       -> uncurry Cite <$> elementContent
     "Code"       -> withAttr Code <$> elementContent
@@ -299,7 +299,7 @@ peekInline idx = defineHowTo "get Inline value" $ do
  where
    -- Get the contents of an AST element.
    elementContent :: FromLuaStack a => Lua a
-   elementContent = getTable idx "c"
+   elementContent = LuaUtil.rawField idx "c"
 
 withAttr :: (Attr -> a -> b) -> (LuaAttr, a) -> b
 withAttr f (attributes, x) = f (fromLuaAttr attributes) x
@@ -321,11 +321,11 @@ instance ToLuaStack Element where
   push (Blk blk) = push blk
   push (Sec lvl num attr label contents) = do
     Lua.newtable
-    LuaUtil.addValue "level" lvl
-    LuaUtil.addValue "numbering" num
-    LuaUtil.addValue "attr" (LuaAttr attr)
-    LuaUtil.addValue "label" label
-    LuaUtil.addValue "contents" contents
+    LuaUtil.addField "level" lvl
+    LuaUtil.addField "numbering" num
+    LuaUtil.addField "attr" (LuaAttr attr)
+    LuaUtil.addField "label" label
+    LuaUtil.addField "contents" contents
     pushSecMetaTable
     Lua.setmetatable (-2)
       where
@@ -333,7 +333,7 @@ instance ToLuaStack Element where
         pushSecMetaTable = do
           inexistant <- Lua.newmetatable "PandocElementSec"
           when inexistant $ do
-            LuaUtil.addValue "t" "Sec"
+            LuaUtil.addField "t" "Sec"
             Lua.push "__index"
             Lua.pushvalue (-2)
             Lua.rawset (-3)
@@ -367,12 +367,12 @@ instance ToLuaStack ReaderOptions where
           (stripComments         :: Bool)
           = ro
     Lua.newtable
-    LuaUtil.addValue "extensions" extensions
-    LuaUtil.addValue "standalone" standalone
-    LuaUtil.addValue "columns" columns
-    LuaUtil.addValue "tabStop" tabStop
-    LuaUtil.addValue "indentedCodeClasses" indentedCodeClasses
-    LuaUtil.addValue "abbreviations" abbreviations
-    LuaUtil.addValue "defaultImageExtension" defaultImageExtension
-    LuaUtil.addValue "trackChanges" trackChanges
-    LuaUtil.addValue "stripComments" stripComments
+    LuaUtil.addField "extensions" extensions
+    LuaUtil.addField "standalone" standalone
+    LuaUtil.addField "columns" columns
+    LuaUtil.addField "tabStop" tabStop
+    LuaUtil.addField "indentedCodeClasses" indentedCodeClasses
+    LuaUtil.addField "abbreviations" abbreviations
+    LuaUtil.addField "defaultImageExtension" defaultImageExtension
+    LuaUtil.addField "trackChanges" trackChanges
+    LuaUtil.addField "stripComments" stripComments

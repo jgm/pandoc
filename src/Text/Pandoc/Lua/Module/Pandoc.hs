@@ -42,7 +42,7 @@ import Text.Pandoc.Class (runIO)
 import Text.Pandoc.Definition (Block, Inline)
 import Text.Pandoc.Lua.Filter (walkInlines, walkBlocks, LuaFilter)
 import Text.Pandoc.Lua.StackInstances ()
-import Text.Pandoc.Lua.Util (addFunction, addValue, loadScriptFromDataDir)
+import Text.Pandoc.Lua.Util (addFunction, loadScriptFromDataDir)
 import Text.Pandoc.Walk (Walkable)
 import Text.Pandoc.Options (ReaderOptions (readerExtensions))
 import Text.Pandoc.Process (pipeProcess)
@@ -51,6 +51,7 @@ import Text.Pandoc.Readers (Reader (..), getReader)
 import qualified Data.ByteString.Lazy as BL
 import qualified Data.ByteString.Lazy.Char8 as BSL
 import qualified Foreign.Lua as Lua
+import qualified Text.Pandoc.Lua.Util as LuaUtil
 
 -- | Push the "pandoc" on the lua stack. Requires the `list` module to be
 -- loaded.
@@ -114,9 +115,9 @@ instance FromLuaStack PipeError where
 instance ToLuaStack PipeError where
   push pipeErr = do
     Lua.newtable
-    addValue "command" (pipeErrorCommand pipeErr)
-    addValue "error_code" (pipeErrorCode pipeErr)
-    addValue "output" (pipeErrorOutput pipeErr)
+    LuaUtil.addField "command" (pipeErrorCommand pipeErr)
+    LuaUtil.addField "error_code" (pipeErrorCode pipeErr)
+    LuaUtil.addField "output" (pipeErrorOutput pipeErr)
     pushPipeErrorMetaTable
     Lua.setmetatable (-2)
       where

@@ -34,14 +34,14 @@ module Text.Pandoc.Lua
 
 import Prelude
 import Control.Monad ((>=>))
-import Foreign.Lua (FromLuaStack (peek), Lua, LuaException (..),
-                    Status (OK), ToLuaStack (push))
+import Foreign.Lua (Lua, LuaException (..))
 import Text.Pandoc.Class (PandocIO)
 import Text.Pandoc.Definition (Pandoc)
 import Text.Pandoc.Lua.Filter (LuaFilter, walkMWithLuaFilter)
 import Text.Pandoc.Lua.Init (runPandocLua, registerScriptPath)
 import Text.Pandoc.Lua.Util (popValue)
 import Text.Pandoc.Options (ReaderOptions)
+
 import qualified Foreign.Lua as Lua
 
 -- | Run the Lua filter in @filterPath@ for a transformation to target
@@ -60,25 +60,23 @@ runLuaFilter' ropts filterPath format pd = do
   registerScriptPath filterPath
   top <- Lua.gettop
   stat <- Lua.dofile filterPath
-  if stat /= OK
-    then do
-      luaErrMsg <- popValue
-      Lua.throwLuaError luaErrMsg
+  if stat /= Lua.OK
+    then Lua.throwTopMessageAsError
     else do
       newtop <- Lua.gettop
       -- Use the returned filters, or the implicitly defined global filter if
       -- nothing was returned.
       luaFilters <- if newtop - top >= 1
-                    then peek (-1)
+                    then Lua.peek Lua.stackTop
                     else Lua.getglobal "_G" *> fmap (:[]) popValue
       runAll luaFilters pd
  where
   registerFormat = do
-    push format
+    Lua.push format
     Lua.setglobal "FORMAT"
 
   registerReaderOptions = do
-    push ropts
+    Lua.push ropts
     Lua.setglobal "PANDOC_READER_OPTIONS"
 
 runAll :: [LuaFilter] -> Pandoc -> Lua Pandoc
