@@ -518,11 +518,14 @@ charsInBalanced open close parser = try $ do
 romanNumeral :: Stream s m Char => Bool                  -- ^ Uppercase if true
              -> ParserT s st m Int
 romanNumeral upperCase = do
-    let [one, five, ten, fifty, hundred, fivehundred, thousand] =
-          map char $
-            if upperCase
-               then ['I','V','X','L','C','D','M']
-               else ['i','v','x','l','c','d','m']
+    let rchar uc = char $ if upperCase then uc else toLower uc
+    let one         = rchar 'I'
+    let five        = rchar 'V'
+    let ten         = rchar 'X'
+    let fifty       = rchar 'L'
+    let hundred     = rchar 'C'
+    let fivehundred = rchar 'D'
+    let thousand    = rchar 'M'
     lookAhead $ choice [one, five, ten, fifty, hundred, fivehundred, thousand]
     thousands <- ((1000 *) . length) <$> many thousand
     ninehundreds <- option 0 $ try $ hundred >> thousand >> return 900
