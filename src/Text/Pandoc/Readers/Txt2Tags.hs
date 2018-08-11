@@ -575,8 +575,10 @@ symbol = B.str . (:[]) <$> oneOf specialChars
 getTarget :: T2T String
 getTarget = do
   mv <- lookupMeta "target" . stateMeta <$> getState
-  let MetaString target = fromMaybe (MetaString "html") mv
-  return target
+  return $ case mv of
+              Just (MetaString target)        -> target
+              Just (MetaInlines [Str target]) -> target
+              _                               -> "html"
 
 atStart :: T2T ()
 atStart = (sourceColumn <$> getPosition) >>= guard . (== 1)
