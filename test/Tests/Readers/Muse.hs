@@ -74,6 +74,10 @@ tests =
         "Foo x*bar* baz" =?>
         para "Foo x*bar* baz"
 
+      , "Digit after closing *" =:
+        "Foo *bar*0 baz" =?>
+        para "Foo *bar*0 baz"
+
       , "Emphasis tag" =:
         "<em>Foo bar</em>" =?>
         para (emph . spcSep $ ["Foo", "bar"])
