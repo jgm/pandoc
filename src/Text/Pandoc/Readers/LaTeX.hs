@@ -615,21 +615,28 @@ grouped parser = try $ do
   -- {{a,b}} should be parsed the same as {a,b}
   try (grouped parser <* egroup) <|> (mconcat <$> manyTill parser egroup)
 
-braced :: PandocMonad m => LP m [Tok]
-braced = bgroup *> braced' 1
-  where braced' (n :: Int) =
-          handleEgroup n <|> handleBgroup n <|> handleOther n
-        handleEgroup n = do
+braced' :: PandocMonad m => LP m Tok -> Int -> LP m [Tok]
+braced' getTok n =
+  handleEgroup <|> handleBgroup <|> handleOther
+  where handleEgroup = do
           t <- egroup
           if n == 1
              then return []
-             else (t:) <$> braced' (n - 1)
-        handleBgroup n = do
+             else (t:) <$> braced' getTok (n - 1)
+        handleBgroup = do
           t <- bgroup
-          (t:) <$> braced' (n + 1)
-        handleOther n = do
-          t <- anyTok
-          (t:) <$> braced' n
+          (t:) <$> braced' getTok (n + 1)
+        handleOther = do
+          t <- getTok
+          (t:) <$> braced' getTok n
+
+braced :: PandocMonad m => LP m [Tok]
+braced = bgroup *> braced' anyTok 1
+
+-- URLs require special handling, because they can contain %
+-- characters.  So we retonenize comments as we go...
+bracedUrl :: PandocMonad m => LP m [Tok]
+bracedUrl = bgroup *> braced' (retokenizeComment >> anyTok) 1
 
 bracketed :: PandocMonad m => Monoid a => LP m a -> LP m a
 bracketed parser = try $ do
@@ -1290,6 +1297,17 @@ unescapeURL ('\\':x:xs) | isEscapable x = x:unescapeURL xs
 unescapeURL (x:xs) = x:unescapeURL xs
 unescapeURL [] = ""
 
+-- For handling URLs, which allow literal % characters...
+retokenizeComment :: PandocMonad m => LP m ()
+retokenizeComment = (do
+  Tok pos Comment txt <- satisfyTok isCommentTok
+  let updPos (Tok pos' toktype' txt') =
+        Tok (incSourceColumn (incSourceLine pos' (sourceLine pos - 1))
+             (sourceColumn pos)) toktype' txt'
+  let newtoks = map updPos $ tokenize (sourceName pos) $ T.tail txt
+  getInput >>= setInput . ((Tok pos Symbol "%" : newtoks) ++))
+    <|> return ()
+
 mathEnvWith :: PandocMonad m
             => (Inlines -> a) -> Maybe Text -> Text -> LP m a
 mathEnvWith f innerEnv name = f . mathDisplay . inner <$> mathEnv name
@@ -1445,10 +1463,10 @@ inlineCommands = M.union inlineLanguageCommands $ M.fromList
   , ("verb", doverb)
   , ("lstinline", dolstinline)
   , ("Verb", doverb)
-  , ("url", ((unescapeURL . T.unpack . untokenize) <$> braced) >>= \url ->
+  , ("url", ((unescapeURL . T.unpack . untokenize) <$> bracedUrl) >>= \url ->
                   pure (link url "" (str url)))
   , ("href", (unescapeURL . toksToString <$>
-                 braced <* optional sp) >>= \url ->
+                 bracedUrl <* optional sp) >>= \url ->
                    tok >>= \lab -> pure (link url "" lab))
   , ("includegraphics", do options <- option [] keyvals
                            src <- unescapeURL . T.unpack .
