@@ -211,11 +211,17 @@ blockToRST :: PandocMonad m
            => Block         -- ^ Block element
            -> RST m Doc
 blockToRST Null = return empty
-blockToRST (Div attr bs) = do
+blockToRST (Div (ident,classes,_kvs) bs) = do
   contents <- blockListToRST bs
-  let startTag = ".. raw:: html" $+$ nest 3 (tagWithAttrs "div" attr)
-  let endTag = ".. raw:: html" $+$ nest 3 "</div>"
-  return $ blankline <> startTag $+$ contents $+$ endTag $$ blankline
+  let classes' = filter (/= "container") classes
+  return $ blankline $$
+           (".. container::" <> space <>
+              text (unwords classes')) $$
+           (if null ident
+               then blankline
+               else "   :name: " <> text ident $$ blankline) $$
+           nest 3 contents $$
+           blankline
 blockToRST (Plain inlines) = inlineListToRST inlines
 -- title beginning with fig: indicates that the image is a figure
 blockToRST (Para [Image attr txt (src,'f':'i':'g':':':tit)]) = do

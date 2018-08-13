@@ -385,53 +385,23 @@ HTML Blocks
 
 Simple block on one line:
 
-.. raw:: html
+.. container::
 
-   <div>
-
-foo
-
-.. raw:: html
-
-   </div>
+   foo
 
 And nested without indentation:
 
-.. raw:: html
+.. container::
 
-   <div>
+   .. container::
 
-.. raw:: html
+      .. container::
 
-   <div>
+         foo
 
-.. raw:: html
+   .. container::
 
-   <div>
-
-foo
-
-.. raw:: html
-
-   </div>
-
-.. raw:: html
-
-   </div>
-
-.. raw:: html
-
-   <div>
-
-bar
-
-.. raw:: html
-
-   </div>
-
-.. raw:: html
-
-   </div>
+      bar
 
 Interpreted markdown in a table:
 
@@ -477,15 +447,9 @@ And this is **strong**
 
 Here’s a simple block:
 
-.. raw:: html
+.. container::
 
-   <div>
-
-foo
-
-.. raw:: html
-
-   </div>
+   foo
 
 This should be a code block, though:
 
@@ -503,31 +467,13 @@ As should this:
 
 Now, nested:
 
-.. raw:: html
+.. container::
 
-   <div>
+   .. container::
 
-.. raw:: html
+      .. container::
 
-   <div>
-
-.. raw:: html
-
-   <div>
-
-foo
-
-.. raw:: html
-
-   </div>
-
-.. raw:: html
-
-   </div>
-
-.. raw:: html
-
-   </div>
+         foo
 
 This should just be an HTML comment:
 
