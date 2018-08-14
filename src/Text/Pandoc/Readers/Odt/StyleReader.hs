@@ -138,7 +138,7 @@ fontPitchReader = executeIn NsOffice "font-face-decls" (
                               lookupDefaultingAttr NsStyle "font-pitch"
                             ))
                     >>?^ ( M.fromList . foldl accumLegalPitches [] )
-                  )
+                  ) `ifFailedDo` (returnV (Right M.empty))
   where accumLegalPitches ls (Nothing,_) = ls
         accumLegalPitches ls (Just n,p)  = (n,p):ls
 
