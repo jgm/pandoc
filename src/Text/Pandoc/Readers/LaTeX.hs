@@ -71,7 +71,7 @@ import Text.Pandoc.Options
 import Text.Pandoc.Parsing hiding (blankline, many, mathDisplay, mathInline,
                             optional, space, spaces, withRaw, (<|>))
 import Text.Pandoc.Readers.LaTeX.Types (ExpansionPoint (..), Macro (..),
-                                        Tok (..), TokType (..))
+                                        ArgSpec (..), Tok (..), TokType (..))
 import Text.Pandoc.Shared
 import qualified Text.Pandoc.Translations as Translations
 import Text.Pandoc.Walk
@@ -473,21 +473,38 @@ doMacros n = do
                 macros <- sMacros <$> getState
                 case M.lookup name macros of
                      Nothing -> return ()
-                     Just (Macro expansionPoint numargs optarg newtoks) -> do
+                     Just (Macro expansionPoint argspecs optarg newtoks) -> do
                        setInput ts
-                       let getarg = try $ spaces >> bracedOrToken
+                       let matchTok (Tok _ toktype txt) =
+                             satisfyTok (\(Tok _ toktype' txt') ->
+                                           toktype == toktype' &&
+                                           txt == txt')
+                       let matchPattern toks = try $ mapM_ matchTok toks
+                       let getargs argmap [] = return argmap
+                           getargs argmap (Pattern toks : rest) = try $ do
+                              matchPattern toks
+                              getargs argmap rest
+                           getargs argmap (ArgNum i : Pattern toks : rest) =
+                             try $ do
+                               x <- mconcat <$> manyTill
+                                     (braced <|> ((:[]) <$> anyTok))
+                                     (matchPattern toks)
+                               getargs (M.insert i x argmap) rest
+                           getargs argmap (ArgNum i : rest) = do
+                             x <- try $ spaces >> bracedOrToken
+                             getargs (M.insert i x argmap) rest
                        args <- case optarg of
-                                    Nothing -> count numargs getarg
-                                    Just o  ->
-                                       (:) <$> option o bracketedToks
-                                           <*> count (numargs - 1) getarg
+                                    Nothing -> getargs M.empty argspecs
+                                    Just o  -> do
+                                       x <- option o bracketedToks
+                                       getargs (M.singleton 1 x) argspecs
                        -- first boolean param is true if we're tokenizing
                        -- an argument (in which case we don't want to
                        -- expand #1 etc.)
-                       let addTok False (Tok _ (Arg i) _) acc | i > 0
-                                                              , i <= numargs =
-                                 foldr (addTok True) acc (args !! (i - 1))
-                           -- add space if needed after control sequence
+                       let addTok False (Tok _ (Arg i) _) acc =
+                              case M.lookup i args of
+                                   Nothing -> mzero
+                                   Just xs -> foldr (addTok True) acc xs
                            -- see #4007
                            addTok _ (Tok _ (CtrlSeq x) txt)
                                   acc@(Tok _ Word _ : _)
@@ -2148,24 +2165,28 @@ letmacro = do
   optional $ symbol '='
   spaces
   contents <- bracedOrToken
-  return (name, Macro ExpandWhenDefined 0 Nothing contents)
+  return (name, Macro ExpandWhenDefined [] Nothing contents)
 
 defmacro :: PandocMonad m => LP m (Text, Macro)
 defmacro = try $ do
   controlSeq "def"
   Tok _ (CtrlSeq name) _ <- anyControlSeq
-  numargs <- option 0 $ argSeq 1
+  argspecs <- many (argspecArg <|> argspecPattern)
   -- we use withVerbatimMode, because macros are to be expanded
   -- at point of use, not point of definition
   contents <- withVerbatimMode bracedOrToken
-  return (name, Macro ExpandWhenUsed numargs Nothing contents)
+  return (name, Macro ExpandWhenUsed argspecs Nothing contents)
 
--- Note: we don't yet support fancy things like #1.#2
-argSeq :: PandocMonad m => Int -> LP m Int
-argSeq n = do
+argspecArg :: PandocMonad m => LP m ArgSpec
+argspecArg = do
   Tok _ (Arg i) _ <- satisfyTok isArgTok
-  guard $ i == n
-  argSeq (n+1) <|> return n
+  return $ ArgNum i
+
+argspecPattern :: PandocMonad m => LP m ArgSpec
+argspecPattern =
+  Pattern <$> many1 (satisfyTok (\(Tok _ toktype' txt) ->
+                                    (toktype' == Symbol || toktype' == Word) &&
+                                    (txt /= "{" && txt /= "\\" && txt /= "}")))
 
 isArgTok :: Tok -> Bool
 isArgTok (Tok _ (Arg _) _) = True
@@ -2186,6 +2207,7 @@ newcommand = do
     (symbol '{' *> spaces *> anyControlSeq <* spaces <* symbol '}')
   spaces
   numargs <- option 0 $ try bracketedNum
+  let argspecs = map (\i -> ArgNum i) [1..numargs]
   spaces
   optarg <- option Nothing $ Just <$> try bracketedToks
   spaces
@@ -2195,7 +2217,7 @@ newcommand = do
     case M.lookup name macros of
          Just _  -> report $ MacroAlreadyDefined (T.unpack txt) pos
          Nothing -> return ()
-  return (name, Macro ExpandWhenUsed numargs optarg contents)
+  return (name, Macro ExpandWhenUsed argspecs optarg contents)
 
 newenvironment :: PandocMonad m => LP m (Text, Macro, Macro)
 newenvironment = do
@@ -2208,6 +2230,7 @@ newenvironment = do
   name <- untokenize <$> braced
   spaces
   numargs <- option 0 $ try bracketedNum
+  let argspecs = map (\i -> ArgNum i) [1..numargs]
   spaces
   optarg <- option Nothing $ Just <$> try bracketedToks
   spaces
@@ -2219,8 +2242,8 @@ newenvironment = do
     case M.lookup name macros of
          Just _  -> report $ MacroAlreadyDefined (T.unpack name) pos
          Nothing -> return ()
-  return (name, Macro ExpandWhenUsed numargs optarg startcontents,
-             Macro ExpandWhenUsed 0 Nothing endcontents)
+  return (name, Macro ExpandWhenUsed argspecs optarg startcontents,
+             Macro ExpandWhenUsed [] Nothing endcontents)
 
 bracketedToks :: PandocMonad m => LP m [Tok]
 bracketedToks = do
