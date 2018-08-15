@@ -190,10 +190,9 @@ blockToConTeXt (BlockQuote lst) = do
 blockToConTeXt (CodeBlock _ str) =
   return $ flush ("\\starttyping" <> cr <> text str <> cr <> "\\stoptyping") $$ blankline
   -- blankline because \stoptyping can't have anything after it, inc. '}'
-blockToConTeXt (RawBlock "context" str) = return $ text str <> blankline
-blockToConTeXt b@(RawBlock _ _ ) = do
-  report $ BlockNotRendered b
-  return empty
+blockToConTeXt b@(RawBlock f str)
+  | f == Format "context" || f == Format "tex" = return $ text str <> blankline
+  | otherwise = empty <$ report (BlockNotRendered b)
 blockToConTeXt (Div (ident,_,kvs) bs) = do
   let align dir txt = "\\startalignment[" <> dir <> "]" $$ txt $$ "\\stopalignment"
   mblang <- fromBCP47 (lookup "lang" kvs)
@@ -401,11 +400,9 @@ inlineToConTeXt (Math InlineMath str) =
   return $ char '$' <> text str <> char '$'
 inlineToConTeXt (Math DisplayMath str) =
   return $ text "\\startformula "  <> text str <> text " \\stopformula" <> space
-inlineToConTeXt (RawInline "context" str) = return $ text str
-inlineToConTeXt (RawInline "tex" str) = return $ text str
-inlineToConTeXt il@(RawInline _ _) = do
-  report $ InlineNotRendered il
-  return empty
+inlineToConTeXt il@(RawInline f str)
+  | f == Format "tex" || f == Format "context" = return $ text str
+  | otherwise = empty <$ report (InlineNotRendered il)
 inlineToConTeXt LineBreak = return $ text "\\crlf" <> cr
 inlineToConTeXt SoftBreak = do
   wrapText <- gets (writerWrapText . stOptions)

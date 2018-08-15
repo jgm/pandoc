@@ -8,7 +8,7 @@ Here they need to be inline:
 \caption{lalune \hspace{2em} \vspace{1em} bloo}
 \end{figure}
 ^D
-[RawBlock (Format "latex") "\\begin{figure}\n\\includegraphics{lalune.jpg}\n\\caption{lalune \\hspace{2em} \\vspace{1em} bloo}\n\\end{figure}"]
+[RawBlock (Format "tex") "\\begin{figure}\n\\includegraphics{lalune.jpg}\n\\caption{lalune \\hspace{2em} \\vspace{1em} bloo}\n\\end{figure}"]
 ```
 
 Here block:
@@ -32,7 +32,7 @@ F & T &\\
 F & F &\\
 \end{tabular}
 ^D
-[RawBlock (Format "latex") "\\begin{tabular}[t]{cc|c}\n\\(P\\) & \\(Q\\) & \\(P\\wedge Q\\)\\\\\n\\hline\nT & T &\\\\\nT & F &\\\\\nF & T &\\\\\nF & F &\\\\\n\\end{tabular}\n\\hspace{1em}\n\\begin{tabular}[t]{cc|c}\n\\(P\\) & \\(Q\\) & \\(P\\vee Q\\)\\\\\n\\hline\nT & T &\\\\\nT & F &\\\\\nF & T &\\\\\nF & F &\\\\\n\\end{tabular}"]
+[RawBlock (Format "tex") "\\begin{tabular}[t]{cc|c}\n\\(P\\) & \\(Q\\) & \\(P\\wedge Q\\)\\\\\n\\hline\nT & T &\\\\\nT & F &\\\\\nF & T &\\\\\nF & F &\\\\\n\\end{tabular}\n\\hspace{1em}\n\\begin{tabular}[t]{cc|c}\n\\(P\\) & \\(Q\\) & \\(P\\vee Q\\)\\\\\n\\hline\nT & T &\\\\\nT & F &\\\\\nF & T &\\\\\nF & F &\\\\\n\\end{tabular}"]
 ```
 
 ```
@@ -51,6 +51,6 @@ hi
 there
 ^D
 [Para [Str "hi"]
-,RawBlock (Format "latex") "\\hspace{1em}"
+,RawBlock (Format "tex") "\\hspace{1em}"
 ,Para [Str "there"]]
 ```

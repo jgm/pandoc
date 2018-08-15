@@ -534,7 +534,7 @@ These shouldn’t be math:
 
 Here’s a LaTeX table:
 
-<literal style="latex">
+<literal style="tex">
 \begin{tabular}{|l|l|}\hline
 Animal & Number \\ \hline
 Dog    & 2      \\

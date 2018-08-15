@@ -253,6 +253,7 @@ blockToRST (LineBlock lns) =
   linesToLineBlock lns
 blockToRST (RawBlock f@(Format f') str)
   | f == "rst" = return $ text str
+  | f == "tex" = blockToRST (RawBlock (Format "latex") str)
   | otherwise  = return $ blankline <> ".. raw:: " <>
                     text (map toLower f') $+$
                     nest 3 (text str) $$ blankline

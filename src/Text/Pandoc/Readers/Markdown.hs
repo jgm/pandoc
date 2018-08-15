@@ -1143,19 +1143,15 @@ rawTeXBlock :: PandocMonad m => MarkdownParser m (F Blocks)
 rawTeXBlock = do
   guardEnabled Ext_raw_tex
   lookAhead $ try $ char '\\' >> letter
-  result <- (B.rawBlock "context" . trim . concat <$>
-                many1 ((++) <$> (rawConTeXtEnvironment <|> conTeXtCommand)
-                            <*> spnl'))
-          <|> (B.rawBlock "latex" . trim . concat <$>
+  result <- (B.rawBlock "tex" . trim . concat <$>
+                many1 ((++) <$> rawConTeXtEnvironment <*> spnl'))
+          <|> (B.rawBlock "tex" . trim . concat <$>
                 many1 ((++) <$> rawLaTeXBlock <*> spnl'))
   return $ case B.toList result of
                 [RawBlock _ cs]
                   | all (`elem` [' ','\t','\n']) cs -> return mempty
                 -- don't create a raw block for suppressed macro defs
                 _ -> return result
-
-conTeXtCommand :: PandocMonad m => MarkdownParser m String
-conTeXtCommand = oneOfStrings ["\\placeformula"]
 
 rawHtmlBlocks :: PandocMonad m => MarkdownParser m (F Blocks)
 rawHtmlBlocks = do

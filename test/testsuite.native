@@ -324,7 +324,7 @@ Pandoc (Meta {unMeta = fromList [("author",MetaList [MetaInlines [Str "John",Spa
  ,[Plain [Str "Shoes",Space,Str "($20)",Space,Str "and",Space,Str "socks",Space,Str "($5)."]]
  ,[Plain [Str "Escaped",Space,Code ("",[],[]) "$",Str ":",Space,Str "$73",Space,Emph [Str "this",Space,Str "should",Space,Str "be",Space,Str "emphasized"],Space,Str "23$."]]]
 ,Para [Str "Here\8217s",Space,Str "a",Space,Str "LaTeX",Space,Str "table:"]
-,RawBlock (Format "latex") "\\begin{tabular}{|l|l|}\\hline\nAnimal & Number \\\\ \\hline\nDog    & 2      \\\\\nCat    & 1      \\\\ \\hline\n\\end{tabular}"
+,RawBlock (Format "tex") "\\begin{tabular}{|l|l|}\\hline\nAnimal & Number \\\\ \\hline\nDog    & 2      \\\\\nCat    & 1      \\\\ \\hline\n\\end{tabular}"
 ,HorizontalRule
 ,Header 1 ("special-characters",[],[]) [Str "Special",Space,Str "Characters"]
 ,Para [Str "Here",Space,Str "is",Space,Str "some",Space,Str "unicode:"]
