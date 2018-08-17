@@ -11,10 +11,11 @@ flags:
 packages:
 - '.'
 extra-deps:
-- pandoc-citeproc-0.14.3.1
+- github: jgm/pandoc-citeproc
+  commit: 041fcf284a009a3350e8dacd3c34e41db504bb32
 - haddock-library-1.6.0
 - HsYAML-0.1.1.1
 - network-2.7.0.2
 ghc-options:
    "$locals": -fhide-source-paths -XNoImplicitPrelude
-resolver: lts-12.0
+resolver: lts-12.6
