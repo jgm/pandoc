@@ -19,6 +19,7 @@ extra-deps:
 - texmath-0.11.0.1
 - haddock-library-1.6.0
 - HsYAML-0.1.1.1
+- hs-bibutils-6.6.0.0
 ghc-options:
    "$locals": -fhide-source-paths -XNoImplicitPrelude
 resolver: lts-11.17

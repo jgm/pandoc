@@ -24,6 +24,7 @@ extra-deps:
 - haddock-library-1.6.0
 - HsYAML-0.1.1.1
 - text-1.2.3.0
+- hs-bibutils-6.6.0.0
 ghc-options:
    "$locals": -fhide-source-paths -XNoImplicitPrelude
 resolver: lts-10.10
