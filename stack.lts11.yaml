@@ -11,6 +11,8 @@ flags:
 packages:
 - '.'
 extra-deps:
+- github: jgm/pandoc-citeproc
+  commit: 041fcf284a009a3350e8dacd3c34e41db504bb32
 - skylighting-0.7.2
 - skylighting-core-0.7.2
 - pandoc-types-1.17.5.1
