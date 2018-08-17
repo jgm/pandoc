@@ -1526,12 +1526,14 @@ LaTeX variables are used when [creating a PDF].
 :    options to pass to the microtype package
 
 `colorlinks`
-:   add color to link text; automatically enabled if any of `linkcolor`, `citecolor`,
-    `urlcolor`, or `toccolor` are set
+:   add color to link text; automatically enabled if any of
+    `linkcolor`, `filecolor`, `citecolor`, `urlcolor`, or `toccolor` are set
 
-`linkcolor`, `citecolor`, `urlcolor`, `toccolor`
-:   color for internal links, citation links, external links, and links in table of contents:
-    uses options allowed by [`xcolor`], including the `dvipsnames`, `svgnames`, and `x11names` lists
+`linkcolor`, `filecolor`, `citecolor`, `urlcolor`, `toccolor`
+:   color for internal links, external links, citation links, linked
+    URLs, and links in table of contents, respectively: uses options
+    allowed by [`xcolor`], including the `dvipsnames`, `svgnames`, and
+    `x11names` lists
 
 `links-as-notes`
 :   causes links to be printed as footnotes

@@ -248,7 +248,8 @@ pandocToLaTeX options (Pandoc meta blocks) = do
                                      defField "biblatex" True
                          _        -> id) $
                   defField "colorlinks" (any hasStringValue
-                           ["citecolor", "urlcolor", "linkcolor", "toccolor"]) $
+                           ["citecolor", "urlcolor", "linkcolor", "toccolor",
+                            "filecolor"]) $
                   (if null dirs
                      then id
                      else defField "dir" ("ltr" :: String)) $
