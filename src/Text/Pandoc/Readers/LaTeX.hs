@@ -2281,17 +2281,16 @@ looseItem = do
 resetCaption :: PandocMonad m => LP m ()
 resetCaption = updateState $ \st -> st{ sCaption = (Nothing, Nothing) }
 
-section :: PandocMonad m => Bool -> Attr -> Int -> LP m Blocks
-section starred (ident, classes, kvs) lvl = do
+section :: PandocMonad m => Attr -> Int -> LP m Blocks
+section (ident, classes, kvs) lvl = do
   skipopts
   contents <- grouped inline
   lab <- option ident $
           try (spaces >> controlSeq "label"
                >> spaces >> toksToString <$> braced)
-  let classes' = if starred then "unnumbered" : classes else classes
   when (lvl == 0) $
     updateState $ \st -> st{ sHasChapters = True }
-  unless starred $ do
+  unless ("unnumbered" `elem` classes) $ do
     hn <- sLastHeaderNum <$> getState
     hasChapters <- sHasChapters <$> getState
     let lvl' = lvl + if hasChapters then 1 else 0
@@ -2300,7 +2299,7 @@ section starred (ident, classes, kvs) lvl = do
     updateState $ \st -> st{ sLabels = M.insert lab
                             [Str (renderHeaderNum num)]
                             (sLabels st) }
-  attr' <- registerHeader (lab, classes', kvs) contents
+  attr' <- registerHeader (lab, classes, kvs) contents
   return $ headerWith attr' lvl contents
 
 blockCommand :: PandocMonad m => LP m Blocks
@@ -2361,23 +2360,23 @@ blockCommands = M.fromList
    -- Koma-script metadata commands
    , ("dedication", mempty <$ (skipopts *> tok >>= addMeta "dedication"))
    -- sectioning
-   , ("part", section False nullAttr (-1))
-   , ("part*", section True nullAttr (-1))
-   , ("chapter", section False nullAttr 0)
-   , ("chapter*", section True ("",["unnumbered"],[]) 0)
-   , ("section", section False nullAttr 1)
-   , ("section*", section True ("",["unnumbered"],[]) 1)
-   , ("subsection", section False nullAttr 2)
-   , ("subsection*", section True ("",["unnumbered"],[]) 2)
-   , ("subsubsection", section False nullAttr 3)
-   , ("subsubsection*", section True ("",["unnumbered"],[]) 3)
-   , ("paragraph", section False nullAttr 4)
-   , ("paragraph*", section True ("",["unnumbered"],[]) 4)
-   , ("subparagraph", section False nullAttr 5)
-   , ("subparagraph*", section True ("",["unnumbered"],[]) 5)
+   , ("part", section nullAttr (-1))
+   , ("part*", section nullAttr (-1))
+   , ("chapter", section nullAttr 0)
+   , ("chapter*", section ("",["unnumbered"],[]) 0)
+   , ("section", section nullAttr 1)
+   , ("section*", section ("",["unnumbered"],[]) 1)
+   , ("subsection", section nullAttr 2)
+   , ("subsection*", section ("",["unnumbered"],[]) 2)
+   , ("subsubsection", section nullAttr 3)
+   , ("subsubsection*", section ("",["unnumbered"],[]) 3)
+   , ("paragraph", section nullAttr 4)
+   , ("paragraph*", section ("",["unnumbered"],[]) 4)
+   , ("subparagraph", section nullAttr 5)
+   , ("subparagraph*", section ("",["unnumbered"],[]) 5)
    -- beamer slides
-   , ("frametitle", section False nullAttr 3)
-   , ("framesubtitle", section False nullAttr 4)
+   , ("frametitle", section nullAttr 3)
+   , ("framesubtitle", section nullAttr 4)
    -- letters
    , ("opening", (para . trimInlines) <$> (skipopts *> tok))
    , ("closing", skipopts *> closing)
