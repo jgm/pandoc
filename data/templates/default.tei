@@ -3,11 +3,9 @@
 <teiHeader>
   <fileDesc>
     <titleStmt>
-$if(title)$
       <title>$title$</title>
-$endif$
 $for(author)$
-      $author$
+      <author>$author$</author>
 $endfor$
     </titleStmt>
     <publicationStmt>
