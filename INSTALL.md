@@ -11,6 +11,9 @@
     a zip file that contains pandoc's binaries and
     documentation.  Simply unzip this file and move the binaries
     to a directory of your choice.
+    
+  - Alternatively, you can install pandoc using
+    [chocolatey](https://chocolatey.org): `choco install pandoc`.
 
   - For PDF output, you'll also need to install LaTeX.
     We recommend [MiKTeX](http://miktex.org/).
