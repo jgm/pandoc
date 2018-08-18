@@ -1073,7 +1073,10 @@ accent :: PandocMonad m => Char -> (Char -> String) -> LP m Inlines
 accent c f = try $ do
   ils <- tok
   case toList ils of
-       (Str (x:xs) : ys) -> return $ fromList (Str (f x ++ xs) : ys)
+       (Str (x:xs) : ys) -> return $ fromList $
+         case f x of
+              [z] | z == x -> Str ([z,c] ++ xs) : ys -- combining accent
+              zs           -> Str (zs ++ xs) : ys
        [Space]           -> return $ str [c]
        []                -> return $ str [c]
        _                 -> return ils
