@@ -38,6 +38,7 @@ module Text.Pandoc.Writers.Shared (
                      , resetField
                      , defField
                      , tagWithAttrs
+                     , isDisplayMath
                      , fixDisplayMath
                      , unsmartify
                      , gridTable
@@ -187,8 +188,9 @@ tagWithAttrs tag (ident,classes,kvs) = hsep
   ] <> ">"
 
 isDisplayMath :: Inline -> Bool
-isDisplayMath (Math DisplayMath _) = True
-isDisplayMath _                    = False
+isDisplayMath (Math DisplayMath _)          = True
+isDisplayMath (Span _ [Math DisplayMath _]) = True
+isDisplayMath _                             = False
 
 stripLeadingTrailingSpace :: [Inline] -> [Inline]
 stripLeadingTrailingSpace = go . reverse . go . reverse

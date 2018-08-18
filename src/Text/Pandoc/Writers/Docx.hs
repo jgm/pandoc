@@ -66,7 +66,8 @@ import Text.Pandoc.Readers.Docx.StyleMap
 import Text.Pandoc.Shared hiding (Element)
 import Text.Pandoc.Walk
 import Text.Pandoc.Writers.Math
-import Text.Pandoc.Writers.Shared (fixDisplayMath, metaValueToInlines)
+import Text.Pandoc.Writers.Shared (isDisplayMath, fixDisplayMath,
+                                   metaValueToInlines)
 import Text.Printf (printf)
 import Text.TeXMath
 import Text.XML.Light as XML
@@ -915,9 +916,10 @@ blockToOpenXML' opts (Para lst)
   | null lst && not (isEnabled Ext_empty_paragraphs opts) = return []
   | otherwise = do
       isFirstPara <- gets stFirstPara
-      paraProps <- getParaProps $ case lst of
-                                   [Math DisplayMath _] -> True
-                                   _                    -> False
+      let displayMathPara = case lst of
+                                 [x] -> isDisplayMath x
+                                 _   -> False
+      paraProps <- getParaProps displayMathPara
       bodyTextStyle <- pStyleM "Body Text"
       let paraProps' = case paraProps of
             [] | isFirstPara -> [mknode "w:pPr" []
