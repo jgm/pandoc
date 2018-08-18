@@ -746,7 +746,7 @@ dosiunitx = do
 
 siUnit :: PandocMonad m => LP m Inlines
 siUnit = do
-  Tok _ (CtrlSeq name) cmd <- anyControlSeq
+  Tok _ (CtrlSeq name) _ <- anyControlSeq
   if name == "square"
      then do
        unit <- grouped (mconcat <$> many1 siUnit) <|> siUnit <|> tok
