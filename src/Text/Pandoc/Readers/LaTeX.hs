@@ -1214,6 +1214,84 @@ macron 'o' = "ō"
 macron 'u' = "ū"
 macron c   = [c]
 
+ringabove :: Char -> String
+ringabove 'A' = "Å"
+ringabove 'a' = "å"
+ringabove 'U' = "Ů"
+ringabove 'u' = "ů"
+ringabove c   = [c]
+
+dotbelow :: Char -> String
+dotbelow 'B' = "Ḅ"
+dotbelow 'b' = "ḅ"
+dotbelow 'D' = "Ḍ"
+dotbelow 'd' = "ḍ"
+dotbelow 'H' = "Ḥ"
+dotbelow 'h' = "ḥ"
+dotbelow 'K' = "Ḳ"
+dotbelow 'k' = "ḳ"
+dotbelow 'L' = "Ḷ"
+dotbelow 'l' = "ḷ"
+dotbelow 'M' = "Ṃ"
+dotbelow 'm' = "ṃ"
+dotbelow 'N' = "Ṇ"
+dotbelow 'n' = "ṇ"
+dotbelow 'R' = "Ṛ"
+dotbelow 'r' = "ṛ"
+dotbelow 'S' = "Ṣ"
+dotbelow 's' = "ṣ"
+dotbelow 'T' = "Ṭ"
+dotbelow 't' = "ṭ"
+dotbelow 'V' = "Ṿ"
+dotbelow 'v' = "ṿ"
+dotbelow 'W' = "Ẉ"
+dotbelow 'w' = "ẉ"
+dotbelow 'Z' = "Ẓ"
+dotbelow 'z' = "ẓ"
+dotbelow 'A' = "Ạ"
+dotbelow 'a' = "ạ"
+dotbelow 'E' = "Ẹ"
+dotbelow 'e' = "ẹ"
+dotbelow 'I' = "Ị"
+dotbelow 'i' = "ị"
+dotbelow 'O' = "Ọ"
+dotbelow 'o' = "ọ"
+dotbelow 'U' = "Ụ"
+dotbelow 'u' = "ụ"
+dotbelow 'Y' = "Ỵ"
+dotbelow 'y' = "ỵ"
+dotbelow c   = [c]
+
+doublegrave :: Char -> String
+doublegrave 'A' = "Ȁ"
+doublegrave 'a' = "ȁ"
+doublegrave 'E' = "Ȅ"
+doublegrave 'e' = "ȅ"
+doublegrave 'I' = "Ȉ"
+doublegrave 'i' = "ȉ"
+doublegrave 'O' = "Ȍ"
+doublegrave 'o' = "ȍ"
+doublegrave 'R' = "Ȑ"
+doublegrave 'r' = "ȑ"
+doublegrave 'U' = "Ȕ"
+doublegrave 'u' = "ȕ"
+doublegrave c   = [c]
+
+hookabove :: Char -> String
+hookabove 'A' = "Ả"
+hookabove 'a' = "ả"
+hookabove 'E' = "Ẻ"
+hookabove 'e' = "ẻ"
+hookabove 'I' = "Ỉ"
+hookabove 'i' = "ỉ"
+hookabove 'O' = "Ỏ"
+hookabove 'o' = "ỏ"
+hookabove 'U' = "Ủ"
+hookabove 'u' = "ủ"
+hookabove 'Y' = "Ỷ"
+hookabove 'y' = "ỷ"
+hookabove c   = [c]
+
 cedilla :: Char -> String
 cedilla 'c' = "ç"
 cedilla 'C' = "Ç"
@@ -1645,12 +1723,24 @@ inlineCommands = M.union inlineLanguageCommands $ M.fromList
   , ("\"", accent '\776' umlaut)
   , (".", accent '\775' dot)
   , ("=", accent '\772' macron)
+  , ("|", accent '\781' (:[]))  -- vertical line above
+  , ("b", accent '\817' (:[]))  -- macron below
   , ("c", accent '\807' cedilla)
+  , ("G", accent '\783' doublegrave)
+  , ("h", accent '\777' hookabove)
+  , ("d", accent '\803' dotbelow)
+  , ("f", accent '\785' (:[]))  -- inverted breve
+  , ("r", accent '\778' ringabove)
+  , ("t", accent '\865' (:[]))  -- double inverted breve
+  , ("U", accent '\782' (:[]))  -- double vertical line above
   , ("v", accent 'ˇ' hacek)
   , ("u", accent '\774' breve)
   , ("k", accent '\808' ogonek)
   , ("textogonekcentered", accent '\808' ogonek)
-  , ("i", lit "i")
+  , ("i", lit "ı")  -- dotless i
+  , ("j", lit "ȷ")  -- dotless j
+  , ("newtie", accent '\785' (:[])) -- inverted breve
+  , ("textcircled", accent '\8413' (:[])) -- combining circle
   , ("\\", linebreak <$ (do inTableCell <- sInTableCell <$> getState
                             guard $ not inTableCell
                             optional opt
