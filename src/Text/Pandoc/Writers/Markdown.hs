@@ -298,7 +298,8 @@ escapeString opts (c:cs) =
               '\\':c:escapeString opts cs
        '|' | isEnabled Ext_pipe_tables opts -> '\\':'|':escapeString opts cs
        '^' | isEnabled Ext_superscript opts -> '\\':'^':escapeString opts cs
-       '~' | isEnabled Ext_subscript opts -> '\\':'~':escapeString opts cs
+       '~' | isEnabled Ext_subscript opts ||
+             isEnabled Ext_strikeout opts -> '\\':'~':escapeString opts cs
        '$' | isEnabled Ext_tex_math_dollars opts -> '\\':'$':escapeString opts cs
        '\'' | isEnabled Ext_smart opts -> '\\':'\'':escapeString opts cs
        '"' | isEnabled Ext_smart opts -> '\\':'"':escapeString opts cs
