@@ -63,6 +63,7 @@ module Text.Pandoc.Shared (
                      removeFormatting,
                      deNote,
                      stringify,
+                     stringifyWithNewline,
                      capitalize,
                      compactify,
                      compactifyDL,
@@ -364,15 +365,21 @@ deQuote x = x
 -- Footnotes are skipped (since we don't want their contents in link
 -- labels).
 stringify :: Walkable Inline a => a -> String
-stringify = query go . walk (deNote . deQuote)
+stringify = stringifyWith ' '
+
+stringifyWithNewline :: Walkable Inline a => a -> String
+stringifyWithNewline = stringifyWith '\n'
+
+stringifyWith :: Walkable Inline a => Char -> a -> String
+stringifyWith n = query go . walk (deNote . deQuote)
   where go :: Inline -> [Char]
         go Space                                       = " "
-        go SoftBreak                                   = " "
+        go SoftBreak                                   = [n]
         go (Str x)                                     = x
         go (Code _ x)                                  = x
         go (Math _ x)                                  = x
         go (RawInline (Format "html") ('<':'b':'r':_)) = " " -- see #2105
-        go LineBreak                                   = " "
+        go LineBreak                                   = [n]
         go _                                           = ""
 
 -- | Bring all regular text in a pandoc structure to uppercase.
