@@ -95,11 +95,22 @@ data ReaderState
                  , envMedia         :: Media
                    -- | Hold binary resources used in the document
                  , odtMediaBag      :: MediaBag
+                   -- | Do not collapse whitespace when parsing plain
+                   -- text, useful within a code block
+                 , preserveWhitespace :: Bool
                  }
   deriving ( Show )
 
 readerState :: Styles -> Media -> ReaderState
-readerState styles media = ReaderState styles [] 0 Nothing M.empty media mempty
+readerState styles media = ReaderState {
+                            styleSet = styles,
+                            styleTrace = [],
+                            currentListLevel = 0,
+                            currentListStyle = Nothing,
+                            bookmarkAnchors = M.empty,
+                            envMedia = media,
+                            odtMediaBag = mempty,
+                            preserveWhitespace = False }
 
 --
 pushStyle'  :: Style -> ReaderState -> ReaderState
@@ -118,6 +129,10 @@ modifyListLevel f state = state { currentListLevel = f (currentListLevel state) 
 --
 shiftListLevel :: ListLevel -> (ReaderState -> ReaderState)
 shiftListLevel diff = modifyListLevel (+ diff)
+
+--
+setPreserveWhitespace :: ReaderState -> ReaderState
+setPreserveWhitespace state = state { preserveWhitespace = True }
 
 --
 swapCurrentListStyle :: Maybe ListStyle -> ReaderState
@@ -159,9 +174,7 @@ type OdtReaderSafe  a b = XMLReaderSafe ReaderState a b
 
 -- | Extract something from the styles
 fromStyles :: (a -> Styles -> b) -> OdtReaderSafe a b
-fromStyles f =     keepingTheValue
-                     (getExtraState >>^ styleSet)
-               >>% f
+fromStyles f = keepingTheValue (getExtraState >>^ styleSet) >>% f
 
 --
 getStyleByName :: OdtReader StyleName Style
@@ -310,8 +323,10 @@ withNewStyle a = proc x -> do
     Left _         -> a -< x
   where
     isCodeStyle :: StyleName -> Bool
-    isCodeStyle "Source_Text" = True
-    isCodeStyle _             = False
+    isCodeStyle = (flip elem) ["Source_Text",
+                               -- Source_20_Text is available in
+                               -- Libreoffice 5 for styling inlines
+                               "Source_20_Text"]
 
     inlineCode :: Inlines -> Inlines
     inlineCode = code . intercalate "" . map stringify . toList
@@ -417,6 +432,12 @@ constructPara reader = proc blocks -> do
     Right (styleName, _) | isTableCaptionStyle styleName -> do
       blocks' <- reader   -< blocks
       arr tableCaptionP  -< blocks'
+    -- `Preformatted_20_Text` is available in Libreoffice 5 for
+    -- styling paragraphs
+    Right ("Preformatted_20_Text", _) -> do
+      modifyExtraState (setPreserveWhitespace) -< ()
+      blocks' <- reader -< blocks
+      arr codeP -< blocks'
     Right (_, style) -> do
       let modifier = getParaModifier style
       blocks' <- reader   -<  blocks
@@ -426,6 +447,8 @@ constructPara reader = proc blocks -> do
     isTableCaptionStyle "Table" = True
     isTableCaptionStyle _       = False
     tableCaptionP b = divWith ("", ["caption"], []) b
+    codeP :: Blocks -> Blocks
+    codeP = codeBlock . stringifyWithNewline . concatMap (\(Para i) -> i)
 
 type ListConstructor = [Blocks] -> Blocks
 
@@ -549,14 +572,15 @@ matchChildContent ls fallback = returnV mempty >>> matchContent ls fallback
 --
 -- | Open Document allows several consecutive spaces if they are marked up
 read_plain_text :: OdtReaderSafe (Inlines, XML.Content) Inlines
-read_plain_text =  fst ^&&& read_plain_text' >>% recover
+read_plain_text = proc x -> do
+  pres  <- getExtraState >>^ preserveWhitespace -< ()
+  fst ^&&& read_plain_text' pres >>% recover -<< x
   where
     -- fallible version
-    read_plain_text' :: OdtReader (Inlines, XML.Content) Inlines
-    read_plain_text' =      (     second ( arr extractText )
-                              >>^ spreadChoice >>?! second text
-                            )
-                       >>?% mappend
+    read_plain_text' :: Bool -> OdtReader (Inlines, XML.Content) Inlines
+    read_plain_text' pres =
+      ( second ( arr extractText ) >>^ spreadChoice >>?! second text )
+      >>?% (if pres then mappendPreserve else mappend)
     --
     extractText     :: XML.Content -> Fallible String
     extractText (XML.Text cData) = succeedWith (XML.cdData cData)
@@ -565,7 +589,6 @@ read_plain_text =  fst ^&&& read_plain_text' >>% recover
 read_text_seq :: InlineMatcher
 read_text_seq  = matchingElement NsText "sequence"
                  $ matchChildContent [] read_plain_text
-
 
 -- specifically. I honor that, although the current implementation of 'mappend'
 -- for 'Inlines' in "Text.Pandoc.Builder" will collapse them again.
