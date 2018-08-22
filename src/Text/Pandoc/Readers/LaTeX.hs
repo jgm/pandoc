@@ -987,10 +987,19 @@ enquote starred mblang = do
      then singleQuoted . langspan <$> withQuoteContext InSingleQuote tok
      else doubleQuoted . langspan <$> withQuoteContext InDoubleQuote tok
 
-blockquote :: PandocMonad m => LP m Blocks
-blockquote = do
+blockquote :: PandocMonad m => Bool -> Maybe Text -> LP m Blocks
+blockquote citations mblang = do
+  citePar <- if citations
+                then do
+                  cs <- cites NormalCitation False
+                  return $ para (cite cs mempty)
+                else return mempty
+  let lang = (T.unpack <$> mblang) >>= babelLangToBCP47
+  let langdiv = case lang of
+                      Nothing -> id
+                      Just l  -> divWith ("",[],[("lang", renderLang l)])
   bs <- grouped block
-  return $ blockQuote bs
+  return $ blockQuote . langdiv $ (bs <> citePar)
 
 doAcronym :: PandocMonad m => String -> LP m Inlines
 doAcronym form = do
@@ -2540,8 +2549,13 @@ blockCommands = M.fromList
    -- LaTeX colors
    , ("textcolor", coloredBlock "color")
    , ("colorbox", coloredBlock "background-color")
-   -- csquotse
-   , ("blockquote", blockquote)
+   -- csquotes
+   , ("blockquote", blockquote False Nothing)
+   , ("blockcquote", blockquote True Nothing)
+   , ("foreignblockquote", braced >>= blockquote False . Just . untokenize)
+   , ("foreignblockcquote", braced >>= blockquote True . Just . untokenize)
+   , ("hyphenblockquote", braced >>= blockquote False . Just . untokenize)
+   , ("hyphenblockcquote", braced >>= blockquote True . Just . untokenize)
    -- include
    , ("include", include "include")
    , ("input", include "input")
