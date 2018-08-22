@@ -745,7 +745,7 @@ pLink = try $ do
   let uid = fromMaybe (T.unpack $ fromAttrib "name" tag) $
                maybeFromAttrib "id" tag
   let cls = words $ T.unpack $ fromAttrib "class" tag
-  lab <- trimInlines . mconcat <$> manyTill inline (pCloses "a")
+  lab <- extractSpaces (\x -> x) . mconcat <$> manyTill inline (pCloses "a")
   -- check for href; if href, then a link, otherwise a span
   case maybeFromAttrib "href" tag of
        Nothing   ->
