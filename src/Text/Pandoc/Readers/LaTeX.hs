@@ -975,13 +975,22 @@ quoted' f starter ender = do
                               cs   -> cs)
      else lit startchs
 
-enquote :: PandocMonad m => LP m Inlines
-enquote = do
+enquote :: PandocMonad m => Bool -> Maybe Text -> LP m Inlines
+enquote starred mblang = do
   skipopts
+  let lang = (T.unpack <$> mblang) >>= babelLangToBCP47
+  let langspan = case lang of
+                      Nothing -> id
+                      Just l  -> spanWith ("",[],[("lang", renderLang l)])
   quoteContext <- sQuoteContext <$> getState
-  if quoteContext == InDoubleQuote
-     then singleQuoted <$> withQuoteContext InSingleQuote tok
-     else doubleQuoted <$> withQuoteContext InDoubleQuote tok
+  if starred || quoteContext == InDoubleQuote
+     then singleQuoted . langspan <$> withQuoteContext InSingleQuote tok
+     else doubleQuoted . langspan <$> withQuoteContext InDoubleQuote tok
+
+blockquote :: PandocMonad m => LP m Blocks
+blockquote = do
+  bs <- grouped block
+  return $ blockQuote bs
 
 doAcronym :: PandocMonad m => String -> LP m Inlines
 doAcronym form = do
@@ -1769,7 +1778,14 @@ inlineCommands = M.union inlineLanguageCommands $ M.fromList
                            src <- unescapeURL . T.unpack .
                                     removeDoubleQuotes . untokenize <$> braced
                            mkImage options src)
-  , ("enquote", enquote)
+  , ("enquote*", enquote True Nothing)
+  , ("enquote", enquote False Nothing)
+  -- foreignquote is supposed to use native quote marks
+  , ("foreignquote*", braced >>= enquote True . Just . untokenize)
+  , ("foreignquote", braced >>= enquote False . Just . untokenize)
+  -- hypehnquote uses regular quotes
+  , ("hyphenquote*", braced >>= enquote True . Just . untokenize)
+  , ("hyphenquote", braced >>= enquote False . Just . untokenize)
   , ("figurename", doTerm Translations.Figure)
   , ("prefacename", doTerm Translations.Preface)
   , ("refname", doTerm Translations.References)
@@ -2524,6 +2540,8 @@ blockCommands = M.fromList
    -- LaTeX colors
    , ("textcolor", coloredBlock "color")
    , ("colorbox", coloredBlock "background-color")
+   -- csquotse
+   , ("blockquote", blockquote)
    -- include
    , ("include", include "include")
    , ("input", include "input")
