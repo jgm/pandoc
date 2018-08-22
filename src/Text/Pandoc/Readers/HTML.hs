@@ -745,18 +745,18 @@ pLink = try $ do
   let uid = fromMaybe (T.unpack $ fromAttrib "name" tag) $
                maybeFromAttrib "id" tag
   let cls = words $ T.unpack $ fromAttrib "class" tag
-  lab <- trimInlines . mconcat <$> manyTill inline (pCloses "a")
+  lab <- mconcat <$> manyTill inline (pCloses "a")
   -- check for href; if href, then a link, otherwise a span
   case maybeFromAttrib "href" tag of
        Nothing   ->
-         return $ B.spanWith (uid, cls, []) lab
+         return $ extractSpaces (B.spanWith (uid, cls, [])) lab
        Just url' -> do
          mbBaseHref <- baseHref <$> getState
          let url = case (parseURIReference url', mbBaseHref) of
                         (Just rel, Just bs) ->
                           show (rel `nonStrictRelativeTo` bs)
                         _                   -> url'
-         return $ B.linkWith (uid, cls, []) (escapeURI url) title lab
+         return $ extractSpaces (B.linkWith (uid, cls, []) (escapeURI url) title) lab
 
 pImage :: PandocMonad m => TagParser m Inlines
 pImage = do
