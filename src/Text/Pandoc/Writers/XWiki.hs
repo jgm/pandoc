@@ -37,7 +37,7 @@ import Control.Monad.Reader (ReaderT, asks, local, runReaderT)
 import Data.Monoid
 import qualified Data.Set as Set
 import qualified Data.Text as Text
-import Data.Text (Text, concat, init, intercalate, pack, replace, unlines, unwords)
+import Data.Text (Text, concat, init, intercalate, pack, replace, split, unlines, unwords)
 import Text.Pandoc.Class (PandocMonad, report)
 import Text.Pandoc.Definition
 import Text.Pandoc.Logging
@@ -97,11 +97,17 @@ blockToXWiki (Header level _ inlines) = do
   return $ eqs <> " " <> contents <> " " <> eqs <> "\n"
 
 -- XWiki doesn't appear to differentiate between inline and block-form code, so we delegate
-blockToXWiki (CodeBlock attrs str) = inlineToXWiki (Code attrs str)
+-- We do amend the text to ensure that the code markers are on their own lines, since this is a block
+blockToXWiki (CodeBlock attrs str) = do
+  contents <- inlineToXWiki (Code attrs ("\n" <> str <> "\n"))
+  return $ "\n" <> contents <> "\n"
 
 -- TODO: Figure out how to handle this better
-blockToXWiki (BlockQuote blocks) =
-  blockListToXWiki blocks
+blockToXWiki (BlockQuote blocks) = do
+  blockText <- blockListToXWiki blocks
+  let quoteLines = split (== '\n') blockText
+  let prefixed = map ("> " <>) quoteLines
+  return $ vcat prefixed
 
 blockToXWiki (BulletList contents) = blockToXWikiList "*" $ contents
 
@@ -185,13 +191,13 @@ inlineToXWiki (Code (_,classes,_) contents') = do
   let contents = pack contents'
   return $
     case Set.toList at of
-      [] -> "{{" <> contents <> "}}"
+      [] -> "{{code}}" <> contents <> "{{/code}}"
       (l:_) -> "{{code language=\"" <> (pack l) <> "\"}}" <> contents <> "{{/code}}"
 
 inlineToXWiki (Cite _ lst) = inlineListToXWiki lst
 
 -- FIXME: optionally support this (plugin?) 
-inlineToXWiki (Math _ str) = return $ pack str
+inlineToXWiki (Math _ str) = return $ "{{formula}}" <> (pack str) <> "{{/formula}}"
 
 inlineToXWiki il@(RawInline frmt str)
   | frmt == Format "xwiki" = return $ pack str
