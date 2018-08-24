@@ -188,7 +188,7 @@ convertImage tmpdir fname =
          then return $ Right pdfOut
          else return $ Left "conversion from SVG failed")
       (\(e :: E.SomeException) -> return $ Left $
-          "check that rsvg2pdf is in path.\n" ++
+          "check that rsvg-convert is in path.\n" ++
           show e)
     _ -> JP.readImage fname >>= \res ->
           case res of
