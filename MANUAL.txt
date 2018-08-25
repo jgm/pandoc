@@ -1352,7 +1352,7 @@ depending on the output format, but include the following:
 
 `toc-title`
 :   title of table of contents (works only with EPUB,
-    opendocument, odt, docx, pptx, beamer)
+    opendocument, odt, docx, pptx, beamer, LaTeX)
 
 `include-before`
 :   contents specified by `-B/--include-before-body` (may have
