@@ -135,8 +135,9 @@ description meta' = do
                     Just (MetaString s) -> coverimage s
                     _       -> return []
   return $ el "description"
-    [ el "title-info" (genre : (as ++ bt ++ annotation ++ dd ++ lang))
-    , el "document-info" (el "program-used" "pandoc" : coverpage)
+    [ el "title-info" (genre :
+                      (as ++ bt ++ annotation ++ dd ++ coverpage ++ lang))
+    , el "document-info" [el "program-used" "pandoc"]
     ]
 
 booktitle :: PandocMonad m => Meta -> FBM m [Content]
