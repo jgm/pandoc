@@ -68,11 +68,13 @@ import qualified Text.Pandoc.Builder as B
 import Text.Pandoc.Class (PandocMonad (..))
 import Text.Pandoc.CSS (foldOrElse, pickStyleAttrProps)
 import Text.Pandoc.Definition
+import Text.Pandoc.Readers.LaTeX (rawLaTeXInline)
+import Text.Pandoc.Readers.LaTeX.Types (Macro)
 import Text.Pandoc.Error
 import Text.Pandoc.Logging
 import Text.Pandoc.Options (
     Extension (Ext_epub_html_exts, Ext_empty_paragraphs, Ext_native_divs,
-               Ext_native_spans, Ext_raw_html, Ext_line_blocks),
+               Ext_native_spans, Ext_raw_html, Ext_line_blocks, Ext_raw_tex),
     ReaderOptions (readerExtensions, readerStripComments),
     extensionEnabled)
 import Text.Pandoc.Parsing hiding ((<|>))
@@ -102,7 +104,8 @@ readHtml opts inp = do
                                          (m:_) -> messageString m
   result <- flip runReaderT def $
        runParserT parseDoc
-       (HTMLState def{ stateOptions = opts } [] Nothing Set.empty M.empty [])
+       (HTMLState def{ stateOptions = opts }
+         [] Nothing Set.empty M.empty [] M.empty)
        "source" tags
   case result of
     Right doc -> return doc
@@ -124,7 +127,8 @@ data HTMLState =
      baseHref    :: Maybe URI,
      identifiers :: Set.Set String,
      headerMap   :: M.Map Inlines String,
-     logMessages :: [LogMessage]
+     logMessages :: [LogMessage],
+     macros      :: M.Map Text Macro
   }
 
 data HTMLLocal = HTMLLocal { quoteContext :: QuoteContext
@@ -907,8 +911,24 @@ pTagContents =
   <|> pStr
   <|> pSpace
   <|> smartPunctuation pTagContents
+  <|> pRawTeX
   <|> pSymbol
   <|> pBad
+
+pRawTeX :: PandocMonad m => InlinesParser m Inlines
+pRawTeX = do
+  lookAhead $ try $ do
+    char '\\'
+    choice $ map (try . string) ["begin", "eqref", "ref"]
+  guardEnabled Ext_raw_tex
+  inp <- getInput
+  st <- getState
+  res <- lift $ runParserT (withRaw rawLaTeXInline) st "chunk" (T.unpack inp)
+  case res of
+       Left _                -> mzero
+       Right (contents, raw) -> do
+         _ <- count (length raw) anyChar
+         return $ B.rawInline "tex" contents
 
 pStr :: PandocMonad m => InlinesParser m Inlines
 pStr = do
@@ -923,6 +943,7 @@ isSpecial '\''    = True
 isSpecial '.'     = True
 isSpecial '-'     = True
 isSpecial '$'     = True
+isSpecial '\\'    = True
 isSpecial '\8216' = True
 isSpecial '\8217' = True
 isSpecial '\8220' = True
@@ -1248,6 +1269,10 @@ isSpace '\r' = True
 isSpace _    = False
 
 -- Instances
+
+instance HasMacros HTMLState where
+  extractMacros        = macros
+  updateMacros f st    = st{ macros = f $ macros st }
 
 instance HasIdentifierList HTMLState where
   extractIdentifierList = identifiers

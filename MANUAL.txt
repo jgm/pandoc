@@ -1917,7 +1917,8 @@ This extension can be enabled/disabled for the following formats
 (in addition to `markdown`):
 
 input formats
-:  `latex`, `org`, `textile`
+:  `latex`, `org`, `textile`, `html` (environments, `\ref`, and
+   `\eqref` only)
 
 output formats
 :  `textile`, `commonmark`
