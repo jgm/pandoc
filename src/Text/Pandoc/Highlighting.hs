@@ -149,6 +149,7 @@ langsList =
   ("command.com","command.com"),
   ("comsol","Comsol"),
   ("csh","csh"),
+  ("default","default"),
   ("delphi","Delphi"),
   ("elan","Elan"),
   ("erlang","erlang"),
