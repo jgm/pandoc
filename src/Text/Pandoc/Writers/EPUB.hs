@@ -461,6 +461,7 @@ pandocToEPUB version opts doc@(Pandoc meta _) = do
   -- title page
   tpContent <- lift $ writeHtml opts'{
                                   writerVariables = ("titlepage","true"):
+                                  ("body-type", "frontmatter"):
                                   ("pagetitle", escapeStringForXML plainTitle):
                                   cssvars True ++ vars }
                                (Pandoc meta [])
@@ -565,13 +566,28 @@ pandocToEPUB version opts doc@(Pandoc meta _) = do
   let chapToEntry num (Chapter mbnum bs) =
         mkEntry ("text/" ++ showChapter num) =<<
         writeHtml opts'{ writerNumberOffset = fromMaybe [] mbnum
-                       , writerVariables = cssvars True ++ vars }
-                 (case bs of
-                     (Header _ _ xs : _) ->
+                       , writerVariables = ("body-type", bodyType) :
+                                           cssvars True ++ vars } pdoc
+         where (pdoc, bodyType) =
+                 case bs of
+                     (Header _ (_,_,kvs) xs : _) ->
                        -- remove notes or we get doubled footnotes
-                       Pandoc (setMeta "title" (walk removeNote $ fromList xs)
-                                 nullMeta) bs
-                     _                   -> Pandoc nullMeta bs)
+                       (Pandoc (setMeta "title"
+                           (walk removeNote $ fromList xs) nullMeta) bs,
+                        case lookup "epub:type" kvs of
+                             Nothing -> "bodymatter"
+                             Just x
+                               | x `elem` frontMatterTypes -> "frontmatter"
+                               | x `elem` backMatterTypes  -> "backmatter"
+                               | otherwise                 -> "bodymatter")
+                     _                   -> (Pandoc nullMeta bs, "bodymatter")
+               frontMatterTypes = ["prologue", "abstract", "acknowledgments",
+                                   "copyright-page", "dedication",
+                                   "foreword", "halftitle",
+                                   "introduction", "preface",
+                                   "seriespage", "titlepage"]
+               backMatterTypes = ["afterword", "appendix", "colophon",
+                                  "conclusion", "epigraph"]
 
   chapterEntries <- zipWithM chapToEntry [1..] chapters
 
