@@ -11,10 +11,12 @@ environment:
     STACK_ROOT: "c:\\sr32"
     STACK: "%STACK_ROOT%\\stack.exe"
     STACK_FLAGS: "--flag=hslua:lua_32bits"
+    ARCH: "x86"
   - STACK_VERSION: "windows-x86_64"
     STACK_ROOT: "c:\\sr64"
     STACK: "%STACK_ROOT%\\stack.exe"
     STACK_FLAGS: ""
+    ARCH: "x64"
 
 skip_commits:
   files:
@@ -69,7 +71,7 @@ after_test:
       set VERSION=
       for /f "tokens=1-2 delims= " %%a in ('.\pandoc.exe --version') do ( if not defined VERSION set "VERSION=%%b" )
       echo %VERSION%
-      "%WIXBIN%\\candle" -dVERSION=%VERSION% -dBINPATH=. *.wxs -out wixobj\
+      "%WIXBIN%\\candle" -arch %ARCH% -dVERSION=%VERSION% -dBINPATH=. *.wxs -out wixobj\
       "%WIXBIN%\\light" -sw1076 -ext WixUIExtension -ext WixUtilExtension -cultures:en-us -loc Pandoc-en-us.wxl -out "pandoc-%STACK_VERSION%.msi" wixobj\*.wixobj
 
 artifacts:
