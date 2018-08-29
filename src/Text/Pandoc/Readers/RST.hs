@@ -172,6 +172,7 @@ parseRST = do
   docMinusKeys <- concat <$>
                   manyTill (referenceKey <|> anchorDef <|>
                             noteBlock <|> citationBlock <|>
+                            (snd <$> withRaw comment) <|>
                             headerBlock <|> lineClump) eof
   setInput docMinusKeys
   setPosition startPos
