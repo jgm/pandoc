@@ -964,11 +964,11 @@ explicitLink = try $ do
 image :: PandocMonad m => MuseParser m (F Inlines)
 image = try $ do
   string "[["
-  (url, (ext, width, align)) <- manyUntil (noneOf "]") $ (imageExtensionAndOptions <* char ']')
+  (url, (ext, width, align)) <- manyUntil (noneOf "]") (imageExtensionAndOptions <* char ']')
   content <- optionMaybe linkContent
   char ']'
   let widthAttr = case align of
-                    Just 'f' -> [("width", (fromMaybe "100" width) ++ "%"), ("height", "75%")]
+                    Just 'f' -> [("width", fromMaybe "100" width ++ "%"), ("height", "75%")]
                     _ -> maybeToList (("width",) . (++ "%") <$> width)
   let alignClass = case align of
                      Just 'r' -> ["align-right"]
