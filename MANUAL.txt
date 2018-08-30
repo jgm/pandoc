@@ -1211,14 +1211,9 @@ of the following options.
 `--katex`[`=`*URL*]
 
 :   Use [KaTeX] to display embedded TeX math in HTML output.
-    The *URL* is the base URL for the KaTeX library. If a *URL* is
-    not provided, a link to the KaTeX CDN will be inserted.
-
-`--katex-stylesheet=`*URL*
-
-:   The *URL* should point to the `katex.css` stylesheet. If this option is
-    not specified, a link to the KaTeX CDN will be inserted. Note that this
-    option does not imply `--katex`.
+    The *URL* is the base URL for the KaTeX library. That directory
+    should contain a `katex.min.js` and a `katex.min.css` file.
+    If a *URL* is not provided, a link to the KaTeX CDN will be inserted.
 
 `--gladtex`
 
