@@ -994,7 +994,7 @@ tests =
                               , para "c"
                               ]
                     ]
-      , "List continuation afeter nested list" =:
+      , "List continuation after nested list" =:
          T.unlines
            [ " - - foo"
            , ""
