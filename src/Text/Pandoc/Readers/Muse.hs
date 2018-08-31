@@ -462,16 +462,19 @@ verseLine = do
   rest <- manyTill (choice inlineList) newline
   return $ trimInlinesF $ mconcat (pure indent : rest)
 
-verseLines :: PandocMonad m => MuseParser m (F Blocks)
-verseLines = do
-  lns <- many verseLine
-  return $ B.lineBlock <$> sequence lns
-
 -- | Parse @\<verse>@ tag.
 verseTag :: PandocMonad m => MuseParser m (F Blocks)
-verseTag = do
-  (_, content) <- htmlBlock "verse"
-  parseFromString verseLines (intercalate "\n" $ dropSpacePrefix $ splitOn "\n" $ lchop content)
+verseTag = try $ do
+  many spaceChar
+  pos <- getPosition
+  (TagOpen _ _, _) <- htmlTag (~== TagOpen "verse" [])
+  manyTill spaceChar eol
+  let indent = count (sourceColumn pos - 1) spaceChar
+  content <- sequence <$> manyTill (indent >> verseLine) (try $ indent >> endtag)
+  manyTill spaceChar eol
+  return $ B.lineBlock <$> content
+  where
+    endtag = void $ htmlTag (~== TagClose "verse")
 
 -- | Parse @\<comment>@ tag.
 commentTag :: PandocMonad m => MuseParser m (F Blocks)

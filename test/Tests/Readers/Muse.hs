@@ -407,6 +407,12 @@ tests =
                   , "</verse>"
                   ] =?>
         lineBlock [ "" ]
+      , "Verse tag with verbatim close tag inside" =:
+        T.unlines [ "<verse>"
+                  , "<verbatim></verse></verbatim>"
+                  , "</verse>"
+                  ] =?>
+        lineBlock [ "</verse>" ]
       , testGroup "Example"
         [ "Braces on separate lines" =:
           T.unlines [ "{{{"
