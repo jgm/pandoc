@@ -424,7 +424,7 @@ renderInlineList (x:xs) = do
   start <- asks envInlineStart
   afterSpace <- asks envAfterSpace
   topLevel <- asks envTopLevel
-  r <- inlineToMuse x
+  r <- local (\env -> env { envInlineStart = False }) $ inlineToMuse x
   opts <- asks envOptions
   let isNewline = (x == SoftBreak && writerWrapText opts == WrapPreserve) || x == LineBreak
   lst' <- local (\env -> env { envInlineStart = isNewline
@@ -435,23 +435,20 @@ renderInlineList (x:xs) = do
     else pure (r <> lst')
 
 -- | Normalize and convert list of Pandoc inline elements to Muse.
-inlineListToMuse'' :: PandocMonad m
-                   => Bool
-                   -> [Inline]
-                   -> Muse m Doc
-inlineListToMuse'' start lst = do
+inlineListToMuse :: PandocMonad m
+                 => [Inline]
+                 -> Muse m Doc
+inlineListToMuse lst = do
   lst' <- (normalizeInlineList . fixNotes) <$> preprocessInlineList (map (removeKeyValues . replaceSmallCaps) lst)
-  topLevel <- asks envTopLevel
-  afterSpace <- asks envAfterSpace
-  local (\env -> env { envInlineStart = start
-                     , envAfterSpace = afterSpace || (start && not topLevel)
-                     }) $ renderInlineList lst'
+  renderInlineList lst'
 
 inlineListToMuse' :: PandocMonad m => [Inline] -> Muse m Doc
-inlineListToMuse' = inlineListToMuse'' True
-
-inlineListToMuse :: PandocMonad m => [Inline] -> Muse m Doc
-inlineListToMuse = inlineListToMuse'' False
+inlineListToMuse' lst = do
+  topLevel <- asks envTopLevel
+  afterSpace <- asks envAfterSpace
+  local (\env -> env { envInlineStart = True
+                     , envAfterSpace = afterSpace || not topLevel
+                     }) $ inlineListToMuse lst
 
 -- | Convert Pandoc inline element to Muse.
 inlineToMuse :: PandocMonad m
