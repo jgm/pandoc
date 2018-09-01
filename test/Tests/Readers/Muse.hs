@@ -62,6 +62,14 @@ tests =
         "*Foo bar*" =?>
         para (emph . spcSep $ ["Foo", "bar"])
 
+      -- Emacs Muse allows this
+      , "Newline in the beginning of emphasis" =:
+        "*\nFoo bar*" =?>
+        para (emph ("Foo" <> space <> "bar"))
+      , "Newline in the end of emphasis" =:
+        "*Foo bar\n*" =?>
+        para (emph ("Foo" <> space <> "bar"))
+
       , "Comma after closing *" =:
         "Foo *bar*, baz" =?>
         para ("Foo " <> emph "bar" <> ", baz")

@@ -58,7 +58,7 @@ import Text.Pandoc.Class (PandocMonad (..))
 import Text.Pandoc.Definition
 import Text.Pandoc.Logging
 import Text.Pandoc.Options
-import Text.Pandoc.Parsing hiding (F)
+import Text.Pandoc.Parsing hiding (F, enclosed)
 import Text.Pandoc.Readers.HTML (htmlTag)
 import Text.Pandoc.Shared (crFilter, underlineSpan)
 
@@ -838,6 +838,14 @@ br = try $ do
 
 emphasisBetween :: (PandocMonad m, Show a) => MuseParser m a -> MuseParser m (F Inlines)
 emphasisBetween c = try $ enclosedInlines c c
+
+-- | Parses material enclosed between start and end parsers.
+enclosed :: (Show end, Stream s  m Char) => ParserT s st m t   -- ^ start parser
+         -> ParserT s st m end  -- ^ end parser
+         -> ParserT s st m a    -- ^ content parser (to be used repeatedly)
+         -> ParserT s st m [a]
+enclosed start end parser = try $
+  start >> notFollowedBy spaceChar >> many1Till parser end
 
 enclosedInlines :: (PandocMonad m, Show a, Show b)
                 => MuseParser m a
