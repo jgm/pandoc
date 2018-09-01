@@ -321,14 +321,19 @@ containsFootnotes = p
         s (_:xs) = p xs
         s [] = False
 
+-- | Return True if string should be escaped with <verbatim> tags
+shouldEscapeString :: Bool -> String -> Bool
+shouldEscapeString isInsideLinkDescription s =
+  any (`elem` ("#*<=|" :: String)) s ||
+  "::" `isInfixOf` s ||
+  "~~" `isInfixOf` s ||
+  "[[" `isInfixOf` s ||
+  ("]" `isInfixOf` s && isInsideLinkDescription) ||
+  containsFootnotes s
+
 conditionalEscapeString :: Bool -> String -> String
 conditionalEscapeString isInsideLinkDescription s =
-  if any (`elem` ("#*<=|" :: String)) s ||
-     "::" `isInfixOf` s ||
-     "~~" `isInfixOf` s ||
-     "[[" `isInfixOf` s ||
-     ("]" `isInfixOf` s && isInsideLinkDescription) ||
-     containsFootnotes s
+  if shouldEscapeString isInsideLinkDescription s
     then escapeString s
     else s
 
