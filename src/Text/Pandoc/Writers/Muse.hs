@@ -70,9 +70,9 @@ data WriterEnv =
   WriterEnv { envOptions :: WriterOptions
             , envTopLevel :: Bool
             , envInsideBlock :: Bool
-            , envInlineStart :: Bool
+            , envInlineStart :: Bool -- ^ True if there is only whitespace since last newline
             , envInsideLinkDescription :: Bool -- ^ Escape ] if True
-            , envAfterSpace :: Bool
+            , envAfterSpace :: Bool -- ^ There is whitespace (not just newline) before
             , envOneLine :: Bool -- ^ True if newlines are not allowed
             }
 
