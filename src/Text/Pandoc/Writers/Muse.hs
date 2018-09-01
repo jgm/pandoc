@@ -322,20 +322,26 @@ containsFootnotes = p
         s [] = False
 
 -- | Return True if string should be escaped with <verbatim> tags
-shouldEscapeString :: Bool -> String -> Bool
-shouldEscapeString isInsideLinkDescription s =
-  any (`elem` ("#*<=|" :: String)) s ||
-  "::" `isInfixOf` s ||
-  "~~" `isInfixOf` s ||
-  "[[" `isInfixOf` s ||
-  ("]" `isInfixOf` s && isInsideLinkDescription) ||
-  containsFootnotes s
+shouldEscapeString :: PandocMonad m
+                   => String
+                   -> Muse m Bool
+shouldEscapeString s = do
+  insideLink <- asks envInsideLinkDescription
+  return $ any (`elem` ("#*<=|" :: String)) s ||
+           "::" `isInfixOf` s ||
+           "~~" `isInfixOf` s ||
+           "[[" `isInfixOf` s ||
+           ("]" `isInfixOf` s && insideLink) ||
+           containsFootnotes s
 
-conditionalEscapeString :: Bool -> String -> String
-conditionalEscapeString isInsideLinkDescription s =
-  if shouldEscapeString isInsideLinkDescription s
-    then escapeString s
-    else s
+conditionalEscapeString :: PandocMonad m
+                        => String
+                        -> Muse m String
+conditionalEscapeString s = do
+  shouldEscape <- shouldEscapeString s
+  if shouldEscape
+    then return $ escapeString s
+    else return $ s
 
 -- Expand Math and Cite before normalizing inline list
 preprocessInlineList :: PandocMonad m
@@ -459,9 +465,8 @@ inlineListToMuse' lst = do
 inlineToMuse :: PandocMonad m
              => Inline
              -> Muse m Doc
-inlineToMuse (Str str) = do
-  insideLink <- asks envInsideLinkDescription
-  return $ text $ conditionalEscapeString insideLink str
+inlineToMuse (Str str) =
+  text <$> conditionalEscapeString str
 inlineToMuse (Emph lst) = do
   contents <- inlineListToMuse lst
   return $ "<em>" <> contents <> "</em>"
@@ -516,11 +521,12 @@ inlineToMuse (Image attr alt (source,'f':'i':'g':':':title)) =
 inlineToMuse (Image attr@(_, classes, _) inlines (source, title)) = do
   opts <- asks envOptions
   alt <- local (\env -> env { envInsideLinkDescription = True }) $ inlineListToMuse inlines
-  let title' = if null title
-                  then if null inlines
-                          then ""
-                          else "[" <> alt <> "]"
-                  else "[" <> text (conditionalEscapeString True title) <> "]"
+  title' <- if null title
+            then if null inlines
+                 then return ""
+                 else return $ "[" <> alt <> "]"
+            else do s <- local (\env -> env { envInsideLinkDescription = True }) $ conditionalEscapeString title
+                    return $ "[" <> text s <> "]"
   let width = case dimension Width attr of
                 Just (Percent x) | isEnabled Ext_amuse opts -> " " ++ show (round x :: Integer)
                 _ -> ""
