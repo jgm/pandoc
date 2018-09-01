@@ -327,7 +327,8 @@ shouldEscapeString :: PandocMonad m
                    -> Muse m Bool
 shouldEscapeString s = do
   insideLink <- asks envInsideLinkDescription
-  return $ any (`elem` ("#*<=|" :: String)) s ||
+  return $ null s ||
+           any (`elem` ("#*<=|" :: String)) s ||
            "::" `isInfixOf` s ||
            "~~" `isInfixOf` s ||
            "[[" `isInfixOf` s ||
