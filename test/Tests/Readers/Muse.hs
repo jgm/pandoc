@@ -625,6 +625,18 @@ tests =
           T.unlines [ "* Foo"
                     , "bar"
                     ] =?> header 1 "Foo\nbar"
+        , test (purely $ readMuse def { readerExtensions = extensionsFromList [Ext_amuse, Ext_auto_identifiers]})
+               "Auto identifiers"
+          (T.unlines [ "* foo"
+                     , "** Foo"
+                     , "* bar"
+                     , "** foo"
+                     , "* foo"
+                     ] =?> headerWith ("foo",[],[]) 1 "foo" <>
+                           headerWith ("foo-1",[],[]) 2 "Foo" <>
+                           headerWith ("bar",[],[]) 1 "bar" <>
+                           headerWith ("foo-2",[],[]) 2 "foo" <>
+                           headerWith ("foo-3",[],[]) 1 "foo")
         ]
       , testGroup "Directives"
         [ "Title" =:

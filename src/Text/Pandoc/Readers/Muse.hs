@@ -123,7 +123,9 @@ instance HasLogMessages MuseState where
 parseMuse :: PandocMonad m => MuseParser m Pandoc
 parseMuse = do
   many directive
-  blocks <- parseBlocks
+  firstSection <- parseBlocks
+  rest <- many parseSection
+  let blocks = mconcat $ (firstSection : rest)
   st <- getState
   let doc = runF (do Pandoc _ bs <- B.doc <$> blocks
                      meta <- museMeta st
@@ -252,17 +254,20 @@ directive = do
 
 -- ** Block parsers
 
+-- | Parse section contents until EOF or next header
 parseBlocks :: PandocMonad m
             => MuseParser m (F Blocks)
 parseBlocks =
   try (parseEnd <|>
+       nextSection <|>
        blockStart <|>
        listStart <|>
        paraStart)
   where
+    nextSection = mempty <$ lookAhead headingStart
     parseEnd = mempty <$ eof
-    blockStart = ((B.<>) <$> (emacsHeading <|> blockElements <|> emacsNoteBlock)
-                         <*> parseBlocks) <|> (uncurry (B.<>) <$> amuseHeadingUntil parseBlocks)
+    blockStart = ((B.<>) <$> (blockElements <|> emacsNoteBlock)
+                         <*> parseBlocks)
     listStart = do
       updateState (\st -> st { museInPara = False })
       uncurry (B.<>) <$> (anyListUntil parseBlocks <|> amuseNoteBlockUntil parseBlocks)
@@ -270,6 +275,13 @@ parseBlocks =
       indent <- length <$> many spaceChar
       uncurry (B.<>) . first (p indent) <$> paraUntil parseBlocks
       where p indent = if indent >= 2 && indent < 6 then fmap B.blockQuote else id
+
+-- | Parse section that starts with a header
+parseSection :: PandocMonad m
+             => MuseParser m (F Blocks)
+parseSection =
+  ((B.<>) <$> emacsHeading <*> parseBlocks) <|>
+  ((uncurry (B.<>)) <$> amuseHeadingUntil parseBlocks)
 
 parseBlocksTill :: PandocMonad m
                 => MuseParser m a
@@ -362,7 +374,7 @@ separator = try $ do
   return $ return B.horizontalRule
 
 headingStart :: PandocMonad m => MuseParser m (String, Int)
-headingStart = do
+headingStart = try $ do
   anchorId <- option "" $ try (parseAnchor <* manyTill spaceChar eol)
   getPosition >>= \pos -> guard (sourceColumn pos == 1)
   level <- fmap length $ many1 $ char '*'
