@@ -361,15 +361,20 @@ separator = try $ do
   eol
   return $ return B.horizontalRule
 
--- | Parse a single-line heading.
-emacsHeading :: PandocMonad m => MuseParser m (F Blocks)
-emacsHeading = try $ do
-  guardDisabled Ext_amuse
+headingStart :: PandocMonad m => MuseParser m (String, Int)
+headingStart = do
   anchorId <- option "" $ try (parseAnchor <* manyTill spaceChar eol)
   getPosition >>= \pos -> guard (sourceColumn pos == 1)
   level <- fmap length $ many1 $ char '*'
   guard $ level <= 5
   spaceChar
+  return (anchorId, level)
+
+-- | Parse a single-line heading.
+emacsHeading :: PandocMonad m => MuseParser m (F Blocks)
+emacsHeading = try $ do
+  guardDisabled Ext_amuse
+  (anchorId, level) <- headingStart
   content <- trimInlinesF . mconcat <$> manyTill inline eol
   attr <- registerHeader (anchorId, [], []) (runF content def)
   return $ B.headerWith attr level <$> content
@@ -381,11 +386,7 @@ amuseHeadingUntil :: PandocMonad m
                   -> MuseParser m (F Blocks, a)
 amuseHeadingUntil end = try $ do
   guardEnabled Ext_amuse
-  anchorId <- option "" $ try (parseAnchor <* manyTill spaceChar eol)
-  getPosition >>= \pos -> guard (sourceColumn pos == 1)
-  level <- fmap length $ many1 $ char '*'
-  guard $ level <= 5
-  spaceChar
+  (anchorId, level) <- headingStart
   (content, e) <- paraContentsUntil end
   attr <- registerHeader (anchorId, [], []) (runF content def)
   return (B.headerWith attr level <$> content, e)
