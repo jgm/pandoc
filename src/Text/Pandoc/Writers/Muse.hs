@@ -348,9 +348,9 @@ conditionalEscapeString :: PandocMonad m
                         -> Muse m String
 conditionalEscapeString s = do
   shouldEscape <- shouldEscapeString s
-  if shouldEscape
-    then return $ escapeString s
-    else return $ s
+  return $ if shouldEscape
+             then escapeString s
+             else s
 
 -- Expand Math and Cite before normalizing inline list
 preprocessInlineList :: PandocMonad m
@@ -489,7 +489,7 @@ inlineListToMuse :: PandocMonad m
                  => [Inline]
                  -> Muse m Doc
 inlineListToMuse lst = do
-  lst' <- (normalizeInlineList . fixNotes) <$> preprocessInlineList (map (removeKeyValues . replaceSmallCaps) lst)
+  lst' <- normalizeInlineList . fixNotes <$> preprocessInlineList (map (removeKeyValues . replaceSmallCaps) lst)
   insideAsterisks <- asks envInsideAsterisks
   modify $ \st -> st { stUseTags = False } -- Previous character is likely a '>' or some other markup
   local (\env -> env { envNearAsterisks = insideAsterisks }) $ renderInlineList lst'
