@@ -116,33 +116,27 @@ hGetContents = fmap toString . B.hGetContents
 --                   >> hSetNewlineMode h universalNewlineMode
 --                   >> IO.hGetContents h
 
--- | Convert UTF8-encoded ByteString to Text, also
--- removing '\r' characters.
+-- | Convert UTF8-encoded ByteString to Text
 toText :: B.ByteString -> T.Text
-toText = T.decodeUtf8 . filterCRs . dropBOM
+toText = T.decodeUtf8 . dropBOM
   where dropBOM bs =
          if "\xEF\xBB\xBF" `B.isPrefixOf` bs
             then B.drop 3 bs
             else bs
-        filterCRs = B.filter (/='\r')
 
--- | Convert UTF8-encoded ByteString to String, also
--- removing '\r' characters.
+-- | Convert UTF8-encoded ByteString to String
 toString :: B.ByteString -> String
 toString = T.unpack . toText
 
--- | Convert UTF8-encoded ByteString to Text, also
--- removing '\r' characters.
+-- | Convert UTF8-encoded ByteString to Text
 toTextLazy :: BL.ByteString -> TL.Text
-toTextLazy = TL.decodeUtf8 . filterCRs . dropBOM
+toTextLazy = TL.decodeUtf8 . dropBOM
   where dropBOM bs =
          if "\xEF\xBB\xBF" `BL.isPrefixOf` bs
             then BL.drop 3 bs
             else bs
-        filterCRs = BL.filter (/='\r')
 
--- | Convert UTF8-encoded ByteString to String, also
--- removing '\r' characters.
+-- | Convert UTF8-encoded ByteString to String
 toStringLazy :: BL.ByteString -> String
 toStringLazy = TL.unpack . toTextLazy
 

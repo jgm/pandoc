@@ -2252,7 +2252,7 @@ insertIncluded dirs f = do
                    Nothing -> do
                      report $ CouldNotLoadIncludeFile f pos
                      return ""
-  getInput >>= setInput . (tokenize f (T.pack contents) ++)
+  getInput >>= setInput . (tokenize f (crFilter $ T.pack contents) ++)
   updateState dropLatestIncludeFile
 
 maybeAddExtension :: String -> FilePath -> FilePath

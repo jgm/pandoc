@@ -53,4 +53,7 @@ tests = [ testGroup "base tag"
           , test htmlNativeDivs "<main> followed by text" $ "<main>main content</main>non-main content" =?>
             doc (divWith ("", [], [("role", "main")]) (plain (text "main content")) <> plain (text "non-main content"))
           ]
+        , test html "carriage return" $
+          "foo\rbar" =?>
+          plain (text "foo\rbar")
         ]
