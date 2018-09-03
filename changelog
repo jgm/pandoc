@@ -7304,7 +7304,7 @@ pandoc (1.13.2.1)
 
 pandoc (1.13.2)
 
-  * TWiki Reader: add new new twiki reader (API change, Alexander Sulfrian).
+  * TWiki Reader: add new twiki reader (API change, Alexander Sulfrian).
 
   * Markdown reader:
 
