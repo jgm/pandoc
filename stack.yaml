@@ -15,7 +15,6 @@ extra-deps:
   commit: 626b16ef8cfc71f54f5fdccf680f41e51d356f80
 - haddock-library-1.6.0
 - HsYAML-0.1.1.1
-- network-2.7.0.2
 - yaml-0.9.0
 ghc-options:
    "$locals": -fhide-source-paths -XNoImplicitPrelude
