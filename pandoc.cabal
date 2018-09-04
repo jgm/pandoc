@@ -340,6 +340,8 @@ custom-setup
 
 library
   build-depends: base >= 4.7 && < 5,
+                 base-compat,
+                 scientific,
                  syb >= 0.1 && < 0.8,
                  containers >= 0.4.2.1 && < 0.6,
                  unordered-containers >= 0.2 && < 0.3,
@@ -361,7 +363,6 @@ library
                  random >= 1 && < 1.2,
                  pandoc-types >= 1.17.5 && < 1.18,
                  aeson >= 0.7 && < 1.5,
-                 aeson-pretty >= 0.8.5 && < 0.9,
                  tagsoup >= 0.14.6 && < 0.15,
                  base64-bytestring >= 0.1 && < 1.1,
                  zlib >= 0.5 && < 0.7,
@@ -411,7 +412,7 @@ library
   ghc-options:   -Wall -fno-warn-unused-do-bind
   default-language: Haskell2010
   other-extensions: NoImplicitPrelude
-  hs-source-dirs:  src
+  hs-source-dirs:  src, aeson-pretty
 
   exposed-modules: Text.Pandoc,
                    Text.Pandoc.App,
@@ -542,7 +543,8 @@ library
                    Text.Pandoc.UUID,
                    Text.Pandoc.Translations,
                    Text.Pandoc.Slides,
-                   Paths_pandoc
+                   Paths_pandoc,
+                   Data.Aeson.Encode.Pretty
   autogen-modules: Paths_pandoc
   buildable:       True
 

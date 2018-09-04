@@ -12,7 +12,7 @@ packages:
 - '.'
 extra-deps:
 - github: jgm/pandoc-citeproc
-  commit: 1037917087b2ca58c6d6424eaba62eb135858fc0
+  commit: 626b16ef8cfc71f54f5fdccf680f41e51d356f80
 - haddock-library-1.6.0
 - HsYAML-0.1.1.1
 - network-2.7.0.2
