@@ -329,8 +329,7 @@ alignToConTeXt align = case align of
                          AlignDefault -> empty
 
 listItemToConTeXt :: PandocMonad m => [Block] -> WM m Doc
-listItemToConTeXt list = blockListToConTeXt list >>=
-  return . ("\\item" $$) . nest 2
+listItemToConTeXt list = (("\\item" $$) . nest 2) <$> blockListToConTeXt list
 
 defListItemToConTeXt :: PandocMonad m => ([Inline], [[Block]]) -> WM m Doc
 defListItemToConTeXt (term, defs) = do

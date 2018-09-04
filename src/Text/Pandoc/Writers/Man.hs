@@ -325,11 +325,11 @@ blockListToMan :: PandocMonad m
                -> [Block]       -- ^ List of block elements
                -> StateT WriterState m Doc
 blockListToMan opts blocks =
-  mapM (blockToMan opts) blocks >>= (return . vcat)
+  vcat <$> mapM (blockToMan opts) blocks
 
 -- | Convert list of Pandoc inline elements to man.
 inlineListToMan :: PandocMonad m => WriterOptions -> [Inline] -> StateT WriterState m Doc
-inlineListToMan opts lst = mapM (inlineToMan opts) lst >>= (return . hcat)
+inlineListToMan opts lst = hcat <$> mapM (inlineToMan opts) lst
 
 -- | Convert Pandoc inline element to man.
 inlineToMan :: PandocMonad m => WriterOptions -> Inline -> StateT WriterState m Doc

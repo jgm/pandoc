@@ -801,7 +801,7 @@ pandocToEPUB version opts doc@(Pandoc meta _) = do
                                 [ unode "a" ! [("href", "text/cover.xhtml")
                                               ,("epub:type", "cover")] $
                                   "Cover"] |
-                                  epubCoverImage metadata /= Nothing
+                                  isJust (epubCoverImage metadata)
                               ] ++
                               [ unode "li"
                                 [ unode "a" ! [("href", "#toc")

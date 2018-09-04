@@ -207,13 +207,13 @@ blockListToHaddock :: PandocMonad m
                    -> [Block]       -- ^ List of block elements
                    -> StateT WriterState m Doc
 blockListToHaddock opts blocks =
-  mapM (blockToHaddock opts) blocks >>= return . cat
+  cat <$> mapM (blockToHaddock opts) blocks
 
 -- | Convert list of Pandoc inline elements to haddock.
 inlineListToHaddock :: PandocMonad m
                     => WriterOptions -> [Inline] -> StateT WriterState m Doc
 inlineListToHaddock opts lst =
-  mapM (inlineToHaddock opts) lst >>= return . cat
+  cat <$> mapM (inlineToHaddock opts) lst
 
 -- | Convert Pandoc inline element to haddock.
 inlineToHaddock :: PandocMonad m

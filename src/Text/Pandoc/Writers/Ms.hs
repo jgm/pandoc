@@ -434,7 +434,7 @@ blockListToMs :: PandocMonad m
               -> [Block]       -- ^ List of block elements
               -> MS m Doc
 blockListToMs opts blocks =
-  mapM (blockToMs opts) blocks >>= (return . vcat)
+  vcat <$> mapM (blockToMs opts) blocks
 
 -- | Convert list of Pandoc inline elements to ms.
 inlineListToMs :: PandocMonad m => WriterOptions -> [Inline] -> MS m Doc

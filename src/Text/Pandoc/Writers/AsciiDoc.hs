@@ -285,7 +285,7 @@ blockToAsciiDoc opts (DefinitionList items) = do
   contents <- mapM (definitionListItemToAsciiDoc opts) items
   return $ cat contents <> blankline
 blockToAsciiDoc opts (Div (ident,_,_) bs) = do
-  let identifier = if null ident then empty else ("[[" <> text ident <> "]]")
+  let identifier = if null ident then empty else "[[" <> text ident <> "]]"
   contents <- blockListToAsciiDoc opts bs
   return $ identifier $$ contents
 
@@ -492,6 +492,6 @@ inlineToAsciiDoc opts (Note [Plain inlines]) = do
 -- asciidoc can't handle blank lines in notes
 inlineToAsciiDoc _ (Note _) = return "[multiblock footnote omitted]"
 inlineToAsciiDoc opts (Span (ident,_,_) ils) = do
-  let identifier = if null ident then empty else ("[[" <> text ident <> "]]")
+  let identifier = if null ident then empty else "[[" <> text ident <> "]]"
   contents <- inlineListToAsciiDoc opts ils
   return $ identifier <> contents

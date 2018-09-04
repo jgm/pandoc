@@ -73,7 +73,7 @@ pandocToTextile opts (Pandoc meta blocks) = do
                  (inlineListToTextile opts) meta
   body <- blockListToTextile opts blocks
   notes <- gets $ unlines . reverse . stNotes
-  let main = pack $ body ++ if null notes then "" else ("\n\n" ++ notes)
+  let main = pack $ body ++ if null notes then "" else "\n\n" ++ notes
   let context = defField "body" main metadata
   case writerTemplate opts of
          Nothing  -> return main
@@ -154,7 +154,7 @@ blockToTextile _ HorizontalRule = return "<hr />\n"
 
 blockToTextile opts (Header level (ident,classes,keyvals) inlines) = do
   contents <- inlineListToTextile opts inlines
-  let identAttr = if null ident then "" else ('#':ident)
+  let identAttr = if null ident then "" else '#':ident
   let attribs = if null identAttr && null classes
                    then ""
                    else "(" ++ unwords classes ++ identAttr ++ ")"
@@ -382,13 +382,13 @@ blockListToTextile :: PandocMonad m
                    -> [Block]       -- ^ List of block elements
                    -> TW m String
 blockListToTextile opts blocks =
-  mapM (blockToTextile opts) blocks >>= return . vcat
+  vcat <$> mapM (blockToTextile opts) blocks
 
 -- | Convert list of Pandoc inline elements to Textile.
 inlineListToTextile :: PandocMonad m
                     => WriterOptions -> [Inline] -> TW m String
 inlineListToTextile opts lst =
-  mapM (inlineToTextile opts) lst >>= return . concat
+  concat <$> mapM (inlineToTextile opts) lst
 
 -- | Convert Pandoc inline element to Textile.
 inlineToTextile :: PandocMonad m => WriterOptions -> Inline -> TW m String
