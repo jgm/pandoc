@@ -255,7 +255,7 @@ tests =
         ]
       ]
 
-  , testGroup "Blocks" $
+  , testGroup "Blocks"
       [ testProperty "Round trip" roundTrip
       , "Block elements end paragraphs" =:
         T.unlines [ "First paragraph"
