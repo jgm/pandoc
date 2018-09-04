@@ -275,7 +275,7 @@ tests = [ testGroup "block elements"
                unlines [ "#bar"
                        , "** Foo"
                       ]
-            , "empty heading" =: header 4 (mempty) =?> "**** <verbatim></verbatim>"
+            , "empty heading" =: header 4 mempty =?> "**** <verbatim></verbatim>"
             ]
           , "horizontal rule" =: horizontalRule =?> "----"
           , "escape horizontal rule" =: para (text "----") =?> "<verbatim></verbatim>----"
@@ -341,8 +341,8 @@ tests = [ testGroup "block elements"
             , "do not escape colon" =: str ":" =?> ":"
             , "escape - to avoid accidental unordered lists" =: text " - foo" =?> "<verbatim></verbatim> - foo"
             , "escape - inside a list to avoid accidental nested unordered lists" =:
-              bulletList [ (para $ text "foo") <>
-                           (para $ text "- bar")
+              bulletList [ para (text "foo") <>
+                           para (text "- bar")
                          ] =?>
               unlines [ " - foo"
                       , ""
@@ -469,11 +469,11 @@ tests = [ testGroup "block elements"
                               =?> "<class name=\"foobar\">Some text</class>"
           , "span without class" =: spanWith ("",[],[]) (text "Some text")
                                  =?> "<class>Some text</class>"
-          , "span with anchor" =: spanWith ("anchor", [], []) (mempty) <> (text "Foo bar")
+          , "span with anchor" =: spanWith ("anchor", [], []) mempty <> text "Foo bar"
                                =?> "#anchor Foo bar"
-          , "empty span with anchor" =: spanWith ("anchor", [], []) (mempty)
+          , "empty span with anchor" =: spanWith ("anchor", [], []) mempty
                                      =?> "#anchor"
-          , "empty span without class and anchor" =: spanWith ("", [], []) (mempty)
+          , "empty span without class and anchor" =: spanWith ("", [], []) mempty
                                                   =?> "<class></class>"
           , "span with class and anchor" =: spanWith ("anchor", ["foo"], []) (text "bar")
                                          =?> "#anchor <class name=\"foo\">bar</class>"
