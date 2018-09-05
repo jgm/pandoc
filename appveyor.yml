@@ -3,6 +3,9 @@ clone_folder: "c:\\pandoc"
 environment:
   global:
     STACK_BUILD_OPTS: "--no-terminal -j1 --no-system-ghc --install-ghc --verbose --test --local-bin-path=.\\windows"
+    # Override the temp directory to avoid sed escaping issues
+    # See https://github.com/haskell/cabal/issues/5386
+    TMP: "c:\\tmp"
     # see #4201, https://github.com/haskell-tools/haskell-tools/issues/277
   matrix:
       #  - STACK_VERSION: "windows-i386"
