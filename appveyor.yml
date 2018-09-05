@@ -20,7 +20,7 @@ environment:
   - STACK_VERSION: "windows-i386"
     STACK_ROOT: "c:\\sr32"
     STACK_YAML: "stack.yaml"
-    STACK_FLAGS: "--flag=hslua:lua_32bits"
+    STACK_FLAGS: "--flag=hslua:lua_32bits --ghc-options --extra-prog-path=C:\Users\appveyor\AppData\Local\Programs\stack\i386-windows\msys2-20180531\mingw32\bin"
     ARCH: "x86"
     CHOCO_OPTS: "--x86"
   - STACK_VERSION: "windows-x86_64"
