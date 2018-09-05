@@ -70,6 +70,7 @@ documentTree blocks inline = do
       , headlineTodoMarker = Nothing
       , headlineText = B.fromList title'
       , headlineTags = mempty
+      , headlinePlanning = emptyPlanning
       , headlineProperties = mempty
       , headlineContents = initialBlocks'
       , headlineChildren = headlines'
@@ -117,6 +118,7 @@ data Headline = Headline
   , headlineTodoMarker :: Maybe TodoMarker
   , headlineText       :: Inlines
   , headlineTags       :: [Tag]
+  , headlinePlanning   :: PlanningInfo -- ^ subtree planning information
   , headlineProperties :: Properties
   , headlineContents   :: Blocks
   , headlineChildren   :: [Headline]
@@ -136,6 +138,7 @@ headline blocks inline lvl = try $ do
   title <- trimInlinesF . mconcat <$> manyTill inline endOfTitle
   tags  <- option [] headerTags
   newline
+  planning   <- option emptyPlanning planningInfo
   properties <- option mempty propertiesDrawer
   contents   <- blocks
   children   <- many (headline blocks inline (level + 1))
@@ -148,6 +151,7 @@ headline blocks inline lvl = try $ do
       , headlineTodoMarker = todoKw
       , headlineText = title'
       , headlineTags = tags
+      , headlinePlanning = planning
       , headlineProperties = properties
       , headlineContents = contents'
       , headlineChildren = children'
@@ -277,9 +281,39 @@ tagsToInlines tags =
 tagSpan :: Tag -> Inlines -> Inlines
 tagSpan t = B.spanWith ("", ["tag"], [("tag-name", fromTag t)])
 
+-- | An Org timestamp, including repetition marks. TODO: improve
+type Timestamp = String
 
+timestamp :: Monad m => OrgParser m Timestamp
+timestamp = try $ do
+  openChar <- oneOf "<["
+  let isActive = openChar == '<'
+  let closeChar = if isActive then '>' else ']'
+  content <- many1Till anyChar (char closeChar)
+  return (openChar : content ++ [closeChar])
 
+-- | Planning information for a subtree/headline.
+data PlanningInfo = PlanningInfo
+  { planningClosed :: Maybe Timestamp
+  , planningDeadline :: Maybe Timestamp
+  , planningScheduled :: Maybe Timestamp
+  }
 
+emptyPlanning :: PlanningInfo
+emptyPlanning = PlanningInfo Nothing Nothing Nothing
+
+-- | Read a single planning-related and timestamped line.
+planningInfo :: Monad m => OrgParser m PlanningInfo
+planningInfo = try $ do
+  updaters <- many1 planningDatum <* skipSpaces <* newline
+  return $ foldr ($) emptyPlanning updaters
+ where
+  planningDatum = skipSpaces *> choice
+    [ updateWith (\s p -> p { planningScheduled = Just s}) "SCHEDULED"
+    , updateWith (\d p -> p { planningDeadline = Just d}) "DEADLINE"
+    , updateWith (\c p -> p { planningClosed = Just c}) "CLOSED"
+    ]
+  updateWith fn cs = fn <$> (string cs *> char ':' *> skipSpaces *> timestamp)
 
 -- | Read a :PROPERTIES: drawer and return the key/value pairs contained
 -- within.
