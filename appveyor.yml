@@ -60,7 +60,7 @@ build: off
 install:
   - '"%WIXBIN%"\candle -? || choco install wixtoolset'
   - |
-      %STACK% --version || curl -ostack.zip -L --insecure http://www.stackage.org/stack/%STACK_VERSION% && 7z e stack.zip -o"%STACK_ROOT%" stack.exe
+      curl -ostack.zip -L --insecure http://www.stackage.org/stack/%STACK_VERSION% && 7z e stack.zip -o"%STACK_ROOT%" stack.exe
 
 # before_test:
 
