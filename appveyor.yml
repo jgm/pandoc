@@ -2,6 +2,7 @@ image: Visual Studio 2013
 clone_folder: "c:\\pandoc"
 environment:
   global:
+    WIXBIN: "c:\\Program Files (x86)\\WiX Toolset v3.11\\bin"
     STACK_BUILD_OPTS: "--no-terminal -j1 --no-system-ghc --install-ghc --verbose --test --local-bin-path=.\\windows"
     # Override the temp directory to avoid sed escaping issues
     # See https://github.com/haskell/cabal/issues/5386
@@ -84,8 +85,8 @@ after_test:
       set VERSION=
       for /f "tokens=1-2 delims= " %%a in ('.\pandoc.exe --version') do ( if not defined VERSION set "VERSION=%%b" )
       echo %VERSION%
-      candle -arch %ARCH% -dVERSION=%VERSION% -dBINPATH=. *.wxs -out wixobj\
-      light -sw1076 -ext WixUIExtension -ext WixUtilExtension -cultures:en-us -loc Pandoc-en-us.wxl -out "pandoc-%STACK_VERSION%.msi" wixobj\*.wixobj
+      "%WIXBIN%"\candle -arch %ARCH% -dVERSION=%VERSION% -dBINPATH=. *.wxs -out wixobj\
+      "%WIXBIN%"\light -sw1076 -ext WixUIExtension -ext WixUtilExtension -cultures:en-us -loc Pandoc-en-us.wxl -out "pandoc-%STACK_VERSION%.msi" wixobj\*.wixobj
 
 artifacts:
   - path: 'windows\pandoc-%STACK_VERSION%.zip'
