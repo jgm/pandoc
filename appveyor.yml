@@ -68,7 +68,7 @@ test_script:
   # The ugly echo "" hack is to avoid complaints about 0 being an invalid file
   # descriptor
   - |
-      %STACK% setup --stack-yaml %STACK_YAML% > nul
+      %STACK% setup --stack-yaml %STACK_YAML% --no-system-ghc --install-ghc > nul
       %STACK% path
       echo "" | %STACK% clean
       echo "" | %STACK% install --stack-yaml %STACK_YAML% %STACK_BUILD_OPTS% pandoc pandoc-citeproc %STACK_FLAGS%
