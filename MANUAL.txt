@@ -904,7 +904,7 @@ Options affecting specific writers
 :   Use the [`listings`] package for LaTeX code blocks. The package
     does not support multi-byte encoding for source code. To handle UTF-8
     you would need to use a custom template. This issue is fully 
-    documented here : [Encoding issue with the listings package].
+    documented here: [Encoding issue with the listings package].
 
 `-i`, `--incremental`
 
