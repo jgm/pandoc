@@ -9,25 +9,24 @@ environment:
       #    STACK_ROOT: "c:\\sr32"
       #    STACK_YAML: "stack.lts11.yaml"
       #    STACK: "%STACK_ROOT%\\stack.exe"
-      #    STACK_FLAGS: "--flag=hslua:lua_32bits"
+      #    STACK_BUILD_OPTS: "--flag=hslua:lua_32bits"
       #    ARCH: "x86"
       #  - STACK_VERSION: "windows-x86_64"
       #    STACK_ROOT: "c:\\sr64"
       #    STACK_YAML: "stack.lts11.yaml"
       #    STACK: "%STACK_ROOT%\\stack.exe"
-      #    STACK_FLAGS: ""
+      #    STACK_BUILD_OPTS: ""
       #    ARCH: "x64"
   - STACK_VERSION: "windows-i386"
     STACK_ROOT: "c:\\sr32"
     STACK_YAML: "stack.yaml"
-    STACK_FLAGS: |
-        --flag=hslua:lua_32bits --ghc-options --extra-prog-path=C:\Users\appveyor\AppData\Local\Programs\stack\i386-windows\msys2-20180531\mingw32\bin
+    STACK_BUILD_OPTS: "--flag=hslua:lua_32bits"
     ARCH: "x86"
     CHOCO_OPTS: "--x86"
   - STACK_VERSION: "windows-x86_64"
     STACK_ROOT: "c:\\sr64"
     STACK_YAML: "stack.yaml"
-    STACK_FLAGS: ""
+    STACK_BUILD_OPTS: ""
     ARCH: "x64"
     CHOCO_OPTS: ""
 
@@ -70,7 +69,7 @@ test_script:
       stack setup --stack-yaml %STACK_YAML% --no-system-ghc --install-ghc > nul
       stack path
       echo "" | stack clean
-      echo "" | stack install --stack-yaml %STACK_YAML% %STACK_BUILD_OPTS% %STACK_FLAGS% pandoc pandoc-citeproc
+      echo "" | stack install --stack-yaml %STACK_YAML% %STACK_BUILD_OPTS% pandoc pandoc-citeproc
 
 after_test:
     # .\ in the stack commandline seems to be .\windows\ (where the stack-appveyor.yaml is)
