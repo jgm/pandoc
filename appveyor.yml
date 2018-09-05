@@ -22,13 +22,13 @@ environment:
     STACK_YAML: "stack.yaml"
     STACK_FLAGS: "--flag=hslua:lua_32bits"
     ARCH: "x86"
-    CHOCO_OPTS: "--86 --verbose"
+    CHOCO_OPTS: "--x86"
   - STACK_VERSION: "windows-x86_64"
     STACK_ROOT: "c:\\sr64"
     STACK_YAML: "stack.yaml"
     STACK_FLAGS: ""
     ARCH: "x64"
-    CHOCO_OPTS: "--verbose"
+    CHOCO_OPTS: ""
 
 skip_commits:
   files:
