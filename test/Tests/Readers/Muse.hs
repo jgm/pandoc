@@ -1383,7 +1383,8 @@ tests =
           , "   <verse>"
           , "   </quote>"
           , "   </verse>"
+          , "</quote>"
           ] =?>
-        para "<quote>" <> bulletList [ para "Foo" <> para "</quote>" <> para "bar" <> lineBlock [ "</quote>" ] ]
+        blockQuote (bulletList [ para "Foo" <> para "</quote>" <> para "bar" <> lineBlock [ "</quote>" ] ])
       ]
   ]
