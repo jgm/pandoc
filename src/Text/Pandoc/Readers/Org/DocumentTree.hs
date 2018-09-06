@@ -1,4 +1,3 @@
-{-# LANGUAGE NoImplicitPrelude #-}
 {-
 Copyright (C) 2014-2018 Albert Krewinkel <tarleb+pandoc@moltkeplatz.de>
 
@@ -17,8 +16,7 @@ along with this program; if not, write to the Free Software
 Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 -}
 {-# LANGUAGE FlexibleContexts #-}
-{-# LANGUAGE RecordWildCards  #-}
-{-# LANGUAGE ViewPatterns     #-}
+{-# LANGUAGE NoImplicitPrelude #-}
 {- |
    Module      : Text.Pandoc.Readers.Org.DocumentTree
    Copyright   : Copyright (C) 2014-2018 Albert Krewinkel
@@ -167,14 +165,17 @@ headline blocks inline lvl = try $ do
 
 -- | Convert an Org mode headline (i.e. a document tree) into pandoc's Blocks
 headlineToBlocks :: Monad m => Headline -> OrgParser m Blocks
-headlineToBlocks hdln@Headline {..} = do
-  maxHeadlineLevels <- getExportSetting exportHeadlineLevels
+headlineToBlocks hdln = do
+  maxLevel <- getExportSetting exportHeadlineLevels
+  let tags = headlineTags hdln
+  let text = headlineText hdln
+  let level = headlineLevel hdln
   case () of
-    _ | any isNoExportTag headlineTags     -> return mempty
-    _ | any isArchiveTag  headlineTags     -> archivedHeadlineToBlocks hdln
-    _ | isCommentTitle headlineText        -> return mempty
-    _ | headlineLevel >= maxHeadlineLevels -> headlineToHeaderWithList hdln
-    _ | otherwise                          -> headlineToHeaderWithContents hdln
+    _ | any isNoExportTag tags -> return mempty
+    _ | any isArchiveTag  tags -> archivedHeadlineToBlocks hdln
+    _ | isCommentTitle text    -> return mempty
+    _ | maxLevel <= level      -> headlineToHeaderWithList hdln
+    _ | otherwise              -> headlineToHeaderWithContents hdln
 
 isNoExportTag :: Tag -> Bool
 isNoExportTag = (== toTag "noexport")
@@ -186,8 +187,9 @@ isArchiveTag = (== toTag "ARCHIVE")
 -- FIXME: This accesses builder internals not intended for use in situations
 -- like these.  Replace once keyword parsing is supported.
 isCommentTitle :: Inlines -> Bool
-isCommentTitle (B.toList -> (Str "COMMENT":_)) = True
-isCommentTitle _                               = False
+isCommentTitle inlns = case B.toList inlns of
+  (Str "COMMENT":_) -> True
+  _ -> False
 
 archivedHeadlineToBlocks :: Monad m => Headline -> OrgParser m Blocks
 archivedHeadlineToBlocks hdln = do
@@ -198,17 +200,21 @@ archivedHeadlineToBlocks hdln = do
     ArchivedTreesHeadlineOnly -> headlineToHeader hdln
 
 headlineToHeaderWithList :: Monad m => Headline -> OrgParser m Blocks
-headlineToHeaderWithList hdln@Headline {..} = do
+headlineToHeaderWithList hdln = do
   maxHeadlineLevels <- getExportSetting exportHeadlineLevels
   header        <- headlineToHeader hdln
-  listElements  <- mapM headlineToBlocks headlineChildren
+  listElements  <- mapM headlineToBlocks (headlineChildren hdln)
   let listBlock  = if null listElements
                    then mempty
                    else B.orderedList listElements
-  let headerText = if maxHeadlineLevels == headlineLevel
+  let headerText = if maxHeadlineLevels == headlineLevel hdln
                    then header
                    else flattenHeader header
-  return $ headerText <> headlineContents <> listBlock
+  return . mconcat $
+    [ headerText
+    , headlineContents hdln
+    , listBlock
+    ]
  where
    flattenHeader :: Blocks -> Blocks
    flattenHeader blks =
@@ -217,27 +223,27 @@ headlineToHeaderWithList hdln@Headline {..} = do
        _                    -> mempty
 
 headlineToHeaderWithContents :: Monad m => Headline -> OrgParser m Blocks
-headlineToHeaderWithContents hdln@Headline {..} = do
+headlineToHeaderWithContents hdln = do
   header         <- headlineToHeader hdln
-  childrenBlocks <- mconcat <$> mapM headlineToBlocks headlineChildren
-  return $ header <> headlineContents <> childrenBlocks
+  childrenBlocks <- mconcat <$> mapM headlineToBlocks (headlineChildren hdln)
+  return $ header <> headlineContents hdln <> childrenBlocks
 
 headlineToHeader :: Monad m => Headline -> OrgParser m Blocks
-headlineToHeader Headline {..} = do
+headlineToHeader hdln = do
   exportTodoKeyword <- getExportSetting exportWithTodoKeywords
   exportTags        <- getExportSetting exportWithTags
   let todoText    = if exportTodoKeyword
-                    then case headlineTodoMarker of
+                    then case headlineTodoMarker hdln of
                       Just kw -> todoKeywordToInlines kw <> B.space
                       Nothing -> mempty
                     else mempty
-  let text        = todoText <> headlineText <>
+  let text        = todoText <> headlineText hdln <>
                     if exportTags
-                    then tagsToInlines headlineTags
+                    then tagsToInlines (headlineTags hdln)
                     else mempty
-  let propAttr    = propertiesToAttr headlineProperties
-  attr           <- registerHeader propAttr headlineText
-  return $ B.headerWith attr headlineLevel text
+  let propAttr    = propertiesToAttr (headlineProperties hdln)
+  attr           <- registerHeader propAttr (headlineText hdln)
+  return $ B.headerWith attr (headlineLevel hdln) text
 
 todoKeyword :: Monad m => OrgParser m TodoMarker
 todoKeyword = try $ do
