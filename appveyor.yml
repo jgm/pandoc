@@ -3,7 +3,7 @@ clone_folder: "c:\\pandoc"
 environment:
   global:
     WIXBIN: "c:\\Program Files (x86)\\WiX Toolset v3.11\\bin"
-    STACK_BUILD_OPTS: "--no-terminal -j1 --no-system-ghc --install-ghc --verbose --test --local-bin-path=.\\windows"
+    STACK_BUILD_OPTS: "--no-terminal -j1 --no-system-ghc --install-ghc --test --local-bin-path=.\\windows"
     # Override the temp directory to avoid sed escaping issues
     # See https://github.com/haskell/cabal/issues/5386
     TMP: "c:\\tmp"
