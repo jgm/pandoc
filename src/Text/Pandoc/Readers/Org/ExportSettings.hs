@@ -69,7 +69,7 @@ exportSetting = choice
   , integerSetting "H" (\val es -> es { exportHeadlineLevels = val })
   , ignoredSetting "inline"
   , ignoredSetting "num"
-  , ignoredSetting "p"
+  , booleanSetting "p" (\val es -> es { exportWithPlanning = val })
   , ignoredSetting "pri"
   , ignoredSetting "prop"
   , ignoredSetting "stat"

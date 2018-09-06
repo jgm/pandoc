@@ -205,5 +205,18 @@ tests =
                 , "  :END:"
                 ] =?>
       headerWith ("look", [], []) 1 "important"
+
+    , "Planning info followed by test" =:
+      T.unlines [ "* important "
+                , "  " <> T.unwords
+                  [ "CLOSED: [2018-09-05 Wed 13:58]"
+                  , "DEADLINE: <2018-09-17 Mon>"
+                  , "SCHEDULED: <2018-09-10 Mon>"
+                  ]
+                , "  :PROPERTIES:"
+                , "  :custom_id: look"
+                , "  :END:"
+                ] =?>
+      headerWith ("look", [], []) 1 "important"
     ]
   ]

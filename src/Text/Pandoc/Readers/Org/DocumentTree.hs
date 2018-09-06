@@ -204,6 +204,7 @@ headlineToHeaderWithList hdln = do
   maxHeadlineLevels <- getExportSetting exportHeadlineLevels
   header        <- headlineToHeader hdln
   listElements  <- mapM headlineToBlocks (headlineChildren hdln)
+  planningBlock <- planningToBlock (headlinePlanning hdln)
   let listBlock  = if null listElements
                    then mempty
                    else B.orderedList listElements
@@ -213,6 +214,7 @@ headlineToHeaderWithList hdln = do
   return . mconcat $
     [ headerText
     , headlineContents hdln
+    , planningBlock
     , listBlock
     ]
  where
@@ -225,8 +227,9 @@ headlineToHeaderWithList hdln = do
 headlineToHeaderWithContents :: Monad m => Headline -> OrgParser m Blocks
 headlineToHeaderWithContents hdln = do
   header         <- headlineToHeader hdln
+  planningBlock <- planningToBlock (headlinePlanning hdln)
   childrenBlocks <- mconcat <$> mapM headlineToBlocks (headlineChildren hdln)
-  return $ header <> headlineContents hdln <> childrenBlocks
+  return $ header <> planningBlock <> headlineContents hdln <> childrenBlocks
 
 headlineToHeader :: Monad m => Headline -> OrgParser m Blocks
 headlineToHeader hdln = do
@@ -286,6 +289,27 @@ tagsToInlines tags =
 -- | Wrap the given inline in a span, marking it as a tag.
 tagSpan :: Tag -> Inlines -> Inlines
 tagSpan t = B.spanWith ("", ["tag"], [("tag-name", fromTag t)])
+
+-- | Render planning info as a block iff the respective export setting is
+-- enabled.
+planningToBlock :: Monad m => PlanningInfo -> OrgParser m Blocks
+planningToBlock planning = do
+  includePlanning <- getExportSetting exportWithPlanning
+  return $
+    if includePlanning
+    then B.plain . mconcat . intersperse B.space . filter (/= mempty) $
+         [ datumInlines planningClosed "CLOSED"
+         , datumInlines planningDeadline "DEADLINE"
+         , datumInlines planningScheduled "SCHEDULED"
+         ]
+    else mempty
+ where
+  datumInlines field name =
+    case field planning of
+      Nothing -> mempty
+      Just time ->   B.strong (B.str name <> B.str ":")
+                  <> B.space
+                  <> B.emph (B.str time)
 
 -- | An Org timestamp, including repetition marks. TODO: improve
 type Timestamp = String
