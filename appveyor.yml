@@ -72,6 +72,7 @@ test_script:
       stack --version
       stack path
       echo "" | stack clean
+      echo "" | stack install --stack-yaml %STACK_YAML% %STACK_BUILD_OPTS% %STACK_FLAGS% http-client-tls
       echo "" | stack install --stack-yaml %STACK_YAML% %STACK_BUILD_OPTS% %STACK_FLAGS% pandoc pandoc-citeproc
 
 after_test:
