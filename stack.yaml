@@ -10,16 +10,20 @@ flags:
     debug: false
 packages:
 - '.'
+# See https://github.com/haskell-foundation/foundation/pull/503
+# We can go back to released foundation when this is fixed.
+- location:
+    git: https://github.com/jgm/foundation
+    commit: '4294e39'
+  subdirs:
+  - foundation
+  extra-dep: true
 extra-deps:
 - github: jgm/pandoc-citeproc
   commit: 626b16ef8cfc71f54f5fdccf680f41e51d356f80
 - haddock-library-1.6.0
 - HsYAML-0.1.1.1
 - yaml-0.9.0
-- github: jgm/foundation
-  commit: '4294e39'
-# See https://github.com/haskell-foundation/foundation/pull/503
-# We can go back to released foundation when this is fixed.
 ghc-options:
    "$locals": -fhide-source-paths -XNoImplicitPrelude
 resolver: lts-12.6
