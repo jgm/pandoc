@@ -16,6 +16,8 @@ extra-deps:
 - haddock-library-1.6.0
 - HsYAML-0.1.1.1
 - yaml-0.9.0
+- foundation-0.0.20
+- basement-0.0.7
 ghc-options:
    "$locals": -fhide-source-paths -XNoImplicitPrelude
 resolver: lts-12.6
