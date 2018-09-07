@@ -22,6 +22,9 @@ environment:
     ARCH: "x86"
     CHOCO_OPTS: "--x86"
     WIXBIN: "c:\\Program Files (x86)\\WiX Toolset v3.11\\bin"
+    # note: we do a lts11 build because of
+    # https://github.com/commercialhaskell/stackage/issues/3385
+    # with luck this will be fixed in ghc 8.6.
 
 skip_commits:
   files:
