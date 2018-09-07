@@ -303,6 +303,13 @@ The library is structured as follows:
   - `Text.Pandoc.UUID` contains functions for generating UUIDs.
   - `Text.Pandoc.XML` contains functions for formatting XML.
 
+Lua filters
+-----------
+
+If you've written a useful pandoc [lua filter](lua-filters.html),
+you may want to consider submitting a pull request to the
+[lua-filters repository](https://github.com/pandoc/lua-filters).
+
 [open issues]: https://github.com/jgm/pandoc/issues
 [closed issues]: https://github.com/jgm/pandoc/issues?q=is%3Aissue+is%3Aclosed
 [latest released version]: https://github.com/jgm/pandoc/releases/latest
