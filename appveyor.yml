@@ -3,33 +3,27 @@ clone_folder: "c:\\pandoc"
 environment:
   global:
     WIXBIN: "c:\\Program Files (x86)\\WiX Toolset v3.11\\bin"
-    STACK_BUILD_OPTS: "--no-terminal -j1 --no-terminal --test --local-bin-path=.\\windows"
+    STACK_BUILD_OPTS: "--no-terminal -j1 --no-system-ghc --install-ghc --test --local-bin-path=.\\windows"
+    # Override the temp directory to avoid sed escaping issues
+    # See https://github.com/haskell/cabal/issues/5386
+    TMP: "c:\\tmp"
     # see #4201, https://github.com/haskell-tools/haskell-tools/issues/277
   matrix:
-  - STACK_VERSION: "windows-i386"
-    STACK_ROOT: "c:\\sr32"
-    STACK_YAML: "stack.lts11.yaml"
-    STACK: "%STACK_ROOT%\\stack.exe"
-    STACK_FLAGS: "--flag=hslua:lua_32bits"
-    ARCH: "x86"
-  - STACK_VERSION: "windows-x86_64"
-    STACK_ROOT: "c:\\sr64"
-    STACK_YAML: "stack.lts11.yaml"
-    STACK: "%STACK_ROOT%\\stack.exe"
-    STACK_FLAGS: ""
-    ARCH: "x64"
-  - STACK_VERSION: "windows-i386"
-    STACK_ROOT: "c:\\sr32"
-    STACK_YAML: "stack.yaml"
-    STACK: "%STACK_ROOT%\\stack.exe"
-    STACK_FLAGS: "--flag=hslua:lua_32bits"
-    ARCH: "x86"
   - STACK_VERSION: "windows-x86_64"
     STACK_ROOT: "c:\\sr64"
     STACK_YAML: "stack.yaml"
-    STACK: "%STACK_ROOT%\\stack.exe"
-    STACK_FLAGS: ""
+    STACK_FLAGS: "--arch=x86_64"
     ARCH: "x64"
+    CHOCO_OPTS: ""
+  - STACK_VERSION: "windows-i386"
+    STACK_ROOT: "c:\\sr32"
+    STACK_YAML: "stack.lts11.yaml"
+    STACK_FLAGS: "--arch=i386 --flag=hslua:lua_32bits"
+    ARCH: "x86"
+    CHOCO_OPTS: "--x86"
+    # note: we do a lts11 build because of
+    # https://github.com/commercialhaskell/stackage/issues/3385
+    # with luck this will be fixed in ghc 8.6.
 
 skip_commits:
   files:
@@ -46,7 +40,6 @@ matrix:
 
 cache:
   - "%STACK_ROOT%"
-  - "%WIXBIN%"
   # This is where stack install ghc by default, but we don't
   # cache it because it's too large:
   # - "c:\\Users\\appveyor\\AppData\\Local\\Programs\\stack"
@@ -58,9 +51,8 @@ cache:
 build: off
 
 install:
-  - '"%WIXBIN%"\candle -? || choco install wixtoolset'
-  - |
-      %STACK% --version || curl -ostack.zip -L --insecure http://www.stackage.org/stack/%STACK_VERSION% && 7z e stack.zip -o"%STACK_ROOT%" stack.exe
+  - choco install wixtoolset %CHOCO_OPTS%
+  - choco install haskell-stack %CHOCO_OPTS%
 
 # before_test:
 
@@ -68,10 +60,10 @@ test_script:
   # The ugly echo "" hack is to avoid complaints about 0 being an invalid file
   # descriptor
   - |
-      %STACK% setup --stack-yaml %STACK_YAML% > nul
-      %STACK% path
-      echo "" | %STACK% clean
-      echo "" | %STACK% install --stack-yaml %STACK_YAML% %STACK_BUILD_OPTS% pandoc pandoc-citeproc %STACK_FLAGS%
+      stack --version
+      stack path
+      echo "" | stack clean
+      echo "" | stack install --stack-yaml %STACK_YAML% %STACK_BUILD_OPTS% %STACK_FLAGS% pandoc pandoc-citeproc
 
 after_test:
     # .\ in the stack commandline seems to be .\windows\ (where the stack-appveyor.yaml is)
@@ -84,8 +76,8 @@ after_test:
       set VERSION=
       for /f "tokens=1-2 delims= " %%a in ('.\pandoc.exe --version') do ( if not defined VERSION set "VERSION=%%b" )
       echo %VERSION%
-      "%WIXBIN%\\candle" -arch %ARCH% -dVERSION=%VERSION% -dBINPATH=. *.wxs -out wixobj\
-      "%WIXBIN%\\light" -sw1076 -ext WixUIExtension -ext WixUtilExtension -cultures:en-us -loc Pandoc-en-us.wxl -out "pandoc-%STACK_VERSION%.msi" wixobj\*.wixobj
+      "%WIXBIN%"\candle -arch %ARCH% -dVERSION=%VERSION% -dBINPATH=. *.wxs -out wixobj\
+      "%WIXBIN%"\light -sw1076 -ext WixUIExtension -ext WixUtilExtension -cultures:en-us -loc Pandoc-en-us.wxl -out "pandoc-%STACK_VERSION%.msi" wixobj\*.wixobj
 
 artifacts:
   - path: 'windows\pandoc-%STACK_VERSION%.zip'
