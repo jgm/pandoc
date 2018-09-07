@@ -2,6 +2,7 @@ image: Visual Studio 2013
 clone_folder: "c:\\pandoc"
 environment:
   global:
+    WIXBIN: "c:\\Program Files (x86)\\WiX Toolset v3.11\\bin"
     STACK_BUILD_OPTS: "--no-terminal -j1 --no-system-ghc --install-ghc --test --local-bin-path=.\\windows"
     # Override the temp directory to avoid sed escaping issues
     # See https://github.com/haskell/cabal/issues/5386
@@ -14,14 +15,12 @@ environment:
     STACK_FLAGS: "--arch=x86_64"
     ARCH: "x64"
     CHOCO_OPTS: ""
-    WIXBIN: "c:\\Program Files\\WiX Toolset v3.11\\bin"
   - STACK_VERSION: "windows-i386"
     STACK_ROOT: "c:\\sr32"
     STACK_YAML: "stack.lts11.yaml"
     STACK_FLAGS: "--arch=i386 --flag=hslua:lua_32bits"
     ARCH: "x86"
     CHOCO_OPTS: "--x86"
-    WIXBIN: "c:\\Program Files (x86)\\WiX Toolset v3.11\\bin"
     # note: we do a lts11 build because of
     # https://github.com/commercialhaskell/stackage/issues/3385
     # with luck this will be fixed in ghc 8.6.
