@@ -2,37 +2,26 @@ image: Visual Studio 2013
 clone_folder: "c:\\pandoc"
 environment:
   global:
-    WIXBIN: "c:\\Program Files (x86)\\WiX Toolset v3.11\\bin"
     STACK_BUILD_OPTS: "--no-terminal -j1 --no-system-ghc --install-ghc --test --local-bin-path=.\\windows"
     # Override the temp directory to avoid sed escaping issues
     # See https://github.com/haskell/cabal/issues/5386
     TMP: "c:\\tmp"
     # see #4201, https://github.com/haskell-tools/haskell-tools/issues/277
   matrix:
-      #  - STACK_VERSION: "windows-i386"
-      #    STACK_ROOT: "c:\\sr32"
-      #    STACK_YAML: "stack.lts11.yaml"
-      #    STACK: "%STACK_ROOT%\\stack.exe"
-      #    STACK_FLAGS: "--flag=hslua:lua_32bits"
-      #    ARCH: "x86"
-      #  - STACK_VERSION: "windows-x86_64"
-      #    STACK_ROOT: "c:\\sr64"
-      #    STACK_YAML: "stack.lts11.yaml"
-      #    STACK: "%STACK_ROOT%\\stack.exe"
-      #    STACK_FLAGS: ""
-      #    ARCH: "x64"
-      # - STACK_VERSION: "windows-x86_64"
-      #    STACK_ROOT: "c:\\sr64"
-      #    STACK_YAML: "stack.yaml"
-      #    STACK_FLAGS: ""
-      #    ARCH: "x64"
-      #    CHOCO_OPTS: ""
+  - STACK_VERSION: "windows-x86_64"
+    STACK_ROOT: "c:\\sr64"
+    STACK_YAML: "stack.yaml"
+    STACK_FLAGS: "--arch=x86_64"
+    ARCH: "x64"
+    CHOCO_OPTS: ""
+    WIXBIN: "c:\\Program Files\\WiX Toolset v3.11\\bin"
   - STACK_VERSION: "windows-i386"
     STACK_ROOT: "c:\\sr32"
-    STACK_YAML: "stack.yaml"
-    STACK_FLAGS: "--flag=hslua:lua_32bits"
+    STACK_YAML: "stack.lts11.yaml"
+    STACK_FLAGS: "--arch=i386 --flag=hslua:lua_32bits"
     ARCH: "x86"
     CHOCO_OPTS: "--x86"
+    WIXBIN: "c:\\Program Files (x86)\\WiX Toolset v3.11\\bin"
 
 skip_commits:
   files:
@@ -72,7 +61,6 @@ test_script:
       stack --version
       stack path
       echo "" | stack clean
-      echo "" | stack install --stack-yaml %STACK_YAML% %STACK_BUILD_OPTS% %STACK_FLAGS% http-client-tls
       echo "" | stack install --stack-yaml %STACK_YAML% %STACK_BUILD_OPTS% %STACK_FLAGS% pandoc pandoc-citeproc
 
 after_test:
