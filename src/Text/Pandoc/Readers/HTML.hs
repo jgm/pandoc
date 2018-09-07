@@ -663,6 +663,7 @@ inline = choice
            , pCode
            , pSpan
            , pMath False
+           , pScriptMath
            , pRawHtmlInline
            ]
 
@@ -821,6 +822,17 @@ mathMLToTeXMath s = writeTeX <$> readMathML s
 toStringAttr :: [(Text, Text)] -> [(String, String)]
 toStringAttr = map go
   where go (x,y) = (T.unpack x, T.unpack y)
+
+pScriptMath :: PandocMonad m => TagParser m Inlines
+pScriptMath = try $ do
+  TagOpen _ attr' <- pSatisfy $ tagOpen (=="script") (const True)
+  isdisplay <- case lookup "type" attr' of
+                    Just x | "math/tex" `T.isPrefixOf` x
+                      -> return $ "display" `T.isSuffixOf` x
+                    _ -> mzero
+  contents <- T.unpack . innerText <$>
+                manyTill pAnyTag (pSatisfy (matchTagClose "script"))
+  return $ (if isdisplay then B.displayMath else B.math) contents
 
 pMath :: PandocMonad m => Bool -> TagParser m Inlines
 pMath inCase = try $ do
