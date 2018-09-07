@@ -143,13 +143,21 @@ The easiest way to build pandoc from source is to use [stack]:
 
 1.  Install the [Haskell platform].  This will give you [GHC] and
     the [cabal-install] build tool.  Note that pandoc requires
-    GHC >= 7.10.
+    GHC >= 7.10 and cabal >= 2.0.
 
 2.  Update your package database:
 
         cabal update
 
-3.  Use `cabal` to install pandoc and its dependencies:
+3.  Check your cabal version with
+
+        cabal --version
+
+    If you have a version less than 2.0, install the latest with:
+
+        cabal install cabal-install
+
+4.  Use `cabal` to install pandoc and its dependencies:
 
         cabal install pandoc
 
@@ -162,7 +170,7 @@ The easiest way to build pandoc from source is to use [stack]:
 
         cabal install
 
-4.  Make sure the `$CABALDIR/bin` directory is in your path.  You should
+5.  Make sure the `$CABALDIR/bin` directory is in your path.  You should
     now be able to run `pandoc`:
 
         pandoc --help
@@ -206,6 +214,7 @@ over the build and installation.  Most users should use the
 quick install, but this information may be of use to packagers.
 For more details, see the [Cabal User's Guide].  These instructions
 assume that the pandoc source directory is your working directory.
+You will need cabal version 2.0 or higher.
 
 1.  Install dependencies:  in addition to the [Haskell platform],
     you will need a number of additional libraries.  You can install
