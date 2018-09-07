@@ -10,11 +10,11 @@ title: Pandoc Lua Filters
 
 Pandoc has long supported filters, which allow the pandoc
 abstract syntax tree (AST) to be manipulated between the parsing
-and the writing phase. Traditional pandoc filters accept a JSON
-representation of the pandoc AST and produce an altered JSON
-representation of the AST. They may be written in any
-programming language, and invoked from pandoc using the
-`--filter` option.
+and the writing phase. [Traditional pandoc
+filters](filters.html) accept a JSON representation of the
+pandoc AST and produce an altered JSON representation of the
+AST. They may be written in any programming language, and
+invoked from pandoc using the `--filter` option.
 
 Although traditional filters are very flexible, they have a
 couple of disadvantages. First, there is some overhead in
@@ -239,6 +239,11 @@ This makes it possible to apply these functions on strings using
 colon syntax (`mystring:uc_upper()`).
 
 # Examples
+
+The following filters are presented as examples.
+A repository of useful lua filters (which may also serve
+as good examples) is available at
+<https://github.com/pandoc/lua-filters>.
 
 ## Macro substitution.
 
