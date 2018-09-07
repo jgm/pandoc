@@ -506,7 +506,9 @@ inlineToOpenDocument o ils
                modify (\st -> st{ stImageId = id' + 1 })
                let getDims [] = []
                    getDims (("width", w) :xs) = ("svg:width", w)  : getDims xs
+                   getDims (("rel-width", w):xs) = ("style:rel-width", w) : getDims xs
                    getDims (("height", h):xs) = ("svg:height", h) : getDims xs
+                   getDims (("rel-height", w):xs) = ("style:rel-height", w) : getDims xs
                    getDims (_:xs) =                             getDims xs
                return $ inTags False "draw:frame"
                         (("draw:name", "img" ++ show id') : getDims kvs) $
