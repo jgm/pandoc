@@ -1,0 +1,2 @@
+[Para [Str "Inline",Space,Str "with",Space,Code ("",[],[]) "source text",Space,Str "style"]
+,CodeBlock ("",[],[]) "paragraph with preformatted text style\n how\n  about\n this?"]
