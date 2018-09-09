@@ -109,7 +109,7 @@ escapeString = escapeStringUsing $
                , ('\x2013',"--")
                , ('\x2019',"'")
                , ('\x2026',"...")
-               ] ++ backslashEscapes "^_"
+               ]
 
 isRawFormat :: Format -> Bool
 isRawFormat f =
