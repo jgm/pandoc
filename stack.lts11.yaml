@@ -16,7 +16,7 @@ extra-deps:
 - skylighting-0.7.2
 - skylighting-core-0.7.2
 - pandoc-types-1.17.5.1
-- texmath-0.11.0.1
+- texmath-0.11.1
 - haddock-library-1.6.0
 - HsYAML-0.1.1.1
 - hs-bibutils-6.6.0.0
