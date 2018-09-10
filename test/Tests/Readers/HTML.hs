@@ -4,17 +4,39 @@ module Tests.Readers.HTML (tests) where
 
 import Prelude
 import Data.Text (Text)
+import qualified Data.Text as T
 import Test.Tasty
+import Test.Tasty.QuickCheck
 import Tests.Helpers
 import Text.Pandoc
 import Text.Pandoc.Arbitrary ()
 import Text.Pandoc.Builder
+import Text.Pandoc.Walk (walk)
 
 html :: Text -> Pandoc
 html = purely $ readHtml def
 
 htmlNativeDivs :: Text -> Pandoc
 htmlNativeDivs = purely $ readHtml def { readerExtensions = enableExtension Ext_native_divs $ readerExtensions def }
+
+makeRoundTrip :: Block -> Block
+makeRoundTrip Table{}     = Para [Str "table was here"]
+makeRoundTrip CodeBlock{} = Para [Str "code block was here"]
+makeRoundTrip LineBlock{} = Para [Str "line block was here"]
+makeRoundTrip x           = x
+
+removeRawInlines :: Inline -> Inline
+removeRawInlines RawInline{} = Str "raw inline was here"
+removeRawInlines x           = x
+
+roundTrip :: Block -> Bool
+roundTrip b = d'' == d'''
+  where d = walk removeRawInlines $ walk makeRoundTrip $ Pandoc nullMeta [b]
+        d' = rewrite d
+        d'' = rewrite d'
+        d''' = rewrite d''
+        rewrite = html . T.pack . (++ "\n") . T.unpack .
+                  purely (writeHtml5String def { writerWrapText = WrapPreserve })
 
 tests :: [TestTree]
 tests = [ testGroup "base tag"
@@ -53,4 +75,5 @@ tests = [ testGroup "base tag"
           , test htmlNativeDivs "<main> followed by text" $ "<main>main content</main>non-main content" =?>
             doc (divWith ("", [], [("role", "main")]) (plain (text "main content")) <> plain (text "non-main content"))
           ]
+        , testProperty "Round trip" roundTrip
         ]
