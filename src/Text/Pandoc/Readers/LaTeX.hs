@@ -137,15 +137,15 @@ resolveRefs _ x = x
 --        Left e  -> error (show e)
 --        Right r -> return r
 
-newtype HeaderNum = HeaderNum [Int]
+newtype DottedNum = DottedNum [Int]
   deriving (Show)
 
-renderHeaderNum :: HeaderNum -> String
-renderHeaderNum (HeaderNum xs) =
+renderDottedNum :: DottedNum -> String
+renderDottedNum (DottedNum xs) =
   intercalate "." (map show xs)
 
-incrementHeaderNum :: Int -> HeaderNum -> HeaderNum
-incrementHeaderNum level (HeaderNum ns) = HeaderNum $
+incrementDottedNum :: Int -> DottedNum -> DottedNum
+incrementDottedNum level (DottedNum ns) = DottedNum $
   case reverse (take level (ns ++ repeat 0)) of
        (x:xs) -> reverse (x+1 : xs)
        []     -> []  -- shouldn't happen
@@ -162,7 +162,8 @@ data LaTeXState = LaTeXState{ sOptions       :: ReaderOptions
                             , sCaption       :: (Maybe Inlines, Maybe String)
                             , sInListItem    :: Bool
                             , sInTableCell   :: Bool
-                            , sLastHeaderNum :: HeaderNum
+                            , sLastHeaderNum :: DottedNum
+                            , sLastFigureNum :: DottedNum
                             , sLabels        :: M.Map String [Inline]
                             , sHasChapters   :: Bool
                             , sToggles       :: M.Map String Bool
@@ -182,7 +183,8 @@ defaultLaTeXState = LaTeXState{ sOptions       = def
                               , sCaption       = (Nothing, Nothing)
                               , sInListItem    = False
                               , sInTableCell   = False
-                              , sLastHeaderNum = HeaderNum []
+                              , sLastHeaderNum = DottedNum []
+                              , sLastFigureNum = DottedNum []
                               , sLabels        = M.empty
                               , sHasChapters   = False
                               , sToggles       = M.empty
@@ -2431,11 +2433,11 @@ section (ident, classes, kvs) lvl = do
     hn <- sLastHeaderNum <$> getState
     hasChapters <- sHasChapters <$> getState
     let lvl' = lvl + if hasChapters then 1 else 0
-    let num = incrementHeaderNum lvl' hn
-    updateState $ \st -> st{ sLastHeaderNum = num }
-    updateState $ \st -> st{ sLabels = M.insert lab
-                            [Str (renderHeaderNum num)]
-                            (sLabels st) }
+    let num = incrementDottedNum lvl' hn
+    updateState $ \st -> st{ sLastHeaderNum = num
+                           , sLabels = M.insert lab
+                              [Str (renderDottedNum num)]
+                              (sLabels st) }
   attr' <- registerHeader (lab, classes, kvs) contents
   return $ headerWith attr' lvl contents
 
@@ -2722,6 +2724,33 @@ addImageCaption = walkM go
               attr' = case mblab of
                         Just lab -> (lab, cls, kvs)
                         Nothing  -> attr
+          case attr' of
+               ("", _, _)    -> return ()
+               (ident, _, _) -> do
+                  st <- getState
+                  let chapnum =
+                        case (sHasChapters st, sLastHeaderNum st) of
+                             (True, DottedNum (n:_)) -> Just n
+                             _                       -> Nothing
+                  let num = case sLastFigureNum st of
+                       DottedNum [m,n]  ->
+                         case chapnum of
+                              Just m' | m' == m   -> DottedNum [m, n+1]
+                                      | otherwise -> DottedNum [m', 1]
+                              Nothing             -> DottedNum [1]
+                                                      -- shouldn't happen
+                       DottedNum [n]   ->
+                         case chapnum of
+                              Just m  -> DottedNum [m, 1]
+                              Nothing -> DottedNum [n + 1]
+                       _               ->
+                         case chapnum of
+                               Just n  -> DottedNum [n, 1]
+                               Nothing -> DottedNum [1]
+                  setState $
+                    st{ sLastFigureNum = num
+                      , sLabels = M.insert ident
+                                 [Str (renderDottedNum num)] (sLabels st) }
           return $ Image attr' alt' (src, tit')
         go x = return x
 

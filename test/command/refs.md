@@ -43,8 +43,51 @@ Accuracy~\eqref{eq:Accuracy} is the proportion, measuring true results among all
 Figure \ref{fig:Logo} illustrated the SVG logo
 ^D
 [Para [Image ("fig:Logo",[],[]) [Str "Logo",Span ("",[],[("label","fig:Logo")]) []] ("command/SVG_logo.svg","fig:")]
-,Para [Str "Figure",Space,Link ("",[],[("reference-type","ref"),("reference","fig:Logo")]) [Str "[fig:Logo]"] ("#fig:Logo",""),Space,Str "illustrated",Space,Str "the",Space,Str "SVG",Space,Str "logo"]]
+,Para [Str "Figure",Space,Link ("",[],[("reference-type","ref"),("reference","fig:Logo")]) [Str "1"] ("#fig:Logo",""),Space,Str "illustrated",Space,Str "the",Space,Str "SVG",Space,Str "logo"]]
 ```
+
+```
+% pandoc -f latex -t native
+\chapter{One}
+\begin{figure}
+  \includegraphics{command/SVG_logo.svg}
+  \caption{Logo}
+  \label{fig:Logo}
+\end{figure}
+
+\begin{figure}
+  \includegraphics{command/SVG_logo2.svg}
+  \caption{Logo2}
+  \label{fig:Logo2}
+\end{figure}
+
+\chapter{Two}
+
+\section{Subone}
+
+\begin{figure}
+  \includegraphics{command/SVG_logo3.svg}
+  \caption{Logo3}
+  \label{fig:Logo3}
+\end{figure}
+
+Figure \ref{fig:Logo} illustrated the SVG logo
+
+Figure \ref{fig:Logo2} illustrated the SVG logo
+
+Figure \ref{fig:Logo3} illustrated the SVG logo
+^D
+[Header 1 ("one",[],[]) [Str "One"]
+,Para [Image ("fig:Logo",[],[]) [Str "Logo",Span ("",[],[("label","fig:Logo")]) []] ("command/SVG_logo.svg","fig:")]
+,Para [Image ("fig:Logo2",[],[]) [Str "Logo2",Span ("",[],[("label","fig:Logo2")]) []] ("command/SVG_logo2.svg","fig:")]
+,Header 1 ("two",[],[]) [Str "Two"]
+,Header 2 ("subone",[],[]) [Str "Subone"]
+,Para [Image ("fig:Logo3",[],[]) [Str "Logo3",Span ("",[],[("label","fig:Logo3")]) []] ("command/SVG_logo3.svg","fig:")]
+,Para [Str "Figure",Space,Link ("",[],[("reference-type","ref"),("reference","fig:Logo")]) [Str "1.1"] ("#fig:Logo",""),Space,Str "illustrated",Space,Str "the",Space,Str "SVG",Space,Str "logo"]
+,Para [Str "Figure",Space,Link ("",[],[("reference-type","ref"),("reference","fig:Logo2")]) [Str "1.2"] ("#fig:Logo2",""),Space,Str "illustrated",Space,Str "the",Space,Str "SVG",Space,Str "logo"]
+,Para [Str "Figure",Space,Link ("",[],[("reference-type","ref"),("reference","fig:Logo3")]) [Str "2.1"] ("#fig:Logo3",""),Space,Str "illustrated",Space,Str "the",Space,Str "SVG",Space,Str "logo"]]
+```
+
 
 ```
 % pandoc -f latex -t native
