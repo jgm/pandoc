@@ -420,6 +420,11 @@ endsWithSpace [SoftBreak] = True
 endsWithSpace (_:xs) = endsWithSpace xs
 endsWithSpace [] = False
 
+emptyInlines :: [Inline] -> Bool
+emptyInlines [] = True
+emptyInlines (Str "":xs) = emptyInlines xs
+emptyInlines _ = False
+
 urlEscapeBrackets :: String -> String
 urlEscapeBrackets (']':xs) = '%':'5':'D':urlEscapeBrackets xs
 urlEscapeBrackets (x:xs) = x:urlEscapeBrackets xs
@@ -517,7 +522,7 @@ inlineToMuse (Emph [Strong lst]) = do
     then do contents <- local (\env -> env { envInsideAsterisks = True }) $ inlineListToMuse lst
             modify $ \st -> st { stUseTags = False }
             return $ "<em>**" <> contents <> "**</em>"
-    else if null lst || startsWithSpace lst || endsWithSpace lst
+    else if emptyInlines lst || startsWithSpace lst || endsWithSpace lst
            then do
              contents <- local (\env -> env { envInsideAsterisks = False }) $ inlineListToMuse lst
              modify $ \st -> st { stUseTags = True }
@@ -528,7 +533,7 @@ inlineToMuse (Emph [Strong lst]) = do
              return $ "***" <> contents <> "***"
 inlineToMuse (Emph lst) = do
   useTags <- gets stUseTags
-  if useTags || null lst || startsWithSpace lst || endsWithSpace lst
+  if useTags || emptyInlines lst || startsWithSpace lst || endsWithSpace lst
     then do contents <- inlineListToMuse lst
             return $ "<em>" <> contents <> "</em>"
     else do contents <- local (\env -> env { envInsideAsterisks = True }) $ inlineListToMuse lst
@@ -540,7 +545,7 @@ inlineToMuse (Strong [Emph lst]) = do
     then do contents <- local (\env -> env { envInsideAsterisks = True }) $ inlineListToMuse lst
             modify $ \st -> st { stUseTags = False }
             return $ "<strong>*" <> contents <> "*</strong>"
-    else if null lst || startsWithSpace lst || endsWithSpace lst
+    else if emptyInlines lst || startsWithSpace lst || endsWithSpace lst
            then do
              contents <- local (\env -> env { envInsideAsterisks = False }) $ inlineListToMuse lst
              modify $ \st -> st { stUseTags = True }
@@ -551,7 +556,7 @@ inlineToMuse (Strong [Emph lst]) = do
              return $ "***" <> contents <> "***"
 inlineToMuse (Strong lst) = do
   useTags <- gets stUseTags
-  if useTags || null lst || startsWithSpace lst || endsWithSpace lst
+  if useTags || emptyInlines lst || startsWithSpace lst || endsWithSpace lst
     then do contents <- inlineListToMuse lst
             modify $ \st -> st { stUseTags = False }
             return $ "<strong>" <> contents <> "</strong>"
