@@ -420,11 +420,6 @@ endsWithSpace [SoftBreak] = True
 endsWithSpace (_:xs) = endsWithSpace xs
 endsWithSpace [] = False
 
-emptyInlines :: [Inline] -> Bool
-emptyInlines [] = True
-emptyInlines (Str "":xs) = emptyInlines xs
-emptyInlines _ = False
-
 urlEscapeBrackets :: String -> String
 urlEscapeBrackets (']':xs) = '%':'5':'D':urlEscapeBrackets xs
 urlEscapeBrackets (x:xs) = x:urlEscapeBrackets xs
@@ -518,49 +513,53 @@ inlineToMuse (Str str) = do
   return $ text escapedStr
 inlineToMuse (Emph [Strong lst]) = do
   useTags <- gets stUseTags
+  let lst' = normalizeInlineList lst
   if useTags
-    then do contents <- local (\env -> env { envInsideAsterisks = True }) $ inlineListToMuse lst
+    then do contents <- local (\env -> env { envInsideAsterisks = True }) $ inlineListToMuse lst'
             modify $ \st -> st { stUseTags = False }
             return $ "<em>**" <> contents <> "**</em>"
-    else if emptyInlines lst || startsWithSpace lst || endsWithSpace lst
+    else if null lst' || startsWithSpace lst' || endsWithSpace lst'
            then do
-             contents <- local (\env -> env { envInsideAsterisks = False }) $ inlineListToMuse lst
+             contents <- local (\env -> env { envInsideAsterisks = False }) $ inlineListToMuse lst'
              modify $ \st -> st { stUseTags = True }
              return $ "*<strong>" <> contents <> "</strong>*"
            else do
-             contents <- local (\env -> env { envInsideAsterisks = True }) $ inlineListToMuse lst
+             contents <- local (\env -> env { envInsideAsterisks = True }) $ inlineListToMuse lst'
              modify $ \st -> st { stUseTags = True }
              return $ "***" <> contents <> "***"
 inlineToMuse (Emph lst) = do
   useTags <- gets stUseTags
-  if useTags || emptyInlines lst || startsWithSpace lst || endsWithSpace lst
-    then do contents <- inlineListToMuse lst
+  let lst' = normalizeInlineList lst
+  if useTags || null lst' || startsWithSpace lst' || endsWithSpace lst'
+    then do contents <- inlineListToMuse lst'
             return $ "<em>" <> contents <> "</em>"
-    else do contents <- local (\env -> env { envInsideAsterisks = True }) $ inlineListToMuse lst
+    else do contents <- local (\env -> env { envInsideAsterisks = True }) $ inlineListToMuse lst'
             modify $ \st -> st { stUseTags = True }
             return $ "*" <> contents <> "*"
 inlineToMuse (Strong [Emph lst]) = do
   useTags <- gets stUseTags
+  let lst' = normalizeInlineList lst
   if useTags
-    then do contents <- local (\env -> env { envInsideAsterisks = True }) $ inlineListToMuse lst
+    then do contents <- local (\env -> env { envInsideAsterisks = True }) $ inlineListToMuse lst'
             modify $ \st -> st { stUseTags = False }
             return $ "<strong>*" <> contents <> "*</strong>"
-    else if emptyInlines lst || startsWithSpace lst || endsWithSpace lst
+    else if null lst' || startsWithSpace lst' || endsWithSpace lst'
            then do
-             contents <- local (\env -> env { envInsideAsterisks = False }) $ inlineListToMuse lst
+             contents <- local (\env -> env { envInsideAsterisks = False }) $ inlineListToMuse lst'
              modify $ \st -> st { stUseTags = True }
              return $ "**<em>" <> contents <> "</em>**"
            else do
-             contents <- local (\env -> env { envInsideAsterisks = True }) $ inlineListToMuse lst
+             contents <- local (\env -> env { envInsideAsterisks = True }) $ inlineListToMuse lst'
              modify $ \st -> st { stUseTags = True }
              return $ "***" <> contents <> "***"
 inlineToMuse (Strong lst) = do
   useTags <- gets stUseTags
-  if useTags || emptyInlines lst || startsWithSpace lst || endsWithSpace lst
-    then do contents <- inlineListToMuse lst
+  let lst' = normalizeInlineList lst
+  if useTags || null lst' || startsWithSpace lst' || endsWithSpace lst'
+    then do contents <- inlineListToMuse lst'
             modify $ \st -> st { stUseTags = False }
             return $ "<strong>" <> contents <> "</strong>"
-    else do contents <- local (\env -> env { envInsideAsterisks = True }) $ inlineListToMuse lst
+    else do contents <- local (\env -> env { envInsideAsterisks = True }) $ inlineListToMuse lst'
             modify $ \st -> st { stUseTags = True }
             return $ "**" <> contents <> "**"
 inlineToMuse (Strikeout lst) = do
