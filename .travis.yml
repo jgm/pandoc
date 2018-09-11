@@ -32,7 +32,7 @@ matrix:
   # We grab the appropriate GHC and cabal-install versions from hvr's PPA. See:
   # https://github.com/hvr/multi-ghc-travis
   # don't build benchmarks for ghc 7.10.3, because build takes too long...
-  - env: BUILD=cabal GHCVER=7.10.3 CABALVER=2.0 OPTS="-O0 -Wall -fno-warn-unused-do-bind -Werror" FLAGS="fast embed_data_files" CABALARGS="" TESTPATTERN="$0 !~ /Round trip/"
+  - env: BUILD=cabal GHCVER=7.10.3 CABALVER=2.0 OPTS="-O0 -Wall -fno-warn-unused-do-bind -Werror" FLAGS="fast embed_data_files" CABALARGS="" TESTPATTERN="\$0 !~ /Round trip/"
     compiler: ": #GHC 7.10.3"
     addons: {apt: {packages: [cabal-install-2.0,ghc-7.10.3,happy-1.19.5], sources: [hvr-ghc]}}
 
@@ -137,6 +137,6 @@ script:
       cd sourcedist && \
       cabal configure --disable-optimization --enable-tests -v2 --flags="$FLAGS" --ghc-options="$OPTS" $CABALARGS && \
       cabal build -v2 -j2 && \
-      cabal test -p $TESTPATTERN
+      cabal test --test-option='-p $TESTPATTERN'
       ;;
   esac
