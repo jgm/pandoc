@@ -39,9 +39,9 @@ makeRoundTrip x = x
 
 -- Demand that any AST produced by Muse reader and written by Muse writer can be read back exactly the same way.
 -- Currently we remove tables and compare first rewrite to the second.
-roundTrip :: Block -> Bool
+roundTrip :: Blocks -> Bool
 roundTrip b = d' == d''
-  where d = walk makeRoundTrip $ Pandoc nullMeta [b]
+  where d = walk makeRoundTrip $ Pandoc nullMeta $ toList b
         d' = rewrite d
         d'' = rewrite d'
         rewrite = amuse . T.pack . (++ "\n") . T.unpack .
