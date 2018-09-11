@@ -348,6 +348,12 @@ tests = [ testGroup "block elements"
                       , ""
                       , "   <verbatim></verbatim>- bar"
                       ]
+            , "escape - inside a note" =:
+              note (para (text "- foo")) =?>
+              unlines [ "[1]"
+                      , ""
+                      , "[1] <verbatim></verbatim>- foo"
+                      ]
             , "escape ; to avoid accidental comments" =: text "; foo" =?> "<verbatim></verbatim>; foo"
             , "escape ; after softbreak" =: text "foo" <> softbreak <> text "; bar" =?> "foo\n<verbatim></verbatim>; bar"
             , "escape ; after linebreak" =: text "foo" <> linebreak <> text "; bar" =?> "foo<br>\n<verbatim></verbatim>; bar"
