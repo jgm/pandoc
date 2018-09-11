@@ -363,6 +363,13 @@ tests = [ testGroup "block elements"
                       , ""
                       , "[1] <verbatim></verbatim>- foo"
                       ]
+            , "escape - after softbreak in note" =:
+              note (para (str "foo" <> softbreak <> str "- bar")) =?>
+              unlines [ "[1]"
+                      , ""
+                      , "[1] foo"
+                      , "    <verbatim></verbatim>- bar"
+                      ]
             , "escape ; to avoid accidental comments" =: text "; foo" =?> "<verbatim></verbatim>; foo"
             , "escape strings starting with ; and space" =: str "; foo" =?> "<verbatim></verbatim>; foo"
             , "escape ; after softbreak" =: text "foo" <> softbreak <> text "; bar" =?> "foo\n<verbatim></verbatim>; bar"

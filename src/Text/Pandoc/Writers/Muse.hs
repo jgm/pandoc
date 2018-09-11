@@ -293,7 +293,8 @@ noteToMuse :: PandocMonad m
            -> Muse m Doc
 noteToMuse num note =
   hang (length marker) (text marker) <$>
-    (local (\env -> env { envInlineStart = True
+    (local (\env -> env { envInsideBlock = True
+                        , envInlineStart = True
                         , envAfterSpace = True
                         }) $ blockListToMuse note)
   where
