@@ -20,7 +20,6 @@ htmlNativeDivs :: Text -> Pandoc
 htmlNativeDivs = purely $ readHtml def { readerExtensions = enableExtension Ext_native_divs $ readerExtensions def }
 
 makeRoundTrip :: Block -> Block
-makeRoundTrip Table{}     = Para [Str "table was here"]
 makeRoundTrip CodeBlock{} = Para [Str "code block was here"]
 makeRoundTrip LineBlock{} = Para [Str "line block was here"]
 makeRoundTrip RawBlock{} = Para [Str "raw block was here"]
