@@ -37,15 +37,15 @@ matrix:
     addons: {apt: {packages: [cabal-install-2.0,ghc-7.10.3,happy-1.19.5], sources: [hvr-ghc]}}
 
   # don't build benchmarks for ghc 8.0.2, because build takes too long...
-  - env: BUILD=cabal GHCVER=8.0.2 CABALVER=2.0 OPTS="-O0 -Wall -Wincomplete-record-updates -Wnoncanonical-monad-instances -Wnoncanonical-monadfail-instances -fno-warn-unused-do-bind -Werror" FLAGS="fast" CABALARGS="" TESTPATTERN="$0 !~ /Round trip/"
+  - env: BUILD=cabal GHCVER=8.0.2 CABALVER=2.0 OPTS="-O0 -Wall -Wincomplete-record-updates -Wnoncanonical-monad-instances -Wnoncanonical-monadfail-instances -fno-warn-unused-do-bind -Werror" FLAGS="fast" CABALARGS="" TESTPATTERN="$$0 !~ /Round trip/"
     compiler: ": #GHC 8.0.2"
     addons: {apt: {packages: [cabal-install-2.0,ghc-8.0.2,happy-1.19.5], sources: [hvr-ghc]}}
 
-  - env: BUILD=cabal GHCVER=8.2.2 CABALVER=2.0 OPTS="-O0 -Wall -Wincomplete-record-updates -Wnoncanonical-monad-instances -Wnoncanonical-monadfail-instances -fno-warn-unused-do-bind -Werror" FLAGS="fast embed_data_files" CABALARGS="--enable-benchmarks" TESTPATTERN="$0 !~ /Round trip/"
+  - env: BUILD=cabal GHCVER=8.2.2 CABALVER=2.0 OPTS="-O0 -Wall -Wincomplete-record-updates -Wnoncanonical-monad-instances -Wnoncanonical-monadfail-instances -fno-warn-unused-do-bind -Werror" FLAGS="fast embed_data_files" CABALARGS="--enable-benchmarks" TESTPATTERN="$$0 !~ /Round trip/"
     compiler: ": #GHC 8.2.2"
     addons: {apt: {packages: [cabal-install-2.0,ghc-8.2.2,happy-1.19.5], sources: [hvr-ghc]}}
 
-  - env: BUILD=cabal GHCVER=8.4.3 CABALVER=2.2 OPTS="-O0 -Wall -fno-warn-unused-do-bind -Wincomplete-record-updates -Wnoncanonical-monad-instances -Wnoncanonical-monadfail-instances -Wincomplete-uni-patterns -Werror=missing-home-modules -Widentities -Wcpp-undef -Werror" FLAGS="fast embed_data_files" CABALARGS="--enable-benchmarks" TESTPATTERN="$0 !~ /Round trip/"
+  - env: BUILD=cabal GHCVER=8.4.3 CABALVER=2.2 OPTS="-O0 -Wall -fno-warn-unused-do-bind -Wincomplete-record-updates -Wnoncanonical-monad-instances -Wnoncanonical-monadfail-instances -Wincomplete-uni-patterns -Werror=missing-home-modules -Widentities -Wcpp-undef -Werror" FLAGS="fast embed_data_files" CABALARGS="--enable-benchmarks" TESTPATTERN="$$0 !~ /Round trip/"
     compiler: ": #GHC 8.4.3"
     addons: {apt: {packages: [cabal-install-2.2,ghc-8.4.3,happy-1.19.5], sources: [hvr-ghc]}}
 
@@ -61,7 +61,7 @@ matrix:
   #   compiler: ": #stack 8.0.2"
   #   addons: {apt: {packages: [ghc-8.0.2], sources: [hvr-ghc]}}
 
-  - env: BUILD=stack ARGS="--resolver lts-12" OPTS="-O0 -Wall -fno-warn-unused-do-bind -Wincomplete-record-updates -Wnoncanonical-monad-instances -Wnoncanonical-monadfail-instances -Wincomplete-uni-patterns -Werror=missing-home-modules -Widentities -Wcpp-undef -Werror" TESTPATTERN="$0 !~ /Round trip/"
+  - env: BUILD=stack ARGS="--resolver lts-12" OPTS="-O0 -Wall -fno-warn-unused-do-bind -Wincomplete-record-updates -Wnoncanonical-monad-instances -Wnoncanonical-monadfail-instances -Wincomplete-uni-patterns -Werror=missing-home-modules -Widentities -Wcpp-undef -Werror" TESTPATTERN="$$0 !~ /Round trip/"
     compiler: ": #stack 8.2.2"
     addons: {apt: {packages: [ghc-8.4.3], sources: [hvr-ghc]}}
 
@@ -130,13 +130,13 @@ script:
     stack)
       ulimit -n 4096
       stack config set system-ghc --global true
-      stack --no-terminal $ARGS test --fast --flag 'aeson:fast' --flag pandoc:embed_data_files --haddock --no-haddock-deps --ghc-options="$OPTS" --test-arguments='--hide-successes --pattern "$TESTPATTERN"'
+      stack --no-terminal $ARGS test --fast --flag 'aeson:fast' --flag pandoc:embed_data_files --haddock --no-haddock-deps --ghc-options="$OPTS" --test-arguments='--hide-successes --pattern="$TESTPATTERN"'
       ;;
     cabal)
       cabal sdist --output-directory=sourcedist && \
       cd sourcedist && \
       cabal configure --disable-optimization --enable-tests -v2 --flags="$FLAGS" --ghc-options="$OPTS" $CABALARGS && \
       cabal build -v2 -j2 && \
-      cabal test --test-option='--pattern "$TESTPATTERN"'
+      cabal test --test-option=--pattern="$TESTPATTERN"
       ;;
   esac
