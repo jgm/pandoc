@@ -283,6 +283,7 @@ tests = [ testGroup "block elements"
           , "don't escape horizontal inside paragraph" =: para (text "foo ---- bar") =?> "foo ---- bar"
           , "escape nonbreaking space" =: para (text "~~") =?> "<verbatim>~~</verbatim>"
           , "escape > in the beginning of line" =: para (text "> foo bar") =?> "<verbatim></verbatim>> foo bar"
+          , "escape string with > and space in the beginning of line" =: para (str "> foo bar") =?> "<verbatim></verbatim>> foo bar"
           , testGroup "tables"
             [ "table without header" =:
               let rows = [[para $ text "Para 1.1", para $ text "Para 1.2"]
@@ -348,6 +349,14 @@ tests = [ testGroup "block elements"
                       , ""
                       , "   <verbatim></verbatim>- bar"
                       ]
+            , "escape strings starting with - inside a list" =:
+              bulletList [ para (str "foo") <>
+                           para (str "- bar")
+                         ] =?>
+              unlines [ " - foo"
+                      , ""
+                      , "   <verbatim></verbatim>- bar"
+                      ]
             , "escape - inside a note" =:
               note (para (text "- foo")) =?>
               unlines [ "[1]"
@@ -355,6 +364,7 @@ tests = [ testGroup "block elements"
                       , "[1] <verbatim></verbatim>- foo"
                       ]
             , "escape ; to avoid accidental comments" =: text "; foo" =?> "<verbatim></verbatim>; foo"
+            , "escape strings starting with ; and space" =: str "; foo" =?> "<verbatim></verbatim>; foo"
             , "escape ; after softbreak" =: text "foo" <> softbreak <> text "; bar" =?> "foo\n<verbatim></verbatim>; bar"
             , "escape ; after linebreak" =: text "foo" <> linebreak <> text "; bar" =?> "foo<br>\n<verbatim></verbatim>; bar"
             , "do not escape ; inside paragraph" =: text "foo ; bar" =?> "foo ; bar"
