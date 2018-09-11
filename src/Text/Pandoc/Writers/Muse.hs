@@ -435,7 +435,7 @@ isHorizontalRule s = length s >= 4 && all (== '-') s
 
 stringStartsWithSpace :: String -> Bool
 stringStartsWithSpace (x:_) = isSpace x
-stringStartsWithSpace [] = False
+stringStartsWithSpace "" = False
 
 fixOrEscape :: Bool -> Inline -> Bool
 fixOrEscape sp (Str "-") = sp
