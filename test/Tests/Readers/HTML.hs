@@ -30,9 +30,9 @@ removeRawInlines :: Inline -> Inline
 removeRawInlines RawInline{} = Str "raw inline was here"
 removeRawInlines x           = x
 
-roundTrip :: Block -> Bool
+roundTrip :: Blocks -> Bool
 roundTrip b = d'' == d'''
-  where d = walk removeRawInlines $ walk makeRoundTrip $ Pandoc nullMeta [b]
+  where d = walk removeRawInlines $ walk makeRoundTrip $ Pandoc nullMeta $ toList b
         d' = rewrite d
         d'' = rewrite d'
         d''' = rewrite d''
