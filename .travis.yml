@@ -130,7 +130,7 @@ script:
     stack)
       ulimit -n 4096
       stack config set system-ghc --global true
-      stack --no-terminal $ARGS test --fast --flag 'aeson:fast' --flag pandoc:embed_data_files --haddock --no-haddock-deps --ghc-options="$OPTS" --test-arguments='--hide-successes --pattern="$TESTPATTERN"'
+      stack --no-terminal $ARGS test --fast --flag 'aeson:fast' --flag pandoc:embed_data_files --haddock --no-haddock-deps --ghc-options="$OPTS" --test-arguments='--hide-successes --pattern $TESTPATTERN'
       ;;
     cabal)
       cabal sdist --output-directory=sourcedist && \
