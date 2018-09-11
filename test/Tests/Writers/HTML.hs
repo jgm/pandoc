@@ -43,4 +43,9 @@ tests = [ testGroup "inline code"
             image "/url" "title" ("my " <> emph "image")
             =?> "<img src=\"/url\" title=\"title\" alt=\"my image\" />"
           ]
+        , testGroup "blocks"
+          [ "definition list with empty <dt>" =:
+            definitionList [(mempty, [para $ text "foo bar"])]
+            =?> "<dl><dt></dt><dd><p>foo bar</p></dd></dl>"
+          ]
         ]

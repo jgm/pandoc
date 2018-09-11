@@ -830,9 +830,7 @@ blockToHtml opts (OrderedList (startnum, numstyle, _) lst) = do
   return $ foldl (!) l attribs
 blockToHtml opts (DefinitionList lst) = do
   contents <- mapM (\(term, defs) ->
-                  do term' <- if null term
-                                 then return mempty
-                                 else liftM H.dt $ inlineListToHtml opts term
+                  do term' <- liftM H.dt $ inlineListToHtml opts term
                      defs' <- mapM (liftM (\x -> H.dd (x >> nl opts)) .
                                     blockListToHtml opts) defs
                      return $ mconcat $ nl opts : term' : nl opts :
