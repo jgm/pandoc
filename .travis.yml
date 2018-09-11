@@ -62,7 +62,7 @@ matrix:
   #   addons: {apt: {packages: [ghc-8.0.2], sources: [hvr-ghc]}}
 
   - env: BUILD=stack ARGS="--resolver lts-12" OPTS="-O0 -Wall -fno-warn-unused-do-bind -Wincomplete-record-updates -Wnoncanonical-monad-instances -Wnoncanonical-monadfail-instances -Wincomplete-uni-patterns -Werror=missing-home-modules -Widentities -Wcpp-undef -Werror" TESTPATTERN="$$0 !~ /Round trip/"
-    compiler: ": #stack 8.2.2"
+    compiler: ": #stack 8.4.3"
     addons: {apt: {packages: [ghc-8.4.3], sources: [hvr-ghc]}}
 
   # Nightly builds are allowed to fail
