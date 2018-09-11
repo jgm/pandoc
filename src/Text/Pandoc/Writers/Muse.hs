@@ -415,11 +415,13 @@ fixNotes (x:xs) = x : fixNotes xs
 startsWithSpace :: [Inline] -> Bool
 startsWithSpace (Space:_) = True
 startsWithSpace (SoftBreak:_) = True
+startsWithSpace (Str s:_) = stringStartsWithSpace s
 startsWithSpace _ = False
 
 endsWithSpace :: [Inline] -> Bool
 endsWithSpace [Space] = True
 endsWithSpace [SoftBreak] = True
+endsWithSpace [Str s] = stringStartsWithSpace $ reverse s
 endsWithSpace (_:xs) = endsWithSpace xs
 endsWithSpace [] = False
 
