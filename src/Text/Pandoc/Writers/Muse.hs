@@ -234,7 +234,7 @@ blockToMuse (DefinitionList items) = do
           label' <- local (\env -> env { envOneLine = True, envAfterSpace = True }) $ inlineListToMuse' label
           contents <- vcat <$> mapM descriptionToMuse defs
           let ind = offset label'
-          return $ hang ind label' contents
+          return $ hang ind (nowrap label') contents
         descriptionToMuse :: PandocMonad m
                           => [Block]
                           -> Muse m Doc
