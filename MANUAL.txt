@@ -4611,6 +4611,46 @@ The following fields are recognized:
 [MARC relators]: http://loc.gov/marc/relators/relaterm.html
 [`spine` element]: http://idpf.org/epub/301/spec/epub-publications.html#sec-spine-elem
 
+The `epub:type` attribute
+-------------------------
+
+You can mark up the header that corresponds to an EPUB chapter using the
+[`epub:type` attribute][epub-type]. For example, to set the attribute
+to the value `prologue`, use this markdown:
+
+    # My chapter {epub:type=prologue}
+
+Which will result in:
+
+    <body epub:type="frontmatter">
+      <section epub:type="prologue">
+        <h1>My chapter</h1>
+
+Pandoc will output `<body epub:type="bodymatter">`, unless
+you use one of the following values, in which case either
+`frontmatter` or `backmatter` will be output.
+
+`epub:type` of first section      `epub:type` of body
+----------------------------      ------------------
+prologue                          frontmatter
+abstract                          frontmatter
+acknowledgments                   frontmatter
+copyright-page                    frontmatter
+dedication                        frontmatter
+foreword                          frontmatter
+halftitle,                        frontmatter
+introduction                      frontmatter
+preface                           frontmatter
+seriespage                        frontmatter
+titlepage                         frontmatter
+afterword                         backmatter
+appendix                          backmatter
+colophon                          backmatter
+conclusion                        backmatter
+epigraph                          backmatter
+
+[epub-type]: http://www.idpf.org/epub/31/spec/epub-contentdocs.html#sec-epub-type-attribute
+
 Linked media
 ------------
 
