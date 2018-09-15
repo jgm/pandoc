@@ -36,6 +36,7 @@ module Text.Pandoc.Readers.Markdown ( readMarkdown ) where
 import Prelude
 import Control.Monad
 import Control.Monad.Except (throwError)
+import qualified Data.ByteString.Lazy as BS
 import Data.Char (isAlphaNum, isPunctuation, isSpace, toLower)
 import Data.List (intercalate, sortBy, transpose, elemIndex)
 import qualified Data.Map as M
@@ -233,7 +234,6 @@ pandocTitleBlock = try $ do
 yamlMetaBlock :: PandocMonad m => MarkdownParser m (F Blocks)
 yamlMetaBlock = try $ do
   guardEnabled Ext_yaml_metadata_block
-  pos <- getPosition
   string "---"
   blankline
   notFollowedBy blankline  -- if --- is followed by a blank it's an HRULE
@@ -241,8 +241,13 @@ yamlMetaBlock = try $ do
   -- by including --- and ..., we allow yaml blocks with just comments:
   let rawYaml = unlines ("---" : (rawYamlLines ++ ["..."]))
   optional blanklines
-  case YAML.decodeNode' YAML.failsafeSchemaResolver False False
-               (UTF8.fromStringLazy rawYaml) of
+  yamlBsToMeta $ UTF8.fromStringLazy rawYaml
+  return mempty
+
+yamlBsToMeta :: PandocMonad m => BS.ByteString -> MarkdownParser m ()
+yamlBsToMeta bstr = do
+  pos <- getPosition
+  case YAML.decodeNode' YAML.failsafeSchemaResolver False False bstr of
        Right [YAML.Doc (YAML.Mapping _ hashmap)] ->
          mapM_ (\(key, v) -> do
                     k <- nodeToKey key
@@ -271,7 +276,6 @@ yamlMetaBlock = try $ do
                     logMessage $ CouldNotParseYamlMetadata
                                  err' pos
                     return ()
-  return mempty
 
 nodeToKey :: Monad m => YAML.Node -> m Text
 nodeToKey (YAML.Scalar (YAML.SStr t))       = return t
