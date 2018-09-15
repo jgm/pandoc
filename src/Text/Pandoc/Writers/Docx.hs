@@ -763,11 +763,13 @@ writeOpenXML opts (Pandoc meta blocks) = do
   let abstract' = case lookupMeta "abstract" meta of
                        Just (MetaBlocks bs)   -> bs
                        Just (MetaInlines ils) -> [Plain ils]
+                       Just (MetaString s)    -> [Plain [Str s]]
                        _                      -> []
   let subtitle' = case lookupMeta "subtitle" meta of
                        Just (MetaBlocks [Plain xs]) -> xs
                        Just (MetaBlocks [Para  xs]) -> xs
                        Just (MetaInlines xs)        -> xs
+                       Just (MetaString s)          -> [Str s]
                        _                            -> []
   let includeTOC = writerTableOfContents opts ||
                    case lookupMeta "toc" meta of
