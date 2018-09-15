@@ -249,7 +249,7 @@ yamlMetaBlock = try $ do
                     if ignorable k
                        then return ()
                        else do
-                         v' <- yamlToMeta v
+                         v' <- yamlToMetaValue v
                          let k' = T.unpack k
                          updateState $ \st -> st{ stateMeta' =
                             do m <- stateMeta' st
@@ -309,9 +309,9 @@ checkBoolean t =
              then Just False
              else Nothing
 
-yamlToMeta :: PandocMonad m
-           => YAML.Node -> MarkdownParser m (F MetaValue)
-yamlToMeta (YAML.Scalar x) =
+yamlToMetaValue :: PandocMonad m
+                => YAML.Node -> MarkdownParser m (F MetaValue)
+yamlToMetaValue (YAML.Scalar x) =
   case x of
        YAML.SStr t       -> toMetaValue t
        YAML.SBool b      -> return $ return $ MetaBool b
@@ -322,25 +322,25 @@ yamlToMeta (YAML.Scalar x) =
            Just b        -> return $ return $ MetaBool b
            Nothing       -> toMetaValue t
        YAML.SNull        -> return $ return $ MetaString ""
-yamlToMeta (YAML.Sequence _ xs) = do
-  xs' <- mapM yamlToMeta xs
+yamlToMetaValue (YAML.Sequence _ xs) = do
+  xs' <- mapM yamlToMetaValue xs
   return $ do
     xs'' <- sequence xs'
     return $ B.toMetaValue xs''
-yamlToMeta (YAML.Mapping _ o) =
+yamlToMetaValue (YAML.Mapping _ o) =
   foldM (\m (key, v) -> do
           k <- nodeToKey key
           if ignorable k
              then return m
              else do
-               v' <- yamlToMeta v
+               v' <- yamlToMetaValue v
                return $ do
                   MetaMap m' <- m
                   v'' <- v'
                   return (MetaMap $ M.insert (T.unpack k) v'' m'))
         (return $ MetaMap M.empty)
         (M.toList o)
-yamlToMeta _ = return $ return $ MetaString ""
+yamlToMetaValue _ = return $ return $ MetaString ""
 
 stopLine :: PandocMonad m => MarkdownParser m ()
 stopLine = try $ (string "---" <|> string "...") >> blankline >> return ()
