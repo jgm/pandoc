@@ -3981,11 +3981,12 @@ whether or not they appear in the document, by using a wildcard:
       @*
     ...
 
-For LaTeX or PDF output, you can also use [`natbib`] or [`biblatex`]
-to render bibliography. In order to do so, specify bibliography files as
-outlined above, and add `--natbib` or `--biblatex` argument to `pandoc`
-invocation. Bear in mind that bibliography files have to be in respective
-format (either BibTeX or BibLaTeX).
+For LaTeX output, you can also use [`natbib`] or [`biblatex`] to
+render the bibliography. In order to do so, specify bibliography
+files as outlined above, and add `--natbib` or `--biblatex`
+argument to `pandoc` invocation. Bear in mind that bibliography
+files have to be in respective format (either BibTeX or
+BibLaTeX).
 
 For more information, see the [pandoc-citeproc man page].
 
