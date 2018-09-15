@@ -114,7 +114,7 @@ data Extension =
     | Ext_fenced_code_attributes  -- ^ Allow attributes on fenced code blocks
     | Ext_fenced_code_blocks  -- ^ Parse fenced code blocks
     | Ext_fenced_divs             -- ^ Allow fenced div syntax :::
-    | Ext_footnotes           -- ^ Pandoc/PHP/MMD style footnotes
+    | Ext_footnotes           -- ^ Pandoc\/PHP\/MMD style footnotes
     | Ext_four_space_rule     -- ^ Require 4-space indent for list contents
     | Ext_gfm_auto_identifiers  -- ^ Automatic identifiers for headers, using
                                 --  GitHub's method for generating identifiers
