@@ -31,11 +31,12 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 Conversion of markdown-formatted plain text to 'Pandoc' document.
 -}
-module Text.Pandoc.Readers.Markdown ( readMarkdown ) where
+module Text.Pandoc.Readers.Markdown ( readMarkdown, yamlToMeta ) where
 
 import Prelude
 import Control.Monad
 import Control.Monad.Except (throwError)
+import qualified Data.ByteString.Lazy as BS
 import Data.Char (isAlphaNum, isPunctuation, isSpace, toLower)
 import Data.List (intercalate, sortBy, transpose, elemIndex)
 import qualified Data.Map as M
@@ -233,7 +234,6 @@ pandocTitleBlock = try $ do
 yamlMetaBlock :: PandocMonad m => MarkdownParser m (F Blocks)
 yamlMetaBlock = try $ do
   guardEnabled Ext_yaml_metadata_block
-  pos <- getPosition
   string "---"
   blankline
   notFollowedBy blankline  -- if --- is followed by a blank it's an HRULE
@@ -241,46 +241,44 @@ yamlMetaBlock = try $ do
   -- by including --- and ..., we allow yaml blocks with just comments:
   let rawYaml = unlines ("---" : (rawYamlLines ++ ["..."]))
   optional blanklines
-  case YAML.decodeNode' YAML.failsafeSchemaResolver False False
-               (UTF8.fromStringLazy rawYaml) of
-       Right [YAML.Doc (YAML.Mapping _ hashmap)] ->
-         mapM_ (\(key, v) -> do
-                    k <- nodeToKey key
-                    if ignorable k
-                       then return ()
-                       else do
-                         v' <- yamlToMeta v
-                         let k' = T.unpack k
-                         updateState $ \st -> st{ stateMeta' =
-                            do m <- stateMeta' st
-                               -- if there's already a value, leave it unchanged
-                               case lookupMeta k' m of
-                                    Just _ -> return m
-                                    Nothing -> do
-                                      v'' <- v'
-                                      return $ B.setMeta (T.unpack k) v'' m})
-               (M.toList hashmap)
-       Right [] -> return ()
-       Right [YAML.Doc (YAML.Scalar YAML.SNull)] -> return ()
+  newMetaF <- yamlBsToMeta $ UTF8.fromStringLazy rawYaml
+  -- Since `<>` is left-biased, existing values are not touched:
+  updateState $ \st -> st{ stateMeta' = (stateMeta' st) <> newMetaF }
+  return mempty
+
+-- | Read a YAML string and convert it to pandoc metadata.
+-- String scalars in the YAML are parsed as Markdown.
+yamlToMeta :: PandocMonad m => BS.ByteString -> m Meta
+yamlToMeta bstr = do
+  let parser = do
+        meta <- yamlBsToMeta bstr
+        return $ runF meta defaultParserState
+  parsed <- readWithM parser def ""
+  case parsed of
+    Right result -> return result
+    Left e       -> throwError e
+
+yamlBsToMeta :: PandocMonad m => BS.ByteString -> MarkdownParser m (F Meta)
+yamlBsToMeta bstr = do
+  pos <- getPosition
+  case YAML.decodeNode' YAML.failsafeSchemaResolver False False bstr of
+       Right ((YAML.Doc (YAML.Mapping _ o)):_) -> (fmap Meta) <$> yamlMap o
+       Right [] -> return . return $ mempty
+       Right [YAML.Doc (YAML.Scalar YAML.SNull)] -> return . return $ mempty
        Right _ -> do
                   logMessage $
                      CouldNotParseYamlMetadata "not an object"
                      pos
-                  return ()
+                  return . return $ mempty
        Left err' -> do
                     logMessage $ CouldNotParseYamlMetadata
                                  err' pos
-                    return ()
-  return mempty
+                    return . return $ mempty
 
 nodeToKey :: Monad m => YAML.Node -> m Text
 nodeToKey (YAML.Scalar (YAML.SStr t))       = return t
 nodeToKey (YAML.Scalar (YAML.SUnknown _ t)) = return t
 nodeToKey _                                 = fail "Non-string key in YAML mapping"
-
--- ignore fields ending with _
-ignorable :: Text -> Bool
-ignorable t = (T.pack "_") `T.isSuffixOf` t
 
 toMetaValue :: PandocMonad m
             => Text -> MarkdownParser m (F MetaValue)
@@ -309,9 +307,9 @@ checkBoolean t =
              then Just False
              else Nothing
 
-yamlToMeta :: PandocMonad m
-           => YAML.Node -> MarkdownParser m (F MetaValue)
-yamlToMeta (YAML.Scalar x) =
+yamlToMetaValue :: PandocMonad m
+                => YAML.Node -> MarkdownParser m (F MetaValue)
+yamlToMetaValue (YAML.Scalar x) =
   case x of
        YAML.SStr t       -> toMetaValue t
        YAML.SBool b      -> return $ return $ MetaBool b
@@ -322,25 +320,30 @@ yamlToMeta (YAML.Scalar x) =
            Just b        -> return $ return $ MetaBool b
            Nothing       -> toMetaValue t
        YAML.SNull        -> return $ return $ MetaString ""
-yamlToMeta (YAML.Sequence _ xs) = do
-  xs' <- mapM yamlToMeta xs
+yamlToMetaValue (YAML.Sequence _ xs) = do
+  xs' <- mapM yamlToMetaValue xs
   return $ do
     xs'' <- sequence xs'
     return $ B.toMetaValue xs''
-yamlToMeta (YAML.Mapping _ o) =
-  foldM (\m (key, v) -> do
-          k <- nodeToKey key
-          if ignorable k
-             then return m
-             else do
-               v' <- yamlToMeta v
-               return $ do
-                  MetaMap m' <- m
-                  v'' <- v'
-                  return (MetaMap $ M.insert (T.unpack k) v'' m'))
-        (return $ MetaMap M.empty)
-        (M.toList o)
-yamlToMeta _ = return $ return $ MetaString ""
+yamlToMetaValue (YAML.Mapping _ o) = fmap B.toMetaValue <$> yamlMap o
+yamlToMetaValue _ = return $ return $ MetaString ""
+
+yamlMap :: PandocMonad m
+        => M.Map YAML.Node YAML.Node
+        -> MarkdownParser m (F (M.Map String MetaValue))
+yamlMap o = do
+    kvs <- forM (M.toList o) $ \(key, v) -> do
+             k <- nodeToKey key
+             return (k, v)
+    let kvs' = filter (not . ignorable . fst) kvs
+    (fmap M.fromList . sequence) <$> mapM toMeta kvs'
+  where
+    ignorable t = (T.pack "_") `T.isSuffixOf` t
+    toMeta (k, v) = do
+      fv <- yamlToMetaValue v
+      return $ do
+        v' <- fv
+        return (T.unpack k, v')
 
 stopLine :: PandocMonad m => MarkdownParser m ()
 stopLine = try $ (string "---" <|> string "...") >> blankline >> return ()
