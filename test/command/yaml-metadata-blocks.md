@@ -46,3 +46,18 @@ array:
 Pandoc (Meta {unMeta = fromList [("array",MetaList [MetaMap (fromList [("foo",MetaInlines [Str "bar"])]),MetaMap (fromList [("bool",MetaBool True)])])]})
 []
 ```
+```
+% pandoc -s -t native --metadata-file command/yaml-metadata.yaml
+---
+title: document
+---
+^D
+Pandoc (Meta {unMeta = fromList [("other",MetaInlines [Emph [Str "markdown"],Space,Str "value"]),("title",MetaInlines [Str "document"])]})
+[]
+```
+```
+% pandoc -s -t native --metadata-file command/yaml-metadata.yaml -M title=cmdline
+^D
+Pandoc (Meta {unMeta = fromList [("other",MetaInlines [Emph [Str "markdown"],Space,Str "value"]),("title",MetaString "cmdline")]})
+[]
+```
