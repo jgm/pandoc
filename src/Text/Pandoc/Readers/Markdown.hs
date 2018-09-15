@@ -241,50 +241,32 @@ yamlMetaBlock = try $ do
   -- by including --- and ..., we allow yaml blocks with just comments:
   let rawYaml = unlines ("---" : (rawYamlLines ++ ["..."]))
   optional blanklines
-  yamlBsToMeta $ UTF8.fromStringLazy rawYaml
+  newMetaF <- yamlBsToMeta $ UTF8.fromStringLazy rawYaml
+  -- Since `<>` is left-biased, existing values are not touched:
+  updateState $ \st -> st{ stateMeta' = (stateMeta' st) <> newMetaF }
   return mempty
 
-yamlBsToMeta :: PandocMonad m => BS.ByteString -> MarkdownParser m ()
+yamlBsToMeta :: PandocMonad m => BS.ByteString -> MarkdownParser m (F Meta)
 yamlBsToMeta bstr = do
   pos <- getPosition
   case YAML.decodeNode' YAML.failsafeSchemaResolver False False bstr of
-       Right [YAML.Doc (YAML.Mapping _ hashmap)] ->
-         mapM_ (\(key, v) -> do
-                    k <- nodeToKey key
-                    if ignorable k
-                       then return ()
-                       else do
-                         v' <- yamlToMetaValue v
-                         let k' = T.unpack k
-                         updateState $ \st -> st{ stateMeta' =
-                            do m <- stateMeta' st
-                               -- if there's already a value, leave it unchanged
-                               case lookupMeta k' m of
-                                    Just _ -> return m
-                                    Nothing -> do
-                                      v'' <- v'
-                                      return $ B.setMeta (T.unpack k) v'' m})
-               (M.toList hashmap)
-       Right [] -> return ()
-       Right [YAML.Doc (YAML.Scalar YAML.SNull)] -> return ()
+       Right [YAML.Doc (YAML.Mapping _ o)] -> (fmap Meta) <$> yamlMap o
+       Right [] -> return . return $ mempty
+       Right [YAML.Doc (YAML.Scalar YAML.SNull)] -> return . return $ mempty
        Right _ -> do
                   logMessage $
                      CouldNotParseYamlMetadata "not an object"
                      pos
-                  return ()
+                  return . return $ mempty
        Left err' -> do
                     logMessage $ CouldNotParseYamlMetadata
                                  err' pos
-                    return ()
+                    return . return $ mempty
 
 nodeToKey :: Monad m => YAML.Node -> m Text
 nodeToKey (YAML.Scalar (YAML.SStr t))       = return t
 nodeToKey (YAML.Scalar (YAML.SUnknown _ t)) = return t
 nodeToKey _                                 = fail "Non-string key in YAML mapping"
-
--- ignore fields ending with _
-ignorable :: Text -> Bool
-ignorable t = (T.pack "_") `T.isSuffixOf` t
 
 toMetaValue :: PandocMonad m
             => Text -> MarkdownParser m (F MetaValue)
@@ -331,20 +313,25 @@ yamlToMetaValue (YAML.Sequence _ xs) = do
   return $ do
     xs'' <- sequence xs'
     return $ B.toMetaValue xs''
-yamlToMetaValue (YAML.Mapping _ o) =
-  foldM (\m (key, v) -> do
-          k <- nodeToKey key
-          if ignorable k
-             then return m
-             else do
-               v' <- yamlToMetaValue v
-               return $ do
-                  MetaMap m' <- m
-                  v'' <- v'
-                  return (MetaMap $ M.insert (T.unpack k) v'' m'))
-        (return $ MetaMap M.empty)
-        (M.toList o)
+yamlToMetaValue (YAML.Mapping _ o) = fmap B.toMetaValue <$> yamlMap o
 yamlToMetaValue _ = return $ return $ MetaString ""
+
+yamlMap :: PandocMonad m
+        => M.Map YAML.Node YAML.Node
+        -> MarkdownParser m (F (M.Map String MetaValue))
+yamlMap o = do
+    kvs <- forM (M.toList o) $ \(key, v) -> do
+             k <- nodeToKey key
+             return (k, v)
+    let kvs' = filter (not . ignorable . fst) kvs
+    (fmap M.fromList . sequence) <$> mapM toMeta kvs'
+  where
+    ignorable t = (T.pack "_") `T.isSuffixOf` t
+    toMeta (k, v) = do
+      fv <- yamlToMetaValue v
+      return $ do
+        v' <- fv
+        return (T.unpack k, v')
 
 stopLine :: PandocMonad m => MarkdownParser m ()
 stopLine = try $ (string "---" <|> string "...") >> blankline >> return ()
