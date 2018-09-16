@@ -241,6 +241,7 @@ blockToMuse (DefinitionList items) = do
         descriptionToMuse desc = hang 4 " :: " <$> blockListToMuse desc
 blockToMuse (Header level (ident,_,_) inlines) = do
   opts <- asks envOptions
+  topLevel <- asks envTopLevel
   contents <- local (\env -> env { envOneLine = True }) $ inlineListToMuse' inlines
   ids <- gets stIds
   let autoId = uniqueIdent inlines ids
@@ -249,8 +250,8 @@ blockToMuse (Header level (ident,_,_) inlines) = do
   let attr' = if null ident || (isEnabled Ext_auto_identifiers opts && ident == autoId)
                  then empty
                  else "#" <> text ident <> cr
-  let header' = text $ replicate level '*'
-  return $ blankline <> attr' $$ nowrap (header' <> space <> contents) <> blankline
+  let header' = if topLevel then (text $ replicate level '*') <> space else mempty
+  return $ blankline <> attr' $$ nowrap (header' <> contents) <> blankline
 -- https://www.gnu.org/software/emacs-muse/manual/muse.html#Horizontal-Rules-and-Anchors
 blockToMuse HorizontalRule = return $ blankline $$ "----" $$ blankline
 blockToMuse (Table caption _ _ headers rows) =  do
