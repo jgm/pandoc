@@ -61,14 +61,16 @@ macospkg: man/pandoc.1
 winpkg: pandoc-$(version)-windows-i386.msi pandoc-$(version)-windows-i386.zip pandoc-$(version)-windows-x86_64.msi pandoc-$(version)-windows-x86_64.zip
 
 pandoc-$(version)-windows-%.zip: pandoc-$(version)-windows-%.msi
-	-rm -rf wintmp && \
-	msiextract -C wintmp $< && \
-	cd wintmp/"Program Files*" && \
-	mv Pandoc pandoc-$(version) && \
-	zip -r $@ pandoc-$(version) && \
-	mv $@ ../../ && \
-	cd ../.. && \
-	rm -rf wintmp
+	ORIGDIR=`pwd` && \
+	CONTAINER=$(basename $<) && \
+	TEMPDIR=`mktemp -d` && \
+	msiextract -C $$TEMPDIR/msi $< && \
+	pushd $$TEMPDIR && \
+	mkdir $$CONTAINER && \
+	find msi -type f -exec cp {} $$CONTAINER/ \; && \
+	zip -r $$ORIGDIR/$@ $$CONTAINER && \
+	popd & \
+	rm -rf $$TEMPDIR
 
 pandoc-$(version)-windows-%.msi: pandoc-windows-%.msi
 	osslsigncode sign -pkcs12 ~/Private/ComodoCodeSigning.exp2019.p12 -in $< -i http://johnmacfarlane.net/ -t http://timestamp.comodoca.com/ -out $@ -askpass
