@@ -63,7 +63,7 @@ winpkg: pandoc-$(version)-windows-i386.msi pandoc-$(version)-windows-i386.zip pa
 pandoc-$(version)-windows-%.zip: pandoc-$(version)-windows-%.msi
 	-rm -rf wintmp && \
 	msiextract -C wintmp $< && \
-	cd wintmp/"Program Files" && \
+	cd wintmp/"Program Files*" && \
 	mv Pandoc pandoc-$(version) && \
 	zip -r $@ pandoc-$(version) && \
 	mv $@ ../../ && \
