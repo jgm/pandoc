@@ -375,6 +375,7 @@ tests = [ testGroup "block elements"
             , "escape ; after softbreak" =: text "foo" <> softbreak <> text "; bar" =?> "foo\n<verbatim></verbatim>; bar"
             , "escape ; after linebreak" =: text "foo" <> linebreak <> text "; bar" =?> "foo<br>\n<verbatim></verbatim>; bar"
             , "do not escape ; inside paragraph" =: text "foo ; bar" =?> "foo ; bar"
+            , "escape newlines" =: str "foo\nbar" =?> "foo bar"
             ]
           , testGroup "emphasis"
             [ "emphasis" =: emph (text "foo") =?> "*foo*"

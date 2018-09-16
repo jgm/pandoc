@@ -308,6 +308,12 @@ escapeString s =
   substitute "</verbatim>" "<</verbatim><verbatim>/verbatim>" s ++
   "</verbatim>"
 
+-- | Replace newlines with spaces
+replaceNewlines :: String -> String
+replaceNewlines ('\n':xs) = ' ':replaceNewlines xs
+replaceNewlines (x:xs) = x:replaceNewlines xs
+replaceNewlines [] = []
+
 startsWithMarker :: (Char -> Bool) -> String -> Bool
 startsWithMarker f (' ':xs) = startsWithMarker f xs
 startsWithMarker f (x:xs) =
@@ -517,7 +523,7 @@ inlineToMuse :: PandocMonad m
              => Inline
              -> Muse m Doc
 inlineToMuse (Str str) = do
-  escapedStr <- conditionalEscapeString str
+  escapedStr <- conditionalEscapeString $ replaceNewlines str
   let useTags = isAlphaNum $ last escapedStr -- escapedStr is never empty because empty strings are escaped
   modify $ \st -> st { stUseTags = useTags }
   return $ text escapedStr
