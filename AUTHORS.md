@@ -15,6 +15,7 @@
 - Andreas Lööw
 - Andrew Dunning
 - Antoine Latter
+- Antonio Terceiro
 - Arata Mizuki
 - Arlo O'Keeffe
 - Artyom Kazak
@@ -75,6 +76,7 @@
 - Igor Khorlo
 - Ilya V. Portnov
 - Ivo Clarysse
+- J. B. Rainsberger
 - J. Lewis Muir
 - Jaime Marquínez Ferrándiz
 - Jakob Voß
@@ -96,6 +98,7 @@
 - Jonas Smedegaard
 - Jonathan Daugherty
 - Jose Luis Duran
+- José de Mattos Neto
 - Josef Svenningsson
 - Julien Cretel
 - Juliusz Gonera

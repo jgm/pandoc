@@ -1,3 +1,237 @@
+pandoc (2.3)
+
+  * Add `--metadata-file` option (Mauro Bieg, #1960), which allows
+    users to specify metadata in a YAML file, regardless of the
+    input format (#1960).
+
+  * Text.Pandoc.Writers.Shared: export `isDisplayMath` (API change).
+
+  * Text.Pandoc.Readers.Markdown: export `yamlToMeta` (API change,
+    Mauro Bieg).
+
+  * Text.Pandoc.Readers.LaTeX.Types:
+
+    + New type `ArgSpec` (API change).
+    + Second parameter of `Macro` constructor is now `[ArgSpec]` instead of
+      `Int` (API change).
+
+  * Markdown reader:
+
+    + Use `tex` instead of `latex` for raw tex-ish content. We can't
+      always tell if it's LaTeX, ConTeXt, or plain TeX. Better just to
+      use `tex` always. Note that if `context` or `latex` specifically
+      is desired, you can still force that in a markdown document by
+      using the raw attribute. Note that this change may affect some
+      filters, if they assume that raw tex parsed by the Markdown reader
+      will be RawBlock (Format `latex`). In most cases it should be
+      trivial to modify the filters to accept `tex` as well.
+    + Refactor and reorganize YAML code (Mauro Bieg).
+
+  * HTML reader:
+
+    + Parse `<script type="math/tex` tags as math (#4877).
+      These are used by MathJax in some configurations.
+    + Extract spaces inside links instead of trimming them
+      (Alexander Krotov, #4845).
+    + Added round-trip tests (Alexander Krotov).
+    + Make parsing sensitive to the `raw_tex` extension (#1126). This now
+      allows raw LaTeX environments, `\ref`, and `\eqref` to be parsed
+      (which is helpful for translation HTML documents using MathJaX).
+
+  * Org reader (Albert Krewinkel):
+
+    + Respect export option `p` for planning info.  Inclusion of planning info
+      (`*DEADLINE*`, `*SCHEDULED*`, and `*CLOSED*`) can be controlled via the
+      `p` export option: setting the option to `t` will add all planning
+      information in a *Plain* block below the respective headline.
+    + Org reader internals: don't rely on RecordWildCards and ViewPatterns
+      ghc extensions.
+    + Strip planning info from output.  Planning info is parsed, but not
+      included in the output (as is the default with Emacs Org-mode, #4867).
+
+  * LaTeX reader:
+
+    + Handle parameter patterns for `\def` (#4768, #4771).
+      For example:  `\def\foo#1[#2]{#1 and #2}`.
+    + Allow `%` characters in URLs. This affects `\href` and `\url` (#4832).
+    + Fixed parsing of `\texorpdfstring`. We were returning the wrong
+      argument as the content.
+    + Support `blockcquote`, `foreignblockquote`, `foreigncblockquote`,
+      `hyphenblockquote`, `hyphencblockquote`, `enquote*`, `foreignquote`,
+      `hyphenquote` from `csquotes` (#4848). Note that `foreignquote`
+      will be parsed as a regular Quoted inline (not using the quotes
+      appropriate to the foreign language).
+    + Support more text-mode accents (#4652). Add support for `\|`, `\b`, `\G`,
+      `\h`, `\d`, `\f`, `\r`, `\t`, `\U`, `\i`, `\j`, `\newtie`,
+      `\textcircled`. Also fall back to combining characters when composed
+      characters are not available.
+    + Resolve `\ref` for figure numbers.
+    + Support `mintinline` (#4365, Marc Schreiber).
+    + Fix siunitx unit commands so they are only recognized in
+      siunitx contexts (#4842). For example, `\l` outside of an
+      siunitx context should be l-slash, not l (for liter).
+    + Fix double `unnumbered` class (#4838). The `unnumbered` class
+      was being included twice for starred sections.
+
+  * RST reader: Don't skip link definitions after comments (#4860).
+
+  * Muse reader (Alexander Krotov):
+
+    + Close the `</quote>` in indented tag test.
+      There is already a separate test for unclosed `</quote>`.
+    + Autonumber sections in the correct order.  Parsing now stops
+      at each section header to ensure the header is registered before
+      parsing of the next section starts.
+    + Move duplicate code into `headingStart` function.
+    + Allow newline after opening `*` or `**`.
+    + Don't allow digits after closing marker in lightweight markup
+      This change makes reader more compatible with Emacs Muse.
+    + Parse `<verse>` tag in one pass instead of using
+      `parseFromString`. This change makes it possible to have
+      verbatim `</verse>` tag inside verse.
+
+  * ODT reader:  deal gracefully with missing `<office:font-face-decls/>`
+    (#4336). This allows pandoc to parse ODT document produced by KDE's
+    Calligra.
+
+  * Muse writer (Alexander Krotov):
+
+    + Output headers without asterisks if not on the top level.
+    + Never wrap definition list terms.
+    + Set `envInsideBlock = True` when rendering notes.
+    + Use `""` instead of `[]` for empty String.
+    + Check for whitespace in the beginning and end of Str's.
+    + Escape `-`, `;` and `>` in the beginning of strings.
+    + Escape list markers in the beginning of notes.
+    + Normalize inline list before testing if tags should be used.
+    + Use tags instead of lightweight markup for empty strings.
+    + Use lightweight markup when possible.
+    + Escape empty strings.  This guarantees that `conditionalEscapeString`
+      never returns empty string.
+    + Wrap conditionalEscapeString result into `Muse` type.
+      This removes the need to pass `envInsideLinkDescription` to it.
+    + Separate `shouldEscapeString` function.
+    + Simplify inline list rendering.
+    + Replace newlines in strings with spaces.
+
+  * Docx writer:
+
+    + Add MetaString case for abstract, subtitle (#4900, Mauro Bieg).
+    + Properly handle display math in spans (#4826). This isn't a
+      complete solution, since other nestings of display math may still
+      cause problems, but it should work for what is by far the most
+      common case.
+
+  * HTML writer:
+
+    + Always output `<dt>` element, even if it is empty (#4883,
+      Alexander Krotov).
+    + Don't prefix `epub:` attributes with `data-`.
+
+  * Org writer: Don't escape literal `_`, `^` (#4882). Org doesn't
+    recognize these escapes.
+
+  * ODT writer: Fix percentage image scaling (#4881, Nils Carlson).
+    Image scaling was broken when a width was set to a percentage.
+
+  * EPUB writer: set `epub:type` on body element in each chapter,
+    depending on the `epub:type` of the first section (#4823). This
+    only affects epub3. See
+    http://www.idpf.org/epub/profiles/edu/structure/#h.l0bzsloklt10
+
+  * FB2 writer: put `coverpage` element between title and date rather than in
+    `document-info` element (#4854).
+
+  * Markdown writer: Escape `~` if strikeout extension enabled (#4840).
+
+  * Haddock writer: Use proper format for latex math in haddock (#4571, Joe
+    Hermaszewski). Inline math in `\(..\)`, display math in `\[..\]`,
+    tex is now used. Previously we'd "fake it with unicode" and fall
+    back to tex when that didn't work. But newer haddock versions
+    support latex math.
+
+  * TEI writer:
+
+    + Ensure that title element is always present, even if empty (#4839).
+    + Put author tags in the template, rather than adding them in
+      the writer (#4839).
+
+  * LaTeX writer/template: be sensitive to `filecolor` variable (#4822).
+    `linkcolor` only affects internal links, and `urlcolor` only
+    affects linked URLs.  For external links, the option to use is
+    `filecolor`.
+
+  * ConTeXt writer: output raw `tex` blocks as well as `context` (#969).
+
+  * RST writer:
+
+    + Use `.. raw:: latex` for `tex` content.
+    + Use `.. container` for generic Divs, instead of raw HTML.
+    + Render Divs with admonition classes as admonitions (#4833).
+      Also omit Div with class `admonition-title`. These are generated
+      by the RST reader and should be omitted on round-trip.
+
+  * Text.Pandoc.PDF: fix message printed when rsvg-convert is not available
+    (#4855, Antonio Terceiro).
+
+  * HTML5 template: add the `title-block-header` identifier to the
+    `header` element, to make it easier to style precisely (#4767,
+    J. B. Rainsberger).
+
+  * OpenDocument template: Remove unnecessary indenting of TOC title (#4798,
+    José de Mattos Neto).
+
+  * latex template: Add support for $toc-title$ to LaTeX (and PDF)
+    (#4853, Wandmalfarbe).
+
+  * TEI template: improve `publicationStmt`. Add support for
+    `publisher`, `address`, `pubPlace`, and `date` variables.
+
+  * beamer template: Support "toc-title" (#4835, Cyril Roelandt).
+
+  * Text.Pandoc.Extensions: Fix haddock on `Ext_footnotes` (Chris Martin).
+
+  * Lua: cleanup Lua utils, remove unused functions (Albert Krewinkel).
+
+  * MANUAL.txt:
+
+    + Clarify that `--biblatex/--natbib` don't work directly for PDF
+      (#4904).
+    + Document `epub:type` attribute (Mauro Bieg, #4901)
+    + Clarify when `--resource-path` has an effect.
+    + More detail on customization in syntax highlighting section.
+    + Document encoding issue with `--listings` (#4871, Damien Clochard).
+    + Remove docs on removed `--katex-stylesheet` (Mauro Bieg, #4862).
+
+  * CONTRIBUTING.md:
+
+    + Link to lua-filters repository (#4874).
+    + Fix mistake in REPL instructions for stack. (#4849, Brian Leung).
+
+  * lua-filters.md: add links to filters, and to lua-filters repository
+    (#4874).
+
+  * INSTALL.md:
+
+    + Indicate that cabal >= 2.0 is needed.
+    + Added chocolatey installation method (#4844, Miodrag Milić).
+
+  * Travis: exclude round-trip tests, except for nightly test which can fail.
+
+  * Use latest texmath, pandoc-citeproc.
+
+  * Use a patched version of foundation until
+    https://github.com/haskell-foundation/foundation/pull/503
+    is fixed.
+
+  * Clean up appveyor build and Windows package creation.
+    We now use 64-bit stack and ghc 8.4.3, lts-12 for the 64-bit build. The
+    WiX-based msi is now 64-bit for 64-bit builds (fixing #4795).
+
+  * Remove obsolete RELEASE-CHECKLIST.md.
+
+  * Added additional compiler warnings in Makefile and CI builds.
+
 pandoc (2.2.3.2)
 
   * Markdown reader: Properly handle boolean values in YAML metadata (#4819).
