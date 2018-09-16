@@ -43,7 +43,6 @@ import Text.Pandoc.Readers.Org.BlockStarts
 import Text.Pandoc.Readers.Org.ParserState
 import Text.Pandoc.Readers.Org.Parsing
 
-import qualified Data.Map as Map
 import qualified Text.Pandoc.Builder as B
 
 --
@@ -58,7 +57,7 @@ documentTree :: PandocMonad m
 documentTree blocks inline = do
   initialBlocks <- blocks
   headlines <- sequence <$> manyTill (headline blocks inline 1) eof
-  title <- fmap (getTitle . unMeta) . orgStateMeta <$> getState
+  title <- fmap docTitle . orgStateMeta <$> getState
   return $ do
     headlines' <- headlines
     initialBlocks' <- initialBlocks
@@ -73,12 +72,6 @@ documentTree blocks inline = do
       , headlineContents = initialBlocks'
       , headlineChildren = headlines'
       }
- where
-  getTitle :: Map.Map String MetaValue -> [Inline]
-  getTitle metamap =
-    case Map.lookup "title" metamap of
-      Just (MetaInlines inlns) -> inlns
-      _                        -> []
 
 newtype Tag = Tag { fromTag :: String }
   deriving (Show, Eq)

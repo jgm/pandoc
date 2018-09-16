@@ -744,13 +744,7 @@ getMetaSlide :: Pres (Maybe Slide)
 getMetaSlide  = do
   meta <- asks envMetadata
   title <- inlinesToParElems $ docTitle meta
-  subtitle <- inlinesToParElems $
-    case lookupMeta "subtitle" meta of
-      Just (MetaString s)           -> [Str s]
-      Just (MetaInlines ils)        -> ils
-      Just (MetaBlocks [Plain ils]) -> ils
-      Just (MetaBlocks [Para ils])  -> ils
-      _                             -> []
+  subtitle <- inlinesToParElems $ lookupMetaInlines "subtitle" meta
   authors <- mapM inlinesToParElems $ docAuthors meta
   date <- inlinesToParElems $ docDate meta
   if null title && null subtitle && null authors && null date
