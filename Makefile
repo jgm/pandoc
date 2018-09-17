@@ -117,7 +117,7 @@ pandoc-templates:
 	popd
 
 trypandoc:
-	ssh -t macfarlane 'cd src/pandoc && git pull && ~/.local/bin/stack install --flag pandoc:trypandoc --flag pandoc:embed_data_files && cd trypandoc && sudo make install'
+	ssh -t macfarlane 'cd src/pandoc && git pull && stack install --flag pandoc:trypandoc --flag pandoc:embed_data_files && cd trypandoc && sudo make install'
 
 update-website:
 	make -C $(WEBSITE) update
