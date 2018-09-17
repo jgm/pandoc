@@ -970,7 +970,9 @@ orderedList = try $ do
                <|> return (style == Example)
   items <- fmap sequence $ many1 $ listItem fourSpaceRule
                  (orderedListStart (Just (style, delim)))
-  start' <- (start <$ guardEnabled Ext_startnum) <|> return 1
+  start' <- if style == Example
+               then return start
+               else (start <$ guardEnabled Ext_startnum) <|> return 1
   return $ B.orderedListWith (start', style, delim) <$> fmap compactify items
 
 bulletList :: PandocMonad m => MarkdownParser m (F Blocks)
