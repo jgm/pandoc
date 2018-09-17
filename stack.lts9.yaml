@@ -10,9 +10,8 @@ flags:
     debug: false
 packages:
 - '.'
-- github: jgm/pandoc-citeproc
-  commit: 596872a5a5dec15f4c8848cf87dd72e0ef2f160d
 extra-deps:
+- pandoc-citeproc-0.14.4
 - hslua-0.9.5.1
 - hslua-module-text-0.1.2.1
 - ansi-terminal-0.8.0.2
