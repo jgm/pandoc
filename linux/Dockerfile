@@ -3,14 +3,15 @@ FROM alpine
 RUN apk update
 RUN apk add alpine-sdk git ca-certificates ghc gmp-dev zlib-dev bash dpkg fakeroot
 # GRAB A RECENT BINARY OF STACK
-# Note that 1.6.5 is the last one with a static binary...
-RUN curl -L https://github.com/commercialhaskell/stack/releases/download/v1.6.5/stack-1.6.5-linux-x86_64-static.tar.gz | tar xz --wildcards --strip-components=1 -C /usr/local/bin '*/stack'
+# Note that 1.6.5 is the last one with an official static binary...we need
+# a more recent version, so we use this unofficial one.
+RUN curl -L https://github.com/nh2/stack/releases/download/v1.6.5/stack-1.7.1-x86_64-unofficial-fully-static-musl > /usr/local/bin/stack
+#RUN curl -L https://github.com/commercialhaskell/stack/releases/download/v1.6.5/stack-1.6.5-linux-x86_64-static.tar.gz | tar xz --wildcards --strip-components=1 -C /usr/local/bin '*/stack'
+RUN chmod +x /usr/local/bin/stack
 ENV PATH="/usr/local/bin:${PATH}"
 RUN ulimit -n 4096
 RUN stack config set system-ghc --global true
 RUN stack setup --resolver lts-12
-# Upgrade to latest stack...
-RUN stack install stack
 RUN mkdir -p /usr/src/
 WORKDIR /usr/src/
 RUN git clone https://github.com/jgm/pandoc
