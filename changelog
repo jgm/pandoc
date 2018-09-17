@@ -26,6 +26,8 @@ pandoc (2.3)
       will be RawBlock (Format `latex`). In most cases it should be
       trivial to modify the filters to accept `tex` as well.
     + Refactor and reorganize YAML code (Mauro Bieg).
+    + Make `example_lists` work for interrupted lists
+      without `startnum` (#4908).
 
   * HTML reader:
 
@@ -202,6 +204,7 @@ pandoc (2.3)
     + More detail on customization in syntax highlighting section.
     + Document encoding issue with `--listings` (#4871, Damien Clochard).
     + Remove docs on removed `--katex-stylesheet` (Mauro Bieg, #4862).
+    + Use https for context wiki links (#4910).
 
   * CONTRIBUTING.md:
 
