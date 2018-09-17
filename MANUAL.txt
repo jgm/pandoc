@@ -1666,17 +1666,17 @@ Variables for ConTeXt
     from [ConTeXt ICC Profiles].  See also [ConTeXt PDFA] for more
     details.
 
-[ConTeXt Paper Setup]: http://wiki.contextgarden.net/PaperSetup
-[ConTeXt Layout]: http://wiki.contextgarden.net/Layout
-[ConTeXt Font Switching]: http://wiki.contextgarden.net/Font_Switching
-[ConTeXt Color]: http://wiki.contextgarden.net/Color
-[ConTeXt Headers and Footers]: http://wiki.contextgarden.net/Headers_and_Footers
-[ConTeXt Indentation]: http://wiki.contextgarden.net/Indentation
-[ConTeXt ICC Profiles]: http://wiki.contextgarden.net/PDFX#ICC_profiles
-[ConTeXt PDFA]: http://wiki.contextgarden.net/PDF/A
-[`setupwhitespace`]: http://wiki.contextgarden.net/Command/setupwhitespace
-[`setupinterlinespace`]: http://wiki.contextgarden.net/Command/setupinterlinespace
-[`setuppagenumbering`]: http://wiki.contextgarden.net/Command/setuppagenumbering
+[ConTeXt Paper Setup]: https://wiki.contextgarden.net/PaperSetup
+[ConTeXt Layout]: https://wiki.contextgarden.net/Layout
+[ConTeXt Font Switching]: https://wiki.contextgarden.net/Font_Switching
+[ConTeXt Color]: https://wiki.contextgarden.net/Color
+[ConTeXt Headers and Footers]: https://wiki.contextgarden.net/Headers_and_Footers
+[ConTeXt Indentation]: https://wiki.contextgarden.net/Indentation
+[ConTeXt ICC Profiles]: https://wiki.contextgarden.net/PDFX#ICC_profiles
+[ConTeXt PDFA]: https://wiki.contextgarden.net/PDF/A
+[`setupwhitespace`]: https://wiki.contextgarden.net/Command/setupwhitespace
+[`setupinterlinespace`]: https://wiki.contextgarden.net/Command/setupinterlinespace
+[`setuppagenumbering`]: https://wiki.contextgarden.net/Command/setuppagenumbering
 
 Variables for man pages
 -----------------------
