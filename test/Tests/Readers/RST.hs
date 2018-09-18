@@ -198,5 +198,8 @@ tests = [ "line block with blank line" =:
           , "bare URI parsing disabled inside emphasis (#4561)" =:
             "*http://location*" =?>
             para (emph (text "http://location"))
+          , "include newlines" =:
+            "**before\nafter**" =?>
+            para (strong (text "before\nafter"))
           ]
         ]
