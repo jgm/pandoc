@@ -211,7 +211,7 @@ header when requesting a document from a URL:
 Options
 =======
 
-General options
+General options {.options}
 ---------------
 
 `-f` *FORMAT*, `-r` *FORMAT*, `--from=`*FORMAT*, `--read=`*FORMAT*
@@ -459,7 +459,7 @@ General options
 [PowerPoint]: https://en.wikipedia.org/wiki/Microsoft_PowerPoint
 [Vimwiki]: https://vimwiki.github.io
 
-Reader options
+Reader options {.options}
 --------------
 
 `--base-header-level=`*NUMBER*
@@ -645,7 +645,7 @@ Reader options
 [perl]: https://metacpan.org/pod/Pandoc::Filter
 [JavaScript/node.js]: https://github.com/mvhenderson/pandoc-filter-node
 
-General writer options
+General writer options {.options}
 ----------------------
 
 `-s`, `--standalone`
@@ -828,7 +828,7 @@ General writer options
     downloaded). If you're behind a proxy, you also need to set
     the environment variable `http_proxy` to `http://...`.
 
-Options affecting specific writers
+Options affecting specific writers {.options}
 ----------------------------------
 
 `--self-contained`
@@ -1150,7 +1150,7 @@ Options affecting specific writers
 [Encoding issue with the listings package]:
   https://en.wikibooks.org/wiki/LaTeX/Source_Code_Listings#Encoding_issue
 
-Citation rendering
+Citation rendering {.options}
 ------------------
 
 `--bibliography=`*FILE*
@@ -1190,7 +1190,7 @@ Citation rendering
     with the `pandoc-citeproc` filter or with PDF output. It is intended for
     use in producing a LaTeX file that can be processed with [`bibtex`] or [`biber`].
 
-Math rendering in HTML
+Math rendering in HTML {.options}
 ----------------------
 
 The default is to render TeX math as far as possible using Unicode characters.
@@ -1251,7 +1251,7 @@ of the following options.
 [KaTeX]: https://github.com/Khan/KaTeX
 [GladTeX]: http://humenda.github.io/GladTeX/
 
-Options for wrapper scripts
+Options for wrapper scripts {.options}
 ---------------------------
 
 `--dump-args`
