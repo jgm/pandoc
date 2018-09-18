@@ -1315,7 +1315,6 @@ table = gridTable False <|> simpleTable False <|>
 inline :: PandocMonad m => RSTParser m Inlines
 inline = choice [ note          -- can start with whitespace, so try before ws
                 , link
-                , endline
                 , strong
                 , emph
                 , code
@@ -1328,6 +1327,7 @@ inline = choice [ note          -- can start with whitespace, so try before ws
 inlineContent :: PandocMonad m => RSTParser m Inlines
 inlineContent = choice [ whitespace
                        , str
+                       , endline
                        , smart
                        , hyphens
                        , escapedChar
