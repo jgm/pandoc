@@ -59,7 +59,6 @@ import Text.Pandoc.Definition
 import Text.Pandoc.Logging
 import Text.Pandoc.Options
 import Text.Pandoc.Parsing hiding (F, enclosed)
-import Text.Pandoc.Readers.HTML (htmlTag)
 import Text.Pandoc.Shared (crFilter, underlineSpan)
 
 -- | Read Muse from an input string and return a Pandoc document.
@@ -180,12 +179,21 @@ someUntil p end = first <$> ((:) <$> p) <*> manyUntil p end
 -- ** HTML parsers
 
 openTag :: PandocMonad m => String -> MuseParser m [(String, String)]
-openTag tag = do
-  (TagOpen _ attr, _) <- htmlTag(~== TagOpen tag [])
-  return $ attr
+openTag tag = try $ do
+  char '<'
+  string tag
+  attrs <- manyTill attr (char '>')
+  return attrs
+  where
+    attr = try $ do
+      many1 spaceChar
+      key <- many1 (noneOf "=\n")
+      string "=\""
+      value <- manyTill (noneOf "\"") (char '"')
+      return (key, value)
 
 closeTag :: PandocMonad m => String -> MuseParser m ()
-closeTag tag = void $ htmlTag (~== TagClose tag)
+closeTag tag = try $ string "</" >> string tag >> void (char '>')
 
 -- | Parse HTML tag, returning its attributes and literal contents.
 htmlElement :: PandocMonad m
