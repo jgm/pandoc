@@ -179,10 +179,10 @@ someUntil p end = first <$> ((:) <$> p) <*> manyUntil p end
 
 -- ** HTML parsers
 
-openTag :: PandocMonad m => String -> MuseParser m Attr
+openTag :: PandocMonad m => String -> MuseParser m [(String, String)]
 openTag tag = do
   (TagOpen _ attr, _) <- htmlTag(~== TagOpen tag [])
-  return $ htmlAttrToPandoc attr
+  return $ attr
 
 closeTag :: PandocMonad m => String -> MuseParser m ()
 closeTag tag = void $ htmlTag (~== TagClose tag)
@@ -194,7 +194,7 @@ htmlElement :: PandocMonad m
 htmlElement tag = try $ do
   attr <- openTag tag
   content <- manyTill anyChar $ closeTag tag
-  return (attr, content)
+  return (htmlAttrToPandoc attr, content)
 
 htmlBlock :: PandocMonad m
           => String -- ^ Tag name
@@ -223,7 +223,7 @@ parseHtmlContent tag = try $ do
   manyTill spaceChar eol
   content <- parseBlocksTill $ try $ count (sourceColumn pos - 1) spaceChar >> closeTag tag
   manyTill spaceChar eol -- closing tag must be followed by optional whitespace and newline
-  return (attr, content)
+  return (htmlAttrToPandoc attr, content)
 
 -- ** Directive parsers
 
@@ -427,7 +427,7 @@ exampleTag = try $ do
 literalTag :: PandocMonad m => MuseParser m (F Blocks)
 literalTag = try $ do
   many spaceChar
-  attr <- openTag "literal"
+  attr <- htmlAttrToPandoc <$> openTag "literal"
   manyTill spaceChar eol
   content <- manyTill anyChar $ closeTag "literal"
   manyTill spaceChar eol
