@@ -56,10 +56,11 @@ import Text.Pandoc.Builder (Blocks, Inlines)
 import qualified Text.Pandoc.Builder as B
 import Text.Pandoc.Class (PandocMonad (..))
 import Text.Pandoc.Definition
+import Text.Pandoc.Error (PandocError (PandocParsecError))
 import Text.Pandoc.Logging
 import Text.Pandoc.Options
 import Text.Pandoc.Parsing hiding (F, enclosed)
-import Text.Pandoc.Shared (crFilter, underlineSpan)
+import Text.Pandoc.Shared (crFilter, underlineSpan, mapLeft)
 
 -- | Read Muse from an input string and return a Pandoc document.
 readMuse :: PandocMonad m
@@ -67,7 +68,8 @@ readMuse :: PandocMonad m
          -> Text
          -> m Pandoc
 readMuse opts s = do
-  res <- readWithM parseMuse def{ museOptions = opts } (unpack (crFilter s))
+  let input = crFilter s
+  res <- mapLeft (PandocParsecError $ unpack input) `liftM` runParserT parseMuse def{ museOptions = opts } "source" input
   case res of
        Left e  -> throwError e
        Right d -> return d
@@ -97,7 +99,7 @@ instance Default MuseState where
                   , museInPara = False
                   }
 
-type MuseParser = ParserT String MuseState
+type MuseParser = ParserT Text MuseState
 
 instance HasReaderOptions MuseState where
   extractReaderOptions = museOptions
