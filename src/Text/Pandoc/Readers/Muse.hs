@@ -124,7 +124,7 @@ parseMuse = do
   many directive
   firstSection <- parseBlocks
   rest <- many parseSection
-  let blocks = mconcat $ (firstSection : rest)
+  let blocks = mconcat (firstSection : rest)
   st <- getState
   let doc = runF (do Pandoc _ bs <- B.doc <$> blocks
                      meta <- museMeta st
@@ -182,8 +182,7 @@ openTag :: PandocMonad m => String -> MuseParser m [(String, String)]
 openTag tag = try $ do
   char '<'
   string tag
-  attrs <- manyTill attr (char '>')
-  return attrs
+  manyTill attr (char '>')
   where
     attr = try $ do
       many1 spaceChar
@@ -278,8 +277,8 @@ parseBlocks =
   where
     nextSection = mempty <$ lookAhead headingStart
     parseEnd = mempty <$ eof
-    blockStart = ((B.<>) <$> (blockElements <|> emacsNoteBlock)
-                         <*> parseBlocks)
+    blockStart = (B.<>) <$> (blockElements <|> emacsNoteBlock)
+                        <*> parseBlocks
     listStart = do
       updateState (\st -> st { museInPara = False })
       uncurry (B.<>) <$> (anyListUntil parseBlocks <|> amuseNoteBlockUntil parseBlocks)
@@ -293,7 +292,7 @@ parseSection :: PandocMonad m
              => MuseParser m (F Blocks)
 parseSection =
   ((B.<>) <$> emacsHeading <*> parseBlocks) <|>
-  ((uncurry (B.<>)) <$> amuseHeadingUntil parseBlocks)
+  (uncurry (B.<>) <$> amuseHeadingUntil parseBlocks)
 
 parseBlocksTill :: PandocMonad m
                 => MuseParser m a
