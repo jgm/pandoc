@@ -179,16 +179,22 @@ someUntil p end = first <$> ((:) <$> p) <*> manyUntil p end
 
 -- ** HTML parsers
 
+openTag :: PandocMonad m => String -> MuseParser m Attr
+openTag tag = do
+  (TagOpen _ attr, _) <- htmlTag(~== TagOpen tag [])
+  return $ htmlAttrToPandoc attr
+
+closeTag :: PandocMonad m => String -> MuseParser m ()
+closeTag tag = void $ htmlTag (~== TagClose tag)
+
 -- | Parse HTML tag, returning its attributes and literal contents.
 htmlElement :: PandocMonad m
             => String -- ^ Tag name
             -> MuseParser m (Attr, String)
 htmlElement tag = try $ do
-  (TagOpen _ attr, _) <- htmlTag (~== TagOpen tag [])
-  content <- manyTill anyChar endtag
-  return (htmlAttrToPandoc attr, content)
-  where
-    endtag = void $ htmlTag (~== TagClose tag)
+  attr <- openTag tag
+  content <- manyTill anyChar $ closeTag tag
+  return (attr, content)
 
 htmlBlock :: PandocMonad m
           => String -- ^ Tag name
@@ -213,13 +219,11 @@ parseHtmlContent :: PandocMonad m
 parseHtmlContent tag = try $ do
   many spaceChar
   pos <- getPosition
-  (TagOpen _ attr, _) <- htmlTag (~== TagOpen tag [])
+  attr <- openTag tag
   manyTill spaceChar eol
-  content <- parseBlocksTill $ try $ count (sourceColumn pos - 1) spaceChar >> endtag
+  content <- parseBlocksTill $ try $ count (sourceColumn pos - 1) spaceChar >> closeTag tag
   manyTill spaceChar eol -- closing tag must be followed by optional whitespace and newline
-  return (htmlAttrToPandoc attr, content)
-  where
-    endtag = void $ htmlTag (~== TagClose tag)
+  return (attr, content)
 
 -- ** Directive parsers
 
@@ -423,13 +427,12 @@ exampleTag = try $ do
 literalTag :: PandocMonad m => MuseParser m (F Blocks)
 literalTag = try $ do
   many spaceChar
-  (TagOpen _ attr, _) <- htmlTag (~== TagOpen "literal" [])
+  attr <- openTag "literal"
   manyTill spaceChar eol
-  content <- manyTill anyChar endtag
+  content <- manyTill anyChar $ closeTag "literal"
   manyTill spaceChar eol
-  return $ return $ rawBlock (htmlAttrToPandoc attr, content)
+  return $ return $ rawBlock (attr, content)
   where
-    endtag = void $ htmlTag (~== TagClose "literal")
     -- FIXME: Emacs Muse inserts <literal> without style into all output formats, but we assume HTML
     format (_, _, kvs)        = fromMaybe "html" $ lookup "style" kvs
     rawBlock (attrs, content) = B.rawBlock (format attrs) $ rchop $ intercalate "\n" $ dropSpacePrefix $ splitOn "\n" $ lchop content
@@ -480,14 +483,12 @@ verseTag :: PandocMonad m => MuseParser m (F Blocks)
 verseTag = try $ do
   many spaceChar
   pos <- getPosition
-  (TagOpen _ _, _) <- htmlTag (~== TagOpen "verse" [])
+  openTag "verse"
   manyTill spaceChar eol
   let indent = count (sourceColumn pos - 1) spaceChar
-  content <- sequence <$> manyTill (indent >> verseLine) (try $ indent >> endtag)
+  content <- sequence <$> manyTill (indent >> verseLine) (try $ indent >> closeTag "verse")
   manyTill spaceChar eol
   return $ B.lineBlock <$> content
-  where
-    endtag = void $ htmlTag (~== TagClose "verse")
 
 -- | Parse @\<comment>@ tag.
 commentTag :: PandocMonad m => MuseParser m (F Blocks)
