@@ -1,6 +1,33 @@
-{-# LANGUAGE NoImplicitPrelude #-}
-{-# LANGUAGE FlexibleContexts #-}
+{-
+Copyright © 2012-2018 John MacFarlane <jgm@berkeley.edu>
+            2017-2018 Albert Krewinkel <tarleb+pandoc@moltkeplatz.de>
 
+This program is free software; you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation; either version 2 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program; if not, write to the Free Software
+Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+-}
+{-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE NoImplicitPrelude #-}
+{- |
+Module      : Text.Pandoc.Lua.Filter
+Copyright   : © 2012–2018 John MacFarlane,
+              © 2017-2018 Albert Krewinkel
+License     : GNU GPL, version 2 or above
+Maintainer  : Albert Krewinkel <tarleb+pandoc@moltkeplatz.de>
+Stability   : alpha
+
+Types and functions for running Lua filters.
+-}
 module Text.Pandoc.Lua.Filter ( LuaFilterFunction
                               , LuaFilter
                               , tryFilter
@@ -12,60 +39,56 @@ module Text.Pandoc.Lua.Filter ( LuaFilterFunction
                               , inlineElementNames
                               ) where
 import Prelude
-import Control.Monad (mplus, unless, when, (>=>))
+import Control.Monad (mplus, (>=>))
 import Control.Monad.Catch (finally)
-import Text.Pandoc.Definition
-import Data.Foldable (foldrM)
-import Data.Map (Map)
-import qualified Data.Map as Map
-import qualified Foreign.Lua as Lua
-import Foreign.Lua (FromLuaStack (peek), Lua, StackIndex,
-                    Status (OK), ToLuaStack (push))
-import Text.Pandoc.Walk (walkM, Walkable)
 import Data.Data (Data, DataType, dataTypeConstrs, dataTypeName, dataTypeOf,
                   showConstr, toConstr, tyconUQname)
-import Text.Pandoc.Lua.StackInstances()
+import Data.Foldable (foldrM)
+import Data.Map (Map)
+import Foreign.Lua (Lua, FromLuaStack, ToLuaStack)
+import Text.Pandoc.Definition
+import Text.Pandoc.Lua.StackInstances ()
 import Text.Pandoc.Lua.Util (typeCheck)
+import Text.Pandoc.Walk (walkM, Walkable)
 
-type FunctionMap = Map String LuaFilterFunction
+import qualified Data.Map.Strict as Map
+import qualified Foreign.Lua as Lua
 
-newtype LuaFilterFunction = LuaFilterFunction { functionIndex :: Int }
+-- | Filter function stored at the given index in the registry
+newtype LuaFilterFunction = LuaFilterFunction Int
 
-instance ToLuaStack LuaFilterFunction where
-  push = pushFilterFunction
-
-instance FromLuaStack LuaFilterFunction where
-  peek = registerFilterFunction
-
-newtype LuaFilter = LuaFilter FunctionMap
+-- | Collection of filter functions (at most one function per element
+-- constructor)
+newtype LuaFilter = LuaFilter (Map String LuaFilterFunction)
 
 instance FromLuaStack LuaFilter where
-  peek idx =
-    let constrs = metaFilterName : pandocFilterNames
-                  ++ blockElementNames
-                  ++ inlineElementNames
-        fn c acc = do
-          Lua.getfield idx c
-          filterFn <- Lua.tryLua (peek (-1))
-          Lua.pop 1
+  peek idx = do
+    let constrs = metaFilterName
+                : pandocFilterNames
+                ++ blockElementNames
+                ++ inlineElementNames
+    let go constr acc = do
+          Lua.getfield idx constr
+          filterFn <- registerFilterFunction
           return $ case filterFn of
-            Left _  -> acc
-            Right f -> (c, f) : acc
-    in LuaFilter . Map.fromList <$> foldrM fn [] constrs
+            Nothing -> acc
+            Just fn -> Map.insert constr fn acc
+    LuaFilter <$> foldrM go Map.empty constrs
 
--- | Push the filter function to the top of the stack.
+-- | Register the function at the top of the stack as a filter function in the
+-- registry.
+registerFilterFunction :: Lua (Maybe LuaFilterFunction)
+registerFilterFunction = do
+  isFn <- Lua.isfunction Lua.stackTop
+  if isFn
+    then Just . LuaFilterFunction <$> Lua.ref Lua.registryindex
+    else Nothing <$ Lua.pop 1
+
+-- | Retrieve filter function from registry and push it to the top of the stack.
 pushFilterFunction :: LuaFilterFunction -> Lua ()
-pushFilterFunction lf =
-  -- The function is stored in a lua registry table, retrieve it from there.
-  Lua.rawgeti Lua.registryindex (functionIndex lf)
+pushFilterFunction (LuaFilterFunction fnRef) =
+  Lua.rawgeti Lua.registryindex fnRef
 
-registerFilterFunction :: StackIndex -> Lua LuaFilterFunction
-registerFilterFunction idx = do
-  isFn <- Lua.isfunction idx
-  unless isFn . Lua.throwLuaError $ "Not a function at index " ++ show idx
-  Lua.pushvalue idx
-  refIdx <- Lua.ref Lua.registryindex
-  return $ LuaFilterFunction refIdx
 
 elementOrList :: FromLuaStack a => a -> Lua [a]
 elementOrList x = do
@@ -98,12 +121,11 @@ tryFilter (LuaFilter fnMap) x =
 -- element is left unchanged.
 runFilterFunction :: ToLuaStack a => LuaFilterFunction -> a -> Lua ()
 runFilterFunction lf x = do
-  pushFilterFunction lf
-  push x
-  z <- Lua.pcall 1 1 Nothing
-  when (z /= OK) $ do
-    let addPrefix = ("Error while running filter function: " ++)
-    Lua.throwTopMessageAsError' addPrefix
+  let errorPrefix = "Error while running filter function:\n"
+  (`Lua.modifyLuaError` (errorPrefix <>)) $ do
+    pushFilterFunction lf
+    Lua.push x
+    Lua.call 1 1
 
 walkMWithLuaFilter :: LuaFilter -> Pandoc -> Lua Pandoc
 walkMWithLuaFilter f =
