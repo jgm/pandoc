@@ -7,7 +7,7 @@ import Control.Monad (when)
 import Data.Version (Version (versionBranch))
 import System.FilePath ((</>))
 import Test.Tasty (TestTree, localOption)
-import Test.Tasty.HUnit (Assertion, assertEqual, testCase)
+import Test.Tasty.HUnit (Assertion, assertEqual, assertFailure, testCase)
 import Test.Tasty.QuickCheck (QuickCheckTests (..), ioProperty, testProperty)
 import Text.Pandoc.Arbitrary ()
 import Text.Pandoc.Builder (bulletList, divWith, doc, doubleQuoted, emph,
@@ -179,7 +179,7 @@ assertFilterConversion msg filterPath docIn docExpected = do
     setUserDataDir (Just "../data")
     runLuaFilter def ("lua" </> filterPath) [] docIn
   case docEither of
-    Left _       -> fail "lua filter failed"
+    Left exception -> assertFailure (show exception)
     Right docRes -> assertEqual msg docExpected docRes
 
 roundtripEqual :: (Eq a, Lua.FromLuaStack a, Lua.ToLuaStack a) => a -> IO Bool
