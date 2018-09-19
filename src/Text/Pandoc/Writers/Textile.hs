@@ -463,15 +463,15 @@ inlineToTextile _ SoftBreak = return " "
 inlineToTextile _ Space = return " "
 
 inlineToTextile opts (Link (_, cls, _) txt (src, _)) = do
-  let classes = if null cls
-                   then ""
-                   else "(" ++ unwords cls ++ ")"
   label <- case txt of
                 [Code _ s]
                  | s == src -> return "$"
                 [Str s]
                  | s == src -> return "$"
                 _           -> inlineListToTextile opts txt
+  let classes = if null cls || cls == ["uri"] && label == "$"
+                   then ""
+                   else "(" ++ unwords cls ++ ")"
   return $ "\"" ++ classes ++ label ++ "\":" ++ src
 
 inlineToTextile opts (Image attr@(_, cls, _) alt (source, tit)) = do

@@ -660,7 +660,7 @@ With an ampersand: "$":http://example.com/?foo=1&bar=2
 * "$":http://example.com/
 * It should.
 
-An e&#45;mail address: "nobody&#64;nowhere.net":mailto:nobody@nowhere.net
+An e&#45;mail address: "(email)nobody&#64;nowhere.net":mailto:nobody@nowhere.net
 
 bq. Blockquoted: "$":http://example.com/
 

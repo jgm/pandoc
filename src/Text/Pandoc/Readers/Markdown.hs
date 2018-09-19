@@ -1,6 +1,7 @@
 {-# LANGUAGE NoImplicitPrelude #-}
 {-# LANGUAGE RelaxedPolyRec      #-}
 {-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE TupleSections #-}
 
 {-
 Copyright (C) 2006-2018 John MacFarlane <jgm@berkeley.edu>
@@ -1879,23 +1880,24 @@ bareURL :: PandocMonad m => MarkdownParser m (F Inlines)
 bareURL = try $ do
   guardEnabled Ext_autolink_bare_uris
   getState >>= guard . stateAllowLinks
-  (orig, src) <- uri <|> emailAddress
+  (cls, (orig, src)) <- (("uri",) <$> uri) <|> (("email",) <$> emailAddress)
   notFollowedBy $ try $ spaces >> htmlTag (~== TagClose "a")
-  return $ return $ B.link src "" (B.str orig)
+  return $ return $ B.linkWith ("",[cls],[]) src "" (B.str orig)
 
 autoLink :: PandocMonad m => MarkdownParser m (F Inlines)
 autoLink = try $ do
   getState >>= guard . stateAllowLinks
   char '<'
-  (orig, src) <- uri <|> emailAddress
+  (cls, (orig, src)) <- (("uri",) <$> uri) <|> (("email",) <$> emailAddress)
   -- in rare cases, something may remain after the uri parser
   -- is finished, because the uri parser tries to avoid parsing
   -- final punctuation.  for example:  in `<http://hi---there>`,
   -- the URI parser will stop before the dashes.
   extra <- fromEntities <$> manyTill nonspaceChar (char '>')
-  attr  <- option nullAttr $ try $
+  attr  <- option ("", [cls], []) $ try $
             guardEnabled Ext_link_attributes >> attributes
-  return $ return $ B.linkWith attr (src ++ escapeURI extra) "" (B.str $ orig ++ extra)
+  return $ return $ B.linkWith attr (src ++ escapeURI extra) ""
+                     (B.str $ orig ++ extra)
 
 image :: PandocMonad m => MarkdownParser m (F Inlines)
 image = try $ do

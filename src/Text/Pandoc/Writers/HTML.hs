@@ -56,7 +56,7 @@ import Data.String (fromString)
 import Data.Text (Text)
 import qualified Data.Text.Lazy as TL
 import Network.HTTP (urlEncode)
-import Network.URI (URI (..), parseURIReference, unEscapeString)
+import Network.URI (URI (..), parseURIReference)
 import Numeric (showHex)
 import Text.Blaze.Internal (customLeaf, customParent, MarkupM(Empty))
 #if MIN_VERSION_blaze_markup(0,6,3)
@@ -1084,10 +1084,7 @@ inlineToHtml opts inline = do
                                              in  '#' : prefix ++ xs
                                    _ -> s
                         let link = H.a ! A.href (toValue s') $ linkText
-                        let attr = if txt == [Str (unEscapeString s)]
-                                      then (ident, "uri" : classes, kvs)
-                                      else (ident, classes, kvs)
-                        link' <- addAttrs opts attr link
+                        link' <- addAttrs opts (ident, classes, kvs) link
                         return $ if null tit
                                     then link'
                                     else link' ! A.title (toValue tit)
