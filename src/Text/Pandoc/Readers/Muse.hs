@@ -873,8 +873,8 @@ inlineTag :: PandocMonad m
           => String -- ^ Tag name
           -> MuseParser m (F Inlines)
 inlineTag tag = try $ do
-  htmlTag (~== TagOpen tag [])
-  mconcat <$> manyTill inline (void $ htmlTag (~== TagClose tag))
+  openTag tag
+  mconcat <$> manyTill inline (closeTag tag)
 
 -- | Parse strong inline markup, indicated by @**@.
 strong :: PandocMonad m => MuseParser m (F Inlines)
@@ -918,8 +918,8 @@ verbatimTag = return . B.text . snd <$> htmlElement "verbatim"
 -- | Parse @\<class>@ tag.
 classTag :: PandocMonad m => MuseParser m (F Inlines)
 classTag = do
-  (TagOpen _ attrs, _) <- htmlTag (~== TagOpen "class" [])
-  res <- manyTill inline (void $ htmlTag (~== TagClose "class"))
+  attrs <- openTag "class"
+  res <- manyTill inline $ closeTag "class"
   let classes = maybe [] words $ lookup "name" attrs
   return $ B.spanWith ("", classes, []) <$> mconcat res
 
