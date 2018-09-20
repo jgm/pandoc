@@ -453,7 +453,12 @@ inlineToConTeXt (Image attr@(_,cls,_) _ (src, _)) = do
       clas = if null cls
                 then empty
                 else brackets $ text $ toLabel $ head cls
-      src' = if isURI src
+      -- Use / for path separators on Windows; see #4918
+      fixPathSeparators = map $ \c -> case c of
+                                           '\\' -> '/'
+                                           c    -> c
+      src' = fixPathSeparators $
+             if isURI src
                 then src
                 else unEscapeString src
   return $ braces $ "\\externalfigure" <> brackets (text src') <> dims <> clas
