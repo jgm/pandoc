@@ -6,59 +6,59 @@
   <table:table-column table:style-name="Table1.D" />
   <table:table-header-rows>
     <table:table-row>
-      <table:table-cell table:style-name="Table1.A1" office:value-type="string">
+      <table:table-cell table:style-name="TableHeaderRowCell" office:value-type="string">
         <text:p text:style-name="P1">Right</text:p>
       </table:table-cell>
-      <table:table-cell table:style-name="Table1.A1" office:value-type="string">
+      <table:table-cell table:style-name="TableHeaderRowCell" office:value-type="string">
         <text:p text:style-name="Table_20_Heading">Left</text:p>
       </table:table-cell>
-      <table:table-cell table:style-name="Table1.A1" office:value-type="string">
+      <table:table-cell table:style-name="TableHeaderRowCell" office:value-type="string">
         <text:p text:style-name="P2">Center</text:p>
       </table:table-cell>
-      <table:table-cell table:style-name="Table1.A1" office:value-type="string">
+      <table:table-cell table:style-name="TableHeaderRowCell" office:value-type="string">
         <text:p text:style-name="Table_20_Heading">Default</text:p>
       </table:table-cell>
     </table:table-row>
   </table:table-header-rows>
   <table:table-row>
-    <table:table-cell table:style-name="Table1.A1" office:value-type="string">
+    <table:table-cell table:style-name="TableRowCell" office:value-type="string">
       <text:p text:style-name="P3">12</text:p>
     </table:table-cell>
-    <table:table-cell table:style-name="Table1.A1" office:value-type="string">
+    <table:table-cell table:style-name="TableRowCell" office:value-type="string">
       <text:p text:style-name="Table_20_Contents">12</text:p>
     </table:table-cell>
-    <table:table-cell table:style-name="Table1.A1" office:value-type="string">
+    <table:table-cell table:style-name="TableRowCell" office:value-type="string">
       <text:p text:style-name="P4">12</text:p>
     </table:table-cell>
-    <table:table-cell table:style-name="Table1.A1" office:value-type="string">
+    <table:table-cell table:style-name="TableRowCell" office:value-type="string">
       <text:p text:style-name="Table_20_Contents">12</text:p>
     </table:table-cell>
   </table:table-row>
   <table:table-row>
-    <table:table-cell table:style-name="Table1.A1" office:value-type="string">
+    <table:table-cell table:style-name="TableRowCell" office:value-type="string">
       <text:p text:style-name="P3">123</text:p>
     </table:table-cell>
-    <table:table-cell table:style-name="Table1.A1" office:value-type="string">
+    <table:table-cell table:style-name="TableRowCell" office:value-type="string">
       <text:p text:style-name="Table_20_Contents">123</text:p>
     </table:table-cell>
-    <table:table-cell table:style-name="Table1.A1" office:value-type="string">
+    <table:table-cell table:style-name="TableRowCell" office:value-type="string">
       <text:p text:style-name="P4">123</text:p>
     </table:table-cell>
-    <table:table-cell table:style-name="Table1.A1" office:value-type="string">
+    <table:table-cell table:style-name="TableRowCell" office:value-type="string">
       <text:p text:style-name="Table_20_Contents">123</text:p>
     </table:table-cell>
   </table:table-row>
   <table:table-row>
-    <table:table-cell table:style-name="Table1.A1" office:value-type="string">
+    <table:table-cell table:style-name="TableRowCell" office:value-type="string">
       <text:p text:style-name="P3">1</text:p>
     </table:table-cell>
-    <table:table-cell table:style-name="Table1.A1" office:value-type="string">
+    <table:table-cell table:style-name="TableRowCell" office:value-type="string">
       <text:p text:style-name="Table_20_Contents">1</text:p>
     </table:table-cell>
-    <table:table-cell table:style-name="Table1.A1" office:value-type="string">
+    <table:table-cell table:style-name="TableRowCell" office:value-type="string">
       <text:p text:style-name="P4">1</text:p>
     </table:table-cell>
-    <table:table-cell table:style-name="Table1.A1" office:value-type="string">
+    <table:table-cell table:style-name="TableRowCell" office:value-type="string">
       <text:p text:style-name="Table_20_Contents">1</text:p>
     </table:table-cell>
   </table:table-row>
@@ -73,59 +73,59 @@ caption:</text:p>
   <table:table-column table:style-name="Table2.D" />
   <table:table-header-rows>
     <table:table-row>
-      <table:table-cell table:style-name="Table2.A1" office:value-type="string">
+      <table:table-cell table:style-name="TableHeaderRowCell" office:value-type="string">
         <text:p text:style-name="P5">Right</text:p>
       </table:table-cell>
-      <table:table-cell table:style-name="Table2.A1" office:value-type="string">
+      <table:table-cell table:style-name="TableHeaderRowCell" office:value-type="string">
         <text:p text:style-name="Table_20_Heading">Left</text:p>
       </table:table-cell>
-      <table:table-cell table:style-name="Table2.A1" office:value-type="string">
+      <table:table-cell table:style-name="TableHeaderRowCell" office:value-type="string">
         <text:p text:style-name="P6">Center</text:p>
       </table:table-cell>
-      <table:table-cell table:style-name="Table2.A1" office:value-type="string">
+      <table:table-cell table:style-name="TableHeaderRowCell" office:value-type="string">
         <text:p text:style-name="Table_20_Heading">Default</text:p>
       </table:table-cell>
     </table:table-row>
   </table:table-header-rows>
   <table:table-row>
-    <table:table-cell table:style-name="Table2.A1" office:value-type="string">
+    <table:table-cell table:style-name="TableRowCell" office:value-type="string">
       <text:p text:style-name="P7">12</text:p>
     </table:table-cell>
-    <table:table-cell table:style-name="Table2.A1" office:value-type="string">
+    <table:table-cell table:style-name="TableRowCell" office:value-type="string">
       <text:p text:style-name="Table_20_Contents">12</text:p>
     </table:table-cell>
-    <table:table-cell table:style-name="Table2.A1" office:value-type="string">
+    <table:table-cell table:style-name="TableRowCell" office:value-type="string">
       <text:p text:style-name="P8">12</text:p>
     </table:table-cell>
-    <table:table-cell table:style-name="Table2.A1" office:value-type="string">
+    <table:table-cell table:style-name="TableRowCell" office:value-type="string">
       <text:p text:style-name="Table_20_Contents">12</text:p>
     </table:table-cell>
   </table:table-row>
   <table:table-row>
-    <table:table-cell table:style-name="Table2.A1" office:value-type="string">
+    <table:table-cell table:style-name="TableRowCell" office:value-type="string">
       <text:p text:style-name="P7">123</text:p>
     </table:table-cell>
-    <table:table-cell table:style-name="Table2.A1" office:value-type="string">
+    <table:table-cell table:style-name="TableRowCell" office:value-type="string">
       <text:p text:style-name="Table_20_Contents">123</text:p>
     </table:table-cell>
-    <table:table-cell table:style-name="Table2.A1" office:value-type="string">
+    <table:table-cell table:style-name="TableRowCell" office:value-type="string">
       <text:p text:style-name="P8">123</text:p>
     </table:table-cell>
-    <table:table-cell table:style-name="Table2.A1" office:value-type="string">
+    <table:table-cell table:style-name="TableRowCell" office:value-type="string">
       <text:p text:style-name="Table_20_Contents">123</text:p>
     </table:table-cell>
   </table:table-row>
   <table:table-row>
-    <table:table-cell table:style-name="Table2.A1" office:value-type="string">
+    <table:table-cell table:style-name="TableRowCell" office:value-type="string">
       <text:p text:style-name="P7">1</text:p>
     </table:table-cell>
-    <table:table-cell table:style-name="Table2.A1" office:value-type="string">
+    <table:table-cell table:style-name="TableRowCell" office:value-type="string">
       <text:p text:style-name="Table_20_Contents">1</text:p>
     </table:table-cell>
-    <table:table-cell table:style-name="Table2.A1" office:value-type="string">
+    <table:table-cell table:style-name="TableRowCell" office:value-type="string">
       <text:p text:style-name="P8">1</text:p>
     </table:table-cell>
-    <table:table-cell table:style-name="Table2.A1" office:value-type="string">
+    <table:table-cell table:style-name="TableRowCell" office:value-type="string">
       <text:p text:style-name="Table_20_Contents">1</text:p>
     </table:table-cell>
   </table:table-row>
@@ -139,59 +139,59 @@ spaces:</text:p>
   <table:table-column table:style-name="Table3.D" />
   <table:table-header-rows>
     <table:table-row>
-      <table:table-cell table:style-name="Table3.A1" office:value-type="string">
+      <table:table-cell table:style-name="TableHeaderRowCell" office:value-type="string">
         <text:p text:style-name="P9">Right</text:p>
       </table:table-cell>
-      <table:table-cell table:style-name="Table3.A1" office:value-type="string">
+      <table:table-cell table:style-name="TableHeaderRowCell" office:value-type="string">
         <text:p text:style-name="Table_20_Heading">Left</text:p>
       </table:table-cell>
-      <table:table-cell table:style-name="Table3.A1" office:value-type="string">
+      <table:table-cell table:style-name="TableHeaderRowCell" office:value-type="string">
         <text:p text:style-name="P10">Center</text:p>
       </table:table-cell>
-      <table:table-cell table:style-name="Table3.A1" office:value-type="string">
+      <table:table-cell table:style-name="TableHeaderRowCell" office:value-type="string">
         <text:p text:style-name="Table_20_Heading">Default</text:p>
       </table:table-cell>
     </table:table-row>
   </table:table-header-rows>
   <table:table-row>
-    <table:table-cell table:style-name="Table3.A1" office:value-type="string">
+    <table:table-cell table:style-name="TableRowCell" office:value-type="string">
       <text:p text:style-name="P11">12</text:p>
     </table:table-cell>
-    <table:table-cell table:style-name="Table3.A1" office:value-type="string">
+    <table:table-cell table:style-name="TableRowCell" office:value-type="string">
       <text:p text:style-name="Table_20_Contents">12</text:p>
     </table:table-cell>
-    <table:table-cell table:style-name="Table3.A1" office:value-type="string">
+    <table:table-cell table:style-name="TableRowCell" office:value-type="string">
       <text:p text:style-name="P12">12</text:p>
     </table:table-cell>
-    <table:table-cell table:style-name="Table3.A1" office:value-type="string">
+    <table:table-cell table:style-name="TableRowCell" office:value-type="string">
       <text:p text:style-name="Table_20_Contents">12</text:p>
     </table:table-cell>
   </table:table-row>
   <table:table-row>
-    <table:table-cell table:style-name="Table3.A1" office:value-type="string">
+    <table:table-cell table:style-name="TableRowCell" office:value-type="string">
       <text:p text:style-name="P11">123</text:p>
     </table:table-cell>
-    <table:table-cell table:style-name="Table3.A1" office:value-type="string">
+    <table:table-cell table:style-name="TableRowCell" office:value-type="string">
       <text:p text:style-name="Table_20_Contents">123</text:p>
     </table:table-cell>
-    <table:table-cell table:style-name="Table3.A1" office:value-type="string">
+    <table:table-cell table:style-name="TableRowCell" office:value-type="string">
       <text:p text:style-name="P12">123</text:p>
     </table:table-cell>
-    <table:table-cell table:style-name="Table3.A1" office:value-type="string">
+    <table:table-cell table:style-name="TableRowCell" office:value-type="string">
       <text:p text:style-name="Table_20_Contents">123</text:p>
     </table:table-cell>
   </table:table-row>
   <table:table-row>
-    <table:table-cell table:style-name="Table3.A1" office:value-type="string">
+    <table:table-cell table:style-name="TableRowCell" office:value-type="string">
       <text:p text:style-name="P11">1</text:p>
     </table:table-cell>
-    <table:table-cell table:style-name="Table3.A1" office:value-type="string">
+    <table:table-cell table:style-name="TableRowCell" office:value-type="string">
       <text:p text:style-name="Table_20_Contents">1</text:p>
     </table:table-cell>
-    <table:table-cell table:style-name="Table3.A1" office:value-type="string">
+    <table:table-cell table:style-name="TableRowCell" office:value-type="string">
       <text:p text:style-name="P12">1</text:p>
     </table:table-cell>
-    <table:table-cell table:style-name="Table3.A1" office:value-type="string">
+    <table:table-cell table:style-name="TableRowCell" office:value-type="string">
       <text:p text:style-name="Table_20_Contents">1</text:p>
     </table:table-cell>
   </table:table-row>
@@ -206,46 +206,46 @@ caption:</text:p>
   <table:table-column table:style-name="Table4.D" />
   <table:table-header-rows>
     <table:table-row>
-      <table:table-cell table:style-name="Table4.A1" office:value-type="string">
+      <table:table-cell table:style-name="TableHeaderRowCell" office:value-type="string">
         <text:p text:style-name="P13">Centered Header</text:p>
       </table:table-cell>
-      <table:table-cell table:style-name="Table4.A1" office:value-type="string">
+      <table:table-cell table:style-name="TableHeaderRowCell" office:value-type="string">
         <text:p text:style-name="Table_20_Heading">Left Aligned</text:p>
       </table:table-cell>
-      <table:table-cell table:style-name="Table4.A1" office:value-type="string">
+      <table:table-cell table:style-name="TableHeaderRowCell" office:value-type="string">
         <text:p text:style-name="P14">Right Aligned</text:p>
       </table:table-cell>
-      <table:table-cell table:style-name="Table4.A1" office:value-type="string">
+      <table:table-cell table:style-name="TableHeaderRowCell" office:value-type="string">
         <text:p text:style-name="Table_20_Heading">Default aligned</text:p>
       </table:table-cell>
     </table:table-row>
   </table:table-header-rows>
   <table:table-row>
-    <table:table-cell table:style-name="Table4.A1" office:value-type="string">
+    <table:table-cell table:style-name="TableRowCell" office:value-type="string">
       <text:p text:style-name="P15">First</text:p>
     </table:table-cell>
-    <table:table-cell table:style-name="Table4.A1" office:value-type="string">
+    <table:table-cell table:style-name="TableRowCell" office:value-type="string">
       <text:p text:style-name="Table_20_Contents">row</text:p>
     </table:table-cell>
-    <table:table-cell table:style-name="Table4.A1" office:value-type="string">
+    <table:table-cell table:style-name="TableRowCell" office:value-type="string">
       <text:p text:style-name="P16">12.0</text:p>
     </table:table-cell>
-    <table:table-cell table:style-name="Table4.A1" office:value-type="string">
+    <table:table-cell table:style-name="TableRowCell" office:value-type="string">
       <text:p text:style-name="Table_20_Contents">Example of a row that spans
       multiple lines.</text:p>
     </table:table-cell>
   </table:table-row>
   <table:table-row>
-    <table:table-cell table:style-name="Table4.A1" office:value-type="string">
+    <table:table-cell table:style-name="TableRowCell" office:value-type="string">
       <text:p text:style-name="P15">Second</text:p>
     </table:table-cell>
-    <table:table-cell table:style-name="Table4.A1" office:value-type="string">
+    <table:table-cell table:style-name="TableRowCell" office:value-type="string">
       <text:p text:style-name="Table_20_Contents">row</text:p>
     </table:table-cell>
-    <table:table-cell table:style-name="Table4.A1" office:value-type="string">
+    <table:table-cell table:style-name="TableRowCell" office:value-type="string">
       <text:p text:style-name="P16">5.0</text:p>
     </table:table-cell>
-    <table:table-cell table:style-name="Table4.A1" office:value-type="string">
+    <table:table-cell table:style-name="TableRowCell" office:value-type="string">
       <text:p text:style-name="Table_20_Contents">Here’s another one. Note the
       blank line between rows.</text:p>
     </table:table-cell>
@@ -262,46 +262,46 @@ caption:</text:p>
   <table:table-column table:style-name="Table5.D" />
   <table:table-header-rows>
     <table:table-row>
-      <table:table-cell table:style-name="Table5.A1" office:value-type="string">
+      <table:table-cell table:style-name="TableHeaderRowCell" office:value-type="string">
         <text:p text:style-name="P17">Centered Header</text:p>
       </table:table-cell>
-      <table:table-cell table:style-name="Table5.A1" office:value-type="string">
+      <table:table-cell table:style-name="TableHeaderRowCell" office:value-type="string">
         <text:p text:style-name="Table_20_Heading">Left Aligned</text:p>
       </table:table-cell>
-      <table:table-cell table:style-name="Table5.A1" office:value-type="string">
+      <table:table-cell table:style-name="TableHeaderRowCell" office:value-type="string">
         <text:p text:style-name="P18">Right Aligned</text:p>
       </table:table-cell>
-      <table:table-cell table:style-name="Table5.A1" office:value-type="string">
+      <table:table-cell table:style-name="TableHeaderRowCell" office:value-type="string">
         <text:p text:style-name="Table_20_Heading">Default aligned</text:p>
       </table:table-cell>
     </table:table-row>
   </table:table-header-rows>
   <table:table-row>
-    <table:table-cell table:style-name="Table5.A1" office:value-type="string">
+    <table:table-cell table:style-name="TableRowCell" office:value-type="string">
       <text:p text:style-name="P19">First</text:p>
     </table:table-cell>
-    <table:table-cell table:style-name="Table5.A1" office:value-type="string">
+    <table:table-cell table:style-name="TableRowCell" office:value-type="string">
       <text:p text:style-name="Table_20_Contents">row</text:p>
     </table:table-cell>
-    <table:table-cell table:style-name="Table5.A1" office:value-type="string">
+    <table:table-cell table:style-name="TableRowCell" office:value-type="string">
       <text:p text:style-name="P20">12.0</text:p>
     </table:table-cell>
-    <table:table-cell table:style-name="Table5.A1" office:value-type="string">
+    <table:table-cell table:style-name="TableRowCell" office:value-type="string">
       <text:p text:style-name="Table_20_Contents">Example of a row that spans
       multiple lines.</text:p>
     </table:table-cell>
   </table:table-row>
   <table:table-row>
-    <table:table-cell table:style-name="Table5.A1" office:value-type="string">
+    <table:table-cell table:style-name="TableRowCell" office:value-type="string">
       <text:p text:style-name="P19">Second</text:p>
     </table:table-cell>
-    <table:table-cell table:style-name="Table5.A1" office:value-type="string">
+    <table:table-cell table:style-name="TableRowCell" office:value-type="string">
       <text:p text:style-name="Table_20_Contents">row</text:p>
     </table:table-cell>
-    <table:table-cell table:style-name="Table5.A1" office:value-type="string">
+    <table:table-cell table:style-name="TableRowCell" office:value-type="string">
       <text:p text:style-name="P20">5.0</text:p>
     </table:table-cell>
-    <table:table-cell table:style-name="Table5.A1" office:value-type="string">
+    <table:table-cell table:style-name="TableRowCell" office:value-type="string">
       <text:p text:style-name="Table_20_Contents">Here’s another one. Note the
       blank line between rows.</text:p>
     </table:table-cell>
@@ -315,44 +315,44 @@ headers:</text:p>
   <table:table-column table:style-name="Table6.C" />
   <table:table-column table:style-name="Table6.D" />
   <table:table-row>
-    <table:table-cell table:style-name="Table6.A1" office:value-type="string">
+    <table:table-cell table:style-name="TableRowCell" office:value-type="string">
       <text:p text:style-name="P24">12</text:p>
     </table:table-cell>
-    <table:table-cell table:style-name="Table6.A1" office:value-type="string">
+    <table:table-cell table:style-name="TableRowCell" office:value-type="string">
       <text:p text:style-name="Table_20_Contents">12</text:p>
     </table:table-cell>
-    <table:table-cell table:style-name="Table6.A1" office:value-type="string">
+    <table:table-cell table:style-name="TableRowCell" office:value-type="string">
       <text:p text:style-name="P25">12</text:p>
     </table:table-cell>
-    <table:table-cell table:style-name="Table6.A1" office:value-type="string">
+    <table:table-cell table:style-name="TableRowCell" office:value-type="string">
       <text:p text:style-name="P26">12</text:p>
     </table:table-cell>
   </table:table-row>
   <table:table-row>
-    <table:table-cell table:style-name="Table6.A1" office:value-type="string">
+    <table:table-cell table:style-name="TableRowCell" office:value-type="string">
       <text:p text:style-name="P24">123</text:p>
     </table:table-cell>
-    <table:table-cell table:style-name="Table6.A1" office:value-type="string">
+    <table:table-cell table:style-name="TableRowCell" office:value-type="string">
       <text:p text:style-name="Table_20_Contents">123</text:p>
     </table:table-cell>
-    <table:table-cell table:style-name="Table6.A1" office:value-type="string">
+    <table:table-cell table:style-name="TableRowCell" office:value-type="string">
       <text:p text:style-name="P25">123</text:p>
     </table:table-cell>
-    <table:table-cell table:style-name="Table6.A1" office:value-type="string">
+    <table:table-cell table:style-name="TableRowCell" office:value-type="string">
       <text:p text:style-name="P26">123</text:p>
     </table:table-cell>
   </table:table-row>
   <table:table-row>
-    <table:table-cell table:style-name="Table6.A1" office:value-type="string">
+    <table:table-cell table:style-name="TableRowCell" office:value-type="string">
       <text:p text:style-name="P24">1</text:p>
     </table:table-cell>
-    <table:table-cell table:style-name="Table6.A1" office:value-type="string">
+    <table:table-cell table:style-name="TableRowCell" office:value-type="string">
       <text:p text:style-name="Table_20_Contents">1</text:p>
     </table:table-cell>
-    <table:table-cell table:style-name="Table6.A1" office:value-type="string">
+    <table:table-cell table:style-name="TableRowCell" office:value-type="string">
       <text:p text:style-name="P25">1</text:p>
     </table:table-cell>
-    <table:table-cell table:style-name="Table6.A1" office:value-type="string">
+    <table:table-cell table:style-name="TableRowCell" office:value-type="string">
       <text:p text:style-name="P26">1</text:p>
     </table:table-cell>
   </table:table-row>
@@ -365,31 +365,31 @@ headers:</text:p>
   <table:table-column table:style-name="Table7.C" />
   <table:table-column table:style-name="Table7.D" />
   <table:table-row>
-    <table:table-cell table:style-name="Table7.A1" office:value-type="string">
+    <table:table-cell table:style-name="TableRowCell" office:value-type="string">
       <text:p text:style-name="P29">First</text:p>
     </table:table-cell>
-    <table:table-cell table:style-name="Table7.A1" office:value-type="string">
+    <table:table-cell table:style-name="TableRowCell" office:value-type="string">
       <text:p text:style-name="Table_20_Contents">row</text:p>
     </table:table-cell>
-    <table:table-cell table:style-name="Table7.A1" office:value-type="string">
+    <table:table-cell table:style-name="TableRowCell" office:value-type="string">
       <text:p text:style-name="P30">12.0</text:p>
     </table:table-cell>
-    <table:table-cell table:style-name="Table7.A1" office:value-type="string">
+    <table:table-cell table:style-name="TableRowCell" office:value-type="string">
       <text:p text:style-name="Table_20_Contents">Example of a row that spans
       multiple lines.</text:p>
     </table:table-cell>
   </table:table-row>
   <table:table-row>
-    <table:table-cell table:style-name="Table7.A1" office:value-type="string">
+    <table:table-cell table:style-name="TableRowCell" office:value-type="string">
       <text:p text:style-name="P29">Second</text:p>
     </table:table-cell>
-    <table:table-cell table:style-name="Table7.A1" office:value-type="string">
+    <table:table-cell table:style-name="TableRowCell" office:value-type="string">
       <text:p text:style-name="Table_20_Contents">row</text:p>
     </table:table-cell>
-    <table:table-cell table:style-name="Table7.A1" office:value-type="string">
+    <table:table-cell table:style-name="TableRowCell" office:value-type="string">
       <text:p text:style-name="P30">5.0</text:p>
     </table:table-cell>
-    <table:table-cell table:style-name="Table7.A1" office:value-type="string">
+    <table:table-cell table:style-name="TableRowCell" office:value-type="string">
       <text:p text:style-name="Table_20_Contents">Here’s another one. Note the
       blank line between rows.</text:p>
     </table:table-cell>
