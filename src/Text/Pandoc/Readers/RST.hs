@@ -1090,7 +1090,7 @@ referenceKey = do
 targetURI :: Monad m => ParserT [Char] st m [Char]
 targetURI = do
   skipSpaces
-  optional newline
+  optional $ try $ newline >> notFollowedBy blankline
   contents <- trim <$>
      many1 (satisfy (/='\n')
      <|> try (newline >> many1 spaceChar >> noneOf " \t\n"))
