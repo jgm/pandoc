@@ -145,9 +145,8 @@ commonPrefix (x:xs) (y:ys)
 
 -- | Trim up to one newline from the beginning of the string.
 lchop :: String -> String
-lchop s = case s of
-                    '\n':ss -> ss
-                    _       -> s
+lchop ('\n':xs) = xs
+lchop s = s
 
 -- | Trim up to one newline from the end of the string.
 rchop :: String -> String
