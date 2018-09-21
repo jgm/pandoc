@@ -37,7 +37,7 @@ Simple table with caption:
 
 Simple table without caption:
 
-\startplacetable[location=none]
+\startplacetable[location={none}]
 \startxtable
 \startxtablehead[head]
 \startxrow
@@ -144,7 +144,7 @@ blank line between rows. \stopxcell
 
 Multiline table without caption:
 
-\startplacetable[location=none]
+\startplacetable[location={none}]
 \startxtable
 \startxtablehead[head]
 \startxrow
@@ -177,7 +177,7 @@ blank line between rows. \stopxcell
 
 Table without column headers:
 
-\startplacetable[location=none]
+\startplacetable[location={none}]
 \startxtable
 \startxtablebody[body]
 \startxrow
@@ -206,7 +206,7 @@ Table without column headers:
 
 Multiline table without column headers:
 
-\startplacetable[location=none]
+\startplacetable[location={none}]
 \startxtable
 \startxtablebody[body]
 \startxrow

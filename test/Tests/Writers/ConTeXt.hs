@@ -17,6 +17,9 @@ context = unpack . purely (writeConTeXt def) . toPandoc
 context' :: (ToPandoc a) => a -> String
 context' = unpack . purely (writeConTeXt def{ writerWrapText = WrapNone }) . toPandoc
 
+contextNofloat :: (ToPandoc a) => a -> String
+contextNofloat = unpack . purely (writeConTeXt def{ writerExtensions = enableExtension Ext_nofloat pandocExtensions }) . toPandoc
+
 contextNtb :: (ToPandoc a) => a -> String
 contextNtb = unpack . purely (writeConTeXt def{ writerExtensions = enableExtension Ext_ntb pandocExtensions }) . toPandoc
 
@@ -147,5 +150,29 @@ tests = [ testGroup "inline code"
                           , "\\stopTABLEfoot"
                           , "\\stopTABLE"
                           , "\\stopplacetable" ]
+            ]
+        , testGroup "nofloat"
+            [ test contextNofloat "table with header and caption" $
+              let caption = text "Table 1"
+                  aligns = [(AlignDefault, 0.0)]
+                  headers = [plain $ text "Test"]
+              in table caption aligns headers []
+              =?> unlines [ "\\startplacetable[location={force},title={Table 1}]"
+                          , "\\startxtable"
+                          , "\\startxtablehead[head]"
+                          , "\\startxrow"
+                          , "\\startxcell Test \\stopxcell"
+                          , "\\stopxrow"
+                          , "\\stopxtablehead"
+                          , "\\stopxtable"
+                          , "\\stopplacetable" ]
+            , test contextNofloat "image with caption" $
+              let caption = text "Caption"
+                  uri = "image.jpg"
+                  reference = "fig:label"
+              in para (image uri reference caption)
+              =?> unlines [ "\\startplacefigure[location={force},title={Caption}]"
+                          , "\\externalfigure[image.jpg]"
+                          , "\\stopplacefigure" ]
             ]
         ]
