@@ -2060,6 +2060,18 @@ In the `context` output format this enables the use of [Natural Tables
 Natural tables allow more fine-grained global customization but come
 at a performance penalty compared to extreme tables.
 
+#### Extension: `nofloat` ####
+
+Some document processing system, mostly those derived from TeX, place
+tables and images in so called “inserts”.  These inserts float around
+the page to achieve optimal placement of elements in the text with
+regards to pagebreaking.  Sometimes however, this behavior can be
+undesirable and floats should be fixed at the position at which they
+appear in the source.  If you are sure that you know what you are
+doing and are certain that you want to take the risk of extremely poor
+pagebreaks, you can add this extension to the writer.  Currently only
+the ConTeXt writer is supported.
+
 
 Pandoc's Markdown
 =================
