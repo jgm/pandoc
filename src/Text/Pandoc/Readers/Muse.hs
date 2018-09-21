@@ -595,13 +595,6 @@ bulletListUntil end = try $ do
   (items, e) <- bulletListItemsUntil indent end
   return (B.bulletList <$> sequence items, e)
 
--- | Parses an ordered list marker and returns list attributes.
-anyMuseOrderedListMarker :: PandocMonad m => MuseParser m ListAttributes
-anyMuseOrderedListMarker = do
-  (style, start) <- decimal <|> lowerRoman <|> upperRoman <|> lowerAlpha <|> upperAlpha
-  char '.'
-  return (start, style, Period)
-
 museOrderedListMarker :: PandocMonad m
                       => ListNumberStyle
                       -> MuseParser m Int
@@ -639,10 +632,10 @@ orderedListUntil end = try $ do
   pos <- getPosition
   let indent = sourceColumn pos - 1
   guard $ indent /= 0
-  p@(_, style, _) <- anyMuseOrderedListMarker
-  guard $ style `elem` [Decimal, LowerAlpha, UpperAlpha, LowerRoman, UpperRoman]
-  (items, e) <- orderedListItemsUntil indent style end
-  return (B.orderedListWith p <$> sequence items, e)
+  (style, start) <- decimal <|> lowerRoman <|> upperRoman <|> lowerAlpha <|> upperAlpha
+  char '.'
+  first (fmap (B.orderedListWith (start, style, Period)) . sequence)
+    <$> orderedListItemsUntil indent style end
 
 descriptionsUntil :: PandocMonad m
                   => Int
