@@ -165,6 +165,9 @@ atStart p = do
   guard $ museLastStrPos st /= Just pos
   p
 
+firstColumn :: PandocMonad m => MuseParser m ()
+firstColumn = getPosition >>= \pos -> guard (sourceColumn pos == 1)
+
 -- * Parsers
 
 -- | Parse end-of-line, which can be either a newline or end-of-file.
@@ -360,12 +363,11 @@ blockElements = do
 
 -- | Parse a line comment, starting with @;@ in the first column.
 comment :: PandocMonad m => MuseParser m (F Blocks)
-comment = try $ do
-  getPosition >>= \pos -> guard (sourceColumn pos == 1)
-  char ';'
-  optional (spaceChar *> many (noneOf "\n"))
-  eol
-  return mempty
+comment = try $ mempty
+  <$ firstColumn
+  <* char ';'
+  <* optional (spaceChar *> many (noneOf "\n"))
+  <* eol
 
 -- | Parse a horizontal rule, consisting of 4 or more @\'-\'@ characters.
 separator :: PandocMonad m => MuseParser m (F Blocks)
@@ -378,7 +380,7 @@ separator = try $ pure B.horizontalRule
 headingStart :: PandocMonad m => MuseParser m (String, Int)
 headingStart = try $ do
   anchorId <- option "" $ try (parseAnchor <* manyTill spaceChar eol)
-  getPosition >>= \pos -> guard (sourceColumn pos == 1)
+  firstColumn
   level <- fmap length $ many1 $ char '*'
   guard $ level <= 5
   spaceChar
@@ -801,10 +803,11 @@ endline :: PandocMonad m => MuseParser m (F Inlines)
 endline = try $ pure B.softbreak <$ newline <* notFollowedBy blankline
 
 parseAnchor :: PandocMonad m => MuseParser m String
-parseAnchor = try $ do
-  getPosition >>= \pos -> guard (sourceColumn pos == 1)
-  char '#'
-  (:) <$> letter <*> many (letter <|> digit <|> char '-')
+parseAnchor = try $ (:)
+  <$  firstColumn
+  <*  char '#'
+  <*> letter
+  <*> many (letter <|> digit <|> char '-')
 
 anchor :: PandocMonad m => MuseParser m (F Inlines)
 anchor = try $ do
@@ -849,8 +852,9 @@ enclosedInlines :: (PandocMonad m, Show a, Show b)
                 => MuseParser m a
                 -> MuseParser m b
                 -> MuseParser m (F Inlines)
-enclosedInlines start end = try $
-  trimInlinesF . mconcat <$> (enclosed (atStart start) end inline <* notFollowedBy (satisfy ((||) <$> isLetter <*> isDigit)))
+enclosedInlines start end = try $ trimInlinesF . mconcat
+  <$> enclosed (atStart start) end inline
+  <*  notFollowedBy (satisfy ((||) <$> isLetter <*> isDigit))
 
 -- | Parse an inline tag, such as @\<em>@ and @\<strong>@.
 inlineTag :: PandocMonad m
@@ -871,9 +875,9 @@ emph = fmap B.emph <$> emphasisBetween (char '*')
 -- | Parse underline inline markup, indicated by @_@.
 -- Supported only in Emacs Muse mode, not Text::Amuse.
 underlined :: PandocMonad m => MuseParser m (F Inlines)
-underlined = do
-  guardDisabled Ext_amuse -- Supported only by Emacs Muse
-  fmap underlineSpan <$> emphasisBetween (char '_')
+underlined = fmap underlineSpan
+  <$  guardDisabled Ext_amuse -- Supported only by Emacs Muse
+  <*> emphasisBetween (char '_')
 
 -- | Parse @\<strong>@ tag.
 strongTag :: PandocMonad m => MuseParser m (F Inlines)
@@ -902,9 +906,8 @@ verbatimTag = return . B.text . snd <$> htmlElement "verbatim"
 -- | Parse @\<class>@ tag.
 classTag :: PandocMonad m => MuseParser m (F Inlines)
 classTag = do
-  attrs <- openTag "class"
+  classes <- maybe [] words . lookup "name" <$> openTag "class"
   res <- manyTill inline $ closeTag "class"
-  let classes = maybe [] words $ lookup "name" attrs
   return $ B.spanWith ("", classes, []) <$> mconcat res
 
 -- | Parse "~~" as nonbreaking space.
