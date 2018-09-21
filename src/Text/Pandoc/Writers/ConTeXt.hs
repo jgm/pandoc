@@ -456,7 +456,7 @@ inlineToConTeXt (Image attr@(_,cls,_) _ (src, _)) = do
       -- Use / for path separators on Windows; see #4918
       fixPathSeparators = map $ \c -> case c of
                                            '\\' -> '/'
-                                           c    -> c
+                                           _    -> c
       src' = fixPathSeparators $
              if isURI src
                 then src
