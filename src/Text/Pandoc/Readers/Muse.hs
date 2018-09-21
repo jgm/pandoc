@@ -378,13 +378,11 @@ separator = try $ pure B.horizontalRule
   <* eol
 
 headingStart :: PandocMonad m => MuseParser m (String, Int)
-headingStart = try $ do
-  anchorId <- option "" $ try (parseAnchor <* manyTill spaceChar eol)
-  firstColumn
-  level <- fmap length $ many1 $ char '*'
-  guard $ level <= 5
-  spaceChar
-  return (anchorId, level)
+headingStart = try $ (,)
+  <$> option "" (try (parseAnchor <* manyTill spaceChar eol))
+  <*  firstColumn
+  <*> fmap length (many1 $ char '*')
+  <*  spaceChar
 
 -- | Parse a single-line heading.
 emacsHeading :: PandocMonad m => MuseParser m (F Blocks)
