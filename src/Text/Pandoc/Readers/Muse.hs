@@ -43,7 +43,7 @@ import Prelude
 import Control.Monad
 import Control.Monad.Except (throwError)
 import Data.Bifunctor
-import Data.Char (isLetter, isDigit, isAlphaNum)
+import Data.Char (isAlphaNum)
 import Data.Default
 import Data.List (intercalate)
 import Data.List.Split (splitOn)
@@ -845,7 +845,7 @@ enclosedInlines :: (PandocMonad m, Show a, Show b)
                 -> MuseParser m (F Inlines)
 enclosedInlines start end = try $ trimInlinesF . mconcat
   <$> enclosed (atStart start) end inline
-  <*  notFollowedBy (satisfy ((||) <$> isLetter <*> isDigit))
+  <*  notFollowedBy (satisfy isAlphaNum)
 
 -- | Parse an inline tag, such as @\<em>@ and @\<strong>@.
 inlineTag :: PandocMonad m
