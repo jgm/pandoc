@@ -150,6 +150,10 @@ tests =
           "Foo =bar=, baz" =?>
           para (text "Foo " <> code "bar" <> text ", baz")
 
+        , "Not code if followed by digit" =:
+          "Foo =bar=0 baz" =?>
+          para (text "Foo =bar=0 baz")
+
         , "One character code" =: "=c=" =?> para (code "c")
 
         , "Three = characters is not a code" =: "===" =?> para "==="

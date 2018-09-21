@@ -43,7 +43,7 @@ import Prelude
 import Control.Monad
 import Control.Monad.Except (throwError)
 import Data.Bifunctor
-import Data.Char (isLetter, isDigit)
+import Data.Char (isLetter, isDigit, isAlphaNum)
 import Data.Default
 import Data.List (intercalate)
 import Data.List.Split (splitOn)
@@ -913,7 +913,7 @@ code = try $ do
   guard $ not $ null contents
   guard $ head contents `notElem` " \t\n"
   guard $ last contents `notElem` " \t\n"
-  notFollowedBy $ satisfy isLetter
+  notFollowedBy $ satisfy isAlphaNum
   return $ return $ B.code contents
 
 -- | Parse @\<code>@ tag.
