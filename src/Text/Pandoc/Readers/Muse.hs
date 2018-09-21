@@ -195,20 +195,6 @@ openTag tag = try $
 closeTag :: PandocMonad m => String -> MuseParser m ()
 closeTag tag = try $ string "</" *> string tag *> void (char '>')
 
--- | Parse HTML tag, returning its attributes and literal contents.
-htmlElement :: PandocMonad m
-            => String -- ^ Tag name
-            -> MuseParser m (Attr, String)
-htmlElement tag = try $ (,)
-  <$> (htmlAttrToPandoc <$> openTag tag)
-  <*> manyTill anyChar (closeTag tag)
-
-htmlBlock :: PandocMonad m
-          => String -- ^ Tag name
-          -> MuseParser m (Attr, String)
-htmlBlock tag = try $
-  many spaceChar *> htmlElement tag <* manyTill spaceChar eol
-
 -- | Convert HTML attributes to Pandoc 'Attr'
 htmlAttrToPandoc :: [Attribute String] -> Attr
 htmlAttrToPandoc attrs = (ident, classes, keyvals)
@@ -415,9 +401,11 @@ example = try $ pure . B.codeBlock
 
 -- | Parse an @\<example>@ tag.
 exampleTag :: PandocMonad m => MuseParser m (F Blocks)
-exampleTag = try $ do
-  (attr, contents) <- htmlBlock "example"
-  return $ return $ B.codeBlockWith attr $ rchop $ intercalate "\n" $ dropSpacePrefix $ splitOn "\n" $ lchop contents
+exampleTag = try $ fmap pure $ B.codeBlockWith
+  <$  many spaceChar
+  <*> (htmlAttrToPandoc <$> openTag "example")
+  <*> (rchop . intercalate "\n" . dropSpacePrefix . splitOn "\n" . lchop <$> manyTill anyChar (closeTag "example"))
+  <*  manyTill spaceChar eol
 
 -- | Parse a @\<literal>@ tag as a raw block.
 -- For 'RawInline' @\<literal>@ parser, see 'inlineLiteralTag'.
@@ -484,7 +472,11 @@ verseTag = try $ do
 
 -- | Parse @\<comment>@ tag.
 commentTag :: PandocMonad m => MuseParser m (F Blocks)
-commentTag = mempty <$ htmlBlock "comment"
+commentTag = try $ mempty
+  <$ many spaceChar
+  <* openTag "comment"
+  <* manyTill anyChar (closeTag "comment")
+  <* manyTill spaceChar eol
 
 -- | Parse paragraph contents.
 paraContentsUntil :: PandocMonad m
@@ -892,7 +884,9 @@ strikeoutTag = fmap B.strikeout <$> inlineTag "del"
 
 -- | Parse @\<verbatim>@ tag.
 verbatimTag :: PandocMonad m => MuseParser m (F Inlines)
-verbatimTag = return . B.text . snd <$> htmlElement "verbatim"
+verbatimTag = return . B.text
+  <$  openTag "verbatim"
+  <*> manyTill anyChar (closeTag "verbatim")
 
 -- | Parse @\<class>@ tag.
 classTag :: PandocMonad m => MuseParser m (F Inlines)
@@ -918,12 +912,16 @@ code = try $ do
 
 -- | Parse @\<code>@ tag.
 codeTag :: PandocMonad m => MuseParser m (F Inlines)
-codeTag = return . uncurry B.codeWith <$> htmlElement "code"
+codeTag = fmap pure $ B.codeWith
+  <$> (htmlAttrToPandoc <$> openTag "code")
+  <*> manyTill anyChar (closeTag "code")
 
 -- | Parse @\<math>@ tag.
 -- @\<math>@ tag is an Emacs Muse extension enabled by @(require 'muse-latex2png)@
 mathTag :: PandocMonad m => MuseParser m (F Inlines)
-mathTag = return . B.math . snd <$> htmlElement "math"
+mathTag = return . B.math
+  <$  openTag "math"
+  <*> manyTill anyChar (closeTag "math")
 
 -- | Parse inline @\<literal>@ tag as a raw inline.
 inlineLiteralTag :: PandocMonad m => MuseParser m (F Inlines)
