@@ -156,6 +156,9 @@ toLabel z = concatMap go z
          | x `elem` ("\\#[]\",{}%()|=" :: String) = "ux" ++ printf "%x" (ord x)
          | otherwise = [x]
 
+toOptions :: [Doc] -> Doc
+toOptions = cat . intersperse "," . filter (not . isEmpty)
+
 -- | Convert Elements to ConTeXt
 elementToConTeXt :: PandocMonad m => WriterOptions -> Element -> WM m Doc
 elementToConTeXt _ (Blk block) = blockToConTeXt block
@@ -173,11 +176,21 @@ blockToConTeXt (Plain lst) = inlineListToConTeXt lst
 blockToConTeXt (Para [Image attr txt (src,'f':'i':'g':':':_)]) = do
   capt <- inlineListToConTeXt txt
   img  <- inlineToConTeXt (Image attr txt (src, ""))
+  opts <- gets stOptions
+  let location = if isEnabled Ext_nofloat opts
+        then "location={force}"
+        else empty
   let (ident, _, _) = attr
       label = if null ident
                  then empty
-                 else "[]" <> brackets (text $ toLabel ident)
-  return $ blankline $$ "\\placefigure" <> label <> braces capt <> img <> blankline
+                 else "reference=" <> braces (text $ toLabel ident)
+  let caption = if isEmpty capt
+        then empty
+        else "title=" <> braces capt
+  return $ blankline $$ "\\startplacefigure"
+    <> brackets ( toOptions [location, label, caption] )
+    $$ img
+    $$ "\\stopplacefigure" $$ blankline
 blockToConTeXt (Para lst) = do
   contents <- inlineListToConTeXt lst
   return $ contents <> blankline
@@ -260,17 +273,24 @@ blockToConTeXt (Table caption aligns widths heads rows) = do
     let tabl = if isEnabled Ext_ntb opts
           then Ntb
           else Xtb
+    let location = [
+          if null caption then "none" else empty,
+          if isEnabled Ext_nofloat opts then "force" else empty
+          ]
+    let location' = if any (not . isEmpty) location
+          then "location=" <> braces (toOptions location)
+          else empty
     captionText <- inlineListToConTeXt caption
+    let caption' = if null caption
+          then empty
+          else "title=" <> braces captionText
     headers <- if all null heads
                then return empty
                else tableRowToConTeXt tabl aligns widths heads
     rows' <- mapM (tableRowToConTeXt tabl aligns widths) rows
     body <- tableToConTeXt tabl headers rows'
-    return $ "\\startplacetable" <> brackets (
-      if null caption
-        then "location=none"
-        else "title=" <> braces captionText
-      ) $$ body $$ "\\stopplacetable" <> blankline
+    return $ "\\startplacetable" <> brackets ( toOptions [location', caption'] )
+      $$ body $$ "\\stopplacetable" <> blankline
 
 tableToConTeXt :: PandocMonad m => Tabl -> Doc -> [Doc] -> WM m Doc
 tableToConTeXt Xtb heads rows =
@@ -312,7 +332,7 @@ tableColToConTeXt tabl (align, width, blocks) = do
   let options = (if keys == empty
                  then empty
                  else brackets keys) <> space
-        where keys = hcat $ intersperse "," $ filter (empty /=) [halign, colwidth]
+        where keys = toOptions [halign, colwidth]
   tableCellToConTeXt tabl options cellContents
 
 tableCellToConTeXt :: PandocMonad m => Tabl -> Doc -> Doc -> WM m Doc
@@ -461,7 +481,7 @@ inlineToConTeXt (Image attr@(_,cls,_) _ (src, _)) = do
              if isURI src
                 then src
                 else unEscapeString src
-  return $ braces $ "\\externalfigure" <> brackets (text src') <> dims <> clas
+  return $ "\\externalfigure" <> brackets (text src') <> dims <> clas
 inlineToConTeXt (Note contents) = do
   contents' <- blockListToConTeXt contents
   let codeBlock x@(CodeBlock _ _) = [x]
@@ -502,7 +522,7 @@ sectionHeader (ident,classes,kvs) hdrLevel lst = do
   let options = if keys == empty || levelText == empty
                 then empty
                 else brackets keys
-        where keys = hcat $ intersperse "," $ filter (empty /=) [contents', ident']
+        where keys = toOptions [contents', ident']
   let starter = if writerSectionDivs opts
                 then "\\start"
                 else "\\"

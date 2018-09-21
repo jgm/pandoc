@@ -141,6 +141,7 @@ data Extension =
     | Ext_multiline_tables    -- ^ Pandoc-style multiline tables
     | Ext_native_divs             -- ^ Use Div blocks for contents of <div> tags
     | Ext_native_spans            -- ^ Use Span inlines for contents of <span>
+    | Ext_nofloat                 -- ^ Fix floats (currently only for ConTeXt)
     | Ext_ntb                 -- ^ ConTeXt Natural Tables
     | Ext_old_dashes          -- ^ -- = em, - before number = en
     | Ext_pandoc_title_block  -- ^ Pandoc title block
