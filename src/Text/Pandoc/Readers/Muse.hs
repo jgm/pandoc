@@ -422,17 +422,12 @@ exampleTag = try $ do
 -- | Parse a @\<literal>@ tag as a raw block.
 -- For 'RawInline' @\<literal>@ parser, see 'inlineLiteralTag'.
 literalTag :: PandocMonad m => MuseParser m (F Blocks)
-literalTag = try $ do
-  many spaceChar
-  attr <- htmlAttrToPandoc <$> openTag "literal"
-  manyTill spaceChar eol
-  content <- manyTill anyChar $ closeTag "literal"
-  manyTill spaceChar eol
-  return $ return $ rawBlock (attr, content)
-  where
-    -- FIXME: Emacs Muse inserts <literal> without style into all output formats, but we assume HTML
-    format (_, _, kvs)        = fromMaybe "html" $ lookup "style" kvs
-    rawBlock (attrs, content) = B.rawBlock (format attrs) $ rchop $ intercalate "\n" $ dropSpacePrefix $ splitOn "\n" $ lchop content
+literalTag = try $ fmap pure $ B.rawBlock
+  <$  many spaceChar
+  <*> (fromMaybe "html" . lookup "style" <$> openTag "literal") -- FIXME: Emacs Muse inserts <literal> without style into all output formats, but we assume HTML
+  <*  manyTill spaceChar eol
+  <*> (rchop . intercalate "\n" . dropSpacePrefix . splitOn "\n" . lchop <$> manyTill anyChar (closeTag "literal"))
+  <*  manyTill spaceChar eol
 
 -- | Parse @\<center>@ tag.
 -- Currently it is ignored as Pandoc cannot represent centered blocks.
@@ -938,12 +933,9 @@ mathTag = return . B.math . snd <$> htmlElement "math"
 
 -- | Parse inline @\<literal>@ tag as a raw inline.
 inlineLiteralTag :: PandocMonad m => MuseParser m (F Inlines)
-inlineLiteralTag =
-  (return . rawInline) <$> htmlElement "literal"
-  where
-    -- FIXME: Emacs Muse inserts <literal> without style into all output formats, but we assume HTML
-    format (_, _, kvs)        = fromMaybe "html" $ lookup "style" kvs
-    rawInline (attrs, content) = B.rawInline (format attrs) content
+inlineLiteralTag = try $ fmap pure $ B.rawInline
+  <$> (fromMaybe "html" . lookup "style" <$> openTag "literal") -- FIXME: Emacs Muse inserts <literal> without style into all output formats, but we assume HTML
+  <*> manyTill anyChar (closeTag "literal")
 
 str :: PandocMonad m => MuseParser m (F Inlines)
 str = return . B.str <$> many1 alphaNum <* updateLastStrPos
