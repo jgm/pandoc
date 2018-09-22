@@ -762,6 +762,13 @@ tests =
                       , "    > Baz"
                       ] =?>
             para ("Foo" <> note (para "Bar" <> lineBlock ["Baz"]))
+          , "Footnote ending in self-terminating element and followed by paragraph" =:
+            T.unlines [ "Foo[1]"
+                      , ""
+                      , "[1] > bar"
+                      , "baz"
+                      ] =?>
+            para (str "Foo" <> note (lineBlock ["bar"])) <> para (str "baz")
           , test emacsMuse "Emacs multiparagraph footnotes"
             (T.unlines
               [ "First footnote reference[1] and second footnote reference[2]."
@@ -1170,6 +1177,11 @@ tests =
             ] =?>
           bulletList [ lineBlock [ "foo" ] ] <> bulletList [ para "bar" ]
         ]
+      , "List ending in self-terminating element and followed by paragraph" =:
+        T.unlines [ " - > Foo"
+                  , "bar"
+                  ] =?>
+        bulletList [lineBlock ["Foo"]] <> para (str "bar")
       -- Test that definition list requires a leading space.
       -- Emacs Muse does not require a space, we follow Amusewiki here.
       , "Not a definition list" =:
