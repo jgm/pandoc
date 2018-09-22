@@ -1,3 +1,53 @@
+pandoc (X.Y.Z)
+
+  * RST reader:
+
+    + Parse RST inlines containing newlines (#4912, Francesco Occhipinti).
+      This eliminates a regression introduced after pandoc 2.1.1, which
+      caused inline constructions containing newlines not to be recognized.
+    + Fix bug with internal link targets (#4919).  They were gobbling up
+      indented content underneath.
+
+  * Markdown reader: distinguish autolinks in the AST.  With this change,
+    autolinks are parsed as Links with the `uri` class. (The same is true
+    for bare links, if the `autolink_bare_uris` extension is enabled.)
+    Email autolinks are parsed as Links with the `email` class.  This
+    allows the distinction to be represented in the AST.
+
+  * Muse reader (Alexander Krotov):
+
+    + Added additional tests.
+    + Simplify tag parsers.
+    + Do not allow code markup to be followed by digit.
+    + Simplify ordered list parsing.
+    + Remove heading level limit.
+    + Simplify `<literal>` tag parsers
+    + Cleanup and convert to applicative style.
+    + Simplify `lchop`.
+    + Parse Text instead of String. Benchmark shows 7% improvement.
+    + Get rid of HTML parser dependency.
+
+  * ConTeXt writer: change `\` to `/` in Windows image paths (#4918).
+    We do this in the LaTeX writer, and it avoids problems.
+    Note that `/` works as a LaTeX path separator on Windows.
+
+  * HTML writer: don't add `uri` class to presumed autolinks.
+    Formerly the `uri` class was added to autolinks by
+    the HTML writer, but it had to guess what was an autolink
+    and could not distinguish `[http://example.com](http://example.com)`
+    from `<http://example.com>`.  It also incorrectly recognized
+    `[pandoc](pandoc)` as an autolink.  Now the HTML writer
+    simply passes through the `uri` attribute if it is present,
+    but does not add anything.
+
+  * Textile writer: don't represent `uri` class explicitly
+    for autolinks (#4913).
+
+  * Lua filters (Albert Krewinkel):
+
+    + Cleanup filter execution code.
+    + Better error on test failure.
+
 pandoc (2.3)
 
   * Add `--metadata-file` option (Mauro Bieg, #1960), which allows
