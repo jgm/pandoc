@@ -176,9 +176,9 @@ pandocToLaTeX options (Pandoc meta blocks) = do
     modify $ \s -> s{stCsquotes = True}
   let (blocks'', lastHeader) = if writerCiteMethod options == Citeproc then
                                  (blocks', [])
-                               else case last blocks' of
-                                 Header 1 _ il -> (init blocks', il)
-                                 _             -> (blocks', [])
+                               else case reverse blocks' of
+                                 Header 1 _ il : _ -> (init blocks', il)
+                                 _                 -> (blocks', [])
   beamer <- gets stBeamer
   blocks''' <- if beamer
                   then toSlides blocks''
