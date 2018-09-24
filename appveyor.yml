@@ -9,13 +9,15 @@ environment:
     TMP: "c:\\tmp"
     # see #4201, https://github.com/haskell-tools/haskell-tools/issues/277
   matrix:
-  - STACK_VERSION: "windows-x86_64"
+  - BUILD_TYPE: "stack"
+    OSARCH: "windows-x86_64"
     STACK_ROOT: "c:\\sr64"
     STACK_YAML: "stack.yaml"
     STACK_FLAGS: "--arch=x86_64"
     ARCH: "x64"
     CHOCO_OPTS: ""
-  - STACK_VERSION: "windows-i386"
+  - BUILD_TYPE: "stack"
+    OSARCH: "windows-i386"
     STACK_ROOT: "c:\\sr32"
     STACK_YAML: "stack.lts11.yaml"
     STACK_FLAGS: "--arch=i386 --flag=hslua:lua_32bits"
@@ -24,6 +26,12 @@ environment:
     # note: we do a lts11 build because of
     # https://github.com/commercialhaskell/stackage/issues/3385
     # with luck this will be fixed in ghc 8.6.
+  - BUILD_TYPE: "cabal"
+    OSARCH: "windows-i386-cabal"
+    GHC_VERSION: "8.6.1.1"
+    CABAL_BUILD_OPTS: "--allow-newer=base --allow-newer=template-haskell --allow-newer=containers -flua_32bits -fembed_data_files"
+    ARCH: "x86"
+    CHOCO_OPTS: "--x86"
 
 skip_commits:
   files:
@@ -52,7 +60,12 @@ build: off
 
 install:
   - choco install wixtoolset %CHOCO_OPTS%
-  - choco install haskell-stack %CHOCO_OPTS%
+  - if test "BUILD_TYPE" = stack
+    then
+      choco install haskell-stack %CHOCO_OPTS%
+    else
+      choco install ghc --version %GHC_VERSION% %CHOCO_OPTS%
+    fi
 
 # before_test:
 
@@ -60,10 +73,19 @@ test_script:
   # The ugly echo "" hack is to avoid complaints about 0 being an invalid file
   # descriptor
   - |
-      stack --version
-      stack path
-      echo "" | stack clean
-      echo "" | stack install --stack-yaml %STACK_YAML% %STACK_BUILD_OPTS% %STACK_FLAGS% pandoc pandoc-citeproc
+      if test "$BUILD_TYPE" = stack
+      then
+        stack --version
+        stack path
+        echo "" | stack clean
+        echo "" | stack install --stack-yaml %STACK_YAML% %STACK_BUILD_OPTS% %STACK_FLAGS% pandoc pandoc-citeproc
+      else
+        cabal --version
+        cabal update
+        cabal new-build %CABAL_BUILD_OPTS% . pandoc-citeproc
+        cp "`find dist-newstyle/ -type f -name pandoc`" .\windows\
+        cp "`find dist-newstyle/ -type f -name pandoc-citeproc`" .\windows\
+      fi
 
 after_test:
     # .\ in the stack commandline seems to be .\windows\ (where the stack-appveyor.yaml is)
@@ -71,16 +93,16 @@ after_test:
   - .\pandoc.exe -s --toc ..\MANUAL.txt -o MANUAL.html
   - .\pandoc.exe -s ..\COPYING.md -o COPYING.rtf
   - copy ..\COPYRIGHT COPYRIGHT.txt
-  - 7z a "pandoc-%STACK_VERSION%.zip" pandoc.exe pandoc-citeproc.exe MANUAL.html COPYING.rtf
+  - 7z a "pandoc-%OSARCH%.zip" pandoc.exe pandoc-citeproc.exe MANUAL.html COPYING.rtf
   - |
       set VERSION=
       for /f "tokens=1-2 delims= " %%a in ('.\pandoc.exe --version') do ( if not defined VERSION set "VERSION=%%b" )
       echo %VERSION%
       "%WIXBIN%"\candle -arch %ARCH% -dVERSION=%VERSION% -dBINPATH=. *.wxs -out wixobj\
-      "%WIXBIN%"\light -sw1076 -ext WixUIExtension -ext WixUtilExtension -cultures:en-us -loc Pandoc-en-us.wxl -out "pandoc-%STACK_VERSION%.msi" wixobj\*.wixobj
+      "%WIXBIN%"\light -sw1076 -ext WixUIExtension -ext WixUtilExtension -cultures:en-us -loc Pandoc-en-us.wxl -out "pandoc-%OSARCH%.msi" wixobj\*.wixobj
 
 artifacts:
-  - path: 'windows\pandoc-%STACK_VERSION%.zip'
+  - path: 'windows\pandoc-%OSARCH%.zip'
     name: exe
-  - path: 'windows\pandoc-%STACK_VERSION%.msi'
+  - path: 'windows\pandoc-%OSARCH%.msi'
     name: msi
