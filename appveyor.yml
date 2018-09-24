@@ -76,8 +76,8 @@ test_script:
       if ($env:BUILD_TYPE -Match "stack") {
         stack --version
         stack path
-        echo "" | stack clean
-        echo "" | stack install --stack-yaml $env:STACK_YAML $env:STACK_BUILD_OPTS $env:STACK_FLAGS pandoc pandoc-citeproc
+        stack clean
+        stack install --stack-yaml $env:STACK_YAML $env:STACK_BUILD_OPTS $env:STACK_FLAGS pandoc pandoc-citeproc
       } else {
         cabal --version
         cabal update
