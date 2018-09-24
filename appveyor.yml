@@ -60,7 +60,7 @@ build: off
 
 install:
   - choco install wixtoolset %CHOCO_OPTS%
-  - if test "BUILD_TYPE" = stack
+  - if test "$BUILD_TYPE" = stack
     then
       choco install haskell-stack %CHOCO_OPTS%
     else
