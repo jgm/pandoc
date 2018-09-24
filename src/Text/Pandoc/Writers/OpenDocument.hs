@@ -403,8 +403,8 @@ blockToOpenDocument o bs
                       else withParagraphStyle o "Table" [Para c]
         th <- if all null h
                  then return empty
-                 else colHeadsToOpenDocument o name (map fst paraHStyles) h
-        tr <- mapM (tableRowToOpenDocument o name (map fst paraStyles)) r
+                 else colHeadsToOpenDocument o (map fst paraHStyles) h
+        tr <- mapM (tableRowToOpenDocument o (map fst paraStyles)) r
         return $ inTags True "table:table" [ ("table:name"      , name)
                                            , ("table:style-name", name)
                                            ] (vcat columns $$ th $$ vcat tr) $$ captionDoc
@@ -416,24 +416,24 @@ blockToOpenDocument o bs
         return $ imageDoc $$ captionDoc
 
 colHeadsToOpenDocument :: PandocMonad m
-                       => WriterOptions -> String -> [String] -> [[Block]]
+                       => WriterOptions -> [String] -> [[Block]]
                        -> OD m Doc
-colHeadsToOpenDocument o tn ns hs =
+colHeadsToOpenDocument o ns hs =
     inTagsIndented "table:table-header-rows" . inTagsIndented "table:table-row" . vcat <$>
-    mapM (tableItemToOpenDocument o tn) (zip ns hs)
+    mapM (tableItemToOpenDocument o "TableHeaderRowCell") (zip ns hs)
 
 tableRowToOpenDocument :: PandocMonad m
-                       => WriterOptions -> String -> [String] -> [[Block]]
+                       => WriterOptions -> [String] -> [[Block]]
                        -> OD m Doc
-tableRowToOpenDocument o tn ns cs =
+tableRowToOpenDocument o ns cs =
     inTagsIndented "table:table-row" . vcat <$>
-    mapM (tableItemToOpenDocument o tn) (zip ns cs)
+    mapM (tableItemToOpenDocument o "TableRowCell") (zip ns cs)
 
 tableItemToOpenDocument :: PandocMonad m
                         => WriterOptions -> String -> (String,[Block])
                         -> OD m Doc
-tableItemToOpenDocument o tn (n,i) =
-  let a = [ ("table:style-name" , tn ++ ".A1" )
+tableItemToOpenDocument o s (n,i) =
+  let a = [ ("table:style-name" , s )
           , ("office:value-type", "string"     )
           ]
   in  inTags True "table:table-cell" a <$>
@@ -584,13 +584,21 @@ tableStyle num wcs =
                          , ("style:family", "table-column"       )] $
                          selfClosingTag "style:table-column-properties"
                          [("style:rel-column-width", printf "%d*" (floor $ w * 65535 :: Integer))]
-        cellStyle      = inTags True "style:style"
-                         [ ("style:name"  , tableId ++ ".A1")
+        headerRowCellStyle = inTags True "style:style"
+                         [ ("style:name"  , "TableHeaderRowCell")
                          , ("style:family", "table-cell"    )] $
                          selfClosingTag "style:table-cell-properties"
                          [ ("fo:border", "none")]
+        rowCellStyle = inTags True "style:style"
+                         [ ("style:name"  , "TableRowCell")
+                         , ("style:family", "table-cell"    )] $
+                         selfClosingTag "style:table-cell-properties"
+                         [ ("fo:border", "none")]
+        cellStyles = if num == 0
+                     then headerRowCellStyle $$ rowCellStyle
+                     else empty
         columnStyles   = map colStyle wcs
-    in  table $$ vcat columnStyles $$ cellStyle
+    in cellStyles $$ table $$ vcat columnStyles
 
 paraStyle :: PandocMonad m => [(String,String)] -> OD m Int
 paraStyle attrs = do
