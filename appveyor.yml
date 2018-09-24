@@ -72,7 +72,7 @@ install:
 test_script:
   # The ugly echo "" hack is to avoid complaints about 0 being an invalid file
   # descriptor
-  - | ps: |
+  - ps: |
       if ($env:BUILD_TYPE -Match "stack") {
         stack --version
         stack path
