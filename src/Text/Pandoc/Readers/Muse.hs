@@ -225,7 +225,7 @@ parseEmacsDirective :: PandocMonad m => MuseParser m (String, F Inlines)
 parseEmacsDirective = (,)
   <$> parseDirectiveKey
   <*  spaceChar
-  <*> (trimInlinesF . mconcat <$> manyTill (choice inlineList) eol)
+  <*> (trimInlinesF . mconcat <$> manyTill inline' eol)
 
 parseAmuseDirective :: PandocMonad m => MuseParser m (String, F Inlines)
 parseAmuseDirective = (,)
@@ -455,7 +455,7 @@ playTag = do
 verseLine :: PandocMonad m => MuseParser m (F Inlines)
 verseLine = do
   indent <- (B.str <$> many1 ('\160' <$ char ' ')) <|> pure mempty
-  rest <- manyTill (choice inlineList) newline
+  rest <- manyTill inline' newline
   return $ trimInlinesF $ mconcat (pure indent : rest)
 
 -- | Parse @\<verse>@ tag.
@@ -546,7 +546,7 @@ lineVerseLine = try $ do
   string "> "
   indent <- many ('\160' <$ char ' ')
   let indentEl = if null indent then mempty else B.str indent
-  rest <- manyTill (choice inlineList) eol
+  rest <- manyTill inline' eol
   return $ trimInlinesF $ mconcat (pure indentEl : rest)
 
 blanklineVerseLine :: PandocMonad m => MuseParser m (F Inlines)
@@ -648,7 +648,7 @@ definitionListItemsUntil indent end =
   where
     continuation = try $ do
       pos <- getPosition
-      term <- trimInlinesF . mconcat <$> manyTill (choice inlineList) (try $ string "::")
+      term <- trimInlinesF . mconcat <$> manyTill inline' (try $ string "::")
       (x, (xs, e)) <- descriptionsUntil (sourceColumn pos) (try (optional blankline *> indentWith indent *> continuation) <|> (([],) <$> end))
       let xx = (,) <$> term <*> sequence x
       return (xx:xs, e)
@@ -753,33 +753,33 @@ tableParseCaption = try $ fmap MuseCaption . trimInlinesF . mconcat
 
 -- ** Inline parsers
 
-inlineList :: PandocMonad m => [MuseParser m (F Inlines)]
-inlineList = [ whitespace
-             , br
-             , anchor
-             , footnote
-             , strong
-             , strongTag
-             , emph
-             , emphTag
-             , underlined
-             , superscriptTag
-             , subscriptTag
-             , strikeoutTag
-             , verbatimTag
-             , classTag
-             , nbsp
-             , linkOrImage
-             , code
-             , codeTag
-             , mathTag
-             , inlineLiteralTag
-             , str
-             , symbol
-             ]
+inline' :: PandocMonad m => MuseParser m (F Inlines)
+inline' = whitespace
+      <|> br
+      <|> anchor
+      <|> footnote
+      <|> strong
+      <|> strongTag
+      <|> emph
+      <|> emphTag
+      <|> underlined
+      <|> superscriptTag
+      <|> subscriptTag
+      <|> strikeoutTag
+      <|> verbatimTag
+      <|> classTag
+      <|> nbsp
+      <|> linkOrImage
+      <|> code
+      <|> codeTag
+      <|> mathTag
+      <|> inlineLiteralTag
+      <|> str
+      <|> symbol
+      <?> "inline"
 
 inline :: PandocMonad m => MuseParser m (F Inlines)
-inline = endline <|> choice inlineList <?> "inline"
+inline = endline <|> inline'
 
 -- | Parse a soft break.
 endline :: PandocMonad m => MuseParser m (F Inlines)
