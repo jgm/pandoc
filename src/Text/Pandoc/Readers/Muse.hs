@@ -963,7 +963,7 @@ image :: PandocMonad m => MuseParser m (F Inlines)
 image = try $ do
   string "[["
   (url, (ext, width, align)) <- manyUntil (noneOf "]") (imageExtensionAndOptions <* char ']')
-  content <- optionMaybe linkContent
+  content <- option mempty linkContent
   char ']'
   let widthAttr = case align of
                     Just 'f' -> [("width", fromMaybe "100" width ++ "%"), ("height", "75%")]
@@ -973,7 +973,7 @@ image = try $ do
                      Just 'l' -> ["align-left"]
                      Just 'f' -> []
                      _        -> []
-  return $ B.imageWith ("", alignClass, widthAttr) (url ++ ext) mempty <$> fromMaybe (return mempty) content
+  return $ B.imageWith ("", alignClass, widthAttr) (url ++ ext) mempty <$> content
   where -- Taken from muse-image-regexp defined in Emacs Muse file lisp/muse-regexps.el
         imageExtensions = [".eps", ".gif", ".jpg", ".jpeg", ".pbm", ".png", ".tiff", ".xbm", ".xpm"]
         imageExtension = choice (try . string <$> imageExtensions)
