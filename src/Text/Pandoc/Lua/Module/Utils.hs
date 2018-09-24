@@ -1,4 +1,3 @@
-{-# LANGUAGE NoImplicitPrelude #-}
 {-
 Copyright © 2017-2018 Albert Krewinkel <tarleb+pandoc@moltkeplatz.de>
 
@@ -16,6 +15,7 @@ You should have received a copy of the GNU General Public License
 along with this program; if not, write to the Free Software
 Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 -}
+{-# LANGUAGE NoImplicitPrelude #-}
 {- |
    Module      : Text.Pandoc.Lua.Module.Utils
    Copyright   : Copyright © 2017-2018 Albert Krewinkel
@@ -33,11 +33,11 @@ module Text.Pandoc.Lua.Module.Utils
 import Prelude
 import Control.Applicative ((<|>))
 import Data.Default (def)
-import Foreign.Lua (FromLuaStack, Lua, LuaInteger, NumResults)
+import Foreign.Lua (Peekable, Lua, NumResults)
 import Text.Pandoc.Class (runIO, setUserDataDir)
 import Text.Pandoc.Definition (Pandoc, Meta, MetaValue, Block, Inline)
 import Text.Pandoc.Lua.StackInstances ()
-import Text.Pandoc.Lua.Util (addFunction, popValue)
+import Text.Pandoc.Lua.Util (addFunction)
 
 import qualified Data.Digest.Pure.SHA as SHA
 import qualified Data.ByteString.Lazy as BSL
@@ -89,7 +89,7 @@ runJSONFilter mbDatadir doc filterFile optArgs = do
             Just x -> return x
             Nothing -> do
               Lua.getglobal "FORMAT"
-              (:[]) <$> popValue
+              (:[]) <$> Lua.popValue
   filterRes <- Lua.liftIO . runIO $ do
     setUserDataDir mbDatadir
     JSONFilter.apply def args filterFile doc
@@ -121,18 +121,18 @@ data AstElement
   | MetaValueElement MetaValue
   deriving (Show)
 
-instance FromLuaStack AstElement where
+instance Peekable AstElement where
   peek idx  = do
-    res <- Lua.tryLua $  (PandocElement <$> Lua.peek idx)
-                     <|> (InlineElement <$> Lua.peek idx)
-                     <|> (BlockElement <$> Lua.peek idx)
-                     <|> (MetaElement <$> Lua.peek idx)
-                     <|> (MetaValueElement <$> Lua.peek idx)
+    res <- Lua.try $  (PandocElement <$> Lua.peek idx)
+                  <|> (InlineElement <$> Lua.peek idx)
+                  <|> (BlockElement <$> Lua.peek idx)
+                  <|> (MetaElement <$> Lua.peek idx)
+                  <|> (MetaValueElement <$> Lua.peek idx)
     case res of
       Right x -> return x
-      Left _ -> Lua.throwLuaError
+      Left _ -> Lua.throwException
         "Expected an AST element, but could not parse value as such."
 
 -- | Convert a number < 4000 to uppercase roman numeral.
-toRomanNumeral :: LuaInteger -> Lua String
+toRomanNumeral :: Lua.Integer -> Lua String
 toRomanNumeral = return . Shared.toRomanNumeral . fromIntegral

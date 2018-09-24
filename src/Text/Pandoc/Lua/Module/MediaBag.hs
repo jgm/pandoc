@@ -87,7 +87,7 @@ mediaDirectoryFn mbRef = do
   zipWithM_ addEntry [1..] dirContents
   return 1
  where
-  addEntry :: Int -> (FilePath, MimeType, Int) -> Lua ()
+  addEntry :: Lua.Integer -> (FilePath, MimeType, Int) -> Lua ()
   addEntry idx (fp, mimeType, contentLength) = do
     Lua.newtable
     Lua.push "path" *> Lua.push fp *> Lua.rawset (-3)

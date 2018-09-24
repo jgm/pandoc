@@ -45,23 +45,22 @@ import Data.Data (Data, DataType, dataTypeConstrs, dataTypeName, dataTypeOf,
                   showConstr, toConstr, tyconUQname)
 import Data.Foldable (foldrM)
 import Data.Map (Map)
-import Foreign.Lua (Lua, FromLuaStack, ToLuaStack)
+import Foreign.Lua (Lua, Peekable, Pushable)
 import Text.Pandoc.Definition
 import Text.Pandoc.Lua.StackInstances ()
-import Text.Pandoc.Lua.Util (typeCheck)
 import Text.Pandoc.Walk (walkM, Walkable)
 
 import qualified Data.Map.Strict as Map
 import qualified Foreign.Lua as Lua
 
--- | Filter function stored at the given index in the registry
-newtype LuaFilterFunction = LuaFilterFunction Int
+-- | Filter function stored in the registry
+newtype LuaFilterFunction = LuaFilterFunction Lua.Reference
 
 -- | Collection of filter functions (at most one function per element
 -- constructor)
 newtype LuaFilter = LuaFilter (Map String LuaFilterFunction)
 
-instance FromLuaStack LuaFilter where
+instance Peekable LuaFilter where
   peek idx = do
     let constrs = metaFilterName
                 : pandocFilterNames
@@ -87,10 +86,10 @@ registerFilterFunction = do
 -- | Retrieve filter function from registry and push it to the top of the stack.
 pushFilterFunction :: LuaFilterFunction -> Lua ()
 pushFilterFunction (LuaFilterFunction fnRef) =
-  Lua.rawgeti Lua.registryindex fnRef
+  Lua.getref Lua.registryindex fnRef
 
 
-elementOrList :: FromLuaStack a => a -> Lua [a]
+elementOrList :: Peekable a => a -> Lua [a]
 elementOrList x = do
   let topOfStack = Lua.stackTop
   elementUnchanged <- Lua.isnil topOfStack
@@ -100,12 +99,10 @@ elementOrList x = do
        mbres <- Lua.peekEither topOfStack
        case mbres of
          Right res -> [res] <$ Lua.pop 1
-         Left _    -> do
-           typeCheck Lua.stackTop Lua.TypeTable
-           Lua.toList topOfStack `finally` Lua.pop 1
+         Left _    -> Lua.peekList topOfStack `finally` Lua.pop 1
 
 -- | Try running a filter for the given element
-tryFilter :: (Data a, FromLuaStack a, ToLuaStack a)
+tryFilter :: (Data a, Peekable a, Pushable a)
           => LuaFilter -> a -> Lua [a]
 tryFilter (LuaFilter fnMap) x =
   let filterFnName = showConstr (toConstr x)
@@ -119,10 +116,10 @@ tryFilter (LuaFilter fnMap) x =
 -- called with given element as argument and is expected to return an element.
 -- Alternatively, the function can return nothing or nil, in which case the
 -- element is left unchanged.
-runFilterFunction :: ToLuaStack a => LuaFilterFunction -> a -> Lua ()
+runFilterFunction :: Pushable a => LuaFilterFunction -> a -> Lua ()
 runFilterFunction lf x = do
   let errorPrefix = "Error while running filter function:\n"
-  (`Lua.modifyLuaError` (errorPrefix <>)) $ do
+  Lua.withExceptionMessage (errorPrefix <>) $ do
     pushFilterFunction lf
     Lua.push x
     Lua.call 1 1
@@ -178,7 +175,7 @@ metaFilterName = "Meta"
 pandocFilterNames :: [String]
 pandocFilterNames = ["Pandoc", "Doc"]
 
-singleElement :: FromLuaStack a => a -> Lua a
+singleElement :: Peekable a => a -> Lua a
 singleElement x = do
   elementUnchanged <- Lua.isnil (-1)
   if elementUnchanged
@@ -189,6 +186,6 @@ singleElement x = do
       Right res -> res <$ Lua.pop 1
       Left err  -> do
         Lua.pop 1
-        Lua.throwLuaError $
+        Lua.throwException $
           "Error while trying to get a filter's return " ++
           "value from lua stack.\n" ++ err

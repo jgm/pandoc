@@ -1,4 +1,3 @@
-{-# LANGUAGE NoImplicitPrelude #-}
 {-
 Copyright © 2017–2018 Albert Krewinkel <tarleb+pandoc@moltkeplatz.de>
 
@@ -16,6 +15,7 @@ You should have received a copy of the GNU General Public License
 along with this program; if not, write to the Free Software
 Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 -}
+{-# LANGUAGE NoImplicitPrelude #-}
 {- |
    Module      : Text.Pandoc.Lua
    Copyright   : Copyright © 2017–2018 Albert Krewinkel
@@ -34,12 +34,11 @@ module Text.Pandoc.Lua
 
 import Prelude
 import Control.Monad ((>=>))
-import Foreign.Lua (Lua, LuaException (..))
+import Foreign.Lua (Lua)
 import Text.Pandoc.Class (PandocIO)
 import Text.Pandoc.Definition (Pandoc)
 import Text.Pandoc.Lua.Filter (LuaFilter, walkMWithLuaFilter)
-import Text.Pandoc.Lua.Init (runPandocLua, registerScriptPath)
-import Text.Pandoc.Lua.Util (popValue)
+import Text.Pandoc.Lua.Init (LuaException (..), runPandocLua, registerScriptPath)
 import Text.Pandoc.Options (ReaderOptions)
 
 import qualified Foreign.Lua as Lua
@@ -61,14 +60,14 @@ runLuaFilter' ropts filterPath format pd = do
   top <- Lua.gettop
   stat <- Lua.dofile filterPath
   if stat /= Lua.OK
-    then Lua.throwTopMessageAsError
+    then Lua.throwTopMessage
     else do
       newtop <- Lua.gettop
       -- Use the returned filters, or the implicitly defined global filter if
       -- nothing was returned.
       luaFilters <- if newtop - top >= 1
                     then Lua.peek Lua.stackTop
-                    else Lua.getglobal "_G" *> fmap (:[]) popValue
+                    else Lua.pushglobaltable *> fmap (:[]) Lua.popValue
       runAll luaFilters pd
  where
   registerFormat = do

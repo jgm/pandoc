@@ -1,4 +1,3 @@
-{-# LANGUAGE NoImplicitPrelude #-}
 {-
 Copyright © 2017-2018 Albert Krewinkel <tarleb+pandoc@moltkeplatz.de>
 
@@ -16,6 +15,7 @@ You should have received a copy of the GNU General Public License
 along with this program; if not, write to the Free Software
 Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 -}
+{-# LANGUAGE NoImplicitPrelude #-}
 {- |
    Module      : Text.Pandoc.Lua
    Copyright   : Copyright © 2017-2018 Albert Krewinkel
@@ -40,7 +40,7 @@ import Control.Monad.Trans (MonadIO (..))
 import Data.Data (Data, dataTypeConstrs, dataTypeOf, showConstr)
 import Data.IORef (newIORef, readIORef)
 import Data.Version (Version (versionBranch))
-import Foreign.Lua (Lua, LuaException (..))
+import Foreign.Lua (Lua)
 import GHC.IO.Encoding (getForeignEncoding, setForeignEncoding, utf8)
 import Paths_pandoc (version)
 import Text.Pandoc.Class (PandocIO, getCommonState, getUserDataDir, getMediaBag,
@@ -54,17 +54,22 @@ import qualified Foreign.Lua as Lua
 import qualified Foreign.Lua.Module.Text as Lua
 import qualified Text.Pandoc.Definition as Pandoc
 
+-- | Lua error message
+newtype LuaException = LuaException String deriving (Show)
+
 -- | Run the lua interpreter, using pandoc's default way of environment
 -- initialization.
 runPandocLua :: Lua a -> PandocIO (Either LuaException a)
 runPandocLua luaOp = do
   luaPkgParams <- luaPackageParams
   enc <- liftIO $ getForeignEncoding <* setForeignEncoding utf8
-  res <- liftIO $ Lua.runLuaEither (initLuaState luaPkgParams *> luaOp)
+  res <- liftIO $ Lua.runEither (initLuaState luaPkgParams *> luaOp)
   liftIO $ setForeignEncoding enc
   newMediaBag <- liftIO (readIORef (luaPkgMediaBag luaPkgParams))
   setMediaBag newMediaBag
-  return res
+  return $ case res of
+    Left (Lua.Exception msg) -> Left (LuaException msg)
+    Right x -> Right x
 
 -- | Generate parameters required to setup pandoc's lua environment.
 luaPackageParams :: PandocIO LuaPackageParams

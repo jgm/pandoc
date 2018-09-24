@@ -164,11 +164,11 @@ tests = map (localOption (QuickCheckTests 20))
 
   , testCase "informative error messages" . runPandocLua' $ do
       Lua.pushboolean True
-      err <- Lua.peekEither Lua.stackTop :: Lua.Lua (Either String Pandoc)
-      case err of
+      err <- Lua.peekEither Lua.stackTop
+      case (err :: Either String Pandoc) of
         Left msg -> do
           let expectedMsg = "Could not get Pandoc value: "
-                            ++ "expected table but got boolean."
+                            <> "table expected, got boolean"
           Lua.liftIO $ assertEqual "unexpected error message" expectedMsg msg
         Right _ -> error "Getting a Pandoc element from a bool should fail."
   ]
@@ -182,10 +182,10 @@ assertFilterConversion msg filterPath docIn docExpected = do
     Left exception -> assertFailure (show exception)
     Right docRes -> assertEqual msg docExpected docRes
 
-roundtripEqual :: (Eq a, Lua.FromLuaStack a, Lua.ToLuaStack a) => a -> IO Bool
+roundtripEqual :: (Eq a, Lua.Peekable a, Lua.Pushable a) => a -> IO Bool
 roundtripEqual x = (x ==) <$> roundtripped
  where
-  roundtripped :: (Lua.FromLuaStack a, Lua.ToLuaStack a) => IO a
+  roundtripped :: (Lua.Peekable a, Lua.Pushable a) => IO a
   roundtripped = runPandocLua' $ do
     oldSize <- Lua.gettop
     Lua.push x
