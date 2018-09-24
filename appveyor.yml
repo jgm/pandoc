@@ -60,11 +60,12 @@ build: off
 
 install:
   - choco install wixtoolset %CHOCO_OPTS%
-  - if "%BUILD_TYPE%" == "stack" (
-      choco install haskell-stack %CHOCO_OPTS%
-    ) else (
-      choco install ghc --version %GHC_VERSION% %CHOCO_OPTS%
-    )
+  - |
+      if "%BUILD_TYPE%" == "stack" (
+        choco install haskell-stack %CHOCO_OPTS%
+      ) else (
+        choco install ghc --version %GHC_VERSION% %CHOCO_OPTS%
+      )
 
 # before_test:
 
