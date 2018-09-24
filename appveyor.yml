@@ -60,31 +60,31 @@ build: off
 
 install:
   - choco install wixtoolset %CHOCO_OPTS%
-  - |
-      if "%BUILD_TYPE%" == "stack" (
-        choco install haskell-stack %CHOCO_OPTS%
-      ) else (
-        choco install ghc --version %GHC_VERSION% %CHOCO_OPTS%
-      )
+  - ps: |
+      if ($env:BUILD_TYPE -Match "stack") {
+        choco install haskell-stack $env:CHOCO_OPTS
+      } else {
+        choco install ghc --version $env:GHC_VERSION $env:CHOCO_OPTS
+      }
 
 # before_test:
 
 test_script:
   # The ugly echo "" hack is to avoid complaints about 0 being an invalid file
   # descriptor
-  - |
-      if "%BUILD_TYPE%" == "stack" (
+  - | ps: |
+      if ($env:BUILD_TYPE -Match "stack") {
         stack --version
         stack path
         echo "" | stack clean
-        echo "" | stack install --stack-yaml %STACK_YAML% %STACK_BUILD_OPTS% %STACK_FLAGS% pandoc pandoc-citeproc
-      ) else (
+        echo "" | stack install --stack-yaml $env:STACK_YAML $env:STACK_BUILD_OPTS $env:STACK_FLAGS pandoc pandoc-citeproc
+      } else {
         cabal --version
         cabal update
-        cabal new-build %CABAL_BUILD_OPTS% . pandoc-citeproc
+        cabal new-build $env:CABAL_BUILD_OPTS . pandoc-citeproc
         cp "`find dist-newstyle/ -type f -name pandoc`" .\windows\
         cp "`find dist-newstyle/ -type f -name pandoc-citeproc`" .\windows\
-      )
+      }
 
 after_test:
     # .\ in the stack commandline seems to be .\windows\ (where the stack-appveyor.yaml is)
