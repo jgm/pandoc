@@ -80,8 +80,7 @@ test_script:
         cabal --version
         cabal update
         cabal new-build %CABAL_BUILD_OPTS% . pandoc-citeproc
-        cp "`find dist-newstyle/ -type f -name pandoc`" .\windows\
-        cp "`find dist-newstyle/ -type f -name pandoc-citeproc`" .\windows\
+        forfiles /P .\dist-newstyle /M pandoc*.exe /C "cmd /C cp @file .\windows\ "
     )
 
 after_test:
