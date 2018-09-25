@@ -9,13 +9,13 @@ environment:
     TMP: "c:\\tmp"
     # see #4201, https://github.com/haskell-tools/haskell-tools/issues/277
   matrix:
-  - BUILD_TYPE: "stack"
-    OSARCH: "windows-x86_64"
-    STACK_ROOT: "c:\\sr64"
-    STACK_YAML: "stack.yaml"
-    STACK_FLAGS: "--arch=x86_64"
-    ARCH: "x64"
-    CHOCO_OPTS: ""
+# - BUILD_TYPE: "stack"
+#   OSARCH: "windows-x86_64"
+#   STACK_ROOT: "c:\\sr64"
+#   STACK_YAML: "stack.yaml"
+#   STACK_FLAGS: "--arch=x86_64"
+#   ARCH: "x64"
+#   CHOCO_OPTS: ""
 # - BUILD_TYPE: "stack"
 #   OSARCH: "windows-i386"
 #   STACK_ROOT: "c:\\sr32"
@@ -72,15 +72,15 @@ test_script:
   # The ugly echo "" hack is to avoid complaints about 0 being an invalid file
   # descriptor
   - if "%BUILD_TYPE%" == "stack" (
-        stack --version
-        stack path
-        echo "" | stack clean
+        stack --version ;
+        stack path ;
+        echo "" | stack clean ;
         echo "" | stack install --stack-yaml %STACK_YAML% %STACK_BUILD_OPTS% %STACK_FLAGS% pandoc pandoc-citeproc
     ) else (
-        cabal --version
-        cabal update
-        cabal new-build %CABAL_BUILD_OPTS% . pandoc-citeproc
-        cp "`find dist-newstyle/ -type f -name pandoc`" .\windows\
+        cabal --version ;
+        cabal update ;
+        cabal new-build %CABAL_BUILD_OPTS% . pandoc-citeproc ;
+        cp "`find dist-newstyle/ -type f -name pandoc`" .\windows\ ;
         cp "`find dist-newstyle/ -type f -name pandoc-citeproc`" .\windows\
     )
 
