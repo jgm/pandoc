@@ -64,11 +64,13 @@ build: off
 install:
   - choco install wixtoolset %CHOCO_OPTS%
   - if "%BUILD_TYPE%" == "stack" (
-      choco install haskell-stack %CHOCO_OPTS%
+      choco install haskell-stack %CHOCO_OPTS% &&
+      refreshenv
     )
   - if "%BUILD_TYPE%" == "cabal" (
       choco install -y ghc --version %GHC_VERSION% --ignore-dependencies %CHOCO_OPTS% &&
-      choco install -y cabal --version %CABAL_VERSION% --ignore-dependencies %CHOCO_OPTS%
+      choco install -y cabal --version %CABAL_VERSION% --ignore-dependencies %CHOCO_OPTS% %%
+      refreshenv
     )
 
 # before_test:
