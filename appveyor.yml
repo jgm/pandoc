@@ -67,7 +67,7 @@ install:
       choco install haskell-stack %CHOCO_OPTS%
     )
   - if "%BUILD_TYPE%" == "cabal" (
-      choco install --verbose ghc --version %GHC_VERSION% --ignore-dependencies %CHOCO_OPTS% &&
+      choco install ghc --version %GHC_VERSION% --ignore-dependencies %CHOCO_OPTS% &&
       choco install cabal --version %CABAL_VERSION% --ignore-dependencies %CHOCO_OPTS%
     )
 
@@ -85,7 +85,7 @@ test_script:
   - if "%BUILD_TYPE%" == "cabal" (
         cabal --version &&
         echo "%PATH%" &&
-        dir "C:\\ProgramData\\chocolatey\\bin" &&
+        dir /s C:\ProgramData\chocolatey &&
         ghc.exe --version &&
         cabal --store-dir="%CABAL_STORE%" new-update &&
         cabal --store-dir="%CABAL_STORE%" new-build %CABAL_BUILD_OPTS% . pandoc-citeproc &&
