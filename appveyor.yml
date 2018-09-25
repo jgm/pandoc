@@ -69,7 +69,7 @@ install:
   - if "%BUILD_TYPE%" == "cabal" (
       choco install ghc --version %GHC_VERSION% --ignore-dependencies %CHOCO_OPTS% &&
       choco install cabal --version %CABAL_VERSION% --ignore-dependencies %CHOCO_OPTS% &&
-      set PATH=C:\ProgramData\chocolatey\lib\ghc\tools\ghc-8.6.1\bin;%PATH%
+      set PATH=C:\ProgramData\chocolatey\lib\ghc\tools\ghc-8.6.1\bin;"%PATH%"
     )
 
 # before_test:
