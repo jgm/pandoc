@@ -29,6 +29,7 @@ environment:
   - BUILD_TYPE: "cabal"
     OSARCH: "windows-i386"
     GHC_VERSION: "8.6.1.1"
+    CABAL_VERSION: "2.4.0.0"
     CABAL_STORE: "C:\\cs"
     CABAL_BUILD_OPTS: "--allow-newer=base --allow-newer=template-haskell --allow-newer=containers -flua_32bits -fembed_data_files"
     ARCH: "x86"
@@ -66,7 +67,8 @@ install:
       choco install haskell-stack %CHOCO_OPTS%
     )
   - if "%BUILD_TYPE%" == "cabal" (
-      choco install -y ghc --version %GHC_VERSION% --ignore-dependencies %CHOCO_OPTS%
+      choco install -y ghc --version %GHC_VERSION% --ignore-dependencies %CHOCO_OPTS% &&
+      choco install -y cabal --version %CABAL_VERSION% --ignore-dependencies %CHOCO_OPTS%
     )
 
 # before_test:
