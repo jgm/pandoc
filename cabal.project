@@ -1,1 +1,1 @@
-packages: pandoc.cabal pandoc-citeproc/pandoc-citeproc.cabal
+packages: pandoc.cabal vendor/*/*.cabal
