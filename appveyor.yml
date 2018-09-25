@@ -72,14 +72,15 @@ test_script:
   # The ugly echo "" hack is to avoid complaints about 0 being an invalid file
   # descriptor
   - if "%BUILD_TYPE%" == "stack" (
-        stack --version
-        stack path
-        echo "" | stack clean
+        stack --version &&
+        stack path &&
+        echo "" | stack clean &&
         echo "" | stack install --stack-yaml %STACK_YAML% %STACK_BUILD_OPTS% %STACK_FLAGS% pandoc pandoc-citeproc
-    ) else (
-        cabal --version
-        cabal update
-        cabal new-build %CABAL_BUILD_OPTS% . pandoc-citeproc
+    )
+  - if "%BUILD_TYPE%" == "cabal" (
+        cabal --version &&
+        cabal update &&
+        cabal new-build %CABAL_BUILD_OPTS% . pandoc-citeproc &&
         forfiles /P .\dist-newstyle /M pandoc*.exe /C "cmd /C cp @file .\windows\ "
     )
 
