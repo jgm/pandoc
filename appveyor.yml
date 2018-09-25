@@ -62,15 +62,13 @@ cache:
 build: off
 
 install:
-  - choco install wixtoolset %CHOCO_OPTS%
+  - choco install wixtoolset --version 3.11 %CHOCO_OPTS%
   - if "%BUILD_TYPE%" == "stack" (
-      choco install haskell-stack %CHOCO_OPTS% &&
-      refreshenv
+      choco install haskell-stack %CHOCO_OPTS%
     )
   - if "%BUILD_TYPE%" == "cabal" (
       choco install -y ghc --version %GHC_VERSION% --ignore-dependencies %CHOCO_OPTS% &&
-      choco install -y cabal --version %CABAL_VERSION% --ignore-dependencies %CHOCO_OPTS% &&
-      refreshenv
+      choco install -y cabal --version %CABAL_VERSION% --ignore-dependencies %CHOCO_OPTS%
     )
 
 # before_test:
@@ -86,6 +84,8 @@ test_script:
     )
   - if "%BUILD_TYPE%" == "cabal" (
         cabal --version &&
+        ghc --version &&
+        echo "%PATH%" &&
         cabal --store-dir="%CABAL_STORE%" new-update &&
         cabal --store-dir="%CABAL_STORE%" new-build %CABAL_BUILD_OPTS% . pandoc-citeproc &&
         forfiles /P .\dist-newstyle /M pandoc*.exe /C "cmd /C cp @file .\windows\ "
