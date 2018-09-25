@@ -9,13 +9,13 @@ environment:
     TMP: "c:\\tmp"
     # see #4201, https://github.com/haskell-tools/haskell-tools/issues/277
   matrix:
-  - BUILD_TYPE: "stack"
-    OSARCH: "windows-x86_64"
-    STACK_ROOT: "c:\\sr64"
-    STACK_YAML: "stack.yaml"
-    STACK_FLAGS: "--arch=x86_64"
-    ARCH: "x64"
-    CHOCO_OPTS: ""
+# - BUILD_TYPE: "stack"
+#   OSARCH: "windows-x86_64"
+#   STACK_ROOT: "c:\\sr64"
+#   STACK_YAML: "stack.yaml"
+#   STACK_FLAGS: "--arch=x86_64"
+#   ARCH: "x64"
+#   CHOCO_OPTS: ""
 # - BUILD_TYPE: "stack"
 #   OSARCH: "windows-i386"
 #   STACK_ROOT: "c:\\sr32"
@@ -29,6 +29,7 @@ environment:
   - BUILD_TYPE: "cabal"
     OSARCH: "windows-i386"
     GHC_VERSION: "8.6.1.1"
+    CABAL_STORE: "C:\\cs"
     CABAL_BUILD_OPTS: "--allow-newer=base --allow-newer=template-haskell --allow-newer=containers -flua_32bits -fembed_data_files"
     ARCH: "x86"
     CHOCO_OPTS: "--x86"
@@ -48,6 +49,7 @@ matrix:
 
 cache:
   - "%STACK_ROOT%"
+  - "%CABAL_STORE%"
   # This is where stack install ghc by default, but we don't
   # cache it because it's too large:
   # - "c:\\Users\\appveyor\\AppData\\Local\\Programs\\stack"
@@ -62,8 +64,9 @@ install:
   - choco install wixtoolset %CHOCO_OPTS%
   - if "%BUILD_TYPE%" == "stack" (
       choco install haskell-stack %CHOCO_OPTS%
-    ) else (
-      choco install ghc --version %GHC_VERSION% %CHOCO_OPTS%
+    )
+  - if "%BUILD_TYPE%" == "cabal" (
+      choco install -y ghc --version %GHC_VERSION% --ignore-dependencies %CHOCO_OPTS%
     )
 
 # before_test:
@@ -79,8 +82,8 @@ test_script:
     )
   - if "%BUILD_TYPE%" == "cabal" (
         cabal --version &&
-        cabal update &&
-        cabal new-build %CABAL_BUILD_OPTS% . pandoc-citeproc &&
+        cabal --store-dir="%CABAL_STORE%" new-update &&
+        cabal --store-dir="%CABAL_STORE%" new-build %CABAL_BUILD_OPTS% . pandoc-citeproc &&
         forfiles /P .\dist-newstyle /M pandoc*.exe /C "cmd /C cp @file .\windows\ "
     )
 
