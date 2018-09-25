@@ -16,18 +16,18 @@ environment:
     STACK_FLAGS: "--arch=x86_64"
     ARCH: "x64"
     CHOCO_OPTS: ""
-  - BUILD_TYPE: "stack"
-    OSARCH: "windows-i386"
-    STACK_ROOT: "c:\\sr32"
-    STACK_YAML: "stack.lts11.yaml"
-    STACK_FLAGS: "--arch=i386 --flag=hslua:lua_32bits"
-    ARCH: "x86"
-    CHOCO_OPTS: "--x86"
-    # note: we do a lts11 build because of
-    # https://github.com/commercialhaskell/stackage/issues/3385
-    # with luck this will be fixed in ghc 8.6.
+# - BUILD_TYPE: "stack"
+#   OSARCH: "windows-i386"
+#   STACK_ROOT: "c:\\sr32"
+#   STACK_YAML: "stack.lts11.yaml"
+#   STACK_FLAGS: "--arch=i386 --flag=hslua:lua_32bits"
+#   ARCH: "x86"
+#   CHOCO_OPTS: "--x86"
+#   # note: we do a lts11 build because of
+#   # https://github.com/commercialhaskell/stackage/issues/3385
+#   # with luck this will be fixed in ghc 8.6.
   - BUILD_TYPE: "cabal"
-    OSARCH: "windows-i386-cabal"
+    OSARCH: "windows-i386"
     GHC_VERSION: "8.6.1.1"
     CABAL_BUILD_OPTS: "--allow-newer=base --allow-newer=template-haskell --allow-newer=containers -flua_32bits -fembed_data_files"
     ARCH: "x86"
