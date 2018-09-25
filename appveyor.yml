@@ -69,7 +69,7 @@ install:
     )
   - if "%BUILD_TYPE%" == "cabal" (
       choco install -y ghc --version %GHC_VERSION% --ignore-dependencies %CHOCO_OPTS% &&
-      choco install -y cabal --version %CABAL_VERSION% --ignore-dependencies %CHOCO_OPTS% %%
+      choco install -y cabal --version %CABAL_VERSION% --ignore-dependencies %CHOCO_OPTS% &&
       refreshenv
     )
 
