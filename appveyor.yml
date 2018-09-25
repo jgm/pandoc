@@ -62,7 +62,7 @@ cache:
 build: off
 
 install:
-  - choco install wixtoolset --version 3.11 %CHOCO_OPTS%
+  - choco install wixtoolset --version 3.11.1 %CHOCO_OPTS%
   - if "%BUILD_TYPE%" == "stack" (
       choco install haskell-stack %CHOCO_OPTS%
     )
