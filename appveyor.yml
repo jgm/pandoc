@@ -84,8 +84,10 @@ test_script:
     )
   - if "%BUILD_TYPE%" == "cabal" (
         cabal --version &&
-        ghc --version &&
         echo "%PATH%" &&
+        refreshenv &&
+        echo "%PATH%" &&
+        "C:\\ProgramData\\chocolatey\\lib\\ghc\\tools\\ghc-8.6.1\\bin\\ghc.exe --version" &&
         cabal --store-dir="%CABAL_STORE%" new-update &&
         cabal --store-dir="%CABAL_STORE%" new-build %CABAL_BUILD_OPTS% . pandoc-citeproc &&
         forfiles /P .\dist-newstyle /M pandoc*.exe /C "cmd /C cp @file .\windows\ "
