@@ -32,7 +32,6 @@ environment:
     GHC: "C:\\ProgramData\\chocolatey\\lib\\ghc\\tools\\ghc-8.6.1\\bin\\ghc.exe"
     CABAL_VERSION: "2.4.0.0"
     CABAL_STORE: "C:\\cs"
-    CABAL_BUILD_OPTS: "--allow-newer=base --allow-newer=template-haskell --allow-newer=containers -flua_32bits -fembed_data_files"
     ARCH: "x86"
     CHOCO_OPTS: "--x86"
 
@@ -89,7 +88,7 @@ test_script:
         cabal --version &&
         cabal --store-dir="%CABAL_STORE%" new-update &&
         echo "" | cabal new-repl -w %GHC% --build-dep fail &&
-        cabal --store-dir="%CABAL_STORE%" new-install -w %GHC% --symlink-bindir=. %CABAL_BUILD_OPTS% . pandoc-citeproc
+        cabal --store-dir="%CABAL_STORE%" new-install -w %GHC% --symlink-bindir=. --allow-newer -flua_32bits -fembed_data_files . pandoc-citeproc
     )
 
 after_test:
