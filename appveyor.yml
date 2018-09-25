@@ -29,6 +29,7 @@ environment:
   - BUILD_TYPE: "cabal"
     OSARCH: "windows-i386"
     GHC_VERSION: "8.6.1.1"
+    GHC: "C:\\ProgramData\\chocolatey\\lib\\ghc\\tools\\ghc-8.6.1\\bin\\ghc.exe"
     CABAL_VERSION: "2.4.0.0"
     CABAL_STORE: "C:\\cs"
     CABAL_BUILD_OPTS: "--allow-newer=base --allow-newer=template-haskell --allow-newer=containers -flua_32bits -fembed_data_files"
@@ -82,10 +83,13 @@ test_script:
         echo "" | stack clean &&
         echo "" | stack install --stack-yaml %STACK_YAML% %STACK_BUILD_OPTS% %STACK_FLAGS% pandoc pandoc-citeproc
     )
+  # Note: the new-repl step is a workaround:
+  # see https://github.com/haskell/cabal/issues/5516
   - if "%BUILD_TYPE%" == "cabal" (
         cabal --version &&
         cabal --store-dir="%CABAL_STORE%" new-update &&
-        cabal --store-dir="%CABAL_STORE%" new-install -w C:\ProgramData\chocolatey\lib\ghc\tools\ghc-8.6.1\bin\ghc.exe --symlink-bindir=. %CABAL_BUILD_OPTS% . pandoc-citeproc
+        echo "" | cabal new-repl -w %GHC% --build-dep fail &&
+        cabal --store-dir="%CABAL_STORE%" new-install -w %GHC% --symlink-bindir=. %CABAL_BUILD_OPTS% . pandoc-citeproc
     )
 
 after_test:
