@@ -82,12 +82,12 @@ test_script:
         echo "" | stack clean &&
         echo "" | stack install --stack-yaml %STACK_YAML% %STACK_BUILD_OPTS% %STACK_FLAGS% pandoc pandoc-citeproc
     )
-  # Note: need new-build before new-install:
+  # Note: we manually create cabal store, because of a cabal bug:
   # see https://github.com/haskell/cabal/issues/5516
   - if "%BUILD_TYPE%" == "cabal" (
         cabal --version &&
+        mkdir -p "%CABAL_STORE%"/ghc-8.6.1/package.db &&
         cabal --store-dir="%CABAL_STORE%" new-update &&
-        cabal --store-dir="%CABAL_STORE%" new-build -w %GHC% --allow-newer -flua_32bits -fembed_data_files . pandoc-citeproc
         cabal --store-dir="%CABAL_STORE%" new-install -w %GHC% --symlink-bindir=. --allow-newer -flua_32bits -fembed_data_files . pandoc-citeproc
     )
 
