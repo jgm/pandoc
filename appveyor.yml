@@ -68,7 +68,8 @@ install:
     )
   - if "%BUILD_TYPE%" == "cabal" (
       choco install ghc --version %GHC_VERSION% --ignore-dependencies %CHOCO_OPTS% &&
-      choco install cabal --version %CABAL_VERSION% --ignore-dependencies %CHOCO_OPTS%
+      choco install cabal --version %CABAL_VERSION% --ignore-dependencies %CHOCO_OPTS% &&
+      set PATH=C:\ProgramData\chocolatey\lib\ghc\tools\ghc-8.6.1\bin;%PATH%
     )
 
 # before_test:
@@ -85,11 +86,9 @@ test_script:
   - if "%BUILD_TYPE%" == "cabal" (
         cabal --version &&
         echo "%PATH%" &&
-        dir /s C:\ProgramData\chocolatey &&
-        ghc.exe --version &&
+        ghc --version &&
         cabal --store-dir="%CABAL_STORE%" new-update &&
-        cabal --store-dir="%CABAL_STORE%" new-build %CABAL_BUILD_OPTS% . pandoc-citeproc &&
-        forfiles /P .\dist-newstyle /M pandoc*.exe /C "cmd /C cp @file .\windows\ "
+        cabal --store-dir="%CABAL_STORE%" new-install --symlink-bindir=. %CABAL_BUILD_OPTS% . pandoc-citeproc
     )
 
 after_test:
