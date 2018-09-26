@@ -40,7 +40,7 @@ import Text.Pandoc.Readers.Org.Meta (metaExport, metaKey, metaLine)
 import Text.Pandoc.Readers.Org.ParserState
 import Text.Pandoc.Readers.Org.Parsing
 import Text.Pandoc.Readers.Org.Shared (cleanLinkString, isImageFilename,
-                                       originalLang, translateLang)
+                                       originalLang, translateLang, exportsCode)
 
 import Text.Pandoc.Builder (Blocks, Inlines)
 import Text.Pandoc.Class (PandocMonad)
@@ -313,9 +313,6 @@ codeBlock blockAttrs blockType = do
 
    labelledBlock :: F Inlines -> F Blocks
    labelledBlock = fmap (B.plain . B.spanWith ("", ["label"], []))
-
-   exportsCode :: [(String, String)] -> Bool
-   exportsCode = maybe True (`elem` ["code", "both"]) . lookup "exports"
 
    exportsResults :: [(String, String)] -> Bool
    exportsResults = maybe False (`elem` ["results", "both"]) . lookup "exports"
