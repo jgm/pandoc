@@ -39,7 +39,7 @@ import Text.Pandoc.Readers.Org.BlockStarts (endOfBlock, noteMarker)
 import Text.Pandoc.Readers.Org.ParserState
 import Text.Pandoc.Readers.Org.Parsing
 import Text.Pandoc.Readers.Org.Shared (cleanLinkString, isImageFilename,
-                                       originalLang, translateLang)
+                                       originalLang, translateLang, exportsCode)
 
 import Text.Pandoc.Builder (Inlines)
 import qualified Text.Pandoc.Builder as B
@@ -529,7 +529,8 @@ inlineCodeBlock = try $ do
   inlineCode <- enclosedByPair '{' '}' (noneOf "\n\r")
   let attrClasses = [translateLang lang]
   let attrKeyVal  = originalLang lang <> opts
-  returnF $ B.codeWith ("", attrClasses, attrKeyVal) inlineCode
+  let codeInlineBlck = B.codeWith ("", attrClasses, attrKeyVal) inlineCode
+  returnF $ (if exportsCode opts then codeInlineBlck else mempty)
  where
    inlineBlockOption :: PandocMonad m => OrgParser m (String, String)
    inlineBlockOption = try $ do

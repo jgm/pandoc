@@ -32,6 +32,7 @@ module Text.Pandoc.Readers.Org.Shared
   , isImageFilename
   , originalLang
   , translateLang
+  , exportsCode
   ) where
 
 import Prelude
@@ -96,3 +97,6 @@ translateLang cs =
     "sh"         -> "bash"
     "sqlite"     -> "sql"
     _            -> cs
+
+exportsCode :: [(String, String)] -> Bool
+exportsCode = maybe True (`elem` ["code", "both"]) . lookup "exports"
