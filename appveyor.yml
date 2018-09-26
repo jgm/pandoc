@@ -63,8 +63,8 @@ matrix:
   fast_finish: true
 
 cache:
-  - "%STACK_ROOT%"
   - "%CABAL_STORE%"
+  # - "%STACK_ROOT%"
   # This is where stack install ghc by default, but we don't
   # cache it because it's too large:
   # - "c:\\Users\\appveyor\\AppData\\Local\\Programs\\stack"
