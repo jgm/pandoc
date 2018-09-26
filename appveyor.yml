@@ -89,7 +89,8 @@ test_script:
         mkdir -p "%CABAL_STORE%"/ghc-8.6.1/package.db &&
         cabal --store-dir="%CABAL_STORE%" new-update &&
         cabal --store-dir="%CABAL_STORE%" new-build -w %GHC% --allow-newer -flua_32bits -fembed_data_files . pandoc-citeproc &&
-        forfiles /P .\dist-newstyle /M pandoc*.exe /C "cmd /C cp @file .\windows\ "
+        forfiles /P .\dist-newstyle /M pandoc.exe /C "cmd /C cp @file .\windows\ " &&
+        forfiles /P .\dist-newstyle /M pandoc-citeproc.exe /C "cmd /C cp @file .\windows\ "
     )
 
 after_test:
