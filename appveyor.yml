@@ -102,7 +102,7 @@ test_script:
         cabal --version &&
         mkdir "%CABAL_STORE%"/ghc-%GHC_MINOR_VERSION%/package.db &&
         cabal --store-dir="%CABAL_STORE%" new-update &&
-        cabal --store-dir="%CABAL_STORE%" new-build -w %GHC% --enable-tests --run-tests %CABAL_OPTS% --ghc-options="%GHC_OPTS" . pandoc-citeproc &&
+        cabal --store-dir="%CABAL_STORE%" new-build -w %GHC% --enable-tests --run-tests %CABAL_OPTS% --ghc-options="%GHC_OPTS%" . pandoc-citeproc &&
         forfiles /P .\dist-newstyle /M pandoc*.exe /S /C "cmd /C copy @path C:\pandoc\windows"
     )
 
