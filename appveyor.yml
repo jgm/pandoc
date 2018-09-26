@@ -27,6 +27,14 @@ environment:
 #   # https://github.com/commercialhaskell/stackage/issues/3385
 #   # with luck this will be fixed in ghc 8.6.
   - BUILD_TYPE: "cabal"
+    OSARCH: "windows-x86_64"
+    GHC_VERSION: "8.6.1.1"
+    GHC: "C:\\ProgramData\\chocolatey\\lib\\ghc\\tools\\ghc-8.6.1\\bin\\ghc.exe"
+    CABAL_VERSION: "2.4.0.0"
+    CABAL_STORE: "C:\\cs"
+    ARCH: "x64"
+    CHOCO_OPTS: ""
+  - BUILD_TYPE: "cabal"
     OSARCH: "windows-i386"
     GHC_VERSION: "8.6.1.1"
     GHC: "C:\\ProgramData\\chocolatey\\lib\\ghc\\tools\\ghc-8.6.1\\bin\\ghc.exe"
