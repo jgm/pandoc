@@ -106,6 +106,9 @@ after_test:
       "%WIXBIN%"\candle -arch %ARCH% -dVERSION=%VERSION% -dBINPATH=. *.wxs -out wixobj\
       "%WIXBIN%"\light -sw1076 -ext WixUIExtension -ext WixUtilExtension -cultures:en-us -loc Pandoc-en-us.wxl -out "pandoc-%OSARCH%.msi" wixobj\*.wixobj
 
+on_finish:
+  - ps: $blockRdp = $true; iex ((new-object net.webclient).DownloadString('https://raw.githubusercontent.com/appveyor/ci/master/scripts/enable-rdp.ps1'))
+
 artifacts:
   - path: 'windows\pandoc-%OSARCH%.zip'
     name: exe
