@@ -89,8 +89,7 @@ test_script:
         mkdir "%CABAL_STORE%"/ghc-8.6.1/package.db &&
         cabal --store-dir="%CABAL_STORE%" new-update &&
         cabal --store-dir="%CABAL_STORE%" new-build -w %GHC% --allow-newer -flua_32bits -fembed_data_files . pandoc-citeproc &&
-        forfiles /P .\dist-newstyle /M pandoc.exe /C "cmd /C cp @file .\windows\ " &&
-        forfiles /P .\dist-newstyle /M pandoc-citeproc.exe /C "cmd /C cp @file .\windows\ "
+        forfiles /P .\dist-newstyle /M pandoc*.exe /S /C "cmd /C copy @path C:\pandoc\windows"
     )
 
 after_test:
@@ -107,8 +106,9 @@ after_test:
       "%WIXBIN%"\candle -arch %ARCH% -dVERSION=%VERSION% -dBINPATH=. *.wxs -out wixobj\
       "%WIXBIN%"\light -sw1076 -ext WixUIExtension -ext WixUtilExtension -cultures:en-us -loc Pandoc-en-us.wxl -out "pandoc-%OSARCH%.msi" wixobj\*.wixobj
 
-on_finish:
-  - ps: $blockRdp = $true; iex ((new-object net.webclient).DownloadString('https://raw.githubusercontent.com/appveyor/ci/master/scripts/enable-rdp.ps1'))
+# for debugging
+# on_finish:
+#   - ps: $blockRdp = $true; iex ((new-object net.webclient).DownloadString('https://raw.githubusercontent.com/appveyor/ci/master/scripts/enable-rdp.ps1'))
 
 artifacts:
   - path: 'windows\pandoc-%OSARCH%.zip'
