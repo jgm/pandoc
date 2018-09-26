@@ -29,17 +29,23 @@ environment:
   - BUILD_TYPE: "cabal"
     OSARCH: "windows-x86_64"
     GHC_VERSION: "8.6.1.1"
-    GHC: "C:\\ProgramData\\chocolatey\\lib\\ghc\\tools\\ghc-8.6.1\\bin\\ghc.exe"
+    GHC_MINOR_VERSION: "8.6.1"
+    GHC: "C:\\ProgramData\\chocolatey\\lib\\ghc\\tools\\ghc-%GHC_MINOR_VERSION%\\bin\\ghc.exe"
     CABAL_VERSION: "2.4.0.0"
     CABAL_STORE: "C:\\cs"
+    CABAL_OPTS: "--allow-newer -fembed_data_files -fbibutils"
+    GHC_OPTS: "-fhide-source-paths"
     ARCH: "x64"
     CHOCO_OPTS: ""
   - BUILD_TYPE: "cabal"
     OSARCH: "windows-i386"
     GHC_VERSION: "8.6.1.1"
-    GHC: "C:\\ProgramData\\chocolatey\\lib\\ghc\\tools\\ghc-8.6.1\\bin\\ghc.exe"
+    GHC_MINOR_VERSION: "8.6.1"
+    GHC: "C:\\ProgramData\\chocolatey\\lib\\ghc\\tools\\ghc-%GHC_MINOR_VERSION%\\bin\\ghc.exe"
     CABAL_VERSION: "2.4.0.0"
     CABAL_STORE: "C:\\cs"
+    CABAL_OPTS: "--allow-newer -flua_32bits -fembed_data_files -fbibutils"
+    GHC_OPTS: "-fhide-source-paths"
     ARCH: "x86"
     CHOCO_OPTS: "--x86"
 
@@ -94,9 +100,9 @@ test_script:
   # see https://github.com/haskell/cabal/issues/5516
   - if "%BUILD_TYPE%" == "cabal" (
         cabal --version &&
-        mkdir "%CABAL_STORE%"/ghc-8.6.1/package.db &&
+        mkdir "%CABAL_STORE%"/ghc-%GHC_MINOR_VERSION%/package.db &&
         cabal --store-dir="%CABAL_STORE%" new-update &&
-        cabal --store-dir="%CABAL_STORE%" new-build -w %GHC% --allow-newer -flua_32bits -fembed_data_files . pandoc-citeproc &&
+        cabal --store-dir="%CABAL_STORE%" new-build -w %GHC% --enable-tests --run-tests %CABAL_OPTS% --ghc-options="%GHC_OPTS" . pandoc-citeproc &&
         forfiles /P .\dist-newstyle /M pandoc*.exe /S /C "cmd /C copy @path C:\pandoc\windows"
     )
 
