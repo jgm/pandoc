@@ -87,6 +87,7 @@ test_script:
   - if "%BUILD_TYPE%" == "cabal" (
         cabal --version &&
         mkdir -p "%CABAL_STORE%"/ghc-8.6.1/package.db &&
+        git clone https://github.com/vincenthz/hs-memory vender/hs-memory &&
         git clone https://github.com/jgm/pandoc-citeproc vendor/pandoc-citeproc &&
         cabal --store-dir="%CABAL_STORE%" new-update &&
         cabal --store-dir="%CABAL_STORE%" new-build -w %GHC% --allow-newer -flua_32bits -fembed_data_files . pandoc-citeproc &&
