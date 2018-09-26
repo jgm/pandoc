@@ -662,6 +662,11 @@ bracketed parser = try $ do
   symbol '['
   mconcat <$> manyTill parser (symbol ']')
 
+parenWrapped :: PandocMonad m => Monoid a => LP m a -> LP m a
+parenWrapped parser = try $ do
+  symbol '('
+  mconcat <$> manyTill parser (symbol ')')
+
 dimenarg :: PandocMonad m => LP m Text
 dimenarg = try $ do
   ch  <- option False $ True <$ symbol '='
@@ -1470,7 +1475,21 @@ citationLabel  = do
 cites :: PandocMonad m => CitationMode -> Bool -> LP m [Citation]
 cites mode multi = try $ do
   cits <- if multi
-             then many1 simpleCiteArgs
+             then do
+               multiprenote <- optionMaybe $ toList <$> paropt
+               multipostnote <- optionMaybe $ toList <$> paropt
+               let (pre, suf) = case (multiprenote, multipostnote) of
+                     (Just s , Nothing) -> (mempty, s)
+                     (Nothing , Just t) -> (mempty, t)
+                     (Just s , Just t ) -> (s, t)
+                     _                  -> (mempty, mempty)
+               tempCits <- many1 simpleCiteArgs
+               case tempCits of
+                 (k:ks) -> case ks of
+                             (_:_) -> return $ ((addMprenote pre k):init ks) ++
+                                                 [addMpostnote suf (last ks)]
+                             _ -> return [addMprenote pre (addMpostnote suf k)]
+                 _ -> return [[]]
              else count 1 simpleCiteArgs
   let cs = concat cits
   return $ case mode of
@@ -1478,6 +1497,17 @@ cites mode multi = try $ do
                              (c:rest) -> c {citationMode = mode} : rest
                              []       -> []
         _            -> map (\a -> a {citationMode = mode}) cs
+  where mprenote (k:ks) = (k:ks) ++ [Space]
+        mprenote _ = mempty
+        mpostnote (k:ks) = [Str ",", Space] ++ (k:ks)
+        mpostnote _ = mempty
+        addMprenote mpn (k:ks) =
+          let mpnfinal = case citationPrefix k of
+                           (_:_) -> mprenote mpn
+                           _ -> mpn
+          in addPrefix mpnfinal (k:ks)
+        addMprenote _ _ = []
+        addMpostnote = addSuffix . mpostnote
 
 citation :: PandocMonad m => String -> CitationMode -> Bool -> LP m Inlines
 citation name mode multi = do
@@ -1547,6 +1577,9 @@ singleChar = try $ do
 
 opt :: PandocMonad m => LP m Inlines
 opt = bracketed inline <|> (str . T.unpack <$> rawopt)
+
+paropt :: PandocMonad m => LP m Inlines
+paropt = parenWrapped inline
 
 rawopt :: PandocMonad m => LP m Text
 rawopt = do
