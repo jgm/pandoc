@@ -2,10 +2,12 @@ packages: pandoc.cabal
 
 source-repository-package
     type: git
-    location: https://github.com/jgm/pandoc-citeproc.git
-    tag: f7654ae2128f374c0e88fd30bcd3138c50eeb84a
+    location: https://github.com/jgm/pandoc-citeproc
+
+source-repository-package
+    type: git
+    location: https://github.com/jgm/texmath
 
 source-repository-package
     type: git
     location: https://github.com/vincenthz/hs-memory
-    tag: 7cb4a2c2ce4b0b142eb041a3a319a7ddec80d045
