@@ -65,7 +65,6 @@ test_script:
   - if not exist "%CABAL_PACKAGE_DB%" ( mkdir "%CABAL_PACKAGE_DB%" )
   - cabal --store-dir="%CABAL_STORE%" --version
   - cabal --store-dir="%CABAL_STORE%" new-update
-  - cabal --store-dir="%CABAL_STORE%" new-clean
   - cabal --store-dir="%CABAL_STORE%" new-configure -w %GHC% --enable-tests %CABAL_OPTS% --ghc-options="%GHC_OPTS%" . pandoc-citeproc
   - cabal --store-dir="%CABAL_STORE%" new-build . pandoc-citeproc
   - cabal --store-dir="%CABAL_STORE%" new-test . pandoc-citeproc
