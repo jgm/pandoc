@@ -525,7 +525,8 @@ inlineCodeBlock :: PandocMonad m => OrgParser m (F Inlines)
 inlineCodeBlock = try $ do
   string "src_"
   lang <- many1 orgArgWordChar
-  opts <- option [] $ enclosedByPair '[' ']' inlineBlockOption
+  opts <- option [] $ try (enclosedByPair '[' ']' inlineBlockOption)
+                        <|> (mempty <$ string "[]")
   inlineCode <- enclosedByPair '{' '}' (noneOf "\n\r")
   let attrClasses = [translateLang lang]
   let attrKeyVal  = originalLang lang <> opts
