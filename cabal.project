@@ -1,5 +1,7 @@
 packages: pandoc.cabal
 
+allow-newer: haddock-library:base
+
 source-repository-package
     type: git
     location: https://github.com/jgm/pandoc-citeproc
