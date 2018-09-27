@@ -31,12 +31,14 @@ removeRawInlines x           = x
 
 roundTrip :: Blocks -> Bool
 roundTrip b = d'' == d'''
-  where d = walk removeRawInlines $ walk makeRoundTrip $ Pandoc nullMeta $ toList b
+  where d = walk removeRawInlines $
+            walk makeRoundTrip $ Pandoc nullMeta $ toList b
         d' = rewrite d
         d'' = rewrite d'
         d''' = rewrite d''
         rewrite = html . T.pack . (++ "\n") . T.unpack .
-                  purely (writeHtml5String def { writerWrapText = WrapPreserve })
+                  purely (writeHtml5String def
+                            { writerWrapText = WrapPreserve })
 
 tests :: [TestTree]
 tests = [ testGroup "base tag"
@@ -75,5 +77,5 @@ tests = [ testGroup "base tag"
           , test htmlNativeDivs "<main> followed by text" $ "<main>main content</main>non-main content" =?>
             doc (divWith ("", [], [("role", "main")]) (plain (text "main content")) <> plain (text "non-main content"))
           ]
-        , testProperty "Round trip" roundTrip
+        , testProperty "Round trip" (withMaxSuccess 25 roundTrip)
         ]
