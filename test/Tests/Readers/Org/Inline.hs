@@ -280,6 +280,13 @@ tests =
                        )
                        "echo 'Hello, World'")
 
+  , "Inline code block with a blank argument array" =:
+      "src_sh[]{echo 'Hello, World'}" =?>
+    para (codeWith ( ""
+                       , [ "bash" ]
+                       , [ ("org-language", "sh") ])
+                       "echo 'Hello, World'")
+
   , "Inline code block with toggle" =:
       "src_sh[:toggle]{echo $HOME}" =?>
     para (codeWith ( ""
