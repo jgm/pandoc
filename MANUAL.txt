@@ -4627,9 +4627,9 @@ The following fields are recognized:
 The `epub:type` attribute
 -------------------------
 
-You can mark up the header that corresponds to an EPUB chapter using the
-[`epub:type` attribute][epub-type]. For example, to set the attribute
-to the value `prologue`, use this markdown:
+For `epub3` output, you can mark up the header that corresponds to an EPUB
+chapter using the [`epub:type` attribute][epub-type]. For example, to set
+the attribute to the value `prologue`, use this markdown:
 
     # My chapter {epub:type=prologue}
 
