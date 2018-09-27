@@ -5,6 +5,7 @@ environment:
     WIXBIN: "c:\\Program Files (x86)\\WiX Toolset v3.11\\bin"
     CABAL_STORE: "C:\\cs"
     CABAL_PACKAGE_DB: "%CABAL_STORE%\\ghc-%GHC_MINOR_VERSION%\\package.db"
+    CABAL: 'cabal --store-dir="%CABAL_STORE%"'
     # Override the temp directory to avoid sed escaping issues
     # See https://github.com/haskell/cabal/issues/5386
     TMP: "c:\\tmp"
@@ -63,10 +64,12 @@ test_script:
   # Note: we manually create cabal store, because of a cabal bug:
   # see https://github.com/haskell/cabal/issues/5516
   - if not exist "%CABAL_PACKAGE_DB%" ( mkdir "%CABAL_PACKAGE_DB%" )
-  - cabal --version
-  - cabal --store-dir="%CABAL_STORE%" new-update
-  - cabal --store-dir="%CABAL_STORE%" new-build -w %GHC% --enable-tests %CABAL_OPTS% --ghc-options="%GHC_OPTS%" . pandoc-citeproc
-  - cabal --store-dir="%CABAL_STORE%" new-test
+  - %CABAL% --version
+  - %CABAL% new-update
+  - %CABAL% new-clean
+  - %CABAL% new-configure -w %GHC% --enable-tests %CABAL_OPTS% --ghc-options="%GHC_OPTS%" . pandoc-citeproc
+  - %CABAL% new-build . pandoc-citeproc
+  - %CABAL% new-test . pandoc-citeproc
   - forfiles /P .\dist-newstyle /M pandoc*.exe /S /C "cmd /C copy @path C:\pandoc\windows"
 
 after_test:
