@@ -43,7 +43,7 @@ matrix:
   fast_finish: true
 
 cache:
-  - "%CABAL_STORE%"
+  - '%CABAL_STORE%'
 
 # Note: to reset build cache, do the following in JavaScript
 # console on appveyor:
