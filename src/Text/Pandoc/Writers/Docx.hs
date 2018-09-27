@@ -66,8 +66,7 @@ import Text.Pandoc.Readers.Docx.StyleMap
 import Text.Pandoc.Shared hiding (Element)
 import Text.Pandoc.Walk
 import Text.Pandoc.Writers.Math
-import Text.Pandoc.Writers.Shared (isDisplayMath, fixDisplayMath,
-                                   metaValueToInlines)
+import Text.Pandoc.Writers.Shared (isDisplayMath, fixDisplayMath, lookupMetaInlines)
 import Text.Printf (printf)
 import Text.TeXMath
 import Text.XML.Light as XML
@@ -267,8 +266,9 @@ writeDocx opts doc@(Pandoc meta _) = do
   -- parse styledoc for heading styles
   let styleMaps = getStyleMaps styledoc
 
-  let tocTitle = fromMaybe (stTocTitle defaultWriterState) $
-                    metaValueToInlines <$> lookupMeta "toc-title" meta
+  let tocTitle = case lookupMetaInlines "toc-title" meta of
+                   [] -> stTocTitle defaultWriterState
+                   ls -> ls
 
   let initialSt = defaultWriterState {
           stStyleMaps  = styleMaps

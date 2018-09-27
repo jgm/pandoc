@@ -42,8 +42,10 @@ module Text.Pandoc.Writers.Shared (
                      , fixDisplayMath
                      , unsmartify
                      , gridTable
-                     , metaValueToInlines
-                     , metaValueToString
+                     , lookupMetaBool
+                     , lookupMetaBlocks
+                     , lookupMetaInlines
+                     , lookupMetaString
                      , stripLeadingTrailingSpace
                      , groffEscape
                      )
@@ -63,7 +65,6 @@ import Text.Pandoc.Definition
 import Text.Pandoc.Options
 import Text.Pandoc.Pretty
 import Text.Pandoc.Shared (stringify)
-import Text.Pandoc.Walk (query)
 import Text.Pandoc.UTF8 (toStringLazy)
 import Text.Pandoc.XML (escapeStringForXML)
 import Text.Printf (printf)
@@ -339,19 +340,50 @@ gridTable opts blocksToDoc headless aligns widths headers rows = do
            body $$
            border '-' (repeat AlignDefault) widthsInChars
 
-metaValueToInlines :: MetaValue -> [Inline]
-metaValueToInlines (MetaString s)    = [Str s]
-metaValueToInlines (MetaInlines ils) = ils
-metaValueToInlines (MetaBlocks bs)   = query return bs
-metaValueToInlines (MetaBool b)      = [Str $ show b]
-metaValueToInlines _                 = []
 
-metaValueToString :: MetaValue -> String
-metaValueToString (MetaString s)    = s
-metaValueToString (MetaInlines ils) = stringify ils
-metaValueToString (MetaBlocks bs)   = stringify bs
-metaValueToString (MetaBool b)      = show b
-metaValueToString _                 = ""
+
+-- | Retrieve the metadata value for a given @key@
+-- and convert to Bool.
+lookupMetaBool :: String -> Meta -> Bool
+lookupMetaBool key meta =
+  case lookupMeta key meta of
+      Just (MetaBlocks _)     -> True
+      Just (MetaInlines _)    -> True
+      Just (MetaString (_:_)) -> True
+      Just (MetaBool True)    -> True
+      _                       -> False
+
+-- | Retrieve the metadata value for a given @key@
+-- and extract blocks.
+lookupMetaBlocks :: String -> Meta -> [Block]
+lookupMetaBlocks key meta =
+  case lookupMeta key meta of
+         Just (MetaBlocks bs)   -> bs
+         Just (MetaInlines ils) -> [Plain ils]
+         Just (MetaString s)    -> [Plain [Str s]]
+         _                      -> []
+
+-- | Retrieve the metadata value for a given @key@
+-- and extract inlines.
+lookupMetaInlines :: String -> Meta -> [Inline]
+lookupMetaInlines key meta =
+  case lookupMeta key meta of
+         Just (MetaString s)           -> [Str s]
+         Just (MetaInlines ils)        -> ils
+         Just (MetaBlocks [Plain ils]) -> ils
+         Just (MetaBlocks [Para ils])  -> ils
+         _                             -> []
+
+-- | Retrieve the metadata value for a given @key@
+-- and convert to String.
+lookupMetaString :: String -> Meta -> String
+lookupMetaString key meta =
+  case lookupMeta key meta of
+         Just (MetaString s)    -> s
+         Just (MetaInlines ils) -> stringify ils
+         Just (MetaBlocks bs)   -> stringify bs
+         Just (MetaBool b)      -> show b
+         _                      -> ""
 
 -- | Escape non-ASCII characters using groff \u[..] sequences.
 groffEscape :: T.Text -> T.Text
