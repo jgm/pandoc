@@ -50,7 +50,7 @@ import Prelude
 import Control.Monad.State.Strict
 import Data.Char (ord, toLower)
 import Data.List (intercalate, intersperse, isPrefixOf, partition)
-import Data.Maybe (catMaybes, fromMaybe, isJust, isNothing)
+import Data.Maybe (catMaybes, fromMaybe, isJust, isNothing, mapMaybe)
 import qualified Data.Set as Set
 import Data.String (fromString)
 import Data.Text (Text)
@@ -577,13 +577,23 @@ toAttrs :: PandocMonad m
         => [(String, String)] -> StateT WriterState m [Attribute]
 toAttrs kvs = do
   html5 <- gets stHtml5
-  return $ map (\(x,y) ->
-     customAttribute
-        (fromString (if not html5 || x `Set.member` html5Attributes
-                                  || "epub:" `isPrefixOf` x
-                                  || "data-" `isPrefixOf` x
-                        then x
-                        else "data-" ++ x)) (toValue y)) kvs
+  mbEpubVersion <- gets stEPUBVersion
+  return $ mapMaybe (\(x,y) ->
+            if html5
+               then
+                  if x `Set.member` html5Attributes
+                     || ':' `elem` x -- e.g. epub: namespace
+                     || "data-" `isPrefixOf` x
+                     then Just $ customAttribute (fromString x) (toValue y)
+                     else Just $ customAttribute (fromString ("data-" ++ x))
+                                  (toValue y)
+               else
+                 if mbEpubVersion == Just EPUB2 &&
+                    not (x `Set.member` html4Attributes ||
+                         "xml:" `isPrefixOf` x)
+                    then Nothing
+                    else Just $ customAttribute (fromString x) (toValue y))
+            kvs
 
 attrsToHtml :: PandocMonad m
             => WriterOptions -> Attr -> StateT WriterState m [Attribute]
@@ -1418,4 +1428,126 @@ html5Attributes = Set.fromList
   , "width"
   , "workertype"
   , "wrap"
+  ]
+
+html4Attributes :: Set.Set String
+html4Attributes = Set.fromList
+  [ "abbr"
+  , "accept"
+  , "accept-charset"
+  , "accesskey"
+  , "action"
+  , "align"
+  , "alink"
+  , "alt"
+  , "archive"
+  , "axis"
+  , "background"
+  , "bgcolor"
+  , "border"
+  , "cellpadding"
+  , "cellspacing"
+  , "char"
+  , "charoff"
+  , "charset"
+  , "checked"
+  , "cite"
+  , "class"
+  , "classid"
+  , "clear"
+  , "code"
+  , "codebase"
+  , "codetype"
+  , "color"
+  , "cols"
+  , "colspan"
+  , "compact"
+  , "content"
+  , "coords"
+  , "data"
+  , "datetime"
+  , "declare"
+  , "defer"
+  , "dir"
+  , "disabled"
+  , "enctype"
+  , "face"
+  , "for"
+  , "frame"
+  , "frameborder"
+  , "headers"
+  , "height"
+  , "href"
+  , "hreflang"
+  , "hspace"
+  , "http-equiv"
+  , "id"
+  , "ismap"
+  , "label"
+  , "lang"
+  , "language"
+  , "link"
+  , "longdesc"
+  , "marginheight"
+  , "marginwidth"
+  , "maxlength"
+  , "media"
+  , "method"
+  , "multiple"
+  , "name"
+  , "nohref"
+  , "noresize"
+  , "noshade"
+  , "nowrap"
+  , "object"
+  , "onblur"
+  , "onchange"
+  , "onclick"
+  , "ondblclick"
+  , "onfocus"
+  , "onkeydown"
+  , "onkeypress"
+  , "onkeyup"
+  , "onload"
+  , "onmousedown"
+  , "onmousemove"
+  , "onmouseout"
+  , "onmouseover"
+  , "onmouseup"
+  , "onreset"
+  , "onselect"
+  , "onsubmit"
+  , "onunload"
+  , "profile"
+  , "prompt"
+  , "readonly"
+  , "rel"
+  , "rev"
+  , "rows"
+  , "rowspan"
+  , "rules"
+  , "scheme"
+  , "scope"
+  , "scrolling"
+  , "selected"
+  , "shape"
+  , "size"
+  , "span"
+  , "src"
+  , "standby"
+  , "start"
+  , "style"
+  , "summary"
+  , "tabindex"
+  , "target"
+  , "text"
+  , "title"
+  , "usemap"
+  , "valign"
+  , "value"
+  , "valuetype"
+  , "version"
+  , "vlink"
+  , "vspace"
+  , "width"
   ]
