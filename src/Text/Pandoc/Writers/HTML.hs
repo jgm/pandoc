@@ -461,7 +461,7 @@ elementToHtml slideLevel opts (Sec level num (id',classes,keyvals) title' elemen
        t <- addAttrs opts attr $
                    secttag header'
        return $
-         (if slideVariant == RevealJsSlides
+         (if slideVariant == RevealJsSlides && not (null innerContents)
                 then H5.section
                 else id) $ mconcat $ t : innerContents
      else if writerSectionDivs opts || slide
