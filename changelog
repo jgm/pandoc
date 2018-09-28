@@ -14,31 +14,70 @@ pandoc (X.Y.Z)
     Email autolinks are parsed as Links with the `email` class.  This
     allows the distinction to be represented in the AST.
 
+  * Org reader: force inline code blocks to honor export options
+    (Brian Leung).
+
   * Muse reader (Alexander Krotov):
 
     + Added additional tests.
-    + Simplify tag parsers.
     + Do not allow code markup to be followed by digit.
-    + Simplify ordered list parsing.
     + Remove heading level limit.
     + Simplify `<literal>` tag parsers
-    + Cleanup and convert to applicative style.
-    + Simplify `lchop`.
     + Parse Text instead of String. Benchmark shows 7% improvement.
     + Get rid of HTML parser dependency.
+    + Various code improvements.
 
   * ConTeXt writer: change `\` to `/` in Windows image paths (#4918).
     We do this in the LaTeX writer, and it avoids problems.
     Note that `/` works as a LaTeX path separator on Windows.
 
-  * HTML writer: don't add `uri` class to presumed autolinks.
-    Formerly the `uri` class was added to autolinks by
-    the HTML writer, but it had to guess what was an autolink
-    and could not distinguish `[http://example.com](http://example.com)`
-    from `<http://example.com>`.  It also incorrectly recognized
-    `[pandoc](pandoc)` as an autolink.  Now the HTML writer
-    simply passes through the `uri` attribute if it is present,
-    but does not add anything.
+  * LaTeX writer:
+
+    + Add support for multiprenote and multipostnote arguments
+      with `--biblatex` (Brian Leung, #4930).  The multiprenotes occur before
+      the first prefix of a multicite, and the multipostnotes follow the
+      last suffix.
+    + Fix a use of `last` that might take empty list.  If you ran with
+      `--biblatex` and have an empty document (metadata but no blocks),
+      pandoc would previously raise an error because of the use of
+      `last` on an empty list.
+
+  * RTF writer: Fix build failure with ghc-8.6.1 caused by missing
+    MonadFail instance (Jonas Scholl).
+
+  * ODT Writer: Improve table header row style handling (Nils Carlson).
+    This changes the way styles for cells in the header row
+    and normal rows are handled in ODT tables.
+    Previously a new (but identical) style was generated for
+    every table, specifying the style of the cells within the table.
+    After this change there are two style definitions for table cells,
+    one for the cells in the header row, one for all other cells.
+    This doesn't change the actual styles, but makes post-processing
+    changes to the table styles much simpler as it is no longer
+    necessary to introduce new styles for header rows and there are
+    now only two styles where there was previously one per table.
+
+  * HTML writer:
+
+    + Don't add `uri` class to presumed autolinks.  Formerly the `uri`
+      class was added to autolinks by the HTML writer, but it had to
+      guess what was an autolink and could not distinguish
+      `[http://example.com](http://example.com)` from
+      `<http://example.com>`.  It also incorrectly recognized
+      `[pandoc](pandoc)` as an autolink.  Now the HTML writer
+      simply passes through the `uri` attribute if it is present,
+      but does not add anything.
+    + Avoid adding extra section nestings for revealjs.
+      Previously revealjs title slides at level (slidelevel - 1)
+      were nested under an extra section element, even when
+      the section contained no additional (vertical) content.
+      That caused problems for some transition effects.
+    + Omit unknown attributes in EPUB2 output.  For example,
+      `epub:type` attributes should not be passed through,
+      or the epub produced will not validate.
+
+  * JATS writer: remove 'role' attribute on 'bold' and 'sc' elements (#4937).
+    The JATS spec does not allow these.
 
   * Textile writer: don't represent `uri` class explicitly
     for autolinks (#4913).
@@ -47,6 +86,20 @@ pandoc (X.Y.Z)
 
     + Cleanup filter execution code.
     + Better error on test failure.
+
+  * HTML, Muse reader tests: reduce time taken by round-trip test.
+
+  * Added cabal.project.
+
+  * MANUAL: `epub:type` is only useful for epub3 (Maura Bieg).
+
+  * Use hslua v1.0.0 (Albert Krewinkel).
+
+  * Fix `translations/ru` to use modern Russian orthography
+    (Ivan Trubach).
+
+  * Build Windows binary using ghc 8.6.1 and cabal new-build. This
+    fixes issues with segfaults in the 32-bit Windows binaries (#4283).
 
 pandoc (2.3)
 

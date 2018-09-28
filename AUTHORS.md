@@ -28,6 +28,7 @@
 - Bjorn Buckwalter
 - Bradley Kuhn
 - Brent Yorgey
+- Brian Leung
 - Bryan O'Sullivan
 - Caleb McDaniel
 - Calvin Beck
@@ -75,6 +76,7 @@
 - Hubert Plociniczak
 - Igor Khorlo
 - Ilya V. Portnov
+- Ivan Trubach
 - Ivo Clarysse
 - J. B. Rainsberger
 - J. Lewis Muir
@@ -96,6 +98,7 @@
 - John Muccigrosso
 - John Luke Bentley
 - Jonas Smedegaard
+- Jonas Scholl
 - Jonathan Daugherty
 - Jose Luis Duran
 - José de Mattos Neto
@@ -138,6 +141,7 @@
 - Nick Bart
 - Nicolas Kaiser
 - Nikolay Yakimov
+- Nils Carlson
 - Nokome Bentley
 - Oliver Matthews
 - Ophir Lifshitz
