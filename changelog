@@ -14,8 +14,10 @@ pandoc (2.3.1)
     Email autolinks are parsed as Links with the `email` class.  This
     allows the distinction to be represented in the AST.
 
-  * Org reader: force inline code blocks to honor export options
-    (Brian Leung).
+  * Org reader:
+
+    + Force inline code blocks to honor export options (Brian Leung).
+    + Parse empty argument array in inline src blocks (Brian Leung).
 
   * Muse reader (Alexander Krotov):
 
@@ -156,6 +158,9 @@ pandoc (2.3)
 
   * LaTeX reader:
 
+    + Split some general-purpose definitions into a separate, unexported
+      module, Text.Pandoc.Readers.LaTeX.Parsing.  This is to avoid
+      out-of-memory errors compiling the LaTeX reader.
     + Handle parameter patterns for `\def` (#4768, #4771).
       For example:  `\def\foo#1[#2]{#1 and #2}`.
     + Allow `%` characters in URLs. This affects `\href` and `\url` (#4832).
