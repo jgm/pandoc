@@ -1136,6 +1136,12 @@ inlineEnvironments = M.fromList [
   , ("align*", mathEnvWith id (Just "aligned") "align*")
   , ("alignat", mathEnvWith id (Just "aligned") "alignat")
   , ("alignat*", mathEnvWith id (Just "aligned") "alignat*")
+  , ("dmath", mathEnvWith id Nothing "dmath")
+  , ("dmath*", mathEnvWith id Nothing "dmath*")
+  , ("dgroup", mathEnvWith id (Just "aligned") "dgroup")
+  , ("dgroup*", mathEnvWith id (Just "aligned") "dgroup*")
+  , ("darray", mathEnvWith id (Just "aligned") "darray")
+  , ("darray*", mathEnvWith id (Just "aligned") "darray*")
   ]
 
 inlineCommands :: PandocMonad m => M.Map Text (LP m Inlines)
