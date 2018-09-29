@@ -2145,7 +2145,20 @@ verbEnv name = withVerbatimMode $ do
   skipopts
   optional blankline
   res <- manyTill anyTok (end_ name)
-  return $ stripTrailingNewlines $ toksToString res
+  return $ T.unpack
+         $ stripTrailingNewline
+         $ untokenize
+         $ res
+
+-- Strip single final newline and any spaces following it.
+-- Input is unchanged if it doesn't end with newline +
+-- optional spaces.
+stripTrailingNewline :: Text -> Text
+stripTrailingNewline t =
+  let (b, e) = T.breakOnEnd "\n" t
+  in  if T.all (== ' ') e
+         then T.dropEnd 1 b
+         else t
 
 fancyverbEnv :: PandocMonad m => Text -> LP m Blocks
 fancyverbEnv name = do
