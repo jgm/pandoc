@@ -76,6 +76,7 @@ import Text.Pandoc.Shared
 import qualified Text.Pandoc.Translations as Translations
 import Text.Pandoc.Walk
 import qualified Text.Pandoc.Builder as B
+import qualified Data.Text.Normalize as Normalize
 
 -- for debugging:
 -- import Text.Pandoc.Extensions (getDefaultExtensions)
@@ -589,308 +590,18 @@ keyval = try $ do
 keyvals :: PandocMonad m => LP m [(String, String)]
 keyvals = try $ symbol '[' >> manyTill keyval (symbol ']')
 
-accent :: PandocMonad m => Char -> (Char -> String) -> LP m Inlines
-accent c f = try $ do
+accent :: PandocMonad m => Char -> Maybe Char -> LP m Inlines
+accent combiningAccent fallBack = try $ do
   ils <- tok
   case toList ils of
        (Str (x:xs) : ys) -> return $ fromList $
-         case f x of
-              [z] | z == x -> Str ([z,c] ++ xs) : ys -- combining accent
-              zs           -> Str (zs ++ xs) : ys
-       [Space]           -> return $ str [c]
-       []                -> return $ str [c]
+         -- try to normalize to the combined character:
+         Str (T.unpack
+           (Normalize.normalize Normalize.NFC
+             (T.pack [x, combiningAccent])) ++ xs) : ys
+       [Space]           -> return $ str [fromMaybe combiningAccent fallBack]
+       []                -> return $ str [fromMaybe combiningAccent fallBack]
        _                 -> return ils
-
-grave :: Char -> String
-grave 'A' = "À"
-grave 'E' = "È"
-grave 'I' = "Ì"
-grave 'O' = "Ò"
-grave 'U' = "Ù"
-grave 'a' = "à"
-grave 'e' = "è"
-grave 'i' = "ì"
-grave 'o' = "ò"
-grave 'u' = "ù"
-grave c   = [c]
-
-acute :: Char -> String
-acute 'A' = "Á"
-acute 'E' = "É"
-acute 'I' = "Í"
-acute 'O' = "Ó"
-acute 'U' = "Ú"
-acute 'Y' = "Ý"
-acute 'a' = "á"
-acute 'e' = "é"
-acute 'i' = "í"
-acute 'o' = "ó"
-acute 'u' = "ú"
-acute 'y' = "ý"
-acute 'C' = "Ć"
-acute 'c' = "ć"
-acute 'L' = "Ĺ"
-acute 'l' = "ĺ"
-acute 'N' = "Ń"
-acute 'n' = "ń"
-acute 'R' = "Ŕ"
-acute 'r' = "ŕ"
-acute 'S' = "Ś"
-acute 's' = "ś"
-acute 'Z' = "Ź"
-acute 'z' = "ź"
-acute c   = [c]
-
-circ :: Char -> String
-circ 'A' = "Â"
-circ 'E' = "Ê"
-circ 'I' = "Î"
-circ 'O' = "Ô"
-circ 'U' = "Û"
-circ 'a' = "â"
-circ 'e' = "ê"
-circ 'i' = "î"
-circ 'o' = "ô"
-circ 'u' = "û"
-circ 'C' = "Ĉ"
-circ 'c' = "ĉ"
-circ 'G' = "Ĝ"
-circ 'g' = "ĝ"
-circ 'H' = "Ĥ"
-circ 'h' = "ĥ"
-circ 'J' = "Ĵ"
-circ 'j' = "ĵ"
-circ 'S' = "Ŝ"
-circ 's' = "ŝ"
-circ 'W' = "Ŵ"
-circ 'w' = "ŵ"
-circ 'Y' = "Ŷ"
-circ 'y' = "ŷ"
-circ c   = [c]
-
-tilde :: Char -> String
-tilde 'A' = "Ã"
-tilde 'a' = "ã"
-tilde 'O' = "Õ"
-tilde 'o' = "õ"
-tilde 'I' = "Ĩ"
-tilde 'i' = "ĩ"
-tilde 'U' = "Ũ"
-tilde 'u' = "ũ"
-tilde 'N' = "Ñ"
-tilde 'n' = "ñ"
-tilde c   = [c]
-
-umlaut :: Char -> String
-umlaut 'A' = "Ä"
-umlaut 'E' = "Ë"
-umlaut 'I' = "Ï"
-umlaut 'O' = "Ö"
-umlaut 'U' = "Ü"
-umlaut 'a' = "ä"
-umlaut 'e' = "ë"
-umlaut 'i' = "ï"
-umlaut 'o' = "ö"
-umlaut 'u' = "ü"
-umlaut c   = [c]
-
-hungarumlaut :: Char -> String
-hungarumlaut 'A' = "A̋"
-hungarumlaut 'E' = "E̋"
-hungarumlaut 'I' = "I̋"
-hungarumlaut 'O' = "Ő"
-hungarumlaut 'U' = "Ű"
-hungarumlaut 'Y' = "ӳ"
-hungarumlaut 'a' = "a̋"
-hungarumlaut 'e' = "e̋"
-hungarumlaut 'i' = "i̋"
-hungarumlaut 'o' = "ő"
-hungarumlaut 'u' = "ű"
-hungarumlaut 'y' = "ӳ"
-hungarumlaut c   = [c]
-
-dot :: Char -> String
-dot 'C' = "Ċ"
-dot 'c' = "ċ"
-dot 'E' = "Ė"
-dot 'e' = "ė"
-dot 'G' = "Ġ"
-dot 'g' = "ġ"
-dot 'I' = "İ"
-dot 'Z' = "Ż"
-dot 'z' = "ż"
-dot c   = [c]
-
-macron :: Char -> String
-macron 'A' = "Ā"
-macron 'E' = "Ē"
-macron 'I' = "Ī"
-macron 'O' = "Ō"
-macron 'U' = "Ū"
-macron 'a' = "ā"
-macron 'e' = "ē"
-macron 'i' = "ī"
-macron 'o' = "ō"
-macron 'u' = "ū"
-macron c   = [c]
-
-ringabove :: Char -> String
-ringabove 'A' = "Å"
-ringabove 'a' = "å"
-ringabove 'U' = "Ů"
-ringabove 'u' = "ů"
-ringabove c   = [c]
-
-dotbelow :: Char -> String
-dotbelow 'B' = "Ḅ"
-dotbelow 'b' = "ḅ"
-dotbelow 'D' = "Ḍ"
-dotbelow 'd' = "ḍ"
-dotbelow 'H' = "Ḥ"
-dotbelow 'h' = "ḥ"
-dotbelow 'K' = "Ḳ"
-dotbelow 'k' = "ḳ"
-dotbelow 'L' = "Ḷ"
-dotbelow 'l' = "ḷ"
-dotbelow 'M' = "Ṃ"
-dotbelow 'm' = "ṃ"
-dotbelow 'N' = "Ṇ"
-dotbelow 'n' = "ṇ"
-dotbelow 'R' = "Ṛ"
-dotbelow 'r' = "ṛ"
-dotbelow 'S' = "Ṣ"
-dotbelow 's' = "ṣ"
-dotbelow 'T' = "Ṭ"
-dotbelow 't' = "ṭ"
-dotbelow 'V' = "Ṿ"
-dotbelow 'v' = "ṿ"
-dotbelow 'W' = "Ẉ"
-dotbelow 'w' = "ẉ"
-dotbelow 'Z' = "Ẓ"
-dotbelow 'z' = "ẓ"
-dotbelow 'A' = "Ạ"
-dotbelow 'a' = "ạ"
-dotbelow 'E' = "Ẹ"
-dotbelow 'e' = "ẹ"
-dotbelow 'I' = "Ị"
-dotbelow 'i' = "ị"
-dotbelow 'O' = "Ọ"
-dotbelow 'o' = "ọ"
-dotbelow 'U' = "Ụ"
-dotbelow 'u' = "ụ"
-dotbelow 'Y' = "Ỵ"
-dotbelow 'y' = "ỵ"
-dotbelow c   = [c]
-
-doublegrave :: Char -> String
-doublegrave 'A' = "Ȁ"
-doublegrave 'a' = "ȁ"
-doublegrave 'E' = "Ȅ"
-doublegrave 'e' = "ȅ"
-doublegrave 'I' = "Ȉ"
-doublegrave 'i' = "ȉ"
-doublegrave 'O' = "Ȍ"
-doublegrave 'o' = "ȍ"
-doublegrave 'R' = "Ȑ"
-doublegrave 'r' = "ȑ"
-doublegrave 'U' = "Ȕ"
-doublegrave 'u' = "ȕ"
-doublegrave c   = [c]
-
-hookabove :: Char -> String
-hookabove 'A' = "Ả"
-hookabove 'a' = "ả"
-hookabove 'E' = "Ẻ"
-hookabove 'e' = "ẻ"
-hookabove 'I' = "Ỉ"
-hookabove 'i' = "ỉ"
-hookabove 'O' = "Ỏ"
-hookabove 'o' = "ỏ"
-hookabove 'U' = "Ủ"
-hookabove 'u' = "ủ"
-hookabove 'Y' = "Ỷ"
-hookabove 'y' = "ỷ"
-hookabove c   = [c]
-
-cedilla :: Char -> String
-cedilla 'c' = "ç"
-cedilla 'C' = "Ç"
-cedilla 's' = "ş"
-cedilla 'S' = "Ş"
-cedilla 't' = "ţ"
-cedilla 'T' = "Ţ"
-cedilla 'e' = "ȩ"
-cedilla 'E' = "Ȩ"
-cedilla 'h' = "ḩ"
-cedilla 'H' = "Ḩ"
-cedilla 'o' = "o̧"
-cedilla 'O' = "O̧"
-cedilla c   = [c]
-
-hacek :: Char -> String
-hacek 'A' = "Ǎ"
-hacek 'a' = "ǎ"
-hacek 'C' = "Č"
-hacek 'c' = "č"
-hacek 'D' = "Ď"
-hacek 'd' = "ď"
-hacek 'E' = "Ě"
-hacek 'e' = "ě"
-hacek 'G' = "Ǧ"
-hacek 'g' = "ǧ"
-hacek 'H' = "Ȟ"
-hacek 'h' = "ȟ"
-hacek 'I' = "Ǐ"
-hacek 'i' = "ǐ"
-hacek 'j' = "ǰ"
-hacek 'K' = "Ǩ"
-hacek 'k' = "ǩ"
-hacek 'L' = "Ľ"
-hacek 'l' = "ľ"
-hacek 'N' = "Ň"
-hacek 'n' = "ň"
-hacek 'O' = "Ǒ"
-hacek 'o' = "ǒ"
-hacek 'R' = "Ř"
-hacek 'r' = "ř"
-hacek 'S' = "Š"
-hacek 's' = "š"
-hacek 'T' = "Ť"
-hacek 't' = "ť"
-hacek 'U' = "Ǔ"
-hacek 'u' = "ǔ"
-hacek 'Z' = "Ž"
-hacek 'z' = "ž"
-hacek c   = [c]
-
-ogonek :: Char -> String
-ogonek 'a' = "ą"
-ogonek 'e' = "ę"
-ogonek 'o' = "ǫ"
-ogonek 'i' = "į"
-ogonek 'u' = "ų"
-ogonek 'A' = "Ą"
-ogonek 'E' = "Ę"
-ogonek 'I' = "Į"
-ogonek 'O' = "Ǫ"
-ogonek 'U' = "Ų"
-ogonek c   = [c]
-
-breve :: Char -> String
-breve 'A' = "Ă"
-breve 'a' = "ă"
-breve 'E' = "Ĕ"
-breve 'e' = "ĕ"
-breve 'G' = "Ğ"
-breve 'g' = "ğ"
-breve 'I' = "Ĭ"
-breve 'i' = "ĭ"
-breve 'O' = "Ŏ"
-breve 'o' = "ŏ"
-breve 'U' = "Ŭ"
-breve 'u' = "ŭ"
-breve c   = [c]
-
 mathDisplay :: String -> Inlines
 mathDisplay = displayMath . trim
 
@@ -1228,32 +939,32 @@ inlineCommands = M.union inlineLanguageCommands $ M.fromList
   , ("copyright", lit "©")
   , ("textasciicircum", lit "^")
   , ("textasciitilde", lit "~")
-  , ("H", accent '\779' hungarumlaut)
-  , ("`", accent '`' grave)
-  , ("'", accent '\'' acute)
-  , ("^", accent '^' circ)
-  , ("~", accent '~' tilde)
-  , ("\"", accent '\776' umlaut)
-  , (".", accent '\775' dot)
-  , ("=", accent '\772' macron)
-  , ("|", accent '\781' (:[]))  -- vertical line above
-  , ("b", accent '\817' (:[]))  -- macron below
-  , ("c", accent '\807' cedilla)
-  , ("G", accent '\783' doublegrave)
-  , ("h", accent '\777' hookabove)
-  , ("d", accent '\803' dotbelow)
-  , ("f", accent '\785' (:[]))  -- inverted breve
-  , ("r", accent '\778' ringabove)
-  , ("t", accent '\865' (:[]))  -- double inverted breve
-  , ("U", accent '\782' (:[]))  -- double vertical line above
-  , ("v", accent 'ˇ' hacek)
-  , ("u", accent '\774' breve)
-  , ("k", accent '\808' ogonek)
-  , ("textogonekcentered", accent '\808' ogonek)
+  , ("H", accent '\779' Nothing) -- hungarumlaut
+  , ("`", accent '\768' (Just '`')) -- grave
+  , ("'", accent '\769' (Just '\'')) -- acute
+  , ("^", accent '\770' (Just '^')) -- circ
+  , ("~", accent '\771' (Just '~')) -- tilde
+  , ("\"", accent '\776' Nothing) -- umlaut
+  , (".", accent '\775' Nothing) -- dot
+  , ("=", accent '\772' Nothing) -- macron
+  , ("|", accent '\781' Nothing) -- vertical line above
+  , ("b", accent '\817' Nothing) -- macron below
+  , ("c", accent '\807' Nothing) -- cedilla
+  , ("G", accent '\783' Nothing) -- doublegrave
+  , ("h", accent '\777' Nothing) -- hookabove
+  , ("d", accent '\803' Nothing) -- dotbelow
+  , ("f", accent '\785' Nothing)  -- inverted breve
+  , ("r", accent '\778' Nothing)  -- ringabove
+  , ("t", accent '\865' Nothing)  -- double inverted breve
+  , ("U", accent '\782' Nothing)  -- double vertical line above
+  , ("v", accent '\780' Nothing) -- hacek
+  , ("u", accent '\774' Nothing) -- breve
+  , ("k", accent '\808' Nothing) -- ogonek
+  , ("textogonekcentered", accent '\808' Nothing) -- ogonek
   , ("i", lit "ı")  -- dotless i
   , ("j", lit "ȷ")  -- dotless j
-  , ("newtie", accent '\785' (:[])) -- inverted breve
-  , ("textcircled", accent '\8413' (:[])) -- combining circle
+  , ("newtie", accent '\785' Nothing) -- inverted breve
+  , ("textcircled", accent '\8413' Nothing) -- combining circle
   , ("\\", linebreak <$ (do inTableCell <- sInTableCell <$> getState
                             guard $ not inTableCell
                             optional opt
