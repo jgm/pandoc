@@ -149,7 +149,8 @@ writeICML opts (Pandoc meta blocks) = do
               $ defField "charStyles" (render' $ charStylesToDoc st)
               $ defField "parStyles"  (render' $ parStylesToDoc st)
               $ defField "hyperlinks" (render' $ hyperlinksToDoc $ links st) metadata
-  case writerTemplate opts of
+  (if writerPreferAscii opts then toEntities else id) <$>
+    case writerTemplate opts of
        Nothing  -> return main
        Just tpl -> renderTemplate' tpl context
 

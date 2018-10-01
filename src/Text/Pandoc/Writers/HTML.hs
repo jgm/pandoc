@@ -75,7 +75,7 @@ import Text.Pandoc.Templates
 import Text.Pandoc.Walk
 import Text.Pandoc.Writers.Math
 import Text.Pandoc.Writers.Shared
-import Text.Pandoc.XML (escapeStringForXML, fromEntities)
+import Text.Pandoc.XML (escapeStringForXML, fromEntities, toEntities)
 #if MIN_VERSION_blaze_markup(0,6,3)
 #else
 import Text.Blaze.Internal (preEscapedString, preEscapedText)
@@ -206,7 +206,8 @@ writeHtmlString' :: PandocMonad m
                  => WriterState -> WriterOptions -> Pandoc -> m Text
 writeHtmlString' st opts d = do
   (body, context) <- evalStateT (pandocToHtml opts d) st
-  case writerTemplate opts of
+  (if writerPreferAscii opts then toEntities else id) <$>
+    case writerTemplate opts of
        Nothing -> return $ renderHtml' body
        Just tpl -> do
          -- warn if empty lang
@@ -221,16 +222,19 @@ writeHtmlString' st opts d = do
                            lookup "sourcefile" (writerVariables opts)
                    report $ NoTitleElement fallback
                    return $ resetField "pagetitle" fallback context
-         renderTemplate' tpl $
-                    defField "body" (renderHtml' body) context'
+         renderTemplate' tpl
+             (defField "body" (renderHtml' body) context')
 
 writeHtml' :: PandocMonad m => WriterState -> WriterOptions -> Pandoc -> m Html
 writeHtml' st opts d =
   case writerTemplate opts of
        Just _ -> preEscapedText <$> writeHtmlString' st opts d
-       Nothing  -> do
-        (body, _) <- evalStateT (pandocToHtml opts d) st
-        return body
+       Nothing
+         | writerPreferAscii opts
+            -> preEscapedText <$> writeHtmlString' st opts d
+         | otherwise -> do
+            (body, _) <- evalStateT (pandocToHtml opts d) st
+            return body
 
 -- result is (title, authors, date, toc, body, new variables)
 pandocToHtml :: PandocMonad m

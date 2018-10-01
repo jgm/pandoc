@@ -60,6 +60,7 @@ import Text.Pandoc.Shared
 import Text.Pandoc.Templates
 import Text.Pandoc.Writers.Math
 import Text.Pandoc.Writers.Shared
+import Text.Pandoc.Groff (groffEscape)
 import Text.Printf (printf)
 import Text.TeXMath (writeEqn)
 
@@ -127,7 +128,8 @@ pandocToMs opts (Pandoc meta blocks) = do
               $ defField "title-meta" titleMeta
               $ defField "author-meta" (intercalate "; " authorsMeta)
               $ defField "highlighting-macros" highlightingMacros metadata
-  case writerTemplate opts of
+  (if writerPreferAscii opts then groffEscape else id) <$>
+    case writerTemplate opts of
        Nothing  -> return main
        Just tpl -> renderTemplate' tpl context
 

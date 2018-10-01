@@ -52,7 +52,7 @@ import Data.Aeson (defaultOptions)
 import Data.Aeson.TH (deriveJSON)
 import qualified Data.ByteString as BS
 import qualified Data.ByteString.Lazy as B
-import Data.Char (toLower, toUpper, isAscii, ord)
+import Data.Char (toLower, toUpper)
 import Data.List (find, intercalate, isPrefixOf, isSuffixOf, sort)
 import qualified Data.Map as M
 import Data.Maybe (fromMaybe, isJust, isNothing)
@@ -95,7 +95,6 @@ import Text.Pandoc.Shared (eastAsianLineBreakFilter, stripEmptyParagraphs,
          headerShift, isURI, ordNub, safeRead, tabFilter, uriPathToPath)
 import qualified Text.Pandoc.UTF8 as UTF8
 import Text.Pandoc.Writers.Math (defaultKaTeXURL, defaultMathJaxURL)
-import Text.Pandoc.XML (toEntities)
 import Text.Printf
 #ifndef _WINDOWS
 import System.Posix.IO (stdOutput)
@@ -443,6 +442,7 @@ convertWithOpts opts = do
           , writerTOCDepth         = optTOCDepth opts
           , writerReferenceDoc     = optReferenceDoc opts
           , writerSyntaxMap        = syntaxMap
+          , writerPreferAscii      = optAscii opts
           }
 
     let readerOpts = def{
@@ -519,31 +519,16 @@ convertWithOpts opts = do
                 let htmlFormat = format `elem`
                       ["html","html4","html5","s5","slidy",
                        "slideous","dzslides","revealjs"]
-                    escape
-                      | optAscii opts
-                      , htmlFormat || format == "docbook4" ||
-                        format == "docbook5" || format == "docbook" ||
-                        format == "jats" || format == "opml" ||
-                        format == "icml" = toEntities
-                      | optAscii opts
-                      , format == "ms" || format == "man" = groffEscape
-                      | otherwise = id
                     addNl = if standalone
                                then id
                                else (<> T.singleton '\n')
-                output <- (addNl . escape) <$> f writerOptions doc
+                output <- addNl <$> f writerOptions doc
                 writerFn eol outputFile =<<
                   if optSelfContained opts && htmlFormat
                      -- TODO not maximally efficient; change type
                      -- of makeSelfContained so it works w/ Text
                      then T.pack <$> makeSelfContained (T.unpack output)
                      else return output
-
-groffEscape :: Text -> Text
-groffEscape = T.concatMap toUchar
-  where toUchar c
-         | isAscii c = T.singleton c
-         | otherwise = T.pack $ printf "\\[u%04X]" (ord c)
 
 type Transform = Pandoc -> Pandoc
 
@@ -606,7 +591,7 @@ data Opt = Opt
     , optPdfEngineArgs         :: [String]   -- ^ Flags to pass to the engine
     , optSlideLevel            :: Maybe Int  -- ^ Header level that creates slides
     , optSetextHeaders         :: Bool       -- ^ Use atx headers for markdown level 1-2
-    , optAscii                 :: Bool       -- ^ Use ascii characters only in html
+    , optAscii                 :: Bool       -- ^ Prefer ascii output
     , optDefaultImageExtension :: String -- ^ Default image extension
     , optExtractMedia          :: Maybe FilePath -- ^ Path to extract embedded media
     , optTrackChanges          :: TrackChanges -- ^ Accept or reject MS Word track-changes.
@@ -1173,7 +1158,7 @@ options =
     , Option "" ["ascii"]
                  (NoArg
                   (\opt -> return opt { optAscii = True }))
-                 ""  -- "Use ascii characters only in HTML output"
+                 ""  -- "Prefer ASCII output"
 
     , Option "" ["reference-links"]
                  (NoArg

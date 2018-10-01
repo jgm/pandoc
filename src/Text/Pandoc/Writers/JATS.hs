@@ -102,7 +102,8 @@ docToJATS opts (Pandoc meta blocks) = do
               $ defField "mathml" (case writerHTMLMathMethod opts of
                                         MathML -> True
                                         _      -> False) metadata
-  case writerTemplate opts of
+  (if writerPreferAscii opts then toEntities else id) <$>
+    case writerTemplate opts of
        Nothing  -> return main
        Just tpl -> renderTemplate' tpl context
 

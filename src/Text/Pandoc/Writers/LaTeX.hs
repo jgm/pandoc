@@ -42,8 +42,9 @@ import Data.Aeson (FromJSON, object, (.=))
 import Data.Char (isAlphaNum, isAscii, isDigit, isLetter, isPunctuation, ord,
                   toLower)
 import Data.List (foldl', intercalate, intersperse, isInfixOf, nubBy,
-                  stripPrefix, (\\))
+                  stripPrefix, (\\), uncons)
 import Data.Maybe (catMaybes, fromMaybe, isJust, mapMaybe, isNothing)
+import qualified Data.Map as M
 import Data.Text (Text)
 import qualified Data.Text as T
 import Network.URI (unEscapeString)
@@ -63,6 +64,7 @@ import Text.Pandoc.Walk
 import Text.Pandoc.Writers.Shared
 import qualified Text.Parsec as P
 import Text.Printf (printf)
+import qualified Data.Text.Normalize as Normalize
 
 data WriterState =
   WriterState { stInNote        :: Bool          -- true if we're in a note
@@ -318,46 +320,110 @@ data StringContext = TextString
 
 -- escape things as needed for LaTeX
 stringToLaTeX :: PandocMonad m => StringContext -> String -> LW m String
-stringToLaTeX  _     []     = return ""
-stringToLaTeX  ctx (x:xs) = do
+stringToLaTeX context zs = do
   opts <- gets stOptions
-  rest <- stringToLaTeX ctx xs
-  let ligatures = isEnabled Ext_smart opts && ctx == TextString
-  let isUrl = ctx == URLString
-  return $
+  go opts context $
+    if writerPreferAscii opts
+       then T.unpack $ Normalize.normalize Normalize.NFD $ T.pack zs
+       else zs
+ where
+  go  _ _     []     = return ""
+  go  opts ctx (x:xs) = do
+    let ligatures = isEnabled Ext_smart opts && ctx == TextString
+    let isUrl = ctx == URLString
+    let mbAccentCmd =
+          if writerPreferAscii opts && ctx == TextString
+             then uncons xs >>= \(c,_) -> M.lookup c accents
+             else Nothing
+    let emits s =
+          case mbAccentCmd of
+               Just cmd -> ((cmd ++ "{" ++ s ++ "}") ++)
+                        <$> go opts ctx (drop 1 xs) -- drop combining accent
+               Nothing  -> (s++) <$> go opts ctx xs
+    let emitc c =
+          case mbAccentCmd of
+               Just cmd -> ((cmd ++ "{" ++ [c] ++ "}") ++)
+                        <$> go opts ctx (drop 1 xs) -- drop combining accent
+               Nothing  -> (c:) <$> go opts ctx xs
     case x of
-       '{' -> "\\{" ++ rest
-       '}' -> "\\}" ++ rest
-       '`' | ctx == CodeString -> "\\textasciigrave{}" ++ rest
-       '$' | not isUrl -> "\\$" ++ rest
-       '%' -> "\\%" ++ rest
-       '&' -> "\\&" ++ rest
-       '_' | not isUrl -> "\\_" ++ rest
-       '#' -> "\\#" ++ rest
-       '-' | not isUrl -> case xs of
-                   -- prevent adjacent hyphens from forming ligatures
-                   ('-':_) -> "-\\/" ++ rest
-                   _       -> '-' : rest
-       '~' | not isUrl -> "\\textasciitilde{}" ++ rest
-       '^' -> "\\^{}" ++ rest
-       '\\'| isUrl     -> '/' : rest  -- NB. / works as path sep even on Windows
-           | otherwise -> "\\textbackslash{}" ++ rest
-       '|' | not isUrl -> "\\textbar{}" ++ rest
-       '<' -> "\\textless{}" ++ rest
-       '>' -> "\\textgreater{}" ++ rest
-       '[' -> "{[}" ++ rest  -- to avoid interpretation as
-       ']' -> "{]}" ++ rest  -- optional arguments
-       '\'' | ctx == CodeString -> "\\textquotesingle{}" ++ rest
-       '\160' -> "~" ++ rest
-       '\x202F' -> "\\," ++ rest
-       '\x2026' -> "\\ldots{}" ++ rest
-       '\x2018' | ligatures -> "`" ++ rest
-       '\x2019' | ligatures -> "'" ++ rest
-       '\x201C' | ligatures -> "``" ++ rest
-       '\x201D' | ligatures -> "''" ++ rest
-       '\x2014' | ligatures -> "---" ++ rest
-       '\x2013' | ligatures -> "--" ++ rest
-       _        -> x : rest
+         '{' -> emits "\\{"
+         '}' -> emits "\\}"
+         '`' | ctx == CodeString -> emits "\\textasciigrave{}"
+         '$' | not isUrl -> emits "\\$"
+         '%' -> emits "\\%"
+         '&' -> emits "\\&"
+         '_' | not isUrl -> emits "\\_"
+         '#' -> emits "\\#"
+         '-' | not isUrl -> case xs of
+                     -- prevent adjacent hyphens from forming ligatures
+                     ('-':_) -> emits "-\\/"
+                     _       -> emitc '-'
+         '~' | not isUrl -> emits "\\textasciitilde{}"
+         '^' -> emits "\\^{}"
+         '\\'| isUrl     -> emitc '/' -- NB. / works as path sep even on Windows
+             | otherwise -> emits "\\textbackslash{}"
+         '|' | not isUrl -> emits "\\textbar{}"
+         '<' -> emits "\\textless{}"
+         '>' -> emits "\\textgreater{}"
+         '[' -> emits "{[}"  -- to avoid interpretation as
+         ']' -> emits "{]}"  -- optional arguments
+         '\'' | ctx == CodeString -> emits "\\textquotesingle{}"
+         '\160' -> emits "~"
+         '\x202F' -> emits "\\,"
+         '\x2026' -> emits "\\ldots{}"
+         '\x2018' | ligatures -> emits "`"
+         '\x2019' | ligatures -> emits "'"
+         '\x201C' | ligatures -> emits "``"
+         '\x201D' | ligatures -> emits "''"
+         '\x2014' | ligatures -> emits "---"
+         '\x2013' | ligatures -> emits "--"
+         _ | writerPreferAscii opts
+             -> case x of
+                  'ı' -> emits "\\i "
+                  'ȷ' -> emits "\\j "
+                  'å' -> emits "\\aa "
+                  'Å' -> emits "\\AA "
+                  'ß' -> emits "\\ss "
+                  'ø' -> emits "\\o "
+                  'Ø' -> emits "\\O "
+                  'Ł' -> emits "\\L "
+                  'ł' -> emits "\\l "
+                  'æ' -> emits "\\ae "
+                  'Æ' -> emits "\\AE "
+                  'œ' -> emits "\\oe "
+                  'Œ' -> emits "\\OE "
+                  '£' -> emits "\\pounds "
+                  '€' -> emits "\\euro "
+                  '©' -> emits "\\copyright "
+                  _   -> emitc x
+           | otherwise -> emitc x
+
+accents :: M.Map Char String
+accents = M.fromList
+  [ ('\779' , "\\H")
+  , ('\768' , "\\`")
+  , ('\769' , "\\'")
+  , ('\770' , "\\^")
+  , ('\771' , "\\~")
+  , ('\776' , "\\\"")
+  , ('\775' , "\\.")
+  , ('\772' , "\\=")
+  , ('\781' , "\\|")
+  , ('\817' , "\\b")
+  , ('\807' , "\\c")
+  , ('\783' , "\\G")
+  , ('\777' , "\\h")
+  , ('\803' , "\\d")
+  , ('\785' , "\\f")
+  , ('\778' , "\\r")
+  , ('\865' , "\\t")
+  , ('\782' , "\\U")
+  , ('\780' , "\\v")
+  , ('\774' , "\\u")
+  , ('\808' , "\\k")
+  , ('\785' , "\\newtie")
+  , ('\8413', "\\textcircled")
+  ]
 
 toLabel :: PandocMonad m => String -> LW m String
 toLabel z = go `fmap` stringToLaTeX URLString z

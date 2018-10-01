@@ -540,6 +540,7 @@ library
                    Text.Pandoc.Lua.Packages,
                    Text.Pandoc.Lua.StackInstances,
                    Text.Pandoc.Lua.Util,
+                   Text.Pandoc.Groff
                    Text.Pandoc.CSS,
                    Text.Pandoc.CSV,
                    Text.Pandoc.UUID,

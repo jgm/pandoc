@@ -860,8 +860,10 @@ Options affecting specific writers {.options}
 
 :   Use only ASCII characters in output.  Currently supported for
     XML and HTML formats (which use numerical entities instead of
-    UTF-8 when this option is selected) and for groff ms and man
-    (which use hexadecimal escapes).
+    UTF-8 when this option is selected), groff ms and man
+    (which use hexadecimal escapes), and to a limited degree
+    for LaTeX (which uses standard commands for accented
+    characters when possible).
 
 `--reference-links`
 

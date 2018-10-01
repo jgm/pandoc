@@ -45,6 +45,7 @@ import Text.Pandoc.Logging
 import Text.Pandoc.Options
 import Text.Pandoc.Pretty
 import Text.Pandoc.Shared
+import Text.Pandoc.Groff (groffEscape)
 import Text.Pandoc.Templates
 import Text.Pandoc.Writers.Math
 import Text.Pandoc.Writers.Shared
@@ -107,7 +108,8 @@ pandocToMan opts (Pandoc meta blocks) = do
               $ defField "has-tables" hasTables
               $ defField "hyphenate" True
               $ defField "pandoc-version" pandocVersion metadata
-  case writerTemplate opts of
+  (if writerPreferAscii opts then groffEscape else id) <$>
+    case writerTemplate opts of
        Nothing  -> return main
        Just tpl -> renderTemplate' tpl context
 
