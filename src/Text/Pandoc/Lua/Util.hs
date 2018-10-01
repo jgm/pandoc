@@ -134,6 +134,6 @@ throwTopMessageAsError' modifier = do
   Lua.pop 2 -- remove error and error string pushed by tostring'
   Lua.throwException (modifier (UTF8.toString msg))
 
-
+-- | Mark the context of a Lua computation for better error reporting.
 defineHowTo :: String -> Lua a -> Lua a
 defineHowTo ctx = Lua.withExceptionMessage (("Could not " <> ctx <> ": ") <>)
