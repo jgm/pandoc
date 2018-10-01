@@ -411,9 +411,21 @@ blockToOpenDocument o bs
       figure attr caption source title | null caption =
         withParagraphStyle o "Figure" [Para [Image attr caption (source,title)]]
                                   | otherwise    = do
+        id' <- gets stImageId
         imageDoc <- withParagraphStyle o "FigureWithCaption" [Para [Image attr caption (source,title)]]
-        captionDoc <- withParagraphStyle o "FigureCaption" [Para caption]
+        captionDoc <- numberedFigureCaption id' <$> inlinesToOpenDocument o caption
         return $ imageDoc $$ captionDoc
+
+numberedFigureCaption :: Int -> Doc -> Doc
+numberedFigureCaption num caption =
+    let t = text "Figure "
+        r = num - 1
+        s = inTags False "text:sequence" [ ("text:ref-name", "refIllustration" ++ show r),
+                                           ("text:name", "Illustration"),
+                                           ("text:formula", "ooow:Illustration+1"),
+                                           ("style:num-format", "1") ] $ text $ show num
+        c = text ": "
+    in inParagraphTagsWithStyle "FigureCaption" $ hcat [ t, s, c, caption ]
 
 colHeadsToOpenDocument :: PandocMonad m
                        => WriterOptions -> [String] -> [[Block]]
