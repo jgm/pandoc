@@ -194,6 +194,7 @@ data WriterOptions = WriterOptions
   , writerReferenceDoc      :: Maybe FilePath -- ^ Path to reference document if specified
   , writerReferenceLocation :: ReferenceLocation    -- ^ Location of footnotes and references for writing markdown
   , writerSyntaxMap         :: SyntaxMap
+  , writerPreferAscii       :: Bool           -- ^ Prefer ASCII representations of characters when possible
   } deriving (Show, Data, Typeable, Generic)
 
 instance Default WriterOptions where
@@ -228,6 +229,7 @@ instance Default WriterOptions where
                       , writerReferenceDoc     = Nothing
                       , writerReferenceLocation = EndOfDocument
                       , writerSyntaxMap        = defaultSyntaxMap
+                      , writerPreferAscii      = False
                       }
 
 instance HasSyntaxExtensions WriterOptions where
