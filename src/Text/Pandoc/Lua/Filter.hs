@@ -52,6 +52,7 @@ import Text.Pandoc.Walk (walkM, Walkable)
 
 import qualified Data.Map.Strict as Map
 import qualified Foreign.Lua as Lua
+import qualified Text.Pandoc.Lua.Util as LuaUtil
 
 -- | Filter function stored in the registry
 newtype LuaFilterFunction = LuaFilterFunction Lua.Reference
@@ -118,11 +119,9 @@ tryFilter (LuaFilter fnMap) x =
 -- element is left unchanged.
 runFilterFunction :: Pushable a => LuaFilterFunction -> a -> Lua ()
 runFilterFunction lf x = do
-  let errorPrefix = "Error while running filter function:\n"
-  Lua.withExceptionMessage (errorPrefix <>) $ do
-    pushFilterFunction lf
-    Lua.push x
-    Lua.call 1 1
+  pushFilterFunction lf
+  Lua.push x
+  LuaUtil.callWithTraceback 1 1
 
 walkMWithLuaFilter :: LuaFilter -> Pandoc -> Lua Pandoc
 walkMWithLuaFilter f =

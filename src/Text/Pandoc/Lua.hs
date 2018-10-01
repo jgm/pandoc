@@ -39,6 +39,7 @@ import Text.Pandoc.Class (PandocIO)
 import Text.Pandoc.Definition (Pandoc)
 import Text.Pandoc.Lua.Filter (LuaFilter, walkMWithLuaFilter)
 import Text.Pandoc.Lua.Init (LuaException (..), runPandocLua, registerScriptPath)
+import Text.Pandoc.Lua.Util (dofileWithTraceback)
 import Text.Pandoc.Options (ReaderOptions)
 
 import qualified Foreign.Lua as Lua
@@ -58,7 +59,7 @@ runLuaFilter' ropts filterPath format pd = do
   registerReaderOptions
   registerScriptPath filterPath
   top <- Lua.gettop
-  stat <- Lua.dofile filterPath
+  stat <- dofileWithTraceback filterPath
   if stat /= Lua.OK
     then Lua.throwTopMessage
     else do

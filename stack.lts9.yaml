@@ -12,7 +12,7 @@ packages:
 - '.'
 extra-deps:
 - pandoc-citeproc-0.14.4
-- hslua-1.0.0
+- hslua-1.0.1
 - hslua-module-text-0.2.0
 - ansi-terminal-0.8.0.2
 - cmark-gfm-0.1.3

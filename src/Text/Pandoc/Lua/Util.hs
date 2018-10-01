@@ -40,12 +40,14 @@ module Text.Pandoc.Lua.Util
   , loadScriptFromDataDir
   , defineHowTo
   , throwTopMessageAsError'
+  , callWithTraceback
+  , dofileWithTraceback
   ) where
 
 import Prelude
 import Control.Monad (unless, when)
-import Foreign.Lua ( Lua, NumArgs, Peekable, Pushable, StackIndex
-                   , ToHaskellFunction )
+import Foreign.Lua ( Lua, NumArgs, NumResults, Peekable, Pushable, StackIndex
+                   , Status, ToHaskellFunction )
 import Text.Pandoc.Class (readDataFile, runIOorExplode, setUserDataDir)
 
 import qualified Foreign.Lua as Lua
@@ -137,3 +139,35 @@ throwTopMessageAsError' modifier = do
 -- | Mark the context of a Lua computation for better error reporting.
 defineHowTo :: String -> Lua a -> Lua a
 defineHowTo ctx = Lua.withExceptionMessage (("Could not " <> ctx <> ": ") <>)
+
+-- | Like @'Lua.pcall'@, but uses a predefined error handler which adds a
+-- traceback on error.
+pcallWithTraceback :: NumArgs -> NumResults -> Lua Status
+pcallWithTraceback nargs nresults = do
+  let traceback' :: Lua NumResults
+      traceback' = do
+        l <- Lua.state
+        msg <- Lua.tostring' (Lua.nthFromBottom 1)
+        Lua.traceback l (Just (UTF8.toString msg)) 2
+        return 1
+  tracebackIdx <- Lua.absindex (Lua.nthFromTop (Lua.fromNumArgs nargs + 1))
+  Lua.pushHaskellFunction traceback'
+  Lua.insert tracebackIdx
+  result <- Lua.pcall nargs nresults (Just tracebackIdx)
+  Lua.remove tracebackIdx
+  return result
+
+-- | Like @'Lua.call'@, but adds a traceback to the error message (if any).
+callWithTraceback :: NumArgs -> NumResults -> Lua ()
+callWithTraceback nargs nresults = do
+  result <- pcallWithTraceback nargs nresults
+  when (result /= Lua.OK) Lua.throwTopMessage
+
+-- | Run the given string as a Lua program, while also adding a traceback to the
+-- error message if an error occurs.
+dofileWithTraceback :: FilePath -> Lua Status
+dofileWithTraceback fp = do
+  loadRes <- Lua.loadfile fp
+  case loadRes of
+    Lua.OK -> pcallWithTraceback 0 Lua.multret
+    _ -> return loadRes
