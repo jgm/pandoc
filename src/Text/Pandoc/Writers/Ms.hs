@@ -190,32 +190,6 @@ escapeCode = intercalate "\n" . map escapeLine . lines
 -- line.  groff/troff treats the line-ending period differently.
 -- See http://code.google.com/p/pandoc/issues/detail?id=148.
 
--- | Returns the first sentence in a list of inlines, and the rest.
-breakSentence :: [Inline] -> ([Inline], [Inline])
-breakSentence [] = ([],[])
-breakSentence xs =
-  let isSentenceEndInline (Str ys@(_:_)) | last ys == '.' = True
-      isSentenceEndInline (Str ys@(_:_)) | last ys == '?' = True
-      isSentenceEndInline LineBreak      = True
-      isSentenceEndInline _              = False
-      (as, bs) = break isSentenceEndInline xs
-  in  case bs of
-           []             -> (as, [])
-           [c]            -> (as ++ [c], [])
-           (c:Space:cs)   -> (as ++ [c], cs)
-           (c:SoftBreak:cs) -> (as ++ [c], cs)
-           (Str ".":Str (')':ys):cs) -> (as ++ [Str ".", Str (')':ys)], cs)
-           (x@(Str ('.':')':_)):cs) -> (as ++ [x], cs)
-           (LineBreak:x@(Str ('.':_)):cs) -> (as ++[LineBreak], x:cs)
-           (c:cs)         -> (as ++ [c] ++ ds, es)
-              where (ds, es) = breakSentence cs
-
--- | Split a list of inlines into sentences.
-splitSentences :: [Inline] -> [[Inline]]
-splitSentences xs =
-  let (sent, rest) = breakSentence xs
-  in  if null rest then [sent] else sent : splitSentences rest
-
 blockToMs :: PandocMonad m
           => WriterOptions -- ^ Options
           -> Block         -- ^ Block element
