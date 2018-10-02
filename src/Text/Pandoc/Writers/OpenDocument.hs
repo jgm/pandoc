@@ -563,10 +563,18 @@ orderedListLevelStyle (s,n, d) (l,ls) =
 
 listLevelStyle :: Int -> Doc
 listLevelStyle i =
-    let indent = show (0.4 * fromIntegral (i - 1) :: Double) in
-    selfClosingTag "style:list-level-properties"
-                       [ ("text:space-before"   , indent ++ "in")
-                       , ("text:min-label-width",       "0.4in")]
+    let indent = show (0.5 * fromIntegral i :: Double) in
+    inTags True "style:list-level-properties"
+                       [ ("text:list-level-position-and-space-mode",
+                          "label-alignment")
+                       , ("fo:text-align", "right")
+                       ] $
+       selfClosingTag "style:list-level-label-alignment"
+                      [ ("text:label-followed-by", "listtab")
+                      , ("text:list-tab-stop-position", indent ++ "in")
+                      , ("fo:text-indent", "-0.1in")
+                      , ("fo:margin-left", indent ++ "in")
+                      ]
 
 tableStyle :: Int -> [(Char,Double)] -> Doc
 tableStyle num wcs =
