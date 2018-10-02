@@ -1,3 +1,8 @@
+{-# LANGUAGE NoImplicitPrelude    #-}
+{-# LANGUAGE FlexibleInstances    #-}
+{-# LANGUAGE ScopedTypeVariables  #-}
+{-# LANGUAGE LambdaCase           #-}
+{-# OPTIONS_GHC -fno-warn-orphans #-}
 {-
 Copyright © 2012-2018 John MacFarlane <jgm@berkeley.edu>
             2017-2018 Albert Krewinkel <tarleb+pandoc@moltkeplatz.de>
@@ -16,11 +21,6 @@ You should have received a copy of the GNU General Public License
 along with this program; if not, write to the Free Software
 Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 -}
-{-# LANGUAGE FlexibleInstances    #-}
-{-# LANGUAGE LambdaCase           #-}
-{-# LANGUAGE NoImplicitPrelude    #-}
-{-# LANGUAGE ScopedTypeVariables  #-}
-{-# OPTIONS_GHC -fno-warn-orphans #-}
 {- |
    Module      : Text.Pandoc.Lua.StackInstances
    Copyright   : © 2012-2018 John MacFarlane
