@@ -1533,10 +1533,6 @@ argspecPattern =
                                     (toktype' == Symbol || toktype' == Word) &&
                                     (txt /= "{" && txt /= "\\" && txt /= "}")))
 
-isArgTok :: Tok -> Bool
-isArgTok (Tok _ (Arg _) _) = True
-isArgTok _                 = False
-
 newcommand :: PandocMonad m => LP m (Text, Macro)
 newcommand = do
   pos <- getPosition

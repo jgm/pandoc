@@ -52,8 +52,9 @@ module Text.Pandoc.Readers.LaTeX.Parsing
   , setpos
   , anyControlSeq
   , anySymbol
-  , isWordTok
   , isNewlineTok
+  , isWordTok
+  , isArgTok
   , spaces
   , spaces1
   , tokTypeIn
@@ -475,6 +476,10 @@ isSymbolTok _                = False
 isWordTok :: Tok -> Bool
 isWordTok (Tok _ Word _) = True
 isWordTok _              = False
+
+isArgTok :: Tok -> Bool
+isArgTok (Tok _ (Arg _) _) = True
+isArgTok _                 = False
 
 spaces :: PandocMonad m => LP m ()
 spaces = skipMany (satisfyTok (tokTypeIn [Comment, Spaces, Newline]))
