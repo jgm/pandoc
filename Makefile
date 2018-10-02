@@ -10,14 +10,14 @@ GHCOPTS=-fdiagnostics-color=always -Wall -fno-warn-unused-do-bind -Wincomplete-r
 # -Wredundant-constraints (problematic if we want to support older base)
 WEBSITE=../../web/pandoc.org
 
+quick:
+	stack install --resolver=$(RESOLVER) --ghc-options='$(GHCOPTS)' --install-ghc --flag 'pandoc:embed_data_files' --fast --test --test-arguments='-j4 --hide-successes $(TESTARGS)'
+
 quick-cabal:
 	cabal new-build . --ghc-options '$(GHCOPTS)' --flags '+embed_data_files' --enable-tests --only-dependencies
 	cabal new-build . --ghc-options '$(GHCOPTS)' --flags '+embed_data_files' --enable-tests --disable-optimization
 	cabal new-install --symlink-bindir=$$HOME/.local/bin
 	cabal new-run test-pandoc --ghc-options '$(GHCOPTS)' --flags '+embed_data_files' --disable-optimization -- --hide-successes $(TESTARGS)
-
-quick:
-	stack install --resolver=$(RESOLVER) --ghc-options='$(GHCOPTS)' --install-ghc --flag 'pandoc:embed_data_files' --fast --test --test-arguments='-j4 --hide-successes $(TESTARGS)'
 
 full:
 	stack install --resolver=$(RESOLVER) --flag 'pandoc:embed_data_files' --flag 'pandoc:weigh-pandoc' --flag 'pandoc:trypandoc' --bench --no-run-benchmarks --test --test-arguments='-j4 --hide-successes' --ghc-options '-Wall -Werror -fno-warn-unused-do-bind -O0 -j4 $(GHCOPTS)'
