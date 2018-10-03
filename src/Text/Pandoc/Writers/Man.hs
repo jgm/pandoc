@@ -45,7 +45,6 @@ import Text.Pandoc.Logging
 import Text.Pandoc.Options
 import Text.Pandoc.Pretty
 import Text.Pandoc.Shared
-import Text.Pandoc.Groff (groffEscape)
 import Text.Pandoc.Templates
 import Text.Pandoc.Writers.Math
 import Text.Pandoc.Writers.Shared

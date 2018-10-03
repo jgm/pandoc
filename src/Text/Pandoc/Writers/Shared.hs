@@ -44,6 +44,7 @@ module Text.Pandoc.Writers.Shared (
                      , gridTable
                      , metaValueToInlines
                      , stripLeadingTrailingSpace
+                     , groffEscape
                      )
 where
 import Prelude
@@ -63,6 +64,8 @@ import Text.Pandoc.Pretty
 import Text.Pandoc.Walk (query)
 import Text.Pandoc.UTF8 (toStringLazy)
 import Text.Pandoc.XML (escapeStringForXML)
+import Text.Printf (printf)
+import Data.Char (isAscii, ord)
 
 -- | Create JSON value for template from a 'Meta' and an association list
 -- of variables, specified at the command line or in the writer.
@@ -340,3 +343,11 @@ metaValueToInlines (MetaInlines ils) = ils
 metaValueToInlines (MetaBlocks bs)   = query return bs
 metaValueToInlines (MetaBool b)      = [Str $ show b]
 metaValueToInlines _                 = []
+
+-- | Escape non-ASCII characters using groff \u[..] sequences.
+groffEscape :: T.Text -> T.Text
+groffEscape = T.concatMap toUchar
+  where toUchar c
+         | isAscii c = T.singleton c
+         | otherwise = T.pack $ printf "\\[u%04X]" (ord c)
+

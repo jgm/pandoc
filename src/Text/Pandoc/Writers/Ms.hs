@@ -60,7 +60,6 @@ import Text.Pandoc.Shared
 import Text.Pandoc.Templates
 import Text.Pandoc.Writers.Math
 import Text.Pandoc.Writers.Shared
-import Text.Pandoc.Groff (groffEscape)
 import Text.Printf (printf)
 import Text.TeXMath (writeEqn)
 
