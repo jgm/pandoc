@@ -74,9 +74,6 @@ type TWParser = ParserT [Char] ParserState
 tryMsg :: String -> TWParser m a -> TWParser m a
 tryMsg msg p = try p <?> msg
 
-skip :: TWParser m a -> TWParser m ()
-skip parser = parser >> return ()
-
 nested :: PandocMonad m => TWParser m a -> TWParser m a
 nested p = do
   nestlevel <- stateMaxNestingLevel <$>  getState
@@ -92,7 +89,7 @@ htmlElement tag = tryMsg tag $ do
   content <- manyTill anyChar (endtag <|> endofinput)
   return (htmlAttrToPandoc attr, trim content)
   where
-    endtag     = skip $ htmlTag (~== TagClose tag)
+    endtag     = void $ htmlTag (~== TagClose tag)
     endofinput = lookAhead $ try $ skipMany blankline >> skipSpaces >> eof
     trim       = dropWhile (=='\n') . reverse . dropWhile (=='\n') . reverse
 
@@ -114,18 +111,15 @@ parseHtmlContentWithAttrs tag parser = do
     endOfContent = try $ skipMany blankline >> skipSpaces >> eof
 
 parseHtmlContent :: PandocMonad m => String -> TWParser m a -> TWParser m [a]
-parseHtmlContent tag p = parseHtmlContentWithAttrs tag p >>= return . snd
+parseHtmlContent tag p = snd <$> parseHtmlContentWithAttrs tag p
 
 --
 -- main parser
 --
 
 parseTWiki :: PandocMonad m => TWParser m Pandoc
-parseTWiki = do
-  bs <- mconcat <$> many block
-  spaces
-  eof
-  return $ B.doc bs
+parseTWiki =
+  B.doc . mconcat <$> many block <* spaces <* eof
 
 
 --
@@ -158,7 +152,7 @@ separator = tryMsg "separator" $ string "---" >> newline >> return B.horizontalR
 header :: PandocMonad m => TWParser m B.Blocks
 header = tryMsg "header" $ do
   string "---"
-  level <- many1 (char '+') >>= return . length
+  level <- length <$> many1 (char '+')
   guard $ level <= 6
   classes <- option [] $ string "!!" >> return ["unnumbered"]
   skipSpaces
@@ -167,11 +161,10 @@ header = tryMsg "header" $ do
   return $ B.headerWith attr level content
 
 verbatim :: PandocMonad m => TWParser m B.Blocks
-verbatim = (htmlElement "verbatim" <|> htmlElement "pre")
-           >>= return . (uncurry B.codeBlockWith)
+verbatim = uncurry B.codeBlockWith <$> (htmlElement "verbatim" <|> htmlElement "pre")
 
 literal :: PandocMonad m => TWParser m B.Blocks
-literal = htmlElement "literal" >>= return . rawBlock
+literal = rawBlock <$> htmlElement "literal"
   where
     format (_, _, kvs)        = fromMaybe "html" $ lookup "format" kvs
     rawBlock (attrs, content) = B.rawBlock (format attrs) content
@@ -183,7 +176,7 @@ list prefix = choice [ bulletList prefix
 
 definitionList :: PandocMonad m => String -> TWParser m B.Blocks
 definitionList prefix = tryMsg "definitionList" $ do
-  indent <- lookAhead $ string prefix *> (many1 $ string "   ") <* string "$ "
+  indent <- lookAhead $ string prefix *> many1 (string "   ") <* string "$ "
   elements <- many $ parseDefinitionListItem (prefix ++ concat indent)
   return $ B.definitionList elements
   where
@@ -193,7 +186,7 @@ definitionList prefix = tryMsg "definitionList" $ do
       string (indent ++ "$ ") >> skipSpaces
       term <- many1Till inline $ string ": "
       line <- listItemLine indent $ string "$ "
-      return $ (mconcat term, [line])
+      return (mconcat term, [line])
 
 bulletList :: PandocMonad m => String -> TWParser m B.Blocks
 bulletList prefix = tryMsg "bulletList" $
@@ -227,25 +220,24 @@ parseListItem prefix marker = string prefix >> marker >> listItemLine prefix mar
 
 listItemLine :: (PandocMonad m, Show a)
              => String -> TWParser m a -> TWParser m B.Blocks
-listItemLine prefix marker = lineContent >>= parseContent >>= return . mconcat
+listItemLine prefix marker = mconcat <$> (lineContent >>= parseContent)
   where
     lineContent = do
       content <- anyLine
       continuation <- optionMaybe listContinuation
-      return $ filterSpaces content ++ "\n" ++ (maybe "" ("   " ++) continuation)
+      return $ filterSpaces content ++ "\n" ++ maybe "" ("   " ++) continuation
     filterSpaces = reverse . dropWhile (== ' ') . reverse
     listContinuation = notFollowedBy (string prefix >> marker) >>
                        string "   " >> lineContent
     parseContent = parseFromString' $ many1 $ nestedList <|> parseInline
-    parseInline = many1Till inline (lastNewline <|> newlineBeforeNestedList) >>=
-                  return . B.plain . mconcat
+    parseInline = (B.plain . mconcat) <$> many1Till inline (lastNewline <|> newlineBeforeNestedList)
     nestedList = list prefix
     lastNewline = try $ char '\n' <* eof
     newlineBeforeNestedList = try $ char '\n' <* lookAhead nestedList
 
 table :: PandocMonad m => TWParser m B.Blocks
 table = try $ do
-  tableHead <- optionMaybe $ many1Till tableParseHeader newline >>= return . unzip
+  tableHead <- optionMaybe (unzip <$> many1Till tableParseHeader newline)
   rows <- many1 tableParseRow
   return $ buildTable mempty rows $ fromMaybe (align rows, columns rows) tableHead
   where
@@ -258,11 +250,11 @@ table = try $ do
 tableParseHeader :: PandocMonad m => TWParser m ((Alignment, Double), B.Blocks)
 tableParseHeader = try $ do
   char '|'
-  leftSpaces <- many spaceChar >>= return . length
+  leftSpaces <- length <$> many spaceChar
   char '*'
   content <- tableColumnContent (char '*' >> skipSpaces >> char '|')
   char '*'
-  rightSpaces <- many spaceChar >>= return . length
+  rightSpaces <- length <$> many spaceChar
   optional tableEndOfRow
   return (tableAlign leftSpaces rightSpaces, content)
   where
@@ -283,13 +275,13 @@ tableEndOfRow :: PandocMonad m => TWParser m Char
 tableEndOfRow = lookAhead (try $ char '|' >> char '\n') >> char '|'
 
 tableColumnContent :: PandocMonad m => TWParser m a -> TWParser m B.Blocks
-tableColumnContent end = manyTill content (lookAhead $ try end) >>= return . B.plain . mconcat
+tableColumnContent end = (B.plain . mconcat) <$> manyTill content (lookAhead $ try end)
   where
     content = continuation <|> inline
     continuation = try $ char '\\' >> newline >> return mempty
 
 blockQuote :: PandocMonad m => TWParser m B.Blocks
-blockQuote = parseHtmlContent "blockquote" block >>= return . B.blockQuote . mconcat
+blockQuote = (B.blockQuote . mconcat) <$> parseHtmlContent "blockquote" block
 
 noautolink :: PandocMonad m => TWParser m B.Blocks
 noautolink = do
@@ -300,15 +292,15 @@ noautolink = do
   setState $ st{ stateAllowLinks = True }
   return $ mconcat blocks
   where
-    parseContent      = parseFromString' $ many $ block
+    parseContent = parseFromString' $ many block
 
 para :: PandocMonad m => TWParser m B.Blocks
-para = many1Till inline endOfParaElement >>= return . result . mconcat
+para = (result . mconcat) <$> many1Till inline endOfParaElement
  where
    endOfParaElement = lookAhead $ endOfInput <|> endOfPara <|> newBlockElement
    endOfInput       = try $ skipMany blankline >> skipSpaces >> eof
    endOfPara        = try $ blankline >> skipMany1 blankline
-   newBlockElement  = try $ blankline >> skip blockElements
+   newBlockElement  = try $ blankline >> void blockElements
    result content   = if F.all (==Space) content
                       then mempty
                       else B.para $ B.trimInlines content
@@ -340,7 +332,7 @@ inline = choice [ whitespace
                 ] <?> "inline"
 
 whitespace :: PandocMonad m => TWParser m B.Inlines
-whitespace = (lb <|> regsp) >>= return
+whitespace = lb <|> regsp
   where lb = try $ skipMany spaceChar >> linebreak >> return B.space
         regsp = try $ skipMany1 spaceChar >> return B.space
 
@@ -362,13 +354,13 @@ enclosed :: (Monoid b, PandocMonad m, Show a)
          => TWParser m a -> (TWParser m a -> TWParser m b) -> TWParser m b
 enclosed sep p = between sep (try $ sep <* endMarker) p
   where
-    endMarker   = lookAhead $ skip endSpace <|> skip (oneOf ".,!?:)|") <|> eof
+    endMarker   = lookAhead $ void endSpace <|> void (oneOf ".,!?:)|") <|> eof
     endSpace    = (spaceChar <|> newline) >> return B.space
 
 macro :: PandocMonad m => TWParser m B.Inlines
 macro = macroWithParameters <|> withoutParameters
   where
-    withoutParameters = enclosed (char '%') (\_ -> macroName) >>= return . emptySpan
+    withoutParameters = emptySpan <$> enclosed (char '%') (const macroName)
     emptySpan name = buildSpan name [] mempty
 
 macroWithParameters :: PandocMonad m => TWParser m B.Inlines
@@ -393,13 +385,13 @@ macroName = do
   return (first:rest)
 
 attributes :: PandocMonad m => TWParser m (String, [(String, String)])
-attributes = char '{' *> spnl *> many (attribute <* spnl) <* char '}' >>=
-             return . foldr (either mkContent mkKvs) ([], [])
+attributes = foldr (either mkContent mkKvs) ([], [])
+  <$> (char '{' *> spnl *> many (attribute <* spnl) <* char '}')
   where
     spnl                      = skipMany (spaceChar <|> newline)
     mkContent c  ([], kvs)   = (c, kvs)
     mkContent c  (rest, kvs) = (c ++ " " ++ rest, kvs)
-    mkKvs     kv (cont, rest) = (cont, (kv : rest))
+    mkKvs     kv (cont, rest) = (cont, kv : rest)
 
 attribute :: PandocMonad m => TWParser m (Either String (String, String))
 attribute = withKey <|> withoutKey
@@ -407,52 +399,50 @@ attribute = withKey <|> withoutKey
     withKey = try $ do
       key <- macroName
       char '='
-      parseValue False >>= return . (curry Right key)
-    withoutKey = try $ parseValue True >>= return . Left
-    parseValue allowSpaces = (withQuotes <|> withoutQuotes allowSpaces) >>= return . fromEntities
+      curry Right key <$> parseValue False
+    withoutKey = try $ Left <$> parseValue True
+    parseValue allowSpaces = fromEntities <$> (withQuotes <|> withoutQuotes allowSpaces)
     withQuotes             = between (char '"') (char '"') (\_ -> count 1 $ noneOf ['"'])
     withoutQuotes allowSpaces
-      | allowSpaces == True = many1 $ noneOf "}"
-      | otherwise           = many1 $ noneOf " }"
+      | allowSpaces = many1 $ noneOf "}"
+      | otherwise   = many1 $ noneOf " }"
 
 nestedInlines :: (Show a, PandocMonad m)
               => TWParser m a -> TWParser m B.Inlines
 nestedInlines end = innerSpace <|> nestedInline
   where
-    innerSpace   = try $ whitespace <* (notFollowedBy end)
+    innerSpace   = try $ whitespace <* notFollowedBy end
     nestedInline = notFollowedBy whitespace >> nested inline
 
 strong :: PandocMonad m => TWParser m B.Inlines
-strong = try $ enclosed (char '*') nestedInlines >>= return . B.strong
+strong = try $ B.strong <$> enclosed (char '*') nestedInlines
 
 strongHtml :: PandocMonad m => TWParser m B.Inlines
-strongHtml = (parseHtmlContent "strong" inline <|> parseHtmlContent "b" inline)
-             >>= return . B.strong . mconcat
+strongHtml = B.strong . mconcat <$> (parseHtmlContent "strong" inline <|> parseHtmlContent "b" inline)
 
 strongAndEmph :: PandocMonad m => TWParser m B.Inlines
-strongAndEmph = try $ enclosed (string "__") nestedInlines >>= return . B.emph . B.strong
+strongAndEmph = try $ B.emph . B.strong <$> enclosed (string "__") nestedInlines
 
 emph :: PandocMonad m => TWParser m B.Inlines
-emph = try $ enclosed (char '_') nestedInlines >>= return . B.emph
+emph = try $ B.emph <$> enclosed (char '_') nestedInlines
 
 emphHtml :: PandocMonad m => TWParser m B.Inlines
-emphHtml = (parseHtmlContent "em" inline <|> parseHtmlContent "i" inline)
-           >>= return . B.emph . mconcat
+emphHtml = B.emph . mconcat <$> (parseHtmlContent "em" inline <|> parseHtmlContent "i" inline)
 
 nestedString :: (Show a, PandocMonad m)
              => TWParser m a -> TWParser m String
-nestedString end = innerSpace <|> (count 1 nonspaceChar)
+nestedString end = innerSpace <|> count 1 nonspaceChar
   where
     innerSpace = try $ many1 spaceChar <* notFollowedBy end
 
 boldCode :: PandocMonad m => TWParser m B.Inlines
-boldCode = try $ enclosed (string "==") nestedString >>= return . B.strong . B.code . fromEntities
+boldCode = try $ (B.strong . B.code . fromEntities) <$> enclosed (string "==") nestedString
 
 htmlComment :: PandocMonad m => TWParser m B.Inlines
 htmlComment = htmlTag isCommentTag >> return mempty
 
 code :: PandocMonad m => TWParser m B.Inlines
-code = try $ enclosed (char '=') nestedString >>= return . B.code . fromEntities
+code = try $ (B.code . fromEntities) <$> enclosed (char '=') nestedString
 
 codeHtml :: PandocMonad m => TWParser m B.Inlines
 codeHtml = do
@@ -464,7 +454,7 @@ autoLink = try $ do
   state <- getState
   guard $ stateAllowLinks state
   (text, url) <- parseLink
-  guard $ checkLink (head $ reverse url)
+  guard $ checkLink (last url)
   return $ makeLink (text, url)
   where
     parseLink            = notFollowedBy nop >> (uri <|> emailAddress)
@@ -474,17 +464,17 @@ autoLink = try $ do
       | otherwise = isAlphaNum c
 
 str :: PandocMonad m => TWParser m B.Inlines
-str = (many1 alphaNum <|> count 1 characterReference) >>= return . B.str
+str = B.str <$> (many1 alphaNum <|> count 1 characterReference)
 
 nop :: PandocMonad m => TWParser m B.Inlines
-nop = try $ (skip exclamation <|> skip nopTag) >> followContent
+nop = try $ (void exclamation <|> void nopTag) >> followContent
   where
     exclamation   = char '!'
     nopTag        = stringAnyCase "<nop>"
-    followContent = many1 nonspaceChar >>= return . B.str . fromEntities
+    followContent = B.str . fromEntities <$> many1 nonspaceChar
 
 symbol :: PandocMonad m => TWParser m B.Inlines
-symbol = count 1 nonspaceChar >>= return . B.str
+symbol = B.str <$> count 1 nonspaceChar
 
 smart :: PandocMonad m => TWParser m B.Inlines
 smart = do
@@ -498,17 +488,16 @@ smart = do
 singleQuoted :: PandocMonad m => TWParser m B.Inlines
 singleQuoted = try $ do
   singleQuoteStart
-  withQuoteContext InSingleQuote $
-    many1Till inline singleQuoteEnd >>=
-    (return . B.singleQuoted . B.trimInlines . mconcat)
+  withQuoteContext InSingleQuote
+    (B.singleQuoted . B.trimInlines . mconcat <$> many1Till inline singleQuoteEnd)
 
 doubleQuoted :: PandocMonad m => TWParser m B.Inlines
 doubleQuoted = try $ do
   doubleQuoteStart
   contents <- mconcat <$> many (try $ notFollowedBy doubleQuoteEnd >> inline)
-  (withQuoteContext InDoubleQuote $ doubleQuoteEnd >>
+  withQuoteContext InDoubleQuote (doubleQuoteEnd >>
    return (B.doubleQuoted $ B.trimInlines contents))
-   <|> (return $ (B.str "\8220") B.<> contents)
+   <|> return (B.str "\8220" B.<> contents)
 
 link :: PandocMonad m => TWParser m B.Inlines
 link = try $ do
@@ -527,5 +516,5 @@ linkText = do
   char ']'
   return (url, "", content)
   where
-    linkContent      = (char '[') >> many1Till anyChar (char ']') >>= parseLinkContent
+    linkContent      = char '[' >> many1Till anyChar (char ']') >>= parseLinkContent
     parseLinkContent = parseFromString' $ many1 inline
