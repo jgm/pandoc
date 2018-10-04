@@ -277,10 +277,10 @@ pandocToHtml opts (Pandoc meta blocks) = do
                       KaTeX url -> do
                          H.script !
                            A.src (toValue $ url ++ "katex.min.js") $ mempty
-                         H.script !
-                           A.src (toValue $ url ++ "contrib/auto-render.min.js") $ mempty
+                         nl opts
                          H.script
-                            "document.addEventListener(\"DOMContentLoaded\", function() {\n  renderMathInElement(document.body);\n});"
+                            "document.addEventListener(\"DOMContentLoaded\", function () {\n  var mathElements = document.getElementsByClassName(\"math\");\n  for (var i = 0; i < mathElements.length; i++) {\n    var texText = mathElements[i].firstChild;\n    if (mathElements[i].tagName == \"SPAN\") { katex.render(texText.data, mathElements[i], { displayMode: mathElements[i].classList.contains(\"display\"), throwOnError: false } );\n  }}});"
+                         nl opts
                          H.link ! A.rel "stylesheet" !
                            A.href (toValue $ url ++ "katex.min.css")
 
@@ -1065,8 +1065,8 @@ inlineToHtml opts inline = do
                 DisplayMath -> "\\[" ++ str ++ "\\]"
            KaTeX _ -> return $ H.span ! A.class_ mathClass $ toHtml $
               case t of
-                InlineMath  -> "\\(" ++ str ++ "\\)"
-                DisplayMath -> "\\[" ++ str ++ "\\]"
+                InlineMath  -> str
+                DisplayMath -> str
            PlainMath -> do
               x <- lift (texMathToInlines t str) >>= inlineListToHtml opts
               let m = H.span ! A.class_ mathClass $ x
