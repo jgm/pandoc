@@ -39,17 +39,20 @@ import Control.Monad.State.Strict hiding (when)
 import Data.Char (chr)
 import Data.List (sortBy)
 import qualified Data.Map as Map
+import Data.Maybe (fromMaybe)
 import Data.Ord (comparing)
 import qualified Data.Set as Set
 import Data.Text (Text)
 import Text.Pandoc.BCP47 (Lang (..), parseBCP47)
-import Text.Pandoc.Class (PandocMonad, report)
+import Text.Pandoc.Class (PandocMonad, report, translateTerm,
+                          setTranslations, toLang)
 import Text.Pandoc.Definition
 import Text.Pandoc.Logging
 import Text.Pandoc.Options
 import Text.Pandoc.Pretty
 import Text.Pandoc.Shared (linesToPara)
 import Text.Pandoc.Templates (renderTemplate')
+import Text.Pandoc.Translations (Term(Figure))
 import Text.Pandoc.Writers.Math
 import Text.Pandoc.Writers.Shared
 import Text.Pandoc.XML
@@ -223,6 +226,9 @@ handleSpaces s
 -- | Convert Pandoc document to string in OpenDocument format.
 writeOpenDocument :: PandocMonad m => WriterOptions -> Pandoc -> m Text
 writeOpenDocument opts (Pandoc meta blocks) = do
+  lang <- fromMaybe (Lang "en" "US" "" []) <$>
+                toLang (metaValueToString <$> lookupMeta "lang" meta)
+  setTranslations lang
   let colwidth = if writerWrapText opts == WrapAuto
                     then Just $ writerColumns opts
                     else Nothing
@@ -413,19 +419,20 @@ blockToOpenDocument o bs
                                   | otherwise    = do
         id' <- gets stImageId
         imageDoc <- withParagraphStyle o "FigureWithCaption" [Para [Image attr caption (source,title)]]
-        captionDoc <- numberedFigureCaption id' <$> inlinesToOpenDocument o caption
+        captionDoc <- inlinesToOpenDocument o caption >>= numberedFigureCaption id'
         return $ imageDoc $$ captionDoc
 
-numberedFigureCaption :: Int -> Doc -> Doc
-numberedFigureCaption num caption =
-    let t = text "Figure "
-        r = num - 1
-        s = inTags False "text:sequence" [ ("text:ref-name", "refIllustration" ++ show r),
+numberedFigureCaption :: PandocMonad m => Int -> Doc -> OD m Doc
+numberedFigureCaption num caption = do
+    figterm <- translateTerm Figure
+    let t = text figterm
+    let r = num - 1
+    let s = inTags False "text:sequence" [ ("text:ref-name", "refIllustration" ++ show r),
                                            ("text:name", "Illustration"),
                                            ("text:formula", "ooow:Illustration+1"),
                                            ("style:num-format", "1") ] $ text $ show num
-        c = text ": "
-    in inParagraphTagsWithStyle "FigureCaption" $ hcat [ t, s, c, caption ]
+    let c = text ": "
+    return $ inParagraphTagsWithStyle "FigureCaption" $ hcat [ t, text " ", s, c, caption ]
 
 colHeadsToOpenDocument :: PandocMonad m
                        => WriterOptions -> [String] -> [[Block]]
