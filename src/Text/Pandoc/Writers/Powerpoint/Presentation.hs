@@ -72,7 +72,7 @@ import Text.Pandoc.Logging
 import Text.Pandoc.Walk
 import Data.Time (UTCTime)
 import qualified Text.Pandoc.Shared as Shared -- so we don't overlap "Element"
-import Text.Pandoc.Writers.Shared (metaValueToInlines)
+import Text.Pandoc.Writers.Shared (lookupMetaInlines)
 import qualified Data.Map as M
 import qualified Data.Set as S
 import Data.Maybe (maybeToList, fromMaybe)
@@ -731,9 +731,9 @@ makeEndNotesSlideBlocks = do
   anchorSet <- M.keysSet <$> gets stAnchorMap
   if M.null noteIds
     then return []
-    else let title = case lookupMeta "notes-title" meta of
-                       Just val -> metaValueToInlines val
-                       Nothing  -> [Str "Notes"]
+    else let title = case lookupMetaInlines "notes-title" meta of
+                       [] -> [Str "Notes"]
+                       ls -> ls
              ident = Shared.uniqueIdent title anchorSet
              hdr = Header slideLevel (ident, [], []) title
              blks = concatMap (\(n, bs) -> makeNoteEntry n bs) $
@@ -744,13 +744,7 @@ getMetaSlide :: Pres (Maybe Slide)
 getMetaSlide  = do
   meta <- asks envMetadata
   title <- inlinesToParElems $ docTitle meta
-  subtitle <- inlinesToParElems $
-    case lookupMeta "subtitle" meta of
-      Just (MetaString s)           -> [Str s]
-      Just (MetaInlines ils)        -> ils
-      Just (MetaBlocks [Plain ils]) -> ils
-      Just (MetaBlocks [Para ils])  -> ils
-      _                             -> []
+  subtitle <- inlinesToParElems $ lookupMetaInlines "subtitle" meta
   authors <- mapM inlinesToParElems $ docAuthors meta
   date <- inlinesToParElems $ docDate meta
   if null title && null subtitle && null authors && null date
@@ -785,9 +779,9 @@ makeTOCSlide blks = local (\env -> env{envCurSlideId = tocSlideId}) $ do
   contents <- BulletList <$> mapM elementToListItem (Shared.hierarchicalize blks)
   meta <- asks envMetadata
   slideLevel <- asks envSlideLevel
-  let tocTitle = case lookupMeta "toc-title" meta of
-                   Just val -> metaValueToInlines val
-                   Nothing  -> [Str "Table of Contents"]
+  let tocTitle = case lookupMetaInlines "toc-title" meta of
+                   [] -> [Str "Table of Contents"]
+                   ls -> ls
       hdr = Header slideLevel nullAttr tocTitle
   blocksToSlide [hdr, contents]
 

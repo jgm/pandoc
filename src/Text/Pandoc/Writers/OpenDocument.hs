@@ -226,8 +226,10 @@ handleSpaces s
 -- | Convert Pandoc document to string in OpenDocument format.
 writeOpenDocument :: PandocMonad m => WriterOptions -> Pandoc -> m Text
 writeOpenDocument opts (Pandoc meta blocks) = do
-  lang <- fromMaybe (Lang "en" "US" "" []) <$>
-                toLang (metaValueToString <$> lookupMeta "lang" meta)
+  let defLang = Lang "en" "US" "" []
+  lang <- case lookupMetaString "lang" meta of
+            "" -> pure defLang
+            s  -> fromMaybe defLang <$> toLang (Just s)
   setTranslations lang
   let colwidth = if writerWrapText opts == WrapAuto
                     then Just $ writerColumns opts

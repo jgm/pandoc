@@ -66,8 +66,7 @@ import Text.Pandoc.Readers.Docx.StyleMap
 import Text.Pandoc.Shared hiding (Element)
 import Text.Pandoc.Walk
 import Text.Pandoc.Writers.Math
-import Text.Pandoc.Writers.Shared (isDisplayMath, fixDisplayMath,
-                                   metaValueToInlines)
+import Text.Pandoc.Writers.Shared
 import Text.Printf (printf)
 import Text.TeXMath
 import Text.XML.Light as XML
@@ -267,8 +266,9 @@ writeDocx opts doc@(Pandoc meta _) = do
   -- parse styledoc for heading styles
   let styleMaps = getStyleMaps styledoc
 
-  let tocTitle = fromMaybe (stTocTitle defaultWriterState) $
-                    metaValueToInlines <$> lookupMeta "toc-title" meta
+  let tocTitle = case lookupMetaInlines "toc-title" meta of
+                   [] -> stTocTitle defaultWriterState
+                   ls -> ls
 
   let initialSt = defaultWriterState {
           stStyleMaps  = styleMaps
@@ -760,24 +760,9 @@ writeOpenXML opts (Pandoc meta blocks) = do
   let tit = docTitle meta
   let auths = docAuthors meta
   let dat = docDate meta
-  let abstract' = case lookupMeta "abstract" meta of
-                       Just (MetaBlocks bs)   -> bs
-                       Just (MetaInlines ils) -> [Plain ils]
-                       Just (MetaString s)    -> [Plain [Str s]]
-                       _                      -> []
-  let subtitle' = case lookupMeta "subtitle" meta of
-                       Just (MetaBlocks [Plain xs]) -> xs
-                       Just (MetaBlocks [Para  xs]) -> xs
-                       Just (MetaInlines xs)        -> xs
-                       Just (MetaString s)          -> [Str s]
-                       _                            -> []
-  let includeTOC = writerTableOfContents opts ||
-                   case lookupMeta "toc" meta of
-                       Just (MetaBlocks _)     -> True
-                       Just (MetaInlines _)    -> True
-                       Just (MetaString (_:_)) -> True
-                       Just (MetaBool True)    -> True
-                       _                       -> False
+  let abstract' = lookupMetaBlocks "abstract" meta
+  let subtitle' = lookupMetaInlines "subtitle" meta
+  let includeTOC = writerTableOfContents opts || lookupMetaBool "toc" meta
   title <- withParaPropM (pStyleM "Title") $ blocksToOpenXML opts [Para tit | not (null tit)]
   subtitle <- withParaPropM (pStyleM "Subtitle") $ blocksToOpenXML opts [Para subtitle' | not (null subtitle')]
   authors <- withParaProp (pCustomStyle "Author") $ blocksToOpenXML opts $

@@ -82,10 +82,7 @@ pandocToRST (Pandoc meta blocks) = do
                     else Nothing
   let render' :: Doc -> Text
       render' = render colwidth
-  let subtit = case lookupMeta "subtitle" meta of
-                    Just (MetaBlocks [Plain xs])  -> xs
-                    Just (MetaInlines xs)         -> xs
-                    _                             -> []
+  let subtit = lookupMetaInlines "subtitle" meta
   title <- titleToRST (docTitle meta) subtit
   metadata <- metaToJSON opts
                 (fmap render' . blockListToRST)
