@@ -1,4 +1,4 @@
-\PassOptionsToPackage{unicode=true$if(hyperrefoptions)$,$for(hyperrefoptions)$$hyperrefoptions$$sep$,$endfor$$endif$}{hyperref} % options for packages loaded elsewhere
+\PassOptionsToPackage{unicode=true$for(hyperrefoptions)$,$hyperrefoptions$$endfor$}{hyperref} % options for packages loaded elsewhere
 \PassOptionsToPackage{hyphens}{url}
 $if(colorlinks)$
 \PassOptionsToPackage{dvipsnames,svgnames*,x11names*}{xcolor}
