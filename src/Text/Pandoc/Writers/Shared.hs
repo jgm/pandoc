@@ -43,6 +43,7 @@ module Text.Pandoc.Writers.Shared (
                      , unsmartify
                      , gridTable
                      , metaValueToInlines
+                     , metaValueToString
                      , stripLeadingTrailingSpace
                      , groffEscape
                      )
@@ -61,6 +62,7 @@ import qualified Text.Pandoc.Builder as Builder
 import Text.Pandoc.Definition
 import Text.Pandoc.Options
 import Text.Pandoc.Pretty
+import Text.Pandoc.Shared (stringify)
 import Text.Pandoc.Walk (query)
 import Text.Pandoc.UTF8 (toStringLazy)
 import Text.Pandoc.XML (escapeStringForXML)
@@ -343,6 +345,13 @@ metaValueToInlines (MetaInlines ils) = ils
 metaValueToInlines (MetaBlocks bs)   = query return bs
 metaValueToInlines (MetaBool b)      = [Str $ show b]
 metaValueToInlines _                 = []
+
+metaValueToString :: MetaValue -> String
+metaValueToString (MetaString s)    = s
+metaValueToString (MetaInlines ils) = stringify ils
+metaValueToString (MetaBlocks bs)   = stringify bs
+metaValueToString (MetaBool b)      = show b
+metaValueToString _                 = ""
 
 -- | Escape non-ASCII characters using groff \u[..] sequences.
 groffEscape :: T.Text -> T.Text
