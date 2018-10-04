@@ -1056,8 +1056,10 @@ elemToRunStyle ns element parentStyle
   | Just rPr <- findChildByName ns "w" "rPr" element =
     RunStyle
       {
-        isBold = checkOnOff ns rPr (elemName ns "w" "b")
-      , isItalic = checkOnOff ns rPr (elemName ns "w" "i")
+        isBold = checkOnOff ns rPr (elemName ns "w" "b") `mplus`
+                 checkOnOff ns rPr (elemName ns "w" "bCs")
+      , isItalic = checkOnOff ns rPr (elemName ns "w" "i") `mplus`
+                   checkOnOff ns rPr (elemName ns "w" "iCs")
       , isSmallCaps = checkOnOff ns rPr (elemName ns "w" "smallCaps")
       , isStrike = checkOnOff ns rPr (elemName ns "w" "strike")
       , rVertAlign =
