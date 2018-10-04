@@ -52,7 +52,7 @@ import Text.Pandoc.Options
 import Text.Pandoc.Pretty
 import Text.Pandoc.Shared (linesToPara)
 import Text.Pandoc.Templates (renderTemplate')
-import Text.Pandoc.Translations (Term(Figure))
+import qualified Text.Pandoc.Translations as Term (Term(Figure, Table))
 import Text.Pandoc.Writers.Math
 import Text.Pandoc.Writers.Shared
 import Text.Pandoc.XML
@@ -70,32 +70,36 @@ plainToPara x         = x
 type OD m = StateT WriterState m
 
 data WriterState =
-    WriterState { stNotes         :: [Doc]
-                , stTableStyles   :: [Doc]
-                , stParaStyles    :: [Doc]
-                , stListStyles    :: [(Int, [Doc])]
-                , stTextStyles    :: Map.Map (Set.Set TextStyle) (String, Doc)
-                , stTextStyleAttr :: Set.Set TextStyle
-                , stIndentPara    :: Int
-                , stInDefinition  :: Bool
-                , stTight         :: Bool
-                , stFirstPara     :: Bool
-                , stImageId       :: Int
+    WriterState { stNotes          :: [Doc]
+                , stTableStyles    :: [Doc]
+                , stParaStyles     :: [Doc]
+                , stListStyles     :: [(Int, [Doc])]
+                , stTextStyles     :: Map.Map (Set.Set TextStyle) (String, Doc)
+                , stTextStyleAttr  :: Set.Set TextStyle
+                , stIndentPara     :: Int
+                , stInDefinition   :: Bool
+                , stTight          :: Bool
+                , stFirstPara      :: Bool
+                , stImageId        :: Int
+                , stTableCaptionId :: Int
+                , stImageCaptionId :: Int
                 }
 
 defaultWriterState :: WriterState
 defaultWriterState =
-    WriterState { stNotes         = []
-                , stTableStyles   = []
-                , stParaStyles    = []
-                , stListStyles    = []
-                , stTextStyles    = Map.empty
-                , stTextStyleAttr = Set.empty
-                , stIndentPara    = 0
-                , stInDefinition  = False
-                , stTight         = False
-                , stFirstPara     = False
-                , stImageId       = 1
+    WriterState { stNotes          = []
+                , stTableStyles    = []
+                , stParaStyles     = []
+                , stListStyles     = []
+                , stTextStyles     = Map.empty
+                , stTextStyleAttr  = Set.empty
+                , stIndentPara     = 0
+                , stInDefinition   = False
+                , stTight          = False
+                , stFirstPara      = False
+                , stImageId        = 1
+                , stTableCaptionId = 1
+                , stImageCaptionId = 1
                 }
 
 when :: Bool -> Doc -> Doc
@@ -408,7 +412,7 @@ blockToOpenDocument o bs
         mapM_ addParaStyle . newPara $ paraHStyles ++ paraStyles
         captionDoc <- if null c
                       then return empty
-                      else withParagraphStyle o "Table" [Para c]
+                      else inlinesToOpenDocument o c >>= numberedTableCaption
         th <- if all null h
                  then return empty
                  else colHeadsToOpenDocument o (map fst paraHStyles) h
@@ -419,22 +423,35 @@ blockToOpenDocument o bs
       figure attr caption source title | null caption =
         withParagraphStyle o "Figure" [Para [Image attr caption (source,title)]]
                                   | otherwise    = do
-        id' <- gets stImageId
         imageDoc <- withParagraphStyle o "FigureWithCaption" [Para [Image attr caption (source,title)]]
-        captionDoc <- inlinesToOpenDocument o caption >>= numberedFigureCaption id'
+        captionDoc <- inlinesToOpenDocument o caption >>= numberedFigureCaption
         return $ imageDoc $$ captionDoc
 
-numberedFigureCaption :: PandocMonad m => Int -> Doc -> OD m Doc
-numberedFigureCaption num caption = do
-    figterm <- translateTerm Figure
-    let t = text figterm
-    let r = num - 1
-    let s = inTags False "text:sequence" [ ("text:ref-name", "refIllustration" ++ show r),
-                                           ("text:name", "Illustration"),
-                                           ("text:formula", "ooow:Illustration+1"),
+
+numberedTableCaption :: PandocMonad m => Doc -> OD m Doc
+numberedTableCaption caption = do
+    id' <- gets stTableCaptionId
+    modify (\st -> st{ stTableCaptionId = id' + 1 })
+    capterm <- translateTerm Term.Table
+    return $ numberedCaption "Table" capterm "Table" id' caption
+
+numberedFigureCaption :: PandocMonad m => Doc -> OD m Doc
+numberedFigureCaption caption = do
+    id' <- gets stImageCaptionId
+    modify (\st -> st{ stImageCaptionId = id' + 1 })
+    capterm <- translateTerm Term.Figure
+    return $ numberedCaption "FigureCaption" capterm "Illustration" id' caption
+
+numberedCaption :: String -> String -> String -> Int -> Doc -> Doc
+numberedCaption style term name num caption =
+    let t = text term
+        r = num - 1
+        s = inTags False "text:sequence" [ ("text:ref-name", "ref" ++ name ++ show r),
+                                           ("text:name", name),
+                                           ("text:formula", "ooow:" ++ name ++ "+1"),
                                            ("style:num-format", "1") ] $ text $ show num
-    let c = text ": "
-    return $ inParagraphTagsWithStyle "FigureCaption" $ hcat [ t, text " ", s, c, caption ]
+        c = text ": "
+    in inParagraphTagsWithStyle style $ hcat [ t, text " ", s, c, caption ]
 
 colHeadsToOpenDocument :: PandocMonad m
                        => WriterOptions -> [String] -> [[Block]]
