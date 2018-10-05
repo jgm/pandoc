@@ -123,13 +123,9 @@ instance HasLogMessages MuseState where
 parseMuse :: PandocMonad m => MuseParser m Pandoc
 parseMuse = do
   many directive
-  firstSection <- parseBlocks
-  rest <- many parseSection
-  let blocks = mconcat (firstSection : rest)
+  blocks <- (:) <$> parseBlocks <*> many parseSection
   st <- getState
-  let doc = runF (do Pandoc _ bs <- B.doc <$> blocks
-                     meta <- museMeta st
-                     return $ Pandoc meta bs) st
+  let doc = runF (Pandoc <$> museMeta st <*> fmap B.toList (mconcat blocks)) st
   reportLogMessages
   return doc
 
