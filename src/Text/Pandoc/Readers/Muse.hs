@@ -570,8 +570,7 @@ bulletListUntil :: PandocMonad m
 bulletListUntil end = try $ do
   indent <- getIndent
   guard $ indent /= 0
-  (items, e) <- bulletListItemsUntil indent end
-  return (B.bulletList <$> sequence items, e)
+  first (fmap B.bulletList . sequence) <$> bulletListItemsUntil indent end
 
 museOrderedListMarker :: PandocMonad m
                       => ListNumberStyle
