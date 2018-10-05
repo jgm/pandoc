@@ -51,7 +51,6 @@ import qualified Data.Map as M
 import qualified Data.Set as Set
 import Data.Maybe (fromMaybe, isNothing, maybeToList)
 import Data.Text (Text, unpack)
-import Text.HTML.TagSoup
 import Text.Pandoc.Builder (Blocks, Inlines)
 import qualified Text.Pandoc.Builder as B
 import Text.Pandoc.Class (PandocMonad (..))
@@ -196,7 +195,7 @@ closeTag :: PandocMonad m => String -> MuseParser m ()
 closeTag tag = try $ string "</" *> string tag *> void (char '>')
 
 -- | Convert HTML attributes to Pandoc 'Attr'
-htmlAttrToPandoc :: [Attribute String] -> Attr
+htmlAttrToPandoc :: [(String, String)] -> Attr
 htmlAttrToPandoc attrs = (ident, classes, keyvals)
   where
     ident   = fromMaybe "" $ lookup "id" attrs
