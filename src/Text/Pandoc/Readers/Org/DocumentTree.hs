@@ -43,6 +43,7 @@ import Text.Pandoc.Readers.Org.BlockStarts
 import Text.Pandoc.Readers.Org.ParserState
 import Text.Pandoc.Readers.Org.Parsing
 
+import qualified Data.Set as Set
 import qualified Text.Pandoc.Builder as B
 
 --
@@ -72,9 +73,6 @@ documentTree blocks inline = do
       , headlineContents = initialBlocks'
       , headlineChildren = headlines'
       }
-
-newtype Tag = Tag { fromTag :: String }
-  deriving (Show, Eq)
 
 -- | Create a tag containing the given string.
 toTag :: String -> Tag
@@ -153,7 +151,7 @@ headline blocks inline lvl = try $ do
 
    headerTags :: Monad m => OrgParser m [Tag]
    headerTags = try $
-     let tag = many1 (alphaNum <|> oneOf "@%#_") <* char ':'
+     let tag = orgTagWord <* char ':'
      in map toTag <$> (skipSpaces *> char ':' *> many1 tag <* skipSpaces)
 
 -- | Convert an Org mode headline (i.e. a document tree) into pandoc's Blocks
@@ -163,15 +161,17 @@ headlineToBlocks hdln = do
   let tags = headlineTags hdln
   let text = headlineText hdln
   let level = headlineLevel hdln
+  shouldNotExport <- hasDoNotExportTag tags
   case () of
-    _ | any isNoExportTag tags -> return mempty
+    _ | shouldNotExport -> return mempty
     _ | any isArchiveTag  tags -> archivedHeadlineToBlocks hdln
     _ | isCommentTitle text    -> return mempty
     _ | maxLevel <= level      -> headlineToHeaderWithList hdln
     _ | otherwise              -> headlineToHeaderWithContents hdln
 
-isNoExportTag :: Tag -> Bool
-isNoExportTag = (== toTag "noexport")
+hasDoNotExportTag :: Monad m => [Tag] -> OrgParser m Bool
+hasDoNotExportTag tags = containsExcludedTag . orgStateExcludedTags <$> getState
+  where containsExcludedTag s = any (`Set.member` s) tags
 
 isArchiveTag :: Tag -> Bool
 isArchiveTag = (== toTag "ARCHIVE")
