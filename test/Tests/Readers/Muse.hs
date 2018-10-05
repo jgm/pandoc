@@ -857,6 +857,14 @@ tests =
             [plain "Foo", plain "bar", plain "baz"]
             [[plain "First", plain "row", plain "here"],
              [plain "Second", plain "row", plain "there"]]
+        , "Table caption with +" =:
+          T.unlines
+            [ "Foo | bar"
+            , "|+ Table + caption +|"
+            ] =?>
+          table (text "Table + caption") (replicate 2 (AlignDefault, 0.0))
+            []
+            [[plain "Foo", plain "bar"]]
         , "Caption without table" =:
           "|+ Foo bar baz +|" =?>
           table (text "Foo bar baz") [] [] []
