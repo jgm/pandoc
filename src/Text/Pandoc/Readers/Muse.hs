@@ -458,12 +458,10 @@ verseLine = (<>)
 -- | Parse @\<verse>@ tag.
 verseTag :: PandocMonad m => MuseParser m (F Blocks)
 verseTag = try $ do
-  many spaceChar
-  pos <- getPosition
+  indent <- getIndent
   openTag "verse"
   manyTill spaceChar eol
-  let indent = count (sourceColumn pos - 1) spaceChar
-  content <- sequence <$> manyTill (indent *> verseLine) (try $ indent *> closeTag "verse")
+  content <- sequence <$> manyTill (count indent spaceChar *> verseLine) (try $ count indent spaceChar *> closeTag "verse")
   manyTill spaceChar eol
   return $ B.lineBlock <$> content
 
@@ -541,9 +539,8 @@ emacsNoteBlock = try $ do
 -- | Parse a line block indicated by @\'>\'@ characters.
 lineBlock :: PandocMonad m => MuseParser m (F Blocks)
 lineBlock = try $ do
-  many spaceChar
-  col <- sourceColumn <$> getPosition
-  lns <- (blankVerseLine <|> nonblankVerseLine) `sepBy1'` try (indentWith (col - 1))
+  indent <- getIndent
+  lns <- (blankVerseLine <|> nonblankVerseLine) `sepBy1'` try (indentWith indent)
   return $ B.lineBlock <$> sequence lns
   where
     blankVerseLine = try $ mempty <$ char '>' <* blankline
