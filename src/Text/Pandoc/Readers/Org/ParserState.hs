@@ -33,6 +33,7 @@ module Text.Pandoc.Readers.Org.ParserState
   , defaultOrgParserState
   , OrgParserLocal (..)
   , OrgNoteRecord
+  , Tag(..)
   , HasReaderOptions (..)
   , HasQuoteContext (..)
   , HasMacros (..)
@@ -88,6 +89,9 @@ type OrgNoteTable = [OrgNoteRecord]
 type OrgLinkFormatters = M.Map String (String -> String)
 -- | Macro expander function
 type MacroExpander = [String] -> String
+-- | Tag
+newtype Tag = Tag { fromTag :: String }
+  deriving (Show, Eq, Ord)
 
 -- | The states in which a todo item can be
 data TodoState = Todo | Done
@@ -113,6 +117,7 @@ data OrgParserState = OrgParserState
                                            -- specified here.
   , orgStateEmphasisPostChars    :: [Char] -- ^ Chars allowed at after emphasis
   , orgStateEmphasisNewlines     :: Maybe Int
+  , orgStateExcludedTags         :: Set.Set Tag
   , orgStateExportSettings       :: ExportSettings
   , orgStateHeaderMap            :: M.Map Inlines String
   , orgStateIdentifiers          :: Set.Set String
@@ -183,6 +188,7 @@ defaultOrgParserState = OrgParserState
   , orgStateEmphasisCharStack = []
   , orgStateEmphasisNewlines = Nothing
   , orgStateExportSettings = def
+  , orgStateExcludedTags = Set.singleton $ Tag "noexport"
   , orgStateHeaderMap = M.empty
   , orgStateIdentifiers = Set.empty
   , orgStateIncludeFiles = []

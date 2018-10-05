@@ -46,6 +46,8 @@ module Text.Pandoc.Readers.Org.Parsing
   , orgArgKey
   , orgArgWord
   , orgArgWordChar
+  , orgTagWord
+  , orgTagWordChar
   -- * Re-exports from Text.Pandoc.Parser
   , ParserContext (..)
   , many1Till
@@ -220,3 +222,9 @@ orgArgWord = many1 orgArgWordChar
 -- | Chars treated as part of a word in plists.
 orgArgWordChar :: Monad m => OrgParser m Char
 orgArgWordChar = alphaNum <|> oneOf "-_"
+
+orgTagWord :: Monad m => OrgParser m String
+orgTagWord = many1 orgTagWordChar
+
+orgTagWordChar :: Monad m => OrgParser m Char
+orgTagWordChar = alphaNum <|> oneOf "@%#_"
