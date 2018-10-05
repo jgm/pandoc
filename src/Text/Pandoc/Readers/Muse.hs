@@ -548,6 +548,10 @@ lineBlock = try $ do
 
 -- *** List parsers
 
+getIndent :: PandocMonad m
+          => MuseParser m Int
+getIndent = subtract 1 . sourceColumn <$ many spaceChar <*> getPosition
+
 bulletListItemsUntil :: PandocMonad m
                      => Int -- ^ Indentation
                      -> MuseParser m a -- ^ Terminator parser
@@ -564,9 +568,7 @@ bulletListUntil :: PandocMonad m
                 => MuseParser m a
                 -> MuseParser m (F Blocks, a)
 bulletListUntil end = try $ do
-  many spaceChar
-  pos <- getPosition
-  let indent = sourceColumn pos - 1
+  indent <- getIndent
   guard $ indent /= 0
   (items, e) <- bulletListItemsUntil indent end
   return (B.bulletList <$> sequence items, e)
@@ -604,9 +606,7 @@ orderedListUntil :: PandocMonad m
                  => MuseParser m a
                  -> MuseParser m (F Blocks, a)
 orderedListUntil end = try $ do
-  many spaceChar
-  pos <- getPosition
-  let indent = sourceColumn pos - 1
+  indent <- getIndent
   guard $ indent /= 0
   (style, start) <- decimal <|> lowerRoman <|> upperRoman <|> lowerAlpha <|> upperAlpha
   char '.'
@@ -642,9 +642,7 @@ definitionListUntil :: PandocMonad m
                     => MuseParser m a -- ^ Terminator parser
                     -> MuseParser m (F Blocks, a)
 definitionListUntil end = try $ do
-  many spaceChar
-  pos <- getPosition
-  let indent = sourceColumn pos - 1
+  indent <- getIndent
   guardDisabled Ext_amuse <|> guard (indent /= 0) -- Initial space is required by Amusewiki, but not Emacs Muse
   first (fmap B.definitionList . sequence) <$> definitionListItemsUntil indent end
 
