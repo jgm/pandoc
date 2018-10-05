@@ -453,10 +453,9 @@ playTag = do
   fmap (B.divWith ("", ["play"], [])) . snd <$> parseHtmlContent "play"
 
 verseLine :: PandocMonad m => MuseParser m (F Inlines)
-verseLine = do
-  indent <- (B.str <$> many1 ('\160' <$ char ' ')) <|> pure mempty
-  rest <- manyTill inline' newline
-  return $ trimInlinesF $ mconcat (pure indent : rest)
+verseLine = (<>)
+  <$> fmap pure (option mempty (B.str <$> many1 ('\160' <$ char ' ')))
+  <*> fmap (trimInlinesF . mconcat) (manyTill inline' eol)
 
 -- | Parse @\<verse>@ tag.
 verseTag :: PandocMonad m => MuseParser m (F Blocks)
@@ -541,26 +540,16 @@ emacsNoteBlock = try $ do
 -- Verse markup
 --
 
-lineVerseLine :: PandocMonad m => MuseParser m (F Inlines)
-lineVerseLine = try $ do
-  string "> "
-  indent <- many ('\160' <$ char ' ')
-  let indentEl = if null indent then mempty else B.str indent
-  rest <- manyTill inline' eol
-  return $ trimInlinesF $ mconcat (pure indentEl : rest)
-
-blanklineVerseLine :: PandocMonad m => MuseParser m (F Inlines)
-blanklineVerseLine = try $ mempty
-  <$ char '>'
-  <* blankline
-
 -- | Parse a line block indicated by @\'>\'@ characters.
 lineBlock :: PandocMonad m => MuseParser m (F Blocks)
 lineBlock = try $ do
   many spaceChar
   col <- sourceColumn <$> getPosition
-  lns <- (blanklineVerseLine <|> lineVerseLine) `sepBy1'` try (indentWith (col - 1))
+  lns <- (blankVerseLine <|> nonblankVerseLine) `sepBy1'` try (indentWith (col - 1))
   return $ B.lineBlock <$> sequence lns
+  where
+    blankVerseLine = try $ mempty <$ char '>' <* blankline
+    nonblankVerseLine = try (string "> ") *> verseLine
 
 -- *** List parsers
 
