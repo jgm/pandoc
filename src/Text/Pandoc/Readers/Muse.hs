@@ -169,6 +169,10 @@ firstColumn = getPosition >>= \pos -> guard (sourceColumn pos == 1)
 eol :: Stream s m Char => ParserT s st m ()
 eol = void newline <|> eof
 
+getIndent :: PandocMonad m
+          => MuseParser m Int
+getIndent = subtract 1 . sourceColumn <$ many spaceChar <*> getPosition
+
 someUntil :: (Stream s m t)
           => ParserT s u m a
           -> ParserT s u m b
@@ -202,11 +206,10 @@ parseHtmlContent :: PandocMonad m
                  => String -- ^ Tag name
                  -> MuseParser m (Attr, F Blocks)
 parseHtmlContent tag = try $ do
-  many spaceChar
-  pos <- getPosition
+  indent <- getIndent
   attr <- openTag tag
   manyTill spaceChar eol
-  content <- parseBlocksTill $ try $ count (sourceColumn pos - 1) spaceChar *> closeTag tag
+  content <- parseBlocksTill $ try $ count indent spaceChar *> closeTag tag
   manyTill spaceChar eol -- closing tag must be followed by optional whitespace and newline
   return (htmlAttrToPandoc attr, content)
 
@@ -547,10 +550,6 @@ lineBlock = try $ do
     nonblankVerseLine = try (string "> ") *> verseLine
 
 -- *** List parsers
-
-getIndent :: PandocMonad m
-          => MuseParser m Int
-getIndent = subtract 1 . sourceColumn <$ many spaceChar <*> getPosition
 
 bulletListItemsUntil :: PandocMonad m
                      => Int -- ^ Indentation
