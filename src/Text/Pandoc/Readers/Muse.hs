@@ -41,6 +41,7 @@ module Text.Pandoc.Readers.Muse (readMuse) where
 
 import Prelude
 import Control.Monad
+import Control.Monad.Reader
 import Control.Monad.Except (throwError)
 import Data.Bifunctor
 import Data.Char (isAlphaNum)
@@ -68,7 +69,7 @@ readMuse :: PandocMonad m
          -> m Pandoc
 readMuse opts s = do
   let input = crFilter s
-  res <- mapLeft (PandocParsecError $ unpack input) `liftM` runParserT parseMuse def{ museOptions = opts } "source" input
+  res <- mapLeft (PandocParsecError $ unpack input) `liftM` (runReaderT (runParserT parseMuse def{ museOptions = opts } "source" input) def)
   case res of
        Left e  -> throwError e
        Right d -> return d
@@ -82,7 +83,6 @@ data MuseState = MuseState { museMeta :: F Meta -- ^ Document metadata
                            , museLastStrPos :: Maybe SourcePos -- ^ Position after last str parsed
                            , museLogMessages :: [LogMessage]
                            , museNotes :: M.Map String (SourcePos, F Blocks)
-                           , museInLink :: Bool -- ^ True when parsing a link description to avoid nested links
                            , museInPara :: Bool -- ^ True when looking for a paragraph terminator
                            }
 
@@ -94,11 +94,17 @@ instance Default MuseState where
                   , museLastStrPos = Nothing
                   , museLogMessages = []
                   , museNotes = M.empty
-                  , museInLink = False
                   , museInPara = False
                   }
 
-type MuseParser = ParserT Text MuseState
+data MuseEnv =
+  MuseEnv { museInLink :: Bool }
+
+instance Default MuseEnv where
+  def = MuseEnv { museInLink = False -- ^ True when parsing a link description to avoid nested links
+                }
+
+type MuseParser m = ParserT Text MuseState (ReaderT MuseEnv m)
 
 instance HasReaderOptions MuseState where
   extractReaderOptions = museOptions
@@ -778,7 +784,7 @@ anchor = try $ do
 -- | Parse a footnote reference.
 footnote :: PandocMonad m => MuseParser m (F Inlines)
 footnote = try $ do
-  inLink <- museInLink <$> getState
+  inLink <- asks museInLink
   guard $ not inLink
   ref <- noteMarker
   return $ do
@@ -915,12 +921,9 @@ symbol = return . B.str <$> count 1 nonspaceChar
 -- | Parse a link or image.
 linkOrImage :: PandocMonad m => MuseParser m (F Inlines)
 linkOrImage = try $ do
-  st <- getState
-  guard $ not $ museInLink st
-  setState $ st{ museInLink = True }
-  res <- explicitLink <|> image <|> link
-  updateState (\state -> state { museInLink = False })
-  return res
+  inLink <- asks museInLink
+  guard $ not inLink
+  local (\s -> s { museInLink = True }) (explicitLink <|> image <|> link)
 
 linkContent :: PandocMonad m => MuseParser m (F Inlines)
 linkContent = trimInlinesF . mconcat
