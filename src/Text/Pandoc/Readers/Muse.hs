@@ -69,7 +69,7 @@ readMuse :: PandocMonad m
          -> m Pandoc
 readMuse opts s = do
   let input = crFilter s
-  res <- mapLeft (PandocParsecError $ unpack input) `liftM` (runReaderT (runParserT parseMuse def{ museOptions = opts } "source" input) def)
+  res <- mapLeft (PandocParsecError $ unpack input) `liftM` runReaderT (runParserT parseMuse def{ museOptions = opts } "source" input) def
   case res of
        Left e  -> throwError e
        Right d -> return d
