@@ -98,12 +98,11 @@ instance Default MuseState where
                   }
 
 data MuseEnv =
-  MuseEnv { museInLink :: Bool }
+  MuseEnv { museInLink :: Bool -- ^ True when parsing a link description to avoid nested links
+          }
 
 instance Default MuseEnv where
-  def = MuseEnv { museInLink = False
-                -- True when parsing a link description to avoid nested links
-                }
+  def = MuseEnv { museInLink = False }
 
 type MuseParser m = ParserT Text MuseState (ReaderT MuseEnv m)
 
