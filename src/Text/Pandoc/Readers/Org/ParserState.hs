@@ -118,6 +118,7 @@ data OrgParserState = OrgParserState
   , orgStateEmphasisPostChars    :: [Char] -- ^ Chars allowed at after emphasis
   , orgStateEmphasisNewlines     :: Maybe Int
   , orgStateExcludedTags         :: Set.Set Tag
+  , orgStateExcludedTagsChanged  :: Bool
   , orgStateExportSettings       :: ExportSettings
   , orgStateHeaderMap            :: M.Map Inlines String
   , orgStateIdentifiers          :: Set.Set String
@@ -189,6 +190,7 @@ defaultOrgParserState = OrgParserState
   , orgStateEmphasisNewlines = Nothing
   , orgStateExportSettings = def
   , orgStateExcludedTags = Set.singleton $ Tag "noexport"
+  , orgStateExcludedTagsChanged = False
   , orgStateHeaderMap = M.empty
   , orgStateIdentifiers = Set.empty
   , orgStateIncludeFiles = []
