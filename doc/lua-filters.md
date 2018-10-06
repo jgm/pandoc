@@ -953,7 +953,7 @@ Lua functions for pandoc scripts.
     Parameters:
 
     `text`:
-    :   brief image description
+    :   code string
 
     `attr`:
     :   additional attributes

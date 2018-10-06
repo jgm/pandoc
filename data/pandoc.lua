@@ -487,7 +487,7 @@ M.Cite = M.Inline:create_constructor(
 
 --- Creates a Code inline element
 -- @function Code
--- @tparam      string      text        brief image description
+-- @tparam      string      text  code string
 -- @tparam[opt] Attr        attr  additional attributes
 -- @treturn Inline code element
 M.Code = M.Inline:create_constructor(
