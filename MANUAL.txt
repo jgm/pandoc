@@ -3381,8 +3381,14 @@ Markdown allows it, but it has been made an extension so that it can
 be disabled if desired.)
 
 The raw HTML is passed through unchanged in HTML, S5, Slidy, Slideous,
-DZSlides, EPUB, Markdown, Emacs Org mode, and Textile output, and suppressed
-in other formats.
+DZSlides, EPUB, Markdown, CommonMark, Emacs Org mode, and Textile
+output, and suppressed in other formats.
+
+In the CommonMark format, if `raw_html` is enabled, superscripts,
+subscripts, strikeouts and small capitals will be represented as HTML.
+Otherwise, plain-text fallbacks will be used. Note that even if
+`raw_html` is disabled, tables will be rendered with HTML syntax if
+they cannot use pipe syntax.
 
 #### Extension: `markdown_in_html_blocks` ####
 

@@ -38,7 +38,7 @@ module Text.Pandoc.Writers.Markdown (writeMarkdown, writePlain) where
 import Prelude
 import Control.Monad.Reader
 import Control.Monad.State.Strict
-import Data.Char (chr, isPunctuation, isSpace, ord, isAlphaNum)
+import Data.Char (isPunctuation, isSpace, isAlphaNum)
 import Data.Default
 import qualified Data.HashMap.Strict as H
 import Data.List (find, group, intersperse, sortBy, stripPrefix, transpose)
@@ -1248,33 +1248,6 @@ makeMathPlainer = walk go
   where
   go (Emph xs) = Span nullAttr xs
   go x         = x
-
-toSuperscript :: Char -> Maybe Char
-toSuperscript '1' = Just '\x00B9'
-toSuperscript '2' = Just '\x00B2'
-toSuperscript '3' = Just '\x00B3'
-toSuperscript '+' = Just '\x207A'
-toSuperscript '-' = Just '\x207B'
-toSuperscript '=' = Just '\x207C'
-toSuperscript '(' = Just '\x207D'
-toSuperscript ')' = Just '\x207E'
-toSuperscript c
-  | c >= '0' && c <= '9' =
-                 Just $ chr (0x2070 + (ord c - 48))
-  | isSpace c = Just c
-  | otherwise = Nothing
-
-toSubscript :: Char -> Maybe Char
-toSubscript '+' = Just '\x208A'
-toSubscript '-' = Just '\x208B'
-toSubscript '=' = Just '\x208C'
-toSubscript '(' = Just '\x208D'
-toSubscript ')' = Just '\x208E'
-toSubscript c
-  | c >= '0' && c <= '9' =
-                 Just $ chr (0x2080 + (ord c - 48))
-  | isSpace c = Just c
-  | otherwise = Nothing
 
 lineBreakToSpace :: Inline -> Inline
 lineBreakToSpace LineBreak = Space
