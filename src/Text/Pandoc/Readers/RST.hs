@@ -665,11 +665,13 @@ directive' = do
   optional blanklines
   let body' = body ++ "\n\n"
       name = trim $ fromMaybe "" (lookup "name" fields)
-      imgAttr cl = ("", classes, widthAttr ++ heightAttr)
+      classes = words $ maybe "" trim (lookup "class" fields)
+      keyvals = [(k, trim v) | (k, v) <- fields, k /= "name", k /= "class"]
+      imgAttr cl = ("", classes ++ alignClasses, widthAttr ++ heightAttr)
         where
-          classes = words $ maybe "" trim (lookup cl fields) ++
-                      maybe "" (\x -> "align-" ++ trim x)
-                        (lookup "align" fields)
+          alignClasses = words $ maybe "" trim (lookup cl fields) ++
+                          maybe "" (\x -> "align-" ++ trim x)
+                          (lookup "align" fields)
           scale = case trim <$> lookup "scale" fields of
                        Just v  -> case reverse v of
                                        '%':vv ->
@@ -698,8 +700,9 @@ directive' = do
         "line-block" -> lineBlockDirective body'
         "raw" -> return $ B.rawBlock (trim top) (stripTrailingNewlines body)
         "role" -> addNewRole top $ map (second trim) fields
-        "container" -> B.divWith (name, "container" : words top, []) <$>
-                            parseFromString' parseBlocks body'
+        "container" -> B.divWith
+                         (name, "container" : words top ++ classes, []) <$>
+                          parseFromString' parseBlocks body'
         "replace" -> B.para <$>  -- consumed by substKey
                    parseInlineFromString (trim top)
         "unicode" -> B.para <$>  -- consumed by substKey
@@ -717,7 +720,7 @@ directive' = do
                              (l:ls) -> B.divWith ("",["admonition-title"],[])
                                           (B.para (B.str (toUpper l : ls)))
                              [] -> mempty
-              return $ B.divWith ("",[label],[]) (lab <> bod)
+              return $ B.divWith (name,label:classes,keyvals) (lab <> bod)
         "sidebar" ->
            do let subtit = maybe "" trim $ lookup "subtitle" fields
               tit <- B.para . B.strong <$> parseInlineFromString
@@ -725,21 +728,21 @@ directive' = do
                                           then ""
                                           else (":  " ++ subtit))
               bod <- parseFromString' parseBlocks body'
-              return $ B.divWith ("",["sidebar"],[]) $ tit <> bod
+              return $ B.divWith (name,"sidebar":classes,keyvals) $ tit <> bod
         "topic" ->
            do tit <- B.para . B.strong <$> parseInlineFromString top
               bod <- parseFromString' parseBlocks body'
-              return $ B.divWith ("",["topic"],[]) $ tit <> bod
+              return $ B.divWith (name,"topic":classes,keyvals) $ tit <> bod
         "default-role" -> mempty <$ updateState (\s ->
                               s { stateRstDefaultRole =
                                   case trim top of
                                      ""   -> stateRstDefaultRole def
                                      role -> role })
         x | x == "code" || x == "code-block" ->
-          codeblock (words $ fromMaybe [] $ lookup "class" fields)
+          codeblock name classes
                     (lookup "number-lines" fields) (trim top) body
         "aafig" -> do
-          let attribs = ("", ["aafig"], map (second trimr) fields)
+          let attribs = (name, ["aafig"], map (second trimr) fields)
           return $ B.codeBlockWith attribs $ stripTrailingNewlines body
         "math" -> return $ B.para $ mconcat $ map B.displayMath
                          $ toChunks $ top ++ "\n\n" ++ body
@@ -758,8 +761,7 @@ directive' = do
                                      $ B.imageWith attr src "" alt
                           Nothing -> B.imageWith attr src "" alt
         "class" -> do
-            let attrs = ("", splitBy isSpace $ trim top,
-                              map (second trimr) fields)
+            let attrs = (name, words (trim top), map (second trimr) fields)
             --  directive content or the first immediately following element
             children <- case body of
                 "" -> block
@@ -769,7 +771,7 @@ directive' = do
             pos <- getPosition
             logMessage $ SkippedContent (".. " ++ other) pos
             bod <- parseFromString' parseBlocks $ top ++ "\n\n" ++ body'
-            return $ B.divWith ("",[other],[]) bod
+            return $ B.divWith (name, other:classes, keyvals) bod
 
 tableDirective :: PandocMonad m
                => String -> [(String, String)] -> String -> RSTParser m Blocks
@@ -989,10 +991,11 @@ toChunks = dropWhile null
                           then "\\begin{aligned}\n" ++ s ++ "\n\\end{aligned}"
                           else s
 
-codeblock :: [String] -> Maybe String -> String -> String -> RSTParser m Blocks
-codeblock classes numberLines lang body =
+codeblock :: String -> [String] -> Maybe String -> String -> String
+          -> RSTParser m Blocks
+codeblock ident classes numberLines lang body =
   return $ B.codeBlockWith attribs $ stripTrailingNewlines body
-    where attribs = ("", classes', kvs)
+    where attribs = (ident, classes', kvs)
           classes' = "sourceCode" : lang
                     : maybe [] (const ["numberLines"]) numberLines
                     ++ classes
