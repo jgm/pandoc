@@ -74,6 +74,7 @@ import Text.Printf (printf)
 import Text.XML.Light (Attr (..), Element (..), Node (..), QName (..),
                        add_attrs, lookupAttr, node, onlyElems, parseXML,
                        ppElement, showElement, strContent, unode, unqual)
+import Text.Pandoc.XML (escapeStringForXML)
 
 -- A Chapter includes a list of blocks and maybe a section
 -- number offset.  Note, some chapters are unnumbered. The section
@@ -446,7 +447,8 @@ pandocToEPUB version opts doc@(Pandoc meta _) = do
                        cpContent <- lift $ writeHtml
                             opts'{ writerVariables =
                                     ("coverpage","true"):
-                                    ("pagetitle",plainTitle):
+                                    ("pagetitle",
+                                       escapeStringForXML plainTitle):
                                      cssvars True ++ vars }
                             (Pandoc meta [RawBlock (Format "html") $ "<div id=\"cover-image\">\n<img src=\"../media/" ++ coverImage ++ "\" alt=\"cover image\" />\n</div>"])
                        imgContent <- lift $ P.readFileLazy img
@@ -459,7 +461,8 @@ pandocToEPUB version opts doc@(Pandoc meta _) = do
   -- title page
   tpContent <- lift $ writeHtml opts'{
                                   writerVariables = ("titlepage","true"):
-                                  ("pagetitle",plainTitle):
+                                  ("body-type", "frontmatter"):
+                                  ("pagetitle", escapeStringForXML plainTitle):
                                   cssvars True ++ vars }
                                (Pandoc meta [])
   tpEntry <- mkEntry "text/title_page.xhtml" tpContent
@@ -563,13 +566,28 @@ pandocToEPUB version opts doc@(Pandoc meta _) = do
   let chapToEntry num (Chapter mbnum bs) =
         mkEntry ("text/" ++ showChapter num) =<<
         writeHtml opts'{ writerNumberOffset = fromMaybe [] mbnum
-                       , writerVariables = cssvars True ++ vars }
-                 (case bs of
-                     (Header _ _ xs : _) ->
+                       , writerVariables = ("body-type", bodyType) :
+                                           cssvars True ++ vars } pdoc
+         where (pdoc, bodyType) =
+                 case bs of
+                     (Header _ (_,_,kvs) xs : _) ->
                        -- remove notes or we get doubled footnotes
-                       Pandoc (setMeta "title" (walk removeNote $ fromList xs)
-                                 nullMeta) bs
-                     _                   -> Pandoc nullMeta bs)
+                       (Pandoc (setMeta "title"
+                           (walk removeNote $ fromList xs) nullMeta) bs,
+                        case lookup "epub:type" kvs of
+                             Nothing -> "bodymatter"
+                             Just x
+                               | x `elem` frontMatterTypes -> "frontmatter"
+                               | x `elem` backMatterTypes  -> "backmatter"
+                               | otherwise                 -> "bodymatter")
+                     _                   -> (Pandoc nullMeta bs, "bodymatter")
+               frontMatterTypes = ["prologue", "abstract", "acknowledgments",
+                                   "copyright-page", "dedication",
+                                   "foreword", "halftitle",
+                                   "introduction", "preface",
+                                   "seriespage", "titlepage"]
+               backMatterTypes = ["afterword", "appendix", "colophon",
+                                  "conclusion", "epigraph"]
 
   chapterEntries <- zipWithM chapToEntry [1..] chapters
 
@@ -754,7 +772,8 @@ pandocToEPUB version opts doc@(Pandoc meta _) = do
                                (writeHtmlStringForEPUB version
                                  opts{ writerTemplate = Nothing
                                      , writerVariables =
-                                       ("pagetitle",plainTitle):
+                                       ("pagetitle",
+                                         escapeStringForXML plainTitle):
                                        writerVariables opts}
                                  (Pandoc nullMeta
                                    [Plain $ walk clean tit])) of
@@ -782,7 +801,7 @@ pandocToEPUB version opts doc@(Pandoc meta _) = do
                                 [ unode "a" ! [("href", "text/cover.xhtml")
                                               ,("epub:type", "cover")] $
                                   "Cover"] |
-                                  epubCoverImage metadata /= Nothing
+                                  isJust (epubCoverImage metadata)
                               ] ++
                               [ unode "li"
                                 [ unode "a" ! [("href", "#toc")

@@ -10,11 +10,11 @@ title: Pandoc Lua Filters
 
 Pandoc has long supported filters, which allow the pandoc
 abstract syntax tree (AST) to be manipulated between the parsing
-and the writing phase. Traditional pandoc filters accept a JSON
-representation of the pandoc AST and produce an altered JSON
-representation of the AST. They may be written in any
-programming language, and invoked from pandoc using the
-`--filter` option.
+and the writing phase. [Traditional pandoc
+filters](filters.html) accept a JSON representation of the
+pandoc AST and produce an altered JSON representation of the
+AST. They may be written in any programming language, and
+invoked from pandoc using the `--filter` option.
 
 Although traditional filters are very flexible, they have a
 couple of disadvantages. First, there is some overhead in
@@ -114,7 +114,7 @@ The return of a filter function must one of the following:
 -   a pandoc object: this must be of the same type as the input
     and will replace the original object.
 -   a list of pandoc objects: these will replace the original
-    object; the list is merged with the neighbors of the orignal
+    object; the list is merged with the neighbors of the original
     objects (spliced into the list the original object belongs
     to); returning an empty list deletes the object.
 
@@ -239,6 +239,11 @@ This makes it possible to apply these functions on strings using
 colon syntax (`mystring:uc_upper()`).
 
 # Examples
+
+The following filters are presented as examples.
+A repository of useful lua filters (which may also serve
+as good examples) is available at
+<https://github.com/pandoc/lua-filters>.
 
 ## Macro substitution.
 
@@ -948,7 +953,7 @@ Lua functions for pandoc scripts.
     Parameters:
 
     `text`:
-    :   brief image description
+    :   code string
 
     `attr`:
     :   additional attributes
@@ -1437,6 +1442,37 @@ Lua functions for pandoc scripts.
 
 This module exposes internal pandoc functions and utility
 functions.
+
+[`blocks_to_inlines (blocks[, sep])`]{#utils-blocks_to_inlines}
+
+:   Squash a list of blocks into a list of inlines.
+
+    Parameters:
+
+    `blocks`:
+    :   List of blocks to be flattened.
+
+    `sep`:
+    :   List of inlines inserted as separator between two
+        consecutive blocks; defaults to `{ pandoc.Space(),
+        pandoc.Str'¶', pandoc.Space()}`.
+
+    Returns:
+
+    -   ({[Inline][#Inline]}) List of inlines
+
+    Usage:
+
+        local blocks = {
+          pandoc.Para{ pandoc.Str 'Paragraph1' },
+          pandoc.Para{ pandoc.Emph 'Paragraph2' }
+        }
+        local inlines = pandoc.utils.blocks_to_inlines(blocks)
+        -- inlines = {
+        --   pandoc.Str 'Paragraph1',
+        --   pandoc.Space(), pandoc.Str'¶', pandoc.Space(),
+        --   pandoc.Emph{ pandoc.Str 'Paragraph2' }
+        -- }
 
 [`hierarchicalize (blocks)`]{#utils-hierarchicalize}
 

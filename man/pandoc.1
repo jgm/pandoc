@@ -1,5 +1,5 @@
 .\"t
-.TH PANDOC 1 "May 10, 2018" "pandoc 2.2.1"
+.TH PANDOC 1 "September 27, 2018" "pandoc 2.3.1"
 .SH NAME
 pandoc - general markup converter
 .SH SYNOPSIS
@@ -187,8 +187,9 @@ requires \f[C]fontspec\f[].
 If the \f[C]mathspec\f[] variable is set, \f[C]xelatex\f[] will use
 \f[C]mathspec\f[] instead of \f[C]unicode\-math\f[].
 The \f[C]upquote\f[] and \f[C]microtype\f[] packages are used if
-available, and \f[C]csquotes\f[] will be used for typography if added to
-the template or included in any header file.
+available, and \f[C]csquotes\f[] will be used for typography if
+\f[C]\\usepackage{csquotes}\f[] is present in the template or included
+via \f[C]/H/\-\-include\-in\-header\f[].
 The \f[C]natbib\f[], \f[C]biblatex\f[], \f[C]bibtex\f[], and
 \f[C]biber\f[] packages can optionally be used for citation rendering.
 .SS Reading from the Web
@@ -231,10 +232,9 @@ Specify input format.
 .IP \[bu] 2
 \f[C]fb2\f[] (FictionBook2 e\-book)
 .IP \[bu] 2
-\f[C]gfm\f[] (GitHub\-Flavored Markdown), or \f[C]markdown_github\f[],
-which provides deprecated and less accurate support for Github\-Flavored
-Markdown; please use \f[C]gfm\f[] instead, unless you need to use
-extensions other than \f[C]smart\f[].
+\f[C]gfm\f[] (GitHub\-Flavored Markdown), or the deprecated and less
+accurate \f[C]markdown_github\f[]; use \f[C]markdown_github\f[] only if
+you need extensions not supported in \f[C]gfm\f[].
 .IP \[bu] 2
 \f[C]haddock\f[] (Haddock markup)
 .IP \[bu] 2
@@ -312,10 +312,9 @@ Specify output format.
 .IP \[bu] 2
 \f[C]fb2\f[] (FictionBook2 e\-book)
 .IP \[bu] 2
-\f[C]gfm\f[] (GitHub\-Flavored Markdown), or \f[C]markdown_github\f[],
-which provides deprecated and less accurate support for Github\-Flavored
-Markdown; please use \f[C]gfm\f[] instead, unless you use extensions
-that do not work with \f[C]gfm\f[].
+\f[C]gfm\f[] (GitHub\-Flavored Markdown), or the deprecated and less
+accurate \f[C]markdown_github\f[]; use \f[C]markdown_github\f[] only if
+you need extensions not supported in \f[C]gfm\f[].
 .IP \[bu] 2
 \f[C]haddock\f[] (Haddock markup)
 .IP \[bu] 2
@@ -556,7 +555,7 @@ Reading binary files (docx, odt, epub) implies \f[C]\-\-file\-scope\f[].
 .RS
 .RE
 .TP
-.B \f[C]\-\-filter=\f[]\f[I]PROGRAM\f[]
+.B \f[C]\-F\f[] \f[I]PROGRAM\f[], \f[C]\-\-filter=\f[]\f[I]PROGRAM\f[]
 Specify an executable to be used as a filter transforming the pandoc AST
 after the input is parsed and before the output is written.
 The executable should read JSON from stdin and write JSON to stdout.
@@ -659,6 +658,17 @@ escaped when inserted into the template.
 .RS
 .RE
 .TP
+.B \f[C]\-\-metadata\-file=\f[]\f[I]FILE\f[]
+Read metadata from the supplied YAML (or JSON) file.
+This option can be used with every input format, but string scalars in
+the YAML file will always be parsed as Markdown.
+Generally, the input will be handled the same as in YAML metadata
+blocks.
+Metadata values specified inside the document, or by using \f[C]\-M\f[],
+overwrite values specified with this option.
+.RS
+.RE
+.TP
 .B \f[C]\-p\f[], \f[C]\-\-preserve\-tabs\f[]
 Preserve tabs instead of converting them to spaces (the default).
 Note that this will only affect tabs in literal code spans and code
@@ -731,8 +741,8 @@ otherwise, metadata is suppressed.
 .RS
 .RE
 .TP
-.B \f[C]\-\-template=\f[]\f[I]FILE\f[]
-Use \f[I]FILE\f[] as a custom template for the generated document.
+.B \f[C]\-\-template=\f[]\f[I]FILE\f[]|\f[I]URL\f[]
+Use the specified file as a custom template for the generated document.
 Implies \f[C]\-\-standalone\f[].
 See Templates, below, for a description of template syntax.
 If no extension is specified, an extension corresponding to the writer
@@ -815,7 +825,8 @@ Include an automatically generated table of contents (or, in the case of
 \f[C]latex\f[], \f[C]context\f[], \f[C]docx\f[], \f[C]odt\f[],
 \f[C]opendocument\f[], \f[C]rst\f[], or \f[C]ms\f[], an instruction to
 create one) in the output document.
-This option has no effect on \f[C]man\f[], \f[C]docbook4\f[],
+This option has no effect unless \f[C]\-s/\-\-standalone\f[] is used,
+and it has no effect on \f[C]man\f[], \f[C]docbook4\f[],
 \f[C]docbook5\f[], or \f[C]jats\f[] output.
 .RS
 .RE
@@ -921,12 +932,19 @@ directory must be explicitly listed or it will not be searched.
 For example: \f[C]\-\-resource\-path=.:test\f[] will search the working
 directory and the \f[C]test\f[] subdirectory, in that order.
 .RS
+.PP
+\f[C]\-\-resource\-path\f[] only has an effect if (a) the output format
+embeds images (for example, \f[C]docx\f[], \f[C]pdf\f[], or
+\f[C]html\f[] with \f[C]\-\-self\-contained\f[]) or (b) it is used
+together with \f[C]\-\-extract\-media\f[].
 .RE
 .TP
 .B \f[C]\-\-request\-header=\f[]\f[I]NAME\f[]\f[C]:\f[]\f[I]VAL\f[]
 Set the request header \f[I]NAME\f[] to the value \f[I]VAL\f[] when
 making HTTP requests (for example, when a URL is given on the command
 line, or when resources used in a document must be downloaded).
+If you\[aq]re behind a proxy, you also need to set the environment
+variable \f[C]http_proxy\f[] to \f[C]http://...\f[].
 .RS
 .RE
 .SS Options affecting specific writers
@@ -1037,7 +1055,11 @@ Implies \f[C]\-\-number\-sections\f[].
 .RE
 .TP
 .B \f[C]\-\-listings\f[]
-Use the \f[C]listings\f[] package for LaTeX code blocks
+Use the \f[C]listings\f[] package for LaTeX code blocks.
+The package does not support multi\-byte encoding for source code.
+To handle UTF\-8 you would need to use a custom template.
+This issue is fully documented here: Encoding issue with the listings
+package.
 .RS
 .RE
 .TP
@@ -1402,16 +1424,10 @@ without native math support.
 .B \f[C]\-\-katex\f[][\f[C]=\f[]\f[I]URL\f[]]
 Use KaTeX to display embedded TeX math in HTML output.
 The \f[I]URL\f[] is the base URL for the KaTeX library.
+That directory should contain a \f[C]katex.min.js\f[] and a
+\f[C]katex.min.css\f[] file.
 If a \f[I]URL\f[] is not provided, a link to the KaTeX CDN will be
 inserted.
-.RS
-.RE
-.TP
-.B \f[C]\-\-katex\-stylesheet=\f[]\f[I]URL\f[]
-The \f[I]URL\f[] should point to the \f[C]katex.css\f[] stylesheet.
-If this option is not specified, a link to the KaTeX CDN will be
-inserted.
-Note that this option does not imply \f[C]\-\-katex\f[].
 .RS
 .RE
 .TP
@@ -1594,7 +1610,7 @@ specified
 .TP
 .B \f[C]toc\-title\f[]
 title of table of contents (works only with EPUB, opendocument, odt,
-docx, pptx)
+docx, pptx, beamer, LaTeX)
 .RS
 .RE
 .TP
@@ -1825,15 +1841,16 @@ options to pass to the microtype package
 .TP
 .B \f[C]colorlinks\f[]
 add color to link text; automatically enabled if any of
-\f[C]linkcolor\f[], \f[C]citecolor\f[], \f[C]urlcolor\f[], or
-\f[C]toccolor\f[] are set
+\f[C]linkcolor\f[], \f[C]filecolor\f[], \f[C]citecolor\f[],
+\f[C]urlcolor\f[], or \f[C]toccolor\f[] are set
 .RS
 .RE
 .TP
-.B \f[C]linkcolor\f[], \f[C]citecolor\f[], \f[C]urlcolor\f[], \f[C]toccolor\f[]
-color for internal links, citation links, external links, and links in
-table of contents: uses options allowed by \f[C]xcolor\f[], including
-the \f[C]dvipsnames\f[], \f[C]svgnames\f[], and \f[C]x11names\f[] lists
+.B \f[C]linkcolor\f[], \f[C]filecolor\f[], \f[C]citecolor\f[], \f[C]urlcolor\f[], \f[C]toccolor\f[]
+color for internal links, external links, citation links, linked URLs,
+and links in table of contents, respectively: uses options allowed by
+\f[C]xcolor\f[], including the \f[C]dvipsnames\f[], \f[C]svgnames\f[],
+and \f[C]x11names\f[] lists
 .RS
 .RE
 .TP
@@ -2109,11 +2126,9 @@ any number (including zero),
 any object,
 .IP \[bu] 2
 the boolean \f[C]true\f[] (to specify the boolean \f[C]true\f[] value
-using YAML metadata or the \f[C]\-\-metadata\f[] flag, use \f[C]y\f[],
-\f[C]Y\f[], \f[C]yes\f[], \f[C]Yes\f[], \f[C]YES\f[], \f[C]true\f[],
-\f[C]True\f[], \f[C]TRUE\f[], \f[C]on\f[], \f[C]On\f[], or \f[C]ON\f[];
-with the \f[C]\-\-variable\f[] flag, simply omit a value for the
-variable, e.g.
+using YAML metadata or the \f[C]\-\-metadata\f[] flag, use
+\f[C]true\f[], \f[C]True\f[], or \f[C]TRUE\f[]; with the
+\f[C]\-\-variable\f[] flag, simply omit a value for the variable, e.g.
 \f[C]\-\-variable\ draft\f[]).
 .PP
 \f[C]X\f[] and \f[C]Y\f[] are placeholders for any valid template text,
@@ -2360,12 +2375,13 @@ This extension can be enabled/disabled for the following formats (in
 addition to \f[C]markdown\f[]):
 .TP
 .B input formats
-\f[C]latex\f[], \f[C]org\f[], \f[C]textile\f[]
+\f[C]latex\f[], \f[C]org\f[], \f[C]textile\f[], \f[C]html\f[]
+(environments, \f[C]\\ref\f[], and \f[C]\\eqref\f[] only)
 .RS
 .RE
 .TP
 .B output formats
-\f[C]textile\f[]
+\f[C]textile\f[], \f[C]commonmark\f[]
 .RS
 .RE
 .SS Extension: \f[C]native_divs\f[]
@@ -3772,14 +3788,20 @@ pandoc\ chap1.md\ chap2.md\ chap3.md\ metadata.yaml\ \-s\ \-o\ book.html
 .fi
 .PP
 Just be sure that the YAML file begins with \f[C]\-\-\-\f[] and ends
-with \f[C]\-\-\-\f[] or \f[C]\&...\f[].)
+with \f[C]\-\-\-\f[] or \f[C]\&...\f[].) Alternatively, you can use the
+\f[C]\-\-metadata\-file\f[] option.
+Using that approach however, you cannot reference content (like
+footnotes) from the main markdown input document.
 .PP
 Metadata will be taken from the fields of the YAML object and added to
 any existing document metadata.
 Metadata can contain lists and objects (nested arbitrarily), but all
 string scalars will be interpreted as Markdown.
 Fields with names ending in an underscore will be ignored by pandoc.
-(They may be given a role by external processors.)
+(They may be given a role by external processors.) Field names must not
+be interpretable as YAML numbers or boolean values (so, for example,
+\f[C]yes\f[], \f[C]True\f[], and \f[C]15\f[] cannot be used as field
+names).
 .PP
 A document may contain multiple metadata blocks.
 The metadata fields will be combined through a \f[I]left\-biased
@@ -3806,7 +3828,7 @@ title:\ \ \[aq]This\ is\ the\ title:\ it\ contains\ a\ colon\[aq]
 author:
 \-\ Author\ One
 \-\ Author\ Two
-tags:\ [nothing,\ nothingness]
+keywords:\ [nothing,\ nothingness]
 abstract:\ |
 \ \ This\ is\ the\ abstract.
 
@@ -4094,8 +4116,15 @@ delimiters.
 TeX math will be printed in all output formats.
 How it is rendered depends on the output format:
 .TP
-.B Markdown, LaTeX, Emacs Org mode, ConTeXt, ZimWiki
-It will appear verbatim between \f[C]$\f[] characters.
+.B LaTeX
+It will appear verbatim surrounded by \f[C]\\(...\\)\f[] (for inline
+math) or \f[C]\\[...\\]\f[] (for display math).
+.RS
+.RE
+.TP
+.B Markdown, Emacs Org mode, ConTeXt, ZimWiki
+It will appear verbatim surrounded by \f[C]$...$\f[] (for inline math)
+or \f[C]$$...$$\f[] (for display math).
 .RS
 .RE
 .TP
@@ -5017,8 +5046,8 @@ nocite:\ |
 \f[]
 .fi
 .PP
-For LaTeX or PDF output, you can also use \f[C]natbib\f[] or
-\f[C]biblatex\f[] to render bibliography.
+For LaTeX output, you can also use \f[C]natbib\f[] or \f[C]biblatex\f[]
+to render the bibliography.
 In order to do so, specify bibliography files as outlined above, and add
 \f[C]\-\-natbib\f[] or \f[C]\-\-biblatex\f[] argument to \f[C]pandoc\f[]
 invocation.
@@ -5230,7 +5259,7 @@ Also, \f[C]raw_tex\f[] only affects \f[C]gfm\f[] output, not input.
 .TP
 .B \f[C]gfm\f[] (GitHub\-Flavored Markdown)
 \f[C]pipe_tables\f[], \f[C]raw_html\f[], \f[C]fenced_code_blocks\f[],
-\f[C]auto_identifiers\f[], \f[C]ascii_identifiers\f[],
+\f[C]gfm_auto_identifiers\f[], \f[C]ascii_identifiers\f[],
 \f[C]backtick_code_blocks\f[], \f[C]autolink_bare_uris\f[],
 \f[C]intraword_underscores\f[], \f[C]strikeout\f[],
 \f[C]hard_line_breaks\f[], \f[C]emoji\f[],
@@ -5551,33 +5580,40 @@ introducing the slide:
 All of the other frame attributes described in Section 8.1 of the Beamer
 User\[aq]s Guide may also be used: \f[C]allowdisplaybreaks\f[],
 \f[C]allowframebreaks\f[], \f[C]b\f[], \f[C]c\f[], \f[C]t\f[],
-\f[C]environment\f[], \f[C]label\f[], \f[C]plain\f[], \f[C]shrink\f[].
-.SS Background in reveal.js
+\f[C]environment\f[], \f[C]label\f[], \f[C]plain\f[], \f[C]shrink\f[],
+\f[C]standout\f[], \f[C]noframenumbering\f[].
+.SS Background in reveal.js and beamer
 .PP
-Background images can be added to self\-contained reveal.js slideshows.
+Background images can be added to self\-contained reveal.js slideshows
+and to beamer slideshows.
 .PP
-For the same image on every slide, use the reveal.js configuration
-option \f[C]parallaxBackgroundImage\f[] either in the YAML metadata
-block or as a command\-line variable.
+For the same image on every slide, use the configuration option
+\f[C]background\-image\f[] either in the YAML metadata block or as a
+command\-line variable.
+(There are no other options in beamer and the rest of this section
+concerns reveal.js slideshows.)
+.PP
+For reveal.js, you can instead use the reveal.js\-native option
+\f[C]parallaxBackgroundImage\f[].
 You can also set \f[C]parallaxBackgroundHorizontal\f[] and
 \f[C]parallaxBackgroundVertical\f[] the same way and must also set
 \f[C]parallaxBackgroundSize\f[] to have your values take effect.
 .PP
-To set an image for a particular slide, add
+To set an image for a particular reveal.js slide, add
 \f[C]{data\-background\-image="/path/to/image"}\f[] to the first
 slide\-level header on the slide (which may even be empty).
 .PP
 In reveal.js\[aq]s overview mode, the parallaxBackgroundImage will show
 up only on the first slide.
 .PP
-Other background settings also work on individual slides, including
-\f[C]data\-background\-size\f[], \f[C]data\-background\-repeat\f[],
-\f[C]data\-background\-color\f[], \f[C]data\-transition\f[], and
-\f[C]data\-transition\-speed\f[].
+Other reveal.js background settings also work on individual slides,
+including \f[C]data\-background\-size\f[],
+\f[C]data\-background\-repeat\f[], \f[C]data\-background\-color\f[],
+\f[C]data\-transition\f[], and \f[C]data\-transition\-speed\f[].
 .PP
 See the reveal.js documentation for more details.
 .PP
-For example:
+For example in reveal.js:
 .IP
 .nf
 \f[C]
@@ -5748,11 +5784,129 @@ iBooks\-specific metadata, with the following fields:
 \f[C]scroll\-axis\f[]:
 \f[C]vertical\f[]|\f[C]horizontal\f[]|\f[C]default\f[]
 .RE
+.SS The \f[C]epub:type\f[] attribute
+.PP
+For \f[C]epub3\f[] output, you can mark up the header that corresponds
+to an EPUB chapter using the \f[C]epub:type\f[] attribute.
+For example, to set the attribute to the value \f[C]prologue\f[], use
+this markdown:
+.IP
+.nf
+\f[C]
+#\ My\ chapter\ {epub:type=prologue}
+\f[]
+.fi
+.PP
+Which will result in:
+.IP
+.nf
+\f[C]
+<body\ epub:type="frontmatter">
+\ \ <section\ epub:type="prologue">
+\ \ \ \ <h1>My\ chapter</h1>
+\f[]
+.fi
+.PP
+Pandoc will output \f[C]<body\ epub:type="bodymatter">\f[], unless you
+use one of the following values, in which case either
+\f[C]frontmatter\f[] or \f[C]backmatter\f[] will be output.
+.PP
+.TS
+tab(@);
+l l.
+T{
+\f[C]epub:type\f[] of first section
+T}@T{
+\f[C]epub:type\f[] of body
+T}
+_
+T{
+prologue
+T}@T{
+frontmatter
+T}
+T{
+abstract
+T}@T{
+frontmatter
+T}
+T{
+acknowledgments
+T}@T{
+frontmatter
+T}
+T{
+copyright\-page
+T}@T{
+frontmatter
+T}
+T{
+dedication
+T}@T{
+frontmatter
+T}
+T{
+foreword
+T}@T{
+frontmatter
+T}
+T{
+halftitle,
+T}@T{
+frontmatter
+T}
+T{
+introduction
+T}@T{
+frontmatter
+T}
+T{
+preface
+T}@T{
+frontmatter
+T}
+T{
+seriespage
+T}@T{
+frontmatter
+T}
+T{
+titlepage
+T}@T{
+frontmatter
+T}
+T{
+afterword
+T}@T{
+backmatter
+T}
+T{
+appendix
+T}@T{
+backmatter
+T}
+T{
+colophon
+T}@T{
+backmatter
+T}
+T{
+conclusion
+T}@T{
+backmatter
+T}
+T{
+epigraph
+T}@T{
+backmatter
+T}
+.TE
 .SS Linked media
 .PP
-By default, pandoc will download linked media (including audio and
-video) and include it in the EPUB container, yielding a completely
-self\-contained EPUB.
+By default, pandoc will download media referenced from any
+\f[C]<img>\f[], \f[C]<audio>\f[], \f[C]<video>\f[] or \f[C]<source>\f[]
+element present in the generated EPUB, and include it in the EPUB
+container, yielding a completely self\-contained EPUB.
 If you want to link to external media resources instead, use raw HTML in
 your source and add \f[C]data\-external="1"\f[] to the tag with the
 \f[C]src\f[] attribute.
@@ -5771,8 +5925,9 @@ For example:
 .PP
 Pandoc will automatically highlight syntax in fenced code blocks that
 are marked with a language name.
-The Haskell library skylighting is used for highlighting, which works in
-HTML, Docx, Ms, and LaTeX/PDF output.
+The Haskell library skylighting is used for highlighting.
+Currently highlighting is supported only for HTML, EPUB, Docx, Ms, and
+LaTeX/PDF output.
 To see a list of language names that pandoc will recognize, type
 \f[C]pandoc\ \-\-list\-highlight\-languages\f[].
 .PP
@@ -5783,6 +5938,33 @@ default color scheme used by the Python library pygments (though
 pygments is not actually used to do the highlighting).
 To see a list of highlight styles, type
 \f[C]pandoc\ \-\-list\-highlight\-styles\f[].
+.PP
+If you are not satisfied with the predefined styles, you can use
+\f[C]\-\-print\-highlight\-style\f[] to generate a JSON
+\f[C]\&.theme\f[] file which can be modified and used as the argument to
+\f[C]\-\-highlight\-style\f[].
+To get a JSON version of the \f[C]pygments\f[] style, for example:
+.IP
+.nf
+\f[C]
+pandoc\ \-\-print\-highlight\-style\ pygments\ >\ my.theme
+\f[]
+.fi
+.PP
+Then edit \f[C]my.theme\f[] and use it like this:
+.IP
+.nf
+\f[C]
+pandoc\ \-\-highlight\-style\ my.theme
+\f[]
+.fi
+.PP
+If you are not satisfied with the built\-in highlighting, or you want
+highlight a language that isn\[aq]t supported, you can use the
+\f[C]\-\-syntax\-definition\f[] option to load a KDE\-style XML syntax
+definition file.
+Before writing your own, have a look at KDE\[aq]s repository of syntax
+definitions.
 .PP
 To disable highlighting, use the \f[C]\-\-no\-highlight\f[] option.
 .SH CUSTOM STYLES IN DOCX

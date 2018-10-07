@@ -50,13 +50,13 @@ import Prelude
 import Control.Monad.State.Strict
 import Data.Char (ord, toLower)
 import Data.List (intercalate, intersperse, isPrefixOf, partition)
-import Data.Maybe (catMaybes, fromMaybe, isJust, isNothing)
+import Data.Maybe (catMaybes, fromMaybe, isJust, isNothing, mapMaybe)
 import qualified Data.Set as Set
 import Data.String (fromString)
 import Data.Text (Text)
 import qualified Data.Text.Lazy as TL
 import Network.HTTP (urlEncode)
-import Network.URI (URI (..), parseURIReference, unEscapeString)
+import Network.URI (URI (..), parseURIReference)
 import Numeric (showHex)
 import Text.Blaze.Internal (customLeaf, customParent, MarkupM(Empty))
 #if MIN_VERSION_blaze_markup(0,6,3)
@@ -75,7 +75,7 @@ import Text.Pandoc.Templates
 import Text.Pandoc.Walk
 import Text.Pandoc.Writers.Math
 import Text.Pandoc.Writers.Shared
-import Text.Pandoc.XML (escapeStringForXML, fromEntities)
+import Text.Pandoc.XML (escapeStringForXML, fromEntities, toEntities)
 #if MIN_VERSION_blaze_markup(0,6,3)
 #else
 import Text.Blaze.Internal (preEscapedString, preEscapedText)
@@ -206,7 +206,8 @@ writeHtmlString' :: PandocMonad m
                  => WriterState -> WriterOptions -> Pandoc -> m Text
 writeHtmlString' st opts d = do
   (body, context) <- evalStateT (pandocToHtml opts d) st
-  case writerTemplate opts of
+  (if writerPreferAscii opts then toEntities else id) <$>
+    case writerTemplate opts of
        Nothing -> return $ renderHtml' body
        Just tpl -> do
          -- warn if empty lang
@@ -221,16 +222,19 @@ writeHtmlString' st opts d = do
                            lookup "sourcefile" (writerVariables opts)
                    report $ NoTitleElement fallback
                    return $ resetField "pagetitle" fallback context
-         renderTemplate' tpl $
-                    defField "body" (renderHtml' body) context'
+         renderTemplate' tpl
+             (defField "body" (renderHtml' body) context')
 
 writeHtml' :: PandocMonad m => WriterState -> WriterOptions -> Pandoc -> m Html
 writeHtml' st opts d =
   case writerTemplate opts of
        Just _ -> preEscapedText <$> writeHtmlString' st opts d
-       Nothing  -> do
-        (body, _) <- evalStateT (pandocToHtml opts d) st
-        return body
+       Nothing
+         | writerPreferAscii opts
+            -> preEscapedText <$> writeHtmlString' st opts d
+         | otherwise -> do
+            (body, _) <- evalStateT (pandocToHtml opts d) st
+            return body
 
 -- result is (title, authors, date, toc, body, new variables)
 pandocToHtml :: PandocMonad m
@@ -259,7 +263,7 @@ pandocToHtml opts (Pandoc meta blocks) = do
   st <- get
   notes <- footnoteSection opts (reverse (stNotes st))
   let thebody = blocks' >> notes
-  let  math = case writerHTMLMathMethod opts of
+  let math = case writerHTMLMathMethod opts of
                       MathJax url
                         | slideVariant /= RevealJsSlides ->
                         -- mathjax is handled via a special plugin in revealjs
@@ -273,10 +277,10 @@ pandocToHtml opts (Pandoc meta blocks) = do
                       KaTeX url -> do
                          H.script !
                            A.src (toValue $ url ++ "katex.min.js") $ mempty
-                         H.script !
-                           A.src (toValue $ url ++ "contrib/auto-render.min.js") $ mempty
+                         nl opts
                          H.script
-                            "document.addEventListener(\"DOMContentLoaded\", function() {\n  renderMathInElement(document.body);\n});"
+                            "document.addEventListener(\"DOMContentLoaded\", function () {\n  var mathElements = document.getElementsByClassName(\"math\");\n  for (var i = 0; i < mathElements.length; i++) {\n    var texText = mathElements[i].firstChild;\n    if (mathElements[i].tagName == \"SPAN\") { katex.render(texText.data, mathElements[i], { displayMode: mathElements[i].classList.contains(\"display\"), throwOnError: false } );\n  }}});"
+                         nl opts
                          H.link ! A.rel "stylesheet" !
                            A.href (toValue $ url ++ "katex.min.css")
 
@@ -296,10 +300,11 @@ pandocToHtml opts (Pandoc meta blocks) = do
                   (if stMath st
                       then defField "math" (renderHtml' math)
                       else id) $
-                  defField "mathjax"
-                      (case writerHTMLMathMethod opts of
-                            MathJax _ -> True
-                            _         -> False) $
+                  (case writerHTMLMathMethod opts of
+                        MathJax u -> defField "mathjax" True .
+                                     defField "mathjaxurl"
+                                       (takeWhile (/='?') u)
+                        _         -> defField "mathjax" False) $
                   defField "quotes" (stQuotes st) $
                   -- for backwards compatibility we populate toc
                   -- with the contents of the toc, rather than a
@@ -460,7 +465,7 @@ elementToHtml slideLevel opts (Sec level num (id',classes,keyvals) title' elemen
        t <- addAttrs opts attr $
                    secttag header'
        return $
-         (if slideVariant == RevealJsSlides
+         (if slideVariant == RevealJsSlides && not (null innerContents)
                 then H5.section
                 else id) $ mconcat $ t : innerContents
      else if writerSectionDivs opts || slide
@@ -576,12 +581,23 @@ toAttrs :: PandocMonad m
         => [(String, String)] -> StateT WriterState m [Attribute]
 toAttrs kvs = do
   html5 <- gets stHtml5
-  return $ map (\(x,y) ->
-     customAttribute
-        (fromString (if not html5 || x `Set.member` html5Attributes
-                                  || "data-" `isPrefixOf` x
-                        then x
-                        else "data-" ++ x)) (toValue y)) kvs
+  mbEpubVersion <- gets stEPUBVersion
+  return $ mapMaybe (\(x,y) ->
+            if html5
+               then
+                  if x `Set.member` html5Attributes
+                     || ':' `elem` x -- e.g. epub: namespace
+                     || "data-" `isPrefixOf` x
+                     then Just $ customAttribute (fromString x) (toValue y)
+                     else Just $ customAttribute (fromString ("data-" ++ x))
+                                  (toValue y)
+               else
+                 if mbEpubVersion == Just EPUB2 &&
+                    not (x `Set.member` html4Attributes ||
+                         "xml:" `isPrefixOf` x)
+                    then Nothing
+                    else Just $ customAttribute (fromString x) (toValue y))
+            kvs
 
 attrsToHtml :: PandocMonad m
             => WriterOptions -> Attr -> StateT WriterState m [Attribute]
@@ -828,9 +844,7 @@ blockToHtml opts (OrderedList (startnum, numstyle, _) lst) = do
   return $ foldl (!) l attribs
 blockToHtml opts (DefinitionList lst) = do
   contents <- mapM (\(term, defs) ->
-                  do term' <- if null term
-                                 then return mempty
-                                 else liftM H.dt $ inlineListToHtml opts term
+                  do term' <- liftM H.dt $ inlineListToHtml opts term
                      defs' <- mapM (liftM (\x -> H.dd (x >> nl opts)) .
                                     blockListToHtml opts) defs
                      return $ mconcat $ nl opts : term' : nl opts :
@@ -1051,8 +1065,8 @@ inlineToHtml opts inline = do
                 DisplayMath -> "\\[" ++ str ++ "\\]"
            KaTeX _ -> return $ H.span ! A.class_ mathClass $ toHtml $
               case t of
-                InlineMath  -> "\\(" ++ str ++ "\\)"
-                DisplayMath -> "\\[" ++ str ++ "\\]"
+                InlineMath  -> str
+                DisplayMath -> str
            PlainMath -> do
               x <- lift (texMathToInlines t str) >>= inlineListToHtml opts
               let m = H.span ! A.class_ mathClass $ x
@@ -1084,10 +1098,7 @@ inlineToHtml opts inline = do
                                              in  '#' : prefix ++ xs
                                    _ -> s
                         let link = H.a ! A.href (toValue s') $ linkText
-                        let attr = if txt == [Str (unEscapeString s)]
-                                      then (ident, "uri" : classes, kvs)
-                                      else (ident, classes, kvs)
-                        link' <- addAttrs opts attr link
+                        link' <- addAttrs opts (ident, classes, kvs) link
                         return $ if null tit
                                     then link'
                                     else link' ! A.title (toValue tit)
@@ -1421,4 +1432,126 @@ html5Attributes = Set.fromList
   , "width"
   , "workertype"
   , "wrap"
+  ]
+
+html4Attributes :: Set.Set String
+html4Attributes = Set.fromList
+  [ "abbr"
+  , "accept"
+  , "accept-charset"
+  , "accesskey"
+  , "action"
+  , "align"
+  , "alink"
+  , "alt"
+  , "archive"
+  , "axis"
+  , "background"
+  , "bgcolor"
+  , "border"
+  , "cellpadding"
+  , "cellspacing"
+  , "char"
+  , "charoff"
+  , "charset"
+  , "checked"
+  , "cite"
+  , "class"
+  , "classid"
+  , "clear"
+  , "code"
+  , "codebase"
+  , "codetype"
+  , "color"
+  , "cols"
+  , "colspan"
+  , "compact"
+  , "content"
+  , "coords"
+  , "data"
+  , "datetime"
+  , "declare"
+  , "defer"
+  , "dir"
+  , "disabled"
+  , "enctype"
+  , "face"
+  , "for"
+  , "frame"
+  , "frameborder"
+  , "headers"
+  , "height"
+  , "href"
+  , "hreflang"
+  , "hspace"
+  , "http-equiv"
+  , "id"
+  , "ismap"
+  , "label"
+  , "lang"
+  , "language"
+  , "link"
+  , "longdesc"
+  , "marginheight"
+  , "marginwidth"
+  , "maxlength"
+  , "media"
+  , "method"
+  , "multiple"
+  , "name"
+  , "nohref"
+  , "noresize"
+  , "noshade"
+  , "nowrap"
+  , "object"
+  , "onblur"
+  , "onchange"
+  , "onclick"
+  , "ondblclick"
+  , "onfocus"
+  , "onkeydown"
+  , "onkeypress"
+  , "onkeyup"
+  , "onload"
+  , "onmousedown"
+  , "onmousemove"
+  , "onmouseout"
+  , "onmouseover"
+  , "onmouseup"
+  , "onreset"
+  , "onselect"
+  , "onsubmit"
+  , "onunload"
+  , "profile"
+  , "prompt"
+  , "readonly"
+  , "rel"
+  , "rev"
+  , "rows"
+  , "rowspan"
+  , "rules"
+  , "scheme"
+  , "scope"
+  , "scrolling"
+  , "selected"
+  , "shape"
+  , "size"
+  , "span"
+  , "src"
+  , "standby"
+  , "start"
+  , "style"
+  , "summary"
+  , "tabindex"
+  , "target"
+  , "text"
+  , "title"
+  , "usemap"
+  , "valign"
+  , "value"
+  , "valuetype"
+  , "version"
+  , "vlink"
+  , "vspace"
+  , "width"
   ]

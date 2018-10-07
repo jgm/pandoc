@@ -5,7 +5,7 @@ from John Gruber's markdown test suite.
 
 h1. Headers
 
-h2. Level 2 with an "embeded link":http://www.example.com
+h2. Level 2 with an "embedded link":http://www.example.com
 
 h3. Level 3 with *emphasis*
 

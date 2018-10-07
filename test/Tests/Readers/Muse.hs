@@ -39,9 +39,9 @@ makeRoundTrip x = x
 
 -- Demand that any AST produced by Muse reader and written by Muse writer can be read back exactly the same way.
 -- Currently we remove tables and compare first rewrite to the second.
-roundTrip :: Block -> Bool
+roundTrip :: Blocks -> Bool
 roundTrip b = d' == d''
-  where d = walk makeRoundTrip $ Pandoc nullMeta [b]
+  where d = walk makeRoundTrip $ Pandoc nullMeta $ toList b
         d' = rewrite d
         d'' = rewrite d'
         rewrite = amuse . T.pack . (++ "\n") . T.unpack .
@@ -62,6 +62,14 @@ tests =
         "*Foo bar*" =?>
         para (emph . spcSep $ ["Foo", "bar"])
 
+      -- Emacs Muse allows this
+      , "Newline in the beginning of emphasis" =:
+        "*\nFoo bar*" =?>
+        para (emph ("Foo" <> space <> "bar"))
+      , "Newline in the end of emphasis" =:
+        "*Foo bar\n*" =?>
+        para (emph ("Foo" <> space <> "bar"))
+
       , "Comma after closing *" =:
         "Foo *bar*, baz" =?>
         para ("Foo " <> emph "bar" <> ", baz")
@@ -73,6 +81,10 @@ tests =
       , "Letter before opening *" =:
         "Foo x*bar* baz" =?>
         para "Foo x*bar* baz"
+
+      , "Digit after closing *" =:
+        "Foo *bar*0 baz" =?>
+        para "Foo *bar*0 baz"
 
       , "Emphasis tag" =:
         "<em>Foo bar</em>" =?>
@@ -138,6 +150,10 @@ tests =
           "Foo =bar=, baz" =?>
           para (text "Foo " <> code "bar" <> text ", baz")
 
+        , "Not code if followed by digit" =:
+          "Foo =bar=0 baz" =?>
+          para (text "Foo =bar=0 baz")
+
         , "One character code" =: "=c=" =?> para (code "c")
 
         , "Three = characters is not a code" =: "===" =?> para "==="
@@ -194,9 +210,27 @@ tests =
         , "Image" =:
           "[[image.jpg]]" =?>
           para (image "image.jpg" "" mempty)
+        , "Closing bracket is not allowed in image filename" =:
+          "[[foo]bar.jpg]]" =?>
+          para (text "[[foo]bar.jpg]]")
         , "Image with description" =:
           "[[image.jpg][Image]]" =?>
           para (image "image.jpg" "" (text "Image"))
+        , "Image with space in filename" =:
+          "[[image name.jpg]]" =?>
+          para (image "image name.jpg" "" mempty)
+        , "Image with width" =:
+          "[[image.jpg 60]]" =?>
+          para (imageWith ("", [], [("width", "60%")]) "image.jpg" mempty mempty)
+        , "At least one space is required between image filename and width" =:
+          "[[image.jpg60]]" =?>
+          para (link "image.jpg60" mempty (str "image.jpg60"))
+        , "Left-aligned image with width" =:
+          "[[image.png 60 l][Image]]" =?>
+          para (imageWith ("", ["align-left"], [("width", "60%")]) "image.png" "" (str "Image"))
+        , "Right-aligned image with width" =:
+          "[[image.png 60 r][Image]]" =?>
+          para (imageWith ("", ["align-right"], [("width", "60%")]) "image.png" "" (str "Image"))
         , "Image link" =:
           "[[URL:image.jpg]]" =?>
           para (link "image.jpg" "" (str "image.jpg"))
@@ -225,8 +259,8 @@ tests =
         ]
       ]
 
-  , testGroup "Blocks" $
-      [ testProperty "Round trip" roundTrip
+  , testGroup "Blocks"
+      [ testProperty "Round trip" (withMaxSuccess 25 roundTrip)
       , "Block elements end paragraphs" =:
         T.unlines [ "First paragraph"
                   , "----"
@@ -385,6 +419,12 @@ tests =
                   , "</verse>"
                   ] =?>
         lineBlock [ "" ]
+      , "Verse tag with verbatim close tag inside" =:
+        T.unlines [ "<verse>"
+                  , "<verbatim></verse></verbatim>"
+                  , "</verse>"
+                  ] =?>
+        lineBlock [ "</verse>" ]
       , testGroup "Example"
         [ "Braces on separate lines" =:
           T.unlines [ "{{{"
@@ -589,6 +629,18 @@ tests =
           T.unlines [ "* Foo"
                     , "bar"
                     ] =?> header 1 "Foo\nbar"
+        , test (purely $ readMuse def { readerExtensions = extensionsFromList [Ext_amuse, Ext_auto_identifiers]})
+               "Auto identifiers"
+          (T.unlines [ "* foo"
+                     , "** Foo"
+                     , "* bar"
+                     , "** foo"
+                     , "* foo"
+                     ] =?> headerWith ("foo",[],[]) 1 "foo" <>
+                           headerWith ("foo-1",[],[]) 2 "Foo" <>
+                           headerWith ("bar",[],[]) 1 "bar" <>
+                           headerWith ("foo-2",[],[]) 2 "foo" <>
+                           headerWith ("foo-3",[],[]) 1 "foo")
         ]
       , testGroup "Directives"
         [ "Title" =:
@@ -710,6 +762,13 @@ tests =
                       , "    > Baz"
                       ] =?>
             para ("Foo" <> note (para "Bar" <> lineBlock ["Baz"]))
+          , "Footnote ending in self-terminating element and followed by paragraph" =:
+            T.unlines [ "Foo[1]"
+                      , ""
+                      , "[1] > bar"
+                      , "baz"
+                      ] =?>
+            para (str "Foo" <> note (lineBlock ["bar"])) <> para (str "baz")
           , test emacsMuse "Emacs multiparagraph footnotes"
             (T.unlines
               [ "First footnote reference[1] and second footnote reference[2]."
@@ -798,6 +857,14 @@ tests =
             [plain "Foo", plain "bar", plain "baz"]
             [[plain "First", plain "row", plain "here"],
              [plain "Second", plain "row", plain "there"]]
+        , "Table caption with +" =:
+          T.unlines
+            [ "Foo | bar"
+            , "|+ Table + caption +|"
+            ] =?>
+          table (text "Table + caption") (replicate 2 (AlignDefault, 0.0))
+            []
+            [[plain "Foo", plain "bar"]]
         , "Caption without table" =:
           "|+ Foo bar baz +|" =?>
           table (text "Foo bar baz") [] [] []
@@ -972,7 +1039,7 @@ tests =
                               , para "c"
                               ]
                     ]
-      , "List continuation afeter nested list" =:
+      , "List continuation after nested list" =:
          T.unlines
            [ " - - foo"
            , ""
@@ -1118,6 +1185,11 @@ tests =
             ] =?>
           bulletList [ lineBlock [ "foo" ] ] <> bulletList [ para "bar" ]
         ]
+      , "List ending in self-terminating element and followed by paragraph" =:
+        T.unlines [ " - > Foo"
+                  , "bar"
+                  ] =?>
+        bulletList [lineBlock ["Foo"]] <> para (str "bar")
       -- Test that definition list requires a leading space.
       -- Emacs Muse does not require a space, we follow Amusewiki here.
       , "Not a definition list" =:
@@ -1335,7 +1407,8 @@ tests =
           , "   <verse>"
           , "   </quote>"
           , "   </verse>"
+          , "</quote>"
           ] =?>
-        para "<quote>" <> bulletList [ para "Foo" <> para "</quote>" <> para "bar" <> lineBlock [ "</quote>" ] ]
+        blockQuote (bulletList [ para "Foo" <> para "</quote>" <> para "bar" <> lineBlock [ "</quote>" ] ])
       ]
   ]

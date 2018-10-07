@@ -46,7 +46,7 @@ $for(include-before)$
 $include-before$
 $endfor$
 $if(title)$
-<header>
+<header id="title-block-header">
 <h1 class="title">$title$</h1>
 $if(subtitle)$
 <p class="subtitle">$subtitle$</p>

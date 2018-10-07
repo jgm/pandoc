@@ -52,6 +52,7 @@ import Data.Char (toLower)
 import Data.List (intersperse)
 import Data.Maybe (fromMaybe)
 import qualified Data.Map as M
+import qualified Data.Set as Set
 import Network.HTTP (urlEncode)
 
 -- | Returns the current meta, respecting export options.
@@ -158,6 +159,7 @@ optionLine = try $ do
     "seq_todo" -> todoSequence >>= updateState . registerTodoSequence
     "typ_todo" -> todoSequence >>= updateState . registerTodoSequence
     "macro"    -> macroDefinition >>= updateState . registerMacro
+    "exclude_tags" -> excludedTagList >>= updateState . setExcludedTags
     "pandoc-emphasis-pre" -> emphChars >>= updateState . setEmphasisPreChar
     "pandoc-emphasis-post" -> emphChars >>= updateState . setEmphasisPostChar
     _          -> mzero
@@ -189,6 +191,18 @@ parseFormat = try $ replacePlain <|> replaceUrl <|> justAppend
 
    rest            = manyTill anyChar         (eof <|> () <$ oneOf "\n\r")
    tillSpecifier c = manyTill (noneOf "\n\r") (try $ string ('%':c:""))
+
+excludedTagList :: Monad m => OrgParser m [Tag]
+excludedTagList = do
+  skipSpaces
+  map Tag <$> many (orgTagWord <* skipSpaces) <* newline
+
+setExcludedTags :: [Tag] -> OrgParserState -> OrgParserState
+setExcludedTags tagList st =
+  let finalSet = if orgStateExcludedTagsChanged st
+                   then foldr Set.insert (orgStateExcludedTags st) tagList
+                   else Set.fromList tagList
+  in st { orgStateExcludedTags = finalSet, orgStateExcludedTagsChanged = True}
 
 setEmphasisPreChar :: Maybe [Char] -> OrgParserState -> OrgParserState
 setEmphasisPreChar csMb st =

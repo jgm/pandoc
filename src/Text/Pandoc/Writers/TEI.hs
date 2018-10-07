@@ -35,7 +35,6 @@ import Prelude
 import Data.Char (toLower)
 import Data.List (isPrefixOf, stripPrefix)
 import Data.Text (Text)
-import qualified Text.Pandoc.Builder as B
 import Text.Pandoc.Class (PandocMonad, report)
 import Text.Pandoc.Definition
 import Text.Pandoc.Highlighting (languages, languagesByExtension)
@@ -47,16 +46,6 @@ import Text.Pandoc.Shared
 import Text.Pandoc.Templates (renderTemplate')
 import Text.Pandoc.Writers.Shared
 import Text.Pandoc.XML
-
--- | Convert list of authors to a docbook <author> section
-authorToTEI :: PandocMonad m => WriterOptions -> [Inline] -> m B.Inlines
-authorToTEI opts name' = do
-  name <- render Nothing <$> inlinesToTEI opts name'
-  let colwidth = if writerWrapText opts == WrapAuto
-                    then Just $ writerColumns opts
-                    else Nothing
-  return $ B.rawInline "tei" $ render colwidth $
-      inTagsSimple "author" (text $ escapeStringForXML name)
 
 -- | Convert Pandoc document to string in Docbook format.
 writeTEI :: PandocMonad m => WriterOptions -> Pandoc -> m Text
@@ -72,13 +61,11 @@ writeTEI opts (Pandoc meta blocks) = do
                    TopLevelChapter -> 0
                    TopLevelSection -> 1
                    TopLevelDefault -> 1
-  auths'      <- mapM (authorToTEI opts) $ docAuthors meta
-  let meta'    = B.setMeta "author" auths' meta
   metadata <- metaToJSON opts
                  (fmap (render' . vcat) .
                    mapM (elementToTEI opts startLvl) . hierarchicalize)
                  (fmap render' . inlinesToTEI opts)
-                 meta'
+                 meta
   main    <- (render' . vcat) <$> mapM (elementToTEI opts startLvl) elements
   let context = defField "body" main
               $

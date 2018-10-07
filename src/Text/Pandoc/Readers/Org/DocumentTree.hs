@@ -1,4 +1,3 @@
-{-# LANGUAGE NoImplicitPrelude #-}
 {-
 Copyright (C) 2014-2018 Albert Krewinkel <tarleb+pandoc@moltkeplatz.de>
 
@@ -17,8 +16,7 @@ along with this program; if not, write to the Free Software
 Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 -}
 {-# LANGUAGE FlexibleContexts #-}
-{-# LANGUAGE RecordWildCards  #-}
-{-# LANGUAGE ViewPatterns     #-}
+{-# LANGUAGE NoImplicitPrelude #-}
 {- |
    Module      : Text.Pandoc.Readers.Org.DocumentTree
    Copyright   : Copyright (C) 2014-2018 Albert Krewinkel
@@ -45,7 +43,7 @@ import Text.Pandoc.Readers.Org.BlockStarts
 import Text.Pandoc.Readers.Org.ParserState
 import Text.Pandoc.Readers.Org.Parsing
 
-import qualified Data.Map as Map
+import qualified Data.Set as Set
 import qualified Text.Pandoc.Builder as B
 
 --
@@ -60,7 +58,7 @@ documentTree :: PandocMonad m
 documentTree blocks inline = do
   initialBlocks <- blocks
   headlines <- sequence <$> manyTill (headline blocks inline 1) eof
-  title <- fmap (getTitle . unMeta) . orgStateMeta <$> getState
+  title <- fmap docTitle . orgStateMeta <$> getState
   return $ do
     headlines' <- headlines
     initialBlocks' <- initialBlocks
@@ -70,19 +68,11 @@ documentTree blocks inline = do
       , headlineTodoMarker = Nothing
       , headlineText = B.fromList title'
       , headlineTags = mempty
+      , headlinePlanning = emptyPlanning
       , headlineProperties = mempty
       , headlineContents = initialBlocks'
       , headlineChildren = headlines'
       }
- where
-  getTitle :: Map.Map String MetaValue -> [Inline]
-  getTitle metamap =
-    case Map.lookup "title" metamap of
-      Just (MetaInlines inlns) -> inlns
-      _                        -> []
-
-newtype Tag = Tag { fromTag :: String }
-  deriving (Show, Eq)
 
 -- | Create a tag containing the given string.
 toTag :: String -> Tag
@@ -117,6 +107,7 @@ data Headline = Headline
   , headlineTodoMarker :: Maybe TodoMarker
   , headlineText       :: Inlines
   , headlineTags       :: [Tag]
+  , headlinePlanning   :: PlanningInfo -- ^ subtree planning information
   , headlineProperties :: Properties
   , headlineContents   :: Blocks
   , headlineChildren   :: [Headline]
@@ -136,6 +127,7 @@ headline blocks inline lvl = try $ do
   title <- trimInlinesF . mconcat <$> manyTill inline endOfTitle
   tags  <- option [] headerTags
   newline
+  planning   <- option emptyPlanning planningInfo
   properties <- option mempty propertiesDrawer
   contents   <- blocks
   children   <- many (headline blocks inline (level + 1))
@@ -148,6 +140,7 @@ headline blocks inline lvl = try $ do
       , headlineTodoMarker = todoKw
       , headlineText = title'
       , headlineTags = tags
+      , headlinePlanning = planning
       , headlineProperties = properties
       , headlineContents = contents'
       , headlineChildren = children'
@@ -158,22 +151,27 @@ headline blocks inline lvl = try $ do
 
    headerTags :: Monad m => OrgParser m [Tag]
    headerTags = try $
-     let tag = many1 (alphaNum <|> oneOf "@%#_") <* char ':'
+     let tag = orgTagWord <* char ':'
      in map toTag <$> (skipSpaces *> char ':' *> many1 tag <* skipSpaces)
 
 -- | Convert an Org mode headline (i.e. a document tree) into pandoc's Blocks
 headlineToBlocks :: Monad m => Headline -> OrgParser m Blocks
-headlineToBlocks hdln@Headline {..} = do
-  maxHeadlineLevels <- getExportSetting exportHeadlineLevels
+headlineToBlocks hdln = do
+  maxLevel <- getExportSetting exportHeadlineLevels
+  let tags = headlineTags hdln
+  let text = headlineText hdln
+  let level = headlineLevel hdln
+  shouldNotExport <- hasDoNotExportTag tags
   case () of
-    _ | any isNoExportTag headlineTags     -> return mempty
-    _ | any isArchiveTag  headlineTags     -> archivedHeadlineToBlocks hdln
-    _ | isCommentTitle headlineText        -> return mempty
-    _ | headlineLevel >= maxHeadlineLevels -> headlineToHeaderWithList hdln
-    _ | otherwise                          -> headlineToHeaderWithContents hdln
+    _ | shouldNotExport -> return mempty
+    _ | any isArchiveTag  tags -> archivedHeadlineToBlocks hdln
+    _ | isCommentTitle text    -> return mempty
+    _ | maxLevel <= level      -> headlineToHeaderWithList hdln
+    _ | otherwise              -> headlineToHeaderWithContents hdln
 
-isNoExportTag :: Tag -> Bool
-isNoExportTag = (== toTag "noexport")
+hasDoNotExportTag :: Monad m => [Tag] -> OrgParser m Bool
+hasDoNotExportTag tags = containsExcludedTag . orgStateExcludedTags <$> getState
+  where containsExcludedTag s = any (`Set.member` s) tags
 
 isArchiveTag :: Tag -> Bool
 isArchiveTag = (== toTag "ARCHIVE")
@@ -182,8 +180,9 @@ isArchiveTag = (== toTag "ARCHIVE")
 -- FIXME: This accesses builder internals not intended for use in situations
 -- like these.  Replace once keyword parsing is supported.
 isCommentTitle :: Inlines -> Bool
-isCommentTitle (B.toList -> (Str "COMMENT":_)) = True
-isCommentTitle _                               = False
+isCommentTitle inlns = case B.toList inlns of
+  (Str "COMMENT":_) -> True
+  _ -> False
 
 archivedHeadlineToBlocks :: Monad m => Headline -> OrgParser m Blocks
 archivedHeadlineToBlocks hdln = do
@@ -194,17 +193,23 @@ archivedHeadlineToBlocks hdln = do
     ArchivedTreesHeadlineOnly -> headlineToHeader hdln
 
 headlineToHeaderWithList :: Monad m => Headline -> OrgParser m Blocks
-headlineToHeaderWithList hdln@Headline {..} = do
+headlineToHeaderWithList hdln = do
   maxHeadlineLevels <- getExportSetting exportHeadlineLevels
   header        <- headlineToHeader hdln
-  listElements  <- mapM headlineToBlocks headlineChildren
+  listElements  <- mapM headlineToBlocks (headlineChildren hdln)
+  planningBlock <- planningToBlock (headlinePlanning hdln)
   let listBlock  = if null listElements
                    then mempty
                    else B.orderedList listElements
-  let headerText = if maxHeadlineLevels == headlineLevel
+  let headerText = if maxHeadlineLevels == headlineLevel hdln
                    then header
                    else flattenHeader header
-  return $ headerText <> headlineContents <> listBlock
+  return . mconcat $
+    [ headerText
+    , headlineContents hdln
+    , planningBlock
+    , listBlock
+    ]
  where
    flattenHeader :: Blocks -> Blocks
    flattenHeader blks =
@@ -213,27 +218,28 @@ headlineToHeaderWithList hdln@Headline {..} = do
        _                    -> mempty
 
 headlineToHeaderWithContents :: Monad m => Headline -> OrgParser m Blocks
-headlineToHeaderWithContents hdln@Headline {..} = do
+headlineToHeaderWithContents hdln = do
   header         <- headlineToHeader hdln
-  childrenBlocks <- mconcat <$> mapM headlineToBlocks headlineChildren
-  return $ header <> headlineContents <> childrenBlocks
+  planningBlock <- planningToBlock (headlinePlanning hdln)
+  childrenBlocks <- mconcat <$> mapM headlineToBlocks (headlineChildren hdln)
+  return $ header <> planningBlock <> headlineContents hdln <> childrenBlocks
 
 headlineToHeader :: Monad m => Headline -> OrgParser m Blocks
-headlineToHeader Headline {..} = do
+headlineToHeader hdln = do
   exportTodoKeyword <- getExportSetting exportWithTodoKeywords
   exportTags        <- getExportSetting exportWithTags
   let todoText    = if exportTodoKeyword
-                    then case headlineTodoMarker of
+                    then case headlineTodoMarker hdln of
                       Just kw -> todoKeywordToInlines kw <> B.space
                       Nothing -> mempty
                     else mempty
-  let text        = todoText <> headlineText <>
+  let text        = todoText <> headlineText hdln <>
                     if exportTags
-                    then tagsToInlines headlineTags
+                    then tagsToInlines (headlineTags hdln)
                     else mempty
-  let propAttr    = propertiesToAttr headlineProperties
-  attr           <- registerHeader propAttr headlineText
-  return $ B.headerWith attr headlineLevel text
+  let propAttr    = propertiesToAttr (headlineProperties hdln)
+  attr           <- registerHeader propAttr (headlineText hdln)
+  return $ B.headerWith attr (headlineLevel hdln) text
 
 todoKeyword :: Monad m => OrgParser m TodoMarker
 todoKeyword = try $ do
@@ -277,9 +283,60 @@ tagsToInlines tags =
 tagSpan :: Tag -> Inlines -> Inlines
 tagSpan t = B.spanWith ("", ["tag"], [("tag-name", fromTag t)])
 
+-- | Render planning info as a block iff the respective export setting is
+-- enabled.
+planningToBlock :: Monad m => PlanningInfo -> OrgParser m Blocks
+planningToBlock planning = do
+  includePlanning <- getExportSetting exportWithPlanning
+  return $
+    if includePlanning
+    then B.plain . mconcat . intersperse B.space . filter (/= mempty) $
+         [ datumInlines planningClosed "CLOSED"
+         , datumInlines planningDeadline "DEADLINE"
+         , datumInlines planningScheduled "SCHEDULED"
+         ]
+    else mempty
+ where
+  datumInlines field name =
+    case field planning of
+      Nothing -> mempty
+      Just time ->   B.strong (B.str name <> B.str ":")
+                  <> B.space
+                  <> B.emph (B.str time)
 
+-- | An Org timestamp, including repetition marks. TODO: improve
+type Timestamp = String
 
+timestamp :: Monad m => OrgParser m Timestamp
+timestamp = try $ do
+  openChar <- oneOf "<["
+  let isActive = openChar == '<'
+  let closeChar = if isActive then '>' else ']'
+  content <- many1Till anyChar (char closeChar)
+  return (openChar : content ++ [closeChar])
 
+-- | Planning information for a subtree/headline.
+data PlanningInfo = PlanningInfo
+  { planningClosed :: Maybe Timestamp
+  , planningDeadline :: Maybe Timestamp
+  , planningScheduled :: Maybe Timestamp
+  }
+
+emptyPlanning :: PlanningInfo
+emptyPlanning = PlanningInfo Nothing Nothing Nothing
+
+-- | Read a single planning-related and timestamped line.
+planningInfo :: Monad m => OrgParser m PlanningInfo
+planningInfo = try $ do
+  updaters <- many1 planningDatum <* skipSpaces <* newline
+  return $ foldr ($) emptyPlanning updaters
+ where
+  planningDatum = skipSpaces *> choice
+    [ updateWith (\s p -> p { planningScheduled = Just s}) "SCHEDULED"
+    , updateWith (\d p -> p { planningDeadline = Just d}) "DEADLINE"
+    , updateWith (\c p -> p { planningClosed = Just c}) "CLOSED"
+    ]
+  updateWith fn cs = fn <$> (string cs *> char ':' *> skipSpaces *> timestamp)
 
 -- | Read a :PROPERTIES: drawer and return the key/value pairs contained
 -- within.

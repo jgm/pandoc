@@ -44,7 +44,7 @@ import Data.Aeson (Result (..), Value (String), fromJSON, toJSON)
 import Data.Char (isPunctuation, isSpace)
 import Data.List (intercalate, intersperse, stripPrefix)
 import qualified Data.Map as M
-import Data.Maybe (fromMaybe, isJust)
+import Data.Maybe (fromMaybe, isJust, listToMaybe)
 import qualified Data.Set as Set
 import Data.Text (Text)
 import qualified Data.Text as T
@@ -126,11 +126,16 @@ olMarker = do (start, style', delim) <- anyOrderedListMarker
                           else spaceChar
 
 -- | True if string begins with an ordered list marker
-beginsWithOrderedListMarker :: String -> Bool
-beginsWithOrderedListMarker str =
-  case runParser olMarker defaultParserState "para start" (take 10 str) of
-         Left  _ -> False
-         Right _ -> True
+-- or would be interpreted as an AsciiDoc option command
+needsEscaping :: String -> Bool
+needsEscaping s = beginsWithOrderedListMarker s || isBracketed s
+  where
+    beginsWithOrderedListMarker str =
+      case runParser olMarker defaultParserState "para start" (take 10 str) of
+             Left  _ -> False
+             Right _ -> True
+    isBracketed ('[':cs) = listToMaybe (reverse cs) == Just ']'
+    isBracketed _ = False
 
 -- | Convert Pandoc block element to asciidoc.
 blockToAsciiDoc :: PandocMonad m
@@ -146,8 +151,8 @@ blockToAsciiDoc opts (Para [Image attr alt (src,'f':'i':'g':':':tit)]) =
 blockToAsciiDoc opts (Para inlines) = do
   contents <- inlineListToAsciiDoc opts inlines
   -- escape if para starts with ordered list marker
-  let esc = if beginsWithOrderedListMarker (render Nothing contents)
-               then text "\\"
+  let esc = if needsEscaping (render Nothing contents)
+               then text "{empty}"
                else empty
   return $ esc <> contents <> blankline
 blockToAsciiDoc opts (LineBlock lns) = do
@@ -280,7 +285,7 @@ blockToAsciiDoc opts (DefinitionList items) = do
   contents <- mapM (definitionListItemToAsciiDoc opts) items
   return $ cat contents <> blankline
 blockToAsciiDoc opts (Div (ident,_,_) bs) = do
-  let identifier = if null ident then empty else ("[[" <> text ident <> "]]")
+  let identifier = if null ident then empty else "[[" <> text ident <> "]]"
   contents <- blockListToAsciiDoc opts bs
   return $ identifier $$ contents
 
@@ -487,6 +492,6 @@ inlineToAsciiDoc opts (Note [Plain inlines]) = do
 -- asciidoc can't handle blank lines in notes
 inlineToAsciiDoc _ (Note _) = return "[multiblock footnote omitted]"
 inlineToAsciiDoc opts (Span (ident,_,_) ils) = do
-  let identifier = if null ident then empty else ("[[" <> text ident <> "]]")
+  let identifier = if null ident then empty else "[[" <> text ident <> "]]"
   contents <- inlineListToAsciiDoc opts ils
   return $ identifier <> contents

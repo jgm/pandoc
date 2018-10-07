@@ -341,8 +341,10 @@ listItemToRTF :: PandocMonad m
 listItemToRTF alignment indent marker [] = return $
   rtfCompact (indent + listIncrement) (negate listIncrement) alignment
              (marker ++ "\\tx" ++ show listIncrement ++ "\\tab ")
-listItemToRTF alignment indent marker list = do
-  (first:rest) <- mapM (blockToRTF (indent + listIncrement) alignment) list
+listItemToRTF alignment indent marker (listFirst:listRest) = do
+  let f = blockToRTF (indent + listIncrement) alignment
+  first <- f listFirst
+  rest <- mapM f listRest
   let listMarker = "\\fi" ++ show (negate listIncrement) ++ " " ++ marker ++
                    "\\tx" ++ show listIncrement ++ "\\tab"
   let insertListMarker ('\\':'f':'i':'-':d:xs) | isDigit d =

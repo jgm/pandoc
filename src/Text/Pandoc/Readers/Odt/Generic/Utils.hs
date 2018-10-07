@@ -61,7 +61,7 @@ import qualified Data.Foldable as F (Foldable, foldr)
 import Data.Maybe
 
 
--- | Aequivalent to
+-- | Equivalent to
 -- > foldr (.) id
 -- where '(.)' are 'id' are the ones from "Control.Category"
 -- and 'foldr' is the one from "Data.Foldable".
@@ -72,7 +72,7 @@ import Data.Maybe
 composition        :: (Category cat, F.Foldable f) => f (cat a a) -> cat a a
 composition        = F.foldr (<<<) Cat.id
 
--- | Aequivalent to
+-- | Equivalent to
 -- > foldr (flip (.)) id
 -- where '(.)' are 'id' are the ones from "Control.Category"
 -- and 'foldr' is the one from "Data.Foldable".
@@ -133,9 +133,7 @@ class Lookupable a where
 -- can be used directly in almost any case.
 readLookupables :: (Lookupable a) => String -> [(a,String)]
 readLookupables s = [ (a,rest) | (word,rest) <- lex s,
-                                 let result = lookup word lookupTable,
-                                 isJust result,
-                                 let Just a = result
+                                 a <- maybeToList (lookup word lookupTable)
                     ]
 
 -- | Very similar to a simple 'lookup' in the 'lookupTable', but with a lexer.

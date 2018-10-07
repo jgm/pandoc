@@ -1,4 +1,3 @@
-{-# LANGUAGE NoImplicitPrelude #-}
 {-
 Copyright © 2017-2018 Albert Krewinkel <tarleb+pandoc@moltkeplatz.de>
 
@@ -17,6 +16,7 @@ along with this program; if not, write to the Free Software
 Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 -}
 {-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE NoImplicitPrelude #-}
 {- |
    Module      : Text.Pandoc.Lua.Module.Pandoc
    Copyright   : Copyright © 2017-2018 Albert Krewinkel
@@ -36,13 +36,12 @@ import Control.Monad (when)
 import Data.Default (Default (..))
 import Data.Maybe (fromMaybe)
 import Data.Text (pack)
-import Foreign.Lua (ToLuaStack, FromLuaStack, Lua, NumResults, Optional, liftIO)
+import Foreign.Lua (Lua, NumResults, Optional, Peekable, Pushable)
 import System.Exit (ExitCode (..))
 import Text.Pandoc.Class (runIO)
 import Text.Pandoc.Definition (Block, Inline)
 import Text.Pandoc.Lua.Filter (walkInlines, walkBlocks, LuaFilter)
 import Text.Pandoc.Lua.StackInstances ()
-import Text.Pandoc.Lua.Util (addFunction, addValue, loadScriptFromDataDir)
 import Text.Pandoc.Walk (Walkable)
 import Text.Pandoc.Options (ReaderOptions (readerExtensions))
 import Text.Pandoc.Process (pipeProcess)
@@ -51,19 +50,20 @@ import Text.Pandoc.Readers (Reader (..), getReader)
 import qualified Data.ByteString.Lazy as BL
 import qualified Data.ByteString.Lazy.Char8 as BSL
 import qualified Foreign.Lua as Lua
+import qualified Text.Pandoc.Lua.Util as LuaUtil
 
 -- | Push the "pandoc" on the lua stack. Requires the `list` module to be
 -- loaded.
 pushModule :: Maybe FilePath -> Lua NumResults
 pushModule datadir = do
-  loadScriptFromDataDir datadir "pandoc.lua"
-  addFunction "read" readDoc
-  addFunction "pipe" pipeFn
-  addFunction "walk_block" walkBlock
-  addFunction "walk_inline" walkInline
+  LuaUtil.loadScriptFromDataDir datadir "pandoc.lua"
+  LuaUtil.addFunction "read" readDoc
+  LuaUtil.addFunction "pipe" pipeFn
+  LuaUtil.addFunction "walk_block" walkBlock
+  LuaUtil.addFunction "walk_inline" walkInline
   return 1
 
-walkElement :: (ToLuaStack a, Walkable [Inline] a, Walkable [Block] a)
+walkElement :: (Pushable a, Walkable [Inline] a, Walkable [Block] a)
             => a -> LuaFilter -> Lua a
 walkElement x f = walkInlines f x >>= walkBlocks f
 
@@ -81,7 +81,8 @@ readDoc content formatSpecOrNil = do
     Right (reader, es) ->
       case reader of
         TextReader r -> do
-          res <- liftIO $ runIO $ r def{ readerExtensions = es } (pack content)
+          res <- Lua.liftIO . runIO $
+                 r def{ readerExtensions = es } (pack content)
           case res of
             Right pd -> (1 :: NumResults) <$ Lua.push pd -- success, push Pandoc
             Left s   -> Lua.raiseError (show s)          -- error while reading
@@ -93,7 +94,7 @@ pipeFn :: String
        -> BL.ByteString
        -> Lua NumResults
 pipeFn command args input = do
-  (ec, output) <- liftIO $ pipeProcess Nothing command args input
+  (ec, output) <- Lua.liftIO $ pipeProcess Nothing command args input
   case ec of
     ExitSuccess -> 1 <$ Lua.push output
     ExitFailure n -> Lua.raiseError (PipeError command n output)
@@ -104,26 +105,26 @@ data PipeError = PipeError
   , pipeErrorOutput :: BL.ByteString
   }
 
-instance FromLuaStack PipeError where
+instance Peekable PipeError where
   peek idx =
     PipeError
     <$> (Lua.getfield idx "command"    *> Lua.peek (-1) <* Lua.pop 1)
     <*> (Lua.getfield idx "error_code" *> Lua.peek (-1) <* Lua.pop 1)
     <*> (Lua.getfield idx "output"     *> Lua.peek (-1) <* Lua.pop 1)
 
-instance ToLuaStack PipeError where
+instance Pushable PipeError where
   push pipeErr = do
     Lua.newtable
-    addValue "command" (pipeErrorCommand pipeErr)
-    addValue "error_code" (pipeErrorCode pipeErr)
-    addValue "output" (pipeErrorOutput pipeErr)
+    LuaUtil.addField "command" (pipeErrorCommand pipeErr)
+    LuaUtil.addField "error_code" (pipeErrorCode pipeErr)
+    LuaUtil.addField "output" (pipeErrorOutput pipeErr)
     pushPipeErrorMetaTable
     Lua.setmetatable (-2)
       where
         pushPipeErrorMetaTable :: Lua ()
         pushPipeErrorMetaTable = do
           v <- Lua.newmetatable "pandoc pipe error"
-          when v $ addFunction "__tostring" pipeErrorMessage
+          when v $ LuaUtil.addFunction "__tostring" pipeErrorMessage
 
         pipeErrorMessage :: PipeError -> Lua BL.ByteString
         pipeErrorMessage (PipeError cmd errorCode output) = return $ mconcat

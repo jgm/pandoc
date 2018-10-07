@@ -39,10 +39,12 @@ import Control.Monad.State
 import Data.Char (isAlphaNum, isLetter, isSpace, toLower)
 import Data.List (groupBy)
 import qualified Data.Map as Map
+import Data.Maybe (mapMaybe)
 import Data.Text (Text, unpack)
+import Text.Pandoc.Asciify (toAsciiChar)
 import Text.Pandoc.Class (PandocMonad)
 import Text.Pandoc.Definition
-import Text.Pandoc.Emoji (emojis)
+import Text.Pandoc.Emoji (emojiToInline)
 import Text.Pandoc.Options
 import Text.Pandoc.Shared (stringify)
 import Text.Pandoc.Walk (walkM)
@@ -51,7 +53,7 @@ import Text.Pandoc.Walk (walkM)
 readCommonMark :: PandocMonad m => ReaderOptions -> Text -> m Pandoc
 readCommonMark opts s = return $
   (if isEnabled Ext_gfm_auto_identifiers opts
-      then addHeaderIdentifiers
+      then addHeaderIdentifiers opts
       else id) $
   nodeToPandoc opts $ commonmarkToNode opts' exts s
   where opts' = [ optSmart | isEnabled Ext_smart opts ]
@@ -59,24 +61,27 @@ readCommonMark opts s = return $
                [ extTable | isEnabled Ext_pipe_tables opts ] ++
                [ extAutolink | isEnabled Ext_autolink_bare_uris opts ]
 
-convertEmojis :: String -> String
-convertEmojis (':':xs) =
+convertEmojis :: String -> [Inline]
+convertEmojis s@(':':xs) =
    case break (==':') xs of
         (ys,':':zs) ->
-           case Map.lookup ys emojis of
-                Just s  -> s ++ convertEmojis zs
-                Nothing -> ':' : ys ++ convertEmojis (':':zs)
-        _ -> ':':xs
-convertEmojis (x:xs) = x : convertEmojis xs
-convertEmojis [] = []
+           case emojiToInline ys of
+                Just em -> em : convertEmojis zs
+                Nothing -> Str (':' : ys) : convertEmojis (':':zs)
+        _ -> [Str s]
+convertEmojis s =
+  case break (==':') s of
+    ("","") -> []
+    (_,"") -> [Str s]
+    (xs,ys) -> Str xs:convertEmojis ys
 
-addHeaderIdentifiers :: Pandoc -> Pandoc
-addHeaderIdentifiers doc = evalState (walkM addHeaderId doc) mempty
+addHeaderIdentifiers :: ReaderOptions -> Pandoc -> Pandoc
+addHeaderIdentifiers opts doc = evalState (walkM (addHeaderId opts) doc) mempty
 
-addHeaderId :: Block -> State (Map.Map String Int) Block
-addHeaderId (Header lev (_,classes,kvs) ils) = do
+addHeaderId :: ReaderOptions -> Block -> State (Map.Map String Int) Block
+addHeaderId opts (Header lev (_,classes,kvs) ils) = do
   idmap <- get
-  let ident = toIdent ils
+  let ident = toIdent opts ils
   ident' <- case Map.lookup ident idmap of
                  Nothing -> do
                    put (Map.insert ident 1 idmap)
@@ -85,13 +90,16 @@ addHeaderId (Header lev (_,classes,kvs) ils) = do
                    put (Map.adjust (+ 1) ident idmap)
                    return (ident ++ "-" ++ show i)
   return $ Header lev (ident',classes,kvs) ils
-addHeaderId x = return x
+addHeaderId _ x = return x
 
-toIdent :: [Inline] -> String
-toIdent =   map (\c -> if isSpace c then '-' else c)
-          . filter (\c -> isLetter c || isAlphaNum c || isSpace c ||
-                           c == '_' || c == '-')
-          . map toLower . stringify
+toIdent :: ReaderOptions -> [Inline] -> String
+toIdent opts = map (\c -> if isSpace c then '-' else c)
+               . filterer
+               . map toLower . stringify
+  where filterer = if isEnabled Ext_ascii_identifiers opts
+                   then mapMaybe toAsciiChar
+                   else filter (\c -> isLetter c || isAlphaNum c || isSpace c ||
+                                      c == '_' || c == '-')
 
 nodeToPandoc :: ReaderOptions -> Node -> Pandoc
 nodeToPandoc opts (Node _ DOCUMENT nodes) =
@@ -200,17 +208,17 @@ addInlines :: ReaderOptions -> [Node] -> [Inline]
 addInlines opts = foldr (addInline opts) []
 
 addInline :: ReaderOptions -> Node -> [Inline] -> [Inline]
-addInline opts (Node _ (TEXT t) _) = (map toinl clumps ++)
+addInline opts (Node _ (TEXT t) _) = (foldr ((++) . toinl) [] clumps ++)
   where raw = unpack t
         clumps = groupBy samekind raw
         samekind ' ' ' ' = True
         samekind ' ' _   = False
         samekind _   ' ' = False
         samekind _  _    = True
-        toinl (' ':_) = Space
-        toinl xs      = Str $ if isEnabled Ext_emoji opts
-                                 then convertEmojis xs
-                                 else xs
+        toinl (' ':_) = [Space]
+        toinl xs      = if isEnabled Ext_emoji opts
+                        then convertEmojis xs
+                        else [Str xs]
 addInline _ (Node _ LINEBREAK _) = (LineBreak :)
 addInline opts (Node _ SOFTBREAK _)
   | isEnabled Ext_hard_line_breaks opts = (LineBreak :)

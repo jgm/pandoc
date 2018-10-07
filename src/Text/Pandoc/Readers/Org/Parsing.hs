@@ -46,6 +46,8 @@ module Text.Pandoc.Readers.Org.Parsing
   , orgArgKey
   , orgArgWord
   , orgArgWordChar
+  , orgTagWord
+  , orgTagWordChar
   -- * Re-exports from Text.Pandoc.Parser
   , ParserContext (..)
   , many1Till
@@ -137,14 +139,13 @@ anyLine =
     <* updateLastPreCharPos
     <* updateLastForbiddenCharPos
 
--- The version Text.Pandoc.Parsing cannot be used, as we need additional parts
--- of the state saved and restored.
+-- | Like @'Text.Pandoc.Parsing'@, but resets the position of the last character
+-- allowed before emphasised text.
 parseFromString :: Monad m => OrgParser m a -> String -> OrgParser m a
 parseFromString parser str' = do
-  oldLastPreCharPos <- orgStateLastPreCharPos <$> getState
   updateState $ \s -> s{ orgStateLastPreCharPos = Nothing }
   result <- P.parseFromString parser str'
-  updateState $ \s -> s{ orgStateLastPreCharPos = oldLastPreCharPos }
+  updateState $ \s -> s { orgStateLastPreCharPos = Nothing }
   return result
 
 -- | Skip one or more tab or space characters.
@@ -221,3 +222,9 @@ orgArgWord = many1 orgArgWordChar
 -- | Chars treated as part of a word in plists.
 orgArgWordChar :: Monad m => OrgParser m Char
 orgArgWordChar = alphaNum <|> oneOf "-_"
+
+orgTagWord :: Monad m => OrgParser m String
+orgTagWord = many1 orgTagWordChar
+
+orgTagWordChar :: Monad m => OrgParser m Char
+orgTagWordChar = alphaNum <|> oneOf "@%#_"

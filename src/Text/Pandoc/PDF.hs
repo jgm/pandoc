@@ -79,13 +79,52 @@ changePathSeparators = intercalate "/" . splitDirectories
 #endif
 
 makePDF :: String              -- ^ pdf creator (pdflatex, lualatex, xelatex,
-                               -- wkhtmltopdf, weasyprint, prince, context, pdfroff)
+                               -- wkhtmltopdf, weasyprint, prince, context, pdfroff,
+                               -- or path to executable)
         -> [String]            -- ^ arguments to pass to pdf creator
         -> (WriterOptions -> Pandoc -> PandocIO Text)  -- ^ writer
         -> WriterOptions       -- ^ options
         -> Pandoc              -- ^ document
         -> PandocIO (Either ByteString ByteString)
-makePDF "wkhtmltopdf" pdfargs writer opts doc@(Pandoc meta _) = do
+makePDF program pdfargs writer opts doc = do
+  case takeBaseName program of
+    "wkhtmltopdf" -> makeWithWkhtmltopdf program pdfargs writer opts doc
+    prog | prog `elem` ["weasyprint", "prince"] -> do
+      source <- writer opts doc
+      verbosity <- getVerbosity
+      liftIO $ html2pdf verbosity program pdfargs source
+    "pdfroff" -> do
+      source <- writer opts doc
+      let args   = ["-ms", "-mpdfmark", "-e", "-t", "-k", "-KUTF-8", "-i",
+                    "--no-toc-relocation"] ++ pdfargs
+      verbosity <- getVerbosity
+      liftIO $ ms2pdf verbosity program args source
+    baseProg -> do
+      -- With context and latex, we create a temp directory within
+      -- the working directory, since pdflatex sometimes tries to
+      -- use tools like epstopdf.pl, which are restricted if run
+      -- on files outside the working directory.
+      let withTemp = withTempDirectory "."
+      commonState <- getCommonState
+      verbosity <- getVerbosity
+      liftIO $ withTemp "tex2pdf." $ \tmpdir -> do
+        source <- runIOorExplode $ do
+                    putCommonState commonState
+                    doc' <- handleImages tmpdir doc
+                    writer opts doc'
+        case baseProg of
+           "context" -> context2pdf verbosity program tmpdir source
+           prog | prog `elem` ["pdflatex", "lualatex", "xelatex"]
+               -> tex2pdf verbosity program pdfargs tmpdir source
+           _ -> return $ Left $ UTF8.fromStringLazy $ "Unknown program " ++ program
+
+makeWithWkhtmltopdf :: String              -- ^ wkhtmltopdf or path
+                    -> [String]            -- ^ arguments
+                    -> (WriterOptions -> Pandoc -> PandocIO Text)  -- ^ writer
+                    -> WriterOptions       -- ^ options
+                    -> Pandoc              -- ^ document
+                    -> PandocIO (Either ByteString ByteString)
+makeWithWkhtmltopdf program pdfargs writer opts doc@(Pandoc meta _) = do
   let mathArgs = case writerHTMLMathMethod opts of
                  -- with MathJax, wait til all math is rendered:
                       MathJax _ -> ["--run-script", "MathJax.Hub.Register.StartupHook('End Typeset', function() { window.status = 'mathjax_loaded' });",
@@ -111,39 +150,7 @@ makePDF "wkhtmltopdf" pdfargs writer opts doc@(Pandoc meta _) = do
                  ]
   source <- writer opts doc
   verbosity <- getVerbosity
-  liftIO $ html2pdf verbosity "wkhtmltopdf" args source
-makePDF "weasyprint" pdfargs writer opts doc = do
-  source <- writer opts doc
-  verbosity <- getVerbosity
-  liftIO $ html2pdf verbosity "weasyprint" pdfargs source
-makePDF "prince" pdfargs writer opts doc = do
-  source <- writer opts doc
-  verbosity <- getVerbosity
-  liftIO $ html2pdf verbosity "prince" pdfargs source
-makePDF "pdfroff" pdfargs writer opts doc = do
-  source <- writer opts doc
-  let args   = ["-ms", "-mpdfmark", "-e", "-t", "-k", "-KUTF-8", "-i",
-                "--no-toc-relocation"] ++ pdfargs
-  verbosity <- getVerbosity
-  liftIO $ ms2pdf verbosity args source
-makePDF program pdfargs writer opts doc = do
-  -- With context and latex, we create a temp directory within
-  -- the working directory, since pdflatex sometimes tries to
-  -- use tools like epstopdf.pl, which are restricted if run
-  -- on files outside the working directory.
-  let withTemp = withTempDirectory "."
-  commonState <- getCommonState
-  verbosity <- getVerbosity
-  liftIO $ withTemp "tex2pdf." $ \tmpdir -> do
-    source <- runIOorExplode $ do
-                putCommonState commonState
-                doc' <- handleImages tmpdir doc
-                writer opts doc'
-    case takeBaseName program of
-       "context" -> context2pdf verbosity tmpdir source
-       prog | prog `elem` ["pdflatex", "lualatex", "xelatex"]
-           -> tex2pdf' verbosity pdfargs tmpdir program source
-       _ -> return $ Left $ UTF8.fromStringLazy $ "Unknown program " ++ program
+  liftIO $ html2pdf verbosity program args source
 
 handleImages :: FilePath      -- ^ temp dir to store images
              -> Pandoc        -- ^ document
@@ -181,7 +188,7 @@ convertImage tmpdir fname =
          then return $ Right pdfOut
          else return $ Left "conversion from SVG failed")
       (\(e :: E.SomeException) -> return $ Left $
-          "check that rsvg2pdf is in path.\n" ++
+          "check that rsvg-convert is in path.\n" ++
           show e)
     _ -> JP.readImage fname >>= \res ->
           case res of
@@ -195,13 +202,13 @@ convertImage tmpdir fname =
     mime = getMimeType fname
     doNothing = return (Right fname)
 
-tex2pdf' :: Verbosity                       -- ^ Verbosity level
-         -> [String]                        -- ^ Arguments to the latex-engine
-         -> FilePath                        -- ^ temp directory for output
-         -> String                          -- ^ tex program
-         -> Text                            -- ^ tex source
-         -> IO (Either ByteString ByteString)
-tex2pdf' verbosity args tmpDir program source = do
+tex2pdf :: Verbosity                       -- ^ Verbosity level
+        -> String                          -- ^ tex program
+        -> [String]                        -- ^ Arguments to the latex-engine
+        -> FilePath                        -- ^ temp directory for output
+        -> Text                            -- ^ tex source
+        -> IO (Either ByteString ByteString)
+tex2pdf verbosity program args tmpDir source = do
   let numruns = if "\\tableofcontents" `T.isInfixOf` source
                    then 3  -- to get page numbers
                    else 2  -- 1 run won't give you PDF bookmarks
@@ -278,12 +285,7 @@ runTeXProgram verbosity program args runNumber numRuns tmpDir source = do
     let file' = file
 #endif
     let programArgs = ["-halt-on-error", "-interaction", "nonstopmode",
-         "-output-directory", tmpDir'] ++
-         -- see #4484, only compress images on last run:
-         if program == "xelatex" && runNumber < numRuns
-            then ["-output-driver", "xdvipdfmx -z0"]
-            else []
-         ++ args ++ [file']
+         "-output-directory", tmpDir'] ++ args ++ [file']
     env' <- getEnvironment
     let sep = [searchPathSeparator]
     let texinputs = maybe (tmpDir' ++ sep) ((tmpDir' ++ sep) ++)
@@ -307,7 +309,7 @@ runTeXProgram verbosity program args runNumber numRuns tmpDir source = do
       putStrLn $ "[makePDF] Run #" ++ show runNumber
       BL.hPutStr stdout out
       putStr "\n"
-    if runNumber <= numRuns
+    if runNumber < numRuns
        then runTeXProgram verbosity program args (runNumber + 1) numRuns tmpDir source
        else do
          let pdfFile = replaceDirectory (replaceExtension file ".pdf") tmpDir
@@ -328,14 +330,15 @@ runTeXProgram verbosity program args runNumber numRuns tmpDir source = do
          return (exit, log', pdf)
 
 ms2pdf :: Verbosity
+       -> String
        -> [String]
        -> Text
        -> IO (Either ByteString ByteString)
-ms2pdf verbosity args source = do
+ms2pdf verbosity program args source = do
   env' <- getEnvironment
   when (verbosity >= INFO) $ do
     putStrLn "[makePDF] Command line:"
-    putStrLn $ "pdfroff " ++ " " ++ unwords (map show args)
+    putStrLn $ program ++ " " ++ unwords (map show args)
     putStr "\n"
     putStrLn "[makePDF] Environment:"
     mapM_ print env'
@@ -344,11 +347,11 @@ ms2pdf verbosity args source = do
     putStr $ T.unpack source
     putStr "\n"
   (exit, out) <- E.catch
-    (pipeProcess (Just env') "pdfroff" args
+    (pipeProcess (Just env') program args
                      (BL.fromStrict $ UTF8.fromText source))
     (\(e :: IOError) -> if isDoesNotExistError e
                            then E.throwIO $
-                                  PandocPDFProgramNotFoundError "pdfroff"
+                                  PandocPDFProgramNotFoundError program
                            else E.throwIO e)
   when (verbosity >= INFO) $ do
     BL.hPutStr stdout out
@@ -358,7 +361,7 @@ ms2pdf verbosity args source = do
              ExitSuccess   -> Right out
 
 html2pdf  :: Verbosity    -- ^ Verbosity level
-          -> String       -- ^ Program (wkhtmltopdf, weasyprint or prince)
+          -> String       -- ^ Program (wkhtmltopdf, weasyprint, prince, or path)
           -> [String]     -- ^ Args to program
           -> Text         -- ^ HTML5 source
           -> IO (Either ByteString ByteString)
@@ -369,7 +372,7 @@ html2pdf verbosity program args source = do
   file    <- withTempFile "." "html2pdf.html" $ \fp _ -> return fp
   pdfFile <- withTempFile "." "html2pdf.pdf" $ \fp _ -> return fp
   BS.writeFile file $ UTF8.fromText source
-  let pdfFileArgName = ["-o" | program == "prince"]
+  let pdfFileArgName = ["-o" | takeBaseName program == "prince"]
   let programArgs = args ++ [file] ++ pdfFileArgName ++ [pdfFile]
   env' <- getEnvironment
   when (verbosity >= INFO) $ do
@@ -408,10 +411,11 @@ html2pdf verbosity program args source = do
              (ExitSuccess, Just pdf) -> Right pdf
 
 context2pdf :: Verbosity    -- ^ Verbosity level
+            -> String       -- ^ "context" or path to it
             -> FilePath     -- ^ temp directory for output
             -> Text         -- ^ ConTeXt source
             -> IO (Either ByteString ByteString)
-context2pdf verbosity tmpDir source = inDirectory tmpDir $ do
+context2pdf verbosity program tmpDir source = inDirectory tmpDir $ do
   let file = "input.tex"
   BS.writeFile file $ UTF8.fromText source
 #ifdef _WINDOWS
@@ -426,7 +430,7 @@ context2pdf verbosity tmpDir source = inDirectory tmpDir $ do
     putStrLn "[makePDF] temp dir:"
     putStrLn tmpDir'
     putStrLn "[makePDF] Command line:"
-    putStrLn $ "context" ++ " " ++ unwords (map show programArgs)
+    putStrLn $ program ++ " " ++ unwords (map show programArgs)
     putStr "\n"
     putStrLn "[makePDF] Environment:"
     mapM_ print env'
@@ -435,7 +439,7 @@ context2pdf verbosity tmpDir source = inDirectory tmpDir $ do
     BL.readFile file >>= BL.putStr
     putStr "\n"
   (exit, out) <- E.catch
-    (pipeProcess (Just env') "context" programArgs BL.empty)
+    (pipeProcess (Just env') program programArgs BL.empty)
     (\(e :: IOError) -> if isDoesNotExistError e
                            then E.throwIO $
                                   PandocPDFProgramNotFoundError "context"

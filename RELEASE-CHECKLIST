@@ -1,8 +1,7 @@
 [ ] make README.md and commit if needed
 [ ] make man/pandoc.1 and commit if needed
 [ ] Finalize changelog
-    git log --pretty='format:%n%n* %s (%an)%n%b%n%h%n' \
-      --reverse --name-only LASTRELEASE..HEAD > LOG
+    tools/changelog-helper.sh
 [ ] make packages
 [ ] make update-website
 [ ] make trypandoc

@@ -39,7 +39,7 @@ import Text.Pandoc.Readers.Org.BlockStarts (endOfBlock, noteMarker)
 import Text.Pandoc.Readers.Org.ParserState
 import Text.Pandoc.Readers.Org.Parsing
 import Text.Pandoc.Readers.Org.Shared (cleanLinkString, isImageFilename,
-                                       originalLang, translateLang)
+                                       originalLang, translateLang, exportsCode)
 
 import Text.Pandoc.Builder (Inlines)
 import qualified Text.Pandoc.Builder as B
@@ -510,7 +510,7 @@ anchor =  try $ do
                      <* string ">>"
                      <* skipSpaces
 
--- | Replace every char but [a-zA-Z0-9_.-:] with a hypen '-'.  This mirrors
+-- | Replace every char but [a-zA-Z0-9_.-:] with a hyphen '-'.  This mirrors
 -- the org function @org-export-solidify-link-text@.
 
 solidify :: String -> String
@@ -525,11 +525,13 @@ inlineCodeBlock :: PandocMonad m => OrgParser m (F Inlines)
 inlineCodeBlock = try $ do
   string "src_"
   lang <- many1 orgArgWordChar
-  opts <- option [] $ enclosedByPair '[' ']' inlineBlockOption
+  opts <- option [] $ try (enclosedByPair '[' ']' inlineBlockOption)
+                        <|> (mempty <$ string "[]")
   inlineCode <- enclosedByPair '{' '}' (noneOf "\n\r")
   let attrClasses = [translateLang lang]
   let attrKeyVal  = originalLang lang <> opts
-  returnF $ B.codeWith ("", attrClasses, attrKeyVal) inlineCode
+  let codeInlineBlck = B.codeWith ("", attrClasses, attrKeyVal) inlineCode
+  returnF $ (if exportsCode opts then codeInlineBlck else mempty)
  where
    inlineBlockOption :: PandocMonad m => OrgParser m (String, String)
    inlineBlockOption = try $ do

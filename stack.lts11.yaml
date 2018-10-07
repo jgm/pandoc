@@ -1,0 +1,27 @@
+flags:
+  pandoc:
+    trypandoc: false
+    embed_data_files: true
+  pandoc-citeproc:
+    bibutils: true
+    embed_data_files: true
+    unicode_collation: false
+    test_citeproc: false
+    debug: false
+packages:
+- '.'
+extra-deps:
+- pandoc-citeproc-0.14.4
+- skylighting-0.7.2
+- skylighting-core-0.7.2
+- pandoc-types-1.17.5.1
+- texmath-0.11.1
+- haddock-library-1.6.0
+- HsYAML-0.1.1.1
+- hs-bibutils-6.6.0.0
+- yaml-0.9.0
+- hslua-1.0.1
+- hslua-module-text-0.2.0
+ghc-options:
+   "$locals": -fhide-source-paths -XNoImplicitPrelude
+resolver: lts-11.17

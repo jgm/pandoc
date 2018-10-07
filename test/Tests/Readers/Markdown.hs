@@ -39,7 +39,7 @@ testBareLink (inp, ils) =
        (unpack inp) (inp, doc $ para ils)
 
 autolink :: String -> Inlines
-autolink = autolinkWith nullAttr
+autolink = autolinkWith ("",["uri"],[])
 
 autolinkWith :: Attr -> String -> Inlines
 autolinkWith attr s = linkWith attr s "" (str s)
@@ -72,10 +72,12 @@ bareLinkTests =
   , ("http://en.wikipedia.org/wiki/Sprite_(computer_graphics)",
       autolink "http://en.wikipedia.org/wiki/Sprite_(computer_graphics)")
   , ("http://en.wikipedia.org/wiki/Sprite_[computer_graphics]",
-      link "http://en.wikipedia.org/wiki/Sprite_%5Bcomputer_graphics%5D" ""
+      linkWith ("",["uri"],[])
+        "http://en.wikipedia.org/wiki/Sprite_%5Bcomputer_graphics%5D" ""
         (str "http://en.wikipedia.org/wiki/Sprite_[computer_graphics]"))
   , ("http://en.wikipedia.org/wiki/Sprite_{computer_graphics}",
-      link "http://en.wikipedia.org/wiki/Sprite_%7Bcomputer_graphics%7D" ""
+      linkWith ("",["uri"],[])
+        "http://en.wikipedia.org/wiki/Sprite_%7Bcomputer_graphics%7D" ""
         (str "http://en.wikipedia.org/wiki/Sprite_{computer_graphics}"))
   , ("http://example.com/Notification_Center-GitHub-20101108-140050.jpg",
       autolink "http://example.com/Notification_Center-GitHub-20101108-140050.jpg")
@@ -199,7 +201,9 @@ tests = [ testGroup "inline code"
           ]
         , testGroup "emoji"
           [ test markdownGH "emoji symbols" $
-            ":smile: and :+1:" =?> para (text "😄 and 👍")
+            ":smile: and :+1:" =?> para (spanWith ("", ["emoji"], [("data-emoji", "smile")]) "😄" <>
+                                         space <> str "and" <> space <>
+                                         spanWith ("", ["emoji"], [("data-emoji", "+1")]) "👍")
           ]
         , "unbalanced brackets" =:
             "[[[[[[[[[[[[hi" =?> para (text "[[[[[[[[[[[[hi")

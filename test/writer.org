@@ -584,7 +584,7 @@ Superscripts: a^{bc}d a^{/hello/} a^{hello there}.
 Subscripts: H_{2}O, H_{23}O, H_{many of them}O.
 
 These should not be superscripts or subscripts, because of the unescaped
-spaces: a\^b c\^d, a~b c~d.
+spaces: a^b c^d, a~b c~d.
 
 --------------
 
@@ -674,7 +674,7 @@ Backtick: `
 
 Asterisk: *
 
-Underscore: \_
+Underscore: _
 
 Left brace: {
 
@@ -724,7 +724,7 @@ Just a [[/url/][URL]].
 
 [[/url/][URL and title]]
 
-[[/url/with_underscore][with\_underscore]]
+[[/url/with_underscore][with_underscore]]
 
 [[mailto:nobody@nowhere.net][Email link]]
 
@@ -816,7 +816,7 @@ Here is a movie [[file:movie.jpg]] icon.
   :END:
 
 Here is a footnote reference,[fn:1] and another.[fn:2] This should /not/ be a
-footnote reference, because it contains a space.[\^my note] Here is an inline
+footnote reference, because it contains a space.[^my note] Here is an inline
 note.[fn:3]
 
 #+BEGIN_QUOTE

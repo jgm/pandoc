@@ -100,7 +100,7 @@ liftA  fun a = a >>^ fun
 -- | Duplicate a value to subsequently feed it into different arrows.
 -- Can almost always be replaced with '(&&&)', 'keepingTheValue',
 -- or even '(|||)'.
--- Aequivalent to
+-- Equivalent to
 -- > returnA &&& returnA
 duplicate :: (Arrow a) => a b (b,b)
 duplicate = arr $ join (,)
@@ -114,7 +114,7 @@ infixr 2 >>%
 
 
 -- | Duplicate a value and apply an arrow to the second instance.
--- Aequivalent to
+-- Equivalent to
 -- > \a -> duplicate >>> second a
 -- or
 -- > \a -> returnA &&& a

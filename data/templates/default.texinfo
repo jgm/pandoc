@@ -10,28 +10,6 @@ $if(strikeout)$
 @end macro
 
 $endif$
-$if(subscript)$
-@macro textsubscript{text}
-@iftex
-@textsubscript{\text\}
-@end iftex
-@ifnottex
-_@{\text\@}
-@end ifnottex
-@end macro
-
-$endif$
-$if(superscript)$
-@macro textsuperscript{text}
-@iftex
-@textsuperscript{\text\}
-@end iftex
-@ifnottex
-^@{\text\@}
-@end ifnottex
-@end macro
-
-$endif$
 @ifnottex
 @paragraphindent 0
 @end ifnottex

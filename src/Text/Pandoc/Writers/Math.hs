@@ -55,4 +55,4 @@ defaultMathJaxURL :: String
 defaultMathJaxURL = "https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.2/"
 
 defaultKaTeXURL :: String
-defaultKaTeXURL = "https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.8.3/"
+defaultKaTeXURL = "https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.9.0/"

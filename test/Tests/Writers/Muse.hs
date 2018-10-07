@@ -275,7 +275,7 @@ tests = [ testGroup "block elements"
                unlines [ "#bar"
                        , "** Foo"
                       ]
-            , "empty heading" =: header 4 (mempty) =?> "**** <verbatim></verbatim>"
+            , "empty heading" =: header 4 mempty =?> "**** <verbatim></verbatim>"
             ]
           , "horizontal rule" =: horizontalRule =?> "----"
           , "escape horizontal rule" =: para (text "----") =?> "<verbatim></verbatim>----"
@@ -283,6 +283,7 @@ tests = [ testGroup "block elements"
           , "don't escape horizontal inside paragraph" =: para (text "foo ---- bar") =?> "foo ---- bar"
           , "escape nonbreaking space" =: para (text "~~") =?> "<verbatim>~~</verbatim>"
           , "escape > in the beginning of line" =: para (text "> foo bar") =?> "<verbatim></verbatim>> foo bar"
+          , "escape string with > and space in the beginning of line" =: para (str "> foo bar") =?> "<verbatim></verbatim>> foo bar"
           , testGroup "tables"
             [ "table without header" =:
               let rows = [[para $ text "Para 1.1", para $ text "Para 1.2"]
@@ -341,36 +342,95 @@ tests = [ testGroup "block elements"
             , "do not escape colon" =: str ":" =?> ":"
             , "escape - to avoid accidental unordered lists" =: text " - foo" =?> "<verbatim></verbatim> - foo"
             , "escape - inside a list to avoid accidental nested unordered lists" =:
-              bulletList [ (para $ text "foo") <>
-                           (para $ text "- bar")
+              bulletList [ para (text "foo") <>
+                           para (text "- bar")
                          ] =?>
               unlines [ " - foo"
                       , ""
                       , "   <verbatim></verbatim>- bar"
                       ]
+            , "escape strings starting with - inside a list" =:
+              bulletList [ para (str "foo") <>
+                           para (str "- bar")
+                         ] =?>
+              unlines [ " - foo"
+                      , ""
+                      , "   <verbatim></verbatim>- bar"
+                      ]
+            , "escape - inside a note" =:
+              note (para (text "- foo")) =?>
+              unlines [ "[1]"
+                      , ""
+                      , "[1] <verbatim></verbatim>- foo"
+                      ]
+            , "escape - after softbreak in note" =:
+              note (para (str "foo" <> softbreak <> str "- bar")) =?>
+              unlines [ "[1]"
+                      , ""
+                      , "[1] foo"
+                      , "    <verbatim></verbatim>- bar"
+                      ]
             , "escape ; to avoid accidental comments" =: text "; foo" =?> "<verbatim></verbatim>; foo"
+            , "escape strings starting with ; and space" =: str "; foo" =?> "<verbatim></verbatim>; foo"
             , "escape ; after softbreak" =: text "foo" <> softbreak <> text "; bar" =?> "foo\n<verbatim></verbatim>; bar"
             , "escape ; after linebreak" =: text "foo" <> linebreak <> text "; bar" =?> "foo<br>\n<verbatim></verbatim>; bar"
             , "do not escape ; inside paragraph" =: text "foo ; bar" =?> "foo ; bar"
+            , "escape newlines" =: str "foo\nbar" =?> "foo bar"
             ]
           , testGroup "emphasis"
-            [ "emph" =: emph (text "foo") =?> "<em>foo</em>"
-            , "strong" =: strong (text "foo") =?> "<strong>foo</strong>"
+            [ "emphasis" =: emph (text "foo") =?> "*foo*"
+            , "emphasis inside word" =: text "foo" <> emph (text "bar") <> text "baz" =?> "foo<em>bar</em>baz"
+            , "emphasis before comma" =: emph (text "foo") <> text ", bar" =?> "*foo*, bar"
+            , "emphasis before period" =: emph (text "foobar") <> text "." =?> "*foobar*."
+            , "empty emphasis" =: emph mempty =?> "<em></em>"
+            , "empty strong" =: strong mempty =?> "<strong></strong>"
+            , "empty strong emphasis" =: strong (emph mempty) =?> "**<em></em>**"
+            , "empty emphasized strong" =: emph (strong mempty) =?> "*<strong></strong>*"
+            , "emphasized empty string" =: emph (str "") =?> "<em></em>"
+            , "strong empty string" =: strong (str "") =?> "<strong></strong>"
+            , "strong emphasized empty string" =: strong (emph (str "")) =?> "**<em></em>**"
+            , "emphasized strong empty string" =: emph (strong (str "")) =?> "*<strong></strong>*"
+            , "emphasized string with space" =: emph (str " ") =?> "<em> </em>"
+            , "emphasized string ending with space" =: emph (str "foo ") =?> "<em>foo </em>"
+            , "emphasized string with tab" =: emph (str "\t") =?> "<em>\t</em>"
+            , "emphasized space between empty strings" =: emph (str "" <> space <> str "") =?> "<em> </em>"
+            , "strong" =: strong (text "foo") =?> "**foo**"
+            , "strong inside word" =: text "foo" <> strong (text "bar") <> text "baz" =?> "foo<strong>bar</strong>baz"
+            , "strong emphasis" =: strong (emph (text "foo")) =?> "***foo***"
+            , "strong after emphasis" =: emph (text "foo") <> strong (text "bar") =?> "*foo*<strong>bar</strong>"
+            , "strong emphasis after emphasis" =: emph (text "foo") <> strong (emph (text "bar")) =?> "*foo*<strong>*bar*</strong>"
+            , "strong in the end of emphasis" =: emph (text "foo" <> strong (text "bar")) =?> "*foo<strong>bar</strong>*"
             , "strikeout" =: strikeout (text "foo") =?> "<del>foo</del>"
+            , "space at the beginning of emphasis" =: emph (text " foo") =?> "<em> foo</em>"
+            , "space at the end of emphasis" =: emph (text "foo ") =?> "<em>foo </em>"
+            , "space at the beginning of strong" =: strong (text " foo") =?> "<strong> foo</strong>"
+            , "space at the end of strong" =: strong (text "foo ") =?> "<strong>foo </strong>"
+            , "space at the beginning of strong emphasis" =: strong (emph (text " foo")) =?> "**<em> foo</em>**"
+            , "space at the end of strong emphasis" =: strong (emph (text "foo ")) =?> "**<em>foo </em>**"
+            , "space at the beginning of emphasiszed strong" =: emph (strong (text " foo")) =?> "*<strong> foo</strong>*"
+            , "space at the end of emphasized strong" =: emph (strong (text "foo ")) =?> "*<strong>foo </strong>*"
             ]
           , "superscript" =: superscript (text "foo") =?> "<sup>foo</sup>"
           , "subscript" =: subscript (text "foo") =?> "<sub>foo</sub>"
-          , "smallcaps" =: smallcaps (text "foo") =?> "<em>foo</em>"
-          , "smallcaps near emphasis" =: emph (str "foo") <> smallcaps (str "bar") =?> "<em>foobar</em>"
+          , "smallcaps" =: smallcaps (text "foo") =?> "*foo*"
+          , "smallcaps near emphasis" =: emph (str "foo") <> smallcaps (str "bar") =?> "*foobar*"
           , "single quoted" =: singleQuoted (text "foo") =?> "‘foo’"
           , "double quoted" =: doubleQuoted (text "foo") =?> "“foo”"
           -- Cite is trivial
           , testGroup "code"
-            [ "simple" =: code "foo" =?> "<code>foo</code>"
+            [ "simple" =: code "foo" =?> "=foo="
+            , "empty" =: code "" =?> "<code></code>"
+            , "space" =: code " " =?> "<code> </code>"
+            , "space at the beginning" =: code " foo" =?> "<code> foo</code>"
+            , "space at the end" =: code "foo " =?> "<code>foo </code>"
+            , "use tags for =" =: code "foo = bar" =?> "<code>foo = bar</code>"
             , "escape tag" =: code "<code>foo = bar</code> baz" =?> "<code><code>foo = bar<</code><code>/code> baz</code>"
-            , "normalization with attributes" =: codeWith ("",["haskell"],[]) "foo" <> code "bar" =?> "<code>foobar</code>"
-            , "normalization" =: code "</co" <> code "de>" =?> "<code><</code><code>/code></code>"
-            , "normalization with empty string" =: code "</co" <> str "" <> code "de>" =?> "<code><</code><code>/code></code>"
+            , "normalization with attributes" =: codeWith ("",["haskell"],[]) "foo" <> code "bar" =?> "=foobar="
+            , "code tag" =: code "<code>foo</code>" =?> "=<code>foo</code>="
+            , "normalization" =: code "</co" <> code "de>" <> code "=" =?> "<code><</code><code>/code>=</code>"
+            , "normalization with empty string" =: code "</co" <> str "" <> code "de>" <> code "=" =?> "<code><</code><code>/code>=</code>"
+            , "emphasized code" =: emph (code "foo") =?> "*=foo=*"
+            , "strong code" =: strong (code "foo") =?> "**=foo=**"
             ]
           , testGroup "spaces"
             [ "space" =: text "a" <> space <> text "b" =?> "a b"
@@ -385,7 +445,7 @@ tests = [ testGroup "block elements"
           , testGroup "math"
             [ "inline math" =: math "2^3" =?> "2<sup>3</sup>"
             , "display math" =: displayMath "2^3" =?> "2<sup>3</sup>"
-            , "multiple letters in inline math" =: math "abc" =?> "<em>abc</em>"
+            , "multiple letters in inline math" =: math "abc" =?> "*abc*"
             , "expand math before normalization" =: math "[" <> str "2]" =?> "<verbatim>[2]</verbatim>"
             , "multiple math expressions inside one inline list" =: math "5_4" <> text ", " <> displayMath "3^2" =?> "5<sub>4</sub>, 3<sup>2</sup>"
             ]
@@ -441,11 +501,11 @@ tests = [ testGroup "block elements"
                               =?> "<class name=\"foobar\">Some text</class>"
           , "span without class" =: spanWith ("",[],[]) (text "Some text")
                                  =?> "<class>Some text</class>"
-          , "span with anchor" =: spanWith ("anchor", [], []) (mempty) <> (text "Foo bar")
+          , "span with anchor" =: spanWith ("anchor", [], []) mempty <> text "Foo bar"
                                =?> "#anchor Foo bar"
-          , "empty span with anchor" =: spanWith ("anchor", [], []) (mempty)
+          , "empty span with anchor" =: spanWith ("anchor", [], []) mempty
                                      =?> "#anchor"
-          , "empty span without class and anchor" =: spanWith ("", [], []) (mempty)
+          , "empty span without class and anchor" =: spanWith ("", [], []) mempty
                                                   =?> "<class></class>"
           , "span with class and anchor" =: spanWith ("anchor", ["foo"], []) (text "bar")
                                          =?> "#anchor <class name=\"foo\">bar</class>"
@@ -461,7 +521,7 @@ tests = [ testGroup "block elements"
                     "<em>foo</em>bar"
             , "emph quoted" =:
                 para (doubleQuoted (emph (text "foo"))) =?>
-                    "“<em>foo</em>”"
+                    "“*foo*”"
             , "strong word before" =:
                 para (text "foo" <> strong (text "bar")) =?>
                     "foo<strong>bar</strong>"
@@ -470,7 +530,7 @@ tests = [ testGroup "block elements"
                     "<strong>foo</strong>bar"
             , "strong quoted" =:
                 para (singleQuoted (strong (text "foo"))) =?>
-                    "‘<strong>foo</strong>’"
+                    "‘**foo**’"
             ]
          ]
        ]

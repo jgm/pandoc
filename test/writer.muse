@@ -11,7 +11,7 @@ markdown test suite.
 
 ** Level 2 with an [[/url][embedded link]]
 
-*** Level 3 with <em>emphasis</em>
+*** Level 3 with *emphasis*
 
 **** Level 4
 
@@ -19,7 +19,7 @@ markdown test suite.
 
 * Level 1
 
-** Level 2 with <em>emphasis</em>
+** Level 2 with *emphasis*
 
 *** Level 3
 
@@ -271,18 +271,18 @@ Loose:
 
 Multiple blocks with italics:
 
- <em>apple</em> :: red fruit
+ *apple* :: red fruit
 
-                   contains seeds, crisp, pleasant to taste
- <em>orange</em> :: orange fruit
+            contains seeds, crisp, pleasant to taste
+ *orange* :: orange fruit
 
-                    <example>
-                    { orange code block }
-                    </example>
+             <example>
+             { orange code block }
+             </example>
 
-                    <quote>
-                    orange block quote
-                    </quote>
+             <quote>
+             orange block quote
+             </quote>
 
 Multiple definitions, tight:
 
@@ -331,7 +331,7 @@ Interpreted markdown in a table:
 <td>
 </literal>
 
-This is <em>emphasized</em>
+This is *emphasized*
 
 <literal style="html">
 </td>
@@ -341,7 +341,7 @@ This is <em>emphasized</em>
 <td>
 </literal>
 
-And this is <strong>strong</strong>
+And this is **strong**
 
 <literal style="html">
 </td>
@@ -461,27 +461,25 @@ Hr’s:
 
 * Inline Markup
 
-This is <em>emphasized</em>, and so <em>is this</em>.
+This is *emphasized*, and so *is this*.
 
-This is <strong>strong</strong>, and so <strong>is this</strong>.
+This is **strong**, and so **is this**.
 
-An <em>[[/url][emphasized link]]</em>.
+An *[[/url][emphasized link]]*.
 
-<strong><em>This is strong and em.</em></strong>
+***This is strong and em.***
 
-So is <strong><em>this</em></strong> word.
+So is ***this*** word.
 
-<strong><em>This is strong and em.</em></strong>
+***This is strong and em.***
 
-So is <strong><em>this</em></strong> word.
+So is ***this*** word.
 
-This is code: <code>></code>, <code>$</code>, <code>\</code>, <code>\$</code>,
-<code><html></code>.
+This is code: =>=, =$=, =\=, =\$=, =<html>=.
 
-<del>This is <em>strikeout</em>.</del>
+<del>This is *strikeout*.</del>
 
-Superscripts: a<sup>bc</sup>d a<sup><em>hello</em></sup>
-a<sup>hello there</sup>.
+Superscripts: a<sup>bc</sup>d a<sup>*hello*</sup> a<sup>hello there</sup>.
 
 Subscripts: H<sub>2</sub>O, H<sub>23</sub>O, H<sub>many of them</sub>O.
 
@@ -500,8 +498,8 @@ spaces: a^b c^d, a~b c~d.
 
 ‘He said, “I want to go.”’ Were you alive in the 70’s?
 
-Here is some quoted ‘<code>code</code>’ and a
-“[[http://example.com/?foo=1&bar=2][quoted link]]”.
+Here is some quoted ‘=code=’ and a “[[http://example.com/?foo=1&bar=2][quoted
+link]]”.
 
 Some dashes: one—two — three—four — five.
 
@@ -515,26 +513,25 @@ Ellipses…and…and….
 
  - <literal style="tex">\cite[22-23]{smith.1899}</literal>
  - <verbatim>2 + 2 = 4</verbatim>
- - <em>x</em> ∈ <em>y</em>
- - <em>α</em> ∧ <em>ω</em>
+ - *x* ∈ *y*
+ - *α* ∧ *ω*
  - 223
- - <em>p</em>-Tree
+ - *p*-Tree
  - Here’s some display math:
    <verbatim>$$\frac{d}{dx}f(x)=\lim_{h\to 0}\frac{f(x+h)-f(x)}{h}$$</verbatim>
- - Here’s one that has a line break in it:
-   <em>α</em> + <em>ω</em> × <em>x</em><sup>2</sup>.
+ - Here’s one that has a line break in it: *α* + *ω* × *x*<sup>2</sup>.
 
 These shouldn’t be math:
 
  - To get the famous equation, write <code>$e = mc^2$</code>.
- - $22,000 is a <em>lot</em> of money. So is $34,000. (It worked if “lot” is
+ - $22,000 is a *lot* of money. So is $34,000. (It worked if “lot” is
    emphasized.)
  - Shoes ($20) and socks ($5).
- - Escaped <code>$</code>: $73 <em>this should be emphasized</em> 23$.
+ - Escaped =$=: $73 *this should be emphasized* 23$.
 
 Here’s a LaTeX table:
 
-<literal style="latex">
+<literal style="tex">
 \begin{tabular}{|l|l|}\hline
 Animal & Number \\ \hline
 Dog    & 2      \\
@@ -669,7 +666,7 @@ An e-mail address: [[mailto:nobody@nowhere.net][nobody@nowhere.net]]
 Blockquoted: [[http://example.com/]]
 </quote>
 
-Auto-links should not occur here: <code><http://example.com/></code>
+Auto-links should not occur here: =<http://example.com/>=
 
 <example>
 or here: <http://example.com/>
@@ -689,7 +686,7 @@ Here is a movie [[movie.jpg][movie]] icon.
 
 * Footnotes
 
-Here is a footnote reference,[1] and another.[2] This should <em>not</em> be a
+Here is a footnote reference,[1] and another.[2] This should *not* be a
 footnote reference, because it contains a space.[^my note] Here is an inline
 note.[3]
 
@@ -716,9 +713,9 @@ This paragraph should not be part of the note, as it is not indented.
     If you want, you can indent every line, but you can also be lazy and just
     indent the first line of each block.
 
-[3] This is <em>easier</em> to type. Inline notes may contain
-    [[http://google.com][links]] and <code>]</code> verbatim characters, as
-    well as [bracketed text].
+[3] This is *easier* to type. Inline notes may contain
+    [[http://google.com][links]] and =]= verbatim characters, as well as
+    [bracketed text].
 
 [4] In quote.
 

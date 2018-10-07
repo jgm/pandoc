@@ -3,17 +3,29 @@
 <teiHeader>
   <fileDesc>
     <titleStmt>
-$if(title)$
       <title>$title$</title>
-$endif$
 $for(author)$
-      $author$
+      <author>$author$</author>
 $endfor$
     </titleStmt>
     <publicationStmt>
+$if(publicationStmt)$
       <p>$if(publicationStmt)$$publicationStmt$$endif$</p>
-      $if(license)$
+$endif$
+$if(license)$
       <availability><licence>$license$</licence></availability>
+$endif$
+$if(publisher)$
+      <publisher>$publisher$</publisher>
+$endif$
+$if(pubPlace)$
+      <pubPlace>$pubPlace$</pubPlace>
+$endif$
+$if(address)$
+      <address>$address$</address>
+$endif$
+$if(date)$
+      <date>$date$</date>
 $endif$
     </publicationStmt>
     <sourceDesc>

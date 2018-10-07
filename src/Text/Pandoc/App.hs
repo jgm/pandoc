@@ -52,7 +52,7 @@ import Data.Aeson (defaultOptions)
 import Data.Aeson.TH (deriveJSON)
 import qualified Data.ByteString as BS
 import qualified Data.ByteString.Lazy as B
-import Data.Char (toLower, toUpper, isAscii, ord)
+import Data.Char (toLower, toUpper)
 import Data.List (find, intercalate, isPrefixOf, isSuffixOf, sort)
 import qualified Data.Map as M
 import Data.Maybe (fromMaybe, isJust, isNothing)
@@ -62,8 +62,7 @@ import qualified Data.Text as T
 import qualified Data.Text.Lazy as TL
 import qualified Data.Text.Lazy.Encoding as TE
 import qualified Data.Text.Encoding.Error as TE
-import Data.Yaml (decode)
-import qualified Data.Yaml as Yaml
+import qualified Data.YAML as YAML
 import GHC.Generics
 import Network.URI (URI (..), parseURI)
 #ifdef EMBED_DATA_FILES
@@ -84,19 +83,18 @@ import System.Exit (exitSuccess)
 import System.FilePath
 import System.IO (nativeNewline, stdout)
 import qualified System.IO as IO (Newline (..))
-import System.IO.Error (isDoesNotExistError)
 import Text.Pandoc
 import Text.Pandoc.BCP47 (Lang (..), parseBCP47)
 import Text.Pandoc.Builder (setMeta, deleteMeta)
 import Text.Pandoc.Filter (Filter (JSONFilter, LuaFilter), applyFilters)
 import Text.Pandoc.Highlighting (highlightingStyles)
 import Text.Pandoc.PDF (makePDF)
+import Text.Pandoc.Readers.Markdown (yamlToMeta)
 import Text.Pandoc.SelfContained (makeDataURI, makeSelfContained)
 import Text.Pandoc.Shared (eastAsianLineBreakFilter, stripEmptyParagraphs,
          headerShift, isURI, ordNub, safeRead, tabFilter, uriPathToPath)
 import qualified Text.Pandoc.UTF8 as UTF8
 import Text.Pandoc.Writers.Math (defaultKaTeXURL, defaultMathJaxURL)
-import Text.Pandoc.XML (toEntities)
 import Text.Printf
 #ifndef _WINDOWS
 import System.Posix.IO (stdOutput)
@@ -144,6 +142,13 @@ engines = map ("html",) htmlEngines ++
 pdfEngines :: [String]
 pdfEngines = ordNub $ map snd engines
 
+pdfIsNoWriterErrorMsg :: String
+pdfIsNoWriterErrorMsg =
+  "To create a pdf using pandoc, use " ++
+  "-t latex|beamer|context|ms|html5" ++
+  "\nand specify an output file with " ++
+  ".pdf extension (-o filename.pdf)."
+
 pdfWriterAndProg :: Maybe String              -- ^ user-specified writer name
                  -> Maybe String              -- ^ user-specified pdf-engine
                  -> IO (String, Maybe String) -- ^ IO (writerName, maybePdfEngineProg)
@@ -155,9 +160,9 @@ pdfWriterAndProg mWriter mEngine = do
     where
       go Nothing Nothing       = Right ("latex", "pdflatex")
       go (Just writer) Nothing = (writer,) <$> engineForWriter writer
-      go Nothing (Just engine) = (,engine) <$> writerForEngine engine
+      go Nothing (Just engine) = (,engine) <$> writerForEngine (takeBaseName engine)
       go (Just writer) (Just engine) =
-           case find (== (baseWriterName writer, engine)) engines of
+           case find (== (baseWriterName writer, takeBaseName engine)) engines of
                 Just _  -> Right (writer, engine)
                 Nothing -> Left $ "pdf-engine " ++ engine ++
                            " is not compatible with output format " ++ writer
@@ -167,6 +172,7 @@ pdfWriterAndProg mWriter mEngine = do
                                  []      -> Left $
                                    "pdf-engine " ++ eng ++ " not known"
 
+      engineForWriter "pdf" = Left pdfIsNoWriterErrorMsg
       engineForWriter w = case [e |  (f,e) <- engines, f == baseWriterName w] of
                                 eng : _ -> Right eng
                                 []      -> Left $
@@ -235,11 +241,7 @@ convertWithOpts opts = do
                else case getWriter (map toLower writerName) of
                          Left e  -> E.throwIO $ PandocAppError $
                            if format == "pdf"
-                              then e ++
-                               "\nTo create a pdf using pandoc, use " ++
-                               "-t latex|beamer|context|ms|html5" ++
-                               "\nand specify an output file with " ++
-                               ".pdf extension (-o filename.pdf)."
+                              then e ++ "\n" ++ pdfIsNoWriterErrorMsg
                               else e
                          Right (w, es) -> return (w :: Writer PandocIO, es)
 
@@ -381,11 +383,10 @@ convertWithOpts opts = do
                                      "" -> tp <.> format
                                      _  -> tp
                       Just . UTF8.toString <$>
-                            (readFileStrict tp' `catchError`
+                            ((fst <$> fetchItem tp') `catchError`
                              (\e ->
                                  case e of
-                                      PandocIOError _ e' |
-                                        isDoesNotExistError e' ->
+                                      PandocResourceNotFound _ ->
                                          readDataFile ("templates" </> tp')
                                       _ -> throwError e))
 
@@ -398,6 +399,10 @@ convertWithOpts opts = do
                                          ("application/xml", jatsCSL)
                      return $ ("csl", jatsEncoded) : optMetadata opts
                    else return $ optMetadata opts
+    metadataFromFile <-
+      case optMetadataFile opts of
+        Nothing   -> return mempty
+        Just file -> readFileLazy file >>= yamlToMeta
 
     case lookup "lang" (optMetadata opts) of
            Just l  -> case parseBCP47 l of
@@ -437,6 +442,7 @@ convertWithOpts opts = do
           , writerTOCDepth         = optTOCDepth opts
           , writerReferenceDoc     = optReferenceDoc opts
           , writerSyntaxMap        = syntaxMap
+          , writerPreferAscii      = optAscii opts
           }
 
     let readerOpts = def{
@@ -490,6 +496,7 @@ convertWithOpts opts = do
               (   (if isJust (optExtractMedia opts)
                       then fillMediaBag
                       else return)
+              >=> return . addNonPresentMetadata metadataFromFile
               >=> return . addMetadata metadata
               >=> applyTransforms transforms
               >=> applyFilters readerOpts filters' [format]
@@ -512,31 +519,16 @@ convertWithOpts opts = do
                 let htmlFormat = format `elem`
                       ["html","html4","html5","s5","slidy",
                        "slideous","dzslides","revealjs"]
-                    escape
-                      | optAscii opts
-                      , htmlFormat || format == "docbook4" ||
-                        format == "docbook5" || format == "docbook" ||
-                        format == "jats" || format == "opml" ||
-                        format == "icml" = toEntities
-                      | optAscii opts
-                      , format == "ms" || format == "man" = groffEscape
-                      | otherwise = id
                     addNl = if standalone
                                then id
                                else (<> T.singleton '\n')
-                output <- (addNl . escape) <$> f writerOptions doc
+                output <- addNl <$> f writerOptions doc
                 writerFn eol outputFile =<<
                   if optSelfContained opts && htmlFormat
                      -- TODO not maximally efficient; change type
                      -- of makeSelfContained so it works w/ Text
                      then T.pack <$> makeSelfContained (T.unpack output)
                      else return output
-
-groffEscape :: Text -> Text
-groffEscape = T.concatMap toUchar
-  where toUchar c
-         | isAscii c = T.singleton c
-         | otherwise = T.pack $ printf "\\[u%04X]" (ord c)
 
 type Transform = Pandoc -> Pandoc
 
@@ -555,6 +547,7 @@ data Opt = Opt
     , optTemplate              :: Maybe FilePath  -- ^ Custom template
     , optVariables             :: [(String,String)] -- ^ Template variables to set
     , optMetadata              :: [(String, String)] -- ^ Metadata fields to set
+    , optMetadataFile          :: Maybe FilePath  -- ^ Name of YAML metadata file
     , optOutputFile            :: Maybe FilePath  -- ^ Name of output file
     , optInputFiles            :: [FilePath] -- ^ Names of input files
     , optNumberSections        :: Bool    -- ^ Number sections in LaTeX
@@ -598,7 +591,7 @@ data Opt = Opt
     , optPdfEngineArgs         :: [String]   -- ^ Flags to pass to the engine
     , optSlideLevel            :: Maybe Int  -- ^ Header level that creates slides
     , optSetextHeaders         :: Bool       -- ^ Use atx headers for markdown level 1-2
-    , optAscii                 :: Bool       -- ^ Use ascii characters only in html
+    , optAscii                 :: Bool       -- ^ Prefer ascii output
     , optDefaultImageExtension :: String -- ^ Default image extension
     , optExtractMedia          :: Maybe FilePath -- ^ Path to extract embedded media
     , optTrackChanges          :: TrackChanges -- ^ Accept or reject MS Word track-changes.
@@ -627,6 +620,7 @@ defaultOpts = Opt
     , optTemplate              = Nothing
     , optVariables             = []
     , optMetadata              = []
+    , optMetadataFile          = Nothing
     , optOutputFile            = Nothing
     , optInputFiles            = []
     , optNumberSections        = False
@@ -686,6 +680,9 @@ defaultOpts = Opt
     , optStripComments          = False
     }
 
+addNonPresentMetadata :: Text.Pandoc.Meta -> Pandoc -> Pandoc
+addNonPresentMetadata newmeta (Pandoc meta bs) = Pandoc (meta <> newmeta) bs
+
 addMetadata :: [(String, String)] -> Pandoc -> Pandoc
 addMetadata kvs pdc = foldr addMeta (removeMetaKeys kvs pdc) kvs
 
@@ -702,10 +699,12 @@ removeMetaKeys :: [(String,String)] -> Pandoc -> Pandoc
 removeMetaKeys kvs pdc = foldr (deleteMeta . fst) pdc kvs
 
 readMetaValue :: String -> MetaValue
-readMetaValue s = case decode (UTF8.fromString s) of
-                       Just (Yaml.String t) -> MetaString $ T.unpack t
-                       Just (Yaml.Bool b)   -> MetaBool b
-                       _                    -> MetaString s
+readMetaValue s = case YAML.decodeStrict (UTF8.fromString s) of
+                       Right [YAML.Scalar (YAML.SStr t)]
+                                             -> MetaString $ T.unpack t
+                       Right [YAML.Scalar (YAML.SBool b)]
+                                             -> MetaBool b
+                       _                     -> MetaString s
 
 -- Determine default reader based on source file extensions
 defaultReaderName :: String -> [FilePath] -> String
@@ -960,6 +959,12 @@ options =
                   "KEY[:VALUE]")
                  ""
 
+    , Option "" ["metadata-file"]
+                 (ReqArg
+                  (\arg opt -> return opt{ optMetadataFile = Just arg })
+                  "FILE")
+                 ""
+
     , Option "V" ["variable"]
                  (ReqArg
                   (\arg opt -> do
@@ -1153,7 +1158,7 @@ options =
     , Option "" ["ascii"]
                  (NoArg
                   (\opt -> return opt { optAscii = True }))
-                 ""  -- "Use ascii characters only in HTML output"
+                 ""  -- "Prefer ASCII output"
 
     , Option "" ["reference-links"]
                  (NoArg

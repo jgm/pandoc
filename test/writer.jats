@@ -583,7 +583,7 @@ These should not be escaped:  \$ \\ \&gt; \[ \{</preformat>
   </boxed-text>
   <p>Interpreted markdown in a table:</p>
   <p>This is <italic>emphasized</italic></p>
-  <p>And this is <bold role="strong">strong</bold></p>
+  <p>And this is <bold>strong</bold></p>
   <p>Here’s a simple block:</p>
   <boxed-text>
     <p>foo</p>
@@ -614,14 +614,13 @@ These should not be escaped:  \$ \\ \&gt; \[ \{</preformat>
 <sec id="inline-markup">
   <title>Inline Markup</title>
   <p>This is <italic>emphasized</italic>, and so <italic>is this</italic>.</p>
-  <p>This is <bold role="strong">strong</bold>, and so <bold role="strong">is
-  this</bold>.</p>
+  <p>This is <bold>strong</bold>, and so <bold>is this</bold>.</p>
   <p>An <italic><ext-link ext-link-type="uri" xlink:href="/url">emphasized
   link</ext-link></italic>.</p>
-  <p><bold role="strong"><italic>This is strong and em.</italic></bold></p>
-  <p>So is <bold role="strong"><italic>this</italic></bold> word.</p>
-  <p><bold role="strong"><italic>This is strong and em.</italic></bold></p>
-  <p>So is <bold role="strong"><italic>this</italic></bold> word.</p>
+  <p><bold><italic>This is strong and em.</italic></bold></p>
+  <p>So is <bold><italic>this</italic></bold> word.</p>
+  <p><bold><italic>This is strong and em.</italic></bold></p>
+  <p>So is <bold><italic>this</italic></bold> word.</p>
   <p>This is code: <monospace>&gt;</monospace>, <monospace>$</monospace>,
   <monospace>\</monospace>, <monospace>\$</monospace>,
   <monospace>&lt;html&gt;</monospace>.</p>

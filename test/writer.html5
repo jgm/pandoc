@@ -19,7 +19,7 @@
   <![endif]-->
 </head>
 <body>
-<header>
+<header id="title-block-header">
 <h1 class="title">Pandoc Test Suite</h1>
 <p class="author">John MacFarlane</p>
 <p class="author">Anonymous</p>
@@ -511,7 +511,7 @@ Blah
 <li><a href="http://example.com/" class="uri">http://example.com/</a></li>
 <li>It should.</li>
 </ul>
-<p>An e-mail address: <a href="mailto:nobody@nowhere.net">nobody@nowhere.net</a></p>
+<p>An e-mail address: <a href="mailto:nobody@nowhere.net" class="email">nobody@nowhere.net</a></p>
 <blockquote>
 <p>Blockquoted: <a href="http://example.com/" class="uri">http://example.com/</a></p>
 </blockquote>

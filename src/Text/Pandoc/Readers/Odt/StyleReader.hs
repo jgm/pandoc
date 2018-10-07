@@ -138,7 +138,7 @@ fontPitchReader = executeIn NsOffice "font-face-decls" (
                               lookupDefaultingAttr NsStyle "font-pitch"
                             ))
                     >>?^ ( M.fromList . foldl accumLegalPitches [] )
-                  )
+                  ) `ifFailedDo` (returnV (Right M.empty))
   where accumLegalPitches ls (Nothing,_) = ls
         accumLegalPitches ls (Just n,p)  = (n,p):ls
 
@@ -342,7 +342,7 @@ instance Read XslUnit where
   readsPrec _  _   = []
 
 -- | Rough conversion of measures into millimetres.
--- Pixels and em's are actually implementation dependant/relative measures,
+-- Pixels and em's are actually implementation dependent/relative measures,
 -- so I could not really easily calculate anything exact here even if I wanted.
 -- But I do not care about exactness right now, as I only use measures
 -- to determine if a paragraph is "indented" or not.

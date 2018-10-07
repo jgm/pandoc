@@ -109,7 +109,7 @@ escapeString = escapeStringUsing $
                , ('\x2013',"--")
                , ('\x2019',"'")
                , ('\x2026',"...")
-               ] ++ backslashEscapes "^_"
+               ]
 
 isRawFormat :: Format -> Bool
 isRawFormat f =
@@ -266,7 +266,7 @@ orderedListItemToOrg marker items = do
   contents <- blockListToOrg items
   return $ hang (length marker + 1) (text marker <> space) (contents <> cr)
 
--- | Convert defintion list item (label, list of blocks) to Org.
+-- | Convert definition list item (label, list of blocks) to Org.
 definitionListItemToOrg :: PandocMonad m
                         => ([Inline], [[Block]]) -> Org m Doc
 definitionListItemToOrg (label, defs) = do

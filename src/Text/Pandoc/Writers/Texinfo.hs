@@ -56,8 +56,6 @@ import Text.Printf (printf)
 
 data WriterState =
   WriterState { stStrikeout   :: Bool  -- document contains strikeout
-              , stSuperscript :: Bool -- document contains superscript
-              , stSubscript   :: Bool -- document contains subscript
               , stEscapeComma :: Bool -- in a context where we need @comma
               , stIdentifiers :: Set.Set String -- header ids used already
               , stOptions     :: WriterOptions -- writer options
@@ -74,8 +72,7 @@ type TI m = StateT WriterState m
 writeTexinfo :: PandocMonad m => WriterOptions -> Pandoc -> m Text
 writeTexinfo options document =
   evalStateT (pandocToTexinfo options $ wrapTop document)
-  WriterState { stStrikeout = False, stSuperscript = False,
-                stEscapeComma = False, stSubscript = False,
+  WriterState { stStrikeout = False, stEscapeComma = False,
                 stIdentifiers = Set.empty, stOptions = options}
 
 -- | Add a "Top" node around the document, needed by Texinfo.
@@ -102,8 +99,6 @@ pandocToTexinfo options (Pandoc meta blocks) = do
   let context = defField "body" body
               $ defField "toc" (writerTableOfContents options)
               $ defField "titlepage" titlePage
-              $ defField "subscript" (stSubscript st)
-              $ defField "superscript" (stSuperscript st)
               $
         defField "strikeout" (stStrikeout st) metadata
   case writerTemplate options of
@@ -351,12 +346,9 @@ collectNodes :: Int -> [Block] -> [Block]
 collectNodes _ [] = []
 collectNodes level (x:xs) =
   case x of
-    (Header hl _ _) ->
-      if hl < level
-         then []
-         else if hl == level
-                 then x : collectNodes level xs
-                 else collectNodes level xs
+    (Header hl _ _) | hl < level -> []
+                    | hl == level -> x : collectNodes level xs
+                    | otherwise -> collectNodes level xs
     _ ->
       collectNodes level xs
 
@@ -394,7 +386,7 @@ defListItemToTexinfo (term, defs) = do
 inlineListToTexinfo :: PandocMonad m
                     => [Inline]  -- ^ Inlines to convert
                     -> TI m Doc
-inlineListToTexinfo lst = mapM inlineToTexinfo lst >>= return . hcat
+inlineListToTexinfo lst = hcat <$> mapM inlineToTexinfo lst
 
 -- | Convert list of inline elements to Texinfo acceptable for a node name.
 inlineListForNode :: PandocMonad m
@@ -416,10 +408,10 @@ inlineToTexinfo (Span _ lst) =
   inlineListToTexinfo lst
 
 inlineToTexinfo (Emph lst) =
-  inlineListToTexinfo lst >>= return . inCmd "emph"
+  inCmd "emph" <$> inlineListToTexinfo lst
 
 inlineToTexinfo (Strong lst) =
-  inlineListToTexinfo lst >>= return . inCmd "strong"
+  inCmd "strong" <$> inlineListToTexinfo lst
 
 inlineToTexinfo (Strikeout lst) = do
   modify $ \st -> st{ stStrikeout = True }
@@ -427,17 +419,15 @@ inlineToTexinfo (Strikeout lst) = do
   return $ text "@textstrikeout{" <> contents <> text "}"
 
 inlineToTexinfo (Superscript lst) = do
-  modify $ \st -> st{ stSuperscript = True }
   contents <- inlineListToTexinfo lst
-  return $ text "@textsuperscript{" <> contents <> char '}'
+  return $ text "@sup{" <> contents <> char '}'
 
 inlineToTexinfo (Subscript lst) = do
-  modify $ \st -> st{ stSubscript = True }
   contents <- inlineListToTexinfo lst
-  return $ text "@textsubscript{" <> contents <> char '}'
+  return $ text "@sub{" <> contents <> char '}'
 
 inlineToTexinfo (SmallCaps lst) =
-  inlineListToTexinfo lst >>= return . inCmd "sc"
+  inCmd "sc" <$> inlineListToTexinfo lst
 
 inlineToTexinfo (Code _ str) =
   return $ text $ "@code{" ++ stringToTexinfo str ++ "}"

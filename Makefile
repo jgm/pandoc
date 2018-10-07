@@ -2,12 +2,22 @@ version?=$(shell grep '^[Vv]ersion:' pandoc.cabal | awk '{print $$2;}')
 pandoc=$(shell find dist -name pandoc -type f -exec ls -t {} \; | head -1)
 SOURCEFILES?=$(shell find pandoc.hs src test -name '*.hs')
 BRANCH?=master
-RESOLVER=lts-10
-GHCOPTS=-fdiagnostics-color=always -Wall -fno-warn-unused-do-bind -Wincomplete-record-updates -Wnoncanonical-monad-instances -Wnoncanonical-monadfail-instances
+RESOLVER=lts-12
+GHCOPTS=-fdiagnostics-color=always -Wall -fno-warn-unused-do-bind -Wincomplete-record-updates -Wnoncanonical-monad-instances -Wnoncanonical-monadfail-instances -Wincomplete-uni-patterns -Werror=missing-home-modules -Widentities -Wcpp-undef -fhide-source-paths -j +RTS -A32M -RTS
+# Later:
+# -Wpartial-fields        (currently used in Powerpoint writer)
+# -Wmissing-export-lists  (currently some Odt modules violate this)
+# -Wredundant-constraints (problematic if we want to support older base)
 WEBSITE=../../web/pandoc.org
 
 quick:
 	stack install --resolver=$(RESOLVER) --ghc-options='$(GHCOPTS)' --install-ghc --flag 'pandoc:embed_data_files' --fast --test --test-arguments='-j4 --hide-successes $(TESTARGS)'
+
+quick-cabal:
+	cabal new-build . --ghc-options '$(GHCOPTS)' --flags '+embed_data_files' --enable-tests --only-dependencies
+	cabal new-build . --ghc-options '$(GHCOPTS)' --flags '+embed_data_files' --enable-tests --disable-optimization
+	cabal new-install --symlink-bindir=$$HOME/.local/bin
+	cabal new-run test-pandoc --ghc-options '$(GHCOPTS)' --flags '+embed_data_files' --disable-optimization -- --hide-successes $(TESTARGS)
 
 full:
 	stack install --resolver=$(RESOLVER) --flag 'pandoc:embed_data_files' --flag 'pandoc:weigh-pandoc' --flag 'pandoc:trypandoc' --bench --no-run-benchmarks --test --test-arguments='-j4 --hide-successes' --ghc-options '-Wall -Werror -fno-warn-unused-do-bind -O0 -j4 $(GHCOPTS)'
@@ -57,25 +67,29 @@ macospkg: man/pandoc.1
 winpkg: pandoc-$(version)-windows-i386.msi pandoc-$(version)-windows-i386.zip pandoc-$(version)-windows-x86_64.msi pandoc-$(version)-windows-x86_64.zip
 
 pandoc-$(version)-windows-%.zip: pandoc-$(version)-windows-%.msi
-	-rm -rf wintmp && \
-	msiextract -C wintmp $< && \
-	cd wintmp/"Program Files" && \
-	mv Pandoc pandoc-$(version) && \
-	zip -r $@ pandoc-$(version) && \
-	mv $@ ../../ && \
-	cd ../.. && \
-	rm -rf wintmp
+	ORIGDIR=`pwd` && \
+	CONTAINER=$(basename $<) && \
+	TEMPDIR=`mktemp -d` && \
+	msiextract -C $$TEMPDIR/msi $< && \
+	pushd $$TEMPDIR && \
+	mkdir $$CONTAINER && \
+	find msi -type f -exec cp {} $$CONTAINER/ \; && \
+	zip -r $$ORIGDIR/$@ $$CONTAINER && \
+	popd & \
+	rm -rf $$TEMPDIR
 
 pandoc-$(version)-windows-%.msi: pandoc-windows-%.msi
 	osslsigncode sign -pkcs12 ~/Private/ComodoCodeSigning.exp2019.p12 -in $< -i http://johnmacfarlane.net/ -t http://timestamp.comodoca.com/ -out $@ -askpass
 	rm $<
 
+.INTERMEDIATE: pandoc-windows-i386.msi pandoc-windows-x86_64.msi
+
 pandoc-windows-i386.msi:
-	JOBID=$(shell curl 'https://ci.appveyor.com/api/projects/jgm/pandoc' | jq -r '.build.jobs[0].jobId') && \
+	JOBID=$(shell curl 'https://ci.appveyor.com/api/projects/jgm/pandoc' | jq -r '.build.jobs[1].jobId') && \
 	wget "https://ci.appveyor.com/api/buildjobs/$$JOBID/artifacts/windows%2F$@" -O $@
 
 pandoc-windows-x86_64.msi:
-	JOBID=$(shell curl 'https://ci.appveyor.com/api/projects/jgm/pandoc' | jq -r '.build.jobs[1].jobId') && \
+	JOBID=$(shell curl 'https://ci.appveyor.com/api/projects/jgm/pandoc' | jq -r '.build.jobs[0].jobId') && \
 	wget "https://ci.appveyor.com/api/buildjobs/$$JOBID/artifacts/windows%2F$@" -O $@
 
 man/pandoc.1: MANUAL.txt man/pandoc.1.template
@@ -109,7 +123,7 @@ pandoc-templates:
 	popd
 
 trypandoc:
-	ssh -t macfarlane 'cd src/pandoc && git pull && ~/.local/bin/stack install --flag pandoc:trypandoc --flag pandoc:embed_data_files && cd trypandoc && sudo make install'
+	ssh -t macfarlane 'cd src/pandoc && git pull && stack install --flag pandoc:trypandoc --flag pandoc:embed_data_files && cd trypandoc && sudo make install'
 
 update-website:
 	make -C $(WEBSITE) update

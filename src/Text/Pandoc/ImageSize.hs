@@ -319,20 +319,22 @@ pngSize img = do
                     (shift w1 24 + shift w2 16 + shift w3 8 + w4,
                      shift h1 24 + shift h2 16 + shift h3 8 + h4)
                 _ -> Nothing -- "PNG parse error"
-  let (dpix, dpiy) = findpHYs rest''
+  (dpix, dpiy) <- findpHYs rest''
   return ImageSize { pxX  = x, pxY = y, dpiX = dpix, dpiY = dpiy }
 
-findpHYs :: ByteString -> (Integer, Integer)
+findpHYs :: ByteString -> Maybe (Integer, Integer)
 findpHYs x
-  | B.null x || "IDAT" `B.isPrefixOf` x = (72,72)
+  | B.null x || "IDAT" `B.isPrefixOf` x = return (72,72)
   | "pHYs" `B.isPrefixOf` x =
-    let [x1,x2,x3,x4,y1,y2,y3,y4,u] =
-          map fromIntegral $ unpack $ B.take 9 $ B.drop 4 x
-        factor = if u == 1 -- dots per meter
-                    then \z -> z * 254 `div` 10000
-                    else const 72
-    in  ( factor $ shift x1 24 + shift x2 16 + shift x3 8 + x4,
-          factor $ shift y1 24 + shift y2 16 + shift y3 8 + y4 )
+    case map fromIntegral $ unpack $ B.take 9 $ B.drop 4 x of
+         [x1,x2,x3,x4,y1,y2,y3,y4,u] -> do
+           let factor = if u == 1 -- dots per meter
+                          then \z -> z * 254 `div` 10000
+                          else const 72
+           return
+              ( factor $ shift x1 24 + shift x2 16 + shift x3 8 + x4,
+                factor $ shift y1 24 + shift y2 16 + shift y3 8 + y4 )
+         _ -> mzero
   | otherwise = findpHYs $ B.drop 1 x  -- read another byte
 
 gifSize :: ByteString -> Maybe ImageSize
@@ -408,20 +410,21 @@ jpegSize img =
 
 jfifSize :: ByteString -> Either String ImageSize
 jfifSize rest =
-  let [dpiDensity,dpix1,dpix2,dpiy1,dpiy2] = map fromIntegral
-                                           $ unpack $ B.take 5 $B.drop 9 rest
-      factor = case dpiDensity of
-                    1 -> id
-                    2 -> \x -> x * 254 `div` 10
-                    _ -> const 72
-      dpix = factor (shift dpix1 8 + dpix2)
-      dpiy = factor (shift dpiy1 8 + dpiy2)
-  in case findJfifSize rest of
-       Left msg    -> Left msg
-       Right (w,h) ->Right ImageSize { pxX = w
+  case map fromIntegral $ unpack $ B.take 5 $ B.drop 9 rest of
+    [dpiDensity,dpix1,dpix2,dpiy1,dpiy2] ->
+      let factor = case dpiDensity of
+                        1 -> id
+                        2 -> \x -> x * 254 `div` 10
+                        _ -> const 72
+          dpix = factor (shift dpix1 8 + dpix2)
+          dpiy = factor (shift dpiy1 8 + dpiy2)
+      in case findJfifSize rest of
+         Left msg    -> Left msg
+         Right (w,h) -> Right ImageSize { pxX = w
                                         , pxY = h
                                         , dpiX = dpix
                                         , dpiY = dpiy }
+    _ -> Left "unable to determine JFIF size"
 
 findJfifSize :: ByteString -> Either String (Integer,Integer)
 findJfifSize bs =
@@ -541,10 +544,12 @@ exifHeader hdr = do
   let resfactor = case lookup ResolutionUnit allentries of
                         Just (UnsignedShort 1) -> 100 / 254
                         _ -> 1
-  let xres = maybe 72 (\(UnsignedRational x) -> floor $ x * resfactor)
-             $ lookup XResolution allentries
-  let yres = maybe 72 (\(UnsignedRational x) -> floor $ x * resfactor)
-             $ lookup YResolution allentries
+  let xres = case lookup XResolution allentries of
+                  Just (UnsignedRational x) -> floor (x * resfactor)
+                  _ -> 72
+  let yres = case lookup YResolution allentries of
+                  Just (UnsignedRational y) -> floor (y * resfactor)
+                  _ -> 72
   return ImageSize{
                     pxX  = wdth
                   , pxY  = hght

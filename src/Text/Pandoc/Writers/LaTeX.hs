@@ -42,8 +42,9 @@ import Data.Aeson (FromJSON, object, (.=))
 import Data.Char (isAlphaNum, isAscii, isDigit, isLetter, isPunctuation, ord,
                   toLower)
 import Data.List (foldl', intercalate, intersperse, isInfixOf, nubBy,
-                  stripPrefix, (\\))
+                  stripPrefix, (\\), uncons)
 import Data.Maybe (catMaybes, fromMaybe, isJust, mapMaybe, isNothing)
+import qualified Data.Map as M
 import Data.Text (Text)
 import qualified Data.Text as T
 import Network.URI (unEscapeString)
@@ -63,6 +64,7 @@ import Text.Pandoc.Walk
 import Text.Pandoc.Writers.Shared
 import qualified Text.Parsec as P
 import Text.Printf (printf)
+import qualified Data.Text.Normalize as Normalize
 
 data WriterState =
   WriterState { stInNote        :: Bool          -- true if we're in a note
@@ -176,9 +178,9 @@ pandocToLaTeX options (Pandoc meta blocks) = do
     modify $ \s -> s{stCsquotes = True}
   let (blocks'', lastHeader) = if writerCiteMethod options == Citeproc then
                                  (blocks', [])
-                               else case last blocks' of
-                                 Header 1 _ il -> (init blocks', il)
-                                 _             -> (blocks', [])
+                               else case reverse blocks' of
+                                 Header 1 _ il : _ -> (init blocks', il)
+                                 _                 -> (blocks', [])
   beamer <- gets stBeamer
   blocks''' <- if beamer
                   then toSlides blocks''
@@ -248,7 +250,8 @@ pandocToLaTeX options (Pandoc meta blocks) = do
                                      defField "biblatex" True
                          _        -> id) $
                   defField "colorlinks" (any hasStringValue
-                           ["citecolor", "urlcolor", "linkcolor", "toccolor"]) $
+                           ["citecolor", "urlcolor", "linkcolor", "toccolor",
+                            "filecolor"]) $
                   (if null dirs
                      then id
                      else defField "dir" ("ltr" :: String)) $
@@ -317,46 +320,110 @@ data StringContext = TextString
 
 -- escape things as needed for LaTeX
 stringToLaTeX :: PandocMonad m => StringContext -> String -> LW m String
-stringToLaTeX  _     []     = return ""
-stringToLaTeX  ctx (x:xs) = do
+stringToLaTeX context zs = do
   opts <- gets stOptions
-  rest <- stringToLaTeX ctx xs
-  let ligatures = isEnabled Ext_smart opts && ctx == TextString
-  let isUrl = ctx == URLString
-  return $
+  go opts context $
+    if writerPreferAscii opts
+       then T.unpack $ Normalize.normalize Normalize.NFD $ T.pack zs
+       else zs
+ where
+  go  _ _     []     = return ""
+  go  opts ctx (x:xs) = do
+    let ligatures = isEnabled Ext_smart opts && ctx == TextString
+    let isUrl = ctx == URLString
+    let mbAccentCmd =
+          if writerPreferAscii opts && ctx == TextString
+             then uncons xs >>= \(c,_) -> M.lookup c accents
+             else Nothing
+    let emits s =
+          case mbAccentCmd of
+               Just cmd -> ((cmd ++ "{" ++ s ++ "}") ++)
+                        <$> go opts ctx (drop 1 xs) -- drop combining accent
+               Nothing  -> (s++) <$> go opts ctx xs
+    let emitc c =
+          case mbAccentCmd of
+               Just cmd -> ((cmd ++ "{" ++ [c] ++ "}") ++)
+                        <$> go opts ctx (drop 1 xs) -- drop combining accent
+               Nothing  -> (c:) <$> go opts ctx xs
     case x of
-       '{' -> "\\{" ++ rest
-       '}' -> "\\}" ++ rest
-       '`' | ctx == CodeString -> "\\textasciigrave{}" ++ rest
-       '$' | not isUrl -> "\\$" ++ rest
-       '%' -> "\\%" ++ rest
-       '&' -> "\\&" ++ rest
-       '_' | not isUrl -> "\\_" ++ rest
-       '#' -> "\\#" ++ rest
-       '-' | not isUrl -> case xs of
-                   -- prevent adjacent hyphens from forming ligatures
-                   ('-':_) -> "-\\/" ++ rest
-                   _       -> '-' : rest
-       '~' | not isUrl -> "\\textasciitilde{}" ++ rest
-       '^' -> "\\^{}" ++ rest
-       '\\'| isUrl     -> '/' : rest  -- NB. / works as path sep even on Windows
-           | otherwise -> "\\textbackslash{}" ++ rest
-       '|' | not isUrl -> "\\textbar{}" ++ rest
-       '<' -> "\\textless{}" ++ rest
-       '>' -> "\\textgreater{}" ++ rest
-       '[' -> "{[}" ++ rest  -- to avoid interpretation as
-       ']' -> "{]}" ++ rest  -- optional arguments
-       '\'' | ctx == CodeString -> "\\textquotesingle{}" ++ rest
-       '\160' -> "~" ++ rest
-       '\x202F' -> "\\," ++ rest
-       '\x2026' -> "\\ldots{}" ++ rest
-       '\x2018' | ligatures -> "`" ++ rest
-       '\x2019' | ligatures -> "'" ++ rest
-       '\x201C' | ligatures -> "``" ++ rest
-       '\x201D' | ligatures -> "''" ++ rest
-       '\x2014' | ligatures -> "---" ++ rest
-       '\x2013' | ligatures -> "--" ++ rest
-       _        -> x : rest
+         '{' -> emits "\\{"
+         '}' -> emits "\\}"
+         '`' | ctx == CodeString -> emits "\\textasciigrave{}"
+         '$' | not isUrl -> emits "\\$"
+         '%' -> emits "\\%"
+         '&' -> emits "\\&"
+         '_' | not isUrl -> emits "\\_"
+         '#' -> emits "\\#"
+         '-' | not isUrl -> case xs of
+                     -- prevent adjacent hyphens from forming ligatures
+                     ('-':_) -> emits "-\\/"
+                     _       -> emitc '-'
+         '~' | not isUrl -> emits "\\textasciitilde{}"
+         '^' -> emits "\\^{}"
+         '\\'| isUrl     -> emitc '/' -- NB. / works as path sep even on Windows
+             | otherwise -> emits "\\textbackslash{}"
+         '|' | not isUrl -> emits "\\textbar{}"
+         '<' -> emits "\\textless{}"
+         '>' -> emits "\\textgreater{}"
+         '[' -> emits "{[}"  -- to avoid interpretation as
+         ']' -> emits "{]}"  -- optional arguments
+         '\'' | ctx == CodeString -> emits "\\textquotesingle{}"
+         '\160' -> emits "~"
+         '\x202F' -> emits "\\,"
+         '\x2026' -> emits "\\ldots{}"
+         '\x2018' | ligatures -> emits "`"
+         '\x2019' | ligatures -> emits "'"
+         '\x201C' | ligatures -> emits "``"
+         '\x201D' | ligatures -> emits "''"
+         '\x2014' | ligatures -> emits "---"
+         '\x2013' | ligatures -> emits "--"
+         _ | writerPreferAscii opts
+             -> case x of
+                  'ı' -> emits "\\i "
+                  'ȷ' -> emits "\\j "
+                  'å' -> emits "\\aa "
+                  'Å' -> emits "\\AA "
+                  'ß' -> emits "\\ss "
+                  'ø' -> emits "\\o "
+                  'Ø' -> emits "\\O "
+                  'Ł' -> emits "\\L "
+                  'ł' -> emits "\\l "
+                  'æ' -> emits "\\ae "
+                  'Æ' -> emits "\\AE "
+                  'œ' -> emits "\\oe "
+                  'Œ' -> emits "\\OE "
+                  '£' -> emits "\\pounds "
+                  '€' -> emits "\\euro "
+                  '©' -> emits "\\copyright "
+                  _   -> emitc x
+           | otherwise -> emitc x
+
+accents :: M.Map Char String
+accents = M.fromList
+  [ ('\779' , "\\H")
+  , ('\768' , "\\`")
+  , ('\769' , "\\'")
+  , ('\770' , "\\^")
+  , ('\771' , "\\~")
+  , ('\776' , "\\\"")
+  , ('\775' , "\\.")
+  , ('\772' , "\\=")
+  , ('\781' , "\\|")
+  , ('\817' , "\\b")
+  , ('\807' , "\\c")
+  , ('\783' , "\\G")
+  , ('\777' , "\\h")
+  , ('\803' , "\\d")
+  , ('\785' , "\\f")
+  , ('\778' , "\\r")
+  , ('\865' , "\\t")
+  , ('\782' , "\\U")
+  , ('\780' , "\\v")
+  , ('\774' , "\\u")
+  , ('\808' , "\\k")
+  , ('\785' , "\\newtie")
+  , ('\8413', "\\textcircled")
+  ]
 
 toLabel :: PandocMonad m => String -> LW m String
 toLabel z = go `fmap` stringToLaTeX URLString z
@@ -402,7 +469,8 @@ elementToBeamer slideLevel  (Sec lvl _num (ident,classes,kvs) tit elts)
                     not (null $ query hasCodeBlock elts ++ query hasCode elts)
       let frameoptions = ["allowdisplaybreaks", "allowframebreaks", "fragile",
                           "b", "c", "t", "environment",
-                          "label", "plain", "shrink", "standout"]
+                          "label", "plain", "shrink", "standout",
+                          "noframenumbering"]
       let optionslist = ["fragile" | fragile && isNothing (lookup "fragile" kvs)] ++
                         [k | k <- classes, k `elem` frameoptions] ++
                         [k ++ "=" ++ v | (k,v) <- kvs, k `elem` frameoptions]
@@ -487,7 +555,7 @@ blockToLaTeX (Div (identifier,classes,kvs) bs)
                         then \contents ->
                                let fromPct xs =
                                      case reverse xs of
-                                       '%':ds -> '0':'.': reverse ds
+                                       '%':ds -> showFl (read (reverse ds) / 100 :: Double)
                                        _      -> xs
                                    w = maybe "0.48" fromPct (lookup "width" kvs)
                                in  inCmd "begin" "column" <>
@@ -517,25 +585,15 @@ blockToLaTeX (Plain lst) =
   inlineListToLaTeX $ dropWhile isLineBreakOrSpace lst
 -- title beginning with fig: indicates that the image is a figure
 blockToLaTeX (Para [Image attr@(ident, _, _) txt (src,'f':'i':'g':':':tit)]) = do
-  inNote <- gets stInNote
-  inMinipage <- gets stInMinipage
-  modify $ \st -> st{ stInMinipage = True, stNotes = [] }
-  capt <- inlineListToLaTeX txt
-  notes <- gets stNotes
-  modify $ \st -> st{ stInMinipage = False, stNotes = [] }
-
-  -- We can't have footnotes in the list of figures, so remove them:
-  captForLof <- if null notes
-                   then return empty
-                   else brackets <$> inlineListToLaTeX (walk deNote txt)
-  img <- inlineToLaTeX (Image attr txt (src,tit))
-  let footnotes = notesToLaTeX notes
+  (capt, captForLof, footnotes) <- getCaption txt
   lab <- labelFor ident
   let caption = "\\caption" <> captForLof <> braces capt <> lab
+  img <- inlineToLaTeX (Image attr txt (src,tit))
   innards <- hypertarget True ident $
                  "\\centering" $$ img $$ caption <> cr
   let figure = cr <> "\\begin{figure}" $$ innards $$ "\\end{figure}"
-  return $ if inNote || inMinipage
+  st <- get
+  return $ if stInNote st || stInMinipage st
               -- can't have figures in notes or minipage (here, table cell)
               -- http://www.tex.ac.uk/FAQ-ouparmd.html
               then "\\begin{center}" $$ img $+$ capt $$ "\\end{center}"
@@ -714,11 +772,11 @@ blockToLaTeX (Header level (id',classes,_) lst) = do
   modify $ \s -> s{stInHeading = False}
   return hdr
 blockToLaTeX (Table caption aligns widths heads rows) = do
+  (captionText, captForLof, footnotes) <- getCaption caption
   let toHeaders hs = do contents <- tableRowToLaTeX True aligns widths hs
                         return ("\\toprule" $$ contents $$ "\\midrule")
   let removeNote (Note _) = Span ("", [], []) []
       removeNote x        = x
-  captionText <- inlineListToLaTeX caption
   firsthead <- if isEmpty captionText || all null heads
                   then return empty
                   else ($$ text "\\endfirsthead") <$> toHeaders heads
@@ -730,8 +788,8 @@ blockToLaTeX (Table caption aligns widths heads rows) = do
                                  else walk removeNote heads)
   let capt = if isEmpty captionText
                 then empty
-                else text "\\caption" <>
-                      braces captionText <> "\\tabularnewline"
+                else "\\caption" <> captForLof <> braces captionText
+                         <> "\\tabularnewline"
   rows' <- mapM (tableRowToLaTeX False aligns widths) rows
   let colDescriptors = text $ concatMap toColDescriptor aligns
   modify $ \s -> s{ stTable = True }
@@ -745,6 +803,21 @@ blockToLaTeX (Table caption aligns widths heads rows) = do
          $$ vcat rows'
          $$ "\\bottomrule"
          $$ "\\end{longtable}"
+         $$ footnotes
+
+getCaption :: PandocMonad m => [Inline] -> LW m (Doc, Doc, Doc)
+getCaption txt = do
+  inMinipage <- gets stInMinipage
+  modify $ \st -> st{ stInMinipage = True, stNotes = [] }
+  capt <- inlineListToLaTeX txt
+  notes <- gets stNotes
+  modify $ \st -> st{ stInMinipage = inMinipage, stNotes = [] }
+  -- We can't have footnotes in the list of figures/tables, so remove them:
+  captForLof <- if null notes
+                   then return empty
+                   else brackets <$> inlineListToLaTeX (walk deNote txt)
+  let footnotes = notesToLaTeX notes
+  return (capt, captForLof, footnotes)
 
 toColDescriptor :: Alignment -> String
 toColDescriptor align =
@@ -863,9 +936,11 @@ defListItemToLaTeX (term, defs) = do
                     else term'
     def'  <- liftM vsep $ mapM blockListToLaTeX defs
     return $ case defs of
-     ((Header{} : _) : _) ->
+     ((Header{} : _) : _)    ->
        "\\item" <> brackets term'' <> " ~ " $$ def'
-     _                          ->
+     ((CodeBlock{} : _) : _) -> -- see #4662
+       "\\item" <> brackets term'' <> " ~ " $$ def'
+     _                       ->
        "\\item" <> brackets term'' $$ def'
 
 -- | Craft the section header, inserting the secton reference, if supplied.

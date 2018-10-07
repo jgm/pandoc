@@ -508,7 +508,7 @@ Blah
 <li><a href="http://example.com/" class="uri">http://example.com/</a></li>
 <li>It should.</li>
 </ul>
-<p>An e-mail address: <a href="mailto:nobody@nowhere.net">nobody@nowhere.net</a></p>
+<p>An e-mail address: <a href="mailto:nobody@nowhere.net" class="email">nobody@nowhere.net</a></p>
 <blockquote>
 <p>Blockquoted: <a href="http://example.com/" class="uri">http://example.com/</a></p>
 </blockquote>

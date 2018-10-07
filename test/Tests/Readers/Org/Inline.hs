@@ -96,7 +96,7 @@ tests =
       "[fn::Schreib mir eine E-Mail]" =?>
       para (note $ para "Schreib mir eine E-Mail")
 
-  , "Markup-chars not occuring on word break are symbols" =:
+  , "Markup-chars not occurring on word break are symbols" =:
       T.unlines [ "this+that+ +so+on"
                 , "seven*eight* nine*"
                 , "+not+funny+"
@@ -278,6 +278,13 @@ tests =
                          , ("results", "output")
                          ]
                        )
+                       "echo 'Hello, World'")
+
+  , "Inline code block with a blank argument array" =:
+      "src_sh[]{echo 'Hello, World'}" =?>
+    para (codeWith ( ""
+                       , [ "bash" ]
+                       , [ ("org-language", "sh") ])
                        "echo 'Hello, World'")
 
   , "Inline code block with toggle" =:

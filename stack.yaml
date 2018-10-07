@@ -2,7 +2,6 @@ flags:
   pandoc:
     trypandoc: false
     embed_data_files: true
-    network-uri: true
   pandoc-citeproc:
     bibutils: true
     embed_data_files: true
@@ -11,17 +10,22 @@ flags:
     debug: false
 packages:
 - '.'
+# See https://github.com/haskell-foundation/foundation/pull/503
+# We can go back to released foundation when this is fixed.
+- location:
+    git: https://github.com/jgm/foundation
+    commit: '4294e39'
+  subdirs:
+  - foundation
+  extra-dep: true
 extra-deps:
-- pandoc-citeproc-0.14.3.1
-- skylighting-0.7.0.2
-- skylighting-core-0.7.0.2
-- ansi-terminal-0.8.0.2
-- tasty-1.0.1.1
-- test-framework-0.8.2.0
-- pandoc-types-1.17.4.2
-- cmark-gfm-0.1.3
-- hslua-module-text-0.1.2.1
-- texmath-0.11
+- pandoc-citeproc-0.14.4
+- haddock-library-1.6.0
+- HsYAML-0.1.1.1
+- texmath-0.11.1
+- yaml-0.9.0
+- hslua-1.0.1
+- hslua-module-text-0.2.0
 ghc-options:
    "$locals": -fhide-source-paths -XNoImplicitPrelude
-resolver: lts-10.10
+resolver: lts-12.6

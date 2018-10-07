@@ -136,7 +136,7 @@ i) ***bold***    ///ital///    ___undr___    ---strk---    ```mono```    """raw"
 %%% Syntax: Repetition is greedy
 %% When the mark character is repeated many times,
 %% the contents are expanded to the largest possible.
-%% Thats why they are greedy, the outer marks are
+%% That's why they are greedy, the outer marks are
 %% the ones used.
 
 i)  *****         /////         _____         -----         `````        """""        '''''

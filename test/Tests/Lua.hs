@@ -7,7 +7,7 @@ import Control.Monad (when)
 import Data.Version (Version (versionBranch))
 import System.FilePath ((</>))
 import Test.Tasty (TestTree, localOption)
-import Test.Tasty.HUnit (Assertion, assertEqual, testCase)
+import Test.Tasty.HUnit (Assertion, assertEqual, assertFailure, testCase)
 import Test.Tasty.QuickCheck (QuickCheckTests (..), ioProperty, testProperty)
 import Text.Pandoc.Arbitrary ()
 import Text.Pandoc.Builder (bulletList, divWith, doc, doubleQuoted, emph,
@@ -109,7 +109,8 @@ tests = map (localOption (QuickCheckTests 20))
     assertFilterConversion "pandoc.utils doesn't work as expected."
       "test-pandoc-utils.lua"
       (doc $ para "doesn't matter")
-      (doc $ mconcat [ plain (str "hierarchicalize: OK")
+      (doc $ mconcat [ plain (str "blocks_to_inlines: OK")
+                     , plain (str "hierarchicalize: OK")
                      , plain (str "normalize_date: OK")
                      , plain (str "pipe: OK")
                      , plain (str "failing pipe: OK")
@@ -129,7 +130,7 @@ tests = map (localOption (QuickCheckTests 20))
   , testCase "Pandoc version is set" . runPandocLua' $ do
       Lua.getglobal' "table.concat"
       Lua.getglobal "PANDOC_VERSION"
-      Lua.push ("." :: String) -- seperator
+      Lua.push ("." :: String) -- separator
       Lua.call 2 1
       Lua.liftIO . assertEqual "pandoc version is wrong" pandocVersion
         =<< Lua.peek Lua.stackTop
@@ -163,11 +164,11 @@ tests = map (localOption (QuickCheckTests 20))
 
   , testCase "informative error messages" . runPandocLua' $ do
       Lua.pushboolean True
-      err <- Lua.peekEither Lua.stackTop :: Lua.Lua (Either String Pandoc)
-      case err of
+      err <- Lua.peekEither Lua.stackTop
+      case (err :: Either String Pandoc) of
         Left msg -> do
           let expectedMsg = "Could not get Pandoc value: "
-                            ++ "expected table but got boolean."
+                            <> "table expected, got boolean"
           Lua.liftIO $ assertEqual "unexpected error message" expectedMsg msg
         Right _ -> error "Getting a Pandoc element from a bool should fail."
   ]
@@ -178,13 +179,13 @@ assertFilterConversion msg filterPath docIn docExpected = do
     setUserDataDir (Just "../data")
     runLuaFilter def ("lua" </> filterPath) [] docIn
   case docEither of
-    Left _       -> fail "lua filter failed"
+    Left exception -> assertFailure (show exception)
     Right docRes -> assertEqual msg docExpected docRes
 
-roundtripEqual :: (Eq a, Lua.FromLuaStack a, Lua.ToLuaStack a) => a -> IO Bool
+roundtripEqual :: (Eq a, Lua.Peekable a, Lua.Pushable a) => a -> IO Bool
 roundtripEqual x = (x ==) <$> roundtripped
  where
-  roundtripped :: (Lua.FromLuaStack a, Lua.ToLuaStack a) => IO a
+  roundtripped :: (Lua.Peekable a, Lua.Pushable a) => IO a
   roundtripped = runPandocLua' $ do
     oldSize <- Lua.gettop
     Lua.push x

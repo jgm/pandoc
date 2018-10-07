@@ -45,6 +45,7 @@ module Text.Pandoc.Highlighting ( highlightingStyles
                                 , tango
                                 , kate
                                 , monochrome
+                                , breezeDark
                                 , haddock
                                 , Style
                                 , fromListingsLanguage

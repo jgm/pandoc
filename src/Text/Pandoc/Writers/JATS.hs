@@ -102,7 +102,8 @@ docToJATS opts (Pandoc meta blocks) = do
               $ defField "mathml" (case writerHTMLMathMethod opts of
                                         MathML -> True
                                         _      -> False) metadata
-  case writerTemplate opts of
+  (if writerPreferAscii opts then toEntities else id) <$>
+    case writerTemplate opts of
        Nothing  -> return main
        Just tpl -> renderTemplate' tpl context
 
@@ -344,7 +345,7 @@ inlineToJATS _ (Str str) = return $ text $ escapeStringForXML str
 inlineToJATS opts (Emph lst) =
   inTagsSimple "italic" <$> inlinesToJATS opts lst
 inlineToJATS opts (Strong lst) =
-  inTags False "bold" [("role", "strong")] <$> inlinesToJATS opts lst
+  inTagsSimple "bold" <$> inlinesToJATS opts lst
 inlineToJATS opts (Strikeout lst) =
   inTagsSimple "strike" <$> inlinesToJATS opts lst
 inlineToJATS opts (Superscript lst) =
@@ -352,8 +353,7 @@ inlineToJATS opts (Superscript lst) =
 inlineToJATS opts (Subscript lst) =
   inTagsSimple "sub" <$> inlinesToJATS opts lst
 inlineToJATS opts (SmallCaps lst) =
-  inTags False "sc" [("role", "smallcaps")] <$>
-  inlinesToJATS opts lst
+  inTagsSimple "sc" <$> inlinesToJATS opts lst
 inlineToJATS opts (Quoted SingleQuote lst) = do
   contents <- inlinesToJATS opts lst
   return $ char '‘' <> contents <> char '’'

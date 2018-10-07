@@ -3,10 +3,11 @@ Pandoc (Meta {unMeta = fromList [("author",MetaList [MetaInlines [Str "Author",S
 ,Header 2 ("blank-line-before-url-in-link-reference",[],[]) [Str "Blank",Space,Str "line",Space,Str "before",Space,Str "URL",Space,Str "in",Space,Str "link",Space,Str "reference"]
 ,Para [Link ("",[],[]) [Str "foo"] ("/url",""),Space,Str "and",Space,Link ("",[],[]) [Str "bar"] ("/url","title")]
 ,Header 2 ("raw-context-environments",[],[]) [Str "Raw",Space,Str "ConTeXt",Space,Str "environments"]
-,RawBlock (Format "context") "\\placeformula \\startformula\n   L_{1} = L_{2}\n   \\stopformula"
-,RawBlock (Format "context") "\\start[a2]\n\\start[a2]\n\\stop[a2]\n\\stop[a2]"
+,RawBlock (Format "tex") "\\placeformula \\startformula"
+,Para [Str "L_{1}",Space,Str "=",Space,Str "L_{2}",SoftBreak,RawInline (Format "tex") "\\stopformula"]
+,RawBlock (Format "tex") "\\start[a2]\n\\start[a2]\n\\stop[a2]\n\\stop[a2]"
 ,Header 2 ("raw-latex-environments",[],[]) [Str "Raw",Space,Str "LaTeX",Space,Str "environments"]
-,RawBlock (Format "latex") "\\begin{center}\n\\begin{tikzpicture}[baseline={([yshift=+-.5ex]current bounding box.center)}, level distance=24pt]\n\\Tree [.{S} [.NP John\\index{i} ] [.VP [.V likes ] [.NP himself\\index{i,*j} ]]]\n\\end{tikzpicture}\n\\end{center}"
+,RawBlock (Format "tex") "\\begin{center}\n\\begin{tikzpicture}[baseline={([yshift=+-.5ex]current bounding box.center)}, level distance=24pt]\n\\Tree [.{S} [.NP John\\index{i} ] [.VP [.V likes ] [.NP himself\\index{i,*j} ]]]\n\\end{tikzpicture}\n\\end{center}"
 ,Header 2 ("urls-with-spaces-and-punctuation",[],[]) [Str "URLs",Space,Str "with",Space,Str "spaces",Space,Str "and",Space,Str "punctuation"]
 ,Para [Link ("",[],[]) [Str "foo"] ("/bar%20and%20baz",""),SoftBreak,Link ("",[],[]) [Str "foo"] ("/bar%20and%20baz",""),SoftBreak,Link ("",[],[]) [Str "foo"] ("/bar%20and%20baz",""),SoftBreak,Link ("",[],[]) [Str "foo"] ("bar%20baz","title")]
 ,Para [Link ("",[],[]) [Str "baz"] ("/foo%20foo",""),Space,Link ("",[],[]) [Str "bam"] ("/foo%20fee",""),Space,Link ("",[],[]) [Str "bork"] ("/foo/zee%20zob","title")]
@@ -44,9 +45,9 @@ Pandoc (Meta {unMeta = fromList [("author",MetaList [MetaInlines [Str "Author",S
 ,Para [Str "`hi"]
 ,Para [Str "there`"]
 ,Header 2 ("multilingual-urls",[],[]) [Str "Multilingual",Space,Str "URLs"]
-,Para [Link ("",[],[]) [Str "http://\27979.com?\27979=\27979"] ("http://\27979.com?\27979=\27979","")]
+,Para [Link ("",["uri"],[]) [Str "http://\27979.com?\27979=\27979"] ("http://\27979.com?\27979=\27979","")]
 ,Para [Link ("",[],[]) [Str "foo"] ("/bar/\27979?x=\27979","title")]
-,Para [Link ("",[],[]) [Str "\27979@foo.\27979.baz"] ("mailto:\27979@foo.\27979.baz","")]
+,Para [Link ("",["email"],[]) [Str "\27979@foo.\27979.baz"] ("mailto:\27979@foo.\27979.baz","")]
 ,Header 2 ("numbered-examples",[],[]) [Str "Numbered",Space,Str "examples"]
 ,OrderedList (1,Example,TwoParens)
  [[Plain [Str "First",Space,Str "example."]]
@@ -55,7 +56,7 @@ Pandoc (Meta {unMeta = fromList [("author",MetaList [MetaInlines [Str "Author",S
 ,OrderedList (3,Example,TwoParens)
  [[Plain [Str "Third",Space,Str "example."]]]
 ,Header 2 ("macros",[],[]) [Str "Macros"]
-,RawBlock (Format "latex") "\\newcommand{\\tuple}[1]{\\langle #1 \\rangle}"
+,RawBlock (Format "tex") "\\newcommand{\\tuple}[1]{\\langle #1 \\rangle}"
 ,Para [Math InlineMath "\\langle x,y \\rangle"]
 ,Header 2 ("case-insensitive-references",[],[]) [Str "Case-insensitive",Space,Str "references"]
 ,Para [Link ("",[],[]) [Str "Fum"] ("/fum","")]
@@ -175,8 +176,8 @@ Pandoc (Meta {unMeta = fromList [("author",MetaList [MetaInlines [Str "Author",S
   ,[]]]
 ,Header 2 ("entities-in-links-and-titles",[],[]) [Str "Entities",Space,Str "in",Space,Str "links",Space,Str "and",Space,Str "titles"]
 ,Para [Link ("",[],[]) [Str "link"] ("/\252rl","\246\246!")]
-,Para [Link ("",[],[]) [Str "http://g\246\246gle.com"] ("http://g\246\246gle.com","")]
-,Para [Link ("",[],[]) [Str "me@ex\228mple.com"] ("mailto:me@ex\228mple.com","")]
+,Para [Link ("",["uri"],[]) [Str "http://g\246\246gle.com"] ("http://g\246\246gle.com","")]
+,Para [Link ("",["email"],[]) [Str "me@ex\228mple.com"] ("mailto:me@ex\228mple.com","")]
 ,Para [Link ("",[],[]) [Str "foobar"] ("/\252rl","\246\246!")]
 ,Header 2 ("parentheses-in-urls",[],[]) [Str "Parentheses",Space,Str "in",Space,Str "URLs"]
 ,Para [Link ("",[],[]) [Str "link"] ("/hi(there)","")]

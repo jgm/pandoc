@@ -45,7 +45,7 @@ import Network.HTTP (urlEncode)
 import Text.Pandoc.Class (PandocMonad)
 import Text.Pandoc.Definition
 import Text.Pandoc.Options
-import Text.Pandoc.Shared (isTightList, linesToPara, substitute)
+import Text.Pandoc.Shared (isTightList, linesToPara, substitute, capitalize)
 import Text.Pandoc.Templates (renderTemplate')
 import Text.Pandoc.Walk (query, walk, walkM)
 import Text.Pandoc.Writers.HTML (writeHtml5String, tagWithAttributes)
@@ -253,18 +253,34 @@ inlineToNodes opts (Strong xs) = (node STRONG (inlinesToNodes opts xs) :)
 inlineToNodes opts (Strikeout xs) =
   if isEnabled Ext_strikeout opts
      then (node (CUSTOM_INLINE "~~" "~~") (inlinesToNodes opts xs) :)
-     else ((node (HTML_INLINE (T.pack "<s>")) [] : inlinesToNodes opts xs ++
-           [node (HTML_INLINE (T.pack "</s>")) []]) ++ )
+     else if isEnabled Ext_raw_html opts
+            then ((node (HTML_INLINE (T.pack "<s>")) [] : inlinesToNodes opts xs ++
+                  [node (HTML_INLINE (T.pack "</s>")) []]) ++ )
+            else (inlinesToNodes opts xs ++)
 inlineToNodes opts (Superscript xs) =
-  ((node (HTML_INLINE (T.pack "<sup>")) [] : inlinesToNodes opts xs ++
-   [node (HTML_INLINE (T.pack "</sup>")) []]) ++ )
+  if isEnabled Ext_raw_html opts
+    then ((node (HTML_INLINE (T.pack "<sup>")) [] : inlinesToNodes opts xs ++
+          [node (HTML_INLINE (T.pack "</sup>")) []]) ++ )
+    else case traverse toSuperscriptInline xs of
+      Nothing ->
+        ((node (TEXT (T.pack "^(")) [] : inlinesToNodes opts xs ++
+          [node (TEXT (T.pack ")")) []]) ++ )
+      Just xs' -> (inlinesToNodes opts xs' ++)
 inlineToNodes opts (Subscript xs) =
-  ((node (HTML_INLINE (T.pack "<sub>")) [] : inlinesToNodes opts xs ++
-   [node (HTML_INLINE (T.pack "</sub>")) []]) ++ )
+  if isEnabled Ext_raw_html opts
+    then ((node (HTML_INLINE (T.pack "<sub>")) [] : inlinesToNodes opts xs ++
+          [node (HTML_INLINE (T.pack "</sub>")) []]) ++ )
+    else case traverse toSubscriptInline xs of
+      Nothing ->
+        ((node (TEXT (T.pack "_(")) [] : inlinesToNodes opts xs ++
+          [node (TEXT (T.pack ")")) []]) ++ )
+      Just xs' -> (inlinesToNodes opts xs' ++)
 inlineToNodes opts (SmallCaps xs) =
-  ((node (HTML_INLINE (T.pack "<span class=\"smallcaps\">")) []
-    : inlinesToNodes opts xs ++
-    [node (HTML_INLINE (T.pack "</span>")) []]) ++ )
+  if isEnabled Ext_raw_html opts
+    then ((node (HTML_INLINE (T.pack "<span class=\"smallcaps\">")) []
+           : inlinesToNodes opts xs ++
+           [node (HTML_INLINE (T.pack "</span>")) []]) ++ )
+    else (inlinesToNodes opts (capitalize xs) ++)
 inlineToNodes opts (Link _ ils (url,tit)) =
   (node (LINK (T.pack url) (T.pack tit)) (inlinesToNodes opts ils) :)
 -- title beginning with fig: indicates implicit figure
@@ -304,6 +320,11 @@ inlineToNodes opts (Math mt str) =
               (node (HTML_INLINE (T.pack ("\\(" ++ str ++ "\\)"))) [] :)
             DisplayMath ->
               (node (HTML_INLINE (T.pack ("\\[" ++ str ++ "\\]"))) [] :)
+inlineToNodes opts (Span ("",["emoji"],kvs) [Str s]) = do
+  case lookup "data-emoji" kvs of
+       Just emojiname | isEnabled Ext_emoji opts ->
+            (node (TEXT (":" <> T.pack emojiname <> ":")) [] :)
+       _ -> (node (TEXT (T.pack s)) [] :)
 inlineToNodes opts (Span attr ils) =
   let nodes = inlinesToNodes opts ils
       op = tagWithAttributes opts True False "span" attr
@@ -314,3 +335,19 @@ inlineToNodes opts (Span attr ils) =
 inlineToNodes opts (Cite _ ils) = (inlinesToNodes opts ils ++)
 inlineToNodes _ (Note _) = id -- should not occur
 -- we remove Note elements in preprocessing
+
+toSubscriptInline :: Inline -> Maybe Inline
+toSubscriptInline Space = Just Space
+toSubscriptInline (Span attr ils) = Span attr <$> traverse toSubscriptInline ils
+toSubscriptInline (Str s) = Str <$> traverse toSubscript s
+toSubscriptInline LineBreak = Just LineBreak
+toSubscriptInline SoftBreak = Just SoftBreak
+toSubscriptInline _ = Nothing
+
+toSuperscriptInline :: Inline -> Maybe Inline
+toSuperscriptInline Space = Just Space
+toSuperscriptInline (Span attr ils) = Span attr <$> traverse toSuperscriptInline ils
+toSuperscriptInline (Str s) = Str <$> traverse toSuperscript s
+toSuperscriptInline LineBreak = Just LineBreak
+toSuperscriptInline SoftBreak = Just SoftBreak
+toSuperscriptInline _ = Nothing

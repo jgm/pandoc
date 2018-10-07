@@ -2,7 +2,7 @@
 {-
   Copyright (C) 2017 Sascha Wilde <wilde@sha-bang.de>
 
-  partly based on all the other readers, especialy the work by
+  partly based on all the other readers, especially the work by
   John MacFarlane <jgm@berkeley.edu> and
   Alexander Sulfrian <alexander.sulfrian@fu-berlin.de>
   all bugs are solely created by me.

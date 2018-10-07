@@ -177,7 +177,7 @@ tests = [ "line block with blank line" =:
             =: ".. role:: haskell(code)\n.. role:: lhs(haskell)\n\n:lhs:`text`"
             =?> para (codeWith ("", ["lhs", "haskell", "sourceCode"], []) "text")
           , "unknown role" =: ":unknown:`text`" =?>
-              para (spanWith ("",[],[("role","unknown")]) (str "text"))
+              para (codeWith ("",["interpreted-text"],[("role","unknown")]) "text")
           ]
         , testGroup "footnotes"
           [ "remove space before note" =: T.unlines
@@ -187,5 +187,19 @@ tests = [ "line block with blank line" =:
             , "   bar"
             ] =?>
               para ("foo" <> note (para "bar"))
+          ]
+        , testGroup "inlines"
+          [ "links can contain an URI without being parsed twice (#4581)" =:
+            "`http://loc <http://loc>`__" =?>
+            para (link "http://loc" "" "http://loc")
+          , "inline markup cannot be nested" =:
+            "**a*b*c**" =?>
+            para (strong "a*b*c")
+          , "bare URI parsing disabled inside emphasis (#4561)" =:
+            "*http://location*" =?>
+            para (emph (text "http://location"))
+          , "include newlines" =:
+            "**before\nafter**" =?>
+            para (strong (text "before\nafter"))
           ]
         ]

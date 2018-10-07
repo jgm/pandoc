@@ -429,9 +429,7 @@ tableRow = try $ do
   s <- lookAhead $ manyTill anyChar (try (char '|' >> many spaceChar
     >> newline))
   guard $ not $ "||" `isInfixOf` ("|" ++ s ++ "|")
-  tr <- many tableCell
-  many spaceChar >> char '\n'
-  return tr
+  many tableCell <* many spaceChar <* char '\n'
 
 tableCell :: PandocMonad m => VwParser m Blocks
 tableCell = try $
@@ -451,13 +449,13 @@ ph s = try $ do
 
 noHtmlPh :: PandocMonad m => VwParser m ()
 noHtmlPh = try $
-  () <$ (many spaceChar >> string "%nohtml" >> many spaceChar
-    >> lookAhead newline)
+  () <$ many spaceChar <* string "%nohtml" <* many spaceChar
+    <* lookAhead newline
 
 templatePh :: PandocMonad m => VwParser m ()
 templatePh = try $
-  () <$ (many spaceChar >> string "%template" >>many (noneOf "\n")
-    >> lookAhead newline)
+  () <$ many spaceChar <* string "%template" <* many (noneOf "\n")
+    <* lookAhead newline
 
 -- inline parser
 
@@ -617,10 +615,8 @@ procImgurl :: String -> String
 procImgurl s = if take 6 s == "local:" then "file" ++ drop 5 s else s
 
 inlineMath :: PandocMonad m => VwParser m Inlines
-inlineMath = try $ do
-  char '$'
-  contents <- many1Till (noneOf "\n") (char '$')
-  return $ B.math contents
+inlineMath = try $
+  B.math <$ char '$' <*> many1Till (noneOf "\n") (char '$')
 
 tag :: PandocMonad m => VwParser m Inlines
 tag = try $ do

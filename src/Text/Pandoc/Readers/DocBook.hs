@@ -537,7 +537,6 @@ type DB m = StateT DBState m
 data DBState = DBState{ dbSectionLevel :: Int
                       , dbQuoteType    :: QuoteType
                       , dbMeta         :: Meta
-                      , dbAcceptsMeta  :: Bool
                       , dbBook         :: Bool
                       , dbFigureTitle  :: Inlines
                       , dbContent      :: [Content]
@@ -547,7 +546,6 @@ instance Default DBState where
   def = DBState{ dbSectionLevel = 0
                , dbQuoteType = DoubleQuote
                , dbMeta = mempty
-               , dbAcceptsMeta = False
                , dbBook = False
                , dbFigureTitle = mempty
                , dbContent = [] }
@@ -609,18 +607,26 @@ named s e = qName (elName e) == s
 
 --
 
-acceptingMetadata :: PandocMonad m => DB m a -> DB m a
-acceptingMetadata p = do
-  modify (\s -> s { dbAcceptsMeta = True } )
-  res <- p
-  modify (\s -> s { dbAcceptsMeta = False })
-  return res
-
-checkInMeta :: (PandocMonad m, Monoid a) => DB m () -> DB m a
-checkInMeta p = do
-  accepts <- dbAcceptsMeta <$> get
-  when accepts p
-  return mempty
+addMetadataFromElement :: PandocMonad m => Element -> DB m Blocks
+addMetadataFromElement e = do
+    case filterChild (named "title") e of
+         Nothing -> return ()
+         Just z  -> do
+           getInlines z >>= addMeta "title"
+           addMetaField "subtitle" z
+    case filterChild (named "authorgroup") e of
+         Nothing -> return ()
+         Just z  -> addMetaField "author" z
+    addMetaField "subtitle" e
+    addMetaField "author" e
+    addMetaField "date" e
+    addMetaField "release" e
+    return mempty
+  where addMetaField fieldname elt =
+            case filterChildren (named fieldname) elt of
+                   []  -> return ()
+                   [z] -> getInlines z >>= addMeta fieldname
+                   zs  -> mapM getInlines zs >>= addMeta fieldname
 
 addMeta :: PandocMonad m => ToMetaValue a => String -> a -> DB m ()
 addMeta field val = modify (setMeta field val)
@@ -718,11 +724,6 @@ parseBlock (Elem e) =
         "attribution" -> return mempty
         "titleabbrev" -> return mempty
         "authorinitials" -> return mempty
-        "title" ->  checkInMeta getTitle
-        "author" -> checkInMeta getAuthor
-        "authorgroup" -> checkInMeta getAuthorGroup
-        "releaseinfo" -> checkInMeta (getInlines e >>= addMeta "release")
-        "date" -> checkInMeta getDate
         "bibliography" -> sect 0
         "bibliodiv" -> sect 1
         "biblioentry" -> parseMixed para (elContent e)
@@ -788,8 +789,8 @@ parseBlock (Elem e) =
         "figure" -> getFigure e
         "mediaobject" -> para <$> getMediaobject e
         "caption" -> return mempty
-        "info" -> metaBlock
-        "articleinfo" -> metaBlock
+        "info" -> addMetadataFromElement e
+        "articleinfo" -> addMetadataFromElement e
         "sectioninfo" -> return mempty  -- keywords & other metadata
         "refsectioninfo" -> return mempty  -- keywords & other metadata
         "refsect1info" -> return mempty  -- keywords & other metadata
@@ -803,10 +804,11 @@ parseBlock (Elem e) =
         "chapterinfo" -> return mempty  -- keywords & other metadata
         "glossaryinfo" -> return mempty  -- keywords & other metadata
         "appendixinfo" -> return mempty  -- keywords & other metadata
-        "bookinfo" -> metaBlock
+        "bookinfo" -> addMetadataFromElement e
         "article" -> modify (\st -> st{ dbBook = False }) >>
-                           getBlocks e
-        "book" -> modify (\st -> st{ dbBook = True }) >>  getBlocks e
+                           addMetadataFromElement e >> getBlocks e
+        "book" -> modify (\st -> st{ dbBook = True }) >>
+                    addMetadataFromElement e >> getBlocks e
         "table" -> parseTable
         "informaltable" -> parseTable
         "informalexample" -> divWith ("", ["informalexample"], []) <$>
@@ -816,6 +818,8 @@ parseBlock (Elem e) =
         "screen" -> codeBlockWithLang
         "programlisting" -> codeBlockWithLang
         "?xml"  -> return mempty
+        "title" -> return mempty     -- handled in parent element
+        "subtitle" -> return mempty  -- handled in parent element
         _       -> getBlocks e
    where parseMixed container conts = do
            let (ils,rest) = break isBlockElement conts
@@ -857,19 +861,6 @@ parseBlock (Elem e) =
                      terms' <- mapM getInlines terms
                      items' <- mapM getBlocks items
                      return (mconcat $ intersperse (str "; ") terms', items')
-         getTitle =  do
-                     tit <- getInlines e
-                     subtit <-  case filterChild (named "subtitle") e of
-                                  Just s  -> (text ": " <>) <$>
-                                              getInlines s
-                                  Nothing -> return mempty
-                     addMeta "title" (tit <> subtit)
-
-         getAuthor = (:[]) <$> getInlines e >>= addMeta "author"
-         getAuthorGroup = do
-          let terms = filterChildren (named "author") e
-          mapM getInlines terms >>= addMeta "author"
-         getDate = getInlines e >>= addMeta "date"
          parseTable = do
                       let isCaption x = named "title" x || named "caption" x
                       caption <- case filterChild isCaption e of
@@ -935,7 +926,6 @@ parseBlock (Elem e) =
                      modify $ \st -> st{ dbSectionLevel = n - 1 }
                      return $ headerWith (ident,[],[]) n' headerText <> b
          lineItems = mapM getInlines $ filterChildren (named "line") e
-         metaBlock = acceptingMetadata (getBlocks e) >> return mempty
 
 getInlines :: PandocMonad m => Element -> DB m Inlines
 getInlines e' = (trimInlines . mconcat) <$>

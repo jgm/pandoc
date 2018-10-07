@@ -1273,7 +1273,7 @@ These should not be escaped:  \$ \\ \&gt; \[ \{
     <title>Autolinks</title>
     <para>
       With an ampersand:
-      <link xlink:href="http://example.com/?foo=1&amp;bar=2">http://example.com/?foo=1&amp;bar=2</link>
+      <link xlink:href="http://example.com/?foo=1&amp;bar=2" role="uri">http://example.com/?foo=1&amp;bar=2</link>
     </para>
     <itemizedlist spacing="compact">
       <listitem>
@@ -1283,7 +1283,7 @@ These should not be escaped:  \$ \\ \&gt; \[ \{
       </listitem>
       <listitem>
         <para>
-          <link xlink:href="http://example.com/">http://example.com/</link>
+          <link xlink:href="http://example.com/" role="uri">http://example.com/</link>
         </para>
       </listitem>
       <listitem>
@@ -1298,7 +1298,7 @@ These should not be escaped:  \$ \\ \&gt; \[ \{
     <blockquote>
       <para>
         Blockquoted:
-        <link xlink:href="http://example.com/">http://example.com/</link>
+        <link xlink:href="http://example.com/" role="uri">http://example.com/</link>
       </para>
     </blockquote>
     <para>

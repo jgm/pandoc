@@ -1,4 +1,3 @@
-{-# LANGUAGE NoImplicitPrelude #-}
 {-
 Copyright © 2017-2018 Albert Krewinkel <tarleb+pandoc@moltkeplatz.de>
 
@@ -16,8 +15,9 @@ You should have received a copy of the GNU General Public License
 along with this program; if not, write to the Free Software
 Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 -}
-{-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE NoImplicitPrelude #-}
+{-# LANGUAGE ScopedTypeVariables #-}
 {- |
    Module      : Text.Pandoc.Lua.Packages
    Copyright   : Copyright © 2017-2018 Albert Krewinkel
@@ -35,12 +35,11 @@ module Text.Pandoc.Lua.Packages
 
 import Prelude
 import Control.Monad (forM_)
-import Data.ByteString.Char8 (unpack)
+import Data.ByteString (ByteString)
 import Data.IORef (IORef)
 import Foreign.Lua (Lua, NumResults, liftIO)
 import Text.Pandoc.Class (CommonState, readDataFile, runIO, setUserDataDir)
 import Text.Pandoc.MediaBag (MediaBag)
-import Text.Pandoc.Lua.Util (dostring')
 
 import qualified Foreign.Lua as Lua
 import Text.Pandoc.Lua.Module.Pandoc as Pandoc
@@ -57,14 +56,10 @@ data LuaPackageParams = LuaPackageParams
 -- | Insert pandoc's package loader as the first loader, making it the default.
 installPandocPackageSearcher :: LuaPackageParams -> Lua ()
 installPandocPackageSearcher luaPkgParams = do
-  luaVersion <- Lua.getglobal "_VERSION" *> Lua.peek (-1)
-  if luaVersion == "Lua 5.1"
-    then Lua.getglobal' "package.loaders"
-    else Lua.getglobal' "package.searchers"
+  Lua.getglobal' "package.searchers"
   shiftArray
   Lua.pushHaskellFunction (pandocPackageSearcher luaPkgParams)
-  Lua.wrapHaskellFunction
-  Lua.rawseti (-2) 1
+  Lua.rawseti (Lua.nthFromTop 2) 1
   Lua.pop 1           -- remove 'package.searchers' from stack
  where
   shiftArray = forM_ [4, 3, 2, 1] $ \i -> do
@@ -86,7 +81,6 @@ pandocPackageSearcher luaPkgParams pkgName =
  where
   pushWrappedHsFun f = do
     Lua.pushHaskellFunction f
-    Lua.wrapHaskellFunction
     return 1
   searchPureLuaLoader = do
     let filename = pkgName ++ ".lua"
@@ -97,21 +91,19 @@ pandocPackageSearcher luaPkgParams pkgName =
         Lua.push ("no file '" ++ filename ++ "' in pandoc's datadir")
         return 1
 
-loadStringAsPackage :: String -> String -> Lua NumResults
+loadStringAsPackage :: String -> ByteString -> Lua NumResults
 loadStringAsPackage pkgName script = do
-  status <- dostring' script
+  status <- Lua.dostring script
   if status == Lua.OK
     then return (1 :: NumResults)
     else do
-      msg <- Lua.peek (-1) <* Lua.pop 1
-      Lua.push ("Error while loading ``" ++ pkgName ++ "`.\n" ++ msg)
-      Lua.lerror
-      return (2 :: NumResults)
+      msg <- Lua.popValue
+      Lua.raiseError ("Error while loading `" <> pkgName <> "`.\n" <> msg)
 
--- | Get the string representation of the pandoc module
-dataDirScript :: Maybe FilePath -> FilePath -> IO (Maybe String)
+-- | Get the ByteString representation of the pandoc module.
+dataDirScript :: Maybe FilePath -> FilePath -> IO (Maybe ByteString)
 dataDirScript datadir moduleFile = do
   res <- runIO $ setUserDataDir datadir >> readDataFile moduleFile
   return $ case res of
     Left _ -> Nothing
-    Right s -> Just (unpack s)
+    Right s -> Just s

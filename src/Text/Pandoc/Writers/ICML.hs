@@ -149,11 +149,12 @@ writeICML opts (Pandoc meta blocks) = do
               $ defField "charStyles" (render' $ charStylesToDoc st)
               $ defField "parStyles"  (render' $ parStylesToDoc st)
               $ defField "hyperlinks" (render' $ hyperlinksToDoc $ links st) metadata
-  case writerTemplate opts of
+  (if writerPreferAscii opts then toEntities else id) <$>
+    case writerTemplate opts of
        Nothing  -> return main
        Just tpl -> renderTemplate' tpl context
 
--- | Auxilary functions for parStylesToDoc and charStylesToDoc.
+-- | Auxiliary functions for parStylesToDoc and charStylesToDoc.
 contains :: String -> (String, (String, String)) -> [(String, String)]
 contains s rule =
   [snd rule | (fst rule) `isInfixOf` s]

@@ -132,7 +132,7 @@ import Network.HTTP.Client.Internal (addProxy)
 import Network.HTTP.Client.TLS (tlsManagerSettings)
 import System.Environment (getEnv)
 import Network.HTTP.Types.Header ( hContentType )
-import Network (withSocketsDo)
+import Network.Socket (withSocketsDo)
 import Data.ByteString.Lazy (toChunks)
 import qualified Control.Exception as E
 import qualified Data.Time.LocalTime as IO (getCurrentTimeZone)
@@ -882,10 +882,10 @@ adjustImagePath _ _ x = x
 -- of things that would normally be obtained through IO.
 data PureState = PureState { stStdGen     :: StdGen
                            , stWord8Store :: [Word8] -- should be
-                                                     -- inifinite,
+                                                     -- infinite,
                                                      -- i.e. [1..]
                            , stUniqStore  :: [Int] -- should be
-                                                   -- inifinite and
+                                                   -- infinite and
                                                    -- contain every
                                                    -- element at most
                                                    -- once, e.g. [1..]

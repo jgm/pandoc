@@ -785,7 +785,7 @@ So we do this in a number of steps. If we encounter the fldchar begin
 tag, we start open a fldchar state variable (see state above). We add
 the instrtext to it as FieldInfo. Then we close that and start adding
 the runs when we get to separate. Then when we get to end, we produce
-the Field type with approriate FieldInfo and Runs.
+the Field type with appropriate FieldInfo and Runs.
 -}
 elemToParPart ns element
   | isElem ns "w" "r" element
@@ -1056,8 +1056,10 @@ elemToRunStyle ns element parentStyle
   | Just rPr <- findChildByName ns "w" "rPr" element =
     RunStyle
       {
-        isBold = checkOnOff ns rPr (elemName ns "w" "b")
-      , isItalic = checkOnOff ns rPr (elemName ns "w" "i")
+        isBold = checkOnOff ns rPr (elemName ns "w" "b") `mplus`
+                 checkOnOff ns rPr (elemName ns "w" "bCs")
+      , isItalic = checkOnOff ns rPr (elemName ns "w" "i") `mplus`
+                   checkOnOff ns rPr (elemName ns "w" "iCs")
       , isSmallCaps = checkOnOff ns rPr (elemName ns "w" "smallCaps")
       , isStrike = checkOnOff ns rPr (elemName ns "w" "strike")
       , rVertAlign =
@@ -1153,8 +1155,9 @@ getSymChar :: NameSpaces -> Element -> RunElem
 getSymChar ns element
   | Just s <- lowerFromPrivate <$> getCodepoint
   , Just font <- getFont =
-  let [(char, _)] = readLitChar ("\\x" ++ s) in
-    TextRun . maybe "" (:[]) $ getUnicode font char
+    case readLitChar ("\\x" ++ s) of
+         [(char, _)] -> TextRun . maybe "" (:[]) $ getUnicode font char
+         _           -> TextRun ""
   where
     getCodepoint = findAttrByName ns "w" "char" element
     getFont = stringToFont =<< findAttrByName ns "w" "font" element

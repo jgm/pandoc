@@ -32,26 +32,26 @@ matrix:
   # We grab the appropriate GHC and cabal-install versions from hvr's PPA. See:
   # https://github.com/hvr/multi-ghc-travis
   # don't build benchmarks for ghc 7.10.3, because build takes too long...
-  - env: BUILD=cabal GHCVER=7.10.3 CABALVER=1.22 OPTS="-O0 -Wall -fno-warn-unused-do-bind -Werror" FLAGS="fast embed_data_files" CABALARGS=""
+  - env: BUILD=cabal GHCVER=7.10.3 CABALVER=2.0 OPTS="-O0 -Wall -fno-warn-unused-do-bind -Werror" FLAGS="fast embed_data_files" CABALARGS="" TESTPATTERN="! /Round trip/"
     compiler: ": #GHC 7.10.3"
-    addons: {apt: {packages: [cabal-install-1.22,ghc-7.10.3,happy-1.19.5], sources: [hvr-ghc]}}
+    addons: {apt: {packages: [cabal-install-2.0,ghc-7.10.3,happy-1.19.5], sources: [hvr-ghc]}}
 
   # don't build benchmarks for ghc 8.0.2, because build takes too long...
-  - env: BUILD=cabal GHCVER=8.0.2 CABALVER=1.24 OPTS="-O0 -Wall -Wincomplete-record-updates -Wnoncanonical-monad-instances -Wnoncanonical-monadfail-instances -fno-warn-unused-do-bind -Werror" FLAGS="fast" CABALARGS=""
+  - env: BUILD=cabal GHCVER=8.0.2 CABALVER=2.0 OPTS="-O0 -Wall -Wincomplete-record-updates -Wnoncanonical-monad-instances -Wnoncanonical-monadfail-instances -fno-warn-unused-do-bind -Werror" FLAGS="fast" CABALARGS="" TESTPATTERN="! /Round trip/"
     compiler: ": #GHC 8.0.2"
-    addons: {apt: {packages: [cabal-install-1.24,ghc-8.0.2,happy-1.19.5], sources: [hvr-ghc]}}
+    addons: {apt: {packages: [cabal-install-2.0,ghc-8.0.2,happy-1.19.5], sources: [hvr-ghc]}}
 
-  - env: BUILD=cabal GHCVER=8.2.2 CABALVER=1.24 OPTS="-O0 -Wall -Wincomplete-record-updates -Wnoncanonical-monad-instances -Wnoncanonical-monadfail-instances -fno-warn-unused-do-bind -Werror" FLAGS="fast embed_data_files" CABALARGS="--enable-benchmarks"
-    compiler: ": #GHC 8.2.2"
-    addons: {apt: {packages: [cabal-install-1.24,ghc-8.2.2,happy-1.19.5], sources: [hvr-ghc]}}
-
-  - env: BUILD=cabal GHCVER=8.2.2 CABALVER=2.0 OPTS="-O0 -Wall -Wincomplete-record-updates -Wnoncanonical-monad-instances -Wnoncanonical-monadfail-instances -fno-warn-unused-do-bind -Werror" FLAGS="fast embed_data_files" CABALARGS="--enable-benchmarks"
+  - env: BUILD=cabal GHCVER=8.2.2 CABALVER=2.0 OPTS="-O0 -Wall -Wincomplete-record-updates -Wnoncanonical-monad-instances -Wnoncanonical-monadfail-instances -fno-warn-unused-do-bind -Werror" FLAGS="fast embed_data_files" CABALARGS="--enable-benchmarks" TESTPATTERN="! /Round trip/"
     compiler: ": #GHC 8.2.2"
     addons: {apt: {packages: [cabal-install-2.0,ghc-8.2.2,happy-1.19.5], sources: [hvr-ghc]}}
 
-  - env: BUILD=cabal GHCVER=8.4.1 CABALVER=2.0 OPTS="-O0 -Wall -Wincomplete-record-updates -Wnoncanonical-monad-instances -Wnoncanonical-monadfail-instances -fno-warn-unused-do-bind -Werror" FLAGS="fast embed_data_files" CABALARGS="--enable-benchmarks"
-    compiler: ": #GHC 8.4.1"
-    addons: {apt: {packages: [cabal-install-2.0,ghc-8.4.1,happy-1.19.5], sources: [hvr-ghc]}}
+  - env: BUILD=cabal GHCVER=8.4.3 CABALVER=2.2 OPTS="-O0 -Wall -fno-warn-unused-do-bind -Wincomplete-record-updates -Wnoncanonical-monad-instances -Wnoncanonical-monadfail-instances -Wincomplete-uni-patterns -Werror=missing-home-modules -Widentities -Wcpp-undef -Werror" FLAGS="fast embed_data_files" CABALARGS="--enable-benchmarks" TESTPATTERN="! /Round trip/"
+    compiler: ": #GHC 8.4.3"
+    addons: {apt: {packages: [cabal-install-2.2,ghc-8.4.3,happy-1.19.5], sources: [hvr-ghc]}}
+
+    #  - env: BUILD=cabal GHCVER=8.6.1 CABALVER=2.4 OPTS="-O0 -Wall -fno-warn-unused-do-bind -Wincomplete-record-updates -Wnoncanonical-monad-instances -Wnoncanonical-monadfail-instances -Wincomplete-uni-patterns -Werror=missing-home-modules -Widentities -Wcpp-undef -Werror" FLAGS="fast embed_data_files" CABALARGS="--enable-benchmarks --allow-newer=haddock-library:base" TESTPATTERN="! /Round trip/"
+    #    compiler: ": #GHC 8.6.1"
+    #    addons: {apt: {packages: [cabal-install-2.4,ghc-8.6.1,happy-1.19.5], sources: [hvr-ghc]}}
 
   # Build with the newest GHC and cabal-install. This is an accepted failure,
   # see below.
@@ -61,18 +61,18 @@ matrix:
 
   # The Stack builds. We can pass in arbitrary Stack arguments via the ARGS
   # variable, such as using --stack-yaml to point to a different file.
-  # - env: BUILD=stack ARGS="--stack-yaml stack.lts9.yaml" OPTS="-Wall -Wincomplete-record-updates -Wnoncanonical-monad-instances -Wnoncanonical-monadfail-instances -fno-warn-unused-do-bind -Werror"
+  # - env: BUILD=stack ARGS="--stack-yaml stack.lts9.yaml" OPTS="-O0 -Wall -fno-warn-unused-do-bind -Wincomplete-record-updates -Wnoncanonical-monad-instances -Wnoncanonical-monadfail-instances -Wincomplete-uni-patterns -Werror=missing-home-modules -Widentities -Wcpp-undef -Werror" FLAGS="fast embed_data_files"
   #   compiler: ": #stack 8.0.2"
   #   addons: {apt: {packages: [ghc-8.0.2], sources: [hvr-ghc]}}
 
-  - env: BUILD=stack ARGS="--resolver lts-10" OPTS="-Wall -Wincomplete-record-updates -Wnoncanonical-monad-instances -Wnoncanonical-monadfail-instances -fno-warn-unused-do-bind -Werror"
-    compiler: ": #stack 8.2.2"
-    addons: {apt: {packages: [ghc-8.2.2], sources: [hvr-ghc]}}
+  - env: BUILD=stack ARGS="--resolver lts-12" OPTS="-O0 -Wall -fno-warn-unused-do-bind -Wincomplete-record-updates -Wnoncanonical-monad-instances -Wnoncanonical-monadfail-instances -Wincomplete-uni-patterns -Werror=missing-home-modules -Widentities -Wcpp-undef -Werror" TESTPATTERN="! /Round trip/"
+    compiler: ": #stack 8.4.3"
+    addons: {apt: {packages: [ghc-8.4.3], sources: [hvr-ghc]}}
 
   # Nightly builds are allowed to fail
-  - env: BUILD=stack ARGS="--resolver nightly" OPTS="-Wall -Wincomplete-record-updates -Wnoncanonical-monad-instances -Wnoncanonical-monadfail-instances -fno-warn-unused-do-bind -Werror"
+  - env: BUILD=stack ARGS="--resolver nightly" OPTS="-O0 -Wall -fno-warn-unused-do-bind -Wincomplete-record-updates -Wnoncanonical-monad-instances -Wnoncanonical-monadfail-instances -Wincomplete-uni-patterns -Werror=missing-home-modules -Widentities -Wcpp-undef -Werror" TESTPATTERN="."
     compiler: ": #stack nightly"
-    addons: {apt: {packages: [ghc-8.2.2], sources: [hvr-ghc]}}
+    addons: {apt: {packages: [ghc-8.4.3], sources: [hvr-ghc]}}
 
   # - env: BUILD=stack ARGS="--resolver lts-8"
   #   compiler: ": #stack 8.0.2 osx"
@@ -84,14 +84,14 @@ matrix:
 
   allow_failures:
   - env: BUILD=cabal GHCVER=head  CABALVER=head
-  - env: BUILD=stack ARGS="--resolver nightly" OPTS="-Wall -Wincomplete-record-updates -Wnoncanonical-monad-instances -Wnoncanonical-monadfail-instances -fno-warn-unused-do-bind -Werror"
+  - env: BUILD=stack ARGS="--resolver nightly" OPTS="-O0 -Wall -fno-warn-unused-do-bind -Wincomplete-record-updates -Wnoncanonical-monad-instances -Wnoncanonical-monadfail-instances -Wincomplete-uni-patterns -Werror=missing-home-modules -Widentities -Wcpp-undef -Werror" TESTPATTERN="."
 
   fast_finish: true
 
 before_install:
 # Using compiler above sets CC to an invalid value, so unset it
 - unset CC
-- export PATH=/opt/happy/1.19.5/bin/:/opt/ghc/$GHCVER/bin:/opt/cabal/$CABALVER/bin:$HOME/.local/bin:$HOME/.cabal/bin:$PATH
+- export PATH=/opt/happy/1.19.5/bin/:/opt/ghc/$GHCVER/bin:/opt/cabal/$CABALVER/bin:/opt/cabal/bin:$HOME/.local/bin:$HOME/.cabal/bin:$PATH
 # Download and unpack the stack executable
 - |
   if [[ $BUILD == "stack" ]]; then
@@ -117,7 +117,14 @@ install:
     cabal)
       cabal --version
       travis_retry cabal update
-      cabal install --disable-optimization --only-dependencies --flags="$FLAGS" --enable-tests --force-reinstalls --reorder-goals --max-backjumps=-1 $CABALARGS
+      case "$GHCVER" in
+        7.10.3)
+           cabal install -v1 --disable-optimization --flags="$FLAGS" --enable-tests --force-reinstalls --reorder-goals --max-backjumps=-1 $CABALARGS
+           ;;
+        *)
+           cabal install --disable-optimization --only-dependencies --flags="$FLAGS" --enable-tests --force-reinstalls --reorder-goals --max-backjumps=-1 $CABALARGS
+           ;;
+      esac
       ;;
   esac
 
@@ -127,13 +134,13 @@ script:
     stack)
       ulimit -n 4096
       stack config set system-ghc --global true
-      stack --no-terminal $ARGS test --fast --flag 'aeson:fast' --flag pandoc:embed_data_files --haddock --no-haddock-deps --ghc-options="$OPTS" --test-arguments='--hide-successes'
+      stack --no-terminal $ARGS test --fast --flag 'aeson:fast' --flag pandoc:embed_data_files --haddock --no-haddock-deps --ghc-options="$OPTS" --test-arguments="--hide-successes --pattern \"$TESTPATTERN\""
       ;;
     cabal)
       cabal sdist --output-directory=sourcedist && \
       cd sourcedist && \
       cabal configure --disable-optimization --enable-tests -v2 --flags="$FLAGS" --ghc-options="$OPTS" $CABALARGS && \
       cabal build -v2 -j2 && \
-      cabal test
+      cabal test --test-options="--pattern=\"$TESTPATTERN\""
       ;;
   esac

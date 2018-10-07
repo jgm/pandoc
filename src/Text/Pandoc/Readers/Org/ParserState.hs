@@ -33,6 +33,7 @@ module Text.Pandoc.Readers.Org.ParserState
   , defaultOrgParserState
   , OrgParserLocal (..)
   , OrgNoteRecord
+  , Tag(..)
   , HasReaderOptions (..)
   , HasQuoteContext (..)
   , HasMacros (..)
@@ -88,6 +89,9 @@ type OrgNoteTable = [OrgNoteRecord]
 type OrgLinkFormatters = M.Map String (String -> String)
 -- | Macro expander function
 type MacroExpander = [String] -> String
+-- | Tag
+newtype Tag = Tag { fromTag :: String }
+  deriving (Show, Eq, Ord)
 
 -- | The states in which a todo item can be
 data TodoState = Todo | Done
@@ -113,6 +117,8 @@ data OrgParserState = OrgParserState
                                            -- specified here.
   , orgStateEmphasisPostChars    :: [Char] -- ^ Chars allowed at after emphasis
   , orgStateEmphasisNewlines     :: Maybe Int
+  , orgStateExcludedTags         :: Set.Set Tag
+  , orgStateExcludedTagsChanged  :: Bool
   , orgStateExportSettings       :: ExportSettings
   , orgStateHeaderMap            :: M.Map Inlines String
   , orgStateIdentifiers          :: Set.Set String
@@ -183,6 +189,8 @@ defaultOrgParserState = OrgParserState
   , orgStateEmphasisCharStack = []
   , orgStateEmphasisNewlines = Nothing
   , orgStateExportSettings = def
+  , orgStateExcludedTags = Set.singleton $ Tag "noexport"
+  , orgStateExcludedTagsChanged = False
   , orgStateHeaderMap = M.empty
   , orgStateIdentifiers = Set.empty
   , orgStateIncludeFiles = []
@@ -260,6 +268,7 @@ data ExportSettings = ExportSettings
   , exportWithAuthor       :: Bool -- ^ Include author in final meta-data
   , exportWithCreator      :: Bool -- ^ Include creator in final meta-data
   , exportWithEmail        :: Bool -- ^ Include email in final meta-data
+  , exportWithPlanning     :: Bool -- ^ Keep planning info after headlines
   , exportWithTags         :: Bool -- ^ Keep tags as part of headlines
   , exportWithTodoKeywords :: Bool -- ^ Keep TODO keywords in headers
   }
@@ -280,6 +289,7 @@ defaultExportSettings = ExportSettings
   , exportWithAuthor = True
   , exportWithCreator = True
   , exportWithEmail = True
+  , exportWithPlanning = False
   , exportWithTags = True
   , exportWithTodoKeywords = True
   }

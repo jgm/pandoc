@@ -190,10 +190,9 @@ blockToConTeXt (BlockQuote lst) = do
 blockToConTeXt (CodeBlock _ str) =
   return $ flush ("\\starttyping" <> cr <> text str <> cr <> "\\stoptyping") $$ blankline
   -- blankline because \stoptyping can't have anything after it, inc. '}'
-blockToConTeXt (RawBlock "context" str) = return $ text str <> blankline
-blockToConTeXt b@(RawBlock _ _ ) = do
-  report $ BlockNotRendered b
-  return empty
+blockToConTeXt b@(RawBlock f str)
+  | f == Format "context" || f == Format "tex" = return $ text str <> blankline
+  | otherwise = empty <$ report (BlockNotRendered b)
 blockToConTeXt (Div (ident,_,kvs) bs) = do
   let align dir txt = "\\startalignment[" <> dir <> "]" $$ txt $$ "\\stopalignment"
   mblang <- fromBCP47 (lookup "lang" kvs)
@@ -330,8 +329,7 @@ alignToConTeXt align = case align of
                          AlignDefault -> empty
 
 listItemToConTeXt :: PandocMonad m => [Block] -> WM m Doc
-listItemToConTeXt list = blockListToConTeXt list >>=
-  return . ("\\item" $$) . nest 2
+listItemToConTeXt list = (("\\item" $$) . nest 2) <$> blockListToConTeXt list
 
 defListItemToConTeXt :: PandocMonad m => ([Inline], [[Block]]) -> WM m Doc
 defListItemToConTeXt (term, defs) = do
@@ -401,11 +399,9 @@ inlineToConTeXt (Math InlineMath str) =
   return $ char '$' <> text str <> char '$'
 inlineToConTeXt (Math DisplayMath str) =
   return $ text "\\startformula "  <> text str <> text " \\stopformula" <> space
-inlineToConTeXt (RawInline "context" str) = return $ text str
-inlineToConTeXt (RawInline "tex" str) = return $ text str
-inlineToConTeXt il@(RawInline _ _) = do
-  report $ InlineNotRendered il
-  return empty
+inlineToConTeXt il@(RawInline f str)
+  | f == Format "tex" || f == Format "context" = return $ text str
+  | otherwise = empty <$ report (InlineNotRendered il)
 inlineToConTeXt LineBreak = return $ text "\\crlf" <> cr
 inlineToConTeXt SoftBreak = do
   wrapText <- gets (writerWrapText . stOptions)
@@ -457,7 +453,12 @@ inlineToConTeXt (Image attr@(_,cls,_) _ (src, _)) = do
       clas = if null cls
                 then empty
                 else brackets $ text $ toLabel $ head cls
-      src' = if isURI src
+      -- Use / for path separators on Windows; see #4918
+      fixPathSeparators = map $ \c -> case c of
+                                           '\\' -> '/'
+                                           _    -> c
+      src' = fixPathSeparators $
+             if isURI src
                 then src
                 else unEscapeString src
   return $ braces $ "\\externalfigure" <> brackets (text src') <> dims <> clas

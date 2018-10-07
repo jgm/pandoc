@@ -514,22 +514,19 @@ charsInBalanced open close parser = try $ do
 
 -- Auxiliary functions for romanNumeral:
 
-lowercaseRomanDigits :: [Char]
-lowercaseRomanDigits = ['i','v','x','l','c','d','m']
-
-uppercaseRomanDigits :: [Char]
-uppercaseRomanDigits = map toUpper lowercaseRomanDigits
-
 -- | Parses a roman numeral (uppercase or lowercase), returns number.
 romanNumeral :: Stream s m Char => Bool                  -- ^ Uppercase if true
              -> ParserT s st m Int
 romanNumeral upperCase = do
-    let romanDigits = if upperCase
-                         then uppercaseRomanDigits
-                         else lowercaseRomanDigits
-    lookAhead $ oneOf romanDigits
-    let [one, five, ten, fifty, hundred, fivehundred, thousand] =
-          map char romanDigits
+    let rchar uc = char $ if upperCase then uc else toLower uc
+    let one         = rchar 'I'
+    let five        = rchar 'V'
+    let ten         = rchar 'X'
+    let fifty       = rchar 'L'
+    let hundred     = rchar 'C'
+    let fivehundred = rchar 'D'
+    let thousand    = rchar 'M'
+    lookAhead $ choice [one, five, ten, fifty, hundred, fivehundred, thousand]
     thousands <- ((1000 *) . length) <$> many thousand
     ninehundreds <- option 0 $ try $ hundred >> thousand >> return 900
     fivehundreds <- option 0 $ 500 <$ fivehundred
@@ -1289,7 +1286,7 @@ type SubstTable = M.Map Key Inlines
 --  unique identifier, and update the list of identifiers
 --  in state.  Issue a warning if an explicit identifier
 --  is encountered that duplicates an earlier identifier
---  (explict or automatically generated).
+--  (explicit or automatically generated).
 registerHeader :: (Stream s m a, HasReaderOptions st,
                     HasHeaderMap st, HasLogMessages st, HasIdentifierList st)
                => Attr -> Inlines -> ParserT s st m Attr

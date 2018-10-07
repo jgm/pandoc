@@ -24,18 +24,18 @@ expanded at point of use:
 % pandoc -f latex -t latex
 \let\a\b
 \newcommand{\b}{\emph{ouk}}
-\a
+\a a
 ^D
-\b
+a̱
 ```
 
 ```
 % pandoc -f latex -t latex
 \newcommand{\a}{\b}
 \newcommand{\b}{\emph{ouk}}
-\a
+\a a
 ^D
-\emph{ouk}
+\emph{ouk}a
 ```
 
 ```

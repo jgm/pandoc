@@ -39,17 +39,20 @@ import Control.Monad.State.Strict hiding (when)
 import Data.Char (chr)
 import Data.List (sortBy)
 import qualified Data.Map as Map
+import Data.Maybe (fromMaybe)
 import Data.Ord (comparing)
 import qualified Data.Set as Set
 import Data.Text (Text)
 import Text.Pandoc.BCP47 (Lang (..), parseBCP47)
-import Text.Pandoc.Class (PandocMonad, report)
+import Text.Pandoc.Class (PandocMonad, report, translateTerm,
+                          setTranslations, toLang)
 import Text.Pandoc.Definition
 import Text.Pandoc.Logging
 import Text.Pandoc.Options
 import Text.Pandoc.Pretty
 import Text.Pandoc.Shared (linesToPara)
 import Text.Pandoc.Templates (renderTemplate')
+import qualified Text.Pandoc.Translations as Term (Term(Figure, Table))
 import Text.Pandoc.Writers.Math
 import Text.Pandoc.Writers.Shared
 import Text.Pandoc.XML
@@ -67,32 +70,36 @@ plainToPara x         = x
 type OD m = StateT WriterState m
 
 data WriterState =
-    WriterState { stNotes         :: [Doc]
-                , stTableStyles   :: [Doc]
-                , stParaStyles    :: [Doc]
-                , stListStyles    :: [(Int, [Doc])]
-                , stTextStyles    :: Map.Map (Set.Set TextStyle) (String, Doc)
-                , stTextStyleAttr :: Set.Set TextStyle
-                , stIndentPara    :: Int
-                , stInDefinition  :: Bool
-                , stTight         :: Bool
-                , stFirstPara     :: Bool
-                , stImageId       :: Int
+    WriterState { stNotes          :: [Doc]
+                , stTableStyles    :: [Doc]
+                , stParaStyles     :: [Doc]
+                , stListStyles     :: [(Int, [Doc])]
+                , stTextStyles     :: Map.Map (Set.Set TextStyle) (String, Doc)
+                , stTextStyleAttr  :: Set.Set TextStyle
+                , stIndentPara     :: Int
+                , stInDefinition   :: Bool
+                , stTight          :: Bool
+                , stFirstPara      :: Bool
+                , stImageId        :: Int
+                , stTableCaptionId :: Int
+                , stImageCaptionId :: Int
                 }
 
 defaultWriterState :: WriterState
 defaultWriterState =
-    WriterState { stNotes         = []
-                , stTableStyles   = []
-                , stParaStyles    = []
-                , stListStyles    = []
-                , stTextStyles    = Map.empty
-                , stTextStyleAttr = Set.empty
-                , stIndentPara    = 0
-                , stInDefinition  = False
-                , stTight         = False
-                , stFirstPara     = False
-                , stImageId       = 1
+    WriterState { stNotes          = []
+                , stTableStyles    = []
+                , stParaStyles     = []
+                , stListStyles     = []
+                , stTextStyles     = Map.empty
+                , stTextStyleAttr  = Set.empty
+                , stIndentPara     = 0
+                , stInDefinition   = False
+                , stTight          = False
+                , stFirstPara      = False
+                , stImageId        = 1
+                , stTableCaptionId = 1
+                , stImageCaptionId = 1
                 }
 
 when :: Bool -> Doc -> Doc
@@ -193,10 +200,15 @@ formulaStyle mt = inTags False "style:style"
                                                   ,("style:horizontal-rel", "paragraph-content")
                                                   ,("style:wrap",           "none")]
 
-inHeaderTags :: PandocMonad m => Int -> Doc -> OD m Doc
-inHeaderTags i d =
+inHeaderTags :: PandocMonad m => Int -> String -> Doc -> OD m Doc
+inHeaderTags i ident d =
   return $ inTags False "text:h" [ ("text:style-name", "Heading_20_" ++ show i)
-                                 , ("text:outline-level", show i)] d
+                                 , ("text:outline-level", show i)]
+         $ if null ident
+              then d
+              else selfClosingTag "text:bookmark-start" [ ("text:name", ident) ]
+                   <> d <>
+                   selfClosingTag "text:bookmark-end" [ ("text:name", ident) ]
 
 inQuotes :: QuoteType -> Doc -> Doc
 inQuotes SingleQuote s = char '\8216' <> s <> char '\8217'
@@ -218,6 +230,11 @@ handleSpaces s
 -- | Convert Pandoc document to string in OpenDocument format.
 writeOpenDocument :: PandocMonad m => WriterOptions -> Pandoc -> m Text
 writeOpenDocument opts (Pandoc meta blocks) = do
+  let defLang = Lang "en" "US" "" []
+  lang <- case lookupMetaString "lang" meta of
+            "" -> pure defLang
+            s  -> fromMaybe defLang <$> toLang (Just s)
+  setTranslations lang
   let colwidth = if writerWrapText opts == WrapAuto
                     then Just $ writerColumns opts
                     else Nothing
@@ -349,8 +366,9 @@ blockToOpenDocument o bs
     | LineBlock      b <- bs = blockToOpenDocument o $ linesToPara b
     | Div attr xs      <- bs = withLangFromAttr attr
                                   (blocksToOpenDocument o xs)
-    | Header     i _ b <- bs = setFirstPara >>
-                               (inHeaderTags  i =<< inlinesToOpenDocument o b)
+    | Header     i (ident,_,_) b
+                       <- bs = setFirstPara >> (inHeaderTags i ident
+                                  =<< inlinesToOpenDocument o b)
     | BlockQuote     b <- bs = setFirstPara >> mkBlockQuote b
     | DefinitionList b <- bs = setFirstPara >> defList b
     | BulletList     b <- bs = setFirstPara >> bulletListToOpenDocument o b
@@ -394,11 +412,11 @@ blockToOpenDocument o bs
         mapM_ addParaStyle . newPara $ paraHStyles ++ paraStyles
         captionDoc <- if null c
                       then return empty
-                      else withParagraphStyle o "Table" [Para c]
+                      else inlinesToOpenDocument o c >>= numberedTableCaption
         th <- if all null h
                  then return empty
-                 else colHeadsToOpenDocument o name (map fst paraHStyles) h
-        tr <- mapM (tableRowToOpenDocument o name (map fst paraStyles)) r
+                 else colHeadsToOpenDocument o (map fst paraHStyles) h
+        tr <- mapM (tableRowToOpenDocument o (map fst paraStyles)) r
         return $ inTags True "table:table" [ ("table:name"      , name)
                                            , ("table:style-name", name)
                                            ] (vcat columns $$ th $$ vcat tr) $$ captionDoc
@@ -406,28 +424,54 @@ blockToOpenDocument o bs
         withParagraphStyle o "Figure" [Para [Image attr caption (source,title)]]
                                   | otherwise    = do
         imageDoc <- withParagraphStyle o "FigureWithCaption" [Para [Image attr caption (source,title)]]
-        captionDoc <- withParagraphStyle o "FigureCaption" [Para caption]
+        captionDoc <- inlinesToOpenDocument o caption >>= numberedFigureCaption
         return $ imageDoc $$ captionDoc
 
+
+numberedTableCaption :: PandocMonad m => Doc -> OD m Doc
+numberedTableCaption caption = do
+    id' <- gets stTableCaptionId
+    modify (\st -> st{ stTableCaptionId = id' + 1 })
+    capterm <- translateTerm Term.Table
+    return $ numberedCaption "Table" capterm "Table" id' caption
+
+numberedFigureCaption :: PandocMonad m => Doc -> OD m Doc
+numberedFigureCaption caption = do
+    id' <- gets stImageCaptionId
+    modify (\st -> st{ stImageCaptionId = id' + 1 })
+    capterm <- translateTerm Term.Figure
+    return $ numberedCaption "FigureCaption" capterm "Illustration" id' caption
+
+numberedCaption :: String -> String -> String -> Int -> Doc -> Doc
+numberedCaption style term name num caption =
+    let t = text term
+        r = num - 1
+        s = inTags False "text:sequence" [ ("text:ref-name", "ref" ++ name ++ show r),
+                                           ("text:name", name),
+                                           ("text:formula", "ooow:" ++ name ++ "+1"),
+                                           ("style:num-format", "1") ] $ text $ show num
+        c = text ": "
+    in inParagraphTagsWithStyle style $ hcat [ t, text " ", s, c, caption ]
+
 colHeadsToOpenDocument :: PandocMonad m
-                       => WriterOptions -> String -> [String] -> [[Block]]
+                       => WriterOptions -> [String] -> [[Block]]
                        -> OD m Doc
-colHeadsToOpenDocument o tn ns hs =
+colHeadsToOpenDocument o ns hs =
     inTagsIndented "table:table-header-rows" . inTagsIndented "table:table-row" . vcat <$>
-    mapM (tableItemToOpenDocument o tn) (zip ns hs)
+    mapM (tableItemToOpenDocument o "TableHeaderRowCell") (zip ns hs)
 
 tableRowToOpenDocument :: PandocMonad m
-                       => WriterOptions -> String -> [String] -> [[Block]]
+                       => WriterOptions -> [String] -> [[Block]]
                        -> OD m Doc
-tableRowToOpenDocument o tn ns cs =
+tableRowToOpenDocument o ns cs =
     inTagsIndented "table:table-row" . vcat <$>
-    mapM (tableItemToOpenDocument o tn) (zip ns cs)
+    mapM (tableItemToOpenDocument o "TableRowCell") (zip ns cs)
 
 tableItemToOpenDocument :: PandocMonad m
                         => WriterOptions -> String -> (String,[Block])
                         -> OD m Doc
-tableItemToOpenDocument o tn (n,i) =
-  let a = [ ("table:style-name" , tn ++ ".A1" )
+tableItemToOpenDocument o s (n,i) =
+  let a = [ ("table:style-name" , s )
           , ("office:value-type", "string"     )
           ]
   in  inTags True "table:table-cell" a <$>
@@ -500,7 +544,9 @@ inlineToOpenDocument o ils
                modify (\st -> st{ stImageId = id' + 1 })
                let getDims [] = []
                    getDims (("width", w) :xs) = ("svg:width", w)  : getDims xs
+                   getDims (("rel-width", w):xs) = ("style:rel-width", w) : getDims xs
                    getDims (("height", h):xs) = ("svg:height", h) : getDims xs
+                   getDims (("rel-height", w):xs) = ("style:rel-height", w) : getDims xs
                    getDims (_:xs) =                             getDims xs
                return $ inTags False "draw:frame"
                         (("draw:name", "img" ++ show id') : getDims kvs) $
@@ -555,10 +601,18 @@ orderedListLevelStyle (s,n, d) (l,ls) =
 
 listLevelStyle :: Int -> Doc
 listLevelStyle i =
-    let indent = show (0.4 * fromIntegral (i - 1) :: Double) in
-    selfClosingTag "style:list-level-properties"
-                       [ ("text:space-before"   , indent ++ "in")
-                       , ("text:min-label-width",       "0.4in")]
+    let indent = show (0.5 * fromIntegral i :: Double) in
+    inTags True "style:list-level-properties"
+                       [ ("text:list-level-position-and-space-mode",
+                          "label-alignment")
+                       , ("fo:text-align", "right")
+                       ] $
+       selfClosingTag "style:list-level-label-alignment"
+                      [ ("text:label-followed-by", "listtab")
+                      , ("text:list-tab-stop-position", indent ++ "in")
+                      , ("fo:text-indent", "-0.1in")
+                      , ("fo:margin-left", indent ++ "in")
+                      ]
 
 tableStyle :: Int -> [(Char,Double)] -> Doc
 tableStyle num wcs =
@@ -576,13 +630,21 @@ tableStyle num wcs =
                          , ("style:family", "table-column"       )] $
                          selfClosingTag "style:table-column-properties"
                          [("style:rel-column-width", printf "%d*" (floor $ w * 65535 :: Integer))]
-        cellStyle      = inTags True "style:style"
-                         [ ("style:name"  , tableId ++ ".A1")
+        headerRowCellStyle = inTags True "style:style"
+                         [ ("style:name"  , "TableHeaderRowCell")
                          , ("style:family", "table-cell"    )] $
                          selfClosingTag "style:table-cell-properties"
                          [ ("fo:border", "none")]
+        rowCellStyle = inTags True "style:style"
+                         [ ("style:name"  , "TableRowCell")
+                         , ("style:family", "table-cell"    )] $
+                         selfClosingTag "style:table-cell-properties"
+                         [ ("fo:border", "none")]
+        cellStyles = if num == 0
+                     then headerRowCellStyle $$ rowCellStyle
+                     else empty
         columnStyles   = map colStyle wcs
-    in  table $$ vcat columnStyles $$ cellStyle
+    in cellStyles $$ table $$ vcat columnStyles
 
 paraStyle :: PandocMonad m => [(String,String)] -> OD m Int
 paraStyle attrs = do

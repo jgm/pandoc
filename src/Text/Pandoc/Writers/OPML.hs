@@ -62,7 +62,8 @@ writeOPML opts (Pandoc meta blocks) = do
               meta'
   main <- (render colwidth . vcat) <$> mapM (elementToOPML opts) elements
   let context = defField "body" main metadata
-  case writerTemplate opts of
+  (if writerPreferAscii opts then toEntities else id) <$>
+    case writerTemplate opts of
        Nothing  -> return main
        Just tpl -> renderTemplate' tpl context
 

@@ -38,7 +38,7 @@ module Text.Pandoc.Writers.Markdown (writeMarkdown, writePlain) where
 import Prelude
 import Control.Monad.Reader
 import Control.Monad.State.Strict
-import Data.Char (chr, isPunctuation, isSpace, ord, isAlphaNum)
+import Data.Char (isPunctuation, isSpace, isAlphaNum)
 import Data.Default
 import qualified Data.HashMap.Strict as H
 import Data.List (find, group, intersperse, sortBy, stripPrefix, transpose)
@@ -50,7 +50,7 @@ import qualified Data.Set as Set
 import Data.Text (Text)
 import qualified Data.Text as T
 import qualified Data.Vector as V
-import Data.Yaml (Value (Array, Bool, Number, Object, String))
+import Data.Aeson (Value (Array, Bool, Number, Object, String))
 import Network.HTTP (urlEncode)
 import Text.HTML.TagSoup (Tag (..), isTagText, parseTags)
 import Text.Pandoc.Class (PandocMonad, report)
@@ -298,7 +298,8 @@ escapeString opts (c:cs) =
               '\\':c:escapeString opts cs
        '|' | isEnabled Ext_pipe_tables opts -> '\\':'|':escapeString opts cs
        '^' | isEnabled Ext_superscript opts -> '\\':'^':escapeString opts cs
-       '~' | isEnabled Ext_subscript opts -> '\\':'~':escapeString opts cs
+       '~' | isEnabled Ext_subscript opts ||
+             isEnabled Ext_strikeout opts -> '\\':'~':escapeString opts cs
        '$' | isEnabled Ext_tex_math_dollars opts -> '\\':'$':escapeString opts cs
        '\'' | isEnabled Ext_smart opts -> '\\':'\'':escapeString opts cs
        '"' | isEnabled Ext_smart opts -> '\\':'"':escapeString opts cs
@@ -452,8 +453,14 @@ blockToMarkdown' opts (Plain inlines) = do
               | otherwise -> contents
   return $ contents' <> cr
 -- title beginning with fig: indicates figure
-blockToMarkdown' opts (Para [Image attr alt (src,'f':'i':'g':':':tit)]) =
-  blockToMarkdown opts (Para [Image attr alt (src,tit)])
+blockToMarkdown' opts (Para [Image attr alt (src,'f':'i':'g':':':tit)])
+  | isEnabled Ext_raw_html opts &&
+    not (isEnabled Ext_link_attributes opts) &&
+    attr /= nullAttr = -- use raw HTML
+    (text . T.unpack . T.strip) <$>
+      writeHtml5String opts{ writerTemplate = Nothing }
+        (Pandoc nullMeta [Para [Image attr alt (src,"fig:" ++ tit)]])
+  | otherwise = blockToMarkdown opts (Para [Image attr alt (src,tit)])
 blockToMarkdown' opts (Para inlines) =
   (<> blankline) `fmap` blockToMarkdown opts (Plain inlines)
 blockToMarkdown' opts (LineBlock lns) =
@@ -619,7 +626,7 @@ blockToMarkdown' opts t@(Table caption aligns widths headers rows) =  do
                   (all null headers) aligns' widths' headers rows
             | isEnabled Ext_raw_html opts -> fmap (id,) $
                    (text . T.unpack) <$>
-                   (writeHtml5String def $ Pandoc nullMeta [t])
+                   (writeHtml5String opts{ writerTemplate = Nothing } $ Pandoc nullMeta [t])
             | hasSimpleCells &&
               isEnabled Ext_pipe_tables opts -> do
                 rawHeaders <- padRow <$> mapM (blockListToMarkdown opts) headers
@@ -976,6 +983,11 @@ isRight (Left  _) = False
 
 -- | Convert Pandoc inline element to markdown.
 inlineToMarkdown :: PandocMonad m => WriterOptions -> Inline -> MD m Doc
+inlineToMarkdown opts (Span ("",["emoji"],kvs) [Str s]) = do
+  case lookup "data-emoji" kvs of
+       Just emojiname | isEnabled Ext_emoji opts ->
+            return $ ":" <> text emojiname <> ":"
+       _ -> inlineToMarkdown opts (Str s)
 inlineToMarkdown opts (Span attrs ils) = do
   plain <- asks envPlain
   contents <- inlineListToMarkdown opts ils
@@ -1172,7 +1184,7 @@ inlineToMarkdown opts lnk@(Link attr txt (src, tit))
     not (isEnabled Ext_link_attributes opts) &&
     attr /= nullAttr = -- use raw HTML
     (text . T.unpack . T.strip) <$>
-      writeHtml5String def (Pandoc nullMeta [Plain [lnk]])
+      writeHtml5String opts{ writerTemplate = Nothing } (Pandoc nullMeta [Plain [lnk]])
   | otherwise = do
   plain <- asks envPlain
   linktext <- inlineListToMarkdown opts txt
@@ -1212,7 +1224,7 @@ inlineToMarkdown opts img@(Image attr alternate (source, tit))
     not (isEnabled Ext_link_attributes opts) &&
     attr /= nullAttr = -- use raw HTML
     (text . T.unpack . T.strip) <$>
-      writeHtml5String def (Pandoc nullMeta [Plain [img]])
+      writeHtml5String opts{ writerTemplate = Nothing } (Pandoc nullMeta [Plain [img]])
   | otherwise = do
   plain <- asks envPlain
   let txt = if null alternate || alternate == [Str source]
@@ -1236,33 +1248,6 @@ makeMathPlainer = walk go
   where
   go (Emph xs) = Span nullAttr xs
   go x         = x
-
-toSuperscript :: Char -> Maybe Char
-toSuperscript '1' = Just '\x00B9'
-toSuperscript '2' = Just '\x00B2'
-toSuperscript '3' = Just '\x00B3'
-toSuperscript '+' = Just '\x207A'
-toSuperscript '-' = Just '\x207B'
-toSuperscript '=' = Just '\x207C'
-toSuperscript '(' = Just '\x207D'
-toSuperscript ')' = Just '\x207E'
-toSuperscript c
-  | c >= '0' && c <= '9' =
-                 Just $ chr (0x2070 + (ord c - 48))
-  | isSpace c = Just c
-  | otherwise = Nothing
-
-toSubscript :: Char -> Maybe Char
-toSubscript '+' = Just '\x208A'
-toSubscript '-' = Just '\x208B'
-toSubscript '=' = Just '\x208C'
-toSubscript '(' = Just '\x208D'
-toSubscript ')' = Just '\x208E'
-toSubscript c
-  | c >= '0' && c <= '9' =
-                 Just $ chr (0x2080 + (ord c - 48))
-  | isSpace c = Just c
-  | otherwise = Nothing
 
 lineBreakToSpace :: Inline -> Inline
 lineBreakToSpace LineBreak = Space

@@ -150,6 +150,29 @@ tests =
                   , "* Headline :hello:world:"
                   ] =?>
         headerWith ("headline", [], mempty) 1 "Headline"
+
+    , testGroup "planning information"
+      [ "include planning info after headlines" =:
+        T.unlines [ "#+OPTIONS: p:t"
+                  , "* important"
+                  , "  DEADLINE: <2018-10-01 Mon> SCHEDULED: <2018-09-15 Sat>"
+                  ] =?>
+        mconcat [ headerWith ("important", mempty, mempty) 1 "important"
+                , plain $ strong "DEADLINE:"
+                       <> space
+                       <> emph (str "<2018-10-01 Mon>")
+                       <> space
+                       <> strong "SCHEDULED:"
+                       <> space
+                       <> emph (str "<2018-09-15 Sat>")
+                ]
+
+      , "empty planning info is not included" =:
+        T.unlines [ "#+OPTIONS: p:t"
+                  , "* Wichtig"
+                  ] =?>
+        headerWith ("wichtig", mempty, mempty) 1 "Wichtig"
+      ]
     ]
 
   , testGroup "Include"

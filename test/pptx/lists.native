@@ -1,7 +1,7 @@
 [Header 1 ("lists",[],[]) [Str "Lists"]
 ,BulletList
  [[Para [Str "Bulleted",Space,Str "bulleted",Space,Str "lists."]]
- ,[Para [Str "And",Space,Str "go",Space,Str "to",Space,Str "aribtrary",Space,Str "depth."]
+ ,[Para [Str "And",Space,Str "go",Space,Str "to",Space,Str "arbitrary",Space,Str "depth."]
   ,BulletList
    [[Para [Str "Like",Space,Str "this"]
     ,BulletList

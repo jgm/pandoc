@@ -66,7 +66,7 @@ import Text.Pandoc.Readers.Docx.StyleMap
 import Text.Pandoc.Shared hiding (Element)
 import Text.Pandoc.Walk
 import Text.Pandoc.Writers.Math
-import Text.Pandoc.Writers.Shared (fixDisplayMath, metaValueToInlines)
+import Text.Pandoc.Writers.Shared
 import Text.Printf (printf)
 import Text.TeXMath
 import Text.XML.Light as XML
@@ -230,7 +230,7 @@ writeDocx opts doc@(Pandoc meta _) = do
   let mbAttrMarLeft = (elAttribs <$> mbpgmar) >>= lookupAttrBy ((=="left") . qName)
   let mbAttrMarRight = (elAttribs <$> mbpgmar) >>= lookupAttrBy ((=="right") . qName)
 
-  -- Get the avaible area (converting the size and the margins to int and
+  -- Get the available area (converting the size and the margins to int and
   -- doing the difference
   let pgContentWidth = (-) <$> (read <$> mbAttrSzWidth ::Maybe Integer)
                        <*> (
@@ -266,8 +266,9 @@ writeDocx opts doc@(Pandoc meta _) = do
   -- parse styledoc for heading styles
   let styleMaps = getStyleMaps styledoc
 
-  let tocTitle = fromMaybe (stTocTitle defaultWriterState) $
-                    metaValueToInlines <$> lookupMeta "toc-title" meta
+  let tocTitle = case lookupMetaInlines "toc-title" meta of
+                   [] -> stTocTitle defaultWriterState
+                   ls -> ls
 
   let initialSt = defaultWriterState {
           stStyleMaps  = styleMaps
@@ -727,7 +728,7 @@ getNumId = (((baseListId - 1) +) . length) `fmap` gets stLists
 
 
 makeTOC :: (PandocMonad m) => WriterOptions -> WS m [Element]
-makeTOC opts | writerTableOfContents opts = do
+makeTOC opts = do
   let depth = "1-"++show (writerTOCDepth opts)
   let tocCmd = "TOC \\o \""++depth++"\" \\h \\z \\u"
   tocTitle <- gets stTocTitle
@@ -751,8 +752,6 @@ makeTOC opts | writerTableOfContents opts = do
         ) -- w:p
       ])
     ])] -- w:sdt
-makeTOC _ = return []
-
 
 -- | Convert Pandoc document to two lists of
 -- OpenXML elements (the main document and footnotes).
@@ -761,15 +760,9 @@ writeOpenXML opts (Pandoc meta blocks) = do
   let tit = docTitle meta
   let auths = docAuthors meta
   let dat = docDate meta
-  let abstract' = case lookupMeta "abstract" meta of
-                       Just (MetaBlocks bs)   -> bs
-                       Just (MetaInlines ils) -> [Plain ils]
-                       _                      -> []
-  let subtitle' = case lookupMeta "subtitle" meta of
-                       Just (MetaBlocks [Plain xs]) -> xs
-                       Just (MetaBlocks [Para  xs]) -> xs
-                       Just (MetaInlines xs)        -> xs
-                       _                            -> []
+  let abstract' = lookupMetaBlocks "abstract" meta
+  let subtitle' = lookupMetaInlines "subtitle" meta
+  let includeTOC = writerTableOfContents opts || lookupMetaBool "toc" meta
   title <- withParaPropM (pStyleM "Title") $ blocksToOpenXML opts [Para tit | not (null tit)]
   subtitle <- withParaPropM (pStyleM "Subtitle") $ blocksToOpenXML opts [Para subtitle' | not (null subtitle')]
   authors <- withParaProp (pCustomStyle "Author") $ blocksToOpenXML opts $
@@ -801,7 +794,9 @@ writeOpenXML opts (Pandoc meta blocks) = do
               ] ++ annotation
             ]
   comments' <- mapM toComment comments
-  toc <- makeTOC opts
+  toc <- if includeTOC
+            then makeTOC opts
+            else return []
   let meta' = title ++ subtitle ++ authors ++ date ++ abstract ++ toc
   return (meta' ++ doc', notes', comments')
 
@@ -908,9 +903,10 @@ blockToOpenXML' opts (Para lst)
   | null lst && not (isEnabled Ext_empty_paragraphs opts) = return []
   | otherwise = do
       isFirstPara <- gets stFirstPara
-      paraProps <- getParaProps $ case lst of
-                                   [Math DisplayMath _] -> True
-                                   _                    -> False
+      let displayMathPara = case lst of
+                                 [x] -> isDisplayMath x
+                                 _   -> False
+      paraProps <- getParaProps displayMathPara
       bodyTextStyle <- pStyleM "Body Text"
       let paraProps' = case paraProps of
             [] | isFirstPara -> [mknode "w:pPr" []

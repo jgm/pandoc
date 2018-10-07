@@ -79,6 +79,7 @@ module Text.Pandoc.Shared (
                      makeMeta,
                      eastAsianLineBreakFilter,
                      underlineSpan,
+                     splitSentences,
                      -- * TagSoup HTML handling
                      renderTags',
                      -- * File handling
@@ -94,6 +95,8 @@ module Text.Pandoc.Shared (
                      -- * for squashing blocks
                      blocksToInlines,
                      blocksToInlines',
+                     blocksToInlinesWithSep,
+                     defaultBlocksSeparator,
                      -- * Safe read
                      safeRead,
                      -- * Temp directory
@@ -580,6 +583,31 @@ eastAsianLineBreakFilter = bottomUp go
 underlineSpan :: Inlines -> Inlines
 underlineSpan = B.spanWith ("", ["underline"], [])
 
+-- | Returns the first sentence in a list of inlines, and the rest.
+breakSentence :: [Inline] -> ([Inline], [Inline])
+breakSentence [] = ([],[])
+breakSentence xs =
+  let isSentenceEndInline (Str ys@(_:_)) | last ys == '.' = True
+      isSentenceEndInline (Str ys@(_:_)) | last ys == '?' = True
+      isSentenceEndInline LineBreak      = True
+      isSentenceEndInline _              = False
+      (as, bs) = break isSentenceEndInline xs
+  in  case bs of
+           []             -> (as, [])
+           [c]            -> (as ++ [c], [])
+           (c:Space:cs)   -> (as ++ [c], cs)
+           (c:SoftBreak:cs) -> (as ++ [c], cs)
+           (Str ".":Str (')':ys):cs) -> (as ++ [Str ".", Str (')':ys)], cs)
+           (x@(Str ('.':')':_)):cs) -> (as ++ [x], cs)
+           (LineBreak:x@(Str ('.':_)):cs) -> (as ++[LineBreak], x:cs)
+           (c:cs)         -> (as ++ [c] ++ ds, es)
+              where (ds, es) = breakSentence cs
+
+-- | Split a list of inlines into sentences.
+splitSentences :: [Inline] -> [[Inline]]
+splitSentences xs =
+  let (sent, rest) = breakSentence xs
+  in  if null rest then [sent] else sent : splitSentences rest
 
 --
 -- TagSoup HTML handling
@@ -712,7 +740,7 @@ schemes = Set.fromList
   , "ws", "wss", "wtai", "wyciwyg", "xcon", "xcon-userid", "xfire"
   , "xmlrpc.beep", "xmlrpc.beeps", "xmpp", "xri", "ymsgr", "z39.50", "z39.50r"
   , "z39.50s"
-  -- Inofficial schemes
+  -- Unofficial schemes
   , "doi", "isbn", "javascript", "pmid"
   ]
 
@@ -757,11 +785,18 @@ blocksToInlinesWithSep sep =
   mconcat . intersperse sep . map blockToInlines
 
 blocksToInlines' :: [Block] -> Inlines
-blocksToInlines' = blocksToInlinesWithSep parSep
-  where parSep = B.space <> B.str "¶" <> B.space
+blocksToInlines' = blocksToInlinesWithSep defaultBlocksSeparator
 
 blocksToInlines :: [Block] -> [Inline]
 blocksToInlines = B.toList . blocksToInlines'
+
+-- | Inline elements used to separate blocks when squashing blocks into
+-- inlines.
+defaultBlocksSeparator :: Inlines
+defaultBlocksSeparator =
+  -- This is used in the pandoc.utils.blocks_to_inlines function. Docs
+  -- there should be updated if this is changed.
+  B.space <> B.str "¶" <> B.space
 
 
 --

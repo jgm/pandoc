@@ -42,7 +42,7 @@ limitation is mostly a help rather than a hindrance, since many
 of the formats pandoc supports have similar limitations.
 
 The best way to explore the pandoc AST is to use `pandoc -t
-native`, which will display the AST correspoding to some
+native`, which will display the AST corresponding to some
 Markdown input:
 
 ```
@@ -187,7 +187,7 @@ Some particularly important options to know about:
 # Builder
 
 Sometimes it's useful to construct a Pandoc document
-programatically.  To make this easier we provide the
+programmatically.  To make this easier we provide the
 module [Text.Pandoc.Builder] `pandoc-types`.
 
 Because concatenating lists is slow, we use special

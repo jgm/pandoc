@@ -1,5 +1,5 @@
-$if(title)$
-$title$
+$if(titleblock)$
+$titleblock$
 
 $endif$
 $for(author)$
@@ -29,6 +29,10 @@ $if(toc)$
 .. contents::
    :depth: $toc-depth$
 ..
+
+$endif$
+$if(number-sections)$
+.. section-numbering::
 
 $endif$
 $for(header-includes)$

@@ -31,6 +31,7 @@ Types for LaTeX tokens and macros.
 module Text.Pandoc.Readers.LaTeX.Types ( Tok(..)
                                        , TokType(..)
                                        , Macro(..)
+                                       , ArgSpec(..)
                                        , ExpansionPoint(..)
                                        , SourcePos
                                        )
@@ -49,5 +50,8 @@ data Tok = Tok SourcePos TokType Text
 data ExpansionPoint = ExpandWhenDefined | ExpandWhenUsed
      deriving (Eq, Ord, Show)
 
-data Macro = Macro ExpansionPoint Int (Maybe [Tok]) [Tok]
+data Macro = Macro ExpansionPoint [ArgSpec] (Maybe [Tok]) [Tok]
+     deriving Show
+
+data ArgSpec = ArgNum Int | Pattern [Tok]
      deriving Show

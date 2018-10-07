@@ -46,7 +46,7 @@ module Text.Pandoc.Writers.Muse (writeMuse) where
 import Prelude
 import Control.Monad.Reader
 import Control.Monad.State.Strict
-import Data.Char (isSpace, isDigit, isAsciiUpper, isAsciiLower)
+import Data.Char (isSpace, isAlphaNum, isDigit, isAsciiUpper, isAsciiLower)
 import Data.Default
 import Data.Text (Text)
 import Data.List (intersperse, transpose, isInfixOf)
@@ -70,20 +70,24 @@ data WriterEnv =
   WriterEnv { envOptions :: WriterOptions
             , envTopLevel :: Bool
             , envInsideBlock :: Bool
-            , envInlineStart :: Bool
+            , envInlineStart :: Bool -- ^ True if there is only whitespace since last newline
             , envInsideLinkDescription :: Bool -- ^ Escape ] if True
-            , envAfterSpace :: Bool
+            , envAfterSpace :: Bool -- ^ There is whitespace (not just newline) before
             , envOneLine :: Bool -- ^ True if newlines are not allowed
+            , envInsideAsterisks :: Bool -- ^ True if outer element is emphasis with asterisks
+            , envNearAsterisks :: Bool -- ^ Rendering inline near asterisks
             }
 
 data WriterState =
   WriterState { stNotes       :: Notes
               , stIds         :: Set.Set String
+              , stUseTags     :: Bool -- ^ Use tags for emphasis, for example because previous character is a letter
               }
 
 instance Default WriterState
   where def = WriterState { stNotes = []
                           , stIds = Set.empty
+                          , stUseTags = False
                           }
 
 evalMuse :: PandocMonad m => Muse m a -> WriterEnv -> WriterState -> m a
@@ -103,6 +107,8 @@ writeMuse opts document =
                         , envInsideLinkDescription = False
                         , envAfterSpace = False
                         , envOneLine = False
+                        , envInsideAsterisks = False
+                        , envNearAsterisks = False
                         }
 
 -- | Return Muse representation of document.
@@ -212,6 +218,7 @@ blockToMuse (BulletList items) = do
                              => [Block]
                              -> Muse m Doc
         bulletListItemToMuse item = do
+          modify $ \st -> st { stUseTags = False }
           contents <- blockListToMuse item
           return $ hang 2 "- " contents
 blockToMuse (DefinitionList items) = do
@@ -223,16 +230,18 @@ blockToMuse (DefinitionList items) = do
                                  => ([Inline], [[Block]])
                                  -> Muse m Doc
         definitionListItemToMuse (label, defs) = do
+          modify $ \st -> st { stUseTags = False }
           label' <- local (\env -> env { envOneLine = True, envAfterSpace = True }) $ inlineListToMuse' label
           contents <- vcat <$> mapM descriptionToMuse defs
           let ind = offset label'
-          return $ hang ind label' contents
+          return $ hang ind (nowrap label') contents
         descriptionToMuse :: PandocMonad m
                           => [Block]
                           -> Muse m Doc
         descriptionToMuse desc = hang 4 " :: " <$> blockListToMuse desc
 blockToMuse (Header level (ident,_,_) inlines) = do
   opts <- asks envOptions
+  topLevel <- asks envTopLevel
   contents <- local (\env -> env { envOneLine = True }) $ inlineListToMuse' inlines
   ids <- gets stIds
   let autoId = uniqueIdent inlines ids
@@ -241,8 +250,8 @@ blockToMuse (Header level (ident,_,_) inlines) = do
   let attr' = if null ident || (isEnabled Ext_auto_identifiers opts && ident == autoId)
                  then empty
                  else "#" <> text ident <> cr
-  let header' = text $ replicate level '*'
-  return $ blankline <> attr' $$ nowrap (header' <> space <> contents) <> blankline
+  let header' = if topLevel then (text $ replicate level '*') <> space else mempty
+  return $ blankline <> attr' $$ nowrap (header' <> contents) <> blankline
 -- https://www.gnu.org/software/emacs-muse/manual/muse.html#Horizontal-Rules-and-Anchors
 blockToMuse HorizontalRule = return $ blankline $$ "----" $$ blankline
 blockToMuse (Table caption _ _ headers rows) =  do
@@ -284,7 +293,11 @@ noteToMuse :: PandocMonad m
            -> [Block]
            -> Muse m Doc
 noteToMuse num note =
-  hang (length marker) (text marker) <$> blockListToMuse note
+  hang (length marker) (text marker) <$>
+    (local (\env -> env { envInsideBlock = True
+                        , envInlineStart = True
+                        , envAfterSpace = True
+                        }) $ blockListToMuse note)
   where
     marker = "[" ++ show num ++ "] "
 
@@ -294,6 +307,12 @@ escapeString s =
   "<verbatim>" ++
   substitute "</verbatim>" "<</verbatim><verbatim>/verbatim>" s ++
   "</verbatim>"
+
+-- | Replace newlines with spaces
+replaceNewlines :: String -> String
+replaceNewlines ('\n':xs) = ' ':replaceNewlines xs
+replaceNewlines (x:xs) = x:replaceNewlines xs
+replaceNewlines [] = []
 
 startsWithMarker :: (Char -> Bool) -> String -> Bool
 startsWithMarker f (' ':xs) = startsWithMarker f xs
@@ -321,16 +340,28 @@ containsFootnotes = p
         s (_:xs) = p xs
         s [] = False
 
-conditionalEscapeString :: Bool -> String -> String
-conditionalEscapeString isInsideLinkDescription s =
-  if any (`elem` ("#*<=|" :: String)) s ||
-     "::" `isInfixOf` s ||
-     "~~" `isInfixOf` s ||
-     "[[" `isInfixOf` s ||
-     ("]" `isInfixOf` s && isInsideLinkDescription) ||
-     containsFootnotes s
-    then escapeString s
-    else s
+-- | Return True if string should be escaped with <verbatim> tags
+shouldEscapeString :: PandocMonad m
+                   => String
+                   -> Muse m Bool
+shouldEscapeString s = do
+  insideLink <- asks envInsideLinkDescription
+  return $ null s ||
+           any (`elem` ("#*<=|" :: String)) s ||
+           "::" `isInfixOf` s ||
+           "~~" `isInfixOf` s ||
+           "[[" `isInfixOf` s ||
+           ("]" `isInfixOf` s && insideLink) ||
+           containsFootnotes s
+
+conditionalEscapeString :: PandocMonad m
+                        => String
+                        -> Muse m String
+conditionalEscapeString s = do
+  shouldEscape <- shouldEscapeString s
+  return $ if shouldEscape
+             then escapeString s
+             else s
 
 -- Expand Math and Cite before normalizing inline list
 preprocessInlineList :: PandocMonad m
@@ -389,6 +420,19 @@ fixNotes (Space : n@Note{} : rest) = Str " " : n : fixNotes rest
 fixNotes (SoftBreak : n@Note{} : rest) = Str " " : n : fixNotes rest
 fixNotes (x:xs) = x : fixNotes xs
 
+startsWithSpace :: [Inline] -> Bool
+startsWithSpace (Space:_) = True
+startsWithSpace (SoftBreak:_) = True
+startsWithSpace (Str s:_) = stringStartsWithSpace s
+startsWithSpace _ = False
+
+endsWithSpace :: [Inline] -> Bool
+endsWithSpace [Space] = True
+endsWithSpace [SoftBreak] = True
+endsWithSpace [Str s] = stringStartsWithSpace $ reverse s
+endsWithSpace (_:xs) = endsWithSpace xs
+endsWithSpace [] = False
+
 urlEscapeBrackets :: String -> String
 urlEscapeBrackets (']':xs) = '%':'5':'D':urlEscapeBrackets xs
 urlEscapeBrackets (x:xs) = x:urlEscapeBrackets xs
@@ -397,21 +441,32 @@ urlEscapeBrackets [] = []
 isHorizontalRule :: String -> Bool
 isHorizontalRule s = length s >= 4 && all (== '-') s
 
-startsWithSpace :: String -> Bool
-startsWithSpace (x:_) = isSpace x
-startsWithSpace [] = False
+stringStartsWithSpace :: String -> Bool
+stringStartsWithSpace (x:_) = isSpace x
+stringStartsWithSpace "" = False
 
 fixOrEscape :: Bool -> Inline -> Bool
 fixOrEscape sp (Str "-") = sp
-fixOrEscape sp (Str ";") = not sp
-fixOrEscape _ (Str ">") = True
+fixOrEscape sp (Str s@('-':x:_)) = (sp && isSpace x) || isHorizontalRule s
+fixOrEscape sp (Str (";")) = not sp
+fixOrEscape sp (Str (';':x:_)) = not sp && isSpace x
+fixOrEscape _ (Str (">")) = True
+fixOrEscape _ (Str ('>':x:_)) = isSpace x
 fixOrEscape sp (Str s) = (sp && (startsWithMarker isDigit s ||
                                 startsWithMarker isAsciiLower s ||
                                 startsWithMarker isAsciiUpper s))
-                         || isHorizontalRule s || startsWithSpace s
+                         || stringStartsWithSpace s
 fixOrEscape _ Space = True
 fixOrEscape _ SoftBreak = True
 fixOrEscape _ _ = False
+
+inlineListStartsWithAlnum :: PandocMonad m
+                          => [Inline]
+                          -> Muse m Bool
+inlineListStartsWithAlnum (Str s:_) = do
+  esc <- shouldEscapeString s
+  return $ esc || isAlphaNum (head s)
+inlineListStartsWithAlnum _ = return False
 
 -- | Convert list of Pandoc inline elements to Muse
 renderInlineList :: PandocMonad m
@@ -424,86 +479,159 @@ renderInlineList (x:xs) = do
   start <- asks envInlineStart
   afterSpace <- asks envAfterSpace
   topLevel <- asks envTopLevel
-  r <- inlineToMuse x
+  insideAsterisks <- asks envInsideAsterisks
+  nearAsterisks <- asks envNearAsterisks
+  useTags <- gets stUseTags
+  alnumNext <- inlineListStartsWithAlnum xs
+  let newUseTags = useTags || alnumNext
+  modify $ \st -> st { stUseTags = newUseTags }
+
+  r <- local (\env -> env { envInlineStart = False
+                          , envInsideAsterisks = False
+                          , envNearAsterisks = nearAsterisks || (null xs && insideAsterisks)
+                          }) $ inlineToMuse x
   opts <- asks envOptions
   let isNewline = (x == SoftBreak && writerWrapText opts == WrapPreserve) || x == LineBreak
   lst' <- local (\env -> env { envInlineStart = isNewline
                              , envAfterSpace = x == Space || (not topLevel && isNewline)
+                             , envNearAsterisks = False
                              }) $ renderInlineList xs
   if start && fixOrEscape afterSpace x
     then pure (text "<verbatim></verbatim>" <> r <> lst')
     else pure (r <> lst')
 
 -- | Normalize and convert list of Pandoc inline elements to Muse.
-inlineListToMuse'' :: PandocMonad m
-                   => Bool
-                   -> [Inline]
-                   -> Muse m Doc
-inlineListToMuse'' start lst = do
-  lst' <- (normalizeInlineList . fixNotes) <$> preprocessInlineList (map (removeKeyValues . replaceSmallCaps) lst)
-  topLevel <- asks envTopLevel
-  afterSpace <- asks envAfterSpace
-  local (\env -> env { envInlineStart = start
-                     , envAfterSpace = afterSpace || (start && not topLevel)
-                     }) $ renderInlineList lst'
+inlineListToMuse :: PandocMonad m
+                 => [Inline]
+                 -> Muse m Doc
+inlineListToMuse lst = do
+  lst' <- normalizeInlineList . fixNotes <$> preprocessInlineList (map (removeKeyValues . replaceSmallCaps) lst)
+  insideAsterisks <- asks envInsideAsterisks
+  modify $ \st -> st { stUseTags = False } -- Previous character is likely a '>' or some other markup
+  local (\env -> env { envNearAsterisks = insideAsterisks }) $ renderInlineList lst'
 
 inlineListToMuse' :: PandocMonad m => [Inline] -> Muse m Doc
-inlineListToMuse' = inlineListToMuse'' True
-
-inlineListToMuse :: PandocMonad m => [Inline] -> Muse m Doc
-inlineListToMuse = inlineListToMuse'' False
+inlineListToMuse' lst = do
+  topLevel <- asks envTopLevel
+  afterSpace <- asks envAfterSpace
+  local (\env -> env { envInlineStart = True
+                     , envAfterSpace = afterSpace || not topLevel
+                     }) $ inlineListToMuse lst
 
 -- | Convert Pandoc inline element to Muse.
 inlineToMuse :: PandocMonad m
              => Inline
              -> Muse m Doc
 inlineToMuse (Str str) = do
-  insideLink <- asks envInsideLinkDescription
-  return $ text $ conditionalEscapeString insideLink str
+  escapedStr <- conditionalEscapeString $ replaceNewlines str
+  let useTags = isAlphaNum $ last escapedStr -- escapedStr is never empty because empty strings are escaped
+  modify $ \st -> st { stUseTags = useTags }
+  return $ text escapedStr
+inlineToMuse (Emph [Strong lst]) = do
+  useTags <- gets stUseTags
+  let lst' = normalizeInlineList lst
+  if useTags
+    then do contents <- local (\env -> env { envInsideAsterisks = True }) $ inlineListToMuse lst'
+            modify $ \st -> st { stUseTags = False }
+            return $ "<em>**" <> contents <> "**</em>"
+    else if null lst' || startsWithSpace lst' || endsWithSpace lst'
+           then do
+             contents <- local (\env -> env { envInsideAsterisks = False }) $ inlineListToMuse lst'
+             modify $ \st -> st { stUseTags = True }
+             return $ "*<strong>" <> contents <> "</strong>*"
+           else do
+             contents <- local (\env -> env { envInsideAsterisks = True }) $ inlineListToMuse lst'
+             modify $ \st -> st { stUseTags = True }
+             return $ "***" <> contents <> "***"
 inlineToMuse (Emph lst) = do
-  contents <- inlineListToMuse lst
-  return $ "<em>" <> contents <> "</em>"
+  useTags <- gets stUseTags
+  let lst' = normalizeInlineList lst
+  if useTags || null lst' || startsWithSpace lst' || endsWithSpace lst'
+    then do contents <- inlineListToMuse lst'
+            return $ "<em>" <> contents <> "</em>"
+    else do contents <- local (\env -> env { envInsideAsterisks = True }) $ inlineListToMuse lst'
+            modify $ \st -> st { stUseTags = True }
+            return $ "*" <> contents <> "*"
+inlineToMuse (Strong [Emph lst]) = do
+  useTags <- gets stUseTags
+  let lst' = normalizeInlineList lst
+  if useTags
+    then do contents <- local (\env -> env { envInsideAsterisks = True }) $ inlineListToMuse lst'
+            modify $ \st -> st { stUseTags = False }
+            return $ "<strong>*" <> contents <> "*</strong>"
+    else if null lst' || startsWithSpace lst' || endsWithSpace lst'
+           then do
+             contents <- local (\env -> env { envInsideAsterisks = False }) $ inlineListToMuse lst'
+             modify $ \st -> st { stUseTags = True }
+             return $ "**<em>" <> contents <> "</em>**"
+           else do
+             contents <- local (\env -> env { envInsideAsterisks = True }) $ inlineListToMuse lst'
+             modify $ \st -> st { stUseTags = True }
+             return $ "***" <> contents <> "***"
 inlineToMuse (Strong lst) = do
-  contents <- inlineListToMuse lst
-  return $ "<strong>" <> contents <> "</strong>"
+  useTags <- gets stUseTags
+  let lst' = normalizeInlineList lst
+  if useTags || null lst' || startsWithSpace lst' || endsWithSpace lst'
+    then do contents <- inlineListToMuse lst'
+            modify $ \st -> st { stUseTags = False }
+            return $ "<strong>" <> contents <> "</strong>"
+    else do contents <- local (\env -> env { envInsideAsterisks = True }) $ inlineListToMuse lst'
+            modify $ \st -> st { stUseTags = True }
+            return $ "**" <> contents <> "**"
 inlineToMuse (Strikeout lst) = do
   contents <- inlineListToMuse lst
+  modify $ \st -> st { stUseTags = False }
   return $ "<del>" <> contents <> "</del>"
 inlineToMuse (Superscript lst) = do
   contents <- inlineListToMuse lst
+  modify $ \st -> st { stUseTags = False }
   return $ "<sup>" <> contents <> "</sup>"
 inlineToMuse (Subscript lst) = do
   contents <- inlineListToMuse lst
+  modify $ \st -> st { stUseTags = False }
   return $ "<sub>" <> contents <> "</sub>"
 inlineToMuse SmallCaps {} =
   fail "SmallCaps should be expanded before normalization"
 inlineToMuse (Quoted SingleQuote lst) = do
   contents <- inlineListToMuse lst
+  modify $ \st -> st { stUseTags = False }
   return $ "‘" <> contents <> "’"
 inlineToMuse (Quoted DoubleQuote lst) = do
   contents <- inlineListToMuse lst
+  modify $ \st -> st { stUseTags = False }
   return $ "“" <> contents <> "”"
 inlineToMuse Cite {} =
   fail "Citations should be expanded before normalization"
-inlineToMuse (Code _ str) = return $
-  "<code>" <> text (substitute "</code>" "<</code><code>/code>" str) <> "</code>"
+inlineToMuse (Code _ str) = do
+  useTags <- gets stUseTags
+  modify $ \st -> st { stUseTags = False }
+  return $ if useTags || null str || '=' `elem` str || isSpace (head str) || isSpace (last str)
+             then "<code>" <> text (substitute "</code>" "<</code><code>/code>" str) <> "</code>"
+             else "=" <> text str <> "="
 inlineToMuse Math{} =
   fail "Math should be expanded before normalization"
-inlineToMuse (RawInline (Format f) str) =
+inlineToMuse (RawInline (Format f) str) = do
+  modify $ \st -> st { stUseTags = False }
   return $ "<literal style=\"" <> text f <> "\">" <> text str <> "</literal>"
 inlineToMuse LineBreak = do
   oneline <- asks envOneLine
+  modify $ \st -> st { stUseTags = False }
   return $ if oneline then "<br>" else "<br>" <> cr
-inlineToMuse Space = return space
+inlineToMuse Space = do
+  modify $ \st -> st { stUseTags = False }
+  return space
 inlineToMuse SoftBreak = do
   oneline <- asks envOneLine
   wrapText <- asks $ writerWrapText . envOptions
+  modify $ \st -> st { stUseTags = False }
   return $ if not oneline && wrapText == WrapPreserve then cr else space
 inlineToMuse (Link _ txt (src, _)) =
   case txt of
-        [Str x] | escapeURI x == src ->
+        [Str x] | escapeURI x == src -> do
+             modify $ \st -> st { stUseTags = False }
              return $ "[[" <> text (escapeLink x) <> "]]"
         _ -> do contents <- local (\env -> env { envInsideLinkDescription = True }) $ inlineListToMuse txt
+                modify $ \st -> st { stUseTags = False }
                 return $ "[[" <> text (escapeLink src) <> "][" <> contents <> "]]"
   where escapeLink lnk = if isImageUrl lnk then "URL:" ++ urlEscapeBrackets lnk else urlEscapeBrackets lnk
         -- Taken from muse-image-regexp defined in Emacs Muse file lisp/muse-regexps.el
@@ -514,11 +642,12 @@ inlineToMuse (Image attr alt (source,'f':'i':'g':':':title)) =
 inlineToMuse (Image attr@(_, classes, _) inlines (source, title)) = do
   opts <- asks envOptions
   alt <- local (\env -> env { envInsideLinkDescription = True }) $ inlineListToMuse inlines
-  let title' = if null title
-                  then if null inlines
-                          then ""
-                          else "[" <> alt <> "]"
-                  else "[" <> text (conditionalEscapeString True title) <> "]"
+  title' <- if null title
+            then if null inlines
+                 then return ""
+                 else return $ "[" <> alt <> "]"
+            else do s <- local (\env -> env { envInsideLinkDescription = True }) $ conditionalEscapeString title
+                    return $ "[" <> text s <> "]"
   let width = case dimension Width attr of
                 Just (Percent x) | isEnabled Ext_amuse opts -> " " ++ show (round x :: Integer)
                 _ -> ""
@@ -528,11 +657,14 @@ inlineToMuse (Image attr@(_, classes, _) inlines (source, title)) = do
   let rightalign = if "align-right" `elem` classes
                    then " r"
                    else ""
+  modify $ \st -> st { stUseTags = False }
   return $ "[[" <> text (urlEscapeBrackets source ++ width ++ leftalign ++ rightalign) <> "]" <> title' <> "]"
 inlineToMuse (Note contents) = do
   -- add to notes in state
   notes <- gets stNotes
-  modify $ \st -> st { stNotes = contents:notes }
+  modify $ \st -> st { stNotes = contents:notes
+                     , stUseTags = False
+                     }
   let ref = show $ length notes + 1
   return $ "[" <> text ref <> "]"
 inlineToMuse (Span (anchor,names,_) inlines) = do
@@ -540,6 +672,7 @@ inlineToMuse (Span (anchor,names,_) inlines) = do
   let anchorDoc = if null anchor
                      then mempty
                      else text ('#':anchor) <> space
+  modify $ \st -> st { stUseTags = False }
   return $ anchorDoc <> (if null inlines && not (null anchor)
                          then mempty
                          else (if null names

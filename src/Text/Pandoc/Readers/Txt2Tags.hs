@@ -198,7 +198,7 @@ para = try $ do
 commentBlock :: T2T Blocks
 commentBlock = try (blockMarkupArea anyLine (const mempty) "%%%") <|> comment
 
--- Seperator and Strong line treated the same
+-- Separator and Strong line treated the same
 hrule :: T2T Blocks
 hrule = try $ do
   spaces
@@ -575,8 +575,10 @@ symbol = B.str . (:[]) <$> oneOf specialChars
 getTarget :: T2T String
 getTarget = do
   mv <- lookupMeta "target" . stateMeta <$> getState
-  let MetaString target = fromMaybe (MetaString "html") mv
-  return target
+  return $ case mv of
+              Just (MetaString target)        -> target
+              Just (MetaInlines [Str target]) -> target
+              _                               -> "html"
 
 atStart :: T2T ()
 atStart = (sourceColumn <$> getPosition) >>= guard . (== 1)

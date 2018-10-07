@@ -191,7 +191,7 @@ parseBlock (Elem e) =
                     listType -> do
                       let start = fromMaybe 1 $
                                   (strContent <$> (filterElement (named "list-item") e
-                                               >>= filterElement (named "lable")))
+                                               >>= filterElement (named "label")))
                                    >>= safeRead
                       orderedListWith (start, parseListStyleType listType, DefaultDelim)
                         <$> listitems
