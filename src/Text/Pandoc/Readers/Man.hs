@@ -182,7 +182,8 @@ escapeLexer = do
     let skipSeqs = ["%", "{", "}", "&", "\n", ":", "\"", "0", "c"]
         subsSeqs = [ ("-", '-'), (" ", ' '), ("\\", '\\'), ("[lq]", '“'), ("[rq]", '”')
                     , ("[em]", '—'), ("[en]", '–'), ("*(lq", '«'), ("*(rq", '»')
-                    , ("t", '\t'), ("e", '\\'), ("`", '`') ]
+                    , ("t", '\t'), ("e", '\\'), ("`", '`'), ("^", ' '), ("|", ' ')
+                    , ("'", '`') ]
         substitute :: PandocMonad m =>  (String,Char) -> ManLexer m EscapeThing
         substitute (from,to) = try $ string from >> return (EChar to)
         skip :: PandocMonad m =>  String -> ManLexer m EscapeThing
@@ -219,7 +220,7 @@ escapeLexer = do
   escUnknown = do
     c <- anyChar
     pos <- getPosition
-    logOutput $ SkippedContent ("Unknown escape seq \\" ++ [c]) pos
+    logOutput $ SkippedContent ("Unknown escape sequence \\" ++ [c]) pos
     return ENothing
 
 currentFont :: PandocMonad m => ManLexer m FontKind
@@ -240,7 +241,7 @@ lexMacro :: PandocMonad m => ManLexer m ManToken
 lexMacro = do
   char '.' <|> char '\''
   many spacetab
-  macroName <- many1 (letter <|> oneOf ['\\', '"'])
+  macroName <- many1 (letter <|> oneOf ['\\', '"', '&'])
   args <- lexArgs
   let joinedArgs = unwords $ fst <$> args
       knownMacro mkind = MMacro mkind args
@@ -269,7 +270,8 @@ lexMacro = do
   -- TODO better would be [[RoffStr]], since one arg may have different fonts
   lexArgs :: PandocMonad m => ManLexer m [RoffStr]
   lexArgs = do
-    args <- many oneArg
+    args <- many $ try oneArg
+    many spacetab
     eofline
     return args
 

@@ -13,9 +13,9 @@ DIR=$2
 
 $PANDOC --version > /dev/null || { echo "pandoc executable error" >&2 ; exit 1 ; }
 
-ls $2 | egrep "^.+\.[0-9]$" | while read f ; do
+ls $2 | egrep "^.+\.[0-9].?$" | while read f ; do
 	FILE="$DIR/$f"
-	$PANDOC -f man -t native < $FILE > /dev/null
+	$PANDOC -f man -t native < $FILE 2>&1 > /dev/null
 	if [ $? -ne 0 ]; then
 		echo "Failed to convert $FILE"
 	fi
