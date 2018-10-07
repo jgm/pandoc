@@ -149,12 +149,12 @@ readMan opts txt = do
 --
 
 lexMan :: PandocMonad m => ManLexer m [ManToken]
-lexMan = many (lexMacro <|> lexLine <|> lexEmptyLine)
+lexMan = many (lexComment <|> lexMacro <|> lexLine <|> lexEmptyLine)
 
 parseMan :: PandocMonad m => ManParser m Pandoc
 parseMan = do
   let parsers = [ try parseList, parseTitle, parsePara, parseSkippedContent
-                , parseCodeBlock, parseHeader, parseSkipMacro]
+                , try parseCodeBlock, parseHeader, parseSkipMacro]
   blocks <- many $ choice parsers
   parserst <- getState
   return $ Pandoc (stateMeta parserst) (filter (not . isNull) blocks)
@@ -174,7 +174,7 @@ spacetab = char ' ' <|> char '\t'
 escapeLexer :: PandocMonad m => ManLexer m EscapeThing
 escapeLexer = do
   char '\\'
-  choice [escChar, escFont]
+  choice [escChar, escFont, escUnknown]
   where
 
   escChar :: PandocMonad m => ManLexer m EscapeThing
@@ -182,7 +182,7 @@ escapeLexer = do
     let skipSeqs = ["%", "{", "}", "&", "\n", ":", "\"", "0", "c"]
         subsSeqs = [ ("-", '-'), (" ", ' '), ("\\", '\\'), ("[lq]", '“'), ("[rq]", '”')
                     , ("[em]", '—'), ("[en]", '–'), ("*(lq", '«'), ("*(rq", '»')
-                    , ("t", '\t'), ("e", '\\') ]
+                    , ("t", '\t'), ("e", '\\'), ("`", '`') ]
         substitute :: PandocMonad m =>  (String,Char) -> ManLexer m EscapeThing
         substitute (from,to) = try $ string from >> return (EChar to)
         skip :: PandocMonad m =>  String -> ManLexer m EscapeThing
@@ -201,6 +201,7 @@ escapeLexer = do
           , try (char '[' >> letterFont >>= \f -> char ']'  >> return f)
           , try $ string "[BI]" >> return ItalicBold
           , char '[' >> many letter >> char ']'  >> return Regular
+          , digit >> return Regular
           ]
     modifyState (\r -> r {fontKind = font})
     return $ EFont font
@@ -214,10 +215,26 @@ escapeLexer = do
       , (char 'P' <|> char 'R') >> return Regular
       ]
 
+  escUnknown :: PandocMonad m => ManLexer m EscapeThing
+  escUnknown = do
+    c <- anyChar
+    pos <- getPosition
+    logOutput $ SkippedContent ("Unknown escape seq \\" ++ [c]) pos
+    return ENothing
+
 currentFont :: PandocMonad m => ManLexer m FontKind
 currentFont = do
   RoffState {fontKind = fk} <- getState
   return fk
+
+-- separate function from lexMacro since real man files sometimes do not follow the rules
+lexComment :: PandocMonad m => ManLexer m ManToken
+lexComment = do
+  try $ string ".\\\""
+  many space
+  body <- many $ noneOf "\n"
+  char '\n'
+  return $ MComment body
 
 lexMacro :: PandocMonad m => ManLexer m ManToken
 lexMacro = do
@@ -249,7 +266,7 @@ lexMacro = do
 
   where
 
-  -- TODO rework args
+  -- TODO better would be [[RoffStr]], since one arg may have different fonts
   lexArgs :: PandocMonad m => ManLexer m [RoffStr]
   lexArgs = do
     args <- many oneArg
@@ -261,21 +278,24 @@ lexMacro = do
     oneArg :: PandocMonad m => ManLexer m RoffStr
     oneArg = do
       many1 spacetab
-      quotedArg <|> plainArg
+      many $ try $ string "\\\n"
+      try quotedArg <|> plainArg -- try, because there are some erroneous files, e.g. linux/bpf.2
 
     plainArg :: PandocMonad m => ManLexer m RoffStr
     plainArg = do
+      indents <- many spacetab
       arg <- many1 $ escChar <|> (Just <$> noneOf " \t\n")
       f <- currentFont
-      return (catMaybes arg, f)
+      return (indents ++ catMaybes arg, f)
 
     quotedArg :: PandocMonad m => ManLexer m RoffStr
     quotedArg = do
       char '"'
-      val <- catMaybes <$> many quotedChar
+      val <- many quotedChar
       char '"'
+      val2 <- many $ escChar <|> (Just <$> noneOf " \t\n")
       f <- currentFont
-      return (val, f)
+      return (catMaybes $ val ++ val2, f)
 
     quotedChar :: PandocMonad m => ManLexer m (Maybe Char)
     quotedChar = escChar <|> (Just <$> noneOf "\"\n") <|> (Just <$> try (string "\"\"" >> return '"'))
