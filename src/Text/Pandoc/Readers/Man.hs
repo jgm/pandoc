@@ -225,9 +225,9 @@ lexMacro = do
   macroName <- many1 (letter <|> oneOf ['\\', '"'])
   args <- lexArgs
   let joinedArgs = unwords $ fst <$> args
-  let knownMacro mkind = MMacro mkind args
+      knownMacro mkind = MMacro mkind args
 
-  let tok = case macroName of
+      tok = case macroName of
               x | x `elem` ["\\\"", "\\#"] -> MComment joinedArgs
               "TH"   -> knownMacro KTitle
               "IP"   -> knownMacro KTab
@@ -320,7 +320,7 @@ msatisfy :: (Show t, Stream s m t) => (t -> Bool) -> ParserT s st m t
 msatisfy predic = tokenPrim show nextPos testTok
   where
     testTok t     = if predic t then Just t else Nothing
-    nextPos pos x _xs  = updatePosString (setSourceLine pos $ sourceLine pos + (if predic x then 1 else 0)) (show x)
+    nextPos pos _x _xs  = updatePosString (setSourceColumn (setSourceLine pos $ sourceLine pos + 1) 1) ("")
 
 mstr :: PandocMonad m => ManParser m ManToken
 mstr = msatisfy isMStr where
@@ -509,9 +509,9 @@ parseList = do
   paras = do
     (MMacro _ args) <- mmacro KTab
     let lbuilderOpt = listKind args
-    let lbuilder = fromMaybe BulletList lbuilderOpt
+        lbuilder = fromMaybe BulletList lbuilderOpt
+        macroinl = macroIPInl args
     inls <- parseInlines
-    let macroinl = macroIPInl args
     let parainls = if isNothing lbuilderOpt then macroinl ++ inls  else inls
     subls <- many sublist
     return $ (lbuilder, (Plain parainls) : subls) 
