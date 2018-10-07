@@ -41,6 +41,7 @@ module Text.Pandoc.Writers.Shared (
                      , isDisplayMath
                      , fixDisplayMath
                      , unsmartify
+                     , hasSimpleCells
                      , gridTable
                      , lookupMetaBool
                      , lookupMetaBlocks
@@ -54,6 +55,7 @@ module Text.Pandoc.Writers.Shared (
 where
 import Prelude
 import Control.Monad (zipWithM)
+import Data.Monoid (Any (..))
 import Data.Aeson (FromJSON (..), Result (..), ToJSON (..), Value (Object),
                    encode, fromJSON)
 import Data.Char (chr, ord, isAscii, isSpace)
@@ -70,6 +72,7 @@ import Text.Pandoc.Pretty
 import Text.Pandoc.Shared (stringify)
 import Text.Pandoc.UTF8 (toStringLazy)
 import Text.Pandoc.XML (escapeStringForXML)
+import Text.Pandoc.Walk (query)
 import Text.Printf (printf)
 
 -- | Create JSON value for template from a 'Meta' and an association list
@@ -242,6 +245,21 @@ unsmartify opts ('\8221':xs) = '"' : unsmartify opts xs
 unsmartify opts ('\8216':xs) = '\'' : unsmartify opts xs
 unsmartify opts (x:xs) = x : unsmartify opts xs
 unsmartify _ [] = []
+
+-- | True if block is a table that can be represented with
+-- one line per row.
+hasSimpleCells :: Block -> Bool
+hasSimpleCells (Table _caption _aligns _widths headers rows) =
+  all isSimpleCell (concat (headers:rows))
+  where
+    isLineBreak LineBreak = Any True
+    isLineBreak _         = Any False
+    hasLineBreak = getAny . query isLineBreak
+    isSimpleCell [Plain ils] = not (hasLineBreak ils)
+    isSimpleCell [Para ils ] = not (hasLineBreak ils)
+    isSimpleCell []          = True
+    isSimpleCell _           = False
+hasSimpleCells _ = False
 
 gridTable :: Monad m
           => WriterOptions

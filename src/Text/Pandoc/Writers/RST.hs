@@ -35,7 +35,7 @@ module Text.Pandoc.Writers.RST ( writeRST, flatten ) where
 import Prelude
 import Control.Monad.State.Strict
 import Data.Char (isSpace, toLower)
-import Data.List (isPrefixOf, stripPrefix)
+import Data.List (isPrefixOf, stripPrefix, transpose)
 import Data.Maybe (fromMaybe)
 import Data.Text (Text, stripEnd)
 import qualified Text.Pandoc.Builder as B
@@ -304,9 +304,12 @@ blockToRST (Table caption aligns widths headers rows) = do
          modify $ \st -> st{ stOptions = oldOpts }
          return result
   opts <- gets stOptions
-  tbl <- gridTable opts blocksToDoc (all null headers)
-            (map (const AlignDefault) aligns) widths
-            headers rows
+  let isSimple = all (== 0) widths
+  tbl <- if isSimple
+            then simpleTable opts blocksToDoc headers rows
+            else gridTable opts blocksToDoc (all null headers)
+                  (map (const AlignDefault) aligns) widths
+                  headers rows
   return $ if null caption
               then tbl $$ blankline
               else (".. table:: " <> caption') $$ blankline $$ nest 3 tbl $$
@@ -693,3 +696,30 @@ imageDimsToRST attr = do
                           Just dim -> cols dim
                           Nothing  -> empty
   return $ cr <> name $$ showDim Width $$ showDim Height
+
+simpleTable :: PandocMonad m
+            => WriterOptions
+            -> (WriterOptions -> [Block] -> m Doc)
+            -> [[Block]]
+            -> [[[Block]]]
+            -> m Doc
+simpleTable opts blocksToDoc headers rows = do
+  -- can't have empty cells in first column:
+  let fixEmpties (d:ds) = if isEmpty d
+                             then text "\\ " : ds
+                             else d : ds
+      fixEmpties [] = []
+  headerDocs <- if all null headers
+                   then return []
+                   else fixEmpties <$> mapM (blocksToDoc opts) headers
+  rowDocs <- mapM (fmap fixEmpties . mapM (blocksToDoc opts)) rows
+  let numChars [] = 0
+      numChars xs = maximum . map offset $ xs
+  let colWidths = map numChars $ transpose (headerDocs : rowDocs)
+  let toRow = hsep . zipWith lblock colWidths
+  let hline = hsep (map (\n -> text (replicate n '=')) colWidths)
+  let hdr = if all null headers
+               then mempty
+               else hline $$ toRow headerDocs
+  let bdy = vcat $ map toRow rowDocs
+  return $ hdr $$ hline $$ bdy $$ hline
