@@ -85,11 +85,11 @@ pandoc-$(version)-windows-%.msi: pandoc-windows-%.msi
 .INTERMEDIATE: pandoc-windows-i386.msi pandoc-windows-x86_64.msi
 
 pandoc-windows-i386.msi:
-	JOBID=$(shell curl 'https://ci.appveyor.com/api/projects/jgm/pandoc' | jq -r '.build.jobs[1].jobId') && \
+	JOBID=$(shell curl https://ci.appveyor.com/api/projects/jgm/pandoc | jq '.build.jobs[]| select(.name|test("i386")) | .jobId') && \
 	wget "https://ci.appveyor.com/api/buildjobs/$$JOBID/artifacts/windows%2F$@" -O $@
 
 pandoc-windows-x86_64.msi:
-	JOBID=$(shell curl 'https://ci.appveyor.com/api/projects/jgm/pandoc' | jq -r '.build.jobs[0].jobId') && \
+	JOBID=$(shell curl https://ci.appveyor.com/api/projects/jgm/pandoc | jq '.build.jobs[]| select(.name|test("x86_64")) | .jobId') && \
 	wget "https://ci.appveyor.com/api/buildjobs/$$JOBID/artifacts/windows%2F$@" -O $@
 
 man/pandoc.1: MANUAL.txt man/pandoc.1.template
