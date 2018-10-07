@@ -179,9 +179,10 @@ escapeLexer = do
 
   escChar :: PandocMonad m => ManLexer m EscapeThing
   escChar =
-    let skipSeqs = ["%", "{", "}", "&"]
+    let skipSeqs = ["%", "{", "}", "&", "\n", ":", "\"", "0", "c"]
         subsSeqs = [ ("-", '-'), (" ", ' '), ("\\", '\\'), ("[lq]", '“'), ("[rq]", '”')
-                    , ("[em]", '—'), ("[en]", '–') ]
+                    , ("[em]", '—'), ("[en]", '–'), ("*(lq", '«'), ("*(rq", '»')
+                    , ("t", '\t'), ("e", '\\') ]
         substitute :: PandocMonad m =>  (String,Char) -> ManLexer m EscapeThing
         substitute (from,to) = try $ string from >> return (EChar to)
         skip :: PandocMonad m =>  String -> ManLexer m EscapeThing
