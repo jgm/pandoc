@@ -1644,7 +1644,9 @@ blockCommand = try $ do
   let names = ordNub [name', name]
   let rawDefiniteBlock = do
         guard $ isBlockCommand name
-        rawBlock "latex" <$> getRawCommand name (txt <> star)
+        rawcontents <- getRawCommand name (txt <> star)
+        (guardEnabled Ext_raw_tex >> return (rawBlock "latex" rawcontents))
+          <|> ignore rawcontents
   -- heuristic:  if it could be either block or inline, we
   -- treat it if block if we have a sequence of block
   -- commands followed by a newline.  But we stop if we
@@ -1656,7 +1658,10 @@ blockCommand = try $ do
         guard $ "start" `T.isPrefixOf` n
   let rawMaybeBlock = try $ do
         guard $ not $ isInlineCommand name
-        curr <- rawBlock "latex" <$> getRawCommand name (txt <> star)
+        rawcontents <- getRawCommand name (txt <> star)
+        curr <- (guardEnabled Ext_raw_tex >>
+                    return (rawBlock "latex" rawcontents))
+                   <|> ignore rawcontents
         rest <- many $ notFollowedBy startCommand *> blockCommand
         lookAhead $ blankline <|> startCommand
         return $ curr <> mconcat rest
