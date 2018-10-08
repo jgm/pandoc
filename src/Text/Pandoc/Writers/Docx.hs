@@ -945,8 +945,13 @@ blockToOpenXML' opts (Table caption aligns widths headers rows) = do
                  else withParaProp (pCustomStyle "TableCaption")
                       $ blockToOpenXML opts (Para caption)
   let alignmentFor al = mknode "w:jc" [("w:val",alignmentToString al)] ()
-  let cellToOpenXML (al, cell) = withParaProp (alignmentFor al)
-                                    $ blocksToOpenXML opts cell
+  -- Table cells require a <w:p> element, even an empty one!
+  -- Not in the spec but in Word 2007, 2010. See #4953.
+  let cellToOpenXML (al, cell) = do
+        es <- withParaProp (alignmentFor al) $ blocksToOpenXML opts cell
+        if any (\e -> qName (elName e) == "p") es
+           then return es
+           else return $ es ++ [mknode "w:p" [] ()]
   headers' <- mapM cellToOpenXML $ zip aligns headers
   rows' <- mapM (mapM cellToOpenXML . zip aligns) rows
   let borderProps = mknode "w:tcPr" []
