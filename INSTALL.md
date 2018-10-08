@@ -45,6 +45,13 @@
 
         tlmgr install collection-fontsrecommended
 
+## Chromeos
+On chromeos, pandoc can be installed using the [chromebrew](https://github.com/skycocker/chromebrew) package manager with the command:
+```sh
+crew install pandoc
+```
+This will automatically build and configure pandoc for the specific device you are using
+
 ## Linux
 
   - First, try your package manager.
