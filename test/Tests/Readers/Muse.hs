@@ -4,6 +4,7 @@ module Tests.Readers.Muse (tests) where
 
 import Prelude
 import Data.List (intersperse)
+import Data.Monoid (Any (..))
 import Data.Text (Text)
 import qualified Data.Text as T
 import Test.Tasty
@@ -14,7 +15,7 @@ import Text.Pandoc
 import Text.Pandoc.Arbitrary ()
 import Text.Pandoc.Builder
 import Text.Pandoc.Shared (underlineSpan)
-import Text.Pandoc.Walk (walk)
+import Text.Pandoc.Walk
 
 amuse :: Text -> Pandoc
 amuse = purely $ readMuse def { readerExtensions = extensionsFromList [Ext_amuse]}
@@ -33,7 +34,20 @@ spcSep = mconcat . intersperse space
 -- Tables don't round-trip yet
 --
 makeRoundTrip :: Block -> Block
-makeRoundTrip Table{} = Para [Str "table was here"]
+makeRoundTrip t@(Table _caption aligns widths headers rows) =
+  if isSimple && numcols > 1
+    then t
+    else Para [Str "table was here"]
+  where numcols = maximum (length aligns : length widths : map length (headers:rows))
+        hasSimpleCells = all isSimpleCell (concat (headers:rows))
+        isLineBreak LineBreak = Any True
+        isLineBreak _         = Any False
+        hasLineBreak = getAny . query isLineBreak
+        isSimple = hasSimpleCells && all (== 0) widths
+        isSimpleCell [Plain ils] = not (hasLineBreak ils)
+        isSimpleCell [Para ils ] = not (hasLineBreak ils)
+        isSimpleCell []          = True
+        isSimpleCell _           = False
 makeRoundTrip (OrderedList (start, LowerAlpha, _) items) = OrderedList (start, Decimal, Period) items
 makeRoundTrip (OrderedList (start, UpperAlpha, _) items) = OrderedList (start, Decimal, Period) items
 makeRoundTrip x = x
