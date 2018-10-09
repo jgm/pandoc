@@ -1366,19 +1366,27 @@ citationsToBiblatex
                   AuthorInText   -> "textcite"
                   NormalCitation -> "autocite"
 
-citationsToBiblatex (c:cs) = do
-  args <- mapM convertOne (c:cs)
-  return $ text cmd <> foldl' (<>) empty args
-    where
-       cmd = case citationMode c of
-                  SuppressAuthor -> "\\autocites*"
-                  AuthorInText   -> "\\textcites"
-                  NormalCitation -> "\\autocites"
-       convertOne Citation { citationId = k
-                           , citationPrefix = p
-                           , citationSuffix = s
-                           }
-              = citeArguments p s k
+citationsToBiblatex (c:cs)
+  | all (\cit -> null (citationPrefix cit) && null (citationSuffix cit)) (c:cs)
+    = do
+      let cmd = case citationMode c of
+                    SuppressAuthor -> "\\autocite*"
+                    AuthorInText   -> "\\textcite"
+                    NormalCitation -> "\\autocite"
+      return $ text cmd <>
+               braces (text (intercalate "," (map citationId (c:cs))))
+  | otherwise = do
+    let cmd = case citationMode c of
+                    SuppressAuthor -> "\\autocites*"
+                    AuthorInText   -> "\\textcites"
+                    NormalCitation -> "\\autocites"
+    let convertOne Citation { citationId = k
+                            , citationPrefix = p
+                            , citationSuffix = s
+                            }
+                = citeArguments p s k
+    args <- mapM convertOne (c:cs)
+    return $ text cmd <> foldl' (<>) empty args
 
 citationsToBiblatex _ = return empty
 
