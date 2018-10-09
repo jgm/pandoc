@@ -79,6 +79,7 @@ data-files:
                  data/docx/_rels/.rels
                  data/docx/docProps/app.xml
                  data/docx/docProps/core.xml
+                 data/docx/docProps/custom.xml
                  data/docx/word/document.xml
                  data/docx/word/fontTable.xml
                  data/docx/word/comments.xml
