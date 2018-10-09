@@ -292,7 +292,8 @@ showLogMessage msg =
          "Extracting " ++ fp ++ "..."
        NoTitleElement fallback ->
          "This document format requires a nonempty <title> element.\n" ++
-         "Please specify either 'title' or 'pagetitle' in the metadata.\n" ++
+         "Please specify either 'title' or 'pagetitle' in the metadata,\n" ++
+         "e.g. by using --metadata pagetitle=\"...\" on the command line.\n" ++
          "Falling back to '" ++ fallback ++ "'"
        NoLangSpecified ->
          "No value for 'lang' was specified in the metadata.\n" ++
