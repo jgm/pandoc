@@ -103,7 +103,7 @@ return a single value:
 \begin{Shaded}
 \begin{Highlighting}[]
 \OtherTok{unsplit ::}\NormalTok{ (}\DataTypeTok{Arrow}\NormalTok{ a) }\OtherTok{=>}\NormalTok{ (b }\OtherTok{->}\NormalTok{ c }\OtherTok{->}\NormalTok{ d) }\OtherTok{->}\NormalTok{ a (b, c) d}
-\NormalTok{unsplit }\FunctionTok{=}\NormalTok{ arr }\FunctionTok{.}\NormalTok{ uncurry}
+\NormalTok{unsplit }\FunctionTok{=}\NormalTok{ arr }\FunctionTok{.} \FunctionTok{uncurry}
           \CommentTok{-- arr (\textbackslash{}op (x,y) -> x `op` y)}
 \end{Highlighting}
 \end{Shaded}

@@ -29,7 +29,7 @@ a.sourceLine { text-indent: -1em; padding-left: 1em; }
 pre.numberSource a.sourceLine
   { position: relative; left: -4em; }
 pre.numberSource a.sourceLine::before
-  { content: attr(data-line-number);
+  { content: attr(title);
     position: relative; left: -1em; text-align: right; vertical-align: baseline;
     border: none; pointer-events: all; display: inline-block;
     -webkit-touch-callout: none; -webkit-user-select: none;
@@ -82,9 +82,9 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 <h1 id="lhs-test">lhs test</h1>
 <p><code>unsplit</code> is an arrow that takes a pair of values and combines them to
 return a single value:</p>
-<div class="sourceCode" id="cb1"><pre class="sourceCode literate haskell"><code class="sourceCode haskell"><a class="sourceLine" id="cb1-1" data-line-number="1"><span class="ot">unsplit ::</span> (<span class="dt">Arrow</span> a) <span class="ot">=&gt;</span> (b <span class="ot">-&gt;</span> c <span class="ot">-&gt;</span> d) <span class="ot">-&gt;</span> a (b, c) d</a>
-<a class="sourceLine" id="cb1-2" data-line-number="2">unsplit <span class="fu">=</span> arr <span class="fu">.</span> uncurry</a>
-<a class="sourceLine" id="cb1-3" data-line-number="3">          <span class="co">-- arr (\op (x,y) -&gt; x `op` y)</span></a></code></pre></div>
+<div class="sourceCode" id="cb1"><pre class="sourceCode literate haskell"><code class="sourceCode haskell"><a class="sourceLine" id="cb1-1" title="1"><span class="ot">unsplit ::</span> (<span class="dt">Arrow</span> a) <span class="ot">=&gt;</span> (b <span class="ot">-&gt;</span> c <span class="ot">-&gt;</span> d) <span class="ot">-&gt;</span> a (b, c) d</a>
+<a class="sourceLine" id="cb1-2" title="2">unsplit <span class="fu">=</span> arr <span class="fu">.</span> <span class="fu">uncurry</span></a>
+<a class="sourceLine" id="cb1-3" title="3">          <span class="co">-- arr (\op (x,y) -&gt; x `op` y)</span></a></code></pre></div>
 <p><code>(***)</code> combines two arrows into a new arrow by running the two arrows on a
 pair of values (one arrow on the first item of the pair and one arrow on the
 second item of the pair).</p>
