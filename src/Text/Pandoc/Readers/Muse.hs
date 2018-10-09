@@ -875,8 +875,7 @@ verbatimTag = return . B.text
 classTag :: PandocMonad m => MuseParser m (F Inlines)
 classTag = do
   classes <- maybe [] words . lookup "name" <$> openTag "class"
-  res <- manyTill inline $ closeTag "class"
-  return $ B.spanWith ("", classes, []) <$> mconcat res
+  fmap (B.spanWith ("", classes, [])) . mconcat <$> manyTill inline (closeTag "class")
 
 -- | Parse "~~" as nonbreaking space.
 nbsp :: PandocMonad m => MuseParser m (F Inlines)
