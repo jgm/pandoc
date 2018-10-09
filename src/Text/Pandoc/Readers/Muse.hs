@@ -680,12 +680,8 @@ museAppendElement element tbl =
     MuseFooterRow row -> tbl{ museTableFooters = row : museTableFooters tbl }
     MuseCaption inlines -> tbl{ museTableCaption = inlines }
 
-tableCell :: PandocMonad m => MuseParser m (F Blocks)
-tableCell = try $ fmap B.plain . trimInlinesF . mconcat <$> manyTill inline (lookAhead cellEnd)
-  where cellEnd = try $ void (many1 spaceChar *> char '|') <|> eol
-
 tableElements :: PandocMonad m => MuseParser m (F [MuseTableElement])
-tableElements = sequence <$> (tableParseElement `sepEndBy1` eol)
+tableElements = sequence <$> many1 tableParseElement
 
 elementsToTable :: [MuseTableElement] -> MuseTable
 elementsToTable = foldr museAppendElement emptyTable
@@ -704,10 +700,10 @@ tableParseElement = tableParseHeader
 tableParseRow :: PandocMonad m
               => Int -- ^ Number of separator characters
               -> MuseParser m (F [Blocks])
-tableParseRow n = try $
-  sequence <$> (tableCell `sepBy2` fieldSep)
-    where p `sepBy2` sep = (:) <$> p <*> many1 (sep *> p)
-          fieldSep = many1 spaceChar *> count n (char '|') *> (void (many1 spaceChar) <|> void (lookAhead newline))
+tableParseRow n = try $ sequence <$> tableCells
+  where tableCells = (:) <$> tableCell sep <*> (tableCells <|> fmap pure (tableCell eol))
+        tableCell p = try $ fmap B.plain . trimInlinesF . mconcat <$> manyTill inline' p
+        sep = try $ many1 spaceChar *> count n (char '|') *> (void (many1 spaceChar) <|> void (lookAhead eol))
 
 -- | Parse a table header row.
 tableParseHeader :: PandocMonad m => MuseParser m (F MuseTableElement)
@@ -726,7 +722,7 @@ tableParseCaption :: PandocMonad m => MuseParser m (F MuseTableElement)
 tableParseCaption = try $ fmap MuseCaption . trimInlinesF . mconcat
   <$  many spaceChar
   <*  string "|+"
-  <*> many1Till inline (try $ string "+|")
+  <*> many1Till inline (try $ string "+|" *> eol)
 
 -- ** Inline parsers
 
