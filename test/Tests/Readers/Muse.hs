@@ -891,6 +891,17 @@ tests =
             [[plain "", plain "Foo"],
              [plain "", plain ""],
              [plain "bar", plain ""]]
+        , "Empty cell in the middle" =:
+          T.unlines
+            [ " 1 | 2 | 3"
+            , " 4 |   | 6"
+            , " 7 | 8 | 9"
+            ] =?>
+          table mempty [(AlignDefault, 0.0), (AlignDefault, 0.0), (AlignDefault, 0.0)]
+            []
+            [[plain "1", plain "2", plain "3"],
+             [plain "4", mempty,    plain "6"],
+             [plain "7", plain "8", plain "9"]]
         ]
     , testGroup "Lists"
       [ "Bullet list" =:

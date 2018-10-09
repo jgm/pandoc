@@ -703,7 +703,7 @@ tableParseRow :: PandocMonad m
 tableParseRow n = try $ sequence <$> tableCells
   where tableCells = (:) <$> tableCell sep <*> (tableCells <|> fmap pure (tableCell eol))
         tableCell p = try $ fmap B.plain . trimInlinesF . mconcat <$> manyTill inline' p
-        sep = try $ many1 spaceChar *> count n (char '|') *> (void (many1 spaceChar) <|> void (lookAhead eol))
+        sep = try $ many1 spaceChar *> count n (char '|') *> (void (lookAhead $ many1 spaceChar) <|> void (lookAhead eol))
 
 -- | Parse a table header row.
 tableParseHeader :: PandocMonad m => MuseParser m (F MuseTableElement)
