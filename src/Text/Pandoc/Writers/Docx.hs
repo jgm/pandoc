@@ -349,6 +349,8 @@ writeDocx opts doc@(Pandoc meta _) = do
                     "application/vnd.openxmlformats-officedocument.extended-properties+xml")
                   ,("/docProps/core.xml",
                     "application/vnd.openxmlformats-package.core-properties+xml")
+                  ,("/docProps/custom.xml",
+                    "application/vnd.openxmlformats-officedocument.custom-properties+xml")
                   ,("/word/styles.xml",
                     "application/vnd.openxmlformats-officedocument.wordprocessingml.styles+xml")
                   ,("/word/document.xml",
@@ -507,6 +509,19 @@ writeDocx opts doc@(Pandoc meta _) = do
                    ]) (formatTime defaultTimeLocale "%FT%XZ" utctime)
   let docPropsEntry = toEntry docPropsPath epochtime $ renderXml docProps
 
+  let customProperties :: [(String, String)]
+      customProperties = [] -- FIXME
+  let mkCustomProp (k, v) pid = mknode "property"
+         [("fmtid","{D5CDD505-2E9C-101B-9397-08002B2CF9AE}")
+         ,("pid", show pid)
+         ,("name", k)] $ mknode "vt:lpwstr" [] v
+  let customPropsPath = "docProps/custom.xml"
+  let customProps = mknode "Properties"
+          [("xmlns","http://schemas.openxmlformats.org/officeDocument/2006/custom-properties")
+          ,("xmlns:vt","http://schemas.openxmlformats.org/officeDocument/2006/docPropsVTypes")
+          ] $ zipWith mkCustomProp customProperties [(2 :: Int)..]
+  let customPropsEntry = toEntry customPropsPath epochtime $ renderXml customProps
+
   let relsPath = "_rels/.rels"
   let rels = mknode "Relationships" [("xmlns", "http://schemas.openxmlformats.org/package/2006/relationships")]
         $ map (\attrs -> mknode "Relationship" attrs ())
@@ -519,6 +534,9 @@ writeDocx opts doc@(Pandoc meta _) = do
         , [("Id","rId3")
           ,("Type","http://schemas.openxmlformats.org/package/2006/relationships/metadata/core-properties")
           ,("Target","docProps/core.xml")]
+        , [("Id","rId5")
+          ,("Type","http://schemas.openxmlformats.org/officeDocument/2006/relationships/custom-properties")
+          ,("Target","docProps/custom.xml")]
         ]
   let relsEntry = toEntry relsPath epochtime $ renderXml rels
 
@@ -558,7 +576,8 @@ writeDocx opts doc@(Pandoc meta _) = do
                   contentTypesEntry : relsEntry : contentEntry : relEntry :
                   footnoteRelEntry : numEntry : styleEntry : footnotesEntry :
                   commentsEntry :
-                  docPropsEntry : docPropsAppEntry : themeEntry :
+                  docPropsEntry : docPropsAppEntry : customPropsEntry :
+                  themeEntry :
                   fontTableEntry : settingsEntry : webSettingsEntry :
                   imageEntries ++ headerFooterEntries ++
                   miscRelEntries ++ otherMediaEntries
