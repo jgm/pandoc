@@ -111,6 +111,7 @@ import qualified Control.Exception as E
 import Control.Monad (MonadPlus (..), msum, unless)
 import qualified Control.Monad.State.Strict as S
 import qualified Data.ByteString.Lazy as BL
+import qualified Data.Bifunctor as Bifunctor
 import Data.Char (isAlpha, isDigit, isLetter, isLower, isSpace, isUpper,
                   toLower)
 import Data.Data (Data, Typeable)
@@ -637,8 +638,7 @@ inDirectory path action = E.bracket
 --
 
 mapLeft :: (a -> b) -> Either a c -> Either b c
-mapLeft f (Left x)  = Left (f x)
-mapLeft _ (Right x) = Right x
+mapLeft = Bifunctor.first
 
 -- | Remove intermediate "." and ".." directories from a path.
 --
