@@ -211,13 +211,11 @@ htmlAttrToPandoc attrs = (ident, classes, keyvals)
 parseHtmlContent :: PandocMonad m
                  => String -- ^ Tag name
                  -> MuseParser m (Attr, F Blocks)
-parseHtmlContent tag = try $ do
-  indent <- getIndent
-  attr <- openTag tag
-  manyTill spaceChar eol
-  content <- parseBlocksTill $ try $ count indent spaceChar *> closeTag tag
-  manyTill spaceChar eol -- closing tag must be followed by optional whitespace and newline
-  return (htmlAttrToPandoc attr, content)
+parseHtmlContent tag = try $ getIndent >>= \indent -> (,)
+  <$> fmap htmlAttrToPandoc (openTag tag)
+  <*  manyTill spaceChar eol
+  <*> parseBlocksTill (try $ count indent spaceChar *> closeTag tag)
+  <*  manyTill spaceChar eol -- closing tag must be followed by optional whitespace and newline
 
 -- ** Directive parsers
 
@@ -463,13 +461,11 @@ verseLine = (<>)
 
 -- | Parse @\<verse>@ tag.
 verseTag :: PandocMonad m => MuseParser m (F Blocks)
-verseTag = try $ do
-  indent <- getIndent
-  openTag "verse"
-  manyTill spaceChar eol
-  content <- sequence <$> manyTill (count indent spaceChar *> verseLine) (try $ count indent spaceChar *> closeTag "verse")
-  manyTill spaceChar eol
-  return $ B.lineBlock <$> content
+verseTag = try $ getIndent >>= \indent -> fmap B.lineBlock . sequence
+  <$  openTag "verse"
+  <*  manyTill spaceChar eol
+  <*> manyTill (count indent spaceChar *> verseLine) (try $ count indent spaceChar *> closeTag "verse")
+  <*  manyTill spaceChar eol
 
 -- | Parse @\<comment>@ tag.
 commentTag :: PandocMonad m => MuseParser m (F Blocks)
@@ -544,10 +540,8 @@ emacsNoteBlock = try $ do
 
 -- | Parse a line block indicated by @\'>\'@ characters.
 lineBlock :: PandocMonad m => MuseParser m (F Blocks)
-lineBlock = try $ do
-  indent <- getIndent
-  lns <- (blankVerseLine <|> nonblankVerseLine) `sepBy1'` try (indentWith indent)
-  return $ B.lineBlock <$> sequence lns
+lineBlock = try $ getIndent >>= \indent -> fmap B.lineBlock . sequence
+  <$> (blankVerseLine <|> nonblankVerseLine) `sepBy1'` try (indentWith indent)
   where
     blankVerseLine = try $ mempty <$ char '>' <* blankline
     nonblankVerseLine = try (string "> ") *> verseLine
