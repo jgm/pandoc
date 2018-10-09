@@ -30,8 +30,8 @@ extra-deps:
 - Cabal-2.4.0.0
 - dlist-0.8.0.4
 - parsec-3.1.13.0
-- skylighting-core-0.7.3
-- skylighting-0.7.3
+- skylighting-0.7.4
+- skylighting-core-0.7.4
 - yaml-0.9.0
 - hslua-1.0.0
 - hslua-module-text-0.2.0
