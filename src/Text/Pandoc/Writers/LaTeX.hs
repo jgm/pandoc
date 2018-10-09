@@ -655,7 +655,10 @@ blockToLaTeX (CodeBlock (identifier,classes,keyvalAttr) str) = do
                           [ (if key == "startFrom"
                                 then "firstnumber"
                                 else key) ++ "=" ++ mbBraced attr |
-                                (key,attr) <- keyvalAttr ] ++
+                                (key,attr) <- keyvalAttr,
+                                key `notElem` ["exports", "tangle", "results"]
+                                -- see #4889
+                          ] ++
                           (if identifier == ""
                                 then []
                                 else [ "label=" ++ ref ])
