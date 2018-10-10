@@ -397,7 +397,7 @@ spaceChar = satisfy $ \c -> c == ' ' || c == '\t'
 
 -- | Parses a nonspace, nonnewline character.
 nonspaceChar :: Stream s m Char => ParserT s st m Char
-nonspaceChar = satisfy $ flip notElem ['\t', '\n', ' ', '\r']
+nonspaceChar = noneOf ['\t', '\n', ' ', '\r']
 
 -- | Skips zero or more spaces or tabs.
 skipSpaces :: Stream s m Char => ParserT s st m ()
