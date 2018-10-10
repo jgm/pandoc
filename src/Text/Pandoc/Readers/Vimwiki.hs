@@ -85,12 +85,12 @@ import qualified Text.Pandoc.Builder as B (blockQuote, bulletList, code,
 import Text.Pandoc.Class (PandocMonad (..))
 import Text.Pandoc.Definition (Attr, Block (BulletList, OrderedList),
                                Inline (Space), ListNumberDelim (..),
-                               ListNumberStyle (..), Meta, Pandoc (..),
+                               ListNumberStyle (..), Pandoc (..),
                                nullMeta)
 import Text.Pandoc.Options (ReaderOptions)
-import Text.Pandoc.Parsing (F, ParserState, ParserT, blanklines, emailAddress,
+import Text.Pandoc.Parsing (ParserState, ParserT, blanklines, emailAddress,
                             many1Till, orderedListMarker, readWithM,
-                            registerHeader, runF, spaceChar, stateMeta',
+                            registerHeader, spaceChar, stateMeta,
                             stateOptions, uri)
 import Text.Pandoc.Shared (crFilter, splitBy, stringify, stripFirstAndLast)
 import Text.Parsec.Char (alphaNum, anyChar, char, newline, noneOf, oneOf, space,
@@ -126,7 +126,7 @@ parseVimwiki = do
   spaces
   eof
   st <- getState
-  let meta = runF (stateMeta' st) st
+  let meta = stateMeta st
   return $ Pandoc meta (toList bs)
 
 -- block parser
@@ -444,8 +444,8 @@ ph s = try $ do
   many spaceChar >>string ('%':s) >> spaceChar
   contents <- trimInlines . mconcat <$> manyTill inline (lookAhead newline)
     --use lookAhead because of placeholder in the whitespace parser
-  let meta' = return $ B.setMeta s contents nullMeta :: F Meta
-  updateState $ \st -> st { stateMeta' = stateMeta' st <> meta' }
+  let meta' = B.setMeta s contents nullMeta
+  updateState $ \st -> st { stateMeta = stateMeta st <> meta' }
 
 noHtmlPh :: PandocMonad m => VwParser m ()
 noHtmlPh = try $
