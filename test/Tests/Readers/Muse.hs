@@ -156,6 +156,8 @@ tests =
 
         , "One character code" =: "=c=" =?> para (code "c")
 
+        , "Code with equal sign" =: "=foo = bar=" =?> para (code "foo = bar")
+
         , "Three = characters is not a code" =: "===" =?> para "==="
 
         , "Multiline code markup" =:
