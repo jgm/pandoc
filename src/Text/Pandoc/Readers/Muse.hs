@@ -873,14 +873,11 @@ nbsp = try $ pure (B.str "\160") <$ string "~~"
 
 -- | Parse code markup, indicated by @\'=\'@ characters.
 code :: PandocMonad m => MuseParser m (F Inlines)
-code = try $ do
-  atStart $ char '='
-  contents <- many1Till (noneOf "\n\r" <|> (newline <* notFollowedBy newline)) $ char '='
-  guard $ not $ null contents
-  guard $ head contents `notElem` " \t\n"
-  guard $ last contents `notElem` " \t\n"
-  notFollowedBy $ satisfy isAlphaNum
-  return $ return $ B.code contents
+code = try $ fmap pure $ B.code . uncurry (++)
+  <$  atStart (char '=')
+  <*  notFollowedBy (spaceChar <|> newline)
+  <*> manyUntil (noneOf "\n\r" <|> (newline <* notFollowedBy newline)) (try $ fmap pure $ noneOf " \t\n\r=" <* char '=')
+  <*  notFollowedBy (satisfy isAlphaNum)
 
 -- | Parse @\<code>@ tag.
 codeTag :: PandocMonad m => MuseParser m (F Inlines)
