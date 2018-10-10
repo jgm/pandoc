@@ -909,17 +909,17 @@ linkOrImage :: PandocMonad m => MuseParser m (F Inlines)
 linkOrImage = try $ do
   inLink <- asks museInLink
   guard $ not inLink
-  local (\s -> s { museInLink = True }) (explicitLink <|> image <|> link)
+  local (\s -> s { museInLink = True }) (link "URL:" <|> image <|> link "")
 
 linkContent :: PandocMonad m => MuseParser m (F Inlines)
 linkContent = trimInlinesF . mconcat
   <$  char '['
   <*> manyTill inline (char ']')
 
--- | Parse a link starting with @URL:@
-explicitLink :: PandocMonad m => MuseParser m (F Inlines)
-explicitLink = try $ do
-  string "[[URL:"
+-- | Parse a link starting with (possibly null) prefix
+link :: PandocMonad m => String -> MuseParser m (F Inlines)
+link prefix = try $ do
+  string $ "[[" ++ prefix
   url <- manyTill anyChar $ char ']'
   content <- option (pure $ B.str url) linkContent
   char ']'
@@ -952,11 +952,3 @@ image = try $ do
           <*> optionMaybe (many1 digit)
           <*  many spaceChar
           <*> optionMaybe (oneOf "rlf")
-
-link :: PandocMonad m => MuseParser m (F Inlines)
-link = try $ do
-  string "[["
-  url <- manyTill anyChar $ char ']'
-  content <- optionMaybe linkContent
-  char ']'
-  return $ B.link url "" <$> fromMaybe (return $ B.str url) content
