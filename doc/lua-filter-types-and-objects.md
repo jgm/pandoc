@@ -270,19 +270,32 @@ content
 tag, t
 :   the literal `Emph` (string)
 
-<!-- TODO -->
-
 ### Image
 Image:  alt text (list of inlines), target
 
+attr
+:   attributes ([Attr])
+
+caption
+:   text used to describe the image ([list] of [inlines])
+
+src
+:   path to the image file (string)
+
+title
+:   brief image description
+
+identifier
+:   alias for `attr.identifier` (string)
+
+classes
+:   alias for `attr.classes` ([list] of strings)
+
+attributes
+:   alias for `attr.attributes` ([attributes])
+
 tag, t
 :   the literal `Image` (string)
-
-### Link
-Hyperlink: alt text (list of inlines), target
-
-tag, t
-:   the literal `Link` (string)
 
 ### LineBreak
 Hard line break
@@ -290,8 +303,40 @@ Hard line break
 tag, t
 :   the literal `LineBreak` (string)
 
+### Link
+Hyperlink: alt text (list of inlines), target
+
+attr
+:   attributes ([Attr])
+
+content
+:   text for this link ([list] of [inlines])
+
+target
+:   the link target (string)
+
+identifier
+:   alias for `attr.identifier` (string)
+
+classes
+:   alias for `attr.classes` ([list] of strings)
+
+attributes
+:   alias for `attr.attributes` ([attributes])
+
+tag, t
+:   the literal `Link` (string)
+
 ### Math
 TeX math (literal)
+
+mathype
+:   specifier determining whether the math content should be
+    shown inline (`InlineMath`) or on a separate line
+    (`DisplayMath`) (string)
+
+text
+:   math content (string)
 
 tag, t
 :   the literal `Math` (string)
@@ -299,11 +344,21 @@ tag, t
 ### Note
 Footnote or endnote
 
+content
+:   ([list] of [blocks])
+
 tag, t
 :   the literal `Note` (string)
 
 ### Quoted
-Quoted text (list of inlines)
+Quoted text
+
+quotetype
+:   type of quotes to be used; one of `SingleQuote` or
+    `DoubleQuote` (string)
+
+content
+:   quoted text ([list] of [inlines])
 
 tag, t
 :   the literal `Quoted` (string)
@@ -311,11 +366,20 @@ tag, t
 ### RawInline
 Raw inline
 
+format
+:   the format of the content (string)
+
+text
+:   raw content (string)
+
 tag, t
 :   the literal `RawInline` (string)
 
 ### SmallCaps
-Small caps text (list of inlines)
+Small caps text
+
+content
+:   ([list] of [inlines])
 
 tag, t
 :   the literal `SmallCaps` (string)
@@ -338,6 +402,9 @@ Generic inline container with attributes
 attr
 :   attributes ([Attr])
 
+content
+:   wrapped content ([list] of [inlines])
+
 identifier
 :   alias for `attr.identifier` (string)
 
@@ -351,31 +418,46 @@ tag, t
 :   the literal `Span` (string)
 
 ### Str
-Text (string)
+Text
+
+text
+:   content (string)
 
 tag, t
 :   the literal `Str` (string)
 
 ### Strikeout
-Strikeout text (list of inlines)
+Strikeout text
+
+content
+:   inline content ([list] of [inlines])
 
 tag, t
 :   the literal `Strikeout` (string)
 
 ### Strong
-Strongly emphasized text (list of inlines)
+Strongly emphasized text
+
+content
+:   inline content ([list] of [inlines])
 
 tag, t
 :   the literal `Strong` (string)
 
 ### Subscript
-Subscripted text (list of inlines)
+Subscripted text
+
+content
+:   inline content ([list] of [inlines])
 
 tag, t
 :   the literal `Subscript` (string)
 
 ### Superscript
-Superscripted text (list of inlines)
+Superscripted text
+
+content
+:   inline content ([list] of [inlines])
 
 tag, t
 :   the literal `Superscript` (string)
