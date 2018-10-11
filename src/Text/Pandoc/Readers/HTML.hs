@@ -1069,11 +1069,11 @@ instance NamedTag (Tag String) where
   getTagName _             = Nothing
 
 isInlineTag :: NamedTag (Tag a) => Tag a -> Bool
-isInlineTag t = isInlineTagName || isCommentTag t
-                 where isInlineTagName = case getTagName t of
-                                              Just x -> x
-                                                  `Set.notMember` blockTags
-                                              Nothing -> False
+isInlineTag t =
+  isCommentTag t || case getTagName t of
+                           Nothing  -> False
+                           Just x   -> x `Set.notMember` blockTags ||
+                                       T.take 1 x == "?" -- processing instr.
 
 isBlockTag :: NamedTag (Tag a) => Tag a -> Bool
 isBlockTag t = isBlockTagName || isTagComment t
@@ -1208,8 +1208,10 @@ htmlTag f = try $ do
   let isNameChar c = isAlphaNum c || c == ':' || c == '-' || c == '_'
   let isName s = case s of
                       []      -> False
-                      ('?':_) -> True -- processing instruction
                       (c:cs)  -> isLetter c && all isNameChar cs
+  let isPI s = case s of
+                      ('?':_) -> True -- processing instruction
+                      _       -> False
 
   let endpos = if ln == 1
                   then setSourceColumn startpos
@@ -1225,7 +1227,7 @@ htmlTag f = try $ do
   let handleTag tagname = do
        -- basic sanity check, since the parser is very forgiving
        -- and finds tags in stuff like x<y)
-       guard $ isName tagname
+       guard $ isName tagname || isPI tagname
        guard $ not $ null tagname
        -- <https://example.org> should NOT be a tag either.
        -- tagsoup will parse it as TagOpen "https:" [("example.org","")]
@@ -1245,7 +1247,7 @@ htmlTag f = try $ do
              else return (next, "<!--" <> s <> "-->")
          | otherwise -> fail "bogus comment mode, HTML5 parse error"
        TagOpen tagname attr -> do
-         guard $ all (isName . fst) attr
+         guard $ isPI tagname || all (isName . fst) attr
          handleTag tagname
        TagClose tagname ->
          handleTag tagname
