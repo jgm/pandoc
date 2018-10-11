@@ -403,7 +403,7 @@ M.Null = M.Block:create_constructor(
 M.OrderedList = M.Block:create_constructor(
   "OrderedList",
   function(items, listAttributes)
-    listAttributes = listAttributes or {1, M.DefaultStyle, M.DefaultDelim}
+    listAttributes = listAttributes or M.ListAttributes()
     return {c = {listAttributes, ensureList(items)}}
   end,
   {{listAttributes = {"start", "style", "delimiter"}}, "content"}
@@ -855,6 +855,34 @@ function M.Citation:new (id, mode, prefix, suffix, note_num, hash)
     note_num = note_num or 0,
     hash = hash or 0,
   }
+end
+
+-- ListAttributes
+M.ListAttributes = AstElement:make_subtype 'ListAttributes'
+
+--- Creates a set of list attributes.
+-- @function ListAttributes
+-- @tparam[opt] integer start number of the first list item
+-- @tparam[opt] string  style style used for list numbering
+-- @tparam[opt] DefaultDelim|Period|OneParen|TwoParens delimiter delimiter of list numbers
+-- @treturn table list attributes table
+function M.ListAttributes:new (start, style, delimiter)
+  start = start or 1
+  style = style or 'DefaultStyle'
+  delimiter = delimiter or 'DefaultDelim'
+  return {start, style, delimiter}
+end
+M.ListAttributes.behavior._field_names = {start = 1, style = 2, delimiter = 3}
+M.ListAttributes.behavior.__index = function (t, k)
+  return rawget(t, getmetatable(t)._field_names[k]) or
+    getmetatable(t)[k]
+end
+M.ListAttributes.behavior.__newindex = function (t, k, v)
+  if getmetatable(t)._field_names[k] then
+    rawset(t, getmetatable(t)._field_names[k], v)
+  else
+    rawset(t, k, v)
+  end
 end
 
 

@@ -1253,6 +1253,23 @@ Lua functions for pandoc scripts.
     `hash`:
     :   hash number
 
+[`ListAttributes ([start[, style[, delimiter]]])`](#ListAttributes)
+
+:   Creates a set of list attributes
+
+    Parameters:
+
+    `start`:
+    :   number of the first list item (default: 1)
+
+    `style`:
+    :   style used for list numbering (default: `DefaultStyle`)
+
+    `delimiter`:
+    :   delimiter of list numbers (default: `DefaultDelim`)
+
+    Returns: list attributes table
+
 ## Constants
 
 [`AuthorInText`]{#AuthorInText}
