@@ -83,7 +83,6 @@ data MuseState = MuseState { museMeta :: F Meta -- ^ Document metadata
                            , museLastStrPos :: Maybe SourcePos -- ^ Position after last str parsed
                            , museLogMessages :: [LogMessage]
                            , museNotes :: M.Map String (SourcePos, F Blocks)
-                           , museInPara :: Bool -- ^ True when looking for a paragraph terminator
                            }
 
 instance Default MuseState where
@@ -94,15 +93,17 @@ instance Default MuseState where
                   , museLastStrPos = Nothing
                   , museLogMessages = []
                   , museNotes = M.empty
-                  , museInPara = False
                   }
 
 data MuseEnv =
   MuseEnv { museInLink :: Bool -- ^ True when parsing a link description to avoid nested links
+          , museInPara :: Bool -- ^ True when parsing paragraph is not allowed
           }
 
 instance Default MuseEnv where
-  def = MuseEnv { museInLink = False }
+  def = MuseEnv { museInLink = False
+                , museInPara = False
+                }
 
 type MuseParser m = ParserT Text MuseState (ReaderT MuseEnv m)
 
@@ -214,7 +215,7 @@ parseHtmlContent :: PandocMonad m
 parseHtmlContent tag = try $ getIndent >>= \indent -> (,)
   <$> fmap htmlAttrToPandoc (openTag tag)
   <*  manyTill spaceChar eol
-  <*> parseBlocksTill (try $ count indent spaceChar *> closeTag tag)
+  <*> allowPara (parseBlocksTill (try $ count indent spaceChar *> closeTag tag))
   <*  manyTill spaceChar eol -- closing tag must be followed by optional whitespace and newline
 
 -- ** Directive parsers
@@ -248,6 +249,9 @@ directive = do
 
 -- ** Block parsers
 
+allowPara :: MonadReader MuseEnv m => m a -> m a
+allowPara p = local (\s -> s { museInPara = False }) p
+
 -- | Parse section contents until EOF or next header
 parseBlocks :: PandocMonad m
             => MuseParser m (F Blocks)
@@ -261,10 +265,9 @@ parseBlocks =
     nextSection = mempty <$ lookAhead headingStart
     parseEnd = mempty <$ eof
     blockStart = (B.<>) <$> (blockElements <|> emacsNoteBlock)
-                        <*> parseBlocks
-    listStart = do
-      updateState (\st -> st { museInPara = False })
-      uncurry (B.<>) <$> (anyListUntil parseBlocks <|> amuseNoteBlockUntil parseBlocks)
+                        <*> allowPara parseBlocks
+    listStart =
+      uncurry (B.<>) <$> allowPara (anyListUntil parseBlocks <|> amuseNoteBlockUntil parseBlocks)
     paraStart = do
       indent <- length <$> many spaceChar
       uncurry (B.<>) . first (p indent) <$> paraUntil parseBlocks
@@ -287,10 +290,8 @@ parseBlocksTill end =
        paraStart)
   where
     parseEnd = mempty <$ end
-    blockStart = (B.<>) <$> blockElements <*> continuation
-    listStart = do
-      updateState (\st -> st { museInPara = False })
-      uncurry (B.<>) <$> anyListUntil (parseEnd <|> continuation)
+    blockStart = (B.<>) <$> blockElements <*> allowPara continuation
+    listStart = uncurry (B.<>) <$> allowPara (anyListUntil (parseEnd <|> continuation))
     paraStart = uncurry (B.<>) <$> paraUntil (parseEnd <|> continuation)
     continuation = parseBlocksTill end
 
@@ -310,16 +311,14 @@ listItemContentsUntil col pre end =
       (f, (r, e)) <- paraUntil (parsePre <|> continuation <|> parseEnd)
       return (f B.<> r, e)
     blockStart = first <$> ((B.<>) <$> blockElements)
-                       <*> (parsePre <|> continuation <|> parseEnd)
+                       <*> allowPara (parsePre <|> continuation <|> parseEnd)
     listStart = do
-      updateState (\st -> st { museInPara = False })
-      (f, (r, e)) <- anyListUntil (parsePre <|> continuation <|> parseEnd)
+      (f, (r, e)) <- allowPara $ anyListUntil (parsePre <|> continuation <|> parseEnd)
       return (f B.<> r, e)
     continuation = try $ do blank <- optionMaybe blankline
                             skipMany blankline
                             indentWith col
-                            updateState (\st -> st { museInPara = museInPara st && isNothing blank })
-                            listItemContentsUntil col pre end
+                            local (\s -> s { museInPara = museInPara s && isNothing blank }) $ listItemContentsUntil col pre end
 
 parseBlock :: PandocMonad m => MuseParser m (F Blocks)
 parseBlock = do
@@ -329,8 +328,7 @@ parseBlock = do
   where para = fst <$> paraUntil (try (eof <|> void (lookAhead blockElements)))
 
 blockElements :: PandocMonad m => MuseParser m (F Blocks)
-blockElements = do
-  updateState (\st -> st { museInPara = False })
+blockElements =
   choice [ mempty <$ blankline
          , comment
          , separator
@@ -479,19 +477,16 @@ commentTag = try $ mempty
 paraContentsUntil :: PandocMonad m
                   => MuseParser m a -- ^ Terminator parser
                   -> MuseParser m (F Inlines, a)
-paraContentsUntil end = do
-  updateState (\st -> st { museInPara = True })
-  (l, e) <- someUntil inline $ try (manyTill spaceChar eol *> end)
-  updateState (\st -> st { museInPara = False })
-  return (trimInlinesF $ mconcat l, e)
+paraContentsUntil end = first (trimInlinesF . mconcat)
+  <$> someUntil inline (try (manyTill spaceChar eol *> local (\s -> s { museInPara = True}) end))
 
 -- | Parse a paragraph.
 paraUntil :: PandocMonad m
           => MuseParser m a -- ^ Terminator parser
           -> MuseParser m (F Blocks, a)
 paraUntil end = do
-  state <- getState
-  guard $ not $ museInPara state
+  inPara <- asks museInPara
+  guard $ not inPara
   first (fmap B.para) <$> paraContentsUntil end
 
 noteMarker :: PandocMonad m => MuseParser m String
@@ -509,8 +504,7 @@ amuseNoteBlockUntil end = try $ do
   guardEnabled Ext_amuse
   ref <- noteMarker <* spaceChar
   pos <- getPosition
-  updateState (\st -> st { museInPara = False })
-  (content, e) <- listItemContentsUntil (sourceColumn pos - 1) (fail "x") end
+  (content, e) <- allowPara $ listItemContentsUntil (sourceColumn pos - 1) (fail "x") end
   oldnotes <- museNotes <$> getState
   when (M.member ref oldnotes)
     (logMessage $ DuplicateNoteReference ref pos)
@@ -555,8 +549,7 @@ bulletListItemsUntil :: PandocMonad m
 bulletListItemsUntil indent end = try $ do
   char '-'
   void spaceChar <|> lookAhead eol
-  updateState (\st -> st { museInPara = False })
-  (x, (xs, e)) <- listItemContentsUntil (indent + 2) (try (optional blankline *> indentWith indent *> bulletListItemsUntil indent end)) (([],) <$> end)
+  (x, (xs, e)) <- allowPara $ listItemContentsUntil (indent + 2) (try (optional blankline *> indentWith indent *> bulletListItemsUntil indent end)) (([],) <$> end)
   return (x:xs, e)
 
 -- | Parse a bullet list.
@@ -592,8 +585,7 @@ orderedListItemsUntil indent style end =
     continuation = try $ do
       pos <- getPosition
       void spaceChar <|> lookAhead eol
-      updateState (\st -> st { museInPara = False })
-      (x, (xs, e)) <- listItemContentsUntil (sourceColumn pos) (try (optional blankline *> indentWith indent *> museOrderedListMarker style *> continuation)) (([],) <$> end)
+      (x, (xs, e)) <- allowPara $ listItemContentsUntil (sourceColumn pos) (try (optional blankline *> indentWith indent *> museOrderedListMarker style *> continuation)) (([],) <$> end)
       return (x:xs, e)
 
 -- | Parse an ordered list.
@@ -614,8 +606,7 @@ descriptionsUntil :: PandocMonad m
                   -> MuseParser m ([F Blocks], a)
 descriptionsUntil indent end = do
   void spaceChar <|> lookAhead eol
-  updateState (\st -> st { museInPara = False })
-  (x, (xs, e)) <- listItemContentsUntil indent (try (optional blankline *> indentWith indent *> manyTill spaceChar (string "::") *> descriptionsUntil indent end)) (([],) <$> end)
+  (x, (xs, e)) <- allowPara $ listItemContentsUntil indent (try (optional blankline *> indentWith indent *> manyTill spaceChar (string "::") *> descriptionsUntil indent end)) (([],) <$> end)
   return (x:xs, e)
 
 definitionListItemsUntil :: PandocMonad m
