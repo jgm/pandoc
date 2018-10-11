@@ -215,7 +215,7 @@ parseHtmlContent :: PandocMonad m
 parseHtmlContent tag = try $ getIndent >>= \indent -> (,)
   <$> fmap htmlAttrToPandoc (openTag tag)
   <*  manyTill spaceChar eol
-  <*> allowPara (parseBlocksTill (try $ count indent spaceChar *> closeTag tag))
+  <*> allowPara (parseBlocksTill (try $ indentWith indent *> closeTag tag))
   <*  manyTill spaceChar eol -- closing tag must be followed by optional whitespace and newline
 
 -- ** Directive parsers
@@ -462,7 +462,7 @@ verseTag :: PandocMonad m => MuseParser m (F Blocks)
 verseTag = try $ getIndent >>= \indent -> fmap B.lineBlock . sequence
   <$  openTag "verse"
   <*  manyTill spaceChar eol
-  <*> manyTill (count indent spaceChar *> verseLine) (try $ count indent spaceChar *> closeTag "verse")
+  <*> manyTill (indentWith indent *> verseLine) (try $ indentWith indent *> closeTag "verse")
   <*  manyTill spaceChar eol
 
 -- | Parse @\<comment>@ tag.
