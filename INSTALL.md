@@ -93,6 +93,19 @@
     [TeX Live](http://www.tug.org/texlive/) via your package
     manager.  (On Debian/Ubuntu, `apt-get install texlive`.)
 
+## Chrome OS
+
+On Chrome OS, pandoc can be installed using the
+[chromebrew](https://github.com/skycocker/chromebrew) package manager
+with the command:
+
+```sh
+crew install pandoc
+```
+
+This will automatically build and configure pandoc for the specific
+device you are using.
+
 ## BSD
 
   - Pandoc is in the [NetBSD] and [FreeBSD ports] repositories.
