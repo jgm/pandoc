@@ -464,8 +464,31 @@ tag, t
 
 ## Attributes
 
-List of key/value pairs. Values can be accessed by using keys as indices to the
-list table.
+List of key/value pairs. Values can be accessed by using keys as
+indices to the list table.
+
+## Citation
+
+Single citation entry
+
+id
+:   citation identifier, e.g., a bibtex key (string)
+
+mode
+:   citation mode, one of `AuthorInText`, `SuppressAuthor`, or
+    `NormalCitation` (string)
+
+prefix
+:   citation prefix ([list] of [inlines])
+
+suffix
+:   citation suffix ([list] of [inlines])
+
+note_num
+:   note number (integer)
+
+hash
+:   hash (integer)
 
 
 [block]: #block
@@ -476,3 +499,4 @@ list table.
 [inlines]: #inline
 [Attr]: #attr
 [attributes]: #attributes
+[citaions]: #citation
