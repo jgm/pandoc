@@ -166,7 +166,16 @@ items
 :   list items ([list] of [blocks])
 
 listAttributes
-:   list parameters
+:   list parameters (ListAttributes)
+
+start
+:   alias for `listAttributes.start` (integer)
+
+style
+:   alias for `listAttributes.style` (string)
+
+delimiter
+:   alias for `listAttributes.delimiter` (string)
 
 tag, t
 :   the literal `OrderedList` (string)
@@ -176,7 +185,7 @@ tag, t
 A paragraph
 
 content
-:   inline content
+:   inline content ([list] of [inlines])
 
 tag, t
 :   the literal `Para` (string)
@@ -186,7 +195,7 @@ tag, t
 Plain text, not a paragraph
 
 content
-:   inline content
+:   inline content ([list] of [inlines])
 
 tag, t
 :   the literal `Plain` (string)
@@ -489,6 +498,21 @@ note_num
 
 hash
 :   hash (integer)
+
+## ListAttributes
+List attributes
+
+start
+:   number of the first list item (integer)
+
+style
+:   style used for list numbers; possible values are `DefaultStyle`,
+    `Example`, `Decimal`, `LowerRoman`, `UpperRoman`,
+    `LowerAlpha`, and `UpperAlpha` (string)
+
+delimiter
+:   delimiter of list numbers; one of `DeaultDelim`, `Period`,
+    `OneParen`, and `TwoParens` (string)
 
 
 [block]: #block
