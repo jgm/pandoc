@@ -328,24 +328,22 @@ parseBlock = do
   where para = fst <$> paraUntil (try (eof <|> void (lookAhead blockElements)))
 
 blockElements :: PandocMonad m => MuseParser m (F Blocks)
-blockElements =
-  choice [ mempty <$ blankline
-         , comment
-         , separator
-         , example
-         , exampleTag
-         , literalTag
-         , centerTag
-         , rightTag
-         , quoteTag
-         , divTag
-         , biblioTag
-         , playTag
-         , verseTag
-         , lineBlock
-         , table
-         , commentTag
-         ]
+blockElements = (mempty <$ blankline)
+            <|> comment
+            <|> separator
+            <|> example
+            <|> exampleTag
+            <|> literalTag
+            <|> centerTag
+            <|> rightTag
+            <|> quoteTag
+            <|> divTag
+            <|> biblioTag
+            <|> playTag
+            <|> verseTag
+            <|> lineBlock
+            <|> table
+            <|> commentTag
 
 -- | Parse a line comment, starting with @;@ in the first column.
 comment :: PandocMonad m => MuseParser m (F Blocks)
