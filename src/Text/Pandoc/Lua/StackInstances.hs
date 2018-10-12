@@ -185,7 +185,8 @@ pushBlock = \case
   Header lvl attr inlns    -> pushViaConstructor "Header" lvl inlns (LuaAttr attr)
   HorizontalRule           -> pushViaConstructor "HorizontalRule"
   LineBlock blcks          -> pushViaConstructor "LineBlock" blcks
-  OrderedList lstAttr list -> pushViaConstructor "OrderedList" list lstAttr
+  OrderedList lstAttr list -> pushViaConstructor "OrderedList" list
+                                                 (LuaListAttributes lstAttr)
   Null                     -> pushViaConstructor "Null"
   Para blcks               -> pushViaConstructor "Para" blcks
   Plain blcks              -> pushViaConstructor "Plain" blcks
@@ -207,7 +208,9 @@ peekBlock idx = defineHowTo "get Block value" $ do
                           <$> elementContent
       "HorizontalRule" -> return HorizontalRule
       "LineBlock"      -> LineBlock <$> elementContent
-      "OrderedList"    -> uncurry OrderedList <$> elementContent
+      "OrderedList"    -> (\(LuaListAttributes lstAttr, lst) ->
+                             OrderedList lstAttr lst)
+                          <$> elementContent
       "Null"           -> return Null
       "Para"           -> Para <$> elementContent
       "Plain"          -> Plain <$> elementContent
@@ -288,6 +291,17 @@ instance Pushable LuaAttr where
 
 instance Peekable LuaAttr where
   peek idx = defineHowTo "get Attr value" (LuaAttr <$> Lua.peek idx)
+
+-- | Wrapper for ListAttributes
+newtype LuaListAttributes = LuaListAttributes  ListAttributes
+
+instance Pushable LuaListAttributes where
+  push (LuaListAttributes (start, style, delimiter)) =
+    pushViaConstructor "ListAttributes" start style delimiter
+
+instance Peekable LuaListAttributes where
+  peek = defineHowTo "get ListAttributes value" .
+         fmap LuaListAttributes . Lua.peek
 
 --
 -- Hierarchical elements
