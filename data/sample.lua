@@ -12,6 +12,8 @@
 -- produce informative error messages if your code contains
 -- syntax errors.
 
+local pipe = pandoc.pipe
+
 -- Character escaping
 local function escape(s, in_attribute)
   return s:gsub("[<>&\"']",
@@ -42,19 +44,6 @@ local function attributes(attr)
     end
   end
   return table.concat(attr_table)
-end
-
--- Run cmd on a temporary file containing inp and return result.
-local function pipe(cmd, inp)
-  local tmp = os.tmpname()
-  local tmph = io.open(tmp, "w")
-  tmph:write(inp)
-  tmph:close()
-  local outh = io.popen(cmd .. " " .. tmp,"r")
-  local result = outh:read("*all")
-  outh:close()
-  os.remove(tmp)
-  return result
 end
 
 -- Table to store footnotes, so they can be included at the end.
@@ -217,7 +206,7 @@ function CodeBlock(s, attr)
   -- If code block has class 'dot', pipe the contents through dot
   -- and base64, and include the base64-encoded png as a data: URL.
   if attr.class and string.match(' ' .. attr.class .. ' ',' dot ') then
-    local png = pipe("base64", pipe("dot -Tpng", s))
+    local png = pipe("base64", {}, pipe("dot", {"-Tpng"}, s))
     return '<img src="data:image/png;base64,' .. png .. '"/>'
   -- otherwise treat as code (one could pipe through a highlighter)
   else
