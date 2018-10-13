@@ -31,7 +31,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 Conversion of man to 'Pandoc' document.
 -}
-module Text.Pandoc.Readers.Man (readMan, testFile) where
+module Text.Pandoc.Readers.Man (readMan) where --testFile
 
 import Prelude
 import Control.Monad (liftM)
@@ -43,7 +43,7 @@ import Data.Maybe (catMaybes, fromMaybe, isNothing)
 import Data.List (intersperse, intercalate)
 import qualified Data.Text as T
 
-import Text.Pandoc.Class (PandocMonad(..), runIOorExplode)
+import Text.Pandoc.Class (PandocMonad(..))
 import Text.Pandoc.Definition
 import Text.Pandoc.Error (PandocError (PandocParsecError))
 import Text.Pandoc.Logging (LogMessage(..))
@@ -94,9 +94,9 @@ instance Default RoffState where
 type ManLexer m = ParserT [Char] RoffState m
 type ManParser m = ParserT [ManToken] ParserState m
 
-----
--- testStrr :: [Char] -> Either PandocError Pandoc
--- testStrr s = runPure $ readMan def (T.pack s)
+---- debug functions
+{-
+import Text.Pandoc.Class (runIOorExplode)
 
 printPandoc :: Pandoc -> [Char]
 printPandoc (Pandoc m content) =
@@ -104,16 +104,17 @@ printPandoc (Pandoc m content) =
       cnt = intercalate "\n" $ map show content
   in ttl ++ "\n" ++ cnt
 
--- strrepr :: Either PandocError Pandoc -> [Char]
--- strrepr obj = case obj of
---   Right x -> printPandoc x
---   Left y -> show y
+testStr :: String -> IO ()
+testStr str = do
+  pand <- runIOorExplode $ readMan def (T.pack str)
+  putStrLn $ printPandoc pand
 
+  
 testFile :: FilePath -> IO ()
 testFile fname = do
   cont <- readFile fname
-  pand <- runIOorExplode $ readMan def (T.pack cont)
-  putStrLn $ printPandoc pand
+  testStr cont
+-}
 ----
 
 
