@@ -14,8 +14,8 @@ quick:
 	stack install --resolver=$(RESOLVER) --ghc-options='$(GHCOPTS)' --install-ghc --flag 'pandoc:embed_data_files' --fast --test --test-arguments='-j4 --hide-successes $(TESTARGS)'
 
 quick-cabal:
-	cabal new-build . --ghc-options '$(GHCOPTS)' --flags '+embed_data_files' --enable-tests --only-dependencies
-	cabal new-build . --ghc-options '$(GHCOPTS)' --flags '+embed_data_files' --enable-tests --disable-optimization
+	cabal new-build . --ghc-options '$(GHCOPTS)' --flags '+embed_data_files +trypandoc' --enable-tests --enable-benchmarks --only-dependencies
+	cabal new-build . --ghc-options '$(GHCOPTS)' --flags '+embed_data_files +trypandoc' --enable-tests --enable-benchmarks --disable-optimization
 	cabal new-install --symlink-bindir=$$HOME/.local/bin
 	cabal new-run test-pandoc --ghc-options '$(GHCOPTS)' --flags '+embed_data_files' --disable-optimization -- --hide-successes $(TESTARGS)
 
