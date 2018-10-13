@@ -116,7 +116,7 @@ writeCustom luaFile opts doc@(Pandoc meta _) = do
     -- to handle this more gracefully):
     when (stat /= Lua.OK) $
       Lua.tostring' (-1) >>= throw . PandocLuaException . UTF8.toString
-    -- TODO - call hierarchicalize, so we have that info
+    runSetup doc
     rendered <- docToCustom opts doc
     context <- metaToJSON opts
                blockListToCustom
@@ -132,6 +132,21 @@ writeCustom luaFile opts doc@(Pandoc meta _) = do
          case applyTemplate (pack tpl) $ setField "body" body context of
               Left e  -> throw (PandocTemplateError e)
               Right r -> return (pack r)
+
+-- | Try to call a setup function. The function, if it exists, is passed the
+-- full pandoc document as parameter. This allows users to setup the writer
+-- depending on the content of the document. Accessing information on the
+-- document hierarchy is possible via the `pandoc.utils.hierarchicalize`
+-- function.
+runSetup :: Pandoc -> Lua ()
+runSetup doc = do
+  Lua.getglobal "Setup"
+  setup <- Lua.ltype Lua.stackTop
+  if setup /= Lua.TypeFunction
+    then Lua.pop 1
+    else do
+      Lua.push doc
+      Lua.call 1 0
 
 docToCustom :: WriterOptions -> Pandoc -> Lua String
 docToCustom opts (Pandoc (Meta metamap) blocks) = do
