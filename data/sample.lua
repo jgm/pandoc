@@ -2,7 +2,8 @@
 -- that is very similar to that of pandoc's HTML writer.
 -- There is one new feature: code blocks marked with class 'dot'
 -- are piped through graphviz and images are included in the HTML
--- output using 'data:' URLs.
+-- output using 'data:' URLs. The image format can be controlled
+-- via the `image_format` metadata field.
 --
 -- Invoke with: pandoc -t sample.lua
 --
@@ -13,6 +14,32 @@
 -- syntax errors.
 
 local pipe = pandoc.pipe
+local stringify = (require "pandoc.utils").stringify
+
+local image_format = "png"
+local image_mime_type = "image/png"
+
+-- Get the mime type for a given format.
+local function mime_type(img_format)
+  local formats = {
+    jpeg = "image/jpeg",
+    jpg = "image/jpeg",
+    gif = "image/gif",
+    png = "image/png",
+    svg = "image/svg+xml",
+  }
+  return formats[img_format]
+    or error("unsupported image format `" .. img_format .. "`")
+end
+
+-- Set options from document metadata.
+function Setup(doc)
+  local meta = doc.meta
+  if meta.image_format then
+    image_format = stringify(meta.image_format)
+    image_mime_type = mime_type(image_format)
+  end
+end
 
 -- Character escaping
 local function escape(s, in_attribute)
@@ -206,8 +233,8 @@ function CodeBlock(s, attr)
   -- If code block has class 'dot', pipe the contents through dot
   -- and base64, and include the base64-encoded png as a data: URL.
   if attr.class and string.match(' ' .. attr.class .. ' ',' dot ') then
-    local png = pipe("base64", {}, pipe("dot", {"-Tpng"}, s))
-    return '<img src="data:image/png;base64,' .. png .. '"/>'
+    local img = pipe("base64", {}, pipe("dot", {"-T" .. image_format}, s))
+    return '<img src="data:' .. image_mime_type .. ';base64,' .. img .. '"/>'
   -- otherwise treat as code (one could pipe through a highlighter)
   else
     return "<pre><code" .. attributes(attr) .. ">" .. escape(s) ..
@@ -325,6 +352,10 @@ end
 local meta = {}
 meta.__index =
   function(_, key)
+    -- Setup is optional, don't warn if it's not present.
+    if key == 'Setup' then
+      return
+    end
     io.stderr:write(string.format("WARNING: Undefined function '%s'\n",key))
     return function() return "" end
   end
