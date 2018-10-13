@@ -36,9 +36,10 @@ module Text.Pandoc.Lua.StackInstances () where
 
 import Prelude
 import Control.Applicative ((<|>))
-import Control.Monad (when)
 import Data.Data (showConstr, toConstr)
 import Foreign.Lua (Lua, Peekable, Pushable, StackIndex)
+import Foreign.Lua.Userdata ( ensureUserdataMetatable, pushAnyWithMetatable
+                            , metatableName)
 import Text.Pandoc.Definition
 import Text.Pandoc.Extensions (Extensions)
 import Text.Pandoc.Lua.Util (defineHowTo, pushViaConstructor)
@@ -308,24 +309,28 @@ instance Peekable LuaListAttributes where
 --
 instance Pushable Element where
   push (Blk blk) = Lua.push blk
-  push (Sec lvl num attr label contents) = do
-    Lua.newtable
-    LuaUtil.addField "level" lvl
-    LuaUtil.addField "numbering" num
-    LuaUtil.addField "attr" (LuaAttr attr)
-    LuaUtil.addField "label" label
-    LuaUtil.addField "contents" contents
-    pushSecMetaTable
-    Lua.setmetatable (-2)
-      where
-        pushSecMetaTable :: Lua ()
-        pushSecMetaTable = do
-          inexistant <- Lua.newmetatable "PandocElementSec"
-          when inexistant $ do
-            LuaUtil.addField "t" "Sec"
-            Lua.push "__index"
-            Lua.pushvalue (-2)
-            Lua.rawset (-3)
+  push sec = pushAnyWithMetatable pushElementMetatable sec
+   where
+    pushElementMetatable = ensureUserdataMetatable (metatableName sec) $
+                           LuaUtil.addFunction "__index" indexElement
+
+instance Peekable Element where
+  peek idx = Lua.ltype idx >>= \case
+    Lua.TypeUserdata -> Lua.peekAny idx
+    _                -> Blk <$> Lua.peek idx
+
+indexElement :: Element -> String -> Lua Lua.NumResults
+indexElement = \case
+  (Blk _) -> const (1 <$ Lua.pushnil) -- this shouldn't happen
+  (Sec lvl num attr label contents) -> fmap (return 1) . \case
+    "level"     -> Lua.push lvl
+    "numbering" -> Lua.push num
+    "attr"      -> Lua.push (LuaAttr attr)
+    "label"     -> Lua.push label
+    "contents"  -> Lua.push contents
+    "tag"       -> Lua.push "Sec"
+    "t"         -> Lua.push "Sec"
+    _           -> Lua.pushnil
 
 
 --
