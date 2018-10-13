@@ -11,7 +11,7 @@ flags:
 packages:
 - '.'
 extra-deps:
-- pandoc-citeproc-0.14.4
+- pandoc-citeproc-0.14.6
 - skylighting-0.7.2
 - skylighting-core-0.7.2
 - pandoc-types-1.17.5.1
