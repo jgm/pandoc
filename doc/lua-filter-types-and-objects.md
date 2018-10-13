@@ -514,6 +514,36 @@ delimiter
 :   delimiter of list numbers; one of `DeaultDelim`, `Period`,
     `OneParen`, and `TwoParens` (string)
 
+## Hierarchical Element {#Element}
+
+Hierarchical elements can be either *Sec* (sections) or *Blk*
+(blocks). *Blk* elements are treated like [block]s.
+
+### Sec
+
+Section elements used to provide hierarchical information on
+document contents.
+
+**Objects of this type are read-only.***
+
+level
+:   header level (integer)
+
+numbering
+:   section numbering ([list] of integers)
+
+attr
+:   header attributes ([attributes])
+
+label
+:   header content ([list] of [inlines])
+
+contents
+:   list of contents in this section ([list] of hierarchical elements)
+
+t, tag
+:   constant `Sec` (string)
+
 
 [block]: #block
 [blocks]: #block
