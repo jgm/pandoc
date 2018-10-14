@@ -353,6 +353,7 @@ instance Pushable ReaderOptions where
           (abbreviations         :: Set.Set String)
           (defaultImageExtension :: String)
           (trackChanges          :: TrackChanges)
+          (fontAttributes        :: Bool)
           (stripComments         :: Bool)
           = ro
     Lua.newtable
@@ -364,4 +365,5 @@ instance Pushable ReaderOptions where
     LuaUtil.addField "abbreviations" abbreviations
     LuaUtil.addField "defaultImageExtension" defaultImageExtension
     LuaUtil.addField "trackChanges" trackChanges
+    LuaUtil.addValue "fontAttributes" fontAttributes
     LuaUtil.addField "stripComments" stripComments

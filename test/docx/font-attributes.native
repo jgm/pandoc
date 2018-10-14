@@ -1,0 +1,5 @@
+[Para [Str "Normal",Space,Str "paragraph"]
+,Para [Span ("",[],[("font","Courier 10 Pitch")]) [Str "courier",Space,Str "paragraph"]]
+,Para [Span ("",[],[("font","Courier 10 Pitch")]) []]
+,Para [Span ("",[],[("font","Liberation Serif")]) [Str "normal",Space,Str "text"],Space,Span ("",[],[("font","Courier 10 Pitch")]) [Str "this",Space,Str "is",Space,Str "courier"],Space,Span ("",[],[("font","Liberation Serif")]) [Str "starting",Space,Str "font",Space,Str "again"]]
+,Para [Span ("",[],[("font","Liberation Serif")]) []]]
