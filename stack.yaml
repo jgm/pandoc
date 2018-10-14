@@ -19,7 +19,7 @@ packages:
   - foundation
   extra-dep: true
 extra-deps:
-- pandoc-citeproc-0.14.6
+- pandoc-citeproc-0.14.7
 - haddock-library-1.6.0
 - HsYAML-0.1.1.1
 - texmath-0.11.1

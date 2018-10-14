@@ -11,7 +11,7 @@ flags:
 packages:
 - '.'
 extra-deps:
-- pandoc-citeproc-0.14.6
+- pandoc-citeproc-0.14.7
 - ansi-terminal-0.8.0.2
 - tasty-1.0.1.1
 - test-framework-0.8.2.0
