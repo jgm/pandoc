@@ -1586,6 +1586,7 @@ symbol = do
          <|> try (do lookAhead $ char '\\'
                      notFollowedBy' (() <$ rawTeXBlock)
                      char '\\')
+  updateLastStrPos
   return $ return $ B.str [result]
 
 -- parses inline code, between n `s and n `s
@@ -1632,7 +1633,7 @@ enclosure c = do
              3 -> three c
              2 -> two   c mempty
              1 -> one   c mempty
-             _ -> return (return $ B.str cs)
+             _ -> updateLastStrPos >> return (return $ B.str cs)
 
 ender :: PandocMonad m => Char -> Int -> MarkdownParser m ()
 ender c n = try $ do
