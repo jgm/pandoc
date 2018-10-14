@@ -19,6 +19,8 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 -}
 import Prelude
 import Text.Pandoc
+import Text.Pandoc.Error (PandocError(..))
+import Control.Monad.Except (throwError)
 import qualified Text.Pandoc.UTF8 as UTF8
 import qualified Data.ByteString as B
 import Criterion.Main
@@ -37,14 +39,15 @@ readerBench doc name =
                $ nf (\i -> either (error . show) id $ runPure (readerFun i))
                  inp
        Left _ -> Nothing
-  where res = runPure $ do
-          (TextReader r, rexts)
-                     <- either (fail . show) return $ getReader name
-          (TextWriter w, wexts)
-                     <- either (fail . show) return $ getWriter name
-          inp <- w def{ writerWrapText = WrapAuto, writerExtensions = wexts }
-                  doc
-          return (r def{ readerExtensions = rexts }, inp)
+  where res = runPure $
+          case (getReader name, getWriter name) of
+            (Right (TextReader r, rexts),
+             Right (TextWriter w, wexts)) -> do
+               inp <- w def{ writerWrapText = WrapAuto
+                           , writerExtensions = wexts } doc
+               return $ (r def{ readerExtensions = rexts }, inp)
+            _ -> throwError $ PandocSomeError
+                 $ "could not get text reader and writer for " ++ name
 
 writerBench :: Pandoc
             -> String
@@ -55,11 +58,13 @@ writerBench doc name =
           Just $ bench (name ++ " writer")
                $ nf (\d -> either (error . show) id $
                             runPure (writerFun d)) doc
-       _ -> Nothing
+       Left _ -> Nothing
   where res = runPure $ do
-          (TextWriter w, wexts)
-                      <- either (fail . show) return $ getWriter name
-          return $ w def{ writerExtensions = wexts }
+          case (getWriter name) of
+            Right (TextWriter w, wexts) ->
+              return $ w def{ writerExtensions = wexts }
+            _ -> throwError $ PandocSomeError
+                 $ "could not get text reader and writer for " ++ name
 
 main :: IO ()
 main = do
