@@ -16,30 +16,24 @@
 local pipe = pandoc.pipe
 local stringify = (require "pandoc.utils").stringify
 
-local image_format = "png"
-local image_mime_type = "image/png"
+-- The global variable PANDOC_DOCUMENT contains the full AST of
+-- the document which is going to be written. It can be used to
+-- configure the writer.
+local meta = PANDOC_DOCUMENT.meta
 
--- Get the mime type for a given format.
-local function mime_type(img_format)
-  local formats = {
+-- Chose the image format based on the value of the
+-- `image_format` meta value.
+local image_format = meta.image_format
+  and stringify(meta.image_format)
+  or "png"
+local image_mime_type = ({
     jpeg = "image/jpeg",
     jpg = "image/jpeg",
     gif = "image/gif",
     png = "image/png",
     svg = "image/svg+xml",
-  }
-  return formats[img_format]
-    or error("unsupported image format `" .. img_format .. "`")
-end
-
--- Set options from document metadata.
-function Setup(doc)
-  local meta = doc.meta
-  if meta.image_format then
-    image_format = stringify(meta.image_format)
-    image_mime_type = mime_type(image_format)
-  end
-end
+  })[image_format]
+  or error("unsupported image format `" .. img_format .. "`")
 
 -- Character escaping
 local function escape(s, in_attribute)
@@ -352,10 +346,6 @@ end
 local meta = {}
 meta.__index =
   function(_, key)
-    -- Setup is optional, don't warn if it's not present.
-    if key == 'Setup' then
-      return
-    end
     io.stderr:write(string.format("WARNING: Undefined function '%s'\n",key))
     return function() return "" end
   end
