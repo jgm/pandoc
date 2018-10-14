@@ -122,7 +122,7 @@ install:
            cabal install -v1 --disable-optimization --flags="$FLAGS" --enable-tests --force-reinstalls --reorder-goals --max-backjumps=-1 $CABALARGS
            ;;
         *)
-           cabal install --disable-optimization --only-dependencies --flags="$FLAGS" --enable-tests --force-reinstalls --reorder-goals --max-backjumps=-1 $CABALARGS
+           cabal install --disable-optimization --only-dependencies --flags="$FLAGS" --enable-tests --force-reinstalls --reorder-goals --max-backjumps=-1 $CABALARGS .
            ;;
       esac
       ;;
@@ -140,7 +140,7 @@ script:
       cabal sdist --output-directory=sourcedist && \
       cd sourcedist && \
       cabal configure --disable-optimization --enable-tests -v2 --flags="$FLAGS" --ghc-options="$OPTS" $CABALARGS && \
-      cabal build -v2 -j2 && \
+      cabal build -v2 -j2 . && \
       cabal test --test-options="--pattern=\"$TESTPATTERN\""
       ;;
   esac
