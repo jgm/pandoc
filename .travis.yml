@@ -49,7 +49,7 @@ matrix:
     compiler: ": #GHC 8.4.3"
     addons: {apt: {packages: [cabal-install-2.2,ghc-8.4.3,happy-1.19.5], sources: [hvr-ghc]}}
 
-  - env: BUILD=cabal GHCVER=8.6.1 CABALVER=2.4 OPTS="-O0 -Wall -fno-warn-unused-do-bind -Wincomplete-record-updates -Wnoncanonical-monad-instances -Wnoncanonical-monadfail-instances -Wincomplete-uni-patterns -Werror=missing-home-modules -Widentities -Wcpp-undef -Werror" FLAGS="fast embed_data_files" CABALARGS="--enable-benchmarks --allow-newer='haddock-library:base' pandoc" TESTPATTERN="! /Round trip/"
+  - env: BUILD=cabal GHCVER=8.6.1 CABALVER=2.4 OPTS="-O0 -Wall -fno-warn-unused-do-bind -Wincomplete-record-updates -Wnoncanonical-monad-instances -Wnoncanonical-monadfail-instances -Wincomplete-uni-patterns -Werror=missing-home-modules -Widentities -Wcpp-undef -Werror" FLAGS="fast embed_data_files" CABALARGS="--enable-benchmarks --allow-newer=haddock-library:base pandoc" TESTPATTERN="! /Round trip/"
     compiler: ": #GHC 8.6.1"
     addons: {apt: {packages: [cabal-install-2.4,ghc-8.6.1,happy-1.19.5], sources: [hvr-ghc]}}
 
