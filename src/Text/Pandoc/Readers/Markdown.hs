@@ -1717,19 +1717,24 @@ nonEndline = satisfy (/='\n')
 
 str :: PandocMonad m => MarkdownParser m (F Inlines)
 str = do
+  canRelocateSpace <- notAfterString
   result <- many1 (alphaNum <|> try (char '.' <* notFollowedBy (char '.')))
   updateLastStrPos
   (do guardEnabled Ext_smart
       abbrevs <- getOption readerAbbreviations
       if not (null result) && last result == '.' && result `Set.member` abbrevs
          then try (do ils <- whitespace <|> endline
-                      lookAhead alphaNum
+                      -- ?? lookAhead alphaNum
+                      -- replace space after with nonbreaking space
+                      -- if softbreak, move before abbrev if possible (#4635)
                       return $ do
                         ils' <- ils
-                        if ils' == B.space
-                           then return (B.str result <> B.str "\160")
-                           else -- linebreak or softbreak
-                                return (ils' <> B.str result <> B.str "\160"))
+                        case B.toList ils' of
+                             [Space] ->
+                                 return (B.str result <> B.str "\160")
+                             [SoftBreak] | canRelocateSpace ->
+                                 return (ils' <> B.str result <> B.str "\160")
+                             _ -> return (B.str result <> ils'))
                 <|> return (return (B.str result))
          else return (return (B.str result)))
      <|> return (return (B.str result))
