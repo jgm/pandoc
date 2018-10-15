@@ -109,7 +109,7 @@ Block of code.
 :   alias for `attr.classes` ([list] of strings)
 
 `attributes`
-:   alias for `attr.attributes` ([attributes])
+:   alias for `attr.attributes` ([Attributes])
 
 `tag`, `t`
 :   the literal `CodeBlock` (string)
@@ -141,7 +141,7 @@ Generic block container with attributes
 :   alias for `attr.classes` ([list] of strings)
 
 `attributes`
-:   alias for `attr.attributes` ([attributes])
+:   alias for `attr.attributes` ([Attributes])
 
 `tag`, `t`
 :   the literal `Div` (string)
@@ -166,7 +166,7 @@ Creates a header element.
 :   alias for `attr.classes` ([list] of strings)
 
 `attributes`
-:   alias for `attr.attributes` ([attributes])
+:   alias for `attr.attributes` ([Attributes])
 
 `tag`, `t`
 :   the literal `Header` (string)
@@ -307,7 +307,7 @@ Inline code
 :   alias for `attr.classes` ([list] of strings)
 
 `attributes`
-:   alias for `attr.attributes` ([attributes])
+:   alias for `attr.attributes` ([Attributes])
 
 `tag`, `t`
 :   the literal `Code` (string)
@@ -343,7 +343,7 @@ Image:  alt text (list of inlines), target
 :   alias for `attr.classes` ([list] of strings)
 
 `attributes`
-:   alias for `attr.attributes` ([attributes])
+:   alias for `attr.attributes` ([Attributes])
 
 `tag`, `t`
 :   the literal `Image` (string)
@@ -373,7 +373,7 @@ Hyperlink: alt text (list of inlines), target
 :   alias for `attr.classes` ([list] of strings)
 
 `attributes`
-:   alias for `attr.attributes` ([attributes])
+:   alias for `attr.attributes` ([Attributes])
 
 `tag`, `t`
 :   the literal `Link` (string)
@@ -463,7 +463,7 @@ Generic inline container with attributes
 :   alias for `attr.classes` ([list] of strings)
 
 `attributes`
-:   alias for `attr.attributes` ([attributes])
+:   alias for `attr.attributes` ([Attributes])
 
 `tag`, `t`
 :   the literal `Span` (string)
@@ -513,12 +513,27 @@ Superscripted text
 `tag`, `t`
 :   the literal `Superscript` (string)
 
-## Attributes
+## Element components
+
+### Attr
+
+A set of element attributes
+
+`identifier`
+:   element identifier (string)
+
+`classes`
+:   element classes ([list] of strings)
+
+`attributes`
+:   collection of key/value pairs ([Attributes])
+
+### Attributes
 
 List of key/value pairs. Values can be accessed by using keys as
 indices to the list table.
 
-## Citation
+### Citation
 
 Single citation entry
 
@@ -541,7 +556,7 @@ Single citation entry
 `hash`
 :   hash (integer)
 
-## ListAttributes
+### ListAttributes
 List attributes
 
 `start`
@@ -566,7 +581,7 @@ Hierarchical elements can be either *Sec* (sections) or *Blk*
 Section elements used to provide hierarchical information on
 document contents.
 
-**Objects of this type are read-only.***
+**Objects of this type are read-only.**
 
 `level`
 :   header level (integer)
@@ -575,7 +590,7 @@ document contents.
 :   section numbering ([list] of integers)
 
 `attr`
-:   header attributes ([attributes])
+:   header attributes ([Attr])
 
 `label`
 :   header content ([list] of [inlines])
@@ -629,5 +644,5 @@ Pandoc reader options
 [inline]: #inline
 [inlines]: #inline
 [Attr]: #attr
-[attributes]: #attributes
+[Attributes]: #attributes
 [citations]: #citation
