@@ -1506,21 +1506,28 @@ macroDef =
 letmacro :: PandocMonad m => LP m (Text, Macro)
 letmacro = do
   controlSeq "let"
-  Tok _ (CtrlSeq name) _ <- anyControlSeq
-  optional $ symbol '='
-  spaces
-  contents <- bracedOrToken
-  return (name, Macro ExpandWhenDefined [] Nothing contents)
+  (name, contents) <- withVerbatimMode $ do
+    Tok _ (CtrlSeq name) _ <- withVerbatimMode anyControlSeq
+    optional $ symbol '='
+    spaces
+    -- we first parse in verbatim mode, and then expand macros,
+    -- because we don't want \let\foo\bar to turn into
+    -- \let\foo hello if we have previously \def\bar{hello}
+    contents <- bracedOrToken
+    return (name, contents)
+  contents' <- fromMaybe contents <$> doMacros' 0 contents
+  return (name, Macro ExpandWhenDefined [] Nothing contents')
 
 defmacro :: PandocMonad m => LP m (Text, Macro)
-defmacro = try $ do
-  controlSeq "def"
-  Tok _ (CtrlSeq name) _ <- anyControlSeq
-  argspecs <- many (argspecArg <|> argspecPattern)
+defmacro = try $
   -- we use withVerbatimMode, because macros are to be expanded
   -- at point of use, not point of definition
-  contents <- withVerbatimMode bracedOrToken
-  return (name, Macro ExpandWhenUsed argspecs Nothing contents)
+  withVerbatimMode $ do
+    controlSeq "def"
+    Tok _ (CtrlSeq name) _ <- anyControlSeq
+    argspecs <- many (argspecArg <|> argspecPattern)
+    contents <- bracedOrToken
+    return (name, Macro ExpandWhenUsed argspecs Nothing contents)
 
 argspecArg :: PandocMonad m => LP m ArgSpec
 argspecArg = do

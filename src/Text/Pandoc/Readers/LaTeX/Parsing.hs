@@ -49,6 +49,7 @@ module Text.Pandoc.Readers.LaTeX.Parsing
   , toksToString
   , satisfyTok
   , doMacros
+  , doMacros'
   , setpos
   , anyControlSeq
   , anySymbol
@@ -451,22 +452,28 @@ doMacros' n inp = do
       case M.lookup name macros of
            Nothing -> return Nothing
            Just (Macro expansionPoint argspecs optarg newtoks) -> do
-             setInput ts
-             args <- case optarg of
-                          Nothing -> getargs M.empty argspecs
-                          Just o  -> do
-                             x <- option o bracketedToks
-                             getargs (M.singleton 1 x) argspecs
-             -- first boolean param is true if we're tokenizing
-             -- an argument (in which case we don't want to
-             -- expand #1 etc.)
-             ts' <- getInput
-             let result = foldr (addTok False args spos) ts' newtoks
-             case expansionPoint of
-               ExpandWhenUsed    ->
-                  doMacros' (n' + 1) result >>=
-                    maybe (return (Just result)) (return . Just)
-               ExpandWhenDefined -> return $ Just result
+             let getargs' = do
+                   args <- case optarg of
+                             Nothing -> getargs M.empty argspecs
+                             Just o  -> do
+                                x <- option o bracketedToks
+                                getargs (M.singleton 1 x) argspecs
+                   rest <- getInput
+                   return (args, rest)
+             lstate <- getState
+             res <- lift $ runParserT getargs' lstate "args" ts
+             case res of
+               Left _ -> fail $ "Could not parse arguments for " ++
+                                T.unpack name
+               Right (args, rest) -> do
+                 -- first boolean param is true if we're tokenizing
+                 -- an argument (in which case we don't want to
+                 -- expand #1 etc.)
+                 let result = foldr (addTok False args spos) rest newtoks
+                 case expansionPoint of
+                   ExpandWhenUsed    ->
+                      maybe (Just result) Just <$> doMacros' (n' + 1) result
+                   ExpandWhenDefined -> return $ Just result
 
 setpos :: SourcePos -> Tok -> Tok
 setpos spos (Tok _ tt txt) = Tok spos tt txt
