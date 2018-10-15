@@ -1762,6 +1762,8 @@ blockCommands = M.fromList
    , ("input", include "input")
    , ("subfile", include "subfile")
    , ("usepackage", include "usepackage")
+   -- preamble
+   , ("PackageError", mempty <$ (braced >> braced >> braced))
    ]
 
 
