@@ -38,7 +38,9 @@ import Control.Monad (liftM, void)
 import Control.Monad.Except (throwError)
 import Data.Char (isDigit, isUpper, isLower)
 import Data.Default (Default)
+import Data.Functor (($>))
 import Data.Map (insert)
+import Data.Set (Set, singleton, fromList, toList)
 import Data.Maybe (catMaybes, fromMaybe, isNothing)
 import Data.List (intersperse, intercalate)
 import qualified Data.Text as T
@@ -57,8 +59,7 @@ import Text.Parsec.Pos (updatePosString)
 --
 -- Data Types
 --
-
-data FontKind = Regular | Italic | Bold | ItalicBold deriving Show
+data FontKind = Bold | Italic | Monospace | Regular deriving (Show, Eq, Ord)
 
 data MacroKind = KTitle
                | KCodeBlStart
@@ -68,7 +69,9 @@ data MacroKind = KTitle
                | KSubTab
                deriving (Show, Eq)
 
-type RoffStr = (String, FontKind)
+type Font = Set FontKind
+
+type RoffStr = (String, Font)
 
 data ManToken = MStr RoffStr
               | MLine [RoffStr]
@@ -80,16 +83,16 @@ data ManToken = MStr RoffStr
               | MComment String
               deriving Show
 
-data EscapeThing = EFont FontKind
+data EscapeThing = EFont Font
                  | EChar Char
                  | ENothing
                  deriving Show
 
-data RoffState = RoffState { fontKind :: FontKind
+data RoffState = RoffState { fontKind :: Font
                            } deriving Show
 
 instance Default RoffState where
-  def = RoffState {fontKind = Regular}
+  def = RoffState {fontKind = singleton Regular}
 
 type ManLexer m = ParserT [Char] RoffState m
 type ManParser m = ParserT [ManToken] ParserState m
@@ -197,22 +200,29 @@ escapeLexer = do
   escFont :: PandocMonad m => ManLexer m EscapeThing
   escFont = do
     char 'f'
-    font <- choice [ letterFont
-          , char '(' >> anyChar >> anyChar >> return Regular
-          , try (char '[' >> letterFont >>= \f -> char ']'  >> return f)
-          , try $ string "[BI]" >> return ItalicBold
-          , char '[' >> many letter >> char ']'  >> return Regular
-          , digit >> return Regular
+    font <- choice [ singleton <$> letterFontKind
+          , char '(' >> anyChar >> anyChar >> return (singleton Regular)
+          , try lettersFont
+          , digit >> return (singleton Regular)
           ]
     modifyState (\r -> r {fontKind = font})
     return $ EFont font
 
     where
 
-    letterFont :: PandocMonad m => ManLexer m FontKind
-    letterFont = choice [
+    lettersFont :: PandocMonad m => ManLexer m Font
+    lettersFont = do
+      char '['
+      fs <- many letterFontKind 
+      many letter
+      char ']'
+      return $ fromList fs
+
+    letterFontKind :: PandocMonad m => ManLexer m FontKind
+    letterFontKind = choice [
         char 'B' >> return Bold
       , char 'I' >> return Italic
+      , char 'C' >> return Monospace
       , (char 'P' <|> char 'R') >> return Regular
       ]
 
@@ -223,7 +233,7 @@ escapeLexer = do
     logOutput $ SkippedContent ("Unknown escape sequence \\" ++ [c]) pos
     return ENothing
 
-currentFont :: PandocMonad m => ManLexer m FontKind
+currentFont :: PandocMonad m => ManLexer m Font
 currentFont = fontKind <$> getState
 
 -- separate function from lexMacro since real man files sometimes do not follow the rules
@@ -253,10 +263,10 @@ lexMacro = do
               "RS"   -> knownMacro KSubTab
               "nf"   -> knownMacro KCodeBlStart
               "fi"   -> knownMacro KCodeBlEnd
-              "B"    -> MStr (joinedArgs,Bold)
+              "B"    -> MStr (joinedArgs, singleton Bold)
               "BR"   -> MMaybeLink joinedArgs
-              x | x `elem` ["BI", "IB"] -> MStr (joinedArgs, ItalicBold)
-              x | x `elem` ["I", "IR", "RI"]  -> MStr (joinedArgs, Italic)
+              x | x `elem` ["BI", "IB"] -> MStr (joinedArgs, fromList [Italic, Bold])
+              x | x `elem` ["I", "IR", "RI"]  -> MStr (joinedArgs, singleton Italic)
               "SH"   -> MHeader 2 args
               "SS"   -> MHeader 3 args
               x | x `elem` [ "P", "PP", "LP", "sp"] -> MEmptyLine
@@ -314,7 +324,7 @@ lexLine = do
   return $ MLine $ catMaybes lnparts
   where
 
-  esc :: PandocMonad m => ManLexer m (Maybe (String, FontKind))
+  esc :: PandocMonad m => ManLexer m (Maybe (String, Font))
   esc = do
     someesc <- escapeLexer
     font <- currentFont
@@ -323,7 +333,7 @@ lexLine = do
                _ -> Nothing
     return rv
 
-  linePart :: PandocMonad m => ManLexer m (Maybe (String, FontKind))
+  linePart :: PandocMonad m => ManLexer m (Maybe (String, Font))
   linePart = do
     lnpart <- many1 $ noneOf "\n\\"
     font <- currentFont
@@ -424,10 +434,15 @@ parseSkippedContent = do
   onToken _ = return ()
 
 strToInline :: RoffStr -> Inline
-strToInline (s, Regular) = Str s
-strToInline (s, Italic) = Emph [Str s]
-strToInline (s, Bold) = Strong [Str s]
-strToInline (s, ItalicBold) = Strong [Emph [Str s]]
+strToInline (s, fonts) = inner $ toList fonts where
+  inner :: [FontKind] -> Inline
+  inner [] = Str s
+  inner (Bold:fs) = Strong [inner fs]
+  inner (Italic:fs) = Emph [inner fs]
+
+  -- Monospace goes after Bold and Italic in ordered set
+  inner (Monospace:_) = Code nullAttr s
+  inner (Regular:fs) = inner fs
 
 parsePara :: PandocMonad m => ManParser m Block
 parsePara = Para <$> parseInlines
