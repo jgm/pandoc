@@ -398,63 +398,70 @@ doMacros n = do
          Tok spos (CtrlSeq name) _ : ts
             -> handleMacros spos name ts
          _ -> return ()
-  where combineTok (Tok spos (CtrlSeq name) x) (Tok _ Word w : ts)
-          | T.all isLetterOrAt w =
-            Tok spos (CtrlSeq (name <> w)) (x1 <> w <> x2) : ts
-              where (x1, x2) = T.break isSpaceOrTab x
-        combineTok t ts = t:ts
-        matchTok (Tok _ toktype txt) =
-          satisfyTok (\(Tok _ toktype' txt') ->
-                        toktype == toktype' &&
-                        txt == txt')
-        matchPattern toks = try $ mapM_ matchTok toks
-        getargs argmap [] = return argmap
-        getargs argmap (Pattern toks : rest) = try $ do
-           matchPattern toks
-           getargs argmap rest
-        getargs argmap (ArgNum i : Pattern toks : rest) =
-          try $ do
-            x <- mconcat <$> manyTill
-                  (braced <|> ((:[]) <$> anyTok))
-                  (matchPattern toks)
-            getargs (M.insert i x argmap) rest
-        getargs argmap (ArgNum i : rest) = do
-          x <- try $ spaces >> bracedOrToken
-          getargs (M.insert i x argmap) rest
-        handleMacros spos name ts = do
-                macros <- sMacros <$> getState
-                case M.lookup name macros of
-                     Nothing -> return ()
-                     Just (Macro expansionPoint argspecs optarg newtoks) -> do
-                       setInput ts
-                       args <- case optarg of
-                                    Nothing -> getargs M.empty argspecs
-                                    Just o  -> do
-                                       x <- option o bracketedToks
-                                       getargs (M.singleton 1 x) argspecs
-                       -- first boolean param is true if we're tokenizing
-                       -- an argument (in which case we don't want to
-                       -- expand #1 etc.)
-                       let addTok False (Tok _ (Arg i) _) acc =
-                              case M.lookup i args of
-                                   Nothing -> mzero
-                                   Just xs -> foldr (addTok True) acc xs
-                           -- see #4007
-                           addTok _ (Tok _ (CtrlSeq x) txt)
-                                  acc@(Tok _ Word _ : _)
-                             | not (T.null txt)
-                             , isLetter (T.last txt) =
-                               Tok spos (CtrlSeq x) (txt <> " ") : acc
-                           addTok _ t acc = setpos spos t : acc
-                       ts' <- getInput
-                       setInput $ foldr (addTok False) ts' newtoks
 
-                       case expansionPoint of
-                            ExpandWhenUsed ->
-                              if n > 20  -- detect macro expansion loops
-                                 then throwError $ PandocMacroLoop (T.unpack name)
-                                 else doMacros (n + 1)
-                            ExpandWhenDefined -> return ()
+  where
+    combineTok (Tok spos (CtrlSeq name) x) (Tok _ Word w : ts)
+      | T.all isLetterOrAt w =
+        Tok spos (CtrlSeq (name <> w)) (x1 <> w <> x2) : ts
+          where (x1, x2) = T.break isSpaceOrTab x
+    combineTok t ts = t:ts
+
+    matchTok (Tok _ toktype txt) =
+      satisfyTok (\(Tok _ toktype' txt') ->
+                    toktype == toktype' &&
+                    txt == txt')
+
+    matchPattern toks = try $ mapM_ matchTok toks
+
+    getargs argmap [] = return argmap
+    getargs argmap (Pattern toks : rest) = try $ do
+       matchPattern toks
+       getargs argmap rest
+    getargs argmap (ArgNum i : Pattern toks : rest) =
+      try $ do
+        x <- mconcat <$> manyTill
+              (braced <|> ((:[]) <$> anyTok))
+              (matchPattern toks)
+        getargs (M.insert i x argmap) rest
+    getargs argmap (ArgNum i : rest) = do
+      x <- try $ spaces >> bracedOrToken
+      getargs (M.insert i x argmap) rest
+
+    addTok False args spos (Tok _ (Arg i) _) acc =
+       case M.lookup i args of
+            Nothing -> mzero
+            Just xs -> foldr (addTok True args spos) acc xs
+    -- see #4007
+    addTok _ _ spos (Tok _ (CtrlSeq x) txt)
+           acc@(Tok _ Word _ : _)
+      | not (T.null txt)
+      , isLetter (T.last txt) =
+        Tok spos (CtrlSeq x) (txt <> " ") : acc
+    addTok _ _ spos t acc = setpos spos t : acc
+
+    handleMacros spos name ts = do
+      macros <- sMacros <$> getState
+      case M.lookup name macros of
+           Nothing -> return ()
+           Just (Macro expansionPoint argspecs optarg newtoks) -> do
+             setInput ts
+             args <- case optarg of
+                          Nothing -> getargs M.empty argspecs
+                          Just o  -> do
+                             x <- option o bracketedToks
+                             getargs (M.singleton 1 x) argspecs
+             -- first boolean param is true if we're tokenizing
+             -- an argument (in which case we don't want to
+             -- expand #1 etc.)
+             ts' <- getInput
+             setInput $ foldr (addTok False args spos) ts' newtoks
+
+             case expansionPoint of
+                  ExpandWhenUsed ->
+                    if n > 20  -- detect macro expansion loops
+                       then throwError $ PandocMacroLoop (T.unpack name)
+                       else doMacros (n + 1)
+                  ExpandWhenDefined -> return ()
 
 
 setpos :: SourcePos -> Tok -> Tok
