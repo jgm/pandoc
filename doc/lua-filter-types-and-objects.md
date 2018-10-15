@@ -4,10 +4,10 @@
 
 ## Pandoc
 
-blocks
+`blocks`
 :   document content ([list] of [blocks])
 
-meta
+`meta`
 :   document meta information ([Meta] object)
 
 
@@ -28,7 +28,7 @@ A list of blocks usable as meta value ([list] of [blocks])
 
 Fields:
 
-tag, t
+`tag`, `t`
 :   the literal `MetaBlocks` (string)
 
 ### MetaBool
@@ -41,7 +41,7 @@ List of inlines used in metadata ([list] of [inline]s)
 
 Fields:
 
-tag, t
+`tag`, `t`
 :   the literal `MetaInlines` (string)
 
 ### MetaList
@@ -50,7 +50,7 @@ A list of other [meta value]s. ([list])
 
 Fields:
 
-tag, t
+`tag`, `t`
 :   the literal `MetaList` (string)
 
 ### MetaMap
@@ -59,7 +59,7 @@ A string-indexed map of meta-values. (table)
 
 Fields:
 
-tag, t
+`tag`, `t`
 :   the literal `MetaMap` (string)
 
 *Note*: The fields will be shadowed if the map contains a field
@@ -79,96 +79,96 @@ A block quote element
 content:
 :   block content ([list] of [blocks])
 
-tag, t
+`tag`, `t`
 :   the literal `BlockQuote` (string)
 
 ### BulletList
 
 A bullet list
 
-content
+`content`
 :   list of items ([list] of [blocks])
 
-tag, t
+`tag`, `t`
 :   the literal `BulletList` (string)
 
 ### CodeBlock
 
 Block of code.
 
-text
+`text`
 :   code string (string)
 
-attr
+`attr`
 :   element attributes (Attr)
 
-identifier
+`identifier`
 :   alias for `attr.identifier` (string)
 
-classes
+`classes`
 :   alias for `attr.classes` ([list] of strings)
 
-attributes
+`attributes`
 :   alias for `attr.attributes` ([attributes])
 
-tag, t
+`tag`, `t`
 :   the literal `CodeBlock` (string)
 
 ### DefinitionList
 
 Definition list, containing terms and their explanation.
 
-content
+`content`
 :   list of items
 
-tag, t
+`tag`, `t`
 :   the literal `DefinitionList` (string)
 
 ### Div
 
 Generic block container with attributes
 
-content
+`content`
 :   block content ([list] of [blocks])
 
-attr
+`attr`
 :   element attributes (Attr)
 
-identifier
+`identifier`
 :   alias for `attr.identifier` (string)
 
-classes
+`classes`
 :   alias for `attr.classes` ([list] of strings)
 
-attributes
+`attributes`
 :   alias for `attr.attributes` ([attributes])
 
-tag, t
+`tag`, `t`
 :   the literal `Div` (string)
 
 ### Header
 
 Creates a header element.
 
-level
+`level`
 :   header level (integer)
 
-content
+`content`
 :   inline content ([list] of [inlines])
 
-attr
+`attr`
 :   element attributes (Attr)
 
-identifier
+`identifier`
 :   alias for `attr.identifier` (string)
 
-classes
+`classes`
 :   alias for `attr.classes` ([list] of strings)
 
-attributes
+`attributes`
 :   alias for `attr.attributes` ([attributes])
 
-tag, t
+`tag`, `t`
 :   the literal `Header` (string)
 
 
@@ -176,7 +176,7 @@ tag, t
 
 A horizontal rule.
 
-tag, t
+`tag`, `t`
 :   the literal `HorizontalRule` (string)
 
 ### LineBlock
@@ -184,10 +184,10 @@ tag, t
 A line block, i.e. a list of lines, each separated from the next
 by a newline.
 
-content
+`content`
 :   inline content
 
-tag, t
+`tag`, `t`
 :   the literal `LineBlock` (string)
 
 ### Null
@@ -195,7 +195,7 @@ tag, t
 A null element; this element never produces any output in the
 target format.
 
-tag, t
+`tag`, `t`
 :   the literal `Null` (string)
 
 ### OrderedList
@@ -204,55 +204,55 @@ An ordered list.
 
 Parameters:
 
-items
+`items`
 :   list items ([list] of [blocks])
 
-listAttributes
+`listAttributes`
 :   list parameters (ListAttributes)
 
-start
+`start`
 :   alias for `listAttributes.start` (integer)
 
-style
+`style`
 :   alias for `listAttributes.style` (string)
 
-delimiter
+`delimiter`
 :   alias for `listAttributes.delimiter` (string)
 
-tag, t
+`tag`, `t`
 :   the literal `OrderedList` (string)
 
 ### Para
 
 A paragraph
 
-content
+`content`
 :   inline content ([list] of [inlines])
 
-tag, t
+`tag`, `t`
 :   the literal `Para` (string)
 
 ### Plain
 
 Plain text, not a paragraph
 
-content
+`content`
 :   inline content ([list] of [inlines])
 
-tag, t
+`tag`, `t`
 :   the literal `Plain` (string)
 
 ### RawBlock
 
 Raw content of a specified format.
 
-format
+`format`
 :   format of content (string)
 
-text
+`text`
 :   raw content (string)
 
-tag, t
+`tag`, `t`
 :   the literal `RawBlock` (string)
 
 ### Table
@@ -268,13 +268,13 @@ aligns:
 widths:
 :   column widths
 
-headers
+`headers`
 :   header row
 
 rows:
 :   table rows
 
-tag, t
+`tag`, `t`
 :   the literal `Table` (string)
 
 ## Inline
@@ -282,235 +282,235 @@ tag, t
 ### Cite
 Citation
 
-content
+`content`
 :   ([list] of [inlines])
 
-citations
+`citations`
 :   citation entries ([list] of [citations])
 
-tag, t
+`tag`, `t`
 :   the literal `Cite` (string)
 
 ### Code
 Inline code
 
-text
+`text`
 :   code string (string)
 
-attr
+`attr`
 :   attributes ([Attr])
 
-identifier
+`identifier`
 :   alias for `attr.identifier` (string)
 
-classes
+`classes`
 :   alias for `attr.classes` ([list] of strings)
 
-attributes
+`attributes`
 :   alias for `attr.attributes` ([attributes])
 
-tag, t
+`tag`, `t`
 :   the literal `Code` (string)
 
 ### Emph
 Emphasized text
 
-content
+`content`
 :   inline content ([list] of [inlines])
 
-tag, t
+`tag`, `t`
 :   the literal `Emph` (string)
 
 ### Image
 Image:  alt text (list of inlines), target
 
-attr
+`attr`
 :   attributes ([Attr])
 
-caption
+`caption`
 :   text used to describe the image ([list] of [inlines])
 
-src
+`src`
 :   path to the image file (string)
 
-title
+`title`
 :   brief image description
 
-identifier
+`identifier`
 :   alias for `attr.identifier` (string)
 
-classes
+`classes`
 :   alias for `attr.classes` ([list] of strings)
 
-attributes
+`attributes`
 :   alias for `attr.attributes` ([attributes])
 
-tag, t
+`tag`, `t`
 :   the literal `Image` (string)
 
 ### LineBreak
 Hard line break
 
-tag, t
+`tag`, `t`
 :   the literal `LineBreak` (string)
 
 ### Link
 Hyperlink: alt text (list of inlines), target
 
-attr
+`attr`
 :   attributes ([Attr])
 
-content
+`content`
 :   text for this link ([list] of [inlines])
 
-target
+`target`
 :   the link target (string)
 
-identifier
+`identifier`
 :   alias for `attr.identifier` (string)
 
-classes
+`classes`
 :   alias for `attr.classes` ([list] of strings)
 
-attributes
+`attributes`
 :   alias for `attr.attributes` ([attributes])
 
-tag, t
+`tag`, `t`
 :   the literal `Link` (string)
 
 ### Math
 TeX math (literal)
 
-mathype
+`mathype`
 :   specifier determining whether the math content should be
     shown inline (`InlineMath`) or on a separate line
     (`DisplayMath`) (string)
 
-text
+`text`
 :   math content (string)
 
-tag, t
+`tag`, `t`
 :   the literal `Math` (string)
 
 ### Note
 Footnote or endnote
 
-content
+`content`
 :   ([list] of [blocks])
 
-tag, t
+`tag`, `t`
 :   the literal `Note` (string)
 
 ### Quoted
 Quoted text
 
-quotetype
+`quotetype`
 :   type of quotes to be used; one of `SingleQuote` or
     `DoubleQuote` (string)
 
-content
+`content`
 :   quoted text ([list] of [inlines])
 
-tag, t
+`tag`, `t`
 :   the literal `Quoted` (string)
 
 ### RawInline
 Raw inline
 
-format
+`format`
 :   the format of the content (string)
 
-text
+`text`
 :   raw content (string)
 
-tag, t
+`tag`, `t`
 :   the literal `RawInline` (string)
 
 ### SmallCaps
 Small caps text
 
-content
+`content`
 :   ([list] of [inlines])
 
-tag, t
+`tag`, `t`
 :   the literal `SmallCaps` (string)
 
 ### SoftBreak
 Soft line break
 
-tag, t
+`tag`, `t`
 :   the literal `SoftBreak` (string)
 
 ### Space
 Inter-word space
 
-tag, t
+`tag`, `t`
 :   the literal `Space` (string)
 
 ### Span
 Generic inline container with attributes
 
-attr
+`attr`
 :   attributes ([Attr])
 
-content
+`content`
 :   wrapped content ([list] of [inlines])
 
-identifier
+`identifier`
 :   alias for `attr.identifier` (string)
 
-classes
+`classes`
 :   alias for `attr.classes` ([list] of strings)
 
-attributes
+`attributes`
 :   alias for `attr.attributes` ([attributes])
 
-tag, t
+`tag`, `t`
 :   the literal `Span` (string)
 
 ### Str
 Text
 
-text
+`text`
 :   content (string)
 
-tag, t
+`tag`, `t`
 :   the literal `Str` (string)
 
 ### Strikeout
 Strikeout text
 
-content
+`content`
 :   inline content ([list] of [inlines])
 
-tag, t
+`tag`, `t`
 :   the literal `Strikeout` (string)
 
 ### Strong
 Strongly emphasized text
 
-content
+`content`
 :   inline content ([list] of [inlines])
 
-tag, t
+`tag`, `t`
 :   the literal `Strong` (string)
 
 ### Subscript
 Subscripted text
 
-content
+`content`
 :   inline content ([list] of [inlines])
 
-tag, t
+`tag`, `t`
 :   the literal `Subscript` (string)
 
 ### Superscript
 Superscripted text
 
-content
+`content`
 :   inline content ([list] of [inlines])
 
-tag, t
+`tag`, `t`
 :   the literal `Superscript` (string)
 
 ## Attributes
@@ -522,37 +522,37 @@ indices to the list table.
 
 Single citation entry
 
-id
+`id`
 :   citation identifier, e.g., a bibtex key (string)
 
-mode
+`mode`
 :   citation mode, one of `AuthorInText`, `SuppressAuthor`, or
     `NormalCitation` (string)
 
-prefix
+`prefix`
 :   citation prefix ([list] of [inlines])
 
-suffix
+`suffix`
 :   citation suffix ([list] of [inlines])
 
-note_num
+`note_num`
 :   note number (integer)
 
-hash
+`hash`
 :   hash (integer)
 
 ## ListAttributes
 List attributes
 
-start
+`start`
 :   number of the first list item (integer)
 
-style
+`style`
 :   style used for list numbers; possible values are `DefaultStyle`,
     `Example`, `Decimal`, `LowerRoman`, `UpperRoman`,
     `LowerAlpha`, and `UpperAlpha` (string)
 
-delimiter
+`delimiter`
 :   delimiter of list numbers; one of `DefaultDelim`, `Period`,
     `OneParen`, and `TwoParens` (string)
 
@@ -568,57 +568,57 @@ document contents.
 
 **Objects of this type are read-only.***
 
-level
+`level`
 :   header level (integer)
 
-numbering
+`numbering`
 :   section numbering ([list] of integers)
 
-attr
+`attr`
 :   header attributes ([attributes])
 
-label
+`label`
 :   header content ([list] of [inlines])
 
-contents
+`contents`
 :   list of contents in this section ([list] of hierarchical elements)
 
-t, tag
+`tag`, `t`
 :   constant `Sec` (string)
 
 ## ReaderOptions
 
 Pandoc reader options
 
-abbreviations
+`abbreviations`
 :   set of known abbreviations (set of strings)
 
-columns
+`columns`
 :   number of columns in terminal (integer)
 
-default_image_extension
+`default_image_extension`
 :   default extension for images (string)
 
-extensions
+`extensions`
 :   string representation of the syntax extensions bit field
     (string)
 
-indented_code_classes
+`indented_code_classes`
 :   default classes for indented code blocks (list of strings)
 
-standalone
+`standalone`
 :   whether the input was a standalone document with header
     (boolean)
 
-strip_comments
+`strip_comments`
 :   HTML comments are stripped instead of parsed as raw HTML
     (boolean)
 
-tab_stop
+`tab_stop`
 :   width (i.e. equivalent number of spaces) of tab stops
     (integer)
 
-track_changes
+`track_changes`
 :   track changes setting for docx; one of `AcceptChanges`,
     `RejectChanges`, and `AllChanges` (string)
 
