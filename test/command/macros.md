@@ -105,3 +105,21 @@ x &= y\\\end{aligned}\]
 \newcommand{\my}{\emph{a}}
 \emph{a}
 ```
+
+<https://tex.stackexchange.com/questions/258/what-is-the-difference-between-let-and-def>
+
+```
+% pandoc -f latex -t plain
+\def\bar{hello}
+\let\fooi\bar
+\def\fooii{\bar}
+\fooi +\fooii
+
+\def\bar{goodbye}
+\fooi +\fooii
+^D
+hello+hello
+
+hello+goodbye
+```
+
