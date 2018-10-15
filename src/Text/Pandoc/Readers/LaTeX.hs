@@ -1524,14 +1524,14 @@ defmacro = try $ do
 
 argspecArg :: PandocMonad m => LP m ArgSpec
 argspecArg = do
-  Tok _ (Arg i) _ <- satisfyTok isArgTok
+  Tok _ (Arg i) _ <- withVerbatimMode $ satisfyTok isArgTok
   return $ ArgNum i
 
 argspecPattern :: PandocMonad m => LP m ArgSpec
-argspecPattern =
+argspecPattern = withVerbatimMode $
   Pattern <$> many1 (satisfyTok (\(Tok _ toktype' txt) ->
-                                    (toktype' == Symbol || toktype' == Word) &&
-                                    (txt /= "{" && txt /= "\\" && txt /= "}")))
+                              (toktype' == Symbol || toktype' == Word) &&
+                              (txt /= "{" && txt /= "\\" && txt /= "}")))
 
 newcommand :: PandocMonad m => LP m (Text, Macro)
 newcommand = do
