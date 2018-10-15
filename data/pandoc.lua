@@ -267,7 +267,12 @@ M.MetaInlines = M.MetaValue:create_constructor(
 -- @tparam {MetaValue,...} meta_values list of meta values
 M.MetaList = M.MetaValue:create_constructor(
   'MetaList',
-  function (content) return ensureList(content) end
+  function (content)
+    if content.tag == 'MetaList' then
+      return content
+    end
+    return ensureList(content)
+  end
 )
 
 --- Meta map
