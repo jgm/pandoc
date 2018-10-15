@@ -31,10 +31,10 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 Conversion of man to 'Pandoc' document.
 -}
-module Text.Pandoc.Readers.Man (readMan) where --testFile
+module Text.Pandoc.Readers.Man (readMan) where
 
 import Prelude
-import Control.Monad (liftM)
+import Control.Monad (liftM, void)
 import Control.Monad.Except (throwError)
 import Data.Char (isDigit, isUpper, isLower)
 import Data.Default (Default)
@@ -123,13 +123,11 @@ readMan :: PandocMonad m => ReaderOptions -> T.Text -> m Pandoc
 readMan opts txt = do
   eithertokens <- readWithM lexMan def (T.unpack $ crFilter txt)
   case eithertokens of
+    Left e       -> throwError e
     Right tokenz -> do
       let state = def {stateOptions = opts} :: ParserState
       eitherdoc <- readWithMTokens parseMan state tokenz
-      case eitherdoc of
-        Right doc -> return doc
-        Left e -> throwError e
-    Left e       -> throwError e
+      either throwError return eitherdoc
 
   where
 
@@ -139,7 +137,8 @@ readMan opts txt = do
           -> [ManToken]                       -- ^ input
           -> m (Either PandocError a)
   readWithMTokens parser state input =
-    mapLeft (PandocParsecError . (intercalate "\n") $ show <$> input) `liftM` runParserT parser state "source" input
+    let leftF = PandocParsecError . (intercalate "\n") $ show <$> input
+    in mapLeft leftF `liftM` runParserT parser state "source" input
 
   mapLeft :: (a -> c) -> Either a b -> Either c b
   mapLeft f (Left x) = Left $ f x
@@ -166,12 +165,12 @@ parseMan = do
   isNull _    = False
 
 eofline :: Stream s m Char => ParsecT s u m ()
-eofline = (newline >> return ()) <|> eof
+eofline = void newline <|> eof
 
 spacetab :: Stream s m Char => ParsecT s u m Char
 spacetab = char ' ' <|> char '\t'
 
--- TODO handle more cases
+-- TODO add other sequences from man (7) groff
 escapeLexer :: PandocMonad m => ManLexer m EscapeThing
 escapeLexer = do
   char '\\'
@@ -225,9 +224,7 @@ escapeLexer = do
     return ENothing
 
 currentFont :: PandocMonad m => ManLexer m FontKind
-currentFont = do
-  RoffState {fontKind = fk} <- getState
-  return fk
+currentFont = fontKind <$> getState
 
 -- separate function from lexMacro since real man files sometimes do not follow the rules
 lexComment :: PandocMonad m => ManLexer m ManToken
