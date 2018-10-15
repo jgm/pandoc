@@ -403,30 +403,30 @@ doMacros n = do
             Tok spos (CtrlSeq (name <> w)) (x1 <> w <> x2) : ts
               where (x1, x2) = T.break isSpaceOrTab x
         combineTok t ts = t:ts
+        matchTok (Tok _ toktype txt) =
+          satisfyTok (\(Tok _ toktype' txt') ->
+                        toktype == toktype' &&
+                        txt == txt')
+        matchPattern toks = try $ mapM_ matchTok toks
+        getargs argmap [] = return argmap
+        getargs argmap (Pattern toks : rest) = try $ do
+           matchPattern toks
+           getargs argmap rest
+        getargs argmap (ArgNum i : Pattern toks : rest) =
+          try $ do
+            x <- mconcat <$> manyTill
+                  (braced <|> ((:[]) <$> anyTok))
+                  (matchPattern toks)
+            getargs (M.insert i x argmap) rest
+        getargs argmap (ArgNum i : rest) = do
+          x <- try $ spaces >> bracedOrToken
+          getargs (M.insert i x argmap) rest
         handleMacros spos name ts = do
                 macros <- sMacros <$> getState
                 case M.lookup name macros of
                      Nothing -> return ()
                      Just (Macro expansionPoint argspecs optarg newtoks) -> do
                        setInput ts
-                       let matchTok (Tok _ toktype txt) =
-                             satisfyTok (\(Tok _ toktype' txt') ->
-                                           toktype == toktype' &&
-                                           txt == txt')
-                       let matchPattern toks = try $ mapM_ matchTok toks
-                       let getargs argmap [] = return argmap
-                           getargs argmap (Pattern toks : rest) = try $ do
-                              matchPattern toks
-                              getargs argmap rest
-                           getargs argmap (ArgNum i : Pattern toks : rest) =
-                             try $ do
-                               x <- mconcat <$> manyTill
-                                     (braced <|> ((:[]) <$> anyTok))
-                                     (matchPattern toks)
-                               getargs (M.insert i x argmap) rest
-                           getargs argmap (ArgNum i : rest) = do
-                             x <- try $ spaces >> bracedOrToken
-                             getargs (M.insert i x argmap) rest
                        args <- case optarg of
                                     Nothing -> getargs M.empty argspecs
                                     Just o  -> do
@@ -442,12 +442,13 @@ doMacros n = do
                            -- see #4007
                            addTok _ (Tok _ (CtrlSeq x) txt)
                                   acc@(Tok _ Word _ : _)
-                             | not (T.null txt) &&
-                               isLetter (T.last txt) =
+                             | not (T.null txt)
+                             , isLetter (T.last txt) =
                                Tok spos (CtrlSeq x) (txt <> " ") : acc
                            addTok _ t acc = setpos spos t : acc
                        ts' <- getInput
                        setInput $ foldr (addTok False) ts' newtoks
+
                        case expansionPoint of
                             ExpandWhenUsed ->
                               if n > 20  -- detect macro expansion loops
