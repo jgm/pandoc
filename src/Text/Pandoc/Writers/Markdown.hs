@@ -847,6 +847,13 @@ blockListToMarkdown opts blocks = do
            Plain ils : fixBlocks bs
       fixBlocks (Plain ils : bs) =
            Para ils : fixBlocks bs
+      fixBlocks (r@(RawBlock f raw) : b : bs)
+        | not (null raw)
+        , last raw /= '\n' =
+        case b of
+             Plain{}    -> r : fixBlocks (b:bs)
+             RawBlock{} -> r : fixBlocks (b:bs)
+             _          -> RawBlock f (raw ++ "\n") : fixBlocks (b:bs) -- #4629
       fixBlocks (x : xs)             = x : fixBlocks xs
       fixBlocks []                   = []
       isListBlock (BulletList _)     = True

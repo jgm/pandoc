@@ -4,6 +4,7 @@
 $\my+\my$
 ^D
 \newcommand{\my}{\phi}
+
 $\phi+\phi$
 ```
 
@@ -13,6 +14,7 @@ $\phi+\phi$
 $\my+\my$
 ^D
 \newcommand{\my}{\phi}
+
 $\my+\my$
 ```
 
@@ -75,6 +77,7 @@ x &= y\\\end{aligned}\]
 \end{equation}
 ^D
 \newcommand{\my}{\phi}
+
 \begin{equation}
 \phi+\phi
 \end{equation}
@@ -88,6 +91,7 @@ x &= y\\\end{aligned}\]
 \end{equation}
 ^D
 \newcommand{\my}{\phi}
+
 \begin{equation}
 \my+\my
 \end{equation}
