@@ -143,6 +143,7 @@ data LaTeXState = LaTeXState{ sOptions       :: ReaderOptions
                             , sLabels        :: M.Map String [Inline]
                             , sHasChapters   :: Bool
                             , sToggles       :: M.Map String Bool
+                            , sExpanded      :: Bool
                             }
      deriving Show
 
@@ -164,6 +165,7 @@ defaultLaTeXState = LaTeXState{ sOptions       = def
                               , sLabels        = M.empty
                               , sHasChapters   = False
                               , sToggles       = M.empty
+                              , sExpanded      = False
                               }
 
 instance PandocMonad m => HasQuoteContext LaTeXState m where
@@ -249,8 +251,7 @@ rawLaTeXParser retokenize parser valParser = do
 applyMacros :: (PandocMonad m, HasMacros s, HasReaderOptions s)
             => String -> ParserT String s m String
 applyMacros s = (guardDisabled Ext_latex_macros >> return s) <|>
-   do let retokenize = doMacros *>
-             (toksToString <$> many (satisfyTok (const True)))
+   do let retokenize = toksToString <$> many (satisfyTok (const True))
       pstate <- getState
       let lstate = def{ sOptions = extractReaderOptions pstate
                       , sMacros  = extractMacros pstate }
@@ -258,6 +259,7 @@ applyMacros s = (guardDisabled Ext_latex_macros >> return s) <|>
       case res of
            Left e   -> fail (show e)
            Right s' -> return s'
+
 tokenize :: SourceName -> Text -> [Tok]
 tokenize sourcename = totoks (initialPos sourcename)
 
@@ -371,11 +373,10 @@ toksToString :: [Tok] -> String
 toksToString = T.unpack . untokenize
 
 satisfyTok :: PandocMonad m => (Tok -> Bool) -> LP m Tok
-satisfyTok f =
-  try $ do
-    res <- tokenPrim (T.unpack . untoken) updatePos matcher
+satisfyTok f = do
     doMacros -- apply macros on remaining input stream
-    return res
+    updateState $ \st -> st{ sExpanded = False }
+    tokenPrim (T.unpack . untoken) updatePos matcher
   where matcher t | f t       = Just t
                   | otherwise = Nothing
         updatePos :: SourcePos -> Tok -> [Tok] -> SourcePos
@@ -384,12 +385,14 @@ satisfyTok f =
 
 doMacros :: PandocMonad m => LP m ()
 doMacros = do
+  expanded <- sExpanded <$> getState
   verbatimMode <- sVerbatimMode <$> getState
-  unless verbatimMode $ do
-    mbNewInp <- getInput >>= doMacros' 1
-    case mbNewInp of
-         Nothing  -> return ()
-         Just inp -> setInput inp
+  unless (expanded || verbatimMode) $ do
+      mbNewInp <- getInput >>= doMacros' 1
+      case mbNewInp of
+           Nothing  -> return ()
+           Just inp -> setInput inp
+      updateState $ \st -> st{ sExpanded = True }
 
 doMacros' :: PandocMonad m => Int -> [Tok] -> LP m (Maybe [Tok])
 doMacros' n inp = do

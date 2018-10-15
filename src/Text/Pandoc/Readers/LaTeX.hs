@@ -1480,7 +1480,7 @@ authors = try $ do
 
 macroDef :: (Monoid a, PandocMonad m) => LP m a
 macroDef =
-  mempty <$ ((commandDef <|> environmentDef) <* doMacros)
+  mempty <$ (commandDef <|> environmentDef)
   where commandDef = do
           (name, macro') <- newcommand <|> letmacro <|> defmacro
           guardDisabled Ext_latex_macros <|>
@@ -1501,7 +1501,7 @@ letmacro :: PandocMonad m => LP m (Text, Macro)
 letmacro = do
   controlSeq "let"
   (name, contents) <- withVerbatimMode $ do
-    Tok _ (CtrlSeq name) _ <- withVerbatimMode anyControlSeq
+    Tok _ (CtrlSeq name) _ <- anyControlSeq
     optional $ symbol '='
     spaces
     -- we first parse in verbatim mode, and then expand macros,
@@ -1521,7 +1521,6 @@ defmacro = try $
     Tok _ (CtrlSeq name) _ <- anyControlSeq
     argspecs <- many (argspecArg <|> argspecPattern)
     contents <- bracedOrToken
-    doMacros -- after all this verbatim mode
     return (name, Macro ExpandWhenUsed argspecs Nothing contents)
 
 argspecArg :: PandocMonad m => LP m ArgSpec
@@ -1559,7 +1558,6 @@ newcommand = do
       case M.lookup name macros of
            Just _  -> report $ MacroAlreadyDefined (T.unpack txt) pos
            Nothing -> return ()
-    doMacros -- after all this verbatim mode
     return (name, Macro ExpandWhenUsed argspecs optarg contents)
 
 newenvironment :: PandocMonad m => LP m (Text, Macro, Macro)
