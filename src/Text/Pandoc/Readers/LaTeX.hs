@@ -1541,9 +1541,10 @@ newcommand = do
                              controlSeq "renewcommand" <|>
                              controlSeq "providecommand" <|>
                              controlSeq "DeclareRobustCommand"
-  optional $ symbol '*'
-  Tok _ (CtrlSeq name) txt <- withVerbatimMode $ anyControlSeq <|>
-    (symbol '{' *> spaces *> anyControlSeq <* spaces <* symbol '}')
+  Tok _ (CtrlSeq name) txt <- withVerbatimMode $ do
+    optional (symbol '*')
+    anyControlSeq <|>
+      (symbol '{' *> spaces *> anyControlSeq <* spaces <* symbol '}')
   spaces
   numargs <- option 0 $ try bracketedNum
   let argspecs = map (\i -> ArgNum i) [1..numargs]
@@ -1564,18 +1565,19 @@ newenvironment = do
   Tok _ (CtrlSeq mtype) _ <- controlSeq "newenvironment" <|>
                              controlSeq "renewenvironment" <|>
                              controlSeq "provideenvironment"
-  optional $ symbol '*'
-  spaces
-  name <- untokenize <$> braced
-  spaces
-  numargs <- option 0 $ try bracketedNum
+  name <- withVerbatimMode $ do
+    optional $ symbol '*'
+    spaces
+    untokenize <$> braced
+  numargs <- withVerbatimMode $ do
+    spaces
+    option 0 $ try bracketedNum
   let argspecs = map (\i -> ArgNum i) [1..numargs]
-  spaces
-  optarg <- option Nothing $ Just <$> try bracketedToks
-  spaces
-  startcontents <- withVerbatimMode bracedOrToken
-  spaces
-  endcontents <- withVerbatimMode bracedOrToken
+  optarg <- withVerbatimMode $ do
+    spaces
+    option Nothing $ Just <$> try bracketedToks
+  startcontents <- withVerbatimMode $ spaces >> bracedOrToken
+  endcontents <- withVerbatimMode $ spaces >> bracedOrToken
   when (mtype == "newenvironment") $ do
     macros <- sMacros <$> getState
     case M.lookup name macros of
