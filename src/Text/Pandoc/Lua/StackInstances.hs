@@ -359,9 +359,32 @@ instance Pushable ReaderOptions where
     LuaUtil.addField "extensions" extensions
     LuaUtil.addField "standalone" standalone
     LuaUtil.addField "columns" columns
-    LuaUtil.addField "tabStop" tabStop
-    LuaUtil.addField "indentedCodeClasses" indentedCodeClasses
+    LuaUtil.addField "tab_stop" tabStop
+    LuaUtil.addField "indented_code_classes" indentedCodeClasses
     LuaUtil.addField "abbreviations" abbreviations
-    LuaUtil.addField "defaultImageExtension" defaultImageExtension
-    LuaUtil.addField "trackChanges" trackChanges
-    LuaUtil.addField "stripComments" stripComments
+    LuaUtil.addField "default_image_extension" defaultImageExtension
+    LuaUtil.addField "track_changes" trackChanges
+    LuaUtil.addField "strip_comments" stripComments
+
+    -- add metatable
+    let indexReaderOptions :: AnyValue -> AnyValue -> Lua Lua.NumResults
+        indexReaderOptions _tbl (AnyValue key) = do
+          Lua.ltype key >>= \case
+            Lua.TypeString -> Lua.peek key >>= \case
+              "defaultImageExtension" -> Lua.push defaultImageExtension
+              "indentedCodeClasses" -> Lua.push indentedCodeClasses
+              "stripComments" -> Lua.push stripComments
+              "tabStop" -> Lua.push tabStop
+              "trackChanges" -> Lua.push trackChanges
+              _ -> Lua.pushnil
+            _ -> Lua.pushnil
+          return 1
+    Lua.newtable
+    LuaUtil.addFunction "__index" indexReaderOptions
+    Lua.setmetatable (Lua.nthFromTop 2)
+
+-- | Dummy type to allow values of arbitrary Lua type.
+newtype AnyValue = AnyValue StackIndex
+
+instance Peekable AnyValue where
+  peek = return . AnyValue
