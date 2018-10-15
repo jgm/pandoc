@@ -1308,13 +1308,7 @@ isBlockCommand s =
 
 treatAsBlock :: Set.Set Text
 treatAsBlock = Set.fromList
-   [ "let", "def", "DeclareRobustCommand"
-   , "newcommand", "renewcommand"
-   , "newenvironment", "renewenvironment"
-   , "providecommand", "provideenvironment"
-     -- newcommand, etc. should be parsed by macroDef, but we need this
-     -- here so these aren't parsed as inline commands to ignore
-   , "special", "pdfannot", "pdfstringdef"
+   [ "special", "pdfannot", "pdfstringdef"
    , "bibliographystyle"
    , "maketitle", "makeindex", "makeglossary"
    , "addcontentsline", "addtocontents", "addtocounter"
@@ -1375,6 +1369,7 @@ inline = (mempty <$ comment)
      <|> (space  <$ whitespace)
      <|> (softbreak <$ endline)
      <|> word
+     <|> macroDef
      <|> inlineCommand'
      <|> inlineEnvironment
      <|> inlineGroup
@@ -1420,8 +1415,7 @@ end_ t = try (do
 preamble :: PandocMonad m => LP m Blocks
 preamble = mempty <$ many preambleBlock
   where preambleBlock =  spaces1
-                     <|> void macroDef
-                     <|> void blockCommand
+                     <|> void (macroDef <|> blockCommand)
                      <|> void braced
                      <|> (notFollowedBy (begin_ "document") >> void anyTok)
 
@@ -1484,7 +1478,7 @@ authors = try $ do
   egroup
   addMeta "author" (map trimInlines auths)
 
-macroDef :: PandocMonad m => LP m Blocks
+macroDef :: (Monoid a, PandocMonad m) => LP m a
 macroDef =
   mempty <$ ((commandDef <|> environmentDef) <* doMacros)
   where commandDef = do
