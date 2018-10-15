@@ -1486,7 +1486,7 @@ authors = try $ do
 
 macroDef :: PandocMonad m => LP m Blocks
 macroDef =
-  mempty <$ ((commandDef <|> environmentDef) <* doMacros 0)
+  mempty <$ ((commandDef <|> environmentDef) <* doMacros)
   where commandDef = do
           (name, macro') <- newcommand <|> letmacro <|> defmacro
           guardDisabled Ext_latex_macros <|>

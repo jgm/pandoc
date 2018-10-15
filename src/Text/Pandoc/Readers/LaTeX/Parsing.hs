@@ -110,6 +110,8 @@ import Text.Pandoc.Readers.LaTeX.Types (ExpansionPoint (..), Macro (..),
 import Text.Pandoc.Shared
 import Text.Parsec.Pos
 
+-- import Debug.Trace (traceShowId)
+
 newtype DottedNum = DottedNum [Int]
   deriving (Show)
 
@@ -231,7 +233,7 @@ rawLaTeXParser retokenize parser valParser = do
        Right toks' -> do
          res <- lift $ runParserT (do when retokenize $ do
                                         -- retokenize, applying macros
-                                        doMacros 0
+                                        doMacros
                                         ts <- many (satisfyTok (const True))
                                         setInput ts
                                       rawparser)
@@ -246,7 +248,7 @@ rawLaTeXParser retokenize parser valParser = do
 applyMacros :: (PandocMonad m, HasMacros s, HasReaderOptions s)
             => String -> ParserT String s m String
 applyMacros s = (guardDisabled Ext_latex_macros >> return s) <|>
-   do let retokenize = doMacros 0 *>
+   do let retokenize = doMacros *>
              (toksToString <$> many (satisfyTok (const True)))
       pstate <- getState
       let lstate = def{ sOptions = extractReaderOptions pstate
@@ -371,7 +373,7 @@ satisfyTok :: PandocMonad m => (Tok -> Bool) -> LP m Tok
 satisfyTok f =
   try $ do
     res <- tokenPrim (T.unpack . untoken) updatePos matcher
-    doMacros 0 -- apply macros on remaining input stream
+    doMacros -- apply macros on remaining input stream
     return res
   where matcher t | f t       = Just t
                   | otherwise = Nothing
@@ -379,25 +381,29 @@ satisfyTok f =
         updatePos _spos _ (Tok pos _ _ : _) = pos
         updatePos spos _ []                 = incSourceColumn spos 1
 
-doMacros :: PandocMonad m => Int -> LP m ()
-doMacros n = do
+doMacros :: PandocMonad m => LP m ()
+doMacros = do
   verbatimMode <- sVerbatimMode <$> getState
   unless verbatimMode $ do
-    inp <- getInput
-    case inp of
-         Tok spos (CtrlSeq "begin") _ : Tok _ Symbol "{" :
-          Tok _ Word name : Tok _ Symbol "}" : ts
-            -> handleMacros spos name ts
-         Tok spos (CtrlSeq "end") _ : Tok _ Symbol "{" :
-          Tok _ Word name : Tok _ Symbol "}" : ts
-            -> handleMacros spos ("end" <> name) ts
-         Tok _ (CtrlSeq "expandafter") _ : t : ts
-            -> do setInput ts
-                  doMacros n
-                  getInput >>= setInput . combineTok t
-         Tok spos (CtrlSeq name) _ : ts
-            -> handleMacros spos name ts
-         _ -> return ()
+    mbNewInp <- getInput >>= doMacros' 1
+    case mbNewInp of
+         Nothing  -> return ()
+         Just inp -> setInput inp
+
+doMacros' :: PandocMonad m => Int -> [Tok] -> LP m (Maybe [Tok])
+doMacros' n inp = do
+  case inp of
+     Tok spos (CtrlSeq "begin") _ : Tok _ Symbol "{" :
+      Tok _ Word name : Tok _ Symbol "}" : ts
+        -> handleMacros n spos name ts
+     Tok spos (CtrlSeq "end") _ : Tok _ Symbol "{" :
+      Tok _ Word name : Tok _ Symbol "}" : ts
+        -> handleMacros n spos ("end" <> name) ts
+     Tok _ (CtrlSeq "expandafter") _ : t : ts
+        -> (fmap (combineTok t)) <$> doMacros' n ts
+     Tok spos (CtrlSeq name) _ : ts
+        -> handleMacros n spos name ts
+     _ -> return Nothing
 
   where
     combineTok (Tok spos (CtrlSeq name) x) (Tok _ Word w : ts)
@@ -419,9 +425,7 @@ doMacros n = do
        getargs argmap rest
     getargs argmap (ArgNum i : Pattern toks : rest) =
       try $ do
-        x <- mconcat <$> manyTill
-              (braced <|> ((:[]) <$> anyTok))
-              (matchPattern toks)
+        x <- mconcat <$> manyTill bracedOrToken (matchPattern toks)
         getargs (M.insert i x argmap) rest
     getargs argmap (ArgNum i : rest) = do
       x <- try $ spaces >> bracedOrToken
@@ -439,10 +443,12 @@ doMacros n = do
         Tok spos (CtrlSeq x) (txt <> " ") : acc
     addTok _ _ spos t acc = setpos spos t : acc
 
-    handleMacros spos name ts = do
+    handleMacros n' spos name ts = do
+      when (n' > 20)  -- detect macro expansion loops
+        $ throwError $ PandocMacroLoop (T.unpack name)
       macros <- sMacros <$> getState
       case M.lookup name macros of
-           Nothing -> return ()
+           Nothing -> return Nothing
            Just (Macro expansionPoint argspecs optarg newtoks) -> do
              setInput ts
              args <- case optarg of
@@ -454,15 +460,12 @@ doMacros n = do
              -- an argument (in which case we don't want to
              -- expand #1 etc.)
              ts' <- getInput
-             setInput $ foldr (addTok False args spos) ts' newtoks
-
+             let result = foldr (addTok False args spos) ts' newtoks
              case expansionPoint of
-                  ExpandWhenUsed ->
-                    if n > 20  -- detect macro expansion loops
-                       then throwError $ PandocMacroLoop (T.unpack name)
-                       else doMacros (n + 1)
-                  ExpandWhenDefined -> return ()
-
+               ExpandWhenUsed    ->
+                  doMacros' (n' + 1) result >>=
+                    maybe (return (Just result)) (return . Just)
+               ExpandWhenDefined -> return $ Just result
 
 setpos :: SourcePos -> Tok -> Tok
 setpos spos (Tok _ tt txt) = Tok spos tt txt
