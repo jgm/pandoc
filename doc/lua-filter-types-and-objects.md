@@ -544,6 +544,41 @@ contents
 t, tag
 :   constant `Sec` (string)
 
+## ReaderOptions
+
+Pandoc reader options
+
+abbreviations
+:   set of known abbreviations (set of strings)
+
+columns
+:   number of columns in terminal (integer)
+
+default_image_extension
+:   default extension for images (string)
+
+extensions
+:   string representation of the syntax extensions bitfield
+    (string)
+
+indented_code_classes
+:   default classes for indented code blocks (list of strings)
+
+standalone
+:   whether the input was a standalone document with header
+    (boolean)
+
+strip_comments
+:   HTML comments are stripped instead of parsed as raw HTML
+    (boolean)
+
+tab_stop
+:   width (i.e. equivalent number of spaces) of tab stops
+    (integer)
+
+track_changes
+:   track changes setting for docx; one of `AcceptChanges`,
+    `RejectChanges`, and `AllChanges` (string)
 
 [block]: #block
 [blocks]: #block
