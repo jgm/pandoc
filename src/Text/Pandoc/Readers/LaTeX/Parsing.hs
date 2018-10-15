@@ -375,8 +375,9 @@ toksToString = T.unpack . untokenize
 satisfyTok :: PandocMonad m => (Tok -> Bool) -> LP m Tok
 satisfyTok f = do
     doMacros -- apply macros on remaining input stream
+    res <- tokenPrim (T.unpack . untoken) updatePos matcher
     updateState $ \st -> st{ sExpanded = False }
-    tokenPrim (T.unpack . untoken) updatePos matcher
+    return res
   where matcher t | f t       = Just t
                   | otherwise = Nothing
         updatePos :: SourcePos -> Tok -> [Tok] -> SourcePos
