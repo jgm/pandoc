@@ -13,9 +13,9 @@ meta
 
 ## Meta
 
-Meta information on a document; string-indexed collection of [meta
-values](#metavalue). This is represented as a string-indexed table containing
-[meta values](#MetaValue).
+Meta information on a document; string-indexed collection of
+[meta values](#metavalue). This is represented as a
+string-indexed table containing [meta values](#MetaValue).
 
 
 ## MetaValue
@@ -24,8 +24,50 @@ Document meta information items.
 
 ### MetaBlocks
 
-blocks
-:   a list of blocks usable as meta value ([list] of [blocks])
+A list of blocks usable as meta value ([list] of [blocks])
+
+Fields:
+
+tag, t
+:   the literal `MetaBlocks` (string)
+
+### MetaBool
+
+Plain Lua boolean value (boolean)
+
+### MetaInlines
+
+List of inlines used in metadata ([list] of [inline]s)
+
+Fields:
+
+tag, t
+:   the literal `MetaBlocks` (string)
+
+### MetaList
+
+A list of other [meta value]s. ([list])
+
+Fields:
+
+tag, t
+:   the literal `MetaList` (string)
+
+### MetaMap
+
+A string-indexed map of meta-values. (table)
+
+Fields:
+
+tag, t
+:   the literal `MetaMap` (string)
+
+*Note*: The fields will be shadowed if the map contains a field
+with the same name as those listed.
+
+### MetaString
+
+Plain Lua string value (string)
 
 
 ## Block
