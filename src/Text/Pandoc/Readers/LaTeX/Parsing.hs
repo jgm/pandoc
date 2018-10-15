@@ -425,7 +425,8 @@ doMacros' n inp = do
        getargs argmap rest
     getargs argmap (ArgNum i : Pattern toks : rest) =
       try $ do
-        x <- mconcat <$> manyTill bracedOrToken (matchPattern toks)
+        x <- mconcat <$> manyTill (braced <|> ((:[]) <$> anyTok))
+                  (matchPattern toks)
         getargs (M.insert i x argmap) rest
     getargs argmap (ArgNum i : rest) = do
       x <- try $ spaces >> bracedOrToken
