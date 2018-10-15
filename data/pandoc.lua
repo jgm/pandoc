@@ -274,6 +274,9 @@ M.MetaList = M.MetaValue:create_constructor(
     return ensureList(content)
   end
 )
+for k, v in pairs(List) do
+  M.MetaList.behavior[k] = v
+end
 
 --- Meta map
 -- @function MetaMap
