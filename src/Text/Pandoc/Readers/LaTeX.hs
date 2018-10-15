@@ -1521,6 +1521,7 @@ defmacro = try $
     Tok _ (CtrlSeq name) _ <- anyControlSeq
     argspecs <- many (argspecArg <|> argspecPattern)
     contents <- bracedOrToken
+    doMacros -- after all this verbatim mode
     return (name, Macro ExpandWhenUsed argspecs Nothing contents)
 
 argspecArg :: PandocMonad m => LP m ArgSpec
@@ -1541,23 +1542,25 @@ newcommand = do
                              controlSeq "renewcommand" <|>
                              controlSeq "providecommand" <|>
                              controlSeq "DeclareRobustCommand"
-  Tok _ (CtrlSeq name) txt <- withVerbatimMode $ do
-    optional (symbol '*')
-    anyControlSeq <|>
-      (symbol '{' *> spaces *> anyControlSeq <* spaces <* symbol '}')
-  spaces
-  numargs <- option 0 $ try bracketedNum
-  let argspecs = map (\i -> ArgNum i) [1..numargs]
-  spaces
-  optarg <- option Nothing $ Just <$> try bracketedToks
-  spaces
-  contents <- withVerbatimMode bracedOrToken
-  when (mtype == "newcommand") $ do
-    macros <- sMacros <$> getState
-    case M.lookup name macros of
-         Just _  -> report $ MacroAlreadyDefined (T.unpack txt) pos
-         Nothing -> return ()
-  return (name, Macro ExpandWhenUsed argspecs optarg contents)
+  withVerbatimMode $ do
+    Tok _ (CtrlSeq name) txt <- do
+      optional (symbol '*')
+      anyControlSeq <|>
+        (symbol '{' *> spaces *> anyControlSeq <* spaces <* symbol '}')
+    spaces
+    numargs <- option 0 $ try bracketedNum
+    let argspecs = map (\i -> ArgNum i) [1..numargs]
+    spaces
+    optarg <- option Nothing $ Just <$> try bracketedToks
+    spaces
+    contents <- bracedOrToken
+    when (mtype == "newcommand") $ do
+      macros <- sMacros <$> getState
+      case M.lookup name macros of
+           Just _  -> report $ MacroAlreadyDefined (T.unpack txt) pos
+           Nothing -> return ()
+    doMacros -- after all this verbatim mode
+    return (name, Macro ExpandWhenUsed argspecs optarg contents)
 
 newenvironment :: PandocMonad m => LP m (Text, Macro, Macro)
 newenvironment = do
