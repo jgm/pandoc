@@ -42,7 +42,7 @@ List of inlines used in metadata ([list] of [inline]s)
 Fields:
 
 tag, t
-:   the literal `MetaBlocks` (string)
+:   the literal `MetaInlines` (string)
 
 ### MetaList
 
@@ -90,7 +90,7 @@ content
 :   list of items ([list] of [blocks])
 
 tag, t
-:   the literal `BlockQuote` (string)
+:   the literal `BulletList` (string)
 
 ### CodeBlock
 
@@ -553,7 +553,7 @@ style
     `LowerAlpha`, and `UpperAlpha` (string)
 
 delimiter
-:   delimiter of list numbers; one of `DeaultDelim`, `Period`,
+:   delimiter of list numbers; one of `DefaultDelim`, `Period`,
     `OneParen`, and `TwoParens` (string)
 
 ## Hierarchical Element {#Element}
@@ -600,7 +600,7 @@ default_image_extension
 :   default extension for images (string)
 
 extensions
-:   string representation of the syntax extensions bitfield
+:   string representation of the syntax extensions bit field
     (string)
 
 indented_code_classes
@@ -630,4 +630,4 @@ track_changes
 [inlines]: #inline
 [Attr]: #attr
 [attributes]: #attributes
-[citaions]: #citation
+[citations]: #citation
