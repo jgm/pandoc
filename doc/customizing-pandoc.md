@@ -86,7 +86,8 @@ turn, are composed of other `Block`s and `Inline` elements.
 (`Block` elements are things like paragraphs, lists, headers,
 and code blocks. `Inline` elements are individual words,
 links, emphasis, and so on.) Filters operate on these
-elements.
+elements.  You can use `pandoc -t native` to learn about the
+AST's structure.
 
 There are two kinds of filters: JSON filters (which transform a
 JSON serialization of the pandoc AST, and may be written in any
