@@ -44,7 +44,6 @@ import Control.Monad
 import Control.Monad.Reader
 import Control.Monad.Except (throwError)
 import Data.Bifunctor
-import Data.Char (isAlphaNum)
 import Data.Default
 import Data.List (intercalate)
 import Data.List.Split (splitOn)
@@ -69,7 +68,7 @@ readMuse :: PandocMonad m
          -> m Pandoc
 readMuse opts s = do
   let input = crFilter s
-  res <- runReaderT (runParserT parseMuse def{ museOptions = opts } "source" input) def
+  res <- flip runReaderT def $ runParserT parseMuse def{ museOptions = opts } "source" input
   case res of
        Left e  -> throwError $ PandocParsecError (unpack input) e
        Right d -> return d
@@ -132,9 +131,7 @@ parseMuse = do
   many directive
   blocks <- (:) <$> parseBlocks <*> many parseSection
   st <- getState
-  let doc = runF (Pandoc <$> museMeta st <*> fmap B.toList (mconcat blocks)) st
-  reportLogMessages
-  return doc
+  runF (Pandoc <$> museMeta st <*> fmap B.toList (mconcat blocks)) st <$ reportLogMessages
 
 -- * Utility functions
 
@@ -203,7 +200,7 @@ htmlAttrToPandoc attrs = (ident, classes, keyvals)
   where
     ident   = fromMaybe "" $ lookup "id" attrs
     classes = maybe [] words $ lookup "class" attrs
-    keyvals = [(k,v) | (k,v) <- attrs, k /= "id" && k /= "class"]
+    keyvals = [(k,v) | (k,v) <- attrs, k /= "id", k /= "class"]
 
 parseHtmlContent :: PandocMonad m
                  => String -- ^ Tag name
@@ -279,28 +276,22 @@ parseSection =
 parseBlocksTill :: PandocMonad m
                 => MuseParser m a
                 -> MuseParser m (F Blocks)
-parseBlocksTill end =
-  try (parseEnd <|>
-       blockStart <|>
-       listStart <|>
-       paraStart)
+parseBlocksTill end = continuation
   where
     parseEnd = mempty <$ end
     blockStart = (B.<>) <$> blockElements <*> allowPara continuation
     listStart = uncurry (B.<>) <$> allowPara (anyListUntil (parseEnd <|> continuation))
     paraStart = uncurry (B.<>) <$> paraUntil (parseEnd <|> continuation)
-    continuation = parseBlocksTill end
+    continuation = try $ parseEnd <|> blockStart <|> listStart <|> paraStart
 
 listItemContentsUntil :: PandocMonad m
                       => Int
                       -> MuseParser m a
                       -> MuseParser m a
                       -> MuseParser m (F Blocks, a)
-listItemContentsUntil col pre end =
-  try blockStart <|>
-  try listStart <|>
-  try paraStart
+listItemContentsUntil col pre end = p
   where
+    p = try blockStart <|> try listStart <|> try paraStart
     parsePre = (mempty,) <$> pre
     parseEnd = (mempty,) <$> end
     paraStart = do
@@ -314,7 +305,7 @@ listItemContentsUntil col pre end =
     continuation = try $ do blank <- optionMaybe blankline
                             skipMany blankline
                             indentWith col
-                            local (\s -> s { museInPara = museInPara s && isNothing blank }) $ listItemContentsUntil col pre end
+                            local (\s -> s { museInPara = museInPara s && isNothing blank }) p
 
 parseBlock :: PandocMonad m => MuseParser m (F Blocks)
 parseBlock = do
@@ -435,9 +426,9 @@ divTag = do
 -- | Parse @\<biblio>@ tag, the result is the same as @\<div class="biblio">@.
 -- @\<biblio>@ tag is supported only in Text::Amuse mode.
 biblioTag :: PandocMonad m => MuseParser m (F Blocks)
-biblioTag = do
-  guardEnabled Ext_amuse
-  fmap (B.divWith ("", ["biblio"], [])) . snd <$> parseHtmlContent "biblio"
+biblioTag = fmap (B.divWith ("", ["biblio"], [])) . snd
+  <$  guardEnabled Ext_amuse
+  <*> parseHtmlContent "biblio"
 
 -- | Parse @\<play>@ tag, the result is the same as @\<div class="play">@.
 -- @\<play>@ tag is supported only in Text::Amuse mode.
@@ -489,6 +480,17 @@ noteMarker = try $ (:)
   <*> oneOf "123456789"
   <*> manyTill digit (char ']')
 
+addNote :: PandocMonad m
+        => String
+        -> SourcePos
+        -> F Blocks
+        -> MuseParser m ()
+addNote ref pos content = do
+  oldnotes <- museNotes <$> getState
+  when (M.member ref oldnotes)
+    (logMessage $ DuplicateNoteReference ref pos)
+  updateState $ \s -> s{ museNotes = M.insert ref (pos, content) oldnotes }
+
 -- Amusewiki version of note
 -- Parsing is similar to list item, except that note marker is used instead of list marker
 amuseNoteBlockUntil :: PandocMonad m
@@ -499,10 +501,7 @@ amuseNoteBlockUntil end = try $ do
   ref <- noteMarker <* spaceChar
   pos <- getPosition
   (content, e) <- allowPara $ listItemContentsUntil (sourceColumn pos - 1) (fail "x") end
-  oldnotes <- museNotes <$> getState
-  when (M.member ref oldnotes)
-    (logMessage $ DuplicateNoteReference ref pos)
-  updateState $ \s -> s{ museNotes = M.insert ref (pos, content) oldnotes }
+  addNote ref pos content
   return (mempty, e)
 
 -- Emacs version of note
@@ -510,13 +509,10 @@ amuseNoteBlockUntil end = try $ do
 emacsNoteBlock :: PandocMonad m => MuseParser m (F Blocks)
 emacsNoteBlock = try $ do
   guardDisabled Ext_amuse
-  pos <- getPosition
   ref <- noteMarker <* skipSpaces
-  content <- mconcat <$> blocksTillNote
-  oldnotes <- museNotes <$> getState
-  when (M.member ref oldnotes)
-    (logMessage $ DuplicateNoteReference ref pos)
-  updateState $ \s -> s{ museNotes = M.insert ref (pos, content) oldnotes }
+  pos <- getPosition
+  content <- fmap mconcat blocksTillNote
+  addNote ref pos content
   return mempty
   where
     blocksTillNote =
@@ -688,7 +684,7 @@ tableParseRow :: PandocMonad m
 tableParseRow n = try $ sequence <$> tableCells
   where tableCells = (:) <$> tableCell sep <*> (tableCells <|> fmap pure (tableCell eol))
         tableCell p = try $ fmap B.plain . trimInlinesF . mconcat <$> manyTill inline' p
-        sep = try $ many1 spaceChar *> count n (char '|') *> (void (lookAhead $ many1 spaceChar) <|> void (lookAhead eol))
+        sep = try $ many1 spaceChar *> count n (char '|') *> lookAhead (void (many1 spaceChar) <|> void eol)
 
 -- | Parse a table header row.
 tableParseHeader :: PandocMonad m => MuseParser m (F MuseTableElement)
@@ -852,7 +848,7 @@ code = try $ fmap pure $ B.code . uncurry (++)
   <$  atStart (char '=')
   <*  notFollowedBy (spaceChar <|> newline)
   <*> manyUntil (noneOf "\n\r" <|> (newline <* notFollowedBy newline)) (try $ fmap pure $ noneOf " \t\n\r=" <* char '=')
-  <*  notFollowedBy (satisfy isAlphaNum)
+  <*  notFollowedBy alphaNum
 
 -- | Parse @\<code>@ tag.
 codeTag :: PandocMonad m => MuseParser m (F Inlines)
@@ -877,7 +873,7 @@ str :: PandocMonad m => MuseParser m (F Inlines)
 str = return . B.str <$> many1 alphaNum <* updateLastStrPos
 
 symbol :: PandocMonad m => MuseParser m (F Inlines)
-symbol = return . B.str <$> count 1 nonspaceChar
+symbol = pure . B.str . pure <$> nonspaceChar
 
 -- | Parse a link or image.
 linkOrImage :: PandocMonad m => MuseParser m (F Inlines)
