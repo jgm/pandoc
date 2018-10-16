@@ -45,7 +45,7 @@ tests = [
       =?> (para $ space <> str "aaa")
     , "link" =:
       ".BR aa (1)"
-      =?> (para $ fromList [Link nullAttr [Strong [Str "aa"]] ("../1/aa.1","aa"), Strong [Str " (1)",Str ""]])
+      =?> (para $ link "../1/aa.1" "aa" (strong $ str "aa") <> (strong $ str " (1)"))
     ],
   testGroup "Escapes" [
       "fonts" =:
@@ -53,13 +53,13 @@ tests = [
       =?> (para $ str "aa" <> (emph $ str "bb") <> str "cc")
     , "skip" =:
       "a\\%\\{\\}\\\n\\:b\\0"
-      =?> (para $ fromList $ map Str ["a", "b"])
+      =?> (para $ str "ab")
     , "replace" =:
       "\\-\\ \\\\\\[lq]\\[rq]\\[em]\\[en]\\*(lq\\*(rq"
-      =?> (para $ fromList $ map Str ["-", " ", "\\", "“", "”", "—", "–", "«", "»"])
+      =?> (para $ str "- \\“”—–«»")
     , "replace2" =:
       "\\t\\e\\`\\^\\|\\'"
-      =?> (para $ fromList $ map Str ["\t", "\\", "`", " ", " ", "`"])
+      =?> (para $ str "\t\\`  `")
     ],
   testGroup "Lists" [
       "bullet" =:
