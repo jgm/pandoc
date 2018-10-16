@@ -59,7 +59,7 @@ import Text.Pandoc.Definition
 import Text.Pandoc.Error (PandocError (PandocParsecError))
 import Text.Pandoc.Logging
 import Text.Pandoc.Options
-import Text.Pandoc.Parsing hiding (F, enclosed)
+import Text.Pandoc.Parsing hiding (F)
 import Text.Pandoc.Shared (crFilter, underlineSpan)
 
 -- | Read Muse from an input string and return a Pandoc document.
@@ -782,24 +782,14 @@ whitespace = try $ pure B.space <$ skipMany1 spaceChar
 br :: PandocMonad m => MuseParser m (F Inlines)
 br = try $ pure B.linebreak <$ string "<br>"
 
-emphasisBetween :: (PandocMonad m, Show a) => MuseParser m a -> MuseParser m (F Inlines)
-emphasisBetween c = try $ enclosedInlines c c
-
--- | Parses material enclosed between start and end parsers.
-enclosed :: (Show end, Stream s  m Char) => ParserT s st m t   -- ^ start parser
-         -> ParserT s st m end  -- ^ end parser
-         -> ParserT s st m a    -- ^ content parser (to be used repeatedly)
-         -> ParserT s st m [a]
-enclosed start end parser = try $
-  start *> notFollowedBy spaceChar *> many1Till parser end
-
-enclosedInlines :: (PandocMonad m, Show a, Show b)
+emphasisBetween :: (PandocMonad m, Show a)
                 => MuseParser m a
-                -> MuseParser m b
                 -> MuseParser m (F Inlines)
-enclosedInlines start end = try $ trimInlinesF . mconcat
-  <$> enclosed (atStart start) end inline
-  <*  notFollowedBy (satisfy isAlphaNum)
+emphasisBetween p = try $ trimInlinesF . mconcat
+  <$  atStart p
+  <*  notFollowedBy spaceChar
+  <*> many1Till inline p
+  <*  notFollowedBy alphaNum
 
 -- | Parse an inline tag, such as @\<em>@ and @\<strong>@.
 inlineTag :: PandocMonad m
