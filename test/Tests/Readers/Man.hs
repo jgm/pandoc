@@ -73,7 +73,7 @@ tests = [
       =?> orderedListWith (1,UpperAlpha,DefaultDelim) [plain $ str "first", plain $ str "second"]
     , "nested" =:
       ".IP\nfirst\n.RS\n.IP\n1a\n.IP\n1b\n.RE"
-      =?> fromList [BulletList [[Plain [Str "first"],BulletList [[Plain [Str "1a"]],[Plain [Str "1b"]]]]]]
+      =?> bulletList [(plain $ str "first") <> (bulletList [plain $ str "1a", plain $ str "1b"])]
     ],
   testGroup "CodeBlocks" [
       "cb1"=:

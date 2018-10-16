@@ -73,6 +73,7 @@ type Font = Set FontKind
 
 type RoffStr = (String, Font)
 
+-- TODO parse tables (see man tbl)
 data ManToken = MStr RoffStr
               | MLine [RoffStr]
               | MMaybeLink String
