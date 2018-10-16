@@ -12,8 +12,8 @@ reader into pandoc’s intermediate representation of the
 document---an "abstract syntax tree" or AST---which is then
 converted by the writer into the target format.
 The pandoc AST format is defined in the module
-`Text.Pandoc.Definition` in
-[pandoc-types](https://hackage.haskell.org/package/pandoc-types).
+[`Text.Pandoc.Definition` in the `pandoc-types` package
+](https://hackage.haskell.org/package/pandoc-types/docs/Text-Pandoc-Definition.html).
 
 A "filter" is a program that modifies the AST, between the
 reader and the writer:
