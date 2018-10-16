@@ -1509,7 +1509,7 @@ letmacro = do
     -- \let\foo hello if we have previously \def\bar{hello}
     contents <- bracedOrToken
     return (name, contents)
-  contents' <- fromMaybe contents <$> doMacros' 0 contents
+  contents' <- doMacros' 0 contents
   return (name, Macro ExpandWhenDefined [] Nothing contents')
 
 defmacro :: PandocMonad m => LP m (Text, Macro)

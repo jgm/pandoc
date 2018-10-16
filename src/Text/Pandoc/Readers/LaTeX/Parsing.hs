@@ -389,13 +389,10 @@ doMacros = do
   expanded <- sExpanded <$> getState
   verbatimMode <- sVerbatimMode <$> getState
   unless (expanded || verbatimMode) $ do
-      mbNewInp <- getInput >>= doMacros' 1
-      case mbNewInp of
-           Nothing  -> return ()
-           Just inp -> setInput inp
+      getInput >>= doMacros' 1 >>= setInput
       updateState $ \st -> st{ sExpanded = True }
 
-doMacros' :: PandocMonad m => Int -> [Tok] -> LP m (Maybe [Tok])
+doMacros' :: PandocMonad m => Int -> [Tok] -> LP m [Tok]
 doMacros' n inp = do
   case inp of
      Tok spos (CtrlSeq "begin") _ : Tok _ Symbol "{" :
@@ -405,10 +402,11 @@ doMacros' n inp = do
       Tok _ Word name : Tok _ Symbol "}" : ts
         -> handleMacros n spos ("end" <> name) ts
      Tok _ (CtrlSeq "expandafter") _ : t : ts
-        -> (fmap (combineTok t)) <$> doMacros' n ts
+        -> combineTok t <$> doMacros' n ts
      Tok spos (CtrlSeq name) _ : ts
         -> handleMacros n spos name ts
-     _ -> return Nothing
+     _ -> return inp
+   <|> return inp
 
   where
     combineTok (Tok spos (CtrlSeq name) x) (Tok _ Word w : ts)
@@ -454,7 +452,7 @@ doMacros' n inp = do
         $ throwError $ PandocMacroLoop (T.unpack name)
       macros <- sMacros <$> getState
       case M.lookup name macros of
-           Nothing -> return Nothing
+           Nothing -> mzero
            Just (Macro expansionPoint argspecs optarg newtoks) -> do
              let getargs' = do
                    args <- case optarg of
@@ -475,9 +473,8 @@ doMacros' n inp = do
                  -- expand #1 etc.)
                  let result = foldr (addTok False args spos) rest newtoks
                  case expansionPoint of
-                   ExpandWhenUsed    ->
-                      maybe (Just result) Just <$> doMacros' (n' + 1) result
-                   ExpandWhenDefined -> return $ Just result
+                   ExpandWhenUsed    -> doMacros' (n' + 1) result
+                   ExpandWhenDefined -> return result
 
 setpos :: SourcePos -> Tok -> Tok
 setpos spos (Tok _ tt txt) = Tok spos tt txt
