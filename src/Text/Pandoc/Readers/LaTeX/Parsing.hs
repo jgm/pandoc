@@ -216,10 +216,14 @@ type LP m = ParserT [Tok] LaTeXState m
 
 withVerbatimMode :: PandocMonad m => LP m a -> LP m a
 withVerbatimMode parser = do
-  updateState $ \st -> st{ sVerbatimMode = True }
-  result <- parser
-  updateState $ \st -> st{ sVerbatimMode = False }
-  return result
+  alreadyVerbatimMode <- sVerbatimMode <$> getState
+  if alreadyVerbatimMode
+     then parser
+     else do
+       updateState $ \st -> st{ sVerbatimMode = True }
+       result <- parser
+       updateState $ \st -> st{ sVerbatimMode = False }
+       return result
 
 rawLaTeXParser :: (PandocMonad m, HasMacros s, HasReaderOptions s)
                => Bool -> LP m a -> LP m a -> ParserT String s m (a, String)
