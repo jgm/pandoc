@@ -259,23 +259,32 @@ Raw content of a specified format.
 
 A table.
 
-caption:
-:   table caption
+`caption`
+:   table caption ([list] of [inlines])
 
-aligns:
-:   alignments
+`aligns`
+:   column alignments ([list] of [Alignment]s)
 
-widths:
-:   column widths
+`widths`
+:   column widths (number)
 
 `headers`
-:   header row
+:   header row ([list] of [table cells](#table-cell))
 
-rows:
-:   table rows
+`rows`
+:   table rows ([list] of [list]s of [table cells](#table-cell))
 
 `tag`, `t`
 :   the literal `Table` (string)
+
+A [table cell]{#table-cell} is a list of blocks.
+
+[Alignment]{#Alignment} is a string value indicating the
+horizontal alignment of a table column. `AlignLeft`,
+`AlignRight`, and `AlignCenter` leads cell content tob be
+left-aligned, right-aligned, and centered, respectively. The
+default alignment is `AlignDefault` (often equivalent to
+centered).
 
 ## Inline
 
