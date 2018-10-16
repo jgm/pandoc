@@ -1525,11 +1525,11 @@ defmacro = try $
 
 argspecArg :: PandocMonad m => LP m ArgSpec
 argspecArg = do
-  Tok _ (Arg i) _ <- withVerbatimMode $ satisfyTok isArgTok
+  Tok _ (Arg i) _ <- satisfyTok isArgTok
   return $ ArgNum i
 
 argspecPattern :: PandocMonad m => LP m ArgSpec
-argspecPattern = withVerbatimMode $
+argspecPattern =
   Pattern <$> many1 (satisfyTok (\(Tok _ toktype' txt) ->
                               (toktype' == Symbol || toktype' == Word) &&
                               (txt /= "{" && txt /= "\\" && txt /= "}")))
@@ -1566,25 +1566,23 @@ newenvironment = do
   Tok _ (CtrlSeq mtype) _ <- controlSeq "newenvironment" <|>
                              controlSeq "renewenvironment" <|>
                              controlSeq "provideenvironment"
-  name <- withVerbatimMode $ do
+  withVerbatimMode $ do
     optional $ symbol '*'
     spaces
-    untokenize <$> braced
-  numargs <- withVerbatimMode $ do
+    name <- untokenize <$> braced
     spaces
-    option 0 $ try bracketedNum
-  let argspecs = map (\i -> ArgNum i) [1..numargs]
-  optarg <- withVerbatimMode $ do
+    numargs <- option 0 $ try bracketedNum
     spaces
-    option Nothing $ Just <$> try bracketedToks
-  startcontents <- withVerbatimMode $ spaces >> bracedOrToken
-  endcontents <- withVerbatimMode $ spaces >> bracedOrToken
-  when (mtype == "newenvironment") $ do
-    macros <- sMacros <$> getState
-    case M.lookup name macros of
-         Just _  -> report $ MacroAlreadyDefined (T.unpack name) pos
-         Nothing -> return ()
-  return (name, Macro ExpandWhenUsed argspecs optarg startcontents,
+    optarg <- option Nothing $ Just <$> try bracketedToks
+    let argspecs = map (\i -> ArgNum i) [1..numargs]
+    startcontents <- spaces >> bracedOrToken
+    endcontents <- spaces >> bracedOrToken
+    when (mtype == "newenvironment") $ do
+      macros <- sMacros <$> getState
+      case M.lookup name macros of
+           Just _  -> report $ MacroAlreadyDefined (T.unpack name) pos
+           Nothing -> return ()
+    return (name, Macro ExpandWhenUsed argspecs optarg startcontents,
              Macro ExpandWhenUsed [] Nothing endcontents)
 
 bracketedNum :: PandocMonad m => LP m Int
