@@ -153,12 +153,11 @@ dropSpacePrefix lns =
   where flns = filter (not . all (== ' ')) lns
         maxIndent = if null flns then maximum (map length lns) else length $ takeWhile (== ' ') $ foldl1 commonPrefix flns
 
-atStart :: PandocMonad m => MuseParser m a -> MuseParser m a
-atStart p = do
+atStart :: PandocMonad m => MuseParser m ()
+atStart = do
   pos <- getPosition
   st <- getState
   guard $ museLastStrPos st /= Just pos
-  p
 
 firstColumn :: PandocMonad m => MuseParser m ()
 firstColumn = getPosition >>= \pos -> guard (sourceColumn pos == 1)
@@ -778,7 +777,8 @@ emphasisBetween :: (PandocMonad m, Show a)
                 => MuseParser m a
                 -> MuseParser m (F Inlines)
 emphasisBetween p = try $ trimInlinesF . mconcat
-  <$  atStart p
+  <$  atStart
+  <*  p
   <*  notFollowedBy spaceChar
   <*> many1Till inline p
   <*  notFollowedBy alphaNum
@@ -845,7 +845,8 @@ nbsp = try $ pure (B.str "\160") <$ string "~~"
 -- | Parse code markup, indicated by @\'=\'@ characters.
 code :: PandocMonad m => MuseParser m (F Inlines)
 code = try $ fmap pure $ B.code . uncurry (++)
-  <$  atStart (char '=')
+  <$  atStart
+  <*  char '='
   <*  notFollowedBy (spaceChar <|> newline)
   <*> manyUntil (noneOf "\n\r" <|> (newline <* notFollowedBy newline)) (try $ fmap pure $ noneOf " \t\n\r=" <* char '=')
   <*  notFollowedBy alphaNum
