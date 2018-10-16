@@ -38,6 +38,10 @@ own custom templates, either by using the `--template` option
 or by putting the custom template in your user data directory
 (on linux and macOS, `~/.pandoc/templates/`).
 
+Note that in many cases you can avoid the need for a custom
+template by making use of the `--include-in-header`,
+`--include-before-body`, and `--include-after-body` options.
+
 For more information, see [Templates](/MANUAL.html#templates) in
 the pandoc manual.
 
