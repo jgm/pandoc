@@ -139,11 +139,7 @@ parseMuse = do
 -- * Utility functions
 
 commonPrefix :: String -> String -> String
-commonPrefix _ [] = []
-commonPrefix [] _ = []
-commonPrefix (x:xs) (y:ys)
-  | x == y    = x : commonPrefix xs ys
-  | otherwise = []
+commonPrefix xs ys = map fst $ takeWhile (uncurry (==)) $ zip xs ys
 
 -- | Trim up to one newline from the beginning of the string.
 lchop :: String -> String
