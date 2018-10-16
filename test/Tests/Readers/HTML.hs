@@ -7,6 +7,7 @@ import Data.Text (Text)
 import qualified Data.Text as T
 import Test.Tasty
 import Test.Tasty.QuickCheck
+import Test.Tasty.Options (IsOption(defaultValue))
 import Tests.Helpers
 import Text.Pandoc
 import Text.Pandoc.Arbitrary ()
@@ -77,5 +78,9 @@ tests = [ testGroup "base tag"
           , test htmlNativeDivs "<main> followed by text" $ "<main>main content</main>non-main content" =?>
             doc (divWith ("", [], [("role", "main")]) (plain (text "main content")) <> plain (text "non-main content"))
           ]
-        , testProperty "Round trip" (withMaxSuccess 25 roundTrip)
+        , askOption $ \(QuickCheckTests numtests) ->
+            testProperty "Round trip" $
+              withMaxSuccess (if QuickCheckTests numtests == defaultValue
+                                 then 25
+                                 else numtests) roundTrip
         ]
