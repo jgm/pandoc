@@ -185,7 +185,7 @@ blockToMan _ (CodeBlock _ str) = return $
   text ".nf" $$
   text "\\f[C]" $$
   text (escapeCode str) $$
-  text "\\f[]" $$
+  text "\\f[R]" $$
   text ".fi"
 blockToMan opts (BlockQuote blocks) = do
   contents <- blockListToMan opts blocks
@@ -378,7 +378,7 @@ fontChange :: PandocMonad m => StateT WriterState m Doc
 fontChange = do
   features <- gets stFontFeatures
   let filling = sort [c | (c,True) <- Map.toList features]
-  return $ text $ "\\f[" ++ filling ++ "]"
+  return $ text $ "\\f[" ++ (if null filling then "R" else filling) ++ "]"
 
 withFontFeature :: PandocMonad m
                 => Char

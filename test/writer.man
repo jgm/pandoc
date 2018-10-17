@@ -7,11 +7,11 @@ Most of them are adapted from John Gruber's markdown test suite.
    *   *   *   *   *
 .SH Headers
 .SS Level 2 with an embedded link (/url)
-.SS Level 3 with \f[I]emphasis\f[]
+.SS Level 3 with \f[I]emphasis\f[R]
 .SS Level 4
 .SS Level 5
 .SH Level 1
-.SS Level 2 with \f[I]emphasis\f[]
+.SS Level 2 with \f[I]emphasis\f[R]
 .SS Level 3
 .PP
 with no blank line
@@ -57,7 +57,7 @@ Code in a block quote:
 sub\ status\ {
 \ \ \ \ print\ "working";
 }
-\f[]
+\f[R]
 .fi
 .PP
 A list:
@@ -95,7 +95,7 @@ sub\ status\ {
 }
 
 this\ code\ block\ is\ indented\ by\ one\ tab
-\f[]
+\f[R]
 .fi
 .PP
 And:
@@ -105,7 +105,7 @@ And:
 \ \ \ \ this\ code\ block\ is\ indented\ by\ two\ tabs
 
 These\ should\ not\ be\ escaped:\ \ \\$\ \\\\\ \\>\ \\[\ \\{
-\f[]
+\f[R]
 .fi
 .PP
    *   *   *   *   *
@@ -369,21 +369,21 @@ yellow fruit
 .PP
 Multiple blocks with italics:
 .TP
-.B \f[I]apple\f[]
+.B \f[I]apple\f[R]
 red fruit
 .RS
 .PP
 contains seeds, crisp, pleasant to taste
 .RE
 .TP
-.B \f[I]orange\f[]
+.B \f[I]orange\f[R]
 orange fruit
 .RS
 .IP
 .nf
 \f[C]
 {\ orange\ code\ block\ }
-\f[]
+\f[R]
 .fi
 .RS
 .PP
@@ -456,8 +456,8 @@ foo
 bar
 .PP
 Interpreted markdown in a table:
-This is \f[I]emphasized\f[]
-And this is \f[B]strong\f[]
+This is \f[I]emphasized\f[R]
+And this is \f[B]strong\f[R]
 .PP
 Here's a simple block:
 .PP
@@ -470,7 +470,7 @@ This should be a code block, though:
 <div>
 \ \ \ \ foo
 </div>
-\f[]
+\f[R]
 .fi
 .PP
 As should this:
@@ -478,7 +478,7 @@ As should this:
 .nf
 \f[C]
 <div>foo</div>
-\f[]
+\f[R]
 .fi
 .PP
 Now, nested:
@@ -493,7 +493,7 @@ Code block:
 .nf
 \f[C]
 <!\-\-\ Comment\ \-\->
-\f[]
+\f[R]
 .fi
 .PP
 Just plain comment, with trailing spaces on the line:
@@ -503,7 +503,7 @@ Code:
 .nf
 \f[C]
 <hr\ />
-\f[]
+\f[R]
 .fi
 .PP
 Hr's:
@@ -511,26 +511,26 @@ Hr's:
    *   *   *   *   *
 .SH Inline Markup
 .PP
-This is \f[I]emphasized\f[], and so \f[I]is this\f[].
+This is \f[I]emphasized\f[R], and so \f[I]is this\f[R].
 .PP
-This is \f[B]strong\f[], and so \f[B]is this\f[].
+This is \f[B]strong\f[R], and so \f[B]is this\f[R].
 .PP
-An \f[I]emphasized link (/url)\f[].
+An \f[I]emphasized link (/url)\f[R].
 .PP
-\f[B]\f[BI]This is strong and em.\f[B]\f[]
+\f[B]\f[BI]This is strong and em.\f[B]\f[R]
 .PP
-So is \f[B]\f[BI]this\f[B]\f[] word.
+So is \f[B]\f[BI]this\f[B]\f[R] word.
 .PP
-\f[B]\f[BI]This is strong and em.\f[B]\f[]
+\f[B]\f[BI]This is strong and em.\f[B]\f[R]
 .PP
-So is \f[B]\f[BI]this\f[B]\f[] word.
+So is \f[B]\f[BI]this\f[B]\f[R] word.
 .PP
-This is code: \f[C]>\f[], \f[C]$\f[], \f[C]\\\f[], \f[C]\\$\f[],
-\f[C]<html>\f[].
+This is code: \f[C]>\f[R], \f[C]$\f[R], \f[C]\\\f[R], \f[C]\\$\f[R],
+\f[C]<html>\f[R].
 .PP
-[STRIKEOUT:This is \f[I]strikeout\f[].]
+[STRIKEOUT:This is \f[I]strikeout\f[R].]
 .PP
-Superscripts: a^bc^d a^\f[I]hello\f[]^ a^hello\ there^.
+Superscripts: a^bc^d a^\f[I]hello\f[R]^ a^hello\ there^.
 .PP
 Subscripts: H~2~O, H~23~O, H~many\ of\ them~O.
 .PP
@@ -550,7 +550,7 @@ So is `pine.'
 .PP
 `He said, \[lq]I want to go.\[rq]' Were you alive in the 70's?
 .PP
-Here is some quoted `\f[C]code\f[]' and a \[lq]quoted
+Here is some quoted `\f[C]code\f[R]' and a \[lq]quoted
 link (http://example.com/?foo=1&bar=2)\[rq].
 .PP
 Some dashes: one\[em]two \[em] three\[em]four \[em] five.
@@ -565,13 +565,13 @@ Ellipses\&...and\&...and\&....
 .IP \[bu] 2
 2 + 2 = 4
 .IP \[bu] 2
-\f[I]x\f[] ∈ \f[I]y\f[]
+\f[I]x\f[R] ∈ \f[I]y\f[R]
 .IP \[bu] 2
-\f[I]α\f[] ∧ \f[I]ω\f[]
+\f[I]α\f[R] ∧ \f[I]ω\f[R]
 .IP \[bu] 2
 223
 .IP \[bu] 2
-\f[I]p\f[]\-Tree
+\f[I]p\f[R]\-Tree
 .IP \[bu] 2
 Here's some display math:
 .RS
@@ -579,19 +579,19 @@ $$\\frac{d}{dx}f(x)=\\lim_{h\\to 0}\\frac{f(x+h)\-f(x)}{h}$$
 .RE
 .IP \[bu] 2
 Here's one that has a line break in it:
-\f[I]α\f[] + \f[I]ω\f[] × \f[I]x\f[]^2^.
+\f[I]α\f[R] + \f[I]ω\f[R] × \f[I]x\f[R]^2^.
 .PP
 These shouldn't be math:
 .IP \[bu] 2
-To get the famous equation, write \f[C]$e\ =\ mc^2$\f[].
+To get the famous equation, write \f[C]$e\ =\ mc^2$\f[R].
 .IP \[bu] 2
-$22,000 is a \f[I]lot\f[] of money.
+$22,000 is a \f[I]lot\f[R] of money.
 So is $34,000.
 (It worked if \[lq]lot\[rq] is emphasized.)
 .IP \[bu] 2
 Shoes ($20) and socks ($5).
 .IP \[bu] 2
-Escaped \f[C]$\f[]: $73 \f[I]this should be emphasized\f[] 23$.
+Escaped \f[C]$\f[R]: $73 \f[I]this should be emphasized\f[R] 23$.
 .PP
 Here's a LaTeX table:
 .PP
@@ -692,7 +692,7 @@ This should [not][] be a link.
 .nf
 \f[C]
 [not]:\ /url
-\f[]
+\f[R]
 .fi
 .PP
 Foo bar (/url/).
@@ -723,12 +723,12 @@ An e\-mail address: <nobody@nowhere.net>
 Blockquoted: <http://example.com/>
 .RE
 .PP
-Auto\-links should not occur here: \f[C]<http://example.com/>\f[]
+Auto\-links should not occur here: \f[C]<http://example.com/>\f[R]
 .IP
 .nf
 \f[C]
 or\ here:\ <http://example.com/>
-\f[]
+\f[R]
 .fi
 .PP
    *   *   *   *   *
@@ -743,8 +743,8 @@ Here is a movie [IMAGE: movie (movie.jpg)] icon.
    *   *   *   *   *
 .SH Footnotes
 .PP
-Here is a footnote reference,[1] and another.[2] This should \f[I]not\f[] be a
-footnote reference, because it contains a space.[^my note] Here is an inline
+Here is a footnote reference,[1] and another.[2] This should \f[I]not\f[R] be
+a footnote reference, because it contains a space.[^my note] Here is an inline
 note.[3]
 .RS
 .PP
@@ -771,15 +771,15 @@ with list items).
 .nf
 \f[C]
 \ \ {\ <code>\ }
-\f[]
+\f[R]
 .fi
 .PP
 If you want, you can indent every line, but you can also be lazy and just
 indent the first line of each block.
 .SS [3]
 .PP
-This is \f[I]easier\f[] to type.
-Inline notes may contain links (http://google.com) and \f[C]]\f[] verbatim
+This is \f[I]easier\f[R] to type.
+Inline notes may contain links (http://google.com) and \f[C]]\f[R] verbatim
 characters, as well as [bracketed text].
 .SS [4]
 .PP
