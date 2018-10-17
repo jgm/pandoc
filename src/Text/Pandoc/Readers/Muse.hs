@@ -147,6 +147,9 @@ lchop s = s
 rchop :: String -> String
 rchop = reverse . lchop . reverse
 
+unindent :: String -> String
+unindent = rchop . intercalate "\n" . dropSpacePrefix . splitOn "\n" . lchop
+
 dropSpacePrefix :: [String] -> [String]
 dropSpacePrefix lns =
   map (drop maxIndent) lns
@@ -380,15 +383,15 @@ amuseHeadingUntil end = try $ do
 example :: PandocMonad m => MuseParser m (F Blocks)
 example = try $ pure . B.codeBlock
   <$  string "{{{"
-  <*  optional blankline
-  <*> manyTill anyChar (try (optional blankline *> string "}}}"))
+  <*  many spaceChar
+  <*> (unindent <$> manyTill anyChar (string "}}}"))
 
 -- | Parse an @\<example>@ tag.
 exampleTag :: PandocMonad m => MuseParser m (F Blocks)
 exampleTag = try $ fmap pure $ B.codeBlockWith
   <$  many spaceChar
   <*> (htmlAttrToPandoc <$> openTag "example")
-  <*> (rchop . intercalate "\n" . dropSpacePrefix . splitOn "\n" . lchop <$> manyTill anyChar (closeTag "example"))
+  <*> (unindent <$> manyTill anyChar (closeTag "example"))
   <*  manyTill spaceChar eol
 
 -- | Parse a @\<literal>@ tag as a raw block.
@@ -398,7 +401,7 @@ literalTag = try $ fmap pure $ B.rawBlock
   <$  many spaceChar
   <*> (fromMaybe "html" . lookup "style" <$> openTag "literal") -- FIXME: Emacs Muse inserts <literal> without style into all output formats, but we assume HTML
   <*  manyTill spaceChar eol
-  <*> (rchop . intercalate "\n" . dropSpacePrefix . splitOn "\n" . lchop <$> manyTill anyChar (closeTag "literal"))
+  <*> (unindent <$> manyTill anyChar (closeTag "literal"))
   <*  manyTill spaceChar eol
 
 -- | Parse @\<center>@ tag.

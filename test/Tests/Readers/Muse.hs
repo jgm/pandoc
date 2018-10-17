@@ -459,6 +459,12 @@ tests =
                     , "}}}"
                     ] =?>
           codeBlock "Example line\n"
+        , "Indented braces" =:
+          T.unlines [ " - {{{"
+                    , "   Example line"
+                    , "   }}}"
+                    ] =?>
+          bulletList [ codeBlock "Example line" ]
         -- Amusewiki requires braces to be on separate line,
         -- this is an extension.
         , "One line" =:
