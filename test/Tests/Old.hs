@@ -171,6 +171,10 @@ tests = [ testGroup "markdown"
           , test "tables" ["-f", "native", "-t", "../data/sample.lua"]
             "tables.native" "tables.custom"
           ]
+        , testGroup "man"
+          [ test "reader" ["-r", "man", "-w", "native", "-s"]
+            "man-reader.man" "man-reader.native"
+          ]
         ]
 
 -- makes sure file is fully closed after reading

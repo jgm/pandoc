@@ -1,0 +1,189 @@
+.TH "Pandoc Man tests" "" "Oct 17, 2018" "" ""
+.PP
+This is a set of tests for pandoc.
+.PP
+   *   *   *   *   *
+.SH Headers
+.SH Level 1
+.SS Level 2
+
+   *   *   *   *   *
+.SH Paragraphs
+.PP
+Here's a regular paragraph.
+.PP
+Another paragraph
+In Markdown 1.0.0 and earlier.
+Version 8.
+This line turns into a list item.
+Because a hard\-wrapped line in the middle of a paragraph looked like a list
+item.
+.PP
+There should be a hard line break
+.PD 0
+.P
+.PD
+here.
+.PP
+   *   *   *   *   *
+.SH Block Quotes
+Code in a block quote:
+.IP
+.nf
+\f[C]
+sub\ status\ {
+\ \ \ \ print\ "working";
+}
+\f[]
+.fi
+.PP
+A list:
+.IP "1." 3
+item one
+.IP "2." 3
+item two
+.PP
+.SH Code Blocks
+.PP
+Code:
+.IP
+.nf
+\f[C]
+\-\-\-\-\ (should\ be\ four\ hyphens)
+
+sub\ status\ {
+\ \ \ \ print\ "working";
+}
+
+\f[]
+.fi
+.PP
+And:
+.IP
+.nf
+\f[C]
+\tthis\ code\ line is\ indented\ by\ one\ tab
+
+These\ should\ not\ be\ escaped:\ \ \\$\ \\\\\ \\>\ \\[\ \\{
+\f[]
+.fi
+.PP
+   *   *   *   *   *
+.SH Lists
+.SS Unordered
+.PP
+Asterisks:
+.IP \[bu] 2
+asterisk 1
+.IP \[bu] 2
+asterisk 2
+.IP \[bu] 2
+asterisk 3
+.PP
+.SS Ordered
+.IP "1." 3
+First
+.IP "2." 3
+Second
+.IP "3." 3
+Third
+.PP
+.SS Nested
+.IP \[bu] 2
+Tab
+.RS 2
+.IP \[bu] 2
+Tab
+.RS 2
+.IP \[bu] 2
+Tab
+.RE
+.RE
+.PP
+Here's another:
+.IP "1." 3
+First
+.IP "2." 3
+Second:
+.RS 4
+.IP \[bu] 2
+Fee
+.IP \[bu] 2
+Fie
+.IP \[bu] 2
+Foe
+.RE
+.IP "3." 3
+Third
+.PP
+Same thing:
+.IP "1." 3
+First
+.IP "2." 3
+Second:
+.RS 4
+.IP \[bu] 2
+Fee
+.IP \[bu] 2
+Fie
+.IP \[bu] 2
+Foe
+.RE
+.IP "3." 3
+Third
+.SS different styles:
+.IP "A." 3
+Upper Alpha
+.RS 4
+.IP "I." 3
+Upper Roman.
+.RS 4
+.IP "(6)" 4
+Decimal start with 6
+.RS 4
+.IP "c)" 3
+Lower alpha with paren
+.RE
+.RE
+.RE
+.PP
+   *   *   *   *   *
+.SH Special Characters
+AT&T has an ampersand in their name.
+.PP
+4 < 5.
+.PP
+6 > 5.
+.PP
+Backslash: \\
+.PP
+Backtick: `
+.PP
+Asterisk: *
+.PP
+Underscore: _
+.PP
+Left brace: {
+.PP
+Right brace: }
+.PP
+Left bracket: [
+.PP
+Right bracket: ]
+.PP
+Left paren: (
+.PP
+Right paren: )
+.PP
+Greater\-than: >
+.PP
+Hash: #
+.PP
+Period: .
+.PP
+Bang: !
+.PP
+Plus: +
+.PP
+Minus: \-
+.PP

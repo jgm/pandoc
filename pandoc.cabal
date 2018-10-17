@@ -206,6 +206,7 @@ extra-source-files:
                  test/haddock-reader.haddock
                  test/insert
                  test/lalune.jpg
+                 test/man-reader.man
                  test/movie.jpg
                  test/media/rId25.jpg
                  test/media/rId26.jpg
@@ -448,6 +449,7 @@ library
                    Text.Pandoc.Readers.Odt,
                    Text.Pandoc.Readers.EPUB,
                    Text.Pandoc.Readers.Muse,
+                   Text.Pandoc.Readers.Man,
                    Text.Pandoc.Readers.FB2,
                    Text.Pandoc.Writers,
                    Text.Pandoc.Writers.Native,
@@ -669,6 +671,7 @@ test-suite test-pandoc
                   Tests.Readers.EPUB
                   Tests.Readers.Muse
                   Tests.Readers.Creole
+                  Tests.Readers.Man
                   Tests.Readers.FB2
                   Tests.Writers.Native
                   Tests.Writers.ConTeXt
