@@ -45,7 +45,7 @@ import Control.Monad.Reader
 import Control.Monad.Except (throwError)
 import Data.Bifunctor
 import Data.Default
-import Data.List (intercalate)
+import Data.List (intercalate, transpose)
 import Data.List.Split (splitOn)
 import qualified Data.Map as M
 import qualified Data.Set as Set
@@ -135,9 +135,6 @@ parseMuse = do
 
 -- * Utility functions
 
-commonPrefix :: String -> String -> String
-commonPrefix xs ys = map fst $ takeWhile (uncurry (==)) $ zip xs ys
-
 -- | Trim up to one newline from the beginning of the string.
 lchop :: String -> String
 lchop ('\n':xs) = xs
@@ -151,10 +148,10 @@ unindent :: String -> String
 unindent = rchop . intercalate "\n" . dropSpacePrefix . splitOn "\n" . lchop
 
 dropSpacePrefix :: [String] -> [String]
-dropSpacePrefix lns =
-  map (drop maxIndent) lns
-  where flns = filter (not . all (== ' ')) lns
-        maxIndent = if null flns then maximum (map length lns) else length $ takeWhile (== ' ') $ foldl1 commonPrefix flns
+dropSpacePrefix lns = drop maxIndent <$> lns
+  where isSpaceChar c = c == ' ' || c == '\t'
+        maxIndent = length $ takeWhile (isSpaceChar . head) $ takeWhile same $ transpose lns
+        same = and . (zipWith (==) <*> drop 1)
 
 atStart :: PandocMonad m => MuseParser m ()
 atStart = do

@@ -465,6 +465,14 @@ tests =
                     , "   }}}"
                     ] =?>
           bulletList [ codeBlock "Example line" ]
+        , "Tabs" =:
+          T.unlines [ "{{{"
+                    , "\t  foo"
+                    , "\t\t"
+                    , "\t  bar"
+                    , "}}}"
+                    ] =?>
+          codeBlock "  foo\n\t\n  bar"
         -- Amusewiki requires braces to be on separate line,
         -- this is an extension.
         , "One line" =:
