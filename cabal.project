@@ -1,1 +1,5 @@
 packages: pandoc.cabal
+
+source-repository-package
+    type: git
+    location: https://github.com/jgm/pandoc-citeproc
