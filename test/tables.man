@@ -135,7 +135,7 @@ T}
 .PP
 Multiline table with caption:
 .PP
-Here's the caption. It may span multiple lines.
+Here\[cq]s the caption. It may span multiple lines.
 .TS
 tab(@);
 cw(10.5n) lw(9.6n) rw(11.4n) lw(24.5n).
@@ -165,7 +165,7 @@ row
 T}@T{
 5.0
 T}@T{
-Here's another one.
+Here\[cq]s another one.
 Note the blank line between rows.
 T}
 .TE
@@ -201,7 +201,7 @@ row
 T}@T{
 5.0
 T}@T{
-Here's another one.
+Here\[cq]s another one.
 Note the blank line between rows.
 T}
 .TE
@@ -261,7 +261,7 @@ row
 T}@T{
 5.0
 T}@T{
-Here's another one.
+Here\[cq]s another one.
 Note the blank line between rows.
 T}
 .TE

@@ -47,7 +47,6 @@ module Text.Pandoc.Writers.Shared (
                      , lookupMetaInlines
                      , lookupMetaString
                      , stripLeadingTrailingSpace
-                     , groffEscape
                      , toSubscript
                      , toSuperscript
                      )
@@ -56,7 +55,7 @@ import Prelude
 import Control.Monad (zipWithM)
 import Data.Aeson (FromJSON (..), Result (..), ToJSON (..), Value (Object),
                    encode, fromJSON)
-import Data.Char (chr, ord, isAscii, isSpace)
+import Data.Char (chr, ord, isSpace)
 import qualified Data.HashMap.Strict as H
 import Data.List (groupBy, intersperse, transpose)
 import qualified Data.Map as M
@@ -70,7 +69,6 @@ import Text.Pandoc.Pretty
 import Text.Pandoc.Shared (stringify)
 import Text.Pandoc.UTF8 (toStringLazy)
 import Text.Pandoc.XML (escapeStringForXML)
-import Text.Printf (printf)
 
 -- | Create JSON value for template from a 'Meta' and an association list
 -- of variables, specified at the command line or in the writer.
@@ -386,13 +384,6 @@ lookupMetaString key meta =
          Just (MetaBlocks bs)   -> stringify bs
          Just (MetaBool b)      -> show b
          _                      -> ""
-
--- | Escape non-ASCII characters using groff \u[..] sequences.
-groffEscape :: T.Text -> T.Text
-groffEscape = T.concatMap toUchar
-  where toUchar c
-         | isAscii c = T.singleton c
-         | otherwise = T.pack $ printf "\\[u%04X]" (ord c)
 
 
 toSuperscript :: Char -> Maybe Char

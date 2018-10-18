@@ -60,35 +60,9 @@ import Text.Pandoc.Shared
 import Text.Pandoc.Templates
 import Text.Pandoc.Writers.Math
 import Text.Pandoc.Writers.Shared
+import Text.Pandoc.Writers.Groff
 import Text.Printf (printf)
 import Text.TeXMath (writeEqn)
-
-data WriterState = WriterState { stHasInlineMath :: Bool
-                               , stFirstPara     :: Bool
-                               , stNotes         :: [Note]
-                               , stSmallCaps     :: Bool
-                               , stHighlighting  :: Bool
-                               , stInHeader      :: Bool
-                               , stFontFeatures  :: Map.Map Char Bool
-                               }
-
-defaultWriterState :: WriterState
-defaultWriterState = WriterState{ stHasInlineMath = False
-                                , stFirstPara     = True
-                                , stNotes         = []
-                                , stSmallCaps     = False
-                                , stHighlighting  = False
-                                , stInHeader      = False
-                                , stFontFeatures  = Map.fromList [
-                                                       ('I',False)
-                                                     , ('B',False)
-                                                     , ('C',False)
-                                                     ]
-                                }
-
-type Note = [Block]
-
-type MS = StateT WriterState
 
 -- | Convert Pandoc to Ms.
 writeMs :: PandocMonad m => WriterOptions -> Pandoc -> m Text
@@ -132,37 +106,14 @@ pandocToMs opts (Pandoc meta blocks) = do
        Nothing  -> return main
        Just tpl -> renderTemplate' tpl context
 
--- | Association list of characters to escape.
-msEscapes :: Map.Map Char String
-msEscapes = Map.fromList
-              [ ('\160', "\\~")
-              , ('\'', "\\[aq]")
-              , ('`', "\\`")
-              , ('"', "\\[dq]")
-              , ('\x2014', "\\[em]")
-              , ('\x2013', "\\[en]")
-              , ('\x2026', "\\&...")
-              , ('~', "\\[ti]")
-              , ('^', "\\[ha]")
-              , ('@', "\\@")
-              , ('\\', "\\\\")
-              ]
-
-escapeChar :: Char -> String
-escapeChar c = fromMaybe [c] (Map.lookup c msEscapes)
+escapeUri :: String -> String
+escapeUri = escapeURIString (\c -> c /= '@' && isAllowedInURI c)
 
 -- | Escape | character, used to mark inline math, inside math.
 escapeBar :: String -> String
 escapeBar = concatMap go
   where go '|' = "\\[u007C]"
         go c   = [c]
-
--- | Escape special characters for Ms.
-escapeString :: String -> String
-escapeString = concatMap escapeChar
-
-escapeUri :: String -> String
-escapeUri = escapeURIString (\c -> c /= '@' && isAllowedInURI c)
 
 toSmallCaps :: String -> String
 toSmallCaps [] = []
@@ -173,17 +124,6 @@ toSmallCaps (c:cs)
   | isUpper c = let (uppers,rest) = span isUpper (c:cs)
                 in  escapeString uppers ++ toSmallCaps rest
   | otherwise = escapeChar c ++ toSmallCaps cs
-
--- | Escape a literal (code) section for Ms.
-escapeCode :: String -> String
-escapeCode = intercalate "\n" . map escapeLine . lines
-  where escapeCodeChar ' '  = "\\ "
-        escapeCodeChar '\t' = "\\\t"
-        escapeCodeChar c    = escapeChar c
-        escapeLine codeline =
-          case concatMap escapeCodeChar codeline of
-            a@('.':_) -> "\\&" ++ a
-            b         -> b
 
 -- We split inline lists into sentences, and print one sentence per
 -- line.  groff/troff treats the line-ending period differently.
@@ -534,28 +474,6 @@ handleNote opts bs = do
                  _                 -> bs
   contents <- blockListToMs opts bs'
   return $ cr <> text ".FS" $$ contents $$ text ".FE" <> cr
-
-fontChange :: PandocMonad m => MS m Doc
-fontChange = do
-  features <- gets stFontFeatures
-  inHeader <- gets stInHeader
-  let filling = ['C' | fromMaybe False $ Map.lookup 'C' features] ++
-                ['B' | inHeader ||
-                       fromMaybe False (Map.lookup 'B' features)] ++
-                ['I' | fromMaybe False $ Map.lookup 'I' features]
-  return $
-    if null filling
-       then text "\\f[R]"
-       else text $ "\\f[" ++ filling ++ "]"
-
-withFontFeature :: PandocMonad m => Char -> MS m Doc -> MS m Doc
-withFontFeature c action = do
-  modify $ \st -> st{ stFontFeatures = Map.adjust not c $ stFontFeatures st }
-  begin <- fontChange
-  d <- action
-  modify $ \st -> st{ stFontFeatures = Map.adjust not c $ stFontFeatures st }
-  end <- fontChange
-  return $ begin <> d <> end
 
 setFirstPara :: PandocMonad m => MS m ()
 setFirstPara = modify $ \st -> st{ stFirstPara = True }

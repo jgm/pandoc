@@ -33,8 +33,7 @@ Conversion of 'Pandoc' documents to groff man page format.
 module Text.Pandoc.Writers.Man ( writeMan) where
 import Prelude
 import Control.Monad.State.Strict
-import Data.List (intercalate, intersperse, sort, stripPrefix)
-import qualified Data.Map as Map
+import Data.List (intersperse, stripPrefix)
 import Data.Maybe (fromMaybe)
 import Data.Text (Text)
 import qualified Data.Text as T
@@ -48,21 +47,8 @@ import Text.Pandoc.Shared
 import Text.Pandoc.Templates
 import Text.Pandoc.Writers.Math
 import Text.Pandoc.Writers.Shared
+import Text.Pandoc.Writers.Groff
 import Text.Printf (printf)
-
-type Notes = [[Block]]
-data WriterState = WriterState { stNotes        :: Notes
-                               , stFontFeatures :: Map.Map Char Bool
-                               , stHasTables    :: Bool }
-
-defaultWriterState :: WriterState
-defaultWriterState = WriterState { stNotes = []
-                                 , stFontFeatures  = Map.fromList [
-                                                       ('I',False)
-                                                     , ('B',False)
-                                                     , ('C',False)
-                                                     ]
-                                 , stHasTables  = False }
 
 -- | Convert Pandoc to Man.
 writeMan :: PandocMonad m => WriterOptions -> Pandoc -> m Text
@@ -126,28 +112,6 @@ noteToMan opts num note = do
   contents <- blockListToMan opts note
   let marker = cr <> text ".SS " <> brackets (text (show num))
   return $ marker $$ contents
-
--- | Association list of characters to escape.
-manEscapes :: [(Char, String)]
-manEscapes = [ ('\160', "\\ ")
-             , ('\'', "\\[aq]")
-             , ('’', "'")
-             , ('\x2014', "\\[em]")
-             , ('\x2013', "\\[en]")
-             , ('\x2026', "\\&...")
-             ] ++ backslashEscapes "-@\\"
-
--- | Escape special characters for Man.
-escapeString :: String -> String
-escapeString = escapeStringUsing manEscapes
-
--- | Escape a literal (code) section for Man.
-escapeCode :: String -> String
-escapeCode = intercalate "\n" . map escapeLine . lines  where
-  escapeLine codeline =
-    case escapeStringUsing (manEscapes ++ backslashEscapes "\t ") codeline of
-      a@('.':_) -> "\\&" ++ a
-      b         -> b
 
 -- We split inline lists into sentences, and print one sentence per
 -- line.  groff/troff treats the line-ending period differently.
@@ -373,21 +337,3 @@ inlineToMan _ (Note contents) = do
   notes <- gets stNotes
   let ref = show (length notes)
   return $ char '[' <> text ref <> char ']'
-
-fontChange :: PandocMonad m => StateT WriterState m Doc
-fontChange = do
-  features <- gets stFontFeatures
-  let filling = sort [c | (c,True) <- Map.toList features]
-  return $ text $ "\\f[" ++ (if null filling then "R" else filling) ++ "]"
-
-withFontFeature :: PandocMonad m
-                => Char
-                -> StateT WriterState m Doc
-                -> StateT WriterState m Doc
-withFontFeature c action = do
-  modify $ \st -> st{ stFontFeatures = Map.adjust not c $ stFontFeatures st }
-  begin <- fontChange
-  d <- action
-  modify $ \st -> st{ stFontFeatures = Map.adjust not c $ stFontFeatures st }
-  end <- fontChange
-  return $ begin <> d <> end

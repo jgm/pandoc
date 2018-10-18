@@ -2,7 +2,7 @@
 .hy
 .PP
 This is a set of tests for pandoc.
-Most of them are adapted from John Gruber's markdown test suite.
+Most of them are adapted from John Gruber\[cq]s markdown test suite.
 .PP
    *   *   *   *   *
 .SH Headers
@@ -22,15 +22,15 @@ with no blank line
    *   *   *   *   *
 .SH Paragraphs
 .PP
-Here's a regular paragraph.
+Here\[cq]s a regular paragraph.
 .PP
 In Markdown 1.0.0 and earlier.
 Version 8.
 This line turns into a list item.
-Because a hard\-wrapped line in the middle of a paragraph looked like a list
+Because a hard-wrapped line in the middle of a paragraph looked like a list
 item.
 .PP
-Here's one with a bullet.
+Here\[cq]s one with a bullet.
 * criminey.
 .PP
 There should be a hard line break
@@ -42,7 +42,7 @@ here.
    *   *   *   *   *
 .SH Block Quotes
 .PP
-E\-mail style:
+E-mail style:
 .RS
 .PP
 This is a block quote.
@@ -55,7 +55,7 @@ Code in a block quote:
 .nf
 \f[C]
 sub\ status\ {
-\ \ \ \ print\ "working";
+\ \ \ \ print\ \[dq]working\[dq];
 }
 \f[R]
 .fi
@@ -88,10 +88,10 @@ Code:
 .IP
 .nf
 \f[C]
-\-\-\-\-\ (should\ be\ four\ hyphens)
+----\ (should\ be\ four\ hyphens)
 
 sub\ status\ {
-\ \ \ \ print\ "working";
+\ \ \ \ print\ \[dq]working\[dq];
 }
 
 this\ code\ block\ is\ indented\ by\ one\ tab
@@ -200,7 +200,7 @@ Item 1, graf one.
 .PP
 Item 1.
 graf two.
-The quick brown fox jumped over the lazy dog's back.
+The quick brown fox jumped over the lazy dog\[cq]s back.
 .RE
 .IP "2." 3
 Item 2.
@@ -218,7 +218,7 @@ Tab
 .RE
 .RE
 .PP
-Here's another:
+Here\[cq]s another:
 .IP "1." 3
 First
 .IP "2." 3
@@ -308,7 +308,7 @@ Nested.
 .PP
 Should not be a list item:
 .PP
-M.A.\ 2007
+M.A.\~2007
 .PP
 B.
 Williams
@@ -459,7 +459,7 @@ Interpreted markdown in a table:
 This is \f[I]emphasized\f[R]
 And this is \f[B]strong\f[R]
 .PP
-Here's a simple block:
+Here\[cq]s a simple block:
 .PP
 foo
 .PP
@@ -492,7 +492,7 @@ Code block:
 .IP
 .nf
 \f[C]
-<!\-\-\ Comment\ \-\->
+<!--\ Comment\ -->
 \f[R]
 .fi
 .PP
@@ -506,7 +506,7 @@ Code:
 \f[R]
 .fi
 .PP
-Hr's:
+Hr\[cq]s:
 .PP
    *   *   *   *   *
 .SH Inline Markup
@@ -530,12 +530,12 @@ This is code: \f[C]>\f[R], \f[C]$\f[R], \f[C]\\\f[R], \f[C]\\$\f[R],
 .PP
 [STRIKEOUT:This is \f[I]strikeout\f[R].]
 .PP
-Superscripts: a^bc^d a^\f[I]hello\f[R]^ a^hello\ there^.
+Superscripts: a^bc^d a^\f[I]hello\f[R]^ a^hello\~there^.
 .PP
-Subscripts: H~2~O, H~23~O, H~many\ of\ them~O.
+Subscripts: H~2~O, H~23~O, H~many\~of\~them~O.
 .PP
 These should not be superscripts or subscripts, because of the unescaped
-spaces: a^b c^d, a~b c~d.
+spaces: a\[ha]b c\[ha]d, a\[ti]b c\[ti]d.
 .PP
    *   *   *   *   *
 .SH Smart quotes, ellipses, dashes
@@ -548,7 +548,7 @@ spaces: a^b c^d, a~b c~d.
 `Oak,' `elm,' and `beech' are names of trees.
 So is `pine.'
 .PP
-`He said, \[lq]I want to go.\[rq]' Were you alive in the 70's?
+`He said, \[lq]I want to go.\[rq]' Were you alive in the 70\[cq]s?
 .PP
 Here is some quoted `\f[C]code\f[R]' and a \[lq]quoted
 link (http://example.com/?foo=1&bar=2)\[rq].
@@ -571,19 +571,19 @@ Ellipses\&...and\&...and\&....
 .IP \[bu] 2
 223
 .IP \[bu] 2
-\f[I]p\f[R]\-Tree
+\f[I]p\f[R]-Tree
 .IP \[bu] 2
-Here's some display math:
+Here\[cq]s some display math:
 .RS
-$$\\frac{d}{dx}f(x)=\\lim_{h\\to 0}\\frac{f(x+h)\-f(x)}{h}$$
+$$\\frac{d}{dx}f(x)=\\lim_{h\\to 0}\\frac{f(x+h)-f(x)}{h}$$
 .RE
 .IP \[bu] 2
-Here's one that has a line break in it:
+Here\[cq]s one that has a line break in it:
 \f[I]α\f[R] + \f[I]ω\f[R] × \f[I]x\f[R]^2^.
 .PP
-These shouldn't be math:
+These shouldn\[cq]t be math:
 .IP \[bu] 2
-To get the famous equation, write \f[C]$e\ =\ mc^2$\f[R].
+To get the famous equation, write \f[C]$e\ =\ mc\[ha]2$\f[R].
 .IP \[bu] 2
 $22,000 is a \f[I]lot\f[R] of money.
 So is $34,000.
@@ -593,7 +593,7 @@ Shoes ($20) and socks ($5).
 .IP \[bu] 2
 Escaped \f[C]$\f[R]: $73 \f[I]this should be emphasized\f[R] 23$.
 .PP
-Here's a LaTeX table:
+Here\[cq]s a LaTeX table:
 .PP
    *   *   *   *   *
 .SH Special Characters
@@ -622,7 +622,7 @@ This & that.
 .PP
 Backslash: \\
 .PP
-Backtick: `
+Backtick: \`
 .PP
 Asterisk: *
 .PP
@@ -640,7 +640,7 @@ Left paren: (
 .PP
 Right paren: )
 .PP
-Greater\-than: >
+Greater-than: >
 .PP
 Hash: #
 .PP
@@ -650,7 +650,7 @@ Bang: !
 .PP
 Plus: +
 .PP
-Minus: \-
+Minus: -
 .PP
    *   *   *   *   *
 .SH Links
@@ -700,13 +700,14 @@ Foo bar (/url/).
 Foo biz (/url/).
 .SS With ampersands
 .PP
-Here's a link with an ampersand in the URL (http://example.com/?foo=1&bar=2).
+Here\[cq]s a link with an ampersand in the
+URL (http://example.com/?foo=1&bar=2).
 .PP
-Here's a link with an amersand in the link text: AT&T (http://att.com/).
+Here\[cq]s a link with an amersand in the link text: AT&T (http://att.com/).
 .PP
-Here's an inline link (/script?foo=1&bar=2).
+Here\[cq]s an inline link (/script?foo=1&bar=2).
 .PP
-Here's an inline link in pointy braces (/script?foo=1&bar=2).
+Here\[cq]s an inline link in pointy braces (/script?foo=1&bar=2).
 .SS Autolinks
 .PP
 With an ampersand: <http://example.com/?foo=1&bar=2>
@@ -717,13 +718,13 @@ In a list?
 .IP \[bu] 2
 It should.
 .PP
-An e\-mail address: <nobody@nowhere.net>
+An e-mail address: <nobody@nowhere.net>
 .RS
 .PP
 Blockquoted: <http://example.com/>
 .RE
 .PP
-Auto\-links should not occur here: \f[C]<http://example.com/>\f[R]
+Auto-links should not occur here: \f[C]<http://example.com/>\f[R]
 .IP
 .nf
 \f[C]
@@ -744,8 +745,8 @@ Here is a movie [IMAGE: movie (movie.jpg)] icon.
 .SH Footnotes
 .PP
 Here is a footnote reference,[1] and another.[2] This should \f[I]not\f[R] be
-a footnote reference, because it contains a space.[^my note] Here is an inline
-note.[3]
+a footnote reference, because it contains a space.[\[ha]my note] Here is an
+inline note.[3]
 .RS
 .PP
 Notes can go in quotes.[4]
@@ -762,7 +763,7 @@ It can go anywhere after the footnote reference.
 It need not be placed at the end of the document.
 .SS [2]
 .PP
-Here's the long note.
+Here\[cq]s the long note.
 This one contains multiple blocks.
 .PP
 Subsequent blocks are indented to show that they belong to the footnote (as
