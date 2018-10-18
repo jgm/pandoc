@@ -51,6 +51,7 @@ import Text.Pandoc.Class (PandocMonad)
 import Text.Pandoc.Definition
 import Text.Pandoc.Pretty
 import Text.Printf (printf)
+import Text.Pandoc.GroffChar (essentialEscapes)
 
 data WriterState = WriterState { stHasInlineMath :: Bool
                                , stFirstPara     :: Bool
@@ -81,28 +82,9 @@ type Note = [Block]
 
 type MS = StateT WriterState
 
--- | Association list of characters to escape.
-groffEscapes :: Map.Map Char String
-groffEscapes = Map.fromList
-              [ ('\160', "\\~")
-              , ('\'', "\\[aq]")
-              , ('`', "\\`")
-              , ('"', "\\[dq]")
-              , ('\x201C', "\\[lq]")
-              , ('\x201D', "\\[rq]")
-              , ('\x2018', "\\[oq]")
-              , ('\x2019', "\\[cq]")
-              , ('\x2014', "\\[em]")
-              , ('\x2013', "\\[en]")
-              , ('\x2026', "\\&...")
-              , ('~', "\\[ti]")
-              , ('^', "\\[ha]")
-              , ('@', "\\[at]")
-              , ('\\', "\\\\")
-              ]
 
 escapeChar :: Char -> String
-escapeChar c = fromMaybe [c] (Map.lookup c groffEscapes)
+escapeChar c = fromMaybe [c] (Map.lookup c essentialEscapes)
 
 -- | Escape special characters for groff.
 escapeString :: String -> String
