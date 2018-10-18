@@ -104,7 +104,7 @@ And:
 \f[C]
 \ \ \ \ this\ code\ block\ is\ indented\ by\ two\ tabs
 
-These\ should\ not\ be\ escaped:\ \ \\$\ \\\\\ \\>\ \\[\ \\{
+These\ should\ not\ be\ escaped:\ \ \[rs]$\ \[rs]\[rs]\ \[rs]>\ \[rs][\ \[rs]{
 \f[R]
 .fi
 .PP
@@ -525,7 +525,7 @@ So is \f[B]\f[BI]this\f[B]\f[R] word.
 .PP
 So is \f[B]\f[BI]this\f[B]\f[R] word.
 .PP
-This is code: \f[C]>\f[R], \f[C]$\f[R], \f[C]\\\f[R], \f[C]\\$\f[R],
+This is code: \f[C]>\f[R], \f[C]$\f[R], \f[C]\[rs]\f[R], \f[C]\[rs]$\f[R],
 \f[C]<html>\f[R].
 .PP
 [STRIKEOUT:This is \f[I]strikeout\f[R].]
@@ -563,11 +563,11 @@ Ellipses\&...and\&...and\&....
 .SH LaTeX
 .IP \[bu] 2
 .IP \[bu] 2
-2 + 2 = 4
+2\[u2005]+\[u2005]2\[u2004]=\[u2004]4
 .IP \[bu] 2
-\f[I]x\f[R] ∈ \f[I]y\f[R]
+\f[I]x\f[R]\[u2004]\[mo]\[u2004]\f[I]y\f[R]
 .IP \[bu] 2
-\f[I]α\f[R] ∧ \f[I]ω\f[R]
+\f[I]\[*a]\f[R]\[u2005]\[AN]\[u2005]\f[I]\[*w]\f[R]
 .IP \[bu] 2
 223
 .IP \[bu] 2
@@ -575,11 +575,11 @@ Ellipses\&...and\&...and\&....
 .IP \[bu] 2
 Here\[cq]s some display math:
 .RS
-$$\\frac{d}{dx}f(x)=\\lim_{h\\to 0}\\frac{f(x+h)-f(x)}{h}$$
+$$\[rs]frac{d}{dx}f(x)=\[rs]lim_{h\[rs]to 0}\[rs]frac{f(x+h)-f(x)}{h}$$
 .RE
 .IP \[bu] 2
 Here\[cq]s one that has a line break in it:
-\f[I]α\f[R] + \f[I]ω\f[R] × \f[I]x\f[R]^2^.
+\f[I]\[*a]\f[R]\[u2005]+\[u2005]\f[I]\[*w]\f[R]\[u2005]\[tmu]\[u2005]\f[I]x\f[R]^2^.
 .PP
 These shouldn\[cq]t be math:
 .IP \[bu] 2
@@ -600,15 +600,15 @@ Here\[cq]s a LaTeX table:
 .PP
 Here is some unicode:
 .IP \[bu] 2
-I hat: Î
+I hat: \[^I]
 .IP \[bu] 2
-o umlaut: ö
+o umlaut: \[:o]
 .IP \[bu] 2
-section: §
+section: \[sc]
 .IP \[bu] 2
-set membership: ∈
+set membership: \[mo]
 .IP \[bu] 2
-copyright: ©
+copyright: \[co]
 .PP
 AT&T has an ampersand in their name.
 .PP
@@ -620,9 +620,9 @@ This & that.
 .PP
 6 > 5.
 .PP
-Backslash: \\
+Backslash: \[rs]
 .PP
-Backtick: \`
+Backtick: \[ga]
 .PP
 Asterisk: *
 .PP

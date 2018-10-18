@@ -75,7 +75,7 @@ July 17, 2006
 .1C
 .LP
 This is a set of tests for pandoc.
-Most of them are adapted from John Gruber\[cq]s markdown test suite.
+Most of them are adapted from John Gruber’s markdown test suite.
 .HLINE
 .SH 1
 Headers
@@ -126,7 +126,7 @@ Paragraphs
 .pdfhref O 1 "Paragraphs"
 .pdfhref M "paragraphs"
 .LP
-Here\[cq]s a regular paragraph.
+Here’s a regular paragraph.
 .PP
 In Markdown 1.0.0 and earlier.
 Version 8.
@@ -134,7 +134,7 @@ This line turns into a list item.
 Because a hard-wrapped line in the middle of a paragraph looked like a list
 item.
 .PP
-Here\[cq]s one with a bullet.
+Here’s one with a bullet.
 * criminey.
 .PP
 There should be a hard line break
@@ -210,7 +210,7 @@ And:
 \f[C]
 \ \ \ \ this\ code\ block\ is\ indented\ by\ two\ tabs
 
-These\ should\ not\ be\ escaped:\ \ \\$\ \\\\\ \\>\ \\[\ \\{
+These\ should\ not\ be\ escaped:\ \ \[rs]$\ \[rs]\[rs]\ \[rs]>\ \[rs][\ \[rs]{
 \f[]
 .fi
 .HLINE
@@ -314,7 +314,7 @@ Item 1, graf one.
 .PP
 Item 1.
 graf two.
-The quick brown fox jumped over the lazy dog\[cq]s back.
+The quick brown fox jumped over the lazy dog’s back.
 .RE
 .IP " 2." 4
 Item 2.
@@ -335,7 +335,7 @@ Tab
 .RE
 .RE
 .LP
-Here\[cq]s another:
+Here’s another:
 .IP " 1." 4
 First
 .IP " 2." 4
@@ -570,7 +570,7 @@ Interpreted markdown in a table:
 This is \f[I]emphasized\f[R]
 And this is \f[B]strong\f[R]
 .PP
-Here\[cq]s a simple block:
+Here’s a simple block:
 .LP
 foo
 .LP
@@ -617,7 +617,7 @@ Code:
 \f[]
 .fi
 .LP
-Hr\[cq]s:
+Hr’s:
 .HLINE
 .SH 1
 Inline Markup
@@ -641,7 +641,7 @@ So is \f[B]\f[BI]this\f[B]\f[R] word.
 .PP
 So is \f[B]\f[BI]this\f[B]\f[R] word.
 .PP
-This is code: \f[C]>\f[R], \f[C]$\f[R], \f[C]\\\f[R], \f[C]\\$\f[R],
+This is code: \f[C]>\f[R], \f[C]$\f[R], \f[C]\[rs]\f[R], \f[C]\[rs]$\f[R],
 \f[C]<html>\f[R].
 .PP
 \m[strikecolor]This is \f[I]strikeout\f[R].\m[]
@@ -666,16 +666,16 @@ Smart quotes, ellipses, dashes
 `Oak,' `elm,' and `beech' are names of trees.
 So is `pine.'
 .PP
-`He said, \[lq]I want to go.\[rq]' Were you alive in the 70\[cq]s?
+`He said, \[lq]I want to go.\[rq]' Were you alive in the 70’s?
 .PP
 Here is some quoted `\f[C]code\f[R]' and a \[lq]\c
 .pdfhref W -D "http://example.com/?foo=1&bar=2" -A "\c" \
  -- "quoted link"
 \&\[rq].
 .PP
-Some dashes: one\[em]two \[em] three\[em]four \[em] five.
+Some dashes: one—two — three—four — five.
 .PP
-Dashes between numbers: 5\[en]7, 255\[en]66, 1987\[en]1999.
+Dashes between numbers: 5–7, 255–66, 1987–1999.
 .PP
 Ellipses\&...and\&...and\&....
 .HLINE
@@ -695,14 +695,14 @@ LaTeX
 .IP \[bu] 3
 @p@-Tree
 .IP \[bu] 3
-Here\[cq]s some display math:
+Here’s some display math:
 .EQ
 d over {d x} f ( x ) = lim sub {h -> 0} {f ( x + h ) \[u2212] f ( x )} over h
 .EN
 .IP \[bu] 3
-Here\[cq]s one that has a line break in it: @alpha + omega times x sup 2@.
+Here’s one that has a line break in it: @alpha + omega times x sup 2@.
 .LP
-These shouldn\[cq]t be math:
+These shouldn’t be math:
 .IP \[bu] 3
 To get the famous equation, write \f[C]$e\ =\ mc\[ha]2$\f[R].
 .IP \[bu] 3
@@ -714,7 +714,7 @@ Shoes ($20) and socks ($5).
 .IP \[bu] 3
 Escaped \f[C]$\f[R]: $73 \f[I]this should be emphasized\f[R] 23$.
 .LP
-Here\[cq]s a LaTeX table:
+Here’s a LaTeX table:
 .HLINE
 .SH 1
 Special Characters
@@ -743,9 +743,9 @@ This & that.
 .PP
 6 > 5.
 .PP
-Backslash: \\
+Backslash: \[rs]
 .PP
-Backtick: \`
+Backtick: \[ga]
 .PP
 Asterisk: *
 .PP
@@ -885,22 +885,22 @@ With ampersands
 .pdfhref O 2 "With ampersands"
 .pdfhref M "with-ampersands"
 .LP
-Here\[cq]s a \c
+Here’s a \c
 .pdfhref W -D "http://example.com/?foo=1&bar=2" -A "\c" \
  -- "link with an ampersand in the URL"
 \&.
 .PP
-Here\[cq]s a link with an amersand in the link text: \c
+Here’s a link with an amersand in the link text: \c
 .pdfhref W -D "http://att.com/" -A "\c" \
  -- "AT&T"
 \&.
 .PP
-Here\[cq]s an \c
+Here’s an \c
 .pdfhref W -D "/script?foo=1&bar=2" -A "\c" \
  -- "inline link"
 \&.
 .PP
-Here\[cq]s an \c
+Here’s an \c
 .pdfhref W -D "/script?foo=1&bar=2" -A "\c" \
  -- "inline link in pointy braces"
 \&.
@@ -967,7 +967,7 @@ It need not be placed at the end of the document.
 .FE
 and another.\**
 .FS
-Here\[cq]s the long note.
+Here’s the long note.
 This one contains multiple blocks.
 .PP
 Subsequent blocks are indented to show that they belong to the footnote (as

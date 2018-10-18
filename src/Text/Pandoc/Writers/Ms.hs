@@ -69,6 +69,9 @@ writeMs :: PandocMonad m => WriterOptions -> Pandoc -> m Text
 writeMs opts document =
   evalStateT (pandocToMs opts document) defaultWriterState
 
+escString :: WriterOptions -> String -> String
+escString opts = escapeString (writerPreferAscii opts)
+
 -- | Return groff ms representation of document.
 pandocToMs :: PandocMonad m => WriterOptions -> Pandoc -> MS m Text
 pandocToMs opts (Pandoc meta blocks) = do
@@ -84,8 +87,8 @@ pandocToMs opts (Pandoc meta blocks) = do
   body <- blockListToMs opts blocks
   let main = render' body
   hasInlineMath <- gets stHasInlineMath
-  let titleMeta = (escapeString . stringify) $ docTitle meta
-  let authorsMeta = map (escapeString . stringify) $ docAuthors meta
+  let titleMeta = (escString opts . stringify) $ docTitle meta
+  let authorsMeta = map (escString opts . stringify) $ docAuthors meta
   hasHighlighting <- gets stHighlighting
   let highlightingMacros = if hasHighlighting
                               then case writerHighlightStyle opts of
@@ -101,8 +104,7 @@ pandocToMs opts (Pandoc meta blocks) = do
               $ defField "title-meta" titleMeta
               $ defField "author-meta" (intercalate "; " authorsMeta)
               $ defField "highlighting-macros" highlightingMacros metadata
-  (if writerPreferAscii opts then groffEscape else id) <$>
-    case writerTemplate opts of
+  case writerTemplate opts of
        Nothing  -> return main
        Just tpl -> renderTemplate' tpl context
 
@@ -112,18 +114,18 @@ escapeUri = escapeURIString (\c -> c /= '@' && isAllowedInURI c)
 -- | Escape | character, used to mark inline math, inside math.
 escapeBar :: String -> String
 escapeBar = concatMap go
-  where go '|' = "\\[u007C]"
+  where go '|' = "\\[ba]"
         go c   = [c]
 
-toSmallCaps :: String -> String
-toSmallCaps [] = []
-toSmallCaps (c:cs)
+toSmallCaps :: WriterOptions -> String -> String
+toSmallCaps _ [] = []
+toSmallCaps opts (c:cs)
   | isLower c = let (lowers,rest) = span isLower (c:cs)
-                in  "\\s-2" ++ escapeString (map toUpper lowers) ++
-                    "\\s0" ++ toSmallCaps rest
+                in  "\\s-2" ++ escString opts (map toUpper lowers) ++
+                    "\\s0" ++ toSmallCaps opts rest
   | isUpper c = let (uppers,rest) = span isUpper (c:cs)
-                in  escapeString uppers ++ toSmallCaps rest
-  | otherwise = escapeChar c ++ toSmallCaps cs
+                in  escString opts uppers ++ toSmallCaps opts rest
+  | otherwise = escapeChar (writerPreferAscii opts) c ++ toSmallCaps opts cs
 
 -- We split inline lists into sentences, and print one sentence per
 -- line.  groff/troff treats the line-ending period differently.
@@ -160,7 +162,7 @@ blockToMs opts (Para [Image attr alt (src,_tit)])
                        _ -> empty
   capt <- inlineListToMs' opts alt
   return $ nowrap (text ".PSPIC -C " <>
-             doubleQuotes (text (escapeString src)) <>
+             doubleQuotes (text (escString opts src)) <>
              sizeAttrs) $$
            text ".ce 1000" $$
            capt $$
@@ -198,7 +200,7 @@ blockToMs opts (Header level (ident,classes,_) inlines) = do
                                       (if null secnum
                                           then ""
                                           else "  ") ++
-                                      escapeString (stringify inlines))
+                                      escString opts (stringify inlines))
   let backlink = nowrap (text ".pdfhref L -D " <>
        doubleQuotes (text (toAscii ident)) <> space <> text "\\") <> cr <>
        text " -- "
@@ -400,14 +402,14 @@ inlineToMs opts (Cite _ lst) =
 inlineToMs opts (Code attr str) = do
   hlCode <- highlightCode opts attr str
   withFontFeature 'C' (return hlCode)
-inlineToMs _ (Str str) = do
+inlineToMs opts (Str str) = do
   let shim = case str of
                   '.':_ -> afterBreak "\\&"
                   _     -> empty
   smallcaps <- gets stSmallCaps
   if smallcaps
-     then return $ shim <> text (toSmallCaps str)
-     else return $ shim <> text (escapeString str)
+     then return $ shim <> text (toSmallCaps opts str)
+     else return $ shim <> text (escString opts str)
 inlineToMs opts (Math InlineMath str) = do
   modify $ \st -> st{ stHasInlineMath = True }
   res <- convertMath writeEqn InlineMath str
@@ -449,9 +451,10 @@ inlineToMs opts (Link _ txt (src, _)) = do
        doubleQuotes (text (escapeUri src)) <> text " -A " <>
        doubleQuotes (text "\\c") <> space <> text "\\") <> cr <>
        text " -- " <> doubleQuotes (nowrap contents) <> cr <> text "\\&"
-inlineToMs _ (Image _ alternate (_, _)) =
+inlineToMs opts (Image _ alternate (_, _)) =
   return $ char '[' <> text "IMAGE: " <>
-           text (escapeString (stringify alternate)) <> char ']'
+           text (escString opts (stringify alternate))
+             <> char ']'
 inlineToMs _ (Note contents) = do
   modify $ \st -> st{ stNotes = contents : stNotes st }
   return $ text "\\**"
@@ -531,20 +534,21 @@ toMacro sty toktype =
         -- lnColor = lineNumberColor sty
         -- lnBkgColor = lineNumberBackgroundColor sty
 
-msFormatter :: FormatOptions -> [SourceLine] -> Doc
-msFormatter _fmtopts =
+msFormatter :: WriterOptions -> FormatOptions -> [SourceLine] -> Doc
+msFormatter opts _fmtopts =
   vcat . map fmtLine
   where fmtLine = hcat . map fmtToken
         fmtToken (toktype, tok) = text "\\*" <>
            brackets (text (show toktype) <> text " \""
-             <> text (escapeCode (T.unpack tok)) <> text "\"")
+             <> text (escapeCode (writerPreferAscii opts)
+                      (T.unpack tok)) <> text "\"")
 
 highlightCode :: PandocMonad m => WriterOptions -> Attr -> String -> MS m Doc
 highlightCode opts attr str =
-  case highlight (writerSyntaxMap opts) msFormatter attr str of
+  case highlight (writerSyntaxMap opts) (msFormatter opts) attr str of
          Left msg -> do
            unless (null msg) $ report $ CouldNotHighlight msg
-           return $ text (escapeCode str)
+           return $ text (escapeCode (writerPreferAscii opts) str)
          Right h -> do
            modify (\st -> st{ stHighlighting = True })
            return h

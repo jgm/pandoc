@@ -1,4 +1,5 @@
 {-# LANGUAGE NoImplicitPrelude #-}
+{-# LANGUAGE OverloadedStrings #-}
 {-
 Copyright (C) 2018 John MacFarlane <jgm@berkeley.edu>
 
@@ -400,19 +401,19 @@ characterCodes =
 -- use like: \\[E a^ aa]
 combiningAccents :: [(Char, String)]
 combiningAccents =
-  [ ('˝' , "\\[a\"]")
-  , ('¯', "\\[a-]")
-  , ('˙', "\\[a.]")
-  , ('^', "\\[a^]")
-  , ('´', "\\[aa]")
-  , ('`', "\\[ga]")
-  , ('˘', "\\[ab]")
-  , ('¸', "\\[ac]")
-  , ('¨', "\\[ad]")
-  , ('ˇ', "\\[ah]")
-  , ('˚', "\\[ao]")
-  , ('~', "\\[a~]")
-  , ('˛', "\\[ho]")
-  , ('^', "\\[ha]")
-  , ('~', "\\[ti]")
+  [ ('˝' , "a\"")
+  , ('¯', "a-")
+  , ('˙', "a.")
+  , ('^', "a^")
+  , ('´', "aa")
+  , ('`', "ga")
+  , ('˘', "ab")
+  , ('¸', "ac")
+  , ('¨', "ad")
+  , ('ˇ', "ah")
+  , ('˚', "ao")
+  , ('~', "a~")
+  , ('˛', "ho")
+  , ('^', "ha")
+  , ('~', "ti")
   ]

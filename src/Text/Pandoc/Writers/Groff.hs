@@ -37,12 +37,10 @@ module Text.Pandoc.Writers.Groff (
     , escapeChar
     , escapeString
     , escapeCode
-    , groffEscape
     , withFontFeature
     ) where
 import Prelude
-import qualified Data.Text as T
-import Data.Char (isAscii, ord)
+import Data.Char (ord, isAscii)
 import Control.Monad.State.Strict
 import Data.List (intercalate)
 import qualified Data.Map as Map
@@ -51,7 +49,7 @@ import Text.Pandoc.Class (PandocMonad)
 import Text.Pandoc.Definition
 import Text.Pandoc.Pretty
 import Text.Printf (printf)
-import Text.Pandoc.GroffChar (essentialEscapes)
+import Text.Pandoc.GroffChar (essentialEscapes, characterCodes)
 
 data WriterState = WriterState { stHasInlineMath :: Bool
                                , stFirstPara     :: Bool
@@ -82,31 +80,35 @@ type Note = [Block]
 
 type MS = StateT WriterState
 
-
-escapeChar :: Char -> String
-escapeChar c = fromMaybe [c] (Map.lookup c essentialEscapes)
+escapeChar :: Bool -> Char -> String
+escapeChar useAscii c =
+  case Map.lookup c essentialEscapes of
+       Just s  -> s
+       Nothing
+         | useAscii
+         , not (isAscii c) ->
+             case Map.lookup c characterCodeMap of
+                  Just t  -> "\\[" <> t <> "]"
+                  Nothing -> printf "\\[u%04X]" (ord c)
+         | otherwise -> [c]
 
 -- | Escape special characters for groff.
-escapeString :: String -> String
-escapeString = concatMap escapeChar
+escapeString :: Bool -> String -> String
+escapeString useAscii = concatMap (escapeChar useAscii)
 
 -- | Escape a literal (code) section for groff.
-escapeCode :: String -> String
-escapeCode = intercalate "\n" . map escapeLine . lines
+escapeCode :: Bool -> String -> String
+escapeCode useAScii = intercalate "\n" . map escapeLine . lines
   where escapeCodeChar ' '  = "\\ "
         escapeCodeChar '\t' = "\\\t"
-        escapeCodeChar c    = escapeChar c
+        escapeCodeChar c    = escapeChar useAScii c
         escapeLine codeline =
           case concatMap escapeCodeChar codeline of
             a@('.':_) -> "\\&" ++ a
             b         -> b
 
--- | Escape non-ASCII characters using groff \u[..] sequences.
-groffEscape :: T.Text -> T.Text
-groffEscape = T.concatMap toUchar
-  where toUchar c
-         | isAscii c = T.singleton c
-         | otherwise = T.pack $ printf "\\[u%04X]" (ord c)
+characterCodeMap :: Map.Map Char String
+characterCodeMap = Map.fromList characterCodes
 
 fontChange :: PandocMonad m => MS m Doc
 fontChange = do

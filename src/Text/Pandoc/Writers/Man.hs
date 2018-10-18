@@ -33,6 +33,7 @@ Conversion of 'Pandoc' documents to groff man page format.
 module Text.Pandoc.Writers.Man ( writeMan) where
 import Prelude
 import Control.Monad.State.Strict
+import Data.Char (isAscii)
 import Data.List (intersperse, stripPrefix)
 import Data.Maybe (fromMaybe)
 import Data.Text (Text)
@@ -93,8 +94,7 @@ pandocToMan opts (Pandoc meta blocks) = do
               $ defField "has-tables" hasTables
               $ defField "hyphenate" True
               $ defField "pandoc-version" pandocVersion metadata
-  (if writerPreferAscii opts then groffEscape else id) <$>
-    case writerTemplate opts of
+  case writerTemplate opts of
        Nothing  -> return main
        Just tpl -> renderTemplate' tpl context
 
@@ -148,7 +148,7 @@ blockToMan _ (CodeBlock _ str) = return $
   text ".IP" $$
   text ".nf" $$
   text "\\f[C]" $$
-  text (escapeCode str) $$
+  text (escapeCode True str) $$
   text "\\f[R]" $$
   text ".fi"
 blockToMan opts (BlockQuote blocks) = do
@@ -296,10 +296,10 @@ inlineToMan opts (Quoted DoubleQuote lst) = do
 inlineToMan opts (Cite _ lst) =
   inlineListToMan opts lst
 inlineToMan _ (Code _ str) =
-  withFontFeature 'C' (return (text $ escapeCode str))
+  withFontFeature 'C' (return (text $ escapeCode True str))
 inlineToMan _ (Str str@('.':_)) =
-  return $ afterBreak "\\&" <> text (escapeString str)
-inlineToMan _ (Str str) = return $ text $ escapeString str
+  return $ afterBreak "\\&" <> text (escapeString True str)
+inlineToMan _ (Str str) = return $ text $ escapeString True str
 inlineToMan opts (Math InlineMath str) =
   lift (texMathToInlines InlineMath str) >>= inlineListToMan opts
 inlineToMan opts (Math DisplayMath str) = do
