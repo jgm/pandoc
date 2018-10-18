@@ -925,7 +925,7 @@ It should.
 .LP
 An e-mail address: \c
 .pdfhref W -D "mailto:nobody%40nowhere.net" -A "\c" \
- -- "nobody\@nowhere.net"
+ -- "nobody\[at]nowhere.net"
 \&
 .RS
 .LP
