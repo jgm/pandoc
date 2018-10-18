@@ -4,8 +4,10 @@
 
 ## Pandoc
 
+Pandoc document
+
 `blocks`
-:   document content ([list] of [blocks])
+:   document content ([list] of [Block]s)
 
 `meta`
 :   document meta information ([Meta] object)
@@ -14,9 +16,7 @@
 ## Meta
 
 Meta information on a document; string-indexed collection of
-[meta values](#metavalue). This is represented as a
-string-indexed table containing [meta values](#MetaValue).
-
+[MetaValue]s.
 
 ## MetaValue
 
@@ -24,7 +24,7 @@ Document meta information items.
 
 ### MetaBlocks
 
-A list of blocks usable as meta value ([list] of [blocks])
+A list of blocks usable as meta value ([list] of [Block]s)
 
 Fields:
 
@@ -37,7 +37,7 @@ Plain Lua boolean value (boolean)
 
 ### MetaInlines
 
-List of inlines used in metadata ([list] of [inline]s)
+List of inlines used in metadata ([list] of [Inline]s)
 
 Fields:
 
@@ -46,7 +46,7 @@ Fields:
 
 ### MetaList
 
-A list of other [meta value]s. ([list])
+A list of other [MetaValue]s. ([list])
 
 Fields:
 
@@ -77,7 +77,7 @@ Plain Lua string value (string)
 A block quote element
 
 content:
-:   block content ([list] of [blocks])
+:   block content ([list] of [Block]s)
 
 `tag`, `t`
 :   the literal `BlockQuote` (string)
@@ -87,7 +87,7 @@ content:
 A bullet list
 
 `content`
-:   list of items ([list] of [blocks])
+:   list of items ([list] of [Block]s)
 
 `tag`, `t`
 :   the literal `BulletList` (string)
@@ -100,7 +100,7 @@ Block of code.
 :   code string (string)
 
 `attr`
-:   element attributes (Attr)
+:   element attributes ([Attr])
 
 `identifier`
 :   alias for `attr.identifier` (string)
@@ -129,10 +129,10 @@ Definition list, containing terms and their explanation.
 Generic block container with attributes
 
 `content`
-:   block content ([list] of [blocks])
+:   block content ([list] of [Block]s)
 
 `attr`
-:   element attributes (Attr)
+:   element attributes ([Attr])
 
 `identifier`
 :   alias for `attr.identifier` (string)
@@ -154,10 +154,10 @@ Creates a header element.
 :   header level (integer)
 
 `content`
-:   inline content ([list] of [inlines])
+:   inline content ([list] of [Inline]s)
 
 `attr`
-:   element attributes (Attr)
+:   element attributes ([Attr])
 
 `identifier`
 :   alias for `attr.identifier` (string)
@@ -205,10 +205,10 @@ An ordered list.
 Parameters:
 
 `items`
-:   list items ([list] of [blocks])
+:   list items ([list] of [Block]s)
 
 `listAttributes`
-:   list parameters (ListAttributes)
+:   list parameters ([ListAttributes])
 
 `start`
 :   alias for `listAttributes.start` (integer)
@@ -227,7 +227,7 @@ Parameters:
 A paragraph
 
 `content`
-:   inline content ([list] of [inlines])
+:   inline content ([list] of [Inline]s)
 
 `tag`, `t`
 :   the literal `Para` (string)
@@ -237,7 +237,7 @@ A paragraph
 Plain text, not a paragraph
 
 `content`
-:   inline content ([list] of [inlines])
+:   inline content ([list] of [Inline]s)
 
 `tag`, `t`
 :   the literal `Plain` (string)
@@ -260,7 +260,7 @@ Raw content of a specified format.
 A table.
 
 `caption`
-:   table caption ([list] of [inlines])
+:   table caption ([list] of [Inline]s)
 
 `aligns`
 :   column alignments ([list] of [Alignment]s)
@@ -269,22 +269,25 @@ A table.
 :   column widths (number)
 
 `headers`
-:   header row ([list] of [table cells](#table-cell))
+:   header row ([list] of [table cells])
 
 `rows`
-:   table rows ([list] of [list]s of [table cells](#table-cell))
+:   table rows ([list] of [list]s of [table cells])
 
 `tag`, `t`
 :   the literal `Table` (string)
 
 A [table cell]{#table-cell} is a list of blocks.
 
-[Alignment]{#Alignment} is a string value indicating the
+*[Alignment]{#Alignment}* is a string value indicating the
 horizontal alignment of a table column. `AlignLeft`,
 `AlignRight`, and `AlignCenter` leads cell content tob be
 left-aligned, right-aligned, and centered, respectively. The
 default alignment is `AlignDefault` (often equivalent to
 centered).
+
+[Alignment]: #Alignment
+[table cells]: #table-cell
 
 ## Inline
 
@@ -292,7 +295,7 @@ centered).
 Citation
 
 `content`
-:   ([list] of [inlines])
+:   ([list] of [Inline]s)
 
 `citations`
 :   citation entries ([list] of [citations])
@@ -325,7 +328,7 @@ Inline code
 Emphasized text
 
 `content`
-:   inline content ([list] of [inlines])
+:   inline content ([list] of [Inline]s)
 
 `tag`, `t`
 :   the literal `Emph` (string)
@@ -337,7 +340,7 @@ Image:  alt text (list of inlines), target
 :   attributes ([Attr])
 
 `caption`
-:   text used to describe the image ([list] of [inlines])
+:   text used to describe the image ([list] of [Inline]s)
 
 `src`
 :   path to the image file (string)
@@ -370,7 +373,7 @@ Hyperlink: alt text (list of inlines), target
 :   attributes ([Attr])
 
 `content`
-:   text for this link ([list] of [inlines])
+:   text for this link ([list] of [Inline]s)
 
 `target`
 :   the link target (string)
@@ -405,7 +408,7 @@ TeX math (literal)
 Footnote or endnote
 
 `content`
-:   ([list] of [blocks])
+:   ([list] of [Block]s)
 
 `tag`, `t`
 :   the literal `Note` (string)
@@ -418,7 +421,7 @@ Quoted text
     `DoubleQuote` (string)
 
 `content`
-:   quoted text ([list] of [inlines])
+:   quoted text ([list] of [Inline]s)
 
 `tag`, `t`
 :   the literal `Quoted` (string)
@@ -439,7 +442,7 @@ Raw inline
 Small caps text
 
 `content`
-:   ([list] of [inlines])
+:   ([list] of [Inline]s)
 
 `tag`, `t`
 :   the literal `SmallCaps` (string)
@@ -463,7 +466,7 @@ Generic inline container with attributes
 :   attributes ([Attr])
 
 `content`
-:   wrapped content ([list] of [inlines])
+:   wrapped content ([list] of [Inline]s)
 
 `identifier`
 :   alias for `attr.identifier` (string)
@@ -490,7 +493,7 @@ Text
 Strikeout text
 
 `content`
-:   inline content ([list] of [inlines])
+:   inline content ([list] of [Inline]s)
 
 `tag`, `t`
 :   the literal `Strikeout` (string)
@@ -499,7 +502,7 @@ Strikeout text
 Strongly emphasized text
 
 `content`
-:   inline content ([list] of [inlines])
+:   inline content ([list] of [Inline]s)
 
 `tag`, `t`
 :   the literal `Strong` (string)
@@ -508,7 +511,7 @@ Strongly emphasized text
 Subscripted text
 
 `content`
-:   inline content ([list] of [inlines])
+:   inline content ([list] of [Inline]s)
 
 `tag`, `t`
 :   the literal `Subscript` (string)
@@ -517,7 +520,7 @@ Subscripted text
 Superscripted text
 
 `content`
-:   inline content ([list] of [inlines])
+:   inline content ([list] of [Inline]s)
 
 `tag`, `t`
 :   the literal `Superscript` (string)
@@ -554,10 +557,10 @@ Single citation entry
     `NormalCitation` (string)
 
 `prefix`
-:   citation prefix ([list] of [inlines])
+:   citation prefix ([list] of [Inline]s)
 
 `suffix`
-:   citation suffix ([list] of [inlines])
+:   citation suffix ([list] of [Inline]s)
 
 `note_num`
 :   note number (integer)
@@ -583,7 +586,7 @@ List attributes
 ## Hierarchical Element {#Element}
 
 Hierarchical elements can be either *Sec* (sections) or *Blk*
-(blocks). *Blk* elements are treated like [block]s.
+(blocks). *Blk* elements are treated like [Block]s.
 
 ### Sec
 
@@ -602,13 +605,15 @@ document contents.
 :   header attributes ([Attr])
 
 `label`
-:   header content ([list] of [inlines])
+:   header content ([list] of [Inline]s)
 
 `contents`
-:   list of contents in this section ([list] of hierarchical elements)
+:   list of contents in this section ([list] of [hierarchical element]s)
 
 `tag`, `t`
 :   constant `Sec` (string)
+
+[hierarchical element]: #Element
 
 ## ReaderOptions
 
@@ -646,12 +651,10 @@ Pandoc reader options
 :   track changes setting for docx; one of `AcceptChanges`,
     `RejectChanges`, and `AllChanges` (string)
 
-[block]: #block
-[blocks]: #block
-[list]: #list
-[meta value]: #metavalue
-[inline]: #inline
-[inlines]: #inline
+[Block]: #Block
+[list]: #List
+[MetaValue]: #MetaValue
+[Inline]: #Inline
 [Attr]: #attr
 [Attributes]: #attributes
 [citations]: #citation
