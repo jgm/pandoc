@@ -33,7 +33,6 @@ Conversion of 'Pandoc' documents to groff man page format.
 module Text.Pandoc.Writers.Man ( writeMan) where
 import Prelude
 import Control.Monad.State.Strict
-import Data.Char (isAscii)
 import Data.List (intersperse, stripPrefix)
 import Data.Maybe (fromMaybe)
 import Data.Text (Text)
