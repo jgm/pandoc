@@ -444,7 +444,7 @@ parseTitle = do
     else do
          let mantitle = fst $ head args
          modifyState (changeTitle mantitle)
-         return $ header 1 $ str mantitle
+         return $ header 1 $ text mantitle
   where
   changeTitle title pst =
     let meta = stateMeta pst
@@ -469,7 +469,7 @@ parseSkippedContent = do
 strToInlines :: RoffStr -> Inlines
 strToInlines (s, fonts) = inner $ S.toList fonts where
   inner :: [FontKind] -> Inlines
-  inner [] = str s
+  inner [] = text s
   inner (Bold:fs) = strong $ inner fs
   inner (Italic:fs) = emph $ inner fs
 
@@ -503,7 +503,7 @@ parseInlines = do
     (MMaybeLink txt) <- mmaybeLink
     let inls = case runParser linkParser () "" txt of
                   Right lnk -> lnk
-                  Left _ -> strong $ str txt
+                  Left _ -> strong $ text txt
     return inls
 
     where
@@ -519,7 +519,7 @@ parseInlines = do
       other <- many anyChar
       let manurl pagename section = "../"++section++"/"++pagename++"."++section
           lnkInls = link (manurl mpage [mansect]) mpage (strong $ str mpage)
-      return $ lnkInls <> strong (str (" ("++[mansect] ++ ")") <> str other)
+      return $ lnkInls <> strong (str (" ("++[mansect] ++ ")") <> text other)
 
   comment :: PandocMonad m => ManParser m Inlines
   comment = mcomment >> return mempty
