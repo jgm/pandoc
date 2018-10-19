@@ -463,7 +463,7 @@ parseSkippedContent = do
   onToken :: PandocMonad m => ManToken -> ManParser m ()
   onToken (MUnknownMacro mname _) = do
     pos <- getPosition
-    logMessage $ SkippedContent ("Unknown macro: " ++ mname) pos
+    report $ SkippedContent ("Unknown macro: " ++ mname) pos
   onToken _ = return ()
 
 strToInlines :: RoffStr -> Inlines
@@ -592,4 +592,8 @@ parseList = do
 
 -- In case of weird man file it will be parsed succesfully
 parseSkipMacro :: PandocMonad m => ManParser m Blocks
-parseSkipMacro = mmacroAny >> mempty
+parseSkipMacro = do
+  pos <- getPosition
+  tok <- mmacroAny
+  report $ SkippedContent (show tok) pos
+  return mempty
