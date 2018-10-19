@@ -561,5 +561,7 @@ parseSkipMacro :: PandocMonad m => ManParser m Blocks
 parseSkipMacro = do
   pos <- getPosition
   tok <- mmacroAny
-  report $ SkippedContent (show tok) pos
+  case tok of
+    MMacro mkind _ -> report $ SkippedContent ('.':mkind) pos
+    _              -> return ()  -- shouldn't happen
   return mempty
