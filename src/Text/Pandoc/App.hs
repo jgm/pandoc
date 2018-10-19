@@ -737,6 +737,7 @@ defaultReaderName fallback (x:xs) =
     ".pdf"      -> "pdf"  -- so we get an "unknown reader" error
     ".doc"      -> "doc"  -- so we get an "unknown reader" error
     ".fb2"      -> "fb2"
+    ['.',y]     | y `elem` ['1'..'9'] -> "man"
     _           -> defaultReaderName fallback xs
 
 -- Determine default writer based on output file extension
