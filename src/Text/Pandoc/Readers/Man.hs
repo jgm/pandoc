@@ -561,32 +561,25 @@ parseList = do
 
   where
 
-  macroIPInl :: [RoffStr] -> Inlines
-  macroIPInl (x:_:[]) = strToInlines x <> B.space
-  macroIPInl _        = mempty
-
-  listKind :: [RoffStr] -> Maybe ListBuilder
-  listKind (((c:_), _):_:[]) =
-    let params style = orderedListWith (1, style, DefaultDelim)
-    in case c of
-      _ | isDigit c -> Just $ params Decimal
-      _ | isUpper c -> Just $ params UpperAlpha
-      _ | isLower c -> Just $ params LowerAlpha
-      _             -> Nothing
-
-  listKind _ = Nothing
+  listKind :: [RoffStr] -> ListBuilder
+  listKind ((cs, _):_:[]) =
+    let cs' = if not ('.' `elem` cs || ')' `elem` cs) then cs ++ "." else cs
+    in case Parsec.runParser anyOrderedListMarker defaultParserState
+            "list marker" cs' of
+         Right (start, listtype, listdelim)
+           | cs == cs' -> orderedListWith (start, listtype, listdelim)
+           | otherwise -> orderedListWith (start, listtype, DefaultDelim)
+         Left _          -> bulletList
+  listKind _ = bulletList
 
   paras :: PandocMonad m => ManParser m (ListBuilder, Blocks)
   paras = do
     (MMacro _ args) <- mmacro KTab
-    let lbuilderOpt = listKind args
-        lbuilder = fromMaybe bulletList lbuilderOpt
-        macroinl = macroIPInl args
+    let lbuilder = listKind args
     inls <- parseInlines
-    let parainls = if isNothing lbuilderOpt then macroinl <> inls else inls
     subls <- mconcat <$> many sublist
-    return $ (lbuilder, plain parainls <> subls)
-  
+    return $ (lbuilder, plain inls <> subls)
+
   sublist :: PandocMonad m => ManParser m Blocks
   sublist = do
     mmacro KSubTab
