@@ -530,10 +530,14 @@ parseCodeBlock = do
   mmacro KCodeBlStart
   toks <- many (mstr <|> mline <|> mmaybeLink <|> memplyLine <|> munknownMacro <|> mcomment)
   mmacro KCodeBlEnd
-  return $ codeBlock (intercalate "\n" . catMaybes $ extractText <$> toks)
+  return $ codeBlock (removeFinalNewline $
+                      intercalate "\n" . catMaybes $
+                      extractText <$> toks)
 
   where
 
+  removeFinalNewline [] = []
+  removeFinalNewline xs = if last xs == '\n' then init xs else xs
   extractText :: ManToken -> Maybe String
   extractText (MStr (s, _)) = Just s
   extractText (MLine ss) = Just . concat $ map fst ss -- TODO maybe unwords?
