@@ -61,13 +61,7 @@ import Text.Pandoc.GroffChar (characterCodes, combiningAccents)
 --
 data FontKind = Bold | Italic | Monospace | Regular deriving (Show, Eq, Ord)
 
-data MacroKind = KTitle
-               | KCodeBlStart
-               | KCodeBlEnd
-               | KTab
-               | KTabEnd
-               | KSubTab
-               deriving (Show, Eq)
+type MacroKind = String
 
 type Font = Set FontKind
 
@@ -291,17 +285,9 @@ lexMacro = do
   macroName <- many1 (letter <|> oneOf ['\\', '"', '&'])
   args <- lexArgs
   let joinedArgs = unwords $ fst <$> args
-      knownMacro mkind = MMacro mkind args
 
       tok = case macroName of
               x | x `elem` ["\\\"", "\\#"] -> MComment joinedArgs
-              "TH"   -> knownMacro KTitle
-              "IP"   -> knownMacro KTab
-              "TP"   -> knownMacro KTab
-              "RE"   -> knownMacro KTabEnd
-              "RS"   -> knownMacro KSubTab
-              "nf"   -> knownMacro KCodeBlStart
-              "fi"   -> knownMacro KCodeBlEnd
               "B"    -> MStr (joinedArgs, singleton Bold)
               "BR"   -> MMaybeLink joinedArgs
               x | x `elem` ["BI", "IB"] -> MStr (joinedArgs, S.fromList [Italic, Bold])
@@ -309,7 +295,7 @@ lexMacro = do
               "SH"   -> MHeader 2 args
               "SS"   -> MHeader 3 args
               x | x `elem` [ "P", "PP", "LP", "sp"] -> MEmptyLine
-              _      -> MUnknownMacro macroName args
+              _      -> MMacro macroName args
   return tok
 
   where
@@ -438,7 +424,7 @@ mcomment = msatisfy isMComment where
 
 parseTitle :: PandocMonad m => ManParser m Blocks
 parseTitle = do
-  (MMacro _ args) <- mmacro KTitle
+  (MMacro _ args) <- mmacro "TH"
   if null args
     then return mempty
     else do
@@ -527,9 +513,9 @@ parseInlines = do
 
 parseCodeBlock :: PandocMonad m => ManParser m Blocks
 parseCodeBlock = do
-  mmacro KCodeBlStart
+  mmacro "nf"
   toks <- many (mstr <|> mline <|> mmaybeLink <|> memplyLine <|> munknownMacro <|> mcomment)
-  mmacro KCodeBlEnd
+  mmacro "fi"
   return $ codeBlock (removeFinalNewline $
                       intercalate "\n" . catMaybes $
                       extractText <$> toks)
@@ -574,7 +560,7 @@ parseList = do
 
   paras :: PandocMonad m => ManParser m (ListBuilder, Blocks)
   paras = do
-    (MMacro _ args) <- mmacro KTab
+    (MMacro _ args) <- mmacro "IP"
     let lbuilder = listKind args
     inls <- parseInlines
     subls <- mconcat <$> many sublist
@@ -582,9 +568,9 @@ parseList = do
 
   sublist :: PandocMonad m => ManParser m Blocks
   sublist = do
-    mmacro KSubTab
+    mmacro "RS"
     bl <- parseList
-    mmacro KTabEnd
+    mmacro "RE"
     return bl
 
 -- In case of weird man file it will be parsed succesfully
