@@ -48,8 +48,8 @@ essentialEscapes = Map.fromList
   , ('^', "\\[ha]")
   , ('@', "\\[at]")
   , ('\\', "\\[rs]")
+  , ('-', "\\-")  -- minus; - will be interpreted as hyphen U+2010
   , ('\x2026', "\\&...")  -- because u2026 doesn't render on tty
-  , ('\x2212', "\\-")  -- minus
   ]
 
 characterCodes :: [(Char, String)]

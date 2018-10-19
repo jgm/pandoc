@@ -131,7 +131,7 @@ Here’s a regular paragraph.
 In Markdown 1.0.0 and earlier.
 Version 8.
 This line turns into a list item.
-Because a hard-wrapped line in the middle of a paragraph looked like a list
+Because a hard\-wrapped line in the middle of a paragraph looked like a list
 item.
 .PP
 Here’s one with a bullet.
@@ -146,7 +146,7 @@ Block Quotes
 .pdfhref O 1 "Block Quotes"
 .pdfhref M "block-quotes"
 .LP
-E-mail style:
+E\-mail style:
 .RS
 .LP
 This is a block quote.
@@ -194,7 +194,7 @@ Code:
 .IP
 .nf
 \f[C]
-----\ (should\ be\ four\ hyphens)
+\-\-\-\-\ (should\ be\ four\ hyphens)
 
 sub\ status\ {
 \ \ \ \ print\ \[dq]working\[dq];
@@ -603,7 +603,7 @@ Code block:
 .IP
 .nf
 \f[C]
-<!--\ Comment\ -->
+<!\-\-\ Comment\ \-\->
 \f[]
 .fi
 .LP
@@ -693,7 +693,7 @@ LaTeX
 .IP \[bu] 3
 @223@
 .IP \[bu] 3
-@p@-Tree
+@p@\-Tree
 .IP \[bu] 3
 Here’s some display math:
 .EQ
@@ -763,7 +763,7 @@ Left paren: (
 .PP
 Right paren: )
 .PP
-Greater-than: >
+Greater\-than: >
 .PP
 Hash: #
 .PP
@@ -773,7 +773,7 @@ Bang: !
 .PP
 Plus: +
 .PP
-Minus: -
+Minus: \-
 .HLINE
 .SH 1
 Links
@@ -923,7 +923,7 @@ In a list?
 .IP \[bu] 3
 It should.
 .LP
-An e-mail address: \c
+An e\-mail address: \c
 .pdfhref W -D "mailto:nobody%40nowhere.net" -A "\c" \
  -- "nobody\[at]nowhere.net"
 \&
@@ -935,7 +935,7 @@ Blockquoted: \c
 \&
 .RE
 .LP
-Auto-links should not occur here: \f[C]<http://example.com/>\f[R]
+Auto\-links should not occur here: \f[C]<http://example.com/>\f[R]
 .IP
 .nf
 \f[C]
