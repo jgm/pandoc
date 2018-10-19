@@ -74,7 +74,6 @@ data ManToken = MStr RoffStr
               | MEmptyLine
               | MHeader Int [RoffStr]
               | MMacro MacroKind [RoffStr]
-              | MUnknownMacro String [RoffStr]
               | MComment String
               deriving Show
 
@@ -387,8 +386,8 @@ mmaybeLink = msatisfy isMMaybeLink where
   isMMaybeLink (MMaybeLink _) = True
   isMMaybeLink _ = False
 
-memplyLine :: PandocMonad m => ManParser m ManToken
-memplyLine = msatisfy isMEmptyLine where
+memptyLine :: PandocMonad m => ManParser m ManToken
+memptyLine = msatisfy isMEmptyLine where
   isMEmptyLine MEmptyLine = True
   isMEmptyLine _ = False
 
@@ -407,11 +406,6 @@ mmacroAny :: PandocMonad m => ManParser m ManToken
 mmacroAny = msatisfy isMMacro where
   isMMacro (MMacro _ _) = True
   isMMacro _ = False
-
-munknownMacro :: PandocMonad m => ManParser m ManToken
-munknownMacro = msatisfy isMUnknownMacro where
-  isMUnknownMacro (MUnknownMacro _ _) = True
-  isMUnknownMacro _ = False
 
 mcomment :: PandocMonad m => ManParser m ManToken
 mcomment = msatisfy isMComment where
@@ -439,18 +433,7 @@ parseTitle = do
     pst {stateMeta = metaUp}
 
 parseSkippedContent :: PandocMonad m => ManParser m Blocks
-parseSkippedContent = do
-  tok <- munknownMacro <|> mcomment <|> memplyLine
-  onToken tok
-  return mempty
-
-  where
-
-  onToken :: PandocMonad m => ManToken -> ManParser m ()
-  onToken (MUnknownMacro mname _) = do
-    pos <- getPosition
-    report $ SkippedContent ("Unknown macro: " ++ mname) pos
-  onToken _ = return ()
+parseSkippedContent = mempty <$ (mcomment <|> memptyLine)
 
 strToInlines :: RoffStr -> Inlines
 strToInlines (s, fonts) = inner $ S.toList fonts where
@@ -514,7 +497,7 @@ parseInlines = do
 parseCodeBlock :: PandocMonad m => ManParser m Blocks
 parseCodeBlock = do
   mmacro "nf"
-  toks <- many (mstr <|> mline <|> mmaybeLink <|> memplyLine <|> munknownMacro <|> mcomment)
+  toks <- many (mstr <|> mline <|> mmaybeLink <|> memptyLine <|> mcomment)
   mmacro "fi"
   return $ codeBlock (removeFinalNewline $
                       intercalate "\n" . catMaybes $
