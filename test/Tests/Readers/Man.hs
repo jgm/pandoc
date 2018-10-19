@@ -30,16 +30,16 @@ tests = [
       =?> (para $ emph "bar")
     , "BoldItalic" =:
       ".BI foo bar"
-      =?> (para $ strong $ emph $ str "foo bar")
+      =?> (para $ strong $ emph $ text "foo bar")
     , "H1" =:
       ".SH The header\n"
-      =?> header 2 (str "The" <> space <> str "header")
+      =?> header 2 (text "The header")
     , "H2" =:
       ".SS \"The header 2\""
-      =?> header 3 (str "The header 2")
+      =?> header 3 (text "The header 2")
     , "Macro args" =:
       ".B \"single arg with \"\"Q\"\"\""
-      =?> (para $ strong $ str "single arg with \"Q\"")
+      =?> (para $ strong $ text "single arg with \"Q\"")
     , "comment" =:
       ".\\\"bla\naaa"
       =?> (para $ space <> str "aaa")
@@ -56,10 +56,10 @@ tests = [
       =?> (para $ str "ab")
     , "replace" =:
       "\\-\\ \\\\\\[lq]\\[rq]\\[em]\\[en]\\*(lq\\*(rq"
-      =?> (para $ str "- \\“”—–“”")
+      =?> (para $ text "- \\“”—–“”")
     , "replace2" =:
       "\\t\\e\\`\\^\\|\\'"
-      =?> (para $ str "\t\\`  `")
+      =?> (para $ text "\t\\`  `")
     ],
   testGroup "Lists" [
       "bullet" =:
