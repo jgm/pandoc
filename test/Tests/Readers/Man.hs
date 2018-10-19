@@ -42,7 +42,7 @@ tests = [
       =?> (para $ strong $ text "single arg with \"Q\"")
     , "comment" =:
       ".\\\"bla\naaa"
-      =?> (para $ space <> str "aaa")
+      =?> (para $ str "aaa")
     , "link" =:
       ".BR aa (1)"
       =?> (para $ link "../1/aa.1" "aa" (strong $ str "aa") <> (strong $ str " (1)"))
@@ -59,7 +59,13 @@ tests = [
       =?> (para $ text "- \\“”—–“”")
     , "replace2" =:
       "\\t\\e\\`\\^\\|\\'"
-      =?> (para $ text "\t\\`  `")
+      =?> (para $ text "\\`  `")
+    , "comment  with \\\"" =:
+      "Foo \\\" bar\n"
+      =?> (para $ text "Foo")
+    , "comment with \\#" =:
+      "Foo\\#\nbar\n"
+      =?> (para $ text "Foobar")
     ],
   testGroup "Lists" [
       "bullet" =:

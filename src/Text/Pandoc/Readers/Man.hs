@@ -216,8 +216,8 @@ escapeLexer = do
   escSingle = do
     c <- anyChar
     case c of
-      '"' -> mempty <$ manyTill anyChar newline -- line comment
-      '#' -> mempty <$ (manyTill anyChar newline >> optional newline)
+      '"' -> mempty <$ skipMany (satisfy (/='\n')) -- line comment
+      '#' -> mempty <$ manyTill anyChar newline
       '%' -> return mempty
       '{' -> return mempty
       '}' -> return mempty
@@ -478,7 +478,7 @@ strToInlines (s, fonts) = inner $ S.toList fonts where
   inner (Regular:fs) = inner fs
 
 parsePara :: PandocMonad m => ManParser m Blocks
-parsePara = para <$> parseInlines
+parsePara = para . trimInlines <$> parseInlines
 
 parseInlines :: PandocMonad m => ManParser m Inlines
 parseInlines = do

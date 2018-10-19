@@ -1,17 +1,17 @@
 Pandoc (Meta {unMeta = fromList [("title",MetaString "Pandoc Man tests")]})
 [Header 1 ("",[],[]) [Str "Pandoc",Space,Str "Man",Space,Str "tests"]
 ,Para [Str "This",Space,Str "is",Space,Str "a",Space,Str "set",Space,Str "of",Space,Str "tests",Space,Str "for",Space,Str "pandoc."]
-,Para [Space,Str "*",Space,Str "*",Space,Str "*",Space,Str "*",Space,Str "*"]
+,Para [Str "*",Space,Str "*",Space,Str "*",Space,Str "*",Space,Str "*"]
 ,Header 2 ("",[],[]) [Str "Headers"]
 ,Header 2 ("",[],[]) [Str "Level",Space,Str "1"]
 ,Header 3 ("",[],[]) [Str "Level",Space,Str "2"]
-,Para [Space,Str "*",Space,Str "*",Space,Str "*",Space,Str "*",Space,Str "*"]
+,Para [Str "*",Space,Str "*",Space,Str "*",Space,Str "*",Space,Str "*"]
 ,Header 2 ("",[],[]) [Str "Paragraphs"]
 ,Para [Str "Here's",Space,Str "a",Space,Str "regular",Space,Str "paragraph."]
 ,Para [Str "Another",Space,Str "paragraph",Space,Str "In",Space,Str "Markdown",Space,Str "1.0.0",Space,Str "and",Space,Str "earlier.",Space,Str "Version",Space,Str "8.",Space,Str "This",Space,Str "line",Space,Str "turns",Space,Str "into",Space,Str "a",Space,Str "list",Space,Str "item.",Space,Str "Because",Space,Str "a",Space,Str "hard-wrapped",Space,Str "line",Space,Str "in",Space,Str "the",Space,Str "middle",Space,Str "of",Space,Str "a",Space,Str "paragraph",Space,Str "looked",Space,Str "like",Space,Str "a",Space,Str "list",Space,Str "item."]
 ,Para [Str "There",Space,Str "should",Space,Str "be",Space,Str "a",Space,Str "hard",Space,Str "line",Space,Str "break"]
 ,Para [Str "here."]
-,Para [Space,Str "*",Space,Str "*",Space,Str "*",Space,Str "*",Space,Str "*"]
+,Para [Str "*",Space,Str "*",Space,Str "*",Space,Str "*",Space,Str "*"]
 ,Header 2 ("",[],[]) [Str "Block",Space,Str "Quotes"]
 ,Para [Str "Code",Space,Str "in",Space,Str "a",Space,Str "block",Space,Str "quote:"]
 ,CodeBlock ("",[],[]) "\nsub status {\n    print \"working\";\n}"
@@ -24,7 +24,7 @@ Pandoc (Meta {unMeta = fromList [("title",MetaString "Pandoc Man tests")]})
 ,CodeBlock ("",[],[]) "\n---- (should be four hyphens)\n\nsub status {\n    print \"working\";\n}\n"
 ,Para [Str "And:"]
 ,CodeBlock ("",[],[]) "\n\tthis code line is indented by one tab"
-,Para [Space,Str "*",Space,Str "*",Space,Str "*",Space,Str "*",Space,Str "*"]
+,Para [Str "*",Space,Str "*",Space,Str "*",Space,Str "*",Space,Str "*"]
 ,Header 2 ("",[],[]) [Str "Lists"]
 ,Header 3 ("",[],[]) [Str "Unordered"]
 ,Para [Str "Asterisks:"]
@@ -71,7 +71,7 @@ Pandoc (Meta {unMeta = fromList [("title",MetaString "Pandoc Man tests")]})
      [[Plain [Str "Decimal",Space,Str "start",Space,Str "with",Space,Str "6"]
       ,OrderedList (3,LowerAlpha,OneParen)
        [[Plain [Str "Lower",Space,Str "alpha",Space,Str "with",Space,Str "paren"]]]]]]]]]
-,Para [Space,Str "*",Space,Str "*",Space,Str "*",Space,Str "*",Space,Str "*"]
+,Para [Str "*",Space,Str "*",Space,Str "*",Space,Str "*",Space,Str "*"]
 ,Header 2 ("",[],[]) [Str "Special",Space,Str "Characters"]
 ,Para [Str "AT&T",Space,Str "has",Space,Str "an",Space,Str "ampersand",Space,Str "in",Space,Str "their",Space,Str "name."]
 ,Para [Str "4",Space,Str "<",Space,Str "5."]
