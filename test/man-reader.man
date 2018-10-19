@@ -49,10 +49,10 @@ Code:
 .IP
 .nf
 \f[C]
-\-\-\-\-\ (should\ be\ four\ hyphens)
+\-\-\-\- (should be four hyphens)
 
-sub\ status\ {
-\ \ \ \ print\ "working";
+sub status {
+    print "working";
 }
 
 \f[]
@@ -62,9 +62,7 @@ And:
 .IP
 .nf
 \f[C]
-\tthis\ code\ line is\ indented\ by\ one\ tab
-
-These\ should\ not\ be\ escaped:\ \ \\$\ \\\\\ \\>\ \\[\ \\{
+\tthis code line is indented by one tab
 \f[]
 .fi
 .PP

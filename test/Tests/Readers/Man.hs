@@ -56,7 +56,7 @@ tests = [
       =?> (para $ str "ab")
     , "replace" =:
       "\\-\\ \\\\\\[lq]\\[rq]\\[em]\\[en]\\*(lq\\*(rq"
-      =?> (para $ str "- \\“”—–«»")
+      =?> (para $ str "- \\“”—–“”")
     , "replace2" =:
       "\\t\\e\\`\\^\\|\\'"
       =?> (para $ str "\t\\`  `")
@@ -65,7 +65,7 @@ tests = [
       "bullet" =:
       ".IP\nfirst\n.IP\nsecond"
       =?> bulletList [plain $ str "first", plain $ str "second"]
-    , "odrered" =:
+    , "ordered" =:
       ".IP 1 a\nfirst\n.IP 2 a\nsecond"
       =?> orderedListWith (1,Decimal,DefaultDelim) [plain $ str "first", plain $ str "second"]
     , "upper" =:
