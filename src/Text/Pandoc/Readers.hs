@@ -105,6 +105,7 @@ import Text.Pandoc.Readers.TikiWiki
 import Text.Pandoc.Readers.TWiki
 import Text.Pandoc.Readers.Txt2Tags
 import Text.Pandoc.Readers.Vimwiki
+import Text.Pandoc.Readers.Man
 import Text.Pandoc.Shared (mapLeft)
 import qualified Text.Pandoc.UTF8 as UTF8
 import Text.Parsec.Error
@@ -145,6 +146,7 @@ readers = [ ("native"       , TextReader readNative)
            ,("t2t"          , TextReader readTxt2Tags)
            ,("epub"         , ByteStringReader readEPUB)
            ,("muse"         , TextReader readMuse)
+           ,("man"          , TextReader readMan)
            ,("fb2"          , TextReader readFB2)
            ]
 

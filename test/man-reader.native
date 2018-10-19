@@ -1,0 +1,94 @@
+Pandoc (Meta {unMeta = fromList [("title",MetaString "Pandoc Man tests")]})
+[Header 1 ("",[],[]) [Str "Pandoc Man tests"]
+,Para [Str "This is a set of tests for pandoc."]
+,Para [Str "   *   *   *   *   *"]
+,Header 2 ("",[],[]) [Str "Headers"]
+,Header 2 ("",[],[]) [Str "Level",Space,Str "1"]
+,Header 3 ("",[],[]) [Str "Level",Space,Str "2"]
+,Para [Str "   *   *   *   *   *"]
+,Header 2 ("",[],[]) [Str "Paragraphs"]
+,Para [Str "Here's a regular paragraph."]
+,Para [Str "Another paragraph",Space,Str "In Markdown 1.0.0 and earlier.",Space,Str "Version 8.",Space,Str "This line turns into a list item.",Space,Str "Because a hard-wrapped line in the middle of a paragraph looked like a list",Space,Str "item."]
+,Para [Str "There should be a hard line break"]
+,Para [Str "here."]
+,Para [Str "   *   *   *   *   *"]
+,Header 2 ("",[],[]) [Str "Block",Space,Str "Quotes"]
+,Para [Str "Code in a block quote:"]
+,CodeBlock ("",[],[]) "\nsub status {\n    print \"working\";\n}\n"
+,Para [Str "A list:"]
+,OrderedList (1,Decimal,DefaultDelim)
+ [[Plain [Str "item one"]]
+ ,[Plain [Str "item two"]]]
+,Header 2 ("",[],[]) [Str "Code",Space,Str "Blocks"]
+,Para [Str "Code:"]
+,CodeBlock ("",[],[]) "\n---- (should be four hyphens)\n\nsub status {\n    print \"working\";\n}\n\n"
+,Para [Str "And:"]
+,CodeBlock ("",[],[]) "\n\tthis code line is indented by one tab\n\nThese should not be escaped:  \\$ \\\\ \\> \\[ \\{\n"
+,Para [Str "   *   *   *   *   *"]
+,Header 2 ("",[],[]) [Str "Lists"]
+,Header 3 ("",[],[]) [Str "Unordered"]
+,Para [Str "Asterisks:"]
+,BulletList
+ [[Plain [Str "",Space,Str "asterisk 1"]]
+ ,[Plain [Str "",Space,Str "asterisk 2"]]
+ ,[Plain [Str "",Space,Str "asterisk 3"]]]
+,Header 3 ("",[],[]) [Str "Ordered"]
+,OrderedList (1,Decimal,DefaultDelim)
+ [[Plain [Str "First"]]
+ ,[Plain [Str "Second"]]
+ ,[Plain [Str "Third"]]]
+,Header 3 ("",[],[]) [Str "Nested"]
+,BulletList
+ [[Plain [Str "",Space,Str "Tab"]
+  ,BulletList
+   [[Plain [Str "",Space,Str "Tab"]
+    ,BulletList
+     [[Plain [Str "",Space,Str "Tab"]]]]]]]
+,Para [Str "Here's another:"]
+,OrderedList (1,Decimal,DefaultDelim)
+ [[Plain [Str "First"]]
+ ,[Plain [Str "Second:"]
+  ,BulletList
+   [[Plain [Str "",Space,Str "Fee"]]
+   ,[Plain [Str "",Space,Str "Fie"]]
+   ,[Plain [Str "",Space,Str "Foe"]]]]
+ ,[Plain [Str "Third"]]]
+,Para [Str "Same thing:"]
+,OrderedList (1,Decimal,DefaultDelim)
+ [[Plain [Str "First"]]
+ ,[Plain [Str "Second:"]
+  ,BulletList
+   [[Plain [Str "",Space,Str "Fee"]]
+   ,[Plain [Str "",Space,Str "Fie"]]
+   ,[Plain [Str "",Space,Str "Foe"]]]]
+ ,[Plain [Str "Third"]]]
+,Header 3 ("",[],[]) [Str "different",Space,Str "styles:"]
+,OrderedList (1,UpperAlpha,DefaultDelim)
+ [[Plain [Str "Upper Alpha"]
+  ,OrderedList (1,UpperAlpha,DefaultDelim)
+   [[Plain [Str "Upper Roman."]
+    ,BulletList
+     [[Plain [Str "(6)",Space,Str "Decimal start with 6"]
+      ,OrderedList (1,LowerAlpha,DefaultDelim)
+       [[Plain [Str "Lower alpha with paren"]]]]]]]]]
+,Para [Str "   *   *   *   *   *"]
+,Header 2 ("",[],[]) [Str "Special",Space,Str "Characters"]
+,Para [Str "AT&T has an ampersand in their name."]
+,Para [Str "4 < 5."]
+,Para [Str "6 > 5."]
+,Para [Str "Backslash: \\"]
+,Para [Str "Backtick: `"]
+,Para [Str "Asterisk: *"]
+,Para [Str "Underscore: _"]
+,Para [Str "Left brace: {"]
+,Para [Str "Right brace: }"]
+,Para [Str "Left bracket: ["]
+,Para [Str "Right bracket: ]"]
+,Para [Str "Left paren: ("]
+,Para [Str "Right paren: )"]
+,Para [Str "Greater-than: >"]
+,Para [Str "Hash: #"]
+,Para [Str "Period: ."]
+,Para [Str "Bang: !"]
+,Para [Str "Plus: +"]
+,Para [Str "Minus: -"]]

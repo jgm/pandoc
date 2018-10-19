@@ -22,6 +22,7 @@ import qualified Tests.Readers.Odt
 import qualified Tests.Readers.Org
 import qualified Tests.Readers.RST
 import qualified Tests.Readers.Txt2Tags
+import qualified Tests.Readers.Man
 import qualified Tests.Shared
 import qualified Tests.Writers.AsciiDoc
 import qualified Tests.Writers.ConTeXt
@@ -76,6 +77,7 @@ tests = testGroup "pandoc tests" [ Tests.Command.tests
           , testGroup "EPUB" Tests.Readers.EPUB.tests
           , testGroup "Muse" Tests.Readers.Muse.tests
           , testGroup "Creole" Tests.Readers.Creole.tests
+          , testGroup "Man" Tests.Readers.Man.tests
           , testGroup "FB2" Tests.Readers.FB2.tests
           ]
         , testGroup "Lua filters" Tests.Lua.tests
