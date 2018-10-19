@@ -58,14 +58,19 @@ tests = [
       "\\-\\ \\\\\\[lq]\\[rq]\\[em]\\[en]\\*(lq\\*(rq"
       =?> (para $ text "- \\“”—–“”")
     , "replace2" =:
-      "\\t\\e\\`\\^\\|\\'"
-      =?> (para $ text "\\`  `")
+      "\\t\\e\\`\\^\\|\\'" =?> (para $ text "\\`  `")
     , "comment  with \\\"" =:
-      "Foo \\\" bar\n"
-      =?> (para $ text "Foo")
+      "Foo \\\" bar\n" =?> (para $ text "Foo")
     , "comment with \\#" =:
-      "Foo\\#\nbar\n"
-      =?> (para $ text "Foobar")
+      "Foo\\#\nbar\n" =?> (para $ text "Foobar")
+    , "two letter escapes" =:
+      "\\(oA\\(~O" =?> (para $ text "ÅÕ")
+    , "bracketed escapes" =:
+      "\\[oA]\\[~O]\\[Do]\\[Ye]\\[product]" =?> (para $ text "ÅÕ$¥∏")
+    , "unicode escapes" =:
+      "\\[u2020]" =?> (para $ text "†")
+    , "unicode escapes (combined)" =:
+      "\\[u0075_u0301]" =?> (para $ text "ú")
     ],
   testGroup "Lists" [
       "bullet" =:
