@@ -253,7 +253,9 @@ definitionListItemToMan opts (label, defs) = do
                             rest' <- liftM vcat $ mapM
                                         (\item -> blockToMan opts item) xs
                             return $ first' $$
-                                     text ".RS" $$ rest' $$ text ".RE"
+                                     if null xs
+                                        then empty
+                                        else text ".RS" $$ rest' $$ text ".RE"
                           [] -> return empty
   return $ text ".TP" $$ nowrap (text ".B " <> labelText) $$ contents
 

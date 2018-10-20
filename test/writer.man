@@ -320,52 +320,34 @@ Tight using spaces:
 .TP
 .B apple
 red fruit
-.RS
-.RE
 .TP
 .B orange
 orange fruit
-.RS
-.RE
 .TP
 .B banana
 yellow fruit
-.RS
-.RE
 .PP
 Tight using tabs:
 .TP
 .B apple
 red fruit
-.RS
-.RE
 .TP
 .B orange
 orange fruit
-.RS
-.RE
 .TP
 .B banana
 yellow fruit
-.RS
-.RE
 .PP
 Loose:
 .TP
 .B apple
 red fruit
-.RS
-.RE
 .TP
 .B orange
 orange fruit
-.RS
-.RE
 .TP
 .B banana
 yellow fruit
-.RS
-.RE
 .PP
 Multiple blocks with italics:
 .TP
@@ -395,47 +377,27 @@ Multiple definitions, tight:
 .TP
 .B apple
 red fruit
-.RS
-.RE
 computer
-.RS
-.RE
 .TP
 .B orange
 orange fruit
-.RS
-.RE
 bank
-.RS
-.RE
 .PP
 Multiple definitions, loose:
 .TP
 .B apple
 red fruit
-.RS
-.RE
 computer
-.RS
-.RE
 .TP
 .B orange
 orange fruit
-.RS
-.RE
 bank
-.RS
-.RE
 .PP
 Blank line after term, indented marker, alternate markers:
 .TP
 .B apple
 red fruit
-.RS
-.RE
 computer
-.RS
-.RE
 .TP
 .B orange
 orange fruit
