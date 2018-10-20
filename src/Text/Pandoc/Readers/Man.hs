@@ -186,8 +186,8 @@ escapeLexer = do
     choice
       [ ("\xae" <$ char 'R')
       , ("" <$ char 'S') -- switch back to default font size
-      , ("\x201c" <$ try (string "(lq"))
-      , ("\x201d" <$ try (string "(rq"))
+      , ("\x201c" <$ try (string "(lq") <|> try (string "[lq]"))
+      , ("\x201d" <$ try (string "(rq") <|> try (string "[rq]"))
       , ("" <$ try (string "(HF" >>
                      modifyState (\r -> r {fontKind = singleton Bold})))
       , ("\x2122" <$ try (string "(Tm"))
