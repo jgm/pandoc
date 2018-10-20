@@ -95,5 +95,8 @@ tests = groupPptxTests [ pptxTests "Inline formatting"
                          def
                          "pptx/remove_empty_slides.native"
                          "pptx/remove_empty_slides.pptx"
-
+                       , pptxTests "raw ooxml"
+                         def
+                         "pptx/raw_ooxml.native"
+                         "pptx/raw_ooxml.pptx"
                        ]
