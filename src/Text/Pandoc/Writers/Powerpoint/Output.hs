@@ -728,9 +728,9 @@ makePicElements layout picProps mInfo alt = do
     else return [picShape]
 
 
-paraElemToElement :: PandocMonad m => ParaElem -> P m Element
-paraElemToElement Break = return $ mknode "a:br" [] ()
-paraElemToElement (Run rpr s) = do
+paraElemToElements :: PandocMonad m => ParaElem -> P m [Element]
+paraElemToElements Break = return [mknode "a:br" [] ()]
+paraElemToElements (Run rpr s) = do
   let sizeAttrs = case rPropForceSize rpr of
                     Just n -> [("sz", (show $ n * 100))]
                     Nothing -> if rPropCode rpr
@@ -787,15 +787,17 @@ paraElemToElement (Run rpr s) = do
                      then [mknode "a:latin" [("typeface", "Courier")] ()]
                      else []
   let propContents = linkProps ++ colorContents ++ codeContents
-  return $ mknode "a:r" [] [ mknode "a:rPr" attrs $ propContents
-                           , mknode "a:t" [] s
-                           ]
-paraElemToElement (MathElem mathType texStr) = do
+  return [mknode "a:r" [] [ mknode "a:rPr" attrs $ propContents
+                          , mknode "a:t" [] s
+                          ]]
+paraElemToElements (MathElem mathType texStr) = do
   res <- convertMath writeOMML mathType (unTeXString texStr)
   case res of
-    Right r -> return $ mknode "a14:m" [] $ addMathInfo r
-    Left (Str s) -> paraElemToElement (Run def s)
+    Right r -> return [mknode "a14:m" [] $ addMathInfo r]
+    Left (Str s) -> paraElemToElements (Run def s)
     Left _       -> throwError $ PandocShouldNeverHappenError "non-string math fallback"
+paraElemToElements (RawOOXMLParaElem str) = return [ x | Elem x <- parseXML str ]
+
 
 -- This is a bit of a kludge -- really requires adding an option to
 -- TeXMath, but since that's a different package, we'll do this one
@@ -852,7 +854,7 @@ paragraphToElement par = do
                  [mknode "a:buAutoNum" [("type", autoNumberingToType attrs')] ()]
                Nothing -> [mknode "a:buNone" [] ()]
             )
-  paras <- mapM paraElemToElement (paraElems par)
+  paras <- concat <$> mapM paraElemToElements (paraElems par)
   return $ mknode "a:p" [] $ [mknode "a:pPr" attrs props] ++ paras
 
 shapeToElement :: PandocMonad m => Element -> Shape -> P m Element
@@ -882,6 +884,7 @@ shapeToElements layout (Pic picProps fp alt) = do
     Nothing -> shapeToElements layout $ TextBox [Paragraph def alt]
 shapeToElements layout (GraphicFrame tbls cptn) =
   graphicFrameToElements layout tbls cptn
+shapeToElements _ (RawOOXMLShape str) = return [ x | Elem x <- parseXML str ]
 shapeToElements layout shp = do
   element <- shapeToElement layout shp
   return [element]

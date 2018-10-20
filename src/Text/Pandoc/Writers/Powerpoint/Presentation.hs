@@ -216,6 +216,7 @@ data Layout = MetadataSlide { metadataSlideTitle :: [ParaElem]
 data Shape = Pic PicProps FilePath [ParaElem]
            | GraphicFrame [Graphic] [ParaElem]
            | TextBox [Paragraph]
+           | RawOOXMLShape String
   deriving (Show, Eq)
 
 type Cell = [Paragraph]
@@ -266,6 +267,7 @@ data ParaElem = Break
               -- `convertmath` from T.P.Writers.Math. Will perhaps
               -- revisit in the future.
               | MathElem MathType TeXString
+              | RawOOXMLParaElem String
               deriving (Show, Eq)
 
 data Strikethrough = NoStrike | SingleStrike | DoubleStrike
@@ -382,7 +384,11 @@ inlineToParElems (Quoted quoteType ils) =
   where (open, close) = case quoteType of
                           SingleQuote -> ("\x2018", "\x2019")
                           DoubleQuote -> ("\x201C", "\x201D")
-inlineToParElems (RawInline _ _) = return []
+inlineToParElems il@(RawInline fmt s) =
+  case fmt of
+    Format "openxml" -> return [RawOOXMLParaElem s]
+    _                -> do addLogMessage $ InlineNotRendered il
+                           return []
 inlineToParElems (Cite _ ils) = inlinesToParElems ils
 -- Note: we shouldn't reach this, because images should be handled at
 -- the shape level, but should that change in the future, we render
@@ -446,7 +452,8 @@ blockToParagraphs (BlockQuote blks) =
                 , envRunProps = (envRunProps r){rPropForceSize = Just blockQuoteSize}})$
   concatMapM blockToParagraphs blks
 -- TODO: work out the format
-blockToParagraphs (RawBlock _ _) = return []
+blockToParagraphs blk@(RawBlock _ _) = do addLogMessage $ BlockNotRendered blk
+                                          return []
 blockToParagraphs (Header _ (ident, _, _) ils) = do
   -- Note that this function only deals with content blocks, so it
   -- will only touch headers that are above the current slide level --
@@ -547,6 +554,8 @@ blockToShape (Table caption algn _ hdrCells rows) = do
                               }
 
   return $ GraphicFrame [Tbl tblPr hdrCells' rows'] caption'
+-- If the format isn't openxml, we fall through to blockToPargraphs
+blockToShape (RawBlock (Format "openxml") str) = return $ RawOOXMLShape str
 blockToShape blk = do paras <- blockToParagraphs blk
                       let paras' = map (\par -> par{paraElems = combineParaElems $ paraElems par}) paras
                       return $ TextBox paras'
@@ -809,6 +818,7 @@ applyToShape :: Monad m => (ParaElem -> m ParaElem) -> Shape -> m Shape
 applyToShape f (Pic pPr fp pes) = Pic pPr fp <$> mapM f pes
 applyToShape f (GraphicFrame gfx pes) = GraphicFrame gfx <$> mapM f pes
 applyToShape f (TextBox paras) = TextBox <$> mapM (applyToParagraph f) paras
+applyToShape _ (RawOOXMLShape str) = return $ RawOOXMLShape str
 
 applyToLayout :: Monad m => (ParaElem -> m ParaElem) -> Layout -> m Layout
 applyToLayout f (MetadataSlide title subtitle authors date) = do
