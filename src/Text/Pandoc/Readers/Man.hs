@@ -510,7 +510,7 @@ type ListBuilder = [Blocks] -> Blocks
 
 parseList :: PandocMonad m => ManParser m Blocks
 parseList = try $ do
-  xx <- many1 paras
+  xx <- many1 items
   let bls = map snd xx
   let bldr = fst $ head xx
   return $ bldr bls
@@ -528,20 +528,20 @@ parseList = try $ do
          Left _          -> bulletList
   listKind _ = bulletList
 
-  paras :: PandocMonad m => ManParser m (ListBuilder, Blocks)
-  paras = do
+  items :: PandocMonad m => ManParser m (ListBuilder, Blocks)
+  items = do
     (MMacro _ args) <- mmacro "IP"
     let lbuilder = listKind args
     inls <- parseInlines
     continuations <- mconcat <$> many continuation
     return $ (lbuilder, para inls <> continuations)
 
-  continuation :: PandocMonad m => ManParser m Blocks
-  continuation = do
-    mmacro "RS"
-    bs <- mconcat <$> many (notFollowedBy (mmacro "RE") >> parseBlock)
-    mmacro "RE"
-    return bs
+continuation :: PandocMonad m => ManParser m Blocks
+continuation = do
+  mmacro "RS"
+  bs <- mconcat <$> many (notFollowedBy (mmacro "RE") >> parseBlock)
+  mmacro "RE"
+  return bs
 
 -- In case of weird man file it will be parsed succesfully
 parseSkipMacro :: PandocMonad m => ManParser m Blocks
