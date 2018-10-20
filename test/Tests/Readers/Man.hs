@@ -24,13 +24,13 @@ tests = [
   testGroup "Macros" [
       "Bold" =:
       ".B foo"
-      =?> (para $ strong "foo")
+      =?> para (strong "foo")
     , "Italic" =:
       ".I bar\n"
-      =?> (para $ emph "bar")
+      =?> para (emph "bar")
     , "BoldItalic" =:
       ".BI foo bar"
-      =?> (para $ strong $ emph $ text "foo bar")
+      =?> para (strong (str "foo") <> emph (str "bar"))
     , "H1" =:
       ".SH The header\n"
       =?> header 1 (text "The header")
@@ -45,7 +45,7 @@ tests = [
       =?> (para $ str "aaa")
     , "link" =:
       ".BR aa (1)"
-      =?> (para $ link "../1/aa.1" "aa" (strong $ str "aa") <> (strong $ str " (1)"))
+      =?> para (text "aa(1)")
     ],
   testGroup "Escapes" [
       "fonts" =:

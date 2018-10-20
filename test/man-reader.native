@@ -1,4 +1,4 @@
-Pandoc (Meta {unMeta = fromList [("date",MetaString "Oct 17, 2018"),("section",MetaString ""),("title",MetaString "Pandoc Man tests")]})
+Pandoc (Meta {unMeta = fromList [("date",MetaInlines [Str "Oct",Space,Str "17,",Space,Str "2018"]),("section",MetaInlines []),("title",MetaInlines [Str "Pandoc",Space,Str "Man",Space,Str "tests"])]})
 [Para [Str "This",Space,Str "is",Space,Str "a",Space,Str "set",Space,Str "of",Space,Str "tests",Space,Str "for",Space,Str "pandoc."]
 ,Para [Str "*",Space,Str "*",Space,Str "*",Space,Str "*",Space,Str "*"]
 ,Header 1 ("",[],[]) [Str "Headers"]

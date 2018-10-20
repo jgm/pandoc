@@ -36,12 +36,12 @@ module Text.Pandoc.Readers.Man (readMan) where
 import Prelude
 import Control.Monad (liftM, void, mzero, guard)
 import Control.Monad.Except (throwError)
-import Data.Char (isHexDigit, chr)
+import Data.Char (isHexDigit, chr, ord)
 import Data.Default (Default)
 import Data.Maybe (catMaybes)
 import qualified Data.Map as M
 import Data.Set (Set, singleton)
-import qualified Data.Set as S (fromList, toList)
+import qualified Data.Set as S (fromList, toList, union)
 import Data.List (intersperse, intercalate)
 import qualified Data.Text as T
 import Text.Pandoc.Class (PandocMonad(..), report)
@@ -65,16 +65,15 @@ type MacroKind = String
 
 type Font = Set FontKind
 
-type RoffStr = (String, Font)
+data LinePart = RoffStr (String, Font)
+              | MacroArg Int
+              deriving Show
 
 -- TODO parse tables (see man tbl)
-data ManToken = MStr RoffStr
-              | MLine [RoffStr]
-              | MMaybeLink String
+data ManToken = MLine [LinePart]
               | MEmptyLine
-              | MMacro MacroKind [RoffStr]
-              | MComment String
-              | MEndMacro
+              | MMacro MacroKind [[LinePart]]
+              | MComment
               deriving Show
 
 data RoffState = RoffState { fontKind      :: Font
@@ -83,7 +82,7 @@ data RoffState = RoffState { fontKind      :: Font
 instance Default RoffState where
   def = RoffState { fontKind = singleton Regular }
 
-data ManState = ManState { customMacros  :: M.Map String Blocks
+data ManState = ManState { customMacros  :: M.Map String [ManToken]
                          , readerOptions :: ReaderOptions
                          , metadata      :: Meta
                          } deriving Show
@@ -100,7 +99,7 @@ type ManParser m = ParserT [ManToken] ManState m
 -- | Read man (troff) from an input string and return a Pandoc document.
 readMan :: PandocMonad m => ReaderOptions -> T.Text -> m Pandoc
 readMan opts txt = do
-  eithertokens <- readWithM lexMan def (T.unpack $ crFilter txt)
+  eithertokens <- readWithM (many manToken) def (T.unpack $ crFilter txt)
   case eithertokens of
     Left e       -> throwError e
     Right tokenz -> do
@@ -127,8 +126,8 @@ readMan opts txt = do
 -- String -> ManToken function
 --
 
-lexMan :: PandocMonad m => ManLexer m [ManToken]
-lexMan = many (lexComment <|> lexMacro <|> lexLine <|> lexEmptyLine)
+manToken :: PandocMonad m => ManLexer m ManToken
+manToken = lexComment <|> lexMacro <|> lexLine <|> lexEmptyLine
 
 parseMan :: PandocMonad m => ManParser m Pandoc
 parseMan = do
@@ -271,9 +270,9 @@ lexComment :: PandocMonad m => ManLexer m ManToken
 lexComment = do
   try $ string ".\\\""
   many Parsec.space
-  body <- many $ noneOf "\n"
+  skipMany $ noneOf "\n"
   char '\n'
-  return $ MComment body
+  return MComment
 
 lexMacro :: PandocMonad m => ManLexer m ManToken
 lexMacro = do
@@ -281,80 +280,100 @@ lexMacro = do
   many spacetab
   macroName <- many (letter <|> oneOf ['\\', '"', '&', '.'])
   args <- lexArgs
-  let joinedArgs = unwords $ fst <$> args
+  let addFonts fs = map (addFontsToRoffStr fs)
+      addFontsToRoffStr fs (RoffStr (s, fs')) = RoffStr (s, fs `S.union` fs')
+      addFontsToRoffStr _  x                  = x
 
       tok = case macroName of
-              ""     -> MComment ""
-              "."    -> MEndMacro
-              x | x `elem` ["\\\"", "\\#"] -> MComment joinedArgs
-              "B"    -> MStr (joinedArgs, singleton Bold)
-              "BR"   -> MMaybeLink joinedArgs
-              x | x `elem` ["BI", "IB"] -> MStr (joinedArgs, S.fromList [Italic, Bold])
-              x | x `elem` ["I", "IR", "RI"]  -> MStr (joinedArgs, singleton Italic)
+              ""     -> MComment
+              x | x `elem` ["\\\"", "\\#"] -> MComment
+              "B"    -> MLine $ concatMap (addFonts (singleton Bold)) args
+              "BR"   -> MLine $ concat args -- TODO
+              x | x `elem` ["BI", "IB"] -> MLine $ -- TODO FIXME!
+                        concatMap (addFonts (S.fromList [Italic, Bold])) args
+              x | x `elem` ["I", "IR", "RI"]  -> MLine $
+                        concatMap (addFonts (singleton Italic)) args
               x | x `elem` [ "P", "PP", "LP", "sp"] -> MEmptyLine
               _      -> MMacro macroName args
   return tok
 
   where
 
-  -- TODO better would be [[RoffStr]], since one arg may have different fonts
-  lexArgs :: PandocMonad m => ManLexer m [RoffStr]
+  lexArgs :: PandocMonad m => ManLexer m [[LinePart]]
   lexArgs = do
     args <- many $ try oneArg
-    many spacetab
+    skipMany spacetab
     eofline
     return args
 
     where
 
-    oneArg :: PandocMonad m => ManLexer m RoffStr
+    oneArg :: PandocMonad m => ManLexer m [LinePart]
     oneArg = do
       many1 spacetab
-      many $ try $ string "\\\n"
-      try quotedArg <|> plainArg -- try, because there are some erroneous files, e.g. linux/bpf.2
+      skipMany $ try $ string "\\\n"  -- TODO why is this here?
+      try quotedArg <|> plainArg
+      -- try, because there are some erroneous files, e.g. linux/bpf.2
 
-    plainArg :: PandocMonad m => ManLexer m RoffStr
+    plainArg :: PandocMonad m => ManLexer m [LinePart]
     plainArg = do
-      indents <- many spacetab
-      arg <- many1 $ escapeLexer <|> many1 (noneOf " \t\n\\")
-      f <- currentFont
-      return (indents ++ mconcat arg, f)
+      -- TODO skip initial spaces, then parse many linePart til a spaec
+      skipMany spacetab
+      many (macroArg <|> esc <|> regularText)
 
-    quotedArg :: PandocMonad m => ManLexer m RoffStr
+    quotedArg :: PandocMonad m => ManLexer m [LinePart]
     quotedArg = do
-      char '"'
-      val <- mconcat <$> many quotedChar
-      char '"'
-      val2 <- mconcat <$> many (escapeLexer <|> many1 (noneOf " \t\n"))
-      f <- currentFont
-      return (val ++ val2, f)
-
-    quotedChar :: PandocMonad m => ManLexer m String
-    quotedChar = escapeLexer
-              <|> many1 (noneOf "\"\n\\")
-              <|> try (string "\"\"" >> return "\"")
+        char '"'
+        xs <- many (macroArg <|> esc <|> regularText <|> spaceTabChar
+                    <|> escapedQuote)
+        char '"'
+        return xs
+      where escapedQuote = try $ do
+              char '"'
+              char '"'
+              fonts <- currentFont
+              return $ RoffStr ("\"", fonts)
 
 lexLine :: PandocMonad m => ManLexer m ManToken
 lexLine = do
-  lnparts <- many1 (esc <|> linePart)
+  lnparts <- many1 linePart
   eofline
-  return $ MLine $ catMaybes lnparts
+  return $ MLine lnparts
   where
 
-  esc :: PandocMonad m => ManLexer m (Maybe (String, Font))
-  esc = do
-    someesc <- escapeLexer
-    font <- currentFont
-    return $ if null someesc
-                then Nothing
-                else Just (someesc, font)
+linePart :: PandocMonad m => ManLexer m LinePart
+linePart = macroArg <|> esc <|> regularText <|> quoteChar <|> spaceTabChar
 
-  linePart :: PandocMonad m => ManLexer m (Maybe (String, Font))
-  linePart = do
-    lnpart <- many1 $ noneOf "\n\\"
-    font <- currentFont
-    return $ Just (lnpart, font)
+macroArg :: PandocMonad m => ManLexer m LinePart
+macroArg = try $ do
+  char '\\'
+  char '$'
+  x <- digit
+  return $ MacroArg $ ord x - ord '0'
 
+esc :: PandocMonad m => ManLexer m LinePart
+esc = do
+  s <- escapeLexer
+  font <- currentFont
+  return $ RoffStr (s, font)
+
+regularText :: PandocMonad m => ManLexer m LinePart
+regularText = do
+  s <- many1 $ noneOf "\n\r\t \\\""
+  font <- currentFont
+  return $ RoffStr (s, font)
+
+quoteChar :: PandocMonad m => ManLexer m LinePart
+quoteChar = do
+  char '"'
+  font <- currentFont
+  return $ RoffStr ("\"", font)
+
+spaceTabChar :: PandocMonad m => ManLexer m LinePart
+spaceTabChar = do
+  c <- spacetab
+  font <- currentFont
+  return $ RoffStr ([c], font)
 
 lexEmptyLine :: PandocMonad m => ManLexer m ManToken
 lexEmptyLine = char '\n' >> return MEmptyLine
@@ -371,20 +390,10 @@ msatisfy predic = tokenPrim show nextPos testTok
                              (setSourceColumn
                                (setSourceLine pos $ sourceLine pos + 1) 1) ("")
 
-mstr :: PandocMonad m => ManParser m ManToken
-mstr = msatisfy isMStr where
-  isMStr (MStr _) = True
-  isMStr _ = False
-
 mline :: PandocMonad m => ManParser m ManToken
 mline = msatisfy isMLine where
   isMLine (MLine _) = True
   isMLine _ = False
-
-mmaybeLink :: PandocMonad m => ManParser m ManToken
-mmaybeLink = msatisfy isMMaybeLink where
-  isMMaybeLink (MMaybeLink _) = True
-  isMMaybeLink _ = False
 
 memptyLine :: PandocMonad m => ManParser m ManToken
 memptyLine = msatisfy isMEmptyLine where
@@ -404,8 +413,8 @@ mmacroAny = msatisfy isMMacro where
 
 mcomment :: PandocMonad m => ManParser m ManToken
 mcomment = msatisfy isMComment where
-  isMComment (MComment _) = True
-  isMComment _ = False
+  isMComment MComment = True
+  isMComment _        = False
 
 --
 -- ManToken -> Block functions
@@ -415,10 +424,13 @@ parseTitle :: PandocMonad m => ManParser m Blocks
 parseTitle = do
   (MMacro _ args) <- mmacro "TH"
   let adjustMeta =
-       case map fst args of
-         (x:y:z:_) -> setMeta "title" x . setMeta "section" y . setMeta "date" z
-         [x,y]     -> setMeta "title" x . setMeta "section" y
-         [x]       -> setMeta "title" x
+       case args of
+         (x:y:z:_) -> setMeta "title" (linePartsToInlines x) .
+                      setMeta "section" (linePartsToInlines y) .
+                      setMeta "date" (linePartsToInlines z)
+         [x,y]     -> setMeta "title" (linePartsToInlines x) .
+                      setMeta "section" (linePartsToInlines y)
+         [x]       -> setMeta "title" (linePartsToInlines x)
          []        -> id
   modifyState $ \st -> st{ metadata = adjustMeta $ metadata st }
   return mempty
@@ -426,58 +438,38 @@ parseTitle = do
 parseSkippedContent :: PandocMonad m => ManParser m Blocks
 parseSkippedContent = mempty <$ (mcomment <|> memptyLine)
 
-strToInlines :: RoffStr -> Inlines
-strToInlines (s, fonts) = inner $ S.toList fonts where
-  inner :: [FontKind] -> Inlines
-  inner [] = text s
-  inner (Bold:fs) = strong $ inner fs
-  inner (Italic:fs) = emph $ inner fs
-
+linePartsToInlines :: [LinePart] -> Inlines
+linePartsToInlines = mconcat . map go
+  where
+  go (RoffStr (s, fonts)) = inner (S.toList fonts) s
+  go _ = mempty
+  inner :: [FontKind] -> String -> Inlines
+  inner [] s = text s
+  inner (Bold:fs) s = strong $ inner fs s
+  inner (Italic:fs) s = emph $ inner fs s
   -- Monospace goes after Bold and Italic in ordered set
-  inner (Monospace:_) = code s
-  inner (Regular:fs) = inner fs
+  inner (Monospace:_) s = code s
+  inner (Regular:fs) s = inner fs s
+
+linePartsToString :: [LinePart] -> String
+linePartsToString = mconcat . map go
+  where
+  go (RoffStr (s, _)) = s
+  go _ = mempty
 
 parsePara :: PandocMonad m => ManParser m Blocks
 parsePara = para . trimInlines <$> parseInlines
 
 parseInlines :: PandocMonad m => ManParser m Inlines
 parseInlines = do
-  inls <- many1 (strInl <|> lineInl <|> linkInl <|> comment)
+  inls <- many1 (lineInl <|> comment)
   let withspaces = intersperse B.space inls
   return $ mconcat withspaces
-
-strInl :: PandocMonad m => ManParser m Inlines
-strInl = do
-  (MStr rstr) <- mstr
-  return $ strToInlines rstr
 
 lineInl :: PandocMonad m => ManParser m Inlines
 lineInl = do
   (MLine fragments) <- mline
-  return $ mconcat $ strToInlines <$> fragments
-
-linkInl :: PandocMonad m => ManParser m Inlines
-linkInl = do
-  (MMaybeLink txt) <- mmaybeLink
-  let inls = case runParser linkParser () "" txt of
-                Right lnk -> lnk
-                Left _ -> strong $ text txt
-  return inls
-
-    where
-
-    -- assuming man pages are generated from Linux-like repository
-    linkParser :: Parsec String () Inlines
-    linkParser = do
-      mpage <- many1 (alphaNum <|> char '_')
-      spacetab
-      char '('
-      mansect <- digit
-      char ')'
-      other <- many anyChar
-      let manurl pagename section = "../"++section++"/"++pagename++"."++section
-          lnkInls = link (manurl mpage [mansect]) mpage (strong $ str mpage)
-      return $ lnkInls <> strong (str (" ("++[mansect] ++ ")") <> text other)
+  return $ linePartsToInlines $ fragments
 
 comment :: PandocMonad m => ManParser m Inlines
 comment = mcomment >> return mempty
@@ -491,7 +483,7 @@ parseCodeBlock :: PandocMonad m => ManParser m Blocks
 parseCodeBlock = try $ do
   optional bareIP -- some people indent their code
   mmacro "nf"
-  toks <- many (mstr <|> mline <|> mmaybeLink <|> memptyLine <|> mcomment)
+  toks <- many (mline <|> memptyLine <|> mcomment)
   mmacro "fi"
   return $ codeBlock (removeFinalNewline $
                       intercalate "\n" . catMaybes $
@@ -502,10 +494,9 @@ parseCodeBlock = try $ do
   removeFinalNewline [] = []
   removeFinalNewline xs = if last xs == '\n' then init xs else xs
   extractText :: ManToken -> Maybe String
-  extractText (MStr (s, _)) = Just s
-  extractText (MLine ss) = Just . concat $ map fst ss -- TODO maybe unwords?
-  extractText (MMaybeLink s) = Just s
-  extractText MEmptyLine = Just "" -- string are intercalated with '\n', this prevents double '\n'
+  extractText (MLine ss) = Just $ linePartsToString ss
+  extractText MEmptyLine = Just ""
+  -- string are intercalated with '\n', this prevents double '\n'
   extractText _ = Nothing
 
 parseHeader :: PandocMonad m => ManParser m Blocks
@@ -513,10 +504,10 @@ parseHeader = do
   MMacro name args <- mmacro "SH" <|> mmacro "SS"
   contents <- if null args
                  then do
-                   strInl <|> lineInl
+                   lineInl
                  else do
                    return $
-                     mconcat $ intersperse B.space $ map strToInlines args
+                     mconcat $ intersperse B.space $ map linePartsToInlines args
   let lvl = if name == "SH" then 1 else 2
   return $ header lvl contents
 
@@ -537,8 +528,8 @@ listItem :: PandocMonad m => Maybe ListType -> ManParser m (ListType, Blocks)
 listItem mbListType = try $ do
   (MMacro _ args) <- mmacro "IP"
   case args of
-    []          -> mzero
-    ((cs,_):_)  -> do
+    (arg1 : _)  -> do
+      let cs = linePartsToString arg1
       let cs' = if not ('.' `elem` cs || ')' `elem` cs) then cs ++ "." else cs
       let lt = case Parsec.runParser anyOrderedListMarker defaultParserState
                      "list marker" cs' of
@@ -550,6 +541,7 @@ listItem mbListType = try $ do
       inls <- parseInlines
       continuations <- mconcat <$> many continuation
       return $ (lt, para inls <> continuations)
+    []          -> mzero
 
 parseList :: PandocMonad m => ManParser m Blocks
 parseList = try $ do
@@ -570,7 +562,7 @@ definitionListItem :: PandocMonad m
                    => ManParser m (Inlines, [Blocks])
 definitionListItem = try $ do
   (MMacro _ _) <- mmacro "TP"  -- args specify indent level, can ignore
-  term <- strInl <|> lineInl
+  term <- lineInl
   inls <- parseInlines
   continuations <- mconcat <$> many continuation
   return $ (term, [para inls <> continuations])
@@ -581,20 +573,16 @@ parseDefinitionList = definitionList <$> many1 definitionListItem
 parseMacroDef :: PandocMonad m => ManParser m Blocks
 parseMacroDef = do
   MMacro _ args <- mmacro "de"
-  (macroName, endMacro') <-
+  (macroName, stopMacro) <-
     case args of
-       ((x,_):(y,_):_) -> return (x, mmacro y) -- optional second arg
-       ((x,_):_)       -> return (x, endMacro)
-       []              -> fail "No argument to .de"
-  bs <- mconcat <$> manyTill parseBlock endMacro'
+       (x : y : _) -> return (linePartsToString x, linePartsToString y)
+                      -- optional second arg
+       (x:_)       -> return (linePartsToString x, ".")
+       []          -> fail "No argument to .de"
+  ts <- manyTill (msatisfy (const True)) (mmacro stopMacro)
   modifyState $ \st ->
-    st{ customMacros = M.insert macroName bs (customMacros st) }
+    st{ customMacros = M.insert macroName ts (customMacros st) }
   return mempty
-
-  where
-    endMacro = (msatisfy (\t -> case t of
-                                  MEndMacro -> True
-                                  _         -> False))
 
 -- In case of weird man file it will be parsed succesfully
 parseUnkownMacro :: PandocMonad m => ManParser m Blocks
@@ -602,11 +590,21 @@ parseUnkownMacro = do
   pos <- getPosition
   tok <- mmacroAny
   case tok of
-    MMacro mkind _ -> do
+    MMacro mkind args -> do
       macros <- customMacros <$> getState
       case M.lookup mkind macros of
         Nothing -> do
           report $ SkippedContent ('.':mkind) pos
           return mempty
-        Just bs -> return bs
+        Just ts -> do
+          toks <- getInput
+          let fillLP (RoffStr (x,y)) zs = RoffStr (x,y) : zs
+              fillLP (MacroArg i)    zs =
+                 case drop (i - 1) args of
+                   []     -> zs
+                   (ys:_) -> ys ++ zs
+          let fillMacroArg (MLine lineparts) = MLine (foldr fillLP [] lineparts)
+              fillMacroArg x = x
+          setInput $ (map fillMacroArg ts) ++ toks
+          return mempty
     _              -> fail "the impossible happened"
