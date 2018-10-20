@@ -74,17 +74,21 @@ tests = [
     ],
   testGroup "Lists" [
       "bullet" =:
-      ".IP\nfirst\n.IP\nsecond"
+      ".IP \"\\[bu]\"\nfirst\n.IP \"\\[bu]\"\nsecond"
       =?> bulletList [para $ str "first", para $ str "second"]
     , "ordered" =:
-      ".IP 1 a\nfirst\n.IP 2 a\nsecond"
-      =?> orderedListWith (1,Decimal,DefaultDelim) [para $ str "first", para $ str "second"]
+      ".IP 2 a\nfirst\n.IP 3 a\nsecond"
+      =?> orderedListWith (2,Decimal,DefaultDelim) [para $ str "first", para $ str "second"]
     , "upper" =:
-      ".IP A a\nfirst\n.IP B a\nsecond"
-      =?> orderedListWith (1,UpperAlpha,DefaultDelim) [para $ str "first", para $ str "second"]
+      ".IP A) a\nfirst\n.IP B) a\nsecond"
+      =?> orderedListWith (1,UpperAlpha,OneParen) [para $ str "first", para $ str "second"]
     , "nested" =:
-      ".IP\nfirst\n.RS\n.IP\n1a\n.IP\n1b\n.RE"
+      ".IP \"\\[bu]\"\nfirst\n.RS\n.IP \"\\[bu]\"\n1a\n.IP \"\\[bu]\"\n1b\n.RE"
       =?> bulletList [(para $ str "first") <> (bulletList [para $ str "1a", para $ str "1b"])]
+    , "change in list style" =:
+      ".IP \\[bu]\nfirst\n.IP 1\nsecond"
+      =?> bulletList [para (str "first")] <>
+            orderedListWith (1,Decimal,DefaultDelim) [para (str "second")]
     ],
   testGroup "CodeBlocks" [
       "cb1"=:

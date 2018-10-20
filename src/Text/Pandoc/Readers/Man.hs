@@ -34,7 +34,7 @@ Conversion of man to 'Pandoc' document.
 module Text.Pandoc.Readers.Man (readMan) where
 
 import Prelude
-import Control.Monad (liftM, void, mzero)
+import Control.Monad (liftM, void, mzero, guard)
 import Control.Monad.Except (throwError)
 import Data.Char (isHexDigit, chr)
 import Data.Default (Default)
@@ -506,35 +506,41 @@ parseHeader = do
   let lvl = if name == "SH" then 1 else 2
   return $ header lvl contents
 
-type ListBuilder = [Blocks] -> Blocks
+data ListType = Ordered ListAttributes
+              | Bullet
+
+listTypeMatches :: Maybe ListType -> ListType -> Bool
+listTypeMatches Nothing _            = True
+listTypeMatches (Just Bullet) Bullet = True
+listTypeMatches (Just (Ordered (_,x,y))) (Ordered (_,x',y'))
+                                     = x == x' && y == y'
+listTypeMatches (Just _) _           = False
+
+listItem :: PandocMonad m => Maybe ListType -> ManParser m (ListType, Blocks)
+listItem mbListType = try $ do
+  (MMacro _ args) <- mmacro "IP"
+  case args of
+    []          -> mzero
+    ((cs,_):_)  -> do
+      let cs' = if not ('.' `elem` cs || ')' `elem` cs) then cs ++ "." else cs
+      let lt = case Parsec.runParser anyOrderedListMarker defaultParserState
+                     "list marker" cs' of
+                  Right (start, listtype, listdelim)
+                    | cs == cs' -> Ordered (start, listtype, listdelim)
+                    | otherwise -> Ordered (start, listtype, DefaultDelim)
+                  Left _        -> Bullet
+      guard $ listTypeMatches mbListType lt
+      inls <- parseInlines
+      continuations <- mconcat <$> many continuation
+      return $ (lt, para inls <> continuations)
 
 parseList :: PandocMonad m => ManParser m Blocks
 parseList = try $ do
-  xx <- many1 items
-  let bls = map snd xx
-  let bldr = fst $ head xx
-  return $ bldr bls
-
-  where
-
-  listKind :: [RoffStr] -> ListBuilder
-  listKind ((cs, _):_:[]) =
-    let cs' = if not ('.' `elem` cs || ')' `elem` cs) then cs ++ "." else cs
-    in case Parsec.runParser anyOrderedListMarker defaultParserState
-            "list marker" cs' of
-         Right (start, listtype, listdelim)
-           | cs == cs' -> orderedListWith (start, listtype, listdelim)
-           | otherwise -> orderedListWith (start, listtype, DefaultDelim)
-         Left _          -> bulletList
-  listKind _ = bulletList
-
-  items :: PandocMonad m => ManParser m (ListBuilder, Blocks)
-  items = do
-    (MMacro _ args) <- mmacro "IP"
-    let lbuilder = listKind args
-    inls <- parseInlines
-    continuations <- mconcat <$> many continuation
-    return $ (lbuilder, para inls <> continuations)
+  (lt, x) <- listItem Nothing
+  xs <- map snd <$> many (listItem (Just lt))
+  return $ case lt of
+             Bullet        -> bulletList (x:xs)
+             Ordered lattr -> orderedListWith lattr (x:xs)
 
 continuation :: PandocMonad m => ManParser m Blocks
 continuation = do
