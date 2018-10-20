@@ -11,9 +11,10 @@ flags:
 packages:
 - '.'
 extra-deps:
-- pandoc-citeproc-0.14.7
+- pandoc-citeproc-0.14.8
 - skylighting-0.7.2
 - skylighting-core-0.7.2
+- cmark-gfm-0.1.6
 - pandoc-types-1.17.5.1
 - texmath-0.11.1
 - haddock-library-1.7.0
