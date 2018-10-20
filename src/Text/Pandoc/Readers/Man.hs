@@ -267,11 +267,12 @@ lexMacro :: PandocMonad m => ManLexer m ManToken
 lexMacro = do
   char '.' <|> char '\''
   many spacetab
-  macroName <- many1 (letter <|> oneOf ['\\', '"', '&'])
+  macroName <- many (letter <|> oneOf ['\\', '"', '&'])
   args <- lexArgs
   let joinedArgs = unwords $ fst <$> args
 
       tok = case macroName of
+              ""     -> MComment ""
               x | x `elem` ["\\\"", "\\#"] -> MComment joinedArgs
               "B"    -> MStr (joinedArgs, singleton Bold)
               "BR"   -> MMaybeLink joinedArgs
