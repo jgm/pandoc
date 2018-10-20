@@ -122,7 +122,7 @@ lexMan = many (lexComment <|> lexMacro <|> lexLine <|> lexEmptyLine)
 
 parseMan :: PandocMonad m => ManParser m Pandoc
 parseMan = do
-  bs <- many parseBlock
+  bs <- many parseBlock <* eof
   meta <- stateMeta <$> getState
   let (Pandoc _ blocks) = doc $ mconcat bs
   return $ Pandoc meta blocks
