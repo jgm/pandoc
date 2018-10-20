@@ -13,7 +13,8 @@ Pandoc (Meta {unMeta = fromList [("date",MetaString "Oct 17, 2018"),("section",M
 ,Para [Str "*",Space,Str "*",Space,Str "*",Space,Str "*",Space,Str "*"]
 ,Header 1 ("",[],[]) [Str "Block",Space,Str "Quotes"]
 ,Para [Str "Code",Space,Str "in",Space,Str "a",Space,Str "block",Space,Str "quote:"]
-,CodeBlock ("",[],[]) "\nsub status {\n    print \"working\";\n}"
+,BlockQuote
+ [CodeBlock ("",[],[]) "\nsub status {\n    print \"working\";\n}"]
 ,Para [Str "A",Space,Str "list:"]
 ,OrderedList (1,Decimal,Period)
  [[Para [Str "item",Space,Str "one"]]

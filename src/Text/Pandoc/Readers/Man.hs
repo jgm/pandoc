@@ -129,6 +129,7 @@ parseMan = do
 parseBlock :: PandocMonad m => ManParser m Blocks
 parseBlock = choice [ parseList
                     , parseDefinitionList
+                    , parseBlockQuote
                     , parseTitle
                     , parsePara
                     , parseSkippedContent
@@ -504,6 +505,9 @@ parseHeader = do
                      mconcat $ intersperse B.space $ map strToInlines args
   let lvl = if name == "SH" then 1 else 2
   return $ header lvl contents
+
+parseBlockQuote :: PandocMonad m => ManParser m Blocks
+parseBlockQuote = blockQuote <$> continuation
 
 data ListType = Ordered ListAttributes
               | Bullet

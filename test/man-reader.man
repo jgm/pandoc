@@ -28,7 +28,7 @@ here.
    *   *   *   *   *
 .SH Block Quotes
 Code in a block quote:
-.IP
+.RS
 .nf
 \f[C]
 sub\ status\ {
@@ -36,6 +36,7 @@ sub\ status\ {
 }
 \f[]
 .fi
+.RE
 .PP
 A list:
 .IP "1." 3
