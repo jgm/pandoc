@@ -145,12 +145,20 @@ lexMan = many (lexComment <|> lexMacro <|> lexLine <|> lexEmptyLine)
 
 parseMan :: PandocMonad m => ManParser m Pandoc
 parseMan = do
-  let parsers = [ try parseList, parseTitle, parsePara, parseSkippedContent
-                , try parseCodeBlock, parseHeader, parseSkipMacro]
-  bs <- many $ choice parsers
-  let (Pandoc _ blocks) = doc $ mconcat bs
+  bs <- many parseBlock
   meta <- stateMeta <$> getState
+  let (Pandoc _ blocks) = doc $ mconcat bs
   return $ Pandoc meta blocks
+
+parseBlock :: PandocMonad m => ManParser m Blocks
+parseBlock = choice [ parseList
+                    , parseTitle
+                    , parsePara
+                    , parseSkippedContent
+                    , parseCodeBlock
+                    , parseHeader
+                    , parseSkipMacro
+                    ]
 
 eofline :: Stream s m Char => ParsecT s u m ()
 eofline = void newline <|> eof
@@ -495,7 +503,7 @@ parseInlines = do
 
 
 parseCodeBlock :: PandocMonad m => ManParser m Blocks
-parseCodeBlock = do
+parseCodeBlock = try $ do
   mmacro "nf"
   toks <- many (mstr <|> mline <|> mmaybeLink <|> memptyLine <|> mcomment)
   mmacro "fi"
@@ -522,7 +530,7 @@ parseHeader = do
 type ListBuilder = [Blocks] -> Blocks
 
 parseList :: PandocMonad m => ManParser m Blocks
-parseList = do
+parseList = try $ do
   xx <- many1 paras
   let bls = map snd xx
   let bldr = fst $ head xx
