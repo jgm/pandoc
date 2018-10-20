@@ -77,14 +77,24 @@ data ManToken = MStr RoffStr
               | MEndMacro
               deriving Show
 
-data RoffState = RoffState { fontKind :: Font
+data RoffState = RoffState { fontKind      :: Font
                            } deriving Show
 
 instance Default RoffState where
-  def = RoffState {fontKind = singleton Regular}
+  def = RoffState { fontKind = singleton Regular }
+
+data ManState = ManState { customMacros  :: M.Map String Blocks
+                         , readerOptions :: ReaderOptions
+                         , metadata      :: Meta
+                         } deriving Show
+
+instance Default ManState where
+  def = ManState { customMacros = mempty
+                 , readerOptions = def
+                 , metadata = nullMeta }
 
 type ManLexer m = ParserT [Char] RoffState m
-type ManParser m = ParserT [ManToken] ParserState m
+type ManParser m = ParserT [ManToken] ManState m
 
 
 -- | Read man (troff) from an input string and return a Pandoc document.
@@ -94,15 +104,15 @@ readMan opts txt = do
   case eithertokens of
     Left e       -> throwError e
     Right tokenz -> do
-      let state = def {stateOptions = opts} :: ParserState
+      let state = def {readerOptions = opts} :: ManState
       eitherdoc <- readWithMTokens parseMan state tokenz
       either throwError return eitherdoc
 
   where
 
   readWithMTokens :: PandocMonad m
-          => ParserT [ManToken] ParserState m a  -- ^ parser
-          -> ParserState                         -- ^ initial state
+          => ParserT [ManToken] ManState m a  -- ^ parser
+          -> ManState                         -- ^ initial state
           -> [ManToken]                       -- ^ input
           -> m (Either PandocError a)
   readWithMTokens parser state input =
@@ -123,7 +133,7 @@ lexMan = many (lexComment <|> lexMacro <|> lexLine <|> lexEmptyLine)
 parseMan :: PandocMonad m => ManParser m Pandoc
 parseMan = do
   bs <- many parseBlock <* eof
-  meta <- stateMeta <$> getState
+  meta <- metadata <$> getState
   let (Pandoc _ blocks) = doc $ mconcat bs
   return $ Pandoc meta blocks
 
@@ -137,7 +147,7 @@ parseBlock = choice [ parseList
                     , parseCodeBlock
                     , parseHeader
                     , parseMacroDef
-                    , parseSkipMacro
+                    , parseUnkownMacro
                     ]
 
 eofline :: Stream s m Char => ParsecT s u m ()
@@ -410,7 +420,7 @@ parseTitle = do
          [x,y]     -> setMeta "title" x . setMeta "section" y
          [x]       -> setMeta "title" x
          []        -> id
-  modifyState $ \st -> st{ stateMeta = adjustMeta $ stateMeta st }
+  modifyState $ \st -> st{ metadata = adjustMeta $ metadata st }
   return mempty
 
 parseSkippedContent :: PandocMonad m => ManParser m Blocks
@@ -570,9 +580,16 @@ parseDefinitionList = definitionList <$> many1 definitionListItem
 
 parseMacroDef :: PandocMonad m => ManParser m Blocks
 parseMacroDef = do
-  MMacro _ _args <- mmacro "de"
-  bs <- manyTill parseBlock endMacro
-  return mempty -- TODO for now just skip it
+  MMacro _ args <- mmacro "de"
+  (macroName, endMacro') <-
+    case args of
+       ((x,_):(y,_):_) -> return (x, mmacro y) -- optional second arg
+       ((x,_):_)       -> return (x, endMacro)
+       []              -> fail "No argument to .de"
+  bs <- mconcat <$> manyTill parseBlock endMacro'
+  modifyState $ \st ->
+    st{ customMacros = M.insert macroName bs (customMacros st) }
+  return mempty
 
   where
     endMacro = (msatisfy (\t -> case t of
@@ -580,11 +597,16 @@ parseMacroDef = do
                                   _         -> False))
 
 -- In case of weird man file it will be parsed succesfully
-parseSkipMacro :: PandocMonad m => ManParser m Blocks
-parseSkipMacro = do
+parseUnkownMacro :: PandocMonad m => ManParser m Blocks
+parseUnkownMacro = do
   pos <- getPosition
   tok <- mmacroAny
   case tok of
-    MMacro mkind _ -> report $ SkippedContent ('.':mkind) pos
-    _              -> return ()  -- shouldn't happen
-  return mempty
+    MMacro mkind _ -> do
+      macros <- customMacros <$> getState
+      case M.lookup mkind macros of
+        Nothing -> do
+          report $ SkippedContent ('.':mkind) pos
+          return mempty
+        Just bs -> return bs
+    _              -> fail "the impossible happened"
