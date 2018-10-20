@@ -73,6 +73,39 @@ local function create_accessor_functions (fn_template, accessors)
   return res
 end
 
+--- Get list of top-level fields from field descriptor table.
+-- E.g.: `top_level_fields{'foo', {bar='baz'}, {'qux', 'quux'}}`
+-- gives {'foo, 'bar', 'qux', 'quux'}
+-- @local
+local function top_level_fields (fields)
+  local result = List:new{}
+  for _, v in ipairs(fields) do
+    if type(v) == 'string' then
+      table.insert(result, v)
+    elseif type(v) == 'table' and #v == 0 and next(v) then
+      table.insert(result, (next(v)))
+    else
+      result:extend(top_level_fields(v))
+    end
+  end
+  return result
+end
+
+--- Creates a function which behaves like next, but respects field names.
+-- @local
+local function make_next_function (fields)
+  local field_indices = {}
+  for i, f in ipairs(fields) do
+    field_indices[f] = i
+  end
+
+  return function (t, field)
+    local raw_idx = field == nil and 0 or field_indices[field]
+    local next_field = fields[raw_idx + 1]
+    return next_field, t[next_field]
+  end
+end
+
 --- Create a new table which allows to access numerical indices via accessor
 -- functions.
 -- @local
@@ -101,6 +134,15 @@ local function create_accessor_behavior (tag, accessors)
     else
       rawset(t, k, v)
     end
+  end
+  behavior.__pairs = function (t)
+    if accessors == nil then
+      return next, t
+    end
+    local iterable_fields = type(accessors) == 'string'
+      and {accessors}
+      or top_level_fields(accessors)
+    return make_next_function(iterable_fields), t
   end
   return behavior
 end
@@ -842,6 +884,14 @@ M.Attr.behavior.__newindex = function(t, k, v)
     rawset(t, k, v)
   end
 end
+M.Attr.behavior.__pairs = function(t)
+  local field_names = M.Attr.behavior._field_names
+  local fields = {}
+  for name, i in pairs(field_names) do
+    fields[i] = name
+  end
+  return make_next_function(fields), t, nil
+end
 
 -- Citation
 M.Citation = AstElement:make_subtype'Citation'
@@ -891,6 +941,14 @@ M.ListAttributes.behavior.__newindex = function (t, k, v)
   else
     rawset(t, k, v)
   end
+end
+M.ListAttributes.behavior.__pairs = function(t)
+  local field_names = M.ListAttributes.behavior._field_names
+  local fields = {}
+  for name, i in pairs(field_names) do
+    fields[i] = name
+  end
+  return make_next_function(fields), t, nil
 end
 
 
