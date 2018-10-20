@@ -41,7 +41,7 @@ import Data.Default (Default)
 import Data.Maybe (catMaybes)
 import qualified Data.Map as M
 import Data.Set (Set, singleton)
-import qualified Data.Set as S (fromList, toList, union)
+import qualified Data.Set as S (fromList, toList, insert)
 import Data.List (intersperse, intercalate)
 import qualified Data.Text as T
 import Text.Pandoc.Class (PandocMonad(..), report)
@@ -55,6 +55,8 @@ import Text.Parsec hiding (tokenPrim, space)
 import qualified Text.Parsec as Parsec
 import Text.Parsec.Pos (updatePosString)
 import Text.Pandoc.GroffChar (characterCodes, combiningAccents)
+
+import Debug.Trace (traceShowId)
 
 --
 -- Data Types
@@ -280,24 +282,40 @@ lexMacro = do
   many spacetab
   macroName <- many (letter <|> oneOf ['\\', '"', '&', '.'])
   args <- lexArgs
-  let addFonts fs = map (addFontsToRoffStr fs)
-      addFontsToRoffStr fs (RoffStr (s, fs')) = RoffStr (s, fs `S.union` fs')
-      addFontsToRoffStr _  x                  = x
+  let addFont f = map (addFontToRoffStr f)
+      addFontToRoffStr f (RoffStr (s, fs)) = RoffStr (s, S.insert f fs)
+      addFontToRoffStr _  x                  = x
 
-      tok = case macroName of
-              ""     -> MComment
-              x | x `elem` ["\\\"", "\\#"] -> MComment
-              "B"    -> MLine $ concatMap (addFonts (singleton Bold)) args
-              "BR"   -> MLine $ concat args -- TODO
-              x | x `elem` ["BI", "IB"] -> MLine $ -- TODO FIXME!
-                        concatMap (addFonts (S.fromList [Italic, Bold])) args
-              x | x `elem` ["I", "IR", "RI"]  -> MLine $
-                        concatMap (addFonts (singleton Italic)) args
-              x | x `elem` [ "P", "PP", "LP", "sp"] -> MEmptyLine
-              _      -> MMacro macroName args
-  return tok
+  case macroName of
+    ""     -> return MComment
+    "\\\"" -> return MComment
+    "\\#"  -> return MComment
+    "B"    -> do
+      args' <- argsOrFromNextLine args
+      return $ MLine $ concatMap (addFont Bold) args'
+    "I"    -> do
+      args' <- argsOrFromNextLine args
+      return $ MLine $ concatMap (addFont Italic) args'
+    x | x `elem` ["BI", "IB", "RI", "IR", "BR", "RB"] -> do
+      let toFont 'I' = Italic
+          toFont 'R' = Regular
+          toFont 'B' = Bold
+          toFont 'M' = Monospace
+          toFont _   = Regular
+      let fontlist = map toFont x
+      return $ MLine $ concat $ zipWith addFont (cycle fontlist) args
+    x | x `elem` [ "P", "PP", "LP", "sp"] -> return MEmptyLine
+    _      -> return $ MMacro macroName args
 
   where
+
+  argsOrFromNextLine :: PandocMonad m => [[LinePart]] -> ManLexer m [[LinePart]]
+  argsOrFromNextLine args =
+    if null args
+       then do
+         MLine lps <- lexLine
+         return [lps]
+       else return args
 
   lexArgs :: PandocMonad m => ManLexer m [[LinePart]]
   lexArgs = do
@@ -439,7 +457,7 @@ parseSkippedContent :: PandocMonad m => ManParser m Blocks
 parseSkippedContent = mempty <$ (mcomment <|> memptyLine)
 
 linePartsToInlines :: [LinePart] -> Inlines
-linePartsToInlines = mconcat . map go
+linePartsToInlines = mconcat . traceShowId . map go . traceShowId
   where
   go (RoffStr (s, fonts)) = inner (S.toList fonts) s
   go _ = mempty

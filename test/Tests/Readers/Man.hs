@@ -40,12 +40,15 @@ tests = [
     , "Macro args" =:
       ".B \"single arg with \"\"Q\"\"\""
       =?> (para $ strong $ text "single arg with \"Q\"")
+    , "Argument from next line" =:
+      ".B\nsingle arg with \"Q\""
+      =?> (para $ strong $ text "single arg with \"Q\"")
     , "comment" =:
       ".\\\"bla\naaa"
       =?> (para $ str "aaa")
     , "link" =:
       ".BR aa (1)"
-      =?> para (text "aa(1)")
+      =?> para (strong (str "aa") <> str "(1)")
     ],
   testGroup "Escapes" [
       "fonts" =:
