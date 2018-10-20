@@ -22,7 +22,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 {- |
    Module      : Text.Pandoc.Readers.Man
-   Copyright   : Copyright (C) 2018 Yan Pashkovsky
+   Copyright   : Copyright (C) 2018 Yan Pashkovsky and John MacFarlane
    License     : GNU GPL, version 2 or above
 
    Maintainer  : Yan Pashkovsky <yanp.bugz@gmail.com>
@@ -74,6 +74,7 @@ data ManToken = MStr RoffStr
               | MEmptyLine
               | MMacro MacroKind [RoffStr]
               | MComment String
+              | MEndMacro
               deriving Show
 
 data RoffState = RoffState { fontKind :: Font
@@ -159,7 +160,7 @@ escapeLexer = do
     cs <- count 2 anyChar
     case M.lookup cs characterCodeMap of
       Just c  -> return [c]
-      Nothing -> escUnknown ('(':cs)
+      Nothing -> escUnknown ('\\':'(':cs) "\xFFFD"
 
   bracketedGlyph =
     char '[' *>
@@ -177,7 +178,7 @@ escapeLexer = do
   charCode = do
     cs <- many1 (noneOf ['[',']',' ','\t','\n'])
     case M.lookup cs characterCodeMap of
-       Nothing -> mzero
+       Nothing -> escUnknown ("\\[" ++ cs ++ "]") '\xFFFD'
        Just c  -> return c
 
   escStar = do
@@ -216,7 +217,7 @@ escapeLexer = do
       '|' -> return " "
       '\'' -> return "`"
       '.' -> return "`"
-      _   -> escUnknown [c]
+      _   -> escUnknown [c] "\xFFFD"
 
   escFont :: PandocMonad m => ManLexer m String
   escFont = do
@@ -245,11 +246,11 @@ escapeLexer = do
     , (char 'P' <|> char 'R') >> return Regular
     ]
 
-  escUnknown :: PandocMonad m => String -> ManLexer m String
-  escUnknown s = do
+  escUnknown :: PandocMonad m => String -> a -> ManLexer m a
+  escUnknown s x = do
     pos <- getPosition
     report $ SkippedContent ("Unknown escape sequence " ++ s) pos
-    return mempty
+    return x
 
 currentFont :: PandocMonad m => ManLexer m Font
 currentFont = fontKind <$> getState
@@ -267,12 +268,13 @@ lexMacro :: PandocMonad m => ManLexer m ManToken
 lexMacro = do
   char '.' <|> char '\''
   many spacetab
-  macroName <- many (letter <|> oneOf ['\\', '"', '&'])
+  macroName <- many (letter <|> oneOf ['\\', '"', '&', '.'])
   args <- lexArgs
   let joinedArgs = unwords $ fst <$> args
 
       tok = case macroName of
               ""     -> MComment ""
+              "."    -> MEndMacro
               x | x `elem` ["\\\"", "\\#"] -> MComment joinedArgs
               "B"    -> MStr (joinedArgs, singleton Bold)
               "BR"   -> MMaybeLink joinedArgs
