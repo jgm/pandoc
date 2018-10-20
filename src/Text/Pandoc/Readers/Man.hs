@@ -466,9 +466,14 @@ parseInlines = do
   comment :: PandocMonad m => ManParser m Inlines
   comment = mcomment >> return mempty
 
+bareIP :: PandocMonad m => ManParser m ManToken
+bareIP = msatisfy isBareIP where
+  isBareIP (MMacro "IP" []) = True
+  isBareIP _                = False
 
 parseCodeBlock :: PandocMonad m => ManParser m Blocks
 parseCodeBlock = try $ do
+  optional bareIP -- some people indent their code
   mmacro "nf"
   toks <- many (mstr <|> mline <|> mmaybeLink <|> memptyLine <|> mcomment)
   mmacro "fi"
