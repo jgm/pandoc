@@ -396,18 +396,14 @@ mcomment = msatisfy isMComment where
 parseTitle :: PandocMonad m => ManParser m Blocks
 parseTitle = do
   (MMacro _ args) <- mmacro "TH"
-  if null args
-    then return mempty
-    else do
-         let mantitle = fst $ head args
-         modifyState (changeTitle mantitle)
-         return $ header 1 $ text mantitle
-  where
-  changeTitle title pst =
-    let meta = stateMeta pst
-        metaUp = Meta $ M.insert "title" (MetaString title) (unMeta meta)
-    in
-    pst {stateMeta = metaUp}
+  let adjustMeta =
+       case map fst args of
+         (x:y:z:_) -> setMeta "title" x . setMeta "section" y . setMeta "date" z
+         [x,y]     -> setMeta "title" x . setMeta "section" y
+         [x]       -> setMeta "title" x
+         []        -> id
+  modifyState $ \st -> st{ stateMeta = adjustMeta $ stateMeta st }
+  return mempty
 
 parseSkippedContent :: PandocMonad m => ManParser m Blocks
 parseSkippedContent = mempty <$ (mcomment <|> memptyLine)
