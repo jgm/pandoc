@@ -33,10 +33,10 @@ tests = [
       =?> (para $ strong $ emph $ text "foo bar")
     , "H1" =:
       ".SH The header\n"
-      =?> header 2 (text "The header")
+      =?> header 1 (text "The header")
     , "H2" =:
       ".SS \"The header 2\""
-      =?> header 3 (text "The header 2")
+      =?> header 2 (text "The header 2")
     , "Macro args" =:
       ".B \"single arg with \"\"Q\"\"\""
       =?> (para $ strong $ text "single arg with \"Q\"")

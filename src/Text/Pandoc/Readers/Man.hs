@@ -72,7 +72,6 @@ data ManToken = MStr RoffStr
               | MLine [RoffStr]
               | MMaybeLink String
               | MEmptyLine
-              | MHeader Int [RoffStr]
               | MMacro MacroKind [RoffStr]
               | MComment String
               deriving Show
@@ -299,8 +298,6 @@ lexMacro = do
               "BR"   -> MMaybeLink joinedArgs
               x | x `elem` ["BI", "IB"] -> MStr (joinedArgs, S.fromList [Italic, Bold])
               x | x `elem` ["I", "IR", "RI"]  -> MStr (joinedArgs, singleton Italic)
-              "SH"   -> MHeader 2 args
-              "SS"   -> MHeader 3 args
               x | x `elem` [ "P", "PP", "LP", "sp"] -> MEmptyLine
               _      -> MMacro macroName args
   return tok
@@ -398,11 +395,6 @@ memptyLine :: PandocMonad m => ManParser m ManToken
 memptyLine = msatisfy isMEmptyLine where
   isMEmptyLine MEmptyLine = True
   isMEmptyLine _ = False
-
-mheader :: PandocMonad m => ManParser m ManToken
-mheader = msatisfy isMHeader where
-  isMHeader (MHeader _ _) = True
-  isMHeader _ = False
 
 mmacro :: PandocMonad m => MacroKind -> ManParser m ManToken
 mmacro mk = msatisfy isMMacro where
@@ -524,8 +516,17 @@ parseCodeBlock = try $ do
 
 parseHeader :: PandocMonad m => ManParser m Blocks
 parseHeader = do
-  (MHeader lvl ss) <- mheader
-  return $ header lvl (mconcat $ intersperse B.space $ strToInlines <$> ss)
+  MMacro name args <- mmacro "SH" <|> mmacro "SS"
+  contents <- if null args
+                 then do
+                   MLine ils <- mline
+                   return $ mconcat $ map strToInlines ils
+                 else do
+                   return $ mconcat
+                          $ intersperse B.space
+                          $ map strToInlines args
+  let lvl = if name == "SH" then 1 else 2
+  return $ header lvl contents
 
 type ListBuilder = [Blocks] -> Blocks
 
