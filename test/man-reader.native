@@ -70,7 +70,14 @@ Pandoc (Meta {unMeta = fromList [("date",MetaString "Oct 17, 2018"),("section",M
      [[Para [Str "Decimal",Space,Str "start",Space,Str "with",Space,Str "6"]
       ,OrderedList (3,LowerAlpha,OneParen)
        [[Para [Str "Lower",Space,Str "alpha",Space,Str "with",Space,Str "paren"]]]]]]]]]
-,Para [Str "*",Space,Str "*",Space,Str "*",Space,Str "*",Space,Str "*"]
+,Header 2 ("",[],[]) [Str "Ordered"]
+,Para [Str "Definition",Space,Str "lists"]
+,DefinitionList
+ [([Strong [Str "term1"]],
+   [[Para [Str "definition",Space,Str "1"]
+    ,Para [Str "continued"]]])
+ ,([Strong [Str "term2"]],
+   [[Para [Str "definition",Space,Str "2",Space,Str "*",Space,Str "*",Space,Str "*",Space,Str "*",Space,Str "*"]]])]
 ,Header 1 ("",[],[]) [Str "Special",Space,Str "Characters"]
 ,Para [Str "AT&T",Space,Str "has",Space,Str "an",Space,Str "ampersand",Space,Str "in",Space,Str "their",Space,Str "name."]
 ,Para [Str "4",Space,Str "<",Space,Str "5."]

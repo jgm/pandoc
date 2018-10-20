@@ -144,7 +144,18 @@ Lower alpha with paren
 .RE
 .RE
 .RE
+.SS Ordered
+Definition lists
+.TP
+.B term1
+definition 1
+.RS
 .PP
+continued
+.RE
+.TP
+.B term2
+definition 2
    *   *   *   *   *
 .SH Special Characters
 AT&T has an ampersand in their name.

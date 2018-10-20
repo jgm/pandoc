@@ -128,6 +128,7 @@ parseMan = do
 
 parseBlock :: PandocMonad m => ManParser m Blocks
 parseBlock = choice [ parseList
+                    , parseDefinitionList
                     , parseTitle
                     , parsePara
                     , parseSkippedContent
@@ -351,7 +352,9 @@ msatisfy :: (Show t, Stream s m t) => (t -> Bool) -> ParserT s st m t
 msatisfy predic = tokenPrim show nextPos testTok
   where
     testTok t     = if predic t then Just t else Nothing
-    nextPos pos _x _xs  = updatePosString (setSourceColumn (setSourceLine pos $ sourceLine pos + 1) 1) ("")
+    nextPos pos _x _xs  = updatePosString
+                             (setSourceColumn
+                               (setSourceLine pos $ sourceLine pos + 1) 1) ("")
 
 mstr :: PandocMonad m => ManParser m ManToken
 mstr = msatisfy isMStr where
@@ -428,25 +431,23 @@ parseInlines = do
   let withspaces = intersperse B.space inls
   return $ mconcat withspaces
 
-  where
+strInl :: PandocMonad m => ManParser m Inlines
+strInl = do
+  (MStr rstr) <- mstr
+  return $ strToInlines rstr
 
-  strInl :: PandocMonad m => ManParser m Inlines
-  strInl = do
-    (MStr rstr) <- mstr
-    return $ strToInlines rstr
+lineInl :: PandocMonad m => ManParser m Inlines
+lineInl = do
+  (MLine fragments) <- mline
+  return $ mconcat $ strToInlines <$> fragments
 
-  lineInl :: PandocMonad m => ManParser m Inlines
-  lineInl = do
-    (MLine fragments) <- mline
-    return $ mconcat $ strToInlines <$> fragments
-
-  linkInl :: PandocMonad m => ManParser m Inlines
-  linkInl = do
-    (MMaybeLink txt) <- mmaybeLink
-    let inls = case runParser linkParser () "" txt of
-                  Right lnk -> lnk
-                  Left _ -> strong $ text txt
-    return inls
+linkInl :: PandocMonad m => ManParser m Inlines
+linkInl = do
+  (MMaybeLink txt) <- mmaybeLink
+  let inls = case runParser linkParser () "" txt of
+                Right lnk -> lnk
+                Left _ -> strong $ text txt
+  return inls
 
     where
 
@@ -463,8 +464,8 @@ parseInlines = do
           lnkInls = link (manurl mpage [mansect]) mpage (strong $ str mpage)
       return $ lnkInls <> strong (str (" ("++[mansect] ++ ")") <> text other)
 
-  comment :: PandocMonad m => ManParser m Inlines
-  comment = mcomment >> return mempty
+comment :: PandocMonad m => ManParser m Inlines
+comment = mcomment >> return mempty
 
 bareIP :: PandocMonad m => ManParser m ManToken
 bareIP = msatisfy isBareIP where
@@ -497,12 +498,10 @@ parseHeader = do
   MMacro name args <- mmacro "SH" <|> mmacro "SS"
   contents <- if null args
                  then do
-                   MLine ils <- mline
-                   return $ mconcat $ map strToInlines ils
+                   strInl <|> lineInl
                  else do
-                   return $ mconcat
-                          $ intersperse B.space
-                          $ map strToInlines args
+                   return $
+                     mconcat $ intersperse B.space $ map strToInlines args
   let lvl = if name == "SH" then 1 else 2
   return $ header lvl contents
 
@@ -548,6 +547,18 @@ continuation = do
   bs <- mconcat <$> many (notFollowedBy (mmacro "RE") >> parseBlock)
   mmacro "RE"
   return bs
+
+definitionListItem :: PandocMonad m
+                   => ManParser m (Inlines, [Blocks])
+definitionListItem = try $ do
+  (MMacro _ _) <- mmacro "TP"  -- args specify indent level, can ignore
+  term <- strInl <|> lineInl
+  inls <- parseInlines
+  continuations <- mconcat <$> many continuation
+  return $ (term, [para inls <> continuations])
+
+parseDefinitionList :: PandocMonad m => ManParser m Blocks
+parseDefinitionList = definitionList <$> many1 definitionListItem
 
 -- In case of weird man file it will be parsed succesfully
 parseSkipMacro :: PandocMonad m => ManParser m Blocks
