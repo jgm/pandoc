@@ -85,29 +85,6 @@ instance Default RoffState where
 type ManLexer m = ParserT [Char] RoffState m
 type ManParser m = ParserT [ManToken] ParserState m
 
----- debug functions
-{-
-import Text.Pandoc.Class (runIOorExplode)
-
-printPandoc :: Pandoc -> [Char]
-printPandoc (Pandoc m content) =
-  let ttl = "Pandoc: " ++ (show $ unMeta m)
-      cnt = intercalate "\n" $ map show content
-  in ttl ++ "\n" ++ cnt
-
-testStr :: String -> IO ()
-testStr str = do
-  pand <- runIOorExplode $ readMan def (T.pack str)
-  putStrLn $ printPandoc pand
-
-
-testFile :: FilePath -> IO ()
-testFile fname = do
-  cont <- readFile fname
-  testStr cont
--}
-----
-
 
 -- | Read man (troff) from an input string and return a Pandoc document.
 readMan :: PandocMonad m => ReaderOptions -> T.Text -> m Pandoc
