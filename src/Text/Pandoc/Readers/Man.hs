@@ -136,6 +136,7 @@ parseBlock = choice [ parseList
                     , parseSkippedContent
                     , parseCodeBlock
                     , parseHeader
+                    , parseMacroDef
                     , parseSkipMacro
                     ]
 
@@ -566,6 +567,17 @@ definitionListItem = try $ do
 
 parseDefinitionList :: PandocMonad m => ManParser m Blocks
 parseDefinitionList = definitionList <$> many1 definitionListItem
+
+parseMacroDef :: PandocMonad m => ManParser m Blocks
+parseMacroDef = do
+  MMacro _ _args <- mmacro "de"
+  bs <- manyTill parseBlock endMacro
+  return mempty -- TODO for now just skip it
+
+  where
+    endMacro = (msatisfy (\t -> case t of
+                                  MEndMacro -> True
+                                  _         -> False))
 
 -- In case of weird man file it will be parsed succesfully
 parseSkipMacro :: PandocMonad m => ManParser m Blocks
