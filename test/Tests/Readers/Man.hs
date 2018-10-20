@@ -75,16 +75,16 @@ tests = [
   testGroup "Lists" [
       "bullet" =:
       ".IP\nfirst\n.IP\nsecond"
-      =?> bulletList [plain $ str "first", plain $ str "second"]
+      =?> bulletList [para $ str "first", para $ str "second"]
     , "ordered" =:
       ".IP 1 a\nfirst\n.IP 2 a\nsecond"
-      =?> orderedListWith (1,Decimal,DefaultDelim) [plain $ str "first", plain $ str "second"]
+      =?> orderedListWith (1,Decimal,DefaultDelim) [para $ str "first", para $ str "second"]
     , "upper" =:
       ".IP A a\nfirst\n.IP B a\nsecond"
-      =?> orderedListWith (1,UpperAlpha,DefaultDelim) [plain $ str "first", plain $ str "second"]
+      =?> orderedListWith (1,UpperAlpha,DefaultDelim) [para $ str "first", para $ str "second"]
     , "nested" =:
       ".IP\nfirst\n.RS\n.IP\n1a\n.IP\n1b\n.RE"
-      =?> bulletList [(plain $ str "first") <> (bulletList [plain $ str "1a", plain $ str "1b"])]
+      =?> bulletList [(para $ str "first") <> (bulletList [para $ str "1a", para $ str "1b"])]
     ],
   testGroup "CodeBlocks" [
       "cb1"=:

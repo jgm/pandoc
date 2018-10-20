@@ -17,8 +17,8 @@ Pandoc (Meta {unMeta = fromList [("title",MetaString "Pandoc Man tests")]})
 ,CodeBlock ("",[],[]) "\nsub status {\n    print \"working\";\n}"
 ,Para [Str "A",Space,Str "list:"]
 ,OrderedList (1,Decimal,Period)
- [[Plain [Str "item",Space,Str "one"]]
- ,[Plain [Str "item",Space,Str "two"]]]
+ [[Para [Str "item",Space,Str "one"]]
+ ,[Para [Str "item",Space,Str "two"]]]
 ,Header 2 ("",[],[]) [Str "Code",Space,Str "Blocks"]
 ,Para [Str "Code:"]
 ,CodeBlock ("",[],[]) "\n---- (should be four hyphens)\n\nsub status {\n    print \"working\";\n}\n"
@@ -29,48 +29,48 @@ Pandoc (Meta {unMeta = fromList [("title",MetaString "Pandoc Man tests")]})
 ,Header 3 ("",[],[]) [Str "Unordered"]
 ,Para [Str "Asterisks:"]
 ,BulletList
- [[Plain [Str "asterisk",Space,Str "1"]]
- ,[Plain [Str "asterisk",Space,Str "2"]]
- ,[Plain [Str "asterisk",Space,Str "3"]]]
+ [[Para [Str "asterisk",Space,Str "1"]]
+ ,[Para [Str "asterisk",Space,Str "2"]]
+ ,[Para [Str "asterisk",Space,Str "3"]]]
 ,Header 3 ("",[],[]) [Str "Ordered"]
 ,OrderedList (1,Decimal,Period)
- [[Plain [Str "First"]]
- ,[Plain [Str "Second"]]
- ,[Plain [Str "Third"]]]
+ [[Para [Str "First"]]
+ ,[Para [Str "Second"]]
+ ,[Para [Str "Third"]]]
 ,Header 3 ("",[],[]) [Str "Nested"]
 ,BulletList
- [[Plain [Str "Tab"]
+ [[Para [Str "Tab"]
   ,BulletList
-   [[Plain [Str "Tab"]
+   [[Para [Str "Tab"]
     ,BulletList
-     [[Plain [Str "Tab"]]]]]]]
+     [[Para [Str "Tab"]]]]]]]
 ,Para [Str "Here's",Space,Str "another:"]
 ,OrderedList (1,Decimal,Period)
- [[Plain [Str "First"]]
- ,[Plain [Str "Second:"]
+ [[Para [Str "First"]]
+ ,[Para [Str "Second:"]
   ,BulletList
-   [[Plain [Str "Fee"]]
-   ,[Plain [Str "Fie"]]
-   ,[Plain [Str "Foe"]]]]
- ,[Plain [Str "Third"]]]
+   [[Para [Str "Fee"]]
+   ,[Para [Str "Fie"]]
+   ,[Para [Str "Foe"]]]]
+ ,[Para [Str "Third"]]]
 ,Para [Str "Same",Space,Str "thing:"]
 ,OrderedList (1,Decimal,Period)
- [[Plain [Str "First"]]
- ,[Plain [Str "Second:"]
+ [[Para [Str "First"]]
+ ,[Para [Str "Second:"]
   ,BulletList
-   [[Plain [Str "Fee"]]
-   ,[Plain [Str "Fie"]]
-   ,[Plain [Str "Foe"]]]]
- ,[Plain [Str "Third"]]]
+   [[Para [Str "Fee"]]
+   ,[Para [Str "Fie"]]
+   ,[Para [Str "Foe"]]]]
+ ,[Para [Str "Third"]]]
 ,Header 3 ("",[],[]) [Str "different",Space,Str "styles:"]
 ,OrderedList (1,UpperAlpha,Period)
- [[Plain [Str "Upper",Space,Str "Alpha"]
+ [[Para [Str "Upper",Space,Str "Alpha"]
   ,OrderedList (1,UpperRoman,Period)
-   [[Plain [Str "Upper",Space,Str "Roman."]
+   [[Para [Str "Upper",Space,Str "Roman."]
     ,OrderedList (6,Decimal,TwoParens)
-     [[Plain [Str "Decimal",Space,Str "start",Space,Str "with",Space,Str "6"]
+     [[Para [Str "Decimal",Space,Str "start",Space,Str "with",Space,Str "6"]
       ,OrderedList (3,LowerAlpha,OneParen)
-       [[Plain [Str "Lower",Space,Str "alpha",Space,Str "with",Space,Str "paren"]]]]]]]]]
+       [[Para [Str "Lower",Space,Str "alpha",Space,Str "with",Space,Str "paren"]]]]]]]]]
 ,Para [Str "*",Space,Str "*",Space,Str "*",Space,Str "*",Space,Str "*"]
 ,Header 2 ("",[],[]) [Str "Special",Space,Str "Characters"]
 ,Para [Str "AT&T",Space,Str "has",Space,Str "an",Space,Str "ampersand",Space,Str "in",Space,Str "their",Space,Str "name."]

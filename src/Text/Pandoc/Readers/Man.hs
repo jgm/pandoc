@@ -554,15 +554,15 @@ parseList = try $ do
     (MMacro _ args) <- mmacro "IP"
     let lbuilder = listKind args
     inls <- parseInlines
-    subls <- mconcat <$> many sublist
-    return $ (lbuilder, plain inls <> subls)
+    continuations <- mconcat <$> many continuation
+    return $ (lbuilder, para inls <> continuations)
 
-  sublist :: PandocMonad m => ManParser m Blocks
-  sublist = do
+  continuation :: PandocMonad m => ManParser m Blocks
+  continuation = do
     mmacro "RS"
-    bl <- parseList
+    bs <- mconcat <$> many (notFollowedBy (mmacro "RE") >> parseBlock)
     mmacro "RE"
-    return bl
+    return bs
 
 -- In case of weird man file it will be parsed succesfully
 parseSkipMacro :: PandocMonad m => ManParser m Blocks
