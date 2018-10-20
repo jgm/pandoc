@@ -403,8 +403,6 @@ Write output to \f[I]FILE\f[R] instead of \f[I]stdout\f[R].
 If \f[I]FILE\f[R] is \f[C]\-\f[R], output will go to \f[I]stdout\f[R],
 even if a non\-textual format (\f[C]docx\f[R], \f[C]odt\f[R],
 \f[C]epub2\f[R], \f[C]epub3\f[R]) is specified.
-.RS
-.RE
 .TP
 .B \f[C]\-\-data\-dir=\f[R]\f[I]DIRECTORY\f[R]
 Specify the user data directory to search for pandoc data files.
@@ -459,35 +457,23 @@ eval\ \[dq]$(pandoc\ \-\-bash\-completion)\[dq]
 .B \f[C]\-\-verbose\f[R]
 Give verbose debugging output.
 Currently this only has an effect with PDF output.
-.RS
-.RE
 .TP
 .B \f[C]\-\-quiet\f[R]
 Suppress warning messages.
-.RS
-.RE
 .TP
 .B \f[C]\-\-fail\-if\-warnings\f[R]
 Exit with error status if there are any warnings.
-.RS
-.RE
 .TP
 .B \f[C]\-\-log=\f[R]\f[I]FILE\f[R]
 Write log messages in machine\-readable JSON format to \f[I]FILE\f[R].
 All messages above DEBUG level will be written, regardless of verbosity
 settings (\f[C]\-\-verbose\f[R], \f[C]\-\-quiet\f[R]).
-.RS
-.RE
 .TP
 .B \f[C]\-\-list\-input\-formats\f[R]
 List supported input formats, one per line.
-.RS
-.RE
 .TP
 .B \f[C]\-\-list\-output\-formats\f[R]
 List supported output formats, one per line.
-.RS
-.RE
 .TP
 .B \f[C]\-\-list\-extensions\f[R][\f[C]=\f[R]\f[I]FORMAT\f[R]]
 List supported extensions, one per line, preceded by a \f[C]+\f[R] or
@@ -495,50 +481,34 @@ List supported extensions, one per line, preceded by a \f[C]+\f[R] or
 \f[I]FORMAT\f[R].
 If \f[I]FORMAT\f[R] is not specified, defaults for pandoc\[aq]s Markdown
 are given.
-.RS
-.RE
 .TP
 .B \f[C]\-\-list\-highlight\-languages\f[R]
 List supported languages for syntax highlighting, one per line.
-.RS
-.RE
 .TP
 .B \f[C]\-\-list\-highlight\-styles\f[R]
 List supported styles for syntax highlighting, one per line.
 See \f[C]\-\-highlight\-style\f[R].
-.RS
-.RE
 .TP
 .B \f[C]\-v\f[R], \f[C]\-\-version\f[R]
 Print version.
-.RS
-.RE
 .TP
 .B \f[C]\-h\f[R], \f[C]\-\-help\f[R]
 Show usage message.
-.RS
-.RE
 .SS Reader options
 .TP
 .B \f[C]\-\-base\-header\-level=\f[R]\f[I]NUMBER\f[R]
 Specify the base level for headers (defaults to 1).
-.RS
-.RE
 .TP
 .B \f[C]\-\-strip\-empty\-paragraphs\f[R]
 \f[I]Deprecated. Use the \f[CI]+empty_paragraphs\f[I] extension
 instead.\f[R] Ignore paragraphs with no content.
 This option is useful for converting word processing documents where
 users have used empty paragraphs to create inter\-paragraph space.
-.RS
-.RE
 .TP
 .B \f[C]\-\-indented\-code\-classes=\f[R]\f[I]CLASSES\f[R]
 Specify classes to use for indented code blocks\-\-for example,
 \f[C]perl,numberLines\f[R] or \f[C]haskell\f[R].
 Multiple classes may be separated by spaces or commas.
-.RS
-.RE
 .TP
 .B \f[C]\-\-default\-image\-extension=\f[R]\f[I]EXTENSION\f[R]
 Specify a default extension to use when image paths/URLs have no
@@ -546,8 +516,6 @@ extension.
 This allows you to use the same source for formats that require
 different kinds of images.
 Currently this option only affects the Markdown and LaTeX readers.
-.RS
-.RE
 .TP
 .B \f[C]\-\-file\-scope\f[R]
 Parse each file individually before combining for multifile documents.
@@ -556,8 +524,6 @@ to work as expected.
 If this option is set, footnotes and links will not work across files.
 Reading binary files (docx, odt, epub) implies
 \f[C]\-\-file\-scope\f[R].
-.RS
-.RE
 .TP
 .B \f[C]\-F\f[R] \f[I]PROGRAM\f[R], \f[C]\-\-filter=\f[R]\f[I]PROGRAM\f[R]
 Specify an executable to be used as a filter transforming the pandoc AST
@@ -659,8 +625,6 @@ But unlike \f[C]\-\-variable\f[R], \f[C]\-\-metadata\f[R] affects the
 metadata of the underlying document (which is accessible from filters
 and may be printed in some output formats) and metadata values will be
 escaped when inserted into the template.
-.RS
-.RE
 .TP
 .B \f[C]\-\-metadata\-file=\f[R]\f[I]FILE\f[R]
 Read metadata from the supplied YAML (or JSON) file.
@@ -670,20 +634,14 @@ Generally, the input will be handled the same as in YAML metadata
 blocks.
 Metadata values specified inside the document, or by using
 \f[C]\-M\f[R], overwrite values specified with this option.
-.RS
-.RE
 .TP
 .B \f[C]\-p\f[R], \f[C]\-\-preserve\-tabs\f[R]
 Preserve tabs instead of converting them to spaces (the default).
 Note that this will only affect tabs in literal code spans and code
 blocks; tabs in regular text will be treated as spaces.
-.RS
-.RE
 .TP
 .B \f[C]\-\-tab\-stop=\f[R]\f[I]NUMBER\f[R]
 Specify the number of spaces per tab (default is 4).
-.RS
-.RE
 .TP
 .B \f[C]\-\-track\-changes=accept\f[R]|\f[C]reject\f[R]|\f[C]all\f[R]
 Specifies what to do with insertions, deletions, and comments produced
@@ -704,8 +662,6 @@ produces a span with the class
 \f[C]paragraph\-insertion\f[R]/\f[C]paragraph\-deletion\f[R] before the
 affected paragraph break.
 This option only affects the docx reader.
-.RS
-.RE
 .TP
 .B \f[C]\-\-extract\-media=\f[R]\f[I]DIR\f[R]
 Extract images and other media contained in or linked from the source
@@ -717,8 +673,6 @@ media is extracted from the container and the original filenames are
 used.
 Otherwise the media is read from the file system or downloaded, and new
 filenames are constructed based on SHA1 hashes of the contents.
-.RS
-.RE
 .TP
 .B \f[C]\-\-abbreviations=\f[R]\f[I]FILE\f[R]
 Specifies a custom abbreviations file, with abbreviations one to a line.
@@ -731,8 +685,6 @@ The only use pandoc makes of this list is in the Markdown reader.
 Strings ending in a period that are found in this list will be followed
 by a nonbreaking space, so that the period will not produce
 sentence\-ending space in formats like LaTeX.
-.RS
-.RE
 .SS General writer options
 .TP
 .B \f[C]\-s\f[R], \f[C]\-\-standalone\f[R]
@@ -743,8 +695,6 @@ This option is set automatically for \f[C]pdf\f[R], \f[C]epub\f[R],
 output.
 For \f[C]native\f[R] output, this option causes metadata to be included;
 otherwise, metadata is suppressed.
-.RS
-.RE
 .TP
 .B \f[C]\-\-template=\f[R]\f[I]FILE\f[R]|\f[I]URL\f[R]
 Use the specified file as a custom template for the generated document.
@@ -759,8 +709,6 @@ If the template is not found, pandoc will search for it in the
 If this option is not used, a default template appropriate for the
 output format will be used (see
 \f[C]\-D/\-\-print\-default\-template\f[R]).
-.RS
-.RE
 .TP
 .B \f[C]\-V\f[R] \f[I]KEY\f[R][\f[C]=\f[R]\f[I]VAL\f[R]], \f[C]\-\-variable=\f[R]\f[I]KEY\f[R][\f[C]:\f[R]\f[I]VAL\f[R]]
 Set the template variable \f[I]KEY\f[R] to the value \f[I]VAL\f[R] when
@@ -770,37 +718,27 @@ used to specify a custom template, since pandoc automatically sets the
 variables used in the default templates.
 If no \f[I]VAL\f[R] is specified, the key will be given the value
 \f[C]true\f[R].
-.RS
-.RE
 .TP
 .B \f[C]\-D\f[R] \f[I]FORMAT\f[R], \f[C]\-\-print\-default\-template=\f[R]\f[I]FORMAT\f[R]
 Print the system default template for an output \f[I]FORMAT\f[R].
 (See \f[C]\-t\f[R] for a list of possible \f[I]FORMAT\f[R]s.) Templates
 in the user data directory are ignored.
-.RS
-.RE
 .TP
 .B \f[C]\-\-print\-default\-data\-file=\f[R]\f[I]FILE\f[R]
 Print a system default data file.
 Files in the user data directory are ignored.
-.RS
-.RE
 .TP
 .B \f[C]\-\-eol=crlf\f[R]|\f[C]lf\f[R]|\f[C]native\f[R]
 Manually specify line endings: \f[C]crlf\f[R] (Windows), \f[C]lf\f[R]
 (macOS/Linux/UNIX), or \f[C]native\f[R] (line endings appropriate to the
 OS on which pandoc is being run).
 The default is \f[C]native\f[R].
-.RS
-.RE
 .TP
 .B \f[C]\-\-dpi\f[R]=\f[I]NUMBER\f[R]
 Specify the dpi (dots per inch) value for conversion from pixels to
 inch/centimeters and vice versa.
 The default is 96dpi.
 Technically, the correct term would be ppi (pixels per inch).
-.RS
-.RE
 .TP
 .B \f[C]\-\-wrap=auto\f[R]|\f[C]none\f[R]|\f[C]preserve\f[R]
 Determine how text is wrapped in the output (the source code, not the
@@ -813,8 +751,6 @@ from the source document (that is, where there are nonsemantic newlines
 in the source, there will be nonsemantic newlines in the output as
 well).
 Automatic wrapping does not currently work in HTML output.
-.RS
-.RE
 .TP
 .B \f[C]\-\-columns=\f[R]\f[I]NUMBER\f[R]
 Specify length of lines in characters.
@@ -822,8 +758,6 @@ This affects text wrapping in the generated source code (see
 \f[C]\-\-wrap\f[R]).
 It also affects calculation of column widths for plain text tables (see
 Tables below).
-.RS
-.RE
 .TP
 .B \f[C]\-\-toc\f[R], \f[C]\-\-table\-of\-contents\f[R]
 Include an automatically generated table of contents (or, in the case of
@@ -833,30 +767,22 @@ to create one) in the output document.
 This option has no effect unless \f[C]\-s/\-\-standalone\f[R] is used,
 and it has no effect on \f[C]man\f[R], \f[C]docbook4\f[R],
 \f[C]docbook5\f[R], or \f[C]jats\f[R] output.
-.RS
-.RE
 .TP
 .B \f[C]\-\-toc\-depth=\f[R]\f[I]NUMBER\f[R]
 Specify the number of section levels to include in the table of
 contents.
 The default is 3 (which means that level 1, 2, and 3 headers will be
 listed in the contents).
-.RS
-.RE
 .TP
 .B \f[C]\-\-strip\-comments\f[R]
 Strip out HTML comments in the Markdown or Textile source, rather than
 passing them on to Markdown, Textile or HTML output as raw HTML.
 This does not apply to HTML comments inside raw HTML blocks when the
 \f[C]markdown_in_html_blocks\f[R] extension is not set.
-.RS
-.RE
 .TP
 .B \f[C]\-\-no\-highlight\f[R]
 Disables syntax highlighting for code blocks and inlines, even when a
 language attribute is given.
-.RS
-.RE
 .TP
 .B \f[C]\-\-highlight\-style=\f[R]\f[I]STYLE\f[R]|\f[I]FILE\f[R]
 Specifies the coloring style to be used in highlighted source code.
@@ -881,16 +807,12 @@ To generate the JSON version of an existing style, use
 Prints a JSON version of a highlighting style, which can be modified,
 saved with a \f[C]\&.theme\f[R] extension, and used with
 \f[C]\-\-highlight\-style\f[R].
-.RS
-.RE
 .TP
 .B \f[C]\-\-syntax\-definition=\f[R]\f[I]FILE\f[R]
 Instructs pandoc to load a KDE XML syntax definition file, which will be
 used for syntax highlighting of appropriately marked code blocks.
 This can be used to add support for new languages or to use altered
 syntax definitions for existing languages.
-.RS
-.RE
 .TP
 .B \f[C]\-H\f[R] \f[I]FILE\f[R], \f[C]\-\-include\-in\-header=\f[R]\f[I]FILE\f[R]
 Include contents of \f[I]FILE\f[R], verbatim, at the end of the header.
@@ -900,8 +822,6 @@ This option can be used repeatedly to include multiple files in the
 header.
 They will be included in the order specified.
 Implies \f[C]\-\-standalone\f[R].
-.RS
-.RE
 .TP
 .B \f[C]\-B\f[R] \f[I]FILE\f[R], \f[C]\-\-include\-before\-body=\f[R]\f[I]FILE\f[R]
 Include contents of \f[I]FILE\f[R], verbatim, at the beginning of the
@@ -913,8 +833,6 @@ documents.
 This option can be used repeatedly to include multiple files.
 They will be included in the order specified.
 Implies \f[C]\-\-standalone\f[R].
-.RS
-.RE
 .TP
 .B \f[C]\-A\f[R] \f[I]FILE\f[R], \f[C]\-\-include\-after\-body=\f[R]\f[I]FILE\f[R]
 Include contents of \f[I]FILE\f[R], verbatim, at the end of the document
@@ -923,8 +841,6 @@ body (before the \f[C]</body>\f[R] tag in HTML, or the
 This option can be used repeatedly to include multiple files.
 They will be included in the order specified.
 Implies \f[C]\-\-standalone\f[R].
-.RS
-.RE
 .TP
 .B \f[C]\-\-resource\-path=\f[R]\f[I]SEARCHPATH\f[R]
 List of paths to search for images and other resources.
@@ -950,8 +866,6 @@ making HTTP requests (for example, when a URL is given on the command
 line, or when resources used in a document must be downloaded).
 If you\[aq]re behind a proxy, you also need to set the environment
 variable \f[C]http_proxy\f[R] to \f[C]http://...\f[R].
-.RS
-.RE
 .SS Options affecting specific writers
 .TP
 .B \f[C]\-\-self\-contained\f[R]
@@ -978,13 +892,9 @@ cannot be incorporated; as a result, \f[C]\-\-self\-contained\f[R] does
 not work with \f[C]\-\-mathjax\f[R], and some advanced features (e.g.
 zoom or speaker notes) may not work in an offline
 \[dq]self\-contained\[dq] \f[C]reveal.js\f[R] slide show.
-.RS
-.RE
 .TP
 .B \f[C]\-\-html\-q\-tags\f[R]
 Use \f[C]<q>\f[R] tags for quotes in HTML.
-.RS
-.RE
 .TP
 .B \f[C]\-\-ascii\f[R]
 Use only ASCII characters in output.
@@ -993,8 +903,6 @@ entities instead of UTF\-8 when this option is selected), groff ms
 (which use hexadecimal escapes), and to a limited degree LaTeX (which
 uses standard commands for accented characters when possible).
 Groff man output uses ASCII by default.
-.RS
-.RE
 .TP
 .B \f[C]\-\-reference\-links\f[R]
 Use reference\-style links, rather than inline links, in writing
@@ -1002,8 +910,6 @@ Markdown or reStructuredText.
 By default inline links are used.
 The placement of link references is affected by the
 \f[C]\-\-reference\-location\f[R] option.
-.RS
-.RE
 .TP
 .B \f[C]\-\-reference\-location\ =\ block\f[R]|\f[C]section\f[R]|\f[C]document\f[R]
 Specify whether footnotes (and references, if \f[C]reference\-links\f[R]
@@ -1011,16 +917,12 @@ is set) are placed at the end of the current (top\-level) block, the
 current section, or the document.
 The default is \f[C]document\f[R].
 Currently only affects the markdown writer.
-.RS
-.RE
 .TP
 .B \f[C]\-\-atx\-headers\f[R]
 Use ATX\-style headers in Markdown and AsciiDoc output.
 The default is to use setext\-style headers for levels 1\-2, and then
 ATX headers.
 (Note: for \f[C]gfm\f[R] output, ATX headers are always used.)
-.RS
-.RE
 .TP
 .B \f[C]\-\-top\-level\-division=[default|section|chapter|part]\f[R]
 Treat top\-level headers as the given division type in LaTeX, ConTeXt,
@@ -1037,16 +939,12 @@ If \f[C]beamer\f[R] is the output format, specifying either
 \f[C]chapter\f[R] or \f[C]part\f[R] will cause top\-level headers to
 become \f[C]\[rs]part{..}\f[R], while second\-level headers remain as
 their default type.
-.RS
-.RE
 .TP
 .B \f[C]\-N\f[R], \f[C]\-\-number\-sections\f[R]
 Number section headings in LaTeX, ConTeXt, HTML, or EPUB output.
 By default, sections are not numbered.
 Sections with class \f[C]unnumbered\f[R] will never be numbered, even if
 \f[C]\-\-number\-sections\f[R] is specified.
-.RS
-.RE
 .TP
 .B \f[C]\-\-number\-offset=\f[R]\f[I]NUMBER\f[R][\f[C],\f[R]\f[I]NUMBER\f[R]\f[C],\f[R]\f[I]...\f[R]]
 Offset for section headings in HTML output (ignored in other output
@@ -1060,8 +958,6 @@ If your document starts with a level\-2 header which you want to be
 numbered \[dq]1.5\[dq], specify \f[C]\-\-number\-offset=1,4\f[R].
 Offsets are 0 by default.
 Implies \f[C]\-\-number\-sections\f[R].
-.RS
-.RE
 .TP
 .B \f[C]\-\-listings\f[R]
 Use the \f[C]listings\f[R] package for LaTeX code blocks.
@@ -1069,14 +965,10 @@ The package does not support multi\-byte encoding for source code.
 To handle UTF\-8 you would need to use a custom template.
 This issue is fully documented here: Encoding issue with the listings
 package.
-.RS
-.RE
 .TP
 .B \f[C]\-i\f[R], \f[C]\-\-incremental\f[R]
 Make list items in slide shows display incrementally (one by one).
 The default is for lists to be displayed all at once.
-.RS
-.RE
 .TP
 .B \f[C]\-\-slide\-level=\f[R]\f[I]NUMBER\f[R]
 Specifies that headers with the specified level create slides (for
@@ -1089,16 +981,12 @@ Note that content that is not contained under slide\-level headers will
 not appear in the slide show.
 The default is to set the slide level based on the contents of the
 document; see Structuring the slide show.
-.RS
-.RE
 .TP
 .B \f[C]\-\-section\-divs\f[R]
 Wrap sections in \f[C]<section>\f[R] tags (or \f[C]<div>\f[R] tags for
 \f[C]html4\f[R]), and attach identifiers to the enclosing
 \f[C]<section>\f[R] (or \f[C]<div>\f[R]) rather than the header itself.
 See Header identifiers, below.
-.RS
-.RE
 .TP
 .B \f[C]\-\-email\-obfuscation=none\f[R]|\f[C]javascript\f[R]|\f[C]references\f[R]
 Specify a method for obfuscating \f[C]mailto:\f[R] links in HTML
@@ -1108,8 +996,6 @@ documents.
 \f[C]references\f[R] obfuscates them by printing their letters as
 decimal or hexadecimal character references.
 The default is \f[C]none\f[R].
-.RS
-.RE
 .TP
 .B \f[C]\-\-id\-prefix=\f[R]\f[I]STRING\f[R]
 Specify a prefix to be added to all identifiers and internal links in
@@ -1117,16 +1003,12 @@ HTML and DocBook output, and to footnote numbers in Markdown and Haddock
 output.
 This is useful for preventing duplicate identifiers when generating
 fragments to be included in other pages.
-.RS
-.RE
 .TP
 .B \f[C]\-T\f[R] \f[I]STRING\f[R], \f[C]\-\-title\-prefix=\f[R]\f[I]STRING\f[R]
 Specify \f[I]STRING\f[R] as a prefix at the beginning of the title that
 appears in the HTML header (but not in the title as it appears at the
 beginning of the HTML body).
 Implies \f[C]\-\-standalone\f[R].
-.RS
-.RE
 .TP
 .B \f[C]\-c\f[R] \f[I]URL\f[R], \f[C]\-\-css=\f[R]\f[I]URL\f[R]
 Link to a CSS style sheet.
@@ -1228,8 +1110,6 @@ height.
 Note that in a Markdown source document you can also specify
 \f[C]cover\-image\f[R] in a YAML metadata block (see EPUB Metadata,
 below).
-.RS
-.RE
 .TP
 .B \f[C]\-\-epub\-metadata=\f[R]\f[I]FILE\f[R]
 Look in the specified XML file for metadata for the EPUB.
@@ -1309,24 +1189,18 @@ way chapters and sections are displayed to users.
 Some readers may be slow if the chapter files are too large, so for
 large documents with few level 1 headers, one might want to use a
 chapter level of 2 or 3.
-.RS
-.RE
 .TP
 .B \f[C]\-\-epub\-subdirectory=\f[R]\f[I]DIRNAME\f[R]
 Specify the subdirectory in the OCF container that is to hold the
 EPUB\-specific contents.
 The default is \f[C]EPUB\f[R].
 To put the EPUB contents in the top level, use an empty string.
-.RS
-.RE
 .TP
 .B \f[C]\-\-pdf\-engine=pdflatex\f[R]|\f[C]lualatex\f[R]|\f[C]xelatex\f[R]|\f[C]wkhtmltopdf\f[R]|\f[C]weasyprint\f[R]|\f[C]prince\f[R]|\f[C]context\f[R]|\f[C]pdfroff\f[R]
 Use the specified engine when producing PDF output.
 The default is \f[C]pdflatex\f[R].
 If the engine is not in your PATH, the full path of the engine may be
 specified here.
-.RS
-.RE
 .TP
 .B \f[C]\-\-pdf\-engine\-opt=\f[R]\f[I]STRING\f[R]
 Use the given string as a command\-line argument to the
@@ -1334,8 +1208,6 @@ Use the given string as a command\-line argument to the
 If used multiple times, the arguments are provided with spaces between
 them.
 Note that no check for duplicate options is done.
-.RS
-.RE
 .SS Citation rendering
 .TP
 .B \f[C]\-\-bibliography=\f[R]\f[I]FILE\f[R]
@@ -1349,16 +1221,12 @@ If \f[C]\-\-natbib\f[R] or \f[C]\-\-biblatex\f[R] is also supplied,
 \f[C]\-\-metadata\ bibliography=FILE\f[R].
 If you supply this argument multiple times, each \f[I]FILE\f[R] will be
 added to bibliography.
-.RS
-.RE
 .TP
 .B \f[C]\-\-csl=\f[R]\f[I]FILE\f[R]
 Set the \f[C]csl\f[R] field in the document\[aq]s metadata to
 \f[I]FILE\f[R], overriding any value set in the metadata.
 (This is equivalent to \f[C]\-\-metadata\ csl=FILE\f[R].) This option is
 only relevant with \f[C]pandoc\-citeproc\f[R].
-.RS
-.RE
 .TP
 .B \f[C]\-\-citation\-abbreviations=\f[R]\f[I]FILE\f[R]
 Set the \f[C]citation\-abbreviations\f[R] field in the document\[aq]s
@@ -1366,8 +1234,6 @@ metadata to \f[I]FILE\f[R], overriding any value set in the metadata.
 (This is equivalent to
 \f[C]\-\-metadata\ citation\-abbreviations=FILE\f[R].) This option is
 only relevant with \f[C]pandoc\-citeproc\f[R].
-.RS
-.RE
 .TP
 .B \f[C]\-\-natbib\f[R]
 Use \f[C]natbib\f[R] for citations in LaTeX output.
@@ -1375,8 +1241,6 @@ This option is not for use with the \f[C]pandoc\-citeproc\f[R] filter or
 with PDF output.
 It is intended for use in producing a LaTeX file that can be processed
 with \f[C]bibtex\f[R].
-.RS
-.RE
 .TP
 .B \f[C]\-\-biblatex\f[R]
 Use \f[C]biblatex\f[R] for citations in LaTeX output.
@@ -1384,8 +1248,6 @@ This option is not for use with the \f[C]pandoc\-citeproc\f[R] filter or
 with PDF output.
 It is intended for use in producing a LaTeX file that can be processed
 with \f[C]bibtex\f[R] or \f[C]biber\f[R].
-.RS
-.RE
 .SS Math rendering in HTML
 .PP
 The default is to render TeX math as far as possible using Unicode
@@ -1406,8 +1268,6 @@ Then the MathJax JavaScript will render it.
 The \f[I]URL\f[R] should point to the \f[C]MathJax.js\f[R] load script.
 If a \f[I]URL\f[R] is not provided, a link to the Cloudflare CDN will be
 inserted.
-.RS
-.RE
 .TP
 .B \f[C]\-\-mathml\f[R]
 Convert TeX math to MathML (in \f[C]epub3\f[R], \f[C]docbook4\f[R],
@@ -1416,8 +1276,6 @@ Convert TeX math to MathML (in \f[C]epub3\f[R], \f[C]docbook4\f[R],
 This is the default in \f[C]odt\f[R] output.
 Note that currently only Firefox and Safari (and select e\-book readers)
 natively support MathML.
-.RS
-.RE
 .TP
 .B \f[C]\-\-webtex\f[R][\f[C]=\f[R]\f[I]URL\f[R]]
 Convert TeX formulas to \f[C]<img>\f[R] tags that link to an external
@@ -1430,8 +1288,6 @@ If no URL is specified, the CodeCogs URL generating PNGs will be used
 Note: the \f[C]\-\-webtex\f[R] option will affect Markdown output as
 well as HTML, which is useful if you\[aq]re targeting a version of
 Markdown without native math support.
-.RS
-.RE
 .TP
 .B \f[C]\-\-katex\f[R][\f[C]=\f[R]\f[I]URL\f[R]]
 Use KaTeX to display embedded TeX math in HTML output.
@@ -1440,8 +1296,6 @@ That directory should contain a \f[C]katex.min.js\f[R] and a
 \f[C]katex.min.css\f[R] file.
 If a \f[I]URL\f[R] is not provided, a link to the KaTeX CDN will be
 inserted.
-.RS
-.RE
 .TP
 .B \f[C]\-\-gladtex\f[R]
 Enclose TeX math in \f[C]<eq>\f[R] tags in HTML output.
@@ -1472,8 +1326,6 @@ in the order they appear.
 These do not include regular pandoc options and their arguments, but do
 include any options appearing after a \f[C]\-\-\f[R] separator at the
 end of the line.
-.RS
-.RE
 .TP
 .B \f[C]\-\-ignore\-args\f[R]
 Ignore command\-line arguments (for use in wrapper scripts).
@@ -1588,66 +1440,44 @@ document subtitle, included in HTML, EPUB, LaTeX, ConTeXt, and Word
 docx; renders in LaTeX only when using a document class that supports
 \f[C]\[rs]subtitle\f[R], such as \f[C]beamer\f[R] or the KOMA\-Script
 series (\f[C]scrartcl\f[R], \f[C]scrreprt\f[R], \f[C]scrbook\f[R]).
-.RS
-.RE
 .TP
 .B \f[C]institute\f[R]
 author affiliations (in LaTeX and Beamer only).
 Can be a list, when there are multiple authors.
-.RS
-.RE
 .TP
 .B \f[C]abstract\f[R]
 document summary, included in LaTeX, ConTeXt, AsciiDoc, and Word docx
-.RS
-.RE
 .TP
 .B \f[C]keywords\f[R]
 list of keywords to be included in HTML, PDF, and AsciiDoc metadata; may
 be repeated as for \f[C]author\f[R], above
-.RS
-.RE
 .TP
 .B \f[C]header\-includes\f[R]
 contents specified by \f[C]\-H/\-\-include\-in\-header\f[R] (may have
 multiple values)
-.RS
-.RE
 .TP
 .B \f[C]toc\f[R]
 non\-null value if \f[C]\-\-toc/\-\-table\-of\-contents\f[R] was
 specified
-.RS
-.RE
 .TP
 .B \f[C]toc\-title\f[R]
 title of table of contents (works only with EPUB, opendocument, odt,
 docx, pptx, beamer, LaTeX)
-.RS
-.RE
 .TP
 .B \f[C]include\-before\f[R]
 contents specified by \f[C]\-B/\-\-include\-before\-body\f[R] (may have
 multiple values)
-.RS
-.RE
 .TP
 .B \f[C]include\-after\f[R]
 contents specified by \f[C]\-A/\-\-include\-after\-body\f[R] (may have
 multiple values)
-.RS
-.RE
 .TP
 .B \f[C]body\f[R]
 body of document
-.RS
-.RE
 .TP
 .B \f[C]meta\-json\f[R]
 JSON representation of all of the document\[aq]s metadata.
 Field values are transformed to the selected output format.
-.RS
-.RE
 .SS Language variables
 .TP
 .B \f[C]lang\f[R]
@@ -1691,71 +1521,47 @@ all reveal.js configuration options.
 .TP
 .B \f[C]titlegraphic\f[R]
 title graphic for Beamer documents
-.RS
-.RE
 .TP
 .B \f[C]logo\f[R]
 logo for Beamer documents
-.RS
-.RE
 .TP
 .B \f[C]slidy\-url\f[R]
 base URL for Slidy documents (defaults to
 \f[C]https://www.w3.org/Talks/Tools/Slidy2\f[R])
-.RS
-.RE
 .TP
 .B \f[C]slideous\-url\f[R]
 base URL for Slideous documents (defaults to \f[C]slideous\f[R])
-.RS
-.RE
 .TP
 .B \f[C]s5\-url\f[R]
 base URL for S5 documents (defaults to \f[C]s5/default\f[R])
-.RS
-.RE
 .TP
 .B \f[C]revealjs\-url\f[R]
 base URL for reveal.js documents (defaults to \f[C]reveal.js\f[R])
-.RS
-.RE
 .TP
 .B \f[C]theme\f[R], \f[C]colortheme\f[R], \f[C]fonttheme\f[R], \f[C]innertheme\f[R], \f[C]outertheme\f[R]
 themes for LaTeX \f[C]beamer\f[R] documents
-.RS
-.RE
 .TP
 .B \f[C]themeoptions\f[R]
 options for LaTeX beamer themes (a list).
-.RS
-.RE
 .TP
 .B \f[C]navigation\f[R]
 controls navigation symbols in \f[C]beamer\f[R] documents (default is
 \f[C]empty\f[R] for no navigation symbols; other valid values are
 \f[C]frame\f[R], \f[C]vertical\f[R], and \f[C]horizontal\f[R]).
-.RS
-.RE
 .TP
 .B \f[C]section\-titles\f[R]
 enables on \[dq]title pages\[dq] for new sections in \f[C]beamer\f[R]
 documents (default = true).
-.RS
-.RE
 .TP
 .B \f[C]beamerarticle\f[R]
 when true, the \f[C]beamerarticle\f[R] package is loaded (for producing
 an article from beamer slides).
-.RS
-.RE
 .TP
 .B \f[C]aspectratio\f[R]
 aspect ratio of slides (for beamer only, \f[C]1610\f[R] for 16:10,
 \f[C]169\f[R] for 16:9, \f[C]149\f[R] for 14:9, \f[C]141\f[R] for
 1.41:1, \f[C]54\f[R] for 5:4, \f[C]43\f[R] for 4:3 which is the default,
 and \f[C]32\f[R] for 3:2).
-.RS
-.RE
 .SS Variables for LaTeX
 .PP
 LaTeX variables are used when creating a PDF.
@@ -1763,72 +1569,50 @@ LaTeX variables are used when creating a PDF.
 .B \f[C]papersize\f[R]
 paper size, e.g.
 \f[C]letter\f[R], \f[C]a4\f[R]
-.RS
-.RE
 .TP
 .B \f[C]fontsize\f[R]
 font size for body text (e.g.
 \f[C]10pt\f[R], \f[C]12pt\f[R])
-.RS
-.RE
 .TP
 .B \f[C]documentclass\f[R]
 document class, e.g.
 \f[C]article\f[R], \f[C]report\f[R], \f[C]book\f[R], \f[C]memoir\f[R]
-.RS
-.RE
 .TP
 .B \f[C]classoption\f[R]
 option for document class, e.g.
 \f[C]oneside\f[R]; may be repeated for multiple options
-.RS
-.RE
 .TP
 .B \f[C]beameroption\f[R]
 In beamer, add extra beamer option with \f[C]\[rs]setbeameroption{}\f[R]
-.RS
-.RE
 .TP
 .B \f[C]geometry\f[R]
 option for \f[C]geometry\f[R] package, e.g.
 \f[C]margin=1in\f[R]; may be repeated for multiple options
-.RS
-.RE
 .TP
 .B \f[C]margin\-left\f[R], \f[C]margin\-right\f[R], \f[C]margin\-top\f[R], \f[C]margin\-bottom\f[R]
 sets margins, if \f[C]geometry\f[R] is not used (otherwise
 \f[C]geometry\f[R] overrides these)
-.RS
-.RE
 .TP
 .B \f[C]linestretch\f[R]
 adjusts line spacing using the \f[C]setspace\f[R] package, e.g.
 \f[C]1.25\f[R], \f[C]1.5\f[R]
-.RS
-.RE
 .TP
 .B \f[C]fontfamily\f[R]
 font package for use with \f[C]pdflatex\f[R]: TeX Live includes many
 options, documented in the LaTeX Font Catalogue.
 The default is Latin Modern.
-.RS
-.RE
 .TP
 .B \f[C]fontfamilyoptions\f[R]
 options for package used as \f[C]fontfamily\f[R]: e.g.
 \f[C]osf,sc\f[R] with \f[C]fontfamily\f[R] set to \f[C]mathpazo\f[R]
 provides Palatino with old\-style figures and true small caps; may be
 repeated for multiple options
-.RS
-.RE
 .TP
 .B \f[C]mainfont\f[R], \f[C]sansfont\f[R], \f[C]monofont\f[R], \f[C]mathfont\f[R], \f[C]CJKmainfont\f[R]
 font families for use with \f[C]xelatex\f[R] or \f[C]lualatex\f[R]: take
 the name of any system font, using the \f[C]fontspec\f[R] package.
 Note that if \f[C]CJKmainfont\f[R] is used, the \f[C]xecjk\f[R] package
 must be available.
-.RS
-.RE
 .TP
 .B \f[C]mainfontoptions\f[R], \f[C]sansfontoptions\f[R], \f[C]monofontoptions\f[R], \f[C]mathfontoptions\f[R], \f[C]CJKoptions\f[R]
 options to use with \f[C]mainfont\f[R], \f[C]sansfont\f[R],
@@ -1837,202 +1621,136 @@ options to use with \f[C]mainfont\f[R], \f[C]sansfont\f[R],
 Allow for any choices available through \f[C]fontspec\f[R], such as the
 OpenType features \f[C]Numbers=OldStyle,Numbers=Proportional\f[R].
 May be repeated for multiple options.
-.RS
-.RE
 .TP
 .B \f[C]fontenc\f[R]
 allows font encoding to be specified through \f[C]fontenc\f[R] package
 (with \f[C]pdflatex\f[R]); default is \f[C]T1\f[R] (see guide to LaTeX
 font encodings)
-.RS
-.RE
 .TP
 .B \f[C]microtypeoptions\f[R]
 options to pass to the microtype package
-.RS
-.RE
 .TP
 .B \f[C]colorlinks\f[R]
 add color to link text; automatically enabled if any of
 \f[C]linkcolor\f[R], \f[C]filecolor\f[R], \f[C]citecolor\f[R],
 \f[C]urlcolor\f[R], or \f[C]toccolor\f[R] are set
-.RS
-.RE
 .TP
 .B \f[C]linkcolor\f[R], \f[C]filecolor\f[R], \f[C]citecolor\f[R], \f[C]urlcolor\f[R], \f[C]toccolor\f[R]
 color for internal links, external links, citation links, linked URLs,
 and links in table of contents, respectively: uses options allowed by
 \f[C]xcolor\f[R], including the \f[C]dvipsnames\f[R],
 \f[C]svgnames\f[R], and \f[C]x11names\f[R] lists
-.RS
-.RE
 .TP
 .B \f[C]links\-as\-notes\f[R]
 causes links to be printed as footnotes
-.RS
-.RE
 .TP
 .B \f[C]indent\f[R]
 uses document class settings for indentation (the default LaTeX template
 otherwise removes indentation and adds space between paragraphs)
-.RS
-.RE
 .TP
 .B \f[C]subparagraph\f[R]
 disables default behavior of LaTeX template that redefines
 (sub)paragraphs as sections, changing the appearance of nested headings
 in some classes
-.RS
-.RE
 .TP
 .B \f[C]thanks\f[R]
 specifies contents of acknowledgments footnote after document title.
-.RS
-.RE
 .TP
 .B \f[C]toc\f[R]
 include table of contents (can also be set using
 \f[C]\-\-toc/\-\-table\-of\-contents\f[R])
-.RS
-.RE
 .TP
 .B \f[C]toc\-depth\f[R]
 level of section to include in table of contents
-.RS
-.RE
 .TP
 .B \f[C]secnumdepth\f[R]
 numbering depth for sections, if sections are numbered
-.RS
-.RE
 .TP
 .B \f[C]lof\f[R], \f[C]lot\f[R]
 include list of figures, list of tables
-.RS
-.RE
 .TP
 .B \f[C]bibliography\f[R]
 bibliography to use for resolving references
-.RS
-.RE
 .TP
 .B \f[C]biblio\-style\f[R]
 bibliography style, when used with \f[C]\-\-natbib\f[R] and
 \f[C]\-\-biblatex\f[R].
-.RS
-.RE
 .TP
 .B \f[C]biblio\-title\f[R]
 bibliography title, when used with \f[C]\-\-natbib\f[R] and
 \f[C]\-\-biblatex\f[R].
-.RS
-.RE
 .TP
 .B \f[C]biblatexoptions\f[R]
 list of options for biblatex.
-.RS
-.RE
 .TP
 .B \f[C]natbiboptions\f[R]
 list of options for natbib.
-.RS
-.RE
 .TP
 .B \f[C]pagestyle\f[R]
 An option for LaTeX\[aq]s \f[C]\[rs]pagestyle{}\f[R].
 The default article class supports \[aq]plain\[aq] (default),
 \[aq]empty\[aq], and \[aq]headings\[aq]; headings puts section titles in
 the header.
-.RS
-.RE
 .SS Variables for ConTeXt
 .TP
 .B \f[C]papersize\f[R]
 paper size, e.g.
 \f[C]letter\f[R], \f[C]A4\f[R], \f[C]landscape\f[R] (see ConTeXt Paper
 Setup); may be repeated for multiple options
-.RS
-.RE
 .TP
 .B \f[C]layout\f[R]
 options for page margins and text arrangement (see ConTeXt Layout); may
 be repeated for multiple options
-.RS
-.RE
 .TP
 .B \f[C]margin\-left\f[R], \f[C]margin\-right\f[R], \f[C]margin\-top\f[R], \f[C]margin\-bottom\f[R]
 sets margins, if \f[C]layout\f[R] is not used (otherwise
 \f[C]layout\f[R] overrides these)
-.RS
-.RE
 .TP
 .B \f[C]fontsize\f[R]
 font size for body text (e.g.
 \f[C]10pt\f[R], \f[C]12pt\f[R])
-.RS
-.RE
 .TP
 .B \f[C]mainfont\f[R], \f[C]sansfont\f[R], \f[C]monofont\f[R], \f[C]mathfont\f[R]
 font families: take the name of any system font (see ConTeXt Font
 Switching)
-.RS
-.RE
 .TP
 .B \f[C]linkcolor\f[R], \f[C]contrastcolor\f[R]
 color for links outside and inside a page, e.g.
 \f[C]red\f[R], \f[C]blue\f[R] (see ConTeXt Color)
-.RS
-.RE
 .TP
 .B \f[C]linkstyle\f[R]
 typeface style for links, e.g.
 \f[C]normal\f[R], \f[C]bold\f[R], \f[C]slanted\f[R],
 \f[C]boldslanted\f[R], \f[C]type\f[R], \f[C]cap\f[R], \f[C]small\f[R]
-.RS
-.RE
 .TP
 .B \f[C]indenting\f[R]
 controls indentation of paragraphs, e.g.
 \f[C]yes,small,next\f[R] (see ConTeXt Indentation); may be repeated for
 multiple options
-.RS
-.RE
 .TP
 .B \f[C]whitespace\f[R]
 spacing between paragraphs, e.g.
 \f[C]none\f[R], \f[C]small\f[R] (using \f[C]setupwhitespace\f[R])
-.RS
-.RE
 .TP
 .B \f[C]interlinespace\f[R]
 adjusts line spacing, e.g.
 \f[C]4ex\f[R] (using \f[C]setupinterlinespace\f[R]); may be repeated for
 multiple options
-.RS
-.RE
 .TP
 .B \f[C]headertext\f[R], \f[C]footertext\f[R]
 text to be placed in running header or footer (see ConTeXt Headers and
 Footers); may be repeated up to four times for different placement
-.RS
-.RE
 .TP
 .B \f[C]pagenumbering\f[R]
 page number style and location (using \f[C]setuppagenumbering\f[R]); may
 be repeated for multiple options
-.RS
-.RE
 .TP
 .B \f[C]toc\f[R]
 include table of contents (can also be set using
 \f[C]\-\-toc/\-\-table\-of\-contents\f[R])
-.RS
-.RE
 .TP
 .B \f[C]lof\f[R], \f[C]lot\f[R]
 include list of figures, list of tables
-.RS
-.RE
 .TP
 .B \f[C]pdfa\f[R]
 adds to the preamble the setup necessary to generate PDF/A\-1b:2005.
@@ -2041,60 +1759,40 @@ be available and the content and all included files (such as images)
 have to be standard conforming.
 The ICC profiles can be obtained from ConTeXt ICC Profiles.
 See also ConTeXt PDFA for more details.
-.RS
-.RE
 .SS Variables for man pages
 .TP
 .B \f[C]section\f[R]
 section number in man pages
-.RS
-.RE
 .TP
 .B \f[C]header\f[R]
 header in man pages
-.RS
-.RE
 .TP
 .B \f[C]footer\f[R]
 footer in man pages
-.RS
-.RE
 .TP
 .B \f[C]adjusting\f[R]
 adjusts text to left (\f[C]l\f[R]), right (\f[C]r\f[R]), center
 (\f[C]c\f[R]), or both (\f[C]b\f[R]) margins
-.RS
-.RE
 .TP
 .B \f[C]hyphenate\f[R]
 if \f[C]true\f[R] (the default), hyphenation will be used
-.RS
-.RE
 .SS Variables for ms
 .TP
 .B \f[C]pointsize\f[R]
 point size (e.g.
 \f[C]10p\f[R])
-.RS
-.RE
 .TP
 .B \f[C]lineheight\f[R]
 line height (e.g.
 \f[C]12p\f[R])
-.RS
-.RE
 .TP
 .B \f[C]fontfamily\f[R]
 font family (e.g.
 \f[C]T\f[R] or \f[C]P\f[R])
-.RS
-.RE
 .TP
 .B \f[C]indent\f[R]
 paragraph indent (e.g.
 \f[C]2m\f[R])
-.RS
-.RE
 .SS Using variables in templates
 .PP
 Variable names are sequences of alphanumerics, \f[C]\-\f[R], and
@@ -2218,19 +1916,13 @@ This extension can be enabled/disabled for the following formats:
 .B input formats
 \f[C]markdown\f[R], \f[C]commonmark\f[R], \f[C]latex\f[R],
 \f[C]mediawiki\f[R], \f[C]org\f[R], \f[C]rst\f[R], \f[C]twiki\f[R]
-.RS
-.RE
 .TP
 .B output formats
 \f[C]markdown\f[R], \f[C]latex\f[R], \f[C]context\f[R], \f[C]rst\f[R]
-.RS
-.RE
 .TP
 .B enabled by default in
 \f[C]markdown\f[R], \f[C]latex\f[R], \f[C]context\f[R] (both input and
 output)
-.RS
-.RE
 .PP
 Note: If you are \f[I]writing\f[R] Markdown, then the \f[C]smart\f[R]
 extension has the reverse effect: what would have been curly quotes
@@ -2257,18 +1949,12 @@ This extension can be enabled/disabled for the following formats:
 .B input formats
 \f[C]markdown\f[R], \f[C]latex\f[R], \f[C]rst\f[R], \f[C]mediawiki\f[R],
 \f[C]textile\f[R]
-.RS
-.RE
 .TP
 .B output formats
 \f[C]markdown\f[R], \f[C]muse\f[R]
-.RS
-.RE
 .TP
 .B enabled by default in
 \f[C]markdown\f[R], \f[C]muse\f[R]
-.RS
-.RE
 .PP
 The algorithm used to derive the identifier from the header text is:
 .IP \[bu] 2
@@ -2392,13 +2078,9 @@ addition to \f[C]markdown\f[R]):
 .B input formats
 \f[C]latex\f[R], \f[C]org\f[R], \f[C]textile\f[R], \f[C]html\f[R]
 (environments, \f[C]\[rs]ref\f[R], and \f[C]\[rs]eqref\f[R] only)
-.RS
-.RE
 .TP
 .B output formats
 \f[C]textile\f[R], \f[C]commonmark\f[R]
-.RS
-.RE
 .SS Extension: \f[C]native_divs\f[R]
 .PP
 This extension is enabled by default for HTML input.
@@ -2426,13 +2108,9 @@ This extension can be enabled/disabled for the following formats:
 .TP
 .B input formats
 \f[C]markdown\f[R], \f[C]rst\f[R], \f[C]latex\f[R]
-.RS
-.RE
 .TP
 .B output formats
 \f[C]markdown\f[R], \f[C]rst\f[R], \f[C]latex\f[R], \f[C]html\f[R]
-.RS
-.RE
 .PP
 If you append \f[C]+lhs\f[R] (or \f[C]+literate_haskell\f[R]) to one of
 the formats above, pandoc will treat the document as literate Haskell
@@ -2504,13 +2182,9 @@ This extension can be enabled/disabled for the following formats:
 .TP
 .B input formats
 \f[C]docx\f[R], \f[C]html\f[R]
-.RS
-.RE
 .TP
 .B output formats
 \f[C]docx\f[R], \f[C]odt\f[R], \f[C]opendocument\f[R], \f[C]html\f[R]
-.RS
-.RE
 .SS Extension: \f[C]styles\f[R]
 .PP
 Read all docx styles as divs (for paragraph styles) and spans (for
@@ -2521,8 +2195,6 @@ Disabled by default.
 .TP
 .B input formats
 \f[C]docx\f[R]
-.RS
-.RE
 .SS Extension: \f[C]amuse\f[R]
 .PP
 In the \f[C]muse\f[R] input format, this enables Text::Amuse extensions
@@ -4136,82 +3808,54 @@ How it is rendered depends on the output format:
 .B LaTeX
 It will appear verbatim surrounded by \f[C]\[rs](...\[rs])\f[R] (for
 inline math) or \f[C]\[rs][...\[rs]]\f[R] (for display math).
-.RS
-.RE
 .TP
 .B Markdown, Emacs Org mode, ConTeXt, ZimWiki
 It will appear verbatim surrounded by \f[C]$...$\f[R] (for inline math)
 or \f[C]$$...$$\f[R] (for display math).
-.RS
-.RE
 .TP
 .B reStructuredText
 It will be rendered using an interpreted text role \f[C]:math:\f[R].
-.RS
-.RE
 .TP
 .B AsciiDoc
 It will be rendered as \f[C]latexmath:[...]\f[R].
-.RS
-.RE
 .TP
 .B Texinfo
 It will be rendered inside a \f[C]\[at]math\f[R] command.
-.RS
-.RE
 .TP
 .B groff man
 It will be rendered verbatim without \f[C]$\f[R]\[aq]s.
-.RS
-.RE
 .TP
 .B MediaWiki, DokuWiki
 It will be rendered inside \f[C]<math>\f[R] tags.
-.RS
-.RE
 .TP
 .B Textile
 It will be rendered inside \f[C]<span\ class=\[dq]math\[dq]>\f[R] tags.
-.RS
-.RE
 .TP
 .B RTF, OpenDocument
 It will be rendered, if possible, using Unicode characters, and will
 otherwise appear verbatim.
-.RS
-.RE
 .TP
 .B ODT
 It will be rendered, if possible, using MathML.
-.RS
-.RE
 .TP
 .B DocBook
 If the \f[C]\-\-mathml\f[R] flag is used, it will be rendered using
 MathML in an \f[C]inlineequation\f[R] or \f[C]informalequation\f[R] tag.
 Otherwise it will be rendered, if possible, using Unicode characters.
-.RS
-.RE
 .TP
 .B Docx
 It will be rendered using OMML math markup.
-.RS
-.RE
 .TP
 .B FictionBook2
 If the \f[C]\-\-webtex\f[R] option is used, formulas are rendered as
 images using CodeCogs or other compatible web service, downloaded and
 embedded in the e\-book.
 Otherwise, they will appear verbatim.
-.RS
-.RE
 .TP
 .B HTML, Slidy, DZSlides, S5, EPUB
 The way math is rendered in HTML will depend on the command\-line
 options selected.
 Therefore see Math rendering in HTML above.
-.RS
-.RE
 .SS Raw HTML
 .SS Extension: \f[C]raw_html\f[R]
 .PP
@@ -4887,33 +4531,21 @@ and in CSL JSON databases, an HTML\-like markup:
 .TP
 .B \f[C]<i>...</i>\f[R]
 italics
-.RS
-.RE
 .TP
 .B \f[C]<b>...</b>\f[R]
 bold
-.RS
-.RE
 .TP
 .B \f[C]<span\ style=\[dq]font\-variant:small\-caps;\[dq]>...</span>\f[R] or \f[C]<sc>...</sc>\f[R]
 small capitals
-.RS
-.RE
 .TP
 .B \f[C]<sub>...</sub>\f[R]
 subscript
-.RS
-.RE
 .TP
 .B \f[C]<sup>...</sup>\f[R]
 superscript
-.RS
-.RE
 .TP
 .B \f[C]<span\ class=\[dq]nocase\[dq]>...</span>\f[R]
 prevent a phrase from being capitalized as title case
-.RS
-.RE
 .PP
 \f[C]pandoc\-citeproc\ \-j\f[R] and \f[C]\-y\f[R] interconvert the CSL
 JSON and CSL YAML formats as far as possible.
@@ -5247,8 +4879,6 @@ variants are supported:
 \f[C]header_attributes\f[R], \f[C]link_attributes\f[R],
 \f[C]abbreviations\f[R], \f[C]shortcut_reference_links\f[R],
 \f[C]spaced_reference_links\f[R].
-.RS
-.RE
 .TP
 .B \f[C]markdown_github\f[R] (deprecated GitHub\-Flavored Markdown)
 \f[C]pipe_tables\f[R], \f[C]raw_html\f[R], \f[C]fenced_code_blocks\f[R],
@@ -5258,8 +4888,6 @@ variants are supported:
 \f[C]strikeout\f[R], \f[C]emoji\f[R],
 \f[C]shortcut_reference_links\f[R], \f[C]angle_brackets_escapable\f[R],
 \f[C]lists_without_preceding_blankline\f[R].
-.RS
-.RE
 .TP
 .B \f[C]markdown_mmd\f[R] (MultiMarkdown)
 \f[C]pipe_tables\f[R], \f[C]raw_html\f[R], \f[C]markdown_attribute\f[R],
@@ -5272,14 +4900,10 @@ variants are supported:
 \f[C]superscript\f[R], \f[C]subscript\f[R],
 \f[C]backtick_code_blocks\f[R], \f[C]spaced_reference_links\f[R],
 \f[C]raw_attribute\f[R].
-.RS
-.RE
 .TP
 .B \f[C]markdown_strict\f[R] (Markdown.pl)
 \f[C]raw_html\f[R], \f[C]shortcut_reference_links\f[R],
 \f[C]spaced_reference_links\f[R].
-.RS
-.RE
 .PP
 We also support \f[C]commonmark\f[R] and \f[C]gfm\f[R] (GitHub\-Flavored
 Markdown, which is implemented as a set of extensions on
@@ -5299,8 +4923,6 @@ Also, \f[C]raw_tex\f[R] only affects \f[C]gfm\f[R] output, not input.
 \f[C]intraword_underscores\f[R], \f[C]strikeout\f[R],
 \f[C]hard_line_breaks\f[R], \f[C]emoji\f[R],
 \f[C]shortcut_reference_links\f[R], \f[C]angle_brackets_escapable\f[R].
-.RS
-.RE
 .SH PRODUCING SLIDE SHOWS WITH PANDOC
 .PP
 You can use pandoc to produce an HTML + JavaScript slide presentation
@@ -5708,8 +5330,6 @@ Valid values for \f[C]scheme\f[R] are \f[C]ISBN\-10\f[R],
 \f[C]LCCN\f[R], \f[C]GTIN\-14\f[R], \f[C]ISBN\-13\f[R],
 \f[C]Legal\ deposit\ number\f[R], \f[C]URN\f[R], \f[C]OCLC\f[R],
 \f[C]ISMN\-13\f[R], \f[C]ISBN\-A\f[R], \f[C]JP\f[R], \f[C]OLCC\f[R].
-.RS
-.RE
 .TP
 .B \f[C]title\f[R]
 Either a string value, or an object with fields \f[C]file\-as\f[R] and
@@ -5717,8 +5337,6 @@ Either a string value, or an object with fields \f[C]file\-as\f[R] and
 Valid values for \f[C]type\f[R] are \f[C]main\f[R], \f[C]subtitle\f[R],
 \f[C]short\f[R], \f[C]collection\f[R], \f[C]edition\f[R],
 \f[C]extended\f[R].
-.RS
-.RE
 .TP
 .B \f[C]creator\f[R]
 Either a string value, or an object with fields \f[C]role\f[R],
@@ -5726,78 +5344,50 @@ Either a string value, or an object with fields \f[C]role\f[R],
 Valid values for \f[C]role\f[R] are MARC relators, but pandoc will
 attempt to translate the human\-readable versions (like \[dq]author\[dq]
 and \[dq]editor\[dq]) to the appropriate marc relators.
-.RS
-.RE
 .TP
 .B \f[C]contributor\f[R]
 Same format as \f[C]creator\f[R].
-.RS
-.RE
 .TP
 .B \f[C]date\f[R]
 A string value in \f[C]YYYY\-MM\-DD\f[R] format.
 (Only the year is necessary.) Pandoc will attempt to convert other
 common date formats.
-.RS
-.RE
 .TP
 .B \f[C]lang\f[R] (or legacy: \f[C]language\f[R])
 A string value in BCP 47 format.
 Pandoc will default to the local language if nothing is specified.
-.RS
-.RE
 .TP
 .B \f[C]subject\f[R]
 A string value or a list of such values.
-.RS
-.RE
 .TP
 .B \f[C]description\f[R]
 A string value.
-.RS
-.RE
 .TP
 .B \f[C]type\f[R]
 A string value.
-.RS
-.RE
 .TP
 .B \f[C]format\f[R]
 A string value.
-.RS
-.RE
 .TP
 .B \f[C]relation\f[R]
 A string value.
-.RS
-.RE
 .TP
 .B \f[C]coverage\f[R]
 A string value.
-.RS
-.RE
 .TP
 .B \f[C]rights\f[R]
 A string value.
-.RS
-.RE
 .TP
 .B \f[C]cover\-image\f[R]
 A string value (path to cover image).
-.RS
-.RE
 .TP
 .B \f[C]stylesheet\f[R]
 A string value (path to CSS stylesheet).
-.RS
-.RE
 .TP
 .B \f[C]page\-progression\-direction\f[R]
 Either \f[C]ltr\f[R] or \f[C]rtl\f[R].
 Specifies the \f[C]page\-progression\-direction\f[R] attribute for the
 \f[C]spine\f[R] element.
-.RS
-.RE
 .TP
 .B \f[C]ibooks\f[R]
 iBooks\-specific metadata, with the following fields:
