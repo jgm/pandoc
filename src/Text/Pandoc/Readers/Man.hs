@@ -34,7 +34,7 @@ Conversion of man to 'Pandoc' document.
 module Text.Pandoc.Readers.Man (readMan) where
 
 import Prelude
-import Control.Monad (liftM, void, mzero)
+import Control.Monad (liftM, mzero, void, when)
 import Control.Monad.Except (throwError)
 import Data.Char (isHexDigit, chr)
 import Data.Default (Default)
@@ -277,6 +277,7 @@ lexMacro = do
               x | x `elem` ["I", "IR", "RI"]  -> MStr (joinedArgs, singleton Italic)
               x | x `elem` [ "P", "PP", "LP", "sp"] -> MEmptyLine
               _      -> MMacro macroName args
+  when (macroName == "so") (getPosition >>= \pos -> report $ CouldNotLoadIncludeFile joinedArgs pos)
   return tok
 
   where
