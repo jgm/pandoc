@@ -545,9 +545,16 @@ parsePara :: PandocMonad m => ManParser m Blocks
 parsePara = para . trimInlines <$> parseInlines
 
 parseInlines :: PandocMonad m => ManParser m Inlines
-parseInlines = do
-  inls <- many1 (lineInl <|> parseLink <|> parseEmailLink)
-  return $ mconcat $ intersperse B.space inls
+parseInlines = mconcat . intersperse B.space <$> many1 parseInline
+
+parseInline :: PandocMonad m => ManParser m Inlines
+parseInline = do
+  tok <- mline <|> mmacro "UR" <|> mmacro "MT"
+  case tok of
+    MLine lparts -> return $ linePartsToInlines lparts
+    MMacro "UR" args -> parseLink args
+    MMacro "MT" args -> parseEmailLink args
+    _ -> fail "Unknown token in parseInline"
 
 lineInl :: PandocMonad m => ManParser m Inlines
 lineInl = do
@@ -650,20 +657,18 @@ definitionListItem = try $ do
 parseDefinitionList :: PandocMonad m => ManParser m Blocks
 parseDefinitionList = definitionList <$> many1 definitionListItem
 
-parseLink :: PandocMonad m => ManParser m Inlines
-parseLink = try $ do
-  MMacro _ args <- mmacro "UR"
-  contents <- mconcat <$> many1 lineInl
+parseLink :: PandocMonad m => [[LinePart]] -> ManParser m Inlines
+parseLink args = do
+  contents <- mconcat <$> many lineInl
   mmacro "UE"
   let url = case args of
               [] -> ""
               (x:_) -> linePartsToString x
   return $ link url "" contents
 
-parseEmailLink :: PandocMonad m => ManParser m Inlines
-parseEmailLink = do
-  MMacro _ args <- mmacro "MT"
-  contents <- mconcat <$> many1 lineInl
+parseEmailLink :: PandocMonad m => [[LinePart]] -> ManParser m Inlines
+parseEmailLink args = do
+  contents <- mconcat <$> many lineInl
   mmacro "ME"
   let url = case args of
               [] -> ""
