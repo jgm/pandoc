@@ -202,7 +202,7 @@ setExcludedTags tagList st =
   let finalSet = if orgStateExcludedTagsChanged st
                    then foldr Set.insert (orgStateExcludedTags st) tagList
                    else Set.fromList tagList
-  in st { orgStateExcludedTags = finalSet, orgStateExcludedTagsChanged = True}
+  in st { orgStateExcludedTags = finalSet, orgStateExcludedTagsChanged = True }
 
 setEmphasisPreChar :: Maybe [Char] -> OrgParserState -> OrgParserState
 setEmphasisPreChar csMb st =
