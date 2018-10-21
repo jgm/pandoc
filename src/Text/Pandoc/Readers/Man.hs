@@ -497,9 +497,8 @@ parsePara = para . trimInlines <$> parseInlines
 
 parseInlines :: PandocMonad m => ManParser m Inlines
 parseInlines = do
-  inls <- many1 (lineInl <|> comment)
-  let withspaces = intersperse B.space inls
-  return $ mconcat withspaces
+  inls <- many1 (lineInl <|> comment <|> parseLink <|> parseEmailLink)
+  return $ mconcat $ intersperse B.space inls
 
 lineInl :: PandocMonad m => ManParser m Inlines
 lineInl = do
@@ -604,6 +603,26 @@ definitionListItem = try $ do
 
 parseDefinitionList :: PandocMonad m => ManParser m Blocks
 parseDefinitionList = definitionList <$> many1 definitionListItem
+
+parseLink :: PandocMonad m => ManParser m Inlines
+parseLink = try $ do
+  MMacro _ args <- mmacro "UR"
+  contents <- mconcat <$> many1 (lineInl <|> comment)
+  mmacro "UE"
+  let url = case args of
+              [] -> ""
+              (x:_) -> linePartsToString x
+  return $ link url "" contents
+
+parseEmailLink :: PandocMonad m => ManParser m Inlines
+parseEmailLink = do
+  MMacro _ args <- mmacro "MT"
+  contents <- mconcat <$> many1 (lineInl <|> comment)
+  mmacro "ME"
+  let url = case args of
+              [] -> ""
+              (x:_) -> "mailto:" ++ linePartsToString x
+  return $ link url "" contents
 
 parseMacroDef :: PandocMonad m => ManParser m Blocks
 parseMacroDef = do

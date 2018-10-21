@@ -197,3 +197,13 @@ Plus: +
 .PP
 Minus: \-
 .PP
+.SH Links
+.PP
+.UR http://\:example.com
+some random
+site
+.UE
+.PP
+.MT me@example.com
+my email address.
+.ME
