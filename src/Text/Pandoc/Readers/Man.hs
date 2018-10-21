@@ -291,30 +291,12 @@ lexMacro = do
   many spacetab
   macroName <- many (letter <|> oneOf ['\\', '"', '&', '.'])
   args <- lexArgs
-  let addFont f = map (addFontToRoffStr f)
-      addFontToRoffStr f (RoffStr (s, fs)) = RoffStr (s, S.insert f fs)
-      addFontToRoffStr _  x                  = x
 
   case macroName of
     ""     -> return mempty
     "\\\"" -> return mempty
     "\\#"  -> return mempty
     "de"   -> lexMacroDef args
-    "B"    -> do
-      args' <- argsOrFromNextLine args
-      return $ singleTok $ MLine $ concatMap (addFont Bold) args'
-    "I"    -> do
-      args' <- argsOrFromNextLine args
-      return $ singleTok $ MLine $ concatMap (addFont Italic) args'
-    x | x `elem` ["BI", "IB", "RI", "IR", "BR", "RB"] -> do
-      let toFont 'I' = Italic
-          toFont 'R' = Regular
-          toFont 'B' = Bold
-          toFont 'M' = Monospace
-          toFont _   = Regular
-      let fontlist = map toFont x
-      return $ singleTok
-             $ MLine $ concat $ zipWith addFont (cycle fontlist) args
     x | x `elem` [ "P", "PP", "LP", "sp"] -> return $ singleTok MEmptyLine
     _      -> resolveMacro macroName args
 
@@ -355,16 +337,6 @@ lexMacro = do
      modifyState $ \st ->
        st{ customMacros = M.insert macroName ts (customMacros st) }
      return mempty
-
-  argsOrFromNextLine :: PandocMonad m
-                     => [[LinePart]] -> ManLexer m [[LinePart]]
-  argsOrFromNextLine args =
-    if null args
-       then do
-         lps <- many1 linePart
-         eofline
-         return [lps]
-       else return args
 
   lexArgs :: PandocMonad m => ManLexer m [[LinePart]]
   lexArgs = do
@@ -462,6 +434,9 @@ msatisfy predic = tokenPrim show nextPos testTok
                              (setSourceColumn
                                (setSourceLine pos $ sourceLine pos + 1) 1) ("")
 
+mtoken :: PandocMonad m => ManParser m ManToken
+mtoken = msatisfy (const True)
+
 mline :: PandocMonad m => ManParser m ManToken
 mline = msatisfy isMLine where
   isMLine (MLine _) = True
@@ -548,13 +523,42 @@ parseInlines :: PandocMonad m => ManParser m Inlines
 parseInlines = mconcat . intersperse B.space <$> many1 parseInline
 
 parseInline :: PandocMonad m => ManParser m Inlines
-parseInline = do
-  tok <- mline <|> mmacro "UR" <|> mmacro "MT"
+parseInline = try $ do
+  tok <- mtoken
   case tok of
     MLine lparts -> return $ linePartsToInlines lparts
     MMacro "UR" args -> parseLink args
     MMacro "MT" args -> parseEmailLink args
-    _ -> fail "Unknown token in parseInline"
+    MMacro "B" args -> parseBold args
+    MMacro "I" args -> parseItalic args
+    MMacro "BI" args -> parseAlternatingFonts [strong, emph] args
+    MMacro "IB" args -> parseAlternatingFonts [emph, strong] args
+    MMacro "IR" args -> parseAlternatingFonts [emph, id] args
+    MMacro "RI" args -> parseAlternatingFonts [id, emph] args
+    MMacro "BR" args -> parseAlternatingFonts [strong, id] args
+    MMacro "RB" args -> parseAlternatingFonts [id, strong] args
+    _ -> mzero
+
+parseBold :: PandocMonad m => [[LinePart]] -> ManParser m Inlines
+parseBold [] = do
+  MLine lparts <- mline
+  return $ strong $ linePartsToInlines lparts
+parseBold args = return $
+  strong $ mconcat $ intersperse B.space $ map linePartsToInlines args
+
+parseItalic :: PandocMonad m => [[LinePart]] -> ManParser m Inlines
+parseItalic [] = do
+  MLine lparts <- mline
+  return $ emph $ linePartsToInlines lparts
+parseItalic args = return $
+  emph $ mconcat $ intersperse B.space $ map linePartsToInlines args
+
+parseAlternatingFonts :: PandocMonad m
+                      => [Inlines -> Inlines]
+                      -> [[LinePart]]
+                      -> ManParser m Inlines
+parseAlternatingFonts constructors args = return $ mconcat $
+  zipWith (\f arg -> f (linePartsToInlines arg)) (cycle constructors) args
 
 lineInl :: PandocMonad m => ManParser m Inlines
 lineInl = do
@@ -649,7 +653,7 @@ definitionListItem :: PandocMonad m
                    => ManParser m (Inlines, [Blocks])
 definitionListItem = try $ do
   (MMacro _ _) <- mmacro "TP"  -- args specify indent level, can ignore
-  term <- lineInl
+  term <- parseInline
   inls <- parseInlines
   continuations <- mconcat <$> many continuation
   return $ (term, [para inls <> continuations])
