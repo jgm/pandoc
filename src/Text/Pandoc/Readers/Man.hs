@@ -155,7 +155,8 @@ characterCodeMap =
 escapeLexer :: PandocMonad m => ManLexer m String
 escapeLexer = do
   char '\\'
-  twoCharGlyph <|> bracketedGlyph <|> escFont <|> escStar <|> escSingle
+  twoCharGlyph <|> bracketedGlyph <|> escFont <|> escSingle <|> escStar
+
   where
 
   twoCharGlyph = do
@@ -175,7 +176,7 @@ escapeLexer = do
     char 'u'
     cs <- many1 (satisfy isHexDigit)
     case chr <$> safeRead ('0':'x':cs) of
-       Nothing  -> mzero
+       Nothing  -> escUnknown ("\\[u" ++ cs ++ "]") '\xFFFD'
        Just c   -> return c
 
   charCode = do
@@ -186,18 +187,36 @@ escapeLexer = do
 
   escStar = do
     char '*'
-    choice
-      [ ("\xae" <$ char 'R')
-      , ("" <$ char 'S') -- switch back to default font size
-      , ("\x201c" <$ try (string "(lq") <|> try (string "[lq]"))
-      , ("\x201d" <$ try (string "(rq") <|> try (string "[rq]"))
-      , ("" <$ try (string "(HF" >>
-                     modifyState (\r -> r {fontKind = S.singleton Bold})))
-      , ("\x2122" <$ try (string "(Tm"))
-      ]
+    (do char '('
+        cs <- count 2 anyChar
+        case cs of
+          "HF" -> mempty <$ modifyState (\st ->
+                            st{fontKind = S.insert Bold (fontKind st) })
+          "Tm" -> return "\x2122"
+          "lq" -> return "\x201c"
+          "rq" -> return "\x201d"
+          _    -> resolveString cs <|> escUnknown ("\\(" ++ cs) "\xFFFD")
+     <|>
+      (do char '['
+          cs <- many (noneOf "\t\n\r ]")
+          char ']'
+          resolveString cs <|> escUnknown ("\\[" ++ cs ++ "]") "\xFFFD" )
+     <|>
+      (do c <- anyChar
+          case c of
+            'R' -> return "\xae"
+            'S' -> return mempty -- switch back to default font size
+            _   -> resolveString [c] <|> escUnknown ['\\',c] "\xFFFD" )
+
+  -- strings and macros share namespace
+  resolveString stringname = do
+    ManTokens ts <- resolveMacro stringname []
+    case Foldable.toList ts of
+      [MLine [RoffStr (s,_)]] -> return s
+      _                       -> mzero
 
   escSingle = do
-    c <- anyChar
+    c <- noneOf ['*','[','(']
     case c of
       '"' -> mempty <$ skipMany (satisfy (/='\n')) -- line comment
       '#' -> mempty <$ manyTill anyChar newline
@@ -283,97 +302,96 @@ lexMacro = do
     "so"   -> lexIncludeFile args
     _      -> resolveMacro macroName args
 
+
+lexIncludeFile :: PandocMonad m => [Arg] -> ManLexer m ManTokens
+lexIncludeFile args = do
+  pos <- getPosition
+  case args of
+    (f:_) -> do
+      let fp = linePartsToString f
+      dirs <- getResourcePath
+      result <- readFileFromDirs dirs fp
+      case result of
+        Nothing  -> report $ CouldNotLoadIncludeFile fp pos
+        Just s   -> getInput >>= setInput . (s ++)
+      return mempty
+    []    -> return mempty
+
+resolveMacro :: PandocMonad m
+             => String -> [Arg] -> ManLexer m ManTokens
+resolveMacro macroName args = do
+  macros <- customMacros <$> getState
+  case M.lookup macroName macros of
+    Nothing -> return $ singleTok $ MMacro macroName args
+    Just ts -> do
+      let fillLP (RoffStr (x,y)) zs = RoffStr (x,y) : zs
+          fillLP (MacroArg i)    zs =
+            case drop (i - 1) args of
+              []     -> zs
+              (ys:_) -> ys ++ zs
+      let fillMacroArg (MLine lineparts) =
+            MLine (foldr fillLP [] lineparts)
+          fillMacroArg x = x
+      return $ ManTokens . fmap fillMacroArg . unManTokens $ ts
+
+lexMacroDef :: PandocMonad m => [Arg] -> ManLexer m ManTokens
+lexMacroDef args = do -- macro definition
+   (macroName, stopMacro) <-
+     case args of
+       (x : y : _) -> return (linePartsToString x, linePartsToString y)
+                      -- optional second arg
+       (x:_)       -> return (linePartsToString x, ".")
+       []          -> fail "No argument to .de"
+   let stop = try $ do
+         char '.' <|> char '\''
+         many spacetab
+         string stopMacro
+         _ <- lexArgs
+         return ()
+   ts <- mconcat <$> manyTill manToken stop
+   modifyState $ \st ->
+     st{ customMacros = M.insert macroName ts (customMacros st) }
+   return mempty
+
+lexArgs :: PandocMonad m => ManLexer m [Arg]
+lexArgs = do
+  args <- many $ try oneArg
+  skipMany spacetab
+  eofline
+  return args
+
   where
 
-  lexIncludeFile :: PandocMonad m => [Arg] -> ManLexer m ManTokens
-  lexIncludeFile args = do
-    pos <- getPosition
-    case args of
-      (f:_) -> do
-        let fp = linePartsToString f
-        dirs <- getResourcePath
-        result <- readFileFromDirs dirs fp
-        case result of
-          Nothing  -> report $ CouldNotLoadIncludeFile fp pos
-          Just s   -> getInput >>= setInput . (s ++)
-        return mempty
-      []    -> return mempty
+  oneArg :: PandocMonad m => ManLexer m [LinePart]
+  oneArg = do
+    many1 spacetab
+    skipMany $ try $ string "\\\n"  -- TODO why is this here?
+    try quotedArg <|> plainArg
+    -- try, because there are some erroneous files, e.g. linux/bpf.2
 
-  resolveMacro :: PandocMonad m
-               => String -> [Arg] -> ManLexer m ManTokens
-  resolveMacro macroName args = do
-    macros <- customMacros <$> getState
-    case M.lookup macroName macros of
-      Nothing -> return $ singleTok $ MMacro macroName args
-      Just ts -> do
-        let fillLP (RoffStr (x,y)) zs = RoffStr (x,y) : zs
-            fillLP (MacroArg i)    zs =
-              case drop (i - 1) args of
-                []     -> zs
-                (ys:_) -> ys ++ zs
-        let fillMacroArg (MLine lineparts) =
-              MLine (foldr fillLP [] lineparts)
-            fillMacroArg x = x
-        return $ ManTokens . fmap fillMacroArg . unManTokens $ ts
-
-  lexMacroDef :: PandocMonad m => [Arg] -> ManLexer m ManTokens
-  lexMacroDef args = do -- macro definition
-     (macroName, stopMacro) <-
-       case args of
-         (x : y : _) -> return (linePartsToString x, linePartsToString y)
-                        -- optional second arg
-         (x:_)       -> return (linePartsToString x, ".")
-         []          -> fail "No argument to .de"
-     let stop = try $ do
-           char '.' <|> char '\''
-           many spacetab
-           string stopMacro
-           _ <- lexArgs
-           return ()
-     ts <- mconcat <$> manyTill manToken stop
-     modifyState $ \st ->
-       st{ customMacros = M.insert macroName ts (customMacros st) }
-     return mempty
-
-  lexArgs :: PandocMonad m => ManLexer m [Arg]
-  lexArgs = do
-    args <- many $ try oneArg
+  plainArg :: PandocMonad m => ManLexer m [LinePart]
+  plainArg = do
+    -- TODO skip initial spaces, then parse many linePart til a spaec
     skipMany spacetab
-    eofline
-    return args
-
-    where
-
-    oneArg :: PandocMonad m => ManLexer m [LinePart]
-    oneArg = do
-      many1 spacetab
-      skipMany $ try $ string "\\\n"  -- TODO why is this here?
-      try quotedArg <|> plainArg
-      -- try, because there are some erroneous files, e.g. linux/bpf.2
-
-    plainArg :: PandocMonad m => ManLexer m [LinePart]
-    plainArg = do
-      -- TODO skip initial spaces, then parse many linePart til a spaec
-      skipMany spacetab
-      many (macroArg <|> esc <|> regularText <|> unescapedQuote)
-      where unescapedQuote = do
-              char '"'
-              fonts <- currentFont
-              return $ RoffStr ("\"", fonts)
+    many (macroArg <|> esc <|> regularText <|> unescapedQuote)
+    where unescapedQuote = do
+            char '"'
+            fonts <- currentFont
+            return $ RoffStr ("\"", fonts)
 
 
-    quotedArg :: PandocMonad m => ManLexer m [LinePart]
-    quotedArg = do
-        char '"'
-        xs <- many (macroArg <|> esc <|> regularText <|> spaceTabChar
-                    <|> escapedQuote)
-        char '"'
-        return xs
-      where escapedQuote = try $ do
-              char '"'
-              char '"'
-              fonts <- currentFont
-              return $ RoffStr ("\"", fonts)
+  quotedArg :: PandocMonad m => ManLexer m [LinePart]
+  quotedArg = do
+      char '"'
+      xs <- many (macroArg <|> esc <|> regularText <|> spaceTabChar
+                  <|> escapedQuote)
+      char '"'
+      return xs
+    where escapedQuote = try $ do
+            char '"'
+            char '"'
+            fonts <- currentFont
+            return $ RoffStr ("\"", fonts)
 
 lexLine :: PandocMonad m => ManLexer m ManTokens
 lexLine = do
