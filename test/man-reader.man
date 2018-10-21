@@ -207,3 +207,15 @@ site
 .MT me@example.com
 my email address.
 .ME
+.SH Macros
+.de au
+.B
+Me Myself
+..
+.de auth !!
+.I
+The author is \$1.
+.!!
+.au
+and I.
+.auth "John Jones"
