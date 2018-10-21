@@ -54,6 +54,13 @@ tests = [
       "fonts" =:
       "aa\\fIbb\\fRcc"
       =?> (para $ str "aa" <> (emph $ str "bb") <> str "cc")
+    , "nested fonts" =:
+      "\\f[BI]hi\\f[I] there\\f[R]"
+      =?> para (emph (strong (text "hi") <> text " there"))
+    , "nested fonts 2" =:
+      "\\f[R]hi \\f[I]there \\f[BI]bold\\f[R] ok"
+      =?> para (text "hi " <> emph (text "there " <> strong (text "bold")) <>
+                                   text " ok")
     , "skip" =:
       "a\\%\\{\\}\\\n\\:b\\0"
       =?> (para $ str "ab")

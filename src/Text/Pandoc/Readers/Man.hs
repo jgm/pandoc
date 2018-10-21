@@ -40,12 +40,12 @@ import Data.Char (isHexDigit, chr, ord)
 import Data.Default (Default)
 import Data.Maybe (catMaybes)
 import qualified Data.Map as M
-import Data.Set (Set, singleton)
-import qualified Data.Set as S (fromList, toList, insert)
+import Data.Set (Set)
+import qualified Data.Set as S
 import Data.List (intersperse, intercalate)
 import qualified Data.Text as T
 import Text.Pandoc.Class (PandocMonad(..), report)
-import Text.Pandoc.Builder as B hiding (singleton)
+import Text.Pandoc.Builder as B
 import Text.Pandoc.Error (PandocError (PandocParsecError))
 import Text.Pandoc.Logging (LogMessage(..))
 import Text.Pandoc.Options
@@ -56,7 +56,7 @@ import qualified Text.Parsec as Parsec
 import Text.Parsec.Pos (updatePosString)
 import Text.Pandoc.GroffChar (characterCodes, combiningAccents)
 
-import Debug.Trace (traceShowId)
+-- import Debug.Trace (traceShowId)
 
 --
 -- Data Types
@@ -82,7 +82,7 @@ data RoffState = RoffState { fontKind      :: Font
                            } deriving Show
 
 instance Default RoffState where
-  def = RoffState { fontKind = singleton Regular }
+  def = RoffState { fontKind = S.singleton Regular }
 
 data ManState = ManState { customMacros  :: M.Map String [ManToken]
                          , readerOptions :: ReaderOptions
@@ -201,7 +201,7 @@ escapeLexer = do
       , ("\x201c" <$ try (string "(lq") <|> try (string "[lq]"))
       , ("\x201d" <$ try (string "(rq") <|> try (string "[rq]"))
       , ("" <$ try (string "(HF" >>
-                     modifyState (\r -> r {fontKind = singleton Bold})))
+                     modifyState (\r -> r {fontKind = S.singleton Bold})))
       , ("\x2122" <$ try (string "(Tm"))
       ]
 
@@ -234,10 +234,10 @@ escapeLexer = do
   escFont :: PandocMonad m => ManLexer m String
   escFont = do
     char 'f'
-    font <- choice [ singleton <$> letterFontKind
-          , char '(' >> anyChar >> anyChar >> return (singleton Regular)
+    font <- choice [ S.singleton <$> letterFontKind
+          , char '(' >> anyChar >> anyChar >> return (S.singleton Regular)
           , try lettersFont
-          , digit >> return (singleton Regular)
+          , digit >> return (S.singleton Regular)
           ]
     modifyState (\r -> r {fontKind = font})
     return mempty
@@ -457,17 +457,34 @@ parseSkippedContent :: PandocMonad m => ManParser m Blocks
 parseSkippedContent = mempty <$ (mcomment <|> memptyLine)
 
 linePartsToInlines :: [LinePart] -> Inlines
-linePartsToInlines = mconcat . traceShowId . map go . traceShowId
+linePartsToInlines = go
+
   where
-  go (RoffStr (s, fonts)) = inner (S.toList fonts) s
-  go _ = mempty
-  inner :: [FontKind] -> String -> Inlines
-  inner [] s = text s
-  inner (Bold:fs) s = strong $ inner fs s
-  inner (Italic:fs) s = emph $ inner fs s
-  -- Monospace goes after Bold and Italic in ordered set
-  inner (Monospace:_) s = code s
-  inner (Regular:fs) s = inner fs s
+  go [] = mempty
+  go (MacroArg _:xs) = go xs -- shouldn't happen
+  go xs@(RoffStr{} : _) =
+    if lb > 0 && lb >= li
+       then strong (go (removeFont Bold bolds)) <> go (drop lb xs)
+       else if li > 0
+            then emph (go (removeFont Italic italics)) <> go (drop li xs)
+            else text (linePartsToString regulars) <> go (drop lr xs)
+
+    where
+    (lb, li, lr) = (length bolds, length italics, length regulars)
+
+    removeFont font = map (removeFont' font)
+    removeFont' font (RoffStr (s,f)) = RoffStr (s, S.delete font f)
+    removeFont' _ x = x
+
+    bolds = takeWhile isBold xs
+    italics = takeWhile isItalic xs
+    regulars = takeWhile (\x -> not (isBold x || isItalic x)) xs
+
+    isBold (RoffStr (_,f)) = Bold `S.member` f
+    isBold _ = False
+
+    isItalic (RoffStr (_,f)) = Italic `S.member` f
+    isItalic _ = False
 
 linePartsToString :: [LinePart] -> String
 linePartsToString = mconcat . map go
