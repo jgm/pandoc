@@ -400,6 +400,9 @@ tests = [ testGroup "block elements"
             , "strong after emphasis" =: emph (text "foo") <> strong (text "bar") =?> "*foo*<strong>bar</strong>"
             , "strong emphasis after emphasis" =: emph (text "foo") <> strong (emph (text "bar")) =?> "*foo*<strong>*bar*</strong>"
             , "strong in the end of emphasis" =: emph (text "foo" <> strong (text "bar")) =?> "*foo<strong>bar</strong>*"
+            , "switch to lightweight markup after <em> tag" =:
+              strong (str "foo") <> emph (str "bar") <> strong (str "baz") =?>
+              "**foo**<em>bar</em>**baz**"
             , "strikeout" =: strikeout (text "foo") =?> "<del>foo</del>"
             , "space at the beginning of emphasis" =: emph (text " foo") =?> "<em> foo</em>"
             , "space at the end of emphasis" =: emph (text "foo ") =?> "<em>foo </em>"

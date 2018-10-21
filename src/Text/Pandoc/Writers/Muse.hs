@@ -548,6 +548,7 @@ inlineToMuse (Emph lst) = do
   let lst' = normalizeInlineList lst
   if useTags || null lst' || startsWithSpace lst' || endsWithSpace lst'
     then do contents <- inlineListToMuse lst'
+            modify $ \st -> st { stUseTags = False }
             return $ "<em>" <> contents <> "</em>"
     else do contents <- local (\env -> env { envInsideAsterisks = True }) $ inlineListToMuse lst'
             modify $ \st -> st { stUseTags = True }
