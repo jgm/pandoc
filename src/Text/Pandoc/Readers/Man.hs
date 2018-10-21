@@ -155,12 +155,17 @@ parseBlock = choice [ parseList
                     , parseDefinitionList
                     , parseBlockQuote
                     , parseTitle
+                    , parseNewParagraph
                     , parsePara
-                    , parseSkippedContent
                     , parseCodeBlock
                     , parseHeader
                     , skipUnkownMacro
                     ]
+
+parseNewParagraph :: PandocMonad m => ManParser m Blocks
+parseNewParagraph = do
+  mmacro "P" <|> mmacro "PP" <|> mmacro "LP" <|> memptyLine
+  return mempty
 
 eofline :: Stream s m Char => ParsecT s u m ()
 eofline = void newline <|> eof
@@ -299,7 +304,7 @@ lexMacro = do
     "\\\"" -> return mempty
     "\\#"  -> return mempty
     "de"   -> lexMacroDef args
-    x | x `elem` [ "P", "PP", "LP", "sp"] -> return $ singleTok MEmptyLine
+    "sp"   -> return $ singleTok MEmptyLine
     _      -> resolveMacro macroName args
 
   where
@@ -478,9 +483,6 @@ parseTitle = do
          []        -> id
   modifyState $ \st -> st{ metadata = adjustMeta $ metadata st }
   return mempty
-
-parseSkippedContent :: PandocMonad m => ManParser m Blocks
-parseSkippedContent = mempty <$ memptyLine
 
 linePartsToInlines :: [LinePart] -> Inlines
 linePartsToInlines = go
