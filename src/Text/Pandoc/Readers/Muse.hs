@@ -172,12 +172,6 @@ getIndent :: PandocMonad m
           => MuseParser m Int
 getIndent = subtract 1 . sourceColumn <$ many spaceChar <*> getPosition
 
-someUntil :: (Stream s m t)
-          => ParserT s u m a
-          -> ParserT s u m b
-          -> ParserT s u m ([a], b)
-someUntil p end = first <$> ((:) <$> p) <*> manyUntil p end
-
 -- ** HTML parsers
 
 openTag :: PandocMonad m => String -> MuseParser m [(String, String)]
@@ -462,7 +456,7 @@ paraContentsUntil :: PandocMonad m
                   => MuseParser m a -- ^ Terminator parser
                   -> MuseParser m (F Inlines, a)
 paraContentsUntil end = first (trimInlinesF . mconcat)
-  <$> someUntil inline (try (manyTill spaceChar eol *> local (\s -> s { museInPara = True}) end))
+  <$> manyUntil inline (try (manyTill spaceChar eol *> local (\s -> s { museInPara = True}) end))
 
 -- | Parse a paragraph.
 paraUntil :: PandocMonad m

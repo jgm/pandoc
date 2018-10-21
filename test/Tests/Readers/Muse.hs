@@ -650,6 +650,13 @@ tests =
           T.unlines [ "* Foo"
                     , "bar"
                     ] =?> header 1 "Foo\nbar"
+        , "Empty header" =:
+          T.unlines [ "Foo"
+                    , ""
+                    , "* "
+                    , ""
+                    , "bar"
+                    ] =?> para (text "Foo") <> header 1 "" <> para (text "bar")
         , test (purely $ readMuse def { readerExtensions = extensionsFromList [Ext_amuse, Ext_auto_identifiers]})
                "Auto identifiers"
           (T.unlines [ "* foo"
