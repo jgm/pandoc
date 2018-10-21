@@ -36,6 +36,7 @@ module Text.Pandoc.Writers.EPUB ( writeEPUB2, writeEPUB3 ) where
 import Prelude
 import Codec.Archive.Zip (Entry, addEntryToArchive, eRelativePath, emptyArchive,
                           fromArchive, fromEntry, toEntry)
+import Control.Applicative ( (<|>) )
 import Control.Monad (mplus, unless, when, zipWithM)
 import Control.Monad.Except (catchError, throwError)
 import Control.Monad.State.Strict (State, StateT, evalState, evalStateT, get,
@@ -351,9 +352,9 @@ metadataFromMeta opts meta = EPUBMetadata{
         rights = metaValueToString <$> lookupMeta "rights" meta
         coverImage = lookup "epub-cover-image" (writerVariables opts) `mplus`
              (metaValueToString <$> lookupMeta "cover-image" meta)
-        stylesheets = fromMaybe []
-                        (metaValueToPaths <$> lookupMeta "stylesheet" meta) ++
-                      [f | ("css",f) <- writerVariables opts]
+        mCss = lookupMeta "css" meta <|> lookupMeta "stylesheet" meta
+        stylesheets = fromMaybe [] (metaValueToPaths <$> mCss) ++
+                        [f | ("css",f) <- writerVariables opts]
         pageDirection = case map toLower . metaValueToString <$>
                              lookupMeta "page-progression-direction" meta of
                               Just "ltr" -> Just LTR
