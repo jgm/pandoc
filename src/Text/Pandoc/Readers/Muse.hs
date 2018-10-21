@@ -130,6 +130,7 @@ parseMuse :: PandocMonad m => MuseParser m Pandoc
 parseMuse = do
   many directive
   blocks <- (:) <$> parseBlocks <*> many parseSection
+  eof
   st <- getState
   runF (Pandoc <$> museMeta st <*> fmap B.toList (mconcat blocks)) st <$ reportLogMessages
 
