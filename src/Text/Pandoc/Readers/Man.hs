@@ -74,10 +74,12 @@ data LinePart = RoffStr (String, Font)
               | MacroArg Int
               deriving Show
 
+type Arg = [LinePart]
+
 -- TODO parse tables (see man tbl)
 data ManToken = MLine [LinePart]
               | MEmptyLine
-              | MMacro MacroKind [[LinePart]]
+              | MMacro MacroKind [Arg]
               deriving Show
 
 newtype ManTokens = ManTokens { unManTokens :: Seq.Seq ManToken }
@@ -303,7 +305,7 @@ lexMacro = do
   where
 
   resolveMacro :: PandocMonad m
-               => String -> [[LinePart]] -> ManLexer m ManTokens
+               => String -> [Arg] -> ManLexer m ManTokens
   resolveMacro macroName args = do
     macros <- customMacros <$> getState
     case M.lookup macroName macros of
@@ -319,7 +321,7 @@ lexMacro = do
             fillMacroArg x = x
         return $ ManTokens . fmap fillMacroArg . unManTokens $ ts
 
-  lexMacroDef :: PandocMonad m => [[LinePart]] -> ManLexer m ManTokens
+  lexMacroDef :: PandocMonad m => [Arg] -> ManLexer m ManTokens
   lexMacroDef args = do -- macro definition
      (macroName, stopMacro) <-
        case args of
@@ -338,7 +340,7 @@ lexMacro = do
        st{ customMacros = M.insert macroName ts (customMacros st) }
      return mempty
 
-  lexArgs :: PandocMonad m => ManLexer m [[LinePart]]
+  lexArgs :: PandocMonad m => ManLexer m [Arg]
   lexArgs = do
     args <- many $ try oneArg
     skipMany spacetab
@@ -539,14 +541,14 @@ parseInline = try $ do
     MMacro "RB" args -> parseAlternatingFonts [id, strong] args
     _ -> mzero
 
-parseBold :: PandocMonad m => [[LinePart]] -> ManParser m Inlines
+parseBold :: PandocMonad m => [Arg] -> ManParser m Inlines
 parseBold [] = do
   MLine lparts <- mline
   return $ strong $ linePartsToInlines lparts
 parseBold args = return $
   strong $ mconcat $ intersperse B.space $ map linePartsToInlines args
 
-parseItalic :: PandocMonad m => [[LinePart]] -> ManParser m Inlines
+parseItalic :: PandocMonad m => [Arg] -> ManParser m Inlines
 parseItalic [] = do
   MLine lparts <- mline
   return $ emph $ linePartsToInlines lparts
@@ -555,7 +557,7 @@ parseItalic args = return $
 
 parseAlternatingFonts :: PandocMonad m
                       => [Inlines -> Inlines]
-                      -> [[LinePart]]
+                      -> [Arg]
                       -> ManParser m Inlines
 parseAlternatingFonts constructors args = return $ mconcat $
   zipWith (\f arg -> f (linePartsToInlines arg)) (cycle constructors) args
@@ -661,7 +663,7 @@ definitionListItem = try $ do
 parseDefinitionList :: PandocMonad m => ManParser m Blocks
 parseDefinitionList = definitionList <$> many1 definitionListItem
 
-parseLink :: PandocMonad m => [[LinePart]] -> ManParser m Inlines
+parseLink :: PandocMonad m => [Arg] -> ManParser m Inlines
 parseLink args = do
   contents <- mconcat <$> many lineInl
   mmacro "UE"
@@ -670,7 +672,7 @@ parseLink args = do
               (x:_) -> linePartsToString x
   return $ link url "" contents
 
-parseEmailLink :: PandocMonad m => [[LinePart]] -> ManParser m Inlines
+parseEmailLink :: PandocMonad m => [Arg] -> ManParser m Inlines
 parseEmailLink args = do
   contents <- mconcat <$> many lineInl
   mmacro "ME"
