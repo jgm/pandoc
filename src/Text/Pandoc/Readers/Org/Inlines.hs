@@ -289,7 +289,7 @@ berkeleyBareTag :: PandocMonad m => OrgParser m ()
 berkeleyBareTag = try $ void berkeleyBareTag'
 
 berkeleyParensTag :: PandocMonad m => OrgParser m ()
-berkeleyParensTag = try . void $ enclosedByPair '(' ')' berkeleyBareTag'
+berkeleyParensTag = try . void $ enclosedByPair1 '(' ')' berkeleyBareTag'
 
 berkeleyBareTag' :: PandocMonad m => OrgParser m ()
 berkeleyBareTag' = try $ void (string "cite")
@@ -311,7 +311,7 @@ berkeleyTextualCite = try $ do
 -- citation style, this isn't used.
 -- berkeleyBracketedTextualCite :: PandocMonad m => OrgParser m (F [Citation])
 -- berkeleyBracketedTextualCite = try . (fmap head) $
---   enclosedByPair '[' ']' berkeleyTextualCite
+--   enclosedByPair1 '[' ']' berkeleyTextualCite
 
 -- | Read a link-like org-ref style citation.  The citation includes pre and
 -- post text.  However, multiple citations are not possible due to limitations
@@ -461,7 +461,7 @@ angleLink = try $ do
   return link
 
 linkTarget :: PandocMonad m => OrgParser m String
-linkTarget = enclosedByPair '[' ']' (noneOf "\n\r[]")
+linkTarget = enclosedByPair1 '[' ']' (noneOf "\n\r[]")
 
 possiblyEmptyLinkTarget :: PandocMonad m => OrgParser m String
 possiblyEmptyLinkTarget = try linkTarget <|> ("" <$ string "[]")
@@ -525,9 +525,8 @@ inlineCodeBlock :: PandocMonad m => OrgParser m (F Inlines)
 inlineCodeBlock = try $ do
   string "src_"
   lang <- many1 orgArgWordChar
-  opts <- option [] $ try (enclosedByPair '[' ']' inlineBlockOption)
-                        <|> (mempty <$ string "[]")
-  inlineCode <- enclosedByPair '{' '}' (noneOf "\n\r")
+  opts <- option [] $ enclosedByPair '[' ']' inlineBlockOption
+  inlineCode <- enclosedByPair1 '{' '}' (noneOf "\n\r")
   let attrClasses = [translateLang lang]
   let attrKeyVal  = originalLang lang <> opts
   let codeInlineBlck = B.codeWith ("", attrClasses, attrKeyVal) inlineCode
@@ -563,7 +562,14 @@ enclosedByPair :: PandocMonad m
                -> Char          -- ^ closing char
                -> OrgParser m a   -- ^ parser
                -> OrgParser m [a]
-enclosedByPair s e p = char s *> many1Till p (char e)
+enclosedByPair s e p = char s *> manyTill p (char e)
+
+enclosedByPair1 :: PandocMonad m
+               => Char          -- ^ opening char
+               -> Char          -- ^ closing char
+               -> OrgParser m a   -- ^ parser
+               -> OrgParser m [a]
+enclosedByPair1 s e p = char s *> many1Till p (char e)
 
 emph      :: PandocMonad m => OrgParser m (F Inlines)
 emph      = fmap B.emph         <$> emphasisBetween '/'
