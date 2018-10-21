@@ -337,7 +337,12 @@ lexMacro = do
     plainArg = do
       -- TODO skip initial spaces, then parse many linePart til a spaec
       skipMany spacetab
-      many (macroArg <|> esc <|> regularText)
+      many (macroArg <|> esc <|> regularText <|> unescapedQuote)
+      where unescapedQuote = do
+              char '"'
+              fonts <- currentFont
+              return $ RoffStr ("\"", fonts)
+
 
     quotedArg :: PandocMonad m => ManLexer m [LinePart]
     quotedArg = do
