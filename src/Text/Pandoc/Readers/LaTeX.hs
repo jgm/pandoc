@@ -988,6 +988,8 @@ inlineCommands = M.union inlineLanguageCommands $ M.fromList
   , ("Verb", doverb)
   , ("url", ((unescapeURL . T.unpack . untokenize) <$> bracedUrl) >>= \url ->
                   pure (link url "" (str url)))
+  , ("nolinkurl", ((unescapeURL . T.unpack . untokenize) <$> bracedUrl) >>= \url ->
+                  pure (code url))
   , ("href", (unescapeURL . toksToString <$>
                  bracedUrl <* optional sp) >>= \url ->
                    tok >>= \lab -> pure (link url "" lab))
