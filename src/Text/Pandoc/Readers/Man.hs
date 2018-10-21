@@ -2,6 +2,7 @@
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
 {-
   Copyright (C) 2018 Yan Pashkovsky <yanp.bugz@gmail.com>
+                     and John MacFarlane
 
 This program is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -37,6 +38,7 @@ module Text.Pandoc.Readers.Man (readMan) where
 import Prelude
 import Control.Monad (liftM, void, mzero, guard)
 import Control.Monad.Except (throwError)
+import Text.Pandoc.Class (getResourcePath, readFileFromDirs)
 import Data.Char (isHexDigit, chr, ord)
 import Data.Default (Default)
 import Data.Maybe (catMaybes)
@@ -278,9 +280,24 @@ lexMacro = do
     "\\#"  -> return mempty
     "de"   -> lexMacroDef args
     "sp"   -> return $ singleTok MEmptyLine
+    "so"   -> lexIncludeFile args
     _      -> resolveMacro macroName args
 
   where
+
+  lexIncludeFile :: PandocMonad m => [Arg] -> ManLexer m ManTokens
+  lexIncludeFile args = do
+    pos <- getPosition
+    case args of
+      (f:_) -> do
+        let fp = linePartsToString f
+        dirs <- getResourcePath
+        result <- readFileFromDirs dirs fp
+        case result of
+          Nothing  -> report $ CouldNotLoadIncludeFile fp pos
+          Just s   -> getInput >>= setInput . (s ++)
+        return mempty
+      []    -> return mempty
 
   resolveMacro :: PandocMonad m
                => String -> [Arg] -> ManLexer m ManTokens
