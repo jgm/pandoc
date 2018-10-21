@@ -137,35 +137,8 @@ readMan opts txt = do
   mapLeft _ (Right r) = Right r
 
 --
--- String -> ManToken function
+-- Lexer: String -> ManToken
 --
-
-manToken :: PandocMonad m => ManLexer m ManTokens
-manToken = lexComment <|> lexMacro <|> lexLine <|> lexEmptyLine
-
-parseMan :: PandocMonad m => ManParser m Pandoc
-parseMan = do
-  bs <- many parseBlock <* eof
-  meta <- metadata <$> getState
-  let (Pandoc _ blocks) = doc $ mconcat bs
-  return $ Pandoc meta blocks
-
-parseBlock :: PandocMonad m => ManParser m Blocks
-parseBlock = choice [ parseList
-                    , parseDefinitionList
-                    , parseBlockQuote
-                    , parseTitle
-                    , parseNewParagraph
-                    , parsePara
-                    , parseCodeBlock
-                    , parseHeader
-                    , skipUnkownMacro
-                    ]
-
-parseNewParagraph :: PandocMonad m => ManParser m Blocks
-parseNewParagraph = do
-  mmacro "P" <|> mmacro "PP" <|> mmacro "LP" <|> memptyLine
-  return mempty
 
 eofline :: Stream s m Char => ParsecT s u m ()
 eofline = void newline <|> eof
@@ -429,8 +402,35 @@ spaceTabChar = do
 lexEmptyLine :: PandocMonad m => ManLexer m ManTokens
 lexEmptyLine = char '\n' >> return (singleTok MEmptyLine)
 
+manToken :: PandocMonad m => ManLexer m ManTokens
+manToken = lexComment <|> lexMacro <|> lexLine <|> lexEmptyLine
+
+parseMan :: PandocMonad m => ManParser m Pandoc
+parseMan = do
+  bs <- many parseBlock <* eof
+  meta <- metadata <$> getState
+  let (Pandoc _ blocks) = doc $ mconcat bs
+  return $ Pandoc meta blocks
+
+parseBlock :: PandocMonad m => ManParser m Blocks
+parseBlock = choice [ parseList
+                    , parseDefinitionList
+                    , parseBlockQuote
+                    , parseTitle
+                    , parseNewParagraph
+                    , parsePara
+                    , parseCodeBlock
+                    , parseHeader
+                    , skipUnkownMacro
+                    ]
+
+parseNewParagraph :: PandocMonad m => ManParser m Blocks
+parseNewParagraph = do
+  mmacro "P" <|> mmacro "PP" <|> mmacro "LP" <|> memptyLine
+  return mempty
+
 --
--- ManToken parsec functions
+-- Parser: [ManToken] -> Pandoc
 --
 
 msatisfy :: (Show t, Stream s m t) => (t -> Bool) -> ParserT s st m t
