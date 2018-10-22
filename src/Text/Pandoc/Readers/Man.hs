@@ -38,7 +38,8 @@ module Text.Pandoc.Readers.Man (readMan) where
 import Prelude
 import Control.Monad (liftM, void, mzero, guard)
 import Control.Monad.Except (throwError)
-import Text.Pandoc.Class (getResourcePath, readFileFromDirs)
+import Text.Pandoc.Class
+       (getResourcePath, readFileFromDirs, PandocMonad(..), report)
 import Data.Char (isHexDigit, chr, ord)
 import Data.Default (Default)
 import Data.Maybe (catMaybes)
@@ -47,14 +48,13 @@ import Data.Set (Set)
 import qualified Data.Set as S
 import Data.List (intersperse, intercalate)
 import qualified Data.Text as T
-import Text.Pandoc.Class (PandocMonad(..), report)
 import Text.Pandoc.Builder as B
 import Text.Pandoc.Error (PandocError (PandocParsecError))
 import Text.Pandoc.Logging (LogMessage(..))
 import Text.Pandoc.Options
 import Text.Pandoc.Parsing
 import Text.Pandoc.Shared (crFilter, safeRead)
-import Text.Parsec hiding (tokenPrim, space)
+import Text.Parsec hiding (tokenPrim)
 import qualified Text.Parsec as Parsec
 import Text.Parsec.Pos (updatePosString)
 import Text.Pandoc.GroffChar (characterCodes, combiningAccents)
@@ -138,7 +138,7 @@ readMan opts txt = do
           -> [ManToken]                       -- ^ input
           -> m (Either PandocError a)
   readWithMTokens parser state input =
-    let leftF = PandocParsecError . (intercalate "\n") $ show <$> input
+    let leftF = PandocParsecError . intercalate "\n" $ show <$> input
     in mapLeft leftF `liftM` runParserT parser state "source" input
 
   mapLeft :: (a -> c) -> Either a b -> Either c b
@@ -498,7 +498,7 @@ msatisfy predic = tokenPrim show nextPos testTok
     testTok t     = if predic t then Just t else Nothing
     nextPos pos _x _xs  = updatePosString
                              (setSourceColumn
-                               (setSourceLine pos $ sourceLine pos + 1) 1) ("")
+                               (setSourceLine pos $ sourceLine pos + 1) 1) ""
 
 mtoken :: PandocMonad m => ManParser m ManToken
 mtoken = msatisfy (const True)
@@ -521,7 +521,7 @@ mmacro mk = msatisfy isMMacro where
 
 mmacroAny :: PandocMonad m => ManParser m ManToken
 mmacroAny = msatisfy isMMacro where
-  isMMacro (MMacro _ _ _) = True
+  isMMacro (MMacro{}) = True
   isMMacro _ = False
 
 --
@@ -639,7 +639,7 @@ parseAlternatingFonts constructors args = return $ mconcat $
 lineInl :: PandocMonad m => ManParser m Inlines
 lineInl = do
   (MLine fragments) <- mline
-  return $ linePartsToInlines $ fragments
+  return $ linePartsToInlines fragments
 
 bareIP :: PandocMonad m => ManParser m ManToken
 bareIP = msatisfy isBareIP where
@@ -667,11 +667,9 @@ parseHeader :: PandocMonad m => ManParser m Blocks
 parseHeader = do
   MMacro name args _ <- mmacro "SH" <|> mmacro "SS"
   contents <- if null args
-                 then do
-                   lineInl
-                 else do
-                   return $
-                     mconcat $ intersperse B.space $ map linePartsToInlines args
+                 then lineInl
+                 else return $ mconcat $ intersperse B.space
+                             $ map linePartsToInlines args
   let lvl = if name == "SH" then 1 else 2
   return $ header lvl contents
 
@@ -704,7 +702,7 @@ listItem mbListType = try $ do
       guard $ listTypeMatches mbListType lt
       inls <- parseInlines
       continuations <- mconcat <$> many continuation
-      return $ (lt, para inls <> continuations)
+      return (lt, para inls <> continuations)
     []          -> mzero
 
 parseList :: PandocMonad m => ManParser m Blocks
@@ -721,7 +719,7 @@ continuation = (do
   bs <- mconcat <$> many (notFollowedBy (mmacro "RE") >> parseBlock)
   mmacro "RE"
   return bs)
-    <|> mconcat <$> (many1 (try (bareIP *> parsePara)))
+    <|> mconcat <$> many1 (try (bareIP *> parsePara))
 
 definitionListItem :: PandocMonad m
                    => ManParser m (Inlines, [Blocks])
@@ -730,7 +728,7 @@ definitionListItem = try $ do
   term <- parseInline
   inls <- parseInlines
   continuations <- mconcat <$> many continuation
-  return $ (term, [para inls <> continuations])
+  return (term, [para inls <> continuations])
 
 parseDefinitionList :: PandocMonad m => ManParser m Blocks
 parseDefinitionList = definitionList <$> many1 definitionListItem
