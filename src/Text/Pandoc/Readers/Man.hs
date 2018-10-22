@@ -188,6 +188,7 @@ escapeLexer = try $ do
     '|' -> return " "
     '\'' -> return "`"
     '.' -> return "`"
+    '~' -> return "\160" -- nonbreaking space
     _   -> escUnknown [c] "\xFFFD"
 
   where
