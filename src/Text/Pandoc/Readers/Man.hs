@@ -40,7 +40,7 @@ import Control.Monad (liftM, void, mzero, guard)
 import Control.Monad.Except (throwError)
 import Text.Pandoc.Class
        (getResourcePath, readFileFromDirs, PandocMonad(..), report)
-import Data.Char (isHexDigit, chr, ord)
+import Data.Char (isHexDigit, chr, ord, isAscii, isAlphaNum)
 import Data.Default (Default)
 import Data.Maybe (catMaybes)
 import qualified Data.Map as M
@@ -60,6 +60,7 @@ import Text.Parsec.Pos (updatePosString)
 import Text.Pandoc.GroffChar (characterCodes, combiningAccents)
 import qualified Data.Sequence as Seq
 import qualified Data.Foldable as Foldable
+import qualified Data.Text.Normalize as Normalize
 
 -- import Debug.Trace (traceShowId)
 
@@ -157,7 +158,11 @@ spacetab = char ' ' <|> char '\t'
 
 characterCodeMap :: M.Map String Char
 characterCodeMap =
-  M.fromList $ map (\(x,y) -> (y,x)) $ characterCodes ++ combiningAccents
+  M.fromList $ map (\(x,y) -> (y,x)) characterCodes
+
+combiningAccentsMap :: M.Map String Char
+combiningAccentsMap =
+  M.fromList $ map (\(x,y) -> (y,x)) combiningAccents
 
 escapeLexer :: PandocMonad m => ManLexer m String
 escapeLexer = try $ do
@@ -189,7 +194,7 @@ escapeLexer = try $ do
     '\'' -> return "`"
     '.' -> return "`"
     '~' -> return "\160" -- nonbreaking space
-    _   -> escUnknown [c] "\xFFFD"
+    _   -> escUnknown ['\\',c] "\xFFFD"
 
   where
 
@@ -199,10 +204,34 @@ escapeLexer = try $ do
       Just c  -> return [c]
       Nothing -> escUnknown ('\\':'(':cs) "\xFFFD"
 
-  bracketedGlyph =
-     (    ucharCode `sepBy1` (char '_')
-      <|> charCode `sepBy1` (many1 Parsec.space)
-     ) <* char ']'
+  bracketedGlyph = unicodeGlyph <|> charGlyph
+
+  charGlyph = do
+    cs <- manyTill (noneOf ['[',']','\n']) (char ']')
+    (case words cs of
+        []  -> mzero
+        [s] -> case M.lookup s characterCodeMap of
+                 Nothing -> mzero
+                 Just c  -> return [c]
+        (s:ss) -> do
+          basechar <- case M.lookup cs characterCodeMap of
+                        Nothing ->
+                          case s of
+                            [ch] | isAscii ch && isAlphaNum ch ->
+                                   return ch
+                            _ -> mzero
+                        Just c  -> return c
+          let addAccents [] xs = return $ T.unpack .
+                                   Normalize.normalize Normalize.NFC .
+                                   T.pack $ reverse xs
+              addAccents (a:as) xs =
+                case M.lookup a combiningAccentsMap of
+                  Just x  -> addAccents as (x:xs)
+                  Nothing -> mzero
+          addAccents ss [basechar])
+      <|> escUnknown ("\\[" ++ cs ++ "]") "\xFFFD"
+
+  unicodeGlyph = try $ ucharCode `sepBy1` (char '_') <* char ']'
 
   ucharCode = try $ do
     char 'u'
@@ -210,15 +239,8 @@ escapeLexer = try $ do
     let lcs = length cs
     guard $ lcs >= 4 && lcs <= 6
     case chr <$> safeRead ('0':'x':cs) of
-       Nothing  -> escUnknown ("\\[u" ++ cs ++ "]") '\xFFFD'
+       Nothing  -> mzero
        Just c   -> return c
-
-  charCode = do
-    cs <- many1 (noneOf ['[',']',' ','\t','\n'])
-    case M.lookup cs characterCodeMap of
-       Nothing -> escUnknown ("\\[" ++ cs ++ "]") '\xFFFD'
-       Just c  -> return c
-
 
   escFont :: PandocMonad m => ManLexer m String
   escFont = do
