@@ -81,7 +81,7 @@ type Arg = [LinePart]
 -- TODO parse tables (see man tbl)
 data ManToken = MLine [LinePart]
               | MEmptyLine
-              | MMacro MacroKind [Arg]
+              | MMacro MacroKind [Arg] SourcePos
               deriving Show
 
 newtype ManTokens = ManTokens { unManTokens :: Seq.Seq ManToken }
@@ -263,6 +263,7 @@ lexComment = do
 
 lexMacro :: PandocMonad m => ManLexer m ManTokens
 lexMacro = do
+  pos <- getPosition
   char '.' <|> char '\''
   many spacetab
   macroName <- many (letter <|> oneOf ['\\', '"', '&', '.'])
@@ -277,7 +278,7 @@ lexMacro = do
     "ds1"  -> lexStringDef args
     "sp"   -> return $ singleTok MEmptyLine
     "so"   -> lexIncludeFile args
-    _      -> resolveMacro macroName args
+    _      -> resolveMacro macroName args pos
 
 
 lexIncludeFile :: PandocMonad m => [Arg] -> ManLexer m ManTokens
@@ -295,11 +296,11 @@ lexIncludeFile args = do
     []    -> return mempty
 
 resolveMacro :: PandocMonad m
-             => String -> [Arg] -> ManLexer m ManTokens
-resolveMacro macroName args = do
+             => String -> [Arg] -> SourcePos -> ManLexer m ManTokens
+resolveMacro macroName args pos = do
   macros <- customMacros <$> getState
   case M.lookup macroName macros of
-    Nothing -> return $ singleTok $ MMacro macroName args
+    Nothing -> return $ singleTok $ MMacro macroName args pos
     Just ts -> do
       let fillLP (RoffStr (x,y)) zs = RoffStr (x,y) : zs
           fillLP (MacroArg i)    zs =
@@ -386,29 +387,29 @@ lexArgs = do
 
 escStar :: PandocMonad m => ManLexer m [LinePart]
 escStar = try $ do
+  pos <- getPosition
   char '\\'
   char '*'
   c <- anyChar
   case c of
     '(' -> do
       cs <- count 2 anyChar
-      resolveString cs
+      resolveString cs pos
     '[' -> do
       cs <- many (noneOf "\t\n\r ]")
       char ']'
-      resolveString cs
+      resolveString cs pos
     'S' -> return mempty -- switch back to default font size
-    _   -> resolveString [c]
+    _   -> resolveString [c] pos
 
   where
 
   -- strings and macros share namespace
-  resolveString stringname = do
-    ManTokens ts <- resolveMacro stringname []
+  resolveString stringname pos = do
+    ManTokens ts <- resolveMacro stringname [] pos
     case Foldable.toList ts of
       [MLine xs] -> return xs
       _          -> do
-        pos <- getPosition
         report $ SkippedContent ("unknown string " ++ stringname) pos
         return mempty
 
@@ -514,13 +515,13 @@ memptyLine = msatisfy isMEmptyLine where
 
 mmacro :: PandocMonad m => MacroKind -> ManParser m ManToken
 mmacro mk = msatisfy isMMacro where
-  isMMacro (MMacro mk' _) | mk == mk' = True
-                          | otherwise = False
+  isMMacro (MMacro mk' _ _) | mk == mk' = True
+                            | otherwise = False
   isMMacro _ = False
 
 mmacroAny :: PandocMonad m => ManParser m ManToken
 mmacroAny = msatisfy isMMacro where
-  isMMacro (MMacro _ _) = True
+  isMMacro (MMacro _ _ _) = True
   isMMacro _ = False
 
 --
@@ -529,7 +530,7 @@ mmacroAny = msatisfy isMMacro where
 
 parseTitle :: PandocMonad m => ManParser m Blocks
 parseTitle = do
-  (MMacro _ args) <- mmacro "TH"
+  (MMacro _ args _) <- mmacro "TH"
   let adjustMeta =
        case args of
          (x:y:z:_) -> setMeta "title" (linePartsToInlines x) .
@@ -589,7 +590,7 @@ parseInline = try $ do
   tok <- mtoken
   case tok of
     MLine lparts -> return $ linePartsToInlines lparts
-    MMacro mname args ->
+    MMacro mname args _pos ->
       case mname of
         "UR" -> parseLink args
         "MT" -> parseEmailLink args
@@ -642,8 +643,8 @@ lineInl = do
 
 bareIP :: PandocMonad m => ManParser m ManToken
 bareIP = msatisfy isBareIP where
-  isBareIP (MMacro "IP" []) = True
-  isBareIP _                = False
+  isBareIP (MMacro "IP" [] _) = True
+  isBareIP _                  = False
 
 parseCodeBlock :: PandocMonad m => ManParser m Blocks
 parseCodeBlock = try $ do
@@ -664,7 +665,7 @@ parseCodeBlock = try $ do
 
 parseHeader :: PandocMonad m => ManParser m Blocks
 parseHeader = do
-  MMacro name args <- mmacro "SH" <|> mmacro "SS"
+  MMacro name args _ <- mmacro "SH" <|> mmacro "SS"
   contents <- if null args
                  then do
                    lineInl
@@ -689,7 +690,7 @@ listTypeMatches (Just _) _           = False
 
 listItem :: PandocMonad m => Maybe ListType -> ManParser m (ListType, Blocks)
 listItem mbListType = try $ do
-  (MMacro _ args) <- mmacro "IP"
+  (MMacro _ args _) <- mmacro "IP"
   case args of
     (arg1 : _)  -> do
       let cs = linePartsToString arg1
@@ -725,7 +726,7 @@ continuation = (do
 definitionListItem :: PandocMonad m
                    => ManParser m (Inlines, [Blocks])
 definitionListItem = try $ do
-  (MMacro _ _) <- mmacro "TP"  -- args specify indent level, can ignore
+  mmacro "TP"  -- args specify indent level, can ignore
   term <- parseInline
   inls <- parseInlines
   continuations <- mconcat <$> many continuation
@@ -754,10 +755,9 @@ parseEmailLink args = do
 
 skipUnkownMacro :: PandocMonad m => ManParser m Blocks
 skipUnkownMacro = do
-  pos <- getPosition
   tok <- mmacroAny
   case tok of
-    MMacro mkind _ -> do
+    MMacro mkind _ pos -> do
       report $ SkippedContent ('.':mkind) pos
       return mempty
     _                 -> fail "the impossible happened"
