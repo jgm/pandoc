@@ -204,9 +204,11 @@ escapeLexer = try $ do
       <|> charCode `sepBy1` (many1 Parsec.space)
      ) <* char ']'
 
-  ucharCode = do
+  ucharCode = try $ do
     char 'u'
     cs <- many1 (satisfy isHexDigit)
+    let lcs = length cs
+    guard $ lcs >= 4 && lcs <= 6
     case chr <$> safeRead ('0':'x':cs) of
        Nothing  -> escUnknown ("\\[u" ++ cs ++ "]") '\xFFFD'
        Just c   -> return c
