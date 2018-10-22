@@ -504,7 +504,7 @@ amuseNoteBlockUntil end = try $ do
 emacsNoteBlock :: PandocMonad m => MuseParser m (F Blocks)
 emacsNoteBlock = try $ do
   guardDisabled Ext_amuse
-  ref <- noteMarker <* skipSpaces
+  ref <- noteMarker
   pos <- getPosition
   content <- fmap mconcat blocksTillNote
   addNote ref pos content
