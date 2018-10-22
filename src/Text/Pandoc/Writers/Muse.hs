@@ -516,6 +516,14 @@ inlineListToMuse' lst = do
                      , envAfterSpace = afterSpace || not topLevel
                      }) $ inlineListToMuse lst
 
+emphasis :: PandocMonad m => String -> String -> [Inline] -> Muse m Doc
+emphasis b e lst = do
+  contents <- local (\env -> env { envInsideAsterisks = inAsterisks }) $ inlineListToMuse lst
+  modify $ \st -> st { stUseTags = useTags }
+  return $ text b <> contents <> text e
+  where inAsterisks = last b == '*' || head e == '*'
+        useTags = last e /= '>'
+
 -- | Convert Pandoc inline element to Muse.
 inlineToMuse :: PandocMonad m
              => Inline
@@ -529,54 +537,30 @@ inlineToMuse (Emph [Strong lst]) = do
   useTags <- gets stUseTags
   let lst' = normalizeInlineList lst
   if useTags
-    then do contents <- local (\env -> env { envInsideAsterisks = True }) $ inlineListToMuse lst'
-            modify $ \st -> st { stUseTags = False }
-            return $ "<em>**" <> contents <> "**</em>"
+    then emphasis "<em>**" "**</em>" lst'
     else if null lst' || startsWithSpace lst' || endsWithSpace lst'
-           then do
-             contents <- local (\env -> env { envInsideAsterisks = False }) $ inlineListToMuse lst'
-             modify $ \st -> st { stUseTags = True }
-             return $ "*<strong>" <> contents <> "</strong>*"
-           else do
-             contents <- local (\env -> env { envInsideAsterisks = True }) $ inlineListToMuse lst'
-             modify $ \st -> st { stUseTags = True }
-             return $ "***" <> contents <> "***"
+           then emphasis "*<strong>" "</strong>*" lst'
+           else emphasis "***" "***" lst'
 inlineToMuse (Emph lst) = do
   useTags <- gets stUseTags
   let lst' = normalizeInlineList lst
   if useTags || null lst' || startsWithSpace lst' || endsWithSpace lst'
-    then do contents <- inlineListToMuse lst'
-            modify $ \st -> st { stUseTags = False }
-            return $ "<em>" <> contents <> "</em>"
-    else do contents <- local (\env -> env { envInsideAsterisks = True }) $ inlineListToMuse lst'
-            modify $ \st -> st { stUseTags = True }
-            return $ "*" <> contents <> "*"
+    then emphasis "<em>" "</em>" lst'
+    else emphasis "*" "*" lst'
 inlineToMuse (Strong [Emph lst]) = do
   useTags <- gets stUseTags
   let lst' = normalizeInlineList lst
   if useTags
-    then do contents <- local (\env -> env { envInsideAsterisks = True }) $ inlineListToMuse lst'
-            modify $ \st -> st { stUseTags = False }
-            return $ "<strong>*" <> contents <> "*</strong>"
+    then emphasis "<strong>*" "*</strong>" lst'
     else if null lst' || startsWithSpace lst' || endsWithSpace lst'
-           then do
-             contents <- local (\env -> env { envInsideAsterisks = False }) $ inlineListToMuse lst'
-             modify $ \st -> st { stUseTags = True }
-             return $ "**<em>" <> contents <> "</em>**"
-           else do
-             contents <- local (\env -> env { envInsideAsterisks = True }) $ inlineListToMuse lst'
-             modify $ \st -> st { stUseTags = True }
-             return $ "***" <> contents <> "***"
+           then emphasis "**<em>" "</em>**" lst'
+           else emphasis "***" "***" lst'
 inlineToMuse (Strong lst) = do
   useTags <- gets stUseTags
   let lst' = normalizeInlineList lst
   if useTags || null lst' || startsWithSpace lst' || endsWithSpace lst'
-    then do contents <- inlineListToMuse lst'
-            modify $ \st -> st { stUseTags = False }
-            return $ "<strong>" <> contents <> "</strong>"
-    else do contents <- local (\env -> env { envInsideAsterisks = True }) $ inlineListToMuse lst'
-            modify $ \st -> st { stUseTags = True }
-            return $ "**" <> contents <> "**"
+    then emphasis "<strong>" "</strong>" lst'
+    else emphasis "**" "**" lst'
 inlineToMuse (Strikeout lst) = do
   contents <- inlineListToMuse lst
   modify $ \st -> st { stUseTags = False }
