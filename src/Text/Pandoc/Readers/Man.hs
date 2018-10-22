@@ -373,8 +373,6 @@ escStar = try $ do
     '(' -> do
       cs <- count 2 anyChar
       case cs of
-        "HF" -> mempty <$ modifyState (\st ->
-                          st{fontKind = S.insert Bold (fontKind st) })
         "Tm" -> retstr "\x2122"
         "lq" -> retstr "\x201c"
         "rq" -> retstr "\x201d"
