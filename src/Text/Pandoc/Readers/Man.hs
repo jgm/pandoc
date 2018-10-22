@@ -650,9 +650,8 @@ bareIP = msatisfy isBareIP where
 parseCodeBlock :: PandocMonad m => ManParser m Blocks
 parseCodeBlock = try $ do
   optional bareIP -- some people indent their code
-  mmacro "nf"
-  toks <- many (mline <|> memptyLine)
-  mmacro "fi"
+  toks <- (mmacro "nf" *> many (mline <|> memptyLine) <* mmacro "fi")
+      <|> (mmacro "EX" *> many (mline <|> memptyLine) <* mmacro "EE")
   return $ codeBlock (intercalate "\n" . catMaybes $
                       extractText <$> toks)
 
