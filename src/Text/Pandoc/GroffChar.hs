@@ -396,12 +396,7 @@ characterCodes =
   , ('♠', "SP")
   , ('♥', "HE")
   , ('♦', "DI")
-  ]
-
--- use like: \\[E a^ aa]
-combiningAccents :: [(Char, String)]
-combiningAccents =
-  [ ('˝' , "a\"")
+  , ('˝' , "a\"")
   , ('¯', "a-")
   , ('˙', "a.")
   , ('^', "a^")
@@ -416,4 +411,24 @@ combiningAccents =
   , ('˛', "ho")
   , ('^', "ha")
   , ('~', "ti")
+  ]
+
+-- use like: \\[E a^ aa]
+combiningAccents :: [(Char, String)]
+combiningAccents =
+  [ ('\779' , "a\"")
+  , ('\772', "a-")
+  , ('\775', "a.")
+  , ('\770', "a^")
+  , ('\769', "aa")
+  , ('\768', "ga")
+  , ('\774', "ab")
+  , ('\807', "ac")
+  , ('\776', "ad")
+  , ('\780', "ah")
+  , ('\778', "ao")
+  , ('\771', "a~")
+  , ('\808', "ho")
+  , ('\770', "ha")
+  , ('\771', "ti")
   ]
