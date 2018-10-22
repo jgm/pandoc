@@ -712,11 +712,12 @@ parseList = try $ do
              Ordered lattr -> orderedListWith lattr (x:xs)
 
 continuation :: PandocMonad m => ManParser m Blocks
-continuation = do
+continuation = (do
   mmacro "RS"
   bs <- mconcat <$> many (notFollowedBy (mmacro "RE") >> parseBlock)
   mmacro "RE"
-  return bs
+  return bs)
+    <|> mconcat <$> (many1 (try (bareIP *> parsePara)))
 
 definitionListItem :: PandocMonad m
                    => ManParser m (Inlines, [Blocks])
