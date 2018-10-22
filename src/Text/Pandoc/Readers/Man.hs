@@ -273,6 +273,8 @@ lexMacro = do
     "\\\"" -> return mempty
     "\\#"  -> return mempty
     "de"   -> lexMacroDef args
+    "ds"   -> lexStringDef args
+    "ds1"  -> lexStringDef args
     "sp"   -> return $ singleTok MEmptyLine
     "so"   -> lexIncludeFile args
     _      -> resolveMacro macroName args
@@ -308,6 +310,17 @@ resolveMacro macroName args = do
             MLine (foldr fillLP [] lineparts)
           fillMacroArg x = x
       return $ ManTokens . fmap fillMacroArg . unManTokens $ ts
+
+lexStringDef :: PandocMonad m => [Arg] -> ManLexer m ManTokens
+lexStringDef args = do -- string definition
+   case args of
+     []     -> fail "No argument to .ds"
+     (x:ys) -> do
+       let ts = singleTok $ MLine (intercalate [RoffStr (" ", mempty)] ys)
+       let stringName = linePartsToString x
+       modifyState $ \st ->
+         st{ customMacros = M.insert stringName ts (customMacros st) }
+   return mempty
 
 lexMacroDef :: PandocMonad m => [Arg] -> ManLexer m ManTokens
 lexMacroDef args = do -- macro definition
@@ -410,8 +423,7 @@ linePart = macroArg <|> esc <|> escStar <|>
 
 macroArg :: PandocMonad m => ManLexer m [LinePart]
 macroArg = try $ do
-  char '\\'
-  char '$'
+  string "\\\\$"
   x <- digit
   return [MacroArg $ ord x - ord '0']
 

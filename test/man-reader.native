@@ -103,4 +103,4 @@ Pandoc (Meta {unMeta = fromList [("date",MetaInlines [Str "Oct",Space,Str "17,",
 ,Para [Link ("",[],[]) [Str "some",Space,Str "randomsite"] ("http://example.com","")]
 ,Para [Link ("",[],[]) [Str "my",Space,Str "email",Space,Str "address."] ("mailto:me@example.com","")]
 ,Header 1 ("",[],[]) [Str "Macros"]
-,Para [Strong [Str "Me",Space,Str "Myself"],Space,Str "and",Space,Str "I.",Space,Emph [Str "The",Space,Str "author",Space,Str "is",Space,Str "John",Space,Str "Jones."]]]
+,Para [Strong [Str "Me",Space,Str "Myself"],Space,Str "and",Space,Str "I.",Space,Emph [Str "The",Space,Str "author",Space,Str "is",Space,Str "John",Space,Str "Jones."],Space,Str "It's",Space,Str "The",Space,Strong [Str "Author"],Str "."]]

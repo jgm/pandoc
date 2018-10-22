@@ -214,8 +214,10 @@ Me Myself
 ..
 .de auth !!
 .I
-The author is \$1.
+The author is \\$1.
 .!!
 .au
 and I.
 .auth "John Jones"
+.ds me The \f[B]Author\f[R]
+It's \*(me.
