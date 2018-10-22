@@ -95,7 +95,14 @@ data RoffState = RoffState { fontKind      :: Font
                            } deriving Show
 
 instance Default RoffState where
-  def = RoffState { customMacros = mempty
+  def = RoffState { customMacros = M.fromList
+                       $ map (\(n, s) ->
+                                (n, singleTok
+                                  (MLine [RoffStr (s, mempty)])))
+                       [ ("Tm", "\x2122")
+                       , ("lq", "\x201C")
+                       , ("rq", "\x201D")
+                       , ("R",  "\x00AE") ]
                   , fontKind     = S.singleton Regular }
 
 data ManState = ManState { readerOptions :: ReaderOptions
@@ -366,22 +373,15 @@ escStar :: PandocMonad m => ManLexer m [LinePart]
 escStar = try $ do
   char '\\'
   char '*'
-  font <- currentFont
-  let retstr s = return [RoffStr (s, font)]
   c <- anyChar
   case c of
     '(' -> do
       cs <- count 2 anyChar
-      case cs of
-        "Tm" -> retstr "\x2122"
-        "lq" -> retstr "\x201c"
-        "rq" -> retstr "\x201d"
-        _    -> resolveString cs
+      resolveString cs
     '[' -> do
-        cs <- many (noneOf "\t\n\r ]")
-        char ']'
-        resolveString cs
-    'R' -> retstr "\xae"
+      cs <- many (noneOf "\t\n\r ]")
+      char ']'
+      resolveString cs
     'S' -> return mempty -- switch back to default font size
     _   -> resolveString [c]
 
