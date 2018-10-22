@@ -492,9 +492,10 @@ amuseNoteBlockUntil :: PandocMonad m
                     -> MuseParser m (F Blocks, a)
 amuseNoteBlockUntil end = try $ do
   guardEnabled Ext_amuse
-  ref <- noteMarker <* spaceChar
+  ref <- noteMarker
   pos <- getPosition
-  (content, e) <- allowPara $ listItemContentsUntil (sourceColumn pos - 1) (fail "x") end
+  void spaceChar <|> lookAhead eol
+  (content, e) <- allowPara $ listItemContentsUntil (sourceColumn pos) (fail "x") end
   addNote ref pos content
   return (mempty, e)
 

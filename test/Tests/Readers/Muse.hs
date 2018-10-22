@@ -797,6 +797,23 @@ tests =
                       , "baz"
                       ] =?>
             para (str "Foo" <> note (lineBlock ["bar"])) <> para (str "baz")
+
+          , "Footnote starting with empty line" =:
+            T.unlines [ "Foo[1]"
+                      , ""
+                      , "[1]" -- No space character after note marker
+                      , ""
+                      , "    Bar"
+                      ] =?>
+            para (str "Foo" <> note (para $ text "Bar"))
+          , "Indentation in footnote starting with empty line" =:
+            T.unlines [ "Foo[1]"
+                      , ""
+                      , "[1]" -- No space character after note marker
+                      , ""
+                      , "   Bar"
+                      ] =?>
+            para (str "Foo" <> note mempty) <> blockQuote (para $ text "Bar")
           , test emacsMuse "Emacs multiparagraph footnotes"
             (T.unlines
               [ "First footnote reference[1] and second footnote reference[2]."
