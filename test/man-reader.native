@@ -14,16 +14,16 @@ Pandoc (Meta {unMeta = fromList [("date",MetaInlines [Str "Oct",Space,Str "17,",
 ,Header 1 ("",[],[]) [Str "Block",Space,Str "Quotes"]
 ,Para [Str "Code",Space,Str "in",Space,Str "a",Space,Str "block",Space,Str "quote:"]
 ,BlockQuote
- [CodeBlock ("",[],[]) "\nsub status {\n    print \"working\";\n}"]
+ [CodeBlock ("",[],[]) "sub status {\n    print \"working\";\n}"]
 ,Para [Str "A",Space,Str "list:"]
 ,OrderedList (1,Decimal,Period)
  [[Para [Str "item",Space,Str "one"]]
  ,[Para [Str "item",Space,Str "two"]]]
 ,Header 1 ("",[],[]) [Str "Code",Space,Str "Blocks"]
 ,Para [Str "Code:"]
-,CodeBlock ("",[],[]) "\n---- (should be four hyphens)\n\nsub status {\n    print \"working\";\n}\n"
+,CodeBlock ("",[],[]) "---- (should be four hyphens)\n\nsub status {\n    print \"working\";\n}\n"
 ,Para [Str "And:"]
-,CodeBlock ("",[],[]) "\n\tthis code line is indented by one tab"
+,CodeBlock ("",[],[]) "\tthis code line is indented by one tab"
 ,Para [Str "*",Space,Str "*",Space,Str "*",Space,Str "*",Space,Str "*"]
 ,Header 1 ("",[],[]) [Str "Lists"]
 ,Header 2 ("",[],[]) [Str "Unordered"]

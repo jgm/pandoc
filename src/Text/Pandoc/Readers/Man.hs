@@ -655,6 +655,7 @@ parseCodeBlock = try $ do
 
   removeFinalNewline [] = []
   removeFinalNewline xs = if last xs == '\n' then init xs else xs
+
   extractText :: ManToken -> Maybe String
   extractText (MLine ss) = Just $ linePartsToString ss
   extractText MEmptyLine = Just ""
