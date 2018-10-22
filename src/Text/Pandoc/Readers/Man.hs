@@ -573,16 +573,29 @@ parseInline = try $ do
   tok <- mtoken
   case tok of
     MLine lparts -> return $ linePartsToInlines lparts
-    MMacro "UR" args -> parseLink args
-    MMacro "MT" args -> parseEmailLink args
-    MMacro "B" args -> parseBold args
-    MMacro "I" args -> parseItalic args
-    MMacro "BI" args -> parseAlternatingFonts [strong, emph] args
-    MMacro "IB" args -> parseAlternatingFonts [emph, strong] args
-    MMacro "IR" args -> parseAlternatingFonts [emph, id] args
-    MMacro "RI" args -> parseAlternatingFonts [id, emph] args
-    MMacro "BR" args -> parseAlternatingFonts [strong, id] args
-    MMacro "RB" args -> parseAlternatingFonts [id, strong] args
+    MMacro mname args ->
+      case mname of
+        "UR" -> parseLink args
+        "MT" -> parseEmailLink args
+        "B"  -> parseBold args
+        "I"  -> parseItalic args
+        "br" -> return linebreak
+        "BI" -> parseAlternatingFonts [strong, emph] args
+        "IB" -> parseAlternatingFonts [emph, strong] args
+        "IR" -> parseAlternatingFonts [emph, id] args
+        "RI" -> parseAlternatingFonts [id, emph] args
+        "BR" -> parseAlternatingFonts [strong, id] args
+        "RB" -> parseAlternatingFonts [id, strong] args
+        "SY" -> return $ strong $ mconcat $ intersperse B.space
+                       $ map linePartsToInlines args
+        "YS" -> return mempty
+        "OP" -> case args of
+                  (x:ys) -> return $ B.space <> str "[" <> B.space <>
+                             mconcat (strong (linePartsToInlines x) :
+                               map ((B.space <>) . linePartsToInlines) ys)
+                             <> B.space <> str "]"
+                  []     -> return mempty
+        _ -> mzero
     _ -> mzero
 
 parseBold :: PandocMonad m => [Arg] -> ManParser m Inlines
