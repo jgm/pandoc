@@ -352,7 +352,6 @@ lexArgs = do
 
   oneArg :: PandocMonad m => ManLexer m [LinePart]
   oneArg = do
-    many1 spacetab
     skipMany $ try $ string "\\\n"  -- continuation line
     try quotedArg <|> plainArg
     -- try, because there are some erroneous files, e.g. linux/bpf.2
@@ -360,27 +359,30 @@ lexArgs = do
   plainArg :: PandocMonad m => ManLexer m [LinePart]
   plainArg = do
     skipMany spacetab
-    mconcat <$>
-      many (macroArg <|> esc <|> regularText <|> unescapedQuote <|> escStar)
-    where unescapedQuote = do
-            char '"'
-            fonts <- currentFont
-            return [RoffStr ("\"", fonts)]
+    mconcat <$> many1
+      (macroArg <|> esc <|> regularText <|> unescapedQuote <|> escStar)
+    where
+      unescapedQuote = do
+         char '"'
+         fonts <- currentFont
+         return [RoffStr ("\"", fonts)]
 
 
   quotedArg :: PandocMonad m => ManLexer m [LinePart]
   quotedArg = do
-      char '"'
-      xs <- mconcat <$>
-             many (macroArg <|> esc <|> escStar <|> regularText
-                   <|> spaceTabChar <|> escapedQuote)
-      char '"'
-      return xs
-    where escapedQuote = try $ do
-            char '"'
-            char '"'
-            fonts <- currentFont
-            return [RoffStr ("\"", fonts)]
+    skipMany spacetab
+    char '"'
+    xs <- mconcat <$>
+           many (macroArg <|> esc <|> escStar <|> regularText
+                 <|> spaceTabChar <|> escapedQuote)
+    char '"'
+    return xs
+    where
+      escapedQuote = try $ do
+        char '"'
+        char '"'
+        fonts <- currentFont
+        return [RoffStr ("\"", fonts)]
 
 escStar :: PandocMonad m => ManLexer m [LinePart]
 escStar = try $ do
