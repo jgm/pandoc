@@ -206,9 +206,8 @@ blockToMuse (OrderedList (start, style, _) items) = do
                               => String   -- ^ marker for list item
                               -> [Block]  -- ^ list item (list of blocks)
                               -> Muse m Doc
-        orderedListItemToMuse marker item = do
-          contents <- blockListToMuse item
-          return $ hang (length marker + 1) (text marker <> space) contents
+        orderedListItemToMuse marker item = hang (length marker + 1) (text marker <> space)
+          <$> blockListToMuse item
 blockToMuse (BulletList items) = do
   contents <- mapM bulletListItemToMuse items
   -- ensure that sublists have preceding blank line
@@ -271,8 +270,7 @@ blockToMuse (Table caption _ _ headers rows) = do
   let makeRow sep = (" " <>) . hpipeBlocks sep . zipWith lblock widthsInChars
   let head' = makeRow " || " headers'
   let rowSeparator = if noHeaders then " | " else " |  "
-  rows'' <- mapM (\row -> do cols <- mapM blockListToMuse row
-                             return $ makeRow rowSeparator cols) rows
+  rows'' <- mapM (\row -> makeRow rowSeparator <$> mapM blockListToMuse row) rows
   let body = vcat rows''
   return $  (if noHeaders then empty else head')
          $$ body
