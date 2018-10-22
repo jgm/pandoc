@@ -416,8 +416,12 @@ lexLine :: PandocMonad m => ManLexer m ManTokens
 lexLine = do
   lnparts <- mconcat <$> many1 linePart
   eofline
-  return $ singleTok $ MLine lnparts
-  where
+  go lnparts
+  where  -- return empty line if we only have empty strings;
+         -- this can happen if the line just contains \f[C], for example.
+    go [] = return mempty
+    go (RoffStr ("",_):xs) = go xs
+    go xs = return $ singleTok $ MLine xs
 
 linePart :: PandocMonad m => ManLexer m [LinePart]
 linePart = macroArg <|> esc <|> escStar <|>
@@ -647,14 +651,10 @@ parseCodeBlock = try $ do
   mmacro "nf"
   toks <- many (mline <|> memptyLine)
   mmacro "fi"
-  return $ codeBlock (removeFinalNewline $
-                      intercalate "\n" . catMaybes $
+  return $ codeBlock (intercalate "\n" . catMaybes $
                       extractText <$> toks)
 
   where
-
-  removeFinalNewline [] = []
-  removeFinalNewline xs = if last xs == '\n' then init xs else xs
 
   extractText :: ManToken -> Maybe String
   extractText (MLine ss) = Just $ linePartsToString ss
