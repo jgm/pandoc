@@ -727,9 +727,14 @@ definitionListItem :: PandocMonad m
 definitionListItem = try $ do
   mmacro "TP"  -- args specify indent level, can ignore
   term <- parseInline
+  moreterms <- many $ try $ do
+                 mmacro "TQ"
+                 newterm <- parseInline
+                 return newterm
   inls <- parseInlines
   continuations <- mconcat <$> many continuation
-  return (term, [para inls <> continuations])
+  return ( mconcat (intersperse B.linebreak (term:moreterms))
+         , [para inls <> continuations])
 
 parseDefinitionList :: PandocMonad m => ManParser m Blocks
 parseDefinitionList = definitionList <$> many1 definitionListItem
