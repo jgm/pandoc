@@ -263,7 +263,7 @@ $endif$
           { src: '$revealjs-url$/lib/js/classList.js', condition: function() { return !document.body.classList; } },
           { src: '$revealjs-url$/plugin/zoom-js/zoom.js', async: true },
 $if(notes-server)$
-          { src: '$revealjs-url$/socket.io/socker.io.js', async: true },
+          { src: '$revealjs-url$/socket.io/socket.io.js', async: true },
           { src: '$revealjs-url$/plugin/notes-server/client.js', async: true },
 $endif$
 $if(mathjax)$
