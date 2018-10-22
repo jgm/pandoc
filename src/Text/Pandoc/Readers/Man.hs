@@ -333,7 +333,7 @@ lexArgs = do
   oneArg :: PandocMonad m => ManLexer m [LinePart]
   oneArg = do
     many1 spacetab
-    skipMany $ try $ string "\\\n"  -- TODO why is this here?
+    skipMany $ try $ string "\\\n"  -- continuation line
     try quotedArg <|> plainArg
     -- try, because there are some erroneous files, e.g. linux/bpf.2
 
