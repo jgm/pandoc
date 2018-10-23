@@ -218,8 +218,7 @@ blockToMuse (BulletList items) = do
                              -> Muse m Doc
         bulletListItemToMuse item = do
           modify $ \st -> st { stUseTags = False }
-          contents <- blockListToMuse item
-          return $ hang 2 "- " contents
+          hang 2 "- " <$> blockListToMuse item
 blockToMuse (DefinitionList items) = do
   contents <- mapM definitionListItemToMuse items
   -- ensure that sublists have preceding blank line
@@ -231,9 +230,8 @@ blockToMuse (DefinitionList items) = do
         definitionListItemToMuse (label, defs) = do
           modify $ \st -> st { stUseTags = False }
           label' <- local (\env -> env { envOneLine = True, envAfterSpace = True }) $ inlineListToMuse' label
-          contents <- vcat <$> mapM descriptionToMuse defs
           let ind = offset label'
-          return $ hang ind (nowrap label') contents
+          hang ind (nowrap label') . vcat <$> mapM descriptionToMuse defs
         descriptionToMuse :: PandocMonad m
                           => [Block]
                           -> Muse m Doc
