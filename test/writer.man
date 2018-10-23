@@ -54,8 +54,8 @@ Code in a block quote:
 .IP
 .nf
 \f[C]
-sub\ status\ {
-\ \ \ \ print\ \[dq]working\[dq];
+sub status {
+    print \[dq]working\[dq];
 }
 \f[R]
 .fi
@@ -88,13 +88,13 @@ Code:
 .IP
 .nf
 \f[C]
-\-\-\-\-\ (should\ be\ four\ hyphens)
+\-\-\-\- (should be four hyphens)
 
-sub\ status\ {
-\ \ \ \ print\ \[dq]working\[dq];
+sub status {
+    print \[dq]working\[dq];
 }
 
-this\ code\ block\ is\ indented\ by\ one\ tab
+this code block is indented by one tab
 \f[R]
 .fi
 .PP
@@ -102,9 +102,9 @@ And:
 .IP
 .nf
 \f[C]
-\ \ \ \ this\ code\ block\ is\ indented\ by\ two\ tabs
+    this code block is indented by two tabs
 
-These\ should\ not\ be\ escaped:\ \ \[rs]$\ \[rs]\[rs]\ \[rs]>\ \[rs][\ \[rs]{
+These should not be escaped:  \[rs]$ \[rs]\[rs] \[rs]> \[rs][ \[rs]{
 \f[R]
 .fi
 .PP
@@ -364,7 +364,7 @@ orange fruit
 .IP
 .nf
 \f[C]
-{\ orange\ code\ block\ }
+{ orange code block }
 \f[R]
 .fi
 .RS
@@ -430,7 +430,7 @@ This should be a code block, though:
 .nf
 \f[C]
 <div>
-\ \ \ \ foo
+    foo
 </div>
 \f[R]
 .fi
@@ -454,7 +454,7 @@ Code block:
 .IP
 .nf
 \f[C]
-<!\-\-\ Comment\ \-\->
+<!\-\- Comment \-\->
 \f[R]
 .fi
 .PP
@@ -464,7 +464,7 @@ Code:
 .IP
 .nf
 \f[C]
-<hr\ />
+<hr />
 \f[R]
 .fi
 .PP
@@ -545,7 +545,7 @@ Here\[cq]s one that has a line break in it:
 .PP
 These shouldn\[cq]t be math:
 .IP \[bu] 2
-To get the famous equation, write \f[C]$e\ =\ mc\[ha]2$\f[R].
+To get the famous equation, write \f[C]$e = mc\[ha]2$\f[R].
 .IP \[bu] 2
 $22,000 is a \f[I]lot\f[R] of money.
 So is $34,000.
@@ -653,7 +653,7 @@ This should [not][] be a link.
 .IP
 .nf
 \f[C]
-[not]:\ /url
+[not]: /url
 \f[R]
 .fi
 .PP
@@ -690,7 +690,7 @@ Auto\-links should not occur here: \f[C]<http://example.com/>\f[R]
 .IP
 .nf
 \f[C]
-or\ here:\ <http://example.com/>
+or here: <http://example.com/>
 \f[R]
 .fi
 .PP
@@ -733,7 +733,7 @@ with list items).
 .IP
 .nf
 \f[C]
-\ \ {\ <code>\ }
+  { <code> }
 \f[R]
 .fi
 .PP

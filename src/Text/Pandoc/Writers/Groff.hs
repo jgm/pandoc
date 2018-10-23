@@ -43,12 +43,13 @@ import Data.Char (ord, isAscii)
 import Control.Monad.State.Strict
 import Data.List (intercalate)
 import qualified Data.Map as Map
-import Data.Maybe (fromMaybe)
+import Data.Maybe (fromMaybe, isJust, catMaybes)
 import Text.Pandoc.Class (PandocMonad)
 import Text.Pandoc.Definition
 import Text.Pandoc.Pretty
 import Text.Printf (printf)
-import Text.Pandoc.GroffChar (essentialEscapes, characterCodes)
+import Text.Pandoc.GroffChar (essentialEscapes, characterCodes,
+                             combiningAccents)
 
 data WriterState = WriterState { stHasInlineMath :: Bool
                                , stFirstPara     :: Bool
@@ -79,32 +80,33 @@ type Note = [Block]
 
 type MS = StateT WriterState
 
-escapeChar :: Bool -> Char -> String
-escapeChar useAscii c =
-  case Map.lookup c essentialEscapes of
-       Just s  -> s
-       Nothing
-         | useAscii
-         , not (isAscii c) ->
-             case Map.lookup c characterCodeMap of
-                  Just t  -> "\\[" <> t <> "]"
-                  Nothing -> printf "\\[u%04X]" (ord c)
-         | otherwise -> [c]
+combiningAccentsMap :: Map.Map Char String
+combiningAccentsMap = Map.fromList combiningAccents
 
 -- | Escape special characters for groff.
 escapeString :: Bool -> String -> String
-escapeString useAscii = concatMap (escapeChar useAscii)
+escapeString _ [] = []
+escapeString useAscii (x:xs) =
+  case Map.lookup x essentialEscapes of
+    Just s  -> s ++ escapeString useAscii xs
+    Nothing
+      | isAscii x || not useAscii -> x : escapeString useAscii xs
+      | otherwise ->
+        let accents = catMaybes $ takeWhile isJust
+              (map (\c -> Map.lookup c combiningAccentsMap) xs)
+            rest = drop (length accents) xs
+            s = case Map.lookup x characterCodeMap of
+                  Just t  -> "\\[" <> unwords (t:accents) <> "]"
+                  Nothing -> "\\[" <> unwords
+                   (printf "u%04X" (ord x) : accents) <> "]"
+        in  s ++ escapeString useAscii rest
 
 -- | Escape a literal (code) section for groff.
 escapeCode :: Bool -> String -> String
-escapeCode useAScii = intercalate "\n" . map escapeLine . lines
-  where escapeCodeChar ' '  = "\\ "
-        escapeCodeChar '\t' = "\\\t"
-        escapeCodeChar c    = escapeChar useAScii c
-        escapeLine codeline =
-          case concatMap escapeCodeChar codeline of
-            a@('.':_) -> "\\&" ++ a
-            b         -> b
+escapeCode useAscii = intercalate "\n" . map escapeLine . lines
+  where escapeLine xs = case xs of
+                          ('.':_) -> "\\%" ++ escapeString useAscii xs
+                          _       -> escapeString useAscii xs
 
 characterCodeMap :: Map.Map Char String
 characterCodeMap = Map.fromList characterCodes
