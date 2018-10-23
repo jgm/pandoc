@@ -765,20 +765,26 @@ parseDefinitionList = definitionList <$> many1 definitionListItem
 parseLink :: PandocMonad m => [Arg] -> ManParser m Inlines
 parseLink args = do
   contents <- mconcat <$> many lineInl
-  mmacro "UE"
+  MMacro _ endargs _ <- mmacro "UE"
   let url = case args of
               [] -> ""
               (x:_) -> linePartsToString x
-  return $ link url "" contents
+  return $ link url "" contents <>
+    case endargs of
+      []    -> mempty
+      (x:_) -> linePartsToInlines x
 
 parseEmailLink :: PandocMonad m => [Arg] -> ManParser m Inlines
 parseEmailLink args = do
   contents <- mconcat <$> many lineInl
-  mmacro "ME"
+  MMacro _ endargs _ <- mmacro "ME"
   let url = case args of
               [] -> ""
               (x:_) -> "mailto:" ++ linePartsToString x
-  return $ link url "" contents
+  return $ link url "" contents <>
+    case endargs of
+      []    -> mempty
+      (x:_) -> linePartsToInlines x
 
 skipUnkownMacro :: PandocMonad m => ManParser m Blocks
 skipUnkownMacro = do

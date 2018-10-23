@@ -202,11 +202,11 @@ Minus: \-
 .UR http://\:example.com
 some random
 site
-.UE
+.UE .
 .PP
 .MT me@example.com
-my email address.
-.ME
+my email address
+.ME .
 .SH Macros
 .de au
 .B
