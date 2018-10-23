@@ -46,10 +46,11 @@ module Text.Pandoc.Writers.Muse (writeMuse) where
 import Prelude
 import Control.Monad.Reader
 import Control.Monad.State.Strict
-import Data.Char (isSpace, isAlphaNum, isDigit, isAsciiUpper, isAsciiLower)
+import Data.Char (isAlphaNum, isAsciiLower, isAsciiUpper, isDigit, isSpace)
 import Data.Default
+import Data.List (intersperse, isInfixOf, transpose)
+import qualified Data.Set as Set
 import Data.Text (Text)
-import Data.List (intersperse, transpose, isInfixOf)
 import System.FilePath (takeExtension)
 import Text.Pandoc.Class (PandocMonad)
 import Text.Pandoc.Definition
@@ -60,28 +61,27 @@ import Text.Pandoc.Shared
 import Text.Pandoc.Templates (renderTemplate')
 import Text.Pandoc.Writers.Math
 import Text.Pandoc.Writers.Shared
-import qualified Data.Set as Set
 
 type Notes = [[Block]]
 
 type Muse m = ReaderT WriterEnv (StateT WriterState m)
 
 data WriterEnv =
-  WriterEnv { envOptions :: WriterOptions
-            , envTopLevel :: Bool
-            , envInsideBlock :: Bool
-            , envInlineStart :: Bool -- ^ True if there is only whitespace since last newline
+  WriterEnv { envOptions               :: WriterOptions
+            , envTopLevel              :: Bool
+            , envInsideBlock           :: Bool
+            , envInlineStart           :: Bool -- ^ True if there is only whitespace since last newline
             , envInsideLinkDescription :: Bool -- ^ Escape ] if True
-            , envAfterSpace :: Bool -- ^ There is whitespace (not just newline) before
-            , envOneLine :: Bool -- ^ True if newlines are not allowed
-            , envInsideAsterisks :: Bool -- ^ True if outer element is emphasis with asterisks
-            , envNearAsterisks :: Bool -- ^ Rendering inline near asterisks
+            , envAfterSpace            :: Bool -- ^ There is whitespace (not just newline) before
+            , envOneLine               :: Bool -- ^ True if newlines are not allowed
+            , envInsideAsterisks       :: Bool -- ^ True if outer element is emphasis with asterisks
+            , envNearAsterisks         :: Bool -- ^ Rendering inline near asterisks
             }
 
 data WriterState =
-  WriterState { stNotes       :: Notes
-              , stIds         :: Set.Set String
-              , stUseTags     :: Bool -- ^ Use tags for emphasis, for example because previous character is a letter
+  WriterState { stNotes   :: Notes
+              , stIds     :: Set.Set String
+              , stUseTags :: Bool -- ^ Use tags for emphasis, for example because previous character is a letter
               }
 
 instance Default WriterState
@@ -158,7 +158,7 @@ flatBlockListToMuse bs@(OrderedList (_, style1, _) _ : OrderedList (_, style2, _
       style1' = normalizeStyle style1
       style2' = normalizeStyle style2
       normalizeStyle DefaultStyle = Decimal
-      normalizeStyle s = s
+      normalizeStyle s            = s
 flatBlockListToMuse bs@(DefinitionList _ : DefinitionList _ : _) = catWithBlankLines bs 2
 flatBlockListToMuse bs@(_ : _) = catWithBlankLines bs 0
 flatBlockListToMuse [] = return mempty
@@ -292,9 +292,9 @@ noteToMuse :: PandocMonad m
 noteToMuse num note =
   hang (length marker) (text marker) <$>
     local (\env -> env { envInsideBlock = True
-                        , envInlineStart = True
-                        , envAfterSpace = True
-                        }) (blockListToMuse note)
+                       , envInlineStart = True
+                       , envAfterSpace = True
+                       }) (blockListToMuse note)
   where
     marker = "[" ++ show num ++ "] "
 
@@ -308,34 +308,34 @@ escapeString s =
 -- | Replace newlines with spaces
 replaceNewlines :: String -> String
 replaceNewlines ('\n':xs) = ' ':replaceNewlines xs
-replaceNewlines (x:xs) = x:replaceNewlines xs
-replaceNewlines [] = []
+replaceNewlines (x:xs)    = x:replaceNewlines xs
+replaceNewlines []        = []
 
 startsWithMarker :: (Char -> Bool) -> String -> Bool
 startsWithMarker f (' ':xs) = startsWithMarker f xs
 startsWithMarker f (x:xs) =
   f x && (startsWithMarker f xs || startsWithDot xs)
   where
-    startsWithDot ['.'] = True
+    startsWithDot ['.']     = True
     startsWithDot ('.':c:_) = isSpace c
-    startsWithDot _ = False
+    startsWithDot _         = False
 startsWithMarker _ [] = False
 
 -- | Escape special characters for Muse if needed.
 containsFootnotes :: String -> Bool
 containsFootnotes = p
   where p ('[':xs) = q xs || p xs
-        p (_:xs) = p xs
-        p "" = False
+        p (_:xs)   = p xs
+        p ""       = False
         q (x:xs)
           | x `elem` ("123456789"::String) = r xs || p xs
           | otherwise = p xs
         q [] = False
         r ('0':xs) = r xs || p xs
-        r xs = s xs || q xs || p xs
+        r xs       = s xs || q xs || p xs
         s (']':_) = True
-        s (_:xs) = p xs
-        s [] = False
+        s (_:xs)  = p xs
+        s []      = False
 
 -- | Return True if string should be escaped with <verbatim> tags
 shouldEscapeString :: PandocMonad m
@@ -375,14 +375,14 @@ preprocessInlineList [] = return []
 
 replaceSmallCaps :: Inline -> Inline
 replaceSmallCaps (SmallCaps lst) = Emph lst
-replaceSmallCaps x = x
+replaceSmallCaps x               = x
 
 removeKeyValues :: Inline -> Inline
 removeKeyValues (Code (i, cls, _) xs) = Code (i, cls, []) xs
 -- Do not remove attributes from Link
 -- Do not remove attributes, such as "width", from Image
 removeKeyValues (Span (i, cls, _) xs) = Span (i, cls, []) xs
-removeKeyValues x = x
+removeKeyValues x                     = x
 
 normalizeInlineList :: [Inline] -> [Inline]
 normalizeInlineList (Str "" : xs)
@@ -412,35 +412,35 @@ normalizeInlineList (x:xs) = x : normalizeInlineList xs
 normalizeInlineList [] = []
 
 fixNotes :: [Inline] -> [Inline]
-fixNotes [] = []
-fixNotes (Space : n@Note{} : rest) = Str " " : n : fixNotes rest
+fixNotes []                            = []
+fixNotes (Space : n@Note{} : rest)     = Str " " : n : fixNotes rest
 fixNotes (SoftBreak : n@Note{} : rest) = Str " " : n : fixNotes rest
-fixNotes (x:xs) = x : fixNotes xs
+fixNotes (x:xs)                        = x : fixNotes xs
 
 startsWithSpace :: [Inline] -> Bool
-startsWithSpace (Space:_) = True
+startsWithSpace (Space:_)     = True
 startsWithSpace (SoftBreak:_) = True
-startsWithSpace (Str s:_) = stringStartsWithSpace s
-startsWithSpace _ = False
+startsWithSpace (Str s:_)     = stringStartsWithSpace s
+startsWithSpace _             = False
 
 endsWithSpace :: [Inline] -> Bool
-endsWithSpace [Space] = True
+endsWithSpace [Space]     = True
 endsWithSpace [SoftBreak] = True
-endsWithSpace [Str s] = stringStartsWithSpace $ reverse s
-endsWithSpace (_:xs) = endsWithSpace xs
-endsWithSpace [] = False
+endsWithSpace [Str s]     = stringStartsWithSpace $ reverse s
+endsWithSpace (_:xs)      = endsWithSpace xs
+endsWithSpace []          = False
 
 urlEscapeBrackets :: String -> String
 urlEscapeBrackets (']':xs) = '%':'5':'D':urlEscapeBrackets xs
-urlEscapeBrackets (x:xs) = x:urlEscapeBrackets xs
-urlEscapeBrackets [] = []
+urlEscapeBrackets (x:xs)   = x:urlEscapeBrackets xs
+urlEscapeBrackets []       = []
 
 isHorizontalRule :: String -> Bool
 isHorizontalRule s = length s >= 4 && all (== '-') s
 
 stringStartsWithSpace :: String -> Bool
 stringStartsWithSpace (x:_) = isSpace x
-stringStartsWithSpace "" = False
+stringStartsWithSpace ""    = False
 
 fixOrEscape :: Bool -> Inline -> Bool
 fixOrEscape sp (Str "-") = sp
