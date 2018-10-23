@@ -780,7 +780,7 @@ listItem mbListType = try $ do
                     | otherwise -> Ordered (start, listtype, DefaultDelim)
                   Left _        -> Bullet
       guard $ listTypeMatches mbListType lt
-      inls <- parseInlines
+      inls <- option mempty parseInlines
       continuations <- mconcat <$> many continuation
       return (lt, para inls <> continuations)
     []          -> mzero
@@ -807,7 +807,7 @@ definitionListItem = try $ do
                  mmacro "TQ"
                  newterm <- parseInline
                  return newterm
-  inls <- parseInlines
+  inls <- option mempty parseInlines
   continuations <- mconcat <$> many continuation
   return ( mconcat (intersperse B.linebreak (term:moreterms))
          , [para inls <> continuations])
