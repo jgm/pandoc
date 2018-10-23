@@ -247,6 +247,7 @@ tests = [ testGroup "block elements"
                                                       , "                      first inner definition :: first inner description"
                                                       , "                      second inner definition :: second inner description"
                                                       ]
+              , "list item starting with list" =: bulletList [ bulletList [ plain $ text "foo"] ] =?> " - - foo"
               ]
             -- Check that list is intended with one space even inside a quote
             , "List inside block quote" =: blockQuote (orderedList [ plain $ text "first"

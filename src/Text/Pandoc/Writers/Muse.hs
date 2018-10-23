@@ -201,7 +201,7 @@ blockToMuse (OrderedList (start, style, _) items) = do
   contents <- zipWithM orderedListItemToMuse markers items
   -- ensure that sublists have preceding blank line
   topLevel <- asks envTopLevel
-  return $ cr $$ (if topLevel then nest 1 else id) (vcat contents) $$ blankline
+  return $ (if topLevel then nest 1 else id) (vcat contents) $$ blankline
   where orderedListItemToMuse :: PandocMonad m
                               => String   -- ^ marker for list item
                               -> [Block]  -- ^ list item (list of blocks)
@@ -212,7 +212,7 @@ blockToMuse (BulletList items) = do
   contents <- mapM bulletListItemToMuse items
   -- ensure that sublists have preceding blank line
   topLevel <- asks envTopLevel
-  return $ cr $$ (if topLevel then nest 1 else id) (vcat contents) $$ blankline
+  return $ (if topLevel then nest 1 else id) (vcat contents) $$ blankline
   where bulletListItemToMuse :: PandocMonad m
                              => [Block]
                              -> Muse m Doc
@@ -223,7 +223,7 @@ blockToMuse (DefinitionList items) = do
   contents <- mapM definitionListItemToMuse items
   -- ensure that sublists have preceding blank line
   topLevel <- asks envTopLevel
-  return $ cr $$ (if topLevel then nest 1 else id) (vcat contents) $$ blankline
+  return $ (if topLevel then nest 1 else id) (vcat contents) $$ blankline
   where definitionListItemToMuse :: PandocMonad m
                                  => ([Inline], [[Block]])
                                  -> Muse m Doc
