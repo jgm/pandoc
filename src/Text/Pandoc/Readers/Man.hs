@@ -40,7 +40,7 @@ import Control.Monad (liftM, void, mzero, guard)
 import Control.Monad.Except (throwError)
 import Text.Pandoc.Class
        (getResourcePath, readFileFromDirs, PandocMonad(..), report)
-import Data.Char (isHexDigit, chr, ord, isAscii, isAlphaNum)
+import Data.Char (isHexDigit, chr, ord, isAscii, isAlphaNum, isSpace)
 import Data.Default (Default)
 import Data.Maybe (catMaybes)
 import qualified Data.Map as M
@@ -293,7 +293,7 @@ lexMacro = do
   pos <- getPosition
   char '.' <|> char '\''
   many spacetab
-  macroName <- many (letter <|> oneOf ['\\', '"', '&', '.'])
+  macroName <- many (satisfy (not . isSpace))
   args <- lexArgs
 
   case macroName of
@@ -301,6 +301,7 @@ lexMacro = do
     "\\\"" -> return mempty
     "\\#"  -> return mempty
     "de"   -> lexMacroDef args
+    "de1"  -> lexMacroDef args
     "ds"   -> lexStringDef args
     "ds1"  -> lexStringDef args
     "sp"   -> return $ singleTok MEmptyLine
