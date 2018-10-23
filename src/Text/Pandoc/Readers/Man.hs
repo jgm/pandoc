@@ -172,6 +172,7 @@ escapeLexer = try $ do
     '(' -> twoCharGlyph
     '[' -> bracketedGlyph
     'f' -> escFont
+    's' -> escFontSize
     '"' -> mempty <$ skipMany (satisfy (/='\n')) -- line comment
     '#' -> mempty <$ manyTill anyChar newline
     '%' -> return mempty
@@ -241,6 +242,15 @@ escapeLexer = try $ do
     case chr <$> safeRead ('0':'x':cs) of
        Nothing  -> mzero
        Just c   -> return c
+
+  -- \s-1 \s0 -- we ignore these
+  escFontSize :: PandocMonad m => ManLexer m String
+  escFontSize = do
+    pos <- getPosition
+    pm <- option "" $ count 1 (oneOf "+-")
+    ds <- many1 digit
+    report $ SkippedContent ("\\s" ++ pm ++ ds) pos
+    return mempty
 
   escFont :: PandocMonad m => ManLexer m String
   escFont = do
