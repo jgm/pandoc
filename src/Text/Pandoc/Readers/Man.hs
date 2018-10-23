@@ -719,11 +719,19 @@ bareIP = msatisfy isBareIP where
   isBareIP (MMacro "IP" [] _) = True
   isBareIP _                  = False
 
+endmacro :: PandocMonad m => String -> ManParser m ManToken
+endmacro name = mmacro name <|> lookAhead newBlockMacro
+  where
+    newBlockMacro = msatisfy isNewBlockMacro
+    isNewBlockMacro (MMacro "SH" _ _) = True
+    isNewBlockMacro (MMacro "SS" _ _) = True
+    isNewBlockMacro _ = False
+
 parseCodeBlock :: PandocMonad m => ManParser m Blocks
 parseCodeBlock = try $ do
   optional bareIP -- some people indent their code
-  toks <- (mmacro "nf" *> many (mline <|> memptyLine) <* mmacro "fi")
-      <|> (mmacro "EX" *> many (mline <|> memptyLine) <* mmacro "EE")
+  toks <- (mmacro "nf" *> many (mline <|> memptyLine) <* endmacro "fi")
+      <|> (mmacro "EX" *> many (mline <|> memptyLine) <* endmacro "EE")
   return $ codeBlock (intercalate "\n" . catMaybes $
                       extractText <$> toks)
 
@@ -786,12 +794,9 @@ parseList = try $ do
              Ordered lattr -> orderedListWith lattr (x:xs)
 
 continuation :: PandocMonad m => ManParser m Blocks
-continuation = (do
-  mmacro "RS"
-  bs <- mconcat <$> many (notFollowedBy (mmacro "RE") >> parseBlock)
-  mmacro "RE"
-  return bs)
-    <|> mconcat <$> many1 (try (bareIP *> parsePara))
+continuation =
+      mconcat <$> (mmacro "RS" *> manyTill parseBlock (endmacro "RE"))
+  <|> mconcat <$> many1 (try (bareIP *> parsePara))
 
 definitionListItem :: PandocMonad m
                    => ManParser m (Inlines, [Blocks])
