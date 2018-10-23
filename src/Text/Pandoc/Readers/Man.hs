@@ -307,6 +307,7 @@ lexMacro = do
   case macroName of
     "nop" -> return mempty
     "ie"  -> lexConditional
+    "if"  -> lexConditional
     "el"  -> skipConditional
 
     _ -> do
