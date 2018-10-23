@@ -230,8 +230,9 @@ blockToMuse (DefinitionList items) = do
         definitionListItemToMuse (label, defs) = do
           modify $ \st -> st { stUseTags = False }
           label' <- local (\env -> env { envOneLine = True, envAfterSpace = True }) $ inlineListToMuse' label
-          let ind = offset label'
+          let ind = offset' label' -- using Text.Pandoc.Pretty.offset results in round trip failures
           hang ind (nowrap label') . vcat <$> mapM descriptionToMuse defs
+          where offset' d = maximum (0: map length (lines $ render Nothing d))
         descriptionToMuse :: PandocMonad m
                           => [Block]
                           -> Muse m Doc
