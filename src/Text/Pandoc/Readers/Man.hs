@@ -244,7 +244,8 @@ escapeLexer = try $ do
 
   escFont :: PandocMonad m => ManLexer m String
   escFont = do
-    font <- choice [ S.singleton <$> letterFontKind
+    font <- choice
+          [ S.singleton <$> letterFontKind
           , char '(' >> anyChar >> anyChar >> return (S.singleton Regular)
           , try lettersFont
           , digit >> return (S.singleton Regular)
@@ -256,16 +257,16 @@ escapeLexer = try $ do
   lettersFont = do
     char '['
     fs <- many letterFontKind
-    many letter
+    skipMany letter
     char ']'
     return $ S.fromList fs
 
   letterFontKind :: PandocMonad m => ManLexer m FontKind
   letterFontKind = choice [
-      char 'B' >> return Bold
-    , char 'I' >> return Italic
-    , char 'C' >> return Monospace
-    , (char 'P' <|> char 'R') >> return Regular
+      oneOf ['B','b'] >> return Bold
+    , oneOf ['I','i'] >> return Italic
+    , oneOf ['C','c'] >> return Monospace
+    , oneOf ['P','p','R','r'] >> return Regular
     ]
 
   escUnknown :: PandocMonad m => String -> a -> ManLexer m a
