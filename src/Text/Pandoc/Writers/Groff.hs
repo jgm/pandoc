@@ -34,7 +34,6 @@ module Text.Pandoc.Writers.Groff (
     , defaultWriterState
     , MS
     , Note
-    , escapeChar
     , escapeString
     , escapeCode
     , withFontFeature

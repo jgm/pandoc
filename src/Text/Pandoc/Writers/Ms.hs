@@ -125,7 +125,7 @@ toSmallCaps opts (c:cs)
                     "\\s0" ++ toSmallCaps opts rest
   | isUpper c = let (uppers,rest) = span isUpper (c:cs)
                 in  escString opts uppers ++ toSmallCaps opts rest
-  | otherwise = escapeChar (writerPreferAscii opts) c ++ toSmallCaps opts cs
+  | otherwise = escapeString (writerPreferAscii opts) [c] ++ toSmallCaps opts cs
 
 -- We split inline lists into sentences, and print one sentence per
 -- line.  groff/troff treats the line-ending period differently.
