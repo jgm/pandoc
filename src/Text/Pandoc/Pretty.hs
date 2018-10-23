@@ -438,9 +438,7 @@ afterBreak s = Doc $ singleton (AfterBreak s)
 
 -- | Returns the width of a 'Doc'.
 offset :: Doc -> Int
-offset d = case map realLength . lines . render Nothing $ d of
-                [] -> 0
-                os -> maximum os
+offset d = maximum (0: map realLength (lines $ render Nothing d))
 
 -- | Returns the minimal width of a 'Doc' when reflowed at breakable spaces.
 minOffset :: Doc -> Int
