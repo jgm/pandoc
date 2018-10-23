@@ -294,19 +294,22 @@ lexMacro = do
   char '.' <|> char '\''
   many spacetab
   macroName <- many (satisfy (not . isSpace))
-  args <- lexArgs
+  if macroName == "nop"
+     then return mempty
+     else do
+       args <- lexArgs
 
-  case macroName of
-    ""     -> return mempty
-    "\\\"" -> return mempty
-    "\\#"  -> return mempty
-    "de"   -> lexMacroDef args
-    "de1"  -> lexMacroDef args
-    "ds"   -> lexStringDef args
-    "ds1"  -> lexStringDef args
-    "sp"   -> return $ singleTok MEmptyLine
-    "so"   -> lexIncludeFile args
-    _      -> resolveMacro macroName args pos
+       case macroName of
+         ""     -> return mempty
+         "\\\"" -> return mempty
+         "\\#"  -> return mempty
+         "de"   -> lexMacroDef args
+         "de1"  -> lexMacroDef args
+         "ds"   -> lexStringDef args
+         "ds1"  -> lexStringDef args
+         "sp"   -> return $ singleTok MEmptyLine
+         "so"   -> lexIncludeFile args
+         _      -> resolveMacro macroName args pos
 
 
 lexIncludeFile :: PandocMonad m => [Arg] -> ManLexer m ManTokens
