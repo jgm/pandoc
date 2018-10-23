@@ -36,7 +36,7 @@ Conversion of man to 'Pandoc' document.
 module Text.Pandoc.Readers.Man (readMan) where
 
 import Prelude
-import Control.Monad (liftM, void, mzero, guard)
+import Control.Monad (liftM, void, mzero, guard, when)
 import Control.Monad.Except (throwError)
 import Text.Pandoc.Class
        (getResourcePath, readFileFromDirs, PandocMonad(..), report)
@@ -46,7 +46,7 @@ import Data.Maybe (catMaybes)
 import qualified Data.Map as M
 import Data.Set (Set)
 import qualified Data.Set as S
-import Data.List (intersperse, intercalate)
+import Data.List (intersperse, intercalate, isSuffixOf)
 import qualified Data.Text as T
 import Text.Pandoc.Builder as B
 import Text.Pandoc.Error (PandocError (PandocParsecError))
@@ -294,11 +294,13 @@ lexMacro = do
   char '.' <|> char '\''
   many spacetab
   macroName <- many (satisfy (not . isSpace))
-  if macroName == "nop"
-     then return mempty
-     else do
-       args <- lexArgs
+  case macroName of
+    "nop" -> return mempty
+    "ie"  -> lexConditional
+    "el"  -> skipConditional
 
+    _ -> do
+       args <- lexArgs
        case macroName of
          ""     -> return mempty
          "\\\"" -> return mempty
@@ -311,6 +313,35 @@ lexMacro = do
          "so"   -> lexIncludeFile args
          _      -> resolveMacro macroName args pos
 
+-- We don't fully handle the conditional.  But we do
+-- include everything under '.ie n', which occurs commonly
+-- in man pages.  We always skip the '.el' part.
+lexConditional :: PandocMonad m => ManLexer m ManTokens
+lexConditional = do
+  skipMany spacetab
+  parseNCond <|> skipConditional
+
+-- n means nroff mode
+parseNCond :: PandocMonad m => ManLexer m ManTokens
+parseNCond = do
+  char '\n'
+  many1 spacetab
+  lexGroup <|> manToken
+
+lexGroup :: PandocMonad m => ManLexer m ManTokens
+lexGroup = do
+  groupstart
+  mconcat <$> manyTill manToken groupend
+  where
+    groupstart = try $ string "\\{\\" >> newline
+    groupend   = try $ string "\\}" >> eofline
+
+skipConditional :: PandocMonad m => ManLexer m ManTokens
+skipConditional = do
+  rest <- anyLine
+  when ("\\{\\" `isSuffixOf` rest) $
+    void $ manyTill anyChar (try (string "\\}"))
+  return mempty
 
 lexIncludeFile :: PandocMonad m => [Arg] -> ManLexer m ManTokens
 lexIncludeFile args = do
