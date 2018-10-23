@@ -247,6 +247,7 @@ escapeLexer = try $ do
     font <- choice
           [ S.singleton <$> letterFontKind
           , char '(' >> anyChar >> anyChar >> return (S.singleton Regular)
+          , char 'S' >> return (S.singleton Regular)
           , try lettersFont
           , digit >> return (S.singleton Regular)
           ]
