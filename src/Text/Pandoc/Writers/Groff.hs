@@ -47,7 +47,7 @@ import Text.Pandoc.Class (PandocMonad)
 import Text.Pandoc.Definition
 import Text.Pandoc.Pretty
 import Text.Printf (printf)
-import Text.Pandoc.GroffChar (manEscapes,
+import Text.Pandoc.GroffChar (standardEscapes,
                               characterCodes, combiningAccents)
 
 data WriterState = WriterState { stHasInlineMath :: Bool
@@ -87,7 +87,7 @@ combiningAccentsMap :: Map.Map Char String
 combiningAccentsMap = Map.fromList combiningAccents
 
 essentialEscapes :: Map.Map Char String
-essentialEscapes = Map.fromList manEscapes
+essentialEscapes = Map.fromList standardEscapes
 
 -- | Escape special characters for groff.
 escapeString :: EscapeMode -> String -> String

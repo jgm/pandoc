@@ -31,15 +31,15 @@ Groff character escaping/unescaping.
 -}
 
 module Text.Pandoc.GroffChar (
-    manEscapes
+    standardEscapes
   , characterCodes
   , combiningAccents
   ) where
 import Prelude
 
 -- | These are the escapes specifically mentioned in groff_man(7).
-manEscapes :: [(Char, String)]
-manEscapes =
+standardEscapes :: [(Char, String)]
+standardEscapes =
   [ ('\160', "\\ ")
   , ('\'', "\\[aq]")
   , ('‘', "\\[oq]")
