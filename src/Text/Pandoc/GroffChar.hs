@@ -37,7 +37,8 @@ module Text.Pandoc.GroffChar (
   ) where
 import Prelude
 
--- | These are the escapes specifically mentioned in groff_man(7).
+-- | These are the escapes specifically mentioned in groff_man(7),
+-- plus @ and ellipsis.
 standardEscapes :: [(Char, String)]
 standardEscapes =
   [ ('\160', "\\ ")
@@ -54,6 +55,7 @@ standardEscapes =
   , ('~', "\\[ti]")
   , ('-', "\\-")  -- minus; - will be interpreted as hyphen U+2010
   , ('\\', "\\[rs]")
+  , ('@', "\\[at]") -- because we use @ as a table and math delimiter
   , ('\x2026', "\\&...")  -- because u2026 doesn't render on tty
   ]
 
