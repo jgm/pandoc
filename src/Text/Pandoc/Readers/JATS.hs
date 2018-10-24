@@ -36,7 +36,7 @@ import Control.Monad.State.Strict
 import Data.Char (isDigit, isSpace, toUpper)
 import Data.Default
 import Data.Generics
-import Data.List (intersperse)
+import Data.List (foldl', intersperse)
 import qualified Data.Map as Map
 import Data.Maybe (maybeToList, fromMaybe)
 import Data.Text (Text)
@@ -278,9 +278,7 @@ parseBlock (Elem e) =
                                                    $ safeRead $ '0': filter (\x ->
                                                      isDigit x || x == '.') w
                                                 Nothing -> 0 :: Double
-                      let numrows = case bodyrows of
-                                         [] -> 0
-                                         xs -> maximum $ map length xs
+                      let numrows = foldl' max 0 $ map length bodyrows
                       let aligns = case colspecs of
                                      [] -> replicate numrows AlignDefault
                                      cs -> map toAlignment cs
