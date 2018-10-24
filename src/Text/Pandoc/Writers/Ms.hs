@@ -112,12 +112,6 @@ escapeStr opts =
 escapeUri :: String -> String
 escapeUri = escapeURIString (\c -> c /= '@' && isAllowedInURI c)
 
--- | Escape | character, used to mark inline math, inside math.
-escapeBar :: String -> String
-escapeBar = concatMap go
-  where go '|' = "\\[ba]"
-        go c   = [c]
-
 toSmallCaps :: WriterOptions -> String -> String
 toSmallCaps _ [] = []
 toSmallCaps opts (c:cs)
@@ -416,7 +410,7 @@ inlineToMs opts (Math InlineMath str) = do
   res <- convertMath writeEqn InlineMath str
   case res of
        Left il -> inlineToMs opts il
-       Right r -> return $ text "@" <> text (escapeBar r) <> text "@"
+       Right r -> return $ text "@" <> text r <> text "@"
 inlineToMs opts (Math DisplayMath str) = do
   res <- convertMath writeEqn InlineMath str
   case res of
@@ -424,7 +418,7 @@ inlineToMs opts (Math DisplayMath str) = do
          contents <- inlineToMs opts il
          return $ cr <> text ".RS" $$ contents $$ text ".RE"
        Right r -> return $
-            cr <> text ".EQ" $$ text (escapeBar r) $$ text ".EN"
+            cr <> text ".EQ" $$ text r $$ text ".EN"
 inlineToMs _ il@(RawInline f str)
   | f == Format "ms" = return $ text str
   | otherwise        = do
