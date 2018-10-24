@@ -116,7 +116,12 @@ Just two backticks: ``
  for i in range(1, 5):
      print(i)
  }}}
- 
+
+=== empty preformatted text ===
+
+{{{
+}}}
+
 == block quotes ==
 
     (indentation 4 spaces) This would be a blockquote in Vimwiki. It is not *highlighted* in Vim but
