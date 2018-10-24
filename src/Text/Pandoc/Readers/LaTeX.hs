@@ -49,13 +49,12 @@ import Control.Monad
 import Control.Monad.Except (throwError)
 import Data.Char (isDigit, isLetter, toLower, toUpper)
 import Data.Default
-import Data.List (intercalate, isPrefixOf)
+import Data.List (foldl', intercalate, isPrefixOf)
 import qualified Data.Map as M
 import Data.Maybe (fromMaybe, maybeToList)
 import qualified Data.Set as Set
 import Data.Text (Text)
 import qualified Data.Text as T
-import Safe (minimumDef)
 import System.FilePath (addExtension, replaceExtension, takeExtension)
 import Text.Pandoc.BCP47 (Lang (..), renderLang)
 import Text.Pandoc.Builder
@@ -106,7 +105,7 @@ parseLaTeX = do
   let doc' = doc bs
   let headerLevel (Header n _ _) = [n]
       headerLevel _              = []
-  let bottomLevel = minimumDef 1 $ query headerLevel doc'
+  let bottomLevel = foldl' min 1 $ query headerLevel doc'
   let adjustHeaders m (Header n attr ils) = Header (n+m) attr ils
       adjustHeaders _ x                   = x
   let (Pandoc _ bs') =
