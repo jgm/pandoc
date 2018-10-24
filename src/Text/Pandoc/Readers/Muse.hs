@@ -45,7 +45,7 @@ import Control.Monad.Reader
 import Control.Monad.Except (throwError)
 import Data.Bifunctor
 import Data.Default
-import Data.List (intercalate, transpose)
+import Data.List (intercalate, transpose, uncons)
 import Data.List.Split (splitOn)
 import qualified Data.Map as M
 import qualified Data.Set as Set
@@ -640,11 +640,9 @@ data MuseTableElement = MuseHeaderRow [Blocks]
 
 museToPandocTable :: MuseTable -> Blocks
 museToPandocTable (MuseTable caption headers body footers) =
-  B.table caption attrs headRow rows
-  where ncol = maximum (0 : map length (headers ++ body ++ footers))
-        attrs = replicate ncol (AlignDefault, 0.0)
-        headRow = if null headers then [] else head headers
-        rows = (if null headers then [] else tail headers) ++ body ++ footers
+  B.table caption attrs headRow (rows ++ body ++ footers)
+  where attrs = const (AlignDefault, 0.0) <$> transpose (headers ++ body ++ footers)
+        (headRow, rows) = fromMaybe ([], []) $ uncons headers
 
 museAppendElement :: MuseTableElement
                   -> MuseTable
