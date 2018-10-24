@@ -97,6 +97,9 @@ pandocToMan opts (Pandoc meta blocks) = do
        Nothing  -> return main
        Just tpl -> renderTemplate' tpl context
 
+escString :: WriterOptions -> String -> String
+escString _ = escapeString AsciiOnly -- for better portability
+
 -- | Return man representation of notes.
 notesToMan :: PandocMonad m => WriterOptions -> [[Block]] -> StateT WriterState m Doc
 notesToMan opts notes =
@@ -143,11 +146,14 @@ blockToMan opts (Header level _ inlines) = do
                   1 -> ".SH "
                   _ -> ".SS "
   return $ text heading <> contents
-blockToMan _ (CodeBlock _ str) = return $
+blockToMan opts (CodeBlock _ str) = return $
   text ".IP" $$
   text ".nf" $$
   text "\\f[C]" $$
-  text (escapeCode True str) $$
+  ((case str of
+    '.':_ -> text "\\&"
+    _     -> mempty) <>
+   text (escString opts str)) $$
   text "\\f[R]" $$
   text ".fi"
 blockToMan opts (BlockQuote blocks) = do
@@ -296,11 +302,11 @@ inlineToMan opts (Quoted DoubleQuote lst) = do
   return $ text "\\[lq]" <> contents <> text "\\[rq]"
 inlineToMan opts (Cite _ lst) =
   inlineListToMan opts lst
-inlineToMan _ (Code _ str) =
-  withFontFeature 'C' (return (text $ escapeCode True str))
-inlineToMan _ (Str str@('.':_)) =
-  return $ afterBreak "\\&" <> text (escapeString True str)
-inlineToMan _ (Str str) = return $ text $ escapeString True str
+inlineToMan opts (Code _ str) =
+  withFontFeature 'C' (return (text $ escString opts str))
+inlineToMan opts (Str str@('.':_)) =
+  return $ afterBreak "\\&" <> text (escString opts str)
+inlineToMan opts (Str str) = return $ text $ escString opts str
 inlineToMan opts (Math InlineMath str) =
   lift (texMathToInlines InlineMath str) >>= inlineListToMan opts
 inlineToMan opts (Math DisplayMath str) = do

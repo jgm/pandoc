@@ -31,24 +31,29 @@ Groff character escaping/unescaping.
 -}
 
 module Text.Pandoc.GroffChar (
-    essentialEscapes
+    manEscapes
   , characterCodes
   , combiningAccents
   ) where
 import Prelude
-import qualified Data.Map as Map
 
-essentialEscapes :: Map.Map Char String
-essentialEscapes = Map.fromList
-  [ ('\160', "\\~")
+-- | These are the escapes specifically mentioned in groff_man(7).
+manEscapes :: [(Char, String)]
+manEscapes =
+  [ ('\160', "\\ ")
   , ('\'', "\\[aq]")
-  , ('`', "\\[ga]")
+  , ('‘', "\\[oq]")
+  , ('’', "\\[cq]")
   , ('"', "\\[dq]")
-  , ('~', "\\[ti]")
+  , ('“', "\\[lq]")
+  , ('”', "\\[rq]")
+  , ('—', "\\[em]")
+  , ('–', "\\[en]")
+  , ('`', "\\[ga]")
   , ('^', "\\[ha]")
-  , ('@', "\\[at]")
-  , ('\\', "\\[rs]")
+  , ('~', "\\[ti]")
   , ('-', "\\-")  -- minus; - will be interpreted as hyphen U+2010
+  , ('\\', "\\[rs]")
   , ('\x2026', "\\&...")  -- because u2026 doesn't render on tty
   ]
 

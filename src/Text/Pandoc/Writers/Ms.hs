@@ -69,9 +69,6 @@ writeMs :: PandocMonad m => WriterOptions -> Pandoc -> m Text
 writeMs opts document =
   evalStateT (pandocToMs opts document) defaultWriterState
 
-escString :: WriterOptions -> String -> String
-escString opts = escapeString (writerPreferAscii opts)
-
 -- | Return groff ms representation of document.
 pandocToMs :: PandocMonad m => WriterOptions -> Pandoc -> MS m Text
 pandocToMs opts (Pandoc meta blocks) = do
@@ -87,8 +84,8 @@ pandocToMs opts (Pandoc meta blocks) = do
   body <- blockListToMs opts blocks
   let main = render' body
   hasInlineMath <- gets stHasInlineMath
-  let titleMeta = (escString opts . stringify) $ docTitle meta
-  let authorsMeta = map (escString opts . stringify) $ docAuthors meta
+  let titleMeta = (escapeStr opts . stringify) $ docTitle meta
+  let authorsMeta = map (escapeStr opts . stringify) $ docAuthors meta
   hasHighlighting <- gets stHighlighting
   let highlightingMacros = if hasHighlighting
                               then case writerHighlightStyle opts of
@@ -108,6 +105,10 @@ pandocToMs opts (Pandoc meta blocks) = do
        Nothing  -> return main
        Just tpl -> renderTemplate' tpl context
 
+escapeStr :: WriterOptions -> String -> String
+escapeStr opts =
+  escapeString (if writerPreferAscii opts then AsciiOnly else AllowUTF8)
+
 escapeUri :: String -> String
 escapeUri = escapeURIString (\c -> c /= '@' && isAllowedInURI c)
 
@@ -121,11 +122,11 @@ toSmallCaps :: WriterOptions -> String -> String
 toSmallCaps _ [] = []
 toSmallCaps opts (c:cs)
   | isLower c = let (lowers,rest) = span isLower (c:cs)
-                in  "\\s-2" ++ escString opts (map toUpper lowers) ++
+                in  "\\s-2" ++ escapeStr opts (map toUpper lowers) ++
                     "\\s0" ++ toSmallCaps opts rest
   | isUpper c = let (uppers,rest) = span isUpper (c:cs)
-                in  escString opts uppers ++ toSmallCaps opts rest
-  | otherwise = escapeString (writerPreferAscii opts) [c] ++ toSmallCaps opts cs
+                in  escapeStr opts uppers ++ toSmallCaps opts rest
+  | otherwise = escapeStr opts [c] ++ toSmallCaps opts cs
 
 -- We split inline lists into sentences, and print one sentence per
 -- line.  groff/troff treats the line-ending period differently.
@@ -162,7 +163,7 @@ blockToMs opts (Para [Image attr alt (src,_tit)])
                        _ -> empty
   capt <- inlineListToMs' opts alt
   return $ nowrap (text ".PSPIC -C " <>
-             doubleQuotes (text (escString opts src)) <>
+             doubleQuotes (text (escapeStr opts src)) <>
              sizeAttrs) $$
            text ".ce 1000" $$
            capt $$
@@ -200,7 +201,7 @@ blockToMs opts (Header level (ident,classes,_) inlines) = do
                                       (if null secnum
                                           then ""
                                           else "  ") ++
-                                      escString opts (stringify inlines))
+                                      escapeStr opts (stringify inlines))
   let backlink = nowrap (text ".pdfhref L -D " <>
        doubleQuotes (text (toAscii ident)) <> space <> text "\\") <> cr <>
        text " -- "
@@ -409,7 +410,7 @@ inlineToMs opts (Str str) = do
   smallcaps <- gets stSmallCaps
   if smallcaps
      then return $ shim <> text (toSmallCaps opts str)
-     else return $ shim <> text (escString opts str)
+     else return $ shim <> text (escapeStr opts str)
 inlineToMs opts (Math InlineMath str) = do
   modify $ \st -> st{ stHasInlineMath = True }
   res <- convertMath writeEqn InlineMath str
@@ -453,7 +454,7 @@ inlineToMs opts (Link _ txt (src, _)) = do
        text " -- " <> doubleQuotes (nowrap contents) <> cr <> text "\\&"
 inlineToMs opts (Image _ alternate (_, _)) =
   return $ char '[' <> text "IMAGE: " <>
-           text (escString opts (stringify alternate))
+           text (escapeStr opts (stringify alternate))
              <> char ']'
 inlineToMs _ (Note contents) = do
   modify $ \st -> st{ stNotes = contents : stNotes st }
@@ -540,15 +541,14 @@ msFormatter opts _fmtopts =
   where fmtLine = hcat . map fmtToken
         fmtToken (toktype, tok) = text "\\*" <>
            brackets (text (show toktype) <> text " \""
-             <> text (escapeCode (writerPreferAscii opts)
-                      (T.unpack tok)) <> text "\"")
+             <> text (escapeStr opts (T.unpack tok)) <> text "\"")
 
 highlightCode :: PandocMonad m => WriterOptions -> Attr -> String -> MS m Doc
 highlightCode opts attr str =
   case highlight (writerSyntaxMap opts) (msFormatter opts) attr str of
          Left msg -> do
            unless (null msg) $ report $ CouldNotHighlight msg
-           return $ text (escapeCode (writerPreferAscii opts) str)
+           return $ text (escapeStr opts str)
          Right h -> do
            modify (\st -> st{ stHighlighting = True })
            return h

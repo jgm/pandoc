@@ -308,7 +308,7 @@ Nested.
 .PP
 Should not be a list item:
 .PP
-M.A.\~2007
+M.A.\ 2007
 .PP
 B.
 Williams
@@ -492,9 +492,9 @@ This is code: \f[C]>\f[R], \f[C]$\f[R], \f[C]\[rs]\f[R], \f[C]\[rs]$\f[R],
 .PP
 [STRIKEOUT:This is \f[I]strikeout\f[R].]
 .PP
-Superscripts: a^bc^d a^\f[I]hello\f[R]^ a^hello\~there^.
+Superscripts: a^bc^d a^\f[I]hello\f[R]^ a^hello\ there^.
 .PP
-Subscripts: H~2~O, H~23~O, H~many\~of\~them~O.
+Subscripts: H~2~O, H~23~O, H~many\ of\ them~O.
 .PP
 These should not be superscripts or subscripts, because of the unescaped
 spaces: a\[ha]b c\[ha]d, a\[ti]b c\[ti]d.
