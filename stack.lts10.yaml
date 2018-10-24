@@ -17,7 +17,7 @@ extra-deps:
 - test-framework-0.8.2.0
 - pandoc-types-1.17.5.1
 - cmark-gfm-0.1.6
-- texmath-0.11.1
+- texmath-0.11.1.2
 - haddock-library-1.7.0
 - HsYAML-0.1.1.1
 - text-1.2.3.0

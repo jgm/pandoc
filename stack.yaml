@@ -22,7 +22,7 @@ extra-deps:
 - pandoc-citeproc-0.14.8
 - haddock-library-1.7.0
 - HsYAML-0.1.1.1
-- texmath-0.11.1
+- texmath-0.11.1.2
 - yaml-0.9.0
 - cmark-gfm-0.1.6
 - hslua-1.0.1
