@@ -83,6 +83,7 @@ type Arg = [LinePart]
 data ManToken = MLine [LinePart]
               | MEmptyLine
               | MMacro MacroKind [Arg] SourcePos
+              | MTable [Alignment] ManTokens [ManTokens] [[ManTokens]]
               deriving Show
 
 newtype ManTokens = ManTokens { unManTokens :: Seq.Seq ManToken }
@@ -309,6 +310,7 @@ lexMacro = do
     "ie"  -> lexConditional
     "if"  -> lexConditional
     "el"  -> skipConditional
+    "TS"  -> lexTable
 
     _ -> do
        args <- lexArgs
@@ -323,6 +325,14 @@ lexMacro = do
          "sp"   -> return $ singleTok MEmptyLine
          "so"   -> lexIncludeFile args
          _      -> resolveMacro macroName args pos
+
+-- | TODO placeholder
+lexTable :: PandocMonad m => ManLexer m ManTokens
+lexTable = do
+  pos <- getPosition
+  manyTill anyLine (try (string ".TE" >> many spacetab >> eofline))
+  report $ SkippedContent "table" pos
+  return mempty
 
 -- We don't fully handle the conditional.  But we do
 -- include everything under '.ie n', which occurs commonly
