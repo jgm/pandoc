@@ -38,14 +38,17 @@ import Prelude
 import Control.Applicative ((<|>))
 import Data.Data (showConstr, toConstr)
 import Foreign.Lua (Lua, Peekable, Pushable, StackIndex)
+import Foreign.Lua.Types.Peekable (reportValueOnFailure)
 import Foreign.Lua.Userdata ( ensureUserdataMetatable, pushAnyWithMetatable
-                            , metatableName)
+                            , toAnyWithName, metatableName)
+import Text.Pandoc.Class (CommonState (..))
 import Text.Pandoc.Definition
 import Text.Pandoc.Extensions (Extensions)
 import Text.Pandoc.Lua.Util (defineHowTo, pushViaConstructor)
 import Text.Pandoc.Options (ReaderOptions (..), TrackChanges)
 import Text.Pandoc.Shared (Element (Blk, Sec))
 
+import qualified Data.Map as Map
 import qualified Data.Set as Set
 import qualified Foreign.Lua as Lua
 import qualified Text.Pandoc.Lua.Util as LuaUtil
@@ -388,3 +391,34 @@ newtype AnyValue = AnyValue StackIndex
 
 instance Peekable AnyValue where
   peek = return . AnyValue
+
+-- | Name used by Lua for the @CommonState@ type.
+commonStateTypeName :: String
+commonStateTypeName = "Pandoc CommonState"
+
+instance Peekable CommonState where
+  peek idx = reportValueOnFailure commonStateTypeName
+             (`toAnyWithName` commonStateTypeName) idx
+
+instance Pushable CommonState where
+  push st = pushAnyWithMetatable pushCommonStateMetatable st
+   where
+    pushCommonStateMetatable = ensureUserdataMetatable commonStateTypeName $ do
+      LuaUtil.addFunction "__index" indexCommonState
+
+indexCommonState :: CommonState -> AnyValue -> Lua Lua.NumResults
+indexCommonState st (AnyValue idx) = Lua.ltype idx >>= \case
+  Lua.TypeString -> 1 <$ (Lua.peek idx >>= pushField)
+  _ -> 1 <$ Lua.pushnil
+ where
+  pushField :: String -> Lua ()
+  pushField = \case
+    "input_files"     -> Lua.push (stInputFiles st)
+    "output_file"     -> Lua.push (Lua.Optional (stOutputFile st))
+    "request_headers" -> Lua.push (Map.fromList (stRequestHeaders st))
+    "resource_path"   -> Lua.push (stResourcePath st)
+    "source_url"      -> Lua.push (Lua.Optional (stSourceURL st))
+    "user_data_dir"   -> Lua.push (Lua.Optional (stUserDataDir st))
+    "trace"           -> Lua.push (stTrace st)
+    "verbosity"       -> Lua.push (show (stVerbosity st))
+    _ -> Lua.pushnil

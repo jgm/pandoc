@@ -1,0 +1,11 @@
+function report (what, value)
+  print(string.format('%16s: %s', what, value))
+end
+report('# input files', #PANDOC_STATE.input_files)
+report('output file', PANDOC_STATE.output_file)
+report('# request header', #PANDOC_STATE.request_headers)
+report('resource path', table.concat(PANDOC_STATE.resource_path, ', '))
+report('source URL', PANDOC_STATE.source_url)
+report('user data dir', PANDOC_STATE.user_data_dir and 'defined' or 'unset')
+report('trace', PANDOC_STATE.trace)
+report('verbosity', PANDOC_STATE.verbosity)
