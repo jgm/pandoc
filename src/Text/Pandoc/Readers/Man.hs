@@ -121,10 +121,11 @@ parseNewParagraph = do
 -- Parser: [ManToken] -> Pandoc
 --
 
-msatisfy :: (Show t, Stream s m t) => (t -> Bool) -> ParserT s st m t
+msatisfy :: Monad m => (ManToken -> Bool) -> ParserT [ManToken] st m ManToken
 msatisfy predic = tokenPrim show nextPos testTok
   where
     testTok t     = if predic t then Just t else Nothing
+    nextPos _pos _x (MMacro _ _ pos':_) = pos'
     nextPos pos _x _xs  = updatePosString
                              (setSourceColumn
                                (setSourceLine pos $ sourceLine pos + 1) 1) ""
