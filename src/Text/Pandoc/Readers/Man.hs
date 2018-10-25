@@ -61,28 +61,24 @@ instance Default ManState where
   def = ManState { readerOptions = def
                  , metadata      = nullMeta }
 
-type ManParser m = ParserT [ManToken] ManState m
+type ManParser m = ParserT [GroffToken] ManState m
 
 
 -- | Read man (troff) from an input string and return a Pandoc document.
 readMan :: PandocMonad m => ReaderOptions -> T.Text -> m Pandoc
 readMan opts txt = do
-  eithertokens <- readWithM
-    (Foldable.toList . unManTokens . mconcat <$> many manToken)
-    def (T.unpack $ crFilter txt)
-  case eithertokens of
-    Left e       -> throwError e
-    Right tokenz -> do
-      let state = def {readerOptions = opts} :: ManState
-      eitherdoc <- readWithMTokens parseMan state tokenz
-      either throwError return eitherdoc
+  tokenz <- lexGroff (crFilter txt)
+  let state = def {readerOptions = opts} :: ManState
+  eitherdoc <- readWithMTokens parseMan state
+     (Foldable.toList . unGroffTokens $ tokenz)
+  either throwError return eitherdoc
 
   where
 
   readWithMTokens :: PandocMonad m
-          => ParserT [ManToken] ManState m a  -- ^ parser
+          => ParserT [GroffToken] ManState m a  -- ^ parser
           -> ManState                         -- ^ initial state
-          -> [ManToken]                       -- ^ input
+          -> [GroffToken]                       -- ^ input
           -> m (Either PandocError a)
   readWithMTokens parser state input =
     let leftF = PandocParsecError . intercalate "\n" $ show <$> input
@@ -109,8 +105,17 @@ parseBlock = choice [ parseList
                     , parsePara
                     , parseCodeBlock
                     , parseHeader
+                    , parseTable
                     , skipUnkownMacro
                     ]
+
+parseTable :: PandocMonad m => ManParser m Blocks
+parseTable = do
+  let isMTable (MTable{}) = True
+      isMTable _          = False
+  MTable _aligns _rows pos <- msatisfy isMTable
+  report $ SkippedContent "TABLE" pos
+  return $ B.para (B.text "TABLE")
 
 parseNewParagraph :: PandocMonad m => ManParser m Blocks
 parseNewParagraph = do
@@ -118,10 +123,10 @@ parseNewParagraph = do
   return mempty
 
 --
--- Parser: [ManToken] -> Pandoc
+-- Parser: [GroffToken] -> Pandoc
 --
 
-msatisfy :: Monad m => (ManToken -> Bool) -> ParserT [ManToken] st m ManToken
+msatisfy :: Monad m => (GroffToken -> Bool) -> ParserT [GroffToken] st m GroffToken
 msatisfy predic = tokenPrim show nextPos testTok
   where
     testTok t     = if predic t then Just t else Nothing
@@ -130,32 +135,32 @@ msatisfy predic = tokenPrim show nextPos testTok
                              (setSourceColumn
                                (setSourceLine pos $ sourceLine pos + 1) 1) ""
 
-mtoken :: PandocMonad m => ManParser m ManToken
+mtoken :: PandocMonad m => ManParser m GroffToken
 mtoken = msatisfy (const True)
 
-mline :: PandocMonad m => ManParser m ManToken
+mline :: PandocMonad m => ManParser m GroffToken
 mline = msatisfy isMLine where
   isMLine (MLine _) = True
   isMLine _ = False
 
-memptyLine :: PandocMonad m => ManParser m ManToken
+memptyLine :: PandocMonad m => ManParser m GroffToken
 memptyLine = msatisfy isMEmptyLine where
   isMEmptyLine MEmptyLine = True
   isMEmptyLine _ = False
 
-mmacro :: PandocMonad m => MacroKind -> ManParser m ManToken
+mmacro :: PandocMonad m => MacroKind -> ManParser m GroffToken
 mmacro mk = msatisfy isMMacro where
   isMMacro (MMacro mk' _ _) | mk == mk' = True
                             | otherwise = False
   isMMacro _ = False
 
-mmacroAny :: PandocMonad m => ManParser m ManToken
+mmacroAny :: PandocMonad m => ManParser m GroffToken
 mmacroAny = msatisfy isMMacro where
   isMMacro (MMacro{}) = True
   isMMacro _ = False
 
 --
--- ManToken -> Block functions
+-- GroffToken -> Block functions
 --
 
 parseTitle :: PandocMonad m => ManParser m Blocks
@@ -284,12 +289,12 @@ lineInl = do
   (MLine fragments) <- mline
   return $ linePartsToInlines fragments
 
-bareIP :: PandocMonad m => ManParser m ManToken
+bareIP :: PandocMonad m => ManParser m GroffToken
 bareIP = msatisfy isBareIP where
   isBareIP (MMacro "IP" [] _) = True
   isBareIP _                  = False
 
-endmacro :: PandocMonad m => String -> ManParser m ManToken
+endmacro :: PandocMonad m => String -> ManParser m GroffToken
 endmacro name = mmacro name <|> lookAhead newBlockMacro
   where
     newBlockMacro = msatisfy isNewBlockMacro
@@ -307,7 +312,7 @@ parseCodeBlock = try $ do
 
   where
 
-  extractText :: ManToken -> Maybe String
+  extractText :: GroffToken -> Maybe String
   extractText (MLine ss)
     | not (null ss)
     , all isFontToken ss = Nothing

@@ -37,18 +37,16 @@ module Text.Pandoc.Readers.Groff
   , defaultFontSpec
   , LinePart(..)
   , Arg
-  , ManToken(..)
-  , ManTokens(..)
-  , singleTok
-  , RoffState(..)
-  , ManLexer
-  , manToken
+  , GroffToken(..)
+  , GroffTokens(..)
   , linePartsToString
+  , lexGroff
   )
 where
 
 import Prelude
 import Control.Monad (void, mzero, guard, when)
+import Control.Monad.Except (throwError)
 import Text.Pandoc.Class
        (getResourcePath, readFileFromDirs, PandocMonad(..), report)
 import Data.Char (isHexDigit, chr, ord, isAscii, isAlphaNum, isSpace)
@@ -56,7 +54,6 @@ import Data.Default (Default)
 import qualified Data.Map as M
 import Data.List (intercalate, isSuffixOf)
 import qualified Data.Text as T
-import Text.Pandoc.Builder as B
 import Text.Pandoc.Logging (LogMessage(..))
 import Text.Pandoc.Options
 import Text.Pandoc.Parsing
@@ -92,21 +89,22 @@ data LinePart = RoffStr String
 type Arg = [LinePart]
 
 -- TODO parse tables (see man tbl)
-data ManToken = MLine [LinePart]
+data GroffToken = MLine [LinePart]
               | MEmptyLine
               | MMacro MacroKind [Arg] SourcePos
-              | MTable [Alignment] ManTokens [ManTokens] [[ManTokens]]
+              | MTable [[String]] [[GroffTokens]] SourcePos
               deriving Show
 
-newtype ManTokens = ManTokens { unManTokens :: Seq.Seq ManToken }
+newtype GroffTokens = GroffTokens { unGroffTokens :: Seq.Seq GroffToken }
         deriving (Show, Semigroup, Monoid)
 
-singleTok :: ManToken -> ManTokens
-singleTok t = ManTokens (Seq.singleton t)
+singleTok :: GroffToken -> GroffTokens
+singleTok t = GroffTokens (Seq.singleton t)
 
-data RoffState = RoffState { customMacros :: M.Map String ManTokens
+data RoffState = RoffState { customMacros :: M.Map String GroffTokens
                            , prevFont     :: FontSpec
                            , currentFont  :: FontSpec
+                           , tableTabChar :: Char
                            } deriving Show
 
 instance Default RoffState where
@@ -120,12 +118,13 @@ instance Default RoffState where
                        , ("R",  "\x00AE") ]
                   , prevFont = defaultFontSpec
                   , currentFont = defaultFontSpec
+                  , tableTabChar = '\t'
                   }
 
-type ManLexer m = ParserT [Char] RoffState m
+type GroffLexer m = ParserT [Char] RoffState m
 
 --
--- Lexer: String -> ManToken
+-- Lexer: String -> GroffToken
 --
 
 eofline :: Stream s m Char => ParsecT s u m ()
@@ -142,7 +141,7 @@ combiningAccentsMap :: M.Map String Char
 combiningAccentsMap =
   M.fromList $ map (\(x,y) -> (y,x)) combiningAccents
 
-escape :: PandocMonad m => ManLexer m [LinePart]
+escape :: PandocMonad m => GroffLexer m [LinePart]
 escape = do
   char '\\'
   c <- anyChar
@@ -224,14 +223,14 @@ escape = do
        Nothing  -> mzero
        Just c   -> return c
 
-  escUnknown :: PandocMonad m => String -> ManLexer m [LinePart]
+  escUnknown :: PandocMonad m => String -> GroffLexer m [LinePart]
   escUnknown s = do
     pos <- getPosition
     report $ SkippedContent ("Unknown escape sequence " ++ s) pos
     return [RoffStr "\xFFFD"]
 
 -- \s-1 \s0
-escFontSize :: PandocMonad m => ManLexer m [LinePart]
+escFontSize :: PandocMonad m => GroffLexer m [LinePart]
 escFontSize = do
   let sign = option "" $ count 1 (oneOf "+-")
   let toFontSize xs =
@@ -253,7 +252,7 @@ escFontSize = do
          toFontSize (s ++ ds)
     ]
 
-escFont :: PandocMonad m => ManLexer m [LinePart]
+escFont :: PandocMonad m => GroffLexer m [LinePart]
 escFont = do
   font <- choice
         [ char 'S' >> return defaultFontSpec
@@ -267,7 +266,7 @@ escFont = do
                          , currentFont = font }
   return [Font font]
 
-lettersFont :: PandocMonad m => ManLexer m FontSpec
+lettersFont :: PandocMonad m => GroffLexer m FontSpec
 lettersFont = try $ do
   char '['
   fs <- many letterFontKind
@@ -277,7 +276,7 @@ lettersFont = try $ do
      then prevFont <$> getState
      else return $ foldr ($) defaultFontSpec fs
 
-letterFontKind :: PandocMonad m => ManLexer m (FontSpec -> FontSpec)
+letterFontKind :: PandocMonad m => GroffLexer m (FontSpec -> FontSpec)
 letterFontKind = choice [
     oneOf ['B','b'] >> return (\fs -> fs{ fontBold = True })
   , oneOf ['I','i'] >> return (\fs -> fs { fontItalic = True })
@@ -288,7 +287,7 @@ letterFontKind = choice [
 
 -- separate function from lexMacro since real man files sometimes do not
 -- follow the rules
-lexComment :: PandocMonad m => ManLexer m ManTokens
+lexComment :: PandocMonad m => GroffLexer m GroffTokens
 lexComment = do
   try $ string ".\\\""
   many Parsec.space
@@ -296,18 +295,18 @@ lexComment = do
   char '\n'
   return mempty
 
-lexMacro :: PandocMonad m => ManLexer m ManTokens
+lexMacro :: PandocMonad m => GroffLexer m GroffTokens
 lexMacro = do
   pos <- getPosition
   char '.' <|> char '\''
-  many spacetab
+  skipMany spacetab
   macroName <- many (satisfy (not . isSpace))
   case macroName of
     "nop" -> return mempty
     "ie"  -> lexConditional
     "if"  -> lexConditional
     "el"  -> skipConditional
-    "TS"  -> lexTable
+    "TS"  -> lexTable pos
 
     _ -> do
        args <- lexArgs
@@ -323,30 +322,100 @@ lexMacro = do
          "so"   -> lexIncludeFile args
          _      -> resolveMacro macroName args pos
 
--- | TODO placeholder
-lexTable :: PandocMonad m => ManLexer m ManTokens
-lexTable = do
-  pos <- getPosition
-  manyTill anyLine (try (string ".TE" >> many spacetab >> eofline))
-  report $ SkippedContent "table" pos
-  return mempty
+lexTable :: PandocMonad m => SourcePos -> GroffLexer m GroffTokens
+lexTable pos = do
+  spaces
+  optional tableOptions
+  spaces
+  aligns <- tableFormatSpec
+  spaces
+  rows <- manyTill tableRow (try (string ".TE" >> skipMany spacetab >> eofline))
+  return $ singleTok $ MTable aligns rows pos
+ 
+tableCell :: PandocMonad m => GroffLexer m GroffTokens
+tableCell = (enclosedCell <|> simpleCell) >>= lexGroff . T.pack
+  where
+  enclosedCell = do
+    try (string "T{")
+    manyTill anyChar (try (string "T}"))
+  simpleCell = do
+    tabChar <- tableTabChar <$> getState
+    many1 (notFollowedBy (char tabChar <|> newline) >> anyChar)
 
+tableRow :: PandocMonad m => GroffLexer m [GroffTokens]
+tableRow = do
+  tabChar <- tableTabChar <$> getState
+  c <- tableCell
+  cs <- many $ try (char tabChar >> tableCell)
+  skipMany spacetab
+  eofline
+  return (c:cs)
+
+tableOptions :: PandocMonad m => GroffLexer m ()
+tableOptions = try $ do
+  opts <- many1 tableOption <* spaces <* char ';'
+  case lookup "tab" opts of
+    Just (c:_) -> modifyState $ \st -> st{ tableTabChar = c }
+    _          -> modifyState $ \st -> st{ tableTabChar = '\t' }
+  return ()
+
+tableOption :: PandocMonad m => GroffLexer m (String, String)
+tableOption = do
+  k <- many1 letter
+  v <- option "" $ do
+         char '('
+         manyTill anyChar (char ')')
+  spaces
+  optional (char ',')
+  return (k,v)
+
+tableFormatSpec :: PandocMonad m => GroffLexer m [[String]]
+tableFormatSpec = do
+  speclines <- tableFormatSpecLine `sepBy1` (newline <|> char ',')
+  char '.'
+  return speclines
+
+tableFormatSpecLine :: PandocMonad m => GroffLexer m [String]
+tableFormatSpecLine = do
+  as <- many1 $ skipMany spacetab >> tableColFormat
+  skipMany spacetab
+  return as
+
+tableColFormat :: PandocMonad m => GroffLexer m String
+tableColFormat = do
+    pipePrefix <- option "" $ try $ string "|" <* notFollowedBy spacetab
+    c <- oneOf ['a','A','c','C','l','L','n','N','r','R','s','S','^','_','-',
+                '=','|']
+    numsuffix <- option "" $ many1 digit
+    suffixes <- many $ do
+      x <- oneOf ['b','B','d','D','e','E','f','F','i','I','m','M',
+                  'p','P','t','T','u','U','v','V','w','W','x','X', 'z','Z']
+      num <- if x == 'w'
+                then many1 digit <|>
+                      do char '('
+                         xs <- manyTill anyChar (char ')')
+                         return ("(" ++ xs ++ ")")
+                else return ""
+      return $ x : num
+    pipeSuffix <- option "" $ string "|"
+    return $ pipePrefix ++ (c : numsuffix ++ concat suffixes ++ pipeSuffix)
+ 
 -- We don't fully handle the conditional.  But we do
 -- include everything under '.ie n', which occurs commonly
 -- in man pages.  We always skip the '.el' part.
-lexConditional :: PandocMonad m => ManLexer m ManTokens
+lexConditional :: PandocMonad m => GroffLexer m GroffTokens
 lexConditional = do
   skipMany spacetab
   lexNCond <|> skipConditional
 
 -- n means nroff mode
-lexNCond :: PandocMonad m => ManLexer m ManTokens
+lexNCond :: PandocMonad m => GroffLexer m GroffTokens
 lexNCond = do
   char '\n'
   many1 spacetab
   lexGroup <|> manToken
 
-lexGroup :: PandocMonad m => ManLexer m ManTokens
+lexGroup :: PandocMonad m => GroffLexer m GroffTokens
 lexGroup = do
   groupstart
   mconcat <$> manyTill manToken groupend
@@ -354,14 +423,14 @@ lexGroup = do
     groupstart = try $ string "\\{\\" >> newline
     groupend   = try $ string "\\}" >> eofline
 
-skipConditional :: PandocMonad m => ManLexer m ManTokens
+skipConditional :: PandocMonad m => GroffLexer m GroffTokens
 skipConditional = do
   rest <- anyLine
   when ("\\{\\" `isSuffixOf` rest) $
     void $ manyTill anyChar (try (string "\\}"))
   return mempty
 
-lexIncludeFile :: PandocMonad m => [Arg] -> ManLexer m ManTokens
+lexIncludeFile :: PandocMonad m => [Arg] -> GroffLexer m GroffTokens
 lexIncludeFile args = do
   pos <- getPosition
   case args of
@@ -376,7 +445,7 @@ lexIncludeFile args = do
     []    -> return mempty
 
 resolveMacro :: PandocMonad m
-             => String -> [Arg] -> SourcePos -> ManLexer m ManTokens
+             => String -> [Arg] -> SourcePos -> GroffLexer m GroffTokens
 resolveMacro macroName args pos = do
   macros <- customMacros <$> getState
   case M.lookup macroName macros of
@@ -390,9 +459,9 @@ resolveMacro macroName args pos = do
       let fillMacroArg (MLine lineparts) =
             MLine (foldr fillLP [] lineparts)
           fillMacroArg x = x
-      return $ ManTokens . fmap fillMacroArg . unManTokens $ ts
+      return $ GroffTokens . fmap fillMacroArg . unGroffTokens $ ts
 
-lexStringDef :: PandocMonad m => [Arg] -> ManLexer m ManTokens
+lexStringDef :: PandocMonad m => [Arg] -> GroffLexer m GroffTokens
 lexStringDef args = do -- string definition
    case args of
      []     -> fail "No argument to .ds"
@@ -403,7 +472,7 @@ lexStringDef args = do -- string definition
          st{ customMacros = M.insert stringName ts (customMacros st) }
    return mempty
 
-lexMacroDef :: PandocMonad m => [Arg] -> ManLexer m ManTokens
+lexMacroDef :: PandocMonad m => [Arg] -> GroffLexer m GroffTokens
 lexMacroDef args = do -- macro definition
    (macroName, stopMacro) <-
      case args of
@@ -413,7 +482,7 @@ lexMacroDef args = do -- macro definition
        []          -> fail "No argument to .de"
    let stop = try $ do
          char '.' <|> char '\''
-         many spacetab
+         skipMany spacetab
          string stopMacro
          _ <- lexArgs
          return ()
@@ -422,7 +491,7 @@ lexMacroDef args = do -- macro definition
      st{ customMacros = M.insert macroName ts (customMacros st) }
    return mempty
 
-lexArgs :: PandocMonad m => ManLexer m [Arg]
+lexArgs :: PandocMonad m => GroffLexer m [Arg]
 lexArgs = do
   args <- many $ try oneArg
   skipMany spacetab
@@ -431,20 +500,20 @@ lexArgs = do
 
   where
 
-  oneArg :: PandocMonad m => ManLexer m [LinePart]
+  oneArg :: PandocMonad m => GroffLexer m [LinePart]
   oneArg = do
     skipMany $ try $ string "\\\n"  -- continuation line
     try quotedArg <|> plainArg
     -- try, because there are some erroneous files, e.g. linux/bpf.2
 
-  plainArg :: PandocMonad m => ManLexer m [LinePart]
+  plainArg :: PandocMonad m => GroffLexer m [LinePart]
   plainArg = do
     skipMany spacetab
     mconcat <$> many1 (macroArg <|> escape <|> regularText <|> unescapedQuote)
     where
       unescapedQuote = char '"' >> return [RoffStr "\""]
 
-  quotedArg :: PandocMonad m => ManLexer m [LinePart]
+  quotedArg :: PandocMonad m => GroffLexer m [LinePart]
   quotedArg = do
     skipMany spacetab
     char '"'
@@ -459,7 +528,7 @@ lexArgs = do
         char '"'
         return [RoffStr "\""]
 
-escStar :: PandocMonad m => ManLexer m [LinePart]
+escStar :: PandocMonad m => GroffLexer m [LinePart]
 escStar = try $ do
   pos <- getPosition
   c <- anyChar
@@ -478,14 +547,14 @@ escStar = try $ do
 
   -- strings and macros share namespace
   resolveString stringname pos = do
-    ManTokens ts <- resolveMacro stringname [] pos
+    GroffTokens ts <- resolveMacro stringname [] pos
     case Foldable.toList ts of
       [MLine xs] -> return xs
       _          -> do
         report $ SkippedContent ("unknown string " ++ stringname) pos
         return mempty
 
-lexLine :: PandocMonad m => ManLexer m ManTokens
+lexLine :: PandocMonad m => GroffLexer m GroffTokens
 lexLine = do
   lnparts <- mconcat <$> many1 linePart
   eofline
@@ -496,35 +565,35 @@ lexLine = do
     go (RoffStr "" : xs) = go xs
     go xs = return $ singleTok $ MLine xs
 
-linePart :: PandocMonad m => ManLexer m [LinePart]
+linePart :: PandocMonad m => GroffLexer m [LinePart]
 linePart = macroArg <|> escape <|>
            regularText <|> quoteChar <|> spaceTabChar
 
-macroArg :: PandocMonad m => ManLexer m [LinePart]
+macroArg :: PandocMonad m => GroffLexer m [LinePart]
 macroArg = try $ do
   string "\\\\$"
   x <- digit
   return [MacroArg $ ord x - ord '0']
 
-regularText :: PandocMonad m => ManLexer m [LinePart]
+regularText :: PandocMonad m => GroffLexer m [LinePart]
 regularText = do
   s <- many1 $ noneOf "\n\r\t \\\""
   return [RoffStr s]
 
-quoteChar :: PandocMonad m => ManLexer m [LinePart]
+quoteChar :: PandocMonad m => GroffLexer m [LinePart]
 quoteChar = do
   char '"'
   return [RoffStr "\""]
 
-spaceTabChar :: PandocMonad m => ManLexer m [LinePart]
+spaceTabChar :: PandocMonad m => GroffLexer m [LinePart]
 spaceTabChar = do
   c <- spacetab
   return [RoffStr [c]]
 
-lexEmptyLine :: PandocMonad m => ManLexer m ManTokens
+lexEmptyLine :: PandocMonad m => GroffLexer m GroffTokens
 lexEmptyLine = char '\n' >> return (singleTok MEmptyLine)
 
-manToken :: PandocMonad m => ManLexer m ManTokens
+manToken :: PandocMonad m => GroffLexer m GroffTokens
 manToken = lexComment <|> lexMacro <|> lexLine <|> lexEmptyLine
 
 linePartsToString :: [LinePart] -> String
@@ -532,3 +601,11 @@ linePartsToString = mconcat . map go
   where
   go (RoffStr s) = s
   go _ = mempty
+
+-- | Tokenize a string as a sequence of groff tokens.
+lexGroff :: PandocMonad m => T.Text -> m GroffTokens
+lexGroff txt = do
+  eithertokens <- readWithM (mconcat <$> many manToken) def (T.unpack txt)
+  case eithertokens of
+    Left e       -> throwError e
+    Right tokenz -> return tokenz
