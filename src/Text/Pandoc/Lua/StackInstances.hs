@@ -389,6 +389,11 @@ instance Pushable ReaderOptions where
 -- | Dummy type to allow values of arbitrary Lua type.
 newtype AnyValue = AnyValue StackIndex
 
+--
+-- TODO: Much of the following should be abstracted, factored out
+-- and go into HsLua.
+--
+
 instance Peekable AnyValue where
   peek = return . AnyValue
 
@@ -405,6 +410,7 @@ instance Pushable CommonState where
    where
     pushCommonStateMetatable = ensureUserdataMetatable commonStateTypeName $ do
       LuaUtil.addFunction "__index" indexCommonState
+      LuaUtil.addFunction "__pairs" pairsCommonState
 
 indexCommonState :: CommonState -> AnyValue -> Lua Lua.NumResults
 indexCommonState st (AnyValue idx) = Lua.ltype idx >>= \case
@@ -412,13 +418,38 @@ indexCommonState st (AnyValue idx) = Lua.ltype idx >>= \case
   _ -> 1 <$ Lua.pushnil
  where
   pushField :: String -> Lua ()
-  pushField = \case
-    "input_files"     -> Lua.push (stInputFiles st)
-    "output_file"     -> Lua.push (Lua.Optional (stOutputFile st))
-    "request_headers" -> Lua.push (Map.fromList (stRequestHeaders st))
-    "resource_path"   -> Lua.push (stResourcePath st)
-    "source_url"      -> Lua.push (Lua.Optional (stSourceURL st))
-    "user_data_dir"   -> Lua.push (Lua.Optional (stUserDataDir st))
-    "trace"           -> Lua.push (stTrace st)
-    "verbosity"       -> Lua.push (show (stVerbosity st))
-    _ -> Lua.pushnil
+  pushField name = case lookup name commonStateFields of
+    Just pushValue -> pushValue st
+    Nothing -> Lua.pushnil
+
+pairsCommonState :: CommonState -> Lua Lua.NumResults
+pairsCommonState st = do
+  Lua.pushHaskellFunction nextFn
+  Lua.pushnil
+  Lua.pushnil
+  return 3
+ where
+  nextFn :: AnyValue -> AnyValue -> Lua Lua.NumResults
+  nextFn _ (AnyValue idx) =
+    Lua.ltype idx >>= \case
+      Lua.TypeNil -> case commonStateFields of
+        []  -> 2 <$ (Lua.pushnil *> Lua.pushnil)
+        (key, pushValue):_ -> 2 <$ (Lua.push key *> pushValue st)
+      Lua.TypeString -> do
+        key <- Lua.peek idx
+        case tail $ dropWhile ((/= key) . fst) commonStateFields of
+          []                     -> 2 <$ (Lua.pushnil *> Lua.pushnil)
+          (nextKey, pushValue):_ -> 2 <$ (Lua.push nextKey *> pushValue st)
+      _ -> 2 <$ (Lua.pushnil *> Lua.pushnil)
+
+commonStateFields :: [(String, CommonState -> Lua ())]
+commonStateFields =
+  [ ("input_files", Lua.push . stInputFiles)
+  , ("output_file", Lua.push . Lua.Optional . stOutputFile)
+  , ("request_headers", Lua.push . Map.fromList . stRequestHeaders)
+  , ("resource_path", Lua.push . stResourcePath)
+  , ("source_url", Lua.push . Lua.Optional . stSourceURL)
+  , ("user_data_dir", Lua.push . Lua.Optional . stUserDataDir)
+  , ("trace", Lua.push . stTrace)
+  , ("verbosity", Lua.push . show . stVerbosity)
+  ]
