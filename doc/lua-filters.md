@@ -171,6 +171,12 @@ variables.
 :   The name used to involve the filter. This value can be used
     to find files relative to the script file. This variable is
     also set in custom writers.
+    
+`PANDOC_STATE`
+:   The state shared by all readers and writers. It is used by
+    pandoc to collect and pass information. The value of this
+    variable is of type [CommonState](#type-ref-CommonState) and
+    is read-only.
 
 # Pandoc Module
 
