@@ -38,6 +38,7 @@ module Text.Pandoc.Readers.Groff
   , LinePart(..)
   , Arg
   , TableOption
+  , TableFormat
   , GroffToken(..)
   , GroffTokens(..)
   , linePartsToString
@@ -89,12 +90,13 @@ data LinePart = RoffStr String
 
 type Arg = [LinePart]
 type TableOption = (String, String)
+type TableFormat = String
 
 -- TODO parse tables (see man tbl)
 data GroffToken = MLine [LinePart]
               | MEmptyLine
               | MMacro MacroKind [Arg] SourcePos
-              | MTable [TableOption] [[String]] [[GroffTokens]] SourcePos
+              | MTable [TableOption] [[TableFormat]] [[GroffTokens]] SourcePos
               deriving Show
 
 newtype GroffTokens = GroffTokens { unGroffTokens :: Seq.Seq GroffToken }
@@ -369,13 +371,13 @@ tableOption = do
   optional (char ',')
   return (k,v)
 
-tableFormatSpec :: PandocMonad m => GroffLexer m [[String]]
+tableFormatSpec :: PandocMonad m => GroffLexer m [[TableFormat]]
 tableFormatSpec = do
   speclines <- tableFormatSpecLine `sepBy1` (newline <|> char ',')
   char '.'
   return speclines
 
-tableFormatSpecLine :: PandocMonad m => GroffLexer m [String]
+tableFormatSpecLine :: PandocMonad m => GroffLexer m [TableFormat]
 tableFormatSpecLine = do
   as <- many1 $ skipMany spacetab >> tableColFormat
   skipMany spacetab
