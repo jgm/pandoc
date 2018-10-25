@@ -39,7 +39,6 @@ import Control.Monad (liftM, mzero, guard)
 import Control.Monad.Except (throwError)
 import Text.Pandoc.Class (PandocMonad(..), report)
 import Data.Maybe (catMaybes)
-import qualified Data.Set as S
 import Data.List (intersperse, intercalate)
 import qualified Data.Text as T
 import Text.Pandoc.Builder as B
@@ -174,34 +173,16 @@ parseTitle = do
   return mempty
 
 linePartsToInlines :: [LinePart] -> Inlines
-linePartsToInlines = go
+linePartsToInlines = go []
 
   where
-  go [] = mempty
-  go (MacroArg _:xs) = go xs -- shouldn't happen
-  go xs@(RoffStr{} : _) =
-    if lb > 0 && lb >= li
-       then strong (go (removeFont Bold bolds)) <> go (drop lb xs)
-       else if li > 0
-            then emph (go (removeFont Italic italics)) <> go (drop li xs)
-            else text (linePartsToString regulars) <> go (drop lr xs)
-
-    where
-    (lb, li, lr) = (length bolds, length italics, length regulars)
-
-    removeFont font = map (removeFont' font)
-    removeFont' font (RoffStr (s,f)) = RoffStr (s, S.delete font f)
-    removeFont' _ x = x
-
-    bolds = takeWhile isBold xs
-    italics = takeWhile isItalic xs
-    regulars = takeWhile (\x -> not (isBold x || isItalic x)) xs
-
-    isBold (RoffStr (_,f)) = Bold `S.member` f
-    isBold _ = False
-
-    isItalic (RoffStr (_,f)) = Italic `S.member` f
-    isItalic _ = False
+  go :: [[FontKind]] -> [LinePart] -> Inlines
+  go _ [] = mempty
+  go fs (MacroArg _:xs) = go fs xs -- shouldn't happen
+  go fs (RoffStr s : xs) = text s <> go fs xs
+  go (_:fs) (Font [] : xs) = go fs xs -- return to previous font
+  go fs (Font _newfonts : xs) = go fs xs
+  go fonts (FontSize _fs : xs) = go fonts xs
 
 parsePara :: PandocMonad m => ManParser m Blocks
 parsePara = para . trimInlines <$> parseInlines
@@ -289,7 +270,13 @@ parseCodeBlock = try $ do
   where
 
   extractText :: ManToken -> Maybe String
-  extractText (MLine ss) = Just $ linePartsToString ss
+  extractText (MLine ss)
+    | not (null ss)
+    , all isFontToken ss = Nothing
+    | otherwise          = Just $ linePartsToString ss
+    where isFontToken (FontSize{}) = True
+          isFontToken (Font{})     = True
+          isFontToken _            = False
   extractText MEmptyLine = Just ""
   -- string are intercalated with '\n', this prevents double '\n'
   extractText _ = Nothing
