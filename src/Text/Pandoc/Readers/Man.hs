@@ -34,11 +34,13 @@ Conversion of man to 'Pandoc' document.
 module Text.Pandoc.Readers.Man (readMan) where
 
 import Prelude
+import Data.Char (toLower)
 import Data.Default (Default)
 import Control.Monad (liftM, mzero, guard)
+import Control.Monad.Trans (lift)
 import Control.Monad.Except (throwError)
 import Text.Pandoc.Class (PandocMonad(..), report)
-import Data.Maybe (catMaybes)
+import Data.Maybe (catMaybes, isJust)
 import Data.List (intersperse, intercalate)
 import qualified Data.Text as T
 import Text.Pandoc.Builder as B
@@ -73,20 +75,18 @@ readMan opts txt = do
      (Foldable.toList . unGroffTokens $ tokenz)
   either throwError return eitherdoc
 
-  where
+readWithMTokens :: PandocMonad m
+        => ParserT [GroffToken] ManState m a  -- ^ parser
+        -> ManState                         -- ^ initial state
+        -> [GroffToken]                       -- ^ input
+        -> m (Either PandocError a)
+readWithMTokens parser state input =
+  let leftF = PandocParsecError . intercalate "\n" $ show <$> input
+  in mapLeft leftF `liftM` runParserT parser state "source" input
 
-  readWithMTokens :: PandocMonad m
-          => ParserT [GroffToken] ManState m a  -- ^ parser
-          -> ManState                         -- ^ initial state
-          -> [GroffToken]                       -- ^ input
-          -> m (Either PandocError a)
-  readWithMTokens parser state input =
-    let leftF = PandocParsecError . intercalate "\n" $ show <$> input
-    in mapLeft leftF `liftM` runParserT parser state "source" input
-
-  mapLeft :: (a -> c) -> Either a b -> Either c b
-  mapLeft f (Left x) = Left $ f x
-  mapLeft _ (Right r) = Right r
+mapLeft :: (a -> c) -> Either a b -> Either c b
+mapLeft f (Left x) = Left $ f x
+mapLeft _ (Right r) = Right r
 
 
 parseMan :: PandocMonad m => ManParser m Pandoc
@@ -113,9 +113,55 @@ parseTable :: PandocMonad m => ManParser m Blocks
 parseTable = do
   let isMTable (MTable{}) = True
       isMTable _          = False
-  MTable _opts _aligns _rows pos <- msatisfy isMTable
-  report $ SkippedContent "TABLE" pos
-  return $ B.para (B.text "TABLE")
+  MTable _opts aligns rows pos <- msatisfy isMTable
+  case aligns of
+    [as] -> do
+      let as' = map (columnTypeToAlignment . columnType) as
+      if all isJust as'
+         then do
+           let alignments = catMaybes as'
+           let (headerRow', bodyRows') =
+                 case rows of
+                   (h:[x]:bs)
+                    | isHrule x -> (h, bs)
+                   _ -> ([], rows)
+           headerRow <- mapM parseTableCell headerRow'
+           bodyRows <- mapM (mapM parseTableCell) bodyRows'
+           return $ B.table mempty (zip alignments (repeat 0.0))
+                       headerRow bodyRows
+         else fallback pos
+    _ -> fallback pos
+
+ where
+
+  parseTableCell ts = do
+    st <- getState
+    let ts' = Foldable.toList $ unGroffTokens ts
+    res <- lift $ readWithMTokens (mconcat <$> many parseBlock <* eof) st ts'
+    case res of
+      Left e  -> throwError e
+      Right x -> return x
+
+  isHrule :: GroffTokens -> Bool
+  isHrule (GroffTokens ss) =
+    case Foldable.toList ss of
+      [MLine [RoffStr [c]]] -> c `elem` ['_','-','=']
+      _                     -> False
+
+  fallback pos = do
+    report $ SkippedContent "TABLE" pos
+    return $ B.para (B.text "TABLE")
+
+  columnTypeToAlignment :: Char -> Maybe Alignment
+  columnTypeToAlignment c =
+    case toLower c of
+      'a' -> Just AlignLeft
+      'c' -> Just AlignCenter
+      'l' -> Just AlignLeft
+      'n' -> Just AlignRight
+      'r' -> Just AlignRight
+      _   -> Nothing
+
 
 parseNewParagraph :: PandocMonad m => ManParser m Blocks
 parseNewParagraph = do
