@@ -44,6 +44,7 @@ import Foreign.Lua.Userdata ( ensureUserdataMetatable, pushAnyWithMetatable
 import Text.Pandoc.Class (CommonState (..))
 import Text.Pandoc.Definition
 import Text.Pandoc.Extensions (Extensions)
+import Text.Pandoc.Logging (LogMessage, showLogMessage)
 import Text.Pandoc.Lua.Util (defineHowTo, pushViaConstructor)
 import Text.Pandoc.Options (ReaderOptions (..), TrackChanges)
 import Text.Pandoc.Shared (Element (Blk, Sec))
@@ -446,6 +447,7 @@ commonStateFields :: [(String, CommonState -> Lua ())]
 commonStateFields =
   [ ("input_files", Lua.push . stInputFiles)
   , ("output_file", Lua.push . Lua.Optional . stOutputFile)
+  , ("log", Lua.push . stLog)
   , ("request_headers", Lua.push . Map.fromList . stRequestHeaders)
   , ("resource_path", Lua.push . stResourcePath)
   , ("source_url", Lua.push . Lua.Optional . stSourceURL)
@@ -453,3 +455,20 @@ commonStateFields =
   , ("trace", Lua.push . stTrace)
   , ("verbosity", Lua.push . show . stVerbosity)
   ]
+
+-- | Name used by Lua for the @CommonState@ type.
+logMessageTypeName :: String
+logMessageTypeName = "Pandoc LogMessage"
+
+instance Peekable LogMessage where
+  peek idx = reportValueOnFailure logMessageTypeName
+             (`toAnyWithName` logMessageTypeName) idx
+
+instance Pushable LogMessage where
+  push msg = pushAnyWithMetatable pushLogMessageMetatable msg
+   where
+    pushLogMessageMetatable = ensureUserdataMetatable logMessageTypeName $
+      LuaUtil.addFunction "__tostring" tostringLogMessage
+
+tostringLogMessage :: LogMessage -> Lua String
+tostringLogMessage = return . showLogMessage

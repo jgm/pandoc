@@ -1297,6 +1297,9 @@ available to readers and writers.
 `output_file`
 :   Output file from command line (string or nil)
 
+`log`
+:   A list of log messages in reverse order ([List] of [LogMessage]s)
+
 `request_headers`
 :   Headers to add for HTTP requests; table with header names as
     keys and header contents as value (table)
@@ -1318,6 +1321,11 @@ available to readers and writers.
 `verbosity`
 :   Verbosity level; one of `INFO`, `WARNING`, `ERROR` (string)
 
+## LogMessage {#type-ref-LogMessage}
+
+A pandoc log message. Object have no fields, but can be converted
+to a string via `tostring`.
+
 [Block]: #type-ref-Block
 [List]: #module-pandoc.list
 [MetaValue]: #type-ref-MetaValue
@@ -1325,6 +1333,7 @@ available to readers and writers.
 [Attr]: #type-ref-Attr
 [Attributes]: #type-ref-Attributes
 [citations]: #type-ref-Citation
+[LogMessage]: #type-ref-LogMessage
 
 # Module text
 
