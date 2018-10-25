@@ -174,15 +174,52 @@ parseTitle = do
   return mempty
 
 linePartsToInlines :: [LinePart] -> Inlines
-linePartsToInlines = go
+linePartsToInlines = go False
 
   where
-  go :: [LinePart] -> Inlines
-  go [] = mempty
-  go (MacroArg _:xs) = go xs -- shouldn't happen
-  go (RoffStr s : xs) = text s <> go xs
-  go (Font _newfonts : xs) = go xs
-  go (FontSize _fs : xs) = go xs
+  go :: Bool -> [LinePart] -> Inlines
+  go _ [] = mempty
+  go mono (MacroArg _:xs) = go mono xs -- shouldn't happen
+  go mono (RoffStr s : xs)
+    | mono      = code s <> go mono xs
+    | otherwise = text s <> go mono xs
+  go mono (Font fs: xs) =
+    if litals > 0 && litals >= lbolds && litals >= lmonos
+       then emph (go mono (Font fs{ fontItalic = False } :
+                   map (adjustFontSpec (\s -> s{ fontItalic = False }))
+                   itals)) <>
+            go mono italsrest
+       else if lbolds > 0 && lbolds >= lmonos
+            then strong (go mono (Font fs{ fontBold = False } :
+                   map (adjustFontSpec (\s -> s{ fontBold = False }))
+                   bolds)) <>
+                 go mono boldsrest
+            else if lmonos > 0
+                 then go True (Font fs{ fontMonospace = False } :
+                    map (adjustFontSpec (\s -> s { fontMonospace = False }))
+                    monos) <> go mono monosrest
+                 else go mono xs
+    where
+      adjustFontSpec f (Font fspec) = Font (f fspec)
+      adjustFontSpec _ x            = x
+      withFont f (Font fspec) = f fspec
+      withFont _ _            = False
+      litals = length itals
+      lbolds = length bolds
+      lmonos = length monos
+      (itals, italsrest) =
+        if fontItalic fs
+           then break (withFont (not . fontItalic)) xs
+           else ([], xs)
+      (bolds, boldsrest) =
+        if fontBold fs
+           then break (withFont (not . fontBold)) xs
+           else ([], xs)
+      (monos, monosrest) =
+        if fontMonospace fs
+           then break (withFont (not . fontMonospace)) xs
+           else ([], xs)
+  go mono (FontSize _fs : xs) = go mono xs
 
 parsePara :: PandocMonad m => ManParser m Blocks
 parsePara = para . trimInlines <$> parseInlines
