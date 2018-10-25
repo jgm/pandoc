@@ -38,7 +38,7 @@ module Text.Pandoc.Readers.Groff
   , LinePart(..)
   , Arg
   , TableOption
-  , TableFormat
+  , TableFormat(..)
   , GroffToken(..)
   , GroffTokens(..)
   , linePartsToString
@@ -89,8 +89,17 @@ data LinePart = RoffStr String
               deriving Show
 
 type Arg = [LinePart]
+
 type TableOption = (String, String)
-type TableFormat = String
+
+data TableFormat =
+  TableFormat
+  { columnType     :: Char
+  , pipePrefix     :: Bool
+  , pipeSuffix     :: Bool
+  , columnSuffixes :: [String]
+  } deriving (Show, Eq, Ord)
+
 
 -- TODO parse tables (see man tbl)
 data GroffToken = MLine [LinePart]
@@ -383,12 +392,13 @@ tableFormatSpecLine = do
   skipMany spacetab
   return as
 
-tableColFormat :: PandocMonad m => GroffLexer m String
+tableColFormat :: PandocMonad m => GroffLexer m TableFormat
 tableColFormat = do
-    pipePrefix <- option "" $ try $ string "|" <* notFollowedBy spacetab
+    pipePrefix' <- option False
+                   $ True <$ (try $ string "|" <* notFollowedBy spacetab)
     c <- oneOf ['a','A','c','C','l','L','n','N','r','R','s','S','^','_','-',
                 '=','|']
-    numsuffix <- option "" $ many1 digit
+    numsuffixes <- option [] $ (:[]) <$> many1 digit
     suffixes <- many $ do
       x <- oneOf ['b','B','d','D','e','E','f','F','i','I','m','M',
                   'p','P','t','T','u','U','v','V','w','W','x','X', 'z','Z']
@@ -399,8 +409,12 @@ tableColFormat = do
                          return ("(" ++ xs ++ ")")
                 else return ""
       return $ x : num
-    pipeSuffix <- option "" $ string "|"
-    return $ pipePrefix ++ (c : numsuffix ++ concat suffixes ++ pipeSuffix)
+    pipeSuffix' <- option False $ True <$ string "|"
+    return $ TableFormat
+             { columnType     = c
+             , pipePrefix     = pipePrefix'
+             , pipeSuffix     = pipeSuffix'
+             , columnSuffixes = numsuffixes ++ suffixes }
  
 -- We don't fully handle the conditional.  But we do
 -- include everything under '.ie n', which occurs commonly
