@@ -180,6 +180,7 @@ linePartsToInlines = go False
   go :: Bool -> [LinePart] -> Inlines
   go _ [] = mempty
   go mono (MacroArg _:xs) = go mono xs -- shouldn't happen
+  go mono (RoffStr s : RoffStr t : xs) = go mono (RoffStr (s <> t):xs)
   go mono (RoffStr s : xs)
     | mono      = code s <> go mono xs
     | otherwise = text s <> go mono xs

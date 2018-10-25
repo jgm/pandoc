@@ -105,7 +105,8 @@ singleTok :: ManToken -> ManTokens
 singleTok t = ManTokens (Seq.singleton t)
 
 data RoffState = RoffState { customMacros :: M.Map String ManTokens
-                           , lastFont     :: FontSpec
+                           , prevFont     :: FontSpec
+                           , currentFont  :: FontSpec
                            } deriving Show
 
 instance Default RoffState where
@@ -117,7 +118,8 @@ instance Default RoffState where
                        , ("lq", "\x201C")
                        , ("rq", "\x201D")
                        , ("R",  "\x00AE") ]
-                  , lastFont = defaultFontSpec
+                  , prevFont = defaultFontSpec
+                  , currentFont = defaultFontSpec
                   }
 
 type ManLexer m = ParserT [Char] RoffState m
@@ -261,7 +263,8 @@ escFont = do
         , ($ defaultFontSpec) <$> letterFontKind
         , lettersFont
         ]
-  modifyState $ \st -> st{ lastFont = font }
+  modifyState $ \st -> st{ prevFont = currentFont st
+                         , currentFont = font }
   return [Font font]
 
 lettersFont :: PandocMonad m => ManLexer m FontSpec
@@ -271,7 +274,7 @@ lettersFont = try $ do
   skipMany letter
   char ']'
   if null fs
-     then lastFont <$> getState
+     then prevFont <$> getState
      else return $ foldr ($) defaultFontSpec fs
 
 letterFontKind :: PandocMonad m => ManLexer m (FontSpec -> FontSpec)
