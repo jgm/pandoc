@@ -32,8 +32,9 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 Tokenizer for groff formats (man, ms).
 -}
 module Text.Pandoc.Readers.Groff
-  ( FontKind(..)
-  , MacroKind
+  ( MacroKind
+  , FontSpec(..)
+  , defaultFontSpec
   , LinePart(..)
   , Arg
   , ManToken(..)
@@ -72,12 +73,18 @@ import qualified Data.Text.Normalize as Normalize
 --
 -- Data Types
 --
-data FontKind = Bold | Italic | Monospace | Regular deriving (Show, Eq, Ord)
+data FontSpec = FontSpec{ fontBold      :: Bool
+                        , fontItalic    :: Bool
+                        , fontMonospace :: Bool
+                        } deriving (Show, Eq, Ord)
+
+defaultFontSpec :: FontSpec
+defaultFontSpec = FontSpec False False False
 
 type MacroKind = String
 
 data LinePart = RoffStr String
-              | Font [FontKind]
+              | Font FontSpec
               | FontSize Int
               | MacroArg Int
               deriving Show
@@ -97,7 +104,8 @@ newtype ManTokens = ManTokens { unManTokens :: Seq.Seq ManToken }
 singleTok :: ManToken -> ManTokens
 singleTok t = ManTokens (Seq.singleton t)
 
-data RoffState = RoffState { customMacros  :: M.Map String ManTokens
+data RoffState = RoffState { customMacros :: M.Map String ManTokens
+                           , lastFont     :: FontSpec
                            } deriving Show
 
 instance Default RoffState where
@@ -109,6 +117,7 @@ instance Default RoffState where
                        , ("lq", "\x201C")
                        , ("rq", "\x201D")
                        , ("R",  "\x00AE") ]
+                  , lastFont = defaultFontSpec
                   }
 
 type ManLexer m = ParserT [Char] RoffState m
@@ -245,29 +254,32 @@ escFontSize = do
 escFont :: PandocMonad m => ManLexer m [LinePart]
 escFont = do
   font <- choice
-        [ char 'S' >> return [Regular]
-        , digit >> return [Regular]
-        , (:[]) <$> letterFontKind
-        , char '(' >> anyChar >> anyChar >> return [Regular]
+        [ char 'S' >> return defaultFontSpec
+        , digit >> return defaultFontSpec
+        , char '(' >> anyChar >> anyChar >> return defaultFontSpec
+        , digit >> return defaultFontSpec
+        , ($ defaultFontSpec) <$> letterFontKind
         , lettersFont
-        , digit >> return [Regular]
         ]
+  modifyState $ \st -> st{ lastFont = font }
   return [Font font]
 
-lettersFont :: PandocMonad m => ManLexer m [FontKind]
+lettersFont :: PandocMonad m => ManLexer m FontSpec
 lettersFont = try $ do
   char '['
   fs <- many letterFontKind
   skipMany letter
   char ']'
-  return fs
+  if null fs
+     then lastFont <$> getState
+     else return $ foldr ($) defaultFontSpec fs
 
-letterFontKind :: PandocMonad m => ManLexer m FontKind
+letterFontKind :: PandocMonad m => ManLexer m (FontSpec -> FontSpec)
 letterFontKind = choice [
-    oneOf ['B','b'] >> return Bold
-  , oneOf ['I','i'] >> return Italic
-  , oneOf ['C','c'] >> return Monospace
-  , oneOf ['P','p','R','r'] >> return Regular
+    oneOf ['B','b'] >> return (\fs -> fs{ fontBold = True })
+  , oneOf ['I','i'] >> return (\fs -> fs { fontItalic = True })
+  , oneOf ['C','c'] >> return (\fs -> fs { fontMonospace = True })
+  , oneOf ['P','p','R','r'] >> return id
   ]
 
 

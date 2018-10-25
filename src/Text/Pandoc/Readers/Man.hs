@@ -174,16 +174,15 @@ parseTitle = do
   return mempty
 
 linePartsToInlines :: [LinePart] -> Inlines
-linePartsToInlines = go []
+linePartsToInlines = go
 
   where
-  go :: [[FontKind]] -> [LinePart] -> Inlines
-  go _ [] = mempty
-  go fs (MacroArg _:xs) = go fs xs -- shouldn't happen
-  go fs (RoffStr s : xs) = text s <> go fs xs
-  go (_:fs) (Font [] : xs) = go fs xs -- return to previous font
-  go fs (Font _newfonts : xs) = go fs xs
-  go fonts (FontSize _fs : xs) = go fonts xs
+  go :: [LinePart] -> Inlines
+  go [] = mempty
+  go (MacroArg _:xs) = go xs -- shouldn't happen
+  go (RoffStr s : xs) = text s <> go xs
+  go (Font _newfonts : xs) = go xs
+  go (FontSize _fs : xs) = go xs
 
 parsePara :: PandocMonad m => ManParser m Blocks
 parsePara = para . trimInlines <$> parseInlines
