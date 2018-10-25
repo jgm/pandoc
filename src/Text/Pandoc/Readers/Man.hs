@@ -113,7 +113,7 @@ parseTable :: PandocMonad m => ManParser m Blocks
 parseTable = do
   let isMTable (MTable{}) = True
       isMTable _          = False
-  MTable _aligns _rows pos <- msatisfy isMTable
+  MTable _opts _aligns _rows pos <- msatisfy isMTable
   report $ SkippedContent "TABLE" pos
   return $ B.para (B.text "TABLE")
 

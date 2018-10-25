@@ -37,6 +37,7 @@ module Text.Pandoc.Readers.Groff
   , defaultFontSpec
   , LinePart(..)
   , Arg
+  , TableOption
   , GroffToken(..)
   , GroffTokens(..)
   , linePartsToString
@@ -87,12 +88,13 @@ data LinePart = RoffStr String
               deriving Show
 
 type Arg = [LinePart]
+type TableOption = (String, String)
 
 -- TODO parse tables (see man tbl)
 data GroffToken = MLine [LinePart]
               | MEmptyLine
               | MMacro MacroKind [Arg] SourcePos
-              | MTable [[String]] [[GroffTokens]] SourcePos
+              | MTable [TableOption] [[String]] [[GroffTokens]] SourcePos
               deriving Show
 
 newtype GroffTokens = GroffTokens { unGroffTokens :: Seq.Seq GroffToken }
@@ -325,12 +327,15 @@ lexMacro = do
 lexTable :: PandocMonad m => SourcePos -> GroffLexer m GroffTokens
 lexTable pos = do
   spaces
-  optional tableOptions
+  opts <- option [] tableOptions
+  case lookup "tab" opts of
+    Just (c:_) -> modifyState $ \st -> st{ tableTabChar = c }
+    _          -> modifyState $ \st -> st{ tableTabChar = '\t' }
   spaces
   aligns <- tableFormatSpec
   spaces
   rows <- manyTill tableRow (try (string ".TE" >> skipMany spacetab >> eofline))
-  return $ singleTok $ MTable aligns rows pos
+  return $ singleTok $ MTable opts aligns rows pos
  
 tableCell :: PandocMonad m => GroffLexer m GroffTokens
 tableCell = (enclosedCell <|> simpleCell) >>= lexGroff . T.pack
@@ -351,15 +356,10 @@ tableRow = do
   eofline
   return (c:cs)
 
-tableOptions :: PandocMonad m => GroffLexer m ()
-tableOptions = try $ do
-  opts <- many1 tableOption <* spaces <* char ';'
-  case lookup "tab" opts of
-    Just (c:_) -> modifyState $ \st -> st{ tableTabChar = c }
-    _          -> modifyState $ \st -> st{ tableTabChar = '\t' }
-  return ()
+tableOptions :: PandocMonad m => GroffLexer m [TableOption]
+tableOptions = try $ many1 tableOption <* spaces <* char ';'
 
-tableOption :: PandocMonad m => GroffLexer m (String, String)
+tableOption :: PandocMonad m => GroffLexer m TableOption
 tableOption = do
   k <- many1 letter
   v <- option "" $ do
