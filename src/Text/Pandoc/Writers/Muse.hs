@@ -163,6 +163,32 @@ flatBlockListToMuse bs@(DefinitionList _ : DefinitionList _ : _) = catWithBlankL
 flatBlockListToMuse bs@(_ : _) = catWithBlankLines bs 0
 flatBlockListToMuse [] = return mempty
 
+simpleTable :: PandocMonad m
+            => [Inline]
+            -> [TableCell]
+            -> [[TableCell]]
+            -> Muse m Doc
+simpleTable caption headers rows = do
+  caption' <- inlineListToMuse caption
+  headers' <- mapM blockListToMuse headers
+  rows' <- mapM (mapM blockListToMuse) rows
+  let noHeaders = all null headers
+  let numChars = maximum . map offset
+  let widthsInChars =
+       map numChars $ transpose (headers' : rows')
+  let hpipeBlocks sep blocks = hcat $ intersperse sep' blocks
+        where h      = maximum (1 : map height blocks)
+              sep'   = lblock (length sep) $ vcat (replicate h (text sep))
+  let makeRow sep = (" " <>) . hpipeBlocks sep . zipWith lblock widthsInChars
+  let head' = makeRow " || " headers'
+  let rowSeparator = if noHeaders then " | " else " |  "
+  rows'' <- mapM (\row -> makeRow rowSeparator <$> mapM blockListToMuse row) rows
+  let body = vcat rows''
+  return $  (if noHeaders then empty else head')
+         $$ body
+         $$ (if null caption then empty else " |+ " <> caption' <> " +|")
+         $$ blankline
+
 -- | Convert list of Pandoc block elements to Muse.
 blockListToMuse :: PandocMonad m
                 => [Block]       -- ^ List of block elements
@@ -252,29 +278,15 @@ blockToMuse (Header level (ident,_,_) inlines) = do
   return $ blankline <> attr' $$ nowrap (header' <> contents) <> blankline
 -- https://www.gnu.org/software/emacs-muse/manual/muse.html#Horizontal-Rules-and-Anchors
 blockToMuse HorizontalRule = return $ blankline $$ "----" $$ blankline
-blockToMuse (Table caption _ _ headers rows) = do
-  caption' <- inlineListToMuse caption
-  headers' <- mapM blockListToMuse headers
-  rows' <- mapM (mapM blockListToMuse) rows
-  let noHeaders = all null headers
-
-  let numChars = maximum . map offset
-  -- FIXME: width is not being used.
-  let widthsInChars =
-       map numChars $ transpose (headers' : rows')
-  -- FIXME: Muse doesn't allow blocks with height more than 1.
-  let hpipeBlocks sep blocks = hcat $ intersperse sep' blocks
-        where h      = maximum (1 : map height blocks)
-              sep'   = lblock (length sep) $ vcat (replicate h (text sep))
-  let makeRow sep = (" " <>) . hpipeBlocks sep . zipWith lblock widthsInChars
-  let head' = makeRow " || " headers'
-  let rowSeparator = if noHeaders then " | " else " |  "
-  rows'' <- mapM (\row -> makeRow rowSeparator <$> mapM blockListToMuse row) rows
-  let body = vcat rows''
-  return $  (if noHeaders then empty else head')
-         $$ body
-         $$ (if null caption then empty else " |+ " <> caption' <> " +|")
-         $$ blankline
+blockToMuse (Table caption aligns widths headers rows) =
+  if all (== 0.0) widths
+    then simpleTable caption headers rows
+    else do
+      opts <- asks envOptions
+      gridTable opts blocksToDoc True (map (const AlignDefault) aligns) widths headers rows
+  where
+    blocksToDoc opts blocks =
+      local (\env -> env { envOptions = opts }) $ blockListToMuse blocks
 blockToMuse (Div _ bs) = flatBlockListToMuse bs
 blockToMuse Null = return empty
 
