@@ -7,7 +7,7 @@ import Control.Monad (when)
 import Data.Version (Version (versionBranch))
 import System.FilePath ((</>))
 import Test.Tasty (TestTree, localOption)
-import Test.Tasty.HUnit (Assertion, assertEqual, assertFailure, testCase)
+import Test.Tasty.HUnit (Assertion, assertEqual, testCase)
 import Test.Tasty.QuickCheck (QuickCheckTests (..), ioProperty, testProperty)
 import Text.Pandoc.Arbitrary ()
 import Text.Pandoc.Builder (bulletList, divWith, doc, doubleQuoted, emph,
@@ -17,7 +17,8 @@ import Text.Pandoc.Builder (bulletList, divWith, doc, doubleQuoted, emph,
 import Text.Pandoc.Class (runIOorExplode, setUserDataDir)
 import Text.Pandoc.Definition (Block (BlockQuote, Div, Para), Inline (Emph, Str),
                                Attr, Meta, Pandoc, pandocTypesVersion)
-import Text.Pandoc.Lua (runLuaFilter, runPandocLua)
+import Text.Pandoc.Filter (Filter (LuaFilter), applyFilters)
+import Text.Pandoc.Lua (runPandocLua)
 import Text.Pandoc.Options (def)
 import Text.Pandoc.Shared (pandocVersion)
 
@@ -174,13 +175,11 @@ tests = map (localOption (QuickCheckTests 20))
   ]
 
 assertFilterConversion :: String -> FilePath -> Pandoc -> Pandoc -> Assertion
-assertFilterConversion msg filterPath docIn docExpected = do
-  docEither <- runIOorExplode $ do
+assertFilterConversion msg filterPath docIn expectedDoc = do
+  actualDoc <- runIOorExplode $ do
     setUserDataDir (Just "../data")
-    runLuaFilter def ("lua" </> filterPath) [] docIn
-  case docEither of
-    Left exception -> assertFailure (show exception)
-    Right docRes -> assertEqual msg docExpected docRes
+    applyFilters def [LuaFilter ("lua" </> filterPath)] ["HTML"] docIn
+  assertEqual msg expectedDoc actualDoc
 
 roundtripEqual :: (Eq a, Lua.Peekable a, Lua.Pushable a) => a -> IO Bool
 roundtripEqual x = (x ==) <$> roundtripped
