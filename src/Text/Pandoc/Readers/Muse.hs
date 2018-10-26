@@ -32,7 +32,6 @@ Conversion of Muse text to 'Pandoc' document.
 -}
 {-
 TODO:
-- Page breaks (five "*")
 - Org tables
 - table.el tables
 - <cite> tag
@@ -312,6 +311,7 @@ blockElements :: PandocMonad m => MuseParser m (F Blocks)
 blockElements = (mempty <$ blankline)
             <|> comment
             <|> separator
+            <|> pagebreak
             <|> example
             <|> exampleTag
             <|> literalTag
@@ -341,6 +341,14 @@ separator = try $ pure B.horizontalRule
   <* many (char '-')
   <* many spaceChar
   <* eol
+
+-- | Parse a page break
+pagebreak :: PandocMonad m => MuseParser m (F Blocks)
+pagebreak = try $ pure (B.divWith ("", [], [("style", "page-break-before: always;")]) mempty)
+  <$ count 6 spaceChar
+  <* many spaceChar
+  <* string "* * * * *"
+  <* manyTill spaceChar eol
 
 headingStart :: PandocMonad m => MuseParser m (String, Int)
 headingStart = try $ (,)

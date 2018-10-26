@@ -279,6 +279,14 @@ tests =
         , "5 dashes is a horizontal rule" =: "-----" =?> horizontalRule
         , "4 dashes with spaces is a horizontal rule" =: "----  " =?> horizontalRule
         ]
+      , testGroup "Page breaks"
+        [ "Page break" =:
+          "      * * * * *" =?>
+          divWith ("", [], [("style", "page-break-before: always;")]) mempty
+        , "Page break with trailing space" =:
+          "      * * * * * " =?>
+          divWith ("", [], [("style", "page-break-before: always;")]) mempty
+        ]
       , testGroup "Paragraphs"
         [ "Simple paragraph" =:
           T.unlines [ "First line"
