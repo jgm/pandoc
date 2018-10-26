@@ -30,7 +30,6 @@ module Text.Pandoc.Lua.Init
   ( LuaException (..)
   , LuaPackageParams (..)
   , runLua
-  , initLuaState
   , luaPackageParams
   ) where
 
@@ -94,7 +93,7 @@ luaPackageParams = do
     , luaPkgMediaBag = mbRef
     }
 
--- Initialize the lua state with all required values
+-- | Initialize the lua state with all required values
 initLuaState :: LuaPackageParams -> Lua ()
 initLuaState luaPkgParams = do
   Lua.openlibs
