@@ -115,21 +115,19 @@ parseTable = do
       isMTable _          = False
   MTable _opts aligns rows pos <- msatisfy isMTable
   case aligns of
-    [as] -> do
+    [as] -> try (do
       let as' = map (columnTypeToAlignment . columnType) as
-      if all isJust as'
-         then do
-           let alignments = catMaybes as'
-           let (headerRow', bodyRows') =
-                 case rows of
-                   (h:[x]:bs)
-                    | isHrule x -> (h, bs)
-                   _ -> ([], rows)
-           headerRow <- mapM parseTableCell headerRow'
-           bodyRows <- mapM (mapM parseTableCell) bodyRows'
-           return $ B.table mempty (zip alignments (repeat 0.0))
-                       headerRow bodyRows
-         else fallback pos
+      guard $ all isJust as'
+      let alignments = catMaybes as'
+      let (headerRow', bodyRows') =
+            case rows of
+              (h:[x]:bs)
+               | isHrule x -> (h, bs)
+              _ -> ([], rows)
+      headerRow <- mapM parseTableCell headerRow'
+      bodyRows <- mapM (mapM parseTableCell) bodyRows'
+      return $ B.table mempty (zip alignments (repeat 0.0))
+                  headerRow bodyRows) <|> fallback pos
     _ -> fallback pos
 
  where
@@ -137,7 +135,10 @@ parseTable = do
   parseTableCell ts = do
     st <- getState
     let ts' = Foldable.toList $ unGroffTokens ts
-    res <- lift $ readWithMTokens (mconcat <$> many parseBlock <* eof) st ts'
+    let tcell = do
+          skipMany memptyLine
+          plain . trimInlines <$> (parseInlines <* eof)
+    res <- lift $ readWithMTokens tcell st ts'
     case res of
       Left e  -> throwError e
       Right x -> return x
