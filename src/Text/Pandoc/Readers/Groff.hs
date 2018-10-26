@@ -356,7 +356,7 @@ tableCell = (enclosedCell <|> simpleCell) >>= lexGroff . T.pack
     manyTill anyChar (try (string "T}"))
   simpleCell = do
     tabChar <- tableTabChar <$> getState
-    many1 (notFollowedBy (char tabChar <|> newline) >> anyChar)
+    many (notFollowedBy (char tabChar <|> newline) >> anyChar)
 
 tableRow :: PandocMonad m => GroffLexer m [GroffTokens]
 tableRow = do

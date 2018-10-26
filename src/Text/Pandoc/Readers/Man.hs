@@ -136,10 +136,12 @@ parseTable = do
   parseTableCell ts = do
     st <- getState
     let ts' = Foldable.toList $ unGroffTokens ts
-    let tcell = do
+    let tcell = try $ do
           skipMany memptyLine
           plain . trimInlines <$> (parseInlines <* eof)
-    res <- lift $ readWithMTokens tcell st ts'
+    res <- if null ts'
+              then return $ Right mempty
+              else lift $ readWithMTokens tcell st ts'
     case res of
       Left e  -> throwError e
       Right x -> return x
