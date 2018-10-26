@@ -34,6 +34,7 @@ Conversion of man to 'Pandoc' document.
 module Text.Pandoc.Readers.Man (readMan) where
 
 import Prelude
+import Safe (lastMay)
 import Data.Char (toLower)
 import Data.Default (Default)
 import Control.Monad (liftM, mzero, guard)
@@ -114,8 +115,8 @@ parseTable = do
   let isMTable (MTable{}) = True
       isMTable _          = False
   MTable _opts aligns rows pos <- msatisfy isMTable
-  case aligns of
-    [as] -> try (do
+  case lastMay aligns of
+    Just as -> try (do
       let as' = map (columnTypeToAlignment . columnType) as
       guard $ all isJust as'
       let alignments = catMaybes as'
@@ -128,7 +129,7 @@ parseTable = do
       bodyRows <- mapM (mapM parseTableCell) bodyRows'
       return $ B.table mempty (zip alignments (repeat 0.0))
                   headerRow bodyRows) <|> fallback pos
-    _ -> fallback pos
+    Nothing -> fallback pos
 
  where
 
