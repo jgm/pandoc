@@ -383,14 +383,13 @@ tableOption = do
 tableFormatSpec :: PandocMonad m => GroffLexer m [[TableFormat]]
 tableFormatSpec = do
   speclines <- tableFormatSpecLine `sepBy1` (newline <|> char ',')
+  skipMany spacetab
   char '.'
   return speclines
 
 tableFormatSpecLine :: PandocMonad m => GroffLexer m [TableFormat]
-tableFormatSpecLine = do
-  as <- many1 $ skipMany spacetab >> tableColFormat
-  skipMany spacetab
-  return as
+tableFormatSpecLine =
+  many1 $ try $ skipMany spacetab >> tableColFormat
 
 tableColFormat :: PandocMonad m => GroffLexer m TableFormat
 tableColFormat = do
