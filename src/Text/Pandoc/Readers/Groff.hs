@@ -245,7 +245,7 @@ escape = do
 -- \s-1 \s0
 escFontSize :: PandocMonad m => GroffLexer m [LinePart]
 escFontSize = do
-  let sign = option "" $ count 1 (oneOf "+-")
+  let sign = option "" $ ("-" <$ char '-' <|> "" <$ char '+')
   let toFontSize xs =
         case safeRead xs of
           Nothing  -> mzero
