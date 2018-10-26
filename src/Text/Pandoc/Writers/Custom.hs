@@ -1,4 +1,3 @@
-{-# LANGUAGE DeriveDataTypeable #-}
 {-# LANGUAGE FlexibleInstances  #-}
 {-# LANGUAGE NoImplicitPrelude  #-}
 {- Copyright (C) 2012-2018 John MacFarlane <jgm@berkeley.edu>
@@ -36,21 +35,18 @@ import Control.Arrow ((***))
 import Control.Exception
 import Control.Monad (when)
 import Data.Char (toLower)
-import Data.Data (Data)
 import Data.List (intersperse)
 import qualified Data.Map as M
 import Data.Text (Text, pack)
 import Data.Typeable
-import Foreign.Lua (Lua, Peekable, Pushable)
-import Foreign.Lua.Userdata ( ensureUserdataMetatable, pushAnyWithMetatable
-                            , metatableName)
+import Foreign.Lua (Lua, Pushable)
 import Text.Pandoc.Class (PandocIO)
 import Text.Pandoc.Definition
 import Text.Pandoc.Error
-import Text.Pandoc.Lua.Init (LuaException (LuaException), runPandocLua,
-                             registerScriptPath)
+import Text.Pandoc.Lua.Global (Global (..), setGlobals)
+import Text.Pandoc.Lua.Init (LuaException (LuaException), runPandocLua)
 import Text.Pandoc.Lua.StackInstances ()
-import Text.Pandoc.Lua.Util (addField, addFunction, dofileWithTraceback)
+import Text.Pandoc.Lua.Util (addField, dofileWithTraceback)
 import Text.Pandoc.Options
 import Text.Pandoc.Templates
 import qualified Text.Pandoc.UTF8 as UTF8
@@ -109,32 +105,14 @@ data PandocLuaException = PandocLuaException String
 
 instance Exception PandocLuaException
 
--- | Readonly and lazy pandoc objects.
-newtype LazyPandoc = LazyPandoc Pandoc
-  deriving (Data)
-
-instance Pushable LazyPandoc where
-  push lazyDoc = pushAnyWithMetatable pushPandocMetatable lazyDoc
-   where
-    pushPandocMetatable = ensureUserdataMetatable (metatableName lazyDoc) $
-                          addFunction "__index" indexLazyPandoc
-
-instance Peekable LazyPandoc where
-  peek = Lua.peekAny
-
-indexLazyPandoc :: LazyPandoc -> String -> Lua Lua.NumResults
-indexLazyPandoc (LazyPandoc (Pandoc meta blks)) field = 1 <$
-  case field of
-    "blocks" -> Lua.push blks
-    "meta"   -> Lua.push meta
-    _        -> Lua.pushnil
-
 -- | Convert Pandoc to custom markup.
 writeCustom :: FilePath -> WriterOptions -> Pandoc -> PandocIO Text
 writeCustom luaFile opts doc@(Pandoc meta _) = do
+  let globals = [ PANDOC_DOCUMENT doc
+                , PANDOC_SCRIPT_FILE luaFile
+                ]
   res <- runPandocLua $ do
-    Lua.push (LazyPandoc doc) *> Lua.setglobal "PANDOC_DOCUMENT"
-    registerScriptPath luaFile
+    setGlobals globals
     stat <- dofileWithTraceback luaFile
     -- check for error in lua script (later we'll change the return type
     -- to handle this more gracefully):

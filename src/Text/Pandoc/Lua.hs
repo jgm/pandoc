@@ -37,8 +37,9 @@ import Control.Monad ((>=>))
 import Foreign.Lua (Lua)
 import Text.Pandoc.Class (PandocIO)
 import Text.Pandoc.Definition (Pandoc)
+import Text.Pandoc.Lua.Global (Global (..), setGlobals)
 import Text.Pandoc.Lua.Filter (LuaFilter, walkMWithLuaFilter)
-import Text.Pandoc.Lua.Init (LuaException (..), runPandocLua, registerScriptPath)
+import Text.Pandoc.Lua.Init (LuaException (..), runPandocLua)
 import Text.Pandoc.Lua.Util (dofileWithTraceback)
 import Text.Pandoc.Options (ReaderOptions)
 
@@ -49,15 +50,8 @@ import qualified Foreign.Lua as Lua
 -- interpreter.
 runLuaFilter :: ReaderOptions -> FilePath -> String
              -> Pandoc -> PandocIO (Either LuaException Pandoc)
-runLuaFilter ropts filterPath format doc =
-  runPandocLua (runLuaFilter' ropts filterPath format doc)
-
-runLuaFilter' :: ReaderOptions -> FilePath -> String
-              -> Pandoc -> Lua Pandoc
-runLuaFilter' ropts filterPath format pd = do
-  registerFormat
-  registerReaderOptions
-  registerScriptPath filterPath
+runLuaFilter ropts filterPath format doc = runPandocLua $ do
+  setGlobals globals
   top <- Lua.gettop
   stat <- dofileWithTraceback filterPath
   if stat /= Lua.OK
@@ -69,15 +63,13 @@ runLuaFilter' ropts filterPath format pd = do
       luaFilters <- if newtop - top >= 1
                     then Lua.peek Lua.stackTop
                     else Lua.pushglobaltable *> fmap (:[]) Lua.popValue
-      runAll luaFilters pd
- where
-  registerFormat = do
-    Lua.push format
-    Lua.setglobal "FORMAT"
+      runAll luaFilters doc
 
-  registerReaderOptions = do
-    Lua.push ropts
-    Lua.setglobal "PANDOC_READER_OPTIONS"
+ where
+  globals = [ FORMAT format
+            , PANDOC_READER_OPTIONS ropts
+            , PANDOC_SCRIPT_FILE filterPath
+            ]
 
 runAll :: [LuaFilter] -> Pandoc -> Lua Pandoc
 runAll = foldr ((>=>) . walkMWithLuaFilter) return
