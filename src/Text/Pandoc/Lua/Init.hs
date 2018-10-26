@@ -43,8 +43,8 @@ import Data.Version (Version (versionBranch))
 import Foreign.Lua (Lua)
 import GHC.IO.Encoding (getForeignEncoding, setForeignEncoding, utf8)
 import Paths_pandoc (version)
-import Text.Pandoc.Class (PandocIO, getCommonState, getUserDataDir, getMediaBag,
-                          setMediaBag)
+import Text.Pandoc.Class (CommonState, PandocIO, getCommonState,
+                          getUserDataDir, getMediaBag, setMediaBag)
 import Text.Pandoc.Definition (pandocTypesVersion)
 import Text.Pandoc.Lua.Packages (LuaPackageParams (..),
                                  installPandocPackageSearcher)
@@ -61,9 +61,12 @@ newtype LuaException = LuaException String deriving (Show)
 -- initialization.
 runPandocLua :: Lua a -> PandocIO (Either LuaException a)
 runPandocLua luaOp = do
+  commonState <- getCommonState
   luaPkgParams <- luaPackageParams
   enc <- liftIO $ getForeignEncoding <* setForeignEncoding utf8
-  res <- liftIO $ Lua.runEither (initLuaState luaPkgParams *> luaOp)
+  res <- liftIO . Lua.runEither $ do
+    initLuaState commonState luaPkgParams
+    luaOp
   liftIO $ setForeignEncoding enc
   newMediaBag <- liftIO (readIORef (luaPkgMediaBag luaPkgParams))
   setMediaBag newMediaBag
@@ -84,14 +87,16 @@ luaPackageParams = do
     }
 
 -- Initialize the lua state with all required values
-initLuaState :: LuaPackageParams -> Lua ()
-initLuaState luaPkgParams = do
+initLuaState :: CommonState -> LuaPackageParams -> Lua ()
+initLuaState commonState luaPkgParams = do
   Lua.openlibs
   Lua.preloadTextModule "text"
   Lua.push (versionBranch version)
   Lua.setglobal "PANDOC_VERSION"
   Lua.push (versionBranch pandocTypesVersion)
   Lua.setglobal "PANDOC_API_VERSION"
+  Lua.push commonState
+  Lua.setglobal "PANDOC_STATE"
   installPandocPackageSearcher luaPkgParams
   loadScriptFromDataDir (luaPkgDataDir luaPkgParams) "init.lua"
   putConstructorsInRegistry

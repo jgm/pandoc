@@ -38,14 +38,18 @@ import Prelude
 import Control.Applicative ((<|>))
 import Data.Data (showConstr, toConstr)
 import Foreign.Lua (Lua, Peekable, Pushable, StackIndex)
+import Foreign.Lua.Types.Peekable (reportValueOnFailure)
 import Foreign.Lua.Userdata ( ensureUserdataMetatable, pushAnyWithMetatable
-                            , metatableName)
+                            , toAnyWithName, metatableName)
+import Text.Pandoc.Class (CommonState (..))
 import Text.Pandoc.Definition
 import Text.Pandoc.Extensions (Extensions)
+import Text.Pandoc.Logging (LogMessage, showLogMessage)
 import Text.Pandoc.Lua.Util (defineHowTo, pushViaConstructor)
 import Text.Pandoc.Options (ReaderOptions (..), TrackChanges)
 import Text.Pandoc.Shared (Element (Blk, Sec))
 
+import qualified Data.Map as Map
 import qualified Data.Set as Set
 import qualified Foreign.Lua as Lua
 import qualified Text.Pandoc.Lua.Util as LuaUtil
@@ -386,5 +390,85 @@ instance Pushable ReaderOptions where
 -- | Dummy type to allow values of arbitrary Lua type.
 newtype AnyValue = AnyValue StackIndex
 
+--
+-- TODO: Much of the following should be abstracted, factored out
+-- and go into HsLua.
+--
+
 instance Peekable AnyValue where
   peek = return . AnyValue
+
+-- | Name used by Lua for the @CommonState@ type.
+commonStateTypeName :: String
+commonStateTypeName = "Pandoc CommonState"
+
+instance Peekable CommonState where
+  peek idx = reportValueOnFailure commonStateTypeName
+             (`toAnyWithName` commonStateTypeName) idx
+
+instance Pushable CommonState where
+  push st = pushAnyWithMetatable pushCommonStateMetatable st
+   where
+    pushCommonStateMetatable = ensureUserdataMetatable commonStateTypeName $ do
+      LuaUtil.addFunction "__index" indexCommonState
+      LuaUtil.addFunction "__pairs" pairsCommonState
+
+indexCommonState :: CommonState -> AnyValue -> Lua Lua.NumResults
+indexCommonState st (AnyValue idx) = Lua.ltype idx >>= \case
+  Lua.TypeString -> 1 <$ (Lua.peek idx >>= pushField)
+  _ -> 1 <$ Lua.pushnil
+ where
+  pushField :: String -> Lua ()
+  pushField name = case lookup name commonStateFields of
+    Just pushValue -> pushValue st
+    Nothing -> Lua.pushnil
+
+pairsCommonState :: CommonState -> Lua Lua.NumResults
+pairsCommonState st = do
+  Lua.pushHaskellFunction nextFn
+  Lua.pushnil
+  Lua.pushnil
+  return 3
+ where
+  nextFn :: AnyValue -> AnyValue -> Lua Lua.NumResults
+  nextFn _ (AnyValue idx) =
+    Lua.ltype idx >>= \case
+      Lua.TypeNil -> case commonStateFields of
+        []  -> 2 <$ (Lua.pushnil *> Lua.pushnil)
+        (key, pushValue):_ -> 2 <$ (Lua.push key *> pushValue st)
+      Lua.TypeString -> do
+        key <- Lua.peek idx
+        case tail $ dropWhile ((/= key) . fst) commonStateFields of
+          []                     -> 2 <$ (Lua.pushnil *> Lua.pushnil)
+          (nextKey, pushValue):_ -> 2 <$ (Lua.push nextKey *> pushValue st)
+      _ -> 2 <$ (Lua.pushnil *> Lua.pushnil)
+
+commonStateFields :: [(String, CommonState -> Lua ())]
+commonStateFields =
+  [ ("input_files", Lua.push . stInputFiles)
+  , ("output_file", Lua.push . Lua.Optional . stOutputFile)
+  , ("log", Lua.push . stLog)
+  , ("request_headers", Lua.push . Map.fromList . stRequestHeaders)
+  , ("resource_path", Lua.push . stResourcePath)
+  , ("source_url", Lua.push . Lua.Optional . stSourceURL)
+  , ("user_data_dir", Lua.push . Lua.Optional . stUserDataDir)
+  , ("trace", Lua.push . stTrace)
+  , ("verbosity", Lua.push . show . stVerbosity)
+  ]
+
+-- | Name used by Lua for the @CommonState@ type.
+logMessageTypeName :: String
+logMessageTypeName = "Pandoc LogMessage"
+
+instance Peekable LogMessage where
+  peek idx = reportValueOnFailure logMessageTypeName
+             (`toAnyWithName` logMessageTypeName) idx
+
+instance Pushable LogMessage where
+  push msg = pushAnyWithMetatable pushLogMessageMetatable msg
+   where
+    pushLogMessageMetatable = ensureUserdataMetatable logMessageTypeName $
+      LuaUtil.addFunction "__tostring" tostringLogMessage
+
+tostringLogMessage :: LogMessage -> Lua String
+tostringLogMessage = return . showLogMessage

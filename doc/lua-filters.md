@@ -171,6 +171,12 @@ variables.
 :   The name used to involve the filter. This value can be used
     to find files relative to the script file. This variable is
     also set in custom writers.
+    
+`PANDOC_STATE`
+:   The state shared by all readers and writers. It is used by
+    pandoc to collect and pass information. The value of this
+    variable is of type [CommonState](#type-ref-CommonState) and
+    is read-only.
 
 # Pandoc Module
 
@@ -1280,6 +1286,46 @@ Pandoc reader options
 :   track changes setting for docx; one of `AcceptChanges`,
     `RejectChanges`, and `AllChanges` (string)
 
+## CommonState {#type-ref-CommonState}
+
+The state used by pandoc to collect information and make it
+available to readers and writers.
+
+`input_files`
+:   List of input files from command line ([List] of strings)
+
+`output_file`
+:   Output file from command line (string or nil)
+
+`log`
+:   A list of log messages in reverse order ([List] of [LogMessage]s)
+
+`request_headers`
+:   Headers to add for HTTP requests; table with header names as
+    keys and header contents as value (table)
+
+`resource_path`
+:   Path to search for resources like included images ([List] of
+    strings)
+
+`source_url`
+:   Absolute URL or directory of first source file (string or
+    nil)
+
+`user_data_dir`
+:   Directory to search for data files (string or nil)
+
+`trace`
+:   Whether tracing messages are issued (boolean)
+
+`verbosity`
+:   Verbosity level; one of `INFO`, `WARNING`, `ERROR` (string)
+
+## LogMessage {#type-ref-LogMessage}
+
+A pandoc log message. Object have no fields, but can be converted
+to a string via `tostring`.
+
 [Block]: #type-ref-Block
 [List]: #module-pandoc.list
 [MetaValue]: #type-ref-MetaValue
@@ -1287,6 +1333,7 @@ Pandoc reader options
 [Attr]: #type-ref-Attr
 [Attributes]: #type-ref-Attributes
 [citations]: #type-ref-Citation
+[LogMessage]: #type-ref-LogMessage
 
 # Module text
 
