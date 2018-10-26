@@ -376,8 +376,9 @@ tableOption = do
   v <- option "" $ do
          char '('
          manyTill anyChar (char ')')
-  spaces
+  skipMany spacetab
   optional (char ',')
+  skipMany spacetab
   return (k,v)
 
 tableFormatSpec :: PandocMonad m => GroffLexer m [[TableFormat]]
