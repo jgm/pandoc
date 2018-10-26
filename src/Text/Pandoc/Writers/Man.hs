@@ -145,7 +145,7 @@ blockToMan opts (Header level _ inlines) = do
   let heading = case level of
                   1 -> ".SH "
                   _ -> ".SS "
-  return $ text heading <> contents
+  return $ nowrap $ text heading <> contents
 blockToMan opts (CodeBlock _ str) = return $
   text ".IP" $$
   text ".nf" $$
