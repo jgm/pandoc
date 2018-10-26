@@ -44,7 +44,7 @@ import Text.Pandoc.Class (PandocIO)
 import Text.Pandoc.Definition
 import Text.Pandoc.Error
 import Text.Pandoc.Lua.Global (Global (..), setGlobals)
-import Text.Pandoc.Lua.Init (LuaException (LuaException), runPandocLua)
+import Text.Pandoc.Lua.Init (LuaException (LuaException), runLua)
 import Text.Pandoc.Lua.StackInstances ()
 import Text.Pandoc.Lua.Util (addField, dofileWithTraceback)
 import Text.Pandoc.Options
@@ -111,7 +111,7 @@ writeCustom luaFile opts doc@(Pandoc meta _) = do
   let globals = [ PANDOC_DOCUMENT doc
                 , PANDOC_SCRIPT_FILE luaFile
                 ]
-  res <- runPandocLua $ do
+  res <- runLua $ do
     setGlobals globals
     stat <- dofileWithTraceback luaFile
     -- check for error in lua script (later we'll change the return type

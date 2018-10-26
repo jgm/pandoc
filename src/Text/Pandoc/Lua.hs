@@ -28,8 +28,8 @@ Running pandoc Lua filters.
 -}
 module Text.Pandoc.Lua
   ( LuaException (..)
-  , runPandocLua
+  , runLua
   ) where
 
-import Text.Pandoc.Lua.Init (LuaException (..), runPandocLua)
+import Text.Pandoc.Lua.Init (LuaException (..), runLua)
 

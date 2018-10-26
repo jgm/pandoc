@@ -38,7 +38,7 @@ import Text.Pandoc.Class (PandocIO)
 import Text.Pandoc.Definition (Pandoc)
 import Text.Pandoc.Error (PandocError (PandocFilterError))
 import Text.Pandoc.Filter.Path (expandFilterPath)
-import Text.Pandoc.Lua (LuaException (..), runPandocLua)
+import Text.Pandoc.Lua (LuaException (..), runLua)
 import Text.Pandoc.Lua.Filter (LuaFilter, walkMWithLuaFilter)
 import Text.Pandoc.Lua.Global (Global (..), setGlobals)
 import Text.Pandoc.Lua.Util (dofileWithTraceback)
@@ -59,7 +59,7 @@ apply ropts args f doc = do
   let format = case args of
                  (x:_) -> x
                  _     -> error "Format not supplied for Lua filter"
-  runPandocLua >=> forceResult filterPath $ do
+  runLua >=> forceResult filterPath $ do
     setGlobals [ FORMAT format
                , PANDOC_READER_OPTIONS ropts
                , PANDOC_SCRIPT_FILE filterPath
