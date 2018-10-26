@@ -337,13 +337,18 @@ lexMacro = do
 
 lexTable :: PandocMonad m => SourcePos -> GroffLexer m GroffTokens
 lexTable pos = do
+  skipMany lexComment
   spaces
   opts <- option [] tableOptions
   case lookup "tab" opts of
     Just (c:_) -> modifyState $ \st -> st{ tableTabChar = c }
     _          -> modifyState $ \st -> st{ tableTabChar = '\t' }
   spaces
+  skipMany lexComment
+  spaces
   aligns <- tableFormatSpec
+  spaces
+  skipMany lexComment
   spaces
   rows <- manyTill tableRow (try (string ".TE" >> skipMany spacetab >> eofline))
   return $ singleTok $ MTable opts aligns rows pos
@@ -365,6 +370,7 @@ tableRow = do
   cs <- many $ try (char tabChar >> tableCell)
   skipMany spacetab
   eofline
+  skipMany lexComment
   return (c:cs)
 
 tableOptions :: PandocMonad m => GroffLexer m [TableOption]
