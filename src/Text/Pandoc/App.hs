@@ -287,7 +287,9 @@ convertWithOpts opts = do
             "Specify an output file using the -o option, or " ++
             "use '-o -' to force output to stdout."
 
-  let convertTabs = tabFilter (if optPreserveTabs opts || readerName == "t2t"
+  let convertTabs = tabFilter (if optPreserveTabs opts ||
+                                    readerName == "t2t" ||
+                                    readerName == "man"
                                   then 0
                                   else optTabStop opts)
 
