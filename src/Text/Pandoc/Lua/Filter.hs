@@ -30,6 +30,7 @@ Types and functions for running Lua filters.
 -}
 module Text.Pandoc.Lua.Filter ( LuaFilterFunction
                               , LuaFilter
+                              , runFilterFile
                               , tryFilter
                               , runFilterFunction
                               , walkMWithLuaFilter
@@ -53,6 +54,25 @@ import Text.Pandoc.Walk (walkM, Walkable)
 import qualified Data.Map.Strict as Map
 import qualified Foreign.Lua as Lua
 import qualified Text.Pandoc.Lua.Util as LuaUtil
+
+-- | Transform document using the filter defined in the given file.
+runFilterFile :: FilePath -> Pandoc -> Lua Pandoc
+runFilterFile filterPath doc = do
+  top <- Lua.gettop
+  stat <- LuaUtil.dofileWithTraceback filterPath
+  if stat /= Lua.OK
+    then Lua.throwTopMessage
+    else do
+      newtop <- Lua.gettop
+      -- Use the returned filters, or the implicitly defined global
+      -- filter if nothing was returned.
+      luaFilters <- if newtop - top >= 1
+                    then Lua.peek Lua.stackTop
+                    else Lua.pushglobaltable *> fmap (:[]) Lua.popValue
+      runAll luaFilters doc
+
+runAll :: [LuaFilter] -> Pandoc -> Lua Pandoc
+runAll = foldr ((>=>) . walkMWithLuaFilter) return
 
 -- | Filter function stored in the registry
 newtype LuaFilterFunction = LuaFilterFunction Lua.Reference

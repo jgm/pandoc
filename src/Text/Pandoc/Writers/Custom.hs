@@ -43,9 +43,8 @@ import Foreign.Lua (Lua, Pushable)
 import Text.Pandoc.Class (PandocIO)
 import Text.Pandoc.Definition
 import Text.Pandoc.Error
-import Text.Pandoc.Lua.Global (Global (..), setGlobals)
-import Text.Pandoc.Lua.Init (LuaException (LuaException), runLua)
-import Text.Pandoc.Lua.StackInstances ()
+import Text.Pandoc.Lua (Global (..), LuaException (LuaException),
+                        runLua, setGlobals)
 import Text.Pandoc.Lua.Util (addField, dofileWithTraceback)
 import Text.Pandoc.Options
 import Text.Pandoc.Templates

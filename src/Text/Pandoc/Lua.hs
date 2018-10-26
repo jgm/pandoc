@@ -1,3 +1,4 @@
+{-# LANGUAGE NoImplicitPrelude #-}
 {-
 Copyright © 2017–2018 Albert Krewinkel <tarleb+pandoc@moltkeplatz.de>
 
@@ -15,7 +16,6 @@ You should have received a copy of the GNU General Public License
 along with this program; if not, write to the Free Software
 Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 -}
-{-# LANGUAGE NoImplicitPrelude #-}
 {- |
    Module      : Text.Pandoc.Lua
    Copyright   : Copyright © 2017–2018 Albert Krewinkel
@@ -27,9 +27,17 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 Running pandoc Lua filters.
 -}
 module Text.Pandoc.Lua
-  ( LuaException (..)
-  , runLua
+  ( runLua
+  , LuaException (..)
+  -- * Lua globals
+  , Global (..)
+  , setGlobals
+  -- * Filters
+  , runFilterFile
   ) where
 
+import Text.Pandoc.Lua.Filter (runFilterFile)
+import Text.Pandoc.Lua.Global (Global (..), setGlobals)
 import Text.Pandoc.Lua.Init (LuaException (..), runLua)
+import Text.Pandoc.Lua.StackInstances ()
 
