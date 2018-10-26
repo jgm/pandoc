@@ -29,7 +29,7 @@ Functions to initialize the Lua interpreter.
 module Text.Pandoc.Lua.Init
   ( LuaException (..)
   , LuaPackageParams (..)
-  , runPandocLua
+  , runLua
   , initLuaState
   , luaPackageParams
   ) where
@@ -56,8 +56,8 @@ newtype LuaException = LuaException String deriving (Show)
 
 -- | Run the lua interpreter, using pandoc's default way of environment
 -- initialization.
-runPandocLua :: Lua a -> PandocIO (Either LuaException a)
-runPandocLua luaOp = do
+runLua :: Lua a -> PandocIO (Either LuaException a)
+runLua luaOp = do
   luaPkgParams <- luaPackageParams
   globals <- defaultGlobals
   enc <- liftIO $ getForeignEncoding <* setForeignEncoding utf8
