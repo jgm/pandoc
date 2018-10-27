@@ -433,12 +433,13 @@ tableColFormat = do
                 else return ""
       return $ x : num
     pipeSuffix' <- option False $ True <$ string "|"
+    skipMany (letter <|> digit)
     return $ CellFormat
              { columnType     = c
              , pipePrefix     = pipePrefix'
              , pipeSuffix     = pipeSuffix'
              , columnSuffixes = numsuffixes ++ suffixes }
- 
+
 -- We don't fully handle the conditional.  But we do
 -- include everything under '.ie n', which occurs commonly
 -- in man pages.  We always skip the '.el' part.
