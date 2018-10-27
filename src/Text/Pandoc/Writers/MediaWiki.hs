@@ -443,7 +443,7 @@ inlineToMediaWiki (Image attr alt (source, tit)) = do
                else '|' : tit
   return $ "[[File:" ++ source ++ img ++ txt ++ "]]"
 
-inlineToMediaWiki (Note contents) = do
+inlineToMediaWiki (Note _ contents) = do
   contents' <- blockListToMediaWiki contents
   modify (\s -> s { stNotes = True })
   return $ "<ref>" ++ stripTrailingNewlines contents' ++ "</ref>"

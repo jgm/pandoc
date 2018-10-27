@@ -250,7 +250,8 @@ inlineToCustom (Link attr txt (src,tit)) =
 inlineToCustom (Image attr alt (src,tit)) =
   Lua.callFunc "Image" (Stringify alt) src tit (attrToMap attr)
 
-inlineToCustom (Note contents) = Lua.callFunc "Note" (Stringify contents)
+inlineToCustom (Note noteType contents) =
+  Lua.callFunc "Note" (Stringify contents) noteType
 
 inlineToCustom (Span attr items) =
   Lua.callFunc "Span" (Stringify items) (attrToMap attr)

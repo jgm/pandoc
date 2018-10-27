@@ -14,4 +14,4 @@
 ,Para [Str "Strip",Space,Str "links",Space,Str "and",Space,Str "footnotes."]
 ,Div ("",["notes"],[])
  [Para [Str "No",Space,Link ("",[],[]) [Str "link"] ("https://www.google.com",""),Space,Str "here."]
- ,Para [Str "No",Space,Str "note",Space,Str "here.",Note [Para [Str "You\8217ll",Space,Str "never",Space,Str "read",Space,Str "this"]]]]]
+ ,Para [Str "No",Space,Str "note",Space,Str "here.",Note Footnote [Para [Str "You\8217ll",Space,Str "never",Space,Str "read",Space,Str "this"]]]]]

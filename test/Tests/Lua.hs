@@ -10,10 +10,7 @@ import Test.Tasty (TestTree, localOption)
 import Test.Tasty.HUnit (Assertion, assertEqual, assertFailure, testCase)
 import Test.Tasty.QuickCheck (QuickCheckTests (..), ioProperty, testProperty)
 import Text.Pandoc.Arbitrary ()
-import Text.Pandoc.Builder (bulletList, divWith, doc, doubleQuoted, emph,
-                            header, linebreak, para, plain, rawBlock,
-                            singleQuoted, space, str, strong,
-                            math, displayMath)
+import Text.Pandoc.Builder
 import Text.Pandoc.Class (runIOorExplode, setUserDataDir)
 import Text.Pandoc.Definition (Block (BlockQuote, Div, Para), Inline (Emph, Str),
                                Attr, Meta, Pandoc, pandocTypesVersion)
@@ -54,6 +51,12 @@ tests = map (localOption (QuickCheckTests 20))
       "math.lua"
       (doc $ para (displayMath "5+5"))
       (doc $ para (math "5+5"))
+
+  , testCase "convert footnotes to endnotes" $
+    assertFilterConversion "footnote becomes endnote"
+      "note.lua"
+      (doc $ para (note (para "foo")))
+      (doc $ para (endNote (para "foo")))
 
   , testCase "make hello world document" $
     assertFilterConversion "Document contains 'Hello, World!'"

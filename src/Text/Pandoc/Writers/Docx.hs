@@ -122,6 +122,7 @@ defaultWriterEnv = WriterEnv{ envTextProperties = []
 
 data WriterState = WriterState{
          stFootnotes      :: [Element]
+       , stEndnotes       :: [Element]
        , stComments       :: [([(String,String)], [Inline])]
        , stSectionIds     :: Set.Set String
        , stExternalLinks  :: M.Map String String
@@ -140,6 +141,7 @@ data WriterState = WriterState{
 defaultWriterState :: WriterState
 defaultWriterState = WriterState{
         stFootnotes      = defaultFootnotes
+      , stEndnotes       = []
       , stComments       = []
       , stSectionIds     = Set.empty
       , stExternalLinks  = M.empty
@@ -288,7 +290,7 @@ writeDocx opts doc@(Pandoc meta _) = do
         }
 
 
-  ((contents, footnotes, comments), st) <- runStateT
+  ((contents, footnotes, endnotes, comments), st) <- runStateT
                          (runReaderT
                           (writeOpenXML opts{writerWrapText = WrapNone} doc')
                           env)
@@ -359,6 +361,8 @@ writeDocx opts doc@(Pandoc meta _) = do
                     "application/vnd.openxmlformats-officedocument.wordprocessingml.comments+xml")
                   ,("/word/footnotes.xml",
                     "application/vnd.openxmlformats-officedocument.wordprocessingml.footnotes+xml")
+                  ,("/word/endnotes.xml",
+                    "application/vnd.openxmlformats-officedocument.wordprocessingml.endnotes+xml")
                   ] ++
                   map (\x -> (maybe "" ("/word/" ++) $ extractTarget x,
                        "application/vnd.openxmlformats-officedocument.wordprocessingml.header+xml")) headers ++
@@ -406,6 +410,9 @@ writeDocx opts doc@(Pandoc meta _) = do
                     ,("http://schemas.openxmlformats.org/officeDocument/2006/relationships/comments",
                       "rId8",
                       "comments.xml")
+                    ,("http://schemas.openxmlformats.org/officeDocument/2006/relationships/endnotes",
+                      "rId9",
+                      "endnotes.xml")
                     ]
 
   let idMap = renumIdMap (length baserels' + 1) (headers ++ footers)
@@ -443,11 +450,20 @@ writeDocx opts doc@(Pandoc meta _) = do
                      $ renderXml docContents
 
   -- footnotes
-  let notes = mknode "w:footnotes" stdAttributes footnotes
-  let footnotesEntry = toEntry "word/footnotes.xml" epochtime $ renderXml notes
+  let footnotesNode = mknode "w:footnotes" stdAttributes footnotes
+  let footnotesEntry = toEntry "word/footnotes.xml" epochtime $ renderXml footnotesNode
 
   -- footnote rels
   let footnoteRelEntry = toEntry "word/_rels/footnotes.xml.rels" epochtime
+        $ renderXml $ mknode "Relationships" [("xmlns","http://schemas.openxmlformats.org/package/2006/relationships")]
+        linkrels
+
+  -- endnotes
+  let endnotesNode = mknode "w:endnotes" stdAttributes endnotes
+  let endnotesEntry = toEntry "word/endnotes.xml" epochtime $ renderXml endnotesNode
+
+  -- endnote rels
+  let endnoteRelEntry = toEntry "word/_rels/endnotes.xml.rels" epochtime
         $ renderXml $ mknode "Relationships" [("xmlns","http://schemas.openxmlformats.org/package/2006/relationships")]
         linkrels
 
@@ -567,15 +583,16 @@ writeDocx opts doc@(Pandoc meta _) = do
                        , "word/_rels/" `isPrefixOf` (eRelativePath e)
                        , ".xml.rels" `isSuffixOf` (eRelativePath e)
                        , eRelativePath e /= "word/_rels/document.xml.rels"
-                       , eRelativePath e /= "word/_rels/footnotes.xml.rels" ]
+                       , eRelativePath e /= "word/_rels/footnotes.xml.rels"
+                       , eRelativePath e /= "word/_rels/endnotes.xml.rels" ]
   let otherMediaEntries = [ e | e <- zEntries refArchive
                           , "word/media/" `isPrefixOf` eRelativePath e ]
 
   -- Create archive
   let archive = foldr addEntryToArchive emptyArchive $
                   contentTypesEntry : relsEntry : contentEntry : relEntry :
-                  footnoteRelEntry : numEntry : styleEntry : footnotesEntry :
-                  commentsEntry :
+                  footnoteRelEntry : endnoteRelEntry : numEntry : styleEntry :
+                  footnotesEntry : endnotesEntry : commentsEntry :
                   docPropsEntry : docPropsAppEntry : customPropsEntry :
                   themeEntry :
                   fontTableEntry : settingsEntry : webSettingsEntry :
@@ -774,7 +791,7 @@ makeTOC opts = do
 
 -- | Convert Pandoc document to two lists of
 -- OpenXML elements (the main document and footnotes).
-writeOpenXML :: (PandocMonad m) => WriterOptions -> Pandoc -> WS m ([Element], [Element],[Element])
+writeOpenXML :: (PandocMonad m) => WriterOptions -> Pandoc -> WS m ([Element], [Element], [Element], [Element])
 writeOpenXML opts (Pandoc meta blocks) = do
   let tit = docTitle meta
   let auths = docAuthors meta
@@ -795,7 +812,8 @@ writeOpenXML opts (Pandoc meta blocks) = do
       convertSpace xs                           = xs
   let blocks' = bottomUp convertSpace blocks
   doc' <- setFirstPara >> blocksToOpenXML opts blocks'
-  notes' <- reverse <$> gets stFootnotes
+  footnotes' <- reverse <$> gets stFootnotes
+  endnotes' <- reverse <$> gets stEndnotes
   comments <- reverse <$> gets stComments
   let toComment (kvs, ils) = do
         annotation <- inlinesToOpenXML opts ils
@@ -817,7 +835,7 @@ writeOpenXML opts (Pandoc meta blocks) = do
             then makeTOC opts
             else return []
   let meta' = title ++ subtitle ++ authors ++ date ++ abstract ++ toc
-  return (meta' ++ doc', notes', comments')
+  return (meta' ++ doc', footnotes', endnotes', comments')
 
 -- | Convert a list of Pandoc blocks to OpenXML.
 blocksToOpenXML :: (PandocMonad m) => WriterOptions -> [Block] -> WS m [Element]
@@ -1261,8 +1279,8 @@ inlineToOpenXML' opts (Code attrs str) = do
                     Left msg -> do
                       unless (null msg) $ report $ CouldNotHighlight msg
                       unhighlighted
-inlineToOpenXML' opts (Note bs) = do
-  notes <- gets stFootnotes
+inlineToOpenXML' opts (Note Footnote bs) = do
+  footnotes <- gets stFootnotes
   notenum <- getUniqueId
   footnoteStyle <- rStyleM "Footnote Reference"
   let notemarker = mknode "w:r" []
@@ -1279,10 +1297,32 @@ inlineToOpenXML' opts (Note bs) = do
               (withParaPropM (pStyleM "Footnote Text") $ blocksToOpenXML opts
                 $ insertNoteRef bs)
   let newnote = mknode "w:footnote" [("w:id", notenum)] contents
-  modify $ \s -> s{ stFootnotes = newnote : notes }
+  modify $ \s -> s{ stFootnotes = newnote : footnotes }
   return [ mknode "w:r" []
            [ mknode "w:rPr" [] footnoteStyle
            , mknode "w:footnoteReference" [("w:id", notenum)] () ] ]
+inlineToOpenXML' opts (Note Endnote bs) = do
+  endnotes <- gets stEndnotes
+  notenum <- getUniqueId
+  endnoteStyle <- rStyleM "Endnote Reference"
+  let notemarker = mknode "w:r" []
+                   [ mknode "w:rPr" [] endnoteStyle
+                   , mknode "w:endnoteRef" [] () ]
+  let notemarkerXml = RawInline (Format "openxml") $ ppElement notemarker
+  let insertNoteRef (Plain ils : xs) = Plain (notemarkerXml : Space : ils) : xs
+      insertNoteRef (Para ils  : xs) = Para  (notemarkerXml : Space : ils) : xs
+      insertNoteRef xs               = Para [notemarkerXml] : xs
+
+  contents <- local (\env -> env{ envListLevel = -1
+                                , envParaProperties = []
+                                , envTextProperties = [] })
+              (withParaPropM (pStyleM "Endnote Text") $ blocksToOpenXML opts
+                $ insertNoteRef bs)
+  let newnote = mknode "w:endnote" [("w:id", notenum)] contents
+  modify $ \s -> s{ stEndnotes = newnote : endnotes }
+  return [ mknode "w:r" []
+           [ mknode "w:rPr" [] endnoteStyle
+           , mknode "w:endnoteReference" [("w:id", notenum)] () ] ]
 -- internal link:
 inlineToOpenXML' opts (Link _ txt ('#':xs,_)) = do
   contents <- withTextPropM (rStyleM "Hyperlink") $ inlinesToOpenXML opts txt

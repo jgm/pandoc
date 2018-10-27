@@ -279,7 +279,7 @@ inlineToHaddock opts (Image attr alternate (source, tit)) = do
   linkhaddock <- inlineToHaddock opts (Link attr alternate (source, tit))
   return $ "<" <> linkhaddock <> ">"
 -- haddock doesn't have notes, but we can fake it:
-inlineToHaddock opts (Note contents) = do
+inlineToHaddock opts (Note _ contents) = do
   modify (\st -> st{ stNotes = contents : stNotes st })
   st <- get
   let ref = text $ writerIdentifierPrefix opts ++ show (length $ stNotes st)

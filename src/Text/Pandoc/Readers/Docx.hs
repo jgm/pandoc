@@ -68,7 +68,7 @@ implemented, [-] means partially implemented):
   - [X] Link (links to an arbitrary bookmark create a span with the target as
         id and "anchor" class)
   - [X] Image
-  - [X] Note (Footnotes and Endnotes are silently combined.)
+  - [X] Note
 -}
 
 module Text.Pandoc.Readers.Docx
@@ -333,12 +333,12 @@ runToInlines (Run rs runElems)
       let ils = smushInlines (map runElemToInlines runElems)
       transform <- runStyleToTransform rPr
       return $ transform ils
-runToInlines (Footnote bps) = do
+runToInlines (RunFootnote bps) = do
   blksList <- smushBlocks <$> mapM bodyPartToBlocks bps
   return $ note blksList
-runToInlines (Endnote bps) = do
+runToInlines (RunEndnote bps) = do
   blksList <- smushBlocks <$> mapM bodyPartToBlocks bps
-  return $ note blksList
+  return $ endNote blksList
 runToInlines (InlineDrawing fp title alt bs ext) = do
   (lift . lift) $ P.insertMedia fp Nothing bs
   return $ imageWith (extentToAttr ext) fp title $ text alt

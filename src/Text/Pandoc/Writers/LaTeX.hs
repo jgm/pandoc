@@ -778,7 +778,7 @@ blockToLaTeX (Table caption aligns widths heads rows) = do
   (captionText, captForLof, footnotes) <- getCaption caption
   let toHeaders hs = do contents <- tableRowToLaTeX True aligns widths hs
                         return ("\\toprule" $$ contents $$ "\\midrule")
-  let removeNote (Note _) = Span ("", [], []) []
+  let removeNote (Note{}) = Span ("", [], []) []
       removeNote x        = x
   firsthead <- if isEmpty captionText || all null heads
                   then return empty
@@ -956,7 +956,7 @@ sectionHeader :: PandocMonad m
 sectionHeader unnumbered ident level lst = do
   txt <- inlineListToLaTeX lst
   plain <- stringToLaTeX TextString $ concatMap stringify lst
-  let removeInvalidInline (Note _)             = []
+  let removeInvalidInline (Note{})             = []
       removeInvalidInline (Span (id', _, _) _) | not (null id') = []
       removeInvalidInline Image{}            = []
       removeInvalidInline x                    = [x]
@@ -1250,7 +1250,7 @@ inlineToLaTeX (Image attr _ (source, _)) = do
   return $
     (if inHeading then "\\protect\\includegraphics" else "\\includegraphics") <>
     dims <> braces (text source'')
-inlineToLaTeX (Note contents) = do
+inlineToLaTeX (Note _ contents) = do
   setEmptyLine False
   inMinipage <- gets stInMinipage
   modify (\s -> s{stInNote = True})

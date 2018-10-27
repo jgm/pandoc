@@ -337,6 +337,14 @@
     <w:unhideWhenUsed />
     <w:qFormat />
   </w:style>
+  <w:style w:type="paragraph" w:styleId="EndnoteText">
+    <w:name w:val="Endnote Text" />
+    <w:basedOn w:val="Normal" />
+    <w:next w:val="EndnoteText" />
+    <w:uiPriority w:val="9" />
+    <w:unhideWhenUsed />
+    <w:qFormat />
+  </w:style>
   <w:style w:type="character" w:default="1" w:styleId="DefaultParagraphFont">
     <w:name w:val="Default Paragraph Font" />
     <w:semiHidden />
@@ -423,6 +431,13 @@
   </w:style>
   <w:style w:type="character" w:styleId="FootnoteReference">
     <w:name w:val="Footnote Reference" />
+    <w:basedOn w:val="BodyTextChar" />
+    <w:rPr>
+      <w:vertAlign w:val="superscript" />
+    </w:rPr>
+  </w:style>
+  <w:style w:type="character" w:styleId="EndnoteReference">
+    <w:name w:val="Endnote Reference" />
     <w:basedOn w:val="BodyTextChar" />
     <w:rPr>
       <w:vertAlign w:val="superscript" />

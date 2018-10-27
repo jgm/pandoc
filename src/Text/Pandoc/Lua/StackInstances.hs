@@ -139,6 +139,11 @@ instance Pushable QuoteType where
 instance Peekable QuoteType where
   peek = Lua.peekRead
 
+instance Pushable NoteType where
+  push = Lua.push . show
+instance Peekable NoteType where
+  peek = Lua.peekRead
+
 -- | Push an meta value element to the top of the lua stack.
 pushMetaValue :: MetaValue -> Lua ()
 pushMetaValue = \case
@@ -238,7 +243,7 @@ pushInline = \case
   Image attr alt (src,tit) -> pushViaConstructor "Image" alt src tit (LuaAttr attr)
   LineBreak                -> pushViaConstructor "LineBreak"
   Link attr lst (src,tit)  -> pushViaConstructor "Link" lst src tit (LuaAttr attr)
-  Note blcks               -> pushViaConstructor "Note" blcks
+  Note t blcks             -> pushViaConstructor "Note" t blcks
   Math mty str             -> pushViaConstructor "Math" mty str
   Quoted qt inlns          -> pushViaConstructor "Quoted" qt inlns
   RawInline f cs           -> pushViaConstructor "RawInline" f cs
@@ -265,7 +270,7 @@ peekInline idx = defineHowTo "get Inline value" $ do
     "Link"       -> (\(LuaAttr attr, lst, tgt) -> Link attr lst tgt)
                     <$> elementContent
     "LineBreak"  -> return LineBreak
-    "Note"       -> Note <$> elementContent
+    "Note"       -> uncurry Note <$> elementContent
     "Math"       -> uncurry Math <$> elementContent
     "Quoted"     -> uncurry Quoted <$> elementContent
     "RawInline"  -> uncurry RawInline <$> elementContent

@@ -740,6 +740,22 @@ tests =
           para (text "Here is a footnote" <>
                 note (para "Footnote contents") <>
                 str ".")
+        , "Simple endnote" =:
+          T.unlines [ "Here is an endnote{1}."
+                    , ""
+                    , "{1} Endnote contents"
+                    ] =?>
+          para (text "Here is an endnote" <>
+                endNote (para "Endnote contents") <>
+                str ".")
+        , "Missing footnote" =: "Foo[1]" =?> para "Foo[1]"
+        , "Missing endnote" =: "Foo{1}" =?> para "Foo{1}"
+        , "Wrong note type" =:
+          T.unlines [ "Here is an endnote{1}."
+                    , ""
+                    , "[1] Footnote contents"
+                    ] =?>
+          para "Here is an endnote{1}."
         , "Recursive footnote" =:
           T.unlines [ "Start recursion here[1]"
                     , ""

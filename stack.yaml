@@ -19,6 +19,8 @@ packages:
   - foundation
   extra-dep: true
 extra-deps:
+- github: link2xt/pandoc-types
+  commit: 957c1bfef1f0bb2685290304ef46bfc4b758769a
 - pandoc-citeproc-0.14.8
 - haddock-library-1.7.0
 - HsYAML-0.1.1.1

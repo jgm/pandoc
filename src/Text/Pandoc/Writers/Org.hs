@@ -380,7 +380,7 @@ inlineToOrg (Link _ txt (src, _)) =
                 return $ "[[" <> text (orgPath src) <> "][" <> contents <> "]]"
 inlineToOrg (Image _ _ (source, _)) =
   return $ "[[" <> text (orgPath source) <> "]]"
-inlineToOrg (Note contents) = do
+inlineToOrg (Note _ contents) = do
   -- add to notes in state
   notes <- gets stNotes
   modify $ \st -> st { stNotes = contents:notes }

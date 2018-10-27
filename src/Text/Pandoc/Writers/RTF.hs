@@ -421,7 +421,7 @@ inlineToRTF (Link _ text (src, _)) = do
     "\"}}{\\fldrslt{\\ul\n" ++ contents ++ "\n}}}\n"
 inlineToRTF (Image _ _ (source, _)) =
   return $ "{\\cf1 [image: " ++ source ++ "]\\cf0}"
-inlineToRTF (Note contents) = do
+inlineToRTF (Note _ contents) = do
   body <- concat <$> mapM (blockToRTF 0 AlignDefault) contents
   return $ "{\\super\\chftn}{\\*\\footnote\\chftn\\~\\plain\\pard " ++
     body ++ "}"

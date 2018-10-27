@@ -115,7 +115,7 @@ replaceNotes :: PandocMonad m => [Block] -> TagParser m [Block]
 replaceNotes = walkM replaceNotes'
 
 replaceNotes' :: PandocMonad m => Inline -> TagParser m Inline
-replaceNotes' (RawInline (Format "noteref") ref) = maybe (Str "") (Note . B.toList) . lookup ref <$> getNotes
+replaceNotes' (RawInline (Format "noteref") ref) = maybe (Str "") (Note Footnote . B.toList) . lookup ref <$> getNotes
   where
     getNotes = noteTable <$> getState
 replaceNotes' x = return x

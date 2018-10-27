@@ -137,9 +137,7 @@ testMediaBag name odtFile = buildTest $ testMediaBagIO name odtFile
 namesOfTestsComparingToMarkdown :: [ String ]
 namesOfTestsComparingToMarkdown  = [ "bold"
 --                                 , "citation"
-                                   , "endnote"
                                    , "externalLink"
-                                   , "footnote"
                                    , "headers"
 --                                 , "horizontalRule"
                                    , "italic"
@@ -152,6 +150,8 @@ namesOfTestsComparingToMarkdown  = [ "bold"
 
 namesOfTestsComparingToNative  :: [ String ]
 namesOfTestsComparingToNative   = [ "blockquote"
+                                  , "endnote"
+                                  , "footnote"
                                   , "image"
                                   , "imageIndex"
                                   , "imageWithCaption"

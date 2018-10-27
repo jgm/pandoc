@@ -631,11 +631,14 @@ M.InlineMath = M.Inline:create_constructor(
 
 --- Creates a Note inline element
 -- @function Note
--- @tparam      {Block,...} content     footnote block content
+-- @tparam      "Footnote"|"Endnote"    note type
+-- @tparam      {Block,...} content     note block content
 M.Note = M.Inline:create_constructor(
   "Note",
-  function(content) return {c = ensureList(content)} end,
-  "content"
+  function(notetype, content)
+      return {c = {notetype, ensureList(content)}}
+  end,
+  {"notetype", "content"}
 )
 
 --- Creates a Quoted inline element given the quote type and quoted content.

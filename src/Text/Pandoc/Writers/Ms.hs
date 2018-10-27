@@ -450,7 +450,7 @@ inlineToMs opts (Image _ alternate (_, _)) =
   return $ char '[' <> text "IMAGE: " <>
            text (escapeStr opts (stringify alternate))
              <> char ']'
-inlineToMs _ (Note contents) = do
+inlineToMs _ (Note _ contents) = do
   modify $ \st -> st{ stNotes = contents : stNotes st }
   return $ text "\\**"
 

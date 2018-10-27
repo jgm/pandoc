@@ -1242,7 +1242,7 @@ inlineToMarkdown opts img@(Image attr alternate (source, tit))
   return $ if plain
               then "[" <> linkPart <> "]"
               else "!" <> linkPart
-inlineToMarkdown opts (Note contents) = do
+inlineToMarkdown opts (Note _ contents) = do
   modify (\st -> st{ stNotes = contents : stNotes st })
   st <- get
   let ref = text $ writerIdentifierPrefix opts ++ show (stNoteNum st + (length $ stNotes st) - 1)

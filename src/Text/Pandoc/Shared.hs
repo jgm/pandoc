@@ -352,8 +352,8 @@ removeFormatting = query go . walk (deNote . deQuote)
         go _          = []
 
 deNote :: Inline -> Inline
-deNote (Note _) = Str ""
-deNote x        = x
+deNote (Note _ _) = Str ""
+deNote x          = x
 
 deQuote :: Inline -> Inline
 deQuote (Quoted SingleQuote xs) =

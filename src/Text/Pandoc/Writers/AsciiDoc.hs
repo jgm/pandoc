@@ -484,13 +484,13 @@ inlineToAsciiDoc opts (Image attr alternate (src, tit)) = do
                 then empty
                 else "," <> cat (intersperse "," dimList)
   return $ "image:" <> text src <> "[" <> linktext <> linktitle <> dims <> "]"
-inlineToAsciiDoc opts (Note [Para inlines]) =
-  inlineToAsciiDoc opts (Note [Plain inlines])
-inlineToAsciiDoc opts (Note [Plain inlines]) = do
+inlineToAsciiDoc opts (Note t [Para inlines]) =
+  inlineToAsciiDoc opts (Note t [Plain inlines])
+inlineToAsciiDoc opts (Note _ [Plain inlines]) = do
   contents  <- inlineListToAsciiDoc opts inlines
   return $ text "footnote:[" <> contents <> "]"
 -- asciidoc can't handle blank lines in notes
-inlineToAsciiDoc _ (Note _) = return "[multiblock footnote omitted]"
+inlineToAsciiDoc _ (Note _ _) = return "[multiblock footnote omitted]"
 inlineToAsciiDoc opts (Span (ident,_,_) ils) = do
   let identifier = if null ident then empty else "[[" <> text ident <> "]]"
   contents <- inlineListToAsciiDoc opts ils

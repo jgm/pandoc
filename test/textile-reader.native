@@ -175,6 +175,6 @@ Pandoc (Meta {unMeta = fromList []})
 ,Para [Str "\174",Space,Str "Hi\174"]
 ,Para [Str "Hi\169\&2008",Space,Str "\169",Space,Str "2008"]
 ,Header 1 ("footnotes",[],[]) [Str "Footnotes"]
-,Para [Str "A",Space,Str "note.",Note [Para [Str "The",Space,Str "note",LineBreak,Str "is",Space,Str "here!"]],Space,Str "Another",Space,Str "note",Note [Para [Str "Other",Space,Str "note."]],Str "."]
+,Para [Str "A",Space,Str "note.",Note Footnote [Para [Str "The",Space,Str "note",LineBreak,Str "is",Space,Str "here!"]],Space,Str "Another",Space,Str "note",Note Footnote [Para [Str "Other",Space,Str "note."]],Str "."]
 ,Header 1 ("comment-blocks",[],[]) [Str "Comment",Space,Str "blocks"]
 ,Para [Str "not",Space,Str "a",Space,Str "comment."]]

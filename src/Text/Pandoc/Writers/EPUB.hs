@@ -150,7 +150,7 @@ toId = map (\x -> if isAlphaNum x || x == '-' || x == '_'
                      else '_') . takeFileName
 
 removeNote :: Inline -> Inline
-removeNote (Note _) = Str ""
+removeNote (Note{}) = Str ""
 removeNote x        = x
 
 mkEntry :: PandocMonad m => FilePath -> B.ByteString -> E m Entry
@@ -781,7 +781,7 @@ pandocToEPUB version opts doc@(Pandoc meta _) = do
                                 Right x -> x
                 -- can't have <a> elements inside generated links...
                 clean (Link _ ils _) = Span ("", [], []) ils
-                clean (Note _)       = Str ""
+                clean (Note _ _)     = Str ""
                 clean x              = x
 
   let navtag = if epub3 then "nav" else "div"

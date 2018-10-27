@@ -501,6 +501,11 @@ tests = [ testGroup "block elements"
                                , ""
                                , "[1] Foo"
                                ]
+          , "endnote" =: endNote (plain (text "Foo"))
+                      =?> unlines [ "{1}"
+                                  , ""
+                                  , "{1} Foo"
+                                  ]
           , "span with class" =: spanWith ("",["foobar"],[]) (text "Some text")
                               =?> "<class name=\"foobar\">Some text</class>"
           , "span without class" =: spanWith ("",[],[]) (text "Some text")

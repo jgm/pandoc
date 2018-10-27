@@ -457,7 +457,7 @@ inlineToICML opts style (Link _ lst (url, title)) = do
                          [("Self","htss-"++show ident), ("Name",title), ("Hidden","false")] content
             in  (cont, newst)
 inlineToICML opts style (Image attr _ target) = imageICML opts style attr target
-inlineToICML opts style (Note lst) = footnoteToICML opts style lst
+inlineToICML opts style (Note _ lst) = footnoteToICML opts style lst
 inlineToICML opts style (Span _ lst) = inlinesToICML opts style lst
 
 -- | Convert a list of block elements to an ICML footnote.
