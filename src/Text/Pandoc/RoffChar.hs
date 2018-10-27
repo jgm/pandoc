@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 -}
 
 {- |
-   Module      : Text.Pandoc.GroffChar
+   Module      : Text.Pandoc.RoffChar
    Copyright   : Copyright (C) 2007-2018 John MacFarlane
    License     : GNU GPL, version 2 or above
 
@@ -27,10 +27,10 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
    Stability   : alpha
    Portability : portable
 
-Groff character escaping/unescaping.
+Roff character escaping/unescaping.
 -}
 
-module Text.Pandoc.GroffChar (
+module Text.Pandoc.RoffChar (
     standardEscapes
   , characterCodes
   , combiningAccents

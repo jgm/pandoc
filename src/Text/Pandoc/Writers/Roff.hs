@@ -18,7 +18,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 -}
 
 {- |
-   Module      : Text.Pandoc.Writers.Groff
+   Module      : Text.Pandoc.Writers.Roff
    Copyright   : Copyright (C) 2007-2018 John MacFarlane
    License     : GNU GPL, version 2 or above
 
@@ -29,7 +29,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 Common functions for groff writers (man, ms).
 -}
 
-module Text.Pandoc.Writers.Groff (
+module Text.Pandoc.Writers.Roff (
       WriterState(..)
     , defaultWriterState
     , MS
@@ -47,7 +47,7 @@ import Text.Pandoc.Class (PandocMonad)
 import Text.Pandoc.Definition
 import Text.Pandoc.Pretty
 import Text.Printf (printf)
-import Text.Pandoc.GroffChar (standardEscapes,
+import Text.Pandoc.RoffChar (standardEscapes,
                               characterCodes, combiningAccents)
 
 data WriterState = WriterState { stHasInlineMath :: Bool

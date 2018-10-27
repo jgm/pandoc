@@ -47,7 +47,7 @@ import Text.Pandoc.Shared
 import Text.Pandoc.Templates
 import Text.Pandoc.Writers.Math
 import Text.Pandoc.Writers.Shared
-import Text.Pandoc.Writers.Groff
+import Text.Pandoc.Writers.Roff
 import Text.Printf (printf)
 
 -- | Convert Pandoc to Man.

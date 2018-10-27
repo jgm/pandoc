@@ -49,7 +49,7 @@ import Text.Pandoc.Logging (LogMessage(..))
 import Text.Pandoc.Options
 import Text.Pandoc.Parsing
 import Text.Pandoc.Shared (crFilter)
-import Text.Pandoc.Readers.Groff  -- TODO explicit imports
+import Text.Pandoc.Readers.Roff  -- TODO explicit imports
 import Text.Parsec hiding (tokenPrim)
 import qualified Text.Parsec as Parsec
 import Text.Parsec.Pos (updatePosString)
@@ -63,22 +63,22 @@ instance Default ManState where
   def = ManState { readerOptions = def
                  , metadata      = nullMeta }
 
-type ManParser m = ParserT [GroffToken] ManState m
+type ManParser m = ParserT [RoffToken] ManState m
 
 
 -- | Read man (troff) from an input string and return a Pandoc document.
 readMan :: PandocMonad m => ReaderOptions -> T.Text -> m Pandoc
 readMan opts txt = do
-  tokenz <- lexGroff (crFilter txt)
+  tokenz <- lexRoff (crFilter txt)
   let state = def {readerOptions = opts} :: ManState
   eitherdoc <- readWithMTokens parseMan state
-     (Foldable.toList . unGroffTokens $ tokenz)
+     (Foldable.toList . unRoffTokens $ tokenz)
   either throwError return eitherdoc
 
 readWithMTokens :: PandocMonad m
-        => ParserT [GroffToken] ManState m a  -- ^ parser
+        => ParserT [RoffToken] ManState m a  -- ^ parser
         -> ManState                         -- ^ initial state
-        -> [GroffToken]                       -- ^ input
+        -> [RoffToken]                       -- ^ input
         -> m (Either PandocError a)
 readWithMTokens parser state input =
   let leftF = PandocParsecError . intercalate "\n" $ show <$> input
@@ -134,7 +134,7 @@ parseTable = do
 
   parseTableCell ts = do
     st <- getState
-    let ts' = Foldable.toList $ unGroffTokens ts
+    let ts' = Foldable.toList $ unRoffTokens ts
     let tcell = try $ do
           skipMany memptyLine
           plain . trimInlines <$> (parseInlines <* eof)
@@ -147,7 +147,7 @@ parseTable = do
 
   isHrule :: TableRow -> Bool
   isHrule ([cellfmt], _) = columnType cellfmt `elem` ['_','-','=']
-  isHrule (_, [GroffTokens ss]) =
+  isHrule (_, [RoffTokens ss]) =
     case Foldable.toList ss of
       [MLine [RoffStr [c]]] -> c `elem` ['_','-','=']
       _                     -> False
@@ -174,10 +174,10 @@ parseNewParagraph = do
   return mempty
 
 --
--- Parser: [GroffToken] -> Pandoc
+-- Parser: [RoffToken] -> Pandoc
 --
 
-msatisfy :: Monad m => (GroffToken -> Bool) -> ParserT [GroffToken] st m GroffToken
+msatisfy :: Monad m => (RoffToken -> Bool) -> ParserT [RoffToken] st m RoffToken
 msatisfy predic = tokenPrim show nextPos testTok
   where
     testTok t     = if predic t then Just t else Nothing
@@ -186,32 +186,32 @@ msatisfy predic = tokenPrim show nextPos testTok
                              (setSourceColumn
                                (setSourceLine pos $ sourceLine pos + 1) 1) ""
 
-mtoken :: PandocMonad m => ManParser m GroffToken
+mtoken :: PandocMonad m => ManParser m RoffToken
 mtoken = msatisfy (const True)
 
-mline :: PandocMonad m => ManParser m GroffToken
+mline :: PandocMonad m => ManParser m RoffToken
 mline = msatisfy isMLine where
   isMLine (MLine _) = True
   isMLine _ = False
 
-memptyLine :: PandocMonad m => ManParser m GroffToken
+memptyLine :: PandocMonad m => ManParser m RoffToken
 memptyLine = msatisfy isMEmptyLine where
   isMEmptyLine MEmptyLine = True
   isMEmptyLine _ = False
 
-mmacro :: PandocMonad m => MacroKind -> ManParser m GroffToken
+mmacro :: PandocMonad m => MacroKind -> ManParser m RoffToken
 mmacro mk = msatisfy isMMacro where
   isMMacro (MMacro mk' _ _) | mk == mk' = True
                             | otherwise = False
   isMMacro _ = False
 
-mmacroAny :: PandocMonad m => ManParser m GroffToken
+mmacroAny :: PandocMonad m => ManParser m RoffToken
 mmacroAny = msatisfy isMMacro where
   isMMacro (MMacro{}) = True
   isMMacro _ = False
 
 --
--- GroffToken -> Block functions
+-- RoffToken -> Block functions
 --
 
 parseTitle :: PandocMonad m => ManParser m Blocks
@@ -340,12 +340,12 @@ lineInl = do
   (MLine fragments) <- mline
   return $ linePartsToInlines fragments
 
-bareIP :: PandocMonad m => ManParser m GroffToken
+bareIP :: PandocMonad m => ManParser m RoffToken
 bareIP = msatisfy isBareIP where
   isBareIP (MMacro "IP" [] _) = True
   isBareIP _                  = False
 
-endmacro :: PandocMonad m => String -> ManParser m GroffToken
+endmacro :: PandocMonad m => String -> ManParser m RoffToken
 endmacro name = mmacro name <|> lookAhead newBlockMacro
   where
     newBlockMacro = msatisfy isNewBlockMacro
@@ -363,7 +363,7 @@ parseCodeBlock = try $ do
 
   where
 
-  extractText :: GroffToken -> Maybe String
+  extractText :: RoffToken -> Maybe String
   extractText (MLine ss)
     | not (null ss)
     , all isFontToken ss = Nothing
