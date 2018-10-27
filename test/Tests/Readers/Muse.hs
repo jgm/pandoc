@@ -66,10 +66,10 @@ tests =
       -- Emacs Muse allows this
       , "Newline in the beginning of emphasis" =:
         "*\nFoo bar*" =?>
-        para (emph ("Foo" <> space <> "bar"))
+        para (text "*\nFoo bar*")
       , "Newline in the end of emphasis" =:
         "*Foo bar\n*" =?>
-        para (emph ("Foo" <> space <> "bar"))
+        para (text "*Foo bar\n*")
 
       , "Comma after closing *" =:
         "Foo *bar*, baz" =?>
@@ -100,6 +100,14 @@ tests =
       , "Strong Emphasis" =:
           "***strength***" =?>
           para (strong . emph $ "strength")
+
+      , "Strong inside emphasis" =:
+        "*foo **bar** baz*" =?>
+        para (emph (text "foo " <> strong (text "bar") <> text " baz"))
+
+      , "Emphasis inside strong" =:
+        "**foo *bar* baz**" =?>
+        para (strong (text "foo " <> emph (text "bar") <> text " baz"))
 
       , test emacsMuse "Underline"
         ("_Underline_" =?> para (underlineSpan "Underline"))

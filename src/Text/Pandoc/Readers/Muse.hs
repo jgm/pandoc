@@ -78,6 +78,7 @@ data MuseState = MuseState { museMeta :: F Meta -- ^ Document metadata
                            , museOptions :: ReaderOptions
                            , museHeaders :: M.Map Inlines String -- ^ List of headers and ids (used for implicit ref links)
                            , museIdentifierList :: Set.Set String
+                           , museLastSpacePos :: Maybe SourcePos -- ^ Position after last space or newline parsed
                            , museLastStrPos :: Maybe SourcePos -- ^ Position after last str parsed
                            , museLogMessages :: [LogMessage]
                            , museNotes :: M.Map String (SourcePos, F Blocks)
@@ -89,6 +90,7 @@ instance Default MuseState where
                   , museHeaders = M.empty
                   , museIdentifierList = Set.empty
                   , museLastStrPos = Nothing
+                  , museLastSpacePos = Nothing
                   , museLogMessages = []
                   , museNotes = M.empty
                   }
@@ -124,6 +126,10 @@ instance HasLogMessages MuseState where
   addLogMessage m s = s{ museLogMessages = m : museLogMessages s }
   getLogMessages = reverse . museLogMessages
 
+updateLastSpacePos :: Monad m => MuseParser m ()
+updateLastSpacePos = getPosition >>= \pos ->
+  updateState $ \s -> s { museLastSpacePos = Just pos }
+
 -- | Parse Muse document
 parseMuse :: PandocMonad m => MuseParser m Pandoc
 parseMuse = do
@@ -158,6 +164,12 @@ atStart = do
   pos <- getPosition
   st <- getState
   guard $ museLastStrPos st /= Just pos
+
+noSpaceBefore :: PandocMonad m => MuseParser m ()
+noSpaceBefore = do
+  pos <- getPosition
+  st <- getState
+  guard $ museLastSpacePos st /= Just pos
 
 firstColumn :: PandocMonad m => MuseParser m ()
 firstColumn = getPosition >>= \pos -> guard (sourceColumn pos == 1)
@@ -738,7 +750,7 @@ inline = endline <|> inline'
 
 -- | Parse a soft break.
 endline :: PandocMonad m => MuseParser m (F Inlines)
-endline = try $ pure B.softbreak <$ newline <* notFollowedBy blankline
+endline = try $ pure B.softbreak <$ newline <* notFollowedBy blankline <* updateLastSpacePos
 
 parseAnchor :: PandocMonad m => MuseParser m String
 parseAnchor = try $ (:)
@@ -769,7 +781,7 @@ footnote = try $ do
         return $ B.note contents'
 
 whitespace :: PandocMonad m => MuseParser m (F Inlines)
-whitespace = try $ pure B.space <$ skipMany1 spaceChar
+whitespace = try $ pure B.space <$ skipMany1 spaceChar <* updateLastSpacePos
 
 -- | Parse @\<br>@ tag.
 br :: PandocMonad m => MuseParser m (F Inlines)
@@ -781,8 +793,8 @@ emphasisBetween :: (PandocMonad m, Show a)
 emphasisBetween p = try $ trimInlinesF . mconcat
   <$  atStart
   <*  p
-  <*  notFollowedBy spaceChar
-  <*> many1Till inline p
+  <*  notFollowedBy space
+  <*> many1Till inline (try $ noSpaceBefore *> p)
   <*  notFollowedBy alphaNum
 
 -- | Parse an inline tag, such as @\<em>@ and @\<strong>@.
