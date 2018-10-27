@@ -411,7 +411,7 @@ tableFormatSpec = do
 
 tableFormatSpecLine :: PandocMonad m => RoffLexer m [CellFormat]
 tableFormatSpecLine =
-  many1 $ try $ skipMany spacetab >> tableColFormat
+  many1 $ try $ skipMany spacetab *> tableColFormat <* skipMany spacetab
 
 tableColFormat :: PandocMonad m => RoffLexer m CellFormat
 tableColFormat = do
