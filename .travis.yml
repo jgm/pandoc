@@ -14,6 +14,10 @@ cache:
   - $HOME/.cabal
   - $HOME/.stack
 
+env:
+  global:
+    - GHC_OPTIONS="-O0 -Werror"
+
 # The different configurations we want to test. We have BUILD=cabal which uses
 # cabal-install, and BUILD=stack which uses Stack. More documentation on each
 # of those below.
@@ -36,7 +40,6 @@ matrix:
       BUILD=cabal
       GHCVER=7.10.3
       CABALVER=2.0
-      OPTS="-O0 -Werror"
       FLAGS="fast embed_data_files"
       CABALARGS=""
       TESTPATTERN="! /Round trip/"
@@ -48,7 +51,6 @@ matrix:
       BUILD=cabal
       GHCVER=8.0.2
       CABALVER=2.0
-      OPTS="-O0 -Werror"
       FLAGS="fast"
       CABALARGS=""
       TESTPATTERN="! /Round trip/"
@@ -59,7 +61,6 @@ matrix:
       BUILD=cabal
       GHCVER=8.2.2
       CABALVER=2.0
-      OPTS="-O0 -Werror"
       FLAGS="fast embed_data_files"
       CABALARGS="--enable-benchmarks"
       TESTPATTERN="! /Round trip/"
@@ -70,7 +71,6 @@ matrix:
       BUILD=cabal
       GHCVER=8.4.3
       CABALVER=2.2
-      OPTS="-O0 -Werror"
       FLAGS="fast embed_data_files"
       CABALARGS="--enable-benchmarks"
       TESTPATTERN="! /Round trip/"
@@ -81,7 +81,6 @@ matrix:
   #     BUILD=cabal
   #     GHCVER=8.6.1
   #     CABALVER=2.4
-  #     OPTS="-O0 -Werror"
   #     FLAGS="fast embed_data_files"
   #     CABALARGS="--enable-benchmarks --allow-newer=haddock-library:base"
   #     TESTPATTERN="! /Round trip/"
@@ -95,14 +94,13 @@ matrix:
 
   # The Stack builds. We can pass in arbitrary Stack arguments via the ARGS
   # variable, such as using --stack-yaml to point to a different file.
-  # - env: BUILD=stack ARGS="--stack-yaml stack.lts9.yaml" OPTS="-O0 -Werror" FLAGS="fast embed_data_files"
+  # - env: BUILD=stack ARGS="--stack-yaml stack.lts9.yaml" FLAGS="fast embed_data_files"
   #   compiler: ": #stack 8.0.2"
   #   addons: {apt: {packages: [ghc-8.0.2], sources: [hvr-ghc]}}
 
   - env: >-
       BUILD=stack
       ARGS="--resolver lts-12"
-      OPTS="-O0 -Werror"
       TESTPATTERN="! /Round trip/"
     compiler: ": #stack 8.4.3"
     addons: {apt: {packages: [ghc-8.4.3], sources: [hvr-ghc]}}
@@ -111,7 +109,6 @@ matrix:
   - env: >-
       BUILD=stack
       ARGS="--resolver nightly"
-      OPTS="-O0 -Werror"
       TESTPATTERN="."
     compiler: ": #stack nightly"
     addons: {apt: {packages: [ghc-8.4.3], sources: [hvr-ghc]}}
@@ -129,7 +126,6 @@ matrix:
   - env: >-
       BUILD=stack
       ARGS="--resolver nightly"
-      OPTS="-O0 -Werror"
       TESTPATTERN="."
 
   fast_finish: true
@@ -189,14 +185,14 @@ script:
       stack config set system-ghc --global true
       stack --no-terminal $ARGS test --fast --flag 'aeson:fast' \
             --flag pandoc:embed_data_files --haddock --no-haddock-deps \
-            --ghc-options="$OPTS" \
+            --ghc-options="$GHC_OPTIONS" \
             --test-arguments="--hide-successes --pattern \"$TESTPATTERN\""
       ;;
     cabal)
       cabal sdist --output-directory=sourcedist && \
       cd sourcedist && \
       cabal configure --disable-optimization --enable-tests -v2 \
-            --flags="$FLAGS" --ghc-options="$OPTS" $CABALARGS && \
+            --flags="$FLAGS" --ghc-options="$GHC_OPTIONS" $CABALARGS && \
       cabal build -v2 -j2 && \
       cabal test --test-options="--pattern=\"$TESTPATTERN\""
       ;;
