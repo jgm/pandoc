@@ -34,7 +34,6 @@ Conversion of man to 'Pandoc' document.
 module Text.Pandoc.Readers.Man (readMan) where
 
 import Prelude
-import Safe (lastMay)
 import Data.Char (toLower)
 import Data.Default (Default)
 import Control.Monad (liftM, mzero, guard)
@@ -114,22 +113,22 @@ parseTable :: PandocMonad m => ManParser m Blocks
 parseTable = do
   let isMTable (MTable{}) = True
       isMTable _          = False
-  MTable _opts aligns rows pos <- msatisfy isMTable
-  case lastMay aligns of
-    Just as -> try (do
+  MTable _opts rows pos <- msatisfy isMTable
+  case rows of
+    ((as,_):_) -> try (do
       let as' = map (columnTypeToAlignment . columnType) as
       guard $ all isJust as'
       let alignments = catMaybes as'
       let (headerRow', bodyRows') =
             case rows of
-              (h:[x]:bs)
+              (h:x:bs)
                | isHrule x -> (h, bs)
-              _ -> ([], rows)
-      headerRow <- mapM parseTableCell headerRow'
-      bodyRows <- mapM (mapM parseTableCell) bodyRows'
+              _ -> (([],[]), rows)
+      headerRow <- mapM parseTableCell $ snd headerRow'
+      bodyRows <- mapM (mapM parseTableCell . snd) bodyRows'
       return $ B.table mempty (zip alignments (repeat 0.0))
                   headerRow bodyRows) <|> fallback pos
-    Nothing -> fallback pos
+    [] -> fallback pos
 
  where
 
@@ -146,11 +145,13 @@ parseTable = do
       Left e  -> throwError e
       Right x -> return x
 
-  isHrule :: GroffTokens -> Bool
-  isHrule (GroffTokens ss) =
+  isHrule :: TableRow -> Bool
+  isHrule ([cellfmt], _) = columnType cellfmt `elem` ['_','-','=']
+  isHrule (_, [GroffTokens ss]) =
     case Foldable.toList ss of
       [MLine [RoffStr [c]]] -> c `elem` ['_','-','=']
       _                     -> False
+  isHrule _ = False
 
   fallback pos = do
     report $ SkippedContent "TABLE" pos

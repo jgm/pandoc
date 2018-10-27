@@ -38,7 +38,8 @@ module Text.Pandoc.Readers.Groff
   , LinePart(..)
   , Arg
   , TableOption
-  , TableFormat(..)
+  , CellFormat(..)
+  , TableRow
   , GroffToken(..)
   , GroffTokens(..)
   , linePartsToString
@@ -47,6 +48,7 @@ module Text.Pandoc.Readers.Groff
 where
 
 import Prelude
+import Safe (lastDef)
 import Control.Monad (void, mzero, guard, when)
 import Control.Monad.Except (throwError)
 import Text.Pandoc.Class
@@ -92,20 +94,21 @@ type Arg = [LinePart]
 
 type TableOption = (String, String)
 
-data TableFormat =
-  TableFormat
+data CellFormat =
+  CellFormat
   { columnType     :: Char
   , pipePrefix     :: Bool
   , pipeSuffix     :: Bool
   , columnSuffixes :: [String]
   } deriving (Show, Eq, Ord)
 
+type TableRow = ([CellFormat], [GroffTokens])
 
 -- TODO parse tables (see man tbl)
 data GroffToken = MLine [LinePart]
               | MEmptyLine
               | MMacro MacroKind [Arg] SourcePos
-              | MTable [TableOption] [[TableFormat]] [[GroffTokens]] SourcePos
+              | MTable [TableOption] [TableRow] SourcePos
               deriving Show
 
 newtype GroffTokens = GroffTokens { unGroffTokens :: Seq.Seq GroffToken }
@@ -346,13 +349,27 @@ lexTable pos = do
   spaces
   skipMany lexComment
   spaces
+  rows <- lexTableRows
+  morerows <- many $ try $ do
+    string ".T&"
+    skipMany spacetab
+    newline
+    lexTableRows
+  string ".TE"
+  skipMany spacetab
+  eofline
+  return $ singleTok $ MTable opts (rows ++ concat morerows) pos
+
+lexTableRows :: PandocMonad m => GroffLexer m [TableRow]
+lexTableRows = do
   aligns <- tableFormatSpec
   spaces
   skipMany lexComment
   spaces
-  rows <- manyTill tableRow (try (string ".TE" >> skipMany spacetab >> eofline))
-  return $ singleTok $ MTable opts aligns rows pos
- 
+  rows <- many (notFollowedBy (try (string ".TE") <|> try (string ".T&")) >>
+                  tableRow)
+  return $ zip aligns rows
+
 tableCell :: PandocMonad m => GroffLexer m GroffTokens
 tableCell = (enclosedCell <|> simpleCell) >>= lexGroff . T.pack
   where
@@ -387,18 +404,18 @@ tableOption = do
   skipMany spacetab
   return (k,v)
 
-tableFormatSpec :: PandocMonad m => GroffLexer m [[TableFormat]]
+tableFormatSpec :: PandocMonad m => GroffLexer m [[CellFormat]]
 tableFormatSpec = do
   speclines <- tableFormatSpecLine `sepBy1` (newline <|> char ',')
   skipMany spacetab
   char '.'
-  return speclines
+  return $ speclines ++ repeat (lastDef [] speclines) -- last line is default
 
-tableFormatSpecLine :: PandocMonad m => GroffLexer m [TableFormat]
+tableFormatSpecLine :: PandocMonad m => GroffLexer m [CellFormat]
 tableFormatSpecLine =
   many1 $ try $ skipMany spacetab >> tableColFormat
 
-tableColFormat :: PandocMonad m => GroffLexer m TableFormat
+tableColFormat :: PandocMonad m => GroffLexer m CellFormat
 tableColFormat = do
     pipePrefix' <- option False
                    $ True <$ (try $ string "|" <* notFollowedBy spacetab)
@@ -416,7 +433,7 @@ tableColFormat = do
                 else return ""
       return $ x : num
     pipeSuffix' <- option False $ True <$ string "|"
-    return $ TableFormat
+    return $ CellFormat
              { columnType     = c
              , pipePrefix     = pipePrefix'
              , pipeSuffix     = pipeSuffix'
