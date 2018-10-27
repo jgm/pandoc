@@ -42,20 +42,29 @@ import Text.Pandoc.Definition (Pandoc)
 import Text.Pandoc.Options (ReaderOptions)
 import qualified Text.Pandoc.Filter.JSON as JSONFilter
 import qualified Text.Pandoc.Filter.Lua as LuaFilter
+import qualified Text.Pandoc.Filter.Path as Path
 
+-- | Type of filter and path to filter file.
 data Filter = LuaFilter FilePath
             | JSONFilter FilePath
             deriving (Show)
 
+-- | Modify the given document using a filter.
 applyFilters :: ReaderOptions
              -> [Filter]
              -> [String]
              -> Pandoc
              -> PandocIO Pandoc
-applyFilters ropts filters args d =
-  foldrM ($) d $ map applyFilter filters
+applyFilters ropts filters args d = do
+  expandedFilters <- mapM expandFilterPath filters
+  foldrM ($) d $ map applyFilter expandedFilters
  where
   applyFilter (JSONFilter f) = JSONFilter.apply ropts args f
   applyFilter (LuaFilter f)  = LuaFilter.apply ropts args f
+
+-- | Expand paths of filters, searching the data directory.
+expandFilterPath :: Filter -> PandocIO Filter
+expandFilterPath (LuaFilter fp) = LuaFilter <$> Path.expandFilterPath fp
+expandFilterPath (JSONFilter fp) = JSONFilter <$> Path.expandFilterPath fp
 
 $(deriveJSON defaultOptions ''Filter)

@@ -36,7 +36,6 @@ import Control.Monad ((>=>))
 import Text.Pandoc.Class (PandocIO)
 import Text.Pandoc.Definition (Pandoc)
 import Text.Pandoc.Error (PandocError (PandocFilterError))
-import Text.Pandoc.Filter.Path (expandFilterPath)
 import Text.Pandoc.Lua (Global (..), LuaException (..),
                         runLua, runFilterFile, setGlobals)
 import Text.Pandoc.Options (ReaderOptions)
@@ -49,17 +48,16 @@ apply :: ReaderOptions
       -> FilePath
       -> Pandoc
       -> PandocIO Pandoc
-apply ropts args f doc = do
-  filterPath <- expandFilterPath f
+apply ropts args fp doc = do
   let format = case args of
                  (x:_) -> x
                  _     -> error "Format not supplied for Lua filter"
-  runLua >=> forceResult filterPath $ do
+  runLua >=> forceResult fp $ do
     setGlobals [ FORMAT format
                , PANDOC_READER_OPTIONS ropts
-               , PANDOC_SCRIPT_FILE filterPath
+               , PANDOC_SCRIPT_FILE fp
                ]
-    runFilterFile filterPath doc
+    runFilterFile fp doc
 
 forceResult :: FilePath -> Either LuaException Pandoc -> PandocIO Pandoc
 forceResult fp eitherResult = case eitherResult of
