@@ -389,7 +389,7 @@ tableRow = do
   return (c:cs)
 
 tableOptions :: PandocMonad m => RoffLexer m [TableOption]
-tableOptions = try $ many1 tableOption <* spaces <* char ';'
+tableOptions = try $ many tableOption <* spaces <* char ';'
 
 tableOption :: PandocMonad m => RoffLexer m TableOption
 tableOption = do
