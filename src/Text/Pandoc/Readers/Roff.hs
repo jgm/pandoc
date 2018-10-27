@@ -424,23 +424,22 @@ tableColFormat = do
                    $ True <$ (try $ string "|" <* notFollowedBy spacetab)
     c <- oneOf ['a','A','c','C','l','L','n','N','r','R','s','S','^','_','-',
                 '=','|']
-    numsuffixes <- option [] $ (:[]) <$> many1 digit
-    suffixes <- many $ do
-      x <- oneOf ['b','B','d','D','e','E','f','F','i','I','m','M',
+    suffixes <- many $ count 1 digit <|>
+      (do x <- oneOf ['b','B','d','D','e','E','f','F','i','I','m','M',
                   'p','P','t','T','u','U','v','V','w','W','x','X', 'z','Z']
-      num <- if x == 'w'
-                then many1 digit <|>
-                      do char '('
-                         xs <- manyTill anyChar (char ')')
-                         return ("(" ++ xs ++ ")")
-                else return ""
-      return $ x : num
+          num <- if x == 'w'
+                    then many1 digit <|>
+                          do char '('
+                             xs <- manyTill anyChar (char ')')
+                             return ("(" ++ xs ++ ")")
+                    else return ""
+          return $ x : num)
     pipeSuffix' <- option False $ True <$ string "|"
     return $ CellFormat
              { columnType     = c
              , pipePrefix     = pipePrefix'
              , pipeSuffix     = pipeSuffix'
-             , columnSuffixes = numsuffixes ++ suffixes }
+             , columnSuffixes = suffixes }
  
 -- We don't fully handle the conditional.  But we do
 -- include everything under '.ie n', which occurs commonly
