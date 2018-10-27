@@ -36,7 +36,7 @@ module Text.Pandoc.Readers.Man (readMan) where
 import Prelude
 import Data.Char (toLower)
 import Data.Default (Default)
-import Control.Monad (liftM, mzero, guard)
+import Control.Monad (liftM, mzero, guard, void)
 import Control.Monad.Trans (lift)
 import Control.Monad.Except (throwError)
 import Text.Pandoc.Class (PandocMonad(..), report)
@@ -345,8 +345,10 @@ bareIP = msatisfy isBareIP where
   isBareIP (MMacro "IP" [] _) = True
   isBareIP _                  = False
 
-endmacro :: PandocMonad m => String -> ManParser m RoffToken
-endmacro name = mmacro name <|> lookAhead newBlockMacro
+endmacro :: PandocMonad m => String -> ManParser m ()
+endmacro name = void (mmacro name)
+             <|> lookAhead (void newBlockMacro)
+             <|> lookAhead eof
   where
     newBlockMacro = msatisfy isNewBlockMacro
     isNewBlockMacro (MMacro "SH" _ _) = True
