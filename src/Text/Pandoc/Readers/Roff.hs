@@ -271,9 +271,7 @@ escFontSize = do
 escFont :: PandocMonad m => RoffLexer m [LinePart]
 escFont = do
   font <- choice
-        [ char 'S' >> return defaultFontSpec
-        , digit >> return defaultFontSpec
-        , char '(' >> anyChar >> anyChar >> return defaultFontSpec
+        [ digit >> return defaultFontSpec
         , digit >> return defaultFontSpec
         , ($ defaultFontSpec) <$> letterFontKind
         , lettersFont
@@ -284,10 +282,8 @@ escFont = do
 
 lettersFont :: PandocMonad m => RoffLexer m FontSpec
 lettersFont = try $ do
-  char '['
-  fs <- many letterFontKind
-  skipMany letter
-  char ']'
+  fs <- (char '[' *> many letterFontKind <* char ']')
+     <|> (char '(' *> count 2 letterFontKind)
   if null fs
      then prevFont <$> getState
      else return $ foldr ($) defaultFontSpec fs
@@ -298,6 +294,7 @@ letterFontKind = choice [
   , oneOf ['I','i'] >> return (\fs -> fs { fontItalic = True })
   , oneOf ['C','c'] >> return (\fs -> fs { fontMonospace = True })
   , oneOf ['P','p','R','r'] >> return id
+  , letter >> return id  -- L, S, etc.
   ]
 
 
