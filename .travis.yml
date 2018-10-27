@@ -36,7 +36,7 @@ matrix:
       BUILD=cabal
       GHCVER=7.10.3
       CABALVER=2.0
-      OPTS="-O0 -Wall -fno-warn-unused-do-bind -Werror"
+      OPTS="-O0 -Werror"
       FLAGS="fast embed_data_files"
       CABALARGS=""
       TESTPATTERN="! /Round trip/"
@@ -48,7 +48,7 @@ matrix:
       BUILD=cabal
       GHCVER=8.0.2
       CABALVER=2.0
-      OPTS="-O0 -Wall -Wincomplete-record-updates -Wnoncanonical-monad-instances -Wnoncanonical-monadfail-instances -fno-warn-unused-do-bind -Werror"
+      OPTS="-O0 -Werror"
       FLAGS="fast"
       CABALARGS=""
       TESTPATTERN="! /Round trip/"
@@ -59,7 +59,7 @@ matrix:
       BUILD=cabal
       GHCVER=8.2.2
       CABALVER=2.0
-      OPTS="-O0 -Wall -Wincomplete-record-updates -Wnoncanonical-monad-instances -Wnoncanonical-monadfail-instances -fno-warn-unused-do-bind -Werror"
+      OPTS="-O0 -Werror"
       FLAGS="fast embed_data_files"
       CABALARGS="--enable-benchmarks"
       TESTPATTERN="! /Round trip/"
@@ -70,7 +70,7 @@ matrix:
       BUILD=cabal
       GHCVER=8.4.3
       CABALVER=2.2
-      OPTS="-O0 -Wall -fno-warn-unused-do-bind -Wincomplete-record-updates -Wnoncanonical-monad-instances -Wnoncanonical-monadfail-instances -Wincomplete-uni-patterns -Werror=missing-home-modules -Widentities -Wcpp-undef -Werror"
+      OPTS="-O0 -Werror"
       FLAGS="fast embed_data_files"
       CABALARGS="--enable-benchmarks"
       TESTPATTERN="! /Round trip/"
@@ -81,7 +81,7 @@ matrix:
   #     BUILD=cabal
   #     GHCVER=8.6.1
   #     CABALVER=2.4
-  #     OPTS="-O0 -Wall -fno-warn-unused-do-bind -Wincomplete-record-updates -Wnoncanonical-monad-instances -Wnoncanonical-monadfail-instances -Wincomplete-uni-patterns -Werror=missing-home-modules -Widentities -Wcpp-undef -Werror"
+  #     OPTS="-O0 -Werror"
   #     FLAGS="fast embed_data_files"
   #     CABALARGS="--enable-benchmarks --allow-newer=haddock-library:base"
   #     TESTPATTERN="! /Round trip/"
@@ -95,14 +95,14 @@ matrix:
 
   # The Stack builds. We can pass in arbitrary Stack arguments via the ARGS
   # variable, such as using --stack-yaml to point to a different file.
-  # - env: BUILD=stack ARGS="--stack-yaml stack.lts9.yaml" OPTS="-O0 -Wall -fno-warn-unused-do-bind -Wincomplete-record-updates -Wnoncanonical-monad-instances -Wnoncanonical-monadfail-instances -Wincomplete-uni-patterns -Werror=missing-home-modules -Widentities -Wcpp-undef -Werror" FLAGS="fast embed_data_files"
+  # - env: BUILD=stack ARGS="--stack-yaml stack.lts9.yaml" OPTS="-O0 -Werror" FLAGS="fast embed_data_files"
   #   compiler: ": #stack 8.0.2"
   #   addons: {apt: {packages: [ghc-8.0.2], sources: [hvr-ghc]}}
 
   - env: >-
       BUILD=stack
       ARGS="--resolver lts-12"
-      OPTS="-O0 -Wall -fno-warn-unused-do-bind -Wincomplete-record-updates -Wnoncanonical-monad-instances -Wnoncanonical-monadfail-instances -Wincomplete-uni-patterns -Werror=missing-home-modules -Widentities -Wcpp-undef -Werror"
+      OPTS="-O0 -Werror"
       TESTPATTERN="! /Round trip/"
     compiler: ": #stack 8.4.3"
     addons: {apt: {packages: [ghc-8.4.3], sources: [hvr-ghc]}}
@@ -111,7 +111,7 @@ matrix:
   - env: >-
       BUILD=stack
       ARGS="--resolver nightly"
-      OPTS="-O0 -Wall -fno-warn-unused-do-bind -Wincomplete-record-updates -Wnoncanonical-monad-instances -Wnoncanonical-monadfail-instances -Wincomplete-uni-patterns -Werror=missing-home-modules -Widentities -Wcpp-undef -Werror"
+      OPTS="-O0 -Werror"
       TESTPATTERN="."
     compiler: ": #stack nightly"
     addons: {apt: {packages: [ghc-8.4.3], sources: [hvr-ghc]}}
@@ -129,7 +129,7 @@ matrix:
   - env: >-
       BUILD=stack
       ARGS="--resolver nightly"
-      OPTS="-O0 -Wall -fno-warn-unused-do-bind -Wincomplete-record-updates -Wnoncanonical-monad-instances -Wnoncanonical-monadfail-instances -Wincomplete-uni-patterns -Werror=missing-home-modules -Widentities -Wcpp-undef -Werror"
+      OPTS="-O0 -Werror"
       TESTPATTERN="."
 
   fast_finish: true
