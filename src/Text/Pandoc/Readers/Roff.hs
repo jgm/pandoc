@@ -104,12 +104,11 @@ data CellFormat =
 
 type TableRow = ([CellFormat], [RoffTokens])
 
--- TODO parse tables (see man tbl)
 data RoffToken = MLine [LinePart]
-              | MEmptyLine
-              | MMacro MacroKind [Arg] SourcePos
-              | MTable [TableOption] [TableRow] SourcePos
-              deriving Show
+               | MEmptyLine
+               | MMacro MacroKind [Arg] SourcePos
+               | MTable [TableOption] [TableRow] SourcePos
+               deriving Show
 
 newtype RoffTokens = RoffTokens { unRoffTokens :: Seq.Seq RoffToken }
         deriving (Show, Semigroup, Monoid)
