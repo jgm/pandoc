@@ -44,7 +44,6 @@ import System.FilePath ((</>), takeExtension)
 import Text.Pandoc.Class (PandocIO)
 import Text.Pandoc.Error (PandocError (PandocFilterError))
 import Text.Pandoc.Definition (Pandoc)
-import Text.Pandoc.Filter.Path (expandFilterPath)
 import Text.Pandoc.Options (ReaderOptions)
 import Text.Pandoc.Process (pipeProcess)
 import Text.Pandoc.Shared (pandocVersion)
@@ -56,9 +55,7 @@ apply :: ReaderOptions
       -> FilePath
       -> Pandoc
       -> PandocIO Pandoc
-apply ropts args f d = do
-  f' <- expandFilterPath f
-  liftIO $ externalFilter ropts f' args d
+apply ropts args f = liftIO . externalFilter ropts f args
 
 externalFilter :: MonadIO m
                => ReaderOptions -> FilePath -> [String] -> Pandoc -> m Pandoc
