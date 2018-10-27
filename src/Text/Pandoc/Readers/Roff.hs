@@ -404,7 +404,9 @@ tableOption = do
 
 tableFormatSpec :: PandocMonad m => RoffLexer m [[CellFormat]]
 tableFormatSpec = do
-  speclines <- tableFormatSpecLine `sepBy1` (newline <|> char ',')
+  first <- tableFormatSpecLine
+  rest <- many $ try $ (newline <|> char ',') *> tableFormatSpecLine
+  let speclines = first:rest
   spaces
   char '.'
   return $ speclines ++ repeat (lastDef [] speclines) -- last line is default
