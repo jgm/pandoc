@@ -32,13 +32,11 @@ addons:
 # We set the compiler values here to tell Travis to use a different
 # cache file per set of arguments.
 #
-# If you need to have different apt packages for each combination in the
-# matrix, you can use a line such as:
-#     addons: {apt: {packages: [libfcgi-dev,libgmp-dev]}}
-#
 # fast_finish: build successful when every builds not in allow_failure are finished
 # i.e. not waiting any of the allow_failure to finish
 matrix:
+  fast_finish: true
+
   include:
   # We grab the appropriate GHC and cabal-install versions from hvr's PPA. See:
   # https://github.com/hvr/multi-ghc-travis
@@ -80,14 +78,14 @@ matrix:
       TESTPATTERN="! /Round trip/"
     compiler: ": #GHC 8.4.3"
 
-  # - env: >-
-  #     BUILD=cabal
-  #     GHCVER=8.6.1
-  #     CABALVER=2.4
-  #     FLAGS="fast embed_data_files"
-  #     CABALARGS="--enable-benchmarks --allow-newer=haddock-library:base"
-  #     TESTPATTERN="! /Round trip/"
-  #   compiler: ": #GHC 8.6.1"
+  - env: >-
+      BUILD=cabal
+      GHCVER=8.6.1
+      CABALVER=2.4
+      FLAGS="fast embed_data_files"
+      CABALARGS="--enable-benchmarks --allow-newer=haddock-library:base"
+      TESTPATTERN="! /Round trip/"
+    compiler: ": #GHC 8.6.1"
 
   # Build with the newest GHC and cabal-install. This is an accepted failure,
   # see below.
@@ -131,8 +129,6 @@ matrix:
       ARGS="--resolver nightly"
       GHCVER=8.4.3
       TESTPATTERN="."
-
-  fast_finish: true
 
 before_install:
 # Using compiler above sets CC to an invalid value, so unset it
