@@ -144,9 +144,11 @@ before_install:
     mkdir -p ~/.local/bin
     if [ `uname` = "Darwin" ]
     then
-      curl --insecure -L https://www.stackage.org/stack/osx-x86_64 | tar xz --strip-components=1 --include '*/stack' -C ~/.local/bin
+      curl --insecure -L https://www.stackage.org/stack/osx-x86_64 |\
+          tar xz --strip-components=1 --include '*/stack' -C ~/.local/bin
     else
-      curl -L https://www.stackage.org/stack/linux-x86_64 | tar xz --wildcards --strip-components=1 -C ~/.local/bin '*/stack'
+      curl -L https://www.stackage.org/stack/linux-x86_64 |\
+          tar xz --wildcards --strip-components=1 -C ~/.local/bin '*/stack'
     fi
   fi
 
@@ -158,17 +160,22 @@ install:
     stack)
       ulimit -n 4096
       stack config set system-ghc --global true
-      stack --no-terminal --install-ghc $ARGS build --only-dependencies --fast --flag 'pandoc:embed_data_files' --flag 'aeson:fast' --jobs 2
+      stack --no-terminal --install-ghc $ARGS build --only-dependencies --fast \
+            --flag 'pandoc:embed_data_files' --flag 'aeson:fast' --jobs 2
       ;;
     cabal)
       cabal --version
       travis_retry cabal update
       case "$GHCVER" in
         7.10.3)
-           cabal install -v1 --disable-optimization --flags="$FLAGS" --enable-tests --force-reinstalls --reorder-goals --max-backjumps=-1 $CABALARGS
+           cabal install -v1 --disable-optimization --flags="$FLAGS" \
+                 --enable-tests --force-reinstalls --reorder-goals   \
+                 --max-backjumps=-1 $CABALARGS
            ;;
         *)
-           cabal install --disable-optimization --only-dependencies --flags="$FLAGS" --enable-tests --force-reinstalls --reorder-goals --max-backjumps=-1 $CABALARGS .
+           cabal install --disable-optimization --only-dependencies \
+                 --flags="$FLAGS" --enable-tests --force-reinstalls \
+                 --reorder-goals --max-backjumps=-1 $CABALARGS .
            ;;
       esac
       ;;
@@ -180,12 +187,16 @@ script:
     stack)
       ulimit -n 4096
       stack config set system-ghc --global true
-      stack --no-terminal $ARGS test --fast --flag 'aeson:fast' --flag pandoc:embed_data_files --haddock --no-haddock-deps --ghc-options="$OPTS" --test-arguments="--hide-successes --pattern \"$TESTPATTERN\""
+      stack --no-terminal $ARGS test --fast --flag 'aeson:fast' \
+            --flag pandoc:embed_data_files --haddock --no-haddock-deps \
+            --ghc-options="$OPTS" \
+            --test-arguments="--hide-successes --pattern \"$TESTPATTERN\""
       ;;
     cabal)
       cabal sdist --output-directory=sourcedist && \
       cd sourcedist && \
-      cabal configure --disable-optimization --enable-tests -v2 --flags="$FLAGS" --ghc-options="$OPTS" $CABALARGS && \
+      cabal configure --disable-optimization --enable-tests -v2 \
+            --flags="$FLAGS" --ghc-options="$OPTS" $CABALARGS && \
       cabal build -v2 -j2 && \
       cabal test --test-options="--pattern=\"$TESTPATTERN\""
       ;;
