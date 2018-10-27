@@ -63,7 +63,6 @@ tests =
         "*Foo bar*" =?>
         para (emph . spcSep $ ["Foo", "bar"])
 
-      -- Emacs Muse allows this
       , "Newline in the beginning of emphasis" =:
         "*\nFoo bar*" =?>
         para (text "*\nFoo bar*")
