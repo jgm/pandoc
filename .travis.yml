@@ -18,6 +18,13 @@ env:
   global:
     - GHC_OPTIONS="-O0 -Werror"
 
+addons:
+  apt:
+    packages:
+      - happy-1.19.5
+    sources:
+      - hvr-ghc
+
 # The different configurations we want to test. We have BUILD=cabal which uses
 # cabal-install, and BUILD=stack which uses Stack. More documentation on each
 # of those below.
@@ -44,7 +51,6 @@ matrix:
       CABALARGS=""
       TESTPATTERN="! /Round trip/"
     compiler: ": #GHC 7.10.3"
-    addons: {apt: {packages: [cabal-install-2.0,ghc-7.10.3,happy-1.19.5], sources: [hvr-ghc]}}
 
   # don't build benchmarks for ghc 8.0.2, because build takes too long...
   - env: >-
@@ -55,7 +61,6 @@ matrix:
       CABALARGS=""
       TESTPATTERN="! /Round trip/"
     compiler: ": #GHC 8.0.2"
-    addons: {apt: {packages: [cabal-install-2.0,ghc-8.0.2,happy-1.19.5], sources: [hvr-ghc]}}
 
   - env: >-
       BUILD=cabal
@@ -65,7 +70,6 @@ matrix:
       CABALARGS="--enable-benchmarks"
       TESTPATTERN="! /Round trip/"
     compiler: ": #GHC 8.2.2"
-    addons: {apt: {packages: [cabal-install-2.0,ghc-8.2.2,happy-1.19.5], sources: [hvr-ghc]}}
 
   - env: >-
       BUILD=cabal
@@ -75,7 +79,6 @@ matrix:
       CABALARGS="--enable-benchmarks"
       TESTPATTERN="! /Round trip/"
     compiler: ": #GHC 8.4.3"
-    addons: {apt: {packages: [cabal-install-2.2,ghc-8.4.3,happy-1.19.5], sources: [hvr-ghc]}}
 
   # - env: >-
   #     BUILD=cabal
@@ -101,17 +104,17 @@ matrix:
   - env: >-
       BUILD=stack
       ARGS="--resolver lts-12"
+      GHCVER=8.4.3
       TESTPATTERN="! /Round trip/"
     compiler: ": #stack 8.4.3"
-    addons: {apt: {packages: [ghc-8.4.3], sources: [hvr-ghc]}}
 
   # Nightly builds are allowed to fail
   - env: >-
       BUILD=stack
       ARGS="--resolver nightly"
+      GHCVER=8.4.3
       TESTPATTERN="."
     compiler: ": #stack nightly"
-    addons: {apt: {packages: [ghc-8.4.3], sources: [hvr-ghc]}}
 
   # - env: BUILD=stack ARGS="--resolver lts-8"
   #   compiler: ": #stack 8.0.2 osx"
@@ -126,6 +129,7 @@ matrix:
   - env: >-
       BUILD=stack
       ARGS="--resolver nightly"
+      GHCVER=8.4.3
       TESTPATTERN="."
 
   fast_finish: true
@@ -133,6 +137,7 @@ matrix:
 before_install:
 # Using compiler above sets CC to an invalid value, so unset it
 - unset CC
+- sudo apt-get install ${GHCVER:+ghc-$GHCVER} ${CABALVER:+cabal-install-$CABALVER}
 - export PATH=/opt/happy/1.19.5/bin/:/opt/ghc/$GHCVER/bin:/opt/cabal/$CABALVER/bin:/opt/cabal/bin:$HOME/.local/bin:$HOME/.cabal/bin:$PATH
 # Download and unpack the stack executable
 - |
