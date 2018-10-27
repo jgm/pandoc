@@ -53,7 +53,6 @@ import Text.Pandoc.Readers.Roff  -- TODO explicit imports
 import Text.Parsec hiding (tokenPrim)
 import qualified Text.Parsec as Parsec
 import Text.Parsec.Pos (updatePosString, initialPos)
-import qualified Data.Sequence as Seq
 import qualified Data.Foldable as Foldable
 
 data ManState = ManState { readerOptions :: ReaderOptions
@@ -150,9 +149,8 @@ parseTable = do
   isHrule ([cellfmt], _) = columnType cellfmt `elem` ['_','-','=']
   isHrule (_, [RoffTokens ss]) =
     case Foldable.toList ss of
-      [MLine (LineParts (RoffStr [c] Seq.:<| Seq.Empty))]
-                        -> c `elem` ['_','-','=']
-      _                 -> False
+      [MLine [RoffStr [c]]] -> c `elem` ['_','-','=']
+      _                     -> False
   isHrule _ = False
 
   fallback pos = do
@@ -231,8 +229,8 @@ parseTitle = do
   modifyState $ \st -> st{ metadata = adjustMeta $ metadata st }
   return mempty
 
-linePartsToInlines :: LineParts -> Inlines
-linePartsToInlines = go False . Foldable.toList . unLineParts
+linePartsToInlines :: [LinePart] -> Inlines
+linePartsToInlines = go False
 
   where
   go :: Bool -> [LinePart] -> Inlines
@@ -368,10 +366,10 @@ parseCodeBlock = try $ do
   where
 
   extractText :: RoffToken -> Maybe String
-  extractText (MLine (LineParts ss))
-    | not (Seq.null ss)
+  extractText (MLine ss)
+    | not (null ss)
     , all isFontToken ss = Nothing
-    | otherwise          = Just $ linePartsToString (LineParts ss)
+    | otherwise          = Just $ linePartsToString ss
     where isFontToken (FontSize{}) = True
           isFontToken (Font{})     = True
           isFontToken _            = False
