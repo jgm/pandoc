@@ -66,7 +66,6 @@ import Text.Parsec hiding (tokenPrim)
 import qualified Text.Parsec as Parsec
 import Text.Pandoc.RoffChar (characterCodes, combiningAccents)
 import qualified Data.Sequence as Seq
-import Data.Sequence (Seq)
 import qualified Data.Foldable as Foldable
 import qualified Data.Text.Normalize as Normalize
 
@@ -111,7 +110,7 @@ data RoffToken = MLine [LinePart]
                | MTable [TableOption] [TableRow] SourcePos
                deriving Show
 
-newtype RoffTokens = RoffTokens { unRoffTokens :: Seq RoffToken }
+newtype RoffTokens = RoffTokens { unRoffTokens :: Seq.Seq RoffToken }
         deriving (Show, Semigroup, Monoid)
 
 singleTok :: RoffToken -> RoffTokens
@@ -157,7 +156,7 @@ combiningAccentsMap :: M.Map String Char
 combiningAccentsMap =
   M.fromList $ map (\(x,y) -> (y,x)) combiningAccents
 
-escape :: PandocMonad m => RoffLexer m (Seq LinePart)
+escape :: PandocMonad m => RoffLexer m [LinePart]
 escape = do
   char '\\'
   c <- anyChar
@@ -177,18 +176,18 @@ escape = do
     ':' -> return mempty
     '0' -> return mempty
     'c' -> return mempty
-    '-' -> return $ Seq.singleton $ RoffStr "-"
-    '_' -> return $ Seq.singleton $ RoffStr "_"
-    ' ' -> return $ Seq.singleton $ RoffStr " "
-    '\\' -> return $ Seq.singleton $ RoffStr "\\"
-    't' -> return $ Seq.singleton $ RoffStr "\t"
-    'e' -> return $ Seq.singleton $ RoffStr "\\"
-    '`' -> return $ Seq.singleton $ RoffStr "`"
-    '^' -> return $ Seq.singleton $ RoffStr " "
-    '|' -> return $ Seq.singleton $ RoffStr " "
-    '\'' -> return $ Seq.singleton $ RoffStr "`"
-    '.' -> return $ Seq.singleton $ RoffStr "`"
-    '~' -> return $ Seq.singleton $ RoffStr "\160" -- nonbreaking space
+    '-' -> return [RoffStr "-"]
+    '_' -> return [RoffStr "_"]
+    ' ' -> return [RoffStr " "]
+    '\\' -> return [RoffStr "\\"]
+    't' -> return [RoffStr "\t"]
+    'e' -> return [RoffStr "\\"]
+    '`' -> return [RoffStr "`"]
+    '^' -> return [RoffStr " "]
+    '|' -> return [RoffStr " "]
+    '\'' -> return [RoffStr "`"]
+    '.' -> return [RoffStr "`"]
+    '~' -> return [RoffStr "\160"] -- nonbreaking space
     _   -> escUnknown ['\\',c]
 
   where
@@ -196,7 +195,7 @@ escape = do
   twoCharGlyph = do
     cs <- count 2 anyChar
     case M.lookup cs characterCodeMap of
-      Just c  -> return $ Seq.singleton $ RoffStr [c]
+      Just c  -> return [RoffStr [c]]
       Nothing -> escUnknown ('\\':'(':cs)
 
   bracketedGlyph = unicodeGlyph <|> charGlyph
@@ -207,7 +206,7 @@ escape = do
         []  -> mzero
         [s] -> case M.lookup s characterCodeMap of
                  Nothing -> mzero
-                 Just c  -> return $ Seq.singleton $ RoffStr [c]
+                 Just c  -> return [RoffStr [c]]
         (s:ss) -> do
           basechar <- case M.lookup cs characterCodeMap of
                         Nothing ->
@@ -223,13 +222,12 @@ escape = do
                 case M.lookup a combiningAccentsMap of
                   Just x  -> addAccents as (x:xs)
                   Nothing -> mzero
-          addAccents ss [basechar] >>= \xs ->
-             return (Seq.singleton $ RoffStr xs))
+          addAccents ss [basechar] >>= \xs -> return [RoffStr xs])
       <|> escUnknown ("\\[" ++ cs ++ "]")
 
   unicodeGlyph = try $ do
     xs <- ucharCode `sepBy1` (char '_') <* char ']'
-    return $ Seq.singleton $ RoffStr xs
+    return [RoffStr xs]
 
   ucharCode = try $ do
     char 'u'
@@ -240,20 +238,20 @@ escape = do
        Nothing  -> mzero
        Just c   -> return c
 
-  escUnknown :: PandocMonad m => String -> RoffLexer m (Seq LinePart)
+  escUnknown :: PandocMonad m => String -> RoffLexer m [LinePart]
   escUnknown s = do
     pos <- getPosition
     report $ SkippedContent ("Unknown escape sequence " ++ s) pos
-    return $ Seq.singleton $ RoffStr "\xFFFD"
+    return [RoffStr "\xFFFD"]
 
 -- \s-1 \s0
-escFontSize :: PandocMonad m => RoffLexer m (Seq LinePart)
+escFontSize :: PandocMonad m => RoffLexer m [LinePart]
 escFontSize = do
   let sign = option "" $ ("-" <$ char '-' <|> "" <$ char '+')
   let toFontSize xs =
         case safeRead xs of
           Nothing  -> mzero
-          Just n   -> return $ Seq.singleton $ FontSize n
+          Just n   -> return [FontSize n]
   choice
     [ do char '('
          s <- sign
@@ -269,7 +267,7 @@ escFontSize = do
          toFontSize (s ++ ds)
     ]
 
-escFont :: PandocMonad m => RoffLexer m (Seq LinePart)
+escFont :: PandocMonad m => RoffLexer m [LinePart]
 escFont = do
   font <- choice
         [ digit >> return defaultFontSpec
@@ -279,7 +277,7 @@ escFont = do
         ]
   modifyState $ \st -> st{ prevFont = currentFont st
                          , currentFont = font }
-  return $ Seq.singleton $ Font font
+  return [Font font]
 
 lettersFont :: PandocMonad m => RoffLexer m FontSpec
 lettersFont = try $ do
@@ -538,24 +536,24 @@ lexArgs = do
   args <- many $ try oneArg
   skipMany spacetab
   eofline
-  return $ map Foldable.toList args
+  return args
 
   where
 
-  oneArg :: PandocMonad m => RoffLexer m (Seq LinePart)
+  oneArg :: PandocMonad m => RoffLexer m [LinePart]
   oneArg = do
     skipMany $ try $ string "\\\n"  -- continuation line
     try quotedArg <|> plainArg
     -- try, because there are some erroneous files, e.g. linux/bpf.2
 
-  plainArg :: PandocMonad m => RoffLexer m (Seq LinePart)
+  plainArg :: PandocMonad m => RoffLexer m [LinePart]
   plainArg = do
     skipMany spacetab
     mconcat <$> many1 (macroArg <|> escape <|> regularText <|> unescapedQuote)
     where
-      unescapedQuote = char '"' >> return (Seq.singleton $ RoffStr "\"")
+      unescapedQuote = char '"' >> return [RoffStr "\""]
 
-  quotedArg :: PandocMonad m => RoffLexer m (Seq LinePart)
+  quotedArg :: PandocMonad m => RoffLexer m [LinePart]
   quotedArg = do
     skipMany spacetab
     char '"'
@@ -568,9 +566,9 @@ lexArgs = do
       escapedQuote = try $ do
         char '"'
         char '"'
-        return $ Seq.singleton $ RoffStr "\""
+        return [RoffStr "\""]
 
-escStar :: PandocMonad m => RoffLexer m (Seq LinePart)
+escStar :: PandocMonad m => RoffLexer m [LinePart]
 escStar = try $ do
   pos <- getPosition
   c <- anyChar
@@ -591,14 +589,14 @@ escStar = try $ do
   resolveString stringname pos = do
     RoffTokens ts <- resolveMacro stringname [] pos
     case Foldable.toList ts of
-      [MLine xs] -> return $ Seq.fromList xs
+      [MLine xs] -> return xs
       _          -> do
         report $ SkippedContent ("unknown string " ++ stringname) pos
         return mempty
 
 lexLine :: PandocMonad m => RoffLexer m RoffTokens
 lexLine = do
-  lnparts <- Foldable.toList . mconcat <$> many1 linePart
+  lnparts <- mconcat <$> many1 linePart
   eofline
   go lnparts
   where  -- return empty line if we only have empty strings;
@@ -607,30 +605,30 @@ lexLine = do
     go (RoffStr "" : xs) = go xs
     go xs = return $ singleTok $ MLine xs
 
-linePart :: PandocMonad m => RoffLexer m (Seq LinePart)
+linePart :: PandocMonad m => RoffLexer m [LinePart]
 linePart = macroArg <|> escape <|>
            regularText <|> quoteChar <|> spaceTabChar
 
-macroArg :: PandocMonad m => RoffLexer m (Seq LinePart)
+macroArg :: PandocMonad m => RoffLexer m [LinePart]
 macroArg = try $ do
   string "\\\\$"
   x <- digit
-  return $ Seq.singleton $ MacroArg $ ord x - ord '0'
+  return [MacroArg $ ord x - ord '0']
 
-regularText :: PandocMonad m => RoffLexer m (Seq LinePart)
+regularText :: PandocMonad m => RoffLexer m [LinePart]
 regularText = do
   s <- many1 $ noneOf "\n\r\t \\\""
-  return $ Seq.singleton $ RoffStr s
+  return [RoffStr s]
 
-quoteChar :: PandocMonad m => RoffLexer m (Seq LinePart)
+quoteChar :: PandocMonad m => RoffLexer m [LinePart]
 quoteChar = do
   char '"'
-  return $ Seq.singleton $ RoffStr "\""
+  return [RoffStr "\""]
 
-spaceTabChar :: PandocMonad m => RoffLexer m (Seq LinePart)
+spaceTabChar :: PandocMonad m => RoffLexer m [LinePart]
 spaceTabChar = do
   c <- spacetab
-  return $ Seq.singleton $ RoffStr [c]
+  return [RoffStr [c]]
 
 lexEmptyLine :: PandocMonad m => RoffLexer m RoffTokens
 lexEmptyLine = newline >> return (singleTok MEmptyLine)
