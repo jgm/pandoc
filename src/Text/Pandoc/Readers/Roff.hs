@@ -311,6 +311,7 @@ lexComment = do
 lexMacro :: PandocMonad m => RoffLexer m RoffTokens
 lexMacro = do
   pos <- getPosition
+  guard $ sourceColumn pos == 1
   char '.' <|> char '\''
   skipMany spacetab
   macroName <- many (satisfy (not . isSpace))
@@ -369,7 +370,9 @@ lexTableRows = do
   return $ zip aligns rows
 
 tableCell :: PandocMonad m => RoffLexer m RoffTokens
-tableCell = (enclosedCell <|> simpleCell) >>= lexRoff . T.pack
+tableCell = do
+  pos <- getPosition
+  (enclosedCell <|> simpleCell) >>= lexRoff pos . T.pack
   where
   enclosedCell = do
     try (string "T{")
@@ -642,9 +645,10 @@ linePartsToString = mconcat . map go
   go _ = mempty
 
 -- | Tokenize a string as a sequence of groff tokens.
-lexRoff :: PandocMonad m => T.Text -> m RoffTokens
-lexRoff txt = do
-  eithertokens <- readWithM (mconcat <$> many manToken) def (T.unpack txt)
+lexRoff :: PandocMonad m => SourcePos -> T.Text -> m RoffTokens
+lexRoff pos txt = do
+  eithertokens <- readWithM (do setPosition pos
+                                mconcat <$> many manToken) def (T.unpack txt)
   case eithertokens of
     Left e       -> throwError e
     Right tokenz -> return tokenz

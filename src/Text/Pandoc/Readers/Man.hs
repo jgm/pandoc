@@ -52,7 +52,7 @@ import Text.Pandoc.Shared (crFilter)
 import Text.Pandoc.Readers.Roff  -- TODO explicit imports
 import Text.Parsec hiding (tokenPrim)
 import qualified Text.Parsec as Parsec
-import Text.Parsec.Pos (updatePosString)
+import Text.Parsec.Pos (updatePosString, initialPos)
 import qualified Data.Foldable as Foldable
 
 data ManState = ManState { readerOptions :: ReaderOptions
@@ -69,7 +69,7 @@ type ManParser m = ParserT [RoffToken] ManState m
 -- | Read man (troff) from an input string and return a Pandoc document.
 readMan :: PandocMonad m => ReaderOptions -> T.Text -> m Pandoc
 readMan opts txt = do
-  tokenz <- lexRoff (crFilter txt)
+  tokenz <- lexRoff (initialPos "input") (crFilter txt)
   let state = def {readerOptions = opts} :: ManState
   eitherdoc <- readWithMTokens parseMan state
      (Foldable.toList . unRoffTokens $ tokenz)
