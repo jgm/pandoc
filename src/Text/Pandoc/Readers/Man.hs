@@ -142,7 +142,7 @@ parseTable = do
               then return $ Right mempty
               else lift $ readWithMTokens tcell st ts'
     case res of
-      Left e  -> throwError e
+      Left _  -> fail "Could not parse table cell"
       Right x -> return x
 
   isHrule :: TableRow -> Bool
