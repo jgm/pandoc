@@ -364,7 +364,8 @@ lexTableRows :: PandocMonad m => RoffLexer m [TableRow]
 lexTableRows = do
   aligns <- tableFormatSpec
   spaces
-  skipMany lexComment
+  skipMany $ lexComment
+          <|> try (mempty <$ (string ".sp" >> skipMany spaceChar >> newline))
   spaces
   rows <- many (notFollowedBy (try (string ".TE") <|> try (string ".T&")) >>
                   tableRow)
