@@ -308,7 +308,7 @@ lexComment = do
   try $ string ".\\\""
   many Parsec.space
   skipMany $ noneOf "\n"
-  char '\n'
+  eofline
   return mempty
 
 lexMacro :: PandocMonad m => RoffLexer m RoffTokens
@@ -451,7 +451,7 @@ lexConditional = do
 -- n means nroff mode
 lexNCond :: PandocMonad m => RoffLexer m RoffTokens
 lexNCond = do
-  char '\n'
+  newline
   many1 spacetab
   lexGroup <|> manToken
 
@@ -631,7 +631,7 @@ spaceTabChar = do
   return [RoffStr [c]]
 
 lexEmptyLine :: PandocMonad m => RoffLexer m RoffTokens
-lexEmptyLine = char '\n' >> return (singleTok MEmptyLine)
+lexEmptyLine = newline >> return (singleTok MEmptyLine)
 
 manToken :: PandocMonad m => RoffLexer m RoffTokens
 manToken = lexComment <|> lexMacro <|> lexLine <|> lexEmptyLine
