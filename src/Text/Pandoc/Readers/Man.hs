@@ -389,6 +389,7 @@ parseCodeBlock = try $ do
   codeline = do
     tok <- mtoken
     case tok of
+      MMacro "PP" _ _ -> return $ Just "" -- .PP sometimes used for blank line
       MMacro mname args pos -> do
         (Just . query getText <$> handleInlineMacro mname args pos) <|>
           do report $ SkippedContent ('.':mname) pos
