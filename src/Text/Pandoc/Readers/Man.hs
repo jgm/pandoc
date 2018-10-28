@@ -102,13 +102,13 @@ parseMan = do
 parseBlock :: PandocMonad m => ManParser m Blocks
 parseBlock = choice [ parseList
                     , parseDefinitionList
-                    , parseBlockQuote
-                    , parseTitle
-                    , parseNewParagraph
-                    , parsePara
-                    , parseCodeBlock
                     , parseHeader
                     , parseTable
+                    , parseTitle
+                    , parseCodeBlock
+                    , parseBlockQuote
+                    , parseNewParagraph
+                    , parsePara
                     , skipUnkownMacro
                     ]
 
@@ -470,7 +470,9 @@ parseList = try $ do
 continuation :: PandocMonad m => ManParser m Blocks
 continuation =
       mconcat <$> (mmacro "RS" *> manyTill parseBlock (endmacro "RE"))
-  <|> mconcat <$> many1 (try (bareIP *> parsePara))
+  <|> mconcat <$> many1 (  try (bareIP *> parsePara)
+                       <|> try (bareIP *> parseCodeBlock)
+                        )
 
 definitionListItem :: PandocMonad m
                    => ManParser m (Inlines, [Blocks])
