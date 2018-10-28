@@ -379,7 +379,8 @@ endmacro name = void (mmacro name)
 
 parseCodeBlock :: PandocMonad m => ManParser m Blocks
 parseCodeBlock = try $ do
-  optional (bareIP <|> mmacro "in") -- some people indent their code
+  optional bareIP
+  optional (mmacro "in") -- some people indent their code
   toks <- (mmacro "nf" *> manyTill codeline (endmacro "fi"))
       <|> (mmacro "EX" *> manyTill codeline (endmacro "EE"))
   optional (mmacro "in")
