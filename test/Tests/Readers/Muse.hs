@@ -1328,6 +1328,18 @@ tests =
                                                     ]
                                         ])
                        ]
+      , "Definition list with table" =:
+        " foo :: bar | baz" =?>
+        definitionList [ ("foo", [ table mempty [(AlignDefault, 0.0), (AlignDefault, 0.0)]
+                                                []
+                                                [[plain "bar", plain "baz"]]
+                                 ])]
+      , "Definition list with table inside bullet list" =:
+        " - foo :: bar | baz" =?>
+        bulletList [definitionList [ ("foo", [ table mempty [(AlignDefault, 0.0), (AlignDefault, 0.0)]
+                                                            []
+                                                            [[plain "bar", plain "baz"]]
+                                             ])]]
       , test emacsMuse "Multi-line definition lists from Emacs Muse manual"
         (T.unlines
           [ "Term1 ::"

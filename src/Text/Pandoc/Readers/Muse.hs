@@ -256,8 +256,8 @@ parseBlocks :: PandocMonad m
 parseBlocks =
   try (parseEnd <|>
        nextSection <|>
-       blockStart <|>
        listStart <|>
+       blockStart <|>
        paraStart)
   where
     nextSection = mempty <$ lookAhead headingStart
@@ -287,7 +287,7 @@ parseBlocksTill end = continuation
     blockStart = (B.<>) <$> blockElements <*> allowPara continuation
     listStart = uncurry (B.<>) <$> allowPara (anyListUntil (parseEnd <|> continuation))
     paraStart = uncurry (B.<>) <$> paraUntil (parseEnd <|> continuation)
-    continuation = try $ parseEnd <|> blockStart <|> listStart <|> paraStart
+    continuation = try $ parseEnd <|> listStart <|> blockStart <|> paraStart
 
 listItemContentsUntil :: PandocMonad m
                       => Int
@@ -296,7 +296,7 @@ listItemContentsUntil :: PandocMonad m
                       -> MuseParser m (F Blocks, a)
 listItemContentsUntil col pre end = p
   where
-    p = try blockStart <|> try listStart <|> try paraStart
+    p = try listStart <|> try blockStart <|> try paraStart
     parsePre = (mempty,) <$> pre
     parseEnd = (mempty,) <$> end
     paraStart = do
