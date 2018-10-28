@@ -372,3 +372,20 @@ T}@T{
 1
 T}
 .TE
+.TS
+tab(@);
+rl.
+a@b
+T{
+.PP
+one
+.PP
+two
+T}@T{
+.nf
+some
+   code
+.fi
+T}
+.TE
+

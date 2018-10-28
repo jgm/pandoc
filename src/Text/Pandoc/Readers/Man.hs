@@ -55,13 +55,15 @@ import qualified Text.Parsec as Parsec
 import Text.Parsec.Pos (updatePosString, initialPos)
 import qualified Data.Foldable as Foldable
 
-data ManState = ManState { readerOptions :: ReaderOptions
-                         , metadata      :: Meta
+data ManState = ManState { readerOptions   :: ReaderOptions
+                         , metadata        :: Meta
+                         , tableCellsPlain :: Bool
                          } deriving Show
 
 instance Default ManState where
-  def = ManState { readerOptions = def
-                 , metadata      = nullMeta }
+  def = ManState { readerOptions   = def
+                 , metadata        = nullMeta
+                 , tableCellsPlain = True }
 
 type ManParser m = ParserT [RoffToken] ManState m
 
@@ -111,6 +113,7 @@ parseBlock = choice [ parseList
 
 parseTable :: PandocMonad m => ManParser m Blocks
 parseTable = do
+  modifyState $ \st -> st { tableCellsPlain = True }
   let isMTable (MTable{}) = True
       isMTable _          = False
   MTable _opts rows pos <- msatisfy isMTable
@@ -126,7 +129,12 @@ parseTable = do
               _ -> (([],[]), rows)
       headerRow <- mapM parseTableCell $ snd headerRow'
       bodyRows <- mapM (mapM parseTableCell . snd) bodyRows'
-      return $ B.table mempty (zip alignments (repeat 0.0))
+      isPlainTable <- tableCellsPlain <$> getState
+      let widths = if isPlainTable
+                      then repeat 0.0
+                      else repeat ((1.0 / fromIntegral (length alignments))
+                                   :: Double)
+      return $ B.table mempty (zip alignments widths)
                   headerRow bodyRows) <|> fallback pos
     [] -> fallback pos
 
@@ -135,14 +143,23 @@ parseTable = do
   parseTableCell ts = do
     st <- getState
     let ts' = Foldable.toList $ unRoffTokens ts
-    let tcell = try $ do
+    let plaintcell = try $ do
           skipMany memptyLine
           plain . trimInlines <$> (parseInlines <* eof)
+    let blockstcell = try $ do
+          skipMany memptyLine
+          mconcat <$> many parseBlock <* eof
     res <- if null ts'
               then return $ Right mempty
-              else lift $ readWithMTokens tcell st ts'
+              else lift $ readWithMTokens plaintcell st ts'
     case res of
-      Left _  -> fail "Could not parse table cell"
+      Left _  -> do
+        res' <- lift $ readWithMTokens blockstcell st ts'
+        case res' of
+          Left _  -> fail "Could not parse table cell"
+          Right x -> do
+            modifyState $ \s -> s{ tableCellsPlain = False }
+            return x
       Right x -> return x
 
   isHrule :: TableRow -> Bool
