@@ -247,7 +247,7 @@ escape = do
 -- \s-1 \s0
 escFontSize :: PandocMonad m => RoffLexer m [LinePart]
 escFontSize = do
-  let sign = option "" $ ("-" <$ char '-' <|> "" <$ char '+')
+  let sign = option "" ("-" <$ char '-' <|> "" <$ char '+')
   let toFontSize xs =
         case safeRead xs of
           Nothing  -> mzero
@@ -420,10 +420,10 @@ tableFormatSpecLine =
 tableColFormat :: PandocMonad m => RoffLexer m CellFormat
 tableColFormat = do
     pipePrefix' <- option False
-                   $ True <$ (try $ string "|" <* notFollowedBy spacetab)
+                   $ True <$ try (string "|" <* notFollowedBy spacetab)
     c <- oneOf ['a','A','c','C','l','L','n','N','r','R','s','S','^','_','-',
                 '=','|']
-    suffixes <- many $ (try $ skipMany spacetab *> count 1 digit) <|>
+    suffixes <- many $ try (skipMany spacetab *> count 1 digit) <|>
       (do x <- oneOf ['b','B','d','D','e','E','f','F','i','I','m','M',
                   'p','P','t','T','u','U','v','V','w','W','x','X', 'z','Z']
           num <- case toLower x of
@@ -441,7 +441,7 @@ tableColFormat = do
              , pipePrefix     = pipePrefix'
              , pipeSuffix     = pipeSuffix'
              , columnSuffixes = suffixes }
- 
+
 -- We don't fully handle the conditional.  But we do
 -- include everything under '.ie n', which occurs commonly
 -- in man pages.  We always skip the '.el' part.

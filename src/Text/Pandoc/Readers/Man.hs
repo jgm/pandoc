@@ -1,5 +1,5 @@
 {-# LANGUAGE FlexibleContexts #-}
-{-# LANGUAGE GeneralizedNewtypeDeriving #-}
+
 {-
   Copyright (C) 2018 Yan Pashkovsky <yanp.bugz@gmail.com>
                      and John MacFarlane
@@ -224,7 +224,7 @@ mmacro mk = msatisfy isMMacro where
 
 mmacroAny :: PandocMonad m => ManParser m RoffToken
 mmacroAny = msatisfy isMMacro where
-  isMMacro (MMacro{}) = True
+  isMMacro MMacro{} = True
   isMMacro _ = False
 
 --
@@ -387,8 +387,8 @@ parseCodeBlock = try $ do
     | not (null ss)
     , all isFontToken ss = Nothing
     | otherwise          = Just $ linePartsToString ss
-    where isFontToken (FontSize{}) = True
-          isFontToken (Font{})     = True
+    where isFontToken FontSize{} = True
+          isFontToken Font{}     = True
           isFontToken _            = False
   extractText MEmptyLine = Just ""
   -- string are intercalated with '\n', this prevents double '\n'
@@ -456,8 +456,7 @@ definitionListItem = try $ do
   term <- parseInline
   moreterms <- many $ try $ do
                  mmacro "TQ"
-                 newterm <- parseInline
-                 return newterm
+                 parseInline
   inls <- option mempty parseInlines
   continuations <- mconcat <$> many continuation
   return ( mconcat (intersperse B.linebreak (term:moreterms))
