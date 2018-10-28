@@ -53,7 +53,7 @@ import Control.Monad (void, mzero, guard, when)
 import Control.Monad.Except (throwError)
 import Text.Pandoc.Class
        (getResourcePath, readFileFromDirs, PandocMonad(..), report)
-import Data.Char (isHexDigit, chr, ord, isAscii, isAlphaNum, isSpace)
+import Data.Char (toLower, isHexDigit, chr, ord, isAscii, isAlphaNum, isSpace)
 import Data.Default (Default)
 import qualified Data.Map as M
 import Data.List (intercalate, isSuffixOf)
@@ -423,15 +423,17 @@ tableColFormat = do
                    $ True <$ (try $ string "|" <* notFollowedBy spacetab)
     c <- oneOf ['a','A','c','C','l','L','n','N','r','R','s','S','^','_','-',
                 '=','|']
-    suffixes <- many $ count 1 digit <|>
+    suffixes <- many $ (try $ skipMany spacetab *> count 1 digit) <|>
       (do x <- oneOf ['b','B','d','D','e','E','f','F','i','I','m','M',
                   'p','P','t','T','u','U','v','V','w','W','x','X', 'z','Z']
-          num <- if x == 'w'
-                    then many1 digit <|>
-                          do char '('
-                             xs <- manyTill anyChar (char ')')
-                             return ("(" ++ xs ++ ")")
-                    else return ""
+          num <- case toLower x of
+                   'w' -> many1 digit <|>
+                           do char '('
+                              xs <- manyTill anyChar (char ')')
+                              return ("(" ++ xs ++ ")")
+                   'f' -> count 1 alphaNum <* skipMany spacetab
+                   'm' -> count 1 alphaNum <* skipMany spacetab
+                   _   -> return ""
           return $ x : num)
     pipeSuffix' <- option False $ True <$ string "|"
     return $ CellFormat
