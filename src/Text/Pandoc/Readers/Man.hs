@@ -48,6 +48,7 @@ import Text.Pandoc.Error (PandocError (PandocParsecError))
 import Text.Pandoc.Logging (LogMessage(..))
 import Text.Pandoc.Options
 import Text.Pandoc.Parsing
+import Text.Pandoc.Walk (query)
 import Text.Pandoc.Shared (crFilter)
 import Text.Pandoc.Readers.Roff  -- TODO explicit imports
 import Text.Parsec hiding (tokenPrim)
@@ -306,29 +307,33 @@ parseInline = try $ do
   tok <- mtoken
   case tok of
     MLine lparts -> return $ linePartsToInlines lparts
-    MMacro mname args _pos ->
-      case mname of
-        "UR" -> parseLink args
-        "MT" -> parseEmailLink args
-        "B"  -> parseBold args
-        "I"  -> parseItalic args
-        "br" -> return linebreak
-        "BI" -> parseAlternatingFonts [strong, emph] args
-        "IB" -> parseAlternatingFonts [emph, strong] args
-        "IR" -> parseAlternatingFonts [emph, id] args
-        "RI" -> parseAlternatingFonts [id, emph] args
-        "BR" -> parseAlternatingFonts [strong, id] args
-        "RB" -> parseAlternatingFonts [id, strong] args
-        "SY" -> return $ strong $ mconcat $ intersperse B.space
-                       $ map linePartsToInlines args
-        "YS" -> return mempty
-        "OP" -> case args of
-                  (x:ys) -> return $ B.space <> str "[" <> B.space <>
-                             mconcat (strong (linePartsToInlines x) :
-                               map ((B.space <>) . linePartsToInlines) ys)
-                             <> B.space <> str "]"
-                  []     -> return mempty
-        _ -> mzero
+    MMacro mname args pos -> handleInlineMacro mname args pos
+    _ -> mzero
+
+handleInlineMacro :: PandocMonad m
+                  => String -> [Arg] -> SourcePos -> ManParser m Inlines
+handleInlineMacro mname args _pos = do
+  case mname of
+    "UR" -> parseLink args
+    "MT" -> parseEmailLink args
+    "B"  -> parseBold args
+    "I"  -> parseItalic args
+    "br" -> return linebreak
+    "BI" -> parseAlternatingFonts [strong, emph] args
+    "IB" -> parseAlternatingFonts [emph, strong] args
+    "IR" -> parseAlternatingFonts [emph, id] args
+    "RI" -> parseAlternatingFonts [id, emph] args
+    "BR" -> parseAlternatingFonts [strong, id] args
+    "RB" -> parseAlternatingFonts [id, strong] args
+    "SY" -> return $ strong $ mconcat $ intersperse B.space
+                   $ map linePartsToInlines args
+    "YS" -> return mempty
+    "OP" -> case args of
+              (x:ys) -> return $ B.space <> str "[" <> B.space <>
+                         mconcat (strong (linePartsToInlines x) :
+                           map ((B.space <>) . linePartsToInlines) ys)
+                         <> B.space <> str "]"
+              []     -> return mempty
     _ -> mzero
 
 parseBold :: PandocMonad m => [Arg] -> ManParser m Inlines
@@ -375,24 +380,39 @@ endmacro name = void (mmacro name)
 parseCodeBlock :: PandocMonad m => ManParser m Blocks
 parseCodeBlock = try $ do
   optional bareIP -- some people indent their code
-  toks <- (mmacro "nf" *> many (mline <|> memptyLine) <* endmacro "fi")
-      <|> (mmacro "EX" *> many (mline <|> memptyLine) <* endmacro "EE")
-  return $ codeBlock (intercalate "\n" . catMaybes $
-                      extractText <$> toks)
+  toks <- (mmacro "nf" *> manyTill codeline (endmacro "fi"))
+      <|> (mmacro "EX" *> manyTill codeline (endmacro "EE"))
+  return $ codeBlock (intercalate "\n" $ catMaybes toks)
 
   where
 
-  extractText :: RoffToken -> Maybe String
-  extractText (MLine ss)
-    | not (null ss)
-    , all isFontToken ss = Nothing
-    | otherwise          = Just $ linePartsToString ss
-    where isFontToken FontSize{} = True
-          isFontToken Font{}     = True
-          isFontToken _            = False
-  extractText MEmptyLine = Just ""
-  -- string are intercalated with '\n', this prevents double '\n'
-  extractText _ = Nothing
+  codeline = do
+    tok <- mtoken
+    case tok of
+      MMacro mname args pos -> do
+        (Just . query getText <$> handleInlineMacro mname args pos) <|>
+          do report $ SkippedContent ('.':mname) pos
+             return Nothing
+      MTable _ _ pos     -> do
+        report $ SkippedContent "TABLE" pos
+        return $ Just "TABLE"
+      MEmptyLine -> return $ Just ""
+      MLine ss
+        | not (null ss)
+        , all isFontToken ss -> return Nothing
+        | otherwise -> return $ Just $ linePartsToString ss
+
+  isFontToken FontSize{} = True
+  isFontToken Font{}     = True
+  isFontToken _            = False
+
+  getText :: Inline -> String
+  getText (Str s)    = s
+  getText Space      = " "
+  getText (Code _ s) = s
+  getText SoftBreak  = "\n"
+  getText LineBreak  = "\n"
+  getText _          = ""
 
 parseHeader :: PandocMonad m => ManParser m Blocks
 parseHeader = do
