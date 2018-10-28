@@ -976,8 +976,8 @@ Options affecting specific writers {.options}
     include multiple files. They will be included in the order specified.
 
     A stylesheet is required for generating EPUB.  If none is
-    provided using this option (or the deprecated `stylesheet`
-    metadata field), pandoc will look for a file `epub.css` in the
+    provided using this option (or the `css` or `stylesheet`
+    metadata fields), pandoc will look for a file `epub.css` in the
     user data directory (see `--data-dir`).  If it is not
     found there, sensible defaults will be used.
 
