@@ -396,7 +396,8 @@ tableOptions = try $ many tableOption <* spaces <* char ';'
 tableOption :: PandocMonad m => RoffLexer m TableOption
 tableOption = do
   k <- many1 letter
-  v <- option "" $ do
+  v <- option "" $ try $ do
+         skipMany spacetab
          char '('
          manyTill anyChar (char ')')
   skipMany spacetab
