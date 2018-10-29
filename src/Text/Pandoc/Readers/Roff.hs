@@ -117,10 +117,15 @@ newtype RoffTokens = RoffTokens { unRoffTokens :: Seq.Seq RoffToken }
 singleTok :: RoffToken -> RoffTokens
 singleTok t = RoffTokens (Seq.singleton t)
 
+data RoffMode = NormalMode
+              | CopyMode
+              deriving Show
+
 data RoffState = RoffState { customMacros :: M.Map String RoffTokens
                            , prevFont     :: FontSpec
                            , currentFont  :: FontSpec
                            , tableTabChar :: Char
+                           , roffMode     :: RoffMode
                            } deriving Show
 
 instance Default RoffState where
@@ -135,6 +140,7 @@ instance Default RoffState where
                   , prevFont = defaultFontSpec
                   , currentFont = defaultFontSpec
                   , tableTabChar = '\t'
+                  , roffMode = NormalMode
                   }
 
 type RoffLexer m = ParserT [Char] RoffState m
@@ -159,7 +165,7 @@ combiningAccentsMap =
 
 escape :: PandocMonad m => RoffLexer m [LinePart]
 escape = do
-  char '\\'
+  backslash
   escapeGlyph <|> escapeNormal
 
 escapeGlyph :: PandocMonad m => RoffLexer m [LinePart]
@@ -226,7 +232,12 @@ escapeNormal = do
     '-' -> return [RoffStr "-"]
     '_' -> return [RoffStr "_"]
     ' ' -> return [RoffStr " "]
-    '\\' -> return [RoffStr "\\"]
+    '\\' -> do
+      mode <- roffMode <$> getState
+      case mode of
+        CopyMode   -> char '\\'
+        NormalMode -> return '\\'
+      return [RoffStr "\\"]
     't' -> return [RoffStr "\t"]
     'e' -> return [RoffStr "\\"]
     '`' -> return [RoffStr "`"]
@@ -514,6 +525,7 @@ lexStringDef args = do -- string definition
 
 lexMacroDef :: PandocMonad m => [Arg] -> RoffLexer m RoffTokens
 lexMacroDef args = do -- macro definition
+   modifyState $ \st -> st{ roffMode = CopyMode }
    (macroName, stopMacro) <-
      case args of
        (x : y : _) -> return (linePartsToString x, linePartsToString y)
@@ -528,7 +540,8 @@ lexMacroDef args = do -- macro definition
          return ()
    ts <- mconcat <$> manyTill manToken stop
    modifyState $ \st ->
-     st{ customMacros = M.insert macroName ts (customMacros st) }
+     st{ customMacros = M.insert macroName ts (customMacros st)
+       , roffMode = NormalMode }
    return mempty
 
 lexArgs :: PandocMonad m => RoffLexer m [Arg]
@@ -587,6 +600,10 @@ escString = try $ do
 
 lexLine :: PandocMonad m => RoffLexer m RoffTokens
 lexLine = do
+  mode <- roffMode <$> getState
+  case mode of
+    CopyMode   -> optional $ try $ string "\\&"
+    NormalMode -> return ()
   lnparts <- mconcat <$> many1 linePart
   eofline
   go lnparts
@@ -600,10 +617,22 @@ linePart :: PandocMonad m => RoffLexer m [LinePart]
 linePart = macroArg <|> escape <|>
            regularText <|> quoteChar <|> spaceTabChar
 
+backslash :: PandocMonad m => RoffLexer m ()
+backslash = do
+  char '\\'
+  mode <- roffMode <$> getState
+  case mode of
+    -- experimentally, it seems you don't always need to double
+    -- the backslash in macro defs.  It's essential with \\$1,
+    -- but not with \\f[I].  So we make the second one optional.
+    CopyMode   -> optional $ char '\\'
+    NormalMode -> return ()
+
 macroArg :: PandocMonad m => RoffLexer m [LinePart]
 macroArg = try $ do
   pos <- getPosition
-  string "\\\\$"
+  backslash
+  char '$'
   x <- escapeArg <|> count 1 digit
   case safeRead x of
     Just i  -> return [MacroArg i]
