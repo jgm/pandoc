@@ -53,7 +53,8 @@ import Control.Monad (void, mzero, guard, when)
 import Control.Monad.Except (throwError)
 import Text.Pandoc.Class
        (getResourcePath, readFileFromDirs, PandocMonad(..), report)
-import Data.Char (toLower, isHexDigit, chr, ord, isAscii, isAlphaNum, isSpace)
+import Data.Char (isLower, toLower, toUpper, isHexDigit, chr, ord,
+                  isAscii, isAlphaNum, isSpace)
 import Data.Default (Default)
 import qualified Data.Map as M
 import Data.List (intercalate, isSuffixOf)
@@ -267,35 +268,34 @@ escFontSize = do
          toFontSize (s ++ ds)
     ]
 
+-- Parses: [..], (.., or . (single character).
+escapeArg :: PandocMonad m => RoffLexer m String
+escapeArg = choice
+    [ char '[' *> manyTill (noneOf ['\n',']']) (char ']')
+    , char ')' *> count 2 anyChar
+    , count 1 anyChar
+    ]
+
+-- Parses: '..'
+quoteArg :: PandocMonad m => RoffLexer m String
+quoteArg = char '\'' *> manyTill (noneOf ['\n','\'']) (char '\'')
+
 escFont :: PandocMonad m => RoffLexer m [LinePart]
 escFont = do
-  font <- choice
-        [ digit >> return defaultFontSpec
-        , digit >> return defaultFontSpec
-        , ($ defaultFontSpec) <$> letterFontKind
-        , lettersFont
-        ]
+  font <- escapeArg
+  font' <- if null font
+              then prevFont <$> getState
+              else return $ foldr processFontLetter defaultFontSpec font
   modifyState $ \st -> st{ prevFont = currentFont st
-                         , currentFont = font }
-  return [Font font]
-
-lettersFont :: PandocMonad m => RoffLexer m FontSpec
-lettersFont = try $ do
-  fs <- (char '[' *> many letterFontKind <* char ']')
-     <|> (char '(' *> count 2 letterFontKind)
-  if null fs
-     then prevFont <$> getState
-     else return $ foldr ($) defaultFontSpec fs
-
-letterFontKind :: PandocMonad m => RoffLexer m (FontSpec -> FontSpec)
-letterFontKind = choice [
-    oneOf ['B','b'] >> return (\fs -> fs{ fontBold = True })
-  , oneOf ['I','i'] >> return (\fs -> fs { fontItalic = True })
-  , oneOf ['C','c'] >> return (\fs -> fs { fontMonospace = True })
-  , oneOf ['P','p','R','r'] >> return id
-  , letter >> return id  -- L, S, etc.
-  ]
-
+                         , currentFont = font' }
+  return [Font font']
+  where
+    processFontLetter c fs
+              | isLower c    = processFontLetter (toUpper c) fs
+    processFontLetter 'B' fs = fs{ fontBold = True }
+    processFontLetter 'I' fs = fs{ fontItalic = True }
+    processFontLetter 'C' fs = fs{ fontMonospace = True }
+    processFontLetter _   fs = fs -- do nothing
 
 -- separate function from lexMacro since real man files sometimes do not
 -- follow the rules
