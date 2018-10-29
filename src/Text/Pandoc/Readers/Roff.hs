@@ -212,7 +212,7 @@ escapeNormal = do
     'C' -> quoteArg >>= resolveGlyph '\''
     'f' -> escFont
     's' -> escFontSize
-    '*' -> escStar
+    '*' -> escString
     '"' -> mempty <$ skipMany (satisfy (/='\n')) -- line comment
     '#' -> mempty <$ manyTill anyChar newline
     '%' -> return mempty
@@ -568,23 +568,14 @@ lexArgs = do
         char '"'
         return [RoffStr "\""]
 
-escStar :: PandocMonad m => RoffLexer m [LinePart]
-escStar = try $ do
+escString :: PandocMonad m => RoffLexer m [LinePart]
+escString = try $ do
   pos <- getPosition
-  c <- anyChar
-  case c of
-    '(' -> do
-      cs <- count 2 anyChar
-      resolveString cs pos
-    '[' -> do
-      cs <- many (noneOf "\t\n\r ]")
-      char ']'
-      resolveString cs pos
-    'S' -> return mempty -- switch back to default font size
-    _   -> resolveString [c] pos
+  (do cs <- escapeArg
+      resolveString cs pos)
+    <|> mempty <$ char 'S'
 
   where
-
   -- strings and macros share namespace
   resolveString stringname pos = do
     RoffTokens ts <- resolveMacro stringname [] pos
