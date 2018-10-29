@@ -613,7 +613,7 @@ checkDefined name = do
 escString :: PandocMonad m => RoffLexer m [LinePart]
 escString = try $ do
   pos <- getPosition
-  (do cs <- escapeArg <|> count 1 alphaNum
+  (do cs <- escapeArg <|> count 1 anyChar
       resolveString cs pos)
     <|> mempty <$ char 'S'
 
