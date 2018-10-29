@@ -53,7 +53,7 @@ import Control.Monad (void, mzero, guard, when, mplus)
 import Control.Monad.Except (throwError)
 import Text.Pandoc.Class
        (getResourcePath, readFileFromDirs, PandocMonad(..), report)
-import Data.Char (isLower, toLower, toUpper, chr, ord,
+import Data.Char (isLower, toLower, toUpper, chr,
                   isAscii, isAlphaNum, isSpace)
 import Data.Default (Default)
 import qualified Data.Map as M
@@ -602,9 +602,14 @@ linePart = macroArg <|> escape <|>
 
 macroArg :: PandocMonad m => RoffLexer m [LinePart]
 macroArg = try $ do
+  pos <- getPosition
   string "\\\\$"
-  x <- digit
-  return [MacroArg $ ord x - ord '0']
+  x <- escapeArg <|> count 1 digit
+  case safeRead x of
+    Just i  -> return [MacroArg i]
+    Nothing -> do
+      report $ SkippedContent ("illegal macro argument " ++ x) pos
+      return []
 
 regularText :: PandocMonad m => RoffLexer m [LinePart]
 regularText = do
