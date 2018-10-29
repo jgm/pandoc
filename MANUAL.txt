@@ -3711,10 +3711,12 @@ For example:
   formats.  Use the `--dpi` option to specify the number of pixels per
   inch.  The default is 96dpi.
 - The `%` unit is generally relative to some available space.
-  For example the above example will render to
-  `<img href="file.jpg" style="width: 50%;" />` (HTML),
-  `\includegraphics[width=0.5\textwidth]{file.jpg}` (LaTeX), or
-  `\externalfigure[file.jpg][width=0.5\textwidth]` (ConTeXt).
+  For example the above example will render to the following.
+  - HTML: `<img href="file.jpg" style="width: 50%;" />`
+  - LaTeX: `\includegraphics[width=0.5\textwidth,height=\textheight]{file.jpg}`
+    (If you're using a custom template, you need to configure `graphicx`
+    as in the default template.)
+  - ConTeXt: `\externalfigure[file.jpg][width=0.5\textwidth]`
 - Some output formats have a notion of a class
   ([ConTeXt](http://wiki.contextgarden.net/Using_Graphics#Multiple_Image_Settings))
   or a unique identifier (LaTeX `\caption`), or both (HTML).
