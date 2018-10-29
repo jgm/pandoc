@@ -63,12 +63,12 @@ tests = [
                                    text " ok")
     , "skip" =:
       "a\\%\\{\\}\\\n\\:b\\0"
-      =?> (para $ str "ab")
+      =?> (para $ str "ab\8199")
     , "replace" =:
       "\\-\\ \\\\\\[lq]\\[rq]\\[em]\\[en]\\*(lq\\*(rq"
       =?> (para $ text "- \\“”—–“”")
     , "replace2" =:
-      "\\t\\e\\`\\^\\|\\'" =?> (para $ text "\\`  `")
+      "\\t\\e\\`\\^\\|\\'" =?> (para $ text "\\`\8202\8198`")
     , "comment  with \\\"" =:
       "Foo \\\" bar\n" =?> (para $ text "Foo")
     , "comment with \\#" =:

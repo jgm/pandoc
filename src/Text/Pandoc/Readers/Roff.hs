@@ -215,20 +215,24 @@ escapeNormal :: PandocMonad m => RoffLexer m [LinePart]
 escapeNormal = do
   c <- anyChar
   case c of
+    'A' -> quoteArg >>= checkDefined
     'C' -> quoteArg >>= resolveGlyph '\''
     'f' -> escFont
     's' -> escFontSize
     '*' -> escString
     '"' -> mempty <$ skipMany (satisfy (/='\n')) -- line comment
     '#' -> mempty <$ manyTill anyChar newline
-    '%' -> return mempty
+    '%' -> return mempty  -- optional hyphenation
+    ':' -> return mempty  -- zero-width break
     '{' -> return mempty
     '}' -> return mempty
-    '&' -> return mempty
-    '\n' -> return mempty
-    ':' -> return mempty
-    '0' -> return mempty
-    'c' -> return mempty
+    '&' -> return mempty  -- nonprintable zero-width
+    ')' -> return mempty  -- nonprintable zero-width
+    '/' -> return mempty  -- to fix spacing before roman
+    ',' -> return mempty  -- to fix spacing after roman
+    '\n' -> return mempty  -- line continuation
+    'c' -> return mempty  -- interrupt text processing
+    'a' -> return mempty  -- "non-interpreted leader character"
     '-' -> return [RoffStr "-"]
     '_' -> return [RoffStr "_"]
     ' ' -> return [RoffStr " "]
@@ -240,13 +244,31 @@ escapeNormal = do
       return [RoffStr "\\"]
     't' -> return [RoffStr "\t"]
     'e' -> return [RoffStr "\\"]
+    'E' -> do
+      mode <- roffMode <$> getState
+      case mode of
+        CopyMode   -> return mempty
+        NormalMode -> return [RoffStr "\\"]
     '`' -> return [RoffStr "`"]
-    '^' -> return [RoffStr " "]
-    '|' -> return [RoffStr " "]
+    '^' -> return [RoffStr "\x200A"] -- 1/12 em space
+    '|' -> return [RoffStr "\x2006"] --1/6 em space
     '\'' -> return [RoffStr "`"]
     '.' -> return [RoffStr "`"]
     '~' -> return [RoffStr "\160"] -- nonbreaking space
-    _   -> escUnknown ['\\',c]
+    '0' -> return [RoffStr "\x2007"] -- digit-width space
+    _   -> escIgnore c
+
+escIgnore :: PandocMonad m => Char -> RoffLexer m [LinePart]
+escIgnore c = do
+  pos <- getPosition
+  nextc <- lookAhead anyChar
+  arg <- case nextc of
+           '['  -> (\x -> "[" ++ x ++ "]") <$> escapeArg
+           '('  -> ('(':) <$> escapeArg
+           '\'' -> (\x -> "'" ++ x ++ "'") <$> quoteArg
+           _    -> count 1 anyChar
+  report $ SkippedContent ('\\':c:arg) pos
+  return mempty
 
 escUnknown :: PandocMonad m => String -> RoffLexer m [LinePart]
 escUnknown s = do
@@ -291,7 +313,7 @@ quoteArg = char '\'' *> manyTill (noneOf ['\n','\'']) (char '\'')
 escFont :: PandocMonad m => RoffLexer m [LinePart]
 escFont = do
   font <- escapeArg <|> count 1 alphaNum
-  font' <- if null font
+  font' <- if null font || font == "P"
               then prevFont <$> getState
               else return $ foldr processFontLetter defaultFontSpec font
   modifyState $ \st -> st{ prevFont = currentFont st
@@ -580,6 +602,13 @@ lexArgs = do
         char '"'
         char '"'
         return [RoffStr "\""]
+
+checkDefined :: PandocMonad m => String -> RoffLexer m [LinePart]
+checkDefined name = do
+  macros <- customMacros <$> getState
+  case M.lookup name macros of
+    Just _  -> return [RoffStr "1"]
+    Nothing -> return [RoffStr "0"]
 
 escString :: PandocMonad m => RoffLexer m [LinePart]
 escString = try $ do
