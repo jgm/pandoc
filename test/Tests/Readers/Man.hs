@@ -80,7 +80,7 @@ tests = [
     , "unicode escapes" =:
       "\\[u2020]" =?> (para $ text "†")
     , "unicode escapes (combined)" =:
-      "\\[u0075_u0301]" =?> (para $ text "ú")
+      "\\[u0075_u0301]" =?> (para $ text "\250")
     ],
   testGroup "Lists" [
       "bullet" =:

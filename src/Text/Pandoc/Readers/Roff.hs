@@ -49,11 +49,11 @@ where
 
 import Prelude
 import Safe (lastDef)
-import Control.Monad (void, mzero, guard, when)
+import Control.Monad (void, mzero, guard, when, mplus)
 import Control.Monad.Except (throwError)
 import Text.Pandoc.Class
        (getResourcePath, readFileFromDirs, PandocMonad(..), report)
-import Data.Char (isLower, toLower, toUpper, isHexDigit, chr, ord,
+import Data.Char (isLower, toLower, toUpper, chr, ord,
                   isAscii, isAlphaNum, isSpace)
 import Data.Default (Default)
 import qualified Data.Map as M
@@ -62,7 +62,7 @@ import qualified Data.Text as T
 import Text.Pandoc.Logging (LogMessage(..))
 import Text.Pandoc.Options
 import Text.Pandoc.Parsing
-import Text.Pandoc.Shared (safeRead)
+import Text.Pandoc.Shared (safeRead, substitute)
 import Text.Parsec hiding (tokenPrim)
 import qualified Text.Parsec as Parsec
 import Text.Pandoc.RoffChar (characterCodes, combiningAccents)
@@ -160,13 +160,59 @@ combiningAccentsMap =
 escape :: PandocMonad m => RoffLexer m [LinePart]
 escape = do
   char '\\'
+  escapeGlyph <|> escapeNormal
+
+escapeGlyph :: PandocMonad m => RoffLexer m [LinePart]
+escapeGlyph = do
+  c <- lookAhead (oneOf ['[','('])
+  escapeArg >>= resolveGlyph c
+
+resolveGlyph :: PandocMonad m => Char -> String -> RoffLexer m [LinePart]
+resolveGlyph delimChar glyph = do
+  let cs = substitute "_u" " u" glyph -- unicode glyphs separated by _
+  (case words cs of
+      []  -> mzero
+      [s] -> case M.lookup s characterCodeMap `mplus` readUnicodeChar s of
+               Nothing -> mzero
+               Just c  -> return [RoffStr [c]]
+      (s:ss) -> do
+        basechar <- case M.lookup s characterCodeMap `mplus`
+                         readUnicodeChar s of
+                      Nothing ->
+                        case s of
+                          [ch] | isAscii ch && isAlphaNum ch ->
+                                 return ch
+                          _ -> mzero
+                      Just c  -> return c
+        let addAccents [] xs = return $ T.unpack .
+                                 Normalize.normalize Normalize.NFC .
+                                 T.pack $ reverse xs
+            addAccents (a:as) xs =
+              case M.lookup a combiningAccentsMap `mplus` readUnicodeChar a of
+                Just x  -> addAccents as (x:xs)
+                Nothing -> mzero
+        addAccents ss [basechar] >>= \xs -> return [RoffStr xs])
+      <|> case delimChar of
+            '['  -> escUnknown ("\\[" ++ glyph ++ "]")
+            '('  -> escUnknown ("\\(" ++ glyph)
+            '\'' -> escUnknown ("\\C'" ++ glyph ++ "'")
+            _    -> fail "resolveGlyph: unknown glyph delimiter"
+
+readUnicodeChar :: String -> Maybe Char
+readUnicodeChar ('u':cs@(_:_:_:_:_)) =
+  case safeRead ('0':'x':cs) of
+    Just i  -> Just (chr i)
+    Nothing -> Nothing
+readUnicodeChar _ = Nothing
+
+escapeNormal :: PandocMonad m => RoffLexer m [LinePart]
+escapeNormal = do
   c <- anyChar
   case c of
+    'C' -> quoteArg >>= resolveGlyph '\''
     'f' -> escFont
     's' -> escFontSize
     '*' -> escStar
-    '(' -> twoCharGlyph
-    '[' -> bracketedGlyph
     '"' -> mempty <$ skipMany (satisfy (/='\n')) -- line comment
     '#' -> mempty <$ manyTill anyChar newline
     '%' -> return mempty
@@ -191,59 +237,11 @@ escape = do
     '~' -> return [RoffStr "\160"] -- nonbreaking space
     _   -> escUnknown ['\\',c]
 
-  where
-
-  twoCharGlyph = do
-    cs <- count 2 anyChar
-    case M.lookup cs characterCodeMap of
-      Just c  -> return [RoffStr [c]]
-      Nothing -> escUnknown ('\\':'(':cs)
-
-  bracketedGlyph = unicodeGlyph <|> charGlyph
-
-  charGlyph = do
-    cs <- manyTill (noneOf ['[',']','\n']) (char ']')
-    (case words cs of
-        []  -> mzero
-        [s] -> case M.lookup s characterCodeMap of
-                 Nothing -> mzero
-                 Just c  -> return [RoffStr [c]]
-        (s:ss) -> do
-          basechar <- case M.lookup cs characterCodeMap of
-                        Nothing ->
-                          case s of
-                            [ch] | isAscii ch && isAlphaNum ch ->
-                                   return ch
-                            _ -> mzero
-                        Just c  -> return c
-          let addAccents [] xs = return $ T.unpack .
-                                   Normalize.normalize Normalize.NFC .
-                                   T.pack $ reverse xs
-              addAccents (a:as) xs =
-                case M.lookup a combiningAccentsMap of
-                  Just x  -> addAccents as (x:xs)
-                  Nothing -> mzero
-          addAccents ss [basechar] >>= \xs -> return [RoffStr xs])
-      <|> escUnknown ("\\[" ++ cs ++ "]")
-
-  unicodeGlyph = try $ do
-    xs <- ucharCode `sepBy1` (char '_') <* char ']'
-    return [RoffStr xs]
-
-  ucharCode = try $ do
-    char 'u'
-    cs <- many1 (satisfy isHexDigit)
-    let lcs = length cs
-    guard $ lcs >= 4 && lcs <= 6
-    case chr <$> safeRead ('0':'x':cs) of
-       Nothing  -> mzero
-       Just c   -> return c
-
-  escUnknown :: PandocMonad m => String -> RoffLexer m [LinePart]
-  escUnknown s = do
-    pos <- getPosition
-    report $ SkippedContent ("Unknown escape sequence " ++ s) pos
-    return [RoffStr "\xFFFD"]
+escUnknown :: PandocMonad m => String -> RoffLexer m [LinePart]
+escUnknown s = do
+  pos <- getPosition
+  report $ SkippedContent s pos
+  return [RoffStr "\xFFFD"]
 
 -- \s-1 \s0
 escFontSize :: PandocMonad m => RoffLexer m [LinePart]
@@ -268,12 +266,11 @@ escFontSize = do
          toFontSize (s ++ ds)
     ]
 
--- Parses: [..], (.., or . (single character).
+-- Parses: [..] or (..
 escapeArg :: PandocMonad m => RoffLexer m String
 escapeArg = choice
     [ char '[' *> manyTill (noneOf ['\n',']']) (char ']')
-    , char ')' *> count 2 anyChar
-    , count 1 anyChar
+    , char '(' *> count 2 anyChar
     ]
 
 -- Parses: '..'
@@ -282,7 +279,7 @@ quoteArg = char '\'' *> manyTill (noneOf ['\n','\'']) (char '\'')
 
 escFont :: PandocMonad m => RoffLexer m [LinePart]
 escFont = do
-  font <- escapeArg
+  font <- escapeArg <|> count 1 alphaNum
   font' <- if null font
               then prevFont <$> getState
               else return $ foldr processFontLetter defaultFontSpec font
