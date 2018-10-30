@@ -627,7 +627,7 @@ mathInlineWith op cl = try $ do
                           return " "
                     ) (try $ string cl)
   notFollowedBy digit  -- to prevent capture of $5
-  return $ trim $ concat words'
+  return $ trimMath $ concat words'
  where
   inBalancedBraces :: Stream s m Char => Int -> String -> ParserT s st m String
   inBalancedBraces 0 "" = do

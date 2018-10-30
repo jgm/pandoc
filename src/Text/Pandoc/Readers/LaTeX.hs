@@ -605,10 +605,10 @@ accent combiningAccent fallBack = try $ do
        []                -> return $ str [fromMaybe combiningAccent fallBack]
        _                 -> return ils
 mathDisplay :: String -> Inlines
-mathDisplay = displayMath . trim
+mathDisplay = displayMath . trimMath
 
 mathInline :: String -> Inlines
-mathInline = math . trim
+mathInline = math . trimMath
 
 dollarsMath :: PandocMonad m => LP m Inlines
 dollarsMath = do

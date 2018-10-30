@@ -49,6 +49,7 @@ module Text.Pandoc.Shared (
                      trim,
                      triml,
                      trimr,
+                     trimMath,
                      stripFirstAndLast,
                      camelCaseToHyphenated,
                      toRomanNumeral,
@@ -223,6 +224,15 @@ triml = dropWhile (`elem` " \r\n\t")
 -- | Remove trailing space (including newlines) from string.
 trimr :: String -> String
 trimr = reverse . triml . reverse
+
+-- | Trim leading space and trailing space unless after \.
+trimMath :: String -> String
+trimMath = triml . reverse . stripspace . reverse
+  where
+  stripspace (c1:c2:cs)
+    | c1  `elem` [' ','\t','\n','\r']
+    , c2 /= '\\' = stripspace (c2:cs)
+  stripspace cs = cs
 
 -- | Strip leading and trailing characters from string
 stripFirstAndLast :: String -> String
