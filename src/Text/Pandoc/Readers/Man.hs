@@ -294,7 +294,6 @@ linePartsToInlines = go False
         if fontMonospace fs
            then break (withFont (not . fontMonospace)) xs
            else ([], xs)
-  go mono (FontSize _fs : xs) = go mono xs
 
 parsePara :: PandocMonad m => ManParser m Blocks
 parsePara = para . trimInlines <$> parseInlines
@@ -405,7 +404,6 @@ parseCodeBlock = try $ do
         , all isFontToken ss -> return Nothing
         | otherwise -> return $ Just $ linePartsToString ss
 
-  isFontToken FontSize{} = True
   isFontToken Font{}     = True
   isFontToken _            = False
 

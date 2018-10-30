@@ -87,7 +87,6 @@ type MacroKind = String
 
 data LinePart = RoffStr String
               | Font FontSpec
-              | FontSize Int
               | MacroArg Int
               deriving Show
 
@@ -215,58 +214,85 @@ escapeNormal :: PandocMonad m => RoffLexer m [LinePart]
 escapeNormal = do
   c <- anyChar
   case c of
-    'A' -> quoteArg >>= checkDefined
-    'C' -> quoteArg >>= resolveGlyph '\''
-    'f' -> escFont
-    's' -> escFontSize
-    '*' -> escString
+    ' ' -> return [RoffStr " "]
     '"' -> mempty <$ skipMany (satisfy (/='\n')) -- line comment
     '#' -> mempty <$ manyTill anyChar newline
     '%' -> return mempty  -- optional hyphenation
-    ':' -> return mempty  -- zero-width break
-    '{' -> return mempty
-    '}' -> return mempty
     '&' -> return mempty  -- nonprintable zero-width
     ')' -> return mempty  -- nonprintable zero-width
-    '/' -> return mempty  -- to fix spacing before roman
+    '*' -> escString
     ',' -> return mempty  -- to fix spacing after roman
-    '\n' -> return mempty  -- line continuation
-    'c' -> return mempty  -- interrupt text processing
-    'a' -> return mempty  -- "non-interpreted leader character"
     '-' -> return [RoffStr "-"]
+    '.' -> return [RoffStr "`"]
+    '/' -> return mempty  -- to fix spacing before roman
+    '0' -> return [RoffStr "\x2007"] -- digit-width space
+    ':' -> return mempty  -- zero-width break
+    'A' -> quoteArg >>= checkDefined
+    'B' -> escIgnore 'B' [quoteArg]
+    'C' -> quoteArg >>= resolveGlyph '\''
+    'D' -> escIgnore 'D' [quoteArg]
+    'E' -> do
+      mode <- roffMode <$> getState
+      case mode of
+        CopyMode   -> return mempty
+        NormalMode -> return [RoffStr "\\"]
+    'H' -> escIgnore 'H' [quoteArg]
+    'L' -> escIgnore 'L' [quoteArg]
+    'M' -> escIgnore 'M' [escapeArg, count 1 (satisfy (/='\n'))]
+    'N' -> escIgnore 'N' [quoteArg]
+    'O' -> escIgnore 'O' [count 1 (oneOf ['0','1'])]
+    'R' -> escIgnore 'R' [quoteArg]
+    'S' -> escIgnore 'S' [quoteArg]
+    'V' -> escIgnore 'V' [escapeArg, count 1 alphaNum]
+    'X' -> escIgnore 'X' [quoteArg]
+    'Y' -> escIgnore 'Y' [escapeArg, count 1 (satisfy (/='\n'))]
+    'Z' -> escIgnore 'Z' [quoteArg]
+    '\'' -> return [RoffStr "`"]
+    '\n' -> return mempty  -- line continuation
+    '^' -> return [RoffStr "\x200A"] -- 1/12 em space
     '_' -> return [RoffStr "_"]
-    ' ' -> return [RoffStr " "]
+    '`' -> return [RoffStr "`"]
+    'a' -> return mempty  -- "non-interpreted leader character"
+    'b' -> escIgnore 'b' [quoteArg]
+    'c' -> return mempty  -- interrupt text processing
+    'd' -> escIgnore 'd' [] -- forward down 1/2em
+    'e' -> return [RoffStr "\\"]
+    'f' -> escFont
+    'g' -> escIgnore 'g' [escapeArg, count 1 (satisfy (/='\n'))]
+    'h' -> escIgnore 'h' [quoteArg]
+    'k' -> escIgnore 'k' [escapeArg, count 1 (satisfy (/='\n'))]
+    'l' -> escIgnore 'l' [quoteArg]
+    'm' -> escIgnore 'm' [escapeArg, count 1 (satisfy (/='\n'))]
+    'n' -> escIgnore 'm' [escapeArg, count 1 (satisfy (/='\n'))]
+    'o' -> escIgnore 'o' [quoteArg]
+    'p' -> escIgnore 'p' []
+    'r' -> escIgnore 'r' []
+    's' -> escIgnore 's' [escapeArg, signedNumber]
+    't' -> return [RoffStr "\t"]
+    'u' -> escIgnore 'u' []
+    'v' -> escIgnore 'v' [quoteArg]
+    'w' -> escIgnore 'w' [quoteArg]
+    'x' -> escIgnore 'x' [quoteArg]
+    'z' -> escIgnore 'z' [count 1 anyChar]
+    '{' -> return mempty
+    '|' -> return [RoffStr "\x2006"] --1/6 em space
+    '}' -> return mempty
+    '~' -> return [RoffStr "\160"] -- nonbreaking space
     '\\' -> do
       mode <- roffMode <$> getState
       case mode of
         CopyMode   -> char '\\'
         NormalMode -> return '\\'
       return [RoffStr "\\"]
-    't' -> return [RoffStr "\t"]
-    'e' -> return [RoffStr "\\"]
-    'E' -> do
-      mode <- roffMode <$> getState
-      case mode of
-        CopyMode   -> return mempty
-        NormalMode -> return [RoffStr "\\"]
-    '`' -> return [RoffStr "`"]
-    '^' -> return [RoffStr "\x200A"] -- 1/12 em space
-    '|' -> return [RoffStr "\x2006"] --1/6 em space
-    '\'' -> return [RoffStr "`"]
-    '.' -> return [RoffStr "`"]
-    '~' -> return [RoffStr "\160"] -- nonbreaking space
-    '0' -> return [RoffStr "\x2007"] -- digit-width space
-    _   -> escIgnore c
+    _   -> fail $ "Unknown escape character \\" ++ [c]
 
-escIgnore :: PandocMonad m => Char -> RoffLexer m [LinePart]
-escIgnore c = do
+escIgnore :: PandocMonad m
+          => Char
+          -> [RoffLexer m String]
+          -> RoffLexer m [LinePart]
+escIgnore c argparsers = do
   pos <- getPosition
-  nextc <- lookAhead anyChar
-  arg <- case nextc of
-           '['  -> (\x -> "[" ++ x ++ "]") <$> escapeArg
-           '('  -> ('(':) <$> escapeArg
-           '\'' -> (\x -> "'" ++ x ++ "'") <$> quoteArg
-           _    -> count 1 anyChar
+  arg <- snd <$> withRaw (choice argparsers) <|> return ""
   report $ SkippedContent ('\\':c:arg) pos
   return mempty
 
@@ -276,34 +302,17 @@ escUnknown s = do
   report $ SkippedContent s pos
   return [RoffStr "\xFFFD"]
 
--- \s-1 \s0
-escFontSize :: PandocMonad m => RoffLexer m [LinePart]
-escFontSize = do
-  let sign = option "" ("-" <$ char '-' <|> "" <$ char '+')
-  let toFontSize xs =
-        case safeRead xs of
-          Nothing  -> mzero
-          Just n   -> return [FontSize n]
-  choice
-    [ do char '('
-         s <- sign
-         ds <- count 2 digit
-         toFontSize (s ++ ds)
-    , do char '['
-         s <- sign
-         ds <- many1 digit
-         char ']'
-         toFontSize (s ++ ds)
-    , do s <- sign
-         ds <- count 1 digit
-         toFontSize (s ++ ds)
-    ]
+signedNumber :: PandocMonad m => RoffLexer m String
+signedNumber = try $ do
+  sign <- option "" ("-" <$ char '-' <|> "" <$ char '+')
+  ds <- many1 digit
+  return (sign ++ ds)
 
 -- Parses: [..] or (..
 escapeArg :: PandocMonad m => RoffLexer m String
 escapeArg = choice
     [ char '[' *> manyTill (noneOf ['\n',']']) (char ']')
-    , char '(' *> count 2 anyChar
+    , char '(' *> count 2 (satisfy (/='\n'))
     ]
 
 -- Parses: '..'
