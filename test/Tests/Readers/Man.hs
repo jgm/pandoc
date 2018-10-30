@@ -81,6 +81,8 @@ tests = [
       "\\[u2020]" =?> (para $ text "†")
     , "unicode escapes (combined)" =:
       "\\[u0075_u0301]" =?> (para $ text "\250")
+    , "unknown escape (#5034)" =:
+       "\\9" =?> (para $ text "9")
     ],
   testGroup "Lists" [
       "bullet" =:

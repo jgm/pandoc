@@ -284,7 +284,10 @@ escapeNormal = do
         CopyMode   -> char '\\'
         NormalMode -> return '\\'
       return [RoffStr "\\"]
-    _   -> fail $ "Unknown escape character \\" ++ [c]
+    _   -> return [RoffStr [c]]
+    -- man 7 groff: "If  a  backslash  is followed by a character that
+    -- does not constitute a defined escape sequence, the backslash
+    -- is  silently  ignored  and  the character maps to itself."
 
 escIgnore :: PandocMonad m
           => Char
