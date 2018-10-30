@@ -932,20 +932,20 @@ widthsFromIndices numColumns' indices =
 -- (which may be grid), then the rows,
 -- which may be grid, separated by blank lines, and
 -- ending with a footer (dashed line followed by blank line).
-gridTableWith :: (Monad m, HasReaderOptions st,
-                  Functor mf, Applicative mf, Monad mf)
-              => ParserT [Char] st m (mf Blocks)  -- ^ Block list parser
-              -> Bool                             -- ^ Headerless table
-              -> ParserT [Char] st m (mf Blocks)
+gridTableWith :: (Monad m, HasReaderOptions st, Stream s m Char,
+                  Functor mf, Applicative mf, Monad mf, IsString s)
+              => ParserT s st m (mf Blocks)  -- ^ Block list parser
+              -> Bool                        -- ^ Headerless table
+              -> ParserT s st m (mf Blocks)
 gridTableWith blocks headless =
   tableWith (gridTableHeader headless blocks) (gridTableRow blocks)
             (gridTableSep '-') gridTableFooter
 
-gridTableWith' :: (Monad m, HasReaderOptions st,
-                   Functor mf, Applicative mf, Monad mf)
-               => ParserT [Char] st m (mf Blocks)  -- ^ Block list parser
-               -> Bool                             -- ^ Headerless table
-               -> ParserT [Char] st m (TableComponents mf)
+gridTableWith' :: (Monad m, HasReaderOptions st, Stream s m Char,
+                   Functor mf, Applicative mf, Monad mf, IsString s)
+               => ParserT s st m (mf Blocks)  -- ^ Block list parser
+               -> Bool                        -- ^ Headerless table
+               -> ParserT s st m (TableComponents mf)
 gridTableWith' blocks headless =
   tableWith' (gridTableHeader headless blocks) (gridTableRow blocks)
              (gridTableSep '-') gridTableFooter
@@ -981,10 +981,11 @@ gridTableSep :: Stream s m Char => Char -> ParserT s st m Char
 gridTableSep ch = try $ gridDashedLines ch >> return '\n'
 
 -- | Parse header for a grid table.
-gridTableHeader :: (Monad m, Functor mf, Applicative mf, Monad mf)
+gridTableHeader :: (Monad m, Functor mf, Applicative mf, Monad mf,
+                    Stream s m Char, IsString s)
                 => Bool -- ^ Headerless table
-                -> ParserT [Char] st m (mf Blocks)
-                -> ParserT [Char] st m (mf [Blocks], [Alignment], [Int])
+                -> ParserT s st m (mf Blocks)
+                -> ParserT s st m (mf [Blocks], [Alignment], [Int])
 gridTableHeader headless blocks = try $ do
   optional blanklines
   dashes <- gridDashedLines '-'
@@ -1014,10 +1015,11 @@ gridTableRawLine indices = do
   return (gridTableSplitLine indices line)
 
 -- | Parse row of grid table.
-gridTableRow :: (Monad m, Functor mf, Applicative mf, Monad mf)
-             => ParserT [Char] st m (mf Blocks)
+gridTableRow :: (Monad m, Functor mf, Applicative mf, Monad mf,
+                 Stream s m Char, IsString s)
+             => ParserT s st m (mf Blocks)
              -> [Int]
-             -> ParserT [Char] st m (mf [Blocks])
+             -> ParserT s st m (mf [Blocks])
 gridTableRow blocks indices = do
   colLines <- many1 (gridTableRawLine indices)
   let cols = map ((++ "\n") . unlines . removeOneLeadingSpace) $
