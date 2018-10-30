@@ -477,10 +477,10 @@ parseFromString parser str = do
 
 -- | Like 'parseFromString' but specialized for 'ParserState'.
 -- This resets 'stateLastStrPos', which is almost always what we want.
-parseFromString' :: Monad m
-                 => ParserT String ParserState m a
+parseFromString' :: (Monad m, Stream s m Char, IsString s)
+                 => ParserT s ParserState m a
                  -> String
-                 -> ParserT String ParserState m a
+                 -> ParserT s ParserState m a
 parseFromString' parser str = do
   oldStrPos <- stateLastStrPos <$> getState
   res <- parseFromString parser str
