@@ -32,8 +32,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 Tokenizer for groff formats (man, ms).
 -}
 module Text.Pandoc.Readers.Roff
-  ( MacroKind
-  , FontSpec(..)
+  ( FontSpec(..)
   , defaultFontSpec
   , LinePart(..)
   , Arg
@@ -83,8 +82,6 @@ data FontSpec = FontSpec{ fontBold      :: Bool
 defaultFontSpec :: FontSpec
 defaultFontSpec = FontSpec False False False
 
-type MacroKind = String
-
 data LinePart = RoffStr String
               | Font FontSpec
               | MacroArg Int
@@ -106,7 +103,7 @@ type TableRow = ([CellFormat], [RoffTokens])
 
 data RoffToken = MLine [LinePart]
                | MEmptyLine
-               | MMacro MacroKind [Arg] SourcePos
+               | MMacro String [Arg] SourcePos
                | MTable [TableOption] [TableRow] SourcePos
                deriving Show
 

@@ -217,7 +217,7 @@ memptyLine = msatisfy isMEmptyLine where
   isMEmptyLine MEmptyLine = True
   isMEmptyLine _ = False
 
-mmacro :: PandocMonad m => MacroKind -> ManParser m RoffToken
+mmacro :: PandocMonad m => String -> ManParser m RoffToken
 mmacro mk = msatisfy isMMacro where
   isMMacro (MMacro mk' _ _) | mk == mk' = True
                             | otherwise = False
