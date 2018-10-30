@@ -183,17 +183,13 @@ blockToZimWiki opts (Table capt aligns _ headers rows) = do
            unlines (map renderRow rows')
 
 blockToZimWiki opts (BulletList items) = do
-  indent <- gets stIndent
-  modify $ \s -> s { stIndent = stIndent s ++ "\t" }
   contents <- mapM (listItemToZimWiki opts) items
-  modify $ \s -> s{ stIndent = indent } -- drop 1 (stIndent s) }
+  indent <- gets stIndent
   return $ vcat contents ++ if null indent then "\n" else ""
 
 blockToZimWiki opts (OrderedList _ items) = do
-  indent <- gets stIndent
-  modify $ \s -> s { stIndent = stIndent s ++ "\t", stItemNum = 1 }
   contents <- mapM (orderedListItemToZimWiki opts) items
-  modify $ \s -> s{ stIndent = indent } -- drop 1 (stIndent s) }
+  indent <- gets stIndent
   return $ vcat contents ++ if null indent then "\n" else ""
 
 blockToZimWiki opts (DefinitionList items) = do
@@ -246,16 +242,20 @@ vcat = intercalate "\n"
 -- | Convert bullet list item (list of blocks) to ZimWiki.
 listItemToZimWiki :: PandocMonad m => WriterOptions -> [Block] -> ZW m String
 listItemToZimWiki opts items = do
-  contents <- blockListToZimWiki opts items
   indent <- gets stIndent
+  modify $ \s -> s { stIndent = indent ++ "\t" }
+  contents <- blockListToZimWiki opts items
+  modify $ \s -> s{ stIndent = indent }
   return $ indent ++ "* " ++ contents
 
 -- | Convert ordered list item (list of blocks) to ZimWiki.
 orderedListItemToZimWiki :: PandocMonad m
                          => WriterOptions -> [Block] -> ZW m String
 orderedListItemToZimWiki opts items = do
-  contents <- blockListToZimWiki opts items
   indent <- gets stIndent
+  modify $ \s -> s { stIndent = indent ++ "\t" }
+  contents <- blockListToZimWiki opts items
+  modify $ \s -> s{ stIndent = indent }
   itemnum <- gets stItemNum
   --modify $ \s -> s { stItemNum = itemnum + 1 } -- this is not strictly necessary for zim as zim does its own renumbering
   return $ indent ++ show itemnum ++ ". " ++ contents
