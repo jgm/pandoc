@@ -206,6 +206,7 @@ import Data.List (intercalate, isSuffixOf, transpose)
 import qualified Data.Map as M
 import Data.Maybe (mapMaybe, fromMaybe)
 import qualified Data.Set as Set
+import Data.String
 import Data.Text (Text)
 import Text.HTML.TagSoup.Entity (lookupEntity)
 import Text.Pandoc.Asciify (toAsciiChar)
@@ -458,15 +459,15 @@ stringAnyCase (x:xs) = do
   return (firstChar:rest)
 
 -- | Parse contents of 'str' using 'parser' and return result.
-parseFromString :: Monad m
-                => ParserT [Char] st m a
+parseFromString :: (Monad m, Stream s m Char, IsString s)
+                => ParserT s st m r
                 -> String
-                -> ParserT [Char] st m a
+                -> ParserT s st m r
 parseFromString parser str = do
   oldPos <- getPosition
   setPosition $ initialPos "chunk"
   oldInput <- getInput
-  setInput str
+  setInput $ fromString str
   result <- parser
   spaces
   eof
