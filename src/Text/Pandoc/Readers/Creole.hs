@@ -1,4 +1,5 @@
 {-# LANGUAGE NoImplicitPrelude #-}
+{-# LANGUAGE OverloadedStrings #-}
 {-
   Copyright (C) 2017 Sascha Wilde <wilde@sha-bang.de>
 
@@ -41,7 +42,6 @@ import Control.Monad.Except (guard, liftM2, throwError)
 import qualified Data.Foldable as F
 import Data.Maybe (fromMaybe)
 import Data.Text (Text)
-import qualified Data.Text as T
 import qualified Text.Pandoc.Builder as B
 import Text.Pandoc.Class (PandocMonad (..))
 import Text.Pandoc.Definition
@@ -56,13 +56,12 @@ readCreole :: PandocMonad m
           -> Text
           -> m Pandoc
 readCreole opts s = do
-  res <- readWithM parseCreole def{ stateOptions = opts }
-             (T.unpack (crFilter s) ++ "\n\n")
+  res <- readWithM parseCreole def{ stateOptions = opts } $ crFilter s <> "\n\n"
   case res of
        Left e  -> throwError e
        Right d -> return d
 
-type CRLParser = ParserT [Char] ParserState
+type CRLParser = ParserT Text ParserState
 
 --
 -- Utility functions
