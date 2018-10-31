@@ -71,7 +71,7 @@ import Control.Monad.Except (throwError)
 import Data.Default
 import Data.List (isInfixOf, isPrefixOf)
 import Data.Maybe
-import Data.Text (Text, unpack)
+import Data.Text (Text)
 import Text.Pandoc.Builder (Blocks, Inlines, fromList, toList, trimInlines)
 import qualified Text.Pandoc.Builder as B (blockQuote, bulletList, code,
                                            codeBlockWith, definitionList,
@@ -101,13 +101,12 @@ import Text.Parsec.Prim (getState, many, try, updateState, (<|>))
 
 readVimwiki :: PandocMonad m => ReaderOptions -> Text -> m Pandoc
 readVimwiki opts s = do
-  res <- readWithM parseVimwiki def{ stateOptions = opts }
-            (unpack (crFilter s))
+  res <- readWithM parseVimwiki def{ stateOptions = opts } $ crFilter s
   case res of
        Left e       -> throwError e
        Right result -> return result
 
-type VwParser = ParserT [Char] ParserState
+type VwParser = ParserT Text ParserState
 
 
 -- constants
