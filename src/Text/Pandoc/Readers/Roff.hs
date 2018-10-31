@@ -101,10 +101,10 @@ data CellFormat =
 
 type TableRow = ([CellFormat], [RoffTokens])
 
-data RoffToken = RoffTextLine [LinePart]
-               | RoffEmptyLine
-               | RoffControlLine String [Arg] SourcePos
-               | RoffTable [TableOption] [TableRow] SourcePos
+data RoffToken = TextLine [LinePart]
+               | EmptyLine
+               | ControlLine String [Arg] SourcePos
+               | Tbl [TableOption] [TableRow] SourcePos
                deriving Show
 
 newtype RoffTokens = RoffTokens { unRoffTokens :: Seq.Seq RoffToken }
@@ -128,7 +128,7 @@ instance Default RoffState where
   def = RoffState { customMacros = M.fromList
                        $ map (\(n, s) ->
                                 (n, singleTok
-                                  (RoffTextLine [RoffStr s])))
+                                  (TextLine [RoffStr s])))
                        [ ("Tm", "\x2122")
                        , ("lq", "\x201C")
                        , ("rq", "\x201D")
@@ -370,7 +370,7 @@ lexMacro = do
          "de1"  -> lexMacroDef args
          "ds"   -> lexStringDef args
          "ds1"  -> lexStringDef args
-         "sp"   -> return $ singleTok RoffEmptyLine
+         "sp"   -> return $ singleTok EmptyLine
          "so"   -> lexIncludeFile args
          _      -> resolveMacro macroName args pos
 
@@ -394,7 +394,7 @@ lexTable pos = do
   string ".TE"
   skipMany spacetab
   eofline
-  return $ singleTok $ RoffTable opts (rows ++ concat morerows) pos
+  return $ singleTok $ Tbl opts (rows ++ concat morerows) pos
 
 lexTableRows :: PandocMonad m => RoffLexer m [TableRow]
 lexTableRows = do
@@ -531,15 +531,15 @@ resolveMacro :: PandocMonad m
 resolveMacro macroName args pos = do
   macros <- customMacros <$> getState
   case M.lookup macroName macros of
-    Nothing -> return $ singleTok $ RoffControlLine macroName args pos
+    Nothing -> return $ singleTok $ ControlLine macroName args pos
     Just ts -> do
       let fillLP (MacroArg i)    zs =
             case drop (i - 1) args of
               []     -> zs
               (ys:_) -> ys ++ zs
           fillLP z zs = z : zs
-      let fillMacroArg (RoffTextLine lineparts) =
-            RoffTextLine (foldr fillLP [] lineparts)
+      let fillMacroArg (TextLine lineparts) =
+            TextLine (foldr fillLP [] lineparts)
           fillMacroArg x = x
       return $ RoffTokens . fmap fillMacroArg . unRoffTokens $ ts
 
@@ -548,7 +548,7 @@ lexStringDef args = do -- string definition
    case args of
      []     -> fail "No argument to .ds"
      (x:ys) -> do
-       let ts = singleTok $ RoffTextLine (intercalate [RoffStr " " ] ys)
+       let ts = singleTok $ TextLine (intercalate [RoffStr " " ] ys)
        let stringName = linePartsToString x
        modifyState $ \st ->
          st{ customMacros = M.insert stringName ts (customMacros st) }
@@ -631,7 +631,7 @@ escString = try $ do
   resolveString stringname pos = do
     RoffTokens ts <- resolveMacro stringname [] pos
     case Foldable.toList ts of
-      [RoffTextLine xs] -> return xs
+      [TextLine xs] -> return xs
       _          -> do
         report $ SkippedContent ("unknown string " ++ stringname) pos
         return mempty
@@ -649,7 +649,7 @@ lexLine = do
          -- this can happen if the line just contains \f[C], for example.
     go [] = return mempty
     go (RoffStr "" : xs) = go xs
-    go xs = return $ singleTok $ RoffTextLine xs
+    go xs = return $ singleTok $ TextLine xs
 
 linePart :: PandocMonad m => RoffLexer m [LinePart]
 linePart = macroArg <|> escape <|>
@@ -694,7 +694,7 @@ spaceTabChar = do
   return [RoffStr [c]]
 
 lexEmptyLine :: PandocMonad m => RoffLexer m RoffTokens
-lexEmptyLine = newline >> return (singleTok RoffEmptyLine)
+lexEmptyLine = newline >> return (singleTok EmptyLine)
 
 manToken :: PandocMonad m => RoffLexer m RoffTokens
 manToken = lexComment <|> lexMacro <|> lexLine <|> lexEmptyLine

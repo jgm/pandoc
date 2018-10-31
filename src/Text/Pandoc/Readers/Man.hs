@@ -115,9 +115,9 @@ parseBlock = choice [ parseList
 parseTable :: PandocMonad m => ManParser m Blocks
 parseTable = do
   modifyState $ \st -> st { tableCellsPlain = True }
-  let isRoffTable (RoffTable{}) = True
-      isRoffTable _          = False
-  RoffTable _opts rows pos <- msatisfy isRoffTable
+  let isTbl (Tbl{}) = True
+      isTbl _          = False
+  Tbl _opts rows pos <- msatisfy isTbl
   case rows of
     ((as,_):_) -> try (do
       let as' = map (columnTypeToAlignment . columnType) as
@@ -167,7 +167,7 @@ parseTable = do
   isHrule ([cellfmt], _) = columnType cellfmt `elem` ['_','-','=']
   isHrule (_, [RoffTokens ss]) =
     case Foldable.toList ss of
-      [RoffTextLine [RoffStr [c]]] -> c `elem` ['_','-','=']
+      [TextLine [RoffStr [c]]] -> c `elem` ['_','-','=']
       _                     -> False
   isHrule _ = False
 
@@ -199,7 +199,7 @@ msatisfy :: Monad m => (RoffToken -> Bool) -> ParserT [RoffToken] st m RoffToken
 msatisfy predic = tokenPrim show nextPos testTok
   where
     testTok t     = if predic t then Just t else Nothing
-    nextPos _pos _x (RoffControlLine _ _ pos':_) = pos'
+    nextPos _pos _x (ControlLine _ _ pos':_) = pos'
     nextPos pos _x _xs  = updatePosString
                              (setSourceColumn
                                (setSourceLine pos $ sourceLine pos + 1) 1) ""
@@ -208,25 +208,25 @@ mtoken :: PandocMonad m => ManParser m RoffToken
 mtoken = msatisfy (const True)
 
 mline :: PandocMonad m => ManParser m RoffToken
-mline = msatisfy isRoffTextLine where
-  isRoffTextLine (RoffTextLine _) = True
-  isRoffTextLine _ = False
+mline = msatisfy isTextLine where
+  isTextLine (TextLine _) = True
+  isTextLine _ = False
 
 memptyLine :: PandocMonad m => ManParser m RoffToken
-memptyLine = msatisfy isRoffEmptyLine where
-  isRoffEmptyLine RoffEmptyLine = True
-  isRoffEmptyLine _ = False
+memptyLine = msatisfy isEmptyLine where
+  isEmptyLine EmptyLine = True
+  isEmptyLine _ = False
 
 mmacro :: PandocMonad m => String -> ManParser m RoffToken
-mmacro mk = msatisfy isRoffControlLine where
-  isRoffControlLine (RoffControlLine mk' _ _) | mk == mk' = True
+mmacro mk = msatisfy isControlLine where
+  isControlLine (ControlLine mk' _ _) | mk == mk' = True
                             | otherwise = False
-  isRoffControlLine _ = False
+  isControlLine _ = False
 
 mmacroAny :: PandocMonad m => ManParser m RoffToken
-mmacroAny = msatisfy isRoffControlLine where
-  isRoffControlLine RoffControlLine{} = True
-  isRoffControlLine _ = False
+mmacroAny = msatisfy isControlLine where
+  isControlLine ControlLine{} = True
+  isControlLine _ = False
 
 --
 -- RoffToken -> Block functions
@@ -234,7 +234,7 @@ mmacroAny = msatisfy isRoffControlLine where
 
 parseTitle :: PandocMonad m => ManParser m Blocks
 parseTitle = do
-  (RoffControlLine _ args _) <- mmacro "TH"
+  (ControlLine _ args _) <- mmacro "TH"
   let adjustMeta =
        case args of
          (x:y:z:_) -> setMeta "title" (linePartsToInlines x) .
@@ -305,8 +305,8 @@ parseInline :: PandocMonad m => ManParser m Inlines
 parseInline = try $ do
   tok <- mtoken
   case tok of
-    RoffTextLine lparts -> return $ linePartsToInlines lparts
-    RoffControlLine mname args pos -> handleInlineMacro mname args pos
+    TextLine lparts -> return $ linePartsToInlines lparts
+    ControlLine mname args pos -> handleInlineMacro mname args pos
     _ -> mzero
 
 handleInlineMacro :: PandocMonad m
@@ -337,14 +337,14 @@ handleInlineMacro mname args _pos = do
 
 parseBold :: PandocMonad m => [Arg] -> ManParser m Inlines
 parseBold [] = do
-  RoffTextLine lparts <- mline
+  TextLine lparts <- mline
   return $ strong $ linePartsToInlines lparts
 parseBold args = return $
   strong $ mconcat $ intersperse B.space $ map linePartsToInlines args
 
 parseItalic :: PandocMonad m => [Arg] -> ManParser m Inlines
 parseItalic [] = do
-  RoffTextLine lparts <- mline
+  TextLine lparts <- mline
   return $ emph $ linePartsToInlines lparts
 parseItalic args = return $
   emph $ mconcat $ intersperse B.space $ map linePartsToInlines args
@@ -358,12 +358,12 @@ parseAlternatingFonts constructors args = return $ mconcat $
 
 lineInl :: PandocMonad m => ManParser m Inlines
 lineInl = do
-  (RoffTextLine fragments) <- mline
+  (TextLine fragments) <- mline
   return $ linePartsToInlines fragments
 
 bareIP :: PandocMonad m => ManParser m RoffToken
 bareIP = msatisfy isBareIP where
-  isBareIP (RoffControlLine "IP" [] _) = True
+  isBareIP (ControlLine "IP" [] _) = True
   isBareIP _                  = False
 
 endmacro :: PandocMonad m => String -> ManParser m ()
@@ -372,8 +372,8 @@ endmacro name = void (mmacro name)
              <|> lookAhead eof
   where
     newBlockMacro = msatisfy isNewBlockMacro
-    isNewBlockMacro (RoffControlLine "SH" _ _) = True
-    isNewBlockMacro (RoffControlLine "SS" _ _) = True
+    isNewBlockMacro (ControlLine "SH" _ _) = True
+    isNewBlockMacro (ControlLine "SS" _ _) = True
     isNewBlockMacro _ = False
 
 parseCodeBlock :: PandocMonad m => ManParser m Blocks
@@ -390,16 +390,16 @@ parseCodeBlock = try $ do
   codeline = do
     tok <- mtoken
     case tok of
-      RoffControlLine "PP" _ _ -> return $ Just "" -- .PP sometimes used for blank line
-      RoffControlLine mname args pos -> do
+      ControlLine "PP" _ _ -> return $ Just "" -- .PP sometimes used for blank line
+      ControlLine mname args pos -> do
         (Just . query getText <$> handleInlineMacro mname args pos) <|>
           do report $ SkippedContent ('.':mname) pos
              return Nothing
-      RoffTable _ _ pos     -> do
+      Tbl _ _ pos     -> do
         report $ SkippedContent "TABLE" pos
         return $ Just "TABLE"
-      RoffEmptyLine -> return $ Just ""
-      RoffTextLine ss
+      EmptyLine -> return $ Just ""
+      TextLine ss
         | not (null ss)
         , all isFontToken ss -> return Nothing
         | otherwise -> return $ Just $ linePartsToString ss
@@ -417,7 +417,7 @@ parseCodeBlock = try $ do
 
 parseHeader :: PandocMonad m => ManParser m Blocks
 parseHeader = do
-  RoffControlLine name args _ <- mmacro "SH" <|> mmacro "SS"
+  ControlLine name args _ <- mmacro "SH" <|> mmacro "SS"
   contents <- if null args
                  then lineInl
                  else return $ mconcat $ intersperse B.space
@@ -440,7 +440,7 @@ listTypeMatches (Just _) _           = False
 
 listItem :: PandocMonad m => Maybe ListType -> ManParser m (ListType, Blocks)
 listItem mbListType = try $ do
-  (RoffControlLine _ args _) <- mmacro "IP"
+  (ControlLine _ args _) <- mmacro "IP"
   case args of
     (arg1 : _)  -> do
       let cs = linePartsToString arg1
@@ -491,7 +491,7 @@ parseDefinitionList = definitionList <$> many1 definitionListItem
 parseLink :: PandocMonad m => [Arg] -> ManParser m Inlines
 parseLink args = do
   contents <- mconcat <$> many lineInl
-  RoffControlLine _ endargs _ <- mmacro "UE"
+  ControlLine _ endargs _ <- mmacro "UE"
   let url = case args of
               [] -> ""
               (x:_) -> linePartsToString x
@@ -503,7 +503,7 @@ parseLink args = do
 parseEmailLink :: PandocMonad m => [Arg] -> ManParser m Inlines
 parseEmailLink args = do
   contents <- mconcat <$> many lineInl
-  RoffControlLine _ endargs _ <- mmacro "ME"
+  ControlLine _ endargs _ <- mmacro "ME"
   let url = case args of
               [] -> ""
               (x:_) -> "mailto:" ++ linePartsToString x
@@ -516,7 +516,7 @@ skipUnkownMacro :: PandocMonad m => ManParser m Blocks
 skipUnkownMacro = do
   tok <- mmacroAny
   case tok of
-    RoffControlLine mkind _ pos -> do
+    ControlLine mkind _ pos -> do
       report $ SkippedContent ('.':mkind) pos
       return mempty
     _                 -> fail "the impossible happened"
