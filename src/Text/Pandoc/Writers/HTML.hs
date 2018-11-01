@@ -75,7 +75,8 @@ import Text.Pandoc.Templates
 import Text.Pandoc.Walk
 import Text.Pandoc.Writers.Math
 import Text.Pandoc.Writers.Shared
-import Text.Pandoc.XML (escapeStringForXML, fromEntities, toEntities)
+import Text.Pandoc.XML (escapeStringForXML, fromEntities,
+                        toEntities, toHtml5Entities)
 #if MIN_VERSION_blaze_markup(0,6,3)
 #else
 import Text.Blaze.Internal (preEscapedString, preEscapedText)
@@ -206,7 +207,12 @@ writeHtmlString' :: PandocMonad m
                  => WriterState -> WriterOptions -> Pandoc -> m Text
 writeHtmlString' st opts d = do
   (body, context) <- evalStateT (pandocToHtml opts d) st
-  (if writerPreferAscii opts then toEntities else id) <$>
+  (if writerPreferAscii opts
+      then
+        if stHtml5 st
+           then toHtml5Entities
+           else toEntities
+      else id) <$>
     case writerTemplate opts of
        Nothing -> return $ renderHtml' body
        Just tpl -> do

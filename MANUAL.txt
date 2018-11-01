@@ -859,7 +859,7 @@ Options affecting specific writers {.options}
 `--ascii`
 
 :   Use only ASCII characters in output.  Currently supported for
-    XML and HTML formats (which use numerical entities instead of
+    XML and HTML formats (which use entities instead of
     UTF-8 when this option is selected), groff ms
     (which use hexadecimal escapes), and to a limited degree
     LaTeX (which uses standard commands for accented

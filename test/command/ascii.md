@@ -2,7 +2,7 @@
 pandoc -t html --ascii
 äéıå
 ^D
-<p>&#228;&#233;&#305;&#229;</p>
+<p>&auml;&eacute;&inodot;&aring;</p>
 ```
 
 ```
