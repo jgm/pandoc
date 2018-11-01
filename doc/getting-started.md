@@ -196,6 +196,10 @@ with different text editors:  Gnome has `GEdit`, and KDE has `Kate`.
 
 Start up your text editor.  Type the following:
 
+    ---
+    title: Test
+    ...
+
     # Test!
 
     This is a test of *pandoc*.
