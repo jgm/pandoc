@@ -199,7 +199,7 @@ where
 import Prelude
 import Control.Monad.Identity
 import Control.Monad.Reader
-import Data.Char (chr, isAlphaNum, isAscii, isAsciiUpper, isHexDigit,
+import Data.Char (chr, isAlphaNum, isAscii, isAsciiUpper,
                   isPunctuation, isSpace, ord, toLower, toUpper)
 import Data.Default
 import Data.List (intercalate, isSuffixOf, transpose)
@@ -591,25 +591,24 @@ uri = try $ do
   -- http://en.wikipedia.org/wiki/State_of_emergency_(disambiguation)
   -- as a URL, while NOT picking up the closing paren in
   -- (http://wikipedia.org). So we include balanced parens in the URL.
-  let isWordChar c = isAlphaNum c || c `elem` "#$%+/@\\_-&="
-  let wordChar = satisfy isWordChar
-  let percentEscaped = try $ char '%' >> skipMany1 (satisfy isHexDigit)
-  let entity = () <$ characterReference
-  let punct = skipMany1 (char ',')
-          <|> () <$ satisfy (\c -> not (isSpace c) && c /= '<' && c /= '>')
-  let uriChunk =  skipMany1 wordChar
-              <|> percentEscaped
-              <|> entity
-              <|> try (punct >>
-                    lookAhead (void (satisfy isWordChar) <|> percentEscaped))
-  str <- snd <$> withRaw (skipMany1 ( () <$
-                                         (enclosed (char '(') (char ')') uriChunk
-                                         <|> enclosed (char '{') (char '}') uriChunk
-                                         <|> enclosed (char '[') (char ']') uriChunk)
-                                         <|> uriChunk))
+  str <- concat <$> many1 (uriChunkBetween '(' ')'
+                       <|> uriChunkBetween '{' '}'
+                       <|> uriChunkBetween '[' ']'
+                       <|> uriChunk)
   str' <- option str $ char '/' >> return (str ++ "/")
   let uri' = scheme ++ ":" ++ fromEntities str'
   return (uri', escapeURI uri')
+  where
+    wordChar = alphaNum <|> oneOf "#$%+/@\\_-&="
+    percentEscaped = try $ (:) <$> char '%' <*> many1 hexDigit
+    entity = try $ pure <$> characterReference
+    punct = try $ many1 (char ',') <|> fmap pure (satisfy (\c -> not (isSpace c) && c /= '<' && c /= '>'))
+    uriChunk = many1 wordChar
+           <|> percentEscaped
+           <|> entity
+           <|> try (punct <* lookAhead (void wordChar <|> void percentEscaped))
+    uriChunkBetween l r = try $ do chunk <- between (char l) (char r) uriChunk
+                                   return ([l] ++ chunk ++ [r])
 
 mathInlineWith :: Stream s m Char  => String -> String -> ParserT s st m String
 mathInlineWith op cl = try $ do
