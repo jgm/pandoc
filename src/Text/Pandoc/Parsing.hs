@@ -580,7 +580,7 @@ uriScheme :: Stream s m Char => ParserT s st m String
 uriScheme = oneOfStringsCI (Set.toList schemes)
 
 -- | Parses a URI. Returns pair of original and URI-escaped version.
-uri :: Monad m => ParserT [Char] st m (String, String)
+uri :: Stream s m Char => ParserT s st m (String, String)
 uri = try $ do
   scheme <- uriScheme
   char ':'
