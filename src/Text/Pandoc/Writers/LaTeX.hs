@@ -1276,7 +1276,7 @@ inlineToLaTeX (Note contents) = do
 -- or the closing delimiter gets swallowed.
 handleMathComment :: String -> String
 handleMathComment s =
-  let (xs, ys) = break (\c -> c == '\n' || c == '%') $ reverse s
+  let (_, ys) = break (\c -> c == '\n' || c == '%') $ reverse s
   in  case ys of
          '%':'\\':_ -> s
          '%':_      -> s ++ "\n"
