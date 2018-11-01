@@ -931,7 +931,7 @@ widthsFromIndices numColumns' indices =
 -- (which may be grid), then the rows,
 -- which may be grid, separated by blank lines, and
 -- ending with a footer (dashed line followed by blank line).
-gridTableWith :: (Monad m, HasReaderOptions st, Stream s m Char,
+gridTableWith :: (Stream s m Char, HasReaderOptions st,
                   Functor mf, Applicative mf, Monad mf, IsString s)
               => ParserT s st m (mf Blocks)  -- ^ Block list parser
               -> Bool                        -- ^ Headerless table
@@ -940,7 +940,7 @@ gridTableWith blocks headless =
   tableWith (gridTableHeader headless blocks) (gridTableRow blocks)
             (gridTableSep '-') gridTableFooter
 
-gridTableWith' :: (Monad m, HasReaderOptions st, Stream s m Char,
+gridTableWith' :: (Stream s m Char, HasReaderOptions st,
                    Functor mf, Applicative mf, Monad mf, IsString s)
                => ParserT s st m (mf Blocks)  -- ^ Block list parser
                -> Bool                        -- ^ Headerless table
@@ -980,8 +980,8 @@ gridTableSep :: Stream s m Char => Char -> ParserT s st m Char
 gridTableSep ch = try $ gridDashedLines ch >> return '\n'
 
 -- | Parse header for a grid table.
-gridTableHeader :: (Monad m, Functor mf, Applicative mf, Monad mf,
-                    Stream s m Char, IsString s)
+gridTableHeader :: (Stream s m Char, Functor mf, Applicative mf, Monad mf,
+                    IsString s)
                 => Bool -- ^ Headerless table
                 -> ParserT s st m (mf Blocks)
                 -> ParserT s st m (mf [Blocks], [Alignment], [Int])
@@ -1014,8 +1014,8 @@ gridTableRawLine indices = do
   return (gridTableSplitLine indices line)
 
 -- | Parse row of grid table.
-gridTableRow :: (Monad m, Functor mf, Applicative mf, Monad mf,
-                 Stream s m Char, IsString s)
+gridTableRow :: (Stream s m Char, Functor mf, Applicative mf, Monad mf,
+                 IsString s)
              => ParserT s st m (mf Blocks)
              -> [Int]
              -> ParserT s st m (mf [Blocks])
