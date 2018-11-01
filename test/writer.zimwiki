@@ -62,7 +62,7 @@ E-mail style:
 > A list:
 > 
 > 1. item one
-> 1. item two
+> 2. item two
 > 
 > Nested block quotes:
 > 
@@ -147,33 +147,33 @@ Minuses loose:
 Tight:
 
 1. First
-1. Second
-1. Third
+2. Second
+3. Third
 
 and:
 
 1. One
-1. Two
-1. Three
+2. Two
+3. Three
 
 Loose using tabs:
 
 1. First
-1. Second
-1. Third
+2. Second
+3. Third
 
 and using spaces:
 
 1. One
-1. Two
-1. Three
+2. Two
+3. Three
 
 Multiple paragraphs:
 
 1. Item 1, graf one.
 Item 1. graf two. The quick brown fox jumped over the lazy dog’s back.
-1. Item 2.
-1. Item 3.
+2. Item 2.
+3. Item 3.
 
 ===== Nested =====
 
@@ -184,20 +184,20 @@ Item 1. graf two. The quick brown fox jumped over the lazy dog’s back.
 Here’s another:
 
 1. First
-1. Second:
+2. Second:
 	* Fee
 	* Fie
 	* Foe
-1. Third
+3. Third
 
 Same thing but with paragraphs:
 
 1. First
-1. Second:
+2. Second:
 	* Fee
 	* Fie
 	* Foe
-1. Third
+3. Third
 
 ===== Tabs and spaces =====
 
@@ -209,12 +209,12 @@ Same thing but with paragraphs:
 ===== Fancy list markers =====
 
 1. begins with 2
-1. and now 3
+2. and now 3
 with a continuation
 	1. sublist with roman numerals, starting with 4
-	1. more items
+	2. more items
 		1. a subsublist
-		1. a subsublist
+		2. a subsublist
 
 Nesting:
 
@@ -226,7 +226,7 @@ Nesting:
 Autonumbering:
 
 1. Autonumber.
-1. More.
+2. More.
 	1. Nested.
 
 Should not be a list item:
@@ -292,7 +292,7 @@ computer
 * **orange** orange fruit
 
 1. sublist
-1. sublist
+2. sublist
 
 ====== HTML Blocks ======
 

@@ -52,14 +52,13 @@ import Text.Pandoc.Templates (renderTemplate')
 import Text.Pandoc.Writers.Shared (defField, metaToJSON)
 
 data WriterState = WriterState {
-    stItemNum :: Int,
     stIndent  :: String,         -- Indent after the marker at the beginning of list items
     stInTable :: Bool,           -- Inside a table
     stInLink  :: Bool            -- Inside a link description
   }
 
 instance Default WriterState where
-  def = WriterState { stItemNum = 1, stIndent = "", stInTable = False, stInLink = False }
+  def = WriterState { stIndent = "", stInTable = False, stInLink = False }
 
 type ZW = StateT WriterState
 
@@ -188,7 +187,7 @@ blockToZimWiki opts (BulletList items) = do
   return $ vcat contents ++ if null indent then "\n" else ""
 
 blockToZimWiki opts (OrderedList _ items) = do
-  contents <- mapM (orderedListItemToZimWiki opts) items
+  contents <- zipWithM (orderedListItemToZimWiki opts) [1..] items
   indent <- gets stIndent
   return $ vcat contents ++ if null indent then "\n" else ""
 
@@ -210,25 +209,24 @@ definitionListItemToZimWiki opts (label, items) = do
 indentFromHTML :: PandocMonad m => WriterOptions -> String -> ZW m String
 indentFromHTML _ str = do
    indent <- gets stIndent
-   itemnum <- gets stItemNum
-   if "<li>" `isInfixOf` str then return $ indent ++ show itemnum ++ "."
-        else if "</li>" `isInfixOf` str then return "\n"
-                else if "<li value=" `isInfixOf` str then do
-                        -- poor man's cut
-                        let val = drop 10 $ reverse $ drop 1 $ reverse str
-                        --let val = take ((length valls) - 2) valls
-                        modify $ \s -> s { stItemNum = read val }
-                        return ""
-                        else if "<ol>" `isInfixOf` str then do
-                                let olcount=countSubStrs "<ol>" str
-                                modify $ \s -> s { stIndent = stIndent s ++ replicate olcount '\t', stItemNum = 1 }
-                                return ""
-                                else if "</ol>" `isInfixOf` str then do
-                                        let olcount=countSubStrs "/<ol>" str
-                                        modify $ \s -> s{ stIndent = drop olcount (stIndent s) }
-                                        return ""
-                                        else
-                                                return ""
+   if "<li>" `isInfixOf` str
+      then return indent
+      else if "</li>" `isInfixOf` str
+        then return "\n"
+        else if "<li value=" `isInfixOf` str
+          then return ""
+          else if "<ol>" `isInfixOf` str
+            then do
+              let olcount=countSubStrs "<ol>" str
+              modify $ \s -> s { stIndent = stIndent s ++
+                                 replicate olcount '\t' }
+              return ""
+            else if "</ol>" `isInfixOf` str
+              then do
+                let olcount=countSubStrs "/<ol>" str
+                modify $ \s -> s{ stIndent = drop olcount (stIndent s) }
+                return ""
+              else return ""
 
 countSubStrs :: String -> String -> Int
 countSubStrs sub str = length $ breakOnAll (pack sub) (pack str)
@@ -250,14 +248,12 @@ listItemToZimWiki opts items = do
 
 -- | Convert ordered list item (list of blocks) to ZimWiki.
 orderedListItemToZimWiki :: PandocMonad m
-                         => WriterOptions -> [Block] -> ZW m String
-orderedListItemToZimWiki opts items = do
+                         => WriterOptions -> Int -> [Block] -> ZW m String
+orderedListItemToZimWiki opts itemnum items = do
   indent <- gets stIndent
   modify $ \s -> s { stIndent = indent ++ "\t" }
   contents <- blockListToZimWiki opts items
   modify $ \s -> s{ stIndent = indent }
-  itemnum <- gets stItemNum
-  --modify $ \s -> s { stItemNum = itemnum + 1 } -- this is not strictly necessary for zim as zim does its own renumbering
   return $ indent ++ show itemnum ++ ". " ++ contents
 
 -- Auxiliary functions for tables:
@@ -343,8 +339,8 @@ inlineToZimWiki _ (Math mathType str) = return $ delim ++ str ++ delim   -- note
 -- | f == Format "html"     = return $ "<html>" ++ str ++ "</html>"
 inlineToZimWiki opts il@(RawInline f str)
   | f == Format "zimwiki" = return str
-  | f == Format "html"     = indentFromHTML opts str
-  | otherwise              = do
+  | f == Format "html"    = indentFromHTML opts str
+  | otherwise             = do
       report $ InlineNotRendered il
       return ""
 
