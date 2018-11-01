@@ -1168,10 +1168,10 @@ inlineToLaTeX (Str str) = do
   liftM text $ stringToLaTeX TextString str
 inlineToLaTeX (Math InlineMath str) = do
   setEmptyLine False
-  return $ "\\(" <> text str <> "\\)"
+  return $ "\\(" <> text (handleMathComment str) <> "\\)"
 inlineToLaTeX (Math DisplayMath str) = do
   setEmptyLine False
-  return $ "\\[" <> text str <> "\\]"
+  return $ "\\[" <> text (handleMathComment str) <> "\\]"
 inlineToLaTeX il@(RawInline f str)
   | f == Format "latex" || f == Format "tex"
                         = do
@@ -1271,6 +1271,16 @@ inlineToLaTeX (Note contents) = do
        then "\\footnotemark{}"
        -- note: a \n before } needed when note ends with a Verbatim environment
        else "\\footnote" <> beamerMark <> braces noteContents
+
+-- A comment at the end of math needs to be followed by a newline,
+-- or the closing delimiter gets swallowed.
+handleMathComment :: String -> String
+handleMathComment s =
+  let (xs, ys) = break (\c -> c == '\n' || c == '%') $ reverse s
+  in  case ys of
+         '%':'\\':_ -> s
+         '%':_      -> s ++ "\n"
+         _          -> s
 
 protectCode :: [Inline] -> [Inline]
 protectCode [] = []
