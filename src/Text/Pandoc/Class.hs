@@ -98,7 +98,6 @@ module Text.Pandoc.Class ( PandocMonad(..)
                          ) where
 
 import Prelude
-import Prelude hiding (readFile)
 import System.Random (StdGen, next, mkStdGen)
 import qualified System.Random as IO (newStdGen)
 import Codec.Archive.Zip
