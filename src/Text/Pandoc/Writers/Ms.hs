@@ -26,7 +26,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
    Stability   : alpha
    Portability : portable
 
-Conversion of 'Pandoc' documents to groff ms format.
+Conversion of 'Pandoc' documents to roff ms format.
 
 TODO:
 
@@ -69,7 +69,7 @@ writeMs :: PandocMonad m => WriterOptions -> Pandoc -> m Text
 writeMs opts document =
   evalStateT (pandocToMs opts document) defaultWriterState
 
--- | Return groff ms representation of document.
+-- | Return roff ms representation of document.
 pandocToMs :: PandocMonad m => WriterOptions -> Pandoc -> MS m Text
 pandocToMs opts (Pandoc meta blocks) = do
   let colwidth = if writerWrapText opts == WrapAuto
@@ -123,7 +123,7 @@ toSmallCaps opts (c:cs)
   | otherwise = escapeStr opts [c] ++ toSmallCaps opts cs
 
 -- We split inline lists into sentences, and print one sentence per
--- line.  groff/troff treats the line-ending period differently.
+-- line.  roff treats the line-ending period differently.
 -- See http://code.google.com/p/pandoc/issues/detail?id=148.
 
 blockToMs :: PandocMonad m
@@ -372,7 +372,7 @@ inlineToMs opts (Strong lst) =
 inlineToMs opts (Strikeout lst) = do
   contents <- inlineListToMs opts lst
   -- we use grey color instead of strikeout, which seems quite
-  -- hard to do in groff for arbitrary bits of text
+  -- hard to do in roff for arbitrary bits of text
   return $ text "\\m[strikecolor]" <> contents <> text "\\m[]"
 inlineToMs opts (Superscript lst) = do
   contents <- inlineListToMs opts lst

@@ -432,7 +432,7 @@ nowrap doc = Doc $ mapWithIndex replaceSpace $ unDoc doc
         replaceSpace _ x             = x
 
 -- | Content to print only if it comes at the beginning of a line,
--- to be used e.g. for escaping line-initial `.` in groff man.
+-- to be used e.g. for escaping line-initial `.` in roff man.
 afterBreak :: String -> Doc
 afterBreak s = Doc $ singleton (AfterBreak s)
 

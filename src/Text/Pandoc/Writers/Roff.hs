@@ -26,7 +26,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
    Stability   : alpha
    Portability : portable
 
-Common functions for groff writers (man, ms).
+Common functions for roff writers (man, ms).
 -}
 
 module Text.Pandoc.Writers.Roff (
@@ -89,7 +89,7 @@ combiningAccentsMap = Map.fromList combiningAccents
 essentialEscapes :: Map.Map Char String
 essentialEscapes = Map.fromList standardEscapes
 
--- | Escape special characters for groff.
+-- | Escape special characters for roff.
 escapeString :: EscapeMode -> String -> String
 escapeString _ [] = []
 escapeString escapeMode ('\n':'.':xs) =

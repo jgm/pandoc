@@ -29,7 +29,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
    Stability   : WIP
    Portability : portable
 
-Tokenizer for groff formats (man, ms).
+Tokenizer for roff formats (man, ms).
 -}
 module Text.Pandoc.Readers.Roff
   ( FontSpec(..)
@@ -705,7 +705,7 @@ linePartsToString = mconcat . map go
   go (RoffStr s) = s
   go _ = mempty
 
--- | Tokenize a string as a sequence of groff tokens.
+-- | Tokenize a string as a sequence of roff tokens.
 lexRoff :: PandocMonad m => SourcePos -> T.Text -> m RoffTokens
 lexRoff pos txt = do
   eithertokens <- readWithM (do setPosition pos

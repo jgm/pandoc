@@ -27,7 +27,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
    Stability   : alpha
    Portability : portable
 
-Conversion of 'Pandoc' documents to groff man page format.
+Conversion of 'Pandoc' documents to roff man page format.
 
 -}
 module Text.Pandoc.Writers.Man ( writeMan) where
@@ -55,7 +55,7 @@ writeMan :: PandocMonad m => WriterOptions -> Pandoc -> m Text
 writeMan opts document =
   evalStateT (pandocToMan opts document) defaultWriterState
 
--- | Return groff man representation of document.
+-- | Return roff man representation of document.
 pandocToMan :: PandocMonad m => WriterOptions -> Pandoc -> StateT WriterState m Text
 pandocToMan opts (Pandoc meta blocks) = do
   let colwidth = if writerWrapText opts == WrapAuto
@@ -116,7 +116,7 @@ noteToMan opts num note = do
   return $ marker $$ contents
 
 -- We split inline lists into sentences, and print one sentence per
--- line.  groff/troff treats the line-ending period differently.
+-- line.  roff treats the line-ending period differently.
 -- See http://code.google.com/p/pandoc/issues/detail?id=148.
 
 -- | Convert Pandoc block element to man.

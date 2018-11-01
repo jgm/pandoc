@@ -285,13 +285,13 @@ General options {.options}
     - `jats` ([JATS] XML)
     - `json` (JSON version of native AST)
     - `latex` ([LaTeX])
-    - `man` ([groff man])
+    - `man` ([roff man])
     - `markdown` ([Pandoc's Markdown])
     - `markdown_mmd` ([MultiMarkdown])
     - `markdown_phpextra` ([PHP Markdown Extra])
     - `markdown_strict` (original unextended [Markdown])
     - `mediawiki` ([MediaWiki markup])
-    - `ms` ([groff ms])
+    - `ms` ([roff ms])
     - `muse` ([Muse]),
     - `native` (native Haskell),
     - `odt` ([OpenOffice text document][ODT])
@@ -442,8 +442,8 @@ General options {.options}
 [TikiWiki markup]: https://doc.tiki.org/Wiki-Syntax-Text#The_Markup_Language_Wiki-Syntax
 [Haddock markup]: https://www.haskell.org/haddock/doc/html/ch03s08.html
 [Creole 1.0]: http://www.wikicreole.org/wiki/Creole1.0
-[groff man]: http://man7.org/linux/man-pages/man7/groff_man.7.html
-[groff ms]: http://man7.org/linux/man-pages/man7/groff_ms.7.html
+[roff man]: http://man7.org/linux/man-pages/man7/groff_man.7.html
+[roff ms]: http://man7.org/linux/man-pages/man7/groff_ms.7.html
 [Haskell]: https://www.haskell.org
 [GNU Texinfo]: http://www.gnu.org/software/texinfo/
 [Emacs Org mode]: http://orgmode.org
@@ -861,9 +861,9 @@ Options affecting specific writers {.options}
 :   Use only ASCII characters in output.  Currently supported for
     XML and HTML formats (which use entities instead of
     UTF-8 when this option is selected), Markdown (which uses
-    entities), groff ms (which use hexadecimal escapes), and to
+    entities), roff ms (which use hexadecimal escapes), and to
     a limited degree LaTeX (which uses standard commands for
-    accented characters when possible).  Groff man output uses
+    accented characters when possible).  roff man output uses
     ASCII by default.
 
 `--reference-links`
@@ -3334,7 +3334,7 @@ AsciiDoc
 Texinfo
   ~ It will be rendered inside a `@math` command.
 
-groff man
+roff man
   ~ It will be rendered verbatim without `$`'s.
 
 MediaWiki, DokuWiki
@@ -3474,7 +3474,7 @@ Emacs Org mode, and ConTeXt.
 Inline spans and fenced code blocks with a special
 kind of attribute will be parsed as raw content with the
 designated format.  For example, the following produces a raw
-groff `ms` block:
+roff `ms` block:
 
     ```{=ms}
     .MYMACRO
