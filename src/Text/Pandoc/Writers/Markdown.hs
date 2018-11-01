@@ -65,6 +65,7 @@ import Text.Pandoc.Walk
 import Text.Pandoc.Writers.HTML (writeHtml5String)
 import Text.Pandoc.Writers.Math (texMathToInlines)
 import Text.Pandoc.Writers.Shared
+import Text.Pandoc.XML (toHtml5Entities)
 
 type Notes = [[Block]]
 type Ref   = (Doc, Target, Attr)
@@ -279,39 +280,44 @@ noteToMarkdown opts num blocks = do
 
 -- | Escape special characters for Markdown.
 escapeString :: WriterOptions -> String -> String
-escapeString _  [] = []
-escapeString opts (c:cs) =
-  case c of
+escapeString opts =
+  (if writerPreferAscii opts
+      then T.unpack . toHtml5Entities . T.pack
+      else id) . go
+  where
+  go [] = []
+  go (c:cs) =
+    case c of
        '<' | isEnabled Ext_all_symbols_escapable opts ->
-              '\\' : '<' : escapeString opts cs
-           | otherwise -> "&lt;" ++ escapeString opts cs
+              '\\' : '<' : go cs
+           | otherwise -> "&lt;" ++ go cs
        '>' | isEnabled Ext_all_symbols_escapable opts ->
-              '\\' : '>' : escapeString opts cs
-           | otherwise -> "&gt;" ++ escapeString opts cs
+              '\\' : '>' : go cs
+           | otherwise -> "&gt;" ++ go cs
        '@' | isEnabled Ext_citations opts ->
                case cs of
                     (d:_)
                       | isAlphaNum d || d == '_'
-                         -> '\\':'@':escapeString opts cs
-                    _ -> '@':escapeString opts cs
+                         -> '\\':'@':go cs
+                    _ -> '@':go cs
        _ | c `elem` ['\\','`','*','_','[',']','#'] ->
-              '\\':c:escapeString opts cs
-       '|' | isEnabled Ext_pipe_tables opts -> '\\':'|':escapeString opts cs
-       '^' | isEnabled Ext_superscript opts -> '\\':'^':escapeString opts cs
+              '\\':c:go cs
+       '|' | isEnabled Ext_pipe_tables opts -> '\\':'|':go cs
+       '^' | isEnabled Ext_superscript opts -> '\\':'^':go cs
        '~' | isEnabled Ext_subscript opts ||
-             isEnabled Ext_strikeout opts -> '\\':'~':escapeString opts cs
-       '$' | isEnabled Ext_tex_math_dollars opts -> '\\':'$':escapeString opts cs
-       '\'' | isEnabled Ext_smart opts -> '\\':'\'':escapeString opts cs
-       '"' | isEnabled Ext_smart opts -> '\\':'"':escapeString opts cs
+             isEnabled Ext_strikeout opts -> '\\':'~':go cs
+       '$' | isEnabled Ext_tex_math_dollars opts -> '\\':'$':go cs
+       '\'' | isEnabled Ext_smart opts -> '\\':'\'':go cs
+       '"' | isEnabled Ext_smart opts -> '\\':'"':go cs
        '-' | isEnabled Ext_smart opts ->
               case cs of
-                   '-':_ -> '\\':'-':escapeString opts cs
-                   _     -> '-':escapeString opts cs
+                   '-':_ -> '\\':'-':go cs
+                   _     -> '-':go cs
        '.' | isEnabled Ext_smart opts ->
               case cs of
-                   '.':'.':rest -> '\\':'.':'.':'.':escapeString opts rest
-                   _            -> '.':escapeString opts cs
-       _ -> c : escapeString opts cs
+                   '.':'.':rest -> '\\':'.':'.':'.':go rest
+                   _            -> '.':go cs
+       _   -> c : go cs
 
 -- | Construct table of contents from list of header blocks.
 tableOfContents :: PandocMonad m => WriterOptions -> [Block] -> MD m Doc
@@ -1069,12 +1075,18 @@ inlineToMarkdown opts (Quoted SingleQuote lst) = do
   contents <- inlineListToMarkdown opts lst
   return $ if isEnabled Ext_smart opts
               then "'" <> contents <> "'"
-              else "‘" <> contents <> "’"
+              else
+                if writerPreferAscii opts
+                   then "&lsquo;" <> contents <> "&rsquo;"
+                   else "‘" <> contents <> "’"
 inlineToMarkdown opts (Quoted DoubleQuote lst) = do
   contents <- inlineListToMarkdown opts lst
   return $ if isEnabled Ext_smart opts
               then "\"" <> contents <> "\""
-              else "“" <> contents <> "”"
+              else
+                if writerPreferAscii opts
+                   then "&ldquo;" <> contents <> "&rdquo;"
+                   else "“" <> contents <> "”"
 inlineToMarkdown opts (Code attr str) = do
   let tickGroups = filter (\s -> '`' `elem` s) $ group str
   let longest    = if null tickGroups

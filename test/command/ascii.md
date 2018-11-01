@@ -43,3 +43,11 @@ pandoc -t jats --ascii
 ^D
 <p>&#228;&#233;&#305;&#229;</p>
 ```
+
+```
+pandoc -t markdown-smart --ascii
+"äéıå"
+^D
+&ldquo;&auml;&eacute;&inodot;&aring;&rdquo;
+```
+

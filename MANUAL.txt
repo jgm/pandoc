@@ -860,11 +860,11 @@ Options affecting specific writers {.options}
 
 :   Use only ASCII characters in output.  Currently supported for
     XML and HTML formats (which use entities instead of
-    UTF-8 when this option is selected), groff ms
-    (which use hexadecimal escapes), and to a limited degree
-    LaTeX (which uses standard commands for accented
-    characters when possible).  Groff man output uses ASCII
-    by default.
+    UTF-8 when this option is selected), Markdown (which uses
+    entities), groff ms (which use hexadecimal escapes), and to
+    a limited degree LaTeX (which uses standard commands for
+    accented characters when possible).  Groff man output uses
+    ASCII by default.
 
 `--reference-links`
 
