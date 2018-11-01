@@ -534,11 +534,11 @@ romanNumeral upperCase = do
     fourhundreds <- option 0 $ try $ hundred >> fivehundred >> return 400
     hundreds <- ((100 *) . length) <$> many hundred
     nineties <- option 0 $ try $ ten >> hundred >> return 90
-    fifties <- option 0 $ (50 <$ fifty)
+    fifties <- option 0 (50 <$ fifty)
     forties <- option 0 $ try $ ten >> fifty >> return 40
     tens <- ((10 *) . length) <$> many ten
     nines <- option 0 $ try $ one >> ten >> return 9
-    fives <- option 0 $ (5 <$ five)
+    fives <- option 0 (5 <$ five)
     fours <- option 0 $ try $ one >> five >> return 4
     ones <- length <$> many one
     let total = thousands + ninehundreds + fivehundreds + fourhundreds +
@@ -1333,18 +1333,16 @@ quoted inlineParser = doubleQuoted inlineParser <|> singleQuoted inlineParser
 singleQuoted :: (HasLastStrPosition st, HasQuoteContext st m, Stream s m Char)
              => ParserT s st m Inlines
              -> ParserT s st m Inlines
-singleQuoted inlineParser = try $ do
-  singleQuoteStart
-  withQuoteContext InSingleQuote $ many1Till inlineParser singleQuoteEnd >>=
-    return . B.singleQuoted . mconcat
+singleQuoted inlineParser = try $ B.singleQuoted . mconcat
+  <$  singleQuoteStart
+  <*> withQuoteContext InSingleQuote (many1Till inlineParser singleQuoteEnd)
 
 doubleQuoted :: (HasQuoteContext st m, Stream s m Char)
              => ParserT s st m Inlines
              -> ParserT s st m Inlines
-doubleQuoted inlineParser = try $ do
-  doubleQuoteStart
-  withQuoteContext InDoubleQuote $ manyTill inlineParser doubleQuoteEnd >>=
-    return . B.doubleQuoted . mconcat
+doubleQuoted inlineParser = try $ B.doubleQuoted . mconcat
+  <$  doubleQuoteStart
+  <*> withQuoteContext InDoubleQuote (manyTill inlineParser doubleQuoteEnd)
 
 failIfInQuoteContext :: (HasQuoteContext st m, Stream s m t)
                      => QuoteContext
@@ -1421,7 +1419,7 @@ citeKey :: (Stream s m Char, HasLastStrPosition st)
         => ParserT s st m (Bool, String)
 citeKey = try $ do
   guard =<< notAfterString
-  suppress_author <- option False (char '-' *> return True)
+  suppress_author <- option False (True <$ char '-')
   char '@'
   firstChar <- alphaNum <|> char '_' <|> char '*' -- @* for wildcard in nocite
   let regchar = satisfy (\c -> isAlphaNum c || c == '_')
