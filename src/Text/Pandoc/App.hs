@@ -1101,8 +1101,15 @@ options =
 
     , Option "" ["syntax-definition"]
                 (ReqArg
-                 (\arg opt -> return opt{ optSyntaxDefinitions = arg :
-                                             optSyntaxDefinitions opt })
+                 (\arg opt -> do
+                   let tr c d = map (\x -> if x == c then d else x)
+                   let arg' = case arg of -- see #4836
+                                   -- HXT confuses Windows path with URI
+                                   _:':':'\\':_ ->
+                                       "file:///" ++ tr '\\' '/' arg
+                                   _ -> arg
+                   return opt{ optSyntaxDefinitions = arg' :
+                                optSyntaxDefinitions opt })
                  "FILE")
                 "" -- "Syntax definition (xml) file"
 
