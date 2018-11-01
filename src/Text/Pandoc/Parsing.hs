@@ -1044,19 +1044,13 @@ gridTableFooter = blanklines
 ---
 
 -- | Removes the ParsecT layer from the monad transformer stack
-readWithM :: (Monad m, Stream s m Char)
-          => ParserT s st m a         -- ^ parser
-          -> st                       -- ^ initial state
-          -> s                        -- ^ input
+readWithM :: (Monad m, Stream s m Char, ToString s)
+          => ParserT s st m a    -- ^ parser
+          -> st                  -- ^ initial state
+          -> s                   -- ^ input
           -> m (Either PandocError a)
-readWithM parser state input = do
-  res <- runParserT parser state "source" input
-  case res of
-    Right x -> return $ Right x
-    Left e  -> do
-      inp <- either (const "") id
-             <$> runParserT (many1 anyChar) state "source" input
-      return $ Left $ PandocParsecError inp e
+readWithM parser state input =
+    mapLeft (PandocParsecError $ toString input) `liftM` runParserT parser state "source" input
 
 -- | Parse a string with a given parser and state
 readWith :: Parser [Char] st a
