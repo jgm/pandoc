@@ -6,6 +6,8 @@
 
 {-# LANGUAGE ScopedTypeVariables   #-}
 {-# LANGUAGE ViewPatterns          #-}
+{-# LANGUAGE FlexibleInstances  #-}
+{-# LANGUAGE TypeSynonymInstances  #-}
 {-
 Copyright (C) 2006-2018 John MacFarlane <jgm@berkeley.edu>
 
@@ -43,6 +45,7 @@ module Text.Pandoc.Shared (
                      substitute,
                      ordNub,
                      -- * Text processing
+                     ToString (..),
                      backslashEscapes,
                      escapeStringUsing,
                      stripTrailingNewlines,
@@ -192,6 +195,15 @@ ordNub l = go Set.empty l
 --
 -- Text processing
 --
+
+class ToString a where
+  toString :: a -> String
+
+instance ToString String where
+  toString = id
+
+instance ToString T.Text where
+  toString = T.unpack
 
 -- | Returns an association list of backslash escapes for the
 -- designated characters.
