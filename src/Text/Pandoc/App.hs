@@ -215,19 +215,22 @@ convertWithOpts opts = do
                   Just _    -> return $ optDataDir opts
 
   -- assign reader and writer based on options and filenames
-  let readerName =  fromMaybe ( defaultReaderName
-                  (if any isURI sources
-                      then "html"
-                      else "markdown") sources) (optReader opts)
-
-  let nonPdfWriterName Nothing  = defaultWriterName outputFile
-      nonPdfWriterName (Just x) = x
+  let readerName = case optReader opts of
+                     Just f  -> f
+                     Nothing -> formatFromFilePaths fallback sources
+                       where fallback = if any isURI sources
+                                           then "html"
+                                           else "markdown"
 
   let pdfOutput = map toLower (takeExtension outputFile) == ".pdf"
+
   (writerName, maybePdfProg) <-
     if pdfOutput
        then pdfWriterAndProg (optWriter opts) (optPdfEngine opts)
-       else return (nonPdfWriterName $ optWriter opts, Nothing)
+       else case optWriter opts of
+              Nothing  ->
+                return (formatFromFilePaths "html" [outputFile], Nothing)
+              Just f   -> return (f, Nothing)
 
   let format = map toLower $ baseWriterName
                  $ takeFileName writerName  -- in case path to lua script
@@ -708,82 +711,62 @@ readMetaValue s = case YAML.decodeStrict (UTF8.fromString s) of
                                              -> MetaBool b
                        _                     -> MetaString s
 
--- Determine default reader based on source file extensions
-defaultReaderName :: String -> [FilePath] -> String
-defaultReaderName fallback [] = fallback
-defaultReaderName fallback (x:xs) =
-  case takeExtension (map toLower x) of
-    ".xhtml"    -> "html"
-    ".html"     -> "html"
-    ".htm"      -> "html"
-    ".md"       -> "markdown"
-    ".markdown" -> "markdown"
-    ".muse"     -> "muse"
-    ".tex"      -> "latex"
-    ".latex"    -> "latex"
-    ".ltx"      -> "latex"
-    ".rst"      -> "rst"
-    ".org"      -> "org"
-    ".lhs"      -> "markdown+lhs"
-    ".db"       -> "docbook"
-    ".opml"     -> "opml"
-    ".wiki"     -> "mediawiki"
-    ".dokuwiki" -> "dokuwiki"
-    ".textile"  -> "textile"
-    ".native"   -> "native"
-    ".json"     -> "json"
-    ".docx"     -> "docx"
-    ".t2t"      -> "t2t"
-    ".epub"     -> "epub"
-    ".odt"      -> "odt"
-    ".pdf"      -> "pdf"  -- so we get an "unknown reader" error
-    ".doc"      -> "doc"  -- so we get an "unknown reader" error
-    ".fb2"      -> "fb2"
-    ['.',y]     | y `elem` ['1'..'9'] -> "man"
-    _           -> defaultReaderName fallback xs
+-- Determine default reader based on source file extensions.
+formatFromFilePaths :: String -> [FilePath] -> String
+formatFromFilePaths fallback [] = fallback
+formatFromFilePaths fallback (x:xs) =
+  case formatFromFilePath x of
+    Just f     -> f
+    Nothing    -> formatFromFilePaths fallback xs
 
--- Determine default writer based on output file extension
-defaultWriterName :: FilePath -> String
-defaultWriterName "-" = "html" -- no output file
-defaultWriterName x =
+-- Determine format based on file extension
+formatFromFilePath :: FilePath -> Maybe String
+formatFromFilePath x =
   case takeExtension (map toLower x) of
-    ""          -> "markdown" -- empty extension
-    ".tex"      -> "latex"
-    ".latex"    -> "latex"
-    ".ltx"      -> "latex"
-    ".context"  -> "context"
-    ".ctx"      -> "context"
-    ".rtf"      -> "rtf"
-    ".rst"      -> "rst"
-    ".s5"       -> "s5"
-    ".native"   -> "native"
-    ".json"     -> "json"
-    ".txt"      -> "markdown"
-    ".text"     -> "markdown"
-    ".md"       -> "markdown"
-    ".muse"     -> "muse"
-    ".markdown" -> "markdown"
-    ".textile"  -> "textile"
-    ".lhs"      -> "markdown+lhs"
-    ".texi"     -> "texinfo"
-    ".texinfo"  -> "texinfo"
-    ".db"       -> "docbook"
-    ".odt"      -> "odt"
-    ".docx"     -> "docx"
-    ".epub"     -> "epub"
-    ".org"      -> "org"
-    ".asciidoc" -> "asciidoc"
-    ".adoc"     -> "asciidoc"
-    ".fb2"      -> "fb2"
-    ".opml"     -> "opml"
-    ".icml"     -> "icml"
-    ".tei.xml"  -> "tei"
-    ".tei"      -> "tei"
-    ".ms"       -> "ms"
-    ".roff"     -> "ms"
-    ".pptx"     -> "pptx"
-    ['.',y]     | y `elem` ['1'..'9'] -> "man"
-    _           -> "html"
+    ".adoc"     -> Just "asciidoc"
+    ".asciidoc" -> Just "asciidoc"
+    ".context"  -> Just "context"
+    ".ctx"      -> Just "context"
+    ".db"       -> Just "docbook"
+    ".doc"      -> Just "doc"  -- so we get an "unknown reader" error
+    ".docx"     -> Just "docx"
+    ".dokuwiki" -> Just "dokuwiki"
+    ".epub"     -> Just "epub"
+    ".fb2"      -> Just "fb2"
+    ".htm"      -> Just "html"
+    ".html"     -> Just "html"
+    ".icml"     -> Just "icml"
+    ".json"     -> Just "json"
+    ".latex"    -> Just "latex"
+    ".lhs"      -> Just "markdown+lhs"
+    ".ltx"      -> Just "latex"
+    ".markdown" -> Just "markdown"
+    ".md"       -> Just "markdown"
+    ".ms"       -> Just "ms"
+    ".muse"     -> Just "muse"
+    ".native"   -> Just "native"
+    ".odt"      -> Just "odt"
+    ".opml"     -> Just "opml"
+    ".org"      -> Just "org"
+    ".pdf"      -> Just "pdf"  -- so we get an "unknown reader" error
+    ".pptx"     -> Just "pptx"
+    ".roff"     -> Just "ms"
+    ".rst"      -> Just "rst"
+    ".rtf"      -> Just "rtf"
+    ".s5"       -> Just "s5"
+    ".t2t"      -> Just "t2t"
+    ".tei"      -> Just "tei"
+    ".tei.xml"  -> Just "tei"
+    ".tex"      -> Just "latex"
+    ".texi"     -> Just "texinfo"
+    ".texinfo"  -> Just "texinfo"
+    ".text"     -> Just "markdown"
+    ".textile"  -> Just "textile"
+    ".txt"      -> Just "markdown"
+    ".wiki"     -> Just "mediawiki"
+    ".xhtml"    -> Just "html"
+    ['.',y]     | y `elem` ['1'..'9'] -> Just "man"
+    _           -> Nothing
 
 -- Transformations of a Pandoc document post-parsing:
 
