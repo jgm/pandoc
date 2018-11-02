@@ -1,5 +1,5 @@
 .\"t
-.TH PANDOC 1 "September 27, 2018" "pandoc 2.4"
+.TH PANDOC 1 "November 01, 2018" "pandoc 2.4"
 .SH NAME
 pandoc - general markup converter
 .SH SYNOPSIS
@@ -49,7 +49,7 @@ For output to a file, use the \f[C]\-o\f[R] option:
 .IP
 .nf
 \f[C]
-pandoc\ \-o\ output.html\ input.txt
+pandoc \-o output.html input.txt
 \f[R]
 .fi
 .PP
@@ -60,7 +60,7 @@ the \f[C]\-s\f[R] or \f[C]\-\-standalone\f[R] flag:
 .IP
 .nf
 \f[C]
-pandoc\ \-s\ \-o\ output.html\ input.txt
+pandoc \-s \-o output.html input.txt
 \f[R]
 .fi
 .PP
@@ -81,7 +81,7 @@ type:
 .IP
 .nf
 \f[C]
-pandoc\ \-f\ markdown\ \-t\ latex\ hello.txt
+pandoc \-f markdown \-t latex hello.txt
 \f[R]
 .fi
 .PP
@@ -89,14 +89,14 @@ To convert \f[C]hello.html\f[R] from HTML to Markdown:
 .IP
 .nf
 \f[C]
-pandoc\ \-f\ html\ \-t\ markdown\ hello.html
+pandoc \-f html \-t markdown hello.html
 \f[R]
 .fi
 .PP
 Supported input and output formats are listed below under Options (see
 \f[C]\-f\f[R] for input formats and \f[C]\-t\f[R] for output formats).
-You can also use \f[C]pandoc\ \-\-list\-input\-formats\f[R] and
-\f[C]pandoc\ \-\-list\-output\-formats\f[R] to print lists of supported
+You can also use \f[C]pandoc \-\-list\-input\-formats\f[R] and
+\f[C]pandoc \-\-list\-output\-formats\f[R] to print lists of supported
 formats.
 .PP
 If the input or output format is not specified explicitly,
@@ -106,7 +106,7 @@ Thus, for example,
 .IP
 .nf
 \f[C]
-pandoc\ \-o\ hello.tex\ hello.txt
+pandoc \-o hello.tex hello.txt
 \f[R]
 .fi
 .PP
@@ -125,7 +125,7 @@ and output through \f[C]iconv\f[R]:
 .IP
 .nf
 \f[C]
-iconv\ \-t\ utf\-8\ input.txt\ |\ pandoc\ |\ iconv\ \-f\ utf\-8
+iconv \-t utf\-8 input.txt | pandoc | iconv \-f utf\-8
 \f[R]
 .fi
 .PP
@@ -135,12 +135,12 @@ included in the document header, which will only be included if you use
 the \f[C]\-s/\-\-standalone\f[R] option.
 .SS Creating a PDF
 .PP
-To produce a PDF, specify an output file with a \f[C]\&.pdf\f[R]
+To produce a PDF, specify an output file with a \f[C].pdf\f[R]
 extension:
 .IP
 .nf
 \f[C]
-pandoc\ test.txt\ \-o\ test.pdf
+pandoc test.txt \-o test.pdf
 \f[R]
 .fi
 .PP
@@ -150,10 +150,10 @@ a LaTeX engine be installed (see \f[C]\-\-pdf\-engine\f[R] below).
 Alternatively, pandoc can use ConTeXt, \f[C]pdfroff\f[R], or any of the
 following HTML/CSS\-to\-PDF\-engines, to create a PDF:
 \f[C]wkhtmltopdf\f[R], \f[C]weasyprint\f[R] or \f[C]prince\f[R].
-To do this, specify an output file with a \f[C]\&.pdf\f[R] extension, as
+To do this, specify an output file with a \f[C].pdf\f[R] extension, as
 before, but add the \f[C]\-\-pdf\-engine\f[R] option or
-\f[C]\-t\ context\f[R], \f[C]\-t\ html\f[R], or \f[C]\-t\ ms\f[R] to the
-command line (\f[C]\-t\ html\f[R] defaults to
+\f[C]\-t context\f[R], \f[C]\-t html\f[R], or \f[C]\-t ms\f[R] to the
+command line (\f[C]\-t html\f[R] defaults to
 \f[C]\-\-pdf\-engine=wkhtmltopdf\f[R]).
 .PP
 PDF output can be controlled using variables for LaTeX (if LaTeX is
@@ -166,9 +166,9 @@ If \f[C]wkhtmltopdf\f[R] is used, then the variables
 and \f[C]papersize\f[R] will affect the output.
 .PP
 To debug the PDF creation, it can be useful to look at the intermediate
-representation: instead of \f[C]\-o\ test.pdf\f[R], use for example
-\f[C]\-s\ \-o\ test.tex\f[R] to output the generated LaTeX.
-You can then test it with \f[C]pdflatex\ test.tex\f[R].
+representation: instead of \f[C]\-o test.pdf\f[R], use for example
+\f[C]\-s \-o test.tex\f[R] to output the generated LaTeX.
+You can then test it with \f[C]pdflatex test.tex\f[R].
 .PP
 When using LaTeX, the following packages need to be available (they are
 included with all recent versions of TeX Live): \f[C]amsfonts\f[R],
@@ -201,7 +201,7 @@ In this case pandoc will fetch the content using HTTP:
 .IP
 .nf
 \f[C]
-pandoc\ \-f\ html\ \-t\ markdown\ http://www.fsf.org
+pandoc \-f html \-t markdown http://www.fsf.org
 \f[R]
 .fi
 .PP
@@ -210,8 +210,8 @@ when requesting a document from a URL:
 .IP
 .nf
 \f[C]
-pandoc\ \-f\ html\ \-t\ markdown\ \-\-request\-header\ User\-Agent:\[dq]Mozilla/5.0\[dq]\ \[rs]
-\ \ http://www.fsf.org
+pandoc \-f html \-t markdown \-\-request\-header User\-Agent:\[dq]Mozilla/5.0\[dq] \[rs]
+  http://www.fsf.org
 \f[R]
 .fi
 .SH OPTIONS
@@ -333,7 +333,7 @@ HTML5/XHTML polyglot markup)
 .IP \[bu] 2
 \f[C]latex\f[R] (LaTeX)
 .IP \[bu] 2
-\f[C]man\f[R] (groff man)
+\f[C]man\f[R] (roff man)
 .IP \[bu] 2
 \f[C]markdown\f[R] (Pandoc\[aq]s Markdown)
 .IP \[bu] 2
@@ -345,7 +345,7 @@ HTML5/XHTML polyglot markup)
 .IP \[bu] 2
 \f[C]mediawiki\f[R] (MediaWiki markup)
 .IP \[bu] 2
-\f[C]ms\f[R] (groff ms)
+\f[C]ms\f[R] (roff ms)
 .IP \[bu] 2
 \f[C]muse\f[R] (Muse),
 .IP \[bu] 2
@@ -388,8 +388,7 @@ HTML5/XHTML polyglot markup)
 the path of a custom lua writer, see Custom writers below
 .PP
 Note that \f[C]odt\f[R], \f[C]docx\f[R], and \f[C]epub\f[R] output will
-not be directed to \f[I]stdout\f[R] unless forced with
-\f[C]\-o\ \-\f[R].
+not be directed to \f[I]stdout\f[R] unless forced with \f[C]\-o \-\f[R].
 .PP
 Extensions can be individually enabled or disabled by appending
 \f[C]+EXTENSION\f[R] or \f[C]\-EXTENSION\f[R] to the format name.
@@ -421,7 +420,7 @@ in Windows XP:
 .IP
 .nf
 \f[C]
-C:\[rs]Documents\ And\ Settings\[rs]USERNAME\[rs]Application\ Data\[rs]pandoc
+C:\[rs]Documents And Settings\[rs]USERNAME\[rs]Application Data\[rs]pandoc
 \f[R]
 .fi
 .PP
@@ -434,7 +433,7 @@ C:\[rs]Users\[rs]USERNAME\[rs]AppData\[rs]Roaming\[rs]pandoc
 .fi
 .PP
 You can find the default user data directory on your system by looking
-at the output of \f[C]pandoc\ \-\-version\f[R].
+at the output of \f[C]pandoc \-\-version\f[R].
 A \f[C]reference.odt\f[R], \f[C]reference.docx\f[R], \f[C]epub.css\f[R],
 \f[C]templates\f[R], \f[C]slidy\f[R], \f[C]slideous\f[R], or
 \f[C]s5\f[R] directory placed in this directory will override
@@ -444,12 +443,12 @@ pandoc\[aq]s normal defaults.
 .B \f[C]\-\-bash\-completion\f[R]
 Generate a bash completion script.
 To enable bash completion with pandoc, add this to your
-\f[C]\&.bashrc\f[R]:
+\f[C].bashrc\f[R]:
 .RS
 .IP
 .nf
 \f[C]
-eval\ \[dq]$(pandoc\ \-\-bash\-completion)\[dq]
+eval \[dq]$(pandoc \-\-bash\-completion)\[dq]
 \f[R]
 .fi
 .RE
@@ -537,7 +536,7 @@ Hence,
 .IP
 .nf
 \f[C]
-pandoc\ \-\-filter\ ./caps.py\ \-t\ latex
+pandoc \-\-filter ./caps.py \-t latex
 \f[R]
 .fi
 .PP
@@ -545,7 +544,7 @@ is equivalent to
 .IP
 .nf
 \f[C]
-pandoc\ \-t\ json\ |\ ./caps.py\ latex\ |\ pandoc\ \-f\ json\ \-t\ latex
+pandoc \-t json | ./caps.py latex | pandoc \-f json \-t latex
 \f[R]
 .fi
 .PP
@@ -592,15 +591,15 @@ The following is an example lua script for macro\-expansion:
 .IP
 .nf
 \f[C]
-function\ expand_hello_world(inline)
-\ \ if\ inline.c\ ==\ \[aq]{{helloworld}}\[aq]\ then
-\ \ \ \ return\ pandoc.Emph{\ pandoc.Str\ \[dq]Hello,\ World\[dq]\ }
-\ \ else
-\ \ \ \ return\ inline
-\ \ end
+function expand_hello_world(inline)
+  if inline.c == \[aq]{{helloworld}}\[aq] then
+    return pandoc.Emph{ pandoc.Str \[dq]Hello, World\[dq] }
+  else
+    return inline
+  end
 end
 
-return\ {{Str\ =\ expand_hello_world}}
+return {{Str = expand_hello_world}}
 \f[R]
 .fi
 .PP
@@ -680,7 +679,7 @@ If this option is not specified, pandoc will read the data file
 \f[C]abbreviations\f[R] from the user data directory or fall back on a
 system default.
 To see the system default, use
-\f[C]pandoc\ \-\-print\-default\-data\-file=abbreviations\f[R].
+\f[C]pandoc \-\-print\-default\-data\-file=abbreviations\f[R].
 The only use pandoc makes of this list is in the Markdown reader.
 Strings ending in a period that are found in this list will be followed
 by a nonbreaking space, so that the period will not produce
@@ -795,7 +794,7 @@ See also \f[C]\-\-list\-highlight\-styles\f[R].
 .RS
 .PP
 Instead of a \f[I]STYLE\f[R] name, a JSON file with extension
-\f[C]\&.theme\f[R] may be supplied.
+\f[C].theme\f[R] may be supplied.
 This will be parsed as a KDE syntax highlighting theme and (if valid)
 used as the highlighting style.
 .PP
@@ -805,7 +804,7 @@ To generate the JSON version of an existing style, use
 .TP
 .B \f[C]\-\-print\-highlight\-style=\f[R]\f[I]STYLE\f[R]|\f[I]FILE\f[R]
 Prints a JSON version of a highlighting style, which can be modified,
-saved with a \f[C]\&.theme\f[R] extension, and used with
+saved with a \f[C].theme\f[R] extension, and used with
 \f[C]\-\-highlight\-style\f[R].
 .TP
 .B \f[C]\-\-syntax\-definition=\f[R]\f[I]FILE\f[R]
@@ -898,11 +897,11 @@ Use \f[C]<q>\f[R] tags for quotes in HTML.
 .TP
 .B \f[C]\-\-ascii\f[R]
 Use only ASCII characters in output.
-Currently supported for XML and HTML formats (which use numerical
-entities instead of UTF\-8 when this option is selected), groff ms
-(which use hexadecimal escapes), and to a limited degree LaTeX (which
-uses standard commands for accented characters when possible).
-Groff man output uses ASCII by default.
+Currently supported for XML and HTML formats (which use entities instead
+of UTF\-8 when this option is selected), Markdown (which uses entities),
+roff ms (which use hexadecimal escapes), and to a limited degree LaTeX
+(which uses standard commands for accented characters when possible).
+roff man output uses ASCII by default.
 .TP
 .B \f[C]\-\-reference\-links\f[R]
 Use reference\-style links, rather than inline links, in writing
@@ -911,7 +910,7 @@ By default inline links are used.
 The placement of link references is affected by the
 \f[C]\-\-reference\-location\f[R] option.
 .TP
-.B \f[C]\-\-reference\-location\ =\ block\f[R]|\f[C]section\f[R]|\f[C]document\f[R]
+.B \f[C]\-\-reference\-location = block\f[R]|\f[C]section\f[R]|\f[C]document\f[R]
 Specify whether footnotes (and references, if \f[C]reference\-links\f[R]
 is set) are placed at the end of the current (top\-level) block, the
 current section, or the document.
@@ -1017,9 +1016,10 @@ They will be included in the order specified.
 .RS
 .PP
 A stylesheet is required for generating EPUB.
-If none is provided using this option (or the \f[C]stylesheet\f[R]
-metadata field), pandoc will look for a file \f[C]epub.css\f[R] in the
-user data directory (see \f[C]\-\-data\-dir\f[R]).
+If none is provided using this option (or the \f[C]css\f[R] or
+\f[C]stylesheet\f[R] metadata fields), pandoc will look for a file
+\f[C]epub.css\f[R] in the user data directory (see
+\f[C]\-\-data\-dir\f[R]).
 If it is not found there, sensible defaults will be used.
 .RE
 .TP
@@ -1042,7 +1042,7 @@ If this is not found either, sensible defaults will be used.
 .PP
 To produce a custom \f[C]reference.docx\f[R], first get a copy of the
 default \f[C]reference.docx\f[R]:
-\f[C]pandoc\ \-\-print\-default\-data\-file\ reference.docx\ >\ custom\-reference.docx\f[R].
+\f[C]pandoc \-\-print\-default\-data\-file reference.docx > custom\-reference.docx\f[R].
 Then open \f[C]custom\-reference.docx\f[R] in Word, modify the styles as
 you wish, and save the file.
 For best results, do not make changes to this file other than modifying
@@ -1069,15 +1069,15 @@ If this is not found either, sensible defaults will be used.
 .PP
 To produce a custom \f[C]reference.odt\f[R], first get a copy of the
 default \f[C]reference.odt\f[R]:
-\f[C]pandoc\ \-\-print\-default\-data\-file\ reference.odt\ >\ custom\-reference.odt\f[R].
+\f[C]pandoc \-\-print\-default\-data\-file reference.odt > custom\-reference.odt\f[R].
 Then open \f[C]custom\-reference.odt\f[R] in LibreOffice, modify the
 styles as you wish, and save the file.
 .RE
 .TP
 .B PowerPoint
 Any template included with a recent install of Microsoft PowerPoint
-(either with \f[C]\&.pptx\f[R] or \f[C]\&.potx\f[R] extension) should
-work, as will most templates derived from these.
+(either with \f[C].pptx\f[R] or \f[C].potx\f[R] extension) should work,
+as will most templates derived from these.
 .RS
 .PP
 The specific requirement is that the template should contain the
@@ -1097,7 +1097,7 @@ these criteria.
 check.)
 .PP
 You can also modify the default \f[C]reference.pptx\f[R]: first run
-\f[C]pandoc\ \-\-print\-default\-data\-file\ reference.pptx\ >\ custom\-reference.pptx\f[R],
+\f[C]pandoc \-\-print\-default\-data\-file reference.pptx > custom\-reference.pptx\f[R],
 and then modify \f[C]custom\-reference.pptx\f[R] in MS PowerPoint
 (pandoc will use the first four layout slides, as mentioned above).
 .RE
@@ -1119,8 +1119,8 @@ For example:
 .IP
 .nf
 \f[C]
-\ <dc:rights>Creative\ Commons</dc:rights>
-\ <dc:language>es\-AR</dc:language>
+ <dc:rights>Creative Commons</dc:rights>
+ <dc:language>es\-AR</dc:language>
 \f[R]
 .fi
 .PP
@@ -1129,7 +1129,7 @@ By default, pandoc will include the following metadata elements:
 (from the document authors), \f[C]<dc:date>\f[R] (from the document
 date, which should be in ISO 8601 format), \f[C]<dc:language>\f[R] (from
 the \f[C]lang\f[R] variable, or, if is not set, the locale), and
-\f[C]<dc:identifier\ id=\[dq]BookId\[dq]>\f[R] (a randomly generated
+\f[C]<dc:identifier id=\[dq]BookId\[dq]>\f[R] (a randomly generated
 UUID).
 Any of these may be overridden by elements in the metadata file.
 .PP
@@ -1151,31 +1151,31 @@ following to your CSS (see \f[C]\-\-css\f[R]):
 .IP
 .nf
 \f[C]
-\[at]font\-face\ {
-font\-family:\ DejaVuSans;
-font\-style:\ normal;
-font\-weight:\ normal;
+\[at]font\-face {
+font\-family: DejaVuSans;
+font\-style: normal;
+font\-weight: normal;
 src:url(\[dq]DejaVuSans\-Regular.ttf\[dq]);
 }
-\[at]font\-face\ {
-font\-family:\ DejaVuSans;
-font\-style:\ normal;
-font\-weight:\ bold;
+\[at]font\-face {
+font\-family: DejaVuSans;
+font\-style: normal;
+font\-weight: bold;
 src:url(\[dq]DejaVuSans\-Bold.ttf\[dq]);
 }
-\[at]font\-face\ {
-font\-family:\ DejaVuSans;
-font\-style:\ italic;
-font\-weight:\ normal;
+\[at]font\-face {
+font\-family: DejaVuSans;
+font\-style: italic;
+font\-weight: normal;
 src:url(\[dq]DejaVuSans\-Oblique.ttf\[dq]);
 }
-\[at]font\-face\ {
-font\-family:\ DejaVuSans;
-font\-style:\ italic;
-font\-weight:\ bold;
+\[at]font\-face {
+font\-family: DejaVuSans;
+font\-style: italic;
+font\-weight: bold;
 src:url(\[dq]DejaVuSans\-BoldOblique.ttf\[dq]);
 }
-body\ {\ font\-family:\ \[dq]DejaVuSans\[dq];\ }
+body { font\-family: \[dq]DejaVuSans\[dq]; }
 \f[R]
 .fi
 .RE
@@ -1215,24 +1215,24 @@ Set the \f[C]bibliography\f[R] field in the document\[aq]s metadata to
 \f[I]FILE\f[R], overriding any value set in the metadata, and process
 citations using \f[C]pandoc\-citeproc\f[R].
 (This is equivalent to
-\f[C]\-\-metadata\ bibliography=FILE\ \-\-filter\ pandoc\-citeproc\f[R].)
+\f[C]\-\-metadata bibliography=FILE \-\-filter pandoc\-citeproc\f[R].)
 If \f[C]\-\-natbib\f[R] or \f[C]\-\-biblatex\f[R] is also supplied,
 \f[C]pandoc\-citeproc\f[R] is not used, making this equivalent to
-\f[C]\-\-metadata\ bibliography=FILE\f[R].
+\f[C]\-\-metadata bibliography=FILE\f[R].
 If you supply this argument multiple times, each \f[I]FILE\f[R] will be
 added to bibliography.
 .TP
 .B \f[C]\-\-csl=\f[R]\f[I]FILE\f[R]
 Set the \f[C]csl\f[R] field in the document\[aq]s metadata to
 \f[I]FILE\f[R], overriding any value set in the metadata.
-(This is equivalent to \f[C]\-\-metadata\ csl=FILE\f[R].) This option is
+(This is equivalent to \f[C]\-\-metadata csl=FILE\f[R].) This option is
 only relevant with \f[C]pandoc\-citeproc\f[R].
 .TP
 .B \f[C]\-\-citation\-abbreviations=\f[R]\f[I]FILE\f[R]
 Set the \f[C]citation\-abbreviations\f[R] field in the document\[aq]s
 metadata to \f[I]FILE\f[R], overriding any value set in the metadata.
 (This is equivalent to
-\f[C]\-\-metadata\ citation\-abbreviations=FILE\f[R].) This option is
+\f[C]\-\-metadata citation\-abbreviations=FILE\f[R].) This option is
 only relevant with \f[C]pandoc\-citeproc\f[R].
 .TP
 .B \f[C]\-\-natbib\f[R]
@@ -1282,7 +1282,7 @@ Convert TeX formulas to \f[C]<img>\f[R] tags that link to an external
 script that converts formulas to images.
 The formula will be URL\-encoded and concatenated with the URL provided.
 For SVG images you can for example use
-\f[C]\-\-webtex\ https://latex.codecogs.com/svg.latex?\f[R].
+\f[C]\-\-webtex https://latex.codecogs.com/svg.latex?\f[R].
 If no URL is specified, the CodeCogs URL generating PNGs will be used
 (\f[C]https://latex.codecogs.com/png.latex?\f[R]).
 Note: the \f[C]\-\-webtex\f[R] option will affect Markdown output as
@@ -1306,9 +1306,9 @@ So, the procedure is:
 .IP
 .nf
 \f[C]
-pandoc\ \-s\ \-\-gladtex\ input.md\ \-o\ myfile.htex
-gladtex\ \-d\ myfile\-images\ myfile.htex
-#\ produces\ myfile.html\ and\ images\ in\ myfile\-images
+pandoc \-s \-\-gladtex input.md \-o myfile.htex
+gladtex \-d myfile\-images myfile.htex
+# produces myfile.html and images in myfile\-images
 \f[R]
 .fi
 .RE
@@ -1335,7 +1335,7 @@ Thus, for example,
 .IP
 .nf
 \f[C]
-pandoc\ \-\-ignore\-args\ \-o\ foo.html\ \-s\ foo.txt\ \-\-\ \-e\ latin1
+pandoc \-\-ignore\-args \-o foo.html \-s foo.txt \-\- \-e latin1
 \f[R]
 .fi
 .PP
@@ -1343,7 +1343,7 @@ is equivalent to
 .IP
 .nf
 \f[C]
-pandoc\ \-o\ foo.html\ \-s
+pandoc \-o foo.html \-s
 \f[R]
 .fi
 .RE
@@ -1356,7 +1356,7 @@ To see the default template that is used, just type
 .IP
 .nf
 \f[C]
-pandoc\ \-D\ *FORMAT*
+pandoc \-D *FORMAT*
 \f[R]
 .fi
 .PP
@@ -1374,9 +1374,9 @@ template.
 .IP \[bu] 2
 For \f[C]pdf\f[R] output, customize the \f[C]default.latex\f[R] template
 (or the \f[C]default.context\f[R] template, if you use
-\f[C]\-t\ context\f[R], or the \f[C]default.ms\f[R] template, if you use
-\f[C]\-t\ ms\f[R], or the \f[C]default.html\f[R] template, if you use
-\f[C]\-t\ html\f[R]).
+\f[C]\-t context\f[R], or the \f[C]default.ms\f[R] template, if you use
+\f[C]\-t ms\f[R], or the \f[C]default.html\f[R] template, if you use
+\f[C]\-t html\f[R]).
 .IP \[bu] 2
 \f[C]docx\f[R] has no template (however, you can use
 \f[C]\-\-reference\-doc\f[R] to customize the output).
@@ -1428,8 +1428,8 @@ authors, or through a YAML metadata block:
 \f[C]
 \-\-\-
 author:
-\-\ Aristotle
-\-\ Peter\ Abelard
+\- Aristotle
+\- Peter Abelard
 \&...
 \f[R]
 .fi
@@ -1840,7 +1840,7 @@ the boolean \f[C]true\f[R] (to specify the boolean \f[C]true\f[R] value
 using YAML metadata or the \f[C]\-\-metadata\f[R] flag, use
 \f[C]true\f[R], \f[C]True\f[R], or \f[C]TRUE\f[R]; with the
 \f[C]\-\-variable\f[R] flag, simply omit a value for the variable, e.g.
-\f[C]\-\-variable\ draft\f[R]).
+\f[C]\-\-variable draft\f[R]).
 .PP
 \f[C]X\f[R] and \f[C]Y\f[R] are placeholders for any valid template
 text, and may include interpolated variables or other conditionals.
@@ -1852,7 +1852,7 @@ in a multi\-author document), you can use the \f[C]$for$\f[R] keyword:
 .nf
 \f[C]
 $for(author)$
-<meta\ name=\[dq]author\[dq]\ content=\[dq]$author$\[dq]\ />
+<meta name=\[dq]author\[dq] content=\[dq]$author$\[dq] />
 $endfor$
 \f[R]
 .fi
@@ -1862,7 +1862,7 @@ items:
 .IP
 .nf
 \f[C]
-$for(author)$$author$$sep$,\ $endfor$
+$for(author)$$author$$sep$, $endfor$
 \f[R]
 .fi
 .PP
@@ -1872,7 +1872,7 @@ So, for example:
 .IP
 .nf
 \f[C]
-$author.name$\ ($author.affiliation$)
+$author.name$ ($author.affiliation$)
 \f[R]
 .fi
 .PP
@@ -1892,9 +1892,9 @@ enabling or disabling various extensions.
 .PP
 An extension can be enabled by adding \f[C]+EXTENSION\f[R] to the format
 name and disabled by adding \f[C]\-EXTENSION\f[R].
-For example, \f[C]\-\-from\ markdown_strict+footnotes\f[R] is strict
+For example, \f[C]\-\-from markdown_strict+footnotes\f[R] is strict
 Markdown with footnotes enabled, while
-\f[C]\-\-from\ markdown\-footnotes\-pipe_tables\f[R] is pandoc\[aq]s
+\f[C]\-\-from markdown\-footnotes\-pipe_tables\f[R] is pandoc\[aq]s
 Markdown without footnotes or pipe tables.
 .PP
 The markdown reader and writer make by far the most use of extensions.
@@ -1906,8 +1906,7 @@ that also work for other formats are covered.
 .SS Extension: \f[C]smart\f[R]
 .PP
 Interpret straight quotes as curly quotes, \f[C]\-\-\-\f[R] as
-em\-dashes, \f[C]\-\-\f[R] as en\-dashes, and \f[C]\&...\f[R] as
-ellipses.
+em\-dashes, \f[C]\-\-\f[R] as en\-dashes, and \f[C]...\f[R] as ellipses.
 Nonbreaking spaces are inserted after certain abbreviations, such as
 \[dq]Mr.\[dq]
 .PP
@@ -1985,22 +1984,22 @@ Identifier
 T}
 _
 T{
-\f[C]Header\ identifiers\ in\ HTML\f[R]
+\f[C]Header identifiers in HTML\f[R]
 T}@T{
 \f[C]header\-identifiers\-in\-html\f[R]
 T}
 T{
-\f[C]*Dogs*?\-\-in\ *my*\ house?\f[R]
+\f[C]*Dogs*?\-\-in *my* house?\f[R]
 T}@T{
 \f[C]dogs\-\-in\-my\-house\f[R]
 T}
 T{
-\f[C][HTML],\ [S5],\ or\ [RTF]?\f[R]
+\f[C][HTML], [S5], or [RTF]?\f[R]
 T}@T{
 \f[C]html\-s5\-or\-rtf\f[R]
 T}
 T{
-\f[C]3.\ Applications\f[R]
+\f[C]3. Applications\f[R]
 T}@T{
 \f[C]applications\f[R]
 T}
@@ -2027,8 +2026,8 @@ A link to this section, for example, might look like this:
 .IP
 .nf
 \f[C]
-See\ the\ section\ on
-[header\ identifiers](#header\-identifiers\-in\-html\-latex\-and\-context).
+See the section on
+[header identifiers](#header\-identifiers\-in\-html\-latex\-and\-context).
 \f[R]
 .fi
 .PP
@@ -2086,14 +2085,14 @@ addition to \f[C]markdown\f[R]):
 This extension is enabled by default for HTML input.
 This means that \f[C]div\f[R]s are parsed to pandoc native elements.
 (Alternatively, you can parse them to raw HTML using
-\f[C]\-f\ html\-native_divs+raw_html\f[R].)
+\f[C]\-f html\-native_divs+raw_html\f[R].)
 .PP
 When converting HTML to Markdown, for example, you may want to drop all
 \f[C]div\f[R]s and \f[C]span\f[R]s:
 .IP
 .nf
 \f[C]
-pandoc\ \-f\ html\-native_divs\-native_spans\ \-t\ markdown
+pandoc \-f html\-native_divs\-native_spans \-t markdown
 \f[R]
 .fi
 .SS Extension: \f[C]native_spans\f[R]
@@ -2152,7 +2151,7 @@ Examples:
 .IP
 .nf
 \f[C]
-pandoc\ \-f\ markdown+lhs\ \-t\ html
+pandoc \-f markdown+lhs \-t html
 \f[R]
 .fi
 .PP
@@ -2161,7 +2160,7 @@ writes ordinary HTML (without bird tracks).
 .IP
 .nf
 \f[C]
-pandoc\ \-f\ markdown+lhs\ \-t\ html+lhs
+pandoc \-f markdown+lhs \-t html+lhs
 \f[R]
 .fi
 .PP
@@ -2268,10 +2267,10 @@ a level two header):
 .IP
 .nf
 \f[C]
-A\ level\-one\ header
+A level\-one header
 ==================
 
-A\ level\-two\ header
+A level\-two header
 \-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-
 \f[R]
 .fi
@@ -2287,9 +2286,9 @@ header level:
 .IP
 .nf
 \f[C]
-##\ A\ level\-two\ header
+## A level\-two header
 
-###\ A\ level\-three\ header\ ###
+### A level\-three header ###
 \f[R]
 .fi
 .PP
@@ -2297,7 +2296,7 @@ As with setext\-style headers, the header text can contain formatting:
 .IP
 .nf
 \f[C]
-#\ A\ level\-one\ header\ with\ a\ [link](/url)\ and\ *emphasis*
+# A level\-one header with a [link](/url) and *emphasis*
 \f[R]
 .fi
 .SS Extension: \f[C]blank_before_header\f[R]
@@ -2312,15 +2311,15 @@ Consider, for example:
 .IP
 .nf
 \f[C]
-I\ like\ several\ of\ their\ flavors\ of\ ice\ cream:
-#22,\ for\ example,\ and\ #5.
+I like several of their flavors of ice cream:
+#22, for example, and #5.
 \f[R]
 .fi
 .SS Extension: \f[C]space_in_atx_header\f[R]
 .PP
 Many Markdown implementations do not require a space between the opening
 \f[C]#\f[R]s of an ATX header and the header text, so that
-\f[C]#5\ bolt\f[R] and \f[C]#hashtag\f[R] count as headers.
+\f[C]#5 bolt\f[R] and \f[C]#hashtag\f[R] count as headers.
 With this extension, pandoc does require the space.
 .SS Header identifiers
 .PP
@@ -2332,7 +2331,7 @@ line containing the header text:
 .IP
 .nf
 \f[C]
-{#identifier\ .class\ .class\ key=value\ key=value}
+{#identifier .class .class key=value key=value}
 \f[R]
 .fi
 .PP
@@ -2341,11 +2340,11 @@ identifier \f[C]foo\f[R]:
 .IP
 .nf
 \f[C]
-#\ My\ header\ {#foo}
+# My header {#foo}
 
-##\ My\ header\ ##\ \ \ \ {#foo}
+## My header ##    {#foo}
 
-My\ other\ header\ \ \ {#foo}
+My other header   {#foo}
 \-\-\-\-\-\-\-\-\-\-\-\-\-\-\-
 \f[R]
 .fi
@@ -2363,12 +2362,12 @@ Textile, and AsciiDoc writers.
 Headers with the class \f[C]unnumbered\f[R] will not be numbered, even
 if \f[C]\-\-number\-sections\f[R] is specified.
 A single hyphen (\f[C]\-\f[R]) in an attribute context is equivalent to
-\f[C]\&.unnumbered\f[R], and preferable in non\-English documents.
+\f[C].unnumbered\f[R], and preferable in non\-English documents.
 So,
 .IP
 .nf
 \f[C]
-#\ My\ header\ {\-}
+# My header {\-}
 \f[R]
 .fi
 .PP
@@ -2376,7 +2375,7 @@ is just the same as
 .IP
 .nf
 \f[C]
-#\ My\ header\ {.unnumbered}
+# My header {.unnumbered}
 \f[R]
 .fi
 .SS Extension: \f[C]implicit_header_references\f[R]
@@ -2386,7 +2385,7 @@ So, to link to a header
 .IP
 .nf
 \f[C]
-#\ Header\ identifiers\ in\ HTML
+# Header identifiers in HTML
 \f[R]
 .fi
 .PP
@@ -2394,7 +2393,7 @@ you can simply write
 .IP
 .nf
 \f[C]
-[Header\ identifiers\ in\ HTML]
+[Header identifiers in HTML]
 \f[R]
 .fi
 .PP
@@ -2402,7 +2401,7 @@ or
 .IP
 .nf
 \f[C]
-[Header\ identifiers\ in\ HTML][]
+[Header identifiers in HTML][]
 \f[R]
 .fi
 .PP
@@ -2410,7 +2409,7 @@ or
 .IP
 .nf
 \f[C]
-[the\ section\ on\ header\ identifiers][header\ identifiers\ in
+[the section on header identifiers][header identifiers in
 HTML]
 \f[R]
 .fi
@@ -2419,7 +2418,7 @@ instead of giving the identifier explicitly:
 .IP
 .nf
 \f[C]
-[Header\ identifiers\ in\ HTML](#header\-identifiers\-in\-html)
+[Header identifiers in HTML](#header\-identifiers\-in\-html)
 \f[R]
 .fi
 .PP
@@ -2436,11 +2435,11 @@ to \f[C]#foo\f[R]:
 .IP
 .nf
 \f[C]
-#\ Foo
+# Foo
 
-[foo]:\ bar
+[foo]: bar
 
-See\ [foo]
+See [foo]
 \f[R]
 .fi
 .SS Block quotations
@@ -2454,11 +2453,11 @@ indented more than three spaces.)
 .IP
 .nf
 \f[C]
->\ This\ is\ a\ block\ quote.\ This
->\ paragraph\ has\ two\ lines.
+> This is a block quote. This
+> paragraph has two lines.
 >
->\ 1.\ This\ is\ a\ list\ inside\ a\ block\ quote.
->\ 2.\ Second\ item.
+> 1. This is a list inside a block quote.
+> 2. Second item.
 \f[R]
 .fi
 .PP
@@ -2467,11 +2466,11 @@ the first line of each block, is also allowed:
 .IP
 .nf
 \f[C]
->\ This\ is\ a\ block\ quote.\ This
-paragraph\ has\ two\ lines.
+> This is a block quote. This
+paragraph has two lines.
 
->\ 1.\ This\ is\ a\ list\ inside\ a\ block\ quote.
-2.\ Second\ item.
+> 1. This is a list inside a block quote.
+2. Second item.
 \f[R]
 .fi
 .PP
@@ -2481,9 +2480,9 @@ That is, block quotes can be nested:
 .IP
 .nf
 \f[C]
->\ This\ is\ a\ block\ quote.
+> This is a block quote.
 >
->\ >\ A\ block\ quote\ within\ a\ block\ quote.
+> > A block quote within a block quote.
 \f[R]
 .fi
 .PP
@@ -2495,7 +2494,7 @@ spaces after the \f[C]>\f[R]:
 .IP
 .nf
 \f[C]
->\ \ \ \ \ code
+>     code
 \f[R]
 .fi
 .SS Extension: \f[C]blank_before_blockquote\f[R]
@@ -2512,8 +2511,8 @@ does not produce a nested block quote in pandoc:
 .IP
 .nf
 \f[C]
->\ This\ is\ a\ block\ quote.
->>\ Nested.
+> This is a block quote.
+>> Nested.
 \f[R]
 .fi
 .SS Verbatim (code) blocks
@@ -2526,9 +2525,9 @@ For example,
 .IP
 .nf
 \f[C]
-\ \ \ \ if\ (a\ >\ 3)\ {
-\ \ \ \ \ \ moveShip(5\ *\ gravity,\ DOWN);
-\ \ \ \ }
+    if (a > 3) {
+      moveShip(5 * gravity, DOWN);
+    }
 \f[R]
 .fi
 .PP
@@ -2549,8 +2548,8 @@ No indentation is necessary:
 .nf
 \f[C]
 \[ti]\[ti]\[ti]\[ti]\[ti]\[ti]\[ti]
-if\ (a\ >\ 3)\ {
-\ \ moveShip(5\ *\ gravity,\ DOWN);
+if (a > 3) {
+  moveShip(5 * gravity, DOWN);
 }
 \[ti]\[ti]\[ti]\[ti]\[ti]\[ti]\[ti]
 \f[R]
@@ -2566,7 +2565,7 @@ longer row of tildes or backticks at the start and end:
 \f[C]
 \[ti]\[ti]\[ti]\[ti]\[ti]\[ti]\[ti]\[ti]\[ti]\[ti]\[ti]\[ti]\[ti]\[ti]\[ti]\[ti]
 \[ti]\[ti]\[ti]\[ti]\[ti]\[ti]\[ti]\[ti]\[ti]\[ti]
-code\ including\ tildes
+code including tildes
 \[ti]\[ti]\[ti]\[ti]\[ti]\[ti]\[ti]\[ti]\[ti]\[ti]
 \[ti]\[ti]\[ti]\[ti]\[ti]\[ti]\[ti]\[ti]\[ti]\[ti]\[ti]\[ti]\[ti]\[ti]\[ti]\[ti]
 \f[R]
@@ -2582,10 +2581,10 @@ using this syntax:
 .IP
 .nf
 \f[C]
-\[ti]\[ti]\[ti]\[ti]\ {#mycode\ .haskell\ .numberLines\ startFrom=\[dq]100\[dq]}
-qsort\ []\ \ \ \ \ =\ []
-qsort\ (x:xs)\ =\ qsort\ (filter\ (<\ x)\ xs)\ ++\ [x]\ ++
-\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ qsort\ (filter\ (>=\ x)\ xs)
+\[ti]\[ti]\[ti]\[ti] {#mycode .haskell .numberLines startFrom=\[dq]100\[dq]}
+qsort []     = []
+qsort (x:xs) = qsort (filter (< x) xs) ++ [x] ++
+               qsort (filter (>= x) xs)
 \[ti]\[ti]\[ti]\[ti]\[ti]\[ti]\[ti]\[ti]\[ti]\[ti]\[ti]\[ti]\[ti]\[ti]\[ti]\[ti]\[ti]\[ti]\[ti]\[ti]\[ti]\[ti]\[ti]\[ti]\[ti]\[ti]\[ti]\[ti]\[ti]\[ti]\[ti]\[ti]\[ti]\[ti]\[ti]\[ti]\[ti]\[ti]\[ti]\[ti]\[ti]\[ti]\[ti]\[ti]\[ti]\[ti]\[ti]\[ti]\[ti]
 \f[R]
 .fi
@@ -2599,15 +2598,15 @@ LaTeX, Docx, Ms, and PowerPoint.
 If highlighting is supported for your output format and language, then
 the code block above will appear highlighted, with numbered lines.
 (To see which languages are supported, type
-\f[C]pandoc\ \-\-list\-highlight\-languages\f[R].) Otherwise, the code
+\f[C]pandoc \-\-list\-highlight\-languages\f[R].) Otherwise, the code
 block above will appear as follows:
 .IP
 .nf
 \f[C]
-<pre\ id=\[dq]mycode\[dq]\ class=\[dq]haskell\ numberLines\[dq]\ startFrom=\[dq]100\[dq]>
-\ \ <code>
-\ \ ...
-\ \ </code>
+<pre id=\[dq]mycode\[dq] class=\[dq]haskell numberLines\[dq] startFrom=\[dq]100\[dq]>
+  <code>
+  ...
+  </code>
 </pre>
 \f[R]
 .fi
@@ -2624,7 +2623,7 @@ block:
 .nf
 \f[C]
 \[ga]\[ga]\[ga]haskell
-qsort\ []\ =\ []
+qsort [] = []
 \[ga]\[ga]\[ga]
 \f[R]
 .fi
@@ -2633,8 +2632,8 @@ This is equivalent to:
 .IP
 .nf
 \f[C]
-\[ga]\[ga]\[ga]\ {.haskell}
-qsort\ []\ =\ []
+\[ga]\[ga]\[ga] {.haskell}
+qsort [] = []
 \[ga]\[ga]\[ga]
 \f[R]
 .fi
@@ -2657,14 +2656,14 @@ This is useful for verse and addresses:
 .IP
 .nf
 \f[C]
-|\ The\ limerick\ packs\ laughs\ anatomical
-|\ In\ space\ that\ is\ quite\ economical.
-|\ \ \ \ But\ the\ good\ ones\ I\[aq]ve\ seen
-|\ \ \ \ So\ seldom\ are\ clean
-|\ And\ the\ clean\ ones\ so\ seldom\ are\ comical
+| The limerick packs laughs anatomical
+| In space that is quite economical.
+|    But the good ones I\[aq]ve seen
+|    So seldom are clean
+| And the clean ones so seldom are comical
 
-|\ 200\ Main\ St.
-|\ Berkeley,\ CA\ 94718
+| 200 Main St.
+| Berkeley, CA 94718
 \f[R]
 .fi
 .PP
@@ -2673,10 +2672,10 @@ begin with a space.
 .IP
 .nf
 \f[C]
-|\ The\ Right\ Honorable\ Most\ Venerable\ and\ Righteous\ Samuel\ L.
-\ \ Constable,\ Jr.
-|\ 200\ Main\ St.
-|\ Berkeley,\ CA\ 94718
+| The Right Honorable Most Venerable and Righteous Samuel L.
+  Constable, Jr.
+| 200 Main St.
+| Berkeley, CA 94718
 \f[R]
 .fi
 .PP
@@ -2691,9 +2690,9 @@ Here is a simple example:
 .IP
 .nf
 \f[C]
-*\ one
-*\ two
-*\ three
+* one
+* two
+* three
 \f[R]
 .fi
 .PP
@@ -2703,11 +2702,11 @@ paragraph, put spaces between the items:
 .IP
 .nf
 \f[C]
-*\ one
+* one
 
-*\ two
+* two
 
-*\ three
+* three
 \f[R]
 .fi
 .PP
@@ -2720,9 +2719,9 @@ List items look best if subsequent lines are flush with the first line
 .IP
 .nf
 \f[C]
-*\ here\ is\ my\ first
-\ \ list\ item.
-*\ and\ my\ second.
+* here is my first
+  list item.
+* and my second.
 \f[R]
 .fi
 .PP
@@ -2730,9 +2729,9 @@ But Markdown also allows a \[dq]lazy\[dq] format:
 .IP
 .nf
 \f[C]
-*\ here\ is\ my\ first
-list\ item.
-*\ and\ my\ second.
+* here is my first
+list item.
+* and my second.
 \f[R]
 .fi
 .SS Block content in list items
@@ -2745,14 +2744,14 @@ marker.
 .IP
 .nf
 \f[C]
-\ \ *\ First\ paragraph.
+  * First paragraph.
 
-\ \ \ \ Continued.
+    Continued.
 
-\ \ *\ Second\ paragraph.\ With\ a\ code\ block,\ which\ must\ be\ indented
-\ \ \ \ eight\ spaces:
+  * Second paragraph. With a code block, which must be indented
+    eight spaces:
 
-\ \ \ \ \ \ \ \ {\ code\ }
+        { code }
 \f[R]
 .fi
 .PP
@@ -2763,9 +2762,9 @@ marker:
 .IP
 .nf
 \f[C]
-*\ \ \ \ \ code
+*     code
 
-\ \ continuation\ paragraph
+  continuation paragraph
 \f[R]
 .fi
 .PP
@@ -2776,15 +2775,15 @@ character after the list marker of the containing list item.
 .IP
 .nf
 \f[C]
-*\ fruits
-\ \ +\ apples
-\ \ \ \ \-\ macintosh
-\ \ \ \ \-\ red\ delicious
-\ \ +\ pears
-\ \ +\ peaches
-*\ vegetables
-\ \ +\ broccoli
-\ \ +\ chard
+* fruits
+  + apples
+    \- macintosh
+    \- red delicious
+  + pears
+  + peaches
+* vegetables
+  + broccoli
+  + chard
 \f[R]
 .fi
 .PP
@@ -2795,14 +2794,14 @@ item, the first line of each must be indented.
 .IP
 .nf
 \f[C]
-+\ A\ lazy,\ lazy,\ list
++ A lazy, lazy, list
 item.
 
-+\ Another\ one;\ this\ looks
-bad\ but\ is\ legal.
++ Another one; this looks
+bad but is legal.
 
-\ \ \ \ Second\ paragraph\ of\ second
-list\ item.
+    Second paragraph of second
+list item.
 \f[R]
 .fi
 .SS Ordered lists
@@ -2817,9 +2816,9 @@ this list:
 .IP
 .nf
 \f[C]
-1.\ \ one
-2.\ \ two
-3.\ \ three
+1.  one
+2.  two
+3.  three
 \f[R]
 .fi
 .PP
@@ -2827,9 +2826,9 @@ and this one:
 .IP
 .nf
 \f[C]
-5.\ \ one
-7.\ \ two
-1.\ \ three
+5.  one
+7.  two
+1.  three
 \f[R]
 .fi
 .SS Extension: \f[C]fancy_lists\f[R]
@@ -2848,8 +2847,8 @@ be used as an ordered list marker in place of a numeral:
 .IP
 .nf
 \f[C]
-#.\ one
-#.\ two
+#. one
+#. two
 \f[R]
 .fi
 .SS Extension: \f[C]startnum\f[R]
@@ -2863,12 +2862,12 @@ numerals:
 .IP
 .nf
 \f[C]
-\ 9)\ \ Ninth
-10)\ \ Tenth
-11)\ \ Eleventh
-\ \ \ \ \ \ \ i.\ subone
-\ \ \ \ \ \ ii.\ subtwo
-\ \ \ \ \ iii.\ subthree
+ 9)  Ninth
+10)  Tenth
+11)  Eleventh
+       i. subone
+      ii. subtwo
+     iii. subthree
 \f[R]
 .fi
 .PP
@@ -2878,10 +2877,10 @@ So, the following will create three lists:
 .IP
 .nf
 \f[C]
-(2)\ Two
-(5)\ Three
-1.\ \ Four
-*\ \ \ Five
+(2) Two
+(5) Three
+1.  Four
+*   Five
 \f[R]
 .fi
 .PP
@@ -2889,9 +2888,9 @@ If default list markers are desired, use \f[C]#.\f[R]:
 .IP
 .nf
 \f[C]
-#.\ \ one
-#.\ \ two
-#.\ \ three
+#.  one
+#.  two
+#.  three
 \f[R]
 .fi
 .SS Definition lists
@@ -2902,17 +2901,17 @@ with some extensions.
 .IP
 .nf
 \f[C]
-Term\ 1
+Term 1
 
-:\ \ \ Definition\ 1
+:   Definition 1
 
-Term\ 2\ with\ *inline\ markup*
+Term 2 with *inline markup*
 
-:\ \ \ Definition\ 2
+:   Definition 2
 
-\ \ \ \ \ \ \ \ {\ some\ code,\ part\ of\ Definition\ 2\ }
+        { some code, part of Definition 2 }
 
-\ \ \ \ Third\ paragraph\ of\ definition\ 2.
+    Third paragraph of definition 2.
 \f[R]
 .fi
 .PP
@@ -2932,12 +2931,12 @@ element:
 .IP
 .nf
 \f[C]
-Term\ 1
+Term 1
 
-:\ \ \ Definition
-with\ lazy\ continuation.
+:   Definition
+with lazy continuation.
 
-\ \ \ \ Second\ paragraph\ of\ the\ definition.
+    Second paragraph of the definition.
 \f[R]
 .fi
 .PP
@@ -2950,12 +2949,12 @@ definition:
 .IP
 .nf
 \f[C]
-Term\ 1
-\ \ \[ti]\ Definition\ 1
+Term 1
+  \[ti] Definition 1
 
-Term\ 2
-\ \ \[ti]\ Definition\ 2a
-\ \ \[ti]\ Definition\ 2b
+Term 2
+  \[ti] Definition 2a
+  \[ti] Definition 2b
 \f[R]
 .fi
 .PP
@@ -2976,12 +2975,12 @@ So, for example:
 .IP
 .nf
 \f[C]
-(\[at])\ \ My\ first\ example\ will\ be\ numbered\ (1).
-(\[at])\ \ My\ second\ example\ will\ be\ numbered\ (2).
+(\[at])  My first example will be numbered (1).
+(\[at])  My second example will be numbered (2).
 
-Explanation\ of\ examples.
+Explanation of examples.
 
-(\[at])\ \ My\ third\ example\ will\ be\ numbered\ (3).
+(\[at])  My third example will be numbered (3).
 \f[R]
 .fi
 .PP
@@ -2990,9 +2989,9 @@ document:
 .IP
 .nf
 \f[C]
-(\[at]good)\ \ This\ is\ a\ good\ example.
+(\[at]good)  This is a good example.
 
-As\ (\[at]good)\ illustrates,\ ...
+As (\[at]good) illustrates, ...
 \f[R]
 .fi
 .PP
@@ -3013,13 +3012,13 @@ Consider this source:
 .IP
 .nf
 \f[C]
-+\ \ \ First
-+\ \ \ Second:
-\ \ \ \ \-\ \ \ Fee
-\ \ \ \ \-\ \ \ Fie
-\ \ \ \ \-\ \ \ Foe
++   First
++   Second:
+    \-   Fee
+    \-   Fie
+    \-   Foe
 
-+\ \ \ Third
++   Third
 \f[R]
 .fi
 .PP
@@ -3044,16 +3043,16 @@ What if you want to put an indented code block after a list?
 .IP
 .nf
 \f[C]
-\-\ \ \ item\ one
-\-\ \ \ item\ two
+\-   item one
+\-   item two
 
-\ \ \ \ {\ my\ code\ block\ }
+    { my code block }
 \f[R]
 .fi
 .PP
 Trouble! Here pandoc (like other Markdown implementations) will treat
-\f[C]{\ my\ code\ block\ }\f[R] as the second paragraph of item two, and
-not as a code block.
+\f[C]{ my code block }\f[R] as the second paragraph of item two, and not
+as a code block.
 .PP
 To \[dq]cut off\[dq] the list after item two, you can insert some
 non\-indented content, like an HTML comment, which won\[aq]t produce
@@ -3061,12 +3060,12 @@ visible output in any format:
 .IP
 .nf
 \f[C]
-\-\ \ \ item\ one
-\-\ \ \ item\ two
+\-   item one
+\-   item two
 
-<!\-\-\ end\ of\ list\ \-\->
+<!\-\- end of list \-\->
 
-\ \ \ \ {\ my\ code\ block\ }
+    { my code block }
 \f[R]
 .fi
 .PP
@@ -3075,15 +3074,15 @@ one big list:
 .IP
 .nf
 \f[C]
-1.\ \ one
-2.\ \ two
-3.\ \ three
+1.  one
+2.  two
+3.  three
 
-<!\-\-\ \-\->
+<!\-\- \-\->
 
-1.\ \ uno
-2.\ \ dos
-3.\ \ tres
+1.  uno
+2.  dos
+3.  tres
 \f[R]
 .fi
 .SS Horizontal rules
@@ -3094,7 +3093,7 @@ horizontal rule:
 .IP
 .nf
 \f[C]
-*\ \ *\ \ *\ \ *
+*  *  *  *
 
 \-\-\-\-\-\-\-\-\-\-\-\-\-\-\-
 \f[R]
@@ -3119,13 +3118,13 @@ Simple tables look like this:
 .IP
 .nf
 \f[C]
-\ \ Right\ \ \ \ \ Left\ \ \ \ \ Center\ \ \ \ \ Default
-\-\-\-\-\-\-\-\ \ \ \ \ \-\-\-\-\-\-\ \-\-\-\-\-\-\-\-\-\-\ \ \ \-\-\-\-\-\-\-
-\ \ \ \ \ 12\ \ \ \ \ 12\ \ \ \ \ \ \ \ 12\ \ \ \ \ \ \ \ \ \ \ \ 12
-\ \ \ \ 123\ \ \ \ \ 123\ \ \ \ \ \ \ 123\ \ \ \ \ \ \ \ \ \ 123
-\ \ \ \ \ \ 1\ \ \ \ \ 1\ \ \ \ \ \ \ \ \ \ 1\ \ \ \ \ \ \ \ \ \ \ \ \ 1
+  Right     Left     Center     Default
+\-\-\-\-\-\-\-     \-\-\-\-\-\- \-\-\-\-\-\-\-\-\-\-   \-\-\-\-\-\-\-
+     12     12        12            12
+    123     123       123          123
+      1     1          1             1
 
-Table:\ \ Demonstration\ of\ simple\ table\ syntax.
+Table:  Demonstration of simple table syntax.
 \f[R]
 .fi
 .PP
@@ -3154,11 +3153,11 @@ For example:
 .IP
 .nf
 \f[C]
-\-\-\-\-\-\-\-\ \ \ \ \ \-\-\-\-\-\-\ \-\-\-\-\-\-\-\-\-\-\ \ \ \-\-\-\-\-\-\-
-\ \ \ \ \ 12\ \ \ \ \ 12\ \ \ \ \ \ \ \ 12\ \ \ \ \ \ \ \ \ \ \ \ \ 12
-\ \ \ \ 123\ \ \ \ \ 123\ \ \ \ \ \ \ 123\ \ \ \ \ \ \ \ \ \ \ 123
-\ \ \ \ \ \ 1\ \ \ \ \ 1\ \ \ \ \ \ \ \ \ \ 1\ \ \ \ \ \ \ \ \ \ \ \ \ \ 1
-\-\-\-\-\-\-\-\ \ \ \ \ \-\-\-\-\-\-\ \-\-\-\-\-\-\-\-\-\-\ \ \ \-\-\-\-\-\-\-
+\-\-\-\-\-\-\-     \-\-\-\-\-\- \-\-\-\-\-\-\-\-\-\-   \-\-\-\-\-\-\-
+     12     12        12             12
+    123     123       123           123
+      1     1          1              1
+\-\-\-\-\-\-\-     \-\-\-\-\-\- \-\-\-\-\-\-\-\-\-\-   \-\-\-\-\-\-\-
 \f[R]
 .fi
 .PP
@@ -3176,19 +3175,19 @@ Here is an example:
 .nf
 \f[C]
 \-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-
-\ Centered\ \ \ Default\ \ \ \ \ \ \ \ \ \ \ Right\ Left
-\ \ Header\ \ \ \ Aligned\ \ \ \ \ \ \ \ \ Aligned\ Aligned
-\-\-\-\-\-\-\-\-\-\-\-\ \-\-\-\-\-\-\-\ \-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\ \-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-
-\ \ \ First\ \ \ \ row\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 12.0\ Example\ of\ a\ row\ that
-\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ spans\ multiple\ lines.
+ Centered   Default           Right Left
+  Header    Aligned         Aligned Aligned
+\-\-\-\-\-\-\-\-\-\-\- \-\-\-\-\-\-\- \-\-\-\-\-\-\-\-\-\-\-\-\-\-\- \-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-
+   First    row                12.0 Example of a row that
+                                    spans multiple lines.
 
-\ \ Second\ \ \ \ row\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 5.0\ Here\[aq]s\ another\ one.\ Note
-\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ the\ blank\ line\ between
-\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ rows.
+  Second    row                 5.0 Here\[aq]s another one. Note
+                                    the blank line between
+                                    rows.
 \-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-
 
-Table:\ Here\[aq]s\ the\ caption.\ It,\ too,\ may\ span
-multiple\ lines.
+Table: Here\[aq]s the caption. It, too, may span
+multiple lines.
 \f[R]
 .fi
 .PP
@@ -3211,16 +3210,16 @@ Headers may be omitted in multiline tables as well as simple tables:
 .IP
 .nf
 \f[C]
-\-\-\-\-\-\-\-\-\-\-\-\ \-\-\-\-\-\-\-\ \-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\ \-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-
-\ \ \ First\ \ \ \ row\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 12.0\ Example\ of\ a\ row\ that
-\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ spans\ multiple\ lines.
+\-\-\-\-\-\-\-\-\-\-\- \-\-\-\-\-\-\- \-\-\-\-\-\-\-\-\-\-\-\-\-\-\- \-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-
+   First    row                12.0 Example of a row that
+                                    spans multiple lines.
 
-\ \ Second\ \ \ \ row\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 5.0\ Here\[aq]s\ another\ one.\ Note
-\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ the\ blank\ line\ between
-\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ rows.
-\-\-\-\-\-\-\-\-\-\-\-\ \-\-\-\-\-\-\-\ \-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\ \-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-
+  Second    row                 5.0 Here\[aq]s another one. Note
+                                    the blank line between
+                                    rows.
+\-\-\-\-\-\-\-\-\-\-\- \-\-\-\-\-\-\- \-\-\-\-\-\-\-\-\-\-\-\-\-\-\- \-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-
 
-:\ Here\[aq]s\ a\ multiline\ table\ without\ headers.
+: Here\[aq]s a multiline table without headers.
 \f[R]
 .fi
 .PP
@@ -3233,16 +3232,16 @@ Grid tables look like this:
 .IP
 .nf
 \f[C]
-:\ Sample\ grid\ table.
+: Sample grid table.
 
 +\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-+\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-+\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-+
-|\ Fruit\ \ \ \ \ \ \ \ \ |\ Price\ \ \ \ \ \ \ \ \ |\ Advantages\ \ \ \ \ \ \ \ \ |
+| Fruit         | Price         | Advantages         |
 +===============+===============+====================+
-|\ Bananas\ \ \ \ \ \ \ |\ $1.34\ \ \ \ \ \ \ \ \ |\ \-\ built\-in\ wrapper\ |
-|\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ |\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ |\ \-\ bright\ color\ \ \ \ \ |
+| Bananas       | $1.34         | \- built\-in wrapper |
+|               |               | \- bright color     |
 +\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-+\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-+\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-+
-|\ Oranges\ \ \ \ \ \ \ |\ $2.10\ \ \ \ \ \ \ \ \ |\ \-\ cures\ scurvy\ \ \ \ \ |
-|\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ |\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ |\ \-\ tasty\ \ \ \ \ \ \ \ \ \ \ \ |
+| Oranges       | $2.10         | \- cures scurvy     |
+|               |               | \- tasty            |
 +\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-+\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-+\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-+
 \f[R]
 .fi
@@ -3260,9 +3259,9 @@ the boundaries of the separator line after the header:
 .nf
 \f[C]
 +\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-+\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-+\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-+
-|\ Right\ \ \ \ \ \ \ \ \ |\ Left\ \ \ \ \ \ \ \ \ \ |\ Centered\ \ \ \ \ \ \ \ \ \ \ |
+| Right         | Left          | Centered           |
 +==============:+:==============+:==================:+
-|\ Bananas\ \ \ \ \ \ \ |\ $1.34\ \ \ \ \ \ \ \ \ |\ built\-in\ wrapper\ \ \ |
+| Bananas       | $1.34         | built\-in wrapper   |
 +\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-+\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-+\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-+
 \f[R]
 .fi
@@ -3272,7 +3271,7 @@ For headerless tables, the colons go on the top line instead:
 .nf
 \f[C]
 +\-\-\-\-\-\-\-\-\-\-\-\-\-\-:+:\-\-\-\-\-\-\-\-\-\-\-\-\-\-+:\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-:+
-|\ Right\ \ \ \ \ \ \ \ \ |\ Left\ \ \ \ \ \ \ \ \ \ |\ Centered\ \ \ \ \ \ \ \ \ \ \ |
+| Right         | Left          | Centered           |
 +\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-+\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-+\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-+
 \f[R]
 .fi
@@ -3291,13 +3290,13 @@ Pipe tables look like this:
 .IP
 .nf
 \f[C]
-|\ Right\ |\ Left\ |\ Default\ |\ Center\ |
+| Right | Left | Default | Center |
 |\-\-\-\-\-\-:|:\-\-\-\-\-|\-\-\-\-\-\-\-\-\-|:\-\-\-\-\-\-:|
-|\ \ \ 12\ \ |\ \ 12\ \ |\ \ \ \ 12\ \ \ |\ \ \ \ 12\ \ |
-|\ \ 123\ \ |\ \ 123\ |\ \ \ 123\ \ \ |\ \ \ 123\ \ |
-|\ \ \ \ 1\ \ |\ \ \ \ 1\ |\ \ \ \ \ 1\ \ \ |\ \ \ \ \ 1\ \ |
+|   12  |  12  |    12   |    12  |
+|  123  |  123 |   123   |   123  |
+|    1  |    1 |     1   |     1  |
 
-\ \ :\ Demonstration\ of\ pipe\ table\ syntax.
+  : Demonstration of pipe table syntax.
 \f[R]
 .fi
 .PP
@@ -3314,7 +3313,7 @@ So, this is a perfectly legal (though ugly) pipe table:
 .IP
 .nf
 \f[C]
-fruit|\ price
+fruit| price
 \-\-\-\-\-|\-\-\-\-\-:
 apple|2.05
 pear|1.37
@@ -3339,10 +3338,10 @@ be produced by Emacs\[aq] orgtbl\-mode:
 .IP
 .nf
 \f[C]
-|\ One\ |\ Two\ \ \ |
+| One | Two   |
 |\-\-\-\-\-+\-\-\-\-\-\-\-|
-|\ my\ \ |\ table\ |
-|\ is\ \ |\ nice\ \ |
+| my  | table |
+| is  | nice  |
 \f[R]
 .fi
 .PP
@@ -3357,9 +3356,9 @@ If the file begins with a title block
 .IP
 .nf
 \f[C]
-%\ title
-%\ author(s)\ (separated\ by\ semicolons)
-%\ date
+% title
+% author(s) (separated by semicolons)
+% date
 \f[R]
 .fi
 .PP
@@ -3373,11 +3372,11 @@ no author, you need a blank line:
 .nf
 \f[C]
 %
-%\ Author
+% Author
 
-%\ My\ title
+% My title
 %
-%\ June\ 15,\ 2006
+% June 15, 2006
 \f[R]
 .fi
 .PP
@@ -3386,8 +3385,8 @@ with leading space, thus:
 .IP
 .nf
 \f[C]
-%\ My\ title
-\ \ on\ multiple\ lines
+% My title
+  on multiple lines
 \f[R]
 .fi
 .PP
@@ -3397,13 +3396,13 @@ So, all of the following are equivalent:
 .IP
 .nf
 \f[C]
-%\ Author\ One
-\ \ Author\ Two
+% Author One
+  Author Two
 
-%\ Author\ One;\ Author\ Two
+% Author One; Author Two
 
-%\ Author\ One;
-\ \ Author\ Two
+% Author One;
+  Author Two
 \f[R]
 .fi
 .PP
@@ -3437,7 +3436,7 @@ Thus,
 .IP
 .nf
 \f[C]
-%\ PANDOC(1)
+% PANDOC(1)
 \f[R]
 .fi
 .PP
@@ -3445,7 +3444,7 @@ will yield a man page with the title \f[C]PANDOC\f[R] and section 1.
 .IP
 .nf
 \f[C]
-%\ PANDOC(1)\ Pandoc\ User\ Manuals
+% PANDOC(1) Pandoc User Manuals
 \f[R]
 .fi
 .PP
@@ -3453,7 +3452,7 @@ will also have \[dq]Pandoc User Manuals\[dq] in the footer.
 .IP
 .nf
 \f[C]
-%\ PANDOC(1)\ Pandoc\ User\ Manuals\ |\ Version\ 4.0
+% PANDOC(1) Pandoc User Manuals | Version 4.0
 \f[R]
 .fi
 .PP
@@ -3462,7 +3461,7 @@ will also have \[dq]Version 4.0\[dq] in the header.
 .PP
 A YAML metadata block is a valid YAML object, delimited by a line of
 three hyphens (\f[C]\-\-\-\f[R]) at the top and a line of three hyphens
-(\f[C]\-\-\-\f[R]) or three dots (\f[C]\&...\f[R]) at the bottom.
+(\f[C]\-\-\-\f[R]) or three dots (\f[C]...\f[R]) at the bottom.
 A YAML metadata block may occur anywhere in the document, but if it is
 not at the beginning, it must be preceded by a blank line.
 (Note that, because of the way pandoc concatenates input files when
@@ -3472,13 +3471,13 @@ files:
 .IP
 .nf
 \f[C]
-pandoc\ chap1.md\ chap2.md\ chap3.md\ metadata.yaml\ \-s\ \-o\ book.html
+pandoc chap1.md chap2.md chap3.md metadata.yaml \-s \-o book.html
 \f[R]
 .fi
 .PP
 Just be sure that the YAML file begins with \f[C]\-\-\-\f[R] and ends
-with \f[C]\-\-\-\f[R] or \f[C]\&...\f[R].) Alternatively, you can use
-the \f[C]\-\-metadata\-file\f[R] option.
+with \f[C]\-\-\-\f[R] or \f[C]...\f[R].) Alternatively, you can use the
+\f[C]\-\-metadata\-file\f[R] option.
 Using that approach however, you cannot reference content (like
 footnotes) from the main markdown input document.
 .PP
@@ -3497,7 +3496,7 @@ The metadata fields will be combined through a \f[I]left\-biased
 union\f[R]: if two metadata blocks attempt to set the same field, the
 value from the first block will be taken.
 .PP
-When pandoc is used with \f[C]\-t\ markdown\f[R] to create a Markdown
+When pandoc is used with \f[C]\-t markdown\f[R] to create a Markdown
 document, a YAML metadata block will be produced only if the
 \f[C]\-s/\-\-standalone\f[R] option is used.
 All of the metadata will appear in a single block at the beginning of
@@ -3513,15 +3512,15 @@ block\-level formatting:
 .nf
 \f[C]
 \-\-\-
-title:\ \ \[aq]This\ is\ the\ title:\ it\ contains\ a\ colon\[aq]
+title:  \[aq]This is the title: it contains a colon\[aq]
 author:
-\-\ Author\ One
-\-\ Author\ Two
-keywords:\ [nothing,\ nothingness]
-abstract:\ |
-\ \ This\ is\ the\ abstract.
+\- Author One
+\- Author Two
+keywords: [nothing, nothingness]
+abstract: |
+  This is the abstract.
 
-\ \ It\ consists\ of\ two\ paragraphs.
+  It consists of two paragraphs.
 \&...
 \f[R]
 .fi
@@ -3533,8 +3532,8 @@ field:
 .IP
 .nf
 \f[C]
-<p>This\ is\ the\ abstract.</p>
-<p>It\ consists\ of\ two\ paragraphs.</p>
+<p>This is the abstract.</p>
+<p>It consists of two paragraphs.</p>
 \f[R]
 .fi
 .PP
@@ -3549,12 +3548,12 @@ author if one is given:
 .nf
 \f[C]
 \-\-\-
-title:\ The\ document\ title
+title: The document title
 author:
-\-\ name:\ Author\ One
-\ \ affiliation:\ University\ of\ Somewhere
-\-\ name:\ Author\ Two
-\ \ affiliation:\ University\ of\ Nowhere
+\- name: Author One
+  affiliation: University of Somewhere
+\- name: Author Two
+  affiliation: University of Nowhere
 \&...
 \f[R]
 .fi
@@ -3566,7 +3565,7 @@ custom template:
 \f[C]
 $for(author)$
 $if(author.name)$
-$author.name$$if(author.affiliation)$\ ($author.affiliation$)$endif$
+$author.name$$if(author.affiliation)$ ($author.affiliation$)$endif$
 $else$
 $author$
 $endif$
@@ -3584,11 +3583,11 @@ For example:
 .nf
 \f[C]
 header\-includes:
-\-\ |
-\ \ \[ga]\[ga]\[ga]{=latex}
-\ \ \[rs]let\[rs]oldsection\[rs]section
-\ \ \[rs]renewcommand{\[rs]section}[1]{\[rs]clearpage\[rs]oldsection{#1}}
-\ \ \[ga]\[ga]\[ga]
+\- |
+  \[ga]\[ga]\[ga]{=latex}
+  \[rs]let\[rs]oldsection\[rs]section
+  \[rs]renewcommand{\[rs]section}[1]{\[rs]clearpage\[rs]oldsection{#1}}
+  \[ga]\[ga]\[ga]
 \f[R]
 .fi
 .SS Backslash escapes
@@ -3641,7 +3640,7 @@ A backslash\-escaped newline (i.e.
 a backslash occurring at the end of a line) is parsed as a hard line
 break.
 It will appear in TeX output as \f[C]\[rs]\[rs]\f[R] and in HTML as
-\f[C]<br\ />\f[R].
+\f[C]<br />\f[R].
 This is a nice alternative to Markdown\[aq]s \[dq]invisible\[dq] way of
 indicating hard line breaks using two trailing spaces on a line.
 .PP
@@ -3654,8 +3653,8 @@ To \f[I]emphasize\f[R] some text, surround it with \f[C]*\f[R]s or
 .IP
 .nf
 \f[C]
-This\ text\ is\ _emphasized\ with\ underscores_,\ and\ this
-is\ *emphasized\ with\ asterisks*.
+This text is _emphasized with underscores_, and this
+is *emphasized with asterisks*.
 \f[R]
 .fi
 .PP
@@ -3663,7 +3662,7 @@ Double \f[C]*\f[R] or \f[C]_\f[R] produces \f[B]strong emphasis\f[R]:
 .IP
 .nf
 \f[C]
-This\ is\ **strong\ emphasis**\ and\ __with\ underscores__.
+This is **strong emphasis** and __with underscores__.
 \f[R]
 .fi
 .PP
@@ -3672,7 +3671,7 @@ backslash\-escaped, will not trigger emphasis:
 .IP
 .nf
 \f[C]
-This\ is\ *\ not\ emphasized\ *,\ and\ \[rs]*neither\ is\ this\[rs]*.
+This is * not emphasized *, and \[rs]*neither is this\[rs]*.
 \f[R]
 .fi
 .SS Extension: \f[C]intraword_underscores\f[R]
@@ -3684,7 +3683,7 @@ If you want to emphasize just part of a word, use \f[C]*\f[R]:
 .IP
 .nf
 \f[C]
-feas*ible*,\ not\ feas*able*.
+feas*ible*, not feas*able*.
 \f[R]
 .fi
 .SS Strikeout
@@ -3696,7 +3695,7 @@ Thus, for example,
 .IP
 .nf
 \f[C]
-This\ \[ti]\[ti]is\ deleted\ text.\[ti]\[ti]
+This \[ti]\[ti]is deleted text.\[ti]\[ti]
 \f[R]
 .fi
 .SS Superscripts and subscripts
@@ -3709,7 +3708,7 @@ Thus, for example,
 .IP
 .nf
 \f[C]
-H\[ti]2\[ti]O\ is\ a\ liquid.\ \ 2\[ha]10\[ha]\ is\ 1024.
+H\[ti]2\[ti]O is a liquid.  2\[ha]10\[ha] is 1024.
 \f[R]
 .fi
 .PP
@@ -3718,14 +3717,14 @@ must be escaped with backslashes.
 (This is to prevent accidental superscripting and subscripting through
 the ordinary use of \f[C]\[ti]\f[R] and \f[C]\[ha]\f[R].) Thus, if you
 want the letter P with \[aq]a cat\[aq] in subscripts, use
-\f[C]P\[ti]a\[rs]\ cat\[ti]\f[R], not \f[C]P\[ti]a\ cat\[ti]\f[R].
+\f[C]P\[ti]a\[rs] cat\[ti]\f[R], not \f[C]P\[ti]a cat\[ti]\f[R].
 .SS Verbatim
 .PP
 To make a short span of text verbatim, put it inside backticks:
 .IP
 .nf
 \f[C]
-What\ is\ the\ difference\ between\ \[ga]>>=\[ga]\ and\ \[ga]>>\[ga]?
+What is the difference between \[ga]>>=\[ga] and \[ga]>>\[ga]?
 \f[R]
 .fi
 .PP
@@ -3733,7 +3732,7 @@ If the verbatim text includes a backtick, use double backticks:
 .IP
 .nf
 \f[C]
-Here\ is\ a\ literal\ backtick\ \[ga]\[ga]\ \[ga]\ \[ga]\[ga].
+Here is a literal backtick \[ga]\[ga] \[ga] \[ga]\[ga].
 \f[R]
 .fi
 .PP
@@ -3749,7 +3748,7 @@ in verbatim contexts:
 .IP
 .nf
 \f[C]
-This\ is\ a\ backslash\ followed\ by\ an\ asterisk:\ \[ga]\[rs]*\[ga].
+This is a backslash followed by an asterisk: \[ga]\[rs]*\[ga].
 \f[R]
 .fi
 .SS Extension: \f[C]inline_code_attributes\f[R]
@@ -3768,7 +3767,7 @@ To write small caps, use the \f[C]smallcaps\f[R] class:
 .IP
 .nf
 \f[C]
-[Small\ caps]{.smallcaps}
+[Small caps]{.smallcaps}
 \f[R]
 .fi
 .PP
@@ -3776,7 +3775,7 @@ Or, without the \f[C]bracketed_spans\f[R] extension:
 .IP
 .nf
 \f[C]
-<span\ class=\[dq]smallcaps\[dq]>Small\ caps</span>
+<span class=\[dq]smallcaps\[dq]>Small caps</span>
 \f[R]
 .fi
 .PP
@@ -3784,7 +3783,7 @@ For compatibility with other Markdown flavors, CSS is also supported:
 .IP
 .nf
 \f[C]
-<span\ style=\[dq]font\-variant:small\-caps;\[dq]>Small\ caps</span>
+<span style=\[dq]font\-variant:small\-caps;\[dq]>Small caps</span>
 \f[R]
 .fi
 .PP
@@ -3797,7 +3796,7 @@ The opening \f[C]$\f[R] must have a non\-space character immediately to
 its right, while the closing \f[C]$\f[R] must have a non\-space
 character immediately to its left, and must not be followed immediately
 by a digit.
-Thus, \f[C]$20,000\ and\ $30,000\f[R] won\[aq]t parse as math.
+Thus, \f[C]$20,000 and $30,000\f[R] won\[aq]t parse as math.
 If for some reason you need to enclose text in literal \f[C]$\f[R]
 characters, backslash\-escape them and they won\[aq]t be treated as math
 delimiters.
@@ -3822,14 +3821,14 @@ It will be rendered as \f[C]latexmath:[...]\f[R].
 .B Texinfo
 It will be rendered inside a \f[C]\[at]math\f[R] command.
 .TP
-.B groff man
+.B roff man
 It will be rendered verbatim without \f[C]$\f[R]\[aq]s.
 .TP
 .B MediaWiki, DokuWiki
 It will be rendered inside \f[C]<math>\f[R] tags.
 .TP
 .B Textile
-It will be rendered inside \f[C]<span\ class=\[dq]math\[dq]>\f[R] tags.
+It will be rendered inside \f[C]<span class=\[dq]math\[dq]>\f[R] tags.
 .TP
 .B RTF, OpenDocument
 It will be rendered, if possible, using Unicode characters, and will
@@ -3894,7 +3893,7 @@ Thus, for example, pandoc will turn
 <table>
 <tr>
 <td>*one*</td>
-<td>[a\ link](http://google.com)</td>
+<td>[a link](http://google.com)</td>
 </tr>
 </table>
 \f[R]
@@ -3907,7 +3906,7 @@ into
 <table>
 <tr>
 <td><em>one</em></td>
-<td><a\ href=\[dq]http://google.com\[dq]>a\ link</a></td>
+<td><a href=\[dq]http://google.com\[dq]>a link</a></td>
 </tr>
 </table>
 \f[R]
@@ -3947,7 +3946,7 @@ Thus, for example, you can use LaTeX to include BibTeX citations:
 .IP
 .nf
 \f[C]
-This\ result\ was\ proved\ in\ \[rs]cite{jones.1967}.
+This result was proved in \[rs]cite{jones.1967}.
 \f[R]
 .fi
 .PP
@@ -3956,10 +3955,10 @@ Note that in LaTeX environments, like
 .nf
 \f[C]
 \[rs]begin{tabular}{|l|l|}\[rs]hline
-Age\ &\ Frequency\ \[rs]\[rs]\ \[rs]hline
-18\-\-25\ \ &\ 15\ \[rs]\[rs]
-26\-\-35\ \ &\ 33\ \[rs]\[rs]
-36\-\-45\ \ &\ 22\ \[rs]\[rs]\ \[rs]hline
+Age & Frequency \[rs]\[rs] \[rs]hline
+18\-\-25  & 15 \[rs]\[rs]
+26\-\-35  & 33 \[rs]\[rs]
+36\-\-45  & 22 \[rs]\[rs] \[rs]hline
 \[rs]end{tabular}
 \f[R]
 .fi
@@ -3974,13 +3973,13 @@ Emacs Org mode, and ConTeXt.
 .PP
 Inline spans and fenced code blocks with a special kind of attribute
 will be parsed as raw content with the designated format.
-For example, the following produces a raw groff \f[C]ms\f[R] block:
+For example, the following produces a raw roff \f[C]ms\f[R] block:
 .IP
 .nf
 \f[C]
 \[ga]\[ga]\[ga]{=ms}
 \&.MYMACRO
-blah\ blah
+blah blah
 \[ga]\[ga]\[ga]
 \f[R]
 .fi
@@ -3989,7 +3988,7 @@ And the following produces a raw \f[C]html\f[R] inline element:
 .IP
 .nf
 \f[C]
-This\ is\ \[ga]<a>html</a>\[ga]{=html}
+This is \[ga]<a>html</a>\[ga]{=html}
 \f[R]
 .fi
 .PP
@@ -4000,9 +3999,9 @@ a pagebreak:
 \f[C]
 \[ga]\[ga]\[ga]{=openxml}
 <w:p>
-\ \ <w:r>
-\ \ \ \ <w:br\ w:type=\[dq]page\[dq]/>
-\ \ </w:r>
+  <w:r>
+    <w:br w:type=\[dq]page\[dq]/>
+  </w:r>
 </w:p>
 \[ga]\[ga]\[ga]
 \f[R]
@@ -4010,7 +4009,7 @@ a pagebreak:
 .PP
 The format name should match the target format name (see
 \f[C]\-t/\-\-to\f[R], above, for a list, or use
-\f[C]pandoc\ \-\-list\-output\-formats\f[R]).
+\f[C]pandoc \-\-list\-output\-formats\f[R]).
 Use \f[C]openxml\f[R] for \f[C]docx\f[R] output, \f[C]opendocument\f[R]
 for \f[C]odt\f[R] output, \f[C]html5\f[R] for \f[C]epub3\f[R] output,
 \f[C]html4\f[R] for \f[C]epub2\f[R] output, and \f[C]latex\f[R],
@@ -4034,9 +4033,9 @@ LaTeX:
 .IP
 .nf
 \f[C]
-\[rs]newcommand{\[rs]tuple}[1]{\[rs]langle\ #1\ \[rs]rangle}
+\[rs]newcommand{\[rs]tuple}[1]{\[rs]langle #1 \[rs]rangle}
 
-$\[rs]tuple{a,\ b,\ c}$
+$\[rs]tuple{a, b, c}$
 \f[R]
 .fi
 .PP
@@ -4071,8 +4070,8 @@ the URL in parentheses.
 .IP
 .nf
 \f[C]
-This\ is\ an\ [inline\ link](/url),\ and\ here\[aq]s\ [one\ with
-a\ title](http://fsf.org\ \[dq]click\ here\ for\ a\ good\ time!\[dq]).
+This is an [inline link](/url), and here\[aq]s [one with
+a title](http://fsf.org \[dq]click here for a good time!\[dq]).
 \f[R]
 .fi
 .PP
@@ -4086,7 +4085,7 @@ prefixed with \f[C]mailto\f[R]:
 .IP
 .nf
 \f[C]
-[Write\ me!](mailto:sam\[at]green.eggs.ham)
+[Write me!](mailto:sam\[at]green.eggs.ham)
 \f[R]
 .fi
 .SS Reference links
@@ -4110,10 +4109,10 @@ Here are some examples:
 .IP
 .nf
 \f[C]
-[my\ label\ 1]:\ /foo/bar.html\ \ \[dq]My\ title,\ optional\[dq]
-[my\ label\ 2]:\ /foo
-[my\ label\ 3]:\ http://fsf.org\ (The\ free\ software\ foundation)
-[my\ label\ 4]:\ /bar#special\ \ \[aq]A\ title\ in\ single\ quotes\[aq]
+[my label 1]: /foo/bar.html  \[dq]My title, optional\[dq]
+[my label 2]: /foo
+[my label 3]: http://fsf.org (The free software foundation)
+[my label 4]: /bar#special  \[aq]A title in single quotes\[aq]
 \f[R]
 .fi
 .PP
@@ -4121,7 +4120,7 @@ The URL may optionally be surrounded by angle brackets:
 .IP
 .nf
 \f[C]
-[my\ label\ 5]:\ <http://foo.bar.baz>
+[my label 5]: <http://foo.bar.baz>
 \f[R]
 .fi
 .PP
@@ -4129,8 +4128,8 @@ The title may go on the next line:
 .IP
 .nf
 \f[C]
-[my\ label\ 3]:\ http://fsf.org
-\ \ \[dq]The\ free\ software\ foundation\[dq]
+[my label 3]: http://fsf.org
+  \[dq]The free software foundation\[dq]
 \f[R]
 .fi
 .PP
@@ -4139,9 +4138,9 @@ So, this will work:
 .IP
 .nf
 \f[C]
-Here\ is\ [my\ link][FOO]
+Here is [my link][FOO]
 
-[Foo]:\ /bar/baz
+[Foo]: /bar/baz
 \f[R]
 .fi
 .PP
@@ -4150,9 +4149,9 @@ empty:
 .IP
 .nf
 \f[C]
-See\ [my\ website][].
+See [my website][].
 
-[my\ website]:\ http://foo.bar.baz
+[my website]: http://foo.bar.baz
 \f[R]
 .fi
 .PP
@@ -4165,9 +4164,9 @@ implementations:
 .IP
 .nf
 \f[C]
->\ My\ block\ [quote].
+> My block [quote].
 >
->\ [quote]:\ /foo
+> [quote]: /foo
 \f[R]
 .fi
 .SS Extension: \f[C]shortcut_reference_links\f[R]
@@ -4177,9 +4176,9 @@ be omitted entirely:
 .IP
 .nf
 \f[C]
-See\ [my\ website].
+See [my website].
 
-[my\ website]:\ http://foo.bar.baz
+[my website]: http://foo.bar.baz
 \f[R]
 .fi
 .SS Internal links
@@ -4190,7 +4189,7 @@ For example:
 .IP
 .nf
 \f[C]
-See\ the\ [Introduction](#introduction).
+See the [Introduction](#introduction).
 \f[R]
 .fi
 .PP
@@ -4198,9 +4197,9 @@ or
 .IP
 .nf
 \f[C]
-See\ the\ [Introduction].
+See the [Introduction].
 
-[Introduction]:\ #introduction
+[Introduction]: #introduction
 \f[R]
 .fi
 .PP
@@ -4214,11 +4213,11 @@ The link text will be used as the image\[aq]s alt text:
 .IP
 .nf
 \f[C]
-![la\ lune](lalune.jpg\ \[dq]Voyage\ to\ the\ moon\[dq])
+![la lune](lalune.jpg \[dq]Voyage to the moon\[dq])
 
-![movie\ reel]
+![movie reel]
 
-[movie\ reel]:\ movie.gif
+[movie reel]: movie.gif
 \f[R]
 .fi
 .SS Extension: \f[C]implicit_figures\f[R]
@@ -4229,7 +4228,7 @@ The image\[aq]s alt text will be used as the caption.
 .IP
 .nf
 \f[C]
-![This\ is\ the\ caption](/url/of/image.png)
+![This is the caption](/url/of/image.png)
 \f[R]
 .fi
 .PP
@@ -4245,7 +4244,7 @@ One way to do this is to insert a nonbreaking space after the image:
 .IP
 .nf
 \f[C]
-![This\ image\ won\[aq]t\ be\ a\ figure](/url/of/image.png)\[rs]
+![This image won\[aq]t be a figure](/url/of/image.png)\[rs]
 \f[R]
 .fi
 .PP
@@ -4258,15 +4257,15 @@ Attributes can be set on links and images:
 .IP
 .nf
 \f[C]
-An\ inline\ ![image](foo.jpg){#id\ .class\ width=30\ height=20px}
-and\ a\ reference\ ![image][ref]\ with\ attributes.
+An inline ![image](foo.jpg){#id .class width=30 height=20px}
+and a reference ![image][ref] with attributes.
 
-[ref]:\ foo.jpg\ \[dq]optional\ title\[dq]\ {#id\ .class\ key=val\ key2=\[dq]val\ 2\[dq]}
+[ref]: foo.jpg \[dq]optional title\[dq] {#id .class key=val key2=\[dq]val 2\[dq]}
 \f[R]
 .fi
 .PP
 (This syntax is compatible with PHP Markdown Extra when only
-\f[C]#id\f[R] and \f[C]\&.class\f[R] are used.)
+\f[C]#id\f[R] and \f[C].class\f[R] are used.)
 .PP
 For HTML and EPUB, all attributes except \f[C]width\f[R] and
 \f[C]height\f[R] (but including \f[C]srcset\f[R] and \f[C]sizes\f[R])
@@ -4285,7 +4284,7 @@ For example:
 .IP
 .nf
 \f[C]
-![](file.jpg){\ width=50%\ }
+![](file.jpg){ width=50% }
 \f[R]
 .fi
 .IP \[bu] 2
@@ -4297,13 +4296,20 @@ inch.
 The default is 96dpi.
 .IP \[bu] 2
 The \f[C]%\f[R] unit is generally relative to some available space.
-For example the above example will render to
-\f[C]<img\ href=\[dq]file.jpg\[dq]\ style=\[dq]width:\ 50%;\[dq]\ />\f[R]
-(HTML),
-\f[C]\[rs]includegraphics[width=0.5\[rs]textwidth]{file.jpg}\f[R]
-(LaTeX), or
+For example the above example will render to the following.
+.RS 2
+.IP \[bu] 2
+HTML:
+\f[C]<img href=\[dq]file.jpg\[dq] style=\[dq]width: 50%;\[dq] />\f[R]
+.IP \[bu] 2
+LaTeX:
+\f[C]\[rs]includegraphics[width=0.5\[rs]textwidth,height=\[rs]textheight]{file.jpg}\f[R]
+(If you\[aq]re using a custom template, you need to configure
+\f[C]graphicx\f[R] as in the default template.)
+.IP \[bu] 2
+ConTeXt:
 \f[C]\[rs]externalfigure[file.jpg][width=0.5\[rs]textwidth]\f[R]
-(ConTeXt).
+.RE
 .IP \[bu] 2
 Some output formats have a notion of a class (ConTeXt) or a unique
 identifier (LaTeX \f[C]\[rs]caption\f[R]), or both (HTML).
@@ -4338,10 +4344,10 @@ Example:
 .IP
 .nf
 \f[C]
-:::::\ {#special\ .sidebar}
-Here\ is\ a\ paragraph.
+::::: {#special .sidebar}
+Here is a paragraph.
 
-And\ another.
+And another.
 :::::
 \f[R]
 .fi
@@ -4352,11 +4358,11 @@ attributes:
 .IP
 .nf
 \f[C]
-:::\ Warning\ ::::::
-This\ is\ a\ warning.
+::: Warning ::::::
+This is a warning.
 
-:::\ Danger
-This\ is\ a\ warning\ within\ a\ warning.
+::: Danger
+This is a warning within a warning.
 :::
 ::::::::::::::::::
 \f[R]
@@ -4375,7 +4381,7 @@ immediately by attributes:
 .IP
 .nf
 \f[C]
-[This\ is\ *some\ text*]{.class\ key=\[dq]val\[dq]}
+[This is *some text*]{.class key=\[dq]val\[dq]}
 \f[R]
 .fi
 .SS Footnotes
@@ -4385,23 +4391,23 @@ Pandoc\[aq]s Markdown allows footnotes, using the following syntax:
 .IP
 .nf
 \f[C]
-Here\ is\ a\ footnote\ reference,[\[ha]1]\ and\ another.[\[ha]longnote]
+Here is a footnote reference,[\[ha]1] and another.[\[ha]longnote]
 
-[\[ha]1]:\ Here\ is\ the\ footnote.
+[\[ha]1]: Here is the footnote.
 
-[\[ha]longnote]:\ Here\[aq]s\ one\ with\ multiple\ blocks.
+[\[ha]longnote]: Here\[aq]s one with multiple blocks.
 
-\ \ \ \ Subsequent\ paragraphs\ are\ indented\ to\ show\ that\ they
-belong\ to\ the\ previous\ footnote.
+    Subsequent paragraphs are indented to show that they
+belong to the previous footnote.
 
-\ \ \ \ \ \ \ \ {\ some.code\ }
+        { some.code }
 
-\ \ \ \ The\ whole\ paragraph\ can\ be\ indented,\ or\ just\ the\ first
-\ \ \ \ line.\ \ In\ this\ way,\ multi\-paragraph\ footnotes\ work\ like
-\ \ \ \ multi\-paragraph\ list\ items.
+    The whole paragraph can be indented, or just the first
+    line.  In this way, multi\-paragraph footnotes work like
+    multi\-paragraph list items.
 
-This\ paragraph\ won\[aq]t\ be\ part\ of\ the\ note,\ because\ it
-isn\[aq]t\ indented.
+This paragraph won\[aq]t be part of the note, because it
+isn\[aq]t indented.
 \f[R]
 .fi
 .PP
@@ -4423,8 +4429,8 @@ The syntax is as follows:
 .IP
 .nf
 \f[C]
-Here\ is\ an\ inline\ note.\[ha][Inlines\ notes\ are\ easier\ to\ write,\ since
-you\ don\[aq]t\ have\ to\ pick\ an\ identifier\ and\ move\ down\ to\ type\ the
+Here is an inline note.\[ha][Inlines notes are easier to write, since
+you don\[aq]t have to pick an identifier and move down to type the
 note.]
 \f[R]
 .fi
@@ -4440,7 +4446,7 @@ Basic usage is
 .IP
 .nf
 \f[C]
-pandoc\ \-\-filter\ pandoc\-citeproc\ myinput.txt
+pandoc \-\-filter pandoc\-citeproc myinput.txt
 \f[R]
 .fi
 .PP
@@ -4518,12 +4524,12 @@ T}@T{
 T}
 .TE
 .PP
-Note that \f[C]\&.bib\f[R] can be used with both BibTeX and BibLaTeX
-files; use \f[C]\&.bibtex\f[R] to force BibTeX.
+Note that \f[C].bib\f[R] can be used with both BibTeX and BibLaTeX
+files; use \f[C].bibtex\f[R] to force BibTeX.
 .PP
-Note that \f[C]pandoc\-citeproc\ \-\-bib2json\f[R] and
-\f[C]pandoc\-citeproc\ \-\-bib2yaml\f[R] can produce \f[C]\&.json\f[R]
-and \f[C]\&.yaml\f[R] files from any of the supported formats.
+Note that \f[C]pandoc\-citeproc \-\-bib2json\f[R] and
+\f[C]pandoc\-citeproc \-\-bib2yaml\f[R] can produce \f[C].json\f[R] and
+\f[C].yaml\f[R] files from any of the supported formats.
 .PP
 In\-field markup: In BibTeX and BibLaTeX databases, pandoc\-citeproc
 parses a subset of LaTeX markup; in CSL YAML databases, pandoc Markdown;
@@ -4535,7 +4541,7 @@ italics
 .B \f[C]<b>...</b>\f[R]
 bold
 .TP
-.B \f[C]<span\ style=\[dq]font\-variant:small\-caps;\[dq]>...</span>\f[R] or \f[C]<sc>...</sc>\f[R]
+.B \f[C]<span style=\[dq]font\-variant:small\-caps;\[dq]>...</span>\f[R] or \f[C]<sc>...</sc>\f[R]
 small capitals
 .TP
 .B \f[C]<sub>...</sub>\f[R]
@@ -4544,10 +4550,10 @@ subscript
 .B \f[C]<sup>...</sup>\f[R]
 superscript
 .TP
-.B \f[C]<span\ class=\[dq]nocase\[dq]>...</span>\f[R]
+.B \f[C]<span class=\[dq]nocase\[dq]>...</span>\f[R]
 prevent a phrase from being capitalized as title case
 .PP
-\f[C]pandoc\-citeproc\ \-j\f[R] and \f[C]\-y\f[R] interconvert the CSL
+\f[C]pandoc\-citeproc \-j\f[R] and \f[C]\-y\f[R] interconvert the CSL
 JSON and CSL YAML formats as far as possible.
 .PP
 As an alternative to specifying a bibliography file using
@@ -4561,33 +4567,33 @@ example:
 \f[C]
 \-\-\-
 references:
-\-\ type:\ article\-journal
-\ \ id:\ WatsonCrick1953
-\ \ author:
-\ \ \-\ family:\ Watson
-\ \ \ \ given:\ J.\ D.
-\ \ \-\ family:\ Crick
-\ \ \ \ given:\ F.\ H.\ C.
-\ \ issued:
-\ \ \ \ date\-parts:
-\ \ \ \ \-\ \-\ 1953
-\ \ \ \ \ \ \-\ 4
-\ \ \ \ \ \ \-\ 25
-\ \ title:\ \[aq]Molecular\ structure\ of\ nucleic\ acids:\ a\ structure\ for\ deoxyribose
-\ \ \ \ nucleic\ acid\[aq]
-\ \ title\-short:\ Molecular\ structure\ of\ nucleic\ acids
-\ \ container\-title:\ Nature
-\ \ volume:\ 171
-\ \ issue:\ 4356
-\ \ page:\ 737\-738
-\ \ DOI:\ 10.1038/171737a0
-\ \ URL:\ http://www.nature.com/nature/journal/v171/n4356/abs/171737a0.html
-\ \ language:\ en\-GB
+\- type: article\-journal
+  id: WatsonCrick1953
+  author:
+  \- family: Watson
+    given: J. D.
+  \- family: Crick
+    given: F. H. C.
+  issued:
+    date\-parts:
+    \- \- 1953
+      \- 4
+      \- 25
+  title: \[aq]Molecular structure of nucleic acids: a structure for deoxyribose
+    nucleic acid\[aq]
+  title\-short: Molecular structure of nucleic acids
+  container\-title: Nature
+  volume: 171
+  issue: 4356
+  page: 737\-738
+  DOI: 10.1038/171737a0
+  URL: http://www.nature.com/nature/journal/v171/n4356/abs/171737a0.html
+  language: en\-GB
 \&...
 \f[R]
 .fi
 .PP
-(\f[C]pandoc\-citeproc\ \-\-bib2yaml\f[R] can produce these from a
+(\f[C]pandoc\-citeproc \-\-bib2yaml\f[R] can produce these from a
 bibliography file in one of the supported formats.)
 .PP
 Citations and references can be formatted using any style supported by
@@ -4600,7 +4606,7 @@ The CSL project provides further information on finding and editing
 styles.
 .PP
 To make your citations hyperlinks to the corresponding bibliography
-entries, add \f[C]link\-citations:\ true\f[R] to your YAML metadata.
+entries, add \f[C]link\-citations: true\f[R] to your YAML metadata.
 .PP
 Citations go inside square brackets and are separated by semicolons.
 Each citation must have a key, composed of \[aq]\[at]\[aq] + the
@@ -4613,11 +4619,11 @@ Here are some examples:
 .IP
 .nf
 \f[C]
-Blah\ blah\ [see\ \[at]doe99,\ pp.\ 33\-35;\ also\ \[at]smith04,\ chap.\ 1].
+Blah blah [see \[at]doe99, pp. 33\-35; also \[at]smith04, chap. 1].
 
-Blah\ blah\ [\[at]doe99,\ pp.\ 33\-35,\ 38\-39\ and\ *passim*].
+Blah blah [\[at]doe99, pp. 33\-35, 38\-39 and *passim*].
 
-Blah\ blah\ [\[at]smith04;\ \[at]doe99].
+Blah blah [\[at]smith04; \[at]doe99].
 \f[R]
 .fi
 .PP
@@ -4637,7 +4643,7 @@ singular or plural forms, as \f[C]book\f[R],
 \f[C]p.\f[R]/\f[C]pp.\f[R]; \f[C]paragraph\f[R],
 \f[C]para.\f[R]/\f[C]paras.\f[R]; \f[C]part\f[R],
 \f[C]pt.\f[R]/\f[C]pts.\f[R]; \f[C]section\f[R],
-\f[C]sec.\f[R]/\f[C]secs.\f[R]; \f[C]sub\ verbo\f[R],
+\f[C]sec.\f[R]/\f[C]secs.\f[R]; \f[C]sub verbo\f[R],
 \f[C]s.v.\f[R]/\f[C]s.vv.\f[R]; \f[C]verse\f[R],
 \f[C]v.\f[R]/\f[C]vv.\f[R]; \f[C]volume\f[R],
 \f[C]vol.\f[R]/\f[C]vols.\f[R]; \f[C]\[ps]\f[R]/\f[C]\[ps]\[ps]\f[R];
@@ -4650,7 +4656,7 @@ This can be useful when the author is already mentioned in the text:
 .IP
 .nf
 \f[C]
-Smith\ says\ blah\ [\-\[at]smith04].
+Smith says blah [\-\[at]smith04].
 \f[R]
 .fi
 .PP
@@ -4658,9 +4664,9 @@ You can also write an in\-text citation, as follows:
 .IP
 .nf
 \f[C]
-\[at]smith04\ says\ blah.
+\[at]smith04 says blah.
 
-\[at]smith04\ [p.\ 33]\ says\ blah.
+\[at]smith04 [p. 33] says blah.
 \f[R]
 .fi
 .PP
@@ -4670,9 +4676,9 @@ Normally, you will want to end your document with an appropriate header:
 .IP
 .nf
 \f[C]
-last\ paragraph...
+last paragraph...
 
-#\ References
+# References
 \f[R]
 .fi
 .PP
@@ -4687,8 +4693,8 @@ field and put the citations there:
 .nf
 \f[C]
 \-\-\-
-nocite:\ |
-\ \ \[at]item1,\ \[at]item2
+nocite: |
+  \[at]item1, \[at]item2
 \&...
 
 \[at]item3
@@ -4705,8 +4711,8 @@ or not they appear in the document, by using a wildcard:
 .nf
 \f[C]
 \-\-\-
-nocite:\ |
-\ \ \[at]*
+nocite: |
+  \[at]*
 \&...
 \f[R]
 .fi
@@ -4754,7 +4760,7 @@ example,
 .IP
 .nf
 \f[C]
-[foo]\ [bar].
+[foo] [bar].
 \f[R]
 .fi
 .SS Extension: \f[C]hard_line_breaks\f[R]
@@ -4805,11 +4811,11 @@ for example:
 .IP
 .nf
 \f[C]
-Title:\ \ \ My\ title
-Author:\ \ John\ Doe
-Date:\ \ \ \ September\ 1,\ 2008
-Comment:\ This\ is\ a\ sample\ mmd\ title\ block,\ with
-\ \ \ \ \ \ \ \ \ a\ field\ spanning\ multiple\ lines.
+Title:   My title
+Author:  John Doe
+Date:    September 1, 2008
+Comment: This is a sample mmd title block, with
+         a field spanning multiple lines.
 \f[R]
 .fi
 .PP
@@ -4822,7 +4828,7 @@ Parses PHP Markdown Extra abbreviation keys, like
 .IP
 .nf
 \f[C]
-*[HTML]:\ Hypertext\ Markup\ Language
+*[HTML]: Hypertext Markup Language
 \f[R]
 .fi
 .PP
@@ -4842,10 +4848,10 @@ extension.
 .IP
 .nf
 \f[C]
-This\ is\ a\ reference\ ![image][ref]\ with\ multimarkdown\ attributes.
+This is a reference ![image][ref] with multimarkdown attributes.
 
-[ref]:\ http://path.to/image\ \[dq]Image\ title\[dq]\ width=20px\ height=30px
-\ \ \ \ \ \ \ id=myId\ class=\[dq]myClass1\ myClass2\[dq]
+[ref]: http://path.to/image \[dq]Image title\[dq] width=20px height=30px
+       id=myId class=\[dq]myClass1 myClass2\[dq]
 \f[R]
 .fi
 .SS Extension: \f[C]mmd_header_identifiers\f[R]
@@ -4937,37 +4943,37 @@ Here\[aq]s the Markdown source for a simple slide show,
 .IP
 .nf
 \f[C]
-%\ Habits
-%\ John\ Doe
-%\ March\ 22,\ 2005
+% Habits
+% John Doe
+% March 22, 2005
 
-#\ In\ the\ morning
+# In the morning
 
-##\ Getting\ up
+## Getting up
 
-\-\ Turn\ off\ alarm
-\-\ Get\ out\ of\ bed
+\- Turn off alarm
+\- Get out of bed
 
-##\ Breakfast
+## Breakfast
 
-\-\ Eat\ eggs
-\-\ Drink\ coffee
+\- Eat eggs
+\- Drink coffee
 
-#\ In\ the\ evening
+# In the evening
 
-##\ Dinner
+## Dinner
 
-\-\ Eat\ spaghetti
-\-\ Drink\ wine
+\- Eat spaghetti
+\- Drink wine
 
 \-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-
 
-![picture\ of\ spaghetti](images/spaghetti.jpg)
+![picture of spaghetti](images/spaghetti.jpg)
 
-##\ Going\ to\ sleep
+## Going to sleep
 
-\-\ Get\ in\ bed
-\-\ Count\ sheep
+\- Get in bed
+\- Count sheep
 \f[R]
 .fi
 .PP
@@ -4975,7 +4981,7 @@ To produce an HTML/JavaScript slide show, simply type
 .IP
 .nf
 \f[C]
-pandoc\ \-t\ FORMAT\ \-s\ habits.txt\ \-o\ habits.html
+pandoc \-t FORMAT \-s habits.txt \-o habits.html
 \f[R]
 .fi
 .PP
@@ -5003,7 +5009,7 @@ To produce a PDF slide show using beamer, type
 .IP
 .nf
 \f[C]
-pandoc\ \-t\ beamer\ habits.txt\ \-o\ habits.pdf
+pandoc \-t beamer habits.txt \-o habits.pdf
 \f[R]
 .fi
 .PP
@@ -5014,7 +5020,7 @@ To produce a Powerpoint slide show, type
 .IP
 .nf
 \f[C]
-pandoc\ habits.txt\ \-o\ habits.pptx
+pandoc habits.txt \-o habits.pptx
 \f[R]
 .fi
 .SS Structuring the slide show
@@ -5067,15 +5073,15 @@ a time), use the \f[C]\-i\f[R] option.
 If you want a particular list to depart from the default, put it in a
 \f[C]div\f[R] block with class \f[C]incremental\f[R] or
 \f[C]nonincremental\f[R].
-So, for example, using the \f[C]fenced\ div\f[R] syntax, the following
+So, for example, using the \f[C]fenced div\f[R] syntax, the following
 would be incremental regardless of the document default:
 .IP
 .nf
 \f[C]
-:::\ incremental
+::: incremental
 
-\-\ Eat\ spaghetti
-\-\ Drink\ wine
+\- Eat spaghetti
+\- Drink wine
 
 :::
 \f[R]
@@ -5085,10 +5091,10 @@ or
 .IP
 .nf
 \f[C]
-:::\ nonincremental
+::: nonincremental
 
-\-\ Eat\ spaghetti
-\-\ Drink\ wine
+\- Eat spaghetti
+\- Drink wine
 
 :::
 \f[R]
@@ -5103,8 +5109,8 @@ with the \f[C]\-i\f[R] option):
 .IP
 .nf
 \f[C]
->\ \-\ Eat\ spaghetti
->\ \-\ Drink\ wine
+> \- Eat spaghetti
+> \- Drink wine
 \f[R]
 .fi
 .PP
@@ -5117,13 +5123,13 @@ containing three dots, separated by spaces:
 .IP
 .nf
 \f[C]
-#\ Slide\ with\ a\ pause
+# Slide with a pause
 
-content\ before\ the\ pause
+content before the pause
 
-\&.\ .\ .
+\&. . .
 
-content\ after\ the\ pause
+content after the pause
 \f[R]
 .fi
 .SS Styling the slides
@@ -5146,7 +5152,7 @@ For example, themes can be used by setting the \f[C]theme\f[R] variable:
 .IP
 .nf
 \f[C]
-\-V\ theme=moon
+\-V theme=moon
 \f[R]
 .fi
 .PP
@@ -5159,7 +5165,7 @@ To style beamer slides, you can specify a \f[C]theme\f[R],
 .IP
 .nf
 \f[C]
-pandoc\ \-t\ beamer\ habits.txt\ \-V\ theme:Warsaw\ \-o\ habits.pdf
+pandoc \-t beamer habits.txt \-V theme:Warsaw \-o habits.pdf
 \f[R]
 .fi
 .PP
@@ -5174,7 +5180,7 @@ This is recommended especially for bibliographies:
 .IP
 .nf
 \f[C]
-#\ References\ {.allowframebreaks}
+# References {.allowframebreaks}
 \f[R]
 .fi
 .SS Speaker notes
@@ -5184,12 +5190,12 @@ You can add notes to your Markdown document thus:
 .IP
 .nf
 \f[C]
-:::\ notes
+::: notes
 
-This\ is\ my\ note.
+This is my note.
 
-\-\ It\ can\ contain\ Markdown
-\-\ like\ this\ list
+\- It can contain Markdown
+\- like this list
 
 :::
 \f[R]
@@ -5210,11 +5216,11 @@ containers with class \f[C]column\f[R] and a \f[C]width\f[R] attribute:
 .IP
 .nf
 \f[C]
-::::::::::::::\ {.columns}
-:::\ {.column\ width=\[dq]40%\[dq]}
+:::::::::::::: {.columns}
+::: {.column width=\[dq]40%\[dq]}
 contents...
 :::
-:::\ {.column\ width=\[dq]60%\[dq]}
+::: {.column width=\[dq]60%\[dq]}
 contents...
 :::
 ::::::::::::::
@@ -5230,7 +5236,7 @@ introducing the slide:
 .IP
 .nf
 \f[C]
-#\ Fragile\ slide\ {.fragile}
+# Fragile slide {.fragile}
 \f[R]
 .fi
 .PP
@@ -5275,17 +5281,17 @@ For example in reveal.js:
 .nf
 \f[C]
 \-\-\-
-title:\ My\ Slideshow
-parallaxBackgroundImage:\ /path/to/my/background_image.png
+title: My Slideshow
+parallaxBackgroundImage: /path/to/my/background_image.png
 \-\-\-
 
-##\ Slide\ One
+## Slide One
 
-Slide\ 1\ has\ background_image.png\ as\ its\ background.
+Slide 1 has background_image.png as its background.
 
-##\ {data\-background\-image=\[dq]/path/to/special_image.jpg\[dq]}
+## {data\-background\-image=\[dq]/path/to/special_image.jpg\[dq]}
 
-Slide\ 2\ has\ a\ special\ image\ for\ its\ background,\ even\ though\ the\ header\ has\ no\ content.
+Slide 2 has a special image for its background, even though the header has no content.
 \f[R]
 .fi
 .SH CREATING EPUBS WITH PANDOC
@@ -5300,22 +5306,22 @@ Here is an example:
 \f[C]
 \-\-\-
 title:
-\-\ type:\ main
-\ \ text:\ My\ Book
-\-\ type:\ subtitle
-\ \ text:\ An\ investigation\ of\ metadata
+\- type: main
+  text: My Book
+\- type: subtitle
+  text: An investigation of metadata
 creator:
-\-\ role:\ author
-\ \ text:\ John\ Smith
-\-\ role:\ editor
-\ \ text:\ Sarah\ Jones
+\- role: author
+  text: John Smith
+\- role: editor
+  text: Sarah Jones
 identifier:
-\-\ scheme:\ DOI
-\ \ text:\ doi:10.234234.234/33
-publisher:\ \ My\ Press
-rights:\ \[co]\ 2007\ John\ Smith,\ CC\ BY\-NC
+\- scheme: DOI
+  text: doi:10.234234.234/33
+publisher:  My Press
+rights: \[co] 2007 John Smith, CC BY\-NC
 ibooks:
-\ \ version:\ 1.3.4
+  version: 1.3.4
 \&...
 \f[R]
 .fi
@@ -5328,7 +5334,7 @@ Either a string value or an object with fields \f[C]text\f[R] and
 Valid values for \f[C]scheme\f[R] are \f[C]ISBN\-10\f[R],
 \f[C]GTIN\-13\f[R], \f[C]UPC\f[R], \f[C]ISMN\-10\f[R], \f[C]DOI\f[R],
 \f[C]LCCN\f[R], \f[C]GTIN\-14\f[R], \f[C]ISBN\-13\f[R],
-\f[C]Legal\ deposit\ number\f[R], \f[C]URN\f[R], \f[C]OCLC\f[R],
+\f[C]Legal deposit number\f[R], \f[C]URN\f[R], \f[C]OCLC\f[R],
 \f[C]ISMN\-13\f[R], \f[C]ISBN\-A\f[R], \f[C]JP\f[R], \f[C]OLCC\f[R].
 .TP
 .B \f[C]title\f[R]
@@ -5381,7 +5387,7 @@ A string value.
 .B \f[C]cover\-image\f[R]
 A string value (path to cover image).
 .TP
-.B \f[C]stylesheet\f[R]
+.B \f[C]css\f[R] (or legacy: \f[C]stylesheet\f[R])
 A string value (path to CSS stylesheet).
 .TP
 .B \f[C]page\-progression\-direction\f[R]
@@ -5419,7 +5425,7 @@ this markdown:
 .IP
 .nf
 \f[C]
-#\ My\ chapter\ {epub:type=prologue}
+# My chapter {epub:type=prologue}
 \f[R]
 .fi
 .PP
@@ -5427,13 +5433,13 @@ Which will result in:
 .IP
 .nf
 \f[C]
-<body\ epub:type=\[dq]frontmatter\[dq]>
-\ \ <section\ epub:type=\[dq]prologue\[dq]>
-\ \ \ \ <h1>My\ chapter</h1>
+<body epub:type=\[dq]frontmatter\[dq]>
+  <section epub:type=\[dq]prologue\[dq]>
+    <h1>My chapter</h1>
 \f[R]
 .fi
 .PP
-Pandoc will output \f[C]<body\ epub:type=\[dq]bodymatter\[dq]>\f[R],
+Pandoc will output \f[C]<body epub:type=\[dq]bodymatter\[dq]>\f[R],
 unless you use one of the following values, in which case either
 \f[C]frontmatter\f[R] or \f[C]backmatter\f[R] will be output.
 .PP
@@ -5540,10 +5546,10 @@ For example:
 .IP
 .nf
 \f[C]
-<audio\ controls=\[dq]1\[dq]>
-\ \ <source\ src=\[dq]http://example.com/music/toccata.mp3\[dq]
-\ \ \ \ \ \ \ \ \ \ data\-external=\[dq]1\[dq]\ type=\[dq]audio/mpeg\[dq]>
-\ \ </source>
+<audio controls=\[dq]1\[dq]>
+  <source src=\[dq]http://example.com/music/toccata.mp3\[dq]
+          data\-external=\[dq]1\[dq] type=\[dq]audio/mpeg\[dq]>
+  </source>
 </audio>
 \f[R]
 .fi
@@ -5555,7 +5561,7 @@ The Haskell library skylighting is used for highlighting.
 Currently highlighting is supported only for HTML, EPUB, Docx, Ms, and
 LaTeX/PDF output.
 To see a list of language names that pandoc will recognize, type
-\f[C]pandoc\ \-\-list\-highlight\-languages\f[R].
+\f[C]pandoc \-\-list\-highlight\-languages\f[R].
 .PP
 The color scheme can be selected using the
 \f[C]\-\-highlight\-style\f[R] option.
@@ -5563,17 +5569,17 @@ The default color scheme is \f[C]pygments\f[R], which imitates the
 default color scheme used by the Python library pygments (though
 pygments is not actually used to do the highlighting).
 To see a list of highlight styles, type
-\f[C]pandoc\ \-\-list\-highlight\-styles\f[R].
+\f[C]pandoc \-\-list\-highlight\-styles\f[R].
 .PP
 If you are not satisfied with the predefined styles, you can use
 \f[C]\-\-print\-highlight\-style\f[R] to generate a JSON
-\f[C]\&.theme\f[R] file which can be modified and used as the argument
-to \f[C]\-\-highlight\-style\f[R].
+\f[C].theme\f[R] file which can be modified and used as the argument to
+\f[C]\-\-highlight\-style\f[R].
 To get a JSON version of the \f[C]pygments\f[R] style, for example:
 .IP
 .nf
 \f[C]
-pandoc\ \-\-print\-highlight\-style\ pygments\ >\ my.theme
+pandoc \-\-print\-highlight\-style pygments > my.theme
 \f[R]
 .fi
 .PP
@@ -5581,7 +5587,7 @@ Then edit \f[C]my.theme\f[R] and use it like this:
 .IP
 .nf
 \f[C]
-pandoc\ \-\-highlight\-style\ my.theme
+pandoc \-\-highlight\-style my.theme
 \f[R]
 .fi
 .PP
@@ -5601,7 +5607,7 @@ into pandoc elements, either by direct conversion or interpreting the
 derivation of the input document\[aq]s styles.
 .PP
 By enabling the \f[C]styles\f[R] extension in the docx reader
-(\f[C]\-f\ docx+styles\f[R]), you can produce output that maintains the
+(\f[C]\-f docx+styles\f[R]), you can produce output that maintains the
 styles of the input document, using the \f[C]custom\-style\f[R] class.
 Paragraph styles are interpreted as divs, while character styles are
 interpreted as spans.
@@ -5613,13 +5619,13 @@ Without the \f[C]+styles\f[R] extension:
 .IP
 .nf
 \f[C]
-$\ pandoc\ test/docx/custom\-style\-reference.docx\ \-f\ docx\ \-t\ markdown
-This\ is\ some\ text.
+$ pandoc test/docx/custom\-style\-reference.docx \-f docx \-t markdown
+This is some text.
 
-This\ is\ text\ with\ an\ *emphasized*\ text\ style.\ And\ this\ is\ text\ with\ a
-**strengthened**\ text\ style.
+This is text with an *emphasized* text style. And this is text with a
+**strengthened** text style.
 
->\ Here\ is\ a\ styled\ paragraph\ that\ inherits\ from\ Block\ Text.
+> Here is a styled paragraph that inherits from Block Text.
 \f[R]
 .fi
 .PP
@@ -5627,20 +5633,20 @@ And with the extension:
 .IP
 .nf
 \f[C]
-$\ pandoc\ test/docx/custom\-style\-reference.docx\ \-f\ docx+styles\ \-t\ markdown
+$ pandoc test/docx/custom\-style\-reference.docx \-f docx+styles \-t markdown
 
-:::\ {custom\-style=\[dq]FirstParagraph\[dq]}
-This\ is\ some\ text.
+::: {custom\-style=\[dq]FirstParagraph\[dq]}
+This is some text.
 :::
 
-:::\ {custom\-style=\[dq]BodyText\[dq]}
-This\ is\ text\ with\ an\ [emphasized]{custom\-style=\[dq]Emphatic\[dq]}\ text\ style.
-And\ this\ is\ text\ with\ a\ [strengthened]{custom\-style=\[dq]Strengthened\[dq]}
-text\ style.
+::: {custom\-style=\[dq]BodyText\[dq]}
+This is text with an [emphasized]{custom\-style=\[dq]Emphatic\[dq]} text style.
+And this is text with a [strengthened]{custom\-style=\[dq]Strengthened\[dq]}
+text style.
 :::
 
-:::\ {custom\-style=\[dq]MyBlockStyle\[dq]}
->\ Here\ is\ a\ styled\ paragraph\ that\ inherits\ from\ Block\ Text.
+::: {custom\-style=\[dq]MyBlockStyle\[dq]}
+> Here is a styled paragraph that inherits from Block Text.
 :::
 \f[R]
 .fi
@@ -5666,7 +5672,7 @@ So, for example using the \f[C]bracketed_spans\f[R] syntax,
 .IP
 .nf
 \f[C]
-[Get\ out]{custom\-style=\[dq]Emphatically\[dq]},\ he\ said.
+[Get out]{custom\-style=\[dq]Emphatically\[dq]}, he said.
 \f[R]
 .fi
 .PP
@@ -5676,11 +5682,11 @@ Similarly, using the \f[C]fenced_divs\f[R] syntax,
 .IP
 .nf
 \f[C]
-Dickinson\ starts\ the\ poem\ simply:
+Dickinson starts the poem simply:
 
-:::\ {custom\-style=\[dq]Poetry\[dq]}
-|\ A\ Bird\ came\ down\ the\ Walk\-\-\-
-|\ He\ did\ not\ know\ I\ saw\-\-\-
+::: {custom\-style=\[dq]Poetry\[dq]}
+| A Bird came down the Walk\-\-\-
+| He did not know I saw\-\-\-
 :::
 \f[R]
 .fi
@@ -5712,7 +5718,7 @@ For example:
 .IP
 .nf
 \f[C]
-pandoc\ \-t\ data/sample.lua
+pandoc \-t data/sample.lua
 \f[R]
 .fi
 .PP
@@ -5723,7 +5729,7 @@ needs, do
 .IP
 .nf
 \f[C]
-pandoc\ \-\-print\-default\-data\-file\ sample.lua
+pandoc \-\-print\-default\-data\-file sample.lua
 \f[R]
 .fi
 .SH AUTHORS
