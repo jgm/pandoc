@@ -1524,13 +1524,13 @@ LaTeX variables are used when [creating a PDF].
     `fontfamily` set to [`mathpazo`] provides Palatino with old-style
     figures and true small caps; may be repeated for multiple options
 
-`mainfont`, `sansfont`, `monofont`, `mathfont`, `CJKmainfont`
+`mainfont`, `romanfont`, `sansfont`, `monofont`, `mathfont`, `CJKmainfont`
 :   font families for use with `xelatex` or
     `lualatex`: take the name of any system font, using the
     [`fontspec`] package.  Note that if `CJKmainfont` is used,
     the [`xecjk`] package must be available.
 
-`mainfontoptions`, `sansfontoptions`, `monofontoptions`, `mathfontoptions`, `CJKoptions`
+`mainfontoptions`, `romanfontoptions`, `sansfontoptions`, `monofontoptions`, `mathfontoptions`, `CJKoptions`
 :   options to use with `mainfont`, `sansfont`, `monofont`, `mathfont`,
     `CJKmainfont` in `xelatex` and `lualatex`.  Allow for any choices
     available through [`fontspec`], such as the OpenType features
