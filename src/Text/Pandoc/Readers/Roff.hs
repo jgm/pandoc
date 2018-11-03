@@ -1,4 +1,7 @@
 {-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE FlexibleInstances #-}
+{-# LANGUAGE MultiParamTypeClasses #-}
+{-# LANGUAGE StandaloneDeriving #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
 {-
   Copyright (C) 2018 Yan Pashkovsky <yanp.bugz@gmail.com>
@@ -48,8 +51,9 @@ where
 
 import Prelude
 import Safe (lastDef)
-import Control.Monad (void, mzero, mplus)
+import Control.Monad (void, mzero, mplus, guard)
 import Control.Monad.Except (throwError)
+import Control.Monad.State.Strict (StateT(..), evalStateT, get, modify, put)
 import Text.Pandoc.Class
        (getResourcePath, readFileFromDirs, PandocMonad(..), report)
 import Data.Char (isLower, toLower, toUpper, chr,
@@ -117,8 +121,7 @@ data RoffMode = NormalMode
               | CopyMode
               deriving Show
 
-data RoffState = RoffState { customMacros   :: M.Map String RoffTokens
-                           , prevFont       :: FontSpec
+data RoffState = RoffState { prevFont       :: FontSpec
                            , currentFont    :: FontSpec
                            , tableTabChar   :: Char
                            , roffMode       :: RoffMode
@@ -126,7 +129,17 @@ data RoffState = RoffState { customMacros   :: M.Map String RoffTokens
                            } deriving Show
 
 instance Default RoffState where
-  def = RoffState { customMacros = M.fromList
+  def = RoffState { prevFont = defaultFontSpec
+                  , currentFont = defaultFontSpec
+                  , tableTabChar = '\t'
+                  , roffMode = NormalMode
+                  , lastExpression = Nothing
+                  }
+
+type MacroState = M.Map String RoffTokens
+
+initialMacroState :: MacroState
+initialMacroState = M.fromList
                        $ map (\(n, s) ->
                                 (n, singleTok
                                   (TextLine [RoffStr s])))
@@ -134,14 +147,19 @@ instance Default RoffState where
                        , ("lq", "\x201C")
                        , ("rq", "\x201D")
                        , ("R",  "\x00AE") ]
-                  , prevFont = defaultFontSpec
-                  , currentFont = defaultFontSpec
-                  , tableTabChar = '\t'
-                  , roffMode = NormalMode
-                  , lastExpression = Nothing
-                  }
 
-type RoffLexer m = ParserT [Char] RoffState m
+newtype RoffStream = RoffStream{ unRoffStream :: [Char] }
+  deriving (Show)
+
+deriving instance Semigroup RoffStream
+deriving instance Monoid RoffStream
+
+instance Monad m => Stream RoffStream (StateT MacroState m) Char
+  where
+    uncons (RoffStream [])     = return Nothing
+    uncons (RoffStream (c:cs)) = return (Just (c, RoffStream cs))
+
+type RoffLexer m = ParserT RoffStream RoffState (StateT MacroState m)
 
 --
 -- Lexer: String -> RoffToken
@@ -212,14 +230,14 @@ readUnicodeChar _ = Nothing
 escapeNormal :: PandocMonad m => RoffLexer m [LinePart]
 escapeNormal = do
   c <- anyChar
-  case c of
+  (case c of
     ' ' -> return [RoffStr " "]
     '"' -> mempty <$ skipMany (satisfy (/='\n')) -- line comment
     '#' -> mempty <$ manyTill anyChar newline
     '%' -> return mempty  -- optional hyphenation
     '&' -> return mempty  -- nonprintable zero-width
     ')' -> return mempty  -- nonprintable zero-width
-    '*' -> escString
+    '*' -> escString <|> escIgnore '*' []
     ',' -> return mempty  -- to fix spacing after roman
     '-' -> return [RoffStr "-"]
     '.' -> return [RoffStr "`"]
@@ -283,7 +301,7 @@ escapeNormal = do
         CopyMode   -> char '\\'
         NormalMode -> return '\\'
       return [RoffStr "\\"]
-    _   -> return [RoffStr [c]]
+    _   -> return [RoffStr [c]]) <|> escIgnore c []
     -- man 7 groff: "If  a  backslash  is followed by a character that
     -- does not constitute a defined escape sequence, the backslash
     -- is  silently  ignored  and  the character maps to itself."
@@ -294,7 +312,8 @@ escIgnore :: PandocMonad m
           -> RoffLexer m [LinePart]
 escIgnore c argparsers = do
   pos <- getPosition
-  arg <- snd <$> withRaw (choice argparsers) <|> return ""
+  pos' <- (optional (choice argparsers) >> getPosition)
+  arg <- manyTill anyChar (getPosition >>= guard . (== pos'))
   report $ SkippedContent ('\\':c:arg) pos
   return mempty
 
@@ -496,17 +515,20 @@ lexConditional mname = do
                then fmap not . lastExpression <$> getState
                else expression
   skipMany spacetab
-  st <- getState -- save state, so we can reset it
+  macros <- get -- save macro state, so we can reset it
+  st <- getState
   ifPart <- lexGroup
         <|> (char '\\' >> newline >> manToken)
         <|> manToken
   case mbtest of
     Nothing    -> do
-      putState st  -- reset state, so we don't record macros in skipped section
+      put macros  -- reset state, so we don't record macros in skipped section
+      putState st
       report $ SkippedContent ('.':mname) pos
       return mempty
     Just True  -> return ifPart
     Just False -> do
+      put macros
       putState st
       return mempty
 
@@ -543,14 +565,14 @@ lexIncludeFile args = do
       result <- readFileFromDirs dirs fp
       case result of
         Nothing  -> report $ CouldNotLoadIncludeFile fp pos
-        Just s   -> getInput >>= setInput . (s ++)
+        Just s   -> getInput >>= setInput . (RoffStream s <>) -- TODO sourcepos!
       return mempty
     []    -> return mempty
 
 resolveMacro :: PandocMonad m
              => String -> [Arg] -> SourcePos -> RoffLexer m RoffTokens
 resolveMacro macroName args pos = do
-  macros <- customMacros <$> getState
+  macros <- get
   case M.lookup macroName macros of
     Nothing -> return $ singleTok $ ControlLine macroName args pos
     Just ts -> do
@@ -571,8 +593,7 @@ lexStringDef args = do -- string definition
      (x:ys) -> do
        let ts = singleTok $ TextLine (intercalate [RoffStr " " ] ys)
        let stringName = linePartsToString x
-       modifyState $ \st ->
-         st{ customMacros = M.insert stringName ts (customMacros st) }
+       modify (M.insert stringName ts)
    return mempty
 
 lexMacroDef :: PandocMonad m => [Arg] -> RoffLexer m RoffTokens
@@ -591,9 +612,8 @@ lexMacroDef args = do -- macro definition
          _ <- lexArgs
          return ()
    ts <- mconcat <$> manyTill manToken stop
-   modifyState $ \st ->
-     st{ customMacros = M.insert macroName ts (customMacros st)
-       , roffMode = NormalMode }
+   modify (M.insert macroName ts)
+   modifyState $ \st -> st{ roffMode = NormalMode }
    return mempty
 
 lexArgs :: PandocMonad m => RoffLexer m [Arg]
@@ -635,7 +655,7 @@ lexArgs = do
 
 checkDefined :: PandocMonad m => String -> RoffLexer m [LinePart]
 checkDefined name = do
-  macros <- customMacros <$> getState
+  macros <- get
   case M.lookup name macros of
     Just _  -> return [RoffStr "1"]
     Nothing -> return [RoffStr "0"]
@@ -729,8 +749,12 @@ linePartsToString = mconcat . map go
 -- | Tokenize a string as a sequence of roff tokens.
 lexRoff :: PandocMonad m => SourcePos -> T.Text -> m RoffTokens
 lexRoff pos txt = do
-  eithertokens <- readWithM (do setPosition pos
-                                mconcat <$> many manToken) def (T.unpack txt)
+  eithertokens <- evalStateT
+                   (readWithM
+                      (do setPosition pos
+                          mconcat <$> many manToken) def
+                       (RoffStream (T.unpack txt)))
+                   initialMacroState
   case eithertokens of
     Left e       -> throwError e
     Right tokenz -> return tokenz
