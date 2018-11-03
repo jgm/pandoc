@@ -53,7 +53,7 @@ import Prelude
 import Safe (lastDef)
 import Control.Monad (void, mzero, mplus, guard)
 import Control.Monad.Except (throwError)
-import Control.Monad.State.Strict (StateT(..), evalStateT, get, modify, put)
+import Control.Monad.State (StateT(..), evalStateT, get, modify, put)
 import Text.Pandoc.Class
        (getResourcePath, readFileFromDirs, PandocMonad(..), report)
 import Data.Char (isLower, toLower, toUpper, chr,

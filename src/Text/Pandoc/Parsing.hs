@@ -198,7 +198,6 @@ where
 
 import Prelude
 import Control.Monad.Identity
-import Control.Monad.Loops (unfoldM)
 import Control.Monad.Reader
 import Data.Char (chr, isAlphaNum, isAscii, isAsciiUpper,
                   isPunctuation, isSpace, ord, toLower, toUpper)
@@ -222,7 +221,6 @@ import Text.Pandoc.Shared
 import qualified Text.Pandoc.UTF8 as UTF8 (putStrLn)
 import Text.Pandoc.XML (fromEntities)
 import Text.Parsec hiding (token)
-import qualified Text.Parsec (uncons)
 import Text.Parsec.Pos (initialPos, newPos, updatePosString)
 
 import Control.Monad.Except
@@ -1056,9 +1054,9 @@ readWithM parser state input = do
   case res of
     Right x -> return $ Right x
     Left e  -> do
-      inp <- map fst <$> unfoldM (Text.Parsec.uncons input)
+      inp <- either (const "") id
+             <$> runParserT (many1 anyChar) state "source" input
       return $ Left $ PandocParsecError inp e
-
 
 -- | Parse a string with a given parser and state
 readWith :: Parser [Char] st a
