@@ -48,7 +48,7 @@ where
 
 import Prelude
 import Safe (lastDef)
-import Control.Monad (void, mzero, guard, when, mplus)
+import Control.Monad (void, mzero, mplus)
 import Control.Monad.Except (throwError)
 import Text.Pandoc.Class
        (getResourcePath, readFileFromDirs, PandocMonad(..), report)
@@ -56,7 +56,7 @@ import Data.Char (isLower, toLower, toUpper, chr,
                   isAscii, isAlphaNum, isSpace)
 import Data.Default (Default)
 import qualified Data.Map as M
-import Data.List (intercalate, isSuffixOf)
+import Data.List (intercalate)
 import qualified Data.Text as T
 import Text.Pandoc.Logging (LogMessage(..))
 import Text.Pandoc.Options
@@ -117,11 +117,12 @@ data RoffMode = NormalMode
               | CopyMode
               deriving Show
 
-data RoffState = RoffState { customMacros :: M.Map String RoffTokens
-                           , prevFont     :: FontSpec
-                           , currentFont  :: FontSpec
-                           , tableTabChar :: Char
-                           , roffMode     :: RoffMode
+data RoffState = RoffState { customMacros   :: M.Map String RoffTokens
+                           , prevFont       :: FontSpec
+                           , currentFont    :: FontSpec
+                           , tableTabChar   :: Char
+                           , roffMode       :: RoffMode
+                           , lastExpression :: Maybe Bool
                            } deriving Show
 
 instance Default RoffState where
@@ -137,6 +138,7 @@ instance Default RoffState where
                   , currentFont = defaultFontSpec
                   , tableTabChar = '\t'
                   , roffMode = NormalMode
+                  , lastExpression = Nothing
                   }
 
 type RoffLexer m = ParserT [Char] RoffState m
@@ -349,15 +351,16 @@ lexComment = do
 lexMacro :: PandocMonad m => RoffLexer m RoffTokens
 lexMacro = do
   pos <- getPosition
-  guard $ sourceColumn pos == 1
+  -- we don't want this because of '.ie .B foo':
+  -- guard $ sourceColumn pos == 1
   char '.' <|> char '\''
   skipMany spacetab
   macroName <- many (satisfy (not . isSpace))
   case macroName of
     "nop" -> return mempty
-    "ie"  -> lexConditional
-    "if"  -> lexConditional
-    "el"  -> skipConditional
+    "ie"  -> lexConditional "ie"
+    "if"  -> lexConditional "if"
+    "el"  -> lexConditional "el"
     "TS"  -> lexTable pos
 
     _ -> do
@@ -484,18 +487,43 @@ tableColFormat = do
 
 -- We don't fully handle the conditional.  But we do
 -- include everything under '.ie n', which occurs commonly
--- in man pages.  We always skip the '.el' part.
-lexConditional :: PandocMonad m => RoffLexer m RoffTokens
-lexConditional = do
+-- in man pages.
+lexConditional :: PandocMonad m => String -> RoffLexer m RoffTokens
+lexConditional mname = do
+  pos <- getPosition
   skipMany spacetab
-  lexNCond <|> skipConditional
+  mbtest <- if mname == "el"
+               then fmap not . lastExpression <$> getState
+               else expression
+  skipMany spacetab
+  st <- getState -- save state, so we can reset it
+  ifPart <- lexGroup
+        <|> (char '\\' >> newline >> manToken)
+        <|> manToken
+  case mbtest of
+    Nothing    -> do
+      putState st  -- reset state, so we don't record macros in skipped section
+      report $ SkippedContent ('.':mname) pos
+      return mempty
+    Just True  -> return ifPart
+    Just False -> do
+      putState st
+      return mempty
 
--- n means nroff mode
-lexNCond :: PandocMonad m => RoffLexer m RoffTokens
-lexNCond = do
-  newline
-  many1 spacetab
-  lexGroup <|> manToken
+expression :: PandocMonad m => RoffLexer m (Maybe Bool)
+expression = do
+  raw <- charsInBalanced '(' ')' (satisfy (/= '\n'))
+      <|> many1 nonspaceChar
+  returnValue $
+    case raw of
+      "1"  -> Just True
+      "n"  -> Just True  -- nroff mode
+      "t"  -> Just False -- troff mode
+      _    -> Nothing
+  where
+    returnValue v = do
+      modifyState $ \st -> st{ lastExpression = v }
+      return v
 
 lexGroup :: PandocMonad m => RoffLexer m RoffTokens
 lexGroup = do
@@ -504,13 +532,6 @@ lexGroup = do
   where
     groupstart = try $ string "\\{\\" >> newline
     groupend   = try $ string "\\}" >> eofline
-
-skipConditional :: PandocMonad m => RoffLexer m RoffTokens
-skipConditional = do
-  rest <- anyLine
-  when ("\\{\\" `isSuffixOf` rest) $
-    void $ manyTill anyChar (try (string "\\}"))
-  return mempty
 
 lexIncludeFile :: PandocMonad m => [Arg] -> RoffLexer m RoffTokens
 lexIncludeFile args = do
