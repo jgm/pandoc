@@ -1,3 +1,461 @@
+pandoc (2.4)
+
+  [new features]
+
+  * New input format `man` (Yan Pashkovsky, John MacFarlane).
+
+  [behavior changes]
+
+  * `--ascii` is now implemented in the writers, not in Text.Pandoc.App,
+    via the new `writerPreferAscii` field in `WriterOptions`.
+    Now the `write*` functions for Docbook, HTML, ICML, JATS, LaTeX,
+    Ms, Markdown, and OPML are sensitive to `writerPreferAscii`.
+    Previously the to-ascii translation was done in Text.Pandoc.App,
+    and thus not available to those using the writer functions
+    directly.
+
+  * `--ascii` now works with Markdown output.  HTML5 character reference
+    entities are used.
+
+  * `--ascii` now works with LaTeX output. 100% ASCII output can't be
+    guaranteed, but the writer will use commands like `\"{a}` and `\l`
+    whenever possible, to avoid emiting a non-ASCII character.
+
+  * For HTML5 output, `--ascii` now uses HTML5 character reference
+    entities rather than numerical entities.
+
+  * Improved detection of format based on extension (in Text.Pandoc.App).
+    We now ensure that if someone tries to convert a file for a
+    format that has a pandoc writer but not a reader, it won't just
+    default to markdown.
+
+  * Add viz. to abbreviations file (#5007, Nick Fleisher).
+
+  * RST writer: Use simple tables when possible (#4750).
+
+  * CommonMark (and gfm) writer: Add plain text fallbacks. (#4528,
+    quasicomputational). Previously, the writer would unconditionally
+    emit HTML output for subscripts, superscripts, strikeouts (if the
+    strikeout extension is disabled) and small caps, even with
+    `raw_html` disabled. Now there are plain-text (and, where
+    possible, fancy Unicode) fallbacks for all of these corresponding
+    (mostly) to the Markdown fallbacks, and the HTML output is only
+    used when `raw_html` is enabled.
+
+  * Powerpoint writer: support raw openxml (Jesse Rosenthal, #4976).
+    This allows raw openxml blocks and inlines to be used in the pptx 
+    writer. Caveats: (1) It's up to the user to write
+    well-formed openxml. The chances for corruption, especially with
+    such a brittle format as pptx, is high. (2) Because of
+    the tricky way that blocks map onto shapes, if you are using
+    a raw block, it should be the only block on a slide
+    (otherwise other text might end up overlapping it). (3) The
+    pptx ooxml namespace abbreviations are different from the
+    docx ooxml namespaces. Again, it's up to the user to get it
+    right. Unzipped document and ooxml specification should be
+    consulted.
+
+  * With `--katex` in HTML formats, do not use the autorenderer (#4946).
+    We no longer surround formulas with `\(..\)` or `\[..\]`. Instead,
+    we tell katex to convert the contents of span elements with
+    class "math". Since math has already been identified, this
+    avoids wasted time parsing for LaTeX delimiters. Note, however,
+    that this may yield unexpected results if you have span elements
+    with class "math" that don't contain LaTeX math.
+    Also, use latest version of KaTeX by default (0.9.0).
+
+  * The man writer now produces ASCII-only output, using groff escapes,
+    for portability.
+
+  * ODT writer:
+
+    + Add title, author and date to metadata; any remaining
+      metadata fields are added as `meta:user-defined` tags.
+    + Implement table caption numbering (#4949, Nils Carlson).
+      Captioned tables are numbered and labeled with format "Table 1:
+      caption", where "Table" is replaced by a translation, depending
+      on the value of `lang` in metadata. Uncaptioned tables are not
+      enumerated.
+    + OpenDocument writer: Implement figure numbering in captions (#4944,
+      Nils Carlson). Figure captions are now numbered 1, 2, 3, ...
+      The format in the caption is "Figure 1: caption" and so on
+      (where "Figure" is replaced by a translation, depending on the
+      value of `lang` in the metadata). Captioned figures are numbered
+      consecutively and uncaptioned figures are not enumerated. This
+      is necessary in order for LibreOffice to generate an
+      Illustration Index (Table of Figures) for included figures.
+
+  * RST reader: Pass through fields in unknown directives as div attributes
+    (#4715). Support `class` and `name` attributes for all directives.
+
+  * Org reader: Add partial support for `#+EXCLUDE_TAGS` option. (#4284,
+    Brian Leung). Headers with the corresponding tags should not
+    appear in the output.
+
+  * Log warnings about missing title attributes now include a
+    suggestion about how to fix the problem (#4909).
+
+  * Lua filter changes (Albert Krewinkel):
+
+    + Report traceback when an error occurs. A proper Lua traceback is
+      added if either loading of a file or execution of a filter
+      function fails. This should be of help to authors of Lua filters
+      who need to debug their code.
+
+    + Allow access to pandoc state (#5015). Lua filters and custom
+      writers now have read-only access to most fields of pandoc's
+      internal state via the global variable `PANDOC_STATE`.
+
+    + Push ListAttributes via constructor (Albert Krewinkel).
+      This ensures that ListAttributes, as present in OrderedList elements,
+      have additional accessors (viz. `start`, `style`, and `delimiter`).
+
+    + Rename ReaderOptions fields, use snake_case. Snake case is used
+      in most variable names, using camelCase for these fields was an
+      oversight. A metatable is added to ensure that the old field
+      names remain functional.
+
+    + Iterate over AST element fields when using `pairs`. This makes
+      it possible to iterate over all ield names of an AST element by
+      using a generic `for` loop with pairs`:
+
+          for field_name, field_content in pairs(element) do
+          ... 
+          end
+
+      Raw table fields of AST elements should be considered an
+      implementation detail and might change in the future. Accessing
+      element properties should always happen through the fields
+      listed in the Lua filter docs.
+
+      Note that the iterator currently excludes the `t`/`tag` field.
+
+    + Ensure that MetaList elements behave like Lists. Methods usable
+      on Lists can also be used on MetaList objects.
+
+    + Fix MetaList constructor (Albert Krewinkel). Passing a MetaList
+      object to the constructor `pandoc.MetaList` now returns the
+      passed list as a MetaList. This is consistent with the
+      constructor behavior when passed an (untagged) list.
+
+  * Custom writers: Custom writers have access to the global variable
+    `PANDOC_DOCUMENT`(Albert Krewinkel, #4957). The variable contains
+    a userdata wrapper around the full pandoc AST and exposes two
+    fields, `meta` and `blocks`. The field content is only
+    marshaled on-demand, performance of scripts not accessing the
+    fields remains unaffected.
+
+  [API changes]
+
+  * Text.Pandoc.Options: add `writerPreferAscii` to `WriterOptions`.
+
+  * Text.Pandoc.Shared: export `splitSentences`. This was previously
+    duplicated in the Man and Ms writers.
+
+  * New exported module Text.Pandoc.Filter (Albert Krewinkel).
+
+  * Text.Pandoc.Parsing
+
+    + Generalize `gridTableWith` to any `Char` Stream (Alexander Krotov).
+    + Generalize `readWithM` from `[Char]` to any `Char` Stream.
+
+  * New exposed module Text.Pandoc.Filter (Albert Krewinkel).
+
+  * Text.Pandoc.XML: add `toHtml5Entities`.
+
+  * New exported module Text.Pandoc.Readers.Man (Yan Pashkovsky, John
+    MacFarlane).
+
+  * Text.Pandoc.Writers.Shared
+
+    + Add exported functions `toSuperscript` and
+      `toSubscript` (quasicomputational, #4528).
+    + Remove exported functions `metaValueToInlines`,
+      `metaValueToString`. Add new exported functions
+      `lookupMetaBool`, `lookupMetaBlocks`, `lookupMetaInlines`,
+      `lookupMetaString`. Use these whenever possible for uniformity
+      in writers (Mauro Bieg, #4907). (Note that
+      removed function `metaValueToInlines` was in previous
+      released versions.)
+    + Add `metaValueToString`.
+
+  * Text.Pandoc.Lua
+
+    + Expose more useful internals (Albert Krewinkel):
+
+      - `runFilterFile` to run a Lua filter from file;
+      - data type `Global` and its constructors; and
+      - `setGlobals` to add globals to a Lua environment.
+
+      This module also contains `Pushable` and `Peekable` instances
+      required to get pandoc's data types to and from Lua. Low-level
+      Lua operation remain hidden in Text.Pandoc.Lua.
+
+    + Rename `runPandocLua` to `runLua` (Albert Krewinkel).
+
+    + Remove `runLuaFilter`, merging this into Text.Pandoc.Filter.Lua's
+      `apply` (Albert Krewinkel).
+
+  [bug fixes and under-the-hood improvements]
+
+  * Text.Pandoc.Parsing
+
+    + Make `uri` accept any stream with Char tokens (Alexander Krotov).
+    + Rewrite `uri` without `withRaw` (Alexander Krotov).
+    + Generalize `parseFromString` and `parseFromString'` to any
+      streams with Char token (Alexander Krotov)
+    + Rewrite `nonspaceChar` using `noneOf` (Alexander Krotov)
+
+  * Text.Pandoc.Shared: Reimplement `mapLeft` using `Bifunctor.first`
+    (Alexander Krotov).
+
+  * Text.Pandoc.Pretty: Simplify `Text.Pandoc.Pretty.offset`
+    (Alexander Krotov).
+
+  * Text.Pandoc.App
+
+    + Work around HXT limitation for --syntax-definition with windows
+      drive (#4836).
+    + Always preserve tabs for man format. We need it for tables.
+
+  * Text.Pandoc.Readers.Roff: new unexported module for tokenizing
+    roff documents.
+
+  * New unexported module Text.Pandoc.RoffChar, provided character
+    escape tables for roff formats.
+
+  * Text.Pandoc.Readers.HTML: Fix `htmlTag` and `isInlineTag` to
+    accept processing instructions (#3123, regression since 2.0).
+
+  * Text.Pandoc.Readers.JATS: Use `foldl'` instead of `maximum` to
+    account for empty lists (Alexander Krotov).
+
+  * Text.Pandoc.Readers.RST: Don't allow single-dash separator in
+    headerless table (#4382).
+
+  * Text.Pandoc.Readers.Org: Parse empty argument array in inline src
+    blocks (Brian Leung).
+
+  * Text.Pandoc.Readers.Vimwiki: Get rid of `F`, `runF` and `stateMeta'`
+    in favor of `stateMeta` (Alexander Krotov).
+
+  * Text.Pandoc.Readers.LaTeX
+
+    + Allow space at end of math after `\` (#5010).
+    + Add support for `nolinkurl` command (#4992, Brian Leung).
+    + Simplified type on `doMacros'`.
+    + Tokenize before pulling tokens, rather than after (#4408). This
+      has some performance penalty but is more reliable.
+    + Make macroDef polymorphic and allow in inline context.
+      Otherwise we can't parse something like `\lowercase{\def\x{Foo}}`.
+     I have actually seen tex like this in the wild.
+    + Improved parsing of `\def`, `\let`. We now correctly parse:
+      ```
+      \def\bar{hello}
+      \let\fooi\bar
+      \def\fooii{\bar}
+      \fooi +\fooii
+
+      \def\bar{goodbye}
+      \fooi +\fooii
+      ```
+    + Improve parsing of `\def` argspec.
+    + Skip `\PackageError` commands (see #4408).
+    + Fix bugs omitting raw tex (#4527). The default is `-raw_tex`,
+      so no raw tex should result unless we explicitly say `+raw_tex`.
+      Previously some raw commands did make it through.
+    + Moved `isArgTok` to Text.Pandoc.Readers.LaTeX.Parsing.
+    + Moved `babelLangToBCP`, `polyglossiaLangToBCP` to new module,
+      Text.Pandoc.Readers.LaTeX.Lang (unexported).
+    + Simplified accent code using unicode-transforms.
+      New dependency on unicode-transforms package for normalization.
+    + Allow verbatim blocks ending with blank lines (#4624).
+    + Support `breq` math environments: `dmath`, `dgroup`, `darray`.
+      This collects some of the general-purpose code from the LaTeX reader,
+      with the aim of making the module smaller.
+
+  * Text.Pandoc.Readers.Markdown
+
+    + Fix awkward soft break movements before abbreviations (#4635).
+    + Add updateStrPos in a couple places where needed.
+
+  * Text.Pandoc.Readers.Docx: Trigger bold/italic with bCs, iCs
+    (#4947). These are variants for "complex scripts" like Arabic
+    and are now treated just like b, i (bold, italic).
+
+  * Text.Pandoc.Readers.Muse (Alexander Krotov)
+
+    + Try to parse lists before trying to parse table.
+      This ensures that tables inside lists are parsed correctly.
+    + Forbid whitespace after opening and before closing markup
+      elements.
+    + Parse page breaks.
+    + Simplify `museToPandocTable` to get rid of partial functions.
+    + Allow footnotes to start with empty line.
+    + Make sure that the whole text is parsed.
+    + Allow empty headers. Previously empty headers caused parser to
+      terminate without parsing the rest of the document.
+    + Allow examples to be indented with tabs.
+    + Remove indentation from examples indicated by `{{{` and `}}}`.
+    + Fix parsing of empty cells.
+    + Various changes to internals.
+    + Rewrite some parsers in applicative style.
+    + Avoid tagsoup dependency.
+    + Allow table caption to contain `+`.
+
+  * Text.Pandoc.Writers.LaTeX
+
+    + Add newline if math ends in a comment (#4880). This prevents the
+      closing delimiter from being swalled up in the comment.
+    + With `--listings`, don't pass through org-babel attributes (#4889).
+    + With `--biblatex`, use `\autocite` when possible (#4960).
+      `\autocites{a1}{a2}{a3}` will not collapse the entries. So, if
+      we don't have prefixes and suffixes, we use instead
+      `\autocite{a1;a2;a3}`.
+    + Fix description lists contining highlighted code (#4662).
+
+  * Text.Pandoc.Writers.Man
+
+    + Don't wrap `.SH` and `.SS` lines (#5019).
+    + Avoid unnecessary `.RS`/`.RE` pair in definition lists with
+      one paragraph definitions.
+    + Moved common groff functions to Text.Pandoc.Writers.Groff.
+    * Fix strong/code combination on man (should be `\f[CB]` not
+      `\f[BC]`, see #4973).
+    + Man writer: use `\f[R]` instead of `\f[]` to reset font
+      (Alexander Krotov, #4973).
+    + Move `splitSentences` to Text.Pandoc.Shared.
+
+  * Text.Pandoc.Writers.Docx
+
+    + Add framework for custom properties (#3034). So far, we don't
+      actually write any custom properties, but we have the
+      infrastructure to add this.
+
+    + Handle tables in table cells (#4953). Although this is not
+      documented in the spec, some versions of Word require a `w:p`
+      element inside every table cell. Thus, we add one when the
+      contents of a cell do not already include one (e.g. when a table
+      cell contains a table).
+
+  * Text.Pandoc.Writers.OpenDocument: Improve bullet/numbering
+    alignment (#4385). This change eliminates the large gap we used
+    to have between bullet and text, and also ensures that numbers
+    in numbered lists will be right-aligned.
+
+  * Text.Pandoc.Writers.ZimWiki
+
+    + Number ordered list items sequentially, rather than always
+      with 1 (#4962).
+    + Remove extra indentation on lists (#4963).
+
+  * Text.Pandoc.Writers.EPUB: Use metadata field `css` instead of
+    `stylesheet` (Mauro Bieg, #4990).
+
+  * Text.Pandoc.Writers.Markdown: Ensure blank between raw block and
+    normal content (#4629). Otherwise a raw block can prevent a
+    paragraph from being recognized as such.
+
+  * Text.Pandoc.Writers.Ms
+
+    + Removed old `escapeBar`. We don't need this now that we use
+      `@` for math delim.
+    + Moved common code to Text.Pandoc.Writers.Roff and to
+      Text.Pandoc.RoffChar.
+    + Move `splitSentences` to Text.Pandoc.Shared (to avoid duplication
+      with the man writer).
+
+   * Text.Pandoc.Writers.Muse (Alexander Krotov).
+
+    + Add support for grid tables.
+    + Fix Muse writer style.
+    + Use `length` instead of `realLength` to calculate definition
+      indentation. Muse parsers don't take character width into
+      account when calculating indentation.
+    + Do not insert newline before lists.
+    + Use lightweight markup after `</em>` tag.
+
+  * New unexported module Text.Pandoc.Writers.Roff, providing functions
+    useful for all roff format writers (man, ms).
+
+  * Text.Pandoc.Lua
+
+    + Move globals handling to separate module Text.Pandoc.Lua.Global
+      (Albert Krewinkel).
+
+    + Lua filter internals: push Shared.Element as userdata (Albert
+      Krewinkel). Hierarchical Elements were pushed to Lua as plain
+      tables. This is simple, but has the disadvantage that marshaling
+      is eager: all child elements will be marshaled as part of the
+      object. Using a Lua userdata object instead allows lazy access
+      to fields, causing content marshaling just (but also each time)
+      when a field is accessed. Filters which do not traverse the full
+      element contents tree become faster as a result.
+
+  [default template changes]
+
+  * LaTeX template: add variable hyperrefoptions(#4925, Mathias Walter).
+    Introduce a new variable `hyperrefoptions` to pass to the hyperref
+    package. This allows us (for example) to specify `hyperrefoptions:
+    linktoc=all` in a YAML block.
+
+  * revealjs template: Fix typo in the socket.io javascript plugin (#5006,
+    Yoan Blanc).
+
+  * Text.Pandoc.Lua.Util: add missing docstring to `defineHowTo`
+    (Albert Krewinkel).
+
+  * data/pandoc.lua: add datatype ListAttributes (Albert Krewinkel)
+
+  * data/sample.lua: replace custom pipe function with pandoc.utils.pipe
+    (Albert Krewinkel).
+
+  [documentation improvements]
+
+  * INSTALL.md
+
+    + Add chromeos install instructions (#4958) (Evan Pratten).
+    + Add note about TinyTeX.
+
+  * MANUAL.txt
+
+    + Change `groff` -> `roff`.
+    + Implement `--ascii` for Markdown writer.
+    + Clarify LaTeX image dimensions output (Mauro Bieg).
+
+  * doc/customizing-pandoc.md: added skeleton (Mauro Bieg, #3288).
+
+  * doc/getting-started.md: Added title to test1.md to avoid warning.
+
+  * doc/lua-filters.md: merge type references into main document,
+    fix description of Code.text (Albert Krewinkel).
+
+  [build infrastructure improvements]
+
+  * Makefile
+
+    + Makefile: added quick-cabal, full-cabal targets.
+    + Make .msi download targets insensitive to order of appveyor builds.
+
+  * Update benchmarks for ghc 8.6.1.
+
+   * pandoc.cabal:
+
+    + Enable more compiler warnings (Albert Krewinkel).
+    + Make base lower bound 4.8.
+    + Bump upper bound for QuickCheck.
+    + Bump upper bound for binary.
+    + Updated version bounds for containers and haddock-library (#4974).
+    + Added docx/docPropos/custom.xml to cabal data-files.
+    + Require skylighting 0.7.4 (#4920).
+    + New dependency on unicode-transforms package for normalization.
+
+  * Improved .travis.yml testing and test with GHC 8.6.1 (Albert Krewinkel).
+
+  * Added `tools/changelog-helper.sh`.
+
+  * Added test/grofftest.sh for testing the man reader on real man pages.
+
 pandoc (2.3.1)
 
   * RST reader:
