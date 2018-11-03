@@ -198,6 +198,7 @@ where
 
 import Prelude
 import Control.Monad.Identity
+import Control.Monad.Loops (unfoldM)
 import Control.Monad.Reader
 import Data.Char (chr, isAlphaNum, isAscii, isAsciiUpper,
                   isPunctuation, isSpace, ord, toLower, toUpper)
@@ -221,6 +222,7 @@ import Text.Pandoc.Shared
 import qualified Text.Pandoc.UTF8 as UTF8 (putStrLn)
 import Text.Pandoc.XML (fromEntities)
 import Text.Parsec hiding (token)
+import qualified Text.Parsec (uncons)
 import Text.Parsec.Pos (initialPos, newPos, updatePosString)
 
 import Control.Monad.Except
@@ -1044,13 +1046,18 @@ gridTableFooter = blanklines
 ---
 
 -- | Removes the ParsecT layer from the monad transformer stack
-readWithM :: Monad m
-          => ParserT [Char] st m a    -- ^ parser
+readWithM :: (Monad m, Stream s m Char)
+          => ParserT s st m a         -- ^ parser
           -> st                       -- ^ initial state
-          -> String                   -- ^ input
+          -> s                        -- ^ input
           -> m (Either PandocError a)
-readWithM parser state input =
-    mapLeft (PandocParsecError input) `liftM` runParserT parser state "source" input
+readWithM parser state input = do
+  res <- runParserT parser state "source" input
+  case res of
+    Right x -> return $ Right x
+    Left e  -> do
+      inp <- map fst <$> unfoldM (Text.Parsec.uncons input)
+      return $ Left $ PandocParsecError inp e
 
 
 -- | Parse a string with a given parser and state
