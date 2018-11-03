@@ -396,7 +396,7 @@ lexTable :: PandocMonad m => SourcePos -> RoffLexer m RoffTokens
 lexTable pos = do
   skipMany lexComment
   spaces
-  opts <- option [] tableOptions
+  opts <- option [] $ try $ tableOptions <* char ';'
   case lookup "tab" opts of
     Just (c:_) -> modifyState $ \st -> st{ tableTabChar = c }
     _          -> modifyState $ \st -> st{ tableTabChar = '\t' }
@@ -448,7 +448,7 @@ tableRow = do
   return (c:cs)
 
 tableOptions :: PandocMonad m => RoffLexer m [TableOption]
-tableOptions = try $ many tableOption <* spaces <* char ';'
+tableOptions = many tableOption <* spaces
 
 tableOption :: PandocMonad m => RoffLexer m TableOption
 tableOption = do
