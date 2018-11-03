@@ -268,9 +268,8 @@ defaultOpts = Opt
     , optStripComments          = False
     }
 
-lookupHighlightStyle :: Maybe String -> IO (Maybe Style)
-lookupHighlightStyle Nothing = return Nothing
-lookupHighlightStyle (Just s)
+lookupHighlightStyle :: String -> IO (Maybe Style)
+lookupHighlightStyle s
   | takeExtension s == ".theme" = -- attempt to load KDE theme
     do contents <- B.readFile s
        case parseTheme contents of
