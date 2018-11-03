@@ -548,7 +548,8 @@ lexGroup = do
   where
     groupstart = try $ string "\\{\\" >> newline
     groupend   = try $ optional (char '.' >> many spacetab) >>
-                       string "\\}" >> eofline
+                       string "\\}" >> (lexLine <|> lexEmptyLine)
+                       -- could be comment
 
 lexIncludeFile :: PandocMonad m => [Arg] -> RoffLexer m RoffTokens
 lexIncludeFile args = do
