@@ -313,9 +313,22 @@ signedNumber = try $ do
 -- Parses: [..] or (..
 escapeArg :: PandocMonad m => RoffLexer m String
 escapeArg = choice
-    [ char '[' *> manyTill (noneOf ['\n',']']) (char ']')
-    , char '(' *> count 2 (satisfy (/='\n'))
+    [ char '[' *> manyTill (expanding $ noneOf ['\n',']']) (char ']')
+    , char '(' *> count 2 (expanding $ satisfy (/='\n'))
     ]
+
+expanding :: PandocMonad m => RoffLexer m a -> RoffLexer m a
+expanding parser = try $ optional expandString >> parser
+
+expandString :: PandocMonad m => RoffLexer m ()
+expandString = try $ do
+  pos <- getPosition
+  char '\\'
+  char '*'
+  cs <- escapeArg <|> count 1 anyChar
+  s <- linePartsToString <$> resolveString cs pos
+  getInput >>= setInput . (s ++)
+  return ()
 
 -- Parses: '..'
 quoteArg :: PandocMonad m => RoffLexer m String
@@ -323,7 +336,7 @@ quoteArg = char '\'' *> manyTill (noneOf ['\n','\'']) (char '\'')
 
 escFont :: PandocMonad m => RoffLexer m [LinePart]
 escFont = do
-  font <- escapeArg <|> count 1 alphaNum
+  font <- expanding (escapeArg <|> count 1 alphaNum)
   font' <- if null font || font == "P"
               then prevFont <$> getState
               else return $ foldr processFontLetter defaultFontSpec font
@@ -647,15 +660,16 @@ escString = try $ do
       resolveString cs pos)
     <|> mempty <$ char 'S'
 
-  where
-  -- strings and macros share namespace
-  resolveString stringname pos = do
-    RoffTokens ts <- resolveMacro stringname [] pos
-    case Foldable.toList ts of
-      [TextLine xs] -> return xs
-      _          -> do
-        report $ SkippedContent ("unknown string " ++ stringname) pos
-        return mempty
+-- strings and macros share namespace
+resolveString :: PandocMonad m
+              => String -> SourcePos -> RoffLexer m [LinePart]
+resolveString stringname pos = do
+  RoffTokens ts <- resolveMacro stringname [] pos
+  case Foldable.toList ts of
+    [TextLine xs] -> return xs
+    _          -> do
+      report $ SkippedContent ("unknown string " ++ stringname) pos
+      return mempty
 
 lexLine :: PandocMonad m => RoffLexer m RoffTokens
 lexLine = do
