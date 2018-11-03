@@ -396,7 +396,7 @@ lexTable :: PandocMonad m => SourcePos -> RoffLexer m RoffTokens
 lexTable pos = do
   skipMany lexComment
   spaces
-  opts <- option [] $ try $ tableOptions <* char ';'
+  opts <- try tableOptions <|> [] <$ optional (char ';')
   case lookup "tab" opts of
     Just (c:_) -> modifyState $ \st -> st{ tableTabChar = c }
     _          -> modifyState $ \st -> st{ tableTabChar = '\t' }
@@ -448,7 +448,7 @@ tableRow = do
   return (c:cs)
 
 tableOptions :: PandocMonad m => RoffLexer m [TableOption]
-tableOptions = many tableOption <* spaces
+tableOptions = many1 tableOption <* spaces <* char ';'
 
 tableOption :: PandocMonad m => RoffLexer m TableOption
 tableOption = do
@@ -472,7 +472,7 @@ tableFormatSpec = do
 
 tableFormatSpecLine :: PandocMonad m => RoffLexer m [CellFormat]
 tableFormatSpecLine =
-  many1 $ try $ skipMany spacetab *> tableColFormat <* skipMany spacetab
+  many1 $ skipMany spacetab *> tableColFormat <* skipMany spacetab
 
 tableColFormat :: PandocMonad m => RoffLexer m CellFormat
 tableColFormat = do
@@ -485,9 +485,10 @@ tableColFormat = do
                   'p','P','t','T','u','U','v','V','w','W','x','X', 'z','Z']
           num <- case toLower x of
                    'w' -> many1 digit <|>
-                           do char '('
-                              xs <- manyTill anyChar (char ')')
-                              return ("(" ++ xs ++ ")")
+                           (do char '('
+                               xs <- manyTill anyChar (char ')')
+                               return ("(" ++ xs ++ ")")) <|>
+                           return ""
                    'f' -> count 1 alphaNum <* skipMany spacetab
                    'm' -> count 1 alphaNum <* skipMany spacetab
                    _   -> return ""
