@@ -420,6 +420,8 @@ pandoc (2.4)
     package. This allows us (for example) to specify `hyperrefoptions:
     linktoc=all` in a YAML block.
 
+  * AsciiDoc template: use single-line style for title.
+
   * revealjs template: Fix typo in the socket.io javascript plugin (#5006,
     Yoan Blanc).
 
