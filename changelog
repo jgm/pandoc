@@ -415,10 +415,10 @@ pandoc (2.4)
 
   [default template changes]
 
-  * LaTeX template: add variable hyperrefoptions(#4925, Mathias Walter).
-    Introduce a new variable `hyperrefoptions` to pass to the hyperref
-    package. This allows us (for example) to specify `hyperrefoptions:
-    linktoc=all` in a YAML block.
+  * LaTeX template:
+
+    + Add variable `hyperrefoptions` (#4925, Mathias Walter).
+    + Add variable `romanfont`, `romanfontoptions` (#4665, OvidiusCicero).
 
   * AsciiDoc template: use single-line style for title.
 
