@@ -1,5 +1,5 @@
 $if(titleblock)$
-$title$
+= $title$
 $if(author)$
 $for(author)$$author$$sep$; $endfor$
 $endif$

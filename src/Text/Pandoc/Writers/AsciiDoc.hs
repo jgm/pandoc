@@ -40,14 +40,11 @@ AsciiDoc:  <http://www.methods.co.nz/asciidoc/>
 module Text.Pandoc.Writers.AsciiDoc (writeAsciiDoc) where
 import Prelude
 import Control.Monad.State.Strict
-import Data.Aeson (Result (..), Value (String), fromJSON, toJSON)
 import Data.Char (isPunctuation, isSpace)
 import Data.List (intercalate, intersperse, stripPrefix)
-import qualified Data.Map as M
 import Data.Maybe (fromMaybe, isJust, listToMaybe)
 import qualified Data.Set as Set
 import Data.Text (Text)
-import qualified Data.Text as T
 import Text.Pandoc.Class (PandocMonad, report)
 import Text.Pandoc.Definition
 import Text.Pandoc.ImageSize
@@ -93,20 +90,13 @@ pandocToAsciiDoc opts (Pandoc meta blocks) = do
               (fmap render' . blockListToAsciiDoc opts)
               (fmap render' . inlineListToAsciiDoc opts)
               meta
-  let addTitleLine (String t) = String $
-         t <> "\n" <> T.replicate (T.length t) "="
-      addTitleLine x = x
-  let metadata' = case fromJSON metadata of
-                        Success m  -> toJSON $ M.adjust addTitleLine
-                                                 ("title" :: T.Text) m
-                        _          -> metadata
   body <- blockListToAsciiDoc opts blocks
   let main = render colwidth body
   let context  = defField "body" main
                $ defField "toc"
                   (writerTableOfContents opts &&
                    isJust (writerTemplate opts))
-               $defField "titleblock" titleblock metadata'
+               $defField "titleblock" titleblock metadata
   case writerTemplate opts of
        Nothing  -> return main
        Just tpl -> renderTemplate' tpl context
@@ -171,27 +161,17 @@ blockToAsciiDoc _ HorizontalRule =
   return $ blankline <> text "'''''" <> blankline
 blockToAsciiDoc opts (Header level (ident,_,_) inlines) = do
   contents <- inlineListToAsciiDoc opts inlines
-  let len = offset contents
-  -- ident seem to be empty most of the time and asciidoc will generate them automatically
-  -- so lets make them not show up when null
   ids <- gets autoIds
   let autoId = uniqueIdent inlines ids
   modify $ \st -> st{ autoIds = Set.insert autoId ids }
-  let identifier = if null ident || (isEnabled Ext_auto_identifiers opts && ident == autoId)
-                     then empty else "[[" <> text ident <> "]]"
-  let setext = writerSetextHeaders opts
-  return
-         (if setext
-            then
-              identifier $$ contents $$
-              (case level of
-               1 -> text $ replicate len '-'
-               2 -> text $ replicate len '~'
-               3 -> text $ replicate len '^'
-               4 -> text $ replicate len '+'
-               _ -> empty) <> blankline
-            else
-              identifier $$ text (replicate level '=') <> space <> contents <> blankline)
+  let identifier = if null ident ||
+                      (isEnabled Ext_auto_identifiers opts && ident == autoId)
+                      then empty
+                      else "[[" <> text ident <> "]]"
+  return $ identifier $$
+           nowrap (text (replicate (level + 1) '=') <> space <> contents) <>
+           blankline
+
 blockToAsciiDoc _ (CodeBlock (_,classes,_) str) = return $ flush (
   if null classes
      then "...." $$ text str $$ "...."

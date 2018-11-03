@@ -882,7 +882,7 @@ Options affecting specific writers {.options}
 
 `--atx-headers`
 
-:   Use ATX-style headers in Markdown and AsciiDoc output. The default is
+:   Use ATX-style headers in Markdown output. The default is
     to use setext-style headers for levels 1-2, and then ATX headers.
     (Note: for `gfm` output, ATX headers are always used.)
 
