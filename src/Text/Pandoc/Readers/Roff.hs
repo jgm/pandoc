@@ -510,7 +510,7 @@ lexConditional mname = do
                else expression
   skipMany spacetab
   st <- getState -- save state, so we can reset it
-  ifPart <- lexGroup <|> manToken
+  ifPart <- lexGroup <|> (optional (try (char '\\' >> newline)) >> manToken)
   case mbtest of
     Nothing    -> do
       putState st  -- reset state, so we don't record macros in skipped section
