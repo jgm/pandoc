@@ -1,7 +1,6 @@
 {-# LANGUAGE NoImplicitPrelude #-}
 {-# LANGUAGE CPP                 #-}
 {-# LANGUAGE ScopedTypeVariables #-}
-{-# LANGUAGE TupleSections       #-}
 {-
 Copyright (C) 2006-2018 John MacFarlane <jgm@berkeley.edu>
 
@@ -44,12 +43,10 @@ module Text.Pandoc.App (
 import Prelude
 import qualified Control.Exception as E
 import Control.Monad
-import Control.Monad.Except (catchError, throwError)
 import Control.Monad.Trans
 import qualified Data.ByteString as BS
 import qualified Data.ByteString.Lazy as B
 import Data.Char (toLower)
-import Data.List (find, isPrefixOf, isSuffixOf)
 import Data.Maybe (fromMaybe, isJust, isNothing)
 import qualified Data.Set as Set
 import Data.Text (Text)
@@ -59,8 +56,6 @@ import qualified Data.Text.Lazy.Encoding as TE
 import qualified Data.Text.Encoding.Error as TE
 import qualified Data.YAML as YAML
 import Network.URI (URI (..), parseURI)
-import Skylighting (defaultSyntaxMap)
-import Skylighting.Parser (addSyntaxDefinition, parseSyntaxDefinition)
 import System.Directory (getAppUserDataDirectory)
 import System.Exit (exitSuccess)
 import System.FilePath
@@ -68,7 +63,8 @@ import System.IO (nativeNewline, stdout)
 import qualified System.IO as IO (Newline (..))
 import Text.Pandoc
 import Text.Pandoc.App.CommandLineOptions (Opt (..), LineEnding (..),
-        defaultOpts, engines, parseOptions, options)
+        defaultOpts, parseOptions, options)
+import Text.Pandoc.App.OutputSettings (OutputSettings (..), optToOutputSettings)
 import Text.Pandoc.BCP47 (Lang (..), parseBCP47)
 import Text.Pandoc.Builder (setMeta, deleteMeta)
 import Text.Pandoc.Filter (Filter (JSONFilter, LuaFilter), applyFilters)
@@ -83,41 +79,6 @@ import System.Posix.IO (stdOutput)
 import System.Posix.Terminal (queryTerminal)
 #endif
 
-pdfIsNoWriterErrorMsg :: String
-pdfIsNoWriterErrorMsg =
-  "To create a pdf using pandoc, use " ++
-  "-t latex|beamer|context|ms|html5" ++
-  "\nand specify an output file with " ++
-  ".pdf extension (-o filename.pdf)."
-
-pdfWriterAndProg :: Maybe String              -- ^ user-specified writer name
-                 -> Maybe String              -- ^ user-specified pdf-engine
-                 -> IO (String, Maybe String) -- ^ IO (writerName, maybePdfEngineProg)
-pdfWriterAndProg mWriter mEngine = do
-  let panErr msg = liftIO $ E.throwIO $ PandocAppError msg
-  case go mWriter mEngine of
-      Right (writ, prog) -> return (writ, Just prog)
-      Left err           -> panErr err
-    where
-      go Nothing Nothing       = Right ("latex", "pdflatex")
-      go (Just writer) Nothing = (writer,) <$> engineForWriter writer
-      go Nothing (Just engine) = (,engine) <$> writerForEngine (takeBaseName engine)
-      go (Just writer) (Just engine) =
-           case find (== (baseWriterName writer, takeBaseName engine)) engines of
-                Just _  -> Right (writer, engine)
-                Nothing -> Left $ "pdf-engine " ++ engine ++
-                           " is not compatible with output format " ++ writer
-
-      writerForEngine eng = case [f | (f,e) <- engines, e == eng] of
-                                 fmt : _ -> Right fmt
-                                 []      -> Left $
-                                   "pdf-engine " ++ eng ++ " not known"
-
-      engineForWriter "pdf" = Left pdfIsNoWriterErrorMsg
-      engineForWriter w = case [e |  (f,e) <- engines, f == baseWriterName w] of
-                                eng : _ -> Right eng
-                                []      -> Left $
-                                   "cannot produce pdf output from " ++ w
 
 convertWithOpts :: Opt -> IO ()
 convertWithOpts opts = do
@@ -129,10 +90,6 @@ convertWithOpts opts = do
     do UTF8.hPutStrLn stdout outputFile
        mapM_ (UTF8.hPutStrLn stdout) (optInputFiles opts)
        exitSuccess
-
-  epubMetadata <- case optEpubMetadata opts of
-                         Nothing -> return Nothing
-                         Just fp -> Just <$> UTF8.readFile fp
 
   let isPandocCiteproc (JSONFilter f) = takeBaseName f == "pandoc-citeproc"
       isPandocCiteproc _              = False
@@ -165,30 +122,6 @@ convertWithOpts opts = do
 
   let pdfOutput = map toLower (takeExtension outputFile) == ".pdf"
 
-  (writerName, maybePdfProg) <-
-    if pdfOutput
-       then pdfWriterAndProg (optWriter opts) (optPdfEngine opts)
-       else case optWriter opts of
-              Nothing  ->
-                return (formatFromFilePaths "html" [outputFile], Nothing)
-              Just f   -> return (f, Nothing)
-
-  let format = map toLower $ baseWriterName
-                 $ takeFileName writerName  -- in case path to lua script
-
-  -- disabling the custom writer for now
-  (writer, writerExts) <-
-            if ".lua" `isSuffixOf` format
-               then return (TextWriter
-                       (\o d -> writeCustom writerName o d)
-                               :: Writer PandocIO, mempty)
-               else case getWriter (map toLower writerName) of
-                         Left e  -> E.throwIO $ PandocAppError $
-                           if format == "pdf"
-                              then e ++ "\n" ++ pdfIsNoWriterErrorMsg
-                              else e
-                         Right (w, es) -> return (w :: Writer PandocIO, es)
-
   -- TODO: we have to get the input and the output into the state for
   -- the sake of the text2tags reader.
   (reader, readerExts) <-
@@ -201,34 +134,6 @@ convertWithOpts opts = do
                                   "doc" -> e ++
                                      "\nPandoc can convert from DOCX, but not from DOC.\nTry using Word to save your DOC file as DOCX, and convert that with pandoc."
                                   _ -> e
-
-  let standalone = optStandalone opts || not (isTextFormat format) || pdfOutput
-  let addStringAsVariable varname s vars = return $ (varname, s) : vars
-
-  let addSyntaxMap existingmap f = do
-        res <- parseSyntaxDefinition f
-        case res of
-              Left errstr -> E.throwIO $ PandocSyntaxMapError errstr
-              Right syn   -> return $ addSyntaxDefinition syn existingmap
-
-  syntaxMap <- foldM addSyntaxMap defaultSyntaxMap
-                     (optSyntaxDefinitions opts)
-
-  -- We don't want to send output to the terminal if the user
-  -- does 'pandoc -t docx input.txt'; though we allow them to
-  -- force this with '-o -'.  On posix systems, we detect
-  -- when stdout is being piped and allow output to stdout
-  -- in that case, but on Windows we can't.
-#ifdef _WINDOWS
-  let istty = True
-#else
-  istty <- queryTerminal stdOutput
-#endif
-  when (not (isTextFormat format) && istty && isNothing ( optOutputFile opts)) $
-    E.throwIO $ PandocAppError $
-            "Cannot write " ++ format ++ " output to terminal.\n" ++
-            "Specify an output file using the -o option, or " ++
-            "use '-o -' to force output to stdout."
 
   let convertTabs = tabFilter (if optPreserveTabs opts ||
                                     readerName == "t2t" ||
@@ -261,79 +166,40 @@ convertWithOpts opts = do
                  LF     -> IO.LF
                  Native -> nativeNewline
 
-  -- note: this reverses the list constructed in option parsing,
-  -- which in turn was reversed from the command-line order,
-  -- so we end up with the correct order in the variable list:
-  let withList _ [] vars     = return vars
-      withList f (x:xs) vars = f x vars >>= withList f xs
-
-  let addContentsAsVariable varname fp vars = do
-             s <- UTF8.toString <$> readFileStrict fp
-             return $ (varname, s) : vars
-
   runIO' $ do
     setUserDataDir datadir
     setInputFiles (optInputFiles opts)
     setOutputFile (optOutputFile opts)
 
-    variables <-
-        withList (addStringAsVariable "sourcefile")
-                 (reverse $ optInputFiles opts)
-                 (("outputfile", fromMaybe "-" (optOutputFile opts))
-                  : optVariables opts)
-                 -- we reverse this list because, unlike
-                 -- the other option lists here, it is
-                 -- not reversed when parsed from CLI arguments.
-                 -- See withList, above.
-        >>=
-        withList (addContentsAsVariable "include-before")
-                 (optIncludeBeforeBody opts)
-        >>=
-        withList (addContentsAsVariable "include-after")
-                 (optIncludeAfterBody opts)
-        >>=
-        withList (addContentsAsVariable "header-includes")
-                 (optIncludeInHeader opts)
-        >>=
-        withList (addStringAsVariable "css") (optCss opts)
-        >>=
-        maybe return (addStringAsVariable "title-prefix")
-                     (optTitlePrefix opts)
-        >>=
-        maybe return (addStringAsVariable "epub-cover-image")
-                     (optEpubCoverImage opts)
-        >>=
-        (\vars ->  if format == "dzslides"
-                      then do
-                          dztempl <- UTF8.toString <$> readDataFile
-                                       ("dzslides" </> "template.html")
-                          let dzline = "<!-- {{{{ dzslides core"
-                          let dzcore = unlines
-                                     $ dropWhile (not . (dzline `isPrefixOf`))
-                                     $ lines dztempl
-                          return $ ("dzslides-core", dzcore) : vars
-                      else return vars)
+    outputSettings <- optToOutputSettings opts
+    let format = outputFormat outputSettings
+    let writer = outputWriter outputSettings
+    let writerName = outputWriterName outputSettings
+    let writerOptions = outputWriterOptions outputSettings
+
+    let standalone = optStandalone opts || not (isTextFormat format) || pdfOutput
+
+    -- We don't want to send output to the terminal if the user
+    -- does 'pandoc -t docx input.txt'; though we allow them to
+    -- force this with '-o -'.  On posix systems, we detect
+    -- when stdout is being piped and allow output to stdout
+    -- in that case, but on Windows we can't.
+#ifdef _WINDOWS
+    let istty = True
+#else
+    istty <- liftIO $ queryTerminal stdOutput
+#endif
+    when (not (isTextFormat format) && istty && isNothing ( optOutputFile opts)) $
+      liftIO $ E.throwIO $ PandocAppError $
+              "Cannot write " ++ format ++ " output to terminal.\n" ++
+              "Specify an output file using the -o option, or " ++
+              "use '-o -' to force output to stdout."
+
 
     abbrevs <- Set.fromList . filter (not . null) . lines <$>
                case optAbbreviations opts of
                     Nothing -> UTF8.toString <$> readDataFile "abbreviations"
                     Just f  -> UTF8.toString <$> readFileStrict f
-
-    templ <- case optTemplate opts of
-                    _ | not standalone -> return Nothing
-                    Nothing -> Just <$> getDefaultTemplate format
-                    Just tp -> do
-                      -- strip off extensions
-                      let tp' = case takeExtension tp of
-                                     "" -> tp <.> format
-                                     _  -> tp
-                      Just . UTF8.toString <$>
-                            ((fst <$> fetchItem tp') `catchError`
-                             (\e ->
-                                 case e of
-                                      PandocResourceNotFound _ ->
-                                         readDataFile ("templates" </> tp')
-                                      _ -> throwError e))
 
     metadata <- if format == "jats" &&
                    isNothing (lookup "csl" (optMetadata opts)) &&
@@ -354,41 +220,6 @@ convertWithOpts opts = do
                            Left _   -> return ()
                            Right l' -> setTranslations l'
            Nothing -> setTranslations $ Lang "en" "" "US" []
-
-    let writerOptions = def {
-            writerTemplate         = templ
-          , writerVariables        = variables
-          , writerTabStop          = optTabStop opts
-          , writerTableOfContents  = optTableOfContents opts
-          , writerHTMLMathMethod   = optHTMLMathMethod opts
-          , writerIncremental      = optIncremental opts
-          , writerCiteMethod       = optCiteMethod opts
-          , writerNumberSections   = optNumberSections opts
-          , writerNumberOffset     = optNumberOffset opts
-          , writerSectionDivs      = optSectionDivs opts
-          , writerExtensions       = writerExts
-          , writerReferenceLinks   = optReferenceLinks opts
-          , writerReferenceLocation = optReferenceLocation opts
-          , writerDpi              = optDpi opts
-          , writerWrapText         = optWrapText opts
-          , writerColumns          = optColumns opts
-          , writerEmailObfuscation = optEmailObfuscation opts
-          , writerIdentifierPrefix = optIdentifierPrefix opts
-          , writerHtmlQTags        = optHtmlQTags opts
-          , writerTopLevelDivision = optTopLevelDivision opts
-          , writerListings         = optListings opts
-          , writerSlideLevel       = optSlideLevel opts
-          , writerHighlightStyle   = optHighlightStyle opts
-          , writerSetextHeaders    = optSetextHeaders opts
-          , writerEpubSubdirectory = optEpubSubdirectory opts
-          , writerEpubMetadata     = epubMetadata
-          , writerEpubFonts        = optEpubFonts opts
-          , writerEpubChapterLevel = optEpubChapterLevel opts
-          , writerTOCDepth         = optTOCDepth opts
-          , writerReferenceDoc     = optReferenceDoc opts
-          , writerSyntaxMap        = syntaxMap
-          , writerPreferAscii      = optAscii opts
-          }
 
     let readerOpts = def{
             readerStandalone = standalone
@@ -412,7 +243,7 @@ convertWithOpts opts = do
                      (if extensionEnabled Ext_east_asian_line_breaks
                             readerExts &&
                          not (extensionEnabled Ext_east_asian_line_breaks
-                              writerExts &&
+                              (writerExtensions writerOptions) &&
                               writerWrapText writerOptions == WrapPreserve)
                          then (eastAsianLineBreakFilter :)
                          else id) $
@@ -450,7 +281,7 @@ convertWithOpts opts = do
 
     case writer of
       ByteStringWriter f -> f writerOptions doc >>= writeFnBinary outputFile
-      TextWriter f -> case maybePdfProg of
+      TextWriter f -> case outputPdfProgram outputSettings of
         Just pdfProg -> do
                 res <- makePDF pdfProg (optPdfEngineArgs opts) f
                         writerOptions doc
@@ -594,7 +425,3 @@ writerFn :: MonadIO m => IO.Newline -> FilePath -> Text -> m ()
 -- TODO this implementation isn't maximally efficient:
 writerFn eol "-" = liftIO . UTF8.putStrWith eol . T.unpack
 writerFn eol f   = liftIO . UTF8.writeFileWith eol f . T.unpack
-
-
-baseWriterName :: String -> String
-baseWriterName = takeWhile (\c -> c /= '+' && c /= '-')

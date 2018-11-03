@@ -515,6 +515,7 @@ library
                    Text.Pandoc.BCP47,
                    Text.Pandoc.Class
   other-modules:   Text.Pandoc.App.CommandLineOptions,
+                   Text.Pandoc.App.OutputSettings,
                    Text.Pandoc.Filter.JSON,
                    Text.Pandoc.Filter.Lua,
                    Text.Pandoc.Filter.Path,
