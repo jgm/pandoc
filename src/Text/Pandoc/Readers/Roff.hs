@@ -513,9 +513,9 @@ lexConditional mname = do
   skipMany spacetab
   st <- getState -- save state, so we can reset it
   ifPart <- lexGroup <|> ((try (char '\\' >> newline)) >> manToken)
-       <|> do modifyState $ \st -> st{ afterConditional = True }
+       <|> do modifyState $ \s -> s{ afterConditional = True }
               t <- manToken
-              modifyState $ \st -> st{ afterConditional = False }
+              modifyState $ \s -> s{ afterConditional = False }
               return t
   case mbtest of
     Nothing    -> do
@@ -548,7 +548,8 @@ lexGroup = do
   mconcat <$> manyTill manToken groupend
   where
     groupstart = try $ string "\\{\\" >> newline
-    groupend   = try $ string "\\}" >> eofline
+    groupend   = try $ optional (char '.' >> many spacetab) >>
+                       string "\\}" >> eofline
 
 lexIncludeFile :: PandocMonad m => [Arg] -> RoffLexer m RoffTokens
 lexIncludeFile args = do
