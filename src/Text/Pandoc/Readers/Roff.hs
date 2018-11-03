@@ -376,7 +376,6 @@ lexMacro = do
     "ie"  -> lexConditional "ie"
     "if"  -> lexConditional "if"
     "el"  -> lexConditional "el"
-    "TS"  -> lexTable pos
 
     _ -> do
        args <- lexArgs
@@ -384,6 +383,7 @@ lexMacro = do
          ""     -> return mempty
          "\\\"" -> return mempty
          "\\#"  -> return mempty
+         "TS"   -> lexTable pos
          "de"   -> lexMacroDef args
          "de1"  -> lexMacroDef args
          "ds"   -> lexStringDef args
@@ -458,8 +458,7 @@ tableOption = do
          char '('
          manyTill anyChar (char ')')
   skipMany spacetab
-  optional (char ',')
-  skipMany spacetab
+  optional (char ',' >> skipMany spacetab)
   return (k,v)
 
 tableFormatSpec :: PandocMonad m => RoffLexer m [[CellFormat]]
