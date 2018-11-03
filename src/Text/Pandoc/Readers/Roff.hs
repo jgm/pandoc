@@ -48,7 +48,7 @@ where
 
 import Prelude
 import Safe (lastDef)
-import Control.Monad (void, mzero, mplus)
+import Control.Monad (void, mzero, mplus, guard)
 import Control.Monad.Except (throwError)
 import Text.Pandoc.Class
        (getResourcePath, readFileFromDirs, PandocMonad(..), report)
@@ -117,12 +117,13 @@ data RoffMode = NormalMode
               | CopyMode
               deriving Show
 
-data RoffState = RoffState { customMacros   :: M.Map String RoffTokens
-                           , prevFont       :: FontSpec
-                           , currentFont    :: FontSpec
-                           , tableTabChar   :: Char
-                           , roffMode       :: RoffMode
-                           , lastExpression :: Maybe Bool
+data RoffState = RoffState { customMacros     :: M.Map String RoffTokens
+                           , prevFont         :: FontSpec
+                           , currentFont      :: FontSpec
+                           , tableTabChar     :: Char
+                           , roffMode         :: RoffMode
+                           , lastExpression   :: Maybe Bool
+                           , afterConditional :: Bool
                            } deriving Show
 
 instance Default RoffState where
@@ -139,6 +140,7 @@ instance Default RoffState where
                   , tableTabChar = '\t'
                   , roffMode = NormalMode
                   , lastExpression = Nothing
+                  , afterConditional = False
                   }
 
 type RoffLexer m = ParserT [Char] RoffState m
@@ -364,8 +366,8 @@ lexComment = do
 lexMacro :: PandocMonad m => RoffLexer m RoffTokens
 lexMacro = do
   pos <- getPosition
-  -- we don't want this because of '.ie .B foo':
-  -- guard $ sourceColumn pos == 1
+  st <- getState
+  guard $ sourceColumn pos == 1 || afterConditional st
   char '.' <|> char '\''
   skipMany spacetab
   macroName <- many (satisfy (not . isSpace))
@@ -510,7 +512,11 @@ lexConditional mname = do
                else expression
   skipMany spacetab
   st <- getState -- save state, so we can reset it
-  ifPart <- lexGroup <|> (optional (try (char '\\' >> newline)) >> manToken)
+  ifPart <- lexGroup <|> ((try (char '\\' >> newline)) >> manToken)
+       <|> do modifyState $ \st -> st{ afterConditional = True }
+              t <- manToken
+              modifyState $ \st -> st{ afterConditional = False }
+              return t
   case mbtest of
     Nothing    -> do
       putState st  -- reset state, so we don't record macros in skipped section
