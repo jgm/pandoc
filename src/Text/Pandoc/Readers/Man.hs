@@ -419,7 +419,7 @@ parseHeader :: PandocMonad m => ManParser m Blocks
 parseHeader = do
   ControlLine name args _ <- mmacro "SH" <|> mmacro "SS"
   contents <- if null args
-                 then lineInl
+                 then option mempty lineInl
                  else return $ mconcat $ intersperse B.space
                              $ map linePartsToInlines args
   let lvl = if name == "SH" then 1 else 2
