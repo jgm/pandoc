@@ -122,6 +122,7 @@
 - Masayoshi Takahashi
 - Matej Kollar
 - Mathias Schenner
+- Mathias Walter
 - Mathieu Duponchelle
 - Matthew Eddey
 - Matthew Pickering
@@ -139,6 +140,7 @@
 - Nathan Gass
 - Neil Mayhew
 - Nick Bart
+- Nick Fleisher
 - Nicolas Kaiser
 - Nikolay Yakimov
 - Nils Carlson
@@ -192,6 +194,8 @@
 - Waldir Pimenta
 - Wikiwide
 - Xavier Olive
+- Yan Pashkovsky
+- Yoan Blanc
 - Yuchen Pei
 - bucklereed
 - bumper314
