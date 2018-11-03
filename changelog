@@ -31,6 +31,11 @@ pandoc (2.4)
 
   * Add viz. to abbreviations file (#5007, Nick Fleisher).
 
+  * AsciiDoc writer:  always use single-line section headers,
+    instead of the old underline style (#5038).  Previously the single-line
+    style would be used if `--atx-headers` was specified, but
+    now it is always used.
+
   * RST writer: Use simple tables when possible (#4750).
 
   * CommonMark (and gfm) writer: Add plain text fallbacks. (#4528,
@@ -149,15 +154,19 @@ pandoc (2.4)
 
   * Text.Pandoc.Options: add `writerPreferAscii` to `WriterOptions`.
 
-  * Text.Pandoc.Shared: export `splitSentences`. This was previously
-    duplicated in the Man and Ms writers.
+  * Text.Pandoc.Shared:
+
+    + Export `splitSentences`. This was previously duplicated in the Man and
+      Ms writers.
+    + Add `ToString` typeclass (Alexander Krotov).
 
   * New exported module Text.Pandoc.Filter (Albert Krewinkel).
 
   * Text.Pandoc.Parsing
 
     + Generalize `gridTableWith` to any `Char` Stream (Alexander Krotov).
-    + Generalize `readWithM` from `[Char]` to any `Char` Stream.
+    + Generalize `readWithM` from `[Char]` to any `Char` Stream
+      that is a `ToString` instance (Alexander Krotov).
 
   * New exposed module Text.Pandoc.Filter (Albert Krewinkel).
 
@@ -217,6 +226,8 @@ pandoc (2.4)
     + Work around HXT limitation for --syntax-definition with windows
       drive (#4836).
     + Always preserve tabs for man format. We need it for tables.
+    + Split command line parsing code into a separate unexported
+      module, Text.Pandoc.App.CommandLineOptions (Albert Krewinkel).
 
   * Text.Pandoc.Readers.Roff: new unexported module for tokenizing
     roff documents.
@@ -236,8 +247,14 @@ pandoc (2.4)
   * Text.Pandoc.Readers.Org: Parse empty argument array in inline src
     blocks (Brian Leung).
 
-  * Text.Pandoc.Readers.Vimwiki: Get rid of `F`, `runF` and `stateMeta'`
-    in favor of `stateMeta` (Alexander Krotov).
+  * Text.Pandoc.Readers.Vimwiki:
+
+    + Get rid of `F`, `runF` and `stateMeta'` in favor of `stateMeta`
+      (Alexander Krotov).
+    + Parse `Text` without converting to `[Char]` (Alexander Krotov).
+
+  * Text.Pandoc.Readers.Creole: Parse `Text` without converting to
+    `[Char]` (Alexander Krotov).
 
   * Text.Pandoc.Readers.LaTeX
 
@@ -337,6 +354,10 @@ pandoc (2.4)
       element inside every table cell. Thus, we add one when the
       contents of a cell do not already include one (e.g. when a table
       cell contains a table).
+
+  * Text.Pandoc.Writers.AsciiDoc:  Prevent illegal nestings.
+    Adjust header levels so that n+1 level headers are only
+    found under n level headers, and the top level is 1.
 
   * Text.Pandoc.Writers.OpenDocument: Improve bullet/numbering
     alignment (#4385). This change eliminates the large gap we used
