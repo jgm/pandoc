@@ -90,7 +90,7 @@ pandocToAsciiDoc opts (Pandoc meta blocks) = do
               (fmap render' . blockListToAsciiDoc opts)
               (fmap render' . inlineListToAsciiDoc opts)
               meta
-  body <- blockListToAsciiDoc opts blocks
+  body <- vcat <$> mapM (elementToAsciiDoc 1 opts) (hierarchicalize blocks)
   let main = render colwidth body
   let context  = defField "body" main
                $ defField "toc"
@@ -100,6 +100,14 @@ pandocToAsciiDoc opts (Pandoc meta blocks) = do
   case writerTemplate opts of
        Nothing  -> return main
        Just tpl -> renderTemplate' tpl context
+
+elementToAsciiDoc :: PandocMonad m
+                  => Int -> WriterOptions -> Element -> ADW m Doc
+elementToAsciiDoc _ opts (Blk b) = blockToAsciiDoc opts b
+elementToAsciiDoc nestlevel opts (Sec _lvl _num attr label children) = do
+  hdr <- blockToAsciiDoc opts (Header nestlevel attr label)
+  rest <- vcat <$> mapM (elementToAsciiDoc (nestlevel + 1) opts) children
+  return $ hdr $$ rest
 
 -- | Escape special characters for AsciiDoc.
 escapeString :: String -> String
