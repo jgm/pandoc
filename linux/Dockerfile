@@ -9,7 +9,7 @@ RUN chmod +x /usr/local/bin/stack
 ENV PATH="/usr/local/bin:${PATH}"
 RUN ulimit -n 4096
 RUN stack config set system-ghc --global true
-RUN stack setup --resolver lts-12
+RUN stack setup --resolver lts-12.12
 RUN mkdir -p /usr/src/
 WORKDIR /usr/src/
 RUN git clone https://github.com/jgm/pandoc
