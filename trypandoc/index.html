@@ -45,6 +45,8 @@ $(document).ready(function() {
          });
     };
     $("#convert").click(newpage);
+    $("#from").change(newpage);
+    $("#to").change(newpage);
 });
   </script>
   <style type="text/css">
@@ -65,6 +67,7 @@ $(document).ready(function() {
   <div class="row">
     <div class="col-md-6">
       <h1>Try pandoc!</h1>
+      <p><a href="https://pandoc.org">https://pandoc.org</a></p>
     </div>
     <div class="col-md-6">
       <pre id="command"></pre>
