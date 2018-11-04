@@ -1,9 +1,11 @@
-{-# LANGUAGE NoImplicitPrelude #-}
 {-# LANGUAGE CPP                        #-}
+{-# LANGUAGE NoImplicitPrelude #-}
 {-# LANGUAGE DeriveDataTypeable         #-}
 {-# LANGUAGE DeriveGeneric              #-}
+#ifndef AVOID_TEMPLATE_HASKELL
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
 {-# LANGUAGE TemplateHaskell            #-}
+#endif
 {-
 Copyright (C) 2012-2018 John MacFarlane <jgm@berkeley.edu>
 
@@ -50,8 +52,6 @@ module Text.Pandoc.Extensions ( Extension(..)
                               , multimarkdownExtensions )
 where
 import Prelude
-import Data.Aeson (FromJSON (..), ToJSON (..), defaultOptions)
-import Data.Aeson.TH (deriveJSON)
 import Data.Bits (clearBit, setBit, testBit, (.|.))
 import Data.Data (Data)
 import Data.Typeable (Typeable)
@@ -59,8 +59,15 @@ import GHC.Generics (Generic)
 import Text.Pandoc.Shared (safeRead)
 import Text.Parsec
 
+#ifdef DERIVE_JSON_VIA_TH
+import Data.Aeson.TH (deriveJSON, defaultOptions)
+#else
+import Data.Aeson (FromJSON (..), ToJSON (..),
+                   defaultOptions, genericToEncoding)
+#endif
+
 newtype Extensions = Extensions Integer
-  deriving (Show, Read, Eq, Ord, Data, Typeable, Generic, ToJSON, FromJSON)
+  deriving (Show, Read, Eq, Ord, Data, Typeable, Generic)
 
 instance Semigroup Extensions where
   (Extensions a) <> (Extensions b) = Extensions (a .|. b)
@@ -387,4 +394,15 @@ parseFormatSpec = parse formatSpec ""
                         '-' -> disableExtension ext
                         _   -> enableExtension ext
 
+#ifdef DERIVE_JSON_VIA_TH
 $(deriveJSON defaultOptions ''Extension)
+$(deriveJSON defaultOptions ''Extensions)
+#else
+instance ToJSON Extension where
+  toEncoding = genericToEncoding defaultOptions
+instance FromJSON Extension
+
+instance ToJSON Extensions where
+  toEncoding = genericToEncoding defaultOptions
+instance FromJSON Extensions
+#endif

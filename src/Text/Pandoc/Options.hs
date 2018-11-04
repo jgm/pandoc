@@ -1,7 +1,11 @@
-{-# LANGUAGE NoImplicitPrelude #-}
+{-# LANGUAGE CPP                #-}
 {-# LANGUAGE DeriveDataTypeable #-}
 {-# LANGUAGE DeriveGeneric      #-}
+{-# LANGUAGE NoImplicitPrelude  #-}
+#ifndef AVOID_TEMPLATE_HASKELL
 {-# LANGUAGE TemplateHaskell    #-}
+#endif
+
 {-
 Copyright (C) 2012-2018 John MacFarlane <jgm@berkeley.edu>
 
@@ -48,8 +52,6 @@ module Text.Pandoc.Options ( module Text.Pandoc.Extensions
                            , isEnabled
                            ) where
 import Prelude
-import Data.Aeson (defaultOptions)
-import Data.Aeson.TH (deriveJSON)
 import Data.Data (Data)
 import Data.Default
 import qualified Data.Set as Set
@@ -58,6 +60,13 @@ import GHC.Generics (Generic)
 import Skylighting (SyntaxMap, defaultSyntaxMap)
 import Text.Pandoc.Extensions
 import Text.Pandoc.Highlighting (Style, pygments)
+
+#ifdef DERIVE_JSON_VIA_TH
+import Data.Aeson.TH (deriveJSON, defaultOptions)
+#else
+import Data.Aeson (FromJSON (..), ToJSON (..),
+                   defaultOptions, genericToEncoding)
+#endif
 
 class HasSyntaxExtensions a where
   getExtensions :: a -> Extensions
@@ -239,6 +248,7 @@ instance HasSyntaxExtensions WriterOptions where
 isEnabled :: HasSyntaxExtensions a => Extension -> a -> Bool
 isEnabled ext opts = ext `extensionEnabled` getExtensions opts
 
+#ifdef DERIVE_JSON_VIA_TH
 $(deriveJSON defaultOptions ''ReaderOptions)
 $(deriveJSON defaultOptions ''HTMLMathMethod)
 $(deriveJSON defaultOptions ''CiteMethod)
@@ -248,3 +258,40 @@ $(deriveJSON defaultOptions ''TrackChanges)
 $(deriveJSON defaultOptions ''WrapOption)
 $(deriveJSON defaultOptions ''TopLevelDivision)
 $(deriveJSON defaultOptions ''ReferenceLocation)
+#else
+instance ToJSON CiteMethod where
+  toEncoding = genericToEncoding defaultOptions
+instance FromJSON CiteMethod
+
+instance ToJSON ReaderOptions where
+  toEncoding = genericToEncoding defaultOptions
+instance FromJSON ReaderOptions
+
+instance ToJSON ObfuscationMethod where
+  toEncoding = genericToEncoding defaultOptions
+instance FromJSON ObfuscationMethod
+
+instance ToJSON WrapOption where
+  toEncoding = genericToEncoding defaultOptions
+instance FromJSON WrapOption
+
+instance ToJSON HTMLMathMethod where
+  toEncoding = genericToEncoding defaultOptions
+instance FromJSON HTMLMathMethod
+
+instance ToJSON HTMLSlideVariant where
+  toEncoding = genericToEncoding defaultOptions
+instance FromJSON HTMLSlideVariant
+
+instance ToJSON TopLevelDivision where
+  toEncoding = genericToEncoding defaultOptions
+instance FromJSON TopLevelDivision
+
+instance ToJSON ReferenceLocation where
+  toEncoding = genericToEncoding defaultOptions
+instance FromJSON ReferenceLocation
+
+instance ToJSON TrackChanges where
+  toEncoding = genericToEncoding defaultOptions
+instance FromJSON TrackChanges
+#endif

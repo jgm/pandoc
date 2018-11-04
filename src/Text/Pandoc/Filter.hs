@@ -1,5 +1,9 @@
+{-# LANGUAGE CPP               #-}
+{-# LANGUAGE DeriveGeneric     #-}
 {-# LANGUAGE NoImplicitPrelude #-}
+#ifndef AVOID_TEMPLATE_HASKELL
 {-# LANGUAGE TemplateHaskell   #-}
+#endif
 {-
 Copyright (C) 2006-2018 John MacFarlane <jgm@berkeley.edu>
 
@@ -34,9 +38,14 @@ module Text.Pandoc.Filter
   ) where
 
 import Prelude
-import Data.Aeson (defaultOptions)
-import Data.Aeson.TH (deriveJSON)
+#ifdef AVOID_TEMPLATE_HASKELL
+import Data.Aeson (FromJSON (..), ToJSON (..),
+                   defaultOptions, genericToEncoding)
+#else
+import Data.Aeson.TH (deriveJSON, defaultOptions)
+#endif
 import Data.Foldable (foldrM)
+import GHC.Generics (Generic)
 import Text.Pandoc.Class (PandocIO)
 import Text.Pandoc.Definition (Pandoc)
 import Text.Pandoc.Options (ReaderOptions)
@@ -47,7 +56,7 @@ import qualified Text.Pandoc.Filter.Path as Path
 -- | Type of filter and path to filter file.
 data Filter = LuaFilter FilePath
             | JSONFilter FilePath
-            deriving (Show)
+            deriving (Show, Generic)
 
 -- | Modify the given document using a filter.
 applyFilters :: ReaderOptions
@@ -67,4 +76,10 @@ expandFilterPath :: Filter -> PandocIO Filter
 expandFilterPath (LuaFilter fp) = LuaFilter <$> Path.expandFilterPath fp
 expandFilterPath (JSONFilter fp) = JSONFilter <$> Path.expandFilterPath fp
 
+#ifdef AVOID_TEMPLATE_HASKELL
+instance ToJSON Filter where
+  toEncoding = genericToEncoding defaultOptions
+instance FromJSON Filter
+#else
 $(deriveJSON defaultOptions ''Filter)
+#endif

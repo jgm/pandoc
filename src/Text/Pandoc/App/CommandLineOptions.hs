@@ -2,8 +2,10 @@
 {-# LANGUAGE CPP                 #-}
 {-# LANGUAGE DeriveGeneric       #-}
 {-# LANGUAGE ScopedTypeVariables #-}
-{-# LANGUAGE TemplateHaskell     #-}
 {-# LANGUAGE TupleSections       #-}
+#ifdef DERIVE_JSON_VIA_TH
+{-# LANGUAGE TemplateHaskell     #-}
+#endif
 {-
 Copyright (C) 2006-2018 John MacFarlane <jgm@berkeley.edu>
 
@@ -46,7 +48,6 @@ import Control.Monad
 import Control.Monad.Trans
 import Data.Aeson.Encode.Pretty (encodePretty', Config(..), keyOrder,
          defConfig, Indent(..), NumberFormat(..))
-import Data.Aeson.TH (deriveJSON, defaultOptions)
 import Data.Char (toLower, toUpper)
 import Data.List (intercalate, sort)
 import Data.Maybe (fromMaybe)
@@ -64,6 +65,13 @@ import Text.Pandoc.Highlighting (highlightingStyles)
 import Text.Pandoc.Writers.Math (defaultMathJaxURL, defaultKaTeXURL)
 import Text.Pandoc.Shared (ordNub, safeRead)
 import Text.Printf
+
+#ifdef DERIVE_JSON_VIA_TH
+import Data.Aeson.TH (deriveJSON, defaultOptions)
+#else
+import Data.Aeson (FromJSON (..), ToJSON (..),
+                   defaultOptions, genericToEncoding)
+#endif
 
 #ifdef EMBED_DATA_FILES
 import Text.Pandoc.Data (dataFiles)
@@ -1086,5 +1094,15 @@ deprecatedOption o msg =
 
 -- see https://github.com/jgm/pandoc/pull/4083
 -- using generic deriving caused long compilation times
+#ifdef DERIVE_JSON_VIA_TH
 $(deriveJSON defaultOptions ''LineEnding)
 $(deriveJSON defaultOptions ''Opt)
+#else
+instance ToJSON LineEnding where
+  toEncoding = genericToEncoding defaultOptions
+instance FromJSON LineEnding
+
+instance ToJSON Opt where
+  toEncoding = genericToEncoding defaultOptions
+instance FromJSON Opt
+#endif

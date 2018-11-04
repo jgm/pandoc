@@ -337,6 +337,11 @@ flag embed_data_files
   Description:   Embed data files in binary for relocatable executable.
   Default:       False
 
+flag derive_json_via_th
+  Description:   Use Template Haskell instead of GHC Generics to derive ToJSON
+                 and FromJSON instances.
+  Default:       True
+
 flag trypandoc
   Description:   Build trypandoc cgi executable.
   Default:       False
@@ -413,6 +418,8 @@ library
      cpp-options:   -DEMBED_DATA_FILES
      build-depends: file-embed >= 0.0 && < 0.1
      other-modules: Text.Pandoc.Data
+  if flag(derive_json_via_th)
+     cpp-options:   -DDERIVE_JSON_VIA_TH
   if os(windows)
     cpp-options:      -D_WINDOWS
   ghc-options:     -Wall -fno-warn-unused-do-bind
