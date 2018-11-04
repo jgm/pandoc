@@ -239,6 +239,7 @@ General options {.options}
     - `markdown_phpextra` ([PHP Markdown Extra])
     - `markdown_strict` (original unextended [Markdown])
     - `mediawiki` ([MediaWiki markup])
+    - `man` ([roff man])
     - `muse` ([Muse])
     - `native` (native Haskell)
     - `odt` ([ODT])
