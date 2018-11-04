@@ -36,6 +36,7 @@ module Text.Pandoc.Writers.CommonMark (writeCommonMark) where
 import Prelude
 import CMarkGFM
 import Control.Monad.State.Strict (State, get, modify, runState)
+import Data.Char (isAscii)
 import Data.Foldable (foldrM)
 import Data.List (transpose)
 import Data.Monoid (Any (..))
@@ -50,6 +51,7 @@ import Text.Pandoc.Templates (renderTemplate')
 import Text.Pandoc.Walk (query, walk, walkM)
 import Text.Pandoc.Writers.HTML (writeHtml5String, tagWithAttributes)
 import Text.Pandoc.Writers.Shared
+import Text.Pandoc.XML (toHtml5Entities)
 
 -- | Convert Pandoc to CommonMark.
 writeCommonMark :: PandocMonad m => WriterOptions -> Pandoc -> m Text
@@ -238,7 +240,7 @@ inlinesToNodes :: WriterOptions -> [Inline] -> [Node]
 inlinesToNodes opts  = foldr (inlineToNodes opts) []
 
 inlineToNodes :: WriterOptions -> Inline -> [Node] -> [Node]
-inlineToNodes opts (Str s) = (node (TEXT (T.pack s')) [] :)
+inlineToNodes opts (Str s) = stringToNodes opts s'
   where s' = if isEnabled Ext_smart opts
                 then unsmartify opts s
                 else s
@@ -335,6 +337,21 @@ inlineToNodes opts (Span attr ils) =
 inlineToNodes opts (Cite _ ils) = (inlinesToNodes opts ils ++)
 inlineToNodes _ (Note _) = id -- should not occur
 -- we remove Note elements in preprocessing
+
+stringToNodes :: WriterOptions -> String -> [Node] -> [Node]
+stringToNodes opts s
+  | not (writerPreferAscii opts) = (node (TEXT (T.pack s)) [] :)
+  | otherwise = step s
+  where
+    step input =
+      let (ascii, rest) = span isAscii input
+          this = node (TEXT (T.pack ascii)) []
+          nodes = case rest of
+            [] -> id
+            (nonAscii : rest') ->
+              let escaped = toHtml5Entities (T.singleton nonAscii)
+              in (node (HTML_INLINE escaped) [] :) . step rest'
+      in (this :) . nodes
 
 toSubscriptInline :: Inline -> Maybe Inline
 toSubscriptInline Space = Just Space

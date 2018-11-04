@@ -51,3 +51,39 @@ pandoc -t markdown-smart --ascii
 &ldquo;&auml;&eacute;&imath;&aring;&rdquo;
 ```
 
+# CommonMark tests
+
+```
+% pandoc -f commonmark -t commonmark --ascii
+hello … ok? … bye
+^D
+hello &mldr; ok? &mldr; bye
+```
+
+```
+% pandoc -f commonmark+smart -t commonmark-smart --ascii --wrap=none
+"hi"...dog's breath---cat 5--6
+^D
+&ldquo;hi&rdquo;&mldr;dog&rsquo;s breath&mdash;cat 5&ndash;6
+```
+
+```
+% pandoc -f commonmark+smart -t commonmark+smart --ascii
+"hi"...dog's breath---cat 5--6
+^D
+"hi"...dog's breath---cat 5--6
+```
+
+```
+% pandoc -f commonmark -t commonmark --ascii
+foo &#1234; bar
+^D
+foo &#1234; bar
+```
+
+```
+% pandoc -f commonmark -t commonmark --ascii
+\[foo\](bar)
+^D
+\[foo\](bar)
+```
