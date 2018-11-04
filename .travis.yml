@@ -73,7 +73,7 @@ matrix:
       BUILD=cabal
       GHCVER=8.4.3
       CABALVER=2.2
-      FLAGS="fast embed_data_files"
+      FLAGS="fast embed_data_files -derive_json_via_th"
       CABALARGS="--enable-benchmarks"
       TESTPATTERN="! /Round trip/"
     compiler: ": #GHC 8.4.3"
