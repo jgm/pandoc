@@ -3,7 +3,7 @@ FROM alpine
 RUN apk update
 RUN apk add alpine-sdk git ca-certificates ghc gmp-dev zlib-dev bash dpkg fakeroot
 # GRAB A RECENT BINARY OF STACK
-RUN curl -L https://github.com/commercialhaskell/stack/releases/download/v1.9.1/stack-1.9.1-linux-x86_64-static.tar.gz | tar xv
+RUN curl -L https://github.com/commercialhaskell/stack/releases/download/v1.9.1/stack-1.9.1-linux-x86_64-static.tar.gz | tar xvz
 RUN cp stack-1.9.1-linux-x86_64-static/stack /usr/local/bin/stack
 RUN chmod +x /usr/local/bin/stack
 ENV PATH="/usr/local/bin:${PATH}"
