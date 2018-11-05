@@ -114,9 +114,16 @@ toHtml5Entities = T.concatMap go
                    Nothing -> T.pack ("&#" ++ show (ord c) ++ ";")
 
 html5EntityMap :: M.Map Char Text
-html5EntityMap = M.fromList [(c, T.takeWhile (/=';') (T.pack ent))
-                               | (ent@(_:_), [c]) <- htmlEntities
-                               , last ent == ';']
+html5EntityMap = foldr go mempty htmlEntities
+  where go (ent, s) entmap =
+         case s of
+           [c] -> M.insertWith
+                   (\new old -> if T.length new > T.length old
+                                   then old
+                                   else new) c ent' entmap
+             where ent' = T.takeWhile (/=';') (T.pack ent)
+           _   -> entmap
+
 
 -- Unescapes XML entities
 fromEntities :: String -> String

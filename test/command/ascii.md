@@ -2,7 +2,7 @@
 pandoc -t html --ascii
 äéıå
 ^D
-<p>&auml;&eacute;&inodot;&aring;</p>
+<p>&auml;&eacute;&imath;&aring;</p>
 ```
 
 ```
@@ -48,6 +48,6 @@ pandoc -t jats --ascii
 pandoc -t markdown-smart --ascii
 "äéıå"
 ^D
-&ldquo;&auml;&eacute;&inodot;&aring;&rdquo;
+&ldquo;&auml;&eacute;&imath;&aring;&rdquo;
 ```
 
