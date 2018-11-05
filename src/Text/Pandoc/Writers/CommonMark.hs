@@ -264,19 +264,21 @@ inlineToNodes opts (Superscript xs) =
     then ((node (HTML_INLINE (T.pack "<sup>")) [] : inlinesToNodes opts xs ++
           [node (HTML_INLINE (T.pack "</sup>")) []]) ++ )
     else case traverse toSuperscriptInline xs of
-      Nothing ->
+      Just xs' | not (writerPreferAscii opts)
+        -> (inlinesToNodes opts xs' ++)
+      _ ->
         ((node (TEXT (T.pack "^(")) [] : inlinesToNodes opts xs ++
           [node (TEXT (T.pack ")")) []]) ++ )
-      Just xs' -> (inlinesToNodes opts xs' ++)
 inlineToNodes opts (Subscript xs) =
   if isEnabled Ext_raw_html opts
     then ((node (HTML_INLINE (T.pack "<sub>")) [] : inlinesToNodes opts xs ++
           [node (HTML_INLINE (T.pack "</sub>")) []]) ++ )
     else case traverse toSubscriptInline xs of
-      Nothing ->
+      Just xs' | not (writerPreferAscii opts)
+              -> (inlinesToNodes opts xs' ++)
+      _ ->
         ((node (TEXT (T.pack "_(")) [] : inlinesToNodes opts xs ++
           [node (TEXT (T.pack ")")) []]) ++ )
-      Just xs' -> (inlinesToNodes opts xs' ++)
 inlineToNodes opts (SmallCaps xs) =
   if isEnabled Ext_raw_html opts
     then ((node (HTML_INLINE (T.pack "<span class=\"smallcaps\">")) []
@@ -297,14 +299,18 @@ inlineToNodes opts (RawInline fmt xs)
               = (node (CUSTOM_INLINE (T.pack xs) T.empty) [] :)
   | otherwise = id
 inlineToNodes opts (Quoted qt ils) =
-  ((node (TEXT start) [] :
-   inlinesToNodes opts ils ++ [node (TEXT end) []]) ++)
+  ((node (HTML_INLINE start) [] :
+   inlinesToNodes opts ils ++ [node (HTML_INLINE end) []]) ++)
   where (start, end) = case qt of
                           SingleQuote
                             | isEnabled Ext_smart opts -> ("'","'")
+                            | writerPreferAscii opts ->
+                                     ("&lsquo;", "&rsquo;")
                             | otherwise -> ("‘", "’")
                           DoubleQuote
                             | isEnabled Ext_smart opts -> ("\"", "\"")
+                            | writerPreferAscii opts ->
+                                     ("&ldquo;", "&rdquo;")
                             | otherwise -> ("“", "”")
 inlineToNodes _ (Code _ str) = (node (CODE (T.pack str)) [] :)
 inlineToNodes opts (Math mt str) =
