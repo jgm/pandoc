@@ -80,12 +80,14 @@ data WriterEnv =
 
 data WriterState =
   WriterState { stNotes   :: Notes
+              , stNoteNum :: Int
               , stIds     :: Set.Set String
               , stUseTags :: Bool -- ^ Use tags for emphasis, for example because previous character is a letter
               }
 
 instance Default WriterState
   where def = WriterState { stNotes = []
+                          , stNoteNum = 1
                           , stIds = Set.empty
                           , stUseTags = False
                           }
@@ -127,7 +129,7 @@ pandocToMuse (Pandoc meta blocks) = do
                (fmap render' . inlineListToMuse)
                meta
   body <- blockListToMuse blocks
-  notes <- fmap (reverse . stNotes) get >>= notesToMuse
+  notes <- currentNotesToMuse
   let main = render colwidth $ body $+$ notes
   let context = defField "body" main metadata
   case writerTemplate opts of
@@ -141,7 +143,7 @@ catWithBlankLines :: PandocMonad m
                   -> Int           -- ^ Number of blank lines
                   -> Muse m Doc
 catWithBlankLines (b : bs) n = do
-  b' <- blockToMuse b
+  b' <- blockToMuseWithNotes b
   bs' <- flatBlockListToMuse bs
   return $ b' <> blanklines n <> bs'
 catWithBlankLines _ _ = error "Expected at least one block"
@@ -290,25 +292,60 @@ blockToMuse (Table caption aligns widths headers rows) =
 blockToMuse (Div _ bs) = flatBlockListToMuse bs
 blockToMuse Null = return empty
 
+-- | Return Muse representation of notes collected so far.
+currentNotesToMuse :: PandocMonad m
+                   => Muse m Doc
+currentNotesToMuse = do
+  notes <- reverse <$> gets stNotes
+  modify $ \st -> st { stNotes = mempty }
+  notesToMuse notes
+
 -- | Return Muse representation of notes.
 notesToMuse :: PandocMonad m
             => Notes
             -> Muse m Doc
-notesToMuse notes = vsep <$> zipWithM noteToMuse [1 ..] notes
+notesToMuse notes = do
+  n <- gets stNoteNum
+  modify $ \st -> st { stNoteNum = stNoteNum st + length notes }
+  vsep <$> zipWithM noteToMuse [n ..] notes
 
 -- | Return Muse representation of a note.
 noteToMuse :: PandocMonad m
            => Int
            -> [Block]
            -> Muse m Doc
-noteToMuse num note =
-  hang (length marker) (text marker) <$>
+noteToMuse num note = do
+  res <- hang (length marker) (text marker) <$>
     local (\env -> env { envInsideBlock = True
                        , envInlineStart = True
                        , envAfterSpace = True
                        }) (blockListToMuse note)
+  return $ res <> blankline
   where
     marker = "[" ++ show num ++ "] "
+
+-- | Return Muse representation of block and accumulated notes.
+blockToMuseWithNotes :: PandocMonad m
+                     => Block
+                     -> Muse m Doc
+blockToMuseWithNotes blk = do
+  topLevel <- asks envTopLevel
+  opts <- asks envOptions
+  let hdrToMuse hdr@(Header{}) = do
+        b <- blockToMuse hdr
+        if topLevel && writerReferenceLocation opts == EndOfSection
+          then do
+            notes <- currentNotesToMuse
+            return $ notes $+$ b
+          else
+            return b
+      hdrToMuse b = blockToMuse b
+  b <- hdrToMuse blk
+  if topLevel && writerReferenceLocation opts == EndOfBlock
+    then do
+           notes <- currentNotesToMuse
+           return $ b $+$ notes <> blankline
+    else return b
 
 -- | Escape special characters for Muse.
 escapeString :: String -> String
@@ -659,7 +696,8 @@ inlineToMuse (Note contents) = do
   modify $ \st -> st { stNotes = contents:notes
                      , stUseTags = False
                      }
-  let ref = show $ length notes + 1
+  n <- gets stNoteNum
+  let ref = show $ n + length notes
   return $ "[" <> text ref <> "]"
 inlineToMuse (Span (anchor,names,_) inlines) = do
   contents <- inlineListToMuse inlines

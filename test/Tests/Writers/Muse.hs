@@ -9,10 +9,13 @@ import Text.Pandoc
 import Text.Pandoc.Arbitrary ()
 import Text.Pandoc.Builder
 
+defopts :: WriterOptions
+defopts = def{ writerWrapText = WrapPreserve,
+               writerExtensions = extensionsFromList [Ext_amuse,
+                                                      Ext_auto_identifiers] }
+
 muse :: (ToPandoc a) => a -> String
-muse = museWithOpts def{ writerWrapText = WrapPreserve,
-                         writerExtensions = extensionsFromList [Ext_amuse,
-                                                                Ext_auto_identifiers] }
+muse = museWithOpts defopts
 
 museWithOpts :: (ToPandoc a) => WriterOptions -> a -> String
 museWithOpts opts = unpack . purely (writeMuse opts) . toPandoc
@@ -21,6 +24,84 @@ infix 4 =:
 (=:) :: (ToString a, ToPandoc a)
      => String -> (a, String) -> TestTree
 (=:) = test muse
+
+noteLocationTestDoc :: Blocks
+noteLocationTestDoc =
+  header 1 (text "First Header") <>
+  para (text "This is a footnote." <>
+        note (para (text "First note."))) <>
+  blockQuote (para (text "A note inside a block quote." <>
+                    note (para (text "The second note."))) <>
+              para (text "A second paragraph.")) <>
+  header 1 (text "Second Header") <>
+  para (text "Some more text.")
+
+noteLocationTests :: TestTree
+noteLocationTests = testGroup "note location"
+  [ test (museWithOpts defopts {writerReferenceLocation=EndOfDocument})
+    "footnotes at the end of document" $
+    noteLocationTestDoc =?>
+    (unlines [ "* First Header"
+             , ""
+             , "This is a footnote.[1]"
+             , ""
+             , "<quote>"
+             , "A note inside a block quote.[2]"
+             , ""
+             , "A second paragraph."
+             , "</quote>"
+             , ""
+             , "* Second Header"
+             , ""
+             , "Some more text."
+             , ""
+             , "[1] First note."
+             , ""
+             , "[2] The second note."
+             ])
+  , test (museWithOpts defopts {writerReferenceLocation=EndOfBlock})
+    "footnotes at the end of block" $
+    noteLocationTestDoc =?>
+    (unlines [ "* First Header"
+             , ""
+             , "This is a footnote.[1]"
+             , ""
+             , "[1] First note."
+             , ""
+             , "<quote>"
+             , "A note inside a block quote.[2]"
+             , ""
+             , "[2] The second note."
+             , ""
+             , "A second paragraph."
+             , "</quote>"
+             , ""
+             , "* Second Header"
+             , ""
+             , "Some more text."
+             ])
+  , test (museWithOpts defopts {writerReferenceLocation=EndOfSection})
+    "footnotes at the end of section" $
+    noteLocationTestDoc =?>
+    (unlines [ "* First Header"
+             , ""
+             , "This is a footnote.[1]"
+             , ""
+             , "<quote>"
+             , "A note inside a block quote.[2]"
+             , ""
+             , "A second paragraph."
+             , "</quote>"
+             , ""
+             , "[1] First note."
+             , ""
+             , "[2] The second note."
+             , ""
+             , "* Second Header"
+             , ""
+             , "Some more text."
+             ])
+  ]
 
 tests :: [TestTree]
 tests = [ testGroup "block elements"
@@ -501,6 +582,7 @@ tests = [ testGroup "block elements"
                                , ""
                                , "[1] Foo"
                                ]
+          , noteLocationTests
           , "span with class" =: spanWith ("",["foobar"],[]) (text "Some text")
                               =?> "<class name=\"foobar\">Some text</class>"
           , "span without class" =: spanWith ("",[],[]) (text "Some text")
