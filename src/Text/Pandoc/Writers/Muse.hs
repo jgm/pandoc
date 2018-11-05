@@ -331,7 +331,7 @@ blockToMuseWithNotes :: PandocMonad m
 blockToMuseWithNotes blk = do
   topLevel <- asks envTopLevel
   opts <- asks envOptions
-  let hdrToMuse hdr@(Header{}) = do
+  let hdrToMuse hdr@Header{} = do
         b <- blockToMuse hdr
         if topLevel && writerReferenceLocation opts == EndOfSection
           then do
