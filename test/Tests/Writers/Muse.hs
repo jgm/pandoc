@@ -1,4 +1,5 @@
 {-# LANGUAGE NoImplicitPrelude #-}
+{-# LANGUAGE OverloadedStrings #-}
 module Tests.Writers.Muse (tests) where
 
 import Prelude
@@ -27,96 +28,96 @@ infix 4 =:
 
 noteLocationTestDoc :: Blocks
 noteLocationTestDoc =
-  header 1 (text "First Header") <>
-  para (text "This is a footnote." <>
-        note (para (text "First note."))) <>
-  blockQuote (para (text "A note inside a block quote." <>
-                    note (para (text "The second note."))) <>
-              para (text "A second paragraph.")) <>
-  header 1 (text "Second Header") <>
-  para (text "Some more text.")
+  header 1 "First Header" <>
+  para ("This is a footnote." <>
+        note (para "First note.")) <>
+  blockQuote (para ("A note inside a block quote." <>
+                    note (para "The second note.")) <>
+              para "A second paragraph.") <>
+  header 1 "Second Header" <>
+  para "Some more text."
 
 noteLocationTests :: TestTree
 noteLocationTests = testGroup "note location"
   [ test (museWithOpts defopts {writerReferenceLocation=EndOfDocument})
     "footnotes at the end of document" $
     noteLocationTestDoc =?>
-    (unlines [ "* First Header"
-             , ""
-             , "This is a footnote.[1]"
-             , ""
-             , "<quote>"
-             , "A note inside a block quote.[2]"
-             , ""
-             , "A second paragraph."
-             , "</quote>"
-             , ""
-             , "* Second Header"
-             , ""
-             , "Some more text."
-             , ""
-             , "[1] First note."
-             , ""
-             , "[2] The second note."
-             ])
+    unlines [ "* First Header"
+            , ""
+            , "This is a footnote.[1]"
+            , ""
+            , "<quote>"
+            , "A note inside a block quote.[2]"
+            , ""
+            , "A second paragraph."
+            , "</quote>"
+            , ""
+            , "* Second Header"
+            , ""
+            , "Some more text."
+            , ""
+            , "[1] First note."
+            , ""
+            , "[2] The second note."
+            ]
   , test (museWithOpts defopts {writerReferenceLocation=EndOfBlock})
     "footnotes at the end of block" $
     noteLocationTestDoc =?>
-    (unlines [ "* First Header"
-             , ""
-             , "This is a footnote.[1]"
-             , ""
-             , "[1] First note."
-             , ""
-             , "<quote>"
-             , "A note inside a block quote.[2]"
-             , ""
-             , "[2] The second note."
-             , ""
-             , "A second paragraph."
-             , "</quote>"
-             , ""
-             , "* Second Header"
-             , ""
-             , "Some more text."
-             ])
+    unlines [ "* First Header"
+            , ""
+            , "This is a footnote.[1]"
+            , ""
+            , "[1] First note."
+            , ""
+            , "<quote>"
+            , "A note inside a block quote.[2]"
+            , ""
+            , "[2] The second note."
+            , ""
+            , "A second paragraph."
+            , "</quote>"
+            , ""
+            , "* Second Header"
+            , ""
+            , "Some more text."
+            ]
   , test (museWithOpts defopts {writerReferenceLocation=EndOfSection})
     "footnotes at the end of section" $
     noteLocationTestDoc =?>
-    (unlines [ "* First Header"
-             , ""
-             , "This is a footnote.[1]"
-             , ""
-             , "<quote>"
-             , "A note inside a block quote.[2]"
-             , ""
-             , "A second paragraph."
-             , "</quote>"
-             , ""
-             , "[1] First note."
-             , ""
-             , "[2] The second note."
-             , ""
-             , "* Second Header"
-             , ""
-             , "Some more text."
-             ])
+    unlines [ "* First Header"
+            , ""
+            , "This is a footnote.[1]"
+            , ""
+            , "<quote>"
+            , "A note inside a block quote.[2]"
+            , ""
+            , "A second paragraph."
+            , "</quote>"
+            , ""
+            , "[1] First note."
+            , ""
+            , "[2] The second note."
+            , ""
+            , "* Second Header"
+            , ""
+            , "Some more text."
+            ]
   ]
 
 tests :: [TestTree]
 tests = [ testGroup "block elements"
-          [ "plain" =: plain (text "Foo bar.") =?> "Foo bar."
+          [ "plain" =: plain "Foo bar." =?> "Foo bar."
           , testGroup "paragraphs"
-            [ "single paragraph" =: para (text "Sample paragraph.")
+            [ "single paragraph" =: para "Sample paragraph."
                                  =?> "Sample paragraph."
-            , "two paragraphs" =: para (text "First paragraph.") <>
-                                  para (text "Second paragraph.")
+            , "two paragraphs" =: para "First paragraph." <>
+                                  para "Second paragraph."
                                =?> unlines [ "First paragraph."
                                            , ""
                                            , "Second paragraph."
                                            ]
             ]
-          , "line block" =: lineBlock [text "Foo", text "bar", text "baz"]
+          , "line block" =: lineBlock ["Foo", "bar", "baz"]
                          =?> unlines [ "> Foo"
                                      , "> bar"
                                      , "> baz"
@@ -133,7 +134,7 @@ tests = [ testGroup "block elements"
                                          , "<hr>"
                                          , "</literal>"
                                          ]
-          , "block quote" =: blockQuote (para (text "Foo"))
+          , "block quote" =: blockQuote (para "Foo")
                           =?> unlines [ "<quote>"
                                       , "Foo"
                                       , "</quote>"
@@ -141,9 +142,9 @@ tests = [ testGroup "block elements"
           , testGroup "lists"
             [ testGroup "simple lists"
               [
-                "ordered list" =: orderedList [ plain $ text "first"
-                                              , plain $ text "second"
-                                              , plain $ text "third"
+                "ordered list" =: orderedList [ plain "first"
+                                              , plain "second"
+                                              , plain "third"
                                               ]
                                =?> unlines [ " 1. first"
                                            , " 2. second"
@@ -151,61 +152,62 @@ tests = [ testGroup "block elements"
                                            ]
               , "ordered list with Roman numerals"
                 =: orderedListWith (1, UpperRoman, DefaultDelim)
-                   [ plain $ text "first"
-                   , plain $ text "second"
-                   , plain $ text "third"
+                   [ plain "first"
+                   , plain "second"
+                   , plain "third"
                    ]
                 =?> unlines [ " I. first"
                             , " II. second"
                             , " III. third"
                             ]
-              , "bullet list" =: bulletList [ plain $ text "first"
-                                            , plain $ text "second"
-                                            , plain $ text "third"
+              , "bullet list" =: bulletList [ plain "first"
+                                            , plain "second"
+                                            , plain "third"
                                             ]
                               =?> unlines [ " - first"
                                           , " - second"
                                           , " - third"
                                           ]
-              , "definition list" =: definitionList [ (text "first definition", [plain $ text "first description"])
-                                                    , (text "second definition", [plain $ text "second description"])
-                                                    , (text "third definition", [plain $ text "third description"])
+              , "definition list" =: definitionList [ ("first definition", [plain "first description"])
+                                                    , ("second definition", [plain "second description"])
+                                                    , ("third definition", [plain "third description"])
                                                     ]
                                   =?> unlines [ " first definition :: first description"
                                               , " second definition :: second description"
                                               , " third definition :: third description"
                                               ]
               , "definition list with multiple descriptions" =:
-                definitionList [ (text "first definition", [plain $ text "first description"
-                                                           ,plain $ text "second description"])
-                               , (text "second definition", [plain $ text "third description"])
+                definitionList [ ("first definition", [ plain "first description"
+                                                      , plain "second description"
+                                                      ])
+                               , ("second definition", [plain "third description"])
                                ]
                 =?> unlines [ " first definition :: first description"
                             , "                  :: second description"
                             , " second definition :: third description"
                             ]
               , "definition list with empty term" =:
-                definitionList [ (text "first definition", [plain $ text "first description"])
-                               , (mempty, [plain $ text "second description"])
-                               , (str "", [plain $ text "third description"])
+                definitionList [ ("first definition", [plain "first description"])
+                               , (mempty, [plain "second description"])
+                               , (str "", [plain "third description"])
                                ]
                 =?> unlines [ " first definition :: first description"
                             , " <verbatim></verbatim> :: second description"
                             , " <verbatim></verbatim> :: third description"
                             ]
               , "definition list terms starting with space" =:
-                definitionList [ (text "first definition", [plain $ text "first description"])
-                               , (space <> str "foo", [plain $ text "second description"])
-                               , (str " > bar", [plain $ text "third description"])
+                definitionList [ ("first definition", [plain "first description"])
+                               , (space <> str "foo", [plain "second description"])
+                               , (str " > bar", [plain "third description"])
                                ]
                 =?> unlines [ " first definition :: first description"
                             , " <verbatim></verbatim> foo :: second description"
                             , " <verbatim></verbatim> > bar :: third description"
                             ]
               , "definition list terms starting with list markers" =:
-                definitionList [ (text "first definition", [plain $ text "first description"])
-                               , (str "-", [plain $ text "second description"])
-                               , (str "1.", [plain $ text "third description"])
+                definitionList [ ("first definition", [plain "first description"])
+                               , (str "-", [plain "second description"])
+                               , (str "1.", [plain "third description"])
                                ]
                 =?> unlines [ " first definition :: first description"
                             , " <verbatim></verbatim>- :: second description"
@@ -215,12 +217,12 @@ tests = [ testGroup "block elements"
             -- Test that lists of the same type and style are separated with two blanklines
             , testGroup "sequential lists"
               [ "bullet lists" =:
-                bulletList [ para $ text "First"
-                           , para $ text "Second"
-                           , para $ text "Third"
+                bulletList [ para "First"
+                           , para "Second"
+                           , para "Third"
                            ] <>
-                bulletList [ para $ text "Fourth"
-                           , para $ text "Fifth"
+                bulletList [ para "Fourth"
+                           , para "Fifth"
                            ] =?>
                 unlines [ " - First"
                         , " - Second"
@@ -231,11 +233,11 @@ tests = [ testGroup "block elements"
                         , " - Fifth"
                         ]
               , "ordered lists of the same style" =:
-                orderedListWith (1, UpperRoman, DefaultDelim) [ para $ text "First"
-                                                              , para $ text "Second"
+                orderedListWith (1, UpperRoman, DefaultDelim) [ para "First"
+                                                              , para "Second"
                                                               ] <>
-                orderedListWith (1, UpperRoman, DefaultDelim) [ para $ text "Third"
-                                                              , para $ text "Fourth"
+                orderedListWith (1, UpperRoman, DefaultDelim) [ para "Third"
+                                                              , para "Fourth"
                                                               ] =?>
                 unlines [ " I. First"
                         , " II. Second"
@@ -245,11 +247,11 @@ tests = [ testGroup "block elements"
                         , " II. Fourth"
                         ]
               , "ordered lists with equal styles" =:
-                orderedList [ para $ text "First"
-                            , para $ text "Second"
+                orderedList [ para "First"
+                            , para "Second"
                             ] <>
-                orderedListWith (1, Decimal, DefaultDelim) [ para $ text "Third"
-                                                           , para $ text "Fourth"
+                orderedListWith (1, Decimal, DefaultDelim) [ para "Third"
+                                                           , para "Fourth"
                                                            ] =?>
                 unlines [ " 1. First"
                         , " 2. Second"
@@ -259,11 +261,11 @@ tests = [ testGroup "block elements"
                         , " 2. Fourth"
                         ]
               , "bullet and ordered lists" =:
-                bulletList [ para $ text "First"
-                           , para $ text "Second"
+                bulletList [ para "First"
+                           , para "Second"
                            ] <>
-                orderedListWith (1, UpperRoman, DefaultDelim) [ para $ text "Third"
-                                                              , para $ text "Fourth"
+                orderedListWith (1, UpperRoman, DefaultDelim) [ para "Third"
+                                                              , para "Fourth"
                                                               ] =?>
                 unlines [ " - First"
                         , " - Second"
@@ -272,11 +274,11 @@ tests = [ testGroup "block elements"
                         , " II. Fourth"
                         ]
               , "different style ordered lists" =:
-                orderedListWith (1, UpperRoman, DefaultDelim) [ para $ text "First"
-                                                              , para $ text "Second"
+                orderedListWith (1, UpperRoman, DefaultDelim) [ para "First"
+                                                              , para "Second"
                                                               ] <>
-                orderedListWith (1, Decimal, DefaultDelim) [ para $ text "Third"
-                                                           , para $ text "Fourth"
+                orderedListWith (1, Decimal, DefaultDelim) [ para "Third"
+                                                           , para "Fourth"
                                                            ] =?>
                 unlines [ " I. First"
                         , " II. Second"
@@ -286,12 +288,12 @@ tests = [ testGroup "block elements"
                         ]
               ]
             , testGroup "nested lists"
-              [ "nested ordered list" =: orderedList [ plain $ text "First outer"
-                                                     , plain (text "Second outer:") <>
-                                                       orderedList [ plain $ text "first"
-                                                                   , plain $ text "second"
+              [ "nested ordered list" =: orderedList [ plain "First outer"
+                                                     , plain "Second outer:" <>
+                                                       orderedList [ plain "first"
+                                                                   , plain "second"
                                                                    ]
-                                                     , plain $ text "Third outer"
+                                                     , plain "Third outer"
                                                      ]
                                       =?> unlines [ " 1. First outer"
                                                   , " 2. Second outer:"
@@ -299,12 +301,12 @@ tests = [ testGroup "block elements"
                                                   , "    2. second"
                                                   , " 3. Third outer"
                                                   ]
-              , "nested bullet lists" =: bulletList [ plain $ text "First outer"
-                                                    , plain (text "Second outer:") <>
-                                                      bulletList [ plain $ text "first"
-                                                                 , plain $ text "second"
+              , "nested bullet lists" =: bulletList [ plain "First outer"
+                                                    , plain "Second outer:" <>
+                                                      bulletList [ plain "first"
+                                                                 , plain "second"
                                                                  ]
-                                                    , plain $ text "Third outer"
+                                                    , plain "Third outer"
                                                     ]
                                       =?> unlines [ " - First outer"
                                                   , " - Second outer:"
@@ -312,13 +314,13 @@ tests = [ testGroup "block elements"
                                                   , "   - second"
                                                   , " - Third outer"
                                                   ]
-              , "nested definition lists" =: definitionList [ (text "first definition", [plain $ text "first description"])
-                                                            , (text "second definition",
-                                                               [ plain (text "second description") <>
-                                                                 definitionList [ ( text "first inner definition"
-                                                                                  , [plain $ text "first inner description"])
-                                                                                , ( text "second inner definition"
-                                                                                  , [plain $ text "second inner description"])
+              , "nested definition lists" =: definitionList [ ("first definition", [plain "first description"])
+                                                            , ("second definition",
+                                                               [ plain "second description" <>
+                                                                 definitionList [ ("first inner definition"
+                                                                                  , [plain "first inner description"])
+                                                                                , ( "second inner definition"
+                                                                                  , [plain "second inner description"])
                                                                                 ]
                                                                ]
                                                               )
@@ -328,12 +330,12 @@ tests = [ testGroup "block elements"
                                                       , "                      first inner definition :: first inner description"
                                                       , "                      second inner definition :: second inner description"
                                                       ]
-              , "list item starting with list" =: bulletList [ bulletList [ plain $ text "foo"] ] =?> " - - foo"
+              , "list item starting with list" =: bulletList [ bulletList [ plain "foo"] ] =?> " - - foo"
               ]
             -- Check that list is intended with one space even inside a quote
-            , "List inside block quote" =: blockQuote (orderedList [ plain $ text "first"
-                                                                   , plain $ text "second"
-                                                                   , plain $ text "third"
+            , "List inside block quote" =: blockQuote (orderedList [ plain "first"
+                                                                   , plain "second"
+                                                                   , plain "third"
                                                                    ])
                                         =?> unlines [ "<quote>"
                                                     , " 1. first"
@@ -344,32 +346,32 @@ tests = [ testGroup "block elements"
             ]
           , testGroup "headings"
             [ "normal heading" =:
-              header 1 (text "foo") =?> "* foo"
+              header 1 "foo" =?> "* foo"
             , "heading levels" =:
-              header 1 (text "First level") <>
-              header 3 (text "Third level") =?>
+              header 1 "First level" <>
+              header 3 "Third level" =?>
               unlines [ "* First level"
                       , ""
                       , "*** Third level"
                       ]
             , "heading with ID" =:
-               headerWith ("bar", [], []) 2 (text "Foo") =?>
+               headerWith ("bar", [], []) 2 "Foo" =?>
                unlines [ "#bar"
                        , "** Foo"
                       ]
             , "empty heading" =: header 4 mempty =?> "**** <verbatim></verbatim>"
             ]
           , "horizontal rule" =: horizontalRule =?> "----"
-          , "escape horizontal rule" =: para (text "----") =?> "<verbatim></verbatim>----"
-          , "escape long horizontal rule" =: para (text "----------") =?> "<verbatim></verbatim>----------"
-          , "don't escape horizontal inside paragraph" =: para (text "foo ---- bar") =?> "foo ---- bar"
-          , "escape nonbreaking space" =: para (text "~~") =?> "<verbatim>~~</verbatim>"
-          , "escape > in the beginning of line" =: para (text "> foo bar") =?> "<verbatim></verbatim>> foo bar"
+          , "escape horizontal rule" =: para "----" =?> "<verbatim></verbatim>----"
+          , "escape long horizontal rule" =: para "----------" =?> "<verbatim></verbatim>----------"
+          , "don't escape horizontal inside paragraph" =: para "foo ---- bar" =?> "foo ---- bar"
+          , "escape nonbreaking space" =: para "~~" =?> "<verbatim>~~</verbatim>"
+          , "escape > in the beginning of line" =: para "> foo bar" =?> "<verbatim></verbatim>> foo bar"
           , "escape string with > and space in the beginning of line" =: para (str "> foo bar") =?> "<verbatim></verbatim>> foo bar"
           , testGroup "tables"
             [ "table without header" =:
-              let rows = [[para $ text "Para 1.1", para $ text "Para 1.2"]
-                         ,[para $ text "Para 2.1", para $ text "Para 2.2"]]
+              let rows = [[para "Para 1.1", para "Para 1.2"]
+                         ,[para "Para 2.1", para "Para 2.2"]]
               in table mempty [(AlignDefault,0.0),(AlignDefault,0.0)]
                        [mempty, mempty] rows
               =?>
@@ -377,9 +379,9 @@ tests = [ testGroup "block elements"
                       , " Para 2.1 | Para 2.2"
                       ]
             , "table with header" =:
-              let headers = [plain $ text "header 1", plain $ text "header 2"]
-                  rows = [[para $ text "Para 1.1", para $ text "Para 1.2"]
-                         ,[para $ text "Para 2.1", para $ text "Para 2.2"]]
+              let headers = [plain "header 1", plain "header 2"]
+                  rows = [[para "Para 1.1", para "Para 1.2"]
+                         ,[para "Para 2.1", para "Para 2.2"]]
               in simpleTable headers rows
               =?>
               unlines [ " header 1 || header 2"
@@ -387,10 +389,10 @@ tests = [ testGroup "block elements"
                       , " Para 2.1 |  Para 2.2"
                       ]
             , "table with header and caption" =:
-              let caption = text "Table 1"
-                  headers = [plain $ text "header 1", plain $ text "header 2"]
-                  rows = [[para $ text "Para 1.1", para $ text "Para 1.2"]
-                         ,[para $ text "Para 2.1", para $ text "Para 2.2"]]
+              let caption = "Table 1"
+                  headers = [plain "header 1", plain "header 2"]
+                  rows = [[para "Para 1.1", para  "Para 1.2"]
+                         ,[para "Para 2.1", para  "Para 2.2"]]
               in table caption [(AlignDefault,0.0),(AlignDefault,0.0)]
                         headers rows
               =?> unlines [ " header 1 || header 2"
@@ -400,7 +402,7 @@ tests = [ testGroup "block elements"
                           ]
             ]
           , "div with bullet list" =:
-            divWith nullAttr (bulletList [para $ text "foo"]) =?>
+            divWith nullAttr (bulletList [para "foo"]) =?>
             unlines [ " - foo" ] -- Making sure bullets are indented
           -- Null is trivial
           ]
@@ -424,8 +426,8 @@ tests = [ testGroup "block elements"
             , "do not escape colon" =: str ":" =?> ":"
             , "escape - to avoid accidental unordered lists" =: text " - foo" =?> "<verbatim></verbatim> - foo"
             , "escape - inside a list to avoid accidental nested unordered lists" =:
-              bulletList [ para (text "foo") <>
-                           para (text "- bar")
+              bulletList [ para "foo" <>
+                           para "- bar"
                          ] =?>
               unlines [ " - foo"
                       , ""
@@ -440,7 +442,7 @@ tests = [ testGroup "block elements"
                       , "   <verbatim></verbatim>- bar"
                       ]
             , "escape - inside a note" =:
-              note (para (text "- foo")) =?>
+              note (para "- foo") =?>
               unlines [ "[1]"
                       , ""
                       , "[1] <verbatim></verbatim>- foo"
@@ -454,16 +456,16 @@ tests = [ testGroup "block elements"
                       ]
             , "escape ; to avoid accidental comments" =: text "; foo" =?> "<verbatim></verbatim>; foo"
             , "escape strings starting with ; and space" =: str "; foo" =?> "<verbatim></verbatim>; foo"
-            , "escape ; after softbreak" =: text "foo" <> softbreak <> text "; bar" =?> "foo\n<verbatim></verbatim>; bar"
-            , "escape ; after linebreak" =: text "foo" <> linebreak <> text "; bar" =?> "foo<br>\n<verbatim></verbatim>; bar"
+            , "escape ; after softbreak" =: "foo" <> softbreak <> "; bar" =?> "foo\n<verbatim></verbatim>; bar"
+            , "escape ; after linebreak" =: "foo" <> linebreak <> "; bar" =?> "foo<br>\n<verbatim></verbatim>; bar"
             , "do not escape ; inside paragraph" =: text "foo ; bar" =?> "foo ; bar"
             , "escape newlines" =: str "foo\nbar" =?> "foo bar"
             ]
           , testGroup "emphasis"
-            [ "emphasis" =: emph (text "foo") =?> "*foo*"
-            , "emphasis inside word" =: text "foo" <> emph (text "bar") <> text "baz" =?> "foo<em>bar</em>baz"
-            , "emphasis before comma" =: emph (text "foo") <> text ", bar" =?> "*foo*, bar"
-            , "emphasis before period" =: emph (text "foobar") <> text "." =?> "*foobar*."
+            [ "emphasis" =: emph "foo" =?> "*foo*"
+            , "emphasis inside word" =: "foo" <> emph "bar" <> "baz" =?> "foo<em>bar</em>baz"
+            , "emphasis before comma" =: emph "foo" <> ", bar" =?> "*foo*, bar"
+            , "emphasis before period" =: emph "foobar" <> "." =?> "*foobar*."
             , "empty emphasis" =: emph mempty =?> "<em></em>"
             , "empty strong" =: strong mempty =?> "<strong></strong>"
             , "empty strong emphasis" =: strong (emph mempty) =?> "**<em></em>**"
@@ -476,31 +478,31 @@ tests = [ testGroup "block elements"
             , "emphasized string ending with space" =: emph (str "foo ") =?> "<em>foo </em>"
             , "emphasized string with tab" =: emph (str "\t") =?> "<em>\t</em>"
             , "emphasized space between empty strings" =: emph (str "" <> space <> str "") =?> "<em> </em>"
-            , "strong" =: strong (text "foo") =?> "**foo**"
-            , "strong inside word" =: text "foo" <> strong (text "bar") <> text "baz" =?> "foo<strong>bar</strong>baz"
-            , "strong emphasis" =: strong (emph (text "foo")) =?> "***foo***"
-            , "strong after emphasis" =: emph (text "foo") <> strong (text "bar") =?> "*foo*<strong>bar</strong>"
-            , "strong emphasis after emphasis" =: emph (text "foo") <> strong (emph (text "bar")) =?> "*foo*<strong>*bar*</strong>"
-            , "strong in the end of emphasis" =: emph (text "foo" <> strong (text "bar")) =?> "*foo<strong>bar</strong>*"
+            , "strong" =: strong "foo" =?> "**foo**"
+            , "strong inside word" =: "foo" <> strong "bar" <> "baz" =?> "foo<strong>bar</strong>baz"
+            , "strong emphasis" =: strong (emph "foo") =?> "***foo***"
+            , "strong after emphasis" =: emph "foo" <> strong "bar" =?> "*foo*<strong>bar</strong>"
+            , "strong emphasis after emphasis" =: emph "foo" <> strong (emph "bar") =?> "*foo*<strong>*bar*</strong>"
+            , "strong in the end of emphasis" =: emph ("foo" <> strong "bar") =?> "*foo<strong>bar</strong>*"
             , "switch to lightweight markup after <em> tag" =:
               strong (str "foo") <> emph (str "bar") <> strong (str "baz") =?>
               "**foo**<em>bar</em>**baz**"
-            , "strikeout" =: strikeout (text "foo") =?> "<del>foo</del>"
-            , "space at the beginning of emphasis" =: emph (text " foo") =?> "<em> foo</em>"
-            , "space at the end of emphasis" =: emph (text "foo ") =?> "<em>foo </em>"
-            , "space at the beginning of strong" =: strong (text " foo") =?> "<strong> foo</strong>"
-            , "space at the end of strong" =: strong (text "foo ") =?> "<strong>foo </strong>"
-            , "space at the beginning of strong emphasis" =: strong (emph (text " foo")) =?> "**<em> foo</em>**"
-            , "space at the end of strong emphasis" =: strong (emph (text "foo ")) =?> "**<em>foo </em>**"
-            , "space at the beginning of emphasiszed strong" =: emph (strong (text " foo")) =?> "*<strong> foo</strong>*"
-            , "space at the end of emphasized strong" =: emph (strong (text "foo ")) =?> "*<strong>foo </strong>*"
+            , "strikeout" =: strikeout "foo" =?> "<del>foo</del>"
+            , "space at the beginning of emphasis" =: emph " foo" =?> "<em> foo</em>"
+            , "space at the end of emphasis" =: emph "foo " =?> "<em>foo </em>"
+            , "space at the beginning of strong" =: strong " foo" =?> "<strong> foo</strong>"
+            , "space at the end of strong" =: strong "foo " =?> "<strong>foo </strong>"
+            , "space at the beginning of strong emphasis" =: strong (emph " foo") =?> "**<em> foo</em>**"
+            , "space at the end of strong emphasis" =: strong (emph "foo ") =?> "**<em>foo </em>**"
+            , "space at the beginning of emphasiszed strong" =: emph (strong " foo") =?> "*<strong> foo</strong>*"
+            , "space at the end of emphasized strong" =: emph (strong "foo ") =?> "*<strong>foo </strong>*"
             ]
-          , "superscript" =: superscript (text "foo") =?> "<sup>foo</sup>"
-          , "subscript" =: subscript (text "foo") =?> "<sub>foo</sub>"
-          , "smallcaps" =: smallcaps (text "foo") =?> "*foo*"
+          , "superscript" =: superscript "foo" =?> "<sup>foo</sup>"
+          , "subscript" =: subscript "foo" =?> "<sub>foo</sub>"
+          , "smallcaps" =: smallcaps "foo" =?> "*foo*"
           , "smallcaps near emphasis" =: emph (str "foo") <> smallcaps (str "bar") =?> "*foobar*"
-          , "single quoted" =: singleQuoted (text "foo") =?> "‘foo’"
-          , "double quoted" =: doubleQuoted (text "foo") =?> "“foo”"
+          , "single quoted" =: singleQuoted "foo" =?> "‘foo’"
+          , "double quoted" =: doubleQuoted "foo" =?> "“foo”"
           -- Cite is trivial
           , testGroup "code"
             [ "simple" =: code "foo" =?> "=foo="
@@ -518,21 +520,21 @@ tests = [ testGroup "block elements"
             , "strong code" =: strong (code "foo") =?> "**=foo=**"
             ]
           , testGroup "spaces"
-            [ "space" =: text "a" <> space <> text "b" =?> "a b"
-            , "soft break" =: text "a" <> softbreak <> text "b" =?> "a\nb"
+            [ "space" =: "a" <> space <> "b" =?> "a b"
+            , "soft break" =: "a" <> softbreak <> "b" =?> "a\nb"
             , test (museWithOpts def{ writerWrapText = WrapNone })
-                   "remove soft break" $ text "a" <> softbreak <> text "b"
-                   =?> "a b"
-            , "line break" =: text "a" <> linebreak <> text "b" =?> "a<br>\nb"
-            , "no newline after line break in header" =: header 1 (text "a" <> linebreak <> text "b") =?> "* a<br>b"
-            , "no softbreak in header" =: header 1 (text "a" <> softbreak <> text "b") =?> "* a b"
+                   "remove soft break" $ "a" <> softbreak <> "b"
+                   =?> ("a b" :: String)
+            , "line break" =: "a" <> linebreak <> "b" =?> "a<br>\nb"
+            , "no newline after line break in header" =: header 1 ("a" <> linebreak <> "b") =?> "* a<br>b"
+            , "no softbreak in header" =: header 1 ("a" <> softbreak <> "b") =?> "* a b"
             ]
           , testGroup "math"
             [ "inline math" =: math "2^3" =?> "2<sup>3</sup>"
             , "display math" =: displayMath "2^3" =?> "2<sup>3</sup>"
             , "multiple letters in inline math" =: math "abc" =?> "*abc*"
             , "expand math before normalization" =: math "[" <> str "2]" =?> "<verbatim>[2]</verbatim>"
-            , "multiple math expressions inside one inline list" =: math "5_4" <> text ", " <> displayMath "3^2" =?> "5<sub>4</sub>, 3<sup>2</sup>"
+            , "multiple math expressions inside one inline list" =: math "5_4" <> ", " <> displayMath "3^2" =?> "5<sub>4</sub>, 3<sup>2</sup>"
             ]
           , "raw inline"
             =: rawInline "html" "<mark>marked text</mark>"
@@ -577,45 +579,45 @@ tests = [ testGroup "block elements"
             imageWith ("", ["align-right"], [("width", "60%")]) "image.png" "Image" (str "") =?>
             "[[image.png 60 r][Image]]"
           , "escape brackets in image title" =: image "image.png" "Foo]bar" (str "") =?> "[[image.png][<verbatim>Foo]bar</verbatim>]]"
-          , "note" =: note (plain (text "Foo"))
+          , "note" =: note (plain "Foo")
                    =?> unlines [ "[1]"
                                , ""
                                , "[1] Foo"
                                ]
           , noteLocationTests
-          , "span with class" =: spanWith ("",["foobar"],[]) (text "Some text")
+          , "span with class" =: spanWith ("",["foobar"],[]) "Some text"
                               =?> "<class name=\"foobar\">Some text</class>"
-          , "span without class" =: spanWith ("",[],[]) (text "Some text")
+          , "span without class" =: spanWith ("",[],[]) "Some text"
                                  =?> "<class>Some text</class>"
-          , "span with anchor" =: spanWith ("anchor", [], []) mempty <> text "Foo bar"
+          , "span with anchor" =: spanWith ("anchor", [], []) mempty <> "Foo bar"
                                =?> "#anchor Foo bar"
           , "empty span with anchor" =: spanWith ("anchor", [], []) mempty
                                      =?> "#anchor"
           , "empty span without class and anchor" =: spanWith ("", [], []) mempty
                                                   =?> "<class></class>"
-          , "span with class and anchor" =: spanWith ("anchor", ["foo"], []) (text "bar")
+          , "span with class and anchor" =: spanWith ("anchor", ["foo"], []) "bar"
                                          =?> "#anchor <class name=\"foo\">bar</class>"
           , "adjacent spans" =: spanWith ("", ["syllable"], []) (str "wa") <>
                                 spanWith ("", ["syllable"], []) (str "ter")
                              =?> "<class name=\"syllable\">wa</class><class name=\"syllable\">ter</class>"
           , testGroup "combined"
             [ "emph word before" =:
-                para (text "foo" <> emph (text "bar")) =?>
+                para ("foo" <> emph "bar") =?>
                     "foo<em>bar</em>"
             , "emph word after" =:
-                para (emph (text "foo") <> text "bar") =?>
+                para (emph "foo" <> "bar") =?>
                     "<em>foo</em>bar"
             , "emph quoted" =:
-                para (doubleQuoted (emph (text "foo"))) =?>
+                para (doubleQuoted (emph "foo")) =?>
                     "“*foo*”"
             , "strong word before" =:
-                para (text "foo" <> strong (text "bar")) =?>
+                para ("foo" <> strong "bar") =?>
                     "foo<strong>bar</strong>"
             , "strong word after" =:
-                para (strong (text "foo") <> text "bar") =?>
+                para (strong "foo" <> "bar") =?>
                     "<strong>foo</strong>bar"
             , "strong quoted" =:
-                para (singleQuoted (strong (text "foo"))) =?>
+                para (singleQuoted (strong "foo")) =?>
                     "‘**foo**’"
             ]
          ]
