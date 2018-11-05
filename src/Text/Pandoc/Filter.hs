@@ -38,11 +38,11 @@ module Text.Pandoc.Filter
   ) where
 
 import Prelude
-#ifdef AVOID_TEMPLATE_HASKELL
+#ifdef DERIVE_JSON_VIA_TH
+import Data.Aeson.TH (deriveJSON, defaultOptions)
+#else
 import Data.Aeson (FromJSON (..), ToJSON (..),
                    defaultOptions, genericToEncoding)
-#else
-import Data.Aeson.TH (deriveJSON, defaultOptions)
 #endif
 import Data.Foldable (foldrM)
 import GHC.Generics (Generic)
@@ -76,10 +76,10 @@ expandFilterPath :: Filter -> PandocIO Filter
 expandFilterPath (LuaFilter fp) = LuaFilter <$> Path.expandFilterPath fp
 expandFilterPath (JSONFilter fp) = JSONFilter <$> Path.expandFilterPath fp
 
-#ifdef AVOID_TEMPLATE_HASKELL
+#ifdef DERIVE_JSON_VIA_TH
+$(deriveJSON defaultOptions ''Filter)
+#else
 instance ToJSON Filter where
   toEncoding = genericToEncoding defaultOptions
 instance FromJSON Filter
-#else
-$(deriveJSON defaultOptions ''Filter)
 #endif
