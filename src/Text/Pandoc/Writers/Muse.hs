@@ -174,22 +174,19 @@ simpleTable caption headers rows = do
   caption' <- inlineListToMuse caption
   headers' <- mapM blockListToMuse headers
   rows' <- mapM (mapM blockListToMuse) rows
-  let noHeaders = all null headers
-  let numChars = maximum . map offset
-  let widthsInChars =
-       map numChars $ transpose (headers' : rows')
+  let widthsInChars = maximum . map offset <$> transpose (headers' : rows')
   let hpipeBlocks sep blocks = hcat $ intersperse sep' blocks
-        where h      = maximum (1 : map height blocks)
-              sep'   = lblock (length sep) $ vcat (replicate h (text sep))
+        where sep' = lblock (length sep) $ text sep
   let makeRow sep = (" " <>) . hpipeBlocks sep . zipWith lblock widthsInChars
   let head' = makeRow " || " headers'
-  let rowSeparator = if noHeaders then " | " else " |  "
   rows'' <- mapM (\row -> makeRow rowSeparator <$> mapM blockListToMuse row) rows
   let body = vcat rows''
   return $  (if noHeaders then empty else head')
          $$ body
          $$ (if null caption then empty else " |+ " <> caption' <> " +|")
          $$ blankline
+  where noHeaders = all null headers
+        rowSeparator = if noHeaders then " | " else " |  "
 
 -- | Convert list of Pandoc block elements to Muse.
 blockListToMuse :: PandocMonad m
