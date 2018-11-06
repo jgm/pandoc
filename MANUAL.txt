@@ -1921,13 +1921,13 @@ The following extensions (especially how they affect Markdown
 input/output) are also described in more detail in their respective
 sections of [Pandoc's Markdown].
 
-#### [Extension: `raw_html`] {#raw_html}
+#### Extension: `raw_html` {#raw_html}
 
 When converting from HTML, parse elements to raw HTML which are not
 representable in pandoc's AST.
 By default, this is disabled for HTML input.
 
-#### [Extension: `raw_tex`] {#raw_tex}
+#### Extension: `raw_tex` {#raw_tex}
 
 Allows raw LaTeX, TeX, and ConTeXt to be included in a document.
 
@@ -1941,7 +1941,7 @@ input formats
 output formats
 :  `textile`, `commonmark`
 
-#### [Extension: `native_divs`] {#native_divs}
+#### Extension: `native_divs` {#native_divs}
 
 This extension is enabled by default for HTML input. This means that
 `div`s are parsed to pandoc native elements. (Alternatively, you
@@ -1952,7 +1952,7 @@ When converting HTML to Markdown, for example, you may want to drop all
 
     pandoc -f html-native_divs-native_spans -t markdown
 
-#### [Extension: `native_spans`] {#native_spans}
+#### Extension: `native_spans` {#native_spans}
 
 Analogous to `native_divs` above.
 
