@@ -50,7 +50,8 @@ import System.Exit (exitSuccess)
 import System.FilePath
 import System.IO (stdout)
 import Text.Pandoc
-import Text.Pandoc.App.CommandLineOptions (Opt (..), engines)
+import Text.Pandoc.App.Opt (Opt (..))
+import Text.Pandoc.App.CommandLineOptions (engines)
 import Text.Pandoc.BCP47 (Lang (..), parseBCP47)
 import qualified Text.Pandoc.UTF8 as UTF8
 

@@ -62,8 +62,8 @@ import System.FilePath
 import System.IO (nativeNewline, stdout)
 import qualified System.IO as IO (Newline (..))
 import Text.Pandoc
-import Text.Pandoc.App.CommandLineOptions (Opt (..), LineEnding (..),
-        defaultOpts, parseOptions, options)
+import Text.Pandoc.App.Opt (Opt (..), LineEnding (..), defaultOpts)
+import Text.Pandoc.App.CommandLineOptions (parseOptions, options)
 import Text.Pandoc.App.OutputSettings (OutputSettings (..), optToOutputSettings)
 import Text.Pandoc.BCP47 (Lang (..), parseBCP47)
 import Text.Pandoc.Builder (setMeta, deleteMeta)
