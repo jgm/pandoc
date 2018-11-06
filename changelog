@@ -328,7 +328,7 @@ pandoc (2.4)
     + With `--biblatex`, use `\autocite` when possible (#4960).
       `\autocites{a1}{a2}{a3}` will not collapse the entries. So, if
       we don't have prefixes and suffixes, we use instead
-      `\autocite{a1;a2;a3}`.
+      `\autocite{a1,a2,a3}`.
     + Fix description lists contining highlighted code (#4662).
 
   * Text.Pandoc.Writers.Man
