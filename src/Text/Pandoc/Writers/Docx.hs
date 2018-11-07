@@ -1281,7 +1281,7 @@ inlineToOpenXML' opts (Link _ txt (src,_)) = do
                         M.insert src i extlinks }
               return i
   return [ mknode "w:hyperlink" [("r:id",id')] contents ]
-inlineToOpenXML' opts (Image attr alt (src, title)) = do
+inlineToOpenXML' opts (Image attr@(imgident, _, _) alt (src, title)) = do
   pageWidth <- asks envPrintWidth
   imgs <- gets stImages
   let
@@ -1343,7 +1343,7 @@ inlineToOpenXML' opts (Image attr alt (src, title)) = do
       in
         imgElt
 
-  case stImage of
+  wrapBookmark imgident =<< case stImage of
     Just imgData -> return [generateImgElt imgData]
     Nothing -> ( do --try
       (img, mt) <- P.fetchItem src
