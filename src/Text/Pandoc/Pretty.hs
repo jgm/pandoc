@@ -239,7 +239,7 @@ render linelen doc = fromString . mconcat . reverse . output $
 
 renderDoc :: (IsString a, Monoid a)
           => Doc -> DocState a
-renderDoc = renderList . toList . unDoc
+renderDoc = renderList . dropWhile (== BreakingSpace) . toList . unDoc
 
 data IsBlock = IsBlock Int [String]
 
@@ -280,6 +280,9 @@ renderList [BlankLines _] = return ()
 renderList (BlankLines m : BlankLines n : xs) =
   renderList (BlankLines (max m n) : xs)
 
+renderList (BlankLines num : BreakingSpace : xs) =
+  renderList (BlankLines num : xs)
+
 renderList (BlankLines num : xs) = do
   st <- get
   case output st of
@@ -289,6 +292,9 @@ renderList (BlankLines num : xs) = do
 
 renderList (CarriageReturn : BlankLines m : xs) =
   renderList (BlankLines m : xs)
+
+renderList (CarriageReturn : BreakingSpace : xs) =
+  renderList (CarriageReturn : xs)
 
 renderList (CarriageReturn : xs) = do
   st <- get
@@ -302,7 +308,8 @@ renderList (NewLine : xs) = do
   outp (-1) "\n"
   renderList xs
 
-renderList (BreakingSpace : CarriageReturn : xs) = renderList (CarriageReturn:xs)
+renderList (BreakingSpace : CarriageReturn : xs) =
+  renderList (CarriageReturn:xs)
 renderList (BreakingSpace : NewLine : xs) = renderList (NewLine:xs)
 renderList (BreakingSpace : BlankLines n : xs) = renderList (BlankLines n:xs)
 renderList (BreakingSpace : BreakingSpace : xs) = renderList (BreakingSpace:xs)
