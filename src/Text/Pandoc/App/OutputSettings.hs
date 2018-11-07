@@ -50,6 +50,7 @@ import System.Exit (exitSuccess)
 import System.FilePath
 import System.IO (stdout)
 import Text.Pandoc
+import Text.Pandoc.App.FormatHeuristics (formatFromFilePaths)
 import Text.Pandoc.App.Opt (Opt (..))
 import Text.Pandoc.App.CommandLineOptions (engines)
 import Text.Pandoc.BCP47 (Lang (..), parseBCP47)
@@ -81,14 +82,14 @@ optToOutputSettings opts = do
                          Nothing -> return Nothing
                          Just fp -> Just <$> readUtf8File fp
 
-  let nonPdfWriterName Nothing  = defaultWriterName outputFile
-      nonPdfWriterName (Just x) = x
-
   let pdfOutput = map toLower (takeExtension outputFile) == ".pdf"
   (writerName, maybePdfProg) <-
     if pdfOutput
        then liftIO $ pdfWriterAndProg (optWriter opts) (optPdfEngine opts)
-       else return (nonPdfWriterName $ optWriter opts, Nothing)
+       else case optWriter opts of
+              Nothing  ->
+                return (formatFromFilePaths "html" [outputFile], Nothing)
+              Just f   -> return (f, Nothing)
 
   let format = map toLower $ baseWriterName
                  $ takeFileName writerName  -- in case path to lua script
@@ -231,49 +232,6 @@ optToOutputSettings opts = do
     , outputWriterOptions = writerOpts
     , outputPdfProgram = maybePdfProg
     }
-
--- Determine default writer based on output file extension
-defaultWriterName :: FilePath -> String
-defaultWriterName "-" = "html" -- no output file
-defaultWriterName x =
-  case takeExtension (map toLower x) of
-    ""          -> "markdown" -- empty extension
-    ".tex"      -> "latex"
-    ".latex"    -> "latex"
-    ".ltx"      -> "latex"
-    ".context"  -> "context"
-    ".ctx"      -> "context"
-    ".rtf"      -> "rtf"
-    ".rst"      -> "rst"
-    ".s5"       -> "s5"
-    ".native"   -> "native"
-    ".json"     -> "json"
-    ".txt"      -> "markdown"
-    ".text"     -> "markdown"
-    ".md"       -> "markdown"
-    ".muse"     -> "muse"
-    ".markdown" -> "markdown"
-    ".textile"  -> "textile"
-    ".lhs"      -> "markdown+lhs"
-    ".texi"     -> "texinfo"
-    ".texinfo"  -> "texinfo"
-    ".db"       -> "docbook"
-    ".odt"      -> "odt"
-    ".docx"     -> "docx"
-    ".epub"     -> "epub"
-    ".org"      -> "org"
-    ".asciidoc" -> "asciidoc"
-    ".adoc"     -> "asciidoc"
-    ".fb2"      -> "fb2"
-    ".opml"     -> "opml"
-    ".icml"     -> "icml"
-    ".tei.xml"  -> "tei"
-    ".tei"      -> "tei"
-    ".ms"       -> "ms"
-    ".roff"     -> "ms"
-    ".pptx"     -> "pptx"
-    ['.',y]     | y `elem` ['1'..'9'] -> "man"
-    _           -> "html"
 
 baseWriterName :: String -> String
 baseWriterName = takeWhile (\c -> c /= '+' && c /= '-')
