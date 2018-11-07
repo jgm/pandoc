@@ -328,7 +328,8 @@ blockListToTexinfo (x:xs) = do
       lines' <- mapM makeMenuLine menu
       let menu' = if null lines'
                     then empty
-                    else text "@menu" $$
+                    else blankline $$
+                         text "@menu" $$
                          vcat lines' $$
                          text "@end menu"
       after' <- blockListToTexinfo after

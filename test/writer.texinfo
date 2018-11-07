@@ -27,6 +27,7 @@ markdown test suite.
 @ifnottex
 ------------------------------------------------------------------------
 @end ifnottex
+
 @menu
 * Headers::
 * Level 1::
@@ -48,6 +49,7 @@ markdown test suite.
 @node Headers
 @chapter Headers
 @anchor{#headers}
+
 @menu
 * Level 2 with an embedded link::
 @end menu
@@ -55,6 +57,7 @@ markdown test suite.
 @node Level 2 with an embedded link
 @section Level 2 with an @uref{/url,embedded link}
 @anchor{#level-2-with-an-embedded-link}
+
 @menu
 * Level 3 with emphasis::
 @end menu
@@ -62,6 +65,7 @@ markdown test suite.
 @node Level 3 with emphasis
 @subsection Level 3 with @emph{emphasis}
 @anchor{#level-3-with-emphasis}
+
 @menu
 * Level 4::
 @end menu
@@ -74,6 +78,7 @@ Level 5
 @node Level 1
 @chapter Level 1
 @anchor{#level-1}
+
 @menu
 * Level 2 with emphasis::
 * Level 2::
@@ -82,6 +87,7 @@ Level 5
 @node Level 2 with emphasis
 @section Level 2 with @emph{emphasis}
 @anchor{#level-2-with-emphasis}
+
 @menu
 * Level 3::
 @end menu
@@ -203,6 +209,7 @@ These should not be escaped:  \$ \\ \> \[ \{
 @node Lists
 @chapter Lists
 @anchor{#lists}
+
 @menu
 * Unordered::
 * Ordered::
@@ -886,6 +893,7 @@ Minus: -
 @node Links
 @chapter Links
 @anchor{#links}
+
 @menu
 * Explicit::
 * Reference::
