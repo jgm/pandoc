@@ -879,14 +879,7 @@ blockToOpenXML' opts (Div (ident,classes,kvs) bs) = do
                   else id
   header <- dirmod $ stylemod $ blocksToOpenXML opts hs
   contents <- dirmod $ bibmod $ stylemod $ blocksToOpenXML opts bs'
-  if null ident
-     then return $ header ++ contents
-     else do
-       id' <- getUniqueId
-       let bookmarkStart = mknode "w:bookmarkStart" [("w:id", id')
-                                                    ,("w:name",ident)] ()
-       let bookmarkEnd = mknode "w:bookmarkEnd" [("w:id", id')] ()
-       return $ bookmarkStart : header ++ contents ++ [bookmarkEnd]
+  wrapBookmark ident $ header ++ contents
 blockToOpenXML' opts (Header lev (ident,_,_) lst) = do
   setFirstPara
   paraProps <- withParaPropM (pStyleM ("Heading "++show lev)) $
@@ -898,12 +891,8 @@ blockToOpenXML' opts (Header lev (ident,_,_) lst) = do
        let bookmarkName = ident
        modify $ \s -> s{ stSectionIds = Set.insert bookmarkName
                                       $ stSectionIds s }
-       id' <- getUniqueId
-       let bookmarkStart = mknode "w:bookmarkStart" [("w:id", id')
-                                               ,("w:name",bookmarkName)] ()
-       let bookmarkEnd = mknode "w:bookmarkEnd" [("w:id", id')] ()
-       return [mknode "w:p" [] (paraProps ++
-               [bookmarkStart] ++ contents ++ [bookmarkEnd])]
+       bookmarkedContents <- wrapBookmark bookmarkName contents
+       return [mknode "w:p" [] (paraProps ++ bookmarkedContents)]
 blockToOpenXML' opts (Plain lst) = withParaProp (pCustomStyle "Compact")
   $ blockToOpenXML opts (Para lst)
 -- title beginning with fig: indicates that the image is a figure
@@ -945,10 +934,10 @@ blockToOpenXML' opts (BlockQuote blocks) = do
   p <- withParaPropM (pStyleM "Block Text") $ blocksToOpenXML opts blocks
   setFirstPara
   return p
-blockToOpenXML' opts (CodeBlock attrs str) = do
+blockToOpenXML' opts (CodeBlock attrs@(ident, _, _) str) = do
   p <- withParaProp (pCustomStyle "SourceCode") (blockToOpenXML opts $ Para [Code attrs str])
   setFirstPara
-  return p
+  wrapBookmark ident p
 blockToOpenXML' _ HorizontalRule = do
   setFirstPara
   return [
@@ -1202,14 +1191,7 @@ inlineToOpenXML' opts (Span (ident,classes,kvs) ils) = do
                else return id
   contents <- insmod $ delmod $ dirmod $ stylemod $ pmod
                      $ inlinesToOpenXML opts ils
-  if null ident
-     then return contents
-     else do
-       id' <- getUniqueId
-       let bookmarkStart = mknode "w:bookmarkStart" [("w:id", id')
-                                                    ,("w:name",ident)] ()
-       let bookmarkEnd = mknode "w:bookmarkEnd" [("w:id", id')] ()
-       return $ bookmarkStart : contents ++ [bookmarkEnd]
+  wrapBookmark ident contents
 inlineToOpenXML' opts (Strong lst) =
   withTextProp (mknode "w:b" [] ()) $ inlinesToOpenXML opts lst
 inlineToOpenXML' opts (Emph lst) =
@@ -1299,7 +1281,7 @@ inlineToOpenXML' opts (Link _ txt (src,_)) = do
                         M.insert src i extlinks }
               return i
   return [ mknode "w:hyperlink" [("r:id",id')] contents ]
-inlineToOpenXML' opts (Image attr alt (src, title)) = do
+inlineToOpenXML' opts (Image attr@(imgident, _, _) alt (src, title)) = do
   pageWidth <- asks envPrintWidth
   imgs <- gets stImages
   let
@@ -1361,7 +1343,7 @@ inlineToOpenXML' opts (Image attr alt (src, title)) = do
       in
         imgElt
 
-  case stImage of
+  wrapBookmark imgident =<< case stImage of
     Just imgData -> return [generateImgElt imgData]
     Nothing -> ( do --try
       (img, mt) <- P.fetchItem src
@@ -1440,3 +1422,12 @@ withDirection x = do
     else flip local x $ \env -> env { envParaProperties = paraProps'
                                     , envTextProperties = textProps'
                                     }
+
+wrapBookmark :: (PandocMonad m) => String -> [Element] -> WS m [Element]
+wrapBookmark [] contents = return contents
+wrapBookmark ident contents = do
+  id' <- getUniqueId
+  let bookmarkStart = mknode "w:bookmarkStart" [("w:id", id')
+                                               ,("w:name",ident)] ()
+      bookmarkEnd = mknode "w:bookmarkEnd" [("w:id", id')] ()
+  return $ bookmarkStart : contents ++ [bookmarkEnd]
