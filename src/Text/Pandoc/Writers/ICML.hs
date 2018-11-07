@@ -483,9 +483,10 @@ mergeStrings opts = mergeStrings' . map spaceToStr
                                     WrapPreserve  -> Str "\n"
                                     _             -> Str " "
         spaceToStr x = x
-mergeStrings' (Str x : Str y : zs) = mergeStrings' (Str (x ++ y) : zs)
-mergeStrings' (x : xs) = x : mergeStrings' xs
-mergeStrings' []       = []
+
+        mergeStrings' (Str x : Str y : zs) = mergeStrings' (Str (x ++ y) : zs)
+        mergeStrings' (x : xs) = x : mergeStrings' xs
+        mergeStrings' []       = []
 
 -- | Intersperse line breaks
 intersperseBrs :: [Doc] -> Doc
