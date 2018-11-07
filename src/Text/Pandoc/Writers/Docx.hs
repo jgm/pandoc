@@ -934,10 +934,10 @@ blockToOpenXML' opts (BlockQuote blocks) = do
   p <- withParaPropM (pStyleM "Block Text") $ blocksToOpenXML opts blocks
   setFirstPara
   return p
-blockToOpenXML' opts (CodeBlock attrs str) = do
+blockToOpenXML' opts (CodeBlock attrs@(ident, _, _) str) = do
   p <- withParaProp (pCustomStyle "SourceCode") (blockToOpenXML opts $ Para [Code attrs str])
   setFirstPara
-  return p
+  wrapBookmark ident p
 blockToOpenXML' _ HorizontalRule = do
   setFirstPara
   return [
