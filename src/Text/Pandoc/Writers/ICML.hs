@@ -416,7 +416,7 @@ definitionListItemToICML opts style (term,defs) = do
 
 -- | Convert a list of inline elements to ICML.
 inlinesToICML :: PandocMonad m => WriterOptions -> Style -> [Inline] -> WS m Doc
-inlinesToICML opts style lst = vcat `fmap` mapM (inlineToICML opts style) (mergeSpaces lst)
+inlinesToICML opts style lst = vcat `fmap` mapM (inlineToICML opts style) (mergeStrings opts lst)
 
 -- | Convert an inline element to ICML.
 inlineToICML :: PandocMonad m => WriterOptions -> Style -> Inline -> WS m Doc
@@ -427,8 +427,10 @@ inlineToICML opts style (Strikeout lst) = inlinesToICML opts (strikeoutName:styl
 inlineToICML opts style (Superscript lst) = inlinesToICML opts (superscriptName:style) lst
 inlineToICML opts style (Subscript lst) = inlinesToICML opts (subscriptName:style) lst
 inlineToICML opts style (SmallCaps lst) = inlinesToICML opts (smallCapsName:style) lst
-inlineToICML opts style (Quoted SingleQuote lst) = inlinesToICML opts style $ [Str "‘"] ++ lst ++ [Str "’"]
-inlineToICML opts style (Quoted DoubleQuote lst) = inlinesToICML opts style $ [Str "“"] ++ lst ++ [Str "”"]
+inlineToICML opts style (Quoted SingleQuote lst) = inlinesToICML opts style $
+  mergeStrings opts $ [Str "‘"] ++ lst ++ [Str "’"]
+inlineToICML opts style (Quoted DoubleQuote lst) = inlinesToICML opts style $
+  mergeStrings opts $ [Str "“"] ++ lst ++ [Str "”"]
 inlineToICML opts style (Cite _ lst) = inlinesToICML opts (citeName:style) lst
 inlineToICML _    style (Code _ str) = charStyle (codeName:style) $ text $ escapeStringForXML str
 inlineToICML _    style Space = charStyle style space
@@ -474,18 +476,16 @@ footnoteToICML opts style lst =
       $ inTags True "Footnote" [] $ number $$ intersperseBrs contents
 
 -- | Auxiliary function to merge Space elements into the adjacent Strs.
-mergeSpaces :: [Inline] -> [Inline]
-mergeSpaces (Str s:(x:(Str s':xs))) | isSp x =
-  mergeSpaces $ Str(s++" "++s') : xs
-mergeSpaces (x:(Str s:xs)) | isSp x = mergeSpaces $ Str (" "++s) : xs
-mergeSpaces (Str s:(x:xs)) | isSp x = mergeSpaces $ Str (s++" ") : xs
-mergeSpaces (x:xs) = x : mergeSpaces xs
-mergeSpaces []     = []
-
-isSp :: Inline -> Bool
-isSp Space     = True
-isSp SoftBreak = True
-isSp _         = False
+mergeStrings :: WriterOptions -> [Inline] -> [Inline]
+mergeStrings opts = mergeStrings' . map spaceToStr
+  where spaceToStr Space = Str " "
+        spaceToStr SoftBreak = case writerWrapText opts of
+                                    WrapPreserve  -> Str "\n"
+                                    _             -> Str " "
+        spaceToStr x = x
+mergeStrings' (Str x : Str y : zs) = mergeStrings' (Str (x ++ y) : zs)
+mergeStrings' (x : xs) = x : mergeStrings' xs
+mergeStrings' []       = []
 
 -- | Intersperse line breaks
 intersperseBrs :: [Doc] -> Doc
