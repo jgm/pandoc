@@ -869,8 +869,7 @@ lineBlockLines = try $ do
 
 -- | Parse a table using 'headerParser', 'rowParser',
 -- 'lineParser', and 'footerParser'.
-tableWith :: (Stream s m Char, HasReaderOptions st,
-              Functor mf, Applicative mf, Monad mf)
+tableWith :: (Stream s m Char, HasReaderOptions st, Monad mf)
           => ParserT s st m (mf [Blocks], [Alignment], [Int])
           -> ([Int] -> ParserT s st m (mf [Blocks]))
           -> ParserT s st m sep
@@ -883,8 +882,7 @@ tableWith headerParser rowParser lineParser footerParser = try $ do
 
 type TableComponents mf = ([Alignment], [Double], mf [Blocks], mf [[Blocks]])
 
-tableWith' :: (Stream s m Char, HasReaderOptions st,
-               Functor mf, Applicative mf, Monad mf)
+tableWith' :: (Stream s m Char, HasReaderOptions st, Monad mf)
            => ParserT s st m (mf [Blocks], [Alignment], [Int])
            -> ([Int] -> ParserT s st m (mf [Blocks]))
            -> ParserT s st m sep
@@ -931,8 +929,7 @@ widthsFromIndices numColumns' indices =
 -- (which may be grid), then the rows,
 -- which may be grid, separated by blank lines, and
 -- ending with a footer (dashed line followed by blank line).
-gridTableWith :: (Stream s m Char, HasReaderOptions st,
-                  Functor mf, Applicative mf, Monad mf, IsString s)
+gridTableWith :: (Stream s m Char, HasReaderOptions st, Monad mf, IsString s)
               => ParserT s st m (mf Blocks)  -- ^ Block list parser
               -> Bool                        -- ^ Headerless table
               -> ParserT s st m (mf Blocks)
@@ -940,8 +937,7 @@ gridTableWith blocks headless =
   tableWith (gridTableHeader headless blocks) (gridTableRow blocks)
             (gridTableSep '-') gridTableFooter
 
-gridTableWith' :: (Stream s m Char, HasReaderOptions st,
-                   Functor mf, Applicative mf, Monad mf, IsString s)
+gridTableWith' :: (Stream s m Char, HasReaderOptions st, Monad mf, IsString s)
                => ParserT s st m (mf Blocks)  -- ^ Block list parser
                -> Bool                        -- ^ Headerless table
                -> ParserT s st m (TableComponents mf)
@@ -980,8 +976,7 @@ gridTableSep :: Stream s m Char => Char -> ParserT s st m Char
 gridTableSep ch = try $ gridDashedLines ch >> return '\n'
 
 -- | Parse header for a grid table.
-gridTableHeader :: (Stream s m Char, Functor mf, Applicative mf, Monad mf,
-                    IsString s)
+gridTableHeader :: (Stream s m Char, Monad mf, IsString s)
                 => Bool -- ^ Headerless table
                 -> ParserT s st m (mf Blocks)
                 -> ParserT s st m (mf [Blocks], [Alignment], [Int])
@@ -1014,8 +1009,7 @@ gridTableRawLine indices = do
   return (gridTableSplitLine indices line)
 
 -- | Parse row of grid table.
-gridTableRow :: (Stream s m Char, Functor mf, Applicative mf, Monad mf,
-                 IsString s)
+gridTableRow :: (Stream s m Char, Monad mf, IsString s)
              => ParserT s st m (mf Blocks)
              -> [Int]
              -> ParserT s st m (mf [Blocks])
@@ -1449,8 +1443,7 @@ extractIdClass (ident, cls, kvs) = (ident', cls', kvs')
                Nothing -> cls
     kvs'  = filter (\(k,_) -> k /= "id" || k /= "class") kvs
 
-insertIncludedFile' :: (PandocMonad m, HasIncludeFiles st,
-                        Functor mf, Applicative mf, Monad mf)
+insertIncludedFile' :: (PandocMonad m, HasIncludeFiles st, Monad mf)
                     => ParserT [a] st m (mf Blocks)
                     -> (String -> [a])
                     -> [FilePath] -> FilePath
