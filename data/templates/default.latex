@@ -214,7 +214,7 @@ $if(highlighting-macros)$
 $highlighting-macros$
 $endif$
 $if(tables)$
-\usepackage{longtable,booktabs}
+\usepackage{$table-environment$,booktabs}
 $if(beamer)$
 \usepackage{caption}
 % These lines are needed to make table captions work with longtable:

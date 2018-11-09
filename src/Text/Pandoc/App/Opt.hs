@@ -48,7 +48,8 @@ import Text.Pandoc.Options (TopLevelDivision (TopLevelDefault),
                             WrapOption (WrapAuto), HTMLMathMethod (PlainMath),
                             ReferenceLocation (EndOfDocument),
                             ObfuscationMethod (NoObfuscation),
-                            CiteMethod (Citeproc))
+                            CiteMethod (Citeproc),
+                            LatexTableEnvironment (Longtable))
 
 #ifdef DERIVE_JSON_VIA_TH
 import Data.Aeson.TH (deriveJSON, defaultOptions)
@@ -130,6 +131,7 @@ data Opt = Opt
     , optRequestHeaders        :: [(String, String)] -- ^ Headers for HTTP requests
     , optEol                   :: LineEnding -- ^ Style of line-endings to use
     , optStripComments         :: Bool       -- ^ Skip HTML comments
+    , optLatexTableEnvironment :: LatexTableEnvironment
     } deriving (Generic, Show)
 
 -- | Defaults for command-line options.
@@ -203,6 +205,8 @@ defaultOpts = Opt
     , optRequestHeaders        = []
     , optEol                   = Native
     , optStripComments          = False
+    , optLatexTableEnvironment = Longtable
+
     }
 
 #ifdef DERIVE_JSON_VIA_TH
