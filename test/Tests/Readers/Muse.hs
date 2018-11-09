@@ -976,6 +976,49 @@ tests =
             [[plain "1", plain "2", plain "3"],
              [plain "4", mempty,    plain "6"],
              [plain "7", plain "8", plain "9"]]
+        , "Grid table" =:
+          T.unlines
+            [ "+-----+-----+"
+            , "| foo | bar |"
+            , "+-----+-----+"
+            ] =?>
+          table mempty [(AlignDefault, 0.0), (AlignDefault, 0.0)]
+                       []
+                       [[para "foo", para "bar"]]
+        , "Grid table inside list" =:
+          T.unlines
+            [ " - +-----+-----+"
+            , "   | foo | bar |"
+            , "   +-----+-----+"
+            ] =?>
+          bulletList [table mempty [(AlignDefault, 0.0), (AlignDefault, 0.0)]
+                                   []
+                                   [[para "foo", para "bar"]]]
+        , "Grid table with two rows" =:
+          T.unlines
+            [ "+-----+-----+"
+            , "| foo | bar |"
+            , "+-----+-----+"
+            , "| bat | baz |"
+            , "+-----+-----+"
+            ] =?>
+          table mempty [(AlignDefault, 0.0), (AlignDefault, 0.0)]
+                       []
+                       [[para "foo", para "bar"]
+                       ,[para "bat", para "baz"]]
+        , "Grid table inside grid table" =:
+          T.unlines
+            [ "+-----+"
+            , "|+---+|"
+            , "||foo||"
+            , "|+---+|"
+            , "+-----+"
+            ] =?>
+          table mempty [(AlignDefault, 0.0)]
+                       []
+                       [[table mempty [(AlignDefault, 0.0)]
+                                      []
+                                      [[para "foo"]]]]
         ]
     , testGroup "Lists"
       [ "Bullet list" =:

@@ -32,8 +32,6 @@ Conversion of Muse text to 'Pandoc' document.
 -}
 {-
 TODO:
-- Org tables
-- table.el tables
 - <cite> tag
 -}
 module Text.Pandoc.Readers.Muse (readMuse) where
@@ -335,6 +333,7 @@ blockElements = (mempty <$ blankline)
             <|> playTag
             <|> verseTag
             <|> lineBlock
+            <|> museGridTable
             <|> table
             <|> commentTag
 
@@ -680,6 +679,36 @@ tableElements = sequence <$> many1 tableParseElement
 elementsToTable :: [MuseTableElement] -> MuseTable
 elementsToTable = foldr museAppendElement emptyTable
   where emptyTable = MuseTable mempty mempty mempty mempty
+
+museGridPart :: PandocMonad m => MuseParser m Int
+museGridPart = try $ length <$> many1 (char '-') <* char '+'
+
+museGridTableHeader :: PandocMonad m => MuseParser m [Int]
+museGridTableHeader = try $ char '+' *> many1 museGridPart <* manyTill spaceChar eol
+
+museGridTableRow :: PandocMonad m
+                 => Int
+                 -> [Int]
+                 -> MuseParser m (F [Blocks])
+museGridTableRow indent indices = try $ do
+  lns <- many1 $ try (indentWith indent *> museGridTableRawLine indices)
+  let cols = map unlines $ transpose lns
+  indentWith indent *> museGridTableHeader
+  sequence <$> mapM (parseFromString parseBlocks) cols
+
+museGridTableRawLine :: PandocMonad m
+                     => [Int]
+                     -> MuseParser m [String]
+museGridTableRawLine indices =
+  char '|' *> forM indices (\n -> count n anyChar <* char '|') <* manyTill spaceChar eol
+
+museGridTable :: PandocMonad m => MuseParser m (F Blocks)
+museGridTable = try $ do
+  indent <- getIndent
+  indices <- museGridTableHeader
+  fmap rowsToTable . sequence <$> many1 (museGridTableRow indent indices)
+  where rowsToTable rows = B.table mempty attrs [] rows
+                           where attrs = const (AlignDefault, 0.0) <$> transpose rows
 
 -- | Parse a table.
 table :: PandocMonad m => MuseParser m (F Blocks)
