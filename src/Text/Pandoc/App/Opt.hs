@@ -35,7 +35,6 @@ Options for pandoc when used as an app.
 -}
 module Text.Pandoc.App.Opt (
             Opt(..)
-          , LineEnding (..)
           , defaultOpts
           ) where
 import Prelude
@@ -43,6 +42,7 @@ import GHC.Generics
 import Text.Pandoc.Filter (Filter (..))
 import Text.Pandoc.Highlighting (Style, pygments)
 import Text.Pandoc.Logging (Verbosity (WARNING))
+import Text.Pandoc.IO.Options (LineEnding (Native))
 import Text.Pandoc.Options (TopLevelDivision (TopLevelDefault),
                             TrackChanges (AcceptChanges),
                             WrapOption (WrapAuto), HTMLMathMethod (PlainMath),
@@ -56,9 +56,6 @@ import Data.Aeson.TH (deriveJSON, defaultOptions)
 import Data.Aeson (FromJSON (..), ToJSON (..),
                    defaultOptions, genericToEncoding)
 #endif
-
--- | The type of line-endings to be used when writing plain-text.
-data LineEnding = LF | CRLF | Native deriving (Show, Generic)
 
 -- | Data structure for command line options.
 data Opt = Opt
@@ -208,13 +205,8 @@ defaultOpts = Opt
 #ifdef DERIVE_JSON_VIA_TH
 -- see https://github.com/jgm/pandoc/pull/4083
 -- using generic deriving caused long compilation times
-$(deriveJSON defaultOptions ''LineEnding)
 $(deriveJSON defaultOptions ''Opt)
 #else
-instance ToJSON LineEnding where
-  toEncoding = genericToEncoding defaultOptions
-instance FromJSON LineEnding
-
 instance ToJSON Opt where
   toEncoding = genericToEncoding defaultOptions
 instance FromJSON Opt

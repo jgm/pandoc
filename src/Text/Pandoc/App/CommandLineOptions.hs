@@ -55,9 +55,10 @@ import System.Exit (exitSuccess)
 import System.FilePath
 import System.IO (stdout)
 import Text.Pandoc
-import Text.Pandoc.App.Opt (Opt (..), LineEnding (..))
+import Text.Pandoc.App.Opt (Opt (..))
 import Text.Pandoc.Filter (Filter (..))
 import Text.Pandoc.Highlighting (highlightingStyles)
+import Text.Pandoc.IO.Options (LineEnding (..))
 import Text.Pandoc.Writers.Math (defaultMathJaxURL, defaultKaTeXURL)
 import Text.Pandoc.Shared (ordNub, safeRead)
 import Text.Printf

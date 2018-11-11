@@ -1,7 +1,5 @@
-{-# LANGUAGE CPP                 #-}
 {-# LANGUAGE FlexibleContexts    #-}
 {-# LANGUAGE NoImplicitPrelude   #-}
-{-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TupleSections       #-}
 {-
 Copyright (C) 2006-2018 John MacFarlane <jgm@berkeley.edu>
@@ -22,7 +20,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 -}
 
 {- |
-   Module      : Text.Pandoc.App
+   Module      : Text.Pandoc.App.OutputSettings
    Copyright   : Copyright (C) 2006-2018 John MacFarlane
    License     : GNU GPL, version 2 or above
 
@@ -51,19 +49,11 @@ import System.FilePath
 import System.IO (stdout)
 import Text.Pandoc
 import Text.Pandoc.App.FormatHeuristics (formatFromFilePaths)
-import Text.Pandoc.App.Opt (Opt (..))
 import Text.Pandoc.App.CommandLineOptions (engines)
+import Text.Pandoc.App.Opt (Opt (..))
+import Text.Pandoc.IO.Output (OutputSettings (..))
 import Text.Pandoc.BCP47 (Lang (..), parseBCP47)
 import qualified Text.Pandoc.UTF8 as UTF8
-
--- | Settings specifying how document output should be produced.
-data OutputSettings = OutputSettings
-  { outputFormat :: String
-  , outputWriter :: Writer PandocIO
-  , outputWriterName :: String
-  , outputWriterOptions :: WriterOptions
-  , outputPdfProgram :: Maybe String
-  }
 
 readUtf8File :: PandocMonad m => FilePath -> m String
 readUtf8File = fmap UTF8.toString . readFileStrict
@@ -71,10 +61,10 @@ readUtf8File = fmap UTF8.toString . readFileStrict
 -- | Get output settings from command line options.
 optToOutputSettings :: Opt -> PandocIO OutputSettings
 optToOutputSettings opts = do
-  let outputFile = fromMaybe "-" (optOutputFile opts)
+  let outputFileName = fromMaybe "-" (optOutputFile opts)
 
   when (optDumpArgs opts) . liftIO $ do
-    UTF8.hPutStrLn stdout outputFile
+    UTF8.hPutStrLn stdout outputFileName
     mapM_ (UTF8.hPutStrLn stdout) (optInputFiles opts)
     exitSuccess
 
@@ -82,13 +72,13 @@ optToOutputSettings opts = do
                          Nothing -> return Nothing
                          Just fp -> Just <$> readUtf8File fp
 
-  let pdfOutput = map toLower (takeExtension outputFile) == ".pdf"
+  let pdfOutput = map toLower (takeExtension outputFileName) == ".pdf"
   (writerName, maybePdfProg) <-
     if pdfOutput
        then liftIO $ pdfWriterAndProg (optWriter opts) (optPdfEngine opts)
        else case optWriter opts of
               Nothing  ->
-                return (formatFromFilePaths "html" [outputFile], Nothing)
+                return (formatFromFilePaths "html" [outputFileName], Nothing)
               Just f   -> return (f, Nothing)
 
   let format = map toLower $ baseWriterName
@@ -225,12 +215,17 @@ optToOutputSettings opts = do
         , writerSyntaxMap        = syntaxMap
         , writerPreferAscii      = optAscii opts
         }
+
   return $ OutputSettings
-    { outputFormat = format
+    { outputFile = optOutputFile opts
+    , outputFormat = format
+    , outputLineEnding = optEol opts
+    , outputSelfContained = optSelfContained opts
     , outputWriter = writer
     , outputWriterName = writerName
     , outputWriterOptions = writerOpts
     , outputPdfProgram = maybePdfProg
+    , outputPdfEngineArgs = optPdfEngineArgs opts
     }
 
 baseWriterName :: String -> String
