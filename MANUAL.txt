@@ -4220,7 +4220,7 @@ Also, `raw_tex` only affects `gfm` output, not input.
 
 `gfm` (GitHub-Flavored Markdown)
 :   `pipe_tables`, `raw_html`, `fenced_code_blocks`, `gfm_auto_identifiers`,
-    `ascii_identifiers`, `backtick_code_blocks`, `autolink_bare_uris`,
+    `backtick_code_blocks`, `autolink_bare_uris`,
     `intraword_underscores`, `strikeout`, `hard_line_breaks`, `emoji`,
     `shortcut_reference_links`, `angle_brackets_escapable`.
 

@@ -266,7 +266,6 @@ githubMarkdownExtensions = extensionsFromList
   , Ext_raw_html
   , Ext_fenced_code_blocks
   , Ext_gfm_auto_identifiers
-  , Ext_ascii_identifiers
   , Ext_backtick_code_blocks
   , Ext_autolink_bare_uris
   , Ext_space_in_atx_header
