@@ -1,8 +1,8 @@
 {-# LANGUAGE CPP                        #-}
-{-# LANGUAGE NoImplicitPrelude #-}
+{-# LANGUAGE NoImplicitPrelude          #-}
 {-# LANGUAGE DeriveDataTypeable         #-}
 {-# LANGUAGE DeriveGeneric              #-}
-#ifndef AVOID_TEMPLATE_HASKELL
+#ifdef DERIVE_JSON_VIA_TH
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
 {-# LANGUAGE TemplateHaskell            #-}
 #endif

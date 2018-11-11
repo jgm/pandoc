@@ -1,7 +1,7 @@
 {-# LANGUAGE CPP               #-}
 {-# LANGUAGE DeriveGeneric     #-}
 {-# LANGUAGE NoImplicitPrelude #-}
-#ifndef AVOID_TEMPLATE_HASKELL
+#ifdef DERIVE_JSON_VIA_TH
 {-# LANGUAGE TemplateHaskell   #-}
 #endif
 {-
