@@ -36,7 +36,7 @@ where
 import Prelude
 import CMarkGFM
 import Control.Monad.State
-import Data.Char (isAlphaNum, isLetter, isSpace, toLower)
+import Data.Char (isAlphaNum, isSpace, toLower)
 import Data.List (groupBy)
 import qualified Data.Map as Map
 import Data.Maybe (mapMaybe)
@@ -93,13 +93,14 @@ addHeaderId opts (Header lev (_,classes,kvs) ils) = do
 addHeaderId _ x = return x
 
 toIdent :: ReaderOptions -> [Inline] -> String
-toIdent opts = map (\c -> if isSpace c then '-' else c)
-               . filterer
-               . map toLower . stringify
-  where filterer = if isEnabled Ext_ascii_identifiers opts
-                   then mapMaybe toAsciiChar
-                   else filter (\c -> isLetter c || isAlphaNum c || isSpace c ||
-                                      c == '_' || c == '-')
+toIdent opts =
+  filterAscii . filterPunct . spaceToDash . map toLower. stringify
+  where
+    filterAscii = if isEnabled Ext_ascii_identifiers opts
+                     then mapMaybe toAsciiChar
+                     else id
+    filterPunct = filter (\c -> isAlphaNum c || c == '_' || c == '-')
+    spaceToDash = map (\c -> if isSpace c then '-' else c)
 
 nodeToPandoc :: ReaderOptions -> Node -> Pandoc
 nodeToPandoc opts (Node _ DOCUMENT nodes) =
