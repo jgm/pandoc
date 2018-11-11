@@ -1291,7 +1291,7 @@ registerHeader (ident,classes,kvs) header' = do
   let insert' = M.insertWith (\_new old -> old)
   if null ident && Ext_auto_identifiers `extensionEnabled` exts
      then do
-       let id' = uniqueIdent (B.toList header') ids
+       let id' = uniqueIdent exts (B.toList header') ids
        let id'' = if Ext_ascii_identifiers `extensionEnabled` exts
                      then mapMaybe toAsciiChar id'
                      else id'

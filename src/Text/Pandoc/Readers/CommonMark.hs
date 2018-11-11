@@ -36,23 +36,20 @@ where
 import Prelude
 import CMarkGFM
 import Control.Monad.State
-import Data.Char (isAlphaNum, isSpace, toLower)
 import Data.List (groupBy)
-import qualified Data.Map as Map
-import Data.Maybe (mapMaybe)
+import qualified Data.Set as Set
 import Data.Text (Text, unpack)
-import Text.Pandoc.Asciify (toAsciiChar)
 import Text.Pandoc.Class (PandocMonad)
 import Text.Pandoc.Definition
 import Text.Pandoc.Emoji (emojiToInline)
 import Text.Pandoc.Options
-import Text.Pandoc.Shared (stringify)
+import Text.Pandoc.Shared (uniqueIdent)
 import Text.Pandoc.Walk (walkM)
 
 -- | Parse a CommonMark formatted string into a 'Pandoc' structure.
 readCommonMark :: PandocMonad m => ReaderOptions -> Text -> m Pandoc
 readCommonMark opts s = return $
-  (if isEnabled Ext_gfm_auto_identifiers opts
+  (if isEnabled Ext_auto_identifiers opts
       then addHeaderIdentifiers opts
       else id) $
   nodeToPandoc opts $ commonmarkToNode opts' exts s
@@ -78,29 +75,13 @@ convertEmojis s =
 addHeaderIdentifiers :: ReaderOptions -> Pandoc -> Pandoc
 addHeaderIdentifiers opts doc = evalState (walkM (addHeaderId opts) doc) mempty
 
-addHeaderId :: ReaderOptions -> Block -> State (Map.Map String Int) Block
+addHeaderId :: ReaderOptions -> Block -> State (Set.Set String) Block
 addHeaderId opts (Header lev (_,classes,kvs) ils) = do
-  idmap <- get
-  let ident = toIdent opts ils
-  ident' <- case Map.lookup ident idmap of
-                 Nothing -> do
-                   put (Map.insert ident 1 idmap)
-                   return ident
-                 Just i -> do
-                   put (Map.adjust (+ 1) ident idmap)
-                   return (ident ++ "-" ++ show i)
-  return $ Header lev (ident',classes,kvs) ils
+  ids <- get
+  let ident = uniqueIdent (readerExtensions opts) ils ids
+  modify (Set.insert ident)
+  return $ Header lev (ident,classes,kvs) ils
 addHeaderId _ x = return x
-
-toIdent :: ReaderOptions -> [Inline] -> String
-toIdent opts =
-  filterAscii . filterPunct . spaceToDash . map toLower. stringify
-  where
-    filterAscii = if isEnabled Ext_ascii_identifiers opts
-                     then mapMaybe toAsciiChar
-                     else id
-    filterPunct = filter (\c -> isAlphaNum c || c == '_' || c == '-')
-    spaceToDash = map (\c -> if isSpace c then '-' else c)
 
 nodeToPandoc :: ReaderOptions -> Node -> Pandoc
 nodeToPandoc opts (Node _ DOCUMENT nodes) =

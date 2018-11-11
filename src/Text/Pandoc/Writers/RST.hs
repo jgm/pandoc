@@ -260,7 +260,8 @@ blockToRST (Header level (name,classes,_) inlines) = do
   contents <- inlineListToRST inlines
   -- we calculate the id that would be used by auto_identifiers
   -- so we know whether to print an explicit identifier
-  let autoId = uniqueIdent inlines mempty
+  opts <- gets stOptions
+  let autoId = uniqueIdent (writerExtensions opts) inlines mempty
   isTopLevel <- gets stTopLevel
   if isTopLevel
     then do

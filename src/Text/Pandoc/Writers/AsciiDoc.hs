@@ -170,7 +170,7 @@ blockToAsciiDoc _ HorizontalRule =
 blockToAsciiDoc opts (Header level (ident,_,_) inlines) = do
   contents <- inlineListToAsciiDoc opts inlines
   ids <- gets autoIds
-  let autoId = uniqueIdent inlines ids
+  let autoId = uniqueIdent (writerExtensions opts) inlines ids
   modify $ \st -> st{ autoIds = Set.insert autoId ids }
   let identifier = if null ident ||
                       (isEnabled Ext_auto_identifiers opts && ident == autoId)

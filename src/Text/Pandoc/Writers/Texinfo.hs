@@ -231,7 +231,8 @@ blockToTexinfo (Header level _ lst)
     node <- inlineListForNode lst
     txt <- inlineListToTexinfo lst
     idsUsed <- gets stIdentifiers
-    let id' = uniqueIdent lst idsUsed
+    opts <- gets stOptions
+    let id' = uniqueIdent (writerExtensions opts) lst idsUsed
     modify $ \st -> st{ stIdentifiers = Set.insert id' idsUsed }
     sec <- seccmd level
     return $ if (level > 0) && (level <= 4)

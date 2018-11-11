@@ -735,6 +735,7 @@ makeEndNotesSlideBlocks :: Pres [Block]
 makeEndNotesSlideBlocks = do
   noteIds <- gets stNoteIds
   slideLevel <- asks envSlideLevel
+  exts <- writerExtensions <$> asks envOpts
   meta <- asks envMetadata
   -- Get identifiers so we can give the notes section a unique ident.
   anchorSet <- M.keysSet <$> gets stAnchorMap
@@ -743,7 +744,7 @@ makeEndNotesSlideBlocks = do
     else let title = case lookupMetaInlines "notes-title" meta of
                        [] -> [Str "Notes"]
                        ls -> ls
-             ident = Shared.uniqueIdent title anchorSet
+             ident = Shared.uniqueIdent exts title anchorSet
              hdr = Header slideLevel (ident, [], []) title
              blks = concatMap (\(n, bs) -> makeNoteEntry n bs) $
                     M.toList noteIds

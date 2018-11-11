@@ -54,6 +54,7 @@ import qualified Text.XML.Light as XML
 import Text.Pandoc.Builder
 import Text.Pandoc.MediaBag (MediaBag, insertMedia)
 import Text.Pandoc.Shared
+import Text.Pandoc.Extensions (extensionsFromList, Extension(..))
 
 import Text.Pandoc.Readers.Odt.Base
 import Text.Pandoc.Readers.Odt.Namespaces
@@ -253,7 +254,9 @@ getPrettyAnchor = proc (baseIdent, uglyAnchor) -> do
 getHeaderAnchor :: OdtReaderSafe Inlines Anchor
 getHeaderAnchor = proc title -> do
   state <- getExtraState -< ()
-  let anchor = uniqueIdent (toList title) (Set.fromList $ usedAnchors state)
+  let exts = extensionsFromList [Ext_auto_identifiers]
+  let anchor = uniqueIdent exts (toList title)
+                (Set.fromList $ usedAnchors state)
   modifyExtraState (putPrettyAnchor anchor anchor) -<< anchor
 
 
@@ -768,6 +771,7 @@ read_maybe_nested_img_frame   = matchingElement NsDraw "frame"
 read_frame :: OdtReaderSafe Inlines Inlines
 read_frame =
   proc blocks -> do
+   let exts = extensionsFromList [Ext_auto_identifiers]
    w          <- ( findAttr' NsSVG "width" )                 -< ()
    h          <- ( findAttr' NsSVG "height" )                -< ()
    titleNodes <- ( matchChildContent' [ read_frame_title ] ) -< blocks
@@ -776,7 +780,8 @@ read_frame =
    _          <- updateMediaWithResource                     -< resource
    alt        <- (matchChildContent [] read_plain_text)      -< blocks
    arr (uncurry4 imageWith ) -<
-                (image_attributes w h, src, inlineListToIdentifier (toList titleNodes), alt)
+                (image_attributes w h, src,
+                   inlineListToIdentifier exts (toList titleNodes), alt)
 
 image_attributes :: Maybe String -> Maybe String -> Attr
 image_attributes x y =

@@ -270,7 +270,7 @@ blockToMuse (Header level (ident,_,_) inlines) = do
   topLevel <- asks envTopLevel
   contents <- local (\env -> env { envOneLine = True }) $ inlineListToMuse' inlines
   ids <- gets stIds
-  let autoId = uniqueIdent inlines ids
+  let autoId = uniqueIdent (writerExtensions opts) inlines ids
   modify $ \st -> st{ stIds = Set.insert autoId ids }
 
   let attr' = if null ident || (isEnabled Ext_auto_identifiers opts && ident == autoId)

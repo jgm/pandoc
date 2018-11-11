@@ -495,7 +495,7 @@ pandocToEPUB version opts doc@(Pandoc meta _) = do
   -- body pages
 
   -- add level 1 header to beginning if none there
-  let blocks' = addIdentifiers
+  let blocks' = addIdentifiers opts
                 $ case blocks of
                       (Header 1 _ _ : _) -> blocks
                       _                  -> Header 1 ("",["unnumbered"],[])
@@ -1056,12 +1056,12 @@ showChapter :: Int -> String
 showChapter = printf "ch%03d.xhtml"
 
 -- Add identifiers to any headers without them.
-addIdentifiers :: [Block] -> [Block]
-addIdentifiers bs = evalState (mapM go bs) Set.empty
+addIdentifiers :: WriterOptions -> [Block] -> [Block]
+addIdentifiers opts bs = evalState (mapM go bs) Set.empty
  where go (Header n (ident,classes,kvs) ils) = do
          ids <- get
          let ident' = if null ident
-                         then uniqueIdent ils ids
+                         then uniqueIdent (writerExtensions opts) ils ids
                          else ident
          modify $ Set.insert ident'
          return $ Header n (ident',classes,kvs) ils

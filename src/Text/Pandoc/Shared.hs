@@ -116,8 +116,7 @@ import Control.Monad (MonadPlus (..), msum, unless)
 import qualified Control.Monad.State.Strict as S
 import qualified Data.ByteString.Lazy as BL
 import qualified Data.Bifunctor as Bifunctor
-import Data.Char (isAlpha, isDigit, isLetter, isLower, isSpace, isUpper,
-                  toLower)
+import Data.Char (isAlpha, isLower, isSpace, isUpper, toLower, isAlphaNum)
 import Data.Data (Data, Typeable)
 import Data.List (find, intercalate, intersperse, stripPrefix)
 import qualified Data.Map as M
@@ -137,7 +136,9 @@ import Text.HTML.TagSoup (RenderOptions (..), Tag (..), renderOptions,
 import Text.Pandoc.Builder (Blocks, Inlines, ToMetaValue (..))
 import qualified Text.Pandoc.Builder as B
 import Data.Time
+import Text.Pandoc.Asciify (toAsciiChar)
 import Text.Pandoc.Definition
+import Text.Pandoc.Extensions (Extensions, Extension(..), extensionEnabled)
 import Text.Pandoc.Generic (bottomUp)
 import Text.Pandoc.Pretty (charWidth)
 import Text.Pandoc.Walk
@@ -483,18 +484,29 @@ instance Walkable Block Element where
   query f (Blk x)              = query f x
   query f (Sec _ _ _ ils elts) = query f ils `mappend` query f elts
 
-
 -- | Convert Pandoc inline list to plain text identifier.  HTML
 -- identifiers must start with a letter, and may contain only
 -- letters, digits, and the characters _-.
-inlineListToIdentifier :: [Inline] -> String
-inlineListToIdentifier =
-  dropWhile (not . isAlpha) . intercalate "-" . words .
-    map (nbspToSp . toLower) .
-    filter (\c -> isLetter c || isDigit c || c `elem` "_-. ") .
-    stringify
- where nbspToSp '\160' =  ' '
-       nbspToSp x      =  x
+inlineListToIdentifier :: Extensions -> [Inline] -> String
+inlineListToIdentifier exts =
+  dropNonLetter . filterAscii . toIdent . stringify
+  where
+    dropNonLetter
+      | extensionEnabled Ext_gfm_auto_identifiers exts = id
+      | otherwise = dropWhile (not . isAlpha)
+    filterAscii
+      | extensionEnabled Ext_ascii_identifiers exts
+        = mapMaybe toAsciiChar
+      | otherwise = id
+    toIdent
+      | extensionEnabled Ext_gfm_auto_identifiers exts =
+        filterPunct . spaceToDash . map toLower
+      | otherwise = intercalate "-" . words . filterPunct . map toLower
+    filterPunct = filter (\c -> isSpace c || isAlphaNum c || isAllowedPunct c)
+    isAllowedPunct c
+      | extensionEnabled Ext_gfm_auto_identifiers exts = c == '_' || c == '-'
+      | otherwise = c == '_' || c == '-' || c == '.'
+    spaceToDash = map (\c -> if isSpace c then '-' else c)
 
 -- | Convert list of Pandoc blocks into (hierarchical) list of Elements
 hierarchicalize :: [Block] -> [Element]
@@ -530,17 +542,20 @@ headerLtEq _ _                                                   = False
 
 -- | Generate a unique identifier from a list of inlines.
 -- Second argument is a list of already used identifiers.
-uniqueIdent :: [Inline] -> Set.Set String -> String
-uniqueIdent title' usedIdents
-  =  let baseIdent = case inlineListToIdentifier title' of
-                        "" -> "section"
-                        x  -> x
-         numIdent n = baseIdent ++ "-" ++ show n
-     in  if baseIdent `Set.member` usedIdents
-           then case find (\x -> not $ numIdent x `Set.member` usedIdents) ([1..60000] :: [Int]) of
-                  Just x  -> numIdent x
-                  Nothing -> baseIdent   -- if we have more than 60,000, allow repeats
-           else baseIdent
+uniqueIdent :: Extensions -> [Inline] -> Set.Set String -> String
+uniqueIdent exts title' usedIdents =
+  if baseIdent `Set.member` usedIdents
+     then case find (\x -> not $ numIdent x `Set.member` usedIdents)
+               ([1..60000] :: [Int]) of
+            Just x  -> numIdent x
+            Nothing -> baseIdent
+            -- if we have more than 60,000, allow repeats
+     else baseIdent
+  where
+    baseIdent = case inlineListToIdentifier exts title' of
+                     "" -> "section"
+                     x  -> x
+    numIdent n = baseIdent ++ "-" ++ show n
 
 -- | True if block is a Header block.
 isHeaderBlock :: Block -> Bool

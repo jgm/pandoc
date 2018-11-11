@@ -508,7 +508,7 @@ blockToMarkdown' opts (Header level attr inlines) = do
   -- we calculate the id that would be used by auto_identifiers
   -- so we know whether to print an explicit identifier
   ids <- gets stIds
-  let autoId = uniqueIdent inlines ids
+  let autoId = uniqueIdent (writerExtensions opts) inlines ids
   modify $ \st -> st{ stIds = Set.insert autoId ids }
   let attr' = case attr of
                    ("",[],[]) -> empty

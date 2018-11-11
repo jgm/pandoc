@@ -442,9 +442,11 @@ parPartToInlines' (BookMark _ anchor) =
           (modify $ \s -> s { docxAnchorMap = M.insert anchor prevAnchor anchorMap})
         return mempty
       Nothing -> do
+        exts <- readerExtensions <$> asks docxOptions
         let newAnchor =
               if not inHdrBool && anchor `elem` M.elems anchorMap
-              then uniqueIdent [Str anchor] (Set.fromList $ M.elems anchorMap)
+              then uniqueIdent exts [Str anchor]
+                     (Set.fromList $ M.elems anchorMap)
               else anchor
         unless inHdrBool
           (modify $ \s -> s { docxAnchorMap = M.insert anchor newAnchor anchorMap})
@@ -487,8 +489,9 @@ makeHeaderAnchor' (Header n (ident, classes, kvs) ils)
   | (c:_) <- filter isAnchorSpan ils
   , (Span (anchIdent, ["anchor"], _) cIls) <- c = do
     hdrIDMap <- gets docxAnchorMap
+    exts <- readerExtensions <$> asks docxOptions
     let newIdent = if null ident
-                   then uniqueIdent ils (Set.fromList $ M.elems hdrIDMap)
+                   then uniqueIdent exts ils (Set.fromList $ M.elems hdrIDMap)
                    else ident
         newIls = concatMap f ils where f il | il == c   = cIls
                                             | otherwise = [il]
@@ -499,8 +502,9 @@ makeHeaderAnchor' (Header n (ident, classes, kvs) ils)
 makeHeaderAnchor' (Header n (ident, classes, kvs) ils) =
   do
     hdrIDMap <- gets docxAnchorMap
+    exts <- readerExtensions <$> asks docxOptions
     let newIdent = if null ident
-                   then uniqueIdent ils (Set.fromList $ M.elems hdrIDMap)
+                   then uniqueIdent exts ils (Set.fromList $ M.elems hdrIDMap)
                    else ident
     modify $ \s -> s {docxAnchorMap = M.insert newIdent newIdent hdrIDMap}
     return $ Header n (newIdent, classes, kvs) ils

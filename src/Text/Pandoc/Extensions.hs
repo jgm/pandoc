@@ -56,7 +56,7 @@ import Data.Bits (clearBit, setBit, testBit, (.|.))
 import Data.Data (Data)
 import Data.Typeable (Typeable)
 import GHC.Generics (Generic)
-import Text.Pandoc.Shared (safeRead)
+import Safe (readMay)
 import Text.Parsec
 
 #ifdef DERIVE_JSON_VIA_TH
@@ -96,7 +96,8 @@ data Extension =
     | Ext_all_symbols_escapable  -- ^ Make all non-alphanumerics escapable
     | Ext_amuse -- ^ Enable Text::Amuse extensions to Emacs Muse markup
     | Ext_angle_brackets_escapable  -- ^ Make < and > escapable
-    | Ext_ascii_identifiers   -- ^ ascii-only identifiers for headers
+    | Ext_ascii_identifiers   -- ^ ascii-only identifiers for headers;
+                              -- presupposes Ext_auto_identifiers
     | Ext_auto_identifiers    -- ^ Automatic identifiers for headers
     | Ext_autolink_bare_uris  -- ^ Make all absolute URIs into links
     | Ext_backtick_code_blocks    -- ^ GitHub style ``` code blocks
@@ -123,8 +124,9 @@ data Extension =
     | Ext_fenced_divs             -- ^ Allow fenced div syntax :::
     | Ext_footnotes           -- ^ Pandoc\/PHP\/MMD style footnotes
     | Ext_four_space_rule     -- ^ Require 4-space indent for list contents
-    | Ext_gfm_auto_identifiers  -- ^ Automatic identifiers for headers, using
-                                --  GitHub's method for generating identifiers
+    | Ext_gfm_auto_identifiers  -- ^ Use GitHub's method for generating
+                              -- header identifiers; presupposes
+                              -- Ext_auto_identifiers
     | Ext_grid_tables         -- ^ Grid tables (pandoc, reST)
     | Ext_hard_line_breaks    -- ^ All newlines become hard line breaks
     | Ext_header_attributes   -- ^ Explicit header attributes {#id .class k=v}
@@ -265,6 +267,7 @@ githubMarkdownExtensions = extensionsFromList
   , Ext_pipe_tables
   , Ext_raw_html
   , Ext_fenced_code_blocks
+  , Ext_auto_identifiers
   , Ext_gfm_auto_identifiers
   , Ext_backtick_code_blocks
   , Ext_autolink_bare_uris
@@ -384,7 +387,7 @@ parseFormatSpec = parse formatSpec ""
         extMod = do
           polarity <- oneOf "-+"
           name <- many $ noneOf "-+"
-          ext <- case safeRead ("Ext_" ++ name) of
+          ext <- case readMay ("Ext_" ++ name) of
                        Just n  -> return n
                        Nothing
                          | name == "lhs" -> return Ext_literate_haskell
