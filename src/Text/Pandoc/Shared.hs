@@ -116,7 +116,9 @@ import Control.Monad (MonadPlus (..), msum, unless)
 import qualified Control.Monad.State.Strict as S
 import qualified Data.ByteString.Lazy as BL
 import qualified Data.Bifunctor as Bifunctor
-import Data.Char (isAlpha, isLower, isSpace, isUpper, toLower, isAlphaNum)
+import Data.Char (isAlpha, isLower, isSpace, isUpper, toLower, isAlphaNum,
+                  generalCategory, GeneralCategory(NonSpacingMark,
+                  SpacingCombiningMark, EnclosingMark, ConnectorPunctuation))
 import Data.Data (Data, Typeable)
 import Data.List (find, intercalate, intersperse, stripPrefix)
 import qualified Data.Map as M
@@ -504,7 +506,10 @@ inlineListToIdentifier exts =
       | otherwise = intercalate "-" . words . filterPunct . map toLower
     filterPunct = filter (\c -> isSpace c || isAlphaNum c || isAllowedPunct c)
     isAllowedPunct c
-      | extensionEnabled Ext_gfm_auto_identifiers exts = c == '_' || c == '-'
+      | extensionEnabled Ext_gfm_auto_identifiers exts
+        = c == '-' || c == '_' ||
+          generalCategory c `elem` [NonSpacingMark, SpacingCombiningMark,
+                                    EnclosingMark, ConnectorPunctuation]
       | otherwise = c == '_' || c == '-' || c == '.'
     spaceToDash = map (\c -> if isSpace c then '-' else c)
 
