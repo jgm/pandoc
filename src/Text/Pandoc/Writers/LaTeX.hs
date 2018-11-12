@@ -709,7 +709,7 @@ blockToLaTeX (BulletList lst) = do
 blockToLaTeX (OrderedList _ []) = return empty -- otherwise latex error
 blockToLaTeX (OrderedList (start, numstyle, numdelim) lst) = do
   st <- get
-  let inc = if stIncremental st then "[<+->]" else ""
+  let inc = if stBeamer st && stIncremental st then "[<+->]" else ""
   let oldlevel = stOLLevel st
   put $ st {stOLLevel = oldlevel + 1}
   items <- mapM listItemToLaTeX lst
@@ -759,7 +759,8 @@ blockToLaTeX (OrderedList (start, numstyle, numdelim) lst) = do
 blockToLaTeX (DefinitionList []) = return empty
 blockToLaTeX (DefinitionList lst) = do
   incremental <- gets stIncremental
-  let inc = if incremental then "[<+->]" else ""
+  beamer <- gets stBeamer
+  let inc = if beamer && incremental then "[<+->]" else ""
   items <- mapM defListItemToLaTeX lst
   let spacing = if all isTightList (map snd lst)
                    then text "\\tightlist"
