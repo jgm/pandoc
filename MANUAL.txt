@@ -3968,6 +3968,13 @@ as `book`, `bk.`/`bks.`; `chapter`, `chap.`/`chaps.`; `column`,
 `verse`, `v.`/`vv.`; `volume`, `vol.`/`vols.`; `¶`/`¶¶`; `§`/`§§`. If no
 locator term is used, "page" is assumed.
 
+`pandoc-citeproc` will use heuristics to distinguish the locator
+from the suffix. In complex cases, the locator can be enclosed
+in curly braces (pandoc-citeproc 0.14.9+ only):
+
+    [@smith{ii, A, D-Z}, with a suffx]
+    [@smith, {pp. iv, vi-xi, (xv)-(xvii)} with suffix here]
+
 A minus sign (`-`) before the `@` will suppress mention of
 the author in the citation.  This can be useful when the
 author is already mentioned in the text:
