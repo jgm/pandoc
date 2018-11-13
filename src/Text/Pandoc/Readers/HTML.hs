@@ -496,13 +496,13 @@ pTable = try $ do
   let pTh = option [] $ pInTags "tr" (pCell "th")
       pTr = try $ skipMany pBlank >>
                   pInTags "tr" (pCell "td" <|> pCell "th")
-      pTBody = pOptInTag "tbody" $ many1 pTr
-  head'' <- pOptInTag "thead" pTh
+      pTBody = pInTag True "tbody" $ many1 pTr
+  head'' <- pInTag False "thead" (option [] pTr) <|> pInTag True "thead" pTh
   head'  <- map snd <$>
-             pOptInTag "tbody"
+             pInTag True "tbody"
                (if null head'' then pTh else return head'')
   rowsLs <- many pTBody
-  rows'  <- pOptInTag "tfoot" $ many pTr
+  rows'  <- pInTag True "tfoot" $ many pTr
   TagClose _ <- pSatisfy (matchTagClose "table")
   let rows'' = concat rowsLs <> rows'
   let rows''' = map (map snd) rows''
@@ -609,7 +609,7 @@ pFigure = try $ do
   TagOpen _ _ <- pSatisfy (matchTagOpen "figure" [])
   skipMany pBlank
   let pImg  = (\x -> (Just x, Nothing)) <$>
-               (pOptInTag "p" pImage <* skipMany pBlank)
+               (pInTag True "p" pImage <* skipMany pBlank)
       pCapt = (\x -> (Nothing, Just x)) <$> do
                 bs <- pInTags "figcaption" block
                 return $ blocksToInlines' $ B.toList bs
@@ -868,16 +868,16 @@ pInTags' tagtype tagtest parser = try $ do
   pSatisfy (\t -> t ~== TagOpen tagtype [] && tagtest t)
   mconcat <$> manyTill parser (pCloses tagtype <|> eof)
 
--- parses p, preceded by an optional opening tag
--- and followed by an optional closing tags
-pOptInTag :: PandocMonad m => Text -> TagParser m a -> TagParser m a
-pOptInTag tagtype p = try $ do
+-- parses p, preceded by an opening tag (optional if tagsOptional)
+-- and followed by a closing tag (optional if tagsOptional)
+pInTag :: PandocMonad m => Bool -> Text -> TagParser m a -> TagParser m a
+pInTag tagsOptional tagtype p = try $ do
   skipMany pBlank
-  optional $ pSatisfy (matchTagOpen tagtype [])
+  (if tagsOptional then optional else void) $ pSatisfy (matchTagOpen tagtype [])
   skipMany pBlank
   x <- p
   skipMany pBlank
-  optional $ pSatisfy (matchTagClose tagtype)
+  (if tagsOptional then optional else void) $ pSatisfy (matchTagClose tagtype)
   skipMany pBlank
   return x
 
