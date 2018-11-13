@@ -281,7 +281,7 @@ blockToMuse (Header level (ident,_,_) inlines) = do
 -- https://www.gnu.org/software/emacs-muse/manual/muse.html#Horizontal-Rules-and-Anchors
 blockToMuse HorizontalRule = return $ blankline $$ "----" $$ blankline
 blockToMuse (Table caption aligns widths headers rows) =
-  if all (== 0.0) widths
+  if all (== 0.0) widths && length widths > 1
     then simpleTable caption headers rows
     else do
       opts <- asks envOptions

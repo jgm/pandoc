@@ -400,6 +400,18 @@ tests = [ testGroup "block elements"
                           , " Para 2.1 |  Para 2.2"
                           , " |+ Table 1 +|"
                           ]
+            , "table with one column" =:
+              let headers = []
+                  rows = [[para "Para 1"]
+                         ,[para "Para 2"]]
+              in simpleTable headers rows
+              =?>
+              unlines [ "+--------+"
+                      , "| Para 1 |"
+                      , "+--------+"
+                      , "| Para 2 |"
+                      , "+--------+"
+                      ]
             ]
           , "div with bullet list" =:
             divWith nullAttr (bulletList [para "foo"]) =?>
