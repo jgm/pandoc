@@ -19,16 +19,15 @@ packages:
   - foundation
   extra-dep: true
 extra-deps:
-- pandoc-citeproc-0.14.8.1
+- pandoc-citeproc-0.15
 - haddock-library-1.7.0
 - HsYAML-0.1.1.2
-- texmath-0.11.1.2
 - yaml-0.11.0.0
-- cmark-gfm-0.1.6
+- libyaml-0.1.0.0
 - hslua-1.0.1
 - hslua-module-text-0.2.0
 - skylighting-0.7.4
 - skylighting-core-0.7.4
 ghc-options:
    "$locals": -fhide-source-paths -XNoImplicitPrelude
-resolver: lts-12.12
+resolver: lts-12.18
