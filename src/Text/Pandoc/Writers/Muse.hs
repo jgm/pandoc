@@ -171,19 +171,20 @@ simpleTable :: PandocMonad m
             -> [[TableCell]]
             -> Muse m Doc
 simpleTable caption headers rows = do
+  topLevel <- asks envTopLevel
   caption' <- inlineListToMuse caption
   headers' <- mapM blockListToMuse headers
   rows' <- mapM (mapM blockListToMuse) rows
   let widthsInChars = maximum . map offset <$> transpose (headers' : rows')
   let hpipeBlocks sep blocks = hcat $ intersperse sep' blocks
         where sep' = lblock (length sep) $ text sep
-  let makeRow sep = (" " <>) . hpipeBlocks sep . zipWith lblock widthsInChars
+  let makeRow sep = hpipeBlocks sep . zipWith lblock widthsInChars
   let head' = makeRow " || " headers'
   rows'' <- mapM (\row -> makeRow rowSeparator <$> mapM blockListToMuse row) rows
   let body = vcat rows''
-  return $  (if noHeaders then empty else head')
-         $$ body
-         $$ (if null caption then empty else " |+ " <> caption' <> " +|")
+  return $ (if topLevel then nest 1 else id) ((if noHeaders then empty else head')
+                                             $$ body
+                                             $$ (if null caption then empty else "|+ " <> caption' <> " +|"))
          $$ blankline
   where noHeaders = all null headers
         rowSeparator = if noHeaders then " | " else " |  "

@@ -400,6 +400,12 @@ tests = [ testGroup "block elements"
                           , " Para 2.1 |  Para 2.2"
                           , " |+ Table 1 +|"
                           ]
+            , "table inside bullet list" =:
+              bulletList [simpleTable [] [[para "foo", para "bar"]
+                                         ,[para "bat", para "baz"]]]
+              =?> unlines [ " - foo | bar"
+                          , "   bat | baz"
+                          ]
             , "table with one column" =:
               let headers = []
                   rows = [[para "Para 1"]
