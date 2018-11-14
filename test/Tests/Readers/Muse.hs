@@ -1019,6 +1019,17 @@ tests =
                        [[table mempty [(AlignDefault, 0.0)]
                                       []
                                       [[para "foo"]]]]
+        , "Grid table with example" =:
+          T.unlines
+            [ "+------------+"
+            , "| <example>  |"
+            , "| foo        |"
+            , "| </example> |"
+            , "+------------+"
+            ] =?>
+          table mempty [(AlignDefault, 0.0)]
+                       []
+                       [[codeBlock "foo"]]
         ]
     , testGroup "Lists"
       [ "Bullet list" =:

@@ -56,7 +56,7 @@ import Text.Pandoc.Error (PandocError (PandocParsecError))
 import Text.Pandoc.Logging
 import Text.Pandoc.Options
 import Text.Pandoc.Parsing hiding (F)
-import Text.Pandoc.Shared (crFilter, underlineSpan)
+import Text.Pandoc.Shared (crFilter, trimr, underlineSpan)
 
 -- | Read Muse from an input string and return a Pandoc document.
 readMuse :: PandocMonad m
@@ -692,7 +692,7 @@ museGridTableRow :: PandocMonad m
                  -> MuseParser m (F [Blocks])
 museGridTableRow indent indices = try $ do
   lns <- many1 $ try (indentWith indent *> museGridTableRawLine indices)
-  let cols = map unlines $ transpose lns
+  let cols = map (unlines . map trimr) $ transpose lns
   indentWith indent *> museGridTableHeader
   sequence <$> mapM (parseFromString parseBlocks) cols
 
