@@ -501,10 +501,11 @@ pTable = try $ do
   head'  <- map snd <$>
              pInTag True "tbody"
                (if null head'' then pTh else return head'')
+  topfoot <- option [] $ pInTag False "tfoot" $ many pTr
   rowsLs <- many pTBody
-  rows'  <- pInTag True "tfoot" $ many pTr
+  bottomfoot <- option [] $ pInTag False "tfoot" $ many pTr
   TagClose _ <- pSatisfy (matchTagClose "table")
-  let rows'' = concat rowsLs <> rows'
+  let rows'' = concat rowsLs <> topfoot <> bottomfoot
   let rows''' = map (map snd) rows''
   -- let rows''' = map (map snd) rows''
   -- fail on empty table
