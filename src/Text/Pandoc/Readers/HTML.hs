@@ -655,6 +655,7 @@ inline = choice
            , pStrong
            , pSuperscript
            , pSubscript
+           , pSmall
            , pStrikeout
            , pUnderline
            , pLineBreak
@@ -717,6 +718,9 @@ pSuperscript = pInlinesInTags "sup" B.superscript
 
 pSubscript :: PandocMonad m => TagParser m Inlines
 pSubscript = pInlinesInTags "sub" B.subscript
+
+pSmall :: PandocMonad m => TagParser m Inlines
+pSmall = pInlinesInTags "small" (B.spanWith ("",["small"],[]))
 
 pStrikeout :: PandocMonad m => TagParser m Inlines
 pStrikeout =
