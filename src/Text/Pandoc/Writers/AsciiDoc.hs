@@ -479,7 +479,11 @@ inlineToAsciiDoc opts (Note [Plain inlines]) = do
   return $ text "footnote:[" <> contents <> "]"
 -- asciidoc can't handle blank lines in notes
 inlineToAsciiDoc _ (Note _) = return "[multiblock footnote omitted]"
-inlineToAsciiDoc opts (Span (ident,_,_) ils) = do
-  let identifier = if null ident then empty else "[[" <> text ident <> "]]"
+inlineToAsciiDoc opts (Span (ident,classes,_) ils) = do
   contents <- inlineListToAsciiDoc opts ils
-  return $ identifier <> contents
+  if null ident && null classes
+     then return contents
+     else do
+       let modifier = brackets $ text $ unwords $
+            [ '#':ident | not (null ident)] ++ map ('.':) classes
+       return $ modifier <> "#" <> contents <> "#"
