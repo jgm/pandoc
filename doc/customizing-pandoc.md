@@ -39,8 +39,27 @@ or by putting the custom template in your user data directory
 (on linux and macOS, `~/.pandoc/templates/`).
 
 Note that in many cases you can avoid the need for a custom
-template by making use of the `--include-in-header`,
-`--include-before-body`, and `--include-after-body` options.
+template by including a file with the `--include-in-header`,
+`--include-before-body`, or `--include-after-body` option.
+Or you can set the corresponding template variable directly.
+
+### Template variables
+
+There are several ways to set template variables:
+
+|      | [`--variable`]   | [`--metadata`]   | [YAML metadata] and [`--metadata-file`] |
+|:---------------|:------------------|:------------------|:----------------------------|
+| values can be… | strings and bools | strings and bools | also YAML objects and lists |
+| strings are…   | inserted verbatim | escaped           | interpreted as markdown     |
+| accessible by filters: | no        | yes               | yes                         |
+
+
+[`--variable`]:      http://pandoc.org/MANUAL.html#option--variable
+[`--metadata`]:      http://pandoc.org/MANUAL.html#option--metadata
+[YAML metadata]:     http://pandoc.org/MANUAL.html#extension-yaml_metadata_block
+[`--metadata-file`]: http://pandoc.org/MANUAL.html#option--metadata-file
+
+
 
 For more information, see [Templates](/MANUAL.html#templates) in
 the pandoc manual.
