@@ -49,10 +49,10 @@ import System.IO (nativeNewline, stdout)
 import qualified System.IO as IO (Newline (..))
 import Text.Pandoc
 import Text.Pandoc.Builder (setMeta)
+import qualified Text.Pandoc.Format.Input as Input
 import Text.Pandoc.MediaBag (mediaItems)
 import Text.Pandoc.MIME (getCharset, MimeType)
 import Text.Pandoc.Image (svgToPng)
-import Text.Pandoc.App.FormatHeuristics (formatFromFilePaths)
 import Text.Pandoc.App.Opt (Opt (..), LineEnding (..), defaultOpts,
                             IpynbOutput (..))
 import Text.Pandoc.App.CommandLineOptions (parseOptions, parseOptionsFromArgs,
@@ -116,18 +116,19 @@ convertWithOpts opts = do
     setOutputFile (optOutputFile opts)
 
     -- assign reader and writer based on options and filenames
-    readerName <- case optFrom opts of
-                       Just f  -> return f
-                       Nothing -> case formatFromFilePaths sources of
-                           Just f' -> return f'
-                           Nothing | sources == ["-"] -> return "markdown"
-                                   | any (isURI . T.pack) sources -> return "html"
-                                   | otherwise -> do
-                             report $ CouldNotDeduceFormat
-                                 (map (T.pack . takeExtension) sources) "markdown"
-                             return "markdown"
-
-    let readerNameBase = T.takeWhile (\c -> c /= '+' && c /= '-') readerName
+    readerFormat <- case optFrom opts of
+      Just spec -> Input.flavoredFromSpec spec
+      Nothing ->
+        let defFlavor = return . Input.defaultFlavor
+        in case Input.flavoredFormatFromFilePaths sources of
+             Just f' -> return f'
+             Nothing
+               | sources == ["-"]             -> defFlavor Input.Markdown
+               | any (isURI . T.pack) sources -> defFlavor Input.HTML
+               | otherwise -> do
+                   report $ CouldNotDeduceFormat
+                     (map (T.pack . takeExtension) sources) "markdown"
+                   defFlavor Input.Markdown
 
     let makeSandboxed pureReader =
           let files = maybe id (:) (optReferenceDoc opts) .
@@ -142,14 +143,13 @@ convertWithOpts opts = do
                  ByteStringReader r
                             -> ByteStringReader $ \o t -> sandbox files (r o t)
 
-    (reader, readerExts) <-
-      if ".lua" `T.isSuffixOf` readerName
-         then return (TextReader (readCustom (T.unpack readerName)), mempty)
-         else if optSandbox opts
-                 then case runPure (getReader readerName) of
-                        Left e -> throwError e
-                        Right (r, rexts) -> return (makeSandboxed r, rexts)
-                 else getReader readerName
+    (reader, readerExts) <- case readerFormat of
+      Input.CustomFormat luaFilename ->
+        return (TextReader (readCustom luaFilename), mempty)
+      Input.KnownFormat infrmt exts -> return $
+        if optSandbox opts
+        then (makeSandboxed (readerForFormat infrmt), exts)
+        else (readerForFormat infrmt, exts)
 
     outputSettings <- optToOutputSettings opts
     let format = outputFormat outputSettings
@@ -169,7 +169,7 @@ convertWithOpts opts = do
                      pdfOutput ||
                      bibOutput
 
-    when (pdfOutput && readerNameBase == "latex") $
+    when (pdfOutput && readerFormat `Input.hasBase` Input.LaTeX) $
       case optInputFiles opts of
         Just (inputFile:_) -> report $ UnusualConversion $ T.pack $
           "to convert a .tex file to PDF, you get better results by using pdflatex "
@@ -222,7 +222,7 @@ convertWithOpts opts = do
           -- If format is markdown or commonmark, use the enabled extensions,
           -- otherwise treat metadata as pandoc markdown (see #7926, #6832)
           let readerOptsMeta =
-                if readerNameBase == "markdown" || readerNameBase == "commonmark"
+                if readerFormat  `Input.hasBaseIn` [Input.Markdown, Input.CommonMark]
                    then readerOpts
                    else readerOpts{ readerExtensions = pandocExtensions }
           mconcat <$> mapM
@@ -243,7 +243,7 @@ convertWithOpts opts = do
                          then (eastAsianLineBreakFilter :)
                          else id) .
                      (case optIpynbOutput opts of
-                       _ | readerNameBase /= "ipynb" -> id
+                       _ | not (readerFormat `Input.hasBase` Input.Ipynb) -> id
                        IpynbOutputAll  -> id
                        IpynbOutputNone -> (filterIpynbOutput Nothing :)
                        IpynbOutputBest -> (filterIpynbOutput (Just $
@@ -257,14 +257,13 @@ convertWithOpts opts = do
                      $ []
 
     let convertTabs = tabFilter (if optPreserveTabs opts ||
-                                      readerNameBase == "t2t" ||
-                                      readerNameBase == "man" ||
-                                      readerNameBase == "tsv"
+                                      readerFormat `Input.hasBaseIn`
+                                      [Input.T2T, Input.Man, Input.TSV]
                                     then 0
                                     else optTabStop opts)
 
 
-    when (readerNameBase == "markdown_github" ||
+    when (readerFormat `Input.hasBase` Input.Markdown_GitHub ||
           writerNameBase == "markdown_github") $
       report $ Deprecated "markdown_github" "Use gfm instead."
 
@@ -293,7 +292,7 @@ convertWithOpts opts = do
 
     doc <- (case reader of
              TextReader r
-               | readerNameBase == "json" ->
+               | readerFormat `Input.hasBase` Input.JSON ->
                    mconcat <$>
                       mapM (inputToText convertTabs
                              >=> r readerOpts . (:[])) inputs

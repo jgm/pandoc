@@ -1,7 +1,8 @@
+{-# LANGUAGE LambdaCase          #-}
 {-# LANGUAGE MonoLocalBinds      #-}
+{-# LANGUAGE OverloadedStrings   #-}
 {-# LANGUAGE RankNTypes          #-}
 {-# LANGUAGE ScopedTypeVariables #-}
-{-# LANGUAGE OverloadedStrings   #-}
 {- |
    Module      : Text.Pandoc.Readers
    Copyright   : Copyright (C) 2006-2022 John MacFarlane
@@ -16,9 +17,7 @@ This helper module exports the readers.
 Note:  all of the readers assume that the input text has @'\n'@
 line endings.  So if you get your input text from a web form,
 you should remove @'\r'@ characters using @filter (/='\r')@.
-
 -}
-
 module Text.Pandoc.Readers
   (
     -- * Readers: converting /to/ Pandoc format
@@ -60,22 +59,23 @@ module Text.Pandoc.Readers
   , readRIS
   , readRTF
   -- * Miscellaneous
+  , readerForFormat
   , getReader
   , getDefaultExtensions
   ) where
 
-import Control.Monad (unless)
 import Control.Monad.Except (throwError)
 import Data.Aeson
 import qualified Data.ByteString.Lazy as BL
+import qualified Data.Set as Set
 import Data.Text (Text)
 import qualified Data.Text as T
-import Text.Pandoc.Shared (tshow)
 import Text.Pandoc.Class
 import Text.Pandoc.Definition
 import Text.Pandoc.Error
 import Text.Pandoc.Extensions
-import Text.Pandoc.Options
+import Text.Pandoc.Format.Input
+import Text.Pandoc.Options (ReaderOptions)
 import Text.Pandoc.Readers.CommonMark
 import Text.Pandoc.Readers.Markdown
 import Text.Pandoc.Readers.Creole
@@ -117,74 +117,62 @@ data Reader m = TextReader (forall a . ToSources a =>
               | ByteStringReader (ReaderOptions -> BL.ByteString -> m Pandoc)
 
 -- | Association list of formats and readers.
+readerForFormat :: PandocMonad m => InputFormat -> Reader m
+readerForFormat = \case
+  BibLaTeX          -> TextReader readBibLaTeX
+  BibTeX            -> TextReader readBibTeX
+  CSV               -> TextReader readCSV
+  CommonMark        -> TextReader readCommonMark
+  CommonMark_X      -> TextReader readCommonMark
+  Creole            -> TextReader readCreole
+  CslJson           -> TextReader readCslJson
+  DocBook           -> TextReader readDocBook
+  Docx              -> ByteStringReader readDocx
+  DokuWiki          -> TextReader readDokuWiki
+  EndNoteXML        -> TextReader readEndNoteXML
+  EPUB              -> ByteStringReader readEPUB
+  FB2               -> TextReader readFB2
+  GFM               -> TextReader readCommonMark
+  HTML              -> TextReader readHtml
+  Haddock           -> TextReader readHaddock
+  Ipynb             -> TextReader readIpynb
+  JATS              -> TextReader readJATS
+  JSON              -> TextReader readJSON
+  Jira              -> TextReader readJira
+  LaTeX             -> TextReader readLaTeX
+  Man               -> TextReader readMan
+  Markdown          -> TextReader readMarkdown
+  Markdown_GitHub   -> TextReader readMarkdown
+  Markdown_MMD      -> TextReader readMarkdown
+  Markdown_PHPExtra -> TextReader readMarkdown
+  Markdown_strict   -> TextReader readMarkdown
+  MediaWiki         -> TextReader readMediaWiki
+  Muse              -> TextReader readMuse
+  Native            -> TextReader readNative
+  ODT               -> ByteStringReader readOdt
+  OPML              -> TextReader readOPML
+  Org               -> TextReader readOrg
+  RIS               -> TextReader readRIS
+  RST               -> TextReader readRST
+  TSV               -> TextReader readTSV
+  TWiki             -> TextReader readTWiki
+  Textile           -> TextReader readTextile
+  TikiWiki          -> TextReader readTikiWiki
+  T2T               -> TextReader readTxt2Tags
+  Vimwiki           -> TextReader readVimwiki
+
+-- | Association list of formats and readers.
 readers :: PandocMonad m => [(Text, Reader m)]
-readers = [("native"       , TextReader readNative)
-          ,("json"         , TextReader readJSON)
-          ,("markdown"     , TextReader readMarkdown)
-          ,("markdown_strict" , TextReader readMarkdown)
-          ,("markdown_phpextra" , TextReader readMarkdown)
-          ,("markdown_github" , TextReader readMarkdown)
-          ,("markdown_mmd",  TextReader readMarkdown)
-          ,("commonmark"   , TextReader readCommonMark)
-          ,("commonmark_x" , TextReader readCommonMark)
-          ,("creole"       , TextReader readCreole)
-          ,("dokuwiki"     , TextReader readDokuWiki)
-          ,("gfm"          , TextReader readCommonMark)
-          ,("rst"          , TextReader readRST)
-          ,("mediawiki"    , TextReader readMediaWiki)
-          ,("vimwiki"      , TextReader readVimwiki)
-          ,("docbook"      , TextReader readDocBook)
-          ,("opml"         , TextReader readOPML)
-          ,("org"          , TextReader readOrg)
-          ,("textile"      , TextReader readTextile) -- TODO : textile+lhs
-          ,("html"         , TextReader readHtml)
-          ,("jats"         , TextReader readJATS)
-          ,("jira"         , TextReader readJira)
-          ,("latex"        , TextReader readLaTeX)
-          ,("haddock"      , TextReader readHaddock)
-          ,("twiki"        , TextReader readTWiki)
-          ,("tikiwiki"     , TextReader readTikiWiki)
-          ,("docx"         , ByteStringReader readDocx)
-          ,("odt"          , ByteStringReader readOdt)
-          ,("t2t"          , TextReader readTxt2Tags)
-          ,("epub"         , ByteStringReader readEPUB)
-          ,("muse"         , TextReader readMuse)
-          ,("man"          , TextReader readMan)
-          ,("fb2"          , TextReader readFB2)
-          ,("ipynb"        , TextReader readIpynb)
-          ,("csv"          , TextReader readCSV)
-          ,("tsv"          , TextReader readTSV)
-          ,("csljson"      , TextReader readCslJson)
-          ,("bibtex"       , TextReader readBibTeX)
-          ,("biblatex"     , TextReader readBibLaTeX)
-          ,("endnotexml"   , TextReader readEndNoteXML)
-          ,("ris"          , TextReader readRIS)
-          ,("rtf"          , TextReader readRTF)
-           ]
+readers =
+  map (\inFormat -> (name inFormat, readerForFormat inFormat))
+  $ Set.toList allInputFormats
 
 -- | Retrieve reader, extensions based on formatSpec (format+extensions).
 getReader :: PandocMonad m => Text -> m (Reader m, Extensions)
-getReader s =
-  case parseFormatSpec s of
-       Left e  -> throwError $ PandocAppError $
-                    "Error parsing reader format " <> tshow s <> ": " <> tshow e
-       Right (readerName, extsToEnable, extsToDisable) ->
-           case lookup readerName readers of
-                   Nothing  -> throwError $ PandocUnknownReaderError
-                                             readerName
-                   Just  r  -> do
-                     let allExts = getAllExtensions readerName
-                     let exts = foldr disableExtension
-                           (foldr enableExtension
-                             (getDefaultExtensions readerName)
-                                   extsToEnable) extsToDisable
-                     mapM_ (\ext ->
-                              unless (extensionEnabled ext allExts) $
-                                throwError $
-                                   PandocUnsupportedExtensionError
-                                   (T.drop 4 $ T.pack $ show ext) readerName)
-                          (extsToEnable ++ extsToDisable)
-                     return (r, exts)
+getReader s = flavoredFromSpec s >>= \case
+  KnownFormat f exts -> return (readerForFormat f, exts)
+  CustomFormat {}    -> throwError . PandocShouldNeverHappenError $
+                        "getReader called on custom reader"
 
 -- | Read pandoc document from JSON format.
 readJSON :: (PandocMonad m, ToSources a)
