@@ -32,10 +32,11 @@ module Text.Pandoc.Lua.Module.Utils
 
 import Prelude
 import Control.Applicative ((<|>))
+import Data.Char (toLower)
 import Data.Default (def)
 import Foreign.Lua (Peekable, Lua, NumResults)
 import Text.Pandoc.Class (runIO, setUserDataDir)
-import Text.Pandoc.Definition (Pandoc, Meta, MetaValue, Block, Inline)
+import Text.Pandoc.Definition (Pandoc, Meta, MetaValue (..), Block, Inline)
 import Text.Pandoc.Lua.StackInstances ()
 import Text.Pandoc.Lua.Util (addFunction)
 
@@ -111,7 +112,13 @@ stringify el = return $ case el of
   InlineElement i  -> Shared.stringify i
   BlockElement b   -> Shared.stringify b
   MetaElement m    -> Shared.stringify m
-  MetaValueElement m -> Shared.stringify m
+  MetaValueElement m -> stringifyMetaValue m
+
+stringifyMetaValue :: MetaValue -> String
+stringifyMetaValue mv = case mv of
+  MetaBool b   -> map toLower (show b)
+  MetaString s -> s
+  _            -> Shared.stringify mv
 
 data AstElement
   = PandocElement Pandoc
