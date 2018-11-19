@@ -1297,11 +1297,25 @@ getRawCommand name txt = do
              void $ count 4 braced
            "def" ->
              void $ manyTill anyTok braced
-           _ -> do
-             skipopts
-             option "" (try (optional sp *> dimenarg))
-             void $ many braced
+           _ | isFontSizeCommand name -> return ()
+             | otherwise -> do
+               skipopts
+               option "" (try (optional sp *> dimenarg))
+               void $ many braced
   return $ T.unpack (txt <> untokenize rawargs)
+
+isFontSizeCommand :: Text -> Bool
+isFontSizeCommand "tiny" = True
+isFontSizeCommand "scriptsize" = True
+isFontSizeCommand "footnotesize" = True
+isFontSizeCommand "small" = True
+isFontSizeCommand "normalsize" = True
+isFontSizeCommand "large" = True
+isFontSizeCommand "Large" = True
+isFontSizeCommand "LARGE" = True
+isFontSizeCommand "huge" = True
+isFontSizeCommand "Huge" = True
+isFontSizeCommand _ = False
 
 isBlockCommand :: Text -> Bool
 isBlockCommand s =
