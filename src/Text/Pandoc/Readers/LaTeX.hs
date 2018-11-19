@@ -2119,7 +2119,8 @@ hline = try $ do
   return ()
 
 lbreak :: PandocMonad m => LP m Tok
-lbreak = (controlSeq "\\" <|> controlSeq "tabularnewline") <* spaces
+lbreak = (controlSeq "\\" <|> controlSeq "tabularnewline")
+         <* skipopts <* spaces
 
 amp :: PandocMonad m => LP m Tok
 amp = symbol '&'
