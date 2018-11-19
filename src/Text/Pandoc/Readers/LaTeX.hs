@@ -774,7 +774,8 @@ paropt :: PandocMonad m => LP m Inlines
 paropt = parenWrapped inline
 
 rawopt :: PandocMonad m => LP m Text
-rawopt = do
+rawopt = try $ do
+  optional sp
   inner <- untokenize <$> bracketedToks
   optional sp
   return $ "[" <> inner <> "]"
