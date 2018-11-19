@@ -1301,7 +1301,7 @@ getRawCommand name txt = do
            _ | isFontSizeCommand name -> return ()
              | otherwise -> do
                skipopts
-               option "" (try (optional sp *> dimenarg))
+               option "" (try dimenarg)
                void $ many braced
   return $ T.unpack (txt <> untokenize rawargs)
 

@@ -105,7 +105,7 @@ import Text.Pandoc.Error (PandocError (PandocMacroLoop))
 import Text.Pandoc.Logging
 import Text.Pandoc.Options
 import Text.Pandoc.Parsing hiding (blankline, many, mathDisplay, mathInline,
-                            optional, space, spaces, withRaw, (<|>))
+                            space, spaces, withRaw, (<|>))
 import Text.Pandoc.Readers.LaTeX.Types (ExpansionPoint (..), Macro (..),
                                         ArgSpec (..), Tok (..), TokType (..))
 import Text.Pandoc.Shared
@@ -668,13 +668,19 @@ parenWrapped parser = try $ do
 
 dimenarg :: PandocMonad m => LP m Text
 dimenarg = try $ do
+  optional sp
   ch  <- option False $ True <$ symbol '='
-  Tok _ _ s <- satisfyTok isWordTok
-  guard $ T.take 2 (T.reverse s) `elem`
+  Tok _ _ s1 <- satisfyTok isWordTok
+  s2 <- option "" $ try $ do
+          symbol '.'
+          Tok _ _ t <-  satisfyTok isWordTok
+          return ("." <> t)
+  let s = s1 <> s2
+  guard $ T.takeEnd 2 s `elem`
            ["pt","pc","in","bp","cm","mm","dd","cc","sp"]
-  let num = T.take (T.length s - 2) s
+  let num = T.dropEnd 2 s
   guard $ T.length num > 0
-  guard $ T.all isDigit num
+  guard $ T.all (\c -> isDigit c || c == '.') num
   return $ T.pack ['=' | ch] <> s
 
 ignore :: (Monoid a, PandocMonad m) => String -> ParserT s u m a
