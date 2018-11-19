@@ -171,7 +171,7 @@ variables.
 :   The name used to involve the filter. This value can be used
     to find files relative to the script file. This variable is
     also set in custom writers.
-    
+
 `PANDOC_STATE`
 :   The state shared by all readers and writers. It is used by
     pandoc to collect and pass information. The value of this
@@ -641,6 +641,9 @@ to create these objects.
 
 Pandoc document
 
+Object equality is determined via
+[`pandoc.utils.equals`](#utils-equals).
+
 `blocks`
 :   document content ([List] of [Block]s)
 
@@ -653,9 +656,15 @@ Pandoc document
 Meta information on a document; string-indexed collection of
 [MetaValue]s.
 
+Object equality is determined via
+[`pandoc.utils.equals`](#utils-equals).
+
 ## MetaValue {#type-ref-MetaValue}
 
 Document meta information items.
+
+Object equality is determined via
+[`pandoc.utils.equals`](#utils-equals).
 
 ### MetaBlocks {#type-ref-MetaBlocks}
 
@@ -706,6 +715,9 @@ Plain Lua string value (string)
 
 
 ## Block {#type-ref-Block}
+
+Object equality is determined via
+[`pandoc.utils.equals`](#utils-equals).
 
 ### BlockQuote {#type-ref-BlockQuote}
 
@@ -925,6 +937,9 @@ centered).
 [table cells]: #type-ref-table-cell
 
 ## Inline {#type-ref-Inline}
+
+Object equality is determined via
+[`pandoc.utils.equals`](#utils-equals).
 
 ### Cite {#type-ref-Cite}
 Citation
@@ -1166,6 +1181,9 @@ Superscripted text
 
 A set of element attributes
 
+Object equality is determined via
+[`pandoc.utils.equals`](#utils-equals).
+
 `identifier`
 :   element identifier (string)
 
@@ -1183,6 +1201,9 @@ indices to the list table.
 ### Citation {#type-ref-Citation}
 
 Single citation entry
+
+Object equality is determined via
+[`pandoc.utils.equals`](#utils-equals).
 
 `id`
 :   citation identifier, e.g., a bibtex key (string)
@@ -1205,6 +1226,9 @@ Single citation entry
 
 ### ListAttributes {#type-ref-ListAttributes}
 List attributes
+
+Object equality is determined via
+[`pandoc.utils.equals`](#utils-equals).
 
 `start`
 :   number of the first list item (integer)
@@ -2201,6 +2225,28 @@ functions.
         --   pandoc.Space(), pandoc.Str'¶', pandoc.Space(),
         --   pandoc.Emph{ pandoc.Str 'Paragraph2' }
         -- }
+
+[`equals (element1, element2)`]{#utils-equals}
+
+:   Test equality of AST elements. Elements in Lua are considered
+    equal if and only if the objects obtained by unmarshaling are
+    equal.
+
+    Parameters:
+
+    `element1`, `element2`:
+    :   Objects to be compared. Acceptable input types are
+        [Pandoc](#type-ref-pandoc), [Meta](#type-ref-meta),
+        [MetaValue](#type-ref-MetaValue),
+        [Block](#type-ref-Block), [Inline](#type-ref-Inline),
+        [Attr](#type-ref-Attr),
+        [ListAttributes](#type-ref-ListAttributes), and
+        [Citation](#type-ref-Citation).
+
+    Returns:
+
+    -   Whether the two objects represent the same element
+        (boolean)
 
 [`hierarchicalize (blocks)`]{#utils-hierarchicalize}
 

@@ -1,3 +1,4 @@
+{-# LANGUAGE NoImplicitPrelude #-}
 {-
 Copyright © 2017-2018 Albert Krewinkel <tarleb+pandoc@moltkeplatz.de>
 
@@ -15,7 +16,6 @@ You should have received a copy of the GNU General Public License
 along with this program; if not, write to the Free Software
 Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 -}
-{-# LANGUAGE NoImplicitPrelude #-}
 {- |
    Module      : Text.Pandoc.Lua.Module.Utils
    Copyright   : Copyright © 2017-2018 Albert Krewinkel
@@ -36,7 +36,8 @@ import Data.Char (toLower)
 import Data.Default (def)
 import Foreign.Lua (Peekable, Lua, NumResults)
 import Text.Pandoc.Class (runIO, setUserDataDir)
-import Text.Pandoc.Definition (Pandoc, Meta, MetaValue (..), Block, Inline)
+import Text.Pandoc.Definition ( Pandoc, Meta, MetaValue (..), Block, Inline
+                              , Citation, Attr, ListAttributes)
 import Text.Pandoc.Lua.StackInstances ()
 import Text.Pandoc.Lua.Util (addFunction)
 
@@ -52,6 +53,7 @@ pushModule :: Maybe FilePath -> Lua NumResults
 pushModule mbDatadir = do
   Lua.newtable
   addFunction "blocks_to_inlines" blocksToInlines
+  addFunction "equals" equals
   addFunction "hierarchicalize" hierarchicalize
   addFunction "normalize_date" normalizeDate
   addFunction "run_json_filter" (runJSONFilter mbDatadir)
@@ -112,7 +114,9 @@ stringify el = return $ case el of
   InlineElement i  -> Shared.stringify i
   BlockElement b   -> Shared.stringify b
   MetaElement m    -> Shared.stringify m
+  CitationElement c  -> Shared.stringify c
   MetaValueElement m -> stringifyMetaValue m
+  _                  -> ""
 
 stringifyMetaValue :: MetaValue -> String
 stringifyMetaValue mv = case mv of
@@ -120,19 +124,27 @@ stringifyMetaValue mv = case mv of
   MetaString s -> s
   _            -> Shared.stringify mv
 
+equals :: AstElement -> AstElement -> Lua Bool
+equals e1 e2 = return (e1 == e2)
+
 data AstElement
   = PandocElement Pandoc
   | MetaElement Meta
   | BlockElement Block
   | InlineElement Inline
   | MetaValueElement MetaValue
-  deriving (Show)
+  | AttrElement Attr
+  | ListAttributesElement ListAttributes
+  | CitationElement Citation
+  deriving (Eq, Show)
 
 instance Peekable AstElement where
   peek idx  = do
     res <- Lua.try $  (PandocElement <$> Lua.peek idx)
                   <|> (InlineElement <$> Lua.peek idx)
                   <|> (BlockElement <$> Lua.peek idx)
+                  <|> (AttrElement <$> Lua.peek idx)
+                  <|> (ListAttributesElement <$> Lua.peek idx)
                   <|> (MetaElement <$> Lua.peek idx)
                   <|> (MetaValueElement <$> Lua.peek idx)
     case res of

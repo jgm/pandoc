@@ -25,6 +25,7 @@ THIS SOFTWARE.
 local M = {}
 
 local List = require 'pandoc.List'
+local utils = require 'pandoc.utils'
 
 ------------------------------------------------------------------------
 -- Accessor objects
@@ -119,6 +120,7 @@ local function create_accessor_behavior (tag, accessors)
     'function (x, v) x.c%s = v end',
     accessors
   )
+  behavior.__eq = utils.equals
   behavior.__index = function(t, k)
     if getmetatable(t).getters[k] then
       return getmetatable(t).getters[k](t)
@@ -873,6 +875,7 @@ function M.Attr:new (identifier, classes, attributes)
   return {identifier, classes, attributes}
 end
 M.Attr.behavior._field_names = {identifier = 1, classes = 2, attributes = 3}
+M.Attr.behavior.__eq = utils.equals
 M.Attr.behavior.__index = function(t, k)
   return rawget(t, getmetatable(t)._field_names[k]) or
     getmetatable(t)[k]
@@ -931,6 +934,7 @@ function M.ListAttributes:new (start, style, delimiter)
   return {start, style, delimiter}
 end
 M.ListAttributes.behavior._field_names = {start = 1, style = 2, delimiter = 3}
+M.ListAttributes.behavior.__eq = utils.equals
 M.ListAttributes.behavior.__index = function (t, k)
   return rawget(t, getmetatable(t)._field_names[k]) or
     getmetatable(t)[k]
@@ -1033,7 +1037,6 @@ M.UpperAlpha = "UpperAlpha"
 
 ------------------------------------------------------------------------
 -- Functions which have moved to different modules
-local utils = require 'pandoc.utils'
 M.sha1 = utils.sha1
 
 return M
