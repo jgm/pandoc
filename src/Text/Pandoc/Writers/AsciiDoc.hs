@@ -40,7 +40,7 @@ AsciiDoc:  <http://www.methods.co.nz/asciidoc/>
 module Text.Pandoc.Writers.AsciiDoc (writeAsciiDoc) where
 import Prelude
 import Control.Monad.State.Strict
-import Data.Char (isPunctuation, isSpace)
+import Data.Char (isPunctuation, isSpace, toLower)
 import Data.List (intercalate, intersperse, stripPrefix)
 import Data.Maybe (fromMaybe, isJust, listToMaybe)
 import qualified Data.Set as Set
@@ -258,17 +258,18 @@ blockToAsciiDoc opts (Table caption aligns widths headers rows) =  do
 blockToAsciiDoc opts (BulletList items) = do
   contents <- mapM (bulletListItemToAsciiDoc opts) items
   return $ cat contents <> blankline
-blockToAsciiDoc opts (OrderedList (_start, sty, _delim) items) = do
-  let sty' = case sty of
-                  UpperRoman -> UpperAlpha
-                  LowerRoman -> LowerAlpha
-                  x          -> x
-  let markers  = orderedListMarkers (1, sty', Period)  -- start num not used
-  let markers' = map (\m -> if length m < 3
-                               then m ++ replicate (3 - length m) ' '
-                               else m) markers
-  contents <- zipWithM (orderedListItemToAsciiDoc opts) markers' items
-  return $ cat contents <> blankline
+blockToAsciiDoc opts (OrderedList (start, sty, _delim) items) = do
+  let listStyle = case sty of
+                       DefaultStyle -> []
+                       Decimal      -> ["arabic"]
+                       Example      -> []
+                       _            -> [map toLower (show sty)]
+  let listStart = if start == 1 then [] else ["start=" ++ show start]
+  let listoptions = case intercalate ", " (listStyle ++ listStart) of
+                          [] -> empty
+                          x  -> brackets (text x)
+  contents <- mapM (orderedListItemToAsciiDoc opts) items
+  return $ listoptions $$ cat contents <> blankline
 blockToAsciiDoc opts (DefinitionList items) = do
   contents <- mapM (definitionListItemToAsciiDoc opts) items
   return $ cat contents <> blankline
@@ -281,40 +282,34 @@ blockToAsciiDoc opts (Div (ident,_,_) bs) = do
 bulletListItemToAsciiDoc :: PandocMonad m
                          => WriterOptions -> [Block] -> ADW m Doc
 bulletListItemToAsciiDoc opts blocks = do
-  let addBlock :: PandocMonad m => Doc -> Block -> ADW m Doc
-      addBlock d b | isEmpty d    = chomp `fmap` blockToAsciiDoc opts b
-      addBlock d b@(BulletList _) = do x <- blockToAsciiDoc opts b
-                                       return $ d <> cr <> chomp x
-      addBlock d b@(OrderedList _ _) = do x <- blockToAsciiDoc opts b
-                                          return $ d <> cr <> chomp x
-      addBlock d b = do x <- blockToAsciiDoc opts b
-                        return $ d <> cr <> text "+" <> cr <> chomp x
   lev <- gets bulletListLevel
   modify $ \s -> s{ bulletListLevel = lev + 1 }
-  contents <- foldM addBlock empty blocks
+  contents <- foldM (addBlock opts) empty blocks
   modify $ \s -> s{ bulletListLevel = lev }
   let marker = text (replicate lev '*')
   return $ marker <> text " " <> contents <> cr
 
+addBlock :: PandocMonad m => WriterOptions -> Doc -> Block -> ADW m Doc
+addBlock opts d b | isEmpty d    = chomp `fmap` blockToAsciiDoc opts b
+addBlock opts d b@(BulletList _) = do x <- blockToAsciiDoc opts b
+                                      return $ d <> cr <> chomp x
+addBlock opts d b@(OrderedList _ _) = do x <- blockToAsciiDoc opts b
+                                         return $ d <> cr <> chomp x
+addBlock opts d b = do x <- blockToAsciiDoc opts b
+                       return $ d <> cr <> text "+" <> cr <> chomp x
+
 -- | Convert ordered list item (a list of blocks) to asciidoc.
 orderedListItemToAsciiDoc :: PandocMonad m
                           => WriterOptions -- ^ options
-                          -> String        -- ^ list item marker
                           -> [Block]       -- ^ list item (list of blocks)
                           -> ADW m Doc
-orderedListItemToAsciiDoc opts marker blocks = do
-  let addBlock d b | isEmpty d    = chomp `fmap` blockToAsciiDoc opts b
-      addBlock d b@(BulletList _) = do x <- blockToAsciiDoc opts b
-                                       return $ d <> cr <> chomp x
-      addBlock d b@(OrderedList _ _) = do x <- blockToAsciiDoc opts b
-                                          return $ d <> cr <> chomp x
-      addBlock d b = do x <- blockToAsciiDoc opts b
-                        return $ d <> cr <> text "+" <> cr <> chomp x
+orderedListItemToAsciiDoc opts blocks = do
   lev <- gets orderedListLevel
   modify $ \s -> s{ orderedListLevel = lev + 1 }
-  contents <- foldM addBlock empty blocks
+  contents <- foldM (addBlock opts) empty blocks
   modify $ \s -> s{ orderedListLevel = lev }
-  return $ text marker <> text " " <> contents <> cr
+  let marker = text (replicate lev '.')
+  return $ marker <> text " " <> contents <> cr
 
 -- | Convert definition list item (label, list of blocks) to asciidoc.
 definitionListItemToAsciiDoc :: PandocMonad m
