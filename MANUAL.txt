@@ -3876,8 +3876,10 @@ use `.bibtex` to force BibTeX.
 Note that `pandoc-citeproc --bib2json` and `pandoc-citeproc --bib2yaml`
 can produce `.json` and `.yaml` files from any of the supported formats.
 
-In-field markup: In BibTeX and BibLaTeX databases, pandoc-citeproc parses
-a subset of LaTeX markup; in CSL YAML databases, pandoc Markdown; and in CSL JSON databases, an [HTML-like markup][CSL markup specs]:
+In-field markup: In BibTeX and BibLaTeX databases,
+pandoc-citeproc parses a subset of LaTeX markup; in CSL YAML
+databases, pandoc Markdown; and in CSL JSON databases, an
+[HTML-like markup][CSL markup specs]:
 
 `<i>...</i>`
 :   italics
@@ -3988,8 +3990,19 @@ You can also write an in-text citation, as follows:
     @smith04 [p. 33] says blah.
 
 If the style calls for a list of works cited, it will be placed
-at the end of the document.  Normally, you will want to end your
-document with an appropriate header:
+in a div with id `refs`, if one exists:
+
+    ::: #refs
+    :::
+
+Otherwise, it will be placed at the end of the document.
+Generation of the bibliography can be suppressed by setting
+`suppress-bibliography: true` in the YAML metadata.
+
+If you wish the bibliography to have a section header, you can
+set `reference-section-title` in the metadata, or put the header
+at the beginning of the div with id `refs` (if you are using it)
+or at the end of your document:
 
     last paragraph...
 
