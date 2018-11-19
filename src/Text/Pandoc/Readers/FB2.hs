@@ -157,7 +157,7 @@ parseBodyChild e =
     "title" -> header <$> gets fb2SectionLevel <*> parseTitleType (elContent e)
     "epigraph" -> parseEpigraph e
     "section" -> parseSection e
-    name -> throwError $ PandocParseError ("Couldn't parse FB2 file: unexpected element " ++ name ++ " in body.")
+    name -> report (UnexpectedXmlElement name "body") $> mempty
 
 -- | Parse a @\<binary>@ element.
 parseBinaryElement :: PandocMonad m => Element -> FB2 m ()
