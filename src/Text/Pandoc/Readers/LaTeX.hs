@@ -1877,7 +1877,6 @@ rawVerbEnv name = do
 
 verbEnv :: PandocMonad m => Text -> LP m String
 verbEnv name = withVerbatimMode $ do
-  skipopts
   optional blankline
   res <- manyTill anyTok (end_ name)
   return $ T.unpack
