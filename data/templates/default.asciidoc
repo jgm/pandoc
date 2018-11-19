@@ -9,6 +9,9 @@ $endif$
 $if(keywords)$
 :keywords: $for(keywords)$$keywords$$sep$, $endfor$
 $endif$
+$if(lang)$
+:lang: $lang$
+$endif$
 $if(toc)$
 :toc:
 $endif$
