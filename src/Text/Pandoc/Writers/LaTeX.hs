@@ -138,8 +138,8 @@ pandocToLaTeX options (Pandoc meta blocks) = do
   let method = writerCiteMethod options
   let blocks' = if method == Biblatex || method == Natbib
                    then case reverse blocks of
-                             Div (_,["references"],_) _:xs -> reverse xs
-                             _                             -> blocks
+                             Div ("refs",_,_) _:xs -> reverse xs
+                             _                     -> blocks
                    else blocks
   -- see if there are internal links
   let isInternalLink (Link _ _ ('#':xs,_)) = [xs]

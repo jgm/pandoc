@@ -871,10 +871,10 @@ blockToOpenXML' opts (Div (ident,classes,kvs) bs) = do
                  Just "rtl" -> return $ local (\env -> env { envRTL = True })
                  Just "ltr" -> return $ local (\env -> env { envRTL = False })
                  _ -> return id
-  let (hs, bs') = if "references" `elem` classes
+  let (hs, bs') = if ident == "refs"
                      then span isHeaderBlock bs
                      else ([], bs)
-  let bibmod = if "references" `elem` classes
+  let bibmod = if ident == "refs"
                   then withParaPropM (pStyleM "Bibliography")
                   else id
   header <- dirmod $ stylemod $ blocksToOpenXML opts hs
