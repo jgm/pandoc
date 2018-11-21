@@ -7,1005 +7,1005 @@
     <text:list-style style:name="L1">
       <text:list-level-style-number text:level="1" text:style-name="Numbering_20_Symbols" style:num-format="1" text:start-value="1" style:num-suffix=".">
         <style:list-level-properties text:list-level-position-and-space-mode="label-alignment" fo:text-align="right">
-          <style:list-level-label-alignment text:label-followed-by="listtab" text:list-tab-stop-position="0.5in" fo:text-indent="-0.1in" fo:margin-left="0.5in" />
+          <style:list-level-label-alignment text:label-followed-by="listtab" text:list-tab-stop-position="0.75in" fo:text-indent="-0.25in" fo:margin-left="0.75in" />
         </style:list-level-properties>
       </text:list-level-style-number>
     </text:list-style>
     <text:list-style style:name="L2">
       <text:list-level-style-bullet text:level="1" text:style-name="Bullet_20_Symbols" style:num-suffix="." text:bullet-char="•">
         <style:list-level-properties text:list-level-position-and-space-mode="label-alignment" fo:text-align="right">
-          <style:list-level-label-alignment text:label-followed-by="listtab" text:list-tab-stop-position="0.5in" fo:text-indent="-0.1in" fo:margin-left="0.5in" />
+          <style:list-level-label-alignment text:label-followed-by="listtab" text:list-tab-stop-position="0.75in" fo:text-indent="-0.25in" fo:margin-left="0.75in" />
         </style:list-level-properties>
       </text:list-level-style-bullet>
       <text:list-level-style-bullet text:level="2" text:style-name="Bullet_20_Symbols" style:num-suffix="." text:bullet-char="◦">
         <style:list-level-properties text:list-level-position-and-space-mode="label-alignment" fo:text-align="right">
-          <style:list-level-label-alignment text:label-followed-by="listtab" text:list-tab-stop-position="1.0in" fo:text-indent="-0.1in" fo:margin-left="1.0in" />
+          <style:list-level-label-alignment text:label-followed-by="listtab" text:list-tab-stop-position="1.0in" fo:text-indent="-0.25in" fo:margin-left="1.0in" />
         </style:list-level-properties>
       </text:list-level-style-bullet>
       <text:list-level-style-bullet text:level="3" text:style-name="Bullet_20_Symbols" style:num-suffix="." text:bullet-char="▪">
         <style:list-level-properties text:list-level-position-and-space-mode="label-alignment" fo:text-align="right">
-          <style:list-level-label-alignment text:label-followed-by="listtab" text:list-tab-stop-position="1.5in" fo:text-indent="-0.1in" fo:margin-left="1.5in" />
+          <style:list-level-label-alignment text:label-followed-by="listtab" text:list-tab-stop-position="1.25in" fo:text-indent="-0.25in" fo:margin-left="1.25in" />
         </style:list-level-properties>
       </text:list-level-style-bullet>
       <text:list-level-style-bullet text:level="4" text:style-name="Bullet_20_Symbols" style:num-suffix="." text:bullet-char="•">
         <style:list-level-properties text:list-level-position-and-space-mode="label-alignment" fo:text-align="right">
-          <style:list-level-label-alignment text:label-followed-by="listtab" text:list-tab-stop-position="2.0in" fo:text-indent="-0.1in" fo:margin-left="2.0in" />
+          <style:list-level-label-alignment text:label-followed-by="listtab" text:list-tab-stop-position="1.5in" fo:text-indent="-0.25in" fo:margin-left="1.5in" />
         </style:list-level-properties>
       </text:list-level-style-bullet>
       <text:list-level-style-bullet text:level="5" text:style-name="Bullet_20_Symbols" style:num-suffix="." text:bullet-char="◦">
         <style:list-level-properties text:list-level-position-and-space-mode="label-alignment" fo:text-align="right">
-          <style:list-level-label-alignment text:label-followed-by="listtab" text:list-tab-stop-position="2.5in" fo:text-indent="-0.1in" fo:margin-left="2.5in" />
+          <style:list-level-label-alignment text:label-followed-by="listtab" text:list-tab-stop-position="1.75in" fo:text-indent="-0.25in" fo:margin-left="1.75in" />
         </style:list-level-properties>
       </text:list-level-style-bullet>
       <text:list-level-style-bullet text:level="6" text:style-name="Bullet_20_Symbols" style:num-suffix="." text:bullet-char="▪">
         <style:list-level-properties text:list-level-position-and-space-mode="label-alignment" fo:text-align="right">
-          <style:list-level-label-alignment text:label-followed-by="listtab" text:list-tab-stop-position="3.0in" fo:text-indent="-0.1in" fo:margin-left="3.0in" />
+          <style:list-level-label-alignment text:label-followed-by="listtab" text:list-tab-stop-position="2.0in" fo:text-indent="-0.25in" fo:margin-left="2.0in" />
         </style:list-level-properties>
       </text:list-level-style-bullet>
       <text:list-level-style-bullet text:level="7" text:style-name="Bullet_20_Symbols" style:num-suffix="." text:bullet-char="•">
         <style:list-level-properties text:list-level-position-and-space-mode="label-alignment" fo:text-align="right">
-          <style:list-level-label-alignment text:label-followed-by="listtab" text:list-tab-stop-position="3.5in" fo:text-indent="-0.1in" fo:margin-left="3.5in" />
+          <style:list-level-label-alignment text:label-followed-by="listtab" text:list-tab-stop-position="2.25in" fo:text-indent="-0.25in" fo:margin-left="2.25in" />
         </style:list-level-properties>
       </text:list-level-style-bullet>
       <text:list-level-style-bullet text:level="8" text:style-name="Bullet_20_Symbols" style:num-suffix="." text:bullet-char="◦">
         <style:list-level-properties text:list-level-position-and-space-mode="label-alignment" fo:text-align="right">
-          <style:list-level-label-alignment text:label-followed-by="listtab" text:list-tab-stop-position="4.0in" fo:text-indent="-0.1in" fo:margin-left="4.0in" />
+          <style:list-level-label-alignment text:label-followed-by="listtab" text:list-tab-stop-position="2.5in" fo:text-indent="-0.25in" fo:margin-left="2.5in" />
         </style:list-level-properties>
       </text:list-level-style-bullet>
       <text:list-level-style-bullet text:level="9" text:style-name="Bullet_20_Symbols" style:num-suffix="." text:bullet-char="▪">
         <style:list-level-properties text:list-level-position-and-space-mode="label-alignment" fo:text-align="right">
-          <style:list-level-label-alignment text:label-followed-by="listtab" text:list-tab-stop-position="4.5in" fo:text-indent="-0.1in" fo:margin-left="4.5in" />
+          <style:list-level-label-alignment text:label-followed-by="listtab" text:list-tab-stop-position="2.75in" fo:text-indent="-0.25in" fo:margin-left="2.75in" />
         </style:list-level-properties>
       </text:list-level-style-bullet>
       <text:list-level-style-bullet text:level="10" text:style-name="Bullet_20_Symbols" style:num-suffix="." text:bullet-char="•">
         <style:list-level-properties text:list-level-position-and-space-mode="label-alignment" fo:text-align="right">
-          <style:list-level-label-alignment text:label-followed-by="listtab" text:list-tab-stop-position="5.0in" fo:text-indent="-0.1in" fo:margin-left="5.0in" />
+          <style:list-level-label-alignment text:label-followed-by="listtab" text:list-tab-stop-position="3.0in" fo:text-indent="-0.25in" fo:margin-left="3.0in" />
         </style:list-level-properties>
       </text:list-level-style-bullet>
     </text:list-style>
     <text:list-style style:name="L3">
       <text:list-level-style-bullet text:level="1" text:style-name="Bullet_20_Symbols" style:num-suffix="." text:bullet-char="•">
         <style:list-level-properties text:list-level-position-and-space-mode="label-alignment" fo:text-align="right">
-          <style:list-level-label-alignment text:label-followed-by="listtab" text:list-tab-stop-position="0.5in" fo:text-indent="-0.1in" fo:margin-left="0.5in" />
+          <style:list-level-label-alignment text:label-followed-by="listtab" text:list-tab-stop-position="0.75in" fo:text-indent="-0.25in" fo:margin-left="0.75in" />
         </style:list-level-properties>
       </text:list-level-style-bullet>
       <text:list-level-style-bullet text:level="2" text:style-name="Bullet_20_Symbols" style:num-suffix="." text:bullet-char="◦">
         <style:list-level-properties text:list-level-position-and-space-mode="label-alignment" fo:text-align="right">
-          <style:list-level-label-alignment text:label-followed-by="listtab" text:list-tab-stop-position="1.0in" fo:text-indent="-0.1in" fo:margin-left="1.0in" />
+          <style:list-level-label-alignment text:label-followed-by="listtab" text:list-tab-stop-position="1.0in" fo:text-indent="-0.25in" fo:margin-left="1.0in" />
         </style:list-level-properties>
       </text:list-level-style-bullet>
       <text:list-level-style-bullet text:level="3" text:style-name="Bullet_20_Symbols" style:num-suffix="." text:bullet-char="▪">
         <style:list-level-properties text:list-level-position-and-space-mode="label-alignment" fo:text-align="right">
-          <style:list-level-label-alignment text:label-followed-by="listtab" text:list-tab-stop-position="1.5in" fo:text-indent="-0.1in" fo:margin-left="1.5in" />
+          <style:list-level-label-alignment text:label-followed-by="listtab" text:list-tab-stop-position="1.25in" fo:text-indent="-0.25in" fo:margin-left="1.25in" />
         </style:list-level-properties>
       </text:list-level-style-bullet>
       <text:list-level-style-bullet text:level="4" text:style-name="Bullet_20_Symbols" style:num-suffix="." text:bullet-char="•">
         <style:list-level-properties text:list-level-position-and-space-mode="label-alignment" fo:text-align="right">
-          <style:list-level-label-alignment text:label-followed-by="listtab" text:list-tab-stop-position="2.0in" fo:text-indent="-0.1in" fo:margin-left="2.0in" />
+          <style:list-level-label-alignment text:label-followed-by="listtab" text:list-tab-stop-position="1.5in" fo:text-indent="-0.25in" fo:margin-left="1.5in" />
         </style:list-level-properties>
       </text:list-level-style-bullet>
       <text:list-level-style-bullet text:level="5" text:style-name="Bullet_20_Symbols" style:num-suffix="." text:bullet-char="◦">
         <style:list-level-properties text:list-level-position-and-space-mode="label-alignment" fo:text-align="right">
-          <style:list-level-label-alignment text:label-followed-by="listtab" text:list-tab-stop-position="2.5in" fo:text-indent="-0.1in" fo:margin-left="2.5in" />
+          <style:list-level-label-alignment text:label-followed-by="listtab" text:list-tab-stop-position="1.75in" fo:text-indent="-0.25in" fo:margin-left="1.75in" />
         </style:list-level-properties>
       </text:list-level-style-bullet>
       <text:list-level-style-bullet text:level="6" text:style-name="Bullet_20_Symbols" style:num-suffix="." text:bullet-char="▪">
         <style:list-level-properties text:list-level-position-and-space-mode="label-alignment" fo:text-align="right">
-          <style:list-level-label-alignment text:label-followed-by="listtab" text:list-tab-stop-position="3.0in" fo:text-indent="-0.1in" fo:margin-left="3.0in" />
+          <style:list-level-label-alignment text:label-followed-by="listtab" text:list-tab-stop-position="2.0in" fo:text-indent="-0.25in" fo:margin-left="2.0in" />
         </style:list-level-properties>
       </text:list-level-style-bullet>
       <text:list-level-style-bullet text:level="7" text:style-name="Bullet_20_Symbols" style:num-suffix="." text:bullet-char="•">
         <style:list-level-properties text:list-level-position-and-space-mode="label-alignment" fo:text-align="right">
-          <style:list-level-label-alignment text:label-followed-by="listtab" text:list-tab-stop-position="3.5in" fo:text-indent="-0.1in" fo:margin-left="3.5in" />
+          <style:list-level-label-alignment text:label-followed-by="listtab" text:list-tab-stop-position="2.25in" fo:text-indent="-0.25in" fo:margin-left="2.25in" />
         </style:list-level-properties>
       </text:list-level-style-bullet>
       <text:list-level-style-bullet text:level="8" text:style-name="Bullet_20_Symbols" style:num-suffix="." text:bullet-char="◦">
         <style:list-level-properties text:list-level-position-and-space-mode="label-alignment" fo:text-align="right">
-          <style:list-level-label-alignment text:label-followed-by="listtab" text:list-tab-stop-position="4.0in" fo:text-indent="-0.1in" fo:margin-left="4.0in" />
+          <style:list-level-label-alignment text:label-followed-by="listtab" text:list-tab-stop-position="2.5in" fo:text-indent="-0.25in" fo:margin-left="2.5in" />
         </style:list-level-properties>
       </text:list-level-style-bullet>
       <text:list-level-style-bullet text:level="9" text:style-name="Bullet_20_Symbols" style:num-suffix="." text:bullet-char="▪">
         <style:list-level-properties text:list-level-position-and-space-mode="label-alignment" fo:text-align="right">
-          <style:list-level-label-alignment text:label-followed-by="listtab" text:list-tab-stop-position="4.5in" fo:text-indent="-0.1in" fo:margin-left="4.5in" />
+          <style:list-level-label-alignment text:label-followed-by="listtab" text:list-tab-stop-position="2.75in" fo:text-indent="-0.25in" fo:margin-left="2.75in" />
         </style:list-level-properties>
       </text:list-level-style-bullet>
       <text:list-level-style-bullet text:level="10" text:style-name="Bullet_20_Symbols" style:num-suffix="." text:bullet-char="•">
         <style:list-level-properties text:list-level-position-and-space-mode="label-alignment" fo:text-align="right">
-          <style:list-level-label-alignment text:label-followed-by="listtab" text:list-tab-stop-position="5.0in" fo:text-indent="-0.1in" fo:margin-left="5.0in" />
+          <style:list-level-label-alignment text:label-followed-by="listtab" text:list-tab-stop-position="3.0in" fo:text-indent="-0.25in" fo:margin-left="3.0in" />
         </style:list-level-properties>
       </text:list-level-style-bullet>
     </text:list-style>
     <text:list-style style:name="L4">
       <text:list-level-style-bullet text:level="1" text:style-name="Bullet_20_Symbols" style:num-suffix="." text:bullet-char="•">
         <style:list-level-properties text:list-level-position-and-space-mode="label-alignment" fo:text-align="right">
-          <style:list-level-label-alignment text:label-followed-by="listtab" text:list-tab-stop-position="0.5in" fo:text-indent="-0.1in" fo:margin-left="0.5in" />
+          <style:list-level-label-alignment text:label-followed-by="listtab" text:list-tab-stop-position="0.75in" fo:text-indent="-0.25in" fo:margin-left="0.75in" />
         </style:list-level-properties>
       </text:list-level-style-bullet>
       <text:list-level-style-bullet text:level="2" text:style-name="Bullet_20_Symbols" style:num-suffix="." text:bullet-char="◦">
         <style:list-level-properties text:list-level-position-and-space-mode="label-alignment" fo:text-align="right">
-          <style:list-level-label-alignment text:label-followed-by="listtab" text:list-tab-stop-position="1.0in" fo:text-indent="-0.1in" fo:margin-left="1.0in" />
+          <style:list-level-label-alignment text:label-followed-by="listtab" text:list-tab-stop-position="1.0in" fo:text-indent="-0.25in" fo:margin-left="1.0in" />
         </style:list-level-properties>
       </text:list-level-style-bullet>
       <text:list-level-style-bullet text:level="3" text:style-name="Bullet_20_Symbols" style:num-suffix="." text:bullet-char="▪">
         <style:list-level-properties text:list-level-position-and-space-mode="label-alignment" fo:text-align="right">
-          <style:list-level-label-alignment text:label-followed-by="listtab" text:list-tab-stop-position="1.5in" fo:text-indent="-0.1in" fo:margin-left="1.5in" />
+          <style:list-level-label-alignment text:label-followed-by="listtab" text:list-tab-stop-position="1.25in" fo:text-indent="-0.25in" fo:margin-left="1.25in" />
         </style:list-level-properties>
       </text:list-level-style-bullet>
       <text:list-level-style-bullet text:level="4" text:style-name="Bullet_20_Symbols" style:num-suffix="." text:bullet-char="•">
         <style:list-level-properties text:list-level-position-and-space-mode="label-alignment" fo:text-align="right">
-          <style:list-level-label-alignment text:label-followed-by="listtab" text:list-tab-stop-position="2.0in" fo:text-indent="-0.1in" fo:margin-left="2.0in" />
+          <style:list-level-label-alignment text:label-followed-by="listtab" text:list-tab-stop-position="1.5in" fo:text-indent="-0.25in" fo:margin-left="1.5in" />
         </style:list-level-properties>
       </text:list-level-style-bullet>
       <text:list-level-style-bullet text:level="5" text:style-name="Bullet_20_Symbols" style:num-suffix="." text:bullet-char="◦">
         <style:list-level-properties text:list-level-position-and-space-mode="label-alignment" fo:text-align="right">
-          <style:list-level-label-alignment text:label-followed-by="listtab" text:list-tab-stop-position="2.5in" fo:text-indent="-0.1in" fo:margin-left="2.5in" />
+          <style:list-level-label-alignment text:label-followed-by="listtab" text:list-tab-stop-position="1.75in" fo:text-indent="-0.25in" fo:margin-left="1.75in" />
         </style:list-level-properties>
       </text:list-level-style-bullet>
       <text:list-level-style-bullet text:level="6" text:style-name="Bullet_20_Symbols" style:num-suffix="." text:bullet-char="▪">
         <style:list-level-properties text:list-level-position-and-space-mode="label-alignment" fo:text-align="right">
-          <style:list-level-label-alignment text:label-followed-by="listtab" text:list-tab-stop-position="3.0in" fo:text-indent="-0.1in" fo:margin-left="3.0in" />
+          <style:list-level-label-alignment text:label-followed-by="listtab" text:list-tab-stop-position="2.0in" fo:text-indent="-0.25in" fo:margin-left="2.0in" />
         </style:list-level-properties>
       </text:list-level-style-bullet>
       <text:list-level-style-bullet text:level="7" text:style-name="Bullet_20_Symbols" style:num-suffix="." text:bullet-char="•">
         <style:list-level-properties text:list-level-position-and-space-mode="label-alignment" fo:text-align="right">
-          <style:list-level-label-alignment text:label-followed-by="listtab" text:list-tab-stop-position="3.5in" fo:text-indent="-0.1in" fo:margin-left="3.5in" />
+          <style:list-level-label-alignment text:label-followed-by="listtab" text:list-tab-stop-position="2.25in" fo:text-indent="-0.25in" fo:margin-left="2.25in" />
         </style:list-level-properties>
       </text:list-level-style-bullet>
       <text:list-level-style-bullet text:level="8" text:style-name="Bullet_20_Symbols" style:num-suffix="." text:bullet-char="◦">
         <style:list-level-properties text:list-level-position-and-space-mode="label-alignment" fo:text-align="right">
-          <style:list-level-label-alignment text:label-followed-by="listtab" text:list-tab-stop-position="4.0in" fo:text-indent="-0.1in" fo:margin-left="4.0in" />
+          <style:list-level-label-alignment text:label-followed-by="listtab" text:list-tab-stop-position="2.5in" fo:text-indent="-0.25in" fo:margin-left="2.5in" />
         </style:list-level-properties>
       </text:list-level-style-bullet>
       <text:list-level-style-bullet text:level="9" text:style-name="Bullet_20_Symbols" style:num-suffix="." text:bullet-char="▪">
         <style:list-level-properties text:list-level-position-and-space-mode="label-alignment" fo:text-align="right">
-          <style:list-level-label-alignment text:label-followed-by="listtab" text:list-tab-stop-position="4.5in" fo:text-indent="-0.1in" fo:margin-left="4.5in" />
+          <style:list-level-label-alignment text:label-followed-by="listtab" text:list-tab-stop-position="2.75in" fo:text-indent="-0.25in" fo:margin-left="2.75in" />
         </style:list-level-properties>
       </text:list-level-style-bullet>
       <text:list-level-style-bullet text:level="10" text:style-name="Bullet_20_Symbols" style:num-suffix="." text:bullet-char="•">
         <style:list-level-properties text:list-level-position-and-space-mode="label-alignment" fo:text-align="right">
-          <style:list-level-label-alignment text:label-followed-by="listtab" text:list-tab-stop-position="5.0in" fo:text-indent="-0.1in" fo:margin-left="5.0in" />
+          <style:list-level-label-alignment text:label-followed-by="listtab" text:list-tab-stop-position="3.0in" fo:text-indent="-0.25in" fo:margin-left="3.0in" />
         </style:list-level-properties>
       </text:list-level-style-bullet>
     </text:list-style>
     <text:list-style style:name="L5">
       <text:list-level-style-bullet text:level="1" text:style-name="Bullet_20_Symbols" style:num-suffix="." text:bullet-char="•">
         <style:list-level-properties text:list-level-position-and-space-mode="label-alignment" fo:text-align="right">
-          <style:list-level-label-alignment text:label-followed-by="listtab" text:list-tab-stop-position="0.5in" fo:text-indent="-0.1in" fo:margin-left="0.5in" />
+          <style:list-level-label-alignment text:label-followed-by="listtab" text:list-tab-stop-position="0.75in" fo:text-indent="-0.25in" fo:margin-left="0.75in" />
         </style:list-level-properties>
       </text:list-level-style-bullet>
       <text:list-level-style-bullet text:level="2" text:style-name="Bullet_20_Symbols" style:num-suffix="." text:bullet-char="◦">
         <style:list-level-properties text:list-level-position-and-space-mode="label-alignment" fo:text-align="right">
-          <style:list-level-label-alignment text:label-followed-by="listtab" text:list-tab-stop-position="1.0in" fo:text-indent="-0.1in" fo:margin-left="1.0in" />
+          <style:list-level-label-alignment text:label-followed-by="listtab" text:list-tab-stop-position="1.0in" fo:text-indent="-0.25in" fo:margin-left="1.0in" />
         </style:list-level-properties>
       </text:list-level-style-bullet>
       <text:list-level-style-bullet text:level="3" text:style-name="Bullet_20_Symbols" style:num-suffix="." text:bullet-char="▪">
         <style:list-level-properties text:list-level-position-and-space-mode="label-alignment" fo:text-align="right">
-          <style:list-level-label-alignment text:label-followed-by="listtab" text:list-tab-stop-position="1.5in" fo:text-indent="-0.1in" fo:margin-left="1.5in" />
+          <style:list-level-label-alignment text:label-followed-by="listtab" text:list-tab-stop-position="1.25in" fo:text-indent="-0.25in" fo:margin-left="1.25in" />
         </style:list-level-properties>
       </text:list-level-style-bullet>
       <text:list-level-style-bullet text:level="4" text:style-name="Bullet_20_Symbols" style:num-suffix="." text:bullet-char="•">
         <style:list-level-properties text:list-level-position-and-space-mode="label-alignment" fo:text-align="right">
-          <style:list-level-label-alignment text:label-followed-by="listtab" text:list-tab-stop-position="2.0in" fo:text-indent="-0.1in" fo:margin-left="2.0in" />
+          <style:list-level-label-alignment text:label-followed-by="listtab" text:list-tab-stop-position="1.5in" fo:text-indent="-0.25in" fo:margin-left="1.5in" />
         </style:list-level-properties>
       </text:list-level-style-bullet>
       <text:list-level-style-bullet text:level="5" text:style-name="Bullet_20_Symbols" style:num-suffix="." text:bullet-char="◦">
         <style:list-level-properties text:list-level-position-and-space-mode="label-alignment" fo:text-align="right">
-          <style:list-level-label-alignment text:label-followed-by="listtab" text:list-tab-stop-position="2.5in" fo:text-indent="-0.1in" fo:margin-left="2.5in" />
+          <style:list-level-label-alignment text:label-followed-by="listtab" text:list-tab-stop-position="1.75in" fo:text-indent="-0.25in" fo:margin-left="1.75in" />
         </style:list-level-properties>
       </text:list-level-style-bullet>
       <text:list-level-style-bullet text:level="6" text:style-name="Bullet_20_Symbols" style:num-suffix="." text:bullet-char="▪">
         <style:list-level-properties text:list-level-position-and-space-mode="label-alignment" fo:text-align="right">
-          <style:list-level-label-alignment text:label-followed-by="listtab" text:list-tab-stop-position="3.0in" fo:text-indent="-0.1in" fo:margin-left="3.0in" />
+          <style:list-level-label-alignment text:label-followed-by="listtab" text:list-tab-stop-position="2.0in" fo:text-indent="-0.25in" fo:margin-left="2.0in" />
         </style:list-level-properties>
       </text:list-level-style-bullet>
       <text:list-level-style-bullet text:level="7" text:style-name="Bullet_20_Symbols" style:num-suffix="." text:bullet-char="•">
         <style:list-level-properties text:list-level-position-and-space-mode="label-alignment" fo:text-align="right">
-          <style:list-level-label-alignment text:label-followed-by="listtab" text:list-tab-stop-position="3.5in" fo:text-indent="-0.1in" fo:margin-left="3.5in" />
+          <style:list-level-label-alignment text:label-followed-by="listtab" text:list-tab-stop-position="2.25in" fo:text-indent="-0.25in" fo:margin-left="2.25in" />
         </style:list-level-properties>
       </text:list-level-style-bullet>
       <text:list-level-style-bullet text:level="8" text:style-name="Bullet_20_Symbols" style:num-suffix="." text:bullet-char="◦">
         <style:list-level-properties text:list-level-position-and-space-mode="label-alignment" fo:text-align="right">
-          <style:list-level-label-alignment text:label-followed-by="listtab" text:list-tab-stop-position="4.0in" fo:text-indent="-0.1in" fo:margin-left="4.0in" />
+          <style:list-level-label-alignment text:label-followed-by="listtab" text:list-tab-stop-position="2.5in" fo:text-indent="-0.25in" fo:margin-left="2.5in" />
         </style:list-level-properties>
       </text:list-level-style-bullet>
       <text:list-level-style-bullet text:level="9" text:style-name="Bullet_20_Symbols" style:num-suffix="." text:bullet-char="▪">
         <style:list-level-properties text:list-level-position-and-space-mode="label-alignment" fo:text-align="right">
-          <style:list-level-label-alignment text:label-followed-by="listtab" text:list-tab-stop-position="4.5in" fo:text-indent="-0.1in" fo:margin-left="4.5in" />
+          <style:list-level-label-alignment text:label-followed-by="listtab" text:list-tab-stop-position="2.75in" fo:text-indent="-0.25in" fo:margin-left="2.75in" />
         </style:list-level-properties>
       </text:list-level-style-bullet>
       <text:list-level-style-bullet text:level="10" text:style-name="Bullet_20_Symbols" style:num-suffix="." text:bullet-char="•">
         <style:list-level-properties text:list-level-position-and-space-mode="label-alignment" fo:text-align="right">
-          <style:list-level-label-alignment text:label-followed-by="listtab" text:list-tab-stop-position="5.0in" fo:text-indent="-0.1in" fo:margin-left="5.0in" />
+          <style:list-level-label-alignment text:label-followed-by="listtab" text:list-tab-stop-position="3.0in" fo:text-indent="-0.25in" fo:margin-left="3.0in" />
         </style:list-level-properties>
       </text:list-level-style-bullet>
     </text:list-style>
     <text:list-style style:name="L6">
       <text:list-level-style-bullet text:level="1" text:style-name="Bullet_20_Symbols" style:num-suffix="." text:bullet-char="•">
         <style:list-level-properties text:list-level-position-and-space-mode="label-alignment" fo:text-align="right">
-          <style:list-level-label-alignment text:label-followed-by="listtab" text:list-tab-stop-position="0.5in" fo:text-indent="-0.1in" fo:margin-left="0.5in" />
+          <style:list-level-label-alignment text:label-followed-by="listtab" text:list-tab-stop-position="0.75in" fo:text-indent="-0.25in" fo:margin-left="0.75in" />
         </style:list-level-properties>
       </text:list-level-style-bullet>
       <text:list-level-style-bullet text:level="2" text:style-name="Bullet_20_Symbols" style:num-suffix="." text:bullet-char="◦">
         <style:list-level-properties text:list-level-position-and-space-mode="label-alignment" fo:text-align="right">
-          <style:list-level-label-alignment text:label-followed-by="listtab" text:list-tab-stop-position="1.0in" fo:text-indent="-0.1in" fo:margin-left="1.0in" />
+          <style:list-level-label-alignment text:label-followed-by="listtab" text:list-tab-stop-position="1.0in" fo:text-indent="-0.25in" fo:margin-left="1.0in" />
         </style:list-level-properties>
       </text:list-level-style-bullet>
       <text:list-level-style-bullet text:level="3" text:style-name="Bullet_20_Symbols" style:num-suffix="." text:bullet-char="▪">
         <style:list-level-properties text:list-level-position-and-space-mode="label-alignment" fo:text-align="right">
-          <style:list-level-label-alignment text:label-followed-by="listtab" text:list-tab-stop-position="1.5in" fo:text-indent="-0.1in" fo:margin-left="1.5in" />
+          <style:list-level-label-alignment text:label-followed-by="listtab" text:list-tab-stop-position="1.25in" fo:text-indent="-0.25in" fo:margin-left="1.25in" />
         </style:list-level-properties>
       </text:list-level-style-bullet>
       <text:list-level-style-bullet text:level="4" text:style-name="Bullet_20_Symbols" style:num-suffix="." text:bullet-char="•">
         <style:list-level-properties text:list-level-position-and-space-mode="label-alignment" fo:text-align="right">
-          <style:list-level-label-alignment text:label-followed-by="listtab" text:list-tab-stop-position="2.0in" fo:text-indent="-0.1in" fo:margin-left="2.0in" />
+          <style:list-level-label-alignment text:label-followed-by="listtab" text:list-tab-stop-position="1.5in" fo:text-indent="-0.25in" fo:margin-left="1.5in" />
         </style:list-level-properties>
       </text:list-level-style-bullet>
       <text:list-level-style-bullet text:level="5" text:style-name="Bullet_20_Symbols" style:num-suffix="." text:bullet-char="◦">
         <style:list-level-properties text:list-level-position-and-space-mode="label-alignment" fo:text-align="right">
-          <style:list-level-label-alignment text:label-followed-by="listtab" text:list-tab-stop-position="2.5in" fo:text-indent="-0.1in" fo:margin-left="2.5in" />
+          <style:list-level-label-alignment text:label-followed-by="listtab" text:list-tab-stop-position="1.75in" fo:text-indent="-0.25in" fo:margin-left="1.75in" />
         </style:list-level-properties>
       </text:list-level-style-bullet>
       <text:list-level-style-bullet text:level="6" text:style-name="Bullet_20_Symbols" style:num-suffix="." text:bullet-char="▪">
         <style:list-level-properties text:list-level-position-and-space-mode="label-alignment" fo:text-align="right">
-          <style:list-level-label-alignment text:label-followed-by="listtab" text:list-tab-stop-position="3.0in" fo:text-indent="-0.1in" fo:margin-left="3.0in" />
+          <style:list-level-label-alignment text:label-followed-by="listtab" text:list-tab-stop-position="2.0in" fo:text-indent="-0.25in" fo:margin-left="2.0in" />
         </style:list-level-properties>
       </text:list-level-style-bullet>
       <text:list-level-style-bullet text:level="7" text:style-name="Bullet_20_Symbols" style:num-suffix="." text:bullet-char="•">
         <style:list-level-properties text:list-level-position-and-space-mode="label-alignment" fo:text-align="right">
-          <style:list-level-label-alignment text:label-followed-by="listtab" text:list-tab-stop-position="3.5in" fo:text-indent="-0.1in" fo:margin-left="3.5in" />
+          <style:list-level-label-alignment text:label-followed-by="listtab" text:list-tab-stop-position="2.25in" fo:text-indent="-0.25in" fo:margin-left="2.25in" />
         </style:list-level-properties>
       </text:list-level-style-bullet>
       <text:list-level-style-bullet text:level="8" text:style-name="Bullet_20_Symbols" style:num-suffix="." text:bullet-char="◦">
         <style:list-level-properties text:list-level-position-and-space-mode="label-alignment" fo:text-align="right">
-          <style:list-level-label-alignment text:label-followed-by="listtab" text:list-tab-stop-position="4.0in" fo:text-indent="-0.1in" fo:margin-left="4.0in" />
+          <style:list-level-label-alignment text:label-followed-by="listtab" text:list-tab-stop-position="2.5in" fo:text-indent="-0.25in" fo:margin-left="2.5in" />
         </style:list-level-properties>
       </text:list-level-style-bullet>
       <text:list-level-style-bullet text:level="9" text:style-name="Bullet_20_Symbols" style:num-suffix="." text:bullet-char="▪">
         <style:list-level-properties text:list-level-position-and-space-mode="label-alignment" fo:text-align="right">
-          <style:list-level-label-alignment text:label-followed-by="listtab" text:list-tab-stop-position="4.5in" fo:text-indent="-0.1in" fo:margin-left="4.5in" />
+          <style:list-level-label-alignment text:label-followed-by="listtab" text:list-tab-stop-position="2.75in" fo:text-indent="-0.25in" fo:margin-left="2.75in" />
         </style:list-level-properties>
       </text:list-level-style-bullet>
       <text:list-level-style-bullet text:level="10" text:style-name="Bullet_20_Symbols" style:num-suffix="." text:bullet-char="•">
         <style:list-level-properties text:list-level-position-and-space-mode="label-alignment" fo:text-align="right">
-          <style:list-level-label-alignment text:label-followed-by="listtab" text:list-tab-stop-position="5.0in" fo:text-indent="-0.1in" fo:margin-left="5.0in" />
+          <style:list-level-label-alignment text:label-followed-by="listtab" text:list-tab-stop-position="3.0in" fo:text-indent="-0.25in" fo:margin-left="3.0in" />
         </style:list-level-properties>
       </text:list-level-style-bullet>
     </text:list-style>
     <text:list-style style:name="L7">
       <text:list-level-style-bullet text:level="1" text:style-name="Bullet_20_Symbols" style:num-suffix="." text:bullet-char="•">
         <style:list-level-properties text:list-level-position-and-space-mode="label-alignment" fo:text-align="right">
-          <style:list-level-label-alignment text:label-followed-by="listtab" text:list-tab-stop-position="0.5in" fo:text-indent="-0.1in" fo:margin-left="0.5in" />
+          <style:list-level-label-alignment text:label-followed-by="listtab" text:list-tab-stop-position="0.75in" fo:text-indent="-0.25in" fo:margin-left="0.75in" />
         </style:list-level-properties>
       </text:list-level-style-bullet>
       <text:list-level-style-bullet text:level="2" text:style-name="Bullet_20_Symbols" style:num-suffix="." text:bullet-char="◦">
         <style:list-level-properties text:list-level-position-and-space-mode="label-alignment" fo:text-align="right">
-          <style:list-level-label-alignment text:label-followed-by="listtab" text:list-tab-stop-position="1.0in" fo:text-indent="-0.1in" fo:margin-left="1.0in" />
+          <style:list-level-label-alignment text:label-followed-by="listtab" text:list-tab-stop-position="1.0in" fo:text-indent="-0.25in" fo:margin-left="1.0in" />
         </style:list-level-properties>
       </text:list-level-style-bullet>
       <text:list-level-style-bullet text:level="3" text:style-name="Bullet_20_Symbols" style:num-suffix="." text:bullet-char="▪">
         <style:list-level-properties text:list-level-position-and-space-mode="label-alignment" fo:text-align="right">
-          <style:list-level-label-alignment text:label-followed-by="listtab" text:list-tab-stop-position="1.5in" fo:text-indent="-0.1in" fo:margin-left="1.5in" />
+          <style:list-level-label-alignment text:label-followed-by="listtab" text:list-tab-stop-position="1.25in" fo:text-indent="-0.25in" fo:margin-left="1.25in" />
         </style:list-level-properties>
       </text:list-level-style-bullet>
       <text:list-level-style-bullet text:level="4" text:style-name="Bullet_20_Symbols" style:num-suffix="." text:bullet-char="•">
         <style:list-level-properties text:list-level-position-and-space-mode="label-alignment" fo:text-align="right">
-          <style:list-level-label-alignment text:label-followed-by="listtab" text:list-tab-stop-position="2.0in" fo:text-indent="-0.1in" fo:margin-left="2.0in" />
+          <style:list-level-label-alignment text:label-followed-by="listtab" text:list-tab-stop-position="1.5in" fo:text-indent="-0.25in" fo:margin-left="1.5in" />
         </style:list-level-properties>
       </text:list-level-style-bullet>
       <text:list-level-style-bullet text:level="5" text:style-name="Bullet_20_Symbols" style:num-suffix="." text:bullet-char="◦">
         <style:list-level-properties text:list-level-position-and-space-mode="label-alignment" fo:text-align="right">
-          <style:list-level-label-alignment text:label-followed-by="listtab" text:list-tab-stop-position="2.5in" fo:text-indent="-0.1in" fo:margin-left="2.5in" />
+          <style:list-level-label-alignment text:label-followed-by="listtab" text:list-tab-stop-position="1.75in" fo:text-indent="-0.25in" fo:margin-left="1.75in" />
         </style:list-level-properties>
       </text:list-level-style-bullet>
       <text:list-level-style-bullet text:level="6" text:style-name="Bullet_20_Symbols" style:num-suffix="." text:bullet-char="▪">
         <style:list-level-properties text:list-level-position-and-space-mode="label-alignment" fo:text-align="right">
-          <style:list-level-label-alignment text:label-followed-by="listtab" text:list-tab-stop-position="3.0in" fo:text-indent="-0.1in" fo:margin-left="3.0in" />
+          <style:list-level-label-alignment text:label-followed-by="listtab" text:list-tab-stop-position="2.0in" fo:text-indent="-0.25in" fo:margin-left="2.0in" />
         </style:list-level-properties>
       </text:list-level-style-bullet>
       <text:list-level-style-bullet text:level="7" text:style-name="Bullet_20_Symbols" style:num-suffix="." text:bullet-char="•">
         <style:list-level-properties text:list-level-position-and-space-mode="label-alignment" fo:text-align="right">
-          <style:list-level-label-alignment text:label-followed-by="listtab" text:list-tab-stop-position="3.5in" fo:text-indent="-0.1in" fo:margin-left="3.5in" />
+          <style:list-level-label-alignment text:label-followed-by="listtab" text:list-tab-stop-position="2.25in" fo:text-indent="-0.25in" fo:margin-left="2.25in" />
         </style:list-level-properties>
       </text:list-level-style-bullet>
       <text:list-level-style-bullet text:level="8" text:style-name="Bullet_20_Symbols" style:num-suffix="." text:bullet-char="◦">
         <style:list-level-properties text:list-level-position-and-space-mode="label-alignment" fo:text-align="right">
-          <style:list-level-label-alignment text:label-followed-by="listtab" text:list-tab-stop-position="4.0in" fo:text-indent="-0.1in" fo:margin-left="4.0in" />
+          <style:list-level-label-alignment text:label-followed-by="listtab" text:list-tab-stop-position="2.5in" fo:text-indent="-0.25in" fo:margin-left="2.5in" />
         </style:list-level-properties>
       </text:list-level-style-bullet>
       <text:list-level-style-bullet text:level="9" text:style-name="Bullet_20_Symbols" style:num-suffix="." text:bullet-char="▪">
         <style:list-level-properties text:list-level-position-and-space-mode="label-alignment" fo:text-align="right">
-          <style:list-level-label-alignment text:label-followed-by="listtab" text:list-tab-stop-position="4.5in" fo:text-indent="-0.1in" fo:margin-left="4.5in" />
+          <style:list-level-label-alignment text:label-followed-by="listtab" text:list-tab-stop-position="2.75in" fo:text-indent="-0.25in" fo:margin-left="2.75in" />
         </style:list-level-properties>
       </text:list-level-style-bullet>
       <text:list-level-style-bullet text:level="10" text:style-name="Bullet_20_Symbols" style:num-suffix="." text:bullet-char="•">
         <style:list-level-properties text:list-level-position-and-space-mode="label-alignment" fo:text-align="right">
-          <style:list-level-label-alignment text:label-followed-by="listtab" text:list-tab-stop-position="5.0in" fo:text-indent="-0.1in" fo:margin-left="5.0in" />
+          <style:list-level-label-alignment text:label-followed-by="listtab" text:list-tab-stop-position="3.0in" fo:text-indent="-0.25in" fo:margin-left="3.0in" />
         </style:list-level-properties>
       </text:list-level-style-bullet>
     </text:list-style>
     <text:list-style style:name="L8">
       <text:list-level-style-number text:level="1" text:style-name="Numbering_20_Symbols" style:num-format="1" text:start-value="1" style:num-suffix=".">
         <style:list-level-properties text:list-level-position-and-space-mode="label-alignment" fo:text-align="right">
-          <style:list-level-label-alignment text:label-followed-by="listtab" text:list-tab-stop-position="0.5in" fo:text-indent="-0.1in" fo:margin-left="0.5in" />
+          <style:list-level-label-alignment text:label-followed-by="listtab" text:list-tab-stop-position="0.75in" fo:text-indent="-0.25in" fo:margin-left="0.75in" />
         </style:list-level-properties>
       </text:list-level-style-number>
     </text:list-style>
     <text:list-style style:name="L9">
       <text:list-level-style-number text:level="1" text:style-name="Numbering_20_Symbols" style:num-format="1" text:start-value="1" style:num-suffix=".">
         <style:list-level-properties text:list-level-position-and-space-mode="label-alignment" fo:text-align="right">
-          <style:list-level-label-alignment text:label-followed-by="listtab" text:list-tab-stop-position="0.5in" fo:text-indent="-0.1in" fo:margin-left="0.5in" />
+          <style:list-level-label-alignment text:label-followed-by="listtab" text:list-tab-stop-position="0.75in" fo:text-indent="-0.25in" fo:margin-left="0.75in" />
         </style:list-level-properties>
       </text:list-level-style-number>
     </text:list-style>
     <text:list-style style:name="L10">
       <text:list-level-style-number text:level="1" text:style-name="Numbering_20_Symbols" style:num-format="1" text:start-value="1" style:num-suffix=".">
         <style:list-level-properties text:list-level-position-and-space-mode="label-alignment" fo:text-align="right">
-          <style:list-level-label-alignment text:label-followed-by="listtab" text:list-tab-stop-position="0.5in" fo:text-indent="-0.1in" fo:margin-left="0.5in" />
+          <style:list-level-label-alignment text:label-followed-by="listtab" text:list-tab-stop-position="0.75in" fo:text-indent="-0.25in" fo:margin-left="0.75in" />
         </style:list-level-properties>
       </text:list-level-style-number>
     </text:list-style>
     <text:list-style style:name="L11">
       <text:list-level-style-number text:level="1" text:style-name="Numbering_20_Symbols" style:num-format="1" text:start-value="1" style:num-suffix=".">
         <style:list-level-properties text:list-level-position-and-space-mode="label-alignment" fo:text-align="right">
-          <style:list-level-label-alignment text:label-followed-by="listtab" text:list-tab-stop-position="0.5in" fo:text-indent="-0.1in" fo:margin-left="0.5in" />
+          <style:list-level-label-alignment text:label-followed-by="listtab" text:list-tab-stop-position="0.75in" fo:text-indent="-0.25in" fo:margin-left="0.75in" />
         </style:list-level-properties>
       </text:list-level-style-number>
     </text:list-style>
     <text:list-style style:name="L12">
       <text:list-level-style-number text:level="1" text:style-name="Numbering_20_Symbols" style:num-format="1" text:start-value="1" style:num-suffix=".">
         <style:list-level-properties text:list-level-position-and-space-mode="label-alignment" fo:text-align="right">
-          <style:list-level-label-alignment text:label-followed-by="listtab" text:list-tab-stop-position="0.5in" fo:text-indent="-0.1in" fo:margin-left="0.5in" />
+          <style:list-level-label-alignment text:label-followed-by="listtab" text:list-tab-stop-position="0.75in" fo:text-indent="-0.25in" fo:margin-left="0.75in" />
         </style:list-level-properties>
       </text:list-level-style-number>
     </text:list-style>
     <text:list-style style:name="L13">
       <text:list-level-style-bullet text:level="1" text:style-name="Bullet_20_Symbols" style:num-suffix="." text:bullet-char="•">
         <style:list-level-properties text:list-level-position-and-space-mode="label-alignment" fo:text-align="right">
-          <style:list-level-label-alignment text:label-followed-by="listtab" text:list-tab-stop-position="0.5in" fo:text-indent="-0.1in" fo:margin-left="0.5in" />
+          <style:list-level-label-alignment text:label-followed-by="listtab" text:list-tab-stop-position="0.75in" fo:text-indent="-0.25in" fo:margin-left="0.75in" />
         </style:list-level-properties>
       </text:list-level-style-bullet>
       <text:list-level-style-bullet text:level="2" text:style-name="Bullet_20_Symbols" style:num-suffix="." text:bullet-char="◦">
         <style:list-level-properties text:list-level-position-and-space-mode="label-alignment" fo:text-align="right">
-          <style:list-level-label-alignment text:label-followed-by="listtab" text:list-tab-stop-position="1.0in" fo:text-indent="-0.1in" fo:margin-left="1.0in" />
+          <style:list-level-label-alignment text:label-followed-by="listtab" text:list-tab-stop-position="1.0in" fo:text-indent="-0.25in" fo:margin-left="1.0in" />
         </style:list-level-properties>
       </text:list-level-style-bullet>
       <text:list-level-style-bullet text:level="3" text:style-name="Bullet_20_Symbols" style:num-suffix="." text:bullet-char="▪">
         <style:list-level-properties text:list-level-position-and-space-mode="label-alignment" fo:text-align="right">
-          <style:list-level-label-alignment text:label-followed-by="listtab" text:list-tab-stop-position="1.5in" fo:text-indent="-0.1in" fo:margin-left="1.5in" />
+          <style:list-level-label-alignment text:label-followed-by="listtab" text:list-tab-stop-position="1.25in" fo:text-indent="-0.25in" fo:margin-left="1.25in" />
         </style:list-level-properties>
       </text:list-level-style-bullet>
       <text:list-level-style-bullet text:level="4" text:style-name="Bullet_20_Symbols" style:num-suffix="." text:bullet-char="•">
         <style:list-level-properties text:list-level-position-and-space-mode="label-alignment" fo:text-align="right">
-          <style:list-level-label-alignment text:label-followed-by="listtab" text:list-tab-stop-position="2.0in" fo:text-indent="-0.1in" fo:margin-left="2.0in" />
+          <style:list-level-label-alignment text:label-followed-by="listtab" text:list-tab-stop-position="1.5in" fo:text-indent="-0.25in" fo:margin-left="1.5in" />
         </style:list-level-properties>
       </text:list-level-style-bullet>
       <text:list-level-style-bullet text:level="5" text:style-name="Bullet_20_Symbols" style:num-suffix="." text:bullet-char="◦">
         <style:list-level-properties text:list-level-position-and-space-mode="label-alignment" fo:text-align="right">
-          <style:list-level-label-alignment text:label-followed-by="listtab" text:list-tab-stop-position="2.5in" fo:text-indent="-0.1in" fo:margin-left="2.5in" />
+          <style:list-level-label-alignment text:label-followed-by="listtab" text:list-tab-stop-position="1.75in" fo:text-indent="-0.25in" fo:margin-left="1.75in" />
         </style:list-level-properties>
       </text:list-level-style-bullet>
       <text:list-level-style-bullet text:level="6" text:style-name="Bullet_20_Symbols" style:num-suffix="." text:bullet-char="▪">
         <style:list-level-properties text:list-level-position-and-space-mode="label-alignment" fo:text-align="right">
-          <style:list-level-label-alignment text:label-followed-by="listtab" text:list-tab-stop-position="3.0in" fo:text-indent="-0.1in" fo:margin-left="3.0in" />
+          <style:list-level-label-alignment text:label-followed-by="listtab" text:list-tab-stop-position="2.0in" fo:text-indent="-0.25in" fo:margin-left="2.0in" />
         </style:list-level-properties>
       </text:list-level-style-bullet>
       <text:list-level-style-bullet text:level="7" text:style-name="Bullet_20_Symbols" style:num-suffix="." text:bullet-char="•">
         <style:list-level-properties text:list-level-position-and-space-mode="label-alignment" fo:text-align="right">
-          <style:list-level-label-alignment text:label-followed-by="listtab" text:list-tab-stop-position="3.5in" fo:text-indent="-0.1in" fo:margin-left="3.5in" />
+          <style:list-level-label-alignment text:label-followed-by="listtab" text:list-tab-stop-position="2.25in" fo:text-indent="-0.25in" fo:margin-left="2.25in" />
         </style:list-level-properties>
       </text:list-level-style-bullet>
       <text:list-level-style-bullet text:level="8" text:style-name="Bullet_20_Symbols" style:num-suffix="." text:bullet-char="◦">
         <style:list-level-properties text:list-level-position-and-space-mode="label-alignment" fo:text-align="right">
-          <style:list-level-label-alignment text:label-followed-by="listtab" text:list-tab-stop-position="4.0in" fo:text-indent="-0.1in" fo:margin-left="4.0in" />
+          <style:list-level-label-alignment text:label-followed-by="listtab" text:list-tab-stop-position="2.5in" fo:text-indent="-0.25in" fo:margin-left="2.5in" />
         </style:list-level-properties>
       </text:list-level-style-bullet>
       <text:list-level-style-bullet text:level="9" text:style-name="Bullet_20_Symbols" style:num-suffix="." text:bullet-char="▪">
         <style:list-level-properties text:list-level-position-and-space-mode="label-alignment" fo:text-align="right">
-          <style:list-level-label-alignment text:label-followed-by="listtab" text:list-tab-stop-position="4.5in" fo:text-indent="-0.1in" fo:margin-left="4.5in" />
+          <style:list-level-label-alignment text:label-followed-by="listtab" text:list-tab-stop-position="2.75in" fo:text-indent="-0.25in" fo:margin-left="2.75in" />
         </style:list-level-properties>
       </text:list-level-style-bullet>
       <text:list-level-style-bullet text:level="10" text:style-name="Bullet_20_Symbols" style:num-suffix="." text:bullet-char="•">
         <style:list-level-properties text:list-level-position-and-space-mode="label-alignment" fo:text-align="right">
-          <style:list-level-label-alignment text:label-followed-by="listtab" text:list-tab-stop-position="5.0in" fo:text-indent="-0.1in" fo:margin-left="5.0in" />
+          <style:list-level-label-alignment text:label-followed-by="listtab" text:list-tab-stop-position="3.0in" fo:text-indent="-0.25in" fo:margin-left="3.0in" />
         </style:list-level-properties>
       </text:list-level-style-bullet>
     </text:list-style>
     <text:list-style style:name="L14">
       <text:list-level-style-bullet text:level="1" text:style-name="Bullet_20_Symbols" style:num-suffix="." text:bullet-char="•">
         <style:list-level-properties text:list-level-position-and-space-mode="label-alignment" fo:text-align="right">
-          <style:list-level-label-alignment text:label-followed-by="listtab" text:list-tab-stop-position="0.5in" fo:text-indent="-0.1in" fo:margin-left="0.5in" />
+          <style:list-level-label-alignment text:label-followed-by="listtab" text:list-tab-stop-position="0.75in" fo:text-indent="-0.25in" fo:margin-left="0.75in" />
         </style:list-level-properties>
       </text:list-level-style-bullet>
       <text:list-level-style-bullet text:level="2" text:style-name="Bullet_20_Symbols" style:num-suffix="." text:bullet-char="◦">
         <style:list-level-properties text:list-level-position-and-space-mode="label-alignment" fo:text-align="right">
-          <style:list-level-label-alignment text:label-followed-by="listtab" text:list-tab-stop-position="1.0in" fo:text-indent="-0.1in" fo:margin-left="1.0in" />
+          <style:list-level-label-alignment text:label-followed-by="listtab" text:list-tab-stop-position="1.0in" fo:text-indent="-0.25in" fo:margin-left="1.0in" />
         </style:list-level-properties>
       </text:list-level-style-bullet>
       <text:list-level-style-bullet text:level="3" text:style-name="Bullet_20_Symbols" style:num-suffix="." text:bullet-char="▪">
         <style:list-level-properties text:list-level-position-and-space-mode="label-alignment" fo:text-align="right">
-          <style:list-level-label-alignment text:label-followed-by="listtab" text:list-tab-stop-position="1.5in" fo:text-indent="-0.1in" fo:margin-left="1.5in" />
+          <style:list-level-label-alignment text:label-followed-by="listtab" text:list-tab-stop-position="1.25in" fo:text-indent="-0.25in" fo:margin-left="1.25in" />
         </style:list-level-properties>
       </text:list-level-style-bullet>
       <text:list-level-style-bullet text:level="4" text:style-name="Bullet_20_Symbols" style:num-suffix="." text:bullet-char="•">
         <style:list-level-properties text:list-level-position-and-space-mode="label-alignment" fo:text-align="right">
-          <style:list-level-label-alignment text:label-followed-by="listtab" text:list-tab-stop-position="2.0in" fo:text-indent="-0.1in" fo:margin-left="2.0in" />
+          <style:list-level-label-alignment text:label-followed-by="listtab" text:list-tab-stop-position="1.5in" fo:text-indent="-0.25in" fo:margin-left="1.5in" />
         </style:list-level-properties>
       </text:list-level-style-bullet>
       <text:list-level-style-bullet text:level="5" text:style-name="Bullet_20_Symbols" style:num-suffix="." text:bullet-char="◦">
         <style:list-level-properties text:list-level-position-and-space-mode="label-alignment" fo:text-align="right">
-          <style:list-level-label-alignment text:label-followed-by="listtab" text:list-tab-stop-position="2.5in" fo:text-indent="-0.1in" fo:margin-left="2.5in" />
+          <style:list-level-label-alignment text:label-followed-by="listtab" text:list-tab-stop-position="1.75in" fo:text-indent="-0.25in" fo:margin-left="1.75in" />
         </style:list-level-properties>
       </text:list-level-style-bullet>
       <text:list-level-style-bullet text:level="6" text:style-name="Bullet_20_Symbols" style:num-suffix="." text:bullet-char="▪">
         <style:list-level-properties text:list-level-position-and-space-mode="label-alignment" fo:text-align="right">
-          <style:list-level-label-alignment text:label-followed-by="listtab" text:list-tab-stop-position="3.0in" fo:text-indent="-0.1in" fo:margin-left="3.0in" />
+          <style:list-level-label-alignment text:label-followed-by="listtab" text:list-tab-stop-position="2.0in" fo:text-indent="-0.25in" fo:margin-left="2.0in" />
         </style:list-level-properties>
       </text:list-level-style-bullet>
       <text:list-level-style-bullet text:level="7" text:style-name="Bullet_20_Symbols" style:num-suffix="." text:bullet-char="•">
         <style:list-level-properties text:list-level-position-and-space-mode="label-alignment" fo:text-align="right">
-          <style:list-level-label-alignment text:label-followed-by="listtab" text:list-tab-stop-position="3.5in" fo:text-indent="-0.1in" fo:margin-left="3.5in" />
+          <style:list-level-label-alignment text:label-followed-by="listtab" text:list-tab-stop-position="2.25in" fo:text-indent="-0.25in" fo:margin-left="2.25in" />
         </style:list-level-properties>
       </text:list-level-style-bullet>
       <text:list-level-style-bullet text:level="8" text:style-name="Bullet_20_Symbols" style:num-suffix="." text:bullet-char="◦">
         <style:list-level-properties text:list-level-position-and-space-mode="label-alignment" fo:text-align="right">
-          <style:list-level-label-alignment text:label-followed-by="listtab" text:list-tab-stop-position="4.0in" fo:text-indent="-0.1in" fo:margin-left="4.0in" />
+          <style:list-level-label-alignment text:label-followed-by="listtab" text:list-tab-stop-position="2.5in" fo:text-indent="-0.25in" fo:margin-left="2.5in" />
         </style:list-level-properties>
       </text:list-level-style-bullet>
       <text:list-level-style-bullet text:level="9" text:style-name="Bullet_20_Symbols" style:num-suffix="." text:bullet-char="▪">
         <style:list-level-properties text:list-level-position-and-space-mode="label-alignment" fo:text-align="right">
-          <style:list-level-label-alignment text:label-followed-by="listtab" text:list-tab-stop-position="4.5in" fo:text-indent="-0.1in" fo:margin-left="4.5in" />
+          <style:list-level-label-alignment text:label-followed-by="listtab" text:list-tab-stop-position="2.75in" fo:text-indent="-0.25in" fo:margin-left="2.75in" />
         </style:list-level-properties>
       </text:list-level-style-bullet>
       <text:list-level-style-bullet text:level="10" text:style-name="Bullet_20_Symbols" style:num-suffix="." text:bullet-char="•">
         <style:list-level-properties text:list-level-position-and-space-mode="label-alignment" fo:text-align="right">
-          <style:list-level-label-alignment text:label-followed-by="listtab" text:list-tab-stop-position="5.0in" fo:text-indent="-0.1in" fo:margin-left="5.0in" />
+          <style:list-level-label-alignment text:label-followed-by="listtab" text:list-tab-stop-position="3.0in" fo:text-indent="-0.25in" fo:margin-left="3.0in" />
         </style:list-level-properties>
       </text:list-level-style-bullet>
     </text:list-style>
     <text:list-style style:name="L15">
       <text:list-level-style-bullet text:level="1" text:style-name="Bullet_20_Symbols" style:num-suffix="." text:bullet-char="•">
         <style:list-level-properties text:list-level-position-and-space-mode="label-alignment" fo:text-align="right">
-          <style:list-level-label-alignment text:label-followed-by="listtab" text:list-tab-stop-position="0.5in" fo:text-indent="-0.1in" fo:margin-left="0.5in" />
+          <style:list-level-label-alignment text:label-followed-by="listtab" text:list-tab-stop-position="0.75in" fo:text-indent="-0.25in" fo:margin-left="0.75in" />
         </style:list-level-properties>
       </text:list-level-style-bullet>
       <text:list-level-style-bullet text:level="2" text:style-name="Bullet_20_Symbols" style:num-suffix="." text:bullet-char="◦">
         <style:list-level-properties text:list-level-position-and-space-mode="label-alignment" fo:text-align="right">
-          <style:list-level-label-alignment text:label-followed-by="listtab" text:list-tab-stop-position="1.0in" fo:text-indent="-0.1in" fo:margin-left="1.0in" />
+          <style:list-level-label-alignment text:label-followed-by="listtab" text:list-tab-stop-position="1.0in" fo:text-indent="-0.25in" fo:margin-left="1.0in" />
         </style:list-level-properties>
       </text:list-level-style-bullet>
       <text:list-level-style-bullet text:level="3" text:style-name="Bullet_20_Symbols" style:num-suffix="." text:bullet-char="▪">
         <style:list-level-properties text:list-level-position-and-space-mode="label-alignment" fo:text-align="right">
-          <style:list-level-label-alignment text:label-followed-by="listtab" text:list-tab-stop-position="1.5in" fo:text-indent="-0.1in" fo:margin-left="1.5in" />
+          <style:list-level-label-alignment text:label-followed-by="listtab" text:list-tab-stop-position="1.25in" fo:text-indent="-0.25in" fo:margin-left="1.25in" />
         </style:list-level-properties>
       </text:list-level-style-bullet>
       <text:list-level-style-bullet text:level="4" text:style-name="Bullet_20_Symbols" style:num-suffix="." text:bullet-char="•">
         <style:list-level-properties text:list-level-position-and-space-mode="label-alignment" fo:text-align="right">
-          <style:list-level-label-alignment text:label-followed-by="listtab" text:list-tab-stop-position="2.0in" fo:text-indent="-0.1in" fo:margin-left="2.0in" />
+          <style:list-level-label-alignment text:label-followed-by="listtab" text:list-tab-stop-position="1.5in" fo:text-indent="-0.25in" fo:margin-left="1.5in" />
         </style:list-level-properties>
       </text:list-level-style-bullet>
       <text:list-level-style-bullet text:level="5" text:style-name="Bullet_20_Symbols" style:num-suffix="." text:bullet-char="◦">
         <style:list-level-properties text:list-level-position-and-space-mode="label-alignment" fo:text-align="right">
-          <style:list-level-label-alignment text:label-followed-by="listtab" text:list-tab-stop-position="2.5in" fo:text-indent="-0.1in" fo:margin-left="2.5in" />
+          <style:list-level-label-alignment text:label-followed-by="listtab" text:list-tab-stop-position="1.75in" fo:text-indent="-0.25in" fo:margin-left="1.75in" />
         </style:list-level-properties>
       </text:list-level-style-bullet>
       <text:list-level-style-bullet text:level="6" text:style-name="Bullet_20_Symbols" style:num-suffix="." text:bullet-char="▪">
         <style:list-level-properties text:list-level-position-and-space-mode="label-alignment" fo:text-align="right">
-          <style:list-level-label-alignment text:label-followed-by="listtab" text:list-tab-stop-position="3.0in" fo:text-indent="-0.1in" fo:margin-left="3.0in" />
+          <style:list-level-label-alignment text:label-followed-by="listtab" text:list-tab-stop-position="2.0in" fo:text-indent="-0.25in" fo:margin-left="2.0in" />
         </style:list-level-properties>
       </text:list-level-style-bullet>
       <text:list-level-style-bullet text:level="7" text:style-name="Bullet_20_Symbols" style:num-suffix="." text:bullet-char="•">
         <style:list-level-properties text:list-level-position-and-space-mode="label-alignment" fo:text-align="right">
-          <style:list-level-label-alignment text:label-followed-by="listtab" text:list-tab-stop-position="3.5in" fo:text-indent="-0.1in" fo:margin-left="3.5in" />
+          <style:list-level-label-alignment text:label-followed-by="listtab" text:list-tab-stop-position="2.25in" fo:text-indent="-0.25in" fo:margin-left="2.25in" />
         </style:list-level-properties>
       </text:list-level-style-bullet>
       <text:list-level-style-bullet text:level="8" text:style-name="Bullet_20_Symbols" style:num-suffix="." text:bullet-char="◦">
         <style:list-level-properties text:list-level-position-and-space-mode="label-alignment" fo:text-align="right">
-          <style:list-level-label-alignment text:label-followed-by="listtab" text:list-tab-stop-position="4.0in" fo:text-indent="-0.1in" fo:margin-left="4.0in" />
+          <style:list-level-label-alignment text:label-followed-by="listtab" text:list-tab-stop-position="2.5in" fo:text-indent="-0.25in" fo:margin-left="2.5in" />
         </style:list-level-properties>
       </text:list-level-style-bullet>
       <text:list-level-style-bullet text:level="9" text:style-name="Bullet_20_Symbols" style:num-suffix="." text:bullet-char="▪">
         <style:list-level-properties text:list-level-position-and-space-mode="label-alignment" fo:text-align="right">
-          <style:list-level-label-alignment text:label-followed-by="listtab" text:list-tab-stop-position="4.5in" fo:text-indent="-0.1in" fo:margin-left="4.5in" />
+          <style:list-level-label-alignment text:label-followed-by="listtab" text:list-tab-stop-position="2.75in" fo:text-indent="-0.25in" fo:margin-left="2.75in" />
         </style:list-level-properties>
       </text:list-level-style-bullet>
       <text:list-level-style-bullet text:level="10" text:style-name="Bullet_20_Symbols" style:num-suffix="." text:bullet-char="•">
         <style:list-level-properties text:list-level-position-and-space-mode="label-alignment" fo:text-align="right">
-          <style:list-level-label-alignment text:label-followed-by="listtab" text:list-tab-stop-position="5.0in" fo:text-indent="-0.1in" fo:margin-left="5.0in" />
+          <style:list-level-label-alignment text:label-followed-by="listtab" text:list-tab-stop-position="3.0in" fo:text-indent="-0.25in" fo:margin-left="3.0in" />
         </style:list-level-properties>
       </text:list-level-style-bullet>
     </text:list-style>
     <text:list-style style:name="L16">
       <text:list-level-style-number text:level="1" text:style-name="Numbering_20_Symbols" style:num-format="1" text:start-value="1" style:num-suffix=".">
         <style:list-level-properties text:list-level-position-and-space-mode="label-alignment" fo:text-align="right">
-          <style:list-level-label-alignment text:label-followed-by="listtab" text:list-tab-stop-position="0.5in" fo:text-indent="-0.1in" fo:margin-left="0.5in" />
+          <style:list-level-label-alignment text:label-followed-by="listtab" text:list-tab-stop-position="0.75in" fo:text-indent="-0.25in" fo:margin-left="0.75in" />
         </style:list-level-properties>
       </text:list-level-style-number>
     </text:list-style>
     <text:list-style style:name="L17">
       <text:list-level-style-bullet text:level="1" text:style-name="Bullet_20_Symbols" style:num-suffix="." text:bullet-char="•">
         <style:list-level-properties text:list-level-position-and-space-mode="label-alignment" fo:text-align="right">
-          <style:list-level-label-alignment text:label-followed-by="listtab" text:list-tab-stop-position="0.5in" fo:text-indent="-0.1in" fo:margin-left="0.5in" />
+          <style:list-level-label-alignment text:label-followed-by="listtab" text:list-tab-stop-position="0.75in" fo:text-indent="-0.25in" fo:margin-left="0.75in" />
         </style:list-level-properties>
       </text:list-level-style-bullet>
       <text:list-level-style-bullet text:level="2" text:style-name="Bullet_20_Symbols" style:num-suffix="." text:bullet-char="◦">
         <style:list-level-properties text:list-level-position-and-space-mode="label-alignment" fo:text-align="right">
-          <style:list-level-label-alignment text:label-followed-by="listtab" text:list-tab-stop-position="1.0in" fo:text-indent="-0.1in" fo:margin-left="1.0in" />
+          <style:list-level-label-alignment text:label-followed-by="listtab" text:list-tab-stop-position="1.0in" fo:text-indent="-0.25in" fo:margin-left="1.0in" />
         </style:list-level-properties>
       </text:list-level-style-bullet>
       <text:list-level-style-bullet text:level="3" text:style-name="Bullet_20_Symbols" style:num-suffix="." text:bullet-char="▪">
         <style:list-level-properties text:list-level-position-and-space-mode="label-alignment" fo:text-align="right">
-          <style:list-level-label-alignment text:label-followed-by="listtab" text:list-tab-stop-position="1.5in" fo:text-indent="-0.1in" fo:margin-left="1.5in" />
+          <style:list-level-label-alignment text:label-followed-by="listtab" text:list-tab-stop-position="1.25in" fo:text-indent="-0.25in" fo:margin-left="1.25in" />
         </style:list-level-properties>
       </text:list-level-style-bullet>
       <text:list-level-style-bullet text:level="4" text:style-name="Bullet_20_Symbols" style:num-suffix="." text:bullet-char="•">
         <style:list-level-properties text:list-level-position-and-space-mode="label-alignment" fo:text-align="right">
-          <style:list-level-label-alignment text:label-followed-by="listtab" text:list-tab-stop-position="2.0in" fo:text-indent="-0.1in" fo:margin-left="2.0in" />
+          <style:list-level-label-alignment text:label-followed-by="listtab" text:list-tab-stop-position="1.5in" fo:text-indent="-0.25in" fo:margin-left="1.5in" />
         </style:list-level-properties>
       </text:list-level-style-bullet>
       <text:list-level-style-bullet text:level="5" text:style-name="Bullet_20_Symbols" style:num-suffix="." text:bullet-char="◦">
         <style:list-level-properties text:list-level-position-and-space-mode="label-alignment" fo:text-align="right">
-          <style:list-level-label-alignment text:label-followed-by="listtab" text:list-tab-stop-position="2.5in" fo:text-indent="-0.1in" fo:margin-left="2.5in" />
+          <style:list-level-label-alignment text:label-followed-by="listtab" text:list-tab-stop-position="1.75in" fo:text-indent="-0.25in" fo:margin-left="1.75in" />
         </style:list-level-properties>
       </text:list-level-style-bullet>
       <text:list-level-style-bullet text:level="6" text:style-name="Bullet_20_Symbols" style:num-suffix="." text:bullet-char="▪">
         <style:list-level-properties text:list-level-position-and-space-mode="label-alignment" fo:text-align="right">
-          <style:list-level-label-alignment text:label-followed-by="listtab" text:list-tab-stop-position="3.0in" fo:text-indent="-0.1in" fo:margin-left="3.0in" />
+          <style:list-level-label-alignment text:label-followed-by="listtab" text:list-tab-stop-position="2.0in" fo:text-indent="-0.25in" fo:margin-left="2.0in" />
         </style:list-level-properties>
       </text:list-level-style-bullet>
       <text:list-level-style-bullet text:level="7" text:style-name="Bullet_20_Symbols" style:num-suffix="." text:bullet-char="•">
         <style:list-level-properties text:list-level-position-and-space-mode="label-alignment" fo:text-align="right">
-          <style:list-level-label-alignment text:label-followed-by="listtab" text:list-tab-stop-position="3.5in" fo:text-indent="-0.1in" fo:margin-left="3.5in" />
+          <style:list-level-label-alignment text:label-followed-by="listtab" text:list-tab-stop-position="2.25in" fo:text-indent="-0.25in" fo:margin-left="2.25in" />
         </style:list-level-properties>
       </text:list-level-style-bullet>
       <text:list-level-style-bullet text:level="8" text:style-name="Bullet_20_Symbols" style:num-suffix="." text:bullet-char="◦">
         <style:list-level-properties text:list-level-position-and-space-mode="label-alignment" fo:text-align="right">
-          <style:list-level-label-alignment text:label-followed-by="listtab" text:list-tab-stop-position="4.0in" fo:text-indent="-0.1in" fo:margin-left="4.0in" />
+          <style:list-level-label-alignment text:label-followed-by="listtab" text:list-tab-stop-position="2.5in" fo:text-indent="-0.25in" fo:margin-left="2.5in" />
         </style:list-level-properties>
       </text:list-level-style-bullet>
       <text:list-level-style-bullet text:level="9" text:style-name="Bullet_20_Symbols" style:num-suffix="." text:bullet-char="▪">
         <style:list-level-properties text:list-level-position-and-space-mode="label-alignment" fo:text-align="right">
-          <style:list-level-label-alignment text:label-followed-by="listtab" text:list-tab-stop-position="4.5in" fo:text-indent="-0.1in" fo:margin-left="4.5in" />
+          <style:list-level-label-alignment text:label-followed-by="listtab" text:list-tab-stop-position="2.75in" fo:text-indent="-0.25in" fo:margin-left="2.75in" />
         </style:list-level-properties>
       </text:list-level-style-bullet>
       <text:list-level-style-bullet text:level="10" text:style-name="Bullet_20_Symbols" style:num-suffix="." text:bullet-char="•">
         <style:list-level-properties text:list-level-position-and-space-mode="label-alignment" fo:text-align="right">
-          <style:list-level-label-alignment text:label-followed-by="listtab" text:list-tab-stop-position="5.0in" fo:text-indent="-0.1in" fo:margin-left="5.0in" />
+          <style:list-level-label-alignment text:label-followed-by="listtab" text:list-tab-stop-position="3.0in" fo:text-indent="-0.25in" fo:margin-left="3.0in" />
         </style:list-level-properties>
       </text:list-level-style-bullet>
     </text:list-style>
     <text:list-style style:name="L18">
       <text:list-level-style-number text:level="1" text:style-name="Numbering_20_Symbols" style:num-format="1" text:start-value="1" style:num-suffix=".">
         <style:list-level-properties text:list-level-position-and-space-mode="label-alignment" fo:text-align="right">
-          <style:list-level-label-alignment text:label-followed-by="listtab" text:list-tab-stop-position="0.5in" fo:text-indent="-0.1in" fo:margin-left="0.5in" />
+          <style:list-level-label-alignment text:label-followed-by="listtab" text:list-tab-stop-position="0.75in" fo:text-indent="-0.25in" fo:margin-left="0.75in" />
         </style:list-level-properties>
       </text:list-level-style-number>
     </text:list-style>
     <text:list-style style:name="L19">
       <text:list-level-style-bullet text:level="1" text:style-name="Bullet_20_Symbols" style:num-suffix="." text:bullet-char="•">
         <style:list-level-properties text:list-level-position-and-space-mode="label-alignment" fo:text-align="right">
-          <style:list-level-label-alignment text:label-followed-by="listtab" text:list-tab-stop-position="0.5in" fo:text-indent="-0.1in" fo:margin-left="0.5in" />
+          <style:list-level-label-alignment text:label-followed-by="listtab" text:list-tab-stop-position="0.75in" fo:text-indent="-0.25in" fo:margin-left="0.75in" />
         </style:list-level-properties>
       </text:list-level-style-bullet>
       <text:list-level-style-bullet text:level="2" text:style-name="Bullet_20_Symbols" style:num-suffix="." text:bullet-char="◦">
         <style:list-level-properties text:list-level-position-and-space-mode="label-alignment" fo:text-align="right">
-          <style:list-level-label-alignment text:label-followed-by="listtab" text:list-tab-stop-position="1.0in" fo:text-indent="-0.1in" fo:margin-left="1.0in" />
+          <style:list-level-label-alignment text:label-followed-by="listtab" text:list-tab-stop-position="1.0in" fo:text-indent="-0.25in" fo:margin-left="1.0in" />
         </style:list-level-properties>
       </text:list-level-style-bullet>
       <text:list-level-style-bullet text:level="3" text:style-name="Bullet_20_Symbols" style:num-suffix="." text:bullet-char="▪">
         <style:list-level-properties text:list-level-position-and-space-mode="label-alignment" fo:text-align="right">
-          <style:list-level-label-alignment text:label-followed-by="listtab" text:list-tab-stop-position="1.5in" fo:text-indent="-0.1in" fo:margin-left="1.5in" />
+          <style:list-level-label-alignment text:label-followed-by="listtab" text:list-tab-stop-position="1.25in" fo:text-indent="-0.25in" fo:margin-left="1.25in" />
         </style:list-level-properties>
       </text:list-level-style-bullet>
       <text:list-level-style-bullet text:level="4" text:style-name="Bullet_20_Symbols" style:num-suffix="." text:bullet-char="•">
         <style:list-level-properties text:list-level-position-and-space-mode="label-alignment" fo:text-align="right">
-          <style:list-level-label-alignment text:label-followed-by="listtab" text:list-tab-stop-position="2.0in" fo:text-indent="-0.1in" fo:margin-left="2.0in" />
+          <style:list-level-label-alignment text:label-followed-by="listtab" text:list-tab-stop-position="1.5in" fo:text-indent="-0.25in" fo:margin-left="1.5in" />
         </style:list-level-properties>
       </text:list-level-style-bullet>
       <text:list-level-style-bullet text:level="5" text:style-name="Bullet_20_Symbols" style:num-suffix="." text:bullet-char="◦">
         <style:list-level-properties text:list-level-position-and-space-mode="label-alignment" fo:text-align="right">
-          <style:list-level-label-alignment text:label-followed-by="listtab" text:list-tab-stop-position="2.5in" fo:text-indent="-0.1in" fo:margin-left="2.5in" />
+          <style:list-level-label-alignment text:label-followed-by="listtab" text:list-tab-stop-position="1.75in" fo:text-indent="-0.25in" fo:margin-left="1.75in" />
         </style:list-level-properties>
       </text:list-level-style-bullet>
       <text:list-level-style-bullet text:level="6" text:style-name="Bullet_20_Symbols" style:num-suffix="." text:bullet-char="▪">
         <style:list-level-properties text:list-level-position-and-space-mode="label-alignment" fo:text-align="right">
-          <style:list-level-label-alignment text:label-followed-by="listtab" text:list-tab-stop-position="3.0in" fo:text-indent="-0.1in" fo:margin-left="3.0in" />
+          <style:list-level-label-alignment text:label-followed-by="listtab" text:list-tab-stop-position="2.0in" fo:text-indent="-0.25in" fo:margin-left="2.0in" />
         </style:list-level-properties>
       </text:list-level-style-bullet>
       <text:list-level-style-bullet text:level="7" text:style-name="Bullet_20_Symbols" style:num-suffix="." text:bullet-char="•">
         <style:list-level-properties text:list-level-position-and-space-mode="label-alignment" fo:text-align="right">
-          <style:list-level-label-alignment text:label-followed-by="listtab" text:list-tab-stop-position="3.5in" fo:text-indent="-0.1in" fo:margin-left="3.5in" />
+          <style:list-level-label-alignment text:label-followed-by="listtab" text:list-tab-stop-position="2.25in" fo:text-indent="-0.25in" fo:margin-left="2.25in" />
         </style:list-level-properties>
       </text:list-level-style-bullet>
       <text:list-level-style-bullet text:level="8" text:style-name="Bullet_20_Symbols" style:num-suffix="." text:bullet-char="◦">
         <style:list-level-properties text:list-level-position-and-space-mode="label-alignment" fo:text-align="right">
-          <style:list-level-label-alignment text:label-followed-by="listtab" text:list-tab-stop-position="4.0in" fo:text-indent="-0.1in" fo:margin-left="4.0in" />
+          <style:list-level-label-alignment text:label-followed-by="listtab" text:list-tab-stop-position="2.5in" fo:text-indent="-0.25in" fo:margin-left="2.5in" />
         </style:list-level-properties>
       </text:list-level-style-bullet>
       <text:list-level-style-bullet text:level="9" text:style-name="Bullet_20_Symbols" style:num-suffix="." text:bullet-char="▪">
         <style:list-level-properties text:list-level-position-and-space-mode="label-alignment" fo:text-align="right">
-          <style:list-level-label-alignment text:label-followed-by="listtab" text:list-tab-stop-position="4.5in" fo:text-indent="-0.1in" fo:margin-left="4.5in" />
+          <style:list-level-label-alignment text:label-followed-by="listtab" text:list-tab-stop-position="2.75in" fo:text-indent="-0.25in" fo:margin-left="2.75in" />
         </style:list-level-properties>
       </text:list-level-style-bullet>
       <text:list-level-style-bullet text:level="10" text:style-name="Bullet_20_Symbols" style:num-suffix="." text:bullet-char="•">
         <style:list-level-properties text:list-level-position-and-space-mode="label-alignment" fo:text-align="right">
-          <style:list-level-label-alignment text:label-followed-by="listtab" text:list-tab-stop-position="5.0in" fo:text-indent="-0.1in" fo:margin-left="5.0in" />
+          <style:list-level-label-alignment text:label-followed-by="listtab" text:list-tab-stop-position="3.0in" fo:text-indent="-0.25in" fo:margin-left="3.0in" />
         </style:list-level-properties>
       </text:list-level-style-bullet>
     </text:list-style>
     <text:list-style style:name="L20">
       <text:list-level-style-bullet text:level="1" text:style-name="Bullet_20_Symbols" style:num-suffix="." text:bullet-char="•">
         <style:list-level-properties text:list-level-position-and-space-mode="label-alignment" fo:text-align="right">
-          <style:list-level-label-alignment text:label-followed-by="listtab" text:list-tab-stop-position="0.5in" fo:text-indent="-0.1in" fo:margin-left="0.5in" />
+          <style:list-level-label-alignment text:label-followed-by="listtab" text:list-tab-stop-position="0.75in" fo:text-indent="-0.25in" fo:margin-left="0.75in" />
         </style:list-level-properties>
       </text:list-level-style-bullet>
       <text:list-level-style-bullet text:level="2" text:style-name="Bullet_20_Symbols" style:num-suffix="." text:bullet-char="◦">
         <style:list-level-properties text:list-level-position-and-space-mode="label-alignment" fo:text-align="right">
-          <style:list-level-label-alignment text:label-followed-by="listtab" text:list-tab-stop-position="1.0in" fo:text-indent="-0.1in" fo:margin-left="1.0in" />
+          <style:list-level-label-alignment text:label-followed-by="listtab" text:list-tab-stop-position="1.0in" fo:text-indent="-0.25in" fo:margin-left="1.0in" />
         </style:list-level-properties>
       </text:list-level-style-bullet>
       <text:list-level-style-bullet text:level="3" text:style-name="Bullet_20_Symbols" style:num-suffix="." text:bullet-char="▪">
         <style:list-level-properties text:list-level-position-and-space-mode="label-alignment" fo:text-align="right">
-          <style:list-level-label-alignment text:label-followed-by="listtab" text:list-tab-stop-position="1.5in" fo:text-indent="-0.1in" fo:margin-left="1.5in" />
+          <style:list-level-label-alignment text:label-followed-by="listtab" text:list-tab-stop-position="1.25in" fo:text-indent="-0.25in" fo:margin-left="1.25in" />
         </style:list-level-properties>
       </text:list-level-style-bullet>
       <text:list-level-style-bullet text:level="4" text:style-name="Bullet_20_Symbols" style:num-suffix="." text:bullet-char="•">
         <style:list-level-properties text:list-level-position-and-space-mode="label-alignment" fo:text-align="right">
-          <style:list-level-label-alignment text:label-followed-by="listtab" text:list-tab-stop-position="2.0in" fo:text-indent="-0.1in" fo:margin-left="2.0in" />
+          <style:list-level-label-alignment text:label-followed-by="listtab" text:list-tab-stop-position="1.5in" fo:text-indent="-0.25in" fo:margin-left="1.5in" />
         </style:list-level-properties>
       </text:list-level-style-bullet>
       <text:list-level-style-bullet text:level="5" text:style-name="Bullet_20_Symbols" style:num-suffix="." text:bullet-char="◦">
         <style:list-level-properties text:list-level-position-and-space-mode="label-alignment" fo:text-align="right">
-          <style:list-level-label-alignment text:label-followed-by="listtab" text:list-tab-stop-position="2.5in" fo:text-indent="-0.1in" fo:margin-left="2.5in" />
+          <style:list-level-label-alignment text:label-followed-by="listtab" text:list-tab-stop-position="1.75in" fo:text-indent="-0.25in" fo:margin-left="1.75in" />
         </style:list-level-properties>
       </text:list-level-style-bullet>
       <text:list-level-style-bullet text:level="6" text:style-name="Bullet_20_Symbols" style:num-suffix="." text:bullet-char="▪">
         <style:list-level-properties text:list-level-position-and-space-mode="label-alignment" fo:text-align="right">
-          <style:list-level-label-alignment text:label-followed-by="listtab" text:list-tab-stop-position="3.0in" fo:text-indent="-0.1in" fo:margin-left="3.0in" />
+          <style:list-level-label-alignment text:label-followed-by="listtab" text:list-tab-stop-position="2.0in" fo:text-indent="-0.25in" fo:margin-left="2.0in" />
         </style:list-level-properties>
       </text:list-level-style-bullet>
       <text:list-level-style-bullet text:level="7" text:style-name="Bullet_20_Symbols" style:num-suffix="." text:bullet-char="•">
         <style:list-level-properties text:list-level-position-and-space-mode="label-alignment" fo:text-align="right">
-          <style:list-level-label-alignment text:label-followed-by="listtab" text:list-tab-stop-position="3.5in" fo:text-indent="-0.1in" fo:margin-left="3.5in" />
+          <style:list-level-label-alignment text:label-followed-by="listtab" text:list-tab-stop-position="2.25in" fo:text-indent="-0.25in" fo:margin-left="2.25in" />
         </style:list-level-properties>
       </text:list-level-style-bullet>
       <text:list-level-style-bullet text:level="8" text:style-name="Bullet_20_Symbols" style:num-suffix="." text:bullet-char="◦">
         <style:list-level-properties text:list-level-position-and-space-mode="label-alignment" fo:text-align="right">
-          <style:list-level-label-alignment text:label-followed-by="listtab" text:list-tab-stop-position="4.0in" fo:text-indent="-0.1in" fo:margin-left="4.0in" />
+          <style:list-level-label-alignment text:label-followed-by="listtab" text:list-tab-stop-position="2.5in" fo:text-indent="-0.25in" fo:margin-left="2.5in" />
         </style:list-level-properties>
       </text:list-level-style-bullet>
       <text:list-level-style-bullet text:level="9" text:style-name="Bullet_20_Symbols" style:num-suffix="." text:bullet-char="▪">
         <style:list-level-properties text:list-level-position-and-space-mode="label-alignment" fo:text-align="right">
-          <style:list-level-label-alignment text:label-followed-by="listtab" text:list-tab-stop-position="4.5in" fo:text-indent="-0.1in" fo:margin-left="4.5in" />
+          <style:list-level-label-alignment text:label-followed-by="listtab" text:list-tab-stop-position="2.75in" fo:text-indent="-0.25in" fo:margin-left="2.75in" />
         </style:list-level-properties>
       </text:list-level-style-bullet>
       <text:list-level-style-bullet text:level="10" text:style-name="Bullet_20_Symbols" style:num-suffix="." text:bullet-char="•">
         <style:list-level-properties text:list-level-position-and-space-mode="label-alignment" fo:text-align="right">
-          <style:list-level-label-alignment text:label-followed-by="listtab" text:list-tab-stop-position="5.0in" fo:text-indent="-0.1in" fo:margin-left="5.0in" />
+          <style:list-level-label-alignment text:label-followed-by="listtab" text:list-tab-stop-position="3.0in" fo:text-indent="-0.25in" fo:margin-left="3.0in" />
         </style:list-level-properties>
       </text:list-level-style-bullet>
     </text:list-style>
     <text:list-style style:name="L21">
       <text:list-level-style-bullet text:level="1" text:style-name="Bullet_20_Symbols" style:num-suffix="." text:bullet-char="•">
         <style:list-level-properties text:list-level-position-and-space-mode="label-alignment" fo:text-align="right">
-          <style:list-level-label-alignment text:label-followed-by="listtab" text:list-tab-stop-position="0.5in" fo:text-indent="-0.1in" fo:margin-left="0.5in" />
+          <style:list-level-label-alignment text:label-followed-by="listtab" text:list-tab-stop-position="0.75in" fo:text-indent="-0.25in" fo:margin-left="0.75in" />
         </style:list-level-properties>
       </text:list-level-style-bullet>
       <text:list-level-style-bullet text:level="2" text:style-name="Bullet_20_Symbols" style:num-suffix="." text:bullet-char="◦">
         <style:list-level-properties text:list-level-position-and-space-mode="label-alignment" fo:text-align="right">
-          <style:list-level-label-alignment text:label-followed-by="listtab" text:list-tab-stop-position="1.0in" fo:text-indent="-0.1in" fo:margin-left="1.0in" />
+          <style:list-level-label-alignment text:label-followed-by="listtab" text:list-tab-stop-position="1.0in" fo:text-indent="-0.25in" fo:margin-left="1.0in" />
         </style:list-level-properties>
       </text:list-level-style-bullet>
       <text:list-level-style-bullet text:level="3" text:style-name="Bullet_20_Symbols" style:num-suffix="." text:bullet-char="▪">
         <style:list-level-properties text:list-level-position-and-space-mode="label-alignment" fo:text-align="right">
-          <style:list-level-label-alignment text:label-followed-by="listtab" text:list-tab-stop-position="1.5in" fo:text-indent="-0.1in" fo:margin-left="1.5in" />
+          <style:list-level-label-alignment text:label-followed-by="listtab" text:list-tab-stop-position="1.25in" fo:text-indent="-0.25in" fo:margin-left="1.25in" />
         </style:list-level-properties>
       </text:list-level-style-bullet>
       <text:list-level-style-bullet text:level="4" text:style-name="Bullet_20_Symbols" style:num-suffix="." text:bullet-char="•">
         <style:list-level-properties text:list-level-position-and-space-mode="label-alignment" fo:text-align="right">
-          <style:list-level-label-alignment text:label-followed-by="listtab" text:list-tab-stop-position="2.0in" fo:text-indent="-0.1in" fo:margin-left="2.0in" />
+          <style:list-level-label-alignment text:label-followed-by="listtab" text:list-tab-stop-position="1.5in" fo:text-indent="-0.25in" fo:margin-left="1.5in" />
         </style:list-level-properties>
       </text:list-level-style-bullet>
       <text:list-level-style-bullet text:level="5" text:style-name="Bullet_20_Symbols" style:num-suffix="." text:bullet-char="◦">
         <style:list-level-properties text:list-level-position-and-space-mode="label-alignment" fo:text-align="right">
-          <style:list-level-label-alignment text:label-followed-by="listtab" text:list-tab-stop-position="2.5in" fo:text-indent="-0.1in" fo:margin-left="2.5in" />
+          <style:list-level-label-alignment text:label-followed-by="listtab" text:list-tab-stop-position="1.75in" fo:text-indent="-0.25in" fo:margin-left="1.75in" />
         </style:list-level-properties>
       </text:list-level-style-bullet>
       <text:list-level-style-bullet text:level="6" text:style-name="Bullet_20_Symbols" style:num-suffix="." text:bullet-char="▪">
         <style:list-level-properties text:list-level-position-and-space-mode="label-alignment" fo:text-align="right">
-          <style:list-level-label-alignment text:label-followed-by="listtab" text:list-tab-stop-position="3.0in" fo:text-indent="-0.1in" fo:margin-left="3.0in" />
+          <style:list-level-label-alignment text:label-followed-by="listtab" text:list-tab-stop-position="2.0in" fo:text-indent="-0.25in" fo:margin-left="2.0in" />
         </style:list-level-properties>
       </text:list-level-style-bullet>
       <text:list-level-style-bullet text:level="7" text:style-name="Bullet_20_Symbols" style:num-suffix="." text:bullet-char="•">
         <style:list-level-properties text:list-level-position-and-space-mode="label-alignment" fo:text-align="right">
-          <style:list-level-label-alignment text:label-followed-by="listtab" text:list-tab-stop-position="3.5in" fo:text-indent="-0.1in" fo:margin-left="3.5in" />
+          <style:list-level-label-alignment text:label-followed-by="listtab" text:list-tab-stop-position="2.25in" fo:text-indent="-0.25in" fo:margin-left="2.25in" />
         </style:list-level-properties>
       </text:list-level-style-bullet>
       <text:list-level-style-bullet text:level="8" text:style-name="Bullet_20_Symbols" style:num-suffix="." text:bullet-char="◦">
         <style:list-level-properties text:list-level-position-and-space-mode="label-alignment" fo:text-align="right">
-          <style:list-level-label-alignment text:label-followed-by="listtab" text:list-tab-stop-position="4.0in" fo:text-indent="-0.1in" fo:margin-left="4.0in" />
+          <style:list-level-label-alignment text:label-followed-by="listtab" text:list-tab-stop-position="2.5in" fo:text-indent="-0.25in" fo:margin-left="2.5in" />
         </style:list-level-properties>
       </text:list-level-style-bullet>
       <text:list-level-style-bullet text:level="9" text:style-name="Bullet_20_Symbols" style:num-suffix="." text:bullet-char="▪">
         <style:list-level-properties text:list-level-position-and-space-mode="label-alignment" fo:text-align="right">
-          <style:list-level-label-alignment text:label-followed-by="listtab" text:list-tab-stop-position="4.5in" fo:text-indent="-0.1in" fo:margin-left="4.5in" />
+          <style:list-level-label-alignment text:label-followed-by="listtab" text:list-tab-stop-position="2.75in" fo:text-indent="-0.25in" fo:margin-left="2.75in" />
         </style:list-level-properties>
       </text:list-level-style-bullet>
       <text:list-level-style-bullet text:level="10" text:style-name="Bullet_20_Symbols" style:num-suffix="." text:bullet-char="•">
         <style:list-level-properties text:list-level-position-and-space-mode="label-alignment" fo:text-align="right">
-          <style:list-level-label-alignment text:label-followed-by="listtab" text:list-tab-stop-position="5.0in" fo:text-indent="-0.1in" fo:margin-left="5.0in" />
+          <style:list-level-label-alignment text:label-followed-by="listtab" text:list-tab-stop-position="3.0in" fo:text-indent="-0.25in" fo:margin-left="3.0in" />
         </style:list-level-properties>
       </text:list-level-style-bullet>
     </text:list-style>
     <text:list-style style:name="L22">
       <text:list-level-style-number text:level="1" text:style-name="Numbering_20_Symbols" style:num-format="1" text:start-value="2" style:num-prefix="(" style:num-suffix=")">
         <style:list-level-properties text:list-level-position-and-space-mode="label-alignment" fo:text-align="right">
-          <style:list-level-label-alignment text:label-followed-by="listtab" text:list-tab-stop-position="0.5in" fo:text-indent="-0.1in" fo:margin-left="0.5in" />
+          <style:list-level-label-alignment text:label-followed-by="listtab" text:list-tab-stop-position="0.75in" fo:text-indent="-0.25in" fo:margin-left="0.75in" />
         </style:list-level-properties>
       </text:list-level-style-number>
       <text:list-level-style-number text:level="2" text:style-name="Numbering_20_Symbols" style:num-format="i" text:start-value="4" style:num-suffix=".">
         <style:list-level-properties text:list-level-position-and-space-mode="label-alignment" fo:text-align="right">
-          <style:list-level-label-alignment text:label-followed-by="listtab" text:list-tab-stop-position="1.0in" fo:text-indent="-0.1in" fo:margin-left="1.0in" />
+          <style:list-level-label-alignment text:label-followed-by="listtab" text:list-tab-stop-position="1.0in" fo:text-indent="-0.25in" fo:margin-left="1.0in" />
         </style:list-level-properties>
       </text:list-level-style-number>
       <text:list-level-style-number text:level="3" text:style-name="Numbering_20_Symbols" style:num-format="A" text:start-value="1" style:num-prefix="(" style:num-suffix=")">
         <style:list-level-properties text:list-level-position-and-space-mode="label-alignment" fo:text-align="right">
-          <style:list-level-label-alignment text:label-followed-by="listtab" text:list-tab-stop-position="1.5in" fo:text-indent="-0.1in" fo:margin-left="1.5in" />
+          <style:list-level-label-alignment text:label-followed-by="listtab" text:list-tab-stop-position="1.25in" fo:text-indent="-0.25in" fo:margin-left="1.25in" />
         </style:list-level-properties>
       </text:list-level-style-number>
     </text:list-style>
     <text:list-style style:name="L23">
       <text:list-level-style-number text:level="1" text:style-name="Numbering_20_Symbols" style:num-format="A" text:start-value="1" style:num-suffix=".">
         <style:list-level-properties text:list-level-position-and-space-mode="label-alignment" fo:text-align="right">
-          <style:list-level-label-alignment text:label-followed-by="listtab" text:list-tab-stop-position="0.5in" fo:text-indent="-0.1in" fo:margin-left="0.5in" />
+          <style:list-level-label-alignment text:label-followed-by="listtab" text:list-tab-stop-position="0.75in" fo:text-indent="-0.25in" fo:margin-left="0.75in" />
         </style:list-level-properties>
       </text:list-level-style-number>
       <text:list-level-style-number text:level="2" text:style-name="Numbering_20_Symbols" style:num-format="I" text:start-value="1" style:num-suffix=".">
         <style:list-level-properties text:list-level-position-and-space-mode="label-alignment" fo:text-align="right">
-          <style:list-level-label-alignment text:label-followed-by="listtab" text:list-tab-stop-position="1.0in" fo:text-indent="-0.1in" fo:margin-left="1.0in" />
+          <style:list-level-label-alignment text:label-followed-by="listtab" text:list-tab-stop-position="1.0in" fo:text-indent="-0.25in" fo:margin-left="1.0in" />
         </style:list-level-properties>
       </text:list-level-style-number>
       <text:list-level-style-number text:level="3" text:style-name="Numbering_20_Symbols" style:num-format="1" text:start-value="6" style:num-prefix="(" style:num-suffix=")">
         <style:list-level-properties text:list-level-position-and-space-mode="label-alignment" fo:text-align="right">
-          <style:list-level-label-alignment text:label-followed-by="listtab" text:list-tab-stop-position="1.5in" fo:text-indent="-0.1in" fo:margin-left="1.5in" />
+          <style:list-level-label-alignment text:label-followed-by="listtab" text:list-tab-stop-position="1.25in" fo:text-indent="-0.25in" fo:margin-left="1.25in" />
         </style:list-level-properties>
       </text:list-level-style-number>
       <text:list-level-style-number text:level="4" text:style-name="Numbering_20_Symbols" style:num-format="a" text:start-value="3" style:num-suffix=")">
         <style:list-level-properties text:list-level-position-and-space-mode="label-alignment" fo:text-align="right">
-          <style:list-level-label-alignment text:label-followed-by="listtab" text:list-tab-stop-position="2.0in" fo:text-indent="-0.1in" fo:margin-left="2.0in" />
+          <style:list-level-label-alignment text:label-followed-by="listtab" text:list-tab-stop-position="1.5in" fo:text-indent="-0.25in" fo:margin-left="1.5in" />
         </style:list-level-properties>
       </text:list-level-style-number>
     </text:list-style>
     <text:list-style style:name="L24">
       <text:list-level-style-number text:level="1" text:style-name="Numbering_20_Symbols" style:num-format="1" text:start-value="1" style:num-suffix=".">
         <style:list-level-properties text:list-level-position-and-space-mode="label-alignment" fo:text-align="right">
-          <style:list-level-label-alignment text:label-followed-by="listtab" text:list-tab-stop-position="0.5in" fo:text-indent="-0.1in" fo:margin-left="0.5in" />
+          <style:list-level-label-alignment text:label-followed-by="listtab" text:list-tab-stop-position="0.75in" fo:text-indent="-0.25in" fo:margin-left="0.75in" />
         </style:list-level-properties>
       </text:list-level-style-number>
       <text:list-level-style-number text:level="2" text:style-name="Numbering_20_Symbols" style:num-format="1" text:start-value="1" style:num-suffix=".">
         <style:list-level-properties text:list-level-position-and-space-mode="label-alignment" fo:text-align="right">
-          <style:list-level-label-alignment text:label-followed-by="listtab" text:list-tab-stop-position="1.0in" fo:text-indent="-0.1in" fo:margin-left="1.0in" />
+          <style:list-level-label-alignment text:label-followed-by="listtab" text:list-tab-stop-position="1.0in" fo:text-indent="-0.25in" fo:margin-left="1.0in" />
         </style:list-level-properties>
       </text:list-level-style-number>
     </text:list-style>
     <text:list-style style:name="L25">
       <text:list-level-style-number text:level="1" text:style-name="Numbering_20_Symbols" style:num-format="1" text:start-value="1" style:num-suffix=".">
         <style:list-level-properties text:list-level-position-and-space-mode="label-alignment" fo:text-align="right">
-          <style:list-level-label-alignment text:label-followed-by="listtab" text:list-tab-stop-position="0.5in" fo:text-indent="-0.1in" fo:margin-left="0.5in" />
+          <style:list-level-label-alignment text:label-followed-by="listtab" text:list-tab-stop-position="0.75in" fo:text-indent="-0.25in" fo:margin-left="0.75in" />
         </style:list-level-properties>
       </text:list-level-style-number>
     </text:list-style>
     <text:list-style style:name="L26">
       <text:list-level-style-bullet text:level="1" text:style-name="Bullet_20_Symbols" style:num-suffix="." text:bullet-char="•">
         <style:list-level-properties text:list-level-position-and-space-mode="label-alignment" fo:text-align="right">
-          <style:list-level-label-alignment text:label-followed-by="listtab" text:list-tab-stop-position="0.5in" fo:text-indent="-0.1in" fo:margin-left="0.5in" />
+          <style:list-level-label-alignment text:label-followed-by="listtab" text:list-tab-stop-position="0.75in" fo:text-indent="-0.25in" fo:margin-left="0.75in" />
         </style:list-level-properties>
       </text:list-level-style-bullet>
       <text:list-level-style-bullet text:level="2" text:style-name="Bullet_20_Symbols" style:num-suffix="." text:bullet-char="◦">
         <style:list-level-properties text:list-level-position-and-space-mode="label-alignment" fo:text-align="right">
-          <style:list-level-label-alignment text:label-followed-by="listtab" text:list-tab-stop-position="1.0in" fo:text-indent="-0.1in" fo:margin-left="1.0in" />
+          <style:list-level-label-alignment text:label-followed-by="listtab" text:list-tab-stop-position="1.0in" fo:text-indent="-0.25in" fo:margin-left="1.0in" />
         </style:list-level-properties>
       </text:list-level-style-bullet>
       <text:list-level-style-bullet text:level="3" text:style-name="Bullet_20_Symbols" style:num-suffix="." text:bullet-char="▪">
         <style:list-level-properties text:list-level-position-and-space-mode="label-alignment" fo:text-align="right">
-          <style:list-level-label-alignment text:label-followed-by="listtab" text:list-tab-stop-position="1.5in" fo:text-indent="-0.1in" fo:margin-left="1.5in" />
+          <style:list-level-label-alignment text:label-followed-by="listtab" text:list-tab-stop-position="1.25in" fo:text-indent="-0.25in" fo:margin-left="1.25in" />
         </style:list-level-properties>
       </text:list-level-style-bullet>
       <text:list-level-style-bullet text:level="4" text:style-name="Bullet_20_Symbols" style:num-suffix="." text:bullet-char="•">
         <style:list-level-properties text:list-level-position-and-space-mode="label-alignment" fo:text-align="right">
-          <style:list-level-label-alignment text:label-followed-by="listtab" text:list-tab-stop-position="2.0in" fo:text-indent="-0.1in" fo:margin-left="2.0in" />
+          <style:list-level-label-alignment text:label-followed-by="listtab" text:list-tab-stop-position="1.5in" fo:text-indent="-0.25in" fo:margin-left="1.5in" />
         </style:list-level-properties>
       </text:list-level-style-bullet>
       <text:list-level-style-bullet text:level="5" text:style-name="Bullet_20_Symbols" style:num-suffix="." text:bullet-char="◦">
         <style:list-level-properties text:list-level-position-and-space-mode="label-alignment" fo:text-align="right">
-          <style:list-level-label-alignment text:label-followed-by="listtab" text:list-tab-stop-position="2.5in" fo:text-indent="-0.1in" fo:margin-left="2.5in" />
+          <style:list-level-label-alignment text:label-followed-by="listtab" text:list-tab-stop-position="1.75in" fo:text-indent="-0.25in" fo:margin-left="1.75in" />
         </style:list-level-properties>
       </text:list-level-style-bullet>
       <text:list-level-style-bullet text:level="6" text:style-name="Bullet_20_Symbols" style:num-suffix="." text:bullet-char="▪">
         <style:list-level-properties text:list-level-position-and-space-mode="label-alignment" fo:text-align="right">
-          <style:list-level-label-alignment text:label-followed-by="listtab" text:list-tab-stop-position="3.0in" fo:text-indent="-0.1in" fo:margin-left="3.0in" />
+          <style:list-level-label-alignment text:label-followed-by="listtab" text:list-tab-stop-position="2.0in" fo:text-indent="-0.25in" fo:margin-left="2.0in" />
         </style:list-level-properties>
       </text:list-level-style-bullet>
       <text:list-level-style-bullet text:level="7" text:style-name="Bullet_20_Symbols" style:num-suffix="." text:bullet-char="•">
         <style:list-level-properties text:list-level-position-and-space-mode="label-alignment" fo:text-align="right">
-          <style:list-level-label-alignment text:label-followed-by="listtab" text:list-tab-stop-position="3.5in" fo:text-indent="-0.1in" fo:margin-left="3.5in" />
+          <style:list-level-label-alignment text:label-followed-by="listtab" text:list-tab-stop-position="2.25in" fo:text-indent="-0.25in" fo:margin-left="2.25in" />
         </style:list-level-properties>
       </text:list-level-style-bullet>
       <text:list-level-style-bullet text:level="8" text:style-name="Bullet_20_Symbols" style:num-suffix="." text:bullet-char="◦">
         <style:list-level-properties text:list-level-position-and-space-mode="label-alignment" fo:text-align="right">
-          <style:list-level-label-alignment text:label-followed-by="listtab" text:list-tab-stop-position="4.0in" fo:text-indent="-0.1in" fo:margin-left="4.0in" />
+          <style:list-level-label-alignment text:label-followed-by="listtab" text:list-tab-stop-position="2.5in" fo:text-indent="-0.25in" fo:margin-left="2.5in" />
         </style:list-level-properties>
       </text:list-level-style-bullet>
       <text:list-level-style-bullet text:level="9" text:style-name="Bullet_20_Symbols" style:num-suffix="." text:bullet-char="▪">
         <style:list-level-properties text:list-level-position-and-space-mode="label-alignment" fo:text-align="right">
-          <style:list-level-label-alignment text:label-followed-by="listtab" text:list-tab-stop-position="4.5in" fo:text-indent="-0.1in" fo:margin-left="4.5in" />
+          <style:list-level-label-alignment text:label-followed-by="listtab" text:list-tab-stop-position="2.75in" fo:text-indent="-0.25in" fo:margin-left="2.75in" />
         </style:list-level-properties>
       </text:list-level-style-bullet>
       <text:list-level-style-bullet text:level="10" text:style-name="Bullet_20_Symbols" style:num-suffix="." text:bullet-char="•">
         <style:list-level-properties text:list-level-position-and-space-mode="label-alignment" fo:text-align="right">
-          <style:list-level-label-alignment text:label-followed-by="listtab" text:list-tab-stop-position="5.0in" fo:text-indent="-0.1in" fo:margin-left="5.0in" />
+          <style:list-level-label-alignment text:label-followed-by="listtab" text:list-tab-stop-position="3.0in" fo:text-indent="-0.25in" fo:margin-left="3.0in" />
         </style:list-level-properties>
       </text:list-level-style-bullet>
     </text:list-style>
     <text:list-style style:name="L27">
       <text:list-level-style-bullet text:level="1" text:style-name="Bullet_20_Symbols" style:num-suffix="." text:bullet-char="•">
         <style:list-level-properties text:list-level-position-and-space-mode="label-alignment" fo:text-align="right">
-          <style:list-level-label-alignment text:label-followed-by="listtab" text:list-tab-stop-position="0.5in" fo:text-indent="-0.1in" fo:margin-left="0.5in" />
+          <style:list-level-label-alignment text:label-followed-by="listtab" text:list-tab-stop-position="0.75in" fo:text-indent="-0.25in" fo:margin-left="0.75in" />
         </style:list-level-properties>
       </text:list-level-style-bullet>
       <text:list-level-style-bullet text:level="2" text:style-name="Bullet_20_Symbols" style:num-suffix="." text:bullet-char="◦">
         <style:list-level-properties text:list-level-position-and-space-mode="label-alignment" fo:text-align="right">
-          <style:list-level-label-alignment text:label-followed-by="listtab" text:list-tab-stop-position="1.0in" fo:text-indent="-0.1in" fo:margin-left="1.0in" />
+          <style:list-level-label-alignment text:label-followed-by="listtab" text:list-tab-stop-position="1.0in" fo:text-indent="-0.25in" fo:margin-left="1.0in" />
         </style:list-level-properties>
       </text:list-level-style-bullet>
       <text:list-level-style-bullet text:level="3" text:style-name="Bullet_20_Symbols" style:num-suffix="." text:bullet-char="▪">
         <style:list-level-properties text:list-level-position-and-space-mode="label-alignment" fo:text-align="right">
-          <style:list-level-label-alignment text:label-followed-by="listtab" text:list-tab-stop-position="1.5in" fo:text-indent="-0.1in" fo:margin-left="1.5in" />
+          <style:list-level-label-alignment text:label-followed-by="listtab" text:list-tab-stop-position="1.25in" fo:text-indent="-0.25in" fo:margin-left="1.25in" />
         </style:list-level-properties>
       </text:list-level-style-bullet>
       <text:list-level-style-bullet text:level="4" text:style-name="Bullet_20_Symbols" style:num-suffix="." text:bullet-char="•">
         <style:list-level-properties text:list-level-position-and-space-mode="label-alignment" fo:text-align="right">
-          <style:list-level-label-alignment text:label-followed-by="listtab" text:list-tab-stop-position="2.0in" fo:text-indent="-0.1in" fo:margin-left="2.0in" />
+          <style:list-level-label-alignment text:label-followed-by="listtab" text:list-tab-stop-position="1.5in" fo:text-indent="-0.25in" fo:margin-left="1.5in" />
         </style:list-level-properties>
       </text:list-level-style-bullet>
       <text:list-level-style-bullet text:level="5" text:style-name="Bullet_20_Symbols" style:num-suffix="." text:bullet-char="◦">
         <style:list-level-properties text:list-level-position-and-space-mode="label-alignment" fo:text-align="right">
-          <style:list-level-label-alignment text:label-followed-by="listtab" text:list-tab-stop-position="2.5in" fo:text-indent="-0.1in" fo:margin-left="2.5in" />
+          <style:list-level-label-alignment text:label-followed-by="listtab" text:list-tab-stop-position="1.75in" fo:text-indent="-0.25in" fo:margin-left="1.75in" />
         </style:list-level-properties>
       </text:list-level-style-bullet>
       <text:list-level-style-bullet text:level="6" text:style-name="Bullet_20_Symbols" style:num-suffix="." text:bullet-char="▪">
         <style:list-level-properties text:list-level-position-and-space-mode="label-alignment" fo:text-align="right">
-          <style:list-level-label-alignment text:label-followed-by="listtab" text:list-tab-stop-position="3.0in" fo:text-indent="-0.1in" fo:margin-left="3.0in" />
+          <style:list-level-label-alignment text:label-followed-by="listtab" text:list-tab-stop-position="2.0in" fo:text-indent="-0.25in" fo:margin-left="2.0in" />
         </style:list-level-properties>
       </text:list-level-style-bullet>
       <text:list-level-style-bullet text:level="7" text:style-name="Bullet_20_Symbols" style:num-suffix="." text:bullet-char="•">
         <style:list-level-properties text:list-level-position-and-space-mode="label-alignment" fo:text-align="right">
-          <style:list-level-label-alignment text:label-followed-by="listtab" text:list-tab-stop-position="3.5in" fo:text-indent="-0.1in" fo:margin-left="3.5in" />
+          <style:list-level-label-alignment text:label-followed-by="listtab" text:list-tab-stop-position="2.25in" fo:text-indent="-0.25in" fo:margin-left="2.25in" />
         </style:list-level-properties>
       </text:list-level-style-bullet>
       <text:list-level-style-bullet text:level="8" text:style-name="Bullet_20_Symbols" style:num-suffix="." text:bullet-char="◦">
         <style:list-level-properties text:list-level-position-and-space-mode="label-alignment" fo:text-align="right">
-          <style:list-level-label-alignment text:label-followed-by="listtab" text:list-tab-stop-position="4.0in" fo:text-indent="-0.1in" fo:margin-left="4.0in" />
+          <style:list-level-label-alignment text:label-followed-by="listtab" text:list-tab-stop-position="2.5in" fo:text-indent="-0.25in" fo:margin-left="2.5in" />
         </style:list-level-properties>
       </text:list-level-style-bullet>
       <text:list-level-style-bullet text:level="9" text:style-name="Bullet_20_Symbols" style:num-suffix="." text:bullet-char="▪">
         <style:list-level-properties text:list-level-position-and-space-mode="label-alignment" fo:text-align="right">
-          <style:list-level-label-alignment text:label-followed-by="listtab" text:list-tab-stop-position="4.5in" fo:text-indent="-0.1in" fo:margin-left="4.5in" />
+          <style:list-level-label-alignment text:label-followed-by="listtab" text:list-tab-stop-position="2.75in" fo:text-indent="-0.25in" fo:margin-left="2.75in" />
         </style:list-level-properties>
       </text:list-level-style-bullet>
       <text:list-level-style-bullet text:level="10" text:style-name="Bullet_20_Symbols" style:num-suffix="." text:bullet-char="•">
         <style:list-level-properties text:list-level-position-and-space-mode="label-alignment" fo:text-align="right">
-          <style:list-level-label-alignment text:label-followed-by="listtab" text:list-tab-stop-position="5.0in" fo:text-indent="-0.1in" fo:margin-left="5.0in" />
+          <style:list-level-label-alignment text:label-followed-by="listtab" text:list-tab-stop-position="3.0in" fo:text-indent="-0.25in" fo:margin-left="3.0in" />
         </style:list-level-properties>
       </text:list-level-style-bullet>
     </text:list-style>
     <text:list-style style:name="L28">
       <text:list-level-style-bullet text:level="1" text:style-name="Bullet_20_Symbols" style:num-suffix="." text:bullet-char="•">
         <style:list-level-properties text:list-level-position-and-space-mode="label-alignment" fo:text-align="right">
-          <style:list-level-label-alignment text:label-followed-by="listtab" text:list-tab-stop-position="0.5in" fo:text-indent="-0.1in" fo:margin-left="0.5in" />
+          <style:list-level-label-alignment text:label-followed-by="listtab" text:list-tab-stop-position="0.75in" fo:text-indent="-0.25in" fo:margin-left="0.75in" />
         </style:list-level-properties>
       </text:list-level-style-bullet>
       <text:list-level-style-bullet text:level="2" text:style-name="Bullet_20_Symbols" style:num-suffix="." text:bullet-char="◦">
         <style:list-level-properties text:list-level-position-and-space-mode="label-alignment" fo:text-align="right">
-          <style:list-level-label-alignment text:label-followed-by="listtab" text:list-tab-stop-position="1.0in" fo:text-indent="-0.1in" fo:margin-left="1.0in" />
+          <style:list-level-label-alignment text:label-followed-by="listtab" text:list-tab-stop-position="1.0in" fo:text-indent="-0.25in" fo:margin-left="1.0in" />
         </style:list-level-properties>
       </text:list-level-style-bullet>
       <text:list-level-style-bullet text:level="3" text:style-name="Bullet_20_Symbols" style:num-suffix="." text:bullet-char="▪">
         <style:list-level-properties text:list-level-position-and-space-mode="label-alignment" fo:text-align="right">
-          <style:list-level-label-alignment text:label-followed-by="listtab" text:list-tab-stop-position="1.5in" fo:text-indent="-0.1in" fo:margin-left="1.5in" />
+          <style:list-level-label-alignment text:label-followed-by="listtab" text:list-tab-stop-position="1.25in" fo:text-indent="-0.25in" fo:margin-left="1.25in" />
         </style:list-level-properties>
       </text:list-level-style-bullet>
       <text:list-level-style-bullet text:level="4" text:style-name="Bullet_20_Symbols" style:num-suffix="." text:bullet-char="•">
         <style:list-level-properties text:list-level-position-and-space-mode="label-alignment" fo:text-align="right">
-          <style:list-level-label-alignment text:label-followed-by="listtab" text:list-tab-stop-position="2.0in" fo:text-indent="-0.1in" fo:margin-left="2.0in" />
+          <style:list-level-label-alignment text:label-followed-by="listtab" text:list-tab-stop-position="1.5in" fo:text-indent="-0.25in" fo:margin-left="1.5in" />
         </style:list-level-properties>
       </text:list-level-style-bullet>
       <text:list-level-style-bullet text:level="5" text:style-name="Bullet_20_Symbols" style:num-suffix="." text:bullet-char="◦">
         <style:list-level-properties text:list-level-position-and-space-mode="label-alignment" fo:text-align="right">
-          <style:list-level-label-alignment text:label-followed-by="listtab" text:list-tab-stop-position="2.5in" fo:text-indent="-0.1in" fo:margin-left="2.5in" />
+          <style:list-level-label-alignment text:label-followed-by="listtab" text:list-tab-stop-position="1.75in" fo:text-indent="-0.25in" fo:margin-left="1.75in" />
         </style:list-level-properties>
       </text:list-level-style-bullet>
       <text:list-level-style-bullet text:level="6" text:style-name="Bullet_20_Symbols" style:num-suffix="." text:bullet-char="▪">
         <style:list-level-properties text:list-level-position-and-space-mode="label-alignment" fo:text-align="right">
-          <style:list-level-label-alignment text:label-followed-by="listtab" text:list-tab-stop-position="3.0in" fo:text-indent="-0.1in" fo:margin-left="3.0in" />
+          <style:list-level-label-alignment text:label-followed-by="listtab" text:list-tab-stop-position="2.0in" fo:text-indent="-0.25in" fo:margin-left="2.0in" />
         </style:list-level-properties>
       </text:list-level-style-bullet>
       <text:list-level-style-bullet text:level="7" text:style-name="Bullet_20_Symbols" style:num-suffix="." text:bullet-char="•">
         <style:list-level-properties text:list-level-position-and-space-mode="label-alignment" fo:text-align="right">
-          <style:list-level-label-alignment text:label-followed-by="listtab" text:list-tab-stop-position="3.5in" fo:text-indent="-0.1in" fo:margin-left="3.5in" />
+          <style:list-level-label-alignment text:label-followed-by="listtab" text:list-tab-stop-position="2.25in" fo:text-indent="-0.25in" fo:margin-left="2.25in" />
         </style:list-level-properties>
       </text:list-level-style-bullet>
       <text:list-level-style-bullet text:level="8" text:style-name="Bullet_20_Symbols" style:num-suffix="." text:bullet-char="◦">
         <style:list-level-properties text:list-level-position-and-space-mode="label-alignment" fo:text-align="right">
-          <style:list-level-label-alignment text:label-followed-by="listtab" text:list-tab-stop-position="4.0in" fo:text-indent="-0.1in" fo:margin-left="4.0in" />
+          <style:list-level-label-alignment text:label-followed-by="listtab" text:list-tab-stop-position="2.5in" fo:text-indent="-0.25in" fo:margin-left="2.5in" />
         </style:list-level-properties>
       </text:list-level-style-bullet>
       <text:list-level-style-bullet text:level="9" text:style-name="Bullet_20_Symbols" style:num-suffix="." text:bullet-char="▪">
         <style:list-level-properties text:list-level-position-and-space-mode="label-alignment" fo:text-align="right">
-          <style:list-level-label-alignment text:label-followed-by="listtab" text:list-tab-stop-position="4.5in" fo:text-indent="-0.1in" fo:margin-left="4.5in" />
+          <style:list-level-label-alignment text:label-followed-by="listtab" text:list-tab-stop-position="2.75in" fo:text-indent="-0.25in" fo:margin-left="2.75in" />
         </style:list-level-properties>
       </text:list-level-style-bullet>
       <text:list-level-style-bullet text:level="10" text:style-name="Bullet_20_Symbols" style:num-suffix="." text:bullet-char="•">
         <style:list-level-properties text:list-level-position-and-space-mode="label-alignment" fo:text-align="right">
-          <style:list-level-label-alignment text:label-followed-by="listtab" text:list-tab-stop-position="5.0in" fo:text-indent="-0.1in" fo:margin-left="5.0in" />
+          <style:list-level-label-alignment text:label-followed-by="listtab" text:list-tab-stop-position="3.0in" fo:text-indent="-0.25in" fo:margin-left="3.0in" />
         </style:list-level-properties>
       </text:list-level-style-bullet>
     </text:list-style>
     <text:list-style style:name="L29">
       <text:list-level-style-bullet text:level="1" text:style-name="Bullet_20_Symbols" style:num-suffix="." text:bullet-char="•">
         <style:list-level-properties text:list-level-position-and-space-mode="label-alignment" fo:text-align="right">
-          <style:list-level-label-alignment text:label-followed-by="listtab" text:list-tab-stop-position="0.5in" fo:text-indent="-0.1in" fo:margin-left="0.5in" />
+          <style:list-level-label-alignment text:label-followed-by="listtab" text:list-tab-stop-position="0.75in" fo:text-indent="-0.25in" fo:margin-left="0.75in" />
         </style:list-level-properties>
       </text:list-level-style-bullet>
       <text:list-level-style-bullet text:level="2" text:style-name="Bullet_20_Symbols" style:num-suffix="." text:bullet-char="◦">
         <style:list-level-properties text:list-level-position-and-space-mode="label-alignment" fo:text-align="right">
-          <style:list-level-label-alignment text:label-followed-by="listtab" text:list-tab-stop-position="1.0in" fo:text-indent="-0.1in" fo:margin-left="1.0in" />
+          <style:list-level-label-alignment text:label-followed-by="listtab" text:list-tab-stop-position="1.0in" fo:text-indent="-0.25in" fo:margin-left="1.0in" />
         </style:list-level-properties>
       </text:list-level-style-bullet>
       <text:list-level-style-bullet text:level="3" text:style-name="Bullet_20_Symbols" style:num-suffix="." text:bullet-char="▪">
         <style:list-level-properties text:list-level-position-and-space-mode="label-alignment" fo:text-align="right">
-          <style:list-level-label-alignment text:label-followed-by="listtab" text:list-tab-stop-position="1.5in" fo:text-indent="-0.1in" fo:margin-left="1.5in" />
+          <style:list-level-label-alignment text:label-followed-by="listtab" text:list-tab-stop-position="1.25in" fo:text-indent="-0.25in" fo:margin-left="1.25in" />
         </style:list-level-properties>
       </text:list-level-style-bullet>
       <text:list-level-style-bullet text:level="4" text:style-name="Bullet_20_Symbols" style:num-suffix="." text:bullet-char="•">
         <style:list-level-properties text:list-level-position-and-space-mode="label-alignment" fo:text-align="right">
-          <style:list-level-label-alignment text:label-followed-by="listtab" text:list-tab-stop-position="2.0in" fo:text-indent="-0.1in" fo:margin-left="2.0in" />
+          <style:list-level-label-alignment text:label-followed-by="listtab" text:list-tab-stop-position="1.5in" fo:text-indent="-0.25in" fo:margin-left="1.5in" />
         </style:list-level-properties>
       </text:list-level-style-bullet>
       <text:list-level-style-bullet text:level="5" text:style-name="Bullet_20_Symbols" style:num-suffix="." text:bullet-char="◦">
         <style:list-level-properties text:list-level-position-and-space-mode="label-alignment" fo:text-align="right">
-          <style:list-level-label-alignment text:label-followed-by="listtab" text:list-tab-stop-position="2.5in" fo:text-indent="-0.1in" fo:margin-left="2.5in" />
+          <style:list-level-label-alignment text:label-followed-by="listtab" text:list-tab-stop-position="1.75in" fo:text-indent="-0.25in" fo:margin-left="1.75in" />
         </style:list-level-properties>
       </text:list-level-style-bullet>
       <text:list-level-style-bullet text:level="6" text:style-name="Bullet_20_Symbols" style:num-suffix="." text:bullet-char="▪">
         <style:list-level-properties text:list-level-position-and-space-mode="label-alignment" fo:text-align="right">
-          <style:list-level-label-alignment text:label-followed-by="listtab" text:list-tab-stop-position="3.0in" fo:text-indent="-0.1in" fo:margin-left="3.0in" />
+          <style:list-level-label-alignment text:label-followed-by="listtab" text:list-tab-stop-position="2.0in" fo:text-indent="-0.25in" fo:margin-left="2.0in" />
         </style:list-level-properties>
       </text:list-level-style-bullet>
       <text:list-level-style-bullet text:level="7" text:style-name="Bullet_20_Symbols" style:num-suffix="." text:bullet-char="•">
         <style:list-level-properties text:list-level-position-and-space-mode="label-alignment" fo:text-align="right">
-          <style:list-level-label-alignment text:label-followed-by="listtab" text:list-tab-stop-position="3.5in" fo:text-indent="-0.1in" fo:margin-left="3.5in" />
+          <style:list-level-label-alignment text:label-followed-by="listtab" text:list-tab-stop-position="2.25in" fo:text-indent="-0.25in" fo:margin-left="2.25in" />
         </style:list-level-properties>
       </text:list-level-style-bullet>
       <text:list-level-style-bullet text:level="8" text:style-name="Bullet_20_Symbols" style:num-suffix="." text:bullet-char="◦">
         <style:list-level-properties text:list-level-position-and-space-mode="label-alignment" fo:text-align="right">
-          <style:list-level-label-alignment text:label-followed-by="listtab" text:list-tab-stop-position="4.0in" fo:text-indent="-0.1in" fo:margin-left="4.0in" />
+          <style:list-level-label-alignment text:label-followed-by="listtab" text:list-tab-stop-position="2.5in" fo:text-indent="-0.25in" fo:margin-left="2.5in" />
         </style:list-level-properties>
       </text:list-level-style-bullet>
       <text:list-level-style-bullet text:level="9" text:style-name="Bullet_20_Symbols" style:num-suffix="." text:bullet-char="▪">
         <style:list-level-properties text:list-level-position-and-space-mode="label-alignment" fo:text-align="right">
-          <style:list-level-label-alignment text:label-followed-by="listtab" text:list-tab-stop-position="4.5in" fo:text-indent="-0.1in" fo:margin-left="4.5in" />
+          <style:list-level-label-alignment text:label-followed-by="listtab" text:list-tab-stop-position="2.75in" fo:text-indent="-0.25in" fo:margin-left="2.75in" />
         </style:list-level-properties>
       </text:list-level-style-bullet>
       <text:list-level-style-bullet text:level="10" text:style-name="Bullet_20_Symbols" style:num-suffix="." text:bullet-char="•">
         <style:list-level-properties text:list-level-position-and-space-mode="label-alignment" fo:text-align="right">
-          <style:list-level-label-alignment text:label-followed-by="listtab" text:list-tab-stop-position="5.0in" fo:text-indent="-0.1in" fo:margin-left="5.0in" />
+          <style:list-level-label-alignment text:label-followed-by="listtab" text:list-tab-stop-position="3.0in" fo:text-indent="-0.25in" fo:margin-left="3.0in" />
         </style:list-level-properties>
       </text:list-level-style-bullet>
     </text:list-style>
     <text:list-style style:name="L30">
       <text:list-level-style-number text:level="1" text:style-name="Numbering_20_Symbols" style:num-format="1" text:start-value="1" style:num-suffix=".">
         <style:list-level-properties text:list-level-position-and-space-mode="label-alignment" fo:text-align="right">
-          <style:list-level-label-alignment text:label-followed-by="listtab" text:list-tab-stop-position="0.5in" fo:text-indent="-0.1in" fo:margin-left="0.5in" />
+          <style:list-level-label-alignment text:label-followed-by="listtab" text:list-tab-stop-position="0.75in" fo:text-indent="-0.25in" fo:margin-left="0.75in" />
         </style:list-level-properties>
       </text:list-level-style-number>
     </text:list-style>
