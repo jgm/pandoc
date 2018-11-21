@@ -41,19 +41,21 @@ import Control.Monad.Reader
 import Control.Monad.State.Strict
 import qualified Data.ByteString as B
 import qualified Data.ByteString.Lazy as BL
-import Data.Char (isSpace, ord, toLower)
+import Data.Char (isSpace, ord, toLower, isLetter)
 import Data.List (intercalate, isPrefixOf, isSuffixOf)
 import qualified Data.Map as M
 import Data.Maybe (fromMaybe, isNothing, mapMaybe, maybeToList)
 import qualified Data.Set as Set
 import qualified Data.Text as T
 import Data.Time.Clock.POSIX
+import Data.Digest.Pure.SHA (sha1, showDigest)
 import Skylighting
 import System.Random (randomR, StdGen, mkStdGen)
 import Text.Pandoc.BCP47 (getLang, renderLang)
 import Text.Pandoc.Class (PandocMonad, report, toLang)
 import qualified Text.Pandoc.Class as P
 import Data.Time
+import Text.Pandoc.UTF8 (fromStringLazy)
 import Text.Pandoc.Definition
 import Text.Pandoc.Generic
 import Text.Pandoc.Highlighting (highlight)
@@ -1268,7 +1270,8 @@ inlineToOpenXML' opts (Note bs) = do
 -- internal link:
 inlineToOpenXML' opts (Link _ txt ('#':xs,_)) = do
   contents <- withTextPropM (rStyleM "Hyperlink") $ inlinesToOpenXML opts txt
-  return [ mknode "w:hyperlink" [("w:anchor",xs)] contents ]
+  return
+    [ mknode "w:hyperlink" [("w:anchor", toBookmarkName xs)] contents ]
 -- external link:
 inlineToOpenXML' opts (Link _ txt (src,_)) = do
   contents <- withTextPropM (rStyleM "Hyperlink") $ inlinesToOpenXML opts txt
@@ -1427,7 +1430,18 @@ wrapBookmark :: (PandocMonad m) => String -> [Element] -> WS m [Element]
 wrapBookmark [] contents = return contents
 wrapBookmark ident contents = do
   id' <- getUniqueId
-  let bookmarkStart = mknode "w:bookmarkStart" [("w:id", id')
-                                               ,("w:name",ident)] ()
+  let bookmarkStart = mknode "w:bookmarkStart"
+                       [("w:id", id')
+                       ,("w:name", toBookmarkName ident)] ()
       bookmarkEnd = mknode "w:bookmarkEnd" [("w:id", id')] ()
   return $ bookmarkStart : contents ++ [bookmarkEnd]
+
+-- Word imposes a 40 character limit on bookmark names and requires
+-- that they begin with a letter.  So we just use a hash of the
+-- identifer when otherwise we'd have an illegal bookmark name.
+toBookmarkName :: String -> String
+toBookmarkName s =
+  case s of
+    (c:_) | isLetter c
+          , length s <= 40 -> s
+    _     -> 'X' : drop 1 (showDigest (sha1 (fromStringLazy s)))
