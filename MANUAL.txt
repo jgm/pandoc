@@ -3526,7 +3526,7 @@ LaTeX macros
 
 #### Extension: `latex_macros` ####
 
-For output formats other than LaTeX, pandoc will parse LaTeX
+When this extension is enabled, pandoc will parse LaTeX
 macro definitions and apply the resulting macros to all LaTeX
 math and raw LaTeX.  So, for example, the following will work in
 all output formats, not just LaTeX:
