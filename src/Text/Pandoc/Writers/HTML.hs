@@ -125,7 +125,8 @@ defaultWriterState = WriterState {stNotes= [], stMath = False, stQuotes = False,
 
 strToHtml :: String -> Html
 strToHtml ('\'':xs) = preEscapedString "\'" `mappend` strToHtml xs
-strToHtml xs@(_:_)  = case break (=='\'') xs of
+strToHtml ('"' :xs) = preEscapedString "\"" `mappend` strToHtml xs
+strToHtml xs@(_:_)  = case break (\c -> c == '\'' || c == '"') xs of
                            (_ ,[]) -> toHtml xs
                            (ys,zs) -> toHtml ys `mappend` strToHtml zs
 strToHtml [] = ""
