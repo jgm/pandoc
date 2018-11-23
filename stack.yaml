@@ -19,7 +19,8 @@ packages:
   - foundation
   extra-dep: true
 extra-deps:
-- pandoc-citeproc-0.15
+- github: jgm/pandoc-citeproc
+  commit: c2c7c43f1c37a6e5f571c500b9e6dd36011c493f
 - haddock-library-1.7.0
 - HsYAML-0.1.1.2
 - yaml-0.11.0.0
