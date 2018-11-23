@@ -601,7 +601,7 @@ orderedListLevelStyle (s,n, d) (l,ls) =
 
 listLevelStyle :: Int -> Doc
 listLevelStyle i =
-    let indent = show (0.5 + (0.25 * fromIntegral i :: Double)) in
+    let indent = show (0.25 + (0.25 * fromIntegral i :: Double)) in
     inTags True "style:list-level-properties"
                        [ ("text:list-level-position-and-space-mode",
                           "label-alignment")
