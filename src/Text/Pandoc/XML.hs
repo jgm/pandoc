@@ -42,10 +42,9 @@ import Prelude
 import Data.Char (isAscii, isSpace, ord)
 import Data.Text (Text)
 import qualified Data.Text as T
-import Text.HTML.TagSoup.Entity (lookupEntity)
+import Text.HTML.TagSoup.Entity (lookupEntity, htmlEntities)
 import Text.Pandoc.Pretty
 import qualified Data.Map as M
-import Text.HTML.TagSoup.Entity (htmlEntities)
 
 -- | Escape one character as needed for XML.
 escapeCharForXML :: Char -> String

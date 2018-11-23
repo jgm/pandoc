@@ -42,7 +42,7 @@ DokuWiki:  <https://www.dokuwiki.org/dokuwiki>
 module Text.Pandoc.Writers.DokuWiki ( writeDokuWiki ) where
 import Prelude
 import Control.Monad (zipWithM)
-import Control.Monad.Reader (ReaderT, ask, local, runReaderT)
+import Control.Monad.Reader (ReaderT, asks, local, runReaderT)
 import Control.Monad.State.Strict (StateT, evalStateT)
 import Data.Default (Default (..))
 import Data.List (intercalate, intersect, isPrefixOf, transpose)
@@ -135,8 +135,8 @@ blockToDokuWiki opts (Para [Image attr txt (src,'f':'i':'g':':':tit)]) = do
   return $ "{{" ++ prefix ++ src ++ imageDims opts attr ++ opt ++ "}}\n"
 
 blockToDokuWiki opts (Para inlines) = do
-  indent <- stIndent <$> ask
-  useTags <- stUseTags <$> ask
+  indent <- asks stIndent
+  useTags <- asks stUseTags
   contents <- inlineListToDokuWiki opts inlines
   return $ if useTags
               then "<HTML><p></HTML>" ++ contents ++ "<HTML></p></HTML>"
@@ -211,9 +211,9 @@ blockToDokuWiki opts (Table capt aligns _ headers rows) = do
            unlines (map (renderRow "|") rows')
 
 blockToDokuWiki opts x@(BulletList items) = do
-  oldUseTags <- stUseTags <$> ask
-  indent <- stIndent <$> ask
-  backSlash <- stBackSlashLB <$> ask
+  oldUseTags <- asks stUseTags
+  indent <- asks stIndent
+  backSlash <- asks stBackSlashLB
   let useTags = oldUseTags || not (isSimpleList x)
   if useTags
      then do
@@ -227,9 +227,9 @@ blockToDokuWiki opts x@(BulletList items) = do
         return $ vcat contents ++ if null indent then "\n" else ""
 
 blockToDokuWiki opts x@(OrderedList attribs items) = do
-  oldUseTags <- stUseTags <$> ask
-  indent <- stIndent <$> ask
-  backSlash <- stBackSlashLB <$> ask
+  oldUseTags <- asks stUseTags
+  indent <- asks stIndent
+  backSlash <- asks stBackSlashLB
   let useTags = oldUseTags || not (isSimpleList x)
   if useTags
      then do
@@ -246,9 +246,9 @@ blockToDokuWiki opts x@(OrderedList attribs items) = do
 --      is a specific representation of them.
 -- TODO This creates double '; ; ' if there is a bullet or ordered list inside a definition list
 blockToDokuWiki opts x@(DefinitionList items) = do
-  oldUseTags <- stUseTags <$> ask
-  indent <- stIndent <$> ask
-  backSlash <- stBackSlashLB <$> ask
+  oldUseTags <- asks stUseTags
+  indent <- asks stIndent
+  backSlash <- asks stBackSlashLB
   let useTags = oldUseTags || not (isSimpleList x)
   if useTags
      then do
@@ -278,7 +278,7 @@ listAttribsToString (startnum, numstyle, _) =
 listItemToDokuWiki :: PandocMonad m
                    => WriterOptions -> [Block] -> DokuWiki m String
 listItemToDokuWiki opts items = do
-  useTags <- stUseTags <$> ask
+  useTags <- asks stUseTags
   if useTags
      then do
        contents <- blockListToDokuWiki opts items
@@ -288,8 +288,8 @@ listItemToDokuWiki opts items = do
        let contents = case items of
                            [_, CodeBlock _ _] -> concat bs
                            _                  -> vcat bs
-       indent <- stIndent <$> ask
-       backSlash <- stBackSlashLB <$> ask
+       indent <- asks stIndent
+       backSlash <- asks stBackSlashLB
        let indent' = if backSlash then drop 2 indent else indent
        return $ indent' ++ "* " ++ contents
 
@@ -298,12 +298,12 @@ listItemToDokuWiki opts items = do
 orderedListItemToDokuWiki :: PandocMonad m => WriterOptions -> [Block] -> DokuWiki m String
 orderedListItemToDokuWiki opts items = do
   contents <- blockListToDokuWiki opts items
-  useTags <- stUseTags <$> ask
+  useTags <- asks stUseTags
   if useTags
      then return $ "<HTML><li></HTML>" ++ contents ++ "<HTML></li></HTML>"
      else do
-       indent <- stIndent <$> ask
-       backSlash <- stBackSlashLB <$> ask
+       indent <- asks stIndent
+       backSlash <- asks stBackSlashLB
        let indent' = if backSlash then drop 2 indent else indent
        return $ indent' ++ "- " ++ contents
 
@@ -315,13 +315,13 @@ definitionListItemToDokuWiki :: PandocMonad m
 definitionListItemToDokuWiki opts (label, items) = do
   labelText <- inlineListToDokuWiki opts label
   contents <- mapM (blockListToDokuWiki opts) items
-  useTags <- stUseTags <$> ask
+  useTags <- asks stUseTags
   if useTags
      then return $ "<HTML><dt></HTML>" ++ labelText ++ "<HTML></dt></HTML>\n" ++
            intercalate "\n" (map (\d -> "<HTML><dd></HTML>" ++ d ++ "<HTML></dd></HTML>") contents)
      else do
-       indent <- stIndent <$> ask
-       backSlash <- stBackSlashLB <$> ask
+       indent <- asks stIndent
+       backSlash <- asks stBackSlashLB
        let indent' = if backSlash then drop 2 indent else indent
        return $ indent' ++ "* **" ++ labelText ++ "** " ++ concat contents
 
@@ -403,7 +403,7 @@ blockListToDokuWiki :: PandocMonad m
                     -> [Block]       -- ^ List of block elements
                     -> DokuWiki m String
 blockListToDokuWiki opts blocks = do
-  backSlash <- stBackSlashLB <$> ask
+  backSlash <- asks stBackSlashLB
   let blocks' = consolidateRawBlocks blocks
   if backSlash
     then backSlashLineBreaks <$> mapM (blockToDokuWiki opts) blocks'
@@ -486,7 +486,7 @@ inlineToDokuWiki _ il@(RawInline f str)
   | otherwise              = "" <$ report (InlineNotRendered il)
 
 inlineToDokuWiki _ LineBreak = do
-  backSlash <- stBackSlashLB <$> ask
+  backSlash <- asks stBackSlashLB
   return $ if backSlash
            then "\n"
            else "\\\\\n"

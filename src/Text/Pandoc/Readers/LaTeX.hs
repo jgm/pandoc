@@ -899,7 +899,7 @@ inlineCommands = M.union inlineLanguageCommands $ M.fromList
   , ("(", mathInline . toksToString <$> manyTill anyTok (controlSeq ")"))
   , ("[", mathDisplay . toksToString <$> manyTill anyTok (controlSeq "]"))
   , ("ensuremath", mathInline . toksToString <$> braced)
-  , ("texorpdfstring", (\x _ -> x) <$> tok <*> tok)
+  , ("texorpdfstring", const <$> tok <*> tok)
   , ("P", lit "¶")
   , ("S", lit "§")
   , ("$", lit "$")
