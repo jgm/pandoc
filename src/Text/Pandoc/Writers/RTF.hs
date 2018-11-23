@@ -410,7 +410,7 @@ inlineToRTF (Cite _ lst) = inlinesToRTF lst
 inlineToRTF il@(RawInline f str)
   | f == Format "rtf" = return str
   | otherwise         = do
-      return $ InlineNotRendered il
+      report $ InlineNotRendered il
       return ""
 inlineToRTF LineBreak = return "\\line "
 inlineToRTF SoftBreak = return " "
