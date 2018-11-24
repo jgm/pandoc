@@ -470,6 +470,7 @@ library
                    Text.Pandoc.Readers.Muse,
                    Text.Pandoc.Readers.Man,
                    Text.Pandoc.Readers.FB2,
+                   Text.Pandoc.Readers.DokuWiki,
                    Text.Pandoc.Writers,
                    Text.Pandoc.Writers.Native,
                    Text.Pandoc.Writers.Docbook,
@@ -699,6 +700,7 @@ test-suite test-pandoc
                   Tests.Readers.Creole
                   Tests.Readers.Man
                   Tests.Readers.FB2
+                  Tests.Readers.DokuWiki
                   Tests.Writers.Native
                   Tests.Writers.ConTeXt
                   Tests.Writers.Docbook
