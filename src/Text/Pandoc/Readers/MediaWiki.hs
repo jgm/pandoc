@@ -415,8 +415,7 @@ encode = B.fromList . normalizeCode . B.toList . walk strToCode
 header :: PandocMonad m => MWParser m Blocks
 header = try $ do
   guardColumnOne
-  eqs <- many1 (char '=')
-  let lev = length eqs
+  lev <- length <$> many1 (char '=')
   guard $ lev <= 6
   contents <- trimInlines . mconcat <$> manyTill inline (count lev $ char '=')
   attr <- registerHeader nullAttr contents
