@@ -110,6 +110,7 @@ data EPUBMetadata = EPUBMetadata{
   , epubStylesheets   :: [FilePath]
   , epubPageDirection :: Maybe ProgressionDirection
   , epubIbooksFields  :: [(String, String)]
+  , epubCalibreFields :: [(String, String)]
   } deriving Show
 
 data Date = Date{
@@ -250,6 +251,18 @@ addMetadataFromXML e@(Element (QName name _ (Just "dc")) attrs _ _) md
   | name == "rights" = md { epubRights = Just $ strContent e }
   | otherwise = md
   where getAttr n = lookupAttr (opfName n) attrs
+addMetadataFromXML e@(Element (QName "meta" _ _) attrs _ _) md =
+  case getAttr "property" of
+       Just s | "ibooks:" `isPrefixOf` s ->
+                md{ epubIbooksFields = (drop 7 s, strContent e) :
+                       epubIbooksFields md }
+       _ -> case getAttr "name" of
+                 Just s | "calibre:" `isPrefixOf` s ->
+                   md{ epubCalibreFields =
+                         (drop 8 s, fromMaybe "" $ getAttr "content") :
+                          epubCalibreFields md }
+                 _ -> md
+  where getAttr n = lookupAttr (unqual n) attrs
 addMetadataFromXML _ md = md
 
 metaValueToString :: MetaValue -> String
@@ -333,6 +346,7 @@ metadataFromMeta opts meta = EPUBMetadata{
     , epubStylesheets        = stylesheets
     , epubPageDirection      = pageDirection
     , epubIbooksFields       = ibooksFields
+    , epubCalibreFields      = calibreFields
     }
   where identifiers = getIdentifier meta
         titles = getTitle meta
@@ -361,6 +375,10 @@ metadataFromMeta opts meta = EPUBMetadata{
                               Just "rtl" -> Just RTL
                               _          -> Nothing
         ibooksFields = case lookupMeta "ibooks" meta of
+                            Just (MetaMap mp)
+                               -> M.toList $ M.map metaValueToString mp
+                            _  -> []
+        calibreFields = case lookupMeta "calibre" meta of
                             Just (MetaMap mp)
                                -> M.toList $ M.map metaValueToString mp
                             _  -> []
@@ -856,7 +874,7 @@ metadataElement version md currentTime =
   unode "metadata" ! [("xmlns:dc","http://purl.org/dc/elements/1.1/")
                      ,("xmlns:opf","http://www.idpf.org/2007/opf")] $ mdNodes
   where mdNodes = identifierNodes ++ titleNodes ++ dateNodes
-                  ++ languageNodes ++ ibooksNodes
+                  ++ languageNodes ++ ibooksNodes ++ calibreNodes
                   ++ creatorNodes ++ contributorNodes ++ subjectNodes
                   ++ descriptionNodes ++ typeNodes ++ formatNodes
                   ++ publisherNodes ++ sourceNodes ++ relationNodes
@@ -877,6 +895,9 @@ metadataElement version md currentTime =
                                             $ dateText x]
         ibooksNodes = map ibooksNode (epubIbooksFields md)
         ibooksNode (k, v) = unode "meta" ! [("property", "ibooks:" ++ k)] $ v
+        calibreNodes = map calibreNode (epubCalibreFields md)
+        calibreNode (k, v) = unode "meta" ! [("name", "calibre:" ++ k),
+                                             ("content", v)] $ ()
         languageNodes = [dcTag "language" $ epubLanguage md]
         creatorNodes = withIds "epub-creator" (toCreatorNode "creator") $
                        epubCreator md
