@@ -1,3 +1,197 @@
+pandoc (2.5)
+
+  * Text.Pandoc.App: split into several unexported submodules (Albert
+    Krewinkel):  Text.Pandoc.App.FormatHeuristics,
+    Text.Pandoc.App.Opt, Text.Pandoc.App.CommandLineOptions,
+    Text.Pandoc.App.OutputSettings.  This is motivated partly by the
+    desire to reduce recompilations when something is modified,
+    since App previously depended on virtually every other module.
+
+  * Text.Pandoc.Extensions
+
+    + Semantically, `gfm_auto_identifiers` is now a modifier of
+      `auto_identifiers`; for identifiers to be set, `auto_identifiers` must
+      be turned on, and then the type of identifier produced depends on
+      `gfm_auto_identifiers` and `ascii_identifiers` are set. Accordingly,
+      `auto_identifiers` is now added to `githubMarkdownExtensions` (#5057).
+    + Remove `ascii_identifiers` from `githubMarkdownExtensions`.
+      GitHub doesn't seem to strip non-ascii characters any more.
+
+  * Text.Pandoc.Lua.Module.Utils (Albert Krewinkel)
+
+    + Test AST object equality via Haskell (#5092).  Equality of Lua
+      objects representing pandoc AST elements is tested by unmarshalling
+      the objects and comparing the result in Haskell.
+      A new function `equals` which performs this test has been added to the
+      `pandoc.utils` module.
+    + Improve stringify.  Meta value strings (MetaString)
+      and booleans (MetaBool) are now converted to the literal string and the
+      lowercase boolean name, respectively. Previously, all values of these
+      types were converted to the empty string.
+
+  * Text.Pandoc.Parsing: Remove Functor and Applicative constraints where Monad
+    already exists (Alexander Krotov).
+
+  * Text.Pandoc.Pretty: Don't render BreakingSpace at end of line
+    or beginning of line (#5050).
+
+  * Text.Pandoc.Readers.Markdown
+
+    + Fix parsing of citations, quotes, and underline emphasis
+      after symbols.  Starting with pandoc 2.4, citations, quoted inlines,
+      and underline emphasis were no longer recognized after certain
+      symbols, like parentheses (#5099, #5053).
+    + In pandoc 2.4, a soft break after an abbreviation would be
+      relocated before it to allow for insertion of a nonbreaking
+      space after the abbreviation. This behavior is here reverted.
+      A soft break after an abbreviation will remain, and no nonbreaking
+      space will be added. Those who care about this issue should take care not
+      to end lines with an abbreviation, or to insert nonbreaking spaces
+      manually.
+
+  * Text.Pandoc.Readers.FB2: Do not throw error for unknown elements in
+    `<body>` (Alexander Krotov).  Some libraries include custom elements
+    in their FB2 files.
+
+  * Text.Pandoc.Readers.HTML
+
+    + Allow `tfoot` before body rows (#5079).
+    + Parse `<small>` as a Span with class "small" (#5080).
+    + Allow thead containing a row with `td` rather than `th` (#5014).
+
+  * Text.Pandoc.Readers.LaTeX
+
+    + Cleaned up handling of dimension arguments.  Allow decimal points,
+      preceding space.
+    + Don't allow arguments for verbatim, etc.
+    + Allow space before bracketed options.
+    + Allow optional arguments after `\\` in tables.
+    + Improve parsing of `\tiny`, `\scriptsize`, etc.  Parse as raw,
+      but know that these font changing commands take no arguments.
+
+  * Text.Pandoc.Readers.Muse
+
+    + Trim whitespace before parsing grid table cells (Alexander Krotov).
+    + Add grid tables support (Alexander Krotov).
+
+  * Text.Pandoc.Shared
+
+    + For bibliography match Div with id `refs`, not class `references`.
+      This was a mismatch between pandoc's docx, epub, latex, and markdown
+      writers and the behavior of pandoc-citeproc, which actually looks for a
+      div with id `refs` rather than one with class `references`.
+    + Exactly match GitHub's identifier generating algorithm (#5057).
+    + Add parameter for `Extensions` to `uniqueIdent` and
+      `inlineListToIdentifier` (#5057).  [API change]
+      This allows these functions to be sensitive to the settings of
+      `Ext_gfm_auto_identifiers` and `Ext_ascii_identifiers`, and allows us to
+      use `uniqueIdent` in the CommonMark reader, replacing custom code.  It
+      also means that `gfm_auto_identifiers` can now be used in all formats.
+
+  * Text.Pandoc.Writers.AsciiDoc
+
+    + Use `.`+ as list markers to support nested ordered lists (#5087).
+    + Support list number styles (#5089).
+    + Render Spans using `[#id .class]#contents#` (#5080).
+
+  * Text.Pandoc.Writers.CommonMark
+
+    + Respect `--ascii` (#5043, quasicomputational).
+    + Make sure `--ascii` affects quotes, super/subscript.
+
+  * Text.Pandoc.Writers.Docx
+
+    + Fix bookmarks to headers with long titles (#5091).
+      Word has a 40 character limit for bookmark names.  In addition, bookmarks
+      must begin with a letter.  Since pandoc's auto-generated identifiers may
+      not respect these constraints, some internal links did not work.  With
+      this change, pandoc uses a bookmark name based on the SHA1 hash of the
+      identifier when the identifier isn't a legal bookmark name.
+    + Add bookmarks to code blocks (Nikolay Yakimov).
+    + Add bookmarks to images (Nikolay Yakimov).
+    + Refactor common bookmark creation code into a function (Nikolay Yakimov).
+
+  * Text.Pandoc.Writers.EPUB: Handle calibre metadata (#5098).
+    Nodes of the form
+
+          <meta name="calibre:series" content="Classics on War and Politics"/>
+
+      are now included from an epub XML metadata file.  You can also include
+      this information in your YAML metadata, like so:
+
+          calibre:
+           series: Classics on War and Policitics
+
+      In addition, ibooks-specific metadata can now be included via an XML
+      file. (Previously, it could only be included via YAML metadata, see
+      #2693.)
+
+  * Text.Pandoc.Writers.HTML: Use plain `"` instead of `&quot;` outside of
+    attributes.
+
+  * Text.Pandoc.Writers.ICML: Consolidate adjacent strings, inc. spaces.
+    This avoids splitting up the output unnecessarily into separate elements.
+
+  * Text.Pandoc.Writers.LaTeX: Don't emit `[<+->]` unless beamer output, even
+    if `writerIncremental` is True (#5072).
+
+  * Text.Pandoc.Writers.Muse (Alexander Krotov).
+
+    + Output tables as grid tables if they have multi-line cells.
+    + Indent simple tables only on the top level.
+    + Output tables with one column as grid tables.
+    + Add support for `--reference-location`.
+    + Internal improvements.
+
+  * Text.Pandoc.Writers.OpenDocument: Fix list indentation (Nils Carlson,
+    #5095).  This was a regression in pandoc 2.4.
+
+  * Text.Pandoc.Writers.RTF: Fix warnings for skipped raw inlines.
+
+  * Text.Pandoc.Writers.Texinfo: Add blank line before `@menu` section (#5055).
+
+  * Text.Pandoc.XML: in `toHtml5Entities`, prefer shorter entities
+    when there are several choices for a particular character.
+
+  * data/abbreviations
+
+    + Add additional abbreviations (Andrew Dunning)
+      Many of these borrowed from the Chicago Manual of Style 10.42,
+      'Scholarly abbreviations'.
+
+  * Templates
+
+    + Asciidoc template:  add :lang: to title header is lang is set in
+      metadata (#5088).
+
+  * pandoc.cabal: Add cabal flag `derive_json_via_th` (Albert Krewinkel)
+    Disabling the flag will cause derivation of ToJSON and FromJSON
+    instances via GHC Generics instead of Template Haskell. The flag is
+    enabled by default, as deriving via Generics can be slow (see #4083).
+
+  * trypandoc:
+
+    + Tweaked drop-down lists.
+    + Put link to site in footer.
+    + Preselect output format.
+    + Update on change of in or out format.
+    + Add man input format.
+
+  * MANUAL.txt:
+
+    + Fix outdated description of latex_macros extension.
+    + Clarified placement of bibliography.
+    + Added "A note on security."
+    + Fix note on curly brace syntx for locators.
+    + Document new explicit syntax for citeproc locators.
+    + Remove confusing cross-links for some extensions.
+    + Don't put pandoc in code ticks in heading.
+    + Document that `--ascii` works for gfm and commonmark too.
+    + Add `man` to `--from` options.
+
+  * doc/customizing-pandoc.md: various improvements (Mauro Bieg).
+
+
 pandoc (2.4)
 
   [new features]
