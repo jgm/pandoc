@@ -1,5 +1,16 @@
 # Installing pandoc
 
+The simplest way to get the latest pandoc release is to use the graphical installer. Look out for the following name for your platform:
+
+- Windows: `*-windows-x86_64.msi` (unless you're still on 32-bit),
+- macOS: `*-macOS.pkg`
+- Linux: `*-amd64.deb`
+
+**[Download the latest installer][download page]**
+
+Alternative ways to install pandoc, and additional information
+for each platform, is listed below.
+
 ## Windows
 
   - There is a package installer at pandoc's [download page].
@@ -25,16 +36,16 @@
     by downloading [this script][uninstaller]
     and running it with `perl uninstall-pandoc.pl`.
 
-  - We also provide a zip file containing the binaries and man
-    pages, for those who prefer not to use the installer.  Simply
-    unzip the file and move the binaries and man pages to
-    whatever directory you like.
-
   - Alternatively, you can install pandoc using
     [homebrew](http://brew.sh): `brew install pandoc`.
     Note: If you are using macOS < 10.10, this method installs 
     pandoc from source, so it will take a long time and a lot of 
     disk space for the ghc compiler and dependent Haskell libraries.
+    
+  - We also provide a zip file containing the binaries and man
+    pages, for those who prefer not to use the installer.  Simply
+    unzip the file and move the binaries and man pages to
+    whatever directory you like.
 
   - For PDF output, you'll also need LaTeX.  Because a full [MacTeX]
     installation takes more than a gigabyte of disk space, we recommend
@@ -47,15 +58,15 @@
 
 ## Linux
 
-  - First, try your package manager.
-    Pandoc is in the [Debian], [Ubuntu], [Slackware],
+  - Older versions of pandoc can be installed using most package
+    managers. Pandoc is in the [Debian], [Ubuntu], [Slackware],
     [Arch], [Fedora], [NiXOS], [openSUSE], and [gentoo] repositories.
-    Note, however, that versions in the repositories are often
-    old.
 
-  - We provide a binary package for amd64 architecture on
-    the [download page].  This provides both `pandoc` and
-    `pandoc-citeproc`. The executables are statically linked and
+  - To get the latest release, we provide a binary package for amd64
+    architecture on the **[download page]**.
+    
+    This provides both `pandoc` and `pandoc-citeproc`.
+    The executables are statically linked and
     have no dynamic dependencies or dependencies on external
     data files.  Note:  because of the static
     linking, the pandoc binary from this package cannot use lua
