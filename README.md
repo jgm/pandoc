@@ -56,6 +56,8 @@ library. It can convert *from*
     [Markdown](http://daringfireball.net/projects/markdown/))
   - `mediawiki` ([MediaWiki
     markup](https://www.mediawiki.org/wiki/Help:Formatting))
+  - `man` ([roff
+    man](http://man7.org/linux/man-pages/man7/groff_man.7.html))
   - `muse` ([Muse](https://amusewiki.org/library/manual))
   - `native` (native Haskell)
   - `odt` ([ODT](http://en.wikipedia.org/wiki/OpenDocument))
