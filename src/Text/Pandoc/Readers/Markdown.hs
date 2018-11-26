@@ -1586,7 +1586,6 @@ symbol = do
          <|> try (do lookAhead $ char '\\'
                      notFollowedBy' (() <$ rawTeXBlock)
                      char '\\')
-  updateLastStrPos
   return $ return $ B.str [result]
 
 -- parses inline code, between n `s and n `s
@@ -1633,7 +1632,7 @@ enclosure c = do
              3 -> three c
              2 -> two   c mempty
              1 -> one   c mempty
-             _ -> updateLastStrPos >> return (return $ B.str cs)
+             _ -> return (return $ B.str cs)
 
 ender :: PandocMonad m => Char -> Int -> MarkdownParser m ()
 ender c n = try $ do
@@ -1717,13 +1716,12 @@ nonEndline = satisfy (/='\n')
 
 str :: PandocMonad m => MarkdownParser m (F Inlines)
 str = do
-  canRelocateSpace <- notAfterString
   result <- many1 (alphaNum <|> try (char '.' <* notFollowedBy (char '.')))
   updateLastStrPos
   (do guardEnabled Ext_smart
       abbrevs <- getOption readerAbbreviations
       if not (null result) && last result == '.' && result `Set.member` abbrevs
-         then try (do ils <- whitespace <|> endline
+         then try (do ils <- whitespace
                       -- ?? lookAhead alphaNum
                       -- replace space after with nonbreaking space
                       -- if softbreak, move before abbrev if possible (#4635)
@@ -1732,8 +1730,6 @@ str = do
                         case B.toList ils' of
                              [Space] ->
                                  return (B.str result <> B.str "\160")
-                             [SoftBreak] | canRelocateSpace ->
-                                 return (ils' <> B.str result <> B.str "\160")
                              _ -> return (B.str result <> ils'))
                 <|> return (return (B.str result))
          else return (return (B.str result)))
