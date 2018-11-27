@@ -1,6 +1,7 @@
 # Installing pandoc
 
-The simplest way to get the latest pandoc release is to use the graphical installer. Look out for the following name for your platform:
+The simplest way to get the latest pandoc release is to use the installer.
+Look out for the following name for your platform:
 
 - Windows: `*-windows-x86_64.msi` (unless you're still on 32-bit),
 - macOS: `*-macOS.pkg`
@@ -58,8 +59,8 @@ for each platform, is listed below.
 
 ## Linux
 
-  - Older versions of pandoc can be installed using most package
-    managers. Pandoc is in the [Debian], [Ubuntu], [Slackware],
+  - Check whether the pandoc version in your package manager is
+    not outdated. Pandoc is in the [Debian], [Ubuntu], [Slackware],
     [Arch], [Fedora], [NiXOS], [openSUSE], and [gentoo] repositories.
 
   - To get the latest release, we provide a binary package for amd64
