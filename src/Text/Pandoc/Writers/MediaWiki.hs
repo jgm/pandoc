@@ -109,14 +109,24 @@ blockToMediaWiki (Plain inlines) =
 
 -- title beginning with fig: indicates that the image is a figure
 blockToMediaWiki (Para [Image attr txt (src,'f':'i':'g':':':tit)]) = do
-  capt <- if null txt
-             then return ""
-             else ("|caption " ++) `fmap` inlineListToMediaWiki txt
+  capt <- inlineListToMediaWiki txt
   img  <- imageToMediaWiki attr
-  let opt = if null txt
-               then ""
-               else "|alt=" ++ if null tit then capt else tit ++ capt
-  return $ "[[File:" ++ src ++ "|frame|none" ++ img ++ opt ++ "]]\n"
+  let opt = if null tit
+               then
+                 if null capt
+                    then ""
+                    else "alt=" ++ capt
+               else "alt=" ++ tit
+  return $ "[[" ++
+            intercalate "|"
+            (filter (not . null) ["File:" ++ src
+                                 , "thumb"
+                                 , "none"
+                                 , img
+                                 , opt
+                                 , capt
+                                 ]) ++
+            "]]\n"
 
 blockToMediaWiki (Para inlines) = do
   tags <- asks useTags
@@ -331,15 +341,15 @@ imageToMediaWiki attr = do
       toPx = fmap (showInPixel opts) . checkPct
       checkPct (Just (Percent _)) = Nothing
       checkPct maybeDim           = maybeDim
-      go (Just w) Nothing  = '|':w ++ "px"
-      go (Just w) (Just h) = '|':w ++ "x" ++ h ++ "px"
-      go Nothing  (Just h) = "|x" ++ h ++ "px"
+      go (Just w) Nothing  = w ++ "px"
+      go (Just w) (Just h) = w ++ "x" ++ h ++ "px"
+      go Nothing  (Just h) = "x" ++ h ++ "px"
       go Nothing  Nothing  = ""
       dims = go (toPx $ dimension Width attr) (toPx $ dimension Height attr)
       classes = if null cls
                    then ""
-                   else "|class=" ++ unwords cls
-  return $ dims ++ classes
+                   else "class=" ++ unwords cls
+  return $ intercalate "|" $ filter (not . null) [dims, classes]
 
 -- | Convert list of Pandoc block elements to MediaWiki.
 blockListToMediaWiki :: PandocMonad m
@@ -436,12 +446,18 @@ inlineToMediaWiki (Link _ txt (src, _)) = do
 inlineToMediaWiki (Image attr alt (source, tit)) = do
   img  <- imageToMediaWiki attr
   alt' <- inlineListToMediaWiki alt
-  let txt = if null tit
-               then if null alt
+  let txt = if null alt'
+               then if null tit
                        then ""
-                       else '|' : alt'
-               else '|' : tit
-  return $ "[[File:" ++ source ++ img ++ txt ++ "]]"
+                       else tit
+               else alt'
+  return $ "[[" ++
+           intercalate "|"
+           (filter (not . null)
+            [ "File:" ++ source
+            , img
+            , txt
+            ]) ++ "]]"
 
 inlineToMediaWiki (Note contents) = do
   contents' <- blockListToMediaWiki contents
