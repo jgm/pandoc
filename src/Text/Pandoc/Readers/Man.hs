@@ -49,7 +49,7 @@ import Text.Pandoc.Logging (LogMessage(..))
 import Text.Pandoc.Options
 import Text.Pandoc.Parsing
 import Text.Pandoc.Walk (query)
-import Text.Pandoc.Shared (crFilter)
+import Text.Pandoc.Shared (crFilter, mapLeft)
 import Text.Pandoc.Readers.Roff  -- TODO explicit imports
 import Text.Parsec hiding (tokenPrim)
 import qualified Text.Parsec as Parsec
@@ -86,11 +86,6 @@ readWithMTokens :: PandocMonad m
 readWithMTokens parser state input =
   let leftF = PandocParsecError . intercalate "\n" $ show <$> input
   in mapLeft leftF `liftM` runParserT parser state "source" input
-
-mapLeft :: (a -> c) -> Either a b -> Either c b
-mapLeft f (Left x) = Left $ f x
-mapLeft _ (Right r) = Right r
-
 
 parseMan :: PandocMonad m => ManParser m Pandoc
 parseMan = do
