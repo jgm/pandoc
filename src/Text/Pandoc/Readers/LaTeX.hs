@@ -1760,6 +1760,7 @@ blockCommands = M.fromList
          addMeta "bibliography" . splitBibs . toksToString))
    -- includes
    , ("lstinputlisting", inputListing)
+   , ("inputminted", inputMinted)
    , ("graphicspath", graphicsPath)
    -- polyglossia
    , ("setdefaultlanguage", setDefaultLanguage)
@@ -1918,6 +1919,11 @@ obeylines =
 
 minted :: PandocMonad m => LP m Blocks
 minted = do
+  attr <- mintedAttr
+  codeBlockWith attr <$> verbEnv "minted"
+
+mintedAttr :: PandocMonad m => LP m Attr
+mintedAttr = do
   options <- option [] keyvals
   lang <- toksToString <$> braced
   let kvs = [ (if k == "firstnumber"
@@ -1926,8 +1932,21 @@ minted = do
   let classes = [ lang | not (null lang) ] ++
                 [ "numberLines" |
                   lookup "linenos" options == Just "true" ]
-  let attr = ("",classes,kvs)
-  codeBlockWith attr <$> verbEnv "minted"
+  return ("",classes,kvs)
+
+inputMinted :: PandocMonad m => LP m Blocks
+inputMinted = do
+  pos <- getPosition
+  attr <- mintedAttr
+  f <- filter (/='"') . toksToString <$> braced
+  dirs <- (splitBy (==':') . fromMaybe ".") <$> lookupEnv "TEXINPUTS"
+  mbCode <- readFileFromDirs dirs f
+  rawcode <- case mbCode of
+                  Just s -> return s
+                  Nothing -> do
+                    report $ CouldNotLoadIncludeFile f pos
+                    return []
+  return $ B.codeBlockWith attr rawcode
 
 letterContents :: PandocMonad m => LP m Blocks
 letterContents = do
