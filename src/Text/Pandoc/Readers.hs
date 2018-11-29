@@ -106,7 +106,6 @@ import Text.Pandoc.Readers.TWiki
 import Text.Pandoc.Readers.Txt2Tags
 import Text.Pandoc.Readers.Vimwiki
 import Text.Pandoc.Readers.Man
-import Text.Pandoc.Shared (mapLeft)
 import qualified Text.Pandoc.UTF8 as UTF8
 import Text.Parsec.Error
 
@@ -116,10 +115,7 @@ data Reader m = TextReader (ReaderOptions -> Text -> m Pandoc)
 -- | Association list of formats and readers.
 readers :: PandocMonad m => [(String, Reader m)]
 readers = [ ("native"       , TextReader readNative)
-           ,("json"         , TextReader $ \o s ->
-                                               case readJSON o s of
-                                                 Right doc -> return doc
-                                                 Left _ -> throwError $ PandocParseError "JSON parse error")
+           ,("json"         , TextReader readJSON)
            ,("markdown"     , TextReader readMarkdown)
            ,("markdown_strict" , TextReader readMarkdown)
            ,("markdown_phpextra" , TextReader readMarkdown)
@@ -162,6 +158,9 @@ getReader s =
                                         getDefaultExtensions readerName)
 
 -- | Read pandoc document from JSON format.
-readJSON :: ReaderOptions -> Text -> Either PandocError Pandoc
-readJSON _ =
-  mapLeft PandocParseError . eitherDecode' . BL.fromStrict . UTF8.fromText
+readJSON :: PandocMonad m
+         => ReaderOptions -> Text -> m Pandoc
+readJSON _ t =
+  case eitherDecode' . BL.fromStrict . UTF8.fromText $ t of
+       Right doc -> return doc
+       Left _    -> throwError $ PandocParseError "JSON parse error"

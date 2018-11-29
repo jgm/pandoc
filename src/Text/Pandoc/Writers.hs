@@ -132,7 +132,7 @@ data Writer m = TextWriter (WriterOptions -> Pandoc -> m Text)
 writers :: PandocMonad m => [ ( String, Writer m) ]
 writers = [
    ("native"       , TextWriter writeNative)
-  ,("json"         , TextWriter $ \o d -> return $ writeJSON o d)
+  ,("json"         , TextWriter $ \o d -> writeJSON o d)
   ,("docx"         , ByteStringWriter writeDocx)
   ,("odt"          , ByteStringWriter writeODT)
   ,("pptx"         , ByteStringWriter writePowerpoint)
@@ -193,5 +193,5 @@ getWriter s
                      Just r -> Right (r, setExts $
                                   getDefaultExtensions writerName)
 
-writeJSON :: WriterOptions -> Pandoc -> Text
-writeJSON _ = UTF8.toText . BL.toStrict . encode
+writeJSON :: PandocMonad m => WriterOptions -> Pandoc -> m Text
+writeJSON _ = return . UTF8.toText . BL.toStrict . encode
