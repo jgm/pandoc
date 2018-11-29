@@ -9,8 +9,8 @@ Look out for the following name for your platform:
 
 **[Download the latest installer][download button]**
 
-Alternative ways to install pandoc, and additional information
-for each platform, is listed below.
+For alternative ways to install pandoc, see below
+under the heading for your operating system.
 
 ## Windows
 
