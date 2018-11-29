@@ -38,11 +38,13 @@ module Text.Pandoc.Error (
 import Prelude
 import Control.Exception (Exception)
 import Data.Typeable (Typeable)
+import Data.Word (Word8)
 import GHC.Generics (Generic)
 import Network.HTTP.Client (HttpException)
 import System.Exit (ExitCode (..), exitWith)
 import System.IO (stderr)
 import qualified Text.Pandoc.UTF8 as UTF8
+import Text.Printf (printf)
 import Text.Parsec.Error
 import Text.Parsec.Pos hiding (Line)
 
@@ -67,6 +69,7 @@ data PandocError = PandocIOError String IOError
                  | PandocAppError String
                  | PandocEpubSubdirectoryError String
                  | PandocMacroLoop String
+                 | PandocUTF8DecodingError String Int Word8
                  deriving (Show, Typeable, Generic)
 
 instance Exception PandocError
@@ -117,6 +120,10 @@ handleError (Left e) =
       "EPUB subdirectory name '" ++ s ++ "' contains illegal characters"
     PandocMacroLoop s -> err 91 $
       "Loop encountered in expanding macro " ++ s
+    PandocUTF8DecodingError f offset w -> err 92 $
+      "UTF-8 decoding error in " ++ f ++ " at byte offset " ++ show offset ++
+      " (" ++ printf "%2x" w ++ ").\n" ++
+      "The input must be a UTF-8 encoded text."
 
 err :: Int -> String -> IO a
 err exitCode msg = do
