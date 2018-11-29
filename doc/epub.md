@@ -146,9 +146,9 @@ or target readers that don't support MathML. Then you should try using the
 
 [KindleGen]: http://www.amazon.com/gp/feature.html?ie=UTF8&docId=1000234621
 [EPUB]:  http://en.wikipedia.org/wiki/EPUB
-[Pro Git]: http://progit.org/
+[Pro Git]: https://git-scm.com/book/en/v2
 [Creative Commons]: http://creativecommons.org/
-[buying a copy]: http://progit.org/
+[buying a copy]: https://git-scm.com/book/en/v2
 [github site]: http://github.com/progit/progit
 [git]: http://git-scm.com
 [Dublin Core metadata elements]: http://dublincore.org/documents/dces/
