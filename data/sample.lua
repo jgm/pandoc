@@ -164,6 +164,14 @@ function DisplayMath(s)
   return "\\[" .. escape(s) .. "\\]"
 end
 
+function SingleQuoted(s)
+  return "&lsquo;" .. s .. "&rsquo;"
+end
+
+function DoubleQuoted(s)
+  return "&ldquo;" .. s .. "&rdquo;"
+end
+
 function Note(s)
   local num = #notes + 1
   -- insert the back reference right before the final closing tag.
