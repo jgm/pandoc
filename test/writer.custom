@@ -550,17 +550,17 @@ because of the unescaped spaces: a^b c^d, a~b c~d.</p>
 
 <h1 id="smart-quotes-ellipses-dashes">Smart quotes, ellipses, dashes</h1>
 
-<p> said the spider. </p>
+<p>&ldquo;Hello,&rdquo; said the spider. &ldquo;&lsquo;Shelob&rsquo; is my name.&rdquo;</p>
 
-<p>, , and  are letters.</p>
+<p>&lsquo;A&rsquo;, &lsquo;B&rsquo;, and &lsquo;C&rsquo; are letters.</p>
 
-<p>  and  are names of trees.
-So is </p>
+<p>&lsquo;Oak,&rsquo; &lsquo;elm,&rsquo; and &lsquo;beech&rsquo; are names of trees.
+So is &lsquo;pine.&rsquo;</p>
 
-<p> Were you alive in the
+<p>&lsquo;He said, &ldquo;I want to go.&rdquo;&rsquo; Were you alive in the
 70’s?</p>
 
-<p>Here is some quoted  and a .</p>
+<p>Here is some quoted &lsquo;<code>code</code>&rsquo; and a &ldquo;<a href='http://example.com/?foo=1&amp;bar=2' title=''>quoted link</a>&rdquo;.</p>
 
 <p>Some dashes: one—two — three—four — five.</p>
 
@@ -589,7 +589,7 @@ So is </p>
 <ul>
 <li>To get the famous equation, write <code>$e = mc^2$</code>.</li>
 <li>$22,000 is a <em>lot</em> of money. So is $34,000.
-(It worked if  is emphasized.)</li>
+(It worked if &ldquo;lot&rdquo; is emphasized.)</li>
 <li>Shoes ($20) and socks ($5).</li>
 <li>Escaped <code>$</code>: $73 <em>this should be emphasized</em> 23$.</li>
 </ul>
@@ -734,7 +734,7 @@ So is </p>
 
 <h1 id="images">Images</h1>
 
-<p>From  by Georges Melies (1902):</p>
+<p>From &ldquo;Voyage dans la Lune&rdquo; by Georges Melies (1902):</p>
 
 <div class="figure">
 <img src="lalune.jpg" title="fig:Voyage dans la Lune"/>
