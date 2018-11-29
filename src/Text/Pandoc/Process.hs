@@ -31,12 +31,17 @@ ByteString variant of 'readProcessWithExitCode'.
 module Text.Pandoc.Process (pipeProcess)
 where
 import Prelude
-import Control.Concurrent (forkIO, newEmptyMVar, putMVar, takeMVar)
-import Control.Exception
+import Control.Concurrent (MVar, forkIO, killThread, newEmptyMVar, putMVar,
+                           takeMVar)
+import Control.Exception (SomeException (..))
+import qualified Control.Exception as E
 import Control.Monad (unless)
+import Control.DeepSeq (rnf)
 import qualified Data.ByteString.Lazy as BL
+import Foreign.C (Errno (Errno), ePIPE)
+import GHC.IO.Exception (IOErrorType(..), IOException(..))
 import System.Exit (ExitCode (..))
-import System.IO (hClose, hFlush)
+import System.IO (hClose)
 import System.Process
 
 {- |
@@ -52,49 +57,73 @@ If an asynchronous exception is thrown to the thread executing
 @readProcessWithExitCode@, the forked process will be terminated and
 @readProcessWithExitCode@ will wait (block) until the process has been
 terminated.
--}
 
+This function was adapted from @readProcessWithExitCode@ of module
+System.Process, package process-1.6.3.0. The original code is BSD
+licensed and © University of Glasgow 2004-2008.
+-}
 pipeProcess
     :: Maybe [(String, String)] -- ^ environment variables
     -> FilePath                 -- ^ Filename of the executable (see 'proc' for details)
     -> [String]                 -- ^ any arguments
     -> BL.ByteString            -- ^ standard input
     -> IO (ExitCode,BL.ByteString) -- ^ exitcode, stdout
-pipeProcess mbenv cmd args input =
-    mask $ \restore -> do
-      (Just inh, Just outh, Nothing, pid) <- createProcess (proc cmd args)
-                                                   { env     = mbenv,
-                                                     std_in  = CreatePipe,
-                                                     std_out = CreatePipe,
-                                                     std_err = Inherit }
-      flip onException
-        (do hClose inh; hClose outh;
-            terminateProcess pid; waitForProcess pid) $ restore $ do
-        -- fork off a thread to start consuming stdout
+pipeProcess mbenv cmd args input = do
+    let cp_opts = (proc cmd args)
+                  { env     = mbenv
+                  , std_in  = CreatePipe
+                  , std_out = CreatePipe
+                  , std_err = Inherit
+                  }
+    withCreateProcess cp_opts $
+      \mbInh mbOuth _ pid -> do
+        let Just inh = mbInh
+            Just outh = mbOuth
+
         out <- BL.hGetContents outh
-        waitOut <- forkWait $ evaluate $ BL.length out
 
-        -- now write and flush any input
-        let writeInput = do
-              unless (BL.null input) $ do
-                BL.hPutStr inh input
-                hFlush inh
-              hClose inh
+        -- fork off threads to start consuming stdout & stderr
+        withForkWait (E.evaluate $ rnf out) $ \waitOut -> do
 
-        writeInput
+          -- now write any input
+          unless (BL.null input) $
+            ignoreSigPipe $ BL.hPutStr inh input
+          -- hClose performs implicit hFlush, and thus may trigger a SIGPIPE
+          ignoreSigPipe $ hClose inh
 
-        -- wait on the output
-        waitOut
+          -- wait on the output
+          waitOut
 
-        hClose outh
+          hClose outh
 
         -- wait on the process
         ex <- waitForProcess pid
 
         return (ex, out)
 
-forkWait :: IO a -> IO (IO a)
-forkWait a = do
-  res <- newEmptyMVar
-  _ <- mask $ \restore -> forkIO $ try (restore a) >>= putMVar res
-  return (takeMVar res >>= either (\ex -> throwIO (ex :: SomeException)) return)
+-- | Fork a thread while doing something else, but kill it if there's an
+-- exception.
+--
+-- This is important in the cases above because we want to kill the thread
+-- that is holding the Handle lock, because when we clean up the process we
+-- try to close that handle, which could otherwise deadlock.
+--
+-- This function was copied verbatim from module System.Process of package
+-- process-1.6.3.0.
+withForkWait :: IO () -> (IO () ->  IO a) -> IO a
+withForkWait async body = do
+  waitVar <- newEmptyMVar :: IO (MVar (Either SomeException ()))
+  E.mask $ \restore -> do
+    tid <- forkIO $ E.try (restore async) >>= putMVar waitVar
+    let wait = takeMVar waitVar >>= either E.throwIO return
+    restore (body wait) `E.onException` killThread tid
+
+-- This function was copied verbatim from module System.Process of package
+-- process-1.6.3.0.
+ignoreSigPipe :: IO () -> IO ()
+ignoreSigPipe = E.handle $ \e ->
+  case e of
+    IOError { ioe_type  = ResourceVanished
+            , ioe_errno = Just ioe }
+      | Errno ioe == ePIPE -> return ()
+    _ -> E.throwIO e
