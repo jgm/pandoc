@@ -54,6 +54,7 @@ import qualified Data.Text as T
 import qualified Data.Text.Lazy as TL
 import qualified Data.Text.Lazy.Encoding as TE
 import qualified Data.Text.Encoding.Error as TE
+import qualified Data.Text.Encoding.Error as TSE
 import qualified Data.YAML as YAML
 import Network.URI (URI (..), parseURI)
 import System.Directory (getAppUserDataDirectory)
@@ -344,15 +345,25 @@ applyTransforms :: Monad m => [Transform] -> Pandoc -> m Pandoc
 applyTransforms transforms d = return $ foldr ($) d transforms
 
 readSource :: FilePath -> PandocIO Text
-readSource "-" = liftIO (UTF8.toText <$> BS.getContents)
 readSource src = case parseURI src of
                       Just u | uriScheme u `elem` ["http:","https:"] ->
                                  readURI src
-                             | uriScheme u == "file:" ->
-                                 liftIO $ UTF8.toText <$>
-                                    BS.readFile (uriPathToPath $ uriPath u)
-                      _       -> liftIO $ UTF8.toText <$>
-                                    BS.readFile src
+                             | uriScheme u == "file:" -> liftIO $
+                                 readTextFile (uriPathToPath $ uriPath u)
+                      _       -> liftIO $ readTextFile src
+  where readTextFile :: FilePath -> IO Text
+        readTextFile fp = do
+          bs <- if src == "-"
+                   then BS.getContents
+                   else BS.readFile fp
+          E.catch (return $! UTF8.toText bs)
+             (\e -> case e of
+                         TSE.DecodeError _ (Just w) -> do
+                           case BS.elemIndex w bs of
+                             Just offset -> E.throwIO $
+                                  PandocUTF8DecodingError fp offset w
+                             _ -> E.throwIO $ PandocUTF8DecodingError fp 0 w
+                         _ -> E.throwIO $ PandocAppError (show e))
 
 readURI :: FilePath -> PandocIO Text
 readURI src = UTF8.toText . fst <$> openURL src
