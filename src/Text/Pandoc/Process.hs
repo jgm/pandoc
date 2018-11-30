@@ -77,8 +77,11 @@ pipeProcess mbenv cmd args input = do
                   }
     withCreateProcess cp_opts $
       \mbInh mbOuth _ pid -> do
-        let Just inh = mbInh
-            Just outh = mbOuth
+        let (inh, outh) =
+             case (mbInh, mbOuth) of
+                  (Just i, Just o) -> (i, o)
+                  (Nothing, _)     -> error "withCreateProcess no inh"
+                  (_, Nothing)     -> error "withCreateProcess no outh"
 
         out <- BL.hGetContents outh
 
