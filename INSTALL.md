@@ -63,7 +63,7 @@ under the heading for your operating system.
          brew install librsvg python homebrew/cask/basictex
     
     Note: On unsupported versions of macOS (more than three releases old),
-    Homebrew from source, which takes additional time and disk space
+    Homebrew instals from source, which takes additional time and disk space
     for the `ghc` compiler and dependent Haskell libraries.
     
   - We also provide a zip file containing the binaries and man
