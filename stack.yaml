@@ -27,8 +27,8 @@ extra-deps:
 - libyaml-0.1.0.0
 - hslua-1.0.1
 - hslua-module-text-0.2.0
-- skylighting-0.7.4
-- skylighting-core-0.7.4
+- skylighting-0.7.5
+- skylighting-core-0.7.5
 ghc-options:
    "$locals": -fhide-source-paths -XNoImplicitPrelude
 resolver: lts-12.18
