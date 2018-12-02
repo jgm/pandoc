@@ -137,4 +137,13 @@ tests = [ testGroup "inlines"
                         , plain "fourth item"
                         ]
           ]
+        , "Quote" =:
+          T.unlines [ "> foo"
+                    , "> bar"
+                    , ">> baz"
+                    , "> bat"
+                    ] =?>
+          blockQuote (plain ("foo" <> linebreak <> "bar") <>
+                      blockQuote (plain "bat") <>
+                      plain ("baz"))
         ]
