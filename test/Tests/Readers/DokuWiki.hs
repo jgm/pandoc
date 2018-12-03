@@ -140,6 +140,12 @@ tests = [ testGroup "inlines"
                         , plain "fourth item"
                         ]
           ]
+        , "Block HTML" =:
+          T.unlines [ "<HTML>"
+                    , "<p style=\"border:2px dashed red;\">And this is some block HTML</p>"
+                    , "</HTML>"
+                    ] =?>
+          rawBlock "html" "\n<p style=\"border:2px dashed red;\">And this is some block HTML</p>\n"
         , "Quote" =:
           T.unlines [ "> foo"
                     , "> bar"
