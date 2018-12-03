@@ -109,6 +109,7 @@ inline' = whitespace
       <|> deleted
       <|> footnote
       <|> code
+      <|> inlineHtml
       <|> autoLink
       <|> autoEmail
       <|> str
@@ -189,6 +190,9 @@ footnote = try $ B.note . B.para <$> between (string "((") (string "))") nestedI
 
 code :: PandocMonad m => DWParser m B.Inlines
 code = try $ B.code <$ string "<code>" <*> manyTill anyChar (string "</code>")
+
+inlineHtml :: PandocMonad m => DWParser m B.Inlines
+inlineHtml = try $ B.rawInline "html" <$ string "<html>" <*> manyTill anyChar (try $ string "</html>")
 
 makeLink :: (String, String) -> B.Inlines
 makeLink (text, url) = B.link url "" $ B.str text

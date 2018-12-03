@@ -56,6 +56,9 @@ tests = [ testGroup "inlines"
           , "Deleted" =:
             "<del>deleted</del>" =?>
             para (strikeout "deleted")
+          , "Inline HTML" =:
+            "<html>\nThis is some <span style=\"color:red;font-size:150%;\">inline HTML</span>\n</html>" =?>
+            para (rawInline "html" "\nThis is some <span style=\"color:red;font-size:150%;\">inline HTML</span>\n")
           , "Linebreak" =:
             T.unlines [ "This is some text with some linebreaks\\\\ Note that the"
                       , "two backslashes are only recognized at the end of a line\\\\"
