@@ -18,13 +18,11 @@ import Control.Monad.Catch (try)
 import Data.Default (def)
 import Data.Version (Version)
 import Foreign.Lua (Peekable, Lua, NumResults)
-import Text.Pandoc.Class.PandocIO (runIO)
-import Text.Pandoc.Class.PandocMonad (setUserDataDir)
 import Text.Pandoc.Definition ( Pandoc, Meta, MetaValue (..), Block, Inline
                               , Citation, Attr, ListAttributes)
 import Text.Pandoc.Error (PandocError)
 import Text.Pandoc.Lua.Marshaling ()
-import Text.Pandoc.Lua.Util (addFunction)
+import Text.Pandoc.Lua.PandocLua (PandocLua, addFunction, liftPandocLua)
 
 import qualified Data.Digest.Pure.SHA as SHA
 import qualified Data.ByteString.Lazy as BSL
@@ -35,14 +33,14 @@ import qualified Text.Pandoc.Filter.JSON as JSONFilter
 import qualified Text.Pandoc.Shared as Shared
 
 -- | Push the "pandoc.utils" module to the lua stack.
-pushModule :: Maybe FilePath -> Lua NumResults
-pushModule mbDatadir = do
-  Lua.newtable
+pushModule :: PandocLua NumResults
+pushModule = do
+  liftPandocLua Lua.newtable
   addFunction "blocks_to_inlines" blocksToInlines
   addFunction "equals" equals
   addFunction "make_sections" makeSections
   addFunction "normalize_date" normalizeDate
-  addFunction "run_json_filter" (runJSONFilter mbDatadir)
+  addFunction "run_json_filter" runJSONFilter
   addFunction "sha1" sha1
   addFunction "stringify" stringify
   addFunction "to_roman_numeral" toRomanNumeral
@@ -50,8 +48,8 @@ pushModule mbDatadir = do
   return 1
 
 -- | Squashes a list of blocks into inlines.
-blocksToInlines :: [Block] -> Lua.Optional [Inline] -> Lua [Inline]
-blocksToInlines blks optSep = do
+blocksToInlines :: [Block] -> Lua.Optional [Inline] -> PandocLua [Inline]
+blocksToInlines blks optSep = liftPandocLua $ do
   let sep = case Lua.fromOptional optSep of
               Just x -> B.fromList x
               Nothing -> Shared.defaultBlocksSeparator
@@ -70,23 +68,17 @@ normalizeDate :: T.Text -> Lua (Lua.Optional T.Text)
 normalizeDate = return . Lua.Optional . Shared.normalizeDate
 
 -- | Run a JSON filter on the given document.
-runJSONFilter :: Maybe FilePath
-              -> Pandoc
+runJSONFilter :: Pandoc
               -> FilePath
               -> Lua.Optional [String]
-              -> Lua NumResults
-runJSONFilter mbDatadir doc filterFile optArgs = do
+              -> PandocLua Pandoc
+runJSONFilter doc filterFile optArgs = do
   args <- case Lua.fromOptional optArgs of
             Just x -> return x
-            Nothing -> do
+            Nothing -> liftPandocLua $ do
               Lua.getglobal "FORMAT"
               (:[]) <$> Lua.popValue
-  filterRes <- Lua.liftIO . runIO $ do
-    setUserDataDir mbDatadir
-    JSONFilter.apply def args filterFile doc
-  case filterRes of
-    Left err -> Lua.raiseError (show err)
-    Right d -> (1 :: NumResults) <$ Lua.push d
+  JSONFilter.apply def args filterFile doc
 
 -- | Calculate the hash of the given contents.
 sha1 :: BSL.ByteString
@@ -96,7 +88,7 @@ sha1 = return . T.pack . SHA.showDigest . SHA.sha1
 -- | Convert pandoc structure to a string with formatting removed.
 -- Footnotes are skipped (since we don't want their contents in link
 -- labels).
-stringify :: AstElement -> Lua T.Text
+stringify :: AstElement -> PandocLua T.Text
 stringify el = return $ case el of
   PandocElement pd -> Shared.stringify pd
   InlineElement i  -> Shared.stringify i
@@ -112,7 +104,7 @@ stringifyMetaValue mv = case mv of
   MetaString s -> s
   _            -> Shared.stringify mv
 
-equals :: AstElement -> AstElement -> Lua Bool
+equals :: AstElement -> AstElement -> PandocLua Bool
 equals e1 e2 = return (e1 == e2)
 
 data AstElement
@@ -141,5 +133,5 @@ instance Peekable AstElement where
         "Expected an AST element, but could not parse value as such."
 
 -- | Convert a number < 4000 to uppercase roman numeral.
-toRomanNumeral :: Lua.Integer -> Lua T.Text
+toRomanNumeral :: Lua.Integer -> PandocLua T.Text
 toRomanNumeral = return . Shared.toRomanNumeral . fromIntegral

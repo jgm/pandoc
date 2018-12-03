@@ -14,13 +14,13 @@ module Text.Pandoc.Lua.Module.MediaBag
   ) where
 
 import Control.Monad (zipWithM_)
-import Foreign.Lua (Lua, NumResults, Optional, liftIO)
+import Foreign.Lua (Lua, NumResults, Optional)
 import Text.Pandoc.Class.CommonState (CommonState (..))
-import Text.Pandoc.Class.PandocIO (runIOorExplode)
-import Text.Pandoc.Class.PandocMonad (fetchItem, putCommonState, setMediaBag)
+import Text.Pandoc.Class.PandocMonad (fetchItem, getMediaBag, modifyCommonState,
+                                      setMediaBag)
 import Text.Pandoc.Lua.Marshaling ()
 import Text.Pandoc.Lua.Marshaling.MediaBag (pushIterator)
-import Text.Pandoc.Lua.Util (addFunction)
+import Text.Pandoc.Lua.PandocLua (PandocLua (..), liftPandocLua, addFunction)
 import Text.Pandoc.MIME (MimeType)
 
 import qualified Data.ByteString.Lazy as BL
@@ -31,9 +31,9 @@ import qualified Text.Pandoc.MediaBag as MB
 --
 -- MediaBag submodule
 --
-pushModule :: Lua NumResults
+pushModule :: PandocLua NumResults
 pushModule = do
-  Lua.newtable
+  liftPandocLua Lua.newtable
   addFunction "delete" delete
   addFunction "empty" empty
   addFunction "insert" insertMediaFn
@@ -43,66 +43,46 @@ pushModule = do
   addFunction "fetch" fetch
   return 1
 
---
--- Port functions from Text.Pandoc.Class to the Lua monad.
--- TODO: reuse existing functions.
-
--- Get the current CommonState.
-getCommonState :: Lua CommonState
-getCommonState = do
-  Lua.getglobal "PANDOC_STATE"
-  Lua.peek Lua.stackTop
-
--- Replace MediaBag in CommonState.
-setCommonState :: CommonState -> Lua ()
-setCommonState st = do
-  Lua.push st
-  Lua.setglobal "PANDOC_STATE"
-
-modifyCommonState :: (CommonState -> CommonState) -> Lua ()
-modifyCommonState f = getCommonState >>= setCommonState . f
-
 -- | Delete a single item from the media bag.
-delete :: FilePath -> Lua NumResults
+delete :: FilePath -> PandocLua NumResults
 delete fp = 0 <$ modifyCommonState
   (\st -> st { stMediaBag = MB.deleteMedia fp (stMediaBag st) })
 
 -- | Delete all items from the media bag.
-empty :: Lua NumResults
+empty :: PandocLua NumResults
 empty = 0 <$ modifyCommonState (\st -> st { stMediaBag = mempty })
 
 -- | Insert a new item into the media bag.
 insertMediaFn :: FilePath
               -> Optional MimeType
               -> BL.ByteString
-              -> Lua NumResults
+              -> PandocLua NumResults
 insertMediaFn fp optionalMime contents = do
-  modifyCommonState $ \st ->
-    let mb = MB.insertMedia fp (Lua.fromOptional optionalMime) contents
-                               (stMediaBag st)
-    in st { stMediaBag = mb }
-  return 0
+  mb <- getMediaBag
+  setMediaBag $ MB.insertMedia fp (Lua.fromOptional optionalMime) contents mb
+  return (Lua.NumResults 0)
 
 -- | Returns iterator values to be used with a Lua @for@ loop.
-items :: Lua NumResults
-items = getCommonState >>= pushIterator . stMediaBag
+items :: PandocLua NumResults
+items = getMediaBag >>= liftPandocLua . pushIterator
 
 lookupMediaFn :: FilePath
-              -> Lua NumResults
+              -> PandocLua NumResults
 lookupMediaFn fp = do
-  res <- MB.lookupMedia fp . stMediaBag <$> getCommonState
-  case res of
+  res <- MB.lookupMedia fp <$> getMediaBag
+  liftPandocLua $ case res of
     Nothing -> 1 <$ Lua.pushnil
     Just (mimeType, contents) -> do
       Lua.push mimeType
       Lua.push contents
       return 2
 
-mediaDirectoryFn :: Lua NumResults
+mediaDirectoryFn :: PandocLua NumResults
 mediaDirectoryFn = do
-  dirContents <- MB.mediaDirectory . stMediaBag <$> getCommonState
-  Lua.newtable
-  zipWithM_ addEntry [1..] dirContents
+  dirContents <- MB.mediaDirectory <$> getMediaBag
+  liftPandocLua $ do
+    Lua.newtable
+    zipWithM_ addEntry [1..] dirContents
   return 1
  where
   addEntry :: Lua.Integer -> (FilePath, MimeType, Int) -> Lua ()
@@ -114,14 +94,9 @@ mediaDirectoryFn = do
     Lua.rawseti (-2) idx
 
 fetch :: T.Text
-      -> Lua NumResults
+      -> PandocLua NumResults
 fetch src = do
-  commonState <- getCommonState
-  let mediaBag = stMediaBag commonState
-  (bs, mimeType) <- liftIO . runIOorExplode $ do
-    putCommonState commonState
-    setMediaBag mediaBag
-    fetchItem src
-  Lua.push $ maybe "" T.unpack mimeType
-  Lua.push bs
+  (bs, mimeType) <- fetchItem src
+  liftPandocLua . Lua.push $ maybe "" T.unpack mimeType
+  liftPandocLua $ Lua.push bs
   return 2 -- returns 2 values: contents, mimetype
