@@ -161,7 +161,7 @@ underlined :: PandocMonad m => DWParser m B.Inlines
 underlined = try $ underlineSpan <$> enclosed (string "__") nestedInlines
 
 nowiki :: PandocMonad m => DWParser m B.Inlines
-nowiki = try $ B.text <$ string "<nowiki>" <*> manyTill anyChar (string "</nowiki>")
+nowiki = try $ B.text <$ string "<nowiki>" <*> manyTill anyChar (try $ string "</nowiki>")
 
 percent :: PandocMonad m => DWParser m B.Inlines
 percent = try $ B.text <$> enclosed (string "%%") nestedString
@@ -176,20 +176,20 @@ monospaced :: PandocMonad m => DWParser m B.Inlines
 monospaced = try $ B.code <$> enclosed (string "''") nestedString
 
 subscript :: PandocMonad m => DWParser m B.Inlines
-subscript = try $ B.subscript <$> between (string "<sub>") (string "</sub>") nestedInlines
+subscript = try $ B.subscript <$> between (string "<sub>") (try $ string "</sub>") nestedInlines
 
 superscript :: PandocMonad m => DWParser m B.Inlines
-superscript = try $ B.superscript <$> between (string "<sup>") (string "</sup>") nestedInlines
+superscript = try $ B.superscript <$> between (string "<sup>") (try $ string "</sup>") nestedInlines
 
 deleted :: PandocMonad m => DWParser m B.Inlines
-deleted = try $ B.strikeout <$> between (string "<del>") (string "</del>") nestedInlines
+deleted = try $ B.strikeout <$> between (string "<del>") (try $ string "</del>") nestedInlines
 
 -- | Parse a footnote.
 footnote :: PandocMonad m => DWParser m B.Inlines
-footnote = try $ B.note . B.para <$> between (string "((") (string "))") nestedInlines
+footnote = try $ B.note . B.para <$> between (string "((") (try $ string "))") nestedInlines
 
 code :: PandocMonad m => DWParser m B.Inlines
-code = try $ B.code <$ string "<code>" <*> manyTill anyChar (string "</code>")
+code = try $ B.code <$ string "<code>" <*> manyTill anyChar (try $ string "</code>")
 
 inlineHtml :: PandocMonad m => DWParser m B.Inlines
 inlineHtml = try $ B.rawInline "html" <$ string "<html>" <*> manyTill anyChar (try $ string "</html>")
