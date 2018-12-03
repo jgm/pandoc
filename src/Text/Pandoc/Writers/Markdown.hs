@@ -463,7 +463,7 @@ blockToMarkdown' opts (Para [Image attr alt (src,'f':'i':'g':':':tit)])
   | isEnabled Ext_raw_html opts &&
     not (isEnabled Ext_link_attributes opts) &&
     attr /= nullAttr = -- use raw HTML
-    (text . T.unpack . T.strip) <$>
+    ((<> blankline) . text . T.unpack . T.strip) <$>
       writeHtml5String opts{ writerTemplate = Nothing }
         (Pandoc nullMeta [Para [Image attr alt (src,"fig:" ++ tit)]])
   | otherwise = blockToMarkdown opts (Para [Image attr alt (src,tit)])
