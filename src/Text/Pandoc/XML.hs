@@ -57,7 +57,12 @@ escapeCharForXML x = case x of
 
 -- | Escape string as needed for XML.  Entity references are not preserved.
 escapeStringForXML :: String -> String
-escapeStringForXML = concatMap escapeCharForXML
+escapeStringForXML = concatMap escapeCharForXML . filter isLegalXMLChar
+  where isLegalXMLChar c = c == '\t' || c == '\n' || c == '\r' ||
+                           (c >= '\x20' && c <= '\xD7FF') ||
+                           (c >= '\xE000' && c <= '\xFFFD') ||
+                           (c >= '\x10000' && c <= '\x10FFFF')
+  -- see https://www.w3.org/TR/xml/#charsets
 
 -- | Escape newline characters as &#10;
 escapeNls :: String -> String
