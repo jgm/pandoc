@@ -718,7 +718,7 @@ simpleTable opts blocksToDoc headers rows = do
       numChars xs = maximum . map offset $ xs
   let colWidths = map numChars $ transpose (headerDocs : rowDocs)
   let toRow = hsep . zipWith lblock colWidths
-  let hline = hsep (map (\n -> text (replicate n '=')) colWidths)
+  let hline = nowrap $ hsep (map (\n -> text (replicate n '=')) colWidths)
   let hdr = if all null headers
                then mempty
                else hline $$ toRow headerDocs
