@@ -50,7 +50,6 @@ import Text.Pandoc.Shared (crFilter, underlineSpan)
 
 {-
  - TODO: images
- - TODO: quotes
  - TODO: tables
  -}
 
@@ -293,7 +292,14 @@ parseList prefix marker =
     itemContents = B.plain . mconcat <$> many1Till inline' eol
 
 quote :: PandocMonad m => DWParser m B.Blocks
-quote = try $ B.blockQuote . B.plain . mconcat <$ char '>' <*> many1Till inline' eol
+quote = try $ nestedQuote 0
+  where
+    prefix level = count level (char '>')
+    contents level = nestedQuote level <|> quoteLine
+    quoteLine = try $ B.plain . B.trimInlines . mconcat <$> many1Till inline' eol
+    quoteContents level = (<>) <$> contents level <*> quoteContinuation level
+    quoteContinuation level = mconcat <$> many (try $ prefix level *> contents level)
+    nestedQuote level = B.blockQuote <$ char '>' <*> quoteContents (level + 1 :: Int)
 
 blockHtml :: PandocMonad m => DWParser m B.Blocks
 blockHtml = try $ B.rawBlock "html" <$ string "<HTML>" <*> manyTill anyChar (try $ string "</HTML>")

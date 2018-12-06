@@ -148,11 +148,14 @@ tests = [ testGroup "inlines"
           rawBlock "html" "\n<p style=\"border:2px dashed red;\">And this is some block HTML</p>\n"
         , "Quote" =:
           T.unlines [ "> foo"
+                    , ">no space is required after >"
                     , "> bar"
                     , ">> baz"
                     , "> bat"
                     ] =?>
-          blockQuote (plain ("foo" <> linebreak <> "bar") <>
-                      blockQuote (plain "bat") <>
-                      plain ("baz"))
+          blockQuote (plain "foo" <>
+                      plain "no space is required after >" <>
+                      plain "bar" <>
+                      blockQuote (plain "baz") <>
+                      plain "bat")
         ]
