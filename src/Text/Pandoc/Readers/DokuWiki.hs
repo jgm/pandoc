@@ -256,6 +256,7 @@ blockElements :: PandocMonad m => DWParser m B.Blocks
 blockElements = horizontalLine
             <|> header
             <|> list "  "
+            <|> quote
             <|> blockHtml
 
 horizontalLine :: PandocMonad m => DWParser m B.Blocks
@@ -290,6 +291,9 @@ parseList prefix marker =
     continuation = try $ list ("  " ++ prefix)
     item = try $ string prefix *> char marker *> char ' ' *> itemContents
     itemContents = B.plain . mconcat <$> many1Till inline' eol
+
+quote :: PandocMonad m => DWParser m B.Blocks
+quote = try $ B.blockQuote . B.plain . mconcat <$ char '>' <*> many1Till inline' eol
 
 blockHtml :: PandocMonad m => DWParser m B.Blocks
 blockHtml = try $ B.rawBlock "html" <$ string "<HTML>" <*> manyTill anyChar (try $ string "</HTML>")
