@@ -1023,6 +1023,9 @@ inlineToMarkdown opts (Emph lst) = do
   return $ if plain
               then "_" <> contents <> "_"
               else "*" <> contents <> "*"
+inlineToMarkdown _ (Underline []) = return empty
+inlineToMarkdown opts (Underline lst) =
+  inlineListToMarkdown opts lst
 inlineToMarkdown _ (Strong []) = return empty
 inlineToMarkdown opts (Strong lst) = do
   plain <- asks envPlain

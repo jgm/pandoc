@@ -79,7 +79,7 @@ import Text.Pandoc.Options (
     extensionEnabled)
 import Text.Pandoc.Parsing hiding ((<|>))
 import Text.Pandoc.Shared (addMetaField, blocksToInlines', crFilter, escapeURI,
-                           extractSpaces, safeRead, underlineSpan)
+                           extractSpaces, safeRead)
 import Text.Pandoc.Walk
 import Text.Parsec.Error
 import Text.TeXMath (readMathML, writeTeX)
@@ -711,6 +711,9 @@ pQ = do
 pEmph :: PandocMonad m => TagParser m Inlines
 pEmph = pInlinesInTags "em" B.emph <|> pInlinesInTags "i" B.emph
 
+pUnderline :: PandocMonad m => TagParser m Inlines
+pUnderline = pInlinesInTags "u" B.underline <|> pInlinesInTags "ins" B.underline
+
 pStrong :: PandocMonad m => TagParser m Inlines
 pStrong = pInlinesInTags "strong" B.strong <|> pInlinesInTags "b" B.strong
 
@@ -731,9 +734,6 @@ pStrikeout =
     try (do pSatisfy (matchTagOpen "span" [("class","strikeout")])
             contents <- mconcat <$> manyTill inline (pCloses "span")
             return $ B.strikeout contents)
-
-pUnderline :: PandocMonad m => TagParser m Inlines
-pUnderline = pInlinesInTags "u" underlineSpan <|> pInlinesInTags "ins" underlineSpan
 
 pLineBreak :: PandocMonad m => TagParser m Inlines
 pLineBreak = do

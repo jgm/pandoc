@@ -367,6 +367,7 @@ inlineToMs :: PandocMonad m => WriterOptions -> Inline -> MS m Doc
 inlineToMs opts (Span _ ils) = inlineListToMs opts ils
 inlineToMs opts (Emph lst) =
   withFontFeature 'I' (inlineListToMs opts lst)
+inlineToMs opts (Underline lst) = undefined {- NEED TO FINISH FIX ROFF FIRST-}
 inlineToMs opts (Strong lst) =
   withFontFeature 'B' (inlineListToMs opts lst)
 inlineToMs opts (Strikeout lst) = do

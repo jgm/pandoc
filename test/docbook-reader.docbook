@@ -717,6 +717,11 @@ These should not be escaped:  \$ \\ \&gt; \[ \{
     <emphasis>strikeout</emphasis>.</emphasis>
   </para>
   <para>
+    <underline>This is
+      <emphasis>underline
+      </emphasis>.</underline>
+  </para>
+  <para>
     Superscripts: a<superscript>bc</superscript>d
     a<superscript><emphasis>hello</emphasis></superscript>
     a<superscript>hello there</superscript>.

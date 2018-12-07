@@ -863,6 +863,7 @@ inlineCommands = M.union inlineLanguageCommands $ M.fromList
   [ ("emph", extractSpaces emph <$> tok)
   , ("textit", extractSpaces emph <$> tok)
   , ("textsl", extractSpaces emph <$> tok)
+  , ("underline", extractSpaces underline <$> tok)
   , ("textsc", extractSpaces smallcaps <$> tok)
   , ("textsf", extractSpaces (spanWith ("",["sans-serif"],[])) <$> tok)
   , ("textmd", extractSpaces (spanWith ("",["medium"],[])) <$> tok)

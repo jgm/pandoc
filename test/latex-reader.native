@@ -219,7 +219,7 @@ Pandoc (Meta {unMeta = fromList [("author",MetaList [MetaInlines [Str "John",Spa
 ,Para [Str "Simple",Space,Str "block",Space,Str "on",Space,Str "one",Space,Str "line:"]
 ,Para [Str "foo",SoftBreak,Str "And",Space,Str "nested",Space,Str "without",Space,Str "indentation:"]
 ,Para [Str "foo",SoftBreak,Str "bar",SoftBreak,Str "Interpreted",Space,Str "markdown",Space,Str "in",Space,Str "a",Space,Str "table:"]
-,Para [Str "This",Space,Str "is",Space,Emph [Str "emphasized"],SoftBreak,Str "And",Space,Str "this",Space,Str "is",Space,Strong [Str "strong"],SoftBreak,Str "Here\8217s",Space,Str "a",Space,Str "simple",Space,Str "block:"]
+,Para [Str "This",Space,Str "is",Space,Emph [Str "emphasized"],SoftBreak,Str "Second",Space,Str "comes",Space,Str "the",Space,Underline [Str "underlined"],SoftBreak,Str "And",Space,Str "this",Space,Str "is",Space,Strong [Str "strong"],SoftBreak,Str "Here\8217s",Space,Str "a",Space,Str "simple",Space,Str "block:"]
 ,Para [Str "foo",SoftBreak,Str "This",Space,Str "should",Space,Str "be",Space,Str "a",Space,Str "code",Space,Str "block,",Space,Str "though:"]
 ,CodeBlock ("",[],[]) "<div>\n    foo\n</div>"
 ,Para [Str "As",Space,Str "should",Space,Str "this:"]

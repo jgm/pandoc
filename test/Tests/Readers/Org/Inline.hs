@@ -8,7 +8,6 @@ import Test.Tasty (TestTree, testGroup)
 import Tests.Helpers ((=?>))
 import Tests.Readers.Org.Shared ((=:), spcSep)
 import Text.Pandoc.Builder
-import Text.Pandoc.Shared (underlineSpan)
 import qualified Data.Text as T
 import qualified Tests.Readers.Org.Inline.Citation as Citation
 import qualified Tests.Readers.Org.Inline.Note as Note
@@ -24,6 +23,10 @@ tests =
       "/Planet Punk/" =?>
       para (emph . spcSep $ ["Planet", "Punk"])
 
+  , "Underline" =:
+      "_Floppy Fellow_" =?>
+      para (underline . spcSep $ ["Floppy", "Fellow"])
+
   , "Strong" =:
       "*Cider*" =?>
       para (strong "Cider")
@@ -35,10 +38,6 @@ tests =
   , "Emphasized Strong preceded by space" =:
       " */super/*" =?>
       para (strong . emph $ "super")
-
-  , "Underline" =:
-      "_underline_" =?>
-      para (underlineSpan "underline")
 
   , "Strikeout" =:
       "+Kill Bill+" =?>

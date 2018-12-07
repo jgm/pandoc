@@ -259,6 +259,7 @@ data ExportSettings = ExportSettings
   -- explicitly excluded from the resulting output while @Right@ means that
   -- only the listed drawer names should be included.
   , exportEmphasizedText   :: Bool -- ^ Parse emphasized text
+  , exportUnderlineText    :: Bool
   , exportHeadlineLevels   :: Int
   -- ^ Maximum depth of headlines, deeper headlines are convert to list
   , exportPreserveBreaks   :: Bool -- ^ Whether to preserve linebreaks
@@ -281,6 +282,7 @@ defaultExportSettings = ExportSettings
   { exportArchivedTrees = ArchivedTreesHeadlineOnly
   , exportDrawers = Left ["LOGBOOK"]
   , exportEmphasizedText = True
+  , exportUnderlineText  = True
   , exportHeadlineLevels = 3
   , exportPreserveBreaks = False
   , exportSmartQuotes = False

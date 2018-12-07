@@ -344,6 +344,8 @@ inlineToJATS :: PandocMonad m => WriterOptions -> Inline -> JATS m Doc
 inlineToJATS _ (Str str) = return $ text $ escapeStringForXML str
 inlineToJATS opts (Emph lst) =
   inTagsSimple "italic" <$> inlinesToJATS opts lst
+inlineToJATS opts (Underline lst) =
+  inTagsSimple "u" <$> inlinesToJATS opts lst
 inlineToJATS opts (Strong lst) =
   inTagsSimple "bold" <$> inlinesToJATS opts lst
 inlineToJATS opts (Strikeout lst) =

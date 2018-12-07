@@ -513,12 +513,13 @@ inlineToOpenDocument o ils
     Span attr xs  -> withLangFromAttr attr (inlinesToOpenDocument o xs)
     LineBreak     -> return $ selfClosingTag "text:line-break" []
     Str         s -> return $ handleSpaces $ escapeStringForXML s
-    Emph        l -> withTextStyle Italic $ inlinesToOpenDocument o l
-    Strong      l -> withTextStyle Bold   $ inlinesToOpenDocument o l
-    Strikeout   l -> withTextStyle Strike $ inlinesToOpenDocument o l
-    Superscript l -> withTextStyle Sup    $ inlinesToOpenDocument o l
-    Subscript   l -> withTextStyle Sub    $ inlinesToOpenDocument o l
-    SmallCaps   l -> withTextStyle SmallC $ inlinesToOpenDocument o l
+    Emph        l -> withTextStyle Italic    $ inlinesToOpenDocument o l
+    Underline   l -> withTextStyle LineUnder $ inlinesToOpenDocument o l
+    Strong      l -> withTextStyle Bold      $ inlinesToOpenDocument o l
+    Strikeout   l -> withTextStyle Strike    $ inlinesToOpenDocument o l
+    Superscript l -> withTextStyle Sup       $ inlinesToOpenDocument o l
+    Subscript   l -> withTextStyle Sub       $ inlinesToOpenDocument o l
+    SmallCaps   l -> withTextStyle SmallC    $ inlinesToOpenDocument o l
     Quoted    t l -> inQuotes t <$> inlinesToOpenDocument o l
     Code      _ s -> inlinedCode $ preformatted s
     Math      t s -> lift (texMathToInlines t s) >>=
@@ -694,6 +695,7 @@ paraTableStyles t s (a:xs)
 
 data TextStyle = Italic
                | Bold
+               | LineUnder
                | Strike
                | Sub
                | Sup

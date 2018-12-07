@@ -26,6 +26,8 @@
 
 '''''strong inside''' emph''
 
+<u>This is underlined</u>
+
 == horizontal rule ==
 
 top

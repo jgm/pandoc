@@ -354,6 +354,8 @@ inlineToDocbook :: PandocMonad m => WriterOptions -> Inline -> DB m Doc
 inlineToDocbook _ (Str str) = return $ text $ escapeStringForXML str
 inlineToDocbook opts (Emph lst) =
   inTagsSimple "emphasis" <$> inlinesToDocbook opts lst
+inlineToDocbook opts (Underline lst) =
+  inTagsSimple "underline" <$> inlinesToDocbook opts lst
 inlineToDocbook opts (Strong lst) =
   inTags False "emphasis" [("role", "strong")] <$> inlinesToDocbook opts lst
 inlineToDocbook opts (Strikeout lst) =

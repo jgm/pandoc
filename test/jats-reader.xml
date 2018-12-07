@@ -409,7 +409,7 @@ These should not be escaped:  \$ \\ \&gt; \[ \{</preformat>
 <sec id="inline-markup">
   <title>Inline Markup</title>
   <p>This is <italic>emphasized</italic>, and so <italic>is
-    this</italic>.</p>
+    this</italic> but this is <u>underlined</u>.</p>
   <p>This is <bold role="strong">strong</bold>, and so
     <bold role="strong">is this</bold>.</p>
   <p>Empty <bold role="strong"></bold> and <italic></italic>.</p>

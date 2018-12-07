@@ -56,7 +56,7 @@ import Text.Pandoc.Error (PandocError (PandocParsecError))
 import Text.Pandoc.Logging
 import Text.Pandoc.Options
 import Text.Pandoc.Parsing hiding (F)
-import Text.Pandoc.Shared (crFilter, trimr, underlineSpan)
+import Text.Pandoc.Shared (crFilter, trimr)
 
 -- | Read Muse from an input string and return a Pandoc document.
 readMuse :: PandocMonad m
@@ -845,7 +845,7 @@ emph = fmap B.emph <$> emphasisBetween (char '*')
 -- | Parse underline inline markup, indicated by @_@.
 -- Supported only in Emacs Muse mode, not Text::Amuse.
 underlined :: PandocMonad m => MuseParser m (F Inlines)
-underlined = fmap underlineSpan
+underlined = fmap B.underline
   <$  guardDisabled Ext_amuse -- Supported only by Emacs Muse
   <*> emphasisBetween (char '_')
 

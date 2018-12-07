@@ -365,6 +365,9 @@ inlineToConTeXt :: PandocMonad m
 inlineToConTeXt (Emph lst) = do
   contents <- inlineListToConTeXt lst
   return $ braces $ "\\em " <> contents
+inlineToConTeXt (Underline lst) = do
+  contents <- inlineListToConTeXt lst
+  return $ braces $ "\\underline" <> contents
 inlineToConTeXt (Strong lst) = do
   contents <- inlineListToConTeXt lst
   return $ braces $ "\\bf " <> contents

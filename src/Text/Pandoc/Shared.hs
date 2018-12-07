@@ -82,7 +82,6 @@ module Text.Pandoc.Shared (
                      addMetaField,
                      makeMeta,
                      eastAsianLineBreakFilter,
-                     underlineSpan,
                      splitSentences,
                      -- * TagSoup HTML handling
                      renderTags',
@@ -619,12 +618,6 @@ eastAsianLineBreakFilter = bottomUp go
                  | charWidth (last xs) == 2 && charWidth c == 2 -> x:y:zs
                _ -> x:SoftBreak:y:zs
         go xs = xs
-
--- | Builder for underline.
--- This probably belongs in Builder.hs in pandoc-types.
--- Will be replaced once Underline is an element.
-underlineSpan :: Inlines -> Inlines
-underlineSpan = B.spanWith ("", ["underline"], [])
 
 -- | Returns the first sentence in a list of inlines, and the rest.
 breakSentence :: [Inline] -> ([Inline], [Inline])

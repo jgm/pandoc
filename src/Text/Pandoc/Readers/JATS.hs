@@ -45,7 +45,7 @@ import Text.HTML.TagSoup.Entity (lookupEntity)
 import Text.Pandoc.Builder
 import Text.Pandoc.Class (PandocMonad)
 import Text.Pandoc.Options
-import Text.Pandoc.Shared (underlineSpan, crFilter, safeRead)
+import Text.Pandoc.Shared (crFilter, safeRead)
 import Text.TeXMath (readMathML, writeTeX)
 import Text.XML.Light
 import qualified Data.Set as S (fromList, member)
@@ -131,8 +131,8 @@ isBlockElement (Elem e) = qName (elName e) `S.member` blocktags
         inlinetags = ["email", "ext-link", "uri", "inline-supplementary-material",
             "related-article", "related-object", "hr", "bold", "fixed-case",
             "italic", "monospace", "overline", "overline-start", "overline-end",
-            "roman", "sans-serif", "sc", "strike", "underline", "underline-start",
-            "underline-end", "ruby", "alternatives", "inline-graphic", "private-char",
+            "roman", "sans-serif", "sc", "strike", "u", "ruby", "alternatives",
+            "inline-graphic", "private-char",
             "chem-struct", "inline-formula", "tex-math", "mml:math", "abbrev",
             "milestone-end", "milestone-start", "named-content", "styled-content",
             "fn", "target", "xref", "sub", "sup", "x", "address", "array",
@@ -449,7 +449,7 @@ parseInline (Elem e) =
         "strike" -> strikeout <$> innerInlines
         "sub" -> subscript <$> innerInlines
         "sup" -> superscript <$> innerInlines
-        "underline" -> underlineSpan <$> innerInlines
+        "u" -> underline <$> innerInlines
         "break" -> return linebreak
         "sc" -> smallcaps <$> innerInlines
 

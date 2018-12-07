@@ -51,6 +51,7 @@ exportSetting = choice
   [ booleanSetting "^" (\val es -> es { exportSubSuperscripts = val })
   , booleanSetting "'" (\val es -> es { exportSmartQuotes = val })
   , booleanSetting "*" (\val es -> es { exportEmphasizedText = val })
+  , booleanSetting "_" (\val es -> es { exportUnderlineText = val })
   , booleanSetting "-" (\val es -> es { exportSpecialStrings = val })
   , ignoredSetting ":"
   , ignoredSetting "<"

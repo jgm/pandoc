@@ -948,6 +948,7 @@ parseInline (Elem e) =
         "equation" -> equation e displayMath
         "informalequation" -> equation e displayMath
         "inlineequation" -> equation e math
+        "underline" -> underline <$> innerInlines
         "subscript" -> subscript <$> innerInlines
         "superscript" -> superscript <$> innerInlines
         "inlinemediaobject" -> getMediaobject e

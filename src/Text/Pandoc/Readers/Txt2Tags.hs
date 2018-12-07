@@ -51,8 +51,7 @@ import Data.Time (defaultTimeLocale)
 import Text.Pandoc.Definition
 import Text.Pandoc.Options
 import Text.Pandoc.Parsing hiding (space, spaces, uri)
-import Text.Pandoc.Shared (compactify, compactifyDL, crFilter, escapeURI,
-                           underlineSpan)
+import Text.Pandoc.Shared (compactify, compactifyDL, crFilter, escapeURI)
 
 type T2T = ParserT String ParserState (Reader T2TMeta)
 
@@ -394,7 +393,7 @@ bold :: T2T Inlines
 bold = inlineMarkup inline B.strong '*' B.str
 
 underline :: T2T Inlines
-underline = inlineMarkup inline underlineSpan '_' B.str
+underline = inlineMarkup inline B.underline '_' B.str
 
 strike :: T2T Inlines
 strike = inlineMarkup inline B.strikeout '-' B.str

@@ -3887,6 +3887,9 @@ databases, pandoc Markdown; and in CSL JSON databases, an
 `<b>...</b>`
 :   bold
 
+`<u>...</u>` or `<ins>...</ins>`
+:   underline
+
 `<span style="font-variant:small-caps;">...</span>` or `<sc>...</sc>`
 :   small capitals
 
@@ -4819,7 +4822,7 @@ Output
 
 By default, pandoc's docx output applies a predefined set of styles for
 blocks such as paragraphs and block quotes, and uses largely default
-formatting (italics, bold) for inlines. This will work for most
+formatting (italics, bold, underline) for inlines. This will work for most
 purposes, especially alongside a `reference.docx` file. However, if you
 need to apply your own styles to blocks, or match a preexisting set of
 styles, pandoc allows you to define custom styles for blocks and text

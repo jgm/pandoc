@@ -449,6 +449,8 @@ normalizeInlineList (Str x1 : Str x2 : xs)
   = normalizeInlineList $ Str (x1 ++ x2) : xs
 normalizeInlineList (Emph x1 : Emph x2 : ils)
   = normalizeInlineList $ Emph (x1 ++ x2) : ils
+normalizeInlineList (Underline x1 : Underline x2 : xs)
+  = normalizeInlineList $ Underline (x1 ++ x2) : xs
 normalizeInlineList (Strong x1 : Strong x2 : ils)
   = normalizeInlineList $ Strong (x1 ++ x2) : ils
 normalizeInlineList (Strikeout x1 : Strikeout x2 : ils)
@@ -585,7 +587,8 @@ inlineToMuse :: PandocMonad m
              -> Muse m Doc
 inlineToMuse (Str str) = do
   escapedStr <- conditionalEscapeString $ replaceNewlines str
-  let useTags = isAlphaNum $ last escapedStr -- escapedStr is never empty because empty strings are escaped
+  let useTags = isAlphaNum $ last escapedStr
+                      -- escapedStr is never empty because empty strings are escaped
   modify $ \st -> st { stUseTags = useTags }
   return $ text escapedStr
 inlineToMuse (Emph [Strong lst]) = do
@@ -602,6 +605,16 @@ inlineToMuse (Emph lst) = do
   if useTags || null lst' || startsWithSpace lst' || endsWithSpace lst'
     then emphasis "<em>" "</em>" lst'
     else emphasis "*" "*" lst'
+inlineToMuse (Underline lst) = do
+  useTags <- gets stUseTags
+  --  modify $ \st -> st { stUseTags = False }?
+  contents <- inlineListToMuse lst
+  if useTags
+    then return $ "<u>" <> contents <> "</u>"
+    else return contents
+    -- native
+    -- underlining has been dropped as a feature
+    -- https://amusewiki.org/library/manual#toc37
 inlineToMuse (Strong [Emph lst]) = do
   useTags <- gets stUseTags
   let lst' = normalizeInlineList lst

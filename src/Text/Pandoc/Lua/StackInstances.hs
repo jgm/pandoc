@@ -235,6 +235,7 @@ pushInline = \case
   Cite citations lst       -> pushViaConstructor "Cite" lst citations
   Code attr lst            -> pushViaConstructor "Code" lst (LuaAttr attr)
   Emph inlns               -> pushViaConstructor "Emph" inlns
+  Underline inlns          -> pushViaConstructor "Underline" inlns
   Image attr alt (src,tit) -> pushViaConstructor "Image" alt src tit (LuaAttr attr)
   LineBreak                -> pushViaConstructor "LineBreak"
   Link attr lst (src,tit)  -> pushViaConstructor "Link" lst src tit (LuaAttr attr)
@@ -257,9 +258,13 @@ peekInline :: StackIndex -> Lua Inline
 peekInline idx = defineHowTo "get Inline value" $ do
   tag <- LuaUtil.getTag idx
   case tag of
-    "Cite"       -> uncurry Cite <$> elementContent
-    "Code"       -> withAttr Code <$> elementContent
+    "Str"        -> Str <$> elementContent
     "Emph"       -> Emph <$> elementContent
+    "Underline"  -> Underline <$> elementContent
+    "Strong"     -> Strong <$> elementContent
+    "Strikeout"  -> Strikeout <$> elementContent
+    "Subscript"  -> Subscript <$> elementContent
+    "Superscript"-> Superscript <$> elementContent
     "Image"      -> (\(LuaAttr attr, lst, tgt) -> Image attr lst tgt)
                     <$> elementContent
     "Link"       -> (\(LuaAttr attr, lst, tgt) -> Link attr lst tgt)
@@ -273,11 +278,9 @@ peekInline idx = defineHowTo "get Inline value" $ do
     "SoftBreak"  -> return SoftBreak
     "Space"      -> return Space
     "Span"       -> withAttr Span <$> elementContent
-    "Str"        -> Str <$> elementContent
-    "Strikeout"  -> Strikeout <$> elementContent
-    "Strong"     -> Strong <$> elementContent
-    "Subscript"  -> Subscript <$> elementContent
-    "Superscript"-> Superscript <$> elementContent
+    "Cite"       -> uncurry Cite <$> elementContent
+    "Code"       -> withAttr Code <$> elementContent
+
     _ -> Lua.throwException ("Unknown inline type: " <> tag)
  where
    -- Get the contents of an AST element.

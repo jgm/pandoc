@@ -13,6 +13,7 @@ Pandoc (Meta {unMeta = fromList []})
 ,Para [Strong [Emph [Str "emph",Space,Str "inside"],Space,Str "strong"]]
 ,Para [Strong [Str "strong",Space,Str "with",Space,Emph [Str "emph"]]]
 ,Para [Emph [Strong [Str "strong",Space,Str "inside"],Space,Str "emph"]]
+,Para [Underline [Str "This",Space,Str "is",Space,Str "underlined"]]
 ,Header 2 ("horizontal-rule",[],[]) [Str "horizontal",Space,Str "rule"]
 ,Para [Str "top"]
 ,HorizontalRule

@@ -579,6 +579,7 @@ inlineTag = do
        TagOpen "br" _ -> B.linebreak <$ (htmlTag (~== TagOpen "br" []) -- will get /> too
                             *> optional blankline)
        TagOpen "strike" _ -> B.strikeout <$> inlinesInTags "strike"
+       TagOpen "u" _ -> B.underline <$> inlinesInTags "u"
        TagOpen "del" _ -> B.strikeout <$> inlinesInTags "del"
        TagOpen "sub" _ -> B.subscript <$> inlinesInTags "sub"
        TagOpen "sup" _ -> B.superscript <$> inlinesInTags "sup"
@@ -690,7 +691,10 @@ url = do
   return $ B.link src "" (B.str orig)
 
 -- | Parses a list of inlines between start and end delimiters.
-inlinesBetween :: (PandocMonad m, Show b) => MWParser m a -> MWParser m b -> MWParser m Inlines
+inlinesBetween :: (PandocMonad m, Show b)
+               => MWParser m a
+               -> MWParser m b
+               -> MWParser m Inlines
 inlinesBetween start end =
   (trimInlines . mconcat) <$> try (start >> many1Till inner end)
     where inner      = innerSpace <|> (notFollowedBy' (() <$ whitespace) >> inline)

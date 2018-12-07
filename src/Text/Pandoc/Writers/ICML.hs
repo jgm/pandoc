@@ -62,6 +62,7 @@ defaultWriterState = WriterState{
 
 -- inline names (appear in InDesign's character styles pane)
 emphName        :: String
+underlineName   :: String
 strongName      :: String
 strikeoutName   :: String
 superscriptName :: String
@@ -70,6 +71,7 @@ smallCapsName   :: String
 codeName        :: String
 linkName        :: String
 emphName        = "Italic"
+underlineName   = "Underline"
 strongName      = "Bold"
 strikeoutName   = "Strikeout"
 superscriptName = "Superscript"
@@ -407,7 +409,11 @@ listItemToICML opts style isFirst attribs item =
            return $ intersperseBrs (f : r)
          else blocksToICML opts stl' item
 
-definitionListItemToICML :: PandocMonad m => WriterOptions -> Style -> ([Inline],[[Block]]) -> WS m Doc
+definitionListItemToICML :: PandocMonad m
+                         => WriterOptions
+                         -> Style
+                         -> ([Inline],[[Block]])
+                         -> WS m Doc
 definitionListItemToICML opts style (term,defs) = do
   term' <- parStyle opts (defListTermName:style) term
   defs' <- mapM (blocksToICML opts (defListDefName:style)) defs
@@ -416,30 +422,44 @@ definitionListItemToICML opts style (term,defs) = do
 
 -- | Convert a list of inline elements to ICML.
 inlinesToICML :: PandocMonad m => WriterOptions -> Style -> [Inline] -> WS m Doc
-inlinesToICML opts style lst = vcat `fmap` mapM (inlineToICML opts style) (mergeStrings opts lst)
+inlinesToICML opts style lst =
+  vcat `fmap` mapM (inlineToICML opts style) (mergeStrings opts lst)
 
 -- | Convert an inline element to ICML.
 inlineToICML :: PandocMonad m => WriterOptions -> Style -> Inline -> WS m Doc
-inlineToICML _    style (Str str) = charStyle style $ text $ escapeStringForXML str
-inlineToICML opts style (Emph lst) = inlinesToICML opts (emphName:style) lst
-inlineToICML opts style (Strong lst) = inlinesToICML opts (strongName:style) lst
-inlineToICML opts style (Strikeout lst) = inlinesToICML opts (strikeoutName:style) lst
-inlineToICML opts style (Superscript lst) = inlinesToICML opts (superscriptName:style) lst
-inlineToICML opts style (Subscript lst) = inlinesToICML opts (subscriptName:style) lst
-inlineToICML opts style (SmallCaps lst) = inlinesToICML opts (smallCapsName:style) lst
-inlineToICML opts style (Quoted SingleQuote lst) = inlinesToICML opts style $
-  mergeStrings opts $ [Str "‘"] ++ lst ++ [Str "’"]
-inlineToICML opts style (Quoted DoubleQuote lst) = inlinesToICML opts style $
-  mergeStrings opts $ [Str "“"] ++ lst ++ [Str "”"]
-inlineToICML opts style (Cite _ lst) = inlinesToICML opts (citeName:style) lst
-inlineToICML _    style (Code _ str) = charStyle (codeName:style) $ text $ escapeStringForXML str
-inlineToICML _    style Space = charStyle style space
+inlineToICML _    style (Str str) =
+  charStyle style $ text $ escapeStringForXML str
+inlineToICML opts style (Emph lst) =
+  inlinesToICML opts (emphName:style) lst
+inlineToICML opts style (Underline lst) =
+  inlinesToICML opts (underlineName:style) lst
+inlineToICML opts style (Strong lst) =
+  inlinesToICML opts (strongName:style) lst
+inlineToICML opts style (Strikeout lst) =
+  inlinesToICML opts (strikeoutName:style) lst
+inlineToICML opts style (Superscript lst) =
+  inlinesToICML opts (superscriptName:style) lst
+inlineToICML opts style (Subscript lst) =
+  inlinesToICML opts (subscriptName:style) lst
+inlineToICML opts style (SmallCaps lst) =
+  inlinesToICML opts (smallCapsName:style) lst
+inlineToICML opts style (Quoted SingleQuote lst) =
+  inlinesToICML opts style $ mergeStrings opts $ [Str "‘"] ++ lst ++ [Str "’"]
+inlineToICML opts style (Quoted DoubleQuote lst) =
+  inlinesToICML opts style $ mergeStrings opts $ [Str "“"] ++ lst ++ [Str "”"]
+inlineToICML opts style (Cite _ lst) =
+  inlinesToICML opts (citeName:style) lst
+inlineToICML _    style (Code _ str) =
+  charStyle (codeName:style) $ text $ escapeStringForXML str
+inlineToICML _    style Space =
+  charStyle style space
 inlineToICML opts style SoftBreak =
   case writerWrapText opts of
        WrapAuto     -> charStyle style space
        WrapNone     -> charStyle style space
        WrapPreserve -> charStyle style cr
-inlineToICML _ style LineBreak = charStyle style $ text lineSeparator
+inlineToICML _ style LineBreak =
+  charStyle style $ text lineSeparator
 inlineToICML opts style (Math mt str) =
   lift (texMathToInlines mt str) >>=
     (fmap cat . mapM (inlineToICML opts style))
@@ -458,9 +478,12 @@ inlineToICML opts style (Link _ lst (url, title)) = do
                 cont  = inTags True "HyperlinkTextSource"
                          [("Self","htss-"++show ident), ("Name",title), ("Hidden","false")] content
             in  (cont, newst)
-inlineToICML opts style (Image attr _ target) = imageICML opts style attr target
-inlineToICML opts style (Note lst) = footnoteToICML opts style lst
-inlineToICML opts style (Span _ lst) = inlinesToICML opts style lst
+inlineToICML opts style (Image attr _ target) =
+  imageICML opts style attr target
+inlineToICML opts style (Note lst) =
+  footnoteToICML opts style lst
+inlineToICML opts style (Span _ lst) =
+  inlinesToICML opts style lst
 
 -- | Convert a list of block elements to an ICML footnote.
 footnoteToICML :: PandocMonad m => WriterOptions -> Style -> [Block] -> WS m Doc

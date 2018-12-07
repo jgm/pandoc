@@ -14,7 +14,6 @@ import Tests.Helpers
 import Text.Pandoc
 import Text.Pandoc.Arbitrary ()
 import Text.Pandoc.Builder
-import Text.Pandoc.Shared (underlineSpan)
 import Text.Pandoc.Walk
 
 amuse :: Text -> Pandoc
@@ -80,6 +79,7 @@ tests =
       , "Newline in the beginning of emphasis" =:
         "*\nFoo bar*" =?>
         para (text "*\nFoo bar*")
+
       , "Newline in the end of emphasis" =:
         "*Foo bar\n*" =?>
         para (text "*Foo bar\n*")
@@ -121,9 +121,6 @@ tests =
       , "Emphasis inside strong" =:
         "**foo *bar* baz**" =?>
         para (strong (text "foo " <> emph (text "bar") <> text " baz"))
-
-      , test emacsMuse "Underline"
-        ("_Underline_" =?> para (underlineSpan "Underline"))
 
       , "Superscript tag" =: "<sup>Superscript</sup>" =?> para (superscript "Superscript")
 

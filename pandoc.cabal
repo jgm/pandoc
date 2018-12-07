@@ -368,6 +368,8 @@ library
                  HTTP >= 4000.0.5 && < 4000.4,
                  texmath >= 0.11 && < 0.12,
                  xml >= 1.3.12 && < 1.4,
+                 criterion >=1.0 && <1.6,
+                 weigh ==0.0.*,
                  split >= 0.2 && < 0.3,
                  random >= 1 && < 1.2,
                  pandoc-types >= 1.17.5 && < 1.18,

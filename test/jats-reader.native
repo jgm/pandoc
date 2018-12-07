@@ -163,7 +163,7 @@ Pandoc (Meta {unMeta = fromList [("author",MetaList [MetaInlines [Str "John",Spa
  ,([Str "Cello",LineBreak,Str "Violoncello"],
    [[Para [Str "Low-voiced",Space,Str "stringed",Space,Str "instrument."]]])]
 ,Header 1 ("inline-markup",[],[]) [Str "Inline",Space,Str "Markup"]
-,Para [Str "This",Space,Str "is",Space,Emph [Str "emphasized"],Str ",",Space,Str "and",Space,Str "so",Space,Emph [Str "is",SoftBreak,Str "this"],Str "."]
+,Para [Str "This",Space,Str "is",Space,Emph [Str "emphasized"],Str ",",Space,Str "and",Space,Str "so",Space,Emph [Str "is",SoftBreak,Str "this"],Space,Str "but",Space,Str "this",Space,Str "is",Space,Underline [Str "underlined"],Str "."]
 ,Para [Str "This",Space,Str "is",Space,Strong [Str "strong"],Str ",",Space,Str "and",Space,Str "so",SoftBreak,Strong [Str "is",Space,Str "this"],Str "."]
 ,Para [Str "Empty",Space,Strong [],Space,Str "and",Space,Emph [],Str "."]
 ,Para [Str "An",SoftBreak,Emph [Link ("",[],[]) [Str "emphasized",SoftBreak,Str "link"] ("/url","")],Str "."]

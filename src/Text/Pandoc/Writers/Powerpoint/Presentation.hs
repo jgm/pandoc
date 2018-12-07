@@ -283,6 +283,7 @@ data LinkTarget = ExternalTarget (URL, String)
                 deriving (Show, Eq)
 
 data RunProps = RunProps { rPropBold :: Bool
+                         , rPropUnderline :: Bool
                          , rPropItalics :: Bool
                          , rStrikethrough :: Maybe Strikethrough
                          , rBaseline :: Maybe Int
@@ -292,13 +293,11 @@ data RunProps = RunProps { rPropBold :: Bool
                          , rPropBlockQuote :: Bool
                          , rPropForceSize :: Maybe Pixels
                          , rSolidFill :: Maybe Color
-                         -- TODO: Make a full underline data type with
-                         -- the different options.
-                         , rPropUnderline :: Bool
                          } deriving (Show, Eq)
 
 instance Default RunProps where
   def = RunProps { rPropBold = False
+                 , rPropUnderline = False
                  , rPropItalics = False
                  , rStrikethrough = Nothing
                  , rBaseline = Nothing
@@ -308,7 +307,6 @@ instance Default RunProps where
                  , rPropBlockQuote = False
                  , rPropForceSize = Nothing
                  , rSolidFill = Nothing
-                 , rPropUnderline = False
                  }
 
 data PicProps = PicProps { picPropLink :: Maybe LinkTarget
@@ -333,6 +331,9 @@ inlineToParElems (Str s) = do
   return [Run pr s]
 inlineToParElems (Emph ils) =
   local (\r -> r{envRunProps = (envRunProps r){rPropItalics=True}}) $
+  inlinesToParElems ils
+inlineToParElems (Underline ils) =
+  local (\r -> r{envRunProps = (envRunProps r){rPropUnderline=True}}) $
   inlinesToParElems ils
 inlineToParElems (Strong ils) =
   local (\r -> r{envRunProps = (envRunProps r){rPropBold=True}}) $

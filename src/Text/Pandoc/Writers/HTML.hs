@@ -1002,6 +1002,7 @@ inlineToHtml opts inline = do
                                     ++ ["font-variant:normal;"
                                          | "csl-no-smallcaps" `elem` classes]
     (Emph lst)       -> inlineListToHtml opts lst >>= return . H.em
+    (Underline lst)  -> inlineListToHtml opts lst >>= return . H.u
     (Strong lst)     -> inlineListToHtml opts lst >>= return . H.strong
     (Code attr str)  -> case hlCode of
                              Left msg -> do

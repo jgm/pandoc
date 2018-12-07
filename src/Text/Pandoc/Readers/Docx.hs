@@ -58,7 +58,7 @@ implemented, [-] means partially implemented):
   - [X] Superscript
   - [X] Subscript
   - [X] SmallCaps
-  - [-] Underline (was previously converted to Emph)
+  - [X] Underline
   - [ ] Quoted
   - [ ] Cite
   - [X] Code (styled with `VerbatimChar`)
@@ -264,6 +264,9 @@ resolveDependentRunStyle rPr
                   RunStyle { isBold = case isBold rPr of
                                Just bool -> Just bool
                                Nothing   -> isBold rPr'
+                           , isUnderline = case isUnderline rPr of
+                               Just bool  -> Just bool
+                               Nothing    -> isUnderline rPr'
                            , isItalic = case isItalic rPr of
                                Just bool -> Just bool
                                Nothing   -> isItalic rPr'
@@ -276,9 +279,6 @@ resolveDependentRunStyle rPr
                            , rVertAlign = case rVertAlign rPr of
                                Just valign -> Just valign
                                Nothing     -> rVertAlign rPr'
-                           , rUnderline = case rUnderline rPr of
-                               Just ulstyle -> Just ulstyle
-                               Nothing      -> rUnderline rPr'
                            , rStyle = rStyle rPr }
   | otherwise = return rPr
 
@@ -301,6 +301,9 @@ runStyleToTransform rPr
   | Just True <- isBold rPr = do
       transform <- runStyleToTransform rPr{isBold = Nothing}
       return $ strong . transform
+  | Just True <- isUnderline rPr = do
+      transform <- runStyleToTransform rPr{isUnderline = Nothing}
+      return $ underline . transform
   | Just True <- isSmallCaps rPr = do
       transform <- runStyleToTransform rPr{isSmallCaps = Nothing}
       return $ smallcaps . transform
@@ -313,9 +316,6 @@ runStyleToTransform rPr
   | Just SubScrpt <- rVertAlign rPr = do
       transform <- runStyleToTransform rPr{rVertAlign = Nothing}
       return $ subscript . transform
-  | Just "single" <- rUnderline rPr = do
-      transform <- runStyleToTransform rPr{rUnderline = Nothing}
-      return $ underlineSpan . transform
   | otherwise = return id
 
 runToInlines :: PandocMonad m => Run -> DocxContext m Inlines

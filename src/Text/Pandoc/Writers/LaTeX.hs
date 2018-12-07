@@ -1083,6 +1083,8 @@ inlineToLaTeX (Span (id',classes,kvs) ils) = do
                else foldr inCmd contents cmds)
 inlineToLaTeX (Emph lst) =
   inlineListToLaTeX lst >>= return . inCmd "emph"
+inlineToLaTeX (Underline lst) =
+  inlineListToLaTeX lst >>= return . inCmd "underline"
 inlineToLaTeX (Strong lst) =
   inlineListToLaTeX lst >>= return . inCmd "textbf"
 inlineToLaTeX (Strikeout lst) = do
@@ -1104,7 +1106,6 @@ inlineToLaTeX (Cite cits lst) = do
      Natbib   -> citationsToNatbib cits
      Biblatex -> citationsToBiblatex cits
      _        -> inlineListToLaTeX lst
-
 inlineToLaTeX (Code (_,classes,_) str) = do
   opts <- gets stOptions
   inHeading <- gets stInHeading

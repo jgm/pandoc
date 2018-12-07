@@ -256,12 +256,17 @@ inlinesToTEI opts lst = hcat <$> mapM (inlineToTEI opts) lst
 inlineToTEI :: PandocMonad m => WriterOptions -> Inline -> m Doc
 inlineToTEI _ (Str str) = return $ text $ escapeStringForXML str
 inlineToTEI opts (Emph lst) =
-  inTags False "hi" [("rendition","simple:italic")] <$> inlinesToTEI opts lst
+  inTags False "hi" [("rendition","simple:italic")] <$>
+    inlinesToTEI opts lst
+inlineToTEI opts (Underline lst) =
+  inTags False "hi" [("rendition", "simple:underline")] <$>
+    inlinesToTEI opts lst
 inlineToTEI opts (Strong lst) =
-  inTags False "hi" [("rendition", "simple:bold")] <$> inlinesToTEI opts lst
+  inTags False "hi" [("rendition", "simple:bold")] <$>
+    inlinesToTEI opts lst
 inlineToTEI opts (Strikeout lst) =
   inTags False "hi" [("rendition", "simple:strikethrough")] <$>
-  inlinesToTEI opts lst
+    inlinesToTEI opts lst
 inlineToTEI opts (Superscript lst) =
   inTags False "hi" [("rendition", "simple:superscript")] <$>
     inlinesToTEI opts lst
@@ -272,7 +277,8 @@ inlineToTEI opts (SmallCaps lst) =
   inTags False "hi" [("rendition", "simple:smallcaps")] <$>
     inlinesToTEI opts lst
 inlineToTEI opts (Quoted _ lst) =
-  inTagsSimple "quote" <$> inlinesToTEI opts lst
+  inTagsSimple "quote" <$>
+    inlinesToTEI opts lst
 inlineToTEI opts (Cite _ lst) =
   inlinesToTEI opts lst
 inlineToTEI opts (Span _ ils) =

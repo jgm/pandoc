@@ -11,7 +11,6 @@ import Tests.Helpers
 import Text.Pandoc
 import Text.Pandoc.Arbitrary ()
 import Text.Pandoc.Builder
-import Text.Pandoc.Shared (underlineSpan)
 
 t2t :: Text -> Pandoc
 -- t2t = handleError . readTxt2Tags (T2TMeta "date" "mtime" "in" "out") def
@@ -45,6 +44,10 @@ tests =
           "//Planet Punk//" =?>
           para (emph . spcSep $ ["Planet", "Punk"])
 
+      , "Leon Litwack" =:
+          "__Leon Litwack__" =?>
+          para (underline . spcSep $ ["Leon", "Litwack"])
+
       , "Strong" =:
           "**Cider**" =?>
           para (strong "Cider")
@@ -71,12 +74,12 @@ tests =
 
       , "Inline markup is greedy" =:
           "***** ///// _____ ----- ````` \"\"\"\"\" '''''" =?>
-          para (spcSep [strong "*", emph "/", underlineSpan "_"
+          para (spcSep [strong "*", emph "/", underline "_"
                        , strikeout "-", code "`", text "\""
                        , rawInline "html" "'"])
       , "Markup must be greedy" =:
           "**********    //////////    __________    ----------    ``````````   \"\"\"\"\"\"\"\"\"\"   ''''''''''" =?>
-                      para (spcSep [strong "******", emph "//////", underlineSpan "______"
+                      para (spcSep [strong "******", emph "//////", underline "______"
                        , strikeout "------", code "``````", text "\"\"\"\"\"\""
                        , rawInline "html" "''''''"])
       , "Inlines must be glued" =:

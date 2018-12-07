@@ -2,7 +2,7 @@ Regular text //italics// **bold //bold italics//**.
 
 This is Small Caps, and this is <del>strikethrough</del>.
 
-Some people use single underlines for //emphasis//.
+__Underlining is easy__
 
 Above the line is <sup>superscript</sup> and below the line is <sub>subscript</sub>.
 

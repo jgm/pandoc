@@ -31,6 +31,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
  Portability : portable
 
 Conversion of docx archive into Docx haskell type
+
 -}
 
 module Text.Pandoc.Readers.Docx.Parse ( Docx(..)
@@ -298,11 +299,11 @@ data VertAlign = BaseLn | SupScrpt | SubScrpt
                deriving Show
 
 data RunStyle = RunStyle { isBold      :: Maybe Bool
+                         , isUnderline :: Maybe Bool
                          , isItalic    :: Maybe Bool
                          , isSmallCaps :: Maybe Bool
                          , isStrike    :: Maybe Bool
                          , rVertAlign  :: Maybe VertAlign
-                         , rUnderline  :: Maybe String
                          , rStyle      :: Maybe CharStyle}
                 deriving Show
 
@@ -314,11 +315,11 @@ data ParStyleData = ParStyleData { headingLev   :: Maybe (String, Int)
 
 defaultRunStyle :: RunStyle
 defaultRunStyle = RunStyle { isBold = Nothing
+                           , isUnderline = Nothing
                            , isItalic = Nothing
                            , isSmallCaps = Nothing
                            , isStrike = Nothing
                            , rVertAlign = Nothing
-                           , rUnderline = Nothing
                            , rStyle = Nothing}
 
 type Target = String
@@ -1058,6 +1059,7 @@ elemToRunStyle ns element parentStyle
       {
         isBold = checkOnOff ns rPr (elemName ns "w" "b") `mplus`
                  checkOnOff ns rPr (elemName ns "w" "bCs")
+      , isUnderline = checkOnOff ns rPr (elemName ns "w" "u")
       , isItalic = checkOnOff ns rPr (elemName ns "w" "i") `mplus`
                    checkOnOff ns rPr (elemName ns "w" "iCs")
       , isSmallCaps = checkOnOff ns rPr (elemName ns "w" "smallCaps")
@@ -1069,9 +1071,6 @@ elemToRunStyle ns element parentStyle
              "superscript" -> SupScrpt
              "subscript"   -> SubScrpt
              _             -> BaseLn
-      , rUnderline =
-          findChildByName ns "w" "u" rPr >>=
-          findAttrByName ns "w" "val"
       , rStyle = parentStyle
         }
 elemToRunStyle _ _ _ = defaultRunStyle

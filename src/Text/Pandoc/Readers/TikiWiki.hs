@@ -388,6 +388,7 @@ inline = choice [ whitespace
                 , noparse
                 , strong
                 , emph
+                , underline
                 , nbsp
                 , image
                 , htmlComment
@@ -403,7 +404,6 @@ inline = choice [ whitespace
                 , escapedChar
                 , colored
                 , centered
-                , underlined
                 , boxed
                 , breakChars
                 , str
@@ -496,6 +496,10 @@ strong = try $ fmap B.strong (enclosed (string "__") nestedInlines)
 emph :: PandocMonad m => TikiWikiParser m B.Inlines
 emph = try $ fmap B.emph (enclosed (string "''") nestedInlines)
 
+-- ===underline===
+underline :: PandocMonad m => TikiWikiParser m B.Inlines
+underline = try $ fmap B.underline (enclosed (string "===") nestedInlines)
+
 -- ~246~
 escapedChar :: PandocMonad m => TikiWikiParser m B.Inlines
 escapedChar = try $ do
@@ -521,15 +525,6 @@ colored = try $ do
   inner <- many1 $ noneOf "~\n"
   string "~~"
   return $ B.str $ " NOT SUPPORTED: ~~ (colored) BEGIN: ~~" ++ inner ++ "~~ :END "
-
--- UNSUPPORTED, as there doesn't seem to be any facility in calibre
--- for this
-underlined :: PandocMonad m => TikiWikiParser m B.Inlines
-underlined = try $ do
-  string "==="
-  inner <- many1 $ noneOf "=\n"
-  string "==="
-  return $ B.str $ " NOT SUPPORTED: ==== (underlined) BEGIN: ===" ++ inner ++ "=== :END "
 
 -- UNSUPPORTED, as there doesn't seem to be any facility in calibre
 -- for this

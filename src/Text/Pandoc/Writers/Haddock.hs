@@ -226,6 +226,7 @@ inlineToHaddock opts (Span (ident,_,_) ils) = do
 inlineToHaddock opts (Emph lst) = do
   contents <- inlineListToHaddock opts lst
   return $ "/" <> contents <> "/"
+inlineToHaddock opts (Underline lst) = inlineListToHaddock opts lst
 inlineToHaddock opts (Strong lst) = do
   contents <- inlineListToHaddock opts lst
   return $ "__" <> contents <> "__"

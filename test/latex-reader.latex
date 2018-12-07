@@ -500,6 +500,7 @@ bar
 Interpreted markdown in a table:
 
 This is \emph{emphasized}
+Second comes the \underline{underlined}
 And this is \textbf{strong}
 Here's a simple block:
 

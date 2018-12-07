@@ -558,6 +558,16 @@ M.Emph = M.Inline:create_constructor(
   "content"
 )
 
+--- Creates an inline element representing underlined text.
+-- @function Underline
+-- @tparam      {Inline,..} content     inline content
+-- @treturn Inline underline element
+M.Underline = M.Inline:create_constructor(
+  "Underline",
+  function(content) return {c = ensureInlineList(content)} end,
+  "content"
+)
+
 --- Creates a Image inline element
 -- @function Image
 -- @tparam      {Inline,..} caption     text used to describe the image
