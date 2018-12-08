@@ -159,12 +159,13 @@ $endif$
 }{}
 $if(indent)$
 $else$
-\IfFileExists{parskip.sty}{%
-\usepackage{parskip}
-}{% else
-\setlength{\parindent}{0pt}
-\setlength{\parskip}{6pt plus 2pt minus 1pt}
-}
+\@ifundefined{KOMAClassName}{%
+  \IfFileExists{parskip.sty}{%
+  \usepackage{parskip}
+  }{% else
+  \setlength{\parindent}{0pt}
+  \setlength{\parskip}{6pt plus 2pt minus 1pt}
+  }}{\KOMAoptions{parskip=half}}
 $endif$
 $if(verbatim-in-note)$
 \usepackage{fancyvrb}
