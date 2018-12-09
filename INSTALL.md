@@ -63,7 +63,7 @@ under the heading for your operating system.
          brew install librsvg python homebrew/cask/basictex
     
     Note: On unsupported versions of macOS (more than three releases old),
-    Homebrew instals from source, which takes additional time and disk space
+    Homebrew installs from source, which takes additional time and disk space
     for the `ghc` compiler and dependent Haskell libraries.
     
   - We also provide a zip file containing the binaries and man
@@ -240,7 +240,7 @@ The easiest way to build pandoc from source is to use [stack]:
 
     Note that this requires the `text-icu` library, which in turn
     depends on the C library `icu4c`.  Installation directions
-    vary by platform.  Here is how it might work on macOS with homebrew:
+    vary by platform.  Here is how it might work on macOS with Homebrew:
 
         brew install icu4c
         cabal install --extra-lib-dirs=/usr/local/Cellar/icu4c/51.1/lib \
