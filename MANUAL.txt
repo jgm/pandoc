@@ -2051,7 +2051,7 @@ output formats
 Read all docx styles as divs (for paragraph styles) and spans (for
 character styles) regardless of whether pandoc understands the meaning
 of these styles. This can be used with [docx custom
-styles](#custom-styles-in-docx). Disabled by default.
+styles](#custom-styles). Disabled by default.
 
 input formats
 :  `docx`
@@ -4763,8 +4763,10 @@ To disable highlighting, use the `--no-highlight` option.
 
 [skylighting]: https://github.com/jgm/skylighting
 
-Custom Styles in Docx
-=====================
+Custom Styles
+=============
+
+Custom styles can be used in the docx and ICML formats.
 
 Input
 -----
@@ -4817,8 +4819,8 @@ same styles in your input and output files.
 Output
 ------
 
-By default, pandoc's docx output applies a predefined set of styles for
-blocks such as paragraphs and block quotes, and uses largely default
+By default, pandoc's docx and ICML output applies a predefined set of styles
+for blocks such as paragraphs and block quotes, and uses largely default
 formatting (italics, bold) for inlines. This will work for most
 purposes, especially alongside a `reference.docx` file. However, if you
 need to apply your own styles to blocks, or match a preexisting set of
@@ -4843,9 +4845,9 @@ style `Emphatically`. Similarly, using the `fenced_divs` syntax,
 
 would style the two contained lines with the `Poetry` paragraph style.
 
-If the styles are not yet in your reference.docx, they will be defined
-in the output file as inheriting from normal text. If they are already
-defined, pandoc will not alter the definition.
+For docx output, styles will be defined in the output file as inheriting
+from normal text, if the styles are not yet in your reference.docx.
+If they are already defined, pandoc will not alter the definition.
 
 This feature allows for greatest customization in conjunction with
 [pandoc filters]. If you want all paragraphs after block quotes to be
