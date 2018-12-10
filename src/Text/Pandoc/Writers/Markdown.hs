@@ -765,7 +765,8 @@ itemEndsWithTightList bs =
 -- | Convert bullet list item (list of blocks) to markdown.
 bulletListItemToMarkdown :: PandocMonad m => WriterOptions -> [Block] -> MD m Doc
 bulletListItemToMarkdown opts bs = do
-  contents <- blockListToMarkdown opts bs
+  let exts = writerExtensions opts
+  contents <- blockListToMarkdown opts $ taskListItemToAscii exts bs
   let sps = replicate (writerTabStop opts - 2) ' '
   let start = text ('-' : ' ' : sps)
   -- remove trailing blank line if item ends with a tight list
@@ -781,7 +782,8 @@ orderedListItemToMarkdown :: PandocMonad m
                           -> [Block]       -- ^ list item (list of blocks)
                           -> MD m Doc
 orderedListItemToMarkdown opts marker bs = do
-  contents <- blockListToMarkdown opts bs
+  let exts = writerExtensions opts
+  contents <- blockListToMarkdown opts $ taskListItemToAscii exts bs
   let sps = case length marker - writerTabStop opts of
                    n | n > 0 -> text $ replicate n ' '
                    _ -> text " "

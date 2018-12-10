@@ -43,7 +43,7 @@ import Text.Pandoc.Class (PandocMonad)
 import Text.Pandoc.Definition
 import Text.Pandoc.Emoji (emojiToInline)
 import Text.Pandoc.Options
-import Text.Pandoc.Shared (uniqueIdent)
+import Text.Pandoc.Shared (uniqueIdent, taskListItemFromAscii)
 import Text.Pandoc.Walk (walkM)
 
 -- | Parse a CommonMark formatted string into a 'Pandoc' structure.
@@ -111,12 +111,14 @@ addBlock _ (Node _ (CODE_BLOCK info t) _) =
 addBlock opts (Node _ (HEADING lev) nodes) =
   (Header lev ("",[],[]) (addInlines opts nodes) :)
 addBlock opts (Node _ (LIST listAttrs) nodes) =
-  (constructor (map (setTightness . addBlocks opts . children) nodes) :)
+  (constructor (map listItem nodes) :)
   where constructor = case listType listAttrs of
                        BULLET_LIST  -> BulletList
                        ORDERED_LIST -> OrderedList
                                          (start, DefaultStyle, delim)
         start = listStart listAttrs
+        listItem = taskListItemFromAscii exts . setTightness
+                     . addBlocks opts . children
         setTightness = if listTight listAttrs
                            then map paraToPlain
                            else id
@@ -125,6 +127,7 @@ addBlock opts (Node _ (LIST listAttrs) nodes) =
         delim = case listDelim listAttrs of
                      PERIOD_DELIM -> Period
                      PAREN_DELIM  -> OneParen
+        exts = readerExtensions opts
 addBlock opts (Node _ (TABLE alignments) nodes) =
   (Table [] aligns widths headers rows :)
   where aligns = map fromTableCellAlignment alignments

@@ -167,6 +167,7 @@ data Extension =
     | Ext_subscript           -- ^ Subscript using ~this~ syntax
     | Ext_superscript         -- ^ Superscript using ^this^ syntax
     | Ext_styles              -- ^ Read styles that pandoc doesn't know
+    | Ext_task_lists          -- ^ Parse certain list items as task list items
     | Ext_table_captions      -- ^ Pandoc-style table captions
     | Ext_tex_math_dollars    -- ^ TeX math between $..$ or $$..$$
     | Ext_tex_math_double_backslash  -- ^ TeX math btw \\(..\\) \\[..\\]
@@ -215,6 +216,7 @@ pandocExtensions = extensionsFromList
   , Ext_strikeout
   , Ext_superscript
   , Ext_subscript
+  , Ext_task_lists
   , Ext_auto_identifiers
   , Ext_header_attributes
   , Ext_link_attributes
@@ -274,6 +276,7 @@ githubMarkdownExtensions = extensionsFromList
   , Ext_space_in_atx_header
   , Ext_intraword_underscores
   , Ext_strikeout
+  , Ext_task_lists
   , Ext_emoji
   , Ext_lists_without_preceding_blankline
   , Ext_shortcut_reference_links

@@ -958,7 +958,8 @@ listItem fourSpaceRule start = try $ do
   let raw = concat (first:continuations)
   contents <- parseFromString' parseBlocks raw
   updateState (\st -> st {stateParserContext = oldContext})
-  return contents
+  exts <- getOption readerExtensions
+  return $ B.fromList . taskListItemFromAscii exts . B.toList <$> contents
 
 orderedList :: PandocMonad m => MarkdownParser m (F Blocks)
 orderedList = try $ do

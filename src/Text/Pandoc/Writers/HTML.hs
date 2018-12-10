@@ -365,6 +365,24 @@ defList :: PandocMonad m
         => WriterOptions -> [Html] -> StateT WriterState m Html
 defList opts items = toList H.dl opts (items ++ [nl opts])
 
+listItemToHtml :: PandocMonad m
+               => WriterOptions -> [Block] -> StateT WriterState m Html
+listItemToHtml opts bls
+  | Plain (Str "☐":Space:is) : bs <- bls = taskListItem False id  is bs
+  | Plain (Str "☒":Space:is) : bs <- bls = taskListItem True  id  is bs
+  | Para  (Str "☐":Space:is) : bs <- bls = taskListItem False H.p is bs
+  | Para  (Str "☒":Space:is) : bs <- bls = taskListItem True  H.p is bs
+  | otherwise = blockListToHtml opts bls
+  where
+    taskListItem checked constr is bs = do
+      let checkbox  = if checked
+                      then checkbox' ! A.checked ""
+                      else checkbox'
+          checkbox' = H.input ! A.type_ "checkbox" ! A.disabled "" >> nl opts
+      isContents <- inlineListToHtml opts is
+      bsContents <- blockListToHtml opts bs
+      return $ constr (checkbox >> isContents) >> bsContents
+
 -- | Construct table of contents from list of elements.
 tableOfContents :: PandocMonad m => WriterOptions -> [Element]
                 -> StateT WriterState m (Maybe Html)
@@ -824,10 +842,10 @@ blockToHtml opts (Header level attr@(_,classes,_) lst) = do
               6 -> H.h6 contents'
               _ -> H.p contents'
 blockToHtml opts (BulletList lst) = do
-  contents <- mapM (blockListToHtml opts) lst
+  contents <- mapM (listItemToHtml opts) lst
   unordList opts contents
 blockToHtml opts (OrderedList (startnum, numstyle, _) lst) = do
-  contents <- mapM (blockListToHtml opts) lst
+  contents <- mapM (listItemToHtml opts) lst
   html5 <- gets stHtml5
   let numstyle' = case numstyle of
                        Example -> "decimal"

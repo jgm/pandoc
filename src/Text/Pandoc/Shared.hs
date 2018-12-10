@@ -79,6 +79,8 @@ module Text.Pandoc.Shared (
                      headerShift,
                      stripEmptyParagraphs,
                      isTightList,
+                     taskListItemFromAscii,
+                     taskListItemToAscii,
                      addMetaField,
                      makeMeta,
                      eastAsianLineBreakFilter,
@@ -587,6 +589,36 @@ isTightList :: [[Block]] -> Bool
 isTightList = all firstIsPlain
   where firstIsPlain (Plain _ : _) = True
         firstIsPlain _             = False
+
+-- | Convert a list item containing tasklist syntax (e.g. @[x]@)
+-- to using @U+2610 BALLOT BOX@ or @U+2612 BALLOT BOX WITH X@.
+taskListItemFromAscii :: Extensions -> [Block] -> [Block]
+taskListItemFromAscii = handleTaskListItem fromMd
+  where
+    fromMd (Str "[" : Space : Str "]" : Space : is) = (Str "☐") : Space : is
+    fromMd (Str "[x]"                 : Space : is) = (Str "☒") : Space : is
+    fromMd (Str "[X]"                 : Space : is) = (Str "☒") : Space : is
+    fromMd is = is
+
+-- | Convert a list item containing text starting with @U+2610 BALLOT BOX@
+-- or @U+2612 BALLOT BOX WITH X@ to tasklist syntax (e.g. @[x]@).
+taskListItemToAscii :: Extensions -> [Block] -> [Block]
+taskListItemToAscii = handleTaskListItem toMd
+  where
+    toMd (Str "☐" : Space : is) = rawMd "[ ]" : Space : is
+    toMd (Str "☒" : Space : is) = rawMd "[x]" : Space : is
+    toMd is = is
+    rawMd = RawInline (Format "markdown")
+
+handleTaskListItem :: ([Inline] -> [Inline]) -> Extensions -> [Block] -> [Block]
+handleTaskListItem handleInlines exts bls =
+  if Ext_task_lists `extensionEnabled` exts
+  then handleItem bls
+  else bls
+  where
+    handleItem (Plain is : bs) = Plain (handleInlines is) : bs
+    handleItem (Para is  : bs) = Para  (handleInlines is) : bs
+    handleItem bs = bs
 
 -- | Set a field of a 'Meta' object.  If the field already has a value,
 -- convert it into a list with the new value appended to the old value(s).
