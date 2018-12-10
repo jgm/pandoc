@@ -655,7 +655,7 @@ bodyPartToBlocks (ListItem pPr numId lvl (Just levelInfo) parparts) = do
   -- since Docx expects us to pick up where we left off.
   listState <- gets docxListState
   let startFromState = M.lookup (numId, lvl) listState
-      (_, fmt,txt, startFromLevelInfo) = levelInfo
+      Level _ fmt txt startFromLevelInfo = levelInfo
       start = case startFromState of
         Just n -> n + 1
         Nothing -> fromMaybe 1 startFromLevelInfo

@@ -56,6 +56,7 @@ module Text.Pandoc.Readers.Docx.Parse ( Docx(..)
                                       , ChangeType(..)
                                       , ChangeInfo(..)
                                       , FieldInfo(..)
+                                      , Level(..)
                                       , archiveToDocx
                                       , archiveToDocxWithWarnings
                                       ) where
@@ -195,7 +196,8 @@ data AbstractNumb = AbstractNumb String [Level]
                     deriving Show
 
 -- (ilvl, format, string, start)
-type Level = (String, String, String, Maybe Integer)
+data Level = Level String String String (Maybe Integer)
+  deriving Show
 
 data DocumentLocation = InDocument | InFootnote | InEndnote
                       deriving (Eq,Show)
@@ -505,7 +507,7 @@ lookupLevel :: String -> String -> Numbering -> Maybe Level
 lookupLevel numId ilvl (Numbering _ numbs absNumbs) = do
   absNumId <- lookup numId $ map (\(Numb nid absnumid) -> (nid, absnumid)) numbs
   lvls <- lookup absNumId $ map (\(AbstractNumb aid ls) -> (aid, ls)) absNumbs
-  lookup ilvl $ map (\l@(i, _, _, _) -> (i, l)) lvls
+  lookup ilvl $ map (\l@(Level i _ _ _) -> (i, l)) lvls
 
 
 numElemToNum :: NameSpaces -> Element -> Maybe Numb
@@ -537,7 +539,7 @@ levelElemToLevel ns element
       let start = findChildByName ns "w" "start" element
                   >>= findAttrByName ns "w" "val"
                   >>= (\s -> listToMaybe (map fst (reads s :: [(Integer, String)])))
-      return (ilvl, fmt, txt, start)
+      return (Level ilvl fmt txt start)
 levelElemToLevel _ _ = Nothing
 
 archiveToNumbering' :: Archive -> Maybe Numbering
