@@ -192,14 +192,14 @@ data Numbering = Numbering NameSpaces [Numb] [AbstractNumb]
 data Numb = Numb String String [LevelOverride]
             deriving Show
 
--- ilvl, startOverride, lvl
-data LevelOverride = LevelOverride String (Maybe String) (Maybe Level)
+--                                 ilvl    startOverride   lvl
+data LevelOverride = LevelOverride String (Maybe Integer) (Maybe Level)
   deriving Show
 
 data AbstractNumb = AbstractNumb String [Level]
                     deriving Show
 
--- (ilvl, format, string, start)
+--                 ilvl   format string  start
 data Level = Level String String String (Maybe Integer)
   deriving Show
 
@@ -509,9 +509,19 @@ filePathIsMedia fp =
 
 lookupLevel :: String -> String -> Numbering -> Maybe Level
 lookupLevel numId ilvl (Numbering _ numbs absNumbs) = do
-  absNumId <- lookup numId $ map (\(Numb nid absnumid _) -> (nid, absnumid)) numbs
-  lvls <- lookup absNumId $ map (\(AbstractNumb aid ls) -> (aid, ls)) absNumbs
-  lookup ilvl $ map (\l@(Level i _ _ _) -> (i, l)) lvls
+  (absNumId, ovrrides) <- lookup numId $
+                          map (\(Numb nid absnumid ovrRides) -> (nid, (absnumid, ovrRides))) numbs
+  lvls <- lookup absNumId $
+    map (\(AbstractNumb aid ls) -> (aid, ls)) absNumbs
+  -- this can be a maybe, so we do a let
+  let lvlOverride = lookup ilvl $
+                    map (\lo@(LevelOverride ilvl' _ _) -> (ilvl', lo)) ovrrides
+  case lvlOverride of
+    Just (LevelOverride _ _ (Just lvl')) -> Just lvl'
+    Just (LevelOverride _ (Just strt) _) ->
+      lookup ilvl $ map (\(Level i fmt s _) -> (i, (Level i fmt s (Just strt)))) lvls
+    _ ->
+      lookup ilvl $ map (\l@(Level i _ _ _) -> (i, l)) lvls
 
 loElemToLevelOverride :: NameSpaces -> Element -> Maybe LevelOverride
 loElemToLevelOverride ns element
@@ -519,6 +529,7 @@ loElemToLevelOverride ns element
       ilvl <- findAttrByName ns "w" "ilvl" element
       let startOverride = findChildByName ns "w" "startOverride" element
                           >>= findAttrByName ns "w" "val"
+                          >>= (\s -> listToMaybe (map fst (reads s :: [(Integer, String)])))
           lvl = findChildByName ns "w" "lvl" element
                 >>= levelElemToLevel ns
       return $ LevelOverride ilvl startOverride lvl
