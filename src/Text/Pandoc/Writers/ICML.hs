@@ -315,8 +315,11 @@ blockToICML opts style (BlockQuote blocks) = blocksToICML opts (blockQuoteName:s
 blockToICML opts style (OrderedList attribs lst) = listItemsToICML opts orderedListName style (Just attribs) lst
 blockToICML opts style (BulletList lst) = listItemsToICML opts bulletListName style Nothing lst
 blockToICML opts style (DefinitionList lst) = intersperseBrs `fmap` mapM (definitionListItemToICML opts style) lst
-blockToICML opts style (Header lvl _ lst) =
-  let stl = (headerName ++ show lvl):style
+blockToICML opts style (Header lvl (_, cls, _) lst) =
+  let stl = (headerName ++ show lvl ++ unnumbered):style
+      unnumbered = if "unnumbered" `elem` cls
+                   then " (unnumbered)"
+                   else ""
   in parStyle opts stl lst
 blockToICML _ _ HorizontalRule = return empty -- we could insert a page break instead
 blockToICML opts style (Table caption aligns widths headers rows) =
