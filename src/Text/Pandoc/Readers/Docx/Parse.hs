@@ -189,8 +189,12 @@ type ParStyleMap = M.Map String ParStyleData
 data Numbering = Numbering NameSpaces [Numb] [AbstractNumb]
                  deriving Show
 
-data Numb = Numb String String           -- right now, only a key to an abstract num
+data Numb = Numb String String [LevelOverride]
             deriving Show
+
+-- ilvl, startOverride, lvl
+data LevelOverride = LevelOverride String (Maybe String) (Maybe Level)
+  deriving Show
 
 data AbstractNumb = AbstractNumb String [Level]
                     deriving Show
@@ -505,10 +509,20 @@ filePathIsMedia fp =
 
 lookupLevel :: String -> String -> Numbering -> Maybe Level
 lookupLevel numId ilvl (Numbering _ numbs absNumbs) = do
-  absNumId <- lookup numId $ map (\(Numb nid absnumid) -> (nid, absnumid)) numbs
+  absNumId <- lookup numId $ map (\(Numb nid absnumid _) -> (nid, absnumid)) numbs
   lvls <- lookup absNumId $ map (\(AbstractNumb aid ls) -> (aid, ls)) absNumbs
   lookup ilvl $ map (\l@(Level i _ _ _) -> (i, l)) lvls
 
+loElemToLevelOverride :: NameSpaces -> Element -> Maybe LevelOverride
+loElemToLevelOverride ns element
+  | isElem ns "w" "lvlOverride" element = do
+      ilvl <- findAttrByName ns "w" "ilvl" element
+      let startOverride = findChildByName ns "w" "startOverride" element
+                          >>= findAttrByName ns "w" "val"
+          lvl = findChildByName ns "w" "lvl" element
+                >>= levelElemToLevel ns
+      return $ LevelOverride ilvl startOverride lvl
+loElemToLevelOverride _ _ = Nothing
 
 numElemToNum :: NameSpaces -> Element -> Maybe Numb
 numElemToNum ns element
@@ -516,7 +530,10 @@ numElemToNum ns element
       numId <- findAttrByName ns "w" "numId" element
       absNumId <- findChildByName ns "w" "abstractNumId" element
                   >>= findAttrByName ns "w" "val"
-      return $ Numb numId absNumId
+      let lvlOverrides = mapMaybe
+                         (loElemToLevelOverride ns)
+                         (findChildrenByName ns "w" "lvlOverride" element)
+      return $ Numb numId absNumId lvlOverrides
 numElemToNum _ _ = Nothing
 
 absNumElemToAbsNum :: NameSpaces -> Element -> Maybe AbstractNumb
