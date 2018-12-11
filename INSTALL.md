@@ -7,7 +7,9 @@ Look out for the following name for your platform:
 - macOS: `*-macOS.pkg`
 - Linux: `*-amd64.deb`
 
-**[Download the latest installer][download button]**
+<a href="https://github.com/jgm/pandoc/releases/latest"
+class="btn btn-block btn-primary"><strong>Download the latest
+installer</strong></a>
 
 For alternative ways to install pandoc, see below
 under the heading for your operating system.
@@ -393,7 +395,6 @@ To run just the markdown benchmarks:
 [NixOS]: https://nixos.org/nixos/packages.html
 [Slackware]: https://www.slackbuilds.org/result/?search=pandoc&sv=
 [Ubuntu]: https://packages.ubuntu.com/pandoc
-[download button]: https://github.com/jgm/pandoc/releases/latest
 [download page]: https://github.com/jgm/pandoc/releases/latest
 [gentoo]: http://packages.gentoo.org/package/app-text/pandoc
 [haskell repository]: https://wiki.archlinux.org/index.php/Haskell_Package_Guidelines#.5Bhaskell.5D
