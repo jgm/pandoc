@@ -23,17 +23,17 @@ under the heading for your operating system.
     a zip file that contains pandoc's binaries and
     documentation.  Simply unzip this file and move the binaries
     to a directory of your choice.
-    
+
   - Alternatively, you can install pandoc using
     [Chocolatey](https://chocolatey.org):
-    
+
         choco install pandoc
-    
+
     Chocolatey can also install other software that integrates with Pandoc.
     For example, to install `rsvg-convert` (from [librsvg], covering formats
     without SVG support), [Python] (to use Pandoc filters), and
     [MiKTeX] (to typeset PDFs with [LaTeX]):
-    
+
         choco install rsvg-convert python miktex
 
   - By default, Pandoc creates PDFs using LaTeX.
@@ -48,24 +48,24 @@ under the heading for your operating system.
 
   - Alternatively, you can install pandoc using
     [Homebrew](http://brew.sh):
-     
+
          brew install pandoc
 
     To include pandoc's citation parser:
-     
+
          brew install pandoc-citeproc
-    
+
     Homebrew can also install other software that integrates with Pandoc.
     For example, to install [librsvg] (its `rsvg-convert` covers formats
     without SVG support), [Python] (to use Pandoc filters), and
     [BasicTeX] (to typeset PDFs with [LaTeX]):
-    
+
          brew install librsvg python homebrew/cask/basictex
-    
+
     Note: On unsupported versions of macOS (more than three releases old),
     Homebrew installs from source, which takes additional time and disk space
     for the `ghc` compiler and dependent Haskell libraries.
-    
+
   - We also provide a zip file containing the binaries and man
     pages, for those who prefer not to use the installer.  Simply
     unzip the file and move the binaries and man pages to
@@ -87,7 +87,7 @@ under the heading for your operating system.
 
   - To get the latest release, we provide a binary package for amd64
     architecture on the **[download page]**.
-    
+
     This provides both `pandoc` and `pandoc-citeproc`.
     The executables are statically linked and
     have no dynamic dependencies or dependencies on external
@@ -172,9 +172,9 @@ the last released version.
 
 ### Quick stack method
 
-The easiest way to build pandoc from source is to use [stack]:
+The easiest way to build pandoc from source is to use [stack][stack]:
 
-1.  Install [stack]. Note that Pandoc requires stack >= 1.6.0.
+1.  Install [stack][stack]. Note that Pandoc requires stack >= 1.7.0.
 
 2.  Change to the pandoc source directory and issue the following commands:
 
@@ -393,12 +393,12 @@ To run just the markdown benchmarks:
 [NixOS]: https://nixos.org/nixos/packages.html
 [Slackware]: https://www.slackbuilds.org/result/?search=pandoc&sv=
 [Ubuntu]: https://packages.ubuntu.com/pandoc
-[download button]: https://github.com/jgm/pandoc/releases/latest {.btn .btn-block .btn-primary}
+[download button]: https://github.com/jgm/pandoc/releases/latest
 [download page]: https://github.com/jgm/pandoc/releases/latest
 [gentoo]: http://packages.gentoo.org/package/app-text/pandoc
 [haskell repository]: https://wiki.archlinux.org/index.php/Haskell_Package_Guidelines#.5Bhaskell.5D
 [openSUSE]: https://software.opensuse.org/package/pandoc
 [source tarball]: http://hackage.haskell.org/package/pandoc
-[stack]: http://docs.haskellstack.org/en/stable/install_and_upgrade.html
+[stack]: https://docs.haskellstack.org/en/stable/install_and_upgrade.html
 [cabal-install]: http://hackage.haskell.org/package/cabal-install
 [uninstaller]: https://raw.githubusercontent.com/jgm/pandoc/master/macos/uninstall-pandoc.pl
