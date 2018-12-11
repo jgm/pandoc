@@ -8,8 +8,9 @@ Look out for the following name for your platform:
 - Linux: `*-amd64.deb`
 
 <a href="https://github.com/jgm/pandoc/releases/latest"
-class="btn btn-block btn-primary"><strong>Download the latest
-installer</strong></a>
+class="btn btn-block btn-primary"><span style="font-size:
+140%">Download the latest
+installer</span></a>
 
 For alternative ways to install pandoc, see below
 under the heading for your operating system.
