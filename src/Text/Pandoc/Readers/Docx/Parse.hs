@@ -56,6 +56,7 @@ module Text.Pandoc.Readers.Docx.Parse ( Docx(..)
                                       , ChangeType(..)
                                       , ChangeInfo(..)
                                       , FieldInfo(..)
+                                      , Level(..)
                                       , archiveToDocx
                                       , archiveToDocxWithWarnings
                                       ) where
@@ -188,14 +189,19 @@ type ParStyleMap = M.Map String ParStyleData
 data Numbering = Numbering NameSpaces [Numb] [AbstractNumb]
                  deriving Show
 
-data Numb = Numb String String           -- right now, only a key to an abstract num
+data Numb = Numb String String [LevelOverride]
             deriving Show
+
+--                                 ilvl    startOverride   lvl
+data LevelOverride = LevelOverride String (Maybe Integer) (Maybe Level)
+  deriving Show
 
 data AbstractNumb = AbstractNumb String [Level]
                     deriving Show
 
--- (ilvl, format, string, start)
-type Level = (String, String, String, Maybe Integer)
+--                 ilvl   format string  start
+data Level = Level String String String (Maybe Integer)
+  deriving Show
 
 data DocumentLocation = InDocument | InFootnote | InEndnote
                       deriving (Eq,Show)
@@ -503,10 +509,31 @@ filePathIsMedia fp =
 
 lookupLevel :: String -> String -> Numbering -> Maybe Level
 lookupLevel numId ilvl (Numbering _ numbs absNumbs) = do
-  absNumId <- lookup numId $ map (\(Numb nid absnumid) -> (nid, absnumid)) numbs
-  lvls <- lookup absNumId $ map (\(AbstractNumb aid ls) -> (aid, ls)) absNumbs
-  lookup ilvl $ map (\l@(i, _, _, _) -> (i, l)) lvls
+  (absNumId, ovrrides) <- lookup numId $
+                          map (\(Numb nid absnumid ovrRides) -> (nid, (absnumid, ovrRides))) numbs
+  lvls <- lookup absNumId $
+    map (\(AbstractNumb aid ls) -> (aid, ls)) absNumbs
+  -- this can be a maybe, so we do a let
+  let lvlOverride = lookup ilvl $
+                    map (\lo@(LevelOverride ilvl' _ _) -> (ilvl', lo)) ovrrides
+  case lvlOverride of
+    Just (LevelOverride _ _ (Just lvl')) -> Just lvl'
+    Just (LevelOverride _ (Just strt) _) ->
+      lookup ilvl $ map (\(Level i fmt s _) -> (i, (Level i fmt s (Just strt)))) lvls
+    _ ->
+      lookup ilvl $ map (\l@(Level i _ _ _) -> (i, l)) lvls
 
+loElemToLevelOverride :: NameSpaces -> Element -> Maybe LevelOverride
+loElemToLevelOverride ns element
+  | isElem ns "w" "lvlOverride" element = do
+      ilvl <- findAttrByName ns "w" "ilvl" element
+      let startOverride = findChildByName ns "w" "startOverride" element
+                          >>= findAttrByName ns "w" "val"
+                          >>= (\s -> listToMaybe (map fst (reads s :: [(Integer, String)])))
+          lvl = findChildByName ns "w" "lvl" element
+                >>= levelElemToLevel ns
+      return $ LevelOverride ilvl startOverride lvl
+loElemToLevelOverride _ _ = Nothing
 
 numElemToNum :: NameSpaces -> Element -> Maybe Numb
 numElemToNum ns element
@@ -514,7 +541,10 @@ numElemToNum ns element
       numId <- findAttrByName ns "w" "numId" element
       absNumId <- findChildByName ns "w" "abstractNumId" element
                   >>= findAttrByName ns "w" "val"
-      return $ Numb numId absNumId
+      let lvlOverrides = mapMaybe
+                         (loElemToLevelOverride ns)
+                         (findChildrenByName ns "w" "lvlOverride" element)
+      return $ Numb numId absNumId lvlOverrides
 numElemToNum _ _ = Nothing
 
 absNumElemToAbsNum :: NameSpaces -> Element -> Maybe AbstractNumb
@@ -537,7 +567,7 @@ levelElemToLevel ns element
       let start = findChildByName ns "w" "start" element
                   >>= findAttrByName ns "w" "val"
                   >>= (\s -> listToMaybe (map fst (reads s :: [(Integer, String)])))
-      return (ilvl, fmt, txt, start)
+      return (Level ilvl fmt txt start)
 levelElemToLevel _ _ = Nothing
 
 archiveToNumbering' :: Archive -> Maybe Numbering

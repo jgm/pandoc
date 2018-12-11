@@ -231,6 +231,10 @@ tests = [ testGroup "inlines"
             "docx/lists.docx"
             "docx/lists.native"
           , testCompare
+            "lists with level overrides"
+            "docx/lists_level_override.docx"
+            "docx/lists_level_override.native"
+          , testCompare
             "lists continuing after interruption"
             "docx/lists_continuing.docx"
             "docx/lists_continuing.native"
