@@ -21,13 +21,16 @@
 \usepackage[]{microtype}
 \UseMicrotypeSet[protrusion]{basicmath} % disable protrusion for tt fonts
 }{}
+\makeatletter
 \@ifundefined{KOMAClassName}{%
   \IfFileExists{parskip.sty}{%
-  \usepackage{parskip}
+    \usepackage{parskip}
   }{% else
-  \setlength{\parindent}{0pt}
-  \setlength{\parskip}{6pt plus 2pt minus 1pt}
-  }}{\KOMAoptions{parskip=half}}
+    \setlength{\parindent}{0pt}
+    \setlength{\parskip}{6pt plus 2pt minus 1pt}}
+}{% else
+  \KOMAoptions{parskip=half}}
+\makeatother
 \usepackage{hyperref}
 \hypersetup{
             pdfborder={0 0 0},
