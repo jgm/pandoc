@@ -21,7 +21,7 @@ import Prelude
 import Control.Monad.Except (catchError)
 import Control.Monad.State.Strict
 import Data.List (intersperse, isInfixOf, isPrefixOf, stripPrefix)
-import Data.Maybe (fromMaybe)
+import Data.Maybe (fromMaybe, maybeToList)
 import qualified Data.Set as Set
 import Data.Text as Text (breakOnAll, pack)
 import Data.Text (Text)
@@ -287,6 +287,9 @@ hyperlinksToDoc (x:xs) = hyp x $$ hyperlinksToDoc xs
                   $ inTags False "BorderColor" [("type","enumeration")] (text "Black")
                   $$ inTags False "Destination" [("type","object")] (text $ "HyperlinkURLDestination/"++escapeColons (escapeStringForXML url)) -- HyperlinkURLDestination with more than one colon crashes CS6
 
+-- | Key for specifying user-defined styles
+dynamicStyleKey :: String
+dynamicStyleKey = "custom-style"
 
 -- | Convert a list of Pandoc blocks to ICML.
 blocksToICML :: PandocMonad m => WriterOptions -> Style -> [Block] -> WS m Doc
@@ -365,7 +368,9 @@ blockToICML opts style (Table caption aligns widths headers rows) =
                        , ("ColumnCount", show nrCols)
                        ] (colDescs $$ cells)
       liftM2 ($$) tableDoc $ parStyle opts (tableCaptionName:style) caption
-blockToICML opts style (Div _ lst) = blocksToICML opts style lst
+blockToICML opts style (Div (_, _, kvs) lst) =
+  let dynamicStyle = maybeToList $ lookup dynamicStyleKey kvs
+  in  blocksToICML opts (dynamicStyle <> style) lst
 blockToICML _ _ Null = return empty
 
 -- | Convert a list of lists of blocks to ICML list items.
@@ -463,7 +468,9 @@ inlineToICML opts style (Link _ lst (url, title)) = do
             in  (cont, newst)
 inlineToICML opts style (Image attr _ target) = imageICML opts style attr target
 inlineToICML opts style (Note lst) = footnoteToICML opts style lst
-inlineToICML opts style (Span _ lst) = inlinesToICML opts style lst
+inlineToICML opts style (Span (_, _, kvs) lst) =
+  let dynamicStyle = maybeToList $ lookup dynamicStyleKey kvs
+  in  inlinesToICML opts (dynamicStyle <> style) lst
 
 -- | Convert a list of block elements to an ICML footnote.
 footnoteToICML :: PandocMonad m => WriterOptions -> Style -> [Block] -> WS m Doc
