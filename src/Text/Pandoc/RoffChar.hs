@@ -53,7 +53,6 @@ standardEscapes =
   , ('`', "\\[ga]")
   , ('^', "\\[ha]")
   , ('~', "\\[ti]")
-  , ('-', "\\-")  -- minus; - will be interpreted as hyphen U+2010
   , ('\\', "\\[rs]")
   , ('@', "\\[at]") -- because we use @ as a table and math delimiter
   , ('\x2026', "\\&...")  -- because u2026 doesn't render on tty
