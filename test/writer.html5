@@ -8,7 +8,7 @@
   <meta name="author" content="Anonymous" />
   <meta name="dcterms.date" content="2006-07-17" />
   <title>Pandoc Test Suite</title>
-  <style type="text/css">
+  <style>
       code{white-space: pre-wrap;}
       span.smallcaps{font-variant: small-caps;}
       span.underline{text-decoration: underline;}
