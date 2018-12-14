@@ -81,6 +81,12 @@ tests = [ testGroup "inlines"
           , "Footnote" =:
             "((This is a footnote))" =?>
             para (note (para "This is a footnote"))
+          , "Image" =:
+            "{{image.jpg}}" =?>
+            para (image "image.jpg" "" mempty)
+          , "Image with caption" =:
+            "{{image.png|This is the caption}}" =?>
+            para (image "image.png" "" "This is the caption")
           ]
         , testGroup "Sectioning"
           [ "Headline level 1" =:

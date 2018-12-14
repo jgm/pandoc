@@ -49,7 +49,6 @@ import Text.Pandoc.Parsing hiding (enclosed, nested)
 import Text.Pandoc.Shared (crFilter, underlineSpan)
 
 {-
- - TODO: images
  - TODO: tables
  -}
 
@@ -102,6 +101,7 @@ inline' = whitespace
       <|> nowiki
       <|> percent
       <|> link
+      <|> image
       <|> monospaced
       <|> subscript
       <|> superscript
@@ -239,6 +239,14 @@ linkText = do
   where
     linkContent      = many1Till anyChar (char ']') >>= parseLinkContent
     parseLinkContent = parseFromString' $ many1 inline
+
+image :: PandocMonad m => DWParser m B.Inlines
+image = try $ do
+  string "{{"
+  filename <- many1Till anyChar (lookAhead (void (char '|') <|> try (void $ string "}}")))
+  description <- mconcat <$> option mempty (char '|' *> manyTill inline (lookAhead $ string "}}"))
+  string "}}"
+  pure $ B.image filename "" description
 
 -- * Block parsers
 
