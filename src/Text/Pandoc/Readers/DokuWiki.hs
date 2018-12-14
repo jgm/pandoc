@@ -109,6 +109,7 @@ inline' = whitespace
       <|> footnote
       <|> code
       <|> inlineHtml
+      <|> inlinePhp
       <|> autoLink
       <|> autoEmail
       <|> str
@@ -193,6 +194,9 @@ code = try $ B.code <$ string "<code>" <*> manyTill anyChar (try $ string "</cod
 inlineHtml :: PandocMonad m => DWParser m B.Inlines
 inlineHtml = try $ B.rawInline "html" <$ string "<html>" <*> manyTill anyChar (try $ string "</html>")
 
+inlinePhp :: PandocMonad m => DWParser m B.Inlines
+inlinePhp = try $ B.codeWith ("", ["php"], []) <$ string "<php>" <*> manyTill anyChar (try $ string "</php>")
+
 makeLink :: (String, String) -> B.Inlines
 makeLink (text, url) = B.link url "" $ B.str text
 
@@ -265,6 +269,7 @@ blockElements = horizontalLine
             <|> list "  "
             <|> quote
             <|> blockHtml
+            <|> blockPhp
 
 horizontalLine :: PandocMonad m => DWParser m B.Blocks
 horizontalLine = try $ B.horizontalRule <$ string "---" <* many1 (char '-') <* eol
@@ -311,6 +316,9 @@ quote = try $ nestedQuote 0
 
 blockHtml :: PandocMonad m => DWParser m B.Blocks
 blockHtml = try $ B.rawBlock "html" <$ string "<HTML>" <*> manyTill anyChar (try $ string "</HTML>")
+
+blockPhp :: PandocMonad m => DWParser m B.Blocks
+blockPhp = try $ B.codeBlockWith ("", ["php"], []) <$ string "<PHP>" <*> manyTill anyChar (try $ string "</PHP>")
 
 para :: PandocMonad m => DWParser m B.Blocks
 para = result . mconcat <$> many1Till inline endOfParaElement
