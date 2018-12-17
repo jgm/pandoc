@@ -1557,6 +1557,7 @@ newcommand = do
   Tok _ (CtrlSeq mtype) _ <- controlSeq "newcommand" <|>
                              controlSeq "renewcommand" <|>
                              controlSeq "providecommand" <|>
+                             controlSeq "DeclareMathOperator" <|>
                              controlSeq "DeclareRobustCommand"
   withVerbatimMode $ do
     Tok _ (CtrlSeq name) txt <- do
@@ -1569,7 +1570,16 @@ newcommand = do
     spaces
     optarg <- option Nothing $ Just <$> try bracketedToks
     spaces
-    contents <- bracedOrToken
+    contents' <- bracedOrToken
+    let contents =
+         case mtype of
+              "DeclareMathOperator" ->
+                 Tok pos (CtrlSeq "mathop") "\\mathop"
+                 : Tok pos (CtrlSeq "mathrm") "\\mathrm"
+                 : Tok pos Symbol "{"
+                 : (contents' ++
+                   [ Tok pos Symbol "}" ])
+              _                     -> contents'
     when (mtype == "newcommand") $ do
       macros <- sMacros <$> getState
       case M.lookup name macros of
