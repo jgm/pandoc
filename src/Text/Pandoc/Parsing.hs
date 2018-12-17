@@ -736,7 +736,7 @@ lowerRoman = do
 decimal :: Stream s m Char => ParserT s st m (ListNumberStyle, Int)
 decimal = do
   num <- many1 digit
-  return (Decimal, read num)
+  return (Decimal, fromMaybe 1 $ safeRead num)
 
 -- | Parses a '@' and optional label and
 -- returns (DefaultStyle, [next example number]).  The next
