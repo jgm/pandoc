@@ -265,7 +265,7 @@ macroDefinition = try $ do
   return (macroName, expander)
  where
   placeholder :: Monad m => OrgParser m Int
-  placeholder = try . fmap read $ char '$' *> many1 digit
+  placeholder = try . fmap (fromMaybe 1 . safeRead) $ char '$' *> many1 digit
 
   expansionPart :: Monad m => OrgParser m String
   expansionPart = try $ many (notFollowedBy placeholder *> noneOf "\n\r")

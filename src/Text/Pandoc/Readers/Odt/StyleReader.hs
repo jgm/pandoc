@@ -62,7 +62,6 @@ import Prelude
 import Control.Applicative hiding (liftA, liftA2, liftA3)
 import Control.Arrow
 
-import Data.Char (isDigit)
 import Data.Default
 import qualified Data.Foldable as F
 import Data.List (unfoldr)
@@ -71,6 +70,8 @@ import Data.Maybe
 import qualified Data.Set as S
 
 import qualified Text.XML.Light as XML
+
+import Text.Pandoc.Shared (safeRead)
 
 import Text.Pandoc.Readers.Odt.Arrows.Utils
 
@@ -576,11 +577,7 @@ readListLevelStyle levelType =      readAttr NsText "level"
   toListLevelStyle _ p s LinfNone b         = ListLevelStyle LltBullet p s LinfNone (startValue b)
   toListLevelStyle _ p s f@(LinfString _) b = ListLevelStyle LltBullet p s f (startValue b)
   toListLevelStyle t p s f b                = ListLevelStyle t      p s f (startValue b)
-  startValue (Just "") = 1
-  startValue (Just v)  = if all isDigit v
-                           then read v
-                           else 1
-  startValue Nothing   = 1
+  startValue mbx = fromMaybe 1 (mbx >>= safeRead)
 
 --
 chooseMostSpecificListLevelStyle :: S.Set ListLevelStyle -> Maybe ListLevelStyle

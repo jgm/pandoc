@@ -39,21 +39,21 @@ import Data.List
 import Data.Maybe
 import Text.Pandoc.Generic (bottomUp)
 import Text.Pandoc.JSON
-import Text.Pandoc.Shared (trim)
+import Text.Pandoc.Shared (trim, safeRead)
 
 isListItem :: Block -> Bool
 isListItem (Div (_, classes, _) _) | "list-item" `elem` classes = True
 isListItem _                       = False
 
 getLevel :: Block -> Maybe Integer
-getLevel (Div (_, _, kvs) _) =  read <$> lookup "level" kvs
+getLevel (Div (_, _, kvs) _) =  lookup "level" kvs >>= safeRead
 getLevel _                   = Nothing
 
 getLevelN :: Block -> Integer
 getLevelN b = fromMaybe (-1) (getLevel b)
 
 getNumId :: Block -> Maybe Integer
-getNumId (Div (_, _, kvs) _) =  read <$> lookup "num-id" kvs
+getNumId (Div (_, _, kvs) _) =  lookup "num-id" kvs >>= safeRead
 getNumId _                   = Nothing
 
 getNumIdN :: Block -> Integer
@@ -89,7 +89,7 @@ getListType b@(Div (_, _, kvs) _) | isListItem b =
      Just f        ->
        case txt of
          Just t -> Just $ Enumerated (
-                  read (fromMaybe "1" start) :: Int,
+                  fromMaybe 1 (start >>= safeRead) :: Int,
                   fromMaybe DefaultStyle (lookup f listStyleMap),
                   fromMaybe DefaultDelim (lookup t listDelimMap))
          Nothing -> Nothing
