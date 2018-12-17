@@ -49,7 +49,7 @@ import Control.Arrow (first)
 import Control.Monad (guard, mplus, msum, mzero, unless, void)
 import Control.Monad.Except (throwError)
 import Control.Monad.Reader (ReaderT, ask, asks, lift, local, runReaderT)
-import Data.Char (isAlphaNum, isDigit, isLetter)
+import Data.Char (isAlphaNum, isLetter)
 import Data.Default (Default (..), def)
 import Data.Foldable (for_)
 import Data.List (isPrefixOf)
@@ -319,9 +319,7 @@ pOrderedList = try $ do
   let (start, style) = (sta', sty')
                        where sta = fromMaybe "1" $
                                    lookup "start" attribs
-                             sta' = if all isDigit sta
-                                       then read sta
-                                       else 1
+                             sta' = fromMaybe 1 $ safeRead sta
 
                              pickListStyle = pickStyleAttrProps ["list-style-type", "list-style"]
 
