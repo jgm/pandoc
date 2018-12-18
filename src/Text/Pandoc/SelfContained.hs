@@ -250,7 +250,7 @@ getData _ src@('d':'a':'t':'a':':':_) = return $ Left src-- already data: uri
 getData mimetype src = do
   let ext = map toLower $ takeExtension src
   (raw, respMime) <- fetchItem src
-  let raw' = if ext == ".gz"
+  let raw' = if ext `elem` [".gz", ".svgz"]
                 then B.concat $ L.toChunks $ Gzip.decompress $ L.fromChunks [raw]
                 else raw
   mime <- case (mimetype, respMime) of
