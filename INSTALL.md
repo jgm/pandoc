@@ -1,16 +1,11 @@
 # Installing pandoc
 
 The simplest way to get the latest pandoc release is to use the installer.
-Look out for the following name for your platform:
-
-- Windows: `*-windows-x86_64.msi` (unless you're still on 32-bit),
-- macOS: `*-macOS.pkg`
-- Linux: `*-amd64.deb`
 
 <a href="https://github.com/jgm/pandoc/releases/latest"
-class="btn btn-block btn-primary"><span style="font-size:
-140%">Download the latest
-installer</span></a>
+  class="btn btn-primary" id="downloadInstallerBtn">
+  Download the latest installer
+</a>
 
 For alternative ways to install pandoc, see below
 under the heading for your operating system.
