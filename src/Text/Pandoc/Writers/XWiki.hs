@@ -224,7 +224,9 @@ inlineToXWiki (Image _ alt (source, tit)) = do
         ]
   return $ "[[image:" <> (pack source) <> (if Text.null params then "" else "||" <> params) <> "]]"
 
-inlineToXWiki (Note contents) = blockListToXWiki contents
+inlineToXWiki (Note contents) = do
+  contents' <- blockListToXWiki contents
+  return $ "{{footnote}}" <> (Text.strip contents') <> "{{/footnote}}"
 
 -- FIXME: support attrs
 inlineToXWiki (Span _ contents) = inlineListToXWiki contents
