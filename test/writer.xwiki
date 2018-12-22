@@ -54,34 +54,34 @@ here.
 E-mail style:
 
 
-> This is a block quote. It is pretty short.
-> 
-> 
-> Code in a block quote:
-> 
-> 
-> 
-> {{code}}
-> sub status {
->     print "working";
-> }
-> {{/code}}
-> 
-> A list:
-> 
-> 
-> 1. item one
-> 1. item two
-> 
-> Nested block quotes:
-> 
-> 
-> > nested
-> > 
-> > 
-> > nested
-> > 
-> > 
+>This is a block quote. It is pretty short.
+>
+>
+>Code in a block quote:
+>
+>
+>
+>{{code}}
+>sub status {
+>    print "working";
+>}
+>{{/code}}
+>
+>A list:
+>
+>
+>1. item one
+>1. item two
+>
+>Nested block quotes:
+>
+>
+>>nested
+>>
+>>
+>>nested
+>>
+>>
 This should not be a block quote: 2 > 1.
 
 
@@ -387,9 +387,9 @@ contains seeds, crisp, pleasant to taste
 { orange code block }
 {{/code}}
 
-> orange block quote
-> 
-> 
+>orange block quote
+>
+>
 
 Multiple definitions, tight:
 
@@ -799,9 +799,9 @@ With an ampersand: http://example.com/?foo=1&bar=2
 An e-mail address: [[nobody@nowhere.net>>mailto:nobody@nowhere.net]]
 
 
-> Blockquoted: http://example.com/
-> 
-> 
+>Blockquoted: http://example.com/
+>
+>
 Auto-links should not occur here: {{code}}<http://example.com/>{{/code}}
 
 
@@ -843,9 +843,9 @@ Subsequent blocks are indented to show that they belong to the footnote (as with
 If you want, you can indent every line, but you can also be lazy and just indent the first line of each block.{{/footnote}} This should //not// be a footnote reference, because it contains a space.[^my note] Here is an inline note.{{footnote}}This is //easier// to type. Inline notes may contain [[links>>http://google.com]] and {{code}}]{{/code}} verbatim characters, as well as [bracketed text].{{/footnote}}
 
 
-> Notes can go in quotes.{{footnote}}In quote.{{/footnote}}
-> 
-> 
+>Notes can go in quotes.{{footnote}}In quote.{{/footnote}}
+>
+>
 1. And in list items.{{footnote}}In list.{{/footnote}}
 
 This paragraph should not be part of the note, as it is not indented.

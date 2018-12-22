@@ -108,11 +108,10 @@ blockToXWiki (CodeBlock attrs str) = do
   contents <- inlineToXWiki (Code attrs ("\n" <> str <> "\n"))
   return $ "\n" <> contents <> "\n"
 
--- TODO: Figure out how to handle this better
 blockToXWiki (BlockQuote blocks) = do
   blockText <- blockListToXWiki blocks
   let quoteLines = split (== '\n') blockText
-  let prefixed = map ("> " <>) quoteLines
+  let prefixed = map (">" <>) quoteLines
   return $ vcat prefixed
 
 blockToXWiki (BulletList contents) = blockToXWikiList "*" $ contents
