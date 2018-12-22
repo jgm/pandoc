@@ -187,7 +187,7 @@ inlineToXWiki (Quoted SingleQuote lst) = do
 
 inlineToXWiki (Quoted DoubleQuote lst) = do
   contents <- inlineListToXWiki lst
-  return $ "\"" <> contents <> "\""
+  return $ "“" <> contents <> "”"
 
 inlineToXWiki (Code (_,classes,_) contents') = do
   let at  = Set.fromList classes `Set.intersection` highlightingLangs
