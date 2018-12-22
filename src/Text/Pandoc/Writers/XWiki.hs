@@ -37,7 +37,7 @@ import Control.Monad.Reader (ReaderT, asks, local, runReaderT)
 import Data.Monoid
 import qualified Data.Set as Set
 import qualified Data.Text as Text
-import Data.Text (Text, concat, init, intercalate, pack, replace, split, unlines, unwords)
+import Data.Text (Text, intercalate, pack, replace, split)
 import Text.Pandoc.Class (PandocMonad, report)
 import Text.Pandoc.Definition
 import Text.Pandoc.Logging
@@ -122,12 +122,12 @@ blockToXWiki (DefinitionList items) = do
 blockToXWiki (Table _ _ _ headers rows') = do
   headers' <- mapM (tableCellXWiki True) headers
   otherRows <- mapM formRow rows'
-  return $ Data.Text.unlines (Data.Text.unwords headers':otherRows)
+  return $ Text.unlines (Text.unwords headers':otherRows)
 
 formRow :: PandocMonad m => [[Block]] -> XWikiReader m Text
 formRow row = do
   cellStrings <- mapM (tableCellXWiki False) row
-  return $ Data.Text.unwords cellStrings
+  return $ Text.unwords cellStrings
 
 
 tableCellXWiki :: PandocMonad m => Bool -> [Block] -> XWikiReader m Text
@@ -249,7 +249,7 @@ definitionListItemToMediaWiki (label, items) = do
   contents <- mapM blockListToXWiki items
   marker <- asks listLevel
   return $ marker <> " " <> labelText <> "\n" <>
-    intercalate "\n" (map (\d -> (Data.Text.init marker) <> ": " <> d) contents)
+    intercalate "\n" (map (\d -> (Text.init marker) <> ": " <> d) contents)
 
 escapeXWikiString :: Text -> Text
 escapeXWikiString = replace "~" "~~"
