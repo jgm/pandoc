@@ -53,9 +53,8 @@ type XWikiReader m = ReaderT WriterState m
 
 -- | Convert Pandoc to XWiki.
 writeXWiki :: PandocMonad m => WriterOptions -> Pandoc -> m Text
-writeXWiki _ (Pandoc _ blocks) =
+writeXWiki _ (Pandoc _ blocks) = do
   let env = WriterState { listLevel = "" }
-  in do
   body <- runReaderT (blockListToXWiki blocks) env
   return $ body
 
@@ -139,8 +138,7 @@ tableCellXWiki isHeader cell = do
 
 inlineListToXWiki :: PandocMonad m => [Inline] -> XWikiReader m Text
 inlineListToXWiki lst =
-  fmap Data.Text.concat $ mapM inlineToXWiki lst
-
+  mconcat <$> mapM inlineToXWiki lst
 
 inlineToXWiki :: PandocMonad m => Inline -> XWikiReader m Text
 
@@ -150,7 +148,6 @@ inlineToXWiki Space = return " "
 
 inlineToXWiki LineBreak = return "\n"
 
--- FIXME: better understand this
 inlineToXWiki SoftBreak = return " "
 
 inlineToXWiki (Emph lst) = do
