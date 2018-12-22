@@ -62,6 +62,13 @@ writeXWiki _ (Pandoc _ blocks) = do
 vcat :: [Text] -> Text
 vcat = intercalate "\n"
 
+-- If an id is provided, we can generate an anchor using the id macro
+-- https://extensions.xwiki.org/xwiki/bin/view/Extension/Id%20Macro
+genAnchor :: String -> Text
+genAnchor id' = if null id'
+  then ""
+  else pack $ "{{ id name=\"" ++ id' ++ "\" /}}"
+
 blockListToXWiki :: PandocMonad m => [Block] -> XWikiReader m Text
 blockListToXWiki blocks =
   fmap vcat $ mapM blockToXWiki blocks
@@ -70,9 +77,9 @@ blockToXWiki :: PandocMonad m => Block -> XWikiReader m Text
 
 blockToXWiki Null = return ""
 
--- TODO: handle this
-blockToXWiki (Div _ blocks) =
-  blockListToXWiki blocks
+blockToXWiki (Div (id', _, _) blocks) = do
+  content <- blockListToXWiki blocks
+  return $ (genAnchor id') <> content
 
 blockToXWiki (Plain inlines) =
   inlineListToXWiki inlines
