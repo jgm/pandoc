@@ -211,11 +211,11 @@ inlineToXWiki (Image _ alt (source, tit)) = do
   alt' <- inlineListToXWiki alt
   let
     titText = pack tit
-    params = intercalate " " [
+    params = intercalate " " $ filter (not . Text.null) [
         if Text.null alt' then "" else "alt=\"" <> alt' <> "\"",
           if Text.null titText then "" else "title=\"" <> titText <> "\""
         ]
-  return $ "[[image:" <> (pack source) <> (if Text.null params then "" else "|| " <> params) <> "]]"
+  return $ "[[image:" <> (pack source) <> (if Text.null params then "" else "||" <> params) <> "]]"
 
 inlineToXWiki (Note contents) = blockListToXWiki contents
 
