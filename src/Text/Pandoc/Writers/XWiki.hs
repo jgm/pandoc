@@ -258,6 +258,7 @@ definitionListItemToMediaWiki (label, items) = do
   return $ marker <> " " <> labelText <> "\n" <>
     intercalate "\n" (map (\d -> (Text.init marker) <> ": " <> d) contents)
 
+-- Escape the escape character, as well as formatting pairs
 escapeXWikiString :: Text -> Text
-escapeXWikiString = replace "~" "~~"
+escapeXWikiString s = foldr (uncurry replace) s $ zip ["~", "--", "**", "//", "^^", ",,"] ["~~", "~-~-", "~*~*", "~/~/", "~^~^", "~,~,"]
 
