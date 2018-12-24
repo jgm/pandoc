@@ -86,7 +86,7 @@ blockToXWiki (Plain inlines) =
 
 blockToXWiki (Para inlines) = do
   contents <- inlineListToXWiki inlines
-  return $ contents <> "\n\n"
+  return $ contents <> "\n"
 
 blockToXWiki (LineBlock lns) =
   blockToXWiki $ linesToPara lns
