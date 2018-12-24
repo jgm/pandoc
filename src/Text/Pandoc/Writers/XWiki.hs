@@ -227,8 +227,10 @@ inlineToXWiki (Note contents) = do
   contents' <- blockListToXWiki contents
   return $ "{{footnote}}" <> (Text.strip contents') <> "{{/footnote}}"
 
--- FIXME: support attrs
-inlineToXWiki (Span _ contents) = inlineListToXWiki contents
+-- TODO: support attrs other than id (anchor)
+inlineToXWiki (Span (id', _, _) contents) = do
+  contents' <- inlineListToXWiki contents
+  return $ (genAnchor id') <> contents'
   
 -- Utility method since (for now) all lists are handled the same way
 blockToXWikiList :: PandocMonad m => Text -> [[Block]] -> XWikiReader m Text
