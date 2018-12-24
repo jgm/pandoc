@@ -115,11 +115,8 @@ Asterisks tight:
 Asterisks loose:
 
 *. asterisk 1
-
 *. asterisk 2
-
 *. asterisk 3
-
 
 Pluses tight:
 
@@ -130,11 +127,8 @@ Pluses tight:
 Pluses loose:
 
 *. Plus 1
-
 *. Plus 2
-
 *. Plus 3
-
 
 Minuses tight:
 
@@ -145,11 +139,8 @@ Minuses tight:
 Minuses loose:
 
 *. Minus 1
-
 *. Minus 2
-
 *. Minus 3
-
 
 == Ordered ==
 
@@ -168,31 +159,22 @@ and:
 Loose using tabs:
 
 1. First
-
 1. Second
-
 1. Third
-
 
 and using spaces:
 
 1. One
-
 1. Two
-
 1. Three
-
 
 Multiple paragraphs:
 
 1. Item 1, graf one.
 
 Item 1. graf two. The quick brown fox jumped over the lazy dog’s back.
-
 1. Item 2.
-
 1. Item 3.
-
 
 == Nested ==
 
@@ -212,7 +194,6 @@ Here’s another:
 Same thing but with paragraphs:
 
 1. First
-
 1. Second:
 
 1*. Fee
@@ -220,17 +201,13 @@ Same thing but with paragraphs:
 1*. Foe
 1. Third
 
-
 == Tabs and spaces ==
 
 *. this is a list item indented with tabs
-
 *. this is a list item indented with spaces
 
 **. this is an example list item indented with tabs
-
 **. this is an example list item indented with spaces
-
 
 == Fancy list markers ==
 

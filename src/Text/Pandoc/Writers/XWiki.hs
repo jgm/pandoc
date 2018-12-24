@@ -244,7 +244,7 @@ listItemToXWiki :: PandocMonad m => [Block] -> XWikiReader m Text
 listItemToXWiki contents = do
   marker <- asks listLevel
   contents' <- blockListToXWiki contents
-  return $ marker <> ". " <> contents'
+  return $ marker <> ". " <> (Text.strip contents')
 
 
 -- | Convert definition list item (label, list of blocks) to MediaWiki.
