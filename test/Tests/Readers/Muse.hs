@@ -726,6 +726,11 @@ tests =
           Pandoc (setMeta "title" (MetaInlines $ toList "Document title") $
                   setMeta "notes" (MetaInlines $ toList "First line\nand second line") $
                   setMeta "author" (MetaInlines $ toList "Name") nullMeta) mempty
+        , "Amusewiki's #cover is translated to pandoc's #cover-image" =:
+          "#cover cover.png" =?>
+          let titleInline = toList "cover.png"
+              meta = setMeta "cover-image" (MetaInlines titleInline) nullMeta
+          in Pandoc meta mempty
         ]
       , testGroup "Anchors"
         [ "Anchor" =:
