@@ -64,11 +64,11 @@ import qualified Data.Map as M
 import qualified Data.Set as Set
 import Data.Text (Text)
 
-import Text.Pandoc.Builder (Blocks, Inlines)
+import Text.Pandoc.Builder (Blocks)
 import Text.Pandoc.Definition (Meta (..), nullMeta)
 import Text.Pandoc.Logging
 import Text.Pandoc.Options (ReaderOptions (..))
-import Text.Pandoc.Parsing (Future, HasHeaderMap (..), HasIdentifierList (..),
+import Text.Pandoc.Parsing (Future, HasIdentifierList (..),
                             HasIncludeFiles (..), HasLastStrPosition (..),
                             HasLogMessages (..), HasMacros (..),
                             HasQuoteContext (..), HasReaderOptions (..),
@@ -120,7 +120,6 @@ data OrgParserState = OrgParserState
   , orgStateExcludedTags         :: Set.Set Tag
   , orgStateExcludedTagsChanged  :: Bool
   , orgStateExportSettings       :: ExportSettings
-  , orgStateHeaderMap            :: M.Map Inlines String
   , orgStateIdentifiers          :: Set.Set String
   , orgStateIncludeFiles         :: [String]
   , orgStateLastForbiddenCharPos :: Maybe SourcePos
@@ -160,10 +159,6 @@ instance HasIdentifierList OrgParserState where
   extractIdentifierList = orgStateIdentifiers
   updateIdentifierList f s = s{ orgStateIdentifiers = f (orgStateIdentifiers s) }
 
-instance HasHeaderMap OrgParserState where
-  extractHeaderMap = orgStateHeaderMap
-  updateHeaderMap  f s = s{ orgStateHeaderMap = f (orgStateHeaderMap s) }
-
 instance HasLogMessages OrgParserState where
   addLogMessage msg st = st{ orgLogMessages = msg : orgLogMessages st }
   getLogMessages st = reverse $ orgLogMessages st
@@ -191,7 +186,6 @@ defaultOrgParserState = OrgParserState
   , orgStateExportSettings = def
   , orgStateExcludedTags = Set.singleton $ Tag "noexport"
   , orgStateExcludedTagsChanged = False
-  , orgStateHeaderMap = M.empty
   , orgStateIdentifiers = Set.empty
   , orgStateIncludeFiles = []
   , orgStateLastForbiddenCharPos = Nothing

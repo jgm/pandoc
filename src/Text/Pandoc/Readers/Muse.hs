@@ -74,7 +74,6 @@ type F = Future MuseState
 
 data MuseState = MuseState { museMeta :: F Meta -- ^ Document metadata
                            , museOptions :: ReaderOptions
-                           , museHeaders :: M.Map Inlines String -- ^ List of headers and ids (used for implicit ref links)
                            , museIdentifierList :: Set.Set String
                            , museLastSpacePos :: Maybe SourcePos -- ^ Position after last space or newline parsed
                            , museLastStrPos :: Maybe SourcePos -- ^ Position after last str parsed
@@ -85,7 +84,6 @@ data MuseState = MuseState { museMeta :: F Meta -- ^ Document metadata
 instance Default MuseState where
   def = MuseState { museMeta = return nullMeta
                   , museOptions = def
-                  , museHeaders = M.empty
                   , museIdentifierList = Set.empty
                   , museLastStrPos = Nothing
                   , museLastSpacePos = Nothing
@@ -107,10 +105,6 @@ type MuseParser m = ParserT Text MuseState (ReaderT MuseEnv m)
 
 instance HasReaderOptions MuseState where
   extractReaderOptions = museOptions
-
-instance HasHeaderMap MuseState where
-  extractHeaderMap     = museHeaders
-  updateHeaderMap f st = st{ museHeaders = f $ museHeaders st }
 
 instance HasIdentifierList MuseState where
   extractIdentifierList     = museIdentifierList

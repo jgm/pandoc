@@ -93,7 +93,6 @@ module Text.Pandoc.Parsing ( takeWhileP,
                              reportLogMessages,
                              ParserState (..),
                              HasReaderOptions (..),
-                             HasHeaderMap (..),
                              HasIdentifierList (..),
                              HasMacros (..),
                              HasLogMessages (..),
@@ -1079,7 +1078,6 @@ data ParserState = ParserState
       stateMeta'             :: F Meta,        -- ^ Document metadata
       stateCitations         :: M.Map String String, -- ^ RST-style citations
       stateHeaderTable       :: [HeaderType],  -- ^ Ordered list of header types used
-      stateHeaders           :: M.Map Inlines String, -- ^ List of headers and ids (used for implicit ref links)
       stateIdentifiers       :: Set.Set String, -- ^ Header identifiers used
       stateNextExample       :: Int,           -- ^ Number of next example
       stateExamples          :: M.Map String Int, -- ^ Map from example labels to numbers
@@ -1128,15 +1126,6 @@ instance Monad m => HasQuoteContext ParserState m where
     newState <- getState
     setState newState { stateQuoteContext = oldQuoteContext }
     return result
-
-class HasHeaderMap st where
-  extractHeaderMap  :: st -> M.Map Inlines String
-  updateHeaderMap   :: (M.Map Inlines String -> M.Map Inlines String) ->
-                       st -> st
-
-instance HasHeaderMap ParserState where
-  extractHeaderMap     = stateHeaders
-  updateHeaderMap f st = st{ stateHeaders = f $ stateHeaders st }
 
 class HasIdentifierList st where
   extractIdentifierList  :: st -> Set.Set String
@@ -1198,7 +1187,6 @@ defaultParserState =
                   stateMeta'           = return nullMeta,
                   stateCitations       = M.empty,
                   stateHeaderTable     = [],
-                  stateHeaders         = M.empty,
                   stateIdentifiers     = Set.empty,
                   stateNextExample     = 1,
                   stateExamples        = M.empty,
@@ -1283,12 +1271,11 @@ type SubstTable = M.Map Key Inlines
 --  is encountered that duplicates an earlier identifier
 --  (explicit or automatically generated).
 registerHeader :: (Stream s m a, HasReaderOptions st,
-                    HasHeaderMap st, HasLogMessages st, HasIdentifierList st)
+                   HasLogMessages st, HasIdentifierList st)
                => Attr -> Inlines -> ParserT s st m Attr
 registerHeader (ident,classes,kvs) header' = do
   ids <- extractIdentifierList <$> getState
   exts <- getOption readerExtensions
-  let insert' = M.insertWith (\_new old -> old)
   if null ident && Ext_auto_identifiers `extensionEnabled` exts
      then do
        let id' = uniqueIdent exts (B.toList header') ids
@@ -1297,7 +1284,6 @@ registerHeader (ident,classes,kvs) header' = do
                      else id'
        updateState $ updateIdentifierList $ Set.insert id'
        updateState $ updateIdentifierList $ Set.insert id''
-       updateState $ updateHeaderMap $ insert' header' id'
        return (id'',classes,kvs)
      else do
         unless (null ident) $ do
@@ -1305,7 +1291,6 @@ registerHeader (ident,classes,kvs) header' = do
             pos <- getPosition
             logMessage $ DuplicateIdentifier ident pos
           updateState $ updateIdentifierList $ Set.insert ident
-          updateState $ updateHeaderMap $ insert' header' ident
         return (ident,classes,kvs)
 
 smartPunctuation :: (HasReaderOptions st, HasLastStrPosition st, HasQuoteContext st m, Stream s m Char)

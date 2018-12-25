@@ -131,7 +131,6 @@ data LaTeXState = LaTeXState{ sOptions       :: ReaderOptions
                             , sQuoteContext  :: QuoteContext
                             , sMacros        :: M.Map Text Macro
                             , sContainers    :: [String]
-                            , sHeaders       :: M.Map Inlines String
                             , sLogMessages   :: [LogMessage]
                             , sIdentifiers   :: Set.Set String
                             , sVerbatimMode  :: Bool
@@ -153,7 +152,6 @@ defaultLaTeXState = LaTeXState{ sOptions       = def
                               , sQuoteContext  = NoQuote
                               , sMacros        = M.empty
                               , sContainers    = []
-                              , sHeaders       = M.empty
                               , sLogMessages   = []
                               , sIdentifiers   = Set.empty
                               , sVerbatimMode  = False
@@ -191,10 +189,6 @@ instance HasIncludeFiles LaTeXState where
   getIncludeFiles = sContainers
   addIncludeFile f s = s{ sContainers = f : sContainers s }
   dropLatestIncludeFile s = s { sContainers = drop 1 $ sContainers s }
-
-instance HasHeaderMap LaTeXState where
-  extractHeaderMap     = sHeaders
-  updateHeaderMap f st = st{ sHeaders = f $ sHeaders st }
 
 instance HasMacros LaTeXState where
   extractMacros  st  = sMacros st

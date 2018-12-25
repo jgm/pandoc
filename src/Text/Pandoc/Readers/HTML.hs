@@ -105,7 +105,7 @@ readHtml opts inp = do
   result <- flip runReaderT def $
        runParserT parseDoc
        (HTMLState def{ stateOptions = opts }
-         [] Nothing Set.empty M.empty [] M.empty)
+         [] Nothing Set.empty [] M.empty)
        "source" tags
   case result of
     Right doc -> return doc
@@ -126,7 +126,6 @@ data HTMLState =
      noteTable   :: [(String, Blocks)],
      baseHref    :: Maybe URI,
      identifiers :: Set.Set String,
-     headerMap   :: M.Map Inlines String,
      logMessages :: [LogMessage],
      macros      :: M.Map Text Macro
   }
@@ -1294,10 +1293,6 @@ instance HasMacros HTMLState where
 instance HasIdentifierList HTMLState where
   extractIdentifierList = identifiers
   updateIdentifierList f s = s{ identifiers = f (identifiers s) }
-
-instance HasHeaderMap HTMLState where
-  extractHeaderMap = headerMap
-  updateHeaderMap  f s = s{ headerMap = f (headerMap s) }
 
 instance HasLogMessages HTMLState where
   addLogMessage m s = s{ logMessages = m : logMessages s }
