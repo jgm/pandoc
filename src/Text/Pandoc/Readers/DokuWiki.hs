@@ -38,6 +38,7 @@ import Control.Monad
 import Control.Monad.Except (throwError)
 import Data.Char (isAlphaNum)
 import qualified Data.Foldable as F
+import Data.List (transpose)
 import Data.Text (Text)
 import qualified Data.Text as T
 import qualified Text.Pandoc.Builder as B
@@ -273,6 +274,7 @@ blockElements = horizontalLine
             <|> file
             <|> blockHtml
             <|> blockPhp
+            <|> table
 
 horizontalLine :: PandocMonad m => DWParser m B.Blocks
 horizontalLine = try $ B.horizontalRule <$ string "---" <* many1 (char '-') <* eol
@@ -322,6 +324,30 @@ blockHtml = try $ B.rawBlock "html" <$ string "<HTML>" <*> manyTill anyChar (try
 
 blockPhp :: PandocMonad m => DWParser m B.Blocks
 blockPhp = try $ B.codeBlockWith ("", ["php"], []) <$ string "<PHP>" <*> manyTill anyChar (try $ string "</PHP>")
+
+table :: PandocMonad m => DWParser m B.Blocks
+table = do
+  rows <- tableRows
+  let attrs = const (AlignDefault, 0.0) <$> transpose rows
+  pure $ B.table mempty attrs [] rows
+
+tableRows :: PandocMonad m => DWParser m [[B.Blocks]]
+tableRows = many1 tableRow
+
+tableRow :: PandocMonad m => DWParser m [B.Blocks]
+tableRow = many1Till tableCell tableRowEnd
+
+tableRowEnd :: PandocMonad m => DWParser m Char
+tableRowEnd = try $ tableCellSeparator <* manyTill spaceChar eol
+
+tableCellSeparator :: PandocMonad m => DWParser m Char
+tableCellSeparator = char '|' <|> char '^'
+
+tableCell :: PandocMonad m => DWParser m B.Blocks
+tableCell = try $ B.plain . B.trimInlines . mconcat <$> (normalCell <|> headerCell)
+  where
+    normalCell = char '|' *> many1Till inline' (lookAhead tableCellSeparator)
+    headerCell = char '^' *> many1Till inline' (lookAhead tableCellSeparator)
 
 codeLanguage :: PandocMonad m => DWParser m (String, [String], [(String, String)])
 codeLanguage = try $ do

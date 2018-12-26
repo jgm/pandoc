@@ -200,4 +200,12 @@ tests = [ testGroup "inlines"
                     , "</file>"
                     ] =?>
           codeBlock "\nfile contents\n"
+        , "Table" =:
+          T.unlines [ "| foo | bar |"
+                    , "| bat | baz |"
+                    ] =?>
+          table mempty [(AlignDefault, 0.0), (AlignDefault, 0.0)]
+                        []
+                        [[plain "foo", plain "bar"]
+                        ,[plain "bat", plain "baz"]]
         ]
