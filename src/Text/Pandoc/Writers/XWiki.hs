@@ -1,3 +1,4 @@
+{-# LANGUAGE NoImplicitPrelude #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-
 Copyright (C) 2008-2017 John MacFarlane <jgm@berkeley.edu>
@@ -33,8 +34,8 @@ XWiki Syntax:  <http://www.xwiki.org/xwiki/bin/view/Documentation/UserGuide/Feat
 -}
 
 module Text.Pandoc.Writers.XWiki ( writeXWiki ) where
+import Prelude
 import Control.Monad.Reader (ReaderT, asks, local, runReaderT)
-import Data.Monoid
 import qualified Data.Set as Set
 import qualified Data.Text as Text
 import Data.Text (Text, intercalate, pack, replace, split)
