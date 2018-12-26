@@ -107,7 +107,7 @@ inline' = whitespace
       <|> superscript
       <|> deleted
       <|> footnote
-      <|> code
+      <|> inlineCode
       <|> inlineHtml
       <|> inlinePhp
       <|> autoLink
@@ -188,8 +188,9 @@ deleted = try $ B.strikeout <$> between (string "<del>") (try $ string "</del>")
 footnote :: PandocMonad m => DWParser m B.Inlines
 footnote = try $ B.note . B.para <$> between (string "((") (try $ string "))") nestedInlines
 
-code :: PandocMonad m => DWParser m B.Inlines
-code = try $ B.code <$ string "<code>" <*> manyTill anyChar (try $ string "</code>")
+-- TODO: parse language attributes
+inlineCode :: PandocMonad m => DWParser m B.Inlines
+inlineCode = try $ B.code <$ string "<code>" <*> manyTill anyChar (try $ string "</code>")
 
 inlineHtml :: PandocMonad m => DWParser m B.Inlines
 inlineHtml = try $ B.rawInline "html" <$ string "<html>" <*> manyTill anyChar (try $ string "</html>")
@@ -268,6 +269,8 @@ blockElements = horizontalLine
             <|> header
             <|> list "  "
             <|> quote
+            <|> code
+            <|> file
             <|> blockHtml
             <|> blockPhp
 
@@ -319,6 +322,28 @@ blockHtml = try $ B.rawBlock "html" <$ string "<HTML>" <*> manyTill anyChar (try
 
 blockPhp :: PandocMonad m => DWParser m B.Blocks
 blockPhp = try $ B.codeBlockWith ("", ["php"], []) <$ string "<PHP>" <*> manyTill anyChar (try $ string "</PHP>")
+
+codeLanguage :: PandocMonad m => DWParser m (String, [String], [(String, String)])
+codeLanguage = try $ do
+  rawLang <- option "-" (spaceChar *> manyTill anyChar (lookAhead (spaceChar <|> char '>')))
+  let attr = case rawLang of
+               "-" -> []
+               l -> [l]
+  return ("", attr, [])
+
+codeTag :: PandocMonad m => String -> DWParser m B.Blocks
+codeTag tag = try $ B.codeBlockWith
+  <$  char '<'
+  <*  string tag
+  <*> codeLanguage
+  <*  manyTill anyChar (char '>')
+  <*> manyTill anyChar (try $ string "</" <* string tag <* char '>')
+
+code :: PandocMonad m => DWParser m B.Blocks
+code = codeTag "code"
+
+file :: PandocMonad m => DWParser m B.Blocks
+file = codeTag "file"
 
 para :: PandocMonad m => DWParser m B.Blocks
 para = result . mconcat <$> many1Till inline endOfParaElement

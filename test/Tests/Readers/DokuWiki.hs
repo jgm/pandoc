@@ -182,4 +182,22 @@ tests = [ testGroup "inlines"
                       plain "bar" <>
                       blockQuote (plain "baz") <>
                       plain "bat")
+        , "Code block" =:
+          T.unlines [ "<code>"
+                    , "foo bar baz"
+                    , "</code>"
+                    ] =?>
+          codeBlock "\nfoo bar baz\n"
+        , "Java code block" =:
+          T.unlines [ "<code java>"
+                    , "public static void main"
+                    , "</code>"
+                    ] =?>
+          codeBlockWith ("", ["java"], []) "\npublic static void main\n"
+        , "File with filename and no language" =:
+          T.unlines [ "<file - foo.bar>"
+                    , "file contents"
+                    , "</file>"
+                    ] =?>
+          codeBlock "\nfile contents\n"
         ]
