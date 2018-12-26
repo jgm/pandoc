@@ -107,6 +107,15 @@ tests = [ testGroup "inlines"
           , "Headline level 5" =:
             "== Headline Level 5 ==" =?>
             header 5 "Headline Level 5"
+          , "Only two closing = are required" =:
+            "====== Headline Level 1 ==" =?>
+            header 1 "Headline Level 1"
+          , "One closing = is not enough" =:
+            "====== Headline Level 1 =" =?>
+            para "====== Headline Level 1 ="
+          , "One closing = is not enough" =:
+            "== Headline with = sign ==" =?>
+            header 5 "Headline with = sign"
           ]
         , "Horizontal line" =:
           "----" =?>

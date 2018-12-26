@@ -280,7 +280,7 @@ header = try $ do
   eqs <- many1 (char '=')
   let lev = length eqs
   guard $ lev < 7
-  contents <- B.trimInlines . mconcat <$> manyTill inline (count lev $ char '=')
+  contents <- B.trimInlines . mconcat <$> manyTill inline (try $ char '=' *> many1 (char '='))
   attr <- registerHeader nullAttr contents
   return $ B.headerWith attr (7 - lev) contents
 
