@@ -188,13 +188,19 @@ blockToOrg (Header level attr inlines) = do
                   then empty
                   else cr <> nest (level + 1) (propertiesDrawer attr)
   return $ headerStr <> " " <> contents <> drawerStr <> blankline
-blockToOrg (CodeBlock (_,classes,_) str) = do
+blockToOrg (CodeBlock (_,classes,kvs) str) = do
   opts <- gets stOptions
   let tabstop = writerTabStop opts
+  let startnum = maybe "" (\x -> ' ' : trimr x) $ lookup "startFrom" kvs
+  let numberlines = if "numberLines" `elem` classes
+                      then if "continuedSourceBlock" `elem` classes
+                             then " +n" ++ startnum
+                             else " -n" ++ startnum
+                      else ""
   let at = map pandocLangToOrg classes `intersect` orgLangIdentifiers
   let (beg, end) = case at of
-                      []    -> ("#+BEGIN_EXAMPLE", "#+END_EXAMPLE")
-                      (x:_) -> ("#+BEGIN_SRC " ++ x, "#+END_SRC")
+                      []    -> ("#+BEGIN_EXAMPLE" ++ numberlines, "#+END_EXAMPLE")
+                      (x:_) -> ("#+BEGIN_SRC " ++ x ++ numberlines, "#+END_SRC")
   return $ text beg $$ nest tabstop (text str) $$ text end $$ blankline
 blockToOrg (BlockQuote blocks) = do
   contents <- blockListToOrg blocks
