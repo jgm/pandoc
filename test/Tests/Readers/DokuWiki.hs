@@ -223,6 +223,17 @@ tests = [ testGroup "inlines"
                         []
                         [[plain "foo", plain "bar"]
                         ,[plain "bat", plain "baz"]]
+        , "Table with colspan" =:
+          T.unlines [ "^ 0,0 ^ 0,1 ^ 0,2 ^"
+                    , "| 1,0 | 1,1 ||"
+                    , "| 2,0 | 2,1 | 2,2 |"
+                    ] =?>
+          table mempty [(AlignDefault, 0.0), (AlignDefault, 0.0), (AlignDefault, 0.0)]
+                        []
+                        [[plain "0,0", plain "0,1", plain "0,2"]
+                        ,[plain "1,0", plain "1,1", mempty]
+                        ,[plain "2,0", plain "2,1", plain "2,2"]
+                        ]
         , "Indented code block" =:
           T.unlines [ "foo"
                     , "  bar"

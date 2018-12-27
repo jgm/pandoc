@@ -384,8 +384,8 @@ tableCellSeparator = char '|' <|> char '^'
 tableCell :: PandocMonad m => DWParser m B.Blocks
 tableCell = try $ B.plain . B.trimInlines . mconcat <$> (normalCell <|> headerCell)
   where
-    normalCell = char '|' *> many1Till inline' (lookAhead tableCellSeparator)
-    headerCell = char '^' *> many1Till inline' (lookAhead tableCellSeparator)
+    normalCell = char '|' *> manyTill inline' (lookAhead tableCellSeparator)
+    headerCell = char '^' *> manyTill inline' (lookAhead tableCellSeparator)
 
 blockCode :: PandocMonad m => DWParser m B.Blocks
 blockCode = codeTag B.codeBlockWith "code"
