@@ -172,7 +172,7 @@ tests = [ testGroup "inlines"
                       ] =?>
             orderedList [ plain "first item"
                         , plain ("second item with linebreak" <> linebreak <> " second line")
-                        , plain ("third item with code: " <> code "\nsome code\ncomes here\n")
+                        , plain ("third item with code: " <> code "some code\ncomes here\n")
                         , plain "fourth item"
                         ]
           ]
@@ -181,13 +181,13 @@ tests = [ testGroup "inlines"
                     , "<p style=\"border:2px dashed red;\">And this is some block HTML</p>"
                     , "</HTML>"
                     ] =?>
-          rawBlock "html" "\n<p style=\"border:2px dashed red;\">And this is some block HTML</p>\n"
+          rawBlock "html" "<p style=\"border:2px dashed red;\">And this is some block HTML</p>\n"
         , "Block PHP" =:
           T.unlines [ "<PHP>"
                     , "echo '<p>Hello World</p>';"
                     , "</PHP>"
                     ] =?>
-          codeBlockWith ("", ["php"], []) "\necho '<p>Hello World</p>';\n"
+          codeBlockWith ("", ["php"], []) "echo '<p>Hello World</p>';\n"
         , "Quote" =:
           T.unlines [ "> foo"
                     , ">no space is required after >"
@@ -205,19 +205,19 @@ tests = [ testGroup "inlines"
                     , "foo bar baz"
                     , "</code>"
                     ] =?>
-          codeBlock "\nfoo bar baz\n"
+          codeBlock "foo bar baz\n"
         , "Java code block" =:
           T.unlines [ "<code java>"
                     , "public static void main"
                     , "</code>"
                     ] =?>
-          codeBlockWith ("", ["java"], []) "\npublic static void main\n"
+          codeBlockWith ("", ["java"], []) "public static void main\n"
         , "File with filename and no language" =:
           T.unlines [ "<file - foo.bar>"
                     , "file contents"
                     , "</file>"
                     ] =?>
-          codeBlock "\nfile contents\n"
+          codeBlock "file contents\n"
         , "Table" =:
           T.unlines [ "| foo | bar |"
                     , "| bat | baz |"

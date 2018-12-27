@@ -101,14 +101,15 @@ codeLanguage = try $ do
 
 -- | Generic parser for <code> and <file> tags
 codeTag :: PandocMonad m
-              => ((String, [String], [(String, String)]) -> String -> a)
-              -> String
-              -> DWParser m a
+        => ((String, [String], [(String, String)]) -> String -> a)
+        -> String
+        -> DWParser m a
 codeTag f tag = try $ f
   <$  char '<'
   <*  string tag
   <*> codeLanguage
   <*  manyTill anyChar (char '>')
+  <*  optional (manyTill spaceChar eol)
   <*> manyTill anyChar (try $ string "</" <* string tag <* char '>')
 
 -- * Inline parsers
@@ -355,10 +356,16 @@ quote = try $ nestedQuote 0
     nestedQuote level = B.blockQuote <$ char '>' <*> quoteContents (level + 1 :: Int)
 
 blockHtml :: PandocMonad m => DWParser m B.Blocks
-blockHtml = try $ B.rawBlock "html" <$ string "<HTML>" <*> manyTill anyChar (try $ string "</HTML>")
+blockHtml = try $ B.rawBlock "html"
+  <$  string "<HTML>"
+  <*  optional (manyTill spaceChar eol)
+  <*> manyTill anyChar (try $ string "</HTML>")
 
 blockPhp :: PandocMonad m => DWParser m B.Blocks
-blockPhp = try $ B.codeBlockWith ("", ["php"], []) <$ string "<PHP>" <*> manyTill anyChar (try $ string "</PHP>")
+blockPhp = try $ B.codeBlockWith ("", ["php"], [])
+  <$  string "<PHP>"
+  <*  optional (manyTill spaceChar eol)
+  <*> manyTill anyChar (try $ string "</PHP>")
 
 table :: PandocMonad m => DWParser m B.Blocks
 table = do
