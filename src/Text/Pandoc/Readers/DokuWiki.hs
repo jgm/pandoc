@@ -135,6 +135,8 @@ inline' = whitespace
       <|> inlinePhp
       <|> autoLink
       <|> autoEmail
+      <|> notoc
+      <|> nocache
       <|> str
       <|> symbol
       <?> "inline"
@@ -243,6 +245,12 @@ autoLink = try $ do
     checkLink c
       | c == '/' = True
       | otherwise = isAlphaNum c
+
+notoc :: PandocMonad m => DWParser m B.Inlines
+notoc = try $ mempty <$ string "~~NOTOC~~"
+
+nocache :: PandocMonad m => DWParser m B.Inlines
+nocache = try $ mempty <$ string "~~NOCACHE~~"
 
 str :: PandocMonad m => DWParser m B.Inlines
 str = B.str <$> (many1 alphaNum <|> count 1 characterReference)

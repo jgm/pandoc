@@ -99,6 +99,12 @@ tests = [ testGroup "inlines"
           , "Image with } in caption" =:
             "{{image.png|There is an } in the caption}}" =?>
             para (image "image.png" "" "There is an } in the caption")
+          , "Ignore ~~NOTOC~~" =:
+            "Here is a ~~NOTOC~~ macro" =?>
+            para "Here is a macro"
+          , "Ignore ~~NOCACHE~~" =:
+            "Here is a ~~NOCACHE~~ macro" =?>
+            para "Here is a macro"
           ]
         , testGroup "Sectioning"
           [ "Headline level 1" =:
