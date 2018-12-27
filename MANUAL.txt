@@ -3992,7 +3992,7 @@ You can also write an in-text citation, as follows:
 If the style calls for a list of works cited, it will be placed
 in a div with id `refs`, if one exists:
 
-    ::: #refs
+    ::: {#refs}
     :::
 
 Otherwise, it will be placed at the end of the document.
