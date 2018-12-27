@@ -90,6 +90,27 @@ parseDokuWiki :: PandocMonad m => DWParser m Pandoc
 parseDokuWiki =
   B.doc . mconcat <$> many block <* spaces <* eof
 
+-- | Parse <code> and <file> attributes
+codeLanguage :: PandocMonad m => DWParser m (String, [String], [(String, String)])
+codeLanguage = try $ do
+  rawLang <- option "-" (spaceChar *> manyTill anyChar (lookAhead (spaceChar <|> char '>')))
+  let attr = case rawLang of
+               "-" -> []
+               l -> [l]
+  return ("", attr, [])
+
+-- | Generic parser for <code> and <file> tags
+codeTag :: PandocMonad m
+              => ((String, [String], [(String, String)]) -> String -> a)
+              -> String
+              -> DWParser m a
+codeTag f tag = try $ f
+  <$  char '<'
+  <*  string tag
+  <*> codeLanguage
+  <*  manyTill anyChar (char '>')
+  <*> manyTill anyChar (try $ string "</" <* string tag <* char '>')
+
 -- * Inline parsers
 
 -- | Parse any inline element but softbreak.
@@ -109,6 +130,7 @@ inline' = whitespace
       <|> deleted
       <|> footnote
       <|> inlineCode
+      <|> inlineFile
       <|> inlineHtml
       <|> inlinePhp
       <|> autoLink
@@ -189,9 +211,11 @@ deleted = try $ B.strikeout <$> between (string "<del>") (try $ string "</del>")
 footnote :: PandocMonad m => DWParser m B.Inlines
 footnote = try $ B.note . B.para <$> between (string "((") (try $ string "))") nestedInlines
 
--- TODO: parse language attributes
 inlineCode :: PandocMonad m => DWParser m B.Inlines
-inlineCode = try $ B.code <$ string "<code>" <*> manyTill anyChar (try $ string "</code>")
+inlineCode = codeTag B.codeWith "code"
+
+inlineFile :: PandocMonad m => DWParser m B.Inlines
+inlineFile = codeTag B.codeWith "file"
 
 inlineHtml :: PandocMonad m => DWParser m B.Inlines
 inlineHtml = try $ B.rawInline "html" <$ string "<html>" <*> manyTill anyChar (try $ string "</html>")
@@ -270,8 +294,8 @@ blockElements = horizontalLine
             <|> header
             <|> list "  "
             <|> quote
-            <|> code
-            <|> file
+            <|> blockCode
+            <|> blockFile
             <|> blockHtml
             <|> blockPhp
             <|> table
@@ -349,27 +373,11 @@ tableCell = try $ B.plain . B.trimInlines . mconcat <$> (normalCell <|> headerCe
     normalCell = char '|' *> many1Till inline' (lookAhead tableCellSeparator)
     headerCell = char '^' *> many1Till inline' (lookAhead tableCellSeparator)
 
-codeLanguage :: PandocMonad m => DWParser m (String, [String], [(String, String)])
-codeLanguage = try $ do
-  rawLang <- option "-" (spaceChar *> manyTill anyChar (lookAhead (spaceChar <|> char '>')))
-  let attr = case rawLang of
-               "-" -> []
-               l -> [l]
-  return ("", attr, [])
+blockCode :: PandocMonad m => DWParser m B.Blocks
+blockCode = codeTag B.codeBlockWith "code"
 
-codeTag :: PandocMonad m => String -> DWParser m B.Blocks
-codeTag tag = try $ B.codeBlockWith
-  <$  char '<'
-  <*  string tag
-  <*> codeLanguage
-  <*  manyTill anyChar (char '>')
-  <*> manyTill anyChar (try $ string "</" <* string tag <* char '>')
-
-code :: PandocMonad m => DWParser m B.Blocks
-code = codeTag "code"
-
-file :: PandocMonad m => DWParser m B.Blocks
-file = codeTag "file"
+blockFile :: PandocMonad m => DWParser m B.Blocks
+blockFile = codeTag B.codeBlockWith "file"
 
 para :: PandocMonad m => DWParser m B.Blocks
 para = result . mconcat <$> many1Till inline endOfParaElement

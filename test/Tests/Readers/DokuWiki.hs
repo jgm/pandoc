@@ -56,6 +56,12 @@ tests = [ testGroup "inlines"
           , "Deleted" =:
             "<del>deleted</del>" =?>
             para (strikeout "deleted")
+          , "Inline code" =:
+            "foo <code java>public static void main</code> bar" =?>
+            para (text "foo " <> codeWith ("", ["java"], []) "public static void main" <> text " bar")
+          , "Inline file" =:
+            "foo <file></code></file> bar" =?>
+            para (text "foo " <> code "</code>" <> text " bar")
           , "Inline HTML" =:
             "<html>\nThis is some <span style=\"color:red;font-size:150%;\">inline HTML</span>\n</html>" =?>
             para (rawInline "html" "\nThis is some <span style=\"color:red;font-size:150%;\">inline HTML</span>\n")
