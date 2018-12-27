@@ -250,7 +250,7 @@ image :: PandocMonad m => DWParser m B.Inlines
 image = try $ do
   string "{{"
   filename <- many1Till anyChar (lookAhead (void (char '|') <|> try (void $ string "}}")))
-  description <- mconcat <$> option mempty (char '|' *> manyTill inline (lookAhead $ string "}}"))
+  description <- mconcat <$> option mempty (char '|' *> manyTill inline (try $ lookAhead $ string "}}"))
   string "}}"
   pure $ B.image filename "" description
 

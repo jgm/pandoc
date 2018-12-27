@@ -90,6 +90,9 @@ tests = [ testGroup "inlines"
           , "Image with caption" =:
             "{{image.png|This is the caption}}" =?>
             para (image "image.png" "" "This is the caption")
+          , "Image with } in caption" =:
+            "{{image.png|There is an } in the caption}}" =?>
+            para (image "image.png" "" "There is an } in the caption")
           ]
         , testGroup "Sectioning"
           [ "Headline level 1" =:
