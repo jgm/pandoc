@@ -1,1 +1,1 @@
-{{https://cooluri.com/image.png|HTTPS image}} {{http://cooluri.com/image.png|HTTP image}} {{ftp://ftp.cooluri.com/image.png|FTP image}} {{file:///tmp/coolimage.png|Filesystem image}} {{:/image.jpg|Relative image 1}} {{:image.jpg|Relative image 2}}
+{{https://cooluri.com/image.png|HTTPS image}} {{http://cooluri.com/image.png|HTTP image}} {{ftp://ftp.cooluri.com/image.png|FTP image}} {{file:///tmp/coolimage.png|Filesystem image}} {{/image.jpg|Relative image 1}} {{image.jpg|Relative image 2}}
