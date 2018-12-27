@@ -270,13 +270,10 @@ link = try $ do
 linkText :: PandocMonad m => DWParser m (String, String, B.Inlines)
 linkText = do
   string "[["
-  url <- many1Till anyChar (char '|')
-  content <- option (B.str url) (mconcat <$> linkContent)
-  char ']'
-  return (url, "", content)
-  where
-    linkContent      = many1Till anyChar (char ']') >>= parseLinkContent
-    parseLinkContent = parseFromString' $ many1 inline
+  url <- many1Till anyChar (lookAhead (void (char '|') <|> try (void $ string "]]")))
+  description <- option (B.str url) (mconcat <$> (char '|' *> manyTill inline (try $ lookAhead $ string "]]")))
+  string "]]"
+  return (url, "", description)
 
 image :: PandocMonad m => DWParser m B.Inlines
 image = try $ do

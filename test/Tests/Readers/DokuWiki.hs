@@ -80,7 +80,10 @@ tests = [ testGroup "inlines"
             [ "Autolink" =:
               "http://www.google.com" =?>
               para (link "http://www.google.com" "" (str "http://www.google.com"))
-            , "Link" =:
+            , "Link without description" =:
+              "[[https://example.com]]" =?>
+              para (link "https://example.com" "" (str "https://example.com"))
+            , "Link with description" =:
               "[[http://www.google.com|This Link points to google]]" =?>
               para (link "http://www.google.com" "" (text "This Link points to google"))
             , "Email address" =:
