@@ -168,7 +168,7 @@ between start end p =
 
 enclosed :: (Monoid b, PandocMonad m, Show a)
          => DWParser m a -> (DWParser m a -> DWParser m b) -> DWParser m b
-enclosed sep p = between sep (try $ sep) p
+enclosed sep p = between sep (try sep) p
 
 nestedInlines :: (Show a, PandocMonad m)
               => DWParser m a -> DWParser m B.Inlines
@@ -334,7 +334,7 @@ parseList :: PandocMonad m
           -> Char
           -> DWParser m [B.Blocks]
 parseList prefix marker =
-  many1 $ ((<>) <$> item <*> fmap mconcat (many continuation))
+  many1 ((<>) <$> item <*> fmap mconcat (many continuation))
   where
     continuation = try $ list ("  " ++ prefix)
     item = try $ string prefix *> char marker *> char ' ' *> itemContents
