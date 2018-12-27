@@ -301,6 +301,7 @@ blockElements :: PandocMonad m => DWParser m B.Blocks
 blockElements = horizontalLine
             <|> header
             <|> list "  "
+            <|> indentedCode
             <|> quote
             <|> blockCode
             <|> blockFile
@@ -340,6 +341,11 @@ parseList prefix marker =
     continuation = try $ list ("  " ++ prefix)
     item = try $ string prefix *> char marker *> char ' ' *> itemContents
     itemContents = B.plain . mconcat <$> many1Till inline' eol
+
+indentedCode :: PandocMonad m => DWParser m B.Blocks
+indentedCode = try $ B.codeBlock . unlines <$> many1 indentedLine
+ where
+   indentedLine = try $ string "  " *> manyTill anyChar eol
 
 quote :: PandocMonad m => DWParser m B.Blocks
 quote = try $ nestedQuote 0

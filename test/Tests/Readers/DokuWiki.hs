@@ -223,4 +223,13 @@ tests = [ testGroup "inlines"
                         []
                         [[plain "foo", plain "bar"]
                         ,[plain "bat", plain "baz"]]
+        , "Indented code block" =:
+          T.unlines [ "foo"
+                    , "  bar"
+                    , "    bat"
+                    , "baz"
+                    ] =?>
+          para "foo" <>
+          codeBlock "bar\n  bat\n" <>
+          para "baz"
         ]
