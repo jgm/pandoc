@@ -52,22 +52,22 @@ E-mail style:
 > This is a block quote. It is pretty short.
 
 > Code in a block quote:
->
+> 
 > '''
 > sub status {
 >     print "working";
 > }
 > '''
->
+> 
 > A list:
->
+> 
 > 1. item one
 > 2. item two
->
+> 
 > Nested block quotes:
->
+> 
 > > nested
->
+> 
 > > nested
 
 This should not be a block quote: 2 > 1.
@@ -435,7 +435,7 @@ Ellipses…and…and….
 
 ====== LaTeX ======
 
-*
+* 
 * $2+2=4$
 * $x \in y$
 * $\alpha \wedge \omega$
