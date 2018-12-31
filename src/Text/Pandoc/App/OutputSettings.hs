@@ -91,8 +91,9 @@ optToOutputSettings opts = do
                 return (formatFromFilePaths "html" [outputFile], Nothing)
               Just f   -> return (f, Nothing)
 
-  let format = map toLower $ baseWriterName
-                 $ takeFileName writerName  -- in case path to lua script
+  let format = if ".lua" `isSuffixOf` writerName
+                  then writerName
+                  else map toLower $ baseWriterName writerName
 
   (writer, writerExts) <-
             if ".lua" `isSuffixOf` format
