@@ -264,13 +264,24 @@ link = try $ do
   setState $ st{ stateAllowLinks = True }
   return $ B.link url title content
 
+isExternalLink :: String -> Bool
+isExternalLink s =
+  case dropWhile (\c -> isAlphaNum c || (c `elem` ['-', '.', '+'])) s of
+    (':':'/':'/':_) -> True
+    _ -> False
+
 linkText :: PandocMonad m => DWParser m (String, String, B.Inlines)
 linkText = do
   string "[["
   url <- trim <$> many1Till anyChar (lookAhead (void (char '|') <|> try (void $ string "]]")))
-  description <- option (B.str url) (B.trimInlines . mconcat <$> (char '|' *> manyTill inline (try $ lookAhead $ string "]]")))
+  description <- option (B.str $ urlToText url) (B.trimInlines . mconcat <$> (char '|' *> manyTill inline (try $ lookAhead $ string "]]")))
   string "]]"
   return (url, "", description)
+  where
+    urlToText url =
+      if isExternalLink url
+        then url
+        else  reverse $ takeWhile (/= ':') $ reverse url
 
 image :: PandocMonad m => DWParser m B.Inlines
 image = try $ do

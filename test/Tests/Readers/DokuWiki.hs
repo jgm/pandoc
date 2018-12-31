@@ -93,6 +93,14 @@ tests = [ testGroup "inlines"
               "<andi@splitbrain.org>" =?>
               para (link "mailto:andi@splitbrain.org" "" (str "andi@splitbrain.org"))
             ]
+          , testGroup "Internal links"
+            [ "Current namespace" =:
+              "[[example]]" =?>
+              para (link "example" "" (str "example"))
+            , "Parent namespace with colon" =:
+              "[[..:example]]" =?>
+              para (link "..:example" "" (str "example"))
+            ]
           , "Footnote" =:
             "((This is a footnote))" =?>
             para (note (para "This is a footnote"))
