@@ -47,7 +47,7 @@ import Text.Pandoc.Definition
 import Text.Pandoc.Error (PandocError (PandocParsecError))
 import Text.Pandoc.Options
 import Text.Pandoc.Parsing hiding (enclosed, nested)
-import Text.Pandoc.Shared (crFilter, underlineSpan)
+import Text.Pandoc.Shared (crFilter, trim, underlineSpan)
 
 -- | Read DokuWiki from an input string and return a Pandoc document.
 readDokuWiki :: PandocMonad m
@@ -267,8 +267,8 @@ link = try $ do
 linkText :: PandocMonad m => DWParser m (String, String, B.Inlines)
 linkText = do
   string "[["
-  url <- many1Till anyChar (lookAhead (void (char '|') <|> try (void $ string "]]")))
-  description <- option (B.str url) (mconcat <$> (char '|' *> manyTill inline (try $ lookAhead $ string "]]")))
+  url <- trim <$> many1Till anyChar (lookAhead (void (char '|') <|> try (void $ string "]]")))
+  description <- option (B.str url) (B.trimInlines . mconcat <$> (char '|' *> manyTill inline (try $ lookAhead $ string "]]")))
   string "]]"
   return (url, "", description)
 

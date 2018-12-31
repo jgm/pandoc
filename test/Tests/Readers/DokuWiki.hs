@@ -86,6 +86,9 @@ tests = [ testGroup "inlines"
             , "Link with description" =:
               "[[http://www.google.com|This Link points to google]]" =?>
               para (link "http://www.google.com" "" (text "This Link points to google"))
+            , "Trim whitespace around link and description" =:
+              "[[   http://www.google.com    |   This Link points to google   ]]" =?>
+              para (link "http://www.google.com" "" (text "This Link points to google"))
             , "Email address" =:
               "<andi@splitbrain.org>" =?>
               para (link "mailto:andi@splitbrain.org" "" (str "andi@splitbrain.org"))
