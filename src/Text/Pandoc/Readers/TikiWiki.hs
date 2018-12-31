@@ -32,7 +32,7 @@ import Text.Pandoc.Definition
 import Text.Pandoc.Logging (Verbosity (..))
 import Text.Pandoc.Options
 import Text.Pandoc.Parsing hiding (enclosed, nested)
-import Text.Pandoc.Shared (crFilter)
+import Text.Pandoc.Shared (crFilter, safeRead)
 import Text.Pandoc.XML (fromEntities)
 import Text.Printf (printf)
 
@@ -500,9 +500,12 @@ emph = try $ fmap B.emph (enclosed (string "''") nestedInlines)
 escapedChar :: PandocMonad m => TikiWikiParser m B.Inlines
 escapedChar = try $ do
   string "~"
-  inner <- many1 $ oneOf "0123456789"
+  mNumber <- safeRead <$> many1 digit
   string "~"
-  return $B.str [toEnum (read inner :: Int) :: Char]
+  return $ B.str $
+    case mNumber of
+      Just number -> [toEnum (number :: Int) :: Char]
+      Nothing     -> []
 
 -- UNSUPPORTED, as there doesn't seem to be any facility in calibre
 -- for this

@@ -553,16 +553,18 @@ blockToLaTeX (Div (identifier,classes,kvs) bs)
                         else id
           wrapColumn  = if "column" `elem` classes
                         then \contents ->
-                               let fromPct xs =
-                                     case reverse xs of
-                                       '%':ds -> showFl (read (reverse ds) / 100 :: Double)
-                                       _      -> xs
-                                   w = maybe "0.48" fromPct (lookup "width" kvs)
+                               let w = maybe "0.48" fromPct (lookup "width" kvs)
                                in  inCmd "begin" "column" <>
                                    braces (text w <> "\\textwidth")
                                    $$ contents
                                    $$ inCmd "end" "column"
                         else id
+          fromPct xs =
+            case reverse xs of
+              '%':ds -> case safeRead (reverse ds) of
+                          Just digits -> showFl (digits / 100 :: Double)
+                          Nothing -> xs
+              _      -> xs
           wrapDir = case lookup "dir" kvs of
                       Just "rtl" -> align "RTL"
                       Just "ltr" -> align "LTR"
