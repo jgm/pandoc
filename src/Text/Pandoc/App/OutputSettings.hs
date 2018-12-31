@@ -94,7 +94,6 @@ optToOutputSettings opts = do
   let format = map toLower $ baseWriterName
                  $ takeFileName writerName  -- in case path to lua script
 
-  -- disabling the custom writer for now
   (writer, writerExts) <-
             if ".lua" `isSuffixOf` format
                then return (TextWriter
