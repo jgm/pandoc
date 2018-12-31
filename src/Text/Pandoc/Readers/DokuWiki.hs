@@ -49,10 +49,6 @@ import Text.Pandoc.Options
 import Text.Pandoc.Parsing hiding (enclosed, nested)
 import Text.Pandoc.Shared (crFilter, underlineSpan)
 
-{-
- - TODO: tables
- -}
-
 -- | Read DokuWiki from an input string and return a Pandoc document.
 readDokuWiki :: PandocMonad m
              => ReaderOptions
