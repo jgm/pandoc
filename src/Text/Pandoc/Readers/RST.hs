@@ -179,7 +179,6 @@ parseRST = do
   st' <- getState
   let reversedNotes = stateNotes st'
   updateState $ \s -> s { stateNotes = reverse reversedNotes
-                        , stateHeaders = mempty
                         , stateIdentifiers = mempty }
   -- now parse it for real...
   blocks <- B.toList <$> parseBlocks

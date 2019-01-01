@@ -43,7 +43,6 @@ import Control.Monad.Except (throwError)
 import Data.Char (isDigit, isSpace)
 import qualified Data.Foldable as F
 import Data.List (intercalate, intersperse, isPrefixOf)
-import qualified Data.Map as M
 import Data.Maybe (fromMaybe, maybeToList)
 import Data.Sequence (ViewL (..), viewl, (<|))
 import qualified Data.Set as Set
@@ -72,7 +71,6 @@ readMediaWiki opts s = do
                                             , mwMaxNestingLevel = 4
                                             , mwNextLinkNumber  = 1
                                             , mwCategoryLinks = []
-                                            , mwHeaderMap = M.empty
                                             , mwIdentifierList = Set.empty
                                             , mwLogMessages = []
                                             , mwInTT = False
@@ -86,7 +84,6 @@ data MWState = MWState { mwOptions         :: ReaderOptions
                        , mwMaxNestingLevel :: Int
                        , mwNextLinkNumber  :: Int
                        , mwCategoryLinks   :: [Inlines]
-                       , mwHeaderMap       :: M.Map Inlines String
                        , mwIdentifierList  :: Set.Set String
                        , mwLogMessages     :: [LogMessage]
                        , mwInTT            :: Bool
@@ -96,10 +93,6 @@ type MWParser m = ParserT [Char] MWState m
 
 instance HasReaderOptions MWState where
   extractReaderOptions = mwOptions
-
-instance HasHeaderMap MWState where
-  extractHeaderMap     = mwHeaderMap
-  updateHeaderMap f st = st{ mwHeaderMap = f $ mwHeaderMap st }
 
 instance HasIdentifierList MWState where
   extractIdentifierList     = mwIdentifierList
