@@ -109,9 +109,7 @@ blockToZimWiki opts (Para [Image attr txt (src,'f':'i':'g':':':tit)]) = do
   let opt = if null txt
                then ""
                else "|" ++ if null tit then capt else tit ++ capt
-      -- Relative links fail isURI and receive a colon
-      prefix = if isURI src then "" else ":"
-  return $ "{{" ++ prefix ++ src ++ imageDims opts attr ++ opt ++ "}}\n"
+  return $ "{{" ++ src ++ imageDims opts attr ++ opt ++ "}}\n"
 
 blockToZimWiki opts (Para inlines) = do
   indent <- gets stIndent
@@ -383,9 +381,7 @@ inlineToZimWiki opts (Image attr alt (source, tit)) = do
               ("", _, False ) -> "|" ++ alt'
               (_ , _, False ) -> "|" ++ tit
               (_ , _, True )  -> ""
-      -- Relative links fail isURI and receive a colon
-      prefix = if isURI source then "" else ":"
-  return $ "{{" ++ prefix ++ source ++ imageDims opts attr ++ txt ++ "}}"
+  return $ "{{" ++ source ++ imageDims opts attr ++ txt ++ "}}"
 
 inlineToZimWiki opts (Note contents) = do
   -- no concept of notes in zim wiki, use a text block
