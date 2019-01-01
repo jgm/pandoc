@@ -286,12 +286,12 @@ $for(header-includes)$
 $header-includes$
 $endfor$
 $if(lang)$
-\ifnum 0\ifxetex 1\fi\ifluatex 1\fi=0 % if pdftex
+\ifnum 0\ifxetex 1\fi=0 % if pdftex or luatex
   \usepackage[shorthands=off,$for(babel-otherlangs)$$babel-otherlangs$,$endfor$main=$babel-lang$]{babel}
 $if(babel-newcommands)$
   $babel-newcommands$
 $endif$
-\else
+\else % if xetex
   % load polyglossia as late as possible as it *could* call bidi if RTL lang (e.g. Hebrew or Arabic)
   \usepackage{polyglossia}
   \setmainlanguage[$polyglossia-lang.options$]{$polyglossia-lang.name$}
