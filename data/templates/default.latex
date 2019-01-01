@@ -173,9 +173,7 @@ $endif$
 $if(verbatim-in-note)$
 \usepackage{fancyvrb}
 $endif$
-$if(colorlinks)$
-\usepackage{xcolor}
-$endif$
+\IfFileExists{xcolor.sty}{\usepackage{xcolor}}{}
 \usepackage{hyperref}
 \hypersetup{
 $if(title-meta)$
