@@ -530,7 +530,7 @@ inlineCodeBlock = try $ do
   let attrClasses = [translateLang lang]
   let attrKeyVal  = originalLang lang <> opts
   let codeInlineBlck = B.codeWith ("", attrClasses, attrKeyVal) inlineCode
-  returnF $ (if exportsCode opts then codeInlineBlck else mempty)
+  returnF $ if exportsCode opts then codeInlineBlck else mempty
  where
    inlineBlockOption :: PandocMonad m => OrgParser m (String, String)
    inlineBlockOption = try $ do
@@ -739,7 +739,7 @@ many1TillNOrLessNewlines n p end = try $
    rest  m cs = (\x -> (minus1 <$> m, cs ++ x ++ "\n")) <$> try (manyTill p newline)
    finalLine = try $ manyTill p end
    minus1 k = k - 1
-   oneOrMore cs = guard (not $ null cs) *> return cs
+   oneOrMore cs = cs <$ guard (not $ null cs)
 
 -- Org allows customization of the way it reads emphasis.  We use the defaults
 -- here (see, e.g., the Emacs Lisp variable `org-emphasis-regexp-components`
