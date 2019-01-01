@@ -55,7 +55,6 @@ import qualified Data.Text.Lazy as TL
 import qualified Data.Text.Lazy.Encoding as TE
 import qualified Data.Text.Encoding.Error as TE
 import qualified Data.Text.Encoding.Error as TSE
-import qualified Data.YAML as YAML
 import Network.URI (URI (..), parseURI)
 import System.Directory (getAppUserDataDirectory)
 import System.Exit (exitSuccess)
@@ -332,12 +331,14 @@ removeMetaKeys :: [(String,String)] -> Pandoc -> Pandoc
 removeMetaKeys kvs pdc = foldr (deleteMeta . fst) pdc kvs
 
 readMetaValue :: String -> MetaValue
-readMetaValue s = case YAML.decodeStrict (UTF8.fromString s) of
-                       Right [YAML.Scalar (YAML.SStr t)]
-                                             -> MetaString $ T.unpack t
-                       Right [YAML.Scalar (YAML.SBool b)]
-                                             -> MetaBool b
-                       _                     -> MetaString s
+readMetaValue s
+  | s == "true"  = MetaBool True
+  | s == "True"  = MetaBool True
+  | s == "TRUE"  = MetaBool True
+  | s == "false" = MetaBool False
+  | s == "False" = MetaBool False
+  | s == "FALSE" = MetaBool False
+  | otherwise    = MetaString s
 
 -- Transformations of a Pandoc document post-parsing:
 
