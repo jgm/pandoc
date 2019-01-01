@@ -199,7 +199,7 @@ $if(verbatim-in-note)$
 $endif$
 \IfFileExists{xcolor.sty}{\usepackage{xcolor}}{}
 \IfFileExists{xurl.sty}{\usepackage{xurl}}{} % add URL line breaks if available
-\usepackage{hyperref}
+\IfFileExists{bookmark.sty}{\usepackage{bookmark}}{\usepackage{hyperref}}
 \hypersetup{
 $if(title-meta)$
   pdftitle={$title-meta$},
