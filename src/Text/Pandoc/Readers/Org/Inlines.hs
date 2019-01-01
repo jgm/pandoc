@@ -432,21 +432,27 @@ explicitOrImageLink :: PandocMonad m => OrgParser m (F Inlines)
 explicitOrImageLink = try $ do
   char '['
   srcF   <- applyCustomLinkFormat =<< possiblyEmptyLinkTarget
-  title  <- enclosedRaw (char '[') (char ']')
-  title' <- parseFromString (mconcat <$> many inline) title
+  descr  <- enclosedRaw (char '[') (char ']')
+  titleF <- parseFromString (mconcat <$> many inline) descr
   char ']'
   return $ do
     src <- srcF
-    case cleanLinkString title of
+    title <- titleF
+    case cleanLinkString descr of
       Just imgSrc | isImageFilename imgSrc ->
-        pure . B.link src "" $ B.image imgSrc mempty mempty
+        return . B.link src "" $ B.image imgSrc mempty mempty
       _ ->
-        linkToInlinesF src =<< title'
+        linkToInlinesF src title
 
 selflinkOrImage :: PandocMonad m => OrgParser m (F Inlines)
 selflinkOrImage = try $ do
-  src <- char '[' *> linkTarget <* char ']'
-  return $ linkToInlinesF src (B.str src)
+  target <- char '[' *> linkTarget <* char ']'
+  case cleanLinkString target of
+    Nothing        -> return $ internalLink target (B.str target)
+    Just nonDocTgt -> returnF $
+                      if isImageFilename nonDocTgt
+                      then B.image nonDocTgt "" ""
+                      else B.link nonDocTgt "" (B.str target)
 
 plainLink :: PandocMonad m => OrgParser m (F Inlines)
 plainLink = try $ do
@@ -481,10 +487,8 @@ linkToInlinesF linkStr =
     ""      -> pure . B.link mempty ""       -- wiki link (empty by convention)
     ('#':_) -> pure . B.link linkStr ""      -- document-local fraction
     _       -> case cleanLinkString linkStr of
-                 (Just cleanedLink) -> if isImageFilename cleanedLink
-                                       then const . pure $ B.image cleanedLink "" ""
-                                       else pure . B.link cleanedLink ""
-                 Nothing -> internalLink linkStr  -- other internal link
+                 Just extTgt -> return . B.link extTgt ""
+                 Nothing     -> internalLink linkStr  -- other internal link
 
 internalLink :: String -> Inlines -> F Inlines
 internalLink link title = do

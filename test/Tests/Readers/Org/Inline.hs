@@ -184,26 +184,26 @@ tests =
 
   , testGroup "Images"
     [ "Image" =:
-        "[[./sunset.jpg]]" =?>
-    para (image "./sunset.jpg" "" "")
+      "[[./sunset.jpg]]" =?>
+      para (image "./sunset.jpg" "" "")
 
     , "Image with explicit file: prefix" =:
-        "[[file:sunrise.jpg]]" =?>
-    para (image "sunrise.jpg" "" "")
+      "[[file:sunrise.jpg]]" =?>
+      para (image "sunrise.jpg" "" "")
 
     , "Multiple images within a paragraph" =:
-        T.unlines [ "[[file:sunrise.jpg]]"
-                  , "[[file:sunset.jpg]]"
-                  ] =?>
-    para ((image "sunrise.jpg" "" "")
+      T.unlines [ "[[file:sunrise.jpg]]"
+                , "[[file:sunset.jpg]]"
+                ] =?>
+      para (image "sunrise.jpg" "" ""
              <> softbreak
-             <> (image "sunset.jpg" "" ""))
+             <> image "sunset.jpg" "" "")
 
     , "Image with html attributes" =:
-        T.unlines [ "#+ATTR_HTML: :width 50%"
-                  , "[[file:guinea-pig.gif]]"
-                  ] =?>
-    para (imageWith ("", [], [("width", "50%")]) "guinea-pig.gif" "" "")
+      T.unlines [ "#+ATTR_HTML: :width 50%"
+                , "[[file:guinea-pig.gif]]"
+                ] =?>
+      para (imageWith ("", [], [("width", "50%")]) "guinea-pig.gif" "" "")
     ]
 
   , "Explicit link" =:
@@ -234,6 +234,10 @@ tests =
   , "Image link with non-image target" =:
       "[[http://example.com][./logo.png]]" =?>
     para (link "http://example.com" "" (image "./logo.png" "" ""))
+
+  , "Link to image" =:
+    "[[https://example.com/image.jpg][Look!]]" =?>
+    para (link "https://example.com/image.jpg" "" (str "Look!"))
 
   , "Plain link" =:
       "Posts on http://zeitlens.com/ can be funny at times." =?>
