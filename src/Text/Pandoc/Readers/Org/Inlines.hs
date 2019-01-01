@@ -448,11 +448,12 @@ selflinkOrImage :: PandocMonad m => OrgParser m (F Inlines)
 selflinkOrImage = try $ do
   target <- char '[' *> linkTarget <* char ']'
   case cleanLinkString target of
-    Nothing        -> return $ internalLink target (B.str target)
-    Just nonDocTgt -> returnF $
-                      if isImageFilename nonDocTgt
-                      then B.image nonDocTgt "" ""
-                      else B.link nonDocTgt "" (B.str target)
+    Nothing        -> case target of
+                        '#':_ -> returnF $ B.link target "" (B.str target)
+                        _     -> return $ internalLink target (B.str target)
+    Just nonDocTgt -> if isImageFilename nonDocTgt
+                      then returnF $ B.image nonDocTgt "" ""
+                      else returnF $ B.link nonDocTgt "" (B.str target)
 
 plainLink :: PandocMonad m => OrgParser m (F Inlines)
 plainLink = try $ do

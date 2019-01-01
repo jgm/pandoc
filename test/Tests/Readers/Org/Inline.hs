@@ -215,6 +215,10 @@ tests =
       "[[http://zeitlens.com/]]" =?>
     para (link "http://zeitlens.com/" "" "http://zeitlens.com/")
 
+  , "Internal self-link (reference)" =:
+    "[[#rabbit]]" =?>
+    para (link "#rabbit" "" "#rabbit")
+
   , "Absolute file link" =:
       "[[/url][hi]]" =?>
     para (link "file:///url" "" "hi")
