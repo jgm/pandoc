@@ -38,7 +38,8 @@ import Control.Monad
 import Control.Monad.Except (throwError)
 import Data.Char (isAlphaNum)
 import qualified Data.Foldable as F
-import Data.List (transpose)
+import Data.List (intercalate, transpose)
+import Data.List.Split (splitOn)
 import Data.Maybe (fromMaybe)
 import Data.Text (Text)
 import qualified Data.Text as T
@@ -271,6 +272,33 @@ isExternalLink s =
     (':':'/':'/':_) -> True
     _ -> False
 
+isAbsolutePath :: String -> Bool
+isAbsolutePath ('.':_) = False
+isAbsolutePath s = ':' `elem` s
+
+normalizeDots :: String -> String
+normalizeDots path@('.':_) =
+  case dropWhile (== '.') path of
+    ':':_ -> path
+    _ -> (takeWhile (== '.') path) ++ ':':(dropWhile (== '.') path)
+normalizeDots path = path
+
+normalizeInternalPath :: String -> String
+normalizeInternalPath path =
+  if isAbsolutePath path
+    then ensureAbsolute normalizedPath
+    else normalizedPath
+  where
+    normalizedPath = intercalate "/" $ dropWhile (== ".") $ splitOn ":" $ normalizeDots path
+    ensureAbsolute s@('/':_) = s
+    ensureAbsolute s = '/':s
+
+normalizePath :: String -> String
+normalizePath path =
+  if isExternalLink path
+    then path
+    else normalizeInternalPath path
+
 linkText :: PandocMonad m => DWParser m B.Inlines
 linkText = rawToLink
   <$  string "[["
@@ -279,11 +307,11 @@ linkText = rawToLink
   <*  string "]]"
   where
     rawToLink url description =
-      B.link url  "" (fromMaybe (B.str $ urlToText url) description)
+      B.link (normalizePath url)  "" (fromMaybe (B.str $ urlToText url) description)
     urlToText url =
       if isExternalLink url
         then url
-        else  reverse $ takeWhile (/= ':') $ reverse url
+        else reverse $ takeWhile (/= ':') $ reverse url
 
 image :: PandocMonad m => DWParser m B.Inlines
 image = try $ rawToImage

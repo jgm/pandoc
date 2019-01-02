@@ -97,9 +97,27 @@ tests = [ testGroup "inlines"
             [ "Current namespace" =:
               "[[example]]" =?>
               para (link "example" "" (str "example"))
+            , "Current namespace starting with dot" =:
+              "[[.example]]" =?>
+              para (link "example" "" (str ".example"))
+            , "Current namespace starting with dot and colon" =:
+              "[[.:example]]" =?>
+              para (link "example" "" (str "example"))
+            , "Root namespace" =:
+              "[[:example]]" =?>
+              para (link "/example" "" (str "example"))
+            , "Parent namespace" =:
+              "[[..example]]" =?>
+              para (link "../example" "" (str "..example"))
             , "Parent namespace with colon" =:
               "[[..:example]]" =?>
-              para (link "..:example" "" (str "example"))
+              para (link "../example" "" (str "example"))
+            , "Beneath the root namespace" =:
+              "[[wiki:example]]" =?>
+              para (link "/wiki/example" "" (str "example"))
+            , "Explicitly beneath the root namespace" =:
+              "[[:wiki:example]]" =?>
+              para (link "/wiki/example" "" (str "example"))
             ]
           , "Footnote" =:
             "((This is a footnote))" =?>
