@@ -46,7 +46,8 @@ import Network.HTTP (urlEncode)
 import Text.Pandoc.Class (PandocMonad)
 import Text.Pandoc.Definition
 import Text.Pandoc.Options
-import Text.Pandoc.Shared (isTightList, linesToPara, substitute, capitalize)
+import Text.Pandoc.Shared (isTightList, taskListItemToAscii, linesToPara,
+                           substitute, capitalize)
 import Text.Pandoc.Templates (renderTemplate')
 import Text.Pandoc.Walk (query, walk, walkM)
 import Text.Pandoc.Writers.HTML (writeHtml5String, tagWithAttributes)
@@ -115,24 +116,28 @@ blockToNodes opts (Para xs) ns =
 blockToNodes opts (LineBlock lns) ns = blockToNodes opts (linesToPara lns) ns
 blockToNodes _ (CodeBlock (_,classes,_) xs) ns = return
   (node (CODE_BLOCK (T.pack (unwords classes)) (T.pack xs)) [] : ns)
-blockToNodes opts (RawBlock fmt xs) ns
-  | fmt == Format "html" && isEnabled Ext_raw_html opts
+blockToNodes opts (RawBlock (Format f) xs) ns
+  | f == "html" && isEnabled Ext_raw_html opts
               = return (node (HTML_BLOCK (T.pack xs)) [] : ns)
-  | (fmt == Format "latex" || fmt == Format "tex") && isEnabled Ext_raw_tex opts
+  | (f == "latex" || f == "tex") && isEnabled Ext_raw_tex opts
+              = return (node (CUSTOM_BLOCK (T.pack xs) T.empty) [] : ns)
+  | f == "markdown"
               = return (node (CUSTOM_BLOCK (T.pack xs) T.empty) [] : ns)
   | otherwise = return ns
 blockToNodes opts (BlockQuote bs) ns = do
   nodes <- blocksToNodes opts bs
   return (node BLOCK_QUOTE nodes : ns)
 blockToNodes opts (BulletList items) ns = do
-  nodes <- mapM (blocksToNodes opts) items
+  let exts = writerExtensions opts
+  nodes <- mapM (blocksToNodes opts . taskListItemToAscii exts) items
   return (node (LIST ListAttributes{
                    listType = BULLET_LIST,
                    listDelim = PERIOD_DELIM,
                    listTight = isTightList items,
                    listStart = 1 }) (map (node ITEM) nodes) : ns)
 blockToNodes opts (OrderedList (start, _sty, delim) items) ns = do
-  nodes <- mapM (blocksToNodes opts) items
+  let exts = writerExtensions opts
+  nodes <- mapM (blocksToNodes opts . taskListItemToAscii exts) items
   return (node (LIST ListAttributes{
                    listType = ORDERED_LIST,
                    listDelim = case delim of
@@ -292,10 +297,12 @@ inlineToNodes opts (Image alt ils (url,'f':'i':'g':':':tit)) =
   inlineToNodes opts (Image alt ils (url,tit))
 inlineToNodes opts (Image _ ils (url,tit)) =
   (node (IMAGE (T.pack url) (T.pack tit)) (inlinesToNodes opts ils) :)
-inlineToNodes opts (RawInline fmt xs)
-  | fmt == Format "html" && isEnabled Ext_raw_html opts
+inlineToNodes opts (RawInline (Format f) xs)
+  | f == "html" && isEnabled Ext_raw_html opts
               = (node (HTML_INLINE (T.pack xs)) [] :)
-  | (fmt == Format "latex" || fmt == Format "tex") && isEnabled Ext_raw_tex opts
+  | (f == "latex" || f == "tex") && isEnabled Ext_raw_tex opts
+              = (node (CUSTOM_INLINE (T.pack xs) T.empty) [] :)
+  | f == "markdown"
               = (node (CUSTOM_INLINE (T.pack xs) T.empty) [] :)
   | otherwise = id
 inlineToNodes opts (Quoted qt ils) =

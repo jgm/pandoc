@@ -101,3 +101,32 @@ hi
 ^D
 [Para [Str "hi",LineBreak,Str "hi"]]
 ```
+
+```
+% pandoc -f gfm -t native
+- [ ] foo
+- [x] bar
+^D
+[BulletList
+ [[Plain [Str "\9744",Space,Str "foo"]]
+ ,[Plain [Str "\9746",Space,Str "bar"]]]]
+```
+
+```
+% pandoc -f gfm-task_lists -t native
+- [ ] foo
+- [x] bar
+^D
+[BulletList
+ [[Plain [Str "[",Space,Str "]",Space,Str "foo"]]
+ ,[Plain [Str "[x]",Space,Str "bar"]]]]
+```
+
+```
+% pandoc -f gfm -t gfm
+- [ ] foo
+- [x] bar
+^D
+  - [ ] foo
+  - [x] bar
+```

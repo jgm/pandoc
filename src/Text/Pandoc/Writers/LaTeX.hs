@@ -924,8 +924,20 @@ listItemToLaTeX lst
   -- this will keep the typesetter from throwing an error.
   | (Header{} :_) <- lst =
     blockListToLaTeX lst >>= return . (text "\\item ~" $$) . nest 2
-  | otherwise = blockListToLaTeX lst >>= return .  (text "\\item" $$) .
-                      nest 2
+  | Plain (Str "☐":Space:is) : bs <- lst = taskListItem False is bs
+  | Plain (Str "☒":Space:is) : bs <- lst = taskListItem True  is bs
+  | Para  (Str "☐":Space:is) : bs <- lst = taskListItem False is bs
+  | Para  (Str "☒":Space:is) : bs <- lst = taskListItem True  is bs
+  | otherwise = blockListToLaTeX lst >>= return . (text "\\item" $$) . nest 2
+  where
+    taskListItem checked is bs = do
+      let checkbox  = if checked
+                      then "$\\boxtimes$"
+                      else "$\\square$"
+      isContents <- inlineListToLaTeX is
+      bsContents <- blockListToLaTeX bs
+      return $ "\\item" <> brackets checkbox
+        $$ nest 2 (isContents $+$ bsContents)
 
 defListItemToLaTeX :: PandocMonad m => ([Inline], [[Block]]) -> LW m Doc
 defListItemToLaTeX (term, defs) = do
