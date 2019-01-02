@@ -2619,7 +2619,6 @@ Pandoc supports task lists, using the syntax of GitHub-Flavored Markdown.
     - [ ] an unchecked task list item
     - [x] checked item
 
-
 ### Definition lists ###
 
 #### Extension: `definition_lists` ####
