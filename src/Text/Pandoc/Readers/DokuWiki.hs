@@ -39,6 +39,7 @@ import Control.Monad.Except (throwError)
 import Data.Char (isAlphaNum)
 import qualified Data.Foldable as F
 import Data.List (transpose)
+import Data.Maybe (fromMaybe)
 import Data.Text (Text)
 import qualified Data.Text as T
 import qualified Text.Pandoc.Builder as B
@@ -260,9 +261,9 @@ link = try $ do
   st <- getState
   guard $ stateAllowLinks st
   setState $ st{ stateAllowLinks = False }
-  (url, title, content) <- linkText
+  l <- linkText
   setState $ st{ stateAllowLinks = True }
-  return $ B.link url title content
+  return l
 
 isExternalLink :: String -> Bool
 isExternalLink s =
@@ -270,14 +271,15 @@ isExternalLink s =
     (':':'/':'/':_) -> True
     _ -> False
 
-linkText :: PandocMonad m => DWParser m (String, String, B.Inlines)
-linkText = do
-  string "[["
-  url <- trim <$> many1Till anyChar (lookAhead (void (char '|') <|> try (void $ string "]]")))
-  description <- option (B.str $ urlToText url) (B.trimInlines . mconcat <$> (char '|' *> manyTill inline (try $ lookAhead $ string "]]")))
-  string "]]"
-  return (url, "", description)
+linkText :: PandocMonad m => DWParser m B.Inlines
+linkText = rawToLink
+  <$  string "[["
+  <*> (trim <$> many1Till anyChar (lookAhead (void (char '|') <|> try (void $ string "]]"))))
+  <*> optionMaybe (B.trimInlines . mconcat <$> (char '|' *> manyTill inline (try $ lookAhead $ string "]]")))
+  <*  string "]]"
   where
+    rawToLink url description =
+      B.link url  "" (fromMaybe (B.str $ urlToText url) description)
     urlToText url =
       if isExternalLink url
         then url
