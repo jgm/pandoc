@@ -286,12 +286,13 @@ linkText = rawToLink
         else  reverse $ takeWhile (/= ':') $ reverse url
 
 image :: PandocMonad m => DWParser m B.Inlines
-image = try $ do
-  string "{{"
-  filename <- many1Till anyChar (lookAhead (void (char '|') <|> try (void $ string "}}")))
-  description <- mconcat <$> option mempty (char '|' *> manyTill inline (try $ lookAhead $ string "}}"))
-  string "}}"
-  pure $ B.image filename "" description
+image = try $ rawToImage
+  <$  string "{{"
+  <*> many1Till anyChar (lookAhead (void (char '|') <|> try (void $ string "}}")))
+  <*> (mconcat <$> option mempty (char '|' *> manyTill inline (try $ lookAhead $ string "}}")))
+  <*  string "}}"
+  where
+    rawToImage path description = B.image path "" description
 
 -- * Block parsers
 
