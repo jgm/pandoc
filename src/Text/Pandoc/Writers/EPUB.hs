@@ -814,6 +814,7 @@ pandocToEPUB version opts doc@(Pandoc meta _) = do
   let landmarks = if epub3
                      then [RawBlock (Format "html") $ ppElement $
                             unode "nav" ! [("epub:type","landmarks")
+                                          ,("id","landmarks")
                                           ,("hidden","hidden")] $
                             [ unode "ol" $
                               [ unode "li"
