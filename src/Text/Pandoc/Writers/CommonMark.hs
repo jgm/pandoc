@@ -247,7 +247,7 @@ inlineToNodes opts (Str s) = stringToNodes opts s'
 inlineToNodes _ Space   = (node (TEXT (T.pack " ")) [] :)
 inlineToNodes _ LineBreak = (node LINEBREAK [] :)
 inlineToNodes opts SoftBreak
-  | isEnabled Ext_hard_line_breaks opts = (node LINEBREAK [] :)
+  | isEnabled Ext_hard_line_breaks opts = (node (TEXT " ") [] :)
   | writerWrapText opts == WrapNone     = (node (TEXT " ") [] :)
   | otherwise                           = (node SOFTBREAK [] :)
 inlineToNodes opts (Emph xs) = (node EMPH (inlinesToNodes opts xs) :)
