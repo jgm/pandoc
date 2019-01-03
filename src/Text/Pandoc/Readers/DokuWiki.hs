@@ -280,7 +280,7 @@ normalizeDots :: String -> String
 normalizeDots path@('.':_) =
   case dropWhile (== '.') path of
     ':':_ -> path
-    _ -> (takeWhile (== '.') path) ++ ':':(dropWhile (== '.') path)
+    _ -> takeWhile (== '.') path ++ ':':dropWhile (== '.') path
 normalizeDots path = path
 
 normalizeInternalPath :: String -> String
