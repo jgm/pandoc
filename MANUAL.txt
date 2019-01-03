@@ -158,7 +158,15 @@ available, and [`csquotes`] will be used for [typography]
 if `\usepackage{csquotes}` is present in the template or
 included via `/H/--include-in-header`.  The [`natbib`],
 [`biblatex`], [`bibtex`], and [`biber`] packages can optionally
-be used for [citation rendering].
+be used for [citation rendering].  The following packages
+will be used to improve output quality if present, but
+pandoc does not require them to be present:
+[`upquote`] (for straight quotes in verbatim environments),
+[`microtype`] (for better spacing adjustments),
+[`parskip`] (for better inter-paragraph spaces),
+[`xurl`] (for better line breaks in URLs),
+[`bookmark`] (for better PDF bookmarks),
+[`footnote`] (to fix footnotes in tables).
 
 [`amsfonts`]: https://ctan.org/pkg/amsfonts
 [`amsmath`]: https://ctan.org/pkg/amsmath
@@ -193,6 +201,13 @@ be used for [citation rendering].
 [`wkhtmltopdf`]: https://wkhtmltopdf.org
 [`weasyprint`]: http://weasyprint.org
 [`prince`]: https://www.princexml.com/
+[`upquote`]: https://ctan.org/pkg/upquote
+[`microtype`]: https://ctan.org/pkg/microtype
+[`parskip`]: https://ctan.org/pkg/parskip
+[`xurl`]: https://ctan.org/pkg/xurl
+[`bookmark`]: https://ctan.org/pkg/bookmark
+[`footnote`]: https://ctan.org/pkg/footnote
+
 
 Reading from the Web
 --------------------
