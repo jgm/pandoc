@@ -122,15 +122,17 @@ tests = [ testGroup "inlines"
           , "Footnote" =:
             "((This is a footnote))" =?>
             para (note (para "This is a footnote"))
-          , "Image" =:
-            "{{image.jpg}}" =?>
-            para (image "image.jpg" "" mempty)
-          , "Image with caption" =:
-            "{{image.png|This is the caption}}" =?>
-            para (image "image.png" "" "This is the caption")
-          , "Image with } in caption" =:
-            "{{image.png|There is an } in the caption}}" =?>
-            para (image "image.png" "" "There is an } in the caption")
+          , testGroup "Images"
+            [ "Image" =:
+              "{{image.jpg}}" =?>
+              para (image "image.jpg" "" mempty)
+            , "Image with caption" =:
+              "{{image.png|This is the caption}}" =?>
+              para (image "image.png" "" "This is the caption")
+            , "Image with } in caption" =:
+              "{{image.png|There is an } in the caption}}" =?>
+              para (image "image.png" "" "There is an } in the caption")
+            ]
           , "Ignore ~~NOTOC~~" =:
             "Here is a ~~NOTOC~~ macro" =?>
             para "Here is a macro"
