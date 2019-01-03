@@ -299,28 +299,32 @@ normalizePath path =
     then path
     else normalizeInternalPath path
 
-linkText :: PandocMonad m => DWParser m B.Inlines
-linkText = rawToLink
-  <$  string "[["
-  <*> (trim <$> many1Till anyChar (lookAhead (void (char '|') <|> try (void $ string "]]"))))
-  <*> optionMaybe (B.trimInlines . mconcat <$> (char '|' *> manyTill inline (try $ lookAhead $ string "]]")))
-  <*  string "]]"
+urlToText :: String -> String
+urlToText url =
+  if isExternalLink url
+    then url
+    else reverse $ takeWhile (/= ':') $ reverse url
+
+-- Parse link or image
+parseLink :: PandocMonad m
+          => (String -> String -> B.Inlines -> B.Inlines)
+          -> String
+          -> String
+          -> DWParser m B.Inlines
+parseLink f l r = fromRaw
+  <$  string l
+  <*> (trim <$> many1Till anyChar (lookAhead (void (char '|') <|> try (void $ string r))))
+  <*> optionMaybe (B.trimInlines . mconcat <$> (char '|' *> manyTill inline (try $ lookAhead $ string r)))
+  <*  string r
   where
-    rawToLink url description =
-      B.link (normalizePath url)  "" (fromMaybe (B.str $ urlToText url) description)
-    urlToText url =
-      if isExternalLink url
-        then url
-        else reverse $ takeWhile (/= ':') $ reverse url
+    fromRaw path description =
+      f (normalizePath path) "" (fromMaybe (B.str $ urlToText path) description)
+
+linkText :: PandocMonad m => DWParser m B.Inlines
+linkText = parseLink B.link "[[" "]]"
 
 image :: PandocMonad m => DWParser m B.Inlines
-image = try $ rawToImage
-  <$  string "{{"
-  <*> many1Till anyChar (lookAhead (void (char '|') <|> try (void $ string "}}")))
-  <*> (mconcat <$> option mempty (char '|' *> manyTill inline (try $ lookAhead $ string "}}")))
-  <*  string "}}"
-  where
-    rawToImage path description = B.image path "" description
+image = parseLink B.image "{{" "}}"
 
 -- * Block parsers
 

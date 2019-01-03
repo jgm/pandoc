@@ -125,13 +125,16 @@ tests = [ testGroup "inlines"
           , testGroup "Images"
             [ "Image" =:
               "{{image.jpg}}" =?>
-              para (image "image.jpg" "" mempty)
+              para (image "image.jpg" "" (str "image.jpg"))
             , "Image with caption" =:
               "{{image.png|This is the caption}}" =?>
               para (image "image.png" "" "This is the caption")
             , "Image with } in caption" =:
               "{{image.png|There is an } in the caption}}" =?>
               para (image "image.png" "" "There is an } in the caption")
+            , "Wiki namespace starting with dot" =:
+              "{{.wiki:image.jpg}}" =?>
+              para (image "wiki/image.jpg" "" (str "image.jpg"))
             ]
           , "Ignore ~~NOTOC~~" =:
             "Here is a ~~NOTOC~~ macro" =?>
