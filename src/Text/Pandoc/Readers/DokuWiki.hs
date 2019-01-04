@@ -307,24 +307,58 @@ urlToText url =
 
 -- Parse link or image
 parseLink :: PandocMonad m
-          => (String -> String -> B.Inlines -> B.Inlines)
+          => (String -> Maybe B.Inlines -> B.Inlines)
           -> String
           -> String
           -> DWParser m B.Inlines
-parseLink f l r = fromRaw
+parseLink f l r = f
   <$  string l
   <*> (trim <$> many1Till anyChar (lookAhead (void (char '|') <|> try (void $ string r))))
   <*> optionMaybe (B.trimInlines . mconcat <$> (char '|' *> manyTill inline (try $ lookAhead $ string r)))
   <*  string r
-  where
-    fromRaw path description =
-      f (normalizePath path) "" (fromMaybe (B.str $ urlToText path) description)
+
+-- | Split Interwiki link into left and right part
+-- | Return Nothing if it is not Interwiki link
+splitInterwiki :: String -> Maybe (String, String)
+splitInterwiki path =
+  case span (\c -> isAlphaNum c || c == '.') path of
+    (l, ('>':r)) -> Just (l, r)
+    _ -> Nothing
+
+interwikiToUrl :: String -> String -> String
+interwikiToUrl "callto" page = "callto://" ++ page
+interwikiToUrl "doku" page = "https://www.dokuwiki.org/" ++ page
+interwikiToUrl "phpfn" page = "https://secure.php.net/" ++ page
+interwikiToUrl "tel" page = "tel:" ++ page
+interwikiToUrl "wp" page = "https://en.wikipedia.org/wiki/" ++ page
+interwikiToUrl "wpde" page = "https://de.wikipedia.org/wiki/" ++ page
+interwikiToUrl "wpes" page = "https://es.wikipedia.org/wiki/" ++ page
+interwikiToUrl "wpfr" page = "https://fr.wikipedia.org/wiki/" ++ page
+interwikiToUrl "wpjp" page = "https://jp.wikipedia.org/wiki/" ++ page
+interwikiToUrl "wppl" page = "https://pl.wikipedia.org/wiki/" ++ page
+interwikiToUrl _ page = "https://www.google.com/search?q=" ++ page ++ "&btnI=lucky"
 
 linkText :: PandocMonad m => DWParser m B.Inlines
-linkText = parseLink B.link "[[" "]]"
+linkText = parseLink fromRaw "[[" "]]"
+  where
+    fromRaw path description =
+      B.link normalizedPath "" (fromMaybe (B.str $ defaultDescription) description)
+      where
+        interwiki = splitInterwiki path
+        normalizedPath =
+          case interwiki of
+            Nothing -> normalizePath path
+            Just (l, r) -> interwikiToUrl l r
+        defaultDescription =
+          case interwiki of
+            Nothing -> urlToText path
+            Just (_, r) -> r
 
 image :: PandocMonad m => DWParser m B.Inlines
-image = parseLink B.image "{{" "}}"
+image = parseLink fromRaw "{{" "}}"
+  where
+    fromRaw path description =
+      B.image (normalizePath path) "" (fromMaybe (B.str $ urlToText path) description)
 
 -- * Block parsers
 

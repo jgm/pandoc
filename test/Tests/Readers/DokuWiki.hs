@@ -119,6 +119,14 @@ tests = [ testGroup "inlines"
               "[[:wiki:example]]" =?>
               para (link "/wiki/example" "" (str "example"))
             ]
+          , testGroup "Interwiki links"
+            [ "Interwiki without description" =:
+              "[[doku>DokuWiki]]" =?>
+              para (link "https://www.dokuwiki.org/DokuWiki" "" (str "DokuWiki"))
+            , "Interwiki link with description" =:
+              "[[doku>toolbar|quickbuttons]]" =?>
+              para (link "https://www.dokuwiki.org/toolbar" "" (str "quickbuttons"))
+            ]
           , "Footnote" =:
             "((This is a footnote))" =?>
             para (note (para "This is a footnote"))
