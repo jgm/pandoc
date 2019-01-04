@@ -322,7 +322,7 @@ parseLink f l r = f
 splitInterwiki :: String -> Maybe (String, String)
 splitInterwiki path =
   case span (\c -> isAlphaNum c || c == '.') path of
-    (l, ('>':r)) -> Just (l, r)
+    (l, '>':r) -> Just (l, r)
     _ -> Nothing
 
 interwikiToUrl :: String -> String -> String
@@ -342,7 +342,7 @@ linkText :: PandocMonad m => DWParser m B.Inlines
 linkText = parseLink fromRaw "[[" "]]"
   where
     fromRaw path description =
-      B.link normalizedPath "" (fromMaybe (B.str $ defaultDescription) description)
+      B.link normalizedPath "" (fromMaybe (B.str defaultDescription) description)
       where
         interwiki = splitInterwiki path
         normalizedPath =
