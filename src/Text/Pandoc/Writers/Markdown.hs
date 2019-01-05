@@ -212,7 +212,8 @@ pandocToMarkdown opts (Pandoc meta blocks) = do
                         Nothing -> empty
   let headerBlocks = filter isHeaderBlock blocks
   toc <- if writerTableOfContents opts
-         then render' <$> tableOfContents opts headerBlocks
+         then render' <$> blockToMarkdown opts
+                            ( toTableOfContents opts $ headerBlocks )
          else return ""
   -- Strip off final 'references' header if markdown citations enabled
   let blocks' = if isEnabled Ext_citations opts
@@ -318,26 +319,6 @@ escapeString opts =
                    '.':'.':rest -> '\\':'.':'.':'.':go rest
                    _            -> '.':go cs
        _   -> c : go cs
-
--- | Construct table of contents from list of header blocks.
-tableOfContents :: PandocMonad m => WriterOptions -> [Block] -> MD m Doc
-tableOfContents opts headers = do
-  contents <- BulletList <$> mapM (elementToListItem opts) (hierarchicalize headers)
-  blockToMarkdown opts contents
-
--- | Converts an Element to a list item for a table of contents,
-elementToListItem :: PandocMonad m => WriterOptions -> Element -> MD m [Block]
-elementToListItem opts (Sec lev _nums (ident,_,_) headerText subsecs)
-  = do isPlain <- asks envPlain
-       let headerLink = if null ident || isPlain
-                         then walk deNote headerText
-                         else [Link nullAttr (walk deNote headerText)
-                                 ('#':ident, "")]
-       listContents <- if null subsecs || lev >= writerTOCDepth opts
-                          then return []
-                          else mapM (elementToListItem opts) subsecs
-       return [Plain headerLink, BulletList listContents]
-elementToListItem _ (Blk _) = return []
 
 attrsToMarkdown :: Attr -> Doc
 attrsToMarkdown attribs = braces $ hsep [attribId, attribClasses, attribKeys]

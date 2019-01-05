@@ -49,6 +49,7 @@ module Text.Pandoc.Writers.Shared (
                      , stripLeadingTrailingSpace
                      , toSubscript
                      , toSuperscript
+                     , toTableOfContents
                      )
 where
 import Prelude
@@ -66,7 +67,8 @@ import qualified Text.Pandoc.Builder as Builder
 import Text.Pandoc.Definition
 import Text.Pandoc.Options
 import Text.Pandoc.Pretty
-import Text.Pandoc.Shared (stringify)
+import Text.Pandoc.Shared (stringify, hierarchicalize, Element(..), deNote)
+import Text.Pandoc.Walk (walk)
 import Text.Pandoc.UTF8 (toStringLazy)
 import Text.Pandoc.XML (escapeStringForXML)
 
@@ -412,3 +414,23 @@ toSubscript c
                  Just $ chr (0x2080 + (ord c - 48))
   | isSpace c = Just c
   | otherwise = Nothing
+
+-- | Construct table of contents (as a bullet list) from document body.
+toTableOfContents :: WriterOptions
+                  -> [Block]
+                  -> Block
+toTableOfContents opts bs =
+  BulletList $ map (elementToListItem opts) (hierarchicalize bs)
+
+-- | Converts an Element to a list item for a table of contents,
+elementToListItem :: WriterOptions -> Element -> [Block]
+elementToListItem opts (Sec lev _nums (ident,_,_) headerText subsecs)
+  = Plain headerLink : [BulletList listContents | not (null subsecs)
+                                                , lev < writerTOCDepth opts]
+ where
+   headerText' = walk deNote headerText
+   headerLink = if null ident
+                   then headerText'
+                   else [Link nullAttr headerText' ('#':ident, "")]
+   listContents = map (elementToListItem opts) subsecs
+elementToListItem _ (Blk _) = []
