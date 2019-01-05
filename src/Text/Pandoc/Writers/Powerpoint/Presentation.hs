@@ -72,7 +72,7 @@ import Text.Pandoc.Logging
 import Text.Pandoc.Walk
 import Data.Time (UTCTime)
 import qualified Text.Pandoc.Shared as Shared -- so we don't overlap "Element"
-import Text.Pandoc.Writers.Shared (lookupMetaInlines)
+import Text.Pandoc.Writers.Shared (lookupMetaInlines, toTableOfContents)
 import qualified Data.Map as M
 import qualified Data.Set as S
 import Data.Maybe (maybeToList, fromMaybe)
@@ -770,23 +770,10 @@ getMetaSlide  = do
                        }
          mempty
 
--- adapted from the markdown writer
-elementToListItem :: Shared.Element -> Pres [Block]
-elementToListItem (Shared.Sec lev _nums (ident,_,_) headerText subsecs) = do
-  opts <- asks envOpts
-  let headerLink = if null ident
-                   then walk Shared.deNote headerText
-                   else [Link nullAttr (walk Shared.deNote headerText)
-                          ('#':ident, "")]
-  listContents <- if null subsecs || lev >= writerTOCDepth opts
-                  then return []
-                  else mapM elementToListItem subsecs
-  return [Plain headerLink, BulletList listContents]
-elementToListItem (Shared.Blk _) = return []
-
 makeTOCSlide :: [Block] -> Pres Slide
 makeTOCSlide blks = local (\env -> env{envCurSlideId = tocSlideId}) $ do
-  contents <- BulletList <$> mapM elementToListItem (Shared.hierarchicalize blks)
+  opts <- asks envOpts
+  let contents = toTableOfContents opts blks
   meta <- asks envMetadata
   slideLevel <- asks envSlideLevel
   let tocTitle = case lookupMetaInlines "toc-title" meta of
