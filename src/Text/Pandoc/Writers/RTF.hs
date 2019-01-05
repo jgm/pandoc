@@ -119,9 +119,8 @@ writeRTF options doc = do
               inlinesToRTF
               meta'
   body <- blocksToRTF 0 AlignDefault blocks
-  let isTOCHeader (Header lev _ _) = lev <= writerTOCDepth options
-      isTOCHeader _                = False
-  toc <- tableOfContents $ filter isTOCHeader blocks
+  toc <- blocksToRTF 0 AlignDefault
+          [toTableOfContents options $ filter isHeaderBlock blocks]
   let context = defField "body" body
               $ defField "spacer" spacer
               $(if writerTableOfContents options
@@ -138,20 +137,6 @@ writeRTF options doc = do
                        case reverse body of
                             ('\n':_) -> body
                             _        -> body ++ "\n"
-
--- | Construct table of contents from list of header blocks.
-tableOfContents :: PandocMonad m => [Block] -> m String
-tableOfContents headers = do
-  let contents = map elementToListItem $ hierarchicalize headers
-  blocksToRTF 0 AlignDefault
-      [Header 1 nullAttr [Str "Contents"], BulletList contents]
-
-elementToListItem :: Element -> [Block]
-elementToListItem (Blk _) = []
-elementToListItem (Sec _ _ _ sectext subsecs) = Plain sectext :
-  if null subsecs
-     then []
-     else [BulletList (map elementToListItem subsecs)]
 
 -- | Convert unicode characters (> 127) into rich text format representation.
 handleUnicode :: String -> String
