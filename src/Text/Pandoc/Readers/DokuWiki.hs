@@ -3,7 +3,7 @@
 {-# LANGUAGE OverloadedStrings #-}
 
 {-
-  Copyright (C) 2018 Alexander Krotov <ilabdsf@gmail.com>
+  Copyright (C) 2018-2019 Alexander Krotov <ilabdsf@gmail.com>
 
 This program is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
