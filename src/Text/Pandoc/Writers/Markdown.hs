@@ -213,7 +213,7 @@ pandocToMarkdown opts (Pandoc meta blocks) = do
   let headerBlocks = filter isHeaderBlock blocks
   toc <- if writerTableOfContents opts
          then render' <$> blockToMarkdown opts
-                            ( toTableOfContents opts $ headerBlocks )
+                            ( toTableOfContents opts headerBlocks )
          else return ""
   -- Strip off final 'references' header if markdown citations enabled
   let blocks' = if isEnabled Ext_citations opts

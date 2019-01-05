@@ -47,7 +47,7 @@ import Text.Pandoc.Class (PandocMonad)
 import Text.Pandoc.Definition
 import Text.Pandoc.Options
 import Text.Pandoc.Shared (isTightList, taskListItemToAscii, linesToPara,
-                           substitute, capitalize)
+                           substitute, capitalize, isHeaderBlock)
 import Text.Pandoc.Templates (renderTemplate')
 import Text.Pandoc.Walk (query, walk, walkM)
 import Text.Pandoc.Writers.HTML (writeHtml5String, tagWithAttributes)
@@ -57,6 +57,12 @@ import Text.Pandoc.XML (toHtml5Entities)
 -- | Convert Pandoc to CommonMark.
 writeCommonMark :: PandocMonad m => WriterOptions -> Pandoc -> m Text
 writeCommonMark opts (Pandoc meta blocks) = do
+  let headerBlocks = filter isHeaderBlock blocks
+  toc <- if writerTableOfContents opts
+            then blocksToCommonMark opts
+                  [ toTableOfContents opts headerBlocks ]
+            else return mempty
+ 
   let (blocks', notes) = runState (walkM processNotes blocks) []
       notes' = if null notes
                then []
@@ -66,7 +72,12 @@ writeCommonMark opts (Pandoc meta blocks) = do
               (blocksToCommonMark opts)
               (inlinesToCommonMark opts)
               meta
-  let context = defField "body" main metadata
+  let context =
+          -- for backwards compatibility we populate toc
+          -- with the contents of the toc, rather than a boolean:
+          defField "toc" toc
+        $ defField "table-of-contents" toc
+        $ defField "body" main metadata
   case writerTemplate opts of
        Nothing  -> return main
        Just tpl -> renderTemplate' tpl context
