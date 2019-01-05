@@ -38,7 +38,7 @@ import Control.Monad
 import Control.Monad.Except (throwError)
 import Data.Char (isAlphaNum)
 import qualified Data.Foldable as F
-import Data.List (intercalate, transpose)
+import Data.List (intercalate, transpose, isPrefixOf, isSuffixOf)
 import Data.List.Split (splitOn)
 import Data.Maybe (fromMaybe)
 import Data.Text (Text)
@@ -313,7 +313,7 @@ parseLink :: PandocMonad m
           -> DWParser m B.Inlines
 parseLink f l r = f
   <$  string l
-  <*> (trim <$> many1Till anyChar (lookAhead (void (char '|') <|> try (void $ string r))))
+  <*> many1Till anyChar (lookAhead (void (char '|') <|> try (void $ string r)))
   <*> optionMaybe (B.trimInlines . mconcat <$> (char '|' *> manyTill inline (try $ lookAhead $ string r)))
   <*  string r
 
@@ -344,21 +344,32 @@ linkText = parseLink fromRaw "[[" "]]"
     fromRaw path description =
       B.link normalizedPath "" (fromMaybe (B.str defaultDescription) description)
       where
-        interwiki = splitInterwiki path
+        path' = trim path
+        interwiki = splitInterwiki path'
         normalizedPath =
           case interwiki of
-            Nothing -> normalizePath path
+            Nothing -> normalizePath path'
             Just (l, r) -> interwikiToUrl l r
         defaultDescription =
           case interwiki of
-            Nothing -> urlToText path
+            Nothing -> urlToText path'
             Just (_, r) -> r
 
 image :: PandocMonad m => DWParser m B.Inlines
 image = parseLink fromRaw "{{" "}}"
   where
     fromRaw path description =
-      B.image (normalizePath path) "" (fromMaybe (B.str $ urlToText path) description)
+      B.imageWith ("", classes, []) (normalizePath path') "" (fromMaybe (B.str $ urlToText path') description)
+      where
+        path' = trim path
+        leftPadding = " " `isPrefixOf` path
+        rightPadding = " " `isSuffixOf` path
+        classes =
+          case (leftPadding, rightPadding) of
+            (False, False) -> []
+            (False, True) -> ["align-left"]
+            (True, False) -> ["align-right"]
+            (True, True) -> ["align-center"]
 
 -- * Block parsers
 

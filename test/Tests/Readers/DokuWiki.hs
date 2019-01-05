@@ -143,6 +143,15 @@ tests = [ testGroup "inlines"
             , "Wiki namespace starting with dot" =:
               "{{.wiki:image.jpg}}" =?>
               para (image "wiki/image.jpg" "" (str "image.jpg"))
+            , "Left aligned image" =:
+              "{{wiki:dokuwiki-128.png }}" =?>
+              para (imageWith ("", ["align-left"], []) "/wiki/dokuwiki-128.png" "" (str "dokuwiki-128.png"))
+            , "Right aligned image" =:
+              "{{ wiki:dokuwiki-128.png}}" =?>
+              para (imageWith ("", ["align-right"], []) "/wiki/dokuwiki-128.png" "" (str "dokuwiki-128.png"))
+            , "Centered image" =:
+              "{{ wiki:dokuwiki-128.png }}" =?>
+              para (imageWith ("", ["align-center"], []) "/wiki/dokuwiki-128.png" "" (str "dokuwiki-128.png"))
             ]
           , "Ignore ~~NOTOC~~" =:
             "Here is a ~~NOTOC~~ macro" =?>
