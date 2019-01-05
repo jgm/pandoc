@@ -1,3 +1,4 @@
+{-# LANGUAGE CPP #-}
 {-# LANGUAGE NoImplicitPrelude #-}
 {-# LANGUAGE FlexibleInstances    #-}
 {-# LANGUAGE TypeSynonymInstances #-}
@@ -100,7 +101,11 @@ findPandoc = do
              "test-pandoc" : "build" : ps
                -> joinPath (reverse ps) </> "build" </> "pandoc"
              _ -> error $ "findPandoc: could not find pandoc executable")
+#ifdef _WINDOWS
+        </> "pandoc" <.> "exe"
+#else
         </> "pandoc"
+#endif
   found <- doesFileExist pandocPath
   if found
      then return pandocPath

@@ -713,6 +713,8 @@ test-suite test-pandoc
                   Tests.Writers.FB2
                   Tests.Writers.Powerpoint
                   Tests.Writers.OOXML
+  if os(windows)
+    cpp-options:      -D_WINDOWS
   ghc-options:  -rtsopts -Wall -fno-warn-unused-do-bind -threaded
   default-language: Haskell2010
   other-extensions: NoImplicitPrelude
