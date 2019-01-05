@@ -79,16 +79,11 @@ showDiff (l,r) (Both _ _ : ds) =
   showDiff (l+1,r+1) ds
 
 -- | Find pandoc executable relative to test-pandoc
--- First, try in same directory (e.g. if both in ~/.cabal/bin)
--- Second, try ../pandoc (e.g. if in dist/XXX/build/test-pandoc)
 findPandoc :: IO FilePath
 findPandoc = do
   testExePath <- getExecutablePath
-  curdir <- getCurrentDirectory
-  let relTestExePathParts = splitDirectories $ makeRelative curdir $
-                            takeDirectory testExePath
-  let pandocPath =
-        (case reverse relTestExePathParts of
+  let pandocDir =
+        case reverse (splitDirectories (takeDirectory testExePath)) of
              -- cabalv2 with --disable-optimization
              "test-pandoc" : "build" : "noopt" : "test-pandoc" : "t" : ps
                -> joinPath (reverse ps) </>
@@ -100,11 +95,10 @@ findPandoc = do
              -- cabalv1
              "test-pandoc" : "build" : ps
                -> joinPath (reverse ps) </> "build" </> "pandoc"
-             _ -> error $ "findPandoc: could not find pandoc executable")
+             _ -> error $ "findPandoc: could not find pandoc executable"
+  let pandocPath = pandocDir </> "pandoc"
 #ifdef _WINDOWS
-        </> "pandoc" <.> "exe"
-#else
-        </> "pandoc"
+                             <.> "exe"
 #endif
   found <- doesFileExist pandocPath
   if found
