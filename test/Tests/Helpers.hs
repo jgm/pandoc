@@ -83,14 +83,29 @@ showDiff (l,r) (Both _ _ : ds) =
 findPandoc :: IO FilePath
 findPandoc = do
   testExePath <- getExecutablePath
-  let testExeDir = takeDirectory testExePath
-  found <- doesFileExist (testExeDir </> "pandoc")
-  return $ if found
-              then testExeDir </> "pandoc"
-              else case splitDirectories testExeDir of
-                         [] -> error "test-pandoc: empty testExeDir"
-                         xs -> joinPath (init xs) </> "pandoc" </> "pandoc"
-
+  curdir <- getCurrentDirectory
+  let relTestExePathParts = splitDirectories $ makeRelative curdir $
+                            takeDirectory testExePath
+  let pandocPath =
+        (case reverse relTestExePathParts of
+             -- cabalv2 with --disable-optimization
+             "test-pandoc" : "build" : "noopt" : "test-pandoc" : "t" : ps
+               -> joinPath (reverse ps) </>
+                  "x" </> "pandoc" </> "noopt" </> "build" </> "pandoc"
+             -- cabalv2 without --disable-optimization
+             "test-pandoc" : "build" : "test-pandoc" : "t" : ps
+               -> joinPath (reverse ps) </>
+                  "x" </> "pandoc" </> "build" </> "pandoc"
+             -- cabalv1
+             "test-pandoc" : "build" : ps
+               -> joinPath (reverse ps) </> "build" </> "pandoc"
+             _ -> error $ "findPandoc: could not find pandoc executable")
+        </> "pandoc"
+  found <- doesFileExist pandocPath
+  if found
+     then return pandocPath
+     else error $ "findPandoc: could not find pandoc executable at "
+                   ++ pandocPath
 
 vividize :: Diff String -> String
 vividize (Both s _) = "  " ++ s

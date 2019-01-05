@@ -40,6 +40,7 @@ import qualified Tests.Writers.Plain
 import qualified Tests.Writers.Powerpoint
 import qualified Tests.Writers.RST
 import qualified Tests.Writers.TEI
+import Tests.Helpers (findPandoc)
 import Text.Pandoc.Shared (inDirectory)
 
 tests :: TestTree
@@ -86,4 +87,7 @@ tests = testGroup "pandoc tests" [ Tests.Command.tests
 main :: IO ()
 main = do
   setLocaleEncoding utf8
-  inDirectory "test" $ defaultMain tests
+  inDirectory "test" $ do
+    fp <- findPandoc
+    putStrLn $ "Using pandoc executable at " ++ fp
+    defaultMain tests
