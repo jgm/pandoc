@@ -1,6 +1,7 @@
 {-# LANGUAGE FlexibleContexts  #-}
 {-# LANGUAGE NoImplicitPrelude #-}
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE TupleSections     #-}
 
 {-
   Copyright (C) 2018-2019 Alexander Krotov <ilabdsf@gmail.com>
@@ -36,11 +37,11 @@ module Text.Pandoc.Readers.DokuWiki (readDokuWiki) where
 import Prelude
 import Control.Monad
 import Control.Monad.Except (throwError)
-import Data.Char (isAlphaNum)
+import Data.Char (isAlphaNum, isDigit)
 import qualified Data.Foldable as F
 import Data.List (intercalate, transpose, isPrefixOf, isSuffixOf)
 import Data.List.Split (splitOn)
-import Data.Maybe (fromMaybe)
+import Data.Maybe (fromMaybe, catMaybes)
 import Data.Text (Text)
 import qualified Data.Text as T
 import qualified Text.Pandoc.Builder as B
@@ -355,13 +356,36 @@ linkText = parseLink fromRaw "[[" "]]"
             Nothing -> urlToText path'
             Just (_, r) -> r
 
+-- Matches strings like "100x100" (width x height) and "50" (width)
+isWidthHeightParameter :: String -> Bool
+isWidthHeightParameter s =
+  case s of
+    (x:xs) ->
+      isDigit x && case dropWhile isDigit xs of
+                     ('x':ys@(_:_)) -> all isDigit ys
+                     "" -> True
+                     _ -> False
+    _ -> False
+
+parseWidthHeight :: String -> (Maybe String, Maybe String)
+parseWidthHeight s = (width, height)
+  where
+    width = Just $ takeWhile isDigit s
+    height =
+      case dropWhile isDigit s of
+        ('x':xs) -> Just xs
+        _ -> Nothing
+
 image :: PandocMonad m => DWParser m B.Inlines
 image = parseLink fromRaw "{{" "}}"
   where
     fromRaw path description =
-      B.imageWith ("", classes, []) (normalizePath path') "" (fromMaybe (B.str $ urlToText path') description)
+      if linkOnly
+        then B.link normalizedPath "" (fromMaybe defaultDescription description)
+        else B.imageWith ("", classes, attributes) normalizedPath "" (fromMaybe defaultDescription description)
       where
-        path' = trim path
+        (path', parameters) = span (/= '?') $ trim path
+        normalizedPath = normalizePath path'
         leftPadding = " " `isPrefixOf` path
         rightPadding = " " `isSuffixOf` path
         classes =
@@ -370,6 +394,11 @@ image = parseLink fromRaw "{{" "}}"
             (False, True) -> ["align-left"]
             (True, False) -> ["align-right"]
             (True, True) -> ["align-center"]
+        parameterList = splitOn "&" $ drop 1 parameters
+        linkOnly = any (== "linkonly") parameterList
+        (width, height) = fromMaybe (Nothing, Nothing) (parseWidthHeight <$> F.find isWidthHeightParameter parameterList)
+        attributes = catMaybes [fmap ("width",) width, fmap ("height",) height]
+        defaultDescription = B.str $ urlToText path'
 
 -- * Block parsers
 
