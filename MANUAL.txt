@@ -238,6 +238,7 @@ General options {.options}
     - `creole` ([Creole 1.0])
     - `docbook` ([DocBook])
     - `docx` ([Word docx])
+    - `dokuwiki` ([DokuWiki markup])
     - `epub` ([EPUB])
     - `fb2` ([FictionBook2] e-book)
     - `gfm` ([GitHub-Flavored Markdown]),
