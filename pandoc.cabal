@@ -18,8 +18,9 @@ description:     Pandoc is a Haskell library for converting from one markup
                  format to another, and a command-line tool that uses
                  this library. It can read several dialects of Markdown and
                  (subsets of) HTML, reStructuredText, LaTeX, DocBook, JATS,
-                 MediaWiki markup, TWiki markup, TikiWiki markup, Creole 1.0,
-                 Haddock markup, OPML, Emacs Org-Mode, Emacs Muse, txt2tags,
+                 MediaWiki markup, DokuWiki markup, TWiki markup,
+                 TikiWiki markup, Creole 1.0, Haddock markup, OPML,
+                 Emacs Org-Mode, Emacs Muse, txt2tags,
                  Vimwiki, Word Docx, ODT, EPUB, FictionBook2, roff man,
                  and Textile, and it can write Markdown, reStructuredText,
                  XHTML, HTML 5, LaTeX, ConTeXt, DocBook, JATS, OPML, TEI,
