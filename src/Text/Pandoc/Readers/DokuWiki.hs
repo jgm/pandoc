@@ -395,8 +395,8 @@ image = parseLink fromRaw "{{" "}}"
             (True, False) -> ["align-right"]
             (True, True) -> ["align-center"]
         parameterList = splitOn "&" $ drop 1 parameters
-        linkOnly = any (== "linkonly") parameterList
-        (width, height) = fromMaybe (Nothing, Nothing) (parseWidthHeight <$> F.find isWidthHeightParameter parameterList)
+        linkOnly = "linkonly" `elem` parameterList
+        (width, height) = maybe (Nothing, Nothing) parseWidthHeight (F.find isWidthHeightParameter parameterList)
         attributes = catMaybes [fmap ("width",) width, fmap ("height",) height]
         defaultDescription = B.str $ urlToText path'
 
