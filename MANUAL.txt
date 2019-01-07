@@ -1873,7 +1873,8 @@ header text is:
 
   - Remove all formatting, links, etc.
   - Remove all footnotes.
-  - Remove all punctuation, except underscores, hyphens, and periods.
+  - Remove all non-alphanumeric characters,
+    except underscores, hyphens, and periods.
   - Replace all spaces and newlines with hyphens.
   - Convert all alphabetic characters to lowercase.
   - Remove everything up to the first letter (identifiers may
@@ -1885,6 +1886,7 @@ Thus, for example,
   Header                            Identifier
   -------------------------------   ----------------------------
   `Header identifiers in HTML`      `header-identifiers-in-html`
+  `Maître d'hôtel`                  `maître-dhôtel`
   `*Dogs*?--in *my* house?`         `dogs--in-my-house`
   `[HTML], [S5], or [RTF]?`         `html-s5-or-rtf`
   `3. Applications`                 `applications`
