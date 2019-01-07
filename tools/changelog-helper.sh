@@ -8,7 +8,7 @@ files=`git ls-tree -r master --name-only`
 for x in $files
 do
     commits=`git log -n1 $lastmod..HEAD $x`
-    if [[ ! -z $commits ]]
+    if [ ! -z "$commits" ]
     then
         if echo $x | grep -q "src\/.*\.hs"
         then
