@@ -17,7 +17,7 @@ do
             file=$x
         fi
         echo "  * $file"
-        GIT_PAGER=cat git log --pretty=format:'%n%w(78,4,6)+ %s (%an)%n%n%w(78,6,6)%b%n' $lastmod..HEAD $x
+        GIT_PAGER=cat git log --pretty=format:'%n%w(78,4,6)+ %s (%aN)%n%n%w(78,6,6)%b%n' -- "$lastmod..HEAD" "$x"
     fi
 done
 
