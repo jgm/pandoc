@@ -194,8 +194,7 @@ blockToAsciiDoc opts (BlockQuote blocks) = do
   let contents' = if any isBlock blocks
                      then "--" $$ contents $$ "--"
                      else contents
-  let cols = offset contents'
-  let bar = text $ replicate cols '_'
+  let bar = text "____"
   return $ bar $$ chomp contents' $$ bar <> blankline
 blockToAsciiDoc opts (Table caption aligns widths headers rows) =  do
   caption' <- inlineListToAsciiDoc opts caption
@@ -252,7 +251,7 @@ blockToAsciiDoc opts (Table caption aligns widths headers rows) =  do
                     else 100000
   let maxwidth = maximum $ map offset (head':rows')
   let body = if maxwidth > colwidth then vsep rows' else vcat rows'
-  let border = text $ "|" ++ replicate (max 5 (min maxwidth colwidth) - 1) '='
+  let border = text "|==="
   return $
     caption'' $$ tablespec $$ border $$ head'' $$ body $$ border $$ blankline
 blockToAsciiDoc opts (BulletList items) = do

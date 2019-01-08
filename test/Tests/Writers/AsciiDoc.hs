@@ -37,22 +37,22 @@ tests = [ testGroup "emphasis"
           [ test asciidoc "empty cells" $
                simpleTable [] [[mempty],[mempty]] =?> unlines
                                            [ "[cols=\"\",]"
-                                           , "|===="
+                                           , "|==="
                                            , "|"
                                            , "|"
-                                           , "|===="
+                                           , "|==="
                                            ]
           , test asciidoc "multiblock cells" $
                simpleTable [] [[para (text "Para 1") <> para (text "Para 2")]]
                                            =?> unlines
                                            [ "[cols=\"\",]"
-                                           , "|====="
+                                           , "|==="
                                            , "a|"
                                            , "Para 1"
                                            , ""
                                            , "Para 2"
                                            , ""
-                                           , "|====="
+                                           , "|==="
                                            ]
           ]
         ]

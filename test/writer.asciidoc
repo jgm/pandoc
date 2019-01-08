@@ -50,11 +50,11 @@ here.
 
 E-mail style:
 
-__________________________________________
+____
 This is a block quote. It is pretty short.
-__________________________________________
+____
 
-______________________
+____
 --
 Code in a block quote:
 
@@ -72,16 +72,16 @@ A list:
 
 Nested block quotes:
 
-______
+____
 nested
-______
+____
 
-______
+____
 nested
-______
+____
 
 --
-______________________
+____
 
 This should not be a block quote: 2 > 1.
 
@@ -306,9 +306,9 @@ _orange_::
 { orange code block }
 ....
   +
-  __________________
+  ____
   orange block quote
-  __________________
+  ____
 
 Multiple definitions, tight:
 
@@ -602,9 +602,9 @@ With an ampersand: http://example.com/?foo=1&bar=2
 
 An e-mail address: nobody@nowhere.net
 
-________________________________
+____
 Blockquoted: http://example.com/
-________________________________
+____
 
 Auto-links should not occur here: `<http://example.com/>`
 
@@ -634,9 +634,9 @@ note.footnote:[This is _easier_ to type. Inline notes may contain
 http://google.com[links] and `]` verbatim characters, as well as [bracketed
 text].]
 
-___________________________________________
+____
 Notes can go in quotes.footnote:[In quote.]
-___________________________________________
+____
 
 [arabic]
 . And in list items.footnote:[In list.]
