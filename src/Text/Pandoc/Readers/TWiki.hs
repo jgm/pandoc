@@ -424,7 +424,9 @@ strongAndEmph :: PandocMonad m => TWParser m B.Inlines
 strongAndEmph = try $ B.emph . B.strong <$> enclosed (string "__") nestedInlines
 
 emph :: PandocMonad m => TWParser m B.Inlines
-emph = try $ B.emph <$> enclosed (char '_') nestedInlines
+emph = try $ B.emph <$> enclosed (char '_')
+                        (\p -> notFollowedBy (char '|') >> nestedInlines p)
+-- emphasis closers can't cross table cell boundaries, see #3921
 
 emphHtml :: PandocMonad m => TWParser m B.Inlines
 emphHtml = B.emph . mconcat <$> (parseHtmlContent "em" inline <|> parseHtmlContent "i" inline)
