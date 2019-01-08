@@ -266,7 +266,7 @@ pandocToHtml opts (Pandoc meta blocks) = do
             then fmap renderHtml' <$> tableOfContents opts sects
             else return Nothing
   blocks' <- liftM (mconcat . intersperse (nl opts)) $
-                 mapM (elementToHtml slideLevel opts) sects
+                 mapM (elementToHtml Nothing slideLevel opts) sects
   st <- get
   notes <- footnoteSection opts (reverse (stNotes st))
   let thebody = blocks' >> notes
@@ -435,12 +435,17 @@ deLink (Link _ ils _) = Span nullAttr ils
 deLink x              = x
 
 -- | Convert an Element to Html.
-elementToHtml :: PandocMonad m => Int -> WriterOptions -> Element
+elementToHtml :: PandocMonad m => Maybe Int -> Int -> WriterOptions -> Element
               -> StateT WriterState m Html
-elementToHtml _slideLevel opts (Blk block) = blockToHtml opts block
-elementToHtml slideLevel opts (Sec level num (id',classes,keyvals) title' elements) = do
+elementToHtml _ _ opts (Blk block) = blockToHtml opts block
+elementToHtml mbparentlevel slideLevel opts
+      (Sec level num (id',classes,keyvals) title' elements)
+  = do
   slideVariant <- gets stSlideVariant
-  let slide = slideVariant /= NoSlides && level <= slideLevel
+  let slide = slideVariant /= NoSlides &&
+               (level <= slideLevel ||
+                -- we're missing a header at slide level (see #5168)
+                maybe False (< slideLevel) mbparentlevel)
   let num' = zipWith (+) num (writerNumberOffset opts ++ repeat 0)
   modify $ \st -> st{stSecNum = num'}  -- update section number
   html5 <- gets stHtml5
@@ -468,7 +473,7 @@ elementToHtml slideLevel opts (Sec level num (id',classes,keyvals) title' elemen
   let inDiv xs = Blk (RawBlock (Format "html") ("<div class=\""
                        ++ fragmentClass ++ "\">")) :
                    (xs ++ [Blk (RawBlock (Format "html") "</div>")])
-  innerContents <- mapM (elementToHtml slideLevel opts)
+  innerContents <- mapM (elementToHtml (Just level) slideLevel opts)
                    $ if titleSlide
                         -- title slides have no content of their own
                         then filter isSec elements
@@ -491,6 +496,8 @@ elementToHtml slideLevel opts (Sec level num (id',classes,keyvals) title' elemen
                    secttag header'
        return $
          (if slideVariant == RevealJsSlides && not (null innerContents)
+             -- revealjs doesn't like more than one level of section nesting:
+             && isNothing mbparentlevel
                 then H5.section
                 else id) $ mconcat $ t : innerContents
      else if writerSectionDivs opts || slide
