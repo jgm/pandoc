@@ -4,7 +4,7 @@ lhs test
 `unsplit` is an arrow that takes a pair of values and combines them to
 return a single value:
 
-``` {.sourceCode .literate .haskell}
+``` {.haskell .literate}
 unsplit :: (Arrow a) => (b -> c -> d) -> a (b, c) d
 unsplit = arr . uncurry
           -- arr (\op (x,y) -> x `op` y)

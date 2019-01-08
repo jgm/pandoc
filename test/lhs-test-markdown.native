@@ -1,6 +1,6 @@
 [Header 1 ("lhs-test",[],[]) [Str "lhs",Space,Str "test"]
 ,Para [Code ("",[],[]) "unsplit",Space,Str "is",Space,Str "an",Space,Str "arrow",Space,Str "that",Space,Str "takes",Space,Str "a",Space,Str "pair",Space,Str "of",Space,Str "values",Space,Str "and",Space,Str "combines",Space,Str "them",Space,Str "to",SoftBreak,Str "return",Space,Str "a",Space,Str "single",Space,Str "value:"]
-,CodeBlock ("",["sourceCode","literate","haskell"],[]) "unsplit :: (Arrow a) => (b -> c -> d) -> a (b, c) d\nunsplit = arr . uncurry\n          -- arr (\\op (x,y) -> x `op` y)"
+,CodeBlock ("",["haskell","literate"],[]) "unsplit :: (Arrow a) => (b -> c -> d) -> a (b, c) d\nunsplit = arr . uncurry\n          -- arr (\\op (x,y) -> x `op` y)"
 ,Para [Code ("",[],[]) "(***)",Space,Str "combines",Space,Str "two",Space,Str "arrows",Space,Str "into",Space,Str "a",Space,Str "new",Space,Str "arrow",Space,Str "by",Space,Str "running",Space,Str "the",Space,Str "two",Space,Str "arrows",Space,Str "on",Space,Str "a",SoftBreak,Str "pair",Space,Str "of",Space,Str "values",Space,Str "(one",Space,Str "arrow",Space,Str "on",Space,Str "the",Space,Str "first",Space,Str "item",Space,Str "of",Space,Str "the",Space,Str "pair",Space,Str "and",Space,Str "one",Space,Str "arrow",Space,Str "on",Space,Str "the",SoftBreak,Str "second",Space,Str "item",Space,Str "of",Space,Str "the",Space,Str "pair)."]
 ,CodeBlock ("",[],[]) "f *** g = first f >>> second g"
 ,Para [Str "Block",Space,Str "quote:"]

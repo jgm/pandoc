@@ -748,9 +748,9 @@ codeBlockIndented = do
 lhsCodeBlock :: PandocMonad m => MarkdownParser m (F Blocks)
 lhsCodeBlock = do
   guardEnabled Ext_literate_haskell
-  (return . B.codeBlockWith ("",["sourceCode","literate","haskell"],[]) <$>
+  (return . B.codeBlockWith ("",["haskell","literate"],[]) <$>
           (lhsCodeBlockBird <|> lhsCodeBlockLaTeX))
-    <|> (return . B.codeBlockWith ("",["sourceCode","haskell"],[]) <$>
+    <|> (return . B.codeBlockWith ("",["haskell"],[]) <$>
           lhsCodeBlockInverseBird)
 
 lhsCodeBlockLaTeX :: PandocMonad m => MarkdownParser m String

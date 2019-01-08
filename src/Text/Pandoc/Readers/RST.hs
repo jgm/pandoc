@@ -39,7 +39,7 @@ import Control.Monad.Except (throwError)
 import Control.Monad.Identity (Identity (..))
 import Data.Char (isHexDigit, isSpace, toLower, toUpper, isAlphaNum)
 import Data.List (deleteFirstsBy, elemIndex, intercalate, isInfixOf, isSuffixOf,
-                  nub, sort, transpose, union)
+                  nub, sort, transpose)
 import qualified Data.Map as M
 import Data.Maybe (fromMaybe, isJust)
 import Data.Sequence (ViewR (..), viewr)
@@ -421,7 +421,7 @@ lhsCodeBlock = try $ do
   optional codeBlockStart
   lns <- latexCodeBlock <|> birdCodeBlock
   blanklines
-  return $ B.codeBlockWith ("", ["sourceCode", "literate", "haskell"], [])
+  return $ B.codeBlockWith ("", ["haskell","literate"], [])
          $ intercalate "\n" lns
 
 latexCodeBlock :: Monad m => ParserT [Char] st m [[Char]]
@@ -995,7 +995,7 @@ codeblock :: String -> [String] -> Maybe String -> String -> String
 codeblock ident classes numberLines lang body =
   return $ B.codeBlockWith attribs $ stripTrailingNewlines body
     where attribs = (ident, classes', kvs)
-          classes' = "sourceCode" : lang
+          classes' = lang
                     : maybe [] (const ["numberLines"]) numberLines
                     ++ classes
           kvs     = case numberLines of
@@ -1414,7 +1414,7 @@ renderRole contents fmt role attr = case role of
     "title-reference" -> titleRef contents
     "title" -> titleRef contents
     "t" -> titleRef contents
-    "code" -> return $ B.codeWith (addClass "sourceCode" attr) contents
+    "code" -> return $ B.codeWith attr contents
     "span" -> return $ B.spanWith attr $ treatAsText contents
     "raw" -> return $ B.rawInline (fromMaybe "" fmt) contents
     custom -> do
@@ -1437,9 +1437,6 @@ renderRole contents fmt role attr = case role of
    handleEscapes ('\\':' ':cs) = handleEscapes cs
    handleEscapes ('\\':c:cs) = c : handleEscapes cs
    handleEscapes (c:cs) = c : handleEscapes cs
-
-addClass :: String -> Attr -> Attr
-addClass c (ident, classes, keyValues) = (ident, classes `union` [c], keyValues)
 
 roleName :: PandocMonad m => RSTParser m String
 roleName = many1 (letter <|> char '-')

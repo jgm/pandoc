@@ -1823,8 +1823,7 @@ environments = M.fromList
    , ("enumerate", orderedList')
    , ("alltt", alltt <$> env "alltt" blocks)
    , ("code", guardEnabled Ext_literate_haskell *>
-       (codeBlockWith ("",["sourceCode","literate","haskell"],[]) <$>
-         verbEnv "code"))
+       (codeBlockWith ("",["haskell","literate"],[]) <$> verbEnv "code"))
    , ("comment", mempty <$ verbEnv "comment")
    , ("verbatim", codeBlock <$> verbEnv "verbatim")
    , ("Verbatim", fancyverbEnv "Verbatim")

@@ -319,9 +319,9 @@ tests = [ testGroup "inline code"
                        Ext_literate_haskell pandocExtensions })
               "inverse bird tracks and html" $
               "> a\n\n< b\n\n<div>\n"
-              =?> codeBlockWith ("",["sourceCode","literate","haskell"],[]) "a"
+              =?> codeBlockWith ("",["haskell","literate"],[]) "a"
                   <>
-                  codeBlockWith ("",["sourceCode","haskell"],[]) "b"
+                  codeBlockWith ("",["haskell"],[]) "b"
                   <>
                   rawBlock "html" "<div>\n\n"
           ]

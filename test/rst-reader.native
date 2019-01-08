@@ -38,7 +38,7 @@ Pandoc (Meta {unMeta = fromList [("author",MetaList [MetaInlines [Str "John",Spa
 ,Para [Str "And:"]
 ,CodeBlock ("",[],[]) "this block is indented by two tabs\n\nThese should not be escaped:  \\$ \\\\ \\> \\[ \\{"
 ,Para [Str "And:"]
-,CodeBlock ("",["sourceCode","python"],[]) "def my_function(x):\n    return x + 1"
+,CodeBlock ("",["python"],[]) "def my_function(x):\n    return x + 1"
 ,Header 1 ("lists",[],[]) [Str "Lists"]
 ,Header 2 ("unordered",[],[]) [Str "Unordered"]
 ,Para [Str "Asterisks",Space,Str "tight:"]
@@ -328,8 +328,8 @@ Pandoc (Meta {unMeta = fromList [("author",MetaList [MetaInlines [Str "John",Spa
 ,Para [Str "Reset",Space,Str "default-role",Space,Str "to",Space,Str "the",Space,Str "default",Space,Str "default."]
 ,Para [Str "And",Space,Str "now",Space,Span ("",["title-ref"],[]) [Str "some-invalid-string-3231231"],Space,Str "is",Space,Str "nonsense."]
 ,Para [Str "And",Space,Str "now",Space,Str "with",Space,RawInline (Format "html") "<b>inline</b> <span id=\"test\">HTML</span>",Str "."]
-,Para [Str "And",Space,Str "some",Space,Str "inline",Space,Str "haskell",Space,Code ("",["haskell","sourceCode"],[]) "fmap id [1,2..10]",Str "."]
-,Para [Str "Indirect",Space,Str "python",Space,Str "role",Space,Code ("",["py","python","indirect","sourceCode"],[]) "[x*x for x in [1,2,3,4,5]]",Str "."]
-,Para [Str "Different",Space,Str "indirect",Space,Str "C",Space,Code ("",["c","different-indirect","sourceCode"],[]) "int x = 15;",Str "."]
+,Para [Str "And",Space,Str "some",Space,Str "inline",Space,Str "haskell",Space,Code ("",["haskell"],[]) "fmap id [1,2..10]",Str "."]
+,Para [Str "Indirect",Space,Str "python",Space,Str "role",Space,Code ("",["py","python","indirect"],[]) "[x*x for x in [1,2,3,4,5]]",Str "."]
+,Para [Str "Different",Space,Str "indirect",Space,Str "C",Space,Code ("",["c","different-indirect"],[]) "int x = 15;",Str "."]
 ,Header 2 ("literal-symbols",[],[]) [Str "Literal",Space,Str "symbols"]
 ,Para [Str "2*2",Space,Str "=",Space,Str "4*1"]]

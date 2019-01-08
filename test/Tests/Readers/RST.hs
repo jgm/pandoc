@@ -106,7 +106,7 @@ tests = [ "line block with blank line" =:
             ]  =?>
               doc (codeBlockWith
                   ( ""
-                  , ["sourceCode", "python", "numberLines", "class1", "class2", "class3"]
+                  , ["python", "numberLines", "class1", "class2", "class3"]
                   , [ ("startFrom", "34") ]
                   )
                   "def func(x):\n  return y")
@@ -119,7 +119,7 @@ tests = [ "line block with blank line" =:
             ]  =?>
               doc (codeBlockWith
                   ( ""
-                  , ["sourceCode", "python", "numberLines"]
+                  , ["python", "numberLines"]
                   , [ ("startFrom", "") ]
                   )
                   "def func(x):\n  return y")
@@ -164,18 +164,18 @@ tests = [ "line block with blank line" =:
           [ "literal role prefix" =: ":literal:`a`" =?> para (code "a")
           , "literal role postfix" =: "`a`:literal:" =?> para (code "a")
           , "literal text" =: "``text``" =?> para (code "text")
-          , "code role" =: ":code:`a`" =?> para (codeWith ("", ["sourceCode"], []) "a")
+          , "code role" =: ":code:`a`" =?> para (codeWith ("", [], []) "a")
           , "inherited code role" =: ".. role:: codeLike(code)\n\n:codeLike:`a`"
-            =?> para (codeWith ("", ["codeLike", "sourceCode"], []) "a")
+            =?> para (codeWith ("", ["codeLike"], []) "a")
           , "custom code role with language field"
             =: ".. role:: lhs(code)\n    :language: haskell\n\n:lhs:`a`"
-            =?> para (codeWith ("", ["lhs", "haskell","sourceCode"], []) "a")
+            =?> para (codeWith ("", ["lhs", "haskell"], []) "a")
           , "custom role with unspecified parent role"
             =: ".. role:: classy\n\n:classy:`text`"
             =?> para (spanWith ("", ["classy"], []) "text")
           , "role with recursive inheritance"
             =: ".. role:: haskell(code)\n.. role:: lhs(haskell)\n\n:lhs:`text`"
-            =?> para (codeWith ("", ["lhs", "haskell", "sourceCode"], []) "text")
+            =?> para (codeWith ("", ["lhs", "haskell"], []) "text")
           , "unknown role" =: ":unknown:`text`" =?>
               para (codeWith ("",["interpreted-text"],[("role","unknown")]) "text")
           ]
