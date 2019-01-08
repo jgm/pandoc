@@ -192,9 +192,14 @@ tests =
        headerWith ("level3", [], []) 3 "Level3")
 
     , testWithFiles [("./level3.org", "*** Level3\n\n")]
-      "Minlevel shifts level"
+      "Minlevel shifts level leftward"
       (T.unlines [ "#+include: \"level3.org\" :minlevel 1" ] =?>
        headerWith ("level3", [], []) 1 "Level3")
+
+    , testWithFiles [("./level1.org", "* Level1\n\n")]
+      "Minlevel shifts level rightward"
+      (T.unlines [ "#+include: \"level1.org\" :minlevel 3" ] =?>
+       headerWith ("level1", [], []) 3 "Level1")
 
     , testWithFiles [("./src.hs", "putStrLn outString\n")]
       "Include file as source code snippet"

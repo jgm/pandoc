@@ -547,9 +547,7 @@ include = try $ do
 
   shiftHeader :: Int -> Block -> Block
   shiftHeader shift blk =
-    if shift <= 0
-    then blk
-    else case blk of
+    case blk of
       (Header lvl attr content) -> Header (lvl - shift) attr content
       _ -> blk
 
