@@ -548,7 +548,9 @@ include = try $ do
   shiftHeader :: Int -> Block -> Block
   shiftHeader shift blk =
     case blk of
-      (Header lvl attr content) -> Header (lvl - shift) attr content
+      (Header lvl attr content)
+       | lvl - shift > 0  -> Header (lvl - shift) attr content
+       | otherwise        -> Para content
       _ -> blk
 
 rawExportLine :: PandocMonad m => OrgParser m Blocks
