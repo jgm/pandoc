@@ -737,7 +737,7 @@ directive' = do
                                   case trim top of
                                      ""   -> stateRstDefaultRole def
                                      role -> role })
-        x | x == "code" || x == "code-block" ->
+        x | x == "code" || x == "code-block" || x == "sourcecode" ->
           codeblock name classes
                     (lookup "number-lines" fields) (trim top) body
         "aafig" -> do
