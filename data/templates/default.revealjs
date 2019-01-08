@@ -239,6 +239,10 @@ $endif$
 $if(maxScale)$
         maxScale: $maxScale$,
 $endif$
+$if(zoomKey)$
+        // Modifier key used to click-zoom to part of the slide
+        zoomKey: '$zoomKey$',
+$endif$
 $if(mathjax)$
         math: {
           mathjax: '$mathjaxurl$',
