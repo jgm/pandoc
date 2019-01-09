@@ -416,7 +416,12 @@ pandocToEPUB :: PandocMonad m
              -> WriterOptions
              -> Pandoc
              -> E m B.ByteString
-pandocToEPUB version opts doc@(Pandoc meta _) = do
+pandocToEPUB version opts doc = do
+  -- handle pictures
+  Pandoc meta blocks <- walkM (transformInline opts) doc >>=
+                        walkM transformBlock
+  picEntries <- mapMaybe (snd . snd) <$> gets stMediaPaths
+
   epubSubdir <- gets stEpubSubdir
   let epub3 = version == EPUB3
   let writeHtml o = fmap (UTF8.fromTextLazy . TL.fromStrict) .
@@ -486,11 +491,6 @@ pandocToEPUB version opts doc@(Pandoc meta _) = do
                                (Pandoc meta [])
   tpEntry <- mkEntry "text/title_page.xhtml" tpContent
 
-  -- handle pictures
-  -- mediaRef <- P.newIORef []
-  Pandoc _ blocks <- walkM (transformInline opts') doc >>=
-                     walkM transformBlock
-  picEntries <- mapMaybe (snd . snd) <$> gets stMediaPaths
   -- handle fonts
   let matchingGlob f = do
         xs <- lift $ P.glob f
