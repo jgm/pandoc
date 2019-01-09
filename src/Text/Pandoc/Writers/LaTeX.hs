@@ -471,7 +471,9 @@ elementToBeamer slideLevel  (Sec lvl _num (ident,classes,kvs) tit elts)
                           "b", "c", "t", "environment",
                           "label", "plain", "shrink", "standout",
                           "noframenumbering"]
-      let optionslist = ["fragile" | fragile && isNothing (lookup "fragile" kvs)] ++
+      let optionslist = ["fragile" | fragile
+                                   , isNothing (lookup "fragile" kvs)
+                                   , "fragile" `notElem` classes] ++
                         [k | k <- classes, k `elem` frameoptions] ++
                         [k ++ "=" ++ v | (k,v) <- kvs, k `elem` frameoptions]
       let options = if null optionslist
