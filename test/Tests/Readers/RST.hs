@@ -112,7 +112,7 @@ tests = [ "line block with blank line" =:
                   "def func(x):\n  return y")
         , "Code directive with number-lines, no line specified" =: T.unlines
             [ ".. code::python"
-            , "   :number-lines: "
+            , "   :number-lines:"
             , ""
             , "  def func(x):"
             , "    return y"
@@ -120,7 +120,7 @@ tests = [ "line block with blank line" =:
               doc (codeBlockWith
                   ( ""
                   , ["python", "numberLines"]
-                  , [ ("startFrom", "") ]
+                  , []
                   )
                   "def func(x):\n  return y")
         , testGroup "literal / line / code blocks"
