@@ -352,15 +352,11 @@ $endif$
 $if(subtitle)$
 $if(beamer)$
 $else$
-\makeatletter
-\@ifundefined{KOMAClassName}{% if non-KOMA class
-	\providecommand{\subtitle}[1]{%
-  	\usepackage{titling}
-	  \posttitle{%
-	    \par\large#1\end{center}}
-	}
-}{}% KOMA-Script provides \subtitle
-\makeatother
+\providecommand{\subtitle}[1]{%
+	\usepackage{titling}
+	\posttitle{%
+    \par\large#1\end{center}}
+}
 $endif$
 \subtitle{$subtitle$}
 $endif$
