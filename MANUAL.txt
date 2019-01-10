@@ -166,47 +166,48 @@ pandoc does not require them to be present:
 [`parskip`] (for better inter-paragraph spaces),
 [`xurl`] (for better line breaks in URLs),
 [`bookmark`] (for better PDF bookmarks),
+[`titling`] (if `subtitle` is specified), and
 [`footnote`] (to fix footnotes in tables).
 
+[TeX Live]: http://www.tug.org/texlive/
 [`amsfonts`]: https://ctan.org/pkg/amsfonts
 [`amsmath`]: https://ctan.org/pkg/amsmath
-[`lm`]: https://ctan.org/pkg/lm
-[`ifxetex`]: https://ctan.org/pkg/ifxetex
-[`ifluatex`]: https://ctan.org/pkg/ifluatex
-[`listings`]: https://ctan.org/pkg/listings
-[`fancyvrb`]: https://ctan.org/pkg/fancyvrb
-[`longtable`]: https://ctan.org/pkg/longtable
-[`booktabs`]: https://ctan.org/pkg/booktabs
-[`graphicx`]: https://ctan.org/pkg/graphicx
-[`grffile`]: https://ctan.org/pkg/grffile
-[`geometry`]: https://ctan.org/pkg/geometry
-[`setspace`]: https://ctan.org/pkg/setspace
-[`xecjk`]: https://ctan.org/pkg/xecjk
-[`hyperref`]: https://ctan.org/pkg/hyperref
-[`ulem`]: https://ctan.org/pkg/ulem
 [`babel`]: https://ctan.org/pkg/babel
-[`bidi`]: https://ctan.org/pkg/bidi
-[`mathspec`]: https://ctan.org/pkg/mathspec
-[`unicode-math`]: https://ctan.org/pkg/unicode-math
-[`polyglossia`]: https://ctan.org/pkg/polyglossia
-[`fontspec`]: https://ctan.org/pkg/fontspec
-[`upquote`]: https://ctan.org/pkg/upquote
-[`microtype`]: https://ctan.org/pkg/microtype
-[`csquotes`]: https://ctan.org/pkg/csquotes
-[`natbib`]: https://ctan.org/pkg/natbib
+[`biber`]: https://ctan.org/pkg/biber
 [`biblatex`]: https://ctan.org/pkg/biblatex
 [`bibtex`]: https://ctan.org/pkg/bibtex
-[`biber`]: https://ctan.org/pkg/biber
-[TeX Live]: http://www.tug.org/texlive/
-[`wkhtmltopdf`]: https://wkhtmltopdf.org
-[`weasyprint`]: http://weasyprint.org
-[`prince`]: https://www.princexml.com/
-[`upquote`]: https://ctan.org/pkg/upquote
-[`microtype`]: https://ctan.org/pkg/microtype
-[`parskip`]: https://ctan.org/pkg/parskip
-[`xurl`]: https://ctan.org/pkg/xurl
+[`bidi`]: https://ctan.org/pkg/bidi
 [`bookmark`]: https://ctan.org/pkg/bookmark
+[`booktabs`]: https://ctan.org/pkg/booktabs
+[`csquotes`]: https://ctan.org/pkg/csquotes
+[`fancyvrb`]: https://ctan.org/pkg/fancyvrb
+[`fontspec`]: https://ctan.org/pkg/fontspec
 [`footnote`]: https://ctan.org/pkg/footnote
+[`geometry`]: https://ctan.org/pkg/geometry
+[`graphicx`]: https://ctan.org/pkg/graphicx
+[`grffile`]: https://ctan.org/pkg/grffile
+[`hyperref`]: https://ctan.org/pkg/hyperref
+[`ifluatex`]: https://ctan.org/pkg/ifluatex
+[`ifxetex`]: https://ctan.org/pkg/ifxetex
+[`listings`]: https://ctan.org/pkg/listings
+[`lm`]: https://ctan.org/pkg/lm
+[`longtable`]: https://ctan.org/pkg/longtable
+[`mathspec`]: https://ctan.org/pkg/mathspec
+[`microtype`]: https://ctan.org/pkg/microtype
+[`natbib`]: https://ctan.org/pkg/natbib
+[`parskip`]: https://ctan.org/pkg/parskip
+[`polyglossia`]: https://ctan.org/pkg/polyglossia
+[`prince`]: https://www.princexml.com/
+[`setspace`]: https://ctan.org/pkg/setspace
+[`titling`]: https://ctan.org/pkg/titling
+[`ulem`]: https://ctan.org/pkg/ulem
+[`unicode-math`]: https://ctan.org/pkg/unicode-math
+[`upquote`]: https://ctan.org/pkg/upquote
+[`weasyprint`]: http://weasyprint.org
+[`wkhtmltopdf`]: https://wkhtmltopdf.org
+[`xecjk`]: https://ctan.org/pkg/xecjk
+[`xurl`]: https://ctan.org/pkg/xurl
+
 
 
 Reading from the Web
