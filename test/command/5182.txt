@@ -1,0 +1,5 @@
+.. code::python
+   :number-lines:
+
+  def func(x):
+    return y
