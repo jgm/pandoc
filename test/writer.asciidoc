@@ -466,7 +466,11 @@ Ellipses…and…and….
 * latexmath:[$223$]
 * latexmath:[$p$]-Tree
 * Here’s some display math:
-latexmath:[\[\frac{d}{dx}f(x)=\lim_{h\to 0}\frac{f(x+h)-f(x)}{h}\]]
+
+[latexmath]
+++++
+\[\frac{d}{dx}f(x)=\lim_{h\to 0}\frac{f(x+h)-f(x)}{h}\]
+++++
 * Here’s one that has a line break in it:
 latexmath:[$\alpha + \omega \times x^2$].
 
