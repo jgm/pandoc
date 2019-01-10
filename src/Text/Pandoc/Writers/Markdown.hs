@@ -472,6 +472,11 @@ blockToMarkdown' opts b@(RawBlock f str)
     return $ if plain
                 then empty
                 else text str <> text "\n"
+  | f == "plain" = do
+    plain <- asks envPlain
+    return $ if plain
+                then text str <> text "\n"
+                else empty
   | otherwise = do
       report $ BlockNotRendered b
       return empty
