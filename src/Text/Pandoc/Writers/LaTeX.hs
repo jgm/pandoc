@@ -693,12 +693,14 @@ blockToLaTeX (CodeBlock (identifier,classes,keyvalAttr) str) = do
        | not (null classes) && isJust (writerHighlightStyle opts)
                                              -> highlightedCodeBlock
        | otherwise                           -> rawCodeBlock
-blockToLaTeX b@(RawBlock f x)
-  | f == Format "latex" || f == Format "tex"
-                        = return $ text x
-  | otherwise           = do
-      report $ BlockNotRendered b
-      return empty
+blockToLaTeX b@(RawBlock f x) = do
+  beamer <- gets stBeamer
+  if (f == Format "latex" || f == Format "tex" ||
+       (f == Format "beamer" && beamer))
+     then return $ text x
+     else do
+       report $ BlockNotRendered b
+       return empty
 blockToLaTeX (BulletList []) = return empty  -- otherwise latex error
 blockToLaTeX (BulletList lst) = do
   incremental <- gets stIncremental
@@ -1189,14 +1191,16 @@ inlineToLaTeX (Math InlineMath str) = do
 inlineToLaTeX (Math DisplayMath str) = do
   setEmptyLine False
   return $ "\\[" <> text (handleMathComment str) <> "\\]"
-inlineToLaTeX il@(RawInline f str)
-  | f == Format "latex" || f == Format "tex"
-                        = do
-      setEmptyLine False
-      return $ text str
-  | otherwise           = do
-      report $ InlineNotRendered il
-      return empty
+inlineToLaTeX il@(RawInline f str) = do
+  beamer <- gets stBeamer
+  if (f == Format "latex" || f == Format "tex" ||
+        (f == Format "beamer" && beamer))
+     then do
+       setEmptyLine False
+       return $ text str
+     else do
+       report $ InlineNotRendered il
+       return empty
 inlineToLaTeX LineBreak = do
   emptyLine <- gets stEmptyLine
   setEmptyLine True
