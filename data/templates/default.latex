@@ -350,7 +350,20 @@ $if(title)$
 \title{$title$$if(thanks)$\thanks{$thanks$}$endif$}
 $endif$
 $if(subtitle)$
-\providecommand{\subtitle}[1]{}
+$if(beamer)$
+$else$
+\makeatletter
+\@ifundefined{KOMAClassName}{% if non-KOMA class
+	\usepackage{titling}
+	\providecommand{\subtitle}[1]{%
+	  \posttitle{%
+	    \par\end{center}
+	    \begin{center}\large#1\end{center}
+	    \vskip0.5em}%
+	}
+}{}% KOMA-Script provides \subtitle
+\makeatother
+$endif$
 \subtitle{$subtitle$}
 $endif$
 $if(author)$
