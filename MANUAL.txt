@@ -3513,7 +3513,7 @@ reStructuredText
   ~ It will be rendered using an [interpreted text role `:math:`].
 
 AsciiDoc
-  ~ It will be rendered as `latexmath:[...]`.
+  ~ It will be rendered as `latexmath:[...]` when inline and `[latexmath]++++....++++` when in display mode.
 
 Texinfo
   ~ It will be rendered inside a `@math` command.

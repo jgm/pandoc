@@ -414,7 +414,10 @@ inlineToAsciiDoc _ (Str str) = return $ text $ escapeString str
 inlineToAsciiDoc _ (Math InlineMath str) =
   return $ "latexmath:[$" <> text str <> "$]"
 inlineToAsciiDoc _ (Math DisplayMath str) =
-  return $ "latexmath:[\\[" <> text str <> "\\]]"
+  return $
+      blankline <> "[latexmath]" $$ "++++" $$
+      "\\[" <> text str <> "\\]"
+      $$ "++++" $$ blankline
 inlineToAsciiDoc _ il@(RawInline f s)
   | f == "asciidoc" = return $ text s
   | otherwise         = do
