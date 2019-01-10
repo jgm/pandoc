@@ -110,31 +110,30 @@ $if(mathspec)$
 $else$
   \usepackage{unicode-math}
 $endif$
-  \defaultfontfeatures{Ligatures=TeX,Scale=MatchLowercase}
-$for(fontfamilies)$
-  \newfontfamily{$fontfamilies.name$}[$for(fontfamilies.options)$$fontfamilies.options$$sep$,$endfor$]{$fontfamilies.font$}
-$endfor$
 $if(mainfont)$
   \setmainfont[$for(mainfontoptions)$$mainfontoptions$$sep$,$endfor$]{$mainfont$}
 $endif$
 $if(romanfont)$
-  \setromanfont[$for(romanfontoptions)$$romanfontoptions$$sep$,$endfor$]{$romanfont$}
+  \setromanfont[$if(romanfontoptions)$$for(romanfontoptions)$$romanfontoptions$$sep$,$endfor$$else$Scale=MatchLowercase$endif$]{$romanfont$}
 $endif$
 $if(sansfont)$
-  \setsansfont[$for(sansfontoptions)$$sansfontoptions$$sep$,$endfor$]{$sansfont$}
+  \setsansfont[$if(sansfontoptions)$$for(sansfontoptions)$$sansfontoptions$$sep$,$endfor$$else$Scale=MatchLowercase$endif$]{$sansfont$}
 $endif$
 $if(monofont)$
-  \setmonofont[Mapping=tex-ansi$if(monofontoptions)$,$for(monofontoptions)$$monofontoptions$$sep$,$endfor$$endif$]{$monofont$}
+  \setmonofont[$if(monofontoptions)$$for(monofontoptions)$$monofontoptions$$sep$,$endfor$$else$Scale=MatchLowercase$endif$]{$monofont$}
 $endif$
+$for(fontfamilies)$
+  \newfontfamily{$fontfamilies.name$}[$if(fontfamilies.options)$$for(fontfamilies.options)$$fontfamilies.options$$sep$,$endfor$$else$Scale=MatchLowercase$endif$]{$fontfamilies.font$}
+$endfor$
 $if(mathfont)$
 $if(mathspec)$
   \ifxetex
-    \setmathfont(Digits,Latin,Greek)[$for(mathfontoptions)$$mathfontoptions$$sep$,$endfor$]{$mathfont$}
+    \setmathfont(Digits,Latin,Greek)[$if(mathfontoptions)$$for(mathfontoptions)$$mathfontoptions$$sep$,$endfor$$else$Scale=MatchLowercase$endif$]{$mathfont$}
   \else
-    \setmathfont[$for(mathfontoptions)$$mathfontoptions$$sep$,$endfor$]{$mathfont$}
+    \setmathfont[$if(mathfontoptions)$$for(mathfontoptions)$$mathfontoptions$$sep$,$endfor$$else$Scale=MatchLowercase$endif$]{$mathfont$}
   \fi
 $else$
-  \setmathfont[$for(mathfontoptions)$$mathfontoptions$$sep$,$endfor$]{$mathfont$}
+  \setmathfont[$if(mathfontoptions)$$for(mathfontoptions)$$mathfontoptions$$sep$,$endfor$$else$Scale=MatchLowercase$endif$]{$mathfont$}
 $endif$
 $endif$
 $if(CJKmainfont)$
