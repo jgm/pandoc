@@ -1361,10 +1361,7 @@ depending on the output format, but include the following:
         ...
 
 `subtitle`
-:   document subtitle, included in HTML, EPUB, LaTeX, ConTeXt, and Word docx;
-    renders in LaTeX only when using a document class that supports
-    `\subtitle`, such as `beamer` or the [KOMA-Script] series (`scrartcl`,
-    `scrreprt`, `scrbook`).[^subtitle]
+:   document subtitle, included in HTML, EPUB, LaTeX, ConTeXt, and Word docx
 
 `institute`
 :   author affiliations (in LaTeX and Beamer only).  Can be a
@@ -1402,15 +1399,6 @@ depending on the output format, but include the following:
 `meta-json`
 :   JSON representation of all of the document's metadata. Field
     values are transformed to the selected output format.
-
-[^subtitle]: To make `subtitle` work with other LaTeX
-    document classes, you can add the following to `header-includes`:
-
-        \providecommand{\subtitle}[1]{%
-          \usepackage{titling}
-          \posttitle{%
-            \par\large#1\end{center}}
-        }
 
 Language variables
 ------------------
