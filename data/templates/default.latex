@@ -352,10 +352,10 @@ $endif$
 $if(subtitle)$
 $if(beamer)$
 $else$
+\usepackage{etoolbox}
 \makeatletter
 \providecommand{\subtitle}[1]{% add subtitle to \maketitle
-  \usepackage{etoolbox}
-  \apptocmd{\@title}{\par \large #1}{}{}
+  \apptocmd{\@title}{\par {\large #1}}{}{}
 }
 \makeatother
 $endif$
