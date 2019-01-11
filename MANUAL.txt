@@ -166,8 +166,7 @@ pandoc does not require them to be present:
 [`parskip`] (for better inter-paragraph spaces),
 [`xurl`] (for better line breaks in URLs),
 [`bookmark`] (for better PDF bookmarks),
-[`titling`] (if `subtitle` is specified), and
-[`footnote`] (to fix footnotes in tables).
+and [`footnote`] (to fix footnotes in tables).
 
 [TeX Live]: http://www.tug.org/texlive/
 [`amsfonts`]: https://ctan.org/pkg/amsfonts
@@ -199,7 +198,6 @@ pandoc does not require them to be present:
 [`polyglossia`]: https://ctan.org/pkg/polyglossia
 [`prince`]: https://www.princexml.com/
 [`setspace`]: https://ctan.org/pkg/setspace
-[`titling`]: https://ctan.org/pkg/titling
 [`ulem`]: https://ctan.org/pkg/ulem
 [`unicode-math`]: https://ctan.org/pkg/unicode-math
 [`upquote`]: https://ctan.org/pkg/upquote

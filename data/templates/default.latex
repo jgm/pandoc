@@ -352,11 +352,12 @@ $endif$
 $if(subtitle)$
 $if(beamer)$
 $else$
-\providecommand{\subtitle}[1]{%
-	\usepackage{titling}
-	\posttitle{%
-    \par\large#1\end{center}}
+\makeatletter
+\providecommand{\subtitle}[1]{% add subtitle to \maketitle
+  \usepackage{etoolbox}
+  \apptocmd{\@title}{\par \large #1}{}{}
 }
+\makeatother
 $endif$
 \subtitle{$subtitle$}
 $endif$
