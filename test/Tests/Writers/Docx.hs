@@ -156,4 +156,14 @@ tests = [ testGroup "inlines"
             "docx/custom_style.native"
             "docx/golden/custom_style_reference.docx"
           ]
+        , testGroup "metadata"
+          [ docxTest "document properties (core, custom)"
+            def
+            "docx/document-properties.native"
+            "docx/golden/document-properties.docx"
+          , docxTest "document properties (short description)"
+            def
+            "docx/document-properties-short-desc.native"
+            "docx/golden/document-properties-short-desc.docx"
+          ]
         ]
