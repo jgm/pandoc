@@ -512,7 +512,8 @@ writeDocx opts doc@(Pandoc meta _) = do
   let docPropsEntry = toEntry docPropsPath epochtime $ renderXml docProps
 
   let customProperties :: [(String, String)]
-      customProperties = [] -- FIXME
+      customProperties = [(k, lookupMetaString k meta) | k <- M.keys (unMeta meta)
+                         , k `notElem` ["title", "lang", "author", "date"]]
   let mkCustomProp (k, v) pid = mknode "property"
          [("fmtid","{D5CDD505-2E9C-101B-9397-08002B2CF9AE}")
          ,("pid", show pid)
