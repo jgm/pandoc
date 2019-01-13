@@ -32,6 +32,7 @@ library. It can convert *from*
   - `creole` ([Creole 1.0](http://www.wikicreole.org/wiki/Creole1.0))
   - `docbook` ([DocBook](http://docbook.org))
   - `docx` ([Word docx](https://en.wikipedia.org/wiki/Office_Open_XML))
+  - `dokuwiki` ([DokuWiki markup](https://www.dokuwiki.org/dokuwiki))
   - `epub` ([EPUB](http://idpf.org/epub))
   - `fb2`
     ([FictionBook2](http://www.fictionbook.org/index.php/Eng:XML_Schema_Fictionbook_2.1)
@@ -44,6 +45,8 @@ library. It can convert *from*
   - `haddock` ([Haddock
     markup](https://www.haskell.org/haddock/doc/html/ch03s08.html))
   - `html` ([HTML](http://www.w3.org/html/))
+  - `ipynb` ([Jupyter
+    notebook](https://nbformat.readthedocs.io/en/latest/))
   - `jats` ([JATS](https://jats.nlm.nih.gov) XML)
   - `json` (JSON version of native AST)
   - `latex` ([LaTeX](http://latex-project.org))
@@ -105,6 +108,8 @@ It can convert *to*
   - `html4` ([XHTML](http://www.w3.org/TR/xhtml1/) 1.0 Transitional)
   - `icml` ([InDesign
     ICML](http://wwwimages.adobe.com/www.adobe.com/content/dam/acom/en/devnet/indesign/sdk/cs6/idml/idml-cookbook.pdf))
+  - `ipynb` ([Jupyter
+    notebook](https://nbformat.readthedocs.io/en/latest/))
   - `jats` ([JATS](https://jats.nlm.nih.gov) XML)
   - `json` (JSON version of native AST)
   - `latex` ([LaTeX](http://latex-project.org))

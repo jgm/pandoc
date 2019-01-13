@@ -49,6 +49,7 @@ module Text.Pandoc.Writers
     , writeEPUB2
     , writeEPUB3
     , writeFB2
+    , writeIpynb
     , writeHaddock
     , writeHtml4
     , writeHtml4String
@@ -101,6 +102,7 @@ import Text.Pandoc.Writers.Docx
 import Text.Pandoc.Writers.DokuWiki
 import Text.Pandoc.Writers.EPUB
 import Text.Pandoc.Writers.FB2
+import Text.Pandoc.Writers.Ipynb
 import Text.Pandoc.Writers.Haddock
 import Text.Pandoc.Writers.HTML
 import Text.Pandoc.Writers.ICML
@@ -140,6 +142,7 @@ writers = [
   ,("epub2"        , ByteStringWriter writeEPUB2)
   ,("epub3"        , ByteStringWriter writeEPUB3)
   ,("fb2"          , TextWriter writeFB2)
+  ,("ipynb"        , TextWriter writeIpynb)
   ,("html"         , TextWriter writeHtml5String)
   ,("html4"        , TextWriter writeHtml4String)
   ,("html5"        , TextWriter writeHtml5String)

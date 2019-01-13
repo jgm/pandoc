@@ -4,3 +4,4 @@ source-repository-package
     type: git
     location: https://github.com/jgm/pandoc-citeproc
     tag: 4b467c62af17ddfc739933891c5ea2291a6b9b76
+

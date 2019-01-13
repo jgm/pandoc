@@ -67,6 +67,7 @@ module Text.Pandoc.Readers
   , readEPUB
   , readMuse
   , readFB2
+  , readIpynb
   -- * Miscellaneous
   , getReader
   , getDefaultExtensions
@@ -90,6 +91,7 @@ import Text.Pandoc.Readers.Docx
 import Text.Pandoc.Readers.DokuWiki
 import Text.Pandoc.Readers.EPUB
 import Text.Pandoc.Readers.FB2
+import Text.Pandoc.Readers.Ipynb
 import Text.Pandoc.Readers.Haddock
 import Text.Pandoc.Readers.HTML (readHtml)
 import Text.Pandoc.Readers.JATS (readJATS)
@@ -147,6 +149,7 @@ readers = [ ("native"       , TextReader readNative)
            ,("muse"         , TextReader readMuse)
            ,("man"          , TextReader readMan)
            ,("fb2"          , TextReader readFB2)
+           ,("ipynb"        , TextReader readIpynb)
            ]
 
 -- | Retrieve reader, extensions based on formatSpec (format+extensions).

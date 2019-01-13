@@ -248,6 +248,7 @@ General options {.options}
       if you need extensions not supported in [`gfm`](#markdown-variants).
     - `haddock` ([Haddock markup])
     - `html` ([HTML])
+    - `ipynb` ([Jupyter notebook])
     - `jats` ([JATS] XML)
     - `json` (JSON version of native AST)
     - `latex` ([LaTeX])
@@ -300,6 +301,7 @@ General options {.options}
     - `html` or `html5` ([HTML], i.e. [HTML5]/XHTML [polyglot markup])
     - `html4` ([XHTML] 1.0 Transitional)
     - `icml` ([InDesign ICML])
+    - `ipynb` ([Jupyter notebook])
     - `jats` ([JATS] XML)
     - `json` (JSON version of native AST)
     - `latex` ([LaTeX])
@@ -471,6 +473,7 @@ General options {.options}
 [PDF]: https://www.adobe.com/pdf/
 [reveal.js]: http://lab.hakim.se/reveal-js/
 [FictionBook2]: http://www.fictionbook.org/index.php/Eng:XML_Schema_Fictionbook_2.1
+[Jupyter notebook]: https://nbformat.readthedocs.io/en/latest/
 [InDesign ICML]: http://wwwimages.adobe.com/www.adobe.com/content/dam/acom/en/devnet/indesign/sdk/cs6/idml/idml-cookbook.pdf
 [TEI Simple]: https://github.com/TEIC/TEI-Simple
 [Muse]: https://amusewiki.org/library/manual
@@ -730,6 +733,8 @@ General writer options {.options}
     where there are nonsemantic newlines in the source, there
     will be nonsemantic newlines in the output as well).
     Automatic wrapping does not currently work in HTML output.
+    In `ipynb` output, this option affects wrapping of the
+    contents of markdown cells.
 
 `--columns=`*NUMBER*
 
@@ -902,6 +907,7 @@ Options affecting specific writers {.options}
 :   Use ATX-style headers in Markdown output. The default is
     to use setext-style headers for levels 1-2, and then ATX headers.
     (Note: for `gfm` output, ATX headers are always used.)
+    This option also affects markdown cells in `ipynb` output.
 
 `--top-level-division=[default|section|chapter|part]`
 
@@ -1806,6 +1812,10 @@ section [Pandoc's Markdown] below (See [Markdown variants] for
 `commonmark` and `gfm`.) In the following, extensions that also work
 for other formats are covered.
 
+Note that markdown extensions added to the `ipynb` format
+affect Markdown cells in Jupyter notebooks (as do command-line
+options like `--atx-headers`).
+
 Typography
 ----------
 
@@ -1955,10 +1965,18 @@ This extension can be enabled/disabled for the following formats
 
 input formats
 :  `latex`, `org`, `textile`, `html` (environments, `\ref`, and
-   `\eqref` only)
+   `\eqref` only), `ipynb`
 
 output formats
 :  `textile`, `commonmark`
+
+Note: as applied to `ipynb`, `raw_html` and `raw_tex` affect not
+only raw TeX in markdown cells, but data with mime type
+`text/html` in output cells.  Since the `ipynb` reader attempts
+to preserve the richest possible outputs when several options
+are given, you will get best results if you disable `raw_html`
+and `raw_tex` when converting to formats like `docx` which don't
+allow raw `html` or `tex`.
 
 #### Extension: `native_divs` {#native_divs}
 
@@ -4746,6 +4764,112 @@ with the `src` attribute.  For example:
               data-external="1" type="audio/mpeg">
       </source>
     </audio>
+
+Creating Jupyter notebooks with pandoc
+======================================
+
+When creating a [Jupyter notebook], pandoc will try to infer the
+notebook structure.  Code blocks with the class `code` will be
+taken as code cells, and intervening content will be taken as
+Markdown cells.  Attachments will automatically be created for
+images in Markdown cells. For example:
+
+````
+---
+title: My notebook
+nbformat: 4
+nbformat_minor: 5
+kernelspec:
+   display_name: Python 2
+   language: python
+   name: python2
+language_info:
+   codemirror_mode:
+     name: ipython
+     version: 2
+   file_extension: ".py"
+   mimetype: "text/x-python"
+   name: "python"
+   nbconvert_exporter: "python"
+   pygments_lexer: "ipython2"
+   version: "2.7.15"
+---
+
+# Lorem ipsum
+
+**Lorem ipsum** dolor sit amet, consectetur adipiscing elit. Nunc luctus
+bibendum felis dictum sodales.
+
+``` code
+print("hello")
+```
+
+## Pyout
+
+``` code
+from IPython.display import HTML
+HTML("""
+<script>
+console.log("hello");
+</script>
+<b>HTML</b>
+""")
+```
+
+## Image
+
+This image ![image](myimage.png) will be
+included as a cell attachment.
+````
+
+If you want to add cell attributes, group cells differently, or
+add output to code cells, then you need to include divs to
+indicate the structure. You can use either [fenced
+divs][Extension: `fenced_divs`] or [native divs][Extension:
+`native_divs`] for this.  Here is an example:
+
+````
+:::::: {.cell .markdown}
+# Lorem
+
+**Lorem ipsum** dolor sit amet, consectetur adipiscing elit. Nunc luctus
+bibendum felis dictum sodales.
+::::::
+
+:::::: {.cell .code execution_count=1}
+``` {.python}
+print("hello")
+```
+
+::: {.output .stream .stdout}
+```
+hello
+```
+:::
+::::::
+
+:::::: {.cell .code execution_count=2}
+``` {.python}
+from IPython.display import HTML
+HTML("""
+<script>
+console.log("hello");
+</script>
+<b>HTML</b>
+""")
+```
+
+::: {.output .execute_result execution_count=2}
+```{=html}
+<script>
+console.log("hello");
+</script>
+<b>HTML</b>
+hello
+```
+:::
+::::::
+````
 
 Syntax highlighting
 ===================

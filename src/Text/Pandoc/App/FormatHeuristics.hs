@@ -90,5 +90,6 @@ formatFromFilePath x =
     ".txt"      -> Just "markdown"
     ".wiki"     -> Just "mediawiki"
     ".xhtml"    -> Just "html"
+    ".ipynb"    -> Just "ipynb"
     ['.',y]     | y `elem` ['1'..'9'] -> Just "man"
     _           -> Nothing

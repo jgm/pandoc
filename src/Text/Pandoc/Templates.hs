@@ -58,6 +58,7 @@ getDefaultTemplate writer = do
        "docx"    -> return ""
        "fb2"     -> return ""
        "pptx"    -> return ""
+       "ipynb"   -> return ""
        "odt"     -> getDefaultTemplate "opendocument"
        "html"    -> getDefaultTemplate "html5"
        "docbook" -> getDefaultTemplate "docbook5"

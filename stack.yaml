@@ -21,6 +21,7 @@ packages:
 extra-deps:
 - github: jgm/pandoc-citeproc
   commit: 4b467c62af17ddfc739933891c5ea2291a6b9b76
+- ipynb-0.1
 - haddock-library-1.7.0
 - HsYAML-0.1.1.2
 - yaml-0.11.0.0

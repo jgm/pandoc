@@ -70,6 +70,7 @@ data PandocError = PandocIOError String IOError
                  | PandocEpubSubdirectoryError String
                  | PandocMacroLoop String
                  | PandocUTF8DecodingError String Int Word8
+                 | PandocIpynbDecodingError String
                  deriving (Show, Typeable, Generic)
 
 instance Exception PandocError
@@ -124,6 +125,8 @@ handleError (Left e) =
       "UTF-8 decoding error in " ++ f ++ " at byte offset " ++ show offset ++
       " (" ++ printf "%2x" w ++ ").\n" ++
       "The input must be a UTF-8 encoded text."
+    PandocIpynbDecodingError w -> err 93 $
+      "ipynb decoding error: " ++ w
 
 err :: Int -> String -> IO a
 err exitCode msg = do

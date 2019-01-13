@@ -20,14 +20,14 @@ description:     Pandoc is a Haskell library for converting from one markup
                  (subsets of) HTML, reStructuredText, LaTeX, DocBook, JATS,
                  MediaWiki markup, DokuWiki markup, TWiki markup,
                  TikiWiki markup, Creole 1.0, Haddock markup, OPML,
-                 Emacs Org-Mode, Emacs Muse, txt2tags,
-                 Vimwiki, Word Docx, ODT, EPUB, FictionBook2, roff man,
-                 and Textile, and it can write Markdown, reStructuredText,
-                 XHTML, HTML 5, LaTeX, ConTeXt, DocBook, JATS, OPML, TEI,
-                 OpenDocument, ODT, Word docx, PowerPoint pptx,
-                 RTF, MediaWiki, DokuWiki, ZimWiki, Textile,
+                 Emacs Org-Mode, Emacs Muse, txt2tags, ipynb (Jupyter
+                 notebooks), Vimwiki, Word Docx, ODT, EPUB, FictionBook2,
+                 roff man, and Textile, and it can write Markdown,
+                 reStructuredText, XHTML, HTML 5, LaTeX, ConTeXt, DocBook,
+                 JATS, OPML, TEI, OpenDocument, ODT, Word docx,
+                 PowerPoint pptx, RTF, MediaWiki, DokuWiki, ZimWiki, Textile,
                  roff man, roff ms, plain text, Emacs Org-Mode,
-                 AsciiDoc, Haddock markup, EPUB (v2 and v3),
+                 AsciiDoc, Haddock markup, EPUB (v2 and v3), ipynb,
                  FictionBook2, InDesign ICML, Muse, LaTeX beamer slides,
                  and several kinds of HTML/JavaScript slide shows
                  (S5, Slidy, Slideous, DZSlides, reveal.js).
@@ -398,7 +398,8 @@ library
                  http-types >= 0.8 && < 0.13,
                  case-insensitive >= 1.2 && < 1.3,
                  unicode-transforms >= 0.3 && < 0.4,
-                 HsYAML >= 0.1.1.1 && < 0.2
+                 HsYAML >= 0.1.1.1 && < 0.2,
+                 ipynb >= 0.1 && < 0.2
   if impl(ghc < 8.0)
     build-depends: semigroups == 0.18.*,
                    -- basement 0.0.8 and foundation 0.0.21, transitive
@@ -470,12 +471,14 @@ library
                    Text.Pandoc.Readers.Man,
                    Text.Pandoc.Readers.FB2,
                    Text.Pandoc.Readers.DokuWiki,
+                   Text.Pandoc.Readers.Ipynb,
                    Text.Pandoc.Writers,
                    Text.Pandoc.Writers.Native,
                    Text.Pandoc.Writers.Docbook,
                    Text.Pandoc.Writers.JATS,
                    Text.Pandoc.Writers.OPML,
                    Text.Pandoc.Writers.HTML,
+                   Text.Pandoc.Writers.Ipynb,
                    Text.Pandoc.Writers.ICML,
                    Text.Pandoc.Writers.LaTeX,
                    Text.Pandoc.Writers.ConTeXt,
