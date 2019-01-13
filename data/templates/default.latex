@@ -364,7 +364,18 @@ $if(author)$
 \author{$for(author)$$author$$sep$ \and $endfor$}
 $endif$
 $if(institute)$
-\providecommand{\institute}[1]{}
+$if(beamer)$
+$else$
+\usepackage{etoolbox}
+\makeatletter
+\providecommand{\institute}[1]{% add institute to \maketitle
+  \apptocmd{\@author}{\end{tabular}
+    \vskip 1em
+    \begin{tabular}[t]{c}
+    #1}{}{}
+}
+\makeatother
+$endif$
 \institute{$for(institute)$$institute$$sep$ \and $endfor$}
 $endif$
 \date{$date$}
