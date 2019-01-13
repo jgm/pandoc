@@ -41,6 +41,7 @@
 - Clint Adams
 - Conal Elliott
 - Craig S. Bosma
+- Damien Clochard
 - Daniel Bergey
 - Daniel T. Staal
 - Daniele D'Orazio

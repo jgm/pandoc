@@ -1,3 +1,271 @@
+pandoc (2.6) PROVISIONAL
+
+  * Implement task lists (#3051, Mauro Bieg). Added `task_list`
+    extension. Task lists are supported form markdown and gfm input.
+    They should work, to some degree, in all output formats, though in
+    most formats you'll get a bullet list with a following task list
+    box. In HTML and LaTeX/PDF output, the bullet will be suppressed
+    for nicer output. API changes:
+
+    + Added constructor `Ext_task_lists` to `Extension`.
+    + Added `taskListItemFromAscii` and `taskListItemToAscii` to
+      Text.Pandoc.Shared.
+
+  * Add DokuWiki reader (#1792, Alexander Krotov).  This adds
+    Text.Pandoc.Readers.DokuWiki [API change], and adds `dokuwiki`
+    as an input format.
+    
+  * HTML reader: handle empty `start` attribute (see #5162).
+
+  * RST reader:
+
+    + Change treatment of `number-lines` directive (Brian Leung,
+      #5207). Directives of this type without numeric inputs should
+      not have a `startFrom` attribute; with a blank value, the
+      writers can produce extra whitespace.
+    + Removed superfluous `sourceCode` class on code blocks (#5047).
+    + Handle `sourcecode` directive as synonynm for `code` (#5204).
+   
+  * Markdown reader:
+  
+    + Remove `sourceCode` class for literate Haskell code blocks
+      (#5047). Reverse order of `literate` and `haskell` classes on
+      code blocks when parsing literate Haskell, so `haskell` is
+      first.
+    
+  * Org reader:
+  
+    + Handle `minlevel` option differently (#5190, Brian Leung).
+      When `minlevel` exceeds the original minimum level observed in
+      the file to be included, every heading should be shifted
+      rightward.
+    + Allow for case of `:minlevel == 0` (#5190).
+    + Fix treatment of links to images (#5191, Albert Krewinkel).
+      Links with descriptions which are pointing to images are no
+      longer parsed as inline images, but as links.
+ 
+  * TWiki reader: Fix performance issue with underscores (#3921).
+
+  * LaTeX reader:
+  
+    + Remove `sourceCode` class for literate Haskell code blocks
+      (#5047). Reverse order of `literate` and `haskell` classes on
+      code blocks when parsing literate Haskell, so `haskell` is
+      first.
+    + Support `\DeclareMathOperator` (#5149).
+    + Support `\inputminted` (#5103).
+
+  * Man reader:
+
+    + Use `mapLeft` from Shared instead of defining own.
+
+  * Docx reader (Jesse Rosenthal):
+  
+    + Handle level overrides (#5134).
+
+  * Docx writer (Jesse Rosenthal):
+  
+    + Make Level into a real type, instead of an alias for a tuple.
+
+  * ICML writer (Mauro Bieg):
+  
+    + Support custom-styles (#5137, see #2106).
+    + Support unnumbered headers.
+    
+    closes #5140
+
+  * Org writer: preserve line-numbering for example and code blocks
+    (Brian Leung).
+ 
+  * Man/Ms writers: don't escape `-` as `\-`. The `\-` gets rendered
+    in HTML and PDF as a unicode minus sign.
+
+  * RST writer: don't wrap simple table header lines (#5128).
+    
+  * Asciidoc writer: Shorter delimiters for tables, blockquotes
+    (#4364). This matches asciidoctor reference docs.
+
+  * Dokuwiki writer: Remove automatic `:` prefix before internal image
+    links (#5183, Damien Clochard).  This prevented users from making
+    relative image links.
+ 
+ *  Zimwiki writer: remove automatic colon prefix before internal
+    images (#5183, Damien Clochard).
+
+  * MediaWiki writer: fix caption, use 'thumb' instead of 'frame'
+    (#5105). Captions used to have the word 'caption' prepended; this
+    has been removed. Also, 'thumb' is used instead of 'frame' to
+    allow images to be resized.
+
+  * reveal.js writer:
+  
+    + Ensure that we don't get > 2 levels of section nesting,
+      even with slide level > 2 (#5168).
+    + If slide level == N but there is no N-level header, make
+      sure the next header with level > N gets treated as a slide
+      and put in a section, rather than remaining loose (#5168).
+
+  * Markdown writer:
+
+    + Make `plain` RawBlocks pass through in `plain` output.
+    + Include needed whitespace after HTML figure (#5121).
+      We use HTML for a figure in markdown dialects that can't
+      represent it natively.
+
+  * Commonmark writer:
+  
+    + Fix handling of SoftBreak with `hard_line_breaks` (#5195).
+    + Implement `--toc` (`writerTableOfContents`)
+      in commonmark/gfm writers (#5172).
+
+  * EPUB writer:
+  
+    + Ensure that picture transforms are done on metadata too.
+    + Small fixes to `nav.xhtml`:
+      Add 'landmarks' id attribute to the landmarks nav.
+      Replace old default CSS removing numbers from ol.toc li
+      with new rules that match `nav#toc ol, nav#landmarks ol`.
+      We keep the `toc` class on `ol` for backwards compatibility.
+
+  * LaTeX writer:
+
+    + Make raw content marked `beamer` pass through in `beamer`
+      output (pandoc/lua-filters#40).
+    + Beamer: avoid duplicated `fragile` property in some cases
+      (#5208).
+
+ *  RTF writer: use `toTableOfContents` from Shared to replace
+    old duplicated code.
+
+  * Pptx writer:  use `toTableOfContents` from Shared to replace
+    old duplicated code.
+
+  * Custom writers:
+  
+    + Allow '-' in filenames for custom lua writers (#5187).
+    + sample.lua: add `SingleQuoted`, `DoubleQuoted` (#5104).
+
+  * reveal.js template:  Add `zoomKey` config (#4249).
+  
+  * HTML5 template: Remove unnecessary type="text/css" on style and
+    link for HTML5 (#5146).
+
+  * LaTeX template (Andrew Dunning)
+
+    + Prevent fontspec from scaling `mainfont` to match the default
+      font, Latin Modern. For example, a main font set to 12pt could
+      previously appear between 11pt to 13pt depending on its design.
+      To return to the earlier rendering, use `-V
+      mainfontoptions="Scale=MatchLowercase"` (#5212, #5218).
+    + Display monospaced fonts without TeX ligatures when using
+      `--pdf-engine=lualatex`. It now matches the behaviour of other
+      engines (#5212, #5218).
+    + Remove the deprecated `romanfont` variable. The functionality of
+      `mainfont` is identical (#5218).
+    + Render `\subtitle` with the standard document classes.
+      Previously, `subtitle` only appeared when using the KOMA-Script
+      classes or Beamer (#5213).
+    + Use Babel instead of Polyglossia for LuaLaTeX. This avoids
+      several language selection problems, notably with retaining
+      French spacing conventions when switching to a verbatim
+      environment or another language; and in printing Greek text
+      without hyphenation (#5193).
+    + Use the [`xurl`](https://ctan.org/pkg/xurl) package if
+      available, improving the appearance of URLs by allowing them to
+      break at additional points. Requires TeX Live 2018 or later; run
+      `tlmgr update --all` if you experience problems with URLs
+      appearing after link text (#5193).
+    + Use [`bookmark`](https://ctan.org/pkg/bookmark) if available,
+      which can correct the levels of headings where `hyperref`
+      cannot: see the [KOMA-Script 3.26 release
+      notes](https://komascript.de/release3.26) (#5193).
+    + Require the [`xcolor`](https://ctan.org/pkg/xcolor) package to
+      avoid a possible error when using additional packages alongside
+      footnotes in tables (#5193, closes #4861).
+    + Remove obsolete `fixltx2e` package, which has no functionality
+      with TeX Live 2015 or later (#5193).
+    + Allow multiple `fontfamilies.options` (#5193, closes #5194).
+    + Reindent file (#5193).
+    
+  * LaTeX template: let KOMA document class handle parskip when
+    applicable (#5143, Enno).
+
+  * Text.Pandoc.Readers: Changed types of `readJSON`; it now runs
+    in an instance of PandocMonad, like the other readers and
+    writers.  [API change]
+    
+  * Text.Pandoc.Writers: Changed types of `writeJSON`; it now runs
+    in an instance of PandocMonad, like the other readers and
+    writers.  [API change] 
+
+  * Text.Pandoc.Error: Added `PandocUTF8DecodingError` constructor
+    for `PandocError`. [API change]
+
+  * Text.Pandoc.Writers.Shared - add `toTableOfContents`. [API change]
+    This is refactored out from the Markdown writer.
+    It can be used in other writers to create a table of contents.
+
+  * Improve error messages for UTF-8 decoding errors. Now we give
+    the filename and byte offset (#4765).
+
+  * Text.Pandoc.XML: Strip out illegal XML characters in
+    `escapeXMLString` (#5119).
+
+  * Text.Pandoc.Process: update `pipeProcess` (Albert Krewinkel).
+    The implementation of `pipeProcess` was rewritten to fix sporadic
+    failures caused by prematurely closed pipes.
+
+  * Use `safeRead` instead of `read` everywhere in the code
+    (John MacFarlane, Mauro Bieg, #5162, #5180).
+
+  * Text.Pandoc.SelfContained: Decompress `.svgz` when
+    converting to `data:` URI (#5163, Alexander Krotov).
+
+  * Text.Pandoc.Parsing: Remove unused `HasHeaderMap`
+    (#5175, Alexander Krotov). [API change]
+  
+  * Simplify/fix reading of `--metadata` values on command line
+    to avoid problems relating to hvr/HsYAML#7 (#5177).
+
+  * Removed custom Setup.hs, use build-type: simple. The only thing we
+    gained from the custom build was automatic installation of the man
+    page when using 'cabal install'. But custom builds cause problems,
+    e.g., with cross-compilation. Installation of the man page is
+    better handled by packagers. Note to packagers (e.g. Debian): it
+    may be necessary to add a step installing the man page with the
+    next release.
+
+  * Allow latest http-client, tasty, zip-archive, Glob.
+    
+  * Require skylighting >= 0.7.5, adding support for sml, J,
+    typescript.
+ 
+   * Tests:  Cleaned up `findPandoc` in `Tests.Helpers`, so it
+     works well with cabal v2.
+ 
+  * INSTALL.md:
+  
+    + Use button for installer links (John MacFarlane, Mauro Bieg,
+      #5167).
+    + Fix links and bump required stack version (max).
+    + Improve installation notes on associated software (Andrew
+      Dunning). Includes explanation of how to install related tools
+      with package managers (since the method of installing
+      `rsvg-convert` is not obvious).
+
+  * doc/org.md: improve documentation of org features (Albert
+    Krewinkel).
+
+  * MANUAL:
+  
+    + Clarify automatic identifiers (#5201). We remove
+      non-alphanumerics. This includes, e.g., emojis.
+    + Fix example for Div with id (Geoffrey Ely).
+    + Update list of LaTeX packages used.
+    + Make it clear that `hard_line_breaks` works in `gfm` (see #5195).
+    
+  * trypandoc: Fix CSS and viewport.
+
 pandoc (2.5)
 
   * Text.Pandoc.App: split into several unexported submodules (Albert
