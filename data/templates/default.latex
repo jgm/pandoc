@@ -370,7 +370,7 @@ $else$
 \makeatletter
 \providecommand{\institute}[1]{% add institute to \maketitle
   \apptocmd{\@author}{\end{tabular}
-    \vskip 1em
+    \par
     \begin{tabular}[t]{c}
     #1}{}{}
 }
