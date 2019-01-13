@@ -254,6 +254,14 @@ local function ensureInlineList (x)
   end
 end
 
+--- Ensure that the given object is a definition pair, convert if necessary.
+-- @local
+local function ensureDefinitionPairs (pair)
+  local inlines = ensureInlineList(pair[1] or {})
+  local blocks = ensureList(pair[2] or {}):map(ensureList)
+  return {inlines, blocks}
+end
+
 ------------------------------------------------------------------------
 --- Pandoc Document
 -- @section document
@@ -369,7 +377,7 @@ M.BlockQuote = M.Block:create_constructor(
 -- @treturn     Block                         bullet list element
 M.BulletList = M.Block:create_constructor(
   "BulletList",
-  function(content) return {c = ensureList(content)} end,
+  function(content) return {c = ensureList(content):map(ensureList)} end,
   "content"
 )
 
@@ -386,11 +394,13 @@ M.CodeBlock = M.Block:create_constructor(
 
 --- Creates a definition list, containing terms and their explanation.
 -- @function DefinitionList
--- @tparam      {{{Inline,...},{Block,...}},...} content     list of items
+-- @tparam      {{{Inline,...},{{Block,...}}},...} content     list of items
 -- @treturn     Block                  definition list element
 M.DefinitionList = M.Block:create_constructor(
   "DefinitionList",
-  function(content) return {c = ensureList(content)} end,
+  function(content)
+    return {c = ensureList(content):map(ensureDefinitionPairs)}
+  end,
   "content"
 )
 
@@ -435,7 +445,7 @@ M.HorizontalRule = M.Block:create_constructor(
 -- @treturn     Block                   line block element
 M.LineBlock = M.Block:create_constructor(
   "LineBlock",
-  function(content) return {c = ensureList(content)} end,
+  function(content) return {c = ensureList(content):map(ensureInlineList)} end,
   "content"
 )
 
@@ -456,7 +466,7 @@ M.OrderedList = M.Block:create_constructor(
   "OrderedList",
   function(items, listAttributes)
     listAttributes = listAttributes or M.ListAttributes()
-    return {c = {listAttributes, ensureList(items)}}
+    return {c = {listAttributes, ensureList(items):map(ensureList)}}
   end,
   {{listAttributes = {"start", "style", "delimiter"}}, "content"}
 )
@@ -647,7 +657,9 @@ M.Note = M.Inline:create_constructor(
 -- @treturn     Inline                  quoted element
 M.Quoted = M.Inline:create_constructor(
   "Quoted",
-  function(quotetype, content) return {c = {quotetype, ensureInlineList(content)}} end,
+  function(quotetype, content)
+    return {c = {quotetype, ensureInlineList(content)}}
+  end,
   {"quotetype", "content"}
 )
 --- Creates a single-quoted inline element (DEPRECATED).

@@ -10,10 +10,10 @@ import Test.Tasty (TestTree, localOption)
 import Test.Tasty.HUnit (Assertion, assertEqual, testCase)
 import Test.Tasty.QuickCheck (QuickCheckTests (..), ioProperty, testProperty)
 import Text.Pandoc.Arbitrary ()
-import Text.Pandoc.Builder (bulletList, divWith, doc, doubleQuoted, emph,
-                            header, linebreak, para, plain, rawBlock,
-                            singleQuoted, space, str, strong,
-                            math, displayMath)
+import Text.Pandoc.Builder (bulletList, definitionList, displayMath, divWith,
+                            doc, doubleQuoted, emph, header, lineBlock,
+                            linebreak, math, orderedList, para, plain, rawBlock,
+                            singleQuoted, space, str, strong)
 import Text.Pandoc.Class (runIOorExplode, setUserDataDir)
 import Text.Pandoc.Definition (Block (BlockQuote, Div, Para), Inline (Emph, Str),
                                Attr, Meta, Pandoc, pandocTypesVersion)
@@ -91,6 +91,17 @@ tests = map (localOption (QuickCheckTests 20))
       "block-count.lua"
       (doc $ para "one" <> para "two")
       (doc $ para "2")
+
+  , testCase "Smart constructors" $
+    assertFilterConversion "smart constructors returned a wrong result"
+      "smart-constructors.lua"
+      (doc $ para "")
+      (doc $ mconcat
+       [ bulletList [para "Hello", para "World"]
+       , definitionList [("foo", [para "placeholder"])]
+       , lineBlock ["Moin", "Welt"]
+       , orderedList [plain "one", plain "two"]
+       ])
 
   , testCase "Convert header upper case" $
     assertFilterConversion "converting header to upper case failed"
