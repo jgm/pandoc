@@ -1,11 +1,11 @@
 pandoc (2.6) PROVISIONAL
 
-  * Implement task lists (#3051, Mauro Bieg). Added `task_list`
-    extension. Task lists are supported form markdown and gfm input.
+  * Implement task lists (#3051, Mauro Bieg). Added `task_lists`
+    extension. Task lists are supported from markdown and gfm input.
     They should work, to some degree, in all output formats, though in
-    most formats you'll get a bullet list with a following task list
-    box. In HTML and LaTeX/PDF output, the bullet will be suppressed
-    for nicer output. API changes:
+    most formats you'll get a bullet list with a unicode character for
+    the box. In HTML, you get checkboxes and in LaTeX/PDF output, a
+    box is used as the list marker. API changes:
 
     + Added constructor `Ext_task_lists` to `Extension`.
     + Added `taskListItemFromAscii` and `taskListItemToAscii` to
