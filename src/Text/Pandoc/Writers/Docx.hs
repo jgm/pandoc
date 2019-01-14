@@ -497,6 +497,9 @@ writeDocx opts doc@(Pandoc meta _) = do
                        _                  -> []
 
   let docPropsPath = "docProps/core.xml"
+  let extraCoreProps = ["subtitle","abstract","lang","category"]
+  let extraCorePropsMap = M.fromList $ zip extraCoreProps
+                       ["dc:subject","dc:description","dc:language","cp:category"]
   let docProps = mknode "cp:coreProperties"
           [("xmlns:cp","http://schemas.openxmlformats.org/package/2006/metadata/core-properties")
           ,("xmlns:dc","http://purl.org/dc/elements/1.1/")
@@ -505,7 +508,9 @@ writeDocx opts doc@(Pandoc meta _) = do
           ,("xmlns:xsi","http://www.w3.org/2001/XMLSchema-instance")]
           $ mknode "dc:title" [] (stringify $ docTitle meta)
           : mknode "dc:creator" [] (intercalate "; " (map stringify $ docAuthors meta))
-          : mknode "cp:keywords" [] (intercalate ", " keywords)
+          : [ mknode (M.findWithDefault "" k extraCorePropsMap) [] (lookupMetaString k meta)
+            | k <- M.keys (unMeta meta), k `M.member` extraCorePropsMap]
+          ++ mknode "cp:keywords" [] (intercalate ", " keywords)
           : (\x -> [ mknode "dcterms:created" [("xsi:type","dcterms:W3CDTF")] x
                    , mknode "dcterms:modified" [("xsi:type","dcterms:W3CDTF")] x
                    ]) (formatTime defaultTimeLocale "%FT%XZ" utctime)
@@ -513,7 +518,8 @@ writeDocx opts doc@(Pandoc meta _) = do
 
   let customProperties :: [(String, String)]
       customProperties = [(k, lookupMetaString k meta) | k <- M.keys (unMeta meta)
-                         , k `notElem` ["title", "lang", "author", "date"]]
+                         , k `notElem` (["title", "author", "date", "keywords", "references"]
+                                       ++ extraCoreProps)]
   let mkCustomProp (k, v) pid = mknode "property"
          [("fmtid","{D5CDD505-2E9C-101B-9397-08002B2CF9AE}")
          ,("pid", show pid)
