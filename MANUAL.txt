@@ -3141,6 +3141,20 @@ equivalent of the Markdown in the `abstract` field:
     <p>This is the abstract.</p>
     <p>It consists of two paragraphs.</p>
 
+When writing DOCX or ODT, first-level metadata with a String value will be
+included in the resulting document as Document Properties or Custom
+Properties accordingly. The name of the metadata will be the same
+as the Document/Custom Property, except in the following cases:
+
+`subtitle`
+:   Will be converted to the core Document Property `subject` in DOCX
+
+`abstract`
+:   Will be converted to the core Document Property `description` in DOCX
+
+`lang`
+:   Will be converted to the core Document Property `language` in DOCX
+
 Variables can contain arbitrary YAML structures, but the template must match
 this structure.  The `author` variable in the default templates expects a
 simple list or string, but can be changed to support more complicated
