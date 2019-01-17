@@ -130,8 +130,8 @@ pandocToODT opts doc@(Pandoc meta _) = do
   let escapedText = text . escapeStringForXML
   let userDefinedMeta =
         map (\k -> inTags False "meta:user-defined"
-              [ ("meta_name", escapeStringForXML k)
-              ,("meta-value-type", "string")
+              [ ("meta:name", escapeStringForXML k)
+              ,("meta:value-type", "string")
               ] (escapedText $ lookupMetaString k meta)) userDefinedMetaFields
   let metaTag metafield = inTagsSimple metafield . escapedText
   let metaEntry = toEntry "meta.xml" epochtime
