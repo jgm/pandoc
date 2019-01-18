@@ -1,4 +1,4 @@
-Pandoc (Meta {unMeta = fromList 
+Pandoc (Meta {unMeta = fromList
       [("Company",MetaInlines [Str "My",Space,Str "Company"])
       ,("Second Custom Property",MetaInlines [Str "Second",Space,Str "custom",Space,Str "property",Space,Str "value"])
       ,("abstract",MetaBlocks [Plain [Str "Quite",Space,Str "a",Space,Str "long",Space,Str "description",
@@ -17,7 +17,7 @@ Pandoc (Meta {unMeta = fromList
       ,("nested-custom",MetaList [MetaMap (fromList [("custom 7",MetaInlines [Str "Nested",Space,Str "Custom",Space,
                                   Str "value",Space,Str "7"])]),MetaMap (fromList [("custom 8",
                                   MetaInlines [Str "Nested",Space,Str "Custom",Space,Str "value",Space,Str "8"])])])
-      ,("subtitle",MetaInlines [Str "This",Space,Str "is",Space,Str "a",Space,Str "subtitle",Space,Str "or",Space,
-                                Str "the",Space,Str "subject",Space,Str "in",Space,Str "word"])
+      ,("subject",MetaInlines [Str "Very",Space,Str "interesting",Space,Str "subject"])
+      ,("subtitle",MetaInlines [Str "This",Space,Str "is",Space,Str "a",Space,Str "subtitle"])
       ,("title",MetaInlines [Str "Pandoc",Space,Str "Issue",Space,Str "3034"])]})
 [Para [Str "Solving",Space,Str "Pandoc",Space,Str "Issue",Space,Str "3034"]]
