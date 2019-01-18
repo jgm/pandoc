@@ -2,7 +2,18 @@
 {-# LANGUAGE FlexibleInstances    #-}
 {-# LANGUAGE PatternGuards        #-}
 {-# LANGUAGE TypeSynonymInstances #-}
+{- |
+   Module      : Text.Pandoc.Readers.Docx.Combine
+   Copyright   : © 2014-2019 Jesse Rosenthal <jrosenthal@jhu.edu>,
+                   2014-2019 John MacFarlane <jgm@berkeley.edu>
+   License     : GNU GPL, version 2 or above
 
+   Maintainer  : Jesse Rosenthal <jrosenthal@jhu.edu>
+   Stability   : alpha
+   Portability : portable
+
+Flatten sequences of elements.
+-}
 module Text.Pandoc.Readers.Docx.Combine ( smushInlines
                                         , smushBlocks
                                         )

@@ -1,4 +1,17 @@
 {-# LANGUAGE NoImplicitPrelude #-}
+{- |
+   Module      : Text.Pandoc.Readers.Docx.StyleMaps
+   Copyright   : © 2014-2019 Jesse Rosenthal <jrosenthal@jhu.edu>,
+                   2014-2019 John MacFarlane <jgm@berkeley.edu>,
+                   2015 Nikolay Yakimov <root@livid.pp.ru>
+   License     : GNU GPL, version 2 or above
+
+   Maintainer  : Jesse Rosenthal <jrosenthal@jhu.edu>
+   Stability   : alpha
+   Portability : portable
+
+Docx reader utility functions.
+-}
 module Text.Pandoc.Readers.Docx.Util (
                                         NameSpaces
                                       , elemName
