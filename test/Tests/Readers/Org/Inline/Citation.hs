@@ -1,5 +1,16 @@
 {-# LANGUAGE NoImplicitPrelude #-}
 {-# LANGUAGE OverloadedStrings #-}
+{- |
+   Module      : Tests.Readers.Org.Inline.Citation
+   Copyright   : © 2014-2018 Albert Krewinkel
+   License     : GNU GPL, version 2 or above
+
+   Maintainer  : Albert Krewinkel <albert@zeitkraut.de>
+   Stability   : alpha
+   Portability : portable
+
+Test parsing of citations in org input.
+-}
 module Tests.Readers.Org.Inline.Citation (tests) where
 
 import Prelude

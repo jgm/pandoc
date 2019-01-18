@@ -1,5 +1,16 @@
 {-# LANGUAGE NoImplicitPrelude #-}
 {-# LANGUAGE OverloadedStrings #-}
+{- |
+   Module      : Tests.Readers.Org.Block.Figure
+   Copyright   : © 2014-2018 Albert Krewinkel
+   License     : GNU GPL, version 2 or above
+
+   Maintainer  : Albert Krewinkel <albert@zeitkraut.de>
+   Stability   : alpha
+   Portability : portable
+
+Test parsing of org figures.
+-}
 module Tests.Readers.Org.Block.Figure (tests) where
 
 import Prelude

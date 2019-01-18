@@ -1,4 +1,15 @@
 {-# LANGUAGE OverloadedStrings #-}
+{- |
+   Module      : Tests.Shared
+   Copyright   : © 2014-2018 Albert Krewinkel
+   License     : GNU GPL, version 2 or above
+
+   Maintainer  : Albert Krewinkel <albert@zeitkraut.de>
+   Stability   : alpha
+   Portability : portable
+
+Tests of the org reader.
+-}
 module Tests.Readers.Org (tests) where
 
 import Test.Tasty (TestTree, testGroup)

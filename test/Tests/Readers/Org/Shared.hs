@@ -1,4 +1,15 @@
 {-# LANGUAGE NoImplicitPrelude #-}
+{- |
+   Module      : Tests.Readers.Org.Shared
+   Copyright   : © 2014-2018 Albert Krewinkel
+   License     : GNU GPL, version 2 or above
+
+   Maintainer  : Albert Krewinkel <albert@zeitkraut.de>
+   Stability   : alpha
+   Portability : portable
+
+Helper functions used by other org tests.
+-}
 module Tests.Readers.Org.Shared
   ( (=:)
   , org
