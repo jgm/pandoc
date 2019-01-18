@@ -1,6 +1,17 @@
 {-# LANGUAGE NoImplicitPrelude #-}
 {-# LANGUAGE OverloadedStrings   #-}
 {-# LANGUAGE ScopedTypeVariables #-}
+{- |
+   Module      : Tests.Readers.RST
+   Copyright   : © 2006-2018 John MacFarlane
+   License     : GNU GPL, version 2 or above
+
+   Maintainer  : John MacFarlane <jgm@berkeley.edu>
+   Stability   : alpha
+   Portability : portable
+
+Tests for the RST reader.
+-}
 module Tests.Readers.RST (tests) where
 
 import Prelude

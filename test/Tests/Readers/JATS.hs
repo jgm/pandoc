@@ -1,5 +1,16 @@
 {-# LANGUAGE NoImplicitPrelude #-}
 {-# LANGUAGE OverloadedStrings #-}
+{- |
+   Module      : Tests.Readers.JATS
+   Copyright   : © 2017 Hamish Mackenzie
+   License     : GNU GPL, version 2 or above
+
+   Maintainer  : Hamish Mackenzie <Hamish.K.Mackenzie@googlemail.com>
+   Stability   : alpha
+   Portability : portable
+
+Tests for the JATS reader.
+-}
 module Tests.Readers.JATS (tests) where
 
 import Prelude

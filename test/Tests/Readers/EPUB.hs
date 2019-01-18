@@ -1,4 +1,15 @@
 {-# LANGUAGE NoImplicitPrelude #-}
+{- |
+   Module      : Tests.Readers.EPUB
+   Copyright   : © 2006-2018 John MacFarlane
+   License     : GNU GPL, version 2 or above
+
+   Maintainer  : John MacFarlane <jgm@berkeley.eu>
+   Stability   : alpha
+   Portability : portable
+
+Tests for the EPUB mediabag.
+-}
 module Tests.Readers.EPUB (tests) where
 
 import Prelude

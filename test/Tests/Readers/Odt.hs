@@ -1,4 +1,16 @@
 {-# LANGUAGE NoImplicitPrelude #-}
+{- |
+   Module      : Tests.Readers.Odt
+   Copyright   : © 2015-2018 John MacFarlane
+                   2015 Martin Linnemann
+   License     : GNU GPL, version 2 or above
+
+   Maintainer  : John MacFarlane <jgm@berkeley.edu>
+   Stability   : alpha
+   Portability : portable
+
+Tests for the ODT reader.
+-}
 module Tests.Readers.Odt (tests) where
 
 import Prelude

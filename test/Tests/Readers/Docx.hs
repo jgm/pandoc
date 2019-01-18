@@ -1,4 +1,15 @@
 {-# LANGUAGE NoImplicitPrelude #-}
+{- |
+   Module      : Tests.Readers.Docx
+   Copyright   : © 2017-2018 Jesse Rosenthal, John MacFarlane
+   License     : GNU GPL, version 2 or above
+
+   Maintainer  : Jesse Rosenthal <jrosenthal@jhu.edu>
+   Stability   : alpha
+   Portability : portable
+
+Tests for the word docx reader.
+-}
 module Tests.Readers.Docx (tests) where
 
 import Prelude

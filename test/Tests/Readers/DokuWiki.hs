@@ -1,6 +1,17 @@
 {-# LANGUAGE NoImplicitPrelude #-}
 {-# LANGUAGE OverloadedStrings   #-}
 {-# LANGUAGE ScopedTypeVariables #-}
+{- |
+   Module      : Tests.Readers.DokuWiki
+   Copyright   : © 2018 Alexander Krotov
+   License     : GNU GPL, version 2 or above
+
+   Maintainer  : Alexander Krotov
+   Stability   : alpha
+   Portability : portable
+
+Tests for DokuWiki reader.
+-}
 module Tests.Readers.DokuWiki (tests) where
 
 import Prelude

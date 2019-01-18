@@ -1,5 +1,16 @@
 {-# LANGUAGE NoImplicitPrelude #-}
 {-# LANGUAGE OverloadedStrings #-}
+{- |
+   Module      : Tests.Readers.Muse
+   Copyright   : © 2017-2018 Alexander Krotov
+   License     : GNU GPL, version 2 or above
+
+   Maintainer  : Alexander Krotov <ilabdsf@gmail.com>
+   Stability   : alpha
+   Portability : portable
+
+Tests for the Muse reader.
+-}
 module Tests.Readers.Muse (tests) where
 
 import Prelude

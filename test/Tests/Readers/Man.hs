@@ -1,4 +1,16 @@
 {-# LANGUAGE OverloadedStrings #-}
+{- |
+   Module      : Tests.Readers.Man
+   Copyright   : © 2018 Yan Pas <yanp.bugz@gmail.com>,
+                   2018 John MacFarlane
+   License     : GNU GPL, version 2 or above
+
+   Maintainer  : John MacFarlane <jgm@berkeley.edu>
+   Stability   : alpha
+   Portability : portable
+
+Tests for the Man reader.
+-}
 module Tests.Readers.Man (tests) where
 
 import Prelude
