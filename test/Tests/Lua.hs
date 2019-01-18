@@ -1,5 +1,16 @@
 {-# LANGUAGE NoImplicitPrelude #-}
 {-# LANGUAGE OverloadedStrings #-}
+{- |
+   Module      : Tests.Lua
+   Copyright   : © 2017-2018 Albert Krewinkel
+   License     : GNU GPL, version 2 or above
+
+   Maintainer  : Albert Krewinkel <albert@zeitkraut.de>
+   Stability   : alpha
+   Portability : portable
+
+Unit and integration tests for pandoc's Lua subsystem.
+-}
 module Tests.Lua ( tests ) where
 
 import Prelude

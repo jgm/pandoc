@@ -1,4 +1,15 @@
 {-# LANGUAGE NoImplicitPrelude #-}
+{- |
+   Module      : Tests.Command
+   Copyright   : © 2006-2018 John MacFarlane
+   License     : GNU GPL, version 2 or above
+
+   Maintainer  : John MacFarlane <jgm@berkeley@edu>
+   Stability   : alpha
+   Portability : portable
+
+Run commands, and test results, defined in markdown files.
+-}
 module Tests.Command (findPandoc, runTest, tests)
 where
 
