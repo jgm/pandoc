@@ -1,7 +1,7 @@
 {-# LANGUAGE NoImplicitPrelude #-}
 {- |
    Module      : Tests.Readers.Docx
-   Copyright   : © 2017-2018 Jesse Rosenthal, John MacFarlane
+   Copyright   : © 2017-2019 Jesse Rosenthal, John MacFarlane
    License     : GNU GPL, version 2 or above
 
    Maintainer  : Jesse Rosenthal <jrosenthal@jhu.edu>

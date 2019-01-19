@@ -1,7 +1,7 @@
 {-# LANGUAGE NoImplicitPrelude #-}
 {- |
    Module      : Tests.Readers.Org.Shared
-   Copyright   : © 2014-2018 Albert Krewinkel
+   Copyright   : © 2014-2019 Albert Krewinkel
    License     : GNU GPL, version 2 or above
 
    Maintainer  : Albert Krewinkel <albert@zeitkraut.de>

@@ -1,5 +1,5 @@
 Pandoc
-Copyright (C) 2006-2018 John MacFarlane <jgm at berkeley dot edu>
+Copyright (C) 2006-2019 John MacFarlane <jgm at berkeley dot edu>
 
 With the exceptions noted below, this code is released under the [GPL],
 version 2 or later:
@@ -37,7 +37,7 @@ The modules in the `pandoc-types` repository (Text.Pandoc.Definition,
 Text.Pandoc.Builder, Text.Pandoc.Generics, Text.Pandoc.JSON,
 Text.Pandoc.Walk) are licensed under the BSD 3-clause license:
 
-Copyright (c) 2006-2018, John MacFarlane
+Copyright (c) 2006-2019, John MacFarlane
 
 All rights reserved.
 
@@ -73,29 +73,29 @@ Pandoc's templates (in `data/templates`) are dual-licensed as either
 GPL (v2 or higher, same as pandoc) or (at your option) the BSD
 3-clause license.
 
-Copyright (c) 2014--2018, John MacFarlane
+Copyright (c) 2014--2019, John MacFarlane
 
 ----------------------------------------------------------------------
 src/Text/Pandoc/Writers/Muse.hs
-Copyright (C) 2017-2018 Alexander Krotov
+Copyright (C) 2017-2019 Alexander Krotov
 
 Released under the GNU General Public License version 2 or later.
 
 ----------------------------------------------------------------------
 src/Text/Pandoc/Writers/Texinfo.hs
-Copyright (C) 2008-2018 John MacFarlane and Peter Wang
+Copyright (C) 2008-2019 John MacFarlane and Peter Wang
 
 Released under the GNU General Public License version 2 or later.
 
 ----------------------------------------------------------------------
 src/Text/Pandoc/Writers/OpenDocument.hs
-Copyright (C) 2008-2018 Andrea Rossato and John MacFarlane
+Copyright (C) 2008-2019 Andrea Rossato and John MacFarlane
 
 Released under the GNU General Public License version 2 or later.
 
 ----------------------------------------------------------------------
 src/Text/Pandoc/Writers/Org.hs
-Copyright (C) 2010-2018 Puneeth Chaganti, John MacFarlane, and
+Copyright (C) 2010-2019 Puneeth Chaganti, John MacFarlane, and
                         Albert Krewinkel
 
 Released under the GNU General Public License version 2 or later.
@@ -109,13 +109,13 @@ Released under the GNU General Public License version 2 or later.
 ----------------------------------------------------------------------
 src/Text/Pandoc/Readers/Docx.hs
 src/Text/Pandoc/Readers/Docx/*
-Copyright (C) 2014-2018 Jesse Rosenthal
+Copyright (C) 2014-2019 Jesse Rosenthal
 
 Released under the GNU General Public License version 2 or later.
 
 ----------------------------------------------------------------------
 src/Text/Pandoc/Readers/Textile.hs
-Copyright (C) 2010-2018 Paul Rivier and John MacFarlane
+Copyright (C) 2010-2019 Paul Rivier and John MacFarlane
 
 Released under the GNU General Public License version 2 or later.
 
@@ -141,7 +141,7 @@ Released under the GNU General Public License version 2 or later.
 src/Text/Pandoc/Readers/Org.hs
 src/Text/Pandoc/Readers/Org/*
 test/Tests/Readers/Org/*
-Copyright (C) 2014-2018 Albert Krewinkel
+Copyright (C) 2014-2019 Albert Krewinkel
 
 Released under the GNU General Public License version 2 or later.
 
@@ -153,7 +153,7 @@ Released under the GNU General Public License version 2 or later.
 
 ----------------------------------------------------------------------
 data/pandoc.lua
-Copyright (C) 2017-2018 Albert Krewinkel
+Copyright (C) 2017-2019 Albert Krewinkel
 
 Released under the GNU General Public License version 2 or later.
 

@@ -2,7 +2,7 @@
 {-# LANGUAGE OverloadedStrings #-}
 {- |
    Module      : Tests.Readers.Txt2Tags
-   Copyright   : © 2014-2018 John MacFarlane,
+   Copyright   : © 2014-2019 John MacFarlane,
                  © 2014 Matthew Pickering
    License     : GNU GPL, version 2 or above
 

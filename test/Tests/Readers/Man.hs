@@ -1,8 +1,8 @@
 {-# LANGUAGE OverloadedStrings #-}
 {- |
    Module      : Tests.Readers.Man
-   Copyright   : © 2018 Yan Pas <yanp.bugz@gmail.com>,
-                   2018 John MacFarlane
+   Copyright   : © 2018-2019 Yan Pas <yanp.bugz@gmail.com>,
+                   2018-2019 John MacFarlane
    License     : GNU GPL, version 2 or above
 
    Maintainer  : John MacFarlane <jgm@berkeley.edu>

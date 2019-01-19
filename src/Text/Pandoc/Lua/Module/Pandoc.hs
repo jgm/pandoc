@@ -1,5 +1,5 @@
 {-
-Copyright © 2017-2018 Albert Krewinkel <tarleb+pandoc@moltkeplatz.de>
+Copyright © 2017-2019 Albert Krewinkel <tarleb+pandoc@moltkeplatz.de>
 
 This program is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 {-# LANGUAGE NoImplicitPrelude #-}
 {- |
    Module      : Text.Pandoc.Lua.Module.Pandoc
-   Copyright   : Copyright © 2017-2018 Albert Krewinkel
+   Copyright   : Copyright © 2017-2019 Albert Krewinkel
    License     : GNU GPL, version 2 or above
 
    Maintainer  : Albert Krewinkel <tarleb+pandoc@moltkeplatz.de>

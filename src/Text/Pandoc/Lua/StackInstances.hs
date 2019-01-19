@@ -4,8 +4,8 @@
 {-# LANGUAGE LambdaCase           #-}
 {-# OPTIONS_GHC -fno-warn-orphans #-}
 {-
-Copyright © 2012-2018 John MacFarlane <jgm@berkeley.edu>
-            2017-2018 Albert Krewinkel <tarleb+pandoc@moltkeplatz.de>
+Copyright © 2012-2019 John MacFarlane <jgm@berkeley.edu>
+            2017-2019 Albert Krewinkel <tarleb+pandoc@moltkeplatz.de>
 
 This program is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -23,8 +23,8 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 -}
 {- |
    Module      : Text.Pandoc.Lua.StackInstances
-   Copyright   : © 2012-2018 John MacFarlane
-                 © 2017-2018 Albert Krewinkel
+   Copyright   : © 2012-2019 John MacFarlane
+                 © 2017-2019 Albert Krewinkel
    License     : GNU GPL, version 2 or above
 
    Maintainer  : Albert Krewinkel <tarleb+pandoc@moltkeplatz.de>

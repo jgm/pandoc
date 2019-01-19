@@ -1,7 +1,7 @@
 {-# LANGUAGE FlexibleContexts #-}
 
 {-
-  Copyright (C) 2018 Yan Pashkovsky <yanp.bugz@gmail.com>
+  Copyright (C) 2018-2019 Yan Pashkovsky <yanp.bugz@gmail.com>
                      and John MacFarlane
 
 This program is free software; you can redistribute it and/or modify
@@ -22,7 +22,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 {- |
    Module      : Text.Pandoc.Readers.Man
-   Copyright   : Copyright (C) 2018 Yan Pashkovsky and John MacFarlane
+   Copyright   : Copyright (C) 2018-2019 Yan Pashkovsky and John MacFarlane
    License     : GNU GPL, version 2 or above
 
    Maintainer  : Yan Pashkovsky <yanp.bugz@gmail.com>

@@ -2,7 +2,7 @@
 {-# LANGUAGE TupleSections     #-}
 {-# LANGUAGE ViewPatterns      #-}
 {-
-Copyright (C) 2014-2018 Matthew Pickering
+Copyright (C) 2014-2019 Matthew Pickering
 
 This program is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -21,7 +21,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 {- |
    Module      : Text.Pandoc.Readers.EPUB
-   Copyright   : Copyright (C) 2014-2018 Matthew Pickering
+   Copyright   : Copyright (C) 2014-2019 Matthew Pickering
    License     : GNU GPL, version 2 or above
 
    Maintainer  : John MacFarlane <jgm@berkeley.edu>

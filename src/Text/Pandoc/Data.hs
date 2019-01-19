@@ -2,7 +2,7 @@
 {-# LANGUAGE TemplateHaskell #-}
 {- |
 Module      : Text.Pandoc.Data
-Copyright   : Copyright (C) 2013-2018 John MacFarlane
+Copyright   : Copyright (C) 2013-2019 John MacFarlane
 License     : GNU GPL, version 2 or above
 
 Maintainer  : John MacFarlane <jgm@berkeley@edu>
