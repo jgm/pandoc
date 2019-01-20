@@ -40,6 +40,7 @@ import Data.List (isPrefixOf, intercalate)
 import Data.Maybe (fromMaybe)
 import qualified Data.Map as Map
 import qualified Data.Text.Lazy as TL
+import Data.Time
 import System.FilePath (takeDirectory, takeExtension, (<.>))
 import Text.Pandoc.BCP47 (Lang (..), getLang, renderLang)
 import Text.Pandoc.Class (PandocMonad, report, toLang)
@@ -50,7 +51,7 @@ import Text.Pandoc.Logging
 import Text.Pandoc.MIME (extensionFromMimeType, getMimeType)
 import Text.Pandoc.Options (WrapOption (..), WriterOptions (..))
 import Text.Pandoc.Pretty
-import Text.Pandoc.Shared (stringify, normalizeDate)
+import Text.Pandoc.Shared (stringify, pandocVersion)
 import Text.Pandoc.Writers.Shared (lookupMetaString, fixDisplayMath)
 import Text.Pandoc.UTF8 (fromStringLazy, fromTextLazy, toStringLazy)
 import Text.Pandoc.Walk
@@ -83,6 +84,7 @@ pandocToODT :: PandocMonad m
 pandocToODT opts doc@(Pandoc meta _) = do
   let title = docTitle meta
   let authors = docAuthors meta
+  utctime <- P.getCurrentTime
   lang <- toLang (getLang opts meta)
   refArchive <-
        case writerReferenceDoc opts of
@@ -125,9 +127,14 @@ pandocToODT opts doc@(Pandoc meta _) = do
               )
          )
   let archive' = addEntryToArchive manifestEntry archive
+  -- create meta.xml
   let userDefinedMetaFields = [k | k <- Map.keys (unMeta meta)
-                              , k `notElem` ["title", "lang", "author", "date"]]
+                              , k `notElem` ["title", "lang", "author", "date"
+                                           , "abstract", "subject", "keywords"]]
   let escapedText = text . escapeStringForXML
+  let keywords = case lookupMeta "keywords" meta of
+                      Just (MetaList xs) -> map stringify xs
+                      _                  -> []
   let userDefinedMeta =
         map (\k -> inTags False "meta:user-defined"
               [ ("meta:name", escapeStringForXML k)
@@ -146,18 +153,25 @@ pandocToODT opts doc@(Pandoc meta _) = do
            ,("xmlns:ooo","http://openoffice.org/2004/office")
            ,("xmlns:grddl","http://www.w3.org/2003/g/data-view#")
            ,("office:version","1.2")] ( inTags True "office:meta" [] $
-                 ( metaTag "dc:title" (stringify title)
+                 ( metaTag "meta:generator" ("Pandoc/" ++ pandocVersion)
+                   $$
+                   metaTag "dc:title" (stringify title)
+                   $$  -- FIXME: abstract multiline loses newlines
+                   metaTag "dc:description" (lookupMetaString "abstract" meta)
+                   $$
+                   metaTag "dc:subject" (lookupMetaString "subject" meta)
+                   $$
+                   metaTag "meta:keyword" (intercalate ", " keywords)
                    $$
                    case lang of
                         Just l  -> metaTag "dc:language" (renderLang l)
                         Nothing -> empty
                    $$
-                   metaTag "dc:creator"
-                     (intercalate "; " (map stringify authors))
-                   $$
-                   maybe mempty
-                     (metaTag "dc:date")
-                       (normalizeDate (lookupMetaString "date" meta))
+                   (\d a -> metaTag "meta:initial-creator" a
+                         $$ metaTag "dc:creator" a
+                         $$ metaTag "meta:creation-date" d
+                         $$ metaTag "dc:date" d
+                   ) (formatTime defaultTimeLocale "%FT%XZ" utctime) (intercalate "; " (map stringify authors))
                    $$
                    vcat userDefinedMeta
                  )
