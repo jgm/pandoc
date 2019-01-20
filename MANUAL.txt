@@ -145,11 +145,11 @@ When using LaTeX, the following packages need to be available
 [`ifxetex`], [`ifluatex`], [`listings`] (if the
 `--listings` option is used), [`fancyvrb`], [`longtable`],
 [`booktabs`], [`graphicx`] and [`grffile`] (if the document
-contains images), [`hyperref`], [`xcolor`] (with `colorlinks`),
+contains images), [`hyperref`], [`xcolor`],
 [`ulem`], [`geometry`] (with the `geometry` variable set),
 [`setspace`] (with `linestretch`), and
 [`babel`] (with `lang`).  The use of `xelatex` or `lualatex` as
-the LaTeX engine requires [`fontspec`].  `xelatex` uses
+the PDF engine requires [`fontspec`].  `xelatex` uses
 [`polyglossia`] (with `lang`), [`xecjk`], and [`bidi`] (with the
 `dir` variable set). If the `mathspec` variable is set,
 `xelatex` will use [`mathspec`] instead of [`unicode-math`].
@@ -166,7 +166,7 @@ pandoc does not require them to be present:
 [`parskip`] (for better inter-paragraph spaces),
 [`xurl`] (for better line breaks in URLs),
 [`bookmark`] (for better PDF bookmarks),
-and [`footnote`] (to fix footnotes in tables).
+and [`footnotehyper`] or [`footnote`] (to allow footnotes in tables).
 
 [TeX Live]: http://www.tug.org/texlive/
 [`amsfonts`]: https://ctan.org/pkg/amsfonts
@@ -182,6 +182,7 @@ and [`footnote`] (to fix footnotes in tables).
 [`fancyvrb`]: https://ctan.org/pkg/fancyvrb
 [`fontspec`]: https://ctan.org/pkg/fontspec
 [`footnote`]: https://ctan.org/pkg/footnote
+[`footnotehyper`]: https://ctan.org/pkg/footnotehyper
 [`geometry`]: https://ctan.org/pkg/geometry
 [`graphicx`]: https://ctan.org/pkg/graphicx
 [`grffile`]: https://ctan.org/pkg/grffile
@@ -203,6 +204,7 @@ and [`footnote`] (to fix footnotes in tables).
 [`upquote`]: https://ctan.org/pkg/upquote
 [`weasyprint`]: http://weasyprint.org
 [`wkhtmltopdf`]: https://wkhtmltopdf.org
+[`xcolor`]: https://ctan.org/pkg/xcolor
 [`xecjk`]: https://ctan.org/pkg/xecjk
 [`xurl`]: https://ctan.org/pkg/xurl
 
@@ -1606,7 +1608,6 @@ LaTeX variables are used when [creating a PDF].
 [`book`]: https://ctan.org/pkg/book
 [KOMA-Script]: https://ctan.org/pkg/koma-script
 [`memoir`]: https://ctan.org/pkg/memoir
-[`xcolor`]: https://ctan.org/pkg/xcolor
 [LaTeX Font Catalogue]: http://www.tug.dk/FontCatalogue/
 [`mathpazo`]: https://ctan.org/pkg/mathpazo
 [LaTeX font encodings]: https://ctan.org/pkg/encguide
