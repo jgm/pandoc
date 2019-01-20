@@ -3146,14 +3146,11 @@ included in the resulting document as Document Properties or Custom
 Properties accordingly. The name of the metadata will be the same
 as the Document/Custom Property, except in the following cases:
 
-`subtitle`
-:   Will be converted to the core Document Property `subject` in DOCX
-
 `abstract`
-:   Will be converted to the core Document Property `description` in DOCX
+:   Will be converted to the standard Document Property `description`
 
 `lang`
-:   Will be converted to the core Document Property `language` in DOCX
+:   Will be converted to the standard Document Property `language`
 
 Variables can contain arbitrary YAML structures, but the template must match
 this structure.  The `author` variable in the default templates expects a
