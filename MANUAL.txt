@@ -3396,6 +3396,7 @@ Raw HTML
 
 #### Extension: `raw_html` ####
 
+As alternative to the more generic [raw attribute](#generic-raw-attribute),
 Markdown allows you to insert raw HTML (or DocBook) anywhere in a document
 (except verbatim contexts, where `<`, `>`, and `&` are interpreted
 literally).  (Technically this is not an extension, since standard
