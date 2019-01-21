@@ -1449,9 +1449,11 @@ include name = do
   fs <- (map (T.unpack . removeDoubleQuotes . T.strip) . T.splitOn "," .
          untokenize) <$> braced
   let addExt f = case takeExtension f of
-                      "" | name == "usepackage" -> addExtension f ".sty"
-                         | otherwise -> addExtension f ".tex"
-                      _ -> f
+                      ".tex" -> f
+                      ".sty" -> f
+                      -- note, we can have cc_by_4.0 for example...
+                      _ | name == "usepackage" -> addExtension f ".sty"
+                        | otherwise -> addExtension f ".tex"
   dirs <- (splitBy (==':') . fromMaybe ".") <$> lookupEnv "TEXINPUTS"
   mapM_ (insertIncluded dirs) (map addExt fs)
   return mempty
