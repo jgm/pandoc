@@ -1448,11 +1448,12 @@ include name = do
   skipMany opt
   fs <- (map (T.unpack . removeDoubleQuotes . T.strip) . T.splitOn "," .
          untokenize) <$> braced
-  let fs' = if name == "usepackage"
-               then map (maybeAddExtension ".sty") fs
-               else map (maybeAddExtension ".tex") fs
+  let addExt f = case takeExtension f of
+                      "" | name == "usepackage" -> addExtension f ".sty"
+                         | otherwise -> addExtension f ".tex"
+                      _ -> f
   dirs <- (splitBy (==':') . fromMaybe ".") <$> lookupEnv "TEXINPUTS"
-  mapM_ (insertIncluded dirs) fs'
+  mapM_ (insertIncluded dirs) (map addExt fs)
   return mempty
 
 insertIncluded :: PandocMonad m
@@ -1473,12 +1474,6 @@ insertIncluded dirs f = do
                      return ""
   getInput >>= setInput . (tokenize f (T.pack contents) ++)
   updateState dropLatestIncludeFile
-
-maybeAddExtension :: String -> FilePath -> FilePath
-maybeAddExtension ext fp =
-  if null (takeExtension fp)
-     then addExtension fp ext
-     else fp
 
 addMeta :: PandocMonad m => ToMetaValue a => String -> a -> LP m ()
 addMeta field val = updateState $ \st ->
