@@ -1106,9 +1106,8 @@ htmlBlock :: PandocMonad m => MarkdownParser m (F Blocks)
 htmlBlock = do
   guardEnabled Ext_raw_html
   try (do
-      (TagOpen t attrs) <- lookAhead $ fst <$> htmlTag isBlockTag
-      (guard (t `elem` ["pre","style","script"]) >>
-          (return . B.rawBlock "html") <$> rawVerbatimBlock)
+      (TagOpen _ attrs) <- lookAhead $ fst <$> htmlTag isBlockTag
+      (return . B.rawBlock "html") <$> rawVerbatimBlock
         <|> (do guardEnabled Ext_markdown_attribute
                 oldMarkdownAttribute <- stateMarkdownAttribute <$> getState
                 markdownAttribute <-
@@ -1141,10 +1140,11 @@ strictHtmlBlock = htmlInBalanced (not . isInlineTag)
 
 rawVerbatimBlock :: PandocMonad m => MarkdownParser m String
 rawVerbatimBlock = htmlInBalanced isVerbTag
-  where isVerbTag (TagOpen "pre" _)    = True
-        isVerbTag (TagOpen "style" _)  = True
-        isVerbTag (TagOpen "script" _) = True
-        isVerbTag _                    = False
+  where isVerbTag (TagOpen "pre" _)      = True
+        isVerbTag (TagOpen "style" _)    = True
+        isVerbTag (TagOpen "script" _)   = True
+        isVerbTag (TagOpen "textarea" _) = True
+        isVerbTag _                      = False
 
 rawTeXBlock :: PandocMonad m => MarkdownParser m (F Blocks)
 rawTeXBlock = do

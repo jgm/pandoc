@@ -412,7 +412,9 @@ pDiv = try $ do
 
 pRawHtmlBlock :: PandocMonad m => TagParser m Blocks
 pRawHtmlBlock = do
-  raw <- T.unpack <$> (pHtmlBlock "script" <|> pHtmlBlock "style" <|> pRawTag)
+  raw <- T.unpack <$>
+    (pHtmlBlock "script" <|> pHtmlBlock "style" <|> pHtmlBlock "textarea"
+      <|> pRawTag)
   exts <- getOption readerExtensions
   if extensionEnabled Ext_raw_html exts && not (null raw)
      then return $ B.rawBlock "html" raw
