@@ -936,7 +936,7 @@ Options affecting specific writers {.options}
 
 :   Use the [`listings`] package for LaTeX code blocks. The package
     does not support multi-byte encoding for source code. To handle UTF-8
-    you would need to use a custom template. This issue is fully 
+    you would need to use a custom template. This issue is fully
     documented here: [Encoding issue with the listings package].
 
 `-i`, `--incremental`
@@ -1163,10 +1163,18 @@ Options affecting specific writers {.options}
     If used multiple times, the arguments are provided with spaces between
     them. Note that no check for duplicate options is done.
 
+`--latex-table-environment=longtable`|`tabularx`
+
+:   Use the specified table environment when producing LaTeX output.
+    The default is [`longtable`] which allows table to spread over multiple pages.
+    [`tabularx`] allows for paragraph-like columns whose width automatically expand to fill the width of the environment.
+
 [Dublin Core elements]: http://dublincore.org/documents/dces/
 [ISO 8601 format]: http://www.w3.org/TR/NOTE-datetime
 [Encoding issue with the listings package]:
   https://en.wikibooks.org/wiki/LaTeX/Source_Code_Listings#Encoding_issue
+[`longtable`]: https://ctan.org/pkg/longtable
+[`tabularx`]: https://ctan.org/pkg/tabularx
 
 Citation rendering {.options}
 ------------------
@@ -1600,6 +1608,10 @@ LaTeX variables are used when [creating a PDF].
 :   An option for LaTeX's `\pagestyle{}`. The default article class
     supports 'plain' (default), 'empty', and 'headings'; headings puts
     section titles in the header.
+
+`table_environment`
+:   The environemnt given by `--latex-table-environment`
+
 
 [`article`]: https://ctan.org/pkg/article
 [`report`]: https://ctan.org/pkg/report
@@ -4536,7 +4548,7 @@ the [Beamer User's Guide] may also be used: `allowdisplaybreaks`,
 Background in reveal.js and beamer
 ----------------------------------
 
-Background images can be added to self-contained reveal.js slideshows and 
+Background images can be added to self-contained reveal.js slideshows and
 to beamer slideshows.
 
 For the same image on every slide, use the  configuration
@@ -4544,9 +4556,9 @@ option `background-image` either in the YAML metadata block
 or as a command-line variable. (There are no other options in
 beamer and the rest of this section concerns reveal.js slideshows.)
 
-For reveal.js, you can instead use the reveal.js-native option 
-`parallaxBackgroundImage`. You can also set `parallaxBackgroundHorizontal` 
-and `parallaxBackgroundVertical` the same way and must also set 
+For reveal.js, you can instead use the reveal.js-native option
+`parallaxBackgroundImage`. You can also set `parallaxBackgroundHorizontal`
+and `parallaxBackgroundVertical` the same way and must also set
 `parallaxBackgroundSize` to have your values take effect.
 
 To set an image for a particular reveal.js slide, add

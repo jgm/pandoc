@@ -48,6 +48,7 @@ module Text.Pandoc.Options ( module Text.Pandoc.Extensions
                            , WriterOptions (..)
                            , TrackChanges (..)
                            , ReferenceLocation (..)
+                           , LatexTableEnvironment (..)
                            , def
                            , isEnabled
                            ) where
@@ -168,6 +169,11 @@ data ReferenceLocation = EndOfBlock    -- ^ End of block
                        | EndOfDocument -- ^ at end of document
                        deriving (Show, Read, Eq, Data, Typeable, Generic)
 
+-- | Class of tables to use in LaTeX output
+data LatexTableEnvironment = Longtable    -- ^ Use longtable for tables
+                     | Tabularx     -- ^ Use tabularx tables
+                     deriving (Show, Read, Eq, Data, Typeable, Generic)
+
 -- | Options for writers
 data WriterOptions = WriterOptions
   { writerTemplate          :: Maybe String -- ^ Template to use
@@ -204,7 +210,8 @@ data WriterOptions = WriterOptions
   , writerReferenceLocation :: ReferenceLocation    -- ^ Location of footnotes and references for writing markdown
   , writerSyntaxMap         :: SyntaxMap
   , writerPreferAscii       :: Bool           -- ^ Prefer ASCII representations of characters when possible
-  } deriving (Show, Data, Typeable, Generic)
+  , writerLatexTableEnvironment   :: LatexTableEnvironment
+} deriving (Show, Data, Typeable, Generic)
 
 instance Default WriterOptions where
   def = WriterOptions { writerTemplate         = Nothing
@@ -239,6 +246,7 @@ instance Default WriterOptions where
                       , writerReferenceLocation = EndOfDocument
                       , writerSyntaxMap        = defaultSyntaxMap
                       , writerPreferAscii      = False
+                      , writerLatexTableEnvironment = Longtable
                       }
 
 instance HasSyntaxExtensions WriterOptions where
@@ -258,6 +266,7 @@ $(deriveJSON defaultOptions ''TrackChanges)
 $(deriveJSON defaultOptions ''WrapOption)
 $(deriveJSON defaultOptions ''TopLevelDivision)
 $(deriveJSON defaultOptions ''ReferenceLocation)
+$(deriveJSON defaultOptions ''LatexTableEnvironment)
 #else
 instance ToJSON CiteMethod where
   toEncoding = genericToEncoding defaultOptions
@@ -294,4 +303,8 @@ instance FromJSON ReferenceLocation
 instance ToJSON TrackChanges where
   toEncoding = genericToEncoding defaultOptions
 instance FromJSON TrackChanges
+
+instance ToJSON LatexTableEnvironment where
+  toEncoding = genericToEncoding defaultOptions
+instance FromJSON LatexTableEnvironment
 #endif

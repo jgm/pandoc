@@ -257,6 +257,8 @@ pandocToLaTeX options (Pandoc meta blocks) = do
                      else defField "dir" ("ltr" :: String)) $
                   defField "section-titles" True $
                   defField "geometry" geometryFromMargins $
+                  defField "table-environment" (latexTableEnvironment
+                    (writerLatexTableEnvironment options)) $
                   (case getField "papersize" metadata of
                         -- uppercase a4, a5, etc.
                         Just (('A':d:ds) :: String)
@@ -782,6 +784,7 @@ blockToLaTeX (Header level (id',classes,_) lst) = do
   modify $ \s -> s{stInHeading = False}
   return hdr
 blockToLaTeX (Table caption aligns widths heads rows) = do
+  opts <- gets stOptions
   (captionText, captForLof, footnotes) <- getCaption caption
   let toHeaders hs = do contents <- tableRowToLaTeX True aligns widths hs
                         return ("\\toprule" $$ contents $$ "\\midrule")
@@ -801,19 +804,29 @@ blockToLaTeX (Table caption aligns widths heads rows) = do
                 else "\\caption" <> captForLof <> braces captionText
                          <> "\\tabularnewline"
   rows' <- mapM (tableRowToLaTeX False aligns widths) rows
-  let colDescriptors = text $ concatMap toColDescriptor aligns
   modify $ \s -> s{ stTable = True }
-  return $ "\\begin{longtable}[]" <>
-              braces ("@{}" <> colDescriptors <> "@{}")
-              -- the @{} removes extra space at beginning and end
+  return $ beginTable (writerLatexTableEnvironment opts) aligns
          $$ capt
          $$ firsthead
          $$ head'
          $$ "\\endhead"
          $$ vcat rows'
          $$ "\\bottomrule"
-         $$ "\\end{longtable}"
+         $$ endTable (writerLatexTableEnvironment opts)
          $$ footnotes
+
+beginTable :: LatexTableEnvironment -> [Alignment] -> Doc
+beginTable tableEnvironment aligns = do
+  let colsWithIndices = case tableEnvironment of
+                             Longtable -> map ((,) 0) aligns
+                             Tabularx ->  zip [0..] aligns
+  let colDescriptors = text $ concatMap toColDescriptor colsWithIndices
+  case tableEnvironment of
+    Longtable -> text "\\begin{longtable}[]" <>
+      braces ("@{}" <> colDescriptors <> "@{}")
+    Tabularx -> text "\\begin{tabularx}{\\linewidth}" <>
+      braces ("@{}" <> colDescriptors <> "@{}")
+              -- the @{} removes extra space at beginning and end
 
 getCaption :: PandocMonad m => [Inline] -> LW m (Doc, Doc, Doc)
 getCaption txt = do
@@ -829,13 +842,22 @@ getCaption txt = do
   let footnotes = notesToLaTeX notes
   return (capt, captForLof, footnotes)
 
-toColDescriptor :: Alignment -> String
-toColDescriptor align =
+endTable :: LatexTableEnvironment -> Doc
+endTable tableEnvironment = text "\\end{" <>
+  text (latexTableEnvironment tableEnvironment) <> "}"
+
+toColDescriptor :: (Integer, Alignment) -> String
+toColDescriptor (index, align) =
   case align of
          AlignLeft    -> "l"
          AlignRight   -> "r"
          AlignCenter  -> "c"
-         AlignDefault -> "l"
+         AlignDefault -> if index == 0 then "l" else "X"
+
+latexTableEnvironment :: LatexTableEnvironment -> String
+latexTableEnvironment tableEnvironment = case tableEnvironment of
+                      Longtable -> "longtable"
+                      Tabularx  -> "tabularx"
 
 blockListToLaTeX :: PandocMonad m => [Block] -> LW m Doc
 blockListToLaTeX lst =

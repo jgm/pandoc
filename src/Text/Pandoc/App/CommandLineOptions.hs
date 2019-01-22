@@ -850,6 +850,17 @@ options =
                      UTF8.hPutStr stdout (usageMessage prg options)
                      exitSuccess ))
                  "" -- "Show help"
+    , Option "" ["latex-table-class"]
+                 (ReqArg
+                  (\arg opt ->
+                    case toLower <$> arg of
+                      "longtable" -> return opt { optLatexTableEnvironment = Longtable }
+                      "tabularx"  -> return opt { optLatexTableEnvironment = Tabularx }
+                      -- mac-syntax (cr) is not supported in ghc-base.
+                      _      -> E.throwIO $ PandocOptionError
+                                "--latex-table-class must be longtable or tabularx")
+                  "longtable|tabularx")
+                 "" -- "EOL (default OS-dependent)"
     ]
 
 getDataFileNames :: IO [FilePath]
