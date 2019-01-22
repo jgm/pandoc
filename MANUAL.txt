@@ -3406,6 +3406,9 @@ The raw HTML is passed through unchanged in HTML, S5, Slidy, Slideous,
 DZSlides, EPUB, Markdown, CommonMark, Emacs Org mode, and Textile
 output, and suppressed in other formats.
 
+For a more explicit way of including raw HTML in a Markdown
+document, see the [`raw_attribute` extension][Extension: `raw_attribute`].
+
 In the CommonMark format, if `raw_html` is enabled, superscripts,
 subscripts, strikeouts and small capitals will be represented as HTML.
 Otherwise, plain-text fallbacks will be used. Note that even if
@@ -3484,6 +3487,10 @@ Note that in LaTeX environments, like
 
 the material between the begin and end tags will be interpreted as raw
 LaTeX, not as Markdown.
+
+For a more explicit and flexible way of including raw TeX in a
+Markdown document, see the [`raw_attribute`
+extension][Extension: `raw_attribute`].
 
 Inline LaTeX is ignored in output formats other than Markdown, LaTeX,
 Emacs Org mode, and ConTeXt.
