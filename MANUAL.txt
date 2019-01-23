@@ -1362,10 +1362,6 @@ depending on the output format, but include the following:
 `subtitle`
 :   document subtitle, included in HTML, EPUB, LaTeX, ConTeXt, and Word docx
 
-`institute`
-:   author affiliations (in LaTeX and Beamer only).  Can be a
-    list, when there are multiple authors.
-
 `abstract`
 :   document summary, included in LaTeX, ConTeXt, AsciiDoc, and Word docx
 
@@ -1444,6 +1440,10 @@ including all [reveal.js configuration options].
 
 `logo`
 :   logo for Beamer documents
+
+`institute`
+:   author affiliations in Beamer.  Can be a
+    list when there are multiple authors.
 
 `slidy-url`
 :   base URL for Slidy documents (defaults to
