@@ -128,12 +128,9 @@ To do this, specify an output file with a `.pdf` extension, as before,
 but add the `--pdf-engine` option or `-t context`, `-t html`, or `-t ms`
 to the command line (`-t html` defaults to `--pdf-engine=wkhtmltopdf`).
 
-PDF output can be controlled using [variables for LaTeX] (if
-LaTeX is used) and [variables for ConTeXt] (if ConTeXt is used).
-When using an HTML/CSS-to-PDF-engine, `--css` affects the output.
-If `wkhtmltopdf` is used, then the variables `margin-left`,
-`margin-right`, `margin-top`, `margin-bottom`, `footer-html`,
-`header-html` and `papersize` will affect the output.
+PDF output uses [variables for LaTeX] (with a LaTeX engine);
+[variables for ConTeXt] (with ConTeXt); or [variables for `wkhtmltopdf`]
+(an HTML/CSS-to-PDF engine; `--css` also affects the output).
 
 To debug the PDF creation, it can be useful to look at the intermediate
 representation: instead of `-o test.pdf`, use for example `-s -o test.tex`
@@ -1027,16 +1024,51 @@ Options affecting specific writers {.options}
         custom-reference.docx`.  Then open `custom-reference.docx`
         in Word, modify the styles as you wish, and save the file.
         For best results, do not make changes to this file other
-        than modifying the styles used by pandoc: [paragraph]
-        Normal, Body Text, First Paragraph, Compact, Title,
-        Subtitle, Author, Date, Abstract, Bibliography, Heading 1,
-        Heading 2, Heading 3, Heading 4, Heading 5, Heading 6,
-        Heading 7, Heading 8, Heading 9, Block Text, Footnote Text,
-        Definition Term, Definition, Caption, Table Caption,
-        Image Caption, Figure, Captioned Figure, TOC Heading;
-        [character] Default Paragraph Font, Body Text Char,
-        Verbatim Char, Footnote Reference, Hyperlink; [table]
-        Table.
+        than modifying the styles used by pandoc:
+        
+        Paragraph styles:
+        
+        - Normal
+        - Body Text
+        - First Paragraph
+        - Compact
+        - Title
+        - Subtitle
+        - Author
+        - Date
+        - Abstract
+        - Bibliography
+        - Heading 1
+        - Heading 2
+        - Heading 3
+        - Heading 4
+        - Heading 5
+        - Heading 6
+        - Heading 7
+        - Heading 8
+        - Heading 9
+        - Block Text
+        - Footnote Text
+        - Definition Term
+        - Definition
+        - Caption
+        - Table Caption
+        - Image Caption
+        - Figure
+        - Captioned Figure
+        - TOC Heading
+        
+        Character styles:
+        
+        - Default Paragraph Font
+        - Body Text Char
+        - Verbatim Char
+        - Footnote Reference
+        - Hyperlink
+        
+        Table style:
+        
+        - Table
 
     ODT
 
@@ -1333,27 +1365,8 @@ pandoc will look for the key in the document's metadata – which can be set
 using either [YAML metadata blocks][Extension: `yaml_metadata_block`]
 or with the `--metadata` option.
 
-Variables set by pandoc
------------------------
-
-Some variables are set automatically by pandoc.  These vary somewhat
-depending on the output format, but include the following:
-
-`sourcefile`, `outputfile`
-:   source and destination filenames, as given on the command line.
-    `sourcefile` can also be a list if input comes from multiple files, or empty
-    if input is from stdin. You can use the following snippet in your template
-    to distinguish them:
-
-        $if(sourcefile)$
-        $for(sourcefile)$
-        $sourcefile$
-        $endfor$
-        $else$
-        (stdin)
-        $endif$
-
-    Similarly, `outputfile` can be `-` if output goes to the terminal.
+Metadata variables
+------------------
 
 `title`, `author`, `date`
 :   allow identification of basic aspects of the document.  Included
@@ -1375,53 +1388,35 @@ depending on the output format, but include the following:
 
 `keywords`
 :   list of keywords to be included in HTML, PDF, and AsciiDoc metadata;
-    may be repeated as for `author`, above
-
-`header-includes`
-:   contents specified by `-H/--include-in-header` (may have multiple
-    values)
-
-`toc`
-:   non-null value if `--toc/--table-of-contents` was specified
-
-`toc-title`
-:   title of table of contents (works only with EPUB,
-    opendocument, odt, docx, pptx, beamer, LaTeX)
-
-`include-before`
-:   contents specified by `-B/--include-before-body` (may have
-    multiple values)
-
-`include-after`
-:   contents specified by `-A/--include-after-body` (may have
-    multiple values)
-
-`body`
-:   body of document
-
-`meta-json`
-:   JSON representation of all of the document's metadata. Field
-    values are transformed to the selected output format.
+    repeat as for `author`, above
 
 Language variables
 ------------------
 
 `lang`
-:   identifies the main language of the document,
-    using a code according to [BCP 47] (e.g. `en` or `en-GB`).
-    For some output formats, pandoc will convert it to an appropriate
-    format stored in the additional variables `babel-lang`,
-    `polyglossia-lang` (LaTeX) and `context-lang` (ConTeXt).
+:   identifies the main language of the document using IETF language
+    tags (following the [BCP 47] standard), such as `en` or `en-GB`.
+    The [Language subtag lookup] tool can look up or verify these tags.
+    This affects most formats, and controls hyphenation in PDF output
+    when using LaTeX (through [`babel`] and [`polyglossia`]) or ConTeXt.
+    
+    Use native pandoc [Divs and Spans] with the `lang` attribute to
+    switch the language:
+    
+        ---
+        lang: en-GB
+        ...
 
-    Native pandoc Spans and Divs with the lang attribute
-    (value in BCP 47) can be used to switch the language in
-    that range.  In LaTeX output, `babel-otherlangs` and
-    `polyglossia-otherlangs` variables will be generated
-    automatically based on the `lang` attributes of Spans
-    and Divs in the document.
+        Text in the main document language (British English).
 
+        ::: {lang=fr-CA}
+        > Cette citation est écrite en français canadien.
+        :::
+
+        More text in English. ['Zitat auf Deutsch.']{lang=de}
+    
 `dir`
-:   the base direction of the document, either `rtl` (right-to-left)
+:   the base script direction, either `rtl` (right-to-left)
     or `ltr` (left-to-right).
 
     For bidirectional documents, native pandoc `span`s and `div`s
@@ -1436,22 +1431,19 @@ Language variables
 
 [BCP 47]: https://tools.ietf.org/html/bcp47
 [Unicode Bidirectional Algorithm]: http://www.w3.org/International/articles/inline-bidi-markup/uba-basics
+[Language subtag lookup]: https://r12a.github.io/app-subtags/
 
-Variables for slides
---------------------
+Variables for HTML slides
+-------------------------
 
-Variables are available for [producing slide shows with pandoc],
-including all [reveal.js configuration options].
+These affect HTML output when [producing slide shows with pandoc].
+All [reveal.js configuration options] are available as variables.
 
-`titlegraphic`
-:   title graphic for Beamer documents
+`revealjs-url`
+:   base URL for reveal.js documents (defaults to `reveal.js`)
 
-`logo`
-:   logo for Beamer documents
-
-`institute`
-:   author affiliations in Beamer.  Can be a
-    list when there are multiple authors.
+`s5-url`
+:   base URL for S5 documents (defaults to `s5/default`)
 
 `slidy-url`
 :   base URL for Slidy documents (defaults to
@@ -1460,70 +1452,98 @@ including all [reveal.js configuration options].
 `slideous-url`
 :   base URL for Slideous documents (defaults to `slideous`)
 
-`s5-url`
-:   base URL for S5 documents (defaults to `s5/default`)
+[reveal.js configuration options]: https://github.com/hakimel/reveal.js#configuration
 
-`revealjs-url`
-:   base URL for reveal.js documents (defaults to `reveal.js`)
+Variables for Beamer slides
+---------------------------
+
+These variables change the appearance of PDF slides using [`beamer`].
+
+`aspectratio`
+:   slide aspect ratio (`43` for 4:3 [default], `169` for 16:9,
+    `1610` for 16:10, `149` for 14:9, `141` for 1.41:1, `54` for 5:4,
+    `32` for 3:2)
+
+`beamerarticle`
+:   produce an article from Beamer slides
+
+`beameroption`
+:   add extra beamer option with `\setbeameroption{}`
+
+`institute`
+:   author affiliations: can be a list when there are multiple authors
+
+`logo`
+:   logo image for slides
+
+`navigation`
+:   controls navigation symbols (default is `empty` for no navigation
+    symbols; other valid values are `frame`, `vertical`, and `horizontal`)
+
+`section-titles`
+:   enables "title pages" for new sections (default is true)
 
 `theme`, `colortheme`, `fonttheme`, `innertheme`, `outertheme`
-:   themes for LaTeX [`beamer`] documents
+:   beamer themes: 
 
 `themeoptions`
 :   options for LaTeX beamer themes (a list).
 
-`navigation`
-:   controls navigation symbols in `beamer` documents
-    (default is `empty` for no navigation symbols; other valid values
-    are `frame`, `vertical`, and `horizontal`).
-
-`section-titles`
-:   enables on "title pages" for new sections in `beamer`
-    documents (default = true).
-
-`beamerarticle`
-:   when true, the `beamerarticle` package is loaded (for
-    producing an article from beamer slides).
-
-`aspectratio`
-:   aspect ratio of slides (for beamer only, `1610` for 16:10, `169` for 16:9,
-    `149` for 14:9, `141` for 1.41:1, `54` for 5:4, `43` for 4:3 which is the
-    default, and `32` for 3:2).
-
-[reveal.js configuration options]: https://github.com/hakimel/reveal.js#configuration
+`titlegraphic`
+:   image for title slide
 
 Variables for LaTeX
 -------------------
 
-LaTeX variables are used when [creating a PDF].
+Pandoc uses these variables when [creating a PDF] with a LaTeX engine.
 
-`papersize`
-:   paper size, e.g. `letter`, `a4`
-
-`fontsize`
-:   font size for body text (e.g. `10pt`, `12pt`)
-
-`documentclass`
-:   document class, e.g. [`article`], [`report`], [`book`], [`memoir`]
+### Layout
 
 `classoption`
-:   option for document class, e.g. `oneside`; may be repeated
-    for multiple options
+:   option for document class, e.g. `oneside`; repeat for multiple options
 
-`beameroption`
-:   In beamer, add extra beamer option with `\setbeameroption{}`
+`documentclass`
+:   document class: usually one of the standard classes, [`article`], [`report`],
+    and [`book`]; the [KOMA-Script] equivalents, `scrartcl`, `scrreprt`,
+    and `scrbook`, which default to smaller margins; or [`memoir`]
 
 `geometry`
 :   option for [`geometry`] package, e.g. `margin=1in`;
-    may be repeated for multiple options
+    repeat for multiple options
 
-`margin-left`, `margin-right`, `margin-top`, `margin-bottom`
-:   sets margins, if `geometry` is not used (otherwise `geometry`
-    overrides these)
+`indent`
+:   uses document class settings for indentation (the default LaTeX template
+    otherwise removes indentation and adds space between paragraphs)
 
 `linestretch`
 :   adjusts line spacing using the [`setspace`]
     package, e.g. `1.25`, `1.5`
+
+`margin-left`, `margin-right`, `margin-top`, `margin-bottom`
+:   sets margins if `geometry` is not used (otherwise `geometry`
+    overrides these)
+
+`pagestyle`
+:   control `\pagestyle{}`: the default article class
+    supports `plain` (default), `empty` (no running heads or page numbers),
+    and `headings` (section titles in running heads)
+
+`papersize`
+:   paper size, e.g. `letter`, `a4`
+
+`secnumdepth`
+:   numbering depth for sections (with `--number-sections` option
+    or `numbersections` variable)
+
+`subparagraph`
+:   disables default behavior of LaTeX template that redefines (sub)paragraphs
+    as sections, changing the appearance of nested headings in some classes
+
+### Fonts
+
+`fontenc`
+:   allows font encoding to be specified through `fontenc` package (with `pdflatex`);
+    default is `T1` (see [LaTeX font encodings guide])
 
 `fontfamily`
 :   font package for use with `pdflatex`:
@@ -1531,9 +1551,21 @@ LaTeX variables are used when [creating a PDF].
     The default is [Latin Modern][`lm`].
 
 `fontfamilyoptions`
-:   options for package used as `fontfamily`: e.g. `osf,sc` with
-    `fontfamily` set to [`mathpazo`] provides Palatino with old-style
-    figures and true small caps; may be repeated for multiple options
+:   options for package used as `fontfamily`; repeat for multiple options.
+    For example, to use the Libertine font with proportional lowercase
+    (old-style) figures through the [`libertinus`] package:
+    
+        ---
+        fontfamily: libertinus
+        fontfamilyoptions:
+        - osf
+        - p
+        ...
+
+`fontsize`
+:   font size for body text. The standard classes allow 10pt, 11pt, and 12pt.
+    To use another size, set `documentclass` to one of the [KOMA-Script] classes,
+    such as `scrartcl` or `scrbook`.
 
 `mainfont`, `sansfont`, `monofont`, `mathfont`, `CJKmainfont`
 :   font families for use with `xelatex` or
@@ -1543,15 +1575,20 @@ LaTeX variables are used when [creating a PDF].
 `mainfontoptions`, `sansfontoptions`, `monofontoptions`, `mathfontoptions`, `CJKoptions`
 :   options to use with `mainfont`, `sansfont`, `monofont`, `mathfont`,
     `CJKmainfont` in `xelatex` and `lualatex`.  Allow for any choices
-    available through [`fontspec`], such as the OpenType features
-    `Numbers=OldStyle,Numbers=Proportional`. May be repeated for multiple options.
+    available through [`fontspec`]; repeat for multiple options. For example,
+    to use the [TeX Gyre] version of Palatino with lowercase figures:
 
-`fontenc`
-:   allows font encoding to be specified through `fontenc` package (with `pdflatex`);
-    default is `T1` (see guide to [LaTeX font encodings])
+        ---
+        mainfont: TeX Gyre Pagella
+        mainfontoptions:
+        - Numbers=Lowercase
+        - Numbers=Proportional
+        ...
 
 `microtypeoptions`
 :    options to pass to the microtype package
+
+### Links
 
 `colorlinks`
 :   add color to link text; automatically enabled if any of
@@ -1566,16 +1603,13 @@ LaTeX variables are used when [creating a PDF].
 `links-as-notes`
 :   causes links to be printed as footnotes
 
-`indent`
-:   uses document class settings for indentation (the default LaTeX template
-    otherwise removes indentation and adds space between paragraphs)
+### Front matter
 
-`subparagraph`
-:   disables default behavior of LaTeX template that redefines (sub)paragraphs
-    as sections, changing the appearance of nested headings in some classes
+`lof`, `lot`
+:   include list of figures, list of tables
 
 `thanks`
-:   specifies contents of acknowledgments footnote after document title.
+:   contents of acknowledgments footnote after document title
 
 `toc`
 :   include table of contents (can also be set using `--toc/--table-of-contents`)
@@ -1583,14 +1617,12 @@ LaTeX variables are used when [creating a PDF].
 `toc-depth`
 :   level of section to include in table of contents
 
-`secnumdepth`
-:   numbering depth for sections, if sections are numbered
+### BibLaTeX Bibliographies
 
-`lof`, `lot`
-:   include list of figures, list of tables
+These variables function when using BibLaTeX for [citation rendering].
 
-`bibliography`
-:   bibliography to use for resolving references
+`biblatexoptions`
+:   list of options for biblatex
 
 `biblio-style`
 :   bibliography style, when used with `--natbib` and `--biblatex`.
@@ -1598,46 +1630,45 @@ LaTeX variables are used when [creating a PDF].
 `biblio-title`
 :   bibliography title, when used with `--natbib` and `--biblatex`.
 
-`biblatexoptions`
-:   list of options for biblatex.
+`bibliography`
+:   bibliography to use for resolving references
 
 `natbiboptions`
-:   list of options for natbib.
+:   list of options for natbib
 
-`pagestyle`
-:   An option for LaTeX's `\pagestyle{}`. The default article class
-    supports 'plain' (default), 'empty', and 'headings'; headings puts
-    section titles in the header.
-
-[`article`]: https://ctan.org/pkg/article
-[`report`]: https://ctan.org/pkg/report
-[`book`]: https://ctan.org/pkg/book
 [KOMA-Script]: https://ctan.org/pkg/koma-script
-[`memoir`]: https://ctan.org/pkg/memoir
 [LaTeX Font Catalogue]: http://www.tug.dk/FontCatalogue/
-[`mathpazo`]: https://ctan.org/pkg/mathpazo
-[LaTeX font encodings]: https://ctan.org/pkg/encguide
+[LaTeX font encodings guide]: https://ctan.org/pkg/encguide
+[TeX Gyre]: http://www.gust.org.pl/projects/e-foundry/tex-gyre
+[`article`]: https://ctan.org/pkg/article
+[`book`]: https://ctan.org/pkg/book
+[`libertinus`]: https://ctan.org/pkg/libertinus
+[`memoir`]: https://ctan.org/pkg/memoir
+[`report`]: https://ctan.org/pkg/report
 
 Variables for ConTeXt
 ---------------------
 
-`papersize`
-:   paper size, e.g. `letter`, `A4`, `landscape` (see [ConTeXt Paper Setup]);
-    may be repeated for multiple options
-
-`layout`
-:   options for page margins and text arrangement (see [ConTeXt Layout]);
-    may be repeated for multiple options
-
-`margin-left`, `margin-right`, `margin-top`, `margin-bottom`
-:   sets margins, if `layout` is not used (otherwise `layout`
-    overrides these)
+Pandoc uses these variables when [creating a PDF] with ConTeXt.
 
 `fontsize`
 :   font size for body text (e.g. `10pt`, `12pt`)
 
-`mainfont`, `sansfont`, `monofont`, `mathfont`
-:   font families: take the name of any system font (see [ConTeXt Font Switching])
+`headertext`, `footertext`
+:   text to be placed in running header or footer (see [ConTeXt Headers and Footers]);
+    repeat up to four times for different placement
+
+`indenting`
+:   controls indentation of paragraphs, e.g. `yes,small,next` (see [ConTeXt Indentation]);
+    repeat for multiple options
+
+`interlinespace`
+:   adjusts line spacing, e.g. `4ex` (using [`setupinterlinespace`]);
+    repeat for multiple options
+
+`layout`
+:   options for page margins and text arrangement (see [ConTeXt Layout]);
+    repeat for multiple options
 
 `linkcolor`, `contrastcolor`
 :   color for links outside and inside a page, e.g. `red`, `blue` (see [ConTeXt Color])
@@ -1645,30 +1676,23 @@ Variables for ConTeXt
 `linkstyle`
 :   typeface style for links, e.g. `normal`, `bold`, `slanted`, `boldslanted`, `type`, `cap`, `small`
 
-`indenting`
-:   controls indentation of paragraphs, e.g. `yes,small,next` (see [ConTeXt Indentation]);
-    may be repeated for multiple options
+`lof`, `lot`
+:   include list of figures, list of tables
 
-`whitespace`
-:   spacing between paragraphs, e.g. `none`, `small` (using [`setupwhitespace`])
+`mainfont`, `sansfont`, `monofont`, `mathfont`
+:   font families: take the name of any system font (see [ConTeXt Font Switching])
 
-`interlinespace`
-:   adjusts line spacing, e.g. `4ex` (using [`setupinterlinespace`]);
-    may be repeated for multiple options
-
-`headertext`, `footertext`
-:   text to be placed in running header or footer (see [ConTeXt Headers and Footers]);
-    may be repeated up to four times for different placement
+`margin-left`, `margin-right`, `margin-top`, `margin-bottom`
+:   sets margins, if `layout` is not used (otherwise `layout`
+    overrides these)
 
 `pagenumbering`
 :   page number style and location (using [`setuppagenumbering`]);
-    may be repeated for multiple options
+    repeat for multiple options
 
-`toc`
-:   include table of contents (can also be set using `--toc/--table-of-contents`)
-
-`lof`, `lot`
-:   include list of figures, list of tables
+`papersize`
+:   paper size, e.g. `letter`, `A4`, `landscape` (see [ConTeXt Paper Setup]);
+    repeat for multiple options
 
 `pdfa`
 :   adds to the preamble the setup necessary to generate PDF/A-1b:2005.
@@ -1677,6 +1701,12 @@ Variables for ConTeXt
     have to be standard conforming.  The ICC profiles can be obtained
     from [ConTeXt ICC Profiles].  See also [ConTeXt PDFA] for more
     details.
+
+`toc`
+:   include table of contents (can also be set using `--toc/--table-of-contents`)
+
+`whitespace`
+:   spacing between paragraphs, e.g. `none`, `small` (using [`setupwhitespace`])
 
 [ConTeXt Paper Setup]: https://wiki.contextgarden.net/PaperSetup
 [ConTeXt Layout]: https://wiki.contextgarden.net/Layout
@@ -1690,39 +1720,106 @@ Variables for ConTeXt
 [`setupinterlinespace`]: https://wiki.contextgarden.net/Command/setupinterlinespace
 [`setuppagenumbering`]: https://wiki.contextgarden.net/Command/setuppagenumbering
 
+Variables for `wkhtmltopdf`
+---------------------------
+
+Pandoc uses these variables when [creating a PDF] with [`wkhtmltopdf`].
+The `--css` option also affects the output.
+
+`footer-html`, `header-html`
+:   add information to the header and footer
+
+`margin-left`, `margin-right`, `margin-top`, `margin-bottom`
+:   set the page margins
+
+`papersize`
+:   sets the PDF paper size
+
 Variables for man pages
 -----------------------
-
-`section`
-:   section number in man pages
-
-`header`
-:   header in man pages
-
-`footer`
-:   footer in man pages
 
 `adjusting`
 :   adjusts text to left (`l`), right (`r`), center (`c`),
     or both (`b`) margins
 
+`footer`
+:   footer in man pages
+
+`header`
+:   header in man pages
+
 `hyphenate`
 :   if `true` (the default), hyphenation will be used
 
+`section`
+:   section number in man pages
+
 Variables for ms
 ----------------
-
-`pointsize`
-:    point size (e.g. `10p`)
-
-`lineheight`
-:    line height (e.g. `12p`)
 
 `fontfamily`
 :    font family (e.g. `T` or `P`)
 
 `indent`
 :    paragraph indent (e.g. `2m`)
+
+`lineheight`
+:    line height (e.g. `12p`)
+
+`pointsize`
+:    point size (e.g. `10p`)
+
+Structural variables
+--------------------
+
+Pandoc sets these variables automatically in response to [options] or
+document contents; users can also modify them. These vary depending
+on the output format, and include the following:
+
+`body`
+:   body of document
+
+`header-includes`
+:   contents specified by `-H/--include-in-header` (may have multiple
+    values)
+
+`include-before`
+:   contents specified by `-B/--include-before-body` (may have
+    multiple values)
+
+`include-after`
+:   contents specified by `-A/--include-after-body` (may have
+    multiple values)
+
+`meta-json`
+:   JSON representation of all of the document's metadata. Field
+    values are transformed to the selected output format.
+
+`numbersections`
+:   non-null value if `-N/--number-sections` was specified
+
+`sourcefile`, `outputfile`
+:   source and destination filenames, as given on the command line.
+    `sourcefile` can also be a list if input comes from multiple files, or empty
+    if input is from stdin. You can use the following snippet in your template
+    to distinguish them:
+
+        $if(sourcefile)$
+        $for(sourcefile)$
+        $sourcefile$
+        $endfor$
+        $else$
+        (stdin)
+        $endif$
+
+    Similarly, `outputfile` can be `-` if output goes to the terminal.
+
+`toc`
+:   non-null value if `--toc/--table-of-contents` was specified
+
+`toc-title`
+:   title of table of contents (works only with EPUB,
+    opendocument, odt, docx, pptx, beamer, LaTeX)
 
 Using variables in templates
 ----------------------------
@@ -4352,7 +4449,7 @@ For Slidy, Slideous, reveal.js, and S5, the file produced by pandoc with the
 assumed to be available at the relative path `s5/default` (for S5), `slideous`
 (for Slideous), `reveal.js` (for reveal.js), or at the Slidy website at
 `w3.org` (for Slidy).  (These paths can be changed by setting the `slidy-url`,
-`slideous-url`, `revealjs-url`, or `s5-url` variables; see [Variables for slides],
+`slideous-url`, `revealjs-url`, or `s5-url` variables; see [Variables for HTML slides],
 above.) For DZSlides, the (relatively short) JavaScript and CSS are included in
 the file by default.
 
@@ -5059,7 +5156,7 @@ application, here are some things to keep in mind:
 Authors
 =======
 
-Copyright 2006-2017 John MacFarlane (jgm@berkeley.edu). Released
+Copyright 2006--2019 John MacFarlane (jgm@berkeley.edu). Released
 under the [GPL], version 2 or greater.  This software carries no
 warranty of any kind.  (See COPYRIGHT for full copyright and
 warranty notices.) For a full list of contributors, see the file
