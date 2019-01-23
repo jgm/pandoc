@@ -364,12 +364,11 @@ $endif$
 $if(author)$
 \author{$for(author)$$author$$sep$ \and $endfor$}
 $endif$
-$if(institute)$
-\providecommand{\institute}[1]{}
-\institute{$for(institute)$$institute$$sep$ \and $endfor$}
-$endif$
 \date{$date$}
 $if(beamer)$
+$if(institute)$
+\institute{$for(institute)$$institute$$sep$ \and $endfor$}
+$endif$
 $if(titlegraphic)$
 \titlegraphic{\includegraphics{$titlegraphic$}}
 $endif$
