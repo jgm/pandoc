@@ -153,7 +153,7 @@ pandoc (2.6) PROVISIONAL
   * LaTeX template (Andrew Dunning)
 
     + Prevent fontspec from scaling `mainfont` to match the default
-      font, Latin Modern. For example, a main font set to 12pt could
+      font, Latin Modern. A main font set to 12pt could
       previously appear between 11pt to 13pt depending on its design.
       To return to the earlier rendering, use `-V
       mainfontoptions="Scale=MatchLowercase"` (#5212, #5218).
@@ -164,7 +164,7 @@ pandoc (2.6) PROVISIONAL
       `mainfont` is identical (#5218).
     + Render `\subtitle` with the standard document classes.
       Previously, `subtitle` only appeared when using the KOMA-Script
-      classes or Beamer (#5213).
+      classes or Beamer (#5213, #5244).
     + Use Babel instead of Polyglossia for LuaLaTeX. This avoids
       several language selection problems, notably with retaining
       French spacing conventions when switching to a verbatim
@@ -172,23 +172,28 @@ pandoc (2.6) PROVISIONAL
       without hyphenation (#5193).
     + Use the [`xurl`](https://ctan.org/pkg/xurl) package if
       available, improving the appearance of URLs by allowing them to
-      break at additional points. Requires TeX Live 2018 or later; run
-      `tlmgr update --all` if you experience problems with URLs
-      appearing after link text (#5193).
-    + Use [`bookmark`](https://ctan.org/pkg/bookmark) if available,
-      which can correct the levels of headings where `hyperref`
-      cannot: see the [KOMA-Script 3.26 release
-      notes](https://komascript.de/release3.26) (#5193).
+      break at additional points (#5193).
+    + Use [`bookmark`](https://ctan.org/pkg/bookmark) if available
+      to correct heading levels in PDF bookmarks: see the [KOMA-Script
+      3.26 release notes](https://komascript.de/release3.26) (#5193).
     + Require the [`xcolor`](https://ctan.org/pkg/xcolor) package to
       avoid a possible error when using additional packages alongside
       footnotes in tables (#5193, closes #4861).
     + Remove obsolete `fixltx2e` package, which has no functionality
       with TeX Live 2015 or later (#5193).
     + Allow multiple `fontfamilies.options` (#5193, closes #5194).
+    + Restrict `institute` variable to Beamer (#5219).
+    + Use [`footnotehyper`](https://ctan.org/pkg/footnotehyper)
+      package if available to make footnotes in tables compatible
+      with `hyperref` (#5234).
+    + Number parts and chapters in book classes only if the
+      `numbersections` variable is set, for consistency with other
+      output formats. To return to the previous behaviour, use
+      `-V numbersections -V secnumdepth=0` (#5235).
     + Reindent file (#5193).
     
-  * LaTeX template: let KOMA document class handle parskip when
-    applicable (#5143, Enno).
+  * LaTeX template: use built-in parskip handling with KOMA-Script
+    classes (#5143, Enno).
 
   * Text.Pandoc.Readers: Changed types of `readJSON`; it now runs
     in an instance of PandocMonad, like the other readers and
