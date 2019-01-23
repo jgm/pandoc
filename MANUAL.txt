@@ -1768,6 +1768,9 @@ consecutive items:
 
     $for(author)$$author$$sep$, $endfor$
 
+Note that the separator needs to be specified immediately before the `$endfor` 
+keyword.
+
 A dot can be used to select a field of a variable that takes
 an object as its value.  So, for example:
 
