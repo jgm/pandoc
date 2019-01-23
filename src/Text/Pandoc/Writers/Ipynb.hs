@@ -35,7 +35,6 @@ Ipynb (Jupyter notebook JSON format) writer for pandoc.
 module Text.Pandoc.Writers.Ipynb ( writeIpynb )
 where
 import Prelude
-import Control.Monad (foldM)
 import Control.Monad.State
 import qualified Data.Map as M
 import Data.Maybe (catMaybes, fromMaybe)
