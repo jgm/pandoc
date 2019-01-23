@@ -104,7 +104,7 @@ parseBlock = choice [ parseList
                     , parseBlockQuote
                     , parseNewParagraph
                     , parsePara
-                    , skipUnkownMacro
+                    , skipUnknownMacro
                     ]
 
 parseTable :: PandocMonad m => ManParser m Blocks
@@ -507,8 +507,8 @@ parseEmailLink args = do
       []    -> mempty
       (x:_) -> linePartsToInlines x
 
-skipUnkownMacro :: PandocMonad m => ManParser m Blocks
-skipUnkownMacro = do
+skipUnknownMacro :: PandocMonad m => ManParser m Blocks
+skipUnknownMacro = do
   tok <- mmacroAny
   case tok of
     ControlLine mkind _ pos -> do
