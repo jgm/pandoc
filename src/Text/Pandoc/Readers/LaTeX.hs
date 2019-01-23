@@ -1765,6 +1765,7 @@ blockCommands = M.fromList
          addMeta "bibliography" . splitBibs . toksToString))
    , ("addbibresource", mempty <$ (skipopts *> braced >>=
          addMeta "bibliography" . splitBibs . toksToString))
+   , ("endinput", mempty <$ skipMany tok)
    -- includes
    , ("lstinputlisting", inputListing)
    , ("inputminted", inputMinted)
