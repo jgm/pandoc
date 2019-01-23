@@ -1,5 +1,15 @@
 pandoc (2.6) PROVISIONAL
 
+  * Support ipynb (Jupyter notebook) as input and output format.
+
+    + Add `ipynb` as input and output format (extension `.ipynb`).
+    + Added Text.Pandoc.Readers.Ipynb [API change].
+    + Added Text.Pandoc.Writers.Ipynb [API change].
+    + Add `PandocIpynbDecodingError` constructor to Text.Pandoc.Error.Error
+      [API change].
+    + Depend on ipynb library.
+    + Note: there is no template for ipynb.
+
   * Implement task lists (#3051, Mauro Bieg). Added `task_lists`
     extension. Task lists are supported from markdown and gfm input.
     They should work, to some degree, in all output formats, though in
@@ -15,7 +25,11 @@ pandoc (2.6) PROVISIONAL
     Text.Pandoc.Readers.DokuWiki [API change], and adds `dokuwiki`
     as an input format.
     
-  * HTML reader: handle empty `start` attribute (see #5162).
+  * HTML reader:
+
+    + Handle empty `start` attribute (see #5162).
+    + Treat `textarea` as a verbatim environment (#5241) and preserve
+      spacing.
 
   * RST reader:
 
@@ -32,7 +46,8 @@ pandoc (2.6) PROVISIONAL
       (#5047). Reverse order of `literate` and `haskell` classes on
       code blocks when parsing literate Haskell, so `haskell` is
       first.
-    
+    + Treat `<textarea>` as a verbatim environment (#5241).
+
   * Org reader:
   
     + Handle `minlevel` option differently (#5190, Brian Leung).
@@ -54,6 +69,11 @@ pandoc (2.6) PROVISIONAL
       first.
     + Support `\DeclareMathOperator` (#5149).
     + Support `\inputminted` (#5103).
+    + Support `\endinput` (#5233).
+    + Allow includes with dots like `cc_by_4.0`.  Previously the `.0`
+      was interpreted as a file extension, leading pandoc not to add
+      `.tex` (and thus not to find the file).  The new behavior matches
+      tex more closely.
 
   * Man reader:
 
@@ -140,10 +160,14 @@ pandoc (2.6) PROVISIONAL
   * Pptx writer:  use `toTableOfContents` from Shared to replace
     old duplicated code.
 
+  * ODT writer: fix typo in custom properties (#2839, Agustín Martín
+    Barbero).
+
   * Custom writers:
   
     + Allow '-' in filenames for custom lua writers (#5187).
     + sample.lua: add `SingleQuoted`, `DoubleQuoted` (#5104).
+    + sample.lua: Add a missing `>` (MichaWiedenmann).
 
   * reveal.js template:  Add `zoomKey` config (#4249).
   
@@ -232,6 +256,12 @@ pandoc (2.6) PROVISIONAL
   * Simplify/fix reading of `--metadata` values on command line
     to avoid problems relating to hvr/HsYAML#7 (#5177).
 
+  * data/pandoc.lua: auto-fix nested constructor arguments (Albert
+    Krewinkel).  Incorrect types to pandoc element constructors are
+    automatically converted to the correct types when possible. This was
+    already done for most constructors, but conversions are now also done
+    for nested types (like lists of lists).
+
   * Removed custom Setup.hs, use build-type: simple. The only thing we
     gained from the custom build was automatic installation of the man
     page when using 'cabal install'. But custom builds cause problems,
@@ -268,7 +298,11 @@ pandoc (2.6) PROVISIONAL
     + Fix example for Div with id (Geoffrey Ely).
     + Update list of LaTeX packages used.
     + Make it clear that `hard_line_breaks` works in `gfm` (see #5195).
-    
+    + Mention `raw_attribute` in documentation for `raw_html` and
+      `raw_tex` (#5240, thanks to @eiro).
+    + Clarify that `$sep$` must come right before `$endfor$` in templates
+      (#5243, Lev Givon).
+
   * trypandoc: Fix CSS and viewport.
 
 pandoc (2.5)
