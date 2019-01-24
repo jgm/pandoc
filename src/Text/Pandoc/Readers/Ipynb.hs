@@ -72,8 +72,14 @@ notebookToPandoc :: (PandocMonad m, FromJSON (Notebook a))
 notebookToPandoc opts notebook = do
   let cells = notebookCells notebook
   let (fmt,fmtminor) = notebookFormat notebook
+  let jupyterMetaFields :: [String]
+      jupyterMetaFields = ["kernelspec", "language_info", "toc"]
   let m = M.insert "nbformat" (MetaString $ show fmt) $
           M.insert "nbformat_minor" (MetaString $ show fmtminor) $
+          -- mark jupyter fields specially so it doesn't trigger toc
+           M.mapKeys (\k -> if k `elem` jupyterMetaFields
+                              then "jupyter_" <> k
+                              else k) $
           jsonMetaToMeta (notebookMetadata notebook)
   let lang = case M.lookup "kernelspec" m of
                    Just (MetaMap ks) ->

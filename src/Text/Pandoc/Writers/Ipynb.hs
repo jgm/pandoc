@@ -38,6 +38,7 @@ import Prelude
 import Control.Monad.State
 import qualified Data.Map as M
 import Data.Maybe (catMaybes, fromMaybe)
+import Data.List (isPrefixOf)
 import Text.Pandoc.Options
 import Text.Pandoc.Definition
 import Data.Ipynb as Ipynb
@@ -78,6 +79,11 @@ pandocToNotebook opts (Pandoc meta blocks) = do
   let inlineWriter ils = T.stripEnd <$> writeMarkdown
            opts{ writerTemplate = Nothing } (Pandoc nullMeta [Plain ils])
   metadata' <- metaToJSON' blockWriter inlineWriter $
+                 (Meta .
+                  M.mapKeys (\k -> if "jupyter_" `isPrefixOf` k
+                                      then drop 8 k
+                                      else k) .
+                  unMeta) $
                  B.deleteMeta "nbformat" $
                  B.deleteMeta "nbformat_minor" $ meta
   let metadata = case fromJSON metadata' of
