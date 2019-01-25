@@ -4869,27 +4869,29 @@ When creating a [Jupyter notebook], pandoc will try to infer the
 notebook structure.  Code blocks with the class `code` will be
 taken as code cells, and intervening content will be taken as
 Markdown cells.  Attachments will automatically be created for
-images in Markdown cells. For example:
+images in Markdown cells. Metadata will be taken from the
+`jupyter` metadata field.  For example:
 
 ````
 ---
 title: My notebook
-nbformat: 4
-nbformat_minor: 5
-kernelspec:
-   display_name: Python 2
-   language: python
-   name: python2
-language_info:
-   codemirror_mode:
-     name: ipython
-     version: 2
-   file_extension: ".py"
-   mimetype: "text/x-python"
-   name: "python"
-   nbconvert_exporter: "python"
-   pygments_lexer: "ipython2"
-   version: "2.7.15"
+jupyter:
+  nbformat: 4
+  nbformat_minor: 5
+  kernelspec:
+     display_name: Python 2
+     language: python
+     name: python2
+  language_info:
+     codemirror_mode:
+       name: ipython
+       version: 2
+     file_extension: ".py"
+     mimetype: "text/x-python"
+     name: "python"
+     nbconvert_exporter: "python"
+     pygments_lexer: "ipython2"
+     version: "2.7.15"
 ---
 
 # Lorem ipsum
