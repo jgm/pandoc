@@ -1,8 +1,10 @@
 packages: pandoc.cabal
 
 package pandoc
-  pandoc: +embed_data_files -trypandoc
-  pandoc-citeproc: +embed_data_files +bibutils -unicode_collation -test_citeproc -debug
+  flags: +embed_data_files -trypandoc
+
+package pandoc-citeproc
+  flags: +embed_data_files +bibutils -unicode_collation -test_citeproc -debug
 
 source-repository-package
     type: git
