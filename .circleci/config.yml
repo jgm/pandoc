@@ -112,7 +112,7 @@ jobs:
         - *save
 
 workflows:
-  version: 2
+  version: "2.1"
   build:
     jobs:
       - cabal-ghc-8_6_3
