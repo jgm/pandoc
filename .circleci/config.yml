@@ -1,0 +1,123 @@
+version: "2.1"
+
+env: &env
+    environment:
+      LC_ALL: "C.UTF-8"
+      GHC_OPTS: "-O0 -Wall"
+    docker:
+      - image: fpco/stack-build:lts
+
+#-----------------------------------------------------------------------------
+# Common utility stuff, not to be modified usually
+#-----------------------------------------------------------------------------
+
+preinstall: &preinstall
+  run: |
+      echo 'export PATH=/opt/cabal/bin:$PATH' >> $BASH_ENV
+      source $BASH_ENV
+      apt-get update
+
+restore: &restore
+  # Needs to happen after installing ca-certificates
+  restore_cache:
+    key: v1-{{ .Environment.CIRCLE_JOB }}-{{ .Branch }}
+
+save: &save
+  save_cache:
+      key: v1-{{ .Environment.CIRCLE_JOB }}-{{ .Branch }}
+      paths:
+        - ~/.cabal
+        - ~/.ghc
+        - ~/.local
+        - ~/.stack
+
+commands:
+  cabal_build:
+    parameters:
+      ghcversion:
+        type: string
+    steps:
+      - checkout
+      - *preinstall
+      - *restore
+      - run:
+          name: install ghc
+          command: apt-get install -y ghc-<< paramaters.ghcversion >>
+      - run: |
+          set -e
+          apt-get install -y cabal-install-2.4
+          cabal v2-update
+          TMPDIR=`mktemp -d -t circleci.XXXXXXX`
+          cabal v2-sdist --output-dir=${TMPDIR}
+          cd ${TMPDIR}
+          tar xvzf *.tar.gz
+          cd *
+          cabal v2-build -j2 --dependencies-only --enable-tests --ghc-options="${GHC_OPTS}"
+          cabal v2-test --ghc-options="${GHC_OPTS}" 2>build.log
+          cat build.log
+          # fail if we had warnings; this is to work around the fact
+          # that cabal v2 doesn't allow us to use -Werror for just local build:
+          # https://github.com/haskell/cabal/issues/4247
+          ! grep -q "warning:" build.log
+          cabal v2-haddock --ghc-options="${GHC_OPTS}"
+          cabal check
+      - *save
+
+#-----------------------------------------------------------------------------
+# Build matrix
+#-----------------------------------------------------------------------------
+
+jobs:
+  cabal-ghc-8_6_3:
+      <<: *env
+      steps:
+          - cabal_build:
+              ghcversion: 8.6.3
+
+  cabal-ghc-8_4_4:
+      <<: *env
+      steps:
+          - cabal_build:
+              ghcversion: 8.4.4
+
+  cabal-ghc-8_2_2:
+      <<: *env
+      steps:
+          - cabal_build:
+              ghcversion: 8.2.2
+
+  cabal-ghc-8_0_2:
+      <<: *env
+      steps:
+          - cabal_build:
+              ghcversion: 8.0.2
+
+  cabal-ghc-7_10_3:
+      <<: *env
+      steps:
+          - cabal_build:
+              ghcversion: 7.10.3
+
+  stack-ghc-8_6:
+      <<: *env
+      steps:
+        - checkout
+        - *preinstall
+        - *restore
+        - run: |
+            set -e
+            apt-get install -y ghc-8.6.3
+            stack update
+            stack test --system-ghc --ghc-options="${GHC_OPTS} -Werror" .
+        - *save
+
+workflows:
+  version: 2
+  build:
+    jobs:
+      - cabal-ghc-8_6_3
+      - cabal-ghc-8_4_4
+      - cabal-ghc-8_2_2
+      - cabal-ghc-8_0_2
+      - cabal-ghc-7_10_3
+      - stack-ghc-8_6
