@@ -58,7 +58,7 @@ import Text.Pandoc.MIME
 import qualified Data.ByteString.Lazy as BL
 import Text.Pandoc.Writers.OOXML
 import qualified Data.Map as M
-import Data.Maybe (mapMaybe, listToMaybe, fromMaybe, maybeToList, catMaybes)
+import Data.Maybe (mapMaybe, listToMaybe, fromMaybe, maybeToList, catMaybes, isNothing)
 import Text.Pandoc.ImageSize
 import Control.Applicative ((<|>))
 import System.FilePath.Glob
@@ -252,6 +252,8 @@ presentationToArchiveP p@(Presentation docProps slides) = do
   newArch' <- foldM copyFileToArchive emptyArchive filePaths
   -- we make a docProps/core.xml entry out of the presentation docprops
   docPropsEntry <- docPropsToEntry docProps
+  -- we make a docProps/custom.xml entry out of the custom properties
+  docCustomPropsEntry <- docCustomPropsToEntry docProps
   -- we make this ourself in case there's something unexpected in the
   -- one in the reference doc.
   relsEntry <- topLevelRelsEntry
@@ -274,7 +276,8 @@ presentationToArchiveP p@(Presentation docProps slides) = do
     spkNotesEntries ++
     spkNotesRelEntries ++
     mediaEntries ++
-    [contentTypesEntry, docPropsEntry, relsEntry, presEntry, presRelsEntry]
+    [contentTypesEntry, docPropsEntry, docCustomPropsEntry, relsEntry,
+     presEntry, presRelsEntry]
 
 makeSlideIdMap :: Presentation -> M.Map SlideId Int
 makeSlideIdMap (Presentation _ slides) =
@@ -1425,6 +1428,10 @@ topLevelRels =
                  , relType = "http://schemas.openxmlformats.org/package/2006/relationships/metadata/extended-properties"
                  , relTarget = "docProps/app.xml"
                  }
+  , Relationship { relId = 4
+                 , relType = "http://schemas.openxmlformats.org/officeDocument/2006/relationships/custom-properties"
+                 , relTarget = "docProps/custom.xml"
+                 }
   ]
 
 topLevelRelsEntry :: PandocMonad m => P m Entry
@@ -1657,7 +1664,7 @@ docPropsElement :: PandocMonad m => DocProps -> P m Element
 docPropsElement docProps = do
   utctime <- asks envUTCTime
   let keywords = case dcKeywords docProps of
-        Just xs -> intercalate "," xs
+        Just xs -> intercalate ", " xs
         Nothing -> ""
   return $
     mknode "cp:coreProperties"
@@ -1669,7 +1676,13 @@ docPropsElement docProps = do
     $ (mknode "dc:title" [] $ fromMaybe "" $ dcTitle docProps)
     : (mknode "dc:creator" [] $ fromMaybe "" $ dcCreator docProps)
     : (mknode "cp:keywords" [] keywords)
-    : (\x -> [ mknode "dcterms:created" [("xsi:type","dcterms:W3CDTF")] x
+    : (if isNothing (dcSubject docProps) then [] else
+           [mknode "dc:subject" [] $ fromMaybe "" $ dcSubject docProps])
+    ++ (if isNothing (dcDescription docProps) then [] else
+           [mknode "dc:description" [] $ fromMaybe "" $ dcDescription docProps])
+    ++ (if isNothing (cpCategory docProps) then [] else
+           [mknode "cp:category" [] $ fromMaybe "" $ cpCategory docProps])
+    ++ (\x -> [ mknode "dcterms:created" [("xsi:type","dcterms:W3CDTF")] x
              , mknode "dcterms:modified" [("xsi:type","dcterms:W3CDTF")] x
              ]) (formatTime defaultTimeLocale "%FT%XZ" utctime)
 
@@ -1677,6 +1690,21 @@ docPropsToEntry :: PandocMonad m => DocProps -> P m Entry
 docPropsToEntry docProps = docPropsElement docProps >>=
                            elemToEntry "docProps/core.xml"
 
+-- adapted from the Docx writer
+docCustomPropsElement :: PandocMonad m => DocProps -> P m Element
+docCustomPropsElement docProps = do
+  let mkCustomProp (k, v) pid = mknode "property"
+         [("fmtid","{D5CDD505-2E9C-101B-9397-08002B2CF9AE}")
+         ,("pid", show pid)
+         ,("name", k)] $ mknode "vt:lpwstr" [] v
+  return $ mknode "Properties"
+          [("xmlns","http://schemas.openxmlformats.org/officeDocument/2006/custom-properties")
+          ,("xmlns:vt","http://schemas.openxmlformats.org/officeDocument/2006/docPropsVTypes")
+          ] $ zipWith mkCustomProp (fromMaybe [] $ customProperties docProps) [(2 :: Int)..]
+
+docCustomPropsToEntry :: PandocMonad m => DocProps -> P m Entry
+docCustomPropsToEntry docProps = docCustomPropsElement docProps >>=
+                           elemToEntry "docProps/custom.xml"
 
 defaultContentTypeToElem :: DefaultContentType -> Element
 defaultContentTypeToElem dct =
@@ -1765,6 +1793,7 @@ presentationToContentTypes p@(Presentation _ slides) = do
 
       inheritedOverrides = mapMaybe pathToOverride filePaths
       docPropsOverride = mapMaybe pathToOverride ["docProps/core.xml"]
+      docCustomPropsOverride = mapMaybe pathToOverride ["docProps/custom.xml"]
       presOverride = mapMaybe pathToOverride ["ppt/presentation.xml"]
   relativePaths <- mapM slideToFilePath slides
   let slideOverrides = mapMaybe
@@ -1773,7 +1802,8 @@ presentationToContentTypes p@(Presentation _ slides) = do
   speakerNotesOverrides <- (mapMaybe pathToOverride) <$> getSpeakerNotesFilePaths
   return $ ContentTypes
     (defaults ++ mediaDefaults)
-    (inheritedOverrides ++ docPropsOverride ++ presOverride ++ slideOverrides ++ speakerNotesOverrides)
+    (inheritedOverrides ++ docPropsOverride ++ docCustomPropsOverride ++
+     presOverride ++ slideOverrides ++ speakerNotesOverrides)
 
 presML :: String
 presML = "application/vnd.openxmlformats-officedocument.presentationml"
@@ -1788,6 +1818,7 @@ getContentType fp
   | fp == "ppt/viewProps.xml" = Just $ presML ++ ".viewProps+xml"
   | fp == "ppt/tableStyles.xml" = Just $ presML ++ ".tableStyles+xml"
   | fp == "docProps/core.xml" = Just $ "application/vnd.openxmlformats-package.core-properties+xml"
+  | fp == "docProps/custom.xml" = Just $ "application/vnd.openxmlformats-officedocument.custom-properties+xml"
   | fp == "docProps/app.xml" = Just $ noPresML ++ ".extended-properties+xml"
   | "ppt" : "slideMasters" : f : [] <- splitDirectories fp
   , (_, ".xml") <- splitExtension f =
