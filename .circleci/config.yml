@@ -110,11 +110,7 @@ jobs:
             apt-get install -y ghc-8.6.3
             stack update
             stack test --system-ghc --ghc-options="${GHC_OPTS} -Werror" .
-            stack install --system-ghc --ghc-options="${GHC_OPTS}" --local-bin-path /tmp/artifacts
         - *save
-        - store_artifacts:
-            path: /tmp/artifacts/pandoc
-            destination: pandoc-${CIRCLE_SHA1}
 
 workflows:
   version: "2.1"
