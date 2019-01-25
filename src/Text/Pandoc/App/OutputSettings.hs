@@ -128,8 +128,8 @@ optToOutputSettings opts = do
       withList f (x:xs) vars = f x vars >>= withList f xs
 
   let addContentsAsVariable varname fp vars = do
-             s <- UTF8.toString <$> readFileStrict fp
-             return $ (varname, s) : vars
+        s <- UTF8.toString . fst <$> fetchItem fp
+        return $ (varname, s) : vars
 
   variables <-
     withList (addStringAsVariable "sourcefile")

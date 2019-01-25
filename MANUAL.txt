@@ -798,7 +798,7 @@ General writer options {.options}
     new languages or to use altered syntax definitions for
     existing languages.
 
-`-H` *FILE*, `--include-in-header=`*FILE*
+`-H` *FILE*, `--include-in-header=`*FILE*|*URL*
 
 :   Include contents of *FILE*, verbatim, at the end of the header.
     This can be used, for example, to include special
@@ -806,7 +806,7 @@ General writer options {.options}
     repeatedly to include multiple files in the header.  They will be
     included in the order specified.  Implies `--standalone`.
 
-`-B` *FILE*, `--include-before-body=`*FILE*
+`-B` *FILE*, `--include-before-body=`*FILE*|*URL*
 
 :   Include contents of *FILE*, verbatim, at the beginning of the
     document body (e.g. after the `<body>` tag in HTML, or the
@@ -815,7 +815,7 @@ General writer options {.options}
     used repeatedly to include multiple files. They will be included in
     the order specified.  Implies `--standalone`.
 
-`-A` *FILE*, `--include-after-body=`*FILE*
+`-A` *FILE*, `--include-after-body=`*FILE*|*URL*
 
 :   Include contents of *FILE*, verbatim, at the end of the document
     body (before the `</body>` tag in HTML, or the
