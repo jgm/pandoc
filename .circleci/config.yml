@@ -52,13 +52,14 @@ commands:
           cd ${TMPDIR}
           tar xvzf *.tar.gz
           cd *
-          cabal v2-build -j2 --dependencies-only --enable-tests --ghc-options="${GHC_OPTS}"
-          cabal v2-test --ghc-options="${GHC_OPTS}" 2>build.log
-          cat build.log
-          # fail if we had warnings; this is to work around the fact
-          # that cabal v2 doesn't allow us to use -Werror for just local build:
+          cabal v2-build -j2 --dependencies-only --enable-tests --ghc-options="${GHC_OPTS}" all
+          cabal v2-build -j2 --enable-tests --ghc-options="${GHC_OPTS}" all 2>build.log
+          # fail if we had warnings in local build
+          # this is to work around the fact that cabal v2 doesn't allow
+          # us to use -Werror for just local build:
           # https://github.com/haskell/cabal/issues/4247
           ! grep -q "warning:" build.log
+          cabal v2-test --ghc-options="${GHC_OPTS}" 2>build.log
           cabal v2-haddock --ghc-options="${GHC_OPTS}"
           cabal check
       - *save
