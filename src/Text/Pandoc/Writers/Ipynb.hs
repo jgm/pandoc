@@ -77,9 +77,14 @@ pandocToNotebook opts (Pandoc meta blocks) = do
            opts{ writerTemplate = Nothing } (Pandoc nullMeta bs)
   let inlineWriter ils = T.stripEnd <$> writeMarkdown
            opts{ writerTemplate = Nothing } (Pandoc nullMeta [Plain ils])
+  let jupyterMeta =
+        case lookupMeta "jupyter" meta of
+          Just (MetaMap m) -> (Meta m <> B.deleteMeta "jupyter" meta)
+          _ -> meta
   metadata' <- metaToJSON' blockWriter inlineWriter $
                  B.deleteMeta "nbformat" $
-                 B.deleteMeta "nbformat_minor" $ meta
+                 B.deleteMeta "nbformat_minor" $ jupyterMeta
+  -- convert from a Value (JSON object) to a M.Map Text Value:
   let metadata = case fromJSON metadata' of
                    Error _ -> mempty -- TODO warning here? shouldn't happen
                    Success x -> x

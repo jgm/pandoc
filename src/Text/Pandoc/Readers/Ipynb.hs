@@ -83,7 +83,7 @@ notebookToPandoc opts notebook = do
                    _ -> "python"
   bs <- mconcat <$> mapM (cellToBlocks opts lang) cells
   let Pandoc _ blocks = B.doc bs
-  return $ Pandoc (Meta m) blocks
+  return $ Pandoc (Meta $ M.insert "jupyter" (MetaMap m) mempty) blocks
 
 cellToBlocks :: PandocMonad m
              => ReaderOptions -> String -> Cell a -> m B.Blocks
