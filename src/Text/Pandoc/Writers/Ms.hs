@@ -418,7 +418,7 @@ inlineToMs opts (Math DisplayMath str) = do
          contents <- inlineToMs opts il
          return $ cr <> text ".RS" $$ contents $$ text ".RE"
        Right r -> return $
-            cr <> text ".EQ" $$ text r $$ text ".EN"
+            cr <> text ".EQ" $$ text r $$ text ".EN" <> cr
 inlineToMs _ il@(RawInline f str)
   | f == Format "ms" = return $ text str
   | otherwise        = do
