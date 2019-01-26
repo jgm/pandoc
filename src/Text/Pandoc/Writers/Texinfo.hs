@@ -225,14 +225,16 @@ blockToTexinfo (Header 0 _ lst) = do
   return $ text "@node Top" $$
            text "@top " <> txt <> blankline
 
-blockToTexinfo (Header level _ lst)
+blockToTexinfo (Header level (ident,_,_) lst)
   | level < 1 || level > 4 = blockToTexinfo (Para lst)
   | otherwise = do
     node <- inlineListForNode lst
     txt <- inlineListToTexinfo lst
     idsUsed <- gets stIdentifiers
     opts <- gets stOptions
-    let id' = uniqueIdent (writerExtensions opts) lst idsUsed
+    let id' = if null ident
+                 then uniqueIdent (writerExtensions opts) lst idsUsed
+                 else ident
     modify $ \st -> st{ stIdentifiers = Set.insert id' idsUsed }
     sec <- seccmd level
     return $ if (level > 0) && (level <= 4)
