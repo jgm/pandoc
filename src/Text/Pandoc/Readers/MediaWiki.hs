@@ -411,8 +411,13 @@ header = try $ do
   lev <- length <$> many1 (char '=')
   guard $ lev <= 6
   contents <- trimInlines . mconcat <$> manyTill inline (count lev $ char '=')
-  attr <- registerHeader nullAttr contents
+  attr <- modifyIdentifier <$> registerHeader nullAttr contents
   return $ B.headerWith attr lev contents
+
+-- See #4731:
+modifyIdentifier :: Attr -> Attr
+modifyIdentifier (ident,cl,kv) = (ident',cl,kv)
+  where ident' = map (\c -> if c == '-' then '_' else c) ident
 
 bulletList :: PandocMonad m => MWParser m Blocks
 bulletList = B.bulletList <$>
