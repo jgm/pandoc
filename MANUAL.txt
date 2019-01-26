@@ -1402,27 +1402,27 @@ Metadata variables
 `category`
 :   document category, included in docx and pptx metadata
 
-`custom-properties`
-:   any root-level string metadata, not included in ODT, docx
-    or pptx metadata is added as a custom property.
-    The following YAML metadata block for instance:
+Additionally,
+any root-level string metadata, not included in ODT, docx
+or pptx metadata is added as a *custom property*.
+The following YAML metadata block for instance:
 
-        ---
-        title:  'This is the title'
-        subtitle: "This is the subtitle"
-        author:
-        - Author One
-        - Author Two
-        description: |
-          This is a long
-          description.
+    ---
+    title:  'This is the title'
+    subtitle: "This is the subtitle"
+    author:
+    - Author One
+    - Author Two
+    description: |
+        This is a long
+        description.
 
-          It consists of two paragraphs
-        ...
+        It consists of two paragraphs
+    ...
 
-    will include `title`, `author` and `description` as standard document
-    properties and `subtitle` as a custom property when converting to docx,
-    ODT or pptx.
+will include `title`, `author` and `description` as standard document
+properties and `subtitle` as a custom property when converting to docx,
+ODT or pptx.
 
 Language variables
 ------------------
