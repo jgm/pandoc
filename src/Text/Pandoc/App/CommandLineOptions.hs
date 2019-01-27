@@ -96,7 +96,7 @@ parseOptions options' defaults = do
 
   -- thread option data structure through all supplied option actions
   opts <- foldl (>>=) (return defaults) actions
-  return (opts{ optInputFiles = args })
+  return (opts{ optInputFiles = map normalizePath args })
 
 latexEngines :: [String]
 latexEngines  = ["pdflatex", "lualatex", "xelatex"]
@@ -149,13 +149,15 @@ options =
 
     , Option "o" ["output"]
                  (ReqArg
-                  (\arg opt -> return opt { optOutputFile = Just arg })
+                  (\arg opt -> return opt { optOutputFile =
+                                             Just (normalizePath arg) })
                   "FILE")
                  "" -- "Name of output file"
 
     , Option "" ["data-dir"]
                  (ReqArg
-                  (\arg opt -> return opt { optDataDir = Just arg })
+                  (\arg opt -> return opt { optDataDir =
+                                  Just (normalizePath arg) })
                  "DIRECTORY") -- "Directory containing pandoc data files."
                 ""
 
@@ -188,14 +190,16 @@ options =
     , Option "F" ["filter"]
                  (ReqArg
                   (\arg opt -> return opt { optFilters =
-                                    JSONFilter arg : optFilters opt })
+                                    JSONFilter (normalizePath arg) :
+                                    optFilters opt })
                   "PROGRAM")
                  "" -- "External JSON filter"
 
     , Option "" ["lua-filter"]
                  (ReqArg
                   (\arg opt -> return opt { optFilters =
-                                    LuaFilter arg : optFilters opt })
+                                    LuaFilter (normalizePath arg) :
+                                    optFilters opt })
                   "SCRIPTPATH")
                  "" -- "Lua filter"
 
@@ -235,7 +239,8 @@ options =
     , Option "" ["extract-media"]
                  (ReqArg
                   (\arg opt ->
-                    return opt { optExtractMedia = Just arg })
+                    return opt { optExtractMedia =
+                                  Just (normalizePath arg) })
                   "PATH")
                  "" -- "Directory to which to extract embedded media"
 
@@ -247,7 +252,7 @@ options =
     , Option "" ["template"]
                  (ReqArg
                   (\arg opt ->
-                     return opt{ optTemplate = Just arg,
+                     return opt{ optTemplate = Just (normalizePath arg),
                                  optStandalone = True })
                   "FILE")
                  "" -- "Use custom template"
@@ -262,7 +267,8 @@ options =
 
     , Option "" ["metadata-file"]
                  (ReqArg
-                  (\arg opt -> return opt{ optMetadataFile = Just arg })
+                  (\arg opt -> return opt{ optMetadataFile =
+                                   Just (normalizePath arg) })
                   "FILE")
                  ""
 
@@ -405,7 +411,7 @@ options =
                                    -- HXT confuses Windows path with URI
                                    _:':':'\\':_ ->
                                        "file:///" ++ tr '\\' '/' arg
-                                   _ -> arg
+                                   _ -> normalizePath arg
                    return opt{ optSyntaxDefinitions = arg' :
                                 optSyntaxDefinitions opt })
                  "FILE")
@@ -931,3 +937,19 @@ deprecatedOption o msg =
     \r -> case r of
        Right () -> return ()
        Left e   -> E.throwIO e
+
+-- On Windows with ghc 8.6+, we need to rewrite paths
+-- beginning with \\ to \\?\UNC\. -- See #5127.
+normalizePath :: FilePath -> FilePath
+#ifdef _WINDOWS
+#if MIN_VERSION_base(4,12,0)
+normalizePath fp =
+  if "\\\\" `isPrefixOf` fp && not ("\\\\?\\" `isPrefixOf` fp)
+    then "\\\\?\\UNC\\" ++ drop 2 fp
+    else fp
+#else
+normalizePath = id
+#endif
+#else
+normalizePath = id
+#endif
