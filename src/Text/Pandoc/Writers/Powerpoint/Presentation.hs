@@ -72,7 +72,8 @@ import Text.Pandoc.Logging
 import Text.Pandoc.Walk
 import Data.Time (UTCTime)
 import qualified Text.Pandoc.Shared as Shared -- so we don't overlap "Element"
-import Text.Pandoc.Writers.Shared (lookupMetaInlines, toTableOfContents)
+import Text.Pandoc.Writers.Shared (lookupMetaInlines, lookupMetaBlocks
+                                 , lookupMetaString, toTableOfContents)
 import qualified Data.Map as M
 import qualified Data.Set as S
 import Data.Maybe (maybeToList, fromMaybe)
@@ -180,7 +181,10 @@ data DocProps = DocProps { dcTitle :: Maybe String
                          , dcSubject :: Maybe String
                          , dcCreator :: Maybe String
                          , dcKeywords :: Maybe [String]
+                         , dcDescription :: Maybe String
+                         , cpCategory :: Maybe String
                          , dcCreated :: Maybe UTCTime
+                         , customProperties :: Maybe [(String, String)]
                          } deriving (Show, Eq)
 
 
@@ -930,13 +934,26 @@ metaToDocProps meta =
 
       authors = case map Shared.stringify $ docAuthors meta of
                   [] -> Nothing
-                  ss -> Just $ intercalate ";" ss
+                  ss -> Just $ intercalate "; " ss
+
+      description = case map Shared.stringify $ lookupMetaBlocks "description" meta of
+                  [] -> Nothing
+                  ss -> Just $ intercalate "_x000d_\n" ss
+
+      customProperties' = case [(k, lookupMetaString k meta) | k <- M.keys (unMeta meta)
+                               , k `notElem` (["title", "author", "keywords", "description"
+                                             , "subject","lang","category"])] of
+                  [] -> Nothing
+                  ss -> Just ss
   in
     DocProps{ dcTitle = Shared.stringify <$> lookupMeta "title" meta
             , dcSubject = Shared.stringify <$> lookupMeta "subject" meta
             , dcCreator = authors
             , dcKeywords = keywords
+            , dcDescription = description
+            , cpCategory = Shared.stringify <$> lookupMeta "category" meta
             , dcCreated = Nothing
+            , customProperties = customProperties'
             }
 
 documentToPresentation :: WriterOptions

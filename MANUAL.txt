@@ -1355,7 +1355,7 @@ directory (see `--data-dir`, above). *Exceptions:*
   (or the `default.context` template, if you use `-t context`,
   or the `default.ms` template, if you use `-t ms`, or the
   `default.html` template, if you use `-t html`).
-- `docx` has no template (however, you can use
+- `docx` and `pptx` have no template (however, you can use
   `--reference-doc` to customize the output).
 
 Templates contain *variables*, which allow for the inclusion of
@@ -1363,7 +1363,7 @@ arbitrary information at any point in the file. They may be set at the
 command line using the `-V/--variable` option. If a variable is not set,
 pandoc will look for the key in the document's metadata – which can be set
 using either [YAML metadata blocks][Extension: `yaml_metadata_block`]
-or with the `--metadata` option.
+or with the `-M/--metadata` option.
 
 Metadata variables
 ------------------
@@ -1381,14 +1381,48 @@ Metadata variables
         ...
 
 `subtitle`
-:   document subtitle, included in HTML, EPUB, LaTeX, ConTeXt, and Word docx
+:   document subtitle, included in HTML, EPUB, LaTeX, ConTeXt, and docx
+    documents
 
 `abstract`
-:   document summary, included in LaTeX, ConTeXt, AsciiDoc, and Word docx
+:   document summary, included in LaTeX, ConTeXt, AsciiDoc, and docx
+    documents
 
 `keywords`
-:   list of keywords to be included in HTML, PDF, and AsciiDoc metadata;
-    repeat as for `author`, above
+:   list of keywords to be included in HTML, PDF, ODT, pptx, docx
+    and AsciiDoc metadata; repeat as for `author`, above
+
+`subject`
+:   document subject, included in ODT, docx and pptx metadata
+
+`description`
+:   document description, included in ODT, docx and pptx metadata. Some
+    applications show this as `Comments` metadata.
+
+`category`
+:   document category, included in docx and pptx metadata
+
+Additionally,
+any root-level string metadata, not included in ODT, docx
+or pptx metadata is added as a *custom property*.
+The following YAML metadata block for instance:
+
+    ---
+    title:  'This is the title'
+    subtitle: "This is the subtitle"
+    author:
+    - Author One
+    - Author Two
+    description: |
+        This is a long
+        description.
+
+        It consists of two paragraphs
+    ...
+
+will include `title`, `author` and `description` as standard document
+properties and `subtitle` as a custom property when converting to docx,
+ODT or pptx.
 
 Language variables
 ------------------

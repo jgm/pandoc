@@ -496,7 +496,17 @@ writeDocx opts doc@(Pandoc meta _) = do
                        Just (MetaList xs) -> map stringify xs
                        _                  -> []
 
+  -- docProps/core.xml
   let docPropsPath = "docProps/core.xml"
+  let extraCoreProps = ["subject","lang","category","description"]
+  let extraCorePropsMap = M.fromList $ zip extraCoreProps
+                       ["dc:subject","dc:language","cp:category","dc:description"]
+  let lookupMetaString' :: String -> Meta -> String
+      lookupMetaString' key' meta' =
+        case key' of
+             "description"    -> intercalate "_x000d_\n" (map stringify $ lookupMetaBlocks "description" meta')
+             _                -> lookupMetaString key' meta'
+  
   let docProps = mknode "cp:coreProperties"
           [("xmlns:cp","http://schemas.openxmlformats.org/package/2006/metadata/core-properties")
           ,("xmlns:dc","http://purl.org/dc/elements/1.1/")
@@ -505,14 +515,19 @@ writeDocx opts doc@(Pandoc meta _) = do
           ,("xmlns:xsi","http://www.w3.org/2001/XMLSchema-instance")]
           $ mknode "dc:title" [] (stringify $ docTitle meta)
           : mknode "dc:creator" [] (intercalate "; " (map stringify $ docAuthors meta))
-          : mknode "cp:keywords" [] (intercalate ", " keywords)
+          : [ mknode (M.findWithDefault "" k extraCorePropsMap) [] (lookupMetaString' k meta)
+            | k <- M.keys (unMeta meta), k `elem` extraCoreProps]
+          ++ mknode "cp:keywords" [] (intercalate ", " keywords)
           : (\x -> [ mknode "dcterms:created" [("xsi:type","dcterms:W3CDTF")] x
                    , mknode "dcterms:modified" [("xsi:type","dcterms:W3CDTF")] x
                    ]) (formatTime defaultTimeLocale "%FT%XZ" utctime)
   let docPropsEntry = toEntry docPropsPath epochtime $ renderXml docProps
 
+  -- docProps/custom.xml
   let customProperties :: [(String, String)]
-      customProperties = [] -- FIXME
+      customProperties = [(k, lookupMetaString k meta) | k <- M.keys (unMeta meta)
+                         , k `notElem` (["title", "author", "keywords"]
+                                       ++ extraCoreProps)]
   let mkCustomProp (k, v) pid = mknode "property"
          [("fmtid","{D5CDD505-2E9C-101B-9397-08002B2CF9AE}")
          ,("pid", show pid)

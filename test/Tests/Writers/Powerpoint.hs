@@ -99,4 +99,12 @@ tests = groupPptxTests [ pptxTests "Inline formatting"
                          def
                          "pptx/raw_ooxml.native"
                          "pptx/raw_ooxml.pptx"
+                       , pptxTests "metadata, custom properties"
+                         def
+                         "pptx/document-properties.native"
+                         "pptx/document-properties.pptx"
+                       , pptxTests "metadata, short description"
+                         def
+                         "pptx/document-properties-short-desc.native"
+                         "pptx/document-properties-short-desc.pptx"
                        ]
