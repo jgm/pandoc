@@ -45,7 +45,7 @@ import Control.Monad.Trans
 import Data.Aeson.Encode.Pretty (encodePretty', Config(..), keyOrder,
          defConfig, Indent(..), NumberFormat(..))
 import Data.Char (toLower, toUpper)
-import Data.List (intercalate, sort)
+import Data.List (intercalate, sort, isPrefixOf)
 import Data.Maybe (fromMaybe)
 import Skylighting (Style, Syntax (..), defaultSyntaxMap, parseTheme,
                     pygments)
