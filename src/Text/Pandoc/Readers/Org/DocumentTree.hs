@@ -29,6 +29,7 @@ Parsers for org-mode headlines and document subtrees
 module Text.Pandoc.Readers.Org.DocumentTree
   ( documentTree
   , headlineToBlocks
+  , filterHeadlineTree
   ) where
 
 import Prelude
@@ -161,17 +162,18 @@ headlineToBlocks hdln = do
   let tags = headlineTags hdln
   let text = headlineText hdln
   let level = headlineLevel hdln
-  shouldNotExport <- hasDoNotExportTag tags
   case () of
-    _ | shouldNotExport -> return mempty
     _ | any isArchiveTag  tags -> archivedHeadlineToBlocks hdln
     _ | isCommentTitle text    -> return mempty
     _ | maxLevel <= level      -> headlineToHeaderWithList hdln
     _ | otherwise              -> headlineToHeaderWithContents hdln
 
-hasDoNotExportTag :: Monad m => [Tag] -> OrgParser m Bool
-hasDoNotExportTag tags = containsExcludedTag . orgStateExcludedTags <$> getState
-  where containsExcludedTag s = any (`Set.member` s) tags
+filterHeadlineTree :: Headline -> OrgParserState -> Headline
+filterHeadlineTree hdln st =
+  hdln { headlineChildren =
+           [filterHeadlineTree childHdln st |
+              childHdln <- headlineChildren hdln,
+              not $ any (`Set.member` orgStateExcludedTags st) (headlineTags childHdln)] }
 
 isArchiveTag :: Tag -> Bool
 isArchiveTag = (== toTag "ARCHIVE")
