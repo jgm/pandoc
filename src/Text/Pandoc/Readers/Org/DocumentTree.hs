@@ -28,8 +28,7 @@ Parsers for org-mode headlines and document subtrees
 -}
 module Text.Pandoc.Readers.Org.DocumentTree
   ( documentTree
-  , headlineToBlocks
-  , filterHeadlineTree
+  , unprunedHeadlineToBlocks
   ) where
 
 import Prelude
@@ -37,6 +36,7 @@ import Control.Arrow ((***))
 import Control.Monad (guard, void)
 import Data.Char (toLower, toUpper)
 import Data.List (intersperse)
+import Data.Maybe (mapMaybe)
 import Text.Pandoc.Builder (Blocks, Inlines)
 import Text.Pandoc.Class (PandocMonad)
 import Text.Pandoc.Definition
@@ -155,6 +155,22 @@ headline blocks inline lvl = try $ do
      let tag = orgTagWord <* char ':'
      in map toTag <$> (skipSpaces *> char ':' *> many1 tag <* skipSpaces)
 
+unprunedHeadlineToBlocks :: Monad m => Headline -> OrgParserState -> OrgParser m [Block]
+unprunedHeadlineToBlocks hdln st =
+  let usingSelectedTags = docContainsSelectTags hdln st
+      rootNode = if not usingSelectedTags
+                   then hdln
+                   else includeRootAndSelected hdln st
+      rootNode' = removeExplicitlyExcludedNodes rootNode st
+  in if not usingSelectedTags ||
+        any (`Set.member` orgStateSelectTags st) (headlineTags rootNode')
+        then do headlineBlocks <- headlineToBlocks rootNode'
+                -- ignore first headline, it's the document's title
+                return . drop 1 . B.toList $ headlineBlocks
+        else do headlineBlocks <- mconcat <$> mapM headlineToBlocks
+                                                   (headlineChildren rootNode')
+                return . B.toList $ headlineBlocks
+
 -- | Convert an Org mode headline (i.e. a document tree) into pandoc's Blocks
 headlineToBlocks :: Monad m => Headline -> OrgParser m Blocks
 headlineToBlocks hdln = do
@@ -168,12 +184,40 @@ headlineToBlocks hdln = do
     _ | maxLevel <= level      -> headlineToHeaderWithList hdln
     _ | otherwise              -> headlineToHeaderWithContents hdln
 
-filterHeadlineTree :: Headline -> OrgParserState -> Headline
-filterHeadlineTree hdln st =
+removeExplicitlyExcludedNodes :: Headline -> OrgParserState -> Headline
+removeExplicitlyExcludedNodes hdln st =
   hdln { headlineChildren =
-           [filterHeadlineTree childHdln st |
+           [removeExplicitlyExcludedNodes childHdln st |
               childHdln <- headlineChildren hdln,
-              not $ any (`Set.member` orgStateExcludedTags st) (headlineTags childHdln)] }
+              not $ headlineContainsExcludeTags childHdln st] }
+
+includeRootAndSelected :: Headline -> OrgParserState -> Headline
+includeRootAndSelected hdln st =
+  hdln { headlineChildren = mapMaybe (`includeAncestorsAndSelected` st)
+                                     (headlineChildren hdln)}
+
+docContainsSelectTags :: Headline -> OrgParserState -> Bool
+docContainsSelectTags hdln st =
+  headlineContainsSelectTags hdln st ||
+  any (`docContainsSelectTags` st) (headlineChildren hdln)
+
+includeAncestorsAndSelected :: Headline -> OrgParserState -> Maybe Headline
+includeAncestorsAndSelected hdln st =
+  if headlineContainsSelectTags hdln st
+    then Just hdln
+    else let children = mapMaybe (`includeAncestorsAndSelected` st)
+                                 (headlineChildren hdln)
+         in case children of
+              [] -> Nothing
+              _ -> Just $ hdln { headlineChildren = children }
+
+headlineContainsSelectTags :: Headline -> OrgParserState -> Bool
+headlineContainsSelectTags hdln st =
+  any (`Set.member` orgStateSelectTags st) (headlineTags hdln)
+
+headlineContainsExcludeTags :: Headline -> OrgParserState -> Bool
+headlineContainsExcludeTags hdln st =
+  any (`Set.member` orgStateExcludeTags st) (headlineTags hdln)
 
 isArchiveTag :: Tag -> Bool
 isArchiveTag = (== toTag "ARCHIVE")

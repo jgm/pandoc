@@ -175,6 +175,10 @@ tests = [ testGroup "markdown"
           [ test "reader" ["-r", "man", "-w", "native", "-s"]
             "man-reader.man" "man-reader.native"
           ]
+        , testGroup "org"
+          [ test "reader" ["-r", "org", "-w", "native", "-s"]
+            "org-select-tags.org" "org-select-tags.native"
+          ]
         ]
 
 -- makes sure file is fully closed after reading

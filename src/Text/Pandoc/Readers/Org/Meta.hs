@@ -159,7 +159,8 @@ optionLine = try $ do
     "seq_todo" -> todoSequence >>= updateState . registerTodoSequence
     "typ_todo" -> todoSequence >>= updateState . registerTodoSequence
     "macro"    -> macroDefinition >>= updateState . registerMacro
-    "exclude_tags" -> excludedTagList >>= updateState . setExcludedTags
+    "exclude_tags" -> tagList >>= updateState . setExcludedTags
+    "select_tags" -> tagList >>= updateState . setSelectedTags
     "pandoc-emphasis-pre" -> emphChars >>= updateState . setEmphasisPreChar
     "pandoc-emphasis-post" -> emphChars >>= updateState . setEmphasisPostChar
     _          -> mzero
@@ -192,17 +193,24 @@ parseFormat = try $ replacePlain <|> replaceUrl <|> justAppend
    rest            = manyTill anyChar         (eof <|> () <$ oneOf "\n\r")
    tillSpecifier c = manyTill (noneOf "\n\r") (try $ string ('%':c:""))
 
-excludedTagList :: Monad m => OrgParser m [Tag]
-excludedTagList = do
+tagList :: Monad m => OrgParser m [Tag]
+tagList = do
   skipSpaces
   map Tag <$> many (orgTagWord <* skipSpaces) <* newline
 
 setExcludedTags :: [Tag] -> OrgParserState -> OrgParserState
-setExcludedTags tagList st =
-  let finalSet = if orgStateExcludedTagsChanged st
-                   then foldr Set.insert (orgStateExcludedTags st) tagList
-                   else Set.fromList tagList
-  in st { orgStateExcludedTags = finalSet, orgStateExcludedTagsChanged = True }
+setExcludedTags tags st =
+  let finalSet = if orgStateExcludeTagsChanged st
+                   then foldr Set.insert (orgStateExcludeTags st) tags
+                   else Set.fromList tags
+  in st { orgStateExcludeTags = finalSet, orgStateExcludeTagsChanged = True }
+
+setSelectedTags :: [Tag] -> OrgParserState -> OrgParserState
+setSelectedTags tags st =
+  let finalSet = if orgStateSelectTagsChanged st
+                   then foldr Set.insert (orgStateSelectTags st) tags
+                   else Set.fromList tags
+  in st { orgStateSelectTags = finalSet, orgStateSelectTagsChanged = True }
 
 setEmphasisPreChar :: Maybe [Char] -> OrgParserState -> OrgParserState
 setEmphasisPreChar csMb st =

@@ -1,0 +1,17 @@
+#+SELECT_TAGS: yes no
+#+EXCLUDE_TAGS: no
+
+In a document containing one or more trees containing a tag
+listed in SELECT_TAGS, only those trees and their ancestor nodes will appear;
+this text and any other text preceding the first headline
+won't appear for such documents.
+
+* Will appear because it is the ancestor of something tagged "yes"
+** Will appear                                                           :yes:
+*** Will appear since the entire subtree of something selected will appear
+**** Will appear
+*** Will not appear since this has tagged with something in EXCLUDE-TAGS :no:
+** Will not appear since it's not an ancestor of listed in SELECT-TAGS
+** Will appear because it is the ancestor of something listed in SELECT-TAGS
+*** Will not appear because it has an EXCLUDE-TAG, but since "no" is also listed as a SELECT-TAG, it will force its parent to appear :no:
+* Will not appear
