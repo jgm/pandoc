@@ -34,7 +34,7 @@ module Text.Pandoc.Readers.Org.Blocks
 
 import Prelude
 import Text.Pandoc.Readers.Org.BlockStarts
-import Text.Pandoc.Readers.Org.DocumentTree (documentTree, headlineToBlocks)
+import Text.Pandoc.Readers.Org.DocumentTree (documentTree, headlineToBlocks, filterHeadlineTree)
 import Text.Pandoc.Readers.Org.Inlines
 import Text.Pandoc.Readers.Org.Meta (metaExport, metaKey, metaLine)
 import Text.Pandoc.Readers.Org.ParserState
@@ -64,9 +64,10 @@ import qualified Text.Pandoc.Walk as Walk
 -- | Get a list of blocks.
 blockList :: PandocMonad m => OrgParser m [Block]
 blockList = do
-  headlines      <- documentTree blocks inline
+  fHeadlineTree      <- documentTree blocks inline
   st             <- getState
-  headlineBlocks <- headlineToBlocks $ runF headlines st
+  let headlineTree = runF fHeadlineTree st
+  headlineBlocks <- headlineToBlocks $ filterHeadlineTree headlineTree st
   -- ignore first headline, it's the document's title
   return . drop 1 . B.toList $ headlineBlocks
 
