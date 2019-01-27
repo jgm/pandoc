@@ -208,6 +208,7 @@ extra-source-files:
                  test/docbook-xref.docbook
                  test/html-reader.html
                  test/opml-reader.opml
+                 test/org-select-tags.org
                  test/haddock-reader.haddock
                  test/insert
                  test/lalune.jpg

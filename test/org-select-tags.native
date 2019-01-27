@@ -1,0 +1,7 @@
+Pandoc (Meta {unMeta = fromList []})
+[Header 1 ("will-appear-because-it-is-the-ancestor-of-something-tagged-yes",[],[]) [Str "Will",Space,Str "appear",Space,Str "because",Space,Str "it",Space,Str "is",Space,Str "the",Space,Str "ancestor",Space,Str "of",Space,Str "something",Space,Str "tagged",Space,Str "\"yes\""]
+,Header 2 ("will-appear",[],[]) [Str "Will",Space,Str "appear",Space,Span ("",["tag"],[("tag-name","yes")]) [SmallCaps [Str "yes"]]]
+,Header 3 ("will-appear-since-the-entire-subtree-of-something-selected-will-appear",[],[]) [Str "Will",Space,Str "appear",Space,Str "since",Space,Str "the",Space,Str "entire",Space,Str "subtree",Space,Str "of",Space,Str "something",Space,Str "selected",Space,Str "will",Space,Str "appear"]
+,OrderedList (1,DefaultStyle,DefaultDelim)
+ [[Para [Str "Will",Space,Str "appear"]]]
+,Header 2 ("will-appear-because-it-is-the-ancestor-of-something-listed-in-select-tags",[],[]) [Str "Will",Space,Str "appear",Space,Str "because",Space,Str "it",Space,Str "is",Space,Str "the",Space,Str "ancestor",Space,Str "of",Space,Str "something",Space,Str "listed",Space,Str "in",Space,Str "SELECT-TAGS"]]

@@ -117,8 +117,8 @@ data OrgParserState = OrgParserState
                                            -- specified here.
   , orgStateEmphasisPostChars    :: [Char] -- ^ Chars allowed at after emphasis
   , orgStateEmphasisNewlines     :: Maybe Int
-  , orgStateExcludedTags         :: Set.Set Tag
-  , orgStateExcludedTagsChanged  :: Bool
+  , orgStateExcludeTags          :: Set.Set Tag
+  , orgStateExcludeTagsChanged   :: Bool
   , orgStateExportSettings       :: ExportSettings
   , orgStateIdentifiers          :: Set.Set String
   , orgStateIncludeFiles         :: [String]
@@ -132,6 +132,8 @@ data OrgParserState = OrgParserState
   , orgStateNotes'               :: OrgNoteTable
   , orgStateOptions              :: ReaderOptions
   , orgStateParserContext        :: ParserContext
+  , orgStateSelectTags           :: Set.Set Tag
+  , orgStateSelectTagsChanged    :: Bool
   , orgStateTodoSequences        :: [TodoSequence]
   , orgLogMessages               :: [LogMessage]
   , orgMacros                    :: M.Map Text Macro
@@ -184,8 +186,8 @@ defaultOrgParserState = OrgParserState
   , orgStateEmphasisCharStack = []
   , orgStateEmphasisNewlines = Nothing
   , orgStateExportSettings = def
-  , orgStateExcludedTags = Set.singleton $ Tag "noexport"
-  , orgStateExcludedTagsChanged = False
+  , orgStateExcludeTags = Set.singleton $ Tag "noexport"
+  , orgStateExcludeTagsChanged = False
   , orgStateIdentifiers = Set.empty
   , orgStateIncludeFiles = []
   , orgStateLastForbiddenCharPos = Nothing
@@ -198,6 +200,8 @@ defaultOrgParserState = OrgParserState
   , orgStateNotes' = []
   , orgStateOptions = def
   , orgStateParserContext = NullState
+  , orgStateSelectTags = Set.singleton $ Tag "export"
+  , orgStateSelectTagsChanged = False
   , orgStateTodoSequences = []
   , orgLogMessages = []
   , orgMacros = M.empty
