@@ -45,7 +45,12 @@ import Control.Monad.Trans
 import Data.Aeson.Encode.Pretty (encodePretty', Config(..), keyOrder,
          defConfig, Indent(..), NumberFormat(..))
 import Data.Char (toLower, toUpper)
-import Data.List (intercalate, sort, isPrefixOf)
+import Data.List (intercalate, sort)
+#ifdef _WINDOWS
+#if MIN_VERSION_base(4,12,0)
+import Data.List (isPrefixOf)
+#endif
+#endif
 import Data.Maybe (fromMaybe)
 import Skylighting (Style, Syntax (..), defaultSyntaxMap, parseTheme,
                     pygments)
