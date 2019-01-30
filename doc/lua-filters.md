@@ -1374,990 +1374,990 @@ function Str (s)
 end
 ```
 
-[`lower (s)`]{#text-lower}
+### `lower (s)` {#text-lower}
 
-:   Returns a copy of a UTF-8 string, converted to lowercase.
+Returns a copy of a UTF-8 string, converted to lowercase.
 
-[`upper (s)`]{#text-upper}
+### `upper (s)` {#text-upper}
 
-:   Returns a copy of a UTF-8 string, converted to uppercase.
+Returns a copy of a UTF-8 string, converted to uppercase.
 
-[`reverse (s)`]{#text-reverse}
+### `reverse (s)` {#text-reverse}
 
-:   Returns a copy of a UTF-8 string, with characters reversed.
+Returns a copy of a UTF-8 string, with characters reversed.
 
-[`len (s)`]{#text-len}
+### `len (s)` {#text-len}
 
-:   Returns the length of a UTF-8 string.
+Returns the length of a UTF-8 string.
 
-[`sub (s)`]{#text-sub}
+### `sub (s)` {#text-sub}
 
-:   Returns a substring of a UTF-8 string, using lua's string
-    indexing rules.
+Returns a substring of a UTF-8 string, using Lua's string
+indexing rules.
 
 # Module pandoc
 
 Lua functions for pandoc scripts.
 
-## Pandoc Document {#type-ref-}
+## Pandoc Document
 
-[`Pandoc (blocks[, meta])`]{#Pandoc}
+### `Pandoc (blocks[, meta])` {#Pandoc}
 
-:   A complete pandoc document
+A complete pandoc document
 
-    Parameters:
+Parameters:
 
-    `blocks`:
-    :   document content
+`blocks`:
+:   document content
 
-    `meta`:
-    :   document meta data
+`meta`:
+:   document meta data
 
 ## Meta
 
-[`Meta (table)`]{#Meta}
+### `Meta (table)` {#Meta}
 
-:   Create a new Meta object.
+Create a new Meta object.
 
-    Parameters:
+Parameters:
 
-    `table`:
-    :   table containing document meta information
+`table`:
+:   table containing document meta information
 
 ## MetaValue
 
-[`MetaBlocks (blocks)`]{#MetaBlocks}
+### `MetaBlocks (blocks)` {#MetaBlocks}
 
-:   Meta blocks
+Meta blocks
 
-    Parameters:
+Parameters:
 
-    `blocks`:
-    :   blocks
+`blocks`:
+:   blocks
 
-[`MetaInlines (inlines)`]{#MetaInlines}
+### `MetaInlines (inlines)` {#MetaInlines}
 
-:   Meta inlines
+Meta inlines
 
-    Parameters:
+Parameters:
 
-    `inlines`:
-    :   inlines
+`inlines`:
+:   inlines
 
-[`MetaList (meta_values)`]{#MetaList}
+### `MetaList (meta_values)` {#MetaList}
 
-:   Meta list
+Meta list
 
-    Parameters:
+Parameters:
 
-    `meta_values`:
-    :   list of meta values
+`meta_values`:
+:   list of meta values
 
-[`MetaMap (key_value_map)`]{#MetaMap}
+### `MetaMap (key_value_map)` {#MetaMap}
 
-:   Meta map
+Meta map
 
-    Parameters:
+Parameters:
 
-    `key_value_map`:
-    :   a string-indexed map of meta values
+`key_value_map`:
+:   a string-indexed map of meta values
 
-[`MetaString (str)`]{#MetaString}
+### `MetaString (str)` {#MetaString}
 
-:   Creates string to be used in meta data.
+Creates string to be used in meta data.
 
-    Parameters:
+Parameters:
 
-    `str`:
-    :   string value
+`str`:
+:   string value
 
-[`MetaBool (bool)`]{#MetaBool}
+### `MetaBool (bool)` {#MetaBool}
 
-:   Creates boolean to be used in meta data.
+Creates boolean to be used in meta data.
 
-    Parameters:
+Parameters:
 
-    `bool`:
-    :   boolean value
+`bool`:
+:   boolean value
 
 ## Blocks
 
-[`Block`]{#Block}
+### `Block` {#Block}
 
-:   Block elements
+Block elements
 
-[`BlockQuote (content)`]{#BlockQuote}
+### `BlockQuote (content)` {#BlockQuote}
 
-:   Creates a block quote element
+Creates a block quote element
 
-    Parameters:
+Parameters:
 
-    `content`:
-    :   block content
+`content`:
+:   block content
 
-    Returns: block quote element
+Returns: block quote element
 
-[`BulletList (content)`]{#BulletList}
+### `BulletList (content)` {#BulletList}
 
-:   Creates a bullet (i.e.
+Creates a bullet (i.e.
 
-    Parameters:
+Parameters:
 
-    `content`:
-    :   list of items
+`content`:
+:   list of items
 
-    Returns: bullet list element
+Returns: bullet list element
 
-[`CodeBlock (text[, attr])`]{#CodeBlock}
+### `CodeBlock (text[, attr])` {#CodeBlock}
 
-:   Creates a code block element
+Creates a code block element
 
-    Parameters:
+Parameters:
 
-    `text`:
-    :   code string
+`text`:
+:   code string
 
-    `attr`:
-    :   element attributes
+`attr`:
+:   element attributes
 
-    Returns: code block element
+Returns: code block element
 
-[`DefinitionList (content)`]{#DefinitionList}
+### `DefinitionList (content)` {#DefinitionList}
 
-:   Creates a definition list, containing terms and their
-    explanation.
+Creates a definition list, containing terms and their
+explanation.
 
-    Parameters:
+Parameters:
 
-    `content`:
-    :   list of items
+`content`:
+:   list of items
 
-    Returns: definition list element
+Returns: definition list element
 
-[`Div (content[, attr])`]{#Div}
+### `Div (content[, attr])` {#Div}
 
-:   Creates a div element
+Creates a div element
 
-    Parameters:
+Parameters:
 
-    `content`:
-    :   block content
+`content`:
+:   block content
 
-    `attr`:
-    :   element attributes
+`attr`:
+:   element attributes
 
-    Returns: div element
+Returns: div element
 
-[`Header (level, content[, attr])`]{#Header}
+### `Header (level, content[, attr])` {#Header}
 
-:   Creates a header element.
+Creates a header element.
 
-    Parameters:
+Parameters:
 
-    `level`:
-    :   header level
+`level`:
+:   header level
 
-    `content`:
-    :   inline content
+`content`:
+:   inline content
 
-    `attr`:
-    :   element attributes
+`attr`:
+:   element attributes
 
-    Returns: header element
+Returns: header element
 
-[`HorizontalRule ()`]{#HorizontalRule}
+### `HorizontalRule ()` {#HorizontalRule}
 
-:   Creates a horizontal rule.
+Creates a horizontal rule.
 
-    Returns: horizontal rule
+Returns: horizontal rule
 
-[`LineBlock (content)`]{#LineBlock}
+### `LineBlock (content)` {#LineBlock}
 
-:   Creates a line block element.
+Creates a line block element.
 
-    Parameters:
+Parameters:
 
-    `content`:
-    :   inline content
+`content`:
+:   inline content
 
-    Returns: line block element
+Returns: line block element
 
-[`Null ()`]{#Null}
+### `Null ()` {#Null}
 
-:   Creates a null element.
+Creates a null element.
 
-    Returns: null element
+Returns: null element
 
-[`OrderedList (items[, listAttributes])`]{#OrderedList}
+### `OrderedList (items[, listAttributes])` {#OrderedList}
 
-:   Creates an ordered list.
+Creates an ordered list.
 
-    Parameters:
+Parameters:
 
-    `items`:
-    :   list items
+`items`:
+:   list items
 
-    `listAttributes`:
-    :   list parameters
+`listAttributes`:
+:   list parameters
 
-    Returns: ordered list element
+Returns: ordered list element
 
-[`Para (content)`]{#Para}
+### `Para (content)` {#Para}
 
-:   Creates a para element.
+Creates a para element.
 
-    Parameters:
+Parameters:
 
-    `content`:
-    :   inline content
+`content`:
+:   inline content
 
-    Returns: paragraph element
+Returns: paragraph element
 
-[`Plain (content)`]{#Plain}
+### `Plain (content)` {#Plain}
 
-:   Creates a plain element.
+Creates a plain element.
 
-    Parameters:
+Parameters:
 
-    `content`:
-    :   inline content
+`content`:
+:   inline content
 
-    Returns: plain element
+Returns: plain element
 
-[`RawBlock (format, text)`]{#RawBlock}
+### `RawBlock (format, text)` {#RawBlock}
 
-:   Creates a raw content block of the specified format.
+Creates a raw content block of the specified format.
 
-    Parameters:
+Parameters:
 
-    `format`:
-    :   format of content
+`format`:
+:   format of content
 
-    `text`:
-    :   string content
+`text`:
+:   string content
 
-    Returns: raw block element
+Returns: raw block element
 
-[`Table (caption, aligns, widths, headers, rows)`]{#Table}
+### `Table (caption, aligns, widths, headers, rows)` {#Table}
 
-:   Creates a table element.
+Creates a table element.
 
-    Parameters:
+Parameters:
 
-    `caption`:
-    :   table caption
+`caption`:
+:   table caption
 
-    `aligns`:
-    :   alignments
+`aligns`:
+:   alignments
 
-    `widths`:
-    :   column widths
+`widths`:
+:   column widths
 
-    `headers`:
-    :   header row
+`headers`:
+:   header row
 
-    `rows`:
-    :   table rows
+`rows`:
+:   table rows
 
-    Returns: table element
+Returns: table element
 
 ## Inline
 
-[`Inline`]{#Inline}
+### `Inline` {#Inline}
 
-:   Inline element class
+Inline element class
 
-[`Cite (content, citations)`]{#Cite}
+### `Cite (content, citations)` {#Cite}
 
-:   Creates a Cite inline element
+Creates a Cite inline element
 
-    Parameters:
+Parameters:
 
-    `content`:
-    :   List of inlines
+`content`:
+:   List of inlines
 
-    `citations`:
-    :   List of citations
+`citations`:
+:   List of citations
 
-    Returns: citations element
+Returns: citations element
 
-[`Code (text[, attr])`]{#Code}
+### `Code (text[, attr])` {#Code}
 
-:   Creates a Code inline element
+Creates a Code inline element
 
-    Parameters:
+Parameters:
 
-    `text`:
-    :   code string
+`text`:
+:   code string
 
-    `attr`:
-    :   additional attributes
+`attr`:
+:   additional attributes
 
-    Returns: code element
+Returns: code element
 
-[`Emph (content)`]{#Emph}
+### `Emph (content)` {#Emph}
 
-:   Creates an inline element representing emphasised text.
+Creates an inline element representing emphasised text.
 
-    Parameters:
+Parameters:
 
-    `content`:
-    :   inline content
+`content`:
+:   inline content
 
-    Returns: emphasis element
+Returns: emphasis element
 
-[`Image (caption, src[, title[, attr]])`]{#Image}
+### `Image (caption, src[, title[, attr]])` {#Image}
 
-:   Creates a Image inline element
+Creates a Image inline element
 
-    Parameters:
+Parameters:
 
-    `caption`:
-    :   text used to describe the image
+`caption`:
+:   text used to describe the image
 
-    `src`:
-    :   path to the image file
+`src`:
+:   path to the image file
 
-    `title`:
-    :   brief image description
+`title`:
+:   brief image description
 
-    `attr`:
-    :   additional attributes
+`attr`:
+:   additional attributes
 
-    Returns: image element
+Returns: image element
 
-[`LineBreak ()`]{#LineBreak}
+### `LineBreak ()` {#LineBreak}
 
-:   Create a LineBreak inline element
+Create a LineBreak inline element
 
-    Returns: linebreak element
+Returns: linebreak element
 
-[`Link (content, target[, title[, attr]])`]{#Link}
+### `Link (content, target[, title[, attr]])` {#Link}
 
-:   Creates a link inline element, usually a hyperlink.
+Creates a link inline element, usually a hyperlink.
 
-    Parameters:
+Parameters:
 
-    `content`:
-    :   text for this link
+`content`:
+:   text for this link
 
-    `target`:
-    :   the link target
+`target`:
+:   the link target
 
-    `title`:
-    :   brief link description
+`title`:
+:   brief link description
 
-    `attr`:
-    :   additional attributes
+`attr`:
+:   additional attributes
 
-    Returns: image element
+Returns: image element
 
-[`Math (mathtype, text)`]{#Math}
+### `Math (mathtype, text)` {#Math}
 
-:   Creates a Math element, either inline or displayed.
+Creates a Math element, either inline or displayed.
 
-    Parameters:
+Parameters:
 
-    `mathtype`:
-    :   rendering specifier
+`mathtype`:
+:   rendering specifier
 
-    `text`:
-    :   Math content
+`text`:
+:   Math content
 
-    Returns: Math element
+Returns: Math element
 
-[`DisplayMath (text)`]{#DisplayMath}
+### `DisplayMath (text)` {#DisplayMath}
 
-:   Creates a DisplayMath element (DEPRECATED).
+Creates a DisplayMath element (DEPRECATED).
 
-    Parameters:
+Parameters:
 
-    `text`:
-    :   Math content
+`text`:
+:   Math content
 
-    Returns: Math element
+Returns: Math element
 
-[`InlineMath (text)`]{#InlineMath}
+### `InlineMath (text)` {#InlineMath}
 
-:   Creates an InlineMath inline element (DEPRECATED).
+Creates an InlineMath inline element (DEPRECATED).
 
-    Parameters:
+Parameters:
 
-    `text`:
-    :   Math content
+`text`:
+:   Math content
 
-    Returns: Math element
+Returns: Math element
 
-[`Note (content)`]{#Note}
+### `Note (content)` {#Note}
 
-:   Creates a Note inline element
+Creates a Note inline element
 
-    Parameters:
+Parameters:
 
-    `content`:
-    :   footnote block content
+`content`:
+:   footnote block content
 
-[`Quoted (quotetype, content)`]{#Quoted}
+### `Quoted (quotetype, content)` {#Quoted}
 
-:   Creates a Quoted inline element given the quote type and
-    quoted content.
+Creates a Quoted inline element given the quote type and
+quoted content.
 
-    Parameters:
+Parameters:
 
-    `quotetype`:
-    :   type of quotes to be used
+`quotetype`:
+:   type of quotes to be used
 
-    `content`:
-    :   inline content
+`content`:
+:   inline content
 
-    Returns: quoted element
+Returns: quoted element
 
-[`SingleQuoted (content)`]{#SingleQuoted}
+### `SingleQuoted (content)` {#SingleQuoted}
 
-:   Creates a single-quoted inline element (DEPRECATED).
+Creates a single-quoted inline element (DEPRECATED).
 
-    Parameters:
+Parameters:
 
-    `content`:
-    :   inline content
+`content`:
+:   inline content
 
-    Returns: quoted element
+Returns: quoted element
 
-    See also: [Quoted](#Quoted)
+See also: [Quoted](#Quoted)
 
-[`DoubleQuoted (content)`]{#DoubleQuoted}
+### `DoubleQuoted (content)` {#DoubleQuoted}
 
-:   Creates a single-quoted inline element (DEPRECATED).
+Creates a single-quoted inline element (DEPRECATED).
 
-    Parameters:
+Parameters:
 
-    `content`:
-    :   inline content
+`content`:
+:   inline content
 
-    Returns: quoted element
+Returns: quoted element
 
-    See also: [Quoted](#Quoted)
+See also: [Quoted](#Quoted)
 
-[`RawInline (format, text)`]{#RawInline}
+### `RawInline (format, text)` {#RawInline}
 
-:   Creates a RawInline inline element
+Creates a RawInline inline element
 
-    Parameters:
+Parameters:
 
-    `format`:
-    :   format of the contents
+`format`:
+:   format of the contents
 
-    `text`:
-    :   string content
+`text`:
+:   string content
 
-    Returns: raw inline element
+Returns: raw inline element
 
-[`SmallCaps (content)`]{#SmallCaps}
+### `SmallCaps (content)` {#SmallCaps}
 
-:   Creates text rendered in small caps
+Creates text rendered in small caps
 
-    Parameters:
+Parameters:
 
-    `content`:
-    :   inline content
+`content`:
+:   inline content
 
-    Returns: smallcaps element
+Returns: smallcaps element
 
-[`SoftBreak ()`]{#SoftBreak}
+### `SoftBreak ()` {#SoftBreak}
 
-:   Creates a SoftBreak inline element.
+Creates a SoftBreak inline element.
 
-    Returns: softbreak element
+Returns: softbreak element
 
-[`Space ()`]{#Space}
+### `Space ()` {#Space}
 
-:   Create a Space inline element
+Create a Space inline element
 
-    Returns: space element
+Returns: space element
 
-[`Span (content[, attr])`]{#Span}
+### `Span (content[, attr])` {#Span}
 
-:   Creates a Span inline element
+Creates a Span inline element
 
-    Parameters:
+Parameters:
 
-    `content`:
-    :   inline content
+`content`:
+:   inline content
 
-    `attr`:
-    :   additional attributes
+`attr`:
+:   additional attributes
 
-    Returns: span element
+Returns: span element
 
-[`Str (text)`]{#Str}
+### `Str (text)` {#Str}
 
-:   Creates a Str inline element
+Creates a Str inline element
 
-    Parameters:
+Parameters:
 
-    `text`:
-    :   content
+`text`:
+:   content
 
-    Returns: string element
+Returns: string element
 
-[`Strikeout (content)`]{#Strikeout}
+### `Strikeout (content)` {#Strikeout}
 
-:   Creates text which is striked out.
+Creates text which is striked out.
 
-    Parameters:
+Parameters:
 
-    `content`:
-    :   inline content
+`content`:
+:   inline content
 
-    Returns: strikeout element
+Returns: strikeout element
 
-[`Strong (content)`]{#Strong}
+### `Strong (content)` {#Strong}
 
-:   Creates a Strong element, whose text is usually displayed in
-    a bold font.
+Creates a Strong element, whose text is usually displayed in
+a bold font.
 
-    Parameters:
+Parameters:
 
-    `content`:
-    :   inline content
+`content`:
+:   inline content
 
-    Returns: strong element
+Returns: strong element
 
-[`Subscript (content)`]{#Subscript}
+### `Subscript (content)` {#Subscript}
 
-:   Creates a Subscript inline element
+Creates a Subscript inline element
 
-    Parameters:
+Parameters:
 
-    `content`:
-    :   inline content
+`content`:
+:   inline content
 
-    Returns: subscript element
+Returns: subscript element
 
-[`Superscript (content)`]{#Superscript}
+### `Superscript (content)` {#Superscript}
 
-:   Creates a Superscript inline element
+Creates a Superscript inline element
 
-    Parameters:
+Parameters:
 
-    `content`:
-    :   inline content
+`content`:
+:   inline content
 
-    Returns: strong element
+Returns: strong element
 
 ## Element components
 
-[`Attr ([identifier[, classes[, attributes]]])`]{#Attr}
+### `Attr ([identifier[, classes[, attributes]]])` {#Attr}
 
-:   Create a new set of attributes (Attr).
+Create a new set of attributes (Attr).
 
-    Parameters:
+Parameters:
 
-    `identifier`:
-    :   element identifier
+`identifier`:
+:   element identifier
 
-    `classes`:
-    :   element classes
+`classes`:
+:   element classes
 
-    `attributes`:
-    :   table containing string keys and values
+`attributes`:
+:   table containing string keys and values
 
-    Returns: element attributes
+Returns: element attributes
 
-[`Citation (id, mode[, prefix[, suffix[, note_num[, hash]]]])`]{#Citation}
+### `Citation (id, mode[, prefix[, suffix[, note_num[, hash]]]])` {#Citation}
 
-:   Creates a single citation.
+Creates a single citation.
 
-    Parameters:
+Parameters:
 
-    `id`:
-    :   citation identifier (like a bibtex key)
+`id`:
+:   citation identifier (like a bibtex key)
 
-    `mode`:
-    :   citation mode
+`mode`:
+:   citation mode
 
-    `prefix`:
-    :   citation prefix
+`prefix`:
+:   citation prefix
 
-    `suffix`:
-    :   citation suffix
+`suffix`:
+:   citation suffix
 
-    `note_num`:
-    :   note number
+`note_num`:
+:   note number
 
-    `hash`:
-    :   hash number
+`hash`:
+:   hash number
 
-[`ListAttributes ([start[, style[, delimiter]]])`](#ListAttributes)
+### `ListAttributes ([start[, style[, delimiter]]])` (#ListAttributes)
 
-:   Creates a set of list attributes
+Creates a set of list attributes
 
-    Parameters:
+Parameters:
 
-    `start`:
-    :   number of the first list item (default: 1)
+`start`:
+:   number of the first list item (default: 1)
 
-    `style`:
-    :   style used for list numbering (default: `DefaultStyle`)
+`style`:
+:   style used for list numbering (default: `DefaultStyle`)
 
-    `delimiter`:
-    :   delimiter of list numbers (default: `DefaultDelim`)
+`delimiter`:
+:   delimiter of list numbers (default: `DefaultDelim`)
 
-    Returns: list attributes table
+Returns: list attributes table
 
 ## Constants
 
-[`AuthorInText`]{#AuthorInText}
+### `AuthorInText` {#AuthorInText}
 
-:   Author name is mentioned in the text.
+Author name is mentioned in the text.
 
-    See also: [Citation](#Citation)
+See also: [Citation](#Citation)
 
-[`SuppressAuthor`]{#SuppressAuthor}
+### `SuppressAuthor` {#SuppressAuthor}
 
-:   Author name is suppressed.
+Author name is suppressed.
 
-    See also: [Citation](#Citation)
+See also: [Citation](#Citation)
 
-[`NormalCitation`]{#NormalCitation}
+### `NormalCitation` {#NormalCitation}
 
-:   Default citation style is used.
+Default citation style is used.
 
-    See also: [Citation](#Citation)
+See also: [Citation](#Citation)
 
-[`AlignLeft`]{#AlignLeft}
+### `AlignLeft` {#AlignLeft}
 
-:   Table cells aligned left.
+Table cells aligned left.
 
-    See also: [Table](#Table)
+See also: [Table](#Table)
 
-[`AlignRight`]{#AlignRight}
+### `AlignRight` {#AlignRight}
 
-:   Table cells right-aligned.
+Table cells right-aligned.
 
-    See also: [Table](#Table)
+See also: [Table](#Table)
 
-[`AlignCenter`]{#AlignCenter}
+### `AlignCenter` {#AlignCenter}
 
-:   Table cell content is centered.
+Table cell content is centered.
 
-    See also: [Table](#Table)
+See also: [Table](#Table)
 
-[`AlignDefault`]{#AlignDefault}
+### `AlignDefault` {#AlignDefault}
 
-:   Table cells are alignment is unaltered.
+Table cells are alignment is unaltered.
 
-    See also: [Table](#Table)
+See also: [Table](#Table)
 
-[`DefaultDelim`]{#DefaultDelim}
+### `DefaultDelim` {#DefaultDelim}
 
-:   Default list number delimiters are used.
+Default list number delimiters are used.
 
-    See also: [OrderedList](#OrderedList)
+See also: [OrderedList](#OrderedList)
 
-[`Period`]{#Period}
+### `Period` {#Period}
 
-:   List numbers are delimited by a period.
+List numbers are delimited by a period.
 
-    See also: [OrderedList](#OrderedList)
+See also: [OrderedList](#OrderedList)
 
-[`OneParen`]{#OneParen}
+### `OneParen` {#OneParen}
 
-:   List numbers are delimited by a single parenthesis.
+List numbers are delimited by a single parenthesis.
 
-    See also: [OrderedList](#OrderedList)
+See also: [OrderedList](#OrderedList)
 
-[`TwoParens`]{#TwoParens}
+### `TwoParens` {#TwoParens}
 
-:   List numbers are delimited by a double parentheses.
+List numbers are delimited by a double parentheses.
 
-    See also: [OrderedList](#OrderedList)
+See also: [OrderedList](#OrderedList)
 
-[`DefaultStyle`]{#DefaultStyle}
+### `DefaultStyle` {#DefaultStyle}
 
-:   List are numbered in the default style
+List are numbered in the default style
 
-    See also: [OrderedList](#OrderedList)
+See also: [OrderedList](#OrderedList)
 
-[`Example`]{#Example}
+### `Example` {#Example}
 
-:   List items are numbered as examples.
+List items are numbered as examples.
 
-    See also: [OrderedList](#OrderedList)
+See also: [OrderedList](#OrderedList)
 
-[`Decimal`]{#Decimal}
+### `Decimal` {#Decimal}
 
-:   List are numbered using decimal integers.
+List are numbered using decimal integers.
 
-    See also: [OrderedList](#OrderedList)
+See also: [OrderedList](#OrderedList)
 
-[`LowerRoman`]{#LowerRoman}
+### `LowerRoman` {#LowerRoman}
 
-:   List are numbered using lower-case roman numerals.
+List are numbered using lower-case roman numerals.
 
-    See also: [OrderedList](#OrderedList)
+See also: [OrderedList](#OrderedList)
 
-[`UpperRoman`]{#UpperRoman}
+### `UpperRoman` {#UpperRoman}
 
-:   List are numbered using upper-case roman numerals
+List are numbered using upper-case roman numerals
 
-    See also: [OrderedList](#OrderedList)
+See also: [OrderedList](#OrderedList)
 
-[`LowerAlpha`]{#LowerAlpha}
+### `LowerAlpha` {#LowerAlpha}
 
-:   List are numbered using lower-case alphabetic characters.
+List are numbered using lower-case alphabetic characters.
 
-    See also: [OrderedList](#OrderedList)
+See also: [OrderedList](#OrderedList)
 
-[`UpperAlpha`]{#UpperAlpha}
+### `UpperAlpha` {#UpperAlpha}
 
-:   List are numbered using upper-case alphabetic characters.
+List are numbered using upper-case alphabetic characters.
 
-    See also: [OrderedList](#OrderedList)
+See also: [OrderedList](#OrderedList)
 
 ## Helper functions
 
-[`pipe (command, args, input)`]{#pipe}
+### `pipe (command, args, input)` {#pipe}
 
-:   Runs command with arguments, passing it some input, and
-    returns the output.
+Runs command with arguments, passing it some input, and
+returns the output.
 
-    Returns:
+Returns:
 
-    -   Output of command.
+-   Output of command.
 
-    Raises:
+Raises:
 
-    -   A table containing the keys `command`, `error_code`, and
-        `output` is thrown if the command exits with a non-zero
-        error code.
+-   A table containing the keys `command`, `error_code`, and
+    `output` is thrown if the command exits with a non-zero
+    error code.
 
-    Usage:
+Usage:
 
-        local output = pandoc.pipe("sed", {"-e","s/a/b/"}, "abc")
+    local output = pandoc.pipe("sed", {"-e","s/a/b/"}, "abc")
 
-[`walk_block (element, filter)`]{#walk_block}
+### `walk_block (element, filter)` {#walk_block}
 
-:   Apply a filter inside a block element, walking its contents.
+Apply a filter inside a block element, walking its contents.
 
-    Parameters:
+Parameters:
 
-    `element`:
-    :   the block element
+`element`:
+:   the block element
 
-    `filter`:
-    :   a lua filter (table of functions) to be applied within
-        the block element
+`filter`:
+:   a lua filter (table of functions) to be applied within
+    the block element
 
-    Returns: the transformed block element
+Returns: the transformed block element
 
-[`walk_inline (element, filter)`]{#walk_inline}
+### `walk_inline (element, filter)` {#walk_inline}
 
-:   Apply a filter inside an inline element, walking its
-    contents.
+Apply a filter inside an inline element, walking its
+contents.
 
-    Parameters:
+Parameters:
 
-    `element`:
-    :   the inline element
+`element`:
+:   the inline element
 
-    `filter`:
-    :   a lua filter (table of functions) to be applied within
-        the inline element
+`filter`:
+:   a lua filter (table of functions) to be applied within
+    the inline element
 
-    Returns: the transformed inline element
+Returns: the transformed inline element
 
-[`read (markup[, format])`]{#read}
+### `read (markup[, format])` {#read}
 
-:   Parse the given string into a Pandoc document.
+Parse the given string into a Pandoc document.
 
-    Parameters:
+Parameters:
 
-    `markup`:
-    :   the markup to be parsed
+`markup`:
+:   the markup to be parsed
 
-    `format`:
-    :   format specification, defaults to \"markdown\".
+`format`:
+:   format specification, defaults to \"markdown\".
 
-    Returns: pandoc document
+Returns: pandoc document
 
-    Usage:
+Usage:
 
-        local org_markup = "/emphasis/"  -- Input to be read
-        local document = pandoc.read(org_markup, "org")
-        -- Get the first block of the document
-        local block = document.blocks[1]
-        -- The inline element in that block is an `Emph`
-        assert(block.content[1].t == "Emph")
+    local org_markup = "/emphasis/"  -- Input to be read
+    local document = pandoc.read(org_markup, "org")
+    -- Get the first block of the document
+    local block = document.blocks[1]
+    -- The inline element in that block is an `Emph`
+    assert(block.content[1].t == "Emph")
 
 # Module pandoc.utils
 
 This module exposes internal pandoc functions and utility
 functions.
 
-[`blocks_to_inlines (blocks[, sep])`]{#utils-blocks_to_inlines}
+### `blocks_to_inlines (blocks[, sep])` {#utils-blocks_to_inlines}
 
-:   Squash a list of blocks into a list of inlines.
+Squash a list of blocks into a list of inlines.
 
-    Parameters:
+Parameters:
 
-    `blocks`:
-    :   List of blocks to be flattened.
+`blocks`:
+:   List of blocks to be flattened.
 
-    `sep`:
-    :   List of inlines inserted as separator between two
-        consecutive blocks; defaults to `{ pandoc.Space(),
-        pandoc.Str'¶', pandoc.Space()}`.
+`sep`:
+:   List of inlines inserted as separator between two
+    consecutive blocks; defaults to `{ pandoc.Space(),
+    pandoc.Str'¶', pandoc.Space()}`.
 
-    Returns:
+Returns:
 
-    -   ({[Inline][#Inline]}) List of inlines
+-   ({[Inline][#Inline]}) List of inlines
 
-    Usage:
+Usage:
 
-        local blocks = {
-          pandoc.Para{ pandoc.Str 'Paragraph1' },
-          pandoc.Para{ pandoc.Emph 'Paragraph2' }
-        }
-        local inlines = pandoc.utils.blocks_to_inlines(blocks)
-        -- inlines = {
-        --   pandoc.Str 'Paragraph1',
-        --   pandoc.Space(), pandoc.Str'¶', pandoc.Space(),
-        --   pandoc.Emph{ pandoc.Str 'Paragraph2' }
-        -- }
+    local blocks = {
+      pandoc.Para{ pandoc.Str 'Paragraph1' },
+      pandoc.Para{ pandoc.Emph 'Paragraph2' }
+    }
+    local inlines = pandoc.utils.blocks_to_inlines(blocks)
+    -- inlines = {
+    --   pandoc.Str 'Paragraph1',
+    --   pandoc.Space(), pandoc.Str'¶', pandoc.Space(),
+    --   pandoc.Emph{ pandoc.Str 'Paragraph2' }
+    -- }
 
-[`equals (element1, element2)`]{#utils-equals}
+### `equals (element1, element2)` {#utils-equals}
 
-:   Test equality of AST elements. Elements in Lua are considered
-    equal if and only if the objects obtained by unmarshaling are
-    equal.
+Test equality of AST elements. Elements in Lua are considered
+equal if and only if the objects obtained by unmarshaling are
+equal.
 
-    Parameters:
+Parameters:
 
-    `element1`, `element2`:
-    :   Objects to be compared. Acceptable input types are
-        [Pandoc](#type-ref-pandoc), [Meta](#type-ref-meta),
-        [MetaValue](#type-ref-MetaValue),
-        [Block](#type-ref-Block), [Inline](#type-ref-Inline),
-        [Attr](#type-ref-Attr),
-        [ListAttributes](#type-ref-ListAttributes), and
-        [Citation](#type-ref-Citation).
+`element1`, `element2`:
+:   Objects to be compared. Acceptable input types are
+    [Pandoc](#type-ref-pandoc), [Meta](#type-ref-meta),
+    [MetaValue](#type-ref-MetaValue),
+    [Block](#type-ref-Block), [Inline](#type-ref-Inline),
+    [Attr](#type-ref-Attr),
+    [ListAttributes](#type-ref-ListAttributes), and
+    [Citation](#type-ref-Citation).
 
-    Returns:
+Returns:
 
-    -   Whether the two objects represent the same element
-        (boolean)
+-   Whether the two objects represent the same element
+    (boolean)
 
-[`hierarchicalize (blocks)`]{#utils-hierarchicalize}
+### `hierarchicalize (blocks)` {#utils-hierarchicalize}
 
-:   Convert list of blocks into an hierarchical list. An
-    hierarchical elements is either a normal block (but no
-    Header), or a `Sec` element. The latter has the following
-    fields:
+Convert list of blocks into an hierarchical list. An
+hierarchical elements is either a normal block (but no
+Header), or a `Sec` element. The latter has the following
+fields:
 
-    -   level: level in the document hierarchy;
-    -   numbering: list of integers of length `level`,
-        specifying the absolute position of the section in the
-        document;
-    -   attr: section attributes (see [Attr](#Attr));
-    -   contents: nested list of hierarchical elements.
+-   level: level in the document hierarchy;
+-   numbering: list of integers of length `level`,
+    specifying the absolute position of the section in the
+    document;
+-   attr: section attributes (see [Attr](#Attr));
+-   contents: nested list of hierarchical elements.
 
-    Returns:
+Returns:
 
-    -   List of hierarchical elements
+-   List of hierarchical elements
 
-    Usage:
+Usage:
 
-        local blocks = {
-          pandoc.Header(2, pandoc.Str 'first'),
-          pandoc.Header(2, pandoc.Str 'second'),
-        }
-        local elements = pandoc.utils.hierarchicalize(blocks)
-        print(table.concat(elements[1].numbering, '.')) -- 0.1
-        print(table.concat(elements[2].numbering, '.')) -- 0.2
+    local blocks = {
+      pandoc.Header(2, pandoc.Str 'first'),
+      pandoc.Header(2, pandoc.Str 'second'),
+    }
+    local elements = pandoc.utils.hierarchicalize(blocks)
+    print(table.concat(elements[1].numbering, '.')) -- 0.1
+    print(table.concat(elements[2].numbering, '.')) -- 0.2
 
-[`run_json_filter (doc, filter[, args])`]{#utils-run_json_filter}
+### `run_json_filter (doc, filter[, args])` {#utils-run_json_filter}
 
-:   Filter the given doc by passing it through the a JSON filter.
+Filter the given doc by passing it through the a JSON filter.
 
-    Parameters:
+Parameters:
 
-    `doc`:
-    :   the Pandoc document to filter
+`doc`:
+:   the Pandoc document to filter
 
-    `filter`:
-    :   filter to run
+`filter`:
+:   filter to run
 
-    `args`:
-    :   list of arguments passed to the filter. Defaults to
-        `{FORMAT}`.
+`args`:
+:   list of arguments passed to the filter. Defaults to
+    `{FORMAT}`.
 
-    Returns:
+Returns:
 
-    -   ([Pandoc](#Pandoc)) Filtered document
+-   ([Pandoc](#Pandoc)) Filtered document
 
-    Usage:
+Usage:
 
-        -- Assumes `some_blocks` contains blocks for which a
-        -- separate literature section is required.
-        local sub_doc = pandoc.Pandoc(some_blocks, metadata)
-        sub_doc_with_bib = pandoc.utils.run_json_filter(
-          sub_doc,
-          'pandoc-citeproc'
-        )
-        some_blocks = sub_doc.blocks -- some blocks with bib
+    -- Assumes `some_blocks` contains blocks for which a
+    -- separate literature section is required.
+    local sub_doc = pandoc.Pandoc(some_blocks, metadata)
+    sub_doc_with_bib = pandoc.utils.run_json_filter(
+      sub_doc,
+      'pandoc-citeproc'
+    )
+    some_blocks = sub_doc.blocks -- some blocks with bib
 
-[`normalize_date (date_string)`]{#utils-normalize_date}
+### `normalize_date (date_string)` {#utils-normalize_date}
 
-:   Parse a date and convert (if possible) to "YYYY-MM-DD"
-    format. We limit years to the range 1601-9999 (ISO 8601
-    accepts greater than or equal to 1583, but MS Word only
-    accepts dates starting 1601).
+Parse a date and convert (if possible) to "YYYY-MM-DD"
+format. We limit years to the range 1601-9999 (ISO 8601
+accepts greater than or equal to 1583, but MS Word only
+accepts dates starting 1601).
 
-    Returns:
+Returns:
 
-    -   A date string, or nil when the conversion failed.
+-   A date string, or nil when the conversion failed.
 
-[`sha1 (contents)`]{#utils-sha1}
+### `sha1 (contents)` {#utils-sha1}
 
-:   Returns the SHA1 has of the contents.
+Returns the SHA1 has of the contents.
 
-    Returns:
+Returns:
 
-    -   SHA1 hash of the contents.
+-   SHA1 hash of the contents.
 
-    Usage:
+Usage:
 
-        local fp = pandoc.utils.sha1("foobar")
+    local fp = pandoc.utils.sha1("foobar")
 
-[`stringify (element)`]{#utils-stringify}
+### `stringify (element)` {#utils-stringify}
 
-:   Converts the given element (Pandoc, Meta, Block, or Inline)
-    into a string with all formatting removed.
+Converts the given element (Pandoc, Meta, Block, or Inline)
+into a string with all formatting removed.
 
-    Returns:
+Returns:
 
-    -   A plain string representation of the given element.
+-   A plain string representation of the given element.
 
-    Usage:
+Usage:
 
-        local inline = pandoc.Emph{pandoc.Str 'Moin'}
-        -- outputs "Moin"
-        print(pandoc.utils.stringify(inline))
+    local inline = pandoc.Emph{pandoc.Str 'Moin'}
+    -- outputs "Moin"
+    print(pandoc.utils.stringify(inline))
 
-[`to_roman_numeral (integer)`]{#utils-to_roman_numeral}
+### `to_roman_numeral (integer)` {#utils-to_roman_numeral}
 
-:   Converts an integer \< 4000 to uppercase roman numeral.
+Converts an integer \< 4000 to uppercase roman numeral.
 
-    Returns:
+Returns:
 
-    -   A roman numeral string.
+-   A roman numeral string.
 
-    Usage:
+Usage:
 
-        local to_roman_numeral = pandoc.utils.to_roman_numeral
-        local pandoc_birth_year = to_roman_numeral(2006)
-        -- pandoc_birth_year == 'MMVI'
+    local to_roman_numeral = pandoc.utils.to_roman_numeral
+    local pandoc_birth_year = to_roman_numeral(2006)
+    -- pandoc_birth_year == 'MMVI'
 
 # Module pandoc.mediabag
 
@@ -2365,82 +2365,82 @@ The `pandoc.mediabag` module allows accessing pandoc's media
 storage. The "media bag" is used when pandoc is called with the
 `--extract-media` or `--standalone`/`-s` option.
 
-[`insert (filepath, mime_type, contents)`]{#mediabag-insert}
+### `insert (filepath, mime_type, contents)` {#mediabag-insert}
 
-:   Adds a new entry to pandoc's media bag.
+Adds a new entry to pandoc's media bag.
 
-    Parameters:
+Parameters:
 
-    `filepath`:
-    :   filename and path relative to the output folder.
+`filepath`:
+:   filename and path relative to the output folder.
 
-    `mime_type`:
-    :   the file's MIME type
+`mime_type`:
+:   the file's MIME type
 
-    `contents`:
-    :   the binary contents of the file.
+`contents`:
+:   the binary contents of the file.
 
-    Usage:
+Usage:
 
-        local fp = "media/hello.txt"
-        local mt = "text/plain"
-        local contents = "Hello, World!"
-        pandoc.mediabag(fp, mt, contents)
+    local fp = "media/hello.txt"
+    local mt = "text/plain"
+    local contents = "Hello, World!"
+    pandoc.mediabag(fp, mt, contents)
 
-[`list ()`]{#mediabag-list}
+### `list ()` {#mediabag-list}
 
-:   Get a summary of the current media bag contents.
+Get a summary of the current media bag contents.
 
-    Returns: A list of elements summarizing each entry in the
-    media bag. The summary item contains the keys `path`,
-    `type`, and `length`, giving the filepath, MIME type, and
-    length of contents in bytes, respectively.
+Returns: A list of elements summarizing each entry in the
+media bag. The summary item contains the keys `path`,
+`type`, and `length`, giving the filepath, MIME type, and
+length of contents in bytes, respectively.
 
-    Usage:
+Usage:
 
-        -- calculate the size of the media bag.
-        local mb_items = pandoc.mediabag.list()
-        local sum = 0
-        for i = 1, #mb_items:
-            sum = sum + mb_items[i].length
-        end
-        print(sum)
+    -- calculate the size of the media bag.
+    local mb_items = pandoc.mediabag.list()
+    local sum = 0
+    for i = 1, #mb_items:
+        sum = sum + mb_items[i].length
+    end
+    print(sum)
 
-[`lookup (filepath)`]{#mediabag-lookup}
+### `lookup (filepath)` {#mediabag-lookup}
 
-:   Lookup a media item in the media bag, returning mime type
-    and contents.
+Lookup a media item in the media bag, returning mime type
+and contents.
 
-    Parameters:
+Parameters:
 
-    `filepath`:
-    :   name of the file to look up.
+`filepath`:
+:   name of the file to look up.
 
-    Returns:
+Returns:
 
-    -   the entries MIME type, or nil if the file was not found.
-    -   contents of the file, or nil if the file was not found.
+-   the entries MIME type, or nil if the file was not found.
+-   contents of the file, or nil if the file was not found.
 
-    Usage:
+Usage:
 
-        local filename = "media/diagram.png"
-        local mt, contents = pandoc.mediabag.lookup(filename)
+    local filename = "media/diagram.png"
+    local mt, contents = pandoc.mediabag.lookup(filename)
 
-[`fetch (source, base_url)`]{#mediabag-fetch}
+### `fetch (source, base_url)` {#mediabag-fetch}
 
-:   Fetches the given source from a URL or local file. Returns
-    two values: the contents of the file and the mime type (or
-    an empty string).
+Fetches the given source from a URL or local file. Returns
+two values: the contents of the file and the mime type (or
+an empty string).
 
-    Returns:
+Returns:
 
-    -   the entries MIME type, or nil if the file was not found.
-    -   contents of the file, or nil if the file was not found.
+-   the entries MIME type, or nil if the file was not found.
+-   contents of the file, or nil if the file was not found.
 
-    Usage:
+Usage:
 
-        local diagram_url = "https://pandoc.org/diagram.jpg"
-        local contents = pandoc.mediabag.fetch(diagram_url, ".")
+    local diagram_url = "https://pandoc.org/diagram.jpg"
+    local contents = pandoc.mediabag.fetch(diagram_url, ".")
 
 # Module pandoc.List
 
@@ -2448,99 +2448,99 @@ Pandoc\'s List type and helper methods
 
 ## Metamethods
 
-[`pandoc.List:__concat (list)`]{#pandoc.List:__concat}
+### `pandoc.List:__concat (list)` {#pandoc.List:__concat}
 
-:   Concatenates two lists.
+Concatenates two lists.
 
-    Parameters:
+Parameters:
 
-    `list`:
-    :   second list concatenated to the first
+`list`:
+:   second list concatenated to the first
 
-    Returns: a new list containing all elements from list1 and
-    list2
+Returns: a new list containing all elements from list1 and
+list2
 
 ## Methods
 
-[`pandoc.List:clone ()`]{#pandoc.List:clone}
+`pandoc.List:clone ()` {#pandoc.List:clone}
 
-:   Returns a (shallow) copy of the list.
+Returns a (shallow) copy of the list.
 
-[`pandoc.List:includes (needle, init)`]{#pandoc.List:includes}
+### `pandoc.List:includes (needle, init)` {#pandoc.List:includes}
 
-:   Checks if the list has an item equal to the given needle.
+Checks if the list has an item equal to the given needle.
 
-    Parameters:
+Parameters:
 
-    `needle`:
-    :   item to search for
+`needle`:
+:   item to search for
 
-    `init`:
-    :   index at which the search is started
+`init`:
+:   index at which the search is started
 
-    Returns: true if a list item is equal to the needle, false
-    otherwise
+Returns: true if a list item is equal to the needle, false
+otherwise
 
-[`pandoc.List:find (needle, init)`]{#pandoc.List:find}
+### `pandoc.List:find (needle, init)` {#pandoc.List:find}
 
-:   Returns the value and index of the first occurrence of the
-    given item.
+Returns the value and index of the first occurrence of the
+given item.
 
-    Parameters:
+Parameters:
 
-    `needle`:
-    :   item to search for
+`needle`:
+:   item to search for
 
-    `init`:
-    :   index at which the search is started
+`init`:
+:   index at which the search is started
 
-    Returns: first item equal to the needle, or nil if no such
-    item exists.
+Returns: first item equal to the needle, or nil if no such
+item exists.
 
-[`pandoc.List:find_if (pred, init)`]{#pandoc.List:find_if}
+### `pandoc.List:find_if (pred, init)` {#pandoc.List:find_if}
 
-:   Returns the value and index of the first element for which
-    the predicate holds true.
+Returns the value and index of the first element for which
+the predicate holds true.
 
-    Parameters:
+Parameters:
 
-    `pred`:
-    :   the predicate function
+`pred`:
+:   the predicate function
 
-    `init`:
-    :   index at which the search is started
+`init`:
+:   index at which the search is started
 
-    Returns: first item for which \`test\` succeeds, or nil if
-    no such item exists.
+Returns: first item for which \`test\` succeeds, or nil if
+no such item exists.
 
-[`pandoc.List:extend (list)`]{#pandoc.List:extend}
+### `pandoc.List:extend (list)` {#pandoc.List:extend}
 
-:   Adds the given list to the end of this list.
+Adds the given list to the end of this list.
 
-    Parameters:
+Parameters:
 
-    `list`:
-    :   list to appended
+`list`:
+:   list to appended
 
-[`pandoc.List:map (fn)`]{#pandoc.List:map}
+### `pandoc.List:map (fn)` {#pandoc.List:map}
 
-:   Returns a copy of the current list by applying the given
-    function to all elements.
+Returns a copy of the current list by applying the given
+function to all elements.
 
-    Parameters:
+Parameters:
 
-    `fn`:
-    :   function which is applied to all list items.
+`fn`:
+:   function which is applied to all list items.
 
-[`pandoc.List:filter (pred)`]{#pandoc.List:filter}
+### `pandoc.List:filter (pred)` {#pandoc.List:filter}
 
-:   Returns a new list containing all items satisfying a given
-    condition.
+Returns a new list containing all items satisfying a given
+condition.
 
-    Parameters:
+Parameters:
 
-    `pred`:
-    :   condition items must satisfy.
+`pred`:
+:   condition items must satisfy.
 
-    Returns: a new list containing all items for which \`test\`
-    was true.
+Returns: a new list containing all items for which \`test\`
+was true.
