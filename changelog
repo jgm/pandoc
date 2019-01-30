@@ -10,6 +10,10 @@ pandoc (2.6) PROVISIONAL
     + Depend on ipynb library.
     + Note: there is no template for ipynb.
 
+  * Add DokuWiki reader (#1792, Alexander Krotov).  This adds
+    Text.Pandoc.Readers.DokuWiki [API change], and adds `dokuwiki`
+    as an input format.
+
   * Implement task lists (#3051, Mauro Bieg). Added `task_lists`
     extension. Task lists are supported from markdown and gfm input.
     They should work, to some degree, in all output formats, though in
@@ -21,10 +25,9 @@ pandoc (2.6) PROVISIONAL
     + Added `taskListItemFromAscii` and `taskListItemToAscii` to
       Text.Pandoc.Shared.
 
-  * Add DokuWiki reader (#1792, Alexander Krotov).  This adds
-    Text.Pandoc.Readers.DokuWiki [API change], and adds `dokuwiki`
-    as an input format.
-    
+  * Allow some command line options to take URL in addition to FILE.
+    `--include-in-header`, `--include-before-body`, `--include-after-body`.
+
   * HTML reader:
 
     + Handle empty `start` attribute (see #5162).
@@ -39,9 +42,9 @@ pandoc (2.6) PROVISIONAL
       writers can produce extra whitespace.
     + Removed superfluous `sourceCode` class on code blocks (#5047).
     + Handle `sourcecode` directive as synonynm for `code` (#5204).
-   
+
   * Markdown reader:
-  
+
     + Remove `sourceCode` class for literate Haskell code blocks
       (#5047). Reverse order of `literate` and `haskell` classes on
       code blocks when parsing literate Haskell, so `haskell` is
@@ -49,7 +52,7 @@ pandoc (2.6) PROVISIONAL
     + Treat `<textarea>` as a verbatim environment (#5241).
 
   * Org reader:
-  
+
     + Handle `minlevel` option differently (#5190, Brian Leung).
       When `minlevel` exceeds the original minimum level observed in
       the file to be included, every heading should be shifted
@@ -58,11 +61,16 @@ pandoc (2.6) PROVISIONAL
     + Fix treatment of links to images (#5191, Albert Krewinkel).
       Links with descriptions which are pointing to images are no
       longer parsed as inline images, but as links.
- 
+    + Add support for #+SELECT_TAGS (Brian Leung).
+    + Separate filtering logic from conversion function (Brian Leung).
+
   * TWiki reader: Fix performance issue with underscores (#3921).
 
+  * MediaWiki reader: use `_` instead of `-` in auto-identifiers (#4731).
+    We may not still be exactly matching mediawiki's algorithm.
+
   * LaTeX reader:
-  
+
     + Remove `sourceCode` class for literate Haskell code blocks
       (#5047). Reverse order of `literate` and `haskell` classes on
       code blocks when parsing literate Haskell, so `haskell` is
@@ -80,35 +88,42 @@ pandoc (2.6) PROVISIONAL
     + Use `mapLeft` from Shared instead of defining own.
 
   * Docx reader (Jesse Rosenthal):
-  
+
     + Handle level overrides (#5134).
 
-  * Docx writer (Jesse Rosenthal):
-  
-    + Make Level into a real type, instead of an alias for a tuple.
+  * Docx writer:
+
+    + Support custom properties (#3024, #5252, Agustín Martín Barbero).
+      Also supports additional core properties:  `subject`, `lang`,
+      `category`, `description`.
+    + Make Level into a real type, instead of an alias for a tuple
+      (Jesse Rosenthal).
 
   * ICML writer (Mauro Bieg):
-  
-    + Support custom-styles (#5137, see #2106).
-    + Support unnumbered headers.
-    
-    closes #5140
 
-  * Org writer: preserve line-numbering for example and code blocks
+    + Support custom-styles (#5137, see #2106).
+    + Support unnumbered headers (#5140).
+
+  * Texinfo writer: Use header identifier for anchor if present (#4731).
+    Previously we were overwriting an existing identifier with a new one.
+
+  * Org writer: Preserve line-numbering for example and code blocks
     (Brian Leung).
- 
-  * Man/Ms writers: don't escape `-` as `\-`. The `\-` gets rendered
+
+  * Man/Ms writers: Don't escape `-` as `\-`. The `\-` gets rendered
     in HTML and PDF as a unicode minus sign.
 
-  * RST writer: don't wrap simple table header lines (#5128).
-    
+  * Ms writer: Ensure we have a newline after .EN in disply math (#5251).
+
+  * RST writer: Don't wrap simple table header lines (#5128).
+
   * Asciidoc writer: Shorter delimiters for tables, blockquotes
     (#4364). This matches asciidoctor reference docs.
 
   * Dokuwiki writer: Remove automatic `:` prefix before internal image
     links (#5183, Damien Clochard).  This prevented users from making
     relative image links.
- 
+
  *  Zimwiki writer: remove automatic colon prefix before internal
     images (#5183, Damien Clochard).
 
@@ -118,7 +133,7 @@ pandoc (2.6) PROVISIONAL
     allow images to be resized.
 
   * reveal.js writer:
-  
+
     + Ensure that we don't get > 2 levels of section nesting,
       even with slide level > 2 (#5168).
     + If slide level == N but there is no N-level header, make
@@ -133,13 +148,13 @@ pandoc (2.6) PROVISIONAL
       represent it natively.
 
   * Commonmark writer:
-  
+
     + Fix handling of SoftBreak with `hard_line_breaks` (#5195).
     + Implement `--toc` (`writerTableOfContents`)
       in commonmark/gfm writers (#5172).
 
   * EPUB writer:
-  
+
     + Ensure that picture transforms are done on metadata too.
     + Small fixes to `nav.xhtml`:
       Add 'landmarks' id attribute to the landmarks nav.
@@ -153,28 +168,39 @@ pandoc (2.6) PROVISIONAL
       output (pandoc/lua-filters#40).
     + Beamer: avoid duplicated `fragile` property in some cases
       (#5208).
+    + Add `#` special characters for listings (#4939).
+      This character needs special handling in `\lstinline`.
 
  *  RTF writer: use `toTableOfContents` from Shared to replace
     old duplicated code.
 
-  * Pptx writer:  use `toTableOfContents` from Shared to replace
-    old duplicated code.
+  * Pptx writer:
 
-  * ODT writer: fix typo in custom properties (#2839, Agustín Martín
-    Barbero).
+    + Support custom properties.  Also supports additional core
+      properties: `subject`, `category`, `description` (#5252,
+      Agustín Martín Barbero).
+    + Use `toTableOfContents` from Shared to replace old duplicated code.
+
+  * ODT writer (Augustín Martín Barbero):
+
+    + Fix typo in custom properties (#2839).
+    + Improve standard properties, including the following core
+      properties: `generator` (Pandoc/VERSION), `description`, `subject`,
+      `keywords`, `initial-creator` (from authors), `creation-date`
+      (actual creation date) (#5252).
 
   * Custom writers:
-  
+
     + Allow '-' in filenames for custom lua writers (#5187).
     + sample.lua: add `SingleQuoted`, `DoubleQuoted` (#5104).
     + sample.lua: Add a missing `>` (MichaWiedenmann).
 
   * reveal.js template:  Add `zoomKey` config (#4249).
-  
+
   * HTML5 template: Remove unnecessary type="text/css" on style and
     link for HTML5 (#5146).
 
-  * LaTeX template (Andrew Dunning)
+  * LaTeX template (Andrew Dunning, except where noted):
 
     + Prevent fontspec from scaling `mainfont` to match the default
       font, Latin Modern. A main font set to 12pt could
@@ -215,14 +241,18 @@ pandoc (2.6) PROVISIONAL
       output formats. To return to the previous behaviour, use
       `-V numbersections -V secnumdepth=0` (#5235).
     + Reindent file (#5193).
-    
-  * LaTeX template: use built-in parskip handling with KOMA-Script
-    classes (#5143, Enno).
+    + Use built-in parskip handling with KOMA-Script classes (#5143, Enno).
+    + Set default listings language for lua, assembler (#5227, John
+      MacFarlane).  Otherwise we get an error when trying to compile code
+      with lua or assembler code.  To change the default dialect
+      (currenty 5.3 for lua and x86masm for assembler), you can use
+      `--include-in-header` to inject something like
+      `\lstset{defaultdialect=[5.2]Lua}`.
 
   * Text.Pandoc.Readers: Changed types of `readJSON`; it now runs
     in an instance of PandocMonad, like the other readers and
     writers.  [API change]
-    
+
   * Text.Pandoc.Writers: Changed types of `writeJSON`; it now runs
     in an instance of PandocMonad, like the other readers and
     writers.  [API change] 
@@ -252,7 +282,14 @@ pandoc (2.6) PROVISIONAL
 
   * Text.Pandoc.Parsing: Remove unused `HasHeaderMap`
     (#5175, Alexander Krotov). [API change]
-  
+
+  * Normalize Windows paths to account for change in ghc 8.6 (#5127).
+    When pandoc is compiled with ghc 8.6, Windows paths are treated
+    differently, and paths beginning `\\server` no longer work.
+    This commit rewrites such patsh to `\\?\UNC\server` which works.
+    The change operates at the level of argument parsing, so it
+    only affects the command line program.
+
   * Simplify/fix reading of `--metadata` values on command line
     to avoid problems relating to hvr/HsYAML#7 (#5177).
 
@@ -271,15 +308,15 @@ pandoc (2.6) PROVISIONAL
     next release.
 
   * Allow latest http-client, tasty, zip-archive, Glob.
-    
+
   * Require skylighting >= 0.7.5, adding support for sml, J,
     typescript.
- 
+
    * Tests:  Cleaned up `findPandoc` in `Tests.Helpers`, so it
      works well with cabal v2.
- 
+
   * INSTALL.md:
-  
+
     + Use button for installer links (John MacFarlane, Mauro Bieg,
       #5167).
     + Fix links and bump required stack version (max).
@@ -292,7 +329,7 @@ pandoc (2.6) PROVISIONAL
     Krewinkel).
 
   * MANUAL:
-  
+
     + Clarify automatic identifiers (#5201). We remove
       non-alphanumerics. This includes, e.g., emojis.
     + Fix example for Div with id (Geoffrey Ely).
@@ -302,6 +339,11 @@ pandoc (2.6) PROVISIONAL
       `raw_tex` (#5240, thanks to @eiro).
     + Clarify that `$sep$` must come right before `$endfor$` in templates
       (#5243, Lev Givon).
+    + Document metadata support for docx, odt, pptx writers (Agustín
+      Martín Barbero).
+    + Reorganize template variables (#5249, Andrew Dunning).
+      Add additional headings to categorize variables, and
+      alphabetize when there is large number; add more examples.
 
   * trypandoc: Fix CSS and viewport.
 
