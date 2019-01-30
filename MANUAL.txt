@@ -1821,7 +1821,7 @@ on the output format, and include the following:
     `mm/dd/yy`, `yyyy-mm-dd` (ISO 8601), `dd MM yyyy`
     (e.g. either `02 Apr 2018` or `02 April 2018`),
     `MM dd, yyyy` (e.g. `Apr. 02, 2018` or `April 02, 2018),
-    `yyyy[mm[dd]]]` (e.g. `20180402, `201804` or `2018`)
+    `yyyy[mm[dd]]]` (e.g. `20180402, `201804` or `2018`).
 
 `header-includes`
 :   contents specified by `-H/--include-in-header` (may have multiple
