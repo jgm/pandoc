@@ -880,7 +880,7 @@ usageMessage programName = usageInfo (programName ++ " [OPTIONS] [FILES]")
 copyrightMessage :: String
 copyrightMessage = intercalate "\n" [
   "",
-  "Copyright (C) 2006-2018 John MacFarlane",
+  "Copyright (C) 2006-2019 John MacFarlane",
   "Web:  http://pandoc.org",
   "This is free software; see the source for copying conditions.",
   "There is no warranty, not even for merchantability or fitness",
