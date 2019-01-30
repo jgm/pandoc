@@ -2,7 +2,7 @@ version?=$(shell grep '^[Vv]ersion:' pandoc.cabal | awk '{print $$2;}')
 pandoc=$(shell find dist -name pandoc -type f -exec ls -t {} \; | head -1)
 SOURCEFILES?=$(shell find pandoc.hs src test -name '*.hs')
 BRANCH?=master
-RESOLVER?=lts-12
+RESOLVER?=lts-13
 GHCOPTS=-fdiagnostics-color=always -Wall -fno-warn-unused-do-bind -Wincomplete-record-updates -Wnoncanonical-monad-instances -Wnoncanonical-monadfail-instances -Wincomplete-uni-patterns -Werror=missing-home-modules -Widentities -Wcpp-undef -fhide-source-paths -j +RTS -A32M -RTS
 # Later:
 # -Wpartial-fields        (currently used in Powerpoint writer)
