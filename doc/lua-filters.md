@@ -1374,23 +1374,33 @@ function Str (s)
 end
 ```
 
-### `lower (s)` {#text-lower}
+### lower {#text-lower}
+
+`lower (s)`
 
 Returns a copy of a UTF-8 string, converted to lowercase.
 
-### `upper (s)` {#text-upper}
+### upper {#text-upper}
+
+`upper (s)`
 
 Returns a copy of a UTF-8 string, converted to uppercase.
 
-### `reverse (s)` {#text-reverse}
+### reverse {#text-reverse}
+
+`reverse (s)`
 
 Returns a copy of a UTF-8 string, with characters reversed.
 
-### `len (s)` {#text-len}
+### len {#text-len}
+
+`len (s)`
 
 Returns the length of a UTF-8 string.
 
-### `sub (s)` {#text-sub}
+### sub {#text-sub}
+
+`sub (s)`
 
 Returns a substring of a UTF-8 string, using Lua's string
 indexing rules.
@@ -1401,723 +1411,711 @@ Lua functions for pandoc scripts.
 
 ## Pandoc Document
 
-### `Pandoc (blocks[, meta])` {#Pandoc}
+### Pandoc {#Pandoc}
+
+`Pandoc (blocks[, meta])`
 
 A complete pandoc document
 
 Parameters:
 
 `blocks`:
-:   document content
+:   list of [Blocks]
 
 `meta`:
-:   document meta data
+:   [Meta] value (see below)
 
-## Meta
+## Metadata
 
-### `Meta (table)` {#Meta}
+### Meta {#Meta}
 
-Create a new Meta object.
+`Meta (table)`
+
+Create a new [Meta] object.
 
 Parameters:
 
 `table`:
-:   table containing document meta information
+:   table with string keys and [MetaValue] values
 
 ## MetaValue
 
-### `MetaBlocks (blocks)` {#MetaBlocks}
+### MetaBlocks {#MetaBlocks}
 
-Meta blocks
+`MetaBlocks (blocks)`
+
+Block-level metadata content.
 
 Parameters:
 
 `blocks`:
-:   blocks
+:   list of [Blocks]
 
-### `MetaInlines (inlines)` {#MetaInlines}
+### MetaInlines {#MetaInlines}
 
-Meta inlines
+`MetaInlines (inlines)`
+
+Inline-level metadata content.
 
 Parameters:
 
 `inlines`:
-:   inlines
+:   list of [Inlines]
 
-### `MetaList (meta_values)` {#MetaList}
+### MetaList {#MetaList}
 
-Meta list
+`MetaList (meta_values)`
+
+List of metadata items.
 
 Parameters:
 
 `meta_values`:
-:   list of meta values
+:   list of [MetaValues][MetaValue]
 
-### `MetaMap (key_value_map)` {#MetaMap}
+### MetaMap {#MetaMap}
 
-Meta map
+`MetaMap (key_value_map)`
+
+Field/value map of metadata items.
 
 Parameters:
 
 `key_value_map`:
-:   a string-indexed map of meta values
+:   a table with string keys and [MetaValue] values
 
-### `MetaString (str)` {#MetaString}
+### MetaString {#MetaString}
 
-Creates string to be used in meta data.
+`MetaString (str)`
+
+String metadata content.
 
 Parameters:
 
 `str`:
 :   string value
 
-### `MetaBool (bool)` {#MetaBool}
+### MetaBool {#MetaBool}
 
-Creates boolean to be used in meta data.
+`MetaBool (bool)`
+
+Boolean metadata content.
 
 Parameters:
 
 `bool`:
 :   boolean value
 
-## Blocks
+## Blocks {#Blocks}
 
-### `Block` {#Block}
+### BlockQuote {#BlockQuote}
 
-Block elements
+`BlockQuote (content)`
 
-### `BlockQuote (content)` {#BlockQuote}
-
-Creates a block quote element
+Creates a BlockQuote element
 
 Parameters:
 
 `content`:
-:   block content
+:   list of [Blocks]
 
-Returns: block quote element
+Returns: BlockQuote element
 
-### `BulletList (content)` {#BulletList}
+### BulletList {#BulletList}
 
-Creates a bullet (i.e.
+`BulletList (content)`
+
+Creates a BulletList element
 
 Parameters:
 
 `content`:
-:   list of items
+:   list of items (where each item is a list of [Blocks])
 
-Returns: bullet list element
+Returns: BulletList element
 
-### `CodeBlock (text[, attr])` {#CodeBlock}
+### CodeBlock {#CodeBlock}
 
-Creates a code block element
+`CodeBlock (text[, attr])`
+
+Creates a CodeBlock element
 
 Parameters:
 
 `text`:
-:   code string
+:   string (the code)
 
 `attr`:
-:   element attributes
+:   [Attr]{#Attr} (code attributes)
 
-Returns: code block element
+Returns: CodeBlock element
 
-### `DefinitionList (content)` {#DefinitionList}
+### DefinitionList {#DefinitionList}
 
-Creates a definition list, containing terms and their
-explanation.
+`DefinitionList (content)`
+
+Creates a DefinitionList element
 
 Parameters:
 
 `content`:
-:   list of items
+:   list of items (where each item is a two element list,
+    where the first element is a list of [Inlines], the
+    term, and the second is a list of lists of [Blocks],
+    the definitions)
 
-Returns: definition list element
+Returns: DefinitionList element
 
-### `Div (content[, attr])` {#Div}
+### Div {#Div}
 
-Creates a div element
+`Div (content[, attr])`
+
+Creates a Div element
 
 Parameters:
 
 `content`:
-:   block content
+:   list of [Blocks]
 
 `attr`:
-:   element attributes
+:   [Attr]{#Attr} (Div attributes)
 
-Returns: div element
+Returns: Div element
 
-### `Header (level, content[, attr])` {#Header}
+### Header {#Header}
 
-Creates a header element.
+`Header (level, content[, attr])`
+
+Creates a Header element.
 
 Parameters:
 
 `level`:
-:   header level
+:   Header level (integer)
 
 `content`:
-:   inline content
+:   list of [Inlines] (header title)
 
 `attr`:
-:   element attributes
+:   [Attr]{#Attr} (header attributes)
 
-Returns: header element
+Returns: Header element
 
-### `HorizontalRule ()` {#HorizontalRule}
+### HorizontalRule {#HorizontalRule}
 
-Creates a horizontal rule.
+`HorizontalRule ()`
 
-Returns: horizontal rule
+Creates a HorizontalRule element.
 
-### `LineBlock (content)` {#LineBlock}
+Returns: HorizontalRule element
 
-Creates a line block element.
+### LineBlock {#LineBlock}
+
+`LineBlock (content)`
+
+Creates a LineBlock element.
 
 Parameters:
 
 `content`:
-:   inline content
+:   list of lines (where each line is a list of [Inlines])
 
-Returns: line block element
+Returns: LineBlock element
 
-### `Null ()` {#Null}
+### Null {#Null}
 
-Creates a null element.
+`Null ()`
 
-Returns: null element
+Creates a Null block element.
 
-### `OrderedList (items[, listAttributes])` {#OrderedList}
+Returns: Null element
 
-Creates an ordered list.
+### OrderedList {#OrderedList}
+
+`OrderedList (items[, listAttributes])`
+
+Creates an OrderedList element.
 
 Parameters:
 
 `items`:
-:   list items
+:   list of items (where each item is a list of [Blocks])
 
 `listAttributes`:
-:   list parameters
+:   [ListAttributes]{#ListAttributes}
 
-Returns: ordered list element
+Returns: OrderedList element
 
-### `Para (content)` {#Para}
+### Para {#Para}
 
-Creates a para element.
+`Para (content)`
 
-Parameters:
-
-`content`:
-:   inline content
-
-Returns: paragraph element
-
-### `Plain (content)` {#Plain}
-
-Creates a plain element.
+Creates a Para element.
 
 Parameters:
 
 `content`:
-:   inline content
+:   list of [Inlines]
 
-Returns: plain element
+Returns: Para element
 
-### `RawBlock (format, text)` {#RawBlock}
+### Plain {#Plain}
 
-Creates a raw content block of the specified format.
+`Plain (content)`
+
+Creates a Plain element.
+
+Parameters:
+
+`content`:
+:   list of [Inlines]
+
+Returns: Plain element
+
+### RawBlock {#RawBlock}
+
+`RawBlock (format, text)`
+
+Creates a RawBlock of the specified format.
 
 Parameters:
 
 `format`:
-:   format of content
+:   string (format of content, e.g. 'latex')
 
 `text`:
 :   string content
 
-Returns: raw block element
+Returns: RawBlock element
 
-### `Table (caption, aligns, widths, headers, rows)` {#Table}
+### Table {#Table}
 
-Creates a table element.
+`Table (caption, aligns, widths, headers, rows)`
+
+Creates a Table element.
 
 Parameters:
 
 `caption`:
-:   table caption
+:   table caption (list of [Inlines])
 
 `aligns`:
-:   alignments
+:   alignments (a list of
+    `pandoc.AlignDefault`, `pandoc.AlignLeft`, `pandoc.AlignRight`,
+    `pandoc.AlignCenter`, one for each column)
 
 `widths`:
-:   column widths
+:   column widths (a list of floats, one for each column,
+    denoting the fraction of the textwidth needed for the
+    column, 0.5 = half width; OR an empty list for a
+    simple table where cells need not wrap)
 
 `headers`:
-:   header row
+:   header row (a list of cells, each cell a list of [Blocks])
 
 `rows`:
-:   table rows
+:   table rows (a list of rows, each row a list of cells,
+    each cell a list of [Blocks])
 
-Returns: table element
+Returns: Table element
 
-## Inline
+## Inlines {#Inlines}
 
-### `Inline` {#Inline}
+### Cite {#Cite}
 
-Inline element class
+`Cite (content, citations)`
 
-### `Cite (content, citations)` {#Cite}
-
-Creates a Cite inline element
+Creates a Cite element
 
 Parameters:
 
 `content`:
-:   List of inlines
+:   list of [Inlines]
 
 `citations`:
-:   List of citations
+:   list of [Citation]s
 
 Returns: citations element
 
-### `Code (text[, attr])` {#Code}
+### Code {#Code}
+
+`Code (text[, attr])`
 
 Creates a Code inline element
 
 Parameters:
 
 `text`:
-:   code string
+:   string (the code)
 
 `attr`:
-:   additional attributes
+:   [Attr]{#Attr} (code attributes)
 
-Returns: code element
+Returns: Code element
 
-### `Emph (content)` {#Emph}
+### Emph {#Emph}
 
-Creates an inline element representing emphasised text.
+`Emph (content)`
+
+Creates an Emph inline element
 
 Parameters:
 
 `content`:
-:   inline content
+:   list of [Inlines]
 
-Returns: emphasis element
+Returns: Emph element
 
-### `Image (caption, src[, title[, attr]])` {#Image}
+### Image {#Image}
+
+`Image (alt, src[, title[, attr]])`
 
 Creates a Image inline element
 
 Parameters:
 
-`caption`:
-:   text used to describe the image
+`alt`:
+:   list of [Inlines]: alt text (or, for implicit figures,
+    caption)
 
 `src`:
-:   path to the image file
+:   string: path to the image file
 
 `title`:
-:   brief image description
+:   string: title attribute
 
 `attr`:
-:   additional attributes
+:   [Attr]{#Attr}: additional image attributes
 
-Returns: image element
+Returns: Image element
 
-### `LineBreak ()` {#LineBreak}
+### LineBreak {#LineBreak}
+
+`LineBreak ()`
 
 Create a LineBreak inline element
 
 Returns: linebreak element
 
-### `Link (content, target[, title[, attr]])` {#Link}
+### Link {#Link}
 
-Creates a link inline element, usually a hyperlink.
+`Link (content, target[, title[, attr]])`
+
+Creates a Link inline element
 
 Parameters:
 
 `content`:
-:   text for this link
+:   list of [Inlines]: the linked text
 
 `target`:
-:   the link target
+:   string: the link target
 
 `title`:
-:   brief link description
+:   string: the title attribute
 
 `attr`:
-:   additional attributes
+:   [Attr]{#Attr}: additional link attributes
 
 Returns: image element
 
-### `Math (mathtype, text)` {#Math}
+### Math {#Math}
 
-Creates a Math element, either inline or displayed.
+`Math (mathtype, text)`
+
+Creates a Math inline element, either inline or displayed.
 
 Parameters:
 
 `mathtype`:
-:   rendering specifier
+:   either `pandoc.InlineMath` or `pandoc.DisplayMath`
 
 `text`:
-:   Math content
+:   string: raw tex math
 
 Returns: Math element
 
-### `DisplayMath (text)` {#DisplayMath}
+### DisplayMath {#DisplayMath}
 
-Creates a DisplayMath element (DEPRECATED).
+`DisplayMath (text)`
+
+Creates a DisplayMath element (DEPRECATED, use `Math`).
 
 Parameters:
 
 `text`:
-:   Math content
+:   string: raw tex math
 
 Returns: Math element
 
-### `InlineMath (text)` {#InlineMath}
+### InlineMath {#InlineMath}
 
-Creates an InlineMath inline element (DEPRECATED).
+`InlineMath (text)`
+
+Creates an InlineMath inline element (DEPRECATED, use
+[Math]{#Math}).
 
 Parameters:
 
 `text`:
-:   Math content
+:   string: raw tex math
 
 Returns: Math element
 
-### `Note (content)` {#Note}
+### Note {#Note}
+
+`Note (content)`
 
 Creates a Note inline element
 
 Parameters:
 
 `content`:
-:   footnote block content
+:   list of [Blocks] (content of footnote)
 
-### `Quoted (quotetype, content)` {#Quoted}
+### Quoted {#Quoted}
 
-Creates a Quoted inline element given the quote type and
-quoted content.
+`Quoted (quotetype, content)`
+
+Creates a Quoted inline element
 
 Parameters:
 
 `quotetype`:
-:   type of quotes to be used
+:   either `pandoc.DoubleQuote` or `pandoc.SingleQuote`
 
 `content`:
-:   inline content
+:   list of [Inlines]
 
-Returns: quoted element
+Returns: Quoted element
 
-### `SingleQuoted (content)` {#SingleQuoted}
+### SingleQuoted {#SingleQuoted}
 
-Creates a single-quoted inline element (DEPRECATED).
+`SingleQuoted (content)`
+
+Creates a single-quoted inline element (DEPRECATED, use [Quoted]{#Quoted}).
 
 Parameters:
 
 `content`:
-:   inline content
+:   list of [Inlines]
 
-Returns: quoted element
+Returns: Quoted element
 
-See also: [Quoted](#Quoted)
+### DoubleQuoted {#DoubleQuoted}
 
-### `DoubleQuoted (content)` {#DoubleQuoted}
+`DoubleQuoted (content)`
 
-Creates a single-quoted inline element (DEPRECATED).
+Creates a double-quoted inline element (DEPRECATED, use [Quoted]{#Quoted}).
 
 Parameters:
 
 `content`:
-:   inline content
+:   list of [Inlines]
 
-Returns: quoted element
+Returns: Quoted element
 
-See also: [Quoted](#Quoted)
+### RawInline {#RawInline}
 
-### `RawInline (format, text)` {#RawInline}
+`RawInline (format, text)`
 
 Creates a RawInline inline element
 
 Parameters:
 
 `format`:
-:   format of the contents
+:   string (format of the contents)
 
 `text`:
-:   string content
+:   string (content)
 
-Returns: raw inline element
+Returns: RawInline element
 
-### `SmallCaps (content)` {#SmallCaps}
+### Smallcaps {#SmallCaps}
+
+`SmallCaps (content)`
 
 Creates text rendered in small caps
 
 Parameters:
 
 `content`:
-:   inline content
+:   list of [Inlines]
 
-Returns: smallcaps element
+Returns: SmallCaps element
 
-### `SoftBreak ()` {#SoftBreak}
+### SoftBreak {#SoftBreak}
+
+`SoftBreak ()`
 
 Creates a SoftBreak inline element.
 
-Returns: softbreak element
+Returns: SoftBreak element
 
-### `Space ()` {#Space}
+### Space {#Space}
+
+`Space ()`
 
 Create a Space inline element
 
-Returns: space element
+Returns: Space element
 
-### `Span (content[, attr])` {#Span}
+### Span {#Span}
+
+`Span (content[, attr])`
 
 Creates a Span inline element
 
 Parameters:
 
 `content`:
-:   inline content
+:   list of [Inlines]
 
 `attr`:
-:   additional attributes
+:   [Attr]{#Attr}: span attributes
 
-Returns: span element
+Returns: Span element
 
-### `Str (text)` {#Str}
+### Str {#Str}
+
+`Str (text)`
 
 Creates a Str inline element
 
 Parameters:
 
 `text`:
-:   content
+:   string
 
-Returns: string element
+Returns: String element
 
-### `Strikeout (content)` {#Strikeout}
+### Strikeout {#Strikeout}
 
-Creates text which is striked out.
+`Strikeout (content)`
 
-Parameters:
-
-`content`:
-:   inline content
-
-Returns: strikeout element
-
-### `Strong (content)` {#Strong}
-
-Creates a Strong element, whose text is usually displayed in
-a bold font.
+Creates a Strikeout inline element
 
 Parameters:
 
 `content`:
-:   inline content
+:   list of [Inlines]
 
-Returns: strong element
+Returns: Strikeout element
 
-### `Subscript (content)` {#Subscript}
+### Strong {#Strong}
+
+`Strong (content)`
+
+Creates a Strong inline element.
+
+Parameters:
+
+`content`:
+:   list of [Inlines]
+
+Returns: Strong element
+
+### Subscript {#Subscript}
+
+`Subscript (content)`
 
 Creates a Subscript inline element
 
 Parameters:
 
 `content`:
-:   inline content
+:   list of [Inlines]
 
-Returns: subscript element
+Returns: Subscript element
 
-### `Superscript (content)` {#Superscript}
+### Superscript {#Superscript}
+
+`Superscript (content)`
 
 Creates a Superscript inline element
 
 Parameters:
 
 `content`:
-:   inline content
+:   list of [Inlines]
 
-Returns: strong element
+Returns: Superscript element
 
 ## Element components
 
-### `Attr ([identifier[, classes[, attributes]]])` {#Attr}
+### Attr {#Attr}
+
+`Attr ([identifier[, classes[, attributes]]])`
 
 Create a new set of attributes (Attr).
 
 Parameters:
 
 `identifier`:
-:   element identifier
+:   string: element identifier
 
 `classes`:
-:   element classes
+:   list of strings: classes
 
 `attributes`:
 :   table containing string keys and values
 
-Returns: element attributes
+Returns: Attr
 
-### `Citation (id, mode[, prefix[, suffix[, note_num[, hash]]]])` {#Citation}
+### Citation {#Citation}
 
-Creates a single citation.
+`Citation (id, mode[, prefix[, suffix[, note_num[, hash]]]])`
+
+Creates a single Citation.
 
 Parameters:
 
 `id`:
-:   citation identifier (like a bibtex key)
+:   string citation identifier (like a bibtex key)
 
 `mode`:
-:   citation mode
+:   `pandoc.AuthorInText`, `pandoc.SuppressAuthor`, or
+    `pandoc.NormalCitation`
 
 `prefix`:
-:   citation prefix
+:   list of [Inlines] for citation prefix
 
 `suffix`:
-:   citation suffix
+:   list of [Inlines] for citation suffix
 
 `note_num`:
-:   note number
+:   int: note number
 
 `hash`:
-:   hash number
+:   int: hash number
 
-### `ListAttributes ([start[, style[, delimiter]]])` (#ListAttributes)
+### ListAttributes {#ListAttributes}
+
+`ListAttributes ([start[, style[, delimiter]]])`
 
 Creates a set of list attributes
 
 Parameters:
 
 `start`:
-:   number of the first list item (default: 1)
+:   int: number of the first list item (default: 1)
 
 `style`:
-:   style used for list numbering (default: `DefaultStyle`)
+:   `pandoc.DefaultStyle` (default), `pandoc.Decimal`,
+    `pandoc.LowerRoman`, `pandoc.UpperRoman`, `pandoc.LowerAlpha`,
+    or `pandoc.UpperAlpha`
 
 `delimiter`:
-:   delimiter of list numbers (default: `DefaultDelim`)
+:   `pandoc.DefaultDelim` (default), `pandoc.Period`,
+    `pandoc.OneParen`, `pandoc.TwoParens`
 
 Returns: list attributes table
 
-## Constants
-
-### `AuthorInText` {#AuthorInText}
-
-Author name is mentioned in the text.
-
-See also: [Citation](#Citation)
-
-### `SuppressAuthor` {#SuppressAuthor}
-
-Author name is suppressed.
-
-See also: [Citation](#Citation)
-
-### `NormalCitation` {#NormalCitation}
-
-Default citation style is used.
-
-See also: [Citation](#Citation)
-
-### `AlignLeft` {#AlignLeft}
-
-Table cells aligned left.
-
-See also: [Table](#Table)
-
-### `AlignRight` {#AlignRight}
-
-Table cells right-aligned.
-
-See also: [Table](#Table)
-
-### `AlignCenter` {#AlignCenter}
-
-Table cell content is centered.
-
-See also: [Table](#Table)
-
-### `AlignDefault` {#AlignDefault}
-
-Table cells are alignment is unaltered.
-
-See also: [Table](#Table)
-
-### `DefaultDelim` {#DefaultDelim}
-
-Default list number delimiters are used.
-
-See also: [OrderedList](#OrderedList)
-
-### `Period` {#Period}
-
-List numbers are delimited by a period.
-
-See also: [OrderedList](#OrderedList)
-
-### `OneParen` {#OneParen}
-
-List numbers are delimited by a single parenthesis.
-
-See also: [OrderedList](#OrderedList)
-
-### `TwoParens` {#TwoParens}
-
-List numbers are delimited by a double parentheses.
-
-See also: [OrderedList](#OrderedList)
-
-### `DefaultStyle` {#DefaultStyle}
-
-List are numbered in the default style
-
-See also: [OrderedList](#OrderedList)
-
-### `Example` {#Example}
-
-List items are numbered as examples.
-
-See also: [OrderedList](#OrderedList)
-
-### `Decimal` {#Decimal}
-
-List are numbered using decimal integers.
-
-See also: [OrderedList](#OrderedList)
-
-### `LowerRoman` {#LowerRoman}
-
-List are numbered using lower-case roman numerals.
-
-See also: [OrderedList](#OrderedList)
-
-### `UpperRoman` {#UpperRoman}
-
-List are numbered using upper-case roman numerals
-
-See also: [OrderedList](#OrderedList)
-
-### `LowerAlpha` {#LowerAlpha}
-
-List are numbered using lower-case alphabetic characters.
-
-See also: [OrderedList](#OrderedList)
-
-### `UpperAlpha` {#UpperAlpha}
-
-List are numbered using upper-case alphabetic characters.
-
-See also: [OrderedList](#OrderedList)
-
 ## Helper functions
 
-### `pipe (command, args, input)` {#pipe}
+### pipe {#pipe}
+
+`pipe (command, args, input)`
 
 Runs command with arguments, passing it some input, and
 returns the output.
@@ -2136,7 +2134,9 @@ Usage:
 
     local output = pandoc.pipe("sed", {"-e","s/a/b/"}, "abc")
 
-### `walk_block (element, filter)` {#walk_block}
+### walk_block {#walk_block}
+
+`walk_block (element, filter)`
 
 Apply a filter inside a block element, walking its contents.
 
@@ -2151,7 +2151,9 @@ Parameters:
 
 Returns: the transformed block element
 
-### `walk_inline (element, filter)` {#walk_inline}
+### walk_inline {#walk_inline}
+
+`walk_inline (element, filter)`
 
 Apply a filter inside an inline element, walking its
 contents.
@@ -2167,7 +2169,9 @@ Parameters:
 
 Returns: the transformed inline element
 
-### `read (markup[, format])` {#read}
+### read {#read}
+
+`read (markup[, format])`
 
 Parse the given string into a Pandoc document.
 
@@ -2177,7 +2181,7 @@ Parameters:
 :   the markup to be parsed
 
 `format`:
-:   format specification, defaults to \"markdown\".
+:   format specification, defaults to `"markdown"`.
 
 Returns: pandoc document
 
@@ -2195,23 +2199,25 @@ Usage:
 This module exposes internal pandoc functions and utility
 functions.
 
-### `blocks_to_inlines (blocks[, sep])` {#utils-blocks_to_inlines}
+### blocks\_to\_inlines {#utils-blocks_to_inlines}
+
+`blocks_to_inlines (blocks[, sep])`
 
 Squash a list of blocks into a list of inlines.
 
 Parameters:
 
 `blocks`:
-:   List of blocks to be flattened.
+:   List of [Blocks] to be flattened.
 
 `sep`:
-:   List of inlines inserted as separator between two
+:   List of [Inlines] inserted as separator between two
     consecutive blocks; defaults to `{ pandoc.Space(),
     pandoc.Str'¶', pandoc.Space()}`.
 
 Returns:
 
--   ({[Inline][#Inline]}) List of inlines
+-   ({[Inline][#Inline]}) List of [Inlines]
 
 Usage:
 
@@ -2226,7 +2232,9 @@ Usage:
     --   pandoc.Emph{ pandoc.Str 'Paragraph2' }
     -- }
 
-### `equals (element1, element2)` {#utils-equals}
+### equals {#utils-equals}
+
+`equals (element1, element2)`
 
 Test equality of AST elements. Elements in Lua are considered
 equal if and only if the objects obtained by unmarshaling are
@@ -2248,9 +2256,11 @@ Returns:
 -   Whether the two objects represent the same element
     (boolean)
 
-### `hierarchicalize (blocks)` {#utils-hierarchicalize}
+### hierarchicalize {#utils-hierarchicalize}
 
-Convert list of blocks into an hierarchical list. An
+`hierarchicalize (blocks)`
+
+Convert list of [Blocks] into an hierarchical list. An
 hierarchical elements is either a normal block (but no
 Header), or a `Sec` element. The latter has the following
 fields:
@@ -2264,7 +2274,7 @@ fields:
 
 Returns:
 
--   List of hierarchical elements
+-   List of hierarchical elements.
 
 Usage:
 
@@ -2276,7 +2286,9 @@ Usage:
     print(table.concat(elements[1].numbering, '.')) -- 0.1
     print(table.concat(elements[2].numbering, '.')) -- 0.2
 
-### `run_json_filter (doc, filter[, args])` {#utils-run_json_filter}
+### run\_json\_filter {#utils-run_json_filter}
+
+`run_json_filter (doc, filter[, args])`
 
 Filter the given doc by passing it through the a JSON filter.
 
@@ -2307,7 +2319,9 @@ Usage:
     )
     some_blocks = sub_doc.blocks -- some blocks with bib
 
-### `normalize_date (date_string)` {#utils-normalize_date}
+### normalize_date {#utils-normalize_date}
+
+`normalize_date (date_string)`
 
 Parse a date and convert (if possible) to "YYYY-MM-DD"
 format. We limit years to the range 1601-9999 (ISO 8601
@@ -2318,7 +2332,9 @@ Returns:
 
 -   A date string, or nil when the conversion failed.
 
-### `sha1 (contents)` {#utils-sha1}
+### sha1 {#utils-sha1}
+
+`sha1 (contents)`
 
 Returns the SHA1 has of the contents.
 
@@ -2330,7 +2346,9 @@ Usage:
 
     local fp = pandoc.utils.sha1("foobar")
 
-### `stringify (element)` {#utils-stringify}
+### stringify {#utils-stringify}
+
+`stringify (element)`
 
 Converts the given element (Pandoc, Meta, Block, or Inline)
 into a string with all formatting removed.
@@ -2345,7 +2363,9 @@ Usage:
     -- outputs "Moin"
     print(pandoc.utils.stringify(inline))
 
-### `to_roman_numeral (integer)` {#utils-to_roman_numeral}
+### to\_roman\_numeral {#utils-to_roman_numeral}
+
+`to_roman_numeral (integer)`
 
 Converts an integer \< 4000 to uppercase roman numeral.
 
@@ -2365,7 +2385,9 @@ The `pandoc.mediabag` module allows accessing pandoc's media
 storage. The "media bag" is used when pandoc is called with the
 `--extract-media` or `--standalone`/`-s` option.
 
-### `insert (filepath, mime_type, contents)` {#mediabag-insert}
+### insert {#mediabag-insert}
+
+`insert (filepath, mime_type, contents)`
 
 Adds a new entry to pandoc's media bag.
 
@@ -2387,7 +2409,9 @@ Usage:
     local contents = "Hello, World!"
     pandoc.mediabag(fp, mt, contents)
 
-### `list ()` {#mediabag-list}
+### list {#mediabag-list}
+
+`list ()`
 
 Get a summary of the current media bag contents.
 
@@ -2406,7 +2430,9 @@ Usage:
     end
     print(sum)
 
-### `lookup (filepath)` {#mediabag-lookup}
+### lookup {#mediabag-lookup}
+
+`lookup (filepath)`
 
 Lookup a media item in the media bag, returning mime type
 and contents.
@@ -2426,7 +2452,9 @@ Usage:
     local filename = "media/diagram.png"
     local mt, contents = pandoc.mediabag.lookup(filename)
 
-### `fetch (source, base_url)` {#mediabag-fetch}
+### fetch {#mediabag-fetch}
+
+`fetch (source, base_url)`
 
 Fetches the given source from a URL or local file. Returns
 two values: the contents of the file and the mime type (or
@@ -2448,7 +2476,9 @@ Pandoc\'s List type and helper methods
 
 ## Metamethods
 
-### `pandoc.List:__concat (list)` {#pandoc.List:__concat}
+### concat {#pandoc.List:__concat}
+
+`pandoc.List:__concat (list)`
 
 Concatenates two lists.
 
@@ -2462,11 +2492,15 @@ list2
 
 ## Methods
 
+### clone {#pandoc.List:clone}
+
 `pandoc.List:clone ()` {#pandoc.List:clone}
 
 Returns a (shallow) copy of the list.
 
-### `pandoc.List:includes (needle, init)` {#pandoc.List:includes}
+### includes {#pandoc.List:includes}
+
+`pandoc.List:includes (needle, init)`
 
 Checks if the list has an item equal to the given needle.
 
@@ -2481,7 +2515,9 @@ Parameters:
 Returns: true if a list item is equal to the needle, false
 otherwise
 
-### `pandoc.List:find (needle, init)` {#pandoc.List:find}
+### find {#pandoc.List:find}
+
+`pandoc.List:find (needle, init)`
 
 Returns the value and index of the first occurrence of the
 given item.
@@ -2497,7 +2533,9 @@ Parameters:
 Returns: first item equal to the needle, or nil if no such
 item exists.
 
-### `pandoc.List:find_if (pred, init)` {#pandoc.List:find_if}
+### find_if {#pandoc.List:find_if}
+
+`pandoc.List:find_if (pred, init)`
 
 Returns the value and index of the first element for which
 the predicate holds true.
@@ -2513,7 +2551,9 @@ Parameters:
 Returns: first item for which \`test\` succeeds, or nil if
 no such item exists.
 
-### `pandoc.List:extend (list)` {#pandoc.List:extend}
+### extend {#pandoc.List:extend}
+
+`pandoc.List:extend (list)`
 
 Adds the given list to the end of this list.
 
@@ -2522,7 +2562,9 @@ Parameters:
 `list`:
 :   list to appended
 
-### `pandoc.List:map (fn)` {#pandoc.List:map}
+### map {#pandoc.List:map}
+
+`pandoc.List:map (fn)`
 
 Returns a copy of the current list by applying the given
 function to all elements.
@@ -2532,7 +2574,9 @@ Parameters:
 `fn`:
 :   function which is applied to all list items.
 
-### `pandoc.List:filter (pred)` {#pandoc.List:filter}
+### filter {#pandoc.List:filter}
+
+`pandoc.List:filter (pred)`
 
 Returns a new list containing all items satisfying a given
 condition.
