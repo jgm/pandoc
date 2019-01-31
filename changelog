@@ -328,6 +328,8 @@ pandoc (2.6) PROVISIONAL
   * doc/org.md: improve documentation of org features (Albert
     Krewinkel).
 
+  * doc/lua-filters.md:  use 3rd level headers for module fields.
+
   * MANUAL:
 
     + Clarify automatic identifiers (#5201). We remove
@@ -344,6 +346,7 @@ pandoc (2.6) PROVISIONAL
     + Reorganize template variables (#5249, Andrew Dunning).
       Add additional headings to categorize variables, and
       alphabetize when there is large number; add more examples.
+    + Document `date-meta` template variable (#5260, Tristan Stenner).
 
   * trypandoc: Fix CSS and viewport.
 
