@@ -6,8 +6,7 @@ import Data.Algorithm.Diff
 import Prelude hiding (readFile)
 import System.Exit
 import System.FilePath (joinPath, splitDirectories, (<.>), (</>))
-import System.IO.Temp (withTempFile)
-import System.Process (runProcess, waitForProcess)
+import Text.Pandoc.Process (pipeProcess)
 import Test.Tasty (TestTree, testGroup)
 import Test.Tasty.Golden.Advanced (goldenTest)
 import Tests.Helpers hiding (test)
@@ -250,9 +249,7 @@ testWithNormalize normalizer testname opts inp norm =
   goldenTest testname getExpected getActual
     (compareValues norm options) updateGolden
   where getExpected = normalizer <$> readFile' norm
-        getActual   =
-          withTempFile "." "pandoc-test" $ \outputPath hOut -> do
-            withTempFile "." "pandoc-test" $ \errorPath hErr -> do
+        getActual   = do
               pandocPath <- findPandoc
               let mbDynlibDir = findDynlibDir (reverse $
                                  splitDirectories pandocPath)
@@ -263,19 +260,12 @@ testWithNormalize normalizer testname opts inp norm =
               let env = dynlibEnv ++
                         [("TMP","."),("LANG","en_US.UTF-8"),("HOME", "./"),
                          ("pandoc_datadir","..")]
-              ph <- runProcess pandocPath options Nothing
-                    (Just env) Nothing (Just hOut) (Just hErr)
-              ec <- waitForProcess ph
+              (ec, out) <- pipeProcess (Just env) pandocPath options mempty
               if ec == ExitSuccess
-                 then
+                 then return $ filter (/='\r') . normalizer
+                             $ UTF8.toStringLazy out
                    -- filter \r so the tests will work on Windows machines
-                   (filter (/='\r') . normalizer) <$> readFile' outputPath
-                 else do
-                   errcontents <- UTF8.readFile errorPath
-                   fail $ "Pandoc failed with " ++ show ec ++
-                           if null errcontents
-                              then ""
-                              else '\n':errcontents
+                 else fail $ "Pandoc failed with error code " ++ show ec
         updateGolden = UTF8.writeFile norm
         options = ["--quiet"] ++ [inp] ++ opts
 
