@@ -849,9 +849,7 @@ target format.
 
 An ordered list.
 
-Parameters:
-
-`items`
+`content`
 :   list items ([List] of [Block]s)
 
 `listAttributes`
