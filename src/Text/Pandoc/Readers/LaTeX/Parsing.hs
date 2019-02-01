@@ -612,19 +612,19 @@ braced' :: PandocMonad m => LP m Tok -> Int -> LP m [Tok]
 braced' getTok n =
   handleEgroup <|> handleBgroup <|> handleOther
   where handleEgroup = do
-          t <- egroup
+          t <- symbol '}'
           if n == 1
              then return []
              else (t:) <$> braced' getTok (n - 1)
         handleBgroup = do
-          t <- bgroup
+          t <- symbol '{'
           (t:) <$> braced' getTok (n + 1)
         handleOther = do
           t <- getTok
           (t:) <$> braced' getTok n
 
 braced :: PandocMonad m => LP m [Tok]
-braced = bgroup *> braced' anyTok 1
+braced = symbol '{' *> braced' anyTok 1
 
 -- URLs require special handling, because they can contain %
 -- characters.  So we retonenize comments as we go...
