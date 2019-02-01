@@ -44,9 +44,10 @@ import qualified Tests.Writers.TEI
 import Tests.Helpers (findPandoc)
 import Text.Pandoc.Shared (inDirectory)
 
-tests :: TestTree
-tests = testGroup "pandoc tests" [ Tests.Command.tests
-        , testGroup "Old" Tests.Old.tests
+tests :: FilePath -> TestTree
+tests pandocPath = testGroup "pandoc tests"
+        [ Tests.Command.tests pandocPath
+        , testGroup "Old" (Tests.Old.tests pandocPath)
         , testGroup "Shared" Tests.Shared.tests
         , testGroup "Writers"
           [ testGroup "Native" Tests.Writers.Native.tests
@@ -92,4 +93,4 @@ main = do
   inDirectory "test" $ do
     fp <- findPandoc
     putStrLn $ "Using pandoc executable at " ++ fp
-    defaultMain tests
+    defaultMain $ tests fp

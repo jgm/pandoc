@@ -53,13 +53,12 @@ runTest testname pandocpath cmd inp norm = testCase testname $ do
                   return $ TestError ec
   assertBool (show result) (result == TestPassed)
 
-tests :: TestTree
+tests :: FilePath -> TestTree
 {-# NOINLINE tests #-}
-tests = unsafePerformIO $ do
-  pandocpath <- findPandoc
+tests pandocPath = unsafePerformIO $ do
   files <- filter (".md" `isSuffixOf`) <$>
                getDirectoryContents "command"
-  let cmds = map (extractCommandTest pandocpath) files
+  let cmds = map (extractCommandTest pandocPath) files
   return $ testGroup "Command:" cmds
 
 isCodeBlock :: Block -> Bool
