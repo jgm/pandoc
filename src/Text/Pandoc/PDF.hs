@@ -50,7 +50,7 @@ import System.Environment
 import System.Exit (ExitCode (..))
 import System.FilePath
 import System.IO (stdout)
-import System.IO.Temp (withTempDirectory, withTempFile)
+import System.IO.Temp (withSystemTempDirectory, withTempFile)
 #if MIN_VERSION_base(4,8,3)
 import System.IO.Error (IOError, isDoesNotExistError)
 #else
@@ -100,14 +100,9 @@ makePDF program pdfargs writer opts doc = do
       verbosity <- getVerbosity
       liftIO $ ms2pdf verbosity program args source
     baseProg -> do
-      -- With context and latex, we create a temp directory within
-      -- the working directory, since pdflatex sometimes tries to
-      -- use tools like epstopdf.pl, which are restricted if run
-      -- on files outside the working directory.
-      let withTemp = withTempDirectory "."
       commonState <- getCommonState
       verbosity <- getVerbosity
-      liftIO $ withTemp "tex2pdf." $ \tmpdir -> do
+      liftIO $ withSystemTempDirectory "tex2pdf." $ \tmpdir -> do
         source <- runIOorExplode $ do
                     putCommonState commonState
                     doc' <- handleImages tmpdir doc
@@ -291,7 +286,9 @@ runTeXProgram verbosity program args runNumber numRuns tmpDir source = do
     let texinputs = maybe (tmpDir' ++ sep) ((tmpDir' ++ sep) ++)
           $ lookup "TEXINPUTS" env'
     let env'' = ("TEXINPUTS", texinputs) :
-                  [(k,v) | (k,v) <- env', k /= "TEXINPUTS"]
+                ("TEXMFOUTPUT", tmpDir') :
+                  [(k,v) | (k,v) <- env'
+                         , k /= "TEXINPUTS" && k /= "TEXMFOUTPUT"]
     when (verbosity >= INFO && runNumber == 1) $ do
       putStrLn "[makePDF] temp dir:"
       putStrLn tmpDir'
