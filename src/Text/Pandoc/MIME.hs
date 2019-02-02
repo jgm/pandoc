@@ -490,6 +490,7 @@ mimeTypesList = -- List borrowed from happstack-server.
            ,("wbmp","image/vnd.wap.wbmp")
            ,("wbxml","application/vnd.wap.wbxml")
            ,("webm","video/webm")
+           ,("webp","image/webp")
            ,("wk","application/x-123")
            ,("wm","video/x-ms-wm")
            ,("wma","audio/x-ms-wma")
