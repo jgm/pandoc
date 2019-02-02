@@ -322,40 +322,41 @@ data StringContext = TextString
 stringToLaTeX :: PandocMonad m => StringContext -> String -> LW m String
 stringToLaTeX context zs = do
   opts <- gets stOptions
-  go opts context $
+  return $
+    go opts context $
     if writerPreferAscii opts
        then T.unpack $ Normalize.normalize Normalize.NFD $ T.pack zs
        else zs
  where
-  go  _ _     []     = return ""
-  go  opts ctx (x:xs) = do
+  go  _ _     []     = ""
+  go  opts ctx (x:xs) =
     let ligatures = isEnabled Ext_smart opts && ctx == TextString
-    let isUrl = ctx == URLString
-    let mbAccentCmd =
+        isUrl = ctx == URLString
+        mbAccentCmd =
           if writerPreferAscii opts && ctx == TextString
              then uncons xs >>= \(c,_) -> M.lookup c accents
              else Nothing
-    let emits s =
+        emits s =
           case mbAccentCmd of
-               Just cmd -> ((cmd ++ "{" ++ s ++ "}") ++)
-                        <$> go opts ctx (drop 1 xs) -- drop combining accent
-               Nothing  -> (s++) <$> go opts ctx xs
-    let emitc c =
+               Just cmd -> (cmd ++ "{" ++ s ++ "}") ++
+                           go opts ctx (drop 1 xs) -- drop combining accent
+               Nothing  -> s ++ go opts ctx xs
+        emitc c =
           case mbAccentCmd of
-               Just cmd -> ((cmd ++ "{" ++ [c] ++ "}") ++)
-                        <$> go opts ctx (drop 1 xs) -- drop combining accent
-               Nothing  -> (c:) <$> go opts ctx xs
-    let emitcseq cs = do
-          rest <- go opts ctx xs
+               Just cmd -> cmd ++ "{" ++ [c] ++ "}" ++
+                           go opts ctx (drop 1 xs) -- drop combining accent
+               Nothing  -> c : go opts ctx xs
+        emitcseq cs = do
+          let rest = go opts ctx xs
           case rest of
             c:_ | isLetter c
                 , ctx == TextString
-                             -> return (cs <> " " <> rest)
-                | isSpace c  -> return (cs <> "{}" <> rest)
+                             -> cs <> " " <> rest
+                | isSpace c  -> cs <> "{}" <> rest
                 | ctx == TextString
-                             -> return (cs <> rest)
-            _ -> return (cs <> "{}" <> rest)
-    case x of
+                             -> cs <> rest
+            _ -> cs <> "{}" <> rest
+    in case x of
          '{' -> emits "\\{"
          '}' -> emits "\\}"
          '`' | ctx == CodeString -> emitcseq "\\textasciigrave"
