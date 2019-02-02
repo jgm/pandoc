@@ -50,7 +50,8 @@ import System.Environment
 import System.Exit (ExitCode (..))
 import System.FilePath
 import System.IO (stdout)
-import System.IO.Temp (withSystemTempDirectory, withTempFile)
+import System.IO.Temp (withSystemTempDirectory, withTempDirectory,
+                       withTempFile)
 #if MIN_VERSION_base(4,8,3)
 import System.IO.Error (IOError, isDoesNotExistError)
 #else
@@ -102,7 +103,15 @@ makePDF program pdfargs writer opts doc = do
     baseProg -> do
       commonState <- getCommonState
       verbosity <- getVerbosity
-      liftIO $ withSystemTempDirectory "tex2pdf." $ \tmpdir -> do
+      -- latex has trouble with tildes in paths, which
+      -- you find in Windows temp dir paths with longer
+      -- user names (see #777)
+      let withTempDir templ action = do
+            tmp <- getTemporaryDirectory
+            if '~' `elem` tmp
+                   then withTempDirectory "." templ action
+                   else withSystemTempDirectory templ action
+      liftIO $ withTempDir "tex2pdf." $ \tmpdir -> do
         source <- runIOorExplode $ do
                     putCommonState commonState
                     doc' <- handleImages tmpdir doc
