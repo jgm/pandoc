@@ -9,7 +9,7 @@ pandoc -t html --ascii
 pandoc -t latex --ascii
 äéıå
 ^D
-\"{a}\'{e}\i \r{a}
+\"{a}\'{e}\i\r{a}
 ```
 
 ```

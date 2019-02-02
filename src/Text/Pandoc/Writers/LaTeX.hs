@@ -39,8 +39,8 @@ import Prelude
 import Control.Applicative ((<|>))
 import Control.Monad.State.Strict
 import Data.Aeson (FromJSON, object, (.=))
-import Data.Char (isAlphaNum, isAscii, isDigit, isLetter, isPunctuation, ord,
-                  toLower)
+import Data.Char (isAlphaNum, isAscii, isDigit, isLetter, isSpace,
+                  isPunctuation, ord, toLower)
 import Data.List (foldl', intercalate, intersperse, isInfixOf, nubBy,
                   stripPrefix, (\\), uncons)
 import Data.Maybe (catMaybes, fromMaybe, isJust, mapMaybe, isNothing)
@@ -345,10 +345,20 @@ stringToLaTeX context zs = do
                Just cmd -> ((cmd ++ "{" ++ [c] ++ "}") ++)
                         <$> go opts ctx (drop 1 xs) -- drop combining accent
                Nothing  -> (c:) <$> go opts ctx xs
+    let emitcseq cs = do
+          rest <- go opts ctx xs
+          case rest of
+            c:_ | isLetter c
+                , ctx == TextString
+                             -> return (cs <> " " <> rest)
+                | isSpace c  -> return (cs <> "{}" <> rest)
+                | ctx == TextString
+                             -> return (cs <> rest)
+            _ -> return (cs <> "{}" <> rest)
     case x of
          '{' -> emits "\\{"
          '}' -> emits "\\}"
-         '`' | ctx == CodeString -> emits "\\textasciigrave{}"
+         '`' | ctx == CodeString -> emitcseq "\\textasciigrave"
          '$' | not isUrl -> emits "\\$"
          '%' -> emits "\\%"
          '&' -> emits "\\&"
@@ -358,19 +368,19 @@ stringToLaTeX context zs = do
                      -- prevent adjacent hyphens from forming ligatures
                      ('-':_) -> emits "-\\/"
                      _       -> emitc '-'
-         '~' | not isUrl -> emits "\\textasciitilde{}"
+         '~' | not isUrl -> emitcseq "\\textasciitilde"
          '^' -> emits "\\^{}"
          '\\'| isUrl     -> emitc '/' -- NB. / works as path sep even on Windows
-             | otherwise -> emits "\\textbackslash{}"
-         '|' | not isUrl -> emits "\\textbar{}"
-         '<' -> emits "\\textless{}"
-         '>' -> emits "\\textgreater{}"
+             | otherwise -> emitcseq "\\textbackslash"
+         '|' | not isUrl -> emitcseq "\\textbar"
+         '<' -> emitcseq "\\textless"
+         '>' -> emitcseq "\\textgreater"
          '[' -> emits "{[}"  -- to avoid interpretation as
          ']' -> emits "{]}"  -- optional arguments
-         '\'' | ctx == CodeString -> emits "\\textquotesingle{}"
+         '\'' | ctx == CodeString -> emitcseq "\\textquotesingle"
          '\160' -> emits "~"
          '\x202F' -> emits "\\,"
-         '\x2026' -> emits "\\ldots{}"
+         '\x2026' -> emitcseq "\\ldots"
          '\x2018' | ligatures -> emits "`"
          '\x2019' | ligatures -> emits "'"
          '\x201C' | ligatures -> emits "``"
@@ -379,22 +389,22 @@ stringToLaTeX context zs = do
          '\x2013' | ligatures -> emits "--"
          _ | writerPreferAscii opts
              -> case x of
-                  'ı' -> emits "\\i "
-                  'ȷ' -> emits "\\j "
-                  'å' -> emits "\\aa "
-                  'Å' -> emits "\\AA "
-                  'ß' -> emits "\\ss "
-                  'ø' -> emits "\\o "
-                  'Ø' -> emits "\\O "
-                  'Ł' -> emits "\\L "
-                  'ł' -> emits "\\l "
-                  'æ' -> emits "\\ae "
-                  'Æ' -> emits "\\AE "
-                  'œ' -> emits "\\oe "
-                  'Œ' -> emits "\\OE "
-                  '£' -> emits "\\pounds "
-                  '€' -> emits "\\euro "
-                  '©' -> emits "\\copyright "
+                  'ı' -> emitcseq "\\i"
+                  'ȷ' -> emitcseq "\\j"
+                  'å' -> emitcseq "\\aa"
+                  'Å' -> emitcseq "\\AA"
+                  'ß' -> emitcseq "\\ss"
+                  'ø' -> emitcseq "\\o"
+                  'Ø' -> emitcseq "\\O"
+                  'Ł' -> emitcseq "\\L"
+                  'ł' -> emitcseq "\\l"
+                  'æ' -> emitcseq "\\ae"
+                  'Æ' -> emitcseq "\\AE"
+                  'œ' -> emitcseq "\\oe"
+                  'Œ' -> emitcseq "\\OE"
+                  '£' -> emitcseq "\\pounds"
+                  '€' -> emitcseq "\\euro"
+                  '©' -> emitcseq "\\copyright"
                   _   -> emitc x
            | otherwise -> emitc x
 

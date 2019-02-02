@@ -719,7 +719,7 @@ Subscripts: H\textsubscript{2}O, H\textsubscript{23}O,
 H\textsubscript{many~of~them}O.
 
 These should not be superscripts or subscripts, because of the unescaped
-spaces: a\^{}b c\^{}d, a\textasciitilde{}b c\textasciitilde{}d.
+spaces: a\^{}b c\^{}d, a\textasciitilde b c\textasciitilde d.
 
 \begin{center}\rule{0.5\linewidth}{\linethickness}\end{center}
 
@@ -741,7 +741,7 @@ Some dashes: one---two --- three---four --- five.
 
 Dashes between numbers: 5--7, 255--66, 1987--1999.
 
-Ellipses\ldots{}and\ldots{}and\ldots{}.
+Ellipses\ldots and\ldots and\ldots.
 
 \begin{center}\rule{0.5\linewidth}{\linethickness}\end{center}
 
