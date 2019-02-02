@@ -407,7 +407,13 @@ blockToMarkdown' opts (Div attrs ils) = do
               isEnabled Ext_markdown_in_html_blocks opts) ->
                 tagWithAttrs "div" attrs <> blankline <>
                 contents <> blankline <> "</div>" <> blankline
+           | isEnabled Ext_raw_html opts &&
+             isEnabled Ext_markdown_attribute opts ->
+                tagWithAttrs "div" attrs' <> blankline <>
+                contents <> blankline <> "</div>" <> blankline
            | otherwise -> contents <> blankline
+       where (id',classes',kvs') = attrs
+             attrs' = (id',classes',("markdown","1"):kvs')
 blockToMarkdown' opts (Plain inlines) = do
   contents <- inlineListToMarkdown opts inlines
   -- escape if para starts with ordered list marker
