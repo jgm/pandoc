@@ -323,13 +323,12 @@ stringToLaTeX :: PandocMonad m => StringContext -> String -> LW m String
 stringToLaTeX context zs = do
   opts <- gets stOptions
   return $
-    go opts context $
+    foldr (go opts context) mempty $
     if writerPreferAscii opts
        then T.unpack $ Normalize.normalize Normalize.NFD $ T.pack zs
        else zs
  where
-  go  _ _     []     = ""
-  go  opts ctx (x:xs) =
+  go opts ctx x xs   =
     let ligatures = isEnabled Ext_smart opts && ctx == TextString
         isUrl = ctx == URLString
         mbAccentCmd =
@@ -338,24 +337,23 @@ stringToLaTeX context zs = do
              else Nothing
         emits s =
           case mbAccentCmd of
-               Just cmd -> (cmd ++ "{" ++ s ++ "}") ++
-                           go opts ctx (drop 1 xs) -- drop combining accent
-               Nothing  -> s ++ go opts ctx xs
+               Just cmd ->
+                 cmd ++ "{" ++ s ++ "}" ++ drop 1 xs -- drop combining accent
+               Nothing  -> s ++ xs
         emitc c =
           case mbAccentCmd of
-               Just cmd -> cmd ++ "{" ++ [c] ++ "}" ++
-                           go opts ctx (drop 1 xs) -- drop combining accent
-               Nothing  -> c : go opts ctx xs
+               Just cmd ->
+                 cmd ++ "{" ++ [c] ++ "}" ++ drop 1 xs -- drop combining accent
+               Nothing  -> c : xs
         emitcseq cs = do
-          let rest = go opts ctx xs
-          case rest of
+          case xs of
             c:_ | isLetter c
                 , ctx == TextString
-                             -> cs <> " " <> rest
-                | isSpace c  -> cs <> "{}" <> rest
+                             -> cs <> " " <> xs
+                | isSpace c  -> cs <> "{}" <> xs
                 | ctx == TextString
-                             -> cs <> rest
-            _ -> cs <> "{}" <> rest
+                             -> cs <> xs
+            _ -> cs <> "{}" <> xs
     in case x of
          '{' -> emits "\\{"
          '}' -> emits "\\}"
