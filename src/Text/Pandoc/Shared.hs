@@ -887,6 +887,8 @@ safeRead s = case reads s of
 -- Temp directory
 --
 
+-- TODO remove in next major release; this is no longer
+-- used in the code base.
 withTempDir :: String -> (FilePath -> IO a) -> IO a
 withTempDir =
 #ifdef _WINDOWS
