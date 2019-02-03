@@ -36,6 +36,7 @@ Ipynb (Jupyter notebook JSON format) reader for pandoc.
 module Text.Pandoc.Readers.Ipynb ( readIpynb )
 where
 import Prelude
+import Data.List (isPrefixOf)
 import Data.Maybe (fromMaybe)
 import Data.Digest.Pure.SHA (sha1, showDigest)
 import Text.Pandoc.Options
@@ -46,6 +47,7 @@ import Data.Ipynb as Ipynb
 import Text.Pandoc.Class
 import Text.Pandoc.MIME (extensionFromMimeType)
 import Text.Pandoc.UTF8
+import Text.Pandoc.Walk (walk)
 import Text.Pandoc.Error
 import Data.Text (Text)
 import qualified Data.Map as M
@@ -95,7 +97,7 @@ cellToBlocks opts lang c = do
   mapM_ addAttachment attachments
   case cellType c of
     Ipynb.Markdown -> do
-      Pandoc _ bs <- readMarkdown opts source
+      Pandoc _ bs <- walk fixImage <$> readMarkdown opts source
       return $ B.divWith ("",["cell","markdown"],kvs)
              $ B.fromList bs
     Ipynb.Heading lev -> do
@@ -121,6 +123,12 @@ cellToBlocks opts lang c = do
       return $ B.divWith ("",["cell","code"],kvs') $
         B.codeBlockWith ("",[lang],[]) (T.unpack source)
         <> outputBlocks
+
+-- Remove attachment: prefix from images...
+fixImage :: Inline -> Inline
+fixImage (Image attr lab (src,tit))
+  | "attachment:" `isPrefixOf` src = Image attr lab (drop 11 src, tit)
+fixImage x = x
 
 addAttachment :: PandocMonad m => (Text, MimeBundle) -> m ()
 addAttachment (fname, mimeBundle) = do
