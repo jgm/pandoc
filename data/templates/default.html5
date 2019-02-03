@@ -60,7 +60,7 @@ $endif$
 </header>
 $endif$
 $if(toc)$
-<nav id="$idprefix$TOC">
+<nav id="$idprefix$TOC" role="doc-toc">
 $table-of-contents$
 </nav>
 $endif$
