@@ -284,21 +284,22 @@ nodeToKey _                                 = fail "Non-string key in YAML mappi
 toMetaValue :: PandocMonad m
             => Text -> MarkdownParser m (F MetaValue)
 toMetaValue x =
-  parseFromString' parser' (T.unpack x)
-  where parser' = (asInlines <$> ((trimInlinesF . mconcat)
-                       <$> try (guard (not endsWithNewline)
-                                *> manyTill inline eof)))
-                  <|> (asBlocks <$> parseBlocks)
+   -- Note: a standard quoted or unquoted YAML value will
+   -- not end in a newline, but a "block" set off with
+   -- `|` or `>` will.
+   if (T.pack "\n") `T.isSuffixOf` x
+      then parseFromString' (asBlocks <$> parseBlocks) (xstring <> "\n")
+      else parseFromString'
+             ((asInlines <$> try pInlines) <|> (asBlocks <$> parseBlocks))
+             xstring
+  where pInlines = trimInlinesF . mconcat <$> manyTill inline eof
         asBlocks p = do
           p' <- p
           return $ MetaBlocks (B.toList p')
         asInlines p = do
           p' <- p
           return $ MetaInlines (B.toList p')
-        endsWithNewline = T.pack "\n" `T.isSuffixOf` x
-        -- Note: a standard quoted or unquoted YAML value will
-        -- not end in a newline, but a "block" set off with
-        -- `|` or `>` will.
+        xstring = T.unpack x
 
 checkBoolean :: Text -> Maybe Bool
 checkBoolean t =
