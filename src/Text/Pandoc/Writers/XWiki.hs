@@ -98,10 +98,10 @@ blockToXWiki b@(RawBlock f str)
 
 blockToXWiki HorizontalRule = return "\n----\n"
 
-blockToXWiki (Header level _ inlines) = do
+blockToXWiki (Header level (id', _, _) inlines) = do
   contents <- inlineListToXWiki inlines
   let eqs = Text.replicate level "="
-  return $ eqs <> " " <> contents <> " " <> eqs <> "\n"
+  return $ eqs <> " " <> contents <> " " <> (genAnchor id') <> eqs <> "\n"
 
 -- XWiki doesn't appear to differentiate between inline and block-form code, so we delegate
 -- We do amend the text to ensure that the code markers are on their own lines, since this is a block
@@ -208,11 +208,11 @@ inlineToXWiki il@(RawInline frmt str)
   | otherwise              = "" <$ report (InlineNotRendered il)
 
 -- TODO: Handle anchors
-inlineToXWiki (Link _ txt (src, _)) = do
+inlineToXWiki (Link (id', _, _) txt (src, _)) = do
   label <- inlineListToXWiki txt
   case txt of
-     [Str s] | isURI src && escapeURI s == src -> return $ pack src
-     _  -> return $ "[[" <> label <> ">>" <> (pack src) <> "]]"
+     [Str s] | isURI src && escapeURI s == src -> return $ (pack src) <> (genAnchor id')
+     _  -> return $ "[[" <> label <> ">>" <> (pack src) <> "]]" <> (genAnchor id')
 
 inlineToXWiki (Image _ alt (source, tit)) = do
   alt' <- inlineListToXWiki alt
