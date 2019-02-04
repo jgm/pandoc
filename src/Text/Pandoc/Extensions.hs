@@ -265,7 +265,7 @@ phpMarkdownExtraExtensions = extensionsFromList
 -- | Extensions to be used with github-flavored markdown.
 githubMarkdownExtensions :: Extensions
 githubMarkdownExtensions = extensionsFromList
-  [ Ext_angle_brackets_escapable
+  [ Ext_all_symbols_escapable
   , Ext_pipe_tables
   , Ext_raw_html
   , Ext_fenced_code_blocks
