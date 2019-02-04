@@ -332,8 +332,24 @@ getDefaultExtensions "markdown_phpextra" = phpMarkdownExtraExtensions
 getDefaultExtensions "markdown_mmd" = multimarkdownExtensions
 getDefaultExtensions "markdown_github" = githubMarkdownExtensions
 getDefaultExtensions "markdown"        = pandocExtensions
-getDefaultExtensions "ipynb"           = enableExtension Ext_tex_math_dollars
-                                           githubMarkdownExtensions
+getDefaultExtensions "ipynb"           =
+  extensionsFromList
+    [ Ext_all_symbols_escapable
+    , Ext_pipe_tables
+    , Ext_raw_html
+    , Ext_fenced_code_blocks
+    , Ext_auto_identifiers
+    , Ext_gfm_auto_identifiers
+    , Ext_backtick_code_blocks
+    , Ext_autolink_bare_uris
+    , Ext_space_in_atx_header
+    , Ext_intraword_underscores
+    , Ext_strikeout
+    , Ext_task_lists
+    , Ext_lists_without_preceding_blankline
+    , Ext_shortcut_reference_links
+    , Ext_tex_math_dollars
+    ]
 getDefaultExtensions "muse"            = extensionsFromList
                                            [Ext_amuse,
                                             Ext_auto_identifiers]
