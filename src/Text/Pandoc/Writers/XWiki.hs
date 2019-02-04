@@ -261,5 +261,5 @@ definitionListItemToMediaWiki (label, items) = do
 
 -- Escape the escape character, as well as formatting pairs
 escapeXWikiString :: Text -> Text
-escapeXWikiString s = foldr (uncurry replace) s $ zip ["~", "--", "**", "//", "^^", ",,"] ["~~", "~-~-", "~*~*", "~/~/", "~^~^", "~,~,"]
+escapeXWikiString s = foldr (uncurry replace) s $ zip ["--", "**", "//", "^^", ",,", "~"] ["~-~-", "~*~*", "~/~/", "~^~^", "~,~,", "~~"]
 
