@@ -1,4 +1,15 @@
 {-# LANGUAGE NoImplicitPrelude #-}
+{- |
+   Module      : Tests.Shared
+   Copyright   : © 2006-2019 John MacFarlane
+   License     : GNU GPL, version 2 or above
+
+   Maintainer  : John MacFarlane <jgm@berkeley@edu>
+   Stability   : alpha
+   Portability : portable
+
+Tests for functions used in many parts of the library.
+-}
 module Tests.Shared (tests) where
 
 import Prelude

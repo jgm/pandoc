@@ -1,4 +1,15 @@
 {-# LANGUAGE NoImplicitPrelude #-}
+{- |
+   Module      : Tests.Old
+   Copyright   : © 2006-2019 John MacFarlane
+   License     : GNU GPL, version 2 or above
+
+   Maintainer  : John MacFarlane <jgm@berkeley@edu>
+   Stability   : alpha
+   Portability : portable
+
+"Old" style tests (comparing output to golden files).
+-}
 module Tests.Old (tests) where
 
 import Prelude

@@ -1,6 +1,16 @@
 {-# LANGUAGE NoImplicitPrelude #-}
 {-# LANGUAGE TemplateHaskell #-}
+{- |
+Module      : Text.Pandoc.Data
+Copyright   : Copyright (C) 2013-2019 John MacFarlane
+License     : GNU GPL, version 2 or above
 
+Maintainer  : John MacFarlane <jgm@berkeley@edu>
+Stability   : alpha
+Portability : portable
+
+Provide contents data files as Haskell values.
+-}
 module Text.Pandoc.Data (dataFiles) where
 
 import Prelude

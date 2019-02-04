@@ -1,5 +1,16 @@
 {-# LANGUAGE NoImplicitPrelude #-}
 {-# LANGUAGE OverloadedStrings #-}
+{- |
+   Module      : Tests.Readers.Org.Inline.Smart
+   Copyright   : © 2014-2019 Albert Krewinkel
+   License     : GNU GPL, version 2 or above
+
+   Maintainer  : Albert Krewinkel <albert@zeitkraut.de>
+   Stability   : alpha
+   Portability : portable
+
+Test smart parsing of quotes, apostrophe, etc.
+-}
 module Tests.Readers.Org.Inline.Smart (tests) where
 
 import Prelude

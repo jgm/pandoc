@@ -1,5 +1,17 @@
 {-# LANGUAGE NoImplicitPrelude #-}
 {-# LANGUAGE OverloadedStrings #-}
+{- |
+   Module      : Tests.Readers.Txt2Tags
+   Copyright   : © 2014-2019 John MacFarlane,
+                 © 2014 Matthew Pickering
+   License     : GNU GPL, version 2 or above
+
+   Maintainer  : John MacFarlane <jgm@berkeley.edu>
+   Stability   : alpha
+   Portability : portable
+
+Tests for the Txt2Tags reader.
+-}
 module Tests.Readers.Txt2Tags (tests) where
 
 import Prelude

@@ -7,7 +7,7 @@
 {-# LANGUAGE TemplateHaskell            #-}
 #endif
 {-
-Copyright (C) 2012-2018 John MacFarlane <jgm@berkeley.edu>
+Copyright (C) 2012-2019 John MacFarlane <jgm@berkeley.edu>
 
 This program is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -26,7 +26,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 {- |
    Module      : Text.Pandoc.Extensions
-   Copyright   : Copyright (C) 2012-2018 John MacFarlane
+   Copyright   : Copyright (C) 2012-2019 John MacFarlane
    License     : GNU GPL, version 2 or above
 
    Maintainer  : John MacFarlane <jgm@berkeley.edu>

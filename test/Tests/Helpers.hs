@@ -2,8 +2,17 @@
 {-# LANGUAGE NoImplicitPrelude #-}
 {-# LANGUAGE FlexibleInstances    #-}
 {-# LANGUAGE TypeSynonymInstances #-}
--- Utility functions for the test suite.
+{- |
+   Module      : Tests.Helpers
+   Copyright   : © 2006-2019 John MacFarlane
+   License     : GNU GPL, version 2 or above
 
+   Maintainer  : John MacFarlane <jgm@berkeley@edu>
+   Stability   : alpha
+   Portability : portable
+
+Utility functions for the test suite.
+-}
 module Tests.Helpers ( test
                      , TestResult(..)
                      , showDiff

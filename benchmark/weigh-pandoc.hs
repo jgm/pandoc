@@ -1,4 +1,15 @@
 {-# LANGUAGE NoImplicitPrelude #-}
+{- |
+   Module      : Main
+   Copyright   : © 2016-2019 John MacFarlane <jgm@berkeley.edu>
+   License     : GNU GPL, version 2 or above
+
+   Maintainer  : John MacFarlane <jgm@berkeley.edu>
+   Stability   : alpha
+   Portability : portable
+
+Benchmarks to determine resource use of readers and writers.
+-}
 import Prelude
 import Weigh
 import Text.Pandoc

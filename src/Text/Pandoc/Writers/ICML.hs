@@ -5,7 +5,7 @@
 
 {- |
    Module      : Text.Pandoc.Writers.ICML
-   Copyright   : Copyright (C) 2013-2018 github.com/mb21
+   Copyright   : Copyright (C) 2013-2019 github.com/mb21
    License     : GNU GPL, version 2 or above
 
    Stability   : alpha

@@ -1,7 +1,7 @@
 {-# LANGUAGE NoImplicitPrelude #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-
-Copyright (C) 2008-2018 John MacFarlane
+Copyright (C) 2008-2019 John MacFarlane
               2012 Peter Wang
 
 This program is free software; you can redistribute it and/or modify
@@ -21,7 +21,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 {- |
    Module      : Text.Pandoc.Writers.Texinfo
-   Copyright   : Copyright (C) 2008-2018 John MacFarlane
+   Copyright   : Copyright (C) 2008-2019 John MacFarlane
                                2012 Peter Wang
    License     : GNU GPL, version 2 or above
 
