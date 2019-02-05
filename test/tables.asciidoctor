@@ -1,0 +1,67 @@
+Simple table with caption:
+
+.Demonstration of simple table syntax.
+[cols=">,<,^,",options="header",]
+|===
+|Right |Left |Center |Default
+|12 |12 |12 |12
+|123 |123 |123 |123
+|1 |1 |1 |1
+|===
+
+Simple table without caption:
+
+[cols=">,<,^,",options="header",]
+|===
+|Right |Left |Center |Default
+|12 |12 |12 |12
+|123 |123 |123 |123
+|1 |1 |1 |1
+|===
+
+Simple table indented two spaces:
+
+.Demonstration of simple table syntax.
+[cols=">,<,^,",options="header",]
+|===
+|Right |Left |Center |Default
+|12 |12 |12 |12
+|123 |123 |123 |123
+|1 |1 |1 |1
+|===
+
+Multiline table with caption:
+
+.Here’s the caption. It may span multiple lines.
+[width="80%",cols="^20%,<17%,>20%,<43%",options="header",]
+|===
+|Centered Header |Left Aligned |Right Aligned |Default aligned
+|First |row |12.0 |Example of a row that spans multiple lines.
+|Second |row |5.0 |Here’s another one. Note the blank line between rows.
+|===
+
+Multiline table without caption:
+
+[width="80%",cols="^20%,<17%,>20%,<43%",options="header",]
+|===
+|Centered Header |Left Aligned |Right Aligned |Default aligned
+|First |row |12.0 |Example of a row that spans multiple lines.
+|Second |row |5.0 |Here’s another one. Note the blank line between rows.
+|===
+
+Table without column headers:
+
+[cols=">,<,^,>",]
+|===
+|12 |12 |12 |12
+|123 |123 |123 |123
+|1 |1 |1 |1
+|===
+
+Multiline table without column headers:
+
+[width="80%",cols="^20%,<17%,>20%,43%",]
+|===
+|First |row |12.0 |Example of a row that spans multiple lines.
+|Second |row |5.0 |Here’s another one. Note the blank line between rows.
+|===

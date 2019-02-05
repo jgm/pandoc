@@ -37,7 +37,7 @@ that it has omitted the construct.
 
 AsciiDoc:  <http://www.methods.co.nz/asciidoc/>
 -}
-module Text.Pandoc.Writers.AsciiDoc (writeAsciiDoc) where
+module Text.Pandoc.Writers.AsciiDoc (writeAsciiDoc, writeAsciiDoctor) where
 import Prelude
 import Control.Monad.State.Strict
 import Data.Char (isPunctuation, isSpace, toLower)
@@ -61,18 +61,27 @@ data WriterState = WriterState { defListMarker    :: String
                                , bulletListLevel  :: Int
                                , intraword        :: Bool
                                , autoIds          :: Set.Set String
+                               , asciidoctorVariant  :: Bool
                                }
+
+defaultWriterState :: WriterState
+defaultWriterState = WriterState { defListMarker      = "::"
+                                 , orderedListLevel   = 1
+                                 , bulletListLevel    = 1
+                                 , intraword          = False
+                                 , autoIds            = Set.empty
+                                 , asciidoctorVariant = False
+                                 }
 
 -- | Convert Pandoc to AsciiDoc.
 writeAsciiDoc :: PandocMonad m => WriterOptions -> Pandoc -> m Text
 writeAsciiDoc opts document =
-  evalStateT (pandocToAsciiDoc opts document) WriterState{
-      defListMarker = "::"
-    , orderedListLevel = 1
-    , bulletListLevel = 1
-    , intraword = False
-    , autoIds = Set.empty
-    }
+  evalStateT (pandocToAsciiDoc opts document) defaultWriterState
+
+-- | Convert Pandoc to AsciiDoctor compatible AsciiDoc.
+writeAsciiDoctor :: PandocMonad m => WriterOptions -> Pandoc -> m Text
+writeAsciiDoctor opts document =
+  evalStateT (pandocToAsciiDoc opts document) defaultWriterState{ asciidoctorVariant = True }
 
 type ADW = StateT WriterState
 
@@ -411,12 +420,20 @@ inlineToAsciiDoc opts (Quoted DoubleQuote lst) =
 inlineToAsciiDoc _ (Code _ str) = return $
   text "`" <> text (escapeStringUsing (backslashEscapes "`") str) <> "`"
 inlineToAsciiDoc _ (Str str) = return $ text $ escapeString str
-inlineToAsciiDoc _ (Math InlineMath str) =
-  return $ "latexmath:[$" <> text str <> "$]"
-inlineToAsciiDoc _ (Math DisplayMath str) =
+inlineToAsciiDoc _ (Math InlineMath str) = do
+  isAsciidoctor <- gets asciidoctorVariant
+  let content = if isAsciidoctor
+                then text str
+                else "$" <> text str <> "$"
+  return $ "latexmath:[" <> content <> "]"
+inlineToAsciiDoc _ (Math DisplayMath str) = do
+  isAsciidoctor <- gets asciidoctorVariant
+  let content = if isAsciidoctor
+                then text str
+                else "\\[" <> text str <> "\\]"
   return $
       blankline <> "[latexmath]" $$ "++++" $$
-      "\\[" <> text str <> "\\]"
+      content
       $$ "++++" $$ blankline
 inlineToAsciiDoc _ il@(RawInline f s)
   | f == "asciidoc" = return $ text s

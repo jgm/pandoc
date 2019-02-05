@@ -37,6 +37,7 @@ module Text.Pandoc.Writers
       Writer(..)
     , writers
     , writeAsciiDoc
+    , writeAsciiDoctor
     , writeBeamer
     , writeCommonMark
     , writeConTeXt
@@ -178,6 +179,7 @@ writers = [
   ,("rtf"          , TextWriter writeRTF)
   ,("org"          , TextWriter writeOrg)
   ,("asciidoc"     , TextWriter writeAsciiDoc)
+  ,("asciidoctor"  , TextWriter writeAsciiDoctor)
   ,("haddock"      , TextWriter writeHaddock)
   ,("commonmark"   , TextWriter writeCommonMark)
   ,("gfm"          , TextWriter writeCommonMark)
