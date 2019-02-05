@@ -226,6 +226,13 @@ tests =
 
       , "Verbatim tag after text" =: "Foo <verbatim>bar</verbatim>" =?> para "Foo bar"
 
+      , "Verbatim tag escapes block level markup" =:
+        T.unlines [ "Foo <verbatim>bar"
+                  , "* Not a heading"
+                  , "</verbatim>baz"
+                  ] =?>
+        para "Foo bar\n* Not a heading\nbaz"
+
       , "Class tag" =: "<class name=\"foo\">bar</class>" =?> para (spanWith ("", ["foo"], []) "bar")
       , "Class tag without name" =: "<class>foobar</class>" =?> para (spanWith ("", [], []) "foobar")
 
