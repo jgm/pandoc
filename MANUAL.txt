@@ -279,7 +279,7 @@ General options {.options}
 :   Specify output format.  *FORMAT* can be:
 
     ::: {#output-formats}
-    - `asciidoc` ([AsciiDoc])
+    - `asciidoc` ([AsciiDoc]) or `asciidoctor` ([AsciiDoctor])
     - `beamer` ([LaTeX beamer][`beamer`] slide show)
     - `commonmark` ([CommonMark] Markdown)
     - `context` ([ConTeXt])
@@ -465,6 +465,7 @@ General options {.options}
 [GNU Texinfo]: http://www.gnu.org/software/texinfo/
 [Emacs Org mode]: http://orgmode.org
 [AsciiDoc]: http://www.methods.co.nz/asciidoc/
+[AsciiDoctor]: https://asciidoctor.org/
 [DZSlides]: http://paulrouget.com/dzslides/
 [Word docx]: https://en.wikipedia.org/wiki/Office_Open_XML
 [PDF]: https://www.adobe.com/pdf/
@@ -3513,7 +3514,11 @@ reStructuredText
   ~ It will be rendered using an [interpreted text role `:math:`].
 
 AsciiDoc
-  ~ It will be rendered as `latexmath:[...]` when inline and `[latexmath]++++....++++` when in display mode.
+  ~ For AsciiDoc output format (`-t asciidoc`) it will appear verbatim
+    surrounded by `latexmath:[$...$]` (for inline math) or
+    `[latexmath]++++\[...\]+++` (for display math).
+    For AsciiDoctor output format (`-t asciidoctor`) the LaTex delimiters
+    (`$..$` and `\[..\]`) are omitted.
 
 Texinfo
   ~ It will be rendered inside a `@math` command.
