@@ -249,12 +249,11 @@ yamlMetaBlock = try $ do
 
 -- | Read a YAML string and convert it to pandoc metadata.
 -- String scalars in the YAML are parsed as Markdown.
-yamlToMeta :: PandocMonad m => BS.ByteString -> m Meta
-yamlToMeta bstr = do
+yamlToMeta :: PandocMonad m => ReaderOptions -> BS.ByteString -> m Meta
+yamlToMeta opts bstr = do
   let parser = do
         meta <- yamlBsToMeta bstr
         return $ runF meta defaultParserState
-      opts = def{ readerExtensions = pandocExtensions }
   parsed <- readWithM parser def{ stateOptions = opts } ""
   case parsed of
     Right result -> return result

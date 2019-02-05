@@ -211,10 +211,6 @@ convertWithOpts opts = do
                                          ("application/xml", jatsCSL)
                      return $ ("csl", jatsEncoded) : optMetadata opts
                    else return $ optMetadata opts
-    metadataFromFile <-
-      case optMetadataFile opts of
-        Nothing   -> return mempty
-        Just file -> readFileLazy file >>= yamlToMeta
 
     case lookup "lang" (optMetadata opts) of
            Just l  -> case parseBCP47 l of
@@ -234,6 +230,11 @@ convertWithOpts opts = do
           , readerExtensions = readerExts
           , readerStripComments = optStripComments opts
           }
+
+    metadataFromFile <-
+      case optMetadataFile opts of
+        Nothing   -> return mempty
+        Just file -> readFileLazy file >>= yamlToMeta readerOpts
 
     let transforms = (case optBaseHeaderLevel opts of
                           x | x > 1     -> (headerShift (x - 1) :)
