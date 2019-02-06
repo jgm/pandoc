@@ -254,7 +254,8 @@ yamlToMeta bstr = do
   let parser = do
         meta <- yamlBsToMeta bstr
         return $ runF meta defaultParserState
-  parsed <- readWithM parser def ""
+      opts = def{ readerExtensions = pandocExtensions }
+  parsed <- readWithM parser def{ stateOptions = opts } ""
   case parsed of
     Right result -> return result
     Left e       -> throwError e
