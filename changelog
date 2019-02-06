@@ -1,4 +1,4 @@
-pandoc (2.6) PROVISIONAL
+pandoc (2.6)
 
   * Support ipynb (Jupyter notebook) as input and output format.
 
