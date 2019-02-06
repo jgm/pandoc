@@ -364,6 +364,7 @@ archiveToDocxWithWarnings archive = do
 archiveToDocument :: Archive -> D Document
 archiveToDocument zf = do
   entry <- maybeToD $ findEntryByPath "word/document.xml" zf
+             `mplus` findEntryByPath "word/document2.xml" zf -- see #5277
   docElem <- maybeToD $ (parseXMLDoc . UTF8.toStringLazy . fromEntry) entry
   let namespaces = elemToNameSpaces docElem
   bodyElem <- maybeToD $ findChildByName namespaces "w" "body" docElem
@@ -478,6 +479,7 @@ archiveToComments zf =
 
 filePathToRelType :: FilePath -> Maybe DocumentLocation
 filePathToRelType "word/_rels/document.xml.rels"  = Just InDocument
+filePathToRelType "word/_rels/document2.xml.rels" = Just InDocument
 filePathToRelType "word/_rels/footnotes.xml.rels" = Just InFootnote
 filePathToRelType "word/_rels/endnotes.xml.rels"  = Just InEndnote
 filePathToRelType _                               = Nothing
