@@ -15,6 +15,9 @@ $endif$
 $if(toc)$
 :toc:
 $endif$
+$if(math)$
+:stem: latexmath
+$endif$
 
 $endif$
 $if(abstract)$
