@@ -404,9 +404,12 @@ library
   if impl(ghc < 8.0)
     build-depends: semigroups == 0.18.*,
                    -- basement 0.0.8 and foundation 0.0.21, transitive
-                   -- dependencies, drop support for ghc 7.10:
+                   -- dependencies, drop support for ghc 7.10.
                    basement < 0.0.8,
                    foundation < 0.0.21
+  if impl(ghc >= 8.0) && os(windows) && arch(i386)
+     build-depends: basement < 0.0.10
+                    -- basement 0.0.10 won't build on 32-bit windows.
   if impl(ghc < 8.4)
      hs-source-dirs: prelude
      other-modules:  Prelude
