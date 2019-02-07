@@ -24,8 +24,12 @@ THIS SOFTWARE.
 -- @license MIT
 local M = {}
 
+-- Other modules used here; those are also re-exported.
 local List = require 'pandoc.List'
 local utils = require 'pandoc.utils'
+
+M.List = List
+M.utils = utils
 
 ------------------------------------------------------------------------
 -- Accessor objects

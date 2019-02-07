@@ -2192,10 +2192,19 @@ Usage:
     -- The inline element in that block is an `Emph`
     assert(block.content[1].t == "Emph")
 
+
 # Module pandoc.utils
 
 This module exposes internal pandoc functions and utility
 functions.
+
+The module is loaded as part of the `pandoc` module and available
+as `pandoc.utils`. In versions up-to and including pandoc 2.6,
+this module had to be loaded explicitly. Example:
+
+    local utils = require 'pandoc.utils'
+
+Use this for backwards compatibility.
 
 ### blocks\_to\_inlines {#utils-blocks_to_inlines}
 
@@ -2468,9 +2477,20 @@ Usage:
     local diagram_url = "https://pandoc.org/diagram.jpg"
     local contents = pandoc.mediabag.fetch(diagram_url, ".")
 
+
 # Module pandoc.List
 
-Pandoc\'s List type and helper methods
+Pandoc's List type and helper methods.
+
+This module is loaded and available as `pandoc.List`. Older
+versions up-to and including pandoc 2.6 require the module to be
+loaded explicitly. Example:
+
+    local List = require 'pandoc.List'
+
+The above remains the recommended method to use this module; it
+provides the List type under an idiomatic name and is fully
+backwards compatible.
 
 ## Metamethods
 
