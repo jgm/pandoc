@@ -92,6 +92,7 @@ data ReaderEnv = ReaderEnv { envNotes         :: Notes
                            , envCharStyles    :: CharStyleMap
                            , envParStyles     :: ParStyleMap
                            , envLocation      :: DocumentLocation
+                           , envDocXmlPath    :: FilePath
                            }
                deriving Show
 
@@ -343,14 +344,26 @@ archiveToDocx archive = fst <$> archiveToDocxWithWarnings archive
 
 archiveToDocxWithWarnings :: Archive -> Either DocxError (Docx, [String])
 archiveToDocxWithWarnings archive = do
+  docXmlPath <- case getDocumentXmlPath archive of
+    Just fp -> Right fp
+    Nothing -> Left DocxError
   let notes     = archiveToNotes archive
       comments  = archiveToComments archive
       numbering = archiveToNumbering archive
-      rels      = archiveToRelationships archive
+      rels      = archiveToRelationships archive docXmlPath
       media     = filteredFilesFromArchive archive filePathIsMedia
       (styles, parstyles) = archiveToStyles archive
-      rEnv =
-        ReaderEnv notes comments numbering rels media Nothing styles parstyles InDocument
+      rEnv = ReaderEnv { envNotes = notes
+                       , envComments = comments
+                       , envNumbering = numbering
+                       , envRelationships = rels
+                       , envMedia = media
+                       , envFont = Nothing
+                       , envCharStyles = styles
+                       , envParStyles = parstyles
+                       , envLocation = InDocument
+                       , envDocXmlPath = docXmlPath
+                       }
       rState = ReaderState { stateWarnings = []
                            , stateFldCharState = FldCharClosed
                            }
@@ -359,8 +372,8 @@ archiveToDocxWithWarnings archive = do
     Right doc -> Right (Docx doc, stateWarnings st)
     Left e    -> Left e
 
-getDocumentPath :: Archive -> Maybe String
-getDocumentPath zf = do
+getDocumentXmlPath :: Archive -> Maybe String
+getDocumentXmlPath zf = do
   entry <- findEntryByPath "_rels/.rels" zf
   relsElem <- (parseXMLDoc . UTF8.toStringLazy . fromEntry) entry
   let rels = filterChildrenName (\n -> qName n == "Relationship") relsElem
@@ -372,7 +385,7 @@ getDocumentPath zf = do
 
 archiveToDocument :: Archive -> D Document
 archiveToDocument zf = do
-  docPath <- maybeToD $ getDocumentPath zf
+  docPath <- asks envDocXmlPath
   entry <- maybeToD $ findEntryByPath docPath zf
   docElem <- maybeToD $ (parseXMLDoc . UTF8.toStringLazy . fromEntry) entry
   let namespaces = elemToNameSpaces docElem
@@ -504,20 +517,17 @@ relElemToRelationship relType element | qName (elName element) == "Relationship"
     return $ Relationship relType relId target
 relElemToRelationship _ _ = Nothing
 
-filePathToRelationships :: Archive -> (Maybe FilePath) -> FilePath ->  [Relationship]
-filePathToRelationships ar mDocXmlPath fp
-  | Just docXmlPath <- mDocXmlPath
-  , Just relType <- filePathToRelType fp docXmlPath
+filePathToRelationships :: Archive -> FilePath -> FilePath ->  [Relationship]
+filePathToRelationships ar docXmlPath fp
+  | Just relType <- filePathToRelType fp docXmlPath
   , Just entry <- findEntryByPath fp ar
   , Just relElems <- (parseXMLDoc . UTF8.toStringLazy . fromEntry) entry =
   mapMaybe (relElemToRelationship relType) $ elChildren relElems
 filePathToRelationships _ _ _ = []
 
-archiveToRelationships :: Archive -> [Relationship]
-archiveToRelationships archive =
-  let mDocXmlPath = getDocumentPath archive
-  in
-    concatMap (filePathToRelationships archive mDocXmlPath) $ filesInArchive archive
+archiveToRelationships :: Archive -> FilePath -> [Relationship]
+archiveToRelationships archive docXmlPath =
+  concatMap (filePathToRelationships archive docXmlPath) $ filesInArchive archive
 
 filePathIsMedia :: FilePath -> Bool
 filePathIsMedia fp =
