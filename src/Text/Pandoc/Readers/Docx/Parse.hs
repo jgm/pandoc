@@ -486,12 +486,15 @@ archiveToComments zf =
       Just c  -> Comments cmts_namespaces c
       Nothing -> Comments cmts_namespaces M.empty
 
-filePathToRelType :: FilePath -> Maybe DocumentLocation
-filePathToRelType "word/_rels/document.xml.rels"  = Just InDocument
-filePathToRelType "word/_rels/document2.xml.rels" = Just InDocument
-filePathToRelType "word/_rels/footnotes.xml.rels" = Just InFootnote
-filePathToRelType "word/_rels/endnotes.xml.rels"  = Just InEndnote
-filePathToRelType _                               = Nothing
+filePathToRelType :: FilePath -> FilePath -> Maybe DocumentLocation
+filePathToRelType "word/_rels/footnotes.xml.rels" _ = Just InFootnote
+filePathToRelType "word/_rels/endnotes.xml.rels" _ = Just InEndnote
+-- -- to see if it's a documentPath, we have to check against the dynamic
+-- -- docPath specified in "_rels/.rels"
+filePathToRelType path docXmlPath =
+  if path == "word/_rels/" ++ (takeFileName docXmlPath) ++ ".rels"
+  then Just InDocument
+  else Nothing
 
 relElemToRelationship :: DocumentLocation -> Element -> Maybe Relationship
 relElemToRelationship relType element | qName (elName element) == "Relationship" =
@@ -501,16 +504,20 @@ relElemToRelationship relType element | qName (elName element) == "Relationship"
     return $ Relationship relType relId target
 relElemToRelationship _ _ = Nothing
 
-filePathToRelationships :: Archive -> FilePath -> [Relationship]
-filePathToRelationships ar fp | Just relType <- filePathToRelType fp
-                              , Just entry <- findEntryByPath fp ar
-                              , Just relElems <- (parseXMLDoc . UTF8.toStringLazy . fromEntry) entry =
+filePathToRelationships :: Archive -> (Maybe FilePath) -> FilePath ->  [Relationship]
+filePathToRelationships ar mDocXmlPath fp
+  | Just docXmlPath <- mDocXmlPath
+  , Just relType <- filePathToRelType fp docXmlPath
+  , Just entry <- findEntryByPath fp ar
+  , Just relElems <- (parseXMLDoc . UTF8.toStringLazy . fromEntry) entry =
   mapMaybe (relElemToRelationship relType) $ elChildren relElems
-filePathToRelationships _ _ = []
+filePathToRelationships _ _ _ = []
 
 archiveToRelationships :: Archive -> [Relationship]
 archiveToRelationships archive =
-  concatMap (filePathToRelationships archive) $ filesInArchive archive
+  let mDocXmlPath = getDocumentPath archive
+  in
+    concatMap (filePathToRelationships archive mDocXmlPath) $ filesInArchive archive
 
 filePathIsMedia :: FilePath -> Bool
 filePathIsMedia fp =
