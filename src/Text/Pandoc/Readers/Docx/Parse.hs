@@ -359,12 +359,21 @@ archiveToDocxWithWarnings archive = do
     Right doc -> Right (Docx doc, stateWarnings st)
     Left e    -> Left e
 
-
+getDocumentPath :: Archive -> Maybe String
+getDocumentPath zf = do
+  entry <- findEntryByPath "_rels/.rels" zf
+  relsElem <- (parseXMLDoc . UTF8.toStringLazy . fromEntry) entry
+  let rels = filterChildrenName (\n -> qName n == "Relationship") relsElem
+  rel <- listToMaybe $
+         filter (\e -> findAttr (QName "Type" Nothing Nothing) e ==
+                       Just "http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument")
+         rels
+  findAttr (QName "Target" Nothing Nothing) rel
 
 archiveToDocument :: Archive -> D Document
 archiveToDocument zf = do
-  entry <- maybeToD $ findEntryByPath "word/document.xml" zf
-             `mplus` findEntryByPath "word/document2.xml" zf -- see #5277
+  docPath <- maybeToD $ getDocumentPath zf
+  entry <- maybeToD $ findEntryByPath docPath zf
   docElem <- maybeToD $ (parseXMLDoc . UTF8.toStringLazy . fromEntry) entry
   let namespaces = elemToNameSpaces docElem
   bodyElem <- maybeToD $ findChildByName namespaces "w" "body" docElem
