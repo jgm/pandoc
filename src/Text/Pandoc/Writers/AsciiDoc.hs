@@ -62,6 +62,7 @@ data WriterState = WriterState { defListMarker    :: String
                                , intraword        :: Bool
                                , autoIds          :: Set.Set String
                                , asciidoctorVariant  :: Bool
+                               , hasMath             :: Bool
                                }
 
 defaultWriterState :: WriterState
@@ -71,6 +72,7 @@ defaultWriterState = WriterState { defListMarker      = "::"
                                  , intraword          = False
                                  , autoIds            = Set.empty
                                  , asciidoctorVariant = False
+                                 , hasMath            = False
                                  }
 
 -- | Convert Pandoc to AsciiDoc.
@@ -101,11 +103,13 @@ pandocToAsciiDoc opts (Pandoc meta blocks) = do
               meta
   body <- vcat <$> mapM (elementToAsciiDoc 1 opts) (hierarchicalize blocks)
   let main = render colwidth body
+  st <- get
   let context  = defField "body" main
                $ defField "toc"
                   (writerTableOfContents opts &&
                    isJust (writerTemplate opts))
-               $defField "titleblock" titleblock metadata
+               $ defField "math" (hasMath st)
+               $ defField "titleblock" titleblock metadata
   case writerTemplate opts of
        Nothing  -> return main
        Just tpl -> renderTemplate' tpl context
@@ -422,12 +426,14 @@ inlineToAsciiDoc _ (Code _ str) = return $
 inlineToAsciiDoc _ (Str str) = return $ text $ escapeString str
 inlineToAsciiDoc _ (Math InlineMath str) = do
   isAsciidoctor <- gets asciidoctorVariant
+  modify $ \st -> st{ hasMath = True }
   let content = if isAsciidoctor
                 then text str
                 else "$" <> text str <> "$"
   return $ "latexmath:[" <> content <> "]"
 inlineToAsciiDoc _ (Math DisplayMath str) = do
   isAsciidoctor <- gets asciidoctorVariant
+  modify $ \st -> st{ hasMath = True }
   let content = if isAsciidoctor
                 then text str
                 else "\\[" <> text str <> "\\]"
