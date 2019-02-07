@@ -126,7 +126,13 @@ testMediaBag :: String -> FilePath -> TestTree
 testMediaBag name docxFile = unsafePerformIO $ testMediaBagIO name docxFile
 
 tests :: [TestTree]
-tests = [ testGroup "inlines"
+tests = [ testGroup "document"
+          [ testCompare
+            "allow different document.xml file as defined in _rels/.rels"
+            "docx/alternate_document_path.docx"
+            "docx/alternate_document_path.native"
+          ]
+        , testGroup "inlines"
           [ testCompare
             "font formatting"
             "docx/inline_formatting.docx"
@@ -422,5 +428,4 @@ tests = [ testGroup "inlines"
             "docx/metadata_after_normal.docx"
             "docx/metadata_after_normal.native"
           ]
-
         ]
