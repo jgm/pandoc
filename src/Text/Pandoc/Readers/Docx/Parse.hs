@@ -73,6 +73,7 @@ import Data.List
 import qualified Data.Map as M
 import Data.Maybe
 import System.FilePath
+import qualified System.FilePath.Posix as PSX
 import Text.Pandoc.Readers.Docx.Util
 import Text.Pandoc.Readers.Docx.Fields
 import Text.Pandoc.Shared (filteredFilesFromArchive, safeRead)
@@ -505,7 +506,7 @@ filePathToRelType "word/_rels/endnotes.xml.rels" _ = Just InEndnote
 -- -- to see if it's a documentPath, we have to check against the dynamic
 -- -- docPath specified in "_rels/.rels"
 filePathToRelType path docXmlPath =
-  if path == "word/_rels/" ++ (takeFileName docXmlPath) ++ ".rels"
+  if path == "word/_rels/" ++ (PSX.takeFileName docXmlPath) ++ ".rels"
   then Just InDocument
   else Nothing
 
