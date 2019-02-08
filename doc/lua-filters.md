@@ -2224,7 +2224,7 @@ Parameters:
 
 Returns:
 
--   ({[Inline][#Inline]}) List of [Inlines]
+-   List of [Inlines]
 
 Usage:
 
