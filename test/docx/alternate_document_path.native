@@ -1,2 +1,0 @@
-[Header 1 ("test",[],[]) [Str "Test"]
-,Para [Str "This",Space,Str "is",Space,Emph [Str "italic"],Str ",",Space,Strong [Str "bold"],Str ",",Space,Span ("",["underline"],[]) [Str "underlined"],Str ",",Space,Emph [Span ("",["underline"],[]) [Str "italic",Space,Str "underlined"]],Str ",",Space,Strong [Span ("",["underline"],[]) [Str "bold",Space,Str "underlined"]],Str ",",Space,Emph [Strong [Span ("",["underline"],[]) [Str "bold",Space,Str "italic",Space,Str "underlined"]]],Str "."]]
