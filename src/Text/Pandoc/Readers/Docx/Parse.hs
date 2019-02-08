@@ -381,7 +381,12 @@ getDocumentXmlPath zf = do
          filter (\e -> findAttr (QName "Type" Nothing Nothing) e ==
                        Just "http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument")
          rels
-  findAttr (QName "Target" Nothing Nothing) rel
+  fp <- findAttr (QName "Target" Nothing Nothing) rel
+  -- sometimes there will be a leading slash, which windows seems to
+  -- have trouble with.
+  return $ case fp of
+    '/' : fp' -> fp'
+    _         -> fp
 
 archiveToDocument :: Archive -> D Document
 archiveToDocument zf = do
