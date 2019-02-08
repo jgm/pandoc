@@ -408,8 +408,9 @@ library
                    basement < 0.0.8,
                    foundation < 0.0.21
   if impl(ghc >= 8.0) && os(windows) && arch(i386)
-     build-depends: basement < 0.0.10
-                    -- basement 0.0.10 won't build on 32-bit windows.
+     build-depends: basement >= 0.0.10,
+                    foundation >= 0.0.23
+                    -- basement 0.0.9 won't build on 32-bit windows.
   if impl(ghc < 8.4)
      hs-source-dirs: prelude
      other-modules:  Prelude
