@@ -88,7 +88,7 @@ pandocPackageSearcher luaPkgParams pkgName =
     case modScript of
       Just script -> pushWrappedHsFun (loadStringAsPackage pkgName script)
       Nothing -> do
-        Lua.push ("no file '" ++ filename ++ "' in pandoc's datadir")
+        Lua.push ("\n\tno file '" ++ filename ++ "' in pandoc's datadir")
         return 1
 
 loadStringAsPackage :: String -> ByteString -> Lua NumResults
