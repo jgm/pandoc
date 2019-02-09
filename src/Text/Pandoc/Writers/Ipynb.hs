@@ -62,6 +62,7 @@ writeIpynb opts d = do
   notebook <- pandocToNotebook opts d
   return $ TE.decodeUtf8 . BL.toStrict . encodePretty' defConfig{
              confIndent  = Spaces 1,
+             confTrailingNewline = True,
              confCompare = keyOrder
                [ "cells", "nbformat", "nbformat_minor",
                  "cell_type", "output_type",
