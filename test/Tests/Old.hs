@@ -191,6 +191,12 @@ tests pandocPath =
     [ test' "reader" ["-r", "org", "-w", "native", "-s"]
       "org-select-tags.org" "org-select-tags.native"
     ]
+  , testGroup "ipynb"
+    [ test' "reader" ["-f", "ipynb", "-t", "native", "-s"]
+      "ipynb/simple.ipynb" "ipynb/simple.out.native"
+    , test' "writer" ["-f", "native", "-t", "ipynb", "-s"]
+      "ipynb/simple.in.native" "ipynb/simple.ipynb"
+    ]
   ]
  where
     test'           = test pandocPath

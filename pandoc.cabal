@@ -322,6 +322,9 @@ extra-source-files:
                  test/epub/*.native
                  test/pptx/*.pptx
                  test/pptx/*.native
+                 test/ipynb/*.in.native
+                 test/ipynb/*.out.native
+                 test/ipynb/*.ipynb
                  test/txt2tags.t2t
                  test/twiki-reader.twiki
                  test/tikiwiki-reader.tikiwiki
