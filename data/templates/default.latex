@@ -205,6 +205,9 @@ $endif$
 $if(author-meta)$
   pdfauthor={$author-meta$},
 $endif$
+$if(subject)$
+  pdfsubject={$subject$},
+$endif$
 $if(keywords)$
   pdfkeywords={$for(keywords)$$keywords$$sep$, $endfor$},
 $endif$
