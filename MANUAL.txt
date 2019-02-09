@@ -1394,7 +1394,7 @@ Metadata variables
     and AsciiDoc metadata; repeat as for `author`, above
 
 `subject`
-:   document subject, included in ODT, docx and pptx metadata
+:   document subject, included in ODT, PDF, docx and pptx metadata
 
 `description`
 :   document description, included in ODT, docx and pptx metadata. Some
