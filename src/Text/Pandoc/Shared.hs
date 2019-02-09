@@ -416,8 +416,7 @@ capitalize = walk go
         go x       = x
 
 -- | Change final list item from @Para@ to @Plain@ if the list contains
--- no other @Para@ blocks.  Like compactify, but operates on @Blocks@ rather
--- than @[Block]@.
+-- no other @Para@ blocks.
 compactify :: [Blocks]  -- ^ List of list items (each a list of blocks)
            -> [Blocks]
 compactify [] = []
