@@ -219,21 +219,15 @@ Some pandoc functions have been made available in lua:
 
 # Lua interpreter initialization
 
-The way the Lua interpreter is set-up can be controlled by
-placing a file `init.lua` in pandoc's data directory. The
-default init file loads the `pandoc` and `pandoc.mediabag`
-modules:
+Initialization of pandoc's Lua interpreter can be controlled by
+placing a file `init.lua` in pandoc's data directory. A common
+use-case would be to load additional modules, or even to alter
+default modules.
 
-``` {.lua}
-pandoc = require 'pandoc'
-pandoc.mediabag = require 'pandoc.mediabag'
-```
-
-A common use-case would be to add code to load additional
-modules or to alter default modules. E.g., the following snippet
-adds all unicode-aware functions defined in the [`text`
-module](#module-text) to the default `string` module, prefixed
-with the string `uc_`.
+The following snippet is an example of code that might be useful
+when added to `init.lua`. The snippet adds all unicode-aware
+functions defined in the [`text` module] to the default `string`
+module, prefixed with the string `uc_`.
 
 ``` {.lua}
 for name, fn in pairs(require 'text') do
@@ -243,6 +237,8 @@ end
 
 This makes it possible to apply these functions on strings using
 colon syntax (`mystring:uc_upper()`).
+
+[`text` module]: #module-text
 
 # Examples
 
