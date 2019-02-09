@@ -416,7 +416,8 @@ capitalize = walk go
         go x       = x
 
 -- | Change final list item from @Para@ to @Plain@ if the list contains
--- no other @Para@ blocks.
+-- no other @Para@ blocks.  Otherwise (if the list items contain @Para@
+-- blocks besides possibly at the end), turn any @Plain@s into @Para@s (#5285).
 compactify :: [Blocks]  -- ^ List of list items (each a list of blocks)
            -> [Blocks]
 compactify [] = []
@@ -426,8 +427,14 @@ compactify items =
            (Para a:xs) -> case [Para x | Para x <- concatMap B.toList items] of
                             -- if this is only Para, change to Plain
                             [_] -> others ++ [B.fromList (reverse $ Plain a : xs)]
-                            _   -> items
+                            -- if other Paras, it's a loose list, change
+                            -- all Plain to Para
+                            _   -> map (fmap plainToPara) items
            _      -> items
+
+plainToPara :: Block -> Block
+plainToPara (Plain ils) = Para ils
+plainToPara x = x
 
 -- | Like @compactify@, but acts on items of definition lists.
 compactifyDL :: [(Inlines, [Blocks])] -> [(Inlines, [Blocks])]
