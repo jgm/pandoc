@@ -49,6 +49,7 @@ import Text.Pandoc.Lua.Util (loadScriptFromDataDir)
 import qualified Foreign.Lua as Lua
 import qualified Foreign.Lua.Module.Text as Lua
 import qualified Text.Pandoc.Definition as Pandoc
+import qualified Text.Pandoc.Lua.Module.Pandoc as ModulePandoc
 
 -- | Lua error message
 newtype LuaException = LuaException String deriving (Show)
@@ -95,16 +96,37 @@ luaPackageParams = do
 
 -- | Initialize the lua state with all required values
 initLuaState :: LuaPackageParams -> Lua ()
-initLuaState luaPkgParams = do
+initLuaState pkgParams = do
   Lua.openlibs
   Lua.preloadTextModule "text"
-  installPandocPackageSearcher luaPkgParams
-  loadScriptFromDataDir (luaPkgDataDir luaPkgParams) "init.lua"
-  putConstructorsInRegistry
+  installPandocPackageSearcher pkgParams
+  initPandocModule
+  loadScriptFromDataDir (luaPkgDataDir pkgParams) "init.lua"
+ where
+  initPandocModule :: Lua ()
+  initPandocModule = do
+    -- Push module table
+    ModulePandoc.pushModule (luaPkgDataDir pkgParams)
+    -- register as loaded module
+    Lua.pushvalue Lua.stackTop
+    Lua.getfield Lua.registryindex Lua.loadedTableRegistryField
+    Lua.setfield (Lua.nthFromTop 2) "pandoc"
+    Lua.pop 1
+    -- copy constructors into registry
+    putConstructorsInRegistry
+    -- assign module to global variable
+    Lua.setglobal "pandoc"
 
+-- | AST elements are marshaled via normal constructor functions in the
+-- @pandoc@ module. However, accessing Lua globals from Haskell is
+-- expensive (due to error handling). Accessing the Lua registry is much
+-- cheaper, which is why the constructor functions are copied into the
+-- Lua registry and called from there.
+--
+-- This function expects the @pandoc@ module to be at the top of the
+-- stack.
 putConstructorsInRegistry :: Lua ()
 putConstructorsInRegistry = do
-  Lua.getglobal "pandoc"
   constrsToReg $ Pandoc.Pandoc mempty mempty
   constrsToReg $ Pandoc.Str mempty
   constrsToReg $ Pandoc.Para mempty
@@ -113,7 +135,6 @@ putConstructorsInRegistry = do
   constrsToReg $ Pandoc.Citation mempty mempty mempty Pandoc.AuthorInText 0 0
   putInReg "Attr"  -- used for Attr type alias
   putInReg "ListAttributes"  -- used for ListAttributes type alias
-  Lua.pop 1
  where
   constrsToReg :: Data a => a -> Lua ()
   constrsToReg = mapM_ (putInReg . showConstr) . dataTypeConstrs . dataTypeOf
