@@ -68,8 +68,8 @@ writeAsciiDoc :: PandocMonad m => WriterOptions -> Pandoc -> m Text
 writeAsciiDoc opts document =
   evalStateT (pandocToAsciiDoc opts document) WriterState{
       defListMarker = "::"
-    , orderedListLevel = 1
-    , bulletListLevel = 1
+    , orderedListLevel = 0
+    , bulletListLevel = 0
     , intraword = False
     , autoIds = Set.empty
     }
@@ -285,7 +285,7 @@ bulletListItemToAsciiDoc opts blocks = do
   modify $ \s -> s{ bulletListLevel = lev + 1 }
   contents <- foldM (addBlock opts) empty blocks
   modify $ \s -> s{ bulletListLevel = lev }
-  let marker = text (replicate lev '*')
+  let marker = text (replicate (lev + 1) '*')
   return $ marker <> text " " <> contents <> cr
 
 addBlock :: PandocMonad m => WriterOptions -> Doc -> Block -> ADW m Doc
@@ -307,7 +307,7 @@ orderedListItemToAsciiDoc opts blocks = do
   modify $ \s -> s{ orderedListLevel = lev + 1 }
   contents <- foldM (addBlock opts) empty blocks
   modify $ \s -> s{ orderedListLevel = lev }
-  let marker = text (replicate lev '.')
+  let marker = text (replicate (lev + 1) '.')
   return $ marker <> text " " <> contents <> cr
 
 -- | Convert definition list item (label, list of blocks) to asciidoc.
