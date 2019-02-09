@@ -56,12 +56,13 @@ import Text.Pandoc.Shared
 import Text.Pandoc.Templates (renderTemplate')
 import Text.Pandoc.Writers.Shared
 
-data WriterState = WriterState { defListMarker    :: String
-                               , orderedListLevel :: Int
-                               , bulletListLevel  :: Int
-                               , intraword        :: Bool
-                               , autoIds          :: Set.Set String
+data WriterState = WriterState { defListMarker       :: String
+                               , orderedListLevel    :: Int
+                               , bulletListLevel     :: Int
+                               , intraword           :: Bool
+                               , autoIds             :: Set.Set String
                                , asciidoctorVariant  :: Bool
+                               , inList              :: Bool
                                , hasMath             :: Bool
                                }
 
@@ -72,6 +73,7 @@ defaultWriterState = WriterState { defListMarker      = "::"
                                  , intraword          = False
                                  , autoIds            = Set.empty
                                  , asciidoctorVariant = False
+                                 , inList             = False
                                  , hasMath            = False
                                  }
 
@@ -268,7 +270,10 @@ blockToAsciiDoc opts (Table caption aligns widths headers rows) =  do
   return $
     caption'' $$ tablespec $$ border $$ head'' $$ body $$ border $$ blankline
 blockToAsciiDoc opts (BulletList items) = do
+  inlist <- gets inList
+  modify $ \st -> st{ inList = True }
   contents <- mapM (bulletListItemToAsciiDoc opts) items
+  modify $ \st -> st{ inList = inlist }
   return $ cat contents <> blankline
 blockToAsciiDoc opts (OrderedList (start, sty, _delim) items) = do
   let listStyle = case sty of
@@ -280,10 +285,16 @@ blockToAsciiDoc opts (OrderedList (start, sty, _delim) items) = do
   let listoptions = case intercalate ", " (listStyle ++ listStart) of
                           [] -> empty
                           x  -> brackets (text x)
+  inlist <- gets inList
+  modify $ \st -> st{ inList = True }
   contents <- mapM (orderedListItemToAsciiDoc opts) items
+  modify $ \st -> st{ inList = inlist }
   return $ listoptions $$ cat contents <> blankline
 blockToAsciiDoc opts (DefinitionList items) = do
+  inlist <- gets inList
+  modify $ \st -> st{ inList = True }
   contents <- mapM (definitionListItemToAsciiDoc opts) items
+  modify $ \st -> st{ inList = inlist }
   return $ cat contents <> blankline
 blockToAsciiDoc opts (Div (ident,_,_) bs) = do
   let identifier = if null ident then empty else "[[" <> text ident <> "]]"
@@ -299,16 +310,31 @@ bulletListItemToAsciiDoc opts blocks = do
   contents <- foldM (addBlock opts) empty blocks
   modify $ \s -> s{ bulletListLevel = lev }
   let marker = text (replicate (lev + 1) '*')
-  return $ marker <> text " " <> contents <> cr
+  return $ marker <> text " " <> listBegin blocks <>
+    contents <> cr
 
 addBlock :: PandocMonad m => WriterOptions -> Doc -> Block -> ADW m Doc
-addBlock opts d b | isEmpty d    = chomp `fmap` blockToAsciiDoc opts b
-addBlock opts d b@(BulletList _) = do x <- blockToAsciiDoc opts b
-                                      return $ d <> cr <> chomp x
-addBlock opts d b@(OrderedList _ _) = do x <- blockToAsciiDoc opts b
-                                         return $ d <> cr <> chomp x
-addBlock opts d b = do x <- blockToAsciiDoc opts b
-                       return $ d <> cr <> text "+" <> cr <> chomp x
+addBlock opts d b = do
+  x <- chomp <$> blockToAsciiDoc opts b
+  return $
+    case b of
+        BulletList{} -> d <> cr <> x
+        OrderedList{} -> d <> cr <> x
+        Para (Math DisplayMath _:_) -> d <> cr <> x
+        Plain (Math DisplayMath _:_) -> d <> cr <> x
+        Para{} | isEmpty d -> x
+        Plain{} | isEmpty d -> x
+        _ -> d <> cr <> text "+" <> cr <> x
+
+listBegin :: [Block] -> Doc
+listBegin blocks =
+        case blocks of
+          Para (Math DisplayMath _:_) : _  -> "{blank}"
+          Plain (Math DisplayMath _:_) : _ -> "{blank}"
+          Para _ : _                       -> empty
+          Plain _ : _                      -> empty
+          _ : _                            -> "{blank}"
+          []                               -> "{blank}"
 
 -- | Convert ordered list item (a list of blocks) to asciidoc.
 orderedListItemToAsciiDoc :: PandocMonad m
@@ -321,7 +347,7 @@ orderedListItemToAsciiDoc opts blocks = do
   contents <- foldM (addBlock opts) empty blocks
   modify $ \s -> s{ orderedListLevel = lev }
   let marker = text (replicate (lev + 1) '.')
-  return $ marker <> text " " <> contents <> cr
+  return $ marker <> text " " <> listBegin blocks <> contents <> cr
 
 -- | Convert definition list item (label, list of blocks) to asciidoc.
 definitionListItemToAsciiDoc :: PandocMonad m
@@ -437,10 +463,13 @@ inlineToAsciiDoc _ (Math DisplayMath str) = do
   let content = if isAsciidoctor
                 then text str
                 else "\\[" <> text str <> "\\]"
+  inlist <- gets inList
+  let sepline = if inlist
+                   then text "+"
+                   else blankline
   return $
-      blankline <> "[latexmath]" $$ "++++" $$
-      content
-      $$ "++++" $$ blankline
+      (cr <> sepline) $$ "[latexmath]" $$ "++++" $$
+      content $$ "++++" <> cr
 inlineToAsciiDoc _ il@(RawInline f s)
   | f == "asciidoc" = return $ text s
   | otherwise         = do
