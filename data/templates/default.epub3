@@ -28,7 +28,7 @@ $endfor$
 </head>
 <body$if(coverpage)$ id="cover"$endif$$if(body-type)$ epub:type="$body-type$"$endif$>
 $if(titlepage)$
-<section epub:type="titlepage">
+<section epub:type="titlepage" class="titlepage">
 $for(title)$
 $if(title.type)$
   <h1 class="$title.type$">$title.text$</h1>
