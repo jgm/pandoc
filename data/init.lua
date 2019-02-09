@@ -3,5 +3,3 @@
 -- default modules.
 
 pandoc = require 'pandoc'
-pandoc.mediabag = require 'pandoc.mediabag'
-pandoc.utils = require 'pandoc.utils'

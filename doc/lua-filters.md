@@ -1360,8 +1360,8 @@ to a string via `tostring`.
 # Module text
 
 UTF-8 aware text manipulation functions, implemented in Haskell.
-These are available to any lua filter. However, the module must
-be explicitly loaded:
+The module is made available as part of the `pandoc` module via
+`pandoc.text`. The text module can also be loaded explicitly:
 
 ``` {.lua}
 -- uppercase all regular text in a document:
@@ -2391,6 +2391,13 @@ Usage:
 The `pandoc.mediabag` module allows accessing pandoc's media
 storage. The "media bag" is used when pandoc is called with the
 `--extract-media` or `--standalone`/`-s` option.
+
+The module is loaded as part of module `pandoc` and can either be
+accessed via the `pandoc.mediabag` field, or explicitly required,
+e.g.:
+
+
+    local mb = require 'pandoc.mediabag'
 
 ### insert {#mediabag-insert}
 

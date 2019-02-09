@@ -1,7 +1,7 @@
 --[[
 pandoc.lua
 
-Copyright © 2017–2018 Albert Krewinkel
+Copyright © 2017–2019 Albert Krewinkel
 
 Permission to use, copy, modify, and/or distribute this software for any purpose
 with or without fee is hereby granted, provided that the above copyright notice
@@ -20,16 +20,20 @@ THIS SOFTWARE.
 -- Lua functions for pandoc scripts.
 --
 -- @author Albert Krewinkel
--- @copyright © 2017–2018 Albert Krewinkel
+-- @copyright © 2017–2019 Albert Krewinkel
 -- @license MIT
 local M = {}
 
--- Other modules used here; those are also re-exported.
-local List = require 'pandoc.List'
-local utils = require 'pandoc.utils'
+-- Re-export bundled modules
+M.List = require 'pandoc.List'
+M.mediabag = require 'pandoc.mediabag'
+M.utils = require 'pandoc.utils'
+M.text = require 'text'
 
-M.List = List
-M.utils = utils
+-- Local names for modules which this module depends on.
+local List = M.List
+local utils = M.utils
+
 
 ------------------------------------------------------------------------
 -- Accessor objects
