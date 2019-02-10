@@ -230,7 +230,7 @@ blockToJATS opts (Para [Image (ident,_,kvs) txt
   let (maintype, subtype) = imageMimeType src kvs
   let capt = if null txt
                 then empty
-                else inTagsSimple "caption" alt
+                else inTagsSimple "caption" $ inTagsSimple "p" alt
   let attr = [("id", ident) | not (null ident)] ++
              [(k,v) | (k,v) <- kvs, k `elem` ["fig-type", "orientation",
                                               "position", "specific-use"]]
