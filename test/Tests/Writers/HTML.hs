@@ -34,7 +34,7 @@ tests :: [TestTree]
 tests = [ testGroup "inline code"
           [ "basic" =: code "@&" =?> "<code>@&amp;</code>"
           , "haskell" =: codeWith ("",["haskell"],[]) ">>="
-            =?> "<code class=\"sourceCode haskell\"><span class=\"fu\">&gt;&gt;=</span></code>"
+            =?> "<code class=\"sourceCode haskell\"><span class=\"op\">&gt;&gt;=</span></code>"
           , "nolanguage" =: codeWith ("",["nolanguage"],[]) ">>="
             =?> "<code class=\"nolanguage\">&gt;&gt;=</code>"
           ]
