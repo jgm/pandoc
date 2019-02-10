@@ -835,7 +835,7 @@ These should not be escaped:  \$ \\ \&gt; \[ \{</preformat>
   <title>Images</title>
   <p>From “Voyage dans la Lune” by Georges Melies (1902):</p>
   <fig>
-    <caption>lalune</caption>
+    <caption><p>lalune</p></caption>
     <graphic mimetype="image" mime-subtype="jpeg" xlink:href="lalune.jpg" xlink:title="Voyage dans la Lune" />
   </fig>
   <p>Here is a movie
