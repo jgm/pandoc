@@ -1,3 +1,141 @@
+pandoc (2.6.1) PROVISIONAL
+
+  * `asciidoctor` is now an output format separate from `asciidoc`,
+    to accommodate some minor implementation-specific differences
+    (currently just in the treatment of display math).
+
+  * Markdown reader:
+
+    + Improve tight/loose list handling (#5285).  Previously the algorithm
+      allowed list items with a mix of Para and Plain, which is never wanted.
+      This patch modifies `compactify` in Text.Pandoc.Shared so that, if a
+      list's items contain (at the top level) Para elements (aside from perhaps
+      at the very end), *all* Plains are converted to Paras.
+    + Add newline when parsing blocks in YAML (#5271).
+      Otherwise last block gets parsed as a Plain rather than
+      a Para.  This is a regression in pandoc 2.x.  This patch restores
+      pandoc 1.19 behavior.
+
+  * LaTeX reader: don't let `\egroup` match `{`.  `braced` now actually
+    requires nested braces.  Otherwise some legitimate command and environment
+    definitions can break.
+
+  * Docx reader (Jesse Rosenthal):
+
+    + Rename `getDocumentPath` as `getDocumentXmlPath`.
+    + Use field notation for setting `ReaderEnv`.
+    + Figure out `document.xml` path once at the beginning of parsing, and
+      add it to the environment, so we can avoid repeated lookups.
+    + Dynamically determine main document xml path (#5277).
+      The desktop Word program places the main document file in
+      `word/document.xml`, but the online word places it in
+      `word/document2.xml`. This file path is actually stated in the root
+      `_rels/.rels` file, in the `Relationship` element with an
+      `http://../officedocument` type.
+    + Fix paths in archive to prevent Windows failure (#5277).
+      Some paths in archives are absolute (have an opening slash) which, for
+      reasons unknown, produces a failure in the test suite on MS
+      Windows. This fixes that by removing the leading slash if it exists.
+
+  * Muse reader: test that block level markup does not break `<verbatim>`
+    (Alexander Krotov).
+
+  * ipynb reader: handle images referring to attachments.
+    Previously we didn't strip off the attachment: prefix,
+    so even though the attachment is available in the mediabag,
+    pandoc couldn't find it.
+
+  * AsciiDoc Writer: Add `writeAsciiDoctor` [API change, Tarik Graba].
+    Handle display math appropriately for Asciidoctor.
+
+  * JATS writer: wrap figure caption in `<p>` to fix validation (#5290,
+    Mauro Bieg).
+
+  * HTML writer: implement WAI-ARIA roles for (end)notes (#4213).
+
+  * ipynb writer - ensure final newline.
+
+  * Markdown writer: use `markdown="1"` when appropriate for Divs:
+    when `native_divs` and `markdown_in_html_blocks` are disabled
+    but `raw_html` and `markdown_attribute` are enabled.
+
+  * LaTeX writer:
+
+    + Use right fold for `escapeString`.  This is more elegant than
+      the explicit recursive code we were using.
+    + Avoid `{}` after control sequences when escaping.
+      `\ldots{}.` doesn't behave as well as `\ldots.` with the latex
+      ellipsis package.  This patch causes pandoc to avoid emitting
+      the `{}` when it is not necessary.  Now `\ldots` and other
+      control sequences used in escaping will be followed by either
+      a `{}`, a space, or nothing, depending on context.
+
+  * Lua filters (Albert Krewinkel):
+
+    + load module `pandoc` before calling `init.lua` (#5287).
+      The file `init.lua` in pandoc's data directory is run as part of pandoc's
+      Lua initialization process. Previously, the `pandoc` module was loaded in
+      `init.lua`, and the structure for marshaling was set-up after.  This
+      allowed simple patching of element marshaling, but made using `init.lua`
+      more difficult.  Now, all required modules are now loaded before calling
+      `init.lua`.  The file can be used entirely for user customization.
+      Patching marshaling functions, while discouraged, is still possible via
+      the `debug` module.
+
+    + Re-export all bundled modules (Albert Krewinkel).
+      All Lua modules bundled with pandoc, i.e., `pandoc.List`,
+      `pandoc.mediabag`, `pandoc.utils`, and `text` are re-exported from the
+      `pandoc` module. They are assigned to the fields `List`, `mediabag`,
+      `utils`, and `text`, respectively.
+
+  * latex template: support the `subject` metadata variable (#5289,
+    Pascal Wagler).
+
+  * epub3 template: Add titlepage class to section (#5269).
+
+  * HTML5 template: Add role with ARIA doc-toc for table of contents (#4213).
+
+  * Make --metadata-file use pandoc-markdown (#5279, #5272, Mauro Bieg).
+
+  * Text.Pandoc.Extensions:
+
+    + More carefully groom ipynb default extensions.
+    + Add `all_symbols_escapable` to `githubMarkdownExtensions`.
+
+  * Text.Pandoc.PDF: Use system temp directory when possible (#1192).
+    Previously we created temp dirs in the working directory,
+    partly (a) because there were problems using the system temp
+    directory on Windows, when their pathnames included tildes,
+    and partly (b) because programs like `epstopdf.pl` would not
+    be allowed to write to directories outside the working
+    directory in restricted mode.  We now (a) use the system
+    temp dir except when the path includes tildes, and
+    (b) set TEXMFOUTPUT when creating the PDF, so that
+    subsidiary programs can use the system temp directory.
+    This addresses problems that occurred when pandoc
+    was used in a synced directory.
+
+  * Text.Pandoc.MIME: add WebP (#5267, Mauro Bieg).
+
+  * Tests: avoid calling `findPandoc` multiple times.
+
+  * Old tests: remove need for temp files by using `pipeProcess`.
+
+  * Added simple ipynb reader/writer tests (#5274).
+
+  * Use latest skylighting (adds support for `protobuf`,
+    updates definitions for other languages).
+
+  * trypandoc: Add JATS to output option (Arfon Smith, #5291).
+
+  * Use latest basement/foundation on 32bit windows.
+
+  * Add missing copyright notices and remove license boilerplate (#5112,
+    Albert Krewinkel).  Quite a few modules were missing copyright notices.
+    This commit adds copyright notices everywhere via haddock module
+    headers.  The old license boilerplate comment is redundant with this and has
+    been removed.  Update copyright years to 2019.  Closes #4592.
+
 pandoc (2.6)
 
   * Support ipynb (Jupyter notebook) as input and output format.
