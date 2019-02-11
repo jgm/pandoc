@@ -169,23 +169,14 @@ outputToBlock _ Err{ errName = ename,
 -- the output format.
 handleData :: PandocMonad m
            => ReaderOptions -> JSONMeta -> MimeBundle -> m B.Blocks
-handleData opts metadata (MimeBundle mb) = do
-  let mimePairs = M.toList mb
-
-  results <- mapM dataBlock mimePairs
-
-  -- return the result with highest priority:
-
-  let highest = maximum (0 : map fst results)
-  return $ case [r | (pr, r) <- results, pr == highest] of
-             x:_  -> x
-             []   -> mempty
+handleData opts metadata (MimeBundle mb) =
+  mconcat <$> mapM dataBlock (M.toList mb)
 
   where
 
     exts = readerExtensions opts
 
-    dataBlock :: PandocMonad m => (MimeType, MimeData) -> m (Int, B.Blocks)
+    dataBlock :: PandocMonad m => (MimeType, MimeData) -> m B.Blocks
     dataBlock (mt, BinaryData bs)
      | "image/" `T.isPrefixOf` mt
       = do
@@ -206,29 +197,26 @@ handleData opts metadata (MimeBundle mb) = do
               Nothing  -> ""
               Just ext -> '.':ext
       insertMedia fname (Just mt') bl
-      return (3, B.para $ B.imageWith ("",[],metaPairs) fname "" mempty)
-
-    dataBlock (_, BinaryData _) = return (0, mempty)
+      return $ B.para $ B.imageWith ("",[],metaPairs) fname "" mempty
+     | otherwise = return mempty
 
     dataBlock ("text/html", TextualData t)
       | extensionEnabled Ext_raw_html exts
-        = return (2, B.rawBlock "html" $ T.unpack t)
-      | otherwise = do -- try parsing the HTML
-          Pandoc _ bls <- readHtml opts t
-          return (1, B.fromList bls)
+        = return $ B.rawBlock "html" $ T.unpack t
+      | otherwise = return mempty
 
-    dataBlock ("text/latex", TextualData t) =
-      return $ if extensionEnabled Ext_raw_tex exts
-                  then (2, B.rawBlock "latex" $ T.unpack t)
-                  else (0, mempty)
+    dataBlock ("text/latex", TextualData t)
+      | extensionEnabled Ext_raw_tex exts
+        = return $ B.rawBlock "latex" $ T.unpack t
+      | otherwise = return mempty
 
     dataBlock ("text/plain", TextualData t) =
-      return (0, B.codeBlock $ T.unpack t)
+      return $ B.codeBlock $ T.unpack t
 
     dataBlock (_, JsonData v) =
-      return (2, B.codeBlockWith ("",["json"],[]) $ toStringLazy $ encode v)
+      return $ B.codeBlockWith ("",["json"],[]) $ toStringLazy $ encode v
 
-    dataBlock _ = return (0, mempty)
+    dataBlock _ = return mempty
 
 jsonMetaToMeta :: JSONMeta -> M.Map String MetaValue
 jsonMetaToMeta = M.mapKeys T.unpack . M.map valueToMetaValue
