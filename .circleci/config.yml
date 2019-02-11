@@ -54,6 +54,7 @@ commands:
           cd *
           cabal v2-build -j2 --dependencies-only --enable-tests --ghc-options="${GHC_OPTS}" all
           cabal v2-build -j2 --enable-tests --ghc-options="${GHC_OPTS}" all 2>build.log
+          cat build.log
           # fail if we had warnings in local build
           # this is to work around the fact that cabal v2 doesn't allow
           # us to use -Werror for just local build:
