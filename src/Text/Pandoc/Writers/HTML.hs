@@ -731,7 +731,10 @@ blockToHtml opts (Div attr@(ident, classes, kvs') bs) = do
   slideVariant <- gets stSlideVariant
   let kvs = [(k,v) | (k,v) <- kvs', k /= "width"] ++
             [("style", "width:" ++ w ++ ";")
-             | ("width",w) <- kvs', "column" `elem` classes]
+             | ("width",w) <- kvs', "column" `elem` classes] ++
+            [("role", "doc-bibliography") | ident == "refs" && html5] ++
+            [("role", "doc-biblioentry")
+              | "ref-item" `isPrefixOf` ident && html5]
   let speakerNotes = "notes" `elem` classes
   -- we don't want incremental output inside speaker notes, see #1394
   let opts' = if | speakerNotes -> opts{ writerIncremental = False }
@@ -1188,12 +1191,17 @@ inlineToHtml opts inline = do
                                       _ | html5  -> link ! H5.customAttribute
                                                       "role" "doc-noteref"
                                       _          -> link
-    (Cite cits il)-> do contents <- inlineListToHtml opts il
+    (Cite cits il)-> do contents <- inlineListToHtml opts (walk addRoleToLink il)
                         let citationIds = unwords $ map citationId cits
                         let result = H.span ! A.class_ "citation" $ contents
                         return $ if html5
                                     then result ! customAttribute "data-cites" (toValue citationIds)
                                     else result
+
+addRoleToLink :: Inline -> Inline
+addRoleToLink (Link (id',classes,kvs) ils (src,tit)) =
+  Link (id',classes,("role","doc-biblioref"):kvs) ils (src,tit)
+addRoleToLink x = x
 
 blockListToNote :: PandocMonad m
                 => WriterOptions -> String -> [Block]
