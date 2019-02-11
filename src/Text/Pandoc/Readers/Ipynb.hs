@@ -57,7 +57,6 @@ import qualified Data.ByteString.Lazy as BL
 import Data.Aeson as Aeson
 import Control.Monad.Except (throwError)
 import Text.Pandoc.Readers.Markdown (readMarkdown)
-import Text.Pandoc.Readers.HTML (readHtml)
 
 readIpynb :: PandocMonad m => ReaderOptions -> Text -> m Pandoc
 readIpynb opts t = do
