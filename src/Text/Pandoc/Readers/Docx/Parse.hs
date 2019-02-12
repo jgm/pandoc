@@ -486,8 +486,8 @@ archiveToNotes zf =
         Just e  -> elemToNameSpaces e
         Nothing -> []
       ns = unionBy (\x y -> fst x == fst y) fn_namespaces en_namespaces
-      fn = fnElem >>= elemToNotes ns "footnote"
-      en = enElem >>= elemToNotes ns "endnote"
+      fn = fnElem >>= walkDocument ns >>= elemToNotes ns "footnote"
+      en = enElem >>= walkDocument ns >>= elemToNotes ns "endnote"
   in
    Notes ns fn en
 
@@ -498,7 +498,7 @@ archiveToComments zf =
       cmts_namespaces = case cmtsElem of
         Just e  -> elemToNameSpaces e
         Nothing -> []
-      cmts = elemToComments cmts_namespaces <$> cmtsElem
+      cmts = elemToComments cmts_namespaces <$> (cmtsElem >>= walkDocument cmts_namespaces)
   in
     case cmts of
       Just c  -> Comments cmts_namespaces c
