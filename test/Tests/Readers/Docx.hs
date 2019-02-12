@@ -198,6 +198,10 @@ tests = [ testGroup "document"
             "docx/sdt_elements.docx"
             "docx/sdt_elements.native"
           , testCompare
+            "Structured Document Tags in footnotes"
+            "docx/sdt_in_footnote.docx"
+            "docx/sdt_in_footnote.native"
+          , testCompare
             "nested Structured Document Tags"
             "docx/nested_sdt.docx"
             "docx/nested_sdt.native"
