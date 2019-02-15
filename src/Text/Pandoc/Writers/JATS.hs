@@ -377,10 +377,9 @@ inlineToJATS opts SoftBreak
 inlineToJATS opts (Note contents) =
   -- TODO technically only <p> tags are allowed inside
   inTagsIndented "fn" <$> blocksToJATS opts contents
-inlineToJATS opts (Cite cs lst) = do
-  contents <- inlinesToJATS opts lst
-  let rid = unwords $ map citationId cs
-  return $ inTags False "xref" [("ref-type","bibr"),("rid",rid)] contents
+inlineToJATS opts (Cite _ lst) =
+  -- TODO revisit this after examining the jats.csl pipeline
+  inlinesToJATS opts lst
 inlineToJATS opts (Span ("",_,[]) ils) = inlinesToJATS opts ils
 inlineToJATS opts (Span (ident,_,kvs) ils) = do
   contents <- inlinesToJATS opts ils
