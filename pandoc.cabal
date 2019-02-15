@@ -591,6 +591,7 @@ library
                    Text.Pandoc.Lua.Marshaling.AST,
                    Text.Pandoc.Lua.Marshaling.AnyValue,
                    Text.Pandoc.Lua.Marshaling.CommonState,
+                   Text.Pandoc.Lua.Marshaling.MediaBag,
                    Text.Pandoc.Lua.Marshaling.ReaderOptions,
                    Text.Pandoc.Lua.Marshaling.Version,
                    Text.Pandoc.Lua.Module.MediaBag,

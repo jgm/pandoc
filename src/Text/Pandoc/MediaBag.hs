@@ -19,6 +19,7 @@ module Text.Pandoc.MediaBag (
                      lookupMedia,
                      insertMedia,
                      mediaDirectory,
+                     mediaItems
                      ) where
 import Prelude
 import qualified Data.ByteString.Lazy as BL
@@ -66,3 +67,8 @@ mediaDirectory :: MediaBag -> [(String, MimeType, Int)]
 mediaDirectory (MediaBag mediamap) =
   M.foldrWithKey (\fp (mime,contents) ->
       ((Posix.joinPath fp, mime, fromIntegral $ BL.length contents):)) [] mediamap
+
+mediaItems :: MediaBag -> [(String, MimeType, BL.ByteString)]
+mediaItems (MediaBag mediamap) =
+  M.foldrWithKey (\fp (mime,contents) ->
+      ((Posix.joinPath fp, mime, contents):)) [] mediamap

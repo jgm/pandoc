@@ -2475,6 +2475,33 @@ Usage:
     local contents = "Hello, World!"
     pandoc.mediabag(fp, mt, contents)
 
+### iter {#mediabag-iter}
+
+`items ()`
+
+Returns an iterator triple to be used with Lua's generic `for`
+statement. The iterator returns the filepath, MIME type, and
+content of a media bag item on each invocation. Items are
+processed one-by-one to avoid excessive memory use.
+
+This function should be used only when full access to all items,
+including their contents, is required. For all other cases,
+[`list`](#mediabag-list) should be preferred.
+
+Returns:
+
+  - The iterator function; must be called with the iterator state
+    and the current iterator value.
+  - Iterator state – an opaque value to be passed to the iterator
+    function.
+  - Initial iterator value.
+
+Usage:
+
+    for fp, mt, contents in pandoc.mediabag.items() do
+      -- print(fp, mt, contents)
+    end
+
 ### list {#mediabag-list}
 
 `list ()`

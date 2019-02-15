@@ -20,6 +20,7 @@ import Foreign.Lua (Lua, NumResults, Optional, liftIO)
 import Text.Pandoc.Class (CommonState (..), fetchItem, putCommonState,
                           runIOorExplode, setMediaBag)
 import Text.Pandoc.Lua.Marshaling ()
+import Text.Pandoc.Lua.Marshaling.MediaBag (pushIterator)
 import Text.Pandoc.Lua.Util (addFunction)
 import Text.Pandoc.MIME (MimeType)
 
@@ -34,6 +35,7 @@ pushModule :: Lua NumResults
 pushModule = do
   Lua.newtable
   addFunction "insert" insertMediaFn
+  addFunction "items" items
   addFunction "lookup" lookupMediaFn
   addFunction "list" mediaDirectoryFn
   addFunction "fetch" fetch
@@ -66,8 +68,12 @@ insertMediaFn fp optionalMime contents = do
   modifyCommonState $ \st ->
     let mb = MB.insertMedia fp (Lua.fromOptional optionalMime) contents
                                (stMediaBag st)
-    in st { stMediaBag = mb}
+    in st { stMediaBag = mb }
   return 0
+
+-- | Returns iterator values to be used with a Lua @for@ loop.
+items :: Lua NumResults
+items = stMediaBag <$> getCommonState >>= pushIterator
 
 lookupMediaFn :: FilePath
               -> Lua NumResults
