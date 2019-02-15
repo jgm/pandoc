@@ -470,16 +470,19 @@ parseInline (Elem e) =
         "xref" -> do
             ils <- innerInlines
             let rid = attrValue "rid" e
+            let rids = words rid
             let refType = ("ref-type",) <$> maybeAttrValue "ref-type" e
             let attr = (attrValue "id" e, [], maybeToList refType)
             return $ if refType == Just ("ref-type","bibr")
-                        then cite [Citation{
-                                         citationId = rid
-                                       , citationPrefix = []
-                                       , citationSuffix = []
-                                       , citationMode = NormalCitation
-                                       , citationNoteNum = 0
-                                       , citationHash = 0}] ils
+                        then cite
+                             (map (\id' ->
+                                     Citation{ citationId = id'
+                                             , citationPrefix = []
+                                             , citationSuffix = []
+                                             , citationMode = NormalCitation
+                                             , citationNoteNum = 0
+                                             , citationHash = 0}) rids)
+                             ils
                         else linkWith attr ('#' : rid) "" ils
         "ext-link" -> do
              ils <- innerInlines
