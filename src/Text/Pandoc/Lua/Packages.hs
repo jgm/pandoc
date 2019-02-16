@@ -36,10 +36,8 @@ module Text.Pandoc.Lua.Packages
 import Prelude
 import Control.Monad (forM_)
 import Data.ByteString (ByteString)
-import Data.IORef (IORef)
 import Foreign.Lua (Lua, NumResults, liftIO)
-import Text.Pandoc.Class (CommonState, readDataFile, runIO, setUserDataDir)
-import Text.Pandoc.MediaBag (MediaBag)
+import Text.Pandoc.Class (readDataFile, runIO, setUserDataDir)
 
 import qualified Foreign.Lua as Lua
 import Text.Pandoc.Lua.Module.Pandoc as Pandoc
@@ -48,9 +46,7 @@ import Text.Pandoc.Lua.Module.Utils as Utils
 
 -- | Parameters used to create lua packages/modules.
 data LuaPackageParams = LuaPackageParams
-  { luaPkgCommonState :: CommonState
-  , luaPkgDataDir :: Maybe FilePath
-  , luaPkgMediaBag :: IORef MediaBag
+  { luaPkgDataDir :: Maybe FilePath
   }
 
 -- | Insert pandoc's package loader as the first loader, making it the default.
@@ -68,15 +64,13 @@ installPandocPackageSearcher luaPkgParams = do
 
 -- | Load a pandoc module.
 pandocPackageSearcher :: LuaPackageParams -> String -> Lua NumResults
-pandocPackageSearcher luaPkgParams pkgName =
+pandocPackageSearcher pkgParams pkgName =
   case pkgName of
-    "pandoc"          -> let datadir = luaPkgDataDir luaPkgParams
+    "pandoc"          -> let datadir = luaPkgDataDir pkgParams
                          in pushWrappedHsFun (Pandoc.pushModule datadir)
-    "pandoc.mediabag" -> let st    = luaPkgCommonState luaPkgParams
-                             mbRef = luaPkgMediaBag luaPkgParams
-                         in pushWrappedHsFun (MediaBag.pushModule st mbRef)
-    "pandoc.utils"    -> let datadirMb = luaPkgDataDir luaPkgParams
-                         in pushWrappedHsFun (Utils.pushModule datadirMb)
+    "pandoc.mediabag" -> pushWrappedHsFun MediaBag.pushModule
+    "pandoc.utils"    -> let datadir = luaPkgDataDir pkgParams
+                         in pushWrappedHsFun (Utils.pushModule datadir)
     _ -> searchPureLuaLoader
  where
   pushWrappedHsFun f = do
@@ -84,7 +78,7 @@ pandocPackageSearcher luaPkgParams pkgName =
     return 1
   searchPureLuaLoader = do
     let filename = pkgName ++ ".lua"
-    modScript <- liftIO (dataDirScript (luaPkgDataDir luaPkgParams) filename)
+    modScript <- liftIO (dataDirScript (luaPkgDataDir pkgParams) filename)
     case modScript of
       Just script -> pushWrappedHsFun (loadStringAsPackage pkgName script)
       Nothing -> do

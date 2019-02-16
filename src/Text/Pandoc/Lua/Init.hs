@@ -36,11 +36,10 @@ module Text.Pandoc.Lua.Init
 import Prelude
 import Control.Monad.Trans (MonadIO (..))
 import Data.Data (Data, dataTypeConstrs, dataTypeOf, showConstr)
-import Data.IORef (newIORef, readIORef)
 import Foreign.Lua (Lua)
 import GHC.IO.Encoding (getForeignEncoding, setForeignEncoding, utf8)
 import Text.Pandoc.Class (PandocIO, getCommonState, getUserDataDir,
-                          getMediaBag, setMediaBag)
+                          putCommonState)
 import Text.Pandoc.Lua.Global (Global (..), setGlobals)
 import Text.Pandoc.Lua.Packages (LuaPackageParams (..),
                                  installPandocPackageSearcher)
@@ -64,13 +63,20 @@ runLua luaOp = do
   res <- liftIO . Lua.runEither $ do
     setGlobals globals
     initLuaState luaPkgParams
-    luaOp
+    -- run the given Lua operation
+    opResult <- luaOp
+    -- get the (possibly modified) state back
+    Lua.getglobal "PANDOC_STATE"
+    st <- Lua.peek Lua.stackTop
+    Lua.pop 1
+    -- done
+    return (opResult, st)
   liftIO $ setForeignEncoding enc
-  newMediaBag <- liftIO (readIORef (luaPkgMediaBag luaPkgParams))
-  setMediaBag newMediaBag
-  return $ case res of
-    Left (Lua.Exception msg) -> Left (LuaException msg)
-    Right x -> Right x
+  case res of
+    Left (Lua.Exception msg) -> return $ Left (LuaException msg)
+    Right (x, newState) -> do
+      putCommonState newState
+      return $ Right x
 
 -- | Global variables which should always be set.
 defaultGlobals :: PandocIO [Global]
@@ -85,14 +91,8 @@ defaultGlobals = do
 -- | Generate parameters required to setup pandoc's lua environment.
 luaPackageParams :: PandocIO LuaPackageParams
 luaPackageParams = do
-  commonState <- getCommonState
   datadir <- getUserDataDir
-  mbRef <- liftIO . newIORef =<< getMediaBag
-  return LuaPackageParams
-    { luaPkgCommonState = commonState
-    , luaPkgDataDir = datadir
-    , luaPkgMediaBag = mbRef
-    }
+  return LuaPackageParams { luaPkgDataDir = datadir }
 
 -- | Initialize the lua state with all required values
 initLuaState :: LuaPackageParams -> Lua ()

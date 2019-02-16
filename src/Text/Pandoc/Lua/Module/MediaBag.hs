@@ -32,7 +32,6 @@ module Text.Pandoc.Lua.Module.MediaBag
 
 import Prelude
 import Control.Monad (zipWithM_)
-import Data.IORef (IORef, modifyIORef', readIORef)
 import Data.Maybe (fromMaybe)
 import Foreign.Lua (Lua, NumResults, Optional, liftIO)
 import Text.Pandoc.Class (CommonState (..), fetchItem, putCommonState,
@@ -48,30 +47,49 @@ import qualified Text.Pandoc.MediaBag as MB
 --
 -- MediaBag submodule
 --
-pushModule :: CommonState -> IORef MB.MediaBag -> Lua NumResults
-pushModule commonState mediaBagRef = do
+pushModule :: Lua NumResults
+pushModule = do
   Lua.newtable
-  addFunction "insert" (insertMediaFn mediaBagRef)
-  addFunction "lookup" (lookupMediaFn mediaBagRef)
-  addFunction "list" (mediaDirectoryFn mediaBagRef)
-  addFunction "fetch" (fetch commonState mediaBagRef)
+  addFunction "insert" insertMediaFn
+  addFunction "lookup" lookupMediaFn
+  addFunction "list" mediaDirectoryFn
+  addFunction "fetch" fetch
   return 1
 
-insertMediaFn :: IORef MB.MediaBag
-              -> FilePath
+--
+-- Port functions from Text.Pandoc.Class to the Lua monad.
+-- TODO: reuse existing functions.
+
+-- Get the current CommonState.
+getCommonState :: Lua CommonState
+getCommonState = do
+  Lua.getglobal "PANDOC_STATE"
+  Lua.peek Lua.stackTop
+
+-- Replace MediaBag in CommonState.
+setCommonState :: CommonState -> Lua ()
+setCommonState st = do
+  Lua.push st
+  Lua.setglobal "PANDOC_STATE"
+
+modifyCommonState :: (CommonState -> CommonState) -> Lua ()
+modifyCommonState f = getCommonState >>= setCommonState . f
+
+insertMediaFn :: FilePath
               -> Optional MimeType
               -> BL.ByteString
               -> Lua NumResults
-insertMediaFn mbRef fp optionalMime contents = do
-  liftIO . modifyIORef' mbRef $
-    MB.insertMedia fp (Lua.fromOptional optionalMime) contents
+insertMediaFn fp optionalMime contents = do
+  modifyCommonState $ \st ->
+    let mb = MB.insertMedia fp (Lua.fromOptional optionalMime) contents
+                               (stMediaBag st)
+    in st { stMediaBag = mb}
   return 0
 
-lookupMediaFn :: IORef MB.MediaBag
-              -> FilePath
+lookupMediaFn :: FilePath
               -> Lua NumResults
-lookupMediaFn mbRef fp = do
-  res <- MB.lookupMedia fp <$> liftIO (readIORef mbRef)
+lookupMediaFn fp = do
+  res <- MB.lookupMedia fp . stMediaBag <$> getCommonState
   case res of
     Nothing -> Lua.pushnil *> return 1
     Just (mimeType, contents) -> do
@@ -79,10 +97,9 @@ lookupMediaFn mbRef fp = do
       Lua.push contents
       return 2
 
-mediaDirectoryFn :: IORef MB.MediaBag
-                 -> Lua NumResults
-mediaDirectoryFn mbRef = do
-  dirContents <- MB.mediaDirectory <$> liftIO (readIORef mbRef)
+mediaDirectoryFn :: Lua NumResults
+mediaDirectoryFn = do
+  dirContents <- MB.mediaDirectory . stMediaBag <$> getCommonState
   Lua.newtable
   zipWithM_ addEntry [1..] dirContents
   return 1
@@ -95,12 +112,11 @@ mediaDirectoryFn mbRef = do
     Lua.push "length" *> Lua.push contentLength *> Lua.rawset (-3)
     Lua.rawseti (-2) idx
 
-fetch :: CommonState
-      -> IORef MB.MediaBag
-      -> String
+fetch :: String
       -> Lua NumResults
-fetch commonState mbRef src = do
-  mediaBag <- liftIO $ readIORef mbRef
+fetch src = do
+  commonState <- getCommonState
+  let mediaBag = stMediaBag commonState
   (bs, mimeType) <- liftIO . runIOorExplode $ do
     putCommonState commonState
     setMediaBag mediaBag
