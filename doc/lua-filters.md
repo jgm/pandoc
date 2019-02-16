@@ -2444,7 +2444,7 @@ Usage:
 
 `lookup (filepath)`
 
-Lookup a media item in the media bag, returning mime type
+Lookup a media item in the media bag, and return its MIME type
 and contents.
 
 Parameters:
@@ -2454,7 +2454,7 @@ Parameters:
 
 Returns:
 
--   the entries MIME type, or nil if the file was not found.
+-   the entry's MIME type, or nil if the file was not found.
 -   contents of the file, or nil if the file was not found.
 
 Usage:
@@ -2467,7 +2467,7 @@ Usage:
 `fetch (source, base_url)`
 
 Fetches the given source from a URL or local file. Returns
-two values: the contents of the file and the mime type (or
+two values: the contents of the file and the MIME type (or
 an empty string).
 
 Returns:
