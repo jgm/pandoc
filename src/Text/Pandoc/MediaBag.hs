@@ -16,6 +16,7 @@ interface for interacting with it.
 -}
 module Text.Pandoc.MediaBag (
                      MediaBag,
+                     deleteMedia,
                      lookupMedia,
                      insertMedia,
                      mediaDirectory,
@@ -40,6 +41,14 @@ newtype MediaBag = MediaBag (M.Map [String] (MimeType, BL.ByteString))
 
 instance Show MediaBag where
   show bag = "MediaBag " ++ show (mediaDirectory bag)
+
+-- | Delete a media item from a 'MediaBag', or do nothing if no item corresponds
+-- to the given path.
+deleteMedia :: FilePath       -- ^ relative path and canonical name of resource
+            -> MediaBag
+            -> MediaBag
+deleteMedia fp (MediaBag mediamap) =
+  MediaBag $ M.delete (splitDirectories fp) mediamap
 
 -- | Insert a media item into a 'MediaBag', replacing any existing
 -- value with the same name.

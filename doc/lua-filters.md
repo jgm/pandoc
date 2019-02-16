@@ -2450,6 +2450,18 @@ e.g.:
 
     local mb = require 'pandoc.mediabag'
 
+### delete {#mediabag-delete}
+
+`delete (filepath)`
+
+Removes a single entry from the media bag.
+
+Parameters:
+
+`filepath`:
+:   filename of the item to be deleted. The media bag will be
+    left unchanged if no entry with the given filename exists.
+
 ### empty {#mediabag-empty}
 
 `empty ()`
