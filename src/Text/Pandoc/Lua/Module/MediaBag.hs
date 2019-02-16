@@ -34,6 +34,7 @@ import qualified Text.Pandoc.MediaBag as MB
 pushModule :: Lua NumResults
 pushModule = do
   Lua.newtable
+  addFunction "empty" empty
   addFunction "insert" insertMediaFn
   addFunction "items" items
   addFunction "lookup" lookupMediaFn
@@ -60,6 +61,11 @@ setCommonState st = do
 modifyCommonState :: (CommonState -> CommonState) -> Lua ()
 modifyCommonState f = getCommonState >>= setCommonState . f
 
+-- | Delete all items from the media bag.
+empty :: Lua NumResults
+empty = 0 <$ modifyCommonState (\st -> st { stMediaBag = mempty })
+
+-- | Insert a new item into the media bag.
 insertMediaFn :: FilePath
               -> Optional MimeType
               -> BL.ByteString

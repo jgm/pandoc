@@ -2448,8 +2448,13 @@ The module is loaded as part of module `pandoc` and can either be
 accessed via the `pandoc.mediabag` field, or explicitly required,
 e.g.:
 
-
     local mb = require 'pandoc.mediabag'
+
+### empty {#mediabag-empty}
+
+`empty ()`
+
+Clear-out the media bag, deleting all items.
 
 ### insert {#mediabag-insert}
 
