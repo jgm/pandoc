@@ -48,7 +48,7 @@ import Data.Foldable (foldrM)
 import Data.Map (Map)
 import Foreign.Lua (Lua, Peekable, Pushable)
 import Text.Pandoc.Definition
-import Text.Pandoc.Lua.StackInstances ()
+import Text.Pandoc.Lua.Marshaling ()
 import Text.Pandoc.Walk (walkM, Walkable)
 
 import qualified Data.Map.Strict as Map

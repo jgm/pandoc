@@ -36,7 +36,7 @@ import Data.Maybe (fromMaybe)
 import Foreign.Lua (Lua, NumResults, Optional, liftIO)
 import Text.Pandoc.Class (CommonState (..), fetchItem, putCommonState,
                           runIOorExplode, setMediaBag)
-import Text.Pandoc.Lua.StackInstances ()
+import Text.Pandoc.Lua.Marshaling ()
 import Text.Pandoc.Lua.Util (addFunction)
 import Text.Pandoc.MIME (MimeType)
 

@@ -1,28 +1,10 @@
+{-# OPTIONS_GHC -fno-warn-orphans #-}
 {-# LANGUAGE NoImplicitPrelude    #-}
 {-# LANGUAGE FlexibleInstances    #-}
 {-# LANGUAGE ScopedTypeVariables  #-}
 {-# LANGUAGE LambdaCase           #-}
-{-# OPTIONS_GHC -fno-warn-orphans #-}
-{-
-Copyright © 2012-2019 John MacFarlane <jgm@berkeley.edu>
-            2017-2019 Albert Krewinkel <tarleb+pandoc@moltkeplatz.de>
-
-This program is free software; you can redistribute it and/or modify
-it under the terms of the GNU General Public License as published by
-the Free Software Foundation; either version 2 of the License, or
-(at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
-
-You should have received a copy of the GNU General Public License
-along with this program; if not, write to the Free Software
-Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
--}
 {- |
-   Module      : Text.Pandoc.Lua.StackInstances
+   Module      : Text.Pandoc.Lua.Marshaling.AST
    Copyright   : © 2012-2019 John MacFarlane
                  © 2017-2019 Albert Krewinkel
    License     : GNU GPL, version 2 or above
@@ -30,27 +12,20 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
    Maintainer  : Albert Krewinkel <tarleb+pandoc@moltkeplatz.de>
    Stability   : alpha
 
-StackValue instances for pandoc types.
+Marshaling/unmarshaling instances for document AST elements.
 -}
-module Text.Pandoc.Lua.StackInstances () where
+module Text.Pandoc.Lua.Marshaling.AST () where
 
 import Prelude
 import Control.Applicative ((<|>))
-import Data.Data (showConstr, toConstr)
 import Foreign.Lua (Lua, Peekable, Pushable, StackIndex)
-import Foreign.Lua.Types.Peekable (reportValueOnFailure)
 import Foreign.Lua.Userdata ( ensureUserdataMetatable, pushAnyWithMetatable
-                            , toAnyWithName, metatableName)
-import Text.Pandoc.Class (CommonState (..))
+                            , metatableName)
 import Text.Pandoc.Definition
-import Text.Pandoc.Extensions (Extensions)
-import Text.Pandoc.Logging (LogMessage, showLogMessage)
 import Text.Pandoc.Lua.Util (defineHowTo, pushViaConstructor)
-import Text.Pandoc.Options (ReaderOptions (..), TrackChanges)
+import Text.Pandoc.Lua.Marshaling.CommonState ()
 import Text.Pandoc.Shared (Element (Blk, Sec))
 
-import qualified Data.Map as Map
-import qualified Data.Set as Set
 import qualified Foreign.Lua as Lua
 import qualified Text.Pandoc.Lua.Util as LuaUtil
 
@@ -335,140 +310,3 @@ indexElement = \case
     "tag"       -> Lua.push "Sec"
     "t"         -> Lua.push "Sec"
     _           -> Lua.pushnil
-
-
---
--- Reader Options
---
-instance Pushable Extensions where
-  push exts = Lua.push (show exts)
-
-instance Pushable TrackChanges where
-  push = Lua.push . showConstr . toConstr
-
-instance Pushable ReaderOptions where
-  push ro = do
-    let ReaderOptions
-          (extensions            :: Extensions)
-          (standalone            :: Bool)
-          (columns               :: Int)
-          (tabStop               :: Int)
-          (indentedCodeClasses   :: [String])
-          (abbreviations         :: Set.Set String)
-          (defaultImageExtension :: String)
-          (trackChanges          :: TrackChanges)
-          (stripComments         :: Bool)
-          = ro
-    Lua.newtable
-    LuaUtil.addField "extensions" extensions
-    LuaUtil.addField "standalone" standalone
-    LuaUtil.addField "columns" columns
-    LuaUtil.addField "tab_stop" tabStop
-    LuaUtil.addField "indented_code_classes" indentedCodeClasses
-    LuaUtil.addField "abbreviations" abbreviations
-    LuaUtil.addField "default_image_extension" defaultImageExtension
-    LuaUtil.addField "track_changes" trackChanges
-    LuaUtil.addField "strip_comments" stripComments
-
-    -- add metatable
-    let indexReaderOptions :: AnyValue -> AnyValue -> Lua Lua.NumResults
-        indexReaderOptions _tbl (AnyValue key) = do
-          Lua.ltype key >>= \case
-            Lua.TypeString -> Lua.peek key >>= \case
-              "defaultImageExtension" -> Lua.push defaultImageExtension
-              "indentedCodeClasses" -> Lua.push indentedCodeClasses
-              "stripComments" -> Lua.push stripComments
-              "tabStop" -> Lua.push tabStop
-              "trackChanges" -> Lua.push trackChanges
-              _ -> Lua.pushnil
-            _ -> Lua.pushnil
-          return 1
-    Lua.newtable
-    LuaUtil.addFunction "__index" indexReaderOptions
-    Lua.setmetatable (Lua.nthFromTop 2)
-
--- | Dummy type to allow values of arbitrary Lua type.
-newtype AnyValue = AnyValue StackIndex
-
---
--- TODO: Much of the following should be abstracted, factored out
--- and go into HsLua.
---
-
-instance Peekable AnyValue where
-  peek = return . AnyValue
-
--- | Name used by Lua for the @CommonState@ type.
-commonStateTypeName :: String
-commonStateTypeName = "Pandoc CommonState"
-
-instance Peekable CommonState where
-  peek idx = reportValueOnFailure commonStateTypeName
-             (`toAnyWithName` commonStateTypeName) idx
-
-instance Pushable CommonState where
-  push st = pushAnyWithMetatable pushCommonStateMetatable st
-   where
-    pushCommonStateMetatable = ensureUserdataMetatable commonStateTypeName $ do
-      LuaUtil.addFunction "__index" indexCommonState
-      LuaUtil.addFunction "__pairs" pairsCommonState
-
-indexCommonState :: CommonState -> AnyValue -> Lua Lua.NumResults
-indexCommonState st (AnyValue idx) = Lua.ltype idx >>= \case
-  Lua.TypeString -> 1 <$ (Lua.peek idx >>= pushField)
-  _ -> 1 <$ Lua.pushnil
- where
-  pushField :: String -> Lua ()
-  pushField name = case lookup name commonStateFields of
-    Just pushValue -> pushValue st
-    Nothing -> Lua.pushnil
-
-pairsCommonState :: CommonState -> Lua Lua.NumResults
-pairsCommonState st = do
-  Lua.pushHaskellFunction nextFn
-  Lua.pushnil
-  Lua.pushnil
-  return 3
- where
-  nextFn :: AnyValue -> AnyValue -> Lua Lua.NumResults
-  nextFn _ (AnyValue idx) =
-    Lua.ltype idx >>= \case
-      Lua.TypeNil -> case commonStateFields of
-        []  -> 2 <$ (Lua.pushnil *> Lua.pushnil)
-        (key, pushValue):_ -> 2 <$ (Lua.push key *> pushValue st)
-      Lua.TypeString -> do
-        key <- Lua.peek idx
-        case tail $ dropWhile ((/= key) . fst) commonStateFields of
-          []                     -> 2 <$ (Lua.pushnil *> Lua.pushnil)
-          (nextKey, pushValue):_ -> 2 <$ (Lua.push nextKey *> pushValue st)
-      _ -> 2 <$ (Lua.pushnil *> Lua.pushnil)
-
-commonStateFields :: [(String, CommonState -> Lua ())]
-commonStateFields =
-  [ ("input_files", Lua.push . stInputFiles)
-  , ("output_file", Lua.push . Lua.Optional . stOutputFile)
-  , ("log", Lua.push . stLog)
-  , ("request_headers", Lua.push . Map.fromList . stRequestHeaders)
-  , ("resource_path", Lua.push . stResourcePath)
-  , ("source_url", Lua.push . Lua.Optional . stSourceURL)
-  , ("user_data_dir", Lua.push . Lua.Optional . stUserDataDir)
-  , ("trace", Lua.push . stTrace)
-  , ("verbosity", Lua.push . show . stVerbosity)
-  ]
-
--- | Name used by Lua for the @CommonState@ type.
-logMessageTypeName :: String
-logMessageTypeName = "Pandoc LogMessage"
-
-instance Peekable LogMessage where
-  peek idx = reportValueOnFailure logMessageTypeName
-             (`toAnyWithName` logMessageTypeName) idx
-
-instance Pushable LogMessage where
-  push msg = pushAnyWithMetatable pushLogMessageMetatable msg
-   where
-    pushLogMessageMetatable = ensureUserdataMetatable logMessageTypeName $
-      LuaUtil.addFunction "__tostring" tostringLogMessage
-
-tostringLogMessage :: LogMessage -> Lua String
-tostringLogMessage = return . showLogMessage

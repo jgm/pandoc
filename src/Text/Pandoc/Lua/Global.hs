@@ -41,7 +41,7 @@ import Foreign.Lua.Userdata ( ensureUserdataMetatable, pushAnyWithMetatable
 import Paths_pandoc (version)
 import Text.Pandoc.Class (CommonState)
 import Text.Pandoc.Definition (Pandoc (Pandoc), pandocTypesVersion)
-import Text.Pandoc.Lua.StackInstances ()
+import Text.Pandoc.Lua.Marshaling ()
 import Text.Pandoc.Lua.Util (addFunction)
 import Text.Pandoc.Options (ReaderOptions)
 

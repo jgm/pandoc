@@ -38,7 +38,7 @@ import Foreign.Lua (Peekable, Lua, NumResults)
 import Text.Pandoc.Class (runIO, setUserDataDir)
 import Text.Pandoc.Definition ( Pandoc, Meta, MetaValue (..), Block, Inline
                               , Citation, Attr, ListAttributes)
-import Text.Pandoc.Lua.StackInstances ()
+import Text.Pandoc.Lua.Marshaling ()
 import Text.Pandoc.Lua.Util (addFunction)
 
 import qualified Data.Digest.Pure.SHA as SHA
