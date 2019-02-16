@@ -722,8 +722,9 @@ codeBlockFenced = try $ do
   blankline
   contents <- intercalate "\n" <$>
                  manyTill (gobbleAtMostSpaces indentLevel >> anyLine)
-                          (blockDelimiter (== c) (Just size))
-  blanklines
+                          (try $ do
+                            blockDelimiter (== c) (Just size)
+                            blanklines)
   return $ return $
     case rawattr of
           Left syn   -> B.rawBlock syn contents
