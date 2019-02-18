@@ -803,7 +803,7 @@ footnote = try $ do
   return $ do
     notes <- asksF museNotes
     case M.lookup ref notes of
-      Nothing -> return $ B.str $ ref
+      Nothing -> return $ B.str ref
       Just (_pos, contents) -> do
         st <- askF
         let contents' = runF contents st { museNotes = M.delete ref (museNotes st) }

@@ -504,9 +504,9 @@ stringStartsWithSpace ""    = False
 fixOrEscape :: Bool -> Inline -> Bool
 fixOrEscape sp (Str "-") = sp
 fixOrEscape sp (Str s@('-':x:_)) = (sp && isSpace x) || isHorizontalRule s
-fixOrEscape sp (Str (";")) = not sp
+fixOrEscape sp (Str ";") = not sp
 fixOrEscape sp (Str (';':x:_)) = not sp && isSpace x
-fixOrEscape _ (Str (">")) = True
+fixOrEscape _ (Str ">") = True
 fixOrEscape _ (Str ('>':x:_)) = isSpace x
 fixOrEscape sp (Str s) = (sp && (startsWithMarker isDigit s ||
                                 startsWithMarker isAsciiLower s ||
