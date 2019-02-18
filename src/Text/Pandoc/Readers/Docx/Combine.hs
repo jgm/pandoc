@@ -166,7 +166,8 @@ isAttrModifier (AttrModifier _ _) = True
 isAttrModifier _                  = False
 
 smushInlines :: [Inlines] -> Inlines
-smushInlines xs = foldl combineInlines mempty xs
+smushInlines xs = combineInlines xs' mempty
+  where xs' = foldl combineInlines mempty xs
 
 smushBlocks :: [Blocks] -> Blocks
 smushBlocks xs = foldl combineBlocks mempty xs
