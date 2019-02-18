@@ -27,7 +27,7 @@
  [[BlockQuote
    [Para [Str "Code",Space,Str "documentation"]]]]
 ,BlockQuote
- [Para [Strong [Str "Goal:",Space,Str "Useful,",Space,Str "consistent,",Space,Str "tool",Space,Str "supported",Space,Str "comments",Space]]]
+ [Para [Strong [Str "Goal:",Space,Str "Useful,",Space,Str "consistent,",Space,Str "tool",Space,Str "supported",Space,Str "comments"]]]
 ,Para [Strong [Str "\160"],Str "\160"]
 ,OrderedList (6,Decimal,Period)
  [[BlockQuote
