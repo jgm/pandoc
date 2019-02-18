@@ -186,6 +186,10 @@ tests = [ testGroup "document"
             "docx/trailing_spaces_in_formatting.docx"
             "docx/trailing_spaces_in_formatting.native"
           , testCompare
+            "remove trailing spaces from last inline"
+            "docx/trim_last_inline.docx"
+            "docx/trim_last_inline.native"
+          , testCompare
             "inline code (with VerbatimChar style)"
             "docx/inline_code.docx"
             "docx/inline_code.native"
