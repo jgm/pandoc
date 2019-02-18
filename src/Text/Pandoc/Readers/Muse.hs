@@ -481,11 +481,17 @@ paraUntil end = do
   guard $ not inPara
   first (fmap B.para) <$> paraContentsUntil end
 
-noteMarker :: PandocMonad m => MuseParser m String
-noteMarker = try $ (:)
-  <$  char '['
+noteMarker' :: PandocMonad m
+            => Char
+            -> Char
+            -> MuseParser m String
+noteMarker' l r = try $ (\x y -> l:x:y ++ [r])
+  <$ char l
   <*> oneOf "123456789"
-  <*> manyTill digit (char ']')
+  <*> manyTill digit (char r)
+
+noteMarker :: PandocMonad m => MuseParser m String
+noteMarker = noteMarker' '[' ']' <|> noteMarker' '{' '}'
 
 addNote :: PandocMonad m
         => String
@@ -797,7 +803,7 @@ footnote = try $ do
   return $ do
     notes <- asksF museNotes
     case M.lookup ref notes of
-      Nothing -> return $ B.str $ "[" ++ ref ++ "]"
+      Nothing -> return $ B.str $ ref
       Just (_pos, contents) -> do
         st <- askF
         let contents' = runF contents st { museNotes = M.delete ref (museNotes st) }

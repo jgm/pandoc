@@ -784,6 +784,23 @@ tests =
           para (text "Here is a footnote" <>
                 note (para "Footnote contents") <>
                 str ".")
+        , "Simple secondary footnote" =:
+          T.unlines [ "Here is a secondary note{1}."
+                    , ""
+                    , "{1} Secondary note contents"
+                    ] =?>
+          para (text "Here is a secondary note" <>
+                note (para "Secondary note contents") <>
+                str ".")
+        , "Missing footnote" =: "Foo[1]" =?> para "Foo[1]"
+        , "Missing secondary note" =: "Foo{1}" =?> para "Foo{1}"
+        , "Wrong note type" =:
+          T.unlines [ "Here is a secondary note{1}"
+                    , ""
+                    , "Footnote contents[1]"
+                    ] =?>
+          para "Here is a secondary note{1}" <>
+          para "Footnote contents[1]"
         , "Recursive footnote" =:
           T.unlines [ "Start recursion here[1]"
                     , ""
