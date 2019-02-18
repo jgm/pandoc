@@ -377,10 +377,11 @@ startsWithMarker f (x:xs) =
     startsWithDot _         = False
 startsWithMarker _ [] = False
 
-containsFootnotes :: String -> Bool
-containsFootnotes = p
-  where p ('[':xs) = q xs || p xs
-        p (_:xs)   = p xs
+containsNotes :: Char -> Char -> String -> Bool
+containsNotes left right = p
+  where p (left':xs)
+          | left' == left = q xs || p xs
+          | otherwise = p xs
         p ""       = False
         q (x:xs)
           | x `elem` ("123456789"::String) = r xs || p xs
@@ -388,8 +389,9 @@ containsFootnotes = p
         q [] = False
         r ('0':xs) = r xs || p xs
         r xs       = s xs || q xs || p xs
-        s (']':_) = True
-        s (_:xs)  = p xs
+        s (right':xs)
+          | right' == right = True
+          | otherwise = p xs
         s []      = False
 
 -- | Return True if string should be escaped with <verbatim> tags
@@ -404,7 +406,8 @@ shouldEscapeString s = do
            "~~" `isInfixOf` s ||
            "[[" `isInfixOf` s ||
            ("]" `isInfixOf` s && insideLink) ||
-           containsFootnotes s
+           containsNotes '[' ']' s ||
+           containsNotes '{' '}' s
 
 -- | Escape special characters for Muse if needed.
 conditionalEscapeString :: PandocMonad m
