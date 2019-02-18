@@ -377,7 +377,6 @@ startsWithMarker f (x:xs) =
     startsWithDot _         = False
 startsWithMarker _ [] = False
 
--- | Escape special characters for Muse if needed.
 containsFootnotes :: String -> Bool
 containsFootnotes = p
   where p ('[':xs) = q xs || p xs
@@ -407,6 +406,7 @@ shouldEscapeString s = do
            ("]" `isInfixOf` s && insideLink) ||
            containsFootnotes s
 
+-- | Escape special characters for Muse if needed.
 conditionalEscapeString :: PandocMonad m
                         => String
                         -> Muse m String
