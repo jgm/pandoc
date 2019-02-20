@@ -2216,10 +2216,11 @@ output formats
 
 #### Extension: `styles` #### {#ext-styles}
 
-Read all docx styles as divs (for paragraph styles) and spans (for
-character styles) regardless of whether pandoc understands the meaning
-of these styles. This can be used with [docx custom
-styles](#custom-styles). Disabled by default.
+When converting from docx, read all docx styles as divs (for
+paragraph styles) and spans (for character styles) regardless
+of whether pandoc understands the meaning of these styles.
+This can be used with [docx custom styles](#custom-styles).
+Disabled by default.
 
 input formats
 :  `docx`
@@ -5061,6 +5062,52 @@ Custom Styles
 
 Custom styles can be used in the docx and ICML formats.
 
+Output
+------
+
+By default, pandoc's docx and ICML output applies a predefined set of styles
+for blocks such as paragraphs and block quotes, and uses largely default
+formatting (italics, bold) for inlines. This will work for most
+purposes, especially alongside a `reference.docx` file. However, if you
+need to apply your own styles to blocks, or match a preexisting set of
+styles, pandoc allows you to define custom styles for blocks and text
+using `div`s and `span`s, respectively.
+
+If you define a `div` or `span` with the attribute `custom-style`,
+pandoc will apply your specified style to the contained elements. So,
+for example using the `bracketed_spans` syntax,
+
+    [Get out]{custom-style="Emphatically"}, he said.
+
+would produce a docx file with "Get out" styled with character
+style `Emphatically`. Similarly, using the `fenced_divs` syntax,
+
+    Dickinson starts the poem simply:
+
+    ::: {custom-style="Poetry"}
+    | A Bird came down the Walk---
+    | He did not know I saw---
+    :::
+
+would style the two contained lines with the `Poetry` paragraph style.
+
+For docx output, styles will be defined in the output file as inheriting
+from normal text, if the styles are not yet in your reference.docx.
+If they are already defined, pandoc will not alter the definition.
+
+This feature allows for greatest customization in conjunction with
+[pandoc filters]. If you want all paragraphs after block quotes to be
+indented, you can write a filter to apply the styles necessary. If you
+want all italics to be transformed to the `Emphasis` character style
+(perhaps to change their color), you can write a filter which will
+transform all italicized inlines to inlines within an `Emphasis`
+custom-style `span`.
+
+For docx output, you don't need to enable any extensions for
+custom styles to work.
+
+[pandoc filters]: http://pandoc.org/filters.html
+
 Input
 -----
 
@@ -5108,49 +5155,6 @@ And with the extension:
 With these custom styles, you can use your input document as a
 reference-doc while creating docx output (see below), and maintain the
 same styles in your input and output files.
-
-Output
-------
-
-By default, pandoc's docx and ICML output applies a predefined set of styles
-for blocks such as paragraphs and block quotes, and uses largely default
-formatting (italics, bold) for inlines. This will work for most
-purposes, especially alongside a `reference.docx` file. However, if you
-need to apply your own styles to blocks, or match a preexisting set of
-styles, pandoc allows you to define custom styles for blocks and text
-using `div`s and `span`s, respectively.
-
-If you define a `div` or `span` with the attribute `custom-style`,
-pandoc will apply your specified style to the contained elements. So,
-for example using the `bracketed_spans` syntax,
-
-    [Get out]{custom-style="Emphatically"}, he said.
-
-would produce a docx file with "Get out" styled with character
-style `Emphatically`. Similarly, using the `fenced_divs` syntax,
-
-    Dickinson starts the poem simply:
-
-    ::: {custom-style="Poetry"}
-    | A Bird came down the Walk---
-    | He did not know I saw---
-    :::
-
-would style the two contained lines with the `Poetry` paragraph style.
-
-For docx output, styles will be defined in the output file as inheriting
-from normal text, if the styles are not yet in your reference.docx.
-If they are already defined, pandoc will not alter the definition.
-
-This feature allows for greatest customization in conjunction with
-[pandoc filters]. If you want all paragraphs after block quotes to be
-indented, you can write a filter to apply the styles necessary. If you
-want all italics to be transformed to the `Emphasis` character style
-(perhaps to change their color), you can write a filter which will
-transform all italicized inlines to inlines within an `Emphasis`
-custom-style `span`.
-
-[pandoc filters]: http://pandoc.org/filters.html
 
 Custom writers
 ==============
