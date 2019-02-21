@@ -181,7 +181,7 @@ data WriterOptions = WriterOptions
   , writerSectionDivs       :: Bool   -- ^ Put sections in div tags in HTML
   , writerExtensions        :: Extensions -- ^ Markdown extensions that can be used
   , writerReferenceLinks    :: Bool   -- ^ Use reference links in writing markdown, rst
-  , writerDpi               :: Int    -- ^ Dpi for pixel to/from inch/cm conversions
+  , writerDpi               :: Int    -- ^ Dpi for pixel to\/from inch\/cm conversions
   , writerWrapText          :: WrapOption  -- ^ Option for wrapping text
   , writerColumns           :: Int    -- ^ Characters in a line (for text wrapping)
   , writerEmailObfuscation  :: ObfuscationMethod -- ^ How to obfuscate emails
