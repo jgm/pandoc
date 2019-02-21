@@ -317,9 +317,10 @@ blockToXml (Para [Image atr alt (src,'f':'i':'g':':':tit)]) =
 blockToXml (Para ss) = (list . el "p") <$> cMapM toXml ss
 blockToXml (CodeBlock _ s) = return . spaceBeforeAfter .
                              map (el "p" . el "code") . lines $ s
-blockToXml b@(RawBlock _ _) = do
-  report $ BlockNotRendered b
-  return []
+blockToXml (RawBlock f str) = do
+  if f == Format "fb2"
+    then return $ XI.parseXML str
+    else return []
 blockToXml (Div _ bs) = cMapM blockToXml bs
 blockToXml (BlockQuote bs) = (list . el "cite") <$> cMapM blockToXml bs
 blockToXml (LineBlock lns) =
