@@ -12,15 +12,15 @@
 <title>
 <p />
 </title>
-<section>
+<section id="top-level-title">
 <title>
 <p>Top-level title</p>
 </title>
-<section>
+<section id="section">
 <title>
 <p>Section</p>
 </title>
-<section>
+<section id="subsection">
 <title>
 <p>Subsection</p>
 </title>
