@@ -14,6 +14,46 @@
 
 Flatten sequences of elements.
 -}
+
+{-
+The purpose of this module is to combine the formatting of separate
+runs, which have *non-nesting* formatting. Because the formatting
+doesn't nest, you can't actually tell the nesting order until you
+combine with the runs that follow.
+
+For example, say you have a something like `<em><strong>foo</strong>
+bar</em>`. Then in ooxml, you'll get these two runs:
+
+~~~
+<w:r>
+ <w:rPr>
+  <w:b />
+  <w:i />
+ </w:rPr>
+ <w:t>Foo</w:t>
+</w:r>
+<w:r>
+ <w:rPr>
+  <w:i />
+ </w:rPr>
+ <w:t> Bar</w:t>
+</w:r>
+~~~
+
+Note that this is an ideal situation. In practice, it will probably be
+more---if, for example, the user turned italics
+off and then on.
+
+So, when you get the first run, which is marked as both bold and italic,
+you have no idea whether it's `Strong [Emph [Str "Foo"]]` or `Emph
+[Strong [Str "Foo"]]`.
+
+We combine two runs, then, by taking off the formatting that modifies an
+inline, seeing what is shared between them, and rebuilding an inline. We
+fold this to combine the inlines.
+
+-}
+
 module Text.Pandoc.Readers.Docx.Combine ( smushInlines
                                         , smushBlocks
                                         )
