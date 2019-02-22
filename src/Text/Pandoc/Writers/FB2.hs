@@ -52,13 +52,15 @@ import Network.HTTP (urlEncode)
 import Text.XML.Light
 import qualified Text.XML.Light as X
 import qualified Text.XML.Light.Cursor as XC
+import qualified Text.XML.Light.Input as XI
 
 import Text.Pandoc.Class (PandocMonad, report)
 import qualified Text.Pandoc.Class as P
 import Text.Pandoc.Definition
 import Text.Pandoc.Logging
 import Text.Pandoc.Options (HTMLMathMethod (..), WriterOptions (..), def)
-import Text.Pandoc.Shared (capitalize, isHeaderBlock, isURI, orderedListMarkers)
+import Text.Pandoc.Shared (capitalize, isURI, orderedListMarkers, hierarchicalize)
+import qualified Text.Pandoc.Shared as Shared (Element(Blk, Sec))
 
 -- | Data to be written at the end of the document:
 -- (foot)notes, URLs, references, images.
@@ -177,20 +179,28 @@ docdate meta' = do
 -- representation.
 renderSections :: PandocMonad m => Int -> [Block] -> FBM m [Content]
 renderSections level blocks = do
-    let secs = splitSections level blocks
-    mapM (renderSection level) secs
+    let elements = hierarchicalize blocks
+    let isSection Shared.Sec{} = True
+        isSection _ = False
+    let (initialBlocks, secs) = break isSection elements
+    let elements' = if null initialBlocks
+        then secs
+        else Shared.Sec 1 [] nullAttr mempty initialBlocks : secs
+    cMapM (renderSection level) elements'
 
-renderSection :: PandocMonad m => Int -> ([Inline], [Block]) -> FBM m Content
-renderSection level (ttl, body) = do
-    title <- if null ttl
+
+
+renderSection :: PandocMonad m =>  Int -> Shared.Element -> FBM m [Content]
+renderSection _   (Shared.Blk block) = blockToXml block
+renderSection lvl (Shared.Sec _ _num (id',_,_) title elements) = do
+  content <- cMapM (renderSection (lvl + 1)) elements
+  title' <- if null title
             then return []
-            else list . el "title" <$> formatTitle ttl
-    content <- if hasSubsections body
-               then renderSections (level + 1) body
-               else cMapM blockToXml body
-    return $ el "section" (title ++ content)
-  where
-    hasSubsections = any isHeaderBlock
+            else list . el "title" <$> formatTitle title
+  let sectionContent = if null id'
+      then el "section" (title' ++ content)
+      else el "section" ([uattr "id" id'], (title' ++ content))
+  return $ [sectionContent]
 
 -- | Only <p> and <empty-line> are allowed within <title> in FB2.
 formatTitle :: PandocMonad m => [Inline] -> FBM m [Content]
@@ -205,24 +215,6 @@ split cond xs = let (b,a) = break cond xs
 isLineBreak :: Inline -> Bool
 isLineBreak LineBreak = True
 isLineBreak _         = False
-
--- | Divide the stream of block elements into sections: [(title, blocks)].
-splitSections :: Int -> [Block] -> [([Inline], [Block])]
-splitSections level blocks = reverse $ revSplit (reverse blocks)
-  where
-  revSplit [] = []
-  revSplit rblocks =
-    let (lastsec, before) = break sameLevel rblocks
-        (header, prevblocks) =
-            case before of
-              (Header n _ title:prevblocks') ->
-                  if n == level
-                     then (title, prevblocks')
-                     else ([], before)
-              _ -> ([], before)
-    in (header, reverse lastsec) : revSplit prevblocks
-  sameLevel (Header n _ _) = n == level
-  sameLevel _              = False
 
 -- | Make another FictionBook body with footnotes.
 renderFootnotes :: PandocMonad m => FBM m [Content]
@@ -325,9 +317,10 @@ blockToXml (Para [Image atr alt (src,'f':'i':'g':':':tit)]) =
 blockToXml (Para ss) = (list . el "p") <$> cMapM toXml ss
 blockToXml (CodeBlock _ s) = return . spaceBeforeAfter .
                              map (el "p" . el "code") . lines $ s
-blockToXml b@(RawBlock _ _) = do
-  report $ BlockNotRendered b
-  return []
+blockToXml (RawBlock f str) = do
+  if f == Format "fb2"
+    then return $ XI.parseXML str
+    else return []
 blockToXml (Div _ bs) = cMapM blockToXml bs
 blockToXml (BlockQuote bs) = (list . el "cite") <$> cMapM blockToXml bs
 blockToXml (LineBlock lns) =
