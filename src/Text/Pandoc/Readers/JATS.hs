@@ -57,7 +57,6 @@ data JATSState = JATSState{ jatsSectionLevel :: Int
                           , jatsQuoteType    :: QuoteType
                           , jatsMeta         :: Meta
                           , jatsBook         :: Bool
-                          , jatsFigureTitle  :: Inlines
                           , jatsContent      :: [Content]
                           } deriving Show
 
@@ -66,7 +65,6 @@ instance Default JATSState where
                  , jatsQuoteType = DoubleQuote
                  , jatsMeta = mempty
                  , jatsBook = False
-                 , jatsFigureTitle = mempty
                  , jatsContent = [] }
 
 
@@ -153,21 +151,18 @@ trimNl = reverse . go . reverse . go
 
 -- function that is used by both graphic (in parseBlock)
 -- and inline-graphic (in parseInline)
-getGraphic :: PandocMonad m => Element -> JATS m Inlines
-getGraphic e = do
+getGraphic :: PandocMonad m
+           => Maybe (Inlines, String) -> Element -> JATS m Inlines
+getGraphic mbfigdata e = do
   let atVal a = attrValue a e
-      attr = (atVal "id", words $ atVal "role", [])
+      (ident, title, caption) =
+         case mbfigdata of
+           Just (capt, i) -> (i, "fig:" <> atVal "title", capt)
+           Nothing        -> (atVal "id", atVal "title",
+                              text (atVal "alt-text"))
+      attr = (ident, words $ atVal "role", [])
       imageUrl = atVal "href"
-      captionOrLabel = case filterChild (\x -> named "caption" x
-                                            || named "label" x) e of
-                        Nothing -> return mempty
-                        Just z  -> mconcat <$>
-                                         mapM parseInline (elContent z)
-  figTitle <- gets jatsFigureTitle
-  let (caption, title) = if isNull figTitle
-                            then (captionOrLabel, atVal "title")
-                            else (return figTitle, "fig:")
-  fmap (imageWith attr imageUrl title) caption
+  return $ imageWith attr imageUrl title caption
 
 getBlocks :: PandocMonad m => Element -> JATS m Blocks
 getBlocks e =  mconcat <$>
@@ -197,13 +192,13 @@ parseBlock (Elem e) =
                         <$> listitems
         "def-list" -> definitionList <$> deflistitems
         "sec" -> gets jatsSectionLevel >>= sect . (+1)
-        "graphic" -> para <$> getGraphic e
+        "graphic" -> para <$> getGraphic Nothing e
         "journal-meta" -> parseMetadata e
         "article-meta" -> parseMetadata e
         "custom-meta" -> parseMetadata e
         "title" -> return mempty -- processed by header
         "table" -> parseTable
-        "fig" -> divWith (attrValue "id" e, ["fig"], []) <$> getBlocks e
+        "fig" -> parseFigure
         "table-wrap" -> divWith (attrValue "id" e, ["table-wrap"], []) <$> getBlocks e
         "caption" -> divWith (attrValue "id" e, ["caption"], []) <$> sect 6
         "ref-list" -> parseRefList e
@@ -247,6 +242,20 @@ parseBlock (Elem e) =
                      terms' <- mapM getInlines terms
                      items' <- mapM getBlocks items
                      return (mconcat $ intersperse (str "; ") terms', items')
+         parseFigure = do
+           -- if a simple caption and single graphic, we emit a standard
+           -- implicit figure.  otherwise, we emit a div with the contents
+           case filterChildren (named "graphic") e of
+                  [g] -> do
+                         caption <- case filterChild (named "caption") e of
+                                           Just t  -> mconcat .
+                                             intersperse linebreak <$>
+                                             mapM getInlines
+                                             (filterChildren (const True) t)
+                                           Nothing -> return mempty
+                         img <- getGraphic (Just (caption, attrValue "id" e)) g
+                         return $ para $ img
+                  _   -> divWith (attrValue "id" e, ["fig"], []) <$> getBlocks e
          parseTable = do
                       let isCaption x = named "title" x || named "caption" x
                       caption <- case filterChild isCaption e of
@@ -456,7 +465,7 @@ parseInline (Elem e) =
         "code" -> codeWithLang
         "monospace" -> codeWithLang
 
-        "inline-graphic" -> getGraphic e
+        "inline-graphic" -> getGraphic Nothing e
         "disp-quote" -> do
             qt <- gets jatsQuoteType
             let qt' = if qt == SingleQuote then DoubleQuote else SingleQuote
