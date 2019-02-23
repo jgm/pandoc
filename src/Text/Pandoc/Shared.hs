@@ -424,13 +424,12 @@ compactify [] = []
 compactify items =
   let (others, final) = (init items, last items)
   in  case reverse (B.toList final) of
-           (Para a:xs) -> case [Para x | Para x <- concatMap B.toList items] of
-                            -- if this is only Para, change to Plain
-                            [_] -> others ++ [B.fromList (reverse $ Plain a : xs)]
-                            -- if other Paras, it's a loose list, change
-                            -- all Plain to Para
-                            _   -> map (fmap plainToPara) items
-           _      -> items
+           (Para a:xs)
+             | null [Para x | Para x <- (xs ++ concatMap B.toList others)]
+             -> others ++ [B.fromList (reverse (Plain a : xs))]
+           _ | null [Para x | Para x <- concatMap B.toList items]
+             -> items
+           _ -> map (fmap plainToPara) items
 
 plainToPara :: Block -> Block
 plainToPara (Plain ils) = Para ils

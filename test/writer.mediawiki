@@ -198,7 +198,7 @@ Same thing but with paragraphs:
 == Fancy list markers ==
 
 <ol start="2" style="list-style-type: decimal;">
-<li>begins with 2</li>
+<li><p>begins with 2</p></li>
 <li><p>and now 3</p>
 <p>with a continuation</p>
 <ol start="4" style="list-style-type: lower-roman;">

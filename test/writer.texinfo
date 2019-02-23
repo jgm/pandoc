@@ -453,6 +453,7 @@ this is an example list item indented with spaces
 @enumerate 2
 @item
 begins with 2
+
 @item
 and now 3
 

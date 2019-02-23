@@ -96,8 +96,8 @@ Pandoc (Meta {unMeta = fromList [("author",MetaList [MetaInlines [Str "John",Spa
 ,OrderedList (1,Decimal,Period)
  [[Para [Str "Item",Space,Str "1,",Space,Str "graf",Space,Str "one."]
   ,Para [Str "Item",Space,Str "1.",Space,Str "graf",Space,Str "two.",Space,Str "The",Space,Str "quick",Space,Str "brown",Space,Str "fox",Space,Str "jumped",Space,Str "over",Space,Str "the",Space,Str "lazy",Space,Str "dog\8217s",SoftBreak,Str "back."]]
- ,[Plain [Str "Item",Space,Str "2."]]
- ,[Plain [Str "Item",Space,Str "3."]]]
+ ,[Para [Str "Item",Space,Str "2."]]
+ ,[Para [Str "Item",Space,Str "3."]]]
 ,Para [Str "Nested:"]
 ,BulletList
  [[Plain [Str "Tab"]
@@ -107,17 +107,17 @@ Pandoc (Meta {unMeta = fromList [("author",MetaList [MetaInlines [Str "John",Spa
      [[Plain [Str "Tab"]]]]]]]
 ,Para [Str "Here\8217s",Space,Str "another:"]
 ,OrderedList (1,Decimal,Period)
- [[Plain [Str "First"]]
+ [[Para [Str "First"]]
  ,[Para [Str "Second:"]
   ,BlockQuote
    [BulletList
     [[Plain [Str "Fee"]]
     ,[Plain [Str "Fie"]]
     ,[Plain [Str "Foe"]]]]]
- ,[Plain [Str "Third"]]]
+ ,[Para [Str "Third"]]]
 ,Header 2 ("fancy-list-markers",[],[]) [Str "Fancy",Space,Str "list",Space,Str "markers"]
 ,OrderedList (2,Decimal,TwoParens)
- [[Plain [Str "begins",Space,Str "with",Space,Str "2"]]
+ [[Para [Str "begins",Space,Str "with",Space,Str "2"]]
  ,[Para [Str "and",Space,Str "now",Space,Str "3"]
   ,Para [Str "with",Space,Str "a",Space,Str "continuation"]
   ,OrderedList (4,LowerRoman,Period)

@@ -205,7 +205,7 @@ Same thing but with paragraphs:
 ===== Fancy list markers =====
 
 <HTML><ol start="2" style="list-style-type: decimal;"></HTML>
-<HTML><li></HTML>begins with 2<HTML></li></HTML>
+<HTML><li></HTML><HTML><p></HTML>begins with 2<HTML></p></HTML><HTML></li></HTML>
 <HTML><li></HTML><HTML><p></HTML>and now 3<HTML></p></HTML>
 <HTML><p></HTML>with a continuation<HTML></p></HTML>
 <HTML><ol start="4" style="list-style-type: lower-roman;"></HTML>

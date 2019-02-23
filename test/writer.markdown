@@ -239,6 +239,7 @@ Fancy list markers
 ------------------
 
 (2) begins with 2
+
 (3) and now 3
 
     with a continuation

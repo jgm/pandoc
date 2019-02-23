@@ -302,6 +302,7 @@ indented with spaces</p>
 <p>Fancy list markers</p>
 </title>
 <p>(2) begins with 2</p>
+<empty-line />
 <p>(3) and now 3</p>
 <empty-line />
 <p>    with a continuation</p>

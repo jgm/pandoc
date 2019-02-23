@@ -137,7 +137,7 @@ Pandoc (Meta {unMeta = fromList [("author",MetaList [MetaInlines [Str "John",Spa
    ,[Para [Str "this",Space,Str "is",Space,Str "an",Space,Str "example",Space,Str "list",Space,Str "item",SoftBreak,Str "indented",Space,Str "with",Space,Str "spaces"]]]]]
 ,Header 2 ("fancy-list-markers",[],[]) [Str "Fancy",Space,Str "list",Space,Str "markers"]
 ,OrderedList (2,Decimal,TwoParens)
- [[Plain [Str "begins",Space,Str "with",Space,Str "2"]]
+ [[Para [Str "begins",Space,Str "with",Space,Str "2"]]
  ,[Para [Str "and",Space,Str "now",Space,Str "3"]
   ,Para [Str "with",Space,Str "a",Space,Str "continuation"]
   ,OrderedList (4,LowerRoman,Period)

@@ -199,7 +199,7 @@ These should not be escaped:  \$ \\ \&gt; \[ \{</code></pre>
 </ul>
 <h2 id="fancy-list-markers">Fancy list markers</h2>
 <ol start="2" type="1">
-<li>begins with 2</li>
+<li><p>begins with 2</p></li>
 <li><p>and now 3</p>
 <p>with a continuation</p>
 <ol start="4" type="i">

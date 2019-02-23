@@ -212,7 +212,7 @@ h2(#tabs-and-spaces). Tabs and spaces
 h2(#fancy-list-markers). Fancy list markers
 
 <ol start="2" style="list-style-type: decimal;">
-<li>begins with 2</li>
+<li><p>begins with 2</p></li>
 <li><p>and now 3</p>
 <p>with a continuation</p>
 <ol start="4" style="list-style-type: lower-roman;">
