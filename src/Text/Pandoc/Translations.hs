@@ -59,28 +59,28 @@ import Text.Pandoc.Shared (safeRead)
 import qualified Text.Pandoc.UTF8 as UTF8
 
 data Term =
-    Preface
-  | References
-  | Abstract
-  | Bibliography
-  | Chapter
+    Abstract
   | Appendix
+  | Bibliography
+  | Cc
+  | Chapter
   | Contents
+  | Encl
+  | Figure
+  | Glossary
+  | Index
+  | Listing
   | ListOfFigures
   | ListOfTables
-  | Index
-  | Figure
-  | Table
-  | Part
   | Page
+  | Part
+  | Preface
+  | Proof
+  | References
   | See
   | SeeAlso
-  | Encl
-  | Cc
+  | Table
   | To
-  | Proof
-  | Glossary
-  | Listing
   deriving (Show, Eq, Ord, Generic, Enum, Read)
 
 newtype Translations = Translations (M.Map Term String)

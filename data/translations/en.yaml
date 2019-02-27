@@ -8,6 +8,7 @@ Encl: encl
 Figure: Figure
 Glossary: Glossary
 Index: Index
+Listing: Listing
 ListOfFigures: ListOfFigures
 ListOfTables: ListOfTables
 Page: page
@@ -19,4 +20,3 @@ See: see
 SeeAlso: see also
 Table: Table
 To: To
-Listing: Listing
