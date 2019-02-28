@@ -1928,6 +1928,8 @@ an object as its value.  So, for example:
 
     $author.name$ ($author.affiliation$)
 
+The value of a variable will be indented to the same level as the variable.
+
 If you use custom templates, you may need to revise them as pandoc
 changes.  We recommend tracking the changes in the default templates,
 and modifying your custom templates accordingly. An easy way to do this
