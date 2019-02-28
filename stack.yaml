@@ -20,8 +20,8 @@ packages:
   extra-dep: true
 extra-deps:
 - pandoc-citeproc-0.16.1
-- skylighting-0.7.6
-- skylighting-core-0.7.6
+- skylighting-0.7.7
+- skylighting-core-0.7.7
 - ipynb-0.1
 - texmath-0.11.2
 ghc-options:
