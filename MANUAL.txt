@@ -1192,17 +1192,20 @@ Options affecting specific writers {.options}
     the EPUB-specific contents.  The default is `EPUB`.  To put
     the EPUB contents in the top level, use an empty string.
 
-`--pdf-engine=pdflatex`|`lualatex`|`xelatex`|`wkhtmltopdf`|`weasyprint`|`prince`|`context`|`pdfroff`
+`--pdf-engine=`*PROGRAM*
 
 :   Use the specified engine when producing PDF output.
+    Valid values are `pdflatex`, `lualatex`, `xelatex`, `latexmk`,
+    `wkhtmltopdf`, `weasyprint`, `prince`, `context`, and `pdfroff`.
     The default is `pdflatex`.  If the engine is not in your PATH,
     the full path of the engine may be specified here.
 
 `--pdf-engine-opt=`*STRING*
 
 :   Use the given string as a command-line argument to the `pdf-engine`.
-    If used multiple times, the arguments are provided with spaces between
-    them. Note that no check for duplicate options is done.
+    For example, to use a persistent directory `foo` for `latexmk`'s
+    auxiliary files, use `--pdf-engine-opt=-outdir=foo`.
+    Note that no check for duplicate options is done.
 
 [Dublin Core elements]: http://dublincore.org/documents/dces/
 [ISO 8601 format]: http://www.w3.org/TR/NOTE-datetime
@@ -1449,7 +1452,7 @@ Language variables
         :::
 
         More text in English. ['Zitat auf Deutsch.']{lang=de}
-    
+
 `dir`
 :   the base script direction, either `rtl` (right-to-left)
     or `ltr` (left-to-right).
