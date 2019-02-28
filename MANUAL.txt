@@ -1026,9 +1026,9 @@ Options affecting specific writers {.options}
         in Word, modify the styles as you wish, and save the file.
         For best results, do not make changes to this file other
         than modifying the styles used by pandoc:
-        
+
         Paragraph styles:
-        
+
         - Normal
         - Body Text
         - First Paragraph
@@ -1058,17 +1058,17 @@ Options affecting specific writers {.options}
         - Figure
         - Captioned Figure
         - TOC Heading
-        
+
         Character styles:
-        
+
         - Default Paragraph Font
         - Body Text Char
         - Verbatim Char
         - Footnote Reference
         - Hyperlink
-        
+
         Table style:
-        
+
         - Table
 
     ODT
@@ -1437,10 +1437,10 @@ Language variables
     The [Language subtag lookup] tool can look up or verify these tags.
     This affects most formats, and controls hyphenation in PDF output
     when using LaTeX (through [`babel`] and [`polyglossia`]) or ConTeXt.
-    
+
     Use native pandoc [Divs and Spans] with the `lang` attribute to
     switch the language:
-    
+
         ---
         lang: en-GB
         ...
@@ -1592,7 +1592,7 @@ Pandoc uses these variables when [creating a PDF] with a LaTeX engine.
 :   options for package used as `fontfamily`; repeat for multiple options.
     For example, to use the Libertine font with proportional lowercase
     (old-style) figures through the [`libertinus`] package:
-    
+
         ---
         fontfamily: libertinus
         fontfamilyoptions:
