@@ -81,7 +81,7 @@ pandocToNotebook opts (Pandoc meta blocks) = do
   let jupyterMeta =
         case lookupMeta "jupyter" meta of
           Just (MetaMap m) -> (Meta m <> B.deleteMeta "jupyter" meta)
-          _ -> meta
+          _ -> mempty
   metadata' <- metaToJSON' blockWriter inlineWriter $
                  B.deleteMeta "nbformat" $
                  B.deleteMeta "nbformat_minor" $ jupyterMeta
