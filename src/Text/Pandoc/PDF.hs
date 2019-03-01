@@ -94,22 +94,28 @@ makePDF program pdfargs writer opts doc = do
             if '~' `elem` tmp
                    then withTempDirectory "." templ action
                    else withSystemTempDirectory templ action
-      liftIO $ withTempDir "tex2pdf." $ \tmpdir' -> do
+      (newCommonState, res) <- liftIO $ withTempDir "tex2pdf." $ \tmpdir' -> do
 #ifdef _WINDOWS
         -- note:  we want / even on Windows, for TexLive
         let tmpdir = changePathSeparators tmpdir'
 #else
         let tmpdir = tmpdir'
 #endif
-        source <- runIOorExplode $ do
+        (source, newCommonState)
+              <- runIOorExplode $ do
                     putCommonState commonState
                     doc' <- handleImages tmpdir doc
-                    writer opts doc'
-        case baseProg of
+                    result <- writer opts doc'
+                    cs <- getCommonState
+                    return (result, cs)
+        res <- case baseProg of
            "context" -> context2pdf verbosity program pdfargs tmpdir source
            prog | prog `elem` ["pdflatex", "lualatex", "xelatex", "latexmk"]
                -> tex2pdf verbosity program pdfargs tmpdir source
            _ -> return $ Left $ UTF8.fromStringLazy $ "Unknown program " ++ program
+        return (newCommonState, res)
+      putCommonState newCommonState
+      return res
 
 makeWithWkhtmltopdf :: String              -- ^ wkhtmltopdf or path
                     -> [String]            -- ^ arguments
