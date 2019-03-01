@@ -141,95 +141,15 @@ options =
                   "FILE")
                  "" -- "Name of output file"
 
-    , Option "" ["data-dir"]
-                 (ReqArg
-                  (\arg opt -> return opt { optDataDir =
-                                  Just (normalizePath arg) })
-                 "DIRECTORY") -- "Directory containing pandoc data files."
-                ""
-
-    , Option "" ["base-header-level"]
+    , Option "" ["wrap"]
                  (ReqArg
                   (\arg opt ->
-                      case safeRead arg of
-                           Just t | t > 0 && t < 6 ->
-                               return opt{ optBaseHeaderLevel = t }
-                           _              -> E.throwIO $ PandocOptionError
-                                               "base-header-level must be 1-5")
-                  "NUMBER")
-                 "" -- "Headers base level"
-
-    , Option "" ["strip-empty-paragraphs"]
-                 (NoArg
-                  (\opt -> do
-                      deprecatedOption "--stripEmptyParagraphs"
-                        "Use +empty_paragraphs extension."
-                      return opt{ optStripEmptyParagraphs = True }))
-                 "" -- "Strip empty paragraphs"
-
-    , Option "" ["indented-code-classes"]
-                  (ReqArg
-                   (\arg opt -> return opt { optIndentedCodeClasses = words $
-                                             map (\c -> if c == ',' then ' ' else c) arg })
-                   "STRING")
-                  "" -- "Classes (whitespace- or comma-separated) to use for indented code-blocks"
-
-    , Option "F" ["filter"]
-                 (ReqArg
-                  (\arg opt -> return opt { optFilters =
-                                    JSONFilter (normalizePath arg) :
-                                    optFilters opt })
-                  "PROGRAM")
-                 "" -- "External JSON filter"
-
-    , Option "" ["lua-filter"]
-                 (ReqArg
-                  (\arg opt -> return opt { optFilters =
-                                    LuaFilter (normalizePath arg) :
-                                    optFilters opt })
-                  "SCRIPTPATH")
-                 "" -- "Lua filter"
-
-    , Option "p" ["preserve-tabs"]
-                 (NoArg
-                  (\opt -> return opt { optPreserveTabs = True }))
-                 "" -- "Preserve tabs instead of converting to spaces"
-
-    , Option "" ["tab-stop"]
-                 (ReqArg
-                  (\arg opt ->
-                      case safeRead arg of
-                           Just t | t > 0 -> return opt { optTabStop = t }
-                           _              -> E.throwIO $ PandocOptionError
-                                  "tab-stop must be a number greater than 0")
-                  "NUMBER")
-                 "" -- "Tab stop (default 4)"
-
-    , Option "" ["track-changes"]
-                 (ReqArg
-                  (\arg opt -> do
-                     action <- case arg of
-                            "accept" -> return AcceptChanges
-                            "reject" -> return RejectChanges
-                            "all"    -> return AllChanges
-                            _        -> E.throwIO $ PandocOptionError
-                               ("Unknown option for track-changes: " ++ arg)
-                     return opt { optTrackChanges = action })
-                  "accept|reject|all")
-                 "" -- "Accepting or reject MS Word track-changes.""
-
-    , Option "" ["file-scope"]
-                 (NoArg
-                  (\opt -> return opt { optFileScope = True }))
-                 "" -- "Parse input files before combining"
-
-    , Option "" ["extract-media"]
-                 (ReqArg
-                  (\arg opt ->
-                    return opt { optExtractMedia =
-                                  Just (normalizePath arg) })
-                  "PATH")
-                 "" -- "Directory to which to extract embedded media"
+                    case safeRead ("Wrap" ++ uppercaseFirstLetter arg) of
+                          Just o   -> return opt { optWrapText = o }
+                          Nothing  -> E.throwIO $ PandocOptionError
+                                     "--wrap must be auto, none, or preserve")
+                 "auto|none|preserve")
+                 "" -- "Option for wrapping text in output"
 
     , Option "s" ["standalone"]
                  (NoArg
@@ -243,6 +163,13 @@ options =
                                  optStandalone = True })
                   "FILE")
                  "" -- "Use custom template"
+
+    , Option "" ["data-dir"]
+                 (ReqArg
+                  (\arg opt -> return opt { optDataDir =
+                                  Just (normalizePath arg) })
+                 "DIRECTORY") -- "Directory containing pandoc data files."
+                ""
 
     , Option "M" ["metadata"]
                  (ReqArg
@@ -267,100 +194,10 @@ options =
                   "KEY[:VALUE]")
                  ""
 
-    , Option "D" ["print-default-template"]
-                 (ReqArg
-                  (\arg _ -> do
-                     templ <- runIO $ do
-                                setUserDataDir Nothing
-                                getDefaultTemplate arg
-                     case templ of
-                          Right "" -> -- e.g. for docx, odt, json:
-                            E.throwIO $ PandocCouldNotFindDataFileError
-                               ("templates/default." ++ arg)
-                          Right t -> UTF8.hPutStr stdout t
-                          Left e  -> E.throwIO e
-                     exitSuccess)
-                  "FORMAT")
-                 "" -- "Print default template for FORMAT"
-
-    , Option "" ["print-default-data-file"]
-                 (ReqArg
-                  (\arg _ -> do
-                     runIOorExplode $
-                       readDefaultDataFile arg >>= liftIO . BS.hPutStr stdout
-                     exitSuccess)
-                  "FILE")
-                  "" -- "Print default data file"
-
-    , Option "" ["print-highlight-style"]
-                 (ReqArg
-                  (\arg _ -> do
-                     sty <- fromMaybe pygments <$> lookupHighlightStyle arg
-                     B.putStr $ encodePretty'
-                       defConfig{confIndent = Spaces 4
-                                ,confCompare = keyOrder
-                                  (map T.pack
-                                   ["text-color"
-                                   ,"background-color"
-                                   ,"line-number-color"
-                                   ,"line-number-background-color"
-                                   ,"bold"
-                                   ,"italic"
-                                   ,"underline"
-                                   ,"text-styles"])
-                                ,confNumFormat = Generic
-                                ,confTrailingNewline = True} sty
-                     exitSuccess)
-                  "STYLE|FILE")
-                 "" -- "Print default template for FORMAT"
-
-    , Option "" ["dpi"]
-                 (ReqArg
-                  (\arg opt ->
-                    case safeRead arg of
-                         Just t | t > 0 -> return opt { optDpi = t }
-                         _              -> E.throwIO $ PandocOptionError
-                                        "dpi must be a number greater than 0")
-                  "NUMBER")
-                 "" -- "Dpi (default 96)"
-
-    , Option "" ["eol"]
-                 (ReqArg
-                  (\arg opt ->
-                    case toLower <$> arg of
-                      "crlf"   -> return opt { optEol = CRLF }
-                      "lf"     -> return opt { optEol = LF }
-                      "native" -> return opt { optEol = Native }
-                      -- mac-syntax (cr) is not supported in ghc-base.
-                      _      -> E.throwIO $ PandocOptionError
-                                "--eol must be crlf, lf, or native")
-                  "crlf|lf|native")
-                 "" -- "EOL (default OS-dependent)"
-
-    , Option "" ["wrap"]
-                 (ReqArg
-                  (\arg opt ->
-                    case safeRead ("Wrap" ++ uppercaseFirstLetter arg) of
-                          Just o   -> return opt { optWrapText = o }
-                          Nothing  -> E.throwIO $ PandocOptionError
-                                     "--wrap must be auto, none, or preserve")
-                 "auto|none|preserve")
-                 "" -- "Option for wrapping text in output"
-
-    , Option "" ["columns"]
-                 (ReqArg
-                  (\arg opt ->
-                      case safeRead arg of
-                           Just t | t > 0 -> return opt { optColumns = t }
-                           _              -> E.throwIO $ PandocOptionError
-                                   "columns must be a number greater than 0")
-                 "NUMBER")
-                 "" -- "Length of line in characters"
-
-    , Option "" ["strip-comments"]
-                (NoArg
-                 (\opt -> return opt { optStripComments = True }))
-               "" -- "Strip HTML comments"
+    , Option "" ["ascii"]
+                 (NoArg
+                  (\opt -> return opt { optAscii = True }))
+                 ""  -- "Prefer ASCII output"
 
     , Option "" ["toc", "table-of-contents"]
                 (NoArg
@@ -377,6 +214,73 @@ options =
                                     "TOC level must be a number between 1 and 6")
                  "NUMBER")
                  "" -- "Number of levels to include in TOC"
+
+    , Option "N" ["number-sections"]
+                 (NoArg
+                  (\opt -> return opt { optNumberSections = True }))
+                 "" -- "Number sections in LaTeX"
+
+    , Option "" ["number-offset"]
+                 (ReqArg
+                  (\arg opt ->
+                      case safeRead ('[':arg ++ "]") of
+                           Just ns -> return opt { optNumberOffset = ns,
+                                                   optNumberSections = True }
+                           _      -> E.throwIO $ PandocOptionError
+                                       "could not parse number-offset")
+                 "NUMBERS")
+                 "" -- "Starting number for sections, subsections, etc."
+
+    , Option "" ["top-level-division"]
+                 (ReqArg
+                  (\arg opt -> do
+                      let tldName = "TopLevel" ++ uppercaseFirstLetter arg
+                      case safeRead tldName of
+                        Just tlDiv -> return opt { optTopLevelDivision = tlDiv }
+                        _       -> E.throwIO $ PandocOptionError
+                                     ("Top-level division must be " ++
+                                      "section,  chapter, part, or default"))
+                   "section|chapter|part")
+                 "" -- "Use top-level division type in LaTeX, ConTeXt, DocBook"
+
+    , Option "" ["extract-media"]
+                 (ReqArg
+                  (\arg opt ->
+                    return opt { optExtractMedia =
+                                  Just (normalizePath arg) })
+                  "PATH")
+                 "" -- "Directory to which to extract embedded media"
+
+    , Option "" ["resource-path"]
+                (ReqArg
+                  (\arg opt -> return opt { optResourcePath =
+                                   splitSearchPath arg })
+                   "SEARCHPATH")
+                  "" -- "Paths to search for images and other resources"
+
+    , Option "H" ["include-in-header"]
+                 (ReqArg
+                  (\arg opt -> return opt{ optIncludeInHeader =
+                                              arg : optIncludeInHeader opt,
+                                            optStandalone = True })
+                  "FILE")
+                 "" -- "File to include at end of header (implies -s)"
+
+    , Option "B" ["include-before-body"]
+                 (ReqArg
+                  (\arg opt -> return opt{ optIncludeBeforeBody =
+                                              arg : optIncludeBeforeBody opt,
+                                           optStandalone = True })
+                  "FILE")
+                 "" -- "File to include before document body"
+
+    , Option "A" ["include-after-body"]
+                 (ReqArg
+                  (\arg opt -> return opt{ optIncludeAfterBody =
+                                              arg : optIncludeAfterBody opt,
+                                           optStandalone = True })
+                  "FILE")
+                 "" -- "File to include after document body"
 
     , Option "" ["no-highlight"]
                 (NoArg
@@ -404,36 +308,85 @@ options =
                  "FILE")
                 "" -- "Syntax definition (xml) file"
 
-    , Option "H" ["include-in-header"]
+    , Option "" ["dpi"]
                  (ReqArg
-                  (\arg opt -> return opt{ optIncludeInHeader =
-                                              arg : optIncludeInHeader opt,
-                                            optStandalone = True })
-                  "FILE")
-                 "" -- "File to include at end of header (implies -s)"
+                  (\arg opt ->
+                    case safeRead arg of
+                         Just t | t > 0 -> return opt { optDpi = t }
+                         _              -> E.throwIO $ PandocOptionError
+                                        "dpi must be a number greater than 0")
+                  "NUMBER")
+                 "" -- "Dpi (default 96)"
 
-    , Option "B" ["include-before-body"]
+    , Option "" ["eol"]
                  (ReqArg
-                  (\arg opt -> return opt{ optIncludeBeforeBody =
-                                              arg : optIncludeBeforeBody opt,
-                                           optStandalone = True })
-                  "FILE")
-                 "" -- "File to include before document body"
+                  (\arg opt ->
+                    case toLower <$> arg of
+                      "crlf"   -> return opt { optEol = CRLF }
+                      "lf"     -> return opt { optEol = LF }
+                      "native" -> return opt { optEol = Native }
+                      -- mac-syntax (cr) is not supported in ghc-base.
+                      _      -> E.throwIO $ PandocOptionError
+                                "--eol must be crlf, lf, or native")
+                  "crlf|lf|native")
+                 "" -- "EOL (default OS-dependent)"
 
-    , Option "A" ["include-after-body"]
+    , Option "" ["columns"]
                  (ReqArg
-                  (\arg opt -> return opt{ optIncludeAfterBody =
-                                              arg : optIncludeAfterBody opt,
-                                           optStandalone = True })
-                  "FILE")
-                 "" -- "File to include after document body"
+                  (\arg opt ->
+                      case safeRead arg of
+                           Just t | t > 0 -> return opt { optColumns = t }
+                           _              -> E.throwIO $ PandocOptionError
+                                   "columns must be a number greater than 0")
+                 "NUMBER")
+                 "" -- "Length of line in characters"
 
-    , Option "" ["resource-path"]
-                (ReqArg
-                  (\arg opt -> return opt { optResourcePath =
-                                   splitSearchPath arg })
-                   "SEARCHPATH")
-                  "" -- "Paths to search for images and other resources"
+    , Option "p" ["preserve-tabs"]
+                 (NoArg
+                  (\opt -> return opt { optPreserveTabs = True }))
+                 "" -- "Preserve tabs instead of converting to spaces"
+
+    , Option "" ["tab-stop"]
+                 (ReqArg
+                  (\arg opt ->
+                      case safeRead arg of
+                           Just t | t > 0 -> return opt { optTabStop = t }
+                           _              -> E.throwIO $ PandocOptionError
+                                  "tab-stop must be a number greater than 0")
+                  "NUMBER")
+                 "" -- "Tab stop (default 4)"
+
+    , Option "" ["pdf-engine"]
+                 (ReqArg
+                  (\arg opt -> do
+                     let b = takeBaseName arg
+                     if b `elem` pdfEngines
+                        then return opt { optPdfEngine = Just arg }
+                        else E.throwIO $ PandocOptionError $ "pdf-engine must be one of "
+                               ++ intercalate ", " pdfEngines)
+                  "PROGRAM")
+                 "" -- "Name of program to use in generating PDF"
+
+    , Option "" ["pdf-engine-opt"]
+                 (ReqArg
+                  (\arg opt -> do
+                      let oldArgs = optPdfEngineArgs opt
+                      return opt { optPdfEngineArgs = oldArgs ++ [arg]})
+                  "STRING")
+                 "" -- "Flags to pass to the PDF-engine, all instances of this option are accumulated and used"
+
+    , Option "" ["reference-doc"]
+                 (ReqArg
+                  (\arg opt ->
+                    return opt { optReferenceDoc = Just arg })
+                  "FILE")
+                 "" -- "Path of custom reference doc"
+
+    , Option "" ["self-contained"]
+                 (NoArg
+                  (\opt -> return opt { optSelfContained = True,
+                                        optStandalone = True }))
+                 "" -- "Make slide shows include all the needed js and css"
 
     , Option "" ["request-header"]
                  (ReqArg
@@ -444,22 +397,82 @@ options =
                   "NAME:VALUE")
                  ""
 
-    , Option "" ["self-contained"]
+    , Option "" ["file-scope"]
                  (NoArg
-                  (\opt -> return opt { optSelfContained = True,
-                                        optStandalone = True }))
-                 "" -- "Make slide shows include all the needed js and css"
+                  (\opt -> return opt { optFileScope = True }))
+                 "" -- "Parse input files before combining"
 
-    , Option "" ["html-q-tags"]
-                 (NoArg
-                  (\opt ->
-                     return opt { optHtmlQTags = True }))
-                 "" -- "Use <q> tags for quotes in HTML"
+    , Option "" ["abbreviations"]
+                (ReqArg
+                 (\arg opt -> return opt { optAbbreviations = Just arg })
+                "FILE")
+                "" -- "Specify file for custom abbreviations"
 
-    , Option "" ["ascii"]
+    , Option "" ["indented-code-classes"]
+                  (ReqArg
+                   (\arg opt -> return opt { optIndentedCodeClasses = words $
+                                             map (\c -> if c == ',' then ' ' else c) arg })
+                   "STRING")
+                  "" -- "Classes (whitespace- or comma-separated) to use for indented code-blocks"
+
+    , Option "" ["default-image-extension"]
+                 (ReqArg
+                  (\arg opt -> return opt { optDefaultImageExtension = arg })
+                   "extension")
+                  "" -- "Default extension for extensionless images"
+
+    , Option "F" ["filter"]
+                 (ReqArg
+                  (\arg opt -> return opt { optFilters =
+                                    JSONFilter (normalizePath arg) :
+                                    optFilters opt })
+                  "PROGRAM")
+                 "" -- "External JSON filter"
+
+    , Option "" ["lua-filter"]
+                 (ReqArg
+                  (\arg opt -> return opt { optFilters =
+                                    LuaFilter (normalizePath arg) :
+                                    optFilters opt })
+                  "SCRIPTPATH")
+                 "" -- "Lua filter"
+
+    , Option "" ["base-header-level"]
+                 (ReqArg
+                  (\arg opt ->
+                      case safeRead arg of
+                           Just t | t > 0 && t < 6 ->
+                               return opt{ optBaseHeaderLevel = t }
+                           _              -> E.throwIO $ PandocOptionError
+                                               "base-header-level must be 1-5")
+                  "NUMBER")
+                 "" -- "Headers base level"
+
+    , Option "" ["strip-empty-paragraphs"]
                  (NoArg
-                  (\opt -> return opt { optAscii = True }))
-                 ""  -- "Prefer ASCII output"
+                  (\opt -> do
+                      deprecatedOption "--stripEmptyParagraphs"
+                        "Use +empty_paragraphs extension."
+                      return opt{ optStripEmptyParagraphs = True }))
+                 "" -- "Strip empty paragraphs"
+
+    , Option "" ["track-changes"]
+                 (ReqArg
+                  (\arg opt -> do
+                     action <- case arg of
+                            "accept" -> return AcceptChanges
+                            "reject" -> return RejectChanges
+                            "all"    -> return AllChanges
+                            _        -> E.throwIO $ PandocOptionError
+                               ("Unknown option for track-changes: " ++ arg)
+                     return opt { optTrackChanges = action })
+                  "accept|reject|all")
+                 "" -- "Accepting or reject MS Word track-changes.""
+
+    , Option "" ["strip-comments"]
+                (NoArg
+                 (\opt -> return opt { optStripComments = True }))
+               "" -- "Strip HTML comments"
 
     , Option "" ["reference-links"]
                  (NoArg
@@ -483,34 +496,6 @@ options =
                  (NoArg
                   (\opt -> return opt { optSetextHeaders = False } ))
                  "" -- "Use atx-style headers for markdown"
-
-    , Option "" ["top-level-division"]
-                 (ReqArg
-                  (\arg opt -> do
-                      let tldName = "TopLevel" ++ uppercaseFirstLetter arg
-                      case safeRead tldName of
-                        Just tlDiv -> return opt { optTopLevelDivision = tlDiv }
-                        _       -> E.throwIO $ PandocOptionError
-                                     ("Top-level division must be " ++
-                                      "section,  chapter, part, or default"))
-                   "section|chapter|part")
-                 "" -- "Use top-level division type in LaTeX, ConTeXt, DocBook"
-
-    , Option "N" ["number-sections"]
-                 (NoArg
-                  (\opt -> return opt { optNumberSections = True }))
-                 "" -- "Number sections in LaTeX"
-
-    , Option "" ["number-offset"]
-                 (ReqArg
-                  (\arg opt ->
-                      case safeRead ('[':arg ++ "]") of
-                           Just ns -> return opt { optNumberOffset = ns,
-                                                   optNumberSections = True }
-                           _      -> E.throwIO $ PandocOptionError
-                                       "could not parse number-offset")
-                 "NUMBERS")
-                 "" -- "Starting number for sections, subsections, etc."
 
     , Option "" ["listings"]
                  (NoArg
@@ -538,11 +523,11 @@ options =
                   (\opt -> return opt { optSectionDivs = True }))
                  "" -- "Put sections in div tags in HTML"
 
-    , Option "" ["default-image-extension"]
-                 (ReqArg
-                  (\arg opt -> return opt { optDefaultImageExtension = arg })
-                   "extension")
-                  "" -- "Default extension for extensionless images"
+    , Option "" ["html-q-tags"]
+                 (NoArg
+                  (\opt ->
+                     return opt { optHtmlQTags = True }))
+                 "" -- "Use <q> tags for quotes in HTML"
 
     , Option "" ["email-obfuscation"]
                  (ReqArg
@@ -578,13 +563,6 @@ options =
                   -- add new link to end, so it is included in proper order
                   "URL")
                  "" -- "Link to CSS style sheet"
-
-    , Option "" ["reference-doc"]
-                 (ReqArg
-                  (\arg opt ->
-                    return opt { optReferenceDoc = Just arg })
-                  "FILE")
-                 "" -- "Path of custom reference doc"
 
     , Option "" ["epub-subdirectory"]
              (ReqArg
@@ -634,25 +612,6 @@ options =
                        else return opt { optIpynbOutput = arg })
                  "all|none|best")
                  "" -- "Starting number for sections, subsections, etc."
-
-     , Option "" ["pdf-engine"]
-                 (ReqArg
-                  (\arg opt -> do
-                     let b = takeBaseName arg
-                     if b `elem` pdfEngines
-                        then return opt { optPdfEngine = Just arg }
-                        else E.throwIO $ PandocOptionError $ "pdf-engine must be one of "
-                               ++ intercalate ", " pdfEngines)
-                  "PROGRAM")
-                 "" -- "Name of program to use in generating PDF"
-
-    , Option "" ["pdf-engine-opt"]
-                 (ReqArg
-                  (\arg opt -> do
-                      let oldArgs = optPdfEngineArgs opt
-                      return opt { optPdfEngineArgs = oldArgs ++ [arg]})
-                  "STRING")
-                 "" -- "Flags to pass to the PDF-engine, all instances of this option are accumulated and used"
 
     , Option "" ["bibliography"]
                  (ReqArg
@@ -724,12 +683,6 @@ options =
                   (\opt ->
                       return opt { optHTMLMathMethod = GladTeX }))
                  "" -- "Use gladtex for HTML math"
-
-    , Option "" ["abbreviations"]
-                (ReqArg
-                 (\arg opt -> return opt { optAbbreviations = Just arg })
-                "FILE")
-                "" -- "Specify file for custom abbreviations"
 
     , Option "" ["trace"]
                  (NoArg
@@ -831,6 +784,54 @@ options =
                      mapM_ (UTF8.hPutStrLn stdout . fst) highlightingStyles
                      exitSuccess ))
                  ""
+
+    , Option "D" ["print-default-template"]
+                 (ReqArg
+                  (\arg _ -> do
+                     templ <- runIO $ do
+                                setUserDataDir Nothing
+                                getDefaultTemplate arg
+                     case templ of
+                          Right "" -> -- e.g. for docx, odt, json:
+                            E.throwIO $ PandocCouldNotFindDataFileError
+                               ("templates/default." ++ arg)
+                          Right t -> UTF8.hPutStr stdout t
+                          Left e  -> E.throwIO e
+                     exitSuccess)
+                  "FORMAT")
+                 "" -- "Print default template for FORMAT"
+
+    , Option "" ["print-default-data-file"]
+                 (ReqArg
+                  (\arg _ -> do
+                     runIOorExplode $
+                       readDefaultDataFile arg >>= liftIO . BS.hPutStr stdout
+                     exitSuccess)
+                  "FILE")
+                  "" -- "Print default data file"
+
+    , Option "" ["print-highlight-style"]
+                 (ReqArg
+                  (\arg _ -> do
+                     sty <- fromMaybe pygments <$> lookupHighlightStyle arg
+                     B.putStr $ encodePretty'
+                       defConfig{confIndent = Spaces 4
+                                ,confCompare = keyOrder
+                                  (map T.pack
+                                   ["text-color"
+                                   ,"background-color"
+                                   ,"line-number-color"
+                                   ,"line-number-background-color"
+                                   ,"bold"
+                                   ,"italic"
+                                   ,"underline"
+                                   ,"text-styles"])
+                                ,confNumFormat = Generic
+                                ,confTrailingNewline = True} sty
+                     exitSuccess)
+                  "STYLE|FILE")
+                 "" -- "Print default template for FORMAT"
+
 
     , Option "v" ["version"]
                  (NoArg
