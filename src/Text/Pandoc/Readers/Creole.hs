@@ -1,28 +1,5 @@
 {-# LANGUAGE NoImplicitPrelude #-}
 {-# LANGUAGE OverloadedStrings #-}
-{-
-  Copyright (C) 2017 Sascha Wilde <wilde@sha-bang.de>
-
-  partly based on all the other readers, especially the work by
-  John MacFarlane <jgm@berkeley.edu> and
-  Alexander Sulfrian <alexander.sulfrian@fu-berlin.de>
-  all bugs are solely created by me.
-
-This program is free software; you can redistribute it and/or modify
-it under the terms of the GNU General Public License as published by
-the Free Software Foundation; either version 2 of the License, or
-(at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
-
-You should have received a copy of the GNU General Public License
-along with this program; if not, write to the Free Software
-Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
--}
-
 {- |
    Module      : Text.Pandoc.Readers.Creole
    Copyright   : Copyright (C) 2017 Sascha Wilde
