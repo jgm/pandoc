@@ -73,7 +73,7 @@ import Text.Pandoc.PDF (makePDF)
 import Text.Pandoc.Readers.Markdown (yamlToMeta)
 import Text.Pandoc.SelfContained (makeDataURI, makeSelfContained)
 import Text.Pandoc.Shared (eastAsianLineBreakFilter, stripEmptyParagraphs,
-         headerShift, isURI, tabFilter, uriPathToPath)
+         headerShift, isURI, tabFilter, uriPathToPath, filterIpynbOutput)
 import qualified Text.Pandoc.UTF8 as UTF8
 #ifndef _WINDOWS
 import System.Posix.IO (stdOutput)
@@ -247,8 +247,20 @@ convertWithOpts opts = do
                               (writerExtensions writerOptions) &&
                               writerWrapText writerOptions == WrapPreserve)
                          then (eastAsianLineBreakFilter :)
-                         else id) $
-                     []
+                         else id) .
+                     (case optIpynbOutput opts of
+                       "all"    -> id
+                       "none"   -> (filterIpynbOutput Nothing :)
+                       "best"   -> (filterIpynbOutput (Just $
+                                     if htmlFormat writerName
+                                        then Format "html"
+                                        else
+                                          case writerName of
+                                            "latex"  -> Format "latex"
+                                            "beamer" -> Format "latex"
+                                            _        -> Format writerName) :)
+                       _  -> id)  -- should not happen
+                     $ []
 
     let sourceToDoc :: [FilePath] -> PandocIO Pandoc
         sourceToDoc sources' =
@@ -293,21 +305,22 @@ convertWithOpts opts = do
                                      TL.unpack (TE.decodeUtf8With TE.lenientDecode err')
 
         Nothing -> do
-                let htmlFormat = format `elem`
-                      ["html","html4","html5","s5","slidy",
-                       "slideous","dzslides","revealjs"]
-                    addNl = if standalone
+                let addNl = if standalone
                                then id
                                else (<> T.singleton '\n')
                 output <- addNl <$> f writerOptions doc
                 writerFn eol outputFile =<<
-                  if optSelfContained opts && htmlFormat
+                  if optSelfContained opts && htmlFormat writerName
                      -- TODO not maximally efficient; change type
                      -- of makeSelfContained so it works w/ Text
                      then T.pack <$> makeSelfContained (T.unpack output)
                      else return output
 
 type Transform = Pandoc -> Pandoc
+
+htmlFormat :: String -> Bool
+htmlFormat = (`elem` ["html","html4","html5","s5","slidy",
+                      "slideous","dzslides","revealjs"])
 
 isTextFormat :: String -> Bool
 isTextFormat s = s `notElem` ["odt","docx","epub2","epub3","epub","pptx"]

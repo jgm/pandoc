@@ -643,7 +643,17 @@ options =
                  "NUMBER")
                  "" -- "Header level at which to split chapters in EPUB"
 
-    , Option "" ["pdf-engine"]
+    , Option "" ["ipynb-output"]
+                 (ReqArg
+                  (\arg opt ->
+                    if arg `notElem` ["all","none","best"]
+                       then E.throwIO $ PandocOptionError $
+                             "ipynb-output must be all, none, or best"
+                       else return opt { optIpynbOutput = arg })
+                 "all|none|best")
+                 "" -- "Starting number for sections, subsections, etc."
+
+     , Option "" ["pdf-engine"]
                  (ReqArg
                   (\arg opt -> do
                      let b = takeBaseName arg

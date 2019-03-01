@@ -1192,6 +1192,15 @@ Options affecting specific writers {.options}
     the EPUB-specific contents.  The default is `EPUB`.  To put
     the EPUB contents in the top level, use an empty string.
 
+`--ipynb-output=all|none|best`
+
+:   Determines how ipynb output cells are treated. `all` means
+    that all of the data formats included in the original are
+    preserved.  `none` means that the contents of data cells
+    are omitted.  `best` causes pandoc to try to pick the
+    richest data block in each output cell that is compatible
+    with the output format.  The default is `best`.
+
 `--pdf-engine=`*PROGRAM*
 
 :   Use the specified engine when producing PDF output.

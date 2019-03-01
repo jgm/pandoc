@@ -86,6 +86,7 @@ module Text.Pandoc.Shared (
                      eastAsianLineBreakFilter,
                      underlineSpan,
                      splitSentences,
+                     filterIpynbOutput,
                      -- * TagSoup HTML handling
                      renderTags',
                      -- * File handling
@@ -122,12 +123,13 @@ import Data.Char (isAlpha, isLower, isSpace, isUpper, toLower, isAlphaNum,
                   generalCategory, GeneralCategory(NonSpacingMark,
                   SpacingCombiningMark, EnclosingMark, ConnectorPunctuation))
 import Data.Data (Data, Typeable)
-import Data.List (find, intercalate, intersperse, stripPrefix)
+import Data.List (find, intercalate, intersperse, stripPrefix, sortBy)
 import qualified Data.Map as M
 import Data.Maybe (mapMaybe)
 import Data.Sequence (ViewL (..), ViewR (..), viewl, viewr)
 import qualified Data.Set as Set
 import qualified Data.Text as T
+import Data.Ord (comparing)
 import Data.Version (showVersion)
 import Network.URI (URI (uriScheme), escapeURIString, parseURI)
 import Paths_pandoc (version)
@@ -688,6 +690,31 @@ splitSentences :: [Inline] -> [[Inline]]
 splitSentences xs =
   let (sent, rest) = breakSentence xs
   in  if null rest then [sent] else sent : splitSentences rest
+
+-- | Process ipynb output cells.  If mode is Nothing,
+-- remove all output.  If mode is Just format, select
+-- best output for the format.
+filterIpynbOutput :: Maybe Format -> Pandoc -> Pandoc
+filterIpynbOutput mode = walk go
+  where go (Div (ident, ("output":os), kvs) bs) =
+          case mode of
+            Nothing  -> Div (ident, ("output":os), kvs) []
+            Just fmt -> Div (ident, ("output":os), kvs) $
+              take 1 $ sortBy (comparing rank) bs
+                where
+                  rank (RawBlock (Format "html") _)
+                    | fmt == Format "html" = (1 :: Int)
+                    | fmt == Format "markdown" = 2
+                    | otherwise = 3
+                  rank (RawBlock (Format "latex") _)
+                    | fmt == Format "latex" = 1
+                    | fmt == Format "markdown" = 2
+                    | otherwise = 3
+                  rank (RawBlock f _)
+                    | fmt == f = 1
+                    | otherwise = 3
+                  rank _ = 2
+        go x = x
 
 --
 -- TagSoup HTML handling

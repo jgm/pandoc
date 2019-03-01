@@ -123,6 +123,7 @@ data Opt = Opt
     , optFileScope             :: Bool         -- ^ Parse input files before combining
     , optTitlePrefix           :: Maybe String     -- ^ Prefix for title
     , optCss                   :: [FilePath]       -- ^ CSS files to link to
+    , optIpynbOutput           :: String           -- ^ Maybe f to use best data; Nothing to omit
     , optIncludeBeforeBody     :: [FilePath]       -- ^ Files to include before
     , optIncludeAfterBody      :: [FilePath]       -- ^ Files to include after body
     , optIncludeInHeader       :: [FilePath]       -- ^ Files to include in header
@@ -196,6 +197,7 @@ defaultOpts = Opt
     , optFileScope             = False
     , optTitlePrefix           = Nothing
     , optCss                   = []
+    , optIpynbOutput           = "best"
     , optIncludeBeforeBody     = []
     , optIncludeAfterBody      = []
     , optIncludeInHeader       = []
