@@ -455,13 +455,16 @@ elementToHtml mbparentlevel slideLevel opts
   let inDiv xs = Blk (RawBlock (Format "html") ("<div class=\""
                        ++ fragmentClass ++ "\">")) :
                    (xs ++ [Blk (RawBlock (Format "html") "</div>")])
-  innerContents <- mapM (elementToHtml (Just level) slideLevel opts)
-                   $ if titleSlide
+  let (titleBlocks, innerSecs) =
+                     if titleSlide
                         -- title slides have no content of their own
-                        then filter isSec elements
+                        then ([x | Blk x <- elements],
+                              filter isSec elements)
                         else case splitBy isPause elements of
-                                  []     -> []
-                                  (x:xs) -> x ++ concatMap inDiv xs
+                                  []     -> ([],[])
+                                  (x:xs) -> ([],x ++ concatMap inDiv xs)
+  titleContents <- blockListToHtml opts titleBlocks
+  innerContents <- mapM (elementToHtml (Just level) slideLevel opts) innerSecs
   let inNl x = mconcat $ nl opts : intersperse (nl opts) x ++ [nl opts]
   let classes' = ["title-slide" | titleSlide] ++ ["slide" | slide] ++
                   ["section" | (slide || writerSectionDivs opts) &&
@@ -474,8 +477,7 @@ elementToHtml mbparentlevel slideLevel opts
   let attr = (id',classes',keyvals)
   if titleSlide
      then do
-       t <- addAttrs opts attr $
-                   secttag header'
+       t <- addAttrs opts attr $ secttag $ header' <> titleContents
        return $
          (if slideVariant == RevealJsSlides && not (null innerContents)
              -- revealjs doesn't like more than one level of section nesting:
