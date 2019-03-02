@@ -3,7 +3,6 @@
 {-# LANGUAGE DeriveDataTypeable    #-}
 {-# LANGUAGE FlexibleContexts      #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
-
 {-# LANGUAGE ScopedTypeVariables   #-}
 {-# LANGUAGE ViewPatterns          #-}
 {-# LANGUAGE FlexibleInstances  #-}
@@ -90,6 +89,8 @@ module Text.Pandoc.Shared (
                      safeRead,
                      -- * Temp directory
                      withTempDir,
+                     -- * User data directory
+                     defaultUserDataDirs,
                      -- * Version
                      pandocVersion
                     ) where
@@ -910,3 +911,18 @@ withTempDir =
 #else
   withSystemTempDirectory
 #endif
+
+--
+-- User data directory
+--
+
+-- | Return appropriate user data directory for platform.  We use
+-- XDG_DATA_HOME (or its default value), but fall back to the
+-- legacy user data directory ($HOME/.pandoc on *nix) if this is
+-- missing.
+defaultUserDataDirs :: IO [FilePath]
+defaultUserDataDirs = E.catch (do
+  xdgDir <- getXdgDirectory XdgData "pandoc"
+  legacyDir <- getAppUserDataDirectory "pandoc"
+  return $ ordNub [xdgDir, legacyDir])
+ (\(_ :: E.SomeException) -> return [])
