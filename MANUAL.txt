@@ -4555,9 +4555,9 @@ rules:
   * Headers *above* the slide level in the hierarchy create
     "title slides," which just contain the section title
     and help to break the slide show into sections.
-
-  * Content *above* the slide level will not appear in the slide
-    show.
+    Non-slide content under these headers will be included
+    on the title slide (for HTML slide shows) or in a
+    subsequent slide with the same title (for beamer).
 
   * A title page is constructed automatically from the document's title
     block, if present.  (In the case of beamer, this can be disabled
