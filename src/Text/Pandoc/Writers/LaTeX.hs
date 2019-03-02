@@ -448,7 +448,14 @@ elementToBeamer slideLevel  (Sec lvl _num (ident,classes,kvs) tit elts)
                     : tit ++ [RawInline "latex" "}"] )
              : bs ++ [RawBlock "latex" "\\end{block}"]
   | lvl <  slideLevel = do
-      bs <- concat `fmap` mapM (elementToBeamer slideLevel) elts
+      let isSec Sec{} = True
+          isSec _     = False
+      let (contentElts, secElts) = break isSec elts
+      let elts' = if null contentElts
+                     then secElts
+                     else Sec slideLevel [] nullAttr tit contentElts :
+                          secElts
+      bs <- concat `fmap` mapM (elementToBeamer slideLevel) elts'
       return $ Header lvl (ident,classes,kvs) tit : bs
   | otherwise = do -- lvl == slideLevel
       -- note: [fragile] is required or verbatim breaks
