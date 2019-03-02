@@ -87,8 +87,6 @@ module Text.Pandoc.Shared (
                      defaultBlocksSeparator,
                      -- * Safe read
                      safeRead,
-                     -- * Temp directory
-                     withTempDir,
                      -- * User data directory
                      defaultUserDataDirs,
                      -- * Version
@@ -119,7 +117,6 @@ import Paths_pandoc (version)
 import System.Directory
 import System.FilePath (isPathSeparator, splitDirectories)
 import qualified System.FilePath.Posix as Posix
-import System.IO.Temp
 import Text.HTML.TagSoup (RenderOptions (..), Tag (..), renderOptions,
                           renderTagsOptions)
 import Text.Pandoc.Builder (Blocks, Inlines, ToMetaValue (..))
@@ -897,20 +894,6 @@ safeRead s = case reads s of
                   (d,x):_
                     | all isSpace x -> return d
                   _                 -> mzero
-
---
--- Temp directory
---
-
--- TODO remove in next major release; this is no longer
--- used in the code base.
-withTempDir :: String -> (FilePath -> IO a) -> IO a
-withTempDir =
-#ifdef _WINDOWS
-  withTempDirectory "."
-#else
-  withSystemTempDirectory
-#endif
 
 --
 -- User data directory
