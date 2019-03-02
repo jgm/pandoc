@@ -38,7 +38,7 @@ import qualified Data.Text.Lazy.Encoding as TE
 import qualified Data.Text.Encoding.Error as TE
 import qualified Data.Text.Encoding.Error as TSE
 import Network.URI (URI (..), parseURI)
-import System.Directory (getAppUserDataDirectory)
+import System.Directory (doesDirectoryExist)
 import System.Exit (exitSuccess)
 import System.FilePath
 import System.IO (nativeNewline, stdout)
@@ -55,7 +55,8 @@ import Text.Pandoc.PDF (makePDF)
 import Text.Pandoc.Readers.Markdown (yamlToMeta)
 import Text.Pandoc.SelfContained (makeDataURI, makeSelfContained)
 import Text.Pandoc.Shared (eastAsianLineBreakFilter, stripEmptyParagraphs,
-         headerShift, isURI, tabFilter, uriPathToPath, filterIpynbOutput)
+         headerShift, isURI, tabFilter, uriPathToPath, filterIpynbOutput,
+         defaultUserDataDirs)
 import qualified Text.Pandoc.UTF8 as UTF8
 #ifndef _WINDOWS
 import System.Posix.IO (stdOutput)
@@ -89,10 +90,15 @@ convertWithOpts opts = do
                         | otherwise  -> xs
 
   datadir <- case optDataDir opts of
-                  Nothing   -> E.catch
-                                 (Just <$> getAppUserDataDirectory "pandoc")
-                                 (\e -> let _ = (e :: E.SomeException)
-                                        in  return Nothing)
+                  Nothing   -> do
+                    ds <- defaultUserDataDirs
+                    let selectUserDataDir [] = return Nothing
+                        selectUserDataDir (dir:dirs) = do
+                              exists <- doesDirectoryExist dir
+                              if exists
+                                 then return (Just dir)
+                                 else selectUserDataDir dirs
+                    selectUserDataDir ds
                   Just _    -> return $ optDataDir opts
 
   -- assign reader and writer based on options and filenames

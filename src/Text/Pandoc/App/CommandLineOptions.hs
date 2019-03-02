@@ -46,15 +46,14 @@ import Text.Pandoc.App.Opt (Opt (..), LineEnding (..))
 import Text.Pandoc.Filter (Filter (..))
 import Text.Pandoc.Highlighting (highlightingStyles)
 import Text.Pandoc.Writers.Math (defaultMathJaxURL, defaultKaTeXURL)
-import Text.Pandoc.Shared (ordNub, safeRead)
+import Text.Pandoc.Shared (ordNub, safeRead, defaultUserDataDirs)
 import Text.Printf
 
 #ifdef EMBED_DATA_FILES
 import Text.Pandoc.Data (dataFiles)
-import System.Directory (getAppUserDataDirectory)
 #else
 import Paths_pandoc (getDataDir)
-import System.Directory (getAppUserDataDirectory, getDirectoryContents)
+import System.Directory (getDirectoryContents)
 #endif
 
 import qualified Control.Exception as E
@@ -837,13 +836,11 @@ options =
                  (NoArg
                   (\_ -> do
                      prg <- getProgName
-                     defaultDatadir <- E.catch
-                            (getAppUserDataDirectory "pandoc")
-                            (\e -> let _ = (e :: E.SomeException)
-                                   in  return "")
+                     defaultDatadirs <- defaultUserDataDirs
                      UTF8.hPutStrLn stdout (prg ++ " " ++ pandocVersion ++
                        compileInfo ++ "\nDefault user data directory: " ++
-                       defaultDatadir ++ copyrightMessage)
+                       intercalate " or " defaultDatadirs ++
+                       ('\n':copyrightMessage))
                      exitSuccess ))
                  "" -- "Print version"
 
@@ -872,7 +869,6 @@ usageMessage programName = usageInfo (programName ++ " [OPTIONS] [FILES]")
 
 copyrightMessage :: String
 copyrightMessage = intercalate "\n" [
-  "",
   "Copyright (C) 2006-2019 John MacFarlane",
   "Web:  http://pandoc.org",
   "This is free software; see the source for copying conditions.",

@@ -1,5 +1,5 @@
 ```
-% pandoc --lua-filter=command/lua-pandoc-state.lua
+% pandoc --lua-filter=command/lua-pandoc-state.lua --data-dir=foo
 Hello
 ^D
    # input files: 0
