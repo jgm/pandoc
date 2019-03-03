@@ -95,6 +95,7 @@
 - Jesse Rosenthal
 - Joe Hermaszewski
 - Joe Hillenbrand
+- John KetzerX
 - John MacFarlane
 - John Muccigrosso
 - John Luke Bentley
