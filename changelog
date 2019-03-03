@@ -171,7 +171,8 @@ pandoc (2.7)
   * LaTeX template:
 
     + Support the `subject` metadata variable (#5289, Pascal Wagler).
-    + Add \frontmatter, \mainmatter, \backmatter for book classes (#5306).
+    + Add `\frontmatter`, `\mainmatter`, `\backmatter`
+      for book classes (#5306).
 
   * epub3 template: Add titlepage class to section (#5269).
 
