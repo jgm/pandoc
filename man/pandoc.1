@@ -1,5 +1,5 @@
 .\"t
-.TH PANDOC 1 "January 30, 2019" "pandoc 2.6"
+.TH PANDOC 1 "March 2, 2019" "pandoc 2.7"
 .SH NAME
 pandoc - general markup converter
 .SH SYNOPSIS
@@ -300,7 +300,7 @@ Specify output format.
 \f[I]FORMAT\f[R] can be:
 .RS
 .IP \[bu] 2
-\f[C]asciidoc\f[R] (AsciiDoc)
+\f[C]asciidoc\f[R] (AsciiDoc) or \f[C]asciidoctor\f[R] (AsciiDoctor)
 .IP \[bu] 2
 \f[C]beamer\f[R] (LaTeX beamer slide show)
 .IP \[bu] 2
@@ -417,38 +417,20 @@ even if a non-textual format (\f[C]docx\f[R], \f[C]odt\f[R],
 Specify the user data directory to search for pandoc data files.
 If this option is not specified, the default user data directory will be
 used.
-This is, in UNIX:
-.RS
-.IP
-.nf
-\f[C]
-$HOME/.pandoc
-\f[R]
-.fi
-.PP
-in Windows XP:
-.IP
-.nf
-\f[C]
-C:\[rs]Documents And Settings\[rs]USERNAME\[rs]Application Data\[rs]pandoc
-\f[R]
-.fi
-.PP
-and in Windows Vista or later:
-.IP
-.nf
-\f[C]
-C:\[rs]Users\[rs]USERNAME\[rs]AppData\[rs]Roaming\[rs]pandoc
-\f[R]
-.fi
-.PP
+On *nix and macOS systems this will be the \f[C]pandoc\f[R] subdirectory
+of the XDG data directory (by default, \f[C]$HOME/.local/share\f[R],
+overridable by setting the \f[C]XDG_DATA_HOME\f[R] environment
+variable).
+If that directory does not exist, \f[C]$HOME/.pandoc\f[R] will be used
+(for backwards compatibility).
+In Windows the default user data directory is
+\f[C]C:\[rs]Users\[rs]USERNAME\[rs]AppData\[rs]Roaming\[rs]pandoc\f[R].
 You can find the default user data directory on your system by looking
 at the output of \f[C]pandoc --version\f[R].
 A \f[C]reference.odt\f[R], \f[C]reference.docx\f[R], \f[C]epub.css\f[R],
 \f[C]templates\f[R], \f[C]slidy\f[R], \f[C]slideous\f[R], or
 \f[C]s5\f[R] directory placed in this directory will override
 pandoc\[aq]s normal defaults.
-.RE
 .TP
 .B \f[C]--bash-completion\f[R]
 Generate a bash completion script.
@@ -1275,8 +1257,21 @@ EPUB-specific contents.
 The default is \f[C]EPUB\f[R].
 To put the EPUB contents in the top level, use an empty string.
 .TP
-.B \f[C]--pdf-engine=pdflatex\f[R]|\f[C]lualatex\f[R]|\f[C]xelatex\f[R]|\f[C]wkhtmltopdf\f[R]|\f[C]weasyprint\f[R]|\f[C]prince\f[R]|\f[C]context\f[R]|\f[C]pdfroff\f[R]
+.B \f[C]--ipynb-output=all|none|best\f[R]
+Determines how ipynb output cells are treated.
+\f[C]all\f[R] means that all of the data formats included in the
+original are preserved.
+\f[C]none\f[R] means that the contents of data cells are omitted.
+\f[C]best\f[R] causes pandoc to try to pick the richest data block in
+each output cell that is compatible with the output format.
+The default is \f[C]best\f[R].
+.TP
+.B \f[C]--pdf-engine=\f[R]\f[I]PROGRAM\f[R]
 Use the specified engine when producing PDF output.
+Valid values are \f[C]pdflatex\f[R], \f[C]lualatex\f[R],
+\f[C]xelatex\f[R], \f[C]latexmk\f[R], \f[C]wkhtmltopdf\f[R],
+\f[C]weasyprint\f[R], \f[C]prince\f[R], \f[C]context\f[R], and
+\f[C]pdfroff\f[R].
 The default is \f[C]pdflatex\f[R].
 If the engine is not in your PATH, the full path of the engine may be
 specified here.
@@ -1284,8 +1279,9 @@ specified here.
 .B \f[C]--pdf-engine-opt=\f[R]\f[I]STRING\f[R]
 Use the given string as a command-line argument to the
 \f[C]pdf-engine\f[R].
-If used multiple times, the arguments are provided with spaces between
-them.
+For example, to use a persistent directory \f[C]foo\f[R] for
+\f[C]latexmk\f[R]\[aq]s auxiliary files, use
+\f[C]--pdf-engine-opt=-outdir=foo\f[R].
 Note that no check for duplicate options is done.
 .SS Citation rendering
 .TP
@@ -1500,7 +1496,7 @@ list of keywords to be included in HTML, PDF, ODT, pptx, docx and
 AsciiDoc metadata; repeat as for \f[C]author\f[R], above
 .TP
 .B \f[C]subject\f[R]
-document subject, included in ODT, docx and pptx metadata
+document subject, included in ODT, PDF, docx and pptx metadata
 .TP
 .B \f[C]description\f[R]
 document description, included in ODT, docx and pptx metadata.
@@ -2073,6 +2069,9 @@ $author.name$ ($author.affiliation$)
 \f[R]
 .fi
 .PP
+The value of a variable will be indented to the same level as the
+variable.
+.PP
 If you use custom templates, you may need to revise them as pandoc
 changes.
 We recommend tracking the changes in the default templates, and
@@ -2412,9 +2411,9 @@ This extension can be enabled/disabled for the following formats:
 \f[C]docx\f[R], \f[C]odt\f[R], \f[C]opendocument\f[R], \f[C]html\f[R]
 .SS Extension: \f[C]styles\f[R]
 .PP
-Read all docx styles as divs (for paragraph styles) and spans (for
-character styles) regardless of whether pandoc understands the meaning
-of these styles.
+When converting from docx, read all docx styles as divs (for paragraph
+styles) and spans (for character styles) regardless of whether pandoc
+understands the meaning of these styles.
 This can be used with docx custom styles.
 Disabled by default.
 .TP
@@ -4053,7 +4052,11 @@ or \f[C]$$...$$\f[R] (for display math).
 It will be rendered using an interpreted text role \f[C]:math:\f[R].
 .TP
 .B AsciiDoc
-It will be rendered as \f[C]latexmath:[...]\f[R].
+For AsciiDoc output format (\f[C]-t asciidoc\f[R]) it will appear
+verbatim surrounded by \f[C]latexmath:[$...$]\f[R] (for inline math) or
+\f[C][latexmath]++++\[rs][...\[rs]]+++\f[R] (for display math).
+For AsciiDoctor output format (\f[C]-t asciidoctor\f[R]) the LaTex
+delimiters (\f[C]$..$\f[R] and \f[C]\[rs][..\[rs]]\f[R]) are omitted.
 .TP
 .B Texinfo
 It will be rendered inside a \f[C]\[at]math\f[R] command.
@@ -5313,9 +5316,9 @@ Headers \f[I]below\f[R] the slide level in the hierarchy create headers
 Headers \f[I]above\f[R] the slide level in the hierarchy create
 \[dq]title slides,\[dq] which just contain the section title and help to
 break the slide show into sections.
-.IP \[bu] 2
-Content \f[I]above\f[R] the slide level will not appear in the slide
-show.
+Non-slide content under these headers will be included on the title
+slide (for HTML slide shows) or in a subsequent slide with the same
+title (for beamer).
 .IP \[bu] 2
 A title page is constructed automatically from the document\[aq]s title
 block, if present.
@@ -5980,6 +5983,61 @@ To disable highlighting, use the \f[C]--no-highlight\f[R] option.
 .SH CUSTOM STYLES
 .PP
 Custom styles can be used in the docx and ICML formats.
+.SS Output
+.PP
+By default, pandoc\[aq]s docx and ICML output applies a predefined set
+of styles for blocks such as paragraphs and block quotes, and uses
+largely default formatting (italics, bold) for inlines.
+This will work for most purposes, especially alongside a
+\f[C]reference.docx\f[R] file.
+However, if you need to apply your own styles to blocks, or match a
+preexisting set of styles, pandoc allows you to define custom styles for
+blocks and text using \f[C]div\f[R]s and \f[C]span\f[R]s, respectively.
+.PP
+If you define a \f[C]div\f[R] or \f[C]span\f[R] with the attribute
+\f[C]custom-style\f[R], pandoc will apply your specified style to the
+contained elements.
+So, for example using the \f[C]bracketed_spans\f[R] syntax,
+.IP
+.nf
+\f[C]
+[Get out]{custom-style=\[dq]Emphatically\[dq]}, he said.
+\f[R]
+.fi
+.PP
+would produce a docx file with \[dq]Get out\[dq] styled with character
+style \f[C]Emphatically\f[R].
+Similarly, using the \f[C]fenced_divs\f[R] syntax,
+.IP
+.nf
+\f[C]
+Dickinson starts the poem simply:
+
+::: {custom-style=\[dq]Poetry\[dq]}
+| A Bird came down the Walk---
+| He did not know I saw---
+:::
+\f[R]
+.fi
+.PP
+would style the two contained lines with the \f[C]Poetry\f[R] paragraph
+style.
+.PP
+For docx output, styles will be defined in the output file as inheriting
+from normal text, if the styles are not yet in your reference.docx.
+If they are already defined, pandoc will not alter the definition.
+.PP
+This feature allows for greatest customization in conjunction with
+pandoc filters.
+If you want all paragraphs after block quotes to be indented, you can
+write a filter to apply the styles necessary.
+If you want all italics to be transformed to the \f[C]Emphasis\f[R]
+character style (perhaps to change their color), you can write a filter
+which will transform all italicized inlines to inlines within an
+\f[C]Emphasis\f[R] custom-style \f[C]span\f[R].
+.PP
+For docx output, you don\[aq]t need to enable any extensions for custom
+styles to work.
 .SS Input
 .PP
 The docx reader, by default, only reads those styles that it can convert
@@ -6034,58 +6092,6 @@ text style.
 With these custom styles, you can use your input document as a
 reference-doc while creating docx output (see below), and maintain the
 same styles in your input and output files.
-.SS Output
-.PP
-By default, pandoc\[aq]s docx and ICML output applies a predefined set
-of styles for blocks such as paragraphs and block quotes, and uses
-largely default formatting (italics, bold) for inlines.
-This will work for most purposes, especially alongside a
-\f[C]reference.docx\f[R] file.
-However, if you need to apply your own styles to blocks, or match a
-preexisting set of styles, pandoc allows you to define custom styles for
-blocks and text using \f[C]div\f[R]s and \f[C]span\f[R]s, respectively.
-.PP
-If you define a \f[C]div\f[R] or \f[C]span\f[R] with the attribute
-\f[C]custom-style\f[R], pandoc will apply your specified style to the
-contained elements.
-So, for example using the \f[C]bracketed_spans\f[R] syntax,
-.IP
-.nf
-\f[C]
-[Get out]{custom-style=\[dq]Emphatically\[dq]}, he said.
-\f[R]
-.fi
-.PP
-would produce a docx file with \[dq]Get out\[dq] styled with character
-style \f[C]Emphatically\f[R].
-Similarly, using the \f[C]fenced_divs\f[R] syntax,
-.IP
-.nf
-\f[C]
-Dickinson starts the poem simply:
-
-::: {custom-style=\[dq]Poetry\[dq]}
-| A Bird came down the Walk---
-| He did not know I saw---
-:::
-\f[R]
-.fi
-.PP
-would style the two contained lines with the \f[C]Poetry\f[R] paragraph
-style.
-.PP
-For docx output, styles will be defined in the output file as inheriting
-from normal text, if the styles are not yet in your reference.docx.
-If they are already defined, pandoc will not alter the definition.
-.PP
-This feature allows for greatest customization in conjunction with
-pandoc filters.
-If you want all paragraphs after block quotes to be indented, you can
-write a filter to apply the styles necessary.
-If you want all italics to be transformed to the \f[C]Emphasis\f[R]
-character style (perhaps to change their color), you can write a filter
-which will transform all italicized inlines to inlines within an
-\f[C]Emphasis\f[R] custom-style \f[C]span\f[R].
 .SH CUSTOM WRITERS
 .PP
 Pandoc can be extended with custom writers written in lua.

@@ -81,7 +81,8 @@ It can convert *to*
 
 <div id="output-formats">
 
-  - `asciidoc` ([AsciiDoc](http://www.methods.co.nz/asciidoc/)) or `asciidoctor` ([AsciiDoctor](https://asciidoctor.org/))
+  - `asciidoc` ([AsciiDoc](http://www.methods.co.nz/asciidoc/)) or
+    `asciidoctor` ([AsciiDoctor](https://asciidoctor.org/))
   - `beamer` ([LaTeX beamer](https://ctan.org/pkg/beamer) slide show)
   - `commonmark` ([CommonMark](http://commonmark.org) Markdown)
   - `context` ([ConTeXt](http://www.contextgarden.net/))
