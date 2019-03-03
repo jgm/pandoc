@@ -1,24 +1,43 @@
-pandoc (2.6.1) PROVISIONAL
+pandoc (2.7)
+
+  * Use XDG data directory for user data directory (#3582). Instead of
+    `$HOME/.pandoc`, the default user data directory is now
+    `$XDG_DATA_HOME/pandoc`, where `XDG_DATA_HOME` defaults to
+    `$HOME/.local/share` but can be overridden by setting the
+    environment variable. If this directory is missing, then
+    `$HOME/.pandoc` is searched instead, for backwards compatibility.
+    However, we recommend moving local pandoc data files from
+    `$HOME/.pandoc` to `$HOME/.local/share/pandoc`. On Windows the
+    default user data directory remains the same.
+
+  * Add command line option `--ipynb-output=all|none|best` (#5339).
 
   * `asciidoctor` is now an output format separate from `asciidoc`,
     to accommodate some minor implementation-specific differences
     (currently just in the treatment of display math).
+  
+  * Add `latexmk` as an option for `--pdf-engine` (#3195).
+    Note that you can use `--pdf-engine-opt=-outdir=bar` to specify
+    a persistent temp directory.
 
   * Markdown reader:
 
-    + Improve tight/loose list handling (#5285).  Previously the algorithm
-      allowed list items with a mix of Para and Plain, which is never wanted.
-      This patch modifies `compactify` in Text.Pandoc.Shared so that, if a
-      list's items contain (at the top level) Para elements (aside from perhaps
-      at the very end), *all* Plains are converted to Paras.
+    + Improve tight/loose list handling (#5285). Previously the
+      algorithm allowed list items with a mix of Para and Plain, which
+      is never wanted.
     + Add newline when parsing blocks in YAML (#5271).
       Otherwise last block gets parsed as a Plain rather than
       a Para.  This is a regression in pandoc 2.x.  This patch restores
       pandoc 1.19 behavior.
+    + Make `yamlToMeta` respect extensions (#5272, Mauro Bieg).
+      This adds a `ReaderOptions` parameter to `yamlToMeta` [API change].
+    + Fix bug parsing fenced code blocks (#5304). Previously parsing
+      would break if the code block contained a string of backticks of
+      sufficient length followed by something other than end of line.
 
-  * LaTeX reader: don't let `\egroup` match `{`.  `braced` now actually
-    requires nested braces.  Otherwise some legitimate command and environment
-    definitions can break.
+  * LaTeX reader: don't let `\egroup` match `{`. `braced` now actually
+    requires nested braces. Otherwise some legitimate command and
+    environment definitions can break.
 
   * Docx reader (Jesse Rosenthal):
 
@@ -36,14 +55,30 @@ pandoc (2.6.1) PROVISIONAL
       Some paths in archives are absolute (have an opening slash) which, for
       reasons unknown, produces a failure in the test suite on MS
       Windows. This fixes that by removing the leading slash if it exists.
+    + Add comments to aid code readability.
+    + Trim space inside the last inline (#5273).
+    + Unwrap sdt elements in footnotes and comments (#5302).
 
-  * Muse reader: test that block level markup does not break `<verbatim>`
-    (Alexander Krotov).
+  * Muse reader (Alexander Krotov):
+  
+    + Test that block level markup does not break `<verbatim>`.
+    + Add secondary note support.
 
   * ipynb reader: handle images referring to attachments.
     Previously we didn't strip off the attachment: prefix,
     so even though the attachment is available in the mediabag,
     pandoc couldn't find it.
+
+  * JATS reader:
+  
+    + Fix parsing of figures (#5321). This ensures that a figure
+      containing a single image is parsed as a pandoc "implicit
+      figure" (i.e., a Para with a single Image whose title attribute
+      begins with `fig:`). More complex figures will still be parsed
+      as divs.
+    + Support `fig-group` block element (#5317).
+    + Handle citations with multiple references (#5310).
+      The `rid` attribute can have a space-separated list of ids.
 
   * AsciiDoc Writer: Add `writeAsciiDoctor` [API change, Tarik Graba].
     Handle display math appropriately for Asciidoctor.
@@ -51,9 +86,26 @@ pandoc (2.6.1) PROVISIONAL
   * JATS writer: wrap figure caption in `<p>` to fix validation (#5290,
     Mauro Bieg).
 
-  * HTML writer: implement WAI-ARIA roles for (end)notes (#4213).
+  * HTML writer:
 
-  * ipynb writer - ensure final newline.
+    + Implement WAI-ARIA roles for (end)notes, citations,
+      and bibliography (#4213). Note that doc-biblioref is only used when
+      link-citations produces links, since it belongs on links.
+    + Include content under title slides (#4317, #5237). This
+      facilitates real 2D revealjs slideshows, with content under the
+      top-level slide in each stack.  It also enables notes on title slides.
+      Behavior change: content above slide level is no longer ignored; it
+      now gets added to the title slide.
+
+  * ipynb writer:
+
+    + Ensure final newline.
+    + Only include metadata under `jupyter` field.
+    + Don't create attachments for images with absolute URIs,
+      including data: URIs (#5303).
+    + Keep plain text fallbacks in output even if a richer format is
+      included (#5293). We don't know what output format will be needed.
+      The fallback can always be weeded out using a filter.
 
   * Markdown writer: use `markdown="1"` when appropriate for Divs:
     when `native_divs` and `markdown_in_html_blocks` are disabled
@@ -69,27 +121,50 @@ pandoc (2.6.1) PROVISIONAL
       the `{}` when it is not necessary.  Now `\ldots` and other
       control sequences used in escaping will be followed by either
       a `{}`, a space, or nothing, depending on context.
+    + For beamer, include contents under headers superordinate to
+      slidelevel (#4317). Currently we keep the fancy title slide, and
+      add a new slide with the same title and whatever content was
+      under the header. This changes behavior of slides, but is
+      consistent with the new behavior of the revealjs and other HTML
+      slide show writers.
+
+  * Powerpoint writer (Jesse Rosenthal): support underlines.
+    Use span with single class "underline" as in docx writer.
+
+  * Muse writer: escape secondary notes (Alexander Krotov).
+  
+  * FB2 writer: add section identifiers support (#5229, John KetzerX).
+ 
+  * Make `--fail-if-warnings` work for PDF output (#5343).
 
   * Lua filters (Albert Krewinkel):
 
-    + load module `pandoc` before calling `init.lua` (#5287).
-      The file `init.lua` in pandoc's data directory is run as part of pandoc's
-      Lua initialization process. Previously, the `pandoc` module was loaded in
-      `init.lua`, and the structure for marshaling was set-up after.  This
-      allowed simple patching of element marshaling, but made using `init.lua`
-      more difficult.  Now, all required modules are now loaded before calling
-      `init.lua`.  The file can be used entirely for user customization.
-      Patching marshaling functions, while discouraged, is still possible via
+    + Load module `pandoc` before calling `init.lua` (#5287). The file
+      `init.lua` in pandoc's data directory is run as part of pandoc's
+      Lua initialization process. Previously, the `pandoc` module was
+      loaded in `init.lua`, and the structure for marshaling was
+      set-up after. This allowed simple patching of element
+      marshaling, but made using `init.lua` more difficult. Now, all
+      required modules are now loaded before calling `init.lua`. The
+      file can be used entirely for user customization. Patching
+      marshaling functions, while discouraged, is still possible via
       the `debug` module.
-
     + Re-export all bundled modules (Albert Krewinkel).
       All Lua modules bundled with pandoc, i.e., `pandoc.List`,
       `pandoc.mediabag`, `pandoc.utils`, and `text` are re-exported from the
       `pandoc` module. They are assigned to the fields `List`, `mediabag`,
       `utils`, and `text`, respectively.
 
-  * latex template: support the `subject` metadata variable (#5289,
-    Pascal Wagler).
+  * Text.Pandoc.Lua (Albert Krewinkel):
+  
+    + Split `StackInstances` into smaller Marshaling modules.
+    + Get `CommonState` from Lua global. This allows more control over
+      the common state from within Lua scripts.
+ 
+  * LaTeX template:
+  
+    + Support the `subject` metadata variable (#5289, Pascal Wagler).
+    + Add \frontmatter, \mainmatter, \backmatter for book classes (#5306).
 
   * epub3 template: Add titlepage class to section (#5269).
 
@@ -97,23 +172,37 @@ pandoc (2.6.1) PROVISIONAL
 
   * Make --metadata-file use pandoc-markdown (#5279, #5272, Mauro Bieg).
 
+  * Text.Pandoc.Shared:
+  
+    + Remove `withTempDir` [API change].
+    + Add new exported function `defaultUserDataDirs` [API change].
+    + Add `filterIpynbOutput` [API change].
+    + `compactify`: Avoid lists with a mix of Plain and Para elements
+      (#5285).
+
+  * Text.Pandoc.Translations: reorder alphabetically and remove `Author`
+    (#5334, Mauro Bieg).
+
   * Text.Pandoc.Extensions:
 
     + More carefully groom ipynb default extensions.
     + Add `all_symbols_escapable` to `githubMarkdownExtensions`.
 
-  * Text.Pandoc.PDF: Use system temp directory when possible (#1192).
-    Previously we created temp dirs in the working directory,
-    partly (a) because there were problems using the system temp
-    directory on Windows, when their pathnames included tildes,
-    and partly (b) because programs like `epstopdf.pl` would not
-    be allowed to write to directories outside the working
-    directory in restricted mode.  We now (a) use the system
-    temp dir except when the path includes tildes, and
-    (b) set TEXMFOUTPUT when creating the PDF, so that
-    subsidiary programs can use the system temp directory.
-    This addresses problems that occurred when pandoc
-    was used in a synced directory.
+  * Text.Pandoc.PDF:
+  
+    + Use system temp directory when possible (#1192). Previously we
+      created temp dirs in the working directory, partly (a) because
+      there were problems using the system temp directory on Windows,
+      when their pathnames included tildes, and partly (b) because
+      programs like `epstopdf.pl` would not be allowed to write to
+      directories outside the working directory in restricted mode. We
+      now (a) use the system temp dir except when the path includes
+      tildes, and (b) set TEXMFOUTPUT when creating the PDF, so that
+      subsidiary programs can use the system temp directory. This
+      addresses problems that occurred when pandoc was used in a
+      synced directory.
+    + Change types of subsidiary functions to PandocIO, to allow
+      warnings to be threaded through (#5343).
 
   * Text.Pandoc.MIME: add WebP (#5267, Mauro Bieg).
 
@@ -123,18 +212,26 @@ pandoc (2.6.1) PROVISIONAL
 
   * Added simple ipynb reader/writer tests (#5274).
 
-  * Use latest skylighting (adds support for `protobuf`,
-    updates definitions for other languages).
+  * Rearrange `--help` output in a more rational way (#5336).
 
-  * trypandoc: Add JATS to output option (Arfon Smith, #5291).
+  * trypandoc: Add JATS and other missing formats (Arfon Smith, #5291).
+
+  * Add missing copyright notices and remove license boilerplate (#4592,
+    Albert Krewinkel).
 
   * Use latest basement/foundation on 32bit windows.
 
-  * Add missing copyright notices and remove license boilerplate (#5112,
-    Albert Krewinkel).  Quite a few modules were missing copyright notices.
-    This commit adds copyright notices everywhere via haddock module
-    headers.  The old license boilerplate comment is redundant with this and has
-    been removed.  Update copyright years to 2019.  Closes #4592.
+  * Use latest skylighting (#5328).
+
+  * Require texmath 0.11.2.1
+
+  * Use latest pandoc-citeproc (0.16.1).
+ 
+  * MANUAL.txt:
+  
+    + Clarify variable substitution indentation in templates (#5338,
+      Agustín Martín Barbero).
+    + Reorder custom-styles section (#5324, Mauro Bieg).
 
 pandoc (2.6)
 
