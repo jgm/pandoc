@@ -17,6 +17,7 @@
 - Antoine Latter
 - Antonio Terceiro
 - Arata Mizuki
+- Arfon Smith
 - Arlo O'Keeffe
 - Artyom Kazak
 - Agustín Martín Barbero
@@ -152,6 +153,7 @@
 - Or Neeman
 - OvidiusCicero
 - Pablo Rodríguez
+- Pascal Wagler
 - Paul Rivier
 - Paulo Tanimoto
 - Peter Wang
