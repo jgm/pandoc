@@ -11,7 +11,7 @@ flags:
 packages:
 - '.'
 extra-deps:
-- pandoc-citeproc-0.16.1
+- pandoc-citeproc-0.16.1.1
 - skylighting-0.7.7
 - skylighting-core-0.7.7
 - ipynb-0.1

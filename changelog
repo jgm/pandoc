@@ -234,7 +234,7 @@ pandoc (2.7)
 
   * Require texmath 0.11.2.1
 
-  * Use latest pandoc-citeproc (0.16.1).
+  * Use latest pandoc-citeproc (0.16.1.1).
 
   * MANUAL.txt:
 
