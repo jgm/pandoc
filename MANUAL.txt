@@ -1200,9 +1200,9 @@ Options affecting specific writers {.options}
 
 :   Use the specified engine when producing PDF output.
     Valid values are `pdflatex`, `lualatex`, `xelatex`, `latexmk`,
-    `wkhtmltopdf`, `weasyprint`, `prince`, `context`, and `pdfroff`.
-    The default is `pdflatex`.  If the engine is not in your PATH,
-    the full path of the engine may be specified here.
+    `tectonic`, `wkhtmltopdf`, `weasyprint`, `prince`, `context`,
+    and `pdfroff`. The default is `pdflatex`.  If the engine is
+    not in your PATH, the full path of the engine may be specified here.
 
 `--pdf-engine-opt=`*STRING*
 

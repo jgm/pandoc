@@ -85,7 +85,7 @@ parseOptions options' defaults = do
   return (opts{ optInputFiles = map normalizePath args })
 
 latexEngines :: [String]
-latexEngines  = ["pdflatex", "lualatex", "xelatex", "latexmk"]
+latexEngines  = ["pdflatex", "lualatex", "xelatex", "latexmk", "tectonic"]
 
 htmlEngines :: [String]
 htmlEngines  = ["wkhtmltopdf", "weasyprint", "prince"]
