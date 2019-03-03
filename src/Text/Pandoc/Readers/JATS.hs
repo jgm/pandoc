@@ -181,7 +181,10 @@ parseBlock (Elem e) =
         "title" -> return mempty -- processed by header
         "table" -> parseTable
         "fig" -> parseFigure
-        "table-wrap" -> divWith (attrValue "id" e, ["table-wrap"], []) <$> getBlocks e
+        "fig-group" -> divWith (attrValue "id" e, ["fig-group"], [])
+                          <$> getBlocks e
+        "table-wrap" -> divWith (attrValue "id" e, ["table-wrap"], [])
+                          <$> getBlocks e
         "caption" -> divWith (attrValue "id" e, ["caption"], []) <$> sect 6
         "ref-list" -> parseRefList e
         "?xml"  -> return mempty
