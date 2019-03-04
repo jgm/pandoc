@@ -46,7 +46,7 @@
 \setlength{\emergencystretch}{3em}  % prevent overfull lines
 \providecommand{\tightlist}{%
   \setlength{\itemsep}{0pt}\setlength{\parskip}{0pt}}
-\setcounter{secnumdepth}{-2}
+\setcounter{secnumdepth}{-\maxdimen} % remove section numbering
 % Redefines (sub)paragraphs to behave more like sections
 \ifx\paragraph\undefined\else
   \let\oldparagraph\paragraph
