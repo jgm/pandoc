@@ -383,10 +383,10 @@ $endif$
 $endif$
 
 \begin{document}
-$if(title)$
-$if(book-class)$
+$if(has-frontmatter)$
 \frontmatter
 $endif$
+$if(title)$
 $if(beamer)$
 \frame{\titlepage}
 $else$
@@ -430,18 +430,18 @@ $endif$
 $if(lof)$
 \listoffigures
 $endif$
-$if(book-class)$
+$if(has-frontmatter)$
 \mainmatter
 $endif$
 $body$
 
-$if(book-class)$
+$if(has-frontmatter)$
 \backmatter
 $endif$
 $if(natbib)$
 $if(bibliography)$
 $if(biblio-title)$
-$if(book-class)$
+$if(has-chapters)$
 \renewcommand\bibname{$biblio-title$}
 $else$
 \renewcommand\refname{$biblio-title$}

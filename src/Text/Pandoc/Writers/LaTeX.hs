@@ -63,7 +63,7 @@ data WriterState =
               , stUrl           :: Bool          -- true if document has visible URL link
               , stGraphics      :: Bool          -- true if document contains images
               , stLHS           :: Bool          -- true if document has literate haskell code
-              , stBook          :: Bool          -- true if document uses book or memoir class
+              , stHasChapters   :: Bool          -- true if document has chapters
               , stCsquotes      :: Bool          -- true if document uses csquotes
               , stHighlighting  :: Bool          -- true if document has highlighted code
               , stIncremental   :: Bool          -- true if beamer lists should be displayed bit by bit
@@ -88,10 +88,10 @@ startingState options = WriterState {
                 , stUrl = False
                 , stGraphics = False
                 , stLHS = False
-                , stBook = case writerTopLevelDivision options of
-                                TopLevelPart    -> True
-                                TopLevelChapter -> True
-                                _               -> False
+                , stHasChapters = case writerTopLevelDivision options of
+                                    TopLevelPart    -> True
+                                    TopLevelChapter -> True
+                                    _               -> False
                 , stCsquotes = False
                 , stHighlighting = False
                 , stIncremental = writerIncremental options
@@ -128,7 +128,6 @@ pandocToLaTeX options (Pandoc meta blocks) = do
       isInternalLink _                     = []
   modify $ \s -> s{ stInternalLinks = query isInternalLink blocks' }
   let template = fromMaybe "" $ writerTemplate options
-  -- set stBook depending on documentclass
   let colwidth = if writerWrapText options == WrapAuto
                     then Just $ writerColumns options
                     else Nothing
@@ -138,17 +137,25 @@ pandocToLaTeX options (Pandoc meta blocks) = do
               (fmap render' . blockListToLaTeX)
               (fmap render' . inlineListToLaTeX)
               meta
-  let bookClasses = ["memoir","book","report","scrreprt","scrbook"]
-  let documentClass = case P.parse pDocumentClass "template" template of
-                              Right r -> r
-                              Left _  -> ""
-  case lookup "documentclass" (writerVariables options) `mplus`
-        fmap stringify (lookupMeta "documentclass" meta) of
-         Just x  | x `elem` bookClasses -> modify $ \s -> s{stBook = True}
-                 | otherwise            -> return ()
-         Nothing | documentClass `elem` bookClasses
-                                        -> modify $ \s -> s{stBook = True}
-                 | otherwise               -> return ()
+  let chaptersClasses = ["memoir","book","report","scrreprt","scrbook"]
+  let frontmatterClasses = ["memoir","book","scrreprt","scrbook"]
+  -- these have \frontmatter etc.
+  beamer <- gets stBeamer
+  let documentClass =
+        case lookup "documentclass" (writerVariables options) `mplus`
+              fmap stringify (lookupMeta "documentclass" meta) of
+                 Just x -> x
+                 Nothing ->
+                  case P.parse pDocumentClass "template" template of
+                     Right r -> r
+                     Left _
+                      | beamer    -> "beamer"
+                      | otherwise -> case writerTopLevelDivision options of
+                                       TopLevelPart    -> "book"
+                                       TopLevelChapter -> "book"
+                                       _               -> "article"
+  when (documentClass `elem` chaptersClasses) $
+     modify $ \s -> s{ stHasChapters = True }
   -- check for \usepackage...{csquotes}; if present, we'll use
   -- \enquote{...} for smart quotes:
   let headerIncludesField :: FromJSON a => Maybe a
@@ -163,7 +170,6 @@ pandocToLaTeX options (Pandoc meta blocks) = do
                                else case reverse blocks' of
                                  Header 1 _ il : _ -> (init blocks', il)
                                  _                 -> (blocks', [])
-  beamer <- gets stBeamer
   blocks''' <- if beamer
                   then toSlides blocks''
                   else return blocks''
@@ -197,17 +203,13 @@ pandocToLaTeX options (Pandoc meta blocks) = do
 
   let context  =  defField "toc" (writerTableOfContents options) $
                   defField "toc-depth" (show (writerTOCDepth options -
-                                              if stBook st
+                                              if stHasChapters st
                                                  then 1
                                                  else 0)) $
                   defField "body" main $
                   defField "title-meta" titleMeta $
                   defField "author-meta" (intercalate "; " authorsMeta) $
-                  defField "documentclass" (if beamer
-                                               then ("beamer" :: String)
-                                               else if stBook st
-                                                    then "book"
-                                                    else "article") $
+                  defField "documentclass" documentClass $
                   defField "verbatim-in-note" (stVerbInNote st) $
                   defField "tables" (stTable st) $
                   defField "strikeout" (stStrikeout st) $
@@ -215,7 +217,8 @@ pandocToLaTeX options (Pandoc meta blocks) = do
                   defField "numbersections" (writerNumberSections options) $
                   defField "lhs" (stLHS st) $
                   defField "graphics" (stGraphics st) $
-                  defField "book-class" (stBook st) $
+                  defField "has-chapters" (stHasChapters st) $
+                  defField "has-frontmatter" (documentClass `elem` frontmatterClasses) $
                   defField "listings" (writerListings options || stLHS st) $
                   defField "beamer" beamer $
                   (if stHighlighting st
@@ -991,7 +994,7 @@ sectionHeader unnumbered ident level lst = do
                     else braces (text "\\texorpdfstring"
                          <> braces txt
                          <> braces (text plain))
-  book <- gets stBook
+  book <- gets stHasChapters
   opts <- gets stOptions
   let topLevelDivision = if book && writerTopLevelDivision opts == TopLevelDefault
                          then TopLevelChapter
