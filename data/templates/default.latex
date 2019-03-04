@@ -283,7 +283,7 @@ $endif$
 $if(numbersections)$
 \setcounter{secnumdepth}{$if(secnumdepth)$$secnumdepth$$else$5$endif$}
 $else$
-\setcounter{secnumdepth}{-2}
+\setcounter{secnumdepth}{-\maxdimen} % remove section numbering
 $endif$
 $if(beamer)$
 $else$
