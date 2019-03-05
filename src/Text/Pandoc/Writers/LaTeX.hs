@@ -137,8 +137,8 @@ pandocToLaTeX options (Pandoc meta blocks) = do
               (fmap render' . blockListToLaTeX)
               (fmap render' . inlineListToLaTeX)
               meta
-  let chaptersClasses = ["memoir","book","report","scrreprt","scrbook"]
-  let frontmatterClasses = ["memoir","book","scrreprt","scrbook"]
+  let chaptersClasses = ["memoir","book","report","scrreprt","scrbook","extreport","extbook","tufte-book"]
+  let frontmatterClasses = ["memoir","book","scrbook","extbook","tufte-book"]
   -- these have \frontmatter etc.
   beamer <- gets stBeamer
   let documentClass =
