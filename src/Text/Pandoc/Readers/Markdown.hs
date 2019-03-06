@@ -1089,7 +1089,13 @@ htmlBlock :: PandocMonad m => MarkdownParser m (F Blocks)
 htmlBlock = do
   guardEnabled Ext_raw_html
   try (do
-      (TagOpen _ attrs) <- lookAhead $ fst <$> htmlTag isBlockTag
+      inHtmlBlock <- stateInHtmlBlock <$> getState
+      case inHtmlBlock of
+         Just "div" -> (guardDisabled Ext_native_divs >> skipMany spaceChar)
+                    <|> return ()
+         Just _     -> skipMany spaceChar
+         Nothing    -> return ()
+      TagOpen _ attrs <- lookAhead $ fst <$> htmlTag isBlockTag
       (return . B.rawBlock "html") <$> rawVerbatimBlock
         <|> (do guardEnabled Ext_markdown_attribute
                 oldMarkdownAttribute <- stateMarkdownAttribute <$> getState
@@ -1148,25 +1154,22 @@ rawHtmlBlocks = do
   (TagOpen tagtype _, raw) <- htmlTag isBlockTag
   -- we don't want '<td>    text' to be a code block:
   skipMany spaceChar
-  indentlevel <- (blankline >> length <$> many (char ' ')) <|> return 0
+  optional blankline
   -- try to find closing tag
   -- we set stateInHtmlBlock so that closing tags that can be either block or
   -- inline will not be parsed as inline tags
   oldInHtmlBlock <- stateInHtmlBlock <$> getState
   updateState $ \st -> st{ stateInHtmlBlock = Just tagtype }
-  let closer = htmlTag (\x -> x ~== TagClose tagtype)
-  let block' = do notFollowedBy' closer
-                  gobbleAtMostSpaces indentlevel
-                  block
+  let closer = try $ skipMany spaceChar >> htmlTag (~== TagClose tagtype)
+  let block' = try $ do notFollowedBy' closer
+                        block
   contents <- mconcat <$> many block'
-  result <-
-    (closer >>= \(_, rawcloser) -> return (
-                return (B.rawBlock "html" $ stripMarkdownAttribute raw) <>
-                contents <>
-                return (B.rawBlock "html" rawcloser)))
-      <|> return (return (B.rawBlock "html" raw) <> contents)
+  rawcloser <- option mempty $ B.rawBlock "html" . snd <$> closer
   updateState $ \st -> st{ stateInHtmlBlock = oldInHtmlBlock }
-  return result
+  return $
+    return (B.rawBlock "html" (stripMarkdownAttribute raw)) <>
+    contents <>
+    return rawcloser
 
 -- remove markdown="1" attribute
 stripMarkdownAttribute :: String -> String
