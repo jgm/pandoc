@@ -208,6 +208,7 @@ extractData bs = do
        return (M.insert "text/html" (TextualData (T.pack raw)) mmap, meta)
     go (mmap, meta) (RawBlock (Format "latex") raw) =
        return (M.insert "text/latex" (TextualData (T.pack raw)) mmap, meta)
+    go (mmap, meta) (Div _ bs') = foldM go (mmap, meta) bs'
     go (mmap, meta) b = (mmap, meta) <$ report (BlockNotRendered b)
 
 pairsToJSONMeta :: [(String, String)] -> JSONMeta
