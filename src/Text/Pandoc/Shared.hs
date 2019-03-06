@@ -104,13 +104,12 @@ import Data.Char (isAlpha, isLower, isSpace, isUpper, toLower, isAlphaNum,
                   generalCategory, GeneralCategory(NonSpacingMark,
                   SpacingCombiningMark, EnclosingMark, ConnectorPunctuation))
 import Data.Data (Data, Typeable)
-import Data.List (find, intercalate, intersperse, stripPrefix, sortBy)
+import Data.List (find, intercalate, intersperse, stripPrefix)
 import qualified Data.Map as M
 import Data.Maybe (mapMaybe)
 import Data.Sequence (ViewL (..), ViewR (..), viewl, viewr)
 import qualified Data.Set as Set
 import qualified Data.Text as T
-import Data.Ord (comparing)
 import Data.Version (showVersion)
 import Network.URI (URI (uriScheme), escapeURIString, parseURI)
 import Paths_pandoc (version)
@@ -684,8 +683,11 @@ filterIpynbOutput mode = walk go
               | fmt == Format "ipynb"
                           -> Div (ident, ("output":os), kvs) bs
               | otherwise -> Div (ident, ("output":os), kvs) $
-              take 1 $ sortBy (comparing rank) bs
-                where
+                  [ b | b <- bs, rank b == highestRank ]
+                 where
+                  highestRank = case map rank bs of
+                                          []  -> 0
+                                          xs  -> maximum xs
                   rank (RawBlock (Format "html") _)
                     | fmt == Format "html" = (1 :: Int)
                     | fmt == Format "markdown" = 2
@@ -697,6 +699,7 @@ filterIpynbOutput mode = walk go
                   rank (RawBlock f _)
                     | fmt == f = 1
                     | otherwise = 3
+                  rank (Para [Image{}]) = 1
                   rank _ = 2
         go x = x
 
