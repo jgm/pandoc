@@ -679,7 +679,11 @@ filterIpynbOutput mode = walk go
   where go (Div (ident, ("output":os), kvs) bs) =
           case mode of
             Nothing  -> Div (ident, ("output":os), kvs) []
-            Just fmt -> Div (ident, ("output":os), kvs) $
+            -- "best" for ipynb includes all formats:
+            Just fmt
+              | fmt == Format "ipynb"
+                          -> Div (ident, ("output":os), kvs) bs
+              | otherwise -> Div (ident, ("output":os), kvs) $
               take 1 $ sortBy (comparing rank) bs
                 where
                   rank (RawBlock (Format "html") _)
