@@ -104,7 +104,8 @@ import Data.Char (isAlpha, isLower, isSpace, isUpper, toLower, isAlphaNum,
                   generalCategory, GeneralCategory(NonSpacingMark,
                   SpacingCombiningMark, EnclosingMark, ConnectorPunctuation))
 import Data.Data (Data, Typeable)
-import Data.List (find, intercalate, intersperse, stripPrefix)
+import Data.List (find, intercalate, intersperse, stripPrefix, sortBy)
+import Data.Ord (comparing)
 import qualified Data.Map as M
 import Data.Maybe (mapMaybe)
 import Data.Sequence (ViewL (..), ViewR (..), viewl, viewr)
@@ -113,7 +114,6 @@ import qualified Data.Text as T
 import Data.Version (showVersion)
 import Network.URI (URI (uriScheme), escapeURIString, parseURI)
 import Paths_pandoc (version)
-import Safe (minimumDef)
 import System.Directory
 import System.FilePath (isPathSeparator, splitDirectories)
 import qualified System.FilePath.Posix as Posix
@@ -684,9 +684,8 @@ filterIpynbOutput mode = walk go
               | fmt == Format "ipynb"
                           -> Div (ident, ("output":os), kvs) bs
               | otherwise -> Div (ident, ("output":os), kvs) $
-                              [ b | b <- bs, rank b == lowestRank ]
+                              take 1 $ sortBy (comparing rank) bs
                  where
-                  lowestRank = minimumDef 0 $ map rank bs
                   rank (RawBlock (Format "html") _)
                     | fmt == Format "html" = (1 :: Int)
                     | fmt == Format "markdown" = 2
