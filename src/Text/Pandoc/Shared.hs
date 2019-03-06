@@ -113,6 +113,7 @@ import qualified Data.Text as T
 import Data.Version (showVersion)
 import Network.URI (URI (uriScheme), escapeURIString, parseURI)
 import Paths_pandoc (version)
+import Safe (minimumDef)
 import System.Directory
 import System.FilePath (isPathSeparator, splitDirectories)
 import qualified System.FilePath.Posix as Posix
@@ -683,11 +684,9 @@ filterIpynbOutput mode = walk go
               | fmt == Format "ipynb"
                           -> Div (ident, ("output":os), kvs) bs
               | otherwise -> Div (ident, ("output":os), kvs) $
-                  [ b | b <- bs, rank b == highestRank ]
+                              [ b | b <- bs, rank b == lowestRank ]
                  where
-                  highestRank = case map rank bs of
-                                          []  -> 0
-                                          xs  -> maximum xs
+                  lowestRank = minimumDef 0 $ map rank bs
                   rank (RawBlock (Format "html") _)
                     | fmt == Format "html" = (1 :: Int)
                     | fmt == Format "markdown" = 2
