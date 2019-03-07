@@ -34,7 +34,7 @@ _pandoc()
              return 0
              ;;
          --pdf-engine)
-             COMPREPLY=( $(compgen -W "pdflatex lualatex xelatex latexmk wkhtmltopdf weasyprint prince context pdfroff" -- ${cur}) )
+             COMPREPLY=( $(compgen -W "pdflatex lualatex xelatex latexmk tectonic wkhtmltopdf weasyprint prince context pdfroff" -- ${cur}) )
              return 0
              ;;
          --print-default-data-file)
