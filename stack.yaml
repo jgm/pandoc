@@ -11,11 +11,11 @@ flags:
 packages:
 - '.'
 extra-deps:
-- pandoc-citeproc-0.16.1.1
+- pandoc-citeproc-0.16.1.2
 - skylighting-0.7.7
 - skylighting-core-0.7.7
 - ipynb-0.1
-- texmath-0.11.2.1
+- texmath-0.11.2.2
 ghc-options:
    "$locals": -fhide-source-paths -XNoImplicitPrelude
 resolver: lts-13.9
