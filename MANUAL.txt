@@ -695,12 +695,17 @@ General writer options {.options}
 
 :   Print the system default template for an output *FORMAT*. (See `-t`
     for a list of possible *FORMAT*s.)  Templates in the user data
-    directory are ignored.
+    directory are ignored.  This option may be used with
+    `-o`/`--output` to redirect output to a file, but
+    `-o`/`--output` must come before `--print-default-template`
+    on the command line.
 
 `--print-default-data-file=`*FILE*
 
 :   Print a system default data file.  Files in the user data directory
-    are ignored.
+    are ignored.  This option may be used with `-o`/`--output` to
+    redirect output to a file, but `-o`/`--output` must come before
+    `--print-default-data-file` on the command line.
 
 `--eol=crlf`|`lf`|`native`
 
@@ -784,7 +789,10 @@ General writer options {.options}
 
 :   Prints a JSON version of a highlighting style, which can
     be modified, saved with a `.theme` extension, and used
-    with `--highlight-style`.
+    with `--highlight-style`.  This option may be used with
+    `-o`/`--output` to redirect output to a file, but
+    `-o`/`--output` must come before `--print-highlight-style`
+    on the command line.
 
 `--syntax-definition=`*FILE*
 
@@ -1016,11 +1024,11 @@ Options affecting specific writers {.options}
 
         To produce a custom `reference.docx`, first get a copy of
         the default `reference.docx`: `pandoc
-        --print-default-data-file reference.docx >
-        custom-reference.docx`.  Then open `custom-reference.docx`
-        in Word, modify the styles as you wish, and save the file.
-        For best results, do not make changes to this file other
-        than modifying the styles used by pandoc:
+        -o custom-reference.docx --print-default-data-file reference.docx`.
+        Then open `custom-reference.docx` in Word, modify the
+        styles as you wish, and save the file.  For best
+        results, do not make changes to this file other than
+        modifying the styles used by pandoc:
 
         Paragraph styles:
 
@@ -1078,10 +1086,9 @@ Options affecting specific writers {.options}
 
         To produce a custom `reference.odt`, first get a copy of
         the default `reference.odt`: `pandoc
-        --print-default-data-file reference.odt >
-        custom-reference.odt`.  Then open `custom-reference.odt` in
-        LibreOffice, modify the styles as you wish, and save the
-        file.
+        -o custom-reference.odt --print-default-data-file reference.odt`.
+        Then open `custom-reference.odt` in LibreOffice, modify
+        the styles as you wish, and save the file.
 
     PowerPoint
 
@@ -1102,10 +1109,10 @@ Options affecting specific writers {.options}
         `Home` menu to check.)
 
         You can also modify the default `reference.pptx`: first run
-        `pandoc --print-default-data-file reference.pptx >
-        custom-reference.pptx`, and then modify
-        `custom-reference.pptx` in MS PowerPoint (pandoc will use the
-        first four layout slides, as mentioned above).
+        `pandoc -o custom-reference.pptx --print-default-data-file
+        reference.pptx`, and then modify `custom-reference.pptx`
+        in MS PowerPoint (pandoc will use the first four layout
+        slides, as mentioned above).
 
 `--epub-cover-image=`*FILE*
 

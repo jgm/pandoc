@@ -786,7 +786,10 @@ options =
 
     , Option "D" ["print-default-template"]
                  (ReqArg
-                  (\arg _ -> do
+                  (\arg opt -> do
+                     let write = case optOutputFile opt of
+                                        Just f  -> UTF8.writeFile f
+                                        Nothing -> UTF8.hPutStr stdout
                      templ <- runIO $ do
                                 setUserDataDir Nothing
                                 getDefaultTemplate arg
@@ -794,7 +797,7 @@ options =
                           Right "" -> -- e.g. for docx, odt, json:
                             E.throwIO $ PandocCouldNotFindDataFileError
                                ("templates/default." ++ arg)
-                          Right t -> UTF8.hPutStr stdout t
+                          Right t -> write t
                           Left e  -> E.throwIO e
                      exitSuccess)
                   "FORMAT")
@@ -802,18 +805,24 @@ options =
 
     , Option "" ["print-default-data-file"]
                  (ReqArg
-                  (\arg _ -> do
+                  (\arg opt -> do
+                     let write = case optOutputFile opt of
+                                        Just f  -> BS.writeFile f
+                                        Nothing -> BS.hPutStr stdout
                      runIOorExplode $
-                       readDefaultDataFile arg >>= liftIO . BS.hPutStr stdout
+                       readDefaultDataFile arg >>= liftIO . write
                      exitSuccess)
                   "FILE")
                   "" -- "Print default data file"
 
     , Option "" ["print-highlight-style"]
                  (ReqArg
-                  (\arg _ -> do
+                  (\arg opt -> do
+                     let write = case optOutputFile opt of
+                                        Just f  -> B.writeFile f
+                                        Nothing -> B.putStr
                      sty <- fromMaybe pygments <$> lookupHighlightStyle arg
-                     B.putStr $ encodePretty'
+                     write $ encodePretty'
                        defConfig{confIndent = Spaces 4
                                 ,confCompare = keyOrder
                                   (map T.pack
