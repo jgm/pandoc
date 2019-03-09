@@ -213,10 +213,9 @@ extractData bs = do
 
 pairsToJSONMeta :: [(String, String)] -> JSONMeta
 pairsToJSONMeta kvs =
-  M.fromList [(T.pack k, case v of
-                           "true"  -> Bool True
-                           "false" -> Bool False
-                           _       -> case safeRead v of
-                                        Just n -> Number n
-                                        _      -> String (T.pack v))
-             | (k,v) <- kvs , k /= "execution_count" ]
+  M.fromList [(T.pack k, case Aeson.decode (UTF8.fromStringLazy v) of
+                           Just val -> val
+                           Nothing  -> String (T.pack v))
+             | (k,v) <- kvs
+             , k /= "execution_count"
+             ]

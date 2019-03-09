@@ -18,6 +18,7 @@ Ipynb (Jupyter notebook JSON format) reader for pandoc.
 module Text.Pandoc.Readers.Ipynb ( readIpynb )
 where
 import Prelude
+import Data.Char (isDigit)
 import Data.List (isPrefixOf)
 import Data.Maybe (fromMaybe)
 import Data.Digest.Pure.SHA (sha1, showDigest)
@@ -39,6 +40,7 @@ import qualified Data.ByteString.Lazy as BL
 import Data.Aeson as Aeson
 import Control.Monad.Except (throwError)
 import Text.Pandoc.Readers.Markdown (readMarkdown)
+import qualified Text.Pandoc.UTF8 as UTF8
 
 readIpynb :: PandocMonad m => ReaderOptions -> Text -> m Pandoc
 readIpynb opts t = do
@@ -217,10 +219,11 @@ jsonMetaToMeta = M.mapKeys T.unpack . M.map valueToMetaValue
     valueToMetaValue Aeson.Null = MetaString ""
 
 jsonMetaToPairs :: JSONMeta -> [(String, String)]
-jsonMetaToPairs = M.toList . M.mapMaybe
-     (\case
-        MetaString s -> Just s
-        MetaBool True -> Just "true"
-        MetaBool False -> Just "false"
-        -- for now we skip complex cell metadata:
-        _ -> Nothing) . jsonMetaToMeta
+jsonMetaToPairs = M.toList . M.mapKeys T.unpack . M.map
+  (\case
+      String t
+        | not (T.all isDigit t)
+        , t /= "true"
+        , t /= "false"
+                 -> T.unpack t
+      x          -> UTF8.toStringLazy $ Aeson.encode x)
