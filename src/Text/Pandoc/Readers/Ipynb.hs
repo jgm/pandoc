@@ -184,14 +184,10 @@ handleData opts metadata (MimeBundle mb) =
      | otherwise = return mempty
 
     dataBlock ("text/html", TextualData t)
-      | extensionEnabled Ext_raw_html exts
-        = return $ B.rawBlock "html" $ T.unpack t
-      | otherwise = return mempty
+      = return $ B.rawBlock "html" $ T.unpack t
 
     dataBlock ("text/latex", TextualData t)
-      | extensionEnabled Ext_raw_tex exts
-        = return $ B.rawBlock "latex" $ T.unpack t
-      | otherwise = return mempty
+      = return $ B.rawBlock "latex" $ T.unpack t
 
     dataBlock ("text/plain", TextualData t) =
       return $ B.codeBlock $ T.unpack t
