@@ -192,9 +192,11 @@ tests pandocPath =
       "org-select-tags.org" "org-select-tags.native"
     ]
   , testGroup "ipynb"
-    [ test' "reader" ["-f", "ipynb", "-t", "native", "-s"]
+    [ test' "reader" ["-f", "ipynb-raw_html-raw_tex+raw_attribute",
+                      "-t", "native", "-s"]
       "ipynb/simple.ipynb" "ipynb/simple.out.native"
-    , test' "writer" ["-f", "native", "-t", "ipynb", "-s"]
+    , test' "writer" ["-f", "native", "-t",
+                      "ipynb-raw_html-raw_tex+raw_attribute", "-s"]
       "ipynb/simple.in.native" "ipynb/simple.ipynb"
     ]
   ]
