@@ -101,7 +101,7 @@ cellToBlocks opts lang c = do
       return $ B.divWith ("",["cell","raw"],kvs) $ B.rawBlock format'
              $ T.unpack source
     Ipynb.Code{ codeOutputs = outputs, codeExecutionCount = ec } -> do
-      outputBlocks <- mconcat <$> mapM (outputToBlock opts) outputs
+      outputBlocks <- mconcat <$> mapM outputToBlock outputs
       let kvs' = maybe kvs (\x -> ("execution_count", show x):kvs) ec
       return $ B.divWith ("",["cell","code"],kvs') $
         B.codeBlockWith ("",[lang],[]) (T.unpack source)
@@ -126,23 +126,23 @@ addAttachment (fname, mimeBundle) = do
       insertMedia fp (Just $ T.unpack mimeType) (encode v)
     [] -> report $ CouldNotFetchResource fp "no attachment"
 
-outputToBlock :: PandocMonad m => ReaderOptions -> Output a -> m B.Blocks
-outputToBlock _ Stream{ streamName = sName,
-                        streamText = Source text } = do
+outputToBlock :: PandocMonad m => Output a -> m B.Blocks
+outputToBlock Stream{ streamName = sName,
+                      streamText = Source text } = do
   return $ B.divWith ("",["output","stream",T.unpack sName],[])
          $ B.codeBlock $ T.unpack . mconcat $ text
-outputToBlock opts DisplayData{ displayData = data',
-                                 displayMetadata = metadata' } =
+outputToBlock DisplayData{ displayData = data',
+                            displayMetadata = metadata' } =
   B.divWith ("",["output", "display_data"],[]) <$>
-    handleData opts metadata' data'
-outputToBlock opts ExecuteResult{ executeCount = ec,
-                                   executeData = data',
-                                   executeMetadata = metadata' } =
+    handleData metadata' data'
+outputToBlock ExecuteResult{ executeCount = ec,
+                              executeData = data',
+                              executeMetadata = metadata' } =
   B.divWith ("",["output", "execute_result"],[("execution_count",show ec)])
-    <$> handleData opts metadata' data'
-outputToBlock _ Err{ errName = ename,
-                     errValue = evalue,
-                     errTraceback = traceback } = do
+    <$> handleData metadata' data'
+outputToBlock Err{ errName = ename,
+                   errValue = evalue,
+                   errTraceback = traceback } = do
   return $ B.divWith ("",["output","error"],
                          [("ename",T.unpack ename),
                           ("evalue",T.unpack evalue)])
@@ -151,13 +151,11 @@ outputToBlock _ Err{ errName = ename,
 -- We want to display the richest output possible given
 -- the output format.
 handleData :: PandocMonad m
-           => ReaderOptions -> JSONMeta -> MimeBundle -> m B.Blocks
-handleData opts metadata (MimeBundle mb) =
+           => JSONMeta -> MimeBundle -> m B.Blocks
+handleData metadata (MimeBundle mb) =
   mconcat <$> mapM dataBlock (M.toList mb)
 
   where
-
-    exts = readerExtensions opts
 
     dataBlock :: PandocMonad m => (MimeType, MimeData) -> m B.Blocks
     dataBlock (mt, BinaryData bs)
