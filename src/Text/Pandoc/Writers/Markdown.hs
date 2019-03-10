@@ -444,30 +444,35 @@ blockToMarkdown' opts (LineBlock lns) =
     mdLines <- mapM (inlineListToMarkdown opts) lns
     return $ (vcat $ map (hang 2 (text "| ")) mdLines) <> blankline
   else blockToMarkdown opts $ linesToPara lns
-blockToMarkdown' opts b@(RawBlock f str)
-  | f `elem` ["markdown", "markdown_github", "markdown_phpextra",
-              "markdown_mmd", "markdown_strict"]
-              = return $ text str <> text "\n"
-  | f `elem` ["html", "html5", "html4"] && isEnabled Ext_raw_html opts = do
-    plain <- asks envPlain
-    return $ if plain
-                then empty
-                else if isEnabled Ext_markdown_attribute opts
-                        then text (addMarkdownAttribute str) <> text "\n"
-                        else text str <> text "\n"
-  | f `elem` ["latex", "tex"] && isEnabled Ext_raw_tex opts = do
-    plain <- asks envPlain
-    return $ if plain
-                then empty
-                else text str <> text "\n"
-  | f == "plain" = do
-    plain <- asks envPlain
-    return $ if plain
-                then text str <> text "\n"
-                else empty
-  | otherwise = do
-      report $ BlockNotRendered b
-      return empty
+blockToMarkdown' opts b@(RawBlock f str) = do
+  plain <- asks envPlain
+  let Format fmt = f
+  let rawAttribBlock = return $
+         (text "```{=" <> text fmt <> "}") $$
+         text str $$
+         (text "```" <> text "\n")
+  let renderEmpty = mempty <$ report (BlockNotRendered b)
+  case () of
+    _ | plain -> renderEmpty
+      | f `elem` ["markdown", "markdown_github", "markdown_phpextra",
+                  "markdown_mmd", "markdown_strict"] ->
+            return $ text str <> text "\n"
+      | f `elem` ["html", "html5", "html4"] ->
+            case () of
+              _ | isEnabled Ext_markdown_attribute opts -> return $
+                    text (addMarkdownAttribute str) <> text "\n"
+                | isEnabled Ext_raw_html opts -> return $
+                    text str <> text "\n"
+                | isEnabled Ext_raw_attribute opts -> rawAttribBlock
+                | otherwise -> renderEmpty
+      | f `elem` ["latex", "tex"] ->
+            case () of
+              _ | isEnabled Ext_raw_tex opts -> return $
+                    text str <> text "\n"
+                | isEnabled Ext_raw_attribute opts -> rawAttribBlock
+                | otherwise -> renderEmpty
+      | isEnabled Ext_raw_attribute opts -> rawAttribBlock
+      | otherwise -> renderEmpty
 blockToMarkdown' opts HorizontalRule = do
   return $ blankline <> text (replicate (writerColumns opts) '-') <> blankline
 blockToMarkdown' opts (Header level attr inlines) = do
@@ -1115,17 +1120,33 @@ inlineToMarkdown opts (Math DisplayMath str) =
         | otherwise -> (\x -> cr <> x <> cr) `fmap`
             (texMathToInlines DisplayMath str >>= inlineListToMarkdown opts)
 inlineToMarkdown opts il@(RawInline f str) = do
+  let tickGroups = filter (\s -> '`' `elem` s) $ group str
+  let numticks   = if null tickGroups
+                     then 1
+                     else 1 + maximum (map length tickGroups)
   plain <- asks envPlain
-  if (plain && f == "plain") || (not plain &&
-     ( f `elem` ["markdown", "markdown_github", "markdown_phpextra",
-                 "markdown_mmd", "markdown_strict"] ||
-       (isEnabled Ext_raw_tex opts && (f == "latex" || f == "tex")) ||
-       (isEnabled Ext_raw_html opts && f `elem` ["html", "html4", "html5"])
-     ))
-    then return $ text str
-    else do
-      report $ InlineNotRendered il
-      return empty
+  let Format fmt = f
+  let rawAttribInline = return $
+         text (replicate numticks '`') <> text str <>
+         text (replicate numticks '`') <> text "{=" <> text fmt <> text "}"
+  let renderEmpty = mempty <$ report (InlineNotRendered il)
+  case () of
+    _ | plain -> renderEmpty
+      | f `elem` ["markdown", "markdown_github", "markdown_phpextra",
+                  "markdown_mmd", "markdown_strict"] ->
+            return $ text str
+      | f `elem` ["html", "html5", "html4"] ->
+            case () of
+              _ | isEnabled Ext_raw_html opts -> return $ text str
+                | isEnabled Ext_raw_attribute opts -> rawAttribInline
+                | otherwise -> renderEmpty
+      | f `elem` ["latex", "tex"] ->
+            case () of
+              _ | isEnabled Ext_raw_tex opts -> return $ text str
+                | isEnabled Ext_raw_attribute opts -> rawAttribInline
+                | otherwise -> renderEmpty
+      | isEnabled Ext_raw_attribute opts -> rawAttribInline
+      | otherwise -> renderEmpty
 inlineToMarkdown opts (LineBreak) = do
   plain <- asks envPlain
   if plain || isEnabled Ext_hard_line_breaks opts
