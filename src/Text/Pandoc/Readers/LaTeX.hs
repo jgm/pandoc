@@ -866,6 +866,7 @@ inlineCommands = M.union inlineLanguageCommands $ M.fromList
   , ("slash", lit "/")
   , ("textbf", extractSpaces strong <$> tok)
   , ("textnormal", extractSpaces (spanWith ("",["nodecor"],[])) <$> tok)
+  , ("textunderline", inlines)
   , ("ldots", lit "…")
   , ("vdots", lit "\8942")
   , ("dots", lit "…")
