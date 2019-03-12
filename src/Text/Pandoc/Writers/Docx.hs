@@ -465,7 +465,15 @@ writeDocx opts doc@(Pandoc meta _) = do
   let numpath = "word/numbering.xml"
   numbering <- parseXml refArchive distArchive numpath
   newNumElts <- mkNumbering (stLists st)
-  let allElts = onlyElems (elContent numbering) ++ newNumElts
+  let pandocAdded e =
+       case findAttrBy ((== "abstractNumId") . qName) e >>= safeRead of
+         Just numid -> numid >= (990 :: Int)
+         Nothing    ->
+           case findAttrBy ((== "numId") . qName) e >>= safeRead of
+             Just numid -> numid >= (1000 :: Int)
+             Nothing    -> False
+  let oldElts = filter (not . pandocAdded) $ onlyElems (elContent numbering)
+  let allElts = oldElts ++ newNumElts
   let numEntry = toEntry numpath epochtime $ renderXml numbering{ elContent =
                        -- we want all the abstractNums first, then the nums,
                        -- otherwise things break:
