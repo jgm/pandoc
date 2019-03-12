@@ -68,7 +68,7 @@ vcat = intercalate "\n"
 genAnchor :: String -> Text
 genAnchor id' = if null id'
   then ""
-  else pack $ "{{ id name=\"" ++ id' ++ "\" /}}"
+  else pack $ "{{id name=\"" ++ id' ++ "\" /}}"
 
 blockListToXWiki :: PandocMonad m => [Block] -> XWikiReader m Text
 blockListToXWiki blocks =
@@ -153,7 +153,8 @@ inlineToXWiki (Str str) = return $ escapeXWikiString $ pack str
 
 inlineToXWiki Space = return " "
 
-inlineToXWiki LineBreak = return "\n"
+-- Special syntax for XWiki 2.0. This won't break table cells
+inlineToXWiki LineBreak = return "\\\\"
 
 inlineToXWiki SoftBreak = return " "
 

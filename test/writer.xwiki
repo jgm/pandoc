@@ -3,32 +3,32 @@ This is a set of tests for pandoc. Most of them are adapted from John Gruber’s
 
 ----
 
-= Headers =
+= Headers {{id name="headers" /}}=
 
-== Level 2 with an [[embedded link>>/url]] ==
+== Level 2 with an [[embedded link>>/url]] {{id name="level-2-with-an-embedded-link" /}}==
 
-=== Level 3 with //emphasis// ===
+=== Level 3 with //emphasis// {{id name="level-3-with-emphasis" /}}===
 
-==== Level 4 ====
+==== Level 4 {{id name="level-4" /}}====
 
-===== Level 5 =====
+===== Level 5 {{id name="level-5" /}}=====
 
-= Level 1 =
+= Level 1 {{id name="level-1" /}}=
 
-== Level 2 with //emphasis// ==
+== Level 2 with //emphasis// {{id name="level-2-with-emphasis" /}}==
 
-=== Level 3 ===
+=== Level 3 {{id name="level-3" /}}===
 
 with no blank line
 
-== Level 2 ==
+== Level 2 {{id name="level-2" /}}==
 
 with no blank line
 
 
 ----
 
-= Paragraphs =
+= Paragraphs {{id name="paragraphs" /}}=
 
 Here’s a regular paragraph.
 
@@ -36,13 +36,12 @@ In Markdown 1.0.0 and earlier. Version 8. This line turns into a list item. Beca
 
 Here’s one with a bullet. * criminey.
 
-There should be a hard line break
-here.
+There should be a hard line break\\here.
 
 
 ----
 
-= Block Quotes =
+= Block Quotes {{id name="block-quotes" /}}=
 
 E-mail style:
 
@@ -75,7 +74,7 @@ And a following paragraph.
 
 ----
 
-= Code Blocks =
+= Code Blocks {{id name="code-blocks" /}}=
 
 Code:
 
@@ -102,9 +101,9 @@ These should not be escaped:  \$ \\ \> \[ \{
 
 ----
 
-= Lists =
+= Lists {{id name="lists" /}}=
 
-== Unordered ==
+== Unordered {{id name="unordered" /}}==
 
 Asterisks tight:
 
@@ -142,7 +141,7 @@ Minuses loose:
 *. Minus 2
 *. Minus 3
 
-== Ordered ==
+== Ordered {{id name="ordered" /}}==
 
 Tight:
 
@@ -176,7 +175,7 @@ Item 1. graf two. The quick brown fox jumped over the lazy dog’s back.
 1. Item 2.
 1. Item 3.
 
-== Nested ==
+== Nested {{id name="nested" /}}==
 
 *. Tab
 **. Tab
@@ -201,7 +200,7 @@ Same thing but with paragraphs:
 1*. Foe
 1. Third
 
-== Tabs and spaces ==
+== Tabs and spaces {{id name="tabs-and-spaces" /}}==
 
 *. this is a list item indented with tabs
 *. this is a list item indented with spaces
@@ -209,7 +208,7 @@ Same thing but with paragraphs:
 **. this is an example list item indented with tabs
 **. this is an example list item indented with spaces
 
-== Fancy list markers ==
+== Fancy list markers {{id name="fancy-list-markers" /}}==
 
 1. begins with 2
 1. and now 3
@@ -243,7 +242,7 @@ B. Williams
 
 ----
 
-= Definition Lists =
+= Definition Lists {{id name="definition-lists" /}}=
 
 Tight using spaces:
 
@@ -328,7 +327,7 @@ Blank line after term, indented marker, alternate markers:
 ;1. sublist
 ;1. sublist
 
-= HTML Blocks =
+= HTML Blocks {{id name="html-blocks" /}}=
 
 Simple block on one line:
 
@@ -412,7 +411,7 @@ Hr’s:
 
 ----
 
-= Inline Markup =
+= Inline Markup {{id name="inline-markup" /}}=
 
 This is //emphasized//, and so //is this//.
 
@@ -441,7 +440,7 @@ These should not be superscripts or subscripts, because of the unescaped spaces:
 
 ----
 
-= Smart quotes, ellipses, dashes =
+= Smart quotes, ellipses, dashes {{id name="smart-quotes-ellipses-dashes" /}}=
 
 “Hello,” said the spider. “‘Shelob’ is my name.”
 
@@ -462,7 +461,7 @@ Ellipses…and…and….
 
 ----
 
-= LaTeX =
+= LaTeX {{id name="latex" /}}=
 
 *. 
 *. {{formula}}2+2=4{{/formula}}
@@ -486,7 +485,7 @@ Here’s a LaTeX table:
 
 ----
 
-= Special Characters =
+= Special Characters {{id name="special-characters" /}}=
 
 Here is some unicode:
 
@@ -541,9 +540,9 @@ Minus: -
 
 ----
 
-= Links =
+= Links {{id name="links" /}}=
 
-== Explicit ==
+== Explicit {{id name="explicit" /}}==
 
 Just a [[URL>>/url/]].
 
@@ -563,7 +562,7 @@ Just a [[URL>>/url/]].
 
 [[Empty>>]].
 
-== Reference ==
+== Reference {{id name="reference" /}}==
 
 Foo [[bar>>/url/]].
 
@@ -588,7 +587,7 @@ Foo [[bar>>/url/]].
 
 Foo [[biz>>/url/]].
 
-== With ampersands ==
+== With ampersands {{id name="with-ampersands" /}}==
 
 Here’s a [[link with an ampersand in the URL>>http://example.com/?foo=1&bar=2]].
 
@@ -598,7 +597,7 @@ Here’s an [[inline link>>/script?foo=1&bar=2]].
 
 Here’s an [[inline link in pointy braces>>/script?foo=1&bar=2]].
 
-== Autolinks ==
+== Autolinks {{id name="autolinks" /}}==
 
 With an ampersand: http://example.com/?foo=1&bar=2
 
@@ -620,7 +619,7 @@ or here: <http://example.com/>
 
 ----
 
-= Images =
+= Images {{id name="images" /}}=
 
 From “Voyage dans la Lune” by Georges Melies (1902):
 
@@ -631,7 +630,7 @@ Here is a movie [[image:movie.jpg||alt="movie"]] icon.
 
 ----
 
-= Footnotes =
+= Footnotes {{id name="footnotes" /}}=
 
 Here is a footnote reference,{{footnote}}Here is the footnote. It can go anywhere after the footnote reference. It need not be placed at the end of the document.{{/footnote}} and another.{{footnote}}Here’s the long note. This one contains multiple blocks.
 
