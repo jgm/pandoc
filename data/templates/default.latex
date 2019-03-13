@@ -222,7 +222,7 @@ $else$
   hidelinks,
 $endif$
   breaklinks=true}
-\urlstyle{same} % don't use monospace font for urls
+\urlstyle{same} % disable monospaced font for URLs
 $if(verbatim-in-note)$
 \VerbatimFootnotes % allows verbatim text in footnotes
 $endif$
