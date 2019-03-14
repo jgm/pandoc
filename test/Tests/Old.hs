@@ -290,8 +290,7 @@ testWithNormalize normalizer pandocPath testname opts inp norm =
                                    Just d   -> [("DYLD_LIBRARY_PATH", d),
                                                 ("LD_LIBRARY_PATH", d)]
               let env = dynlibEnv ++
-                        [("TMP","."),("LANG","en_US.UTF-8"),("HOME", "./"),
-                         ("pandoc_datadir","..")]
+                        [("TMP","."),("LANG","en_US.UTF-8"),("HOME", "./")]
               (ec, out) <- pipeProcess (Just env) pandocPath options mempty
               if ec == ExitSuccess
                  then return $ filter (/='\r') . normalizer
@@ -299,7 +298,7 @@ testWithNormalize normalizer pandocPath testname opts inp norm =
                    -- filter \r so the tests will work on Windows machines
                  else fail $ "Pandoc failed with error code " ++ show ec
         updateGolden = UTF8.writeFile norm
-        options = ["--quiet"] ++ [inp] ++ opts
+        options = ["--data-dir=../data","--quiet"] ++ [inp] ++ opts
 
 compareValues :: FilePath -> [String] -> String -> String -> IO (Maybe String)
 compareValues norm options expected actual = do
