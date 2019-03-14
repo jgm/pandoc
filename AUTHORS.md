@@ -41,6 +41,7 @@
 - Clare Macrae
 - Clint Adams
 - Conal Elliott
+- Cormac Relf
 - Craig S. Bosma
 - Damien Clochard
 - Daniel Bergey
@@ -154,6 +155,7 @@
 - OvidiusCicero
 - Pablo Rodríguez
 - Pascal Wagler
+- Paul Tilley
 - Paul Rivier
 - Paulo Tanimoto
 - Peter Wang
