@@ -69,7 +69,7 @@ pandoc (2.7.1)
 
   * MANUAL.txt: Add recommendation to use `raw_attribute` with ipynb (#5354).
 
-  * Exclude cmark-gfm-hs 0.1.7, which is buggy.
+  * Use cmark-gfm-hs 0.1.8 (note that 0.1.7 is buggy).
 
   * Use latest pandoc-citeproc, texmath.
 
