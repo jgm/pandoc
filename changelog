@@ -1,3 +1,79 @@
+pandoc (2.7.1)
+
+  * Add tectonic as an option for --pdf-engine (#5345, Cormac Relf).
+    Runs tectonic on STDIN instead of a temporary .tex file, so that it
+    looks in the working directory for `\include` and `\input` like the rest
+    of the engines.  Allows overriding the output directory
+    args with `--pdf-engine-opt=--outdir --pdf-engine-opt="$DIR"`.
+
+  * Allow `-o/--output` to be used with `--print-default-data-file`,
+    `--print-highlighting-style`, `--print-default-template`.
+    Note that `-o` must occur BEFORE the `--print*` command on the command
+    line (this is documented, #5357).
+
+  * LaTeX reader:
+
+    + Support `\underline`, `\ul`, `\uline` (#5359, Paul
+      Tilley).  These are parsed as a Span with class `underline`, as
+      with other readers.
+    + Ensure that `\Footcite` and `\Footcites` get put in a note.
+
+  * ipynb reader:
+
+    + Remove sensitivity to `raw_html`, `raw_tex` extensions.
+      We now include every output format. Pruning is handled by
+      `--ipynb-output`.
+    + Better handling of cell metadata.  We now include even complex cell
+      metadata in the Div's attributes (as JSON, in complex cases, or
+      as plain strings in simple cases).
+
+  * ipynb writer:
+
+    + Recurse into native divs for output cell data (#5354).
+    + Render cell metadata fields from div attributes.
+
+  * Docx writer: avoid extra copy of abstractNum and num elements
+    in numbering.xml.  This caused pandoc-produced docx files to
+    be uneditable using Word Online (#5358).
+
+  * Markdown writer: improve handling of raw blocks/inline.
+    We now emit raw content using `raw_attribute` when no more
+    direct method is available.  Use of `raw_attribute` can be
+    forced by disabling `raw_html` and `raw_tex`.
+
+  * LaTeX writer: Add classes for frontmatter support (#5353, Andrew Dunning)
+    and remove frontmatter from `scrreprt`.
+
+  * LaTeX template:
+
+    + Improve readability (#5363, Andrew Dunning).
+    + Robust section numbering removal (#5351, Andrew Dunning).
+      Ensures that section numbering does not reappear with custom
+      section levels.  See <https://tex.stackexchange.com/questions/473653/>.
+    + Better handling of front/main/backmatter (#5348).
+      In pandoc 2.7 we assumed that every class with chapters would accept
+      `\frontmatter`, `\mainmatter`, and `\backmatter`.  This is not so (e.g.
+      report does not).  So pandoc 2.7 breaks on report class by including an
+      unsupported command.  Instead of the `book-class` variable, we use two
+      variables, `has-chapters` and `has-frontmatter`, and set these
+      intelligently in the writer.
+
+  * Text.Pandoc.Shared: Improve `filterIpynbOutput`.  Ensure that
+    images are prioritized over text. `best` should include everything
+    for ipynb.
+
+  * Tests.Old: specify `--data-dir=../data` to ensure tests can find
+    data files even if they haven't been installed.  Remove old
+    `pandoc_datadir` environment variable, which hasn't done anything for a
+    long time.
+
+  * MANUAL.txt: Add recommendation to use `raw_attribute` with ipynb (#5354).
+
+  * Exclude cmark-gfm-hs 0.1.7, which is buggy.
+
+  * Use latest pandoc-citeproc, texmath.
+
+
 pandoc (2.7)
 
   * Use XDG data directory for user data directory (#3582). Instead of
