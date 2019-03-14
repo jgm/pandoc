@@ -1,23 +1,18 @@
 \documentclass{article}
-\usepackage[mathletters]{ucs}
 \usepackage[utf8x]{inputenc}
-\setlength{\parindent}{0pt}
-\setlength{\parskip}{6pt plus 2pt minus 1pt}
 
-\usepackage[breaklinks=true,unicode=true]{hyperref}
+\usepackage{hyperref}
 \usepackage[normalem]{ulem}
-% avoid problems with \sout in headers with hyperref:
-\pdfstringdefDisableCommands{\renewcommand{\sout}{}}
 \usepackage{enumerate}
+\usepackage{setspace}
 \usepackage{fancyvrb}
 \usepackage{graphicx}
-\usepackage{url}
-
-\setcounter{secnumdepth}{0}
 \VerbatimFootnotes % allows verbatim text in footnotes
+
 \title{Pandoc Test Suite}
 \author{John MacFarlane \and Anonymous}
 \date{July 17, 2006}
+
 \begin{document}
 \maketitle
 
