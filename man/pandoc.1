@@ -1,5 +1,5 @@
 .\"t
-.TH PANDOC 1 "March 2, 2019" "pandoc 2.7"
+.TH PANDOC 1 "March 12, 2019" "pandoc 2.7.1"
 .SH NAME
 pandoc - general markup converter
 .SH SYNOPSIS
@@ -711,10 +711,16 @@ If no \f[I]VAL\f[R] is specified, the key will be given the value
 Print the system default template for an output \f[I]FORMAT\f[R].
 (See \f[C]-t\f[R] for a list of possible \f[I]FORMAT\f[R]s.) Templates
 in the user data directory are ignored.
+This option may be used with \f[C]-o\f[R]/\f[C]--output\f[R] to redirect
+output to a file, but \f[C]-o\f[R]/\f[C]--output\f[R] must come before
+\f[C]--print-default-template\f[R] on the command line.
 .TP
 .B \f[C]--print-default-data-file=\f[R]\f[I]FILE\f[R]
 Print a system default data file.
 Files in the user data directory are ignored.
+This option may be used with \f[C]-o\f[R]/\f[C]--output\f[R] to redirect
+output to a file, but \f[C]-o\f[R]/\f[C]--output\f[R] must come before
+\f[C]--print-default-data-file\f[R] on the command line.
 .TP
 .B \f[C]--eol=crlf\f[R]|\f[C]lf\f[R]|\f[C]native\f[R]
 Manually specify line endings: \f[C]crlf\f[R] (Windows), \f[C]lf\f[R]
@@ -797,6 +803,9 @@ To generate the JSON version of an existing style, use
 Prints a JSON version of a highlighting style, which can be modified,
 saved with a \f[C].theme\f[R] extension, and used with
 \f[C]--highlight-style\f[R].
+This option may be used with \f[C]-o\f[R]/\f[C]--output\f[R] to redirect
+output to a file, but \f[C]-o\f[R]/\f[C]--output\f[R] must come before
+\f[C]--print-highlight-style\f[R] on the command line.
 .TP
 .B \f[C]--syntax-definition=\f[R]\f[I]FILE\f[R]
 Instructs pandoc to load a KDE XML syntax definition file, which will be
@@ -1034,7 +1043,7 @@ If this is not found either, sensible defaults will be used.
 .PP
 To produce a custom \f[C]reference.docx\f[R], first get a copy of the
 default \f[C]reference.docx\f[R]:
-\f[C]pandoc --print-default-data-file reference.docx > custom-reference.docx\f[R].
+\f[C]pandoc -o custom-reference.docx --print-default-data-file reference.docx\f[R].
 Then open \f[C]custom-reference.docx\f[R] in Word, modify the styles as
 you wish, and save the file.
 For best results, do not make changes to this file other than modifying
@@ -1130,7 +1139,7 @@ If this is not found either, sensible defaults will be used.
 .PP
 To produce a custom \f[C]reference.odt\f[R], first get a copy of the
 default \f[C]reference.odt\f[R]:
-\f[C]pandoc --print-default-data-file reference.odt > custom-reference.odt\f[R].
+\f[C]pandoc -o custom-reference.odt --print-default-data-file reference.odt\f[R].
 Then open \f[C]custom-reference.odt\f[R] in LibreOffice, modify the
 styles as you wish, and save the file.
 .RE
@@ -1158,7 +1167,7 @@ these criteria.
 check.)
 .PP
 You can also modify the default \f[C]reference.pptx\f[R]: first run
-\f[C]pandoc --print-default-data-file reference.pptx > custom-reference.pptx\f[R],
+\f[C]pandoc -o custom-reference.pptx --print-default-data-file reference.pptx\f[R],
 and then modify \f[C]custom-reference.pptx\f[R] in MS PowerPoint (pandoc
 will use the first four layout slides, as mentioned above).
 .RE
@@ -1269,9 +1278,9 @@ The default is \f[C]best\f[R].
 .B \f[C]--pdf-engine=\f[R]\f[I]PROGRAM\f[R]
 Use the specified engine when producing PDF output.
 Valid values are \f[C]pdflatex\f[R], \f[C]lualatex\f[R],
-\f[C]xelatex\f[R], \f[C]latexmk\f[R], \f[C]wkhtmltopdf\f[R],
-\f[C]weasyprint\f[R], \f[C]prince\f[R], \f[C]context\f[R], and
-\f[C]pdfroff\f[R].
+\f[C]xelatex\f[R], \f[C]latexmk\f[R], \f[C]tectonic\f[R],
+\f[C]wkhtmltopdf\f[R], \f[C]weasyprint\f[R], \f[C]prince\f[R],
+\f[C]context\f[R], and \f[C]pdfroff\f[R].
 The default is \f[C]pdflatex\f[R].
 If the engine is not in your PATH, the full path of the engine may be
 specified here.
@@ -5934,6 +5943,17 @@ hello
 ::::::
 \f[R]
 .fi
+.PP
+If you include raw HTML or TeX in an output cell, use the [raw
+attribute][Extension: \f[C]fenced_attribute\f[R]], as shown in the last
+cell of the example above.
+Although pandoc can process \[dq]bare\[dq] raw HTML and TeX, the result
+is often interspersed raw elements and normal textual elements, and in
+an output cell pandoc expects a single, connected raw block.
+To avoid using raw HTML or TeX except when marked explicitly using raw
+attributes, we recommend specifying the extensions
+\f[C]-raw_html-raw_tex+raw_attribute\f[R] when translating between
+Markdown and ipynb notebooks.
 .SH SYNTAX HIGHLIGHTING
 .PP
 Pandoc will automatically highlight syntax in fenced code blocks that
