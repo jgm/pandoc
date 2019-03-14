@@ -5,7 +5,6 @@ RUN apk add alpine-sdk git ca-certificates ghc gmp-dev zlib-dev bash dpkg fakero
 RUN mkdir -p /usr/src/
 WORKDIR /usr/src/
 RUN git clone https://github.com/jgm/pandoc
-RUN git clone https://github.com/jgm/pandoc-citeproc
 WORKDIR /usr/src/pandoc
 RUN cabal update && \
     cabal install cabal-install-2.4.0.0 && \
