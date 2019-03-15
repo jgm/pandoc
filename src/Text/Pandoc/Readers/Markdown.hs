@@ -1039,7 +1039,18 @@ normalDefinitionList = do
 para :: PandocMonad m => MarkdownParser m (F Blocks)
 para = try $ do
   exts <- getOption readerExtensions
-  result <- trimInlinesF <$> inlines1
+  let implicitFigures x
+       | extensionEnabled Ext_implicit_figures exts = do
+         x' <- x
+         case B.toList x' of
+               [Image attr alt (src,tit)]
+                 | not (null alt) ->
+                    -- the fig: at beginning of title indicates a figure
+                    return $ B.singleton
+                           $ Image attr alt (src,'f':'i':'g':':':tit)
+               _ -> return x'
+       | otherwise = x
+  result <- implicitFigures . trimInlinesF <$> inlines1
   option (B.plain <$> result)
     $ try $ do
             newline
@@ -1062,16 +1073,7 @@ para = try $ do
                      if divLevel > 0
                         then lookAhead divFenceEnd
                         else mzero
-            return $ do
-              result' <- result
-              case B.toList result' of
-                   [Image attr alt (src,tit)]
-                     | not (null alt) &&
-                       Ext_implicit_figures `extensionEnabled` exts ->
-                        -- the fig: at beginning of title indicates a figure
-                        return $ B.para $ B.singleton
-                               $ Image attr alt (src,'f':'i':'g':':':tit)
-                   _ -> return $ B.para result'
+            return $ B.para <$> result
 
 plain :: PandocMonad m => MarkdownParser m (F Blocks)
 plain = fmap B.plain . trimInlinesF <$> inlines1
