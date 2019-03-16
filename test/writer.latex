@@ -76,6 +76,11 @@
 
 
 \title{Pandoc Test Suite}
+\makeatletter
+\@ifundefined{KOMAClassName}{% if non-KOMA class
+}{% if KOMA class
+}
+\makeatother
 \author{John MacFarlane \and Anonymous}
 \date{July 17, 2006}
 
