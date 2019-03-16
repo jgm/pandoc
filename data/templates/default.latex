@@ -391,7 +391,13 @@ $if(title)$
 $if(beamer)$
 \frame{\titlepage}
 $else$
+$if(linestretch)$
+\begin{spacing}{1}
 \maketitle
+\end{spacing}
+$else$
+\maketitle
+$endif$
 $endif$
 $if(abstract)$
 \begin{abstract}
