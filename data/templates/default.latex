@@ -354,6 +354,26 @@ $endif$
 
 $if(title)$
 \title{$title$$if(thanks)$\thanks{$thanks$}$endif$}
+\makeatletter
+\@ifundefined{KOMAClassName}{% if non-KOMA class
+}{% if KOMA class
+$if(titlehead)$
+\titlehead{$titlehead$}
+$endif$
+$if(subject)$
+\subject{$subject$}
+$endif$
+$if(publishers)$
+\publishers{$publishers$}
+$endif$
+$if(extratitle)$
+\extratitle{$extratitle$}
+$endif$
+$if(dedication)$
+\dedication{$dedication$}
+$endif$
+}
+\makeatother
 $endif$
 $if(subtitle)$
 $if(beamer)$
@@ -381,26 +401,6 @@ $endif$
 $if(logo)$
 \logo{\includegraphics{$logo$}}
 $endif$
-\makeatletter
-\@ifundefined{KOMAClassName}{% if non-KOMA class
-}{% if KOMA class
-$if(titlehead)$
-\titlehead{$titlehead$}
-$endif$
-$if(subject)$
-\subject{$subject$}
-$endif$
-$if(publishers)$
-\publishers{$publishers$}
-$endif$
-$if(extratitle)$
-\extratitle{$extratitle$}
-$endif$
-$if(dedication)$
-\dedication{$dedication$}
-$endif$
-}
-\makeatother
 $endif$
 
 \begin{document}
