@@ -88,6 +88,9 @@ $if(beamerarticle)$
 $endif$
 $if(fontfamily)$
 \usepackage[$for(fontfamilyoptions)$$fontfamilyoptions$$sep$,$endfor$]{$fontfamily$}
+$if(fontfamilydefault)$
+\renewcommand*{\familydefault}{$fontfamilydefault$}
+$endif$
 $else$
 \usepackage{lmodern}
 $endif$
