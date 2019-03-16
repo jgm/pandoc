@@ -392,8 +392,8 @@ $if(beamer)$
 \frame{\titlepage}
 $else$
 \makeatletter
-\@ifundefined{KOMAClassName}{% if non-KOMA class do nothing
-}{% if KOMA class offer more titlepage options
+\@ifundefined{KOMAClassName}{% if non-KOMA class
+}{% if KOMA class
 $if(titlehead)$
   \titlehead{$titlehead$}
 $endif$
