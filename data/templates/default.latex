@@ -382,6 +382,26 @@ $if(logo)$
 \logo{\includegraphics{$logo$}}
 $endif$
 $endif$
+\makeatletter
+\@ifundefined{KOMAClassName}{% if non-KOMA class
+}{% if KOMA class
+$if(titlehead)$
+\titlehead{$titlehead$}
+$endif$
+$if(subject)$
+\subject{$subject$}
+$endif$
+$if(publishers)$
+\publishers{$publishers$}
+$endif$
+$if(extratitle)$
+\extratitle{$extratitle$}
+$endif$
+$if(dedication)$
+\dedication{$dedication$}
+$endif$
+}
+\makeatother
 
 \begin{document}
 $if(has-frontmatter)$
@@ -391,26 +411,6 @@ $if(title)$
 $if(beamer)$
 \frame{\titlepage}
 $else$
-\makeatletter
-\@ifundefined{KOMAClassName}{% if non-KOMA class
-}{% if KOMA class
-$if(titlehead)$
-  \titlehead{$titlehead$}
-$endif$
-$if(subject)$
-  \subject{$subject$}
-$endif$
-$if(publishers)$
-  \publishers{$publishers$}
-$endif$
-$if(extratitle)$
-  \extratitle{$extratitle$}
-$endif$
-$if(dedication)$
-  \dedication{$dedication$}
-$endif$
-}
-\makeatother
 \maketitle
 $endif$
 $if(abstract)$
