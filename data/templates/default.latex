@@ -358,11 +358,12 @@ $endif$
 $if(subtitle)$
 $if(beamer)$
 $else$
-\usepackage{etoolbox}
 \makeatletter
+\@ifundefined{KOMAClassName}{% if non-KOMA classes
+\usepackage{etoolbox}
 \providecommand{\subtitle}[1]{% add subtitle to \maketitle
   \apptocmd{\@title}{\par {\large #1 \par}}{}{}
-}
+}}
 \makeatother
 $endif$
 \subtitle{$subtitle$}
