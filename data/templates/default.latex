@@ -381,7 +381,6 @@ $endif$
 $if(logo)$
 \logo{\includegraphics{$logo$}}
 $endif$
-$endif$
 \makeatletter
 \@ifundefined{KOMAClassName}{% if non-KOMA class
 }{% if KOMA class
@@ -402,6 +401,7 @@ $if(dedication)$
 $endif$
 }
 \makeatother
+$endif$
 
 \begin{document}
 $if(has-frontmatter)$
