@@ -306,17 +306,22 @@ attrsToMarkdown :: Attr -> Doc
 attrsToMarkdown attribs = braces $ hsep [attribId, attribClasses, attribKeys]
         where attribId = case attribs of
                                 ([],_,_) -> empty
-                                (i,_,_)  -> "#" <> text i
+                                (i,_,_)  -> "#" <> escAttr i
               attribClasses = case attribs of
                                 (_,[],_) -> empty
                                 (_,cs,_) -> hsep $
-                                            map (text . ('.':))
+                                            map (escAttr . ('.':))
                                             cs
               attribKeys = case attribs of
                                 (_,_,[]) -> empty
                                 (_,_,ks) -> hsep $
-                                            map (\(k,v) -> text k
-                                              <> "=\"" <> text v <> "\"") ks
+                                            map (\(k,v) -> escAttr k
+                                              <> "=\"" <>
+                                              escAttr v <> "\"") ks
+              escAttr          = mconcat . map escAttrChar
+              escAttrChar '"'  = text "\\\""
+              escAttrChar '\\' = text "\\\\"
+              escAttrChar c    = text [c]
 
 linkAttributes :: WriterOptions -> Attr -> Doc
 linkAttributes opts attr =
