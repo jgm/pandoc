@@ -1219,12 +1219,12 @@ inlineToLaTeX (Link _ txt ('#':ident, _)) = do
   return $ text "\\protect\\hyperlink" <> braces (text lab) <> braces contents
 inlineToLaTeX (Link _ txt (src, _)) =
   case txt of
-        [Str x] | escapeURI x == src ->  -- autolink
+        [Str x] | x == unEscapeString src ->  -- autolink
              do modify $ \s -> s{ stUrl = True }
                 src' <- stringToLaTeX URLString (escapeURI src)
                 return $ text $ "\\url{" ++ src' ++ "}"
         [Str x] | Just rest <- stripPrefix "mailto:" src,
-                  escapeURI x == rest -> -- email autolink
+                  x == unEscapeString rest -> -- email autolink
              do modify $ \s -> s{ stUrl = True }
                 src' <- stringToLaTeX URLString (escapeURI src)
                 contents <- inlineListToLaTeX txt
