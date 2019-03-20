@@ -50,7 +50,9 @@ import qualified Text.Pandoc.UTF8 as UTF8
 import qualified Text.XML.Light as Xml
 import qualified Data.Map as M
 import Control.Monad.Except
+import Control.Applicative
 import Data.Maybe (fromMaybe)
+import qualified Data.Attoparsec.ByteString.Char8 as A
 
 -- quick and dirty functions to get image sizes
 -- algorithms borrowed from wwwis.pl
@@ -267,26 +269,29 @@ epsSize img = do
 
 pdfSize :: ByteString -> Maybe ImageSize
 pdfSize img =
-  case dropWhile (\l -> not (l == "stream" ||
-                             "/MediaBox" `B.isPrefixOf` l)) (B.lines img) of
-       (x:_)
-         | "/MediaBox" `B.isPrefixOf` x
-         -> case B.words . B.takeWhile (/=']')
-                         . B.drop 1
-                         . B.dropWhile (/='[')
-                         $ x of
-                     [x1, y1, x2, y2] -> do
-                        x1' <- safeRead $ B.unpack x1
-                        x2' <- safeRead $ B.unpack x2
-                        y1' <- safeRead $ B.unpack y1
-                        y2' <- safeRead $ B.unpack y2
-                        return ImageSize{
-                            pxX  = x2' - x1'
-                          , pxY  = y2' - y1'
-                          , dpiX = 72
-                          , dpiY = 72 }
-                     _ -> mzero
-       _    -> mzero
+  case A.parseOnly pPdfSize img of
+    Left _   -> Nothing
+    Right sz -> Just sz
+
+pPdfSize :: A.Parser ImageSize
+pPdfSize = do
+  A.skipWhile (/='/')
+  A.char8 '/'
+  (do A.string "MediaBox"
+      A.char8 '['
+      [x1,y1,x2,y2] <- A.count 4 $ do
+        A.skipWhile (==' ')
+        raw <- A.many1 $ A.satisfy (\c -> isDigit c || c == '.')
+        case safeRead raw of
+          Just (r :: Double) -> return $ floor r
+          Nothing            -> mzero
+      A.char8 ']'
+      return $ ImageSize{
+              pxX  = x2 - x1
+            , pxY  = y2 - y1
+            , dpiX = 72
+            , dpiY = 72 }
+   ) <|> pPdfSize
 
 pngSize :: ByteString -> Maybe ImageSize
 pngSize img = do

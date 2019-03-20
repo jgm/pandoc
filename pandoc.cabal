@@ -404,7 +404,8 @@ library
                  case-insensitive >= 1.2 && < 1.3,
                  unicode-transforms >= 0.3 && < 0.4,
                  HsYAML >= 0.1.1.1 && < 0.2,
-                 ipynb >= 0.1 && < 0.2
+                 ipynb >= 0.1 && < 0.2,
+                 attoparsec >= 0.12 && < 0.14
   if impl(ghc < 8.0)
     build-depends: semigroups == 0.18.*,
                    -- basement 0.0.8 and foundation 0.0.21, transitive
