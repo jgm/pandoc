@@ -1389,10 +1389,7 @@ inlineToOpenXML' opts (Image attr@(imgident, _, _) alt (src, title)) = do
       )
 
 br :: Element
-br = breakElement "textWrapping"
-
-breakElement :: String -> Element
-breakElement kind = mknode "w:r" [] [mknode "w:br" [("w:type",kind)] () ]
+br = mknode "w:r" [] [mknode "w:br" [] ()]
 
 -- Word will insert these footnotes into the settings.xml file
 -- (whether or not they're visible in the document). If they're in the
