@@ -278,13 +278,16 @@ pPdfSize = do
   A.skipWhile (/='/')
   A.char8 '/'
   (do A.string "MediaBox"
+      A.skipWhile (==' ')
       A.char8 '['
+      A.skipWhile (==' ')
       [x1,y1,x2,y2] <- A.count 4 $ do
         A.skipWhile (==' ')
         raw <- A.many1 $ A.satisfy (\c -> isDigit c || c == '.')
         case safeRead raw of
           Just (r :: Double) -> return $ floor r
           Nothing            -> mzero
+      A.skipWhile (==' ')
       A.char8 ']'
       return $ ImageSize{
               pxX  = x2 - x1
