@@ -93,7 +93,6 @@ $else$
 $endif$
 $if(linestretch)$
 \usepackage{setspace}
-\setstretch{$linestretch$}
 $endif$
 \usepackage{amssymb,amsmath}
 \usepackage{ifxetex,ifluatex}
@@ -430,6 +429,9 @@ $if(lot)$
 $endif$
 $if(lof)$
 \listoffigures
+$endif$
+$if(linestretch)$
+\setstretch{$linestretch$}
 $endif$
 $if(has-frontmatter)$
 \mainmatter
