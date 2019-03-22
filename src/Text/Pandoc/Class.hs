@@ -569,7 +569,8 @@ downloadOrRead s = do
        case parseURIReference' s' of
             Just u' -> openURL $ show $ u' `nonStrictRelativeTo` u
             Nothing -> openURL s' -- will throw error
-    (Nothing, s'@('/':'/':_)) ->  -- protocol-relative URI
+    (Nothing, s'@('/':'/':c:_)) | c /= '?' ->  -- protocol-relative URI
+                -- we exclude //? because of //?UNC/ on Windows
        case parseURIReference' s' of
             Just u' -> openURL $ show $ u' `nonStrictRelativeTo` httpcolon
             Nothing -> openURL s' -- will throw error
