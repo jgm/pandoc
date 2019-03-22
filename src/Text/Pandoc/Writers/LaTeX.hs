@@ -590,7 +590,7 @@ blockToLaTeX (Plain lst) =
   inlineListToLaTeX $ dropWhile isLineBreakOrSpace lst
 -- title beginning with fig: indicates that the image is a figure
 blockToLaTeX (Para [Image attr@(ident, _, _) txt (src,'f':'i':'g':':':tit)]) = do
-  (capt, captForLof, footnotes) <- getCaption txt
+  (capt, captForLof, footnotes) <- getCaption True txt
   lab <- labelFor ident
   let caption = "\\caption" <> captForLof <> braces capt <> lab
   img <- inlineToLaTeX (Image attr txt (src,tit))
@@ -783,7 +783,7 @@ blockToLaTeX (Header level (id',classes,_) lst) = do
   modify $ \s -> s{stInHeading = False}
   return hdr
 blockToLaTeX (Table caption aligns widths heads rows) = do
-  (captionText, captForLof, footnotes) <- getCaption caption
+  (captionText, captForLof, footnotes) <- getCaption False caption
   let toHeaders hs = do contents <- tableRowToLaTeX True aligns widths hs
                         return ("\\toprule" $$ contents $$ "\\midrule")
   let removeNote (Note _) = Span ("", [], []) []
@@ -816,18 +816,20 @@ blockToLaTeX (Table caption aligns widths heads rows) = do
          $$ "\\end{longtable}"
          $$ footnotes
 
-getCaption :: PandocMonad m => [Inline] -> LW m (Doc, Doc, Doc)
-getCaption txt = do
-  inMinipage <- gets stInMinipage
-  modify $ \st -> st{ stInMinipage = True, stNotes = [] }
+getCaption :: PandocMonad m => Bool -> [Inline] -> LW m (Doc, Doc, Doc)
+getCaption externalNotes txt = do
+  oldIsMinipage <- gets stInMinipage
+  modify $ \st -> st{ stInMinipage = externalNotes, stNotes = [] }
   capt <- inlineListToLaTeX txt
   notes <- gets stNotes
-  modify $ \st -> st{ stInMinipage = inMinipage, stNotes = [] }
+  modify $ \st -> st{ stInMinipage = oldIsMinipage, stNotes = [] }
   -- We can't have footnotes in the list of figures/tables, so remove them:
   captForLof <- if null notes
                    then return empty
                    else brackets <$> inlineListToLaTeX (walk deNote txt)
-  let footnotes = notesToLaTeX notes
+  let footnotes = if externalNotes
+                     then notesToLaTeX notes
+                     else empty
   return (capt, captForLof, footnotes)
 
 toColDescriptor :: Alignment -> String
@@ -893,10 +895,7 @@ tableCellToLaTeX :: PandocMonad m => Bool -> (Double, Alignment, [Block])
 tableCellToLaTeX _      (0,     _,     blocks) =
   blockListToLaTeX $ walk fixLineBreaks $ walk displayMathToInline blocks
 tableCellToLaTeX header (width, align, blocks) = do
-  modify $ \st -> st{ stInMinipage = True, stNotes = [] }
   cellContents <- blockListToLaTeX blocks
-  notes <- gets stNotes
-  modify $ \st -> st{ stInMinipage = False, stNotes = [] }
   let valign = text $ if header then "[b]" else "[t]"
   let halign = case align of
                AlignLeft    -> "\\raggedright"
@@ -906,8 +905,7 @@ tableCellToLaTeX header (width, align, blocks) = do
   return $ ("\\begin{minipage}" <> valign <>
             braces (text (printf "%.2f\\columnwidth" width)) <>
             (halign <> cr <> cellContents <> "\\strut" <> cr) <>
-            "\\end{minipage}") $$
-            notesToLaTeX notes
+            "\\end{minipage}")
 
 notesToLaTeX :: [Doc] -> Doc
 notesToLaTeX [] = empty
