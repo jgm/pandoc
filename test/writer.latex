@@ -40,7 +40,7 @@
   pdftitle={Pandoc Test Suite},
   pdfauthor={John MacFarlane; Anonymous},
   hidelinks,
-}
+  pdfcreator={LaTeX via pandoc}}
 \urlstyle{same} % disable monospaced font for URLs
 \VerbatimFootnotes % allows verbatim text in footnotes
 \usepackage{graphicx,grffile}
