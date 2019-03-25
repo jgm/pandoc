@@ -42,7 +42,7 @@ commands:
       - *restore
       - run:
           name: install ghc
-          command: apt-get install -y ghc-<< paramaters.ghcversion >>
+          command: apt-get install -y ghc-<< parameters.ghcversion >>
       - run: |
           set -e
           apt-get install -y cabal-install-2.4
