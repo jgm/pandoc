@@ -83,7 +83,7 @@ tests = [ testGroup "base tag"
           , test htmlNativeDivs "<main role=X> becomes <div role=X>" $ "<main role=foobar>hello</main>" =?>
             doc (divWith ("", [], [("role", "foobar")]) (plain (text "hello")))
           , test htmlNativeDivs "<main> has attributes preserved" $ "<main id=foo class=bar data-baz=qux>hello</main>" =?>
-            doc (divWith ("foo", ["bar"], [("role", "main"), ("data-baz", "qux")]) (plain (text "hello")))
+            doc (divWith ("foo", ["bar"], [("role", "main"), ("baz", "qux")]) (plain (text "hello")))
           , test htmlNativeDivs "<main> closes <p>" $ "<p>hello<main>main content</main>" =?>
             doc (para (text "hello") <> divWith ("", [], [("role", "main")]) (plain (text "main content")))
           , test htmlNativeDivs "<main> followed by text" $ "<main>main content</main>non-main content" =?>

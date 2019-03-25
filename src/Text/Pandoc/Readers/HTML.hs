@@ -807,7 +807,8 @@ mathMLToTeXMath s = writeTeX <$> readMathML s
 
 toStringAttr :: [(Text, Text)] -> [(String, String)]
 toStringAttr = map go
-  where go (x,y) = (T.unpack x, T.unpack y)
+  where go (x,y) = (T.unpack (fromMaybe x $ T.stripPrefix "data-" x),
+                    T.unpack y)
 
 pScriptMath :: PandocMonad m => TagParser m Inlines
 pScriptMath = try $ do
