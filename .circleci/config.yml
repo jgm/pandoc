@@ -48,7 +48,10 @@ commands:
           command: |
             apt-get install -y ghc-<< parameters.ghcversion >>
             ghc --version
-            ghc-<< parameters.ghcversion >> --version
+            which ghc
+            echo $PATH
+            dpkg -S ghc--<< parameters.ghcversion >>
+            locate ghc-<< parameters.ghcversion >>
       - run:
           name: build project
           command: |
