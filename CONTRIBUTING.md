@@ -146,8 +146,7 @@ Please follow these guidelines:
 
 10. We aim for compatibility with ghc versions from 7.10.3 to the
     latest release.  All pull requests and commits are tested
-    automatically on <travis-ci.org>, using GHC versions in the
-    `Tested-With` stanza of `pandoc.cabal`.
+    automatically on CircleCI.
 
 Tests
 -----
