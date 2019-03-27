@@ -50,7 +50,7 @@ commands:
             ghc --version
             which ghc
             echo $PATH
-            dpkg -S ghc--<< parameters.ghcversion >>
+            dpkg -S ghc-<< parameters.ghcversion >>
             locate ghc-<< parameters.ghcversion >>
       - run:
           name: build project
