@@ -319,7 +319,15 @@ tableItemToJATS opts isHeader item =
 
 -- | Convert a list of inline elements to JATS.
 inlinesToJATS :: PandocMonad m => WriterOptions -> [Inline] -> JATS m Doc
-inlinesToJATS opts lst = hcat <$> mapM (inlineToJATS opts) lst
+inlinesToJATS opts lst = hcat <$> mapM (inlineToJATS opts) (fixCitations lst)
+  where
+   fixCitations [] = []
+   fixCitations (x@(RawInline (Format "jats") "<pub-id pub-id-type=\"doi\">") : xs) =
+     let isRawInline (RawInline{}) = True
+         isRawInline _             = False
+         (ys,zs)                   = break isRawInline xs
+         in x : Str (stringify ys) : fixCitations zs
+   fixCitations (x:xs) = x : fixCitations xs
 
 -- | Convert an inline element to JATS.
 inlineToJATS :: PandocMonad m => WriterOptions -> Inline -> JATS m Doc
