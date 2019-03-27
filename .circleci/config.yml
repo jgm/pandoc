@@ -63,7 +63,7 @@ commands:
             # this is to work around the fact that cabal v2 doesn't allow
             # us to use -Werror for just local build:
             # https://github.com/haskell/cabal/issues/4247
-            ! grep -q "warning:" build.log
+            ! grep -q "[Ww]arning:" build.log
             cabal v2-test -w ghc-<< parameters.ghcversion >> -j1 --disable-optimization --enable-tests
             cabal v2-haddock -w ghc-<< parameters.ghcversion >>
             cabal check
