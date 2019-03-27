@@ -16,13 +16,11 @@ quick:
 quick-cabal:
 	cabal new-configure . --ghc-options '$(GHCOPTS)' --disable-optimization --enable-tests
 	cabal new-build . --disable-optimization
-	cabal new-install --symlink-bindir=$$HOME/.local/bin
 	cabal new-run test-pandoc --disable-optimization -- --hide-successes $(TESTARGS)
 
 full-cabal:
 	cabal new-configure . --ghc-options '$(GHCOPTS)' --flags '+embed_data_files +weigh-pandoc +trypandoc' --enable-tests --enable-benchmarks
 	cabal new-build . --disable-optimization
-	cabal new-install --symlink-bindir=$$HOME/.local/bin
 	cabal new-run test-pandoc --disable-optimization -- --hide-successes $(TESTARGS)
 
 full:
