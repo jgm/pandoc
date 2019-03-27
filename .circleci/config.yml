@@ -74,11 +74,11 @@ commands:
 #-----------------------------------------------------------------------------
 
 jobs:
-  cabal-ghc-8_6_3:
+  cabal-ghc-8_6_4:
       <<: *env
       steps:
           - cabal_build:
-              ghcversion: 8.6.3
+              ghcversion: 8.6.4
 
   cabal-ghc-8_4_4:
       <<: *env
@@ -98,12 +98,6 @@ jobs:
           - cabal_build:
               ghcversion: 8.0.2
 
-  cabal-ghc-7_10_3:
-      <<: *env
-      steps:
-          - cabal_build:
-              ghcversion: 7.10.3
-
   stack-ghc-8_6:
       <<: *env
       steps:
@@ -121,9 +115,8 @@ workflows:
   version: "2.1"
   build:
     jobs:
-      - cabal-ghc-8_6_3
+      - cabal-ghc-8_6_4
       - cabal-ghc-8_4_4
       - cabal-ghc-8_2_2
       - cabal-ghc-8_0_2
-      - cabal-ghc-7_10_3
       - stack-ghc-8_6
