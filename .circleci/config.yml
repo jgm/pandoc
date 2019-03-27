@@ -56,15 +56,15 @@ commands:
             cd ${TMPDIR}
             tar xvzf *.tar.gz
             cd *
-            cabal v2-build -w ghc-<< parameters.ghcversion >> --disable-optimization --dependencies-only --enable-tests --enable-benchmarks
-            cabal v2-build -w ghc-<< parameters.ghcversion >> --disable-optimization --enable-tests --enable-benchmarks 2>build.log
+            cabal v2-build -w ghc-<< parameters.ghcversion >> -j1 --disable-optimization --dependencies-only --enable-tests --enable-benchmarks
+            cabal v2-build -w ghc-<< parameters.ghcversion >> -j1 --disable-optimization --enable-tests --enable-benchmarks 2>build.log
             cat build.log
             # fail if we had warnings in local build
             # this is to work around the fact that cabal v2 doesn't allow
             # us to use -Werror for just local build:
             # https://github.com/haskell/cabal/issues/4247
             ! grep -q "warning:" build.log
-            cabal v2-test -w ghc-<< parameters.ghcversion >> --disable-optimization --enable-tests
+            cabal v2-test -w ghc-<< parameters.ghcversion >> -j1 --disable-optimization --enable-tests
             cabal v2-haddock -w ghc-<< parameters.ghcversion >>
             cabal check
       - *save
