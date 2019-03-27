@@ -23,6 +23,7 @@ import Data.List (isPrefixOf)
 import Data.Maybe (fromMaybe)
 import Data.Digest.Pure.SHA (sha1, showDigest)
 import Text.Pandoc.Options
+import qualified Data.Scientific as Scientific
 import qualified Text.Pandoc.Builder as B
 import Text.Pandoc.Logging
 import Text.Pandoc.Definition
@@ -209,7 +210,9 @@ jsonMetaToMeta = M.mapKeys T.unpack . M.map valueToMetaValue
         Success xs -> MetaList $ map valueToMetaValue xs
     valueToMetaValue (Bool b) = MetaBool b
     valueToMetaValue (String t) = MetaString (T.unpack t)
-    valueToMetaValue (Number n) = MetaString (show n)
+    valueToMetaValue (Number n)
+      | Scientific.isInteger n = MetaString (show (floor n :: Integer))
+      | otherwise              = MetaString (show n)
     valueToMetaValue Aeson.Null = MetaString ""
 
 jsonMetaToPairs :: JSONMeta -> [(String, String)]
