@@ -9,10 +9,6 @@
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE UndecidableInstances #-}
 {-# LANGUAGE ScopedTypeVariables #-}
-#if MIN_VERSION_base(4,8,0)
-#else
-{-# LANGUAGE OverlappingInstances #-}
-#endif
 {- |
    Module      : Text.Pandoc.Class
    Copyright   : Copyright (C) 2016-17 Jesse Rosenthal, John MacFarlane
@@ -1041,11 +1037,7 @@ instance (MonadTrans t, PandocMonad m, Functor (t m),
   putCommonState = lift . putCommonState
   logOutput = lift . logOutput
 
-#if MIN_VERSION_base(4,8,0)
 instance {-# OVERLAPS #-} PandocMonad m => PandocMonad (ParsecT s st m) where
-#else
-instance PandocMonad m => PandocMonad (ParsecT s st m) where
-#endif
   lookupEnv = lift . lookupEnv
   getCurrentTime = lift getCurrentTime
   getCurrentTimeZone = lift getCurrentTimeZone

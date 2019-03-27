@@ -79,9 +79,6 @@ import Text.Pandoc.Readers.Docx.Parse
 import Text.Pandoc.Shared
 import Text.Pandoc.Walk
 import Text.TeXMath (writeTeX)
-#if !(MIN_VERSION_base(4,8,0))
-import Data.Traversable (traverse)
-#endif
 import Control.Monad.Except (throwError)
 import Text.Pandoc.Class (PandocMonad)
 import qualified Text.Pandoc.Class as P
