@@ -3,7 +3,7 @@ pandoc=$(shell find dist -name pandoc -type f -exec ls -t {} \; | head -1)
 SOURCEFILES?=$(shell find pandoc.hs src test -name '*.hs')
 BRANCH?=master
 RESOLVER?=lts-13
-GHCOPTS=-fdiagnostics-color=always -Wall -fno-warn-unused-do-bind -Wincomplete-record-updates -Wnoncanonical-monad-instances -Wnoncanonical-monadfail-instances -Wincomplete-uni-patterns -Werror=missing-home-modules -Widentities -Wcpp-undef -fhide-source-paths -j +RTS -A32M -RTS
+GHCOPTS=-fdiagnostics-color=always
 # Later:
 # -Wpartial-fields        (currently used in Powerpoint writer)
 # -Wmissing-export-lists  (currently some Odt modules violate this)
@@ -14,7 +14,7 @@ quick:
 	stack install --ghc-options='$(GHCOPTS)' --install-ghc --flag 'pandoc:embed_data_files' --fast --test --test-arguments='-j4 --hide-successes $(TESTARGS)'
 
 quick-cabal:
-	cabal new-configure . --ghc-options '$(GHCOPTS)' --flags '+embed_data_files' --enable-tests
+	cabal new-configure . --ghc-options '$(GHCOPTS)' --disable-optimization --enable-tests
 	cabal new-build . --disable-optimization
 	cabal new-install --symlink-bindir=$$HOME/.local/bin
 	cabal new-run test-pandoc --disable-optimization -- --hide-successes $(TESTARGS)
