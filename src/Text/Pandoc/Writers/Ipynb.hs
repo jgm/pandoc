@@ -62,8 +62,16 @@ pandocToNotebook opts (Pandoc meta blocks) = do
            opts{ writerTemplate = Nothing } (Pandoc nullMeta [Plain ils])
   let jupyterMeta =
         case lookupMeta "jupyter" meta of
-          Just (MetaMap m) -> (Meta m <> B.deleteMeta "jupyter" meta)
+          Just (MetaMap m) -> Meta m
           _ -> mempty
+  let nbformat =
+         case (lookupMeta "nbformat" jupyterMeta,
+               lookupMeta "nbformat_minor" jupyterMeta) of
+               (Just (MetaString "4"), Just (MetaString y)) ->
+                 case safeRead y of
+                        Just z  -> (4, z)
+                        Nothing -> (4, 5)
+               _                -> (4, 5) -- write as v4.5
   metadata' <- metaToJSON' blockWriter inlineWriter $
                  B.deleteMeta "nbformat" $
                  B.deleteMeta "nbformat_minor" $ jupyterMeta
@@ -74,7 +82,7 @@ pandocToNotebook opts (Pandoc meta blocks) = do
   cells <- extractCells opts blocks
   return $ Notebook{
        notebookMetadata = metadata
-     , notebookFormat = (4, 5)
+     , notebookFormat = nbformat
      , notebookCells = cells }
 
 addAttachment :: PandocMonad m
