@@ -29,6 +29,7 @@ import Data.Maybe (fromMaybe)
 import Data.Monoid (Any (..))
 import Data.Ord (comparing)
 import qualified Data.Set as Set
+import qualified Data.Scientific as Scientific
 import Data.Text (Text)
 import qualified Data.Text as T
 import qualified Data.Vector as V
@@ -164,7 +165,9 @@ jsonToYaml (String s) =
        | not (any isPunctuation x) -> text x
        | otherwise     -> text $ "'" ++ substitute "'" "''" x ++ "'"
 jsonToYaml (Bool b) = text $ show b
-jsonToYaml (Number n) = text $ show n
+jsonToYaml (Number n)
+  | Scientific.isInteger n = text $ show (floor n :: Integer)
+  | otherwise              = text $ show n
 jsonToYaml _ = empty
 
 -- | Return markdown representation of document.
