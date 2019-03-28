@@ -36,9 +36,10 @@ module Text.Pandoc.Writers.Shared (
 where
 import Prelude
 import Control.Monad (zipWithM)
+import qualified Data.Aeson as Aeson
 import Data.Aeson (FromJSON (..), Result (..), ToJSON (..), Value (Object),
                    encode, fromJSON)
-import Data.Char (chr, ord, isSpace)
+import Data.Char (chr, ord, isSpace, isDigit)
 import qualified Data.HashMap.Strict as H
 import Data.List (groupBy, intersperse, transpose)
 import qualified Data.Map as M
@@ -49,7 +50,8 @@ import qualified Text.Pandoc.Builder as Builder
 import Text.Pandoc.Definition
 import Text.Pandoc.Options
 import Text.Pandoc.Pretty
-import Text.Pandoc.Shared (stringify, hierarchicalize, Element(..), deNote)
+import Text.Pandoc.Shared (stringify, hierarchicalize, Element(..), deNote,
+                            safeRead)
 import Text.Pandoc.Walk (walk)
 import Text.Pandoc.UTF8 (toStringLazy)
 import Text.Pandoc.XML (escapeStringForXML)
@@ -105,8 +107,11 @@ metaValueToJSON blockWriter inlineWriter (MetaMap metamap) = toJSON <$>
 metaValueToJSON blockWriter inlineWriter (MetaList xs) = toJSON <$>
   Traversable.mapM (metaValueToJSON blockWriter inlineWriter) xs
 metaValueToJSON _ _ (MetaBool b) = return $ toJSON b
-metaValueToJSON _ inlineWriter (MetaString s) = toJSON <$>
-  inlineWriter (Builder.toList (Builder.text s))
+metaValueToJSON _ inlineWriter (MetaString s) =
+    if all isDigit s
+       then return $
+              maybe (Aeson.String . T.pack $ s) Aeson.Number $ safeRead s
+       else toJSON <$> inlineWriter (Builder.toList (Builder.text s))
 metaValueToJSON blockWriter _ (MetaBlocks bs) = toJSON <$> blockWriter bs
 metaValueToJSON _ inlineWriter (MetaInlines is) = toJSON <$> inlineWriter is
 
