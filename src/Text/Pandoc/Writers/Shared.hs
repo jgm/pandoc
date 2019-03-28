@@ -41,7 +41,7 @@ import Data.Aeson (FromJSON (..), Result (..), ToJSON (..), Value (Object),
                    encode, fromJSON)
 import Data.Char (chr, ord, isSpace, isDigit)
 import qualified Data.HashMap.Strict as H
-import Data.List (groupBy, intersperse, transpose)
+import Data.List (groupBy, intersperse, transpose, foldl')
 import qualified Data.Map as M
 import Data.Maybe (isJust)
 import qualified Data.Text as T
@@ -279,7 +279,7 @@ gridTable opts blocksToDoc headless aligns widths headers rows = do
   -- handleGivenWidths
   let handleZeroWidths = do
         (widthsInChars', rawHeaders', rawRows') <- handleFullWidths
-        if sum widthsInChars' > writerColumns opts
+        if foldl' (+) 0 widthsInChars' > writerColumns opts
            then -- use even widths
                 handleGivenWidths
                   (replicate numcols (1.0 / fromIntegral numcols) :: [Double])

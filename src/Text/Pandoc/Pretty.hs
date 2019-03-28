@@ -65,7 +65,7 @@ import Control.Monad
 import Control.Monad.State.Strict
 import Data.Char (isSpace)
 import Data.Foldable (toList)
-import Data.List (intersperse)
+import Data.List (intersperse, foldl')
 import Data.Sequence (Seq, ViewL (..), fromList, mapWithIndex, singleton, viewl,
                       (<|))
 import qualified Data.Sequence as Seq
@@ -305,7 +305,7 @@ renderList (BreakingSpace : xs) = do
   let xs' = dropWhile isBreakingSpace xs
   let next = takeWhile isText xs'
   st <- get
-  let off = sum $ map offsetOf next
+  let off = foldl' (+) 0 $ map offsetOf next
   case lineLength st of
         Just l | column st + 1 + off > l -> do
           outp (-1) "\n"
@@ -540,4 +540,4 @@ charWidth c =
 -- | Get real length of string, taking into account combining and double-wide
 -- characters.
 realLength :: String -> Int
-realLength = sum . map charWidth
+realLength = foldl' (+) 0 . map charWidth
