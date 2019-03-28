@@ -66,31 +66,31 @@ test_script:
   - if not exist "%CABAL_PACKAGE_DB%" ( mkdir "%CABAL_PACKAGE_DB%" )
   - cabal --store-dir="%CABAL_STORE%" --version
   - cabal --store-dir="%CABAL_STORE%" new-update
-  - cabal --store-dir="%CABAL_STORE%" new-configure -w %GHC% --enable-tests --dependencies-only %CABAL_OPTS% --ghc-options="%GHC_OPTS%" . pandoc-citeproc
-  - cabal --store-dir="%CABAL_STORE%" new-build --dependencies-only . pandoc-citeproc
-# - cabal --store-dir="%CABAL_STORE%" new-test . pandoc-citeproc
-# - forfiles /P .\dist-newstyle /M pandoc*.exe /S /C "cmd /C copy @path C:\pandoc\windows"
+  - cabal --store-dir="%CABAL_STORE%" new-configure -w %GHC% --enable-tests %CABAL_OPTS% --ghc-options="%GHC_OPTS%" . pandoc-citeproc
+  - cabal --store-dir="%CABAL_STORE%" new-build . pandoc-citeproc
+  - cabal --store-dir="%CABAL_STORE%" new-test . pandoc-citeproc
+  - forfiles /P .\dist-newstyle /M pandoc*.exe /S /C "cmd /C copy @path C:\pandoc\windows"
 
 after_test:
   # create msi and zip artifacts
   - cd windows
-# - .\pandoc.exe -s --toc ..\MANUAL.txt -o MANUAL.html
-# - .\pandoc.exe -s ..\COPYING.md -o COPYING.rtf
-# - copy ..\COPYRIGHT COPYRIGHT.txt
-# - 7z a "pandoc-%OSARCH%.zip" pandoc.exe pandoc-citeproc.exe MANUAL.html COPYING.rtf
-# - |
-#     set VERSION=
-#     for /f "tokens=1-2 delims= " %%a in ('.\pandoc.exe --version') do ( if not defined VERSION set "VERSION=%%b" )
-#     echo %VERSION%
-#     "%WIXBIN%"\candle -arch %ARCH% -dVERSION=%VERSION% -dBINPATH=. *.wxs -out wixobj\
-#     "%WIXBIN%"\light -sw1076 -ext WixUIExtension -ext WixUtilExtension -cultures:en-us -loc Pandoc-en-us.wxl -out "pandoc-%OSARCH%.msi" wixobj\*.wixobj
+  - .\pandoc.exe -s --toc ..\MANUAL.txt -o MANUAL.html
+  - .\pandoc.exe -s ..\COPYING.md -o COPYING.rtf
+  - copy ..\COPYRIGHT COPYRIGHT.txt
+  - 7z a "pandoc-%OSARCH%.zip" pandoc.exe pandoc-citeproc.exe MANUAL.html COPYING.rtf
+  - |
+      set VERSION=
+      for /f "tokens=1-2 delims= " %%a in ('.\pandoc.exe --version') do ( if not defined VERSION set "VERSION=%%b" )
+      echo %VERSION%
+      "%WIXBIN%"\candle -arch %ARCH% -dVERSION=%VERSION% -dBINPATH=. *.wxs -out wixobj\
+      "%WIXBIN%"\light -sw1076 -ext WixUIExtension -ext WixUtilExtension -cultures:en-us -loc Pandoc-en-us.wxl -out "pandoc-%OSARCH%.msi" wixobj\*.wixobj
 
 # for debugging
 # on_finish:
 #   - ps: $blockRdp = $true; iex ((new-object net.webclient).DownloadString('https://raw.githubusercontent.com/appveyor/ci/master/scripts/enable-rdp.ps1'))
 
 artifacts:
-# - path: 'windows\pandoc-%OSARCH%.zip'
-#   name: exe
-# - path: 'windows\pandoc-%OSARCH%.msi'
-#   name: msi
+  - path: 'windows\pandoc-%OSARCH%.zip'
+    name: exe
+  - path: 'windows\pandoc-%OSARCH%.msi'
+    name: msi
