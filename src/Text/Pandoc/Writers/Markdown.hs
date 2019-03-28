@@ -149,7 +149,9 @@ jsonToYaml (Object hashmap) =
                (k', Array vec, x)
                  | V.null vec     -> empty
                  | otherwise      -> (k' <> ":") $$ x
-               (k', Object _, x)  -> (k' <> ":") $$ nest 2 x
+               (k', Object hm, x)
+                 | H.null hm      -> k' <> ": {}"
+                 | otherwise      -> (k' <> ":") $$ nest 2 x
                (_, String "", _)  -> empty
                (k', _, x)         -> k' <> ":" <> space <> hang 2 "" x)
        $ sortBy (comparing fst) $ H.toList hashmap
