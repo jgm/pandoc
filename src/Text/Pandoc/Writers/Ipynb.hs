@@ -67,7 +67,7 @@ pandocToNotebook opts (Pandoc meta blocks) = do
   let nbformat =
          case (lookupMeta "nbformat" jupyterMeta,
                lookupMeta "nbformat_minor" jupyterMeta) of
-               (Just (MetaString "4"), Just (MetaString y)) ->
+               (Just (MetaInlines [Str "4"]), Just (MetaInlines [Str y])) ->
                  case safeRead y of
                         Just z  -> (4, z)
                         Nothing -> (4, 5)
