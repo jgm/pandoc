@@ -603,7 +603,7 @@ toAttrs kvs = do
   return $ mapMaybe (\(x,y) ->
             if html5
                then
-                  if x `Set.member` html5Attributes
+                  if x `Set.member` (html5Attributes <> rdfaAttributes)
                      || ':' `elem` x -- e.g. epub: namespace
                      || "data-" `isPrefixOf` x
                      then Just $ customAttribute (fromString x) (toValue y)
@@ -611,7 +611,7 @@ toAttrs kvs = do
                                   (toValue y)
                else
                  if mbEpubVersion == Just EPUB2 &&
-                    not (x `Set.member` html4Attributes ||
+                    not (x `Set.member` (html4Attributes <> rdfaAttributes) ||
                          "xml:" `isPrefixOf` x)
                     then Nothing
                     else Just $ customAttribute (fromString x) (toValue y))
@@ -1469,6 +1469,23 @@ html5Attributes = Set.fromList
   , "width"
   , "workertype"
   , "wrap"
+  ]
+
+-- See https://en.wikipedia.org/wiki/RDFa, https://www.w3.org/TR/rdfa-primer/
+rdfaAttributes :: Set.Set String
+rdfaAttributes = Set.fromList
+  [ "about"
+  , "rel"
+  , "rev"
+  , "src"
+  , "href"
+  , "resource"
+  , "property"
+  , "content"
+  , "datatype"
+  , "typeof"
+  , "vocab"
+  , "prefix"
   ]
 
 html4Attributes :: Set.Set String
