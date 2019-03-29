@@ -90,7 +90,7 @@ cellToBlocks opts lang c = do
       return $ B.divWith ("",["cell","markdown"],kvs)
              $ B.fromList bs
     Ipynb.Raw -> do
-      let format = fromMaybe "" $ lookup "format" kvs
+      let format = fromMaybe "html" $ lookup "format" kvs
       let format' =
             case format of
               "text/html"       ->  "html"
