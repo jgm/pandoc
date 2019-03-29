@@ -1,4 +1,5 @@
 {-# LANGUAGE NoImplicitPrelude #-}
+{-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE OverloadedStrings #-}
 {- |
    Module      : Text.Pandoc.Writers.Shared
@@ -39,9 +40,10 @@ import Control.Monad (zipWithM)
 import qualified Data.Aeson as Aeson
 import Data.Aeson (FromJSON (..), Result (..), ToJSON (..), Value (Object),
                    encode, fromJSON)
-import Data.Char (chr, ord, isSpace, isDigit)
+import Data.Char (chr, ord, isSpace)
 import qualified Data.HashMap.Strict as H
 import Data.List (groupBy, intersperse, transpose, foldl')
+import Data.Scientific (Scientific)
 import qualified Data.Map as M
 import Data.Maybe (isJust)
 import qualified Data.Text as T
@@ -108,11 +110,12 @@ metaValueToJSON blockWriter inlineWriter (MetaList xs) = toJSON <$>
   Traversable.mapM (metaValueToJSON blockWriter inlineWriter) xs
 metaValueToJSON _ _ (MetaBool b) = return $ toJSON b
 metaValueToJSON _ inlineWriter (MetaString s) =
-    if all isDigit s
-       then return $
-              maybe (Aeson.String . T.pack $ s) Aeson.Number $ safeRead s
-       else toJSON <$> inlineWriter (Builder.toList (Builder.text s))
+  case safeRead s of
+     Just (n :: Scientific) -> return $ Aeson.Number n
+     Nothing -> toJSON <$> inlineWriter (Builder.toList (Builder.text s))
 metaValueToJSON blockWriter _ (MetaBlocks bs) = toJSON <$> blockWriter bs
+metaValueToJSON blockWriter inlineWriter (MetaInlines [Str s]) =
+  metaValueToJSON blockWriter inlineWriter (MetaString s)
 metaValueToJSON _ inlineWriter (MetaInlines is) = toJSON <$> inlineWriter is
 
 -- | Retrieve a field value from a JSON object.
