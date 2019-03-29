@@ -489,10 +489,10 @@ block = do
                -- note: bulletList needs to be before header because of
                -- the possibility of empty list items: -
                , bulletList
-               , header
-               , lhsCodeBlock
                , divHtml
                , divFenced
+               , header
+               , lhsCodeBlock
                , htmlBlock
                , table
                , codeBlockIndented
