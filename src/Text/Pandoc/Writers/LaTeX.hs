@@ -340,6 +340,14 @@ stringToLaTeX context zs = do
                              -> cs <> xs
             _ -> cs <> "{}" <> xs
     in case x of
+         '?' | ligatures ->  -- avoid ?` ligature
+           case xs of
+             '`':_ -> emits "?{}"
+             _     -> emitc x
+         '!' | ligatures ->  -- avoid !` ligature
+           case xs of
+             '`':_ -> emits "!{}"
+             _     -> emitc x
          '{' -> emits "\\{"
          '}' -> emits "\\}"
          '`' | ctx == CodeString -> emitcseq "\\textasciigrave"
