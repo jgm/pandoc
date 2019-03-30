@@ -19,6 +19,7 @@ where
 import Prelude
 import Control.Monad.State
 import qualified Data.Map as M
+import Data.Char (toLower)
 import Data.Maybe (catMaybes, fromMaybe)
 import Text.Pandoc.Options
 import Text.Pandoc.Definition
@@ -136,7 +137,7 @@ extractCells opts (Div (_id,classes,kvs) xs : bs)
       case consolidateAdjacentRawBlocks xs of
         [RawBlock (Format f) raw] -> do
           let format' =
-                case f of
+                case map toLower f of
                   "html"     -> "text/html"
                   "revealjs" -> "text/html"
                   "latex"    -> "text/latex"
@@ -146,8 +147,10 @@ extractCells opts (Div (_id,classes,kvs) xs : bs)
           (Cell{
               cellType = Raw
             , cellSource = Source $ breakLines $ T.pack raw
-            , cellMetadata = M.insert "format"
-                             (Aeson.String $ T.pack format') mempty
+            , cellMetadata = if format' == "ipynb" -- means no format given
+                                then mempty
+                                else M.insert "format"
+                                       (Aeson.String $ T.pack format') mempty
             , cellAttachments = Nothing } :) <$> extractCells opts bs
         _ -> extractCells opts bs
 extractCells opts (CodeBlock (_id,classes,kvs) raw : bs)
