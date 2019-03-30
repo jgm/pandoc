@@ -133,7 +133,7 @@ extractCells opts (Div (_id,classes,kvs) xs : bs)
         , cellAttachments = Nothing } :) <$> extractCells opts bs
   | "cell" `elem` classes
   , "raw" `elem` classes =
-      case xs of
+      case consolidateAdjacentRawBlocks xs of
         [RawBlock (Format f) raw] -> do
           let format' =
                 case f of
@@ -195,7 +195,7 @@ blockToOutput _ = return Nothing
 
 extractData :: PandocMonad m => [Block] -> m (MimeBundle, JSONMeta)
 extractData bs = do
-  (mmap, meta) <- foldM go mempty bs
+  (mmap, meta) <- foldM go mempty $ consolidateAdjacentRawBlocks bs
   return (MimeBundle mmap, meta)
   where
     go (mmap, meta) b@(Para [Image (_,_,kvs) _ (src,_)]) = do
@@ -227,3 +227,11 @@ pairsToJSONMeta kvs =
              | (k,v) <- kvs
              , k /= "execution_count"
              ]
+
+consolidateAdjacentRawBlocks :: [Block] -> [Block]
+consolidateAdjacentRawBlocks [] = []
+consolidateAdjacentRawBlocks (RawBlock f1 x : RawBlock f2 y : xs)
+  | f1 == f2
+  = consolidateAdjacentRawBlocks (RawBlock f1 (x <> "\n" <> y) : xs)
+consolidateAdjacentRawBlocks (x : xs) =
+  x : consolidateAdjacentRawBlocks xs
