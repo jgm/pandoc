@@ -5047,6 +5047,12 @@ marked explicitly using raw attributes, we recommend
 specifying the extensions `-raw_html-raw_tex+raw_attribute` when
 translating between Markdown and ipynb notebooks.
 
+Note that options and extensions that affect reading and
+writing of Markdown will also affect Markdown cells in ipynb
+notebooks.  For example, `--wrap=preserve` will preserve
+soft line breaks in Markdown cells; `--atx-headers` will
+cause ATX style headers to be used; and `--preserve-tabs` will
+prevent tabs from being turned to spaces.
 
 Syntax highlighting
 ===================
