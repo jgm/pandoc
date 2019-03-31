@@ -680,28 +680,32 @@ blocksToSlide' _ [] spkNotes = do
                  }
     spkNotes
 
-handleNotes :: Block -> Pres ()
-handleNotes (Div (_, ["notes"], _) blks) =
-  local (\env -> env{envInSpeakerNotes=True}) $ do
-  spNotes <- SpeakerNotes <$> concatMapM blockToParagraphs blks
-  modify $ \st -> st{stSpeakerNotes = (stSpeakerNotes st) <> spNotes}
-handleNotes _ = return ()
+blockToSpeakerNotes :: Block -> Pres SpeakerNotes
+blockToSpeakerNotes (Div (_, ["notes"], _) blks) =
+  local (\env -> env{envInSpeakerNotes=True}) $
+  SpeakerNotes <$> concatMapM blockToParagraphs blks
+blockToSpeakerNotes _ = return mempty
 
-handleAndFilterNotes' :: [Block] -> Pres [Block]
-handleAndFilterNotes' blks = do
-  mapM_ handleNotes blks
+handleSpeakerNotes :: Block -> Pres ()
+handleSpeakerNotes blk = do
+  spNotes <- blockToSpeakerNotes blk
+  modify $ \st -> st{stSpeakerNotes = (stSpeakerNotes st) <> spNotes}
+
+handleAndFilterSpeakerNotes' :: [Block] -> Pres [Block]
+handleAndFilterSpeakerNotes' blks = do
+  mapM_ handleSpeakerNotes blks
   return $ filter (not . isNotesDiv) blks
 
-handleAndFilterNotes :: [Block] -> Pres ([Block], SpeakerNotes)
-handleAndFilterNotes blks = do
+handleAndFilterSpeakerNotes :: [Block] -> Pres ([Block], SpeakerNotes)
+handleAndFilterSpeakerNotes blks = do
   modify $ \st -> st{stSpeakerNotes = mempty}
-  blks' <- walkM handleAndFilterNotes' blks
+  blks' <- walkM handleAndFilterSpeakerNotes' blks
   spkNotes <- gets stSpeakerNotes
   return (blks', spkNotes)
 
 blocksToSlide :: [Block] -> Pres Slide
 blocksToSlide blks = do
-  (blks', spkNotes) <- handleAndFilterNotes blks
+  (blks', spkNotes) <- handleAndFilterSpeakerNotes blks
   slideLevel <- asks envSlideLevel
   blocksToSlide' slideLevel blks' spkNotes
 
@@ -758,6 +762,13 @@ getMetaSlide  = do
                        , metadataSlideDate = date
                        }
          mempty
+
+addSpeakerNotesToMetaSlide :: Slide -> [Block] -> Pres (Slide, [Block])
+addSpeakerNotesToMetaSlide (Slide sldId layout@(MetadataSlide _ _ _ _) spkNotes) blks =
+  do let (ntsBlks, blks') = span isNotesDiv blks
+     spkNotes' <- mconcat <$> mapM blockToSpeakerNotes ntsBlks
+     return (Slide sldId layout (spkNotes <> spkNotes'), blks')
+addSpeakerNotesToMetaSlide sld blks = return (sld, blks)
 
 makeTOCSlide :: [Block] -> Pres Slide
 makeTOCSlide blks = local (\env -> env{envCurSlideId = tocSlideId}) $ do
@@ -871,7 +882,16 @@ emptySlide (Slide _ layout notes) = (notes == mempty) && (emptyLayout layout)
 blocksToPresentationSlides :: [Block] -> Pres [Slide]
 blocksToPresentationSlides blks = do
   opts <- asks envOpts
-  metadataslides <- maybeToList <$> getMetaSlide
+  mbMetadataSlide <- getMetaSlide
+  -- if the metadata slide exists, we try to add any speakerNotes
+  -- which immediately follow it. We also convert from maybe to a
+  -- list, so that it will be able to add together more easily with
+  -- the other lists of slides.
+  (metadataslides, blks') <- case mbMetadataSlide of
+                                 Just sld ->
+                                   do (s, bs) <- addSpeakerNotesToMetaSlide sld blks
+                                      return ([s], bs)
+                                 Nothing -> return ([], blks)
   -- As far as I can tell, if we want to have a variable-length toc in
   -- the future, we'll have to make it twice. Once to get the length,
   -- and a second time to include the notes slide. We can't make the
@@ -882,7 +902,7 @@ blocksToPresentationSlides blks = do
   -- For now, though, since the TOC slide is only length 1, if it
   -- exists, we'll just get the length, and then come back to make the
   -- slide later
-  blksLst <- splitBlocks blks
+  blksLst <- splitBlocks blks'
   bodySlideIds <- mapM
                   (\n -> runUniqueSlideId $ "BodySlide" ++ show n)
                   (take (length blksLst) [1..] :: [Integer])
@@ -893,7 +913,7 @@ blocksToPresentationSlides blks = do
   endNotesSlideBlocks <- makeEndNotesSlideBlocks
   -- now we come back and make the real toc...
   tocSlides <- if writerTableOfContents opts
-               then do toc <- makeTOCSlide $ blks ++ endNotesSlideBlocks
+               then do toc <- makeTOCSlide $ blks' ++ endNotesSlideBlocks
                        return [toc]
                else return []
   -- ... and the notes slide. We test to see if the blocks are empty,
