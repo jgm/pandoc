@@ -575,10 +575,11 @@ splitBlocks' cur acc (HorizontalRule : blks) =
   splitBlocks' [] (acc ++ (if null cur then [] else [cur])) blks
 splitBlocks' cur acc (h@(Header n _ _) : blks) = do
   slideLevel <- asks envSlideLevel
+  let (nts, blks') = span isNotesDiv blks
   case compare n slideLevel of
-    LT -> splitBlocks' [] (acc ++ (if null cur then [] else [cur]) ++ [[h]]) blks
-    EQ -> splitBlocks' [h] (acc ++ (if null cur then [] else [cur])) blks
-    GT -> splitBlocks' (cur ++ [h]) acc blks
+    LT -> splitBlocks' [] (acc ++ (if null cur then [] else [cur]) ++ [h : nts]) blks'
+    EQ -> splitBlocks' (h:nts) (acc ++ (if null cur then [] else [cur])) blks'
+    GT -> splitBlocks' (cur ++ (h:nts)) acc blks'
 -- `blockToParagraphs` treats Plain and Para the same, so we can save
 -- some code duplication by treating them the same here.
 splitBlocks' cur acc (Plain ils : blks) = splitBlocks' cur acc (Para ils : blks)
