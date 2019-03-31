@@ -1,0 +1,5 @@
+Pandoc (Meta {unMeta = fromList [("author",MetaInlines [Str "Jesse",Space,Str "Rosenthal"]),("title",MetaInlines [Str "Testing"])]})
+[Div ("",["notes"],[])
+ [Para [Str "Some",Space,Str "speaker",Space,Str "notes"]]
+,Header 1 ("a-header",[],[]) [Str "A",Space,Str "header"]
+,Para [Str "And",Space,Str "a",Space,Str "new",Space,Str "slide."]]

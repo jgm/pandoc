@@ -95,6 +95,10 @@ tests = groupPptxTests [ pptxTests "Inline formatting"
                          def
                          "pptx/speaker_notes_afterheader.native"
                          "pptx/speaker_notes_afterheader.pptx"
+                       , pptxTests "speaker notes after metadata"
+                         def
+                         "pptx/speaker_notes_after_metadata.native"
+                         "pptx/speaker_notes_after_metadata.pptx"
                        , pptxTests "remove empty slides"
                          def
                          "pptx/remove_empty_slides.native"
