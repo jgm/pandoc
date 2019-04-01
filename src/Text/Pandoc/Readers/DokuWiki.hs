@@ -358,7 +358,7 @@ parseWidthHeight s = (width, height)
         _ -> Nothing
 
 image :: PandocMonad m => DWParser m B.Inlines
-image = parseLink fromRaw "{{" "}}"
+image = try $ parseLink fromRaw "{{" "}}"
   where
     fromRaw path description =
       if linkOnly
