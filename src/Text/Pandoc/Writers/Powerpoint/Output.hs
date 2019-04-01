@@ -1619,16 +1619,18 @@ presentationToPresentationElement pres@(Presentation _ slds) = do
 
       -- if there's a notesMasterIdLst in the presentation.xml file,
       -- we want to remove it. We then want to put our own, if
-      -- necessary, after the slideMasterIdLst element.
+      -- necessary, after the slideMasterIdLst element. We also remove
+      -- handouts master, since we don't want it.
 
-      removeNotesMaster' :: Content -> [Content]
-      removeNotesMaster' (Elem e) = case elName e of
+      removeUnwantedMaster' :: Content -> [Content]
+      removeUnwantedMaster' (Elem e) = case elName e of
         (QName "notesMasterIdLst" _ _) -> []
+        (QName "handoutMasterIdLst" _ _) -> []
         _                              -> [Elem e]
-      removeNotesMaster' ct = [ct]
+      removeUnwantedMaster' ct = [ct]
 
-      removeNotesMaster :: [Content] -> [Content]
-      removeNotesMaster = concatMap removeNotesMaster'
+      removeUnwantedMaster :: [Content] -> [Content]
+      removeUnwantedMaster = concatMap removeUnwantedMaster'
 
       insertNotesMaster' :: Content -> [Content]
       insertNotesMaster' (Elem e) = case elName e of
@@ -1642,7 +1644,7 @@ presentationToPresentationElement pres@(Presentation _ slds) = do
                           else id
 
       newContent = insertNotesMaster $
-                   removeNotesMaster $
+                   removeUnwantedMaster $
                    map modifySldIdLst $
                    elContent element
 
