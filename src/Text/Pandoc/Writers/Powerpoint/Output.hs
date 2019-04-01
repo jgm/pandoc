@@ -975,21 +975,45 @@ graphicToElement tableWidth (Tbl tblPr hdrCells rows) = do
      ]
     ]
 
-getShapeByPlaceHolderType :: NameSpaces -> Element -> String -> Maybe Element
+
+-- We get the shape by placeholder type. If there is NO type, it
+-- defaults to a content placeholder.
+
+data PHType = PHType String | ObjType
+  deriving (Show, Eq)
+
+findPHType :: NameSpaces -> Element -> PHType -> Bool
+findPHType ns spElem phType
+  | isElem ns "p" "sp" spElem =
+    let mbPHElem = (Just spElem >>=
+                   findChild (elemName ns "p" "nvSpPr") >>=
+                   findChild (elemName ns "p" "nvPr") >>=
+                   findChild (elemName ns "p" "ph"))
+    in
+      case mbPHElem of
+        -- if it's a named PHType, we want to check that the attribute
+        -- value matches.
+        Just phElem | (PHType tp) <- phType ->
+                        case findAttr (QName "type" Nothing Nothing) phElem of
+                          Just tp' -> tp == tp'
+                          Nothing -> False
+        -- if it's an ObjType, we want to check that there is NO
+        -- "type" attribute. In other words, a lookup should return nothing.
+        Just phElem | ObjType <- phType ->
+                        case findAttr (QName "type" Nothing Nothing) phElem of
+                          Just _ -> False
+                          Nothing -> True
+        Nothing -> False
+findPHType _ _ _ = False
+
+getShapeByPlaceHolderType :: NameSpaces -> Element -> PHType -> Maybe Element
 getShapeByPlaceHolderType ns spTreeElem phType
   | isElem ns "p" "spTree" spTreeElem =
-    let findPhType element = isElem ns "p" "sp" element &&
-                             Just phType == (Just element >>=
-                                             findChild (elemName ns "p" "nvSpPr") >>=
-                                             findChild (elemName ns "p" "nvPr") >>=
-                                             findChild (elemName ns "p" "ph") >>=
-                                             findAttr (QName "type" Nothing Nothing))
-    in
-      filterChild findPhType spTreeElem
+      filterChild (\e -> findPHType ns e phType) spTreeElem
   | otherwise = Nothing
 
 -- Like the above, but it tries a number of different placeholder types
-getShapeByPlaceHolderTypes :: NameSpaces -> Element -> [String] -> Maybe Element
+getShapeByPlaceHolderTypes :: NameSpaces -> Element -> [PHType] -> Maybe Element
 getShapeByPlaceHolderTypes _ _ [] = Nothing
 getShapeByPlaceHolderTypes ns spTreeElem (s:ss) =
   case getShapeByPlaceHolderType ns spTreeElem s of
@@ -1010,7 +1034,7 @@ getShapeByPlaceHolderIndex ns spTreeElem phIdx
   | otherwise = Nothing
 
 
-nonBodyTextToElement :: PandocMonad m => Element -> [String] -> [ParaElem] -> P m Element
+nonBodyTextToElement :: PandocMonad m => Element -> [PHType] -> [ParaElem] -> P m Element
 nonBodyTextToElement layout phTypes paraElements
   | ns <- elemToNameSpaces layout
   , Just cSld <- findChild (elemName ns "p" "cSld") layout
@@ -1030,7 +1054,7 @@ contentToElement layout hdrShape shapes
   | ns <- elemToNameSpaces layout
   , Just cSld <- findChild (elemName ns "p" "cSld") layout
   , Just spTree <- findChild (elemName ns "p" "spTree") cSld = do
-      element <- nonBodyTextToElement layout ["title"] hdrShape
+      element <- nonBodyTextToElement layout [PHType "title"] hdrShape
       let hdrShapeElements = if null hdrShape
                              then []
                              else [element]
@@ -1048,7 +1072,7 @@ twoColumnToElement layout hdrShape shapesL shapesR
   | ns <- elemToNameSpaces layout
   , Just cSld <- findChild (elemName ns "p" "cSld") layout
   , Just spTree <- findChild (elemName ns "p" "spTree") cSld = do
-      element <- nonBodyTextToElement layout ["title"] hdrShape
+      element <- nonBodyTextToElement layout [PHType "title"] hdrShape
       let hdrShapeElements = if null hdrShape
                              then []
                              else [element]
@@ -1072,7 +1096,7 @@ titleToElement layout titleElems
   | ns <- elemToNameSpaces layout
   , Just cSld <- findChild (elemName ns "p" "cSld") layout
   , Just spTree <- findChild (elemName ns "p" "spTree") cSld = do
-      element <- nonBodyTextToElement layout ["title", "ctrTitle"] titleElems
+      element <- nonBodyTextToElement layout [PHType "title", PHType "ctrTitle"] titleElems
       let titleShapeElements = if null titleElems
                                then []
                                else [element]
@@ -1086,15 +1110,15 @@ metadataToElement layout titleElems subtitleElems authorsElems dateElems
   , Just spTree <- findChild (elemName ns "p" "spTree") cSld = do
       titleShapeElements <- if null titleElems
                             then return []
-                            else sequence [nonBodyTextToElement layout ["ctrTitle"] titleElems]
+                            else sequence [nonBodyTextToElement layout [PHType "ctrTitle"] titleElems]
       let combinedAuthorElems = intercalate [Break] authorsElems
           subtitleAndAuthorElems = intercalate [Break, Break] [subtitleElems, combinedAuthorElems]
       subtitleShapeElements <- if null subtitleAndAuthorElems
                                then return []
-                               else sequence [nonBodyTextToElement layout ["subTitle"] subtitleAndAuthorElems]
+                               else sequence [nonBodyTextToElement layout [PHType "subTitle"] subtitleAndAuthorElems]
       dateShapeElements <- if null dateElems
                            then return []
-                           else sequence [nonBodyTextToElement layout ["dt"] dateElems]
+                           else sequence [nonBodyTextToElement layout [PHType "dt"] dateElems]
       return $ replaceNamedChildren ns "p" "sp"
         (titleShapeElements ++ subtitleShapeElements ++ dateShapeElements)
         spTree
@@ -1155,7 +1179,7 @@ getSlideNumberFieldId notesMaster
   | ns <- elemToNameSpaces notesMaster
   , Just cSld <- findChild (elemName ns "p" "cSld") notesMaster
   , Just spTree <- findChild (elemName ns "p" "spTree") cSld
-  , Just sp <- getShapeByPlaceHolderType ns spTree "sldNum"
+  , Just sp <- getShapeByPlaceHolderType ns spTree (PHType "sldNum")
   , Just txBody <- findChild (elemName ns "p" "txBody") sp
   , Just p <- findChild (elemName ns "a" "p") txBody
   , Just fld <- findChild (elemName ns "a" "fld") p
