@@ -409,12 +409,22 @@ getContentShapeSize _ _ _ = throwError $
                             PandocSomeError $
                             "Attempted to find content shape size in non-layout"
 
+buildSpTree :: NameSpaces -> Element -> [Element] -> Element
+buildSpTree ns spTreeElem newShapes =
+  emptySpTreeElem { elContent = newContent }
+  where newContent = elContent emptySpTreeElem ++ map Elem newShapes
+        emptySpTreeElem = spTreeElem { elContent = filter fn (elContent spTreeElem) }
+        fn :: Content -> Bool
+        fn (Elem e) = isElem ns "p" "nvGrpSpPr" e ||
+                      isElem ns "p" "grpSpPr" e
+        fn _        = True
+
 replaceNamedChildren :: NameSpaces
-                   -> String
-                   -> String
-                   -> [Element]
-                   -> Element
-                   -> Element
+                     -> String
+                     -> String
+                     -> [Element]
+                     -> Element
+                     -> Element
 replaceNamedChildren ns prefix name newKids element =
   element { elContent = concat $ fun True $ elContent element }
   where
@@ -1047,10 +1057,7 @@ contentToElement layout hdrShape shapes
       contentElements <- local
                          (\env -> env {envContentType = NormalContent})
                          (shapesToElements layout shapes)
-      return $
-        replaceNamedChildren ns "p" "sp"
-        (hdrShapeElements ++ contentElements)
-        spTree
+      return $ buildSpTree ns spTree (hdrShapeElements ++ contentElements)
 contentToElement _ _ _ = return $ mknode "p:sp" [] ()
 
 twoColumnToElement :: PandocMonad m => Element -> [ParaElem] -> [Shape] -> [Shape] -> P m Element
@@ -1070,10 +1077,7 @@ twoColumnToElement layout hdrShape shapesL shapesR
                           (shapesToElements layout shapesR)
       -- let contentElementsL' = map (setIdx ns "1") contentElementsL
       --     contentElementsR' = map (setIdx ns "2") contentElementsR
-      return $
-        replaceNamedChildren ns "p" "sp"
-        (hdrShapeElements ++ contentElementsL ++ contentElementsR)
-        spTree
+      return $ buildSpTree ns spTree (hdrShapeElements ++ contentElementsL ++ contentElementsR)
 twoColumnToElement _ _ _ _= return $ mknode "p:sp" [] ()
 
 
@@ -1086,7 +1090,7 @@ titleToElement layout titleElems
       let titleShapeElements = if null titleElems
                                then []
                                else [element]
-      return $ replaceNamedChildren ns "p" "sp" titleShapeElements spTree
+      return $ buildSpTree ns spTree titleShapeElements
 titleToElement _ _ = return $ mknode "p:sp" [] ()
 
 metadataToElement :: PandocMonad m => Element -> [ParaElem] -> [ParaElem] -> [[ParaElem]] -> [ParaElem] -> P m Element
@@ -1105,9 +1109,7 @@ metadataToElement layout titleElems subtitleElems authorsElems dateElems
       dateShapeElements <- if null dateElems
                            then return []
                            else sequence [nonBodyTextToElement layout [PHType "dt"] dateElems]
-      return $ replaceNamedChildren ns "p" "sp"
-        (titleShapeElements ++ subtitleShapeElements ++ dateShapeElements)
-        spTree
+      return $ buildSpTree ns spTree (titleShapeElements ++ subtitleShapeElements ++ dateShapeElements)
 metadataToElement _ _ _ _ _ = return $ mknode "p:sp" [] ()
 
 slideToElement :: PandocMonad m => Slide -> P m Element
