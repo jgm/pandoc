@@ -336,22 +336,18 @@ shapeHasId ns ident element
       nm == ident
   | otherwise = False
 
--- The content shape in slideLayout2 (Title/Content) has id=3 In
--- slideLayout4 (two column) the left column is id=3, and the right
--- column is id=4.
 getContentShape :: PandocMonad m => NameSpaces -> Element -> P m Element
 getContentShape ns spTreeElem
   | isElem ns "p" "spTree" spTreeElem = do
       contentType <- asks envContentType
-      let idx = case contentType of
-            NormalContent -> "1"
-            TwoColumnLeftContent -> "1"
-            TwoColumnRightContent -> "2"
-      case getShapeByPlaceHolderIndex ns spTreeElem idx of
-        Just e -> return e
-        Nothing -> throwError $
-                   PandocSomeError $
-                   "Could not find shape for Powerpoint content"
+      let contentShapes = getShapesByPlaceHolderType ns spTreeElem ObjType
+      case contentType of
+        NormalContent | (sp : _) <- contentShapes -> return sp
+        TwoColumnLeftContent | (sp : _) <- contentShapes -> return sp
+        TwoColumnRightContent | (_ : sp : _) <- contentShapes -> return sp
+        _ -> throwError $
+             PandocSomeError $
+             "Could not find shape for Powerpoint content"
 getContentShape _ _ = throwError $
                       PandocSomeError $
                       "Attempted to find content on non shapeTree"
@@ -1006,11 +1002,15 @@ findPHType ns spElem phType
         Nothing -> False
 findPHType _ _ _ = False
 
-getShapeByPlaceHolderType :: NameSpaces -> Element -> PHType -> Maybe Element
-getShapeByPlaceHolderType ns spTreeElem phType
+getShapesByPlaceHolderType :: NameSpaces -> Element -> PHType -> [Element]
+getShapesByPlaceHolderType ns spTreeElem phType
   | isElem ns "p" "spTree" spTreeElem =
-      filterChild (\e -> findPHType ns e phType) spTreeElem
-  | otherwise = Nothing
+      filterChildren (\e -> findPHType ns e phType) spTreeElem
+  | otherwise = []
+
+getShapeByPlaceHolderType :: NameSpaces -> Element -> PHType -> Maybe Element
+getShapeByPlaceHolderType ns spTreeElem phType =
+  listToMaybe $ getShapesByPlaceHolderType ns spTreeElem phType
 
 -- Like the above, but it tries a number of different placeholder types
 getShapeByPlaceHolderTypes :: NameSpaces -> Element -> [PHType] -> Maybe Element
@@ -1019,20 +1019,6 @@ getShapeByPlaceHolderTypes ns spTreeElem (s:ss) =
   case getShapeByPlaceHolderType ns spTreeElem s of
     Just element -> Just element
     Nothing -> getShapeByPlaceHolderTypes ns spTreeElem ss
-
-getShapeByPlaceHolderIndex :: NameSpaces -> Element -> String -> Maybe Element
-getShapeByPlaceHolderIndex ns spTreeElem phIdx
-  | isElem ns "p" "spTree" spTreeElem =
-    let findPhType element = isElem ns "p" "sp" element &&
-                             Just phIdx == (Just element >>=
-                                            findChild (elemName ns "p" "nvSpPr") >>=
-                                            findChild (elemName ns "p" "nvPr") >>=
-                                            findChild (elemName ns "p" "ph") >>=
-                                            findAttr (QName "idx" Nothing Nothing))
-    in
-      filterChild findPhType spTreeElem
-  | otherwise = Nothing
-
 
 nonBodyTextToElement :: PandocMonad m => Element -> [PHType] -> [ParaElem] -> P m Element
 nonBodyTextToElement layout phTypes paraElements
