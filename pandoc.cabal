@@ -288,6 +288,7 @@ extra-source-files:
                  test/writer.opml
                  test/writer.dokuwiki
                  test/writer.zimwiki
+                 test/writer.xwiki
                  test/writer.muse
                  test/writer.custom
                  test/writers-lang-and-dir.latex
