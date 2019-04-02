@@ -480,7 +480,7 @@ Reader options {.options}
 
 `--base-header-level=`*NUMBER*
 
-:   Specify the base level for headers (defaults to 1).
+:   Specify the base level for headings (defaults to 1).
 
 `--strip-empty-paragraphs`
 
@@ -755,7 +755,7 @@ General writer options {.options}
 
 :   Specify the number of section levels to include in the table
     of contents.  The default is 3 (which means that level 1, 2, and 3
-    headers will be listed in the contents).
+    headings will be listed in the contents).
 
 `--strip-comments`
 
@@ -907,23 +907,23 @@ Options affecting specific writers {.options}
 
 `--atx-headers`
 
-:   Use ATX-style headers in Markdown output. The default is
-    to use setext-style headers for levels 1-2, and then ATX headers.
-    (Note: for `gfm` output, ATX headers are always used.)
+:   Use ATX-style headings in Markdown output. The default is
+    to use setext-style headings for levels 1-2, and then ATX headings.
+    (Note: for `gfm` output, ATX headings are always used.)
     This option also affects markdown cells in `ipynb` output.
 
 `--top-level-division=[default|section|chapter|part]`
 
-:   Treat top-level headers as the given division type in LaTeX, ConTeXt,
+:   Treat top-level headings as the given division type in LaTeX, ConTeXt,
     DocBook, and  TEI output. The hierarchy order is part, chapter, then section;
-    all headers are shifted such that the top-level header becomes the specified
+    all headings are shifted such that the top-level heading becomes the specified
     type. The default behavior is to determine the best division type via
     heuristics: unless other conditions apply, `section` is chosen. When the
     LaTeX document class is set to `report`, `book`, or `memoir` (unless the
     `article` option is specified), `chapter` is implied as the setting for this
     option. If `beamer` is the output format, specifying either `chapter` or
-    `part` will cause top-level headers to become `\part{..}`, while
-    second-level headers remain as their default type.
+    `part` will cause top-level headings to become `\part{..}`, while
+    second-level headings remain as their default type.
 
 `-N`, `--number-sections`
 
@@ -936,10 +936,10 @@ Options affecting specific writers {.options}
 
 :   Offset for section headings in HTML output (ignored in other
     output formats).  The first number is added to the section number for
-    top-level headers, the second for second-level headers, and so on.
-    So, for example, if you want the first top-level header in your
+    top-level headings, the second for second-level headings, and so on.
+    So, for example, if you want the first top-level heading in your
     document to be numbered "6", specify `--number-offset=5`.
-    If your document starts with a level-2 header which you want to
+    If your document starts with a level-2 heading which you want to
     be numbered "1.5", specify `--number-offset=1,4`.
     Offsets are 0 by default.  Implies `--number-sections`.
 
@@ -957,12 +957,12 @@ Options affecting specific writers {.options}
 
 `--slide-level=`*NUMBER*
 
-:   Specifies that headers with the specified level create
-    slides (for `beamer`, `s5`, `slidy`, `slideous`, `dzslides`).  Headers
+:   Specifies that headings with the specified level create
+    slides (for `beamer`, `s5`, `slidy`, `slideous`, `dzslides`).  Headings
     above this level in the hierarchy are used to divide the
-    slide show into sections; headers below this level create
+    slide show into sections; headings below this level create
     subheads within a slide.  Note that content that is
-    not contained under slide-level headers will not appear in
+    not contained under slide-level headings will not appear in
     the slide show.  The default is to set the slide level based
     on the contents of the document; see [Structuring the slide
     show].
@@ -971,8 +971,8 @@ Options affecting specific writers {.options}
 
 :   Wrap sections in `<section>` tags (or `<div>` tags for `html4`),
     and attach identifiers to the enclosing `<section>` (or `<div>`)
-    rather than the header itself. See
-    [Header identifiers], below.
+    rather than the heading itself. See
+    [Heading identifiers], below.
 
 `--email-obfuscation=none`|`javascript`|`references`
 
@@ -1182,12 +1182,12 @@ Options affecting specific writers {.options}
 
 `--epub-chapter-level=`*NUMBER*
 
-:   Specify the header level at which to split the EPUB into separate
+:   Specify the heading level at which to split the EPUB into separate
     "chapter" files. The default is to split into chapters at level 1
-    headers. This option only affects the internal composition of the
+    headings. This option only affects the internal composition of the
     EPUB, not the way chapters and sections are displayed to users. Some
     readers may be slow if the chapter files are too large, so for large
-    documents with few level 1 headers, one might want to use a chapter
+    documents with few level 1 headings, one might want to use a chapter
     level of 2 or 3.
 
 `--epub-subdirectory=`*DIRNAME*
@@ -2009,13 +2009,13 @@ literally.  In writing LaTeX, enabling `smart` tells pandoc
 to use the ligatures when possible; if `smart` is disabled
 pandoc will use unicode quotation mark and dash characters.
 
-Headers and sections
---------------------
+Headings and sections
+---------------------
 
 #### Extension: `auto_identifiers` ####
 
-A header without an explicitly specified identifier will be
-automatically assigned a unique identifier based on the header text.
+A heading without an explicitly specified identifier will be
+automatically assigned a unique identifier based on the heading text.
 
 This extension can be enabled/disabled for the following formats:
 
@@ -2029,7 +2029,7 @@ enabled by default in
 :  `markdown`, `muse`
 
 The default algorithm used to derive the identifier from the
-header text is:
+heading text is:
 
   - Remove all formatting, links, etc.
   - Remove all footnotes.
@@ -2043,9 +2043,9 @@ header text is:
 
 Thus, for example,
 
-  Header                            Identifier
+  Heading                           Identifier
   -------------------------------   ----------------------------
-  `Header identifiers in HTML`      `header-identifiers-in-html`
+  `Heading identifiers in HTML`     `heading-identifiers-in-html`
   `Maître d'hôtel`                  `maître-dhôtel`
   `*Dogs*?--in *my* house?`         `dogs--in-my-house`
   `[HTML], [S5], or [RTF]?`         `html-s5-or-rtf`
@@ -2053,7 +2053,7 @@ Thus, for example,
   `33`                              `section`
 
 These rules should, in most cases, allow one to determine the identifier
-from the header text. The exception is when several headers have the
+from the heading text. The exception is when several headings have the
 same text; in this case, the first will get an identifier as described
 above; the second will get the same identifier with `-1` appended; the
 third with `-2`; and so on.
@@ -2067,7 +2067,7 @@ also make it easy to provide links from one section of a document to
 another. A link to this section, for example, might look like this:
 
     See the section on
-    [header identifiers](#header-identifiers-in-html-latex-and-context).
+    [heading identifiers](#heading-identifiers-in-html-latex-and-context).
 
 Note, however, that this method of providing links to sections works
 only in HTML, LaTeX, and ConTeXt formats.
@@ -2075,7 +2075,7 @@ only in HTML, LaTeX, and ConTeXt formats.
 If the `--section-divs` option is specified, then each section will
 be wrapped in a `section` (or a `div`, if `html4` was specified),
 and the identifier will be attached to the enclosing `<section>`
-(or `<div>`) tag rather than the header itself. This allows entire
+(or `<div>`) tag rather than the heading itself. This allows entire
 sections to be manipulated using JavaScript or treated differently in
 CSS.
 
@@ -2176,12 +2176,12 @@ This means that
   - In Markdown input, "bird track" sections will be parsed as Haskell
     code rather than block quotations.  Text between `\begin{code}`
     and `\end{code}` will also be treated as Haskell code.  For
-    ATX-style headers the character '=' will be used instead of '#'.
+    ATX-style headings the character '=' will be used instead of '#'.
 
   - In Markdown output, code blocks with classes `haskell` and `literate`
     will be rendered using bird tracks, and block quotations will be
     indented one space, so they will not be treated as Haskell code.
-    In addition, headers will be rendered setext-style (with underlines)
+    In addition, headings will be rendered setext-style (with underlines)
     rather than ATX-style (with '#' characters). (This is because ghc
     treats '#' characters in column 1 as introducing line numbers.)
 
@@ -2309,43 +2309,43 @@ Note:  in multiline and grid table cells, this is the only way
 to create a hard line break, since trailing spaces in the cells
 are ignored.
 
-Headers
--------
+Headings
+--------
 
-There are two kinds of headers: Setext and ATX.
+There are two kinds of headings: Setext and ATX.
 
-### Setext-style headers ###
+### Setext-style headings ###
 
-A setext-style header is a line of text "underlined" with a row of `=` signs
-(for a level one header) or `-` signs (for a level two header):
+A setext-style heading is a line of text "underlined" with a row of `=` signs
+(for a level-one heading) or `-` signs (for a level two heading):
 
-    A level-one header
-    ==================
+    A level-one heading
+    ===================
 
-    A level-two header
-    ------------------
+    A level-two heading
+    -------------------
 
-The header text can contain inline formatting, such as emphasis (see
+The heading text can contain inline formatting, such as emphasis (see
 [Inline formatting], below).
 
 
-### ATX-style headers ###
+### ATX-style headings ###
 
-An ATX-style header consists of one to six `#` signs and a line of
+An ATX-style heading consists of one to six `#` signs and a line of
 text, optionally followed by any number of `#` signs.  The number of
-`#` signs at the beginning of the line is the header level:
+`#` signs at the beginning of the line is the heading level:
 
-    ## A level-two header
+    ## A level-two heading
 
-    ### A level-three header ###
+    ### A level-three heading ###
 
-As with setext-style headers, the header text can contain formatting:
+As with setext-style headings, the heading text can contain formatting:
 
-    # A level-one header with a [link](/url) and *emphasis*
+    # A level-one heading with a [link](/url) and *emphasis*
 
 #### Extension: `blank_before_header` ####
 
-Standard Markdown syntax does not require a blank line before a header.
+Standard Markdown syntax does not require a blank line before a heading.
 Pandoc does require this (except, of course, at the beginning of the
 document). The reason for the requirement is that it is all too easy for a
 `#` to end up at the beginning of a line by accident (perhaps through line
@@ -2357,29 +2357,29 @@ wrapping). Consider, for example:
 #### Extension: `space_in_atx_header` ####
 
 Many Markdown implementations do not require a space between the
-opening `#`s of an ATX header and the header text, so that
-`#5 bolt` and `#hashtag` count as headers.  With this extension,
+opening `#`s of an ATX heading and the heading text, so that
+`#5 bolt` and `#hashtag` count as headings.  With this extension,
 pandoc does require the space.
 
-### Header identifiers ###
+### Heading identifiers ###
 
 See also the [`auto_identifiers` extension](#extension-auto_identifiers) above.
 
 #### Extension: `header_attributes` ####
 
-Headers can be assigned attributes using this syntax at the end
-of the line containing the header text:
+Headings can be assigned attributes using this syntax at the end
+of the line containing the heading text:
 
     {#identifier .class .class key=value key=value}
 
-Thus, for example, the following headers will all be assigned the identifier
+Thus, for example, the following headings will all be assigned the identifier
 `foo`:
 
-    # My header {#foo}
+    # My heading {#foo}
 
-    ## My header ##    {#foo}
+    ## My heading ##    {#foo}
 
-    My other header   {#foo}
+    My other heading   {#foo}
     ---------------
 
 (This syntax is compatible with [PHP Markdown Extra].)
@@ -2390,49 +2390,49 @@ classes, and key/value attributes are used in HTML and HTML-based formats such
 as EPUB and slidy.  Identifiers are used for labels and link anchors in the
 LaTeX, ConTeXt, Textile, and AsciiDoc writers.
 
-Headers with the class `unnumbered` will not be numbered, even if
+Headings with the class `unnumbered` will not be numbered, even if
 `--number-sections` is specified.  A single hyphen (`-`) in an attribute
 context is equivalent to `.unnumbered`, and preferable in non-English
 documents.  So,
 
-    # My header {-}
+    # My heading {-}
 
 is just the same as
 
-    # My header {.unnumbered}
+    # My heading {.unnumbered}
 
 #### Extension: `implicit_header_references` ####
 
-Pandoc behaves as if reference links have been defined for each header.
-So, to link to a header
+Pandoc behaves as if reference links have been defined for each heading.
+So, to link to a heading
 
-    # Header identifiers in HTML
+    # Heading identifiers in HTML
 
 you can simply write
 
-    [Header identifiers in HTML]
+    [Heading identifiers in HTML]
 
 or
 
-    [Header identifiers in HTML][]
+    [Heading identifiers in HTML][]
 
 or
 
-    [the section on header identifiers][header identifiers in
+    [the section on heading identifiers][heading identifiers in
     HTML]
 
 instead of giving the identifier explicitly:
 
-    [Header identifiers in HTML](#header-identifiers-in-html)
+    [Heading identifiers in HTML](#heading-identifiers-in-html)
 
-If there are multiple headers with identical text, the corresponding
+If there are multiple headings with identical text, the corresponding
 reference will link to the first one only, and you will need to use explicit
 links to link to the others, as described above.
 
 Like regular reference links, these references are case-insensitive.
 
 Explicit link reference definitions always take priority over
-implicit header references.  So, in the following example, the
+implicit heading references.  So, in the following example, the
 link will point to `bar`, not to `#foo`:
 
     # Foo
@@ -2446,7 +2446,7 @@ Block quotations
 
 Markdown uses email conventions for quoting blocks of text.
 A block quotation is one or more paragraphs or other block elements
-(such as lists or headers), with each line preceded by a `>` character
+(such as lists or headings), with each line preceded by a `>` character
 and an optional space. (The `>` need not start at the left margin, but
 it should not be indented more than three spaces.)
 
@@ -2997,7 +2997,7 @@ Simple tables look like this:
 
     Table:  Demonstration of simple table syntax.
 
-The headers and table rows must each fit on one line.  Column
+The header and table rows must each fit on one line.  Column
 alignments are determined by the position of the header text relative
 to the dashed line below it:[^4]
 
@@ -3016,7 +3016,7 @@ to the dashed line below it:[^4]
 The table must end with a blank line, or a line of dashes followed by
 a blank line.
 
-The column headers may be omitted, provided a dashed line is used
+The column header row may be omitted, provided a dashed line is used
 to end the table. For example:
 
     -------     ------ ----------   -------
@@ -3025,13 +3025,13 @@ to end the table. For example:
           1     1          1              1
     -------     ------ ----------   -------
 
-When headers are omitted, column alignments are determined on the basis
+When the header row is omitted, column alignments are determined on the basis
 of the first line of the table body. So, in the tables above, the columns
 would be right, left, center, and right aligned, respectively.
 
 #### Extension: `multiline_tables` ####
 
-Multiline tables allow headers and table rows to span multiple lines
+Multiline tables allow header and table rows to span multiple lines
 of text (but cells that span multiple columns or rows of the table are
 not supported).  Here is an example:
 
@@ -3053,7 +3053,7 @@ not supported).  Here is an example:
 These work like simple tables, but with the following differences:
 
   - They must begin with a row of dashes, before the header text
-    (unless the headers are omitted).
+    (unless the header row is omitted).
   - They must end with a row of dashes, then a blank line.
   - The rows must be separated by blank lines.
 
@@ -3062,7 +3062,7 @@ the columns, and the writers try to reproduce these relative widths in
 the output. So, if you find that one of the columns is too narrow in the
 output, try widening it in the Markdown source.
 
-Headers may be omitted in multiline tables as well as simple tables:
+The header may be omitted in multiline tables as well as simple tables:
 
     ----------- ------- --------------- -------------------------
        First    row                12.0 Example of a row that
@@ -3073,7 +3073,7 @@ Headers may be omitted in multiline tables as well as simple tables:
                                         rows.
     ----------- ------- --------------- -------------------------
 
-    : Here's a multiline table without headers.
+    : Here's a multiline table without a header.
 
 It is possible for a multiline table to have just one row, but the row
 should be followed by a blank line (and then the row of dashes that ends
@@ -3530,7 +3530,7 @@ Markdown, Emacs Org mode, ConTeXt, ZimWiki
     math) or `$$...$$` (for display math).
 
 XWiki
-  ~ It will appear verbatim surrounded by `{{formula}}..{{/formula}}`.
+	  ~ It will appear verbatim surrounded by `{{formula}}..{{/formula}}`.
 
 reStructuredText
   ~ It will be rendered using an [interpreted text role `:math:`].
@@ -3849,7 +3849,7 @@ be omitted entirely:
 ### Internal links ###
 
 To link to another section of the same document, use the automatically
-generated identifier (see [Header identifiers]). For example:
+generated identifier (see [Heading identifiers]). For example:
 
     See the [Introduction](#introduction).
 
@@ -4206,8 +4206,8 @@ Otherwise, it will be placed at the end of the document.
 Generation of the bibliography can be suppressed by setting
 `suppress-bibliography: true` in the YAML metadata.
 
-If you wish the bibliography to have a section header, you can
-set `reference-section-title` in the metadata, or put the header
+If you wish the bibliography to have a section heading, you can
+set `reference-section-title` in the metadata, or put the heading
 at the beginning of the div with id `refs` (if you are using it)
 or at the end of your document:
 
@@ -4215,8 +4215,8 @@ or at the end of your document:
 
     # References
 
-The bibliography will be inserted after this header.  Note that
-the `unnumbered` class will be added to this header, so that the
+The bibliography will be inserted after this heading.  Note that
+the `unnumbered` class will be added to this heading, so that the
 section will not be numbered.
 
 If you want to include items in the bibliography without actually
@@ -4384,8 +4384,8 @@ and image references. This extension should not be confused with the
 
 #### Extension: `mmd_header_identifiers` ####
 
-Parses multimarkdown style header identifiers (in square brackets,
-after the header but before any trailing `#`s in an ATX header).
+Parses multimarkdown style heading identifiers (in square brackets,
+after the heading but before any trailing `#`s in an ATX heading).
 
 #### Extension: `compact_definition_lists` ####
 
@@ -4542,10 +4542,10 @@ To produce a Powerpoint slide show, type
 Structuring the slide show
 --------------------------
 
-By default, the *slide level* is the highest header level in
+By default, the *slide level* is the highest heading level in
 the hierarchy that is followed immediately by content, and not another
-header, somewhere in the document. In the example above, level 1 headers
-are always followed by level 2 headers, which are followed by content,
+heading, somewhere in the document. In the example above, level 1 headings
+are always followed by level 2 headings, which are followed by content,
 so 2 is the slide level.  This default can be overridden using
 the `--slide-level` option.
 
@@ -4554,15 +4554,15 @@ rules:
 
   * A horizontal rule always starts a new slide.
 
-  * A header at the slide level always starts a new slide.
+  * A heading at the slide level always starts a new slide.
 
-  * Headers *below* the slide level in the hierarchy create
-    headers *within* a slide.
+  * Headings *below* the slide level in the hierarchy create
+    headings *within* a slide.
 
-  * Headers *above* the slide level in the hierarchy create
+  * Headings *above* the slide level in the hierarchy create
     "title slides," which just contain the section title
     and help to break the slide show into sections.
-    Non-slide content under these headers will be included
+    Non-slide content under these headings will be included
     on the title slide (for HTML slide shows) or in a
     subsequent slide with the same title (for beamer).
 
@@ -4572,13 +4572,13 @@ rules:
 
 These rules are designed to support many different styles of slide show. If
 you don't care about structuring your slides into sections and subsections,
-you can just use level 1 headers for all each slide. (In that case, level 1
+you can just use level 1 headings for all each slide. (In that case, level 1
 will be the slide level.) But you can also structure the slide show into
 sections, as in the example above.
 
 Note:  in reveal.js slide shows, if slide level is 2, a two-dimensional
-layout will be produced, with level 1 headers building horizontally
-and level 2 headers building vertically.  It is not recommended that
+layout will be produced, with level 1 headings building horizontally
+and level 2 headings building vertically.  It is not recommended that
 you use deeper nesting of section levels with reveal.js.
 
 Incremental lists
@@ -4660,9 +4660,9 @@ To style beamer slides, you can specify a `theme`, `colortheme`,
 
     pandoc -t beamer habits.txt -V theme:Warsaw -o habits.pdf
 
-Note that header attributes will turn into slide attributes
+Note that heading attributes will turn into slide attributes
 (on a `<div>` or `<section>`) in HTML slide formats, allowing you
-to style individual slides.  In beamer, the only header attribute
+to style individual slides.  In beamer, the only heading attribute
 that affects slides is the `allowframebreaks` class, which sets the
 `allowframebreaks` option, causing multiple slides to be created
 if the content overfills the frame.  This is recommended especially for
@@ -4713,7 +4713,7 @@ Frame attributes in beamer
 
 Sometimes it is necessary to add the LaTeX `[fragile]` option to
 a frame in beamer (for example, when using the `minted` environment).
-This can be forced by adding the `fragile` class to the header
+This can be forced by adding the `fragile` class to the heading
 introducing the slide:
 
     # Fragile slide {.fragile}
@@ -4741,7 +4741,7 @@ and `parallaxBackgroundVertical` the same way and must also set
 
 To set an image for a particular reveal.js slide, add
 `{data-background-image="/path/to/image"}`
-to the first slide-level header on the slide (which may even be empty).
+to the first slide-level heading on the slide (which may even be empty).
 
 In reveal.js's overview mode, the parallaxBackgroundImage will show up
 only on the first slide.
@@ -4768,7 +4768,7 @@ Slide 1 has background_image.png as its background.
 
 ## {data-background-image="/path/to/special_image.jpg"}
 
-Slide 2 has a special image for its background, even though the header has no content.
+Slide 2 has a special image for its background, even though the heading has no content.
 ```
 
 Creating EPUBs with pandoc
@@ -4880,7 +4880,7 @@ The following fields are recognized:
 The `epub:type` attribute
 -------------------------
 
-For `epub3` output, you can mark up the header that corresponds to an EPUB
+For `epub3` output, you can mark up the heading that corresponds to an EPUB
 chapter using the [`epub:type` attribute][epub-type]. For example, to set
 the attribute to the value `prologue`, use this markdown:
 
@@ -5056,7 +5056,7 @@ Note that options and extensions that affect reading and
 writing of Markdown will also affect Markdown cells in ipynb
 notebooks.  For example, `--wrap=preserve` will preserve
 soft line breaks in Markdown cells; `--atx-headers` will
-cause ATX style headers to be used; and `--preserve-tabs` will
+cause ATX style headings to be used; and `--preserve-tabs` will
 prevent tabs from being turned to spaces.
 
 Syntax highlighting
@@ -5244,7 +5244,7 @@ application, here are some things to keep in mind:
    If `raw_html` is enabled for the Markdown input, users can
    inject arbitrary HTML.  Even if `raw_html` is disabled,
    users can include dangerous content in attributes for
-   headers, spans, and code blocks.  To be safe, you should
+   headings, spans, and code blocks.  To be safe, you should
    run all the generated HTML through an HTML sanitizer.
 
 Authors
